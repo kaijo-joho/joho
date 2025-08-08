@@ -1,0 +1,249 @@
+@charset "UTF-8";
+
+
+/* ======== 共通スタイル ======== */
+pre {
+  background: #f1f3f4;
+  padding: 1em;
+  border-radius: 8px;
+  font-family: monospace, 'Courier New';
+  font-size: 1.2em;
+  white-space: pre;         /* 折り返し禁止 */
+  overflow-x: auto;         /* 横スクロール */
+  width: 95%;
+  margin: 1em auto;         /* 中央寄せ */
+}
+
+pre code {
+  display: block;
+}
+
+/* ======== 個別スタイル ======== */
+
+pre.python, pre.html, pre.css{
+  background: #e0e8f0;
+  color: #202124;
+
+  border-left: 6px solid #225386;
+  border-top: 1px solid #dadce0;
+  border-right: 1px solid #dadce0;
+  border-bottom: 1px solid #dadce0;
+
+  border-radius: 8px;
+  margin: 1em auto;
+}
+
+/* 実行結果 */
+pre.result {
+  background: #f1f3f4;
+  color: #202124;
+
+  border-left: 6px solid #225386;
+  border-top: 1px solid #dadce0;
+  border-right: 1px solid #dadce0;
+  border-bottom: 1px solid #dadce0;
+
+  border-radius: 8px;
+  margin: 1em auto;
+}
+
+/* 例題 */
+pre.example {
+  background: #f1f8e9;
+  color: #1a1a1a;
+
+  border-left: 6px solid #34a853;
+  border-top: 1px solid #dadce0;
+  border-right: 1px solid #dadce0;
+  border-bottom: 1px solid #dadce0;
+
+  border-radius: 8px;
+  margin: 1em auto;
+}
+
+/* ======== 連結スタイル ======== */
+
+/* python の直後に result があるときだけ調整 */
+/* ✅ 連結時のみ角を丸めない（ここはそのままでOK） */
+pre.python + pre.result {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
+  border-left: 6px solid #225386;
+}
+pre.python + div.result {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
+  border-left: 6px solid #225386;
+}
+
+/* ✅ pre.python であっても常に角を消すのではなく、デフォルトは丸くする */
+pre.python {
+  margin-bottom: 1em;
+  border-bottom-left-radius: 8px;
+  border-bottom-right-radius: 8px;
+  border-bottom-width: 1px;
+}
+
+/* ✅ 連結時だけ margin-bottom と角丸を上書き */
+pre.python:has(+ pre.result) {
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-width: 0;
+}
+pre.python:has(+ div.result) {
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-width: 0;
+}
+
+
+/*      */
+
+div.result {
+  background: #f8f8f8;
+  border-left: 6px solid #225386;
+  border-top: 1px solid #dadce0;
+  border-right: 1px solid #dadce0;
+  border-bottom: 1px solid #dadce0;
+  border-radius: 8px;
+  padding: 1em;
+  width: 95%;
+  margin: 1em auto;
+  font-family: sans-serif;
+  color: #202124;
+}
+
+div.result img {
+  max-width: 100%;
+  height: auto;
+  display: block;
+  margin: 0.5em auto;
+}
+
+img.pyplot {
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+}
+
+/* ======== シンタックスハイライト（トークン色） ======== */
+
+/* Python & HTML */
+.token-keyword     { color: #7e57c2; font-weight: bold; }
+.token-builtins    { color: #1565c0; }
+.token-number      { color: #1b9e77; }
+.token-string      { color: #972a24/*#ef6c00*/; }
+.token-comment     { color: #599347; font-size: 0.9em;}
+.token-boolean     { color: #00897b; font-weight: bold; } /* 落ち着いたグリーン */
+.token-method      { color: #3949ab; } /* 深めのブルー系 */
+.token-paren       { color: #666699; } 
+.space-char        { color: #bbb; font-family: monospace; font-size: 0.9em; }
+
+/* HTML構文 */
+.token-tag         { color: #7e57c2; font-weight: bold; }
+.token-attr        { color: #1565c0; }
+.token-value       { color: #ef6c00; }
+
+/* CSS構文 */
+.token-selector    { color: #1e88e5; font-weight: bold; }
+.token-prop        { color: #43a047; }
+
+
+/* ▼ pre.python + div.result（画像）を連結風に */
+pre.python + div.result {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
+  border-left: 6px solid #225386;
+}
+
+/* ▼ div.result の次に pre.result があるとき：角を消す */
+div.result:has(+ pre.result) {
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-width: 0;
+}
+
+/* ▼ pre.result が div.result の後に来たとき：上の角を消す */
+div.result + pre.result {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
+}
+
+
+
+/* ▼ pre.result のすぐ下に div.result がある場合：上下連結風に */
+pre.result + div.result {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
+  border-left: 6px solid #225386;
+}
+
+/* ▼ pre.result が上にある場合、その下の余白と角を消す */
+pre.result:has(+ div.result) {
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-width: 0;
+}
+
+
+
+
+/* ▼ Pythonエラー */
+pre.python.error {
+  background: #ffe9e9;         /* 薄い赤系 */
+  border-left: 6px solid #d32f2f;  /* 濃い赤系 */
+}
+
+/* ▼ resultエラー */
+pre.result.error,
+div.result.error {
+  /* 背景色はそのまま、枠線のみ赤系 */
+  border-left: 6px solid #d32f2f;
+}
+
+
+
+
+/* pre.python.example の直後に result がある場合だけ、左枠線を example と同じ緑にする */
+pre.python.example + pre.result,
+pre.python.example + div.result {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
+  border-left: 6px solid #34a853; /* example と同じ緑 */
+}
+
+/* ▼ 連結時(error同士)の上書き */
+pre.python.error + pre.result,
+pre.python.error + div.result {
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
+  border-left: 6px solid #d32f2f; /* エラー色で上書き */
+}
+
+
+/* コピー禁止（クラス名に example, copy-ok を含まない pre 要素） */
+pre:not([class*="example"]):not([class*="copy-ok"]) {
+  user-select: none;         /* テキスト選択不可 */
+  position: relative;
+}
+
+
+

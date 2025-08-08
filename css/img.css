@@ -1,0 +1,47 @@
+@charset "UTF-8";
+
+
+
+/*画像リンクの枠線がデフォルトになってしまう問題が未解決・・・*/
+a.expand-img img{
+	border-style: solid;
+	border-color: #cccccc;
+}
+
+a.expand-img img:hover{
+	border-color: #333333;
+}
+
+img{
+	border:none;
+  max-width: 90%;
+}
+
+img.screen_shot{
+	max-width: 90%;
+	margin: 10px auto;
+	border:none;
+	border: solid 1px;
+	border-color: rbga(128, 128, 128, 0.50);
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+	border-bottom-left-radius: 10px;
+	border-bottom-right-radius: 10px;
+  display: block;
+} 
+
+img.screen_shot:hover{
+	border: solid 1px;
+	border-color: rbga(64, 64, 64, 0.50);
+}
+
+img.image_center{
+	max-width: 90%;
+}
+
+img.pyplot{
+  margin: 10px;
+  width: 400px;
+}
+
+

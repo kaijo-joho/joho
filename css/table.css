@@ -1,0 +1,120 @@
+@charset "UTF-8";
+/* table 系のCSS*/
+
+div.table-scroll{
+  overflow-x: scroll;
+  margin: 10px 0px;
+  width: 90%;
+}
+
+table{
+  min-width: 480px;
+  max-width: 90%;
+	border-collapse: collapse;
+	padding: 	10px;
+  margin: 10px auto;
+  font-size: 1rem;}
+
+th, td{
+	border: solid 1px;
+	border-color:rgba(128,128,128,0.5);
+	text-align: center;
+  max-width: 720px;
+  white-space: normal;
+}
+
+td.text-align-left{
+  padding: 4px;
+  text-align: justify;
+}
+
+th{
+	background-color: rgba(0,84,138,0.90);
+	font-weight: 600;
+	color: rgba(256,256,256,0.90);
+}
+
+/*デフォルトで偶数行に背景を設定*/
+tr:nth-child(odd){
+	background-color: rgba(200,200,200,0.3);
+}
+
+/*偶数行に背景を設定しない場合はclass="bg-none"を指定*/
+tr.bg-none:nth-child(odd){
+	background-color: rgba(255,255,255,0.3);
+}
+
+table.example pre code{
+  margin:0px;
+}
+table.example td{
+  text-align: justify;
+}
+table.example tr th{
+  min-width: 40px;
+}
+
+.min-width-20px{min-width: 20px;}
+.min-width-40px{min-width: 40px;}
+.min-width-60px{min-width: 60px;}
+.min-width-80px{min-width: 80px;}
+.min-width-100px{min-width: 100px;}
+.min-width-120px{min-width: 120px;}
+.min-width-140px{min-width: 140px;}
+.min-width-160px{min-width: 160px;}
+.min-width-180px{min-width: 180px;}
+.min-width-200px{min-width: 200px;}
+.min-width-220px{min-width: 220px;}
+.min-width-240px{min-width: 240px;}
+.min-width-260px{min-width: 260px;}
+.min-width-280px{min-width: 280px;}
+.min-width-300px{min-width: 300px;}
+.min-width-320px{min-width: 320px;}
+.min-width-440px{min-width: 440px;}
+.min-width-460px{min-width: 460px;}
+.min-width-480px{min-width: 480px;}
+
+
+
+
+
+table.python_keyboard{
+  min-width: 90%;
+  max-width: 90%;
+}
+
+
+table.python_keyboard td{
+  padding:4px 2px;
+  vertical-align: middle;
+}
+table.python_keyboard img{
+  vertical-align: middle;
+  height: 36px;
+}
+
+
+table.python_keyboard tt{
+  font-size: 1.2rem;
+}
+
+img.keyboard{
+  height: 28px;
+}
+
+
+p.centered-content {
+  /*vertical-align: middle;*/
+  line-height: 28px;
+}
+
+p.centered-content img {
+  height: 28px;
+  margin: 0px 2px;
+  vertical-align: middle;
+}
+
+
+
+
+

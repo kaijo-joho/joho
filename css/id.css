@@ -1,0 +1,13 @@
+@charset "UTF-8";
+
+table#level_of_measurement tr{
+  height: 36px;
+}
+
+table#level_of_measurement tr.border-bottom_double{
+  border-bottom: 3px double rgba(128,128,128,0.5);
+}
+
+table#level_of_measurement tr.small-text{
+  font-size: 80%;
+}

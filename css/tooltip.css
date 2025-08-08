@@ -1,0 +1,85 @@
+@charset "UTF-8";
+
+/*ツールチップ（説明のためのポップアップ）*/
+/*HTMLタグには次のように指定する。
+<span class="tooltip" tooltip-data="ツールチップのテキスト">コンテンツ</span>
+*/
+
+.tooltip {
+  position: relative;
+  border-bottom: 1px dotted #333;
+  cursor: pointer;
+  user-select: none;
+}
+    
+.tooltip:before {
+  content: attr(tooltip-data);
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  white-space: nowrap;
+  background-color: rgba(0,0,0,0.7);
+  color: #ffffff;
+  text-align: center;
+  padding: 5px 10px;
+  transform: translateX(-50%);
+  border-radius: 5px;
+  z-index: 1;
+  transition: all .2s ease-in-out;
+  top: -36px/*-43px*/;
+  left: 50%;
+  font-size: 70%;
+}
+    
+.tooltip:after {
+  content: "";
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  top: -11px;
+  left: calc(50% - 8px);
+  transition: all .2s ease-in-out;
+  border: 9px solid transparent;
+  border-top: 9px solid #555;
+}
+
+.tooltip:hover:before, .tooltip:hover:after {
+  opacity: 1;
+  visibility: visible;
+}
+
+
+/*†と‡*/
+.dagger {
+  position: relative;
+  border-bottom: 1px dotted #333;
+  overflow: visible; /* 追加 */
+  user-select: none;
+}
+
+.dagger:before {
+  content: attr(tooltip-data);
+  opacity: 0;
+  visibility: hidden;
+  position: absolute;
+  white-space: pre-wrap; /* テキスト内の改行を保持 */
+  background-color: rgba(0,0,0,0.7);
+  color: #ffffff;
+  text-align: center;
+  padding: 2px 4px;
+  transform: translateX(-50%);
+  border-radius: 5px;
+  z-index: 1;
+  transition: all .2s ease-in-out;
+  top: -56px/*-43px*/;
+  left: 50%;
+  font-size: 50%;
+  font-weight: lighter;
+  min-width: 160px;  /*幅を固定する値を指定 */
+  overflow: visible; /* 追加 */
+}
+
+.dagger:hover:before, .dagger:hover:after {
+  opacity: 1;
+  visibility: visible;
+}

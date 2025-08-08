@@ -1,0 +1,613 @@
+@charset "UTF-8";
+
+/* section */
+
+section{
+    background-color: rgba(255,255,255,0.98);
+    width: 100%;
+    margin: 0 auto;
+    padding: 0px;
+}
+
+section#page_header{
+  padding: 30px 0 0 0;/*headerからsection#page_headerまでの余白*/
+}
+
+
+section article {
+  max-width: 720px;
+  margin: 0 auto;
+  padding-top: 24px;
+  padding-bottom: 48px; 
+}
+
+header section article{
+  padding-bottom: 16px;
+}
+
+
+section article h1, section h1 a, #title{
+  color: var(--theme-color);
+  font-size: var(--font-size-h1);
+  font-weight:   900;
+  text-decoration: none;
+}
+
+
+section p{
+  /*margin-left: calc((100% - 720px)/2);*/
+  margin: 0 auto;
+  text-align: justify;
+}
+
+
+section h3, summary.h3{
+  font-size: var(--font-size-h3);
+  font-style: normal;
+  font-weight:   600;
+  color: var(--theme-color);
+  margin:  60px 4px 2px;
+  box-sizing: content-box;
+}
+section h3 a{
+  font-size: var(--font-size-h3);
+  font-style: normal;
+  font-weight:   600;
+  color: var(--theme-color);
+  margin:   60px 4px 2px;
+  /*text-decoration: none;*/
+  box-sizing: content-box;
+}
+section h3 a:hover{
+  text-decoration: underline;
+}
+
+article h3:first-of-type {
+  margin-top: 40px; /* 最初のh3タグに適用するmargin-topの値 */
+}
+
+
+
+
+section h4, summary.h4{
+  font-size: var(--font-size-h4);
+  font-style: normal;
+  font-weight:   600;
+  /*color: var(--theme-color);*/
+  margin:  20px 16px 4px 8px;
+  box-sizing: content-box;
+  color: var(--font-color-strong-text);
+}
+section h4 strong, section h4 b{
+  font-size: var(--font-size-h4);
+  color: var(--font-color-red);
+}
+
+section h5, summary.h5{
+  font-size: var(--font-size-h5);
+  font-style: normal;
+  font-weight:   600;
+  /*color: var(--theme-color);*/
+  margin:  20px 16px 4px 12px;
+  box-sizing: content-box;
+  color: var(--font-color-normal-text);
+}
+section h5 strong, section h5 b{
+  font-size: var(--font-size-h5);
+  color: var(--font-color-red);
+}
+
+section article p{
+  font-size: var(--font-size-p);
+  font-weight:   200;
+  margin: 8px 16px 8px 16px;
+  box-sizing: content-box;
+}
+section > article > p > strong, section > article > p > b
+section > article  li strong, section > article li strong{
+  font-weight:    600;
+  background-color:   rgba(10,84,138,0.08);
+  color:   var(--font-color-strong-text);
+  font-family: var(-font-code);
+  padding:   0px 5px;
+  font-size: 1em;
+}
+
+section > article > p > strong.tag, section > article > p > b.tag{
+  font-weight:    600;
+  background-color:   rgba(10,84,138,0.08);
+  color:       var(--font-color-red);
+  font-family: var(-font-code);
+  padding:   0px 5px;
+  font-size: 1em;
+}
+
+
+
+section article p.center{
+  text-align: center;
+}
+
+h2{
+  margin:   0px 0px 0px 0px;
+  padding:   2px 12px;
+  color: rgba(0, 0, 0, 1.00);
+  background-color: var(--background-color-lightgray);
+  
+  border-bottom: 2px solid;
+  border-bottom-color: var(--theme-color);
+  
+  border-left: 10px solid;
+  border-left-color: var(--theme-color);
+  
+  box-sizing: border-box;/*content-box;*/
+  overflow: hidden;
+  white-space: nowrap;
+  
+  height: 48px;
+  line-height: 48px;
+  font-size: var(--font-size-h2);
+  font-weight:   600;
+  
+}
+
+
+section article ul{
+  list-style-position: inside;
+}
+
+section article ul.list-style-none{
+  list-style: none;
+}
+
+section article ul > li{
+  color: var(--font-color-normal-text);
+  margin: 10px 0px;
+  padding: 0px 0px;
+  font-size: 1rem;
+  text-indent: 0.1em;
+}
+section article ul li  a{
+  color: var(--font-color-normal-text);
+  text-decoration: underline #333333;
+  display: inline-block;
+  font-weight: bolder;
+}
+
+section article ul li a:hover{
+  color: var(--font-color-strong-text);
+  text-decoration: underline;
+}
+
+section article ul ul{
+  list-style: none;
+}
+section article ul ul li{
+  color: var(--font-color-normal-text);
+  margin: 2px 0px;
+  padding: 0px 0px;
+  font-size: 1rem;
+}
+
+section article > ul > li > p{
+  margin-left: 40px;
+}
+
+
+/*olタグ*/
+section article ol{
+  list-style: none;
+  counter-reset: number;
+}
+section article ol li{
+  position: relative;
+  padding-left: 0em;
+  margin-left:0;
+}
+section article ol li::before{
+  counter-increment: number;
+  content: '（' counter(number) '）';
+  position: absolute;
+  left: -2.5em;
+  font-weight: bold;
+}
+
+/*notesクラス(注釈)用。*/
+section article ol.notes{
+  list-style: none;
+  counter-reset: number;
+  font-size: 0.8em;
+}
+section article ol.notes{
+  list-style: none;
+  counter-reset: number;
+  margin-left: 40px;
+  width: 80%;
+  align-content: center;
+}
+section article ol.notes li {/*1つめのli*/
+  position: relative;
+  padding-left: 0px;
+  margin-left: 0px;
+  font-weight: bold;
+  margin-top: 0px;
+}
+section article ol.notes li:not(:first-child) {  /*2つめ以降のli*/
+  margin-top: 10px;
+}
+
+section article ol.notes li::before{
+  counter-increment: number;
+  content: '※' counter(number);
+  position: absolute;
+  left: -2.5em;
+  font-weight: bold;
+}
+section article ol.notes li blockquote{
+  font-weight: lighter;
+  font-size: 0.8em;
+}
+section article ol.notes li blockquote b{
+  font-weight: bold;
+  background-color:   rgba(10,84,138,0.08);
+  color:   var(--font-color-strong-text);
+  font-family: var(-font-code);
+  padding:   0px 3px;
+  font-size: 1em;
+}
+
+
+a{
+  color: var(--font-color-normal-text);
+}
+
+
+section article p a{
+  color: var(--font-color-normal-text);
+  text-decoration: underline #cccccc;
+  font-size: 1rem;
+  display: inline-block;
+  font-weight: medium;
+}
+section article p a:hover{
+  color: var(--font-color-strong-text);
+  text-decoration: underline var(--font-color-strong-text);
+}
+
+
+section article div.html_code_header{
+  background-color: var(--background-color-html-header); 
+  font-family: var(-font-code);
+  color: var(--font-color-code-light); 
+  height: 24px;  
+  margin-top: 10px;
+  padding: 2px 10px 2px 10px;
+  border-top-left-radius: 10px; 
+  border-top-right-radius:10px;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
+}
+section article div.html_code_footer{
+  /*
+  background-color: var(--background-color-code); 
+  font-family: var(-font-code);
+  height: 10px;  
+  margin-bottom: 10px;
+  border-bottom-right-radius:10px; 
+  border-bottom-left-radius: 10px;
+  */
+}
+
+section article div.html_code{
+  background-color: var(--background-color-code); 
+  color: var(--background-color-dark);
+  font-family: var(-font-code);
+  margin-bottom: 10px;
+  border-bottom-right-radius:10px; 
+  border-bottom-left-radius: 10px;
+  
+  
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+  
+  
+}
+section > article > pre > code > strong, section > article > pre > code > b{
+  background-color: rgba(255,255,255,0.00);
+}
+
+
+pre{
+  background: transparent;
+}
+code{
+  background: transparent;
+}
+
+/*Highlight.js ks.cssより転記*/
+div pre code.hljs{
+  display:block;
+  overflow-x:auto;
+  padding: 10px 10px 10px 10px;
+  margin: 10px 0px 10px 0px;
+  color:#333333;
+}
+
+
+div.example pre code.hljs{
+  padding: 10px 10px 10px 10px;
+  margin: 10px 0px 10px 0px;
+}
+div.code pre code.hljs{
+  padding: 10px 10px 10px 10px;
+  margin: 10px 0px 0px 0px;
+}
+
+div.code-details pre code.hljs{
+  padding: 0px 10px 10px 10px;
+  margin: 0px 0px 0px 0px;
+}
+div.code-details pre:first-of-type code.hljs{
+  padding: 10px 10px 10px 10px;
+  margin: 0px 0px 0px 0px;
+}
+div.result pre code.hljs{
+  padding: 10px 10px 10px 10px;
+  margin: 0px 0px 10px 0px;
+}
+div.html_code pre code.hljs{
+  padding: 10px 10px 10px 10px;
+  margin: 0px 0px 0px 0px;
+}
+
+
+summary:hover {
+  cursor: pointer; /* カーソルを指マークに */
+}
+section article div.code-details > details > summary,
+section article div.result > details > summary{
+  padding: 0px 10px;
+  color: var(--font-color-code-details-summary);
+  font-size: 0.9em;
+  margin: 0px 0px 0px 0px; 
+  overflow-x: scroll;
+  white-space: pre;
+  cursor: pointer;
+}
+section article div.code-details > details:open > summary,
+section article div.result > details:open > summary{
+  margin: 0px 0px 0px 0px; 
+}
+section article div.code-details > details > summary:hover,
+section article div.result > details > summary:hover{
+  color: var(--font-color-code-comment);
+}
+
+
+section article div.code-details > details:first-of-type > summary,
+section article div.result > details:first-of-type > summary{
+  /*div.code-details(div.result)内の最初のdetailsのsummaryを対象*/
+  padding-top: 10px;
+}
+
+
+section article div.code-details details{
+}
+div.result-plain{
+  padding: 0px 10px 0px 10px;
+  margin: 0px 0px 0px 0px;
+}
+
+
+
+section article div.notice {
+  background-color: rgba(255,220,220,1.00);
+  font-weight:   400;
+  color: var(--font-color-code);
+  font-family: var(-font-code);
+  margin:   10px 20px 20px;
+  padding:   10px;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+
+div.example, div.code, div.code-details, div.result, div.html_code, div.html_code_header, div.html_code_footer, div.example-plain, div.result-plain, div.notice {
+  width: 90%;
+  margin: 0 auto;
+  font-size: 1.1em;
+}
+
+.border-radius-top-10px{
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+.border-radius-bottom-10px{
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+.border-radius-top-0px{
+  border-top-left-radius: 0px;
+  border-top-right-radius: 0px;
+}
+.border-radius-bottom-0px{
+  border-bottom-left-radius: 0px;
+  border-bottom-right-radius: 0px;
+}
+
+section article div.example {
+  background-color: var(--background-color-example);
+  font-weight:   400;
+  color: var(--font-color-code);
+  font-family: var(-font-code);
+  /*margin: 10px 20px 20px;*/
+  padding: 0px   /*10px*/;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+section article div.example-plain {
+  background-color: var(--background-color-example);
+  font-weight:   400;
+  color: var(--font-color-code);
+  font-family: var(-font-code);
+  margin: 10px 20px 20px;
+  padding: 10px   /*10px*/;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+details{
+  padding: 0px;
+  margin: 0px;
+}
+
+
+section article details summary{
+  padding: 10px;
+  margin: 0px;
+}
+
+section article div.example details {
+  background-color: rgba(221,225,243,1.0);
+  font-weight:   400;
+  color: var(--font-color-code);
+  font-family: var(-font-code);
+  padding:   0px;  
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+}
+
+section article div.code{
+  background-color: var(--background-color-code);
+  font-weight:   400;
+  /*color: var(--font-color-code);*/
+  font-family: var(-font-code);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  
+  -webkit-touch-callout: none; /* iOS Safari */
+    -webkit-user-select: none; /* Safari */
+     -khtml-user-select: none; /* Konqueror HTML */
+       -moz-user-select: none; /* Firefox */
+        -ms-user-select: none; /* Internet Explorer/Edge */
+            user-select: none; /* Non-prefixed version, currently
+                                  supported by Chrome and Opera */
+}
+
+section article div.code-details{
+  background-color: var(--background-color-code);
+  font-weight:   400;
+  color: var(--font-color-code);
+  font-family: var(-font-code);
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+}
+
+
+section article div.result{
+  background-color: var(--background-color-result);
+  font-weight:   150;
+  color: var(--font-color-code);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  margin-bottom: 30px;
+}
+section article div.result-plain{
+  background-color: var(--background-color-result);
+  font-weight:   150;
+  color: var(--font-color-code);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  margin-bottom: 30px;
+}
+
+section article div.result pre{
+  font-weight:   150;
+  margin: 0px;
+  padding:   0px;
+  color: rgba(64,64,64,1.00);
+}
+
+section article div.example em{
+  color:   var(--font-color-code-comment);
+  font-family: var(-font-code);
+  font-weight: 300;
+  padding:   2px;
+  font-size: var(--font-size-code-em);
+  font-style:normal;
+}
+
+section article div.code em, section article div.code-details em{
+  color:   var(--font-color-code-comment);
+  font-family: var(-font-code);
+  font-weight: 300;
+  padding-left:   2px;
+  font-size: var(--font-size-code-em);
+  font-style:normal;
+}
+section article div.code-details > details + em{
+  /*details直後のemを対象（折りたたみ直後の<em>####(1)ここまで</em>などを対象）*/
+  color: var(--font-color-code-details-summary);
+  padding-left: 10px;
+  padding-bottom: 10px;
+}
+
+section article div.result em{
+  color:   var(--font-color-code-comment);
+  font-weight: 300;
+  padding:   2px;
+  font-size: var(--font-size-result-em);
+  font-style:normal;
+}
+
+section article span.code-style{
+  font-family: var(--font-code);
+  background-color: #eeeeee;
+  padding: 0px 4px;
+}
+section article span._red{
+  color: var(--font-color-red);
+}
+
+section article span._green{
+  color: var(--font-color-lightgreen);
+}
+
+section article span._purple{
+  color: var(--font-color-purple);
+}
+
+section article span._lime{
+  color: var(--font-color-lime);
+}
+
+section article span._orange{
+  color: var(--font-color-orange);
+}
+section article span._yellow{
+  color: var(--font-color-yellow);
+}
+
+
+.bgcolor_lighterred{
+  background-color: var(--background-color-lighterred);
+}
+.bgcolor_lightred{
+  background-color: var(--background-color-lightred);
+}
+
