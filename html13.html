@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Google tag (gtag.js) ここから-->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-ZW1B1EX70P');
+  </script>
+  <!-- Google tag (gtag.js) ここまで-->
+  
+
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <!-- Lightbox2 CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+  <!--MathJax-->
+  <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <meta charset="UTF-8" />
+  <link rel="icon" href="./img/favicon.ico" />
+  <title>海城中学高等学校 情報科</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>
+  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  <header><!-- script_pages.js --></header>
+  <!----COMMON HEADER END---->
+
+
+  <section>
+    <article>
+      <h2 id="headline_1">(1) 見出し</h2>
+
+
+      <h3>見出しタグ&lt;h1&gt;〜&lt;h6&gt;</h3>
+      <p>
+        見出しには<b>&lt;h1&gt;</b>〜<b>&lt;h6&gt;</b>タグを使います。<b>h</b>は見出しを意味するheadingの略です。<b>h1</b>，<b>h2</b>，<b>h3</b>，<b>h4</b>，<b>h5</b>，<b>h6</b>の６種類のタグがあり、<b>h1</b>が一番大きな見出しで、<b>h2</b>，<b>h3</b>と数字が大きくなるにしたがって見出しのサイズは小さくなります。見出しのレベルによって使い分けをしましょう。
+      </p>
+
+      <pre class="html"><code>
+        &lt;!-- sample1-3_1.html ＞ 実習コード① --&gt;
+        &lt;h1&gt;見出し1&lt;/h1&gt;
+        &lt;h2&gt;見出し2&lt;/h2&gt;
+        &lt;h3&gt;見出し3&lt;/h3&gt;
+        &lt;h4&gt;見出し4&lt;/h4&gt;
+        &lt;h5&gt;見出し5&lt;/h5&gt;
+        &lt;h6&gt;見出し6&lt;/h6&gt;
+			</code></pre>
+
+
+      <img src="./img/html02_001.png" class="screen_shot" width="150px" alt="見出し">
+
+      <p>大見出しである<b>&lt;h1&gt;</b>は１ページにつき１回が推奨されていいて、そのページのタイトルなどに用いられます。
+        <b>&lt;h2&gt;</b>を記事のまとまりとしての中見出し，<b>&lt;h3&gt;</b>を小見出しとして使用されることが多いです。さらに必要であれば<b>&lt;h4&gt;</b>をより小さい見出しとして用い、<b>&lt;h5&gt;</b>と<b>&lt;h6&gt;</b>はあまり使われることはありません。
+      </p>
+
+
+
+
+
+    </article>
+
+    <article>
+      <h2 id="headline_2">(2) 段落と改行</h2>
+
+      <h3>段落タグ&lt;p&gt;</h3>
+      <p>
+        <b>&lt;p&gt;タグ</b>は文章の段落を表します。<b>p</b>は段落を意味するparagraphの略です。&lt;p&gt;〜&lt;/p&gt;に囲まれた部分が１つの段落となります。段落と段落の間は改行され、段落間には少しスペースができます。
+      </p>
+
+      <pre class="html"><code>
+        &lt;!-- sample1-3_1.html ＞ 実習コード② --&gt;
+        &lt;p&gt;1段落目の文章&lt;/p&gt;
+        &lt;p&gt;2段落目の文章&lt;/p&gt;
+        &lt;p&gt;3段落目の文章&lt;/p&gt;
+			</code></pre>
+
+
+      <h3>改行タグ&lt;br&gt;</h3>
+      <p><b>&lt;br&gt;タグ</b>は段落の中で改行するときに使います。<b>br</b>はbreakの略です。改行したい位置で<b>&lt;br&gt;</b>を記述し、終了タグは不要です。
+        <b>&lt;p&gt;タグ</b>がひとまとまりの文章としての段落であるのに対して、<b>&lt;br&gt;タグ</b>は閲覧性の見やすさから改行をしたいときや改行前後で段落を変えたくないときに用います。
+      </p>
+
+      <pre class="html"><code>
+        &lt;!-- sample1-3_1.html ＞ 実習コード③ --&gt;
+        &lt;p&gt;1段落目の文章をここに書きます。&lt;br&gt;
+        次の段落にはいかないが、改行したいときに改行タグを使います。&lt;/p&gt;
+			</code></pre>
+
+    </article>
+
+
+    <article>
+      <h2 id="headline_3">(3) 文字の強調</h2>
+
+      <p>文章の中で特に重要な語句がある場合、<b>&lt;strong&gt;タグ</b>や<b>&lt;em&gt;タグ</b>を使って強調します。</p>
+      <h3>&lt;strong&gt;タグ</h3>
+      <p><b>&lt;strong&gt;タグ</b>は重要な語句・内容を示します。多くのブラウザでは、<b>太字</b>で表示されます。</p>
+
+      <pre class="html"><code>
+        &lt;!-- sample1-3_1.html ＞ 実習コード④ --&gt;
+        &lt;p&gt;重要な語句には&lt;strong&gt;strongタグ&lt;/strong&gt;を使います。&lt;/p&gt;
+			</code></pre>
+
+      <h3>&lt;em&gt;タグ</h3>
+      <p><b>&lt;<span class="tooltip"
+            tooltip-data="イーエム">em</span>&gt;タグ</b>はemphasisの略で、アクセントをつけて強調します。<b>&lt;strong&gt;</b>ほど強く強調しない場合には<b>&lt;em&gt;</b>を使用します。多くのブラウザでは、<b
+          style="font-style:italic;">斜体</b>で表示されます。</p>
+
+      <pre class="html"><code>
+        &lt;!-- sample1-3_1.html ＞ 実習コード⑤ --&gt;
+        &lt;p&gt;strongほど強くはないが、強調したいときには&lt;em&gt;emタグ&lt;/em&gt;を使います。&lt;/p&gt;
+			</code></pre>
+
+    </article>
+
+    <article>
+      <h2 id="headline_4">(4) ページの構成</h2>
+
+      <h3>ページの構成</h3>
+      <p><b>hタグ</b>や<b>pタグ</b>を使って、１ページのアウトラインは次のような形にすることが推奨されています。</p>
+      <p>必要に応じて<b>インデント</b>（字下げ）をつけるとソースコードが見やすくなります。インデントは半角スペース２つ分で字下げします。</p>
+
+      <pre class="html"><code>
+        &lt;!-- sample1-3_2.html ＞ 実習コード① --&gt;
+        &lt;h1&gt;Webページ制作の基礎&lt;/h1&gt;
+
+          &lt;h2&gt;HTMLの基本構造&lt;/h2&gt;
+            &lt;h3&gt;HTMLとは何か&lt;/h3&gt;
+              &lt;p&gt;HTMLはウェブページを作成するための言語です。&lt;br&gt;
+                主にテキストや画像を表示するために使われます。&lt;/p&gt;
+              &lt;p&gt;ウェブブラウザはHTMLを解釈し、ページの見た目を表示します。&lt;/p&gt;
+
+            &lt;h3&gt;基本的なタグ&lt;/h3&gt;
+              &lt;p&gt;HTMLには、見出しや段落などを定義するための&lt;strong&gt;タグ&lt;/strong&gt;があります。&lt;br&gt;
+                見出しは&lt;em&gt;h1&lt;/em&gt;から&lt;em&gt;h6&lt;/em&gt;まであり、段落は&lt;em&gt;p&lt;/em&gt;で表されます。&lt;/p&gt;
+              &lt;p&gt;これらのタグを使うことで、ページの構造を作ることができます。&lt;/p&gt;
+
+            &lt;h3&gt;HTMLファイルの構成&lt;/h3&gt;
+              &lt;p&gt;通常、HTMLファイルは&lt;strong&gt;html&lt;/strong&gt;というタグで囲まれます。&lt;br&gt;
+                その中に&lt;strong&gt;head&lt;/strong&gt;タグと&lt;strong&gt;body&lt;/strong&gt;タグが含まれます。&lt;/p&gt;
+              &lt;p&gt;&lt;strong&gt;head&lt;/strong&gt;にはページのタイトルやスタイルなどが、&lt;strong&gt;body&lt;/strong&gt;には実際のコンテンツが入ります。&lt;/p&gt;
+
+          &lt;h2&gt;CSSの基礎&lt;/h2&gt;
+            &lt;h3&gt;CSSとは&lt;/h3&gt;
+              &lt;p&gt;CSSはウェブページのデザインを設定するための言語です。&lt;br&gt;
+                色やフォント、レイアウトなどを指定することができます。&lt;/p&gt;
+              &lt;p&gt;CSSを使うと、ウェブページの見た目を簡単に変えることができます。&lt;/p&gt;
+
+            &lt;h3&gt;セレクタとプロパティ&lt;/h3&gt;
+              &lt;p&gt;CSSでは、要素を選んで、そのデザインを指定します。&lt;br&gt;
+                たとえば、&lt;strong&gt;p&lt;/strong&gt;というタグを選んで、文字の色や大きさを設定することができます。&lt;/p&gt;
+              &lt;p&gt;プロパティとしては、色やフォントサイズなどがあります。&lt;/p&gt;
+
+            &lt;h3&gt;外部スタイルシートの使用&lt;/h3&gt;
+              &lt;p&gt;外部のCSSファイルを使うと、複数のページに同じデザインを適用することができます。&lt;/p&gt;
+              &lt;p&gt;これにより、デザインの管理が簡単になります。&lt;/p&gt;
+			</code></pre>
+
+    </article>
+
+
+  </section>
+
+
+
+  <!-- COMMON FOOTER START -->
+  <section id="next_page"><!-- script_pages.js --></section>
+  <footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+  <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+
+</html>

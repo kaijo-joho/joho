@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Google tag (gtag.js) ここから-->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-ZW1B1EX70P');
+  </script>
+  <!-- Google tag (gtag.js) ここまで-->
+  
+
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <!-- Lightbox2 CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+  <!--MathJax-->
+  <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <meta charset="UTF-8" />
+  <link rel="icon" href="./img/favicon.ico" />
+  <title>海城中学高等学校 情報科</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>
+  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <header><!-- script_pages.js --></header>
+<!----COMMON HEADER END---->  
+  
+  <section>
+    
+    <article>
+      <h2 id="headline_1">(1) while文とif文</h2>
+      
+      
+      
+      <h3>ループ変数の値によって条件分岐</h3>
+      <p>次のコードは、<tt>n = 1</tt>からはじめて、<tt>n</tt>を1ずつ大きくしていき、4と5で割り切れる最小の整数を求める例です。<tt>n</tt>を1ずつ大きくしていくごとに、「4でも5でも割り切れません」，「4で割り切れます」，「5で割り切れます」と表示し、最後は「4と5で割り切れます」と表示します。</p>
+      <pre class="python"><code>
+        n = 1
+
+        while n % 4 != 0 or n % 5 != 0:
+          if n % 4 == 0:<br>
+            print(n, "は4で割り切れます")
+          elif n % 5 == 0:<br>
+            print(n, "は5で割り切れます")
+          else:<br>
+            print(n, "は4でも5でも割り切れません")
+          n = n + 1 
+        print("よって、", n, "は4と5で割り切れます。")
+      </code></pre>
+      <pre class="result"><code>
+        1 は4でも5でも割り切れません
+        2 は4でも5でも割り切れません
+        3 は4でも5でも割り切れません
+        4 は4で割り切れます
+        5 は5で割り切れます
+        6 は4でも5でも割り切れません
+        7 は4でも5でも割り切れません
+        8 は4で割り切れます
+        9 は4でも5でも割り切れません
+        10 は5で割り切れます
+        11 は4でも5でも割り切れません
+        12 は4で割り切れます
+        13 は4でも5でも割り切れません
+        14 は4でも5でも割り切れません
+        15 は5で割り切れます
+        16 は4で割り切れます
+        17 は4でも5でも割り切れません
+        18 は4でも5でも割り切れません
+        19 は4でも5でも割り切れません
+        よって、 20 は4と5で割り切れます。
+      </code></pre>
+      <p>この例のwhile文の条件式は<tt>n % 4 != 0 or n % 5 != 0</tt>となっていますが、<tt>not(n % 4 == 0 and n % 5 == 0)</tt>と変えても同様に求められますので確認してみましょう。</p>
+      
+      
+      
+      <h3>コラッツ予想</h3>
+      <p><strong>コラッツ予想</strong>（$3n+1$問題）は、1937年ロタール・コラッツによって提案された整数に関する未解決問題のひとつです。</p>
+
+      <p>任意の正の整数 $n$に対して、以下の操作を行います。<br>
+      ・$n$が偶数なら、$n$を2で割る。<br>
+      ・$n$が奇数なら、$n$を3倍して1を足す。<br>  
+        これを繰り返し行うと、どんな初期値($n$)から始めても、必ず1になります。</p>
+
+      <p>例えば、$n = 6$から始めると、<b>6 → 3 → 10 → 5 → 16 → 8 → 4 → 2 → 1</b>となります。<br>
+      コラッツ予想はコンピュータによる解析的に多くの数字で成り立つことがわかっているが、数学的に証明されていないため、未解決の問題であるとされています。</p>
+      
+      <pre class="python"><code>
+        n = 6
+        print(n)
+
+        while n > 1:
+          if n % 2 == 0:
+            n = n // 2
+          else:
+            n = 3 * n + 1
+          print(n)
+      </code></pre>
+      <pre class="result"><code>
+        6
+        3
+        10
+        5
+        16
+        8
+        4
+        2
+        1
+      </code></pre>
+      
+      
+    </article>
+    <article>
+      <h2 id="headline_2">(2) break文</h2>
+      
+      <h3>break文とは</h3>
+      <p>break文は、繰り返し処理を中断しループを終了させることができます。</p>
+      
+      <pre class="python example"><code>
+        while 条件式:
+          # 繰り返しの処理
+          if 終了条件:
+            break
+      </code></pre>
+      
+      <p>次の例では、<tt>i</tt>を0から1つずつ増やしていき、<tt>i</tt>が3になったらbreakします。</p>
+      
+      <pre class="python"><code>
+        # iが3になったらbreakする
+        i = 0
+        while i < 10:
+          if i == 3:   # iが3になったら
+            break
+          print(i, end=" ")
+          i = i + 1
+      </code></pre>
+      <pre class="result"><code>0 1 2</code></pre>
+        
+      <ol class="notes">
+        <li><tt>print("...", end=" ")</tt> </li>
+        <blockquote>
+          print関数の引数に<tt>end="..."</tt>を指定すると、末尾に出力する文字を指定することができます。何も指定しなければ（デフォルトでは）<strong>改行コード</strong>（<tt>\n</tt>）となりますが、上の例のように<strong>半角スペース</strong>を指定すると、改行せずに半角スペースが出力されます。c.f. <a href="./py12.html#print_end" target="_blank">1-2. 変数と画面出力 (5)print関数の使い方 末尾文字の設定</a>
+        </blockquote>
+      </ol>
+      
+      <h3>意図的な無限ループ</h3>
+      <p>while文は指定した条件を満たしているあいだ処理を繰り返す構文です。この条件に<tt>True</tt>を指定すると、<b>無限ループ</b>となります。意図的に無限ループにする場合には、while文の中にif文を用いて終了条件を指定してbreak文でループから抜け出す操作が必要です。</p>
+      
+      <pre class="python example"><code>
+        while True:
+          # 繰り返しの処理
+          if 終了条件:
+            break
+      </code></pre>
+
+      <p>次の例では、<tt>a</tt>の初期値が0で、<tt>a</tt>を2倍して1を足す操作を繰り返して、<tt>a</tt>の値が100より大きくなるまで繰り返します。</p>
+      <pre class="python"><code>
+        a = 0
+
+        while True:            # （break文が現れるまで）無限に繰り返す
+          print(a, end=" ")  # aの値を出力
+          a = a * 2 + 1      # aを2倍して1を足す
+          if a > 100:        # aが100より大きくなったら
+            break          # 繰り返しを終了
+
+        print(a, end=" ")             # 最後にaを出力（この時点で100を超えている）
+      </code></pre>
+      <pre class="result"><code>0 1 3 7 15 31 63 127</code></pre>
+    
+      <p>次の例では、ユーザーに入力を求め、<tt>exit</tt>と入力されるまで繰り返し入力を求めます。</p>
+      <pre class="python"><code>
+        while True:
+          user_input = input("何か入力してください（exitで終了）: ")
+          if user_input == "exit":
+            break
+          print("あなたが入力したのは:", user_input)
+      </code></pre>
+      <pre class="result"><code>
+        何か入力してください（exitで終了）: kaijo
+        あなたが入力したのは: kaijo
+        何か入力してください（exitで終了）: school
+        あなたが入力したのは: school
+        何か入力してください（exitで終了）: exit
+      </code></pre>
+    </article>
+      
+<!--
+      <h3>複合代入演算子（累算代入演算子）</h3>
+      <p>上の例のように、変数<b>num</b>を1ずつ加算していくような処理「<b>num = num + 1</b>」
+はよく使います。このような処理は現在の「<b>numに1を加えて、改めてnumに代入する</b>」という意味ですが、<strong>複合代入演算子</strong>（累算代入演算子）を用いると「<strong>num += 1</strong>」のように短いコードで書くことができるため、よく使われます。このような書き方もできると知っておいてください。慣れてきたら自分で使えるようになるとよいでしょう。</p>
+    
+      <table>
+        <tbody>
+        <tr>
+          <th scope="col" width="60px">計算式</th>
+          <th scope="col" width="80px">代入演算子による書き方</th>
+          <th scope="col" width="100px">意味</th>
+        </tr>
+        <tr>
+          <th>a += b</th>
+          <td>a = a + b</td>
+          <td>a から b を足した結果を、a に代入する</td>
+        </tr>
+        <tr>
+          <th>a +-= b</th>
+          <td>a = a - b</td>
+          <td>a から b を引いた結果を、a に代入する</td>
+        </tr>
+        <tr>
+          <th>a *= b</th>
+          <td>a = a * b</td>
+          <td>a に b をかけた結果を、a に代入する</td>
+        </tr>
+        <tr>
+          <th>a /= b</th>
+          <td>a = a / b</td>
+          <td>a を b で実数除算した結果を、a に代入する</td>
+        </tr>
+        <tr>
+          <th>a //= b</th>
+          <td>a = a // b</td>
+          <td>a を b で整数除算した結果を、a に代入する</td>
+        </tr>
+        <tr>
+          <th>a %= b</th>
+          <td>a = a % b</td>
+          <td>a を b で整数除算した余りを、a に代入する</td>
+        </tr>
+        <tr>
+          <th>a **= b</th>
+          <td>a = a ** b</td>
+          <td>a に b の累乗した結果を、a に代入する</td>
+        </tr>
+        </tbody>
+      </table>
+    
+    </article>
+-->
+    
+<!--    
+    <article>
+      <div class="article_header"><h2><a id="headline_3">(3) while文の例題</a></h2></div>
+      
+      <div id="examples"></div>
+      
+      <h3>例題1</h3>
+      <p>利率0.2%で100万円を5年間預金すると、いくらになるか計算しなさい。</p>
+      <div class="code-details">
+<pre><code>rate = 0.002  <em>#利率</em>
+s = 1000000   <em>#元金100万円 </em>
+n = 5     <em>#5年</em></code></pre>
+
+        <details>
+          <summary><em>#続きはココをクリック</em></summary>
+<pre><code>i = 0     <em>#カウンター（繰り返しを数えるのに使う）</em>
+while i &lt; n:
+    <em>#端数を切り捨てるのにint関数を用いる</em>
+    s = int(s*(1 + rate)) 
+    <em>#'{:,}'.format(s)は数値sを3桁ずつカンマ区切りにする</em>
+    print(i+1, "年後:", s, "円") 
+    i += 1<br></code></pre>
+        </details>
+      </div>
+      <pre class="result"><code><details>
+        <summary><em>結果はココをクリック</em></summary>
+        1 年後: 1002000 円<br>
+        2 年後: 1004004 円<br>
+        3 年後: 1006012 円<br>
+        4 年後: 1008024 円<br>
+        5 年後: 1010040 円<br>
+        </details></code></pre>
+
+      
+      
+      <h3>例題2</h3>
+      <p>利率0.2%で100万円を預金して110万円にするためには何年かかるか計算しなさい。 </p>
+      <div class="code-details">
+<pre><code>rate = 0.002  <em>#利率</em>
+s = 1000000   <em>#元金100万円</em>
+goal = 1100000    <em>#目標110万円</em></code></pre>
+        <details>
+          <summary><em>#続きはココをクリック</em></summary>
+<pre><code>i = 0  <em>#カウンター（繰り返しを数えるのに使う）</em>
+while s &lt; goal:
+    <em>#端数を切り捨てるのにint関数を用いる</em>
+    s = int(s*(1 + rate))
+    print(i+1, "年後:", s, "円")
+    i += 1
+print("答え：", i, "年かかります。")</code></pre>
+        </details>
+      </div>
+      <pre class="result"><code><details>
+        <summary><em>結果はココをクリック</em></summary>
+        1 年後: 1002000 円<br>
+        2 年後: 1004004 円<br>
+        3 年後: 1006012 円<br>
+        4 年後: 1008024 円<br>
+        5 年後: 1010040 円<br>
+        6 年後: 1012060 円<br>
+        7 年後: 1014084 円<br>
+        8 年後: 1016112 円<br>
+        9 年後: 1018144 円<br>
+        10 年後: 1020180 円<br>
+        11 年後: 1022220 円<br>
+        12 年後: 1024264 円<br>
+        13 年後: 1026312 円<br>
+        14 年後: 1028364 円<br>
+        15 年後: 1030420 円<br>
+        16 年後: 1032480 円<br>
+        17 年後: 1034544 円<br>
+        18 年後: 1036613 円<br>
+        19 年後: 1038686 円<br>
+        20 年後: 1040763 円<br>
+        21 年後: 1042844 円<br>
+        22 年後: 1044929 円<br>
+        23 年後: 1047018 円<br>
+        24 年後: 1049112 円<br>
+        25 年後: 1051210 円<br>
+        26 年後: 1053312 円<br>
+        27 年後: 1055418 円<br>
+        28 年後: 1057528 円<br>
+        29 年後: 1059643 円<br>
+        30 年後: 1061762 円<br>
+        31 年後: 1063885 円<br>
+        32 年後: 1066012 円<br>
+        33 年後: 1068144 円<br>
+        34 年後: 1070280 円<br>
+        35 年後: 1072420 円<br>
+        36 年後: 1074564 円<br>
+        37 年後: 1076713 円<br>
+        38 年後: 1078866 円<br>
+        39 年後: 1081023 円<br>
+        40 年後: 1083185 円<br>
+        41 年後: 1085351 円<br>
+        42 年後: 1087521 円<br>
+        43 年後: 1089696 円<br>
+        44 年後: 1091875 円<br>
+        45 年後: 1094058 円<br>
+        46 年後: 1096246 円<br>
+        47 年後: 1098438 円<br>
+        48 年後: 1100634 円<br>
+        答え： 48 年かかります。<br>
+        </details></code></pre>
+    </article>
+
+-->
+
+  
+  
+  </section>
+
+ 
+   <section id="questions"><!-- script_pages.js --></section>
+<!-- COMMON FOOTER START -->
+  <section id="next_page"><!-- script_pages.js --></section>
+
+  <footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+    <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+    <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+</html>
+

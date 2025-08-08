@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Google tag (gtag.js) ここから-->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-ZW1B1EX70P');
+  </script>
+  <!-- Google tag (gtag.js) ここまで-->
+  
+
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <!-- Lightbox2 CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+  <!--MathJax-->
+  <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <meta charset="UTF-8" />
+  <link rel="icon" href="./img/favicon.ico" />
+  <title>海城中学高等学校 情報科</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>
+  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <header><!-- script_pages.js --></header>
+  <!----COMMON HEADER END---->  
+
+  <section>
+    <article>
+      <div id="page_index"></div>
+    </article>
+  </section>
+  
+  <section>
+    
+    <article>
+      <h2 id="headline_Error">エラーが発生したときは</h2>
+
+      <h3>エラー名の確認</h3>
+      <p>
+        結果画面にエラーが表示されているので、次のポイントを確認しましょう。 <br> 
+        ①エラー名  <br>
+        ②エラーの内容  <br>
+        ③エラーの発生箇所  <br>
+      </p>
+      <p class="center">
+        <a href="./img/python99_001.png" data-lightbox="abc">
+          <img src="./img/python99_001.png" class="screen_shot">
+        </a>
+      </p>
+      <p>④をクリックすると、Google検索できます。</p>
+      <p>確認できたら、エラーの種類ごとに対応しましょう。ここでは、代表的な10種類のエラーについて、解決方法を紹介します。</p>
+      
+    </article>
+
+    
+    <article>
+      <h2 id="headline_SyntaxError">SyntaxError</h2>
+
+      <h3>エラーの意味</h3>
+      <p>構文が間違っているときに発生するエラーです。</p>
+
+      <h3>よくある発生状況</h3>
+      <p>
+        ・文字列やコメント以外で<strong>全角文字</strong>が入っている  <br>
+        ・if文・for文・while文などでコロン<strong>:</strong>がない  <br>
+        ・カッコ<strong>()</strong>，ダブルクォート<strong>"..."</strong>，シングルクォート<strong>'...'</strong>の閉じ忘れ  <br>
+        ・不要なスペースが入っている  <br>
+        ・スペースが全角になっている  <br>
+        など</p>
+      
+      <h3>対処方法</h3>
+      <p>Pythonの構文が間違っていないか確認しましょう。</p>
+      
+      
+      <pre class="python"><code>
+        age = int(input("年齢は？"))  
+           
+        if age &lt; 13   
+          fee = 5000  
+        else:  
+          fee = 8400  
+           
+        print("入園料は" + str(fee) + "円です。")
+      </code></pre>
+      <pre class="result"><code>
+        File "xxxxxxxxxxxx", line <span class="_green">3</span>  
+          <span class="_red">if age &lt; 13</span>  
+        　　　　  ^  
+        <span class="_red">SyntaxError:</span> invalid syntax  
+      </code></pre>  
+
+      <h3>具体例</h3>
+
+        <h4><strong>SyntaxError:</strong> expected ':'</h4>
+        <p>・if文，for文，while文，def文などの行末にコロン(<strong>:</strong>)がない。</p>
+
+        <h4><strong>SyntaxError:</strong> incomplete input</h4>
+        <p>・未完了の箇所がある（カッコの閉じ忘れなど）。</p>
+
+        <h4><strong>SyntaxError:</strong> invalid character '...'</h4>
+        <p>・使用できない文字を使っている。  
+          ・構文中に全角文字を使っている。</p>
+
+        <h4><strong>SyntaxError:</strong> invalid character '）' (U+FF09)</h4>
+        <p>・関数などのカッコ閉じるとき全角カッコ「<strong>）</strong>」になっている。</p>
+
+        <h4><strong>SyntaxError:</strong> invalid decimal literal</h4>
+        <p>・変数名が数字からはじまっている。  
+        ・該当がない場合は、前後の書き方で別のエラーの可能性が高い。  
+        ・シングルクォート(<strong>'</strong>)とすべきところがバッククォート(<strong>`</strong>)になっていて、直後に数字がある。</p>
+
+        <h4><strong>SyntaxError:</strong> invalid syntax. Maybe you meant '==' or ':=' instead of '='?</h4>
+        <p>・if文で正しい比較演算子が使われていない。  
+        ・等しい条件式で使用する比較演算子は「<strong>==</strong>」。
+        「<strong>=</strong>」は代入の演算子。</p>
+
+        <h4><strong>SyntaxError:</strong> invalid non-printable character U+3000</h4>
+        <p>・全角スペースが入ってしまっている。</p>
+        
+      
+        <h4><strong>SyntaxError:</strong> invalid syntax.</h4>
+        <p>
+        ・Pythonのコマンドや関数の名前を打ち間違い。  
+        ・カッコを閉じ忘れ。  
+        ・半角スペースとすべきところが、全角スペースになっている。  
+        ・if文，for文，while文，def文などの文末に(<strong>:</strong>)がない。  
+        ・文字列がシングルクォート(<strong>'</strong>)やダブルクォート(<strong>"</strong>)で囲まれているない。  
+        ・シングルクォート(<strong>'</strong>)とすべきところがバッククォート(<strong>`</strong>)になっている。  
+        ・SyntaxErrorの他の項目で該当するところはないか確認。</p>
+
+          <h4><strong>SyntaxError:</strong> Missing parentheses in call to 'print'. Did you mean print(...)?</h4>
+        <p>・printのカッコの形が違う（parenthes：カッコ）。</p>
+      
+        <h4><strong>SyntaxError:</strong> unterminated string literal</h4>
+        <p>
+          ・文字列が半角クォート(<strong>'</strong>)または半角ダブルクォート(<strong>"</strong>)で囲まれていない。  
+          ・全角クォート（<strong>’</strong>）や全角ダブルクォート（<strong>”</strong>）で閉じている。 </p>
+
+      
+    </article>
+    
+    <article>
+      <h2 id="headline_IndentationError">IndentationError</h2>
+      <h3>エラーの意味</h3>
+      <p>インデントが正しくないときに発生するエラーです。</p>
+      
+      <h3>よくある発生状況</h3>
+      <p>
+        ・if文，for文，while文，def文の次の行頭にインデントがない。  <br>
+        ・行頭に不要なスペースやタブが含まれている場合。</p>
+      
+      <h3>対処方法</h3>
+      <p>
+        ・if文，for文，while文，def文の次の行頭に適切にインデントを追加する。  <br>
+        ・行頭に不要なスペースがないか確認しましょう。
+      </p>
+      
+      <h3>具体例</h3>
+      <h4><strong>IndentationError:</strong> unexpected indent</h4>
+      <p>・正しくないインデントがある。</p>
+      <h4><strong>IndentationError:</strong> expected an indented block after 'if' statement</h4>
+      <p>・if文の次の行頭にインデントがない。</p>
+      <h4><strong>IndentationError:</strong> expected an indented block after 'for' statement</h4>
+      <p>・for文の次の行頭にインデントがない。</p>  
+      <h4><strong>IndentationError:</strong> expected an indented block after 'while' statement</h4>
+      <p>・while文の次の行頭にインデントがない。</p>  
+      <h4><strong>IndentationError:</strong> expected an indented block after 'def' statement</h4>
+      <p>・def文の次の行頭にインデントがない。</p>  
+
+      
+    </article>
+
+    <article>
+      <h2 id="headline_NameError">NameError</h2>
+      <h3>エラーの意味</h3>
+      <p>指定した名前の変数が存在しないときに発生するエラーです。</p>
+      
+      <h3>よくある発生状況</h3>
+      <p>変数名の間違いやスペルミス（大文字・小文字も）</p>
+      
+      <h3>対処方法</h3>
+      <p>
+        変数名に間違いがないか確認しましょう。  <br>
+        ・変数名が途中で途切れていないか（例： ×user_nam → ○user_name）  <br>
+        ・iやl，oや0など見間違いやすいアルファベット  <br>
+        ・rやlなど間違いやすいアルファベット（例： ×glade → ○grade）  <br>
+        ・二重母音の順序（例： ×haedar → ○header）  <br>
+        ・アルファベットの大文字・小文字（例： ×User_nam → ○user_name）  <br>
+        ・キーボードで隣のキーを入力していないか（例： ×balue → ○value）  <br>
+      </p>
+      
+      <h3>具体例</h3>
+      <h4><strong>NameError:</strong> name 'xxx' is not defined</h4>
+      <p>
+        ・変数xxxが定義されていない。  <br>
+        ・定義されていない変数xxxを参照してしまっている。  <br>
+        ・変数名にスペルミスがある（大文字・小文字は区別される）。<br>
+      </p>
+      
+      
+    </article>
+    
+    <article>
+      <h2 id="headline_TypeError">TypeError</h2>
+      <h3>エラーの意味</h3>
+      <p>型に合わない操作をしたときに発生するエラーです。</p>
+
+      <h3>よくある発生状況①</h3>
+      <p>文字列と数値を組み合わせてprintするときなど</p>
+      <pre class="python"><code>
+        name = "海城中学高等学校"
+        establish = 1891
+          
+        school_name = name + establish + "年"
+        print(school_name)
+      </code></pre>
+      <pre class="result"><code>
+        ---------------------------------------------------------------------------
+        TypeError Traceback
+        2 establish = 1891   
+        3   
+        ----&gt; 4 school_name = name + establish + "年"   
+        5 print(school_name)   
+        TypeError: can only concatenate str (not "int") to str
+      </code></pre>      
+      <h4>対処方法</h4>
+      <p>型に適した指定になるようにします。</p>
+      
+      <pre class="python"><code>
+        name = "海城中学高等学校"  
+        establish = 1891
+          
+        school_name = name + str(establish) + "年"
+        print(school_name)
+      </code></pre>
+      <pre class="result"><code>海城中学高等学校1891年</code></pre>
+      
+      
+      <h3 id="typeerror_2">よくある発生状況②</h3>
+      <p>printなどの関数名に値を代入したあと、その関数を呼び出した場合など</p>
+      <img src="./img/py91_002.png" class="screen_shot">
+
+      <p>例えば、誤って<code>print = 5</code>のように、<code>print</code>を変数として扱ってしまって、実行してしまう。</p>
+      <pre class="python example error"><code>
+        print = 5
+      </code></pre>
+      <p>その後、次のように正しく修正しても、一度変数として扱ってしまっているので、エラーが起こる。</p>
+      <pre class="python example error"><code>
+        print(5)
+      </code></pre>
+
+      
+      
+      <h4>対処方法</h4>
+      <p>Colaboratoryの メニュー ＞ <b>ランタイム</b> ＞ <b>セッションを再起動する</b>をクリックして、セッションを再起動し、再度実行する。</p>
+      <img src="./img/py99_004.png" class="screen_shot" width="300px">
+      
+      
+      
+    </article>
+    
+    <article>
+      <h2 id="headline_ValueError">ValueError</h2>
+      <h3>エラーの意味</h3>
+      <p>引数に渡した値が正しくないときに発生するエラーです。</p>
+
+      <h3>よくある発生状況</h3>
+      <p>int関数やfloat関数など型変換する関数</p>      
+      
+      <h3>対処方法</h3>
+      <p>正しい値を引数に渡す。</p>
+      
+      <h3>具体例</h3>
+        <h4><strong>ValueError:</strong> invalid literal for int() with base 10: '...'</h4>
+        <p>・int関数に渡された値が半角数値ではない。  <br>
+        ・input関数でユーザーが入力した場合は、入力するときに半角で入力すること。</p>
+
+      
+    </article>
+    
+    <article>
+      <h2 id="headline_IndexError">IndexError</h2>
+      <h3>エラーの意味</h3>
+        <p>リスト型やタプル型において、インデックスの指定がリストの範囲を超えているときに発生するエラーです。</p>
+      
+      <h3>対処方法</h3>
+      <p>要素数が正しいかどうかを確認し、正しいインデックスを指定しましょう。</p>
+      
+
+      
+    </article>
+    
+    <article>
+      <h2 id="headline_KeyError">KeyError</h2>
+      <h3>エラーの意味</h3>
+      <p>辞書型において、キーを指定して要素を取得するときに、存在しないキーを指定した時に発生するエラーです。</p>    
+      
+      <h3>対処方法</h3>
+      <p>定義した辞書に含まれるキーが正しいかどうか、指定したキーが存在するか確認しましょう。  
+      なお、キーの一覧を取得する<strong>keys()</strong>メソッドを使うと、キーの一覧をリスト型で取得することができます。</p>
+
+      
+    </article>
+
+    
+    <article>
+      <h2 id="headline_ModuleNotFoundError">ModuleNotFoundError</h2>
+      <h3>エラーの意味</h3>
+      <p>読み込んだモジュールが見つからない場合に発生するエラーです。</p>
+      <!--
+      <h3>よくある発生状況</h3>
+      <p>yyyyy</p>      
+      -->
+      <h3>対処方法</h3>
+      <p>モジュール名が正しいかどうか確認しましょう。それでも解決しない場合は、モジュールがインストールされているか確認しましょう。</p>
+      
+      <h3>具体例</h3>
+        <h4><strong>ModuleNotFoundError:</strong> No module named '...'</h4>
+        <p><tt>import ...</tt>のところで、モジュール名のスペルが正しいか確認しましょう。</p>
+      
+    </article>
+    
+    <article>
+      <h2 id="headline_FileNotFoundError">FileNotFoundError</h2>
+      <h3>エラーの意味</h3>
+      <p>ファイルまたはディレクトリが見つからない場合に発生するエラーです。</p>
+
+      <h3>対処方法</h3>
+      <p>ファイル・ディレクトリ名が正しいかどうか確認しましょう。</p>
+      
+    </article>
+    
+    <article>
+      <h2 id="headline_ZeroDivisionError">ZeroDivisionError</h2>
+      <h3>エラーの意味</h3>
+      <p>数値演算するときに、0（ゼロ）で割り算したときに発生するエラーです。</p>  
+      
+      <h3>対処方法</h3>
+      <p>0（ゼロ）で割り算しないように処理を確認しましょう。  <br>
+        また、割る数を変数で指定している場合は、変数の代入のときに0（ゼロ）や存在しない値を代入している可能性もあります。
+      </p>
+        
+    </article>
+    
+
+    <article>
+      <h2 id="headline_AttributeError">AttributeError</h2>
+      <h3>エラーの意味</h3>
+        <p>オブジェクトの属性（Attribute）にアクセスできないときに発生するエラーです。属性とは、オブジェクトに存在する変数やメソッドのことです。</p>
+      
+      <h3>対処方法</h3>
+      <p>オブジェクトに用意されている方法で変数にアクセスします。オブジェクト名、識別子名が正しいかどうか確認しましょう。</p>
+      
+      
+      <h3>具体例</h3>
+        <h4><strong>AttributeError:</strong> module '...' has no attribute '...'</h4>
+        <p>モジュールの中の関数が正しく指定されていません。スペルに間違いがないか確認しましょう。</p>
+        <p>(誤)<tt>random.randit</tt> ⇒ (正)<tt>random.randint</tt></p>
+      
+    </article>
+  </section>
+
+ 
+
+   <section id="questions"><!-- script_pages.js --></section>
+<!-- COMMON FOOTER START -->
+  <section id="next_page"><!-- script_pages.js --></section>
+
+  <footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+  <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // idを持つ<h2>要素を全て取得
+      const headings = document.querySelectorAll('h2[id]');
+      // 目次を挿入するナビゲーション要素を取得
+      const toc = document.getElementById('page_index');
+      
+      if (headings.length && toc) {
+        // ul要素を生成して、すべての<h2>をリンク化する
+        const ul = document.createElement('ul');
+        
+        headings.forEach(h2 => {
+          // li要素とリンク(a要素)を作成
+          const li = document.createElement('li');
+          const a = document.createElement('a');
+    
+          // <a href="#その<h2>のid">リンク文字列</a>
+          a.href = '#' + h2.id;
+          a.textContent = h2.textContent;  // h2の本文をリンクとして表示
+    
+          li.appendChild(a);
+          ul.appendChild(li);
+        });
+        
+        // ulを<div id="page_index">の中に挿入
+        toc.appendChild(ul);
+      }
+    });
+    </script>
+</body>
+</html>
+

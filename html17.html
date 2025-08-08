@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Google tag (gtag.js) ここから-->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-ZW1B1EX70P');
+  </script>
+  <!-- Google tag (gtag.js) ここまで-->
+  
+
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <!-- Lightbox2 CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+  <!--MathJax-->
+  <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <meta charset="UTF-8" />
+  <link rel="icon" href="./img/favicon.ico" />
+  <title>海城中学高等学校 情報科</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>
+  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  <header><!-- script_pages.js --></header>
+  <!----COMMON HEADER END---->
+
+
+  <section>
+    <article>
+      <h2 id="headline_1">(1) テーブル（表）</h2>
+
+      <h3>テーブル関連のタグ</h3>
+      <p><b>テーブル（表）</b>を挿入するには次の複数のタグを組み合わせます。</p>
+      <table>
+        <tr>
+          <th>タグ</th>
+          <th>概要</th>
+        </tr>
+        <tr>
+          <td>&lt;table&gt;〜&lt;/table&gt;</td>
+          <td class="text-align-left">テーブルを示すタグ。表全体を囲む。</td>
+        </tr>
+        <tr>
+          <td>&lt;tr&gt;〜&lt;/tr&gt;</td>
+          <td class="text-align-left">テーブルの１行を示すタグ。table rowの略。</td>
+        </tr>
+        <tr>
+          <td>&lt;th&gt;〜&lt;/th&gt;</td>
+          <td class="text-align-left">テーブルの１行目に見出しとなるセルを作成する。table headerの略。</td>
+        </tr>
+        <tr>
+          <td>&lt;td&gt;〜&lt;/td&gt;</td>
+          <td class="text-align-left">テーブルのセルを作成する。table dataの略。</td>
+        </tr>
+      </table>
+
+      <h3>テーブルの挿入</h3>
+      <p><b>&lt;table&gt;タグ</b>だけではテーブルの<b>罫線</b>が表示されないため、テーブルを作成するときは<b>border属性</b>を指定して&lt;table
+        <b>border="1"</b>&gt;とします。作成後、不要であればこれを削除します。
+      </p>
+
+
+      <pre class="html" data-title="sample1-7.html ＞ 実習コード①"><code>
+        &lt;table border="1"&gt;
+          &lt;tr&gt;
+            &lt;th&gt;見出し1&lt;/th&gt;
+            &lt;th&gt;見出し2&lt;/th&gt;
+            &lt;th&gt;見出し3&lt;/th&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;2行目の1列目&lt;/td&gt;
+            &lt;td&gt;2行目の2列目&lt;/td&gt;
+            &lt;td&gt;2行目の3列目&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;3行目の1列目&lt;/td&gt;
+            &lt;td&gt;3行目の2列目&lt;/td&gt;
+            &lt;td&gt;3行目の3列目&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/table&gt;
+      </code></pre>
+
+
+      <p>これをブラウザで表示すると、次のようになります。実際にブラウザを更新して確かめてみましょう。</p>
+      <p class="center"><img src="./img/html17_001.png" width="320px"></p>
+
+
+    </article>
+
+
+    <article>
+      <h2 id="headline_2">(2) セルの結合</h2>
+      <h3>横方向にセルを結合する</h3>
+      <p>
+        セルを横方向につなげたいときは、つなげたいセルの<b>&lt;th&gt;</b>または<b>&lt;td&gt;タグ</b>に<b>colspan属性</b>を追加します。2つつなげたいときは<b>colspan="2"</b>のように指定します。
+      </p>
+
+
+      <pre class="html" data-title="sample1-7.html ＞ 実習コード②"><code>
+        &lt;table border="1"&gt;
+          &lt;tr&gt;
+            &lt;th colspan="2"&gt;見出し１と見出し2&lt;/th&gt;
+            &lt;th&gt;見出し3&lt;/th&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;2行目の1列目&lt;/td&gt;
+            &lt;td&gt;2行目の2列目&lt;/td&gt;
+            &lt;td&gt;2行目の3列目&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td colspan="3"&gt;3行目の1列目〜3列目&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/table&gt;
+      </code></pre>
+
+
+      <h3>縦方向にセルを結合する</h3>
+      <p>セルを縦方向につなげる場合は、<b>rowspan属性</b>を加えます。</p>
+
+
+      <pre class="html" title="sample1-7.html ＞ 実習コード③"><code>
+        &lt;table border="1"&gt;
+          &lt;tr&gt;
+            &lt;th&gt;見出し1&lt;/th&gt;
+            &lt;th&gt;見出し2&lt;/th&gt;
+            &lt;th&gt;見出し3&lt;/th&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td rowspan="2"&gt;2行目と3行目の1列目&lt;/td&gt;
+            &lt;td&gt;2行目の2列目&lt;/td&gt;
+            &lt;td&gt;2行目の3列目&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;3行目の2列目&lt;/td&gt;
+            &lt;td&gt;3行目の3列目&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/table&gt;
+      </code></pre>
+    </article>
+
+
+    <article>
+      <h2 id="headline_3">(3) 実習コード④</h2>
+
+      <p>自分でテーマを設定して、何かの表を作ってみましょう（3行3列以上の表形式であれば何でもいいです）。次の例では、時間割表を作成しています。</p>
+
+      <pre class="html" data-title="sample1-7.html ＞ 実習コード④"><code>
+        &lt;table border="1"&gt;
+          &lt;tr&gt;
+            &lt;th&gt;&lt;/th&gt;
+            &lt;th&gt;月&lt;/th&gt;
+            &lt;th&gt;火&lt;/th&gt;
+            &lt;th&gt;水&lt;/th&gt;
+            &lt;th&gt;木&lt;/th&gt;
+            &lt;th&gt;金&lt;/th&gt;
+            &lt;th&gt;土&lt;/th&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;1限&lt;/td&gt;
+            &lt;td&gt;国語A&lt;/td&gt;
+            &lt;td&gt;数学A&lt;/td&gt;
+            &lt;td&gt;英語B&lt;/td&gt;
+            &lt;td&gt;体育&lt;/td&gt;
+            &lt;td&gt;技術&lt;/td&gt;
+            &lt;td&gt;技術&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;2限&lt;/td&gt;
+            &lt;td&gt;物理&lt;/td&gt;
+            &lt;td&gt;英語A&lt;/td&gt;
+            &lt;td&gt;数学B&lt;/td&gt;
+            &lt;td&gt;国語B&lt;/td&gt;
+            &lt;td&gt;社会A&lt;/td&gt;
+            &lt;td&gt;化学&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;3限&lt;/td&gt;
+            &lt;td&gt;情報&lt;/td&gt;
+            &lt;td&gt;生物&lt;/td&gt;
+            &lt;td&gt;英語B&lt;/td&gt;
+            &lt;td&gt;数学A&lt;/td&gt;
+            &lt;td&gt;社会B&lt;/td&gt;
+            &lt;td&gt;地学&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td colspan="7"&gt;昼休み&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;4限&lt;/td&gt;
+            &lt;td&gt;国語A&lt;/td&gt;
+            &lt;td&gt;地学&lt;/td&gt;
+            &lt;td&gt;生物&lt;/td&gt;
+            &lt;td&gt;国語B&lt;/td&gt;
+            &lt;td&gt;英語A&lt;/td&gt;
+            &lt;td&gt;数学B&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;5限&lt;/td&gt;
+            &lt;td&gt;社会A&lt;/td&gt;
+            &lt;td&gt;社会B&lt;/td&gt;
+            &lt;td&gt;数学A&lt;/td&gt;
+            &lt;td&gt;物理&lt;/td&gt;
+            &lt;td&gt;化学&lt;/td&gt;
+            &lt;td&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+          &lt;tr&gt;
+            &lt;td&gt;6限&lt;/td&gt;
+            &lt;td&gt;英語B&lt;/td&gt;
+            &lt;td&gt;英語A&lt;/td&gt;
+            &lt;td&gt;数学B&lt;/td&gt;
+            &lt;td&gt;物理&lt;/td&gt;
+            &lt;td&gt;化学&lt;/td&gt;
+            &lt;td&gt;&lt;/td&gt;
+          &lt;/tr&gt;
+        &lt;/table&gt;
+      </code></pre>
+    </article>
+
+  </section>
+
+
+
+  <!-- COMMON FOOTER START -->
+  <section id="next_page"><!-- script_pages.js --></section>
+  <footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+  <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+
+</html>

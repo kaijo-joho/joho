@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Google tag (gtag.js) ここから-->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-ZW1B1EX70P');
+  </script>
+  <!-- Google tag (gtag.js) ここまで-->
+  
+
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <!-- Lightbox2 CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+  <!--MathJax-->
+  <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <meta charset="UTF-8" />
+  <link rel="icon" href="./img/favicon.ico" />
+  <title>海城中学高等学校 情報科</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>
+  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <header><!-- script_pages.js --></header>
+<!----COMMON HEADER END---->  
+  
+  <section>
+    
+    <article>
+      <h2 id="headline_1">(1) リストの基本</h2>
+
+      <h3>リストとは</h3>
+      <p><strong>リスト</strong>とは、複数の値をひとまとめにできる変数型のひとつです。</p>
+      
+      <p class="center">
+        <img src="./img/python31_001.png" alt="変数とリスト">
+      </p>
+      
+      <p>int型やbool型などの通常の変数には1つの値しか入れられませんが、リストには複数の値をひとまとめにして入れられます。通常の変数は普通の箱で、リスト型の変数は箱の中に仕切りがあるようなイメージです。</p>
+      
+      <h3>リストの定義</h3>
+      <p>リストでは、それぞれの値のことを<strong>要素</strong>といいます。カンマ(<tt>,</tt>)で区切った要素を角括弧<tt>[...]</tt>で括ると、リスト型の変数として定義できます。</p>
+      <pre class="python example"><code>
+        リスト名 = [値1, 値2, 値3, … ]
+      </code></pre>
+
+      <h3>リストを画面出力する</h3>
+      <p><b>print(リスト名)</b>でリストを出力することができます。</p>
+      <pre class="python"><code>
+        numbers = [24, 83, 64, 37, 19]
+        print(numbers)
+      </code></pre>
+      <pre class="result"><code>[24, 83, 64, 37, 19]</code></pre>
+      
+      <h3>リスト内の特定の要素を取得する</h3>
+      <p>リストに格納された要素には、<strong>インデックス</strong>とよばれる番号が振られます。インデックスは<b><tt>0</tt>(ゼロ)からはじまり</b>ます。また、<b>末尾の要素のインデックス番号は(要素数−1)</b>となります。リスト内の要素を取得する場合は、<b>リスト名[インデックス]</b>のように書きます。</p>
+      <pre class="python"><code>
+        numbers = [24, 83, 64, 37, 19]
+        print(numbers[2])
+      </code></pre>
+      <pre class="result"><code>64</code></pre>
+      
+      <p>インデックス番号に<tt>-1</tt>を指定すると、末尾の要素を取得します。</p>
+      <pre class="python"><code>
+        numbers = [24, 83, 64, 37, 19]
+        print(numbers[-1])   # -1を指定すると、末尾の要素を取得
+      </code></pre>
+      <pre class="result"><code>19</code></pre>
+      
+      <h3>リスト内の要素を書き換える</h3>
+      <p>リスト内の要素を書き換えるときは、次のようにします。</p>
+      <pre class="python"><code>
+        numbers = [24, 83, 64, 37, 19]
+        numbers[2] = 99   # 2番目（3個目）の要素を99に変更
+        print(numbers)
+      </code></pre>
+      <pre class="result"><code>[24, 83, 99, 37, 19]</code></pre>
+
+
+    </article>
+    <article>
+      <h2 id="headline_2">(2) リストの操作</h2>
+      <p>for文とリストを組み合わせることで、リスト内の要素についてさまざまな処理をすることができます。</p>
+      
+      <h3>リストの要素数を求める</h3>
+      <p>リストの要素数を求めるときは、<strong>len関数</strong>を使います。</p>
+      <pre class="python"><code>
+        numbers = [24, 83, 64, 37, 19]
+        n = len(numbers)
+        print(n)
+      </code></pre>
+      <pre class="result"><code>5</code></pre>
+      
+<!--
+      <h3>リスト内の要素の存在判定</h3>
+      <p>比較演算子<b>in</b>を用いて、リストの中に特定の要素が含まれているかどうかを判断します。if文と組み合わせて、リスト内に要素が存在するかどうかで分岐させるときに使います。</p>
+      <pre class="python"><code>numbers = [24, 83, 64, 37, 19]<br>
+        print(24 in numbers)<br></code></pre>
+      <pre class="result"><code>True</code></pre>
+-->
+      
+      <h3>リストに値を追加する</h3>
+      <p>リストの末尾に新しい要素を追加するときは、<b>リスト名.append(値)</b>のように書きます（appendは<b>メソッド</b>というもので、また別の機会に扱います）。</p>
+      <pre class="python"><code>
+        numbers = [24, 83, 64, 37, 19]
+        print(&quot;元のリスト：&quot;, numbers)
+        numbers.append(57)
+        print(&quot;追加後のリスト：&quot;, numbers)
+      </code></pre>
+      <pre class="result"><code>
+        元のリスト： [24, 83, 64, 37, 19]
+        追加後のリスト： [24, 83, 64, 37, 19, 57]
+      </code></pre>
+
+      
+      <h3>リスト内の値の数を数える</h3>
+      <p>リスト内の特定の値の数を数えるときは、<b>リスト名.count(値)</b>のように書きます（countも<b>メソッド</b>というもので、また別の機会に扱います）。</p>
+      <pre class="python"><code>numbers = [11, 22, 33, 22, 44, 11, 33, 22, 44]
+print(numbers.count(22))</code></pre>
+      <pre class="result"><code>3</code></pre>
+      
+      
+      
+      
+      <h3>リストの要素の順番をシャッフルする†</h3>
+      <p>randomモジュールの<strong>shuffle関数</strong>を使うとリストの要素の順番をシャッフルすることができます。</p>
+      <pre class="python"><code>
+        import random
+
+        numbers = [37, 42, 45, 55, 56, 58, 59, 89, 95]
+        random.shuffle(numbers)    # numbersの要素をシャッフル
+        print(numbers)
+      </code></pre>
+      <pre class="result"><code>[45, 58, 37, 55, 95, 56, 59, 89, 42]   # 結果は毎回変わります</code></pre>
+
+
+    </article>
+    <article>
+      <h2 id="headline_3">(3) リストとfor文</h2>
+      <p>for文を用いることでリスト内の要素についてさまざまな処理をすることができます。</p>
+      
+      <h3>リスト内の要素を順番に取得する</h3>
+      <p>リスト内の要素を順番に取得するときには、次のように書きます。繰り返しのたびにリストの要素が変数に順番に代入されます。</p>
+
+      <pre class="python example"><code>
+        for 変数 in リスト:
+          # 繰り返し処理</code></pre>
+      
+      <p>次の例では、リスト変数<tt>fruits</tt>の中の要素を繰り返しのたびに変数<tt>fruit</tt>に代入し、画面出力します。リストの変数名は複数形、その要素の変数名は単数形で書く習慣があります。</p>
+      <pre class="python"><code>
+        fruits = ["apple", "banana", "cherry", "drian"]
+
+        for fruit in fruits:
+          print(fruit)
+      </code></pre>
+      <pre class="result"><code>
+        apple
+        banana
+        cherry
+        drian
+      </code></pre>
+      
+      <h3>インデックス番号を用いて順番に取得する</h3>
+      <p>要素のインデックス番号を使ってfor文を書くこともできます。要素だけ取り出せばいい場合には上記のように書く方が簡単ですが、インデックス番号を他の処理にも使う場合には、このような書き方の方がよいでしょう。</p>
+
+      <pre class="python example"><code>
+        for インデックス番号 in range(len(リスト)):
+          # 繰り返し処理
+      </code></pre>
+      <p><b>range関数</b>の引数に<tt>len(リスト)</tt>（リストの要素数）を指定することで、インデックス番号が0〜(要素数−1)まで繰り返すという意味になります。先頭の要素のインデックス番号は0(ゼロ)、末尾の要素のインデックス番号は(要素数−1)となります。リストの要素数が決まっているならrange関数の引数に数値を直接入れてもいいですが、リストは要素を追加したり削除したりする使い方が多いので、len(リスト)としたほうがいい場面が多いです。</p>
+      
+      <p>次の例では、インデックス番号を0から(要素数−1)まで<tt>for...in range(...)</tt>で繰り返して、要素をインデックス番号で取得し、画面出力します。</p>
+      <pre class="python"><code>fruits = ["apple", "banana", "cherry", "drian"] 
+
+for i in range(len(fruits)):
+  print(i, fruits[i])</code></pre>
+      <pre class="result"><code>0 apple
+1 banana
+2 cherry
+3 drian</code></pre>
+
+      <h3>リスト内の数値の計算</h3>
+      <p>次の例では、<tt>numbers</tt>の各要素を２倍して<tt>doubled_numbers</tt>に格納します。for文で要素を順番にひとつずつ取得して２倍し、<tt>doubled_numbers</tt>に追加します。</p>
+      <pre class="python"><code>
+        numbers = [24, 83, 64, 37, 19]
+        doubled_numbers = []   # 空（カラ）のリストを用意
+
+        for number in numbers:
+          doubled_numbers.append(number * 2)
+
+        print(doubled_numbers)
+      </code></pre>
+      <pre class="result"><code>[48, 166, 128, 74, 38]</code></pre>
+      
+
+
+      <h3>リスト内の数値の合計を求める</h3>
+      <p>次の例では、<span class="code"><tt>numbers</tt>内の値の合計を求めます。</span></p>
+      <pre class="python"><code>
+        numbers = [58, 95, 89, 56, 45, 59, 55, 42, 37, 67]
+
+        total = 0
+        for number in numbers:
+          total = total + number
+
+        print(total)
+      </code></pre>
+      <pre class="result"><code>603</code></pre>
+      
+    
+
+<!--
+      <h3>リスト内の数値の合計点・平均点・分散・標準偏差・偏差値</h3>
+      <p>numbers内の値の合計点，平均点，標準偏差を求め、各値の偏差値を求める。<br>
+      平均点，標準偏差，偏差値は小数第１位になるように四捨五入する。<br>
+      四捨五入は<b>round関数</b>を用いる。<b>round(数値, 桁)</b>で指定し、桁に1を入れると小数第１位になるように四捨五入する。</p>
+
+      
+      <pre class="python"><code>numbers = [58, 95, 89, 56, 45, 59, 55, 42, 37]<br>
+        <br>
+        <em># 合計を計算する</em><br>
+        total = 0<br>
+        for number in numbers:<br>
+          total = total + number<br>
+        <br>
+        <em># 平均を計算する</em><br>
+        average = round(total / len(numbers), 1)  <em>#平均を求め、四捨五入する。</em><br>
+        <br>
+        <em># 標準偏差を計算する</em><br>
+        squared_diff = 0  <em>#二乗の差の合計</em><br>
+        for number in numbers:<br>
+          squared_diff = squared_diff + (number - average) ** 2<br>
+        variance = squared_diff / len(numbers)  <em>#分散</em><br>
+        std_dev = round((variance ** 0.5), 1) <em>#標準偏差を求め、四捨五入する。</em><br>
+        <br>
+        <em># 各要素の偏差値を計算し、新しいリストに格納する</em><br>
+        deviation_values = [] <em>#各要素の偏差値を格納するリスト</em><br>
+        for number in numbers:<br>
+          <em>#偏差値を求め、四捨五入する。</em><br>
+          deviation = round(((number - average) / std_dev * 10 + 50), 1)<br>
+          deviation_values.append(deviation)  <em>#偏差値をリストに追加する</em><br>
+        <br>
+        <em># 結果を出力する</em><br>
+        print("合計:", total)<br>
+        print("平均:", average)<br>
+        print("標準偏差:", std_dev)<br>
+        print("各要素の偏差値:", deviation_values)<br></code></pre>
+      <pre class="result"><code>合計: 536<br>
+        平均: 59.6<br>
+        標準偏差: 18.8<br>
+        各要素の偏差値: [49.1, 68.8, 65.6, 48.1, 42.2, 49.7, 47.6, 40.6, 38.0]</code></pre>
+-->
+    </article>
+    
+<!--    
+    <article>
+      <h2 id="headline_4">(4) リストと文字列</h2>
+      <p>文字列（<b>str型変数</b>）は、１文字１文字を要素にもつリストと考えることもできます。</p>
+
+      <h3>文字列に対する繰り返し</h3>
+      <p>文字列中の文字をfor文で取り出します。</p>
+      <pre class="python"><code>school_name = 'KAIJO'<br>
+        <br>
+        for char in school_name:<br>
+          print(char)<br></code></pre>
+      <pre class="result"><code>K<br>
+        A<br>
+        I<br>
+        J<br>
+        O</code></pre>
+      <p>リストや文字列はfor文によって繰り返すことができる変数で、このようなものを総称して<b>イテラブル（iterable）</b>とよびます。</p>
+
+      <h3>文字列の長さ</h3>
+      <p>文字列の長さを<strong>len関数</strong>で求めます。</p>
+      <pre class="python"><code>school_name = 'KAIJO'<br>
+        print(len(school_name))<br></code></pre>
+      <pre class="result"><code>5</code></pre>
+      
+      <h3>文字列の中の文字の存在判定</h3>
+      <p>比較演算子<b>in</b>を用いて、文字列の中に特定の文字が含まれているかどうかを判断します。</p>
+      <pre class="python"><code>school_name = 'KAIJO'<br>
+        if 'A' in school_name:<br>
+          print(school_name, "に'A'は含まれています。")<br>
+        else:<br>
+          print(school_name, "に'A'は含まれていません。")<br></code></pre>
+      <pre class="result"><code>KAIJO にAは含まれています。</code></pre>      
+      
+      <p>この他にもリストと文字列で共通の操作はあります。一方で、リストと文字列には異なる点もあります。例えば、リストは要素の一部を<strong>変更可能</strong>（<strong>ミュータブル：mutable</strong>）なのに対し、文字列は文字の一部は<strong>変更不可能</strong>（<strong>イミュータブル：immutable</strong>）です。</p>
+    </article>
+    
+    <article>
+      <h2 id="headline_5">(5) リストの例題</h2>
+      
+      <div id="examples"></div>
+
+      <h3>例題１ リスト内の最大値</h3>
+      <p>次のリスト変数numbers内の要素の最大値を求めるプログラムを書きなさい。ただし、次の(1), (2)の通りの書き方をすること。<br>
+      (1) for i in range(...)<br>
+      (2) for x in numbers</p>
+      <div class="code-details">
+<pre><code><em># (1) リスト内の最大値を「for i in range(...) 」を用いて求めるプログラム</em>
+numbers = [58, 95, 89, 56, 45, 59, 55, 42, 37, 67]
+print(numbers)  <em>#リストを画面出力</em>
+</code></pre>
+        <details>
+          <summary><em>#続きはココをクリック</em></summary>
+<pre><code>max = numbers[0]  <em># 下記の※参照</em>
+for i in range(1, len(numbers)):
+    if max &lt; numbers[i]:
+        max = numbers[i]
+print("最大値:", max)</code></pre>
+        </details>
+      </div>
+      <pre class="result"><code>最大値: 95</code></pre>
+      
+      <div class="code-details">
+<pre><code><em># (2) リスト内の最大値を「for x in numbers 」を用いて求めるプログラム</em>
+numbers = [58, 95, 89, 56, 45, 59, 55, 42, 37, 67]
+print(numbers)  <em>#リストを画面出力</em>
+</code></pre>
+        <details><summary><em>#続きはココをクリック</em></summary>
+<pre><code>max = numbers[0]  <em># 下記の※参照</em>
+for x in numbers:
+    if max &lt; x:
+        max = x
+print("最大値:", max)</code></pre>
+        </details>
+      </div>
+      <pre class="result"><code>最大値: 95</code></pre>
+      <p>※初期の最大値をリストの最初の要素に設定します。もし初期の最大値を0とした場合、リストの要素がすべて負の数の場合や、最大値が0より小さい場合などに正しい結果を得ることができません。他の任意の値でも同じことがおこります。</p>
+
+      <h3 id="linear-search">例題2 リスト内の値の探索</h3>
+      <p>ユーザーが入力した探索する数字が、numbers内の何番目にあるか求めるプログラムを書きなさい。リスト内に存在しない場合は「存在しません」と出力しなさい。</p>
+            <div class="code-details">
+<pre><code>numbers = [58, 95, 89, 56, 45, 59, 55, 42, 37, 67]
+print(numbers)  <em>#リストを画面出力</em>
+
+target = int(input('探索する数字: '))</code></pre>
+        
+        <details><summary><em>#続きはココをクリック</em></summary>
+<pre><code>is_exist = False  <em>#存在フラグ</em>
+
+for i in range(len(numbers)):
+    if numbers[i] == target:
+        print(numbers[i], "は", i, "番目")
+        is_exist = True
+        break;
+
+if not(is_exist):
+    print(target, 'は存在しません。')</code></pre>
+        </details>
+      </div>
+      <pre class="result"><code>[58, 95, 89, 56, 45, 59, 55, 42, 37, 67]<br>
+        <em>＜55を入力した場合＞</em> 55 は 6 番目<br>
+        <em>＜5を入力した場合＞</em>  5 は存在しません。</code></pre>
+      
+      
+      <h3>例題3 リストに乱数を追加し、特定の条件の値のみを抜き出す</h3>
+      <p>次のプログラムを書きなさい。<br>
+        ・空のリスト変数 numbers に1〜100の乱数を20個追加する。<br>
+        ・numbersの要素のうち5の倍数のみをリスト変数 five_step_numbersに追加する。<br>
+        ・numbersとfive_step_numbersを画面出力する。<br>
+        ※1〜100の乱数は、randomモジュールを用いて<b>random.randint(1,100)</b>で発生させる。
+      </p>
+<div class="code-details">
+<pre><code>import random <em>#乱数発生用</em>
+        
+        numbers = []  <em>#空のnumbersを用意</em>
+        five_step_numbers = []  <em>#空のfive_step_numbersを用意</em>
+</code></pre>
+        <details><summary><em>#続きはココをクリック</em></summary>
+<pre><code>for i in range(0, 21):
+    numbers.append(random.randint(1,100))   <em>#1〜100の乱数をnumbersに追加</em>
+
+for x in numbers:
+    if x % 5 == 0:  <em>#5の倍数だったら</em>
+        five_step_numbers.append(x) <em>#five_step_numbersに追加</em>
+
+print(numbers)  <em>#numbersを画面出力</em>
+print(five_step_numbers)  <em>#five_step_numbersを画面出力</em></code></pre>
+        </details>
+      </div>
+      <pre class="result"><code>[22, 11, 59, 40, 47, 59, 16, 3, 11, 58, 24, 63, 23, 73, 54, 100, 35, 88, 55, 1, 40]<br>
+        [40, 100, 35, 55, 40]<br>
+        <em>＜※結果は毎回変わります。＞</em></code></pre>
+
+
+
+    </article>
+-->
+    
+  </section>
+ 
+
+   <section id="questions"><!-- script_pages.js --></section>
+<!-- COMMON FOOTER START -->
+  <section id="next_page"><!-- script_pages.js --></section>
+
+  <footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+    <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+    <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+</html>
+

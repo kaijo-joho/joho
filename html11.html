@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Google tag (gtag.js) ここから-->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-ZW1B1EX70P');
+  </script>
+  <!-- Google tag (gtag.js) ここまで-->
+  
+
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <!-- Lightbox2 CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+  <!--MathJax-->
+  <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <meta charset="UTF-8" />
+  <link rel="icon" href="./img/favicon.ico" />
+  <title>海城中学高等学校 情報科</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>
+  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  <header><!-- script_pages.js --></header>
+  <!----COMMON HEADER END---->
+
+
+  <section>
+    <article>
+      <h2 id="headline_1">(1) HTMLとは</h2>
+
+      <h3>HTMLとは</h3>
+      <p><strong>HTML</strong>とは、<strong>ハイパー テキスト マークアップ ランゲージ（Hyper Text Markup
+          Language）</strong>の略で、Webページを作成するための言語です。</p>
+      <p><b>ハイパーテキスト (hypertext) </b>とは、複数の文書（テキスト）を相互に関連付け、結び付ける仕組みのことで、1965年に<a
+          href="https://ja.wikipedia.org/wiki/%E3%83%86%E3%83%83%E3%83%89%E3%83%BB%E3%83%8D%E3%83%AB%E3%82%BD%E3%83%B3"
+          target="_blank">ネルソン</a>によって「テキストを超える」という意味から"hyper-"（～を超えた） "text"（文書）と名付けられました。</p>
+      <p><b>マークアップ</b>とは、コンテンツのはじめとおわりに<strong>タグ</strong>とよばれるしるしをつけ、その部分に何らかの意味づけをすることを指します。</p>
+
+
+
+
+      <h3>タグとは</h3>
+      <p><b>タグ</b>とは、<b class="tag red">&lt;</b>と<b
+          class="tag red">&gt;</b>で挟んで指定し、テキストに見出し，段落，箇条書き，強調，リンク，画像，表など、さまざまな役割を持たせるための特殊な文字列のことです。</p>
+      <p>次の例では、<b class="tag red">&lt;h1&gt;</b>と<b class="tag red">&lt;/h1&gt;</b>に挟まれたテキストに<b>見出し</b>という意味を与えています。</p>
+
+      <pre class="html example"><code>
+        <b class="tag red">&lt;h1&gt;</b>見出し１<b class="tag red">&lt;/h1&gt;</b>
+      </code></pre>
+
+
+      <p>また、次の例では、<b class="tag red">&lt;p&gt;</b>と<b class="tag red">&lt;/p&gt;</b>に挟まれたテキストに<b>段落</b>という意味を与えています。</p>
+
+      <pre class="html example"><code>
+        <b class="tag red">&lt;p&gt;</b>段落のはじまり<b class="tag red">&lt;/p&gt;</b>
+      </code></pre>
+
+
+      <p>このようなタグを使って、コンピュータがそのページの構造を理解できるようにすることがHTMLの役割です。</p>
+    </article>
+
+    <article>
+      <h2 id="headline_2">(2) 実習の進め方</h2>
+
+      <p>このHTML実習のサイトの使い方について説明します。</p>
+      <h3>例文ブロック</h3>
+      <p>次の背景のブロックは例文ブロックです。HTMLの書き方の例を示しています。<br>
+        特に書き写す必要はありませんが、例文を読んで理解してください。</p>
+      <pre class="html example"><code>
+        この背景のブロックは例文ブロックです。<br>例文を読んで理解してください。<br>
+        特に書き写す必要はありません。
+      </code></pre>
+
+      <h3>実習ブロック（新規作成）</h3>
+      <p>次の背景のブロックは、実習ブロックです。コードを書き写しながら理解してください。<b>[新規作成]とある場合</b>には、HTMLファイルを新規作成し、指定されたファイル名で保存してください。</p>
+
+      <pre class="html"><code>
+        &lt;!-- [新規作成] ファイル名.html --&gt;
+        この背景のブロックは実習ブロックです。
+        自分のPCにファイルに、ここに記載されたコードを書き写しながら理解してください。
+
+        ブロックのタイトルに<b>[新規作成]</b>とある場合は、HTMLファイルを新規作成し、
+        指定されたファイル名で保存してください。
+      </code></pre>
+
+      <h3>実習ブロック（編集）</h3>
+      <p>[新規作成]がない場合には、既に作成してあるファイルを編集してください。</p>
+      <pre class="html"><code>
+        &lt;!-- ファイル名.html --&gt;
+        この背景のブロックは実習ブロックです。
+        自分のPCにファイルに、ここに記載されたコードを書き写しながら理解してください。
+
+        [新規作成]がない場合には、既に作成してあるファイルを編集してください。
+      </code></pre>
+
+      <h3>実習ブロック（一部のみ記載）</h3>
+      <p>ファイル名のあとに記述場所を指定されている場合は、指定された場所にコードを書き写してください。次の例では<b>実習コード①の場所</b>にコードを記述します。</p>
+      
+      <pre class="html"><code>
+        &lt;!-- ファイル名.html ＞ 実習コード① --&gt;
+        この背景のブロックは実習ブロックです。
+        自分のPCにファイルに、ここに記載されたコードを書き写しながら理解してください。
+
+        この場合は、既に作成してるHTMLファイルの実習コード①の場所に書き写してください。
+      </code></pre>
+
+      <p>なお、<b>実習コード①の場所</b>とは、テンプレートの中には次のように指示があります。</p>
+      <pre class="html example"><code>
+        <b class="tag red">&lt;!-- ▼実習コード① ここから▼ --&gt;</b>
+
+
+        <b class="tag red">&lt;!-- ▲実習コード① ここまで▲ --&gt;</b>
+      </code></pre>
+
+    </article>
+    <article>
+      <h2 id="headline_3">(3) 実習の準備</h2>
+
+      <h3>実習ファイルの保存先</h3>
+      <p><b>Finder</b>の<b>書類</b>フォルダの中に、<b>HTML実習</b>というフォルダを作成します。これ以降、このHTML実習では、このフォルダの中にファイルを作成していきます。</p>
+
+      <ul style="margin-left: 40px;">
+        <li><b>Finder</b><img src="./img/Finder.png" height="24px" style="vertical-align: middle;">を開く。</li>
+        <li><b><img src="./img/SidebarDocumentFolder.png" height="20px"
+              style="vertical-align: middle;">書類</b>フォルダに移動する（コマンド<b>⌘</b>＋シフト<b>⇧</b>＋<b>O</b>）。</li>
+        <li><b>新規フォルダ</b>を作成する。</li>
+        <li>
+          フォルダの名前を「<b>HTML実習</b>」に変更する。<br>
+          <p class="small-text">フォルダ名が確定してしまったら、フォルダを右クリックして「名称変更」する。</p>
+        </li>
+      </ul>
+
+      <img src="./img/html11_001.png" class="screen_shot" alt="書類フォルダ内に新規フォルダ「HTML実習」を作成">
+      <p><b class="bgcolor_lighterred">このフォルダに保存したファイルは、自動的にはバックアップされません。何かあったときに備えて、OneDriveやGoogle
+          Driveにも保存しておきましょう。</b></p>
+
+      <h3>CotEditor</h3>
+      <p>HTMLを編集するためには、<strong>CotEditor</strong><img src="./img/CotEditor.png" height="24px"
+          style="vertical-align: middle;">というアプリを使います。</p>
+
+      <ul>
+        <li>
+          <strong>Launchpad</strong>を開く<span class="small-text">（Dockの<img src="./img/Launchpad.png" height="18px"
+              style="vertical-align: middle;">アイコンをクリック または トラックパッドを４本指でピンチ）</span>
+        </li>
+        <li><strong>CotEditor</strong>を開く<span class="small-text">（CotEditorが見つからない場合は、下記の手順でインストールする）</span></li>
+      </ul>
+
+      <details
+        style="background-color: #dddddd; width:600px; margin-left: 40px; margin-bottom: 20px; border-radius: 10px;">
+        <summary style="font-size: 16px;font-weight: bold;">
+          CotEditorのインストール
+        </summary>
+        <p>※CotEditorが既にインストールされている場合は、この操作は不要です。自動的にインストールするようにしましたが、もしインストールされていなかったら下記の手順に従ってインストールしてください。</p>
+        <p><b>Self Service</b>を開き<b>CotEditor</b>をインストールします。HTMLファイルのソースを編集するときには、このアプリを使用します。</p>
+        <p>
+          <img src="./img/html11_002.png" class="screen_shot" alt="Self ServiceからCotEditorをインストール">
+        </p>
+
+        <p></p>
+      </details>
+
+
+
+      <h4>CotEditorの設定</h4>
+      <p>CotEditorを開き、HTMLの編集をしやすくするための設定をします。</p>
+      <p>ウィンドウ右上の<b>シンタックススタイル</b>を<b>HTML</b>にします。シンタックススタイルとは、HTMLのタグなどに対して自動的に文字色をつける機能です。</p>
+      <img src="./img/html11_005.png" class="screen_shot" alt="シンタックススタイルの変更">
+
+      <p>
+        メニューバーの<b>[CotEditor]</b>＞<b>[環境設定]</b>を開き（コマンド<b>⌘</b>＋カンマ<b>,</b>)、「<b>表示</b>」または「<b>外観</b>」タブから<b>フォント</b>を<b>Osaka
+          レギュラー <span class="tooltip" tooltip-data="とうはば">等幅</span></b>に変更します。</p>
+      <img src="./img/html11_003.png" class="screen_shot" alt="フォントの変更">
+
+      <details
+        style="background-color: #dddddd; width:600px; margin-left: 40px; margin-bottom: 20px; border-radius: 10px;">
+        <summary style="font-size: 16px;font-weight: bold;">
+          「Osaka レギュラー-等幅」がみつからない場合
+        </summary>
+        <ul>
+          <li><b>Spotlight</b>（コマンド⌘＋スペース）を開き「Font Book.app」と入力する。</li>
+          <li><b>Font Book.app</b>を開く。</li>
+          <li>検索バーで「Osaka」と入力し、Osakaを探す。</li>
+          <li>「ダウンロード」ボタンを押して、ダウンロードする。</li>
+        </ul>
+        <p></p>
+        <p></p>
+
+        <p></p>
+      </details>
+
+      <p><b>設定</b>の<b>編集</b>タブから、<b>インデント幅</b>を<b>2</b>スペースに変更します。</p>
+      <img src="./img/html11_004.png" class="screen_shot" alt="インデント幅の変更">
+
+    </article>
+
+
+  </section>
+
+
+
+  <!-- COMMON FOOTER START -->
+  <section id="next_page"><!-- script_pages.js --></section>
+  <footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+  <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+
+</html>

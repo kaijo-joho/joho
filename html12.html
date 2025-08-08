@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Google tag (gtag.js) ここから-->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-ZW1B1EX70P');
+  </script>
+  <!-- Google tag (gtag.js) ここまで-->
+  
+
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <!-- Lightbox2 CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+  <!--MathJax-->
+  <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <meta charset="UTF-8" />
+  <link rel="icon" href="./img/favicon.ico" />
+  <title>海城中学高等学校 情報科</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>
+  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  <header><!-- script_pages.js --></header>
+  <!----COMMON HEADER END---->
+
+
+  <section>
+
+
+    <article>
+      <h2 id="headline_1">(1) HTMLファイルの基本</h2>
+
+      <h3>HTMLファイルの編集</h3>
+      <h4>HTMLファイルをCotEditorで開く</h4>
+      <p><b>sample1-2.html</b>を<b>右クリック（または ２本指クリック）</b>し<b>[このアプリケーションで開く]</b> →
+        <b>[CotEditor.app]</b>を選択すると、CotEditorでHTMLファイルを開けます。</p>
+      <img src="./img/html12_002.png" class="screen_shot" alt="CotEditorで開く">
+
+      <h4>ソースコードの入力</h4>
+      <p><b>sample1-2.html</b>を<b>CotEditor</b>で開いたら、次のソースコードを書きます。</p>
+      <p>行頭の字下げ（インデント）は、<b>半角スペース2つ</b>分を入力します。</p>
+      <pre class="html"><code>
+        &lt;!doctype html&gt;
+        &lt;html&gt;
+          &lt;head&gt;
+            &lt;meta charset="UTF-8"&gt;
+            &lt;title&gt;タイトル&lt;/title&gt;
+          &lt;/head&gt;
+          &lt;body&gt;
+            &lt;h1&gt;見出し1&lt;/h1&gt;
+            &lt;p&gt;pタグで囲まれたところは、段落を意味しています。&lt;/p&gt;
+          &lt;/body&gt;
+        &lt;/html&gt;
+			</code></pre>
+
+      <h4>HTMLファイルの保存</h4>
+      <p>メニューバーの <b>[ファイル]</b> → <b>[保存] </b>をクリックし（コマンド<b>⌘</b>＋<b>S</b>）、保存します。</p>
+      <p></p>
+
+
+      <h3>HTMLファイルの表示</h3>
+      <h4>ブラウザで開く</h4>
+      <p><b>sample1-2.html</b>をダブルクリックするか、HTMLファイルを右クリックし<b>[このアプリケーションで開く]</b> →
+        <b>[Safari.app]</b>を選択すると、Safariが立ち上がりWebページが表示されます。</p>
+      <img src="./img/html12_001.png" class="screen_shot" alt="Safariで開く">
+
+
+      <h3>ブラウザで変更を反映する</h3>
+      <p>
+        <b>CotEditor</b>で編集した内容を反映するには、<b>CotEditor</b>で保存（コマンド<b>⌘</b>＋<b>S</b>）し、<b>Safari</b>でページを<b>再読み込み</b>（コマンド<b>⌘</b>＋<b>R</b>）します。
+      </p>
+
+      <h4>CotEditorで編集する</h4>
+      <p>CotEditorで<b>sample1-2.html</b>を開いて、10行目に次のコードを入力します。</p>
+      <pre class="html" data-title="sample1-2.html ＞ 10行目"><code>
+        &lt;p&gt;新しい段落を追加します。&lt;/p&gt;
+			</code></pre>
+
+      <h4>変更箇所の反映</h4>
+      <p>次にブラウザで、ページを更新します（一度ブラウザを閉じた場合は、再度開きます）。</p>
+      <img src="./img/html12_005.png" class="screen_shot" alt="変更を反映する">
+    </article>
+
+
+    <article>
+      <h2 id="headline_2">(2) HTMLファイルの構成</h2>
+      <h3>HTMLファイルの構成</h3>
+      <p>さきほど作成したHTMLファイルの各要素を説明します。</p>
+
+      <pre class="html" data-title="sample1-2.html"><code>
+        &lt;!doctype html&gt;
+        &lt;html&gt;
+          &lt;head&gt;
+            &lt;meta charset="UTF-8"&gt;
+            &lt;title&gt;タイトル&lt;/title&gt;
+          &lt;/head&gt;
+          &lt;body&gt;
+            &lt;h1&gt;見出し1&lt;/h1&gt;
+            &lt;p&gt;pタグで囲まれたところは、段落を意味しています。&lt;/p&gt;
+            &lt;p&gt;新しい段落を追加します。&lt;/p&gt;
+          &lt;/body&gt;
+        &lt;/html&gt;
+			</code></pre>
+
+      <h4>&lt;!doctype html&gt;</h4>
+      <p><b>ドキュメントタイプ宣言</b>といい、このファイルが<b>HTML5</b>のファイルであることを明示します。</p>
+      <p>HTMLにはいくつかバージョンがあり、この書き方は現在主流になっている<b>HTML5</b>というバージョンの書き方になります。</p>
+      <p>厳密には、ドキュメントタイプ宣言はタグではありません。</p>
+
+      <h4>&lt;html&gt;〜&lt;/html&gt;</h4>
+      <p>この文書がHTML文書であることを指定します。</p>
+      <p><b>&lt;html&gt;</b>〜<b>&lt;/html&gt;</b>のあいだに、後述の<b>headタグ</b>と<b>bodyタグ</b>を１つずつ指定します。</p>
+
+      <h4>&lt;head&gt;〜&lt;/head&gt;</h4>
+      <p>このあいだにページのタイトルや説明文、使用する外部ファイルのリンクなど、ページの情報を記述します。</p>
+      <p>この部分はブラウザには表示されません。</p>
+
+      <h4>&lt;body&gt;〜&lt;/body&gt;</h4>
+      <p>実際にブラウザ上で表示されるコンテンツを入力します。</p>
+
+
+
+      <h3>headタグ</h3>
+      <h4>&lt;meta charset="UTF-8"&gt;</h4>
+      <p>文字コードを<b>UTF-8</b>に指定します。</p>
+
+      <h4>&lt;title&gt;〜&lt;/title&gt;</h4>
+      <p>ページのタイトルを記述します。ブラウザのタブやブックマーク，検索したときの見出しなどとして表示されます。</p>
+
+
+      <h3>bodyタグ</h3>
+      <p>bodyタグの中に入れるタグは、次のページから詳しく扱います。</p>
+      <h4>&lt;h1&gt;〜&lt;/h1&gt;</h4>
+      <p>見出しを表示します。</p>
+      <h4>&lt;p&gt;〜&lt;/p&gt;</h4>
+      <p>段落を表示します。</p>
+
+
+    </article>
+
+    <article>
+      <h2 id="headline_3">(3) HTMLファイルの書き方</h2>
+      <h3>タグの書き方</h3>
+      <p>開始タグと終了タグに囲まれた範囲のことを<strong>要素</strong>といいます。</p>
+      <p>開始タグは<b class="tag red">&lt;タグ名&gt;</b>のように、<b class="tag red">&lt;</b>と<b
+          class="tag red">&gt;</b>でタグ名を囲みます。また、終了タグはタグ名の前に<b>/</b>（スラッシュ）を加えて<b
+          class="tag red">&lt;/タグ名&gt;</b>のように書きます。</p>
+      <p>※タグ名や<b>&lt;</b>と<b>&gt;</b>は、半角英数字で書きます。基本的に大文字と小文字の区別はありませんが、現在は小文字で記述することが推奨されています。</p>
+
+      <pre class="html example"><code>
+        &lt;タグ名&gt;コンテンツ&lt;/タグ名&gt;
+      </code></pre>
+
+      <h3>タグのネスト</h3>
+      <p>開始タグと終了タグの間に、別のタグが入ることを、タグの<b>ネスト</b>（入れ子）といいます。ネストする場合は、必ず内側のタグの終了タグを書いてから、外側の終了タグを入れます。</p>
+      <pre class="html example"><code>
+        &lt;p&gt;&lt;strong&gt;strongタグ&lt;/strong&gt;は強調する場合に使います。&lt;/p&gt;
+        </code></pre>
+
+
+      <h3>タグのネストとインデント</h3>
+      <p>
+        複数行からなる要素をネストする場合、内側の要素を次のように<strong>インデント</strong>（字下げ）すると見やすくなります。インデントする場合は、半角スペース２つ分字下げします。<b>CotEditor</b>の<b>設定</b>＞<b>編集</b>で<b>インデント幅</b>を<b>2</b>スペースにしておけば、<b>Tab
+          ⇥</b>キーで半角スペース２つ分を入力できます。
+      </p>
+      <pre class="html example"><code>
+        &lt;ul&gt;
+          &lt;li&gt;箇条書き１&lt;/li&gt;
+          &lt;li&gt;箇条書き２&lt;/li&gt;
+          &lt;li&gt;箇条書き３&lt;/li&gt;
+        &lt;/ul&gt;
+      </code></pre>
+
+      <h3>タグの属性</h3>
+      <p>
+        タグによっては、開始タグの中にさまざまな設定を書くことがあります。このような設定を<strong>属性</strong>といい、属性に指定する内容を<strong>属性値</strong>または単に<strong>値</strong>といい、<b>"</b>（ダブルクォート）で囲んで記述します。
+      </p>
+
+      <pre class="html example"><code>
+        <b class="tag red">&lt;タグ名 属性="属性値"&gt;</b>コンテンツ<b class="tag red">&lt;/タグ名&gt;</b>
+      </code></pre>
+
+
+
+      <p>次の例では、リンクを記述する<b><span class="tooltip" tooltip-data="アンカー">a</span>タグ</b>で、そのリンク先を<b><span class="tooltip"
+            tooltip-data="エイチ レフ(hyper referenceの略)">href</span>属性</b>でリンク先のURLを記述します。</p>
+
+      <pre class="html example"><code>
+        &lt;a href="https://www.kaijo.ed.jp/"&gt;海城中学高等学校&lt;/タグ名&gt;
+      </code></pre>
+
+      <p>ひとつのタグに複数の属性を指定することもあります。次の例では、横幅と縦の長さや代替文字列を指定して画像を表示します。</p>
+      <pre class="html example"><code>
+        &lt;img src="./images/photo01.jpg" width="480" height="320" alt="写真01"&gt;
+      </code></pre>
+
+      <h3>コメントアウト</h3>
+      <p>
+        コメントを記すことを<strong>コメントアウト</strong>といいます。コメントはブラウザ上で表示されない部分で、制作上のメモ書きやHTMLの構造の区切りを入れる目的で使用します。ただし、ソースコードには表示されるので、読まれてはいけないことは記載しないようにしましょう。
+      </p>
+      <p>HTMLのコード内にコメントアウトするときは <b class="tag red">&lt;!--</b> と <b class="tag red">--&gt;</b> で囲みます。</p>
+
+      <pre class="html example"><code>
+        &lt;!-- ここにコメントを書きます --&gt;
+      </code></pre>
+
+      <p>コメントは複数行にわたって記述することもできます。</p>
+      <pre class="html example"><code>
+        &lt;!-- 複数行のコメントを
+        残すこともできます --&gt;
+      </code></pre>
+
+
+    </article>
+  </section>
+
+
+
+  <!-- COMMON FOOTER START -->
+  <section id="next_page"><!-- script_pages.js --></section>
+  <footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+  <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+
+</html>

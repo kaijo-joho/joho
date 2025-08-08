@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+       <!-- Google tag (gtag.js) ここから-->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+            <script>
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-ZW1B1EX70P');
+            </script>
+       <!-- Google tag (gtag.js) ここまで-->
+      <link rel="icon" href="./img/favicon.ico" />
+    
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  
+  <!-- Lightbox2 CDN -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+     
+  <!-- Highlight.js -->
+    <link rel="stylesheet" href="./highlightjs/styles/ks.css">
+    <script src="./highlightjs/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    
+  <meta charset="UTF-8" />
+  <title>オープンキャンパス | 海城中学高等学校 情報科</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>  
+  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+	   
+	   
+</head>
+<body>
+  <header><!-- script_pages.js --></header>
+<!----COMMON HEADER END---->	
+  <section>
+    <article>
+      <h1><a id="page_title">情報科 オープンキャンパス特設ページ</a></h1>
+      <div id="page_detail">
+        <p>このページは、海城中学高等学校 オープンキャンパスにおける情報科の展示である 体験型ワークショップのコンテンツを掲載しています。</p>
+        <p>今回は、受験生のみなさんを対象に、本校のコンピュータ教室においてプログラミングの体験をしていただきます。具体的には、JavaScriptを用いてブラウザ上で動く簡単なアプリを作成します。</p>
+      </div>
+    </article>
+  </section>
+
+  <section>		
+		<article>
+			<div class="article_header"><h2><a id="headline_1">準備</a></h2></div>
+      <h3>テンプレートファイルについて</h3>
+      <p>デスクトップ右上の<b>オープンキャンパス</b>フォルダを開き、<b>counter.html</b>をデスクトップにコピーします（次のリンク先からもダウンロードすることができます）。</p>
+      <p><ul>
+        <li><a href="./html/counter.html" download>counter.html</a></li>
+      </ul></p>
+      <img src="./img/oc02_002.png" class="screen_shot" width="600px">
+    
+      <p>また、<b>オープンキャンパス | 情報科</b>をダブルクリックすると、今回の手順説明に使ったスライドを閲覧できます。</p>
+      <img src="./img/oc02_003.png" class="screen_shot" width="600px">
+    
+      <h3>カウンターアプリの概要</h3>
+      <p>このワークショップで作成するカウンターアプリは、ブラウザ上で次のように表示され、各ボタンを押すと中央上部の数字が変更されるものです。</p>
+      <img src="./img/oc02_004.png" class="screen_shot" width="600px">
+      
+      <p>ブラウザ上では、左図のように表示されていますが、これをテキストエディタで開くと右図のようなソースで表示されます。このソースに、表示させる要素のコードや実行させたいスクリプトを書くことによって完成させていきます。</p>
+
+
+    
+    </article>
+		<article>
+			<div class="article_header"><h2><a id="headline_2">カウントアップボタンの作成</a></h2></div>
+      <h3>ファイルの開き方</h3>
+      <p>デスクトップに移動したHTMLファイルを右クリックし、この<b>アプリケーションで開く</b>を選択します。ブラウザで開くときには、<b>Safari.app</b>をクリックします。また、ソースを編集するときには<b>テキストエディット</b>をクリックします。</p>
+      <img src="./img/oc02_005.png" class="screen_shot" width="600px">
+      
+      <p>ブラウザで開いても、はじめは何も表示されません。<b>テキストエディット</b>で開いてソースを編集することでブラウザ上にボタン等を表示します。</p>
+      <img src="./img/oc02_006.png" class="screen_shot" width="600px">
+      
+      
+      <h3>数字を表示する要素を追加する</h3>
+      <p>まずはじめに、カウンターアプリの数字を表示する要素を追加しましょう。ソースの中にある<b>&lt;!-- 画面に表示する要素 ここから --&gt;</b>と<b>&lt;!-- 画面に表示する要素 ここまで --&gt;</b>のあいだに、次のコードを入力してください。</p>
+      
+			<pre class="example"><code><div id="counter"> 0 </div></code></pre>
+      
+      <p><b>&lt;</b>と<b>&gt;</b>にはさまれた文字はタグといい、<b>&lt;タグ名 ...&gt;</b>と<b>&lt;/タグ名&gt;</b>に囲まれた内容に対して、特定の機能をもたせることができます（タグ自体はブラウザに表示されることはありません）。</p>
+      <p>今回のdivはコンテンツを入れるための箱を表示するタグです。<b>&lt;div ...&gt;</b>と<b>&lt;/div&gt;</b>に囲まれた文字をブラウザ上に表示します。また、<b>id="counter"</b>の部分は、このdivタグにcounterという名前を付けることを意味します。あとでボタンを押したときに、このdivタグの内容を変更するときに指定するために使います。</p>
+
+      <p>ここまでできたら、一度保存します（⌘コマンドを押しながらSキーを押すと保存されます）。つづいて、ブラウザでHTMLファイルを開き変更内容が追加されたか確認しましょう。すでにブラウザでHTMLファイルを開いている場合は、再読み込みします（⌘コマンドを押しながらSキーを押すと再読み込みされます）。</p>
+      
+      <img src="./img/oc02_007.png" class="screen_shot" width="600px">
+      
+      
+      <h3>カウントアップボタンを追加する</h3>
+      <p>つぎに、カウントアップボタンを追加します。先ほどのdivタグの下に、次のコードを入力してください。</p>
+      
+			<pre class="example"><code><button onClick="countUp();"> ＋ </button></code></pre>
+      
+      <p>buttonタグはその名の通り、ボタンを表示するためのタグです。<b>&lt;button ...&gt;</b>と<b>&lt;/button&gt;</b>に囲まれた文字をボタンの文字とします。<b>onClick="countUp();"</b>の部分は、このボタンをクリックしたときに、<b>countUp()関数</b>を実行することを表します。</p>
+      
+      <img src="./img/oc02_008.png" class="screen_shot" width="600px">
+      
+      <h3>カウントアップボタンを押したときの動作</h3>
+      <p>つづいて、カウントアップボタンを押したときの動作をスクリプトに書きます。<b>&lt;!-- スクリプト ここから --&gt;</b>と<b>&lt;!-- スクリプト ここまで --&gt;</b>のあいだに、次のスクリプトを入力してください。</p>
+
+			<pre class="example"><code>function countUp(){
+          let x = getValue();
+          counter.textContent = x + 1;
+        }</code></pre>
+      
+      <p><b>function</b>は<strong>関数</strong>といい、特定の機能をもったプログラムのひとかたまりを表します。ここでは<b>countUp</b>という名前の関数を表すという意味です。</p>
+      <p><b>x</b>は<strong>変数</strong>といい、数字や文字などの値を入れておく箱のようなものです。また、<b>let</b>はxが変数であることを宣言するための書き方です。イコール<b>=</b>の右側にある<b>getValue()</b>は、いま表示されている数値を取得する関数です。この１行で、変数xを宣言し、そのxの値に、getValue()関数で取得した値を入れることを表しています。</p>
+      <p>つぎのcounter.textContentは、数字を表示する要素の内容を意味しています。この１行で、数字を表示する要素の内容をイコール<b>=</b>の右側のx + 1、つまりxに１を加えた値に書き換えることを表しています。</p>
+
+      <p>ここまでできたら、一度保存します（⌘コマンドを押しながらSキーを押すと保存されます）。つづいて、ブラウザでHTMLファイルを開き変更内容が追加されたか確認しましょう。すでにブラウザでHTMLファイルを開いている場合は、再読み込みします（⌘コマンドを押しながらSキーを押すと再読み込みされます）。カウントアップボタンを押したら、表示されている数字が増えているのが確認できたでしょうか。</p>
+      <img src="./img/oc02_009.png" class="screen_shot" width="600px">
+    
+    </article>
+		<article>
+			<div class="article_header"><h2><a id="headline_3">カウントダウンボタン・リセットボタンの作成</a></h2></div>
+      
+      <h3>カウントダウンボタン・リセットボタンの追加</h3>
+      <p>すでに追加されているカウントアップボタンの前後に、カウントダウンボタンとリセットボタンを新しく追加します。</p>
+      
+      <p>カウントダウンボタンを追加するには、カウントアップボタンの前に次のコードを追加します。</p>
+			<pre class="example"><code><button onClick="countDown();"> ー </button></code></pre>
+      
+      <p>リセットボタンを追加するには、カウントアップボタンの後に次のコードを追加します。</p>
+			<pre class="example"><code><button onClick="reset();"> リセット </button></code></pre>
+      <img src="./img/oc02_010.png" class="screen_shot" width="600px">
+      
+      
+      <h3>カウントダウンボタン・リセットボタンを押したときの動作</h3>
+      <p>スクリプトにカウントダウンボタンとリセットボタンを押したときの動作を書きます。</p>
+      
+      <p>カウントダウンボタンは、カウントアップボタンと同様に、いま表示されている値をxに入れ、表示内容をx - 1に書き換えます。</p>
+			<pre class="example"><code>function countDown(){
+          let x = getValue();
+          counter.textContent = x - 1;
+        }</code></pre>
+      
+      
+      <p>リセットボタンは、押したら表示内容を0(ゼロ)にすればよいので、次のように書きます。</p>
+			<pre class="example"><code>function reset(){
+          counter.textContent = 0;
+        }</code></pre>
+      
+      <p>ここまでできたら、一度保存します（⌘コマンドを押しながらSキーを押すと保存されます）。つづいて、ブラウザでHTMLファイルを開き変更内容が追加されたか確認しましょう。すでにブラウザでHTMLファイルを開いている場合は、再読み込みします（⌘コマンドを押しながらSキーを押すと再読み込みされます）。カウントダウンボタンとリセットボタンはちゃんと動いたでしょうか。</p>
+      
+      <img src="./img/oc02_011.png" class="screen_shot" width="600px">
+      
+      <p>ワークショップで扱う内容は以上となります。もし早く終わってしまった人や、物足りなかった人のために、下の内容も用意しましたので、ぜひ挑戦してみてください。</p>
+      
+      
+    </article>
+		<article>
+			<div class="article_header"><h2><a id="headline_4">最後に、、、</a></h2></div>
+      <p><b>counter.html</b>ファイルを提出フォルダに移動します。</p>
+      <p>もし右図のようなメッセージが出てきたら、「両方とも残す」を選択してください。</p>
+      <img src="./img/oc02_016.png" class="screen_shot" width="600px">
+      
+      
+    </article>
+		<article>
+			<div class="article_header"><h2><a id="headline_5">もうちょっとプログラミングをやってみたい人のために</a></h2></div>
+      
+      <p>ワークショップでは、時間も限られているので、扱いきれませんでしたが、もうちょっとプログラミングをやってみたい人のために、次の項目を用意しました。もし時間があれば、やってみてください。</p>
+      
+      <h3>カウントダウンボタンの下限を決める</h3>
+      <p>ここまでの状態では、カウントダウンボタンを押していくと、0(ゼロ)より小さいマイナスの数が表示されます。表示される数字の下限を0(ゼロ)と決めることで、マイナスの数を表示しないようにします。</p>
+      
+      <p>例えば、いま表示されている数字が１のとき、カウントダウンボタンを押せば、表示は０になります。では、いま表示されている数字が０のとき、カウントダウンボタンを押すと、０より１小さい数字である−１(マイナス１)が表示されてしまいます。つまり、いまの表示が０より大きい場合はいまの表示から１引いた数を表示して、０の場合（または０より小さい場合）は０を表示するようにすれば、０より小さい数が表示されることはありません。</p>
+      <p>このように、いま表示されている数によって処理を分ければよいのです。これを<strong>条件分岐</strong>といい、スクリプトには次のように書きます。</p>
+      
+			<pre class="example"><code>if(条件){
+          条件が合っている場合の処理;
+        }else{
+          それ以外の場合の処理;
+        }</code></pre>
+      
+      <p>今回は、getValue()関数で受け取った値をxとしていますが、xの値が0より大きい(x &gt; 0)場合とそれ以外の場合で条件分岐をします。</p>
+      
+			<pre class="example"><code>if(x > 0){
+          counter.textContent = x - 1;
+        }else{
+          counter.textContent = 0;
+        }</code></pre>
+      
+      <p>これをcountDown()関数に組み込むと、次のようになります。</p>
+			<pre class="example"><code>function countDown(){
+          let x = getValue();
+          if(x > 0){
+            counter.textContent = x - 1;
+          }else{
+            counter.textContent = 0;
+          }
+        }</code></pre>
+      
+      <img src="./img/oc02_013.png" class="screen_shot" width="600px">
+      
+    </article>
+		<article>
+			<div class="article_header"><h2><a id="headline_6">おわりに</a></h2></div>
+      <p>いかがだったでしょうか。ふだん、中学３年生や高校１年生で扱うような内容だったので、限られた時間の中で受験生のみなさんがやるのは少し難しいところもあったかもしれません。普段、パソコンやスマホで何気なく触っているアプリが、どのようなしくみで動いているのか垣間見えたのではないでしょうか。今回のワークショップを通して、少しでも興味をもってくれると、担当者としては大変嬉しいですね。</p>
+      <p>今回は、本校のコンピュータ教室において、プログラミングの授業を受けるという体験をしていただきましたが、数年後この場所で情報の授業を受けている自分の姿を想像することはできたでしょうか。またみなさんとお会いできる日を楽しみにしています。本日はありがとうございました。引き続き、オープンキャンパスをお楽しみください。</p>
+      <p>なお、このページはしばらくの間は公開しておきますので、ぜひご自宅でも楽しんでください。</p>
+    </article>
+    
+    
+    
+	</section>
+		
+ 
+
+<!-- COMMON FOOTER START -->
+ <section id="next_page"><!-- script_pages.js --></section>
+	<footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+    <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+    <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+</html>
+

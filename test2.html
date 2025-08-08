@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>Python構文ハイライト デバッグ</title>
+  <style>
+    body {
+      font-family: monospace;
+      background: #f1f3f4;
+      padding: 2em;
+    }
+    pre {
+      background: #eeeeee;
+      padding: 1em;
+      border-radius: 6px;
+      white-space: pre-wrap;
+    }
+		.token-keyword {
+		  color: #7e57c2; /* 紫っぽいキーワード */
+		  font-weight: bold;
+		}
+		
+		.token-builtins {
+		  color: #1565c0; /* 組み込み関数（青） */
+		}
+		
+		.token-number {
+		  color: #1b9e77; /* 青緑の数値 */
+		}
+		
+		.token-string {
+		  color: #ef6c00; /* オレンジ */
+		}
+		
+		.token-comment {
+		  color: #3d8128; /* 緑 */
+		  font-style: italic;
+		}
+  </style>
+</head>
+<body>
+
+<h2>コメント・文字列・数字・予約語 ハイライトテスト</h2>
+
+<pre class="python"><code>
+x = 42  # 数字を代入
+if x > 0:  # 正の数のとき
+    print("xは正です")  # メッセージ表示
+elif x == 0:
+    print("xはゼロです")
+else:
+    print("xは負の数です")
+</code></pre>
+
+<script>
+function escapeHTML(str) {
+  return str.replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+}
+
+function highlightSyntax(line) {
+  // 文字列
+  line = line.replace(/"([^"]*)"/g, '<span class="token-string">"$1"</span>');
+  // 数字（負の数対応）
+  line = line.replace(/(?<![\w])(-?\d+(\.\d+)?)(?![\w])/g, '<span class="token-number">$1</span>');
+	// キーワード（制御構文など）
+	const keywords = ['if', 'else', 'elif', 'for', 'while', 'def', 'return', 'import', 'from', 'as', 'in', 'not', 'and', 'or'];
+	keywords.forEach(kw => {
+	  const re = new RegExp('\\b' + kw + '\\b', 'g');
+	  line = line.replace(re, `<span class="token-keyword">${kw}</span>`);
+	});
+	
+	// 組み込み関数
+	const builtins = ['print', 'input', 'int', 'str', 'float', 'len', 'range'];
+	builtins.forEach(fn => {
+	  const re = new RegExp('\\b' + fn + '\\b', 'g');
+	  line = line.replace(re, `<span class="token-builtins">${fn}</span>`);
+	});
+	
+  keywords.forEach(kw => {
+    const re = new RegExp('\\b' + kw + '\\b', 'g');
+    line = line.replace(re, `<span class="token-keyword">${kw}</span>`);
+  });
+  return line;
+}
+
+function highlightCodeBlocks() {
+  document.querySelectorAll('pre.python code').forEach(code => {
+    const lines = code.textContent.split('\n');
+    const highlighted = lines.map(line => {
+      const commentIndex = line.indexOf('#');
+      if (commentIndex >= 0) {
+        const codePart = escapeHTML(line.slice(0, commentIndex));
+        const commentPart = escapeHTML(line.slice(commentIndex));
+        const highlightedCode = highlightSyntax(codePart);
+        return highlightedCode + '<span class="token-comment">' + commentPart + '</span>';
+      } else {
+        return highlightSyntax(escapeHTML(line));
+      }
+    });
+    code.innerHTML = highlighted.join('\n');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', highlightCodeBlocks);
+</script>
+</body>
+</html>

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Google tag (gtag.js) ここから-->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-ZW1B1EX70P');
+  </script>
+  <!-- Google tag (gtag.js) ここまで-->
+  
+
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <!-- Lightbox2 CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+  <!--MathJax-->
+  <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <meta charset="UTF-8" />
+  <link rel="icon" href="./img/favicon.ico" />
+  <title>海城中学高等学校 情報科</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>
+  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+  <header><!-- script_pages.js --></header>
+  <!----COMMON HEADER END---->  
+  
+
+  <section>
+    <article>
+      <h2 id="headline_1">(1) 本サイトの使い方</h2>
+      <p>本サイトは、海城中学高等学校の情報科の授業において、プログラミング言語である<strong>Python</strong>を修得するためのサイトです。授業中では教科書・問題集・資料集のような使い方をします。</p>
+      
+      <h3>ノートブックのダウンロード</h3>
+      <p>ページを開いたら、まずは先頭にある<strong>[タイトル]_ノートブック</strong>をクリックします（詳細は後述）。</p>
+
+      <h3>例文ブロック</h3>
+      <p>例文ブロックでは、一般的なプログラムの書き方を示しています。</p>
+
+      <pre class="python example"><code>
+        これは例文ブロックです。
+        一般的なプログラムの書き方を示しています。
+        数学でいえば公式、英語で言えば構文のようなものです。
+        とくに書き写す必要はありませんが、読んで理解してください。
+      </code></pre>
+      
+      <h3>実習ブロック</h3>
+      <p>実習ブロックでは、具体的なプログラムの書き方を示しています。ノートブックに書き写しながら理解を深めてください。</p>
+
+      <pre class="python"><code>
+        これは実習ブロックです。
+        具体的なプログラムの書き方を示しています。
+        空白ノートブックに書き写し、実行しながら理解を深めてください。
+      </code></pre>
+      <pre class="result"><code>これは実習ブロックのコードを実行した結果を示しています。</code></pre>
+
+      <ul>
+        <li><strong>†</strong>：応用的な内容。初学者はスキップしてよいが、授業ではあとから必要になる項目。</li>
+        <li><strong>‡</strong>：発展的な内容。授業では扱うことはないが、Pythonを学ぶときには修得しておきたい項目。</li>
+        <li>
+          実行してエラーがでた場合は、<a href="./py91.html">エラー処理</a>を参照して、エラーを修正してください。
+          <p class="small-text">このページの内容でよくあるエラーは<a
+            href="./py91.html#typeerror_2">TypeError</a>で、<tt>print</tt>に数値を代入してしまったあとprint関数を呼び出そうとした場合に起こります。</p>
+        </li>
+      </ul>
+
+      <h3>演習問題と確認テスト</h3>
+      <p>演習問題をダウンロードし、取り組んでください。</p>
+      <p class="center">
+        <img src="./img/python00_019.png" class="screen_shot">
+      </p>
+
+
+    </article>
+    
+    <article>
+      <h2 id="headline_2">(2) Google Colaboratoryについて</h2>
+      <p>Pythonは様々な環境で実行することができますが、授業では<strong>Google Colaboratory</strong>を利用し、上記の<strong>ノートブック</strong>・<strong>例題</strong>・<strong>問題演習</strong>の形で実習していきます。なお、Google Colaboratoryの利用にあたっては、本校のGoogle for Educationアカウントが必要です。</p>
+
+      <h3>Colaboratoryの画面</h3>
+      <p class="center">
+        <img src="./img_slide/py02_03.png" class="screen_shot">
+      </p>
+      <h4>コードセル</h4>
+      <p>
+        Codeセルはにプログラミングのコードを書き、実行できます。<br>
+        実行するときは、Codeセルの左側の実行ボタンを押すか、ショートカットキーで<strong>⌘Command</strong> ＋ <strong>⏎リターン</strong>（エンター）を入力します。<br>
+      </p>
+      <h4>テキストセル</h4>
+      <p>
+        テキストを書くセルです。左側で編集した内容が、右側にプレビューされます。<br>
+        Markdown記法で編集するため、慣れないと難しいこともあるかもしれませんが、よく使う次の書き方を覚えておくと便利です。
+      </p>
+
+
+      <h3>Colaboratoryの設定</h3>
+      <p>Colaboratoryの右上の<strong>設定</strong>アイコン（歯車マーク）をクリックし、Colaboratoryの設定を開きます。</p>
+
+      <h4>エディタの設定</h4>
+      <p>設定の左側の<strong>エディタ</strong>を選択し、次図のように設定を変更してください。</p>
+      <p class="center">
+        <img src="./img_slide/py02_05.png" class="screen_shot">
+      </p>
+
+
+      <h4>AIアシスタントの設定</h4>
+      <p>設定の左側の<strong>アシスタント</strong>を選択し、次図のように設定を変更してください。</p>
+      <p class="center">
+        <img src="./img_slide/py02_06.png" class="screen_shot">
+      </p>
+      <p>便利な機能ですが、初学者のうちは使用しないで学びましょう。</p>
+
+      <!--
+      <h3>ファイルの保存先</h3>
+      <p><strong>実習ファイル</strong>・<strong>演習問題</strong>などのColaboratoryノートブックのファイルは、Googleドライブの中の個別フォルダに保存されます。<br>
+      Googleドライブの左側のパネルの<strong>共有アイテム</strong>から<strong>年組番_氏名</strong>（例：8101_海城太朗）のフォルダを開いてください。<br>
+      なお、このノートブックは情報科アカウントの中にファイルが作られ、それを開いた人と共有するしくみになっていますので、授業担当者は生徒の実習の進捗状況をリアルタイムに把握することができます。</p>
+      <p class="center">
+        <img src="./img/python00_011.png" class="screen_shot">
+      </p>
+
+      <h3>Codeセル</h3>
+      <p>
+        Codeセルはにプログラミングのコードを書き、実行できます。<br>
+        実行するときは、Codeセルの左側の実行ボタンを押すか、ショートカットキーで<strong>⌘Command</strong> ＋ <strong>⏎リターン</strong>（エンター）を入力します。<br>
+        シャープ<strong>#</strong>から行末までは、実行されません（<strong>コメント</strong>といいます）。<br>
+        行頭にシャープ<strong>#</strong>を使えば、その行は実行されません。
+      </p>
+      <p class="center">
+        <img src="./img/python00_007.png" class="screen_shot">
+      </p>
+
+      <h3>テキストセル</h3>
+      <p>
+        テキストを書くセルです。左側で編集した内容が、右側にプレビューされます。<br>
+        Markdown記法で編集するため、慣れないと難しいこともあるかもしれませんが、よく使う次の書き方を覚えておくと便利です。</p>
+      <ul>
+        <li>改行は半角スペース２個分</li>
+        <li>見出しは行頭に<tt>#</tt>（シャープ）をつける</li>
+        <li>斜体は<tt>*</tt>（アスタリスク）で囲む</li>
+        <li>太字は<tt>**</tt>（アスタリスク２個）で囲む</li>
+      </ul>
+      <p class="center">
+        <img src="./img/python00_008.png" class="screen_shot">
+      </p>
+    
+  
+      <h3>新規のCodeセル</h3>
+      <p>
+        新規のCodeセルを追加するには、左上の<strong>＋コード</strong>を押します。<br>
+        その右隣の<strong>＋テキスト</strong>を押すと新規のテキストセルを追加できます。
+      </p>
+      <p class="center">
+        <img src="./img/python00_009.png" class="screen_shot">
+      </p>
+
+      <h3 class="change_indent">インデント幅の変更</h3>
+      <p>
+        右上の歯車マークをクリックし、設定 ＞ エディタ ＞ インデント幅（スペース）の値を「<strong>4</strong>」に変更しておきましょう。<br>
+        あとで出てきますが、Pythonではインデントをつけるときは<strong>半角スペース４個分</strong>が推奨されています（詳しくは該当の項目のときに扱います）。
+      </p>
+      <p>また、「インデントガイドの表示」にチェックを入れておきましょう。</p>
+      <p class="center">
+        <img src="./img/python00_010.png" class="screen_shot">
+      </p>
+  -->
+    </article>
+
+  </section>
+ 
+   <section id="questions"><!-- script_pages.js --></section>
+<!-- COMMON FOOTER START -->
+  <section id="next_page"><!-- script_pages.js --></section>
+
+  <footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+  <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+</html>
+

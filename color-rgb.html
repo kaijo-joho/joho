@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>カラー</title>
+    <link rel="stylesheet" type="text/css" href="../css/css.css">
+  </head>
+
+  <style>
+    #color-code{
+      margin: 10px  auto;
+      overflow-x: scroll;
+    }
+    #s-slider{
+      width: 600px;
+    }
+    #saturation{
+      width: 60px;
+      text-align: right;
+    }
+    .cc-container{
+      display: flex;
+    }
+    .cc-item{
+      /*width: 58px;*/
+      min-width: 58px;
+      height: 58px;
+      font-size: 12px;
+      color: rgb(127,127,127);
+      padding: 2px 2px;
+      margin: 1px;
+    }
+  </style>
+  
+  
+  
+  <body>
+    
+    <div id="color-code"></div>
+    
+    <div class="cc-container">
+      <div style="width:60px;text-align: center;">彩度</div>
+      <input type="range" min="0" max="100" class="param" id="s-slider" value="100">
+      <div id="saturation"></div>
+    </div>
+
+    <script>
+      const divcc = document.getElementById('color-code');
+      const sslider = document.getElementById('s-slider');
+      const divSaturation = document.getElementById('saturation');
+      
+      const HSLtoRGB = (h, s, l) => {
+        s /= 100;
+        l /= 100;
+        const k = n => (n + h / 30) % 12;
+        const a = s * Math.min(l, 1 - l);
+        const f = n =>
+          l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+        return [parseInt(255 * f(0)), parseInt(255 * f(8)), parseInt(255 * f(4))];
+      };
+
+      refreshColorTable();
+      window.onload=function(){
+        sslider.addEventListener("input",function(){
+          refreshColorTable();
+        });
+
+      };
+      
+      function refreshColorTable(){
+        divcc.innerHTML = ``;
+        let s = sslider.value;
+
+
+        for(let i=0;i<21;i++){
+          const container = document.createElement('div');
+          container.classList.add('cc-container');
+
+          for(let j=0;j<12;j++){
+
+            const div = document.createElement('div');
+            div.classList.add('cc-item');
+
+            let h = j*30;
+            let l = 100-i*5;
+            let rgb = HSLtoRGB(h,s,l);
+
+            let color = 'hsl(' + h + ', ' + s + '%, ' + l +'%)';
+
+            div.style.backgroundColor = color;
+
+            div.innerHTML = `<tt>R: ${rgb[0]}<br>G: ${rgb[1]}<br>B: ${rgb[2]}</tt>`;
+
+            container.appendChild(div);
+          }
+
+          divcc.appendChild(container);
+        }
+        divSaturation.innerHTML = `${s} %`;
+      }
+    </script>
+  </body>
+
+</html>

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!-- Google tag (gtag.js) ここから-->
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag() { dataLayer.push(arguments); }
+    gtag('js', new Date());
+    gtag('config', 'G-ZW1B1EX70P');
+  </script>
+  <!-- Google tag (gtag.js) ここまで-->
+  
+
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  <!-- Lightbox2 CDN -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+  <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+  <!--MathJax-->
+  <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
+  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+
+  <meta charset="UTF-8" />
+  <link rel="icon" href="./img/favicon.ico" />
+  <title>海城中学高等学校 情報科</title>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>
+  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+
+<body>
+  <header><!-- script_pages.js --></header>
+  <!----COMMON HEADER END---->
+
+
+  <section>
+    <article>
+      <h2 id="headline_1">(1) CSSとは</h2>
+
+      <h3>CSSとは</h3>
+      <p><b>CSS</b>とは<b>Cascading Style Sheet</b>の略で、HTML文書の装飾をするための言語です。</p>
+      <p>これまでは白背景に黒文字といったシンプルなHTMLを作成してきましたが、CSS使えばフォントや背景などの大きさや色などを自在に装飾することができます。</p>
+
+
+      <h3>CSSの適用方法</h3>
+      <p>CSSの適用方法は大きく分けて３通りの方法がありますが、慣れるまでは次のHTMLに直接記述する方法で説明します。</p>
+      <p>HTML文書内の<b>&lt;head&gt;</b>内に<b>&lt;style&gt;</b>タグを追加し、その中にCSSを書いていきます。</p>
+      <p>CSSでは<b>/*</b>と<b>*/</b>に囲まれた部分はコメントとして扱われるので、CSS内に実習コードを書き込む場合は、次のような形になります。</p>
+
+
+      <pre class="html example"><code>
+        &lt;!doctype html&gt;
+        &lt;html&gt;
+          &lt;head&gt;
+            &lt;meta charset="UTF-8"&gt;
+            &lt;title&gt;CSSとは&lt;/title&gt;
+            &lt;style&gt;
+              /* ▼実習コード① ここから▼ */
+
+
+              /* ▲実習コード① ここまで▲ */
+            &lt;/style&gt;
+          &lt;/head&gt;
+          &lt;body&gt;
+
+            （略）
+
+          &lt;/body&gt;
+        &lt;/html&gt;
+      </code></pre>
+
+    </article>
+
+
+    <article>
+      <h2 id="headline_2">(2) CSSの基本的な書き方</h2>
+      <h3>CSSの基本文法</h3>
+      <p>CSSは<strong class="token-selector">セレクタ</strong>，<strong class="token-prop">プロパティ</strong>，<strong
+          class="token-value">値</strong>という３つを組み合わせて、<span class="token-selector">どこの</span>，<span class="token-prop">何を</span>，<span
+          class="token-value">どうするか</span>を指定します。</p>
+
+      <pre class="css example"><code>
+        セレクタ{プロパティ: 値;}
+      </code></pre>
+
+      <p>1つの<strong class="css-selector">セレクタ</strong>について複数の<strong class="css-property">プロパティ</strong>と<strong
+          class="css-value">値</strong>を設定するときには、次のように書きます。</p>
+
+      <pre class="css example"><code>
+        セレクタ{
+          プロパティ1: 値1;
+          プロパティ2: 値2;
+          プロパティ3: 値3;
+        }
+      </code></pre>
+
+
+      <h4><span class="token-selector">セレクタ</span></h4>
+      <p>
+        どの部分を装飾するのかの指定をします。HTMLタグ（h1やpなど），クラス（class）やID（id）で指定した部分に適用します。セレクタに続けて、プロパティと値は<b>波括弧{</b>...<b>}</b>内に記述します。
+      </p>
+
+      <h4><span class="token-prop">プロパティ</span></h4>
+      <p>セレクタで指定された部分の何を変えるのかを書きます。例えば、文字色ならfont-color，文字サイズならfont-sizeのように指定します。プロパティに続けて、値との間にはコロン<b>:</b>を書いて区切ります。
+      </p>
+
+      <h4><span class="token-value">値</span></h4>
+      <p>値では見た目をどのように変えるのかを書きます。文字色ならred，文字サイズなら16pxのように指定します。値に最後にはセミコロン<b>;</b>を加えます。</p>
+
+
+
+      <h3>数値の指定</h3>
+      <p>文字サイズや幅・高さなどの数値を指定するときは、0(ゼロ)の場合を除いて、単位を付けて書きます。</p>
+      <table>
+        <tr>
+          <th class="min-width-80px">単位</th>
+          <th class="min-width-80px">読み方</th>
+          <th class="min-width-200px text-align-left">説明</th>
+        </tr>
+        <tr>
+          <td>px</td>
+          <td>ピクセル</td>
+          <td class="text-align-left">画面上の１画素（ピクセル）を基準とした単位</td>
+        </tr>
+        <tr>
+          <td>%</td>
+          <td>パーセント</td>
+          <td class="text-align-left">親要素のサイズを基準とした割合で指定する単位</td>
+        </tr>
+        <tr>
+          <td>em</td>
+          <td>エム</td>
+          <td class="text-align-left">親要素の大文字Mの高さ（＝フォントサイズ）を１としたときの相対的な高さ</td>
+        </tr>
+        <tr>
+          <td>rem</td>
+          <td>レム</td>
+          <td class="text-align-left">html要素の大文字Mの高さ（＝フォントサイズ）を１としたときの相対的な高さ</td>
+        </tr>
+      </table>
+
+      <h3>色の指定</h3>
+      <p>文字や背景の色を指定するには、次の方法があります。</p>
+
+      <h4>色名</h4>
+      <p><span style="color:gray">gray</span>，<span style="color:red">red</span>，<span
+          style="color:purple">purple</span>などの色名を使って指定する方法です。</p>
+
+      <h4>カラーコード（16進数）</h4>
+      <p><span style="color:#808080">#808080(灰)</span>，
+        <span style="color:#FF0000">#FF0000（赤）</span>，
+        <span style="color:#FFC0CB">#FFC0CB（ピンク）</span>，
+        <span
+          style="color:#800080">#800080（紫）</span>などのように、色を16進数で表現する方法です。シャープ<b>#</b>のあとの２桁で赤，次の２桁で緑，最後の２桁で青の値を２桁の16進数（00〜FFまでの256階調）で指定します。
+      </p>
+
+      <h4>RGB値・RGBa値</h4>
+      <p><span style="color:rgb(127,82,31)">rgb(127, 82, 31)</span>，
+        <span style="color:rgb(25%, 50%, 75%)">rgb(25%, 50%, 75%)</span>
+        のように赤・緑・青の３原色の値を使って色を表現する方法です。また、RGBa値とは
+        <span style="color:rgba(255,0,0,0.5)">rgba(255, 0, 0, 0.50)</span>のように最後に不透明度を指定する方法です。
+      </p>
+
+    </article>
+
+  </section>
+
+
+
+  <!-- COMMON FOOTER START -->
+  <section id="next_page"><!-- script_pages.js --></section>
+  <footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+  <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+  <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+
+</html>
