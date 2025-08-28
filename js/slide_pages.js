@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
         img.src = entry.image;
         img.alt = entry.title;
         img.className = 'slide_img screen_shot'; // クラス両方つける
-        img.style.maxWidth = '100%';
+        img.style.maxWidth = '90%';
 
         // aタグとdivでラップ
         const aTag = document.createElement('a');
