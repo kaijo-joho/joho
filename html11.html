@@ -1,39 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- Google tag (gtag.js) ここから-->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-ZW1B1EX70P');
-  </script>
-  <!-- Google tag (gtag.js) ここまで-->
-  
-
-  <!-- reset CSS -->
-  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
-  <!-- Lightbox2 CDN -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
-  <!--MathJax-->
-  <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-  <meta charset="UTF-8" />
-  <link rel="icon" href="./img/favicon.ico" />
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
   <title>海城中学高等学校 情報科</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>
-  <link rel="stylesheet" type="text/css" href="./css/css.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script defer src="./js/main.js"></script>
 </head>
 
 <body>
-  <header><!-- script_pages.js --></header>
-  <!----COMMON HEADER END---->
+  
+  
 
 
   <section>
@@ -132,9 +117,8 @@
       <p><b>Finder</b>の<b>書類</b>フォルダの中に、<b>HTML実習</b>というフォルダを作成します。これ以降、このHTML実習では、このフォルダの中にファイルを作成していきます。</p>
 
       <ul style="margin-left: 40px;">
-        <li><b>Finder</b><img src="./img/Finder.png" height="24px" style="vertical-align: middle;">を開く。</li>
-        <li><b><img src="./img/SidebarDocumentFolder.png" height="20px"
-              style="vertical-align: middle;">書類</b>フォルダに移動する（コマンド<b>⌘</b>＋シフト<b>⇧</b>＋<b>O</b>）。</li>
+        <li><b>Finder</b><img src="./img/Finder.png" class="inline-icon">を開く。</li>
+        <li><img src="./img/SidebarDocumentFolder.png" class="inline-icon"><b>書類</b>フォルダに移動する（コマンド<b>⌘</b>＋シフト<b>⇧</b>＋<b>O</b>）。</li>
         <li><b>新規フォルダ</b>を作成する。</li>
         <li>
           フォルダの名前を「<b>HTML実習</b>」に変更する。<br>
@@ -142,31 +126,28 @@
         </li>
       </ul>
 
-      <img src="./img/html11_001.png" class="screen_shot" alt="書類フォルダ内に新規フォルダ「HTML実習」を作成">
+      <img src="./img/html11_001.png" class="screen_shot wrap-always" alt="書類フォルダ内に新規フォルダ「HTML実習」を作成">
       <p><b class="bgcolor_lighterred">このフォルダに保存したファイルは、自動的にはバックアップされません。何かあったときに備えて、OneDriveやGoogle
           Driveにも保存しておきましょう。</b></p>
 
       <h3>CotEditor</h3>
-      <p>HTMLを編集するためには、<strong>CotEditor</strong><img src="./img/CotEditor.png" height="24px"
-          style="vertical-align: middle;">というアプリを使います。</p>
+      <p>HTMLを編集するためには、<strong>CotEditor</strong><img src="./img/CotEditor.png" class="inline-icon">というアプリを使います。</p>
 
       <ul>
         <li>
-          <strong>Launchpad</strong>を開く<span class="small-text">（Dockの<img src="./img/Launchpad.png" height="18px"
-              style="vertical-align: middle;">アイコンをクリック または トラックパッドを４本指でピンチ）</span>
+          <strong>Launchpad</strong>を開く<span class="small-text">（Dockの<img src="./img/Launchpad.png" class="inline-icon">アイコンをクリック または トラックパッドを４本指でピンチ）</span>
         </li>
         <li><strong>CotEditor</strong>を開く<span class="small-text">（CotEditorが見つからない場合は、下記の手順でインストールする）</span></li>
       </ul>
 
-      <details
-        style="background-color: #dddddd; width:600px; margin-left: 40px; margin-bottom: 20px; border-radius: 10px;">
-        <summary style="font-size: 16px;font-weight: bold;">
+      <details>
+        <summary>
           CotEditorのインストール
         </summary>
         <p>※CotEditorが既にインストールされている場合は、この操作は不要です。自動的にインストールするようにしましたが、もしインストールされていなかったら下記の手順に従ってインストールしてください。</p>
         <p><b>Self Service</b>を開き<b>CotEditor</b>をインストールします。HTMLファイルのソースを編集するときには、このアプリを使用します。</p>
         <p>
-          <img src="./img/html11_002.png" class="screen_shot" alt="Self ServiceからCotEditorをインストール">
+          <img src="./img/html11_002.png" class="screen_shot wrap-always" alt="Self ServiceからCotEditorをインストール">
         </p>
 
         <p></p>
@@ -177,16 +158,15 @@
       <h4>CotEditorの設定</h4>
       <p>CotEditorを開き、HTMLの編集をしやすくするための設定をします。</p>
       <p>ウィンドウ右上の<b>シンタックススタイル</b>を<b>HTML</b>にします。シンタックススタイルとは、HTMLのタグなどに対して自動的に文字色をつける機能です。</p>
-      <img src="./img/html11_005.png" class="screen_shot" alt="シンタックススタイルの変更">
+      <img src="./img/html11_005.png" class="screen_shot wrap-always" alt="シンタックススタイルの変更">
 
       <p>
         メニューバーの<b>[CotEditor]</b>＞<b>[環境設定]</b>を開き（コマンド<b>⌘</b>＋カンマ<b>,</b>)、「<b>表示</b>」または「<b>外観</b>」タブから<b>フォント</b>を<b>Osaka
           レギュラー <span class="tooltip" tooltip-data="とうはば">等幅</span></b>に変更します。</p>
-      <img src="./img/html11_003.png" class="screen_shot" alt="フォントの変更">
+      <img src="./img/html11_003.png" class="screen_shot wrap-always" alt="フォントの変更">
 
-      <details
-        style="background-color: #dddddd; width:600px; margin-left: 40px; margin-bottom: 20px; border-radius: 10px;">
-        <summary style="font-size: 16px;font-weight: bold;">
+      <details>
+        <summary>
           「Osaka レギュラー-等幅」がみつからない場合
         </summary>
         <ul>
@@ -202,7 +182,7 @@
       </details>
 
       <p><b>設定</b>の<b>編集</b>タブから、<b>インデント幅</b>を<b>2</b>スペースに変更します。</p>
-      <img src="./img/html11_004.png" class="screen_shot" alt="インデント幅の変更">
+      <img src="./img/html11_004.png" class="screen_shot wrap-always" alt="インデント幅の変更">
 
     </article>
 
@@ -211,11 +191,11 @@
 
 
 
-  <!-- COMMON FOOTER START -->
-  <section id="next_page"><!-- script_pages.js --></section>
-  <footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
-  <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
-  <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+  
+  
+  
+  
+  
 </body>
 
 </html>

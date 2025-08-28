@@ -1,38 +1,23 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <!-- Google tag (gtag.js) ここから-->
-  <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
-  <script>
-    window.dataLayer = window.dataLayer || [];
-    function gtag() { dataLayer.push(arguments); }
-    gtag('js', new Date());
-    gtag('config', 'G-ZW1B1EX70P');
-  </script>
-  <!-- Google tag (gtag.js) ここまで-->
-  
-
-  <!-- reset CSS -->
-  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
-  <!-- Lightbox2 CDN -->
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
-  <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
-  <!--MathJax-->
-  <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
-  <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-  <meta charset="UTF-8" />
-  <link rel="icon" href="./img/favicon.ico" />
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
   <title>海城中学高等学校 情報科</title>
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>
-  <link rel="stylesheet" type="text/css" href="./css/css.css">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <script defer src="./js/main.js"></script>
 </head>
 <body>
-  <header><!-- script_pages.js --></header>
-  <!----COMMON HEADER END---->
+  
+  
 
 
   <section>
@@ -350,8 +335,8 @@
         改行するときは<b>改行文字</b><tt>\n</tt>を入れます。
       </p>
       <p class="centered-content">
-        <tt>\</tt>（バックスラッシュ）は <b>⌥option＋¥</b>（<img src="./img/keyboard/key_option.png">を押しながら<img
-          src="./img/keyboard/key_yen.png">）で入力します。<br>
+        <tt>\</tt>（バックスラッシュ）は <b>⌥option＋¥</b>（<img src="./img/keyboard/key_option.png" class="inline-icon">を押しながら<img
+          src="./img/keyboard/key_yen.png" class="inline-icon">）で入力します。<br>
       </p>
       <pre class="python" data-title="改行文字"><code>
         lyrics = "朝に仰ぐ芙蓉峰\n玲瓏千古かげ高し\n夕に見やる太平洋\n渺茫万里はてもなし"<br>
@@ -419,8 +404,8 @@
       <h3 id="print_end">末尾文字の設定†</h3>
       <p>print関数にendオプション（<tt>end="..."</tt>）を入れると、任意の文字を末尾に付加して出力します。デフォルト値（endオプションをつけない場合）は、<tt>\n</tt>（改行文字）です。</p>
       <p class="centered-content">
-        <tt>\</tt>（バックスラッシュ）は <b>⌥option＋¥</b>（<img src="./img/keyboard/key_option.png">を押しながら<img
-          src="./img/keyboard/key_yen.png">）で入力します。<br>
+        <tt>\</tt>（バックスラッシュ）は <b>⌥option＋¥</b>（<img src="./img/keyboard/key_option.png" class="inline-icon">を押しながら<img
+          src="./img/keyboard/key_yen.png" class="inline-icon">）で入力します。<br>
       </p>
 
       <h4>末尾文字</h4>
@@ -488,8 +473,8 @@
         <tt>sep="\t"</tt>と指定すると、<b>タブ文字</b><tt>\t</tt>で区切られます。タブ文字とは、普通のスペースとは異なり、次の区切りの位置まで空白を埋めます。つまり、次のように指定することで、２つめの変数を開始する位置を揃えることができます。Colaboratoryでは半角8文字で区切られるので、8文字以上の文字列と8文字未満の文字列が混在するときには注意が必要です。
       </p>
       <p class="centered-content">
-        <tt>\</tt>（バックスラッシュ）は <b>⌥option＋¥</b>（<img src="./img/keyboard/key_option.png">を押しながら<img
-          src="./img/keyboard/key_yen.png">）で入力します。<br>
+        <tt>\</tt>（バックスラッシュ）は <b>⌥option＋¥</b>（<img src="./img/keyboard/key_option.png" class="inline-icon">を押しながら<img
+          src="./img/keyboard/key_yen.png" class="inline-icon">）で入力します。<br>
       </p>
       <pre class="python" data-title="区切り文字"><code>
         print(a, b, sep="\t")
@@ -524,13 +509,13 @@
 
 
 
-  <section id="questions"><!-- script_pages.js --></section>
-  <!-- COMMON FOOTER START -->
-  <section id="next_page"><!-- script_pages.js --></section>
+  
+  
+  
 
-  <footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
-  <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
-  <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+  
+  
+  
 </body>
 
 </html>
