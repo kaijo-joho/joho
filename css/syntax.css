@@ -1,249 +1,393 @@
 @charset "UTF-8";
 
+/* ======================================================================
+   Code Block Styling (Light / Dark)
+   - 調整ダイヤルは :root と @media(prefers-color-scheme: dark) で切替
+   - 既存のクラス構造は維持（pre.python / pre.result / pre.example / .token-*）
+   ====================================================================== */
 
-/* ======== 共通スタイル ======== */
-pre {
-  background: #f1f3f4;
-  padding: 1em;
-  border-radius: 8px;
-  font-family: monospace, 'Courier New';
-  font-size: 1.2em;
-  white-space: pre;         /* 折り返し禁止 */
-  overflow-x: auto;         /* 横スクロール */
-  width: 95%;
-  margin: 1em auto;         /* 中央寄せ */
+/* ---- Light: 調整ダイヤル ------------------------------------------------ */
+:root{
+  /* ベースの文字色・背景色 */
+  --code-fg: #202124;          /* 本文色 */
+  --code-bg: #f4f6f8;          /* 共通 pre 背景（薄グレー） */
+  --bg-alpha: 0.5;
+
+  /* 各ブロック背景（より淡いトーン） */
+  --code-bg-python:   rgba(230, 238, 255, var(--bg-alpha));/*#e8eef5;   /* python/html/css の面背景 */
+  --code-bg-result:   rgba(245, 245, 245, var(--bg-alpha));/*#f5f7f9;   /* 実行結果 */
+  --code-bg-example:  rgba(240, 250, 240, var(--bg-alpha));/*#eef7ea;  /* 例題（淡い緑） */
+  --code-bg-error:    rgba(255, 233, 233, var(--bg-alpha));/*#ffe9e9;    /* エラー背景（淡い赤） */
+
+  /* 枠線 */
+  --code-border: #d7dce2;      /* 上右下の細枠 */
+  --code-divider: #d7dce2;     /* 連結時など */
+  --code-img-border: #c9ced6;
+
+  /* 左帯アクセント（フォールバック） */
+  --code-accent: var(--theme-color, #225386); /* 既存の --theme-color があれば採用 */
+
+  /* 左帯アクセント（色補正：対応環境向け / 無効なら上のフォールバックになる） */
+  --code-accent-tint: color-mix(in oklab, var(--code-accent) 82%, white 18%);
+
+  /* トークン色（ライト） */
+  --tk-keyword:  #7e57c2;
+  --tk-builtins: #1565c0;
+  --tk-number:   #1b9e77;
+  --tk-string:   #9f3a30; /* 既存 #972a24 を少し穏やかに */
+  --tk-comment:  #5a964a;
+  --tk-boolean:  #00897b;
+  --tk-method:   #3949ab;
+  --tk-paren:    #666699;
+
+  --tk-tag:      #7e57c2;
+  --tk-attr:     #1565c0;
+  --tk-value:    #ef6c00;
+
+  --tk-selector: #1e88e5;
+  --tk-prop:     #43a047;
+
+  /* レイアウト */
+  --code-radius: 8px;
+  --code-pad: .8em;
+  --code-font-size: 1.1rem;    /* 全体の字面をやや控えめに（白っぽさを抑える） */
+  --code-width: 95%;
 }
 
-pre code {
-  display: block;
+/* ---- Dark: 調整ダイヤル ------------------------------------------------- */
+@media (prefers-color-scheme: dark){
+  :root{
+    --code-fg: #e8ecf1;
+    --code-bg: #151a22;
+
+    --code-bg-python:   rgba(54, 68, 90, var(--bg-alpha));/*rgba(27, 34, 45, var(--bg-alpha)); /*#1b222d;   /* 落ち着いたブルーグレー */
+    --code-bg-result:   rgba(44, 56, 72, var(--bg-alpha));/*rgba(22, 28, 36, var(--bg-alpha));  /*#161c24;*/
+    --code-bg-example:  rgba(48, 76, 52, var(--bg-alpha));/*rgba(24, 38, 26, var(--bg-alpha));  /*#18261a;  /* 緑系の暗色 */
+    --code-bg-error:    rgba(84, 54, 54, var(--bg-alpha));/*rgba(42, 27, 27, var(--bg-alpha));  /*#2a1b1b;*/
+
+    --code-border: #2a3140;
+    --code-divider: #2a3140;
+    --code-img-border: #3a4252;
+
+    /* ダーク時はアクセントを明るめに補正 */
+    --code-accent: var(--theme-color, #4a8ad0);
+    --code-accent-tint: color-mix(in oklab, var(--code-accent) 68%, white 32%);
+
+    /* トークン色（暗背景で視認性を確保） */
+    --tk-keyword:  #c792ea;  /* 紫 */
+    --tk-builtins: #82aaff;  /* 青 */
+    --tk-number:   #b5cea8;  /* 数値 */
+    --tk-string:   #ecc48d;  /* 文字列 */
+    --tk-comment:  #8b9aaa;  /* コメント */
+    --tk-boolean:  #7fd1b9;  /* 論理値 */
+    --tk-method:   #89ddff;  /* メソッド */
+    --tk-paren:    #8aa0b3;
+
+    --tk-tag:      #c792ea;
+    --tk-attr:     #82aaff;
+    --tk-value:    #f78c6c;
+
+    --tk-selector: #80cbc4;
+    --tk-prop:     #a3e635;
+
+    --code-font-size: 1.05rem;  /* ダーク時は若干だけ小さくして眩しさ軽減 */
+  }
 }
 
-/* ======== 個別スタイル ======== */
+/* ====================================================================== */
+/* 共通スタイル                                                             */
+/* ====================================================================== */
+pre{
+  background: var(--code-bg);
+  color: var(--code-fg);
+  border-radius: var(--code-radius);
+  padding: var(--code-pad);
+  white-space: pre;          /* 折り返し禁止 */
+  overflow-x: auto;          /* 横スクロール */
+  width: var(--code-width);
+  margin: 1em auto;
+  border: 1px solid var(--code-border);
+  font-size: var(--code-font-size);
+}
+pre code{ display: block; }
 
-pre.python, pre.html, pre.css{
-  background: #e0e8f0;
-  color: #202124;
+/* ====================================================================== */
+/* 個別スタイル                                                             */
+/* ====================================================================== */
 
-  border-left: 6px solid #225386;
-  border-top: 1px solid #dadce0;
-  border-right: 1px solid #dadce0;
-  border-bottom: 1px solid #dadce0;
+pre.python,
+pre.html,
+pre.css{
+  background: var(--code-bg-python);
+  color: var(--code-fg);
 
-  border-radius: 8px;
+  /* 左帯（まずはフォールバック色） */
+  border-left: 6px solid var(--code-accent);
+  /* 対応環境では色補正 */
+  border-left-color: var(--code-accent-tint);
+
+  border-top: 1px solid var(--code-border);
+  border-right: 1px solid var(--code-border);
+  border-bottom: 1px solid var(--code-border);
+
+  border-radius: var(--code-radius);
   margin: 1em auto;
 }
 
 /* 実行結果 */
-pre.result {
-  background: #f1f3f4;
-  color: #202124;
-
-  border-left: 6px solid #225386;
-  border-top: 1px solid #dadce0;
-  border-right: 1px solid #dadce0;
-  border-bottom: 1px solid #dadce0;
-
-  border-radius: 8px;
+pre.result{
+  background: var(--code-bg-result);
+  color: var(--code-fg);
+  border-left: 6px solid var(--code-accent);
+  border-left-color: var(--code-accent-tint);
+  border-top: 1px solid var(--code-border);
+  border-right: 1px solid var(--code-border);
+  border-bottom: 1px solid var(--code-border);
+  border-radius: var(--code-radius);
   margin: 1em auto;
 }
 
 /* 例題 */
-pre.example {
-  background: #f1f8e9;
-  color: #1a1a1a;
-
+pre.example{
+  background: var(--code-bg-example);
+  color: var(--code-fg);
   border-left: 6px solid #34a853;
-  border-top: 1px solid #dadce0;
-  border-right: 1px solid #dadce0;
-  border-bottom: 1px solid #dadce0;
-
-  border-radius: 8px;
+  border-top: 1px solid var(--code-border);
+  border-right: 1px solid var(--code-border);
+  border-bottom: 1px solid var(--code-border);
+  border-radius: var(--code-radius);
   margin: 1em auto;
 }
 
-/* ======== 連結スタイル ======== */
-
-/* python の直後に result があるときだけ調整 */
-/* ✅ 連結時のみ角を丸めない（ここはそのままでOK） */
-pre.python + pre.result {
-  margin-top: 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top-width: 0;
-  border-left: 6px solid #225386;
-}
-pre.python + div.result {
-  margin-top: 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top-width: 0;
-  border-left: 6px solid #225386;
-}
-
-/* ✅ pre.python であっても常に角を消すのではなく、デフォルトは丸くする */
-pre.python {
-  margin-bottom: 1em;
-  border-bottom-left-radius: 8px;
-  border-bottom-right-radius: 8px;
-  border-bottom-width: 1px;
-}
-
-/* ✅ 連結時だけ margin-bottom と角丸を上書き */
-pre.python:has(+ pre.result) {
-  margin-bottom: 0;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  border-bottom-width: 0;
-}
-pre.python:has(+ div.result) {
-  margin-bottom: 0;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  border-bottom-width: 0;
-}
-
-
-/*      */
-
-div.result {
-  background: #f8f8f8;
-  border-left: 6px solid #225386;
-  border-top: 1px solid #dadce0;
-  border-right: 1px solid #dadce0;
-  border-bottom: 1px solid #dadce0;
-  border-radius: 8px;
+/* 画像の実行結果コンテナ（div.result） */
+div.result{
+  background: var(--code-bg-result);
+  border-left: 6px solid var(--code-accent);
+  border-left-color: var(--code-accent-tint);
+  border-top: 1px solid var(--code-border);
+  border-right: 1px solid var(--code-border);
+  border-bottom: 1px solid var(--code-border);
+  border-radius: var(--code-radius);
   padding: 1em;
-  width: 95%;
+  width: var(--code-width);
   margin: 1em auto;
-  font-family: sans-serif;
-  color: #202124;
+  color: var(--code-fg);
 }
-
-div.result img {
+div.result img{
   max-width: 100%;
   height: auto;
   display: block;
-  margin: 0.5em auto;
+  margin: .5em auto;
 }
-
-img.pyplot {
-  border: 1px solid #ccc;
+img.pyplot{
+  border: 1px solid var(--code-img-border);
   border-radius: 4px;
-  box-shadow: 2px 2px 6px rgba(0,0,0,0.1);
+  box-shadow: 2px 2px 6px rgba(0,0,0,.08);
 }
 
-/* ======== シンタックスハイライト（トークン色） ======== */
+/* ====================================================================== */
+/* 連結スタイル（上下連結時に角と余白を調整）                               */
+/* ====================================================================== */
 
-/* Python & HTML */
-.token-keyword     { color: #7e57c2; font-weight: bold; }
-.token-builtins    { color: #1565c0; }
-.token-number      { color: #1b9e77; }
-.token-string      { color: #972a24/*#ef6c00*/; }
-.token-comment     { color: #599347; font-size: 0.9em;}
-.token-boolean     { color: #00897b; font-weight: bold; } /* 落ち着いたグリーン */
-.token-method      { color: #3949ab; } /* 深めのブルー系 */
-.token-paren       { color: #666699; } 
-.space-char        { color: #bbb; font-family: monospace; font-size: 0.9em; }
-
-/* HTML構文 */
-.token-tag         { color: #7e57c2; font-weight: bold; }
-.token-attr        { color: #1565c0; }
-.token-value       { color: #ef6c00; }
-
-/* CSS構文 */
-.token-selector    { color: #1e88e5; font-weight: bold; }
-.token-prop        { color: #43a047; }
-
-
-/* ▼ pre.python + div.result（画像）を連結風に */
-pre.python + div.result {
+/* python の直後に result（pre） */
+pre.python + pre.result{
   margin-top: 0;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-top-width: 0;
-  border-left: 6px solid #225386;
+  border-left: 6px solid var(--code-accent);
+  border-left-color: var(--code-accent-tint);
+}
+/* python の直後に div.result（画像など） */
+pre.python + div.result{
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
+  border-left: 6px solid var(--code-accent);
+  border-left-color: var(--code-accent-tint);
 }
 
-/* ▼ div.result の次に pre.result があるとき：角を消す */
-div.result:has(+ pre.result) {
+/* デフォルトは丸いが、連結時だけ下をフラットに */
+pre.python{
+  margin-bottom: 1em;
+  border-bottom-left-radius: var(--code-radius);
+  border-bottom-right-radius: var(--code-radius);
+  border-bottom-width: 1px;
+}
+pre.python:has(+ pre.result),
+pre.python:has(+ div.result){
   margin-bottom: 0;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   border-bottom-width: 0;
 }
 
-/* ▼ pre.result が div.result の後に来たとき：上の角を消す */
-div.result + pre.result {
+/* ▼ pre.result の次に div.result がある場合：上下連結風に */
+pre.result + div.result{
   margin-top: 0;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-top-width: 0;
+  border-left: 6px solid var(--code-accent);
+  border-left-color: var(--code-accent-tint);
 }
-
-
-
-/* ▼ pre.result のすぐ下に div.result がある場合：上下連結風に */
-pre.result + div.result {
-  margin-top: 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top-width: 0;
-  border-left: 6px solid #225386;
-}
-
-/* ▼ pre.result が上にある場合、その下の余白と角を消す */
-pre.result:has(+ div.result) {
+/* ▼ div.result の次に pre.result がある場合：角を消す */
+div.result:has(+ pre.result){
   margin-bottom: 0;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   border-bottom-width: 0;
 }
-
-
-
-
-/* ▼ Pythonエラー */
-pre.python.error {
-  background: #ffe9e9;         /* 薄い赤系 */
-  border-left: 6px solid #d32f2f;  /* 濃い赤系 */
+div.result + pre.result{
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
 }
 
-/* ▼ resultエラー */
+/* ====================================================================== */
+/* バリエーション（エラーなど）                                             */
+/* ====================================================================== */
+
+pre.python.error{
+  background: var(--code-bg-error);
+  border-left: 6px solid #d32f2f;
+}
 pre.result.error,
-div.result.error {
-  /* 背景色はそのまま、枠線のみ赤系 */
+div.result.error{
   border-left: 6px solid #d32f2f;
 }
 
-
-
-
-/* pre.python.example の直後に result がある場合だけ、左枠線を example と同じ緑にする */
+/* example 系の連結（左帯を緑に統一） */
 pre.python.example + pre.result,
-pre.python.example + div.result {
+pre.python.example + div.result{
   margin-top: 0;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-top-width: 0;
-  border-left: 6px solid #34a853; /* example と同じ緑 */
+  border-left: 6px solid #34a853;
 }
 
-/* ▼ 連結時(error同士)の上書き */
+/* error 同士の連結 */
 pre.python.error + pre.result,
-pre.python.error + div.result {
+pre.python.error + div.result{
   margin-top: 0;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
   border-top-width: 0;
-  border-left: 6px solid #d32f2f; /* エラー色で上書き */
+  border-left: 6px solid #d32f2f;
 }
 
-
-/* コピー禁止（クラス名に example, copy-ok を含まない pre 要素） */
-pre:not([class*="example"]):not([class*="copy-ok"]) {
-  user-select: none;         /* テキスト選択不可 */
+/* ====================================================================== */
+/* コピー抑止（example / copy-ok 以外）                                    */
+/* ====================================================================== */
+pre:not([class*="example"]):not([class*="copy-ok"]){
+  user-select: none;
   position: relative;
 }
 
+/* ====================================================================== */
+/* シンタックスハイライト（トークン色）                                     */
+/* ====================================================================== */
+.token-keyword     { color: var(--tk-keyword);  font-weight: 700; }
+.token-builtins    { color: var(--tk-builtins); }
+.token-number      { color: var(--tk-number); }
+.token-string      { color: var(--tk-string); }
+.token-comment     { color: var(--tk-comment); font-size: .9em; }
+.token-boolean     { color: var(--tk-boolean); font-weight: 700; }
+.token-method      { color: var(--tk-method); }
+.token-paren       { color: var(--tk-paren); }
+.space-char        { color: #bbb; font-family: monospace; font-size: .9em; }
+
+.token-tag         { color: var(--tk-tag); font-weight: 700; }
+.token-attr        { color: var(--tk-attr); }
+.token-value       { color: var(--tk-value); }
+
+.token-selector    { color: var(--tk-selector); font-weight: 700; }
+.token-prop        { color: var(--tk-prop); }
 
 
+
+/* ===========================================================
+   Light mode: soften token colors (reduce saturation/contrast)
+   既存の .token-* を穏やかな色合いに上書き
+   =========================================================== */
+@media (prefers-color-scheme: light){
+
+  /* キーワード */
+  .token-keyword{
+    color: #6f61b5; /* fallback（やや落ち着いた紫） */
+    color: color-mix(in oklab, #7e57c2 78%, var(--code-fg) 22%);
+  }
+
+  /* ビルトイン/関数名など */
+  .token-builtins{
+    color: #2f69a0; /* 落ち着いたブルー */
+    color: color-mix(in oklab, #1565c0 70%, var(--code-fg) 30%);
+  }
+
+  /* 数値 */
+  .token-number{
+    color: #2a8267;
+    color: color-mix(in oklab, #1b9e77 70%, var(--code-fg) 30%);
+  }
+
+  /* 文字列 */
+  .token-string{
+    color: #8a4a42; /* 赤みを少し抑える */
+    color: color-mix(in oklab, #9f3a30 68%, var(--code-fg) 32%);
+  }
+
+  /* コメント（もう少し抑えめ） */
+  .token-comment{
+    color: #6c8f67;
+  }
+
+  /* 真偽値 */
+  .token-boolean{
+    color: #237e72;
+    color: color-mix(in oklab, #00897b 70%, var(--code-fg) 30%);
+  }
+
+  /* メソッド/プロパティ呼び出し */
+  .token-method{
+    color: #3a5ea7;
+    color: color-mix(in oklab, #3949ab 75%, var(--code-fg) 25%);
+  }
+
+  /* 括弧などの補助記号（やや中庸） */
+  .token-paren{ color: #6a6f85; }
+
+  /* HTML/CSS 系 */
+  .token-tag{
+    color: #6f61b5;
+    color: color-mix(in oklab, #7e57c2 78%, var(--code-fg) 22%);
+  }
+  .token-attr{
+    color: #2f69a0;
+    color: color-mix(in oklab, #1565c0 70%, var(--code-fg) 30%);
+  }
+  .token-value{
+    color: #d17827;
+    color: color-mix(in oklab, #ef6c00 72%, var(--code-fg) 28%);
+  }
+  .token-selector{
+    color: #2a82c8;
+    color: color-mix(in oklab, #1e88e5 74%, var(--code-fg) 26%);
+  }
+  .token-prop{
+    color: #3b8f4f;
+    color: color-mix(in oklab, #43a047 72%, var(--code-fg) 28%);
+  }
+
+  /* —— さらに全体のコントラストを微調整したい場合（任意） ——
+     下の2行のコメントアウトを外すと、コード全体の文字色を
+     ほんの少しだけダーク寄りにし、白っぽさをさらに抑えます。
+  */
+   
+  pre, pre code, div.result{
+    color: color-mix(in oklab, var(--code-fg) 90%, black 10%);
+  }
+  /* */
+}
