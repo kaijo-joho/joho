@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+<body>
+	
+  	
+	
+	<section>
+
+    <article>
+      <h2 id="headline_0">例題1</h2>
+
+      <h3>実習課題</h3>
+      <p>
+        あるスーパーマーケットでは、混雑時のレジ待ち時間が長いという課題を抱えている。
+        これを解決するため、次のようなシミュレーションを行った。
+        ただし、混雑時の客の到着間隔とレジのサービス時間は、次表の範囲の乱数を用いている。
+      </p>
+
+      <table>
+        <tr>
+          <th style="width: 160px;"></th>
+          <th>下限値</th>
+          <th>上限値</th>
+        </tr>
+        <tr>
+          <th>客の到着間隔</th>
+          <td>2</td>
+          <td>5</td>
+        </tr>
+        <tr>
+          <th>サービス時間</th>
+          <td>4</td>
+          <td>11</td>
+        </tr>
+      </table>
+
+      <h3>実習の手順</h3>
+      <p>まず、配布された<strong>ワークシート</strong>を用いて、手書きで表を埋めてみましょう。</p>
+      <p>次に、上記の<strong>実習ファイル</strong>（スプレッドシート）をダウンロードし、表を完成させてみましょう。</p>
+
+
+    </article>
+
+    <article>
+      <h2 id="headline_1">(1) レジ１台の場合</h2>
+      <p>まずは、レジ１台の場合をシミュレーションしてみましょう。</p>
+      
+      <p class="center">
+        <img src="./img/ss41_001.png" class="">
+      </p>
+      
+
+      <h3>① 待ち行列表</h3>
+      <p>
+        <strong>表1-1</strong>は、最初の20人の客(客 1 〜 客 20)の待ち行列の表である。
+        表の青背景のセルに適する数式を入力し下方向にオートフィルすることにより、表を完成させなさい。
+      </p>
+
+      <h3>② 待ち時間のシミュレーション</h3>
+      <p>
+        <strong>表1-2</strong>は、<strong>表1-1</strong>の結果から、客の待ち状況をシミュレーションした結果である。
+        青背景のセルに数式を入力し、右方向と下方向にオートフィルすることにより、表を完成させなさい。
+        ただし、レジのサービスを受けている時間を「S」，待ち時間を「W」で示しなさい。
+      </p>
+
+      <h3>③ 待ち時間の集計</h3>
+      <p>
+        <strong>表1-3</strong>は、<strong>表1-1</strong>と<strong>表1-2</strong>の結果を集計したものである。青背景のセルに数式を入力し、表を完成させなさい。
+      </p>
+      <details>
+        <summary>ヒント</summary>
+
+        <details>
+          <summary>ヒント①： 結果の表示方法</summary>
+        
+          <p>到着時刻〜サービス開始時刻のあいだは「W」，サービス開始時刻〜サービス終了時刻のあいだは「S」を表示する。</p>
+          <p>数式を使ってで文字列を表示する場合はダブルクォート<tt>"..."</tt>でくくる。</p>
+          <p>「W」を表示するには<tt>"W"</tt>，「S」を表示するには<tt>"S"</tt>，空欄（空白文字）を表示する場合は<tt>""</tt>とする。</p>
+        </details>
+
+
+        <details>
+          <summary>ヒント②： 条件分岐の書き方</summary>
+          <p>
+            たとえば、IF関数の中では、条件式を満たしたとき「W」、満たさないときは空欄としたい場合は次のように書く。
+          </p>
+          <pre class="example"><code>=IF(条件式, "W", "")</code></pre>
+          <p>
+            条件式１を満たしたとき「W」、そうでない場合で条件式２を満たした場合は「W」，そうでない場合は空欄としたい場合は、IF関数をネストして次のように書く。
+          </p>
+          <pre class="example"><code>=IF(条件式１, "W", IF(条件式２, "S", ""))</code></pre>
+          <p>
+            または、<a href="ss21.html#headline_4" target="_blank">IFS関数</a>を用いると、ネストせずに書ける。
+          </p>
+          <pre class="example"><code>=IFS(条件式１, "W", 条件式２, "S", true, "")</code></pre>
+        </details>
+
+
+        <details>
+          <summary>ヒント③： 条件式の書き方</summary>
+          <p>IF関数やIFS関数の条件式は、比較演算子は１つしか使えないので、「到着時刻以降」かつ「サービス開始時刻」という条件を指定する場合は、<a href="ss21.html#ssfunction_and" target="_blank">AND関数</a>を用いる。</p>
+          <pre class="example"><code>=AND(条件式１, 条件式２)</code></pre>
+        </details>
+
+
+        <details>
+          <summary>ヒント④： 数式の書き方</summary>
+          <p>到着時刻〜サービス開始時刻のあいだは「W」，サービス開始時刻〜サービス終了時刻のあいだは「S」を表示する。</p>
+          <p>IF関数をネストした場合の書き方は次の通り。</p>
+          <pre class="example"><code>=IF(AND(到着時刻<=時刻, 時刻<サービス開始時刻), "W", IF(AND(サービス開始時刻<=時刻, 時刻<サービス終了時刻), "S", ""))</code></pre>
+
+          <p>IFS関数を用いた場合の書き方は次の通り。</p>
+          <pre class="example"><code>=IFS(AND(到着時刻<=時刻, 時刻<サービス開始時刻), "W", AND(サービス開始時刻<=時刻, 時刻<サービス終了時刻), "S", true, "")</code></pre>
+
+        </details>
+
+
+        <h4></h4>
+        
+
+      </details>
+		</article>
+
+
+    
+    
+    <article>
+      <h2 id="headline_2">(2) レジ２台で待機列が１列の場合</h2>
+      
+      <p>
+        次に、レジ を2台に増やし、待機列は1列の場合を考える。
+        先頭の客は、空いているレジへ移動する（両方空いている場合はレジA）。
+      </p>
+
+      <p class="center">
+        <img src="./img/ss41_002.png" class="">
+      </p>
+
+      <h3>① 待ち行列表</h3>
+      <p>
+        <strong>表2-1</strong>は、最初の20人の客(客 1 〜 客 20)の待ち行列の表である。
+        表の青背景のセルに適する数式を入力し下方向にオートフィルすることにより、表を完成させなさい。
+      </p>
+
+
+      <h3>② 待ち時間のシミュレーション</h3>
+      <p>
+        <strong>表2-2</strong>は、<strong>表2-1</strong>の結果から、客の待ち状況をシミュレーションした結果である。
+        青背景のセルに数式を入力し、右方向と下方向にオートフィルすることにより、表を完成させなさい。
+        ただし、レジのサービスを受けている時間を「S」，待ち時間を「W」で示しなさい。
+      </p>
+
+
+
+      <h3>③ 待ち時間の集計</h3>
+      <p>
+        <strong>表2-3</strong>は、<strong>表2-1</strong>と<strong>表2-2</strong>の結果を集計したものである。
+        青背景のセルに数式を入力し、表を完成させなさい。
+      </p>
+
+
+
+
+      
+		</article>
+
+
+    <article>
+      <h2 id="headline_3">(3) レジ２台で各レジに待機列をつくる場合</h2>
+
+      <p>
+        次に、レジ 2台で各レジに待ち行列を作る場合を考える。
+        ただし、客はサービス中および待機中の客数が少ない列に並ぶ（同数の場合は列Aに並ぶ）。
+        また、一度待ち行列に並ぶと他方には移動しないものとする。次の①〜③に答えなさい。
+      </p>
+
+      <p class="center">
+        <img src="./img/ss41_003.png" class="">
+      </p>
+
+      <h3>① 待ち行列表</h3>
+      <p>
+        <strong>表3-1</strong>は、最初の20人の客(客 1 〜 客 20)の待ち行列の表である。
+        表の青背景のセルに適する数式を入力し下方向にオートフィルすることにより、表を完成させなさい。
+      </p>
+
+
+      <h3>② 待ち時間のシミュレーション</h3>
+      <p>
+        <strong>表3-2</strong>は、<strong>表3-1</strong>の結果から、客の待ち状況をシミュレーションした結果である。
+        青背景のセルに数式を入力し、右方向と下方向にオートフィルすることにより、表を完成させなさい。
+        ただし、レジのサービスを受けている時間を「S」，待ち時間を「W」で示しなさい。
+      </p>
+
+
+      <h3>③ 待ち時間の集計</h3>
+      <p>
+        <strong>表3-3</strong>は、<strong>表3-1</strong>と<strong>表3-2</strong>の結果を集計したものである。
+        青背景のセルに数式を入力し、表を完成させなさい。
+      </p>
+		</article>
+    
+    
+	</section>
+
+  
+
+ <section id="examples_and_questions"><!-- script_pages.js --></section>
+	
+	
+    
+    
+</body>
+</html>

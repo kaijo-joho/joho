@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+
+<body>
+  
+  
+
+
+  <section>
+    <article>
+      <h2 id="headline_1">(1) ブロック要素とは</h2>
+
+      <h3>ブロック要素とインライン要素</h3>
+      <p>
+        <strong>ブロック</strong><strong>要素</strong>（ブロックレベル要素）とは、ページの構造やレイアウトを定義するために使用されるHTMLの要素です。hタグ（見出し）・pタグ（段落）・tableタグ（表）などがあり、これらは１つのブロック（かたまり）として認識されます。
+        ブラウザでの表示も一つのかたまりとして扱われることが多く、一般的なブラウザでは前後に改行が入ります。また、ブロックの領域に対するスタイル（横幅や高さ、余白の大きさ、領域の罫線など）を適用することができます。</p>
+      <p>これに対して<strong>インライン要素</strong>とは、主にブロック要素の内容として用いられる要素で、文章の一部として扱われます。
+        例えば、p要素の中のb要素のように、段落のなかの一部を強調するような使われ方をする要素です。
+        一般的なブラウザでは前後に改行が入らず、文章の一部として表示されます。aタグ（リンク）・strongタグ（強調）・spanタグ（装飾）などがあります。インライン要素の中にブロック要素を入れることはできません。</p>
+
+
+      <h3>divタグ</h3>
+      <p>divタグとは、特に意味をもたないブロック要素です。クラスやIDを指定して使うことがほとんどです。</p>
+      <pre class="html example"><code>
+        &lt;div class="sample"&gt;コンテンツ&lt;/div&gt;
+      </code></pre>
+
+    </article>
+
+
+    <article>
+      <h2 id="headline_2">(2) ブロック要素のスタイル</h2>
+      <h3>ブロックの横幅と高さ width・height</h3>
+      <p>横幅はwidthプロパティ，高さはheightプロパティで指定します。値にはpx，rem，%などの数値を指定します。また、値にAutoを指定すると、関連するプロパティによって自動的に設定されます。</p>
+
+      <p>次の例では、sampleクラスをもつdiv要素の横幅を600px，高さを400pxに指定しています。</p>
+      <pre class="css example"><code>
+        div.sample{
+          width: 600px;
+          height: 400px;
+        }
+      </code></pre>
+
+      <h3>ブロックの背景色 background-color</h3>
+      <p>ブロックの背景色を設定するときは、background-colorプロパティを指定します。</p>
+
+      <p>次の例では、sampleクラスをもつdiv要素の背景色を薄い青色にします。</p>
+      <pre class="css example"><code>
+        div.sample{
+          background-color: #000033;
+        }
+      </code></pre>
+
+
+      <h3>ブロックの余白 padding・margin</h3>
+      <p>
+        ブロックの余白はpaddingとmarginの２種類があります。要素を箱（ボックス）としたとき、marginは他のボックスまでの距離、paddingはボックス内のコンテンツまでの距離を表します。また、marginとpaddingの間の枠線のことをborderといいます。値にはpx，rem，%などの数値を指定します。また、値にAutoを指定すると、関連するプロパティによって自動的に設定されます。
+      </p>
+      <p>
+        padding，margin，borderは上下左右にありますが、一括で指定することもできますし、上下左右個別に指定することもできます。padding，margin，borderのあとにtop(上)，bottom(下)，left(左)，right(右)を組み合わせて、margin-top:
+        12pxのように指定します。</p>
+
+      <p class="center">
+        <img src="./img/html24_001.png" alt="ボックスモデル">
+      </p>
+
+
+      <p>次の例では、sampleクラスをもつdiv要素のmarginを10px，padding-topを4px，padding-bottomを6pxに指定しています。</p>
+      <pre class="css example"><code>
+        div.sample</b>{
+          margin: 10px;
+          padding-top: 4px;
+          padding-bottom: 6px;
+        }
+      </code></pre>
+
+
+      <h3>枠線の書式 border</h3>
+
+      <h4>線の種類（border-style）と線の太さ(border-width)</h4>
+      <p>
+        線の種類はborder-styleプロパティ，線の太さはborder-widthプロパティで指定します。border-styleは、none，solide，double，dashed，dotted，groove，ridge，inset，outsetなどのキーワードがあります。また、border-widthはthin(細線)，medium(標準)，thivk(太線)のキーワードまたは数値(px，rem，%などの単位つき)で指定します。
+      </p>
+      <table>
+        <tr>
+          <th width="120px">border-style</th>
+          <th>thin</th>
+          <th>medium</th>
+          <th>thick</th>
+          <th>8px</th>
+        </tr>
+        <tr class="bg-none">
+          <td>none</td>
+          <td>
+            <div style="border: thin none; padding: 2px; margin: 4px;">線を非表示</div>
+          </td>
+          <td>
+            <div style="border: medium none; padding: 2px; margin: 4px;">線を非表示</div>
+          </td>
+          <td>
+            <div style="border: thick none; padding: 2px; margin: 4px;">線を非表示</div>
+          </td>
+          <td>
+            <div style="border: 8px none; padding: 2px; margin: 4px;">線を非表示</div>
+          </td>
+        </tr>
+        <tr class="bg-none">
+          <td>solid</td>
+          <td>
+            <div style="border: thin solid; padding: 4px; margin: 4px;">実線</div>
+          </td>
+          <td>
+            <div style="border: medium solid; padding: 4px; margin: 4px;">実線</div>
+          </td>
+          <td>
+            <div style="border: thick solid; padding: 4px; margin: 4px;">実線</div>
+          </td>
+          <td>
+            <div style="border: 8px solid; padding: 4px; margin: 4px;">実線</div>
+          </td>
+        </tr>
+        <tr class="bg-none">
+          <td>double</td>
+          <td>
+            <div style="border: thin double; padding: 4px; margin: 4px;">二重線</div>
+          </td>
+          <td>
+            <div style="border: medium double; padding: 4px; margin: 4px;">二重線</div>
+          </td>
+          <td>
+            <div style="border: thick double; padding: 4px; margin: 4px;">二重線</div>
+          </td>
+          <td>
+            <div style="border: 8px double; padding: 4px; margin: 4px;">二重線</div>
+          </td>
+        </tr>
+        <tr class="bg-none">
+          <td>dashed</td>
+          <td>
+            <div style="border: thin dashed; padding: 4px; margin: 4px;">破線</div>
+          </td>
+          <td>
+            <div style="border: medium dashed; padding: 4px; margin: 4px;">破線</div>
+          </td>
+          <td>
+            <div style="border: thick dashed; padding: 4px; margin: 4px;">破線</div>
+          </td>
+          <td>
+            <div style="border: 8px dashed; padding: 4px; margin: 4px;">破線</div>
+          </td>
+        </tr>
+        <tr class="bg-none">
+          <td>dotted</td>
+          <td>
+            <div style="border: thin dotted; padding: 4px; margin: 4px;">点線</div>
+          </td>
+          <td>
+            <div style="border: medium dotted; padding: 4px; margin: 4px;">点線</div>
+          </td>
+          <td>
+            <div style="border: thick dotted; padding: 4px; margin: 4px;">点線</div>
+          </td>
+          <td>
+            <div style="border: 8px dotted; padding: 4px; margin: 4px;">点線</div>
+          </td>
+        </tr>
+        <tr class="bg-none">
+          <td>groove</td>
+          <td>
+            <div style="border: thin groove; padding: 4px; margin: 4px;">立体的な谷型の線</div>
+          </td>
+          <td>
+            <div style="border: medium groove; padding: 4px; margin: 4px;">立体的な谷型の線</div>
+          </td>
+          <td>
+            <div style="border: thick groove; padding: 4px; margin: 4px;">立体的な谷型の線</div>
+          </td>
+          <td>
+            <div style="border: 8px groove; padding: 4px; margin: 4px;">立体的な谷型の線</div>
+          </td>
+        </tr>
+        <tr class="bg-none">
+          <td>ridge</td>
+          <td>
+            <div style="border: thin ridge; padding: 4px; margin: 4px;">立体的な山型の線</div>
+          </td>
+          <td>
+            <div style="border: medium ridge; padding: 4px; margin: 4px;">立体的な山型の線</div>
+          </td>
+          <td>
+            <div style="border: thick ridge; padding: 4px; margin: 4px;">立体的な山型の線</div>
+          </td>
+          <td>
+            <div style="border: 8px ridge; padding: 4px; margin: 4px;">立体的な山型の線</div>
+          </td>
+        </tr>
+        <tr class="bg-none">
+          <td>inset</td>
+          <td>
+            <div style="border: thin inset; padding: 4px; margin: 4px;">領域が窪んで見える線</div>
+          </td>
+          <td>
+            <div style="border: medium inset; padding: 4px; margin: 4px;">領域が窪んで見える線</div>
+          </td>
+          <td>
+            <div style="border: thick inset; padding: 4px; margin: 4px;">領域が窪んで見える線</div>
+          </td>
+          <td>
+            <div style="border: 8px inset; padding: 4px; margin: 4px;">領域が窪んで見える線</div>
+          </td>
+        </tr>
+        <tr class="bg-none">
+          <td>outset</td>
+          <td>
+            <div style="border: thin outset; padding: 4px; margin: 4px;">領域が隆起して見える線</div>
+          </td>
+          <td>
+            <div style="border: medium outset; padding: 4px; margin: 4px;">領域が隆起して見える線</div>
+          </td>
+          <td>
+            <div style="border: thick outset; padding: 4px; margin: 4px;">領域が隆起して見える線</div>
+          </td>
+          <td>
+            <div style="border: 8px outset; padding: 4px; margin: 4px;">領域が隆起して見える線</div>
+          </td>
+        </tr>
+      </table>
+
+
+      <h4>線の色（border-color）</h4>
+      <p>線の色はborder-colorプロパティで指定します。</p>
+
+
+      <h3>ブロック要素のスタイルの例</h3>
+      <p>線の色はborder-colorプロパティで指定します。</p>
+      <div style="margin: 30px auto; width:400px; padding:20px;border:8px #cbcbff dotted;color:#646464;">
+        width: 400px;<br>
+        padding: 20px;<br>
+        border-width: 8px;<br>
+        border-style: dotted;<br>
+        border-color: #cbcbff;<br>
+      </div>
+      <div
+        style="margin: 30px auto; width:320px; padding:10px;border:4px #cbffcb outset;color:#646464;background-color: #cbffcb;">
+        width: 320px;<br>
+        padding: 10px;<br>
+        border-width: 4px;<br>
+        border-style: outset;<br>
+        border-color: #cbcbff;<br>
+        background-color: #cbcbff;<br>
+      </div>
+
+    </article>
+
+
+    <article>
+      <h2 id="headline_3">(3) ブロック要素のスタイル（実践）</h2>
+
+      <h3>divのスタイル</h3>
+      <p>実習ファイルのbody内には次のようにdivタグによるブロック要素があり、それぞれにクラスがtest01〜test05と指定されています。</p>
+      <pre class="html example"><code>
+        &lt;div class="test01"&gt;test01&lt;/div&gt;
+        &lt;div class="test02"&gt;test02&lt;/div&gt;
+        &lt;div class="test03"&gt;test03&lt;/div&gt;
+        &lt;div class="test04"&gt;test04&lt;/div&gt;
+        &lt;div class="test05"&gt;test05&lt;/div&gt;
+      </code></pre>
+      <p>それぞれに、width, height, padding, margin, borderのスタイルを自由に設定してみましょう。</p>
+
+      <pre class="css" data-title="sample2-4.html ＞ 実習コード①"><code>
+        div.test01{
+          /* ここにtest01のスタイルを記述します */
+        }
+        div.test02{
+          /* ここにtest02のスタイルを記述します */
+        }
+        div.test03{
+          /* ここにtest03のスタイルを記述します */
+        }
+        div.test04{
+          /* ここにtest04のスタイルを記述します */
+        }
+        div.test05{
+          /* ここにtest05のスタイルを記述します */
+        }
+      </code></pre>
+
+
+    </article>
+  </section>
+
+
+
+  
+  
+  
+  
+  
+</body>
+
+</html>

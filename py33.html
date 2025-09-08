@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+<body>
+  
+    
+  
+  <section>
+    
+    <article>
+      <h2 id="headline_1">(1) ２次元リストの基本</h2>
+      <p>リストの中にリストが入ったものを２次元リストといいます。表形式のデータを格納するのに便利です。 </p>
+
+      <pre class="python"><code>
+        リスト名 = [リスト, リスト, リスト, … ]
+            = [[値, 値, 値, … ], [値, 値, 値, … ], [値, 値, 値, … ], … ]
+      </code></pre>
+
+      <h3>２次元リストの定義</h3>
+      <p>２次元リストは次のように定義します。</p>
+      <pre class="python"><code>data = [[11, 12, 13, 14], [21, 22, 23, 24], [31, 32, 33, 34]]</code></pre>
+      <p>また、表形式のようにすると見やすいので、次のように書くことが多いです。</p>
+      <pre class="python"><code>
+        data = [
+           [11, 12, 13, 14],
+           [21, 22, 23, 24],
+           [31, 32, 33, 34]
+          ]
+      </code></pre>
+      
+      <h3>２次元リストの値の取得</h3>
+      <p>２次元リストの中から値を取り出すときは、<tt>data[i][j]</tt>のように指定します。<tt>data[i][j]</tt>は<tt>data</tt>の<tt>i</tt>番目のリストのうち<tt>j</tt>番目の要素を取り出すという意味ですが、これを表形式では<b><tt style="background-color: transparent">i</tt> 行目 <tt style="background-color: transparent">j</tt> 列目</b>といいます。</p>
+      <pre class="python"><code>
+        data = [
+           [11, 12, 13, 14],
+           [21, 22, 23, 24],
+           [31, 32, 33, 34]
+          ]
+        num = data[1][2]
+        print(num)
+      </code></pre>
+      <pre class="result"><code>23</code></pre>
+
+      
+      <table>
+        <tr>
+          <th></th>
+          <th>0列目</th>
+          <th>1列目</th>
+          <th>2列目</th>
+          <th>3列目</th>
+        </tr>
+        <tr>
+          <th>0行目</th>
+          <td>11</td>
+          <td>12</td>
+          <td>13</td>
+          <td>14</td>
+        </tr>
+        <tr>
+          <th>1行目</th>
+          <td>21</td>
+          <td>22</td>
+          <td>23</td>
+          <td>24</td>
+        </tr>
+        <tr>
+          <th>2行目</th>
+          <td>31</td>
+          <td>32</td>
+          <td>33</td>
+          <td>34</td>
+        </tr>
+      </table>
+      
+      
+
+      <p><tt>data[i]</tt>のように最初のリストのインデックスだけ指定した場合は、<tt>i</tt>番目に格納されているリストを取得します。</p>
+      <pre class="python"><code>
+        data = [
+           [11, 12, 13, 14],
+           [21, 22, 23, 24],
+           [31, 32, 33, 34]
+          ]
+        row = data[1]
+        print(row)
+      </code></pre>
+      <pre class="result"><code>[21, 22, 23, 24]</code></pre>
+
+      
+      <h3>２次元リストの値の書き換え</h3>
+      <p>２次元リストの中の値を書き換えるときは次のようにします。</p>
+      <pre class="python"><code>
+        data = [
+           [11, 12, 13, 14],
+           [21, 22, 23, 24],
+           [31, 32, 33, 34]
+          ]
+        data[1][2] = 99  <em> # 1行目，2列目の値を99にする。</em>
+        print(data)
+      </code></pre>
+      <pre class="result"><code>[[11, 12, 13, 14], [21, 22, 99, 24], [31, 32, 33, 34]]</code></pre>
+
+      
+      <h3>２次元リストの要素数の取得</h3>
+      <p>２次元リスト<tt>data</tt>について、<tt>len(data)</tt>とすると、行の数（<tt>[11, 12, 13, 14]</tt>，<tt>[21, 22, 23, 24]</tt>，<tt>[31, 32, 33, 34]</tt>の3つ）を取得します。</p>
+      <pre class="python"><code>
+        data = [
+           [11, 12, 13, 14],
+           [21, 22, 23, 24],
+           [31, 32, 33, 34]
+          ]
+        print(len(data))
+      </code></pre>
+      <pre class="result"><code>3</code></pre>
+      
+      <p>また、<tt>len(data[2])</tt>とすると、2行目のリスト<tt>[31, 32, 33, 34]</tt>の要素数（<tt>31</tt>，<tt>32</tt>，<tt>33</tt>，<tt>34</tt>の4つ）を取得します。</p>
+      <pre class="python"><code>
+        data = [
+           [11, 12, 13, 14],
+           [21, 22, 23, 24],
+           [31, 32, 33, 34]
+          ]
+        print(len(data[2]))
+      </code></pre>
+      <pre class="result"><code>4</code></pre>
+      
+      <h2 id="headline_2">(2) ２次元リストとfor文</h2>
+      <p></p>
+      <p>２次元リストの中の要素を順に出力する場合には、for文を用います。</p>
+      <p>基本的には、<a href="./py31.html#headline_3" target="_blank">3-1. リスト（list） (3) リストとfor文</a>の方法と同様ですが、２次元リストの場合は<a href="./py25.html#headline_2" target="_blank">2-5. 繰り返し処理（for文）② (2) 二重のfor文</a>で扱ったように<b>for文をネスト</b>する必要があります。</p>
+      
+      <h3>インデックス番号を用いて順番に取得する</h3>
+      <p>次の例では、インデックス番号を用いて２次元リストの要素を取得します。</p>
+      <p><tt>len(data)</tt>で<tt>data</tt>の要素数を取得できるので、外側のループ<tt>for i in range(len(data))</tt>で、<tt>i</tt>を<tt>0</tt>から<tt>要素数-1</tt>まで（先頭から末尾まで）変えながらループします。</p>
+      <p>内側のループ<tt>for j in range(len(data[i])):</tt>の<tt>len(data[i])</tt>は<b><tt>i</tt>番目のリスト</b>の要素数、つまり<b><tt>i</tt>行目の列数</b>を取得します。つまり、<tt>for j in range(len(data[i])):</tt>で、<tt>i</tt>行目の要素を先頭から末尾まで<tt>j</tt>の値を変えながらループします。</p>
+      <pre class="python"><code>
+        data = [
+         [11, 12, 13, 14],
+         [21, 22, 23, 24],
+         [31, 32, 33, 34]
+        ]
+
+        for i in range(len(data)):           # iを0からdataの要素数-1までループする
+          for j in range(len(data[i])):    # jを0からi行目のリストの要素数-1までループする
+            print(data[i][j], end="\t")  # i行目j列目の要素(data[i][j])を出力し、タブ文字\tで区切る（\はoption⌥＋¥）
+          print()                          # 内側のループが終わったら改行を入れる
+      </code></pre>
+      <pre class="result"><code>
+        11  12  13  14  
+        21  22  23  24  
+        31  32  33  34
+      </code></pre>
+      
+      <p>外側のループ内で<tt>print(data[i])</tt>とすると、<tt>data</tt>内の要素をリストとして表示します。</p>
+      <pre class="python"><code>
+        data = [
+           [11, 12, 13, 14],
+           [21, 22, 23, 24],
+           [31, 32, 33, 34]
+          ]
+
+        for i in range(len(data)):
+          print(data[i])
+      </code></pre>
+      <pre class="result"><code>
+        [11, 12, 13, 14]
+        [21, 22, 23, 24]
+        [31, 32, 33, 34]
+      </code></pre>
+
+      <h3>リスト内の要素を順番に取得する</h3>
+      <p>また、次の例では、リストの要素を直接変数に取得します。</p>
+      <pre class="python"><code>
+        data = [
+           [11, 12, 13, 14],
+           [21, 22, 23, 24],
+           [31, 32, 33, 34]
+          ]
+
+        for row in data:           # data内の配列を順番にリストrowに入れる
+          for x in row:
+            print(x, end="\t") # タブ文字\tで区切る（\はoption⌥＋¥）
+          print()                # 内側のループが終わったら改行を入れる</code></pre>
+      <pre class="result"><code>
+        11  12  13  14  
+        21  22  23  24  
+        31  32  33  34
+      </code></pre>
+      
+      
+      <p>この方法では、<tt>for row in data</tt>で２次元リスト<tt>data</tt>の各要素のリストを<tt>row</tt>として取り出しています。このループ内で<tt>print(row)</tt>で<tt>row</tt>を表示すると、<tt>data</tt>内の各要素をリストとして出力します。</p>
+      <pre class="python"><code>
+        data = [
+           [11, 12, 13, 14],
+           [21, 22, 23, 24],
+           [31, 32, 33, 34]
+          ]
+
+        for row in data:  # data内の配列を順番にrowに入れる
+          print(row)    # rowを表示
+      </code></pre>
+      <pre class="result"><code>
+        [11, 12, 13, 14]
+        [21, 22, 23, 24]
+        [31, 32, 33, 34]
+      </code></pre>
+    </article>
+
+
+
+<!--
+    <article>
+      <div class="article_header"><h2><a id="headline_2">(2) ２次元リストの例題</a></h2></div>
+      <div id="examples"></div>
+      
+      <h3>例題１ 将棋盤の初期配置</h3>
+      <p>
+        将棋盤の初期配置は下の通りである。<br>  
+        9×9の２次元リスト<tt>board</tt>が次のように与えられているとき、次の(1)〜(3)のプログラムを書きなさい。 
+      </p>
+      <h4>(1)盤面を表示させる</h4>
+      <p>
+        盤面を表示させなさい。ただし、先頭行は１〜９の全角数字，先頭列は一〜九の漢数字を出力しなさい（一番左上は□でよい）。
+      </p>
+      
+      <h4>(2) 王将・玉将・飛車・角行の配置</h4>
+      <p>
+        ２次元リスト<tt>board</tt>の要素を書き換えることで、王将(王)・玉将(玉)・飛車(飛)・角行(角)を配置させなさい。
+      </p>
+      
+      <h4>(3) 金将・銀将・桂馬・香車・歩兵の配置</h4>
+      <p>
+        ２次元リスト<tt>board</tt>の要素を書き換えることで、金将(金)・銀将(銀)・桂馬(桂)・香車(香)・歩兵(歩)を配置させなさい。ただし、下記コードのとおり二重のforループの中に書くこと。
+      </p>
+      
+      <table>
+        <tr>
+          <th></th>
+          <th>1</th>
+          <th>2</th>
+          <th>3</th>
+          <th>4</th>
+          <th>5</th>
+          <th>6</th>
+          <th>7</th>
+          <th>8</th>
+          <th>9</th>
+        </tr>
+        <tr>
+          <th><b>一</b></th>
+          <td>香</td>
+          <td>桂</td>
+          <td>銀</td>
+          <td>金</td>
+          <td>王</td>
+          <td>金</td>
+          <td>銀</td>
+          <td>桂</td>
+          <td>香</td>
+        </tr>
+        <tr>
+          <th><b>二</b></th>
+          <td></td>
+          <td>飛</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>角</td>
+          <td></td>
+        </tr>
+        <tr>
+          <th><b>三</b></th>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+        </tr>
+        <tr>
+          <th><b>四</b></th>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <th><b>五</b></th>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <th><b>六</b></th>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+        </tr>
+        <tr>
+          <th><b>七</b></th>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+          <td>歩</td>
+        </tr>
+        <tr>
+          <th><b>八</b></th>
+          <td></td>
+          <td>角</td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td></td>
+          <td>飛</td>
+          <td></td>
+        </tr>
+        <tr>
+          <th><b>九</b></th>
+          <td>香</td>
+          <td>桂</td>
+          <td>銀</td>
+          <td>金</td>
+          <td>玉</td>
+          <td>金</td>
+          <td>銀</td>
+          <td>桂</td>
+          <td>香</td>
+        </tr>
+      </table>
+      
+      <div class="code-details">
+<pre><code class="py">#盤面を表示させる関数。2次元リストboardを引数とする。
+def print_board(board):
+    #漢数字のリスト
+    kanji_num = ['一','二','三','四','五','六','七','八','九']
+    #全角数字のリスト
+    fullwidth_num = ['１','２','３','４','５','６','７','８','９']</code></pre>
+<details><summary>####(1)盤面を表示させる(解答を見るにはここをクリック)####</summary>
+<pre><code class="py">    print('□', end='')  #表の左上の空白セルを□で表示
+    for i in range(len(board[0])):  #全角数字１〜９を表示。len(board[0])は盤面の横幅の9。
+        print(fullwidth_num[i], end='')
+    print()
+
+    #一行目〜九行目を表示
+    for i in range(len(board)):
+        print(kanji_num[i], end='')
+        for j in range(len(board[i])):  #各行の列を表示
+            print(board[i][j], end='')
+        print()  #内側のループが終わったら改行を入れる</code></pre></details> 
+      <em> ####(1)ここまで####</em>
+
+<pre><code class="py">#print_board関数はここまで
+
+
+#盤面の初期状態（何も配置されていない状態）
+board = [
+    ['□','□','□','□','□','□','□','□','□'],
+    ['□','□','□','□','□','□','□','□','□'],
+    ['□','□','□','□','□','□','□','□','□'],
+    ['□','□','□','□','□','□','□','□','□'],
+    ['□','□','□','□','□','□','□','□','□'],
+    ['□','□','□','□','□','□','□','□','□'],
+    ['□','□','□','□','□','□','□','□','□'],
+    ['□','□','□','□','□','□','□','□','□'],
+    ['□','□','□','□','□','□','□','□','□']
+]</code></pre><details><summary>####(2) 王将・玉将・飛車・角行の配置(解答を見るにはここをクリック)####</summary>
+<pre><code class="py">#王将の配置
+board[0][4] = '王'
+
+#玉将の配置
+board[8][4] = '玉'
+
+#飛車の配置
+board[1][1] = '飛'
+board[7][7] = '飛'
+
+#角行の配置
+board[1][7] = '角'
+board[7][1] = '角'
+</code></pre> </details>
+        <em> ####(2)ここまで####</em>
+<pre><code class="py">for i in range(len(board)):
+    for j in range(len(board[i])):</code></pre><details><summary>####(3) 金将・銀将・桂馬・香車・歩兵の配置(解答を見るにはここをクリック)####</summary>
+<pre><code class="py">
+        if i == 0 or i == 8:
+            if j == 0 or j == 8:
+                board[i][j] = '香'
+            elif j == 1 or j == 7:
+                board[i][j] = '桂'
+            elif j == 2 or j == 6:
+                board[i][j] = '銀'
+            elif j == 3 or j == 5:
+                board[i][j] = '金'
+
+
+
+        elif i == 2 or i == 6:
+            board[i][j] = '歩'</code></pre></details>
+        <em> ####(3)ここまで#### </em>
+    
+<pre><code class="py">
+#print_board関数の呼び出し
+print_board(board)
+</code></pre>  
+      </div>
+      <pre class="result"><code>□１２３４５６７８９
+一香桂銀金王金銀桂香
+二□飛□□□□□角□
+三歩歩歩歩歩歩歩歩歩
+四□□□□□□□□□
+五□□□□□□□□□
+六□□□□□□□□□
+七歩歩歩歩歩歩歩歩歩
+八□角□□□□□飛□
+九香桂銀金玉金銀桂香
+(※等幅フォントで表示してください)</code></pre>
+      
+      
+
+    </article>
+-->
+  </section>
+
+
+        
+
+
+ 
+   
+
+  
+
+  
+    
+    
+</body>
+</html>
+

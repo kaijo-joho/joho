@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>バブルソートと選択ソートの動的なビジュアル表現</title>
+    <link rel="stylesheet" type="text/css" href="../css/css.css">
+  </head>
+
+  <body>
+    
+    
+    <div id="bubble-sort" class="demo">
+      <div class="container" id="aryContainer1"></div>
+      <div id="description1" class="description"></div>
+      <label for="arrayLength1">配列の長さ:</label>
+      <input type="number" id="arrayLength1" value="8" min="2">
+      <button onclick="initialize1()">配列をリセット</button>
+      <button onclick="nextStep1()">次へ</button>
+    </div>
+    
+    <div style="height:100px"></div>
+    
+    
+    <div id="selection-sort" class="demo">
+      <div class="container" id="aryContainer2"></div>
+      <div id="description2" class="description"></div>
+      <label for="arrayLength2">配列の長さ:</label>
+      <input type="number" id="arrayLength2" value="8" min="2">
+      <button onclick="initialize2()">配列をリセット</button>
+      <button onclick="nextStep2()">次へ</button>
+    </div>
+    
+    
+    <div class="container" id="minContainer">
+      <div class="item" id="divMin">
+        <div class="divValue"></div>
+        <div class="divIndex">最小</div>
+      </div>
+    </div>
+
+    
+
+
+    <script>
+      let divs = [];
+      
+      let divs1 = [];
+      let i = 0;
+      let j = 0;
+      let countCompare = 0;
+      let countSwap = 0;
+      
+      let divs2 = [];
+      let minId = 0;
+      let startId = 0;
+      let step = 0;
+      
+      const container1 = document.getElementById('aryContainer1');
+      const description1 = document.getElementById('description1');
+      
+      const container2 = document.getElementById('aryContainer2');
+      const description2 = document.getElementById('description2');
+      
+      initialize1();
+      initialize2();
+      
+      
+      function initialize1(){
+        description1.textContent = `バブルソートを開始します。`;
+        container1.innerHTML ='';
+        
+        let arrayLength = parseInt(document.getElementById('arrayLength1').value);
+        
+        divs1 = createDivs(container1, arrayLength, true);
+
+        i = 0;
+        j = divs1.length - 2;
+        countCompare = 0;
+        countSwap = 0;
+      }
+      
+      function nextStep1(){
+        //バブルソート　次へ
+        if(i>=divs1.length-1){
+          divs1[j+1].classList.add('sorted');
+          description1.textContent = `最後に ${divs1[j+1].textContent} が整列済みになり、終了です（比較回数${countCompare}，交換回数${countSwap}）。`;
+          return;
+        }
+        
+        if(j+2<divs1.length){
+          divs1[j+2].classList.remove('highlighted');
+          divs1[j+2].classList.remove('swapped');
+        }
+        divs1[j+1].classList.remove('swapped');
+        
+        
+        if(j<i){
+          divs1[j+1].classList.remove('highlighted');
+          divs1[j+2].classList.remove('highlighted');
+          divs1[j+1].classList.remove('swapped');
+          divs1[j+2].classList.remove('swapped');
+          divs1[j+1].classList.add('sorted');
+          description1.textContent = ` ${divs1[j+1].textContent} が整列済みになりました（比較回数${countCompare}，交換回数${countSwap}）。`;
+          i++;
+          j = divs1.length - 2;
+        }else{
+          if(divs1[j].classList.contains('highlighted') && divs1[j+1].classList.contains('highlighted')){
+            if(parseInt(divs1[j].textContent) > parseInt(divs1[j+1].textContent)){
+              divs1[j].classList.remove('highlighted');
+              divs1[j+1].classList.remove('highlighted');
+              [divs1[j].textContent, divs1[j+1].textContent] = [divs1[j+1].textContent, divs1[j].textContent];
+              countSwap++;
+              divs1[j].classList.add('swapped');
+              divs1[j+1].classList.add('swapped');
+              description1.textContent = ` ${divs1[j].textContent} ＜ ${divs1[j+1].textContent} なので、交換しました（比較回数${countCompare}，交換回数${countSwap}）。`;
+
+            }else{
+              description1.textContent = ` ${divs1[j].textContent} ≧ ${divs1[j+1].textContent} なので、交換しません（比較回数${countCompare}，交換回数${countSwap}）。`;
+            }
+
+            j--;
+
+          }else{
+            countCompare++;
+            divs1[j].classList.add('highlighted');
+            divs1[j+1].classList.add('highlighted');
+            description1.textContent = ` ${divs1[j].textContent} と ${divs1[j+1].textContent} を比較します（比較回数${countCompare}）。`;
+          } 
+        }
+      }
+      
+      
+      function initialize2(){
+        description2.textContent = `選択ソートを開始します。`;
+        let arrayLength = parseInt(document.getElementById('arrayLength2').value);
+
+        divs2 = createDivs(container2, arrayLength, true);
+                
+        minId = 0;
+        startId = 0;
+        step = 0;
+      }
+      
+      function nextStep2(){
+        //選択ソート 次へ
+        
+        if(startId >= divs2.length-1){
+          divs2[startId].classList.remove('swapped');
+          divs2[startId].classList.add('sorted');
+          return;
+        }
+        
+        if(step%4==0){
+          //startIdをハイライト
+          divs2[startId].classList.add('highlighted');
+          description2.textContent = ` 未ソートの先頭を暫定の最小値とします。`;
+        }else if(step%4==1){
+          //startId〜最後までの最小値を探し、最小値をハイライト
+          minId = findMin();
+          divs2[minId].classList.add('highlighted');
+          description2.textContent = ` 未ソートの先頭よりあとの値の最小値を探します。`;
+        }else if(step%4==2){
+          //startIdと最小値を交換
+          swap(startId, minId);
+          description2.textContent = ` 未ソートの先頭と最小値を交換します。`;
+          
+        }else{
+          //startIdをsortedに換え、startId++
+          divs2[startId].classList.remove('swapped');
+          divs2[minId].classList.remove('swapped');
+          divs2[startId].classList.add('sorted');
+          description2.textContent = ` 未ソートの先頭をソート済みにします。`;
+          startId++;
+        }
+        
+        step++;
+      }
+      
+      function findMin(){
+        min = parseInt(divs2[startId].textContent);
+        k = startId;
+        
+        for(let i=startId;i<divs2.length;i++){
+          if(min > parseInt(divs2[i].textContent)){
+            min = parseInt(divs2[i].textContent);
+            k = i;
+          }
+        }
+        
+        return k;
+      }
+      
+      function swap(i, j){
+        [divs2[i].textContent, divs2[j].textContent] = [divs2[j].textContent, divs2[i].textContent];
+        
+        divs2[i].classList.remove('highlighted');
+        divs2[j].classList.remove('highlighted');
+        divs2[i].classList.add('swapped');
+        divs2[j].classList.add('swapped');
+      }
+      
+      function createDivs(container, arrayLength, shuffle = true){
+        container.innerHTML = '';
+        let aryNum = Array.from({ length: arrayLength }, (_, i) => i);
+        
+        if(shuffle){aryNum = shuffleArray(aryNum);}
+        
+        let aryDiv = [];
+        
+        for(let i=0;i<aryNum.length;i++){
+          const div = document.createElement('div');
+          div.classList.add('item');
+          container.appendChild(div);
+          
+          const divValue = document.createElement('div');
+          divValue.classList.add('divValue');
+          divValue.textContent = aryNum[i];
+          aryDiv.push(divValue);
+          div.appendChild(divValue);
+          
+          const divIndex = document.createElement('div');
+          divIndex.classList.add('divIndex');
+          divIndex.textContent = i;
+          div.appendChild(divIndex);
+        }
+        
+        return aryDiv;
+      }
+      
+      function shuffleArray(ary) {
+        for (let i = (ary.length - 1); 0 < i; i--) {
+          let r = Math.floor(Math.random() * (i + 1));
+          [ary[i], ary[r]] = [ary[r], ary[i]];
+        }
+        return ary;
+      }
+    </script>
+  </body>
+
+</html>

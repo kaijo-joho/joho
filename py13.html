@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+<body>
+  
+  
+  
+  <section>
+    
+    <article>
+      <h2 id="headline_1">(1) 関数の基礎</h2>
+      <p>データを与えると、何かしらの結果を返す機能を<strong>関数</strong>といいます。与えるデータを<strong>引数</strong>（ひきすう）といい、返ってくる結果を<strong>戻り値</strong>といいます。これまでには画面に結果を出力するprint関数を扱いました。</p>
+
+      <h3>print関数</h3>
+      <p>print関数は、<tt>print(...)</tt>の引数（カッコ内に指定した内容）を画面に表示します。</p>
+      <pre class="python" data-title="print関数"><code>print("Hello, World!")</code></pre>
+      <pre class="result"><code>Hello, World!</code></pre>
+      
+
+      
+      <h3>type関数‡</h3>
+      <p>type関数は、<tt>type(...)</tt>の引数の型を戻り値として返します。変数の型については、<a href="./py12.html#headline_3">1-2. 変数と画面出力 > 3. 変数の型</a>を参照してください。</p>
+      <pre class="python" data-title="type関数‡"><code>type(18)</code></pre>
+      <pre class="result"><code>int</code></pre>
+      
+      <pre class="python" data-title="type関数‡"><code>type("18") # ダブルクォートで囲まれた数字は文字列（str型）として扱う</code></pre>
+      <pre class="result"><code>str</code></pre>
+      
+      <pre class="python" data-title="type関数‡"><code>type(1.66)</code></pre>
+      <pre class="result"><code>float</code></pre>
+      
+      <pre class="python" data-title="type関数‡"><code>type("Hydrogen")</code></pre>
+      <pre class="result"><code>str</code></pre>
+      <pre class="python" data-title="type関数‡"><code>
+        a = 123
+        print(type(a))  # 変数aの型を出力</code></pre>
+      <pre class="result"><code>
+        &lt;class 'int'&gt;   # type関数の結果をprintするとこのような表示になる
+      </code></pre>      
+      <pre class="python" data-title=""><code>
+        a = 123
+        a = str(a)  # 変数aをstr型に変換
+        print(type(a))  # 変数aの型を出力[
+      </code></pre>
+      <pre class="result"><code>
+        &lt;class 'str'&gt;  # type関数の結果をprintするとこのような表示になる
+      </code></pre>
+      
+
+      <h3>input関数</h3>
+      <p>input関数は、ユーザーからデータを入力してもらうときに使います。<tt>input(</tt>"入力を促すメッセージ"<tt>)</tt>の引数が画面に表示されます。</p>
+      
+      <pre class="python" data-title="input関数"><code>
+        name = input("あなたのなまえは？")   # ユーザーからの入力を変数nameに代入
+        print("\n")    # 入力と出力のあいだに空行を入れる
+        message = "ふむ・・・\n" + name + "　と　いうんだな！"
+        print(message)
+      </code></pre>
+      <pre class="result"><code>
+        あなたの　なまえは？  # ＜ここでは「サトシ」と入力＞
+        
+        ふむ・・・
+        サトシ　と　いうんだな！
+      </code></pre>
+      
+      
+      <p>input関数の戻り値は文字列型となります。</p>
+      <pre class="python example" data-title="input関数の戻り値は文字列型となる。"><code>
+        a = input("整数を入力してください: ")
+        type(a)
+      </code></pre>
+      <pre class="result"><code>str</code></pre>
+      
+      <p><b>整数値</b>（<b>int型</b>）を入力させたい場合は、次のように<b>int関数</b>と組み合わせて使います。<b>int関数</b>は引数の値をint型に変換する関数です。もし<b>float型</b>として扱いたい場合は<b>float関数</b>を組み合わせて使います。</p>
+      
+      <pre class="python example" data-title="入力値を整数として扱いたい場合"><code>
+        a = int(input("整数を入力してください: "))
+        type(a)
+      </code></pre>
+      <pre class="result"><code>int</code></pre>
+      
+      <pre class="python example" data-title="入力値を実数として扱いたい場合"><code>
+        a = float(input("実数値を入力してください: "))
+        type(a)
+      </code></pre>
+      <pre class="result"><code>float</code></pre>
+
+      
+    </article>
+    <article>
+      <h2 id="headline_2">(2) 組み込み関数</h2>
+      <p>Pythonが標準で持っている関数です。</p>
+
+      <h3>入出力に関する関数</h3>
+      <p>
+        <table class="small-tt">
+          <tbody>
+          <tr>
+            <th scope="col" class="min-width-100px">関数</th>
+            <th scope="col" class="min-width-160px">説明</th>
+            <th scope="col" class="min-width-200px">呼び出し例</th>
+            <th scope="col" class="min-width-160px">結果</th>
+          </tr>
+          <tr>
+            <th>print</th>
+            <td>引数に受け取ったものを画面に出力する</td>
+            <td><tt>print("Hello!")</tt></td>
+            <td><tt>Hello!</tt></td>
+          </tr>
+          <tr>
+            <th>input</th>
+            <td>ユーザーから入力を受け取る</td>
+            <td><tt>str = input("...")</tt></td>
+            <td></td>
+          </tr>
+          </tbody>
+        </table>
+      
+      </p>
+
+      <h3>型変換に関する関数</h3>
+        <p>
+        <table class="small-tt">
+          <tbody>
+          <tr>
+            <th scope="col" class="min-width-100px">関数</th>
+            <th scope="col" class="min-width-160px">説明</th>
+            <th scope="col" class="min-width-200px">呼び出し例</th>
+            <th scope="col" class="min-width-160px">結果</th>
+          </tr>
+          <tr>
+            <th rowspan="4">int</th>
+            <td rowspan="4">数値を整数値にする</td>
+            <td><tt>int("123")</tt></td>
+            <td><tt>123</tt></td>
+          </tr>
+          <tr>
+            <td><tt>int("22.4")</tt></td>
+            <td><tt>22</tt></td>
+          </tr>
+          <tr>
+            <td><tt>int("22.8")</tt></td>
+            <td> <tt>22</tt> ※</td>
+          </tr>
+          <tr>
+            <td><tt>int("-22.8")</tt></td>
+            <td><tt>-22</tt> ※</td>
+          </tr>
+          <tr>
+            <th rowspan="2">float</th>
+            <td rowspan="2">数値を浮動小数点数にする</td>
+            <td><tt>float("123")</tt></td>
+            <td><tt>123.0</tt></td>
+          </tr>
+          <tr>
+            <td><tt>float("22.4")</tt></td>
+            <td><tt>22.4</tt></td>
+          </tr>
+          <tr>
+            <th>str</th>
+            <td>文字列に変換する</td>
+            <td><tt>str(123)</tt></td>
+            <td><tt>"123"</tt></td>
+          </tr>
+          </tbody>
+        </table>
+        ※実数をint関数で整数値に変換すると、小数点以下は切り捨てられる（負の値は０に近づく）。
+      </p>
+      
+
+      <h3>文字列に関する関数</h3>
+      <p>
+        <table class="small-tt">
+          <tbody>
+          <tr>
+            <th scope="col" class="min-width-100px">関数</th>
+            <th scope="col" class="min-width-160px">説明</th>
+            <th scope="col" class="min-width-200px">呼び出し例</th>
+            <th scope="col" class="min-width-160px">結果</th>
+          </tr>
+          <tr>
+            <th>len</th>
+            <td>文字列の文字数やリストの要素数を返す</td>
+            <td><tt>len("Hello!")</tt></td>
+            <td><tt>6</tt></td>
+          </tr>
+          <tr>
+            <th>ord</th>
+            <td>文字のコードポイントを返す</td>
+            <td><tt>ord("A")</tt></td>
+            <td><tt>65</tt></td>
+          </tr>
+          <tr>
+            <th>chr</th>
+            <td>コードポイントから文字を返す</td>
+            <td><tt>chr(65)</tt></td>
+            <td><tt>"A"</tt></td>
+          </tr>
+          <tr>
+            <th rowspan="2">format</th>
+            <td rowspan="2">文字列を特定の書式にする</td>
+            <td><tt>format(101, "0&gt;8d")</tt></td>
+            <td><tt>00000101</tt>(右詰8桁)</td>
+          </tr>
+          <tr>
+            <td><tt>format(6.022140, '.2f')</tt></td>
+            <td><tt>6.02</tt>(小数第2桁位まで)</td>
+          </tr>
+          </tbody>
+        </table>
+      </p>
+  
+
+      <h3>その他</h3>
+      <p>
+        <table class="small-tt">
+          <tbody>
+          <tr>
+            <th scope="col" class="min-width-100px">関数</th>
+            <th scope="col" class="min-width-160px">説明</th>
+            <th scope="col" class="min-width-200px">呼び出し例</th>
+            <th scope="col" class="min-width-160px">結果</th>
+          </tr>
+          <tr>
+            <th rowspan="3">type</th>
+            <td rowspan="3">変数の型を返す</td>
+            <td><tt>type(1)</tt></td>
+            <td><tt>int</tt></td>
+          </tr>
+          <tr>
+            <td><tt>type("A")</tt></td>
+            <td><tt>str</tt></td>
+          </tr>
+          <tr>
+            <td><tt>type(1.414)</tt></td>
+            <td><tt>float</tt></td>
+          </tr>
+          <tr>
+            <th rowspan="2">max</th>
+            <td>複数の数値の中の最大値を返す</td>
+            <td><tt>max(1, 6, 9, 0, 7, 2)</tt></td>
+            <td> <tt>9</tt> </td>
+          </tr>
+          <tr>
+            <td>文字は辞書順の最後のものを返す</td>
+            <td><tt>max("K", "A", "I", "J", "O")</tt></td>
+            <td><tt>"O"</tt></td>
+          </tr>
+          <tr>
+            <th rowspan="2">min</th>
+            <td>複数の数値の中の最小値を返す</td>
+            <td><tt>min(1, 6, 9, 0, 7, 2)</tt></td>
+            <td><tt>0</tt></td>
+          </tr>
+          <tr>
+            <td>文字は辞書順の最初のものを返す</td>
+            <td><tt>min("K", "A", "I", "J", "O")</tt></td>
+            <td><tt>"A"</tt></td>
+          </tr>
+          <tr>
+            <th>abs</th>
+            <td>絶対値を返す</td>
+            <td><tt>abs(-273)</tt></td>
+            <td><tt>273</tt></td>
+          </tr>
+          <tr>
+            <th>pow(x,y)</th>
+            <td>xのy乗を返す</td>
+            <td><tt>pow(2,10)</tt></td>
+            <td><tt>1024</tt></td>
+          </tr>
+          <tr>
+            <th>pow(x,y,z)</th>
+            <td>xのy乗をzで割った余りを返す</td>
+            <td><tt>pow(2,10,7)</tt></td>
+            <td><tt>2</tt></td>
+          </tr>
+          <tr>
+            <th rowspan="3">round(x,y)</th>
+            <td rowspan="3">xをyの桁で丸めた値を返す</td>
+            <td><tt>round(123.456, 1)</tt></td>
+            <td><tt>123.5</tt></td>
+          </tr>
+          <tr>
+            <td><tt>round(123.456, 0)</tt></td>
+            <td><tt>123.0</tt></td>
+          </tr>
+          <tr>
+            <td><tt>round(234.5, 0)</tt></td>
+            <td><tt>234.0</tt> ※</td>
+          </tr>
+          </tbody>
+        </table>
+      </p>
+      <p>
+        ※round関数は、端数が0.5未満は切り捨て，0.5より大きいなら切り上げ，0.5なら近い偶数の方へ丸める（四捨五入ではないので注意）
+      </p>
+
+      <h3 id="eval">eval関数‡</h3>
+      <p><strong>eval関数</strong>は、文字列として与えられたコードを実行し、その結果を返す関数です。</p>
+      <pre class="python" data-title="eval関数"><code>
+        x = eval("2 * 4 + 3")   # "2 * 4 + 3"値をxに代入
+        print(x)
+      </code></pre>
+      <pre class="result"><code>11</code></pre>
+      <p>引数に変数を指定することも可能です。</p>
+      <pre class="python" data-title="eval関数"><code>
+        x = 5
+        y = eval("2 * x + 3")   # "2 * x + 3"値をyに代入
+        print(y)
+      </code></pre>
+      <pre class="result"><code>13</code></pre>
+
+
+
+
+    </article>
+    
+
+    <article>
+      <h2 id="headline_3">(3) モジュールとライブラリ</h2>
+      <p>標準の組み込み関数にない関数は<strong>モジュール</strong>や<strong>ライブラリ</strong>を読み込んでから利用することができます。モジュールは外部のファイルに定義されている関数の集まりのことで、ライブラリはモジュールの集まりのことです。</p>
+      
+      
+      <h3>モジュールの使い方①</h3>
+      <p><tt>import モジュール名</tt>でモジュールを読み込むことができます。次の例では、<tt>random</tt>というモジュールの中の<tt>randint</tt>関数を使って、1〜10の整数の乱数を発生させています。</p>
+      <pre class="python" data-title="モジュールの使い方①"><code>
+        import random   # 乱数を発生させるモジュールを読み込む
+        num = random.randint(1,10)  # 1〜10の間の数値をランダムに発生させる
+        print(num)
+      </code></pre>
+      <pre class="result"><code>6  # 結果は毎回変わります。</code></pre>
+
+      
+      <h3>モジュールの使い方②</h3>
+      <p>次の例では、<tt>math</tt>モジュールの中の<tt>ceil</tt>関数を使って、小数点以下を切り上げています。</p>
+      <pre class="python" data-title="モジュールの使い方②"><code>
+        import math   # mathモジュールを読み込む
+        value = 3.14
+        num = math.ceil(value)  # 3.14の小数点以下を切り上げる
+        print(num)
+      </code></pre>
+      <pre class="result"><code>4</code></pre>
+
+      <h3>モジュールに別名をつける†</h3>
+      <p><tt>import モジュール名 as 別名</tt>でモジュールに別名をつけることができます。モジュールの名前が長かったりすると不便なので、別名をつけてプログラムの可読性を向上させます。次の例では、<tt>random</tt>というモジュール名を<tt>r</tt>と短くしてから、<tt>randint</tt>関数を使って1〜10の乱数を発生させています。</p>
+      <pre class="python example" data-title="モジュールに別名をつける†"><code>
+        import random as r    # 乱数を発生させるモジュールを読み込む
+        num = r.randint(1,10)   # 1〜10の間の数値をランダムに発生させる
+        print(num)
+      </code></pre>
+      <pre class="result"><code>3  # 結果は毎回変わります。</code></pre>
+
+      
+      <h3>モジュール名をつけずに関数を直接使用する①‡</h3>
+      <p><tt>from モジュール名 import 関数名</tt>で特定の関数をモジュール名を指定せずに使うことができます。</p>
+      <pre class="python example" data-title="モジュール名をつけずに関数を直接使用する①‡"><code>
+        from random import randint  # 乱数を発生させるモジュールを読み込む
+        num = randint(1,10) # 1〜10の間の数値をランダムに発生させる
+        print(num)
+      </code></pre>
+      <pre class="result"><code>8  # 結果は毎回変わります。</code></pre>
+      
+      <h3>モジュール名をつけずに関数を直接使用する②‡</h3>
+      <p>上記の例では関数ごとに読み込む必要があるため、ワイルドカード(<tt>*</tt>)を用いてモジュール内のすべての関数を一度に読み込む方法もあります。<tt>from モジュール名 import *</tt>ですべての関数を読み込みます（ただし、アンダースコア(<tt>_</tt>)から始まるものは除きます）。</p>
+      <pre class="python example" data-title="モジュール名をつけずに関数を直接使用する②‡"><code>
+        from math import *  # mathモジュールのすべての関数を読み込む
+        print(sqrt(2))    # sqrt：平方根を返す
+        print(pi)         # piは円周率πの値
+        print(sin(pi/6))  # sin関数：サインsinの値を返す。引数の単位はラジアン。
+        print(cos(pi/6))  # cos関数：コサインの値を返す。引数の単位はラジアン。
+        print(log(32, 2)) # log(真数,底)：対数を返す。この例は2を底とする32の対数を返す。
+      </code></pre>
+      <pre class="result"><code>
+        1.4142135623730951
+        3.141592653589793
+        0.49999999999999994 # コンピュータの計算は小数点以下では誤差ができます。
+        0.8660254037844387
+        5.0
+      </code></pre>
+    </article>
+
+
+
+  </section>
+        
+
+  
+
+ 
+   
+
+  
+
+  
+    
+    
+</body>
+</html>
+

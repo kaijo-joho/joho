@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+<body>
+  
+    
+  
+  <section>
+    
+    <article>
+      <h2 id="headline_1">(1) for文の書き方</h2>
+      
+      <h3>for文とは</h3>
+      <p>while文と同じように、繰り返し処理を実行する構文に<strong>for文</strong>があります。for文は、指定回数だけ処理を繰り返すことができます。</p>
+
+      <pre class="python example"><code>
+        for ループ変数 in range(回数):
+          # 繰り返し処理
+      </code></pre>
+      <p>for文の末尾はコロン<tt>:</tt>で終わり、繰り返し処理の中の記述はインデントを１つ分下げます。</p>
+
+      <h3>for文の基本</h3>
+      <p>次は、5回処理を繰り返す例です。<tt>i</tt>の値が0〜4の5回繰り返していることがわかります。</p>
+      <pre class="python"><code>
+        for i in range(5):
+          print(i)
+      </code></pre>
+      <pre class="result"><code>
+        0
+        1
+        2
+        3
+        4
+      </code></pre>
+      
+      <h3>range関数とfor文</h3>
+      <p>range関数は、<tt>range(n)</tt>と書くと、0から<tt>n</tt>個の整数列を作ります。例えば、<tt>range(5)</tt>は<tt>[0, 1, 2, 3, 4]</tt>を意味します。この値がループ変数<tt>i</tt>に順に代入され（<tt>i</tt>に、<tt>0</tt>→<tt>1</tt>→<tt>2</tt>→<tt>3</tt>→<tt>4</tt>）、5回の処理が実行されます。ループ変数は<tt>i</tt>でなくても構いませんが、慣例として<tt>i</tt>が用いられます。</p>
+      <p class="center">
+        <img src="./img/py24_001.png" width="300px" class="image_center">
+      </p>
+      
+      <pre class="python"><code>
+        for i in range(11):
+          print(i, end=" ")  # ※1
+      </code></pre>
+      <pre class="result"><code>0 1 2 3 4 5 6 7 8 9 10</code></pre>
+      <ol class="notes">
+        <li><tt>print("...", end=" ") </tt></li>
+        <blockquote>
+          print関数の引数に<tt>end="..."</tt>を指定すると、末尾に出力する文字を指定することができます。何も指定しなければ（デフォルトでは）<strong>改行コード</strong>（<tt>\n</tt>）となりますが、上の例のように<strong>半角スペース</strong>を指定すると、改行せずに半角スペースが出力されます。
+        </blockquote>
+      </ol>
+      
+    </article>
+    
+    
+    <article>
+      <h2 id="headline_2">(2) range関数について</h2>
+      <p>
+        <strong> range関数</strong>は、引数の数によって返す整数列が異なります。<br>
+      </p>
+      
+      <h3><tt>range(</tt><b>終了値</b><tt>)</tt></h3>
+      <p><tt>range(</tt><b>終了値</b><tt>)</tt>は、<tt>0</tt>〜<tt>(</tt><b>終了値</b><tt>-1)</tt>の整数列を返します。</p>
+      <p>つまり、<tt>range(5)</tt>は、<tt>[0, 1, 2, 3, 4]</tt>を返します。</p>
+      <pre class="python"><code>
+        for i in range(5):
+          print(i, end=" ")
+      </code></pre>
+      <pre class="result"><code>0 1 2 3 4</code></pre>
+      <p> </p>
+      
+      <h3><tt>range(</tt><b>開始値</b><tt>,</tt><b>終了値</b><tt>)</tt></h3>
+      <p><tt>range(</tt><b>開始値</b><tt>,</tt><b>終了値</b><tt>)</tt>は、<b>開始値</b>〜<tt>(</tt><b>終了値</b><tt>-1)</tt>の整数列を返します。</p>
+      <p>つまり、<tt>range(10, 20)</tt>は、<tt>[10, 11, 12, ..., 19]</tt>を返します。</p>
+      <pre class="python"><code>
+        for i in range(10, 20):
+          print(i, end=" ")
+      </code></pre>
+      <pre class="result"><code>10 11 12 13 14 15 16 17 18 19</code></pre>
+      
+      
+      <h3><tt>range(</tt><b>開始値</b><tt>,</tt><b>終了値</b><tt>,</tt><b>ステップ</b><tt>)</tt></h3>
+  <p><tt>range(</tt><b>開始値</b><tt>,</tt><b>終了値</b><tt>,</tt><b>ステップ</b><tt>)</tt>は、<b>開始値</b>〜<tt>(</tt><b>終了値</b><tt>-1)</tt>までステップおきに増加する整数列を返します。</p>
+      <p>つまり、<tt>range(10, 20, 3)</tt>は、<tt>[10, 13, 16, 19]</tt>を返します。</p>
+      <pre class="python"><code>
+        for i in range(10, 20, 3):
+          print(i, end=" ")
+      </code></pre>
+      <pre class="result"><code>10 13 16 19</code></pre>
+      
+      <h3 id="range_a_b_c_reduce">減っていくforループ†</h3>
+      <p>ステップには負数を指定することもできます。</p>
+      <p><tt>range(5, 0, -1)</tt>は、<tt>5</tt>から<tt>1</tt>まで、<tt>-1</tt>ずつ減らす整数列、つまり<tt>[5, 4, 3, 2, 1]</tt>を返します。</p>
+      <pre class="python"><code>
+        for i in range(5, 0, -1):
+          print(i, end=" ")
+      </code></pre>
+      <pre class="result"><code>5 4 3 2 1</code></pre>
+        
+      <p><tt>range(5, -1, -1)</tt>は、5から0まで、-1ずつ減らす整数列、つまり<tt>[5, 4, 3, 2, 1, 0]</tt>を返します。</p>
+      <pre class="python"><code>
+        for i in range(5, -1, -1):
+          print(i, end=" ")
+      </code></pre>
+      <pre class="result"><code>5 4 3 2 1 0</code></pre>
+      <p>ここで、終了値は範囲に含まれないことに注意してください。<tt>0</tt>を含めるためには、終了値を<tt>0</tt>ではなく<tt>-1</tt>を指定します。</p>
+
+    </article>
+    
+    <article>
+      <h2 id="headline_3">(3) for文の練習</h2>
+      
+      <h3>1〜10の和</h3>
+      <p>for文を使って1〜10の和を求めるプログラムを書いてみましょう。</p>
+      
+      <pre class="python"><code>
+        sum = 0     # 和を入れておく変数
+
+        for i in range(1, 11):   # 1〜10を順に i に代入する
+          sum = sum + i       # sumに i を加えて sum に代入する（for文の中なのでインデントを１つ下げる）
+
+        print(sum)           # sumを出力する（for文の外なので、インデントを戻す）
+      </code></pre>
+      <pre class="result"><code>55</code></pre>
+      <p>変数<tt>sum</tt>は、和を入れておく変数です。<tt>sum = sum + i</tt>で前の<tt>sum</tt>の値に<tt>i</tt>を加えて、新たな<tt>sum</tt>としています。</p>
+      <p>つまり、<tt>sum</tt>の値は、</p>
+      <ul>
+        <li><tt>i = 1</tt>のとき、<tt>sum =  0 + 1 =  1</tt></li>
+        <li><tt>i = 2</tt>のとき、<tt>sum =  1 + 2 =  3</tt></li>
+        <li><tt>i = 3</tt>のとき、<tt>sum =  3 + 3 =  6</tt></li>
+        <li><tt>i = 4</tt>のとき、<tt>sum =  6 + 4 = 10</tt></li>
+        <li><tt>i = 5</tt>のとき、<tt>sum = 10 + 5 = 15</tt></li>
+        <li>・・・</li>
+      </ul>
+      <p>と変化していきます。試しに、<tt>sum = sum + i</tt>の行のあとに、<tt>print("i =", i, ",\t sum =", sum)</tt>を追加して確かめてみましょう。
+      </p>
+      
+      
+      
+      <h3>*出力</h3>
+      <p>for文を使って、繰り返すごとに<tt>*</tt>の数が１つずつ多くなるプログラムを書いてみましょう。</p>
+      <p>文字列どうしを結合する場合は、<b>文字列 + 文字列</b>です。</p>
+      
+      <pre class="python"><code>
+        s = ""              # 文字列変数 *を格納する。初期値は空文字。
+
+        for i in range(5):  # 5回繰り返す
+          s = s + "*"     # sに*を１つ結合する
+          print(s)        # sを出力
+      </code></pre>
+      <pre class="result"><code>
+        *
+        **
+        ***
+        ****
+        *****
+      </code></pre>
+      
+    
+    </article>
+    
+    <!--
+    <article>
+      <div class="article_header"><h2><a id="headline_3">(3) for文の例題</a></h2></div>
+      
+      <div id="examples"></div>
+      
+      <h3>例題1 (1)</h3>
+      <p>1から10までの整数の和を求めるプログラムを書きなさい。ただし、for文の条件は<b>range(n)</b>を用いること。</p>
+      
+      <div class="code-details">
+<pre><code>n = 10  <em>#10までの和</em>
+sum = 0 <em>#合計の変数sum。初期値は0（ゼロ）</em>
+<em>#range(n)を用いてコードを書く</em></code></pre>
+        <details>
+        <summary><em>#続きはココをクリック</em></summary>
+<pre><code>for i in range(n):  <em># i = 0からn-1まで、n回繰り返す</em>
+    sum = sum + (i + 1)
+print(sum)</code></pre>
+        </details>
+      </div>
+      <pre class="result"><code>55<br></code></pre>
+      
+      <h3>例題1 (2)</h3>
+      <p>1から10までの整数の和を求めるプログラムを書きなさい。ただし、for文の条件は<b>range(1, ...)</b>を用いること。</p>
+      <div class="code-details">
+<pre><code>n = 10  <em>#10までの和</em>
+sum = 0 <em>#合計の変数sum。初期値は0（ゼロ）</em>
+<em>#range(1, ...)を用いてコードを書く</em></code></pre>
+
+        <details>
+          <summary><em>#続きはココをクリック</em></summary>
+<pre><code>for i in range(1, n + 1): <em># i = 1からnまで、n回繰り返す</em>
+    sum = sum + i
+print(sum)</code></pre>
+        </details>
+      </div>
+      <pre class="result"><code>55<br></code></pre>
+      
+      <h3>例題2</h3>
+      <p>
+        FizzBuzzゲームにおいて、1から100までの発言を出力するプログラムを書きなさい。<br>
+        FizzBuzzゲームとは、英語圏で長距離ドライブ中や飲み会の時に行われる言葉遊びです。最初のプレイヤーは「1」と数字を発言する。次のプレイヤーは直前のプレイヤーの発言した数字に1を足した数字を発言していきます。ただし、3の倍数の場合は「Fizz」、5の倍数の場合は「Buzz」、3の倍数かつ5の倍数の場合は「Fizz Buzz」を数の代わりに発言します。
+      </p>
+      
+      <div class="code-details">
+
+        <details><summary><em>#続きはココをクリック</em></summary>
+<pre><code>for i in range(1,101): 
+  if i % 3 ==0 and i % 5 == 0: 
+      print("FizzBuzz") 
+  elif i % 3 == 0: 
+      print("Fizz") 
+  elif i % 5 == 0:
+      print("Buzz") 
+  else: 
+      print(i) </code></pre>
+        </details>
+      </div>
+      <div class="result-plain">
+        <details><summary><em>結果はココをクリック</em></summary>
+        1<br>
+        2<br>
+        Fizz<br>
+        4<br>
+        Buzz<br>
+        Fizz<br>
+        7<br>
+        8<br>
+        Fizz<br>
+        Buzz<br>
+        11<br>
+        Fizz<br>
+        13<br>
+        14<br>
+        FizzBuzz<br>
+        16<br>
+        17<br>
+        Fizz<br>
+        19<br>
+        Buzz<br>
+        Fizz<br>
+        22<br>
+        23<br>
+        Fizz<br>
+        Buzz<br>
+        26<br>
+        Fizz<br>
+        28<br>
+        29<br>
+        FizzBuzz<br>
+        31<br>
+        32<br>
+        Fizz<br>
+        34<br>
+        Buzz<br>
+        Fizz<br>
+        37<br>
+        38<br>
+        Fizz<br>
+        Buzz<br>
+        41<br>
+        Fizz<br>
+        43<br>
+        44<br>
+        FizzBuzz<br>
+        46<br>
+        47<br>
+        Fizz<br>
+        49<br>
+        Buzz<br>
+        Fizz<br>
+        52<br>
+        53<br>
+        Fizz<br>
+        Buzz<br>
+        56<br>
+        Fizz<br>
+        58<br>
+        59<br>
+        FizzBuzz<br>
+        61<br>
+        62<br>
+        Fizz<br>
+        64<br>
+        Buzz<br>
+        Fizz<br>
+        67<br>
+        68<br>
+        Fizz<br>
+        Buzz<br>
+        71<br>
+        Fizz<br>
+        73<br>
+        74<br>
+        FizzBuzz<br>
+        76<br>
+        77<br>
+        Fizz<br>
+        79<br>
+        Buzz<br>
+        Fizz<br>
+        82<br>
+        83<br>
+        Fizz<br>
+        Buzz<br>
+        86<br>
+        Fizz<br>
+        88<br>
+        89<br>
+        FizzBuzz<br>
+        91<br>
+        92<br>
+        Fizz<br>
+        94<br>
+        Buzz<br>
+        Fizz<br>
+        97<br>
+        98<br>
+        Fizz<br>
+        Buzz<br>
+        </details>
+      </div>
+      
+      
+    </article>
+    -->
+  
+  
+  </section>
+ 
+   
+
+  
+
+  
+    
+    
+</body>
+</html>
+

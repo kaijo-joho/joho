@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+
+<body>
+  
+  
+
+
+  <section>
+    <article>
+      <h2 id="headline_1">(1) IDとクラス</h2>
+
+      <h3>IDとクラスとは</h3>
+      <p>
+        <strong>ID</strong>と<strong>クラス</strong>は、HTMLタグの中に記述できる<strong>属性</strong>の１つで、すべてのタグに指定することができます。HTMLでIDやクラスを指定しておき、IDやクラスをセレクタとしてCSSで装飾を指定することができます。
+      </p>
+      <p>IDは１ページに１回だけ使用でき、クラスは何度でも使用できます。</p>
+
+      <h3>クラス(class)を使った書き方</h3>
+      <p>クラスを使うときは、HTMLファイルで任意のタグに<strong>class属性</strong>をつけます。</p>
+      <pre class="html example"><code>
+        &lt;タグ名 class="クラス名"&gt;コンテンツ&lt;/タグ名&gt;
+      </code></pre>
+
+      <p>CSSにはピリオド(.)のあとにクラス名を書き、適用させたいスタイルを記述します。</p>
+      <pre class="css example"><code>
+        .クラス名{property: 値;}
+      </code></pre>
+
+      <h3>ID(id)を使った書き方</h3>
+      <p>IDを使うときは、HTMLファイルで任意のタグに<strong>id属性</strong>をつけます。</p>
+      <pre class="html example"><code>
+        &lt;タグ名 id="ID名"&gt;コンテンツ&lt;/タグ名&gt;
+      </code></pre>
+
+      <p>CSSにはハッシュ(#)のあとにID名を書き、適用させたいスタイルを記述します。</p>
+      <pre class="css example"><code>
+        #ID名{property: 値;}
+      </code></pre>
+
+
+      <h3>タグの種類を指定してIDやクラス使った書き方</h3>
+      <p>
+        IDやクラスは、使用しているタグに関係なく、IDやクラスが指定されているところはすべて同じデザインが適用されます。タグの種類を指定してIDやクラスを使いたいときは、「タグ名#ID名」や「タグ名.クラス名」のように指定します。
+      </p>
+
+      <p>例えば、次のようなHTMLタグがあります。</p>
+      <pre class="html example"><code>
+        &lt;h2 class="red"&gt;&lt;/h2&gt;
+        &lt;p class="red"&gt;&lt;/p&gt;
+      </code></pre>
+
+      <p>これに次のようなCSSを適用すると、red。</p>
+      <pre class="css example"><code>
+        .red{color: red;}
+      </code></pre>
+
+      <p>一方、次のようにp.redとすると、pタグのうちredクラスをもつもののみにredクラスが適用されます。</p>
+      <pre class="css example"><code>
+        p.red{color: red;}
+      </code></pre>
+
+
+      <p>実習ファイルのCSSに次のコードを追加し、前後の変化を確認しましょう。</p>
+
+      <pre class="css" data-title="sample2-3.html ＞ 実習コード①"><code>
+        p.paragraph1{
+          color: red;
+        }
+      </code></pre>
+
+
+
+      <p>次に、次のコードを追加して前後の変化を確認しましょう。</p>
+
+      <pre class="css" data-title="sample2-3.html ＞ 実習コード①（つづき）"><code>
+        p.paragraph2{
+          color: blue;
+        }
+      </code></pre>
+
+
+      <p>続けて、次のコードを追加して前後の変化を確認しましょう。</p>
+
+      <pre class="css" data-title="sample2-3.html ＞ 実習コード①（つづき）"><code>
+        p.paragraph3{
+          color: green;
+        }
+
+        p.paragraph4{
+          color: yellow;
+        }
+      </code></pre>
+      
+      <div class="html_code_footer"></div>
+      <p>同じpタグでも、classごとにCSSが指定されたことを確認できましたね。</p>
+
+      <h5>文字色が変わらない場合</h5>
+      <p>文字色が変わらない場合は、次のことを見直してみてください（いずれも授業中に散見されたことです）。
+
+      <ul>
+        <li>全角スペースが入っていた</li>
+        <li>波カッコが全角だった</li>
+        <li><tt>paragraph</tt>や色名などのスペルミス</li>
+        <li><tt>paragraph1</tt>, <tt>paragraph2</tt>, <tt>paragraph3</tt>の <tt>1</tt>, <tt>2</tt>,
+          <tt>3</tt>の番号が入っていなかった</li>
+      </ul>
+      </p>
+
+
+
+      <h3>複数のクラスを指定する</h3>
+      <p>１つのタグに対して複数のクラスを指定するときには、class属性の値に半角スペースで区切って記述します。</p>
+
+      <p>次の例では、h2タグに対してredクラスとboldクラスを指定します。</p>
+      <pre class="html example"><code>
+        &lt;h2 class="red bold"&gt;&lt;/h2&gt;
+        &lt;p class="red"&gt;&lt;/p&gt;
+      </code></pre>
+    </article>
+
+
+    <article>
+      <h2 id="headline_2">(2) spanタグ</h2>
+      <h3>spanタグとは</h3>
+      <p>
+        spanタグは、特に意味をもたない文字をグループ化し、装飾に使用します。似たようなものにstrongタグやemタグがありますが、これらは文の一部を強調するために用いられます。こういった強調という意味をもたせたくないが、装飾だけしたいというときに使用します。
+      </p>
+
+      <h3>spanタグの使い方</h3>
+      <p>spanタグは、基本的にはクラスやIDを指定して使用します。</p>
+      <p>次の例では、文中の２ヶ所のspanタグに、それぞれredクラスやboldクラスで指定したスタイルを適用します。</p>
+
+      
+      <pre class="html example"><code>
+        spanタグは、&lt;span class="red"&gt; 特に意味をもたない &lt;/span&gt; 文字をグループ化し、&lt;span class="red
+        bold"&gt; 装飾 &lt;/span&gt; に使用します。
+      </code></pre>
+      
+      <pre class="css example"><code>
+        .red{color: red;}
+        .bold{font-weight: bold;}
+      </code></pre>
+
+    </article>
+  </section>
+
+
+
+  
+  
+  
+  
+  
+</body>
+
+</html>

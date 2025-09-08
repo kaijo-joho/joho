@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html>
+   <head>
+       <!-- Google tag (gtag.js) ここから-->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+            <script>
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-ZW1B1EX70P');
+            </script>
+       <!-- Google tag (gtag.js) ここまで-->
+      <link rel="icon" href="./img/favicon.ico" />
+    
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  
+  <!-- Lightbox2 CDN -->
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+        <!-- Highlight.js -->
+    <link rel="stylesheet" href="./highlightjs/styles/ks.css">
+    <script src="./highlightjs/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    
+  <meta charset="UTF-8" />
+      <title>スプレッドシート実習</title>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+	   
+	   
+  <!--MathJax-->
+    <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!--/MathJax-->
+	   
+ </head>
+ <body>
+	<header><!-- script_pages.js --></header>
+	<!----COMMON HEADER END---->	
+	
+
+	<section>
+		
+		<article>
+			<h2 id="headline_1">(1) スプレッドシートの画面</h2>
+
+			<h3>スプレッドシートの画面</h3>
+			<p>スプレッドシートを開くと、次のような画面になります。</p>
+			<p>中央の広いスペースにあるマスのことを<strong>セル</strong>といいます。また、画面の各所には操作をするための機能が配置されています。</p>
+			
+			<p class="center">
+				<a href="./img/ss01_001.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss01_001.png" class="screen_shot">
+				</a><br>
+				スプレッドシートの画面の配置
+			</p>
+			<p>
+        <ul class="list-style-none">
+          <li><b class="pink">①ファイル名</b>   <ul class="list-style-none"><li>クリックして編集できる。</li></ul></li>
+          <li><b class="pink">②メニューバー</b>  <ul class="list-style-none"><li>ファイル全体の設定や指定しているセルへの操作ができる機能メニュー。</li></ul></li>
+          <li><b class="pink">③ツールバー</b>   <ul class="list-style-none"><li>指定しているセルへの書式設定など。</li></ul></li>
+          <li><b class="green">④アクティブセル（アクティブセル範囲）</b>   <ul class="list-style-none"><li>現在選択しているセルの番地。</li></ul></li>
+          <li><b class="green">⑤関数バー</b>   <ul class="list-style-none"><li>指定しているセルに入力されている内容を表示。</li></ul></li>
+          <li><b class="blue">⑥行（行番号）</b> <ul class="list-style-none"><li>横方向に区切り下に行くにつれ 1行目，2行目，3行目，・・・と数える。</li></ul></li>
+          <li><b class="blue">⑦列（列番号）</b> <ul class="list-style-none"><li>横方向に区切り右に行くにつれ A列，B列，C列，・・・と数える。</li></ul></li>
+          <li><b class="blue">⑧アクティブセル</b>  <ul class="list-style-none"><li>現在選択しているセル。</li></ul></li>
+          <li><b class="blue">⑨シート追加</b>  <ul class="list-style-none"><li>新しいシートを追加する。</li></ul></li>
+          <li><b class="blue">⑩シートタブ</b>  <ul class="list-style-none"><li>操作しているシートを切り替える。</li></ul></li>
+        </ul>
+			</p>
+			
+			<h3>アクティブセル</h3>
+			<p>現在選択しているセルのことを<strong>アクティブセル</strong>といいます。<br>
+セルにはひとつずつ番地が決まっていて、列番号（A，B，C，・・・）と行番号（1，2，3，・・・）を組み合わせて、「<b>A1</b>」のように表現します。右図では、アクティブセルの番地は<b>B3</b>です。
+			</p>
+			<p class="center">
+				<a href="./img/ss01_002.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss01_002.png" class="screen_shot">
+				</a>
+			</p>
+			
+		</article>
+		
+		<article>
+			<h2 id="headline_2">(2) 文字と数字の入力</h2>
+		
+			<h3>文字の入力</h3>
+			<p>① B2セルを選択し、「海城中学3年」と入力します。<br>
+				② <b>タブ⇥</b>キーを押すと、ひとつ右のセルが選択されます。<br>
+				③ C2セルで、「9組52番」と入力します。<br>
+				④ <b>タブ⇥</b>キーを押し、D2セルで「海城　太朗」と入力します。<br>
+				（※自分のクラス・番号・氏名を入力しましょう。）
+			</p>
+			<p class="center">
+				<a href="./img/ss01_003.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss01_003.png" class="screen_shot">
+				</a>
+			</p>			
+			
+			<h3>数字の入力</h3>
+			<p>① B4セルを選択し、<b>半角</b>で「1234」と入力します。<br>
+			</p>
+			<p class="center">
+				<a href="./img/ss01_004.png" data-lightbox="abc" class="no_border" border="0">
+					<img src="./img/ss01_004.png" class="screen_shot">
+				</a>
+			</p>	
+			<p>
+				② <b>リターン⏎</b>キーを押すと入力が確定され、ひとつ下のセルが選択されます。<br>
+				③ B5セルで、「5678」と入力し、<b>リターン⏎</b>キーを押して入力を確定します。
+			</p>
+			<p class="center">
+				<a href="./img/ss01_005.png" data-lightbox="abc" class="no_border" border="0">
+					<img src="./img/ss01_005.png" class="screen_shot">
+				</a>
+			</p>	
+
+			
+			<h3>セルの値の消去</h3>
+			<p>① B4セルを選択し、<b>デリート⌫</b>キーを押すと、そのセルの値が消去されます。<br>
+			</p>
+			<p class="center">
+				<a href="./img/ss01_006.png" data-lightbox="abc" class="no_border" border="0">
+					<img src="./img/ss01_006.png" class="screen_shot">
+				</a>
+			</p>	
+			<p>
+				② セルの中の一部を消去したい場合は、セルを<b>ダブルクリック</b>し、該当のところを消去します。
+			</p>
+			<p class="center">
+				<a href="./img/ss01_007.png" data-lightbox="abc" class="no_border" border="0">
+					<img src="./img/ss01_007.png" class="screen_shot">
+				</a>
+			</p>	
+
+			<h3>元に戻す操作と版の復元</h3>
+			<h4>元に戻す</h4>
+			<p>直前の操作を取り消すときは、次の方法で「元に戻す」操作をします。
+				<ul>
+					<li>キーボードで<strong>⌘を押しながら「Z」キーを押します</strong>。</li>
+					<li><span class="notes">❶ メニューバー</span>の編集をクリックし、<span class="notes">❷ 元に戻す</span>を選択します。
+						<p class="center">
+							<a href="./img/ss11_241.png" data-lightbox="abc" class="no_border" border="0">
+								<img src="./img/ss11_241.png" class="screen_shot" width="400px">
+							</a>
+						</p>	
+					</li>
+				</ul>
+			</p>
+			<p>
+				連続して<strong>元に戻す</strong>操作を繰り返すと、順次前の状態に戻すことができます。
+				しかし、<strong>元に戻す</strong>操作には上限があります。さらに元の状態に戻したい場合は、次の版の復元をします。
+			</p>
+
+			<h4>版の復元</h4>
+			<p><strong>版の復元</strong>をすると、以前の状態まで戻すことができます。</p>
+			<p><span class="notes">❸ 右上の時計アイコン</span>をクリックし、変更履歴を表示します。</strong></p>
+			<p class="center">
+				<a href="./img/ss11_242.png" data-lightbox="abc" class="no_border" border="0">
+					<img src="./img/ss11_242.png" class="screen_shot" width="320px">
+				</a>
+			</p>	
+			<p><span class="notes">❹ 変更履歴</span>から戻したい状態を選択し、<span class="notes">❺ この版を復元</span>をクリックします。</p>
+			<p class="center">
+				<a href="./img/ss11_243.png" data-lightbox="abc" class="no_border" border="0">
+					<img src="./img/ss11_243.png" class="screen_shot" width="540px">
+				</a>
+			</p>	
+		</article>
+		
+		<article>
+			<h2 id="headline_3">(3) 数式の入力</h2>
+		
+			<h3>数式の入力（足し算）</h3>
+			<p>① B7セルを選択し、<tt>=123+456</tt>と入力します。</p>
+			<p>※<tt>=</tt>(イコール)は、<b>シフト⇧</b>キーを押しながら<tt>-</tt>(マイナス)のキーを押して入力します。<br>
+			※<tt>+</tt>(プラス)は、<b>シフト⇧</b>キーを押しながら<tt>;</tt>(セミコロン)のキーを押して入力します。</p>
+			<p class="center">
+				<a href="./img/ss01_008.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss01_008.png" class="screen_shot">
+				</a>
+			</p>	
+			<p>
+				② <b>リターン⏎</b>キーで入力を確定すると、計算結果が表示されます。
+			</p>
+			<p class="center">
+				<a href="./img/ss01_009.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss01_009.png" class="screen_shot">
+				</a>
+			</p>	
+
+			
+			<h3>数式の入力（かけ算）</h3>
+			<p>① B8セルを選択し、<tt>=123*456</tt>と入力します。</p>
+			<p>※<tt>*</tt>(アスタリスク)は、<b>シフト⇧</b>キーを押しながら<tt>:</tt>(コロン)のキーを押して入力します。</p>
+			<p class="center">
+				<a href="./img/ss01_010.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss01_010.png" class="screen_shot">
+				</a>
+			</p>	
+			<p>
+				② <b>リターン⏎</b>キーで入力を確定すると、計算結果が表示されます。
+			</p>
+			<p class="center">
+				<a href="./img/ss01_011.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss01_011.png" class="screen_shot">
+				</a>
+			</p>	
+			
+			<h3>演算子</h3>
+			<p>
+				セルの中に、イコール<b>=</b>から始めて数式を入力すると、その結果を表示します。四則演算の記号のことを<b>演算子</b>といいいます。
+			</p>
+			
+			<p>
+				<table class="python_keyboard">
+				  <tbody>
+					<tr>
+					  <th scope="col">演算子</th>
+					  <th scope="col">内容</th>
+					  <th scope="col">演算子の読み方</th>
+					  <th scope="col">キー</th>
+					</tr>					
+					<tr>
+					  <th>=</th>
+					  <td>数式の宣言</td>
+					  <td>イコール</td>
+					  <td><img src="./img/keyboard/key_shift.png">＋<img src="./img/keyboard/key_ho.png"></td>
+					</tr>
+					<tr>
+					  <th>+</th>
+					  <td>足し算（加算）</td>
+					  <td>プラス</td>
+					  <td><img src="./img/keyboard/key_shift.png">＋<img src="./img/keyboard/key_semicolon.png"></td>
+
+					</tr>
+					<tr>
+					  <th>-</th>
+					  <td>引き算（減算）</td>
+					  <td>マイナス</td>
+					  <td><img src="./img/keyboard/key_ho.png"></td>
+					</tr>
+					<tr>
+					  <th>*</th>
+					  <td>かけ算（乗算）</td>
+					  <td>アスタリスク</td>
+					  <td><img src="./img/keyboard/key_shift.png">＋<img src="./img/keyboard/key_colon.png"></td>
+					</tr>
+					<tr>
+					  <th>/</th>
+					  <td>割り算（除算）</td>
+					  <td>スラッシュ</td>
+					  <td><img src="./img/keyboard/key_slash.png"></td>
+					</tr>
+					<tr>
+					  <th>^</th>
+					  <td>累乗（べき乗）</td>
+					  <td>キャレット，ハット</td>
+					  <td><img src="./img/keyboard/key_he.png"></td>
+					</tr>
+				  </tbody>
+				</table>
+			</p>
+		
+			<h3>演算の順序</h3>
+			<p>数学での数式と同様に四則計算の順序は、次のような優先順位で行われます。</p>
+			<pre class="example"><code>1. 括弧（カッコ）の中<br>
+				2. 累乗<br>
+				3. かけ算（積算）・割り算（除算）<br>
+				4. 足し算（加算）・引き算（減算）<br></code></pre>
+			<p>
+				ただし、数学では小括弧(  )，中括弧{   }，大括弧[   ]を使うことがありますが、スプレッドシートでは<b>小括弧(   )</b>だけを使います。<br>
+			</p>
+
+			
+		</article>
+		
+		<article>
+			<h2 id="headline_4">(4) 例題</h2>
+			<h4>
+				例１ 次の式をB9セルに入力し、結果を表示なさい。
+			</h4>
+			\[
+        6 \times \frac{{5+4^2}}{{7-1}} \times 3 + 8
+      \]
+   
+
+      <p>
+        <details>
+          <summary>
+            答えはココをクリック。
+          </summary>
+          
+          <p>
+            B9セルに<b>=6*(5+4^2)/(7-1)*3+8</b>と入力し、確定して、計算結果を確認してみましょう。
+          </p>
+
+          <p class="center">
+            <a href="./img/ss01_012.png" data-lightbox="abc" class="no_border"  border="0">
+              <img src="./img/ss01_012.png" class="screen_shot">
+            </a>
+          </p>
+        </details>
+      </p>
+   
+
+
+			<h4>
+				例２ 次の式をB10セルに入力し、結果を表示なさい。
+			</h4>
+
+		  \[
+        3 \times 5 + \frac{8 \times 3 + (6+1) \times 4}{2} - 9
+      \]
+   
+      <p>
+        <details>
+          <summary>
+            答えはココをクリック。
+          </summary>
+          
+          <p>B10セルに<b>=3*5+(8*3+(6+1)*4)/2-9</b>と入力し、確定して計算結果を確認してみましょう。</p>
+          <p class="center">
+            <a href="./img/ss01_013.png" data-lightbox="abc" class="no_border"  border="0">
+              <img src="./img/ss01_013.png" class="screen_shot">
+            </a>
+          </p>
+          <p>カッコの中にカッコ(　　)を入れると、より内側のカッコ(　　)の中から優先的に演算されます。また、このようにカッコの中にカッコが入っていることを、<strong>ネスト</strong>（入れ子）といいます。</p>
+        </details>
+      </p>
+   
+
+		</article>
+		<article>
+			<div class="article_header"><h2><a id="homework">課題</a></h2></div>
+			
+			<p>下記のリンク先から課題ファイルをダウンロードし、以下の(1)〜(10)に答えなさい。</p>
+      
+      <div id="assignment"></div>
+      
+			<p><br></p>
+			<h4>(1) あなたのGoogleアカウントをB1セルに入力しなさい。</h4>
+			<p><br></p>
+			<h4>(2) あなたの年組番の４桁の数字をB2セルに入力しなさい。</h4>
+			<p>　例えば、3年9組6番の場合<b>3906</b>と入力。</p>
+			<p><br></p>
+			<h4>(3) あなたの氏名（漢字）でB3セルに入力しなさい。</h4>
+			<p>　姓と名のあいだのスペースは不要です。</p>
+			<p><br></p>
+			<h4>(4) あなたの姓（ひらがな）をB4セルに入力しなさい。</h4>
+			<p><br></p>
+			<h4>(5) あなたの名（ひらがな）をB5セルに入力しなさい。</h4>
+			<p><br></p>
+			<h4>(6) 次の式をB6セルに入力し、その答えを表示しなさい。</h4>
+        \[ 1234 + 5678 \]
+			<h4>(7) 次の式をB7セルに入力し、その答えを表示しなさい。</h4>
+				\[ (58 + 14) \div 12 \]
+			<h4>(8) 次の式をB8セルに入力し、その答えを表示しなさい。</h4>
+				\[ 9^4 + (4^6 + 3^5) \times 2^4 \]
+			<h4>(9) 次の式をB9セルに入力し、その答えを表示しなさい。</h4>
+				\[ 9 \times (8 + 7) - \{6 - (5 + 4) \div 3\} \times 2 + 1 \]
+			<h4>(10) 次の式をB10セルに入力し、その答えを表示しなさい。</h4>
+				\[ \frac{{(1+3)^4 - 2^8 \div 8}}{7} \]
+			
+			
+		</article>
+	</section>
+ 
+
+<!-- COMMON FOOTER START -->
+ <section id="examples_and_questions"><!-- script_pages.js --></section>
+	<section id="next_page"><!-- script_pages.js --></section>
+	<footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+    <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+    <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+</html>

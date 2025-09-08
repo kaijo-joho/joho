@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+   <head>
+       <!-- Google tag (gtag.js) ここから-->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+            <script>
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-ZW1B1EX70P');
+            </script>
+       <!-- Google tag (gtag.js) ここまで-->
+      <link rel="icon" href="./img/favicon.ico" />
+    
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  
+  <!-- Lightbox2 CDN -->
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+        <!-- Highlight.js -->
+    <link rel="stylesheet" href="./highlightjs/styles/ks.css">
+    <script src="./highlightjs/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    
+  <meta charset="UTF-8" />
+      <title>スプレッドシート実習</title>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+ </head>
+ <body>
+	<header><!-- script_pages.js --></header>
+	<!----COMMON HEADER END---->	
+	
+
+	<section>
+		
+		<article>
+			<h2 id="headline_1">(1) VLOOKUP関数</h2>
+
+			<h3>VLOOKUP関数</h3>
+      <p>VLOOKUP関数は、検索する値を指定して検索対象の範囲の表から該当するデータを検索し表示します。</p>
+      <pre class="example"><code><pre><code class="excel">=VLOOKUP(検索キー, 範囲, 指数, [並び替え済み])</code></pre></code></pre>
+
+			<p>
+        <ul class="list-style-none no-Xscroll">
+          <li><b>検索キー</b>：検索対象の値を指定します。</li>
+          <li><b>範囲</b>：検索対象の範囲を指定します。</li>    
+          <li><b>指数</b>：値を返す列番号を指定します。<b>範囲</b>で指定した先頭列を1とします。</li>    
+          <li><b>[並び替え済み]</b>：検索対象の列が並び替え済みであるかをTRUEまたはFALSEで指定します。FALSEの場合は完全一致するデータを検索します（通常はFALSEを指定します）。TRUEの場合は近似値を検索します（[並び替え済み]の引数を省略するとTRUEがデフォルト値となります）。</li>
+        </ul>
+			</p>
+
+      <h3>検索できないとき</h3>
+      <p>検索対象の範囲に検索キーが存在しない場合には、<strong>#N/A</strong>エラーが表示されます。このような場合に、エラーを表示させたいときにはIFERROR関数を組み合わせます。</p>
+      <p>IFERROR関数は、エラーがない場合には第１引数を返し、エラーがある場合に第２引数を返します。</p>
+      <pre class="example"><code><pre><code class="excel">=IFERROR(値, [エラー値])</code></pre></code></pre>
+      
+      <p>次のように、VLOOKUP関数とIFERRO関数を組み合わせると、検索キーが見つからない場合に「見つかりません」と返します。</p>
+      <pre class="example"><code><pre><code class="excel">=IFERROR(VLOOKUP(検索キー, 範囲, 指数, [並び替え済み]), "見つかりません")</code></pre></code></pre>
+      <p>また、次の例では、検索キーが見つからない場合に空白を返します。空白は引数に<b>""</b>を指定します。</p>
+      <pre class="example"><code><pre><code class="excel">=IFERROR(VLOOKUP(検索キー, 範囲, 指数, [並び替え済み]), "")</code></pre></code></pre>
+    
+      <h3>検索キーの参照セルが空白のとき</h3>
+      <p>検索キーを参照している場合、参照セル自体が空白セルの場合には、検索してエラーが返ってきてから条件分岐するよりも、空白ではなかったら検索するように条件分岐した方が処理速度が速くなります。つまり、次の例のように、IF関数をもちいて、参照セルが空白の場合は空白を返し、参照セルが空白でなかった場合はVLOOKUP関数をで検索するようにします。</p>
+      <pre class="example"><code><pre><code class="excel">=IF(検索キーの参照セル="", "", VLOOKUP(検索キー, 範囲, 指数, [並び替え済み]))</code></pre></code></pre>
+    
+      <table>
+        <tr>
+          <th class="min-width-100px">エラー値</th>
+          <th>説明</th>
+          <th>対処方法</th>
+        </tr>
+        <tr>
+          <td>#DIV/0!</td>
+          <td class="text-align-left">ゼロ除算エラー。0(ゼロ)または空白セルを除数としている。</td>
+          <td class="text-align-left">分母の参照先が0(ゼロ)になっていないか確認する。</td>
+        </tr>
+        <tr>
+          <td>#N/A</td>
+          <td class="text-align-left">参照エラー。必要な値が入力されていない、参照の対象がみつからない。</td>
+          <td class="text-align-left">数式などで指定した値が正しいか確認する。</td>
+        </tr>
+        <tr>
+          <td>#NAME?</td>
+          <td class="text-align-left">認識できない文字が使用されている（関数名の誤りなど）。</td>
+          <td class="text-align-left">関数名やセル名に誤りがないか確認する。文字列がダブルクォート<b>""</b>で囲われているか確認する。</td>
+        </tr>
+        <tr>
+          <td>#NUM!</td>
+          <td class="text-align-left">使用可能な数値やデータの範囲を超えている、引数が不適切。</td>
+          <td class="text-align-left">指定した引数が正しいか確認する。</td>
+        </tr>
+        <tr>
+          <td>#NULL!</td>
+          <td class="text-align-left">コロン<b>:</b>やカンマ<b>,</b>が不適切。不要な半角スペースが含まれている。</td>
+          <td class="text-align-left">セル範囲を指定するときのコロン<b>:</b>や、引数を区切るカンマ<b>,</b>が適切か確認する。</td>
+        </tr>
+        <tr>
+          <td>#REF!</td>
+          <td class="text-align-left">参照先のセルを参照できない（行や列を削除してしまったときなどに発生しやすい）。</td>
+          <td class="text-align-left">参照先を再指定する。</td>
+        </tr>
+        <tr>
+          <td>#VALUE!</td>
+          <td class="text-align-left">引数が不適切。</td>
+          <td class="text-align-left">数式などで指定した値が正しいか確認する。</td>
+        </tr>
+    
+      </table>
+    
+		</article>
+   
+   
+   
+		<article>
+			<h2 id="headline_2">(2) HLOOKUP関数</h2>
+
+			<h3>HLOOKUP関数</h3>
+      <p>HLOOKUP関数は、検索する値を指定して検索対象の範囲の表から該当するデータを検索し表示します。VLOOKUP関数は行(縦)方向に検索し、値を列(横)方向に参照するのに対して、HLOOKUP関数は列(横)方向に検索し、値を行(縦)方向に参照します。VLOOKUPのVはVertical(垂直方向)，HLOOKUPのHはHorizontal(水平方向)の意味です。</p>
+      <pre class="example"><code><pre><code class="excel">=HLOOKUP(検索キー, 範囲, 指数, [並び替え済み])</code></pre></code></pre>
+
+			<p>
+        <ul class="list-style-none no-Xscroll">
+          <li><b>検索キー</b>：検索対象の値を指定します。</li>
+          <li><b>範囲</b>：検索対象の範囲を指定します。</li>    
+          <li><b>指数</b>：値を返す列番号を指定します。<b>範囲</b>で指定した先頭行を1とします。</li>    
+          <li><b>[並び替え済み]</b>：検索対象の列が並び替え済みであるかをTRUEまたはFALSEで指定します。FALSEの場合は完全一致するデータを検索します（通常はFALSEを指定します）。TRUEの場合は近似値を検索します（[並び替え済み]の引数を省略するとTRUEがデフォルト値となります）。</li>
+        </ul>
+			</p>
+   
+    </article>
+  
+		<article>
+			<h2 id="headline_3">(3) XLOOKUP関数</h2>
+      <p>前述のVLOOKUP関数は検索キーよりも左側にある値を参照できない（HLOOKUP関数は上側）という制約がありました。また、検索キーが見つからない場合にはエラー値が返ってくるので、他の関数を組み合わせないと見つからない場合の表示を変更することができずに不便でした。これを解消するために新しく追加されたのがXLOOKUP関数です。Excelでは、Excel2021で追加されていますので、それ以前のバージョンでは使えない点に注意してください。</p>
+
+			<h3>XLOOKUP関数</h3>
+      <p>XLOOKUP関数は、検索する値を指定して検索対象の範囲の表から該当するデータを検索し表示します。</p>
+      <pre class="example"><code><pre><code class="excel">=<span class="hljs-built_in">XLOOKUP</span>(検索キー, 検索範囲, 結果の範囲, [見つからない場合の値], [一致モード], [検索モード])</code></pre></code></pre>
+
+			<p>
+        <ul class="list-style-none no-Xscroll">
+          <li><b>検索キー</b>：検索対象の値を指定します。</li>
+          <li><b>検索範囲</b>：検索対象の範囲を指定します。</li>    
+          <li><b>結果の範囲</b>：結果を取り出すセル範囲を指定します。この範囲の行数(または列数)は、検索方法に応じて<b>検索範囲</b>の行数(または列数)と一致する必要があります。</li>    
+          <li><b>[見つからない場合の値]</b>：一致が見つからない場合に返す値を指定します。省略した場合はエラーが返ります。</li>
+          <li><b>[一致モード]</b>：検索キーの一致とみなす基準を指定します。<b>0</b>は完全一致，<b>1</b>は完全一致または検索キーより大きい次の値，<b>-1</b>は完全一致または検索キーより小さい次の値，<b>2</b>はワイルドカードの文字列に一致する値を一致とみなさいます。省略した場合は<b>0</b>を指定したこととなります。</li>
+          <li><b>[検索モード]</b>：検索範囲の検索方向を指定します。<b>1</b>は先頭から末尾に向かって検索，<b>-1</b>は末尾から先頭に向かって検索，<b>2</b>と<b>-2</b>は検索範囲がそれぞれ昇順と降順で並び返られていると想定してバイナリ検索を実行します(データが膨大にあるときに使用)。省略した場合は<b>1</b>を指定したこととなります。</li>
+        </ul>
+			</p>
+   
+    </article>
+	</section>
+ 
+
+<!-- COMMON FOOTER START -->
+	<section id="examples_and_questions"><!-- script_pages.js --></section>
+	<section id="next_page"><!-- script_pages.js --></section>
+	<footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+    <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+    <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+</html>

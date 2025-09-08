@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+<body>
+  
+  
+
+  <section>
+
+    <article>
+      <div class="article_header">
+        <h2><a id="headline_1">(1) リストの基本</a></h2>
+      </div>
+
+      <h3>リストとは</h3>
+      <p><strong>リスト</strong>とは、複数の値をひとまとめにできるデータ型のひとつです。</p>
+
+
+      <h3>リストの定義</h3>
+      <p>リストでは、それぞれの値のことを<strong>要素</strong>といいます。カンマ(<strong>,</strong>)で区切った要素を角括弧<strong>[</strong> …
+        <strong>]</strong>で括ると、リスト型の変数として定義できます。</p>
+      <pre class="python example"><code>
+        リスト名 = [値1, 値2, 値3, … ]
+      </code></pre>
+
+      <h3>リストを画面出力する</h3>
+      <p><strong>print(リスト名)</strong>でリストを出力することができます。</p>
+      <pre class="python"><code>
+        num_list = [24, 83, 64, 37, 19]
+            print(num_list)
+      </code></pre>
+      <pre class="result"><code>[24, 83, 64, 37, 19]</code></pre>
+
+      <h3>リスト内の特定の要素を取得する</h3>
+      <p>リストに格納された要素には、<strong>インデックス</strong>とよばれる番号が振られます。インデックスは<strong>0(ゼロ)からはじまる</strong>ことに注意してください。リスト内の要素を取得する場合は、<strong>リスト名[インデックス]</strong>のように書きます。
+      </p>
+      <pre class="python"><code>
+        num_list = [24, 83, 64, 37, 19]
+            print(num_list[2])
+      </code></pre>
+      <pre class="result"><code>64</code></pre>
+
+      <p>インデックス番号に<strong>-1</strong>を指定すると、末尾の要素を取得します。</p>
+      <pre class="python"><code>
+        num_list = [24, 83, 64, 37, 19]
+            print(num_list[-1])   # -1を指定すると、末尾の要素を取得
+      </code></pre>
+      <pre class="result"><code>19</code></pre>
+
+      <h3>リスト内の要素を書き換える</h3>
+      <p>リスト内の要素を書き換えるときは、次のようにします。</p>
+      <pre class="python"><code>
+        num_list = [24, 83, 64, 37, 19]
+        num_list[2] = 99 # 2番目（3個目）の要素を99に変更
+        print(num_list) 
+      </code></pre>
+      <pre class="result"><code>[24, 83, 99, 37, 19]</code></pre>
+
+
+
+      <h3>リストの要素数</h3>
+      <p>リストの要素数を求めるときは、<strong>len関数</strong>を使います。</p>
+      <pre class="python"><code>
+        num_list = [24, 83, 64, 37, 19]
+            print(len(num_list))
+      </code></pre>
+      <pre class="result"><code>5</code></pre>
+
+      <h3>リストに値を追加する</h3>
+      <p>リストの末尾に新しい要素を追加するときは、<strong>リスト名.append(値)</strong>のように書きます（appendは<strong>メソッド</strong>というもので、また別の機会に扱います）。
+      </p>
+      <pre class="python"><code>
+        num_list = [24, 83, 64, 37, 19]
+        print(&quot;元のリスト：&quot;, num_list)
+        num_list.append(57)
+        print(&quot;追加後のリスト：&quot;, num_list)
+      </code></pre>
+      <pre class="result"><code>
+        元のリスト： [24, 83, 64, 37, 19]
+            追加後のリスト： [24, 83, 64, 37, 19, 57]
+      </code></pre>
+
+
+
+    </article>
+
+
+    <article>
+      <div class="article_header">
+        <h2><a id="headline_2">(2) リストの取り扱い</a></h2>
+      </div>
+      <p> </p>
+
+
+
+
+      <h3>リストの結合</h3>
+      <p>list1の末尾にlist2を追加するには、<strong>extendメソッド</strong>を使います。</p>
+      <pre class="python"><code>
+        list1 = [1, 2, 3, 4, 5]
+        list2 = [6, 7, 8, 9, 10
+        list1.extend(list2)
+        print(list1)
+      </code></pre>
+      <pre class="result"><code>[1, 2, 3, 4, 5, 6, 7, 8, 9, 10]</code></pre>
+
+      <h3>リスト内の特定の要素数</h3>
+      <p>リスト内の特定の要素の出現回数を調べるには、<strong>countメソッド</strong>を使います。</p>
+      <pre class="python"><code>
+        list1 = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;, &quot;drian&quot;, &quot;banana&quot;, &quot;cherry&quot;, &quot;apple&quot;, &quot;cherry&quot;]
+            print(list1.count(&quot;apple&quot;))
+      </code></pre>
+      <pre class="result"><code>2</code></pre>
+
+      <h3>リストから指定した要素を削除する</h3>
+      <p><span class="code">リスト内の特定の要素を削除するには、<strong>removeメソッド</strong>を使います。</span></p>
+      <pre class="python"><code>
+        list1 = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;, &quot;drian&quot;]
+        list1.remove(&quot;banana&quot;)
+        print(list1)
+      </code></pre>
+      <pre class="result"><code>['apple', 'cherry', 'drian']</code></pre>
+
+      <h3>インデックス番号を指定してリストから要素を削除する。</h3>
+      <p>リストからインデックスを指定して値を削除するには、<strong>del文</strong>を使います。</p>
+      <pre class="python"><code>
+        list1 = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;, &quot;drian&quot;, &quot;eggfruit&quot;, &quot;grape&quot;]
+        del list1[4]
+        print(list1)
+      </code></pre>
+      <pre class="result"><code>['apple', 'banana', 'cherry', 'drian', 'grape']</code></pre>
+
+      <h3>指定した要素のインデックスを取得</h3>
+      <p>指定した要素のインデックスを取得するには、<strong>indexメソッド</strong>を使います。</p>
+      <pre class="python"><code>
+        list1 = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;, &quot;drian&quot;, &quot;eggfruit&quot;, &quot;grape&quot;]
+            print(list1.index(&quot;drian&quot;))
+      </code></pre>
+      <pre class="result"><code>3</code></pre>
+
+
+      <h3>リストから一部を取り出す</h3>
+      <p><strong>list[a:b]</strong>でa番目からb-1番目までの要素を配列として取り出します。</p>
+      <pre class="python"><code>
+        list1 = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;, &quot;drian&quot;, &quot;eggfruit&quot;, &quot;grape&quot;]
+        list2 = list1[2:5]
+        print(list2)
+      </code></pre>
+      <pre class="result"><code>['cherry', 'drian', 'eggfruit']</code></pre>
+
+      <p><strong>list[:b]</strong>で先頭からb-1番目までの要素を配列として取り出します。</p>
+      <pre class="python"><code>
+        list1 = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;, &quot;drian&quot;, &quot;eggfruit&quot;, &quot;grape&quot;]
+        list2 = list1[:5]
+        print(list2)
+      </code></pre>
+      <pre class="result"><code>['apple', 'banana', 'cherry', 'drian', 'eggfruit']</code></pre>
+
+      <p><strong>list[a:]</strong>でa番目から末尾までの要素を配列として取り出します。</p>
+      <pre class="python"><code>
+        list1 = [&quot;apple&quot;, &quot;banana&quot;, &quot;cherry&quot;, &quot;drian&quot;, &quot;eggfruit&quot;, &quot;grape&quot;]
+        list2 = list1[2:]
+        print(list2)
+      </code></pre>
+      <pre class="result"><code>['cherry', 'drian', 'eggfruit', 'grape']</code></pre>
+
+
+
+      <h3>リストをソートする（並び替える）</h3>
+      <p>要素を一定の規則で並び替えることをソートといいます。
+        <strong> sorted関数</strong>を使うと、リストを昇順（小さい順）やに並び替えることができます。
+      </p>
+      <pre class="python"><code>
+        list1 = [58, 95, 89, 56, 45, 59, 55, 42, 37]
+        
+        #list2: list1を昇順に並び替えたリスト
+        list2 = sorted(list1)
+        print(&quot;list2(昇順) = &quot;, list2)
+        
+        #list3: list1を降順に並び替えたリスト
+        list3 = sorted(list1, reverse = True)
+        print(&quot;list3(降順) = &quot;, list3)
+      </code></pre>
+      <pre class="result"><code>list2(昇順) =  [37, 42, 45, 55, 56, 58, 59, 89, 95]
+        list3(降順) =  [95, 89, 59, 58, 56, 55, 45, 42, 37]</code></pre>
+
+      <h3>リストの要素の順番をシャッフルする</h3>
+      <p>randomモジュールの<strong>shuffle関数</strong>を使うとリストの要素の順番をシャッフルすることができます。</p>
+      <pre class="python"><code>
+        import random
+        list1 = [37, 42, 45, 55, 56, 58, 59, 89, 95]
+        random.shuffle(list1)   #list1の要素をシャッフル
+        print(list1)
+      </code></pre>
+      <pre class="result"><code>[45, 58, 37, 55, 95, 56, 59, 89, 42]
+        （結果は毎回変わります）</code></pre>
+
+    </article>
+
+  </section>
+
+
+
+
+
+  
+  
+  
+
+  
+  
+  
+</body>
+
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>リニアサーチとバイナリサーチの動的なビジュアル表現</title>
+    <link rel="stylesheet" type="text/css" href="../css/css.css">
+  </head>
+
+  <body>
+    
+    
+    <div id="linear-search" class="demo">
+      <label for="arrayLength1">配列の長さ:</label>
+      <input type="number" id="arrayLength1" class="arrayLength" value="8" min="2">
+      <label for="arrayLength1">探索値:</label>
+      <input type="number" id="searchValueInput1" class="arrayLength" value="1">
+      <button onclick="initialize1()">配列をリセット</button>
+      
+      <div class="container" id="aryContainer1"></div>
+      
+      <div class="container" id="searchValueContainer1">
+        <div class="item">
+          <div class="divValue" id="searchValue1"></div>
+          <div class="divIndex">探索値</div>
+        </div>
+      </div>
+      
+      <div id="description1" class="description"></div>
+
+      <button onclick="nextStep1()">次へ</button>
+    </div>
+    
+    <div style="height:100px"></div>
+    
+    
+    <div id="binary-search" class="demo">
+      <label for="arrayLength2">配列の長さ:</label>
+      <input type="number" id="arrayLength2" class="arrayLength" value="8" min="2">
+      <label for="arrayLength1">探索値:</label>
+      <input type="number" id="searchValueInput2" class="arrayLength" value="6">
+      <button onclick="initialize2()">配列をリセット</button>
+      
+      <div class="container" id="aryContainer2"></div>
+      
+      <div class="container" id="searchValueContainer2">
+        <div class="item">
+          <div class="divValue" id="searchValue2"></div>
+          <div class="divIndex">探索値</div>
+        </div>
+      </div>
+      
+      <div id="description2" class="description"></div>
+
+      <button onclick="nextStep2()">次へ</button>
+    </div>
+    
+    
+
+    <script>
+      
+      let divs1 = [];
+      let i = 0;
+      
+      let divs2 = [];
+      let left = 0;
+      let right = 0;
+      let mid = 0;
+      let searchIndex = 0;
+      let step = 0;
+      
+      
+      let searchValue1 = 0;
+      let searchValue2 = 0;
+      
+      const container1 = document.getElementById('aryContainer1');
+      const description1 = document.getElementById('description1');
+      const search1 = document.getElementById('searchValue1');
+      
+      const container2 = document.getElementById('aryContainer2');
+      const description2 = document.getElementById('description2');
+      const search2 = document.getElementById('searchValue2');
+      
+      
+      initialize1();
+      initialize2();
+      
+      
+      function initialize1(){
+        description1.innerHTML = `リニアサーチを開始します（<b>次へ</b>を押してください）。`;
+        container1.innerHTML ='';
+        
+        let arrayLength = parseInt(document.getElementById('arrayLength1').value);
+        divs1 = createDivs(container1, arrayLength, true);
+        
+        searchValue1 = parseInt(document.getElementById('searchValueInput1').value);
+        search1.textContent = searchValue1;
+
+        i = 0;
+      }
+      
+      function nextStep1(){
+        //リニアサーチ　次へ
+        if(divs1[i].classList.contains('sorted')){return;}
+        if(i<divs1.length){
+          if(i>0){
+            divs1[i-1].classList.remove('highlighted');
+          }
+          
+          if(searchValue1==parseInt(divs1[i].textContent)){
+             
+            if(divs1[i].classList.contains('highlighted')){
+              divs1[i].classList.remove('highlighted');
+              divs1[i].classList.add('sorted');
+              description1.innerHTML = `探索値<b>${searchValue1}</b>のインデックス番号は<b>${i}</b>です（探索終了）。`;
+            }else{
+              divs1[i].classList.add('highlighted');
+              description1.innerHTML = `<b>${divs1[i].textContent}</b>は探索値<b>${searchValue1}</b>と同じです。`;
+            }
+             
+          }else{
+            divs1[i].classList.add('highlighted');
+            description1.innerHTML = `<b>${divs1[i].textContent}</b>は探索値<b>${searchValue1}</b> ではないので、次の要素に移動します。`;
+            i++;
+          }
+
+
+        }else{
+          divs1[i-1].classList.remove('highlighted');
+          description1.innerHTML = `探索値<b>${searchValue1}</b>は存在しません。`;
+        }
+      }
+      
+      
+      function initialize2(){
+        description2.innerHTML = `バイナリサーチを開始します（<b>次へ</b>を押してください）。`;
+        container2.innerHTML ='';
+        
+        let arrayLength = parseInt(document.getElementById('arrayLength2').value);
+
+        divs2 = createDivs(container2, arrayLength, false);
+        
+        searchValue2 = parseInt(document.getElementById('searchValueInput2').value);
+        search2.textContent = searchValue2;
+        
+        left = 0;
+        right = divs2.length - 1;
+        mid = 0;
+        step = 0;
+
+      }
+      
+      function nextStep2(){
+        //選択ソート 次へ
+        if(divs2[mid].classList.contains('sorted')){return;}
+        
+        if(divs2.length == countClass(divs2, 'lowlighted')){
+          description2.innerHTML = `探索値<b>${searchValue2}</b>は存在しません。`;
+          return;
+        }
+        
+        if(step%2==0){
+          mid = Math.floor((left + right) / 2);
+          divs2[mid].classList.add('highlighted');
+          description2.innerHTML = `中央の値は<b>${divs2[mid].textContent}</b>です。`;
+          
+        }else if(step%2==1){
+          midValue = parseInt(divs2[mid].textContent);
+          if(searchValue2 == midValue){
+            //探索値と中央値が等しいなら、終了
+            divs2[mid].classList.remove('highlighted');
+            divs2[mid].classList.add('sorted');
+            description2.innerHTML = `探索値<b>${searchValue2}</b>のインデックス番号は<b>${mid}</b>です（探索終了）。`;
+            
+          }else if(midValue < searchValue2){
+            //中央値＜探索値なら、左端を＋１
+            description2.innerHTML = `探索値<b>${searchValue2}</b>は中央より左側にはないので、次に右側を調べます。`;
+            for(let j=left;j<=mid;j++){
+              divs2[j].classList.remove('highlighted');
+              divs2[j].classList.add('lowlighted');
+            }
+            
+            left = mid + 1;
+                   
+          }else{
+            //中央値＞探索値なら、右端をー１
+            description2.innerHTML = `探索値<b>${searchValue2}</b>は中央より右側にはないので、次に左側を調べます。`;
+            
+            for(let j=mid;j<=right;j++){
+              divs2[j].classList.remove('highlighted');
+              divs2[j].classList.add('lowlighted');
+            }
+            right = mid - 1;
+          }
+          
+        }
+        step++;
+      }
+      
+      function countClass(divs, className){
+        let cnt = 0;
+        for(let x=0;x<divs.length;x++){
+          if(divs[x].classList.contains(className)){
+            cnt++;
+          }
+        }
+        return cnt;
+      }
+      
+      function createDivs(container, arrayLength, shuffle = true){
+        container.innerHTML = '';
+        let aryNum = Array.from({ length: arrayLength }, (_, i) => i);
+        
+        if(shuffle){aryNum = shuffleArray(aryNum);}
+        
+        let aryDiv = [];
+        
+        for(let i=0;i<aryNum.length;i++){
+          const div = document.createElement('div');
+          div.classList.add('item');
+          container.appendChild(div);
+          
+          const divValue = document.createElement('div');
+          divValue.classList.add('divValue');
+          divValue.textContent = aryNum[i];
+          aryDiv.push(divValue);
+          div.appendChild(divValue);
+          
+          const divIndex = document.createElement('div');
+          divIndex.classList.add('divIndex');
+          divIndex.textContent = i;
+          div.appendChild(divIndex);
+        }
+        
+        return aryDiv;
+      }
+      
+      function shuffleArray(ary) {
+        for (let i = (ary.length - 1); 0 < i; i--) {
+          let r = Math.floor(Math.random() * (i + 1));
+          [ary[i], ary[r]] = [ary[r], ary[i]];
+        }
+        return ary;
+      }
+    </script>
+  </body>
+
+</html>

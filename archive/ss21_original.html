@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+   <head>
+       <!-- Google tag (gtag.js) ここから-->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+            <script>
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-ZW1B1EX70P');
+            </script>
+       <!-- Google tag (gtag.js) ここまで-->
+      <link rel="icon" href="./img/favicon.ico" />
+    
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  
+  <!-- Lightbox2 CDN -->
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+        <!-- Highlight.js -->
+    <link rel="stylesheet" href="./highlightjs/styles/ks.css">
+    <script src="./highlightjs/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    
+  <meta charset="UTF-8" />
+      <title>スプレッドシート実習</title>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+ </head>
+ <body>
+	<header><!-- script_pages.js --></header>
+	<!----COMMON HEADER END---->	
+	
+
+	<section>
+		
+		<article>
+			<h2 id="headline_1">(1) 条件分岐 IF関数</h2>
+
+    
+			<h3>IF関数</h3>
+      <p><strong>IF関数</strong>は<strong>論理式（条件式）</strong>の結果に基づいて、論理式が<strong>真(TRUE)</strong>の場合の値、論理式が<strong>偽(FALSE)</strong>のときの値をそれぞれ返します。</p>
+      <pre class="example"><code><pre><code class="excel">=IF(論理式, TRUE値, FALSE値)</code></pre></code></pre>
+
+			<p>
+        <ul class="list-style-none">
+          <li><b>論理式（条件式）</b>：判断の基準となる論理式を数式で指定します。</li>
+          <li><b>TRUE値</b>：論理式の結果が真(TRUE)の場合の処理を、数値・数式・文字列で指定します。</li>          
+          <li><b>FALSE値</b>：論理式の結果が偽(FALSE)の場合の処理を、数値・数式・文字列で指定します。</li>
+        </ul>
+			</p>
+    
+      <p class="center">
+        <img src="./img/ss05_005.png" alt="A or B" style="width:200px;" class="image_center">
+      </p> 
+    
+      <p>次の例では、A1セルの値が10より大きい場合に「10より大きい」、そうではない場合に「10以下」と表示します。</p>
+      <pre class="example"><code><pre><code class="excel">=IF(A1>10, "10より大きい", "10以下")</code></pre></code></pre>
+    
+      <h3>論理式（条件式）</h3>
+      <p>論理式は、次の表のような<strong>比較演算子</strong>を用いて表します。論理式を満たす場合には真(TRUE)、満たさない場合は偽(FALSE)となります。</p>
+      
+      <h4>比較演算子</h4>
+      <table>
+        <tr>
+          <th class="min-width-100px">比較演算子</th>
+          <th class="min-width-100px">例</th>
+          <th class="min-width-260px">意味</th>
+        </tr>
+        <tr>
+          <td><pre><code class="excel">=</code></pre></td>
+          <td><pre><code class="excel">X=Y</code></pre></td>
+          <td class="text-align-left">XとYは等しい</td>
+        </tr>
+        <tr>
+          <td><pre><code class="excel">&gt;</code></pre></td>
+          <td><pre><code class="excel">X&gt;Y</code></pre></td>
+          <td class="text-align-left">XはYより大きい</td>
+        </tr>    
+        <tr>
+          <td><pre><code class="excel">&gt;=</code></pre></td>
+          <td><pre><code class="excel">X&gt;=Y</code></pre></td>
+          <td class="text-align-left">XはYより大きいか等しい（XはY以上）</td>
+        </tr>  
+        <tr>
+          <td><pre><code class="excel">&lt;</code></pre></td>
+          <td><pre><code class="excel">X&lt;Y</code></pre></td>
+          <td class="text-align-left">XはYより小さい</td>
+        </tr>    
+        <tr>
+          <td><pre><code class="excel">&lt;=</code></pre></td>
+          <td><pre><code class="excel">X&lt;=Y</code></pre></td>
+          <td class="text-align-left">XはYより小さいか等しい（XはY以下）</td>
+        </tr>  
+        <tr>
+          <td><pre><code class="excel">&lt;&gt;</code></pre></td>
+          <td><pre><code class="excel">X&lt;&gt;Y</code></pre></td>
+          <td class="text-align-left">XとYは等しいくない</td>
+        </tr>
+      </table>
+
+    
+      <h3>例題１</h3>
+      <img src="./img/ss05_001.png" class="screen_shot">
+    
+      <details>
+        <summary>解答</summary>
+        <p>$F$7以上の値なら"合格"，それ以外なら"不合格"なので、D7セルに入力すべき数式は次のようになる。</p>
+
+        <table class="example bg-none">
+          <tr>
+            <th>D7</th>
+            <td><pre><code class="excel">=IF(C7&gt;=$F$7,"合格","不合格")</code></pre></td>
+          </tr>
+        </table>
+        
+      </details>
+
+
+    
+    </article>
+   		
+		<article>
+			<h2 id="headline_2">(2) AND関数・OR関数・NOT関数</h2>
+      <p>IF関数の論理式を指定するとき、複雑な条件を指定したいときがあります。このようなときは、IF関数の論理式として<b>AND関数</b>，<b>OR関数</b>，<b>NOT関数</b>を用います。</p>
+      
+      <h3 id="ssfunction_and">AND関数</h3>
+      <h4>AND関数の基本</h4>
+      <p><b>AND関数</b>は、複数の論理式をすべて満たす場合は<b>TRUE</b>、どれかひとつでも満たさない場合は<b>FALSE</b>を返します。</p>
+      <pre class="example"><code><pre><code class="excel">=AND(論理式1, 論理式2, ...)</code></pre></code></pre>
+      <p>次の例では、B1セルの値が60以上かつB2セルの値が70以上のときにTRUE、そうでなければFALSEを返します。</p>
+      <pre class="example"><code><pre><code class="excel">=AND(B1>=60, B2>=70)</code></pre></code></pre>	
+ 
+			<p class="center">
+        <img src="./img/AandB.png" alt="A and B" style="width:300px;" class="image_center"><br>
+			  <b>論理積</b>（Aが真  かつ  Bが真であれば真）
+      </p>
+      <h4>IF関数の条件式としてのAND関数</h4>
+      <p>IF関数の条件式としてAND関数を指定するときには、次のように書きます。</p>
+      <pre class="example"><code>=IF(AND(論理式1, 論理式2, ...), TRUE値, FALSE値)</code></pre>
+      
+      <h3>例題２</h3>
+      <img src="./img/ss05_002.png" class="screen_shot">
+
+      <details>
+        <summary>解答</summary>
+        <p>「筆記試験の点数が$G$7以上」かつ「面接試験の点数が$H$7以上」のとき"合格"，それ以外なら"不合格"なので、E7セルに入力すべき数式は次のようになる。</p>
+        <table class="example bg-none">
+          <tr>
+            <th>E7</th>
+            <td><pre><code class="excel">=IF(AND(C7&gt;=$G$7,D7&gt;=$H$7),"合格","不合格")</code></pre></td>
+          </tr>
+        </table>
+      </details>
+
+      
+      
+      <h3>OR関数</h3>
+      <h4>OR関数の基本</h4>
+      <p><b>OR関数</b>は、複数の論理式のうちどれかひとつでも満たす場合は<b>TRUE</b>、すべて満たさない場合は<b>FALSE</b>を返します。</p>
+      <pre class="example"><code><pre><code class="excel">=OR(論理式1, 論理式2, ...)</code></pre></code></pre>
+      <p>次の例では、B1セルの値が60以上またはB2セルの値が70以上のときにTRUE、そうでなければFALSEを返します。</p>
+      <pre class="example"><code><pre><code class="excel">=OR(B1>=60, B2>=70)</code></pre></code></pre>	
+ 
+			<p class="center">
+        <img src="./img/AorB.png" alt="A or B" style="width:300px;" class="image_center"><br>
+			  <b>論理和</b>（Aが真 または Bが真であれば真）
+      </p> 
+      
+      <h4>IF関数の条件式としてのOR関数</h4>
+      <p>IF関数の条件式としてOR関数を指定するときには、次のように書きます。</p>
+      <pre class="example"><code>=IF(OR(論理式1, 論理式2, ...), TRUE値, FALSE値)</code></pre>
+      
+      
+      <h3>例題３</h3>
+      <img src="./img/ss05_003.png" class="screen_shot">
+      
+      <details>
+        <summary>解答</summary>
+        <p>曜日列の値が"土"または"日"なら$G$4の料金、それ以外なら$G$5の料金なので、D7セルに入力すべき数式は次のようになる。</p>
+        <table class="example bg-none">
+          <tr>
+            <th>D7</th>
+            <td><pre><code class="excel">=IF(OR(C7="土",C7="日"),$G$7,$G$8)</code></pre></td>
+          </tr>
+        </table>
+      </details>
+
+
+      
+      <h3>NOT関数</h3>
+      <p><b>NOT関数</b>は、論理式の逆を返します。つまり、論理式がTRUEの場合は<b>FALSE</b>、FALSEの場合は<b>TRUE</b>を返します。</p>
+      <pre class="example"><code><pre><code class="excel">=NOT(論理式)</code></pre></code></pre>
+      <p>次の例では、B1セルの値が60以上のときにFALSE、そうでなければTRUEを返します。</p>
+      <pre class="example"><code><pre><code class="excel">=NOT(B1>=60)</code></pre></code></pre>	
+
+			<p class="center">
+        <img src="./img/notA.png" alt="not A" style="width:300px;" class="image_center"><br>
+		    <b>否定</b>（Aが偽であれば真） 
+      </p>
+      
+    
+    </article>
+   		
+		<article>
+			<h2 id="headline_3">(3) IF関数のネスト</h2>
+      
+      <p>IF関数を<strong>ネスト（入れ子）</strong>にして使用すると、次のような複雑な条件を指定することができます。</p>
+      
+			<p class="center">
+        <img src="./img/ss05_006.png" alt="A or B" style="width:400px;" class="image_center">
+      </p> 
+      
+      <p>次の例では、A1セルの値が70以上のときは"A"，60以上のときは"B"，40以上のときは"C"，30以上のときは"D"，いずれにも当てはまらない場合は"E"と表示します。</p>
+      <pre class="example"><code><pre><code class="excel">=IF(A1>=70,"A",IF(A1>=60,"B",IF(A1>=40,"C",IF(A1>=30,"D","E"))))</code></pre></code></pre>      
+      <p>IF関数をネストしていくと式が複雑になるので、カッコの内包関係が難しく構文エラーになったり、後日修正しようとしたときに理解できなかったりするので、ネストしすぎることはオススメしません。このような場合には、AND関数やOR関数を使ってシンプルにしたり、次項のIFS関数を使うようにしましょう。</p>
+    
+    </article>
+   		
+		<article>
+			<h2 id="headline_4">(4) IFS関数</h2>
+      
+      <p>前項のように、IF関数をネストすると式が複雑になるデメリットがありました。これを解消するために、Googleスプレッドシートの2019年以降のバージョンやExcel2019では<strong><span class="tooltip" tooltip-data="イフエス">IFS関数</span></strong>が追加されました。Excelの古いバージョンでは使用できずにエラーが表示される点に注意してください（Googleスプレッドシートはクラウド上のアプリなので基本的に常に最新版を利用するので、このようなことはありません）。</p>
+      
+      <h3>IFS関数の使い方</h3>
+      <p><b>IFS関数</b>は、<b>条件</b>とその条件を満たしたときの<b>値</b>を交互に記述します。</p>
+      <pre class="example"><code><pre><code class="excel">=IFS(条件1, 値1, 条件2, 値2, ...)</code></pre></code></pre>
+      <p>ただし、すべての条件を満たさない場合の値を指定することはできず、<strong>#N/Aエラー</strong>が返されます。#N/AはNot Applicable（該当なし）やNot Availabele（利用不可）の略で、値がない場合に表示されます。</p>
+      <p>そこで、このような場合に備えて、最後の条件としてTRUEを指定しておくことをオススメします。</p>
+      
+      <pre class="example"><code><pre><code class="excel">=IFS(条件1, 値1, 条件2, 値2, ..., TRUE, 値)</code></pre></code></pre>
+
+      <p>次の例は前項と同じで、A1セルの値が70以上のときはA，60以上のときはB，40以上のときはC，30以上のときはD，いずれにも当てはまらない場合はEと表示します。</p>
+      <pre class="example"><code><pre><code class="excel">=IFS(A1>=70,"A",A1>=60,"B",A1>=40,"C",A1>=30,"D",TRUE,"E")</code></pre></code></pre>   
+      
+
+      <h3>例題４</h3>
+      <img src="./img/ss05_004.png" class="screen_shot">
+      
+      
+      <details>
+        <summary>解答</summary>
+        <p>E7は例題３と同じ。G6には年齢の条件から割引係数を参照すればよく、複数の条件があるのでIFS関数を使う。H7セルは曜日別の基本料金（F7セル）に年齢割引係数（G7セル）をかければよい。</p>
+        <table class="example bg-none">
+          <tr>
+            <th>F7</th>
+            <td><pre><code class="excel">=IF(OR(D7="土",D7="日"),$K$7,$K$8)</code></pre></td>
+          </tr>
+          <tr>
+            <th>G7</th>
+            <td><pre><code class="excel">=IFS(E7&lt;3,0,E7&lt;=5,$L$13,E7&lt;12,$L$14,E7&gt;=65,$L$15,TRUE,$L$16)</code></pre></td>
+          </tr>
+          <tr>
+            <th>H7</th>
+            <td><pre><code class="excel">=F7*G7</code></pre></td>
+          </tr>
+        </table>
+      </details>
+
+
+		</article>
+		
+	</section>
+ 
+  <section id="questions"><!-- script_pages.js --></section>
+<!-- COMMON FOOTER START -->
+	<section id="examples_and_questions"><!-- script_pages.js --></section>
+	<section id="next_page"><!-- script_pages.js --></section>
+	<footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+    <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+    <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+</html>

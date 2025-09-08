@@ -1,0 +1,511 @@
+@charset "UTF-8";
+
+/* ========================================================================
+   Section / Article with frosted-glass and code styles
+   - 透け具合やぼかしは先頭の変数（ライト/ダークで自動切替）を調整
+   ======================================================================== */
+
+:root{
+  --bg: #ecf0f3;
+  --surface: #fff;
+  --accent: #225386;
+
+  --background-main: #ecf0f3;
+
+  /* card atoms (legacy tokens: 一部はガラスに置換しつつ互換維持) */
+  --card-bg: var(--surface);
+  --card-border: var(--theme-color);
+  --card-radius: 12px;
+  --card-shadow: 0 4px 16px rgba(0,0,0,.08);
+  --card-pad: clamp(12px, 1.2vw + 8px, 20px);
+
+  /* ===== Article glass (Light) ======================================== */
+  --article-glass-rgb: 255, 255, 255;         /* RGBのみ（αは下で指定） */
+  --article-glass-top: .68;                    /* 上側の白み（下げると透ける）*/
+  --article-glass-bottom: .42;                 /* 下側の白み */
+  --article-blur: 12px;
+  --article-sat: 1.12;
+  --article-border: rgba(0,0,0,.06);
+  --article-shadow: 0 12px 28px rgba(0,0,0,.12), 0 2px 8px rgba(0,0,0,.06);
+
+  /* ===== Inline chips / code ========================================= */
+  --chip-bg: rgba(34, 83, 134, .10);          /* strong等の淡い背景 */
+  --chip-fg: color-mix(in oklab, var(--theme-color) 70%, #111 30%);
+  --inline-code-bg: rgba(20, 24, 32, .08);    /* `code`/`tt` 用（light）*/
+  --inline-code-border: rgba(0,0,0,.10);
+  --inline-code-fg: color-mix(in oklab, var(--theme-color) 60%, #111 40%);
+
+  /* ===== Code block (pre) ============================================ */
+  --code-bg: rgba(16, 22, 30, .86);           /* スレートの磨りガラス */
+  --code-fg: #e9ecf1;
+  --code-border: rgba(255,255,255,.14);
+
+  /* ===== Code “panel” wrappers (example/result/code…) ================ */
+  --code-panel-bg: rgba(var(--article-glass-rgb), .35);
+  --code-panel-border: var(--article-border);
+  --code-panel-blur: calc(var(--article-blur) - 2px);
+}
+
+/* ---- Dark theme dials ------------------------------------------------ */
+@media (prefers-color-scheme: dark) {
+  :root{
+    --article-glass-rgb: 10, 12, 15;          /* ほぼ黒のネイビー */
+    --article-glass-top: .72;
+    --article-glass-bottom: .56;
+    --article-blur: 14px;
+    --article-sat: 1.15;
+    --article-border: rgba(255,255,255,.10);
+    --article-shadow: 0 16px 36px rgba(0,0,0,.45), 0 4px 10px rgba(0,0,0,.35);
+
+    --chip-bg: rgba(34, 83, 134, .16);
+    --chip-fg: color-mix(in oklab, var(--theme-color) 50%, #fff 50%);
+
+    --inline-code-bg: rgba(255,255,255,.06);
+    --inline-code-border: rgba(255,255,255,.12);
+    --inline-code-fg: color-mix(in oklab, var(--theme-color) 52%, #fff 48%);
+
+    --code-bg: rgba(12, 16, 22, .88);
+    --code-fg: #e6edf3;
+    --code-border: rgba(255,255,255,.18);
+
+    --code-panel-bg: rgba(18, 22, 30, .50);
+    --code-panel-border: rgba(255,255,255,.10);
+  }
+}
+
+/* ========== section layout =========================================== */
+
+section{
+  width: 100%;
+  margin: 0 auto;
+  padding: 0px;
+}
+section :is(h2,h3,h4){ margin-top: clamp(14px, 2vw, 24px); }
+article h3:first-of-type { margin-top: clamp(10px, 1.2vw, 20px); }
+
+/* ===== Article as frosted glass card ================================= */
+section article {
+  margin: 0 auto;
+  width: min(90%, var(--content-max)) !important;
+
+  background: linear-gradient(
+    135deg,
+    rgba(var(--article-glass-rgb), var(--article-glass-top)),
+    rgba(var(--article-glass-rgb), var(--article-glass-bottom))
+  );
+  -webkit-backdrop-filter: blur(var(--article-blur)) saturate(var(--article-sat));
+  backdrop-filter: blur(var(--article-blur)) saturate(var(--article-sat));
+
+  border: 1px solid var(--article-border);
+  border-radius: var(--card-radius);
+  box-shadow: var(--article-shadow);
+  overflow: hidden;
+
+  padding: var(--card-pad);
+  margin-block: clamp(12px, 1.2vw + 6px, 20px);
+}
+
+h1{margin: 0.2em 0 1em ;}
+
+section article h1, section h1 a, #title{
+  color: var(--theme-color);
+  font-size: var(--font-size-h1);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+section p{
+  margin: 0 auto;
+  text-align: justify;
+}
+
+/* ========== headings ================================================== */
+
+article > h2{
+  margin:   0;
+  padding:  2px 12px;
+  box-sizing: border-box;
+  min-height: 48px;
+  display: flex; align-items: center;
+  line-height: 1.35;
+  border-bottom: 1px solid var(--card-border);
+  background: transparent;
+  color: var(--theme-color);
+  font-size: var(--font-size-h2);
+}
+
+section h3, summary.h3{
+  font-size: var(--font-size-h3);
+  font-weight: 600;
+  color: var(--theme-color);
+  margin: 60px 4px 2px;
+  box-sizing: content-box;
+}
+section h3 a{
+  font-size: var(--font-size-h3);
+  font-weight: 600;
+  color: var(--theme-color);
+  margin: 60px 4px 2px;
+}
+section h3 a:hover{ text-decoration: underline; }
+
+section h4, summary.h4{
+  font-size: var(--font-size-h4);
+  font-weight: 600;
+  margin: 20px 16px 4px 8px;
+  color: var(--font-color-strong-text);
+}
+section h4 strong, section h4 b{
+  font-size: var(--font-size-h4);
+  color: var(--font-color-red);
+}
+
+section h5, summary.h5{
+  font-size: var(--font-size-h5);
+  font-weight: 600;
+  margin: 20px 16px 4px 12px;
+  color: var(--font-color-normal-text);
+}
+section h5 strong, section h5 b{
+  font-size: var(--font-size-h5);
+  color: var(--font-color-red);
+}
+
+/* ========== paragraph & emphasis ===================================== */
+
+section article p{
+  font-size: var(--font-size-p);
+  font-weight: 300;
+  margin: 8px 16px;
+  box-sizing: content-box;
+}
+
+/* ★強調は“真っ白”を避け、淡いテーマ色チップ＋やや濃い文字色に */
+section > article > p > strong,
+section > article > p > b,
+section > article li strong,
+section > article li b{
+  font-weight: 700;
+  font-family: inherit;                 /* 等幅化はしない */
+  background: var(--chip-bg);
+  color: var(--chip-fg);
+  padding: 0 .35em;
+  border-radius: 6px;
+}
+
+/* インラインコード（preの内側は対象外） */
+section article :not(pre) > code,
+section article tt,
+section article kbd,
+section article samp{
+  font-family: var(--font-code);
+  font-size: .95em;
+  background: var(--inline-code-bg);
+  color: var(--inline-code-fg);
+  border: 1px solid var(--inline-code-border);
+  padding: .08em .4em;
+  border-radius: 6px;
+}
+
+/* 以前の “tag” 用強調も同調 */
+section > article > p > strong.tag,
+section > article > p > b.tag{
+  background: var(--chip-bg);
+  color: var(--font-color-red);
+  padding: 0 .35em;
+}
+
+/* ========== lists ===================================================== */
+
+section article p.center{ text-align: center; }
+
+section article ul{ list-style-position: inside; }
+section article ul.list-style-none{ list-style: none; }
+
+section article ul > li{
+  color: var(--font-color-normal-text);
+  margin: 10px 0;
+  font-size: 1rem;
+  text-indent: .1em;
+}
+section article ul li  a{
+  color: var(--font-color-normal-text);
+  text-decoration: underline #333;
+  display: inline-block;
+  font-weight: bolder;
+}
+section article ul li a:hover{
+  color: var(--font-color-strong-text);
+  text-decoration: underline;
+}
+
+section article ul ul{ list-style: none; }
+section article ul ul li{
+  color: var(--font-color-normal-text);
+  margin: 2px 0;
+  font-size: 1rem;
+}
+section article > ul > li > p{ margin-left: 40px; }
+
+/* ========== ordered list & notes ===================================== */
+
+section article ol{ list-style: none; counter-reset: number; }
+section article ol li{ position: relative; padding-left: 0; margin-left:0; }
+section article ol li::before{
+  counter-increment: number;
+  content: '（' counter(number) '）';
+  position: absolute; left: -2.5em; font-weight: bold;
+}
+
+section article ol.notes{
+  list-style: none; counter-reset: number; font-size: .8em;
+  margin-left: 40px; width: 80%; align-content: center;
+}
+section article ol.notes li{
+  position: relative; padding-left: 0; margin-left: 0; font-weight: bold;
+}
+section article ol.notes li:not(:first-child){ margin-top: 10px; }
+section article ol.notes li::before{
+  counter-increment: number; content: '※' counter(number);
+  position: absolute; left: -2.5em; font-weight: bold;
+}
+section article ol.notes li blockquote{ font-weight: lighter; font-size: .8em; }
+section article ol.notes li blockquote b{
+  font-weight: bold;
+  background: var(--chip-bg);
+  color: var(--font-color-strong-text);
+  font-family: var(--font-code);
+  padding: 0 3px;
+}
+
+/* ========== links in paragraph ======================================= */
+
+a{ color: var(--font-color-normal-text); }
+
+section article p a{
+  color: var(--font-color-strong-text);
+  text-decoration: underline 2px color-mix(in oklab, var(--theme-color) 60%, #666);
+  font-size: 1rem;
+  display: inline-block;
+  font-weight: 500;
+}
+section article p a:hover{
+  color: var(--font-color-strong-text);
+  text-decoration: underline var(--font-color-strong-text);
+}
+
+/* ========== code wrappers (glass panels) ============================== */
+
+section article div.html_code_header{
+  background: var(--code-panel-bg);
+  -webkit-backdrop-filter: blur(var(--code-panel-blur)) saturate(1.05);
+  backdrop-filter: blur(var(--code-panel-blur)) saturate(1.05);
+  border: 1px solid var(--code-panel-border);
+  font-family: var(--font-code);
+  color: var(--code-fg);
+  height: 24px;
+  margin-top: 10px;
+  padding: 2px 10px;
+  border-top-left-radius: 10px;
+  border-top-right-radius:10px;
+  overflow-x: auto;
+  white-space: nowrap;
+}
+
+section article div.html_code{
+  background: var(--code-panel-bg);
+  -webkit-backdrop-filter: blur(var(--code-panel-blur)) saturate(1.05);
+  backdrop-filter: blur(var(--code-panel-blur)) saturate(1.05);
+  border: 1px solid var(--code-panel-border);
+  color: var(--code-fg);
+  font-family: var(--font-code);
+  margin-bottom: 10px;
+  border-bottom-right-radius:10px;
+  border-bottom-left-radius: 10px;
+
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* Code block (pre) … 暗色の磨りガラスに一本化 */
+section pre{
+  background: var(--code-bg);
+  color: var(--code-fg);
+  border-radius: 8px;
+  padding: 1rem 1.1rem;
+  overflow: auto;
+  border: 1px solid var(--code-border);
+  line-height: 1.7;
+  -webkit-backdrop-filter: blur(calc(var(--article-blur) - 4px)) saturate(1.05);
+  backdrop-filter: blur(calc(var(--article-blur) - 4px)) saturate(1.05);
+}
+/* ハイライトJSが暗色で上書きしてしまうのを抑制 */
+div pre code.hljs{
+  display:block;
+  overflow-x:auto;
+  padding: 10px;
+  margin: 10px 0;
+  color: var(--code-fg) !important;
+}
+
+div.example pre code.hljs{ padding:10px; margin:10px 0; }
+div.code    pre code.hljs{ padding:10px; margin:10px 0 0; }
+div.code-details pre code.hljs{ padding:0 10px 10px; margin:0; }
+div.code-details pre:first-of-type code.hljs{ padding:10px; margin:0; }
+div.result  pre code.hljs{ padding:10px; margin:0 0 10px; }
+div.html_code pre code.hljs{ padding:10px; margin:0; }
+
+section code{ background: transparent; } /* pre内は透明のまま */
+
+/* 例・結果などの外箱もガラス下地に統一 */
+div.example, div.code, div.code-details, div.result,
+div.html_code, div.html_code_header, div.html_code_footer,
+div.example-plain, div.result-plain, div.notice {
+  width: 90%;
+  margin: 0 auto;
+  font-size: 1.1em;
+
+  background: var(--code-panel-bg);
+  -webkit-backdrop-filter: blur(var(--code-panel-blur)) saturate(1.05);
+  backdrop-filter: blur(var(--code-panel-blur)) saturate(1.05);
+  border: 1px solid var(--code-panel-border);
+  border-radius: 10px;
+}
+
+section article div.result{
+  background: var(--code-panel-bg);
+  color: var(--code-fg);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  margin-bottom: 30px;
+}
+section article div.result-plain{
+  background: var(--code-panel-bg);
+  color: var(--code-fg);
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  margin-bottom: 30px;
+}
+
+/* “結果”のpre内部の文字色を安定させる */
+section article div.result pre{ margin:0; padding:0; color: var(--code-fg); }
+
+/* コメント色など（軽く） */
+section article div.example em,
+section article div.code em,
+section article div.code-details em,
+section article div.result em{
+  color: var(--font-color-code-comment);
+  font-family: var(--font-code);
+  font-weight: 300;
+  padding: 2px;
+  font-size: var(--font-size-code-em);
+  font-style: normal;
+}
+section article div.code-details > details + em{
+  color: var(--font-color-code-details-summary);
+  padding-left: 10px;
+  padding-bottom: 10px;
+}
+
+
+
+/* 広い画面ではカード間隔のみ拡げる */
+@media (min-width: 960px){
+  main > section, .content > section, body > section{ margin-block: 20px; }
+}
+
+/* details / summary */
+summary:hover { cursor: pointer; }
+section article div.code-details > details > summary,
+section article div.result > details > summary{
+  padding: 0 10px;
+  color: var(--font-color-code-details-summary);
+  font-size: .9em;
+  margin: 0;
+  overflow-x: auto;
+  white-space: pre;
+  cursor: pointer;
+}
+section article div.code-details > details:open > summary,
+section article div.result > details:open > summary{ margin: 0; }
+section article div.code-details > details > summary:hover,
+section article div.result > details > summary:hover{
+  color: var(--font-color-code-comment);
+}
+section article div.code-details > details:first-of-type > summary,
+section article div.result > details:first-of-type > summary{ padding-top: 10px; }
+
+/* 角丸ユーティリティ（互換維持） */
+.border-radius-top-10px{ border-top-left-radius: 10px; border-top-right-radius: 10px; }
+.border-radius-bottom-10px{ border-bottom-left-radius: 10px; border-bottom-right-radius: 10px; }
+.border-radius-top-0px{ border-top-left-radius: 0; border-top-right-radius: 0; }
+.border-radius-bottom-0px{ border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+
+/* example 既存色をガラスに寄せる（互換） */
+section article div.example{ padding: 0; }
+section article div.example-plain{
+  margin: 10px 20px 20px; padding: 10px;
+}
+
+/* notice（重要メモ）は従来の赤背景を維持 */
+section article div.notice{
+  background-color: rgba(255,220,220,1);
+  font-weight: 400;
+  color: var(--font-color-code);
+  font-family: var(--font-code);
+  margin: 10px 20px 20px;
+  padding: 10px;
+  border-radius: 10px;
+}
+
+/* その他の色ユーティリティ（既存） */
+section article span.code-style{ font-family: var(--font-code); background-color: #eee; padding: 0 4px; }
+section article span._red{ color: var(--font-color-red); }
+section article span._green{ color: var(--font-color-lightgreen); }
+section article span._purple{ color: var(--font-color-purple); }
+section article span._lime{ color: var(--font-color-lime); }
+section article span._orange{ color: var(--font-color-orange); }
+section article span._yellow{ color: var(--font-color-yellow); }
+.bgcolor_lighterred{ background-color: var(--background-color-lighterred); }
+.bgcolor_lightred{ background-color: var(--background-color-lightred); }
+
+
+section article > details{
+  background-color: rgba(127, 127, 127, 0.2); 
+  max-width: 90%; 
+  margin: 10px 40px 20px 40px;
+  padding: 2px 2px 2px 2px;
+  border-radius: 10px;
+}
+
+section article > details > summary{
+  font-size: 16px;
+  font-weight: bold;
+  margin: 5px 10px 5px 10px;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

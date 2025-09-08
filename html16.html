@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+<body>
+  
+  
+
+
+  <section>
+    <article>
+      <h2 id="headline_1">(1) 箇条書きリストと番号付きリスト</h2>
+
+      <h3>箇条書きリスト</h3>
+
+      <h4>箇条書きリストとは</h4>
+      <p><strong>箇条書きリスト</strong>は、項目の先頭に●が付くリストで、<b>&lt;<span class="tooltip"
+            tooltip-data="ユーエル">ul</span>&gt;タグ</b>を使います。<b>ul</b>はunordered listの略で順序の決まっていないリストを意味します。</p>
+      <p>
+        リスト内の項目を表示するには、<b>&lt;ul&gt;</b>〜<b>&lt;/ul&gt;</b>のあいだに<b>リストタグ</b><b>&lt;li&gt;</b>〜<b>&lt;/li&gt;</b>を入れます。<b>&lt;<span
+            class="tooltip" tooltip-data="リスト アイテム">li</span>&gt;タグ</b>はリストの項目のことで、<b>li</b>はlist itemの略です。</p>
+
+      <pre class="html example"><code>
+        &lt;ul&gt;
+          &lt;li&gt;項目1&lt;/li&gt;
+          &lt;li&gt;項目2&lt;/li&gt;
+          &lt;li&gt;項目3&lt;/li&gt;
+          &lt;li&gt;項目4&lt;/li&gt;
+        &lt;/ul&gt;
+      </code></pre>
+
+      <p>これをブラウザで表示すると、次のように、項目の先頭に●が付きます。</p>
+      <p class="center"><img src="./img/html16_001.png" width="240px"></p>
+
+
+      <h4>箇条書きリストの実習</h4>
+      <p>実習ファイルに、カレー作りの材料を書いてみましょう。</p>
+
+      <pre class="html" data-title="sample1-6.html ＞ 実習コード①"><code>
+        &lt;ul&gt;
+          &lt;li&gt;カレーのルウ（中辛）・・・1箱&lt;/li&gt;
+          &lt;li&gt;牛肉・・・250g&lt;/li&gt;
+          &lt;li&gt;玉ねぎ・・・4個&lt;/li&gt;
+          &lt;li&gt;じゃがいも・・・3個&lt;/li&gt;
+          &lt;li&gt;にんじん・・・1本&lt;/li&gt;
+          &lt;li&gt;サラダ油・・・大さじ1&lt;/li&gt;
+          &lt;li&gt;水・・・1000mL&lt;/li&gt;
+        &lt;/ul&gt;
+      </code></pre>
+      <p>実習コードの入力ができたら保存し、ブラウザで開いて確かめてみましょう。</p>
+
+      <h3>番号付きリスト</h3>
+
+      <h4>番号付きリストとは</h4>
+      <p>番号付きリストは、項目の先頭に数字が付くリストで、<b>&lt;<span class="tooltip"
+            tooltip-data="オーエル">ol</span>&gt;タグ</b>を使います。<b>ol</b>はordered listの略で順序立てたリストの意味です。</p>
+      <p>リスト内の項目を表示するには、<b>&lt;ol&gt;</b>〜<b>&lt;/ol&gt;</b>のあいだに<b>&lt;li&gt;タグ</b>を入れます。</p>
+
+      <pre class="html example"><code>
+        &lt;ol&gt;
+          &lt;li&gt;項目1&lt;/li&gt;
+          &lt;li&gt;項目2&lt;/li&gt;
+          &lt;li&gt;項目3&lt;/li&gt;
+          &lt;li&gt;項目4&lt;/li&gt;
+        &lt;/ol&gt;
+      </code></pre>
+
+      <p>これをブラウザで表示すると、次のように、項目の先頭に数字が付きます。</p>
+      <p class="center"><img src="./img/html16_002.png" width="240px"></p>
+
+
+      <h4>番号付きリストの実習</h4>
+      <p>実習ファイルに、カレー作りの手順を書いてみましょう。</p>
+
+      <pre class="html"><code>
+        &lt;!-- sample1-6.html ＞ 実習コード② --&gt;
+        &lt;ol&gt;
+          &lt;li&gt;玉ねぎをくし切りにします。&lt;/li&gt;
+          &lt;li&gt;じゃがいもを6～8等分に切り分けるのが目安です。&lt;/li&gt;
+          &lt;li&gt;にんじんを3cm大の乱切りにします。&lt;/li&gt;
+          &lt;li&gt;厚手の鍋にサラダ油を熱し、牛肉を入れて、焼き目がつくまで炒めます。&lt;/li&gt;
+          &lt;li&gt;鍋に、玉ねぎ、じゃがいも、にんじんを入れ、玉ねぎがしんなりするまで炒めます。&lt;/li&gt;
+          &lt;li&gt;水を加え、沸騰したらあくを取ります。&lt;/li&gt;
+          &lt;li&gt;具材が柔らかくなるまで弱火～中火で約15分煮込みます。&lt;/li&gt;
+          &lt;li&gt;いったん火を止め、沸騰がおさまってからルウを割り入れてよく溶かします。&lt;/li&gt;
+          &lt;li&gt;再び弱火で時々かき混ぜながら、とろみがつくまで約10分煮込んででき上がりです。&lt;/li&gt;
+        &lt;/ol&gt;
+      </code></pre>
+      <p>実習コードの入力ができたら保存し、ブラウザで開いて確かめてみましょう。</p>
+
+
+
+    </article>
+    <article>
+      <h2 id="headline_2">(2) 箇条書きリストのネスト</h2>
+      <h3>箇条書きリストのネスト</h3>
+
+      <h4>箇条書きリストのネスト</h4>
+      <p>次のように<b>ul要素</b>をネスト（入れ子）にして複雑な階層構造をもつ箇条書きリストを作成することもできます。</p>
+
+      <pre class="html example"><code>
+        &lt;ul&gt;
+          &lt;li&gt;第1レベルA&lt;/li&gt;
+          &lt;li&gt;第1レベルB&lt;/li&gt;
+          &lt;li&gt;第1レベルC
+            &lt;ul&gt;
+              &lt;li&gt;第2レベルA&lt;/li&gt;
+              &lt;li&gt;第2レベルB&lt;/li&gt;
+              &lt;li&gt;第2レベルC
+                &lt;ul&gt;
+                  &lt;li&gt;第3レベルA&lt;/li&gt;
+                  &lt;li&gt;第3レベルB&lt;/li&gt;
+                &lt;/ul&gt;
+              &lt;/li&gt;
+            &lt;/ul&gt;
+          &lt;/li&gt;
+          &lt;li&gt;第1レベルD&lt;/li&gt;
+          &lt;li&gt;第1レベルE&lt;/li&gt;
+        &lt;/ul&gt;
+      </code></pre>
+      
+
+      <p>これをブラウザで表示すると、次のように、階層構造となります。</p>
+      <p class="center"><img src="./img/html16_003.png" width="240px"></p>
+
+      <h4>箇条書きリストのネストの実習</h4>
+      <p>次のように表示されるように、<b>sample1-6.html ＞ 実習コード③</b>にタグを追加してみましょう。</p>
+      <img src="./img/html16_101.png" class="screen_shot">
+
+      <!--
+      <details>
+        <summary>解答はコチラ</summary>
+        <div class="html_code_header">sample1-6.html ＞ 実習コード③</div>
+        <pre class="html"><code>
+          &lt;ul&gt;
+            &lt;li&gt;個人情報保護法によって義務づけられていること
+              &lt;ul&gt;
+                &lt;li&gt;個人情報を取得する際は、あらかじめ収集の目的を明らかにし、それ以外に利用しない。&lt;/li&gt;
+                &lt;li&gt;個人情報が漏れたり、なくなったりしないよう管理する。&lt;/li&gt;
+                &lt;li&gt;本人の同意がないのに 第三者に個人情報を提供してはならない。ただし、下記の場合を除く。
+                  &lt;ul&gt;
+                    &lt;li&gt;法令に基づく場合：警察，裁判所，税務署などからの照会&lt;/li&gt;
+                    &lt;li&gt;人の生命・身体・財産の保護に必要な場合：交通事故などで本人の個人情報が必要な場合&lt;/li&gt;
+                    &lt;li&gt;公衆衛生・児童の健全な育成に必要な場合：児童虐待のおそれのある子どもの情報を関係機関で共有
+                    &lt;/li&gt;
+                  &lt;/ul&gt;
+                &lt;/li&gt;
+              &lt;/ul&gt;
+            &lt;/li&gt;
+            &lt;li&gt;個人情報を取り扱う事業者が、本人からの求めに応じて、原則として行わなければならないこと
+              &lt;ul&gt;
+                &lt;li&gt;開示：登録されている個人情報を見る。&lt;/li&gt;
+                &lt;li&gt;訂正：登録されている情報が間違っていた場合などに行う。&lt;/li&gt;
+                &lt;li&gt;利用停止：事業者側に規定違反などがある場合に、事業者側が保有している個人情報を使えないようにする。&lt;/li&gt;
+              &lt;/ul&gt;
+            &lt;/li&gt;
+            &lt;li&gt;個人情報の有効活用
+              &lt;ul&gt;
+                &lt;li&gt;ターゲティング広告
+                  &lt;ul&gt;
+                    &lt;li&gt;オプトイン方式：関連する商品やサービスの広告などを、あらかじめ「受け取りたい」と承諾する人にのみ提供する方式&lt;/li&gt;
+                    &lt;li&gt;オプトアウト方式：関連する商品やサービスの広告などを、あらかじめ「受け取りたくない」と意思表示した人には広告などを提供せず、それ以外の人に広告を提供する方式。&lt;/li&gt;
+                  &lt;/ul&gt;	
+                &lt;/li&gt;
+                &lt;li&gt;匿名加工情報の利用：事業者間におけるデータの利用を促進することを目的に特定の個人を識別することがないように個人情報を加工し、当該の個人情報を復元できないようにしたもの。
+                  &lt;ul&gt;
+                    &lt;li&gt;車のナビゲーションシステムから収集される走行位置履歴などの情報を活用した渋滞予測&lt;/li&gt;
+                    &lt;li&gt;医療情報を活用した創薬・臨床分野の研究開発&lt;/li&gt;
+                    &lt;li&gt;各家庭の電力利用履歴から効率のよい発電計画の策定&lt;/li&gt;
+                  &lt;/ul&gt;
+                &lt;/li&gt;
+              &lt;/ul&gt;
+            &lt;/li&gt;
+          &lt;/ul&gt;
+        </div>
+        <div class="html_code_footer"></div>
+      </details>
+      -->
+
+
+    </article>
+
+
+  </section>
+
+
+
+  
+  
+  
+  
+  
+</body>
+
+</html>

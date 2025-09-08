@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+   <head>
+       <!-- Google tag (gtag.js) ここから-->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+            <script>
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-ZW1B1EX70P');
+            </script>
+       <!-- Google tag (gtag.js) ここまで-->
+      <link rel="icon" href="./img/favicon.ico" />
+    
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  
+  <!-- Lightbox2 CDN -->
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+        <!-- Highlight.js -->
+    <link rel="stylesheet" href="./highlightjs/styles/ks.css">
+    <script src="./highlightjs/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    
+  <meta charset="UTF-8" />
+      <title>スプレッドシート実習</title>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+ </head>
+ <body>
+	<header><!-- script_pages.js --></header>
+	<!----COMMON HEADER END---->	
+	
+
+	<section>
+		
+		<article>
+			<h2 id="headline_1">(1) COUNTIF関数</h2>
+
+			<h3>COUNTIF関数</h3>
+      <p><strong><span class="tooltip" tooltip-data="カウントイフ">COUNTIF</span>関数</strong>は指定したセル範囲の中から、指定した条件を満たしているセルの個数を返します。</p>
+      <pre class="example"><code><pre><code class="excel">=COUNTIF(範囲, 条件)</code></pre></code></pre>
+
+			<p>
+        <ul class="list-style-none">
+          <li><b>範囲</b>：検索の対象となるセル範囲を指定します。</li>
+          <li><b>条件</b>：検索条件を文字列またはセル，数値，数式で指定します。</li>        
+        </ul>
+			</p>
+    
+      <p>次の例では、E7〜E17セルのうち、"合格"の数を表示します。</p>
+      <pre class="example"><code><pre><code class="excel">=COUNTIF(E7:E18,"合格")</code></pre></code></pre>
+    
+      <p>次の例では、$E$7〜$E$17セルのうち、$H$4セルの内容と一致するセルの数を表示します（絶対参照）。</p>
+      <pre class="example"><code><pre><code class="excel">=COUNTIF(E7:E18,$H$4)</code></pre></code></pre>
+    
+    
+    
+			<h3>条件の指定方法</h3>
+      <h4>比較式</h4>
+      <p><b>条件</b>には<strong>比較演算子</strong>を使った比較式で指定することもできます。次の例では、C7〜C17のうち、"60以上"のセルの数を数を表示します。</p>
+      <pre class="example"><code><pre><code class="excel">=COUNTIF(C7:C17,">=60")</code></pre></code></pre> 
+    
+      <p>他のセルの値を参照して条件式を指定するには、比較演算子をダブルクォート<b>"</b>で囲み、参照セルをアンパサント<b>&amp;</b>でつなぎます。次の例では、D7〜D17のうち、$H$7セルの値よりも小さいセルの数を表示します。</p>
+      <pre class="example"><code><pre><code class="excel">=COUNTIF(D7:D17,"<"&$H$4)</code></pre></code></pre>
+
+      <h4>ワイルドカード</h4>
+      <p><b>条件</b>に<strong>ワイルドカード文字</strong>を使って、部分的に一致する文字列を検索条件として指定できます。</p>
+      <table>
+        <tr>
+          <th class="min-width-140px">ワイルドカード文字</th>
+          <th class="min-width-140px">検索対象</th>
+          <th>例</th>
+        </tr>
+        <tr>
+          <td><b>?</b> <span class="small-text">(疑問符)</span></td>
+          <td>任意の１文字</td>
+          <td class="text-align-left">「み?ん」は、「みかん」や「みりん」は検索されるが、「みんかん」は検索されない。</td>
+        </tr>
+        <tr>
+          <td><b>*</b> <span class="small-text">(アスタリスク)</span></td>
+          <td>任意の数の文字</td>
+          <td class="text-align-left">「東京都*」は、「東京都」の後に何文字続いても検索される。また、「東京都」のみのものも検索される。</td>
+        </tr>
+      </table>
+      <p>なお、<b>?</b>や<b>*</b>を含む文字列を検索したい場合は、<b>~</b>(チルダ)を組み合わせて、"<b>~?</b>"や"<b>~*</b>"のように指定すると検索することができる。</p>
+    
+      
+      <h3>例題１</h3>
+      <img src="./img/ss06_001.png" class="screen_shot">
+
+
+		</article>
+    <article>
+      <h2 id="headline_2">(2) SUMIF関数・AVERAGEIF関数</h2>
+      <h3>SUMIF関数</h3>
+      <p><strong><span class="tooltip" tooltip-data="サムイフ">SUMIF</span>関数</strong>は指定した<b>条件範囲</b>内で<b>条件</b>を満たしているセルと同じ行（または列）にある、<b>合計範囲</b>のセルの合計を返します。</p>
+      <pre class="example"><code><pre><code class="excel">=SUMIF(範囲, 条件, 合計範囲)</code></pre></code></pre>
+
+      <p>
+        <ul class="list-style-none">
+          <li><b>条件範囲</b>：検索の対象となるセル範囲を指定します。</li>
+          <li><b>条件</b>：検索条件を文字列またはセル，数値，数式で指定します。</li> 
+          <li><b>合計範囲</b>：合計を求めるセル範囲を指定します。<b>合計範囲</b>が<b>範囲</b>と同じ場合には省略可能です。</li>        
+        </ul>
+      </p> 
+     
+     
+      <h3>例題２</h3>
+      <img src="./img/ss06_002.png" class="screen_shot">
+   
+   
+      <h3>AVERAGEIF関数</h3>
+   <p><strong><span class="tooltip" tooltip-data="アヴェレージイフ">AVERAGEIF</span>関数</strong>は指定した<b>条件範囲</b>内で<b>条件</b>を満たしているセルと同じ行（または列）にある、<b>平均範囲</b>のセルの平均を返します。</p>
+      <pre class="example"><code><pre><code class="excel">=AVERAGEIF(範囲, 条件, 平均範囲)</code></pre></code></pre>
+
+			<p>
+        <ul class="list-style-none">
+          <li><b>条件範囲</b>：検索の対象となるセル範囲を指定します。</li>
+          <li><b>条件</b>：検索条件を文字列またはセル，数値，数式で指定します。</li> 
+          <li><b>平均範囲</b>：平均を求めるセル範囲を指定します。<b>平均範囲</b>が<b>範囲</b>と同じ場合には省略可能です。</li>        
+        </ul>
+			</p>
+  
+  
+      <h3>例題３</h3>
+      <img src="./img/ss06_003.png" class="screen_shot">
+  
+		</article>
+
+    <article>
+      <h2 id="headline_3">(3) *IFS関数</h2>
+      
+			<h3>COUNTIFS関数</h3>
+      <p><strong><span class="tooltip" tooltip-data="カウントイフエス">COUNTIFS</span>関数</strong>は複数の検索条件をすべて満たすセルの個数を返します。<b>条件範囲2</b>以降は省略可能です。</p>
+      <pre class="example"><code><pre><code class="excel">=COUNTIFS(条件範囲1, 条件1, 条件範囲2, 条件2, ...)</code></pre></code></pre>
+
+      <h3>SUMIFS関数</h3>
+      <p><strong><span class="tooltip" tooltip-data="サムイフエス">SUMIFS</span>関数</strong>は複数の条件をすべて満たしているセルと同じ行（または列）にある、<b>合計範囲</b>のセルの合計を返します。<b>条件範囲2</b>以降は省略可能です。また、SUMIF関数とは引数の並び方が異なるので注意してください。</p>
+      <pre class="example"><code><pre><code class="excel">=SUMIFS(合計範囲, 条件範囲1, 条件1, 条件範囲2, 条件2, ...)</code></pre></code></pre>
+
+      <h3>AVERAGEIFS関数</h3>
+      <p><strong><span class="tooltip" tooltip-data="アヴェレージイフエス">AVERAGEIFS</span>関数</strong>は複数の条件をすべて満たしているセルと同じ行（または列）にある、<b>平均範囲</b>のセルの合計を返します。<b>条件範囲2</b>以降は省略可能です。また、AVERAGEIF関数とは引数の並び方が異なるので注意してください。</p>
+      <pre class="example"><code><pre><code class="excel">=AVERAGEIFS(平均範囲, 条件範囲1, 条件1, 条件範囲2, 条件2, ...)</code></pre></code></pre>
+  
+      <h3>MAXIFS関数</h3>
+      <p><strong><span class="tooltip" tooltip-data="マックスイフエス">MAXIFS</span>関数</strong>は複数の条件をすべて満たすセルの中の最大値を返します。<b>条件範囲2</b>以降は省略可能です。なお、MAXIF関数は用意されていません。</p>
+      <pre class="example"><code><pre><code class="excel">=MAXIFS(範囲, 条件範囲1, 条件1, 条件範囲2, 条件2, ...)</code></pre></code></pre>
+
+      <h3>MINIFS関数</h3>
+      <p><strong><span class="tooltip" tooltip-data="ミンイフエス">MINIFS</span>関数</strong>は複数の条件をすべて満たすセルの中の最小値を返します。<b>条件範囲2</b>以降は省略可能です。なお、MINIF関数は用意されていません。</p>
+      <pre class="example"><code><pre><code class="excel">=MINIFS(範囲, 条件範囲1, 条件1, 条件範囲2, 条件2, ...)</code></pre></code></pre>
+
+  
+      <h3>例題４</h3>
+      <img src="./img/ss06_004.png" class="screen_shot">
+  
+		</article>
+	</section>
+
+  <section id="questions"><!-- script_pages.js --></section>
+<!-- COMMON FOOTER START -->
+	<section id="examples_and_questions"><!-- script_pages.js --></section>
+	<section id="next_page"><!-- script_pages.js --></section>
+	<footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+    <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+    <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+</html>

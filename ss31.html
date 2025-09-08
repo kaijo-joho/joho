@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+ <body>
+	
+		
+	
+
+	<section>
+    <article>
+      <h2 id="headline_1">(1) 度数分布表とヒストグラム</h2>
+			<h3>度数分布表</h3>
+      <p>データを階級ごとに集計した表を<b>度数分布表</b>といいます。また、度数分布表において、区切られた各区間を<strong>階級</strong>、区間の幅を<strong>階級幅</strong>、各階級に含まれる値の個数を<strong>度数</strong>、各階級の中央値を<strong>階級値</strong>といいます。</p>
+
+      <p class="center" style="margin-bottom:2px;">熊谷市の1950年から2023年までの8月の最高気温の度数分布表</p>
+      <table style="margin-top:2px;">
+        <tr><th width="100px">階級</th><th width="100px">度数</th></tr>
+        <tr><th>41℃以上 42℃未満</th><td>0</td></tr>
+        <tr><th>40℃以上 41℃未満</th><td>1</td></tr>
+        <tr><th>39℃以上 40℃未満</th><td>4</td></tr>
+        <tr><th>38℃以上 39℃未満</th><td>12</td></tr>
+        <tr><th>37℃以上 38℃未満</th><td>15</td></tr>
+        <tr><th>36℃以上 37℃未満</th><td>16</td></tr>
+        <tr><th>35℃以上 36℃未満</th><td>16</td></tr>
+        <tr><th>34℃以上 35℃未満</th><td>9</td></tr>
+        <tr><th>33℃以上 34℃未満</th><td>0</td></tr>
+        <tr><th>32℃以上 33℃未満</th><td>1</td></tr>
+        <tr><th>31℃以上 32℃未満</th><td>0</td></tr>
+        <tr><th>30℃以上 31℃未満</th><td>0</td></tr>
+      </table>
+
+      
+      
+
+      <p>スプレッドシートで度数を求めるときは、次のように<b>COUNTIF関数</b>または<b>COUNTIFS関数</b>を使います。</p>
+      <pre class="example"><code><pre><code class="excel">=COUNTIF(範囲, ">="&階級の下限値) - COUNTIF(範囲, ">"&階級の上限値)</code></pre></code></pre>
+      <pre class="example"><code><pre><code class="excel">=COUNTIFS(範囲, ">="&階級の下限値, 範囲, "<="&階級の上限値)</code></pre></code></pre>
+      
+      
+
+      <h3>ヒストグラム</h3>
+      <p>度数分布表を柱状のグラフであらわしたものを<strong>ヒストグラム</strong>といいます。</p>
+      
+      <p class="center">
+        <img src="img/ss31_001.png">
+      </p>
+      
+      
+      <h3>階級幅について</h3>
+      <p>階級幅を決めるときに、100点満点のテストなら階級幅は10点、30〜40℃の気温なら階級幅は1℃というように、キリのいい数字を使うと直感でわかりやすいヒストグラムを作成することができます。</p>
+      <p>しかし、キリのいい数字がわかりにくいようなデータの場合には、次のスタージェスの公式で求めた階級数が目安になるとされています。この公式では、データ数を$n$，階級数を$k$とすると、次のようになります。
+      \[k = 1 + \log_2n\]</p>
+      
+		</article>
+    <article>
+      <h2 id="headline_2">(2) データの代表値と箱ひげ図</h2>
+      
+      <h3>平均値（mean）</h3>
+      <p>データの合計値を、データの個数で割った値を<strong>平均値</strong>といいます。</p>
+      <p>スプレッドシートで平均値を求めるときは、次のように<b>AVERAGE関数</b>を使います。</p>
+      <pre class="example"><code><pre><code class="excel">=AVERAGE(範囲)</code></pre></code></pre>
+
+      <h3>最大値（max）・最小値（minimum）</h3>
+      <p>データにおいて、最も大きい値を<strong>最大値</strong>、最も小さい値を<strong>最小値</strong>といいます。</p>
+      <p>スプレッドシートで最大値と最小値を求めるときは、次のように<b>MAX関数</b>と<b>MIN関数</b>を使います。</p>
+      <pre class="example"><code><pre><code class="excel">=MAX(範囲)</code></pre></code></pre>
+      <pre class="example"><code><pre><code class="excel">=MIN(範囲)</code></pre></code></pre>
+      
+      <h3>最頻値（mode）</h3>
+      <p>データにおいて、最も度数の多い値を、そのデータの<strong>最頻値</strong>といいます。</p>
+      <p>スプレッドシートで最頻値を求めるときは、次のように<b>MODE関数</b>を使います。</p>
+      <pre class="example"><code><pre><code class="excel">=MODE(範囲)</code></pre></code></pre>
+      
+      <h3>中央値（median）</h3>
+      <p>データを降順（または昇順）に並べたとき、中央に位置するデータを<strong>中央値</strong>といいます。なお、データの数が偶数の場合は、中央に近い２つの値の平均値を中央値とします。</p>
+      <p>スプレッドシートで中央値を求めるときは、次のように<b>MEDIAN関数</b>を使います。</p>
+      <pre class="example"><code><pre><code class="excel">=MEDIAN(範囲)</code></pre></code></pre>
+
+      <h3><span class="tooltip" tooltip-data="しぶんいすう">四分位数</span></h3>
+      <p>データを降順（または昇順）に並べ、データの個数を４等分したとき、25%の区切りの値を<strong>第１四分位数 $Q_1$</strong>，50%区切りの値を<strong>第２四分位数 $Q_2$</strong>（＝<b>中央値</b>），75%区切りの値を<strong>第３四分位数 $Q_3$</strong>といいます。なお、中央値と同様に四分位数が決まらない場合は、近い２つの値の平均値を四分位数とします。</p>
+      
+      <p>スプレッドシートで四分位数を求めるときは、次のように<b><span class="tooltip" tooltip-data="クォータイル">QUARTILE関数</span></b>を使います。</p>
+
+      <pre class="example"><code><pre><code class="excel">=QUARTILE(範囲, 四分位数)</code></pre></code></pre>
+      <p>第２引数の<b>四分位数</b>は<b>0</b>〜<b>4</b>の整数を次のように指定します。</p>
+      <ul>
+        <li>四分位数に<b>0</b>を指定すると、データ内の<b>最小値</b><tt>(0%)</tt>が返されます。</li>
+        <li>四分位数に<b>1</b>を指定すると、データ内の<b>第１四分位数</b><tt>(25%)</tt>が返されます。</li>
+        <li>四分位数に<b>2</b>を指定すると、データ内の<b>第２四分位数</b><tt>(50%)</tt>が返されます。</li>
+        <li>四分位数に<b>3</b>を指定すると、データ内の<b>第３四分位数</b><tt>(75%)</tt>が返されます。</li>
+        <li>四分位数に<b>4</b>を指定すると、データ内の<b>最大値</b><tt>(100%)</tt>が返されます。</li>
+      </ul>
+  
+      <h3>四分位範囲</h3>
+      <p>第１四分位数と第３四分位数の差を<strong>四分位範囲</strong>といいます。</p>
+      
+      
+      <h3>箱ひげ図</h3>
+      <p>四分位数や最大値・最小値を用いることで、データの散らばりを視覚的に表した図を<b>箱ひげ図</b>といいます。</p>
+      
+      <img src="img/ss31_002.png">
+		</article>
+    <article>
+      <h2 id="headline_3">(3) データの種類</h2>
+      
+      <h3>データの種類</h3>
+      <p>データには、数量で表すことができる<strong>量的データ</strong>と名前や種類などの数量的な意味をもたない<strong>質的データ</strong>に分類することができます。これらは、データの値を決めるときの基準である<strong>尺度</strong>の違いによって次のように分類することができます。このように、尺度によって分類する基準のことを<strong>尺度水準</strong>といいます。</p>
+      
+      <h4>質的データ</h4>
+      <ul>
+          <li>
+            <strong>名義尺度</strong>
+            <p>分類や区別をするための名称や、意味の違いを区別するために割り当てられた数字。</p>
+            <p>(例) 氏名，性別，血液型，好きな食べ物，正誤，有無，電話番号，背番号</p>
+          </li>
+          <li>
+            <strong>順序尺度</strong>
+            <p>数値の順序や大小関係を表す文字や数字。</p>
+
+            <p>(例) 服のサイズ，警報レベル，震度，おみくじの結果，グルメサイトなどの☆評価</p>
+          </li>
+      </ul>
+
+      <p>カフェで飲み物を注文するときに、その名称で注文をする（名義尺度）。<br>
+        1. 本日のコーヒー， 2. カフェラテ， 3. フラペチーノ</p>
+        <p>飲み物のサイズは大小関係を示すが、比例関係にはない： Short (240 mL), Tall (350 mL), Grande (470 mL) （順序尺度）</p>
+
+      <h4>量的データ</h4>
+      <ul>
+          <li>
+            <strong>間隔尺度</strong>
+            <p>等間隔に並ぶ数値で、絶対的な原点（0となる点）がないもの。</p>
+            <p>「昨日は5℃で今日は10℃だから、5℃温かい」というように差には意味があるが、<br>
+              「10℃は5℃の2倍温かい」という比較は適切でない（絶対温度ではないため）。</p>
+            <p>(例) 西暦，元号，気温（摂氏），日付</p>
+          </li>
+          <li>
+            <strong>比例尺度</strong>（比率尺度）
+            <p>等間隔に並ぶ数値で、絶対的な原点がある（0は「何もない」ことを表す）。</p>
+            <p>「10cmは5cmの2倍長い」という比較が可能。</p>
+            <p>(例) 長さ，重さ，時間，年齢，エネルギー，絶対温度，金額</p>
+        </li>
+      </ul>
+      
+      <h3>尺度水準の特徴</h3>
+
+      <table id="level_of_measurement">
+        <tr>
+          <th rowspan="2" width="140px"></th>
+          <th colspan="2">質的データ</th>
+          <th colspan="2">量的データ</th>
+        </tr>
+        <tr>
+          <th width="120px">名義尺度</th>
+          <th width="120px">順序尺度</th>
+          <th width="120px">間隔尺度</th>
+          <th width="120px">比例尺度</th>
+        </tr>
+        <tr>
+          <th>順序性</th><td>×</td><td>○</td><td>○</td><td>○</td>
+        </tr>
+        <tr>
+          <th>等間隔</th><td>×</td><td>×</td><td>○</td><td>○</td>
+        </tr>
+        <tr class="border-bottom_double">
+          <th>正比例</th><td>×</td><td>×</td><td>×</td><td>○</td>
+        </tr>
+        <tr>
+          <th>データ数</th><td>○</td><td>○</td><td>○</td><td>○</td>
+        </tr>
+        <tr>
+          <th>最頻値</th><td>○</td><td>○</td><td>○</td><td>○</td>
+        </tr>
+        <tr>
+          <th>最大値・最小値</th><td>×</td><td>○</td><td>○</td><td>○</td>
+        </tr>
+        <tr>
+          <th>中央値・四分位数</th><td>×</td><td>○</td><td>○</td><td>○</td>
+        </tr>
+        <tr>
+          <th>平均値</th><td>×</td><td>×</td><td>○</td><td>○</td>
+        </tr>
+        <tr class="border-bottom_double">
+          <th>分散・標準偏差</th><td>×</td><td>×</td><td>○</td><td>○</td>
+        </tr>
+        <tr>
+          <th>大小の比較</th><td>×</td><td>○</td><td>○</td><td>○</td>
+        </tr>
+        <tr>
+          <th>加減算</th><td>×</td><td>×</td><td>○</td><td>○</td>
+        </tr>
+        <tr class="border-bottom_double">
+          <th>乗除算</th><td>×</td><td>×</td><td>×</td><td>○</td>
+        </tr>
+        <tr class="small-text">
+          <th>例</th>
+          <td>氏名，性別，血液型，好きな食べ物，正誤，有無，電話番号，背番号</td>
+          <td>服のサイズ，警報レベル，震度，おみくじの結果，☆評価</td>
+          <td>西暦，元号，気温（摂氏），日付</td>
+          <td>長さ，重さ，時間，年齢，エネルギー，絶対温度，金額</td>
+        </tr>
+      </table>
+      
+		</article>
+    <article>
+      <h2 id="headline_4">(4) 例題</h2>
+      
+      <div id="examples"></div>
+      
+      <h3>例題１</h3>
+      <p>表１はある試験を行った結果である。これについて、次の各問いに答えよ。</p>
+      
+      <h4>(1) 度数分布表の作成</h4>
+      <p>表１の点数について、表２に度数分布表を作成します。度数を求めるときは、次の<b>COUNTIF関数</b>または<b>COUNTIFS関数</b>を使います。</p>
+      <pre class="example"><code><pre><code class="excel">=COUNTIF(範囲, ">="&階級の下限値) - COUNTIF(範囲, ">"&階級の上限値)</code></pre></code></pre>
+      <pre class="example"><code><pre><code class="excel">=COUNTIFS(範囲, ">="&階級の下限値, 範囲, "<="&階級の上限値)</code></pre></code></pre>
+      
+      <h4>(2) 最大値・最小値と四分位数</h4>
+      <p>表１の点数について、表３に最大値・最小値・四分位数を求めます。最大値・最小値は、それぞれ<b>MAX関数</b>や<b>MIN関数</b>を使っても求めることができますが、四分位数を求める<b><span class="tooltip" tooltip-data="クォータイル">QUARTILE関数</span></b>を使うことで、四分位数も含めて求めることができます。</p>
+      <pre class="example"><code><pre><code class="excel">=QUARTILE(範囲, 四分位数)</code></pre></code></pre>
+      <p>第２引数の<b>四分位数</b>は<b>0</b>〜<b>4</b>の整数を次のように指定します。</p>
+      <ul>
+        <li>四分位数に<b>0</b>を指定すると、データ内の<b>最小値</b><tt>(0%)</tt>が返されます。</li>
+        <li>四分位数に<b>1</b>を指定すると、データ内の<b>第１四分位数</b><tt>(25%)</tt>が返されます。</li>
+        <li>四分位数に<b>2</b>を指定すると、データ内の<b>第２四分位数</b><tt>(50%)</tt>が返されます。</li>
+        <li>四分位数に<b>3</b>を指定すると、データ内の<b>第３四分位数</b><tt>(75%)</tt>が返されます。</li>
+        <li>四分位数に<b>4</b>を指定すると、データ内の<b>最大値</b><tt>(100%)</tt>が返されます。</li>
+      </ul>
+      
+      <h4>(3) ヒストグラムの作成</h4>
+      <p><span class="notes">❶表１の点数を選択</span>した状態でメニューバーの<span class="notes">❷挿入</span> ＞ <span class="notes">❸グラフ</span>を選択します。</p>
+      <img src="./img/ss31_902.png" class="screen_shot" width="400px">
+      
+      <p>グラフエディタの<span class="notes">❶設定</span>から、<span class="notes">❷グラフの種類</span>を<span class="notes">❸ヒストグラム</span>にします。次に、グラフエディタの<span class="notes">❹カスタマイズ</span>から、<span class="notes">❺ヒストグラム</span>を選択し、<span class="notes">❻パケットサイズ</span>を<span class="notes">10</span>に変更します（パケットサイズは階級幅のことです）。また、<span class="notes">❼横軸</span>を選択し、<span class="notes">❽最小値</span>を<span class="notes">0</span>，<span class="notes">❾最大値</span>を<span class="notes">100</span>に変更します。</p>
+      <img src="./img/ss31_903.png" class="screen_shot">
+      
+      <p>バケットサイズは階級幅、最小値と最大値は横軸の範囲を示します。</p>
+      <img src="./img/ss31_904.png" class="screen_shot" width="400px">
+      
+      <h4>解答例</h4>
+      <details>
+        <summary>
+          解答例を表示
+        </summary>
+        <img src="./img/ss31_901.png" class="screen_shot">
+      </details>
+      
+      
+		</article>
+
+    
+	</section>
+
+  
+
+	<section id="examples_and_questions"><!-- script_pages.js --></section>
+	
+	
+    
+    
+</body>
+</html>

@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html>
+   <head>
+       <!-- Google tag (gtag.js) ここから-->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+            <script>
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-ZW1B1EX70P');
+            </script>
+       <!-- Google tag (gtag.js) ここまで-->
+      <link rel="icon" href="./img/favicon.ico" />
+    
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  
+  <!-- Lightbox2 CDN -->
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+        <!-- Highlight.js -->
+    <link rel="stylesheet" href="./highlightjs/styles/ks.css">
+    <script src="./highlightjs/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    
+  <meta charset="UTF-8" />
+      <title>スプレッドシート実習</title>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+	   
+  <!--MathJax-->
+    <script src="./js/math-jax.js" type="text/javascript" charset="UTF-8"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+  <!--/MathJax-->
+	   
+ </head>
+ <body>
+	<header><!-- script_pages.js --></header>
+  <!----COMMON HEADER END---->	
+	
+
+	<section>
+		
+		<article>
+			<div style="position: relative; width:960px; height:530px; overflow:hidden;">
+				<iframe src="https://docs.google.com/presentation/d/19aZgHXOSa4NfMs0h3HA_6xsLalRv_3oSZU4XVDoqle8/embed?rm=minimal&slide=id.g3359f6ea749_1_77"
+								frameborder="0"
+								width="960"
+								height="530"
+								allowfullscreen="true"
+								mozallowfullscreen="true"
+								webkitallowfullscreen="true">
+				</iframe>
+				<div style="position:absolute;top:0;left:0;width:100%;height:100%;background:transparent;"></div>
+			</div>
+		
+			<iframe src="https://docs.google.com/presentation/d/e/2PACX-1vQoWGMkW5o0idXHMG9l2ly6SG8Al9EbO28gLyUXaFLPxSrz-78zkH8RU2_VpDSTZ1Rr_yhrXIDFkH5Y/embed?start=false&loop=false&delayms=3000" frameborder="0" allowfullscreen="true" mozallowfullscreen="true" webkitallowfullscreen="true"></iframe>
+
+
+
+			<!--
+			<h2 id="headline_1">(1) セルの参照</h2>
+
+			<h3>セルの参照</h3>
+			<p>上記の実習ファイルを開くと、次のような値が既に入力されています。</p>
+			
+			<p class="center">
+				<a      href="./img/ss02_001.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_001.png" class="screen_shot">
+				</a>
+			</p>
+			<p>E4セルに<b>=C4+D4</b>と入力すると、C4セルとD4セルに入力された数字を足し算した結果が表示されます。</p>
+			<p class="center">
+				<a      href="./img/ss02_002.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_002.png" class="screen_shot">
+				</a><br>
+			</p>
+			<p>このように他のセルの値を計算式に代入することを、<b>セルの参照</b>といいます。</p>
+			
+			<h3>計算式のオートフィル</h3>
+			<p>E4セルの右下の<b class="blue">●</b>の上にカーソルを乗せると、ポインターの形が<b>＋</b>に変わります。カーソルが<b>＋</b>のまま下方向に<b>ドラッグ</b>します。<br>
+			※ドラッグ：トラックパッドを押し続けたまま移動する操作のこと。</p>
+			<p class="center">
+				<a      href="./img/ss02_003.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_003.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p>E5〜E8セルにもE4のセルと同様に計算した結果が表示されます。このような操作のことを<b>オートフィル</b>といいます。</p>
+			<p class="center">
+				<a      href="./img/ss02_004.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_004.png" class="screen_shot">
+				</a>
+			</p>
+			<p>E6セルをダブルクリックし、セルの中を確認してみましょう。</p>
+			<p class="center">
+				<a      href="./img/ss02_005.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_005.png" class="screen_shot">
+				</a>
+			</p>
+			<p>E6セルの中は、<b>=C6+D6</b>となっていることがわかります。</p>
+			<p class="center">
+				<a      href="./img/ss02_006.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_006.png" class="screen_shot">
+				</a>
+			</p>
+			<p>E4セル(=C4+D4)をオートフィルしたので、E6セル(=C6+D6)も同様の計算が入力されました。元のセルの参照セルの相対的な位置が、オートフィル先のセルの参照セルの相対的な位置と同じになっていることに注目してください。</p>
+			
+			<h3>練習１</h3>
+			<p>増加量の列には、下半期の売上が上半期よりもいくつ分増加したか求めます。同様に数式を入力し、オートフィルによってそれぞれのフルーツの売り上げの増加量を求めてみましょう。</p>
+			<p class="center">
+				<a      href="./img/ss02_007.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_007.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p class="center">
+				<a      href="./img/ss02_008.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_008.png" class="screen_shot">
+				</a>
+			</p>
+			<p class="center">
+				<a      href="./img/ss02_009.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_009.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<h3>練習２</h3>
+			<p>続いて増加率を求めてみましょう。</p>
+			<p class="center">
+				<a      href="./img/ss02_010.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_010.png" class="screen_shot">
+				</a>
+			</p>
+			<p><b>自動入力の候補を表示</b>が出たら、<b>✓</b>を押すと、自動的にオートフィルされます。</p>
+			<p class="center">
+				<a      href="./img/ss02_011.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_011.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p>ただし、意図しない結果が自動入力されることもあるので、必ず確認をしましょう。</p>
+			<p class="center">
+				<a      href="./img/ss02_013.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_013.png" class="screen_shot">
+				</a>
+			</p>
+		
+
+			
+		</article>
+
+		
+		<article>
+			<h2 id="headline_2">(2) 表の書式設定</h2>
+			<h3>セルの値の表示形式（パーセント表示）</h3>
+			<p>G4〜G8セルを選択し、ツールバーの<b>%</b>を押します。すると、セルの表示形式が小数からパーセント表示になります。</p>
+			<p class="center">
+				<a      href="./img/ss02_015.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_015.png" class="screen_shot">
+				</a>
+			</p>
+
+			
+			<h3>表の枠線</h3>
+			<p>B3セル〜G8セルを選択し、ツールバーの<b>田</b>を押し、<b>すべての枠線</b>を選択します。すると、表の枠線を設定することができました。</p>
+			<p class="center">
+				<a      href="./img/ss02_019.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_019.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p class="center">
+				<a      href="./img/ss02_020.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_020.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<h3>セルの書式設定（太字）</h3>
+			<p>B3セル〜B8セルを選択し、ツールバーの<b>B</b>を押します。すると、セルの文字が太字になりました。</p>
+			<p class="center">
+				<a      href="./img/ss02_021.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_021.png" class="screen_shot">
+				</a>
+			</p>
+			<p>同様にB3セル〜G3セルを選択し、ツールバーの<b>B</b>を押します。すると、セルの文字が太字になりました。</p>
+			<p class="center">
+				<a      href="./img/ss02_023.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_023.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<h3>セルの塗りつぶし</h3>
+			<p>E3セル〜E8セルを選択し、ツールバーの<b>塗りつぶしの色</b>を押し、<b>明るい赤3</b>を選択します。すると、合計列のセルの背景色が明るい赤になりました。</p>
+			<p class="center">
+				<a      href="./img/ss02_024.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_024.png" class="screen_shot">
+				</a>
+			</p>
+			<p>同様に増加量列を<b>明るい青3</b>にしてみましょう。</p>
+			<p class="center">
+				<a      href="./img/ss02_025.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_025.png" class="screen_shot">
+				</a>
+			</p>
+			<p>続いて増加率列を<b>明るい紫3</b>にしてみましょう。</p>
+			<p class="center">
+				<a      href="./img/ss02_026.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss02_026.png" class="screen_shot">
+				</a>
+			</p>
+			
+		-->
+		</article>
+
+		<article>
+			<h2 id="homework">課題</h2>
+			
+			<p>下記のリンク先から課題ファイルをダウンロードし、以下の(1)〜(5)に答えなさい。</p>
+			<div id="assignment"></div>
+			
+			
+			<h4>(1) B1〜E1セルの値を参照して、次の式をF1セルに入力し、その答えを表示しなさい。</h4>
+				<p>$$10 + 20 - 30 + 40$$</p>
+			<p><br></p>
+			
+			<h4>(2) B2〜E2セルの値を参照して、次の式をF2セルに入力し、その答えを表示しなさい。</h4>
+				<p>$$12 + 34 \times 5 + 6$$</p>
+			<p><br></p>			
+
+			<h4>(3) B3〜E3セルの値を参照して、次の式をF4セルに入力し、その答えを表示しなさい。</h4>
+				<p>$$\frac{96 + 4^7}{8} $$</p>
+			<p><br></p>		
+			
+			<h4>(4) B4〜E4セルの値を参照して、次の式をF4セルに入力し、その答えを表示しなさい。</h4>
+				<p>$$\frac{3.5}{2.5 - 1.5 \times 0.5} $$</p>
+			<p><br></p>		
+			
+			<h4>(5) B5〜E5セルの値を参照して、次の式をF5セルに入力し、その答えを表示しなさい。</h4>
+				<p>$$\frac{66}{(92 - 86) \times 4} $$</p>
+			<p><br></p>		
+		</article>
+		
+	</section>
+ 
+
+<!-- COMMON FOOTER START -->
+	<section id="examples_and_questions"><!-- script_pages.js --></section>
+	<section id="next_page"><!-- script_pages.js --></section>
+	<footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+    <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+    <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+</html>
+

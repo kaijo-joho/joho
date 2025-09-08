@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html>
+   <head>
+       <!-- Google tag (gtag.js) ここから-->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+            <script>
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-ZW1B1EX70P');
+            </script>
+       <!-- Google tag (gtag.js) ここまで-->
+      <link rel="icon" href="./img/favicon.ico" />
+    
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  
+  <!-- Lightbox2 CDN -->
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+        <!-- Highlight.js -->
+    <link rel="stylesheet" href="./highlightjs/styles/ks.css">
+    <script src="./highlightjs/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    
+  <meta charset="UTF-8" />
+      <title>スプレッドシート実習</title>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+ </head>
+ <body>
+	<header><!-- script_pages.js --></header>
+	<!----COMMON HEADER END---->	
+	
+
+	<section>
+		
+		<article>
+			<h2 id="headline_1">(1) グラフの挿入</h2>
+
+			<h3>グラフの挿入</h3>
+			<p>上記の実習ファイルを開くと、次のような値が既に入力されています。</p>
+			<p class="center">
+				<a      href="./img/ss04_001.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_001.png" class="screen_shot">
+				</a>
+			</p>
+			<p>B3セルからE15セルまで選択します。</p>
+
+			<p class="center">
+				<a      href="./img/ss04_002.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_002.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p>メニューバーの<b>挿入</b>から<b>グラフ</b>を選択します。</p>
+			<p class="center">
+				<a      href="./img/ss04_003.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_003.png" class="screen_shot">
+				</a>
+			</p>
+			<p>グラフが挿入され、右側に<b>グラフエディタ</b>のパネルが表示されました。</p>
+			<p class="center">
+				<a      href="./img/ss04_004.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_004.png" class="screen_shot">
+				</a>
+			</p>
+
+			
+			
+			<h3>グラフの設定</h3>
+			<p><b>グラフエディタ</b>パネルの<b>設定</b>から<b>グラフの種類</b>を確認します。今回は<b>折れ線グラフ</b>を選択します（既に選択済みかもしれません）。</p>
+
+			<p class="center">
+				<a      href="./img/ss04_005.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_005.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<h3>グラフのタイトル</h3>
+			<p>グラフのタイトルを変更します。<b>グラフエディタ</b>パネルの<b>カスタマイズ</b>から<b>グラフと軸のタイトル</b>を開き、<b>タイトルテキスト</b>を「一日の最高気温の月平均（平年値）」に変更します。<br>グラフのタイトルに反映されていることを確認します。</p>
+			<p class="center">
+				<a      href="./img/ss04_006.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_006.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<h3>縦軸のグリッド線と目盛り</h3>
+			<p>気温を比較したいので、縦軸のグリッド線の間隔を細かくします。<b>グラフエディタ</b>パネルの<b>カスタマイズ</b>から<b>グリッドラインと目盛</b>を開き、<b>副グリッド線</b>にチェックを入れます。</p>
+			
+			<p class="center">
+				<a      href="./img/ss04_007.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_007.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p>続いて、<b>主目盛り</b>にもチェックを入れます。
+			</p>
+			
+			<p class="center">
+				<a      href="./img/ss04_008.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_008.png" class="screen_shot">
+				</a>
+			</p>
+			<p></p>
+			
+			<h3>縦棒グラフ</h3>
+			<p>下部の<b>シートタブ</b>から<b>降水量の月平均</b>シートに切り替えます。</p>
+			<p>次図のように、今度は<b>降水量</b>について<b>縦棒グラフ</b>を作成してみましょう。</p>
+			
+			
+			<p class="center">
+				<a      href="./img/ss04_009.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_009.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p>他にもさまざまな種類のグラフが用意されています。データの目的や目的に合った種類にグラフを選択しましょう。</p>
+			
+		</article>
+		
+		<article>
+			<h2 id="headline_2">(2) グラフの種類のカスタマイズ</h2>
+
+			<h3>グラフの挿入</h3>
+			<p>下部の<b>シートタブ</b>から<b>東京の気温と降水量</b>シートに切り替えます。</p>
+			<p>B3〜F15セルを選択し、メニューバーの<b>挿入</b>から<b>グラフ</b>を選択します。</p>
+			
+			<p class="center">
+				<a      href="./img/ss04_010.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_010.png" class="screen_shot">
+				</a>
+			</p>
+
+			<h3>複合グラフ</h3>
+			<p>グラフエディタの<b>設定</b>から、<b>グラフの種類</b>を<b>複合グラフ</b>を選択します。</p>
+
+			<p class="center">
+				<a      href="./img/ss04_013.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_013.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<h3>グラフタイトルの変更</h3>
+			<p>グラフエディタの<b>カスタマイズ</b>から、<b>グラフと軸のタイトル</b>を選択し、タイトルテキストを<b>東京の気温と降水量</b>と変更します。</p>
+			<p class="center">
+				<a      href="./img/ss04_014.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_014.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<h3>系列ごとのグラフの種類の変更</h3>
+			<p>次に、平均気温・最高気温・最低気温を折れ線グラフ、降水量を棒グラフに変更します。</p>
+			<p><b>系列</b>を選択し、操作対象の系列を<b>すべての系列に適用</b>から<b>平均気温</b>にします。</p>
+			<p class="center">
+				<a      href="./img/ss04_015.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_015.png" class="screen_shot">
+				</a>
+			</p>
+			<p>平均気温のグラフの<b>種類</b>を<b>折れ線</b>に変更します。</p>
+			<p class="center">
+				<a      href="./img/ss04_016.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_016.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p>続いて、操作対象の系列を<b>降水量</b>にして、グラフの種類を<b>縦棒</b>に変更します。</p>
+			<p class="center">
+				<a      href="./img/ss04_017.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_017.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p><b>塗りつぶしの色</b>を<b>明るいコーンフラワーブルー3</b>に変更します。</p>
+			<p class="center">
+				<a      href="./img/ss04_018.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_018.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p>気温と降水量が同じ縦軸になっているので、降水量のみ縦軸の幅を変更します。</p>
+			<p>グラフエディタの<b>カスタマイズ</b>から、<b>系列</b>を選択し、<b>軸</b>を<b>左軸</b>から<b>右軸</b>に変更します。</p>
+			<p class="center">
+				<a      href="./img/ss04_019.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_019.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<h3>軸のタイトル</h3>
+			<p>次に、縦軸の<b>タイトルテキスト</b>を変更します。</p>
+			<p>グラフエディタの<b>カスタマイズ</b>から、<b>グラフと軸のタイトル</b>を選択し、操作対象を<b>縦軸のタイトル</b>に変更します。</p>
+			<p class="center">
+				<a      href="./img/ss04_021.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_021.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p><b>タイトルテキスト</b>を<b>気温［℃］</b>にします。</p>
+			<p class="center">
+				<a      href="./img/ss04_020.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_020.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p>続いて、操作対象を<b>右の縦軸のタイトル</b>に変更します。</p>
+			<p class="center">
+				<a      href="./img/ss04_021.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_021.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p><b>タイトルテキスト</b>を<b>降水量［mm］</b>に変更します。</p>
+			<p class="center">
+				<a      href="./img/ss04_022.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_022.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<h3>データラベルの表示</h3>
+			<p>降水量の値を表示してみましょう。</p>
+			<p>グラフエディタの<b>カスタマイズ</b>から、<b>系列</b>を選択し、操作対象の系列を<b>降水量</b>にし、<b>データラベル</b>にチェックを入れます。</p>
+			<p class="center">
+				<a      href="./img/ss04_023.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss04_023.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<h3>グラフのカスタマイズの練習</h3>
+			<p>同様に、宗谷岬と与那国島も気温と降水量のグラフを作成してみましょう。</p>
+			<p>下部の<b>シートタブ</b>から<b>宗谷岬の気温と降水量</b>シートに切り替え、同様の操作をします。</p>
+			<p>続いて、下部の<b>シートタブ</b>から<b>与那国島の気温と降水量</b>シートに切り替え、同様の操作をします。</p>
+			<p>今回のカスタマイズは必要最低限のところのみの変更でしたが、いろいろな項目を変更してみて最適な表現を探してみましょう。</p>
+			
+		</article>
+		
+		<article>
+			<h2 id="homework">課題</h2>
+			
+			<p>下記のリンク先から課題ファイルをダウンロードし、以下の各問いに答えなさい。</p>
+			<div id="assignment"></div>
+			
+			<h4>(1) A1〜E13を選択し、グラフを挿入しなさい。</h4>
+			<p><br></p>
+			
+			<h4>(2) グラフの種類を、折れ線グラフの<b>複合グラフ</b>に変更しなさい。</h4>
+			<p><br></p>			
+
+			<h4>(3) グラフのタイトルを<b>与那国島の気温と降水量</b>に変更しなさい。</h4>
+			<p><br></p>		
+			
+			<h4>(4) 平均気温・最高気温・最低気温を<b>折れ線グラフ</b>、降水量を<b>縦棒グラフ</b>に設定しなさい。また、降水量の軸を<b>右軸</b>に変更しなさい。</h4>
+			<p><br></p>		
+			
+			<h4>(5) 降水量の縦棒グラフの塗りつぶしの色をを、<b>明るいコーンフラワーブルー3</b>に変更しなさい。</h4>
+			<p><br></p>	
+			
+			<h4>(6) 降水量の縦棒グラフのデータラベルを表示しなさい。</h4>
+			<p><br></p>					
+
+			
+		</article>
+		
+	</section>
+ 
+
+<!-- COMMON FOOTER START -->
+	<section id="examples_and_questions"><!-- script_pages.js --></section>
+	<section id="next_page"><!-- script_pages.js --></section>
+	<footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+    <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+    <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+</html>

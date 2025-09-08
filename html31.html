@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+ <body>
+	
+	
+	
+
+	<section>
+    <article>
+      <p>次の実習ファイルをダウンロードし、<b>HTML実習</b>フォルダの中に保存してください。</p>
+      <p><ul>
+        <li><a href="./html/sample24_block.html" download>sample24_block.html</a></li>
+      </ul></p>
+    </article>
+
+
+		<article>
+			<h2 id="headline_1">(1) Webサイトの構造</h2>
+			
+			<p>Webページの集まりを<b>Webサイト</b>という。Webサイト内のWebページは<b>ハイパーリンク</b>でつながれ、このつながりをどのように構成するかでWebサイト全体の構造が決まる。</p>
+      
+      <h3>直線的構造</h3>
+      <p>ユーザに順を追ってページを進んで欲しい場合に有効な構造です。</p>
+			<p class="center"><img src="./img/html31_001.png" class="image_center" width="350px" alt="直線的構造"></p>
+      
+      
+      <h3>階層構造（ツリー構造）</h3>
+      <p>サイト内で現在地を把握しやすい構造です。階層を深くするとクリック数も増えるため、注意が必要です。</p>
+      <p class="center"><img src="./img/html31_002.png" class="image_center" width="300px" alt="階層構造"></p>
+      
+      <h3>網状構造</h3>
+      <p>ページ間の移動が自由なのでリンクを設置しやすいが、全体像が捉えにくい。</p>
+      <p class="center"><img src="./img/html31_003.png" class="image_center" width="260px" alt="網状構造"></p>
+      
+
+    </article>
+   
+
+		<article>
+			<h2 id="headline_2">(2) 階層構造の例</h2>
+      <p><a href="https://www.kaijo.ed.jp/" target="_blank">海城のホームページ</a>は次のような階層構造となっている。</p>
+      <div class="example">
+トップページ（index.html）
+    ├── 海城について
+    │        ├── 海城について（about.html）
+    │        ├── 理事長・校長挨拶（message.html）
+    │        ├── 学校沿革（history.html）
+    │        ├── 施設（facilities.html）
+    │        └── 校章について（brand.html）
+    ├── 学校生活
+    │        ├── 学校生活（school-life.html）
+    │        ├── 学校行事（event.html）
+    │        └── クラブ活動（club.html）
+    ├── 海城の教育
+    │        ├── 海城の教育（education.html）
+    │        ├── カリキュラム（curriculum.html）
+    │        ├── 各教科紹介（subject.html）
+    │        └── グローバル教育（global.html）
+    ├── 受験生の方へ
+    │        ├── 受験生の方へ（admission.html）
+    │        ├── オープンキャンパス（orientation.html）
+    │        ├── 入試Ｑ＆Ａ（faq.html）
+    │        ├── 各入試要項（general.html）
+    │        └── カリキュラム（curriculum.html）
+    ├── 進学状況（career.html）
+    ├── 最新情報（news.html）
+    ├── 在校生 保護者（students-parents.html）
+    └── アクセス（access.html）
+      </div>
+   
+
+    </article>
+   
+	</section>
+		
+ 
+
+
+ 
+	
+    
+    
+</body>
+</html>
+

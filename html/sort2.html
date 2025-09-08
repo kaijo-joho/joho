@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>ソートの動的なビジュアル表現</title>
+    <link rel="stylesheet" type="text/css" href="../css/css.css">
+  </head>
+
+  <body>
+    
+    
+    <div id="insertion-sort" class="demo">
+      <label for="arrayLength1">配列の長さ:</label>
+      <input type="number" id="arrayLength1" value="8" min="2">
+      <button onclick="initialize1()">配列をリセット</button>
+      
+      <div class="container" id="aryContainer1"></div>
+      
+      <div class="container" id="tmpContainer1">
+        <div class="item" id="divTmp1">
+          <div class="divValue" id="divTmpValue1"></div>
+          <div class="divIndex">tmp</div>
+        </div>
+      </div>
+      <div id="description1" class="description"></div>
+      <button onclick="nextStep1()">次へ</button>
+    </div>
+    
+    <div style="height:100px"></div>
+    
+    
+    <div id="quick-sort" class="demo">
+      <label for="arrayLength2">配列の長さ:</label>
+      <input type="number" id="arrayLength2" value="10" min="2">
+      <button onclick="initialize2()">配列をリセット</button>
+      
+      <div class="container" id="aryContainer2"></div>
+      
+      <div class="container" id="pivotContainer">
+        <div class="item" id="divPivot">
+          <div class="divValue" id="pivotValue"></div>
+          <div class="divIndex">pivot</div>
+        </div>
+        
+        <div id="divCountSwap2" class="item2"></div>
+      
+      </div>
+      
+      <div id="description2" class="description"></div>
+
+      <button onclick="nextStep2()">次へ</button>
+    </div>
+    
+    
+
+
+    
+
+
+    <script>
+      let divs = [];
+      
+      let divs1 = [];
+      let step1 = 0;
+      let i = 0;
+      let j = 0;
+      let countCompare = 0;
+      let countSwap = 0;
+      
+      let divs2 = [];
+      let target = [];
+      let step = 0;
+      let left = 0;
+      let right = 0;
+      let pivot = 0;
+      let t = 0;
+      let startId = 0;
+      let endId = 0;
+      let countSwap2 = 0;
+      let divs2active = [];
+      
+      const container1 = document.getElementById('aryContainer1');
+      const description1 = document.getElementById('description1');
+      const divTmp1 = document.getElementById('divTmpValue1');
+      
+      const container2 = document.getElementById('aryContainer2');
+      const description2 = document.getElementById('description2');
+      const pivotValue = document.getElementById('pivotValue');
+      const divCountSwap2 = document.getElementById('divCountSwap2');
+      
+      initialize1();
+      initialize2();
+      
+      
+      function initialize1(){
+        description1.innerHTML = `挿入ソートを開始します。<b>次へ</b>を押してください。`;
+        container1.innerHTML ='';
+        
+        let arrayLength = parseInt(document.getElementById('arrayLength1').value);
+        
+        divs1 = createDivs(container1, arrayLength, true);
+        step1 = 0;
+        divTmp1.textContent = ""
+        i = 1;
+        j = 0;
+        countCompare = 0;
+        countSwap = 0;
+      }
+      
+      function nextStep1(){
+        //挿入ソート　次へ
+        
+        if(i>=divs1.length){
+          description1.innerHTML = `すべてが整列済みになり、並び替え完了です。`;
+          return;
+        }
+        
+        if(step1==0 && !divs1[0].classList.contains('sorted')){
+          divs1[0].classList.add('sorted');
+          description1.innerHTML = `先頭の要素<b>${divs1[0].textContent}</b>を整列済みとします。`;
+          
+        }else if(step1%4==0){
+          divTmp1.textContent = divs1[i].textContent;
+          divs1[i].classList.add('highlighted');
+          divTmp1.classList.add('highlighted');
+          description1.innerHTML = `未整列の先頭（<b>${i}</b>番目）の要素<b>${divs1[i].textContent}</b>を変数<b>tmp</b>に入れます。`;
+          step1++;
+        }else if(step1%4==1){
+          divs1[i].textContent = "";
+          description1.innerHTML = `<b>tmp</b>に入れた<b>${i}</b>番目の要素をカラにします。`;
+          j = i-1;
+          step1++;
+        }else if(step1%4==2){
+          divs1[i].classList.remove('highlighted');
+          divTmp1.classList.remove('highlighted');
+          if(j>=0 && parseInt(divs1[j].textContent) > parseInt(divTmp1.textContent)){
+            divs1[j+1].textContent = divs1[j].textContent;
+            divs1[j].textContent = "";
+            divs1[j+1].classList.add('sorted');
+            divs1[j].classList.add('sorted');
+            description1.innerHTML = `tmp<b>${divTmp1.textContent}</b>より大きい整列済みの要素を、後から順に右に１つずつずらします。`;
+            j--;
+          }else{
+            divs1[j+1].textContent = divTmp1.textContent;
+            description1.innerHTML = `tmp<b>${divTmp1.textContent}</b>をカラの要素に入れます。`;
+            divTmp1.textContent = "";
+            step1++;
+          }
+          
+        }else if(step1%4==3){
+          i++;
+          step1++;
+          
+        }else{
+          step1++;
+        }
+        
+        
+      }
+      
+      
+      function initialize2(){
+        description2.textContent = `クイックソートを開始します。<b>次へ</b>を押してください。`;
+        let arrayLength = parseInt(document.getElementById('arrayLength2').value);
+
+        divs2 = createDivs(container2, arrayLength, true);
+        divs2active = [];
+        for(let x=0;x<divs2.length;x++){
+          divs2active.push(true);
+          
+          divs2[x].classList.remove('sorted');
+          divs2[x].classList.remove('highlighted');
+          divs2[x].classList.remove('highlighted2');
+        }
+        
+        
+        target = [[0, divs2.length-1]];
+        pivotValue.textContent = "";
+        step = 0;
+        flgCollision = false;
+        left = 0;
+        right = 0;
+        pivot = 0;
+        t = 0;
+        countSwap2 = 0;
+        divCountSwap2.innerHTML = `交換回数: <b>${countSwap2}</b>`;
+      }
+      
+      function nextStep2(){
+        //クイックソート　次へ
+        
+        let flgCollision = false;
+        
+        let arr = [];
+        for(let x=0;x<divs2.length;x++){
+          arr.push(parseInt(divs2[x].textContent));
+        }
+        
+        
+        console.log(arr);
+        console.log("pivot="+pivot+", left=("+left+")"+divs2[left].textContent+", right=("+right+")"+divs2[right].textContent+", t="+t+", step="+step+", "+target);
+        
+        if(right<0){
+          return;
+        }
+        if(target.length<=0){
+          description2.innerHTML = `並び替え完了`;
+          for(let x=0;x<divs2.length;x++){
+            divs2[x].classList.add('sorted');
+          }
+          return;
+        }
+        
+
+        
+        if(step==0){
+          //pivotの値と、left,rightの位置を決めます。
+          
+          startId = target[t][0];
+          endId = target[t][1];
+          
+          pivot = parseInt(divs2[Math.floor((startId + endId)/2)].textContent);
+          pivotValue.textContent = pivot;
+          
+          for(let x=0;x<divs2.length;x++){
+            divs2[x].classList.remove('highlighted');
+            divs2[x].classList.remove('highlighted2');
+            
+            
+            if(x<startId || endId<x){
+              divs2[x].classList.add('lowlighted');
+            }else{
+              divs2[x].classList.remove('lowlighted');
+            }
+            
+            
+            if(!divs2active[x]){
+              divs2[x].classList.add('sorted');
+            }else{
+              divs2[x].classList.remove('sorted');
+            }
+            
+          }
+          
+          left = startId;
+          right = endId;
+          
+          description2.innerHTML = `左端<b>${left}</b>〜右端<b>${right}</b>の範囲を調べます。pivotを中央の値<b>${pivot}</b>とします。`;
+          
+          step=1;
+        }else if(step==1){
+          //左の値がpivotより小さければ、調べる左の位置をひとつ右に移動
+          
+          for(let x=0;x<divs2.length;x++){
+            divs2[x].classList.remove('swapped');
+            divs2[x].classList.remove('highlighted2');
+          }
+          
+          if(left > startId){
+            divs2[left-1].classList.remove('highlighted');
+          }
+          
+          if(parseInt(divs2[left].textContent) < pivot){
+            divs2[left].classList.add('highlighted');
+            description2.innerHTML = `<b>${left}</b>番目の値<b>${divs2[left].textContent}</b> ＜ pivot<b>${pivot}</b>なので、次に進みます。`;
+            left++;
+          
+            
+          }else{
+            divs2[left].classList.add('highlighted2');
+            description2.innerHTML = `<b>${left}</b>番目の値<b>${divs2[left].textContent}</b> ≧ pivot<b>${pivot}</b>なので、交換対象とします。次に、交換する相手を右端から調べます。`;
+
+            step=2;
+                              
+          }
+          
+        }else if(step==2){
+          if(right < endId){
+            divs2[right+1].classList.remove('highlighted');
+          }
+          
+          if(parseInt(divs2[right].textContent) > pivot){
+            divs2[right].classList.add('highlighted');
+            description2.innerHTML = `<b>${right}</b>番目の値<b>${divs2[right].textContent}</b> ＞ pivot<b>${pivot}</b>なので、次に進みます。`;
+            right--;
+          
+          }else{
+            divs2[right].classList.add('highlighted2');
+            description2.innerHTML = `<b>${right}</b>番目の値<b>${divs2[right].textContent}</b> ≦ pivot<b>${pivot}</b>なので、左側の交換対象と交換します。`;
+            step=3;
+          }
+          
+        }else if(step==3){
+          if(right <= left){
+            flgCollision = true;
+
+          }else{
+            swap(left, right);
+            description2.innerHTML = `<b>${left}</b>番目の値<b>${divs2[left].textContent}</b>と<b>${right}</b>番目の値<b>${divs2[right].textContent}</b>を交換しました。次に、再び左側の続きを調べていきます。`;
+            left++;
+            right--;
+            step=1;
+          }
+        }
+        
+        
+        if(flgCollision){
+          description2.innerHTML = `左端からの探索と右端からの探索がぶつかり、pivotより小さいグループと大きいグループができました。これらのグループについて、それぞれもう一度同様の操作をします。`;
+          target.shift();
+          if(right+1 < endId){
+            target.unshift([right+1, endId]);
+          }
+          if(startId < left-1){
+            target.unshift([startId, left-1]);
+          }
+          
+          for(let x=0;x<divs2.length;x++){
+            divs2active[x] = false;
+          }
+          
+          for(let x=0;x<target.length;x++){
+            for(let y=target[x][0];y<=target[x][1];y++){
+              divs2active[y] = true;
+            }
+          }
+          flgCollision=false;
+          step=0;
+        }
+        
+      }
+      
+      function swap(i, j){
+        [divs2[i].textContent, divs2[j].textContent] = [divs2[j].textContent, divs2[i].textContent];
+        
+        countSwap2++;
+        divCountSwap2.innerHTML = `交換回数: <b>${countSwap2}</b>`;
+        divs2[i].classList.remove('highlighted');
+        divs2[j].classList.remove('highlighted');
+        divs2[i].classList.add('swapped');
+        divs2[j].classList.add('swapped');
+      }
+      
+      function createDivs(container, arrayLength, shuffle = true){
+        container.innerHTML = '';
+        let aryNum = Array.from({ length: arrayLength }, (_, i) => i);
+        
+        if(shuffle){aryNum = shuffleArray(aryNum);}
+        
+        let aryDiv = [];
+        
+        for(let i=0;i<aryNum.length;i++){
+          const div = document.createElement('div');
+          div.classList.add('item');
+          container.appendChild(div);
+          
+          const divValue = document.createElement('div');
+          divValue.classList.add('divValue');
+          divValue.textContent = aryNum[i];
+          aryDiv.push(divValue);
+          div.appendChild(divValue);
+          
+          const divIndex = document.createElement('div');
+          divIndex.classList.add('divIndex');
+          divIndex.textContent = i;
+          div.appendChild(divIndex);
+        }
+        
+        return aryDiv;
+      }
+      
+      function shuffleArray(ary) {
+        for (let i = (ary.length - 1); 0 < i; i--) {
+          let r = Math.floor(Math.random() * (i + 1));
+          [ary[i], ary[r]] = [ary[r], ary[i]];
+        }
+        return ary;
+      }
+    </script>
+  </body>
+
+</html>

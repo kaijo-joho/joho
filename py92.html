@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+<body>
+  
+    
+  
+  <section>
+    
+    <article>
+      <h2 id="headline_1">print関数の基本</h2>
+      <p>
+        print関数の基本は下記リンク先のページで扱いました。
+      </p>
+      <ul>
+        <li>
+          <a href="./py12.html#headline_5">1-2. 画面出力と変数 (5) print関数の使い方</a>
+        </li>
+      </ul>
+      <p>
+        このページの以下のものは、print関数の応用編の内容になります。授業 〜 大学入学共通テストのレベルでは必要ありませんが、将来Pythonを使って高度なことをやろうとする場合には必要になることもあります。
+      </p>
+    </article>
+    
+
+    <article>
+      <h2 id="f-string">f-string（フォーマット済み文字列リテラル）‡</h2>
+
+      <p>f-string（フォーマット済み文字列リテラル）を用いると、文字列の中に変数を埋め込むことができます。ただし、Python 3.6以降のバージョンが必要です（Google Colaboratoryは対応しています）。</p>
+      
+      <h3>変数・計算式の結果</h3>
+      <p>文字列の中に変数を埋め込むときは、<tt>{変数}</tt>と指定します。</p>
+      <pre class="python"><code>
+        x = 7
+        y = 11
+
+        print(f"x={x}, y={y}, x+y={x+y}")
+		  </code></pre>
+      <pre class="result"><code>x=7, y=11, x+y=18</code></pre> 
+
+      <p>なお、Python 3.8からは、変数名のあとに<tt>=</tt>をつけると、変数名も含めて出力できるようになりました。</p>
+      <pre class="python"><code>
+        print(f"{x=}, {y=}, {x+y=}")
+      </code></pre>
+      <pre class="result"><code>x=7, y=11, x+y=18</code></pre> 
+
+      <h3>桁の異なる数値の右揃え</h3>
+      <p>桁の異なる数値を改行して出力するとき、通常の出力では左揃えになり比較しにくくなりますが、<tt>{変数:数値}</tt>と指定することで数値分の幅を確保して右揃えで出力します。なお、変数の値の桁数が数値を超えると左揃えで出力されます。</p>
+      <pre class="python"><code>
+        a = 1
+        print(f"{a*1:6}")
+        print(f"{a*10:6}")
+        print(f"{a*100:6}")
+        print(f"{a*1000:6}")
+        print(f"{a*10000:6}")
+        print(f"{a*100000:6}")
+        print(f"{a*1000000:6}")
+      </code></pre>
+      <pre class="result"><code>
+        <span style="color: transparent">|</span>      1
+        <span style="color: transparent">|</span>     10
+        <span style="color: transparent">|</span>    100
+        <span style="color: transparent">|</span>   1000
+        <span style="color: transparent">|</span>  10000
+        <span style="color: transparent">|</span> 100000
+        <span style="color: transparent">|</span> 1000000
+        # 右揃えになっているのを確認するために、ここでは行頭にバーティカルバー(|)を入れていますが、実際には入りません。
+      </code></pre> 
+      
+      
+      <h3>小数点以下の桁数の指定</h3>
+      <p>小数点以下の桁数を指定するときは、<tt>{変数:.桁数f}</tt>と指定します。指定した桁数以降の数値は四捨五入されます。また、桁が足りない場合には0(ゼロ)で埋めます。</p>
+      <pre class="python"><code>
+        a = 12.3456
+        print(f"a:.0fの値: {a:.0f}")
+        print(f"a:.1fの値: {a:.1f}")
+        print(f"a:.2fの値: {a:.2f}")
+        print(f"a:.3fの値: {a:.3f}")
+        print(f"a:.4fの値: {a:.4f}")
+        print(f"a:.5fの値: {a:.5f}")
+        print(f"a:.6fの値: {a:.6f}")
+      </code></pre>
+      <pre class="result"><code>
+        a:.0fの値: 12
+        a:.1fの値: 12.3
+        a:.2fの値: 12.35
+        a:.3fの値: 12.346
+        a:.4fの値: 12.3456
+        a:.5fの値: 12.34560
+        a:.6fの値: 12.345600
+      </code></pre> 
+      
+      <h3>パーセント</h3>
+      <p><tt>{変数:.桁数%}</tt>と指定すると、変数をパーセント表記にします。</p>
+      <pre class="python"><code>
+        a = 0.123456
+        print(f"{a:.0%}")
+        print(f"{a:.1%}")
+        print(f"{a:.2%}")
+        print(f"{a:.3%}")
+      </code></pre>
+      <pre class="result"><code>
+        12%
+        12.3%
+        12.35%
+        12.346%
+      </code></pre> 
+      
+      
+      <h3>3桁ごとにカンマで区切る</h3>
+      <p><tt>{変数:,}</tt>と指定すると、３桁ごとにカンマで区切ります。</p>
+      <pre class="python"><code>
+        n = 12345678
+        print(f"¥{n:,}")
+      </code></pre>
+      <pre class="result"><code>¥12,345,678</code></pre> 
+
+    </article>
+  
+
+
+  </section>
+        
+
+ 
+
+   
+
+  
+
+  
+    
+    
+</body>
+</html>
+

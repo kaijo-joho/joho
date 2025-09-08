@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+  <style>
+    .cc-tile{
+      min-width: 40px;
+      width: 9.09%;
+      height: 40px;
+      line-height: 40px;
+      margin:0 auto;
+    }
+    .cc-tile p{
+      margin:0 auto;
+      text-align: center;
+      color: #7f7f7f;
+    }
+  </style>
+ </head>
+ <body>
+	
+	
+	
+
+	<section>
+    <article>
+      <p>次の実習ファイルをダウンロードし、<b>HTML実習</b>フォルダの中に保存してください。</p>
+      <p><ul>
+        <li><a href="./html/sample24_block.html" download>sample24_block.html</a></li>
+      </ul></p>
+    </article>
+
+
+		<article>
+			<h2 id="headline_1">(1) 色の三属性</h2>
+			<p>色には、<b>色相</b>（色の違い）・<b>明度</b>（明るさ）・<b>彩度</b>（鮮やかさ）の三属性がある。人の眼は物体が吸収・反射する光や、物体を透過する光を色として知覚するが、その見え方には色相・明度・彩度の違いがある。これらは互いに関連しあっているため、ひとつの属性を扱っただけでは、特定の色をいいあらわすことはできない。</p>
+
+      <h3>色相</h3>
+      <p>色相は、赤・橙・黄・緑・青・紫などの言葉で区別される、<b>色み</b>の違いのことです。色みは、光の波長の違いによって変化します。</p>
+      <p>色相の変化を円状に並べたものを<b>色相環</b>といいます。色相環に並んだ色で反対にある色を<b>補色</b>といい、互いの色を引き立てる配色となります。また、隣り合う色どうしを類似色といい、色の差が小さいため統一感のある配色となります。</p>
+      <img src="./img/color-wheel.png" class="screen_shot" alt="色相環" width="400px">
+      
+      <h3>明度</h3>
+      <p>明度は、色の明るさの度合いを表します。明度が高いと白に近づき、明るい爽快なイメージになります。明度が低いと黒に近づき、暗く落ち着いたイメージになります。</p>
+      <h4>赤の明度</h4>
+      <div style="display: flex;">
+        <div style="background-color:hsl(0,100%,0%);" class="cc-tile"><p>0%</p></div>
+        <div style="background-color:hsl(0,100%,10%);" class="cc-tile"><p>10%</p></div>
+        <div style="background-color:hsl(0,100%,20%);" class="cc-tile"><p>20%</p></div>
+        <div style="background-color:hsl(0,100%,30%);" class="cc-tile"><p>30%</p></div>
+        <div style="background-color:hsl(0,100%,40%);" class="cc-tile"><p>40%</p></div>
+        <div style="background-color:hsl(0,100%,50%);" class="cc-tile"><p>50%</p></div>
+        <div style="background-color:hsl(0,100%,60%);" class="cc-tile"><p>60%</p></div>
+        <div style="background-color:hsl(0,100%,70%);" class="cc-tile"><p>70%</p></div>
+        <div style="background-color:hsl(0,100%,80%);" class="cc-tile"><p>80%</p></div>
+        <div style="background-color:hsl(0,100%,90%);" class="cc-tile"><p>90%</p></div>
+        <div style="background-color:hsl(0,100%,100%);" class="cc-tile"><p>100%</p></div>
+      </div>
+      <h4>緑の明度</h4>
+      <div style="display: flex;">
+        <div style="background-color:hsl(120,100%,0%);" class="cc-tile"><p>0%</p></div>
+        <div style="background-color:hsl(120,100%,10%);" class="cc-tile"><p>10%</p></div>
+        <div style="background-color:hsl(120,100%,20%);" class="cc-tile"><p>20%</p></div>
+        <div style="background-color:hsl(120,100%,30%);" class="cc-tile"><p>30%</p></div>
+        <div style="background-color:hsl(120,100%,40%);" class="cc-tile"><p>40%</p></div>
+        <div style="background-color:hsl(120,100%,50%);" class="cc-tile"><p>50%</p></div>
+        <div style="background-color:hsl(120,100%,60%);" class="cc-tile"><p>60%</p></div>
+        <div style="background-color:hsl(120,100%,70%);" class="cc-tile"><p>70%</p></div>
+        <div style="background-color:hsl(120,100%,80%);" class="cc-tile"><p>80%</p></div>
+        <div style="background-color:hsl(120,100%,90%);" class="cc-tile"><p>90%</p></div>
+        <div style="background-color:hsl(120,100%,100%);" class="cc-tile"><p>100%</p></div>
+      </div>
+      <h4>青の明度</h4>
+      <div style="display: flex;">
+        <div style="background-color:hsl(240,100%,0%);" class="cc-tile"><p>0%</p></div>
+        <div style="background-color:hsl(240,100%,10%);" class="cc-tile"><p>10%</p></div>
+        <div style="background-color:hsl(240,100%,20%);" class="cc-tile"><p>20%</p></div>
+        <div style="background-color:hsl(240,100%,30%);" class="cc-tile"><p>30%</p></div>
+        <div style="background-color:hsl(240,100%,40%);" class="cc-tile"><p>40%</p></div>
+        <div style="background-color:hsl(240,100%,50%);" class="cc-tile"><p>50%</p></div>
+        <div style="background-color:hsl(240,100%,60%);" class="cc-tile"><p>60%</p></div>
+        <div style="background-color:hsl(240,100%,70%);" class="cc-tile"><p>70%</p></div>
+        <div style="background-color:hsl(240,100%,80%);" class="cc-tile"><p>80%</p></div>
+        <div style="background-color:hsl(240,100%,90%);" class="cc-tile"><p>90%</p></div>
+        <div style="background-color:hsl(240,100%,100%);" class="cc-tile"><p>100%</p></div>
+      </div>
+      <h4>無彩色の明度</h4>
+      <div style="display: flex;">
+        <div style="background-color:hsl(0,0%,0%);" class="cc-tile"><p>0%</p></div>
+        <div style="background-color:hsl(0,0%,10%);" class="cc-tile"><p>10%</p></div>
+        <div style="background-color:hsl(0,0%,20%);" class="cc-tile"><p>20%</p></div>
+        <div style="background-color:hsl(0,0%,30%);" class="cc-tile"><p>30%</p></div>
+        <div style="background-color:hsl(0,0%,40%);" class="cc-tile"><p>40%</p></div>
+        <div style="background-color:hsl(0,0%,50%);" class="cc-tile"><p>50%</p></div>
+        <div style="background-color:hsl(0,0%,60%);" class="cc-tile"><p>60%</p></div>
+        <div style="background-color:hsl(0,0%,70%);" class="cc-tile"><p>70%</p></div>
+        <div style="background-color:hsl(0,0%,80%);" class="cc-tile"><p>80%</p></div>
+        <div style="background-color:hsl(0,0%,90%);" class="cc-tile"><p>90%</p></div>
+        <div style="background-color:hsl(0,0%,100%);" class="cc-tile"><p>100%</p></div>
+      </div>
+      
+      <h3>彩度</h3>
+      <p>彩度は、色の鮮やかさの度合いを表します。彩度が高いと鮮やかで派手な色になり、彩度が低いと落ち着いた地味な色になります。白・灰・黒色は彩度をもたないので、<b>無彩色</b>といいます。一方、無彩色以外の色を<b>有彩色</b>といいます。</p>
+  
+      <h4>赤の彩度</h4>
+      <div style="display: flex;">
+        <div style="background-color:hsl(0,0%,50%);" class="cc-tile"><p>0%</p></div>
+        <div style="background-color:hsl(0,10%,50%);" class="cc-tile"><p>10%</p></div>
+        <div style="background-color:hsl(0,20%,50%);" class="cc-tile"><p>20%</p></div>
+        <div style="background-color:hsl(0,30%,50%);" class="cc-tile"><p>30%</p></div>
+        <div style="background-color:hsl(0,40%,50%);" class="cc-tile"><p>40%</p></div>
+        <div style="background-color:hsl(0,50%,50%);" class="cc-tile"><p>50%</p></div>
+        <div style="background-color:hsl(0,60%,50%);" class="cc-tile"><p>60%</p></div>
+        <div style="background-color:hsl(0,70%,50%);" class="cc-tile"><p>70%</p></div>
+        <div style="background-color:hsl(0,80%,50%);" class="cc-tile"><p>80%</p></div>
+        <div style="background-color:hsl(0,90%,50%);" class="cc-tile"><p>90%</p></div>
+        <div style="background-color:hsl(0,100%,50%);" class="cc-tile"><p>100%</p></div>
+      </div>
+      <h4>緑の彩度</h4>
+      <div style="display: flex;">
+        <div style="background-color:hsl(120,0%,50%);" class="cc-tile"><p>0%</p></div>
+        <div style="background-color:hsl(120,10%,50%);" class="cc-tile"><p>10%</p></div>
+        <div style="background-color:hsl(120,20%,50%);" class="cc-tile"><p>20%</p></div>
+        <div style="background-color:hsl(120,30%,50%);" class="cc-tile"><p>30%</p></div>
+        <div style="background-color:hsl(120,40%,50%);" class="cc-tile"><p>40%</p></div>
+        <div style="background-color:hsl(120,50%,50%);" class="cc-tile"><p>50%</p></div>
+        <div style="background-color:hsl(120,60%,50%);" class="cc-tile"><p>60%</p></div>
+        <div style="background-color:hsl(120,70%,50%);" class="cc-tile"><p>70%</p></div>
+        <div style="background-color:hsl(120,80%,50%);" class="cc-tile"><p>80%</p></div>
+        <div style="background-color:hsl(120,90%,50%);" class="cc-tile"><p>90%</p></div>
+        <div style="background-color:hsl(120,100%,50%);" class="cc-tile"><p>100%</p></div>
+      </div>
+      <h4>青の彩度</h4>
+      <div style="display: flex;">
+        <div style="background-color:hsl(240,0%,50%);" class="cc-tile"><p>0%</p></div>
+        <div style="background-color:hsl(240,10%,50%);" class="cc-tile"><p>10%</p></div>
+        <div style="background-color:hsl(240,20%,50%);" class="cc-tile"><p>20%</p></div>
+        <div style="background-color:hsl(240,30%,50%);" class="cc-tile"><p>30%</p></div>
+        <div style="background-color:hsl(240,40%,50%);" class="cc-tile"><p>40%</p></div>
+        <div style="background-color:hsl(240,50%,50%);" class="cc-tile"><p>50%</p></div>
+        <div style="background-color:hsl(240,60%,50%);" class="cc-tile"><p>60%</p></div>
+        <div style="background-color:hsl(240,70%,50%);" class="cc-tile"><p>70%</p></div>
+        <div style="background-color:hsl(240,80%,50%);" class="cc-tile"><p>80%</p></div>
+        <div style="background-color:hsl(240,90%,50%);" class="cc-tile"><p>90%</p></div>
+        <div style="background-color:hsl(240,100%,50%);" class="cc-tile"><p>100%</p></div>
+      </div>
+      
+      <h3>色相・明度・彩度の見本</h3>
+      <p>
+        12色相における明度と彩度は<a href="./color.html" target="_blank">コチラ</a>のページを参照してください。
+      </p>
+
+    </article>
+   
+
+		<article>
+			<h2 id="headline_2">(2) 色のイメージ</h2>
+      <p>
+        赤から炎や情熱、青から海や平和などを思い浮かべる人も多いように、色から物事や概念を連想することがあります。これは、個人の経験や知識、文化や歴史などさまざまなことが影響するため、単純に万人に当てはまるものではありませんが、世界的にもある程度の共通項はあり、言語によらないコミュニケーションを可能にします。
+      </p>
+
+      <table>
+        <tr>
+          <th>色</th>
+          <th>色名</th>
+          <th>色からの連想・イメージ</th>
+        </tr>
+        <tr style="height:40px;">
+          <td style="background-color: red; color:white;">赤</td>
+          <td style="background-color: red; color:white;">red</td>
+          <td style="background-color: red; color:white;">熱い・生命力・強い・情熱・危険</td>
+        </tr>
+        <tr style="height:40px;">
+          <td style="background-color: orange; color:white;">橙</td>
+          <td style="background-color: orange; color:white;">orange</td>
+          <td style="background-color: orange; color:white;">温かい・温情・陽気・快活</td>
+        </tr>
+        <tr style="height:40px;">
+          <td style="background-color: yellow; color:black;">黄</td>
+          <td style="background-color: yellow; color:black;">yellow</td>
+          <td style="background-color: yellow; color:black;">平和・降伏・活発・好奇心・安全</td>
+        </tr>
+        <tr style="height:40px;">
+          <td style="background-color: green; color:white;">緑</td>
+          <td style="background-color: green; color:white;">green</td>
+          <td style="background-color: green; color:white;">自然・安全・調和・健康・治癒</td>
+        </tr>
+        <tr style="height:40px;">
+          <td style="background-color: blue; color:white;">青</td>
+          <td style="background-color: blue; color:white;">blue</td>
+          <td style="background-color: blue; color:white;">冷たい・静けさ・安らぎ・誠実・清澄</td>
+        </tr>
+        <tr style="height:40px;">
+          <td style="background-color: purple; color:white;">紫</td>
+          <td style="background-color: purple; color:white;">purple</td>
+          <td style="background-color: purple; color:white;">高貴・威厳・中性・優雅・個性的</td>
+        </tr>
+        <tr style="height:40px;">
+          <td style="background-color: pink; color:black;">ピンク</td>
+          <td style="background-color: pink; color:black;">pink</td>
+          <td style="background-color: pink; color:black;">軟らかい・優しい・可愛い・恋・桜・幻想的</td>
+        </tr>
+        <tr style="height:40px;">
+          <td style="background-color: brown; color:white;">茶</td>
+          <td style="background-color: brown; color:white;">brown</td>
+          <td style="background-color: brown; color:white;">安定・信頼・伝統・剛健・地味</td>
+        </tr>
+        <tr style="height:40px;">
+          <td style="background-color: white; color:black;">白</td>
+          <td style="background-color: white; color:black;">white</td>
+          <td style="background-color: white; color:black;">純水・潔白・清潔・無・無機質</td>
+        </tr>
+        <tr style="height:40px;">
+          <td style="background-color: black; color:white;">黒</td>
+          <td style="background-color: black; color:white;">black</td>
+          <td style="background-color: black; color:white;">高級・威厳・クール・恐怖・孤独・死</td>
+        </tr>
+      </table>
+      
+
+
+    </article>
+		<article>
+			<h2 id="headline_3">(3) 背景色と文字色の組み合わせ</h2>
+      <p>
+        
+      </p>
+      
+      
+    </article>
+      
+	</section>
+		
+ 
+
+
+ 
+	
+    
+    
+</body>
+</html>
+

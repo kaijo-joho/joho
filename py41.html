@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+<body>
+  
+    
+  
+  <section>
+
+    
+    
+    <article>
+      <h2 id="headline_1">(1) リニアサーチ（線形探索法）</h2>
+      <h3>リニアサーチ（線形探索法）とは</h3>
+      <p><strong>リニアサーチ（線形探索法）</strong>は、先頭から順番に探す値が見つかるまで探すという方法で探索するアルゴリズムです。配列（リスト）内を<b>直線的（リニア）</b>に探していくので、リニアサーチといいます。<a href="./py31.html#linear-search">3-1. リスト #例題2</a>でも扱いました。</p>
+      <p>単純でわかりやすい方法ですが、値をひとつひとつ調べていくので、データが大量になると時間がかかってしまう欠点があります。</p>
+      
+      <h3>フローチャート</h3>
+      <img src="img/search_linear.png" alt="リニアサーチのフローチャート" class="image">
+      
+      <h3>デモンストレーション</h3>
+      <div id="linear-search" class="demo">
+        <label for="arrayLength1">配列の長さ:</label>
+        <input type="number" id="arrayLength1" class="arrayLength" value="8" min="2" max="20">
+        <label for="arrayLength1">探索値:</label>
+        <input type="number" id="searchValueInput1" class="arrayLength" value="1">
+        <button onclick="initialize()">配列をリセット</button>
+
+        <div class="container" id="arycontainer"></div>
+
+        <div class="container" id="searchValuecontainer">
+          <div class="item">
+            <div class="divValue" id="searchValue"></div>
+            <div class="divIndex">探索値</div>
+          </div>
+        </div>
+
+        <div id="description" class="description"></div>
+
+        <button onclick="nextStep()">次へ</button>
+      </div>
+      
+      
+      
+      <h3>プログラム</h3>
+      <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
+      <p><b>配列</b>（Pythonではリストともいいます）は英語でarrayというので、これを略して<tt>arr</tt>という変数名で用いられます。</p>
+      <pre class="python" data-title="リニアサーチ（線形探索法）"><code>
+        arr = [10, 23, 45, 67, 89, 12, 3]
+        print(arr)
+        target = int(input("探索値: "))   # 探索値を入力させる
+
+        x = -1         # 探索値のインデックス番号（初期値: -1）
+        n = len(arr)   # 配列の長さ
+
+        for i in range(n):         # 配列の中を順番にループする
+          if arr[i] == target:     # i番目の要素と探索値が等しければ
+            x = i                  # xにiを代入する
+            break                  # ループを終了する
+
+        if x != -1:                # xが-1ではない場合（探索値が見つかった場合）
+          print(target, "のインデックス番号は", x)
+        else:                      # xが-1(初期値)の場合（探索値が存在しなかった場合）
+          print(target, "は存在しません。")
+      </code></pre>
+      <pre class="result"><code>
+        [10, 23, 45, 67, 89, 12, 3]
+        探索値: 45   # 45と入力した場合
+        45 のインデックス番号は 2
+      </code></pre>
+      
+      <h3>探索回数</h3>
+      <p>探索回数は、探索値を見つけるまでにかかった繰り返しの回数のことです。</p>
+      <p>ここでは、データ数\( n \)の配列について考えます。</p>
+      
+      <h4>最小探索回数</h4>
+      <p><strong>最小探索回数</strong>は、探索値が配列の先頭にあった場合なので、１回となります。</p>
+      
+      <h4>最大探索回数</h4>
+      <p><strong>最大探索回数</strong>は、配列の末尾にあった場合なので、 \( n \) 回となります。</p>
+      
+      <h4>平均探索回数</h4>
+      <p><strong>平均探索回数</strong>は、すべての探索回数の平均（期待値）で求めることができます。</p>
+      <p>1回目で見つかる確率は \(1/n\)，2回目で見つかる確率は \(1/n\) ，3回目で見つかる確率は \(1/n\)...，\(n\)回目で見つかる確率は \(1/n\)なので、平均探索回数は、</p>
+
+\[
+\begin{align*}
+\text{平均探索回数} &= 1 \times \frac{1}{n} + 2 \times \frac{1}{n} + 3 \times \frac{1}{n} + \ldots + n \times  \frac{1}{n} \\[16pt] 
+&= (1 + 2 + 3 + \ldots + n) \times \frac{1}{n} \\[16pt] 
+&= \frac{1}{2}n(n + 1) \times \frac{1}{n} \\[16pt] 
+&= \frac{n + 1}{2}
+\end{align*}
+\]
+      <p>となります。</p>
+      
+    </article>
+    <article>
+      <h2 id="headline_2">(2) 最大値・最小値の探索</h2>
+      <h3>最大値・最小値の探索</h3>
+      <p>リニアサーチを応用すると、最大値・最小値の探索を書くことができます。</p>
+      <p>配列の0番目の値を暫定の最大値(最小値)に代入し、1番目から末尾の要素との大小を調べます。配列の最後まで調べて、最後に暫定値に代入されている値が最大値(最小値)と求めることができます。</p>
+      
+      
+      
+      <h3>最大値探索のプログラム</h3>
+      <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
+      <pre class="python" data-title="最大値の探索"><code>
+        arr = [10, 23, 45, 67, 89, 12, 3]
+        print(arr)
+
+        n = len(arr)
+        max_value = arr[0]                  # 0番目の値を暫定の最大値max_valueに入れる。
+
+        for i in range(1, n):               # 1番目〜末尾まで繰り返す。
+          if max_value < arr[i]:          # 暫定の最大値よりarr[i]が大きければ、
+            max_value = arr[i]          # 暫定の最大値にarr[i]を代入する
+
+        print("最大値は", max_value)        # 配列を最後まで調べて、max_valueに入っている値が最大値と確定する
+      </code></pre>
+      <pre class="result"><code>最大値は 89</code></pre>
+      
+      <h3 id="search-minimum">最小値探索のプログラム</h3>
+      <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
+      <pre class="python" data-title=""><code>
+        # 最小値の探索
+        arr = [10, 23, 45, 67, 89, 12, 3]
+        print(arr)
+
+        n = len(arr)        
+        min_value = arr[0]                  # 0番目の値を暫定の最小値min_valueに入れる。
+
+        for i in range(1, n):               # 1番目〜末尾まで繰り返す。
+          if min_value > arr[i]:          # 暫定の最小値よりarr[i]が小さければ、
+            min_value = arr[i]          # 暫定の最小値にarr[i]を代入する
+
+        print("最小値は", min_value)        # 配列を最後まで調べて、min_valueに入っている値が最小値と確定する
+      </code></pre>      
+      <pre class="result"><code>最小値は 3</code></pre>
+      
+    </article>
+  </section>
+        
+
+
+ 
+
+   
+
+  
+
+  
+    
+    
+
+
+
+    <script>
+      
+      let divs = [];
+      let i = 0;
+      let searchValue = 0;
+      
+      const container = document.getElementById("arycontainer");
+      const description = document.getElementById("description");
+      const search = document.getElementById("searchValue");
+      
+      initialize();
+      
+      
+      function initialize(){
+        description.innerHTML = `リニアサーチを開始します（<b>次へ</b>を押してください）。`;
+        container.innerHTML ="";
+        
+        let arrayLength = parseInt(document.getElementById("arrayLength1").value);
+        divs = createDivs(container, arrayLength, true);
+        
+        searchValue = parseInt(document.getElementById("searchValueInput1").value);
+        search.textContent = searchValue;
+
+        i = 0;
+      }
+      
+      function nextStep(){
+        //リニアサーチ　次へ
+        if(divs[i].classList.contains("sorted")){return;}
+        if(i<divs.length){
+          if(i>0){
+            divs[i-1].classList.remove("highlighted");
+          }
+          
+          if(searchValue==parseInt(divs[i].textContent)){
+             
+            if(divs[i].classList.contains("highlighted")){
+              divs[i].classList.remove("highlighted");
+              divs[i].classList.add("sorted");
+              description.innerHTML = `探索値<b>${searchValue}</b>のインデックス番号は<b>${i}</b>です（探索終了）。`;
+            }else{
+              divs[i].classList.add("highlighted");
+              description.innerHTML = `<b>${divs[i].textContent}</b>は探索値<b>${searchValue}</b>と同じです。`;
+            }
+             
+          }else{
+            divs[i].classList.add("highlighted");
+            description.innerHTML = `<b>${divs[i].textContent}</b>は探索値<b>${searchValue}</b> ではないので、次の要素に移動します。`;
+            i++;
+          }
+
+
+        }else{
+          divs[i-1].classList.remove("highlighted");
+          description.innerHTML = `探索値<b>${searchValue}</b>は存在しません。`;
+        }
+      }
+      
+      
+      function createDivs(container, arrayLength, shuffle = true){
+        container.innerHTML = "";
+        let aryNum = Array.from({ length: arrayLength }, (_, i) => i);
+        
+        if(shuffle){aryNum = shuffleArray(aryNum);}
+        
+        let aryDiv = [];
+        
+        for(let i=0;i<aryNum.length;i++){
+          const div = document.createElement("div");
+          div.classList.add("item");
+          container.appendChild(div);
+          
+          const divValue = document.createElement("div");
+          divValue.classList.add("divValue");
+          divValue.textContent = aryNum[i];
+          aryDiv.push(divValue);
+          div.appendChild(divValue);
+          
+          const divIndex = document.createElement("div");
+          divIndex.classList.add("divIndex");
+          divIndex.textContent = i;
+          div.appendChild(divIndex);
+        }
+        
+        return aryDiv;
+      }
+      
+      function shuffleArray(ary) {
+        for (let i = (ary.length - 1); 0 < i; i--) {
+          let r = Math.floor(Math.random() * (i + 1));
+          [ary[i], ary[r]] = [ary[r], ary[i]];
+        }
+        return ary;
+      }
+    </script>
+</body>
+</html>
+

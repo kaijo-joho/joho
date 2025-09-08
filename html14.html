@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+</head>
+
+<body>
+  
+  
+
+
+  <section>
+    <article>
+      <h2 id="headline_1">(1) 画像の保存先</h2>
+      <p>
+        Webサイトの画像はサイト内のどこに保存されていても呼び出すことは可能ですが、多くのサイトでは画像専用のフォルダを作成して保存しています。この実習でも基本的には画像専用のフォルダ（<b>images</b>フォルダ）を作成し、そこに画像を保存することにします。
+      </p>
+
+      <p class="center">
+        <img src="./img/html14_001.png" style="width:80%;">
+      </p>
+
+
+      <h3>imagesフォルダの作成</h3>
+      <p><b>HTML実習</b>フォルダの中に新しく「<b>images</b>」フォルダを作成します。</p>
+      <p>これ以降、画像ファイルは基本的に<b>images</b>フォルダの中に保存することにします。</p>
+
+      <h3>サンプル画像の保存</h3>
+      <p>次のリンクをクリックして、サンプル画像をダウンロードし、<b>images</b>フォルダの中に保存してください。</p>
+      <p>
+      <ul>
+        <li><a href="./html/images/photo01.jpg" download>photo01.jpg</a></li>
+        <li><a href="./html/images/photo02.jpg" download>photo02.jpg</a></li>
+        <li><a href="./html/images/photo03.jpg" download>photo03.jpg</a></li>
+        <li><a href="./html/images/photo04.jpg" download>photo04.jpg</a></li>
+        <li><a href="./html/images/photo05.jpg" download>photo05.jpg</a></li>
+      </ul>
+      </p>
+    </article>
+
+
+    <article>
+      <h2 id="headline_2">(2) 画像の挿入</h2>
+
+      <h3>&lt;img&gt;タグ</h3>
+      <p>画像を挿入するには<b><span class="tooltip"
+            tooltip-data="イメージ(imageの略)">&lt;img&gt;</span>タグ</b>を使います。ただし、<b>&lt;img&gt;</b>と書くだけでは画像は表示されません。<b>&lt;img&gt;</b>タグの中に次の<strong>属性</strong>を加えることで画像を表示します。
+      </p>
+
+      <table>
+        <tr>
+          <th class="min-width-80px">属性</th>
+          <th class="min-width-200px">概要</th>
+        </tr>
+        <tr>
+          <td><span class="tooltip" tooltip-data="ソース(sourceの略)">src</span></td>
+          <td class="text-align-left">表示する画像ファイルの<b>パス</b>を指定します（必須属性）。<b>パス</b>とは、ファイルの場所を表す文字列のことです（詳細は次項で解説します）。</td>
+        </tr>
+        <tr>
+          <td><span class="tooltip" tooltip-data="ウィドス">width</span></td>
+          <td class="text-align-left">画像の横幅をピクセルで指定します。</td>
+        </tr>
+        <tr>
+          <td><span class="tooltip" tooltip-data="ハイト">height</span></td>
+          <td class="text-align-left">画像の高さをピクセルで指定します。</td>
+        </tr>
+        <tr>
+          <td><span class="tooltip" tooltip-data="オルト">alt</span></td>
+          <td class="text-align-left">画像を表示できないブラウザの場合や読み込みに失敗した場合に画像の代替として表示するテキストを指定します。</td>
+        </tr>
+      </table>
+
+      <p>つまり、画像を表示するときには、次のような記述になります。</p>
+      <pre class="html example"><code>
+        &lt;img src="パス" width="横幅" height="高さ" alt="代替テキスト"&gt;
+      </code></pre>
+
+      <p>実際に、<b>&lt;img&gt;タグ</b>を使って画像を挿入してみましょう。次のコードを書き写してください。末尾の
+        <b>&lt;br&gt;タグ</b>は改行です。これがないと、画像に続けて文字や他の画像が同じ行内に表示されます。
+      </p>
+
+      <pre class="html" data-title="sample1-4.html ＞ 実習コード①"><code>
+        &lt;img src="./images/photo01.jpg" width="480" height="320" alt="写真01"&gt; &lt;br&gt;
+			</code></pre>
+
+      <p><b><span class="tooltip" tooltip-data="ウィドス">width</span>属性</b>と<b><span class="tooltip"
+            tooltip-data="ハイト">height</span>属性</b>は、ブラウザ上で画像の表示サイズを指定します。必須ではありませんがブラウザがページを読み込む際に指定したサイズ分の画像スペースを先に表示し、テキスト部分の読み込みを始めることができます。このことで、閲覧者の体感速度が上がりますので、できるだけ指定するようにしましょう。
+      </p>
+
+      <p>
+        続けて、photo02.jpg〜05.jpgも表示しましょう。属性の値は次の表を参考にしてください。なお、photo03.jpgとphoto05.jpgは縦長の写真画像なので、横幅だけ指定すればその比に合わせて表示されます。
+      </p>
+
+      <pre class="html" data-titel="sample1-4.html ＞ 実習コード①（つづき）"><code>
+        &lt;!-- 下記の表を参考に、photo02.jpg〜photo05.jpgを表示させるタグを記入する --&gt;
+        
+			</code></pre>
+      <table>
+        <tr>
+          <th width="160">画像ファイル</th>
+          <th width="120">横幅</th>
+          <th width="120">高さ</th>
+          <th width="120">代替テキスト</th>
+        </tr>
+        <tr>
+          <td>photo02.jpg</td>
+          <td>300</td>
+          <td>200</td>
+          <td>写真02</td>
+        </tr>
+        <tr>
+          <td>photo03.jpg</td>
+          <td>320</td>
+          <td>指定なし</td>
+          <td>写真03</td>
+        </tr>
+        <tr>
+          <td>photo04.jpg</td>
+          <td>510</td>
+          <td>340</td>
+          <td>写真04</td>
+        </tr>
+        <tr>
+          <td>photo05.jpg</td>
+          <td>300</td>
+          <td>指定なし</td>
+          <td>写真05</td>
+        </tr>
+
+      </table>
+
+
+      <!--
+			<pre class="html"><code>
+        &lt;!-- sample1-4.html ＞ 実習コード①（つづき） --&gt;
+        &lt;img src="./images/photo02.jpg" width="300" height="200" alt="写真02"&gt; &lt;br&gt;
+        &lt;img src="./images/photo03.jpg" width="320" alt="写真03"&gt; &lt;br&gt;
+        &lt;img src="./images/photo04.jpg" width="510" height="340" alt="写真04"&gt; &lt;br&gt;
+        &lt;img src="./images/photo05.jpg" width="300" alt="写真05"&gt; &lt;br&gt;
+			</code></pre>
+      -->
+
+    </article>
+
+    <article>
+      <h2 id="headline_3">(3) ファイルパスについて</h2>
+      <p>
+        <b>&lt;img&gt;タグ</b>で画像ファイルを指定したり、他のページへ移動するためのリンクを指定したりするときには、呼び出し元のページから、対象のファイルを指定します。ファイルの位置を指定するための記述を<b>パス</b>といい、<b>相対パス</b>と<b>絶対パス</b>の２通りの記述方法があります。
+      </p>
+
+      <h3 id="relative_path">相対パス</h3>
+      <p>呼び出し元のファイルからみた、対象のファイルの位置を指定する方法です。</p>
+
+      <h4>呼び出し元と同一フォルダにあるファイルを参照</h4>
+      <p>呼び出し元のファイルと同一フォルダにあるファイルは、「<b>./</b>」のあとに続けてファイル名を記述します。例えば、同じフォルダにあるphoto01.jpgという画像を表示する場合は次のように記述します。</p>
+
+      <p class="center">
+        <img src="./img/html14_002.png" style="width:80%;">
+      </p>
+
+
+
+      <pre class="html example"><code>
+        &lt;img src="./photo01.jpg"&gt;
+      </code></pre>
+
+      <p>「<b>./</b>」は省略可能なので、次のようにファイル名のみを記述しても表示されます。</p>
+
+      <pre class="html example"><code>
+        &lt;img src="photo01.jpg"&gt;
+      </code></pre>
+
+      <h4>特定のフォルダ内にあるファイルを参照</h4>
+      <p>特定のフォルダ内にあるファイルを指定する場合は、「<b>/</b>」を使って「<b>フォルダ名/ファイル名</b>」と記述します。</p>
+      <p>呼び出し元と同一フォルダにある「<b>images</b>」というフォルダの中にある場合は次のように記述します。</p>
+      <p class="center">
+        <img src="./img/html14_003.png" style="width:80%;">
+      </p>
+
+      <pre class="html example"><code>
+        &lt;img src="./images/photo01.jpg"&gt;
+      </code></pre>
+
+      <p>１つ上の階層を指定する場合は、「<b>../</b>」を使います。呼び出し元のフォルダと同階層にある「<b>images</b>」というフォルダの中にある場合は次のように記述します。</p>
+
+
+      <pre class="html example"><code>
+        &lt;img src="../images/photo01.jpg"&gt;
+      </code></pre>
+
+
+      <h3 id="absolute_path">絶対パス</h3>
+      <p>絶対パスは呼び出したいファイルが別のWebサイトで公開されている場合に指定します。httpやhttpsから始まるWebサイトのアドレス（URL）を使ってファイルの場所を指定します。</p>
+
+      <pre class="html example"><code>
+        &lt;img src="https://www.kaijo.ed.jp/wp-content/themes/kaijo-pc/assets/img/apple-touch-icon.png"&gt;
+      </code></pre>
+
+    </article>
+  </section>
+
+
+
+  
+  
+  
+  
+  
+</body>
+
+</html>

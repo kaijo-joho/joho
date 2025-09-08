@@ -1,0 +1,423 @@
+@charset "UTF-8";
+/* =========================================================
+   py41〜43 アルゴリズム・デモ用 CSS（ダーク対応／変数ベース）
+   既存のHTML/CSSクラスは維持。色は .demo 内の変数で制御。
+   ========================================================= */
+
+/* ---------- 既定（ライト）: 配色・寸法のカスタムプロパティ ---------- */
+.demo{
+  /* 面色・タイル色（既存の var(...) 互換のためマッピングも付与） */
+  --demo-surface:         #f7f9fc;  /* 説明欄などの面色 */
+  --demo-tile:            #eef2f6;  /* .item / .item2 の基本背景 */
+
+  /* 既存の変数名へのマッピング（互換用：下のスタイルが参照） */
+  --background-color-lightestgray: var(--demo-surface);
+  --background-color-lightgray:    var(--demo-tile);
+
+  /* 枠線・文字色など */
+  --demo-border:          rgba(0,0,0,0.22);
+  --demo-text-strong:     #0b3b64;            /* description内<b>の文字色 */
+  --demo-code-font:       ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* インデックス部（下帯） */
+  --demo-index-bg:        #333333;
+  --demo-index-text:      #dddddd;
+
+  /* 状態色（ハイライト等）— 既存クラスが参照する既存変数名にもマッピング */
+  --demo-hi-1:            #e5f0ff;          /* highlighted */
+  --demo-hi-2:            #cfe4ff;          /* highlighted2 */
+  --color-blue-lightest:  var(--demo-hi-1);
+  --color-blue-lighter:   var(--demo-hi-2);
+
+  --demo-lowlight-bg:     #aaaaaa;          /* lowlighted 背景 */
+  --demo-lowlight-text:   #666666;
+
+  --demo-swapped-bg:      #e5aacc;          /* swapped 背景 */
+  --demo-sorted-bg:       #96a7e7;          /* sorted 背景 */
+  --demo-sorted-text:     #666666;
+
+  /* アクセント（description内 <b> の淡い面色） */
+  --demo-accent-tint:     rgba(10,84,138,0.08);
+  --font-color-strong-text: var(--demo-text-strong); /* 既存互換 */
+  --font-code:              var(--demo-code-font);   /* 既存互換 */
+
+  /* 寸法（必要に応じて調整） */
+  --demo-item-w:          50px;
+  --demo-item2-min-w:     80px;
+  --demo-item2-w:         128px;
+  --demo-item-h:          54px;
+  --demo-radius:          5px;
+  --demo-value-font:      28px;
+  --demo-index-font:      10px;
+
+
+
+  --demo-btn-bg:           #f4f7fb;
+  --demo-btn-text:         #0b3b64;
+  --demo-btn-border:       rgba(0,0,0,.18);
+  --demo-btn-hover-bg:     #e9f0f7;
+  --demo-btn-active-bg:    #dbe7f3;
+  --demo-btn-disabled-bg:  rgba(0,0,0,.06);
+  --demo-btn-focus-rgb:    96,164,255; /* focus ring のRGB（,区切りで保持） */
+
+
+  --demo-input-bg:           #ffffff;
+  --demo-input-text:         #0f172a;
+  --demo-input-border:       rgba(0,0,0,.18);
+  --demo-input-hover-bg:     #f7fafc;
+  --demo-input-placeholder:  rgba(0,0,0,.45);
+  --demo-input-disabled-bg:  rgba(0,0,0,.06);
+  --demo-input-readonly-bg:  rgba(0,0,0,.04);
+  --demo-input-invalid:      #c2410c;        /* 焦げオレンジ */
+  --demo-input-valid:        #166534;        /* 深緑 */
+  --demo-input-focus-rgb:    var(--demo-btn-focus-rgb, 96,164,255); /* ボタンと揃える */
+
+  --demo-input-radius:       6px;
+  --demo-input-pad-y:        .42rem;
+  --demo-input-pad-x:        .6rem;
+  --demo-input-line:         1.3;
+
+}
+
+/* ---------- ダーク：まずは静的フォールバックで十分な見え方に ---------- */
+@media (prefers-color-scheme: dark) {
+  .demo{
+    --demo-surface:         #151b24;   /* 近似暗色（静的） */
+    --demo-tile:            #1b2530;
+
+    --background-color-lightestgray: var(--demo-surface);
+    --background-color-lightgray:    var(--demo-tile);
+
+    --demo-border:          rgba(255,255,255,0.18);
+    --demo-text-strong:     #e6edf7;
+
+    --demo-index-bg:        #1f2630;
+    --demo-index-text:      #d8dde7;
+
+    --demo-hi-1:            #243a58;   /* 暗所での薄い青面（落ち着いたトーン） */
+    --demo-hi-2:            #2c4a72;
+    --color-blue-lightest:  var(--demo-hi-1);
+    --color-blue-lighter:   var(--demo-hi-2);
+
+    --demo-lowlight-bg:     #4b5565;
+    --demo-lowlight-text:   #cbd5e1;
+
+    --demo-swapped-bg:      #53394a;   /* ピンク系の落ち着いた面色 */
+    --demo-sorted-bg:       #3b4e7b;
+    --demo-sorted-text:     #e5e7eb;
+
+    --demo-accent-tint:     rgba(96,164,255,0.16); /* <b> 背景の淡い青 */
+
+
+    --demo-btn-bg:           #1b2530;
+    --demo-btn-text:         #e6edf7;
+    --demo-btn-border:       rgba(255,255,255,.18);
+    --demo-btn-hover-bg:     #223042;
+    --demo-btn-active-bg:    #28364a;
+    --demo-btn-disabled-bg:  rgba(255,255,255,.10);
+    --demo-btn-focus-rgb:    96,164,255;
+
+
+    --demo-input-bg:           #111720;
+    --demo-input-text:         #e6edf7;
+    --demo-input-border:       rgba(255,255,255,.18);
+    --demo-input-hover-bg:     #172130;
+    --demo-input-placeholder:  rgba(255,255,255,.5);
+    --demo-input-disabled-bg:  rgba(255,255,255,.10);
+    --demo-input-readonly-bg:  rgba(255,255,255,.06);
+    --demo-input-invalid:      #f59e0b;  /* ダークで見やすい黄橙 */
+    --demo-input-valid:        #34d399;  /* 明るめの緑 */
+  }
+}
+
+/* ---------- color-mix が使える環境ではダークの色を微調整（任意） ---------- */
+@supports (color: color-mix(in oklab, #fff 10%, #000)) {
+  @media (prefers-color-scheme: dark) {
+    .demo{
+      --demo-surface:         color-mix(in oklab, #ffffff 6%,  #0b0f14);
+      --demo-tile:            color-mix(in oklab, #ffffff 10%, #0b0f14);
+      --demo-border:          color-mix(in oklab, #ffffff 18%, transparent);
+
+      --demo-hi-1:            color-mix(in oklab, #60a4ff 22%, transparent);
+      --demo-hi-2:            color-mix(in oklab, #60a4ff 36%, transparent);
+
+      --demo-swapped-bg:      color-mix(in oklab, #ff82c1 35%, transparent);
+      --demo-sorted-bg:       color-mix(in oklab, #7da0ff 30%, transparent);
+      --demo-accent-tint:     color-mix(in oklab, #60a4ff 18%, transparent);
+
+      --demo-btn-bg:        color-mix(in oklab, #ffffff 10%, #0b0f14);
+      --demo-btn-hover-bg:  color-mix(in oklab, #ffffff 14%, #0b0f14);
+      --demo-btn-active-bg: color-mix(in oklab, #ffffff 18%, #0b0f14);
+      --demo-btn-border:    color-mix(in oklab, #ffffff 18%, transparent);
+
+      --demo-input-bg:        color-mix(in oklab, #ffffff 8%,  #0b0f14);
+      --demo-input-hover-bg:  color-mix(in oklab, #ffffff 12%, #0b0f14);
+      --demo-input-border:    color-mix(in oklab, #ffffff 18%, transparent);
+    }
+  }
+}
+
+/* =========================================================
+   既存のスタイル（色を変数参照に置換／構造はそのまま）
+   ========================================================= */
+
+.demo{
+  width: 90%;
+  min-width: 300px;
+  margin: 0 auto;
+}
+
+.container {
+  display: flex;
+  margin: 10px auto;
+  overflow-x: scroll;
+}
+
+/* タイル（要素） */
+.item {
+  min-width: var(--demo-item-w);
+  width: var(--demo-item-w);
+  height: var(--demo-item-h);
+  border: 1px solid var(--demo-border);
+  background-color: var(--background-color-lightgray);
+  transition: background-color .5s, color .3s, border-color .3s;
+  margin: 2px;
+  border-radius: var(--demo-radius);
+  padding: 0;
+}
+
+.item2 {
+  min-width: var(--demo-item2-min-w);
+  width: var(--demo-item2-w);
+  height: var(--demo-item-h);
+  background-color: var(--background-color-lightgray);
+  transition: background-color .5s, color .3s;
+  margin: 2px;
+  padding: 0;
+  align-items: center;
+  line-height: var(--demo-item-h);
+  text-align: center;
+}
+
+/* 値とインデックス */
+.divValue{
+  height: 40px;
+  width: 100%;
+  margin: 0 auto;
+  font-size: var(--demo-value-font);
+  font-weight: bold;
+  text-align: center;
+}
+
+.divIndex{
+  height: 14px;
+  width: 100%;
+  font-size: var(--demo-index-font);
+  margin: 0 auto;
+  background-color: var(--demo-index-bg);
+  color: var(--demo-index-text);
+  text-align: center;
+  border-radius: 0 0 var(--demo-radius) var(--demo-radius);
+}
+
+/* 状態表示 */
+.highlighted  { background-color: var(--color-blue-lightest); border-radius: var(--demo-radius) var(--demo-radius) 0 0; }
+.highlighted2 { background-color: var(--color-blue-lighter);  border-radius: var(--demo-radius) var(--demo-radius) 0 0; }
+
+.lowlighted{
+  background-color: var(--demo-lowlight-bg);
+  color: var(--demo-lowlight-text);
+  border-radius: var(--demo-radius) var(--demo-radius) 0 0;
+}
+
+.swapped{
+  background-color: var(--demo-swapped-bg);
+  border-radius: var(--demo-radius) var(--demo-radius) 0 0;
+}
+
+.sorted{
+  background-color: var(--demo-sorted-bg);
+  color: var(--demo-sorted-text);
+  border-radius: var(--demo-radius) var(--demo-radius) 0 0;
+}
+
+/* 説明ボックス */
+.description{
+  height: 60px;
+  padding: 4px;
+  line-height: 1rem;
+  overflow-x: scroll;
+  background-color: var(--background-color-lightestgray);
+}
+
+.description b{
+  font-weight: bold;
+  background-color: var(--demo-accent-tint);
+  color: var(--font-color-strong-text);
+  font-family: var(--font-code);
+  padding: 0 5px;
+}
+
+/* ユーティリティ */
+.arrayLength{ width: 60px; }
+
+
+
+/* 直下ボタン + ネストボタンどちらにも適用 */
+.demo > button,
+.demo button{
+  appearance: none;
+  font: inherit;
+  padding: .42rem .8rem;
+  line-height: 1.2;
+  border-radius: 6px;
+  border: 1px solid var(--demo-btn-border);
+  background: var(--demo-btn-bg);
+  color: var(--demo-btn-text);
+  cursor: pointer;
+  transition:
+    background-color .2s,
+    border-color .2s,
+    color .2s,
+    box-shadow .2s,
+    transform .02s;
+}
+
+.demo > button:hover,
+.demo button:hover{
+  background: var(--demo-btn-hover-bg);
+}
+
+.demo > button:active,
+.demo button:active{
+  background: var(--demo-btn-active-bg);
+  transform: translateY(.5px);
+}
+
+.demo > button:focus-visible,
+.demo button:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(var(--demo-btn-focus-rgb), .35);
+  border-color: rgba(var(--demo-btn-focus-rgb), .60);
+}
+
+.demo > button:disabled,
+.demo button:disabled,
+.demo > button[aria-disabled="true"],
+.demo button[aria-disabled="true"]{
+  cursor: not-allowed;
+  background: var(--demo-btn-disabled-bg);
+  opacity: .7;
+}
+
+
+/* テキスト系 input 一覧セレクタ */
+.demo > input:is(
+  [type="text"], [type="number"], [type="email"], [type="url"],
+  [type="search"], [type="tel"], [type="password"],
+  [type="date"], [type="time"], [type="datetime-local"],
+  [type="month"], [type="week"]
+),
+.demo input:is(
+  [type="text"], [type="number"], [type="email"], [type="url"],
+  [type="search"], [type="tel"], [type="password"],
+  [type="date"], [type="time"], [type="datetime-local"],
+  [type="month"], [type="week"]
+){
+  appearance: none;
+  font: inherit;
+  line-height: var(--demo-input-line);
+  padding: var(--demo-input-pad-y) var(--demo-input-pad-x);
+  border-radius: var(--demo-input-radius);
+  border: 1px solid var(--demo-input-border);
+  background: var(--demo-input-bg);
+  color: var(--demo-input-text);
+  box-shadow: none;
+  outline: none;
+  transition:
+    background-color .15s ease,
+    border-color .15s ease,
+    color .15s ease,
+    box-shadow .15s ease;
+  width: auto; /* 既存 .arrayLength 等の幅指定を優先 */
+  min-width: 0; /* flex内収まり改善 */
+}
+
+/* ホバー */
+.demo > input:is(
+  [type="text"], [type="number"], [type="email"], [type="url"],
+  [type="search"], [type="tel"], [type="password"],
+  [type="date"], [type="time"], [type="datetime-local"],
+  [type="month"], [type="week"]
+):hover,
+.demo input:is(
+  [type="text"], [type="number"], [type="email"], [type="url"],
+  [type="search"], [type="tel"], [type="password"],
+  [type="date"], [type="time"], [type="datetime-local"],
+  [type="month"], [type="week"]
+):hover{
+  background: var(--demo-input-hover-bg);
+}
+
+/* フォーカスリング（ボタンと同系色） */
+.demo > input:is(
+  [type="text"], [type="number"], [type="email"], [type="url"],
+  [type="search"], [type="tel"], [type="password"],
+  [type="date"], [type="time"], [type="datetime-local"],
+  [type="month"], [type="week"]
+):focus-visible,
+.demo input:is(
+  [type="text"], [type="number"], [type="email"], [type="url"],
+  [type="search"], [type="tel"], [type="password"],
+  [type="date"], [type="time"], [type="datetime-local"],
+  [type="month"], [type="week"]
+):focus-visible{
+  box-shadow: 0 0 0 3px rgba(var(--demo-input-focus-rgb), .35);
+  border-color: rgba(var(--demo-input-focus-rgb), .60);
+}
+
+/* プレースホルダ色 */
+.demo input::placeholder{
+  color: var(--demo-input-placeholder);
+}
+
+/* disabled / readonly */
+.demo input:disabled{
+  background: var(--demo-input-disabled-bg);
+  cursor: not-allowed;
+  opacity: .7;
+}
+.demo input[readonly]{
+  background: var(--demo-input-readonly-bg);
+}
+
+/* 簡易のバリデーション色（任意） */
+.demo input:invalid:not(:focus){
+  border-color: var(--demo-input-invalid);
+}
+.demo input:valid:not(:focus){
+  /* 好みで有効時の色。不要ならコメントアウト可 */
+  /* border-color: var(--demo-input-valid); */
+}
+
+/* number のスピンボタン除去（WebKit） */
+.demo input[type="number"]::-webkit-outer-spin-button,
+.demo input[type="number"]::-webkit-inner-spin-button{
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* number のスピンボタン除去（Firefox） */
+.demo input[type="number"]{
+  -moz-appearance: textfield;
+}
+
+/* 検索入力のデフォルト装飾を抑制（Safari） */
+.demo input[type="search"]{
+  -webkit-appearance: none;
+  outline-offset: 0;
+}
+
+
+
+
+

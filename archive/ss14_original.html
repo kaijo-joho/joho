@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html>
+   <head>
+       <!-- Google tag (gtag.js) ここから-->
+            <script async src="https://www.googletagmanager.com/gtag/js?id=G-ZW1B1EX70P"></script>
+            <script>
+                  window.dataLayer = window.dataLayer || [];
+                  function gtag(){dataLayer.push(arguments);}
+                  gtag('js', new Date());
+                  gtag('config', 'G-ZW1B1EX70P');
+            </script>
+       <!-- Google tag (gtag.js) ここまで-->
+      <link rel="icon" href="./img/favicon.ico" />
+    
+  <!-- reset CSS -->
+  <link rel="styesheet" href="https://unpkg.com/ress/dist/ress.min.css">
+  
+  <!-- Lightbox2 CDN -->
+      <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.css" rel="stylesheet">
+      <script src="https://code.jquery.com/jquery-1.12.4.min.js" type="text/javascript"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js" type="text/javascript"></script>
+        <!-- Highlight.js -->
+    <link rel="stylesheet" href="./highlightjs/styles/ks.css">
+    <script src="./highlightjs/highlight.min.js"></script>
+    <script>hljs.highlightAll();</script>
+    
+  <meta charset="UTF-8" />
+      <title>スプレッドシート実習</title>
+      <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+      <script src="./js/script.js" type="text/javascript" charset="UTF-8"></script>  <link rel="stylesheet" type="text/css" href="./css/css.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+	   
+	   <!--MathJax-->
+		<script type="text/javascript" async src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-MML-AM_CHTML,/www_func/MathJax/MyConfig.js">
+		</script>
+	   <!--/MathJax-->
+	   
+ </head>
+ <body>
+	<header><!-- script_pages.js --></header>
+	<!----COMMON HEADER END---->	
+	
+
+	<section>
+		
+		<article>
+			<h2 id="headline_1">(1) 関数</h2>
+
+			<h3>合計値を求めるSUM関数</h3>
+			<p>上記の実習ファイルを開くと、次のような値が既に入力されています。</p>
+			<p class="center">
+				<a      href="./img/ss03_001.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_001.png" class="screen_shot">
+				</a>
+			</p>
+			<p>C27セルに<b>=SUM(C4:C26)</b>と入力します。<br>
+			<b>=SUM(</b>まで入力したあとに、C4〜C26をドラッグしても入力できます。</p>
+
+			<p class="center">
+				<a      href="./img/ss03_002.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_002.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p>入力を確定すると、各区の人口の合計が表示されました。</p>
+			<p class="center">
+				<a      href="./img/ss03_004.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_004.png" class="screen_shot">
+				</a>
+			</p>
+			<p><b>自動入力候補を表示</b>がでたら、<b>×</b>で閉じてください。</p>
+			<p class="center">
+				<a      href="./img/ss03_003.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_003.png" class="screen_shot">
+				</a>
+			</p>
+			<p><b>SUM関数</b>はカッコ内の範囲の合計を求める関数です。</p>
+			<p>このように特定の演算をする機能を<strong>関数</strong>といい、カッコ内に入れる値のことを<strong>引数</strong>（ひきすう）といいます。また、関数によって得られた値のことを<strong>戻り値</strong>といいます。</p>
+			<p>引数にセルの範囲を参照する場合は、<b>C4:C26</b>のように、範囲のはじまりのセル番地とおわりのセル番地を、コロン<b>:</b>でつなぎます。</p>
+
+
+			<p>C27セルをD28にオートフィルすると、各区の面積の合計を求めることができます。</p>
+			<p class="center">
+				<a      href="./img/ss03_005.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_005.png" class="screen_shot">
+				</a>
+			</p>
+			<p class="center">
+				<a      href="./img/ss03_006.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_006.png" class="screen_shot">
+				</a>
+			</p>
+			
+			
+			<h3>AVERAGE関数，MAX関数，MIN関数</h3>
+			<p>C28セルに<b>=AVERAGE(C4:C26)</b>と入力すると、各区の人口（C4〜C26）の平均値を求めることができます。</p>
+
+			<p class="center">
+				<a      href="./img/ss03_007.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_007.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p>C29セルに<b>=MAX(C4:C26)</b>と入力すると、各区の人口（C4〜C26）の最大値を求めることができます。</p>
+			<p class="center">
+				<a      href="./img/ss03_008.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_008.png" class="screen_shot">
+				</a>
+			</p>
+			<p>C30セルに<b>=MIN(C4:C26)</b>と入力すると、各区の人口（C4〜C26）の最小値を求めることができます。</p>
+			<p class="center">
+				<a      href="./img/ss03_009.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_009.png" class="screen_shot">
+				</a>
+			</p>
+			<p>AVERAGE関数，MAX関数，MIN関数は、それぞれ引数の平均値，最大値，最小値を求める関数です。</p>
+			
+			<h3>COUNTIF関数</h3>
+			<p>C31セルに<b>=COUNTIF(C4:C26,">="&amp;C28)</b>と入力すると、各区の人口のうち平均値以上の区の数を求めることができます。</p>
+
+			<p class="center">
+				<a      href="./img/ss03_010.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_010.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p>C32セルに<b>=COUNTIF(C4:C26,"&lt;="&amp;C28)</b>と入力すると、各区の人口のうち平均値以下の区の数を求めることができます。</p>
+			<p class="center">
+				<a      href="./img/ss03_011.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_011.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p>C28〜C32セルを選択し、右に１列オートフィルすると、面積についても平均値，最大値，最小値，平均以上の区の数，平均以下の区の数を求めることができます。</p>
+
+
+			<p class="center">
+				<a      href="./img/ss03_013.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_013.png" class="screen_shot">
+				</a>
+			</p>
+			<p>このように、関数によっては複数の引数を必要とする関数もあります。COUNTIF関数は<b>COUNTIF(範囲, 条件)</b>のように記述し、はじめの引数の範囲のうち、２番目の引数の条件に一致するセルの個数を求めます。<b>条件</b>には特定の決まった値以上だったら<b>">=20"</b>のように書きますが、参照セルを用いる場合は、<b>">="&amp;C28</b>のように、<strong>比較演算子</strong>と参照セルを<strong>&amp;</strong>（アンパサント）で結びます。</p>
+			
+
+			
+			<p>
+				<table>
+				  <tbody>
+					<tr>
+					  <th scope="col">比較演算子</th>
+					  <th scope="col">意味</th>
+					</tr>					
+					<tr>
+					  <th>=</th>
+					  <td>等しい</td>
+					</tr>
+					<tr>
+					  <th>&lt;</th>
+					  <td>〜より小さい（未満）</td>
+
+					</tr>
+					<tr>
+					  <th>&gt;</th>
+					  <td>〜より大きい</td>
+					</tr>
+					<tr>
+					  <th>&lt;=</th>
+					  <td>〜以下</td>
+					</tr>
+					<tr>
+					  <th>&gt;=</th>
+					  <td>〜以上</td>
+					</tr>
+					<tr>
+					  <th>&lt;&gt;</th>
+					  <td>等しくない</td>
+					</tr>
+				  </tbody>
+				</table>
+			</p>
+		
+
+		</article>
+		<article>
+			<h2 id="headline_2">(2) ここまでの復習</h2>
+			<h3>練習１</h3>
+			<p>次のように各区の人口密度[人/平方km]を求めてみましょう。</p>
+			<p class="center">
+				<a      href="./img/ss03_014.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_014.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p class="center">
+				<a      href="./img/ss03_015.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_015.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p class="center">
+				<a      href="./img/ss03_016.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_016.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p class="center">
+				<a      href="./img/ss03_017.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_017.png" class="screen_shot">
+				</a>
+			</p>
+			<p class="center">
+				<a      href="./img/ss03_018.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_018.png" class="screen_shot">
+				</a>
+			</p>
+			<p>D27〜D32セルを選択し、右に１列オートフィルし、人口密度の合計値，平均値などを求めてみましょう。</p>
+
+			<p class="center">
+				<a      href="./img/ss03_019.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_019.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p class="center">
+				<a      href="./img/ss03_020.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_020.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p class="center">
+				<a      href="./img/ss03_021.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_021.png" class="screen_shot">
+				</a>
+			</p>
+
+
+		</article>
+		<article>
+			<h2 id="headline_3">(3) 絶対参照</h2>
+			<h3>絶対参照</h3>
+			<p>F4セルに<b>=RANK(C4,C4:C26)</b>と入力すると、23区の中のその区の順位が求められます。<br>
+			RANK関数は、<b>RANK(値,セル範囲)</b>のように記述し、<b>セル範囲</b>の中の<b>値</b>の順位を求める関数です。</p>
+			<p class="center">
+				<a      href="./img/ss03_022.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_022.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p>F4セルを１行下にオートフィルしたあと、F5セルをダブルクリックしてセルに入力された関数を確認すると、<b>=RANK(C5,C5:C27)</b>となっています。F4セルから１行下にオートフィルしたので、F5セルの中の参照セルは、F4セルの中の参照セルと相対的に同じ位置のセルを参照していることがわかります。しかし、C5:C27は中央区〜合計までのセル範囲を表しますので、本来求めたかった千代田区〜江戸川区のセル範囲と異なってしまい、求めたい値ではありません。。</p>
+			<p class="center">
+				<a      href="./img/ss03_023.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_023.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p>そこで、F4セルの中を<b>=RANK(C4,C$4:C$26)</b>と書き直し、下方向にオートフィルします。</p>
+			<p class="center">
+				<a      href="./img/ss03_024.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_024.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p class="center">
+				<a      href="./img/ss03_025.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_025.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p>F5セルを確認すると、<b>=RANK(C5,C$4:C$26)</b>となっていて、順位を求める対象の<b>セル範囲</b>の位置が変わっていないことがわかります。
+			</p>
+			<p>このようにオートフィルしたときに参照セルの位置を変えないような参照方法を<b>絶対参照</b>といい、変化させたくないセル範囲の行または列の前に<b>$</b>（ドルマーク，ダラー）をつけます。</p>
+			<p>この場合、4行目から26行目までの行を変化させたくないので、4と26の前に<b>$</b>をつけて<b>C$4:C$26</b>とします。</p>
+			<p class="center">
+				<a      href="./img/ss03_026.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_026.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p>F4〜F26セルを選択し、右に２列オートフィルします。</p>
+			<p class="center">
+				<a      href="./img/ss03_027.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_027.png" class="screen_shot">
+				</a>
+			</p>
+			<p>すると、人口，面積，人口密度の順位が求まります。</p>
+			<p class="center">
+				<a      href="./img/ss03_028.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_028.png" class="screen_shot">
+				</a>
+			</p>
+
+			
+
+		</article>
+		<article>
+			<h2 id="headline_4">(4) 表の書式設定</h2>
+			<h3>セルの数値形式</h3>
+			<p>C4〜C30セルを選択し、ツールバーの<b>123</b>を押し、<b>カスタム数値形式</b>をクリックします。</p>
+			<p class="center">
+				<a      href="./img/ss03_029.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_029.png" class="screen_shot">
+				</a>
+			</p>
+			
+			<p>表示されたウィンドウの上の枠に<b>#,##0</b>と入力するか、同じ表記のものを選択します。すると、人口の値が３桁カンマ区切りの表示になりました。</p>
+
+			<p class="center">
+				<a      href="./img/ss03_030.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_030.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p>次に、面積は千代田区〜足立区は小数第二位までなのに対し、葛飾区と江戸川区は小数第一位までの表記になっています（埋め立て地等で多少変化するからでしょうか・・・？）。また、平均値の小数点以下の桁は多くなっています。小数点の位置を揃えるためには、ツールバーの<b>.0←</b>を押し小数点以下の桁を減らします。減らされた桁は四捨五入した値が表示されています。また、セルの中を確認すると、関数バーの方には小数第二位までの値があることがわかりますので、セルの表示のみが桁数が揃えられていて、その中身は変わっていないことがわかります。</p>
+			<p class="center">
+				<a      href="./img/ss03_031.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_031.png" class="screen_shot">
+				</a>
+			</p>
+
+			
+			<p>人口密度の桁も小数第一位までの表示で揃えてみましょう。</p>
+			<p class="center">
+				<a      href="./img/ss03_032.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_032.png" class="screen_shot">
+				</a>
+			</p>
+
+			<p class="center">
+				<a      href="./img/ss03_033.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_033.png" class="screen_shot">
+				</a>
+			</p>
+
+			
+			<h3>表の書式設定</h3>
+			<p>最後に、表の書式設定をして完成です。</p>
+
+			<p class="center">
+				<a      href="./img/ss03_035.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_035.png" class="screen_shot">
+				</a>
+			</p>
+
+
+
+			
+			
+		</article>
+
+		
+		
+		
+		<article>
+			<h2 id="homework">課題</h2>
+			
+			<p>下記のリンク先から課題ファイルをダウンロードし、以下の各問いに答えなさい。</p>
+			<div id="assignment"></div>
+      
+      <p class="center">
+        <img src="./img/ss13_901.png" width="400px"><br>
+        ※問を切り替えるときは、画面左下のシートタブを選択します。
+      </p>
+      
+			<h3>問1 花屋の領収書</h3>
+			<p>課題ファイルのシート<b>問1</b>を開いて、以下の各問いに答えなさい。</p>
+			
+			<h4>(1) D2セルに、アガパンサスの単価と数量の積（金額）を求める数式を入力し、その結果を表示しなさい。</h4>
+			<p><br></p>
+			
+			<h4>(2) D3〜D10のセルに、(1)と同様に各花の単価と数量の積（金額）を、D2セルからオートフィルすることによって入力し、その結果を表示しなさい。</h4>
+			<p><br></p>			
+
+			<h4>(3) D11セルに、<b>SUM関数</b>を用いて、D2〜D10セルの総和を求める数式を入力し、その結果を表示しなさい。</h4>
+			<p><br></p>		
+			
+			<h4>(4) D12セルに、D11セルの10%にあたる金額（消費税）を求める数式を入力し、その結果を表示しなさい。</h4>
+			<p><br></p>		
+			
+			<h4>(5) D13セルに、D11セルとD12セルの和を求める数式を、演算子<b>+</b>(プラス)を用いて入力し、その結果を表示しなさい。</h4>
+			<p><br></p>
+			<p><br></p>
+			<h3>問2 各都道府県の人口</h3>
+			<p>課題ファイルのシート<b>問2</b>を開いて、以下の各問いに答えなさい。</p>
+			
+			<h4>(1) B49セルに、<b>SUM関数</b>を用いて、B2〜B48セルの総和を求める数式を入力し、その結果を表示しなさい。</h4>
+			<p><br></p>
+			
+			<h4>(2) C2〜C48セルに、<b>RANK関数</b>を用いて各都道府県の人口の順位を求める数式を入力し、その結果を表示しなさい。</h4>
+			<p><br></p>			
+
+			<h4>(3) D2〜D48セルに、全国の人口に対するその都道府県の人口の割合を求める数式を入力し、その結果を表示しなさい。</h4>
+			<p><br></p>		
+			<p><br></p>
+			<h3>問3 九九表</h3>
+			<p>課題ファイルのシート<b>問3</b>を開いて、以下の問いに答えなさい。</p>
+			
+			<h4>問　次の図のような九九表を完成させなさい。ただし、B2セルに入力した数式をB2〜J10までオートフィルすることによって求めるものとする。</h4>
+			<p>※オートフィルするときは、一度に縦方向と横方向にオートフィルすることはできないので、まず横方向にオートフィルし、B2〜J2セルが選択された状態で縦方向にオートフィルする。</p>
+			<p class="center">
+				<a      href="./img/ss03_036.png" data-lightbox="abc" class="no_border"  border="0">
+					<img src="./img/ss03_036.png" class="screen_shot">
+				</a>
+			</p>
+			<p><br></p>					
+
+			
+			
+			
+		</article>
+		
+	</section>
+ 
+
+<!-- COMMON FOOTER START -->
+ <section id="examples_and_questions"><!-- script_pages.js --></section>
+	<section id="next_page"><!-- script_pages.js --></section>
+	<footer>Copyright(C) Kaijo Junior and Senior High School. All Rights Reserved.</footer>
+    <script src="./js/pages.js" type="text/javascript" charset="UTF-8"></script>
+    <script src="./js/script_pages.js" type="text/javascript" charset="UTF-8"></script>
+</body>
+</html>
+

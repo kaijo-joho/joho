@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+    <meta charset="UTF-8">
+    <title>選択ソートの動的なビジュアル表現</title>
+    <style>
+    .container {
+      display: flex;
+      margin: 0 auto;
+      overflow-x: scroll;
+    }
+
+    .item {
+      min-width:40px;
+      width: 40px;
+      height: 54px;
+      border: 1px solid black;
+      background-color: var(--background-color-lightgray);
+      transition: background-color 0.5s;
+      margin:2px;
+    }
+
+    .divValue{
+      height: 40px;
+      margin:0 auto;
+      font-size: 28px;
+      font-size: 28px;
+      font-weight: bold;
+      text-align: center;
+    }
+    .divIndex{
+      height: 14px;
+      font-size: 4px;
+      margin:0 auto;
+      background-color: #333333;
+      color:#dddddd;
+      text-align: center;
+    }
+
+      
+    .min{
+      background-color: red/*var(--color-blue-lightest)*/;
+    }
+      
+    .highlighted {
+      background-color: pink/*var(--color-blue-lightest)*/;
+    }
+
+    .swapped {
+      background-color: #e5aacc;
+    }
+
+    .sorted {
+      background-color: #96a7e7;
+      color: #666666;
+    }
+    #description{
+      line-height: 2.5rem;
+      background-color: #f8f8f8f;
+      overflow-x: scroll;
+    }
+      
+      
+    </style>
+    <link rel="stylesheet" type="text/css" href="./css/css.css">
+  </head>
+
+  <body>
+    <div class="container" id="aryContainer"></div>
+    <div class="container" id="minContainer">
+      <div class="item" id="divMin">
+        <div class="divValue"></div>
+        <div class="divIndex">最小</div>
+      </div>
+    </div>
+
+    
+    <div id="description"></div>
+    <label for="arrayLength">配列の長さ:</label>
+    <input type="number" id="arrayLength" value="8" min="2">
+    <button onclick="initialize()">配列をリセット</button>
+    <button onclick="nextStep()">次へ</button>
+
+    <script>
+      let ary = [];
+      let divs = [];
+      let minId = 0;
+      let startId = 0;
+      let step = 0;
+      const container = document.getElementById('aryContainer');
+      const description = document.getElementById('description');
+      initialize();
+
+      function initialize() {
+        container.innerHTML = '';
+        description.textContent = `選択ソートを開始します。`;
+
+        let arrayLength = parseInt(document.getElementById('arrayLength').value);
+        ary = Array.from({ length: arrayLength }, (_, i) => i);
+        ary = aryShuffle(ary);
+
+        divs = [];
+        for (let i=0; i<ary.length; i++) {
+          const div = document.createElement('div');
+
+          div.classList.add('item');
+          
+          //div.textContent = ary[i];
+          container.appendChild(div);
+
+          const divValue = document.createElement('div');
+          divValue.classList.add('divValue');
+          divValue.textContent = ary[i];
+          divs.push(divValue);
+          div.appendChild(divValue);
+
+          const divIndex = document.createElement('div');
+          divIndex.classList.add('divIndex');
+          divIndex.textContent = i;
+          div.appendChild(divIndex);
+
+        }
+        
+        
+        minId = 0;
+        startId = 0;
+        step = 0;
+      }
+
+      function nextStep(){
+        
+        if(startId >= divs.length-1){
+          divs[startId].classList.remove('swapped');
+          divs[startId].classList.add('sorted');
+          return 0;
+        }
+        
+        if(step%4==0){
+          //startIdをハイライト
+          divs[startId].classList.add('highlighted');
+        }else if(step%4==1){
+          //startId〜最後までの最小値を探し、最小値をハイライト
+          minId = findMin();
+          divs[minId].classList.add('highlighted');
+        }else if(step%4==2){
+          //startIdと最小値を交換
+          swap(startId, minId);
+          
+        }else{
+          //startIdをsortedに換え、startId++
+          divs[startId].classList.remove('swapped');
+          divs[minId].classList.remove('swapped');
+          divs[startId].classList.add('sorted');
+          startId++;
+        }
+        
+        step++;
+        
+      }
+      
+      function findMin(){
+        min = parseInt(divs[startId].textContent);
+        k = startId;
+        
+        for(let i=startId;i<divs.length;i++){
+          if(min > parseInt(divs[i].textContent)){
+            min = parseInt(divs[i].textContent);
+            k = i;
+          }
+        }
+        
+        return k;
+      }
+      
+      function swap(i, j){
+        [divs[i].textContent, divs[j].textContent] = [divs[j].textContent, divs[i].textContent];
+        
+        divs[i].classList.remove('highlighted');
+        divs[j].classList.remove('highlighted');
+        divs[i].classList.add('swapped');
+        divs[j].classList.add('swapped');
+      }
+
+      
+      
+      
+      function aryShuffle(ary) {
+        for (let i = (ary.length - 1); 0 < i; i--) {
+          let r = Math.floor(Math.random() * (i + 1));
+          [ary[i], ary[r]] = [ary[r], ary[i]];
+        }
+        return ary;
+      }
+    </script>
+  </body>
+
+</html>
