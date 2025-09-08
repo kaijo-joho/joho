@@ -31,7 +31,6 @@
   /** ========= ヘッダ生成 ========= */
   function ensureHeader() {
     //const meta = getPageMeta() || {};
-    console.log(meta);
     const label = `${meta.mainTitle}` || '';
 
     let header = document.getElementById('site-header');
