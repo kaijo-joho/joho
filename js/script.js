@@ -65,20 +65,25 @@
     brandLink.appendChild(subjectSpan);
     headerbarBrand.appendChild(brandLink);
 
-    // headerbar__course要素の作成
-    const headerbarCourse = document.createElement('a');
-    headerbarCourse.id = 'headerbar__course';
-    headerbarCourse.className = 'headerbar__course';
-    headerbarCourse.textContent = label;
-    headerbarCourse.setAttribute('aria-label', `${label}`);
-    headerbarCourse.href = meta.backFile;
-    headerbarCourse.classList.remove('is-disabled');
-    headerbarCourse.removeAttribute('aria-disabled');
-    headerbarCourse.setAttribute('aria-label', '講座名');
-
-    // 全体を組み立て
     headerbar.appendChild(headerbarBrand);
-    headerbar.appendChild(headerbarCourse);
+
+
+
+    // headerbar__course要素の作成
+    if(label !== undefined){
+      const headerbarCourse = document.createElement('a');
+      headerbarCourse.id = 'headerbar__course';
+      headerbarCourse.className = 'headerbar__course';
+      headerbarCourse.textContent = label;
+      headerbarCourse.setAttribute('aria-label', `${label}`);
+      headerbarCourse.href = meta.backFile;
+      headerbarCourse.classList.remove('is-disabled');
+      headerbarCourse.removeAttribute('aria-disabled');
+      headerbarCourse.setAttribute('aria-label', '講座名');
+
+      headerbar.appendChild(headerbarCourse);
+    }
+
 
     // 作成したheaderbarをbody要素などに追加
     header.appendChild(headerbar);
