@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>海城中学高等学校 情報科</title>
+    <script defer src="./js/main.js"></script>
+  </head>
+<body>
+	
+
+	<div id="headerbar">
+        <div id="logo">
+            <a href="index.html" title="海城中学高等学校 情報科">
+            <img src="./img/logo.png" id="img_logo">
+            </a>
+        </div>
+		<div id="main_title">   
+		    <a href="index.html" title="海城中学高等学校 情報科">海城中学高等学校 情報科</a>
+		</div>
+	</div>
+	
+	<section>
+	    <article>
+		    <h1><a id="page_title"></a></h1>
+		</article>
+	</section>
+	
+ 	
+	<section>
+		<article>
+      <h3>ファイルをダウンロード中...</h3>
+    </article>
+	</section>
+	
+  
+  <script>
+    // URLのクエリパラメータからファイル名を取得
+    const params = new URLSearchParams(window.location.search);
+    const fileName = params.get('file');
+
+    if (fileName) {
+      // 絶対パスでファイルを指定
+      const filePath = `html/${fileName}`;  // サーバーのルートからの絶対パス
+
+      // ファイルをダウンロード
+      fetch(filePath)
+        .then(response => response.blob())
+        .then(blob => {
+          const url = window.URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.style.display = 'none';
+          a.href = url;
+          a.download = fileName; // ダウンロードするファイル名
+          document.body.appendChild(a);
+          a.click();
+          window.URL.revokeObjectURL(url); // 解放
+        })
+      
+        // ダウンロード完了後にタブを閉じる
+        setTimeout(() => {
+          window.close();  // 新しいタブで開いた場合はタブが閉じる
+        }, 1000);  // 1秒後にタブを閉じる
+        .catch(() => alert('ダウンロードに失敗しました'));
+      
+    } else {
+      alert('ダウンロードするファイルが指定されていません');
+    }
+  </script>
+
+
+ 
+
+
+	
+</body>
+</html>
