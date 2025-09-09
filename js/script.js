@@ -20,7 +20,8 @@
       {};
 
     const p = pages[id];
-    console.log(p);
+
+    
 
     return p;
   }
