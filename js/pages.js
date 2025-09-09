@@ -2814,7 +2814,7 @@ const pages = {
     "show": true,
     "backFile": "py00.html"
   },
-  "links": {
+  "link": {
     "id": "link",
     "release": true,
     "fileName": "links.html",
