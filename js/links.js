@@ -1,5 +1,5 @@
 
-//2025-09-09 03:20:38
+//2025-09-09 03:22:38
 const quizzes = {
   "py11": {
     "title": "1-1. 四則演算",
@@ -452,54 +452,67 @@ window.submitForms = submitForms;
 
 const notices = {
   "noti_ori3": {
+    "title": "情報の授業について中3",
     "description": "情報の授業について中3",
     "url": "https://docs.google.com/presentation/d/1DcvbpBRxV5cLzO888sG6vmBi_TWvH1OA0ijyQmcY0jo/edit?usp=drivesdk"
   },
   "noti_ori4": {
+    "title": "情報の授業について高1",
     "description": "情報の授業について高1",
     "url": "https://docs.google.com/presentation/d/1WBxMjmE6O3_VwZ6Swq4zDb5MLnIBiLbwfGMOJqd3GcA/edit?usp=drivesdk"
   },
   "noti_htmlpicture": {
+    "title": "2024-10_中3_修学旅行での素材集めについて",
     "description": "2024-10_中3_修学旅行での素材集めについて",
     "url": "https://docs.google.com/document/d/1HX5GqFfmobKCqb3tPePWG9IuRPos8yUFgT7hF1R8gAM/edit?usp=drivesdk"
   },
   "noti_hw_wtr4": {
+    "title": "2024-12_高1_冬休みの宿題",
     "description": "2024-12_高1_冬休みの宿題",
     "url": "https://docs.google.com/document/d/14X1uGBHd2X4tLW-UaHR-6_IX8OHbvdtjb0HD3EZINi0/edit?usp=drivesdk"
   },
   "noti_hw_html": {
+    "title": "HTML最終課題の提出",
     "description": "HTML最終課題の提出",
     "url": "https://docs.google.com/presentation/d/107suvqG5EMDPoG428EyPlOIni8EkYAS9i3wOMlxjuP8/edit?usp=drivesdk"
   },
   "noti_hw_wtr3": {
+    "title": "2024-11_中3_HTML実習最終課題（冬休みの宿題）",
     "description": "2024-11_中3_HTML実習最終課題（冬休みの宿題）",
     "url": "https://docs.google.com/document/d/1zUbnH1Li4gzoSCc99tQWuHX2UJVbjM8AGcnZVvQNkUI/edit?usp=drivesdk"
   },
   "noti_temp_gene-ai": {
+    "title": "生成AI指針テンプレ",
     "description": "生成AI指針テンプレ",
     "url": "https://docs.google.com/document/d/18C7jqZzge9PPf55VPpwRGDNowAp4Ug5i-RHvNgkYMdI/edit?usp=drivesdk"
   },
   "noti_hw_feb4": {
+    "title": "2025-01_高1_入試期間中の宿題",
     "description": "2025-01_高1_入試期間中の宿題",
     "url": "https://docs.google.com/document/d/1ySgJjtn7fCfeHnR-HnWjCFDQf0z2-G_F_9Z6F34eRD0/edit?usp=drivesdk"
   },
   "noti_hw_data": {
+    "title": "2025-02_中3_データの分析_最終課題",
     "description": "2025-02_中3_データの分析_最終課題",
     "url": "https://docs.google.com/document/d/19sKZqGnCX6BfwyFn1IVad-PQQdRpzZ9gHrg9axs4yno/edit?usp=drivesdk"
   },
   "noti_hw_picto": {
+    "title": "中3_1学期_ピクトグラム最終課題",
     "description": "中3_1学期_ピクトグラム最終課題",
     "url": "https://docs.google.com/document/d/1t3uv7xG2a-ff5nLCGn-GhXL7af_Za_z6-Y8TQ33Yr5I/edit?usp=drivesdk"
   },
   "noti_hw_smr3": {
+    "title": "2025-07_中3_夏休みの宿題",
     "description": "2025-07_中3_夏休みの宿題",
     "url": "https://docs.google.com/document/d/119LV80dwLuLewl-0uarLLyJ55AwPhYCiYQDtmTiPC80/edit?usp=drivesdk"
   },
   "noti_hw_smr4": {
+    "title": "2025-07_高1_夏休みの宿題",
     "description": "2025-07_高1_夏休みの宿題",
     "url": "https://docs.google.com/document/d/1VTMZ2CIo2FdJJ1N_iPiLtkUXyIjr0MHKXFSuEctWM7Y/edit?usp=drivesdk"
   },
   "noti_firefly": {
+    "title": "Firefly実習",
     "description": "Firefly実習",
     "url": "https://docs.google.com/presentation/d/16By_P147zDyW7M-tUvoxgQiqH3lPgE7nx2whXNFciqk/edit?usp=drivesdk"
   }
