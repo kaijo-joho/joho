@@ -1,5 +1,5 @@
 
-//2025-09-09 03:22:38
+//2025-09-09 03:42:40
 const quizzes = {
   "py11": {
     "title": "1-1. 四則演算",
@@ -395,7 +395,7 @@ const submitForms = {
 
 window.submitForms = submitForms;
 
-const submitForms = {
+const reviewForms = {
   "picto25": {
     "title": "ピクトグラム最終課題",
     "description": "中3 ピクトグラム実習最終課題の提出フォームです。",
@@ -448,7 +448,7 @@ const submitForms = {
   }
 };
 
-window.submitForms = submitForms;
+window.reviewForms = submitForms;
 
 const notices = {
   "noti_ori3": {
