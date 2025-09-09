@@ -1,5 +1,5 @@
 
-//2025-09-09 03:42:40
+//2025-09-09 04:21:11
 const quizzes = {
   "py11": {
     "title": "1-1. 四則演算",
@@ -448,7 +448,7 @@ const reviewForms = {
   }
 };
 
-window.reviewForms = submitForms;
+window.reviewForms = reviewForms;
 
 const notices = {
   "noti_ori3": {
