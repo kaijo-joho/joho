@@ -95,7 +95,11 @@
       // 9) ページ固有スクリプトを読み込んでから初期化（←順序バグを修正）
       await loadScript(PATH.scriptPages);
       if (typeof window.initPageScripts === "function") {
-        window.initPageScripts();
+        try {
+          window.initPageScripts();
+        } catch (e) {
+          console.error("[main.js] initPageScripts failed:", e);
+        }
       }
 
       // 10) コードハイライトを最後に一括適用

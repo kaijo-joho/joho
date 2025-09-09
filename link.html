@@ -19,10 +19,31 @@
 <body>
   
   <script>
+    function createLink(){
+      const id = 'py21';
+      const item = window.quizzes?.[id];
+      if (!item) {
+        console.error(`quizzes['${id}'] が見つかりません`, window.quizzes);
+        return;
+      }
+      const a = document.createElement('a');
+      a.href = item.url;                 // ★ .url を使う
+      a.textContent = `${id}：${item.title}`;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      document.body.appendChild(a);
+    }
+
+
+    window.addEventListener('DOMContentLoaded', () => createLink, { once: true });
+    /*
     window.addEventListener('DOMContentLoaded', () => {
       location.href = quizzes['py21'];
     }, { once: true });
+    */
   </script>
+
+
     
 </body>
 </html>

@@ -20,6 +20,7 @@
       {};
 
     const p = pages[id];
+    console.log(p);
 
     return p;
   }
@@ -87,20 +88,23 @@
     // 作成したheaderbarをbody要素などに追加
     header.appendChild(headerbar);
 
-    
-    const ph = document.createElement('section');
-    ph.id = 'page_header';
-    const phArticle = document.createElement('article');
-    phArticle.innerHTML = `
-      <h1><a id="title">${meta.title}</a></h1>
-      <p class="page_detail">${meta.detail}</p>
-    `;
+    if(!meta){
+      const ph = document.createElement('section');
+      ph.id = 'page_header';
+      const phArticle = document.createElement('article');
+      phArticle.innerHTML = `
+        <h1><a id="title">${meta.title}</a></h1>
+        <p class="page_detail">${meta.detail}</p>
+      `;
 
-    createDescAndFileList(phArticle, 'dlFile');
-    createDescAndFileList(phArticle, 'practiceFile');
+      createDescAndFileList(phArticle, 'dlFile');
+      createDescAndFileList(phArticle, 'practiceFile');
 
-    ph.appendChild(phArticle);
-    header.after(ph);
+      ph.appendChild(phArticle);
+
+      header.after(ph);
+    }
+
   }
 
   function createDescAndFileList(parentElem, type, subDesc = ''){
@@ -110,7 +114,7 @@
     parentElem.appendChild(p1);
     
     const ul = createFileList(type);
-    parentElem.appendChild(ul);
+    if(ul !== null) parentElem.appendChild(ul);
 
     const p2 = document.createElement('p');
     p2.innerHTML = subDesc;  //提出状況へのリンクを貼る場合にはここにリンク先を記述
@@ -119,6 +123,7 @@
 
   function createFileList(type){
     const files = meta[type]
+    if(!files) return null;
     const ul = document.createElement('ul');
     ul.className = 'file-list';
     files.forEach(file => {
@@ -148,7 +153,7 @@
   function ensureFooter() {
     
     // === 演習問題と確認テスト ===
-    if(meta.questionFile !== false || meta.quizForm !== false){
+    if(!meta && (meta.questionFile !== false || meta.quizForm !== false)){
       let q = document.getElementById('questions');
       if(!q){
         q = document.createElement('section');
@@ -187,7 +192,7 @@
 
 
     // === 次回は、、、 ===
-    if(meta.next !== false){
+    if(!meta && !meta.next){
       let nextPageElement = document.getElementById('next_page');
       if (!nextPageElement) {
         nextPageElement = document.createElement('section');
