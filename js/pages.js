@@ -1,4 +1,4 @@
-//2025-09-09 04:12:27;
+//2025-09-09 04:32:48;
 const pages = {
   "index": {
     "id": "index",
@@ -2814,8 +2814,8 @@ const pages = {
     "show": true,
     "backFile": "py00.html"
   },
-  "links": {
-    "id": "links",
+  "link": {
+    "id": "link",
     "release": true,
     "fileName": "links.html",
     "mainTitle": "index",
