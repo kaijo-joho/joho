@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
+	</style>
+  <title>海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/links.js"></script>
+</head>
+<body>
+  
+  <script>
+    /*
+    function createLink(){
+      const a = document.createElement('a');
+      a.href = 'https://joho.kaijo.ed.jp/index.html';
+      a.textContent = 'aaa';
+      document.body.appendChild(a);
+    }
+
+    document.addEventListener('DOMContentLoaded', createLink, { once: true });
+    */
+    window.addEventListener('DOMContentLoaded', () => {
+      location.href = 'https://joho.kaijo.ed.jp/index.html';
+    }, { once: true });
+  </script>
+    
+</body>
+</html>
+
