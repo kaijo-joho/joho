@@ -1,4 +1,4 @@
-//2025-09-09 12:18:19;
+//2025-09-09 04:12:27;
 const pages = {
   "index": {
     "id": "index",
@@ -2813,6 +2813,24 @@ const pages = {
     ],
     "show": true,
     "backFile": "py00.html"
+  },
+  "links": {
+    "id": "links",
+    "release": true,
+    "fileName": "links.html",
+    "mainTitle": "index",
+    "category": "index",
+    "title": "中間リンク",
+    "detail": "中間リンク",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": false,
+    "show": false,
+    "backFile": "index.html"
   }
 };
 window.pages = pages;
