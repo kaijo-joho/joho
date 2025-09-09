@@ -1,4 +1,5 @@
-const updatedTime = 2025-09-09 09:56:18; const pages = {
+const updatedTime = 2025-09-09 12:17:15;
+const pages = {
   "index": {
     "id": "index",
     "release": true,
@@ -2813,4 +2814,5 @@ const updatedTime = 2025-09-09 09:56:18; const pages = {
     "show": true,
     "backFile": "py00.html"
   }
-}; window.pages = pages;
+};
+window.pages = pages;
