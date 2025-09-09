@@ -1,5 +1,5 @@
 
-//2025-09-09 02:45:44
+//2025-09-09 03:19:38
 const quizzes = {
   "py11": {
     "title": "1-1. 四則演算",
@@ -390,11 +390,6 @@ const submitForms = {
     "title": "テスト",
     "description": "テスト",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=htmlp"
-  },
-  "": {
-    "title": "",
-    "description": "",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid="
   }
 };
 
@@ -450,11 +445,6 @@ const submitForms = {
     "title": "テスト",
     "description": "テスト",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=review&pid=htmlp"
-  },
-  "": {
-    "title": "",
-    "description": "",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=review&pid="
   }
 };
 
