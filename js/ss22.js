@@ -19,7 +19,7 @@ const slidesData = [
   },
   {
     "title": "例題1. アイスクリーム屋のアンケート結果の集計",
-    "note": "",
+    "note": "<br>",
     "image": "img_slide/ss22_06.png",
     "showInDetails": true
   },
@@ -38,7 +38,7 @@ const slidesData = [
   },
   {
     "title": "例題2. お小遣い帳",
-    "note": "",
+    "note": "<br><br>",
     "image": "img_slide/ss22_10.png",
     "showInDetails": true
   },
@@ -72,7 +72,7 @@ const slidesData = [
   },
   {
     "title": "例題4. アンケート結果の集計",
-    "note": "",
+    "note": "<br><br>",
     "image": "img_slide/ss22_17.png",
     "showInDetails": true
   }
