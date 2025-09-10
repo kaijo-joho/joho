@@ -14,7 +14,7 @@ const slidesData = [
   },
   {
     "title": "1.3. オートフィル（数式のコピー）",
-    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【E4】を選択する</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【E4】セルの右下の {{</span></span>style=\"color: RGB(25,76,196);\" | ● }} にポインタを乗せ、ポインタの形を ＋ にする<br>（セル右下の <span style=\"&quot;color: RGB(25,76,196);&quot;\">●</span> を <strong>フィルハンドル</strong> という）<br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">【E26】まで<strong>ドラッグ</strong>する</span></span><br><br>",
+    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【E4】を選択する</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【E4】セルの右下の {{</span></span>style=color: rgb(25,76,196); | ● }} にポインタを乗せ、ポインタの形を ＋ にする<br>（セル右下の <span style=\"color: rgb(25,76,196);\">●</span> を <strong>フィルハンドル</strong> という）<br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">【E26】まで<strong>ドラッグ</strong>する</span></span><br><br>",
     "image": "img_slide/ss12_05.png"
   },
   {
