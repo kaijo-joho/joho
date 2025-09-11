@@ -11,6 +11,8 @@ function loadScript(src, callback) {
 
 // 現在ページのIDを決定（?id= を優先。なければファイル名。index/拡張子揺れにも対応）
 function getPageId() {
+  return getFileName();
+  /*
   const u = new URL(location.href);
   const byQuery = u.searchParams.get('id');
   if (byQuery) return byQuery;
@@ -20,6 +22,7 @@ function getPageId() {
 
   let name = u.pathname.split('/').pop() || 'index';
   return name.replace(/\.html?$/,''); // .html/.htm を除去
+  */
 }
 
 /* ===================== メイン処理 ===================== */
@@ -44,7 +47,9 @@ function main() {
   try {
     const left  = page.title || page.mainTitle || document.title;
     const right = page.mainTitle && page.mainTitle !== left ? ` | ${page.mainTitle}` : '';
-    document.title = `${left}${right}`;
+    if(pageId !== 'link'){  // 中間リンクページはhtml内でタイトルを設定
+      document.title = `${left}${right}`;
+    }
   } catch(e){
     console.error('[script_pages] set document.title failed', e);
   }

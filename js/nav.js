@@ -105,8 +105,12 @@
       if (!details) continue;
       if (!details.release) continue;
 
+      // mainTitle が空白なら表示しない
+      if (targetMain === '') continue;
+
       // 同じ mainTitle のみ表示（現在ページが特定できないときは全件）
       if (targetMain && details.mainTitle !== targetMain) continue;
+      
 
       // ページ側で非表示指定されているものは除外（show:false）
       if (details.show === false) continue;

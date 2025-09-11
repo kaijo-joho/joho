@@ -17,30 +17,126 @@
   <script defer src="./js/links.js"></script>
 </head>
 <body>
-  
-  <script>
-    function createLink(){
-      const id = 'py21';
-      const item = window.quizzes?.[id];
-      if (!item) {
-        console.error(`quizzes['${id}'] が見つかりません`, window.quizzes);
-        return;
-      }
-      const a = document.createElement('a');
-      a.href = item.url;                 // ★ .url を使う
-      a.textContent = `${id}：${item.title}`;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      document.body.appendChild(a);
+<script>
+(() => {
+  const params = new URL(location.href).searchParams;
+  const getParam = (k) => {
+    const v = params.get(k);
+    return v !== null ? v.trim() : '';
+  };
+  const pickParam = (...keys) => {
+    for (const k of keys) {
+      const v = getParam(k);
+      if (v) return v;
+    }
+    return '';
+  };
+
+  const typeMap = {
+    quiz: 'quizzes', quizzes: 'quizzes', q: 'quizzes',
+    submit: 'submitForms', s: 'submitForms',
+    review: 'reviewForms', r: 'reviewForms',
+    notice: 'notices', notices: 'notices', n: 'notices'
+  };
+
+  // id と dictKey（辞書名）を決定する
+  function resolveIdAndDictKey() {
+    // 明示の type/t があれば最優先
+    const typeRaw = getParam('type') || getParam('t');
+    let dictKey = typeRaw ? (typeMap[typeRaw.toLowerCase()] || '') : '';
+
+    // id があれば最優先
+    let id = getParam('id');
+
+    // id が無ければ個別系（長短エイリアス対応）から決定
+    if (!id) {
+      const quizIdParam       = pickParam('quizId', 'qId', 'qid', 'q');
+      const submitFormIdParam = pickParam('submitFormId', 'sId', 'sid', 's');
+      const reviewFormIdParam = pickParam('reviewFormId', 'rId', 'rid', 'r');
+      const noticeIdParam     = pickParam('noticeId', 'nId', 'nid', 'n');
+
+      if (quizIdParam)            { id = quizIdParam;       if (!dictKey) dictKey = 'quizzes'; }
+      else if (submitFormIdParam) { id = submitFormIdParam; if (!dictKey) dictKey = 'submitForms'; }
+      else if (reviewFormIdParam) { id = reviewFormIdParam; if (!dictKey) dictKey = 'reviewForms'; }
+      else if (noticeIdParam)     { id = noticeIdParam;     if (!dictKey) dictKey = 'notices'; }
     }
 
-    window.addEventListener('DOMContentLoaded', () => createLink, { once: true });
-    /*
-    window.addEventListener('DOMContentLoaded', () => {
-      location.href = quizzes['py21'];
-    }, { once: true });
-    */
-  </script>
+    return { id, dictKey };
+  }
+
+  function createLinkFromParam() {
+    const { id, dictKey } = resolveIdAndDictKey();
+
+    // デフォルトは「指定なし」＝ 何もしない
+    if (!id) {
+      console.debug('[links] id 未指定のため何もしません');
+      return;
+    }
+
+    const dicts = {
+      quizzes: window.quizzes,
+      submitForms: window.submitForms,
+      reviewForms: window.reviewForms,
+      notices: window.notices,
+    };
+
+    // まず dictKey で検索、無ければ横断検索
+    let item = dictKey ? dicts[dictKey]?.[id] : undefined;
+    if (!item) {
+      for (const k of Object.keys(dicts)) {
+        if (dicts[k]?.[id]) { item = dicts[k][id]; break; }
+      }
+    }
+
+    if (!item || !item.url) {
+      console.error(`[links] 指定IDが見つかりません: id="${id}", type="${dictKey||'(none)'}"`);
+      return;
+    }
+
+    const label = getParam('label') || item.title || id;
+
+    const a = document.createElement('a');
+    a.href = item.url;
+    a.textContent = item.title || id;
+    a.target = '_blank';
+    a.rel = 'noopener';
+
+    const h3 = document.createElement('h3');
+    h3.textContent = `『${label}』を開いています．．．`;
+
+    const p = document.createElement('p');
+    p.textContent = 'しばらく待っても自動的に遷移しない場合は、下のリンクをクリックしてください。';
+
+    const ul = document.createElement('ul');
+    const li = document.createElement('li');
+    li.appendChild(a);
+    ul.appendChild(li);
+
+    const article = document.createElement('article');
+    article.appendChild(h3);
+    if (item.description) {
+      const desc = document.createElement('p');
+      desc.textContent = item.description;
+      article.appendChild(desc);
+    }
+    article.appendChild(p);
+    article.appendChild(ul);
+
+    const section = document.createElement('section');
+    section.appendChild(article);
+    document.body.appendChild(section);
+
+    document.title = `${label} を開いています．．．`;
+
+    // ?redirect=0 以外は自動遷移
+    if (getParam('redirect') !== '0') {
+      location.href = item.url;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', createLinkFromParam, { once: true });
+})();
+</script>
 </body>
 </html>
 

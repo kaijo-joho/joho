@@ -21,7 +21,7 @@
 
     const p = pages[id];
 
-    
+
 
     return p;
   }
@@ -71,7 +71,7 @@
 
 
     // headerbar__course要素の作成
-    if(label !== undefined){
+    if(label !== ''){
       const headerbarCourse = document.createElement('a');
       headerbarCourse.id = 'headerbar__course';
       headerbarCourse.className = 'headerbar__course';
@@ -89,7 +89,7 @@
     // 作成したheaderbarをbody要素などに追加
     header.appendChild(headerbar);
 
-    if(!meta){
+    if(true/*!meta*/){
       const ph = document.createElement('section');
       ph.id = 'page_header';
       const phArticle = document.createElement('article');
@@ -154,7 +154,7 @@
   function ensureFooter() {
     
     // === 演習問題と確認テスト ===
-    if(!meta && (meta.questionFile !== false || meta.quizForm !== false)){
+    if( (meta.questionFile !== false || meta.quizForm !== false)){
       let q = document.getElementById('questions');
       if(!q){
         q = document.createElement('section');

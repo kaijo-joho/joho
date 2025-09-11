@@ -2818,7 +2818,7 @@ const pages = {
     "id": "link",
     "release": true,
     "fileName": "links.html",
-    "mainTitle": "index",
+    "mainTitle": "",
     "category": "index",
     "title": "中間リンク",
     "detail": "中間リンク",
@@ -2827,7 +2827,7 @@ const pages = {
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
-    "back": "index",
+    "back": "",
     "next": false,
     "show": false,
     "backFile": "index.html"
