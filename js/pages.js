@@ -1,10 +1,10 @@
-//2025-09-09 04:32:48;
+//2025-09-11 01:53:15;
 const pages = {
   "index": {
     "id": "index",
     "release": true,
     "fileName": "index.html",
-    "mainTitle": "index",
+    "mainTitle": "",
     "category": "index",
     "title": "情報科 実習サイト",
     "detail": "本サイトは情報科の実習内容を掲載しているサイトです。",
@@ -2827,7 +2827,25 @@ const pages = {
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
-    "back": "",
+    "back": "index",
+    "next": false,
+    "show": false,
+    "backFile": "index.html"
+  },
+  "gfe": {
+    "id": "gfe",
+    "release": true,
+    "fileName": "gfe.html",
+    "mainTitle": "",
+    "category": "index",
+    "title": "Googleパスワード再設定",
+    "detail": "Googleアカウントのパスワード再設定フォーム",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
     "next": false,
     "show": false,
     "backFile": "index.html"
