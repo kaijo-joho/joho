@@ -89,22 +89,24 @@
     // 作成したheaderbarをbody要素などに追加
     header.appendChild(headerbar);
 
-    if(true/*!meta*/){
-      const ph = document.createElement('section');
-      ph.id = 'page_header';
-      const phArticle = document.createElement('article');
-      phArticle.innerHTML = `
-        <h1><a id="title">${meta.title}</a></h1>
-        <p class="page_detail">${meta.detail}</p>
-      `;
+    console.log(meta);
 
-      createDescAndFileList(phArticle, 'dlFile');
-      createDescAndFileList(phArticle, 'practiceFile');
 
-      ph.appendChild(phArticle);
+    const ph = document.createElement('section');
+    ph.id = 'page_header';
+    const phArticle = document.createElement('article');
+    phArticle.innerHTML = `
+      <h1><a id="title">${meta.title}</a></h1>
+      <p class="page_detail">${meta.detail}</p>
+    `;
 
-      header.after(ph);
-    }
+    createDescAndFileList(phArticle, 'dlFile');
+    createDescAndFileList(phArticle, 'practiceFile');
+
+    ph.appendChild(phArticle);
+
+    header.after(ph);
+
 
   }
 
@@ -193,7 +195,7 @@
 
 
     // === 次回は、、、 ===
-    if(!meta && !meta.next){
+    if(meta.next){
       let nextPageElement = document.getElementById('next_page');
       if (!nextPageElement) {
         nextPageElement = document.createElement('section');
