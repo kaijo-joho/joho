@@ -89,9 +89,6 @@
     // 作成したheaderbarをbody要素などに追加
     header.appendChild(headerbar);
 
-    console.log(meta);
-
-
     const ph = document.createElement('section');
     ph.id = 'page_header';
     const phArticle = document.createElement('article');
