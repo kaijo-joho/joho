@@ -101,7 +101,7 @@ th, td{
 }
 
 /* 左寄せテキストセル */
-td.text-align-left{
+td.text-align-left, td.align-left{
   padding: 4px;
   text-align: justify;
 }
