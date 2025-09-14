@@ -56,12 +56,12 @@ const slidesData = [
     "section": "3. 複雑な条件に一致するセルの計算\n*IFS関数"
   },
   {
-    "title": "3.1. COUNTIFS関数，SUMIFS関数，AVERAGEIFS関数",
+    "title": "3.1. *IFS関数",
     "note": "",
     "image": "img_slide/ss22_14.png"
   },
   {
-    "title": "3.2. MAXIFS関数，MINIFS関数",
+    "title": "3.1. COUNTIFS関数",
     "note": "",
     "image": "img_slide/ss22_15.png"
   },
@@ -72,8 +72,18 @@ const slidesData = [
   },
   {
     "title": "例題4. アンケート結果の集計",
+    "note": "",
+    "image": "img_slide/ss22_17.png"
+  },
+  {
+    "title": "例題4. アンケート結果の集計",
+    "note": "",
+    "image": "img_slide/ss22_18.png"
+  },
+  {
+    "title": "例題4. アンケート結果の集計",
     "note": "<br><br>",
-    "image": "img_slide/ss22_17.png",
+    "image": "img_slide/ss22_19.png",
     "showInDetails": true
   }
 ]
