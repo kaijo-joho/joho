@@ -4,7 +4,7 @@ const slidesData = [
   },
   {
     "title": "1.1. 合計値を求める関数",
-    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【C30】をクリックし「=SUM(」を入力する。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【C7:C29】を選択する。（【C7:C29】が点線で囲まれる）</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">「)」を入力する。（関数の入力が終了する）</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>④</strong></span><span class=\"circBody\">⏎リターンキーを押す。（セルの数式の編集が確定し、合計値が表示される）</span></span><br><br><br>**関数とは**<br>特定の演算をする機能を**関数**といい、カッコ内に入れる値のことを**引数**（ひきすう）といいます。<br>また、関数によって得られた値のことを**戻り値**（もどりち）といいます。<br><br>",
+    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【C30】をクリックし「=SUM(」を入力する。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【C7:C29】を選択する。（【C7:C29】が点線で囲まれる）</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">「)」を入力する。（関数の入力が終了する）</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>④</strong></span><span class=\"circBody\">⏎リターンキーを押す。（セルの数式の編集が確定し、合計値が表示される）</span></span><br><br>**関数とは**<br>特定の演算をする機能を**関数**といい、カッコ内に入れる値のことを**引数**（ひきすう）といいます。<br>また、関数によって得られた値のことを**戻り値**（もどりち）といいます。<br><br>",
     "image": "img_slide/ss13_03.png"
   },
   {
