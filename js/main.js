@@ -117,8 +117,8 @@
 
 
 function getFileName() {
-  //HTMLファイル名を取得
-  var path = window.location.pathname;
-  var fileName = path.substring(path.lastIndexOf('/') + 1).replace('.html', '');
-  return fileName;
+  const path = location.pathname;                    // 例: "/", "/index.html", "/dir/"
+  let file = path.substring(path.lastIndexOf('/') + 1);
+  if (!file) file = 'index.html';                    // "/" や "/dir/" → "index.html" とみなす
+  return decodeURIComponent(file);
 }
