@@ -117,8 +117,15 @@
 
 
 function getFileName() {
-  const path = location.pathname;                    // 例: "/", "/index.html", "/dir/"
-  let file = path.substring(path.lastIndexOf('/') + 1);
-  if (!file) file = 'index.html';                    // "/" や "/dir/" → "index.html" とみなす
-  return decodeURIComponent(file);
+  // HTMLファイル名（拡張子なし）を取得
+  const path = window.location.pathname;                 // 例: "/", "/index.html", "/about.html"
+  let name = path.substring(path.lastIndexOf('/') + 1);  // 例: "", "index.html", "about.html"
+
+  // "/" のように末尾スラッシュのみなら "index"
+  if (!name) return 'index';
+
+  // ".html" / ".htm" を末尾だけ外す（アンカー付き&大文字小文字無視）
+  name = name.replace(/\.html?$/i, '');
+
+  return name;                                           // 例: "index", "about"
 }
