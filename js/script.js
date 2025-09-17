@@ -11,7 +11,8 @@
 
   let inited = false;
 
-  /** ========= メタ情報の取得 ========= */
+  /** ========= メタ情報の取得 ========= 
+   * 旧
   function getPageMeta() {
     const id = getFileName();
     const pages =
@@ -24,8 +25,26 @@
 
 
     return p;
-  }
+  }*/
 
+  function getPageMeta() {
+    const pages =
+      (window.page  && typeof window.page  === 'object' ? window.page  : null) ||
+      (window.pages && typeof window.pages === 'object' ? window.pages : null) ||
+      {};
+
+    const id = getFileName(); // ここで "index" 等が返る
+
+    // "index" と "index.html" の両取り、拡張子ありなしの両取り
+    const candidates = id === 'index'
+      ? ['index', 'index.html']
+      : [id, `${id}.html`];
+
+    for (const k of candidates) {
+      if (k in pages) return pages[k];
+    }
+    return null;
+  }
 
 
   const meta = getPageMeta() || {};
