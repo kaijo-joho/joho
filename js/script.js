@@ -29,6 +29,7 @@
 
 
   const meta = getPageMeta() || {};
+  console.log(meta);
 
   /** ========= ヘッダ生成 ========= */
   function ensureHeader() {
