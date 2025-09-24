@@ -6,7 +6,7 @@ const slidesData = [
   },
   {
     "title": "Slide 4",
-    "note": "<br>",
+    "note": "<strong>ワイルドカード文字</strong>は、部分的に一致する文字列を検索するための記号です。<br>",
     "image": "img_slide/ss22_04.png"
   },
   {
