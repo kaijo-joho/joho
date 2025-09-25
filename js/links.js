@@ -462,7 +462,7 @@ const notices = {
     "url": "https://docs.google.com/presentation/d/1WBxMjmE6O3_VwZ6Swq4zDb5MLnIBiLbwfGMOJqd3GcA/edit?usp=drivesdk"
   },
   "noti_htmlpicture": {
-    "title": "2024-10_中3_修学旅行での素材集めについて",
+    "title": "中3_修学旅行での素材集めについて",
     "description": "2024-10_中3_修学旅行での素材集めについて",
     "url": "https://docs.google.com/document/d/1HX5GqFfmobKCqb3tPePWG9IuRPos8yUFgT7hF1R8gAM/edit?usp=drivesdk"
   },
