@@ -438,12 +438,11 @@ else:
         ただし、はじめは自分の力のみで考えなさい（紙とペンのみ使用可）。
         その後、バイナリサーチは<strong>#実習 1-01</strong>のプログラムに探索回数を求める処理を追加して確かめなさい。</p>
       
-      <p>連番の配列<tt>[0, 1, 2, ..., 15]</tt>を生成するには、次のように書きます。</p>
-      <pre class="python" data-title=""><code>arr = list(range(16))</code></pre>
+      <p>連番の配列<tt>[0, 1, 2, ..., 15]</tt>を生成して変数<tt>arr</tt>に代入するには、<tt>arr = list(range(16))</tt>のように書きます。</p>
+
       
       <h3>問1</h3>
       <p>0以上の整数が昇順に並んだ \(n\) ＝16の配列<tt>[0, 1, 2, 3, ・・・, 15]</tt>について、次の探索値が見つかるまでの回数（探索回数）はいくつか。</p>
-      
       <table class="table-toggle-cell">
         <tr>
           <th width="120px">探索値</th>
@@ -482,7 +481,11 @@ else:
           <td class="transparent clickable">5</td>
         </tr>
       </table>
-      
+      <pre class="python" data-title=""><code>
+arr = list(range(16))
+#(以下、 # 実習 1-01 と同様)
+</code></pre>
+
       <h3>問2</h3>
       <p>0以上の整数が昇順に並んだ \(n\) ＝256の配列<tt>[0, 1, 2, 3, ・・・, 255]</tt>について、次の探索値が見つかるまでの回数（探索回数）はいくつか。</p>
       
@@ -524,7 +527,10 @@ else:
           <td class="transparent clickable">9</td>
         </tr>
       </table>   
-      
+      <pre class="python" data-title=""><code>
+arr = list(range(256))
+#(以下、 # 実習 1-01 と同様)
+</code></pre>
     </article>
   </section>
         
