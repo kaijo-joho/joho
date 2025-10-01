@@ -54,11 +54,13 @@
       const submitFormIdParam = pickParam('submitFormId', 'sId', 'sid', 's');
       const reviewFormIdParam = pickParam('reviewFormId', 'rId', 'rid', 'r');
       const noticeIdParam     = pickParam('noticeId', 'nId', 'nid', 'n');
+      const typingIdParam     = pickParam('typingId', 'tId', 'tid', 't');
 
       if (quizIdParam)            { id = quizIdParam;       if (!dictKey) dictKey = 'quizzes'; }
       else if (submitFormIdParam) { id = submitFormIdParam; if (!dictKey) dictKey = 'submitForms'; }
       else if (reviewFormIdParam) { id = reviewFormIdParam; if (!dictKey) dictKey = 'reviewForms'; }
       else if (noticeIdParam)     { id = noticeIdParam;     if (!dictKey) dictKey = 'notices'; }
+      else if (typingIdParam)     { id = typingIdParam;     if (!dictKey) dictKey = 'typing'; }
     }
 
     return { id, dictKey };
@@ -78,6 +80,7 @@
       submitForms: window.submitForms,
       reviewForms: window.reviewForms,
       notices: window.notices,
+      typing: window.typing,
     };
 
     // まず dictKey で検索、無ければ横断検索
