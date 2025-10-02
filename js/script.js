@@ -155,8 +155,8 @@
         `
           <span class="file-name">${file.text}</span>
           <span class="file-links">
-          <a href="${file.url}" class="file-link" type="text/html" download="${file.text}">ダウンロード</a>
-          <a href="${file.submitUrl}" class="file-link" target="_blank">提出フォーム</a>
+          【<a href="${file.url}" class="file-link" type="text/html" download="${file.text}">ダウンロード</a>】
+          【<a href="${file.submitUrl}" class="file-link" target="_blank">提出フォーム</a>】
           </span>
         ` :
         `
