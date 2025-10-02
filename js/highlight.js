@@ -92,12 +92,17 @@ function highlightHtmlLines(lines) {
     });
 
     // タグ＋属性
-    html = html.replace(/(&lt;\/?)([^\s&gt;]+)((?:\s[^&]*?)?)(&gt;)/g, (match, open, tag, rest, close) => {
-      const attrProcessed = rest.replace(/([\s]+)([^\s=]+)="([^"]*)"/g,
-        (m, space, attr, val) =>
-          `${space}<span class="token-attr">${attr}</span>="<span class="token-value">${val}</span>"`);
-      return `${open}<span class="token-tag">${tag}</span>${attrProcessed}${close}`;
-    });
+    html = html.replace(
+      /(&lt;\/?)([A-Za-z][\w:-]*)(\s[^&]*?)?(&gt;)/g,
+      (match, open, tag, rest = '', close) => {
+        const attrProcessed = rest.replace(
+          /([\s]+)([^\s=]+)="([^"]*)"/g,
+          (m, space, attr, val) =>
+            `${space}<span class="token-attr">${attr}</span>="<span class="token-value">${val}</span>"`
+        );
+        return `${open}<span class="token-tag">${tag}</span>${attrProcessed}${close}`;
+      }
+    );
 
     // コメントを戻す
     html = html.replace(/%%COMMENT_PLACEHOLDER_(\d+)%%/g, (_, i) => {
