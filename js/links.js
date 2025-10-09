@@ -1,4 +1,4 @@
-const update = '2025-10-01 12:43:40';
+const update = '2025-10-09 12:05:04';
 
 const quizzes = {
   "py11": {
@@ -530,72 +530,72 @@ const typing = {
   "L1": {
     "title": "ホームキー基礎（ASDFGHJKL）",
     "description": "ホーム段のキーを使用した単語を入力します。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=L1"
   },
   "L2": {
     "title": "上段＋ホーム（QWERTYUIOP + ASDFGHJKL）",
     "description": "ホーム段＋上段のキーを使用した単語を入力します。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=L2"
   },
   "L3": {
     "title": "全英字（A–Z）",
     "description": "英字全段（ホーム段＋上段＋下段）のキーを使用した単語を入力します。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=L3"
   },
   "L4": {
     "title": "長音(ー)を含む語",
     "description": "英字＋数字キー（ホーム段＋上段＋下段＋ハイフン）のキーを使用した単語を入力します。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=L4"
   },
   "L5": {
     "title": "英字＋数字（A–Z + 0–9）",
     "description": "英字＋数字キー（ホーム段＋上段＋下段＋数字キー）のキーを使用した単語を入力します。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=L5"
   },
   "L6": {
     "title": "実用的な文字列の入力",
     "description": "",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=L6"
   },
   "K1": {
     "title": "鬼滅 基本名詞（短め）",
     "description": "人物名・基本用語（短め）。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=K1"
   },
   "K2": {
     "title": "鬼滅 固有名詞（中〜長め）",
     "description": "フルネーム/地名/編名など中〜長め。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=K2"
   },
   "K3": {
     "title": "呼吸・型名（技）",
     "description": "各呼吸の技名を連結入力（記号・中黒は入力不要）。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=K3"
   },
   "HY1": {
     "title": "百人一首 1–20（全句）",
     "description": "百人一首（スペースは入力不要）",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=HY1"
   },
   "HY2": {
     "title": "百人一首 21–40（全句）",
     "description": "同上。中難度。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=HY2"
   },
   "HY3": {
     "title": "百人一首 41–60（全句）",
     "description": "同上。やや長め多め。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=HY3"
   },
   "HY4": {
     "title": "百人一首 61–80（全句）",
     "description": "同上。長文・歴史仮名多め。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=HY4"
   },
   "HY5": {
     "title": "百人一首 81–100（全句）",
     "description": "同上。長文中心。",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId="
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwfc5sNUoLSV7GYlIIRSgjJ5845YMyL99NeT2AaAj_UxBwznKxIv2QyvuWXPEGcF4DJtw/exec?gameId=HY5"
   }
 }
 window.typing = typing
