@@ -247,6 +247,70 @@ section article ul ul li{
 }
 section article > ul > li > p{ margin-left: 40px; }
 
+
+
+/* ========== 説明リスト ===================================================== */
+/* <dl> (Description List): リスト全体を囲みます。
+   <dt> (Description Term): 項目名（用語）を囲みます。
+   <dd> (Description Details): 項目の説明を囲みます。
+*/   
+
+section article dl{
+  margin: 10px 16px;
+}
+
+/* ul > li のスタイルを dt, dd に適用 */
+section article dt,
+section article dd {
+  color: var(--font-color-normal-text);
+  font-size: 1rem;
+  text-indent: .1em;
+}
+
+/* li の代わりに dt で項目の間隔を調整し、項目名を太字に */
+section article dt {
+  margin-top: 12px; /* liのmargin: 10px 0; に相当 */
+  font-weight: bolder; /* 項目名(Term)を太字にするのが一般的 */
+}
+
+section article dt::before {
+  content: "・"; /* dt要素の直前に表示する文字を指定 */
+  margin-right: 0.4em; /* 「・」とテキストの間に少し余白を設定 */
+  font-weight: 900;
+}
+
+/* リストの最初の項目の上の余白は不要にする */
+section article dt:first-of-type {
+  margin-top: 0;
+}
+
+/* ul > li > p のインデントを dd に適用 */
+section article dd {
+  margin: 4px 0px 0px 30px; /*上右下左*/
+}
+
+/* ul li a のスタイルを dt, dd 内の a タグに適用 */
+section article dt a,
+section article dd a {
+  color: var(--font-color-normal-text);
+  text-decoration: underline #333;
+  display: inline-block;
+  /* dt自体を太字にしたので、ここのfont-weightは不要な場合が多い */
+  /* font-weight: bolder; */
+}
+
+section article dt a:hover,
+section article dd a:hover {
+  color: var(--font-color-strong-text);
+  text-decoration: underline;
+}
+
+section article dd::before {
+  content: "・"; /* dt要素の直前に表示する文字を指定 */
+  margin-right: 0.2em; /* 「・」とテキストの間に少し余白を設定 */
+}
+
+
 /* ========== ordered list & notes ===================================== */
 
 section article ol{ list-style: none; counter-reset: number; }
