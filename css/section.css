@@ -184,7 +184,10 @@ section article p{
 section > article > p > strong,
 section > article > p > b,
 section > article li strong,
-section > article li b{
+section > article li b,
+section > article dd strong,
+section > article dd b
+{
   font-weight: 700;
   font-family: inherit;                 /* 等幅化はしない */
   background: var(--chip-bg);
@@ -278,6 +281,10 @@ section article dt::before {
   margin-right: 0.4em; /* 「・」とテキストの間に少し余白を設定 */
   font-weight: 900;
 }
+/* dlにnoBulletクラスが付いている場合、その中のdt::beforeのcontentを無効にする */
+section article dl.noBullet dt::before {
+  content: none;
+}
 
 /* リストの最初の項目の上の余白は不要にする */
 section article dt:first-of-type {
@@ -304,8 +311,8 @@ section article dd a:hover {
   text-decoration: underline;
 }
 
-section article dd::before {
-  content: "・"; /* dt要素の直前に表示する文字を指定 */
+section article dl.ddBullet dd::before {
+  content: "・"; /* dd要素の直前に表示する文字を指定 */
   margin-right: 0.2em; /* 「・」とテキストの間に少し余白を設定 */
 }
 

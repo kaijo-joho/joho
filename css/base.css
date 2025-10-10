@@ -197,11 +197,7 @@ i {
   font-family: "Times New Roman", Times, serif;
 }
 
-p.small-text {
-  font-size: var(--font-size-p-small);
-}
-
-span.small-text {
+.small-text {
   font-size: var(--font-size-p-small);
 }
 
