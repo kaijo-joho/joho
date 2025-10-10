@@ -125,6 +125,7 @@ function highlightCssLines(lines) {
   });
 }
 
+
 // ===== result のハイライト（#コメントのみ）=====
 function highlightResultLines(lines) {
   // 「Error」という文字列を含む単語を全体ごと捕まえるための正規表現
@@ -160,20 +161,120 @@ function highlightResultLines(lines) {
     }
   });
 }
-/*
-function highlightResultLines(lines) {
-  return lines.map(line => {
-    const commentIndex = line.indexOf('#');
-    if (commentIndex >= 0) {
-      const codePart = escapeHTML(line.slice(0, commentIndex));
-      const commentPart = escapeHTML(line.slice(commentIndex));
-      return codePart + '<span class="token-comment">' + commentPart + '</span>';
-    } else {
-      return escapeHTML(line);
+
+// ===== Spreadsheet(Excel/Sheets) 構文ハイライト =====
+const SHEETS_FUNCS = [
+  // 集計/統計
+  'SUM','SUMIF','SUMIFS','AVERAGE','AVERAGEIF','AVERAGEIFS','COUNT','COUNTA','COUNTIF','COUNTIFS',
+  'MIN','MAX','ROUND','ROUNDUP','ROUNDDOWN','INT','MOD','ABS','SIGN',
+  // 論理/選択
+  'IF','IFS','SWITCH','CHOOSE','LET','LAMBDA',
+  // 配列/動的配列
+  'FILTER','SORT','SORTBY','UNIQUE','TAKE','DROP','SEQUENCE','INDEX','MATCH','XLOOKUP','VLOOKUP','HLOOKUP','LOOKUP',
+  'OFFSET','INDIRECT','MMULT','TRANSPOSE','BYROW','BYCOL','MAP','REDUCE','SCAN',
+  // 文字列
+  'TEXT','TEXTJOIN','CONCAT','CONCATENATE','SPLIT','LEFT','RIGHT','MID','LEN','LOWER','UPPER','PROPER','VALUE',
+  // 日付/時間
+  'DATE','DATEVALUE','TIME','TIMEVALUE','EDATE','EOMONTH','WEEKDAY','WEEKNUM','WORKDAY','NETWORKDAYS','DATEDIF',
+  // 乱数/時刻
+  'NOW','TODAY','RAND','RANDBETWEEN',
+  // Sheets専用系
+  'REGEXMATCH','REGEXREPLACE','REGEXEXTRACT','QUERY','IMPORTRANGE','HYPERLINK','ARRAYFORMULA'
+];
+
+function highlightSpreadsheetLines(lines) {
+  const FUNC_RE = new RegExp('\\b(?:' + SHEETS_FUNCS.join('|') + ')\\s*(?=\\()', 'gi');
+  const ERR_RE  = /#(?:N\/A|VALUE!|REF!|NAME\?|DIV\/0!|NUM!|NULL!|CALC!|SPILL!|ERROR!)/g;
+  const BOOL_RE = /\b(TRUE|FALSE)\b/gi;
+  // num: 123, 1.23, 1E-3, 50%
+  const NUM_RE  = /(^|[^A-Za-z0-9_])(\d+(?:\.\d+)?(?:E[+\-]?\d+)?%?)/g;
+  const ARGSEP_RE = /([,;])/g;                 // 引数区切り（, / ; 両対応）
+  const COMP_RE   = /(<=|>=|<>|=|<|>)/g;       // 比較演算子
+  const OP_RE     = /([\+\-\*\/\^&:])/g;       // 算術/連結/範囲演算子
+  const PAREN_RE  = /([\(\)\{\}\[\]])/g;       // 括弧類
+  // テーブル構造化参照（Excel）
+  const TABLE_REF_RE = /\b([A-Za-z_][A-Za-z0-9_]*)\s*\[([^\]\[]+)\]/g;
+  // 3D参照: Sheet1:Sheet3!A1 or 'A B' : 'C D' !A1
+  const THREED_RE = /((?:'[^']+'|[A-Za-z0-9_]+):(?:'[^']+'|[A-Za-z0-9_]+))!(\$?[A-Za-z]{1,3}\$?\d+(?::\$?[A-Za-z]{1,3}\$?\d+)?)/g;
+  // シート参照: Sheet1!A1, '売上 2025'!$B$2:$B$99
+  const SHEET_REF_RE = /((?:'[^']+'|[A-Za-z0-9_]+))!(\$?[A-Za-z]{1,3}\$?\d+(?::\$?[A-Za-z]{1,3}\$?\d+)?)/g;
+  // A1 or A1:B10
+  const RANGE_RE = /\b(\$?[A-Za-z]{1,3}\$?\d+(?::\$?[A-Za-z]{1,3}\$?\d+)?)\b/g;
+
+  return lines.map(raw => {
+    // ① コメント扱い（先頭の ' で全体を注釈表示／または //, #）
+    if (/^\s*'/.test(raw)) return '<span class="token-comment">' + escapeHTML(raw) + '</span>';
+    let cmtIdx = -1;
+    const p1 = raw.indexOf('//'), p2 = raw.indexOf('#');
+    if (p1 >= 0 || p2 >= 0) cmtIdx = (p1 >= 0 && p2 >= 0) ? Math.min(p1, p2) : Math.max(p1, p2);
+    const codePart = (cmtIdx >= 0) ? raw.slice(0, cmtIdx) : raw;
+    const cmtPart  = (cmtIdx >= 0) ? raw.slice(cmtIdx)   : '';
+
+    // ② エスケープしてから置換
+    let html = escapeHTML(codePart);
+
+    // 文字列は一旦マスク（"..."）
+    const strStore = [];
+    html = html.replace(/"([^"]*)"/g, (_, s) => {
+      strStore.push(s);
+      return `%%STR_${strStore.length - 1}%%`;
+    });
+
+    // 3D参照 → シート/範囲分離
+    html = html.replace(THREED_RE, (_, sheets, rng) =>
+      `<span class="token-sheet">${sheets}</span>!<span class="token-range">${rng}</span>`
+    );
+    // シート!範囲
+    html = html.replace(SHEET_REF_RE, (_, sheet, rng) =>
+      `<span class="token-sheet">${sheet}</span>!<span class="token-range">${rng}</span>`
+    );
+    // テーブル構造化参照 Table1[Column]
+    html = html.replace(TABLE_REF_RE, (_, tbl, col) =>
+      `<span class="token-table">${tbl}</span><span class="token-bracket">[</span><span class="token-field">${col}</span><span class="token-bracket">]</span>`
+    );
+    // 単独の A1 / A1:B10
+    html = html.replace(RANGE_RE, (m) => m.includes(':')
+      ? `<span class="token-range">${m}</span>`
+      : `<span class="token-cell">${m}</span>`);
+
+    // 関数名（ホワイトリスト）
+    html = html.replace(FUNC_RE, (m) => `<span class="token-func">${m.trim()}</span>`);
+    // ※カスタム関数も強調したい場合は次行を有効化：
+    // html = html.replace(/\b([A-Z][A-Z0-9_\.]+)\s*(?=\()/g, '<span class="token-func">$1</span>');
+
+    // その他のトークン
+    html = html.replace(ERR_RE,  '<span class="token-error">$&</span>');
+    html = html.replace(BOOL_RE, '<span class="token-boolean">$&</span>');
+    html = html.replace(NUM_RE,  (_, pre, num) => `${pre}<span class="token-number">${num}</span>`);
+    html = html.replace(COMP_RE, '<span class="token-compare">$1</span>');
+    html = html.replace(OP_RE,   '<span class="token-operator">$1</span>');
+    html = html.replace(ARGSEP_RE, '<span class="token-argsep">$1</span>');
+    html = html.replace(PAREN_RE,  '<span class="token-paren">$1</span>');
+
+    // 文字列を戻す
+    html = html.replace(/%%STR_(\d+)%%/g, (_, i) =>
+      `<span class="token-string">"${strStore[i]}"</span>`);
+
+    if (cmtIdx >= 0) {
+      return html + '<span class="token-comment">' + escapeHTML(cmtPart) + '</span>';
     }
+    return html;
   });
 }
-  */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // ===== メイン関数 =====
 function highlightCodeBlocksWithIds() {
@@ -200,7 +301,7 @@ function highlightCodeBlocksWithIds() {
 
         const classList = el.className.split(/\s+/);
         const isExample = classList.includes('example');
-        const lang = classList.find(c => ['python', 'html', 'css', 'other', 'result'].includes(c));
+        const lang = classList.find(c => ['python', 'html', 'css', 'sheets', 'excel', 'other', 'result'].includes(c));
         if (!lang) { el = el.nextElementSibling; continue; }
 
         let lines = code.textContent.replace(/\r\n/g, '\n').split('\n');
@@ -227,6 +328,9 @@ function highlightCodeBlocksWithIds() {
             commentLabel = `<!-- ${idText}` + (titleText ? ` ${titleText}` : '') + ' -->';
           } else if (lang === 'css') {
             commentLabel = `/* ${idText}` + (titleText ? ` ${titleText}` : '') + ' */';
+          } else if (lang === 'sheets' || lang === 'excel') {
+            // 数式に公式のコメント記法はないので、行頭'で注釈とする（表示上は token-comment）
+            commentLabel = `' ${idText}` + (titleText ? ` ${titleText}` : '');
           } else if (lang === 'result') {
             commentLabel = `// ${idText}` + (titleText ? ` ${titleText}` : '');
           } else if (lang === 'other') {
@@ -243,6 +347,8 @@ function highlightCodeBlocksWithIds() {
           highlighted = highlightHtmlLines(lines);
         } else if (lang === 'css') {
           highlighted = highlightCssLines(lines);
+        } else if (lang === 'sheets' || lang === 'excel') {
+          highlighted = highlightSpreadsheetLines(lines);
         } else if (lang === 'other') {
           highlighted = lines.map(escapeHTML);
         } else if (lang === 'result') {

@@ -47,6 +47,16 @@
   --tk-selector: #1e88e5;
   --tk-prop:     #43a047;
 
+  /* スプレッドシート用トークン色（Lightの基準値） */
+  --tk-func-ss:  #1565c0; /* 関数名 */
+  --tk-cell:     #2a73cc; /* A1 参照 */
+  --tk-range:    #2a73cc; /* A1:B10 等 */
+  --tk-sheet:    #a26b2a; /* シート名 / '売上 2025'! */
+  --tk-table:    #8c4fb3; /* Table[列] / 構造化参照 */
+  --tk-bracket:  #7a8699; /* [] 等 */
+  --tk-error-ss: #c0392b; /* #REF!, #N/A ... */
+
+
   /* レイアウト */
   --code-radius: 8px;
   --code-pad: .8em;
@@ -90,6 +100,16 @@
     --tk-selector: #80cbc4;
     --tk-prop:     #a3e635;
 
+    /* スプレッドシート用トークン色（ダーク） */
+    --tk-func-ss:  #82aaff;
+    --tk-cell:     #8ab4f8;
+    --tk-range:    #8ab4f8;
+    --tk-sheet:    #d19a66;
+    --tk-table:    #c792ea;
+    --tk-bracket:  #9aa0b1;
+    --tk-error-ss: #ef5350;
+
+
     --code-font-size: 1.05rem;  /* ダーク時は若干だけ小さくして眩しさ軽減 */
   }
 }
@@ -117,7 +137,9 @@ pre code{ display: block; }
 
 pre.python,
 pre.html,
-pre.css{
+pre.css,
+pre.sheets,
+pre.excel{
   background: var(--code-bg-python);
   color: var(--code-fg);
 
@@ -189,8 +211,7 @@ img.pyplot{
 /* 連結スタイル（上下連結時に角と余白を調整）                               */
 /* ====================================================================== */
 
-/* python の直後に result（pre） */
-pre.python + pre.result{
+:is(pre.python, pre.html, pre.css, pre.sheets, pre.excel) + pre.result{
   margin-top: 0;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -198,8 +219,7 @@ pre.python + pre.result{
   border-left: 6px solid var(--code-accent);
   border-left-color: var(--code-accent-tint);
 }
-/* python の直後に div.result（画像など） */
-pre.python + div.result{
+:is(pre.python, pre.html, pre.css, pre.sheets, pre.excel) + div.result{
   margin-top: 0;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -207,61 +227,23 @@ pre.python + div.result{
   border-left: 6px solid var(--code-accent);
   border-left-color: var(--code-accent-tint);
 }
-
-/* デフォルトは丸いが、連結時だけ下をフラットに */
-pre.python{
+:is(pre.python, pre.html, pre.css, pre.sheets, pre.excel){
   margin-bottom: 1em;
   border-bottom-left-radius: var(--code-radius);
   border-bottom-right-radius: var(--code-radius);
   border-bottom-width: 1px;
 }
-pre.python:has(+ pre.result),
-pre.python:has(+ div.result){
+:is(pre.python, pre.html, pre.css, pre.sheets, pre.excel):has(+ pre.result),
+:is(pre.python, pre.html, pre.css, pre.sheets, pre.excel):has(+ div.result){
   margin-bottom: 0;
   border-bottom-left-radius: 0;
   border-bottom-right-radius: 0;
   border-bottom-width: 0;
 }
 
-/* ▼ pre.result の次に div.result がある場合：上下連結風に */
-pre.result + div.result{
-  margin-top: 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top-width: 0;
-  border-left: 6px solid var(--code-accent);
-  border-left-color: var(--code-accent-tint);
-}
-/* ▼ div.result の次に pre.result がある場合：角を消す */
-div.result:has(+ pre.result){
-  margin-bottom: 0;
-  border-bottom-left-radius: 0;
-  border-bottom-right-radius: 0;
-  border-bottom-width: 0;
-}
-div.result + pre.result{
-  margin-top: 0;
-  border-top-left-radius: 0;
-  border-top-right-radius: 0;
-  border-top-width: 0;
-}
-
-/* ====================================================================== */
-/* バリエーション（エラーなど）                                             */
-/* ====================================================================== */
-
-pre.python.error{
-  background: var(--code-bg-error);
-  border-left: 6px solid #d32f2f;
-}
-pre.result.error,
-div.result.error{
-  border-left: 6px solid #d32f2f;
-}
-
-/* example 系の連結（左帯を緑に統一） */
-pre.python.example + pre.result,
-pre.python.example + div.result{
+/* example 連結（左帯を緑に統一） */
+:is(pre.python.example, pre.html.example, pre.css.example, pre.sheets.example, pre.excel.example) + pre.result,
+:is(pre.python.example, pre.html.example, pre.css.example, pre.sheets.example, pre.excel.example) + div.result{
   margin-top: 0;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -269,9 +251,9 @@ pre.python.example + div.result{
   border-left: 6px solid #34a853;
 }
 
-/* error 同士の連結 */
-pre.python.error + pre.result,
-pre.python.error + div.result{
+/* error 連結（左帯を赤） */
+:is(pre.python.error, pre.html.error, pre.css.error, pre.sheets.error, pre.excel.error) + pre.result,
+:is(pre.python.error, pre.html.error, pre.css.error, pre.sheets.error, pre.excel.error) + div.result{
   margin-top: 0;
   border-top-left-radius: 0;
   border-top-right-radius: 0;
@@ -390,4 +372,30 @@ pre:not([class*="example"]):not([class*="copy-ok"]){
     color: color-mix(in oklab, var(--code-fg) 90%, black 10%);
   }
   /* */
+
+
+
+
+
+  /* ====================================================================== */
+  /* Spreadsheet tokens                                                      */
+  /* ====================================================================== */
+  .token-func      { color: var(--tk-func-ss);  font-weight: 700; } /* SUM, XLOOKUP 等 */
+  .token-cell      { color: var(--tk-cell); }
+  .token-range     { color: var(--tk-range);    font-weight: 700; } /* A1:B10 */
+  .token-sheet     { color: var(--tk-sheet); }                      /* '売上 2025'! */
+  .token-table,
+  .token-field     { color: var(--tk-table); }                      /* Table[列] / [@列] */
+  .token-bracket   { color: var(--tk-bracket); }                    /* [ ] */
+  .token-compare,
+  .token-operator,
+  .token-argsep    { font-weight: 700; }                            /* = <> <= + - * / ^ & , ; : */
+  .token-error     { color: var(--tk-error-ss); font-weight: 800; } /* #REF! #N/A ... */
+
+
+
+
+
+
+
 }
