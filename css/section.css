@@ -295,8 +295,7 @@ section article dd a {
   color: var(--font-color-normal-text);
   text-decoration: underline #333;
   display: inline-block;
-  /* dt自体を太字にしたので、ここのfont-weightは不要な場合が多い */
-  /* font-weight: bolder; */
+  font-weight: bolder;
 }
 
 section article dt a:hover,
@@ -309,6 +308,16 @@ section article dd::before {
   content: "・"; /* dt要素の直前に表示する文字を指定 */
   margin-right: 0.2em; /* 「・」とテキストの間に少し余白を設定 */
 }
+
+
+/* ファイルリンク */
+section article ul li span.file-links a{
+  margin: 0px 4px 0px 4px;
+}
+
+
+
+
 
 
 /* ========== ordered list & notes ===================================== */
