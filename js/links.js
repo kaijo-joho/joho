@@ -1,4 +1,4 @@
-const update = '2025-10-15 12:11:34';
+const update = '2025-10-15 12:36:51';
 
 const quizzes = {
   "py11": {
@@ -393,7 +393,7 @@ const submitForms = {
   "htmlpic": {
     "title": "HTML実習 最終課題用写真",
     "description": "HTML実習の最終課題用の写真を提出するフォームです。\n- 撮影をしてきたかどうかの確認です。\n- 自分で撮影したものを1枚添付してください。",
-    "url": ""
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=htmlpic"
   }
 }
 window.submitForms = submitForms
