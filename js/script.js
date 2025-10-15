@@ -105,24 +105,26 @@
       headerbar.appendChild(headerbarCourse);
     }
 
-
     // 作成したheaderbarをbody要素などに追加
     header.appendChild(headerbar);
+    
 
-    const ph = document.createElement('section');
-    ph.id = 'page_header';
-    const phArticle = document.createElement('article');
-    phArticle.innerHTML = `
-      <h1><a id="title">${meta.title}</a></h1>
-      <p class="page_detail">${meta.detail}</p>
-    `;
+    if(!meta.id === 'link'){
+      const ph = document.createElement('section');
+      ph.id = 'page_header';
+      const phArticle = document.createElement('article');
+      phArticle.innerHTML = `
+        <h1><a id="title">${meta.title}</a></h1>
+        <p class="page_detail">${meta.detail}</p>
+      `;
 
-    createDescAndFileList(phArticle, 'dlFile');
-    createDescAndFileList(phArticle, 'practiceFile');
+      createDescAndFileList(phArticle, 'dlFile');
+      createDescAndFileList(phArticle, 'practiceFile');
 
-    ph.appendChild(phArticle);
+      ph.appendChild(phArticle);
 
-    header.after(ph);
+      header.after(ph);
+    }
 
     
 
