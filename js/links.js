@@ -1,4 +1,4 @@
-const update = '2025-10-09 12:05:04';
+const update = '2025-10-15 12:11:34';
 
 const quizzes = {
   "py11": {
@@ -456,6 +456,15 @@ const reviewForms = {
   }
 }
 window.reviewForms = reviewForms
+
+const pubFiles = {
+  "lc13": {
+    "title": "LC13_知的財産権制度と個人情報・プライバシー",
+    "description": "",
+    "url": "https://docs.google.com/presentation/d/1XswHZwjz39pZgm7_UeDkUWg1o2YmgVmiHPnxMqQnwQQ/view?usp=drivesdk"
+  }
+}
+window.pubFiles = pubFiles
 
 const notices = {
   "noti_ori3": {
