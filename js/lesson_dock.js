@@ -180,12 +180,21 @@
 
     items.forEach(it => {
       const label = it.text || it.title || it.fileName || 'ダウンロード';
+      const downloadName = it.downloadName || it.fileName || ''; // '' なら自動名
+
       const li = el('li', { class: 'ld-sec__item ld-pair' }, [
         el('span', { class: 'ld-pair__title' }, label),
         el('span', { class: 'ld-pair__links' }, [
           el('a', {
-            href: it.url, target: '_blank', rel: 'noopener',
-            class: 'ld-pair__link', 'aria-label': `${label} をダウンロード`
+            href: it.url,
+            // ※ download を付与（可能ならファイル名も指定）
+            download: downloadName,
+            // download属性の挙動を優先したいなら target を外すのが無難
+            // 残す場合: 一部ブラウザで新規タブを開いてから保存になることあり
+            // target: '_blank',
+            rel: 'noopener',
+            class: 'ld-pair__link',
+            'aria-label': `${label} をダウンロード`
           }, 'ダウンロード'),
           it.submitUrl ? el('a', {
             href: it.submitUrl, target: '_blank', rel: 'noopener',
