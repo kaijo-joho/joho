@@ -107,9 +107,9 @@
 
     // 作成したheaderbarをbody要素などに追加
     header.appendChild(headerbar);
-    
 
-    if(!meta.id === 'link'){
+
+    if(meta.id !== 'link'){
       const ph = document.createElement('section');
       ph.id = 'page_header';
       const phArticle = document.createElement('article');
