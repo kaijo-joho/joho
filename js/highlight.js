@@ -308,7 +308,7 @@ function highlightCodeBlocksWithIds() {
         // ✅ 言語に応じてインデント幅変更
         const indentSize = (lang === 'python') ? 4 : 2;
         
-        lines = normalizeIndentation(lines, indentSize);
+        lines = (lang === 'result') ? lines : normalizeIndentation(lines, indentSize);
         while (lines.length > 0 && lines[0].trim() === '') lines.shift();
         while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
 

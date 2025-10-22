@@ -29,13 +29,10 @@
       <p>Pythonにはグラフを描くためのモジュールがいくつか用意されていますが、このサイトでは<strong><span class="tooltip" tooltip-data="マットプロットリブ">matplotlib</span></strong>ライブラリの<strong><span class="tooltip" tooltip-data="パイプロット">pyplot</span></strong>モジュールを用いてグラフを表示する方法を学びます。</p>
       
       <h3>pyplotモジュールのインポート</h3>
-      <p>コードセルの先頭に次のように書いて、<tt>pyplot</tt>モジュールをインポートし、コード内で<b><tt>plt</tt></b>という名前で使えるようにします。</p>
-      <pre class="python example" data-title="pyplotモジュールのインポート"><code>import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ</code></pre>
+      <p>グラフを表示するプログラムのコードセルの先頭に、<tt>import matplotlib.pyplot as plt</tt>を記しておきます。これは、<b>pyplotモジュール</b>を<tt>plt</tt>という名前で使えるようにします。</p>
       
-      
-      <h3>matplotlibの日本語化</h3>
-      <h4 id="install-japanize-matplotlib">日本語化ライブラリのインストール</h4>
-      <p>Google Colaboratoryの<tt>matplotlib</tt>で日本語を表示しようとすると文字化けしてしまうので、日本語化のライブラリをインストールします。コードセルに次のコードを入力し、そのまま実行してください。</p>
+      <h3>matplotlibの日本語化ライブラリのインストール</h3>
+      <p><tt>matplotlib</tt>で日本語を表示しようとすると文字化けしてしまいます。そこで、日本語化のライブラリをインストールするために、<tt>!pip install japanize-matplotlib</tt>の一行を実行してください。</p>
       <pre class="python" data-title="日本語化ライブラリのインストール"><code>
         # matplotlibを日本語化するためのライブラリをインストールします。
         # このファイルを開いたら、まずはこのコードセルを実行してください。
@@ -46,40 +43,26 @@
 Collecting japanize-matplotlib
   Downloading japanize-matplotlib-1.1.3.tar.gz (4.1 MB)
      ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 4.1/4.1 MB 31.0 MB/s eta 0:00:00
-  Preparing metadata (setup.py) ... done
-Requirement already satisfied: matplotlib in /usr/local/lib/python3.10/dist-packages (from japanize-matplotlib) (3.7.1)
-Requirement already satisfied: contourpy&gt;=1.0.1 in /usr/local/lib/python3.10/dist-packages (from matplotlib-&gt;japanize-matplotlib) (1.1.0)
-Requirement already satisfied: cycler&gt;=0.10 in /usr/local/lib/python3.10/dist-packages (from matplotlib-&gt;japanize-matplotlib) (0.11.0)
-Requirement already satisfied: fonttools&gt;=4.22.0 in /usr/local/lib/python3.10/dist-packages (from matplotlib-&gt;japanize-matplotlib) (4.42.1)
-Requirement already satisfied: kiwisolver&gt;=1.0.1 in /usr/local/lib/python3.10/dist-packages (from matplotlib-&gt;japanize-matplotlib) (1.4.5)
-Requirement already satisfied: numpy&gt;=1.20 in /usr/local/lib/python3.10/dist-packages (from matplotlib-&gt;japanize-matplotlib) (1.23.5)
-Requirement already satisfied: packaging&gt;=20.0 in /usr/local/lib/python3.10/dist-packages (from matplotlib-&gt;japanize-matplotlib) (23.1)
-Requirement already satisfied: pillow&gt;=6.2.0 in /usr/local/lib/python3.10/dist-packages (from matplotlib-&gt;japanize-matplotlib) (9.4.0)
-Requirement already satisfied: pyparsing&gt;=2.3.1 in /usr/local/lib/python3.10/dist-packages (from matplotlib-&gt;japanize-matplotlib) (3.1.1)
-Requirement already satisfied: python-dateutil&gt;=2.7 in /usr/local/lib/python3.10/dist-packages (from matplotlib-&gt;japanize-matplotlib) (2.8.2)
-Requirement already satisfied: six&gt;=1.5 in /usr/local/lib/python3.10/dist-packages (from python-dateutil&gt;=2.7-&gt;matplotlib-&gt;japanize-matplotlib) (1.16.0)
-Building wheels for collected packages: japanize-matplotlib
-  Building wheel for japanize-matplotlib (setup.py) ... done
-  Created wheel for japanize-matplotlib: filename=japanize_matplotlib-1.1.3-py3-none-any.whl size=4120257 sha256=dd4a674f107092a60ae4ce6804fb5a3f29a44c8109705eada471a391776812f4
-  Stored in directory: /root/.cache/pip/wheels/61/7a/6b/df1f79be9c59862525070e157e62b08eab8ece27c1b68fbb94
+（・・・略・・・）
 Successfully built japanize-matplotlib
 Installing collected packages: japanize-matplotlib
 Successfully installed japanize-matplotlib-1.1.3
       </code></pre>
       
-      <p>このように、最後の行に<tt>Successfully・・・</tt>と表示されれば日本語化ライブラリのインストールが完了しました。今後、日本語化ライブラリのインポートのところでエラーが出たら、このコードを実行してください。</p>
+      <p>このように、最後の行に<tt>Successfully・・・</tt>と表示されれば日本語化ライブラリのインストールが完了しました。</p>
+      <p>今後、日本語化ライブラリのインポートのところでエラーが出たら、このコードを実行してください。</p>
       
-      <h4>モジュールのインポート</h4>
-      <p>コードセルの先頭に次のように書いて、pyplotモジュールをインポートし、コード内で<b><tt>plt</tt></b>という名前で使えるようにします。また、2行目で日本語化ライブラリをインポートします。</p>
+      <h3>pyplotモジュールと日本語化ライブラリのインポート</h3>
+      <p>コードセルの先頭に次のように書いて、pyplotモジュールをインポートし、コード内で<b><tt>plt</tt></b>という名前で使えるようにします。</p>
+      <p>また、2行目で日本語化ライブラリをインポートします。</p>
       <pre class="python example" data-title="モジュールのインポート"><code>
         import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
         import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
       </code></pre>
-
-      
-      
-      
+      <p>この章の実習では、この２行をコードセルの先頭に記載しておきましょう。</p>
     </article>
+
+
     <article>
       <h2 id="headline_2">(2) グラフの表示</h2>
       <h3>グラフの表示</h3>
@@ -270,43 +253,135 @@ Successfully installed japanize-matplotlib-1.1.3
 files.download("ファイル名.png") # 対象のファイルをダウンロードする（savefigのあとに記述）</code></pre>
       
     </article>
-    
     <article>
-      <h2 id="headline_4">(4) 関数とグラフ</h2>
+      <h2 id="headline_4">(4) NumPy</h2>
       <h3>NumPy</h3>
       <p>NumPy（Numerical Pythonの略）は、数値計算用のライブラリです。ここでは主に関数のグラフを描くときなどに用いますが、ほかにも配列や統計などに用いる機能も多くそろえています。</p>
       
-      <p>次の例では、NumPyの機能を用いて<tt>x</tt>に<tt>-10</tt>から<tt>10</tt>まで<tt>0.1</tt>間隔で生成した値を<tt>x</tt>に格納したのち、<tt>y</tt>に<tt>x</tt>の配列の各要素を２乗した値を格納しています。</p>
-      <pre class="python" data-title="NumPy"><code>import numpy as np   # NumPyをnpとしてインポート
-x = np.arange(-10, 10, 0.1)  # -10から10まで0.1間隔で配列xに格納する。
-y = x ** 2                   # 配列xの各要素を配列yに２乗して格納する。</code></pre> 
-      <p>NumPyを用いずに<tt>x</tt>の配列をループを用いずに生成すると、浮動小数点数の誤差が発生し、長い配列の場合には誤差が累積されて本来の値よりも誤差が大きくなります。このような現象を防ぐためにNumPyを用います。また、xは<strong>NumPy配列</strong>となり、<tt>y = x ** 2</tt>のように１行ですべての要素に対して２乗する操作を書くことができる上に、高速で効率的に計算されます（通常の配列だとforループを用いる必要があります）。</p>
-      
+
+      <h3>NumPy配列の生成</h3>
+      <p>NumPyの機能を用いて、実数値のリストを生成するためには、<tt>np.arange(<em>start</em>, <em>stop</em>, <em>step</em>)</tt>を用います。末尾の要素は<em>stop</em>の１つ前までになります。</p>
+      <p>例えば、<tt>-1.0</tt>から<tt>+1.0</tt>まで<tt>0.1</tt>間隔の値のリストを生成するには、<tt>np.arange(-1.0, 1.1, 0.1)</tt>と書きます。</p>
+      <p>このようにして生成したリストを<strong>NumPy配列</strong>といいます。</p>
+      <p class="small-text">※通常のリストでは整数しか扱えないのに対して、NumPy配列は実数値を扱えます。</p>
+      <pre class="python" data-title="NumPy配列の生成"><code>
+import numpy as np  # numpy: 数値計算用のライブラリ
+x = np.arange(-1.0, 1.1, 0.1)
+print(x)
+      </code></pre>
+      <pre class="result"><code>
+[-1.00000000e+00 -9.00000000e-01 -8.00000000e-01 -7.00000000e-01
+ -6.00000000e-01 -5.00000000e-01 -4.00000000e-01 -3.00000000e-01
+ -2.00000000e-01 -1.00000000e-01 -2.22044605e-16  1.00000000e-01
+  2.00000000e-01  3.00000000e-01  4.00000000e-01  5.00000000e-01
+  6.00000000e-01  7.00000000e-01  8.00000000e-01  9.00000000e-01
+  1.00000000e+00]
+      </code></pre>
+
+      <p>Pythonでは、$1.23\times10^4$を<tt>1.23e4</tt>，$-5.67\times10^{-8}$を<tt>-5.67e-8</tt>のように、$\times10^{x}$を<tt>e$x$</tt>と表します。</p>
+      <p>浮動小数点数の誤差があるため、「0」となるところは「-2.22044605e-16」（限りなく「0」に近い）となっています。</p>
+
+
+      <h3>NumPy配列の計算</h3>
+      <p>NumPy配列<tt>x</tt>に対して、<tt>x</tt>の各要素をそれぞれ3倍するときには、<tt>3 * x</tt>と書きます（通常の配列ではfor文を用いる必要がある）。</p>
+      <p>次の例では、<tt>-1.0</tt>から<tt>+1.0</tt>まで<tt>0.1</tt>間隔で生成した格納したNumPy配列<tt>x</tt>の各要素を３倍して変数<tt>y</tt>に格納します。</p>
+      <pre class="python" data-title="NumPy配列の計算"><code>
+import numpy as np  # numpy: 数値計算用のライブラリ
+x = np.arange(-1.0, 1.1, 0.1) # -1.0から1.0
+y = 3 * x
+print(y)
+      </code></pre>
+      <pre class="result"><code>
+[-3.00000000e+00 -2.70000000e+00 -2.40000000e+00 -2.10000000e+00
+ -1.80000000e+00 -1.50000000e+00 -1.20000000e+00 -9.00000000e-01
+ -6.00000000e-01 -3.00000000e-01 -6.66133815e-16  3.00000000e-01
+  6.00000000e-01  9.00000000e-01  1.20000000e+00  1.50000000e+00
+  1.80000000e+00  2.10000000e+00  2.40000000e+00  2.70000000e+00
+  3.00000000e+00]
+      </code></pre>
+
+
+      <h3>NumPyの数学関数</h3>
+      <p>NumPyでは、数学で用いる各種関数も扱えます。</p>
+
+      <h4>対数</h4>
+      <p><tt>np.log10(x)</tt>で<tt>x</tt>の常用対数を求めることができます（<tt>np.log(x)</tt>は自然対数）。</p>
+      <pre class="python" data-title="NumPyの対数"><code>
+import numpy as np  # numpy: 数値計算用のライブラリ
+x = np.arange(0.1, 10.1, 0.1)   # 0.1から10までの範囲で0.1間隔
+y = np.log10(x)                 # 常用対数を計算 (底は10)
+print(y)
+      </code></pre>
+      <pre class="result"><code>
+[-1.         -0.69897    -0.52287875 -0.39794001 -0.30103    -0.22184875
+ -0.15490196 -0.09691001 -0.04575749  0.          0.04139269  0.07918125
+  0.11394335  0.14612804  0.17609126  0.20411998  0.23044892  0.25527251
+  0.2787536   0.30103     0.32221929  0.34242268  0.36172784  0.38021124
+  0.39794001  0.41497335  0.43136376  0.44715803  0.462398    0.47712125
+  0.49136169  0.50514998  0.51851394  0.53147892  0.54406804  0.5563025
+  0.56820172  0.5797836   0.59106461  0.60205999  0.61278386  0.62324929
+  0.63346846  0.64345268  0.65321251  0.66275783  0.67209786  0.68124124
+  0.69019608  0.69897     0.70757018  0.71600334  0.72427587  0.73239376
+  0.74036269  0.74818803  0.75587486  0.76342799  0.77085201  0.77815125
+  0.78532984  0.79239169  0.79934055  0.80617997  0.81291336  0.81954394
+  0.8260748   0.83250891  0.83884909  0.84509804  0.85125835  0.8573325
+  0.86332286  0.86923172  0.87506126  0.88081359  0.88649073  0.8920946
+  0.89762709  0.90308999  0.90848502  0.91381385  0.91907809  0.92427929
+  0.92941893  0.93449845  0.93951925  0.94448267  0.94939001  0.95424251
+  0.95904139  0.96378783  0.96848295  0.97312785  0.97772361  0.98227123
+  0.98677173  0.99122608  0.99563519  1.        ]
+      </code></pre>
+
+      <h4>三角関数</h4>
+      <p><tt>np.sin(x)</tt>で<tt>x</tt>の正弦(sin)を求めることができます（<tt>np.cos(x)</tt>では余弦(cos)，<tt>np.tan(x)</tt>では正接(tan)）。</p>
+      <p>ただし、sinの引数に指定する値は平面角（ラジアン）で表されたものなので、角度をラジアンに変換してから引数として渡します。</p>
+      <p>また、<tt>np.pi</tt>で円周率$\pi$を表します。</p>
+      <pre class="python" data-title="NumPyの三角関数"><code>
+import numpy as np  # numpy: 数値計算用のライブラリ
+degrees = np.arange(0, 361, 15) # 0から360までの範囲で15間隔
+radians = np.radians(degrees)   # 角度をラジアンに変換
+y = np.sin(radians)             # sinを計算
+print(y)
+      </code></pre>
+      <pre class="result"><code>
+[ 0.00000000e+00  2.58819045e-01  5.00000000e-01  7.07106781e-01
+  8.66025404e-01  9.65925826e-01  1.00000000e+00  9.65925826e-01
+  8.66025404e-01  7.07106781e-01  5.00000000e-01  2.58819045e-01
+  1.22464680e-16 -2.58819045e-01 -5.00000000e-01 -7.07106781e-01
+ -8.66025404e-01 -9.65925826e-01 -1.00000000e+00 -9.65925826e-01
+ -8.66025404e-01 -7.07106781e-01 -5.00000000e-01 -2.58819045e-01
+ -2.44929360e-16]
+      </code></pre>
+
+
+    </article>
+    
+    <article>
+      <h2 id="headline_5">(5) 関数とグラフ</h2>
       <h3>関数のグラフ</h3>
       
       <h4>実習1 放物線</h4>
       <p>次の例では、$y=x^2$のグラフを表示します。</p>
       
       <pre class="python" data-title="「y = x^2」のグラフ"><code>
-        import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
-        import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
-        import numpy as np              # numpy: 数値計算用のライブラリ
+import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
+import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
+import numpy as np              # numpy: 数値計算用のライブラリ
 
-        # xとyの値を設定
-        x = np.arange(-10, 10, 0.1)     # x: -10から10まで 0.1間隔
-        y = x**2                        # y: y = x^2
+degrees = np.arange(0, 361, 1)  # 角度の値を生成: 0度から360度まで、1度間隔
+radians = np.radians(degrees)   # 角度をラジアンに変換
+y = np.sin(radians)             # yの値を計算: y = sin(x)
 
-        # グラフをプロット
-        plt.plot(x, y, label="y = x^2")         # xとyの値をプロット
-        plt.axhline(0, color="black", lw=0.5)   # y=0の線を描く
-        plt.axvline(0, color="black", lw=0.5)   # x=0の線を描く
-        plt.title("y = x^2のグラフ")            # グラフのタイトルを設定
-        plt.xlabel("x")                         # x軸のラベルを設定
-        plt.ylabel("y")                         # y軸のラベルを設定
-        plt.legend(loc="lower left")            # 凡例を表示
-        plt.grid(True)                          # グリッド線を表示
-
-        plt.show()                              # グラフを表示
+# グラフの作成と表示
+plt.plot(degrees, y, label="y = sin(x)")    # degreesとyの値をプロット
+plt.title("y = sin(x)のグラフ (x は角度)")  #s グラフのタイトルを設定
+plt.xlabel("角度 (度)")                     # x軸のラベルを設定
+plt.ylabel("y")                             # y軸のラベルを設定
+plt.axhline(0, color="black", lw=0.5)       # x軸を表示(y=0の線を描く)
+plt.axvline(0, color="black", lw=0.5)       # y軸を表示(x=0の線を描く)
+plt.legend()                                # 凡例を表示
+plt.grid(True)                              # グリッド線を表示
+plt.show()                                  # グラフを表示
       </code></pre>
       <div class="result"><img src="./img/py51_003.png" class="pyplot"></div>
 
@@ -316,31 +391,24 @@ y = x ** 2                   # 配列xの各要素を配列yに２乗して格�
       <h4>実習2 サインカーブ</h4>
       <p>次の例では、$y=\sin x$のグラフを表示します。</p>
       <pre class="python" data-title="「y = sin(x)」のグラフ"><code>
-        import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
-        import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
-        import numpy as np              # numpy: 数値計算用のライブラリ
+import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
+import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
+import numpy as np              # numpy: 数値計算用のライブラリ
 
-        # 角度の値を生成: 0度から360度まで、1度間隔
-        degrees = np.arange(0, 361, 1)
+# 媒介変数t設定
+t = np.linspace(-np.pi, np.pi, 1000)  # -π〜+πまで1000等分した値を生成
 
-        # 角度をラジアンに変換
-        radians = np.radians(degrees)
+# xとyの値を設定
+x = np.cos(t)
+y = np.sin(t)
 
-        # yの値を計算: y = sin(x)
-        y = np.sin(radians)
-
-        # グラフをプロット
-        plt.plot(degrees, y, label="y = sin(x)")  # degreesとyの値をプロット
-        plt.axhline(0, color="black", lw=0.5)  # y=0の線を描く
-        plt.axvline(0, color="black", lw=0.5)  # x=0の線を描く
-        plt.title("y = sin(x)のグラフ (x は角度)")  #s グラフのタイトルを設定
-        plt.xlabel("角度 (度)")  # x軸のラベルを設定
-        plt.ylabel("y")  # y軸のラベルを設定
-        plt.legend()  # 凡例を表示
-        plt.grid(True)  # グリッド線を表示
-
-        # グラフを表示
-        plt.show()
+# グラフの作成と表示
+plt.figure(figsize=(6, 6))              # グラフの大きさを設定
+plt.plot(x, y)                          # xとyの値をプロット
+plt.axhline(0, color="black", lw=0.5)   # x軸を表示(y=0の線を描く)
+plt.axvline(0, color="black", lw=0.5)   # y軸を表示(x=0の線を描く)
+plt.grid(True)                          # グリッド線を表示
+plt.show()                              # グラフの表示
       </code></pre>
       <div class="result"><img src="./img/py51_004.png" class="pyplot"></div>
 
@@ -352,30 +420,30 @@ y = x ** 2                   # 配列xの各要素を配列yに２乗して格�
       <h4>実習3 挿入ソートとクイックソートの比較回数</h4>
       <p>挿入ソートの平均比較回数は $n(n-1)/4$，クイックソートの平均比較回数は$n \log_2{n}$ と表せます。次の例では、挿入ソートの平均比較回数とクイックソートの平均比較回数を比較するために2系列のグラフを表示します。</p>
       <pre class="python" data-title="挿入ソートとクイックソートの比較回数のグラフ"><code>
-        import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
-        import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
-        import numpy as np              # numpy: 数値計算用のライブラリ
+import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
+import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
+import numpy as np              # numpy: 数値計算用のライブラリ
 
-        # xの値を生成: 1から100までの整数値
-        x = np.arange(1, 101)
+# xの値を生成: 1から100までの整数値
+x = np.arange(1, 101)
 
-        # yの値を計算
-        y1 = x * (x - 1) / 4  # 挿入ソートの平均比較回数
-        y2 = x * np.log2(x)  # クイックソートの平均比較回数
+# yの値を計算
+y1 = x * (x - 1) / 4  # 挿入ソートの平均比較回数
+y2 = x * np.log2(x)  # クイックソートの平均比較回数
 
-        # グラフをプロット
-        plt.plot(x, y1, label="挿入ソート: n*(n-1)/4", color="blue")  # 挿入ソートのグラフをプロット
-        plt.plot(x, y2, label="クイックソート): n*log2(n)", color="red")  # クイックソートのグラフをプロット
-        plt.axhline(0, color="black", lw=0.5)  # y=0の線を描く
-        plt.axvline(0, color="black", lw=0.5)  # x=0の線を描く
-        plt.title("挿入ソートとクイックソートの比較回数のグラフ")  # グラフのタイトルを設定
-        plt.xlabel("データ数")  # x軸のラベルを設定
-        plt.ylabel("比較回数")  # y軸のラベルを設定
-        plt.legend()  # 凡例を表示
-        plt.grid(True)  # グリッド線を表示
-
-        # グラフを表示
-        plt.show()
+# グラフの作成と表示
+plt.plot(x, y1, label="挿入ソート", color="blue")       # 挿入ソートのグラフをプロット
+plt.plot(x, y2, label="クイックソート)", color="red")   # クイックソートのグラフをプロット
+plt.title("挿入ソートとクイックソートの比較回数")       # グラフのタイトルを設定
+plt.xlabel("データ数")                                  # x軸のラベルを設定
+plt.ylabel("比較回数")                                  # y軸のラベルを設定
+plt.axhline(0, color="black", lw=0.5)                   # x軸を表示(y=0の線を描く)
+plt.axvline(0, color="black", lw=0.5)                   # y軸を表示(x=0の線を描く)
+plt.xlim(0, 100)                                        # x軸の範囲を設定
+plt.ylim(0)                                             # y軸の範囲を設定（下限のみ）
+plt.legend()                                            # 凡例を表示
+plt.grid(True)                                          # グリッド線を表示
+plt.show()                                              # グラフを表示
       </code></pre>
       <div class="result"><img src="./img/py51_005.png" class="pyplot"></div>
 
@@ -394,21 +462,24 @@ y = x ** 2                   # 配列xの各要素を配列yに２乗して格�
       <p>NumPyを用いて$-\pi$〜$\pi$まで1000等分した値を生成して配列tに格納するときは、<tt>t = np.linspace(-np.pi, np.pi, 1000)</tt>と書きます。</p>
       
       <pre class="python" data-title="円のグラフ"><code>
-        import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
-        import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
-        import numpy as np              # numpy: 数値計算用のライブラリ
+import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
+import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
+import numpy as np              # numpy: 数値計算用のライブラリ
 
-        t = np.linspace(-np.pi, np.pi, 1000)  # -π〜+πまで1000等分した値を生成
+# 媒介変数t設定
+t = np.linspace(-np.pi, np.pi, 1000)  # -π〜+πまで1000等分した値を生成
 
-        # xとyの値を設定
-        x = np.cos(t)
-        y = np.sin(t)
+# xとyの値を設定
+x = np.cos(t)
+y = np.sin(t)
 
-        # プロット
-        plt.figure(figsize=(6, 6))   # グラフの大きさを設定
-        plt.plot(x, y)
-
-        plt.show()
+# グラフの作成と表示
+plt.figure(figsize=(6, 6))              # グラフの大きさを設定
+plt.plot(x, y)                          # xとyの値をプロット
+plt.axhline(0, color="black", lw=0.5)   # x軸を表示(y=0の線を描く)
+plt.axvline(0, color="black", lw=0.5)   # y軸を表示(x=0の線を描く)
+plt.grid(True)                          # グリッド線を表示
+plt.show()                              # グラフの表示
       </code></pre>
       <div class="result"><img src="./img/py51_007.png" class="pyplot"></div>
 
@@ -428,31 +499,31 @@ y = x ** 2                   # 配列xの各要素を配列yに２乗して格�
       <p>次の例では、$a=3$，$b=4$としたときのリサジュー曲線を表示します。</p>
       
       <pre class="python" data-title="リサジュー曲線"><code>
-        import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
-        import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
-        import numpy as np              # numpy: 数値計算用のライブラリ
+import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
+import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
+import numpy as np              # numpy: 数値計算用のライブラリ
 
-        # パラメータの設定
-        a = 3
-        b = 4
+# パラメータの設定
+a = 3
+b = 4
 
-        delta =  np.pi / 2  # 90度の位相差
-        t = np.linspace(-np.pi, np.pi, 1000)  # -π〜+πまで1000等分した値を生成
+delta =  np.pi / 2  # 90度の位相差
+t = np.linspace(-np.pi, np.pi, 1000)  # -π〜+πまで1000等分した値を生成
 
-        # リサジュー曲線の方程式
-        x = np.sin(a * t + delta)
-        y = np.sin(b * t)
+# リサジュー曲線の方程式
+x = np.sin(a * t + delta)
+y = np.sin(b * t)
 
-        # プロット
-        plt.figure(figsize=(6, 6))
-        plt.plot(x, y)
-        plt.title("Lissajous Curve")
-        plt.xlabel("x")
-        plt.ylabel("y")
-        plt.axvline(0, color="black", lw=1)  # x軸
-        plt.axhline(0, color="black", lw=1)  # y軸
-        plt.grid(True)
-        plt.show()
+# グラフの作成と表示
+plt.figure(figsize=(6, 6))
+plt.plot(x, y)
+plt.title("Lissajous Curve")
+plt.xlabel("x")
+plt.ylabel("y")
+plt.axvline(0, color="black", lw=1)  # x軸
+plt.axhline(0, color="black", lw=1)  # y軸
+plt.grid(True)
+plt.show()
       </code></pre>
       <div class="result"><img src="./img/py51_006.png" class="pyplot"></div>
 
