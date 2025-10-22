@@ -1,4 +1,4 @@
-//2025-09-11 01:53:15;
+//2025-10-22 03:54:21;
 const pages = {
   "index": {
     "id": "index",
@@ -1972,7 +1972,16 @@ const pages = {
     ],
     "dlFile": false,
     "exampleFile": false,
-    "questionFile": false,
+    "questionFile": [
+      {
+        "id": "py51a",
+        "release": false,
+        "title": "5-1_グラフの表示_演習問題（問題）.ipynb",
+        "fileName": "5-1_グラフの表示_演習問題（問題）.ipynb",
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py51a",
+        "text": "5-1_グラフの表示_演習問題（問題）.ipynb"
+      }
+    ],
     "quizForm": false,
     "back": "py00",
     "next": [
