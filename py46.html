@@ -78,112 +78,112 @@
       <h3>プログラム（位置交換）</h3>
       <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
       <pre class="python" data-title="クイックソート"><code>
-        def quick_sort(arr, start, end):
-          if start >= end:  # startがend以上の場合、処理を終了
-            return
-          
-          middle = (start + end) // 2   # 中央の位置を求める
-          pivot = arr[middle]           # pivotを求める
-          left = start                  # 左側の比較対象のインデックス番号
-          right = end                   # 右側の比較対象のインデックス番号
+def quick_sort(arr, start, end):
+  if start >= end:  # startがend以上の場合、処理を終了
+    return
+  
+  middle = (start + end) // 2   # 中央の位置を求める
+  pivot = arr[middle]           # pivotを求める
+  left = start                  # 左側の比較対象のインデックス番号
+  right = end                   # 右側の比較対象のインデックス番号
 
-          while left <= right:          # leftがright以下のあいだ繰り返す（leftがrightより大きくなったら繰り返しを止める）
-            while arr[left] < pivot:    # 左側の値がpivotより小さければ、１つ右の値を対象にする
-              left = left + 1
-            while arr[right] > pivot:   # 右側の値がpivotより大きければ、１つ左の値を対象にする
-              right = right - 1
+  while left <= right:          # leftがright以下のあいだ繰り返す（leftがrightより大きくなったら繰り返しを止める）
+    while arr[left] < pivot:    # 左側の値がpivotより小さければ、１つ右の値を対象にする
+      left = left + 1
+    while arr[right] > pivot:   # 右側の値がpivotより大きければ、１つ左の値を対象にする
+      right = right - 1
 
-            if left <= right:           # leftがright以下の場合、要素を交換し、leftとrightを次に進める
-              tmp = arr[left]
-              arr[left] = arr[right]
-              arr[right] = tmp
-              
-              left = left + 1
-              right = right - 1
+    if left <= right:           # leftがright以下の場合、要素を交換し、leftとrightを次に進める
+      tmp = arr[left]
+      arr[left] = arr[right]
+      arr[right] = tmp
+      
+      left = left + 1
+      right = right - 1
 
-          # ここまでで、pivotよりも左側に小さい値、右側に大きい値が移動している
-          # 再帰的にクイックソートを左側の配列と右側の配列で実行
-          quick_sort(arr, start, right) # 左側の配列についてクイックソートを実行
-          quick_sort(arr, left, end)    # 右側の配列についてクイックソートを実行
+  # ここまでで、pivotよりも左側に小さい値、右側に大きい値が移動している
+  # 再帰的にクイックソートを左側の配列と右側の配列で実行
+  quick_sort(arr, start, right) # 左側の配列についてクイックソートを実行
+  quick_sort(arr, left, end)    # 右側の配列についてクイックソートを実行
 
-        arr = [6, 3, 2, 0, 7, 1, 4, 5]
-        print(arr)                      # 元の配列の表示
+arr = [6, 3, 2, 0, 7, 1, 4, 5]
+print(arr)                      # 元の配列の表示
 
-        quick_sort(arr, 0, len(arr) - 1)  # クイックソート関数を呼び出し
+quick_sort(arr, 0, len(arr) - 1)  # クイックソート関数を呼び出し
 
-        print(arr)                      # ソート後の配列の表示
+print(arr)                      # ソート後の配列の表示
       </code></pre>
       <pre class="result"><code>
-        [6, 3, 2, 0, 7, 1, 4, 5]
-        [0, 1, 2, 3, 4, 5, 6, 7]
+[6, 3, 2, 0, 7, 1, 4, 5]
+[0, 1, 2, 3, 4, 5, 6, 7]
       </code></pre>
 
       
       <h3>プログラム（Pythonらしい書き方）</h3>
       <p>関数型プログラミング言語であるPythonらしい書き方をすると、次のようになります。上記では<b>既存の配列内の要素の位置を交換して</b>いましたが、次の例では、<b>新しい配列をつくって結果として返す</b>ようにしています。</p>
       <pre class="python" data-title="クイックソート（配列を返す）"><code>
-        def quick_sort(arr):
-          # ソートすべき要素が1つ以下の場合、そのまま返す
-          if len(arr) <= 1:
-            return arr
+def quick_sort(arr):
+  # ソートすべき要素が1つ以下の場合、そのまま返す
+  if len(arr) <= 1:
+    return arr
 
-          # ピボットとして中央の要素を選択
-          pivot = arr[len(arr) // 2]
-          left = []
-          middle = []
-          right = []
+  # ピボットとして中央の要素を選択
+  pivot = arr[len(arr) // 2]
+  left = []
+  middle = []
+  right = []
 
-          # arrの要素を、ピボットより小さいか、等しいか、大きいかに基づいて、
-          # left, middle, rightのリストに分ける
-          for x in arr:
-            if x < pivot:
-              left.append(x)
-            elif x == pivot:
-              middle.append(x)
-            else:
-              right.append(x)
+  # arrの要素を、ピボットより小さいか、等しいか、大きいかに基づいて、
+  # left, middle, rightのリストに分ける
+  for x in arr:
+    if x < pivot:
+      left.append(x)
+    elif x == pivot:
+      middle.append(x)
+    else:
+      right.append(x)
 
-          # 配列leftと配列rightを再帰的にソートし、結果を連結して返す
-          return quick_sort(left) + middle + quick_sort(right)
+  # 配列leftと配列rightを再帰的にソートし、結果を連結して返す
+  return quick_sort(left) + middle + quick_sort(right)
 
 
-        arr = [6, 3, 2, 0, 7, 1, 4, 5] # 元のリスト
-        print(arr)    # ソート前を出力
+arr = [6, 3, 2, 0, 7, 1, 4, 5] # 元のリスト
+print(arr)    # ソート前を出力
 
-        arr = quick_sort(arr)  # クイックソートを実行
+arr = quick_sort(arr)  # クイックソートを実行
 
-        print(arr)    # ソート後
+print(arr)    # ソート後
       </code></pre>
       <pre class="result"><code>
-        [6, 3, 2, 0, 7, 1, 4, 5]
-        [0, 1, 2, 3, 4, 5, 6, 7]
+[6, 3, 2, 0, 7, 1, 4, 5]
+[0, 1, 2, 3, 4, 5, 6, 7]
       </code></pre>
       
       <p>さらに<b>内包表記</b>を用いると、次のように簡潔に書くことができます。</p>
       <pre class="python" data-title="クイックソート（内包表記）"><code>
-        def quick_sort(arr):
-          # ソートすべき要素が1つ以下の場合、そのまま返す
-          if len(arr) <= 1:
-            return arr
+def quick_sort(arr):
+  # ソートすべき要素が1つ以下の場合、そのまま返す
+  if len(arr) <= 1:
+    return arr
 
-          pivot = arr[len(arr) // 2]
-          left = [x for x in arr if x < pivot]       # pivotよりも小さい値を配列leftに格納
-          middle = [x for x in arr if x == pivot]    # pivotと等しい値を配列middleに格納
-          right = [x for x in arr if x > pivot]      # pivotよりも大きい値を配列rightに格納
+  pivot = arr[len(arr) // 2]
+  left = [x for x in arr if x < pivot]       # pivotよりも小さい値を配列leftに格納
+  middle = [x for x in arr if x == pivot]    # pivotと等しい値を配列middleに格納
+  right = [x for x in arr if x > pivot]      # pivotよりも大きい値を配列rightに格納
 
-          return quick_sort(left) + middle + quick_sort(right) # 配列leftと配列rightを再帰的にソートし、結果を連結して返す
+  return quick_sort(left) + middle + quick_sort(right) # 配列leftと配列rightを再帰的にソートし、結果を連結して返す
 
 
-        arr = [6, 3, 2, 0, 7, 1, 4, 5]   # 元のリスト
-        print(arr)    # ソート前
+arr = [6, 3, 2, 0, 7, 1, 4, 5]   # 元のリスト
+print(arr)    # ソート前
 
-        arr = quick_sort(arr) # クイックソートを実行
+arr = quick_sort(arr) # クイックソートを実行
 
-        print(arr)    # ソート後
+print(arr)    # ソート後
       </code></pre>
       <pre class="result"><code>
-        [6, 3, 2, 0, 7, 1, 4, 5]
-        [0, 1, 2, 3, 4, 5, 6, 7]
+[6, 3, 2, 0, 7, 1, 4, 5]
+[0, 1, 2, 3, 4, 5, 6, 7]
       </code></pre>
       
       

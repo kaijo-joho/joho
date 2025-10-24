@@ -67,35 +67,35 @@
       <p>上記の手順をプログラムに書くと、次のようになります。</p>
       <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
       <pre class="python" data-title="バイナリサーチ"><code>
-        arr = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
-        print(arr)
-        target = int(input("探索値:"))
+arr = [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+print(arr)
+target = int(input("探索値:"))
 
-        x = -1          # 探索値のインデックス番号（初期値: -1）
-        n = len(arr)
+x = -1          # 探索値のインデックス番号（初期値: -1）
+n = len(arr)
 
-        left = 0        # 探索範囲の左端の位置
-        right = n - 1   # 探索範囲の右端の位置
+left = 0        # 探索範囲の左端の位置
+right = n - 1   # 探索範囲の右端の位置
 
-        while left <= right:                # 探索範囲の左端と右端の間にデータがある限り繰り返す
-          mid = (left + right) // 2       # 探索範囲の中央の位置
-          if arr[mid] == target:          # 中央値＝探索値のとき
-            x = mid                     # xに中央の位置を代入して終了
-            break
-          elif arr[mid] < target:         # 中央値＜探索値のとき、左端を中央の位置より１つ右に移動する
-            left = mid + 1
-          else:                           # 中央値＞探索値のとき、右端を中央の位置より１つ左に移動する
-            right = mid - 1
+while left <= right:                # 探索範囲の左端と右端の間にデータがある限り繰り返す
+  mid = (left + right) // 2       # 探索範囲の中央の位置
+  if arr[mid] == target:          # 中央値＝探索値のとき
+    x = mid                     # xに中央の位置を代入して終了
+    break
+  elif arr[mid] < target:         # 中央値＜探索値のとき、左端を中央の位置より１つ右に移動する
+    left = mid + 1
+  else:                           # 中央値＞探索値のとき、右端を中央の位置より１つ左に移動する
+    right = mid - 1
 
-        if x != -1:
-          print(target, "のインデックス番号は", x)
-        else:
-          print(target, "は存在しません。")
+if x != -1:
+  print(target, "のインデックス番号は", x)
+else:
+  print(target, "は存在しません。")
       </code></pre>
       <pre class="result"><code>
-        [1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
-        探索する数値:5    #5を入力した場合
-        5 のインデックス番号は 2
+[1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
+探索する数値:5    #5を入力した場合
+5 のインデックス番号は 2
       </code></pre>
       
 <!--
