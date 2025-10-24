@@ -60,27 +60,27 @@
       <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
       <p><b>配列</b>（Pythonではリストともいいます）は英語でarrayというので、これを略して<tt>arr</tt>という変数名で用いられます。</p>
       <pre class="python" data-title="リニアサーチ（線形探索法）"><code>
-        arr = [10, 23, 45, 67, 89, 12, 3]
-        print(arr)
-        target = int(input("探索値: "))   # 探索値を入力させる
+arr = [10, 23, 45, 67, 89, 12, 3]
+print(arr)
+target = int(input("探索値: "))   # 探索値を入力させる
 
-        x = -1         # 探索値のインデックス番号（初期値: -1）
-        n = len(arr)   # 配列の長さ
+x = -1         # 探索値のインデックス番号（初期値: -1）
+n = len(arr)   # 配列の長さ
 
-        for i in range(n):         # 配列の中を順番にループする
-          if arr[i] == target:     # i番目の要素と探索値が等しければ
-            x = i                  # xにiを代入する
-            break                  # ループを終了する
+for i in range(n):         # 配列の中を順番にループする
+  if arr[i] == target:     # i番目の要素と探索値が等しければ
+    x = i                  # xにiを代入する
+    break                  # ループを終了する
 
-        if x != -1:                # xが-1ではない場合（探索値が見つかった場合）
-          print(target, "のインデックス番号は", x)
-        else:                      # xが-1(初期値)の場合（探索値が存在しなかった場合）
-          print(target, "は存在しません。")
+if x != -1:                # xが-1ではない場合（探索値が見つかった場合）
+  print(target, "のインデックス番号は", x)
+else:                      # xが-1(初期値)の場合（探索値が存在しなかった場合）
+  print(target, "は存在しません。")
       </code></pre>
       <pre class="result"><code>
-        [10, 23, 45, 67, 89, 12, 3]
-        探索値: 45   # 45と入力した場合
-        45 のインデックス番号は 2
+[10, 23, 45, 67, 89, 12, 3]
+探索値: 45   # 45と入力した場合
+45 のインデックス番号は 2
       </code></pre>
       
       <h3>探索回数</h3>
@@ -119,34 +119,34 @@
       <h3>最大値探索のプログラム</h3>
       <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
       <pre class="python" data-title="最大値の探索"><code>
-        arr = [10, 23, 45, 67, 89, 12, 3]
-        print(arr)
+arr = [10, 23, 45, 67, 89, 12, 3]
+print(arr)
 
-        n = len(arr)
-        max_value = arr[0]                  # 0番目の値を暫定の最大値max_valueに入れる。
+n = len(arr)
+max_value = arr[0]                  # 0番目の値を暫定の最大値max_valueに入れる。
 
-        for i in range(1, n):               # 1番目〜末尾まで繰り返す。
-          if max_value < arr[i]:          # 暫定の最大値よりarr[i]が大きければ、
-            max_value = arr[i]          # 暫定の最大値にarr[i]を代入する
+for i in range(1, n):               # 1番目〜末尾まで繰り返す。
+  if max_value < arr[i]:          # 暫定の最大値よりarr[i]が大きければ、
+    max_value = arr[i]          # 暫定の最大値にarr[i]を代入する
 
-        print("最大値は", max_value)        # 配列を最後まで調べて、max_valueに入っている値が最大値と確定する
+print("最大値は", max_value)        # 配列を最後まで調べて、max_valueに入っている値が最大値と確定する
       </code></pre>
       <pre class="result"><code>最大値は 89</code></pre>
       
       <h3 id="search-minimum">最小値探索のプログラム</h3>
       <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
       <pre class="python" data-title=""><code>
-        arr = [10, 23, 45, 67, 89, 12, 3]
-        print(arr)
+arr = [10, 23, 45, 67, 89, 12, 3]
+print(arr)
 
-        n = len(arr)        
-        min_value = arr[0]                  # 0番目の値を暫定の最小値min_valueに入れる。
+n = len(arr)        
+min_value = arr[0]                  # 0番目の値を暫定の最小値min_valueに入れる。
 
-        for i in range(1, n):               # 1番目〜末尾まで繰り返す。
-          if min_value > arr[i]:          # 暫定の最小値よりarr[i]が小さければ、
-            min_value = arr[i]          # 暫定の最小値にarr[i]を代入する
+for i in range(1, n):               # 1番目〜末尾まで繰り返す。
+  if min_value > arr[i]:          # 暫定の最小値よりarr[i]が小さければ、
+    min_value = arr[i]          # 暫定の最小値にarr[i]を代入する
 
-        print("最小値は", min_value)        # 配列を最後まで調べて、min_valueに入っている値が最小値と確定する
+print("最小値は", min_value)        # 配列を最後まで調べて、min_valueに入っている値が最小値と確定する
       </code></pre>      
       <pre class="result"><code>最小値は 3</code></pre>
       
