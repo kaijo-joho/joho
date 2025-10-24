@@ -149,20 +149,21 @@ print("ソート後", arr)                    # ソート後を出力
       <h4>手順</h4>
       <p>バブルソートの2つのループ変数<tt>i</tt>，<tt>j</tt>の変化の様子を確かめるために、次のようなプログラムを実行してみましょう。</p>
       <pre class="python" data-title="バブルソート（iとjの変化）"><code>
-        n = 8
-        print("i", "j")
-        for i in range(n - 1):                    # 調べる範囲の開始位置を１つずつ後へ移動していく
-          for j in range(n - 2, i - 1, -1):     # 末尾から先頭に向かって、隣り合う２値を比較する
-            print(i, j)</code></pre>
+n = 8
+print("i", "j")
+for i in range(n - 1):                    # 調べる範囲の開始位置を１つずつ後へ移動していく
+  for j in range(n - 2, i - 1, -1):     # 末尾から先頭に向かって、隣り合う２値を比較する
+    print(i, j)
+      </code></pre>
       <pre class="result"><code>
-        i j
-        0 6
-        0 5
-        0 4
-        (略)
-        5 6
-        5 5
-        6 6
+i j
+0 6
+0 5
+0 4
+(略)
+5 6
+5 5
+6 6
       </code></pre>
       <p>これを実行すると、<tt>n = 8</tt>のとき、<tt>i</tt>と<tt>j</tt>の値は次のように変化していることがわかります。</p>
       <p>
