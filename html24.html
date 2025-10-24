@@ -267,9 +267,19 @@
 
     </article>
 
+    <article>
+      <h2 id="headline_3">(3) BODYタグのCSS</h2>
+      <p><strong>BODYタグ</strong>はページ本体を表す要素です。<strong>body</strong>セレクタで、ページ全体の「基準」となるスタイル（文字色・フォント・行間、背景色など）をまとめて指定できます。たとえば、既定の余白は <code>margin: 0;</code> でリセットできます。</p>
+
+      <p>同じ要素に複数のルールが当たる場合、どれが適用されるかは
+      <strong>① セレクタの詳細度（id &gt; class &gt; 要素） → ② 記述の後勝ち</strong>
+      の順で決まります。つまり、詳細度が同じときに限って「下に書いた方」が有効になります。</p>
+
+      <p><strong>body</strong> に書いたスタイルのうち、<em>継承されるプロパティ</em>（例：<code>color</code>、<code>font-family</code>、<code>line-height</code> など）は子孫要素にも反映されます。一方、<code>background</code> や <code>margin</code> などは通常は継承されません。実務では、リセット／ベース設定として <strong>body</strong> をスタイルシートの冒頭付近に置き、その後に各セレクタ（クラスや id など）で必要に応じて上書きしていく構成にすると整理しやすいです。</p>
+    </article>
 
     <article>
-      <h2 id="headline_3">(3) ブロック要素のスタイル（実践）</h2>
+      <h2 id="headline_4">(4) ブロック要素のスタイル（実践）</h2>
 
       <h3>divのスタイル</h3>
       <p>実習ファイルのbody内には次のようにdivタグによるブロック要素があり、それぞれにクラスがtest01〜test05と指定されています。</p>
@@ -283,6 +293,9 @@
       <p>それぞれに、width, height, padding, margin, borderのスタイルを自由に設定してみましょう。</p>
 
       <pre class="css" data-title="sample2-4.html 実習コード①"><code>
+        body{
+          /* ここにページ全体のスタイルを記述します */
+        }
         div.test01{
           /* ここにtest01のスタイルを記述します */
         }
@@ -299,8 +312,6 @@
           /* ここにtest05のスタイルを記述します */
         }
       </code></pre>
-
-
     </article>
   </section>
 
