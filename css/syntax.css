@@ -261,6 +261,54 @@ img.pyplot{
   border-left: 6px solid #d32f2f;
 }
 
+
+/* result → result も連結（pre.result と div.result を相互に） */
+:is(pre.result, div.result) + :is(pre.result, div.result){
+  margin-top: 0;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+  border-top-width: 0;
+  /* 左帯の継続（既定色） */
+  border-left: 6px solid var(--code-accent);
+  border-left-color: var(--code-accent-tint);
+}
+
+/* 3連結以上で example 色 (#34a853) を後続 result にも継承 */
+:is(pre.python.example, pre.html.example, pre.css.example, pre.sheets.example, pre.excel.example)
+  + :is(pre.result, div.result) + :is(pre.result, div.result),
+:is(pre.python.example, pre.html.example, pre.css.example, pre.sheets.example, pre.excel.example)
+  + :is(pre.result, div.result) ~ :is(pre.result, div.result){
+  border-left: 6px solid #34a853;
+}
+
+/* 3連結以上で error 色 (#d32f2f) を後続 result にも継承 */
+:is(pre.python.error, pre.html.error, pre.css.error, pre.sheets.error, pre.excel.error)
+  + :is(pre.result, div.result) + :is(pre.result, div.result),
+:is(pre.python.error, pre.html.error, pre.css.error, pre.sheets.error, pre.excel.error)
+  + :is(pre.result, div.result) ~ :is(pre.result, div.result){
+  border-left: 6px solid #d32f2f;
+}
+
+
+/* result ブロック同士が連続する場合、先行側の下端も連結用に調整   */
+
+/* （必要なら）既定の下端スタイルを明示しておく */
+:is(pre.result, div.result){
+  margin-bottom: 1em;
+  border-bottom-left-radius: var(--code-radius);
+  border-bottom-right-radius: var(--code-radius);
+  border-bottom-width: 1px;
+}
+
+/* 直後に別の result が続くときは先行側の下端をゼロ化（連結） */
+:is(pre.result, div.result):has(+ :is(pre.result, div.result)){
+  margin-bottom: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+  border-bottom-width: 0;
+}
+
+
 /* ====================================================================== */
 /* コピー抑止（example / copy-ok 以外）                                    */
 /* ====================================================================== */

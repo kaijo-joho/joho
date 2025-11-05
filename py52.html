@@ -46,46 +46,46 @@
       <p class="small-text">プログラム中の<tt>リスト.append(値)</tt>は、リストの末尾に値を追加します。また、<tt>\</tt>(バックスラッシュ)は、<tt>⌥</tt>オプション＋<tt>¥</tt>(円マーク)で入力できます。</p>
 
       <pre class="python" data-title="複利法の数式モデル"><code>
-        import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
-        import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
+import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
+import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
 
-        amount = 10000    # 初期預金額
-        rate = 0.05       # 利率
-        years = 10        # 期間
+amount = 10000    # 初期預金額
+rate = 0.05       # 利率
+years = 10        # 期間
 
-        # 初期値（0年目）
-        x = [0]           # リスト型変数xの0番目の要素に0
-        y = [amount]      # リスト型変数yの0番目の要素に変数amount
+# 初期値（0年目）
+x = [0]           # リスト型変数xの0番目の要素に0
+y = [amount]      # リスト型変数yの0番目の要素に変数amount
 
-        # 年ごとの残高を計算
-        for i in range(years):
-          interest = int(amount * rate) # 利息 = 前年の金額 * 利率
-          amount = amount + interest  # 今年の金額 = 前年の金額 + 利息
-          x.append(i + 1)
-          y.append(amount)
-          print(i + 1, "年目: \t", amount, "円")     # 「\(バックスラッシュ)」は、「Option + ¥」で入力
+# 年ごとの残高を計算
+for i in range(years):
+  interest = int(amount * rate) # 利息 = 前年の金額 * 利率
+  amount = amount + interest  # 今年の金額 = 前年の金額 + 利息
+  x.append(i + 1)
+  y.append(amount)
+  print(i + 1, "年目: \t", amount, "円")     # 「\(バックスラッシュ)」は、「Option + ¥」で入力
 
-        # グラフを描画
-        plt.plot(x, y, marker="o")
-        plt.title("複利計算のグラフ")
-        plt.xlabel("年数")
-        plt.ylabel("残高")
-        plt.grid(True)
+# グラフを描画
+plt.plot(x, y, marker="o")
+plt.title("複利計算のグラフ")
+plt.xlabel("年数")
+plt.ylabel("残高")
+plt.grid(True)
 
-        plt.show()
+plt.show()
       </code></pre>
       
       <pre class="result"><code>
-        1 年目:   10500 円
-        2 年目:   11025 円
-        3 年目:   11576 円
-        4 年目:   12154 円
-        5 年目:   12761 円
-        6 年目:   13399 円
-        7 年目:   14068 円
-        8 年目:   14771 円
-        9 年目:   15509 円
-        10 年目:  16284 円
+1 年目:   10500 円
+2 年目:   11025 円
+3 年目:   11576 円
+4 年目:   12154 円
+5 年目:   12761 円
+6 年目:   13399 円
+7 年目:   14068 円
+8 年目:   14771 円
+9 年目:   15509 円
+10 年目:  16284 円
       </code></pre>
       <div class="result"><img src="./img/py52_001.png" class="pyplot"></div>
  
@@ -99,33 +99,33 @@
       <p>人口24万人・１年間あたりの人口増加率1%のA市と、人口16万人・1年あたりの人口増加率5%のB市の人口を20年間シミュレーションするプログラムを作成し、何年後にB市の人口がA市の人口を上回るか求めなさい。ただし、人口増加率は変化しないものとする。</p>
       
       <pre class="python" data-title="人口予測モデル"><code>
-        import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
-        import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
-                
-        n = 20  # 20年間のシミュレーション
+import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
+import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
+        
+n = 20  # 20年間のシミュレーション
 
-        x = [0]
-        y1 = [24] # リスト型変数y1: 年ごとのA市の人口のリスト（初期値24万人）
-        y2 = [16] # リスト型変数y2: 年ごとのB市の人口のリスト（初期値16万人）
-        rate1 = 0.01  # A市の人口増加率 1%
-        rate2 = 0.05  # B市の人口増加率 5%
+x = [0]
+y1 = [24] # リスト型変数y1: 年ごとのA市の人口のリスト（初期値24万人）
+y2 = [16] # リスト型変数y2: 年ごとのB市の人口のリスト（初期値16万人）
+rate1 = 0.01  # A市の人口増加率 1%
+rate2 = 0.05  # B市の人口増加率 5%
 
-        for i in range(n):
-          x.append(i + 1)
-          y1.append(y1[len(y1) - 1] * (1 + rate1)) # A市の人口をy1に追加： y1[len(y1) - 1]は前年のA市の人口。
-          y2.append(y2[len(y2) - 1] * (1 + rate2)) # B市の人口をy2に追加： y2[len(y1) - 1]は前年のB市の人口。
+for i in range(n):
+  x.append(i + 1)
+  y1.append(y1[len(y1) - 1] * (1 + rate1)) # A市の人口をy1に追加： y1[len(y1) - 1]は前年のA市の人口。
+  y2.append(y2[len(y2) - 1] * (1 + rate2)) # B市の人口をy2に追加： y2[len(y1) - 1]は前年のB市の人口。
 
 
-        # グラフを描画
-        plt.plot(x, y1, marker="o", label="A市")
-        plt.plot(x, y2, marker="o", label="B市")
-        plt.title("人口予測")
-        plt.xlabel("年数")
-        plt.ylabel("人口[万人]")
-        plt.grid(True)
-        plt.legend()
+# グラフを描画
+plt.plot(x, y1, marker="o", label="A市")
+plt.plot(x, y2, marker="o", label="B市")
+plt.title("人口予測")
+plt.xlabel("年数")
+plt.ylabel("人口[万人]")
+plt.grid(True)
+plt.legend()
 
-        plt.show()
+plt.show()
       </code></pre>
       <div class="result"><img src="./img/py52_002.png" class="pyplot"></div>
 
@@ -144,37 +144,37 @@
       <p>ここで、減少量の式中の\((\frac{現在の個体数N}{環境収容力K} \times 増加率r)\)は、\(N\)が\(K\)に近づくほど、減少量が大きくなることを意味しています。これに増加率をかけて、減少する割合を求めていいます。さらにこれに現在の個体数\(N\)をかけて、減少量を求めます。</p>
       
       <pre class="python" data-title="ロジスティック成長モデル"><code>
-        import numpy as np  # numpyライブラリのインポート
-        import matplotlib.pyplot as plt  # matplotlibのpyplotモジュールのインポート
+import numpy as np  # numpyライブラリのインポート
+import matplotlib.pyplot as plt  # matplotlibのpyplotモジュールのインポート
 
-        # パラメータ
-        r = 0.01  # 増加率（1単位時間あたりの個体数の増加割合）
-        K = 1000  # 環境収容力（環境が支えられる最大個体数）
-        T = 1000  # シミュレーションの総時間（総ステップ数）
-        N = 10    # 初期個体数
+# パラメータ
+r = 0.01  # 増加率（1単位時間あたりの個体数の増加割合）
+K = 1000  # 環境収容力（環境が支えられる最大個体数）
+T = 1000  # シミュレーションの総時間（総ステップ数）
+N = 10    # 初期個体数
 
-        # 時間と個体数の記録用のリスト
-        times = [0]  # 時間の記録用リスト（初期値0）
-        populations = [N]  # 個体数の記録用リスト（初期値N）
+# 時間と個体数の記録用のリスト
+times = [0]  # 時間の記録用リスト（初期値0）
+populations = [N]  # 個体数の記録用リスト（初期値N）
 
-        # シミュレーションの実行
-        for i in range(T):  # T回シミュレーションを実行
-          increase = N * r  # 個体数の増加分を計算
-          decrease = (N / K * r) * N # 個体数の減少分を計算
-          N = N + increase - decrease  # 個体数を更新（増加分 - 減少分）
+# シミュレーションの実行
+for i in range(T):  # T回シミュレーションを実行
+  increase = N * r  # 個体数の増加分を計算
+  decrease = (N / K * r) * N # 個体数の減少分を計算
+  N = N + increase - decrease  # 個体数を更新（増加分 - 減少分）
 
-          times.append(i + 1)  # 時間のリストに新しい時間を追加
-          populations.append(N)  # 個体数のリストに新しい個体数を追加
+  times.append(i + 1)  # 時間のリストに新しい時間を追加
+  populations.append(N)  # 個体数のリストに新しい個体数を追加
 
-        # 結果のプロット
-        plt.figure(figsize=(10, 6))  # プロットのフィギュアのサイズを設定
-        plt.plot(times, populations)  # 時間に対する個体数をプロット
-        plt.xlabel("時間")  # x軸のラベルを設定
-        plt.ylabel("個体数")  # y軸のラベルを設定
-        plt.title("ロジスティック成長モデル")  # プロットのタイトルを設定
-        plt.grid(True)  # グリッドを表示
+# 結果のプロット
+plt.figure(figsize=(10, 6))  # プロットのフィギュアのサイズを設定
+plt.plot(times, populations)  # 時間に対する個体数をプロット
+plt.xlabel("時間")  # x軸のラベルを設定
+plt.ylabel("個体数")  # y軸のラベルを設定
+plt.title("ロジスティック成長モデル")  # プロットのタイトルを設定
+plt.grid(True)  # グリッドを表示
 
-        plt.show()  # プロットを表示
+plt.show()  # プロットを表示
       </code></pre>
       <div class="result"><img src="./img/py52_003.png" class="pyplot"></div>
 
@@ -213,80 +213,70 @@
       
       
       <pre class="python" data-title="疾病感染者数のシミュレーション"><code>
-        import numpy as np
-        import matplotlib.pyplot as plt
-        import japanize_matplotlib
+import numpy as np
+import matplotlib.pyplot as plt
+import japanize_matplotlib
 
-        # シミュレーションパラメータ
-        beta = 0.3   # 伝染率
-        gamma = 0.1  # 回復率
-        T = 100       # シミュレーション期間
-        dt = 0.1       # 時間間隔
-                
-        # 初期条件
-        S = 0.99  # 未感染者の割合
-        I = 0.01  # 感染者の割合
-        R = 0.0   # 回復者の割合
+# シミュレーションパラメータ
+beta = 0.3   # 伝染率
+gamma = 0.1  # 回復率
+T = 100       # シミュレーション期間
+dt = 0.1       # 時間間隔
+        
+# 初期条件
+S = 0.99  # 未感染者の割合
+I = 0.01  # 感染者の割合
+R = 0.0   # 回復者の割合
 
-        # 結果を保存するリスト。初期値を代入しておく。
-        S_list = [S]
-        I_list = [I]
-        R_list = [R]
-        t_list = [0]
+# 結果を保存するリスト。初期値を代入しておく。
+S_list = [S]
+I_list = [I]
+R_list = [R]
+t_list = [0]
 
-        # シミュレーションの実行
-        steps = int(T / dt)
-        for i in range(steps):
-          dS = -beta * S * I * dt
-          dI = (beta * S * I - gamma * I) * dt
-          dR = gamma * I * dt
+# シミュレーションの実行
+steps = int(T / dt)
+for i in range(steps):
+  dS = -beta * S * I * dt
+  dI = (beta * S * I - gamma * I) * dt
+  dR = gamma * I * dt
 
-          S = S + dS
-          I = I + dI
-          R = R + dR
+  S = S + dS
+  I = I + dI
+  R = R + dR
 
-          S_list.append(S)
-          I_list.append(I)
-          R_list.append(R)
-          t_list.append((i + 1) * dt)
+  S_list.append(S)
+  I_list.append(I)
+  R_list.append(R)
+  t_list.append((i + 1) * dt)
 
-        # 結果のプロット
-        plt.figure(figsize=(8, 5))
-        plt.xlim(0,100)
-        plt.ylim(0,1)
-        plt.plot(t_list, S_list, label="$S$ (Susceptible) 感受性保持者")
-        plt.plot(t_list, I_list, label="$I$ (Infected) 感染者")
-        plt.plot(t_list, R_list, label="$R$ (Recovered) 免疫保持者")
-        plt.xlabel("時間[日]")
-        plt.ylabel("割合")
-        plt.legend()
-        plt.title("SIRモデル（疾病感染者数のシミュレーション）")
+# 結果のプロット
+plt.figure(figsize=(8, 5))
+plt.xlim(0,100)
+plt.ylim(0,1)
+plt.plot(t_list, S_list, label="$S$ (Susceptible) 感受性保持者")
+plt.plot(t_list, I_list, label="$I$ (Infected) 感染者")
+plt.plot(t_list, R_list, label="$R$ (Recovered) 免疫保持者")
+plt.xlabel("時間[日]")
+plt.ylabel("割合")
+plt.legend()
+plt.title("SIRモデル（疾病感染者数のシミュレーション）")
 
-        plt.show()
+plt.show()
       </code></pre>
       <div class="result"><img src="./img/py52_004.png" class="pyplot"></div>
 
-      
-      <ul>
-        <li>
-          感染の拡大
-          <ul>
-            <li>初期段階では\(S\) が多く、\(I\) が少ない状態からスタートします。しかし、\(I\) の数が増加すると、\(S\) から\(I\) への以降が増え、感染が拡大します。</li>
-          </ul>
-        </li>
-        <li>
-          感染のピーク
-          <ul>
-            <li>ある点で\(I\) が最大に達し、その後は減少し始めます。これは、多くの人々が感染から回復し始め、また新たに感染する\(S\) の割合が減少するためです。</li>
-          </ul>
-        </li>
-        <li>
-          安定状態
-          <ul>
-            <li>最終的には、感染が安定し、新たな感染者は出現しなくなります。</li>
-          </ul>
-        </li>
-      </ul>
+      <dl>
+        <dt>感染の拡大</dt>
+        <dd>初期段階では\(S\) が多く、\(I\) が少ない状態からスタートします。しかし、\(I\) の数が増加すると、\(S\) から\(I\) への以降が増え、感染が拡大します。</dd>
+
+        <dt>感染のピーク</dt>
+        <dd>ある点で\(I\) が最大に達し、その後は減少し始めます。これは、多くの人々が感染から回復し始め、また新たに感染する\(S\) の割合が減少するためです。</dd>
+
+        <dt>安定状態</dt>
+        <dd>最終的には、感染が安定し、新たな感染者は出現しなくなります。</dd>
+      </dl>
+
       <p>SIRモデルは、感染症の流行の初期段階の予測、ワクチン接種の効果の評価、隔離や封じ込め策の効果のシミュレーションなど、公衆衛生の多くの場面において有用です。しかし、実際の疾病の伝播はさらに複雑であり、より高度なモデルが必要となります。</p>
       
     </article>
