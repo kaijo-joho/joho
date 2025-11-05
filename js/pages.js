@@ -1975,7 +1975,7 @@ const pages = {
     "questionFile": [
       {
         "id": "py51a",
-        "release": false,
+        "release": true,
         "title": "5-1_グラフの表示_演習問題（問題）.ipynb",
         "fileName": "5-1_グラフの表示_演習問題（問題）.ipynb",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py51a",

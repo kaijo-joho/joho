@@ -145,7 +145,7 @@
   }
 
   function createFileList(type){
-    const files = meta[type]
+    const files = meta[type];
     if(!files) return null;
     const ul = document.createElement('ul');
     ul.className = 'file-list';
