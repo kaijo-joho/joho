@@ -93,7 +93,7 @@ plt.show()
 9 年目:   15509 円
 10 年目:  16284 円
       </code></pre>
-      <div class="result"><img src="./img/py52_001.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py52_201.png" class="pyplot"></div>
  
       
     </article>
@@ -149,7 +149,7 @@ plt.legend()
 
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py52_002.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py52_301.png" class="pyplot"></div>
 
       
     </article>
@@ -237,7 +237,7 @@ plt.legend()
 
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py52_005.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py52_401.png" class="pyplot"></div>
     </article>
     
     <article>
@@ -245,11 +245,12 @@ plt.show()
 
       <h3>ロジスティック成長モデル</h3>
       <p>ロジスティック成長モデルは、ある単一種の生物が一定環境内で増殖するようなときに、その生物の個体数の変動を予測するモデルです（人間の場合にも当てはまります）。何の制約もなければ、個体数は指数関数的に増加します（前項のとおり）。しかし、実際には環境や資源には限りがあるため、個体数の増加にはいずれはブレーキがかかります。つまり、個体数が増えるにつれて個体数の増加量は小さくなり、どこかの時点で飽和すると考えられます。その環境で生存しうる個体数の上限を環境収容力\(K\)と定めます。</p>
-      <p>これらを考慮すると、単位時間あたりの個体の増加量と減少量は次のように定義することができます。</p>
-      \[個体の増加量 = 現在の個体数N \times 増加率r\]
-      \[個体の減少量 = (\frac{現在の個体数N}{環境収容力K} \times 増加率r) \times 現在の個体数N\]
-      <p>ここで、減少量の式中の\((\frac{現在の個体数N}{環境収容力K} \times 増加率r)\)は、\(N\)が\(K\)に近づくほど、減少量が大きくなることを意味しています。これに増加率をかけて、減少する割合を求めていいます。さらにこれに現在の個体数\(N\)をかけて、減少量を求めます。</p>
-      
+      <p>
+        時間\(\Delta t\)あたりの個体の変化量\(\Delta N\)は、その時点での個体数\(N\)，増加率\(r\)，環境収容力\(K\)を用いて
+            \[\Delta N = r \times N \times (1 - \frac{N}{K}) \times \Delta t\]
+        と表すことができます。
+      </p>
+
       <pre class="python" data-title="ロジスティック成長モデル"><code>
 import matplotlib.pyplot as plt
 import japanize_matplotlib
@@ -293,7 +294,7 @@ plt.grid(True)
 
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py52_003.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py52_501.png" class="pyplot"></div>
     </article>
     
     
@@ -402,7 +403,7 @@ plt.grid(True)
 
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py52_004.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py52_601.png" class="pyplot"></div>
 
       <dl>
         <dt>感染の拡大</dt>
