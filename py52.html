@@ -49,27 +49,33 @@
 import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
 import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
 
-amount = 10000    # 初期預金額
+# パラメータ
 rate = 0.05       # 利率
+
+# 初期条件
+amount = 10000    # 初期預金額
 years = 10        # 期間
 
-# 初期値（0年目）
+# グラフ用の配列の準備
 x = [0]           # リスト型変数xの0番目の要素に0
 y = [amount]      # リスト型変数yの0番目の要素に変数amount
 
 # 年ごとの残高を計算
 for i in range(years):
-  interest = int(amount * rate) # 利息 = 前年の金額 * 利率
-  amount = amount + interest  # 今年の金額 = 前年の金額 + 利息
-  x.append(i + 1)
-  y.append(amount)
-  print(i + 1, "年目: \t", amount, "円")     # 「\(バックスラッシュ)」は、「Option + ¥」で入力
+    interest = int(amount * rate)   # 利息 = 前年の金額 * 利率
+    amount = amount + interest      # 今年の金額 = 前年の金額 + 利息
+    x.append(i + 1)
+    y.append(amount)
+    print(i + 1, "年目: \t", amount, "円")     # 「\(バックスラッシュ)」は、「Option + ¥」で入力
 
 # グラフを描画
+plt.figure(figsize=(8, 5))
 plt.plot(x, y, marker="o")
 plt.title("複利計算のグラフ")
 plt.xlabel("年数")
 plt.ylabel("残高")
+plt.xlim(0, years)
+plt.ylim(0)
 plt.grid(True)
 
 plt.show()
@@ -101,27 +107,43 @@ plt.show()
       <pre class="python" data-title="人口予測モデル"><code>
 import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
 import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
-        
-n = 20  # 20年間のシミュレーション
 
-x = [0]
-y1 = [24] # リスト型変数y1: 年ごとのA市の人口のリスト（初期値24万人）
-y2 = [16] # リスト型変数y2: 年ごとのB市の人口のリスト（初期値16万人）
-rate1 = 0.01  # A市の人口増加率 1%
-rate2 = 0.05  # B市の人口増加率 5%
+# パラメータ
+rA = 0.050      # A市の人口増加率 5 %
+rB = 0.010      # B市の人口増加率 1 %
 
-for i in range(n):
-  x.append(i + 1)
-  y1.append(y1[len(y1) - 1] * (1 + rate1)) # A市の人口をy1に追加： y1[len(y1) - 1]は前年のA市の人口。
-  y2.append(y2[len(y2) - 1] * (1 + rate2)) # B市の人口をy2に追加： y2[len(y2) - 1]は前年のB市の人口。
+# 初期条件
+nA = 16         # 初期人口（万人）
+nB = 24         # 初期人口（万人）
+years = 20      # シミュレーション期間
+
+
+# グラフ用の配列の準備
+x  = [0]            # x軸の配列
+yA = [nA]           # y軸の配列（A市の人口）
+yB = [nB]           # y軸の配列（B市の人口）
+
+# シミュレーションの実行
+for i in range(years):
+    dA = rA * nA    # A市の人口増加数（万人）
+    dB = rB * nB    # B市の人口増加数（万人）
+
+    nA = nA + dA    # 今年のA市の人口 = 前年のA市の人口 + A市の人口増加数  （万人）
+    nB = nB + dB    # 今年のB市の人口 = 前年のB市の人口 + B市の人口増加数  （万人）
+
+    x.append(i + 1)
+    yA.append(nA)
+    yB.append(nB)
 
 
 # グラフを描画
-plt.plot(x, y1, marker="o", label="A市")
-plt.plot(x, y2, marker="o", label="B市")
-plt.title("人口予測")
-plt.xlabel("年数")
-plt.ylabel("人口[万人]")
+plt.figure(figsize=(8, 5))
+plt.plot(x, yA, marker="o", label="A市")
+plt.plot(x, yB, marker="o", label="B市")
+plt.xlabel("時間（年）")
+plt.ylabel("人口")
+plt.xlim(0, years)
+plt.ylim(0)
 plt.grid(True)
 plt.legend()
 
@@ -132,9 +154,94 @@ plt.show()
       
     </article>
 
+
+    <article>
+      <h2 id="headline_4">(4) 一次反応（A → B）</h2>
+
+      <h3>一次反応（A → B）</h3>
+      <p><strong>一次反応</strong>は、AがBに変化するときに、</p>
+      <ul>
+        <li>Aの変化量は、そのときのAの量に比例する</li>
+        <li>Aの量とBの量の和が常に一定</li>
+      </ul>
+      <p>を満たしながら変化する現象です。多くの自然現象や身近な現象に当てはまります。たとえば、</p>
+      <ul>
+        <li>過酸化水素水の分解における各物質の濃度変化</li>
+        <li>放射性物質の崩壊（壊変）における放射性物質の個数変化</li>
+        <li>高温の物体が冷却されるときの温度変化（ニュートンの冷却則）</li>
+        <li>単純死亡のみの人口減少（出生ゼロ仮定）</li>
+        <li>宿題のみ提出者の時間変化</li>
+      </ul>
+      <p>などが挙げられます。</p>
+
+      <p>
+        単位時間あたりのAの変化率を\(k\)とすると、「Aの変化量は、そのときのAの量に比例する」ので、時間\(\Delta t\)における Aの変化量\(\Delta A\)は、
+            \[\Delta A = -k \times A \times \Delta t\]
+        となります。
+        また、「Aの量とBの量の和が常に一定」なので、Bの変化量\(\Delta B\)は、
+            \[\Delta B = -\Delta A = +k \times A \times \Delta t\]
+        となります。
+      </p>
+
+        
+         
+      <pre class="python" data-title="一次反応（A → B）"><code>
+import matplotlib.pyplot as plt
+import japanize_matplotlib
+
+# パラメータ
+k  = 0.40    # Aの変化率（1ステップあたりのAの変化量）
+T  = 15      # シミュレーション期間（単位は、年 / 日 / 時間 / 分 / 秒など）
+dt = 0.2     # 時間間隔：1回の計算で進める時間。単位はTと同じにする。
+
+
+# 初期条件
+nA = 100.0   # Aの初期量
+nB = 0.0     # Bの初期量
+t  = 0       # 時刻の初期値
+
+# グラフ用の配列の準備
+x  = [t]        # x軸：時刻
+yA = [nA]       # y軸：Aの量
+yB = [nB]       # y軸：Bの量
+yS = [nA + nB]  # y軸：Aの量 + Bの量（一定のはず）
+
+# ループ回数
+steps = int(T / dt)
+
+# シミュレーションの実行
+for i in range(steps):
+    dA = k * nA * dt   # このステップでのAの減少量（＝Bの増加量）
+
+    nA = nA - dA       # Aの量の更新
+    nB = nB + dA       # Bの量の更新
+    t = t + dt         # 時刻の更新
+
+    x.append(t)
+    yA.append(nA)
+    yB.append(nB)
+    yS.append(nA + nB)
+
+
+# グラフを描画
+plt.figure(figsize=(8, 5))
+plt.plot(x, yA, label="A")
+plt.plot(x, yB, label="B")
+plt.plot(x, yS, '--', label="A + B（一定のはず）")
+plt.xlabel("時間")
+plt.ylabel("量")
+plt.xlim(0, T)
+plt.ylim(0)
+plt.grid(True)
+plt.legend()
+
+plt.show()
+      </code></pre>
+      <div class="result"><img src="./img/py52_005.png" class="pyplot"></div>
+    </article>
     
     <article>
-      <h2 id="headline_4">(4) ロジスティック成長モデル</h2>
+      <h2 id="headline_5">(5) ロジスティック成長モデル</h2>
 
       <h3>ロジスティック成長モデル</h3>
       <p>ロジスティック成長モデルは、ある単一種の生物が一定環境内で増殖するようなときに、その生物の個体数の変動を予測するモデルです（人間の場合にも当てはまります）。何の制約もなければ、個体数は指数関数的に増加します（前項のとおり）。しかし、実際には環境や資源には限りがあるため、個体数の増加にはいずれはブレーキがかかります。つまり、個体数が増えるにつれて個体数の増加量は小さくなり、どこかの時点で飽和すると考えられます。その環境で生存しうる個体数の上限を環境収容力\(K\)と定めます。</p>
@@ -144,41 +251,49 @@ plt.show()
       <p>ここで、減少量の式中の\((\frac{現在の個体数N}{環境収容力K} \times 増加率r)\)は、\(N\)が\(K\)に近づくほど、減少量が大きくなることを意味しています。これに増加率をかけて、減少する割合を求めていいます。さらにこれに現在の個体数\(N\)をかけて、減少量を求めます。</p>
       
       <pre class="python" data-title="ロジスティック成長モデル"><code>
-import numpy as np  # numpyライブラリのインポート
-import matplotlib.pyplot as plt  # matplotlibのpyplotモジュールのインポート
+import matplotlib.pyplot as plt
+import japanize_matplotlib
 
 # パラメータ
-r = 0.01  # 増加率（1単位時間あたりの個体数の増加割合）
-K = 1000  # 環境収容力（環境が支えられる最大個体数）
-T = 1000  # シミュレーションの総時間（総ステップ数）
-N = 10    # 初期個体数
+r  = 0.01  # 増加率（1単位時間あたりの個体数の増加割合）
+K  = 1000  # 環境収容力（環境が支えられる最大個体数）
+T  = 1000  # シミュレーション期間（単位は、年 / 日 / 時間 / 分 / 秒など）
+dt = 0.5   # 時間間隔：1回の計算で進める時間。単位はTと同じにする。
 
-# 時間と個体数の記録用のリスト
-times = [0]  # 時間の記録用リスト（初期値0）
-populations = [N]  # 個体数の記録用リスト（初期値N）
+# 初期条件
+N  = 10    # 初期個体数
+t  = 0     # 時刻の初期値
+
+
+# グラフ用の配列の準備
+x = [t]     # x軸：時刻　（初期値 0）
+y = [N]     # y軸：個体数（初期値 N）
+
+# ループ回数
+steps = int(T / dt)
 
 # シミュレーションの実行
-for i in range(T):  # T回シミュレーションを実行
-  increase = N * r  # 個体数の増加分を計算
-  decrease = (N / K * r) * N # 個体数の減少分を計算
-  N = N + increase - decrease  # 個体数を更新（増加分 - 減少分）
+for i in range(steps):  # T回シミュレーションを実行
+    dN = r * N * (1 - N / K) * dt
+    N = N + dN
+    t = t + dt
 
-  times.append(i + 1)  # 時間のリストに新しい時間を追加
-  populations.append(N)  # 個体数のリストに新しい個体数を追加
+    x.append(t)  # 時間のリストに新しい時間を追加
+    y.append(N)  # 個体数のリストに新しい個体数を追加
 
-# 結果のプロット
-plt.figure(figsize=(10, 6))  # プロットのフィギュアのサイズを設定
-plt.plot(times, populations)  # 時間に対する個体数をプロット
-plt.xlabel("時間")  # x軸のラベルを設定
-plt.ylabel("個体数")  # y軸のラベルを設定
-plt.title("ロジスティック成長モデル")  # プロットのタイトルを設定
-plt.grid(True)  # グリッドを表示
+# グラフを描画
+plt.figure(figsize=(8, 5))
+plt.plot(x, y)
+plt.xlabel("時間")
+plt.ylabel("個体数")
+plt.xlim(0, T)
+plt.ylim(0)
+plt.title("ロジスティック成長モデル")
+plt.grid(True)
 
-plt.show()  # プロットを表示
+plt.show()
       </code></pre>
       <div class="result"><img src="./img/py52_003.png" class="pyplot"></div>
-
-      
     </article>
     
     
@@ -189,7 +304,7 @@ plt.show()  # プロットを表示
     
     
     <article>
-      <h2 id="headline_5">(5) 疾病感染者数のシミュレーション</h2>
+      <h2 id="headline_6">(6) 疾病感染者数のシミュレーション</h2>
 
       <h3>SIRモデル</h3>
       <p>SIRモデルは感染症の流行をシミュレーションする単純な数理モデルです。原型となったのは、W・O・カーマックとA・G・マッケンドリックによる1927年に報告された論文で、単純なSIRモデルであっても1905年のボンベイにおけるペスト流行のデータをうまく再現できることで知られています。</p>
@@ -231,54 +346,59 @@ plt.show()  # プロットを表示
       
       
       <pre class="python" data-title="疾病感染者数のシミュレーション"><code>
-import numpy as np
 import matplotlib.pyplot as plt
 import japanize_matplotlib
 
-# シミュレーションパラメータ
+# パラメータ
 beta = 0.3   # 伝染率
 gamma = 0.1  # 回復率
-T = 100       # シミュレーション期間
-dt = 0.1       # 時間間隔
-        
-# 初期条件
-S = 0.99  # 未感染者の割合
-I = 0.01  # 感染者の割合
-R = 0.0   # 回復者の割合
+T = 100      # シミュレーション期間（日）
+dt = 0.1     # 時間間隔：1回の計算で進める時間（日）。
 
-# 結果を保存するリスト。初期値を代入しておく。
-S_list = [S]
-I_list = [I]
-R_list = [R]
-t_list = [0]
+# 初期条件
+S = 0.999    # S(未感染者の割合 0 < S < 1)
+I = 0.001    # I(感染者の割合   0 < I < 1)
+R = 0.0      # R(回復者の割合   初期値は 0)    
+t = 0        # 時刻の初期値 0  
+
+# グラフ用の配列の準備
+x  = [0]     # x軸: 時刻
+yS = [S]     # y軸: S(未感染者の割合)
+yI = [I]     # y軸: I(感染者の割合)
+yR = [R]     # y軸: R(回復者の割合)
+
+# ループ回数
+steps = int(T / dt)
 
 # シミュレーションの実行
-steps = int(T / dt)
 for i in range(steps):
-  dS = -beta * S * I * dt
-  dI = (beta * S * I - gamma * I) * dt
-  dR = gamma * I * dt
+    dS = -beta * S * I * dt
+    dI = (beta * S * I - gamma * I) * dt
+    dR = gamma * I * dt
 
-  S = S + dS
-  I = I + dI
-  R = R + dR
+    t = t + dt
 
-  S_list.append(S)
-  I_list.append(I)
-  R_list.append(R)
-  t_list.append((i + 1) * dt)
+    S = S + dS
+    I = I + dI
+    R = R + dR
+
+    x.append(t)
+    yS.append(S)
+    yI.append(I)
+    yR.append(R)
 
 # 結果のプロット
 plt.figure(figsize=(8, 5))
-plt.xlim(0,100)
-plt.ylim(0,1)
-plt.plot(t_list, S_list, label="$S$ (Susceptible) 感受性保持者")
-plt.plot(t_list, I_list, label="$I$ (Infected) 感染者")
-plt.plot(t_list, R_list, label="$R$ (Recovered) 免疫保持者")
+plt.xlim(0, T)
+plt.ylim(0, 1)
+plt.plot(x, yS, label="$S$ 感受性保持者 (Susceptible) ")
+plt.plot(x, yI, label="$I$ 感染者 (Infected)")
+plt.plot(x, yR, label="$R$ 免疫保持者 (Recovered)")
 plt.xlabel("時間[日]")
 plt.ylabel("割合")
 plt.legend()
 plt.title("SIRモデル（疾病感染者数のシミュレーション）")
+plt.grid(True)
 
 plt.show()
       </code></pre>
