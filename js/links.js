@@ -493,8 +493,8 @@ const notices = {
     "url": "https://docs.google.com/presentation/d/107suvqG5EMDPoG428EyPlOIni8EkYAS9i3wOMlxjuP8/edit?usp=drivesdk"
   },
   "noti_hw_wtr3": {
-    "title": "2024-11_中3_HTML実習最終課題（冬休みの宿題）",
-    "description": "2024-11_中3_HTML実習最終課題（冬休みの宿題）",
+    "title": "中3_HTML実習最終課題（冬休みの宿題）",
+    "description": "中3_HTML実習最終課題（冬休みの宿題）",
     "url": "https://docs.google.com/document/d/1zUbnH1Li4gzoSCc99tQWuHX2UJVbjM8AGcnZVvQNkUI/edit?usp=drivesdk"
   },
   "noti_temp_gene-ai": {

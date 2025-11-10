@@ -368,20 +368,20 @@ import matplotlib.pyplot as plt # matplotlib: グラフを表示するための�
 import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
 import numpy as np              # numpy: 数値計算用のライブラリ
 
-degrees = np.arange(0, 361, 1)  # 角度の値を生成: 0度から360度まで、1度間隔
-radians = np.radians(degrees)   # 角度をラジアンに変換
-y = np.sin(radians)             # yの値を計算: y = sin(x)
+# xとyの値を設定
+x = np.arange(-10.0, 10.1, 0.1) # x: -10から10まで 0.1間隔
+y = x ** 2                      # y: y = x^2
 
 # グラフの作成と表示
-plt.plot(degrees, y, label="y = sin(x)")    # degreesとyの値をプロット
-plt.title("y = sin(x)のグラフ (x は角度)")  #s グラフのタイトルを設定
-plt.xlabel("角度 (度)")                     # x軸のラベルを設定
-plt.ylabel("y")                             # y軸のラベルを設定
-plt.axhline(0, color="black", lw=0.5)       # x軸を表示(y=0の線を描く)
-plt.axvline(0, color="black", lw=0.5)       # y軸を表示(x=0の線を描く)
-plt.legend()                                # 凡例を表示
-plt.grid(True)                              # グリッド線を表示
-plt.show()                                  # グラフを表示
+plt.plot(x, y, label="$y=x^2$")         # xとyの値をプロット
+plt.title("$y=x^2$のグラフ")             # グラフのタイトルを設定
+plt.xlabel("x")                         # x軸のラベルを設定
+plt.ylabel("y")                         # y軸のラベルを設定
+plt.axhline(0, color="black", lw=0.5)   # x軸を表示(y=0の線を描く)
+plt.axvline(0, color="black", lw=0.5)   # y軸を表示(x=0の線を描く)
+plt.legend(loc="lower left")            # 凡例を表示
+plt.grid(True)                          # グリッド線を表示
+plt.show()                              # グラフを表示
       </code></pre>
       <div class="result"><img src="./img/py51_003.png" class="pyplot"></div>
 
@@ -395,20 +395,20 @@ import matplotlib.pyplot as plt # matplotlib: グラフを表示するための�
 import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
 import numpy as np              # numpy: 数値計算用のライブラリ
 
-# 媒介変数t設定
-t = np.linspace(-np.pi, np.pi, 1000)  # -π〜+πまで1000等分した値を生成
-
-# xとyの値を設定
-x = np.cos(t)
-y = np.sin(t)
+degrees = np.arange(0, 361, 1)  # 角度の値を生成: 0度から360度まで、1度間隔
+radians = np.radians(degrees)   # 角度をラジアンに変換
+y = np.sin(radians)             # yの値を計算: y = sin(x)
 
 # グラフの作成と表示
-plt.figure(figsize=(6, 6))              # グラフの大きさを設定
-plt.plot(x, y)                          # xとyの値をプロット
-plt.axhline(0, color="black", lw=0.5)   # x軸を表示(y=0の線を描く)
-plt.axvline(0, color="black", lw=0.5)   # y軸を表示(x=0の線を描く)
-plt.grid(True)                          # グリッド線を表示
-plt.show()                              # グラフの表示
+plt.plot(degrees, y, label="$y=sin(x)$")    # degreesとyの値をプロット
+plt.title("$y=sin(x)$のグラフ (x は角度)")  # グラフのタイトルを設定
+plt.xlabel("角度 (度)")                     # x軸のラベルを設定
+plt.ylabel("y")                             # y軸のラベルを設定
+plt.axhline(0, color="black", lw=0.5)       # x軸を表示(y=0の線を描く)
+plt.axvline(0, color="black", lw=0.5)       # y軸を表示(x=0の線を描く)
+plt.legend()                                # 凡例を表示
+plt.grid(True)                              # グリッド線を表示
+plt.show()                                  # グラフを表示
       </code></pre>
       <div class="result"><img src="./img/py51_004.png" class="pyplot"></div>
 
@@ -433,7 +433,7 @@ y2 = x * np.log2(x)  # クイックソートの平均比較回数
 
 # グラフの作成と表示
 plt.plot(x, y1, label="挿入ソート", color="blue")       # 挿入ソートのグラフをプロット
-plt.plot(x, y2, label="クイックソート)", color="red")   # クイックソートのグラフをプロット
+plt.plot(x, y2, label="クイックソート", color="red")    # クイックソートのグラフをプロット
 plt.title("挿入ソートとクイックソートの比較回数")       # グラフのタイトルを設定
 plt.xlabel("データ数")                                  # x軸のラベルを設定
 plt.ylabel("比較回数")                                  # y軸のラベルを設定
