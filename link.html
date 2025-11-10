@@ -33,11 +33,12 @@
   };
 
   const typeMap = {
-    quiz: 'quizzes', quizzes: 'quizzes', q: 'quizzes',
-    submit: 'submitForms', s: 'submitForms',
-    review: 'reviewForms', r: 'reviewForms',
-    pub: 'pubFiles', p: 'pubFiles',
-    notice: 'notices', notices: 'notices', n: 'notices'
+    quiz: 'quizzes',        quizzes: 'quizzes',   q: 'quizzes',
+    submit: 'submitForms',  s: 'submitForms',
+    review: 'reviewForms',  r: 'reviewForms',
+    pub: 'pubFiles',        p: 'pubFiles',
+    notice: 'notices',      notices: 'notices',   n: 'notices',
+    file: 'files',          files: 'files',       f: 'files'
   };
 
   // id と dictKey（辞書名）を決定する
@@ -57,6 +58,7 @@
       const pubFileIdParam    = pickParam('pubFileId',    'pId', 'pid', 'p');
       const noticeIdParam     = pickParam('noticeId',     'nId', 'nid', 'n');
       const typingIdParam     = pickParam('typingId',     'tId', 'tid', 't');
+      const fileIdParam       = pickParam('fileId',       'fId', 'fid', 'f');
 
       if (quizIdParam)            { id = quizIdParam;       if (!dictKey) dictKey = 'quizzes'; }
       else if (submitFormIdParam) { id = submitFormIdParam; if (!dictKey) dictKey = 'submitForms'; }
@@ -64,6 +66,7 @@
       else if (pubFileIdParam)    { id = pubFileIdParam;    if (!dictKey) dictKey = 'pubFiles'; }
       else if (noticeIdParam)     { id = noticeIdParam;     if (!dictKey) dictKey = 'notices'; }
       else if (typingIdParam)     { id = typingIdParam;     if (!dictKey) dictKey = 'typing'; }
+      else if (fileIdParam)       { id = fileIdParam;       if (!dictKey) dictKey = 'files'; }
     }
 
     return { id, dictKey };
@@ -85,6 +88,7 @@
       pubFiles:     window.pubFiles,
       notices:      window.notices,
       typing:       window.typing,
+      files:        window.files,
     };
 
     // まず dictKey で検索、無ければ横断検索
