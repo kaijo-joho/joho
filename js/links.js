@@ -1,4 +1,4 @@
-const update = '2025-10-15 12:36:51';
+const update = '2025-11-11 08:18:28';
 
 const quizzes = {
   "py11": {
@@ -458,8 +458,8 @@ const reviewForms = {
 window.reviewForms = reviewForms
 
 const pubFiles = {
-  "lc13": {
-    "title": "LC13_知的財産権制度と個人情報・プライバシー",
+  "lc12": {
+    "title": "LC12_知的財産権制度と個人情報・プライバシー",
     "description": "",
     "url": "https://docs.google.com/presentation/d/1XswHZwjz39pZgm7_UeDkUWg1o2YmgVmiHPnxMqQnwQQ/view?usp=drivesdk"
   }
@@ -494,7 +494,7 @@ const notices = {
   },
   "noti_hw_wtr3": {
     "title": "中3_HTML実習最終課題（冬休みの宿題）",
-    "description": "中3_HTML実習最終課題（冬休みの宿題）",
+    "description": "2024-11_中3_HTML実習最終課題（冬休みの宿題）",
     "url": "https://docs.google.com/document/d/1zUbnH1Li4gzoSCc99tQWuHX2UJVbjM8AGcnZVvQNkUI/edit?usp=drivesdk"
   },
   "noti_temp_gene-ai": {
@@ -608,3 +608,517 @@ const typing = {
   }
 }
 window.typing = typing
+
+const files = {
+  "---": {
+    "title": "SS1-3_課題（解答）《旧バージョン》",
+    "description": "",
+    "url": ""
+  },
+  "noti_ori3": {
+    "title": "情報の授業について中3",
+    "description": "情報の授業について中3",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_ori3"
+  },
+  "noti_ori4": {
+    "title": "情報の授業について高1",
+    "description": "情報の授業について高1",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_ori4"
+  },
+  "py_kadai01": {
+    "title": "夏休みの課題.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py_kadai01"
+  },
+  "py_kadai02": {
+    "title": "冬休みの課題.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py_kadai02"
+  },
+  "py02nb": {
+    "title": "実習のはじめかた ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py02nb"
+  },
+  "py11nb": {
+    "title": "1-1. 数値演算 ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py11nb"
+  },
+  "py12nb": {
+    "title": "1-2. 変数と画面出力 ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py12nb"
+  },
+  "py13nb": {
+    "title": "1-3. 関数 ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py13nb"
+  },
+  "py21a": {
+    "title": "2-1_条件分岐（if文）_A基本問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py21a"
+  },
+  "py21b": {
+    "title": "2-1_条件分岐（if文）_B応用問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py21b"
+  },
+  "py21nb": {
+    "title": "2-1. 条件分岐（if文） ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py21nb"
+  },
+  "py22a": {
+    "title": "2-2_繰り返し処理（while文）①_A基本問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py22a"
+  },
+  "py22b": {
+    "title": "2-2_繰り返し処理（while文）①_B応用問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py22b"
+  },
+  "py22nb": {
+    "title": "2-2. 繰り返し処理（while文）① ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py22nb"
+  },
+  "py23a": {
+    "title": "2-3_繰り返し処理（while文）②_A基本問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py23a"
+  },
+  "py23b": {
+    "title": "2-3_繰り返し処理（while文）②_B応用問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py23b"
+  },
+  "py23nb": {
+    "title": "2-3. 繰り返し処理（while文）② ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py23nb"
+  },
+  "py24a": {
+    "title": "2-4_繰り返し処理（for文）①_A基本問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py24a"
+  },
+  "py24b": {
+    "title": "2-4_繰り返し処理（for文）①_B応用問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py24b"
+  },
+  "py24nb": {
+    "title": "2-4. 繰り返し処理（for文）① ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py24nb"
+  },
+  "py25a": {
+    "title": "2-5_繰り返し処理（for文）②_A基本問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py25a"
+  },
+  "py25b": {
+    "title": "2-5_繰り返し処理（for文）②_B応用問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py25b"
+  },
+  "py25nb": {
+    "title": "2-5. 繰り返し処理（for文）② ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py25nb"
+  },
+  "py31a": {
+    "title": "3-1_リスト（list）_A基本問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py31a"
+  },
+  "py31b": {
+    "title": "3-1_リスト（list）_B応用問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py31b"
+  },
+  "py31nb": {
+    "title": "3-1. リスト（list） ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py31nb"
+  },
+  "py32a": {
+    "title": "3-2_関数定義（def文）_問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py32a"
+  },
+  "py32nb": {
+    "title": "3-2. 関数定義（def文） ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py32nb"
+  },
+  "py33a": {
+    "title": "3-3_２次元リスト_問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py33a"
+  },
+  "py33nb": {
+    "title": "3-3. 2次元リスト ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py33nb"
+  },
+  "py34nb": {
+    "title": "3-4. 辞書（dictionary） ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py34nb"
+  },
+  "py35nb": {
+    "title": "3-5. ファイルの入出力 ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py35nb"
+  },
+  "py41a": {
+    "title": "4-1_リニアサーチ_演習問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py41a"
+  },
+  "py41nb": {
+    "title": "4-1. リニアサーチ（線形探索法） ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py41nb"
+  },
+  "py42a": {
+    "title": "4-2_バイナリサーチ_演習問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py42a"
+  },
+  "py42nb": {
+    "title": "4-2. バイナリサーチ（二分探索法） ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py42nb"
+  },
+  "py43a": {
+    "title": "4-3_バブルソート_演習問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py43a"
+  },
+  "py43nb": {
+    "title": "4-3. バブルソート（単純交換法） ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py43nb"
+  },
+  "py44a": {
+    "title": "4-4_選択ソート_演習問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py44a"
+  },
+  "py44nb": {
+    "title": "4-4. 選択ソート（単純選択法） ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py44nb"
+  },
+  "py45a": {
+    "title": "4-5_挿入ソート_演習問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py45a"
+  },
+  "py45nb": {
+    "title": "4-5. 挿入ソート（単純挿入法） ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py45nb"
+  },
+  "py46nb": {
+    "title": "4-6. クイックソート ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py46nb"
+  },
+  "py51nb": {
+    "title": "5-1. グラフの表示 ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py51nb"
+  },
+  "py52nb": {
+    "title": "5-2. 確定モデル ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py52nb"
+  },
+  "py53nb": {
+    "title": "5-3. 確率モデル ノートブック.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py53nb"
+  },
+  "pysample": {
+    "title": "sample.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=pysample"
+  },
+  "ss11t": {
+    "title": "SS1-1_課題（問題）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss11t"
+  },
+  "ss11w": {
+    "title": "SS1-1_実習_四則演算",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss11w"
+  },
+  "ss12t": {
+    "title": "SS1-2_課題（問題）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss12t"
+  },
+  "ss12w": {
+    "title": "SS1-2_実習_表計算の基礎",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss12w"
+  },
+  "ss13t": {
+    "title": "SS1-3_課題（問題）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss13t"
+  },
+  "ss13w": {
+    "title": "SS1-3_実習_関数の基礎",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss13w"
+  },
+  "ss14t": {
+    "title": "SS1-4_課題（問題）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss14t"
+  },
+  "ss14w": {
+    "title": "SS1-4_実習_相対参照と絶対参照",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss14w"
+  },
+  "ss15t": {
+    "title": "SS1-5_課題（問題）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss15t"
+  },
+  "ss15w": {
+    "title": "SS1-5_実習_グラフ_気温と降水量",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss15w"
+  },
+  "ss15wa": {
+    "title": "SS1-5_実習_グラフ_気温と降水量（解答）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss15wa"
+  },
+  "ss21t": {
+    "title": "SS2-1_課題",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss21t"
+  },
+  "ss21ta": {
+    "title": "SS2-1_課題（解答）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss21ta"
+  },
+  "ss21w": {
+    "title": "SS2-1_例題",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss21w"
+  },
+  "ss22t": {
+    "title": "SS2-2_課題",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss22t"
+  },
+  "ss22ta": {
+    "title": "SS2-2_課題（解答）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss22ta"
+  },
+  "ss22w": {
+    "title": "SS2-2_例題",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss22w"
+  },
+  "ss31w": {
+    "title": "SS3-1_実習",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss31w"
+  },
+  "ss32w": {
+    "title": "SS3-2_実習",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss32w"
+  },
+  "ss33w": {
+    "title": "SS3-3_実習",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss33w"
+  },
+  "ss34w": {
+    "title": "SS3-4_演習１_アイスクリームとエアコン",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss34w"
+  },
+  "ss35w": {
+    "title": "SS3-5_演習２_Irisデータセット",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss35w"
+  },
+  "ss39_kadai": {
+    "title": "SS3-9_課題データセット",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_kadai"
+  },
+  "ss39_report_a": {
+    "title": "SS3-9_データの分析最終課題_提出用レポートA",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_report_a"
+  },
+  "ss39_report_b": {
+    "title": "SS3-9_データの分析最終課題_提出用レポートB",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_report_b"
+  },
+  "ss39_report_c1": {
+    "title": "SS3-9_データの分析最終課題_提出用レポートC1",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_report_c1"
+  },
+  "ss39_report_c2": {
+    "title": "SS3-9_データの分析最終課題_提出用レポートC2",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_report_c2"
+  },
+  "ss39_report_c3": {
+    "title": "SS3-9_データの分析最終課題_提出用レポートC3",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_report_c3"
+  },
+  "ss39_ss": {
+    "title": "SS3-9_データの分析最終課題_提出用スプレッドシート",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_ss"
+  },
+  "ss41s": {
+    "title": "SS4-1_演習1_レジの待ち行列（ワークシート説明スライド）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41s"
+  },
+  "ss41w": {
+    "title": "SS4-1_演習1_レジの待ち行列",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41w"
+  },
+  "ss41wa": {
+    "title": "SS4-1_演習1_レジの待ち行列（解答）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41wa"
+  },
+  "ss41ws": {
+    "title": "SS4-1_演習1_レジの待ち行列（ワークシート）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41ws"
+  },
+  "test1": {
+    "title": "テンプレテスト1xxx",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=test1"
+  },
+  "test2": {
+    "title": "テンプレテスト2",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=test2"
+  },
+  "test3": {
+    "title": "テンプレテスト3",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=test3"
+  },
+  "test4": {
+    "title": "テンプレテスト4",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=test4"
+  },
+  "test5": {
+    "title": "テンプレテスト5",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=test5"
+  },
+  "test6": {
+    "title": "テンプレテスト6",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=test6"
+  },
+  "": {
+    "title": "共通テスト情報Ⅰ2025追試_問題.pdf",
+    "description": "",
+    "url": ""
+  },
+  "noti_htmlpicture": {
+    "title": "中3_修学旅行での素材集めについて",
+    "description": "2024-10_中3_修学旅行での素材集めについて",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_htmlpicture"
+  },
+  "noti_hw_wtr4": {
+    "title": "2024-12_高1_冬休みの宿題",
+    "description": "2024-12_高1_冬休みの宿題",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_wtr4"
+  },
+  "noti_hw_html": {
+    "title": "HTML最終課題の提出",
+    "description": "HTML最終課題の提出",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_html"
+  },
+  "noti_hw_wtr3": {
+    "title": "中3_HTML実習最終課題（冬休みの宿題）",
+    "description": "2024-11_中3_HTML実習最終課題（冬休みの宿題）",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_wtr3"
+  },
+  "noti_temp_gene-ai": {
+    "title": "生成AI指針テンプレ",
+    "description": "生成AI指針テンプレ",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_temp_gene-ai"
+  },
+  "noti_hw_feb4": {
+    "title": "2025-01_高1_入試期間中の宿題",
+    "description": "2025-01_高1_入試期間中の宿題",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_feb4"
+  },
+  "noti_hw_data": {
+    "title": "2025-02_中3_データの分析_最終課題",
+    "description": "2025-02_中3_データの分析_最終課題",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_data"
+  },
+  "noti_hw_picto": {
+    "title": "中3_1学期_ピクトグラム最終課題",
+    "description": "中3_1学期_ピクトグラム最終課題",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_picto"
+  },
+  "test": {
+    "title": "提出スクリプトのテスト用",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=test"
+  },
+  "noti_hw_smr3": {
+    "title": "2025-07_中3_夏休みの宿題",
+    "description": "2025-07_中3_夏休みの宿題",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_smr3"
+  },
+  "noti_hw_smr4": {
+    "title": "2025-07_高1_夏休みの宿題",
+    "description": "2025-07_高1_夏休みの宿題",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_smr4"
+  },
+  "noti_firefly": {
+    "title": "Firefly実習",
+    "description": "Firefly実習",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_firefly"
+  },
+  "py51a": {
+    "title": "5-1_グラフの表示_演習問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py51a"
+  },
+  "py52a": {
+    "title": "5-2_確定モデル_演習問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py52a"
+  }
+}
+window.files = files
