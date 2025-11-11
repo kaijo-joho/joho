@@ -1,4 +1,4 @@
-const update = '2025-11-11 08:18:28';
+const update = '2025-11-11 09:08:59';
 
 const quizzes = {
   "py11": {
@@ -105,6 +105,16 @@ const quizzes = {
     "title": "4-5. 挿入ソート（単純挿入法）",
     "description": "Python講座「4-5. 挿入ソート（単純挿入法）」の確認テストです。",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py45"
+  },
+  "py51": {
+    "title": "5-1. グラフの表示",
+    "description": "Python講座「5-1. グラフの表示」の確認テストです。",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py51"
+  },
+  "py52": {
+    "title": "5-2. 確定モデル",
+    "description": "Python講座「5-2. 確定モデル」の確認テストです。",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py52"
   },
   "ipr01": {
     "title": "知的財産権と個人情報・プライバシー①",
