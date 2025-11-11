@@ -1,4 +1,4 @@
-//2025-11-11 09:09:15;
+//2025-11-11 09:11:09;
 const pages = {
   "index": {
     "id": "index",
@@ -1982,7 +1982,15 @@ const pages = {
         "text": "5-1_グラフの表示_演習問題（問題）.ipynb"
       }
     ],
-    "quizForm": false,
+    "quizForm": [
+      {
+        "id": "py51",
+        "title": "5-1. グラフの表示",
+        "text": "5-1. グラフの表示",
+        "release": true,
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py51"
+      }
+    ],
     "back": "py00",
     "next": [
       {
