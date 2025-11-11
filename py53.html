@@ -32,30 +32,31 @@
 
       <pre class="python" data-title="サイコロ"><code>
 import matplotlib.pyplot as plt
+import japanize_matplotlib
 import random
 
-# サイコロをn回投げる
-n = 6000
+# 初期条件
+n = 6000                        # サイコロを投げる数
 
-# サイコロの目の回数を保存するリストを初期化
-counts = [0, 0, 0, 0, 0, 0]
+# グラフ用の配列の準備
+dice   = [1, 2, 3, 4, 5, 6]     # サイコロの目の番号
+counts = [0, 0, 0, 0, 0, 0]     # サイコロの目の回数を保存するリストを初期化
 
-# サイコロをn回投げて、出た目の数をカウント
+# シミュレーション（サイコロをn回投げて、出目の数を集計）
 for i in range(n):
-  roll = random.randint(1, 6)
-  counts[roll - 1] = counts[roll - 1] + 1
+    roll = random.randint(1, 6)               # サイコロの出目（1〜6の乱数を発生）
+    counts[roll - 1] = counts[roll - 1] + 1   # 出目を集計
 
-# 棒グラフを作成
-plt.bar([1, 2, 3, 4, 5, 6], counts, tick_label=[1, 2, 3, 4, 5, 6])
-plt.xlabel("Dice Value")
-plt.ylabel("Frequency")
-plt.title("Bar Chart of Dice Rolls (n = " + str(n) + ")")
+# グラフの表示
+plt.bar(dice, counts, tick_label=dice)  # 横軸にサイコロの目，縦軸に出目の回数，tick_labelは横軸のラベル
+plt.xlabel("出目")
+plt.ylabel("回数")
+plt.title("サイコロのシミュレーション (n = " + str(n) + ")")
 
 # 各棒の上に回数を表示
 for i in range(6):
-  plt.text(i + 1, counts[i], str(counts[i]), ha="center", va="bottom")
+    plt.text(i + 1, counts[i], str(counts[i]), ha="center", va="bottom")  # 横 i+1, 縦 counts[i] のところに、counts[i]の値を表示
 
-# グラフを表示
 plt.show()
       </code></pre>
       <div class="result">
