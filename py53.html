@@ -22,12 +22,10 @@
   <section>    
     <article>
       <h2 id="headline_1">(1) 確率モデル</h2>
-      <h3></h3>      
+      <h3>サイコロの出目のシミュレーション</h3>
 
+      <h4>プログラム</h4>
       <p>サイコロを$n$回振って、出た目の回数を棒グラフで示すプログラムを書いてみましょう。</p>
-      
-      
-      <h3>プログラム</h3>
       <p>はじめは<tt>n = 6000</tt>でプログラムを書き、実行してみます。</p>
 
       <pre class="python" data-title="サイコロ"><code>
@@ -60,25 +58,80 @@ for i in range(6):
 plt.show()
       </code></pre>
       <div class="result">
-        <img src="./img/py53_001.png" class="pyplot">
+        <img src="./img/py53_101.png" class="pyplot">
       </div>
       
-      <h3>試行回数と結果の関係</h3>
+      <h4>試行回数と結果の関係</h4>
       <p>試行回数を<tt>6000</tt>，<tt>60000</tt>，<tt>600000</tt>，<tt>6000000</tt>回と増やしていって実行してみましょう。</p>
       
-      <h4><tt>n=6000</tt>の実行結果</h4>
-      <img src="./img/py53_001.png" class="pyplot" style="margin-left:40px; width:300px;">
+      <dl>
+
+        <dt><tt>n=60</tt>の実行結果</dt>
+        <dd><img src="./img/py53_111.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+
+        <dt><tt>n=600</tt>の実行結果</dt>
+        <dd><img src="./img/py53_112.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+        
+        <dt><tt>n=6000</tt>の実行結果</dt>
+        <dd><img src="./img/py53_113.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+
+        <dt><tt>n=60000</tt>の実行結果</dt>
+        <dd><img src="./img/py53_114.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+
+        <dt><tt>n=600000</tt>の実行結果</dt>
+        <dd><img src="./img/py53_115.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+
+        <dt><tt>n=6000000</tt>の実行結果</dt>
+        <dd><img src="./img/py53_116.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+      </dl>
       
-      <h4><tt>n=60000</tt>の実行結果</h4>
-      <img src="./img/py53_002.png" class="pyplot" style="margin-left:40px; width:300px;">
-      
-      <h4><tt>n=600000</tt>の実行結果</h4>
-      <img src="./img/py53_003.png" class="pyplot" style="margin-left:40px; width:300px;">
-      
-      <h4><tt>n=6000000</tt>の実行結果</h4>
-      <img src="./img/py53_004.png" class="pyplot" style="margin-left:40px; width:300px;">
-      
-      <p>試行回数が多くなればなるほど、理論値に近づいていくことがわかります。</p>
+      <p>このように、試行回数が多くなればなるほど、理論値に近づいていくことがわかります。</p>
+
+
+      <h3>試行回数と出目の平均値の関係</h3>
+      <p>
+        試行回数$n$とサイコロの出目の平均値の関係を表すために、次のようなプログラムを実行してみましょう。
+        $n$が大きくなるにしたがって、理論値である3.5に近づいていく様子をシミュレーションすることができます。
+        このように、試行回数が多くなるほど理論値に近づく法則を<strong>大数の法則</strong>といいます。
+      </p>
+
+
+      <pre class="python" data-title="試行回数とサイコロの平均値の関係"><code>
+import matplotlib.pyplot as plt
+import japanize_matplotlib
+import random
+
+# 初期条件
+trials = list(range(1, 6001))   # 試行回数の配列 [1, 2, 3, 4, ..., 6000]
+
+# グラフ用の配列の準備
+means = []                      # 各試行回数における平均値を保存する配列
+
+for n in trials:
+    total = 0                           # サイコロの出目の合計値
+    
+    # シミュレーション（サイコロをn回投げて、出目の数を集計）
+    for i in range(n):
+        roll = random.randint(1, 6)     # サイコロの出目（1〜6の乱数を発生）
+        total = total + roll            # 出目を集計
+
+    mean = total / n                    # 出目の合計を試行回数で割って平均値を求める
+    means.append(mean)                  # 試行回数ごとの平均値を配列meansに保存
+
+# グラフの表示
+plt.plot(trials, means, label="試行回数ごとの平均値")
+plt.xlabel("試行回数")
+plt.ylabel("出目の平均値")
+plt.title("試行回数とサイコロの出目の平均値")
+plt.axhline(3.5, ls="--", c="red", label="理論値 3.5")  # 平均値の理論値である3.5のところに線を引く
+plt.legend()
+plt.grid()
+
+plt.show()
+      </code></pre>
+      <div class="result">
+        <img src="./img/py53_121.png" class="pyplot">
+      </div>
       
     </article>
     
@@ -88,7 +141,7 @@ plt.show()
       <h2 id="headline_2">(2) 天気のシミュレーション</h2>
       <p>次の図は、ある地域のある時期の日単位の天気の移り変わりを示したもので、数値は翌日の天気の変化の確率を表しています（このような図を<strong>状態遷移図</strong>といいます）。</p>
       <p class="center">
-        <img src="./img/py53_101.png" class="center" width="400px">
+        <img src="./img/py53_201.png" class="center" width="400px">
       </p>
       <p>1日目の天気が「晴れ」として、30日間の天気がどのように変化するか、また、各天気の種類の日が何日間あるかを棒グラフで示しなさい。ただし、天気は、「晴れ」「曇り」「雨」の3種類とし、その天気が1日中続くものとします。</p>
       
@@ -148,7 +201,7 @@ for i in range(len(weather_type)):
 print()
       </code></pre>
       <div class="result">
-        <img src="./img/py53_102.png" class="pyplot">
+        <img src="./img/py53_202.png" class="pyplot">
       </div>
       <pre class="result"><code>
 1 日目: 晴れ
