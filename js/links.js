@@ -493,8 +493,8 @@ const notices = {
     "url": "https://docs.google.com/document/d/1HX5GqFfmobKCqb3tPePWG9IuRPos8yUFgT7hF1R8gAM/edit?usp=drivesdk"
   },
   "noti_hw_wtr4": {
-    "title": "2024-12_高1_冬休みの宿題",
-    "description": "2024-12_高1_冬休みの宿題",
+    "title": "高1_冬休みの宿題",
+    "description": "高1_冬休みの宿題",
     "url": "https://docs.google.com/document/d/14X1uGBHd2X4tLW-UaHR-6_IX8OHbvdtjb0HD3EZINi0/edit?usp=drivesdk"
   },
   "noti_hw_html": {
