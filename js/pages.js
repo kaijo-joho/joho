@@ -1,4 +1,4 @@
-//2025-11-11 09:11:48;
+//2025-11-17 09:51:33;
 const pages = {
   "index": {
     "id": "index",
@@ -2025,8 +2025,25 @@ const pages = {
     ],
     "dlFile": false,
     "exampleFile": false,
-    "questionFile": false,
-    "quizForm": false,
+    "questionFile": [
+      {
+        "id": "py52a",
+        "release": true,
+        "title": "5-2_確定モデル_演習問題（問題）.ipynb",
+        "fileName": "5-2_確定モデル_演習問題（問題）.ipynb",
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py52a",
+        "text": "5-2_確定モデル_演習問題（問題）.ipynb"
+      }
+    ],
+    "quizForm": [
+      {
+        "id": "py52",
+        "title": "5-2. 確定モデル",
+        "text": "5-2. 確定モデル",
+        "release": true,
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py52"
+      }
+    ],
     "back": "py00",
     "next": [
       {
@@ -2061,8 +2078,25 @@ const pages = {
     ],
     "dlFile": false,
     "exampleFile": false,
-    "questionFile": false,
-    "quizForm": false,
+    "questionFile": [
+      {
+        "id": "py53a",
+        "release": true,
+        "title": "5-3_確率モデル_演習問題（問題）.ipynb",
+        "fileName": "5-3_確率モデル_演習問題（問題）.ipynb",
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py53a",
+        "text": "5-3_確率モデル_演習問題（問題）.ipynb"
+      }
+    ],
+    "quizForm": [
+      {
+        "id": "py53",
+        "title": "5-3. 確率モデル",
+        "text": "5-3. 確率モデル",
+        "release": true,
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py53"
+      }
+    ],
     "back": "py00",
     "next": false,
     "show": true,
