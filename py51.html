@@ -269,7 +269,7 @@ files.download("ファイル名.png") # 対象のファイルをダウンロー�
       <p>NumPyの機能を用いて、実数値のリストを生成するためには、<tt>np.arange(<em>start</em>, <em>stop</em>, <em>step</em>)</tt>を用います。末尾の要素は<em>stop</em>の１つ前までになります。</p>
       <p>例えば、<tt>-1.0</tt>から<tt>+1.0</tt>まで<tt>0.1</tt>間隔の値のリストを生成するには、<tt>np.arange(-1.0, 1.1, 0.1)</tt>と書きます。</p>
       <p>このようにして生成したリストを<strong>NumPy配列</strong>といいます。</p>
-      <p class="small-text">※通常のリストでは整数しか扱えないのに対して、NumPy配列は実数値を扱えます。</p>
+      <p class="small-text">※通常の<strong>range関数</strong>で作成したリストでは整数しか扱えないのに対して、NumPy配列（<strgong>np.arange</strgong>で作成したリスト）は実数値を扱えます。</p>
       <pre class="python" data-title="NumPy配列の生成"><code>
 import numpy as np  # numpy: 数値計算用のライブラリ
 x = np.arange(-1.0, 1.1, 0.1)
