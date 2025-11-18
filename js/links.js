@@ -1,4 +1,4 @@
-const update = '2025-11-11 09:08:59';
+const update = '2025-11-18 12:24:46';
 
 const quizzes = {
   "py11": {
@@ -115,6 +115,11 @@ const quizzes = {
     "title": "5-2. 確定モデル",
     "description": "Python講座「5-2. 確定モデル」の確認テストです。",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py52"
+  },
+  "py53": {
+    "title": "5-3. 確率モデル",
+    "description": "Python講座「5-3. 確率モデル」の確認テストです。",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py53"
   },
   "ipr01": {
     "title": "知的財産権と個人情報・プライバシー①",
@@ -494,7 +499,7 @@ const notices = {
   },
   "noti_hw_wtr4": {
     "title": "高1_冬休みの宿題",
-    "description": "高1_冬休みの宿題",
+    "description": "2024-12_高1_冬休みの宿題",
     "url": "https://docs.google.com/document/d/14X1uGBHd2X4tLW-UaHR-6_IX8OHbvdtjb0HD3EZINi0/edit?usp=drivesdk"
   },
   "noti_hw_html": {
@@ -1066,7 +1071,7 @@ const files = {
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_htmlpicture"
   },
   "noti_hw_wtr4": {
-    "title": "2024-12_高1_冬休みの宿題",
+    "title": "高1_冬休みの宿題",
     "description": "2024-12_高1_冬休みの宿題",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_wtr4"
   },
@@ -1129,6 +1134,11 @@ const files = {
     "title": "5-2_確定モデル_演習問題（問題）.ipynb",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py52a"
+  },
+  "py53a": {
+    "title": "5-3_確率モデル_演習問題（問題）.ipynb",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py53a"
   }
 }
 window.files = files
