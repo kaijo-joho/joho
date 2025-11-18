@@ -246,7 +246,7 @@ for i in range(n):
   x = random.random()
   y = random.random()
 
-  if x**2 + y**2 < 1.0:
+  if x ** 2 + y ** 2 < 1.0:
     x1.append(x)
     y1.append(y)
     cnt = cnt + 1
@@ -254,6 +254,11 @@ for i in range(n):
     x2.append(x)
     y2.append(y)
 
+print("n =", n)
+print("cnt =", cnt)
+print("π =", cnt / n * 4)
+
+# グラフを表示
 plt.figure(figsize=(6, 6))  # グラフのサイズを設定
 plt.scatter(x1, y1, color="red", s=1, label="円の内側")
 plt.scatter(x2, y2, color="blue", s=1, label="円の外側")
@@ -264,10 +269,6 @@ plt.ylim(0,1)
 plt.grid(True)
 plt.legend(loc="lower left")
 plt.show()
-
-print("n =", n)
-print("cnt =", cnt)
-print("π =", cnt / n * 4)
       </code></pre>
       <div class="result"><img src="./img/py53_005.png" class="pyplot"></div>
       <pre class="result"><code>
@@ -394,7 +395,7 @@ for i in range(n):
   x.append(x[i] + random.random() - 0.5)
   y.append(y[i] + random.random() - 0.5)
 
-# シミュレーションの結果をプロット
+# グラフを表示
 plt.plot(x, y)
 plt.title("Random Walk Simulation")
 plt.grid(True)
