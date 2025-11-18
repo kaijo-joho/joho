@@ -380,8 +380,9 @@ plt.show()
       <p>液体や気体中の微小な粒子が見せる不規則かつランダムな動きのことを<strong>ブラウン運動</strong>といいます。次の例では、初期座標(0, 0)にあった粒子が、どのように移動するかをシミュレーションしています。</p>
       
       <pre class="python" data-title="ブラウン運動のシミュレーション"><code>
-import random
 import matplotlib.pyplot as plt
+import japanize_matplotlib
+import random
 
 # 移動回数
 n = 1000
@@ -392,12 +393,16 @@ y = [0]
 
 # ランダムウォークのシミュレーション
 for i in range(n):
-  x.append(x[i] + random.random() - 0.5)
-  y.append(y[i] + random.random() - 0.5)
+    dx = random.random() - 0.5
+    dy = random.random() - 0.5
+    x.append(x[i] + dx)
+    y.append(y[i] + dy)
 
 # グラフを表示
 plt.plot(x, y)
-plt.title("Random Walk Simulation")
+plt.title("ブラウン運動のシミュレーション")
+plt.xlabel("$x$")
+plt.ylabel("$y$")
 plt.grid(True)
 
 plt.show()
