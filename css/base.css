@@ -103,7 +103,7 @@ html {
 img, svg, video, canvas { max-width: 100%; } /* ← グローバルは100%に */
 button, input, select, textarea { font: inherit; }
 pre { overflow: auto; }
-pre, code, tt{font-family: var(--font-code); font-weight: 400; font-optical-sizing: auto; line-height: 1.6;}
+pre, code, tt, .font-monospaced{font-family: var(--font-code); font-weight: 400; font-optical-sizing: auto; line-height: 1.6;}
 
 body {
   margin: 0px;
