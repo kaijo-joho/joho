@@ -1,4 +1,4 @@
-const update = '2025-11-18 12:24:46';
+const update = '2025-11-27 12:56:32';
 
 const quizzes = {
   "py11": {
@@ -409,6 +409,11 @@ const submitForms = {
     "title": "HTML実習 最終課題用写真",
     "description": "HTML実習の最終課題用の写真を提出するフォームです。\n- 撮影をしてきたかどうかの確認です。\n- 自分で撮影したものを1枚添付してください。",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=htmlpic"
+  },
+  "htmlfin": {
+    "title": "HTML実習 最終課題",
+    "description": "HTML実習 最終課題の相互評価フォームです。",
+    "url": ""
   }
 }
 window.submitForms = submitForms
@@ -467,6 +472,11 @@ const reviewForms = {
   "htmlpic": {
     "title": "HTML実習 最終課題用写真",
     "description": "HTML実習の最終課題用の写真を提出するフォームです。\n- 撮影をしてきたかどうかの確認です。\n- 自分で撮影したものを1枚添付してください。",
+    "url": ""
+  },
+  "htmlfin": {
+    "title": "HTML実習 最終課題",
+    "description": "HTML実習 最終課題の相互評価フォームです。",
     "url": ""
   }
 }
@@ -1061,7 +1071,7 @@ const files = {
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=test6"
   },
   "": {
-    "title": "共通テスト情報Ⅰ2025追試_問題.pdf",
+    "title": "2025中3_2学期期末考査試験範囲",
     "description": "",
     "url": ""
   },
@@ -1142,3 +1152,12 @@ const files = {
   }
 }
 window.files = files
+
+const urls = {
+  "attendance": {
+    "title": "",
+    "description": "出欠状況確認",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbyLdvmDDW8wHjQA_JLe4eE_lvnLQmTSQ1skWxjRGJ1WjlUyIJ7_dFk8KmtZDU-bwQ/exec"
+  }
+}
+window.urls = urls
