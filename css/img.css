@@ -52,6 +52,13 @@ img.inline-icon{
 	height: 28px;
 }
 
+img.width400px{width: 400px;}
+img.width300px{width: 300px;}
+img.width200px{width: 200px;}
+img.width150px{width: 150px;}
+img.width100px{width: 100px;}
+img.center{	margin: 0 auto;}
+
 
 
 /* 画像ラッパのリセット（サイズ崩れ防止） */
