@@ -261,7 +261,7 @@ b tt {
 }
 
 /*Math Jax*/
-mjx-container {}
+/*mjx-container {}*/
 
 mjx-container:not([display="true"]) {
   /* インラインの数式 
@@ -298,6 +298,92 @@ iframe {
 code, pre {
   font-family: var(--font-code);
 }
+
+
+/* ===================================================================== */
+/* デフォルトボタンスタイル                                               */
+/* ===================================================================== */
+
+button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0.5rem 1.6rem;
+  border-radius: 999px;
+
+  border: 1px solid color-mix(in oklab, var(--theme-color) 60%, #111 40%);
+  background: var(--theme-color);
+  color: #fff;
+
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+
+  cursor: pointer;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+  transition:
+    background-color 0.15s ease-out,
+    box-shadow 0.15s ease-out,
+    transform 0.05s ease-out,
+    border-color 0.15s ease-out;
+}
+
+/* ホバー時：少しだけ明るくして浮かせる */
+button:hover {
+  background: color-mix(in oklab, var(--theme-color) 80%, #fff 20%);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+  transform: translateY(-1px);
+}
+
+/* クリック時：押し込んだ感じに */
+button:active {
+  transform: translateY(0);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+}
+
+/* フォーカス（キーボード操作） */
+button:focus-visible {
+  outline: 2px solid color-mix(in oklab, var(--theme-color) 60%, #fff 40%);
+  outline-offset: 3px;
+}
+
+/* 無効化（今回の「送信中です…」で disabled を付けたとき用途） */
+button[disabled] {
+  cursor: default;
+  opacity: 0.7;
+  box-shadow: none;
+}
+
+/* ===================================================================== */
+/* ダークモード時の調整                                                   */
+/* ===================================================================== */
+
+@media (prefers-color-scheme: dark) {
+  button {
+    /* root 側で theme-color が少し明るめに変わるので、
+       ボタンはやや暗め＆コントラスト強めに */
+    border-color: color-mix(in oklab, var(--theme-color) 65%, #000 35%);
+    background: color-mix(in oklab, var(--theme-color) 72%, #000 28%);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+    color: #fff;
+  }
+
+  button:hover {
+    background: color-mix(in oklab, var(--theme-color) 78%, #000 22%);
+  }
+
+  button:focus-visible {
+    outline-color: color-mix(in oklab, var(--theme-color) 70%, #000 30%);
+  }
+}
+
+
+
+
+
+
+
 
 
 @media (max-width: 600px) {
