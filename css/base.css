@@ -312,7 +312,7 @@ button {
   padding: 0.5rem 1.6rem;
   border-radius: 999px;
 
-  border: 1px solid color-mix(in oklab, var(--theme-color) 60%, #111 40%);
+  border: 1px solid color-mix(in oklab, var(--theme-color) 80%, #111 20%);
   background: var(--theme-color);
   color: #fff;
 
