@@ -1,7 +1,7 @@
 /* CSS Document */
 :root {
   /*グローバル変数を定義*/
-  --theme-color: #225386;
+  --theme-color: oklch(0.4353 0.0996 251.94); /*#225386;*/
 
   --content-max: 720px;
   --content-width: min(90%, var(--content-max));
