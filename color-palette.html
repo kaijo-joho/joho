@@ -3,10 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OKLCH Palette Generator</title>
+    <title>OKLCH Palette Generator - 海城中学高等学校</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="shortcut icon" href="./img/favicon.ico">
     <style>
         body {
             font-family: 'Noto Sans JP', sans-serif;
@@ -26,53 +27,140 @@
 
         /* Range Slider */
         input[type=range] {
-            -webkit-appearance: none; width: 100%; height: 12px; border-radius: 6px;
-            outline: none; margin: 0; cursor: pointer; border: 1px solid rgba(0,0,0,0.1); 
+            -webkit-appearance: none;
+            width: 100%;
+            height: 12px;
+            border-radius: 6px;
+            outline: none;
+            margin: 0;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.1);
         }
         input[type=range]::-webkit-slider-runnable-track {
-            width: 100%; height: 12px; background: transparent; border-radius: 6px;
+            width: 100%;
+            height: 12px;
+            background: transparent;
+            border-radius: 6px;
         }
         input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none; height: 20px; width: 20px; border-radius: 50%;
-            background: #ffffff; border: 2px solid #475569; margin-top: -5px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: transform 0.1s;
+            -webkit-appearance: none;
+            height: 20px;
+            width: 20px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 2px solid #475569;
+            margin-top: -5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: transform 0.1s;
         }
         input[type=range]:focus::-webkit-slider-thumb {
-            transform: scale(1.1); border-color: #3b82f6;
+            transform: scale(1.1);
+            border-color: #3b82f6;
         }
 
         .loader {
-            border: 2px solid #f3f3f3; border-top: 2px solid currentColor; border-radius: 50%;
-            width: 16px; height: 16px; animation: spin 1s linear infinite; display: none;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid currentColor;
+            border-radius: 50%;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+            display: none;
         }
         .loading .loader { display: inline-block; }
         .loading .btn-text { display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Main Tab Buttons - Card Style */
-        .main-tab-btn {
-            @apply px-6 py-3 text-sm font-bold text-slate-500 border border-transparent border-b-0 rounded-t-lg transition-all flex items-center gap-2 relative top-[1px];
+        /* fade-in アニメーション */
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(4px); }
+            to   { opacity: 1; transform: translateY(0); }
         }
-        .main-tab-btn:hover {
-            @apply text-slate-700 bg-slate-50;
-        }
-        .main-tab-btn.active {
-            @apply bg-white text-indigo-600 border-slate-200 border-b-white z-10 shadow-[0_-2px_4px_rgba(0,0,0,0.02)];
+        .animate-fade-in {
+            animation: fade-in 0.18s ease-out;
         }
 
-        /* Sub Tab Buttons - Pill/Toggle Style */
+        /* Main Tab Buttons - Enhanced Visibility */
+        .main-tab-btn {
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            white-space: nowrap !important;
+
+            padding: 0.75rem 1.5rem;          /* px-6 py-3 */
+            font-size: 0.875rem;              /* text-sm */
+            font-weight: 500;                 /* font-medium */
+            color: #94a3b8;                   /* text-slate-400 */
+            border-width: 1px;                /* border */
+            border-style: solid;
+            border-color: transparent;        /* border-transparent */
+            border-bottom-width: 0;           /* border-b-0 */
+            border-top-left-radius: 0.75rem;  /* rounded-t-lg */
+            border-top-right-radius: 0.75rem;
+            border-bottom-left-radius: 0;
+            border-bottom-right-radius: 0;
+            transition: all 0.15s ease;       /* transition-all */
+            gap: 0.5rem;                      /* gap-2 */
+            position: relative;
+            top: 1px;                         /* top-[1px] */
+            background-color: transparent;
+        }
+        .main-tab-btn:hover {
+            color: #475569;                   /* text-slate-600 */
+            background-color: #f8fafc;        /* bg-slate-50 */
+        }
+        .main-tab-btn.active {
+            background-color: #ffffff;        /* bg-white */
+            font-weight: 700;                 /* font-bold */
+            border-color: #e5e7eb;           /* border-slate-200 */
+            border-bottom-color: #ffffff;     /* border-b-white */
+            z-index: 10;                      /* z-10 */
+            box-shadow: 0 -2px 4px rgba(0,0,0,0.02);
+        }
+
+        /* Sub Tab Buttons - Enhanced Visibility */
         .sub-tab-btn {
-            @apply flex-1 py-2 text-[10px] sm:text-xs font-bold text-slate-600 rounded-md transition-all flex justify-center items-center gap-1 leading-tight text-center px-2 border border-transparent;
+            display: flex !important;
+            flex-direction: row !important;
+            align-items: center !important;
+            justify-content: center !important;
+            white-space: nowrap !important;
+
+            flex: 1 1 0%;                     /* flex-1 */
+            padding-top: 0.5rem;              /* py-2 */
+            padding-bottom: 0.5rem;
+            padding-left: 0.75rem;            /* px-3 */
+            padding-right: 0.75rem;
+            font-size: 10px;                  /* text-[10px] */
+            font-weight: 500;                 /* font-medium */
+            color: #64748b;                   /* text-slate-500 */
+            border-radius: 0.375rem;          /* rounded-md */
+            transition: all 0.15s ease;       /* transition-all */
+            gap: 0.5rem;                      /* gap-2 */
+            line-height: 1.25;                /* leading-tight */
+            border-width: 1px;
+            border-style: solid;
+            border-color: transparent;
+            background-color: #e5e7eb;        /* やわらかいグレー */
+        }
+        @media (min-width: 640px) {
+            .sub-tab-btn {
+                font-size: 0.75rem;           /* sm:text-xs */
+            }
         }
         .sub-tab-btn:hover:not(.active) {
-            @apply bg-slate-200;
+            background-color: #e5e7eb;
+            color: #334155;
         }
         .sub-tab-btn.active {
-            @apply bg-slate-800 text-white shadow-md ring-1 ring-slate-900/5;
+            /* 背景色・文字色は JS で基準色から上書きする */
+            font-weight: 700;
+            box-shadow: 0 4px 8px rgba(15,23,42,0.15);
         }
         
         .grid-cell:hover {
-            transform: scale(1.1); z-index: 20;
+            transform: scale(1.1);
+            z-index: 20;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
         }
 
@@ -93,8 +181,10 @@
     <header class="bg-white border-b border-slate-200 py-4 shadow-sm sticky top-0 z-40">
         <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
             <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <i data-lucide="grid" class="w-6 h-6 text-indigo-500"></i>
-                OKLCH Palette Generator
+                <span id="header-accent">
+                    <i data-lucide="grid" class="w-6 h-6"></i>
+                </span>
+                OKLCH Palette Generator - 海城中学高等学校 情報科
             </h1>
             <div id="toast" class="bg-slate-800 text-white px-4 py-2 rounded shadow-lg text-sm font-bold opacity-0 transition-opacity duration-300 pointer-events-none fixed top-20 right-4 z-[100]">
                 Copied!
@@ -109,12 +199,13 @@
                 
                 <div class="flex-grow w-full lg:w-auto">
                     
-                    <div class="flex border-b border-slate-200 mb-6 gap-2 px-1">
+                    <!-- メインタブ（縦スクロール抑止） -->
+                    <div class="flex border-b border-slate-200 mb-6 gap-1 px-1 overflow-x-auto" style="overflow-y:hidden;">
                         <button id="main-tab-editor" class="main-tab-btn active" onclick="switchMainView('editor')">
-                            <i data-lucide="edit-3" class="w-4 h-4"></i> Color Editor
+                            <i data-lucide="edit-3" class="w-4 h-4 flex-shrink-0"></i> <span>Color Editor</span>
                         </button>
                         <button id="main-tab-stock" class="main-tab-btn" onclick="switchMainView('stock')">
-                            <i data-lucide="bookmark" class="w-4 h-4"></i> Color Stock
+                            <i data-lucide="bookmark" class="w-4 h-4 flex-shrink-0"></i> <span>Color Stock</span>
                         </button>
                     </div>
 
@@ -145,11 +236,25 @@
                             </div>
 
                             <div class="flex-grow w-full">
-                                <div class="flex p-1.5 gap-4 bg-slate-100 rounded-lg mb-6 overflow-x-auto border border-slate-200">
-                                    <button id="sub-tab-oklch" class="sub-tab-btn active" onclick="switchSubTab('oklch')">OKLCH</button>
-                                    <button id="sub-tab-rgb" class="sub-tab-btn" onclick="switchSubTab('rgb')">RGB / Hex</button>
-                                    <button id="sub-tab-hsl" class="sub-tab-btn" onclick="switchSubTab('hsl')">HSL / HSV</button>
-                                    <button id="sub-tab-ai" class="sub-tab-btn" onclick="switchSubTab('ai')"><i data-lucide="sparkles" class="w-3 h-3 text-amber-500"></i> AI</button>
+                                <div class="flex p-1.5 gap-3 bg-slate-100 rounded-lg mb-6 overflow-x-auto border border-slate-200">
+                                    <button id="sub-tab-oklch" class="sub-tab-btn active" onclick="switchSubTab('oklch')">
+                                        <i data-lucide="activity" class="w-3 h-3 flex-shrink-0"></i>
+                                        <span>OKLCH</span>
+                                    </button>
+                                    <button id="sub-tab-rgb" class="sub-tab-btn" onclick="switchSubTab('rgb')">
+                                        <i data-lucide="hash" class="w-3 h-3 flex-shrink-0"></i>
+                                        <span>RGB / Hex</span>
+                                    </button>
+                                    <button id="sub-tab-hsl" class="sub-tab-btn" onclick="switchSubTab('hsl')">
+                                        <i data-lucide="sliders-horizontal" class="w-3 h-3 flex-shrink-0"></i>
+                                        <span>HSL / HSV</span>
+                                    </button>
+                                    <!-- AIタブは一旦非表示
+                                    <button id="sub-tab-ai" class="sub-tab-btn" onclick="switchSubTab('ai')">
+                                        <i data-lucide="sparkles" class="w-3 h-3 flex-shrink-0 text-amber-500"></i>
+                                        <span>AI</span>
+                                    </button>
+                                    -->
                                 </div>
 
                                 <div id="panel-oklch" class="space-y-5">
@@ -239,23 +344,11 @@
                                     </div>
                                 </div>
 
+                                <!-- AI パネルも一旦非表示
                                 <div id="panel-ai" class="hidden space-y-6">
-                                    <div class="bg-indigo-50/50 rounded-lg border border-indigo-100 p-5">
-                                        <label class="block text-xs font-bold text-indigo-900 mb-2">テーマからカラーパレットを生成</label>
-                                        <div class="flex gap-2 mb-4">
-                                            <input type="text" id="theme-input" placeholder="例: 雨上がりの紫陽花、サイバーパンクな夜" class="flex-1 px-4 py-2 text-sm border border-slate-200 shadow-sm rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none bg-white">
-                                            <button id="generate-palette-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-transform active:scale-95 flex items-center gap-2 min-w-[100px] justify-center">
-                                                <span class="btn-text">生成</span>
-                                                <div class="loader border-t-white"></div>
-                                            </button>
-                                        </div>
-                                        <div id="ai-error-message" class="text-red-500 text-xs mb-2 hidden font-bold"></div>
-                                        <div id="ai-palette-wrapper" class="hidden">
-                                            <p class="text-[10px] text-slate-500 mb-2 font-bold">クリックして基準色に設定:</p>
-                                            <div id="palette-ai" class="flex flex-wrap gap-3"></div>
-                                        </div>
-                                    </div>
+                                  ...
                                 </div>
+                                -->
                             </div>
                         </div>
                     </div>
@@ -614,15 +707,19 @@
 
             cssModal: document.getElementById('css-modal'), cssOutput: document.getElementById('css-output'), cssModalTitle: document.getElementById('css-modal-title'),
             stockContainer: document.getElementById('stock-container'), emptyStockMsg: document.getElementById('empty-stock-msg'), manualHex: document.getElementById('manual-hex'),
+            /* AI関係は現在未使用
             btnGen: document.getElementById('generate-palette-btn'), inputTheme: document.getElementById('theme-input'),
             aiWrapper: document.getElementById('ai-palette-wrapper'), pAi: document.getElementById('palette-ai'), errAi: document.getElementById('ai-error-message'),
+            */
             modeLabel: document.getElementById('mode-label'), formatSelect: document.getElementById('format-select'),
             
             mainTabEditor: document.getElementById('main-tab-editor'), mainTabStock: document.getElementById('main-tab-stock'),
             viewEditor: document.getElementById('view-editor'), viewStock: document.getElementById('view-stock'),
             
-            subTabOklch: document.getElementById('sub-tab-oklch'), subTabRgb: document.getElementById('sub-tab-rgb'), subTabHsl: document.getElementById('sub-tab-hsl'), subTabAi: document.getElementById('sub-tab-ai'),
-            panelOklch: document.getElementById('panel-oklch'), panelRgb: document.getElementById('panel-rgb'), panelHsl: document.getElementById('panel-hsl'), panelAi: document.getElementById('panel-ai')
+            subTabOklch: document.getElementById('sub-tab-oklch'), subTabRgb: document.getElementById('sub-tab-rgb'), subTabHsl: document.getElementById('sub-tab-hsl'),
+            // subTabAi: document.getElementById('sub-tab-ai'), panelAi: document.getElementById('panel-ai'),
+            
+            headerIcon: document.getElementById('header-accent')
         };
 
         function saveToLocal() {
@@ -645,7 +742,7 @@
                         pinnedColors.length = 0;
                         data.pinnedColors.forEach(c => pinnedColors.push(c));
                     }
-                    if(!state.count || isNaN(state.count)) state.count = 16;
+                    if(!state.count || isNaN(state.count)) state.count = 16; 
                     els.formatSelect.value = state.outputFormat;
                     els.inputCount.value = state.count;
                     if(state.hsvMode) setHslHsvMode(state.hsvMode, false);
@@ -673,10 +770,27 @@
             els.inputHslS.style.background = `linear-gradient(to right, hsl(${hsl.h}, 0%, ${hsl.l}%), hsl(${hsl.h}, 100%, ${hsl.l}%))`;
             els.inputHslL.style.background = `linear-gradient(to right, hsl(${hsl.h}, ${hsl.s}%, 0%), hsl(${hsl.h}, ${hsl.s}%, 50%), hsl(${hsl.h}, ${hsl.s}%, 100%))`;
         
-            // HSV (Approximate)
+            // HSV (Approximate, HSLで描画)
             const hsv = rgbToHsv(state.r, state.g, state.b);
-            els.inputHsvH.style.background = `linear-gradient(to right, hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), hsl(360, 100%, 50%))`;
-            els.inputHsvS.style.background = `linear-gradient(to right, hsv(${hsv.h}, 0%, ${hsv.v}%), hsv(${hsv.h}, 100%, ${hsv.v}%))`; 
+            const hDeg = Math.round(hsv.h);
+            els.inputHsvH.style.background = `linear-gradient(to right,
+                hsl(0, 100%, 50%),
+                hsl(60, 100%, 50%),
+                hsl(120, 100%, 50%),
+                hsl(180, 100%, 50%),
+                hsl(240, 100%, 50%),
+                hsl(300, 100%, 50%),
+                hsl(360, 100%, 50%)
+            )`;
+            els.inputHsvS.style.background = `linear-gradient(to right,
+                hsl(${hDeg}, 0%, ${Math.round(hsv.v / 2)}%),
+                hsl(${hDeg}, 100%, ${Math.round(hsv.v / 2)}%)
+            )`;
+            els.inputHsvV.style.background = `linear-gradient(to right,
+                hsl(${hDeg}, 100%, 0%),
+                hsl(${hDeg}, 100%, 50%),
+                hsl(${hDeg}, 100%, 100%)
+            )`;
         }
 
         function updateState(l, c, h) { 
@@ -723,16 +837,22 @@
                 els.viewEditor.classList.add('hidden'); els.viewStock.classList.remove('hidden');
                 renderStock();
             }
+            applyAccentToTabs();
         };
 
         window.switchSubTab = (tab) => {
-            els.subTabOklch.classList.remove('active'); els.subTabRgb.classList.remove('active'); els.subTabHsl.classList.remove('active'); els.subTabAi.classList.remove('active');
-            els.panelOklch.classList.add('hidden'); els.panelRgb.classList.add('hidden'); els.panelHsl.classList.add('hidden'); els.panelAi.classList.add('hidden');
+            els.subTabOklch.classList.remove('active'); els.subTabRgb.classList.remove('active'); els.subTabHsl.classList.remove('active');
+            document.getElementById('panel-oklch').classList.add('hidden');
+            document.getElementById('panel-rgb').classList.add('hidden');
+            document.getElementById('panel-hsl').classList.add('hidden');
+            // panel-ai は現在非表示
 
-            if(tab === 'oklch') { els.subTabOklch.classList.add('active'); els.panelOklch.classList.remove('hidden'); }
-            else if(tab === 'rgb') { els.subTabRgb.classList.add('active'); els.panelRgb.classList.remove('hidden'); }
-            else if(tab === 'hsl') { els.subTabHsl.classList.add('active'); els.panelHsl.classList.remove('hidden'); }
-            else { els.subTabAi.classList.add('active'); els.panelAi.classList.remove('hidden'); }
+            if(tab === 'oklch') { els.subTabOklch.classList.add('active'); document.getElementById('panel-oklch').classList.remove('hidden'); }
+            else if(tab === 'rgb') { els.subTabRgb.classList.add('active'); document.getElementById('panel-rgb').classList.remove('hidden'); }
+            else if(tab === 'hsl') { els.subTabHsl.classList.add('active'); document.getElementById('panel-hsl').classList.remove('hidden'); }
+
+            // サブタブの色を基準色で更新
+            applyAccentToTabs();
         };
 
         window.setHslHsvMode = (mode, save=true) => {
@@ -785,6 +905,12 @@
 
         window.addCurrentToStock = () => {
             addToStock(state.l, state.c, state.h);
+        };
+
+        // Apply a stocked color to the editor
+        window.applyStockColor = (l, c, h) => {
+            setBaseColor(l, c, h);
+            switchMainView('editor');
         };
 
         window.addToStock = (l, c, h) => {
@@ -881,6 +1007,7 @@
                 <div class="bg-white rounded-lg shadow-sm border border-slate-200 overflow-hidden flex flex-col group">
                     <div class="h-16 relative flex items-center justify-center cursor-pointer" style="background-color: ${bgStyle};" onclick="copyColor(${c.l}, ${c.c}, ${c.h})">
                         <span class="${txtColor} text-[10px] opacity-0 group-hover:opacity-100 font-bold bg-black/10 px-1 rounded backdrop-blur-[1px]">Copy</span>
+                        <button onclick="event.stopPropagation(); applyStockColor(${c.l}, ${c.c}, ${c.h})" class="absolute top-1 left-1 text-white/70 hover:text-indigo-500 bg-black/20 hover:bg-white rounded-full p-0.5 transition-colors" title="Set as Base Color"><i data-lucide="arrow-up-left" class="w-3 h-3"></i></button>
                         <button onclick="event.stopPropagation(); removeStock(${i})" class="absolute top-1 right-1 text-white/70 hover:text-red-500 bg-black/20 hover:bg-white rounded-full p-0.5 transition-colors"><i data-lucide="x" class="w-3 h-3"></i></button>
                     </div>
                     <div class="p-2 bg-white">
@@ -903,7 +1030,6 @@
             return {steps, baseIndex};
         }
 
-        // --- FIXED: Added missing renderGrid function ---
         function renderGrid() {
             els.mainGrid.style.gridTemplateColumns = `repeat(${state.count}, minmax(80px, 1fr))`;
             let html = '';
@@ -931,6 +1057,16 @@
                     const h = hues[col];
                     const bgStyle = `oklch(${l} ${state.c} ${h})`;
                     const isBaseCell = isBaseRow && col === 0;
+                    
+                    // Button to set base from grid
+                    const setBaseBtn = `
+                        <button onclick="event.stopPropagation(); setBaseColor(${l}, ${state.c}, ${h}); switchMainView('editor');" 
+                            class="absolute top-1 left-1 opacity-0 group-hover:opacity-100 bg-white/20 hover:bg-white text-white hover:text-indigo-600 rounded p-0.5 transition-all z-20 backdrop-blur-sm" 
+                            title="Set as Base Color">
+                            <i data-lucide="arrow-up-left" class="w-3 h-3"></i>
+                        </button>
+                    `;
+                    
                     const pinBtn = `
                         <button onclick="event.stopPropagation(); addToStock(${l}, ${state.c}, ${h})" class="absolute top-1 right-1 opacity-0 group-hover:opacity-100 bg-white/20 hover:bg-white text-white hover:text-indigo-600 rounded p-0.5 transition-all z-20 backdrop-blur-sm" title="Stock">
                             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
@@ -943,7 +1079,8 @@
                         html += `
                         <div class="grid-cell h-12 sm:h-14 relative cursor-pointer group bg-slate-50 ${ringClass}" style="background-color: ${bgStyle};" onclick="copyColor(${l}, ${state.c}, ${h})">
                             <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><span class="bg-black/20 backdrop-blur-sm text-white text-[10px] font-bold px-1 rounded">Copy</span></div>
-                            ${col === 0 ? `<div class="absolute left-1 top-1 text-[10px] font-bold ${isLight?'text-slate-800':'text-white'} opacity-60">L${(l*100).toFixed(0)}</div>` : ''}
+                            ${col === 0 ? `<div class="absolute left-1 bottom-1 text-[10px] font-bold ${isLight?'text-slate-800':'text-white'} opacity-60">L${(l*100).toFixed(0)}</div>` : ''}
+                            ${setBaseBtn}
                             ${pinBtn}
                         </div>`;
                     } else {
@@ -954,7 +1091,8 @@
                         <div class="grid-cell h-12 sm:h-14 relative cursor-pointer group ${bgClass} ${activeBorder} flex items-center justify-center" onclick="copyColor(${l}, ${state.c}, ${h})">
                             <span style="color: ${bgStyle};" class="text-xl font-bold font-sans">Ag</span>
                             <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 backdrop-blur-[1px]"><span class="bg-black/70 text-white text-[10px] font-bold px-1 rounded">Copy</span></div>
-                            ${col === 0 ? `<div class="absolute left-1 top-1 text-[9px] font-bold text-slate-400">L${(l*100).toFixed(0)}</div>` : ''}
+                            ${col === 0 ? `<div class="absolute left-1 bottom-1 text-[9px] font-bold text-slate-400">L${(l*100).toFixed(0)}</div>` : ''}
+                            ${setBaseBtn}
                             ${pinBtn}
                         </div>`;
                     }
@@ -965,7 +1103,11 @@
         }
 
         window.openCssModal = (scope) => {
+            const cssFormat = state.outputFormat === 'hsv' ? 'hex' : state.outputFormat;
             let css = ":root {\n";
+            if (state.outputFormat === 'hsv') {
+                css += "  /* NOTE: HSV は CSS の色関数としては使えないため、HEX で出力しています。 */\n";
+            }
             if (scope === 'grid') {
                 css += "  /* --- Grid Colors --- */\n";
                 const hueStep = 360 / state.count;
@@ -979,7 +1121,7 @@
                     css += `  /* ${info.ja} / ${info.en} (Hue ${Math.round(h)}) */\n`;
                     steps.forEach((l, idx) => {
                         const suffix = 9 - idx;
-                        const val = getFormattedColor(l, state.c, h, state.outputFormat);
+                        const val = getFormattedColor(l, state.c, h, cssFormat);
                         css += `  --${baseName}-${suffix}: ${val};\n`;
                         if (idx === baseIndex) css += `  --${baseName}: ${val}; /* Base */\n`;
                     });
@@ -991,7 +1133,7 @@
                     css += "  /* --- Stock Colors --- */\n";
                     pinnedColors.forEach(c => {
                         const name = c.name.replace(/\s+/g, '-').toLowerCase();
-                        const val = getFormattedColor(c.l, c.c, c.h, state.outputFormat);
+                        const val = getFormattedColor(c.l, c.c, c.h, cssFormat);
                         css += `  --${name}: ${val};\n`;
                     });
                 } else {
@@ -1005,6 +1147,52 @@
         };
         window.closeCssModal = () => els.cssModal.classList.add('hidden');
         window.copyCss = () => { els.cssOutput.select(); document.execCommand('copy'); const t=document.getElementById('toast'); t.textContent='Copied CSS!'; t.style.opacity='1'; setTimeout(()=>t.style.opacity='0',2000); };
+
+        // メインタブ・サブタブに基準色を適用
+        function applyAccentToTabs() {
+            const currentCss = `oklch(${state.l} ${state.c} ${state.h})`;
+
+            // --- 左上の格子アイコンに基準色を適用 ---
+            if (els.headerIcon) {
+                els.headerIcon.style.color = currentCss;
+            }
+
+            // --- メインタブ（Color Editor / Color Stock） ---
+            [els.mainTabEditor, els.mainTabStock].forEach(btn => {
+                if (!btn) return;
+                const icon = btn.querySelector('i');
+
+                if (btn.classList.contains('active')) {
+                    // 選択中タブだけ基準色
+                    btn.style.color = currentCss;
+                    if (icon) icon.style.color = currentCss;
+                } else {
+                    // 非選択はグレー
+                    btn.style.color = '#94a3b8';
+                    if (icon) icon.style.color = '#94a3b8';
+                }
+            });
+
+            // --- サブタブ（OKLCH / RGB / HSL） ---
+            [els.subTabOklch, els.subTabRgb, els.subTabHsl].forEach(btn => {
+                if (!btn) return;
+                const icon = btn.querySelector('i');
+
+                // 背景は常に同じグレー
+                btn.style.backgroundColor = '#e5e7eb';
+                btn.style.borderColor = 'transparent';
+
+                if (btn.classList.contains('active')) {
+                    // 選択中: 文字色とアイコンだけ基準色
+                    btn.style.color = currentCss;
+                    if (icon) icon.style.color = currentCss;
+                } else {
+                    // 非選択: デフォルトのグレー
+                    btn.style.color = '#64748b';
+                    if (icon) icon.style.color = '#64748b';
+                }
+            });
+        }
 
         function syncUI() {
             // OKLCH Inputs
@@ -1043,7 +1231,10 @@
             if(!['input-hsv-s', 'num-hsv-s'].includes(document.activeElement?.id)) { els.inputHsvS.value = Math.round(hsv.s); els.numHsvS.value = Math.round(hsv.s); }
             if(!['input-hsv-v', 'num-hsv-v'].includes(document.activeElement?.id)) { els.inputHsvV.value = Math.round(hsv.v); els.numHsvV.value = Math.round(hsv.v); }
 
-            // Mode Label logic ...
+            // Sync Count
+            els.inputCount.value = state.count;
+
+            // Mode Label
             if (state.count <= 8) {
                 els.modeLabel.textContent = "基本名モード (〜8色)";
                 els.modeLabel.className = "text-[10px] text-slate-500 mt-2 font-bold bg-blue-50 px-2 py-1 rounded inline-block w-full text-center border border-blue-100";
@@ -1055,23 +1246,15 @@
                 els.modeLabel.className = "text-[10px] text-slate-500 mt-2 font-bold bg-purple-50 px-2 py-1 rounded inline-block w-full text-center border border-purple-100";
             }
 
-            // Sync Mode Buttons Styles
+            // 表示モードボタンのスタイル（基準色）
             const currentCss = `oklch(${state.l} ${state.c} ${state.h})`;
             const isLight = state.l > 0.6;
-            
-            // 1. Fill Mode Button
             els.btnModeFill.style.backgroundColor = currentCss;
-            els.btnModeFill.style.color = isLight ? '#1e293b' : '#ffffff'; 
-            
-            // 2. Text (Light) Button
+            els.btnModeFill.style.color = isLight ? '#1e293b' : '#ffffff';
             els.btnModeLight.style.color = currentCss;
-            
-            // 3. Text (Dark) Button
             els.btnModeDark.style.color = currentCss;
 
-            // Active State
             const activeClass = "ring-2 ring-indigo-500 ring-offset-2 z-10 border-transparent";
-            
             els.btnModeFill.className = `rounded-lg border text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center leading-tight ${state.viewMode === 'fill' ? activeClass : 'border-slate-200'}`;
             els.btnModeLight.className = `bg-white rounded-lg border text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center leading-tight ${state.viewMode === 'text' && state.bgTheme === 'light' ? activeClass : 'border-slate-200'}`;
             els.btnModeDark.className = `bg-slate-900 rounded-lg border text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center leading-tight ${state.viewMode === 'text' && state.bgTheme === 'dark' ? activeClass : 'border-slate-700'}`;
@@ -1079,6 +1262,7 @@
             updateSliderGradients();
             renderGrid();
             renderStock();
+            applyAccentToTabs();
         }
 
         // Event Listeners
@@ -1090,7 +1274,6 @@
         [els.inputG, els.numG].forEach(el => el.addEventListener('input', () => updateStateFromRgb(state.r, el.value, state.b)));
         [els.inputB, els.numB].forEach(el => el.addEventListener('input', () => updateStateFromRgb(state.r, state.g, el.value)));
 
-        // HSL / HSV Listeners
         const getHslInput = () => [els.inputHslH.value, els.inputHslS.value, els.inputHslL.value];
         [els.inputHslH, els.numHslH, els.inputHslS, els.numHslS, els.inputHslL, els.numHslL].forEach(el => {
             el.addEventListener('input', () => {
@@ -1124,29 +1307,12 @@
         els.btnInc.addEventListener('click', () => updateCount(state.count + 1));
         els.btnDec.addEventListener('click', () => updateCount(state.count - 1));
 
+        // AI生成部分は現在未使用なのでイベント登録もコメントアウト
+        /*
         els.btnGen.addEventListener('click', async () => {
-            if (!apiKey) { els.errAi.textContent = "API Key not set."; els.errAi.classList.remove('hidden'); return; }
-            const theme = els.inputTheme.value; if (!theme) return;
-            els.btnGen.classList.add('loading'); els.aiWrapper.classList.add('hidden'); els.errAi.classList.add('hidden');
-            try {
-                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                    method: 'POST', headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ contents: [{ parts: [{ text: `Generate 5 OKLCH colors for theme "${theme}". Output JSON array: [{"l":0.5,"c":0.1,"h":0,"label":"name"}]` }] }] })
-                });
-                if(!res.ok) throw new Error("API Error");
-                const data = await res.json();
-                const colors = JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim());
-                els.pAi.innerHTML = colors.map(c => {
-                    const css = `oklch(${c.l} ${c.c} ${c.h})`;
-                    return `<div class="w-24 h-24 rounded-lg shadow-sm flex flex-col overflow-hidden cursor-pointer hover:scale-105 transition-transform" onclick="setBaseColor(${c.l}, ${c.c}, ${c.h})">
-                        <div class="flex-1" style="background:${css}"></div>
-                        <div class="bg-white p-1 text-[10px] text-center truncate font-bold border-t border-slate-100">${c.label}</div>
-                    </div>`;
-                }).join('');
-                els.aiWrapper.classList.remove('hidden');
-            } catch(e) { els.errAi.textContent = "Error generating palette."; els.errAi.classList.remove('hidden'); }
-            finally { els.btnGen.classList.remove('loading'); }
+          ...
         });
+        */
 
         loadFromLocal();
     </script>
