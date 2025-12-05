@@ -6,7 +6,6 @@
     <title>OKLCH Palette Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-    <!-- Lucide Icons -->
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body {
@@ -50,29 +49,28 @@
         .loading .btn-text { display: none; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Main Tab Buttons (Top Level) */
+        /* Main Tab Buttons - Card Style */
         .main-tab-btn {
-            @apply px-6 py-3 text-sm font-bold text-slate-400 border-b-2 border-transparent transition-colors hover:text-slate-600 flex items-center gap-2;
+            @apply px-6 py-3 text-sm font-bold text-slate-500 border border-transparent border-b-0 rounded-t-lg transition-all flex items-center gap-2 relative top-[1px];
+        }
+        .main-tab-btn:hover {
+            @apply text-slate-700 bg-slate-50;
         }
         .main-tab-btn.active {
-            @apply text-indigo-600 border-indigo-600 bg-indigo-50/30;
+            @apply bg-white text-indigo-600 border-slate-200 border-b-white z-10 shadow-[0_-2px_4px_rgba(0,0,0,0.02)];
         }
 
-        /* Sub Tab Buttons (OKLCH/RGB/AI) */
+        /* Sub Tab Buttons - Pill/Toggle Style */
         .sub-tab-btn {
-            @apply flex-1 py-2 text-xs font-bold text-slate-500 rounded-md transition-colors hover:bg-slate-100 flex justify-center items-center gap-1;
+            @apply flex-1 py-2 text-[10px] sm:text-xs font-bold text-slate-600 rounded-md transition-all flex justify-center items-center gap-1 leading-tight text-center px-2 border border-transparent;
+        }
+        .sub-tab-btn:hover:not(.active) {
+            @apply bg-slate-200;
         }
         .sub-tab-btn.active {
-            @apply bg-white text-indigo-600 shadow-sm ring-1 ring-slate-200;
+            @apply bg-slate-800 text-white shadow-md ring-1 ring-slate-900/5;
         }
         
-        .mode-btn {
-            @apply px-3 py-1.5 text-xs font-bold rounded-md border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors;
-        }
-        .mode-btn.active {
-            @apply bg-indigo-50 text-indigo-600 border-indigo-200 ring-1 ring-indigo-200;
-        }
-
         .grid-cell:hover {
             transform: scale(1.1); z-index: 20;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
@@ -92,7 +90,6 @@
 </head>
 <body class="pb-40">
 
-    <!-- Header -->
     <header class="bg-white border-b border-slate-200 py-4 shadow-sm sticky top-0 z-40">
         <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
             <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -107,15 +104,12 @@
 
     <main class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
 
-        <!-- Top Control Area -->
         <section class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
             <div class="flex flex-col lg:flex-row gap-8 items-start">
                 
-                <!-- LEFT & CENTER: Main Workspace (Switchable) -->
                 <div class="flex-grow w-full lg:w-auto">
                     
-                    <!-- Main Tabs -->
-                    <div class="flex border-b border-slate-200 mb-6">
+                    <div class="flex border-b border-slate-200 mb-6 gap-2 px-1">
                         <button id="main-tab-editor" class="main-tab-btn active" onclick="switchMainView('editor')">
                             <i data-lucide="edit-3" class="w-4 h-4"></i> Color Editor
                         </button>
@@ -124,30 +118,40 @@
                         </button>
                     </div>
 
-                    <!-- VIEW 1: EDITOR (Swatch + Inputs) -->
                     <div id="view-editor" class="animate-fade-in">
                         <div class="flex flex-col md:flex-row gap-8 items-start">
-                            <!-- Swatch & Values -->
                             <div class="flex-shrink-0 w-full md:w-48 flex flex-col gap-3">
-                                <div id="base-swatch" class="w-full aspect-square rounded-2xl shadow-inner bg-slate-200 border border-slate-200 relative transition-colors duration-200"></div>
+                                <div class="w-full aspect-square rounded-2xl shadow-inner bg-slate-200 border border-slate-200 relative group overflow-hidden">
+                                    <div id="base-swatch" class="w-full h-full transition-colors duration-200"></div>
+                                    <div class="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 backdrop-blur-[1px]">
+                                        <button onclick="copyCurrentBaseColor()" class="bg-white text-slate-700 hover:text-indigo-600 px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm transition-transform active:scale-95 flex items-center gap-1">
+                                            <i data-lucide="copy" class="w-3 h-3"></i> Copy
+                                        </button>
+                                        <button onclick="addCurrentToStock()" class="bg-slate-800 text-white hover:bg-slate-700 p-1.5 rounded-lg shadow-sm transition-transform active:scale-95" title="Add to Stock">
+                                            <i data-lucide="plus" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
                                 <div class="bg-slate-50 rounded-lg border border-slate-200 p-3">
                                     <table class="val-table">
                                         <tr><td class="val-label">LCH</td><td id="disp-oklch" class="val-data">--</td></tr>
                                         <tr><td class="val-label">HEX</td><td id="disp-hex" class="val-data">--</td></tr>
                                         <tr><td class="val-label">RGB</td><td id="disp-rgb" class="val-data">--</td></tr>
+                                        <tr><td class="val-label">HSL</td><td id="disp-hsl" class="val-data">--</td></tr>
+                                        <tr><td class="val-label">HSV</td><td id="disp-hsv" class="val-data">--</td></tr>
                                     </table>
                                 </div>
                             </div>
 
-                            <!-- Input Methods (Sub Tabs) -->
                             <div class="flex-grow w-full">
-                                <div class="flex p-1 bg-slate-100 rounded-lg mb-5">
+                                <div class="flex p-1.5 gap-4 bg-slate-100 rounded-lg mb-6 overflow-x-auto border border-slate-200">
                                     <button id="sub-tab-oklch" class="sub-tab-btn active" onclick="switchSubTab('oklch')">OKLCH</button>
                                     <button id="sub-tab-rgb" class="sub-tab-btn" onclick="switchSubTab('rgb')">RGB / Hex</button>
+                                    <button id="sub-tab-hsl" class="sub-tab-btn" onclick="switchSubTab('hsl')">HSL / HSV</button>
                                     <button id="sub-tab-ai" class="sub-tab-btn" onclick="switchSubTab('ai')"><i data-lucide="sparkles" class="w-3 h-3 text-amber-500"></i> AI</button>
                                 </div>
 
-                                <!-- OKLCH Sliders -->
                                 <div id="panel-oklch" class="space-y-5">
                                     <div class="flex items-center gap-3">
                                         <label class="w-8 text-xs font-bold text-slate-500 text-right">L</label>
@@ -166,7 +170,6 @@
                                     </div>
                                 </div>
 
-                                <!-- RGB Sliders -->
                                 <div id="panel-rgb" class="hidden space-y-5">
                                     <div class="flex items-center gap-3 mb-2">
                                         <label class="w-8 text-xs font-bold text-slate-500 text-right">#</label>
@@ -192,7 +195,50 @@
                                     </div>
                                 </div>
 
-                                <!-- AI Generate -->
+                                <div id="panel-hsl" class="hidden space-y-5">
+                                    
+                                    <div class="flex bg-slate-100 p-1 rounded-lg">
+                                        <button id="btn-show-hsl" onclick="setHslHsvMode('hsl')" class="flex-1 py-1.5 text-xs font-bold rounded shadow-sm bg-white text-indigo-600 transition-all">HSL</button>
+                                        <button id="btn-show-hsv" onclick="setHslHsvMode('hsv')" class="flex-1 py-1.5 text-xs font-bold rounded text-slate-500 hover:text-slate-700 transition-all">HSV</button>
+                                    </div>
+
+                                    <div id="group-hsl" class="space-y-5 animate-fade-in">
+                                        <div class="flex items-center gap-3">
+                                            <label class="w-8 text-xs font-bold text-slate-400 text-right">H</label>
+                                            <div class="flex-1"><input type="range" id="input-hsl-h" min="0" max="360" step="1"></div>
+                                            <input type="number" id="num-hsl-h" min="0" max="360" step="1" class="w-16 text-xs font-mono border border-slate-300 rounded px-1 py-1 text-center focus:ring-2 focus:ring-blue-500 outline-none">
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <label class="w-8 text-xs font-bold text-slate-400 text-right">S</label>
+                                            <div class="flex-1"><input type="range" id="input-hsl-s" min="0" max="100" step="1"></div>
+                                            <input type="number" id="num-hsl-s" min="0" max="100" step="1" class="w-16 text-xs font-mono border border-slate-300 rounded px-1 py-1 text-center focus:ring-2 focus:ring-blue-500 outline-none">
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <label class="w-8 text-xs font-bold text-slate-400 text-right">L</label>
+                                            <div class="flex-1"><input type="range" id="input-hsl-l" min="0" max="100" step="1"></div>
+                                            <input type="number" id="num-hsl-l" min="0" max="100" step="1" class="w-16 text-xs font-mono border border-slate-300 rounded px-1 py-1 text-center focus:ring-2 focus:ring-blue-500 outline-none">
+                                        </div>
+                                    </div>
+
+                                    <div id="group-hsv" class="hidden space-y-5 animate-fade-in">
+                                        <div class="flex items-center gap-3">
+                                            <label class="w-8 text-xs font-bold text-slate-400 text-right">H</label>
+                                            <div class="flex-1"><input type="range" id="input-hsv-h" min="0" max="360" step="1"></div>
+                                            <input type="number" id="num-hsv-h" min="0" max="360" step="1" class="w-16 text-xs font-mono border border-slate-300 rounded px-1 py-1 text-center focus:ring-2 focus:ring-blue-500 outline-none">
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <label class="w-8 text-xs font-bold text-slate-400 text-right">S</label>
+                                            <div class="flex-1"><input type="range" id="input-hsv-s" min="0" max="100" step="1"></div>
+                                            <input type="number" id="num-hsv-s" min="0" max="100" step="1" class="w-16 text-xs font-mono border border-slate-300 rounded px-1 py-1 text-center focus:ring-2 focus:ring-blue-500 outline-none">
+                                        </div>
+                                        <div class="flex items-center gap-3">
+                                            <label class="w-8 text-xs font-bold text-slate-400 text-right">V</label>
+                                            <div class="flex-1"><input type="range" id="input-hsv-v" min="0" max="100" step="1"></div>
+                                            <input type="number" id="num-hsv-v" min="0" max="100" step="1" class="w-16 text-xs font-mono border border-slate-300 rounded px-1 py-1 text-center focus:ring-2 focus:ring-blue-500 outline-none">
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div id="panel-ai" class="hidden space-y-6">
                                     <div class="bg-indigo-50/50 rounded-lg border border-indigo-100 p-5">
                                         <label class="block text-xs font-bold text-indigo-900 mb-2">テーマからカラーパレットを生成</label>
@@ -214,7 +260,6 @@
                         </div>
                     </div>
 
-                    <!-- VIEW 2: STOCK (Color List) -->
                     <div id="view-stock" class="hidden animate-fade-in">
                         <div class="flex flex-col gap-4">
                              <div class="flex gap-2 items-center p-3 bg-slate-50 rounded-lg border border-slate-200">
@@ -242,31 +287,33 @@
                     </div>
                 </div>
 
-                <!-- RIGHT: Common Settings (Fixed) -->
                 <div class="flex-shrink-0 w-full lg:w-48 border-l border-slate-100 lg:pl-6 space-y-6 pt-4 lg:pt-0">
                     
                     <div>
-                        <label class="block text-xs font-bold text-slate-500 mb-2">コピー形式 (Format)</label>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">出力形式 (Format)</label>
                         <select id="format-select" onchange="updateFormat(this.value)" class="w-full text-xs font-bold p-2 border border-slate-300 rounded-md focus:ring-blue-500 bg-white cursor-pointer outline-none">
                             <option value="oklch">OKLCH</option>
                             <option value="hex">HEX (#...)</option>
                             <option value="rgb">RGB (...)</option>
+                            <option value="hsl">HSL (...)</option>
+                            <option value="hsv">HSV (...)</option>
                         </select>
                     </div>
 
                     <div>
                         <label class="block text-xs font-bold text-slate-500 mb-2">表示モード</label>
-                        <div class="flex gap-2">
-                            <button id="mode-fill" class="mode-btn flex-1 active" onclick="setViewMode('fill')">背景色</button>
-                            <button id="mode-text" class="mode-btn flex-1" onclick="setViewMode('text')">文字色</button>
-                        </div>
-                    </div>
-
-                    <div id="bg-theme-control" class="hidden animate-fade-in">
-                        <label class="block text-xs font-bold text-slate-500 mb-2">背景テーマ</label>
-                        <div class="flex gap-2">
-                            <button id="theme-light" class="mode-btn flex-1 active" onclick="setBgTheme('light')">White</button>
-                            <button id="theme-dark" class="mode-btn flex-1" onclick="setBgTheme('dark')">Black</button>
+                        <div class="grid grid-cols-3 gap-2 h-14">
+                            <button id="btn-mode-fill" onclick="setDisplayMode('fill')" class="rounded-lg border border-slate-200 text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center leading-tight">
+                                <span>背景色</span>
+                            </button>
+                            <button id="btn-mode-light" onclick="setDisplayMode('light')" class="bg-white rounded-lg border border-slate-200 text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center leading-tight">
+                                <span>文字色</span>
+                                <span class="text-[9px] opacity-70 scale-90">(ライト)</span>
+                            </button>
+                            <button id="btn-mode-dark" onclick="setDisplayMode('dark')" class="bg-slate-900 rounded-lg border border-slate-700 text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center leading-tight">
+                                <span>文字色</span>
+                                <span class="text-[9px] opacity-70 scale-90">(ダーク)</span>
+                            </button>
                         </div>
                     </div>
 
@@ -283,28 +330,25 @@
             </div>
         </section>
 
-        <!-- Grid Section -->
         <section id="grid-section">
             <div class="mb-4 flex items-center justify-between border-b border-slate-100 pb-2">
                 <h2 class="text-lg font-bold text-slate-800">カラーグリッド</h2>
-                <button onclick="openCssModal('all')" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-1.5 px-3 rounded-lg transition-colors shadow-sm">
+                <button onclick="openCssModal('grid')" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-1.5 px-3 rounded-lg transition-colors shadow-sm">
                     <i data-lucide="code" class="w-3 h-3"></i>
-                    CSS (Grid + Stock)
+                    CSS (Grid Only)
                 </button>
             </div>
             <div class="overflow-x-auto pb-12">
                 <div id="main-grid" class="min-w-max grid gap-1">
-                    <!-- Javascript will populate this -->
-                </div>
+                    </div>
             </div>
         </section>
     </main>
 
-    <!-- CSS Modal -->
     <div id="css-modal" class="fixed inset-0 z-50 hidden">
         <div class="absolute inset-0 modal-overlay" onclick="closeCssModal()"></div>
         <div class="absolute inset-0 flex items-center justify-center p-4">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col transform transition-all">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] h-[80vh] flex flex-col transform transition-all">
                 <div class="flex justify-between items-center p-4 border-b border-slate-100">
                     <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
                         <i data-lucide="file-code" class="w-5 h-5 text-indigo-500"></i>
@@ -330,6 +374,7 @@
     <script>
         lucide.createIcons();
         const apiKey = ""; 
+        const STORAGE_KEY = 'oklch-palette-v1';
 
         // --- Utils ---
         function srgb_transfer_inv(c) { return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
@@ -370,19 +415,101 @@
             return { r: Math.round(r), g: Math.round(g), b: Math.round(b) };
         }
 
+        // --- HSL / HSV Conversions ---
+        function rgbToHsl(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, l = (max + min) / 2;
+            if (max === min) { h = s = 0; } 
+            else {
+                const d = max - min;
+                s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return { h: h * 360, s: s * 100, l: l * 100 };
+        }
+
+        function hslToRgb(h, s, l) {
+            h /= 360; s /= 100; l /= 100;
+            let r, g, b;
+            if (s === 0) { r = g = b = l; } 
+            else {
+                const hue2rgb = (p, q, t) => {
+                    if (t < 0) t += 1; if (t > 1) t -= 1;
+                    if (t < 1/6) return p + (q - p) * 6 * t;
+                    if (t < 1/2) return q;
+                    if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                    return p;
+                };
+                const q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+                const p = 2 * l - q;
+                r = hue2rgb(p, q, h + 1/3);
+                g = hue2rgb(p, q, h);
+                b = hue2rgb(p, q, h - 1/3);
+            }
+            return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+        }
+
+        function rgbToHsv(r, g, b) {
+            r /= 255; g /= 255; b /= 255;
+            const max = Math.max(r, g, b), min = Math.min(r, g, b);
+            let h, s, v = max;
+            const d = max - min;
+            s = max === 0 ? 0 : d / max;
+            if (max === min) { h = 0; } 
+            else {
+                switch (max) {
+                    case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+                    case g: h = (b - r) / d + 2; break;
+                    case b: h = (r - g) / d + 4; break;
+                }
+                h /= 6;
+            }
+            return { h: h * 360, s: s * 100, v: v * 100 };
+        }
+
+        function hsvToRgb(h, s, v) {
+            h /= 360; s /= 100; v /= 100;
+            let r, g, b;
+            const i = Math.floor(h * 6);
+            const f = h * 6 - i;
+            const p = v * (1 - s);
+            const q = v * (1 - f * s);
+            const t = v * (1 - (1 - f) * s);
+            switch (i % 6) {
+                case 0: r = v; g = t; b = p; break;
+                case 1: r = q; g = v; b = p; break;
+                case 2: r = p; g = v; b = t; break;
+                case 3: r = p; g = q; b = v; break;
+                case 4: r = t; g = p; b = v; break;
+                case 5: r = v; g = p; b = q; break;
+            }
+            return { r: Math.round(r * 255), g: Math.round(g * 255), b: Math.round(b * 255) };
+        }
+
         function rgbToHex(r, g, b) {
             return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
         }
 
         function getFormattedColor(l, c, h, format) {
             let hh = h % 360; if(hh<0) hh+=360;
+            const rgb = oklchToRgb(l, c, hh);
             if (format === 'oklch') {
                 return `oklch(${l.toFixed(4)} ${c.toFixed(4)} ${hh.toFixed(2)})`;
             } else if (format === 'rgb') {
-                const rgb = oklchToRgb(l, c, hh);
                 return `rgb(${rgb.r}, ${rgb.g}, ${rgb.b})`;
+            } else if (format === 'hsl') {
+                const hsl = rgbToHsl(rgb.r, rgb.g, rgb.b);
+                return `hsl(${Math.round(hsl.h)}, ${Math.round(hsl.s)}%, ${Math.round(hsl.l)}%)`;
+            } else if (format === 'hsv') {
+                const hsv = rgbToHsv(rgb.r, rgb.g, rgb.b);
+                return `hsv(${Math.round(hsv.h)}, ${Math.round(hsv.s)}%, ${Math.round(hsv.v)}%)`;
             } else { // hex
-                const rgb = oklchToRgb(l, c, hh);
                 return '#' + rgbToHex(rgb.r, rgb.g, rgb.b);
             }
         }
@@ -446,7 +573,7 @@
         }
 
         // --- App State ---
-        const state = { l: 0.422, c: 0.113, h: 264.00, r: 34, g: 83, b: 134, count: 16, viewMode: 'fill', bgTheme: 'light', outputFormat: 'oklch' };
+        const state = { l: 0.422, c: 0.113, h: 264.00, r: 34, g: 83, b: 134, count: 16, viewMode: 'fill', bgTheme: 'light', outputFormat: 'oklch', hsvMode: 'hsl' };
         const pinnedColors = []; 
 
         const els = {
@@ -457,45 +584,107 @@
             inputG: document.getElementById('input-g'), numG: document.getElementById('num-g'),
             inputB: document.getElementById('input-b'), numB: document.getElementById('num-b'),
             
+            // HSL / HSV Inputs
+            inputHslH: document.getElementById('input-hsl-h'), numHslH: document.getElementById('num-hsl-h'),
+            inputHslS: document.getElementById('input-hsl-s'), numHslS: document.getElementById('num-hsl-s'),
+            inputHslL: document.getElementById('input-hsl-l'), numHslL: document.getElementById('num-hsl-l'),
+            inputHsvH: document.getElementById('input-hsv-h'), numHsvH: document.getElementById('num-hsv-h'),
+            inputHsvS: document.getElementById('input-hsv-s'), numHsvS: document.getElementById('num-hsv-s'),
+            inputHsvV: document.getElementById('input-hsv-v'), numHsvV: document.getElementById('num-hsv-v'),
+            
+            btnShowHsl: document.getElementById('btn-show-hsl'),
+            btnShowHsv: document.getElementById('btn-show-hsv'),
+            groupHsl: document.getElementById('group-hsl'),
+            groupHsv: document.getElementById('group-hsv'),
+
             swatch: document.getElementById('base-swatch'), 
             dispOklch: document.getElementById('disp-oklch'),
             dispHex: document.getElementById('disp-hex'),
             dispRgb: document.getElementById('disp-rgb'),
+            dispHsl: document.getElementById('disp-hsl'),
+            dispHsv: document.getElementById('disp-hsv'),
 
             inputCount: document.getElementById('input-count'), btnInc: document.getElementById('btn-inc'), btnDec: document.getElementById('btn-dec'),
             inputHex: document.getElementById('input-hex'),
             mainGrid: document.getElementById('main-grid'),
-            modeFill: document.getElementById('mode-fill'), modeText: document.getElementById('mode-text'), bgThemeControl: document.getElementById('bg-theme-control'), themeLight: document.getElementById('theme-light'), themeDark: document.getElementById('theme-dark'),
+            
+            btnModeFill: document.getElementById('btn-mode-fill'),
+            btnModeLight: document.getElementById('btn-mode-light'),
+            btnModeDark: document.getElementById('btn-mode-dark'),
+
             cssModal: document.getElementById('css-modal'), cssOutput: document.getElementById('css-output'), cssModalTitle: document.getElementById('css-modal-title'),
             stockContainer: document.getElementById('stock-container'), emptyStockMsg: document.getElementById('empty-stock-msg'), manualHex: document.getElementById('manual-hex'),
             btnGen: document.getElementById('generate-palette-btn'), inputTheme: document.getElementById('theme-input'),
             aiWrapper: document.getElementById('ai-palette-wrapper'), pAi: document.getElementById('palette-ai'), errAi: document.getElementById('ai-error-message'),
             modeLabel: document.getElementById('mode-label'), formatSelect: document.getElementById('format-select'),
             
-            // Main Tabs (Editor vs Stock)
             mainTabEditor: document.getElementById('main-tab-editor'), mainTabStock: document.getElementById('main-tab-stock'),
             viewEditor: document.getElementById('view-editor'), viewStock: document.getElementById('view-stock'),
             
-            // Sub Tabs (OKLCH/RGB/AI)
-            subTabOklch: document.getElementById('sub-tab-oklch'), subTabRgb: document.getElementById('sub-tab-rgb'), subTabAi: document.getElementById('sub-tab-ai'),
-            panelOklch: document.getElementById('panel-oklch'), panelRgb: document.getElementById('panel-rgb'), panelAi: document.getElementById('panel-ai')
+            subTabOklch: document.getElementById('sub-tab-oklch'), subTabRgb: document.getElementById('sub-tab-rgb'), subTabHsl: document.getElementById('sub-tab-hsl'), subTabAi: document.getElementById('sub-tab-ai'),
+            panelOklch: document.getElementById('panel-oklch'), panelRgb: document.getElementById('panel-rgb'), panelHsl: document.getElementById('panel-hsl'), panelAi: document.getElementById('panel-ai')
         };
 
+        function saveToLocal() {
+            const data = {
+                state: state,
+                pinnedColors: pinnedColors
+            };
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+            } catch(e) { console.error("Save failed", e); }
+        }
+
+        function loadFromLocal() {
+            const raw = localStorage.getItem(STORAGE_KEY);
+            if(raw) {
+                try {
+                    const data = JSON.parse(raw);
+                    if(data.state) Object.assign(state, data.state);
+                    if(data.pinnedColors && Array.isArray(data.pinnedColors)) {
+                        pinnedColors.length = 0;
+                        data.pinnedColors.forEach(c => pinnedColors.push(c));
+                    }
+                    if(!state.count || isNaN(state.count)) state.count = 16;
+                    els.formatSelect.value = state.outputFormat;
+                    els.inputCount.value = state.count;
+                    if(state.hsvMode) setHslHsvMode(state.hsvMode, false);
+                } catch(e) { console.error("Load failed", e); }
+            }
+            syncUI();
+        }
+
         function updateSliderGradients() {
+            // OKLCH
             els.inputL.style.background = `linear-gradient(to right, oklch(0 ${state.c} ${state.h}), oklch(1 ${state.c} ${state.h}))`;
             els.inputC.style.background = `linear-gradient(to right, oklch(${state.l} 0 ${state.h}), oklch(${state.l} 0.37 ${state.h}))`;
             els.inputH.style.background = `linear-gradient(to right, 
                 oklch(${state.l} ${state.c} 0), oklch(${state.l} ${state.c} 60), oklch(${state.l} ${state.c} 120), 
                 oklch(${state.l} ${state.c} 180), oklch(${state.l} ${state.c} 240), oklch(${state.l} ${state.c} 300), oklch(${state.l} ${state.c} 360))`;
+            
+            // RGB
             els.inputR.style.background = `linear-gradient(to right, rgb(0, ${state.g}, ${state.b}), rgb(255, ${state.g}, ${state.b}))`;
             els.inputG.style.background = `linear-gradient(to right, rgb(${state.r}, 0, ${state.b}), rgb(${state.r}, 255, ${state.b}))`;
             els.inputB.style.background = `linear-gradient(to right, rgb(${state.r}, ${state.g}, 0), rgb(${state.r}, ${state.g}, 255))`;
+
+            // HSL (Approximate gradient)
+            const hsl = rgbToHsl(state.r, state.g, state.b);
+            els.inputHslH.style.background = `linear-gradient(to right, hsl(0, ${hsl.s}%, ${hsl.l}%), hsl(60, ${hsl.s}%, ${hsl.l}%), hsl(120, ${hsl.s}%, ${hsl.l}%), hsl(180, ${hsl.s}%, ${hsl.l}%), hsl(240, ${hsl.s}%, ${hsl.l}%), hsl(300, ${hsl.s}%, ${hsl.l}%), hsl(360, ${hsl.s}%, ${hsl.l}%))`;
+            els.inputHslS.style.background = `linear-gradient(to right, hsl(${hsl.h}, 0%, ${hsl.l}%), hsl(${hsl.h}, 100%, ${hsl.l}%))`;
+            els.inputHslL.style.background = `linear-gradient(to right, hsl(${hsl.h}, ${hsl.s}%, 0%), hsl(${hsl.h}, ${hsl.s}%, 50%), hsl(${hsl.h}, ${hsl.s}%, 100%))`;
+        
+            // HSV (Approximate)
+            const hsv = rgbToHsv(state.r, state.g, state.b);
+            els.inputHsvH.style.background = `linear-gradient(to right, hsl(0, 100%, 50%), hsl(60, 100%, 50%), hsl(120, 100%, 50%), hsl(180, 100%, 50%), hsl(240, 100%, 50%), hsl(300, 100%, 50%), hsl(360, 100%, 50%))`;
+            els.inputHsvS.style.background = `linear-gradient(to right, hsv(${hsv.h}, 0%, ${hsv.v}%), hsv(${hsv.h}, 100%, ${hsv.v}%))`; 
         }
 
         function updateState(l, c, h) { 
             state.l = parseFloat(l); state.c = parseFloat(c); state.h = parseFloat(h);
+            if(isNaN(state.l)) state.l = 0.5; if(isNaN(state.c)) state.c = 0.1; if(isNaN(state.h)) state.h = 0;
             const rgb = oklchToRgb(state.l, state.c, state.h);
             state.r = rgb.r; state.g = rgb.g; state.b = rgb.b;
+            saveToLocal();
             syncUI(); 
         }
         
@@ -503,10 +692,28 @@
             state.r = parseInt(r); state.g = parseInt(g); state.b = parseInt(b);
             const o = rgbToOklch(state.r, state.g, state.b); 
             state.l = o.l; state.c = o.c; state.h = o.h; 
+            saveToLocal();
             syncUI(); 
         }
+
+        function updateStateFromHsl(h, s, l) {
+            const rgb = hslToRgb(h, s, l);
+            state.r = rgb.r; state.g = rgb.g; state.b = rgb.b;
+            const o = rgbToOklch(state.r, state.g, state.b);
+            state.l = o.l; state.c = o.c; state.h = o.h;
+            saveToLocal();
+            syncUI();
+        }
+
+        function updateStateFromHsv(h, s, v) {
+            const rgb = hsvToRgb(h, s, v);
+            state.r = rgb.r; state.g = rgb.g; state.b = rgb.b;
+            const o = rgbToOklch(state.r, state.g, state.b);
+            state.l = o.l; state.c = o.c; state.h = o.h;
+            saveToLocal();
+            syncUI();
+        }
         
-        // Main View Switcher
         window.switchMainView = (view) => {
             if(view === 'editor') {
                 els.mainTabEditor.classList.add('active'); els.mainTabStock.classList.remove('active');
@@ -514,38 +721,98 @@
             } else {
                 els.mainTabEditor.classList.remove('active'); els.mainTabStock.classList.add('active');
                 els.viewEditor.classList.add('hidden'); els.viewStock.classList.remove('hidden');
-                renderStock(); // Refresh stock list
+                renderStock();
             }
         };
 
-        // Sub Tab Switcher
         window.switchSubTab = (tab) => {
-            els.subTabOklch.classList.remove('active'); els.subTabRgb.classList.remove('active'); els.subTabAi.classList.remove('active');
-            els.panelOklch.classList.add('hidden'); els.panelRgb.classList.add('hidden'); els.panelAi.classList.add('hidden');
+            els.subTabOklch.classList.remove('active'); els.subTabRgb.classList.remove('active'); els.subTabHsl.classList.remove('active'); els.subTabAi.classList.remove('active');
+            els.panelOklch.classList.add('hidden'); els.panelRgb.classList.add('hidden'); els.panelHsl.classList.add('hidden'); els.panelAi.classList.add('hidden');
 
             if(tab === 'oklch') { els.subTabOklch.classList.add('active'); els.panelOklch.classList.remove('hidden'); }
             else if(tab === 'rgb') { els.subTabRgb.classList.add('active'); els.panelRgb.classList.remove('hidden'); }
+            else if(tab === 'hsl') { els.subTabHsl.classList.add('active'); els.panelHsl.classList.remove('hidden'); }
             else { els.subTabAi.classList.add('active'); els.panelAi.classList.remove('hidden'); }
+        };
+
+        window.setHslHsvMode = (mode, save=true) => {
+            state.hsvMode = mode;
+            if(mode === 'hsl') {
+                els.btnShowHsl.className = "flex-1 py-1.5 text-xs font-bold rounded shadow-sm bg-white text-indigo-600 transition-all";
+                els.btnShowHsv.className = "flex-1 py-1.5 text-xs font-bold rounded text-slate-500 hover:text-slate-700 transition-all";
+                els.groupHsl.classList.remove('hidden');
+                els.groupHsv.classList.add('hidden');
+            } else {
+                els.btnShowHsl.className = "flex-1 py-1.5 text-xs font-bold rounded text-slate-500 hover:text-slate-700 transition-all";
+                els.btnShowHsv.className = "flex-1 py-1.5 text-xs font-bold rounded shadow-sm bg-white text-indigo-600 transition-all";
+                els.groupHsl.classList.add('hidden');
+                els.groupHsv.classList.remove('hidden');
+            }
+            if(save) saveToLocal();
         };
 
         window.setBaseColor = (l, c, h) => {
             state.l = l; state.c = c; state.h = h;
             const rgb = oklchToRgb(l, c, h);
             state.r = rgb.r; state.g = rgb.g; state.b = rgb.b;
+            saveToLocal();
             syncUI();
         };
 
-        window.setViewMode = (mode) => { state.viewMode = mode; els.modeFill.classList.toggle('active', mode==='fill'); els.modeText.classList.toggle('active', mode==='text'); els.bgThemeControl.classList.toggle('hidden', mode!=='text'); renderGrid(); };
-        window.setBgTheme = (theme) => { state.bgTheme = theme; els.themeLight.classList.toggle('active', theme==='light'); els.themeDark.classList.toggle('active', theme==='dark'); renderGrid(); };
-        window.updateFormat = (val) => { state.outputFormat = val; syncUI(); };
+        window.setDisplayMode = (type) => { 
+            if (type === 'fill') {
+                state.viewMode = 'fill';
+            } else if (type === 'light') {
+                state.viewMode = 'text';
+                state.bgTheme = 'light';
+            } else if (type === 'dark') {
+                state.viewMode = 'text';
+                state.bgTheme = 'dark';
+            }
+            saveToLocal();
+            syncUI(); 
+        };
+
+        window.updateFormat = (val) => { 
+            state.outputFormat = val; 
+            saveToLocal();
+            syncUI(); 
+        };
+
+        window.copyCurrentBaseColor = () => {
+            copyColor(state.l, state.c, state.h);
+        };
+
+        window.addCurrentToStock = () => {
+            addToStock(state.l, state.c, state.h);
+        };
 
         window.addToStock = (l, c, h) => {
-            const hInfo = lookupName(h % 360, hueAnchorsDetailed);
+            const hNorm = ((h % 360) + 360) % 360;
+            const isDuplicate = pinnedColors.some(p => 
+                Math.abs(p.l - l) < 0.0001 && 
+                Math.abs(p.c - c) < 0.0001 && 
+                getDistance(p.h, hNorm) < 0.05 
+            );
+
+            if (isDuplicate) {
+                const t = document.getElementById('toast');
+                t.textContent = 'Already Stocked!';
+                t.style.opacity = '1';
+                setTimeout(()=>t.style.opacity='0', 2000);
+                return;
+            }
+
+            const hInfo = lookupName(hNorm, hueAnchorsDetailed);
             const lPerc = Math.round(l*100);
             const defaultName = `${hInfo.p.en.toLowerCase()}-${lPerc}`;
-            pinnedColors.push({ l, c, h: ((h % 360) + 360) % 360, name: defaultName });
+            pinnedColors.push({ l, c, h: hNorm, name: defaultName });
+            saveToLocal();
             renderStock();
-            switchMainView('stock'); // Auto switch to stock view
+            const t = document.getElementById('toast');
+            t.textContent = 'Stocked!';
+            t.style.opacity = '1';
+            setTimeout(()=>t.style.opacity='0', 2000);
         };
 
         window.addManualColor = () => {
@@ -557,17 +824,32 @@
             const r = parseInt(hex.substring(1,3),16), g = parseInt(hex.substring(3,5),16), b = parseInt(hex.substring(5,7),16);
             if(!isNaN(r)) {
                 const o = rgbToOklch(r,g,b);
-                const hInfo = lookupName(o.h, hueAnchorsDetailed);
+                const hNorm = ((o.h % 360) + 360) % 360;
+                const hInfo = lookupName(hNorm, hueAnchorsDetailed);
                 const defaultName = `custom-${hInfo.p.en.toLowerCase()}`;
-                pinnedColors.push({ l:o.l, c:o.c, h:o.h, name: defaultName });
+                
+                const isDuplicate = pinnedColors.some(p => Math.abs(p.l - o.l) < 0.0001 && Math.abs(p.c - o.c) < 0.0001 && getDistance(p.h, hNorm) < 0.05);
+                if (isDuplicate) {
+                     const t = document.getElementById('toast'); t.textContent = 'Already Stocked!'; t.style.opacity = '1'; setTimeout(()=>t.style.opacity='0', 2000); return;
+                }
+
+                pinnedColors.push({ l:o.l, c:o.c, h:hNorm, name: defaultName });
+                saveToLocal();
                 renderStock();
                 els.manualHex.value = '';
                 switchMainView('stock');
             }
         };
 
-        window.removeStock = (idx) => { pinnedColors.splice(idx, 1); renderStock(); };
-        window.updateStockName = (idx, newName) => { pinnedColors[idx].name = newName; };
+        window.removeStock = (idx) => { 
+            pinnedColors.splice(idx, 1); 
+            saveToLocal();
+            renderStock(); 
+        };
+        window.updateStockName = (idx, newName) => { 
+            pinnedColors[idx].name = newName; 
+            saveToLocal();
+        };
 
         window.copyColor = (l, c, h) => {
             const hNorm = ((h % 360) + 360) % 360;
@@ -590,10 +872,8 @@
             els.stockContainer.innerHTML = pinnedColors.map((c, i) => {
                 let displayVal = '';
                 let hh = c.h % 360; if(hh<0) hh+=360;
-                if (state.outputFormat === 'oklch') displayVal = `${c.l.toFixed(3)} ${c.c.toFixed(3)} ${hh.toFixed(1)}`;
-                else if (state.outputFormat === 'rgb') { const rgb = oklchToRgb(c.l, c.c, hh); displayVal = `${rgb.r}, ${rgb.g}, ${rgb.b}`; }
-                else { const rgb = oklchToRgb(c.l, c.c, hh); displayVal = '#' + rgbToHex(rgb.r, rgb.g, rgb.b); }
-
+                displayVal = getFormattedColor(c.l, c.c, hh, state.outputFormat);
+                
                 const bgStyle = `oklch(${c.l} ${c.c} ${c.h})`;
                 const isLight = c.l > 0.6;
                 const txtColor = isLight ? 'text-slate-800' : 'text-white';
@@ -623,87 +903,7 @@
             return {steps, baseIndex};
         }
 
-        window.openCssModal = (scope) => {
-            let css = ":root {\n";
-            if (scope === 'all') {
-                css += "  /* --- Grid Colors --- */\n";
-                const hueStep = 360 / state.count;
-                const hues = []; for(let c=0; c<state.count; c++) hues.push((state.h + (c*hueStep)));
-                const names = resolveColorNames(hues, state.count);
-                for (let col = 0; col < state.count; col++) {
-                    const h = hues[col] % 360;
-                    const info = names[col];
-                    let baseName = info.en.toLowerCase().replace(/\s+/g, '-');
-                    const { steps, baseIndex } = generateLightnessSteps(state.l);
-                    css += `  /* ${info.ja} / ${info.en} (Hue ${Math.round(h)}) */\n`;
-                    steps.forEach((l, idx) => {
-                        const suffix = 9 - idx;
-                        const val = getFormattedColor(l, state.c, h, state.outputFormat);
-                        css += `  --${baseName}-${suffix}: ${val};\n`;
-                        if (idx === baseIndex) css += `  --${baseName}: ${val}; /* Base */\n`;
-                    });
-                    css += "\n";
-                }
-            }
-            if(pinnedColors.length > 0) {
-                if (scope === 'all') css += "  /* --- Stock Colors --- */\n";
-                pinnedColors.forEach(c => {
-                    const name = c.name.replace(/\s+/g, '-').toLowerCase();
-                    const val = getFormattedColor(c.l, c.c, c.h, state.outputFormat);
-                    css += `  --${name}: ${val};\n`;
-                });
-            } else if (scope === 'stock') {
-                css += "  /* No pinned colors */\n";
-            }
-            css += "}";
-            els.cssOutput.value = css;
-            els.cssModalTitle.textContent = scope === 'all' ? 'CSS Output (All Grid + Stock)' : 'CSS Output (Stock Only)';
-            els.cssModal.classList.remove('hidden');
-        };
-        window.closeCssModal = () => els.cssModal.classList.add('hidden');
-        window.copyCss = () => { els.cssOutput.select(); document.execCommand('copy'); const t=document.getElementById('toast'); t.textContent='Copied All CSS!'; t.style.opacity='1'; setTimeout(()=>t.style.opacity='0',2000); };
-
-        function syncUI() {
-            // OKLCH Inputs
-            els.inputL.value = state.l; els.numL.value = parseFloat(state.l).toFixed(3);
-            els.inputC.value = state.c; els.numC.value = parseFloat(state.c).toFixed(3);
-            els.inputH.value = state.h; els.numH.value = parseFloat(state.h).toFixed(1);
-            
-            // Text Displays
-            const hh = state.h % 360; 
-            const hNorm = hh < 0 ? hh + 360 : hh;
-            const hex = rgbToHex(state.r, state.g, state.b);
-
-            els.dispOklch.textContent = `${state.l.toFixed(3)} ${state.c.toFixed(3)} ${hNorm.toFixed(1)}`;
-            els.dispHex.textContent = `#${hex}`;
-            els.dispRgb.textContent = `${state.r}, ${state.g}, ${state.b}`;
-            
-            els.swatch.style.backgroundColor = `oklch(${state.l} ${state.c} ${state.h})`;
-
-            // RGB Inputs
-            if(document.activeElement !== els.inputHex) els.inputHex.value = hex;
-            
-            if(document.activeElement !== els.inputR && document.activeElement !== els.numR) { els.inputR.value = state.r; els.numR.value = state.r; }
-            if(document.activeElement !== els.inputG && document.activeElement !== els.numG) { els.inputG.value = state.g; els.numG.value = state.g; }
-            if(document.activeElement !== els.inputB && document.activeElement !== els.numB) { els.inputB.value = state.b; els.numB.value = state.b; }
-
-            // Mode Label
-            if (state.count <= 8) {
-                els.modeLabel.textContent = "基本名モード (〜8色)";
-                els.modeLabel.className = "text-[10px] text-slate-500 mt-2 font-bold bg-blue-50 px-2 py-1 rounded inline-block w-full text-center border border-blue-100";
-            } else if (state.count <= 15) {
-                els.modeLabel.textContent = "詳細名モード (9〜15色)";
-                els.modeLabel.className = "text-[10px] text-slate-500 mt-2 font-bold bg-indigo-50 px-2 py-1 rounded inline-block w-full text-center border border-indigo-100";
-            } else {
-                els.modeLabel.textContent = "複合名モード (16色〜)";
-                els.modeLabel.className = "text-[10px] text-slate-500 mt-2 font-bold bg-purple-50 px-2 py-1 rounded inline-block w-full text-center border border-purple-100";
-            }
-
-            updateSliderGradients();
-            renderGrid();
-            renderStock();
-        }
-
+        // --- FIXED: Added missing renderGrid function ---
         function renderGrid() {
             els.mainGrid.style.gridTemplateColumns = `repeat(${state.count}, minmax(80px, 1fr))`;
             let html = '';
@@ -764,6 +964,123 @@
             lucide.createIcons();
         }
 
+        window.openCssModal = (scope) => {
+            let css = ":root {\n";
+            if (scope === 'grid') {
+                css += "  /* --- Grid Colors --- */\n";
+                const hueStep = 360 / state.count;
+                const hues = []; for(let c=0; c<state.count; c++) hues.push((state.h + (c*hueStep)));
+                const names = resolveColorNames(hues, state.count);
+                for (let col = 0; col < state.count; col++) {
+                    const h = hues[col] % 360;
+                    const info = names[col];
+                    let baseName = info.en.toLowerCase().replace(/\s+/g, '-');
+                    const { steps, baseIndex } = generateLightnessSteps(state.l);
+                    css += `  /* ${info.ja} / ${info.en} (Hue ${Math.round(h)}) */\n`;
+                    steps.forEach((l, idx) => {
+                        const suffix = 9 - idx;
+                        const val = getFormattedColor(l, state.c, h, state.outputFormat);
+                        css += `  --${baseName}-${suffix}: ${val};\n`;
+                        if (idx === baseIndex) css += `  --${baseName}: ${val}; /* Base */\n`;
+                    });
+                    css += "\n";
+                }
+            }
+            if (scope === 'stock') {
+                if(pinnedColors.length > 0) {
+                    css += "  /* --- Stock Colors --- */\n";
+                    pinnedColors.forEach(c => {
+                        const name = c.name.replace(/\s+/g, '-').toLowerCase();
+                        const val = getFormattedColor(c.l, c.c, c.h, state.outputFormat);
+                        css += `  --${name}: ${val};\n`;
+                    });
+                } else {
+                    css += "  /* No pinned colors */\n";
+                }
+            }
+            css += "}";
+            els.cssOutput.value = css;
+            els.cssModalTitle.textContent = scope === 'grid' ? 'CSS Output (Grid Only)' : 'CSS Output (Stock Only)';
+            els.cssModal.classList.remove('hidden');
+        };
+        window.closeCssModal = () => els.cssModal.classList.add('hidden');
+        window.copyCss = () => { els.cssOutput.select(); document.execCommand('copy'); const t=document.getElementById('toast'); t.textContent='Copied CSS!'; t.style.opacity='1'; setTimeout(()=>t.style.opacity='0',2000); };
+
+        function syncUI() {
+            // OKLCH Inputs
+            els.inputL.value = state.l; els.numL.value = parseFloat(state.l).toFixed(3);
+            els.inputC.value = state.c; els.numC.value = parseFloat(state.c).toFixed(3);
+            els.inputH.value = state.h; els.numH.value = parseFloat(state.h).toFixed(1);
+            
+            // Text Displays
+            const hh = state.h % 360; 
+            const hNorm = hh < 0 ? hh + 360 : hh;
+            const hex = rgbToHex(state.r, state.g, state.b);
+            const hsl = rgbToHsl(state.r, state.g, state.b);
+            const hsv = rgbToHsv(state.r, state.g, state.b);
+
+            els.dispOklch.textContent = `${state.l.toFixed(3)} ${state.c.toFixed(3)} ${hNorm.toFixed(1)}`;
+            els.dispHex.textContent = `#${hex}`;
+            els.dispRgb.textContent = `${state.r}, ${state.g}, ${state.b}`;
+            els.dispHsl.textContent = `${Math.round(hsl.h)}° ${Math.round(hsl.s)}% ${Math.round(hsl.l)}%`;
+            els.dispHsv.textContent = `${Math.round(hsv.h)}° ${Math.round(hsv.s)}% ${Math.round(hsv.v)}%`;
+            
+            els.swatch.style.backgroundColor = `oklch(${state.l} ${state.c} ${state.h})`;
+
+            // RGB Inputs
+            if(document.activeElement !== els.inputHex) els.inputHex.value = hex;
+            
+            if(document.activeElement !== els.inputR && document.activeElement !== els.numR) { els.inputR.value = state.r; els.numR.value = state.r; }
+            if(document.activeElement !== els.inputG && document.activeElement !== els.numG) { els.inputG.value = state.g; els.numG.value = state.g; }
+            if(document.activeElement !== els.inputB && document.activeElement !== els.numB) { els.inputB.value = state.b; els.numB.value = state.b; }
+
+            // HSL/HSV Inputs (avoid overwriting active inputs)
+            if(!['input-hsl-h', 'num-hsl-h'].includes(document.activeElement?.id)) { els.inputHslH.value = Math.round(hsl.h); els.numHslH.value = Math.round(hsl.h); }
+            if(!['input-hsl-s', 'num-hsl-s'].includes(document.activeElement?.id)) { els.inputHslS.value = Math.round(hsl.s); els.numHslS.value = Math.round(hsl.s); }
+            if(!['input-hsl-l', 'num-hsl-l'].includes(document.activeElement?.id)) { els.inputHslL.value = Math.round(hsl.l); els.numHslL.value = Math.round(hsl.l); }
+
+            if(!['input-hsv-h', 'num-hsv-h'].includes(document.activeElement?.id)) { els.inputHsvH.value = Math.round(hsv.h); els.numHsvH.value = Math.round(hsv.h); }
+            if(!['input-hsv-s', 'num-hsv-s'].includes(document.activeElement?.id)) { els.inputHsvS.value = Math.round(hsv.s); els.numHsvS.value = Math.round(hsv.s); }
+            if(!['input-hsv-v', 'num-hsv-v'].includes(document.activeElement?.id)) { els.inputHsvV.value = Math.round(hsv.v); els.numHsvV.value = Math.round(hsv.v); }
+
+            // Mode Label logic ...
+            if (state.count <= 8) {
+                els.modeLabel.textContent = "基本名モード (〜8色)";
+                els.modeLabel.className = "text-[10px] text-slate-500 mt-2 font-bold bg-blue-50 px-2 py-1 rounded inline-block w-full text-center border border-blue-100";
+            } else if (state.count <= 15) {
+                els.modeLabel.textContent = "詳細名モード (9〜15色)";
+                els.modeLabel.className = "text-[10px] text-slate-500 mt-2 font-bold bg-indigo-50 px-2 py-1 rounded inline-block w-full text-center border border-indigo-100";
+            } else {
+                els.modeLabel.textContent = "複合名モード (16色〜)";
+                els.modeLabel.className = "text-[10px] text-slate-500 mt-2 font-bold bg-purple-50 px-2 py-1 rounded inline-block w-full text-center border border-purple-100";
+            }
+
+            // Sync Mode Buttons Styles
+            const currentCss = `oklch(${state.l} ${state.c} ${state.h})`;
+            const isLight = state.l > 0.6;
+            
+            // 1. Fill Mode Button
+            els.btnModeFill.style.backgroundColor = currentCss;
+            els.btnModeFill.style.color = isLight ? '#1e293b' : '#ffffff'; 
+            
+            // 2. Text (Light) Button
+            els.btnModeLight.style.color = currentCss;
+            
+            // 3. Text (Dark) Button
+            els.btnModeDark.style.color = currentCss;
+
+            // Active State
+            const activeClass = "ring-2 ring-indigo-500 ring-offset-2 z-10 border-transparent";
+            
+            els.btnModeFill.className = `rounded-lg border text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center leading-tight ${state.viewMode === 'fill' ? activeClass : 'border-slate-200'}`;
+            els.btnModeLight.className = `bg-white rounded-lg border text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center leading-tight ${state.viewMode === 'text' && state.bgTheme === 'light' ? activeClass : 'border-slate-200'}`;
+            els.btnModeDark.className = `bg-slate-900 rounded-lg border text-xs font-bold shadow-sm transition-all flex flex-col items-center justify-center leading-tight ${state.viewMode === 'text' && state.bgTheme === 'dark' ? activeClass : 'border-slate-700'}`;
+
+            updateSliderGradients();
+            renderGrid();
+            renderStock();
+        }
+
         // Event Listeners
         [els.inputL, els.numL].forEach(el => el.addEventListener('input', () => updateState(el.value, state.c, state.h)));
         [els.inputC, els.numC].forEach(el => el.addEventListener('input', () => updateState(state.l, el.value, state.h)));
@@ -773,6 +1090,23 @@
         [els.inputG, els.numG].forEach(el => el.addEventListener('input', () => updateStateFromRgb(state.r, el.value, state.b)));
         [els.inputB, els.numB].forEach(el => el.addEventListener('input', () => updateStateFromRgb(state.r, state.g, el.value)));
 
+        // HSL / HSV Listeners
+        const getHslInput = () => [els.inputHslH.value, els.inputHslS.value, els.inputHslL.value];
+        [els.inputHslH, els.numHslH, els.inputHslS, els.numHslS, els.inputHslL, els.numHslL].forEach(el => {
+            el.addEventListener('input', () => {
+                const [h, s, l] = getHslInput();
+                updateStateFromHsl(h, s, l);
+            });
+        });
+
+        const getHsvInput = () => [els.inputHsvH.value, els.inputHsvS.value, els.inputHsvV.value];
+        [els.inputHsvH, els.numHsvH, els.inputHsvS, els.numHsvS, els.inputHsvV, els.numHsvV].forEach(el => {
+            el.addEventListener('input', () => {
+                const [h, s, v] = getHsvInput();
+                updateStateFromHsv(h, s, v);
+            });
+        });
+
         els.inputHex.addEventListener('input', (e) => {
             let hex = e.target.value; if(hex.startsWith('#')) hex=hex.slice(1);
             if(hex.length===3) hex=hex.split('').map(c=>c+c).join('');
@@ -781,7 +1115,11 @@
                 if(!isNaN(r)) updateStateFromRgb(r,g,b);
             }
         });
-        const updateCount = (n) => { state.count = Math.max(3, Math.min(36, parseInt(n))); syncUI(); };
+        const updateCount = (n) => { 
+            state.count = Math.max(3, Math.min(36, parseInt(n))); 
+            saveToLocal();
+            syncUI(); 
+        };
         els.inputCount.addEventListener('change', (e) => updateCount(e.target.value));
         els.btnInc.addEventListener('click', () => updateCount(state.count + 1));
         els.btnDec.addEventListener('click', () => updateCount(state.count - 1));
@@ -810,7 +1148,7 @@
             finally { els.btnGen.classList.remove('loading'); }
         });
 
-        syncUI();
+        loadFromLocal();
     </script>
 </body>
 </html>
