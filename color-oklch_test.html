@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OKLCH Grid (Hybrid Names)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            font-family: 'Noto Sans JP', sans-serif;
+            background-color: #f8fafc;
+            color: #334155;
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+
+        /* Range Inputs */
+        input[type=range] { -webkit-appearance: none; background: transparent; }
+        input[type=range]::-webkit-slider-thumb {
+            -webkit-appearance: none; height: 16px; width: 16px; border-radius: 50%;
+            background: #fff; border: 2px solid #64748b; cursor: pointer; margin-top: -6px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        input[type=range]::-webkit-slider-runnable-track {
+            width: 100%; height: 4px; cursor: pointer; background: #e2e8f0; border-radius: 2px;
+        }
+        input[type=range]:focus { outline: none; }
+        #input-h::-webkit-slider-runnable-track {
+            background: linear-gradient(to right, #ff8888, #ffff88, #88ff88, #88ffff, #8888ff, #ff88ff, #ff8888);
+        }
+
+        /* Loader */
+        .loader {
+            border: 2px solid #f3f3f3; border-top: 2px solid currentColor; border-radius: 50%;
+            width: 16px; height: 16px; animation: spin 1s linear infinite; display: none;
+        }
+        .loading .loader { display: inline-block; }
+        .loading .btn-text { display: none; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+        .tab-btn.active {
+            background-color: #f1f5f9; color: #0f172a; font-weight: bold; border-bottom: 2px solid #3b82f6;
+        }
+        
+        .toggle-btn {
+            @apply px-3 py-1.5 text-xs font-bold rounded-md border border-slate-200 text-slate-500 hover:bg-slate-50 transition-colors;
+        }
+        .toggle-btn.active {
+            @apply bg-indigo-50 text-indigo-600 border-indigo-200 ring-1 ring-indigo-200;
+        }
+
+        .grid-cell:hover {
+            transform: scale(1.1); z-index: 20;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            background-color: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="pb-32">
+
+    <!-- Header -->
+    <header class="bg-white border-b border-slate-200 py-4 shadow-sm sticky top-0 z-30">
+        <div class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <i data-lucide="grid" class="w-6 h-6 text-indigo-500"></i>
+                OKLCH Grid Generator
+            </h1>
+            <div class="flex items-center gap-3">
+                <button onclick="openCssModal()" class="flex items-center gap-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-2 px-4 rounded-lg transition-colors shadow-sm">
+                    <i data-lucide="code" class="w-4 h-4"></i>
+                    CSS書き出し
+                </button>
+                <div id="toast" class="bg-slate-800 text-white px-4 py-2 rounded shadow-lg text-sm font-bold opacity-0 transition-opacity duration-300 pointer-events-none fixed top-20 right-4 z-[100]">
+                    Copied!
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+
+        <!-- Controls -->
+        <section class="bg-white rounded-xl p-6 shadow-sm border border-slate-200">
+            <div class="flex flex-col lg:flex-row gap-8 items-start">
+                
+                <!-- Swatch -->
+                <div class="flex-shrink-0 flex flex-col items-center gap-2">
+                    <div id="base-swatch" class="w-24 h-24 rounded-2xl shadow-inner bg-slate-200 border border-slate-200 relative transition-colors duration-200"></div>
+                    <div class="text-xs text-slate-400 font-mono" id="base-val-disp">--</div>
+                </div>
+
+                <!-- Inputs -->
+                <div class="flex-grow w-full space-y-4">
+                    <div class="flex border-b border-slate-200 mb-4">
+                        <button class="tab-btn active px-4 py-2 text-sm text-slate-500 hover:text-slate-700" onclick="switchTab('oklch')">OKLCH</button>
+                        <button class="tab-btn px-4 py-2 text-sm text-slate-500 hover:text-slate-700" onclick="switchTab('rgb')">RGB / Hex</button>
+                    </div>
+
+                    <div id="tab-oklch" class="space-y-4">
+                        <div class="grid grid-cols-[2rem_1fr_3.5rem] gap-2 items-center">
+                            <label class="text-xs font-bold text-slate-500">L</label>
+                            <input type="range" id="input-l" min="0" max="1" step="0.001" class="w-full">
+                            <span id="val-l" class="text-xs font-mono text-right font-bold text-slate-600">0.00</span>
+                        </div>
+                        <div class="grid grid-cols-[2rem_1fr_3.5rem] gap-2 items-center">
+                            <label class="text-xs font-bold text-slate-500">C</label>
+                            <input type="range" id="input-c" min="0" max="0.37" step="0.001" class="w-full">
+                            <span id="val-c" class="text-xs font-mono text-right font-bold text-slate-600">0.00</span>
+                        </div>
+                        <div class="grid grid-cols-[2rem_1fr_3.5rem] gap-2 items-center">
+                            <label class="text-xs font-bold text-slate-500">H</label>
+                            <input type="range" id="input-h" min="0" max="360" step="0.1" class="w-full">
+                            <span id="val-h" class="text-xs font-mono text-right font-bold text-slate-600">000</span>
+                        </div>
+                    </div>
+
+                    <div id="tab-rgb" class="hidden space-y-4">
+                        <div class="flex gap-4 items-center flex-wrap">
+                            <div class="flex-1 min-w-[120px]">
+                                <label class="block text-xs font-bold text-slate-500 mb-1">HEX</label>
+                                <div class="relative">
+                                    <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">#</span>
+                                    <input type="text" id="input-hex" class="w-full pl-6 pr-3 py-2 border border-slate-300 rounded-lg font-mono text-sm focus:ring-2 focus:ring-blue-500 outline-none uppercase" placeholder="334455" maxlength="7">
+                                </div>
+                            </div>
+                            <div class="flex-1 min-w-[200px] grid grid-cols-3 gap-2">
+                                <div><label class="block text-xs font-bold text-slate-500 mb-1">R</label><input type="number" id="input-r" min="0" max="255" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-center font-mono text-sm"></div>
+                                <div><label class="block text-xs font-bold text-slate-500 mb-1">G</label><input type="number" id="input-g" min="0" max="255" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-center font-mono text-sm"></div>
+                                <div><label class="block text-xs font-bold text-slate-500 mb-1">B</label><input type="number" id="input-b" min="0" max="255" class="w-full px-2 py-2 border border-slate-300 rounded-lg text-center font-mono text-sm"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side Settings -->
+                <div class="flex-shrink-0 w-full lg:w-48 border-l border-slate-100 lg:pl-6 space-y-6 pt-4 lg:pt-0">
+                    
+                    <!-- View Mode -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">表示モード</label>
+                        <div class="flex gap-2">
+                            <button id="mode-fill" class="toggle-btn flex-1 active" onclick="setViewMode('fill')">背景色<br><span class="text-[10px] font-normal">Fill</span></button>
+                            <button id="mode-text" class="toggle-btn flex-1" onclick="setViewMode('text')">文字色<br><span class="text-[10px] font-normal">Text</span></button>
+                        </div>
+                    </div>
+
+                    <!-- Background Theme (Only for Text Mode) -->
+                    <div id="bg-theme-control" class="hidden animate-fade-in">
+                        <label class="block text-xs font-bold text-slate-500 mb-2">背景テーマ</label>
+                        <div class="flex gap-2">
+                            <button id="theme-light" class="toggle-btn flex-1 active" onclick="setBgTheme('light')">Light<br><span class="text-[10px] font-normal">White</span></button>
+                            <button id="theme-dark" class="toggle-btn flex-1" onclick="setBgTheme('dark')">Dark<br><span class="text-[10px] font-normal">Black</span></button>
+                        </div>
+                    </div>
+
+                    <!-- Columns -->
+                    <div>
+                        <label class="block text-xs font-bold text-slate-500 mb-2">横軸の色数 (Hue)</label>
+                        <div class="flex items-center gap-2">
+                            <button id="btn-dec" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-lg leading-none">-</button>
+                            <input type="number" id="input-count" value="16" min="3" max="36" class="flex-1 text-center py-1 border-slate-300 rounded-md focus:ring-blue-500 border font-mono font-bold text-slate-700">
+                            <button id="btn-inc" class="w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-lg leading-none">+</button>
+                        </div>
+                        <p class="text-[10px] text-slate-400 mt-1">※16色以上で複合名モード</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- AI Tool -->
+            <details class="mt-6 border-t border-slate-100 pt-4 group">
+                <summary class="list-none cursor-pointer flex items-center gap-2 text-sm font-bold text-indigo-600 hover:text-indigo-800 transition-colors w-full sm:w-auto">
+                    <i data-lucide="sparkles" class="w-4 h-4"></i>
+                    AI パレット生成ツール
+                    <i data-lucide="chevron-down" class="w-4 h-4 transition-transform group-open:rotate-180 ml-auto sm:ml-0"></i>
+                </summary>
+                
+                <div class="mt-4 p-4 bg-indigo-50/50 rounded-lg border border-indigo-100">
+                    <div class="flex flex-col sm:flex-row gap-3">
+                        <input type="text" id="theme-input" placeholder="テーマを入力（例: ネオン街の雨、パステルカラーの朝食）" class="flex-1 px-4 py-2 text-sm border border-slate-200 shadow-sm rounded-lg focus:ring-2 focus:ring-indigo-400 outline-none bg-white">
+                        <button id="generate-palette-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-transform active:scale-95 flex items-center gap-2 min-w-[120px] justify-center">
+                            <span class="btn-text">生成</span>
+                            <div class="loader border-t-indigo-200"></div>
+                        </button>
+                    </div>
+                    <div id="ai-error-message" class="text-red-500 text-xs mt-2 hidden font-bold"></div>
+                    <div id="ai-palette-wrapper" class="hidden mt-4">
+                        <div id="palette-ai" class="flex flex-wrap gap-2"></div>
+                    </div>
+                </div>
+            </details>
+        </section>
+
+        <!-- Grid -->
+        <section>
+            <div class="mb-4 flex items-center justify-between">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">カラーグリッド</h2>
+                    <p class="text-xs text-slate-500">
+                        横軸: 色相 (Hue) / 縦軸: 明度 (Lightness)
+                    </p>
+                </div>
+            </div>
+            
+            <div class="overflow-x-auto pb-12">
+                <div id="main-grid" class="min-w-max grid gap-1">
+                    <!-- Javascript will populate this -->
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- CSS Modal -->
+    <div id="css-modal" class="fixed inset-0 z-50 hidden">
+        <div class="absolute inset-0 modal-overlay" onclick="closeCssModal()"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-4xl max-h-[85vh] flex flex-col transform transition-all">
+                <div class="flex justify-between items-center p-4 border-b border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <i data-lucide="file-code" class="w-5 h-5 text-indigo-500"></i>
+                        Generated CSS Variables
+                    </h3>
+                    <button onclick="closeCssModal()" class="text-slate-400 hover:text-slate-600">
+                        <i data-lucide="x" class="w-6 h-6"></i>
+                    </button>
+                </div>
+                <div class="p-0 flex-1 overflow-hidden relative group">
+                    <textarea id="css-output" class="w-full h-full p-4 font-mono text-xs text-slate-600 bg-slate-50 outline-none resize-none" readonly spellcheck="false"></textarea>
+                    <button onclick="copyCss()" class="absolute top-4 right-4 bg-white/90 hover:bg-white text-slate-700 shadow-md border border-slate-200 px-3 py-1.5 rounded-md text-xs font-bold transition-all opacity-0 group-hover:opacity-100">
+                        Copy All
+                    </button>
+                </div>
+                <div class="p-4 border-t border-slate-100 bg-slate-50 rounded-b-xl text-xs text-slate-500">
+                    0: 最も暗い / 9: 最も明るい / 変数名なし: ベースカラー
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const apiKey = ""; 
+
+        // --- Utils ---
+        function srgb_transfer_inv(c) { return c <= 0.04045 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4); }
+        function srgb_transfer(c) { return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 1/2.4) - 0.055; }
+        function clip(v) { return Math.max(0, Math.min(1, v)); }
+
+        function rgbToOklch(r, g, b) {
+            r = srgb_transfer_inv(r / 255); g = srgb_transfer_inv(g / 255); b = srgb_transfer_inv(b / 255);
+            const l_ = 0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b;
+            const m_ = 0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b;
+            const s_ = 0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b;
+            const l = Math.cbrt(l_), m = Math.cbrt(m_), s = Math.cbrt(s_);
+            const L = 0.2104542553 * l + 0.7936177850 * m - 0.0040720468 * s;
+            const A = 1.9779984951 * l - 2.4285922050 * m + 0.4505937099 * s;
+            const B = 0.0259040371 * l + 0.7827717662 * m - 0.8086757660 * s;
+            const C = Math.sqrt(A*A + B*B);
+            let H = Math.atan2(B, A) * 180 / Math.PI;
+            if (H < 0) H += 360;
+            return { l: L, c: C, h: H };
+        }
+
+        function oklchToRgb(l, c, h) {
+            const H_rad = h * Math.PI / 180;
+            const labA = c * Math.cos(H_rad), labB = c * Math.sin(H_rad);
+            const l_p = l + 0.3963377774 * labA + 0.2158037573 * labB;
+            const m_p = l - 0.1055613458 * labA - 0.0638541728 * labB;
+            const s_p = l - 0.0894841775 * labA - 1.2914855480 * labB;
+            const l_o = l_p**3, m_o = m_p**3, s_o = s_p**3;
+            const x = 4.0767416621 * l_o - 3.3077115913 * m_o + 0.2309699292 * s_o;
+            const y = -1.2684380046 * l_o + 2.6097574011 * m_o - 0.3413193965 * s_o;
+            const z = -0.0041960863 * l_o - 0.7034186147 * m_o + 1.7076147010 * s_o;
+            const r_l = 3.2404542 * x - 1.5371385 * y - 0.4985314 * z;
+            const g_l = -0.9692660 * x + 1.8760108 * y + 0.0415560 * z;
+            const b_l = 0.0556434 * x - 0.2040259 * y + 1.0572252 * z;
+            const r = srgb_transfer(clip(r_l)) * 255;
+            const g = srgb_transfer(clip(g_l)) * 255;
+            const b = srgb_transfer(clip(b_l)) * 255;
+            return { r: Math.round(r), g: Math.round(g), b: Math.round(b) };
+        }
+
+        function rgbToHex(r, g, b) {
+            return ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1).toUpperCase();
+        }
+
+        // --- Advanced Hue Naming ---
+        const hueAnchors = [
+            { h: 5, ja: '赤', en: 'Red' },
+            { h: 30, ja: '橙', en: 'Orange' },
+            { h: 47.5, ja: '琥珀', en: 'Amber' },
+            { h: 67.5, ja: '黄', en: 'Yellow' },
+            { h: 95, ja: 'ライム', en: 'Lime' },
+            { h: 125, ja: '緑', en: 'Green' },
+            { h: 152.5, ja: 'ミント', en: 'Mint' },
+            { h: 177.5, ja: '青緑', en: 'Teal' },
+            { h: 200, ja: 'シアン', en: 'Cyan' },
+            { h: 222.5, ja: '空色', en: 'Sky' },
+            { h: 250, ja: '青', en: 'Blue' },
+            { h: 275, ja: '藍', en: 'Indigo' },
+            { h: 297.5, ja: '紫', en: 'Purple' },
+            { h: 320, ja: 'マゼンタ', en: 'Magenta' },
+            { h: 340, ja: '桃', en: 'Pink' }
+        ];
+
+        // Circular distance helper
+        function getDistance(h1, h2) {
+            const d = Math.abs(h1 - h2);
+            return Math.min(d, 360 - d);
+        }
+
+        function getHueName(h, count) {
+            h = h % 360;
+            if (h < 0) h += 360;
+
+            // Find closest and second closest anchors
+            // Use circular mapping logic
+            // Since our anchors are sorted by H, we can search linearly or just map
+            // Note: Red is at 5, but covers 350-360 range too. 
+            // Distance check is robust.
+
+            let p = null, s = null;
+            let minD = 360, minD2 = 360;
+
+            for (let a of hueAnchors) {
+                const d = getDistance(h, a.h);
+                if (d < minD) {
+                    // downgrade current primary to secondary
+                    minD2 = minD; s = p;
+                    minD = d; p = a;
+                } else if (d < minD2) {
+                    minD2 = d; s = a;
+                }
+            }
+
+            // Simple Logic:
+            // If count <= 15, always return simple name (Primary)
+            // If count > 15, check if we are "between" colors significantly.
+            // "Between" threshold: arbitrary, e.g. if distance to primary is > 30% of dist(p, s)?
+            // Actually simpler: if hue count is high, we *want* hybrid names for transition zones.
+            
+            if (count <= 15) {
+                return { ja: p.ja, en: p.en };
+            } else {
+                // Hybrid Mode
+                // If the color is very close to primary (e.g. < 5 degrees or so), stick to primary.
+                // Otherwise use "Primary-Secondary" or order by H?
+                // Let's order by Hue to consistent naming (e.g. Blue-Indigo not Indigo-Blue depending on side)
+                // Actually "Yellow-Lime" implies a mix.
+                
+                // Let's use a threshold. Average gap between 15 colors is ~24 deg.
+                // If dist < 6 deg, it's pure. Else it's hybrid.
+                const threshold = 8; 
+                if (minD < threshold) {
+                    return { ja: p.ja, en: p.en };
+                } else {
+                    // It's a mix.
+                    // Sort p and s by Hue to make consistent name? Or Primary first?
+                    // Primary first usually denotes dominance. "Reddish-Orange" vs "Orangish-Red".
+                    // Let's simpler: Primary-Secondary.
+                    return { 
+                        ja: `${p.ja}-${s.ja}`, 
+                        en: `${p.en}-${s.en}` 
+                    };
+                }
+            }
+        }
+
+        // --- App ---
+        const state = { 
+            l: 0.60, c: 0.15, h: 260.00, count: 16, // Default 16 to show feature
+            viewMode: 'fill', 
+            bgTheme: 'light'
+        };
+        
+        const els = {
+            inputL: document.getElementById('input-l'), inputC: document.getElementById('input-c'), inputH: document.getElementById('input-h'),
+            valL: document.getElementById('val-l'), valC: document.getElementById('val-c'), valH: document.getElementById('val-h'),
+            swatch: document.getElementById('base-swatch'), baseValDisp: document.getElementById('base-val-disp'),
+            inputCount: document.getElementById('input-count'), btnInc: document.getElementById('btn-inc'), btnDec: document.getElementById('btn-dec'),
+            inputHex: document.getElementById('input-hex'), inputR: document.getElementById('input-r'), inputG: document.getElementById('input-g'), inputB: document.getElementById('input-b'),
+            mainGrid: document.getElementById('main-grid'),
+            btnGen: document.getElementById('generate-palette-btn'), inputTheme: document.getElementById('theme-input'),
+            aiWrapper: document.getElementById('ai-palette-wrapper'), pAi: document.getElementById('palette-ai'), errAi: document.getElementById('ai-error-message'),
+            modeFill: document.getElementById('mode-fill'), modeText: document.getElementById('mode-text'),
+            bgThemeControl: document.getElementById('bg-theme-control'),
+            themeLight: document.getElementById('theme-light'), themeDark: document.getElementById('theme-dark'),
+            cssModal: document.getElementById('css-modal'), cssOutput: document.getElementById('css-output')
+        };
+
+        function updateState(l, c, h) {
+            state.l = parseFloat(l); state.c = parseFloat(c); state.h = parseFloat(h);
+            syncUI();
+        }
+        function updateStateFromRgb(r, g, b) {
+            const o = rgbToOklch(r, g, b);
+            state.l = o.l; state.c = o.c; state.h = o.h;
+            syncUI();
+        }
+        
+        window.setViewMode = (mode) => {
+            state.viewMode = mode;
+            els.modeFill.classList.toggle('active', mode === 'fill');
+            els.modeText.classList.toggle('active', mode === 'text');
+            if (mode === 'text') els.bgThemeControl.classList.remove('hidden'); else els.bgThemeControl.classList.add('hidden');
+            renderGrid();
+        };
+
+        window.setBgTheme = (theme) => {
+            state.bgTheme = theme;
+            els.themeLight.classList.toggle('active', theme === 'light');
+            els.themeDark.classList.toggle('active', theme === 'dark');
+            renderGrid();
+        };
+
+        function generateLightnessSteps(baseL) {
+            const stepsCount = 10;
+            const maxL = 1.0;
+            if (baseL >= 0.99) {
+                const arr = [];
+                for(let i=0; i<stepsCount; i++) arr.push(1.0 - (i * 0.1));
+                return { steps: arr, baseIndex: 0 };
+            }
+            let baseIndex = Math.round((1.0 - baseL) * 9);
+            if (baseIndex < 1) baseIndex = 1;
+            if (baseIndex >= stepsCount) baseIndex = stepsCount - 1;
+            const stepSize = (maxL - baseL) / baseIndex;
+            const steps = [];
+            for (let i = 0; i < stepsCount; i++) {
+                let val = maxL - (i * stepSize);
+                if (val > 1.0) val = 1.0;
+                if (val < 0.0) val = 0.0;
+                steps.push(val);
+            }
+            return { steps, baseIndex };
+        }
+
+        window.openCssModal = () => {
+            const hueStep = 360 / state.count;
+            let css = ":root {\n";
+
+            // Collision check map
+            const nameCounts = {};
+            for (let c = 0; c < state.count; c++) {
+                const h = (state.h + (c * hueStep)) % 360;
+                const name = getHueName(h, state.count).en.toLowerCase().replace(/\s+/g, '-');
+                nameCounts[name] = (nameCounts[name] || 0) + 1;
+            }
+
+            for (let col = 0; col < state.count; col++) {
+                const h = (state.h + (col * hueStep)) % 360;
+                const hueInfo = getHueName(h, state.count);
+                let baseName = hueInfo.en.toLowerCase().replace(/\s+/g, '-');
+
+                if (nameCounts[baseName] > 1) {
+                    baseName = `${baseName}-${Math.round(h)}`;
+                }
+
+                const { steps, baseIndex } = generateLightnessSteps(state.l);
+                
+                css += `\n  /* ${hueInfo.ja} / ${hueInfo.en} (Hue ${Math.round(h)}) */\n`;
+
+                steps.forEach((l, idx) => {
+                    const suffix = 9 - idx;
+                    const val = `oklch(${l.toFixed(4)} ${state.c} ${h.toFixed(2)})`;
+                    css += `  --${baseName}-${suffix}: ${val};\n`;
+                    if (idx === baseIndex) {
+                        css += `  --${baseName}: ${val}; /* Base */\n`;
+                    }
+                });
+            }
+            css += "}";
+            
+            els.cssOutput.value = css;
+            els.cssModal.classList.remove('hidden');
+        };
+
+        window.closeCssModal = () => {
+            els.cssModal.classList.add('hidden');
+        };
+
+        window.copyCss = () => {
+            els.cssOutput.select();
+            document.execCommand('copy');
+            const t = document.getElementById('toast');
+            t.textContent = "CSS Copied!";
+            t.style.opacity = '1';
+            setTimeout(()=> { t.style.opacity='0'; t.textContent="Copied!"; }, 2000);
+        };
+
+        function syncUI() {
+            els.inputL.value = state.l; els.inputC.value = state.c; els.inputH.value = state.h;
+            els.valL.textContent = state.l.toFixed(3); els.valC.textContent = state.c.toFixed(3); els.valH.textContent = state.h.toFixed(1);
+            els.inputCount.value = state.count;
+
+            const css = `oklch(${state.l} ${state.c} ${state.h})`;
+            els.swatch.style.backgroundColor = css;
+            els.baseValDisp.textContent = css;
+
+            const rgb = oklchToRgb(state.l, state.c, state.h);
+            const hex = rgbToHex(rgb.r, rgb.g, rgb.b);
+
+            if (document.activeElement !== els.inputHex) els.inputHex.value = hex;
+            if (document.activeElement !== els.inputR) els.inputR.value = rgb.r;
+            if (document.activeElement !== els.inputG) els.inputG.value = rgb.g;
+            if (document.activeElement !== els.inputB) els.inputB.value = rgb.b;
+
+            renderGrid();
+        }
+
+        function renderGrid() {
+            els.mainGrid.style.gridTemplateColumns = `repeat(${state.count}, minmax(80px, 1fr))`;
+            let html = '';
+            const hueStep = 360 / state.count;
+            const { steps: lSteps, baseIndex } = generateLightnessSteps(state.l);
+
+            // Header
+            for (let col = 0; col < state.count; col++) {
+                const h = (state.h + (col * hueStep)) % 360;
+                const names = getHueName(h, state.count);
+                
+                // Adjust font size for long names
+                const nameEn = names.en;
+                const fontSize = nameEn.length > 10 ? 'text-[9px]' : 'text-[10px]';
+
+                html += `
+                <div class="text-center py-2 border-b border-slate-100 bg-white sticky top-0 z-10 flex flex-col justify-center h-14 overflow-hidden px-1">
+                    <span class="text-xs font-bold text-slate-700 leading-tight truncate w-full" title="${names.ja}">${names.ja}</span>
+                    <span class="${fontSize} font-medium text-slate-400 leading-tight truncate w-full" title="${names.en}">${names.en}</span>
+                    <div class="text-[9px] font-normal text-slate-300 font-mono mt-0.5">${h.toFixed(0)}°</div>
+                </div>`;
+            }
+
+            for (let row = 0; row < lSteps.length; row++) {
+                const l = lSteps[row];
+                const isBaseRow = (row === baseIndex);
+                
+                for (let col = 0; col < state.count; col++) {
+                    const h = (state.h + (col * hueStep)) % 360;
+                    const colorStr = `oklch(${l} ${state.c} ${h})`;
+                    const isBaseCell = isBaseRow && col === 0;
+                    
+                    if (state.viewMode === 'fill') {
+                        const isLight = l > 0.6;
+                        const ringClass = isBaseCell ? "ring-4 ring-indigo-500 z-10 scale-105 shadow-lg" : "";
+                        html += `
+                        <div class="grid-cell h-12 sm:h-14 relative cursor-pointer group bg-slate-50 ${ringClass}" 
+                             style="background-color: ${colorStr};" onclick="copy('${colorStr}')">
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"><span class="bg-black/20 backdrop-blur-sm text-white text-[10px] font-bold px-1 rounded">Copy</span></div>
+                            ${col === 0 ? `<div class="absolute left-1 top-1 text-[10px] font-bold ${isLight?'text-slate-800':'text-white'} opacity-60">L${(l*100).toFixed(0)}</div>` : ''}
+                        </div>`;
+                    } else {
+                        const isBgLight = state.bgTheme === 'light';
+                        const bgClass = isBgLight ? 'bg-white' : 'bg-slate-900';
+                        const activeBorder = isBaseCell ? 'border-indigo-500 border-2' : (isBgLight ? 'border border-slate-100' : 'border border-slate-800');
+                        html += `
+                        <div class="grid-cell h-12 sm:h-14 relative cursor-pointer group ${bgClass} ${activeBorder} flex items-center justify-center" onclick="copy('${colorStr}')">
+                            <span style="color: ${colorStr};" class="text-xl font-bold font-sans">Ag</span>
+                            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity bg-black/10 backdrop-blur-[1px]"><span class="bg-black/70 text-white text-[10px] font-bold px-1 rounded">Copy</span></div>
+                            ${col === 0 ? `<div class="absolute left-1 top-1 text-[9px] font-bold text-slate-400">L${(l*100).toFixed(0)}</div>` : ''}
+                        </div>`;
+                    }
+                }
+            }
+            els.mainGrid.innerHTML = html;
+        }
+
+        window.switchTab = (mode) => {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+            document.getElementById('tab-oklch').classList.toggle('hidden', mode !== 'oklch');
+            document.getElementById('tab-rgb').classList.toggle('hidden', mode !== 'rgb');
+        };
+        window.copy = (text) => {
+            navigator.clipboard.writeText(text);
+            const t = document.getElementById('toast'); t.style.opacity = '1'; setTimeout(()=>t.style.opacity='0', 2000);
+        };
+
+        [els.inputL, els.inputC, els.inputH].forEach(i => i.addEventListener('input', () => updateState(els.inputL.value, els.inputC.value, els.inputH.value)));
+        [els.inputR, els.inputG, els.inputB].forEach(i => i.addEventListener('input', () => updateStateFromRgb(els.inputR.value, els.inputG.value, els.inputB.value)));
+        
+        els.inputHex.addEventListener('input', (e) => {
+            let hex = e.target.value;
+            if (hex.startsWith('#')) hex = hex.slice(1);
+            if (hex.length===3) hex = hex.split('').map(c=>c+c).join('');
+            if (hex.length===6) {
+                const r = parseInt(hex.slice(0,2),16), g = parseInt(hex.slice(2,4),16), b = parseInt(hex.slice(4,6),16);
+                if (!isNaN(r)) updateStateFromRgb(r,g,b);
+            }
+        });
+
+        const updateCount = (n) => { state.count = Math.max(3, Math.min(36, parseInt(n))); syncUI(); };
+        els.inputCount.addEventListener('change', (e) => updateCount(e.target.value));
+        els.btnInc.addEventListener('click', () => updateCount(state.count + 1));
+        els.btnDec.addEventListener('click', () => updateCount(state.count - 1));
+
+        els.btnGen.addEventListener('click', async () => {
+            if (!apiKey) { els.errAi.textContent = "API Key not set."; els.errAi.classList.remove('hidden'); return; }
+            const theme = els.inputTheme.value; if (!theme) return;
+            els.btnGen.classList.add('loading'); els.aiWrapper.classList.add('hidden'); els.errAi.classList.add('hidden');
+            try {
+                const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST', headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ contents: [{ parts: [{ text: `Generate 5 OKLCH colors for theme "${theme}". Output JSON array: [{"l":0.5,"c":0.1,"h":0,"label":"name"}]` }] }] })
+                });
+                if(!res.ok) throw new Error("API Error");
+                const data = await res.json();
+                const colors = JSON.parse(data.candidates[0].content.parts[0].text.replace(/```json|```/g, '').trim());
+                els.pAi.innerHTML = colors.map(c => {
+                    const css = `oklch(${c.l} ${c.c} ${c.h})`;
+                    return `<div class="w-24 h-24 rounded-lg shadow-sm flex flex-col overflow-hidden cursor-pointer hover:scale-105 transition-transform" onclick="copy('${css}')"><div class="flex-1" style="background:${css}"></div><div class="bg-white p-1 text-[10px] text-center truncate font-bold border-t border-slate-100">${c.label}</div></div>`;
+                }).join('');
+                els.aiWrapper.classList.remove('hidden');
+            } catch(e) { els.errAi.textContent = "Error generating palette."; els.errAi.classList.remove('hidden'); }
+            finally { els.btnGen.classList.remove('loading'); }
+        });
+
+        syncUI();
+    </script>
+</body>
+</html>
