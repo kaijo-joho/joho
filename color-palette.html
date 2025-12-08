@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OKLCH Palette Generator - 海城中学高等学校</title>
+    <meta name="description" content="OKLCHカラーモデルを使って、基準色からCSS変数用のカラーパレットを生成できるツールです。OKLCH・RGB・HSL/HSVの各形式で値を確認しながら、グリッドとストック機能でテーマカラーを設計できます。">
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -666,7 +667,25 @@
         }
 
         // --- App State ---
-        const state = { l: 0.422, c: 0.113, h: 264.00, r: 34, g: 83, b: 134, count: 16, viewMode: 'fill', bgTheme: 'light', outputFormat: 'oklch', hsvMode: 'hsl' };
+        const state = {
+        // #225386 相当の OKLCH（スクリーンショットの値を採用）
+        l: 0.435,
+        c: 0.100,
+        h: 251.9,
+
+        // RGB / HEX #225386
+        r: 34,
+        g: 83,
+        b: 134,
+
+        count: 16,
+        viewMode: 'fill',
+        bgTheme: 'light',
+        outputFormat: 'oklch',
+        hsvMode: 'hsl'
+        };
+
+
         const pinnedColors = []; 
 
         const els = {
