@@ -1,4 +1,4 @@
-const update = '2025-12-09 12:53:10';
+const update = '2025-12-09 01:42:48';
 
 const quizzes = {
   "py11": {
@@ -532,8 +532,8 @@ const notices = {
     "description": "2025-01_高1_入試期間中の宿題",
     "url": "https://docs.google.com/document/d/1ySgJjtn7fCfeHnR-HnWjCFDQf0z2-G_F_9Z6F34eRD0/edit?usp=drivesdk"
   },
-  "noti_hw_data": {
-    "title": "2025-02_中3_データの分析_最終課題",
+  "hw3_data": {
+    "title": "中3_データの分析_最終課題",
     "description": "2025-02_中3_データの分析_最終課題",
     "url": "https://docs.google.com/document/d/19sKZqGnCX6BfwyFn1IVad-PQQdRpzZ9gHrg9axs4yno/edit?usp=drivesdk"
   },
@@ -1105,10 +1105,10 @@ const files = {
     "description": "2025-01_高1_入試期間中の宿題",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_feb4"
   },
-  "noti_hw_data": {
-    "title": "2025-02_中3_データの分析_最終課題",
+  "hw3_data": {
+    "title": "中3_データの分析_最終課題",
     "description": "2025-02_中3_データの分析_最終課題",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_data"
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=hw3_data"
   },
   "noti_hw_picto": {
     "title": "中3_1学期_ピクトグラム最終課題",
