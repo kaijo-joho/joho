@@ -1,4 +1,4 @@
-const update = '2025-11-27 12:56:32';
+const update = '2025-12-09 12:53:10';
 
 const quizzes = {
   "py11": {
@@ -1158,6 +1158,11 @@ const urls = {
     "title": "",
     "description": "出欠状況確認",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbyLdvmDDW8wHjQA_JLe4eE_lvnLQmTSQ1skWxjRGJ1WjlUyIJ7_dFk8KmtZDU-bwQ/exec"
+  },
+  "htmlfinsubm": {
+    "title": "",
+    "description": "HTML最終課題 提出方法",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbzMZ_7lqx9A4eyMNJUBjG68Xbbo96H2fCpQKSYbu3VfNpKTHKQf74WFAZVjd25k100_/exec"
   }
 }
 window.urls = urls
