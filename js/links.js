@@ -534,7 +534,7 @@ const notices = {
   },
   "hw3_data": {
     "title": "中3_データの分析_最終課題",
-    "description": "2025-02_中3_データの分析_最終課題",
+    "description": "中3_データの分析_最終課題",
     "url": "https://docs.google.com/document/d/19sKZqGnCX6BfwyFn1IVad-PQQdRpzZ9gHrg9axs4yno/edit?usp=drivesdk"
   },
   "noti_hw_picto": {
