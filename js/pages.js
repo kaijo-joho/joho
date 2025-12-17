@@ -1,4 +1,4 @@
-//2025-11-17 09:51:33;
+//2025-12-17 03:21:13;
 const pages = {
   "index": {
     "id": "index",
@@ -2751,20 +2751,12 @@ const pages = {
     "detail": "スーパーマーケットのレジの待ち行列についてのシミュレーションを実習します。",
     "practiceFile": [
       {
-        "id": "ss41w",
-        "release": true,
-        "title": "SS4-1_演習1_レジの待ち行列",
-        "fileName": "SS4-1_演習1_レジの待ち行列",
-        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41w",
-        "text": "SS4-1_演習1_レジの待ち行列"
-      },
-      {
-        "id": "ss41ws",
-        "release": true,
-        "title": "SS4-1_演習1_レジの待ち行列（ワークシート）",
-        "fileName": "SS4-1_演習1_レジの待ち行列（ワークシート）",
-        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41ws",
-        "text": "SS4-1_演習1_レジの待ち行列（ワークシート）"
+        "id": "ss41t",
+        "release": false,
+        "title": "SS4-1_演習1_レジの待ち行列（問題）",
+        "fileName": "SS4-1_演習1_レジの待ち行列（問題）",
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41t",
+        "text": "SS4-1_演習1_レジの待ち行列（問題）"
       }
     ],
     "dlFile": false,
