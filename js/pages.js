@@ -1,4 +1,4 @@
-//2025-12-17 03:21:13;
+//2025-12-17 03:25:56;
 const pages = {
   "index": {
     "id": "index",
@@ -2752,7 +2752,7 @@ const pages = {
     "practiceFile": [
       {
         "id": "ss41t",
-        "release": false,
+        "release": true,
         "title": "SS4-1_演習1_レジの待ち行列（問題）",
         "fileName": "SS4-1_演習1_レジの待ち行列（問題）",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41t",
