@@ -1,4 +1,4 @@
-//2025-12-19 03:26:32;
+//2025-12-19 03:47:34;
 const pages = {
   "index": {
     "id": "index",
@@ -2554,7 +2554,7 @@ const pages = {
     "practiceFile": [
       {
         "id": "ss31t",
-        "release": false,
+        "release": true,
         "title": "SS3-1_課題（問題）",
         "fileName": "SS3-1_課題（問題）",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss31t",
@@ -2590,7 +2590,7 @@ const pages = {
     "practiceFile": [
       {
         "id": "ss32t",
-        "release": false,
+        "release": true,
         "title": "SS3-2_課題（問題）",
         "fileName": "SS3-2_課題（問題）",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss32t",
@@ -2626,7 +2626,7 @@ const pages = {
     "practiceFile": [
       {
         "id": "ss33t",
-        "release": false,
+        "release": true,
         "title": "SS3-3_課題（問題）",
         "fileName": "SS3-3_課題（問題）",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss33t",
@@ -2662,7 +2662,7 @@ const pages = {
     "practiceFile": [
       {
         "id": "ss34t",
-        "release": false,
+        "release": true,
         "title": "SS3-4_課題_アイスクリームとエアコン（問題）",
         "fileName": "SS3-4_課題_アイスクリームとエアコン（問題）",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss34t",
