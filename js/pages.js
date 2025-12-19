@@ -1,4 +1,4 @@
-//2025-12-17 03:25:56;
+//2025-12-19 03:26:32;
 const pages = {
   "index": {
     "id": "index",
@@ -2551,19 +2551,19 @@ const pages = {
     "category": "3. データの分析",
     "title": "3-1. データの散らばりと四分位数",
     "detail": "データの散らばりと四分位数について学びます。",
-    "practiceFile": false,
-    "dlFile": false,
-    "exampleFile": false,
-    "questionFile": [
+    "practiceFile": [
       {
-        "id": "ss31w",
-        "release": true,
-        "title": "SS3-1_実習",
-        "fileName": "SS3-1_実習",
-        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss31w",
-        "text": "SS3-1_実習"
+        "id": "ss31t",
+        "release": false,
+        "title": "SS3-1_課題（問題）",
+        "fileName": "SS3-1_課題（問題）",
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss31t",
+        "text": "SS3-1_課題（問題）"
       }
     ],
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
     "quizForm": false,
     "back": "ss00",
     "next": [
@@ -2587,19 +2587,19 @@ const pages = {
     "category": "3. データの分析",
     "title": "3-2. データのばらつきと標準偏差",
     "detail": "データのばらつきを分散や標準偏差を用いて学びます。",
-    "practiceFile": false,
-    "dlFile": false,
-    "exampleFile": false,
-    "questionFile": [
+    "practiceFile": [
       {
-        "id": "ss32w",
-        "release": true,
-        "title": "SS3-2_実習",
-        "fileName": "SS3-2_実習",
-        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss32w",
-        "text": "SS3-2_実習"
+        "id": "ss32t",
+        "release": false,
+        "title": "SS3-2_課題（問題）",
+        "fileName": "SS3-2_課題（問題）",
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss32t",
+        "text": "SS3-2_課題（問題）"
       }
     ],
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
     "quizForm": false,
     "back": "ss00",
     "next": [
@@ -2623,19 +2623,19 @@ const pages = {
     "category": "3. データの分析",
     "title": "3-3. データの相関と回帰直線",
     "detail": "データの相関と回帰分析について学びます。",
-    "practiceFile": false,
-    "dlFile": false,
-    "exampleFile": false,
-    "questionFile": [
+    "practiceFile": [
       {
-        "id": "ss33w",
-        "release": true,
-        "title": "SS3-3_実習",
-        "fileName": "SS3-3_実習",
-        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss33w",
-        "text": "SS3-3_実習"
+        "id": "ss33t",
+        "release": false,
+        "title": "SS3-3_課題（問題）",
+        "fileName": "SS3-3_課題（問題）",
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss33t",
+        "text": "SS3-3_課題（問題）"
       }
     ],
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
     "quizForm": false,
     "back": "ss00",
     "next": [
@@ -2659,19 +2659,19 @@ const pages = {
     "category": "3. データの分析",
     "title": "3-4. データ分析演習１　アイスクリーム",
     "detail": "アイスクリームとエアコンの支出金額の関係を使って、データの分析の演習をします。",
-    "practiceFile": false,
-    "dlFile": false,
-    "exampleFile": false,
-    "questionFile": [
+    "practiceFile": [
       {
-        "id": "ss34w",
-        "release": true,
-        "title": "SS3-4_演習１_アイスクリームとエアコン",
-        "fileName": "SS3-4_演習１_アイスクリームとエアコン",
-        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss34w",
-        "text": "SS3-4_演習１_アイスクリームとエアコン"
+        "id": "ss34t",
+        "release": false,
+        "title": "SS3-4_課題_アイスクリームとエアコン（問題）",
+        "fileName": "SS3-4_課題_アイスクリームとエアコン（問題）",
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss34t",
+        "text": "SS3-4_課題_アイスクリームとエアコン（問題）"
       }
     ],
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
     "quizForm": false,
     "back": "ss00",
     "next": false,
@@ -2686,10 +2686,7 @@ const pages = {
     "category": "3. データの分析",
     "title": "3-5. データ分析演習２　Irisデータセット",
     "detail": "Irisデータセットを使って、データ分析の演習をします。",
-    "practiceFile": false,
-    "dlFile": false,
-    "exampleFile": false,
-    "questionFile": [
+    "practiceFile": [
       {
         "id": "ss35w",
         "release": false,
@@ -2699,6 +2696,9 @@ const pages = {
         "text": "SS3-5_演習２_Irisデータセット"
       }
     ],
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
     "quizForm": false,
     "back": "ss00",
     "next": false,
@@ -2753,10 +2753,10 @@ const pages = {
       {
         "id": "ss41t",
         "release": true,
-        "title": "SS4-1_演習1_レジの待ち行列（問題）",
-        "fileName": "SS4-1_演習1_レジの待ち行列（問題）",
+        "title": "SS4-1_演習_レジの待ち行列（問題）",
+        "fileName": "SS4-1_演習_レジの待ち行列（問題）",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41t",
-        "text": "SS4-1_演習1_レジの待ち行列（問題）"
+        "text": "SS4-1_演習_レジの待ち行列（問題）"
       }
     ],
     "dlFile": false,
