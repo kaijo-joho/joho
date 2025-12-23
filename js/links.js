@@ -1,4 +1,4 @@
-const update = '2025-12-23 11:09:38';
+const update = '2025-12-23 02:42:38';
 
 const quizzes = {
   "py11": {
@@ -142,17 +142,17 @@ const quizzes = {
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ipr_test"
   },
   "sec01": {
-    "title": "情報セキュリティ",
+    "title": "情報セキュリティ①",
     "description": "「情報セキュリティ①」の練習問題です。",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=sec01"
   },
   "sec02": {
-    "title": "情報セキュリティ",
+    "title": "情報セキュリティ②",
     "description": "「情報セキュリティ②」の練習問題です。",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=sec02"
   },
   "sec03": {
-    "title": "情報セキュリティ",
+    "title": "情報セキュリティ③",
     "description": "「情報セキュリティ③」の練習問題です。",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=sec03"
   },
@@ -507,6 +507,11 @@ const pubFiles = {
     "title": "LC12_知的財産権制度と個人情報・プライバシー",
     "description": "",
     "url": "https://docs.google.com/presentation/d/1XswHZwjz39pZgm7_UeDkUWg1o2YmgVmiHPnxMqQnwQQ/view?usp=drivesdk"
+  },
+  "lc13": {
+    "title": "LC13_情報セキュリティ",
+    "description": "",
+    "url": "https://docs.google.com/presentation/d/1D3r7ppFOfkH4X80NINnde4pzmX4730zH26OvgL1bNFs/view?usp=drivesdk"
   }
 }
 window.pubFiles = pubFiles
