@@ -1,4 +1,4 @@
-const update = '2025-12-09 01:42:48';
+const update = '2025-12-23 11:09:38';
 
 const quizzes = {
   "py11": {
@@ -135,6 +135,26 @@ const quizzes = {
     "title": "知的財産権と個人情報・プライバシー③",
     "description": "「知的財産権と個人情報・プライバシー③」の練習問題です。",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ipr03"
+  },
+  "ipr_test": {
+    "title": "知的財産権と個人情報・プライバシー_仮問題",
+    "description": "知的財産権と個人情報・プライバシー_仮問題",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ipr_test"
+  },
+  "sec01": {
+    "title": "情報セキュリティ",
+    "description": "「情報セキュリティ①」の練習問題です。",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=sec01"
+  },
+  "sec02": {
+    "title": "情報セキュリティ",
+    "description": "「情報セキュリティ②」の練習問題です。",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=sec02"
+  },
+  "sec03": {
+    "title": "情報セキュリティ",
+    "description": "「情報セキュリティ③」の練習問題です。",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=sec03"
   },
   "lc01": {
     "title": "論理回路①",
@@ -534,7 +554,7 @@ const notices = {
   },
   "hw3_data": {
     "title": "中3_データの分析_最終課題",
-    "description": "中3_データの分析_最終課題",
+    "description": "2025-02_中3_データの分析_最終課題",
     "url": "https://docs.google.com/document/d/19sKZqGnCX6BfwyFn1IVad-PQQdRpzZ9gHrg9axs4yno/edit?usp=drivesdk"
   },
   "noti_hw_picto": {
@@ -1149,6 +1169,31 @@ const files = {
     "title": "5-3_確率モデル_演習問題（問題）.ipynb",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py53a"
+  },
+  "ss41t": {
+    "title": "SS4-1_演習_レジの待ち行列（問題）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41t"
+  },
+  "ss31t": {
+    "title": "SS3-1_課題（問題）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss31t"
+  },
+  "ss32t": {
+    "title": "SS3-2_課題（問題）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss32t"
+  },
+  "ss33t": {
+    "title": "SS3-3_課題（問題）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss33t"
+  },
+  "ss34t": {
+    "title": "SS3-4_課題_アイスクリームとエアコン（問題）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss34t"
   }
 }
 window.files = files
