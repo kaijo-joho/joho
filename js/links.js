@@ -1,4 +1,4 @@
-const update = '2025-12-23 02:42:38';
+const update = '2025-12-24 09:41:39';
 
 const quizzes = {
   "py11": {
@@ -1096,7 +1096,7 @@ const files = {
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=test6"
   },
   "": {
-    "title": "2025中3_2学期期末考査試験範囲",
+    "title": "SS1-2_課題（問題）",
     "description": "",
     "url": ""
   },
@@ -1199,6 +1199,11 @@ const files = {
     "title": "SS3-4_課題_アイスクリームとエアコン（問題）",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss34t"
+  },
+  "hw3_exam": {
+    "title": "中3_入試期間中の課題",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=hw3_exam"
   }
 }
 window.files = files
