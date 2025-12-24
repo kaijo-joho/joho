@@ -1,4 +1,4 @@
-const update = '2025-12-24 09:41:39';
+const update = '2025-12-24 09:45:40';
 
 const quizzes = {
   "py11": {
@@ -581,6 +581,11 @@ const notices = {
     "title": "Firefly実習",
     "description": "Firefly実習",
     "url": "https://docs.google.com/presentation/d/16By_P147zDyW7M-tUvoxgQiqH3lPgE7nx2whXNFciqk/edit?usp=drivesdk"
+  },
+  "hw3_exam": {
+    "title": "中3_入試期間中の課題",
+    "description": "",
+    "url": "https://docs.google.com/document/d/1V_22zJpyHMq-5w6cj0L7WRaTayu-zvkEs4ZwbIpwp5I/edit?usp=drivesdk"
   }
 }
 window.notices = notices
