@@ -1,4 +1,4 @@
-const update = '2025-12-24 09:49:01';
+const update = '2025-12-25 03:34:14';
 
 const quizzes = {
   "py11": {
@@ -552,8 +552,8 @@ const notices = {
     "description": "生成AI指針テンプレ",
     "url": "https://docs.google.com/document/d/18C7jqZzge9PPf55VPpwRGDNowAp4Ug5i-RHvNgkYMdI/edit?usp=drivesdk"
   },
-  "noti_hw_feb4": {
-    "title": "2025-01_高1_入試期間中の宿題",
+  "hw4_exam": {
+    "title": "高1_入試期間中の宿題",
     "description": "2025-01_高1_入試期間中の宿題",
     "url": "https://docs.google.com/document/d/1ySgJjtn7fCfeHnR-HnWjCFDQf0z2-G_F_9Z6F34eRD0/edit?usp=drivesdk"
   },
@@ -1130,10 +1130,10 @@ const files = {
     "description": "生成AI指針テンプレ",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_temp_gene-ai"
   },
-  "noti_hw_feb4": {
-    "title": "2025-01_高1_入試期間中の宿題",
+  "hw4_exam": {
+    "title": "高1_入試期間中の宿題",
     "description": "2025-01_高1_入試期間中の宿題",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=noti_hw_feb4"
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=hw4_exam"
   },
   "hw3_data": {
     "title": "中3_データの分析_最終課題",
