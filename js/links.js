@@ -1,4 +1,4 @@
-const update = '2025-12-25 03:34:14';
+const update = '2025-12-25 03:44:30';
 
 const quizzes = {
   "py11": {
@@ -433,6 +433,11 @@ const submitForms = {
   "htmlfin": {
     "title": "HTML実習 最終課題",
     "description": "HTML実習 最終課題の相互評価フォームです。",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=htmlfin"
+  },
+  "": {
+    "title": "",
+    "description": "",
     "url": ""
   }
 }
@@ -492,11 +497,16 @@ const reviewForms = {
   "htmlpic": {
     "title": "HTML実習 最終課題用写真",
     "description": "HTML実習の最終課題用の写真を提出するフォームです。\n- 撮影をしてきたかどうかの確認です。\n- 自分で撮影したものを1枚添付してください。",
-    "url": ""
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=review&pid=htmlpic"
   },
   "htmlfin": {
     "title": "HTML実習 最終課題",
     "description": "HTML実習 最終課題の相互評価フォームです。",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=review&pid=htmlfin"
+  },
+  "": {
+    "title": "",
+    "description": "",
     "url": ""
   }
 }
