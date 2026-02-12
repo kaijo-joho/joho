@@ -1,4 +1,4 @@
-const update = '2026-01-21 03:12:53';
+const update = '2026-02-12 01:49:13';
 
 const quizzes = {
   "py11": {
@@ -432,8 +432,13 @@ const submitForms = {
   },
   "htmlfin": {
     "title": "HTML実習 最終課題",
-    "description": "HTML実習 最終課題のサイト紹介文を提出するフォームです。",
+    "description": "HTML実習 最終課題の相互評価フォームです。",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=htmlfin"
+  },
+  "datafin": {
+    "title": "データの分析 最終課題",
+    "description": "データの分析 最終課題の提出フォームです。",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=datafin"
   },
   "": {
     "title": "",
@@ -503,6 +508,11 @@ const reviewForms = {
     "title": "HTML実習 最終課題",
     "description": "HTML実習 最終課題の相互評価フォームです。",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=review&pid=htmlfin"
+  },
+  "datafin": {
+    "title": "データの分析 最終課題",
+    "description": "データの分析 最終課題の提出フォームです。",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=review&pid=datafin"
   },
   "": {
     "title": "",
