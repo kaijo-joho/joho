@@ -1,4 +1,4 @@
-//2025-12-19 03:47:34;
+//2026-04-09 03:43:18;
 const pages = {
   "index": {
     "id": "index",
@@ -665,8 +665,8 @@ const pages = {
     "next": [
       {
         "id": "il01",
-        "title": "1. ファイルの新規作成と保存・出力",
-        "text": "1. ファイルの新規作成と保存・出力",
+        "title": "1-1. ファイルの新規作成と保存・出力",
+        "text": "1-1. ファイルの新規作成と保存・出力",
         "release": true,
         "url": "il01.html",
         "detail": "Illustratorファイルの新規作成と保存，PDF出力，画像の出力の方法を学びます。"
@@ -681,7 +681,7 @@ const pages = {
     "fileName": "il01.html",
     "mainTitle": "Illustrator実習",
     "category": "Illustratorの基本",
-    "title": "1. ファイルの新規作成と保存・出力",
+    "title": "1-1. ファイルの新規作成と保存・出力",
     "detail": "Illustratorファイルの新規作成と保存，PDF出力，画像の出力の方法を学びます。",
     "practiceFile": false,
     "dlFile": false,
@@ -692,8 +692,8 @@ const pages = {
     "next": [
       {
         "id": "il02",
-        "title": "2. Illustratorの基礎知識",
-        "text": "2. Illustratorの基礎知識",
+        "title": "1-2. Illustratorの基礎知識",
+        "text": "1-2. Illustratorの基礎知識",
         "release": true,
         "url": "il02.html",
         "detail": "Illustratorの画面やツールバーの使い方，Illustratorを使う上で必要な基本用語について学びます。"
@@ -708,7 +708,7 @@ const pages = {
     "fileName": "il02.html",
     "mainTitle": "Illustrator実習",
     "category": "Illustratorの基本",
-    "title": "2. Illustratorの基礎知識",
+    "title": "1-2. Illustratorの基礎知識",
     "detail": "Illustratorの画面やツールバーの使い方，Illustratorを使う上で必要な基本用語について学びます。",
     "practiceFile": false,
     "dlFile": false,
@@ -719,8 +719,8 @@ const pages = {
     "next": [
       {
         "id": "il03",
-        "title": "3. 線を描く",
-        "text": "3. 線を描く",
+        "title": "1-3. 線を描く",
+        "text": "1-3. 線を描く",
         "release": true,
         "url": "il03.html",
         "detail": "Illustratorで線を描く方法，線の書式，頂点の編集について学びます。"
@@ -735,7 +735,7 @@ const pages = {
     "fileName": "il03.html",
     "mainTitle": "Illustrator実習",
     "category": "Illustratorの基本",
-    "title": "3. 線を描く",
+    "title": "1-3. 線を描く",
     "detail": "Illustratorで線を描く方法，線の書式，頂点の編集について学びます。",
     "practiceFile": false,
     "dlFile": false,
@@ -746,8 +746,8 @@ const pages = {
     "next": [
       {
         "id": "il04",
-        "title": "4. 文字の扱い",
-        "text": "4. 文字の扱い",
+        "title": "1-4. 文字の扱い",
+        "text": "1-4. 文字の扱い",
         "release": true,
         "url": "il04.html",
         "detail": "Illustratorで文字入れ、書式を変更する方法を学びます。"
@@ -762,7 +762,7 @@ const pages = {
     "fileName": "il04.html",
     "mainTitle": "Illustrator実習",
     "category": "Illustratorの基本",
-    "title": "4. 文字の扱い",
+    "title": "1-4. 文字の扱い",
     "detail": "Illustratorで文字入れ、書式を変更する方法を学びます。",
     "practiceFile": false,
     "dlFile": false,
@@ -780,7 +780,7 @@ const pages = {
     "fileName": "il11.html",
     "mainTitle": "Illustrator実習",
     "category": "情報デザイン",
-    "title": "1. ピクトグラム",
+    "title": "2-1. ピクトグラム",
     "detail": "Illustratorで18×18のピクトグラムを作成する方法を学びます。",
     "practiceFile": false,
     "dlFile": false,
@@ -791,8 +791,8 @@ const pages = {
     "next": [
       {
         "id": "il12",
-        "title": "2. ピクトグラム課題",
-        "text": "2. ピクトグラム課題",
+        "title": "2-2. ピクトグラム課題",
+        "text": "2-2. ピクトグラム課題",
         "release": true,
         "url": "il12.html",
         "detail": "ピクトグラムの配色と課題について掲載しています。"
@@ -807,7 +807,7 @@ const pages = {
     "fileName": "il12.html",
     "mainTitle": "Illustrator実習",
     "category": "情報デザイン",
-    "title": "2. ピクトグラム課題",
+    "title": "2-2. ピクトグラム課題",
     "detail": "ピクトグラムの配色と課題について掲載しています。",
     "practiceFile": false,
     "dlFile": false,
