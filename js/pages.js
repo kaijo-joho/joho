@@ -1,4 +1,4 @@
-//2026-04-09 03:43:18;
+//2026-04-09 03:45:16;
 const pages = {
   "index": {
     "id": "index",
@@ -684,7 +684,17 @@ const pages = {
     "title": "1-1. ファイルの新規作成と保存・出力",
     "detail": "Illustratorファイルの新規作成と保存，PDF出力，画像の出力の方法を学びます。",
     "practiceFile": false,
-    "dlFile": false,
+    "dlFile": [
+      {
+        "id": "il01",
+        "release": true,
+        "title": "KSロゴマーク",
+        "fileName": "il01_KSロゴマーク.ai",
+        "url": "https://drive.google.com/file/d/1uI4QppEqGNXxBqb61Pk4UKtPrPj01fx8/view?usp=drivesdk",
+        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=ilp&mode=submit&variant=il01",
+        "text": "il01_KSロゴマーク.ai"
+      }
+    ],
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
@@ -711,7 +721,17 @@ const pages = {
     "title": "1-2. Illustratorの基礎知識",
     "detail": "Illustratorの画面やツールバーの使い方，Illustratorを使う上で必要な基本用語について学びます。",
     "practiceFile": false,
-    "dlFile": false,
+    "dlFile": [
+      {
+        "id": "il02",
+        "release": true,
+        "title": "Illustratorの基礎知識",
+        "fileName": "il02_Illustratorの基礎知識.ai",
+        "url": "https://drive.google.com/file/d/1L6YVWw8hrZpFNo_UQS57j3F93rkmTHKN/view?usp=drivesdk",
+        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=ilp&mode=submit&variant=il02",
+        "text": "il02_Illustratorの基礎知識.ai"
+      }
+    ],
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
@@ -738,7 +758,17 @@ const pages = {
     "title": "1-3. 線を描く",
     "detail": "Illustratorで線を描く方法，線の書式，頂点の編集について学びます。",
     "practiceFile": false,
-    "dlFile": false,
+    "dlFile": [
+      {
+        "id": "il03",
+        "release": true,
+        "title": "線を描く",
+        "fileName": "il03_線を描く.ai",
+        "url": "https://drive.google.com/file/d/1Ntf9hb0wkL6CXgG-JMmEPc_qsNYWnLno/view?usp=drivesdk",
+        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=ilp&mode=submit&variant=il03",
+        "text": "il03_線を描く.ai"
+      }
+    ],
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
@@ -765,7 +795,17 @@ const pages = {
     "title": "1-4. 文字の扱い",
     "detail": "Illustratorで文字入れ、書式を変更する方法を学びます。",
     "practiceFile": false,
-    "dlFile": false,
+    "dlFile": [
+      {
+        "id": "il04",
+        "release": true,
+        "title": "文字の扱い",
+        "fileName": "il04_文字の扱い.ai",
+        "url": "https://drive.google.com/file/d/1QDRJzCM8TzNpBhd2X1t6nGQ18g5GPWBV/view?usp=drivesdk",
+        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=ilp&mode=submit&variant=il04",
+        "text": "il04_文字の扱い.ai"
+      }
+    ],
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
