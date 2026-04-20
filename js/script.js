@@ -120,16 +120,18 @@
         <p class="page_detail">${meta.detail}</p>
       `;
 
-      const path = meta.path.dlFile[0].path;
-      if (path) {
-        if (path.startsWith('./')) {
+      /*
+      const url = meta.path.dlFile[0].url;
+      if (url) {
+        if (url.startsWith('./')) {
           createDescAndFileList(phArticle, 'dlFile_local');
-        } else if (path.startsWith('https://drive.google.com/file/')) {
+        } else if (url.startsWith('https://drive.google.com/file/')) {
           createDescAndFileList(phArticle, 'dlFile_gdrive');
         } else {
           
         }
       }
+      */
       
       createDescAndFileList(phArticle, 'dlFile');
       createDescAndFileList(phArticle, 'practiceFile');
