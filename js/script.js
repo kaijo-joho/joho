@@ -119,19 +119,6 @@
         <h1><a id="title">${meta.title}</a></h1>
         <p class="page_detail">${meta.detail}</p>
       `;
-
-      /*
-      const url = meta.path.dlFile[0].url;
-      if (url) {
-        if (url.startsWith('./')) {
-          createDescAndFileList(phArticle, 'dlFile_local');
-        } else if (url.startsWith('https://drive.google.com/file/')) {
-          createDescAndFileList(phArticle, 'dlFile_gdrive');
-        } else {
-          
-        }
-      }
-      */
       
       createDescAndFileList(phArticle, 'dlFile');
       createDescAndFileList(phArticle, 'practiceFile');
@@ -145,6 +132,74 @@
 
   }
 
+  function createDescAndFileList(parentElem, type, subDesc = ''){
+    if(meta[type] === false) return;
+    const p1 = document.createElement('p');
+    p1.innerHTML = COMMON_DESCRIPTION[type];
+    parentElem.appendChild(p1);
+    
+    // ulと一緒に、特定条件のファイルが存在したかどうかのフラグを受け取る
+    const { ul, hasRightClickFile } = createFileList(type);
+    
+    if(ul !== null) {
+      parentElem.appendChild(ul);
+      
+      // 条件に合致するファイルがあった場合のみ、ulの直後にpタグを追加
+      if (hasRightClickFile) {
+        const pGuide = document.createElement('p');
+        pGuide.innerHTML = '※右クリックしてメニューを開き<b>リンク先を別名で保存...</b>を選択する';
+        pGuide.className = 'small-text';
+        parentElem.appendChild(pGuide);
+      }
+    }
+
+    const p2 = document.createElement('p');
+    p2.innerHTML = subDesc;
+    parentElem.appendChild(p2);
+  }
+
+  function createFileList(type){
+    const files = meta[type];
+    if(!files) return { ul: null, hasRightClickFile: false };
+
+    const ul = document.createElement('ul');
+    ul.className = 'file-list';
+    
+    // フラグを初期化
+    let hasRightClickFile = false;
+
+    files.forEach(file => {
+      if(!file.release) return;
+
+      // 条件判定
+      const isLocalFile = file.url.startsWith('./');
+      if (isLocalFile) {
+        hasRightClickFile = true; // 1つでもあればtrueにする
+      }
+
+      const dl_click = isLocalFile ? '(右クリック)' : '';
+      const li = document.createElement('li');
+      li.className = 'practiceFile_listitem';
+      li.innerHTML = type === 'dlFile' ?
+        `
+          <span class="file-name">${file.text}</span>
+          <span class="file-links">
+          <a href="${file.url}" class="file-link" type="text/html" download="${file.text}">💾ダウンロード${dl_click}</a> 
+          <a href="${file.submitUrl}" class="file-link" target="_blank">📤提出フォーム</a>
+          </span>
+        ` :
+        `
+          <span class="file-links">
+          <a href="${file.url}" class="file-link" target="_blank">${file.text}</a>
+          </span>
+        `;
+      ul.appendChild(li);
+    });
+
+    // ulとフラグをオブジェクトとして返す
+    return { ul: ul.hasChildNodes() ? ul : null, hasRightClickFile };
+  }
+  /*
   function createDescAndFileList(parentElem, type, subDesc = ''){
     if(meta[type] === false) return;
     const p1 = document.createElement('p');
@@ -166,13 +221,14 @@
     ul.className = 'file-list';
     files.forEach(file => {
       if(!file.release) return;
+      const dl_click = file.url.startsWith('./') ? '(右クリック)' : '';
       const li = document.createElement('li');
       li.className = 'practiceFile_listitem';
       li.innerHTML = type === 'dlFile' ?
         `
           <span class="file-name">${file.text}</span>
           <span class="file-links">
-          <a href="${file.url}" class="file-link" type="text/html" download="${file.text}">💾ダウンロード</a> 
+          <a href="${file.url}" class="file-link" type="text/html" download="${file.text}">💾ダウンロード${dl_click}</a> 
           <a href="${file.submitUrl}" class="file-link" target="_blank">📤提出フォーム</a>
           </span>
         ` :
@@ -185,6 +241,14 @@
     });
     return ul;
   }
+    */
+
+
+
+
+
+
+
 
 
   /** ========= フッタ生成 ========= */
