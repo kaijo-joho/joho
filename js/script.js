@@ -120,18 +120,18 @@
         <p class="page_detail">${meta.detail}</p>
       `;
 
-      const path = meta.path.dlFile.path;
+      const path = meta.path.dlFile[0].path;
       if (path) {
         if (path.startsWith('./')) {
           createDescAndFileList(phArticle, 'dlFile_local');
         } else if (path.startsWith('https://drive.google.com/file/')) {
           createDescAndFileList(phArticle, 'dlFile_gdrive');
         } else {
-          createDescAndFileList(phArticle, 'dlFile');
+          
         }
       }
       
-
+      createDescAndFileList(phArticle, 'dlFile');
       createDescAndFileList(phArticle, 'practiceFile');
 
       ph.appendChild(phArticle);
