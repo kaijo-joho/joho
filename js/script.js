@@ -3,7 +3,9 @@
   'use strict';
 
   const COMMON_DESCRIPTION = {
-    dlFile:       '実習のはじめに、下記リンク先から実習ファイルを各自のパソコンに保存してください。',
+    dlFile_gdrive:'実習のはじめに、下記リンク先から実習ファイルを各自のパソコンに保存してください。',
+    dlFile_local: '実習のはじめに、下記リンクを<b>右クリック（または ２本指クリック）</b>して<b>リンク先を別名で保存...</b>を選び、各自のパソコンに保存してください。',
+    dlFile:       '実習のはじめに、下記リンクを<b>右クリック（または ２本指クリック）</b>して<b>リンク先を別名で保存...</b>を選び、各自のパソコンに保存してください。',
     practiceFile: '実習のはじめに、下記リンク先から実習ファイルを各自の個別フォルダにダウンロードしてください。',
     questionFile: 'このページの内容についての問題演習に取り組んでください。',
     quizForm:     'このページの内容についての確認テストに取り組んでください。',
@@ -118,7 +120,17 @@
         <p class="page_detail">${meta.detail}</p>
       `;
 
-      createDescAndFileList(phArticle, 'dlFile');
+      if (meta.path) {
+        if (meta.path.startsWith('./')) {
+          createDescAndFileList(phArticle, 'dlFile_local');
+        } else if (meta.path.startsWith('https://drive.google.com/file/')) {
+          createDescAndFileList(phArticle, 'dlFile_gdrive');
+        } else {
+          createDescAndFileList(phArticle, 'dlFile');
+        }
+      }
+      
+
       createDescAndFileList(phArticle, 'practiceFile');
 
       ph.appendChild(phArticle);
