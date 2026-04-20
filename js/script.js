@@ -120,10 +120,11 @@
         <p class="page_detail">${meta.detail}</p>
       `;
 
-      if (meta.path) {
-        if (meta.path.startsWith('./')) {
+      const path = meta.path.dlFile.path;
+      if (path) {
+        if (path.startsWith('./')) {
           createDescAndFileList(phArticle, 'dlFile_local');
-        } else if (meta.path.startsWith('https://drive.google.com/file/')) {
+        } else if (path.startsWith('https://drive.google.com/file/')) {
           createDescAndFileList(phArticle, 'dlFile_gdrive');
         } else {
           createDescAndFileList(phArticle, 'dlFile');
