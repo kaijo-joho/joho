@@ -1,4 +1,4 @@
-//2026-04-09 03:45:16;
+//2026-04-21 09:47:58;
 const pages = {
   "index": {
     "id": "index",
@@ -727,7 +727,7 @@ const pages = {
         "release": true,
         "title": "Illustratorの基礎知識",
         "fileName": "il02_Illustratorの基礎知識.ai",
-        "url": "https://drive.google.com/file/d/1L6YVWw8hrZpFNo_UQS57j3F93rkmTHKN/view?usp=drivesdk",
+        "url": "https://drive.google.com/file/d/1yWD1NUcooTzRttLZi9gxncKDP0JWlxtZ/view?usp=drive_link",
         "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=ilp&mode=submit&variant=il02",
         "text": "il02_Illustratorの基礎知識.ai"
       }
@@ -764,7 +764,7 @@ const pages = {
         "release": true,
         "title": "線を描く",
         "fileName": "il03_線を描く.ai",
-        "url": "https://drive.google.com/file/d/1Ntf9hb0wkL6CXgG-JMmEPc_qsNYWnLno/view?usp=drivesdk",
+        "url": "https://drive.google.com/file/d/1zCLUa4K1RsUnHr-PLhXhgRUlhhBMLOB3/view?usp=drive_link",
         "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=ilp&mode=submit&variant=il03",
         "text": "il03_線を描く.ai"
       }
@@ -801,7 +801,7 @@ const pages = {
         "release": true,
         "title": "文字の扱い",
         "fileName": "il04_文字の扱い.ai",
-        "url": "https://drive.google.com/file/d/1QDRJzCM8TzNpBhd2X1t6nGQ18g5GPWBV/view?usp=drivesdk",
+        "url": "https://drive.google.com/file/d/1GhGGcHMMg_8NtUD7jcwd6H4IVOK-C637/view?usp=drive_link",
         "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=ilp&mode=submit&variant=il04",
         "text": "il04_文字の扱い.ai"
       }
