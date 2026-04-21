@@ -1,4 +1,4 @@
-const update = '2026-03-16 09:09:59';
+const update = '2026-04-21 09:48:12';
 
 const quizzes = {
   "py11": {
@@ -449,6 +449,11 @@ const submitForms = {
     "title": "データの分析 最終課題",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=datafin"
+  },
+  "ilp": {
+    "title": "Illustrator実習",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=ilp"
   }
 };
 window.submitForms = submitForms;
@@ -518,6 +523,11 @@ const reviewForms = {
     "title": "データの分析 最終課題",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=review&pid=datafin"
+  },
+  "ilp": {
+    "title": "Illustrator実習",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=review&pid=ilp"
   }
 };
 window.reviewForms = reviewForms;
