@@ -1,4 +1,4 @@
-const update = '2026-04-22 13:42:46';
+const update = '2026-04-23 08:31:57';
 
 const quizzes = {
   "py11": {
@@ -641,6 +641,11 @@ const notices = {
     "title": "生成AI指針テンプレ",
     "description": "",
     "url": "https://docs.google.com/document/d/18C7jqZzge9PPf55VPpwRGDNowAp4Ug5i-RHvNgkYMdI/edit?usp=drivesdk"
+  },
+  "hw3_gw": {
+    "title": "中3_GW中の課題（自主学習「コンピュータの構成」）",
+    "description": "",
+    "url": "https://docs.google.com/document/d/1d0ATx9JCiGVu93Hx1prE82HqxmC6mmupqkPnegVmQIc/edit?usp=drivesdk"
   }
 };
 window.notices = notices;
