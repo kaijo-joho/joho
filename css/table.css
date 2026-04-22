@@ -111,6 +111,11 @@ th{
   background-color: var(--tbl-th-bg);
   font-weight: 600;
   color: var(--tbl-th-text);
+  
+  /* th 内の samp / code / tt 用に上書き */
+  --inline-code-bg: rgba(255,255,255,.14);
+  --inline-code-fg: rgba(255,255,255,.96);
+  --inline-code-border: rgba(255,255,255,.24);
 }
 
 /* デフォルトのゼブラ（奇数行） */
