@@ -1,4 +1,4 @@
-const update = '2026-04-21 09:48:12';
+const update = '2026-04-22 12:32:16';
 
 const quizzes = {
   "py11": {
@@ -380,6 +380,21 @@ const quizzes = {
     "title": "換算",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=conv01"
+  },
+  "b41": {
+    "title": "コンピュータの構成（五大装置・CPUとメモリ）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=b41"
+  },
+  "b42": {
+    "title": "コンピュータの構成（CPUの性能・周辺機器とインターフェース）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=b42"
+  },
+  "b43": {
+    "title": "コンピュータの構成（ソフトウェア）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=b43"
   }
 };
 window.quizzes = quizzes;
