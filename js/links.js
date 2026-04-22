@@ -1,4 +1,4 @@
-const update = '2026-04-22 12:32:16';
+const update = '2026-04-22 13:42:46';
 
 const quizzes = {
   "py11": {
@@ -392,9 +392,14 @@ const quizzes = {
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=b42"
   },
   "b43": {
-    "title": "コンピュータの構成（ソフトウェア）",
+    "title": "コンピュータの構成（クロック周波数の計算問題）",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=b43"
+  },
+  "b44": {
+    "title": "コンピュータの構成（ソフトウェア）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=b44"
   }
 };
 window.quizzes = quizzes;
@@ -557,6 +562,11 @@ const pubFiles = {
     "title": "LC13_情報セキュリティ",
     "description": "",
     "url": "https://docs.google.com/presentation/d/1D3r7ppFOfkH4X80NINnde4pzmX4730zH26OvgL1bNFs/view?usp=drivesdk"
+  },
+  "lc21": {
+    "title": "LC21_コンピュータの構成",
+    "description": "",
+    "url": "https://docs.google.com/presentation/d/1KSoyg2eqhGe36v7qMhhok1giZoR0lbHRiKUvhrE-5as/view?usp=drivesdk"
   }
 };
 window.pubFiles = pubFiles;
