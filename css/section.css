@@ -364,11 +364,12 @@ a{ color: var(--font-color-normal-text); }
 
 section article p a{
   color: var(--font-color-strong-text);
-  text-decoration: underline 2px color-mix(in oklab, var(--theme-color) 60%, #666);
-  font-size: 1rem;
+  text-decoration: underline 1px color-mix(in oklab, var(--theme-color) 60%, #666);
+  font-size: inherit;
   display: inline-block;
   font-weight: 500;
 }
+
 section article p a:hover{
   color: var(--font-color-strong-text);
   text-decoration: underline var(--font-color-strong-text);

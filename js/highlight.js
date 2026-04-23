@@ -36,8 +36,12 @@ function normalizeIndentation(lines, spaceSize = 2) {
 }
 // ===== Python 構文ハイライト =====
 function highlightPythonSyntax(line) {
-  // 文字列
-  line = line.replace(/"([^"]*)"/g, '<span class="token-string">"$1"</span>');
+  // 文字列を一旦マスクして退避
+  const strStore = [];
+  line = line.replace(/("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*')/g, (match) => {
+    strStore.push(match);
+    return `%%PYSTR_${'X'.repeat(strStore.length)}%%`;
+  });
 
   // 数値（整数・小数・負数）
   line = line.replace(/(?<![\w])(-?\d+(?:\.\d+)?)(?![\w])/g, '<span class="token-number">$1</span>');
@@ -61,6 +65,12 @@ function highlightPythonSyntax(line) {
   ['if', 'else', 'elif', 'for', 'while', 'def', 'return', 'import', 'from', 'as', 'in', 'not', 'and', 'or', 'break'].forEach(kw => {
     const re = new RegExp('\\b' + kw + '\\b', 'g');
     line = line.replace(re, `<span class="token-keyword">${kw}</span>`);
+  });
+
+  // 最後に文字列を戻す
+  line = line.replace(/%%PYSTR_(X+)%%/g, (_, xs) => {
+    const str = strStore[xs.length - 1];
+    return `<span class="token-string">${str}</span>`;
   });
 
   return line;
