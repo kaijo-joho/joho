@@ -1,4 +1,4 @@
-//2026-04-21 09:47:58;
+//2026-04-24 07:58:19;
 const pages = {
   "index": {
     "id": "index",
@@ -831,11 +831,11 @@ const pages = {
     "next": [
       {
         "id": "il12",
-        "title": "2-2. ピクトグラム課題",
-        "text": "2-2. ピクトグラム課題",
+        "title": "2-2. ピクトグラムの配色",
+        "text": "2-2. ピクトグラムの配色",
         "release": true,
         "url": "il12.html",
-        "detail": "ピクトグラムの配色と課題について掲載しています。"
+        "detail": "ピクトグラムの配色について掲載しています。"
       }
     ],
     "show": true,
@@ -847,8 +847,8 @@ const pages = {
     "fileName": "il12.html",
     "mainTitle": "Illustrator実習",
     "category": "情報デザイン",
-    "title": "2-2. ピクトグラム課題",
-    "detail": "ピクトグラムの配色と課題について掲載しています。",
+    "title": "2-2. ピクトグラムの配色",
+    "detail": "ピクトグラムの配色について掲載しています。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
