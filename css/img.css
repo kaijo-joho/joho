@@ -70,6 +70,11 @@ figure.img-wrapper {
   overflow: hidden;
 }
 
+figure.img-wrapper.no-radius {
+  border-radius: 0;
+  overflow: visible; /* 必要なら */
+}
+
 /* 画像の幅指定は従来どおり（HTMLの width 属性/inline-style を尊重） */
 figure.img-wrapper > img,
 figure.img-wrapper > a > img {

@@ -451,6 +451,7 @@
   window.enhanceImages = enhanceImages;
 
   // ★追加: 画像/リンクを <figure class="img-wrapper"> で包む（除外対応）
+  // ★追加: 画像/リンクを <figure class="img-wrapper"> で包む（除外対応）
   function wrapImages(opts = {}) {
     const {
       // 除外：この条件に当たる画像は通常はラップしない
@@ -476,6 +477,11 @@
 
       const fig = document.createElement('figure');
       fig.className = 'img-wrapper';
+
+      // img 側の指定を wrapper に反映
+      if (img.classList.contains('no-radius') || img.hasAttribute('data-no-radius')) {
+        fig.classList.add('no-radius');
+      }
 
       wrapTarget.parentNode.insertBefore(fig, wrapTarget);
       fig.appendChild(wrapTarget);
