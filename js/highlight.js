@@ -266,15 +266,20 @@ function highlightSpreadsheetLines(lines) {
 
 
 
+// ===== result 用：共通の先頭インデントだけを除去 =====
+function stripCommonIndent(lines) {
+  const nonEmptyLines = lines.filter(line => line.trim() !== '');
+  if (nonEmptyLines.length === 0) return lines;
 
+  const minIndent = Math.min(
+    ...nonEmptyLines.map(line => (line.match(/^ */) || [''])[0].length)
+  );
 
-
-
-
-
-
-
-
+  return lines.map(line => {
+    if (line.trim() === '') return '';
+    return line.slice(minIndent);
+  });
+}
 
 // ===== メイン関数 =====
 function highlightCodeBlocksWithIds() {
@@ -285,7 +290,7 @@ function highlightCodeBlocksWithIds() {
   headings.forEach(h2 => {
     sectionIndex++;
 
-    // ✅ 「X. タイトル」形式で見出しテキストを上書き
+    // 「X. タイトル」形式で見出しテキストを上書き
     const originalText = h2.textContent.replace(/^\(?\d+\)?[.、）]?\s*/, '').trim();
     h2.textContent = `${sectionIndex}. ${originalText}`;
     h2.setAttribute('data-section-index', sectionIndex);
@@ -297,18 +302,34 @@ function highlightCodeBlocksWithIds() {
     while (el && el.tagName !== 'H2') {
       if (el.tagName === 'PRE') {
         const code = el.querySelector('code');
-        if (!code) { el = el.nextElementSibling; continue; }
+        if (!code) {
+          el = el.nextElementSibling;
+          continue;
+        }
 
         const classList = el.className.split(/\s+/);
         const isExample = classList.includes('example');
-        const lang = classList.find(c => ['python', 'html', 'css', 'sheets', 'excel', 'other', 'result'].includes(c));
-        if (!lang) { el = el.nextElementSibling; continue; }
+        const lang = classList.find(c =>
+          ['python', 'html', 'css', 'sheets', 'excel', 'other', 'result'].includes(c)
+        );
+
+        if (!lang) {
+          el = el.nextElementSibling;
+          continue;
+        }
 
         let lines = code.textContent.replace(/\r\n/g, '\n').split('\n');
-        // ✅ 言語に応じてインデント幅変更
-        const indentSize = (lang === 'python') ? 4 : 2;
-        
-        lines = (lang === 'result') ? lines : normalizeIndentation(lines, indentSize);
+
+        // 言語ごとにインデント処理を分岐
+        if (lang === 'python') {
+          lines = normalizeIndentation(lines, 4);
+        } else if (lang === 'result') {
+          lines = stripCommonIndent(lines);
+        } else {
+          lines = normalizeIndentation(lines, 2);
+        }
+
+        // 先頭・末尾の空行を除去
         while (lines.length > 0 && lines[0].trim() === '') lines.shift();
         while (lines.length > 0 && lines[lines.length - 1].trim() === '') lines.pop();
 
@@ -329,10 +350,8 @@ function highlightCodeBlocksWithIds() {
           } else if (lang === 'css') {
             commentLabel = `/* ${idText}` + (titleText ? ` ${titleText}` : '') + ' */';
           } else if (lang === 'sheets' || lang === 'excel') {
-            // 数式に公式のコメント記法はないので、行頭'で注釈とする（表示上は token-comment）
+            // 数式に公式のコメント記法はないので、行頭'で注釈とする
             commentLabel = `' ${idText}` + (titleText ? ` ${titleText}` : '');
-          } else if (lang === 'result') {
-            commentLabel = `// ${idText}` + (titleText ? ` ${titleText}` : '');
           } else if (lang === 'other') {
             commentLabel = `// ${idText}` + (titleText ? ` ${titleText}` : '');
           }
@@ -340,7 +359,8 @@ function highlightCodeBlocksWithIds() {
           if (commentLabel) lines.unshift(commentLabel);
         }
 
-        let highlighted;
+        let highlighted = lines.map(escapeHTML);
+
         if (lang === 'python') {
           highlighted = highlightPythonLines(lines);
         } else if (lang === 'html') {
@@ -367,6 +387,14 @@ function highlightCodeBlocksWithIds() {
     }
   });
 }
+
+
+
+
+
+
+
+
 
 
 
