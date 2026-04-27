@@ -288,10 +288,21 @@ mjx-container[display="true"] {
 iframe {
   width: 720px;
   height: 441px;
+}
+
+iframe {
   background-color: transparent;
   border: none;
 }
-
+/* Googleスライド埋め込み */
+iframe.gslide {
+  display: block;
+  width: 648px;
+  height: 401px;
+  margin: 0.5rem auto;
+  background-color: transparent;
+  border: none;
+}
 
 
 
