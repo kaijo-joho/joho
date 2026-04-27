@@ -1,4 +1,4 @@
-//2026-04-24 07:58:19;
+//2026-04-27 10:10:25;
 const pages = {
   "index": {
     "id": "index",
@@ -823,7 +823,35 @@ const pages = {
     "title": "2-1. ピクトグラム",
     "detail": "Illustratorで18×18のピクトグラムを作成する方法を学びます。",
     "practiceFile": false,
-    "dlFile": false,
+    "dlFile": [
+      {
+        "id": "il21a",
+        "release": true,
+        "title": "ナイフとフォーク",
+        "fileName": "il21a_ナイフとフォーク.ai",
+        "url": "https://drive.google.com/file/d/19LvNRf7_FwIP_a4uPohJ9LS8VyX2yE5K/view?usp=drive_link",
+        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=ilp&variant=il21a",
+        "text": "il21a_ナイフとフォーク.ai"
+      },
+      {
+        "id": "il21b",
+        "release": true,
+        "title": "水滴",
+        "fileName": "il21b_水滴.ai",
+        "url": "https://drive.google.com/file/d/1hJmTSQgMYzANRmAzOO39VINP7Nx916YF/view?usp=drive_link",
+        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=ilp&variant=il21b",
+        "text": "il21b_水滴.ai"
+      },
+      {
+        "id": "il21c",
+        "release": true,
+        "title": "ハート",
+        "fileName": "il21c_ハート.ai",
+        "url": "https://drive.google.com/file/d/16F3OVBmkjBsyaaG1PhhOwqYJMZG63S_p/view?usp=drive_link",
+        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=ilp&variant=il21c",
+        "text": "il21c_ハート.ai"
+      }
+    ],
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
