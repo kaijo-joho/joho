@@ -1,4 +1,4 @@
-const update = '2026-04-27 10:10:36';
+const update = '2026-04-30 08:28:33';
 
 const quizzes = {
   "py11": {
@@ -474,6 +474,11 @@ const submitForms = {
     "title": "Illustrator実習",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=ilp"
+  },
+  "picto26": {
+    "title": "ピクトグラム最終課題",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=picto26"
   }
 };
 window.submitForms = submitForms;
@@ -548,6 +553,11 @@ const reviewForms = {
     "title": "Illustrator実習",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=review&pid=ilp"
+  },
+  "picto26": {
+    "title": "ピクトグラム最終課題",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=review&pid=picto26"
   }
 };
 window.reviewForms = reviewForms;
@@ -1208,6 +1218,11 @@ const urls = {
     "title": "HTML最終課題 提出方法",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbzMZ_7lqx9A4eyMNJUBjG68Xbbo96H2fCpQKSYbu3VfNpKTHKQf74WFAZVjd25k100_/exec"
+  },
+  "pyerror": {
+    "title": "Pythonエラー相談室（AI）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby_5e2weYq4pYGeDNFjVFdvmG2O94q1Nui0tnfT8Fdv_IZJ7NKK7TFaCGh_NM8uVJmk/exec"
   }
 };
 window.urls = urls;
