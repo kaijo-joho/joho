@@ -115,7 +115,7 @@
       const ph = document.createElement('section');
       ph.id = 'page_header';
       const phArticle = document.createElement('article');
-      const pyErrorLink = meta.mainTitle === 'Python講座' && (meta.id !== 'py00' || meta.id !== 'py91') ? '<p>エラーが出たら<a href="./py91.html" target="_blank">エラー処理</a>を参照し修正してください。</p>' : '';
+      const pyErrorLink = meta.mainTitle === 'Python講座' && !(meta.id === 'py00' || meta.id === 'py91') ? '<p>エラーが出たら<a href="./py91.html" target="_blank">エラー処理</a>を参照し修正してください。</p>' : '';
 
       phArticle.innerHTML = `
         <h1><a id="title">${meta.title}</a></h1>
