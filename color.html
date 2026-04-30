@@ -3,7 +3,15 @@
   <head>
     <title>海城中学高等学校 情報科</title>
     <script defer src="./js/main.js"></script>
-    <style>
+	<style id="critical-colors">
+	  html { color:#191919; color-scheme: light dark; background: transparent; }
+	  @media (prefers-color-scheme: dark) {
+	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+	  }
+	  body { background-color:#f3f3f3; }
+	  @media (prefers-color-scheme: dark) {
+	    body { background-color:#0b0b0b; }
+	  }
     .cc-tile{
       min-width: 40px;
       height: 40px;
@@ -478,7 +486,6 @@
         <div class="circle green" onclick="toggleColor(this, 'green')"></div>
         <div class="circle blue" onclick="toggleColor(this, 'blue')"></div>
       </div>
-      
       
       <p>上の円を見続けたあと、円をクリックしてみると心理補色が現れます（これに対して、上記(1)で扱った混合すると無彩色になる補色を<strong>物理補色</strong>といいます）。心理補色は人間の感覚に沿ったもので、赤の心理補色は緑，黄の心理補色は青となっています。例えば、医療現場の手術着は青緑ですが、これは血の色である赤の心理補色で、値を見続けたあとに白い壁や布を見ることで発生する残像を緩和するはたらきがあります。</p>
       
