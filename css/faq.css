@@ -1,0 +1,99 @@
+
+
+
+.faq-steps {
+  margin: 0.8em 0 1em 1.5em;
+  padding-left: 1.2em;
+}
+
+.faq-steps li {
+  margin: 0.35em 0;
+  line-height: 1.7;
+}
+
+.faq-box {
+  margin: 1em 0;
+  padding: 0.9em 1em;
+  border-left: 5px solid var(--theme-color);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--theme-color) 8%, transparent);
+}
+
+.faq-box-title {
+  font-weight: 700;
+  margin-bottom: 0.4em;
+}
+
+.faq-box-body ul {
+  margin: 0.3em 0 0 1.2em;
+  padding-left: 1em;
+}
+
+.faq-box-body li {
+  margin: 0.25em 0;
+}
+
+.faq-warning {
+  border-left-color: #d97706;
+  background: color-mix(in oklab, #d97706 10%, transparent);
+}
+
+.faq-mistake {
+  border-left-color: #dc2626;
+  background: color-mix(in oklab, #dc2626 8%, transparent);
+}
+
+.faq-check {
+  border-left-color: #16a34a;
+  background: color-mix(in oklab, #16a34a 8%, transparent);
+}
+
+.faq-tool {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2em;
+  white-space: nowrap;
+}
+
+.faq-tool-icon {
+  width: 16px;
+  height: 16px;
+  vertical-align: -2px;
+}
+
+.faq-menu-path {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.25em;
+  font-weight: 600;
+}
+
+.faq-menu-item {
+  padding: 0.1em 0.35em;
+  border-radius: 0.35em;
+  background: color-mix(in oklab, var(--theme-color) 10%, transparent);
+}
+
+.faq-menu-sep {
+  opacity: 0.65;
+}
+
+.faq-kbd {
+  display: inline-block;
+  padding: 0.1em 0.45em;
+  border: 1px solid color-mix(in oklab, currentColor 40%, transparent);
+  border-radius: 0.35em;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.9em;
+  background: color-mix(in oklab, currentColor 6%, transparent);
+}
+
+.faq-file {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+
+
+
+
