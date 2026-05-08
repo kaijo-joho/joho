@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme: light dark; background: transparent; }
+    @media (prefers-color-scheme: dark) {
+      html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+    }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme: dark) {
+      body { background-color:#0b0b0b; }
+    }
+  </style>
+  <title>よくある質問 | 海城中学高等学校 情報科</title>
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/faq_page.js"></script>
+</head>
+
+<body>
+  <section>
+    <article>
+      <h2 id="headline_1">よくある質問</h2>
+      <p>
+        実習中によくある質問をまとめています。分野・単元・カテゴリ・キーワードで絞り込んだり、検索したりできます。
+      </p>
+
+      <div id="faq-app" class="faq-page-app">
+        <p>FAQを読み込んでいます。</p>
+      </div>
+    </article>
+  </section>
+</body>
+</html>
