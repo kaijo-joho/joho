@@ -35,7 +35,17 @@
       document.head.appendChild(l);
     });
 
-  // ✅ 関数として定義（どこでも `await domReady()` と書けるようにする）
+  // 任意スクリプト用：読み込みに失敗しても全体を止めない
+  const loadOptionalScript = async (src, { async = false } = {}) => {
+    try {
+      return await loadScript(src, { async });
+    } catch (e) {
+      console.warn(`[main.js] optional script skipped: ${src}`, e);
+      return null;
+    }
+  };
+
+  // DOM準備
   const domReady = () =>
     document.readyState === 'loading'
       ? new Promise(r => document.addEventListener('DOMContentLoaded', r, { once: true }))
@@ -45,6 +55,7 @@
   const PATH = {
     head: "./js/head.js",                 // フォント/CDN/MathJax/CSS 等（即時実行）
     pages: "./js/pages.js",               // window.pages を定義
+    faq: "./js/faq.js",                   // FAQ_DATA / FAQ_CATEGORY_DATA を定義
     nav: "./js/nav.js",                   // window.initNav()
     scriptPages: "./js/script_pages.js",  // window.initPageScripts()
     highlightLocal: "./js/highlight.js",  // 自前のハイライト
@@ -61,38 +72,44 @@
       // 2) pages を先に用意（以降の機能が依存）
       await loadScript(PATH.pages);
 
-      // 3) DOM 準備
+      // 3) FAQデータを用意
+      //    lesson_dock.js の初期化前に FAQ_DATA が存在している必要がある。
+      //    万一 faq.js が存在しない環境でも、LessonDock全体は止めない。
+      await loadOptionalScript(PATH.faq);
+
+      // 4) DOM 準備
       await domReady();
 
-      // 4) レイアウトの“器”を先に用意（ヘッダー/フッター等）
+      // 5) レイアウトの“器”を先に用意（ヘッダー/フッター等）
       await loadScript(PATH.script);
       if (typeof window.initLayout === "function") {
         window.initLayout();
       }
 
-      // 5) ナビ・ハイライト・ドックを並列読み込み
+      // 6) ナビ・ハイライト・ドックを並列読み込み
+      //    FAQ_DATA は上で読み込み済みなので、lesson_dock.js 側で参照できる。
       await Promise.all([
         loadScript(PATH.nav),
         loadScript(PATH.highlightLocal),
         loadScript(PATH.lessonDock)
       ]);
 
-      // 6) 念のため DOM 準備を再確認
+      // 7) 念のため DOM 準備を再確認
       await domReady();
 
-      // 7) ナビ初期化
+      // 8) ナビ初期化
       if (typeof window.initNav === "function") {
         window.initNav();
       }
 
-      // 8) ドック（pages から生成）
-      if (typeof window.initLessonDockFromPages === 'function') {
+      // 9) ドック（pages + FAQ_DATA から生成）
+      if (typeof window.initLessonDockFromPages === "function") {
         window.initLessonDockFromPages();
       } else {
-        console.warn('[main.js] lesson_dock.js が見つかりません。PATH.lessonDock のパスと Network タブを確認してください。');
+        console.warn("[main.js] lesson_dock.js が見つかりません。PATH.lessonDock のパスと Network タブを確認してください。");
       }
 
-      // 9) ページ固有スクリプトを読み込んでから初期化（←順序バグを修正）
+      // 10) ページ固有スクリプトを読み込んでから初期化
       await loadScript(PATH.scriptPages);
       if (typeof window.initPageScripts === "function") {
         try {
@@ -102,7 +119,7 @@
         }
       }
 
-      // 10) コードハイライトを最後に一括適用
+      // 11) コードハイライトを最後に一括適用
       if (typeof window.highlightCodeBlocksWithIds === "function") {
         window.highlightCodeBlocksWithIds();
       } else {
@@ -124,7 +141,7 @@ function getFileName() {
   // "/" のように末尾スラッシュのみなら "index"
   if (!name) return 'index';
 
-  // ".html" / ".htm" を末尾だけ外す（アンカー付き&大文字小文字無視）
+  // ".html" / ".htm" を末尾だけ外す
   name = name.replace(/\.html?$/i, '');
 
   return name;                                           // 例: "index", "about"
