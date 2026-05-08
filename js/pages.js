@@ -1,4 +1,4 @@
-//2026-04-27 10:10:25;
+//2026-05-08 01:59:57;
 const pages = {
   "index": {
     "id": "index",
@@ -2951,6 +2951,24 @@ const pages = {
     "category": "index",
     "title": "Googleパスワード再設定",
     "detail": "Googleアカウントのパスワード再設定フォーム",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": false,
+    "show": false,
+    "backFile": "index.html"
+  },
+  "faq": {
+    "id": "faq",
+    "release": true,
+    "fileName": "faq.html",
+    "mainTitle": "",
+    "category": "index",
+    "title": "よくある質問",
+    "detail": "情報科実習サイトのよくある質問をまとめたページです。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
