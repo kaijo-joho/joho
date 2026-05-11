@@ -1,90 +1,7 @@
 /* =========================
-   LessonDock FAQ
+   FAQ shared content parts
 ========================= */
 
-.lesson-dock__btn--faq {
-  /* 必要ならFAQボタンだけ調整 */
-  font: inherit;
-}
-
-.lesson-dock__panel--faq {
-  min-width: min(520px, 88vw);
-  max-width: min(640px, 92vw);
-}
-
-.ld-sec--faq {
-  max-height: min(70vh, 680px);
-  overflow: auto;
-  overscroll-behavior: contain;
-}
-
-.ld-faq-list {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.ld-faq {
-  border: 1px solid color-mix(in oklab, currentColor 14%, transparent);
-  border-radius: 12px;
-  background: color-mix(in oklab, var(--theme-color, #225386) 5%, transparent);
-  overflow: hidden;
-}
-
-.ld-faq__summary {
-  cursor: pointer;
-  list-style: none;
-  padding: 0.75rem 0.85rem;
-}
-
-.ld-faq__summary::-webkit-details-marker {
-  display: none;
-}
-
-.ld-faq__q {
-  display: block;
-  font-weight: 700;
-  line-height: 1.5;
-  color: var(--font-color-strong-text, var(--theme-color, #225386));
-}
-
-.ld-faq__meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-  margin-top: 0.35rem;
-}
-
-.ld-faq__tag {
-  display: inline-block;
-  padding: 0.08rem 0.45rem;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  line-height: 1.5;
-  background: color-mix(in oklab, var(--theme-color, #225386) 12%, transparent);
-}
-
-.ld-faq__body {
-  padding: 0.85rem;
-  border-top: 1px solid color-mix(in oklab, currentColor 10%, transparent);
-  line-height: 1.7;
-}
-
-.ld-faq__body ol,
-.ld-faq__body ul {
-  margin-top: 0.5rem;
-  margin-bottom: 0.5rem;
-}
-
-.ld-faq__body code {
-  font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-.ld-faq__related {
-  margin-top: 0.8rem;
-  font-size: 0.92rem;
-}
-
-/* FAQショートコード由来 */
 .faq-steps {
   margin: 0.8em 0 1em 1.4em;
   padding-left: 1.2em;
@@ -104,7 +21,7 @@
 }
 
 .faq-box-title {
-  font-weight: 700;
+  font-weight: 800;
   margin-bottom: 0.35em;
 }
 
@@ -150,7 +67,7 @@
   align-items: center;
   flex-wrap: wrap;
   gap: 0.25em;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .faq-menu-item {
@@ -177,36 +94,30 @@
   font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
 }
 
-
-
-/* FAQ：ショートアンサー */
-.ld-faq__short {
-  display: block;
-  margin-top: 0.25rem;
-  font-size: 0.88rem;
-  line-height: 1.55;
-  font-weight: 400;
-  color: var(--font-color-sub-text, #666);
-}
-
-.ld-faq__short code {
-  font-size: 0.92em;
-}
-
-/* ダークモード */
-@media (prefers-color-scheme: dark) {
-  .ld-faq__q {
-    color: var(--font-color-strong-text, #e6e6e6);
-  }
-
-  .ld-faq__short {
-    color: var(--font-color-sub-text, #b8b8b8);
-  }
-}
-
 /* =========================
-   LessonDock FAQ hover
+   LessonDock FAQ
 ========================= */
+
+.lesson-dock__btn--faq {
+  /* 必要ならFAQボタンだけ調整 */
+  font: inherit;
+}
+
+.lesson-dock__panel--faq {
+  min-width: min(520px, 88vw);
+  max-width: min(640px, 92vw);
+}
+
+.ld-sec--faq {
+  max-height: min(70vh, 680px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.ld-faq-list {
+  display: grid;
+  gap: 0.65rem;
+}
 
 .ld-faq {
   border: 1px solid color-mix(in oklab, currentColor 14%, transparent);
@@ -233,7 +144,6 @@
   background: color-mix(in oklab, var(--theme-color, #225386) 10%, transparent);
 }
 
-/* summary自体にも少し反応をつける */
 .ld-faq__summary {
   cursor: pointer;
   list-style: none;
@@ -249,27 +159,58 @@
   display: none;
 }
 
+.ld-faq__q {
+  display: block;
+  font-weight: 700;
+  line-height: 1.5;
+  color: var(--font-color-strong-text, var(--theme-color, #225386));
+}
 
+.ld-faq__short {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+  line-height: 1.55;
+  font-weight: 400;
+  color: var(--font-color-sub-text, #666);
+}
 
+.ld-faq__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin-top: 0.35rem;
+}
 
+.ld-faq__tag {
+  display: inline-block;
+  padding: 0.08rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  background: color-mix(in oklab, var(--theme-color, #225386) 12%, transparent);
+}
 
+.ld-faq__body {
+  padding: 0.85rem;
+  border-top: 1px solid color-mix(in oklab, currentColor 10%, transparent);
+  line-height: 1.7;
+}
 
+.ld-faq__body ol,
+.ld-faq__body ul {
+  margin-top: 0.5rem;
+  margin-bottom: 0.5rem;
+}
 
-
-
-
-
-
-
-
-
-/* =========================
-   FAQ related link
-========================= */
+.ld-faq__body code {
+  font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
 
 .ld-faq__related {
   margin-top: 0.9rem;
   margin-bottom: 0;
+  font-size: 0.92rem;
 }
 
 .ld-faq__related a,
@@ -309,25 +250,6 @@
   outline-offset: 2px;
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 /* =========================
    FAQ page
 ========================= */
@@ -337,8 +259,8 @@
   gap: 1.25rem;
 }
 
-/* 検索・フィルタ article */
-.faq-filter-article {
+.faq-filter-article,
+.faq-results-article {
   overflow: visible;
 }
 
@@ -353,7 +275,6 @@
   line-height: 1.75;
 }
 
-/* course tabs */
 .faq-course-tabs {
   display: flex;
   flex-wrap: wrap;
@@ -391,9 +312,6 @@
   background: var(--theme-color, #225386);
   border-color: var(--theme-color, #225386);
 }
-/* =========================
-   FAQ controls 修正版
-========================= */
 
 .faq-controls {
   display: grid;
@@ -457,42 +375,6 @@
   background: color-mix(in oklab, var(--theme-color, #225386) 18%, transparent);
 }
 
-/* 中幅：検索欄を1行目いっぱいにして、selectを3列 */
-@media (max-width: 980px) {
-  .faq-controls {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-
-  .faq-search {
-    grid-column: 1 / -1;
-  }
-
-  .faq-reset {
-    grid-column: 1 / -1;
-  }
-}
-
-/* 狭幅：すべて縦並び */
-@media (max-width: 700px) {
-  .faq-controls {
-    grid-template-columns: 1fr;
-  }
-
-  .faq-search,
-  .faq-reset {
-    grid-column: auto;
-  }
-
-  .faq-reset {
-    justify-self: stretch;
-  }
-}
-
-/* FAQ results article */
-.faq-results-article {
-  overflow: visible;
-}
-
 .faq-result-summary {
   display: flex;
   flex-wrap: wrap;
@@ -511,7 +393,6 @@
   gap: 0.9rem;
 }
 
-/* FAQ card */
 .faq-card {
   border: 1px solid color-mix(in oklab, currentColor 14%, transparent);
   border-radius: 16px;
@@ -668,132 +549,6 @@
   background: color-mix(in oklab, currentColor 5%, transparent);
 }
 
-/* FAQショートコード由来 */
-.faq-steps {
-  margin: 0.8em 0 1em 1.4em;
-  padding-left: 1.2em;
-}
-
-.faq-steps li {
-  margin: 0.35em 0;
-  line-height: 1.7;
-}
-
-.faq-box {
-  margin: 0.9em 0;
-  padding: 0.8em 0.9em;
-  border-left: 5px solid var(--theme-color, #225386);
-  border-radius: 10px;
-  background: color-mix(in oklab, var(--theme-color, #225386) 8%, transparent);
-}
-
-.faq-box-title {
-  font-weight: 800;
-  margin-bottom: 0.35em;
-}
-
-.faq-box-body ul {
-  margin: 0.3em 0 0 1.1em;
-  padding-left: 1em;
-}
-
-.faq-box-body li {
-  margin: 0.25em 0;
-}
-
-.faq-warning {
-  border-left-color: #d97706;
-  background: color-mix(in oklab, #d97706 10%, transparent);
-}
-
-.faq-mistake {
-  border-left-color: #dc2626;
-  background: color-mix(in oklab, #dc2626 8%, transparent);
-}
-
-.faq-check {
-  border-left-color: #16a34a;
-  background: color-mix(in oklab, #16a34a 8%, transparent);
-}
-
-.faq-tool {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.2em;
-  white-space: nowrap;
-}
-
-.faq-tool-icon {
-  width: 16px;
-  height: 16px;
-  vertical-align: -2px;
-}
-
-.faq-menu-path {
-  display: inline-flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.25em;
-  font-weight: 700;
-}
-
-.faq-menu-item {
-  padding: 0.1em 0.35em;
-  border-radius: 0.35em;
-  background: color-mix(in oklab, var(--theme-color, #225386) 10%, transparent);
-}
-
-.faq-menu-sep {
-  opacity: 0.65;
-}
-
-.faq-kbd {
-  display: inline-block;
-  padding: 0.1em 0.45em;
-  border: 1px solid color-mix(in oklab, currentColor 40%, transparent);
-  border-radius: 0.35em;
-  font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.9em;
-  background: color-mix(in oklab, currentColor 6%, transparent);
-}
-
-.faq-file {
-  font-family: "Roboto Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-}
-
-@media (max-width: 900px) {
-  .faq-controls {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .faq-search {
-    grid-column: 1 / -1;
-  }
-
-  .faq-reset {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 600px) {
-  .faq-controls {
-    grid-template-columns: 1fr;
-  }
-
-  .faq-card__summary {
-    padding-left: 2rem;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  .faq-card__short {
-    color: var(--font-color-sub-text, #b8b8b8);
-  }
-}
-
-
-
-
 .ld-faq__q code,
 .faq-card__question code {
   font-size: 0.92em;
@@ -805,4 +560,76 @@
 .faq-card__short code {
   font-size: 0.92em;
   color: inherit;
+}
+
+/* =========================
+   Responsive
+========================= */
+
+@media (max-width: 980px) {
+  .faq-controls {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .faq-search,
+  .faq-reset {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 700px) {
+  .faq-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .faq-search,
+  .faq-reset {
+    grid-column: auto;
+  }
+
+  .faq-reset {
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 900px) {
+  .faq-controls {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .faq-search,
+  .faq-reset {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .lesson-dock__panel--faq {
+    box-sizing: border-box;
+    min-width: 0;
+    max-width: calc(100vw - 104px);
+  }
+
+  .faq-controls {
+    grid-template-columns: 1fr;
+  }
+
+  .faq-card__summary {
+    padding-left: 2rem;
+  }
+}
+
+/* =========================
+   Dark mode
+========================= */
+
+@media (prefers-color-scheme: dark) {
+  .ld-faq__q {
+    color: var(--font-color-strong-text, #e6e6e6);
+  }
+
+  .ld-faq__short,
+  .faq-card__short {
+    color: var(--font-color-sub-text, #b8b8b8);
+  }
 }
