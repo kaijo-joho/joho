@@ -4,6 +4,7 @@
 
 .lesson-dock__btn--faq {
   /* 必要ならFAQボタンだけ調整 */
+  font: inherit;
 }
 
 .lesson-dock__panel--faq {
