@@ -789,3 +789,19 @@
     color: var(--font-color-sub-text, #b8b8b8);
   }
 }
+
+
+
+
+.ld-faq__q code,
+.faq-card__question code {
+  font-size: 0.92em;
+  font-weight: 700;
+  color: inherit;
+}
+
+.ld-faq__short code,
+.faq-card__short code {
+  font-size: 0.92em;
+  color: inherit;
+}

@@ -359,9 +359,16 @@
       const summary = el('summary', { class: 'ld-faq__summary' });
 
       // 質問
-      summary.appendChild(
-        el('span', { class: 'ld-faq__q' }, faq.question || '質問')
-      );
+      const q = el('span', { class: 'ld-faq__q' });
+
+      if (faq.questionHtml) {
+        q.innerHTML = faq.questionHtml;
+      } else {
+        q.textContent = faq.question || '質問';
+      }
+
+      summary.appendChild(q);
+      
 
       // 短い回答
       if (faq.shortAnswerHtml || faq.shortAnswer) {

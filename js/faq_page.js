@@ -378,7 +378,17 @@
     const summary = el('summary', { class: 'faq-card__summary' });
 
     summary.appendChild(el('span', { class: 'faq-card__course' }, getCourseLabel(faq.course)));
-    summary.appendChild(el('span', { class: 'faq-card__question' }, faq.question || '質問'));
+    
+    const q = el('span', { class: 'faq-card__question' });
+
+    if (faq.questionHtml) {
+      q.innerHTML = faq.questionHtml;
+    } else {
+      q.textContent = faq.question || '質問';
+    }
+
+    summary.appendChild(q);
+
 
     if (faq.shortAnswerHtml || faq.shortAnswer) {
       const short = el('span', { class: 'faq-card__short' });
