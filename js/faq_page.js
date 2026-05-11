@@ -84,10 +84,7 @@
 
   function getCourseFromQuery() {
     const c = normalizeText(getParam('course'));
-
-    if (COURSE_KEYS.includes(c)) return c;
-
-    return '';
+    return COURSE_KEYS.includes(c) ? c : '';
   }
 
   function getInitialState() {
@@ -171,7 +168,7 @@
 
   function renderCourseTabs(state, onChange) {
     const wrap = el('div', {
-      class: 'faq-filter-tabs',
+      class: 'faq-course-tabs',
       role: 'tablist',
       'aria-label': '実習の種類'
     });
@@ -181,7 +178,7 @@
 
       const btn = el('button', {
         type: 'button',
-        class: `faq-filter-tab${active ? ' is-active' : ''}`,
+        class: `faq-course-tab${active ? ' is-active' : ''}`,
         'aria-pressed': active ? 'true' : 'false'
       }, label);
 
@@ -231,7 +228,7 @@
     return label;
   }
 
-  function renderControls(state, onChange) {
+  function renderFilterArticle(state, onChange) {
     const allFaqs = getFaqData();
     const baseFaqs = state.course
       ? allFaqs.filter(faq => faq.course === state.course)
@@ -246,6 +243,22 @@
     ).sort((a, b) => a.localeCompare(b, 'ja'));
 
     const keywords = getAllKeywords(baseFaqs);
+
+    const article = el('article', { class: 'faq-filter-article' });
+
+    const title = state.course
+      ? `${getCourseLabel(state.course)}のFAQ`
+      : 'すべてのFAQ';
+
+    article.appendChild(el('h2', { class: 'faq-filter-title' }, title));
+
+    article.appendChild(el('p', { class: 'faq-filter-lead' },
+      state.course
+        ? `${getCourseLabel(state.course)}に関するFAQを表示しています。条件を変更して絞り込めます。`
+        : 'すべての分野のFAQを表示しています。分野・単元・カテゴリ・キーワードで絞り込めます。'
+    ));
+
+    article.appendChild(renderCourseTabs(state, onChange));
 
     const controls = el('div', { class: 'faq-controls' });
 
@@ -331,10 +344,12 @@
     controls.appendChild(keywordSelect);
     controls.appendChild(resetBtn);
 
-    return controls;
+    article.appendChild(controls);
+
+    return article;
   }
 
-  function renderSummary(state, count, total) {
+  function renderResultSummary(state, count, total) {
     const parts = [];
 
     if (state.course) parts.push(getCourseLabel(state.course));
@@ -358,15 +373,15 @@
   }
 
   function renderFaqCard(faq) {
-    const details = el('details', { class: 'faq-page-card' });
+    const details = el('details', { class: 'faq-card' });
 
-    const summary = el('summary', { class: 'faq-page-card__summary' });
+    const summary = el('summary', { class: 'faq-card__summary' });
 
-    summary.appendChild(el('span', { class: 'faq-page-card__course' }, getCourseLabel(faq.course)));
-    summary.appendChild(el('span', { class: 'faq-page-card__question' }, faq.question || '質問'));
+    summary.appendChild(el('span', { class: 'faq-card__course' }, getCourseLabel(faq.course)));
+    summary.appendChild(el('span', { class: 'faq-card__question' }, faq.question || '質問'));
 
     if (faq.shortAnswerHtml || faq.shortAnswer) {
-      const short = el('span', { class: 'faq-page-card__short' });
+      const short = el('span', { class: 'faq-card__short' });
       if (faq.shortAnswerHtml) {
         short.innerHTML = faq.shortAnswerHtml;
       } else {
@@ -375,20 +390,20 @@
       summary.appendChild(short);
     }
 
-    const meta = el('span', { class: 'faq-page-card__meta' });
+    const meta = el('span', { class: 'faq-card__meta' });
 
-    if (faq.unit) meta.appendChild(el('span', { class: 'faq-page-card__tag' }, faq.unit));
-    if (faq.category) meta.appendChild(el('span', { class: 'faq-page-card__tag' }, faq.category));
+    if (faq.unit) meta.appendChild(el('span', { class: 'faq-card__tag' }, faq.unit));
+    if (faq.category) meta.appendChild(el('span', { class: 'faq-card__tag' }, faq.category));
 
     if (Array.isArray(faq.keywords)) {
-      faq.keywords.slice(0, 5).forEach(k => {
-        meta.appendChild(el('span', { class: 'faq-page-card__tag faq-page-card__tag--keyword' }, k));
+      faq.keywords.slice(0, 6).forEach(k => {
+        meta.appendChild(el('span', { class: 'faq-card__tag faq-card__tag--keyword' }, k));
       });
     }
 
     summary.appendChild(meta);
 
-    const body = el('div', { class: 'faq-page-card__body' });
+    const body = el('div', { class: 'faq-card__body' });
 
     if (faq.bodyHtml) {
       body.innerHTML = faq.bodyHtml;
@@ -405,7 +420,7 @@
         href: faq.relatedPage,
         target: '_blank',
         rel: 'noopener',
-        class: 'faq-page-card__related-link'
+        class: 'faq-card__related-link'
       }, '関連教材を開く'));
     }
 
@@ -414,12 +429,12 @@
         href: faq.relatedSlide,
         target: '_blank',
         rel: 'noopener',
-        class: 'faq-page-card__related-link'
+        class: 'faq-card__related-link'
       }, '関連スライドを開く'));
     }
 
     if (links.length) {
-      body.appendChild(el('div', { class: 'faq-page-card__related' }, links));
+      body.appendChild(el('div', { class: 'faq-card__related' }, links));
     }
 
     details.appendChild(summary);
@@ -428,27 +443,28 @@
     return details;
   }
 
-  function renderResults(state) {
+  function renderResultsArticle(state) {
     const allFaqs = getFaqData().filter(faq => faq.status === '公開' || !faq.status);
     const filtered = applyFilters(allFaqs, state);
 
-    const resultArea = el('div', { class: 'faq-results' });
-    resultArea.appendChild(renderSummary(state, filtered.length, allFaqs.length));
+    const article = el('article', { class: 'faq-results-article' });
+
+    article.appendChild(renderResultSummary(state, filtered.length, allFaqs.length));
 
     if (!filtered.length) {
-      resultArea.appendChild(el('p', { class: 'faq-empty' }, '条件に一致するFAQはありません。'));
-      return resultArea;
+      article.appendChild(el('p', { class: 'faq-empty' }, '条件に一致するFAQはありません。'));
+      return article;
     }
 
-    const list = el('div', { class: 'faq-page-list' });
+    const list = el('div', { class: 'faq-list' });
 
     filtered.forEach(faq => {
       list.appendChild(renderFaqCard(faq));
     });
 
-    resultArea.appendChild(list);
+    article.appendChild(list);
 
-    return resultArea;
+    return article;
   }
 
   function renderApp() {
@@ -456,7 +472,11 @@
     if (!root) return;
 
     if (!getFaqData().length) {
-      root.innerHTML = '<p>FAQデータが見つかりません。<code>js/faq.js</code> が読み込まれているか確認してください。</p>';
+      root.innerHTML = `
+        <article>
+          <p>FAQデータが見つかりません。<code>js/faq.js</code> が読み込まれているか確認してください。</p>
+        </article>
+      `;
       return;
     }
 
@@ -464,24 +484,8 @@
 
     const update = () => {
       root.innerHTML = '';
-
-      const title = state.course
-        ? `${getCourseLabel(state.course)}のFAQ`
-        : 'すべてのFAQ';
-
-      const header = el('div', { class: 'faq-page-header' });
-      header.appendChild(el('h3', { class: 'faq-page-title' }, title));
-
-      if (state.course) {
-        header.appendChild(el('p', { class: 'faq-page-lead' }, `${getCourseLabel(state.course)}に関するFAQを表示しています。`));
-      } else {
-        header.appendChild(el('p', { class: 'faq-page-lead' }, 'すべての分野のFAQを表示しています。'));
-      }
-
-      root.appendChild(header);
-      root.appendChild(renderCourseTabs(state, update));
-      root.appendChild(renderControls(state, update));
-      root.appendChild(renderResults(state));
+      root.appendChild(renderFilterArticle(state, update));
+      root.appendChild(renderResultsArticle(state));
     };
 
     update();
@@ -501,7 +505,11 @@
       if (count > max) {
         const root = $('#faq-app');
         if (root) {
-          root.innerHTML = '<p>FAQデータの読み込みに失敗しました。</p>';
+          root.innerHTML = `
+            <article>
+              <p>FAQデータの読み込みに失敗しました。</p>
+            </article>
+          `;
         }
         return;
       }
@@ -518,7 +526,6 @@
     waitForFaqDataAndRender();
   }
 
-  // main.js → script_pages.js の処理後にも再描画できるようにする
   document.addEventListener('pages:ready', () => {
     if (Array.isArray(window.FAQ_DATA)) renderApp();
   });
