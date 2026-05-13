@@ -102,10 +102,8 @@
   })();
 
   // ---------- サイト固有 ----------
-  //addScriptSrc('./js/pages.js');
-  //addScriptSrc('./js/script_pages.js');
-  //addScriptSrc('./js/script.js');
-  addStylesheet('./css/css.css');
+  // 共通CSS（./css/css.css）は各HTMLから直接読み込む。
+  // head.js 経由にすると main.js / head.js の実行後までCSS取得が遅れるため。
   //addScriptSrc('./js/nav.js', { onload: () => {
   //  if (typeof window.buildNav === 'function') window.buildNav();
   //}});
