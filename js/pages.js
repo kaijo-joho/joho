@@ -1,4 +1,4 @@
-//2026-05-08 01:59:57;
+//2026-05-14 11:58:41;
 const pages = {
   "index": {
     "id": "index",
@@ -998,11 +998,11 @@ const pages = {
   "py04": {
     "id": "py04",
     "release": true,
-    "fileName": "chrome.html",
+    "fileName": "py04.html",
     "mainTitle": "Python講座",
     "category": "はじめに",
-    "title": "Google Chromeの設定について",
-    "detail": "本サイトを閲覧する際のGoogle Chromeの設定について記載しています。",
+    "title": "Pythonの演算子について",
+    "detail": "Pythonの演算子について",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
