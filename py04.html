@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme: light dark; background: transparent; }
+    @media (prefers-color-scheme: dark) {
+      html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+    }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme: dark) {
+      body { background-color:#0b0b0b; }
+    }
+  </style>
+  <title>Python演算子まとめ | 海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <script defer src="./js/main.js"></script>
+
+  <style>
+    .operator-table {
+      width: min(100%, 980px);
+      margin-left: auto;
+      margin-right: auto;
+      table-layout: fixed;
+    }
+
+    .operator-table th,
+    .operator-table td {
+      vertical-align: middle;
+    }
+
+    .operator-table .op-name {
+      width: 24%;
+    }
+
+    .operator-table .op-symbol {
+      width: 16%;
+      text-align: center;
+    }
+
+    .operator-table .op-example {
+      width: 24%;
+      text-align: center;
+    }
+
+    .operator-table .op-desc {
+      width: 36%;
+    }
+
+    .operator-table .op-priority {
+      width: 16%;
+      text-align: center;
+    }
+
+    .operator-table .op-wide-symbol {
+      width: 28%;
+      text-align: center;
+    }
+
+    .operator-table .op-meaning {
+      width: 32%;
+    }
+
+    .operator-table .op-priority-example {
+      width: 24%;
+      text-align: center;
+    }
+
+    .operator-table code,
+    .operator-table tt {
+      white-space: nowrap;
+    }
+
+    .operator-note {
+      margin-top: 0.75rem;
+    }
+
+    @media (max-width: 720px) {
+      .operator-table {
+        table-layout: auto;
+        font-size: 0.92em;
+      }
+
+      .operator-table .op-desc,
+      .operator-table .op-meaning {
+        width: auto;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <section>
+    <article>
+      <h2 id="headline_1">Python演算子まとめ</h2>
+
+      <p>
+        Pythonでよく使う<strong>算術演算子</strong>、<strong>比較演算子</strong>、<strong>論理演算子</strong>をまとめたページです。
+        プログラムで計算したり、条件分岐を書いたりするときに確認してください。
+      </p>
+
+      <p class="small-text">
+        関連ページ：
+        <a href="./py03.html#headline_2">Pythonでよく使う記号のキーボード配置</a>，
+        <a href="./py21.html">条件分岐</a>
+      </p>
+    </article>
+
+    <article>
+      <h2 id="headline_2">算術演算子</h2>
+
+      <p>
+        数値の計算には、次の<strong>算術演算子</strong>を使います。
+        特に、<tt>/</tt> と <tt>//</tt>、<tt>%</tt>、<tt>**</tt> は間違えやすいので注意してください。
+      </p>
+
+      <table class="operator-table">
+        <tr>
+          <th class="op-name">計算</th>
+          <th class="op-symbol">演算子</th>
+          <th class="op-example">例</th>
+          <th class="op-desc">説明</th>
+        </tr>
+
+        <tr>
+          <th>足し算（加算）</th>
+          <td><tt>+</tt></td>
+          <td><tt>3 + 5</tt> → <tt>8</tt></td>
+          <td>2つの値を足します。</td>
+        </tr>
+
+        <tr>
+          <th>引き算（減算）</th>
+          <td><tt>-</tt></td>
+          <td><tt>5 - 3</tt> → <tt>2</tt></td>
+          <td>左の値から右の値を引きます。</td>
+        </tr>
+
+        <tr>
+          <th>かけ算（乗算）</th>
+          <td><tt>*</tt></td>
+          <td><tt>2 * 3</tt> → <tt>6</tt></td>
+          <td>2つの値をかけます。</td>
+        </tr>
+
+        <tr>
+          <th>実数の割り算<br>（実数除算）</th>
+          <td><tt>/</tt></td>
+          <td>
+            <tt>10 / 3</tt> → <tt>3.3333...</tt><br>
+            <tt>10 / 5</tt> → <tt>2.0</tt>
+          </td>
+          <td>
+            割り算の結果を小数として返します。
+            割り切れる場合でも、結果は実数型になります。
+          </td>
+        </tr>
+
+        <tr>
+          <th>整数の割り算<br>（整数除算）</th>
+          <td><tt>//</tt></td>
+          <td>
+            <tt>10 // 3</tt> → <tt>3</tt><br>
+            <tt>10 // 5</tt> → <tt>2</tt>
+          </td>
+          <td>
+            割り算の商の整数部分を返します。
+            小数部分は切り捨てられます。
+          </td>
+        </tr>
+
+        <tr>
+          <th>割り算の余り</th>
+          <td><tt>%</tt></td>
+          <td><tt>10 % 3</tt> → <tt>1</tt></td>
+          <td>
+            割り算の余りを求めます。
+            倍数判定でよく使います。
+          </td>
+        </tr>
+
+        <tr>
+          <th>累乗</th>
+          <td><tt>**</tt></td>
+          <td><tt>2 ** 3</tt> → <tt>8</tt></td>
+          <td>
+            左の値を右の値の回数だけかけます。
+            <tt>2 ** 3</tt> は \(2^3\) の意味です。
+          </td>
+        </tr>
+      </table>
+
+      <h3>よくある間違い</h3>
+      <ul>
+        <li><tt>10 / 5</tt> の結果は <tt>2</tt> ではなく <tt>2.0</tt> です。</li>
+        <li><tt>10 // 3</tt> は余りではなく、商の整数部分です。</li>
+        <li>余りを求めるときは <tt>%</tt> を使います。</li>
+        <li>累乗は <tt>^</tt> ではなく <tt>**</tt> を使います。</li>
+      </ul>
+    </article>
+
+    <article>
+      <h2 id="headline_3">代入演算子と比較演算子</h2>
+
+      <h3><tt>=</tt> と <tt>==</tt> の違い</h3>
+
+      <p>
+        Pythonでは、<tt>=</tt> と <tt>==</tt> は意味がまったく違います。
+        <strong>代入</strong>には <tt>=</tt>、<strong>等しいかどうかの比較</strong>には <tt>==</tt> を使います。
+      </p>
+
+      <table>
+        <tr>
+          <th style="width: 160px;">記号</th>
+          <th style="width: 200px;">意味</th>
+          <th>例</th>
+        </tr>
+
+        <tr>
+          <th><tt>=</tt></th>
+          <td>代入</td>
+          <td><tt>x = 3</tt> は、変数 <tt>x</tt> に <tt>3</tt> を代入します。</td>
+        </tr>
+
+        <tr>
+          <th><tt>==</tt></th>
+          <td>等しいかどうかの比較</td>
+          <td><tt>x == 3</tt> は、<tt>x</tt> が <tt>3</tt> と等しいかを判定します。</td>
+        </tr>
+      </table>
+
+      <pre class="python"><code>
+x = 3
+
+if x == 3:
+    print("xは3です")
+      </code></pre>
+
+      <pre class="result"><code>xは3です</code></pre>
+
+      <p>
+        <tt>if x = 3:</tt> のように書くと、条件式の中で代入しようとしているため、エラーになります。
+      </p>
+    </article>
+
+    <article>
+      <h2 id="headline_4">比較演算子</h2>
+
+      <p>
+        <strong>比較演算子</strong>は、2つの値を比べるための演算子です。
+        比較した結果は、<tt>True</tt> または <tt>False</tt> になります。
+      </p>
+
+      <table>
+        <tr>
+          <th style="width: 180px;">比較式</th>
+          <th>意味</th>
+        </tr>
+
+        <tr>
+          <td><tt>a == b</tt></td>
+          <td><tt>a</tt> と <tt>b</tt> が等しい</td>
+        </tr>
+
+        <tr>
+          <td><tt>a != b</tt></td>
+          <td><tt>a</tt> と <tt>b</tt> が等しくない</td>
+        </tr>
+
+        <tr>
+          <td><tt>a > b</tt></td>
+          <td><tt>a</tt> が <tt>b</tt> より大きい</td>
+        </tr>
+
+        <tr>
+          <td><tt>a >= b</tt></td>
+          <td><tt>a</tt> が <tt>b</tt> 以上</td>
+        </tr>
+
+        <tr>
+          <td><tt>a < b</tt></td>
+          <td><tt>a</tt> が <tt>b</tt> より小さい</td>
+        </tr>
+
+        <tr>
+          <td><tt>a <= b</tt></td>
+          <td><tt>a</tt> が <tt>b</tt> 以下</td>
+        </tr>
+      </table>
+
+      <h3>使用例</h3>
+
+      <pre class="python"><code>
+score = 85
+
+if score >= 80:
+    print("合格")
+else:
+    print("不合格")
+      </code></pre>
+
+      <pre class="result"><code>合格</code></pre>
+
+      <h3>よくある間違い</h3>
+      <ul>
+        <li>等しいかどうかを調べるときに <tt>=</tt> を使ってしまう。</li>
+        <li><tt>=></tt> や <tt>=<</tt> のように順番を逆に書いてしまう。</li>
+        <li><tt>≧</tt> や <tt>≦</tt> のような数学記号をそのまま使ってしまう。</li>
+      </ul>
+
+      <p>
+        Pythonでは、以上は <tt>>=</tt>、以下は <tt><=</tt> と書きます。
+      </p>
+    </article>
+
+    <article>
+      <h2 id="headline_5">論理演算子</h2>
+
+      <p>
+        複数の条件を組み合わせるときは、<strong>論理演算子</strong>を使います。
+        Pythonでは、<tt>and</tt>、<tt>or</tt>、<tt>not</tt> を使います。
+      </p>
+
+      <table>
+        <tr>
+          <th style="width: 180px;">論理式</th>
+          <th style="width: 180px;">呼び方</th>
+          <th>意味</th>
+        </tr>
+
+        <tr>
+          <td><tt>A or B</tt></td>
+          <td>論理和</td>
+          <td>Aが真、またはBが真であれば真</td>
+        </tr>
+
+        <tr>
+          <td><tt>A and B</tt></td>
+          <td>論理積</td>
+          <td>Aが真、かつBが真であれば真</td>
+        </tr>
+
+        <tr>
+          <td><tt>not A</tt></td>
+          <td>否定</td>
+          <td>Aが偽であれば真</td>
+        </tr>
+      </table>
+
+      <h3><tt>and</tt> の例</h3>
+
+      <pre class="python"><code>
+age = 15
+
+if age >= 13 and age < 20:
+    print("13歳以上20歳未満です")
+      </code></pre>
+
+      <pre class="result"><code>13歳以上20歳未満です</code></pre>
+
+      <h3><tt>or</tt> の例</h3>
+
+      <pre class="python"><code>
+weather = "雨"
+
+if weather == "雨" or weather == "雪":
+    print("傘を持っていく")
+      </code></pre>
+
+      <pre class="result"><code>傘を持っていく</code></pre>
+
+      <h3><tt>not</tt> の例</h3>
+
+      <pre class="python"><code>
+is_error = False
+
+if not is_error:
+    print("エラーはありません")
+      </code></pre>
+
+      <pre class="result"><code>エラーはありません</code></pre>
+
+      <h3>よくある間違い</h3>
+      <ul>
+        <li>「どちらか一方」を表したいのに <tt>and</tt> を使っている。</li>
+        <li>「両方満たす」を表したいのに <tt>or</tt> を使っている。</li>
+        <li><tt>not</tt> を付ける位置を間違えている。</li>
+      </ul>
+    </article>
+
+    <article>
+      <h2 id="headline_6">演算子の優先順位</h2>
+
+      <p>
+        複数の演算子を組み合わせると、Pythonは決められた優先順位にしたがって計算します。
+        迷ったときは、カッコ <tt>( )</tt> を使って、先に計算したい部分を明確にしてください。
+      </p>
+
+      <table class="operator-table">
+        <tr>
+          <th class="op-priority">優先順位</th>
+          <th class="op-wide-symbol">演算子</th>
+          <th class="op-meaning">説明</th>
+          <th class="op-priority-example">例</th>
+        </tr>
+
+        <tr>
+          <th>高い</th>
+          <td><tt>**</tt></td>
+          <td>累乗</td>
+          <td><tt>2 ** 3</tt> → <tt>8</tt></td>
+        </tr>
+
+        <tr>
+          <th>↓</th>
+          <td><tt>*</tt> <tt>/</tt> <tt>//</tt> <tt>%</tt></td>
+          <td>乗算、除算、整数除算、余り</td>
+          <td>
+            <tt>2 * 3</tt> → <tt>6</tt><br>
+            <tt>10 // 3</tt> → <tt>3</tt><br>
+            <tt>10 % 3</tt> → <tt>1</tt>
+          </td>
+        </tr>
+
+        <tr>
+          <th>↓</th>
+          <td><tt>+</tt> <tt>-</tt></td>
+          <td>加算、減算</td>
+          <td>
+            <tt>3 + 5</tt> → <tt>8</tt><br>
+            <tt>5 - 3</tt> → <tt>2</tt>
+          </td>
+        </tr>
+
+        <tr>
+          <th>↓</th>
+          <td>
+            <tt>==</tt> <tt>!=</tt> <tt>></tt> <tt>>=</tt><br>
+            <tt><</tt> <tt><=</tt>
+          </td>
+          <td>比較演算子</td>
+          <td><tt>score >= 80</tt></td>
+        </tr>
+
+        <tr>
+          <th>↓</th>
+          <td><tt>not</tt></td>
+          <td>論理演算子の否定</td>
+          <td><tt>not A</tt></td>
+        </tr>
+
+        <tr>
+          <th>↓</th>
+          <td><tt>and</tt></td>
+          <td>論理積。「AもBも真」の判定</td>
+          <td><tt>A and B</tt></td>
+        </tr>
+
+        <tr>
+          <th>低い</th>
+          <td><tt>or</tt></td>
+          <td>論理和。「AまたはBが真」の判定</td>
+          <td><tt>A or B</tt></td>
+        </tr>
+      </table>
+
+      <h3>算術演算子の優先順位</h3>
+      <p class="operator-note">
+        算術演算では、累乗 <tt>**</tt> が先に計算され、次に
+        <tt>*</tt>，<tt>/</tt>，<tt>//</tt>，<tt>%</tt>、その後に
+        <tt>+</tt>，<tt>-</tt> が計算されます。
+      </p>
+
+      <p class="operator-note">
+        論理演算子では、<tt>not</tt>、<tt>and</tt>、<tt>or</tt> の順に優先順位が高くなります。
+        つまり、<tt>and</tt> は <tt>or</tt> より先に判定されます。
+      </p>
+
+
+      <h3><tt>and</tt> と <tt>or</tt> の優先順位</h3>
+
+      <p>
+        論理演算子では、<tt>not</tt>、<tt>and</tt>、<tt>or</tt> の順に優先順位が高くなります。
+        つまり、<tt>and</tt> は <tt>or</tt> より先に判定されます。
+      </p>
+
+      <pre class="python"><code>
+x = True
+y = False
+z = False
+
+print(x or y and z)
+      </code></pre>
+
+      <pre class="result"><code>True</code></pre>
+
+      <p>
+        この式は、次のように解釈されます。
+      </p>
+
+      <pre class="python example"><code>
+x or (y and z)
+      </code></pre>
+
+      <p>
+        もし、<tt>or</tt> を先に判定したい場合は、次のようにカッコを使います。
+      </p>
+
+      <pre class="python"><code>
+x = True
+y = False
+z = False
+
+print((x or y) and z)
+      </code></pre>
+
+      <pre class="result"><code>False</code></pre>
+
+      <h3>カッコを使った計算の例</h3>
+
+      <pre class="python"><code>
+x = (3 + 5) * 2
+print(x)
+      </code></pre>
+
+      <pre class="result"><code>16</code></pre>
+
+      <p>
+        <tt>3 + 5 * 2</tt> では、かけ算が先に計算されるため結果は <tt>13</tt> になります。
+        先に足し算をしたい場合は、<tt>(3 + 5) * 2</tt> のようにカッコを使います。
+      </p>
+    </article>
+
+  </section>
+
+</body>
+</html>
