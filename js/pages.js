@@ -1,4 +1,4 @@
-//2026-05-14 11:58:41;
+//2026-05-14 12:29:15;
 const pages = {
   "index": {
     "id": "index",
@@ -1002,7 +1002,7 @@ const pages = {
     "mainTitle": "Python講座",
     "category": "はじめに",
     "title": "Pythonの演算子について",
-    "detail": "Pythonの演算子について",
+    "detail": "Pythonで使う演算子についてまとめました。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
