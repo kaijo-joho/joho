@@ -1,4 +1,4 @@
-const update = '2026-04-30 08:28:33';
+const update = '2026-05-18 15:35:35';
 
 const quizzes = {
   "py11": {
@@ -1223,6 +1223,11 @@ const urls = {
     "title": "Pythonエラー相談室（AI）",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby_5e2weYq4pYGeDNFjVFdvmG2O94q1Nui0tnfT8Fdv_IZJ7NKK7TFaCGh_NM8uVJmk/exec"
+  },
+  "taskstatus": {
+    "title": "課題提出・回答状況",
+    "description": "",
+    "url": "https://script.google.com/a/gfe.kaijo.ed.jp/macros/s/AKfycbwfONqIrp3-_QmskOawRQLYlejDJBOMFB0ZTG_rD718VhPleZaev3Uv9yaJg5ivl4fx/exec"
   }
 };
 window.urls = urls;
