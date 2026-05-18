@@ -24,7 +24,7 @@
     
     <article>
       <h2 id="headline_1">(1) 関数の基礎</h2>
-      <p>データを与えると、何かしらの結果を返す機能を<strong>関数</strong>といいます。与えるデータを<strong>引数</strong>（ひきすう）といい、返ってくる結果を<strong>戻り値</strong>といいます。これまでには画面に結果を出力するprint関数を扱いました。</p>
+      <p>必要な処理をひとまとまりにした機能を<strong>関数</strong>といいます。関数に与えるデータを<strong>引数</strong>（ひきすう）といい、関数から返ってくる結果を<strong>戻り値</strong>といいます。これまでには画面に結果を出力するprint関数を扱いました。</p>
 
       <h3>print関数</h3>
       <p>print関数は、<tt>print(...)</tt>の引数（カッコ内に指定した内容）を画面に表示します。</p>
@@ -55,7 +55,7 @@
       <pre class="python" data-title=""><code>
         a = 123
         a = str(a)  # 変数aをstr型に変換
-        print(type(a))  # 変数aの型を出力[
+        print(type(a))  # 変数aの型を出力
       </code></pre>
       <pre class="result"><code>
         &lt;class 'str'&gt;  # type関数の結果をprintするとこのような表示になる
@@ -107,7 +107,6 @@
       <p>Pythonが標準で持っている関数です。</p>
 
       <h3>入出力に関する関数</h3>
-      <p>
         <table class="small-tt">
           <tbody>
           <tr>
@@ -125,16 +124,13 @@
           <tr>
             <th>input</th>
             <td>ユーザーから入力を受け取る</td>
-            <td><tt>str = input("...")</tt></td>
+            <td><tt>text = input("...")</tt></td>
             <td></td>
           </tr>
           </tbody>
         </table>
-      
-      </p>
 
       <h3>型変換に関する関数</h3>
-        <p>
         <table class="small-tt">
           <tbody>
           <tr>
@@ -150,15 +146,15 @@
             <td><tt>123</tt></td>
           </tr>
           <tr>
-            <td><tt>int("22.4")</tt></td>
+            <td><tt>int(22.4)</tt></td>
             <td><tt>22</tt></td>
           </tr>
           <tr>
-            <td><tt>int("22.8")</tt></td>
+            <td><tt>int(22.8)</tt></td>
             <td> <tt>22</tt> ※</td>
           </tr>
           <tr>
-            <td><tt>int("-22.8")</tt></td>
+            <td><tt>int(-22.8)</tt></td>
             <td><tt>-22</tt> ※</td>
           </tr>
           <tr>
@@ -179,12 +175,10 @@
           </tr>
           </tbody>
         </table>
-        ※実数をint関数で整数値に変換すると、小数点以下は切り捨てられる（負の値は０に近づく）。
-      </p>
+      <p class="small-text">※実数をint関数で整数値に変換すると、小数点以下は切り捨てられる（負の値は０に近づく）。</p>
       
 
       <h3>文字列に関する関数</h3>
-      <p>
         <table class="small-tt">
           <tbody>
           <tr>
@@ -223,11 +217,9 @@
           </tr>
           </tbody>
         </table>
-      </p>
   
 
       <h3>その他</h3>
-      <p>
         <table class="small-tt">
           <tbody>
           <tr>
@@ -306,13 +298,13 @@
           </tr>
           </tbody>
         </table>
-      </p>
       <p>
         ※round関数は、端数が0.5未満は切り捨て，0.5より大きいなら切り上げ，0.5なら近い偶数の方へ丸める（四捨五入ではないので注意）
       </p>
 
       <h3 id="eval">eval関数‡</h3>
       <p><strong>eval関数</strong>は、文字列として与えられたコードを実行し、その結果を返す関数です。</p>
+      <p class="small-text">信頼できない入力を<tt>eval(...)</tt>に渡すと危険なコードが実行される可能性があるため、入力内容が安全だと分かっている場合だけ使います。</p>
       <pre class="python" data-title="eval関数"><code>
         x = eval("2 * 4 + 3")   # "2 * 4 + 3"値をxに代入
         print(x)
@@ -448,4 +440,3 @@
     
 </body>
 </html>
-

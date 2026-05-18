@@ -152,15 +152,14 @@
 
     <article>
       <h2 id="headline_2">(2) 変数に使える文字</h2>
-      <p></p>
 
       <h3>変数の計算</h3>
       <p>変数名は、<tt>a</tt>や<tt>b</tt>といったアルファベット１文字だけではなく、複数の文字（文字列）で書けます。</p>
       <p>
-        次の例は、身長と体重からBMIの値を求めるプログラムです。身長を変数<a>height</a>，体重を変数<tt>weight</tt>で指定し、<tt>height</tt>と<tt>weight</tt>の値から計算したBMIの値を変数<tt>bmi</tt>に代入しています。
+        次の例は、身長と体重からBMIの値を求めるプログラムです。身長を変数<tt>height</tt>，体重を変数<tt>weight</tt>で指定し、<tt>height</tt>と<tt>weight</tt>の値から計算したBMIの値を変数<tt>bmi</tt>に代入しています。
       </p>
       <p><span class="small-text">※BMI（Body Mass
-          Index）はボディマス指数と呼ばれ、体重[g]を身長[m]の２乗で割って求めます。成人ではBMIが国際的な指標として用いられ、日本では適正値は18.5〜25とされています。</span></p>
+          Index）はボディマス指数と呼ばれ、体重[kg]を身長[m]の２乗で割って求めます。成人ではBMIが国際的な指標として用いられ、日本では適正値は18.5〜25とされています。</span></p>
       <pre class="python" data-title="変数の計算 BMIの例"><code>
         height = 169.0  # height:身長[cm]
         weight = 56.0   # weight:体重[kg]
@@ -199,10 +198,8 @@
 
     <article>
       <h2 id="headline_3">(3) 変数の型</h2>
-      <p></p>
 
       <h3>変数の型</h3>
-      <p>
       <table>
         <tbody>
           <tr>
@@ -218,8 +215,8 @@
               <span class="small-text">（文字や文字列）</span>
             </td>
             <td>
-              <tt>str = "abc"<br></tt>
-              <tt>str = "2"</tt>
+              <tt>text = "abc"<br></tt>
+              <tt>text = "2"</tt>
             </td>
             <td>
               <span class="small-text">文字列はダブルクォート(<tt>"..."</tt>)で囲む。<br>"2"は文字としての「2」を表す。</span>
@@ -269,7 +266,6 @@
           </tr>
         </tbody>
       </table>
-      </p>
 
 
       <h3>変数の型が変化する場合†</h3>
@@ -296,7 +292,6 @@
 
     <article>
       <h2 id="headline_4">(4) 文字列の扱い</h2>
-      <p></p>
 
       <h3>文字列どうしの結合</h3>
       <p>文字列どうしを結合するときは、文字列どうしを<tt>+</tt>でつなげます。</p>
@@ -307,7 +302,6 @@
       <pre class="result"><code>海城中学</code></pre>
 
       <h3>文字列の変数どうしの結合</h3>
-      <p></p>
       <pre class="python" data-title="文字列の変数どうしの結合"><code>
         junior_highschool = "海城" + "中学"
         school_name = junior_highschool + "高等学校"
@@ -335,7 +329,7 @@
           src="./img/keyboard/key_yen.png" class="inline-icon">）で入力します。<br>
       </p>
       <pre class="python" data-title="改行文字"><code>
-        lyrics = "朝に仰ぐ芙蓉峰\n玲瓏千古かげ高し\n夕に見やる太平洋\n渺茫万里はてもなし"<br>
+        lyrics = "朝に仰ぐ芙蓉峰\n玲瓏千古かげ高し\n夕に見やる太平洋\n渺茫万里はてもなし"
         print(lyrics)
       </code></pre>
       <pre class="result"><code>
@@ -370,12 +364,12 @@
 
       <h4>１行ずつ表示</h4>
       <p>変数<tt>a</tt>〜<tt>d</tt>に<tt>"apple"</tt>, <tt>"banana"</tt>, <tt>"cherry"</tt>,
-        <tt>"drian"</tt>をそれぞれ代入し、変数<tt>a</tt>〜<tt>d</tt>を１行ずつ出力します。</p>
+        <tt>"durian"</tt>をそれぞれ代入し、変数<tt>a</tt>〜<tt>d</tt>を１行ずつ出力します。</p>
       <pre class="python" data-title="１行ずつ表示"><code>
         a = "apple"
         b = "banana"
         c = "cherry"
-        d = "drian"
+        d = "durian"
 
         print(a)
         print(b)
@@ -386,7 +380,7 @@
         apple
         banana
         cherry
-        drian
+        durian
       </code></pre>
 
 
@@ -395,7 +389,7 @@
         print関数のカッコ内に変数<tt>a</tt>〜<tt>d</tt>を<b>カンマ</b><tt>,</tt>で区切ると、変数<tt>a</tt>〜<tt>d</tt>の値を同じ行に出力します。このとき、各変数のあいだは<b>半角スペース１つ分</b>で区切られます。
       </p>
       <pre class="python" data-title="同じ行に複数の変数を表示"><code>print(a, b, c, d)</code></pre>
-      <pre class="result"><code>apple banana cherry drian</code></pre>
+      <pre class="result"><code>apple banana cherry durian</code></pre>
 
       <h3 id="print_end">末尾文字の設定†</h3>
       <p>print関数にendオプション（<tt>end="..."</tt>）を入れると、任意の文字を末尾に付加して出力します。デフォルト値（endオプションをつけない場合）は、<tt>\n</tt>（改行文字）です。</p>
@@ -407,7 +401,7 @@
       <h4>末尾文字</h4>
       <p><tt>end="."</tt>を指定すると、各変数を並べた後に<b>ドット</b><tt>.</tt>をつけて出力します。</p>
       <pre class="python" data-title="末尾文字"><code>print(a, b, c, d, end=".")</code></pre>
-      <pre class="result"><code>apple banana cherry drian.</code></pre>
+      <pre class="result"><code>apple banana cherry durian.</code></pre>
 
       <h4>改行しない場合</h4>
       <p>print関数はデフォルトで改行が入りますが、<tt>end=""</tt>と指定することで、改行を入れずに出力します。</p>
@@ -417,7 +411,7 @@
         print(c, end="")
         print(d, end="")
       </code></pre>
-      <pre class="result"><code>applebananacherrydrian</code></pre>
+      <pre class="result"><code>applebananacherrydurian</code></pre>
 
       <p><tt>end=" "</tt>と指定すると、改行されずに、文字列の後に半角スペース1つを入れて出力されます。</p>
       <pre class="python" data-title="末尾に半角スペース"><code>
@@ -426,7 +420,7 @@
         print(c, end=" ")
         print(d, end=" ")
       </code></pre>
-      <pre class="result"><code>apple banana cherry drian</code></pre>
+      <pre class="result"><code>apple banana cherry durian</code></pre>
 
       <p><tt>end=", "</tt>と指定すると、改行されずに、半角カンマのあとに半角スペース1つを入れて出力されます。</p>
       <pre class="python" data-title="末尾にカンマ"><code>
@@ -435,7 +429,7 @@
         print(c, end=", ")
         print(d, end=", ")
       </code></pre>
-      <pre class="result"><code>apple, banana, cherry, drian,</code></pre>
+      <pre class="result"><code>apple, banana, cherry, durian,</code></pre>
 
       <h4><tt>print()</tt></h4>
       <p><tt>print()</tt>のみ（カッコ内に何も入れない）記述した場合には、endオプションのデフォルト値である改行文字のみが出力されます。</p>
@@ -457,12 +451,12 @@
       <h4>カンマ区切り</h4>
       <p><tt>sep=", "</tt>と指定すると、各変数のあいだを<b>半角カンマ</b><tt>,</tt>と<b>半角スペース１つ</b>で区切ります。</p>
       <pre class="python" data-title="区切り文字"><code>print(a, b, c, d, sep=", ")</code></pre>
-      <pre class="result"><code>apple, banana, cherry, drian</code></pre>
+      <pre class="result"><code>apple, banana, cherry, durian</code></pre>
 
       <h4>区切りなし</h4>
       <p><tt>sep=""</tt>を指定すると、区切らずに出力します。</p>
       <pre class="python" data-title="区切り文字"><code>print(a, b, c, d, sep="")</code></pre>
-      <pre class="result"><code>applebananacherrydrian</code></pre>
+      <pre class="result"><code>applebananacherrydurian</code></pre>
 
       <h4>タブ文字区切り</h4>
       <p>
@@ -478,7 +472,7 @@
       </code></pre>
       <pre class="result"><code>
         apple&#009;banana
-        cherry&#009;drian
+        cherry&#009;durian
       </code></pre>
 
       <h4>改行区切り</h4>
@@ -490,7 +484,7 @@
         apple
         banana
         cherry
-        drian
+        durian
       </code></pre>
 
 
