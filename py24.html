@@ -49,9 +49,9 @@
       </code></pre>
       
       <h3>range関数とfor文</h3>
-      <p>range関数は、<tt>range(n)</tt>と書くと、0から<tt>n</tt>個の整数列を作ります。例えば、<tt>range(5)</tt>は<tt>[0, 1, 2, 3, 4]</tt>を意味します。この値がループ変数<tt>i</tt>に順に代入され（<tt>i</tt>に、<tt>0</tt>→<tt>1</tt>→<tt>2</tt>→<tt>3</tt>→<tt>4</tt>）、5回の処理が実行されます。ループ変数は<tt>i</tt>でなくても構いませんが、慣例として<tt>i</tt>が用いられます。</p>
+      <p>range関数は、<tt>range(n)</tt>と書くと、0から<tt>n - 1</tt>までの<tt>n</tt>個の整数列を作ります。例えば、<tt>range(5)</tt>は<tt>[0, 1, 2, 3, 4]</tt>を意味します。この値がループ変数<tt>i</tt>に順に代入され（<tt>i</tt>に、<tt>0</tt>→<tt>1</tt>→<tt>2</tt>→<tt>3</tt>→<tt>4</tt>）、5回の処理が実行されます。ループ変数は<tt>i</tt>でなくても構いませんが、慣例として<tt>i</tt>が用いられます。</p>
       <p class="center">
-        <img src="./img/py24_001.png" width="300px" class="image_center">
+        <img src="./img/py24_001.png" width="300px" class="image_center" alt="range関数でループ変数に値が順に代入される図">
       </p>
       
       <pre class="python"><code>
@@ -60,10 +60,11 @@
       </code></pre>
       <pre class="result"><code>0 1 2 3 4 5 6 7 8 9 10</code></pre>
       <ol class="notes">
-        <li><tt>print("...", end=" ") </tt></li>
-        <blockquote>
-          print関数の引数に<tt>end="..."</tt>を指定すると、末尾に出力する文字を指定することができます。何も指定しなければ（デフォルトでは）<strong>改行コード</strong>（<tt>\n</tt>）となりますが、上の例のように<strong>半角スペース</strong>を指定すると、改行せずに半角スペースが出力されます。
-        </blockquote>
+        <li><tt>print("...", end=" ") </tt>
+          <blockquote>
+            print関数の引数に<tt>end="..."</tt>を指定すると、末尾に出力する文字を指定することができます。何も指定しなければ（デフォルトでは）<strong>改行コード</strong>（<tt>\n</tt>）となりますが、上の例のように<strong>半角スペース</strong>を指定すると、改行せずに半角スペースが出力されます。
+          </blockquote>
+        </li>
       </ol>
       
     </article>
@@ -83,7 +84,6 @@
           print(i, end=" ")
       </code></pre>
       <pre class="result"><code>0 1 2 3 4</code></pre>
-      <p> </p>
       
       <h3><tt>range(</tt><b>開始値</b><tt>,</tt><b>終了値</b><tt>)</tt></h3>
       <p><tt>range(</tt><b>開始値</b><tt>,</tt><b>終了値</b><tt>)</tt>は、<b>開始値</b>〜<tt>(</tt><b>終了値</b><tt>-1)</tt>の整数列を返します。</p>
@@ -130,25 +130,25 @@
       <p>for文を使って1〜10の和を求めるプログラムを書いてみましょう。</p>
       
       <pre class="python"><code>
-        sum = 0     # 和を入れておく変数
+        total = 0     # 和を入れておく変数
 
         for i in range(1, 11):   # 1〜10を順に i に代入する
-          sum = sum + i       # sumに i を加えて sum に代入する（for文の中なのでインデントを１つ下げる）
+          total = total + i       # totalに i を加えて total に代入する（for文の中なのでインデントを１つ下げる）
 
-        print(sum)           # sumを出力する（for文の外なので、インデントを戻す）
+        print(total)           # totalを出力する（for文の外なので、インデントを戻す）
       </code></pre>
       <pre class="result"><code>55</code></pre>
-      <p>変数<tt>sum</tt>は、和を入れておく変数です。<tt>sum = sum + i</tt>で前の<tt>sum</tt>の値に<tt>i</tt>を加えて、新たな<tt>sum</tt>としています。</p>
-      <p>つまり、<tt>sum</tt>の値は、</p>
+      <p>変数<tt>total</tt>は、和を入れておく変数です。<tt>total = total + i</tt>で前の<tt>total</tt>の値に<tt>i</tt>を加えて、新たな<tt>total</tt>としています。</p>
+      <p>つまり、<tt>total</tt>の値は、</p>
       <ul>
-        <li><tt>i = 1</tt>のとき、<tt>sum =  0 + 1 =  1</tt></li>
-        <li><tt>i = 2</tt>のとき、<tt>sum =  1 + 2 =  3</tt></li>
-        <li><tt>i = 3</tt>のとき、<tt>sum =  3 + 3 =  6</tt></li>
-        <li><tt>i = 4</tt>のとき、<tt>sum =  6 + 4 = 10</tt></li>
-        <li><tt>i = 5</tt>のとき、<tt>sum = 10 + 5 = 15</tt></li>
+        <li><tt>i = 1</tt>のとき、<tt>total =  0 + 1 =  1</tt></li>
+        <li><tt>i = 2</tt>のとき、<tt>total =  1 + 2 =  3</tt></li>
+        <li><tt>i = 3</tt>のとき、<tt>total =  3 + 3 =  6</tt></li>
+        <li><tt>i = 4</tt>のとき、<tt>total =  6 + 4 = 10</tt></li>
+        <li><tt>i = 5</tt>のとき、<tt>total = 10 + 5 = 15</tt></li>
         <li>・・・</li>
       </ul>
-      <p>と変化していきます。試しに、<tt>sum = sum + i</tt>の行のあとに、<tt>print("i =", i, ",\t sum =", sum)</tt>を追加して確かめてみましょう。
+      <p>と変化していきます。試しに、<tt>total = total + i</tt>の行のあとに、<tt>print("i =", i, ",\t total =", total)</tt>を追加して確かめてみましょう。
       </p>
       
       
@@ -354,4 +354,3 @@ print(sum)</code></pre>
     
 </body>
 </html>
-

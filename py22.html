@@ -29,11 +29,11 @@
       <p>何度も同じ処理を繰り返したいときは、<strong>while文</strong>を使います。while文は指定した条件を満たしているあいだ処理を繰り返す構文です。</p>
       
       <p class="center">
-        <img src="./img/py22_001.png" width="400px"><br>
+        <img src="./img/py22_001.png" width="400px" alt="while文の流れ図"><br>
       </p>
       <p class="small-text center" style="font-size: 0.8em">※左右のフローチャートは同じ内容を異なる方法で書いています。</p>
       
-      <p><b>while文</b>は次のように書きます。if文と同様に、whileの文末にはコロン<tt>:</tt>をつけ、繰り返し処理は次の行からインデントを１つ文下げて書きます。</p>
+      <p><b>while文</b>は次のように書きます。if文と同様に、whileの文末にはコロン<tt>:</tt>をつけ、繰り返し処理は次の行からインデントを１つ分下げて書きます。</p>
       <pre class="python example"><code>
         while 条件式:
           # 繰り返しの処理
@@ -51,7 +51,7 @@
           i = i + 1
       </code></pre>
       
-      <p>次のコードは、変数<tt>i</tt>が1以上から5以下のあいだ繰り返し処理の回数を表示する例です。<br>
+      <p>次のコードは、変数<tt>i</tt>が1から5までのあいだ、繰り返し処理の回数を表示する例です。<br>
       <tt>i &lt;= 5</tt>のあいだwhile文の中を繰り返します。while文の最後には<tt>i = i + 1</tt>で<tt>i</tt>の値を１つ大きくします。</p>
       <pre class="python"><code>
         i = 1
@@ -62,10 +62,11 @@
       <pre class="result"><code>1 2 3 4 5</code></pre>
       
       <ol class="notes">
-        <li><tt>print("...", end=" ")</tt> </li>
-        <blockquote>
-          print関数の引数に<tt>end="..."</tt>を指定すると、末尾に出力する文字を指定することができます。何も指定しなければ（デフォルトでは）<strong>改行コード</strong>（<tt>\n</tt>）となりますが、上の例のように<strong>半角スペース</strong>を指定すると、改行せずに半角スペースが出力されます。c.f. <a href="./py12.html#print_end" target="_blank">1-2. 変数と画面出力 (5)print関数の使い方 末尾文字の設定</a>
-        </blockquote>
+        <li><tt>print("...", end=" ")</tt>
+          <blockquote>
+            print関数の引数に<tt>end="..."</tt>を指定すると、末尾に出力する文字を指定することができます。何も指定しなければ（デフォルトでは）<strong>改行コード</strong>（<tt>\n</tt>）となりますが、上の例のように<strong>半角スペース</strong>を指定すると、改行せずに半角スペースが出力されます。c.f. <a href="./py12.html#print_end" target="_blank">1-2. 変数と画面出力 (5)print関数の使い方 末尾文字の設定</a>
+          </blockquote>
+        </li>
       </ol>
 
 <!--
@@ -243,4 +244,3 @@ print("答え：", i, "年かかります。")</code></pre>
     
 </body>
 </html>
-

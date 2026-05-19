@@ -60,15 +60,15 @@
       </code></pre>
       
       
-      <p>次の例は、for文の中にfor文をネストして九九表を作成します。コード中の"␣"は半角スペースを表します。</p>
+      <p>次の例は、for文の中にfor文をネストして九九表を作成します。コード中の<tt>" "</tt>は半角スペースを表します。</p>
       
       
       <pre class="python" data-title="九九表"><code>
         for i in range(1, 10):
           for j in range(1, 10):
             if i * j < 10:       # 積が10未満の場合十の位を空欄にする
-              print("<span class="space-char">␣</span>", end="")    # ※1
-            print(i * j, end="<span class="space-char">␣</span>")    # ※2
+              print(" ", end="")    # ※1
+            print(i * j, end=" ")    # ※2
           print()    # ※3
       </code></pre>
       <pre class="result"><code>
@@ -84,20 +84,23 @@
       </code></pre>
       
       <ol class="notes">
-        <li><tt>print("<span class="space-char">␣</span>", end="") </tt></li>
-        <blockquote>
-           <tt>end=""</tt>を指定すると、出力内容の直後に何も出力しません。デフォルトでは改行文字（<tt>\n</tt>）が入りますが、この場合は改行されないようにします。（␣は半角スペースを示す表記なので、実際のコードには半角スペースを入れてください）
-        </blockquote>
+        <li><tt>print(" ", end="")</tt>
+          <blockquote>
+             <tt>end=""</tt>を指定すると、出力内容の直後に何も出力しません。デフォルトでは改行文字（<tt>\n</tt>）が入りますが、この場合は改行されないようにします。<tt>" "</tt>は半角スペースを示します。
+          </blockquote>
+        </li>
         
-        <li><tt>print("...", end="<span class="space-char">␣</span>") </tt></li>
-        <blockquote>
-          <tt>end="<span class="space-char">␣</span>"</tt>を指定すると、出力内容の直後に<b>半角スペース１つ分</b>が出力されます（␣は半角スペースを示す表記なので、実際のコードには半角スペースを入れてください）。
-        </blockquote>
+        <li><tt>print("...", end=" ")</tt>
+          <blockquote>
+            <tt>end=" "</tt>を指定すると、出力内容の直後に<b>半角スペース１つ分</b>が出力されます。
+          </blockquote>
+        </li>
         
-        <li><tt>print()</tt></li>
-        <blockquote>
-          print関数に引数を指定しなければ、末尾の文字のみ、つまりデフォルト値である<b>改行コード</b>（<tt>\n</tt>）のみを出力します。
-        </blockquote>        
+        <li><tt>print()</tt>
+          <blockquote>
+            print関数に引数を指定しなければ、末尾の文字のみ、つまりデフォルト値である<b>改行コード</b>（<tt>\n</tt>）のみを出力します。
+          </blockquote>
+        </li>
       </ol>
     </article>
     
@@ -130,9 +133,9 @@
         
         
         if is_leap_year == True:
-          print(year, "年は、閏年です")
+          print(year, "年は、閏年です。")
         else:
-          print(year, "年は、平年です")
+          print(year, "年は、平年です。")
       </code></pre>
       <pre class="result"><code>2024 年は、閏年です。</code></pre>
       <p><tt>year</tt>に<tt>1900</tt>，<tt>2000</tt>，<tt>2023</tt>を代入したとき、それぞれ閏年フラグ <tt>is_leap_year</tt>の値は①〜③のif文のあとでどのような値になっているか考えてみましょう。</p>
@@ -318,4 +321,3 @@ print(sum)</code></pre>
     
 </body>
 </html>
-
