@@ -67,7 +67,7 @@
       <p>リスト内の要素を書き換えるときは、次のようにします。</p>
       <pre class="python"><code>
         numbers = [24, 83, 64, 37, 19]
-        numbers[2] = 99   # 2番目（3個目）の要素を99に変更
+        numbers[2] = 99   # インデックス番号2（3個目）の要素を99に変更
         print(numbers)
       </code></pre>
       <pre class="result"><code>[24, 83, 99, 37, 19]</code></pre>
@@ -111,8 +111,10 @@
       
       <h3>リスト内の値の数を数える</h3>
       <p>リスト内の特定の値の数を数えるときは、<b>リスト名.count(値)</b>のように書きます（countも<b>メソッド</b>というもので、また別の機会に扱います）。</p>
-      <pre class="python"><code>numbers = [11, 22, 33, 22, 44, 11, 33, 22, 44]
-print(numbers.count(22))</code></pre>
+      <pre class="python"><code>
+        numbers = [11, 22, 33, 22, 44, 11, 33, 22, 44]
+        print(numbers.count(22))
+      </code></pre>
       <pre class="result"><code>3</code></pre>
       
       
@@ -144,7 +146,7 @@ print(numbers.count(22))</code></pre>
       
       <p>次の例では、リスト変数<tt>fruits</tt>の中の要素を繰り返しのたびに変数<tt>fruit</tt>に代入し、画面出力します。リストの変数名は複数形、その要素の変数名は単数形で書く習慣があります。</p>
       <pre class="python"><code>
-        fruits = ["apple", "banana", "cherry", "drian"]
+        fruits = ["apple", "banana", "cherry", "durian"]
 
         for fruit in fruits:
           print(fruit)
@@ -153,7 +155,7 @@ print(numbers.count(22))</code></pre>
         apple
         banana
         cherry
-        drian
+        durian
       </code></pre>
       
       <h3>インデックス番号を用いて順番に取得する</h3>
@@ -166,14 +168,18 @@ print(numbers.count(22))</code></pre>
       <p><b>range関数</b>の引数に<tt>len(リスト)</tt>（リストの要素数）を指定することで、インデックス番号が0〜(要素数−1)まで繰り返すという意味になります。先頭の要素のインデックス番号は0(ゼロ)、末尾の要素のインデックス番号は(要素数−1)となります。リストの要素数が決まっているならrange関数の引数に数値を直接入れてもいいですが、リストは要素を追加したり削除したりする使い方が多いので、len(リスト)としたほうがいい場面が多いです。</p>
       
       <p>次の例では、インデックス番号を0から(要素数−1)まで<tt>for...in range(...)</tt>で繰り返して、要素をインデックス番号で取得し、画面出力します。</p>
-      <pre class="python"><code>fruits = ["apple", "banana", "cherry", "drian"] 
+      <pre class="python"><code>
+        fruits = ["apple", "banana", "cherry", "durian"]
 
-for i in range(len(fruits)):
-  print(i, fruits[i])</code></pre>
-      <pre class="result"><code>0 apple
-1 banana
-2 cherry
-3 drian</code></pre>
+        for i in range(len(fruits)):
+          print(i, fruits[i])
+      </code></pre>
+      <pre class="result"><code>
+        0 apple
+        1 banana
+        2 cherry
+        3 durian
+      </code></pre>
 
       <h3>リスト内の数値の計算</h3>
       <p>次の例では、<tt>numbers</tt>の各要素を２倍して<tt>doubled_numbers</tt>に格納します。for文で要素を順番にひとつずつ取得して２倍し、<tt>doubled_numbers</tt>に追加します。</p>
@@ -191,7 +197,7 @@ for i in range(len(fruits)):
 
 
       <h3>リスト内の数値の合計を求める</h3>
-      <p>次の例では、<span class="code"><tt>numbers</tt>内の値の合計を求めます。</span></p>
+      <p>次の例では、<tt>numbers</tt>内の値の合計を求めます。</p>
       <pre class="python"><code>
         numbers = [58, 95, 89, 56, 45, 59, 55, 42, 37, 67]
 
@@ -365,7 +371,7 @@ if not(is_exist):
         five_step_numbers = []  <em>#空のfive_step_numbersを用意</em>
 </code></pre>
         <details><summary><em>#続きはココをクリック</em></summary>
-<pre><code>for i in range(0, 21):
+<pre><code>for i in range(0, 20):
     numbers.append(random.randint(1,100))   <em>#1〜100の乱数をnumbersに追加</em>
 
 for x in numbers:
@@ -397,4 +403,3 @@ print(five_step_numbers)  <em>#five_step_numbersを画面出力</em></code></pre
     
 </body>
 </html>
-

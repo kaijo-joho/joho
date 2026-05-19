@@ -26,14 +26,16 @@
       <h2 id="headline_1">(1) ２次元リストの基本</h2>
       <p>リストの中にリストが入ったものを２次元リストといいます。表形式のデータを格納するのに便利です。 </p>
 
-      <pre class="python"><code>
+      <pre class="python example"><code>
         リスト名 = [リスト, リスト, リスト, … ]
             = [[値, 値, 値, … ], [値, 値, 値, … ], [値, 値, 値, … ], … ]
       </code></pre>
 
       <h3>２次元リストの定義</h3>
       <p>２次元リストは次のように定義します。</p>
-      <pre class="python"><code>data = [[11, 12, 13, 14], [21, 22, 23, 24], [31, 32, 33, 34]]</code></pre>
+      <pre class="python"><code>
+        data = [[11, 12, 13, 14], [21, 22, 23, 24], [31, 32, 33, 34]]
+      </code></pre>
       <p>また、表形式のようにすると見やすいので、次のように書くことが多いです。</p>
       <pre class="python"><code>
         data = [
@@ -44,7 +46,7 @@
       </code></pre>
       
       <h3>２次元リストの値の取得</h3>
-      <p>２次元リストの中から値を取り出すときは、<tt>data[i][j]</tt>のように指定します。<tt>data[i][j]</tt>は<tt>data</tt>の<tt>i</tt>番目のリストのうち<tt>j</tt>番目の要素を取り出すという意味ですが、これを表形式では<b><tt style="background-color: transparent">i</tt> 行目 <tt style="background-color: transparent">j</tt> 列目</b>といいます。</p>
+      <p>２次元リストの中から値を取り出すときは、<tt>data[i][j]</tt>のように指定します。<tt>data[i][j]</tt>は、外側のリストのインデックス番号<tt>i</tt>にあるリストから、インデックス番号<tt>j</tt>の要素を取り出すという意味です。表形式では、0から数えた<b><tt style="background-color: transparent">i</tt>行目 <tt style="background-color: transparent">j</tt>列目</b>の値を取り出します。</p>
       <pre class="python"><code>
         data = [
            [11, 12, 13, 14],
@@ -90,7 +92,7 @@
       
       
 
-      <p><tt>data[i]</tt>のように最初のリストのインデックスだけ指定した場合は、<tt>i</tt>番目に格納されているリストを取得します。</p>
+      <p><tt>data[i]</tt>のように外側のリストのインデックス番号だけ指定した場合は、インデックス番号<tt>i</tt>に格納されているリストを取得します。</p>
       <pre class="python"><code>
         data = [
            [11, 12, 13, 14],
@@ -111,7 +113,7 @@
            [21, 22, 23, 24],
            [31, 32, 33, 34]
           ]
-        data[1][2] = 99  <em> # 1行目，2列目の値を99にする。</em>
+        data[1][2] = 99  <em> # インデックス番号1の行、インデックス番号2の列の値を99にする。</em>
         print(data)
       </code></pre>
       <pre class="result"><code>[[11, 12, 13, 14], [21, 22, 99, 24], [31, 32, 33, 34]]</code></pre>
@@ -129,7 +131,7 @@
       </code></pre>
       <pre class="result"><code>3</code></pre>
       
-      <p>また、<tt>len(data[2])</tt>とすると、2行目のリスト<tt>[31, 32, 33, 34]</tt>の要素数（<tt>31</tt>，<tt>32</tt>，<tt>33</tt>，<tt>34</tt>の4つ）を取得します。</p>
+      <p>また、<tt>len(data[2])</tt>とすると、インデックス番号2の行（3つ目のリスト）<tt>[31, 32, 33, 34]</tt>の要素数（<tt>31</tt>，<tt>32</tt>，<tt>33</tt>，<tt>34</tt>の4つ）を取得します。</p>
       <pre class="python"><code>
         data = [
            [11, 12, 13, 14],
@@ -140,15 +142,17 @@
       </code></pre>
       <pre class="result"><code>4</code></pre>
       
+    </article>
+
+    <article>
       <h2 id="headline_2">(2) ２次元リストとfor文</h2>
-      <p></p>
       <p>２次元リストの中の要素を順に出力する場合には、for文を用います。</p>
       <p>基本的には、<a href="./py31.html#headline_3" target="_blank">3-1. リスト（list） (3) リストとfor文</a>の方法と同様ですが、２次元リストの場合は<a href="./py25.html#headline_2" target="_blank">2-5. 繰り返し処理（for文）② (2) 二重のfor文</a>で扱ったように<b>for文をネスト</b>する必要があります。</p>
       
       <h3>インデックス番号を用いて順番に取得する</h3>
       <p>次の例では、インデックス番号を用いて２次元リストの要素を取得します。</p>
-      <p><tt>len(data)</tt>で<tt>data</tt>の要素数を取得できるので、外側のループ<tt>for i in range(len(data))</tt>で、<tt>i</tt>を<tt>0</tt>から<tt>要素数-1</tt>まで（先頭から末尾まで）変えながらループします。</p>
-      <p>内側のループ<tt>for j in range(len(data[i])):</tt>の<tt>len(data[i])</tt>は<b><tt>i</tt>番目のリスト</b>の要素数、つまり<b><tt>i</tt>行目の列数</b>を取得します。つまり、<tt>for j in range(len(data[i])):</tt>で、<tt>i</tt>行目の要素を先頭から末尾まで<tt>j</tt>の値を変えながらループします。</p>
+      <p><tt>len(data)</tt>で<tt>data</tt>の要素数を取得できるので、外側のループ<tt>for i in range(len(data))</tt>で、<tt>i</tt>を<tt>0</tt>から<tt>len(data)-1</tt>まで（先頭から末尾まで）変えながらループします。</p>
+      <p>内側のループ<tt>for j in range(len(data[i])):</tt>の<tt>len(data[i])</tt>は、インデックス番号<tt>i</tt>の行にあるリストの要素数、つまりその行の列数を取得します。つまり、<tt>for j in range(len(data[i])):</tt>で、<tt>j</tt>を<tt>0</tt>から<tt>len(data[i])-1</tt>まで変えながらループします。</p>
       <pre class="python"><code>
         data = [
          [11, 12, 13, 14],
@@ -156,9 +160,9 @@
          [31, 32, 33, 34]
         ]
 
-        for i in range(len(data)):           # iを0からdataの要素数-1までループする
-          for j in range(len(data[i])):    # jを0からi行目のリストの要素数-1までループする
-            print(data[i][j], end="\t")  # i行目j列目の要素(data[i][j])を出力し、タブ文字\tで区切る（\はoption⌥＋¥）
+        for i in range(len(data)):           # iを0からlen(data)-1までループする
+          for j in range(len(data[i])):    # jを0からlen(data[i])-1までループする
+            print(data[i][j], end="\t")  # インデックス番号iの行、jの列の要素(data[i][j])を出力し、タブ文字\tで区切る（\はoption⌥＋¥）
           print()                          # 内側のループが終わったら改行を入れる
       </code></pre>
       <pre class="result"><code>
@@ -193,10 +197,11 @@
            [31, 32, 33, 34]
           ]
 
-        for row in data:           # data内の配列を順番にリストrowに入れる
+        for row in data:           # data内のリストを順番にrowに入れる
           for x in row:
             print(x, end="\t") # タブ文字\tで区切る（\はoption⌥＋¥）
-          print()                # 内側のループが終わったら改行を入れる</code></pre>
+          print()                # 内側のループが終わったら改行を入れる
+      </code></pre>
       <pre class="result"><code>
         11  12  13  14  
         21  22  23  24  
@@ -204,7 +209,7 @@
       </code></pre>
       
       
-      <p>この方法では、<tt>for row in data</tt>で２次元リスト<tt>data</tt>の各要素のリストを<tt>row</tt>として取り出しています。このループ内で<tt>print(row)</tt>で<tt>row</tt>を表示すると、<tt>data</tt>内の各要素をリストとして出力します。</p>
+      <p>この方法では、<tt>for row in data</tt>で２次元リスト<tt>data</tt>の各行のリストを<tt>row</tt>として取り出しています。このループ内で<tt>print(row)</tt>で<tt>row</tt>を表示すると、<tt>data</tt>内の各行をリストとして出力します。</p>
       <pre class="python"><code>
         data = [
            [11, 12, 13, 14],
@@ -212,7 +217,7 @@
            [31, 32, 33, 34]
           ]
 
-        for row in data:  # data内の配列を順番にrowに入れる
+        for row in data:  # data内のリストを順番にrowに入れる
           print(row)    # rowを表示
       </code></pre>
       <pre class="result"><code>
@@ -479,4 +484,3 @@ print_board(board)
     
 </body>
 </html>
-
