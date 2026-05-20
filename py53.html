@@ -59,31 +59,31 @@ for i in range(6):
 plt.show()
       </code></pre>
       <div class="result">
-        <img src="./img/py53_101.png" class="pyplot">
+        <img src="./img/py53_101.png" class="pyplot" alt="サイコロの出目の回数を表す棒グラフ">
       </div>
       
       <h4>試行回数と結果の関係</h4>
-      <p>試行回数を<tt>6000</tt>，<tt>60000</tt>，<tt>600000</tt>，<tt>6000000</tt>回と増やしていって実行してみましょう。</p>
+      <p>試行回数を<tt>60</tt>，<tt>600</tt>，<tt>6000</tt>，<tt>60000</tt>，<tt>600000</tt>，<tt>6000000</tt>回と増やしていって実行してみましょう。</p>
       
       <dl>
 
         <dt><tt>n=60</tt>の実行結果</dt>
-        <dd><img src="./img/py53_111.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+        <dd><img src="./img/py53_111.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを60回振った結果の棒グラフ"></dd>
 
         <dt><tt>n=600</tt>の実行結果</dt>
-        <dd><img src="./img/py53_112.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+        <dd><img src="./img/py53_112.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを600回振った結果の棒グラフ"></dd>
         
         <dt><tt>n=6000</tt>の実行結果</dt>
-        <dd><img src="./img/py53_113.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+        <dd><img src="./img/py53_113.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを6000回振った結果の棒グラフ"></dd>
 
         <dt><tt>n=60000</tt>の実行結果</dt>
-        <dd><img src="./img/py53_114.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+        <dd><img src="./img/py53_114.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを60000回振った結果の棒グラフ"></dd>
 
         <dt><tt>n=600000</tt>の実行結果</dt>
-        <dd><img src="./img/py53_115.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+        <dd><img src="./img/py53_115.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを600000回振った結果の棒グラフ"></dd>
 
         <dt><tt>n=6000000</tt>の実行結果</dt>
-        <dd><img src="./img/py53_116.png" class="pyplot" style="margin-left:40px; width:300px;"></dd>
+        <dd><img src="./img/py53_116.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを6000000回振った結果の棒グラフ"></dd>
       </dl>
       
       <p>このように、試行回数が多くなればなるほど、理論値に近づいていくことがわかります。</p>
@@ -126,12 +126,12 @@ plt.ylabel("出目の平均値")
 plt.title("試行回数とサイコロの出目の平均値")
 plt.axhline(3.5, ls="--", c="red", label="理論値 3.5")  # 平均値の理論値である3.5のところに線を引く
 plt.legend()
-plt.grid()
+plt.grid(True)
 
 plt.show()
       </code></pre>
       <div class="result">
-        <img src="./img/py53_121.png" class="pyplot">
+        <img src="./img/py53_121.png" class="pyplot" alt="試行回数とサイコロの出目の平均値のグラフ">
       </div>
       
     </article>
@@ -142,9 +142,9 @@ plt.show()
       <h2 id="headline_2">(2) 天気のシミュレーション</h2>
       <p>次の図は、ある地域のある時期の日単位の天気の移り変わりを示したもので、数値は翌日の天気の変化の確率を表しています（このような図を<strong>状態遷移図</strong>といいます）。</p>
       <p class="center">
-        <img src="./img/py53_201.png" class="center" width="400px">
+        <img src="./img/py53_201.png" class="center" width="400px" alt="天気の状態遷移図">
       </p>
-      <p>1日目の天気が「晴れ」として、30日間の天気がどのように変化するか、また、各天気の種類の日が何日間あるかを棒グラフで示しなさい。ただし、天気は、「晴れ」「曇り」「雨」の3種類とし、その天気が1日中続くものとします。</p>
+      <p>0日後の天気が「晴れ」として、30日後までの天気がどのように変化するか、また、各天気の種類の日が何日あるかを棒グラフで示しなさい。ただし、天気は、「晴れ」「曇り」「雨」の3種類とし、その天気が1日中続くものとします。</p>
       
       
       <pre class="python" data-title="天気のシミュレーション"><code>
@@ -164,9 +164,9 @@ prob_matrix = [
 ]
 
 # 初期条件
-days = 30                   # シミュレーション日数
-weather = 0                 # 天気（初日は 0）
-weather_list = [weather]    # 各日の天気を 0: 晴れ, 1: 曇り, 2: 雨 で格納するリスト（初日の天気 0: 晴れ）
+days = 30                   # 30日後までシミュレーションする
+weather = 0                 # 天気（0日後は 0: 晴れ）
+weather_list = [weather]    # 各日の天気を 0: 晴れ, 1: 曇り, 2: 雨 で格納するリスト（0日後の天気 0: 晴れ）
 
 # 天気予測シミュレーション
 for i in range(1, days + 1):
@@ -180,17 +180,17 @@ for i in range(1, days + 1):
     else:                          # 乱数が上記以外の場合、翌日は雨
         weather = 2
 
-    weather_list.append(weather)   # weatherリストに翌日の天気を代入
+    weather_list.append(weather)   # weather_listに翌日の天気を追加
 
 # 天気予測シミュレーションのグラフ
-plt.figure(figsize=(7,3))
+plt.figure(figsize=(7, 3))
 plt.step(range(days + 1), weather_list, where="post", marker="o")   # ステッププロットで作成
 plt.title("天気予測シミュレーション")
-plt.xlabel("日数（日後）")
+plt.xlabel("経過日数（日後）")
 plt.ylabel("天気")
 plt.ylim(len(weather_labels) - 0.5, -0.5)               # y軸の描画範囲（「晴れ」が上になるように調整）
 plt.yticks(range(len(weather_labels)), weather_labels)  # y軸のラベル設定
-plt.grid()
+plt.grid(True)
 plt.show()
 
 
@@ -198,19 +198,19 @@ plt.show()
 for i in range(len(weather_labels)):
     weather_counts[i] = weather_list.count(i)
 
-# 天気の回数プロット（棒グラフ）
+# 天気の日数プロット（棒グラフ）
 plt.bar(weather_labels, weather_counts, color=["#FFBF40", "#888888", "#40ACFF"])
 plt.xlabel("天気")
-plt.ylabel("回数")
-plt.title("各天気の出現回数")
+plt.ylabel("日数")
+plt.title("各天気の日数")
 for i in range(len(weather_labels)):
-    ratio = int(weather_counts[i] / days * 100)
+    ratio = int(weather_counts[i] / (days + 1) * 100)
     plt.text(i, weather_counts[i], str(weather_counts[i]) + " (" + str(ratio) + "%)", ha="center", va="bottom")
 plt.show()
       </code></pre>
       <div class="result">
-        <img src="./img/py53_211.png" class="pyplot"><br>
-        <img src="./img/py53_212.png" class="pyplot">
+        <img src="./img/py53_211.png" class="pyplot" alt="30日後までの天気の変化を表すステッププロット"><br>
+        <img src="./img/py53_212.png" class="pyplot" alt="各天気の日数を表す棒グラフ">
       </div>
 
 
@@ -247,7 +247,7 @@ for i in range(n):
   x = random.random()
   y = random.random()
 
-  if x ** 2 + y ** 2 < 1.0:
+  if x ** 2 + y ** 2 <= 1.0:
     x1.append(x)
     y1.append(y)
     cnt = cnt + 1
@@ -265,18 +265,18 @@ plt.scatter(x1, y1, color="red", s=1, label="円の内側")
 plt.scatter(x2, y2, color="blue", s=1, label="円の外側")
 
 plt.title("モンテカルロ法による円周率のシミュレーション")  # グラフのタイトル
-plt.xlim(0,1)
-plt.ylim(0,1)
+plt.xlim(0, 1)
+plt.ylim(0, 1)
 plt.grid(True)
 plt.legend(loc="lower left")
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py53_005.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py53_005.png" class="pyplot" alt="モンテカルロ法による円周率の近似計算の散布図"></div>
       <pre class="result"><code>
 n = 5000
 cnt = 3926
 π = 3.1408
-      </pre></code>
+      </code></pre>
       
       <p>プログラムを何度か実行すると、毎回結果が異なることがわかります。また、試行回数を増やして実行してみましょう。試行回数が多くなれば、結果はより円周率に近づくことがわかります。</p>
     </article>
@@ -290,7 +290,7 @@ cnt = 3926
       
       
       <h3>株価の変動シミュレーション①</h3>
-      <p>初期株価を100として、50日間のシミュレーションを行います。各日の株価変動は±1〜3 %のランダムな変動率で計算します。</p>
+      <p>初期株価を100として、50日間のシミュレーションを行います。各日の株価変動は-3%〜+3%のランダムな変動率で計算します。</p>
       
       <pre class="python" data-title="株価の変動シミュレーション①"><code>
 import random
@@ -307,7 +307,7 @@ price_changes.append(initial_price)
 # シミュレーション開始
 current_price = initial_price
 for i in range(days):
-  # 1〜3%のランダムな増減
+  # -3%〜+3%のランダムな増減
   change_rate = random.uniform(-0.03, 0.03)  # -3%～+3%のランダムな変動
   current_price = current_price * (1 + change_rate)
   price_changes.append(current_price)
@@ -320,14 +320,14 @@ plt.title("Stock Price Simulation")
 plt.grid(True)
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py53_008.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py53_008.png" class="pyplot" alt="株価の変動シミュレーションのグラフ"></div>
 
       
       
       <p><tt>random.uniform(a, b)</tt>はa〜bの間の乱数を発生させる関数です。</p>
       
       <h3>株価の変動シミュレーション②</h3>
-      <p><strong>株価の変動シミュレーション①</strong>より実際の相場に近い挙動になるように改良したモデルです。</p>
+      <p><strong>株価の変動シミュレーション①</strong>より複雑な挙動になるように改良したモデルです。</p>
       <dl>
         <dt>トレンド要素</dt>
         <dd>価格が上昇または下降しやすいようにバイアスを加えます。変数<tt>trend</tt>の値を調整することで、全体的な上昇または下降傾向を設定します。例えば、<tt>trend = 0.002</tt>だと、株価はわずかに上昇傾向にあります（下降傾向のときには負数を指定します）。</dd>
@@ -372,7 +372,7 @@ plt.title("Stock Price Simulation")
 plt.grid(True)
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py53_007.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py53_007.png" class="pyplot" alt="トレンドとボラティリティを加えた株価の変動シミュレーションのグラフ"></div>
 
       
       
@@ -408,9 +408,8 @@ plt.grid(True)
 
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py53_006.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py53_006.png" class="pyplot" alt="ブラウン運動のシミュレーショングラフ"></div>
     </article>
   </section>
 </body>
 </html>
-

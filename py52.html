@@ -94,7 +94,7 @@ plt.show()
 9 年目:   15509 円
 10 年目:  16284 円
       </code></pre>
-      <div class="result"><img src="./img/py52_201.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py52_201.png" class="pyplot" alt="複利計算のグラフ"></div>
  
       
     </article>
@@ -150,7 +150,7 @@ plt.legend()
 
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py52_301.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py52_301.png" class="pyplot" alt="A市とB市の人口予測グラフ"></div>
 
       
     </article>
@@ -177,14 +177,15 @@ plt.show()
 
       
       <h3>一次反応の数式</h3>
-      <p>
-        単位時間あたりのAの変化率を\(k\)とすると、「Aの変化量は、そのときのAの量に比例する」ので、時間\(\Delta t\)における Aの変化量\(\Delta A\)は、
-            \[\Delta A = -k \times A \times \Delta t\]
-        となります。
-        また、「Aの量とBの量の和が常に一定」なので、Bの変化量\(\Delta B\)は、
-            \[\Delta B = -\Delta A = +k \times A \times \Delta t\]
-        となります。
-      </p>
+      <p>単位時間あたりのAの変化率を\(k\)とすると、「Aの変化量は、そのときのAの量に比例する」ので、時間\(\Delta t\)における Aの変化量\(\Delta A\)は、</p>
+      \[
+        \Delta A = -k \times A \times \Delta t
+      \]
+      <p>となります。また、「Aの量とBの量の和が常に一定」なので、Bの変化量\(\Delta B\)は、</p>
+      \[
+        \Delta B = -\Delta A = +k \times A \times \Delta t
+      \]
+      <p>となります。</p>
 
         
          
@@ -193,7 +194,7 @@ import matplotlib.pyplot as plt
 import japanize_matplotlib
 
 # パラメータ
-k  = 0.40    # Aの変化率（1ステップあたりのAの変化量）
+k  = 0.40    # Aの変化率（単位時間あたりのAの変化量）
 T  = 15      # シミュレーション期間（単位は、年 / 日 / 時間 / 分 / 秒など）
 dt = 0.2     # 時間間隔：1回の計算で進める時間。単位はTと同じにする。
 
@@ -240,7 +241,7 @@ plt.legend()
 
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py52_401.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py52_401.png" class="pyplot" alt="一次反応のシミュレーショングラフ"></div>
     </article>
     
     <article>
@@ -248,11 +249,11 @@ plt.show()
 
       <h3>ロジスティック成長モデル</h3>
       <p>ロジスティック成長モデルは、ある単一種の生物が一定環境内で増殖するようなときに、その生物の個体数の変動を予測するモデルです（人間の場合にも当てはまります）。何の制約もなければ、個体数は指数関数的に増加します（前項のとおり）。しかし、実際には環境や資源には限りがあるため、個体数の増加にはいずれはブレーキがかかります。つまり、個体数が増えるにつれて個体数の増加量は小さくなり、どこかの時点で飽和すると考えられます。その環境で生存しうる個体数の上限を環境収容力\(K\)と定めます。</p>
-      <p>
-        時間\(\Delta t\)あたりの個体の変化量\(\Delta N\)は、その時点での個体数\(N\)，増加率\(r\)，環境収容力\(K\)を用いて
-            \[\Delta N = r \times N \times (1 - \frac{N}{K}) \times \Delta t\]
-        と表すことができます。
-      </p>
+      <p>時間\(\Delta t\)あたりの個体の変化量\(\Delta N\)は、その時点での個体数\(N\)，増加率\(r\)，環境収容力\(K\)を用いて</p>
+      \[
+        \Delta N = r \times N \times (1 - \frac{N}{K}) \times \Delta t
+      \]
+      <p>と表すことができます。</p>
 
       <pre class="python" data-title="ロジスティック成長モデル"><code>
 import matplotlib.pyplot as plt
@@ -277,7 +278,7 @@ y = [N]     # y軸：個体数（初期値 N）
 steps = int(T / dt)
 
 # シミュレーションの実行
-for i in range(steps):  # T回シミュレーションを実行
+for i in range(steps):  # steps回シミュレーションを実行
     dN = r * N * (1 - N / K) * dt
     N = N + dN
     t = t + dt
@@ -297,7 +298,7 @@ plt.grid(True)
 
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py52_501.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py52_501.png" class="pyplot" alt="ロジスティック成長モデルのグラフ"></div>
     </article>
     
     
@@ -339,8 +340,8 @@ plt.show()
 
       <dl>
         <dt>\(\beta\)：感染率を示す定数</dt>
-        <dd>１人の感染者が単位時間あたりに平均して感染させる\(S\)の個体数を表し、感染者と接触した感受性保持者が感染する確率です。</dd>
-        <dd>たとえば、\(\beta=0.2\)の場合、感受性保持者が単位時間あたり20%の確率で感染することを意味します。</dd>
+        <dd>感染者と感受性保持者が接触したときに、感染がどのくらい起こりやすいかを表す定数です。</dd>
+        <dd>この値が大きいほど、\(S\)から\(I\)への移行が起こりやすくなります。</dd>
 
         <dt>\(\gamma\)：回復率を示す定数</dt>
         <dd>感染者が1日あたりに回復する確率を表し、感染者がどれだけ早く回復するかを表します。この値は病気の種類やほかの要因によって異なります。</dd>
@@ -406,7 +407,7 @@ plt.grid(True)
 
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py52_601.png" class="pyplot"></div>
+      <div class="result"><img src="./img/py52_601.png" class="pyplot" alt="SIRモデルのシミュレーショングラフ"></div>
 
       <dl>
         <dt>感染の拡大</dt>
@@ -437,4 +438,3 @@ plt.show()
       
 </body>
 </html>
-

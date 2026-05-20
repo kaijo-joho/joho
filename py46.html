@@ -25,36 +25,36 @@
     
     <article>
       <h2 id="headline_1">(1) クイックソート</h2>
-      <h3> クイックソートとは</h3>
-      <p><strong> クイックソート</strong>は、最も速くソートできるアルゴリズムなのです。ある基準（ピボットpivot）によって値を２つのグループに分割し、それぞれのグループに対して同じ処理を繰り返します。</p>
+      <h3>クイックソートとは</h3>
+      <p><strong>クイックソート</strong>は、平均的に高速にソートできるアルゴリズムの1つです。ある基準（ピボットpivot）によって値を２つのグループに分割し、それぞれのグループに対して同じ処理を繰り返します。</p>
       
       <h3>手順</h3>
       <ol>
         <li>開始位置(<tt>start</tt>)が終了位置(<tt>end</tt>)以上の場合、終了します。</li>
         <li>開始位置(<tt>start</tt>)と終了位置(<tt>end</tt>)の中央値を<tt>pivot</tt>に設定します。</li>
         <li>変数<tt>left</tt>に開始位置(<tt>start</tt>)，<tt>right</tt>に終了位置(<tt>end</tt>)を代入します。<tt>left</tt>，<tt>right</tt>は調べる値のインデックス番号です。</li>
-        <li> <tt>left</tt>≦<tt>right</tt>のあいだ次の操作を繰り返します。
-<ol>
-          <li><tt>pivot</tt>より左側で、<tt>pivot</tt>より大きい値を左端から順に探します（左側の交換対象の値）。</li>
+        <li><tt>left</tt>≦<tt>right</tt>のあいだ次の操作を繰り返します。
+          <ol>
+            <li><tt>pivot</tt>より左側で、<tt>pivot</tt>より大きい値を左端から順に探します（左側の交換対象の値）。</li>
             <li><tt>pivot</tt>より右側で、<tt>pivot</tt>より小さい値を右端から順に探します（右側の交換対象の値）。</li>
             <li><tt>left</tt>が<tt>right</tt>以下の場合、左側と右側の交換対象の値を交換し、次の交換対象の値を探します。</li>
           </ol>
         </li>
         <li>
           <b>(4)</b>のループが終了すると、配列は<tt>pivot</tt>を中心に分割されます。
-<ol>
-          <li>分割された左側の配列に対して、同様に<b>(1)</b>〜<b>(5)</b>を行います。</li>
+          <ol>
+            <li>分割された左側の配列に対して、同様に<b>(1)</b>〜<b>(5)</b>を行います。</li>
             <li>分割された右側の配列に対して、同様に<b>(1)</b>〜<b>(5)</b>を行います。</li>
           </ol>
         </li>
       </ol>
-      <p>実際のプログラムでは、<tt>pivot</tt>の決め方はいろいろな方法が使われています。上記のように、中央の値にする場合もありますが、そもそもソートされていないので中央の値が昇順における中央値であるとは限りません。そこで、例えば、ランダムに選んだ値を<tt>pivot</tt>にしたり、ランダムに選んだ複数の値の平均値や中央値を<tt>pivot</tt>にすることもあります。</p>
+      <p><small>※ このページでは、開始位置と終了位置の中央値を<tt>pivot</tt>にしています。ただし、ソート前のリストなので、ここで選んだ値が昇順に並べたときの中央値であるとは限りません。実際には、ランダムに選んだ値や、複数の候補から選んだ中央値を<tt>pivot</tt>にすることもあります。</small></p>
       
       
       <h3>デモンストレーション</h3>
       <div id="quick-sort" class="demo">
         <label for="arrayLength2">配列の長さ:</label>
-        <input type="number" id="arrayLength2" value="10" min="2">
+        <input type="number" id="arrayLength2" class="arrayLength" value="10" min="2" max="20">
         <button onclick="initialize()">配列をリセット</button>
 
         <div class="container" id="arycontainer"></div>
@@ -121,7 +121,7 @@ print(arr)                      # ソート後の配列の表示
 
       
       <h3>プログラム（Pythonらしい書き方）</h3>
-      <p>関数型プログラミング言語であるPythonらしい書き方をすると、次のようになります。上記では<b>既存の配列内の要素の位置を交換して</b>いましたが、次の例では、<b>新しい配列をつくって結果として返す</b>ようにしています。</p>
+      <p>Pythonでは、元のリストを直接並び替えるのではなく、新しいリストを作って結果として返す書き方もできます。上記では<b>既存の配列内の要素の位置を交換して</b>いましたが、次の例では、<b>新しい配列をつくって結果として返す</b>ようにしています。</p>
       <pre class="python" data-title="クイックソート（配列を返す）"><code>
 def quick_sort(arr):
   # ソートすべき要素が1つ以下の場合、そのまま返す
@@ -190,11 +190,11 @@ print(arr)    # ソート後
       
       
       <h3>このアルゴリズムの特徴</h3>
-      <p>このサイトで紹介した他のソートの交換回数は、\(n^2\) に比例しているのに対して、クイックソートでは基準値を元に２分割しながらソートをしていくので、バイナリサーチ（二分探索）と同じように要素数が大きくなっても処理回数が膨大になりにくいという特徴があります。</p>
-      <p>しかしながら、逆順に並べられている場合など、特定の条件においては比較回数を行う回数が膨大になり、選択ソートや挿入ソートよりも処理に必要な時間が多くなることもありますので、必ずしも常にクイックソートの方が優れているというわけではありません（ほぼソートされている配列に対しては、挿入ソートの方が速いです）。</p>
+      <p>このサイトで紹介した単純なソートでは処理回数が \(n^2\) に比例して大きくなるのに対して、クイックソートでは基準値を元に２分割しながらソートをしていくので、バイナリサーチ（二分探索）と同じように要素数が大きくなっても処理回数が膨大になりにくいという特徴があります。</p>
+      <p>しかしながら、ピボットの選び方によっては、毎回片方に偏って分割されることがあり、その場合は比較を行う回数が膨大になります。選択ソートや挿入ソートよりも処理に必要な時間が多くなることもありますので、必ずしも常にクイックソートの方が優れているというわけではありません（ほぼソートされている配列に対しては、挿入ソートの方が速いです）。</p>
       
-      <h4>最小交換回数</h4>
-      <p>クイックソートの交換回数が最小となる場合は、要素をちょうど半分ずつに分割していくときです。\(n\) 個の要素を\(x\) 回分割すると、分割後の要素は\(n/2^x\) 個となります。分割後の要素の個数が1になったときにソートが完了しますので、</p>
+      <h4>最小比較回数</h4>
+      <p>クイックソートの比較回数が少なくなるのは、要素をちょうど半分ずつに分割していくときです。\(n\) 個の要素を\(x\) 回分割すると、分割後の要素は\(n/2^x\) 個となります。分割後の要素の個数が1になったときにソートが完了しますので、</p>
       \[
           1 = \frac{n}{2^x}
       \]
@@ -202,21 +202,21 @@ print(arr)    # ソート後
       \[
           x = \log_2{n}
       \]
-      <p>となります。1回の分割に必要な比較回数は\(n\) 回なので、</p>
+      <p>となります。1段階の分割で全体としておよそ \(n\) 回の比較を行うので、</p>
       \[
           最小比較回数 = n\log_2{n}
       \]
       <p>となります。</p>
       
-      <h4>最大交換回数</h4>
-      <p>交換回数が最大となる場合は、すべての分割において、要素が1個と残りすべてに分割されるときです。</p>
+      <h4>最大比較回数</h4>
+      <p>比較回数が最大となる場合は、すべての分割において、要素が1個と残りすべてに分割されるときです。</p>
       <p>1回目で\(n\) 個の要素を1個と\(n-1\) 個，2回目で\(n-1\) 個の要素を1個と\(n-2\) 個，3回目で\(n-2\) 個の要素を1個と\(n-3\) 個，・・・，\(n-1\) 回目で2個の要素を1個ずつに分割してソートが完了します。</p>
       <p>つまり、比較回数は、1回目で\(n-1\) 回，2回目で\(n-2\) 回，3回目で\(n-3\) 回，・・・，\(n-1\)回目で1回となるので、</p>
       \[
           最大比較回数 = (n-1) + (n-2) + \cdots + 1 = \frac{1}{2} n (n-1)
       \]
       <p>となります。</p>
-      <p>最大比較回数は他のソートのアルゴリズムと同じくらいですが、このような場合は非常に稀なケースです。ほとんどの場合は、最小比較回数よりも数回多いくらいで完了しますので、他のソートのアルゴリズムよりも高速とされています（平均比較回数を求めるのは非常に困難なので、ここでは省略します）。</p>
+      <p>最大比較回数は他のソートのアルゴリズムと同じくらいですが、このような場合は非常に稀なケースです。平均的には \(n\log_2 n\) 程度の比較回数で完了するため、単純なソートより高速とされています。</p>
     </article>
   </section>
         
@@ -235,110 +235,96 @@ print(arr)    # ソート後
 
 
     <script>
-      let i = 0;
-      let j = 0;
-      
       let divs = [];
       let target = [];
       let step = 0;
       let left = 0;
       let right = 0;
       let pivot = 0;
-      let t = 0;
       let startId = 0;
       let endId = 0;
       let countSwap = 0;
       let divsactive = [];
       
       
-      const container = document.getElementById('arycontainer');
-      const description = document.getElementById('description');
-      const pivotValue = document.getElementById('pivotValue');
-      const divcountSwap = document.getElementById('divcountSwap');
+      const container = document.getElementById("arycontainer");
+      const description = document.getElementById("description");
+      const pivotValue = document.getElementById("pivotValue");
+      const divcountSwap = document.getElementById("divcountSwap");
       
 
       initialize();
       
 
-      function initialize(){
+      function initialize() {
         description.innerHTML = `クイックソートを開始します。<b>次へ</b>を押してください。`;
-        let arrayLength = parseInt(document.getElementById('arrayLength2').value);
+        const lengthInput = document.getElementById("arrayLength2");
+        let arrayLength = parseInt(lengthInput.value, 10);
+
+        if (Number.isNaN(arrayLength)) {
+          arrayLength = 10;
+        }
+        arrayLength = Math.min(Math.max(arrayLength, 2), 20);
+        lengthInput.value = arrayLength;
 
         divs = createDivs(container, arrayLength, true);
         divsactive = [];
-        for(let x=0;x<divs.length;x++){
+        for (let x = 0; x < divs.length; x++) {
           divsactive.push(true);
           
-          divs[x].classList.remove('sorted');
-          divs[x].classList.remove('highlighted');
-          divs[x].classList.remove('highlighted2');
+          divs[x].classList.remove("sorted");
+          divs[x].classList.remove("highlighted");
+          divs[x].classList.remove("highlighted2");
+          divs[x].classList.remove("lowlighted");
+          divs[x].classList.remove("swapped");
         }
         
         
-        target = [[0, divs.length-1]];
+        target = [[0, divs.length - 1]];
         pivotValue.textContent = "";
         step = 0;
-        flgCollision = false;
         left = 0;
         right = 0;
         pivot = 0;
-        t = 0;
         countSwap = 0;
         divcountSwap.innerHTML = `交換回数: <b>${countSwap}</b>`;
       }
       
-      function nextStep(){
-        //クイックソート　次へ
+      function nextStep() {
+        // クイックソート　次へ
         
         let flgCollision = false;
         
-        let arr = [];
-        for(let x=0;x<divs.length;x++){
-          arr.push(parseInt(divs[x].textContent));
-        }
-        
-        
-        console.log(arr);
-        console.log("pivot="+pivot+", left=("+left+")"+divs[left].textContent+", right=("+right+")"+divs[right].textContent+", t="+t+", step="+step+", "+target);
-        
-        if(right<0){
-          return;
-        }
-        if(target.length<=0){
-          description.innerHTML = `並び替え完了`;
-          for(let x=0;x<divs.length;x++){
-            divs[x].classList.add('sorted');
-          }
+        if (target.length <= 0) {
+          finishSort();
           return;
         }
         
-
-        
-        if(step==0){
-          //pivotの値と、left,rightの位置を決めます。
+        if (step === 0) {
+          // pivotの値と、left, rightの位置を決めます。
           
-          startId = target[t][0];
-          endId = target[t][1];
+          startId = target[0][0];
+          endId = target[0][1];
           
-          pivot = parseInt(divs[Math.floor((startId + endId)/2)].textContent);
+          pivot = parseInt(divs[Math.floor((startId + endId) / 2)].textContent, 10);
           pivotValue.textContent = pivot;
           
-          for(let x=0;x<divs.length;x++){
-            divs[x].classList.remove('highlighted');
-            divs[x].classList.remove('highlighted2');
+          for (let x = 0; x < divs.length; x++) {
+            divs[x].classList.remove("highlighted");
+            divs[x].classList.remove("highlighted2");
             
             
-            if(x<startId || endId<x){
-              divs[x].classList.add('lowlighted');
-            }else{
-              divs[x].classList.remove('lowlighted');
+            if (x < startId || endId < x) {
+              divs[x].classList.add("lowlighted");
+            } else {
+              divs[x].classList.remove("lowlighted");
             }
             
             
-            if(!divsactive[x]){
-              divs[x].classList.add('sorted');
-            }else{
-              divs[x].classList.remove('sorted');
+            if (!divsactive[x]) {
+              divs[x].classList.add("sorted");
+            } else {
+              divs[x].classList.remove("sorted");
             }
             
           }
@@ -346,122 +332,148 @@ print(arr)    # ソート後
           left = startId;
           right = endId;
           
-          description.innerHTML = `左端<b>${left}</b>〜右端<b>${right}</b>の範囲を調べます。pivotを中央の値<b>${pivot}</b>とします。`;
+          description.innerHTML = `左端<b>${left}</b>〜右端<b>${right}</b>の範囲を調べます。<tt>pivot</tt>を中央値<b>${pivot}</b>とします。`;
           
-          step=1;
-        }else if(step==1){
-          //左の値がpivotより小さければ、調べる左の位置をひとつ右に移動
+          step = 1;
+        } else if (step === 1) {
+          // 左の値がpivotより小さければ、調べる左の位置をひとつ右に移動
           
-          for(let x=0;x<divs.length;x++){
-            divs[x].classList.remove('swapped');
-            divs[x].classList.remove('highlighted2');
+          for (let x = 0; x < divs.length; x++) {
+            divs[x].classList.remove("swapped");
+            divs[x].classList.remove("highlighted2");
           }
           
-          if(left > startId){
-            divs[left-1].classList.remove('highlighted');
+          if (left > startId && left - 1 < divs.length) {
+            divs[left - 1].classList.remove("highlighted");
           }
           
-          if(parseInt(divs[left].textContent) < pivot){
-            divs[left].classList.add('highlighted');
-            description.innerHTML = `<b>${left}</b>番目の値<b>${divs[left].textContent}</b> ＜ pivot<b>${pivot}</b>なので、次に進みます。`;
+          if (left > right || left > endId) {
+            flgCollision = true;
+          } else if (parseInt(divs[left].textContent, 10) < pivot) {
+            divs[left].classList.add("highlighted");
+            description.innerHTML = `インデックス番号<b>${left}</b>の値<b>${divs[left].textContent}</b> ＜ <tt>pivot</tt><b>${pivot}</b>なので、次に進みます。`;
             left++;
           
             
-          }else{
-            divs[left].classList.add('highlighted2');
-            description.innerHTML = `<b>${left}</b>番目の値<b>${divs[left].textContent}</b> ≧ pivot<b>${pivot}</b>なので、交換対象とします。次に、交換する相手を右端から調べます。`;
+          } else {
+            divs[left].classList.add("highlighted2");
+            description.innerHTML = `インデックス番号<b>${left}</b>の値<b>${divs[left].textContent}</b> ≧ <tt>pivot</tt><b>${pivot}</b>なので、交換対象とします。次に、交換する相手を右端から調べます。`;
 
-            step=2;
+            step = 2;
                               
           }
           
-        }else if(step==2){
-          if(right < endId){
-            divs[right+1].classList.remove('highlighted');
+        } else if (step === 2) {
+          if (right < endId && right + 1 >= 0) {
+            divs[right + 1].classList.remove("highlighted");
           }
           
-          if(parseInt(divs[right].textContent) > pivot){
-            divs[right].classList.add('highlighted');
-            description.innerHTML = `<b>${right}</b>番目の値<b>${divs[right].textContent}</b> ＞ pivot<b>${pivot}</b>なので、次に進みます。`;
+          if (right < left || right < startId) {
+            flgCollision = true;
+          } else if (parseInt(divs[right].textContent, 10) > pivot) {
+            divs[right].classList.add("highlighted");
+            description.innerHTML = `インデックス番号<b>${right}</b>の値<b>${divs[right].textContent}</b> ＞ <tt>pivot</tt><b>${pivot}</b>なので、次に進みます。`;
             right--;
           
-          }else{
-            divs[right].classList.add('highlighted2');
-            description.innerHTML = `<b>${right}</b>番目の値<b>${divs[right].textContent}</b> ≦ pivot<b>${pivot}</b>なので、左側の交換対象と交換します。`;
-            step=3;
+          } else {
+            divs[right].classList.add("highlighted2");
+            description.innerHTML = `インデックス番号<b>${right}</b>の値<b>${divs[right].textContent}</b> ≦ <tt>pivot</tt><b>${pivot}</b>なので、左側の交換対象と交換します。`;
+            step = 3;
           }
           
-        }else if(step==3){
-          if(right <= left){
+        } else if (step === 3) {
+          if (right <= left) {
             flgCollision = true;
 
-          }else{
-            swap(left, right);
-            description.innerHTML = `<b>${left}</b>番目の値<b>${divs[left].textContent}</b>と<b>${right}</b>番目の値<b>${divs[right].textContent}</b>を交換しました。次に、再び左側の続きを調べていきます。`;
+          } else {
+            const leftIndex = left;
+            const rightIndex = right;
+            const leftValue = divs[leftIndex].textContent;
+            const rightValue = divs[rightIndex].textContent;
+
+            swap(leftIndex, rightIndex);
+            description.innerHTML = `インデックス番号<b>${leftIndex}</b>の値<b>${leftValue}</b>と、インデックス番号<b>${rightIndex}</b>の値<b>${rightValue}</b>を交換しました。次に、再び左側の続きを調べていきます。`;
             left++;
             right--;
-            step=1;
+            step = 1;
           }
         }
         
         
-        if(flgCollision){
-          description.innerHTML = `左端からの探索と右端からの探索がぶつかり、pivotより小さいグループと大きいグループができました。これらのグループについて、それぞれもう一度同様の操作をします。`;
-          target.shift();
-          if(right+1 < endId){
-            target.unshift([right+1, endId]);
-          }
-          if(startId < left-1){
-            target.unshift([startId, left-1]);
-          }
-          
-          for(let x=0;x<divs.length;x++){
-            divsactive[x] = false;
-          }
-          
-          for(let x=0;x<target.length;x++){
-            for(let y=target[x][0];y<=target[x][1];y++){
-              divsactive[y] = true;
-            }
-          }
-          flgCollision=false;
-          step=0;
+        if (flgCollision) {
+          finishPartition();
         }
         
       }
 
-      function swap(i, j){
+      function finishPartition() {
+        description.innerHTML = `左端からの探索と右端からの探索がぶつかり、<tt>pivot</tt>より小さいグループと大きいグループができました。これらのグループについて、それぞれもう一度同様の操作をします。`;
+        target.shift();
+        if (right + 1 < endId) {
+          target.unshift([right + 1, endId]);
+        }
+        if (startId < left - 1) {
+          target.unshift([startId, left - 1]);
+        }
+
+        for (let x = 0; x < divs.length; x++) {
+          divsactive[x] = false;
+        }
+
+        for (let x = 0; x < target.length; x++) {
+          for (let y = target[x][0]; y <= target[x][1]; y++) {
+            divsactive[y] = true;
+          }
+        }
+        step = 0;
+      }
+
+      function finishSort() {
+        description.innerHTML = `並び替え完了です。`;
+        pivotValue.textContent = "";
+        for (let x = 0; x < divs.length; x++) {
+          divs[x].classList.add("sorted");
+          divs[x].classList.remove("highlighted");
+          divs[x].classList.remove("highlighted2");
+          divs[x].classList.remove("lowlighted");
+          divs[x].classList.remove("swapped");
+        }
+      }
+
+      function swap(i, j) {
         [divs[i].textContent, divs[j].textContent] = [divs[j].textContent, divs[i].textContent];
         
         countSwap++;
         divcountSwap.innerHTML = `交換回数: <b>${countSwap}</b>`;
-        divs[i].classList.remove('highlighted');
-        divs[j].classList.remove('highlighted');
-        divs[i].classList.add('swapped');
-        divs[j].classList.add('swapped');
+        divs[i].classList.remove("highlighted");
+        divs[j].classList.remove("highlighted");
+        divs[i].classList.add("swapped");
+        divs[j].classList.add("swapped");
       }
 
-      function createDivs(container, arrayLength, shuffle = true){
-        container.innerHTML = '';
+      function createDivs(container, arrayLength, shuffle = true) {
+        container.innerHTML = "";
         let aryNum = Array.from({ length: arrayLength }, (_, i) => i);
         
-        if(shuffle){aryNum = shuffleArray(aryNum);}
+        if (shuffle) {
+          aryNum = shuffleArray(aryNum);
+        }
         
         let aryDiv = [];
         
-        for(let i=0;i<aryNum.length;i++){
-          const div = document.createElement('div');
-          div.classList.add('item');
+        for (let i = 0; i < aryNum.length; i++) {
+          const div = document.createElement("div");
+          div.classList.add("item");
           container.appendChild(div);
           
-          const divValue = document.createElement('div');
-          divValue.classList.add('divValue');
+          const divValue = document.createElement("div");
+          divValue.classList.add("divValue");
           divValue.textContent = aryNum[i];
           aryDiv.push(divValue);
           div.appendChild(divValue);
           
-          const divIndex = document.createElement('div');
-          divIndex.classList.add('divIndex');
+          const divIndex = document.createElement("div");
+          divIndex.classList.add("divIndex");
           divIndex.textContent = i;
           div.appendChild(divIndex);
         }
@@ -471,7 +483,7 @@ print(arr)    # ソート後
       
       function shuffleArray(ary) {
         for (let i = (ary.length - 1); 0 < i; i--) {
-          let r = Math.floor(Math.random() * (i + 1));
+          const r = Math.floor(Math.random() * (i + 1));
           [ary[i], ary[r]] = [ary[r], ary[i]];
         }
         return ary;
@@ -480,4 +492,3 @@ print(arr)    # ソート後
   
 </body>
 </html>
-

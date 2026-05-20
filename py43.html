@@ -46,14 +46,14 @@
 # 交換前の値
 a = 5
 b = 7
-print("交換前: a =",a,", b =",b, sep="")  # 交換前の値を表示
+print("交換前: a = ", a, ", b = ", b, sep="")  # 交換前の値を表示
 
 # 変数aとbの中身を交換
 tmp = a
 a = b
 b = tmp
 
-print("交換後: a =",a,", b =",b, sep="")  # 交換後の値を表示
+print("交換後: a = ", a, ", b = ", b, sep="")  # 交換後の値を表示
       </code></pre>
       <pre class="result"><code>
 交換前: a = 5, b = 7
@@ -61,7 +61,7 @@ print("交換後: a =",a,", b =",b, sep="")  # 交換後の値を表示
       </code></pre>
       
       <p>Pythonでは、変数<tt>a</tt>と<tt>b</tt>を入れ換えるとき、次の１行で書くことができます。</p>
-      <pre class="python example" data-title=""><code>b, a = a, b</code></pre>
+      <pre class="python example" data-title="Pythonでの２値交換"><code>a, b = b, a</code></pre>
 
       
       <p>ただし、<span class="bgcolor_lighterred"><b>共通テスト用プログラム表記（DNCL）</b>では前者の書き方をしているため、このサイトではそれにしたがって変数<tt class="background-transparent">tmp</tt>を用いた前者の書き方をします。</span></p>
@@ -74,7 +74,7 @@ print("交換後: a =",a,", b =",b, sep="")  # 交換後の値を表示
 arr = [0, 1, 2, 3, 4, 5, 6, 7]
 print(arr)  # 交換前の値を表示
 
-# 3番目と5番目を入れ換える(番号は0で始まるものとする)。
+# インデックス番号3と5の要素を入れ換える。
 tmp = arr[3]
 arr[3] = arr[5]
 arr[5] = tmp
@@ -100,7 +100,7 @@ print(arr)  # 交換後の値を表示
         <li>末尾の２つの値を比較し、右側の値が小さい場合は、２つの値を交換します。</li>
         <li>１つ前の２つの値を比較し、右側の値が小さい場合は、２つの値を交換します。</li>
         <li><b>(3)</b>を先頭まで繰り返します。すると、最も小さい値が先頭にやってきます（先頭のみが<b>整列済み</b>になりました）。</li>
-        <li><b>(2)</b>〜<b>(3)</b>を未整列の先頭まで繰り返し、すべての値が整列済みになれば終了します。</li>
+        <li><b>(2)</b>〜<b>(3)</b>を繰り返し、整列済みの範囲を先頭から広げていきます。すべての値が整列済みになれば終了します。</li>
       </ol>
       
       <h3>デモンストレーション</h3>
@@ -134,7 +134,7 @@ n = len(arr)
 
 for i in range(n - 1):                    # 調べる範囲の開始位置を１つずつ後へ移動していく
   for j in range(n - 2, i - 1, -1):     # 末尾から先頭に向かって、隣り合う２値を比較する
-    if arr[j] > arr[j + 1]:           # 隣り合う２値の末尾側が小さかったら交換する
+    if arr[j] > arr[j + 1]:           # 隣り合う２値の右側の値が小さかったら交換する
       tmp = arr[j]
       arr[j] = arr[j + 1]
       arr[j + 1] = tmp
@@ -174,8 +174,8 @@ i j
         <tt>i = 5</tt>のとき、<tt>j = 6 ⇒ 5</tt><br>
         <tt>i = 6</tt>のとき、<tt>j = 6</tt><br>
       </p>
-      <p>つまり、<tt>i</tt>回目の繰り返しで、配列の末尾から先頭に向かって隣同士の要素を比較・交換していくことで、<tt>i</tt>番目の要素が整列済みになることがわかります。</p>
-      <p>このとき<tt>j</tt>の値は末尾の１つ前の値（<tt>n-2</tt>）から、<tt>i</tt>まで1ずつ減らしながら繰り返しています。<tt>j</tt>の値が<tt>i</tt>までなのは、<tt>i</tt>番目までは既に整列済みになっているので、比較する必要がないからです。</p>
+      <p>つまり、<tt>i</tt>回目の繰り返しで、配列の末尾から先頭に向かって隣同士の要素を比較・交換していくことで、インデックス番号<tt>i</tt>の要素が整列済みになることがわかります。</p>
+      <p>このとき<tt>j</tt>の値は末尾の１つ前の値（<tt>n-2</tt>）から、<tt>i</tt>まで1ずつ減らしながら繰り返しています。<tt>j</tt>の値が<tt>i</tt>までなのは、インデックス番号<tt>i</tt>より前は既に整列済みになっているので、比較する必要がないからです。</p>
       
       
       <h4>バブルソートの途中経過</h4>
@@ -189,7 +189,7 @@ print("------------------------")
 
 for i in range(n - 1):                    # 調べる範囲の開始位置を１つずつ後へ移動していく
   for j in range(n - 2, i - 1, -1):     # 末尾から先頭に向かって、隣り合う２値を比較する
-    if arr[j] > arr[j + 1]:           # 隣り合う２値の末尾側が小さかったら交換する
+    if arr[j] > arr[j + 1]:           # 隣り合う２値の右側の値が小さかったら交換する
       tmp = arr[j]
       arr[j] = arr[j + 1]
       arr[j + 1] = tmp
@@ -223,9 +223,9 @@ print(arr)                                # ソート後を出力
       <h4>最小交換回数</h4>
       <p>最小交換回数はすべてがはじめから整列済みである場合なので、\(0\)回です。</p>
       
-      <h4>最大交換回数（比較回数）</h4>
-      <p>最大交換回数は、すべての比較において交換が生じた場合です。つまり、最大交換回数＝比較回数です。</p>
-      <p>整列済みではない部分の要素数が \(n\) 個の場合、1つの要素を整列済みにするまでの比較回数は \(n-1\) 回です。これが次の要素を確定するときには、整列済みではない部分の要素数が \(n-1\)個なので、比較回数は　\(n-2\) となります。このように、 \(n\) 個の要素をすべて整列済みにするための比較回数（＝最大交換回数）を求めると、
+      <h4>比較回数と最大交換回数</h4>
+      <p>この実装では、比較回数は配列の並び順に関係なく常に同じです。一方、交換回数は配列の並び順によって変わり、すべての比較で交換が生じた場合に最大となります。つまり、最大交換回数は比較回数と等しくなります。</p>
+      <p>整列済みではない部分の要素数が \(n\) 個の場合、1つの要素を整列済みにするまでの比較回数は \(n-1\) 回です。これが次の要素を確定するときには、整列済みではない部分の要素数が \(n-1\) 個なので、比較回数は \(n-2\) となります。このように、 \(n\) 個の要素をすべて整列済みにするための比較回数（＝最大交換回数）を求めると、
       \[
         最大交換回数 = (n-1) + (n-2) + (n-3) + \cdots + 2 + 1 = \frac{1}{2}n(n-1)
       \]
@@ -322,17 +322,20 @@ print(arr)                                # ソート後を出力
         j = divs.length - 2;
       }else{
         if(divs[j].classList.contains("highlighted") && divs[j+1].classList.contains("highlighted")){
-          if(parseInt(divs[j].textContent) > parseInt(divs[j+1].textContent)){
+          const leftValue = parseInt(divs[j].textContent);
+          const rightValue = parseInt(divs[j+1].textContent);
+
+          if(leftValue > rightValue){
             divs[j].classList.remove("highlighted");
             divs[j+1].classList.remove("highlighted");
             [divs[j].textContent, divs[j+1].textContent] = [divs[j+1].textContent, divs[j].textContent];
             countSwap++;
             divs[j].classList.add("swapped");
             divs[j+1].classList.add("swapped");
-            description.innerHTML = ` ${divs[j+1].textContent} ＞ ${divs[j].textContent} なので、交換しました。<br><tt>i=${i}, j=${j}</tt>，比較回数${countCompare}，交換回数${countSwap}`;
+            description.innerHTML = ` ${leftValue} ＞ ${rightValue} なので、交換しました。<br><tt>i=${i}, j=${j}</tt>，比較回数${countCompare}，交換回数${countSwap}`;
 
           }else{
-            description.innerHTML = ` ${divs[j].textContent} ≦ ${divs[j+1].textContent} なので、交換しません。<br><tt>i=${i}, j=${j}</tt>，比較回数${countCompare}，交換回数${countSwap}`;
+            description.innerHTML = ` ${leftValue} ≦ ${rightValue} なので、交換しません。<br><tt>i=${i}, j=${j}</tt>，比較回数${countCompare}，交換回数${countSwap}`;
           }
 
           j--;
@@ -480,9 +483,6 @@ print(arr)                                # ソート後を出力
         const arr = Array.from({length: arrLength}, (_, i) => i);
 
         let process = []; // 初期化（空の配列として宣言）
-        let compareCount = 0;
-        let swapCount = 0;
-
         for(let i = 0; i < 500; i++){
             shuffleArray(arr);
 
@@ -493,6 +493,8 @@ print(arr)                                # ソート後を出力
                 return process;
             }
         }
+
+        return process;
     }
 
     // 配列をシャッフルする関数
@@ -507,4 +509,3 @@ print(arr)                                # ソート後を出力
   
 </body>
 </html>
-

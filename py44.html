@@ -24,15 +24,15 @@
 
     <article>
       <h2 id="headline_1">(1) 選択ソート（単純選択法）</h2>
-      <h3> 選択ソート（単純選択法）とは</h3>
-      <p><strong> 選択ソート（単純選択法）</strong>は、配列の中から最小の要素を見つけて、先頭に移動させることを繰り返すことでソートするアルゴリズムです。</p>
+      <h3>選択ソート（単純選択法）とは</h3>
+      <p><strong>選択ソート（単純選択法）</strong>は、配列の中から最小の要素を見つけて、先頭に移動させることを繰り返すことでソートするアルゴリズムです。</p>
       
       <h3>手順</h3>
       <ol>
         <li>整列していない配列（リスト）を用意します。</li>
         <li>未整列の先頭の値を暫定の最小値とします。</li>
-        <li>未整列の２番目から末尾までの最小値を探し、暫定の最小値よりも小さければ、未整列の先頭と交換します。</li>
-        <li>未整列の先頭を整列済みにします。</li>
+        <li>未整列部分の2番目から末尾までを調べ、最小値の位置を記録します。</li>
+        <li>未整列の先頭と、見つけた最小値の位置が異なる場合は交換し、未整列の先頭を整列済みにします。</li>
         <li><b>(2)</b>〜<b>(4)</b>を繰り返し、すべての値が整列済みになれば終了します。</li>
       </ol>
       
@@ -40,7 +40,7 @@
       <h3>デモンストレーション</h3>
       <div id="selection-sort" class="demo">
         <label for="arrayLength2">配列の長さ:</label>
-        <input type="number" id="arrayLength2" class="arrayLength" value="8" min="2">
+        <input type="number" id="arrayLength2" class="arrayLength" value="8" min="2" max="20">
         <button onclick="initialize()">配列をリセット</button>
         <div class="container" id="arycontainer"></div>
         <div id="description" class="description"></div>
@@ -49,7 +49,6 @@
       
       
       <h3>プログラム</h3>
-      <p></p>
       <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
       <pre class="python" data-title="選択ソート"><code>
 arr = [6, 3, 2, 0, 7, 1, 4, 5] # 元のリスト
@@ -60,13 +59,14 @@ print("------------------------")
         
 for i in range(n - 1):                # 未整列の左端を1つずつ後にずらしていく（繰り返しインデックスの変数をiとする）
   min_index = i                     # 暫定最小値の位置（初期値は未整列の先頭のインデックス=i）
-  for j in range(i + 1, n):         # 未整列の２番目(i+1)から末尾まで繰り返す（繰り返しインデックスの変数をjとする）
-    if arr[min_index] > arr[j]:   # 暫定最小値よりもj番目の値が小さければ、
-      min_index = j             # 暫定最小値の位置をj番目とする
+  for j in range(i + 1, n):         # 未整列部分の2番目(i+1)から末尾まで繰り返す（繰り返しインデックスの変数をjとする）
+    if arr[min_index] > arr[j]:   # 暫定最小値よりもインデックス番号jの値が小さければ、
+      min_index = j             # 暫定最小値の位置をインデックス番号jとする
                     # この時点で、未整列の最小値がarr[min_index]と決まる
-  tmp = arr[min_index]              # i番目(arr[i])と未整列の最小値(arr[min_index])を交換
-  arr[min_index] = arr[i]
-  arr[i] = tmp
+  if min_index != i:                # インデックス番号iの要素と未整列の最小値を交換する
+    tmp = arr[min_index]
+    arr[min_index] = arr[i]
+    arr[i] = tmp
   print(arr)                        # 途中経過を出力
 
 print("------------------------")
@@ -102,10 +102,10 @@ print(arr)    # ソート後を出力
       <p>となります。</p>
       
       <h4>交換回数</h4>
-      <p>配列の各要素について、暫定最小値よりも未整列部分の最小値が小さい場合に、1回ずつ交換が行われます。よって、最大交換回数は \(n-1\) 回となります。</p>
+      <p>未整列部分の最小値の位置が未整列の先頭と異なる場合に、1回交換します。よって、最大交換回数は \(n-1\) 回となります。</p>
       
       <h4>バブルソートとの比較</h4>
-      <p>比較回数はどちらのアルゴリズムも同じ回数ですが、最大交換回数は選択ソートの方が小さくなりますので、バブルソートよりは少しだけ速くなります。しかし、どちらのアルゴリズムも高効率とはいえず、次ページ以降のアルゴリズムがよく用いられます（プログラミングの学習としては、バブルソートや選択ソートは最適です）。</p>
+      <p>比較回数はどちらのアルゴリズムも同じ回数ですが、最大交換回数は選択ソートの方が小さくなるので、バブルソートよりは少しだけ速くなります。しかし、どちらのアルゴリズムも高効率とはいえず、次ページ以降のアルゴリズムがよく用いられます（プログラミングの学習としては、バブルソートや選択ソートは最適です）。</p>
     
     
     
@@ -181,22 +181,28 @@ print(arr)    # ソート後を出力
         return;
       }
 
-      if(step%4==0){
+      if(step % 4 === 0){
         //startIdをハイライト
         divs[startId].classList.add("highlighted");
         description.textContent = ` 未整列の先頭を暫定の最小値とします。`;
-      }else if(step%4==1){
+      }else if(step % 4 === 1){
         //startId〜最後までの最小値を探し、最小値をハイライト
         minId = findMin();
         divs[minId].classList.add("highlighted");
-        description.textContent = ` 未整列の先頭よりあとの値の最小値を探します。`;
-      }else if(step%4==2){
+        description.textContent = ` 未整列の範囲の最小値を探します。`;
+      }else if(step % 4 === 2){
         //startIdと最小値を交換
-        swap(startId, minId);
-        description.textContent = ` 未整列の先頭と最小値を交換します。`;
+        if(startId !== minId){
+          swap(startId, minId);
+          description.textContent = ` 未整列の先頭と最小値を交換します。`;
+        }else{
+          description.textContent = ` 未整列の先頭が最小値なので、交換しません。`;
+        }
 
       }else{
         //startIdをsortedに換え、startId++
+        divs[startId].classList.remove("highlighted");
+        divs[minId].classList.remove("highlighted");
         divs[startId].classList.remove("swapped");
         divs[minId].classList.remove("swapped");
         divs[startId].classList.add("sorted");
@@ -208,10 +214,10 @@ print(arr)    # ソート後を出力
     }
 
     function findMin(){
-      min = parseInt(divs[startId].textContent);
-      k = startId;
+      let min = parseInt(divs[startId].textContent);
+      let k = startId;
 
-      for(let i=startId;i<divs.length;i++){
+      for(let i=startId + 1;i<divs.length;i++){
         if(min > parseInt(divs[i].textContent)){
           min = parseInt(divs[i].textContent);
           k = i;
@@ -364,8 +370,6 @@ print(arr)    # ソート後を出力
           const arr = Array.from({length: arrLength}, (_, i) => i);
 
           let process = []; // 初期化（空の配列として宣言）
-          let compareCount = 0;
-          let swapCount = 0;
 
           for(let i = 0; i < 500; i++){
               shuffleArray(arr);
@@ -377,6 +381,8 @@ print(arr)    # ソート後を出力
                   return process;
               }
           }
+
+          return process;
       }
 
       // 配列をシャッフルする関数 
@@ -391,4 +397,3 @@ print(arr)    # ソート後を出力
   
 </body>
 </html>
-
