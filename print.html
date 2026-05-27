@@ -1,0 +1,181 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme: light dark; background: transparent; }
+    @media (prefers-color-scheme: dark) {
+      html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+    }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme: dark) {
+      body { background-color:#0b0b0b; }
+    }
+  </style>
+
+  <title>配布プリントを開いています | 海城中学高等学校 情報科</title>
+
+  <link rel="stylesheet" href="./css/css.css">
+  <script src="./js/head.js"></script>
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/pages.js"></script>
+  <script defer src="./js/script.js"></script>
+  <script defer src="./js/nav.js"></script>
+</head>
+
+<body>
+<header id="site-header" role="banner">
+  <div class="headerbar">
+    <div class="headerbar__brand" aria-label="学校名">
+      <a href="./index.html">海城中学高等学校<span class="subject">情報科</span></a>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section>
+    <article id="print-message">
+      <h2>配布プリントを開いています...</h2>
+      <p>しばらく待っても自動的に移動しない場合は、下のリンクをクリックしてください。</p>
+      <ul id="print-link-list"></ul>
+    </article>
+  </section>
+</main>
+
+<script>
+(() => {
+  const PRINT_GAS_EXEC_URL = 'https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbyVF9w7H9USxG3kAbK9hUGahugJJXh3pwfZrjDpWcPk-800GNxLkoGc1fXqRddWAm8a/exec';
+
+  const params = new URL(location.href).searchParams;
+
+  const getParam = (key) => {
+    const value = params.get(key);
+    return value !== null ? value.trim() : '';
+  };
+
+  const pickParam = (...keys) => {
+    for (const key of keys) {
+      const value = getParam(key);
+      if (value) return value;
+    }
+    return '';
+  };
+
+  function buildGasUrl() {
+    // id / printId / p のどれでも受けられるようにする
+    const id = pickParam('id', 'printId', 'p');
+
+    // 将来用。今は使わなくても、GAS側が対応すればそのまま渡せる。
+    const year = getParam('year');
+
+    const url = new URL(PRINT_GAS_EXEC_URL);
+
+    if (id) {
+      url.searchParams.set('id', id);
+    }
+
+    if (year) {
+      url.searchParams.set('year', year);
+    }
+
+    return {
+      id,
+      year,
+      url: url.toString()
+    };
+  }
+
+  function clearElement(el) {
+    while (el.firstChild) {
+      el.removeChild(el.firstChild);
+    }
+  }
+
+  function showError(message) {
+    const article = document.getElementById('print-message');
+    clearElement(article);
+
+    const h2 = document.createElement('h2');
+    h2.textContent = 'プリントを開けません';
+
+    const p = document.createElement('p');
+    p.textContent = message;
+
+    const back = document.createElement('p');
+    const a = document.createElement('a');
+    a.href = './index.html';
+    a.textContent = '情報科トップへ戻る';
+    back.appendChild(a);
+
+    article.appendChild(h2);
+    article.appendChild(p);
+    article.appendChild(back);
+  }
+
+  function renderLink(gasUrl, id) {
+    const ul = document.getElementById('print-link-list');
+    clearElement(ul);
+
+    const li = document.createElement('li');
+    const a = document.createElement('a');
+
+    a.href = gasUrl;
+    a.textContent = id ? `プリント ${id} を開く` : '配布プリント一覧を開く';
+    a.rel = 'noopener';
+
+    li.appendChild(a);
+    ul.appendChild(li);
+  }
+
+  function updateMessage(id) {
+    const h2 = document.querySelector('#print-message h2');
+
+    if (h2) {
+      h2.textContent = id
+        ? `『${id}』のプリントを開いています...`
+        : '配布プリント一覧を開いています...';
+    }
+
+    document.title = id
+      ? `プリント ${id} を開いています | 海城中学高等学校 情報科`
+      : '配布プリント一覧 | 海城中学高等学校 情報科';
+  }
+
+  function main() {
+    if (!PRINT_GAS_EXEC_URL || PRINT_GAS_EXEC_URL.includes('ここにデプロイID')) {
+      showError('プリント公開GASのURLがまだ設定されていません。');
+      return;
+    }
+
+    const { id, url } = buildGasUrl();
+
+    updateMessage(id);
+    renderLink(url, id);
+
+    // ?redirect=0 のときだけ自動遷移しない。
+    if (getParam('redirect') !== '0') {
+      location.href = url;
+    }
+  }
+
+  window.addEventListener('DOMContentLoaded', main, { once: true });
+})();
+</script>
+
+<footer id="site-footer" role="contentinfo">
+  Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.
+</footer>
+
+<aside id="nav-drawer" role="complementary" aria-label="サイドナビゲーション">
+  <div class="nav-drawer__panel">
+    <div class="nav-drawer__logo">
+      <a class="nav-drawer__logoLink" href="index.html" aria-label="海城中学高等学校 情報科">
+        <img src="./img/logo.png" class="nav-drawer__logoImg" width="120" height="124" alt="海城中学高等学校 情報科 ロゴ">
+      </a>
+    </div>
+    <nav id="auto-nav"></nav>
+  </div>
+  <button id="nav-handle" type="button" aria-label="ナビを開閉" aria-expanded="false"></button>
+</aside>
+</body>
+</html>
