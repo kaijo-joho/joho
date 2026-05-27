@@ -1,4 +1,4 @@
-//2026-05-14 12:29:15;
+//2026-05-27 09:45:01;
 const pages = {
   "index": {
     "id": "index",
@@ -1626,7 +1626,7 @@ const pages = {
     "questionFile": [
       {
         "id": "py33a",
-        "release": true,
+        "release": false,
         "title": "3-3_２次元リスト_問題（問題）.ipynb",
         "fileName": "3-3_２次元リスト_問題（問題）.ipynb",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py33a",
@@ -2933,6 +2933,24 @@ const pages = {
     "category": "index",
     "title": "中間リンク",
     "detail": "中間リンク",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": false,
+    "show": false,
+    "backFile": "index.html"
+  },
+  "print": {
+    "id": "print",
+    "release": true,
+    "fileName": "print.html",
+    "mainTitle": "",
+    "category": "index",
+    "title": "プリント公開用中間リンク",
+    "detail": "プリント公開用中間リンク",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
