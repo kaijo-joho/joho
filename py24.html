@@ -76,8 +76,8 @@
         <strong> range関数</strong>は、引数の数によって返す整数列が異なります。<br>
       </p>
       
-      <h3><tt>range(</tt><b>終了値</b><tt>)</tt></h3>
-      <p><tt>range(</tt><b>終了値</b><tt>)</tt>は、<tt>0</tt>〜<tt>(</tt><b>終了値</b><tt>-1)</tt>の整数列を返します。</p>
+      <h3><tt>range(<b>終了値</b>)</tt></h3>
+      <p><tt>range(<b>終了値</b>)</tt>は、<tt>0</tt>〜<tt>(<b>終了値</b>-1)</tt>の整数列を返します。</p>
       <p>つまり、<tt>range(5)</tt>は、<tt>[0, 1, 2, 3, 4]</tt>を返します。</p>
       <pre class="python"><code>
         for i in range(5):
@@ -85,8 +85,8 @@
       </code></pre>
       <pre class="result"><code>0 1 2 3 4</code></pre>
       
-      <h3><tt>range(</tt><b>開始値</b><tt>,</tt><b>終了値</b><tt>)</tt></h3>
-      <p><tt>range(</tt><b>開始値</b><tt>,</tt><b>終了値</b><tt>)</tt>は、<b>開始値</b>〜<tt>(</tt><b>終了値</b><tt>-1)</tt>の整数列を返します。</p>
+      <h3><tt>range(<b>開始値</b>,<b>終了値</b>)</tt></h3>
+      <p><tt>range(<b>開始値</b>,<b>終了値</b>)</tt>は、<b>開始値</b>〜<tt>(<b>終了値</b>-1)</tt>の整数列を返します。</p>
       <p>つまり、<tt>range(10, 20)</tt>は、<tt>[10, 11, 12, ..., 19]</tt>を返します。</p>
       <pre class="python"><code>
         for i in range(10, 20):
@@ -95,8 +95,8 @@
       <pre class="result"><code>10 11 12 13 14 15 16 17 18 19</code></pre>
       
       
-      <h3><tt>range(</tt><b>開始値</b><tt>,</tt><b>終了値</b><tt>,</tt><b>ステップ</b><tt>)</tt></h3>
-  <p><tt>range(</tt><b>開始値</b><tt>,</tt><b>終了値</b><tt>,</tt><b>ステップ</b><tt>)</tt>は、<b>開始値</b>〜<tt>(</tt><b>終了値</b><tt>-1)</tt>までステップおきに増加する整数列を返します。</p>
+      <h3><tt>range(<b>開始値</b>,<b>終了値</b>,</tt><b>ステップ</b><tt>)</tt></h3>
+  <p><tt>range(<b>開始値</b>,<b>終了値</b>,</tt><b>ステップ</b><tt>)</tt>は、<b>開始値</b>〜<tt>(<b>終了値</b>-1)</tt>までステップおきに増加する整数列を返します。</p>
       <p>つまり、<tt>range(10, 20, 3)</tt>は、<tt>[10, 13, 16, 19]</tt>を返します。</p>
       <pre class="python"><code>
         for i in range(10, 20, 3):
