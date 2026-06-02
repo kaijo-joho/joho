@@ -1,4 +1,4 @@
-const update = '2026-05-18 15:35:35';
+const update = '2026-06-02 14:36:58';
 
 const quizzes = {
   "py11": {
@@ -136,7 +136,7 @@ const quizzes = {
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ipr03"
   },
-  "ipr_test": {
+  "ipr-test": {
     "title": "知的財産権と個人情報・プライバシー_仮問題",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ipr_test"
@@ -156,7 +156,7 @@ const quizzes = {
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=sec03"
   },
-  "lc_test": {
+  "lc-test": {
     "title": "論理回路 テスト",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=lc_test"
@@ -582,60 +582,75 @@ const pubFiles = {
 window.pubFiles = pubFiles;
 
 const notices = {
-  "hw3_data": {
+  "ai-policy": {
+    "title": "生成AI指針テンプレ",
+    "description": "",
+    "url": "https://docs.google.com/document/d/18C7jqZzge9PPf55VPpwRGDNowAp4Ug5i-RHvNgkYMdI/edit?usp=drivesdk"
+  },
+  "hw3-data": {
     "title": "中3_データの分析_最終課題",
     "description": "",
     "url": "https://docs.google.com/document/d/19sKZqGnCX6BfwyFn1IVad-PQQdRpzZ9gHrg9axs4yno/edit?usp=drivesdk"
   },
-  "hw3_exam": {
+  "hw3-exam": {
     "title": "中3_入試期間中の課題",
     "description": "",
     "url": "https://docs.google.com/document/d/1V_22zJpyHMq-5w6cj0L7WRaTayu-zvkEs4ZwbIpwp5I/edit?usp=drivesdk"
   },
-  "hw4_exam": {
-    "title": "高1_入試期間中の宿題",
+  "hw3-gw": {
+    "title": "中3_GW中の課題（自主学習「コンピュータの構成」）",
     "description": "",
-    "url": "https://docs.google.com/document/d/1ySgJjtn7fCfeHnR-HnWjCFDQf0z2-G_F_9Z6F34eRD0/edit?usp=drivesdk"
+    "url": "https://docs.google.com/document/d/1d0ATx9JCiGVu93Hx1prE82HqxmC6mmupqkPnegVmQIc/edit?usp=drivesdk"
   },
-  "noti_firefly": {
-    "title": "Firefly実習",
-    "description": "",
-    "url": "https://docs.google.com/presentation/d/16By_P147zDyW7M-tUvoxgQiqH3lPgE7nx2whXNFciqk/edit?usp=drivesdk"
-  },
-  "hw3_photo": {
-    "title": "中3_修学旅行での素材集めについて",
-    "description": "",
-    "url": "https://docs.google.com/document/d/1HX5GqFfmobKCqb3tPePWG9IuRPos8yUFgT7hF1R8gAM/edit?usp=drivesdk"
-  },
-  "hw3_html": {
+  "hw3-html": {
     "title": "HTML最終課題の提出",
     "description": "",
     "url": "https://docs.google.com/presentation/d/107suvqG5EMDPoG428EyPlOIni8EkYAS9i3wOMlxjuP8/edit?usp=drivesdk"
   },
-  "hw3_picto": {
+  "hw3-photo": {
+    "title": "中3_修学旅行での素材集めについて",
+    "description": "",
+    "url": "https://docs.google.com/document/d/1HX5GqFfmobKCqb3tPePWG9IuRPos8yUFgT7hF1R8gAM/edit?usp=drivesdk"
+  },
+  "hw3-picto": {
     "title": "中3_1学期_ピクトグラム最終課題",
     "description": "",
     "url": "https://docs.google.com/document/d/1t3uv7xG2a-ff5nLCGn-GhXL7af_Za_z6-Y8TQ33Yr5I/edit?usp=drivesdk"
   },
-  "hw3_smr": {
-    "title": "2025-07_中3_夏休みの宿題",
+  "hw3-smr": {
+    "title": "中3_夏休みの宿題",
     "description": "",
     "url": "https://docs.google.com/document/d/119LV80dwLuLewl-0uarLLyJ55AwPhYCiYQDtmTiPC80/edit?usp=drivesdk"
   },
-  "hw4_smr": {
-    "title": "2025-07_高1_夏休みの宿題",
+  "hw3-t1": {
+    "title": "中3_1学期期末前の課題",
     "description": "",
-    "url": "https://docs.google.com/document/d/1VTMZ2CIo2FdJJ1N_iPiLtkUXyIjr0MHKXFSuEctWM7Y/edit?usp=drivesdk"
+    "url": "https://docs.google.com/document/d/10WiHKxs-bZvWIf9UysCeG0tyScMUF48st8XMQ8ODu94/edit?usp=drivesdk"
   },
-  "hw3_wtr": {
+  "hw3-wtr": {
     "title": "中3_HTML実習最終課題（冬休みの宿題）",
     "description": "",
     "url": "https://docs.google.com/document/d/1zUbnH1Li4gzoSCc99tQWuHX2UJVbjM8AGcnZVvQNkUI/edit?usp=drivesdk"
   },
-  "hw4_wtr": {
+  "hw4-exam": {
+    "title": "高1_入試期間中の宿題",
+    "description": "",
+    "url": "https://docs.google.com/document/d/1ySgJjtn7fCfeHnR-HnWjCFDQf0z2-G_F_9Z6F34eRD0/edit?usp=drivesdk"
+  },
+  "hw4-smr": {
+    "title": "高1_夏休みの宿題",
+    "description": "",
+    "url": "https://docs.google.com/document/d/1VTMZ2CIo2FdJJ1N_iPiLtkUXyIjr0MHKXFSuEctWM7Y/edit?usp=drivesdk"
+  },
+  "hw4-wtr": {
     "title": "高1_冬休みの宿題",
     "description": "",
     "url": "https://docs.google.com/document/d/14X1uGBHd2X4tLW-UaHR-6_IX8OHbvdtjb0HD3EZINi0/edit?usp=drivesdk"
+  },
+  "noti-firefly": {
+    "title": "Firefly実習",
+    "description": "",
+    "url": "https://docs.google.com/presentation/d/16By_P147zDyW7M-tUvoxgQiqH3lPgE7nx2whXNFciqk/edit?usp=drivesdk"
   },
   "ori3": {
     "title": "情報の授業について中3",
@@ -646,16 +661,6 @@ const notices = {
     "title": "情報の授業について高1",
     "description": "",
     "url": "https://docs.google.com/presentation/d/1WBxMjmE6O3_VwZ6Swq4zDb5MLnIBiLbwfGMOJqd3GcA/edit?usp=drivesdk"
-  },
-  "ai_policy": {
-    "title": "生成AI指針テンプレ",
-    "description": "",
-    "url": "https://docs.google.com/document/d/18C7jqZzge9PPf55VPpwRGDNowAp4Ug5i-RHvNgkYMdI/edit?usp=drivesdk"
-  },
-  "hw3_gw": {
-    "title": "中3_GW中の課題（自主学習「コンピュータの構成」）",
-    "description": "",
-    "url": "https://docs.google.com/document/d/1d0ATx9JCiGVu93Hx1prE82HqxmC6mmupqkPnegVmQIc/edit?usp=drivesdk"
   }
 };
 window.notices = notices;
@@ -735,12 +740,12 @@ const typing = {
 window.typing = typing;
 
 const files = {
-  "py_kadai01": {
+  "py-kadai01": {
     "title": "夏休みの課題.ipynb",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py_kadai01"
   },
-  "py_kadai02": {
+  "py-kadai02": {
     "title": "冬休みの課題.ipynb",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py_kadai02"
@@ -1105,42 +1110,42 @@ const files = {
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss35w"
   },
-  "ss39_kadai": {
+  "ss39-kadai": {
     "title": "SS3-9_課題データセット",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_kadai"
   },
-  "ss39_report_a": {
+  "ss39-report-a": {
     "title": "SS3-9_データの分析最終課題_提出用レポートA",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_report_a"
   },
-  "ss39_report_b": {
+  "ss39-report-b": {
     "title": "SS3-9_データの分析最終課題_提出用レポートB",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_report_b"
   },
-  "ss39_report_c": {
+  "ss39-report-c": {
     "title": "SS3-9_データの分析最終課題_提出用レポートC",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_report_c"
   },
-  "ss39_report_d1": {
+  "ss39-report-d1": {
     "title": "SS3-9_データの分析最終課題_提出用レポートD1",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_report_d1"
   },
-  "ss39_report_d2": {
+  "ss39-report-d2": {
     "title": "SS3-9_データの分析最終課題_提出用レポートD2",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_report_d2"
   },
-  "ss39_report_d3": {
+  "ss39-report-d3": {
     "title": "SS3-9_データの分析最終課題_提出用レポートD3",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_report_d3"
   },
-  "ss39_ss": {
+  "ss39-ss": {
     "title": "SS3-9_データの分析最終課題_提出用スプレッドシート",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss39_ss"
