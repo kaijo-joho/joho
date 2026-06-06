@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-06-06T05:57:22.924Z",
+  "generatedAt": "2026-06-06T06:08:02.361Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -277,6 +277,1759 @@
       ],
       "source": "teacher",
       "note": "ji/zi, sho/syo確認"
+    },
+    {
+      "phraseId": "p0101",
+      "displayText": "おはよう",
+      "kanaText": "おはよう",
+      "primaryRoman": "ohayou",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0102",
+      "displayText": "こんにちは",
+      "kanaText": "こんにちは",
+      "primaryRoman": "konnichiha",
+      "extraVariants": [
+        "konnnichiha"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0103",
+      "displayText": "ありがとう",
+      "kanaText": "ありがとう",
+      "primaryRoman": "arigatou",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0104",
+      "displayText": "さようなら",
+      "kanaText": "さようなら",
+      "primaryRoman": "sayounara",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0105",
+      "displayText": "ひるやすみ",
+      "kanaText": "ひるやすみ",
+      "primaryRoman": "hiruyasumi",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0106",
+      "displayText": "よるごはん",
+      "kanaText": "よるごはん",
+      "primaryRoman": "yorugohan",
+      "extraVariants": [
+        "yorugohann"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0107",
+      "displayText": "けしごむ",
+      "kanaText": "けしごむ",
+      "primaryRoman": "keshigomu",
+      "extraVariants": [
+        "kesigomu"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "shi"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0108",
+      "displayText": "ものさし",
+      "kanaText": "ものさし",
+      "primaryRoman": "monosashi",
+      "extraVariants": [
+        "monosasi"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "shi"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0109",
+      "displayText": "つくえ",
+      "kanaText": "つくえ",
+      "primaryRoman": "tsukue",
+      "extraVariants": [
+        "tukue"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0110",
+      "displayText": "いす",
+      "kanaText": "いす",
+      "primaryRoman": "isu",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0111",
+      "displayText": "かばん",
+      "kanaText": "かばん",
+      "primaryRoman": "kaban",
+      "extraVariants": [
+        "kabann"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0112",
+      "displayText": "くつ",
+      "kanaText": "くつ",
+      "primaryRoman": "kutsu",
+      "extraVariants": [
+        "kutu"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0113",
+      "displayText": "ほん",
+      "kanaText": "ほん",
+      "primaryRoman": "hon",
+      "extraVariants": [
+        "honn"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0114",
+      "displayText": "じかん",
+      "kanaText": "じかん",
+      "primaryRoman": "jikan",
+      "extraVariants": [
+        "zikan",
+        "jikann",
+        "zikann"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "ji",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0115",
+      "displayText": "ろうか",
+      "kanaText": "ろうか",
+      "primaryRoman": "rouka",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0116",
+      "displayText": "まど",
+      "kanaText": "まど",
+      "primaryRoman": "mado",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0117",
+      "displayText": "そら",
+      "kanaText": "そら",
+      "primaryRoman": "sora",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0118",
+      "displayText": "あめ",
+      "kanaText": "あめ",
+      "primaryRoman": "ame",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0119",
+      "displayText": "ゆき",
+      "kanaText": "ゆき",
+      "primaryRoman": "yuki",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0120",
+      "displayText": "はれ",
+      "kanaText": "はれ",
+      "primaryRoman": "hare",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0121",
+      "displayText": "くもり",
+      "kanaText": "くもり",
+      "primaryRoman": "kumori",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0122",
+      "displayText": "でんき",
+      "kanaText": "でんき",
+      "primaryRoman": "denki",
+      "extraVariants": [
+        "dennki"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0123",
+      "displayText": "みず",
+      "kanaText": "みず",
+      "primaryRoman": "mizu",
+      "extraVariants": [
+        "midu"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0124",
+      "displayText": "しろ",
+      "kanaText": "しろ",
+      "primaryRoman": "shiro",
+      "extraVariants": [
+        "siro"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "shi"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0125",
+      "displayText": "くろ",
+      "kanaText": "くろ",
+      "primaryRoman": "kuro",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0126",
+      "displayText": "みどり",
+      "kanaText": "みどり",
+      "primaryRoman": "midori",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0127",
+      "displayText": "すうじ",
+      "kanaText": "すうじ",
+      "primaryRoman": "suuji",
+      "extraVariants": [
+        "suuzi"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0128",
+      "displayText": "きょうしつ",
+      "kanaText": "きょうしつ",
+      "primaryRoman": "kyoushitsu",
+      "extraVariants": [
+        "kyousitu",
+        "kyoushitu",
+        "kyousitsu"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "yoon",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "D1/D2追加"
+    },
+    {
+      "phraseId": "p0201",
+      "displayText": "朝の会",
+      "kanaText": "あさのかい",
+      "primaryRoman": "asanokai",
+      "extraVariants": [],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0202",
+      "displayText": "帰り道",
+      "kanaText": "かえりみち",
+      "primaryRoman": "kaerimichi",
+      "extraVariants": [
+        "kaerimiti"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "chi"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0203",
+      "displayText": "時間割",
+      "kanaText": "じかんわり",
+      "primaryRoman": "jikanwari",
+      "extraVariants": [
+        "zikanwari"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0204",
+      "displayText": "教室移動",
+      "kanaText": "きょうしついどう",
+      "primaryRoman": "kyoushitsuido",
+      "extraVariants": [
+        "kyousituido",
+        "kyoushituido"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "yoon",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0205",
+      "displayText": "宿題確認",
+      "kanaText": "しゅくだいかくにん",
+      "primaryRoman": "shukudaikakunin",
+      "extraVariants": [
+        "syukudaikakunin"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "yoon",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0206",
+      "displayText": "提出する",
+      "kanaText": "ていしゅつする",
+      "primaryRoman": "teishutsusuru",
+      "extraVariants": [
+        "teisyutsusuru",
+        "teishutusuru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "yoon",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0207",
+      "displayText": "本を読む",
+      "kanaText": "ほんをよむ",
+      "primaryRoman": "honwoyomu",
+      "extraVariants": [
+        "honnwoyomu"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0208",
+      "displayText": "文字を書く",
+      "kanaText": "もじをかく",
+      "primaryRoman": "mojiwokaku",
+      "extraVariants": [
+        "moziwokaku"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0209",
+      "displayText": "表を見る",
+      "kanaText": "ひょうをみる",
+      "primaryRoman": "hyouwomiru",
+      "extraVariants": [],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0210",
+      "displayText": "名前を書く",
+      "kanaText": "なまえをかく",
+      "primaryRoman": "namaewokaku",
+      "extraVariants": [],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0211",
+      "displayText": "写真を見る",
+      "kanaText": "しゃしんをみる",
+      "primaryRoman": "shashinwomiru",
+      "extraVariants": [
+        "syasinwomiru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "yoon",
+        "shi"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0212",
+      "displayText": "地図を見る",
+      "kanaText": "ちずをみる",
+      "primaryRoman": "chizuwomiru",
+      "extraVariants": [
+        "tizuwomiru",
+        "chiduwomiru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "chi"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0213",
+      "displayText": "順番を守る",
+      "kanaText": "じゅんばんをまもる",
+      "primaryRoman": "junbanwomamoru",
+      "extraVariants": [
+        "zyunbanwomamoru",
+        "junbannwomamoru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "yoon",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0214",
+      "displayText": "予定を確認",
+      "kanaText": "よていをかくにん",
+      "primaryRoman": "yoteiwokakunin",
+      "extraVariants": [
+        "yoteiwokakuninn"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0215",
+      "displayText": "入力する",
+      "kanaText": "にゅうりょくする",
+      "primaryRoman": "nyuuryokusuru",
+      "extraVariants": [
+        "nilyuuryokusuru",
+        "nixyuuryokusuru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "nyu"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0216",
+      "displayText": "保存する",
+      "kanaText": "ほぞんする",
+      "primaryRoman": "hozonsuru",
+      "extraVariants": [
+        "hozonnsuru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0217",
+      "displayText": "検索する",
+      "kanaText": "けんさくする",
+      "primaryRoman": "kensakusuru",
+      "extraVariants": [
+        "kennsakusuru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0218",
+      "displayText": "印刷する",
+      "kanaText": "いんさつする",
+      "primaryRoman": "insatsusuru",
+      "extraVariants": [
+        "innsatsusuru",
+        "insatusuru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "n",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0219",
+      "displayText": "画面を見る",
+      "kanaText": "がめんをみる",
+      "primaryRoman": "gamenwomiru",
+      "extraVariants": [
+        "gamennwomiru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0220",
+      "displayText": "画像を開く",
+      "kanaText": "がぞうをひらく",
+      "primaryRoman": "gazouwohiraku",
+      "extraVariants": [],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0221",
+      "displayText": "動画を見る",
+      "kanaText": "どうがをみる",
+      "primaryRoman": "dougawomiru",
+      "extraVariants": [],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0222",
+      "displayText": "メールを書く",
+      "kanaText": "めーるをかく",
+      "primaryRoman": "me-ruwokaku",
+      "extraVariants": [],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "long"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0223",
+      "displayText": "資料を配る",
+      "kanaText": "しりょうをくばる",
+      "primaryRoman": "shiryouwokubaru",
+      "extraVariants": [
+        "siryouwokubaru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "yoon",
+        "shi"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0224",
+      "displayText": "発表する",
+      "kanaText": "はっぴょうする",
+      "primaryRoman": "happiyousuru",
+      "extraVariants": [
+        "happyousuru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "sokuon",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0225",
+      "displayText": "練習する",
+      "kanaText": "れんしゅうする",
+      "primaryRoman": "renshuusuru",
+      "extraVariants": [
+        "rensyuusuru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "yoon",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0226",
+      "displayText": "確認する",
+      "kanaText": "かくにんする",
+      "primaryRoman": "kakuninsuru",
+      "extraVariants": [
+        "kakuninnsuru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0227",
+      "displayText": "整理する",
+      "kanaText": "せいりする",
+      "primaryRoman": "seirisuru",
+      "extraVariants": [],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0228",
+      "displayText": "説明する",
+      "kanaText": "せつめいする",
+      "primaryRoman": "setsumeisuru",
+      "extraVariants": [
+        "setumeisuru"
+      ],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0229",
+      "displayText": "記録する",
+      "kanaText": "きろくする",
+      "primaryRoman": "kirokusuru",
+      "extraVariants": [],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0230",
+      "displayText": "比較する",
+      "kanaText": "ひかくする",
+      "primaryRoman": "hikakusuru",
+      "extraVariants": [],
+      "phraseLevel": "P2",
+      "divisions": [
+        "D2",
+        "D3"
+      ],
+      "tags": [
+        "school"
+      ],
+      "source": "teacher",
+      "note": "D2/D3追加"
+    },
+    {
+      "phraseId": "p0301",
+      "displayText": "ファイルを保存する",
+      "kanaText": "ふぁいるをほぞんする",
+      "primaryRoman": "fairuwohozonsuru",
+      "extraVariants": [
+        "fuairuwohozonsuru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "fa"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0302",
+      "displayText": "フォルダを開く",
+      "kanaText": "ふぉるだをひらく",
+      "primaryRoman": "forudawohiraku",
+      "extraVariants": [
+        "fuorudawohiraku"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "fo"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0303",
+      "displayText": "フィルタを使う",
+      "kanaText": "ふぃるたをつかう",
+      "primaryRoman": "firutawotsukau",
+      "extraVariants": [
+        "fuirutawotukau",
+        "firutawotukau"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "fi",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0304",
+      "displayText": "フェーズを分ける",
+      "kanaText": "ふぇーずをわける",
+      "primaryRoman": "fe-zuwowakeru",
+      "extraVariants": [
+        "fue-zuwowakeru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "fe",
+        "long"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0305",
+      "displayText": "データを分析する",
+      "kanaText": "でーたをぶんせきする",
+      "primaryRoman": "de-tawobunsekisuru",
+      "extraVariants": [
+        "de-tawobunnsekisuru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "long",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0306",
+      "displayText": "グラフを作成する",
+      "kanaText": "ぐらふをさくせいする",
+      "primaryRoman": "gurafuwosakuseisuru",
+      "extraVariants": [],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0307",
+      "displayText": "セルを選択する",
+      "kanaText": "せるをせんたくする",
+      "primaryRoman": "seruwosentakusuru",
+      "extraVariants": [
+        "seruwosenntakusuru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0308",
+      "displayText": "関数を入力する",
+      "kanaText": "かんすうをにゅうりょくする",
+      "primaryRoman": "kansuuwonyuuryokusuru",
+      "extraVariants": [
+        "kannsuuwonyuuryokusuru",
+        "kansuuwonilyuuryokusuru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "nyu",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0309",
+      "displayText": "条件を確認する",
+      "kanaText": "じょうけんをかくにんする",
+      "primaryRoman": "joukenwokakuninsuru",
+      "extraVariants": [
+        "zyoukenwokakuninsuru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "jo",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0310",
+      "displayText": "画像を挿入する",
+      "kanaText": "がぞうをそうにゅうする",
+      "primaryRoman": "gazouwosounyuusuru",
+      "extraVariants": [
+        "gazouwosounilyuusuru",
+        "gazouwosounixyuusuru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "nyu"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0311",
+      "displayText": "リンクを設定する",
+      "kanaText": "りんくをせっていする",
+      "primaryRoman": "rinkuwosetteisuru",
+      "extraVariants": [
+        "rinnkuwosetteisuru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "n",
+        "sokuon"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0312",
+      "displayText": "表計算を使う",
+      "kanaText": "ひょうけいさんをつかう",
+      "primaryRoman": "hyoukeisanwotsukau",
+      "extraVariants": [
+        "hyoukeisannwotukau"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "tsu",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0313",
+      "displayText": "ページを確認する",
+      "kanaText": "ぺーじをかくにんする",
+      "primaryRoman": "pe-jiwokakuninsuru",
+      "extraVariants": [
+        "pe-ziwokakuninsuru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "long",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0314",
+      "displayText": "スタイルを変更する",
+      "kanaText": "すたいるをへんこうする",
+      "primaryRoman": "sutairuwohenkousuru",
+      "extraVariants": [
+        "sutairuwohennkousuru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0315",
+      "displayText": "見出しを作る",
+      "kanaText": "みだしをつくる",
+      "primaryRoman": "midashiwotsukuru",
+      "extraVariants": [
+        "midasiwotukuru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "shi",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0316",
+      "displayText": "文字色を変える",
+      "kanaText": "もじいろをかえる",
+      "primaryRoman": "mojiirowokaeru",
+      "extraVariants": [
+        "moziirowokaeru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0317",
+      "displayText": "背景色を選ぶ",
+      "kanaText": "はいけいしょくをえらぶ",
+      "primaryRoman": "haikeishokuwoerabu",
+      "extraVariants": [
+        "haikeisyokuwoerabu"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "sho"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0318",
+      "displayText": "画面を共有する",
+      "kanaText": "がめんをきょうゆうする",
+      "primaryRoman": "gamenwokyouyuusuru",
+      "extraVariants": [
+        "gamennwokyouyuusuru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "yoon",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0319",
+      "displayText": "ネットワークを使う",
+      "kanaText": "ねっとわーくをつかう",
+      "primaryRoman": "nettowa-kuwotsukau",
+      "extraVariants": [
+        "nettowa-kuwotukau"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "long",
+        "sokuon",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0320",
+      "displayText": "ブラウザを開く",
+      "kanaText": "ぶらうざをひらく",
+      "primaryRoman": "burauzawohiraku",
+      "extraVariants": [],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0321",
+      "displayText": "タブを切り替える",
+      "kanaText": "たぶをきりかえる",
+      "primaryRoman": "tabuwokirikaeru",
+      "extraVariants": [],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0322",
+      "displayText": "コピーして貼り付け",
+      "kanaText": "こぴーしてはりつけ",
+      "primaryRoman": "kopi-shiteharitsuke",
+      "extraVariants": [
+        "kopi-siteharituke"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "long",
+        "tsu",
+        "shi"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0323",
+      "displayText": "ショートカットを使う",
+      "kanaText": "しょーとかっとをつかう",
+      "primaryRoman": "sho-tokattowotsukau",
+      "extraVariants": [
+        "syo-tokattowotukau"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "long",
+        "sokuon",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0324",
+      "displayText": "ディスプレイを見る",
+      "kanaText": "でぃすぷれいをみる",
+      "primaryRoman": "dhisupureiwomiru",
+      "extraVariants": [
+        "delisupureiwomiru",
+        "dexisupureiwomiru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "dhi"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0325",
+      "displayText": "ティッシュを取る",
+      "kanaText": "てぃっしゅをとる",
+      "primaryRoman": "tisshuwotoru",
+      "extraVariants": [
+        "thisshuwotoru",
+        "telisshuwotoru",
+        "texisshuwotoru"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "thi",
+        "sokuon"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0326",
+      "displayText": "キーボードを打つ",
+      "kanaText": "きーぼーどをうつ",
+      "primaryRoman": "ki-bo-dowoutsu",
+      "extraVariants": [
+        "ki-bo-dowoutu"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "long",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0327",
+      "displayText": "クリックする",
+      "kanaText": "くりっくする",
+      "primaryRoman": "kurikkusuru",
+      "extraVariants": [],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "sokuon"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0328",
+      "displayText": "ドラッグする",
+      "kanaText": "どらっぐする",
+      "primaryRoman": "doraggusuru",
+      "extraVariants": [],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "sokuon"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0329",
+      "displayText": "パスワードを管理",
+      "kanaText": "ぱすわーどをかんり",
+      "primaryRoman": "pasuwa-dowokanri",
+      "extraVariants": [
+        "pasuwa-dowokannri"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "long",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
+    },
+    {
+      "phraseId": "p0330",
+      "displayText": "アカウントを確認",
+      "kanaText": "あかうんとをかくにん",
+      "primaryRoman": "akauntowokakunin",
+      "extraVariants": [
+        "akaunntowokakunin"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "it",
+        "n"
+      ],
+      "source": "teacher",
+      "note": "D3/D4追加"
     }
   ]
 }
