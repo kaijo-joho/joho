@@ -1,0 +1,282 @@
+{
+  "schemaVersion": "1.0",
+  "dataVersion": "2026-06-06-001",
+  "generatedAt": "2026-06-06T05:57:22.924Z",
+  "source": {
+    "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
+    "spreadsheetName": "タイピングv2"
+  },
+  "games": [
+    {
+      "gameId": "PR-D1",
+      "mode": "practice",
+      "title": "D1 Starter / スターター",
+      "subtitle": "入門",
+      "description": "ひらがな中心・短い語句。",
+      "durationSec": 60,
+      "phraseCount": 12,
+      "sortOrder": 10,
+      "filter": {
+        "divisions": [
+          "D1"
+        ],
+        "levels": [
+          "P1"
+        ],
+        "tags": []
+      },
+      "note": "MVP練習用"
+    },
+    {
+      "gameId": "PR-D2",
+      "mode": "practice",
+      "title": "D2 Rookie / ルーキー",
+      "subtitle": "初級",
+      "description": "日常語・10文字以下。",
+      "durationSec": 60,
+      "phraseCount": 12,
+      "sortOrder": 20,
+      "filter": {
+        "divisions": [
+          "D2"
+        ],
+        "levels": [
+          "P1",
+          "P2"
+        ],
+        "tags": []
+      },
+      "note": "MVP練習用"
+    },
+    {
+      "gameId": "PR-D3",
+      "mode": "practice",
+      "title": "D3 Basic / ベーシック",
+      "subtitle": "基礎",
+      "description": "一般語・漢字少なめ。",
+      "durationSec": 60,
+      "phraseCount": 12,
+      "sortOrder": 30,
+      "filter": {
+        "divisions": [
+          "D3"
+        ],
+        "levels": [
+          "P2",
+          "P3"
+        ],
+        "tags": []
+      },
+      "note": "MVP練習用"
+    },
+    {
+      "gameId": "PR-KEY1",
+      "mode": "practice",
+      "title": "Key 1 / 中段トレーニング",
+      "subtitle": "基礎練習",
+      "description": "中段キー中心の基礎練習。",
+      "durationSec": 60,
+      "phraseCount": 12,
+      "sortOrder": 100,
+      "filter": {
+        "divisions": [],
+        "levels": [
+          "P1"
+        ],
+        "tags": [
+          "key",
+          "middle"
+        ]
+      },
+      "note": "将来の基礎練習用"
+    },
+    {
+      "gameId": "DEBUG-ROMA",
+      "mode": "debug",
+      "title": "DEBUG Romaji / ローマ字ゆれ確認",
+      "subtitle": "デバッグ",
+      "description": "ローマ字入力の表記ゆれ確認用。",
+      "durationSec": 90,
+      "phraseCount": 20,
+      "sortOrder": 999,
+      "filter": {
+        "divisions": [],
+        "levels": [
+          "P1",
+          "P2",
+          "P3",
+          "P4",
+          "P5",
+          "P6"
+        ],
+        "tags": [
+          "debug"
+        ]
+      },
+      "note": "MVPデバッグ用"
+    }
+  ],
+  "phrases": [
+    {
+      "phraseId": "p0001",
+      "displayText": "あさごはん",
+      "kanaText": "あさごはん",
+      "primaryRoman": "asagohan",
+      "extraVariants": [],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana"
+      ],
+      "source": "teacher",
+      "note": "D1/D2確認用"
+    },
+    {
+      "phraseId": "p0002",
+      "displayText": "えんぴつ",
+      "kanaText": "えんぴつ",
+      "primaryRoman": "enpitu",
+      "extraVariants": [
+        "enpitsu"
+      ],
+      "phraseLevel": "P1",
+      "divisions": [
+        "D1",
+        "D2"
+      ],
+      "tags": [
+        "daily",
+        "hiragana",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": "つの揺れ確認"
+    },
+    {
+      "phraseId": "p0003",
+      "displayText": "ファイル",
+      "kanaText": "ふぁいる",
+      "primaryRoman": "fairu",
+      "extraVariants": [
+        "fuairu"
+      ],
+      "phraseLevel": "P3",
+      "divisions": [
+        "D3",
+        "D4"
+      ],
+      "tags": [
+        "debug",
+        "katakana",
+        "fa"
+      ],
+      "source": "teacher",
+      "note": "fairu/fuairu確認"
+    },
+    {
+      "phraseId": "p0004",
+      "displayText": "チェックする",
+      "kanaText": "ちぇっくする",
+      "primaryRoman": "chekkusuru",
+      "extraVariants": [
+        "tyekkusuru"
+      ],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "debug",
+        "che",
+        "sokuon"
+      ],
+      "source": "teacher",
+      "note": "che/tyeと促音確認"
+    },
+    {
+      "phraseId": "p0005",
+      "displayText": "正確に入力",
+      "kanaText": "せいかくににゅうりょく",
+      "primaryRoman": "seikakuninyuuryoku",
+      "extraVariants": [
+        "seikakuninilyuuryoku",
+        "seikakuninixyuuryoku"
+      ],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "debug",
+        "nyu"
+      ],
+      "source": "teacher",
+      "note": "「に」は省略しない"
+    },
+    {
+      "phraseId": "p0006",
+      "displayText": "ネットワーク",
+      "kanaText": "ねっとわーく",
+      "primaryRoman": "nettowa-ku",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "it",
+        "sokuon",
+        "long"
+      ],
+      "source": "teacher",
+      "note": "長音確認"
+    },
+    {
+      "phraseId": "p0007",
+      "displayText": "IPv6アドレス",
+      "kanaText": "あいぴーぶいろくあどれす",
+      "primaryRoman": "aipi-buirokuadoresu",
+      "extraVariants": [],
+      "phraseLevel": "P6",
+      "divisions": [
+        "D6",
+        "D7"
+      ],
+      "tags": [
+        "it",
+        "number",
+        "long"
+      ],
+      "source": "teacher",
+      "note": "英数字混在は後で扱い調整"
+    },
+    {
+      "phraseId": "p0008",
+      "displayText": "情報を処理する",
+      "kanaText": "じょうほうをしょりする",
+      "primaryRoman": "jouhouwoshorisuru",
+      "extraVariants": [
+        "zyouhouwosyorisuru"
+      ],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "debug",
+        "jo",
+        "sho"
+      ],
+      "source": "teacher",
+      "note": "ji/zi, sho/syo確認"
+    }
+  ]
+}
