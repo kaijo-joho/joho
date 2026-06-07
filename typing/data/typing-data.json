@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-06-07T03:42:41.185Z",
+  "generatedAt": "2026-06-07T03:45:20.665Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -74,7 +74,7 @@
       "mode": "practice",
       "title": "D4 Standard / スタンダード",
       "subtitle": "標準",
-      "description": "長めの学校語・情報科基礎フレーズ。60秒で標準入力を鍛える。固定表示はprimaryRoman、表記揺れはWeb側で吸収。",
+      "description": "長めの学校語・情報科基礎フレーズ。60秒で標準入力を鍛える。",
       "durationSec": 60,
       "phraseCount": 12,
       "sortOrder": 40,
@@ -137,7 +137,7 @@
       "mode": "practice",
       "title": "D7 Master / マスター",
       "subtitle": "最上位",
-      "description": "長文・高難度・ネタ枠を含むマスター向けフレーズ。P6/P7中心。",
+      "description": "長文・高難度を含むマスター向けフレーズ。",
       "durationSec": 60,
       "phraseCount": 12,
       "sortOrder": 70,
