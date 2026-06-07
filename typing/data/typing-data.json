@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-06-06T09:17:58.803Z",
+  "generatedAt": "2026-06-07T03:42:41.185Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -6153,7 +6153,9 @@
       "displayText": "3年B組",
       "kanaText": "3ねんびーぐみ",
       "primaryRoman": "3nenbi-gumi",
-      "extraVariants": [],
+      "extraVariants": [
+        "3nenBgumi"
+      ],
       "phraseLevel": "P5",
       "divisions": [
         "D5",
@@ -8691,8 +8693,8 @@
     },
     {
       "phraseId": "p0698",
-      "displayText": "画像サイズ1920×1080",
-      "kanaText": "がぞうさいず1920かける1080",
+      "displayText": "画像サイズ1920x1080",
+      "kanaText": "がぞうさいず1920x1080",
       "primaryRoman": "gazousaizu1920x1080",
       "extraVariants": [
         "gazousaizuichikyuunizerokakeruichizerohachizero"
@@ -9103,7 +9105,7 @@
       "phraseId": "p0717",
       "displayText": "条件式を確認する",
       "kanaText": "じょうけんしきをかくにん",
-      "primaryRoman": "joukenshikiwokakunin",
+      "primaryRoman": "joukenshikiwokakuninsuru",
       "extraVariants": [],
       "phraseLevel": "P4",
       "divisions": [
@@ -9356,7 +9358,7 @@
       "phraseId": "p0730",
       "displayText": "列名を確認する",
       "kanaText": "れつめいをかくにん",
-      "primaryRoman": "retsumeiwokakunin",
+      "primaryRoman": "retsumeiwokakuninsuru",
       "extraVariants": [],
       "phraseLevel": "P3",
       "divisions": [
@@ -9814,7 +9816,7 @@
       "phraseId": "p0753",
       "displayText": "データ型を確認する",
       "kanaText": "でーたがたをかくにんする",
-      "primaryRoman": "de-tagatawokakunin",
+      "primaryRoman": "de-tagatawokakuninsuru",
       "extraVariants": [],
       "phraseLevel": "P4",
       "divisions": [
@@ -9897,7 +9899,7 @@
       "phraseId": "p0757",
       "displayText": "引数の順番を確認する",
       "kanaText": "ひきすうのじゅんばんをかくにん",
-      "primaryRoman": "hikisuunojunbanwokakunin",
+      "primaryRoman": "hikisuunojunbanwokakuninsuru",
       "extraVariants": [],
       "phraseLevel": "P4",
       "divisions": [
@@ -9978,7 +9980,7 @@
       "phraseId": "p0761",
       "displayText": "絶対パスを確認する",
       "kanaText": "ぜったいぱすをかくにんする",
-      "primaryRoman": "zettaipasuwokakunin",
+      "primaryRoman": "zettaipasuwokakuninsuru",
       "extraVariants": [],
       "phraseLevel": "P4",
       "divisions": [
@@ -10064,7 +10066,7 @@
       "phraseId": "p0765",
       "displayText": "重複データを確認する",
       "kanaText": "ちょうふくでーたをかくにんする",
-      "primaryRoman": "choufukude-tawokakunin",
+      "primaryRoman": "choufukude-tawokakuninsuru",
       "extraVariants": [],
       "phraseLevel": "P5",
       "divisions": [
@@ -10150,7 +10152,7 @@
       "phraseId": "p0769",
       "displayText": "サーバーの負荷を確認",
       "kanaText": "さーばーのふかをかくにん",
-      "primaryRoman": "sa-ba-nofukawokakunin",
+      "primaryRoman": "sa-ba-nofukawokakuninsuru",
       "extraVariants": [],
       "phraseLevel": "P4",
       "divisions": [
@@ -10478,7 +10480,7 @@
       "phraseId": "p0785",
       "displayText": "ユーザー権限を確認する",
       "kanaText": "ゆーざーけんげんをかくにんする",
-      "primaryRoman": "yu-za-kengenwokakunin",
+      "primaryRoman": "yu-za-kengenwokakuninsuru",
       "extraVariants": [],
       "phraseLevel": "P4",
       "divisions": [
@@ -10602,7 +10604,7 @@
       "phraseId": "p0791",
       "displayText": "バージョン履歴を確認する",
       "kanaText": "ばーじょんりれきをかくにんする",
-      "primaryRoman": "ba-jonrirekiwokakunin",
+      "primaryRoman": "ba-jonrirekiwokakuninsuru",
       "extraVariants": [],
       "phraseLevel": "P5",
       "divisions": [
@@ -10644,7 +10646,7 @@
       "phraseId": "p0793",
       "displayText": "ログイン状態を確認する",
       "kanaText": "ろぐいんじょうたいをかくにんする",
-      "primaryRoman": "roguinjoutaiwokakunin",
+      "primaryRoman": "roguinjoutaiwokakuninsuru",
       "extraVariants": [],
       "phraseLevel": "P4",
       "divisions": [
@@ -10729,7 +10731,7 @@
       "phraseId": "p0797",
       "displayText": "利用規約を確認する",
       "kanaText": "りようきやくをかくにんする",
-      "primaryRoman": "riyoukiyakuwokakunin",
+      "primaryRoman": "riyoukiyakuwokakuninsuru",
       "extraVariants": [],
       "phraseLevel": "P4",
       "divisions": [
@@ -12123,7 +12125,7 @@
       "phraseId": "p0866",
       "displayText": "IPv6アドレスとMACアドレスを確認する",
       "kanaText": "あいぴーぶいろくあどれすとまっくあどれすをかくにんする",
-      "primaryRoman": "ipv6adoresutomacadoresuwokakunin",
+      "primaryRoman": "ipv6adoresutomacadoresuwokakuninsuru",
       "extraVariants": [
         "IPv6adoresutoMACadoresuwokakunin",
         "aipi-buirokuadoresutomakkuadoresuwokakunin"
@@ -13302,6 +13304,994 @@
         "kanji",
         "yoon",
         "tsu"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0924",
+      "displayText": "席替えの希望を出す",
+      "kanaText": "せきがえのきぼうをだす",
+      "primaryRoman": "sekigaenokibouwodasu",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0925",
+      "displayText": "朝練で体力をつける",
+      "kanaText": "あされんでたいりょくをつける",
+      "primaryRoman": "asarendetairyokuwotsukeru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0926",
+      "displayText": "昼休みに友達と話す",
+      "kanaText": "ひるやすみにともだちとはなす",
+      "primaryRoman": "hiruyasuminitomodachitohanasu",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "chi"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0927",
+      "displayText": "放送委員の原稿を読む",
+      "kanaText": "ほうそういいんのげんこうをよむ",
+      "primaryRoman": "housouiinnogenkouwoyomu",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0928",
+      "displayText": "図書委員の当番表",
+      "kanaText": "としょいいんのとうばんひょう",
+      "primaryRoman": "toshoiinnotoubanhyou",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0929",
+      "displayText": "理科の観察記録",
+      "kanaText": "りかのかんさつきろく",
+      "primaryRoman": "rikanokansatsukiroku",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0930",
+      "displayText": "英語の小テスト対策",
+      "kanaText": "えいごのしょうてすとたいさく",
+      "primaryRoman": "eigonoshoutesutotaisaku",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0931",
+      "displayText": "数学ノートを見直す",
+      "kanaText": "すうがくのーとをみなおす",
+      "primaryRoman": "suugakuno-towominaosu",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji",
+        "long"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0932",
+      "displayText": "歴史年表を暗記する",
+      "kanaText": "れきしねんぴょうをあんきする",
+      "primaryRoman": "rekishinenpyouwoankisuru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "shi"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0933",
+      "displayText": "地理の地図記号",
+      "kanaText": "ちりのちずきごう",
+      "primaryRoman": "chirinochizukigou",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "chi"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0934",
+      "displayText": "家庭科で調理実習",
+      "kanaText": "かていかでちょうりじっしゅう",
+      "primaryRoman": "kateikadechourijisshuu",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "sokuon",
+        "yoon",
+        "chi"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0935",
+      "displayText": "技術室で木材加工",
+      "kanaText": "ぎじゅつしつでもくざいかこう",
+      "primaryRoman": "gijutsushitsudemokuzaikakou",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "tsu",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0936",
+      "displayText": "保健体育のレポート",
+      "kanaText": "ほけんたいいくのれぽーと",
+      "primaryRoman": "hokentaiikunorepo-to",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji",
+        "long"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0937",
+      "displayText": "美術作品を展示する",
+      "kanaText": "びじゅつさくひんをてんじする",
+      "primaryRoman": "bijutsusakuhinwotenjisuru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "tsu",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0938",
+      "displayText": "音楽発表会のリハーサル",
+      "kanaText": "おんがくはっぴょうかいのりはーさる",
+      "primaryRoman": "ongakuhappyoukainoriha-saru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji",
+        "long",
+        "sokuon",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0939",
+      "displayText": "校庭で持久走練習",
+      "kanaText": "こうていでじきゅうそうれんしゅう",
+      "primaryRoman": "kouteidejikyuusourenshuu",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0940",
+      "displayText": "部室の掃除当番",
+      "kanaText": "ぶしつのそうじとうばん",
+      "primaryRoman": "bushitsunosoujitouban",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "tsu",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0941",
+      "displayText": "大会前のミーティング",
+      "kanaText": "たいかいまえのみーてぃんぐ",
+      "primaryRoman": "taikaimaenomi-thingu",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji",
+        "long"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0942",
+      "displayText": "顧問の先生に報告する",
+      "kanaText": "こもんのせんせいにほうこくする",
+      "primaryRoman": "komonnosenseinihoukokusuru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0943",
+      "displayText": "後輩に練習方法を教える",
+      "kanaText": "こうはいにれんしゅうほうほうをおしえる",
+      "primaryRoman": "kouhainirenshuuhouhouwoshieru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0944",
+      "displayText": "先輩の引退試合",
+      "kanaText": "せんぱいのいんたいじあい",
+      "primaryRoman": "senpainointaijiai",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0945",
+      "displayText": "ユニフォームを洗濯する",
+      "kanaText": "ゆにふぉーむをせんたくする",
+      "primaryRoman": "yunifo-muwosentakusuru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji",
+        "long",
+        "fa"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0946",
+      "displayText": "試合結果を記録する",
+      "kanaText": "しあいけっかをきろくする",
+      "primaryRoman": "shiaikekkawokirokusuru",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "sokuon",
+        "shi"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0947",
+      "displayText": "クラス目標を決める",
+      "kanaText": "くらすもくひょうをきめる",
+      "primaryRoman": "kurasumokuhyouwokimeru",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0948",
+      "displayText": "学級新聞の記事を書く",
+      "kanaText": "がっきゅうしんぶんのきじをかく",
+      "primaryRoman": "gakkyuushinbunnokijiwokaku",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "sokuon",
+        "yoon",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0949",
+      "displayText": "掃除用具を片付ける",
+      "kanaText": "そうじようぐをかたづける",
+      "primaryRoman": "soujiyouguwokatadukeru",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0950",
+      "displayText": "プリントを配布する",
+      "kanaText": "ぷりんとをはいふする",
+      "primaryRoman": "purintowohaifusuru",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0951",
+      "displayText": "忘れ物を職員室に取りに行く",
+      "kanaText": "わすれものをしょくいんしつにとりにいく",
+      "primaryRoman": "wasuremonowoshokuinshitsunitoriniiku",
+      "extraVariants": [],
+      "phraseLevel": "P6",
+      "divisions": [
+        "D6",
+        "D7"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0952",
+      "displayText": "遅刻理由を説明する",
+      "kanaText": "ちこくりゆうをせつめいする",
+      "primaryRoman": "chikokuriyuuwosetsumeisuru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "chi",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0953",
+      "displayText": "保護者会のお知らせ",
+      "kanaText": "ほごしゃかいのおしらせ",
+      "primaryRoman": "hogoshakainoshirase",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0954",
+      "displayText": "三者面談の日程調整",
+      "kanaText": "さんしゃめんだんのにっていちょうせい",
+      "primaryRoman": "sanshamendannonitteichousei",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "sokuon",
+        "yoon",
+        "chi"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0955",
+      "displayText": "通知表を受け取る",
+      "kanaText": "つうちひょうをうけとる",
+      "primaryRoman": "tsuuchihyouwouketoru",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "chi",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0956",
+      "displayText": "成績表を確認する",
+      "kanaText": "せいせきひょうをかくにんする",
+      "primaryRoman": "seisekihyouwokakuninsuru",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0957",
+      "displayText": "実力テストの復習",
+      "kanaText": "じつりょくてすとのふくしゅう",
+      "primaryRoman": "jitsuryokutesutonofukushuu",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji",
+        "yoon",
+        "tsu",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0958",
+      "displayText": "受験勉強の計画表",
+      "kanaText": "じゅけんべんきょうのけいかくひょう",
+      "primaryRoman": "jukenbenkyounokeikakuhyou",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "ji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0959",
+      "displayText": "志望理由書を書く",
+      "kanaText": "しぼうりゆうしょをかく",
+      "primaryRoman": "shibouriyuushowokaku",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "shi"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0960",
+      "displayText": "面接で長所を伝える",
+      "kanaText": "めんせつでちょうしょをつたえる",
+      "primaryRoman": "mensetsudechoushowotsutaeru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "chi",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0961",
+      "displayText": "願書の記入を確認する",
+      "kanaText": "がんしょのきにゅうをかくにんする",
+      "primaryRoman": "ganshonokinyuuwokakuninsuru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "ny"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0962",
+      "displayText": "部活と勉強を両立する",
+      "kanaText": "ぶかつとべんきょうをりょうりつする",
+      "primaryRoman": "bukatsutobenkyouworyouritsusuru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0963",
+      "displayText": "スマホの通知を切る",
+      "kanaText": "すまほのつうちをきる",
+      "primaryRoman": "sumahonotsuuchiwokiru",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji",
+        "chi",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0964",
+      "displayText": "動画教材で復習する",
+      "kanaText": "どうがきょうざいでふくしゅうする",
+      "primaryRoman": "dougakyouzaidefukushuusuru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0965",
+      "displayText": "タイピング速度を測る",
+      "kanaText": "たいぴんぐそくどをはかる",
+      "primaryRoman": "taipingusokudowohakaru",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0966",
+      "displayText": "ホーム画面を整理する",
+      "kanaText": "ほーむがめんをせいりする",
+      "primaryRoman": "ho-mugamenwoseirisuru",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "kanji",
+        "long"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0967",
+      "displayText": "イヤホンをケースにしまう",
+      "kanaText": "いやほんをけーすにしまう",
+      "primaryRoman": "iyahonwoke-sunishimau",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "katakana",
+        "long",
+        "shi"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0968",
+      "displayText": "帰宅後に制服を掛ける",
+      "kanaText": "きたくごにせいふくをかける",
+      "primaryRoman": "kitakugoniseifukuwokakeru",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0969",
+      "displayText": "明日の持ち物を確認",
+      "kanaText": "あしたのもちものをかくにん",
+      "primaryRoman": "ashitanomochimonowokakunin",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "chi"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0970",
+      "displayText": "弁当箱を洗いに出す",
+      "kanaText": "べんとうばこをあらいにだす",
+      "primaryRoman": "bentoubakowoarainidasu",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0971",
+      "displayText": "家族に学校の予定を伝える",
+      "kanaText": "かぞくにがっこうのよていをつたえる",
+      "primaryRoman": "kazokunigakkounoyoteiwotsutaeru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "sokuon",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0972",
+      "displayText": "週末の予定を調整する",
+      "kanaText": "しゅうまつのよていをちょうせいする",
+      "primaryRoman": "shuumatsunoyoteiwochouseisuru",
+      "extraVariants": [],
+      "phraseLevel": "P5",
+      "divisions": [
+        "D5",
+        "D6"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "tsu"
+      ],
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "p0973",
+      "displayText": "友達と課題を確認する",
+      "kanaText": "ともだちとかだいをかくにんする",
+      "primaryRoman": "tomodachitokadaiwokakuninsuru",
+      "extraVariants": [],
+      "phraseLevel": "P4",
+      "divisions": [
+        "D4",
+        "D5"
+      ],
+      "tags": [
+        "hiragana",
+        "kanji",
+        "chi"
       ],
       "source": "teacher",
       "note": ""
