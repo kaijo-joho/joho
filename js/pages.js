@@ -1,4 +1,4 @@
-//2026-05-27 09:45:01;
+//2026-06-09 08:53:28;
 const pages = {
   "index": {
     "id": "index",
@@ -1535,7 +1535,22 @@ const pages = {
         "text": "3-1_リスト（list）_B応用問題（問題）.ipynb"
       }
     ],
-    "quizForm": [],
+    "quizForm": [
+      {
+        "id": "py31a",
+        "title": "3-1. リスト（list） A基本問題",
+        "text": "3-1. リスト（list） A基本問題",
+        "release": true,
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py31a"
+      },
+      {
+        "id": "py31b",
+        "title": "3-1. リスト（list） B応用問題",
+        "text": "3-1. リスト（list） B応用問題",
+        "release": true,
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py31b"
+      }
+    ],
     "back": "py00",
     "next": [
       {
