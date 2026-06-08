@@ -1,4 +1,4 @@
-const update = '2026-06-02 14:45:58';
+const update = '2026-06-08 14:30:57';
 
 const quizzes = {
   "py11": {
@@ -400,6 +400,16 @@ const quizzes = {
     "title": "コンピュータの構成（ソフトウェア）",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=b44"
+  },
+  "moji01": {
+    "title": "文字のデジタル表現",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=moji01"
+  },
+  "iro01": {
+    "title": "色のデジタル表現",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=iro01"
   }
 };
 window.quizzes = quizzes;
@@ -577,6 +587,11 @@ const pubFiles = {
     "title": "LC21_コンピュータの構成",
     "description": "",
     "url": "https://docs.google.com/presentation/d/1KSoyg2eqhGe36v7qMhhok1giZoR0lbHRiKUvhrE-5as/view?usp=drivesdk"
+  },
+  "lc34": {
+    "title": "LC34_文字と色のデジタル表現",
+    "description": "",
+    "url": "https://docs.google.com/presentation/d/1qUVGiWxT_lJPZB2oeMSJMsIte4zoM02U_ZsOKkp3rLI/view?usp=drivesdk"
   }
 };
 window.pubFiles = pubFiles;
