@@ -1,0 +1,3635 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Typing Quest MVP</title>
+  <style>
+    :root{
+      color-scheme: light dark;
+      --bg:#f5f7fb;
+      --fg:#111827;
+      --muted:#64748b;
+      --panel:#ffffff;
+      --line:#dbe3ef;
+      --accent:#2563eb;
+      --ok:#16a34a;
+      --ng:#dc2626;
+      --warn:#d97706;
+      --shadow:0 10px 28px rgba(15,23,42,.08);
+    }
+    @media (prefers-color-scheme: dark){
+      :root{
+        --bg:#0b1020;
+        --fg:#e5e7eb;
+        --muted:#9ca3af;
+        --panel:#111827;
+        --line:#253044;
+        --accent:#60a5fa;
+        --ok:#22c55e;
+        --ng:#f87171;
+        --warn:#fbbf24;
+        --shadow:0 10px 28px rgba(0,0,0,.32);
+      }
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, rgba(37,99,235,.16), transparent 28rem), var(--bg);
+      color:var(--fg);
+    }
+    header{
+      padding:20px 16px 10px;
+      text-align:center;
+    }
+    h1{margin:.2rem 0;font-size:clamp(1.7rem, 3vw, 2.4rem)}
+    .subtitle{color:var(--muted);font-size:.95rem}
+    main{max-width:980px;margin:0 auto;padding:12px 16px 28px}
+    .panel{
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      padding:18px;
+      margin:14px 0;
+    }
+    .row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .between{justify-content:space-between}
+    .srOnly{
+      position:absolute;
+      width:1px;
+      height:1px;
+      padding:0;
+      margin:-1px;
+      overflow:hidden;
+      clip:rect(0,0,0,0);
+      white-space:nowrap;
+      border:0;
+    }
+    label{font-weight:700;font-size:.9rem;color:var(--muted)}
+    select,button,input{
+      font:inherit;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:var(--panel);
+      color:var(--fg);
+    }
+    select{padding:10px 12px;min-width:220px}
+    button{
+      padding:11px 16px;
+      cursor:pointer;
+      font-weight:800;
+    }
+    button.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      gap:6px;
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(100,116,139,.12);
+      border:1px solid var(--line);
+      color:var(--muted);
+      font-size:.88rem;
+      font-weight:700;
+    }
+    .modeId{font-size:.76rem;color:var(--muted);font-weight:700;opacity:.75}
+    .modeTabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin:4px 0 12px;
+      border-bottom:1px solid var(--line);
+      padding-bottom:8px;
+    }
+    .modeTab{
+      border-radius:999px;
+      padding:9px 13px;
+      background:rgba(100,116,139,.08);
+      color:var(--muted);
+      border-color:var(--line);
+      font-size:.9rem;
+    }
+    .modeTab[aria-selected="true"]{
+      background:var(--accent);
+      border-color:var(--accent);
+      color:#fff;
+    }
+    .modeGrid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(168px,1fr));
+      gap:10px;
+      margin:12px 0;
+    }
+    .modeCard{
+      display:grid;
+      gap:4px;
+      min-height:84px;
+      padding:12px;
+      text-align:left;
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(100,116,139,.08);
+      color:var(--fg);
+      cursor:pointer;
+    }
+    .modeCard strong{font-size:1.05rem}
+    .modeCard span{color:var(--muted);font-size:.84rem;font-weight:700}
+    .modeTitle{display:flex;align-items:baseline;gap:9px;min-width:0}
+    .modeCode{font-size:1.85rem;font-weight:1000;line-height:1;color:var(--accent)}
+    .modeName{font-size:.95rem;font-weight:900;color:var(--fg);overflow-wrap:anywhere}
+    .modeCard .modeMeta{color:var(--muted);font-size:.84rem;font-weight:800}
+    .modeCandidateMeta{color:var(--accent)!important;font-size:.78rem!important;font-weight:900!important}
+    .devModeBadge{
+      margin:0 0 8px;
+      width:max-content;
+      color:#2563eb;
+      background:rgba(37,99,235,.1);
+      border-color:rgba(37,99,235,.28);
+    }
+    .devCardBadge{
+      width:max-content;
+      padding:3px 7px;
+      border-radius:999px;
+      background:rgba(37,99,235,.1);
+      color:#2563eb!important;
+      border:1px solid rgba(37,99,235,.24);
+      font-size:.72rem!important;
+      font-weight:900!important;
+    }
+    .cardTime{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+    .cardTimeBtn{
+      border-radius:999px;
+      padding:5px 8px;
+      font-size:.76rem;
+      background:rgba(100,116,139,.08);
+      color:var(--muted);
+      border:1px solid var(--line);
+      font-weight:900;
+    }
+    .cardTimeBtn[aria-pressed="true"]{
+      background:rgba(37,99,235,.14);
+      border-color:var(--accent);
+      color:var(--accent);
+    }
+    .modeCard[aria-selected="true"]{
+      border-color:var(--accent);
+      box-shadow:0 0 0 3px rgba(37,99,235,.16);
+      background:rgba(37,99,235,.1);
+    }
+    .modeCard:focus-visible{outline:3px solid rgba(37,99,235,.32);outline-offset:2px}
+    .emptyModes{
+      border:1px dashed var(--line);
+      border-radius:12px;
+      padding:18px;
+      color:var(--muted);
+      font-weight:800;
+      text-align:center;
+      background:rgba(100,116,139,.05);
+    }
+    .readyBox{
+      display:grid;
+      gap:8px;
+      padding:12px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(100,116,139,.08);
+    }
+    .readyBox .selectedMode{font-size:1.2rem;font-weight:900}
+    .selectedDetails{margin-top:3px;color:var(--muted);font-size:.9rem;font-weight:800}
+    .timeControl.isFixed select{opacity:.65}
+    .playMeta{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+    .target{
+      width:min(100%, 760px);
+      margin:0 auto;
+      height:236px;
+      display:grid;
+      gap:10px;
+      align-content:center;
+      text-align:center;
+      border:1px solid var(--line);
+      border-radius:18px;
+      background:linear-gradient(180deg, rgba(37,99,235,.08), transparent);
+      padding:24px 14px;
+    }
+    .displayText{font-size:clamp(2rem, 7vw, 4.4rem);font-weight:900;letter-spacing:0;line-height:1.25;overflow-wrap:anywhere}
+    .kanaText{font-size:clamp(1.1rem, 2.8vw, 1.7rem);color:var(--muted);overflow-wrap:anywhere}
+    .romajiText{
+      width:min(100%, var(--guide-width, 12ch));
+      margin:0 auto;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size:1.52rem;
+      color:var(--accent);
+      overflow-wrap:anywhere;
+      letter-spacing:0;
+      text-align:left;
+    }
+    .target.compactText .displayText{font-size:clamp(1.6rem, 4.8vw, 3rem);line-height:1.2}
+    .target.compactText .kanaText{font-size:clamp(.98rem, 2.1vw, 1.25rem)}
+    .target.compactText .romajiText{font-size:1.32rem}
+    .target.denseText .displayText{font-size:clamp(1.28rem, 3.8vw, 2.25rem);line-height:1.18}
+    .target.denseText .kanaText{font-size:clamp(.88rem, 1.8vw, 1.08rem)}
+    .target.denseText .romajiText{font-size:1.14rem}
+    .target.extraDenseText .displayText{font-size:clamp(1.02rem, 3vw, 1.72rem);line-height:1.16}
+    .target.extraDenseText .kanaText{font-size:.86rem}
+    .target.extraDenseText .romajiText{font-size:1rem}
+    .inputWrap.compactText .inputField,
+    .inputWrap.compactText .ghostRoman,
+    .inputWrap.compactText #typebox{font-size:1.32rem}
+    .inputWrap.denseText .inputField,
+    .inputWrap.denseText .ghostRoman,
+    .inputWrap.denseText #typebox{font-size:1.14rem}
+    .inputWrap.extraDenseText .inputField,
+    .inputWrap.extraDenseText .ghostRoman,
+    .inputWrap.extraDenseText #typebox{font-size:1rem}
+    .inputWrap{width:min(100%, 760px);margin:8px auto 0}
+    .inputField{
+      position:relative;
+      width:min(760px, 90vw);
+      min-height:58px;
+      margin:0 auto;
+      border:0;
+      border-bottom:2px solid var(--line);
+      border-radius:0;
+      background:rgba(100,116,139,.04);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size:1.52rem;
+      overflow:hidden;
+    }
+    .inputField:focus-within{box-shadow:none;border-bottom-color:var(--accent)}
+    .ghostRoman{
+      position:absolute;
+      left:50%;
+      top:0;
+      bottom:0;
+      transform:translateX(-50%);
+      width:min(100%, calc(var(--guide-width, 12ch) + 34px));
+      display:flex;
+      align-items:center;
+      padding:14px 16px;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size:1.52rem;
+      line-height:1.35;
+      letter-spacing:0;
+      pointer-events:none;
+      white-space:pre;
+      overflow:hidden;
+      text-align:left;
+    }
+    .ghostTyped{color:var(--fg);opacity:.94}
+    .ghostRest{color:var(--muted);opacity:.36}
+    #typebox{
+      position:absolute;
+      left:50%;
+      top:0;
+      bottom:0;
+      transform:translateX(-50%);
+      z-index:1;
+      width:min(100%, calc(var(--guide-width, 12ch) + 34px));
+      padding:14px 16px;
+      border:0;
+      background:transparent;
+      color:transparent;
+      caret-color:var(--accent);
+      font-size:1.52rem;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      letter-spacing:0;
+      outline:none;
+    }
+    #typebox:focus{box-shadow:none;border-color:transparent}
+    .inputField.hasError{border-bottom-color:var(--ng);background:rgba(220,38,38,.06);box-shadow:none}
+    .inputField.hasError .ghostTyped{color:var(--ng)}
+    .typedLog{
+      min-height:2.5rem;
+      margin-top:10px;
+      padding:10px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(100,116,139,.08);
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-size:1.15rem;
+      overflow-wrap:anywhere;
+    }
+    .typedLog .ok{color:var(--ok)}
+    .typedLog .ng{color:var(--ng);font-weight:900;text-decoration:underline}
+    .progress{position:relative;margin:14px 0 8px}
+    body[data-screen-state="playing"] .progress,
+    body[data-screen-state="timeUpGrace"] .progress{width:min(100%, 760px);margin:14px auto 8px}
+    body[data-screen-state="playing"] header,
+    body[data-screen-state="timeUpGrace"] header{padding:10px 16px 2px;opacity:.72}
+    body[data-screen-state="playing"] h1,
+    body[data-screen-state="timeUpGrace"] h1{font-size:1.18rem;margin:0}
+    body[data-screen-state="playing"] header .subtitle,
+    body[data-screen-state="timeUpGrace"] header .subtitle{display:none}
+    body[data-screen-state="playing"] main,
+    body[data-screen-state="timeUpGrace"] main{padding-top:6px}
+    body[data-screen-state="playing"] .target,
+    body[data-screen-state="timeUpGrace"] .target{gap:8px;padding:20px 14px}
+    body[data-screen-state="playing"] .displayText,
+    body[data-screen-state="timeUpGrace"] .displayText{font-size:clamp(1.85rem, 6vw, 4rem)}
+    body[data-screen-state="playing"] .target.compactText .displayText,
+    body[data-screen-state="timeUpGrace"] .target.compactText .displayText{font-size:clamp(1.55rem, 4.5vw, 2.85rem)}
+    body[data-screen-state="playing"] .target.denseText .displayText,
+    body[data-screen-state="timeUpGrace"] .target.denseText .displayText{font-size:clamp(1.25rem, 3.5vw, 2.08rem)}
+    body[data-screen-state="playing"] .target.extraDenseText .displayText,
+    body[data-screen-state="timeUpGrace"] .target.extraDenseText .displayText{font-size:clamp(1rem, 2.8vw, 1.62rem)}
+    .track{height:20px;background:rgba(100,116,139,.18);border-radius:999px;width:100%;overflow:hidden}
+    .fill{height:100%;width:100%;transform:scaleX(0);transform-origin:left;background:var(--accent);transition:transform .12s linear}
+    .progress.isCaution .fill{background:var(--warn)}
+    .progress.isDanger .fill{background:var(--ng)}
+    .progress.isCaution .track{background:rgba(217,119,6,.18)}
+    .progress.isDanger .track{background:rgba(220,38,38,.18)}
+    .time{
+      position:absolute;
+      right:10px;
+      top:50%;
+      transform:translateY(-50%);
+      min-width:58px;
+      text-align:right;
+      font-variant-numeric:tabular-nums;
+      font-size:.82rem;
+      font-weight:900;
+      color:var(--fg);
+      text-shadow:0 1px 2px var(--panel), 0 -1px 2px var(--panel);
+      pointer-events:none;
+    }
+    .progress.isCaution .time{color:var(--warn)}
+    .progress.isDanger .time{
+      color:var(--ng);
+      animation:timePulse .9s ease-in-out infinite;
+    }
+    @keyframes timePulse{
+      0%,100%{opacity:1}
+      50%{opacity:.68}
+    }
+    .metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:10px}
+    .metric{border:1px solid var(--line);border-radius:14px;padding:12px;background:rgba(100,116,139,.08)}
+    .metric .label{font-size:.8rem;color:var(--muted);font-weight:800}
+    .metric .value{font-size:1.5rem;font-weight:900;font-variant-numeric:tabular-nums;margin-top:2px}
+    .warn{display:none;color:var(--warn);font-weight:800;text-align:center;margin:10px 0 0}
+    .setupWarn.isVisible{display:block}
+    .timeUpNotice{
+      width:min(100%, 760px);
+      margin:8px auto 10px;
+      padding:9px 12px;
+      border:1px solid rgba(217,119,6,.28);
+      border-radius:12px;
+      background:rgba(217,119,6,.09);
+      color:var(--warn);
+      text-align:center;
+      font-size:.9rem;
+      font-weight:850;
+      line-height:1.45;
+    }
+    .resultTitle{font-size:1.4rem;font-weight:900;margin:0 0 10px}
+    .scoreHero{
+      display:grid;
+      gap:4px;
+      justify-items:center;
+      padding:20px 14px;
+      border:1px solid var(--line);
+      border-radius:16px;
+      background:linear-gradient(180deg, rgba(37,99,235,.16), rgba(100,116,139,.06));
+    }
+    .scoreHero .label{color:var(--muted);font-size:.9rem;font-weight:900}
+    .scoreHero .value{font-size:clamp(3rem, 10vw, 6rem);font-weight:1000;line-height:1;font-variant-numeric:tabular-nums;color:var(--accent)}
+    .resultGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
+    .resultBlock{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:rgba(100,116,139,.08);
+    }
+    .resultBlock h3{margin:0 0 10px;font-size:.92rem;color:var(--muted)}
+    .resultLine{display:flex;justify-content:space-between;gap:12px;align-items:baseline;padding:7px 0}
+    .resultLine + .resultLine{border-top:1px solid var(--line)}
+    .resultLine .name{color:var(--muted);font-weight:800}
+    .resultLine .number{font-size:1.7rem;font-weight:950;font-variant-numeric:tabular-nums}
+    .resultLine .unit{color:var(--muted);font-size:.82rem;font-weight:800}
+    .resultLine.secondary .number{font-size:1.25rem;color:var(--muted)}
+    .accuracyValue{font-size:2.3rem;font-weight:950;font-variant-numeric:tabular-nums}
+    .missDetail{color:var(--muted);font-size:.9rem;font-weight:800}
+    .resultHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+    .resultHeader .resultTitle{margin:0}
+    .resultSave{display:grid;justify-items:end;gap:8px}
+    .reviewGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-auto-rows:1fr;align-items:stretch;gap:12px;margin-top:14px}
+    .reviewPanel{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:rgba(100,116,139,.06);
+      min-width:0;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+    }
+    .reviewPanel h3{font-size:1rem;margin:0}
+    .advicePanel{
+      border:1px solid var(--line);
+      border-radius:14px;
+      padding:14px;
+      background:rgba(37,99,235,.07);
+      margin-top:12px;
+    }
+    .advicePanel h3{font-size:1rem;margin:0 0 8px}
+    .analysisList{
+      display:grid;
+      gap:6px;
+      margin:10px 0;
+      padding:0;
+      list-style:none;
+      max-height:min(360px, 42vh);
+      overflow-y:auto;
+      padding-right:4px;
+    }
+    .analysisList li{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      padding:8px 10px;
+      border-radius:10px;
+      background:rgba(100,116,139,.1);
+      font-weight:800;
+    }
+    .analysisList li.analysisItem{display:block}
+    .analysisHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .analysisList .missCount{color:var(--ng);white-space:nowrap}
+    .deleteDetails{display:grid;gap:5px;margin-top:8px;color:var(--muted);font-size:.82rem;font-weight:700}
+    .deleteEvent{display:grid;grid-template-columns:auto minmax(0,1fr) auto minmax(0,1fr);gap:4px 8px;align-items:baseline}
+    .deleteLabel{color:var(--muted)}
+    .deleteValue{overflow-wrap:anywhere;color:var(--text)}
+    .analysisText{margin:.45rem 0 0;color:var(--muted);font-weight:800;line-height:1.55}
+    .metaLine{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:.75rem 0 0}
+    .metaItem{
+      display:inline-flex;
+      gap:5px;
+      align-items:center;
+      padding:4px 8px;
+      border-radius:999px;
+      background:rgba(100,116,139,.1);
+      color:var(--muted);
+      font-size:.78rem;
+      font-weight:700;
+    }
+    .candidateInfo{margin:.55rem 0 0;color:var(--muted);font-size:.85rem;font-weight:700}
+    .saveStatus{
+      display:inline-flex;
+      align-items:center;
+      min-height:28px;
+      padding:4px 10px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:rgba(100,116,139,.08);
+      color:var(--muted);
+      font-size:.78rem;
+      font-weight:900;
+      white-space:nowrap;
+    }
+    .saveStatus[data-save-state="failed"]{
+      border-color:rgba(220,38,38,.35);
+      background:rgba(220,38,38,.12);
+      color:var(--ng);
+    }
+    .saveRetry{margin-top:0}
+    .saveRetry .row{justify-content:flex-end}
+    .phraseList{
+      display:grid;
+      gap:6px;
+      margin:12px 0 0;
+      padding:0;
+      list-style:none;
+      max-height:min(360px, 42vh);
+      overflow-y:auto;
+      padding-right:4px;
+    }
+    .phraseList li{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:center;
+      padding:8px 10px;
+      border:1px solid var(--line);
+      border-radius:10px;
+      background:rgba(100,116,139,.08);
+    }
+    .phraseList .phraseName{font-weight:800}
+    .phraseList .phraseStatus{color:var(--muted);font-size:.86rem;font-weight:800;white-space:nowrap}
+    .phraseList .okMark{color:var(--ok)}
+    .phraseList .ngMark{color:var(--ng)}
+    .resultActions{display:flex;justify-content:center;margin-top:16px}
+    .retryStack{
+      display:grid;
+      justify-items:center;
+      gap:10px;
+      width:min(100%, 560px);
+    }
+    .motivationPanel{
+      width:100%;
+      display:grid;
+      gap:5px;
+      justify-items:center;
+      padding:12px 14px;
+      border:1px solid var(--line);
+      border-radius:14px;
+      background:rgba(100,116,139,.08);
+      text-align:center;
+    }
+    .achievementText{font-size:1.05rem;font-weight:950;color:var(--accent)}
+    .scoreDeltaText{color:var(--muted);font-size:.9rem;font-weight:850}
+    .nextGoalText{font-size:.95rem;font-weight:900}
+    .retryLarge{min-width:min(100%, 280px);padding:14px 28px;font-size:1.05rem}
+    .modeSelectBtn{background:transparent;color:var(--muted)}
+    .historyHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
+    @media (max-width:720px){
+      .resultHeader{align-items:stretch}
+      .reviewGrid{grid-template-columns:1fr;grid-auto-rows:auto}
+      .deleteEvent{grid-template-columns:auto minmax(0,1fr)}
+    }
+    .historyTable{width:100%;border-collapse:collapse;font-size:.92rem}
+    .historyTable th,.historyTable td{border-bottom:1px solid var(--line);padding:8px;text-align:right}
+    .historyTable th:first-child,.historyTable td:first-child{text-align:left}
+    .dataInfo{margin:.65rem 0 0;color:var(--muted);font-size:.78rem;overflow-wrap:anywhere}
+    body[data-screen-state="setup"] #playPanel,
+    body[data-screen-state="setup"] #resultPanel,
+    body[data-screen-state="ready"] #playPanel,
+    body[data-screen-state="ready"] #resultPanel,
+    body[data-screen-state="countdown"] #setupPanel,
+    body[data-screen-state="countdown"] #resultPanel,
+    body[data-screen-state="countdown"] #historyPanel,
+    body[data-screen-state="playing"] #setupPanel,
+    body[data-screen-state="playing"] #resultPanel,
+    body[data-screen-state="playing"] #historyPanel,
+    body[data-screen-state="timeUpGrace"] #setupPanel,
+    body[data-screen-state="timeUpGrace"] #resultPanel,
+    body[data-screen-state="timeUpGrace"] #historyPanel,
+    body[data-screen-state="result"] #setupPanel,
+    body[data-screen-state="result"] #playPanel,
+    body[data-screen-state="saving"] #setupPanel,
+    body[data-screen-state="saving"] #playPanel,
+    body[data-screen-state="saving"] #historyPanel{display:none}
+    body[data-screen-state="countdown"] .playMeta,
+    body[data-screen-state="countdown"] .progress,
+    body[data-screen-state="countdown"] #inputPanel,
+    body[data-screen-state="countdown"] #liveMetrics,
+    body[data-screen-state="playing"] .playMeta,
+    body[data-screen-state="playing"] #liveMetrics,
+    body[data-screen-state="timeUpGrace"] .playMeta,
+    body[data-screen-state="timeUpGrace"] #liveMetrics,
+    #typedLog{display:none}
+    body:not([data-debug-view="true"]) .debugOnly{display:none!important}
+    .hidden{display:none!important}
+    footer{text-align:center;color:var(--muted);font-size:.8rem;padding:24px}
+  </style>
+</head>
+<body data-screen-state="setup">
+  <header>
+    <h1>Typing Quest MVP</h1>
+    <div class="subtitle">HTML 1ファイルだけで動く最小版。結果送信・ログインなし。</div>
+  </header>
+
+  <main>
+    <section class="panel" id="setupPanel">
+      <label class="srOnly" for="modeSel">モード</label>
+      <select class="srOnly" id="modeSel" tabindex="-1"></select>
+      <div class="badge devModeBadge hidden" id="devModeBadge">DEV MODE</div>
+      <div class="modeTabs" id="modeTabs" role="tablist" aria-label="モード種別"></div>
+      <div class="modeGrid" id="modeGrid" role="listbox" aria-label="モード選択"></div>
+
+      <div class="readyBox">
+        <div class="row between">
+          <div>
+            <div class="subtitle">選択中のモード</div>
+            <div class="selectedMode" id="selectedModeName">-</div>
+            <div class="selectedDetails" id="selectedModeDetail">-</div>
+          </div>
+          <span class="badge">記録モード: <b id="readyRecordMode">-</b></span>
+        </div>
+        <div class="subtitle">日本語入力はオフにして、英数入力で始めてください。</div>
+        <div class="row between">
+          <div class="row">
+            <span class="badge">開始: Enter / Space</span>
+            <span class="timeControl" id="timeControl">
+              <label for="secSel">時間</label>
+              <select id="secSel">
+                <option value="30">30秒</option>
+                <option value="60" selected>60秒</option>
+                <option value="90">90秒</option>
+              </select>
+            </span>
+          </div>
+          <button class="primary" id="startBtn">開始</button>
+        </div>
+      </div>
+      <p class="warn setupWarn" id="setupWarn" role="alert"></p>
+      <p class="subtitle debugOnly" id="modeDesc" style="margin:.8rem 0 0"></p>
+      <p class="candidateInfo debugOnly" id="candidateInfo">候補フレーズ数: -</p>
+      <div class="metaLine debugOnly" id="startupInfo">
+        <span class="metaItem">recordMode <b id="recordModeInfo">-</b></span>
+        <span class="metaItem">dataVersion <b id="dataVersionInfo">-</b></span>
+        <span class="metaItem">games <b id="gamesCountInfo">-</b></span>
+        <span class="metaItem">phrases <b id="phrasesCountInfo">-</b></span>
+      </div>
+      <p class="dataInfo debugOnly" id="dataInfo">data: loading</p>
+    </section>
+
+    <section class="panel" id="playPanel">
+      <div class="row between playMeta">
+        <span class="badge">現在：<b id="currentModeLabel">-</b><small class="modeId" id="currentModeId"></small></span>
+        <span class="badge">候補: <b id="phraseCount">0</b></span>
+        <span class="badge">スコア式: CPM × 正確率² × 5</span>
+      </div>
+
+      <div class="progress" id="timeProgress" aria-label="残り時間">
+        <div class="track"><div class="fill" id="bar"></div></div>
+        <div class="time" id="remain">60.0s</div>
+      </div>
+      <p class="timeUpNotice hidden" id="timeUpNotice">時間終了！このフレーズだけ最後まで入力できます。Enterで終了できます。</p>
+
+      <div class="target" id="targetCard">
+        <div class="displayText" id="displayText">モードを選んで開始</div>
+        <div class="kanaText" id="kanaText">Spaceキーでも開始できます</div>
+        <div class="romajiText" id="romajiText"></div>
+      </div>
+
+      <p class="warn" id="imeWarn">英数入力に切り替えてください（日本語入力中）</p>
+
+      <div class="inputWrap" id="inputPanel">
+        <div class="inputField" id="inputField">
+          <div class="ghostRoman" id="ghostRoman" aria-hidden="true">
+            <span class="ghostTyped" id="ghostTyped"></span><span class="ghostRest" id="ghostRest"></span>
+          </div>
+          <input id="typebox" type="text" inputmode="latin" lang="en" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="" disabled />
+        </div>
+        <div class="typedLog" id="typedLog" aria-label="入力ログ"></div>
+      </div>
+
+      <div class="metrics" id="liveMetrics">
+        <div class="metric"><div class="label">CPM</div><div class="value" id="mCpm">0</div></div>
+        <div class="metric"><div class="label">WPM換算</div><div class="value" id="mWpm">0</div></div>
+        <div class="metric"><div class="label">正確率</div><div class="value" id="mAcc">100%</div></div>
+        <div class="metric"><div class="label">ミス</div><div class="value" id="mMiss">0</div></div>
+        <div class="metric"><div class="label">スコア</div><div class="value" id="mScore">0</div></div>
+      </div>
+    </section>
+
+    <section class="panel hidden" id="resultPanel">
+      <div class="resultHeader">
+        <h2 class="resultTitle">結果</h2>
+        <div class="resultSave">
+          <div class="saveStatus" id="saveStatus" aria-live="polite">自動保存待ち</div>
+          <div class="saveRetry hidden" id="saveRetryArea" role="alert">
+            <div class="row">
+              <span class="badge">保存に失敗しました</span>
+              <button id="retrySaveBtn" type="button" disabled>再送信</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="scoreHero">
+        <div class="label">総合スコア</div>
+        <div class="value" id="rScore">0</div>
+      </div>
+      <div class="resultGrid">
+        <div class="resultBlock">
+          <h3>スピード</h3>
+          <div class="resultLine" title="1分あたりに正しく入力したローマ字文字数です">
+            <span class="name">CPM</span>
+            <span><span class="number" id="rCpm">0</span> <span class="unit">文字/分</span></span>
+          </div>
+          <div class="resultLine secondary" title="CPMを5で割った参考値です。英単語数ではありません">
+            <span class="name">WPM</span>
+            <span><span class="number" id="rWpm">0</span> <span class="unit">語/分</span></span>
+          </div>
+        </div>
+        <div class="resultBlock">
+          <h3>正確さ</h3>
+          <div class="resultLine">
+            <span class="name">正確率</span>
+            <span><span class="number" id="rAcc">0%</span></span>
+          </div>
+          <div class="resultLine secondary">
+            <span class="name">ミス</span>
+            <span><span class="number" id="rMiss">0</span> <span class="unit">回 / 入力 <span id="rTotalKeys">0</span> キー</span></span>
+          </div>
+        </div>
+      </div>
+      <div class="reviewGrid">
+        <section class="reviewPanel">
+          <div class="row between">
+            <h3>今回のフレーズ一覧</h3>
+            <span class="badge">完了: <b id="rCompleted">0</b></span>
+          </div>
+          <ul class="phraseList" id="resultPhraseList"></ul>
+        </section>
+        <section class="reviewPanel">
+          <h3>ミス分析</h3>
+          <ul class="analysisList" id="missAnalysisList"></ul>
+        </section>
+      </div>
+      <section class="advicePanel">
+        <h3>改善案・アドバイス</h3>
+        <p class="analysisText" id="trendComment"></p>
+        <p class="analysisText" id="improvementComment"></p>
+      </section>
+      <div class="resultActions">
+        <div class="retryStack">
+          <div class="motivationPanel">
+            <div class="achievementText" id="rAchievement">今回から記録開始</div>
+            <div class="scoreDeltaText" id="rScoreDelta">次のプレイから前回比を表示します</div>
+            <div class="nextGoalText" id="rNextGoal">次の目標：まずは1フレーズ完了しよう</div>
+          </div>
+          <button class="primary retryLarge" id="retryBtn">もう一度</button>
+          <button class="modeSelectBtn" id="modeSelectBtn" type="button">モード選択へ</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" id="historyPanel">
+      <div class="historyHead">
+        <h2 class="resultTitle" style="margin:0">この端末の履歴</h2>
+        <div class="row">
+          <span class="badge">localStorage保存</span>
+          <button id="clearHistoryBtn">履歴を消す</button>
+        </div>
+      </div>
+      <table class="historyTable">
+        <thead><tr><th>日時</th><th>モード</th><th>CPM</th><th>正確率</th><th>スコア</th></tr></thead>
+        <tbody id="historyBody"><tr><td colspan="5">履歴はまだありません。</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer>Typing Quest MVP / joho.kaijo.ed.jp/typing/ 想定</footer>
+
+<script>
+(() => {
+  'use strict';
+
+  const DATA_URLS = [
+    { kind: 'local', url: './data/typing-data.json' },
+    { kind: 'public', url: 'https://joho.kaijo.ed.jp/typing/data/typing-data.json' }
+  ];
+  const HISTORY_KEY = 'typingQuestMvpHistory';
+  const LAST_GAME_ID_KEY = 'typingQuest.lastGameId';
+
+  const DEBUG_VIEW = (() => {
+    const search = typeof location === 'undefined' ? '' : location.search;
+    const params = new URLSearchParams(search);
+    return params.get('debug') === '1' || params.get('admin') === '1';
+  })();
+  const DEV_VIEW = (() => {
+    const search = typeof location === 'undefined' ? '' : location.search;
+    const params = new URLSearchParams(search);
+    return params.get('dev') === '1';
+  })();
+
+  const MODE_GROUPS = [
+    { key: 'arcade', label: 'Arcade' },
+    { key: 'free', label: 'Free' },
+    { key: 'practice', label: 'Practice' },
+    { key: 'class', label: 'Class' },
+    { key: 'championship', label: 'Championship' },
+    { key: 'promotion', label: 'Promotion' },
+    { key: 'quest', label: 'Quest' },
+    { key: 'debug', label: 'DEBUG' }
+  ];
+
+  const QUEST_CLEAR_DEFAULTS = {
+    P1: { accuracy: 0.9, minCorrectChars: 30 },
+    P2: { accuracy: 0.9, minCorrectChars: 45 },
+    P3: { accuracy: 0.92, minCorrectChars: 60 },
+    P4: { accuracy: 0.92, minCorrectChars: 75 },
+    P5: { accuracy: 0.94, minCorrectChars: 90 },
+    P6: { accuracy: 0.94, minCorrectChars: 110 },
+    P7: { accuracy: 0.95, minCorrectChars: 130 },
+    P8: { accuracy: 0.96, minCorrectChars: 150 },
+    P9: { accuracy: 0.97, minCorrectChars: 170 },
+    P10: { accuracy: 0.98, minCorrectChars: 190 }
+  };
+
+  const FALLBACK_MODES = [
+    {
+      id: 'PR-D1',
+      label: 'D1 Starter / スターター',
+      oldLabel: 'D1 Starter / スターター練習',
+      desc: 'ひらがな中心・短い語句。まずは正確に入力する練習です。',
+      phrases: [
+        ['あさ', 'あさ', 'asa'],
+        ['いす', 'いす', 'isu'],
+        ['かさ', 'かさ', 'kasa'],
+        ['さかな', 'さかな', 'sakana'],
+        ['たまご', 'たまご', 'tamago'],
+        ['なまえ', 'なまえ', 'namae'],
+        ['はな', 'はな', 'hana'],
+        ['まど', 'まど', 'mado'],
+        ['やま', 'やま', 'yama'],
+        ['からだ', 'からだ', 'karada'],
+        ['あした', 'あした', 'asita'],
+        ['きょう', 'きょう', 'kyou']
+      ]
+    },
+    {
+      id: 'PR-D2',
+      label: 'D2 Rookie / ルーキー',
+      oldLabel: 'D2 Rookie / ルーキー練習',
+      desc: '日常語・10文字以下。少しだけ拗音や促音を含みます。',
+      phrases: [
+        ['じかんわり', 'じかんわり', 'zikanwari'],
+        ['きょうしつ', 'きょうしつ', 'kyousitu'],
+        ['しゅくだい', 'しゅくだい', 'syukudai'],
+        ['がっこう', 'がっこう', 'gakkou'],
+        ['にゅうりょく', 'にゅうりょく', 'nyuuryoku'],
+        ['れんしゅう', 'れんしゅう', 'rensyuu'],
+        ['せいかく', 'せいかく', 'seikaku'],
+        ['すばやく', 'すばやく', 'subayaku'],
+        ['こくばん', 'こくばん', 'kokuban'],
+        ['しょるい', 'しょるい', 'syorui']
+      ]
+    },
+    {
+      id: 'PR-D3',
+      label: 'D3 Basic / ベーシック',
+      oldLabel: 'D3 Basic / ベーシック練習',
+      desc: '漢字交じり・一般語。情報科の基本語も少し入ります。',
+      phrases: [
+        ['情報を整理する', 'じょうほうをせいりする', 'zyouhouwoseirisuru'],
+        ['文字を入力する', 'もじをにゅうりょくする', 'moziwonyuuryokusuru'],
+        ['表計算を使う', 'ひょうけいさんをつかう', 'hyoukeisanwotukau'],
+        { display: 'ファイルを保存する', kana: 'ふぁいるをほぞんする', primaryRoman: 'fairuwohozonsuru', variants: ['fairuwohozonsuru', 'fuairuwohozonsuru', 'huairuwohozonsuru'] },
+        ['画像を表示する', 'がぞうをひょうじする', 'gazouwohyouzisuru'],
+        ['データを集める', 'でーたをあつめる', 'de-tawoatumeru'],
+        ['正確に入力する', 'せいかくににゅうりょくする', 'seikakuninnyuuryokusuru'],
+        ['ブラウザで開く', 'ぶらうざでひらく', 'burauzadehiraku']
+      ]
+    },
+    {
+      id: 'PR-KEY1',
+      label: '基礎1 / 中段中心',
+      desc: 'A S D F J K L 付近を意識する基礎練習です。',
+      phrases: [
+        ['あさ', 'あさ', 'asa'],
+        ['ささ', 'ささ', 'sasa'],
+        ['だだ', 'だだ', 'dada'],
+        ['はは', 'はは', 'haha'],
+        ['かか', 'かか', 'kaka'],
+        ['らら', 'らら', 'rara'],
+        ['あかさたな', 'あかさたな', 'akasatana'],
+        ['はまやらわ', 'はまやらわ', 'hamayarawa']
+      ]
+    },
+    {
+      id: 'DEBUG-ROMAJI',
+      label: 'DEBUG Romaji / ローマ字ゆれ確認',
+      desc: 'ローマ字入力のゆれを確認するためのデバッグ用モードです。',
+      phrases: [
+        { display: 'ファイル', kana: 'ふぁいる', primaryRoman: 'fairu', variants: ['fairu', 'fuairu'] },
+        { display: 'フォルダ', kana: 'ふぉるだ', primaryRoman: 'foruda', variants: ['foruda', 'fuoruda'] },
+        { display: 'フィルタ', kana: 'ふぃるた', primaryRoman: 'firuta', variants: ['firuta', 'fuiruta'] },
+        { display: 'フェーズ', kana: 'ふぇーず', primaryRoman: 'fe-zu', variants: ['fe-zu', 'fue-zu'] },
+        { display: '正確に入力', kana: 'せいかくににゅうりょく', primaryRoman: 'seikakuninyuuryoku', variants: ['seikakuninyuuryoku', 'seikakuninixyuuryoku', 'seikakuninilyuuryoku'] },
+        { display: '写真を撮る', kana: 'しゃしんをとる', primaryRoman: 'shashinwotoru', variants: ['shashinwotoru', 'syasinwotoru'] },
+        { display: '出席を確認', kana: 'しゅっせきをかくにん', primaryRoman: 'shussekiwokakunin', variants: ['shussekiwokakunin', 'syussekiwokakunin'] },
+        { display: '情報を処理する', kana: 'じょうほうをしょりする', primaryRoman: 'jouhouwoshorisuru', variants: ['jouhouwoshorisuru', 'jyouhouwoshorisuru', 'zyouhouwosyorisuru'] },
+        { display: 'チェックする', kana: 'ちぇっくする', primaryRoman: 'chekkusuru', variants: ['chekkusuru', 'tyekkusuru'] },
+        { display: 'ティッシュ', kana: 'てぃっしゅ', primaryRoman: 'thisshu', variants: ['thisshu', 'telissyu', 'texissyu'] },
+        { display: 'ディスプレイ', kana: 'でぃすぷれい', primaryRoman: 'dhisupurei', variants: ['dhisupurei', 'delisupurei', 'dexisupurei'] },
+        { display: 'ネットワーク', kana: 'ねっとわーく', primaryRoman: 'nettowa-ku', variants: ['nettowa-ku'] },
+        { display: 'サーバー', kana: 'さーばー', primaryRoman: 'sa-ba-', variants: ['sa-ba-'] },
+        { display: '2進数', kana: 'にしんすう', primaryRoman: '2shinsuu', variants: ['2shinsuu', '2sinsuu', 'nisinsuu', 'nishinsuu'] },
+        { display: 'IPv6アドレス', kana: 'あいぴーぶいろくあどれす', primaryRoman: 'ipv6adoresu', variants: ['ipv6adoresu', 'aipi-bui6adoresu', 'aipi-buirokuadoresu'] }
+      ]
+    }
+  ];
+
+  let MODES = [];
+  let QUEST_WORLDS = [];
+  let QUEST_STAGES = [];
+  let QUEST_CLEAR_RULES = QUEST_CLEAR_DEFAULTS;
+
+  const $ = (q) => document.querySelector(q);
+  const els = {
+    modeSel: $('#modeSel'), modeTabs: $('#modeTabs'), modeGrid: $('#modeGrid'), secSel: $('#secSel'), timeControl: $('#timeControl'),
+    devModeBadge: $('#devModeBadge'),
+    setupWarn: $('#setupWarn'), modeDesc: $('#modeDesc'), candidateInfo: $('#candidateInfo'),
+    dataInfo: $('#dataInfo'), recordModeInfo: $('#recordModeInfo'), dataVersionInfo: $('#dataVersionInfo'),
+    gamesCountInfo: $('#gamesCountInfo'), phrasesCountInfo: $('#phrasesCountInfo'), selectedModeName: $('#selectedModeName'), selectedModeDetail: $('#selectedModeDetail'), readyRecordMode: $('#readyRecordMode'),
+    startBtn: $('#startBtn'), retryBtn: $('#retryBtn'), modeSelectBtn: $('#modeSelectBtn'), clearHistoryBtn: $('#clearHistoryBtn'), retrySaveBtn: $('#retrySaveBtn'),
+    currentModeLabel: $('#currentModeLabel'), currentModeId: $('#currentModeId'), phraseCount: $('#phraseCount'),
+    targetCard: $('#targetCard'), displayText: $('#displayText'), kanaText: $('#kanaText'), romajiText: $('#romajiText'),
+    typebox: $('#typebox'), inputField: $('#inputField'), ghostRoman: $('#ghostRoman'), ghostTyped: $('#ghostTyped'), ghostRest: $('#ghostRest'), typedLog: $('#typedLog'), inputPanel: $('#inputPanel'), imeWarn: $('#imeWarn'),
+    timeProgress: $('#timeProgress'), bar: $('#bar'), remain: $('#remain'), resultPanel: $('#resultPanel'), liveMetrics: $('#liveMetrics'), historyBody: $('#historyBody'),
+    timeUpNotice: $('#timeUpNotice'),
+    saveStatus: $('#saveStatus'), saveRetryArea: $('#saveRetryArea'),
+    mCpm: $('#mCpm'), mWpm: $('#mWpm'), mAcc: $('#mAcc'), mMiss: $('#mMiss'), mScore: $('#mScore'),
+    rCpm: $('#rCpm'), rWpm: $('#rWpm'), rAcc: $('#rAcc'), rMiss: $('#rMiss'), rScore: $('#rScore'),
+    rTotalKeys: $('#rTotalKeys'), rCompleted: $('#rCompleted'), resultPhraseList: $('#resultPhraseList'),
+    missAnalysisList: $('#missAnalysisList'), trendComment: $('#trendComment'), improvementComment: $('#improvementComment'),
+    rAchievement: $('#rAchievement'), rScoreDelta: $('#rScoreDelta'), rNextGoal: $('#rNextGoal')
+  };
+
+  const state = {
+    mode: MODES[0],
+    screen: 'setup',
+    dataInfo: null,
+    questWorlds: [],
+    questStages: [],
+    questClearRules: QUEST_CLEAR_DEFAULTS,
+    visibleModes: [],
+    activeModeGroup: 'practice',
+    selectedModeIndex: 0,
+    words: [],
+    index: 0,
+    deckNo: 0,
+    cycleCount: 0,
+    candidatePhrases: [],
+    usedPhraseIds: new Set(),
+    repeatedPhraseCount: 0,
+    attemptNo: 0,
+    attempts: [],
+    currentAttempt: null,
+    lastPhraseKey: '',
+    lastDeckKeys: [],
+    startedAt: 0,
+    durationSec: 60,
+    timer: null,
+    running: false,
+    timeUpGrace: false,
+    timeUpAt: 0,
+    countdownActive: false,
+    countdownTimer: null,
+    correctChars: 0,
+    totalKeys: 0,
+    mistakes: 0,
+    totalCorrectCount: 0,
+    totalKeyCount: 0,
+    totalMissCount: 0,
+    currentPhraseMisses: 0,
+    currentDeleteEvents: [],
+    completedPhrases: [],
+    lastRaw: '',
+    trailingNCarryover: null,
+    absorbedTrailingNCount: 0,
+    lastResultPayload: null,
+    composing: false,
+    inputWarningTimer: null
+  };
+
+  async function init(){
+    document.body.dataset.debugView = DEBUG_VIEW ? 'true' : 'false';
+    els.devModeBadge.classList.toggle('hidden', !DEV_VIEW);
+    setScreenState('setup');
+    els.modeSel.innerHTML = '<option>データ読み込み中...</option>';
+    els.modeSel.disabled = true;
+    els.startBtn.disabled = true;
+    const data = await loadTypingData();
+    MODES = data.modes;
+    QUEST_WORLDS = data.questWorlds || [];
+    QUEST_STAGES = data.questStages || [];
+    QUEST_CLEAR_RULES = data.questClearRules || QUEST_CLEAR_DEFAULTS;
+    state.questWorlds = QUEST_WORLDS;
+    state.questStages = QUEST_STAGES;
+    state.questClearRules = QUEST_CLEAR_RULES;
+    if (typeof window !== 'undefined') {
+      window.typingQuestQuestWorlds = QUEST_WORLDS;
+      window.typingQuestQuestStages = QUEST_STAGES;
+      window.typingQuestQuestClearRules = QUEST_CLEAR_RULES;
+    }
+    if (QUEST_WORLDS.length) {
+      console.info('Typing Quest questWorlds loaded:', QUEST_WORLDS.length, 'worlds /', QUEST_STAGES.length, 'stages');
+    }
+    if (!MODES.length) MODES = buildFallbackModes();
+    const initialMode = initialModeSelection();
+    state.activeModeGroup = initialMode ? modeGroupKey(initialMode) : firstAvailableModeGroup();
+    state.visibleModes = selectableModes();
+    state.mode = initialMode && state.visibleModes.some(mode => mode.id === initialMode.id)
+      ? initialMode
+      : state.visibleModes[0] || allSelectableModes()[0] || MODES[0];
+    state.selectedModeIndex = Math.max(0, state.visibleModes.findIndex(mode => mode.id === state.mode.id));
+    state.dataInfo = data.info || fallbackDataInfo(MODES);
+    renderDataInfo(state.dataInfo);
+    els.modeSel.disabled = false;
+    els.startBtn.disabled = false;
+    renderHiddenModeSelect();
+    els.modeSel.addEventListener('change', () => {
+      selectModeById(els.modeSel.value, { focusCard: false });
+    });
+    els.modeTabs.addEventListener('click', (e) => {
+      const tab = e.target.closest('.modeTab');
+      if (!tab) return;
+      selectModeGroup(tab.dataset.modeGroup, { focusCard: true });
+    });
+    els.modeGrid.addEventListener('click', (e) => {
+      const card = e.target.closest('.modeCard');
+      if (!card) return;
+      const timeBtn = e.target.closest('.cardTimeBtn');
+      if (timeBtn) {
+        selectModeById(card.dataset.modeId, { focusCard: false });
+        state.durationSec = Number(timeBtn.dataset.sec || 60);
+        els.secSel.value = String(state.durationSec);
+        renderModeInfo();
+        return;
+      }
+      selectModeById(card.dataset.modeId, { focusCard: false });
+    });
+    els.secSel.addEventListener('change', () => {
+      state.durationSec = Number(els.secSel.value || 60);
+      els.remain.textContent = state.durationSec.toFixed(1) + 's';
+      els.selectedModeDetail.textContent = selectedModeDetailText(state.mode);
+    });
+    els.startBtn.addEventListener('click', startGame);
+    els.retryBtn.addEventListener('click', startGame);
+    els.modeSelectBtn.addEventListener('click', backToModeSelect);
+    els.clearHistoryBtn.addEventListener('click', clearHistory);
+    document.addEventListener('keydown', handleGlobalKeydown);
+    els.typebox.addEventListener('compositionstart', () => { state.composing = true; els.imeWarn.textContent = '英数入力に切り替えてください（日本語入力中）'; els.imeWarn.style.display = 'block'; });
+    els.typebox.addEventListener('compositionend', () => { state.composing = false; els.imeWarn.style.display = 'none'; });
+    els.typebox.addEventListener('beforeinput', handleTypeboxBeforeInput);
+    els.typebox.addEventListener('keydown', handleTypeboxKeydown);
+    els.typebox.addEventListener('input', onInput);
+    syncDurationFromMode();
+    renderModeCards();
+    renderModeInfo();
+    renderHistory();
+    setScreenState('ready');
+  }
+
+  function renderModeInfo(){
+    state.visibleModes = selectableModes();
+    syncDurationFromMode();
+    els.modeDesc.textContent = state.mode.desc;
+    els.candidateInfo.textContent = candidateInfoText(state.mode);
+    renderSetupWarningForMode();
+    els.selectedModeName.textContent = state.mode.label;
+    els.selectedModeDetail.textContent = selectedModeDetailText(state.mode);
+    els.readyRecordMode.textContent = currentRecordMode();
+    els.currentModeLabel.textContent = state.mode.label;
+    els.currentModeId.textContent = `(${state.mode.id})`;
+    els.phraseCount.textContent = String(candidatePhraseCount(state.mode));
+    renderHiddenModeSelect();
+    renderModeTabs();
+    renderModeCards();
+    renderStartupInfo();
+    renderHistory();
+  }
+
+  function renderSetupWarningForMode(){
+    const hasCandidates = state.mode && state.mode.phrases && state.mode.phrases.length > 0;
+    const message = state.mode && state.mode.questWorld
+      ? 'Questワールドを選択しました。ステージ開始UIは準備中です。'
+      : '出題候補がありません。別のモードを選択してください。';
+    els.setupWarn.textContent = hasCandidates ? '' : message;
+    els.setupWarn.classList.toggle('isVisible', !hasCandidates);
+    if (!state.countdownActive) els.startBtn.disabled = !hasCandidates;
+  }
+
+  function selectableModes(){
+    if (state.activeModeGroup === 'quest' && QUEST_WORLDS.length) return questWorldModes();
+    let modes = allSelectableModes().filter(mode => modeGroupKey(mode) === state.activeModeGroup);
+    if (state.activeModeGroup === 'class' && classContextEnabled()) modes = scopedClassModes(modes);
+    if (!modes.length && state.activeModeGroup === 'class' && classContextEnabled()) return [placeholderMode('class')];
+    return modes;
+  }
+
+  function allSelectableModes(){
+    return modePoolForCurrentApp().filter(mode => {
+      const group = modeGroupKey(mode);
+      if (group === 'debug') return DEBUG_VIEW || DEV_VIEW;
+      if (group === 'class') return classContextEnabled() || DEBUG_VIEW || DEV_VIEW;
+      return true;
+    });
+  }
+
+  function isProgressionToken(value){
+    return /^(?:PR-)?[DP](10|[1-9])$/i.test(String(value || '').trim());
+  }
+
+  function firstAvailableModeGroup(){
+    const preferred = ['arcade', 'practice', 'free', 'class', 'championship', 'promotion', 'quest', 'debug'];
+    return preferred.find(key => isModeGroupAvailable(key)) || 'practice';
+  }
+
+  function availableModeGroups(){
+    return MODE_GROUPS.filter(group => isModeGroupAvailable(group.key));
+  }
+
+  function isModeGroupAvailable(groupKey){
+    if (groupKey === 'debug') return (DEBUG_VIEW || DEV_VIEW) && modePoolForCurrentApp({ includeDebug: true }).some(mode => modeGroupKey(mode) === 'debug');
+    if (groupKey === 'class') {
+      if (!classContextEnabled() && !DEBUG_VIEW && !DEV_VIEW) return false;
+      return classContextEnabled() || modePoolForCurrentApp().some(mode => modeGroupKey(mode) === 'class');
+    }
+    if (groupKey === 'quest') return (isLoginAppContext() || DEV_VIEW) && (QUEST_WORLDS.length > 0 || modePoolForCurrentApp().some(mode => modeGroupKey(mode) === 'quest'));
+    return modePoolForCurrentApp().some(mode => modeGroupKey(mode) === groupKey);
+  }
+
+  function modePoolForCurrentApp(options = {}){
+    const hasArcade = MODES.some(mode => modeGroupKey(mode) === 'arcade');
+    if (DEV_VIEW) {
+      return MODES.filter(mode => {
+        const group = modeGroupKey(mode);
+        if (group === 'debug') return options.includeDebug || DEBUG_VIEW || DEV_VIEW;
+        return true;
+      });
+    }
+    if (classContextEnabled()) {
+      return MODES.filter(mode => {
+        const group = modeGroupKey(mode);
+        if (group === 'debug') return options.includeDebug || DEBUG_VIEW;
+        return group === 'class';
+      });
+    }
+    const loginApp = isLoginAppContext();
+    return MODES.filter(mode => {
+      const group = modeGroupKey(mode);
+      if (group === 'debug') return options.includeDebug || DEBUG_VIEW;
+      if (!loginApp && hasArcade) return group === 'arcade';
+      if (loginApp) return group !== 'arcade';
+      return true;
+    });
+  }
+
+  function isLoginAppContext(){
+    const params = currentUrlParams();
+    if (classContextEnabled()) return true;
+    const app = String(params.get('app') || params.get('view') || '').toLowerCase();
+    if (['login', 'gas', 'record', 'teacher'].includes(app)) return true;
+    return ['login', 'gas', 'record', 'auth'].some(key => {
+      const value = params.get(key);
+      return value !== null && value !== '0' && value !== 'false';
+    });
+  }
+
+  function classContextEnabled(){
+    const params = currentUrlParams();
+    return ['division', 'classMode', 'class', 'classId'].some(key => {
+      const value = params.get(key);
+      return value !== null && value !== '0' && value !== 'false';
+    });
+  }
+
+  function scopedClassModes(modes){
+    const params = currentUrlParams();
+    const gameId = params.get('gameId') || params.get('game');
+    const division = params.get('division') || params.get('classMode');
+    if (gameId) {
+      const target = String(gameId).trim().toLowerCase();
+      return modes.filter(mode => String(mode.id).trim().toLowerCase() === target);
+    }
+    if (division) {
+      const aliases = uniqueList([division, String(division).toUpperCase(), `PR-${String(division).toUpperCase()}`]);
+      return modes.filter(mode => aliases.includes(mode.id) || matchesAnyFilter(aliases, modeDivisions(mode)));
+    }
+    return modes;
+  }
+
+  function modeGroupKey(mode){
+    if (!mode) return 'practice';
+    const id = String(mode.id || '').toUpperCase();
+    const raw = String(mode.mode || mode.recordMode || '').trim().toLowerCase();
+    if (id.includes('DEBUG') || raw === 'debug') return 'debug';
+    if (MODE_GROUPS.some(group => group.key === raw)) return raw;
+    if (id.includes('ARCADE') || id.startsWith('AC-')) return 'arcade';
+    if (id.includes('CHAMP')) return 'championship';
+    if (id.includes('PROM') || id.includes('PM-')) return 'promotion';
+    if (id.includes('FREE') || id.startsWith('FR-')) return 'free';
+    if (id.includes('QUEST')) return 'quest';
+    if (id.includes('CLASS')) return 'class';
+    return 'practice';
+  }
+
+  function modeGroupLabel(groupKey){
+    const group = MODE_GROUPS.find(item => item.key === groupKey);
+    return group ? group.label : groupKey;
+  }
+
+  function placeholderMode(groupKey){
+    const label = `${modeGroupLabel(groupKey)} 準備中`;
+    return {
+      id: `PLACEHOLDER-${groupKey}`,
+      label,
+      desc: 'このモードはまだ準備中です。',
+      recordMode: groupKey,
+      mode: groupKey,
+      durationSec: 60,
+      phraseCount: 0,
+      filter: {},
+      phrases: [],
+      placeholder: true
+    };
+  }
+
+  function initialModeSelection(){
+    const params = currentUrlParams();
+    const urlGameId = params.get('gameId') || params.get('game') || params.get('mode');
+    const urlDivision = params.get('division');
+    return modeByGameId(urlGameId)
+      || modeByDivision(urlDivision)
+      || modeByGameId(readLastGameId())
+      || modeByGameId('PR-D1');
+  }
+
+  function currentUrlParams(){
+    const search = typeof location === 'undefined' ? '' : location.search;
+    return new URLSearchParams(search);
+  }
+
+  function modeByGameId(gameId){
+    if (!gameId) return null;
+    const target = String(gameId).trim().toLowerCase();
+    return allSelectableModes().find(mode => String(mode.id).trim().toLowerCase() === target) || null;
+  }
+
+  function modeByDivision(division){
+    if (!division) return null;
+    const value = String(division).trim();
+    const aliases = uniqueList([value, value.toUpperCase(), `PR-${value.toUpperCase()}`]);
+    return allSelectableModes().find(mode => {
+      if (aliases.includes(mode.id)) return true;
+      const divisions = modeDivisions(mode);
+      return matchesAnyFilter(aliases, divisions);
+    }) || null;
+  }
+
+  function renderHiddenModeSelect(){
+    const options = uniqueModes([...allSelectableModes(), ...state.visibleModes, state.mode].filter(Boolean));
+    els.modeSel.innerHTML = options.map(mode => `<option value="${escapeHtml(mode.id)}">${escapeHtml(mode.label)}</option>`).join('');
+    els.modeSel.value = state.mode && state.mode.id ? state.mode.id : '';
+  }
+
+  function uniqueModes(modes){
+    const seen = new Set();
+    const list = [];
+    for (const mode of modes) {
+      if (!mode || seen.has(mode.id)) continue;
+      seen.add(mode.id);
+      list.push(mode);
+    }
+    return list;
+  }
+
+  function renderModeTabs(){
+    const groups = availableModeGroups();
+    if (!groups.some(group => group.key === state.activeModeGroup)) {
+      state.activeModeGroup = firstAvailableModeGroup();
+      state.visibleModes = selectableModes();
+    }
+    els.modeTabs.innerHTML = groups.map(group => `
+      <button class="modeTab" type="button" role="tab" data-mode-group="${escapeHtml(group.key)}" aria-selected="${group.key === state.activeModeGroup ? 'true' : 'false'}">
+        ${escapeHtml(group.label)}
+      </button>
+    `).join('');
+  }
+
+  function selectModeGroup(groupKey, options = {}){
+    if (!isModeGroupAvailable(groupKey)) return;
+    state.activeModeGroup = groupKey;
+    state.visibleModes = selectableModes();
+    const currentIndex = state.visibleModes.findIndex(mode => mode.id === (state.mode && state.mode.id));
+    state.selectedModeIndex = currentIndex >= 0 ? currentIndex : 0;
+    state.mode = state.visibleModes[state.selectedModeIndex] || state.mode;
+    syncDurationFromMode();
+    renderModeInfo();
+    if (options.focusCard) focusSelectedModeCard();
+  }
+
+  function renderModeCards(){
+    if (!state.visibleModes.length) {
+      els.modeGrid.innerHTML = '<div class="emptyModes">このモードは準備中です。</div>';
+      return;
+    }
+    els.modeGrid.innerHTML = state.visibleModes.map((mode) => {
+      const selected = mode.id === state.mode.id;
+      const shortLabel = modeShortLabel(mode);
+      return `
+        <div class="modeCard" role="option" data-mode-id="${escapeHtml(mode.id)}" aria-selected="${selected ? 'true' : 'false'}" tabindex="${selected ? '0' : '-1'}" aria-label="${escapeHtml(mode.label)}">
+          ${renderModeCardTitle(shortLabel)}
+          ${renderDevCardBadge(mode)}
+          <span class="modeMeta">${escapeHtml(shortLabel.subtitle)}</span>
+          ${renderCandidateMeta(mode)}
+          ${renderCardTimeSelector(mode)}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function renderModeCardTitle(label){
+    if (label.code) {
+      return `
+        <div class="modeTitle">
+          <strong class="modeCode">${escapeHtml(label.code)}</strong>
+          <span class="modeName">${escapeHtml(label.name || '')}</span>
+        </div>
+      `;
+    }
+    return `<strong>${escapeHtml(label.title)}</strong>`;
+  }
+
+  function renderDevCardBadge(mode){
+    if (DEV_VIEW && modeGroupKey(mode) === 'class' && !classContextEnabled()) {
+      return '<span class="devCardBadge">DEV 開発用表示</span>';
+    }
+    return '';
+  }
+
+  function renderCandidateMeta(mode){
+    if (!DEV_VIEW) return '';
+    const count = candidatePhraseCount(mode);
+    const legacy = legacyPhraseCount(mode);
+    const legacyText = legacy !== null && legacy !== count ? ` / legacy phraseCount: ${legacy}` : '';
+    return `<span class="modeCandidateMeta">Candidates: ${count}${escapeHtml(legacyText)}</span>`;
+  }
+
+  function candidateInfoText(mode){
+    const count = candidatePhraseCount(mode);
+    const legacy = legacyPhraseCount(mode);
+    const legacyText = DEV_VIEW && legacy !== null && legacy !== count ? ` / legacy phraseCount: ${legacy}` : '';
+    return `候補フレーズ数: ${count}${legacyText}`;
+  }
+
+  function candidatePhraseCount(mode){
+    const value = Number(mode && mode.candidatePhraseCount);
+    if (Number.isFinite(value) && value >= 0) return value;
+    return mode && Array.isArray(mode.phrases) ? mode.phrases.length : 0;
+  }
+
+  function legacyPhraseCount(mode){
+    const value = Number(mode && mode.legacyPhraseCount);
+    return Number.isFinite(value) && value > 0 ? value : null;
+  }
+
+  function renderCardTimeSelector(mode){
+    if (!isTimeSelectableMode(mode)) return '';
+    return `
+      <div class="cardTime" aria-label="時間選択">
+        ${[30, 60, 90].map(sec => `
+          <button class="cardTimeBtn" type="button" data-sec="${sec}" aria-pressed="${state.durationSec === sec ? 'true' : 'false'}">${sec}秒</button>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function modeShortLabel(mode){
+    if (mode.placeholder) {
+      return {
+        title: mode.label,
+        subtitle: '教員指定のモードが見つかりません'
+      };
+    }
+    if (mode.questWorld) {
+      return {
+        title: mode.questWorld.title,
+        subtitle: questWorldMeta(mode.questWorld)
+      };
+    }
+    const group = modeGroupKey(mode);
+    const levels = summarizeTokens(modeLevels(mode));
+    const divisions = summarizeTokens(modeDivisions(mode));
+    const divisionLabel = divisionDisplayLabel(divisions) || divisionDisplayLabel(modePrimaryTitle(mode));
+    if (divisionLabel) {
+      return {
+        code: divisionLabel.code,
+        name: divisionLabel.name,
+        subtitle: modeCardMeta(mode)
+      };
+    }
+    if (group === 'free') {
+      return { title: `Free ${levels || mode.id}`, subtitle: modeCardMeta(mode) };
+    }
+    if (group === 'promotion') {
+      return { title: `${divisions || modePrimaryTitle(mode)} 昇格戦`, subtitle: modeCardMeta(mode) };
+    }
+    if (group === 'championship') {
+      return { title: `Championship ${divisions || modePrimaryTitle(mode)}`, subtitle: modeCardMeta(mode) };
+    }
+    const parts = modePrimaryTitle(mode).split('/');
+    return {
+      title: parts[0].trim(),
+      subtitle: modeCardMeta(mode)
+    };
+  }
+
+  function modePrimaryTitle(mode){
+    return String(mode.label || mode.id || '').replace(/\s*練習\s*$/u, '');
+  }
+
+  function divisionDisplayLabel(value){
+    const match = String(value || '').match(/\bD(10|[1-9])\b/i);
+    if (!match) return null;
+    const code = `D${match[1]}`;
+    return { code, name: divisionTitleName(code) };
+  }
+
+  function divisionTitleName(code){
+    const names = {
+      D1: 'Starter / スターター',
+      D2: 'Rookie / ルーキー',
+      D3: 'Basic / ベーシック',
+      D4: 'Standard / スタンダード',
+      D5: 'Advanced / アドバンスト',
+      D6: 'Expert / エキスパート',
+      D7: 'Master / マスター',
+      D8: 'Elite / エリート',
+      D9: 'Legend / レジェンド',
+      D10: 'Boss / ボス'
+    };
+    return names[code] || '';
+  }
+
+  function modeCardMeta(mode){
+    const group = modeGroupKey(mode);
+    const parts = [];
+    if (group === 'class' && DEV_VIEW && !classContextEnabled()) parts.push('DEV');
+    if (group === 'championship') parts.push('記録対象');
+    if (group === 'promotion') parts.push('昇格戦');
+    parts.push(isTimeSelectableMode(mode) ? '30/60/90秒' : `${modeDurationSec(mode)}秒`);
+    const levels = summarizeTokens(modeLevels(mode));
+    if (levels) parts.push(levels);
+    const filter = filterConditionSummary(mode.filter);
+    if (!levels && filter) parts.push(filter);
+    return parts.join(' / ');
+  }
+
+  function selectedModeDetailText(mode){
+    if (!mode) return '-';
+    if (mode.questWorld) return `Quest / ${mode.questWorld.worldId} / ${mode.questWorld.stages.length} stages / ${questWorldMeta(mode.questWorld)}`;
+    const group = modeGroupKey(mode);
+    const parts = [modeGroupLabel(group)];
+    const divisions = summarizeTokens(modeDivisions(mode));
+    const levels = summarizeTokens(modeLevels(mode));
+    if (divisions) parts.push(divisions);
+    if (levels) parts.push(levels);
+    parts.push(isTimeSelectableMode(mode) ? `${state.durationSec}秒` : `${modeDurationSec(mode)}秒固定`);
+    if (group === 'championship') parts.push('記録対象');
+    if (group === 'promotion') parts.push('昇格戦');
+    return parts.join(' / ');
+  }
+
+  function questWorldMeta(world){
+    return filterConditionSummary(world.filter) || world.worldId;
+  }
+
+  function modeDurationSec(mode){
+    if (modeGroupKey(mode) === 'practice') return 60;
+    return Number(mode && mode.durationSec || 60);
+  }
+
+  function isTimeSelectableMode(mode){
+    const group = modeGroupKey(mode);
+    return group === 'arcade' || group === 'free';
+  }
+
+  function filterConditionSummary(filter){
+    const v2 = normalizeV2Filter(filter || {});
+    const legacy = normalizeLegacyFilter(filter || {});
+    const parts = [];
+    const category = summarizeTokens(v2.category);
+    const categoryAny = summarizeTokens(v2.categoryAny);
+    const categoryAll = summarizeTokens(v2.categoryAll);
+    const keyRows = summarizeTokens(v2.keyRows);
+    const skillAny = summarizeTokens(v2.skillTagsAny);
+    const skillAll = summarizeTokens(v2.skillTagsAll);
+    const skillNone = summarizeTokens(v2.skillTagsNone);
+    const levels = summarizeTokens(v2.phraseLevelV2.length ? v2.phraseLevelV2 : legacy.levels);
+    const divisions = summarizeTokens(v2.divisionsV2.length ? v2.divisionsV2 : legacy.divisions);
+    if (divisions) parts.push(divisions);
+    if (levels) parts.push(levels);
+    if (category) parts.push(category);
+    if (categoryAny) parts.push(`category any ${categoryAny}`);
+    if (categoryAll) parts.push(`category all ${categoryAll}`);
+    if (keyRows) parts.push(`keys ${keyRows}`);
+    if (skillAny) parts.push(`tags ${skillAny}`);
+    if (skillAll) parts.push(`all ${skillAll}`);
+    if (skillNone) parts.push(`除外 ${skillNone}`);
+    if (v2.questOnly === true) parts.push('quest専用');
+    return parts.join(' / ');
+  }
+
+  function summarizeTokens(tokens){
+    const list = uniqueList(normalizeVariantList(tokens));
+    if (!list.length) return '';
+    const parsed = list
+      .map(token => {
+        const match = String(token).match(/^([A-Za-z]+)(\d+)$/);
+        return match ? { token, prefix: match[1].toUpperCase(), number: Number(match[2]) } : null;
+      })
+      .filter(Boolean);
+    if (parsed.length === list.length && new Set(parsed.map(item => item.prefix)).size === 1) {
+      parsed.sort((a, b) => a.number - b.number);
+      const first = parsed[0];
+      const last = parsed[parsed.length - 1];
+      return first.number === last.number ? first.token : `${first.prefix}${first.number}〜${last.prefix}${last.number}`;
+    }
+    return list.slice(0, 3).join(', ') + (list.length > 3 ? '...' : '');
+  }
+
+  function selectModeById(modeId, options = {}){
+    const index = state.visibleModes.findIndex(mode => mode.id === modeId);
+    if (index === -1) return;
+    selectModeByIndex(index, options);
+  }
+
+  function selectModeByIndex(index, options = {}){
+    if (!state.visibleModes.length) return;
+    const nextIndex = (index + state.visibleModes.length) % state.visibleModes.length;
+    state.selectedModeIndex = nextIndex;
+    state.mode = state.visibleModes[nextIndex];
+    syncDurationFromMode();
+    renderModeInfo();
+    if (options.focusCard) focusSelectedModeCard();
+  }
+
+  function focusSelectedModeCard(){
+    const card = els.modeGrid.querySelector(`[data-mode-id="${cssEscape(state.mode.id)}"]`);
+    if (card) card.focus();
+  }
+
+  function questWorldModes(){
+    return QUEST_WORLDS.map(world => {
+      const stages = QUEST_STAGES.filter(stage => stage.worldId === world.worldId);
+      const candidateIds = uniqueList(stages.flatMap(stage => stage.phraseIds || []));
+      return {
+        id: `QUEST-${world.worldId}`,
+        label: world.title,
+        desc: world.description || 'Quest world',
+        recordMode: 'quest',
+        mode: 'quest',
+        durationSec: 60,
+        phraseCount: candidateIds.length,
+        candidatePhraseCount: candidateIds.length,
+        legacyPhraseCount: null,
+        filter: world.filter || {},
+        phrases: [],
+        questWorld: {
+          worldId: world.worldId,
+          title: world.title,
+          filter: world.filter || {},
+          stages
+        }
+      };
+    });
+  }
+
+  function handleGlobalKeydown(e){
+    if (state.running || (document.activeElement === els.typebox && !els.typebox.disabled) || document.activeElement === els.secSel) return;
+    if ((state.screen === 'ready' || state.screen === 'setup') && isModeArrowKey(e.code)) {
+      e.preventDefault();
+      moveModeSelection(e.code);
+      return;
+    }
+    if ((e.code === 'Space' || e.code === 'Enter') && (state.screen === 'ready' || state.screen === 'result')) {
+      if (document.activeElement === els.clearHistoryBtn || document.activeElement === els.modeSelectBtn) return;
+      if (document.activeElement && document.activeElement.closest && document.activeElement.closest('.modeTab')) return;
+      if (document.activeElement && document.activeElement.closest && document.activeElement.closest('.cardTimeBtn')) return;
+      e.preventDefault();
+      startGame();
+    }
+  }
+
+  function isModeArrowKey(code){
+    return ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(code);
+  }
+
+  function moveModeSelection(code){
+    const columns = modeGridColumnCount();
+    const delta = code === 'ArrowLeft' ? -1
+      : code === 'ArrowRight' ? 1
+      : code === 'ArrowUp' ? -columns
+      : columns;
+    selectModeByIndex(state.selectedModeIndex + delta, { focusCard: true });
+  }
+
+  function modeGridColumnCount(){
+    const cards = [...els.modeGrid.querySelectorAll('.modeCard')];
+    if (cards.length < 2) return 1;
+    const firstTop = cards[0].offsetTop;
+    const count = cards.findIndex(card => card.offsetTop !== firstTop);
+    return count === -1 ? cards.length : Math.max(1, count);
+  }
+
+  function cssEscape(value){
+    if (typeof CSS !== 'undefined' && CSS.escape) return CSS.escape(value);
+    return String(value).replace(/["\\]/g, '\\$&');
+  }
+
+  function renderDataInfo(info){
+    const source = info.sourceUrl ? `${info.sourceKind}: ${info.sourceUrl}` : info.sourceKind;
+    const version = info.dataVersion || '-';
+    const generatedAt = info.generatedAt || '-';
+    const questWorlds = Number(info.questWorldsCount || 0);
+    const questPart = questWorlds ? ` / ${questWorlds} quest worlds` : '';
+    els.dataInfo.textContent = `data: ${source} / version ${version} / generated ${generatedAt} / ${info.gamesCount} games / ${info.phrasesCount} phrases${questPart}`;
+    renderStartupInfo();
+  }
+
+  function renderStartupInfo(){
+    const info = state.dataInfo || {};
+    els.recordModeInfo.textContent = currentRecordMode();
+    els.dataVersionInfo.textContent = info.dataVersion || '-';
+    els.gamesCountInfo.textContent = String(info.gamesCount || '-');
+    els.phrasesCountInfo.textContent = String(info.phrasesCount || '-');
+  }
+
+  function currentRecordMode(){
+    return String((state.mode && state.mode.recordMode) || (state.dataInfo && state.dataInfo.recordMode) || '-');
+  }
+
+  function setScreenState(nextState){
+    state.screen = nextState;
+    document.body.dataset.screenState = nextState;
+  }
+
+  function setSaveState(saveState){
+    const labels = {
+      idle: '自動保存待ち',
+      saving: '保存中...',
+      saved: '保存済み',
+      failed: '保存失敗'
+    };
+    els.saveStatus.textContent = labels[saveState] || labels.idle;
+    els.saveStatus.dataset.saveState = saveState;
+    els.saveRetryArea.classList.toggle('hidden', saveState !== 'failed');
+    els.retrySaveBtn.disabled = saveState !== 'failed';
+  }
+
+  function syncDurationFromMode(){
+    const selectableTime = isTimeSelectableMode(state.mode);
+    const sec = selectableTime
+      ? Number(els.secSel.value || state.durationSec || 60)
+      : modeDurationSec(state.mode);
+    state.durationSec = sec;
+    ensureDurationOption(sec);
+    els.secSel.value = String(sec);
+    els.secSel.disabled = !selectableTime;
+    els.timeControl.classList.toggle('isFixed', !selectableTime);
+    els.remain.textContent = sec.toFixed(1) + 's';
+  }
+
+  function ensureDurationOption(sec){
+    const value = String(sec);
+    if ([...els.secSel.options].some(option => option.value === value)) return;
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = `${sec}秒`;
+    els.secSel.appendChild(option);
+  }
+
+  function startGame(){
+    if (state.running || state.countdownActive) return;
+    state.mode = state.visibleModes.find(m => m.id === els.modeSel.value)
+      || allSelectableModes().find(m => m.id === els.modeSel.value)
+      || state.mode
+      || MODES[0];
+    const candidatePhrases = uniquePhrasesByPhraseId(state.mode && state.mode.phrases || []);
+    if (!state.mode || !candidatePhrases.length) {
+      renderSetupWarningForMode();
+      setScreenState('ready');
+      return;
+    }
+    rememberLastGameId(state.mode.id);
+    state.durationSec = Number(els.secSel.value || 60);
+    setScreenState('countdown');
+    setSaveState('idle');
+    state.index = 0;
+    state.deckNo = 0;
+    state.cycleCount = 0;
+    state.candidatePhrases = candidatePhrases;
+    state.usedPhraseIds = new Set();
+    state.repeatedPhraseCount = 0;
+    state.attemptNo = 0;
+    state.attempts = [];
+    state.currentAttempt = null;
+    state.lastPhraseKey = '';
+    state.lastDeckKeys = [];
+    refillDeck();
+    state.startedAt = 0;
+    state.running = false;
+    state.timeUpGrace = false;
+    state.timeUpAt = 0;
+    state.countdownActive = true;
+    state.correctChars = 0;
+    state.totalKeys = 0;
+    state.mistakes = 0;
+    state.totalCorrectCount = 0;
+    state.totalKeyCount = 0;
+    state.totalMissCount = 0;
+    state.currentPhraseMisses = 0;
+    state.currentDeleteEvents = [];
+    state.completedPhrases = [];
+    state.lastRaw = '';
+    state.trailingNCarryover = null;
+    state.absorbedTrailingNCount = 0;
+    state.lastResultPayload = null;
+    if (typeof window !== 'undefined') window.typingQuestLastResultPayload = null;
+    els.resultPanel.classList.add('hidden');
+    els.liveMetrics.classList.remove('hidden');
+    els.inputPanel.classList.remove('hidden');
+    els.startBtn.disabled = true;
+    els.typebox.disabled = true;
+    els.typebox.value = '';
+    els.typedLog.innerHTML = '';
+    els.inputField.classList.remove('hasError');
+    updateRomanGuide(null, '');
+    els.imeWarn.style.display = 'none';
+    els.timeUpNotice.classList.add('hidden');
+    els.bar.style.transform = 'scaleX(0)';
+    els.remain.textContent = state.durationSec.toFixed(1) + 's';
+    updateTimeWarning(state.durationSec);
+    renderMetrics();
+    runCountdown();
+  }
+
+  function backToModeSelect(){
+    clearCountdownTimer();
+    state.countdownActive = false;
+    state.running = false;
+    state.timeUpGrace = false;
+    state.timeUpAt = 0;
+    if (state.timer) cancelAnimationFrame(state.timer);
+    rememberLastGameId(state.mode && state.mode.id);
+    els.typebox.disabled = true;
+    els.startBtn.disabled = false;
+    els.resultPanel.classList.add('hidden');
+    els.liveMetrics.classList.remove('hidden');
+    els.inputPanel.classList.remove('hidden');
+    els.timeUpNotice.classList.add('hidden');
+    if (state.mode && state.mode.id) selectModeById(state.mode.id, { focusCard: true });
+    setScreenState('ready');
+  }
+
+  function runCountdown(){
+    const steps = ['3', '2', '1', 'START!'];
+    let index = 0;
+    showCountdownStep(steps[index]);
+    clearCountdownTimer();
+    const next = () => {
+      index++;
+      if (index >= steps.length) {
+        state.countdownActive = false;
+        beginPlaying();
+        return;
+      }
+      showCountdownStep(steps[index]);
+      state.countdownTimer = setTimeout(next, countdownDelay(steps[index]));
+    };
+    state.countdownTimer = setTimeout(next, countdownDelay(steps[index]));
+  }
+
+  function showCountdownStep(label){
+    els.displayText.textContent = label;
+    els.kanaText.textContent = '英数入力にしてください / 日本語入力はOFFです';
+    els.romajiText.textContent = '';
+    updateInputGuide('', '');
+    setTargetDensity('');
+  }
+
+  function countdownDelay(label){
+    return label === 'START!' ? 450 : 700;
+  }
+
+  function clearCountdownTimer(){
+    if (!state.countdownTimer) return;
+    clearTimeout(state.countdownTimer);
+    state.countdownTimer = null;
+  }
+
+  function beginPlaying(){
+    clearCountdownTimer();
+    setScreenState('playing');
+    state.startedAt = performance.now();
+    state.running = true;
+    showCurrentWord();
+    els.typebox.disabled = false;
+    els.typebox.focus();
+    tick();
+  }
+
+  function showCurrentWord(){
+    const w = currentWord();
+    if (!w) return finishGame();
+    els.displayText.textContent = w.display;
+    els.kanaText.textContent = w.kana;
+    updateRomanGuide(w, '');
+    els.typebox.value = '';
+    els.typedLog.innerHTML = '';
+    els.inputField.classList.remove('hasError');
+    state.lastRaw = '';
+    state.currentPhraseMisses = 0;
+    state.currentDeleteEvents = [];
+    state.currentAttempt = beginPhraseAttempt(w);
+  }
+
+  function currentWord(){ return state.words[state.index]; }
+
+  function updateRomanGuide(w, raw, isError = false){
+    const guide = w ? chooseRomanDisplay(w, raw) : '';
+    els.romajiText.textContent = guide;
+    updateInputGuide(guide, raw, isError);
+    if (w) updateTargetDensity(w, guide);
+    else setTargetDensity('');
+    return guide;
+  }
+
+  function updateTargetDensity(w, guide){
+    const displayLength = charLength(w.display);
+    const kanaLength = charLength(w.kana);
+    const romanLength = String(guide || '').length;
+    const level = displayLength > 38 || kanaLength > 56 || romanLength > 48 ? 'extraDenseText'
+      : displayLength > 26 || kanaLength > 40 || romanLength > 34 ? 'denseText'
+      : displayLength > 14 || kanaLength > 24 || romanLength > 22 ? 'compactText'
+      : '';
+    setTargetDensity(level);
+  }
+
+  function setTargetDensity(level){
+    els.targetCard.classList.remove('compactText', 'denseText', 'extraDenseText');
+    els.inputPanel.classList.remove('compactText', 'denseText', 'extraDenseText');
+    if (level) els.targetCard.classList.add(level);
+    if (level) els.inputPanel.classList.add(level);
+  }
+
+  function charLength(value){
+    return [...String(value || '')].length;
+  }
+
+  function updateInputGuide(guide, raw, isError = false){
+    const text = String(guide || '');
+    const typed = String(raw || '');
+    const widthChars = Math.max(text.length, typed.length, 1);
+    els.romajiText.style.setProperty('--guide-width', `${widthChars}ch`);
+    els.inputField.style.setProperty('--guide-width', `${widthChars}ch`);
+    if (!text && !typed) {
+      els.ghostTyped.textContent = '';
+      els.ghostRest.textContent = '';
+      return;
+    }
+    if (isError) {
+      els.ghostTyped.textContent = typed;
+      els.ghostRest.textContent = '';
+      return;
+    }
+    if (text.startsWith(typed)) {
+      els.ghostTyped.textContent = text.slice(0, typed.length);
+      els.ghostRest.textContent = text.slice(typed.length);
+      return;
+    }
+    els.ghostTyped.textContent = typed;
+    els.ghostRest.textContent = text;
+  }
+
+  function handleTypeboxKeydown(e){
+    if (!state.running) return;
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      if (state.timeUpGrace) finishCurrentPhraseByEnterAfterTimeUp();
+      return;
+    }
+    if (isTextInputKey(e) && e.getModifierState && e.getModifierState('CapsLock')) {
+      showInputWarning('Caps Lockがオンになっている可能性があります');
+    }
+    if (isTextInputKey(e) && invalidInputReason(e.key)) {
+      e.preventDefault();
+      showInputWarning(invalidInputReason(e.key));
+      return;
+    }
+    if (isBlockedUppercaseKey(e)) {
+      e.preventDefault();
+      showInputWarning('大文字小文字を区別します。Caps Lockと入力文字を確認してください。');
+      return;
+    }
+    if (tryAbsorbTrailingN(e)) return;
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      recordDeleteEvent(e);
+      clearTrailingNCarryover();
+      return;
+    }
+    if (isTextInputKey(e)) clearTrailingNCarryover();
+  }
+
+  function handleTypeboxBeforeInput(e){
+    if (!state.running || !e.inputType || e.inputType.indexOf('insert') !== 0) return;
+    const data = typeof e.data === 'string' ? e.data : '';
+    const reason = invalidInputReason(data);
+    if (!reason) return;
+    e.preventDefault();
+    showInputWarning(reason);
+  }
+
+  function invalidInputReason(value){
+    const text = String(value || '');
+    if (!text) return '';
+    if (text.includes('\u3000')) return '全角スペースは使えません。半角で入力してください。';
+    if (text.includes('ー')) return '長音は半角ハイフン「-」で入力してください。';
+    if (/[^\x20-\x7E]/.test(text)) return '全角文字・全角記号は使えません。半角英数字・半角記号で入力してください。';
+    return '';
+  }
+
+  function showInputWarning(message){
+    els.imeWarn.textContent = message;
+    els.imeWarn.style.display = 'block';
+    if (state.inputWarningTimer) clearTimeout(state.inputWarningTimer);
+    state.inputWarningTimer = setTimeout(() => {
+      if (!state.composing) els.imeWarn.style.display = 'none';
+    }, 1800);
+  }
+
+  function isBlockedUppercaseKey(e){
+    if (!/^[A-Z]$/.test(e.key || '') || e.metaKey || e.ctrlKey || e.altKey) return false;
+    const w = currentWord();
+    if (!w) return true;
+    const raw = els.typebox.value || '';
+    const start = Number(els.typebox.selectionStart || raw.length);
+    const end = Number(els.typebox.selectionEnd || start);
+    const nextRaw = raw.slice(0, start) + e.key + raw.slice(end);
+    return !isAcceptableStrictPrefix(nextRaw, w);
+  }
+
+  function hasBlockedUppercaseInput(raw, w){
+    if (!/[A-Z]/.test(String(raw || ''))) return false;
+    return !isAcceptableStrictPrefix(raw, w);
+  }
+
+  function recordDeleteEvent(e){
+    const w = currentWord();
+    if (!w) return;
+    const beforeDelete = els.typebox.value || '';
+    const start = Number(els.typebox.selectionStart || 0);
+    const end = Number(els.typebox.selectionEnd || start);
+    const hasSelection = end > start;
+    const position = e.key === 'Backspace' && !hasSelection ? Math.max(0, start - 1) : start;
+    const deletedChar = hasSelection
+      ? beforeDelete.slice(start, end)
+      : e.key === 'Backspace'
+        ? beforeDelete.slice(Math.max(0, start - 1), start)
+        : beforeDelete.slice(start, start + 1);
+    if (!deletedChar) return;
+    state.currentDeleteEvents.push({
+      beforeDelete,
+      deletedChar,
+      position,
+      phraseId: w.phraseId,
+      displayText: w.display
+    });
+  }
+
+  function tryAbsorbTrailingN(e){
+    if (!isNKey(e)) {
+      expireTrailingNCarryover();
+      return false;
+    }
+    if (!shouldAbsorbTrailingN()) return false;
+    e.preventDefault();
+    state.absorbedTrailingNCount++;
+    clearTrailingNCarryover();
+    return true;
+  }
+
+  function shouldAbsorbTrailingN(){
+    const carryover = state.trailingNCarryover;
+    if (!carryover || !carryover.active) return false;
+    if (!isFreshTrailingNCarryover(carryover)) {
+      clearTrailingNCarryover();
+      return false;
+    }
+    if ((els.typebox.value || '') !== '') return false;
+    const w = currentWord();
+    if (!w) return false;
+    return !romanCandidates(w).some(candidate => String(candidate || '').toLowerCase().startsWith('n'));
+  }
+
+  function isFreshTrailingNCarryover(carryover){
+    return performance.now() - Number(carryover.completedAt || 0) <= 500;
+  }
+
+  function expireTrailingNCarryover(){
+    if (state.trailingNCarryover && !isFreshTrailingNCarryover(state.trailingNCarryover)) {
+      clearTrailingNCarryover();
+    }
+  }
+
+  function clearTrailingNCarryover(){
+    state.trailingNCarryover = null;
+  }
+
+  function isNKey(e){
+    return (e.key === 'n' || e.key === 'N') && !e.metaKey && !e.ctrlKey && !e.altKey;
+  }
+
+  function isTextInputKey(e){
+    return e.key && e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey;
+  }
+
+  function trailingNCarryoverFor(w, raw){
+    if (!phraseEndsWithN(w) || !inputEndsWithSingleN(raw)) return null;
+    return {
+      active: true,
+      completedAt: performance.now(),
+      phraseId: w.phraseId,
+      displayText: w.display
+    };
+  }
+
+  function phraseEndsWithN(w){
+    const kana = String(w.kana || '').trim();
+    const primaryRoman = String(w.primaryRoman || '').trim().toLowerCase();
+    return /ん[\s。、,.!?！？]*$/.test(kana) || /n[\s。、,.!?！？]*$/.test(primaryRoman);
+  }
+
+  function inputEndsWithSingleN(raw){
+    const value = String(raw || '').trim().toLowerCase();
+    return value.endsWith('n') && !value.endsWith('nn') && !value.endsWith("n'");
+  }
+
+  function onInput(e){
+    if (!state.running) return;
+    const w = currentWord();
+    if (!w) return;
+    const previousRaw = state.lastRaw;
+    const raw = e.target.value || '';
+    const invalidReason = invalidInputReason(raw);
+    if (invalidReason) {
+      e.target.value = previousRaw;
+      showInputWarning(invalidReason);
+      updateRomanGuide(w, previousRaw, !isAcceptableWordPrefix(previousRaw, w));
+      renderTypedLog(previousRaw, w);
+      return;
+    }
+    if (hasBlockedUppercaseInput(raw, w)) {
+      e.target.value = previousRaw;
+      showInputWarning('大文字小文字を区別します。Caps Lockと入力文字を確認してください。');
+      updateRomanGuide(w, previousRaw, !isAcceptableWordPrefix(previousRaw, w));
+      renderTypedLog(previousRaw, w);
+      return;
+    }
+    const okPrefix = isAcceptableWordPrefix(raw, w);
+    els.inputField.classList.toggle('hasError', !okPrefix);
+    updateRomanGuide(w, raw, !okPrefix);
+
+    const inserted = insertedTextFromInput(e, previousRaw, raw);
+    if (inserted) {
+      const counted = countInsertedChars(previousRaw, inserted, w);
+      const keyCount = counted.correct + counted.misses;
+      if (isScoredInputActive()) {
+        state.correctChars += counted.correct;
+        state.mistakes += counted.misses;
+        state.totalKeys += keyCount;
+      }
+      state.totalCorrectCount += counted.correct;
+      state.totalMissCount += counted.misses;
+      state.totalKeyCount += keyCount;
+      state.currentPhraseMisses += counted.misses;
+    }
+    state.lastRaw = raw;
+    if (!state.timeUpGrace && timeLimitReached()) enterTimeUpGrace();
+    renderTypedLog(raw, w);
+    renderMetrics();
+
+    if (isCompleteWordInput(raw, w)) {
+      state.lastPhraseKey = w.phraseKey;
+      state.trailingNCarryover = trailingNCarryoverFor(w, raw);
+      const completedAttempt = updateCurrentAttempt(w, raw, true, { completedAfterTimeUp: state.timeUpGrace });
+      state.completedPhrases.push(completedAttempt);
+      if (state.timeUpGrace) {
+        finishGame();
+        return;
+      }
+      state.index++;
+      if (state.index >= state.words.length) {
+        refillDeck();
+      }
+      showCurrentWord();
+    }
+  }
+
+  function refillDeck(){
+    const deckPhrases = buildPhraseDeck(state.candidatePhrases, state.lastPhraseKey, state.lastDeckKeys);
+    const cycleNo = state.cycleCount + 1;
+    state.words = deckPhrases.map((phrase, i) => {
+      const word = makeWord(phrase, `${state.mode.id}-${state.deckNo}-${i}`);
+      word.cycleNo = cycleNo;
+      return word;
+    });
+    state.index = 0;
+    state.deckNo++;
+    state.cycleCount = cycleNo;
+    state.lastDeckKeys = deckPhrases.map(phraseKey);
+  }
+
+  function beginPhraseAttempt(w){
+    const phraseId = phraseAttemptId(w);
+    if (state.usedPhraseIds.has(phraseId)) state.repeatedPhraseCount++;
+    state.usedPhraseIds.add(phraseId);
+    const attempt = {
+      attemptNo: ++state.attemptNo,
+      phraseId,
+      displayText: w.display,
+      display: w.display,
+      kana: w.kana,
+      roman: chooseRomanDisplay(w, ''),
+      completed: false,
+      completedAfterTimeUp: false,
+      endedByEnterAfterTimeUp: false,
+      missCount: 0,
+      deleteEvents: [],
+      cycleNo: w.cycleNo || state.cycleCount || 1
+    };
+    w.attemptNo = attempt.attemptNo;
+    state.attempts.push(attempt);
+    return attempt;
+  }
+
+  function updateCurrentAttempt(w, raw, completed, flags = {}){
+    const attempt = state.currentAttempt || beginPhraseAttempt(w);
+    attempt.displayText = w.display;
+    attempt.display = w.display;
+    attempt.kana = w.kana;
+    attempt.roman = chooseRomanDisplay(w, raw);
+    attempt.completed = !!completed;
+    attempt.completedAfterTimeUp = !!attempt.completedAfterTimeUp || !!flags.completedAfterTimeUp;
+    attempt.endedByEnterAfterTimeUp = !!attempt.endedByEnterAfterTimeUp || !!flags.endedByEnterAfterTimeUp;
+    attempt.missCount = state.currentPhraseMisses;
+    attempt.deleteEvents = state.currentDeleteEvents.map(event => ({ ...event }));
+    return { ...attempt, deleteEvents: attempt.deleteEvents.map(event => ({ ...event })) };
+  }
+
+  function tick(){
+    if (!state.running || state.timeUpGrace) return;
+    const elapsedSec = (performance.now() - state.startedAt) / 1000;
+    const p = Math.min(1, elapsedSec / state.durationSec);
+    const remainingSec = Math.max(0, state.durationSec - elapsedSec);
+    els.bar.style.transform = `scaleX(${p})`;
+    els.remain.textContent = remainingSec.toFixed(1) + 's';
+    updateTimeWarning(remainingSec);
+    renderMetrics();
+    if (elapsedSec >= state.durationSec) return enterTimeUpGrace();
+    state.timer = requestAnimationFrame(tick);
+  }
+
+  function enterTimeUpGrace(){
+    if (!state.running || state.timeUpGrace) return;
+    state.timeUpGrace = true;
+    state.timeUpAt = performance.now();
+    if (state.timer) cancelAnimationFrame(state.timer);
+    state.timer = null;
+    setScreenState('timeUpGrace');
+    els.bar.style.transform = 'scaleX(1)';
+    els.remain.textContent = '0.0s';
+    updateTimeWarning(0);
+    els.timeUpNotice.classList.remove('hidden');
+    els.typebox.disabled = false;
+    els.typebox.focus();
+    renderMetrics();
+  }
+
+  function finishCurrentPhraseByEnterAfterTimeUp(){
+    if (!state.timeUpGrace) return;
+    const w = currentWord();
+    if (w) updateCurrentAttempt(w, els.typebox.value || '', false, { endedByEnterAfterTimeUp: true });
+    finishGame();
+  }
+
+  function timeLimitReached(){
+    return state.startedAt > 0 && (performance.now() - state.startedAt) / 1000 >= state.durationSec;
+  }
+
+  function isScoredInputActive(){
+    return state.running && !state.timeUpGrace && !timeLimitReached();
+  }
+
+  function updateTimeWarning(remainingSec){
+    els.timeProgress.classList.toggle('isCaution', remainingSec <= 10 && remainingSec > 5);
+    els.timeProgress.classList.toggle('isDanger', remainingSec <= 5);
+  }
+
+  function finishGame(){
+    if (!state.running) return;
+    state.running = false;
+    state.timeUpGrace = false;
+    if (state.timer) cancelAnimationFrame(state.timer);
+    els.typebox.disabled = true;
+    els.startBtn.disabled = false;
+    els.inputPanel.classList.add('hidden');
+    els.imeWarn.style.display = 'none';
+    els.timeUpNotice.classList.add('hidden');
+    els.displayText.textContent = '終了';
+    els.kanaText.textContent = '結果を確認しましょう';
+    els.romajiText.textContent = '';
+    updateInputGuide('', '');
+    setTargetDensity('');
+    updateTimeWarning(state.durationSec);
+    const result = calcMetrics();
+    state.lastResultPayload = buildResultPayload(result);
+    if (typeof window !== 'undefined') window.typingQuestLastResultPayload = state.lastResultPayload;
+    els.rCpm.textContent = String(result.cpm);
+    els.rWpm.textContent = String(result.wpm);
+    els.rAcc.textContent = result.accPct + '%';
+    els.rMiss.textContent = String(result.mistakes);
+    els.rScore.textContent = String(result.score);
+    els.rCompleted.textContent = String(result.completed);
+    els.rTotalKeys.textContent = String(result.total);
+    renderResultPhraseList(result.phrases);
+    renderMissAnalysis(result);
+    renderRetryMotivation(result, historyRecordsForGame(state.mode.id));
+    els.liveMetrics.classList.add('hidden');
+    els.resultPanel.classList.remove('hidden');
+    setSaveState('idle');
+    setScreenState('result');
+    rememberLastGameId(state.mode && state.mode.id);
+    saveHistory(result);
+    renderHistory();
+  }
+
+  function calcMetrics(){
+    const elapsedSec = state.startedAt > 0
+      ? Math.min(state.durationSec, (performance.now() - state.startedAt) / 1000)
+      : state.durationSec;
+    const correct = Math.min(state.correctChars, state.totalKeys);
+    const total = state.mistakes > 0 ? Math.max(state.totalKeys, correct + state.mistakes) : Math.max(state.totalKeys, correct);
+    const totalCorrect = Math.min(state.totalCorrectCount, state.totalKeyCount);
+    const totalInputKeys = state.totalMissCount > 0
+      ? Math.max(state.totalKeyCount, totalCorrect + state.totalMissCount)
+      : Math.max(state.totalKeyCount, totalCorrect);
+    const accuracy = total > 0 ? Math.max(0, Math.min(1, correct / total)) : 1;
+    const cpm = elapsedSec > 0 ? Math.round(correct / elapsedSec * 60) : 0;
+    const wpm = Math.round(cpm / 5);
+    const score = Math.round(cpm * accuracy * accuracy * 5);
+    let accPct = Math.round(accuracy * 1000) / 10;
+    if (state.mistakes > 0 && accPct >= 100) accPct = 99.9;
+    const phrases = resultPhrases();
+    return {
+      cpm,
+      wpm,
+      accuracy,
+      accPct,
+      score,
+      mistakes: state.mistakes,
+      correct,
+      total,
+      scoredCorrectCount: correct,
+      scoredKeyCount: total,
+      scoredMissCount: state.mistakes,
+      totalCorrectCount: totalCorrect,
+      totalKeyCount: totalInputKeys,
+      totalMissCount: state.totalMissCount,
+      completed: state.completedPhrases.length,
+      phrases,
+      attempts: phrases,
+      candidatePhraseCount: activeCandidatePhraseCount(),
+      uniquePhraseCount: uniqueAttemptPhraseCount(),
+      repeatedPhraseCount: state.repeatedPhraseCount,
+      cycleCount: state.cycleCount,
+      absorbedTrailingNCount: state.absorbedTrailingNCount
+    };
+  }
+
+  function buildResultPayload(result){
+    const attempts = result.attempts.map(resultAttemptForPayload);
+    return {
+      gameId: state.mode.id,
+      gameTitle: state.mode.label,
+      mode: modeGroupKey(state.mode),
+      recordMode: currentRecordMode(),
+      recordPolicy: modeGroupKey(state.mode) === 'arcade' ? 'localOnlyNoSubmit' : 'recordable',
+      dataVersion: state.dataInfo && state.dataInfo.dataVersion,
+      generatedAt: state.dataInfo && state.dataInfo.generatedAt,
+      finishedAt: new Date().toISOString(),
+      result: {
+        score: result.score,
+        cpm: result.cpm,
+        wpm: result.wpm,
+        accuracy: result.accuracy,
+        correctChars: result.correct,
+        totalKeys: result.total,
+        missCount: result.mistakes,
+        scoredCorrectCount: result.scoredCorrectCount,
+        scoredKeyCount: result.scoredKeyCount,
+        scoredMissCount: result.scoredMissCount,
+        totalCorrectCount: result.totalCorrectCount,
+        totalKeyCount: result.totalKeyCount,
+        totalMissCount: result.totalMissCount,
+        completedPhraseCount: result.completed,
+        candidatePhraseCount: result.candidatePhraseCount,
+        uniquePhraseCount: result.uniquePhraseCount,
+        repeatedPhraseCount: result.repeatedPhraseCount,
+        cycleCount: result.cycleCount,
+        absorbedTrailingNCount: result.absorbedTrailingNCount
+      },
+      candidatePhraseCount: result.candidatePhraseCount,
+      uniquePhraseCount: result.uniquePhraseCount,
+      repeatedPhraseCount: result.repeatedPhraseCount,
+      cycleCount: result.cycleCount,
+      scoredCorrectCount: result.scoredCorrectCount,
+      scoredKeyCount: result.scoredKeyCount,
+      scoredMissCount: result.scoredMissCount,
+      totalCorrectCount: result.totalCorrectCount,
+      totalKeyCount: result.totalKeyCount,
+      totalMissCount: result.totalMissCount,
+      attempts,
+      phrases: result.phrases
+    };
+  }
+
+  function resultAttemptForPayload(attempt){
+    return {
+      attemptNo: attempt.attemptNo,
+      phraseId: attempt.phraseId,
+      displayText: attempt.displayText || attempt.display,
+      completed: !!attempt.completed,
+      completedAfterTimeUp: !!attempt.completedAfterTimeUp,
+      endedByEnterAfterTimeUp: !!attempt.endedByEnterAfterTimeUp,
+      missCount: Number(attempt.missCount || 0)
+    };
+  }
+
+  function renderMetrics(){
+    const m = calcMetrics();
+    els.mCpm.textContent = String(m.cpm);
+    els.mWpm.textContent = String(m.wpm);
+    els.mAcc.textContent = m.accPct + '%';
+    els.mMiss.textContent = String(m.mistakes);
+    els.mScore.textContent = String(m.score);
+  }
+
+  function renderTypedLog(raw, expected){
+    let html = '';
+    let soFar = '';
+    for (const ch of raw) {
+      soFar += ch;
+      const ok = expected && expected.expectedCanons
+        ? isAcceptableWordPrefix(soFar, expected)
+        : isAcceptablePrefix(soFar, expected);
+      html += `<span class="${ok ? 'ok' : 'ng'}">${escapeHtml(ch)}</span>`;
+    }
+    els.typedLog.innerHTML = html;
+  }
+
+  function resultPhrases(){
+    syncCurrentAttemptForResult();
+    const list = state.attempts.map(attempt => ({
+      ...attempt,
+      deleteEvents: (attempt.deleteEvents || []).map(event => ({ ...event }))
+    }));
+    return list;
+  }
+
+  function syncCurrentAttemptForResult(){
+    const w = currentWord();
+    const raw = els.typebox.value || '';
+    if (w && state.currentAttempt && !isCompleteWordInput(raw, w)) updateCurrentAttempt(w, raw, false);
+  }
+
+  function uniqueAttemptPhraseCount(){
+    return new Set(state.attempts.map(attempt => attempt.phraseId)).size;
+  }
+
+  function activeCandidatePhraseCount(){
+    return state.candidatePhrases && state.candidatePhrases.length
+      ? state.candidatePhrases.length
+      : candidatePhraseCount(state.mode);
+  }
+
+  function renderResultPhraseList(phrases){
+    const list = phrases || resultPhrases();
+    if (!list.length) {
+      els.resultPhraseList.innerHTML = '<li>完了したフレーズはありません。</li>';
+      return;
+    }
+    els.resultPhraseList.innerHTML = list.map((phrase, index) => {
+      const ok = phrase.completed && phrase.missCount === 0;
+      const mark = ok ? '✓' : '✗';
+      const markClass = ok ? 'okMark' : 'ngMark';
+      const attemptNo = Number(phrase.attemptNo || index + 1);
+      const status = phraseStatusText(phrase);
+      return `
+      <li>
+        <span class="phraseName">${attemptNo}. <span class="${markClass}">${mark}</span> ${escapeHtml(phrase.displayText || phrase.display)}</span>
+        <span class="phraseStatus">${escapeHtml(status)}</span>
+      </li>
+    `;
+    }).join('');
+  }
+
+  function phraseStatusText(phrase){
+    const missText = phrase.missCount > 0 ? ` / ミス ${phrase.missCount}` : '';
+    if (phrase.completedAfterTimeUp) return `時間外完了${missText}`;
+    if (phrase.endedByEnterAfterTimeUp) return `Enter終了 / 未完了${missText}`;
+    if (phrase.completed) return phrase.missCount > 0 ? `ミス ${phrase.missCount}` : '完了';
+    return `未完了 / ミス ${phrase.missCount}`;
+  }
+
+  function renderMissAnalysis(result){
+    const phrases = result.phrases || [];
+    const missed = phrases
+      .filter(phrase => phrase.missCount > 0)
+      .sort((a, b) => b.missCount - a.missCount || phraseDisplayName(a).localeCompare(phraseDisplayName(b), 'ja'));
+
+    if (!missed.length) {
+      els.missAnalysisList.innerHTML = '<li><span>ノーミスです</span><span class="missCount">0</span></li>';
+    } else {
+      els.missAnalysisList.innerHTML = missed.map(phrase => `
+        <li class="analysisItem">
+          <div class="analysisHead">
+            <span>${escapeHtml(phraseDisplayName(phrase))}</span>
+            <span class="missCount">ミス ${phrase.missCount}</span>
+          </div>
+          ${renderDeleteDetails(phrase.deleteEvents)}
+        </li>
+      `).join('');
+    }
+
+    els.trendComment.textContent = trendComment(result, missed);
+    els.improvementComment.textContent = improvementComment(result, missed);
+  }
+
+  function renderDeleteDetails(deleteEvents){
+    const events = Array.isArray(deleteEvents) ? deleteEvents : [];
+    if (!events.length) return '<div class="deleteDetails">削除前入力の記録はありません。</div>';
+    return `
+      <div class="deleteDetails">
+        ${events.map(event => `
+          <div class="deleteEvent">
+            <span class="deleteLabel">削除前</span>
+            <span class="deleteValue">${escapeHtml(event.beforeDelete)}</span>
+            <span class="deleteLabel">削除文字</span>
+            <span class="deleteValue">${escapeHtml(event.deletedChar)}</span>
+          </div>
+        `).join('')}
+      </div>
+    `;
+  }
+
+  function trendComment(result, missed){
+    const tone = adviceTone(result, missed);
+    if (tone === 'unfinished') return '難しいフレーズにも挑戦できています。';
+    if (tone === 'lowInput') return '丁寧に取り組めています。';
+    if (tone === 'manyMisses') return '最後まで挑戦できているのが良いです。';
+    if (tone === 'highAccuracy') return 'とても安定した入力です。';
+    if (tone === 'smallMisses') return 'かなりよく入力できています。';
+    return '落ち着いて入力できています。';
+  }
+
+  function phraseDisplayName(phrase){
+    return String((phrase && (phrase.displayText || phrase.display)) || '');
+  }
+
+  function improvementComment(result, missed){
+    const tone = adviceTone(result, missed);
+    if (tone === 'unfinished') return '短い語句からリズムを作ると、完了できるフレーズが増えていきます。次は1つ多く最後まで打ち切ることを目標にしましょう。';
+    if (tone === 'lowInput') return '次は今の正確さを保ちながら、少しだけ入力数を増やすことを目標にしましょう。';
+    if (tone === 'manyMisses') return 'まずはスピードより正確さを優先しましょう。落ち着いて1文字ずつ確認すると、完了できるフレーズが増えていきます。';
+    if (tone === 'highAccuracy') return '正確さを保てているのが良いです。この調子で、少しずつスピードアップを目指しましょう。';
+    if (tone === 'smallMisses') return '惜しいミスがいくつかあります。次は間違えやすい文字だけ少し意識すると、さらに良くなります。';
+    return '次は今のリズムを保ちながら、少しだけ入力数を増やしてみましょう。';
+  }
+
+  function adviceTone(result, missed){
+    const phrases = Array.isArray(result.phrases) ? result.phrases : [];
+    const attempted = phrases.length || result.completed || 0;
+    const unfinished = phrases.filter(phrase => !phrase.completed).length;
+    if (!result.completed || (attempted >= 3 && unfinished >= Math.ceil(attempted / 2))) return 'unfinished';
+    if (result.total < 40 || result.completed <= 1) return 'lowInput';
+    if (result.mistakes >= 10 || result.accuracy < 0.9 || missed.some(phrase => phrase.missCount >= 3)) return 'manyMisses';
+    if (result.accuracy >= 0.97) return 'highAccuracy';
+    if (result.mistakes > 0) return 'smallMisses';
+    return 'steady';
+  }
+
+  function renderRetryMotivation(result, historyRecords){
+    const stats = scoreHistoryStats(historyRecords);
+    const bestScore = stats.bestScore;
+    const previousScore = stats.previousScore;
+    const bestUpdated = bestScore === null || result.score > bestScore;
+    const bestGap = bestScore === null ? 0 : Math.max(0, bestScore - result.score);
+
+    els.rAchievement.textContent = bestUpdated
+      ? '自己ベスト更新！'
+      : `自己ベストまであと ${bestGap} 点`;
+    els.rScoreDelta.textContent = previousScore === null
+      ? `自己ベスト ${result.score} 点`
+      : result.score > previousScore
+        ? `前回より +${result.score - previousScore} 点`
+        : previousScore === result.score
+          ? '前回と同じスコア'
+          : `前回まであと ${previousScore - result.score} 点`;
+    els.rNextGoal.textContent = nextGoalText(result, { bestScore, bestGap, bestUpdated });
+  }
+
+  function scoreHistoryStats(records){
+    const scores = records
+      .map(record => Number(record.score))
+      .filter(score => Number.isFinite(score));
+    return {
+      previousScore: scores.length ? scores[0] : null,
+      bestScore: scores.length ? Math.max(...scores) : null
+    };
+  }
+
+  function nextGoalText(result, stats){
+    if (!result.completed) return '次の目標：まずは1フレーズ完了しよう';
+    if (result.mistakes >= 5) return `次の目標：ミスをあと${Math.min(2, result.mistakes)}回減らそう`;
+    if (!stats.bestUpdated && stats.bestGap <= Math.max(20, Math.round((stats.bestScore || 0) * 0.05))) {
+      return '次の目標：自己ベスト更新を狙おう';
+    }
+    if (result.accuracy >= 0.97 && result.cpm < 100) return '次の目標：CPMを10上げよう';
+    if (result.mistakes > 0) return '次の目標：ミスをあと1回減らそう';
+    return '次の目標：自己ベスト更新を狙おう';
+  }
+
+  function readHistoryRecords(){
+    try {
+      const records = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+      return Array.isArray(records) ? records : [];
+    } catch (err) {
+      console.warn('History parse failed:', err);
+      return [];
+    }
+  }
+
+  function historyRecordsForGame(gameId){
+    return readHistoryRecords().filter(record => record.modeId === gameId);
+  }
+
+  function readLastGameId(){
+    try {
+      return localStorage.getItem(LAST_GAME_ID_KEY) || '';
+    } catch (err) {
+      console.warn('Last game read failed:', err);
+      return '';
+    }
+  }
+
+  function rememberLastGameId(gameId){
+    if (!gameId) return;
+    try {
+      localStorage.setItem(LAST_GAME_ID_KEY, gameId);
+    } catch (err) {
+      console.warn('Last game save failed:', err);
+    }
+  }
+
+  function saveHistory(result){
+    const arr = readHistoryRecords();
+    arr.unshift({
+      at: new Date().toLocaleString('ja-JP'),
+      mode: state.mode.label,
+      modeId: state.mode.id,
+      modeGroup: modeGroupKey(state.mode),
+      divisions: modeDivisions(state.mode),
+      recordMode: currentRecordMode(),
+      cpm: result.cpm,
+      wpm: result.wpm,
+      accPct: result.accPct,
+      mistakes: result.mistakes,
+      completed: result.completed,
+      score: result.score
+    });
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(arr.slice(0, 10)));
+  }
+
+  function renderHistory(){
+    const arr = historyForCurrentMode(readHistoryRecords());
+    if (!arr.length) {
+      els.historyBody.innerHTML = '<tr><td colspan="5">履歴はまだありません。</td></tr>';
+      return;
+    }
+    els.historyBody.innerHTML = arr.map(r => `
+      <tr><td>${escapeHtml(r.at)}</td><td>${escapeHtml(modeDisplayName(r.mode || r.modeId))}</td><td>${r.cpm}</td><td>${r.accPct}%</td><td>${r.score}</td></tr>
+    `).join('');
+  }
+
+  function clearHistory(){
+    localStorage.removeItem(HISTORY_KEY);
+    renderHistory();
+  }
+
+  function historyForCurrentMode(records){
+    const currentModeId = state.mode && state.mode.id;
+    const currentDivisions = modeDivisions(state.mode);
+    return records.filter(record => {
+      if (record.modeId === currentModeId) return true;
+      const recordDivisions = Array.isArray(record.divisions) ? record.divisions : [];
+      return currentDivisions.length && matchesAnyFilter(recordDivisions, currentDivisions);
+    });
+  }
+
+  function modeDivisions(mode){
+    if (!mode || !mode.filter) return [];
+    const divisionsV2 = normalizeVariantList(mode.filter.divisionsV2);
+    return divisionsV2.length ? divisionsV2 : normalizeVariantList(mode.filter.divisions);
+  }
+
+  function modeLevels(mode){
+    if (!mode || !mode.filter) return [];
+    const levelsV2 = normalizeVariantList(mode.filter.phraseLevelV2);
+    return levelsV2.length ? levelsV2 : normalizeVariantList(mode.filter.levels);
+  }
+
+  async function loadTypingData(){
+    for (const source of DATA_URLS) {
+      try {
+        const res = await fetch(source.url, { cache: 'no-store' });
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        const modes = buildModesFromData(json);
+        if (modes.length) {
+          const questWorlds = normalizeQuestWorlds(json.questWorlds);
+        const normalizedPhrases = normalizeDataPhrases(json);
+        const questClearRules = normalizeQuestClearRules(json);
+        const questStages = buildQuestStagesFromWorlds(questWorlds, normalizedPhrases, questClearRules);
+        return { modes, questWorlds, questStages, questClearRules, info: jsonDataInfo(json, source, modes, questWorlds) };
+        }
+      } catch (err) {
+        console.warn('Typing data load failed:', source.url, err);
+      }
+    }
+    const modes = buildFallbackModes();
+    return { modes, questWorlds: [], questStages: [], questClearRules: QUEST_CLEAR_DEFAULTS, info: fallbackDataInfo(modes) };
+  }
+
+  function jsonDataInfo(json, source, modes, questWorlds = []){
+    return {
+      sourceKind: source.kind,
+      sourceUrl: source.url,
+      recordMode: String(json.recordMode || ''),
+      dataVersion: String(json.dataVersion || ''),
+      generatedAt: String(json.generatedAt || ''),
+      gamesCount: Array.isArray(json.games) ? json.games.length : modes.length,
+      phrasesCount: Array.isArray(json.phrases) ? json.phrases.length : countModePhrases(modes),
+      questWorldsCount: questWorlds.length
+    };
+  }
+
+  function fallbackDataInfo(modes){
+    return {
+      sourceKind: 'fallback',
+      sourceUrl: 'HTML内フォールバック',
+      recordMode: 'arcade',
+      dataVersion: '-',
+      generatedAt: '-',
+      gamesCount: modes.length,
+      phrasesCount: countModePhrases(modes),
+      questWorldsCount: 0
+    };
+  }
+
+  function countModePhrases(modes){
+    return modes.reduce((sum, mode) => sum + mode.phrases.length, 0);
+  }
+
+  function normalizeDataPhrases(data){
+    const phrases = Array.isArray(data && data.phrases) ? data.phrases : [];
+    return phrases.map(normalizeJsonPhrase).filter(Boolean);
+  }
+
+  function normalizeQuestClearRules(data){
+    const source = (data && (data.questClearRules || data.questStageClearRules || data.questStageClearConditions || data.stageClearConditions)) || {};
+    const rules = { ...QUEST_CLEAR_DEFAULTS };
+    for (const [level, rule] of Object.entries(source)) {
+      const key = String(level || '').toUpperCase();
+      if (!/^P(10|[1-9])$/.test(key) || !isPlainObject(rule)) continue;
+      rules[key] = {
+        accuracy: Number(rule.accuracy || rule.minAccuracy || rules[key].accuracy),
+        minCorrectChars: Number(rule.minCorrectChars || rule.minInputChars || rule.minKeys || rules[key].minCorrectChars)
+      };
+    }
+    return rules;
+  }
+
+  function normalizeQuestWorlds(questWorlds){
+    if (!Array.isArray(questWorlds)) return [];
+    return questWorlds
+      .map((world, index) => {
+        const worldId = String(world.worldId || world.id || world.key || `quest-world-${index + 1}`).trim();
+        if (!worldId) return null;
+        if (world.enabled !== undefined && !normalizeBoolean(world.enabled)) return null;
+        const filter = normalizeQuestWorldFilter(world);
+        return {
+          ...world,
+          worldId,
+          worldType: String(world.worldType || ''),
+          title: String(world.title || world.name || worldId),
+          subtitle: String(world.subtitle || ''),
+          description: String(world.description || ''),
+          minPhraseLevel: String(world.minPhraseLevel || 'P1'),
+          maxPhraseLevel: String(world.maxPhraseLevel || 'P10'),
+          stageCount: Math.max(1, Number(world.stageCount || 10)),
+          sortOrder: Number(world.sortOrder || index + 1),
+          filter
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.sortOrder - b.sortOrder);
+  }
+
+  function normalizeQuestWorldFilter(world){
+    const filter = normalizeGameFilter(world);
+    for (const key of ['divisionsV2', 'phraseLevelV2', 'category', 'categoryAny', 'categoryAll', 'keyRows', 'skillTagsAny', 'skillTagsAll', 'skillTagsNone', 'questOnly']) {
+      if (filter[key] === undefined && world && world[key] !== undefined) filter[key] = world[key];
+    }
+    return filter;
+  }
+
+  function buildQuestStagesFromWorlds(questWorlds, phrases = [], clearRules = QUEST_CLEAR_DEFAULTS){
+    const stages = [];
+    for (const world of questWorlds) {
+      for (const level of questWorldLevels(world)) {
+        const filter = questStageFilter(world, level);
+        const candidates = uniquePhrasesByPhraseId(
+          phrases.filter(phrase => phraseFilterInfo(phrase, filter, { modeType: 'quest' }).include)
+        );
+        stages.push({
+          stageId: `${world.worldId}-${level}`,
+          worldId: world.worldId,
+          title: `${world.title} ${level}`,
+          phraseLevelV2: level,
+          filter,
+          candidateCount: candidates.length,
+          phraseIds: candidates.map(phrase => phrase.phraseId),
+          clearCondition: questClearCondition(level, clearRules)
+        });
+      }
+    }
+    return stages;
+  }
+
+  function questWorldLevels(world){
+    const min = Math.max(1, phraseLevelNumber(world.minPhraseLevel || 'P1') || 1);
+    const max = Math.min(10, phraseLevelNumber(world.maxPhraseLevel || 'P10') || 10);
+    const count = Math.max(1, Number(world.stageCount || 10));
+    const levels = [];
+    for (let level = min; level <= max && levels.length < count; level++) {
+      levels.push(`P${level}`);
+    }
+    return levels;
+  }
+
+  function questClearCondition(level, clearRules = QUEST_CLEAR_DEFAULTS){
+    return clearRules[String(level || '').toUpperCase()] || QUEST_CLEAR_DEFAULTS.P1;
+  }
+
+  function questStageFilter(world, level){
+    return {
+      ...cloneFilter(world.filter || {}),
+      phraseLevelV2: [level]
+    };
+  }
+
+  function cloneFilter(filter){
+    const clone = {};
+    for (const [key, value] of Object.entries(filter || {})) {
+      clone[key] = Array.isArray(value) ? [...value] : value;
+    }
+    return clone;
+  }
+
+  function buildModesFromData(data){
+    const games = Array.isArray(data && data.games) ? data.games : [];
+    const normalizedPhrases = normalizeDataPhrases(data);
+    if (!games.length || !normalizedPhrases.length) return [];
+    return games
+      .slice()
+      .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
+      .map(game => makeModeFromGame(game, normalizedPhrases));
+  }
+
+  function makeModeFromGame(game, phrases){
+    const requestedCount = Number(game.phraseCount);
+    const legacyPhraseCount = Number.isFinite(requestedCount) && requestedCount > 0
+      ? requestedCount
+      : null;
+    const filter = normalizeGameFilter(game);
+    const modeType = normalizeGameMode(game);
+    const selected = selectPhrasesForGame(game, phrases);
+    return {
+      id: String(game.gameId || game.id || game.title || 'GAME'),
+      label: String(game.title || game.gameId || 'Untitled'),
+      subtitle: String(game.subtitle || ''),
+      desc: String(game.description || ''),
+      recordMode: modeType,
+      mode: modeType,
+      durationSec: Number(game.durationSec || 60),
+      phraseCount: selected.length,
+      candidatePhraseCount: selected.length,
+      legacyPhraseCount,
+      filter,
+      phrases: selected
+    };
+  }
+
+  function selectPhrasesForGame(game, phrases){
+    const filter = normalizeGameFilter(game);
+    const modeType = normalizeGameMode(game);
+    const scored = phrases
+      .map((phrase, index) => ({ phrase, index, info: phraseFilterInfo(phrase, filter, { modeType }) }))
+      .filter(item => item.info.include);
+    if (!scored.length) return emptyFilterFallbackPhrases(game, phrases);
+
+    const highlighted = highlightedLevelMatches(scored, game);
+    const regular = scored
+      .filter(item => !highlighted.includes(item))
+      .sort(comparePhraseScore);
+    const selected = uniquePhraseItems([...highlighted, ...regular]).map(item => item.phrase);
+    return uniquePhrasesByPhraseId(selected);
+  }
+
+  function emptyFilterFallbackPhrases(game, phrases){
+    const filter = normalizeGameFilter(game);
+    const modeType = normalizeGameMode(game);
+    if (!hasAnyFilterCondition(filter)) {
+      const allowed = phrases.filter(phrase => questOnlyAllowed(phrase, filter, modeType));
+      return uniquePhrasesByPhraseId(allowed);
+    }
+    const loose = phrases.filter(phrase => phraseLooseFilterMatch(phrase, filter, modeType));
+    return uniquePhrasesByPhraseId(loose);
+  }
+
+  function highlightedLevelMatches(items, game){
+    const filter = normalizeGameFilter(game);
+    const levels = effectiveFilterLevels(filter);
+    const tags = effectiveFilterTags(filter);
+    const highestLevel = highestPhraseLevel(levels);
+    if (tags.length || highestLevel < 6) return [];
+
+    return items
+      .filter(item => {
+        const info = item.info;
+        return info.levelMatch
+          && !info.divisionMatch
+          && phraseLevelNumber(effectivePhraseLevel(item.phrase)) === highestLevel
+          && phraseAllTags(item.phrase).includes('latin');
+      })
+      .sort((a, b) => a.index - b.index);
+  }
+
+  function comparePhraseScore(a, b){
+    return b.info.score - a.info.score || a.index - b.index;
+  }
+
+  function normalizeJsonPhrase(phrase){
+    const primaryRoman = String(phrase.primaryRoman || '').trim();
+    if (!primaryRoman) return null;
+    const phraseLevelLegacy = String(phrase.phraseLevel || '').trim();
+    const phraseLevelV2 = String(phrase.phraseLevelV2 || '').trim();
+    const divisionsLegacy = normalizeVariantList(phrase.divisions);
+    const divisionsV2 = normalizeVariantList(phrase.divisionsV2);
+    const tags = normalizeVariantList(phrase.tags);
+    const skillTags = normalizeVariantList(phrase.skillTags);
+    return {
+      phraseId: String(phrase.phraseId || phrase.id || phrase.phraseKey || phrase.displayText || phrase.display || ''),
+      display: String(phrase.displayText || phrase.display || ''),
+      kana: String(phrase.kanaText || phrase.kana || ''),
+      primaryRoman,
+      variants: uniqueList([primaryRoman, ...normalizeVariantList(phrase.extraVariants)]),
+      phraseLevel: phraseLevelV2 || phraseLevelLegacy,
+      phraseLevelV2,
+      phraseLevelLegacy,
+      divisions: divisionsV2.length ? divisionsV2 : divisionsLegacy,
+      divisionsV2,
+      divisionsLegacy,
+      category: normalizeVariantList(phrase.category),
+      questOnly: normalizeBoolean(phrase.questOnly),
+      keyRows: normalizeVariantList(phrase.keyRows),
+      skillTags,
+      tags,
+      allTags: uniqueList([...tags, ...skillTags])
+    };
+  }
+
+  function normalizeVariantList(value){
+    if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean);
+    if (typeof value === 'string') {
+      return value.split(/[,\n]/).map(v => v.trim()).filter(Boolean);
+    }
+    return [];
+  }
+
+  function normalizeBoolean(value){
+    if (value === true || value === false) return value;
+    if (typeof value === 'number') return value !== 0;
+    const text = String(value || '').trim().toLowerCase();
+    return ['1', 'true', 'yes', 'y', 'on'].includes(text);
+  }
+
+  function normalizeOptionalBoolean(value){
+    if (value === undefined || value === null || value === '') return null;
+    return normalizeBoolean(value);
+  }
+
+  function normalizeGameFilter(game){
+    const direct = parseFilterObject(game && game.filter);
+    const fromJson = parseFilterObject(game && game.filterJson);
+    return { ...fromJson, ...direct };
+  }
+
+  function parseFilterObject(value){
+    if (isPlainObject(value)) return value;
+    if (typeof value !== 'string' || !value.trim()) return {};
+    try {
+      const parsed = JSON.parse(value);
+      return isPlainObject(parsed) ? parsed : {};
+    } catch (err) {
+      console.warn('Filter JSON parse failed:', err);
+      return {};
+    }
+  }
+
+  function isPlainObject(value){
+    return !!value && typeof value === 'object' && !Array.isArray(value);
+  }
+
+  function normalizeGameMode(game){
+    const raw = String((game && (game.recordMode || game.mode || game.playMode || game.modeType || game.type)) || 'practice').trim().toLowerCase();
+    const supported = ['arcade', 'free', 'practice', 'class', 'championship', 'quest', 'promotion', 'debug'];
+    return supported.includes(raw) ? raw : (raw || 'practice');
+  }
+
+  function normalizeV2Filter(filter){
+    return {
+      divisionsV2: normalizeVariantList(filter.divisionsV2),
+      phraseLevelV2: normalizeVariantList(filter.phraseLevelV2),
+      category: normalizeVariantList(filter.category),
+      categoryAny: normalizeVariantList(filter.categoryAny),
+      categoryAll: normalizeVariantList(filter.categoryAll),
+      keyRows: normalizeVariantList(filter.keyRows),
+      skillTagsAny: normalizeVariantList(filter.skillTagsAny),
+      skillTagsAll: normalizeVariantList(filter.skillTagsAll),
+      skillTagsNone: normalizeVariantList(filter.skillTagsNone),
+      questOnly: normalizeOptionalBoolean(filter.questOnly)
+    };
+  }
+
+  function normalizeLegacyFilter(filter){
+    return {
+      divisions: normalizeVariantList(filter.divisions),
+      levels: normalizeVariantList(filter.levels),
+      tags: normalizeVariantList(filter.tags)
+    };
+  }
+
+  function hasV2FilterValues(filter){
+    return Object.values(filter).some(value => Array.isArray(value) ? value.length : value !== null && value !== undefined);
+  }
+
+  function hasLegacyFilterValues(filter){
+    return Object.values(filter).some(values => values.length);
+  }
+
+  function hasAnyFilterCondition(filter){
+    return hasV2FilterValues(normalizeV2Filter(filter || {}))
+      || hasLegacyFilterValues(normalizeLegacyFilter(filter || {}));
+  }
+
+  function effectiveFilterLevels(filter){
+    const v2 = normalizeVariantList((filter || {}).phraseLevelV2);
+    return v2.length ? v2 : normalizeVariantList((filter || {}).levels);
+  }
+
+  function effectiveFilterTags(filter){
+    const v2 = uniqueList([
+      ...normalizeVariantList((filter || {}).skillTagsAny),
+      ...normalizeVariantList((filter || {}).skillTagsAll)
+    ]);
+    return v2.length ? v2 : normalizeVariantList((filter || {}).tags);
+  }
+
+  function effectivePhraseLevel(phrase){
+    return String((phrase && (phrase.phraseLevelV2 || phrase.phraseLevel)) || '');
+  }
+
+  function effectivePhraseDivisions(phrase){
+    const v2 = phrase && Array.isArray(phrase.divisionsV2) ? phrase.divisionsV2 : [];
+    return v2.length ? v2 : ((phrase && phrase.divisions) || []);
+  }
+
+  function phraseAllTags(phrase){
+    if (!phrase) return [];
+    return Array.isArray(phrase.allTags) ? phrase.allTags : uniqueList([...(phrase.tags || []), ...(phrase.skillTags || [])]);
+  }
+
+  function questOnlyAllowed(phrase, filter, modeType){
+    const requested = normalizeOptionalBoolean((filter || {}).questOnly);
+    const questOnly = !!(phrase && phrase.questOnly);
+    if (requested === true) return questOnly;
+    if (requested === false) return !questOnly;
+    return modeType === 'quest' ? true : !questOnly;
+  }
+
+  function categoryFilterInfo(phrase, filter){
+    const categories = normalizeVariantList(phrase && phrase.category);
+    const anyFilters = uniqueList([
+      ...normalizeVariantList(filter && filter.category),
+      ...normalizeVariantList(filter && filter.categoryAny)
+    ]);
+    const allFilters = normalizeVariantList(filter && filter.categoryAll);
+    const anyMatch = matchesAnyFilter(categories, anyFilters);
+    const allMatch = matchesAllFilter(categories, allFilters);
+    const hasCategoryFilter = anyFilters.length > 0 || allFilters.length > 0;
+    return {
+      hasCategoryFilter,
+      categoryMatch: (!anyFilters.length || anyMatch) && (!allFilters.length || allMatch),
+      categoryAnyMatch: anyMatch,
+      categoryAllMatch: allMatch
+    };
+  }
+
+  function phraseLooseFilterMatch(phrase, filter, modeType = 'practice'){
+    if (!questOnlyAllowed(phrase, filter, modeType)) return false;
+    const v2 = normalizeV2Filter(filter || {});
+    const categoryInfo = categoryFilterInfo(phrase, v2);
+    if (hasV2FilterValues(v2)) {
+      const positiveMatch = matchesAnyFilter(effectivePhraseDivisions(phrase), v2.divisionsV2)
+        || matchesAnyFilter([effectivePhraseLevel(phrase)], v2.phraseLevelV2)
+        || (categoryInfo.hasCategoryFilter && categoryInfo.categoryMatch)
+        || matchesAnyFilter(phrase.keyRows || [], v2.keyRows)
+        || matchesAnyFilter(phrase.skillTags || [], v2.skillTagsAny)
+        || matchesAnyFilter(phrase.skillTags || [], v2.skillTagsAll);
+      const noneOnly = !v2.divisionsV2.length
+        && !v2.phraseLevelV2.length
+        && !v2.category.length
+        && !v2.categoryAny.length
+        && !v2.categoryAll.length
+        && !v2.keyRows.length
+        && !v2.skillTagsAny.length
+        && !v2.skillTagsAll.length
+        && v2.skillTagsNone.length;
+      const noneClear = !matchesAnyFilter(phrase.skillTags || [], v2.skillTagsNone);
+      return noneOnly ? noneClear : positiveMatch && noneClear;
+    }
+    const legacy = normalizeLegacyFilter(filter || {});
+    return matchesAnyFilter(effectivePhraseDivisions(phrase), legacy.divisions)
+      || matchesAnyFilter([effectivePhraseLevel(phrase)], legacy.levels)
+      || matchesAnyFilter(phraseAllTags(phrase), legacy.tags);
+  }
+
+  function phraseFilterInfo(phrase, filter, options = {}){
+    const sourceFilter = filter || {};
+    const modeType = options.modeType || 'practice';
+    const questAllowed = questOnlyAllowed(phrase, sourceFilter, modeType);
+    const v2 = normalizeV2Filter(sourceFilter);
+    const categoryInfo = categoryFilterInfo(phrase, v2);
+    if (hasV2FilterValues(v2)) {
+      const divisionMatch = matchesAnyFilter(effectivePhraseDivisions(phrase), v2.divisionsV2);
+      const levelMatch = matchesAnyFilter([effectivePhraseLevel(phrase)], v2.phraseLevelV2);
+      const categoryMatch = categoryInfo.hasCategoryFilter && categoryInfo.categoryMatch;
+      const keyRowsMatch = matchesAnyFilter(phrase.keyRows || [], v2.keyRows);
+      const skillTagsAnyMatch = matchesAnyFilter(phrase.skillTags || [], v2.skillTagsAny);
+      const skillTagsAllMatch = matchesAllFilter(phrase.skillTags || [], v2.skillTagsAll);
+      const skillTagsNoneClear = !matchesAnyFilter(phrase.skillTags || [], v2.skillTagsNone);
+      const include = questAllowed
+        && skillTagsNoneClear
+        && (!v2.divisionsV2.length || divisionMatch)
+        && (!v2.phraseLevelV2.length || levelMatch)
+        && (!categoryInfo.hasCategoryFilter || categoryMatch)
+        && (!v2.keyRows.length || keyRowsMatch)
+        && (!v2.skillTagsAny.length || skillTagsAnyMatch)
+        && (!v2.skillTagsAll.length || skillTagsAllMatch);
+      const tagMatch = skillTagsAnyMatch || skillTagsAllMatch;
+      return {
+        include,
+        divisionMatch,
+        levelMatch,
+        tagMatch,
+        categoryMatch,
+        categoryAnyMatch: categoryInfo.categoryAnyMatch,
+        categoryAllMatch: categoryInfo.categoryAllMatch,
+        keyRowsMatch,
+        skillTagsAnyMatch,
+        skillTagsAllMatch,
+        skillTagsNoneClear,
+        v2: true,
+        score: phraseScore(phrase, { divisionMatch, levelMatch, tagMatch, categoryMatch, keyRowsMatch, skillTagsAnyMatch, skillTagsAllMatch }, {
+          levels: v2.phraseLevelV2,
+          tags: uniqueList([...v2.skillTagsAny, ...v2.skillTagsAll])
+        })
+      };
+    }
+
+    const legacy = normalizeLegacyFilter(sourceFilter);
+    const hasLegacy = hasLegacyFilterValues(legacy);
+    const divisionMatch = matchesAnyFilter(effectivePhraseDivisions(phrase), legacy.divisions);
+    const levelMatch = matchesAnyFilter([effectivePhraseLevel(phrase)], legacy.levels);
+    const tagMatch = matchesAnyFilter(phraseAllTags(phrase), legacy.tags);
+    const include = questAllowed && (!hasLegacy
+      ? true
+      : legacy.tags.length
+        ? tagMatch && (!legacy.levels.length || levelMatch) && (!legacy.divisions.length || divisionMatch)
+        : divisionMatch || levelMatch);
+    return {
+      include,
+      divisionMatch,
+      levelMatch,
+      tagMatch,
+      score: phraseScore(phrase, { divisionMatch, levelMatch, tagMatch }, {
+        divisions: legacy.divisions,
+        levels: legacy.levels,
+        tags: legacy.tags
+      })
+    };
+  }
+
+  function phraseScore(phrase, matches, filters){
+    let score = 0;
+    if (matches.divisionMatch) score += 80;
+    if (matches.levelMatch) score += 120;
+    if (matches.tagMatch) score += 120;
+    if (matches.categoryMatch) score += 80;
+    if (matches.keyRowsMatch) score += 70;
+    if (matches.skillTagsAnyMatch) score += 80;
+    if (matches.skillTagsAllMatch) score += 110;
+
+    const level = phraseLevelNumber(effectivePhraseLevel(phrase));
+    const highestLevel = highestPhraseLevel(filters.levels);
+    if (highestLevel && level === highestLevel) score += 60;
+
+    const tags = phraseAllTags(phrase);
+    if (tags.includes('latin')) score += 60;
+    if (tags.includes('it')) score += 35;
+    if (tags.includes('number')) score += 25;
+
+    const displayLength = [...String(phrase.display || '')].length;
+    if (displayLength <= 8) score += 35;
+    else if (displayLength <= 12) score += 20;
+    return score;
+  }
+
+  function highestPhraseLevel(levels){
+    return Math.max(0, ...levels.map(phraseLevelNumber));
+  }
+
+  function phraseLevelNumber(level){
+    const match = String(level || '').match(/\d+/);
+    return match ? Number(match[0]) : 0;
+  }
+
+  function uniquePhraseItems(items){
+    const seen = new Set();
+    const list = [];
+    for (const item of items) {
+      const key = phraseCandidateId(item.phrase);
+      if (seen.has(key)) continue;
+      seen.add(key);
+      list.push(item);
+    }
+    return list;
+  }
+
+  function uniquePhrasesByPhraseId(phrases){
+    const seen = new Set();
+    const list = [];
+    for (const phrase of phrases || []) {
+      const key = phraseCandidateId(phrase);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      list.push(phrase);
+    }
+    return list;
+  }
+
+  function matchesAnyFilter(values, filterValues){
+    const filters = normalizeVariantList(filterValues);
+    if (!filters.length) return false;
+    const targets = filters.map(filterComparableValue);
+    return normalizeVariantList(values).map(filterComparableValue).some(value => targets.includes(value));
+  }
+
+  function matchesAllFilter(values, filterValues){
+    const filters = normalizeVariantList(filterValues);
+    if (!filters.length) return false;
+    const source = new Set(normalizeVariantList(values).map(filterComparableValue));
+    return filters.map(filterComparableValue).every(value => source.has(value));
+  }
+
+  function filterComparableValue(value){
+    return String(value || '').trim().toLowerCase();
+  }
+
+  function buildFallbackModes(){
+    return FALLBACK_MODES.map(mode => {
+      const phrases = uniquePhrasesByPhraseId(mode.phrases);
+      const legacyPhraseCount = Number(mode.phraseCount);
+      return {
+        ...mode,
+        recordMode: mode.recordMode || (mode.id === 'DEBUG-ROMAJI' ? 'debug' : 'arcade'),
+        mode: mode.id === 'DEBUG-ROMAJI' ? 'debug' : (mode.mode || mode.recordMode || 'arcade'),
+        durationSec: Number(mode.durationSec || 60),
+        phraseCount: phrases.length,
+        candidatePhraseCount: phrases.length,
+        legacyPhraseCount: Number.isFinite(legacyPhraseCount) && legacyPhraseCount > 0 ? legacyPhraseCount : null,
+        filter: mode.filter || {},
+        phrases
+      };
+    });
+  }
+
+  function toCanon(s){
+    let t = String(s || '').toLowerCase();
+    t = t.replace(/x([a-z])/g, 'l$1');
+    t = t.replace(/fu([aieo])/g, 'hul$1');
+    t = t.replace(/f([aieo])/g, 'hul$1');
+    t = t.replace(/ts([aieo])/g, 'tul$1');
+    t = t.replace(/q([aieo])/g, 'kul$1');
+    t = t.replace(/kw([aieo])/g, 'kul$1');
+    t = t.replace(/gw([aieo])/g, 'gul$1');
+    t = t.replace(/sha/g,'sya').replace(/shi/g,'si').replace(/shu/g,'syu').replace(/sho/g,'syo');
+    t = t.replace(/cha/g,'tya').replace(/chi/g,'ti').replace(/chu/g,'tyu').replace(/cho/g,'tyo');
+    t = t.replace(/tsu/g,'tu').replace(/fu/g,'hu');
+    t = t.replace(/ja/g,'zya').replace(/ju/g,'zyu').replace(/jo/g,'zyo').replace(/ji/g,'zi');
+    t = t.replace(/she/g,'sye').replace(/che/g,'tye').replace(/je/g,'zye');
+    t = t.replace(/th([aiueo])/g, 'tel$1');
+    t = t.replace(/dh([aiueo])/g, 'del$1');
+    t = t.replace(/nn/g, 'n');
+    return t;
+  }
+
+  function makeWord(phrase, id){
+    const data = Array.isArray(phrase) ? phraseFromArray(phrase) : phrase;
+    const variantList = expandRomanCandidates([data.primaryRoman, ...(data.variants || [])]);
+    const strictCandidates = buildStrictCandidates(variantList);
+    return {
+      id,
+      phraseId: data.phraseId || id,
+      phraseKey: phraseKey(data),
+      display: data.display,
+      kana: data.kana,
+      primaryRoman: data.primaryRoman,
+      variants: variantList,
+      expectedCanons: buildExpectedCanons(variantList),
+      strictCandidates,
+      caseSensitive: strictCandidates.some(candidate => /[A-Z]/.test(candidate))
+    };
+  }
+
+  function phraseFromArray(phrase){
+    const [display, kana, typed, variants = []] = phrase;
+    return {
+      phraseId: display,
+      display,
+      kana,
+      primaryRoman: formatFast(typed),
+      variants: [typed, ...(Array.isArray(variants) ? variants : [])]
+    };
+  }
+
+  function buildPhraseDeck(phrases, previousPhraseKey, previousDeckKeys){
+    if (phrases.length <= 1) return [...phrases];
+
+    let deck = [];
+    for (let attempt = 0; attempt < 8; attempt++) {
+      deck = shuffle([...phrases]);
+      if (isUsableDeck(deck, previousPhraseKey, previousDeckKeys)) return deck;
+    }
+
+    if (!deck.length) deck = shuffle([...phrases]);
+    if (samePhraseOrder(deck, previousDeckKeys)) rotateDeck(deck);
+    avoidImmediateRepeat(deck, previousPhraseKey);
+    if (samePhraseOrder(deck, previousDeckKeys)) swapFirstDifferentPair(deck);
+    avoidImmediateRepeat(deck, previousPhraseKey);
+    return deck;
+  }
+
+  function isUsableDeck(deck, previousPhraseKey, previousDeckKeys){
+    return deck[0] && phraseKey(deck[0]) !== previousPhraseKey && !samePhraseOrder(deck, previousDeckKeys);
+  }
+
+  function samePhraseOrder(deck, keys){
+    return keys.length === deck.length && deck.every((phrase, index) => phraseKey(phrase) === keys[index]);
+  }
+
+  function rotateDeck(deck){
+    if (deck.length > 1) deck.push(deck.shift());
+  }
+
+  function avoidImmediateRepeat(deck, previousPhraseKey){
+    if (!previousPhraseKey || phraseKey(deck[0]) !== previousPhraseKey) return;
+    const swapIndex = deck.findIndex((phrase, index) => index > 0 && phraseKey(phrase) !== previousPhraseKey);
+    if (swapIndex > 0) [deck[0], deck[swapIndex]] = [deck[swapIndex], deck[0]];
+  }
+
+  function swapFirstDifferentPair(deck){
+    const swapIndex = deck.findIndex((phrase, index) => index > 0 && phraseKey(phrase) !== phraseKey(deck[0]));
+    if (swapIndex > 0) [deck[0], deck[swapIndex]] = [deck[swapIndex], deck[0]];
+  }
+
+  function phraseKey(phrase){
+    const data = Array.isArray(phrase) ? phraseFromArray(phrase) : phrase;
+    return [data.display, data.kana, data.primaryRoman].join('\u0001');
+  }
+
+  function phraseCandidateId(phrase){
+    const data = Array.isArray(phrase) ? phraseFromArray(phrase) : (phrase || {});
+    return String(data.phraseId || phraseKey(data)).trim();
+  }
+
+  function phraseAttemptId(word){
+    return String(word && (word.phraseId || word.phraseKey || word.id) || '').trim();
+  }
+
+  function wordExpectedCanons(w){
+    return w.expectedCanons || buildExpectedCanons(romanCandidates(w));
+  }
+
+  function buildExpectedCanons(variants){
+    const canons = [];
+    for (const value of variants) {
+      for (const form of expandNumericUnitSpacing(value)) {
+        for (const canon of expandExpectedCanon(toCanon(form))) {
+          if (!canons.includes(canon)) canons.push(canon);
+        }
+      }
+    }
+    return canons;
+  }
+
+  function buildStrictCandidates(variants){
+    const candidates = [];
+    for (const value of variants) {
+      for (const form of expandNumericUnitSpacing(value)) {
+        if (!candidates.includes(form)) candidates.push(form);
+      }
+    }
+    return candidates;
+  }
+
+  function expandNumericUnitSpacing(value){
+    const text = String(value || '');
+    const forms = new Set([text]);
+    forms.add(text.replace(/(\d)\s+([A-Za-z])/g, '$1$2'));
+    forms.add(text.replace(/(\d)([A-Za-z])/g, '$1 $2'));
+    return [...forms];
+  }
+
+  function expandExpectedCanon(canon){
+    const forms = new Set([canon]);
+    addSokuonForms(forms);
+    addSmallYaForms(forms, 'nya', 'nilya');
+    addSmallYaForms(forms, 'nyu', 'nilyu');
+    addSmallYaForms(forms, 'nyo', 'nilyo');
+    addNForms(forms);
+    return [...forms];
+  }
+
+  function addSokuonForms(forms){
+    const consonants = 'bcdfghjklmpqrstvwxyz';
+    for (const form of [...forms]) {
+      for (let i = 0; i < form.length - 1; i++) {
+        const ch = form[i];
+        if (ch === form[i + 1] && consonants.includes(ch)) {
+          forms.add(form.slice(0, i) + 'ltu' + form.slice(i + 1));
+        }
+      }
+      for (const marker of ['ltu', 'xtu']) {
+        let idx = form.indexOf(marker);
+        while (idx !== -1 && idx + marker.length < form.length) {
+          const next = form[idx + marker.length];
+          if (consonants.includes(next)) {
+            forms.add(form.slice(0, idx) + next + form.slice(idx + marker.length));
+          }
+          idx = form.indexOf(marker, idx + 1);
+        }
+      }
+    }
+  }
+
+  function addSmallYaForms(forms, base, alt){
+    for (const form of [...forms]) {
+      let idx = form.indexOf(base);
+      while (idx !== -1) {
+        forms.add(form.slice(0, idx) + alt + form.slice(idx + base.length));
+        idx = form.indexOf(base, idx + 1);
+      }
+    }
+  }
+
+  function addNForms(forms){
+    for (const form of [...forms]) {
+      forms.add(form.replace(/nn/g, 'n'));
+      let idx = form.indexOf('n');
+      while (idx !== -1) {
+        const next = form[idx + 1] || '';
+        if (next && next !== 'n') {
+          forms.add(form.slice(0, idx) + 'nn' + form.slice(idx + 1));
+        }
+        idx = form.indexOf('n', idx + 1);
+      }
+    }
+  }
+
+  function isCompleteInput(raw, expectedCanons){
+    const canon = toCanon(raw);
+    return asExpectedList(expectedCanons).some(expected => expected === canon);
+  }
+
+  function isAcceptablePrefix(raw, expectedCanons){
+    const canon = toCanon(raw);
+    return asExpectedList(expectedCanons).some(expected => {
+      if (expected.startsWith(canon)) return true;
+      return relaxedPrefixes(canon).some(prefix => prefix !== canon && expected.startsWith(prefix));
+    });
+  }
+
+  function isCompleteWordInput(raw, w){
+    if (w && w.caseSensitive) {
+      return (w.strictCandidates || []).some(candidate => candidate === raw);
+    }
+    return isCompleteInput(raw, wordExpectedCanons(w));
+  }
+
+  function isAcceptableWordPrefix(raw, w){
+    if (w && w.caseSensitive) return isAcceptableStrictPrefix(raw, w);
+    return isAcceptablePrefix(raw, wordExpectedCanons(w));
+  }
+
+  function isAcceptableStrictPrefix(raw, w){
+    return (w && w.strictCandidates || []).some(candidate => candidate.startsWith(raw));
+  }
+
+  function asExpectedList(expectedCanons){
+    return Array.isArray(expectedCanons) ? expectedCanons : [expectedCanons];
+  }
+
+  function relaxedPrefixes(canon){
+    const rules = [
+      [/x$/, 'l'],
+      [/sh$/, 'sy'], [/sh$/, 's'],
+      [/c$/, 't'], [/ch$/, 'ty'], [/ch$/, 't'],
+      [/j$/, 'z'], [/jy$/, 'zy'],
+      [/ts$/, 't'],
+      [/f$/, 'h'],
+      [/th$/, 't'],
+      [/dh$/, 'd'],
+      [/q$/, 'k'],
+      [/kw$/, 'k'],
+      [/gw$/, 'g']
+    ];
+    return rules.map(([pattern, replacement]) => canon.replace(pattern, replacement));
+  }
+
+  function insertedTextFromInput(e, previousRaw, raw){
+    if (e.inputType && e.inputType.indexOf('delete') === 0) return '';
+    if (typeof e.data === 'string' && e.data.length > 0) return e.data;
+    if (raw.length <= previousRaw.length) return '';
+    if (raw.indexOf(previousRaw) === 0) return raw.slice(previousRaw.length);
+    return raw.slice(previousRaw.length);
+  }
+
+  function countInsertedChars(previousRaw, inserted, expectedCanon){
+    let correct = 0;
+    let misses = 0;
+    let probe = previousRaw;
+    for (const ch of inserted) {
+      probe += ch;
+      const ok = expectedCanon && expectedCanon.expectedCanons
+        ? isAcceptableWordPrefix(probe, expectedCanon)
+        : isAcceptablePrefix(probe, expectedCanon);
+      if (ok) correct++;
+      else misses++;
+    }
+    return { correct, misses };
+  }
+
+  function modeDisplayName(value){
+    const found = MODES.find(m => m.id === value || m.label === value || m.oldLabel === value);
+    return found ? found.label : String(value || '-');
+  }
+
+  function chooseRomanDisplay(w, raw){
+    const primary = w.primaryRoman || romanCandidates(w)[0] || '';
+    const input = w.caseSensitive ? String(raw || '') : String(raw || '').toLowerCase();
+    if (!input) return primary;
+    const matches = romanCandidates(w).filter(candidate => romanDisplayMatches(input, candidate, w.caseSensitive));
+    if (!matches.length || matches.includes(primary)) return primary;
+    const simpleMatches = matches.filter(candidate => !candidate.includes('ltu') && !candidate.includes('xtu'));
+    if (simpleMatches.length === 1) return simpleMatches[0];
+    return matches.length === 1 ? matches[0] : primary;
+  }
+
+  function romanDisplayMatches(input, candidate, caseSensitive = false){
+    const normalizedCandidate = caseSensitive ? String(candidate || '') : String(candidate || '').toLowerCase();
+    return normalizedCandidate.startsWith(input);
+  }
+
+  function romanCandidates(w){
+    return uniqueList([w.primaryRoman, ...(w.variants || []), ...(w.strictCandidates || [])]);
+  }
+
+  function expandRomanCandidates(values){
+    const forms = new Set(uniqueList(values));
+    const groups = [
+      ['shi', 'si'],
+      ['sha', 'sya'], ['shu', 'syu'], ['sho', 'syo'],
+      ['chi', 'ti'],
+      ['cha', 'tya'], ['chu', 'tyu'], ['cho', 'tyo'],
+      ['che', 'tye'],
+      ['tsu', 'tu'],
+      ['fu', 'hu'],
+      ['ji', 'zi'],
+      ['ja', 'zya'], ['ju', 'zyu'], ['jo', 'zyo'],
+      ['je', 'zye'],
+      ['she', 'sye'],
+      ['fa', 'fua', 'hula'], ['fi', 'fui', 'huli'], ['fe', 'fue', 'hule'], ['fo', 'fuo', 'hulo'],
+      ['thi', 'teli', 'texi'],
+      ['dhi', 'deli', 'dexi'],
+      ['nya', 'nilya', 'nixya'], ['nyu', 'nilyu', 'nixyu'], ['nyo', 'nilyo', 'nixyo']
+    ];
+    for (const group of groups) addReplacementGroup(forms, group);
+    addSokuonDisplayCandidates(forms);
+    addNDisplayCandidates(forms);
+    return [...forms];
+  }
+
+  function addReplacementGroup(forms, group){
+    for (const form of [...forms]) {
+      for (const from of group) {
+        let idx = form.indexOf(from);
+        while (idx !== -1) {
+          for (const to of group) {
+            if (to !== from && forms.size < 160) {
+              forms.add(form.slice(0, idx) + to + form.slice(idx + from.length));
+            }
+          }
+          idx = form.indexOf(from, idx + 1);
+        }
+      }
+    }
+  }
+
+  function addSokuonDisplayCandidates(forms){
+    const consonants = 'bcdfghjklmpqrstvwxyz';
+    for (const form of [...forms]) {
+      for (let i = 0; i < form.length - 1; i++) {
+        const ch = form[i];
+        if (ch === form[i + 1] && consonants.includes(ch)) {
+          forms.add(form.slice(0, i) + 'ltu' + form.slice(i + 1));
+          forms.add(form.slice(0, i) + 'xtu' + form.slice(i + 1));
+        }
+      }
+      for (const marker of ['ltu', 'xtu']) {
+        let idx = form.indexOf(marker);
+        while (idx !== -1 && idx + marker.length < form.length) {
+          const next = form[idx + marker.length];
+          if (consonants.includes(next)) {
+            forms.add(form.slice(0, idx) + next + form.slice(idx + marker.length));
+          }
+          idx = form.indexOf(marker, idx + 1);
+        }
+      }
+    }
+  }
+
+  function addNDisplayCandidates(forms){
+    for (const form of [...forms]) {
+      forms.add(form.replace(/nn/g, 'n'));
+      let idx = form.indexOf('n');
+      while (idx !== -1 && forms.size < 200) {
+        const next = form[idx + 1] || '';
+        if (next && next !== 'n') {
+          forms.add(form.slice(0, idx) + 'nn' + form.slice(idx + 1));
+        }
+        idx = form.indexOf('n', idx + 1);
+      }
+    }
+  }
+
+  function uniqueList(values){
+    const list = [];
+    for (const value of values) {
+      if (value && !list.includes(value)) list.push(value);
+    }
+    return list;
+  }
+
+  function formatFast(kunrei){
+    let s = String(kunrei || '').toLowerCase();
+    s = s.replace(/hul([aieo])/g, 'f$1');
+    s = s.replace(/tul([aieo])/g, 'ts$1');
+    s = s.replace(/kul([aieo])/g, 'q$1');
+    s = s.replace(/gul([aieo])/g, 'gw$1');
+    s = s.replace(/sya/g, 'sha').replace(/syu/g, 'shu').replace(/syo/g, 'sho');
+    s = s.replace(/tya/g, 'cha').replace(/tyu/g, 'chu').replace(/tyo/g, 'cho');
+    s = s.replace(/zya/g, 'ja').replace(/zyu/g, 'ju').replace(/zyo/g, 'jo');
+    s = s.replace(/sye/g, 'she').replace(/tye/g, 'che').replace(/zye/g, 'je');
+    s = s.replace(/zi/g, 'ji');
+    s = s.replace(/tel([aiueo])/g, 'th$1');
+    s = s.replace(/del([aiueo])/g, 'dh$1');
+    s = s.replace(/(^|[^sc])hu/g, (_, p1) => p1 + 'fu');
+    return s;
+  }
+
+  function shuffle(arr){
+    for (let i = arr.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+    return arr;
+  }
+
+  function escapeHtml(s){
+    return String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
