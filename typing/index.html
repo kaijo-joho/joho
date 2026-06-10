@@ -279,7 +279,32 @@
       text-align:left;
     }
     .ghostTyped{color:var(--fg);opacity:.94}
+    .ghostCursor{
+      display:inline-block;
+      min-width:.64ch;
+      color:var(--accent);
+      background:rgba(37,99,235,.14);
+      border-bottom:2px solid var(--accent);
+      border-radius:3px 3px 0 0;
+      text-align:center;
+      animation:cursorPulse 1.15s ease-in-out infinite;
+    }
+    .ghostCursor.isError{
+      color:var(--ng);
+      background:rgba(220,38,38,.16);
+      border-bottom-color:var(--ng);
+    }
+    .ghostCursor.isComplete{
+      color:transparent;
+      background:transparent;
+      border-bottom-color:transparent;
+      animation:none;
+    }
     .ghostRest{color:var(--muted);opacity:.36}
+    @keyframes cursorPulse{
+      0%,100%{opacity:1}
+      50%{opacity:.42}
+    }
     #typebox{
       position:absolute;
       left:50%;
@@ -292,7 +317,8 @@
       border:0;
       background:transparent;
       color:transparent;
-      caret-color:var(--accent);
+      caret-color:transparent;
+      opacity:.01;
       font-size:1.52rem;
       font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
       letter-spacing:0;
@@ -658,9 +684,9 @@
       <div class="inputWrap" id="inputPanel">
         <div class="inputField" id="inputField">
           <div class="ghostRoman" id="ghostRoman" aria-hidden="true">
-            <span class="ghostTyped" id="ghostTyped"></span><span class="ghostRest" id="ghostRest"></span>
+            <span class="ghostTyped" id="ghostTyped"></span><span class="ghostCursor" id="ghostCursor"></span><span class="ghostRest" id="ghostRest"></span>
           </div>
-          <input id="typebox" type="text" inputmode="latin" lang="en" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="" disabled />
+          <input id="typebox" type="text" inputmode="latin" lang="en" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="" disabled />
         </div>
         <div class="typedLog" id="typedLog" aria-label="入力ログ"></div>
       </div>
@@ -809,6 +835,20 @@
     P10: { accuracy: 0.98, minCorrectChars: 190 }
   };
 
+  const CATEGORY_LABELS = {
+    general: '一般',
+    it: '情報',
+    math: '数学',
+    science: '理科',
+    english: '英語',
+    geography: '地理',
+    history: '歴史',
+    classic: '古典',
+    proverb: 'ことわざ',
+    fun: 'お楽しみ',
+    special: '特殊'
+  };
+
   const FALLBACK_MODES = [
     {
       id: 'PR-D1',
@@ -907,6 +947,12 @@
   let QUEST_WORLDS = [];
   let QUEST_STAGES = [];
   let QUEST_CLEAR_RULES = QUEST_CLEAR_DEFAULTS;
+  let INPUT_STEPS = [];
+  let INPUT_STEP_BY_KEY = new Map();
+  let INPUT_STEP_BY_LEVEL = new Map();
+  let DIFFICULTY_DIVISIONS = [];
+  let DIVISION_BY_ID = new Map();
+  let DIVISION_BY_LEVEL = new Map();
 
   const $ = (q) => document.querySelector(q);
   const els = {
@@ -918,7 +964,7 @@
     startBtn: $('#startBtn'), retryBtn: $('#retryBtn'), modeSelectBtn: $('#modeSelectBtn'), clearHistoryBtn: $('#clearHistoryBtn'), retrySaveBtn: $('#retrySaveBtn'),
     currentModeLabel: $('#currentModeLabel'), currentModeId: $('#currentModeId'), phraseCount: $('#phraseCount'),
     targetCard: $('#targetCard'), displayText: $('#displayText'), kanaText: $('#kanaText'), romajiText: $('#romajiText'),
-    typebox: $('#typebox'), inputField: $('#inputField'), ghostRoman: $('#ghostRoman'), ghostTyped: $('#ghostTyped'), ghostRest: $('#ghostRest'), typedLog: $('#typedLog'), inputPanel: $('#inputPanel'), imeWarn: $('#imeWarn'),
+    typebox: $('#typebox'), inputField: $('#inputField'), ghostRoman: $('#ghostRoman'), ghostTyped: $('#ghostTyped'), ghostCursor: $('#ghostCursor'), ghostRest: $('#ghostRest'), typedLog: $('#typedLog'), inputPanel: $('#inputPanel'), imeWarn: $('#imeWarn'),
     timeProgress: $('#timeProgress'), bar: $('#bar'), remain: $('#remain'), resultPanel: $('#resultPanel'), liveMetrics: $('#liveMetrics'), historyBody: $('#historyBody'),
     timeUpNotice: $('#timeUpNotice'),
     saveStatus: $('#saveStatus'), saveRetryArea: $('#saveRetryArea'),
@@ -936,6 +982,8 @@
     questWorlds: [],
     questStages: [],
     questClearRules: QUEST_CLEAR_DEFAULTS,
+    inputSteps: [],
+    difficultyDivisions: [],
     visibleModes: [],
     activeModeGroup: 'practice',
     selectedModeIndex: 0,
@@ -968,6 +1016,8 @@
     currentPhraseMisses: 0,
     currentDeleteEvents: [],
     completedPhrases: [],
+    typedRoman: '',
+    typingSyncFrame: null,
     lastRaw: '',
     trailingNCarryover: null,
     absorbedTrailingNCount: 0,
@@ -988,13 +1038,20 @@
     QUEST_WORLDS = data.questWorlds || [];
     QUEST_STAGES = data.questStages || [];
     QUEST_CLEAR_RULES = data.questClearRules || QUEST_CLEAR_DEFAULTS;
+    INPUT_STEPS = data.inputSteps || [];
+    DIFFICULTY_DIVISIONS = data.difficultyDivisions || [];
+    refreshMasterMaps(INPUT_STEPS, DIFFICULTY_DIVISIONS);
     state.questWorlds = QUEST_WORLDS;
     state.questStages = QUEST_STAGES;
     state.questClearRules = QUEST_CLEAR_RULES;
+    state.inputSteps = INPUT_STEPS;
+    state.difficultyDivisions = DIFFICULTY_DIVISIONS;
     if (typeof window !== 'undefined') {
       window.typingQuestQuestWorlds = QUEST_WORLDS;
       window.typingQuestQuestStages = QUEST_STAGES;
       window.typingQuestQuestClearRules = QUEST_CLEAR_RULES;
+      window.typingQuestInputSteps = INPUT_STEPS;
+      window.typingQuestDifficultyDivisions = DIFFICULTY_DIVISIONS;
     }
     if (QUEST_WORLDS.length) {
       console.info('Typing Quest questWorlds loaded:', QUEST_WORLDS.length, 'worlds /', QUEST_STAGES.length, 'stages');
@@ -1043,11 +1100,27 @@
     els.modeSelectBtn.addEventListener('click', backToModeSelect);
     els.clearHistoryBtn.addEventListener('click', clearHistory);
     document.addEventListener('keydown', handleGlobalKeydown);
-    els.typebox.addEventListener('compositionstart', () => { state.composing = true; els.imeWarn.textContent = '英数入力に切り替えてください（日本語入力中）'; els.imeWarn.style.display = 'block'; });
-    els.typebox.addEventListener('compositionend', () => { state.composing = false; els.imeWarn.style.display = 'none'; });
+    els.typebox.addEventListener('compositionstart', () => {
+      state.composing = true;
+      els.imeWarn.textContent = '英数入力に切り替えてください（日本語入力中）';
+      els.imeWarn.style.display = 'block';
+      if (state.running) syncTypeboxToTypedRoman();
+    });
+    els.typebox.addEventListener('compositionend', () => {
+      state.composing = false;
+      els.imeWarn.style.display = 'none';
+      if (state.running) {
+        syncTypeboxToTypedRoman();
+        assertTypingSync('compositionend');
+      }
+    });
     els.typebox.addEventListener('beforeinput', handleTypeboxBeforeInput);
     els.typebox.addEventListener('keydown', handleTypeboxKeydown);
     els.typebox.addEventListener('input', onInput);
+    els.typebox.addEventListener('click', () => { if (state.running) assertTypingSync('click'); });
+    els.typebox.addEventListener('select', () => { if (state.running) assertTypingSync('select'); });
+    configureTypeboxInputAttributes();
+    setTypeboxReadOnly(false);
     syncDurationFromMode();
     renderModeCards();
     renderModeInfo();
@@ -1383,6 +1456,19 @@
         subtitle: questWorldMeta(mode.questWorld)
       };
     }
+    if (mode.inputStepMaster) {
+      return {
+        title: mode.label,
+        subtitle: modeCardMeta(mode)
+      };
+    }
+    if (mode.difficultyDivision) {
+      return {
+        code: mode.difficultyDivision.division,
+        name: mode.difficultyDivision.title,
+        subtitle: modeCardMeta(mode)
+      };
+    }
     const group = modeGroupKey(mode);
     const levels = summarizeTokens(modeLevels(mode));
     const divisions = summarizeTokens(modeDivisions(mode));
@@ -1422,6 +1508,8 @@
   }
 
   function divisionTitleName(code){
+    const master = DIVISION_BY_ID.get(String(code || '').toUpperCase());
+    if (master && master.title) return master.title;
     const names = {
       D1: 'Starter / スターター',
       D2: 'Rookie / ルーキー',
@@ -1456,10 +1544,12 @@
     if (mode.questWorld) return `Quest / ${mode.questWorld.worldId} / ${mode.questWorld.stages.length} stages / ${questWorldMeta(mode.questWorld)}`;
     const group = modeGroupKey(mode);
     const parts = [modeGroupLabel(group)];
+    if (mode.inputStepMaster) parts.push(mode.label);
+    if (mode.difficultyDivision) parts.push(mode.label);
     const divisions = summarizeTokens(modeDivisions(mode));
     const levels = summarizeTokens(modeLevels(mode));
-    if (divisions) parts.push(divisions);
-    if (levels) parts.push(levels);
+    if (divisions && !mode.difficultyDivision) parts.push(divisions);
+    if (levels && !mode.inputStepMaster) parts.push(levels);
     parts.push(isTimeSelectableMode(mode) ? `${state.durationSec}秒` : `${modeDurationSec(mode)}秒固定`);
     if (group === 'championship') parts.push('記録対象');
     if (group === 'promotion') parts.push('昇格戦');
@@ -1481,32 +1571,35 @@
   }
 
   function filterConditionSummary(filter){
-    const v2 = normalizeV2Filter(filter || {});
-    const legacy = normalizeLegacyFilter(filter || {});
+    const v3 = normalizeV3Filter(filter || {});
     const parts = [];
-    const category = summarizeTokens(v2.category);
-    const categoryAny = summarizeTokens(v2.categoryAny);
-    const categoryAll = summarizeTokens(v2.categoryAll);
-    const keyRows = summarizeTokens(v2.keyRows);
-    const skillAny = summarizeTokens(v2.skillTagsAny);
-    const skillAll = summarizeTokens(v2.skillTagsAll);
-    const skillNone = summarizeTokens(v2.skillTagsNone);
-    const levels = summarizeTokens(v2.phraseLevelV2.length ? v2.phraseLevelV2 : legacy.levels);
-    const divisions = summarizeTokens(v2.divisionsV2.length ? v2.divisionsV2 : legacy.divisions);
+    const category = summarizeTokens(v3.category, { type: 'category' });
+    const categoryAny = summarizeTokens(v3.categoryAny, { type: 'category' });
+    const categoryAll = summarizeTokens(v3.categoryAll, { type: 'category' });
+    const inputStep = summarizeTokens(v3.inputStep);
+    const keyRows = summarizeTokens(v3.keyRows);
+    const skillAny = summarizeTokens(v3.skillTagsAny);
+    const skillAll = summarizeTokens(v3.skillTagsAll);
+    const skillNone = summarizeTokens(v3.skillTagsNone);
+    const divisions = summarizeTokens(effectiveFilterDivisions(v3));
+    const divisionLevels = summarizeTokens(v3.divisionLevels.map(divisionLevelToDivision));
     if (divisions) parts.push(divisions);
-    if (levels) parts.push(levels);
+    if (!divisions && divisionLevels) parts.push(divisionLevels);
     if (category) parts.push(category);
     if (categoryAny) parts.push(`category any ${categoryAny}`);
     if (categoryAll) parts.push(`category all ${categoryAll}`);
+    if (inputStep) parts.push(`step ${inputStep}`);
+    if (v3.inputStepLevel !== null) parts.push(`Step ${v3.inputStepLevel} のフレーズ`);
+    else if (v3.maxInputStepLevel !== null) parts.push(`Step ${v3.maxInputStepLevel}まで`);
     if (keyRows) parts.push(`keys ${keyRows}`);
-    if (skillAny) parts.push(`tags ${skillAny}`);
+    if (skillAny) parts.push(`skills ${skillAny}`);
     if (skillAll) parts.push(`all ${skillAll}`);
     if (skillNone) parts.push(`除外 ${skillNone}`);
-    if (v2.questOnly === true) parts.push('quest専用');
+    if (v3.questOnly === true) parts.push('quest専用');
     return parts.join(' / ');
   }
 
-  function summarizeTokens(tokens){
+  function summarizeTokens(tokens, options = {}){
     const list = uniqueList(normalizeVariantList(tokens));
     if (!list.length) return '';
     const parsed = list
@@ -1521,7 +1614,14 @@
       const last = parsed[parsed.length - 1];
       return first.number === last.number ? first.token : `${first.prefix}${first.number}〜${last.prefix}${last.number}`;
     }
-    return list.slice(0, 3).join(', ') + (list.length > 3 ? '...' : '');
+    const labels = list.map(token => displayFilterToken(token, options.type));
+    return labels.slice(0, 3).join(', ') + (labels.length > 3 ? '...' : '');
+  }
+
+  function displayFilterToken(token, type){
+    const value = String(token || '');
+    if (type === 'category') return CATEGORY_LABELS[value.toLowerCase()] || value;
+    return value;
   }
 
   function selectModeById(modeId, options = {}){
@@ -1572,13 +1672,18 @@
   }
 
   function handleGlobalKeydown(e){
+    if (state.timeUpGrace && (e.code === 'Enter' || e.code === 'Space')) {
+      e.preventDefault();
+      finishCurrentPhraseByEnterAfterTimeUp();
+      return;
+    }
     if (state.running || (document.activeElement === els.typebox && !els.typebox.disabled) || document.activeElement === els.secSel) return;
     if ((state.screen === 'ready' || state.screen === 'setup') && isModeArrowKey(e.code)) {
       e.preventDefault();
       moveModeSelection(e.code);
       return;
     }
-    if ((e.code === 'Space' || e.code === 'Enter') && (state.screen === 'ready' || state.screen === 'result')) {
+    if ((e.code === 'Space' || e.code === 'Enter') && (state.screen === 'ready' || state.screen === 'setup')) {
       if (document.activeElement === els.clearHistoryBtn || document.activeElement === els.modeSelectBtn) return;
       if (document.activeElement && document.activeElement.closest && document.activeElement.closest('.modeTab')) return;
       if (document.activeElement && document.activeElement.closest && document.activeElement.closest('.cardTimeBtn')) return;
@@ -1619,7 +1724,10 @@
     const generatedAt = info.generatedAt || '-';
     const questWorlds = Number(info.questWorldsCount || 0);
     const questPart = questWorlds ? ` / ${questWorlds} quest worlds` : '';
-    els.dataInfo.textContent = `data: ${source} / version ${version} / generated ${generatedAt} / ${info.gamesCount} games / ${info.phrasesCount} phrases${questPart}`;
+    const masterPart = (DEBUG_VIEW || DEV_VIEW)
+      ? ` / ${Number(info.inputStepsCount || 0)} input steps / ${Number(info.difficultyDivisionsCount || 0)} divisions`
+      : '';
+    els.dataInfo.textContent = `data: ${source} / version ${version} / generated ${generatedAt} / ${info.gamesCount} games / ${info.phrasesCount} phrases${questPart}${masterPart}`;
     renderStartupInfo();
   }
 
@@ -1717,6 +1825,8 @@
     state.currentPhraseMisses = 0;
     state.currentDeleteEvents = [];
     state.completedPhrases = [];
+    state.typedRoman = '';
+    state.typingSyncFrame = null;
     state.lastRaw = '';
     state.trailingNCarryover = null;
     state.absorbedTrailingNCount = 0;
@@ -1727,6 +1837,7 @@
     els.inputPanel.classList.remove('hidden');
     els.startBtn.disabled = true;
     els.typebox.disabled = true;
+    setTypeboxReadOnly(false);
     els.typebox.value = '';
     els.typedLog.innerHTML = '';
     els.inputField.classList.remove('hasError');
@@ -1749,6 +1860,7 @@
     if (state.timer) cancelAnimationFrame(state.timer);
     rememberLastGameId(state.mode && state.mode.id);
     els.typebox.disabled = true;
+    setTypeboxReadOnly(false);
     els.startBtn.disabled = false;
     els.resultPanel.classList.add('hidden');
     els.liveMetrics.classList.remove('hidden');
@@ -1801,7 +1913,9 @@
     state.running = true;
     showCurrentWord();
     els.typebox.disabled = false;
+    setTypeboxReadOnly(true);
     els.typebox.focus();
+    assertTypingSync('beginPlaying');
     tick();
   }
 
@@ -1810,14 +1924,16 @@
     if (!w) return finishGame();
     els.displayText.textContent = w.display;
     els.kanaText.textContent = w.kana;
-    updateRomanGuide(w, '');
-    els.typebox.value = '';
+    state.typedRoman = '';
+    state.lastRaw = '';
+    syncTypeboxToTypedRoman();
+    updateRomanGuide(w, state.typedRoman);
     els.typedLog.innerHTML = '';
     els.inputField.classList.remove('hasError');
-    state.lastRaw = '';
     state.currentPhraseMisses = 0;
     state.currentDeleteEvents = [];
     state.currentAttempt = beginPhraseAttempt(w);
+    assertTypingSync('showCurrentWord');
   }
 
   function currentWord(){ return state.words[state.index]; }
@@ -1859,61 +1975,248 @@
     const widthChars = Math.max(text.length, typed.length, 1);
     els.romajiText.style.setProperty('--guide-width', `${widthChars}ch`);
     els.inputField.style.setProperty('--guide-width', `${widthChars}ch`);
-    if (!text && !typed) {
-      els.ghostTyped.textContent = '';
-      els.ghostRest.textContent = '';
-      return;
-    }
-    if (isError) {
-      els.ghostTyped.textContent = typed;
-      els.ghostRest.textContent = '';
-      return;
-    }
-    if (text.startsWith(typed)) {
-      els.ghostTyped.textContent = text.slice(0, typed.length);
-      els.ghostRest.textContent = text.slice(typed.length);
-      return;
-    }
-    els.ghostTyped.textContent = typed;
-    els.ghostRest.textContent = text;
+    renderTypedDisplay(text, typed, isError);
+  }
+
+  function renderTypedDisplay(targetRoman, typedRoman, isError = false){
+    const target = String(targetRoman || '');
+    const typed = String(typedRoman || '');
+    const index = Math.min(typed.length, target.length);
+    const done = target ? target.slice(0, index) : typed;
+    const cursor = target.slice(index, index + 1) || (target || typed ? ' ' : '');
+    const rest = target.slice(index + 1);
+    els.ghostTyped.textContent = done;
+    els.ghostCursor.textContent = cursor;
+    els.ghostRest.textContent = rest;
+    els.ghostCursor.classList.toggle('isError', !!isError);
+    els.ghostCursor.classList.toggle('isComplete', !!target && typed.length >= target.length);
   }
 
   function handleTypeboxKeydown(e){
     if (!state.running) return;
+    if (e.isComposing || state.composing || e.key === 'Process') {
+      if (e.preventDefault) e.preventDefault();
+      syncTypeboxToTypedRoman();
+      assertTypingSync('keydown:composition');
+      return;
+    }
     if (e.key === 'Enter') {
       e.preventDefault();
       if (state.timeUpGrace) finishCurrentPhraseByEnterAfterTimeUp();
       return;
     }
-    if (isTextInputKey(e) && e.getModifierState && e.getModifierState('CapsLock')) {
+    if (e.key === 'Backspace' || e.key === 'Delete') {
+      e.preventDefault();
+      recordDeleteEvent(e);
+      deleteLastTypedRoman();
+      clearTrailingNCarryover();
+      assertTypingSync(`keydown:${e.key}`);
+      return;
+    }
+    if (isCursorNavigationKey(e)) {
+      e.preventDefault();
+      assertTypingSync(`keydown:${e.key}`);
+      return;
+    }
+    if (!isPrintableKey(e)) return;
+    e.preventDefault();
+    if (!isTextInputKey(e)) {
+      assertTypingSync('keydown:modifiedPrintable');
+      return;
+    }
+    if (e.getModifierState && e.getModifierState('CapsLock')) {
       showInputWarning('Caps Lockがオンになっている可能性があります');
     }
-    if (isTextInputKey(e) && invalidInputReason(e.key)) {
-      e.preventDefault();
+    if (invalidInputReason(e.key)) {
       showInputWarning(invalidInputReason(e.key));
+      syncTypeboxToTypedRoman();
+      assertTypingSync('keydown:invalid');
       return;
     }
     if (isBlockedUppercaseKey(e)) {
-      e.preventDefault();
       showInputWarning('大文字小文字を区別します。Caps Lockと入力文字を確認してください。');
+      syncTypeboxToTypedRoman();
+      assertTypingSync('keydown:blockedUppercase');
       return;
     }
-    if (tryAbsorbTrailingN(e)) return;
-    if (e.key === 'Backspace' || e.key === 'Delete') {
-      recordDeleteEvent(e);
-      clearTrailingNCarryover();
+    if (tryAbsorbTrailingN(e)) {
+      assertTypingSync('keydown:absorbedTrailingN');
       return;
     }
-    if (isTextInputKey(e)) clearTrailingNCarryover();
+    clearTrailingNCarryover();
+    handleTypedRomanKey(e.key);
+    assertTypingSync('keydown:printable');
   }
 
   function handleTypeboxBeforeInput(e){
-    if (!state.running || !e.inputType || e.inputType.indexOf('insert') !== 0) return;
-    const data = typeof e.data === 'string' ? e.data : '';
-    const reason = invalidInputReason(data);
-    if (!reason) return;
-    e.preventDefault();
-    showInputWarning(reason);
+    if (!state.running) return;
+    if (e.preventDefault) e.preventDefault();
+    if (state.composing || e.isComposing || e.inputType === 'insertCompositionText') {
+      showInputWarning('英数入力に切り替えてください（日本語入力中）');
+    } else if (e.inputType && e.inputType.indexOf('insert') === 0 && e.inputType !== 'insertText') {
+      showInputWarning('貼り付けや自動入力は使わず、キーボードで1文字ずつ入力してください。');
+    } else if (typeof e.data === 'string' && invalidInputReason(e.data)) {
+      showInputWarning(invalidInputReason(e.data));
+    }
+    syncTypeboxToTypedRoman();
+    assertTypingSync(`beforeinput:${e.inputType || 'unknown'}`);
+  }
+
+  function handleTypedRomanKey(ch){
+    const w = currentWord();
+    if (!w || typeof ch !== 'string' || ch.length !== 1) {
+      syncTypeboxToTypedRoman();
+      return;
+    }
+    const reason = invalidInputReason(ch);
+    if (reason) {
+      showInputWarning(reason);
+      syncTypeboxToTypedRoman();
+      return;
+    }
+    const nextRaw = state.typedRoman + ch;
+    if (/^[A-Z]$/.test(ch) && hasBlockedUppercaseInput(nextRaw, w)) {
+      showInputWarning('大文字小文字を区別します。Caps Lockと入力文字を確認してください。');
+      syncTypeboxToTypedRoman();
+      return;
+    }
+    if (!isAcceptableWordPrefix(nextRaw, w)) {
+      countTypedRomanKey(false);
+      renderTypedRomanState(w, true);
+      checkTimeUpAfterInput();
+      renderMetrics();
+      return;
+    }
+    setTypedRoman(nextRaw);
+    countTypedRomanKey(true);
+    renderTypedRomanState(w, false);
+    checkTimeUpAfterInput();
+    renderMetrics();
+    if (isCompleteWordInput(state.typedRoman, w)) completeCurrentWord(w);
+  }
+
+  function countTypedRomanKey(isCorrect){
+    if (isScoredInputActive()) {
+      if (isCorrect) state.correctChars++;
+      else state.mistakes++;
+      state.totalKeys++;
+    }
+    if (isCorrect) state.totalCorrectCount++;
+    else state.totalMissCount++;
+    state.totalKeyCount++;
+    if (!isCorrect) state.currentPhraseMisses++;
+  }
+
+  function setTypedRoman(value){
+    state.typedRoman = String(value || '');
+    state.lastRaw = state.typedRoman;
+    syncTypeboxToTypedRoman();
+  }
+
+  function syncTypeboxToTypedRoman(){
+    els.typebox.value = '';
+    setTypeboxCursorToStart();
+    scheduleTypeboxResync();
+  }
+
+  function setTypeboxCursorToStart(){
+    if (typeof els.typebox.setSelectionRange !== 'function') return;
+    try {
+      els.typebox.setSelectionRange(0, 0);
+    } catch (err) {
+      // Some browsers reject setSelectionRange while the input is disabled.
+    }
+  }
+
+  function scheduleTypeboxResync(){
+    if (state.typingSyncFrame || typeof requestAnimationFrame !== 'function') return;
+    state.typingSyncFrame = requestAnimationFrame(() => {
+      state.typingSyncFrame = null;
+      els.typebox.value = '';
+      setTypeboxCursorToStart();
+      assertTypingSync('requestAnimationFrame', { resync: false });
+    });
+  }
+
+  function assertTypingSync(context, options = {}){
+    if (!state.running || !els.typebox) return;
+    const typedRoman = String(state.typedRoman || '');
+    const value = String(els.typebox.value || '');
+    const selectionStart = Number(els.typebox.selectionStart);
+    const selectionEnd = Number(els.typebox.selectionEnd);
+    const selectionKnown = Number.isFinite(selectionStart) && Number.isFinite(selectionEnd);
+    const isSynced = value === ''
+      && (!selectionKnown || (selectionStart === 0 && selectionEnd === 0));
+    if (isSynced) return;
+    console.warn('Typing desync', {
+      context,
+      value,
+      typedRoman,
+      valueLength: value.length,
+      typedRomanLength: typedRoman.length,
+      selectionStart,
+      selectionEnd,
+      displayPosition: typedRoman.length,
+      currentTargetRoman: currentTargetRoman()
+    });
+    if (options.resync !== false) syncTypeboxToTypedRoman();
+  }
+
+  function currentTargetRoman(){
+    const w = currentWord();
+    return w ? chooseRomanDisplay(w, state.typedRoman || '') : '';
+  }
+
+  function setTypeboxReadOnly(readOnly){
+    els.typebox.readOnly = !!readOnly;
+    if (readOnly) els.typebox.setAttribute('readonly', 'readonly');
+    else els.typebox.removeAttribute('readonly');
+  }
+
+  function configureTypeboxInputAttributes(){
+    els.typebox.setAttribute('autocomplete', 'off');
+    els.typebox.setAttribute('autocorrect', 'off');
+    els.typebox.setAttribute('autocapitalize', 'off');
+    els.typebox.setAttribute('spellcheck', 'false');
+    els.typebox.setAttribute('inputmode', 'latin');
+  }
+
+  function renderTypedRomanState(w, isError = false){
+    syncTypeboxToTypedRoman();
+    els.inputField.classList.toggle('hasError', !!isError);
+    updateRomanGuide(w, state.typedRoman, !!isError);
+    renderTypedLog(state.typedRoman, w);
+  }
+
+  function deleteLastTypedRoman(){
+    if (!state.typedRoman) {
+      syncTypeboxToTypedRoman();
+      return;
+    }
+    const w = currentWord();
+    setTypedRoman(state.typedRoman.slice(0, -1));
+    if (w) renderTypedRomanState(w, false);
+    renderMetrics();
+  }
+
+  function checkTimeUpAfterInput(){
+    if (!state.timeUpGrace && timeLimitReached()) enterTimeUpGrace();
+  }
+
+  function completeCurrentWord(w){
+    state.lastPhraseKey = w.phraseKey;
+    state.trailingNCarryover = trailingNCarryoverFor(w, state.typedRoman);
+    const completedAttempt = updateCurrentAttempt(w, state.typedRoman, true, { completedAfterTimeUp: state.timeUpGrace });
+    state.completedPhrases.push(completedAttempt);
+    if (state.timeUpGrace) {
+      finishGame();
+      return;
+    }
+    state.index++;
+    if (state.index >= state.words.length) {
+      refillDeck();
+    }
+    showCurrentWord();
   }
 
   function invalidInputReason(value){
@@ -1938,10 +2241,7 @@
     if (!/^[A-Z]$/.test(e.key || '') || e.metaKey || e.ctrlKey || e.altKey) return false;
     const w = currentWord();
     if (!w) return true;
-    const raw = els.typebox.value || '';
-    const start = Number(els.typebox.selectionStart || raw.length);
-    const end = Number(els.typebox.selectionEnd || start);
-    const nextRaw = raw.slice(0, start) + e.key + raw.slice(end);
+    const nextRaw = String(state.typedRoman || '') + e.key;
     return !isAcceptableStrictPrefix(nextRaw, w);
   }
 
@@ -1953,16 +2253,9 @@
   function recordDeleteEvent(e){
     const w = currentWord();
     if (!w) return;
-    const beforeDelete = els.typebox.value || '';
-    const start = Number(els.typebox.selectionStart || 0);
-    const end = Number(els.typebox.selectionEnd || start);
-    const hasSelection = end > start;
-    const position = e.key === 'Backspace' && !hasSelection ? Math.max(0, start - 1) : start;
-    const deletedChar = hasSelection
-      ? beforeDelete.slice(start, end)
-      : e.key === 'Backspace'
-        ? beforeDelete.slice(Math.max(0, start - 1), start)
-        : beforeDelete.slice(start, start + 1);
+    const beforeDelete = String(state.typedRoman || '');
+    const position = Math.max(0, beforeDelete.length - 1);
+    const deletedChar = beforeDelete.slice(-1);
     if (!deletedChar) return;
     state.currentDeleteEvents.push({
       beforeDelete,
@@ -1992,7 +2285,7 @@
       clearTrailingNCarryover();
       return false;
     }
-    if ((els.typebox.value || '') !== '') return false;
+    if ((state.typedRoman || '') !== '') return false;
     const w = currentWord();
     if (!w) return false;
     return !romanCandidates(w).some(candidate => String(candidate || '').toLowerCase().startsWith('n'));
@@ -2020,6 +2313,14 @@
     return e.key && e.key.length === 1 && !e.metaKey && !e.ctrlKey && !e.altKey;
   }
 
+  function isPrintableKey(e){
+    return !!(e && e.key && e.key.length === 1);
+  }
+
+  function isCursorNavigationKey(e){
+    return ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown'].includes(e.key);
+  }
+
   function trailingNCarryoverFor(w, raw){
     if (!phraseEndsWithN(w) || !inputEndsWithSingleN(raw)) return null;
     return {
@@ -2043,63 +2344,8 @@
 
   function onInput(e){
     if (!state.running) return;
-    const w = currentWord();
-    if (!w) return;
-    const previousRaw = state.lastRaw;
-    const raw = e.target.value || '';
-    const invalidReason = invalidInputReason(raw);
-    if (invalidReason) {
-      e.target.value = previousRaw;
-      showInputWarning(invalidReason);
-      updateRomanGuide(w, previousRaw, !isAcceptableWordPrefix(previousRaw, w));
-      renderTypedLog(previousRaw, w);
-      return;
-    }
-    if (hasBlockedUppercaseInput(raw, w)) {
-      e.target.value = previousRaw;
-      showInputWarning('大文字小文字を区別します。Caps Lockと入力文字を確認してください。');
-      updateRomanGuide(w, previousRaw, !isAcceptableWordPrefix(previousRaw, w));
-      renderTypedLog(previousRaw, w);
-      return;
-    }
-    const okPrefix = isAcceptableWordPrefix(raw, w);
-    els.inputField.classList.toggle('hasError', !okPrefix);
-    updateRomanGuide(w, raw, !okPrefix);
-
-    const inserted = insertedTextFromInput(e, previousRaw, raw);
-    if (inserted) {
-      const counted = countInsertedChars(previousRaw, inserted, w);
-      const keyCount = counted.correct + counted.misses;
-      if (isScoredInputActive()) {
-        state.correctChars += counted.correct;
-        state.mistakes += counted.misses;
-        state.totalKeys += keyCount;
-      }
-      state.totalCorrectCount += counted.correct;
-      state.totalMissCount += counted.misses;
-      state.totalKeyCount += keyCount;
-      state.currentPhraseMisses += counted.misses;
-    }
-    state.lastRaw = raw;
-    if (!state.timeUpGrace && timeLimitReached()) enterTimeUpGrace();
-    renderTypedLog(raw, w);
-    renderMetrics();
-
-    if (isCompleteWordInput(raw, w)) {
-      state.lastPhraseKey = w.phraseKey;
-      state.trailingNCarryover = trailingNCarryoverFor(w, raw);
-      const completedAttempt = updateCurrentAttempt(w, raw, true, { completedAfterTimeUp: state.timeUpGrace });
-      state.completedPhrases.push(completedAttempt);
-      if (state.timeUpGrace) {
-        finishGame();
-        return;
-      }
-      state.index++;
-      if (state.index >= state.words.length) {
-        refillDeck();
-      }
-      showCurrentWord();
-    }
+    syncTypeboxToTypedRoman();
+    assertTypingSync(`input:${e && e.inputType || 'unknown'}`);
   }
 
   function refillDeck(){
@@ -2127,6 +2373,9 @@
       display: w.display,
       kana: w.kana,
       roman: chooseRomanDisplay(w, ''),
+      difficultyScore: w.difficultyScore,
+      meaningText: w.meaningText || '',
+      adviceText: w.adviceText || '',
       completed: false,
       completedAfterTimeUp: false,
       endedByEnterAfterTimeUp: false,
@@ -2145,6 +2394,9 @@
     attempt.display = w.display;
     attempt.kana = w.kana;
     attempt.roman = chooseRomanDisplay(w, raw);
+    attempt.difficultyScore = w.difficultyScore;
+    attempt.meaningText = w.meaningText || '';
+    attempt.adviceText = w.adviceText || '';
     attempt.completed = !!completed;
     attempt.completedAfterTimeUp = !!attempt.completedAfterTimeUp || !!flags.completedAfterTimeUp;
     attempt.endedByEnterAfterTimeUp = !!attempt.endedByEnterAfterTimeUp || !!flags.endedByEnterAfterTimeUp;
@@ -2178,14 +2430,16 @@
     updateTimeWarning(0);
     els.timeUpNotice.classList.remove('hidden');
     els.typebox.disabled = false;
+    setTypeboxReadOnly(true);
     els.typebox.focus();
+    assertTypingSync('timeUpGrace');
     renderMetrics();
   }
 
   function finishCurrentPhraseByEnterAfterTimeUp(){
     if (!state.timeUpGrace) return;
     const w = currentWord();
-    if (w) updateCurrentAttempt(w, els.typebox.value || '', false, { endedByEnterAfterTimeUp: true });
+    if (w) updateCurrentAttempt(w, state.typedRoman || '', false, { endedByEnterAfterTimeUp: true });
     finishGame();
   }
 
@@ -2208,6 +2462,7 @@
     state.timeUpGrace = false;
     if (state.timer) cancelAnimationFrame(state.timer);
     els.typebox.disabled = true;
+    setTypeboxReadOnly(false);
     els.startBtn.disabled = false;
     els.inputPanel.classList.add('hidden');
     els.imeWarn.style.display = 'none';
@@ -2335,6 +2590,9 @@
       attemptNo: attempt.attemptNo,
       phraseId: attempt.phraseId,
       displayText: attempt.displayText || attempt.display,
+      difficultyScore: attempt.difficultyScore,
+      meaningText: attempt.meaningText || '',
+      adviceText: attempt.adviceText || '',
       completed: !!attempt.completed,
       completedAfterTimeUp: !!attempt.completedAfterTimeUp,
       endedByEnterAfterTimeUp: !!attempt.endedByEnterAfterTimeUp,
@@ -2375,7 +2633,7 @@
 
   function syncCurrentAttemptForResult(){
     const w = currentWord();
-    const raw = els.typebox.value || '';
+    const raw = state.typedRoman || '';
     if (w && state.currentAttempt && !isCompleteWordInput(raw, w)) updateCurrentAttempt(w, raw, false);
   }
 
@@ -2615,14 +2873,13 @@
 
   function modeDivisions(mode){
     if (!mode || !mode.filter) return [];
-    const divisionsV2 = normalizeVariantList(mode.filter.divisionsV2);
-    return divisionsV2.length ? divisionsV2 : normalizeVariantList(mode.filter.divisions);
+    return effectiveFilterDivisions(normalizeV3Filter(mode.filter));
   }
 
   function modeLevels(mode){
     if (!mode || !mode.filter) return [];
-    const levelsV2 = normalizeVariantList(mode.filter.phraseLevelV2);
-    return levelsV2.length ? levelsV2 : normalizeVariantList(mode.filter.levels);
+    const filter = normalizeV3Filter(mode.filter);
+    return filter.divisionLevels.map(divisionLevelToDivision).filter(Boolean);
   }
 
   async function loadTypingData(){
@@ -2631,23 +2888,33 @@
         const res = await fetch(source.url, { cache: 'no-store' });
         if (!res.ok) throw new Error(`HTTP ${res.status}`);
         const json = await res.json();
-        const modes = buildModesFromData(json);
+        const normalizedPhrases = normalizeDataPhrases(json);
+        const inputSteps = normalizeInputSteps(json.inputSteps);
+        const difficultyDivisions = normalizeDifficultyDivisions(json.difficultyDivisions);
+        const modes = buildModesFromData(json, { normalizedPhrases, inputSteps, difficultyDivisions });
         if (modes.length) {
           const questWorlds = normalizeQuestWorlds(json.questWorlds);
-        const normalizedPhrases = normalizeDataPhrases(json);
-        const questClearRules = normalizeQuestClearRules(json);
-        const questStages = buildQuestStagesFromWorlds(questWorlds, normalizedPhrases, questClearRules);
-        return { modes, questWorlds, questStages, questClearRules, info: jsonDataInfo(json, source, modes, questWorlds) };
+          const questClearRules = normalizeQuestClearRules(json);
+          const questStages = buildQuestStagesFromWorlds(questWorlds, normalizedPhrases, questClearRules);
+          return {
+            modes,
+            questWorlds,
+            questStages,
+            questClearRules,
+            inputSteps,
+            difficultyDivisions,
+            info: jsonDataInfo(json, source, modes, questWorlds, inputSteps, difficultyDivisions)
+          };
         }
       } catch (err) {
         console.warn('Typing data load failed:', source.url, err);
       }
     }
     const modes = buildFallbackModes();
-    return { modes, questWorlds: [], questStages: [], questClearRules: QUEST_CLEAR_DEFAULTS, info: fallbackDataInfo(modes) };
+    return { modes, questWorlds: [], questStages: [], questClearRules: QUEST_CLEAR_DEFAULTS, inputSteps: [], difficultyDivisions: [], info: fallbackDataInfo(modes) };
   }
 
-  function jsonDataInfo(json, source, modes, questWorlds = []){
+  function jsonDataInfo(json, source, modes, questWorlds = [], inputSteps = [], difficultyDivisions = []){
     return {
       sourceKind: source.kind,
       sourceUrl: source.url,
@@ -2656,7 +2923,9 @@
       generatedAt: String(json.generatedAt || ''),
       gamesCount: Array.isArray(json.games) ? json.games.length : modes.length,
       phrasesCount: Array.isArray(json.phrases) ? json.phrases.length : countModePhrases(modes),
-      questWorldsCount: questWorlds.length
+      questWorldsCount: questWorlds.length,
+      inputStepsCount: inputSteps.length,
+      difficultyDivisionsCount: difficultyDivisions.length
     };
   }
 
@@ -2682,6 +2951,79 @@
     return phrases.map(normalizeJsonPhrase).filter(Boolean);
   }
 
+  function normalizeInputSteps(inputSteps){
+    if (!Array.isArray(inputSteps)) return [];
+    return inputSteps
+      .map((step, index) => {
+        const source = step || {};
+        if (!parseBooleanLike(source.enabled, true)) return null;
+        const inputStep = String(source.inputStep || source.step || source.id || '').trim().toLowerCase();
+        const inputStepLevel = parseNumberLike(source.inputStepLevel !== undefined ? source.inputStepLevel : source.level, null);
+        if (!inputStep || inputStepLevel === null) return null;
+        const title = String(source.title || source.name || inputStep);
+        return {
+          ...source,
+          inputStep,
+          inputStepLevel,
+          title,
+          description: String(source.description || ''),
+          enabled: true,
+          label: inputStepLabel({ inputStepLevel, title }),
+          sortOrder: parseNumberLike(source.sortOrder, inputStepLevel || index + 1)
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.inputStepLevel - b.inputStepLevel || a.sortOrder - b.sortOrder);
+  }
+
+  function normalizeDifficultyDivisions(difficultyDivisions){
+    if (!Array.isArray(difficultyDivisions)) return [];
+    return difficultyDivisions
+      .map((division, index) => {
+        const source = division || {};
+        if (!parseBooleanLike(source.enabled, true)) return null;
+        const divisionId = normalizeDivisionId(source.division || source.id || source.key);
+        const level = parseNumberLike(source.level, divisionToLevel(divisionId));
+        if (!divisionId || level === null) return null;
+        const title = String(source.title || source.name || divisionId);
+        return {
+          ...source,
+          division: divisionId,
+          level,
+          title,
+          description: String(source.description || ''),
+          minScore: parseNumberLike(source.minScore, null),
+          maxScore: parseNumberLike(source.maxScore, null),
+          minIfAnySkillTags: normalizeLowerTokenList(source.minIfAnySkillTags),
+          enabled: true,
+          label: difficultyDivisionLabel({ division: divisionId, title }),
+          sortOrder: parseNumberLike(source.sortOrder, level || index + 1)
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => a.level - b.level || a.sortOrder - b.sortOrder);
+  }
+
+  function refreshMasterMaps(inputSteps, difficultyDivisions){
+    INPUT_STEP_BY_KEY = new Map((inputSteps || []).map(step => [step.inputStep, step]));
+    INPUT_STEP_BY_LEVEL = new Map((inputSteps || []).map(step => [step.inputStepLevel, step]));
+    DIVISION_BY_ID = new Map((difficultyDivisions || []).map(division => [division.division, division]));
+    DIVISION_BY_LEVEL = new Map((difficultyDivisions || []).map(division => [division.level, division]));
+  }
+
+  function inputStepLabel(step){
+    return `Step ${step.inputStepLevel}: ${step.title}`;
+  }
+
+  function difficultyDivisionLabel(division){
+    return `${division.division}: ${division.title}`;
+  }
+
+  function normalizeDivisionId(value){
+    const level = divisionValueToLevel(value);
+    return divisionLevelToDivision(level);
+  }
+
   function normalizeQuestClearRules(data){
     const source = (data && (data.questClearRules || data.questStageClearRules || data.questStageClearConditions || data.stageClearConditions)) || {};
     const rules = { ...QUEST_CLEAR_DEFAULTS };
@@ -2702,7 +3044,7 @@
       .map((world, index) => {
         const worldId = String(world.worldId || world.id || world.key || `quest-world-${index + 1}`).trim();
         if (!worldId) return null;
-        if (world.enabled !== undefined && !normalizeBoolean(world.enabled)) return null;
+        if (world.enabled !== undefined && !parseBooleanLike(world.enabled, true)) return null;
         const filter = normalizeQuestWorldFilter(world);
         return {
           ...world,
@@ -2724,7 +3066,7 @@
 
   function normalizeQuestWorldFilter(world){
     const filter = normalizeGameFilter(world);
-    for (const key of ['divisionsV2', 'phraseLevelV2', 'category', 'categoryAny', 'categoryAll', 'keyRows', 'skillTagsAny', 'skillTagsAll', 'skillTagsNone', 'questOnly']) {
+    for (const key of ['divisionLevel', 'divisionLevels', 'divisions', 'category', 'categoryAny', 'categoryAll', 'keyRows', 'skillTagsAny', 'skillTagsAll', 'skillTagsNone', 'questOnly']) {
       if (filter[key] === undefined && world && world[key] !== undefined) filter[key] = world[key];
     }
     return filter;
@@ -2742,7 +3084,8 @@
           stageId: `${world.worldId}-${level}`,
           worldId: world.worldId,
           title: `${world.title} ${level}`,
-          phraseLevelV2: level,
+          stageLevel: level,
+          divisionLevel: phraseLevelNumber(level) - 1,
           filter,
           candidateCount: candidates.length,
           phraseIds: candidates.map(phrase => phrase.phraseId),
@@ -2769,9 +3112,10 @@
   }
 
   function questStageFilter(world, level){
+    const divisionLevel = phraseLevelNumber(level) - 1;
     return {
       ...cloneFilter(world.filter || {}),
-      phraseLevelV2: [level]
+      divisionLevel: Number.isFinite(divisionLevel) && divisionLevel >= 0 ? [divisionLevel] : []
     };
   }
 
@@ -2783,14 +3127,147 @@
     return clone;
   }
 
-  function buildModesFromData(data){
+  function buildModesFromData(data, options = {}){
     const games = Array.isArray(data && data.games) ? data.games : [];
-    const normalizedPhrases = normalizeDataPhrases(data);
+    const normalizedPhrases = options.normalizedPhrases || normalizeDataPhrases(data);
+    const inputSteps = options.inputSteps || normalizeInputSteps(data && data.inputSteps);
+    const difficultyDivisions = options.difficultyDivisions || normalizeDifficultyDivisions(data && data.difficultyDivisions);
     if (!games.length || !normalizedPhrases.length) return [];
-    return games
+    const modes = games
       .slice()
       .sort((a, b) => Number(a.sortOrder || 0) - Number(b.sortOrder || 0))
       .map(game => makeModeFromGame(game, normalizedPhrases));
+    return applyMasterDrivenModes(modes, normalizedPhrases, inputSteps, difficultyDivisions);
+  }
+
+  function applyMasterDrivenModes(modes, phrases, inputSteps, difficultyDivisions){
+    let nextModes = [...modes];
+    const hasInputSteps = Array.isArray(inputSteps) && inputSteps.length > 0;
+    const hasDifficultyDivisions = Array.isArray(difficultyDivisions) && difficultyDivisions.length > 0;
+
+    if (hasInputSteps) {
+      nextModes = replaceModeGroupWithGenerated(nextModes, 'arcade', buildInputStepModes(nextModes, phrases, inputSteps, 'arcade'));
+      nextModes = replaceModeGroupWithGenerated(nextModes, 'free', buildInputStepModes(nextModes, phrases, inputSteps, 'free'));
+    }
+
+    if (hasDifficultyDivisions) {
+      nextModes = replaceModeGroupWithGenerated(nextModes, 'practice', buildDifficultyDivisionModes(nextModes, phrases, difficultyDivisions));
+      const divisionById = new Map(difficultyDivisions.map(division => [division.division, division]));
+      nextModes = nextModes.map(mode => enhanceDivisionModeLabel(mode, divisionById));
+    }
+
+    return nextModes.sort(compareModeOrder);
+  }
+
+  function replaceModeGroupWithGenerated(modes, groupKey, generatedModes){
+    if (!generatedModes.length) return modes;
+    return [
+      ...modes.filter(mode => modeGroupKey(mode) !== groupKey),
+      ...generatedModes
+    ];
+  }
+
+  function buildInputStepModes(baseModes, phrases, inputSteps, groupKey){
+    const base = baseModes.find(mode => modeGroupKey(mode) === groupKey);
+    if (!base) return [];
+    const prefix = groupKey === 'free' ? 'FR' : 'AR';
+    return inputSteps.map(step => {
+      const filter = {
+        inputStep: step.inputStep,
+        inputStepLevel: step.inputStepLevel,
+        maxInputStepLevel: step.inputStepLevel
+      };
+      const game = {
+        gameId: `${prefix}-STEP${step.inputStepLevel}`,
+        title: step.label,
+        description: step.description,
+        mode: groupKey,
+        recordMode: groupKey,
+        durationSec: modeDurationSec(base),
+        filter
+      };
+      const selected = selectPhrasesForGame(game, phrases);
+      return {
+        id: game.gameId,
+        label: step.label,
+        subtitle: '',
+        desc: step.description,
+        recordMode: groupKey,
+        mode: groupKey,
+        durationSec: Number(base.durationSec || 60),
+        phraseCount: selected.length,
+        candidatePhraseCount: selected.length,
+        legacyPhraseCount: legacyPhraseCount(base),
+        filter,
+        phrases: selected,
+        inputStep: step.inputStep,
+        inputStepLevel: step.inputStepLevel,
+        inputStepMaster: step,
+        sourceMaster: 'inputSteps'
+      };
+    });
+  }
+
+  function buildDifficultyDivisionModes(baseModes, phrases, difficultyDivisions){
+    const base = baseModes.find(mode => modeGroupKey(mode) === 'practice');
+    if (!base) return [];
+    return difficultyDivisions.map(division => {
+      const filter = {
+        divisions: [division.division]
+      };
+      const game = {
+        gameId: `PR-${division.division}`,
+        title: division.label,
+        description: division.description,
+        mode: 'practice',
+        recordMode: 'practice',
+        durationSec: 60,
+        filter
+      };
+      const selected = selectPhrasesForGame(game, phrases);
+      return {
+        id: game.gameId,
+        label: division.label,
+        subtitle: '',
+        desc: division.description,
+        recordMode: 'practice',
+        mode: 'practice',
+        durationSec: 60,
+        phraseCount: selected.length,
+        candidatePhraseCount: selected.length,
+        legacyPhraseCount: legacyPhraseCount(base),
+        filter,
+        phrases: selected,
+        difficultyDivision: division,
+        sourceMaster: 'difficultyDivisions'
+      };
+    });
+  }
+
+  function enhanceDivisionModeLabel(mode, divisionById = DIVISION_BY_ID){
+    const group = modeGroupKey(mode);
+    if (!['championship', 'promotion'].includes(group)) return mode;
+    const division = modeDivisions(mode)[0] || modeLevels(mode)[0] || '';
+    const master = division ? DIVISION_BY_ID.get(division) : null;
+    if (!master) return mode;
+    return {
+      ...mode,
+      label: `${modeGroupLabel(group)} ${difficultyDivisionLabel(master)}`,
+      desc: mode.desc || master.description
+    };
+  }
+
+  function compareModeOrder(a, b){
+    const groupOrder = new Map(MODE_GROUPS.map((group, index) => [group.key, index]));
+    const aGroup = groupOrder.get(modeGroupKey(a)) ?? 999;
+    const bGroup = groupOrder.get(modeGroupKey(b)) ?? 999;
+    if (aGroup !== bGroup) return aGroup - bGroup;
+    const aMaster = a.inputStepLevel ?? (a.difficultyDivision && a.difficultyDivision.level);
+    const bMaster = b.inputStepLevel ?? (b.difficultyDivision && b.difficultyDivision.level);
+    const aLevel = Number(aMaster);
+    const bLevel = Number(bMaster);
+    if (Number.isFinite(aLevel) && Number.isFinite(bLevel) && aLevel !== bLevel) return aLevel - bLevel;
+    return String(a.id).localeCompare(String(b.id), 'ja');
   }
 
   function makeModeFromGame(game, phrases){
@@ -2845,21 +3322,7 @@
   }
 
   function highlightedLevelMatches(items, game){
-    const filter = normalizeGameFilter(game);
-    const levels = effectiveFilterLevels(filter);
-    const tags = effectiveFilterTags(filter);
-    const highestLevel = highestPhraseLevel(levels);
-    if (tags.length || highestLevel < 6) return [];
-
-    return items
-      .filter(item => {
-        const info = item.info;
-        return info.levelMatch
-          && !info.divisionMatch
-          && phraseLevelNumber(effectivePhraseLevel(item.phrase)) === highestLevel
-          && phraseAllTags(item.phrase).includes('latin');
-      })
-      .sort((a, b) => a.index - b.index);
+    return [];
   }
 
   function comparePhraseScore(a, b){
@@ -2867,53 +3330,134 @@
   }
 
   function normalizeJsonPhrase(phrase){
+    return normalizePhrase(phrase);
+  }
+
+  function normalizePhrase(raw){
+    const phrase = raw || {};
+    const enabled = parseBooleanLike(phrase.enabled, true);
+    if (!enabled) return null;
     const primaryRoman = String(phrase.primaryRoman || '').trim();
     if (!primaryRoman) return null;
-    const phraseLevelLegacy = String(phrase.phraseLevel || '').trim();
-    const phraseLevelV2 = String(phrase.phraseLevelV2 || '').trim();
-    const divisionsLegacy = normalizeVariantList(phrase.divisions);
-    const divisionsV2 = normalizeVariantList(phrase.divisionsV2);
-    const tags = normalizeVariantList(phrase.tags);
-    const skillTags = normalizeVariantList(phrase.skillTags);
+    const divisionLevel = parseDivisionLevel(phrase.divisionLevel, phrase.phraseLevel);
+    const divisionsArray = normalizeDivisions(parseCsvLike(phrase.divisions));
+    const effectiveDivisions = divisionsArray.length
+      ? divisionsArray
+      : divisionLevelToDivision(divisionLevel)
+        ? [divisionLevelToDivision(divisionLevel)]
+        : [];
+    const category = normalizeLowerTokenList(phrase.category);
+    const keyRows = normalizeLowerTokenList(phrase.keyRows);
+    const skillTags = normalizeLowerTokenList(phrase.skillTags);
+    const difficultyScore = parseNumberLike(phrase.difficultyScore, null);
+    const inputStep = String(phrase.inputStep || '').trim().toLowerCase();
+    const inputStepLevel = parseNumberLike(phrase.inputStepLevel, null);
+    const phraseLevel = parseNumberLike(phrase.phraseLevel, null);
     return {
       phraseId: String(phrase.phraseId || phrase.id || phrase.phraseKey || phrase.displayText || phrase.display || ''),
+      enabled,
       display: String(phrase.displayText || phrase.display || ''),
       kana: String(phrase.kanaText || phrase.kana || ''),
       primaryRoman,
-      variants: uniqueList([primaryRoman, ...normalizeVariantList(phrase.extraVariants)]),
-      phraseLevel: phraseLevelV2 || phraseLevelLegacy,
-      phraseLevelV2,
-      phraseLevelLegacy,
-      divisions: divisionsV2.length ? divisionsV2 : divisionsLegacy,
-      divisionsV2,
-      divisionsLegacy,
-      category: normalizeVariantList(phrase.category),
-      questOnly: normalizeBoolean(phrase.questOnly),
-      keyRows: normalizeVariantList(phrase.keyRows),
+      variants: uniqueList([primaryRoman, ...parseCsvLike(phrase.extraVariants)]),
+      length: parseNumberLike(phrase.length, null),
+      difficultyScore,
+      inputStep,
+      inputStepLevel,
+      phraseLevel,
+      divisionLevel,
+      divisions: effectiveDivisions,
+      divisionsArray: effectiveDivisions,
+      category,
+      categoryArray: category,
+      questOnly: parseBooleanLike(phrase.questOnly, false),
+      keyRows,
       skillTags,
-      tags,
-      allTags: uniqueList([...tags, ...skillTags])
+      meaningText: String(phrase.meaningText || ''),
+      adviceText: String(phrase.adviceText || ''),
+      phraseLevelLegacy: String(phrase.phraseLevel || '').trim()
     };
   }
 
-  function normalizeVariantList(value){
-    if (Array.isArray(value)) return value.map(v => String(v).trim()).filter(Boolean);
-    if (typeof value === 'string') {
-      return value.split(/[,\n]/).map(v => v.trim()).filter(Boolean);
+  function parseCsvLike(value){
+    if (Array.isArray(value)) return value.flatMap(item => parseCsvLike(item));
+    if (value === undefined || value === null) return [];
+    return String(value).split(/[,\n]/).map(item => item.trim()).filter(Boolean);
+  }
+
+  function parseBooleanLike(value, defaultValue = false){
+    if (value === undefined || value === null || value === '') return defaultValue;
+    if (value === true || value === false) return value;
+    if (typeof value === 'number') return value !== 0;
+    const text = String(value).trim().toLowerCase();
+    if (['1', 'true', 'yes', 'y', 'on'].includes(text)) return true;
+    if (['0', 'false', 'no', 'n', 'off'].includes(text)) return false;
+    return defaultValue;
+  }
+
+  function parseNumberLike(value, defaultValue = null){
+    if (value === undefined || value === null || value === '') return defaultValue;
+    const n = Number(value);
+    return Number.isFinite(n) ? n : defaultValue;
+  }
+
+  function normalizeLowerTokenList(value){
+    return uniqueList(parseCsvLike(value).map(token => token.trim().toLowerCase()).filter(Boolean));
+  }
+
+  function parseDivisionLevel(value, fallbackValue){
+    const direct = divisionValueToLevel(value);
+    if (direct !== null) return direct;
+    return divisionValueToLevel(fallbackValue);
+  }
+
+  function divisionValueToLevel(value){
+    if (value === undefined || value === null || value === '') return null;
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      if (value >= 0 && value <= 9) return Math.trunc(value);
+      if (value >= 1 && value <= 10) return Math.trunc(value - 1);
+      return null;
     }
-    return [];
+    const text = String(value).trim().toUpperCase();
+    if (!text) return null;
+    if (/^\d+$/.test(text)) return divisionValueToLevel(Number(text));
+    const d = text.match(/^D(10|[1-9])$/);
+    if (d) return Number(d[1]) - 1;
+    const p = text.match(/^P(10|[1-9])$/);
+    if (p) return Number(p[1]) - 1;
+    return null;
+  }
+
+  function normalizeDivisions(values){
+    return uniqueList(parseCsvLike(values)
+      .map(token => {
+        const level = divisionValueToLevel(token);
+        return divisionLevelToDivision(level);
+      })
+      .filter(Boolean));
+  }
+
+  function divisionLevelToDivision(level){
+    const n = Number(level);
+    if (!Number.isFinite(n) || n < 0 || n > 9) return '';
+    return `D${Math.trunc(n) + 1}`;
+  }
+
+  function divisionToLevel(division){
+    return divisionValueToLevel(division);
+  }
+
+  function normalizeVariantList(value){
+    return parseCsvLike(value);
   }
 
   function normalizeBoolean(value){
-    if (value === true || value === false) return value;
-    if (typeof value === 'number') return value !== 0;
-    const text = String(value || '').trim().toLowerCase();
-    return ['1', 'true', 'yes', 'y', 'on'].includes(text);
+    return parseBooleanLike(value, false);
   }
 
   function normalizeOptionalBoolean(value){
     if (value === undefined || value === null || value === '') return null;
-    return normalizeBoolean(value);
+    return parseBooleanLike(value, false);
   }
 
   function normalizeGameFilter(game){
@@ -2944,31 +3488,57 @@
     return supported.includes(raw) ? raw : (raw || 'practice');
   }
 
-  function normalizeV2Filter(filter){
+  function normalizeV3Filter(filter){
+    const source = filter || {};
+    const divisions = normalizeDivisions(source.divisions);
+    const divisionLevels = normalizeDivisionLevelList(source.divisionLevel !== undefined ? source.divisionLevel : source.divisionLevels);
+    const fallbackLevels = !divisionLevels.length && !divisions.length
+      ? normalizeDivisionLevelList(source.levels)
+      : [];
     return {
-      divisionsV2: normalizeVariantList(filter.divisionsV2),
-      phraseLevelV2: normalizeVariantList(filter.phraseLevelV2),
-      category: normalizeVariantList(filter.category),
-      categoryAny: normalizeVariantList(filter.categoryAny),
-      categoryAll: normalizeVariantList(filter.categoryAll),
-      keyRows: normalizeVariantList(filter.keyRows),
-      skillTagsAny: normalizeVariantList(filter.skillTagsAny),
-      skillTagsAll: normalizeVariantList(filter.skillTagsAll),
-      skillTagsNone: normalizeVariantList(filter.skillTagsNone),
-      questOnly: normalizeOptionalBoolean(filter.questOnly)
+      divisions,
+      divisionLevels: divisionLevels.length ? divisionLevels : fallbackLevels,
+      category: normalizeLowerTokenList(source.category),
+      categoryAny: normalizeLowerTokenList(source.categoryAny),
+      categoryAll: normalizeLowerTokenList(source.categoryAll),
+      inputStep: normalizeLowerTokenList(source.inputStep),
+      inputStepLevel: parseNumberLike(source.inputStepLevel, null),
+      maxInputStepLevel: parseNumberLike(source.maxInputStepLevel, null),
+      keyRows: normalizeLowerTokenList(source.keyRows),
+      skillTagsAny: uniqueList([
+        ...normalizeLowerTokenList(source.skillTagsAny),
+        ...normalizeLowerTokenList(source.skillTags)
+      ]),
+      skillTagsAll: normalizeLowerTokenList(source.skillTagsAll),
+      skillTagsNone: normalizeLowerTokenList(source.skillTagsNone),
+      questOnly: normalizeOptionalBoolean(source.questOnly)
     };
+  }
+
+  function normalizeDivisionLevelList(value){
+    return uniqueList(parseCsvLike(value)
+      .map(token => divisionValueToLevel(token))
+      .filter(level => level !== null));
+  }
+
+  function normalizeV2Filter(filter){
+    return normalizeV3Filter(filter);
   }
 
   function normalizeLegacyFilter(filter){
     return {
       divisions: normalizeVariantList(filter.divisions),
       levels: normalizeVariantList(filter.levels),
-      tags: normalizeVariantList(filter.tags)
+      tags: []
     };
   }
 
-  function hasV2FilterValues(filter){
+  function hasV3FilterValues(filter){
     return Object.values(filter).some(value => Array.isArray(value) ? value.length : value !== null && value !== undefined);
+  }
+
+  function hasV2FilterValues(filter){
+    return hasV3FilterValues(filter);
   }
 
   function hasLegacyFilterValues(filter){
@@ -2976,35 +3546,75 @@
   }
 
   function hasAnyFilterCondition(filter){
-    return hasV2FilterValues(normalizeV2Filter(filter || {}))
+    return hasV3FilterValues(normalizeV3Filter(filter || {}))
       || hasLegacyFilterValues(normalizeLegacyFilter(filter || {}));
   }
 
-  function effectiveFilterLevels(filter){
-    const v2 = normalizeVariantList((filter || {}).phraseLevelV2);
-    return v2.length ? v2 : normalizeVariantList((filter || {}).levels);
-  }
-
-  function effectiveFilterTags(filter){
-    const v2 = uniqueList([
-      ...normalizeVariantList((filter || {}).skillTagsAny),
-      ...normalizeVariantList((filter || {}).skillTagsAll)
-    ]);
-    return v2.length ? v2 : normalizeVariantList((filter || {}).tags);
-  }
-
-  function effectivePhraseLevel(phrase){
-    return String((phrase && (phrase.phraseLevelV2 || phrase.phraseLevel)) || '');
-  }
-
   function effectivePhraseDivisions(phrase){
-    const v2 = phrase && Array.isArray(phrase.divisionsV2) ? phrase.divisionsV2 : [];
-    return v2.length ? v2 : ((phrase && phrase.divisions) || []);
+    return (phrase && (phrase.divisionsArray || phrase.divisions)) || [];
   }
 
-  function phraseAllTags(phrase){
-    if (!phrase) return [];
-    return Array.isArray(phrase.allTags) ? phrase.allTags : uniqueList([...(phrase.tags || []), ...(phrase.skillTags || [])]);
+  function matchesInputStepLevel(phrase, maxInputStepLevel){
+    if (maxInputStepLevel === undefined || maxInputStepLevel === null || maxInputStepLevel === '') return false;
+    if (!phrase || phrase.inputStepLevel === undefined || phrase.inputStepLevel === null || phrase.inputStepLevel === '') return false;
+    const maxLevel = Number(maxInputStepLevel);
+    const phraseLevel = Number(phrase.inputStepLevel);
+    return Number.isFinite(maxLevel) && Number.isFinite(phraseLevel) && phraseLevel <= maxLevel;
+  }
+
+  function matchesExactInputStepLevel(phrase, inputStepLevel){
+    if (inputStepLevel === undefined || inputStepLevel === null || inputStepLevel === '') return false;
+    if (!phrase || phrase.inputStepLevel === undefined || phrase.inputStepLevel === null || phrase.inputStepLevel === '') return false;
+    const targetLevel = Number(inputStepLevel);
+    const phraseLevel = Number(phrase.inputStepLevel);
+    return Number.isFinite(targetLevel) && Number.isFinite(phraseLevel) && phraseLevel === targetLevel;
+  }
+
+  function matchesInputStepLevelFilter(phrase, filter, modeType){
+    const normalizedMode = String(modeType || '').toLowerCase();
+    if (normalizedMode === 'arcade' && filter.inputStepLevel !== null) {
+      return matchesExactInputStepLevel(phrase, filter.inputStepLevel);
+    }
+    if (filter.inputStepLevel !== null) {
+      return matchesInputStepLevel(phrase, filter.inputStepLevel);
+    }
+    if (filter.maxInputStepLevel !== null) {
+      return matchesInputStepLevel(phrase, filter.maxInputStepLevel);
+    }
+    return false;
+  }
+
+  function matchesDivision(phrase, division){
+    return Array.isArray(phrase && phrase.divisions) && phrase.divisions.includes(String(division || '').toUpperCase());
+  }
+
+  function matchesAnyDivision(phrase, divisions){
+    return normalizeVariantList(divisions).some(division => matchesDivision(phrase, division));
+  }
+
+  function effectiveFilterDivisions(filter){
+    const normalized = filter && Array.isArray(filter.divisions) ? filter : normalizeV3Filter(filter || {});
+    if (normalized.divisions.length) return normalized.divisions;
+    return normalized.divisionLevels.map(divisionLevelToDivision).filter(Boolean);
+  }
+
+  function effectiveFilterDivisionLevels(filter, modeType = 'practice'){
+    const normalized = filter && Array.isArray(filter.divisionLevels) ? filter : normalizeV3Filter(filter || {});
+    if (normalized.divisionLevels.length) return normalized.divisionLevels;
+    if (modeUsesDivisionLevel(modeType)) {
+      return normalized.divisions.map(divisionToLevel).filter(level => level !== null);
+    }
+    return [];
+  }
+
+  function modeUsesDivisionLevel(modeType){
+    return ['championship', 'promotion'].includes(String(modeType || '').toLowerCase());
+  }
+
+  function matchesPhraseDivisionLevel(phrase, levels){
+    const filters = normalizeDivisionLevelList(levels);
+    if (!filters.length || !phrase || phrase.divisionLevel === null || phrase.divisionLevel === undefined) return false;
+    return filters.includes(Number(phrase.divisionLevel));
   }
 
   function questOnlyAllowed(phrase, filter, modeType){
@@ -3035,55 +3645,72 @@
 
   function phraseLooseFilterMatch(phrase, filter, modeType = 'practice'){
     if (!questOnlyAllowed(phrase, filter, modeType)) return false;
-    const v2 = normalizeV2Filter(filter || {});
-    const categoryInfo = categoryFilterInfo(phrase, v2);
-    if (hasV2FilterValues(v2)) {
-      const positiveMatch = matchesAnyFilter(effectivePhraseDivisions(phrase), v2.divisionsV2)
-        || matchesAnyFilter([effectivePhraseLevel(phrase)], v2.phraseLevelV2)
+    const v3 = normalizeV3Filter(filter || {});
+    const categoryInfo = categoryFilterInfo(phrase, v3);
+    if (hasV3FilterValues(v3)) {
+      const divisionMatch = modeUsesDivisionLevel(modeType)
+        ? matchesPhraseDivisionLevel(phrase, effectiveFilterDivisionLevels(v3, modeType))
+        : matchesAnyDivision(phrase, effectiveFilterDivisions(v3));
+      const inputStepMatch = matchesAnyFilter([phrase.inputStep], v3.inputStep);
+      const hasInputStepLevelFilter = v3.inputStepLevel !== null || v3.maxInputStepLevel !== null;
+      const inputStepLevelMatch = hasInputStepLevelFilter && matchesInputStepLevelFilter(phrase, v3, modeType);
+      const positiveMatch = divisionMatch
         || (categoryInfo.hasCategoryFilter && categoryInfo.categoryMatch)
-        || matchesAnyFilter(phrase.keyRows || [], v2.keyRows)
-        || matchesAnyFilter(phrase.skillTags || [], v2.skillTagsAny)
-        || matchesAnyFilter(phrase.skillTags || [], v2.skillTagsAll);
-      const noneOnly = !v2.divisionsV2.length
-        && !v2.phraseLevelV2.length
-        && !v2.category.length
-        && !v2.categoryAny.length
-        && !v2.categoryAll.length
-        && !v2.keyRows.length
-        && !v2.skillTagsAny.length
-        && !v2.skillTagsAll.length
-        && v2.skillTagsNone.length;
-      const noneClear = !matchesAnyFilter(phrase.skillTags || [], v2.skillTagsNone);
+        || inputStepMatch
+        || inputStepLevelMatch
+        || matchesAnyFilter(phrase.keyRows || [], v3.keyRows)
+        || matchesAnyFilter(phrase.skillTags || [], v3.skillTagsAny)
+        || matchesAnyFilter(phrase.skillTags || [], v3.skillTagsAll);
+      const noneOnly = !v3.divisions.length
+        && !v3.divisionLevels.length
+        && !v3.category.length
+        && !v3.categoryAny.length
+        && !v3.categoryAll.length
+        && !v3.inputStep.length
+        && v3.inputStepLevel === null
+        && v3.maxInputStepLevel === null
+        && !v3.keyRows.length
+        && !v3.skillTagsAny.length
+        && !v3.skillTagsAll.length
+        && v3.skillTagsNone.length;
+      const noneClear = !matchesAnyFilter(phrase.skillTags || [], v3.skillTagsNone);
       return noneOnly ? noneClear : positiveMatch && noneClear;
     }
-    const legacy = normalizeLegacyFilter(filter || {});
-    return matchesAnyFilter(effectivePhraseDivisions(phrase), legacy.divisions)
-      || matchesAnyFilter([effectivePhraseLevel(phrase)], legacy.levels)
-      || matchesAnyFilter(phraseAllTags(phrase), legacy.tags);
+    return true;
   }
 
   function phraseFilterInfo(phrase, filter, options = {}){
     const sourceFilter = filter || {};
     const modeType = options.modeType || 'practice';
     const questAllowed = questOnlyAllowed(phrase, sourceFilter, modeType);
-    const v2 = normalizeV2Filter(sourceFilter);
-    const categoryInfo = categoryFilterInfo(phrase, v2);
-    if (hasV2FilterValues(v2)) {
-      const divisionMatch = matchesAnyFilter(effectivePhraseDivisions(phrase), v2.divisionsV2);
-      const levelMatch = matchesAnyFilter([effectivePhraseLevel(phrase)], v2.phraseLevelV2);
+    const v3 = normalizeV3Filter(sourceFilter);
+    const categoryInfo = categoryFilterInfo(phrase, v3);
+    if (hasV3FilterValues(v3)) {
+      const divisionTargets = effectiveFilterDivisions(v3);
+      const divisionLevelTargets = effectiveFilterDivisionLevels(v3, modeType);
+      const useDivisionLevel = modeUsesDivisionLevel(modeType);
+      const divisionMatch = useDivisionLevel
+        ? matchesPhraseDivisionLevel(phrase, divisionLevelTargets)
+        : matchesAnyDivision(phrase, divisionTargets);
+      const levelMatch = matchesPhraseDivisionLevel(phrase, divisionLevelTargets);
       const categoryMatch = categoryInfo.hasCategoryFilter && categoryInfo.categoryMatch;
-      const keyRowsMatch = matchesAnyFilter(phrase.keyRows || [], v2.keyRows);
-      const skillTagsAnyMatch = matchesAnyFilter(phrase.skillTags || [], v2.skillTagsAny);
-      const skillTagsAllMatch = matchesAllFilter(phrase.skillTags || [], v2.skillTagsAll);
-      const skillTagsNoneClear = !matchesAnyFilter(phrase.skillTags || [], v2.skillTagsNone);
+      const inputStepMatch = matchesAnyFilter([phrase.inputStep], v3.inputStep);
+      const hasInputStepLevelFilter = v3.inputStepLevel !== null || v3.maxInputStepLevel !== null;
+      const inputStepLevelMatch = hasInputStepLevelFilter && matchesInputStepLevelFilter(phrase, v3, modeType);
+      const keyRowsMatch = matchesAnyFilter(phrase.keyRows || [], v3.keyRows);
+      const skillTagsAnyMatch = matchesAnyFilter(phrase.skillTags || [], v3.skillTagsAny);
+      const skillTagsAllMatch = matchesAllFilter(phrase.skillTags || [], v3.skillTagsAll);
+      const skillTagsNoneClear = !matchesAnyFilter(phrase.skillTags || [], v3.skillTagsNone);
+      const hasDivisionFilter = useDivisionLevel ? divisionLevelTargets.length > 0 : divisionTargets.length > 0;
       const include = questAllowed
         && skillTagsNoneClear
-        && (!v2.divisionsV2.length || divisionMatch)
-        && (!v2.phraseLevelV2.length || levelMatch)
+        && (!hasDivisionFilter || divisionMatch)
         && (!categoryInfo.hasCategoryFilter || categoryMatch)
-        && (!v2.keyRows.length || keyRowsMatch)
-        && (!v2.skillTagsAny.length || skillTagsAnyMatch)
-        && (!v2.skillTagsAll.length || skillTagsAllMatch);
+        && (!v3.inputStep.length || inputStepMatch)
+        && (!hasInputStepLevelFilter || inputStepLevelMatch)
+        && (!v3.keyRows.length || keyRowsMatch)
+        && (!v3.skillTagsAny.length || skillTagsAnyMatch)
+        && (!v3.skillTagsAll.length || skillTagsAllMatch);
       const tagMatch = skillTagsAnyMatch || skillTagsAllMatch;
       return {
         include,
@@ -3093,37 +3720,34 @@
         categoryMatch,
         categoryAnyMatch: categoryInfo.categoryAnyMatch,
         categoryAllMatch: categoryInfo.categoryAllMatch,
+        inputStepMatch,
+        inputStepLevelMatch,
         keyRowsMatch,
         skillTagsAnyMatch,
         skillTagsAllMatch,
         skillTagsNoneClear,
-        v2: true,
-        score: phraseScore(phrase, { divisionMatch, levelMatch, tagMatch, categoryMatch, keyRowsMatch, skillTagsAnyMatch, skillTagsAllMatch }, {
-          levels: v2.phraseLevelV2,
-          tags: uniqueList([...v2.skillTagsAny, ...v2.skillTagsAll])
+        v2: false,
+        v3: true,
+        score: phraseScore(phrase, { divisionMatch, levelMatch, tagMatch, categoryMatch, inputStepMatch, inputStepLevelMatch, keyRowsMatch, skillTagsAnyMatch, skillTagsAllMatch }, {
+          levels: divisionLevelTargets.map(divisionLevelToDivision).filter(Boolean),
+          tags: uniqueList([...v3.skillTagsAny, ...v3.skillTagsAll])
         })
       };
     }
 
-    const legacy = normalizeLegacyFilter(sourceFilter);
-    const hasLegacy = hasLegacyFilterValues(legacy);
-    const divisionMatch = matchesAnyFilter(effectivePhraseDivisions(phrase), legacy.divisions);
-    const levelMatch = matchesAnyFilter([effectivePhraseLevel(phrase)], legacy.levels);
-    const tagMatch = matchesAnyFilter(phraseAllTags(phrase), legacy.tags);
-    const include = questAllowed && (!hasLegacy
-      ? true
-      : legacy.tags.length
-        ? tagMatch && (!legacy.levels.length || levelMatch) && (!legacy.divisions.length || divisionMatch)
-        : divisionMatch || levelMatch);
+    const include = questAllowed;
+    const divisionMatch = false;
+    const levelMatch = false;
+    const tagMatch = false;
     return {
       include,
       divisionMatch,
       levelMatch,
       tagMatch,
       score: phraseScore(phrase, { divisionMatch, levelMatch, tagMatch }, {
-        divisions: legacy.divisions,
-        levels: legacy.levels,
-        tags: legacy.tags
+        divisions: [],
+        levels: [],
+        tags: []
       })
     };
   }
@@ -3138,23 +3762,13 @@
     if (matches.skillTagsAnyMatch) score += 80;
     if (matches.skillTagsAllMatch) score += 110;
 
-    const level = phraseLevelNumber(effectivePhraseLevel(phrase));
-    const highestLevel = highestPhraseLevel(filters.levels);
-    if (highestLevel && level === highestLevel) score += 60;
-
-    const tags = phraseAllTags(phrase);
-    if (tags.includes('latin')) score += 60;
-    if (tags.includes('it')) score += 35;
-    if (tags.includes('number')) score += 25;
+    const difficulty = Number(phrase && phrase.difficultyScore);
+    if (Number.isFinite(difficulty)) score += Math.min(80, Math.max(0, difficulty));
 
     const displayLength = [...String(phrase.display || '')].length;
     if (displayLength <= 8) score += 35;
     else if (displayLength <= 12) score += 20;
     return score;
-  }
-
-  function highestPhraseLevel(levels){
-    return Math.max(0, ...levels.map(phraseLevelNumber));
   }
 
   function phraseLevelNumber(level){
@@ -3254,6 +3868,17 @@
       kana: data.kana,
       primaryRoman: data.primaryRoman,
       variants: variantList,
+      difficultyScore: data.difficultyScore,
+      inputStep: data.inputStep || '',
+      inputStepLevel: data.inputStepLevel,
+      phraseLevel: data.phraseLevel,
+      divisionLevel: data.divisionLevel,
+      divisionsArray: data.divisionsArray || data.divisions || [],
+      category: data.category || [],
+      keyRows: data.keyRows || [],
+      skillTags: data.skillTags || [],
+      meaningText: data.meaningText || '',
+      adviceText: data.adviceText || '',
       expectedCanons: buildExpectedCanons(variantList),
       strictCandidates,
       caseSensitive: strictCandidates.some(candidate => /[A-Z]/.test(candidate))
@@ -3465,29 +4090,6 @@
     return rules.map(([pattern, replacement]) => canon.replace(pattern, replacement));
   }
 
-  function insertedTextFromInput(e, previousRaw, raw){
-    if (e.inputType && e.inputType.indexOf('delete') === 0) return '';
-    if (typeof e.data === 'string' && e.data.length > 0) return e.data;
-    if (raw.length <= previousRaw.length) return '';
-    if (raw.indexOf(previousRaw) === 0) return raw.slice(previousRaw.length);
-    return raw.slice(previousRaw.length);
-  }
-
-  function countInsertedChars(previousRaw, inserted, expectedCanon){
-    let correct = 0;
-    let misses = 0;
-    let probe = previousRaw;
-    for (const ch of inserted) {
-      probe += ch;
-      const ok = expectedCanon && expectedCanon.expectedCanons
-        ? isAcceptableWordPrefix(probe, expectedCanon)
-        : isAcceptablePrefix(probe, expectedCanon);
-      if (ok) correct++;
-      else misses++;
-    }
-    return { correct, misses };
-  }
-
   function modeDisplayName(value){
     const found = MODES.find(m => m.id === value || m.label === value || m.oldLabel === value);
     return found ? found.label : String(value || '-');
@@ -3594,7 +4196,7 @@
   function uniqueList(values){
     const list = [];
     for (const value of values) {
-      if (value && !list.includes(value)) list.push(value);
+      if (value !== undefined && value !== null && value !== '' && !list.includes(value)) list.push(value);
     }
     return list;
   }
