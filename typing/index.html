@@ -728,6 +728,10 @@
             <span class="name">WPM</span>
             <span><span class="number" id="rWpm">0</span> <span class="unit">語/分</span></span>
           </div>
+          <div class="resultLine secondary" title="制限時間内に正しく入力され、typedRoman に追加されたローマ字文字数です">
+            <span class="name">正タイプ数</span>
+            <span><span class="number" id="rCorrectKeys">0</span> <span class="unit">キー</span></span>
+          </div>
         </div>
         <div class="resultBlock">
           <h3>正確さ</h3>
@@ -737,7 +741,7 @@
           </div>
           <div class="resultLine secondary">
             <span class="name">ミス</span>
-            <span><span class="number" id="rMiss">0</span> <span class="unit">回 / 入力 <span id="rTotalKeys">0</span> キー</span></span>
+            <span><span class="number" id="rMiss">0</span> <span class="unit">回 / 総打鍵 <span id="rTotalKeys">0</span> キー</span></span>
           </div>
         </div>
       </div>
@@ -969,7 +973,7 @@
     timeUpNotice: $('#timeUpNotice'),
     saveStatus: $('#saveStatus'), saveRetryArea: $('#saveRetryArea'),
     mCpm: $('#mCpm'), mWpm: $('#mWpm'), mAcc: $('#mAcc'), mMiss: $('#mMiss'), mScore: $('#mScore'),
-    rCpm: $('#rCpm'), rWpm: $('#rWpm'), rAcc: $('#rAcc'), rMiss: $('#rMiss'), rScore: $('#rScore'),
+    rCpm: $('#rCpm'), rWpm: $('#rWpm'), rAcc: $('#rAcc'), rMiss: $('#rMiss'), rScore: $('#rScore'), rCorrectKeys: $('#rCorrectKeys'),
     rTotalKeys: $('#rTotalKeys'), rCompleted: $('#rCompleted'), resultPhraseList: $('#resultPhraseList'),
     missAnalysisList: $('#missAnalysisList'), trendComment: $('#trendComment'), improvementComment: $('#improvementComment'),
     rAchievement: $('#rAchievement'), rScoreDelta: $('#rScoreDelta'), rNextGoal: $('#rNextGoal')
@@ -2092,7 +2096,7 @@
     renderTypedRomanState(w, false);
     checkTimeUpAfterInput();
     renderMetrics();
-    if (isCompleteWordInput(state.typedRoman, w)) completeCurrentWord(w);
+    if (isCompleteTypedRoman(state.typedRoman, w)) completeCurrentWord(w);
   }
 
   function countTypedRomanKey(isCorrect){
@@ -2164,7 +2168,11 @@
 
   function currentTargetRoman(){
     const w = currentWord();
-    return w ? chooseRomanDisplay(w, state.typedRoman || '') : '';
+    return currentTargetRomanFor(w, state.typedRoman || '');
+  }
+
+  function currentTargetRomanFor(w, raw){
+    return w ? chooseRomanDisplay(w, raw || '') : '';
   }
 
   function setTypeboxReadOnly(readOnly){
@@ -2481,7 +2489,10 @@
     els.rAcc.textContent = result.accPct + '%';
     els.rMiss.textContent = String(result.mistakes);
     els.rScore.textContent = String(result.score);
-    els.rCompleted.textContent = String(result.completed);
+    els.rCorrectKeys.textContent = String(result.correctKeyCount);
+    els.rCompleted.textContent = result.overtimeCompletedPhraseCount
+      ? `${result.timedCompletedPhraseCount} + 時間外 ${result.overtimeCompletedPhraseCount}`
+      : String(result.timedCompletedPhraseCount);
     els.rTotalKeys.textContent = String(result.total);
     renderResultPhraseList(result.phrases);
     renderMissAnalysis(result);
@@ -2497,37 +2508,52 @@
 
   function calcMetrics(){
     const elapsedSec = state.startedAt > 0
-      ? Math.min(state.durationSec, (performance.now() - state.startedAt) / 1000)
+      ? Math.max(0.001, Math.min(state.durationSec, (performance.now() - state.startedAt) / 1000))
       : state.durationSec;
-    const correct = Math.min(state.correctChars, state.totalKeys);
-    const total = state.mistakes > 0 ? Math.max(state.totalKeys, correct + state.mistakes) : Math.max(state.totalKeys, correct);
-    const totalCorrect = Math.min(state.totalCorrectCount, state.totalKeyCount);
-    const totalInputKeys = state.totalMissCount > 0
-      ? Math.max(state.totalKeyCount, totalCorrect + state.totalMissCount)
-      : Math.max(state.totalKeyCount, totalCorrect);
-    const accuracy = total > 0 ? Math.max(0, Math.min(1, correct / total)) : 1;
-    const cpm = elapsedSec > 0 ? Math.round(correct / elapsedSec * 60) : 0;
+    const correctKeyCount = Math.max(0, Number(state.correctChars || 0));
+    const missCount = Math.max(0, Number(state.mistakes || 0));
+    const totalKeyCount = correctKeyCount + missCount;
+    const totalCorrectCount = Math.max(0, Number(state.totalCorrectCount || 0));
+    const totalMissCount = Math.max(0, Number(state.totalMissCount || 0));
+    const allTotalKeyCount = totalCorrectCount + totalMissCount;
+    const accuracy = totalKeyCount > 0 ? Math.max(0, Math.min(1, correctKeyCount / totalKeyCount)) : 0;
+    const cps = correctKeyCount / elapsedSec;
+    const rawCps = totalKeyCount / elapsedSec;
+    const cpm = Math.round(cps * 60);
+    const rawCpm = Math.round(rawCps * 60);
     const wpm = Math.round(cpm / 5);
     const score = Math.round(cpm * accuracy * accuracy * 5);
-    let accPct = Math.round(accuracy * 1000) / 10;
-    if (state.mistakes > 0 && accPct >= 100) accPct = 99.9;
+    const accPct = Math.round(accuracy * 1000) / 10;
     const phrases = resultPhrases();
+    const timedCompletedPhraseCount = phrases.filter(phrase => phrase.completed && !phrase.completedAfterTimeUp).length;
+    const overtimeCompletedPhraseCount = phrases.filter(phrase => phrase.completed && phrase.completedAfterTimeUp).length;
+    const completedPhraseCount = timedCompletedPhraseCount + overtimeCompletedPhraseCount;
     return {
+      correctKeyCount,
+      missCount,
+      totalKeyCount,
+      cps,
+      rawCps,
       cpm,
+      rawCpm,
       wpm,
       accuracy,
       accPct,
       score,
-      mistakes: state.mistakes,
-      correct,
-      total,
-      scoredCorrectCount: correct,
-      scoredKeyCount: total,
-      scoredMissCount: state.mistakes,
-      totalCorrectCount: totalCorrect,
-      totalKeyCount: totalInputKeys,
-      totalMissCount: state.totalMissCount,
-      completed: state.completedPhrases.length,
+      mistakes: missCount,
+      correct: correctKeyCount,
+      total: totalKeyCount,
+      scoredCorrectCount: correctKeyCount,
+      scoredKeyCount: totalKeyCount,
+      scoredMissCount: missCount,
+      totalCorrectCount,
+      totalMissCount,
+      totalInputKeyCount: allTotalKeyCount,
+      allTotalKeyCount,
+      completed: timedCompletedPhraseCount,
+      completedPhraseCount,
+      timedCompletedPhraseCount,
+      overtimeCompletedPhraseCount,
       phrases,
       attempts: phrases,
       candidatePhraseCount: activeCandidatePhraseCount(),
@@ -2551,19 +2577,28 @@
       finishedAt: new Date().toISOString(),
       result: {
         score: result.score,
+        cps: result.cps,
+        rawCps: result.rawCps,
         cpm: result.cpm,
+        rawCpm: result.rawCpm,
         wpm: result.wpm,
         accuracy: result.accuracy,
-        correctChars: result.correct,
-        totalKeys: result.total,
-        missCount: result.mistakes,
+        accuracyPercent: result.accPct,
+        correctKeyCount: result.correctKeyCount,
+        missCount: result.missCount,
+        totalKeyCount: result.totalKeyCount,
+        correctChars: result.correctKeyCount,
+        totalKeys: result.totalKeyCount,
         scoredCorrectCount: result.scoredCorrectCount,
         scoredKeyCount: result.scoredKeyCount,
         scoredMissCount: result.scoredMissCount,
         totalCorrectCount: result.totalCorrectCount,
-        totalKeyCount: result.totalKeyCount,
         totalMissCount: result.totalMissCount,
-        completedPhraseCount: result.completed,
+        totalInputKeyCount: result.totalInputKeyCount,
+        allTotalKeyCount: result.allTotalKeyCount,
+        completedPhraseCount: result.completedPhraseCount,
+        timedCompletedPhraseCount: result.timedCompletedPhraseCount,
+        overtimeCompletedPhraseCount: result.overtimeCompletedPhraseCount,
         candidatePhraseCount: result.candidatePhraseCount,
         uniquePhraseCount: result.uniquePhraseCount,
         repeatedPhraseCount: result.repeatedPhraseCount,
@@ -2578,8 +2613,13 @@
       scoredKeyCount: result.scoredKeyCount,
       scoredMissCount: result.scoredMissCount,
       totalCorrectCount: result.totalCorrectCount,
-      totalKeyCount: result.totalKeyCount,
       totalMissCount: result.totalMissCount,
+      totalKeyCount: result.totalKeyCount,
+      totalInputKeyCount: result.totalInputKeyCount,
+      allTotalKeyCount: result.allTotalKeyCount,
+      completedPhraseCount: result.completedPhraseCount,
+      timedCompletedPhraseCount: result.timedCompletedPhraseCount,
+      overtimeCompletedPhraseCount: result.overtimeCompletedPhraseCount,
       attempts,
       phrases: result.phrases
     };
@@ -2634,7 +2674,7 @@
   function syncCurrentAttemptForResult(){
     const w = currentWord();
     const raw = state.typedRoman || '';
-    if (w && state.currentAttempt && !isCompleteWordInput(raw, w)) updateCurrentAttempt(w, raw, false);
+    if (w && state.currentAttempt && !isCompleteTypedRoman(raw, w)) updateCurrentAttempt(w, raw, false);
   }
 
   function uniqueAttemptPhraseCount(){
@@ -4058,6 +4098,12 @@
       return (w.strictCandidates || []).some(candidate => candidate === raw);
     }
     return isCompleteInput(raw, wordExpectedCanons(w));
+  }
+
+  function isCompleteTypedRoman(raw, w){
+    const value = String(raw || '');
+    const target = currentTargetRomanFor(w, value);
+    return !!target && value.length === target.length && isCompleteWordInput(value, w);
   }
 
   function isAcceptableWordPrefix(raw, w){
