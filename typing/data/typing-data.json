@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-06-10T13:43:49.958Z",
+  "generatedAt": "2026-06-11T09:10:23.275Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,10 +9,398 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-06-10T13:43:49.958Z",
+    "generatedAt": "2026-06-11T09:10:23.275Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
+  },
+  "masters": {
+    "categories": [
+      {
+        "category": "general",
+        "title": "一般",
+        "description": "一般語句",
+        "idPrefix": "g",
+        "idMode": "length",
+        "sortOrder": 10,
+        "enabled": true,
+        "aliases": [],
+        "note": "通常語句"
+      },
+      {
+        "category": "it",
+        "title": "情報",
+        "description": "情報・ICT関連",
+        "idPrefix": "i",
+        "idMode": "length",
+        "sortOrder": 20,
+        "enabled": true,
+        "aliases": [
+          "it"
+        ],
+        "note": ""
+      },
+      {
+        "category": "proverb",
+        "title": "ことわざ",
+        "description": "ことわざ・慣用句",
+        "idPrefix": "p",
+        "idMode": "length",
+        "sortOrder": 90,
+        "enabled": true,
+        "aliases": [],
+        "note": "ことば系"
+      },
+      {
+        "category": "tongue_twister",
+        "title": "早口言葉",
+        "description": "早口言葉・言葉遊び",
+        "idPrefix": "tw",
+        "idMode": "serial",
+        "sortOrder": 95,
+        "enabled": true,
+        "aliases": [],
+        "note": "長さ別ではなくtw連番"
+      },
+      {
+        "category": "special",
+        "title": "特殊",
+        "description": "特殊・ボス",
+        "idPrefix": "q",
+        "idMode": "length",
+        "sortOrder": 990,
+        "enabled": true,
+        "aliases": [],
+        "note": ""
+      }
+    ],
+    "skillTags": [
+      {
+        "skillTag": "hiragana",
+        "title": "ひらがな",
+        "description": "表示文字にひらがなを含む",
+        "sortOrder": 10,
+        "enabled": true,
+        "kind": "char",
+        "note": ""
+      },
+      {
+        "skillTag": "katakana",
+        "title": "カタカナ",
+        "description": "表示文字にカタカナを含む",
+        "sortOrder": 20,
+        "enabled": true,
+        "kind": "char",
+        "note": ""
+      },
+      {
+        "skillTag": "kanji",
+        "title": "漢字",
+        "description": "表示文字に漢字を含む",
+        "sortOrder": 30,
+        "enabled": true,
+        "kind": "char",
+        "note": ""
+      },
+      {
+        "skillTag": "latin",
+        "title": "英字",
+        "description": "表示文字に半角英字を含む",
+        "sortOrder": 40,
+        "enabled": true,
+        "kind": "input",
+        "note": ""
+      },
+      {
+        "skillTag": "number",
+        "title": "数字",
+        "description": "数字を含む",
+        "sortOrder": 60,
+        "enabled": true,
+        "kind": "input",
+        "note": ""
+      },
+      {
+        "skillTag": "sokuon",
+        "title": "促音",
+        "description": "っを含む",
+        "sortOrder": 120,
+        "enabled": true,
+        "kind": "kana",
+        "note": ""
+      },
+      {
+        "skillTag": "yoon",
+        "title": "拗音",
+        "description": "ゃゅょを含む",
+        "sortOrder": 130,
+        "enabled": true,
+        "kind": "kana",
+        "note": ""
+      },
+      {
+        "skillTag": "long_text",
+        "title": "長文",
+        "description": "長文扱い",
+        "sortOrder": 900,
+        "enabled": true,
+        "kind": "meta",
+        "note": ""
+      },
+      {
+        "skillTag": "boss",
+        "title": "ボス",
+        "description": "ボス用",
+        "sortOrder": 910,
+        "enabled": true,
+        "kind": "meta",
+        "note": ""
+      }
+    ],
+    "contentTagAliases": [
+      {
+        "token": "css",
+        "mapToCategory": "it",
+        "enabled": true
+      },
+      {
+        "token": "data",
+        "mapToCategory": "it",
+        "enabled": true
+      },
+      {
+        "token": "html",
+        "mapToCategory": "it",
+        "enabled": true
+      },
+      {
+        "token": "programming",
+        "mapToCategory": "it",
+        "enabled": true
+      },
+      {
+        "token": "python",
+        "mapToCategory": "it",
+        "enabled": true
+      },
+      {
+        "token": "security",
+        "mapToCategory": "it",
+        "enabled": true
+      },
+      {
+        "token": "web",
+        "mapToCategory": "it",
+        "enabled": true
+      }
+    ],
+    "inputSteps": [
+      {
+        "inputStep": "home",
+        "inputStepLevel": 1,
+        "title": "ホーム列",
+        "description": "ホームポジション中心のキーで入力する",
+        "enabled": true
+      },
+      {
+        "inputStep": "top",
+        "inputStepLevel": 2,
+        "title": "上段追加",
+        "description": "ホーム列に加えて上段キーを使う",
+        "enabled": true
+      },
+      {
+        "inputStep": "bottom",
+        "inputStepLevel": 3,
+        "title": "下段追加",
+        "description": "ホーム列・上段に加えて下段キーを使う",
+        "enabled": true
+      },
+      {
+        "inputStep": "yoon",
+        "inputStepLevel": 4,
+        "title": "拗音",
+        "description": "きゃ・しゅ・ちょ などの拗音を含む",
+        "enabled": true
+      },
+      {
+        "inputStep": "n",
+        "inputStepLevel": 5,
+        "title": "撥音",
+        "description": "ん を含む入力を扱う",
+        "enabled": true
+      },
+      {
+        "inputStep": "sokuon",
+        "inputStepLevel": 6,
+        "title": "促音",
+        "description": "っ を含む入力を扱う",
+        "enabled": true
+      },
+      {
+        "inputStep": "long",
+        "inputStepLevel": 7,
+        "title": "長音",
+        "description": "ー のローマ字入力にあたるハイフンを扱う",
+        "enabled": true
+      },
+      {
+        "inputStep": "small_vowel",
+        "inputStepLevel": 8,
+        "title": "小書き母音",
+        "description": "ぁ・ぃ・ぅ・ぇ・ぉ、ふぁ・ふぃ・てぃ・でぃ などを含む入力を扱う",
+        "enabled": true
+      },
+      {
+        "inputStep": "number",
+        "inputStepLevel": 9,
+        "title": "数字",
+        "description": "数字キーを含む入力を扱う",
+        "enabled": true
+      },
+      {
+        "inputStep": "latin",
+        "inputStepLevel": 10,
+        "title": "英字",
+        "description": "HTMLやPythonなど半角英字を含む入力を扱う",
+        "enabled": true
+      },
+      {
+        "inputStep": "space",
+        "inputStepLevel": 11,
+        "title": "スペース",
+        "description": "英語句やサービス名など半角スペースを含む入力を扱う",
+        "enabled": true
+      },
+      {
+        "inputStep": "shift",
+        "inputStepLevel": 12,
+        "title": "Shift入力",
+        "description": "大文字などShiftキーを使う入力を扱う",
+        "enabled": true
+      },
+      {
+        "inputStep": "symbol",
+        "inputStepLevel": 13,
+        "title": "記号",
+        "description": "半角スペース以外の記号を含む入力を扱う",
+        "enabled": true
+      }
+    ],
+    "difficultyDivisions": [
+      {
+        "division": "D1",
+        "level": 0,
+        "title": "基本",
+        "description": "短い語句を中心に、基本的なキー入力を練習する",
+        "minScore": 0,
+        "maxScore": 4.999,
+        "minIfAnySkillTags": [],
+        "enabled": true
+      },
+      {
+        "division": "D2",
+        "level": 1,
+        "title": "初級",
+        "description": "少し長い語句や複数のキー列を含む入力を練習する",
+        "minScore": 5,
+        "maxScore": 8.999,
+        "minIfAnySkillTags": [],
+        "enabled": true
+      },
+      {
+        "division": "D3",
+        "level": 2,
+        "title": "数字",
+        "description": "数字を含む語句を扱い、数字キーを使う入力を練習する",
+        "minScore": 9,
+        "maxScore": 13.999,
+        "minIfAnySkillTags": [
+          "number"
+        ],
+        "enabled": true
+      },
+      {
+        "division": "D4",
+        "level": 3,
+        "title": "英字・記号",
+        "description": "英字、大文字、複数数字、記号を含む入力を練習する",
+        "minScore": 14,
+        "maxScore": 18.999,
+        "minIfAnySkillTags": [
+          "multi_number",
+          "latin",
+          "uppercase",
+          "symbol"
+        ],
+        "enabled": true
+      },
+      {
+        "division": "D5",
+        "level": 4,
+        "title": "スペース",
+        "description": "半角スペースを含む語句や英語風の入力を練習する",
+        "minScore": 19,
+        "maxScore": 24.999,
+        "minIfAnySkillTags": [
+          "space"
+        ],
+        "enabled": true
+      },
+      {
+        "division": "D6",
+        "level": 5,
+        "title": "標準",
+        "description": "標準的な長さの語句や文を安定して入力する",
+        "minScore": 25,
+        "maxScore": 31.999,
+        "minIfAnySkillTags": [],
+        "enabled": true
+      },
+      {
+        "division": "D7",
+        "level": 6,
+        "title": "発展",
+        "description": "やや長い語句や複数の入力特徴を含む文を練習する",
+        "minScore": 32,
+        "maxScore": 39.999,
+        "minIfAnySkillTags": [],
+        "enabled": true
+      },
+      {
+        "division": "D8",
+        "level": 7,
+        "title": "上級",
+        "description": "長めの文や入力負荷の高い語句を練習する",
+        "minScore": 40,
+        "maxScore": 49.999,
+        "minIfAnySkillTags": [],
+        "enabled": true
+      },
+      {
+        "division": "D9",
+        "level": 8,
+        "title": "長文・ボス",
+        "description": "長文やボス用フレーズなど、高負荷の入力に挑戦する",
+        "minScore": 50,
+        "maxScore": 64.999,
+        "minIfAnySkillTags": [
+          "long_text",
+          "boss"
+        ],
+        "enabled": true
+      },
+      {
+        "division": "D10",
+        "level": 9,
+        "title": "最難関",
+        "description": "非常に長い文や総合的な入力力が必要なフレーズに挑戦する",
+        "minScore": 65,
+        "maxScore": null,
+        "minIfAnySkillTags": [],
+        "enabled": true
+      }
+    ]
   },
   "inputSteps": [
     {
@@ -223,1525 +611,2160 @@
   ],
   "games": [
     {
-      "gameId": "AR-P1",
+      "gameId": "FREE-STEP1",
       "enabled": true,
-      "mode": "arcade",
-      "title": "Step 1: ホーム列",
-      "subtitle": "",
-      "description": "ホームポジション中心のキーで入力する",
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "ホーム列",
+      "subtitle": "フリー Step 1",
+      "description": "ホームポジション中心のキーで自由に練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 10,
+      "phraseCount": 999,
+      "sortOrder": 1010,
+      "filterId": "STEP01",
       "filter": {
-        "divisions": [],
-        "levels": [
-          "P1"
-        ],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [
-          "P1"
-        ],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "home",
-        "inputStepLevel": 1,
-        "maxInputStepLevel": 1
+        "inputStepLevel": {
+          "eq": 1
+        },
+        "length": {
+          "max": 18
+        }
       },
-      "note": "アーケードP1"
+      "matching": {
+        "phraseCount": 18,
+        "totalLength": 84,
+        "avgLength": 4.666666666666667,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
-      "gameId": "AR-P2",
+      "gameId": "FREE-STEP2",
       "enabled": true,
-      "mode": "arcade",
-      "title": "Step 2: 上段追加",
-      "subtitle": "",
-      "description": "ホーム列に加えて上段キーを使う",
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "上段追加",
+      "subtitle": "フリー Step 2",
+      "description": "ホーム列に加えて上段キーまでを使って自由に練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 20,
+      "phraseCount": 999,
+      "sortOrder": 1020,
+      "filterId": "STEP02",
       "filter": {
-        "divisions": [],
-        "levels": [
-          "P2"
-        ],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [
-          "P2"
-        ],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "top",
-        "inputStepLevel": 2,
-        "maxInputStepLevel": 2
+        "inputStepLevel": {
+          "eq": 2
+        },
+        "length": {
+          "max": 19
+        }
       },
-      "note": "アーケードP2"
+      "matching": {
+        "phraseCount": 95,
+        "totalLength": 586,
+        "avgLength": 6.168421052631579,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
-      "gameId": "AR-P3",
+      "gameId": "FREE-STEP3",
       "enabled": true,
-      "mode": "arcade",
-      "title": "Step 3: 下段追加",
-      "subtitle": "",
-      "description": "ホーム列・上段に加えて下段キーを使う",
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "下段追加",
+      "subtitle": "フリー Step 3",
+      "description": "ホーム列・上段・下段までを使って自由に練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 30,
+      "phraseCount": 999,
+      "sortOrder": 1030,
+      "filterId": "STEP03",
       "filter": {
-        "divisions": [],
-        "levels": [
-          "P3"
-        ],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [
-          "P3"
-        ],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "bottom",
-        "inputStepLevel": 3,
-        "maxInputStepLevel": 3
+        "inputStepLevel": {
+          "eq": 3
+        },
+        "length": {
+          "max": 20
+        }
       },
-      "note": "アーケードP3"
+      "matching": {
+        "phraseCount": 95,
+        "totalLength": 1124,
+        "avgLength": 11.83157894736842,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
-      "gameId": "AR-P4",
+      "gameId": "FREE-STEP4",
       "enabled": true,
-      "mode": "arcade",
-      "title": "Step 4: 拗音",
-      "subtitle": "",
-      "description": "きゃ・しゅ・ちょ などの拗音を含む",
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "拗音",
+      "subtitle": "フリー Step 4",
+      "description": "拗音を含む語句までを使って自由に練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 40,
+      "phraseCount": 999,
+      "sortOrder": 1040,
+      "filterId": "STEP04",
       "filter": {
-        "divisions": [],
-        "levels": [
-          "P4"
-        ],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [
-          "P4"
-        ],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "yoon",
-        "inputStepLevel": 4,
-        "maxInputStepLevel": 4
+        "inputStepLevel": {
+          "eq": 4
+        },
+        "length": {
+          "max": 21
+        }
       },
-      "note": "アーケードP4"
+      "matching": {
+        "phraseCount": 69,
+        "totalLength": 814,
+        "avgLength": 11.797101449275363,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
-      "gameId": "AR-P5",
+      "gameId": "FREE-STEP5",
       "enabled": true,
-      "mode": "arcade",
-      "title": "Step 5: 撥音",
-      "subtitle": "",
-      "description": "ん を含む入力を扱う",
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "撥音",
+      "subtitle": "フリー Step 5",
+      "description": "撥音を含む語句までを使って自由に練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 50,
+      "phraseCount": 999,
+      "sortOrder": 1050,
+      "filterId": "STEP05",
       "filter": {
-        "divisions": [],
-        "levels": [
-          "P5"
-        ],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [
-          "P5"
-        ],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "n",
-        "inputStepLevel": 5,
-        "maxInputStepLevel": 5
+        "inputStepLevel": {
+          "eq": 5
+        },
+        "length": {
+          "max": 22
+        }
       },
-      "note": "アーケードP5"
+      "matching": {
+        "phraseCount": 166,
+        "totalLength": 2346,
+        "avgLength": 14.132530120481928,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
-      "gameId": "AR-P6",
+      "gameId": "FREE-STEP6",
       "enabled": true,
-      "mode": "arcade",
-      "title": "Step 6: 促音",
-      "subtitle": "",
-      "description": "っ を含む入力を扱う",
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "促音",
+      "subtitle": "フリー Step 6",
+      "description": "促音を含む語句までを使って自由に練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 60,
+      "phraseCount": 999,
+      "sortOrder": 1060,
+      "filterId": "STEP06",
       "filter": {
-        "divisions": [],
-        "levels": [
-          "P6"
-        ],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [
-          "P6"
-        ],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "sokuon",
-        "inputStepLevel": 6,
-        "maxInputStepLevel": 6
+        "inputStepLevel": {
+          "eq": 6
+        },
+        "length": {
+          "max": 23
+        }
       },
-      "note": "アーケードP6"
+      "matching": {
+        "phraseCount": 58,
+        "totalLength": 942,
+        "avgLength": 16.24137931034483,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
-      "gameId": "AR-P7",
+      "gameId": "FREE-STEP7",
       "enabled": true,
-      "mode": "arcade",
-      "title": "Step 7: 長音",
-      "subtitle": "",
-      "description": "ー のローマ字入力にあたるハイフンを扱う",
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "長音",
+      "subtitle": "フリー Step 7",
+      "description": "長音を含む語句までを使って自由に練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 70,
+      "phraseCount": 999,
+      "sortOrder": 1070,
+      "filterId": "STEP07",
       "filter": {
-        "divisions": [],
-        "levels": [
-          "P7"
-        ],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [
-          "P7"
-        ],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "long",
-        "inputStepLevel": 7,
-        "maxInputStepLevel": 7
+        "inputStepLevel": {
+          "eq": 7
+        },
+        "length": {
+          "max": 24
+        }
       },
-      "note": "アーケードP7"
+      "matching": {
+        "phraseCount": 70,
+        "totalLength": 835,
+        "avgLength": 11.928571428571429,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
-      "gameId": "AR-P8",
+      "gameId": "FREE-STEP8",
       "enabled": true,
-      "mode": "arcade",
-      "title": "Step 8: 小書き母音",
-      "subtitle": "",
-      "description": "ぁ・ぃ・ぅ・ぇ・ぉ、ふぁ・ふぃ・てぃ・でぃ などを含む入力を扱う",
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "小書き母音",
+      "subtitle": "フリー Step 8",
+      "description": "小書き母音を含む語句までを使って自由に練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 80,
+      "phraseCount": 999,
+      "sortOrder": 1080,
+      "filterId": "STEP08",
       "filter": {
-        "divisions": [],
-        "levels": [
-          "P8"
-        ],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [
-          "P8"
-        ],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "small_vowel",
-        "inputStepLevel": 8,
-        "maxInputStepLevel": 8
+        "inputStepLevel": {
+          "eq": 8
+        },
+        "length": {
+          "max": 25
+        }
       },
-      "note": "アーケードP8"
+      "matching": {
+        "phraseCount": 22,
+        "totalLength": 343,
+        "avgLength": 15.590909090909092,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
-      "gameId": "AR-P9",
+      "gameId": "FREE-STEP9",
       "enabled": true,
-      "mode": "arcade",
-      "title": "Step 9: 数字",
-      "subtitle": "",
-      "description": "数字キーを含む入力を扱う",
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "数字",
+      "subtitle": "フリー Step 9",
+      "description": "数字キーを含む語句までを使って自由に練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 90,
+      "phraseCount": 999,
+      "sortOrder": 1090,
+      "filterId": "STEP09",
       "filter": {
-        "divisions": [],
-        "levels": [
-          "P9"
-        ],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [
-          "P9"
-        ],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "number",
-        "inputStepLevel": 9,
-        "maxInputStepLevel": 9
+        "inputStepLevel": {
+          "eq": 9
+        },
+        "length": {
+          "max": 26
+        }
       },
-      "note": "アーケードP9"
+      "matching": {
+        "phraseCount": 41,
+        "totalLength": 286,
+        "avgLength": 6.975609756097561,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
-      "gameId": "AR-P10",
+      "gameId": "FREE-STEP10",
       "enabled": true,
-      "mode": "arcade",
-      "title": "Step 10: 英字",
-      "subtitle": "",
-      "description": "HTMLやPythonなど半角英字を含む入力を扱う",
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "英字",
+      "subtitle": "フリー Step 10",
+      "description": "半角英字を含む語句までを使って自由に練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 100,
+      "phraseCount": 999,
+      "sortOrder": 1100,
+      "filterId": "STEP10",
       "filter": {
-        "divisions": [],
-        "levels": [
-          "P10"
-        ],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [
-          "P10"
-        ],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "latin",
-        "inputStepLevel": 10,
-        "maxInputStepLevel": 10
+        "inputStepLevel": {
+          "eq": 10
+        },
+        "length": {
+          "max": 27
+        }
       },
-      "note": "アーケードP10"
+      "matching": {
+        "phraseCount": 6,
+        "totalLength": 112,
+        "avgLength": 18.666666666666668,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "FREE-STEP11",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "スペース",
+      "subtitle": "フリー Step 11",
+      "description": "半角スペースを含む語句までを使って自由に練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 1110,
+      "filterId": "STEP11",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 11
+        },
+        "length": {
+          "max": 28
+        }
+      },
+      "matching": {
+        "phraseCount": 1,
+        "totalLength": 11,
+        "avgLength": 11,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "FREE-STEP12",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "Shift入力",
+      "subtitle": "フリー Step 12",
+      "description": "Shift入力を含む語句までを使って自由に練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 1120,
+      "filterId": "STEP12",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 12
+        },
+        "length": {
+          "max": 29
+        }
+      },
+      "matching": {
+        "phraseCount": 30,
+        "totalLength": 525,
+        "avgLength": 17.5,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "FREE-STEP13",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "free",
+      "gameType": "timeAttack",
+      "title": "記号",
+      "subtitle": "フリー Step 13",
+      "description": "記号を含む語句までを使って自由に練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 1130,
+      "filterId": "STEP13",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 13
+        },
+        "length": {
+          "max": 30
+        }
+      },
+      "matching": {
+        "phraseCount": 36,
+        "totalLength": 660,
+        "avgLength": 18.333333333333332,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP1",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "ホーム列",
+      "subtitle": "アーケード Step 1",
+      "description": "ホームポジション中心のキーで入力する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2110,
+      "filterId": "STEP01",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 1
+        },
+        "length": {
+          "max": 18
+        }
+      },
+      "matching": {
+        "phraseCount": 18,
+        "totalLength": 84,
+        "avgLength": 4.666666666666667,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP2",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "上段追加",
+      "subtitle": "アーケード Step 2",
+      "description": "ホーム列に加えて上段キーを使う。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2120,
+      "filterId": "STEP02",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 2
+        },
+        "length": {
+          "max": 19
+        }
+      },
+      "matching": {
+        "phraseCount": 95,
+        "totalLength": 586,
+        "avgLength": 6.168421052631579,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP3",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "下段追加",
+      "subtitle": "アーケード Step 3",
+      "description": "ホーム列・上段に加えて下段キーを使う。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2130,
+      "filterId": "STEP03",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 3
+        },
+        "length": {
+          "max": 20
+        }
+      },
+      "matching": {
+        "phraseCount": 95,
+        "totalLength": 1124,
+        "avgLength": 11.83157894736842,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP4",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "拗音",
+      "subtitle": "アーケード Step 4",
+      "description": "きゃ・しゅ・ちょ などの拗音を含む語句を練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2140,
+      "filterId": "STEP04",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 4
+        },
+        "length": {
+          "max": 21
+        }
+      },
+      "matching": {
+        "phraseCount": 69,
+        "totalLength": 814,
+        "avgLength": 11.797101449275363,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP5",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "撥音",
+      "subtitle": "アーケード Step 5",
+      "description": "ん を含む語句を練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2150,
+      "filterId": "STEP05",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 5
+        },
+        "length": {
+          "max": 22
+        }
+      },
+      "matching": {
+        "phraseCount": 166,
+        "totalLength": 2346,
+        "avgLength": 14.132530120481928,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP6",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "促音",
+      "subtitle": "アーケード Step 6",
+      "description": "っ を含む語句を練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2160,
+      "filterId": "STEP06",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 6
+        },
+        "length": {
+          "max": 23
+        }
+      },
+      "matching": {
+        "phraseCount": 58,
+        "totalLength": 942,
+        "avgLength": 16.24137931034483,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP7",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "長音",
+      "subtitle": "アーケード Step 7",
+      "description": "ー の入力にあたるハイフンを含む語句を練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2170,
+      "filterId": "STEP07",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 7
+        },
+        "length": {
+          "max": 24
+        }
+      },
+      "matching": {
+        "phraseCount": 70,
+        "totalLength": 835,
+        "avgLength": 11.928571428571429,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP8",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "小書き母音",
+      "subtitle": "アーケード Step 8",
+      "description": "ぁ・ぃ・ぅ・ぇ・ぉ、ふぁ・ふぃ・てぃ・でぃ などを含む語句を練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2180,
+      "filterId": "STEP08",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 8
+        },
+        "length": {
+          "max": 25
+        }
+      },
+      "matching": {
+        "phraseCount": 22,
+        "totalLength": 343,
+        "avgLength": 15.590909090909092,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP9",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "数字",
+      "subtitle": "アーケード Step 9",
+      "description": "数字キーを含む語句を練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2190,
+      "filterId": "STEP09",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 9
+        },
+        "length": {
+          "max": 26
+        }
+      },
+      "matching": {
+        "phraseCount": 41,
+        "totalLength": 286,
+        "avgLength": 6.975609756097561,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP10",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "英字",
+      "subtitle": "アーケード Step 10",
+      "description": "HTMLやPythonなど半角英字を含む語句を練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2200,
+      "filterId": "STEP10",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 10
+        },
+        "length": {
+          "max": 27
+        }
+      },
+      "matching": {
+        "phraseCount": 6,
+        "totalLength": 112,
+        "avgLength": 18.666666666666668,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP11",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "スペース",
+      "subtitle": "アーケード Step 11",
+      "description": "英語句やサービス名など半角スペースを含む語句を練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2210,
+      "filterId": "STEP11",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 11
+        },
+        "length": {
+          "max": 28
+        }
+      },
+      "matching": {
+        "phraseCount": 1,
+        "totalLength": 11,
+        "avgLength": 11,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP12",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "Shift入力",
+      "subtitle": "アーケード Step 12",
+      "description": "大文字などShiftキーを使う語句を練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2220,
+      "filterId": "STEP12",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 12
+        },
+        "length": {
+          "max": 29
+        }
+      },
+      "matching": {
+        "phraseCount": 30,
+        "totalLength": 525,
+        "avgLength": 17.5,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
+    },
+    {
+      "gameId": "AR-STEP13",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "arcade",
+      "gameType": "timeAttack",
+      "title": "記号",
+      "subtitle": "アーケード Step 13",
+      "description": "半角スペース以外の記号を含む語句を練習する。",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 2230,
+      "filterId": "STEP13",
+      "filter": {
+        "inputStepLevel": {
+          "eq": 13
+        },
+        "length": {
+          "max": 30
+        }
+      },
+      "matching": {
+        "phraseCount": 36,
+        "totalLength": 660,
+        "avgLength": 18.333333333333332,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "PR-D1",
       "enabled": true,
+      "visibility": "public",
       "mode": "practice",
-      "title": "D1: 基本",
-      "subtitle": "",
-      "description": "短い語句を中心に、基本的なキー入力を練習する",
+      "gameType": "timeAttack",
+      "title": "基本",
+      "subtitle": "プラクティス D1",
+      "description": "短い語句を中心に、基本的なキー入力を練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 110,
+      "phraseCount": 999,
+      "sortOrder": 3010,
+      "filterId": "DIV01",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D1"
-        ],
-        "levels": [
-          "P1"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D1"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プラクティスD1"
-    },
-    {
-      "gameId": "AR-P11",
-      "enabled": true,
-      "mode": "arcade",
-      "title": "Step 11: スペース",
-      "subtitle": "",
-      "description": "英語句やサービス名など半角スペースを含む入力を扱う",
-      "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 110,
-      "filter": {
-        "divisions": [],
-        "levels": [],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "space",
-        "inputStepLevel": 11,
-        "maxInputStepLevel": 11
+      "matching": {
+        "phraseCount": 40,
+        "totalLength": 150,
+        "avgLength": 3.75,
+        "visible": true
       },
-      "note": "アーケード Step 11"
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "PR-D2",
       "enabled": true,
+      "visibility": "public",
       "mode": "practice",
-      "title": "D2: 初級",
-      "subtitle": "",
-      "description": "少し長い語句や複数のキー列を含む入力を練習する",
+      "gameType": "timeAttack",
+      "title": "初級",
+      "subtitle": "プラクティス D2",
+      "description": "少し長い語句や複数のキー列を含む入力を練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 120,
+      "phraseCount": 999,
+      "sortOrder": 3020,
+      "filterId": "DIV02",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D2"
-        ],
-        "levels": [
-          "P1",
-          "P2"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D2"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プラクティスD2"
-    },
-    {
-      "gameId": "AR-P12",
-      "enabled": true,
-      "mode": "arcade",
-      "title": "Step 12: Shift入力",
-      "subtitle": "",
-      "description": "大文字などShiftキーを使う入力を扱う",
-      "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 120,
-      "filter": {
-        "divisions": [],
-        "levels": [],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "shift",
-        "inputStepLevel": 12,
-        "maxInputStepLevel": 12
+      "matching": {
+        "phraseCount": 145,
+        "totalLength": 858,
+        "avgLength": 5.917241379310345,
+        "visible": true
       },
-      "note": "アーケード Step 12"
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "PR-D3",
       "enabled": true,
+      "visibility": "public",
       "mode": "practice",
-      "title": "D3: 数字",
-      "subtitle": "",
-      "description": "数字を含む語句を扱い、数字キーを使う入力を練習する",
+      "gameType": "timeAttack",
+      "title": "数字",
+      "subtitle": "プラクティス D3",
+      "description": "数字を含む語句を扱い、数字キーを使う入力を練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 130,
+      "phraseCount": 999,
+      "sortOrder": 3030,
+      "filterId": "DIV03",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D3"
-        ],
-        "levels": [
-          "P2",
-          "P3"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D3"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プラクティスD3"
-    },
-    {
-      "gameId": "AR-P13",
-      "enabled": true,
-      "mode": "arcade",
-      "title": "Step 13: 記号",
-      "subtitle": "",
-      "description": "半角スペース以外の記号を含む入力を扱う",
-      "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 130,
-      "filter": {
-        "divisions": [],
-        "levels": [],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false,
-        "inputStep": "symbol",
-        "inputStepLevel": 13,
-        "maxInputStepLevel": 13
+      "matching": {
+        "phraseCount": 103,
+        "totalLength": 902,
+        "avgLength": 8.757281553398059,
+        "visible": true
       },
-      "note": "アーケード Step 13"
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "PR-D4",
       "enabled": true,
+      "visibility": "public",
       "mode": "practice",
-      "title": "D4: 英字・記号",
-      "subtitle": "",
-      "description": "英字、大文字、複数数字、記号を含む入力を練習する",
+      "gameType": "timeAttack",
+      "title": "英字・記号",
+      "subtitle": "プラクティス D4",
+      "description": "英字、大文字、複数数字、記号を含む入力を練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 140,
+      "phraseCount": 999,
+      "sortOrder": 3040,
+      "filterId": "DIV04",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D4"
-        ],
-        "levels": [
-          "P3",
-          "P4"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D4"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プラクティスD4"
+      "matching": {
+        "phraseCount": 172,
+        "totalLength": 1876,
+        "avgLength": 10.906976744186046,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "PR-D5",
       "enabled": true,
+      "visibility": "public",
       "mode": "practice",
-      "title": "D5: スペース",
-      "subtitle": "",
-      "description": "半角スペースを含む語句や英語風の入力を練習する",
+      "gameType": "timeAttack",
+      "title": "スペース",
+      "subtitle": "プラクティス D5",
+      "description": "半角スペースを含む語句や英語風の入力を練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 150,
+      "phraseCount": 999,
+      "sortOrder": 3050,
+      "filterId": "DIV05",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D5"
-        ],
-        "levels": [
-          "P4",
-          "P5"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D5"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プラクティスD5"
+      "matching": {
+        "phraseCount": 182,
+        "totalLength": 3406,
+        "avgLength": 18.714285714285715,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "PR-D6",
       "enabled": true,
+      "visibility": "public",
       "mode": "practice",
-      "title": "D6: 標準",
-      "subtitle": "",
-      "description": "標準的な長さの語句や文を安定して入力する",
+      "gameType": "timeAttack",
+      "title": "標準",
+      "subtitle": "プラクティス D6",
+      "description": "標準的な長さの語句や文を安定して入力する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 160,
+      "phraseCount": 999,
+      "sortOrder": 3060,
+      "filterId": "DIV06",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D6"
-        ],
-        "levels": [
-          "P5",
-          "P6"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D6"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プラクティスD6"
+      "matching": {
+        "phraseCount": 213,
+        "totalLength": 5088,
+        "avgLength": 23.887323943661972,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "PR-D7",
       "enabled": true,
+      "visibility": "public",
       "mode": "practice",
-      "title": "D7: 発展",
-      "subtitle": "",
-      "description": "やや長い語句や複数の入力特徴を含む文を練習する",
+      "gameType": "timeAttack",
+      "title": "発展",
+      "subtitle": "プラクティス D7",
+      "description": "やや長い語句や複数の入力特徴を含む文を練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 170,
+      "phraseCount": 999,
+      "sortOrder": 3070,
+      "filterId": "DIV07",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D7"
-        ],
-        "levels": [
-          "P6",
-          "P7"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D7"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プラクティスD7"
+      "matching": {
+        "phraseCount": 63,
+        "totalLength": 1887,
+        "avgLength": 29.952380952380953,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "PR-D8",
       "enabled": true,
+      "visibility": "public",
       "mode": "practice",
-      "title": "D8: 上級",
-      "subtitle": "",
-      "description": "長めの文や入力負荷の高い語句を練習する",
+      "gameType": "timeAttack",
+      "title": "上級",
+      "subtitle": "プラクティス D8",
+      "description": "長めの文や入力負荷の高い語句を練習する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 180,
+      "phraseCount": 999,
+      "sortOrder": 3080,
+      "filterId": "DIV08",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D8"
-        ],
-        "levels": [
-          "P7",
-          "P8"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D8"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プラクティスD8"
+      "matching": {
+        "phraseCount": 33,
+        "totalLength": 1227,
+        "avgLength": 37.18181818181818,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "PR-D9",
       "enabled": true,
+      "visibility": "public",
       "mode": "practice",
-      "title": "D9: 長文・ボス",
-      "subtitle": "",
-      "description": "長文やボス用フレーズなど、高負荷の入力に挑戦する",
+      "gameType": "timeAttack",
+      "title": "長文・ボス",
+      "subtitle": "プラクティス D9",
+      "description": "長文やボス用フレーズなど、高負荷の入力に挑戦する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 190,
+      "phraseCount": 999,
+      "sortOrder": 3090,
+      "filterId": "DIV09",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D9"
-        ],
-        "levels": [
-          "P8",
-          "P9"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D9"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プラクティスD9"
+      "matching": {
+        "phraseCount": 22,
+        "totalLength": 1050,
+        "avgLength": 47.72727272727273,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "PR-D10",
       "enabled": true,
+      "visibility": "public",
       "mode": "practice",
-      "title": "D10: 最難関",
-      "subtitle": "",
-      "description": "非常に長い文や総合的な入力力が必要なフレーズに挑戦する",
+      "gameType": "timeAttack",
+      "title": "最難関",
+      "subtitle": "プラクティス D10",
+      "description": "非常に長い文や総合的な入力力が必要なフレーズに挑戦する。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 200,
+      "phraseCount": 999,
+      "sortOrder": 3100,
+      "filterId": "DIV10",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D10"
-        ],
-        "levels": [
-          "P9",
-          "P10"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D10"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プラクティスD10"
+      "matching": {
+        "phraseCount": 20,
+        "totalLength": 1225,
+        "avgLength": 61.25,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "CH-D1",
       "enabled": true,
+      "visibility": "public",
       "mode": "championship",
-      "title": "D1: 基本",
-      "subtitle": "",
-      "description": "短い語句を中心に、基本的なキー入力を練習する",
+      "gameType": "timeAttack",
+      "title": "基本チャンピオン",
+      "subtitle": "チャンピオンシップ D1",
+      "description": "基本レベルのチャンピオンシップ。昇格判定は行わない。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 310,
+      "phraseCount": 999,
+      "sortOrder": 4010,
+      "filterId": "DIV01",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D1"
-        ],
-        "levels": [
-          "P1"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D1"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "チャンピオンシップD1"
+      "matching": {
+        "phraseCount": 40,
+        "totalLength": 150,
+        "avgLength": 3.75,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "CH-D2",
       "enabled": true,
+      "visibility": "public",
       "mode": "championship",
-      "title": "D2: 初級",
-      "subtitle": "",
-      "description": "少し長い語句や複数のキー列を含む入力を練習する",
+      "gameType": "timeAttack",
+      "title": "初級チャンピオン",
+      "subtitle": "チャンピオンシップ D2",
+      "description": "初級レベルのチャンピオンシップ。昇格判定は行わない。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 320,
+      "phraseCount": 999,
+      "sortOrder": 4020,
+      "filterId": "DIV02",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D2"
-        ],
-        "levels": [
-          "P1",
-          "P2"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D2"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "チャンピオンシップD2"
+      "matching": {
+        "phraseCount": 145,
+        "totalLength": 858,
+        "avgLength": 5.917241379310345,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "CH-D3",
       "enabled": true,
+      "visibility": "public",
       "mode": "championship",
-      "title": "D3: 数字",
-      "subtitle": "",
-      "description": "数字を含む語句を扱い、数字キーを使う入力を練習する",
+      "gameType": "timeAttack",
+      "title": "数字チャンピオン",
+      "subtitle": "チャンピオンシップ D3",
+      "description": "数字レベルのチャンピオンシップ。昇格判定は行わない。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 330,
+      "phraseCount": 999,
+      "sortOrder": 4030,
+      "filterId": "DIV03",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D3"
-        ],
-        "levels": [
-          "P2",
-          "P3"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D3"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "チャンピオンシップD3"
+      "matching": {
+        "phraseCount": 103,
+        "totalLength": 902,
+        "avgLength": 8.757281553398059,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "CH-D4",
       "enabled": true,
+      "visibility": "public",
       "mode": "championship",
-      "title": "D4: 英字・記号",
-      "subtitle": "",
-      "description": "英字、大文字、複数数字、記号を含む入力を練習する",
+      "gameType": "timeAttack",
+      "title": "英字・記号チャンピオン",
+      "subtitle": "チャンピオンシップ D4",
+      "description": "英字・記号レベルのチャンピオンシップ。昇格判定は行わない。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 340,
+      "phraseCount": 999,
+      "sortOrder": 4040,
+      "filterId": "DIV04",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D4"
-        ],
-        "levels": [
-          "P3",
-          "P4"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D4"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "チャンピオンシップD4"
+      "matching": {
+        "phraseCount": 172,
+        "totalLength": 1876,
+        "avgLength": 10.906976744186046,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "CH-D5",
       "enabled": true,
+      "visibility": "public",
       "mode": "championship",
-      "title": "D5: スペース",
-      "subtitle": "",
-      "description": "半角スペースを含む語句や英語風の入力を練習する",
+      "gameType": "timeAttack",
+      "title": "スペースチャンピオン",
+      "subtitle": "チャンピオンシップ D5",
+      "description": "スペースレベルのチャンピオンシップ。昇格判定は行わない。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 350,
+      "phraseCount": 999,
+      "sortOrder": 4050,
+      "filterId": "DIV05",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D5"
-        ],
-        "levels": [
-          "P4",
-          "P5"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D5"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "チャンピオンシップD5"
+      "matching": {
+        "phraseCount": 182,
+        "totalLength": 3406,
+        "avgLength": 18.714285714285715,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "CH-D6",
       "enabled": true,
+      "visibility": "public",
       "mode": "championship",
-      "title": "D6: 標準",
-      "subtitle": "",
-      "description": "標準的な長さの語句や文を安定して入力する",
+      "gameType": "timeAttack",
+      "title": "標準チャンピオン",
+      "subtitle": "チャンピオンシップ D6",
+      "description": "標準レベルのチャンピオンシップ。昇格判定は行わない。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 360,
+      "phraseCount": 999,
+      "sortOrder": 4060,
+      "filterId": "DIV06",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D6"
-        ],
-        "levels": [
-          "P5",
-          "P6"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D6"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "チャンピオンシップD6"
+      "matching": {
+        "phraseCount": 213,
+        "totalLength": 5088,
+        "avgLength": 23.887323943661972,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "CH-D7",
       "enabled": true,
+      "visibility": "public",
       "mode": "championship",
-      "title": "D7: 発展",
-      "subtitle": "",
-      "description": "やや長い語句や複数の入力特徴を含む文を練習する",
+      "gameType": "timeAttack",
+      "title": "発展チャンピオン",
+      "subtitle": "チャンピオンシップ D7",
+      "description": "発展レベルのチャンピオンシップ。昇格判定は行わない。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 370,
+      "phraseCount": 999,
+      "sortOrder": 4070,
+      "filterId": "DIV07",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D7"
-        ],
-        "levels": [
-          "P6",
-          "P7"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D7"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "チャンピオンシップD7"
+      "matching": {
+        "phraseCount": 63,
+        "totalLength": 1887,
+        "avgLength": 29.952380952380953,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "CH-D8",
       "enabled": true,
+      "visibility": "public",
       "mode": "championship",
-      "title": "D8: 上級",
-      "subtitle": "",
-      "description": "長めの文や入力負荷の高い語句を練習する",
+      "gameType": "timeAttack",
+      "title": "上級チャンピオン",
+      "subtitle": "チャンピオンシップ D8",
+      "description": "上級レベルのチャンピオンシップ。昇格判定は行わない。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 380,
+      "phraseCount": 999,
+      "sortOrder": 4080,
+      "filterId": "DIV08",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D8"
-        ],
-        "levels": [
-          "P7",
-          "P8"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D8"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "チャンピオンシップD8"
+      "matching": {
+        "phraseCount": 33,
+        "totalLength": 1227,
+        "avgLength": 37.18181818181818,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "CH-D9",
       "enabled": true,
+      "visibility": "public",
       "mode": "championship",
-      "title": "D9: 長文・ボス",
-      "subtitle": "",
-      "description": "長文やボス用フレーズなど、高負荷の入力に挑戦する",
+      "gameType": "timeAttack",
+      "title": "長文・ボスチャンピオン",
+      "subtitle": "チャンピオンシップ D9",
+      "description": "長文・ボスレベルのチャンピオンシップ。昇格判定は行わない。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 390,
+      "phraseCount": 999,
+      "sortOrder": 4090,
+      "filterId": "DIV09",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D9"
-        ],
-        "levels": [
-          "P8",
-          "P9"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D9"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "チャンピオンシップD9"
+      "matching": {
+        "phraseCount": 22,
+        "totalLength": 1050,
+        "avgLength": 47.72727272727273,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "CH-D10",
       "enabled": true,
+      "visibility": "public",
       "mode": "championship",
-      "title": "D10: 最難関",
-      "subtitle": "",
-      "description": "非常に長い文や総合的な入力力が必要なフレーズに挑戦する",
+      "gameType": "timeAttack",
+      "title": "最難関チャンピオン",
+      "subtitle": "チャンピオンシップ D10",
+      "description": "最難関レベルのチャンピオンシップ。昇格判定は行わない。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 400,
+      "phraseCount": 999,
+      "sortOrder": 4100,
+      "filterId": "DIV10",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D10"
-        ],
-        "levels": [
-          "P9",
-          "P10"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D10"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "チャンピオンシップD10"
+      "matching": {
+        "phraseCount": 20,
+        "totalLength": 1225,
+        "avgLength": 61.25,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     },
     {
       "gameId": "PM-D1",
       "enabled": true,
+      "visibility": "public",
       "mode": "promotion",
-      "title": "D1: 基本",
-      "subtitle": "",
-      "description": "短い語句を中心に、基本的なキー入力を練習する",
+      "gameType": "timeAttack",
+      "title": "基本昇格試験",
+      "subtitle": "プロモーション D1",
+      "description": "基本レベルの昇格試験。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 410,
+      "phraseCount": 999,
+      "sortOrder": 5010,
+      "filterId": "DIV01",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D1"
-        ],
-        "levels": [
-          "P1"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D1"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プロモーションD1"
+      "matching": {
+        "phraseCount": 40,
+        "totalLength": 150,
+        "avgLength": 3.75,
+        "visible": true
+      },
+      "clearConditions": {
+        "accuracy": 90,
+        "missMax": 8
+      },
+      "quest": {},
+      "promotion": {
+        "requiredClears": 3,
+        "targetGameId": "PM-D2",
+        "unlockMessage": "「初級昇格試験」が解放されました。"
+      }
     },
     {
       "gameId": "PM-D2",
       "enabled": true,
+      "visibility": "public",
       "mode": "promotion",
-      "title": "D2: 初級",
-      "subtitle": "",
-      "description": "少し長い語句や複数のキー列を含む入力を練習する",
+      "gameType": "timeAttack",
+      "title": "初級昇格試験",
+      "subtitle": "プロモーション D2",
+      "description": "初級レベルの昇格試験。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 420,
+      "phraseCount": 999,
+      "sortOrder": 5020,
+      "filterId": "DIV02",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D2"
-        ],
-        "levels": [
-          "P1",
-          "P2"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D2"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プロモーションD2"
+      "matching": {
+        "phraseCount": 145,
+        "totalLength": 858,
+        "avgLength": 5.917241379310345,
+        "visible": true
+      },
+      "clearConditions": {
+        "accuracy": 90,
+        "missMax": 8
+      },
+      "quest": {},
+      "promotion": {
+        "requiredClears": 3,
+        "targetGameId": "PM-D3",
+        "unlockMessage": "「数字昇格試験」が解放されました。"
+      }
     },
     {
       "gameId": "PM-D3",
       "enabled": true,
+      "visibility": "public",
       "mode": "promotion",
-      "title": "D3: 数字",
-      "subtitle": "",
-      "description": "数字を含む語句を扱い、数字キーを使う入力を練習する",
+      "gameType": "timeAttack",
+      "title": "数字昇格試験",
+      "subtitle": "プロモーション D3",
+      "description": "数字レベルの昇格試験。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 430,
+      "phraseCount": 999,
+      "sortOrder": 5030,
+      "filterId": "DIV03",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D3"
-        ],
-        "levels": [
-          "P2",
-          "P3"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D3"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プロモーションD3"
+      "matching": {
+        "phraseCount": 103,
+        "totalLength": 902,
+        "avgLength": 8.757281553398059,
+        "visible": true
+      },
+      "clearConditions": {
+        "accuracy": 90,
+        "missMax": 8
+      },
+      "quest": {},
+      "promotion": {
+        "requiredClears": 3,
+        "targetGameId": "PM-D4",
+        "unlockMessage": "「英字・記号昇格試験」が解放されました。"
+      }
     },
     {
       "gameId": "PM-D4",
       "enabled": true,
+      "visibility": "public",
       "mode": "promotion",
-      "title": "D4: 英字・記号",
-      "subtitle": "",
-      "description": "英字、大文字、複数数字、記号を含む入力を練習する",
+      "gameType": "timeAttack",
+      "title": "英字・記号昇格試験",
+      "subtitle": "プロモーション D4",
+      "description": "英字・記号レベルの昇格試験。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 440,
+      "phraseCount": 999,
+      "sortOrder": 5040,
+      "filterId": "DIV04",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D4"
-        ],
-        "levels": [
-          "P3",
-          "P4"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D4"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プロモーションD4"
+      "matching": {
+        "phraseCount": 172,
+        "totalLength": 1876,
+        "avgLength": 10.906976744186046,
+        "visible": true
+      },
+      "clearConditions": {
+        "accuracy": 92,
+        "missMax": 6
+      },
+      "quest": {},
+      "promotion": {
+        "requiredClears": 3,
+        "targetGameId": "PM-D5",
+        "unlockMessage": "「スペース昇格試験」が解放されました。"
+      }
     },
     {
       "gameId": "PM-D5",
       "enabled": true,
+      "visibility": "public",
       "mode": "promotion",
-      "title": "D5: スペース",
-      "subtitle": "",
-      "description": "半角スペースを含む語句や英語風の入力を練習する",
+      "gameType": "timeAttack",
+      "title": "スペース昇格試験",
+      "subtitle": "プロモーション D5",
+      "description": "スペースレベルの昇格試験。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 450,
+      "phraseCount": 999,
+      "sortOrder": 5050,
+      "filterId": "DIV05",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D5"
-        ],
-        "levels": [
-          "P4",
-          "P5"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D5"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プロモーションD5"
+      "matching": {
+        "phraseCount": 182,
+        "totalLength": 3406,
+        "avgLength": 18.714285714285715,
+        "visible": true
+      },
+      "clearConditions": {
+        "accuracy": 92,
+        "missMax": 6
+      },
+      "quest": {},
+      "promotion": {
+        "requiredClears": 3,
+        "targetGameId": "PM-D6",
+        "unlockMessage": "「標準昇格試験」が解放されました。"
+      }
     },
     {
       "gameId": "PM-D6",
       "enabled": true,
+      "visibility": "public",
       "mode": "promotion",
-      "title": "D6: 標準",
-      "subtitle": "",
-      "description": "標準的な長さの語句や文を安定して入力する",
+      "gameType": "timeAttack",
+      "title": "標準昇格試験",
+      "subtitle": "プロモーション D6",
+      "description": "標準レベルの昇格試験。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 460,
+      "phraseCount": 999,
+      "sortOrder": 5060,
+      "filterId": "DIV06",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D6"
-        ],
-        "levels": [
-          "P5",
-          "P6"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D6"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プロモーションD6"
+      "matching": {
+        "phraseCount": 213,
+        "totalLength": 5088,
+        "avgLength": 23.887323943661972,
+        "visible": true
+      },
+      "clearConditions": {
+        "accuracy": 92,
+        "missMax": 6
+      },
+      "quest": {},
+      "promotion": {
+        "requiredClears": 3,
+        "targetGameId": "PM-D7",
+        "unlockMessage": "「発展昇格試験」が解放されました。"
+      }
     },
     {
       "gameId": "PM-D7",
       "enabled": true,
+      "visibility": "public",
       "mode": "promotion",
-      "title": "D7: 発展",
-      "subtitle": "",
-      "description": "やや長い語句や複数の入力特徴を含む文を練習する",
+      "gameType": "timeAttack",
+      "title": "発展昇格試験",
+      "subtitle": "プロモーション D7",
+      "description": "発展レベルの昇格試験。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 470,
+      "phraseCount": 999,
+      "sortOrder": 5070,
+      "filterId": "DIV07",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D7"
-        ],
-        "levels": [
-          "P6",
-          "P7"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D7"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プロモーションD7"
+      "matching": {
+        "phraseCount": 63,
+        "totalLength": 1887,
+        "avgLength": 29.952380952380953,
+        "visible": true
+      },
+      "clearConditions": {
+        "accuracy": 93,
+        "missMax": 5
+      },
+      "quest": {},
+      "promotion": {
+        "requiredClears": 3,
+        "targetGameId": "PM-D8",
+        "unlockMessage": "「上級昇格試験」が解放されました。"
+      }
     },
     {
       "gameId": "PM-D8",
       "enabled": true,
+      "visibility": "public",
       "mode": "promotion",
-      "title": "D8: 上級",
-      "subtitle": "",
-      "description": "長めの文や入力負荷の高い語句を練習する",
+      "gameType": "timeAttack",
+      "title": "上級昇格試験",
+      "subtitle": "プロモーション D8",
+      "description": "上級レベルの昇格試験。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 480,
+      "phraseCount": 999,
+      "sortOrder": 5080,
+      "filterId": "DIV08",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D8"
-        ],
-        "levels": [
-          "P7",
-          "P8"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D8"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プロモーションD8"
+      "matching": {
+        "phraseCount": 33,
+        "totalLength": 1227,
+        "avgLength": 37.18181818181818,
+        "visible": true
+      },
+      "clearConditions": {
+        "accuracy": 93,
+        "missMax": 5
+      },
+      "quest": {},
+      "promotion": {
+        "requiredClears": 3,
+        "targetGameId": "PM-D9",
+        "unlockMessage": "「長文・ボス昇格試験」が解放されました。"
+      }
     },
     {
       "gameId": "PM-D9",
       "enabled": true,
+      "visibility": "public",
       "mode": "promotion",
-      "title": "D9: 長文・ボス",
-      "subtitle": "",
-      "description": "長文やボス用フレーズなど、高負荷の入力に挑戦する",
+      "gameType": "timeAttack",
+      "title": "長文・ボス昇格試験",
+      "subtitle": "プロモーション D9",
+      "description": "長文・ボスレベルの昇格試験。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 490,
+      "phraseCount": 999,
+      "sortOrder": 5090,
+      "filterId": "DIV09",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D9"
-        ],
-        "levels": [
-          "P8",
-          "P9"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D9"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プロモーションD9"
+      "matching": {
+        "phraseCount": 22,
+        "totalLength": 1050,
+        "avgLength": 47.72727272727273,
+        "visible": true
+      },
+      "clearConditions": {
+        "accuracy": 93,
+        "missMax": 5
+      },
+      "quest": {},
+      "promotion": {
+        "requiredClears": 3,
+        "targetGameId": "PM-D10",
+        "unlockMessage": "「最難関昇格試験」が解放されました。"
+      }
     },
     {
       "gameId": "PM-D10",
       "enabled": true,
+      "visibility": "public",
       "mode": "promotion",
-      "title": "D10: 最難関",
-      "subtitle": "",
-      "description": "非常に長い文や総合的な入力力が必要なフレーズに挑戦する",
+      "gameType": "timeAttack",
+      "title": "最難関昇格試験",
+      "subtitle": "プロモーション D10",
+      "description": "最難関レベルの昇格試験。",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 500,
+      "phraseCount": 999,
+      "sortOrder": 5100,
+      "filterId": "DIV10",
       "filter": {
-        "divisions": [
+        "divisionAny": [
           "D10"
-        ],
-        "levels": [
-          "P9",
-          "P10"
-        ],
-        "tags": [],
-        "divisionsV2": [
-          "D10"
-        ],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        ]
       },
-      "note": "プロモーションD10"
+      "matching": {
+        "phraseCount": 20,
+        "totalLength": 1225,
+        "avgLength": 61.25,
+        "visible": true
+      },
+      "clearConditions": {
+        "accuracy": 94,
+        "missMax": 5
+      },
+      "quest": {},
+      "promotion": {
+        "requiredClears": 3
+      }
     },
     {
-      "gameId": "QU-MAIN",
+      "gameId": "Q-PROV01",
       "enabled": true,
+      "visibility": "public",
       "mode": "quest",
-      "title": "Quest / クエスト",
+      "gameType": "battle",
+      "title": "ことわざ ステージ1",
       "subtitle": "",
-      "description": "カテゴリ・キー列・スキル別のステージを進めるモード。",
+      "description": "",
       "durationSec": 60,
-      "phraseCount": 12,
-      "sortOrder": 900,
+      "phraseCount": 999,
+      "sortOrder": 11010,
+      "filterId": "Q_PROV01",
       "filter": {
-        "divisions": [],
-        "levels": [],
-        "tags": [],
-        "divisionsV2": [],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        "categoryAny": [
+          "proverb"
+        ],
+        "inputStepLevel": {
+          "min": 2,
+          "max": 3,
+          "inclusive": true
+        },
+        "length": {
+          "min": 0,
+          "max": 20,
+          "maxExclusive": true
+        }
       },
-      "note": "クエスト入口"
+      "matching": {
+        "phraseCount": 34,
+        "totalLength": 487,
+        "avgLength": 14.323529411764707,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 40,
+        "missMax": 10
+      },
+      "quest": {
+        "worldId": "PROV",
+        "stageId": "Q-PROV01",
+        "stageNo": 1,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-PROV02",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "ことわざ ステージ2",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 11020,
+      "filterId": "Q_PROV02",
+      "filter": {
+        "categoryAny": [
+          "proverb"
+        ],
+        "inputStepLevel": {
+          "min": 2,
+          "max": 3,
+          "inclusive": true
+        },
+        "length": {
+          "min": 20,
+          "max": 35,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 24,
+        "totalLength": 587,
+        "avgLength": 24.458333333333332,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 60,
+        "missMax": 9
+      },
+      "quest": {
+        "worldId": "PROV",
+        "stageId": "Q-PROV02",
+        "stageNo": 2,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-PROV03",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "ことわざ ステージ3",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 11030,
+      "filterId": "Q_PROV03",
+      "filter": {
+        "categoryAny": [
+          "proverb"
+        ],
+        "inputStepLevel": {
+          "min": 2,
+          "max": 3,
+          "inclusive": true
+        },
+        "length": {
+          "min": 20,
+          "max": 50,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 28,
+        "totalLength": 768,
+        "avgLength": 27.428571428571427,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 80,
+        "missMax": 8
+      },
+      "quest": {
+        "worldId": "PROV",
+        "stageId": "Q-PROV03",
+        "stageNo": 3,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-PROV04",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "ことわざ ステージ4",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 11040,
+      "filterId": "Q_PROV04",
+      "filter": {
+        "categoryAny": [
+          "proverb"
+        ],
+        "inputStepLevel": {
+          "min": 2,
+          "max": 4,
+          "inclusive": true
+        },
+        "length": {
+          "min": 28,
+          "max": 60,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 15,
+        "totalLength": 641,
+        "avgLength": 42.733333333333334,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 100,
+        "missMax": 8
+      },
+      "quest": {
+        "worldId": "PROV",
+        "stageId": "Q-PROV04",
+        "stageNo": 4,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-PROV05",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "ことわざ ステージ5",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 11050,
+      "filterId": "Q_PROV05",
+      "filter": {
+        "categoryAny": [
+          "proverb"
+        ],
+        "inputStepLevel": {
+          "min": 2,
+          "max": 4,
+          "inclusive": true
+        },
+        "length": {
+          "min": 25,
+          "max": 65,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 22,
+        "totalLength": 933,
+        "avgLength": 42.40909090909091,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 140,
+        "missMax": 7
+      },
+      "quest": {
+        "worldId": "PROV",
+        "stageId": "Q-PROV05",
+        "stageNo": 5,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-PROV06",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "ことわざ ステージ6",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 11060,
+      "filterId": "Q_PROV06",
+      "filter": {
+        "categoryAny": [
+          "proverb"
+        ],
+        "inputStepLevel": {
+          "min": 2,
+          "max": 4,
+          "inclusive": true
+        },
+        "length": {
+          "min": 30,
+          "max": 67,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 14,
+        "totalLength": 715,
+        "avgLength": 51.07142857142857,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 180,
+        "missMax": 7
+      },
+      "quest": {
+        "worldId": "PROV",
+        "stageId": "Q-PROV06",
+        "stageNo": 6,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-PROV07",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "ことわざ ステージ7",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 11070,
+      "filterId": "Q_PROV07",
+      "filter": {
+        "categoryAny": [
+          "proverb"
+        ],
+        "inputStepLevel": {
+          "min": 3,
+          "max": 5,
+          "inclusive": true
+        },
+        "length": {
+          "min": 45,
+          "max": 72,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 23,
+        "totalLength": 1320,
+        "avgLength": 57.391304347826086,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 220,
+        "missMax": 6
+      },
+      "quest": {
+        "worldId": "PROV",
+        "stageId": "Q-PROV07",
+        "stageNo": 7,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-PROV08",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "ことわざ ステージ8",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 11080,
+      "filterId": "Q_PROV08",
+      "filter": {
+        "categoryAny": [
+          "proverb"
+        ],
+        "inputStepLevel": {
+          "min": 3,
+          "max": 5,
+          "inclusive": true
+        },
+        "length": {
+          "min": 50,
+          "max": 80,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 18,
+        "totalLength": 1082,
+        "avgLength": 60.111111111111114,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 260,
+        "missMax": 6
+      },
+      "quest": {
+        "worldId": "PROV",
+        "stageId": "Q-PROV08",
+        "stageNo": 8,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-PROV09",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "ことわざ ステージ9 BOSS",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 11090,
+      "filterId": "Q_PROV09",
+      "filter": {
+        "categoryAny": [
+          "proverb"
+        ],
+        "inputStepLevel": {
+          "min": 5,
+          "max": 10,
+          "inclusive": true
+        },
+        "length": {
+          "min": 55,
+          "max": 99,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 14,
+        "totalLength": 856,
+        "avgLength": 61.142857142857146,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 300,
+        "missMax": 5
+      },
+      "quest": {
+        "worldId": "PROV",
+        "stageId": "Q-PROV09",
+        "stageNo": 9,
+        "boss": true
+      },
+      "promotion": {}
     },
     {
       "gameId": "DEBUG-ROMA",
       "enabled": true,
-      "mode": "practice",
+      "visibility": "admin",
+      "mode": "debug",
+      "gameType": "timeAttack",
       "title": "DEBUG Romaji / ローマ字ゆれ確認",
-      "subtitle": "",
+      "subtitle": "デバッグ用",
       "description": "ローマ字入力の表記ゆれ確認用。",
-      "durationSec": 90,
-      "phraseCount": 20,
-      "sortOrder": 999,
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 999999,
+      "filterId": "ALL",
       "filter": {
-        "divisions": [],
-        "levels": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6"
-        ],
-        "tags": [
-          "debug"
-        ],
-        "divisionsV2": [],
-        "phraseLevelV2": [],
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [
-          "fa",
-          "fi",
-          "fe",
-          "fo",
-          "che",
-          "thi",
-          "dhi",
-          "nyu",
-          "sokuon",
-          "yoon"
-        ],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "keyRows": [],
-        "questOnly": false
+        "length": {
+          "min": 0
+        }
       },
-      "note": "デバッグ用"
+      "matching": {
+        "phraseCount": 993,
+        "totalLength": 17669,
+        "avgLength": 17.793554884189327,
+        "visible": true
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {}
     }
   ],
   "questWorlds": [
@@ -2461,6 +3484,7 @@
       }
     }
   ],
+  "achievements": [],
   "phrases": [
     {
       "phraseId": "g03001",
@@ -31976,7 +33000,7 @@
       "enabled": true,
       "displayText": "Google Apps ScriptでJSONを出力する",
       "kanaText": "ぐーぐるあっぷすくりぷとでじぇいそんをしゅつりょくする",
-      "primaryRoman": "Google Apps Scriptdejsonwoshuturyokusuru",
+      "primaryRoman": "Google Apps ScriptdeJSONwoshuturyokusuru",
       "extraVariants": [
         "Google Apps Scriptdejsonwoshutsuryokusuru"
       ],
@@ -40381,7 +41405,8 @@
       "kanaText": "にしんすうじゅうしんすうへんかん",
       "primaryRoman": "nisinsuujuusinsuuhenkan",
       "extraVariants": [
-        "nishinsuujuushinsuuhenkan"
+        "nisinsuujussinsuuhenkan",
+        "nisinsuujissinsuuhenkan"
       ],
       "length": 23,
       "difficultyScore": 26.5,
@@ -40423,7 +41448,8 @@
       "kanaText": "じゅうしんすうにしんすうへんかん",
       "primaryRoman": "juusinsuunisinsuuhenkan",
       "extraVariants": [
-        "juushinsuunishinsuuhenkan"
+        "jussinsuunisinsuuhenkan",
+        "jissinsuunisinsuuhenkan"
       ],
       "length": 23,
       "difficultyScore": 26.5,
