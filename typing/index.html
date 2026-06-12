@@ -46,14 +46,30 @@
       color:var(--fg);
     }
     header{
-      display:flex;
-      flex-direction:column;
-      justify-content:center;
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto;
+      align-items:center;
+      gap:12px;
       padding:8px 16px;
       text-align:left;
     }
+    .headerText{min-width:0}
     h1{margin:.2rem 0;font-size:clamp(1.7rem, 3vw, 2.4rem)}
     .subtitle{color:var(--muted);font-size:.95rem}
+    .loginButton{
+      justify-self:end;
+      min-width:110px;
+      padding:9px 14px;
+      border-radius:999px;
+      border-color:rgba(96,165,250,.42);
+      background:rgba(96,165,250,.12);
+      color:var(--fg);
+      white-space:nowrap;
+    }
+    .loginButton:hover{
+      background:rgba(96,165,250,.2);
+      border-color:rgba(96,165,250,.68);
+    }
     main{
       width:100%;
       max-width:980px;
@@ -1614,6 +1630,38 @@
     .adminPhraseModalHead{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
     .adminPhraseModalHead h2{margin:0;font-size:1.15rem}
     .adminPhraseCloseBtn{min-height:0;padding:7px 11px;border-radius:999px}
+    .loginRequiredModal[hidden]{display:none!important}
+    .loginRequiredModal{
+      position:fixed;
+      inset:0;
+      z-index:60;
+      display:grid;
+      place-items:center;
+      padding:18px;
+    }
+    .loginRequiredBackdrop{
+      position:absolute;
+      inset:0;
+      background:rgba(15,23,42,.7);
+      backdrop-filter:blur(3px);
+    }
+    .loginRequiredPanel{
+      position:relative;
+      z-index:1;
+      width:min(440px,100%);
+      display:grid;
+      gap:14px;
+      padding:20px;
+      border:1px solid rgba(148,163,184,.24);
+      border-radius:16px;
+      background:var(--panel);
+      box-shadow:0 24px 70px rgba(15,23,42,.34);
+      text-align:left;
+    }
+    .loginRequiredPanel h2{margin:0;font-size:1.18rem}
+    .loginRequiredPanel p{margin:0;color:var(--muted);font-weight:800;line-height:1.6}
+    .loginRequiredActions{display:flex;justify-content:flex-end;gap:10px}
+    .loginRequiredCloseBtn{min-height:0;padding:9px 14px;border-radius:999px}
     @media (max-width:760px){
       body[data-screen-state="setup"] main,
       body[data-screen-state="ready"] main{padding:8px}
@@ -1665,8 +1713,11 @@
 </head>
 <body data-screen-state="setup">
   <header>
-    <h1>Typing Quest</h1>
-    <div class="subtitle">ステップ別・難易度別に練習できるタイピング教材</div>
+    <div class="headerText">
+      <h1>Typing Quest</h1>
+      <div class="subtitle">ステップ別・難易度別に練習できるタイピング教材</div>
+    </div>
+    <button class="loginButton" id="loginBtn" type="button">ログイン</button>
   </header>
 
   <main>
@@ -1874,6 +1925,17 @@
     </section>
   </main>
 
+  <div class="loginRequiredModal" id="loginRequiredModal" role="dialog" aria-modal="true" aria-labelledby="loginRequiredTitle" hidden>
+    <div class="loginRequiredBackdrop" data-login-required-close></div>
+    <div class="loginRequiredPanel">
+      <h2 id="loginRequiredTitle">ログインが必要です</h2>
+      <p id="loginRequiredMessage">このモードをプレイするにはログインしてください。</p>
+      <div class="loginRequiredActions">
+        <button class="loginRequiredCloseBtn" id="loginRequiredCloseBtn" type="button" data-login-required-close>閉じる</button>
+      </div>
+    </div>
+  </div>
+
   <footer data-copyright-footer></footer>
 
 <script>
@@ -1890,6 +1952,7 @@
     submitResult: false,
     ranking: false,
     loginRequired: false,
+    loginUrl: '',
     adminMode: new URLSearchParams(location.search).get('admin') === '1',
     userEmail: '',
     appVersion: 'web-v4-ui'
@@ -2091,6 +2154,7 @@
 
   const $ = (q) => document.querySelector(q);
   const els = {
+    loginBtn: $('#loginBtn'), loginRequiredModal: $('#loginRequiredModal'), loginRequiredCloseBtn: $('#loginRequiredCloseBtn'),
     modeSel: $('#modeSel'), modeTabs: $('#modeTabs'), modeGrid: $('#modeGrid'), itemCarouselPrev: $('#itemCarouselPrev'), itemCarouselNext: $('#itemCarouselNext'), secSel: $('#secSel'), timeControl: $('#timeControl'),
     setupShell: $('#setupShell'), layerTitleMeta: $('#layerTitleMeta'), courseColumnTitle: $('#courseColumnTitle'), modeDetailPanel: $('#modeDetailPanel'), devModeBadge: $('#devModeBadge'),
     setupWarn: $('#setupWarn'), modeDesc: $('#modeDesc'), candidateInfo: $('#candidateInfo'),
@@ -2304,6 +2368,15 @@
     document.querySelectorAll('[data-copyright-footer]').forEach(node => {
       node.textContent = `Copyright © ${new Date().getFullYear()} Kaijo Junior and Senior High School. All Rights Reserved.`;
     });
+    if (els.loginBtn) {
+      els.loginBtn.classList.toggle('hidden', isLoginAppContext());
+      els.loginBtn.addEventListener('click', openLoginApp);
+    }
+    if (els.loginRequiredModal) {
+      els.loginRequiredModal.addEventListener('click', (e) => {
+        if (e.target.closest('[data-login-required-close]')) closeLoginRequiredModal();
+      });
+    }
     els.devModeBadge.classList.toggle('hidden', !DEV_VIEW);
     setScreenState('setup');
     els.modeSel.innerHTML = '<option>データ読み込み中...</option>';
@@ -2360,7 +2433,6 @@
       }
       const root = e.target.closest('[data-nav-root]');
       if (root) {
-        setActiveColumn('root', { focus: false });
         selectNavRoot(root.dataset.navRoot, { focusCard: true });
         return;
       }
@@ -2388,17 +2460,14 @@
       const card = e.target.closest('.modeCard');
       if (!card) return;
       if (card.dataset.navRoot) {
-        setActiveColumn('root', { focus: false });
         selectNavRoot(card.dataset.navRoot, { focusCard: true });
         return;
       }
       if (card.dataset.worldId) {
-        setActiveColumn('sub', { focus: false });
         selectQuestWorld(card.dataset.worldId);
         return;
       }
       if (card.dataset.subKey) {
-        setActiveColumn('sub', { focus: false });
         selectNavSub(card.dataset.subKey, { focusItem: true });
         return;
       }
@@ -2543,6 +2612,12 @@
       els.startBtn.disabled = true;
       return;
     }
+    if (modeRequiresLoginForWeb(state.mode)) {
+      els.setupWarn.textContent = '';
+      els.setupWarn.classList.remove('isVisible');
+      els.startBtn.disabled = true;
+      return;
+    }
     const hasCandidates = canStartSelectedMode(state.mode);
     const dataPhraseCount = Number(state.dataInfo && state.dataInfo.phrasesCount || 0);
     const message = dataPhraseCount === 0
@@ -2615,6 +2690,62 @@
     });
   }
 
+  function isWebArcadeOnlyContext(){
+    return !isLoginAppContext() && !isAdminMode();
+  }
+
+  function modeRequiresLoginForWeb(mode){
+    return !!(mode && isWebArcadeOnlyContext() && modeGroupKey(mode) !== 'arcade');
+  }
+
+  function navRootRequiresLoginForWeb(rootKey){
+    return isWebArcadeOnlyContext() && rootKey !== 'freeplay';
+  }
+
+  function navSubRequiresLoginForWeb(subKey){
+    return isWebArcadeOnlyContext() && subKey !== 'arcade';
+  }
+
+  function loginRequiredMessage(){
+    return 'このモードをプレイするにはログインしてください。';
+  }
+
+  function showLoginRequiredWarning(){
+    showLoginNoticeModal('ログインが必要です', loginRequiredMessage());
+  }
+
+  function showLoginNoticeModal(title, messageText){
+    if (!els.loginRequiredModal) return;
+    const titleNode = els.loginRequiredModal.querySelector('#loginRequiredTitle');
+    const message = els.loginRequiredModal.querySelector('#loginRequiredMessage');
+    if (titleNode) titleNode.textContent = title;
+    if (message) message.textContent = messageText;
+    els.loginRequiredModal.hidden = false;
+    requestAnimationFrame(() => els.loginRequiredCloseBtn && els.loginRequiredCloseBtn.focus());
+  }
+
+  function closeLoginRequiredModal(){
+    if (!els.loginRequiredModal || els.loginRequiredModal.hidden) return false;
+    els.loginRequiredModal.hidden = true;
+    focusDrillSelectedCard();
+    return true;
+  }
+
+  function loginDestinationUrl(){
+    const configured = String(APP_CONFIG.loginUrl || APP_CONFIG.gasAppUrl || APP_CONFIG.gasUrl || '').trim();
+    if (configured) return configured;
+    const url = new URL(location.href);
+    url.searchParams.set('app', 'gas');
+    url.searchParams.delete('admin');
+    url.searchParams.delete('debug');
+    url.searchParams.delete('dev');
+    return url.toString();
+  }
+
+  function openLoginApp(){
+    showLoginNoticeModal('準備中', 'ログイン版は現在準備中です。公開までもう少しお待ちください。');
+  }
+
   function classContextEnabled(){
     const params = currentUrlParams();
     return ['division', 'classMode', 'class', 'classId'].some(key => {
@@ -2678,10 +2809,23 @@
     const params = currentUrlParams();
     const urlGameId = params.get('gameId') || params.get('game') || params.get('mode');
     const urlDivision = params.get('division');
-    return modeByGameId(urlGameId)
+    const requestedMode = modeByGameId(urlGameId)
       || modeByDivision(urlDivision)
+      || null;
+    if (requestedMode && !modeRequiresLoginForWeb(requestedMode)) return requestedMode;
+    if (isWebArcadeOnlyContext()) {
+      return firstArcadeMode()
+        || requestedMode
+        || modeByGameId(readLastGameId())
+        || modeByGameId('PR-D1');
+    }
+    return requestedMode
       || modeByGameId(readLastGameId())
       || modeByGameId('PR-D1');
+  }
+
+  function firstArcadeMode(){
+    return allSelectableModes().find(mode => modeGroupKey(mode) === 'arcade') || null;
   }
 
   function currentUrlParams(){
@@ -2849,6 +2993,7 @@
 
   function canStartSelectedMode(mode){
     if (state.bootError || !mode) return false;
+    if (modeRequiresLoginForWeb(mode)) return false;
     if (Number(state.dataInfo && state.dataInfo.phrasesCount || 0) === 0) return false;
     if (!(mode.phrases && mode.phrases.length)) return false;
     if (modeGroupKey(mode) === 'quest') {
@@ -2861,6 +3006,7 @@
 
   function startDisabledReason(mode){
     if (state.bootError) return 'typing-data.json を読み込めませんでした。';
+    if (modeRequiresLoginForWeb(mode)) return loginRequiredMessage();
     if (Number(state.dataInfo && state.dataInfo.phrasesCount || 0) === 0) return 'phrases が空のため、このJSONではゲーム開始できません。';
     if (modeGroupKey(mode) === 'quest') {
       const world = selectedQuestWorld();
@@ -3596,6 +3742,18 @@
   function configureInitialNavigation(initialMode){
     const explicit = explicitInitialModeRequested();
     const roots = availableNavRoots();
+    if (isWebArcadeOnlyContext()) {
+      const arcadeMode = initialMode && modeGroupKey(initialMode) === 'arcade'
+        ? initialMode
+        : firstArcadeMode();
+      if (arcadeMode) {
+        applyNavigationForMode(arcadeMode);
+        state.navScreen = 'detail';
+        state.navIndex = Math.max(0, roots.findIndex(root => root.key === state.activeRoot));
+        state.selectedGameId = arcadeMode.id;
+        return;
+      }
+    }
     const defaultRoot = roots.some(root => root.key === 'quest') ? 'quest'
       : roots.some(root => root.key === 'challenge') ? 'challenge'
       : roots.some(root => root.key === 'freeplay') ? 'freeplay'
@@ -4266,6 +4424,13 @@
 
   function selectNavRoot(rootKey, options = {}){
     if (!isNavRootAvailable(rootKey)) return;
+    if (navRootRequiresLoginForWeb(rootKey)) {
+      showLoginRequiredWarning();
+      return;
+    }
+    if (isWebArcadeOnlyContext() && rootKey === 'freeplay' && forceWebArcadeDetail({ focus: !!options.focusCard })) {
+      return;
+    }
     state.activeRoot = rootKey;
     state.navIndex = Math.max(0, availableNavRoots().findIndex(root => root.key === rootKey));
     ensureDrillSelection();
@@ -4274,6 +4439,13 @@
 
   function selectNavSub(subKey, options = {}){
     if (!navSubOptions(state.activeRoot).some(sub => sub.key === subKey)) return;
+    if (navSubRequiresLoginForWeb(subKey)) {
+      showLoginRequiredWarning();
+      return;
+    }
+    if (isWebArcadeOnlyContext() && subKey === 'arcade' && forceWebArcadeDetail({ focus: !!options.focusItem })) {
+      return;
+    }
     state.activeSub = subKey;
     state.activeModeGroup = subKey;
     state.visibleModes = selectableModes();
@@ -4285,6 +4457,10 @@
   }
 
   function selectQuestWorld(worldId, options = {}){
+    if (navRootRequiresLoginForWeb('quest')) {
+      showLoginRequiredWarning();
+      return;
+    }
     state.activeRoot = 'quest';
     state.activeSub = 'worlds';
     state.activeModeGroup = 'quest';
@@ -4308,6 +4484,10 @@
   function selectDrillGame(gameId, options = {}){
     const mode = modeByGameId(gameId);
     if (!mode) return;
+    if (modeRequiresLoginForWeb(mode)) {
+      showLoginRequiredWarning();
+      return;
+    }
     applyNavigationForMode(mode);
     setDrillScreen('detail', { focus: !!options.focus });
     if (options.focusPrimaryControl) focusDetailPrimaryControl();
@@ -4316,6 +4496,10 @@
   function selectModeById(modeId, options = {}){
     const mode = modeByGameId(modeId);
     if (!mode) return;
+    if (modeRequiresLoginForWeb(mode)) {
+      showLoginRequiredWarning();
+      return;
+    }
     applyNavigationForMode(mode);
     setDrillScreen(options.toList ? 'list' : 'detail', { focus: !!options.focusCard });
   }
@@ -4331,6 +4515,17 @@
     syncDurationFromMode();
     if (options.openDetail) setDrillScreen('detail', { focus: !!options.focusCard });
     else renderModeInfo();
+  }
+
+  function forceWebArcadeDetail(options = {}){
+    if (!isWebArcadeOnlyContext()) return false;
+    const arcadeMode = state.mode && modeGroupKey(state.mode) === 'arcade'
+      ? state.mode
+      : firstArcadeMode();
+    if (!arcadeMode) return false;
+    applyNavigationForMode(arcadeMode);
+    setDrillScreen('detail', { focus: !!options.focus });
+    return true;
   }
 
   function goBackNav(){
@@ -4432,14 +4627,26 @@
       return;
     }
     if (state.navScreen === 'detail') {
+      if (isWebArcadeOnlyContext()) {
+        setDrillScreen('list', { focus: true });
+        return;
+      }
       setDrillScreen('list', { focus: true });
       return;
     }
     if (state.navScreen === 'list') {
+      if (isWebArcadeOnlyContext()) {
+        setDrillScreen('list', { focus: true });
+        return;
+      }
       setDrillScreen('sub', { focus: true });
       return;
     }
     if (state.navScreen === 'sub') {
+      if (isWebArcadeOnlyContext()) {
+        forceWebArcadeDetail({ focus: true });
+        return;
+      }
       setDrillScreen('home', { focus: true });
       return;
     }
@@ -4590,6 +4797,13 @@
   }
 
   function handleGlobalKeydown(e){
+    if (els.loginRequiredModal && !els.loginRequiredModal.hidden) {
+      if (e.code === 'Escape') {
+        e.preventDefault();
+        closeLoginRequiredModal();
+      }
+      return;
+    }
     if (state.timeUpGrace && (e.code === 'Enter' || e.code === 'Space')) {
       e.preventDefault();
       finishCurrentPhraseByEnterAfterTimeUp();
@@ -4622,7 +4836,7 @@
       e.preventDefault();
       return;
     }
-    if (e.code === 'Escape' && closeAdminPhraseModal()) {
+    if (e.code === 'Escape' && (closeAdminPhraseModal() || closeLoginRequiredModal())) {
       e.preventDefault();
       return;
     }
@@ -4631,6 +4845,11 @@
     const target = e.target;
     if (target && target.closest && target.closest('.adminPhrasePreview, .adminPhraseModal, .detailHistoryPanel, textarea, select')) return;
     const detailStartButton = target && target.closest && target.closest('[data-detail-start]');
+    if (detailStartButton && e.code === 'ArrowUp' && isTimeSelectableMode(state.mode)) {
+      e.preventDefault();
+      focusDetailPrimaryControl();
+      return;
+    }
     if (detailStartButton && e.code === 'ArrowDown') {
       e.preventDefault();
       return;
