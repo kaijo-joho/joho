@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-06-11T09:10:23.275Z",
+  "generatedAt": "2026-06-12T14:32:44.349Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-06-11T09:10:23.275Z",
+    "generatedAt": "2026-06-12T14:32:44.349Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -2739,6 +2739,375 @@
       "promotion": {}
     },
     {
+      "gameId": "Q-TWIST01",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "早口ことば ステージ1",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 12010,
+      "filterId": "Q-TWIST01",
+      "filter": {
+        "categoryAny": [
+          "tongue_twister"
+        ],
+        "length": {
+          "min": 0,
+          "max": 20,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 12,
+        "totalLength": 215,
+        "avgLength": 17.916666666666668,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 40,
+        "missMax": 10
+      },
+      "quest": {
+        "worldId": "TWIST",
+        "stageId": "Q-TWIST01",
+        "stageNo": 1,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-TWIST02",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "早口ことば ステージ2",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 12020,
+      "filterId": "Q-TWIST02",
+      "filter": {
+        "categoryAny": [
+          "tongue_twister"
+        ],
+        "length": {
+          "min": 18,
+          "max": 22,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 21,
+        "totalLength": 417,
+        "avgLength": 19.857142857142858,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 60,
+        "missMax": 9
+      },
+      "quest": {
+        "worldId": "TWIST",
+        "stageId": "Q-TWIST02",
+        "stageNo": 2,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-TWIST03",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "早口ことば ステージ3",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 12030,
+      "filterId": "Q-TWIST03",
+      "filter": {
+        "categoryAny": [
+          "tongue_twister"
+        ],
+        "length": {
+          "min": 20,
+          "max": 24,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 27,
+        "totalLength": 583,
+        "avgLength": 21.59259259259259,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 80,
+        "missMax": 8
+      },
+      "quest": {
+        "worldId": "TWIST",
+        "stageId": "Q-TWIST03",
+        "stageNo": 3,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-TWIST04",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "早口ことば ステージ4",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 12040,
+      "filterId": "Q-TWIST04",
+      "filter": {
+        "categoryAny": [
+          "tongue_twister"
+        ],
+        "length": {
+          "min": 22,
+          "max": 26,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 30,
+        "totalLength": 709,
+        "avgLength": 23.633333333333333,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 100,
+        "missMax": 8
+      },
+      "quest": {
+        "worldId": "TWIST",
+        "stageId": "Q-TWIST04",
+        "stageNo": 4,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-TWIST05",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "早口ことば ステージ5",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 12050,
+      "filterId": "Q-TWIST05",
+      "filter": {
+        "categoryAny": [
+          "tongue_twister"
+        ],
+        "length": {
+          "min": 24,
+          "max": 27,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 22,
+        "totalLength": 550,
+        "avgLength": 25,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 140,
+        "missMax": 7
+      },
+      "quest": {
+        "worldId": "TWIST",
+        "stageId": "Q-TWIST05",
+        "stageNo": 5,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-TWIST06",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "早口ことば ステージ6",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 12060,
+      "filterId": "Q-TWIST06",
+      "filter": {
+        "categoryAny": [
+          "tongue_twister"
+        ],
+        "length": {
+          "min": 25,
+          "max": 29,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 28,
+        "totalLength": 741,
+        "avgLength": 26.464285714285715,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 180,
+        "missMax": 7
+      },
+      "quest": {
+        "worldId": "TWIST",
+        "stageId": "Q-TWIST06",
+        "stageNo": 6,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-TWIST07",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "早口ことば ステージ7",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 12070,
+      "filterId": "Q-TWIST07",
+      "filter": {
+        "categoryAny": [
+          "tongue_twister"
+        ],
+        "length": {
+          "min": 27,
+          "max": 30,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 14,
+        "totalLength": 393,
+        "avgLength": 28.071428571428573,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 220,
+        "missMax": 6
+      },
+      "quest": {
+        "worldId": "TWIST",
+        "stageId": "Q-TWIST07",
+        "stageNo": 7,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-TWIST08",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "早口ことば ステージ8",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 12080,
+      "filterId": "Q-TWIST08",
+      "filter": {
+        "categoryAny": [
+          "tongue_twister"
+        ],
+        "length": {
+          "min": 28,
+          "max": 34,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 27,
+        "totalLength": 802,
+        "avgLength": 29.703703703703702,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 260,
+        "missMax": 6
+      },
+      "quest": {
+        "worldId": "TWIST",
+        "stageId": "Q-TWIST08",
+        "stageNo": 8,
+        "boss": false
+      },
+      "promotion": {}
+    },
+    {
+      "gameId": "Q-TWIST09",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "quest",
+      "gameType": "battle",
+      "title": "早口ことば ステージ9 BOSS",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 12090,
+      "filterId": "Q-TWIST09",
+      "filter": {
+        "categoryAny": [
+          "tongue_twister"
+        ],
+        "length": {
+          "min": 33,
+          "max": 99,
+          "maxExclusive": true
+        }
+      },
+      "matching": {
+        "phraseCount": 11,
+        "totalLength": 419,
+        "avgLength": 38.09090909090909,
+        "visible": true
+      },
+      "clearConditions": {
+        "correctCount": 300,
+        "missMax": 5
+      },
+      "quest": {
+        "worldId": "TWIST",
+        "stageId": "Q-TWIST09",
+        "stageNo": 9,
+        "boss": true
+      },
+      "promotion": {}
+    },
+    {
       "gameId": "DEBUG-ROMA",
       "enabled": true,
       "visibility": "admin",
@@ -2769,718 +3138,55 @@
   ],
   "questWorlds": [
     {
-      "worldId": "W-GENERAL",
+      "worldId": "PROV",
       "enabled": true,
       "worldType": "category",
-      "title": "General / 一般",
-      "subtitle": "",
-      "description": "日常語・一般語のワールド。",
-      "category": [
-        "general"
-      ],
+      "title": "ことわざ",
+      "subtitle": "ことばの森",
+      "description": "ことわざを題材にしたクエストです。短いことわざから長いことわざ、最後はボスステージに挑戦します。",
+      "category": [],
       "keyRows": [],
       "skillTagsAny": [],
       "skillTagsAll": [],
       "skillTagsNone": [],
-      "minPhraseLevel": "P1",
+      "minPhraseLevel": "",
       "maxPhraseLevel": "",
-      "stageCount": 0,
+      "stageCount": 10,
       "sortOrder": 10,
-      "note": "カテゴリワールド",
+      "note": "ことわざクエスト",
       "filter": {
-        "category": [
-          "general"
-        ],
+        "category": [],
         "categoryAny": [],
         "categoryAll": [],
         "skillTagsAny": [],
         "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
+        "skillTagsNone": []
       }
     },
     {
-      "worldId": "W-SCHOOL",
+      "worldId": "TWIST",
       "enabled": true,
       "worldType": "category",
-      "title": "School / 学校",
-      "subtitle": "",
-      "description": "学校生活に関するフレーズのワールド。",
-      "category": [
-        "school"
-      ],
+      "title": "早口言葉",
+      "subtitle": "早口言葉の台地",
+      "description": "早口言葉を題材にしたクエストです。口で言うのが難しい言葉は、タイピングも難しい！最後はボスステージに挑戦します。",
+      "category": [],
       "keyRows": [],
       "skillTagsAny": [],
       "skillTagsAll": [],
       "skillTagsNone": [],
-      "minPhraseLevel": "P1",
+      "minPhraseLevel": "",
       "maxPhraseLevel": "",
-      "stageCount": 0,
+      "stageCount": 10,
       "sortOrder": 20,
-      "note": "カテゴリワールド",
-      "filter": {
-        "category": [
-          "school"
-        ],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
-      }
-    },
-    {
-      "worldId": "W-IT",
-      "enabled": true,
-      "worldType": "category",
-      "title": "IT / 情報",
-      "subtitle": "",
-      "description": "情報・ICTに関するフレーズのワールド。",
-      "category": [
-        "it"
-      ],
-      "keyRows": [],
-      "skillTagsAny": [],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 30,
-      "note": "カテゴリワールド",
-      "filter": {
-        "category": [
-          "it"
-        ],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
-      }
-    },
-    {
-      "worldId": "W-PROGRAMMING",
-      "enabled": true,
-      "worldType": "category",
-      "title": "Programming / プログラミング",
-      "subtitle": "",
-      "description": "プログラミング用語のワールド。",
-      "category": [
-        "it"
-      ],
-      "keyRows": [],
-      "skillTagsAny": [],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 40,
-      "note": "カテゴリワールド",
-      "filter": {
-        "category": [
-          "it"
-        ],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
-      }
-    },
-    {
-      "worldId": "W-DATA",
-      "enabled": true,
-      "worldType": "category",
-      "title": "Data / データ",
-      "subtitle": "",
-      "description": "データ分析・統計のワールド。",
-      "category": [
-        "it"
-      ],
-      "keyRows": [],
-      "skillTagsAny": [],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 50,
-      "note": "カテゴリワールド",
-      "filter": {
-        "category": [
-          "it"
-        ],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
-      }
-    },
-    {
-      "worldId": "W-SECURITY",
-      "enabled": true,
-      "worldType": "category",
-      "title": "Security / セキュリティ",
-      "subtitle": "",
-      "description": "認証・暗号・権限などのワールド。",
-      "category": [
-        "it"
-      ],
-      "keyRows": [],
-      "skillTagsAny": [],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 60,
-      "note": "カテゴリワールド",
-      "filter": {
-        "category": [
-          "it"
-        ],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
-      }
-    },
-    {
-      "worldId": "W-WEB",
-      "enabled": true,
-      "worldType": "category",
-      "title": "Web / Web",
-      "subtitle": "",
-      "description": "HTML・CSS・Web制作のワールド。",
-      "category": [
-        "it"
-      ],
-      "keyRows": [],
-      "skillTagsAny": [],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 70,
-      "note": "カテゴリワールド",
-      "filter": {
-        "category": [
-          "it"
-        ],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
-      }
-    },
-    {
-      "worldId": "W-HOME",
-      "enabled": true,
-      "worldType": "keyRows",
-      "title": "Home Row / 中段キー",
-      "subtitle": "",
-      "description": "中段キー中心の基礎ワールド。",
-      "category": [],
-      "keyRows": [
-        "home"
-      ],
-      "skillTagsAny": [],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 110,
-      "note": "キー列ワールド",
+      "note": "早口言葉クエスト",
       "filter": {
         "category": [],
         "categoryAny": [],
         "categoryAll": [],
         "skillTagsAny": [],
         "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ],
-        "keyRows": [
-          "home"
-        ]
-      }
-    },
-    {
-      "worldId": "W-TOP",
-      "enabled": true,
-      "worldType": "keyRows",
-      "title": "Top Row / 上段キー",
-      "subtitle": "",
-      "description": "上段キーを含むワールド。",
-      "category": [],
-      "keyRows": [
-        "top"
-      ],
-      "skillTagsAny": [],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 120,
-      "note": "キー列ワールド",
-      "filter": {
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ],
-        "keyRows": [
-          "top"
-        ]
-      }
-    },
-    {
-      "worldId": "W-BOTTOM",
-      "enabled": true,
-      "worldType": "keyRows",
-      "title": "Bottom Row / 下段キー",
-      "subtitle": "",
-      "description": "下段キーを含むワールド。",
-      "category": [],
-      "keyRows": [
-        "bottom"
-      ],
-      "skillTagsAny": [],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 130,
-      "note": "キー列ワールド",
-      "filter": {
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ],
-        "keyRows": [
-          "bottom"
-        ]
-      }
-    },
-    {
-      "worldId": "W-NUMBER",
-      "enabled": true,
-      "worldType": "keyRows",
-      "title": "Number Row / 数字キー",
-      "subtitle": "",
-      "description": "数字入力を含むワールド。",
-      "category": [],
-      "keyRows": [
-        "number"
-      ],
-      "skillTagsAny": [],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 140,
-      "note": "キー列ワールド",
-      "filter": {
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ],
-        "keyRows": [
-          "number"
-        ]
-      }
-    },
-    {
-      "worldId": "W-LONG",
-      "enabled": true,
-      "worldType": "skill",
-      "title": "Long Sound / 長音",
-      "subtitle": "",
-      "description": "長音を含むフレーズのワールド。",
-      "category": [],
-      "keyRows": [],
-      "skillTagsAny": [
-        "long"
-      ],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 210,
-      "note": "スキルワールド",
-      "filter": {
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [
-          "long"
-        ],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
-      }
-    },
-    {
-      "worldId": "W-SOKUON",
-      "enabled": true,
-      "worldType": "skill",
-      "title": "Double Consonant / 促音",
-      "subtitle": "",
-      "description": "促音を含むフレーズのワールド。",
-      "category": [],
-      "keyRows": [],
-      "skillTagsAny": [
-        "sokuon"
-      ],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 220,
-      "note": "スキルワールド",
-      "filter": {
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [
-          "sokuon"
-        ],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
-      }
-    },
-    {
-      "worldId": "W-YOON",
-      "enabled": true,
-      "worldType": "skill",
-      "title": "Contracted Sound / 拗音",
-      "subtitle": "",
-      "description": "拗音を含むフレーズのワールド。",
-      "category": [],
-      "keyRows": [],
-      "skillTagsAny": [
-        "yoon"
-      ],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 230,
-      "note": "スキルワールド",
-      "filter": {
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [
-          "yoon"
-        ],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
-      }
-    },
-    {
-      "worldId": "W-LATIN",
-      "enabled": true,
-      "worldType": "skill",
-      "title": "Alphabet / 英字",
-      "subtitle": "",
-      "description": "英字を含むフレーズのワールド。",
-      "category": [],
-      "keyRows": [],
-      "skillTagsAny": [
-        "latin"
-      ],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 240,
-      "note": "スキルワールド",
-      "filter": {
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [
-          "latin"
-        ],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
-      }
-    },
-    {
-      "worldId": "W-NUMBER-SKILL",
-      "enabled": true,
-      "worldType": "skill",
-      "title": "Numbers / 数字",
-      "subtitle": "",
-      "description": "数字を含むフレーズのワールド。",
-      "category": [],
-      "keyRows": [],
-      "skillTagsAny": [
-        "number"
-      ],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P1",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 250,
-      "note": "スキルワールド",
-      "filter": {
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [
-          "number"
-        ],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P1",
-          "P2",
-          "P3",
-          "P4",
-          "P5",
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
-      }
-    },
-    {
-      "worldId": "W-BOSS",
-      "enabled": true,
-      "worldType": "special",
-      "title": "Boss / ボス",
-      "subtitle": "",
-      "description": "高難度・特殊フレーズのワールド。",
-      "category": [],
-      "keyRows": [],
-      "skillTagsAny": [
-        "long_text",
-        "boss"
-      ],
-      "skillTagsAll": [],
-      "skillTagsNone": [],
-      "minPhraseLevel": "P6",
-      "maxPhraseLevel": "",
-      "stageCount": 0,
-      "sortOrder": 900,
-      "note": "特殊ワールド",
-      "filter": {
-        "category": [],
-        "categoryAny": [],
-        "categoryAll": [],
-        "skillTagsAny": [
-          "long_text",
-          "boss"
-        ],
-        "skillTagsAll": [],
-        "skillTagsNone": [],
-        "phraseLevelV2": [
-          "P6",
-          "P7",
-          "P8",
-          "P9",
-          "P10"
-        ]
+        "skillTagsNone": []
       }
     }
   ],
@@ -39816,160 +39522,6 @@
       "note": ""
     },
     {
-      "phraseId": "g26001",
-      "enabled": true,
-      "displayText": "生麦生米生卵",
-      "kanaText": "なまむぎなまごめなまたまご",
-      "primaryRoman": "namamuginamagomenamatamago",
-      "extraVariants": [],
-      "length": 26,
-      "difficultyScore": 29,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=26, top=6, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=29, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g31003",
-      "enabled": true,
-      "displayText": "赤巻紙青巻紙黄巻紙",
-      "kanaText": "あかまきがみあおまきがみきまきがみ",
-      "primaryRoman": "akamakigamiaomakigamikimakigami",
-      "extraVariants": [],
-      "length": 31,
-      "difficultyScore": 33.8,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=31, top=8, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=33.8, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g31001",
-      "enabled": true,
-      "displayText": "青巻紙赤巻紙黄巻紙",
-      "kanaText": "あおまきがみあかまきがみきまきがみ",
-      "primaryRoman": "aomakigamiakamakigamikimakigami",
-      "extraVariants": [],
-      "length": 31,
-      "difficultyScore": 33.8,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=31, top=8, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=33.8, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g25005",
-      "enabled": true,
-      "displayText": "赤パジャマ青パジャマ黄パジャマ",
-      "kanaText": "あかぱじゃまあおぱじゃまきぱじゃま",
-      "primaryRoman": "akapajamaaopajamakipajama",
-      "extraVariants": [],
-      "length": 25,
-      "difficultyScore": 28.1,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "katakana",
-        "kanji",
-        "yoon"
-      ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=25, top=5, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=28.1, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
       "phraseId": "g16001",
       "enabled": true,
       "displayText": "バスガス爆発",
@@ -40006,6 +39558,127 @@
       "meaningText": "早口言葉",
       "adviceText": "",
       "difficultyDetail": "base=16, top=5, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=17.4, scoreLevel=D4, minLevel=D4, final=D4, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g16017",
+      "enabled": true,
+      "displayText": "変数名命名中",
+      "kanaText": "へんすうめいめいちゅう",
+      "primaryRoman": "hensuumeimeityuu",
+      "extraVariants": [
+        "hensuumeimeichuu"
+      ],
+      "length": 16,
+      "difficultyScore": 19.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=16, top=11, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=19.3, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g17006",
+      "enabled": true,
+      "displayText": "暗号化解除許可",
+      "kanaText": "あんごうかかいじょきょか",
+      "primaryRoman": "angoukakaijokyoka",
+      "extraVariants": [],
+      "length": 17,
+      "difficultyScore": 19.4,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=17, top=6, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=19.4, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g17001",
+      "enabled": true,
+      "displayText": "公開鍵暗号化",
+      "kanaText": "こうかいかぎあんごうか",
+      "primaryRoman": "koukaikagiangouka",
+      "extraVariants": [],
+      "length": 17,
+      "difficultyScore": 18.4,
+      "divisionLevel": 3,
+      "phraseLevel": 3,
+      "divisions": [
+        "D4"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=17, top=6, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=18.4, scoreLevel=D4, minLevel=D1, final=D4, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -40056,135 +39729,16 @@
       "note": ""
     },
     {
-      "phraseId": "g33001",
+      "phraseId": "g18001",
       "enabled": true,
-      "displayText": "隣の客はよく柿食う客だ",
-      "kanaText": "となりのきゃくはよくかきくうきゃくだ",
-      "primaryRoman": "tonarinokyakuhayokukakikuukyakuda",
-      "extraVariants": [],
-      "length": 33,
-      "difficultyScore": 37.4,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji",
-        "yoon"
-      ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=33, top=15, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=37.4, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g25008",
-      "enabled": true,
-      "displayText": "庭には二羽鶏がいる",
-      "kanaText": "にわにはにわにわとりがいる",
-      "primaryRoman": "niwaniwaniwaniwatorigairu",
-      "extraVariants": [],
-      "length": 25,
-      "difficultyScore": 28.8,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=25, top=15, bottom=4, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=28.8, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g36002",
-      "enabled": true,
-      "displayText": "坊主が屏風に上手に坊主の絵を描いた",
-      "kanaText": "ぼうずがびょうぶにじょうずにぼうずのえをかいた",
-      "primaryRoman": "bouzugabyoubunijouzunibouzunoeokaita",
-      "extraVariants": [],
-      "length": 36,
-      "difficultyScore": 43,
-      "divisionLevel": 7,
-      "phraseLevel": 7,
-      "divisions": [
-        "D8"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji",
-        "yoon"
-      ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=36, top=20, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=43, scoreLevel=D8, minLevel=D1, final=D8, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g23006",
-      "enabled": true,
-      "displayText": "すももも桃も桃のうち",
-      "kanaText": "すもももももももものうち",
-      "primaryRoman": "sumomomomomomomomonouti",
+      "displayText": "子鹿鹿の子鹿",
+      "kanaText": "こじかしかのこじか",
+      "primaryRoman": "kojikasikanokojika",
       "extraVariants": [
-        "sumomomomomomomomonouchi"
+        "kojikashikanokojika"
       ],
-      "length": 23,
-      "difficultyScore": 26.6,
+      "length": 18,
+      "difficultyScore": 19.4,
       "divisionLevel": 4,
       "phraseLevel": 4,
       "divisions": [
@@ -40202,7 +39756,8 @@
       ],
       "skillTags": [
         "hiragana",
-        "kanji"
+        "kanji",
+        "ji"
       ],
       "inputStep": "bottom",
       "inputStepLevel": 3,
@@ -40210,24 +39765,26 @@
       "divisionsV2": [],
       "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=19, top=11, bottom=7, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=22.6, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
+      "difficultyDetail": "base=18, top=6, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=19.4, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
     },
     {
-      "phraseId": "g29001",
+      "phraseId": "g18017",
       "enabled": true,
-      "displayText": "この釘は引き抜きにくい釘だ",
-      "kanaText": "このくぎはひきぬきにくいくぎだ",
-      "primaryRoman": "konokugihahikinukinikuikugida",
-      "extraVariants": [],
-      "length": 29,
-      "difficultyScore": 32.2,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
+      "displayText": "申請書審査中",
+      "kanaText": "しんせいしょしんさちゅう",
+      "primaryRoman": "sinseishosinsatyuu",
+      "extraVariants": [
+        "shinseishoshinsachuu"
+      ],
+      "length": 18,
+      "difficultyScore": 21.2,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
       "divisions": [
-        "D7"
+        "D5"
       ],
       "tags": [],
       "category": [
@@ -40240,56 +39797,17 @@
         "bottom"
       ],
       "skillTags": [
-        "hiragana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=29, top=13, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=32.2, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g22019",
-      "enabled": true,
-      "displayText": "手術室手術中",
-      "kanaText": "しゅじゅつしつしゅじゅつちゅう",
-      "primaryRoman": "shujutusitushujututyuu",
-      "extraVariants": [
-        "shujutsushitsushujutsuchuu"
-      ],
-      "length": 22,
-      "difficultyScore": 27.5,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top"
-      ],
-      "skillTags": [
         "kanji",
-        "yoon"
+        "yoon",
+        "n"
       ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
+      "inputStep": "n",
+      "inputStepLevel": 5,
       "phraseLevelV2": "",
       "divisionsV2": [],
-      "meaningText": "早口言葉",
+      "meaningText": "早口言葉風",
       "adviceText": "",
-      "difficultyDetail": "base=22, top=15, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=27.5, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "difficultyDetail": "base=18, top=9, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=21.2, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -40336,327 +39854,6 @@
       "note": ""
     },
     {
-      "phraseId": "g25019",
-      "enabled": true,
-      "displayText": "除雪車除雪作業中",
-      "kanaText": "じょせつしゃじょせつさぎょうちゅう",
-      "primaryRoman": "josetushajosetusagyoutyuu",
-      "extraVariants": [
-        "josetsushajosetsusagyouchuu"
-      ],
-      "length": 25,
-      "difficultyScore": 30.5,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon"
-      ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=25, top=15, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=30.5, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g30003",
-      "enabled": true,
-      "displayText": "生なまず生なまこ生なめこ",
-      "kanaText": "なまなまずなまなまこなまなめこ",
-      "primaryRoman": "namanamazunamanamakonamanameko",
-      "extraVariants": [],
-      "length": 30,
-      "difficultyScore": 33.4,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=30, top=4, bottom=13, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=33.4, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g28015",
-      "enabled": true,
-      "displayText": "蛙ぴょこぴょこ三ぴょこぴょこ",
-      "kanaText": "かえるぴょこぴょこさんぴょこぴょこ",
-      "primaryRoman": "kaerupyokopyokosanpyokopyoko",
-      "extraVariants": [],
-      "length": 28,
-      "difficultyScore": 34,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=28, top=19, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=34, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "q43001",
-      "enabled": true,
-      "displayText": "瓜売りが瓜売りに来て瓜売り残し瓜売り帰る",
-      "kanaText": "うりうりがうりうりにきてうりうりのこしうりうりかえる",
-      "primaryRoman": "uriurigauriurinikiteuriurinokosiuriurikaeru",
-      "extraVariants": [
-        "uriurigauriurinikiteuriurinokoshiuriurikaeru"
-      ],
-      "length": 43,
-      "difficultyScore": 50.2,
-      "divisionLevel": 8,
-      "phraseLevel": 8,
-      "divisions": [
-        "D9"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji",
-        "long_text"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=43, top=34, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=50.2, scoreLevel=D9, minLevel=D9, final=D9, minReasons=latin,long_text",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "q54001",
-      "enabled": true,
-      "displayText": "東京特許許可局局長今日急遽許可却下",
-      "kanaText": "とうきょうとっきょきょかきょくきょくちょうきょうきゅうきょきょかきゃっか",
-      "primaryRoman": "toukyoutokkyokyokakyokukyokutyoukyoukyuukyokyokakyakka",
-      "extraVariants": [
-        "toukyoutokkyokyokakyokukyokuchoukyoukyuukyokyokakyakka"
-      ],
-      "length": 54,
-      "difficultyScore": 67.1,
-      "divisionLevel": 9,
-      "phraseLevel": 9,
-      "divisions": [
-        "D10"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top"
-      ],
-      "skillTags": [
-        "kanji",
-        "sokuon",
-        "yoon",
-        "long_text"
-      ],
-      "inputStep": "sokuon",
-      "inputStepLevel": 6,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=54, top=33, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=13, total=67.1, scoreLevel=D10, minLevel=D9, final=D10, minReasons=latin,long_text",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g26011",
-      "enabled": true,
-      "displayText": "骨粗鬆症訴訟勝訴",
-      "kanaText": "こつそしょうしょうそしょうしょうそ",
-      "primaryRoman": "kotusoshoushousoshoushouso",
-      "extraVariants": [
-        "kotsusoshoushousoshoushouso"
-      ],
-      "length": 26,
-      "difficultyScore": 30.8,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon"
-      ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=26, top=14, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=30.8, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g25006",
-      "enabled": true,
-      "displayText": "赤生姜青生姜黄生姜",
-      "kanaText": "あかしょうがあおしょうがきしょうが",
-      "primaryRoman": "akashougaaoshougakishouga",
-      "extraVariants": [],
-      "length": 25,
-      "difficultyScore": 28.1,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon"
-      ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=25, top=8, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=28.1, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g34002",
-      "enabled": true,
-      "displayText": "赤唐辛子青唐辛子黄唐辛子",
-      "kanaText": "あかとうがらしあおとうがらしきとうがらし",
-      "primaryRoman": "akatougarasiaotougarasikitougarasi",
-      "extraVariants": [
-        "akatougarashiaotougarashikitougarashi"
-      ],
-      "length": 34,
-      "difficultyScore": 37.4,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top"
-      ],
-      "skillTags": [
-        "kanji"
-      ],
-      "inputStep": "top",
-      "inputStepLevel": 2,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=34, top=17, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=37.4, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
       "phraseId": "g19003",
       "enabled": true,
       "displayText": "赤味噌青味噌黄味噌",
@@ -40695,99 +39892,20 @@
       "note": ""
     },
     {
-      "phraseId": "g28001",
+      "phraseId": "g19015",
       "enabled": true,
-      "displayText": "鴨が米噛む亀が鴨噛む",
-      "kanaText": "かもがこめかむかめがかもかむ",
-      "primaryRoman": "kamogakomekamukamegakamokamu",
-      "extraVariants": [],
-      "length": 28,
-      "difficultyScore": 30.6,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=28, top=7, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=30.6, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g28004",
-      "enabled": true,
-      "displayText": "猫の子子猫獅子の子子獅子",
-      "kanaText": "ねこのここねこししのここじし",
-      "primaryRoman": "nekonokokonekosisinokokojisi",
+      "displayText": "文字コード変換中",
+      "kanaText": "もじこーどへんかんちゅう",
+      "primaryRoman": "mojiko-dohenkantyuu",
       "extraVariants": [
-        "nekonokokonekoshishinokokojishi"
+        "mojiko-dohenkanchuu"
       ],
-      "length": 28,
-      "difficultyScore": 31.6,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
+      "length": 19,
+      "difficultyScore": 22.4,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
       "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji",
-        "ji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=28, top=14, bottom=4, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=31.6, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g31002",
-      "enabled": true,
-      "displayText": "赤カマキリ青カマキリ黄カマキリ",
-      "kanaText": "あかかまきりあおかまきりきかまきり",
-      "primaryRoman": "akakamakiriaokamakirikikamakiri",
-      "extraVariants": [],
-      "length": 31,
-      "difficultyScore": 33.8,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
+        "D5"
       ],
       "tags": [],
       "category": [
@@ -40801,192 +39919,39 @@
       ],
       "skillTags": [
         "katakana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=31, top=11, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=33.8, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g28009",
-      "enabled": true,
-      "displayText": "右目右耳右耳右目",
-      "kanaText": "みぎめみぎみみみぎみみみぎめ",
-      "primaryRoman": "migimemigimimimigimimimigime",
-      "extraVariants": [],
-      "length": 28,
-      "difficultyScore": 32.8,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=28, top=14, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=32.8, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g36001",
-      "enabled": true,
-      "displayText": "左目左耳左耳左目",
-      "kanaText": "ひだりめひだりみみひだりみみひだりめ",
-      "primaryRoman": "hidarimehidarimimihidarimimihidarime",
-      "extraVariants": [],
-      "length": 36,
-      "difficultyScore": 40.8,
-      "divisionLevel": 7,
-      "phraseLevel": 7,
-      "divisions": [
-        "D8"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=36, top=18, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=40.8, scoreLevel=D8, minLevel=D1, final=D8, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g24002",
-      "enabled": true,
-      "displayText": "新設診察室視察",
-      "kanaText": "しんせつしんさつしつしさつ",
-      "primaryRoman": "sinsetusinsatusitusisatu",
-      "extraVariants": [
-        "shinsetsushinsatsushitsushisatsu"
-      ],
-      "length": 24,
-      "difficultyScore": 27,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
         "kanji",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=24, top=13, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=27, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "q35001",
-      "enabled": true,
-      "displayText": "新設診察室手術室視察",
-      "kanaText": "しんせつしんさつしつしゅじゅつしつしさつ",
-      "primaryRoman": "sinsetusinsatusitushujutusitusisatu",
-      "extraVariants": [
-        "shinsetsushinsatsushitsushujutsushitsushisatsu"
-      ],
-      "length": 35,
-      "difficultyScore": 40.4,
-      "divisionLevel": 8,
-      "phraseLevel": 8,
-      "divisions": [
-        "D9"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
+        "hyphen",
         "yoon",
+        "long",
         "n",
-        "long_text"
+        "ji"
       ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
+      "inputStep": "symbol",
+      "inputStepLevel": 13,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=35, top=20, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=40.4, scoreLevel=D8, minLevel=D9, final=D9, minReasons=latin,long_text",
+      "difficultyDetail": "base=19, top=9, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=22.4, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
     },
     {
-      "phraseId": "g32002",
+      "phraseId": "g19001",
       "enabled": true,
-      "displayText": "旅客機百機客各百人",
-      "kanaText": "りょかくきひゃっききゃくかくひゃくにん",
-      "primaryRoman": "ryokakukihyakkikyakukakuhyakunin",
-      "extraVariants": [],
-      "length": 32,
-      "difficultyScore": 37.5,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
+      "displayText": "秘密鍵復号化",
+      "kanaText": "ひみつかぎふくごうか",
+      "primaryRoman": "himitukagihukugouka",
+      "extraVariants": [
+        "himitsukagifukugouka"
+      ],
+      "length": 19,
+      "difficultyScore": 21,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
       "divisions": [
-        "D7"
+        "D5"
       ],
       "tags": [],
       "category": [
@@ -40999,37 +39964,34 @@
         "bottom"
       ],
       "skillTags": [
-        "kanji",
-        "sokuon",
-        "yoon",
-        "n"
+        "kanji"
       ],
-      "inputStep": "sokuon",
-      "inputStepLevel": 6,
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=32, top=13, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=37.5, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "difficultyDetail": "base=19, top=9, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=21, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
     },
     {
-      "phraseId": "g25017",
+      "phraseId": "g19017",
       "enabled": true,
-      "displayText": "出席者数集計中",
-      "kanaText": "しゅっせきしゃすうしゅうけいちゅう",
-      "primaryRoman": "shussekishasuushuukeityuu",
+      "displayText": "初期処理処理中",
+      "kanaText": "しょきしょりしょりちゅう",
+      "primaryRoman": "shokishorishorityuu",
       "extraVariants": [
-        "shussekishasuushuukeichuu"
+        "shokishorishorichuu"
       ],
-      "length": 25,
-      "difficultyScore": 30.1,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
+      "length": 19,
+      "difficultyScore": 23.4,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
       "divisions": [
-        "D6"
+        "D5"
       ],
       "tags": [],
       "category": [
@@ -41042,101 +40004,15 @@
       ],
       "skillTags": [
         "kanji",
-        "sokuon",
         "yoon"
       ],
-      "inputStep": "sokuon",
-      "inputStepLevel": 6,
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
       "phraseLevelV2": "",
       "divisionsV2": [],
-      "meaningText": "早口言葉",
+      "meaningText": "早口言葉風",
       "adviceText": "",
-      "difficultyDetail": "base=25, top=13, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=30.1, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g26010",
-      "enabled": true,
-      "displayText": "出欠確認確認中",
-      "kanaText": "しゅっけつかくにんかくにんちゅう",
-      "primaryRoman": "shukketukakuninkakunintyuu",
-      "extraVariants": [
-        "shukketsukakuninkakuninchuu"
-      ],
-      "length": 26,
-      "difficultyScore": 30.7,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "sokuon",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "sokuon",
-      "inputStepLevel": 6,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=26, top=12, bottom=4, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=30.7, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g24018",
-      "enabled": true,
-      "displayText": "提出期限確認中",
-      "kanaText": "ていしゅつきげんかくにんちゅう",
-      "primaryRoman": "teishutukigenkakunintyuu",
-      "extraVariants": [
-        "teishutsukigenkakuninchuu"
-      ],
-      "length": 24,
-      "difficultyScore": 28.4,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=24, top=14, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=28.4, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "difficultyDetail": "base=19, top=12, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=23.4, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -41185,20 +40061,62 @@
       "note": ""
     },
     {
-      "phraseId": "g22018",
+      "phraseId": "g20016",
       "enabled": true,
-      "displayText": "情報処理実習中",
-      "kanaText": "じょうほうしょりじっしゅうちゅう",
-      "primaryRoman": "jouhoushorijisshuutyuu",
+      "displayText": "条件分岐分岐中",
+      "kanaText": "じょうけんぶんきぶんきちゅう",
+      "primaryRoman": "joukenbunkibunkityuu",
       "extraVariants": [
-        "jouhoushorijisshuuchuu"
+        "joukenbunkibunkichuu"
       ],
-      "length": 22,
-      "difficultyScore": 27.3,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
+      "length": 20,
+      "difficultyScore": 24.2,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
       "divisions": [
-        "D6"
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=20, top=11, bottom=5, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=24.2, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g20019",
+      "enabled": true,
+      "displayText": "例外処理処理中",
+      "kanaText": "れいがいしょりしょりちゅう",
+      "primaryRoman": "reigaishorishorityuu",
+      "extraVariants": [
+        "reigaishorishorichuu"
+      ],
+      "length": 20,
+      "difficultyScore": 24.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
       ],
       "tags": [],
       "category": [
@@ -41211,17 +40129,94 @@
       ],
       "skillTags": [
         "kanji",
-        "sokuon",
-        "yoon",
-        "ji"
+        "yoon"
       ],
-      "inputStep": "sokuon",
-      "inputStepLevel": 6,
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=22, top=14, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=27.3, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "difficultyDetail": "base=20, top=14, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=24.3, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g20005",
+      "enabled": true,
+      "displayText": "猿すべり猿すべる",
+      "kanaText": "さるすべりさるすべる",
+      "primaryRoman": "sarusuberisarusuberu",
+      "extraVariants": [],
+      "length": 20,
+      "difficultyScore": 22.8,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=20, top=12, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=22.8, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g20011",
+      "enabled": true,
+      "displayText": "右耳にミニニキビ",
+      "kanaText": "みぎみみにみににきび",
+      "primaryRoman": "migimiminimininikibi",
+      "extraVariants": [],
+      "length": 20,
+      "difficultyScore": 23.6,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "katakana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=20, top=10, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=23.6, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -41311,6 +40306,336 @@
       "note": ""
     },
     {
+      "phraseId": "g21013",
+      "enabled": true,
+      "displayText": "画像圧縮処理中",
+      "kanaText": "がぞうあっしゅくしょりちゅう",
+      "primaryRoman": "gazouasshukushorityuu",
+      "extraVariants": [
+        "gazouasshukushorichuu"
+      ],
+      "length": 21,
+      "difficultyScore": 25.4,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "sokuon",
+        "yoon"
+      ],
+      "inputStep": "sokuon",
+      "inputStepLevel": 6,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=21, top=11, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=25.4, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g21009",
+      "enabled": true,
+      "displayText": "動画圧縮処理中",
+      "kanaText": "どうがあっしゅくしょりちゅう",
+      "primaryRoman": "dougaasshukushorityuu",
+      "extraVariants": [
+        "dougaasshukushorichuu"
+      ],
+      "length": 21,
+      "difficultyScore": 25.2,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "kanji",
+        "sokuon",
+        "yoon"
+      ],
+      "inputStep": "sokuon",
+      "inputStepLevel": 6,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=21, top=11, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=25.2, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g21005",
+      "enabled": true,
+      "displayText": "再帰関数実行中",
+      "kanaText": "さいきかんすうじっこうちゅう",
+      "primaryRoman": "saikikansuujikkoutyuu",
+      "extraVariants": [
+        "saikikansuujikkouchuu"
+      ],
+      "length": 21,
+      "difficultyScore": 24.4,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "sokuon",
+        "yoon",
+        "n",
+        "ji"
+      ],
+      "inputStep": "sokuon",
+      "inputStepLevel": 6,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=21, top=11, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=24.4, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g21001",
+      "enabled": true,
+      "displayText": "参照先再参照",
+      "kanaText": "さんしょうさきさいさんしょう",
+      "primaryRoman": "sanshousakisaisanshou",
+      "extraVariants": [],
+      "length": 21,
+      "difficultyScore": 23.6,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=21, top=6, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=23.6, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g21011",
+      "enabled": true,
+      "displayText": "手術室視察中",
+      "kanaText": "しゅじゅつしつしさつちゅう",
+      "primaryRoman": "shujutusitusisatutyuu",
+      "extraVariants": [
+        "shujutsushitsushisatsuchuu"
+      ],
+      "length": 21,
+      "difficultyScore": 25.3,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉風",
+      "adviceText": "",
+      "difficultyDetail": "base=21, top=14, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=25.3, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g21007",
+      "enabled": true,
+      "displayText": "高速道路工事中",
+      "kanaText": "こうそくどうろこうじちゅう",
+      "primaryRoman": "kousokudourokoujityuu",
+      "extraVariants": [
+        "kousokudourokoujichuu"
+      ],
+      "length": 21,
+      "difficultyScore": 24.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon",
+        "ji"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉風",
+      "adviceText": "",
+      "difficultyDetail": "base=21, top=15, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=24.5, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g22019",
+      "enabled": true,
+      "displayText": "手術室手術中",
+      "kanaText": "しゅじゅつしつしゅじゅつちゅう",
+      "primaryRoman": "shujutusitushujututyuu",
+      "extraVariants": [
+        "shujutsushitsushujutsuchuu"
+      ],
+      "length": 22,
+      "difficultyScore": 27.5,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=22, top=15, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=27.5, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g22018",
+      "enabled": true,
+      "displayText": "情報処理実習中",
+      "kanaText": "じょうほうしょりじっしゅうちゅう",
+      "primaryRoman": "jouhoushorijisshuutyuu",
+      "extraVariants": [
+        "jouhoushorijisshuuchuu"
+      ],
+      "length": 22,
+      "difficultyScore": 27.3,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "kanji",
+        "sokuon",
+        "yoon",
+        "ji"
+      ],
+      "inputStep": "sokuon",
+      "inputStepLevel": 6,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=22, top=14, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=27.3, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
       "phraseId": "g22010",
       "enabled": true,
       "displayText": "関数定義確認中",
@@ -41353,16 +40678,14 @@
       "note": ""
     },
     {
-      "phraseId": "g19015",
+      "phraseId": "g22001",
       "enabled": true,
-      "displayText": "文字コード変換中",
-      "kanaText": "もじこーどへんかんちゅう",
-      "primaryRoman": "mojiko-dohenkantyuu",
-      "extraVariants": [
-        "mojiko-dohenkanchuu"
-      ],
-      "length": 19,
-      "difficultyScore": 22.4,
+      "displayText": "検索結果再検索",
+      "kanaText": "けんさくけっかさいけんさく",
+      "primaryRoman": "kensakukekkasaikensaku",
+      "extraVariants": [],
+      "length": 22,
+      "difficultyScore": 24.1,
       "divisionLevel": 4,
       "phraseLevel": 4,
       "divisions": [
@@ -41379,21 +40702,181 @@
         "bottom"
       ],
       "skillTags": [
-        "katakana",
         "kanji",
-        "hyphen",
-        "yoon",
-        "long",
-        "n",
-        "ji"
+        "sokuon",
+        "n"
       ],
-      "inputStep": "symbol",
-      "inputStepLevel": 13,
+      "inputStep": "sokuon",
+      "inputStepLevel": 6,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=19, top=9, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=22.4, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
+      "difficultyDetail": "base=22, top=6, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=24.1, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g22007",
+      "enabled": true,
+      "displayText": "画像形式変換中",
+      "kanaText": "がぞうけいしきへんかんちゅう",
+      "primaryRoman": "gazoukeisikihenkantyuu",
+      "extraVariants": [
+        "gazoukeishikihenkanchuu"
+      ],
+      "length": 22,
+      "difficultyScore": 25.3,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=22, top=11, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=25.3, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g22005",
+      "enabled": true,
+      "displayText": "動画形式変換中",
+      "kanaText": "どうがけいしきへんかんちゅう",
+      "primaryRoman": "dougakeisikihenkantyuu",
+      "extraVariants": [
+        "dougakeishikihenkanchuu"
+      ],
+      "length": 22,
+      "difficultyScore": 25.1,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=22, top=11, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=25.1, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g22002",
+      "enabled": true,
+      "displayText": "赤絵の具青絵の具黄絵の具",
+      "kanaText": "あかえのぐあおえのぐきえのぐ",
+      "primaryRoman": "akaenoguaoenogukienogu",
+      "extraVariants": [],
+      "length": 22,
+      "difficultyScore": 24.8,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=22, top=11, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=24.8, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g23006",
+      "enabled": true,
+      "displayText": "すももも桃も桃のうち",
+      "kanaText": "すもももももももものうち",
+      "primaryRoman": "sumomomomomomomomonouti",
+      "extraVariants": [
+        "sumomomomomomomomonouchi"
+      ],
+      "length": 23,
+      "difficultyScore": 26.6,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=19, top=11, bottom=7, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=22.6, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -41485,125 +40968,6 @@
       "note": ""
     },
     {
-      "phraseId": "g17006",
-      "enabled": true,
-      "displayText": "暗号化解除許可",
-      "kanaText": "あんごうかかいじょきょか",
-      "primaryRoman": "angoukakaijokyoka",
-      "extraVariants": [],
-      "length": 17,
-      "difficultyScore": 19.4,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
-      "divisions": [
-        "D5"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=17, top=6, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=19.4, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g17001",
-      "enabled": true,
-      "displayText": "公開鍵暗号化",
-      "kanaText": "こうかいかぎあんごうか",
-      "primaryRoman": "koukaikagiangouka",
-      "extraVariants": [],
-      "length": 17,
-      "difficultyScore": 18.4,
-      "divisionLevel": 3,
-      "phraseLevel": 3,
-      "divisions": [
-        "D4"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=17, top=6, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=18.4, scoreLevel=D4, minLevel=D1, final=D4, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g19001",
-      "enabled": true,
-      "displayText": "秘密鍵復号化",
-      "kanaText": "ひみつかぎふくごうか",
-      "primaryRoman": "himitukagihukugouka",
-      "extraVariants": [
-        "himitsukagifukugouka"
-      ],
-      "length": 19,
-      "difficultyScore": 21,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
-      "divisions": [
-        "D5"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=19, top=9, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=21, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
       "phraseId": "g23018",
       "enabled": true,
       "displayText": "通信状態確認中",
@@ -41641,215 +41005,6 @@
       "meaningText": "早口言葉",
       "adviceText": "",
       "difficultyDetail": "base=23, top=14, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=27.4, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g26007",
-      "enabled": true,
-      "displayText": "接続確認確認中",
-      "kanaText": "せつぞくかくにんかくにんちゅう",
-      "primaryRoman": "setuzokukakuninkakunintyuu",
-      "extraVariants": [
-        "setsuzokukakuninkakuninchuu"
-      ],
-      "length": 26,
-      "difficultyScore": 30.1,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=26, top=13, bottom=5, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=30.1, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g21013",
-      "enabled": true,
-      "displayText": "画像圧縮処理中",
-      "kanaText": "がぞうあっしゅくしょりちゅう",
-      "primaryRoman": "gazouasshukushorityuu",
-      "extraVariants": [
-        "gazouasshukushorichuu"
-      ],
-      "length": 21,
-      "difficultyScore": 25.4,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "sokuon",
-        "yoon"
-      ],
-      "inputStep": "sokuon",
-      "inputStepLevel": 6,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=21, top=11, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=25.4, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g21009",
-      "enabled": true,
-      "displayText": "動画圧縮処理中",
-      "kanaText": "どうがあっしゅくしょりちゅう",
-      "primaryRoman": "dougaasshukushorityuu",
-      "extraVariants": [
-        "dougaasshukushorichuu"
-      ],
-      "length": 21,
-      "difficultyScore": 25.2,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top"
-      ],
-      "skillTags": [
-        "kanji",
-        "sokuon",
-        "yoon"
-      ],
-      "inputStep": "sokuon",
-      "inputStepLevel": 6,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=21, top=11, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=25.2, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g20016",
-      "enabled": true,
-      "displayText": "条件分岐分岐中",
-      "kanaText": "じょうけんぶんきぶんきちゅう",
-      "primaryRoman": "joukenbunkibunkityuu",
-      "extraVariants": [
-        "joukenbunkibunkichuu"
-      ],
-      "length": 20,
-      "difficultyScore": 24.2,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
-      "divisions": [
-        "D5"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=20, top=11, bottom=5, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=24.2, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g16017",
-      "enabled": true,
-      "displayText": "変数名命名中",
-      "kanaText": "へんすうめいめいちゅう",
-      "primaryRoman": "hensuumeimeityuu",
-      "extraVariants": [
-        "hensuumeimeichuu"
-      ],
-      "length": 16,
-      "difficultyScore": 19.3,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
-      "divisions": [
-        "D5"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=16, top=11, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=19.3, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -41897,20 +41052,20 @@
       "note": ""
     },
     {
-      "phraseId": "g21005",
+      "phraseId": "g23020",
       "enabled": true,
-      "displayText": "再帰関数実行中",
-      "kanaText": "さいきかんすうじっこうちゅう",
-      "primaryRoman": "saikikansuujikkoutyuu",
+      "displayText": "通信障害調査中",
+      "kanaText": "つうしんしょうがいちょうさちゅう",
+      "primaryRoman": "tuusinshougaityousatyuu",
       "extraVariants": [
-        "saikikansuujikkouchuu"
+        "tsuushinshougaichousachuu"
       ],
-      "length": 21,
-      "difficultyScore": 24.4,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
+      "length": 23,
+      "difficultyScore": 27.7,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
       "divisions": [
-        "D5"
+        "D6"
       ],
       "tags": [],
       "category": [
@@ -41924,37 +41079,35 @@
       ],
       "skillTags": [
         "kanji",
-        "sokuon",
         "yoon",
-        "n",
-        "ji"
+        "n"
       ],
-      "inputStep": "sokuon",
-      "inputStepLevel": 6,
+      "inputStep": "n",
+      "inputStepLevel": 5,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=21, top=11, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=24.4, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
+      "difficultyDetail": "base=23, top=15, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=27.7, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
     },
     {
-      "phraseId": "g20019",
+      "phraseId": "g23009",
       "enabled": true,
-      "displayText": "例外処理処理中",
-      "kanaText": "れいがいしょりしょりちゅう",
-      "primaryRoman": "reigaishorishorityuu",
+      "displayText": "三者三様参照中",
+      "kanaText": "さんしゃさんようさんしょうちゅう",
+      "primaryRoman": "sanshasanyousanshoutyuu",
       "extraVariants": [
-        "reigaishorishorichuu"
+        "sanshasanyousanshouchuu"
       ],
-      "length": 20,
-      "difficultyScore": 24.3,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
+      "length": 23,
+      "difficultyScore": 26.9,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
       "divisions": [
-        "D5"
+        "D6"
       ],
       "tags": [],
       "category": [
@@ -41963,19 +41116,104 @@
       "questOnly": false,
       "keyRows": [
         "home",
-        "top"
+        "top",
+        "bottom"
       ],
       "skillTags": [
         "kanji",
-        "yoon"
+        "yoon",
+        "n"
       ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉風",
+      "adviceText": "",
+      "difficultyDetail": "base=23, top=9, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=26.9, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g24002",
+      "enabled": true,
+      "displayText": "新設診察室視察",
+      "kanaText": "しんせつしんさつしつしさつ",
+      "primaryRoman": "sinsetusinsatusitusisatu",
+      "extraVariants": [
+        "shinsetsushinsatsushitsushisatsu"
+      ],
+      "length": 24,
+      "difficultyScore": 27,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=20, top=14, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=24.3, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
+      "difficultyDetail": "base=24, top=13, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=27, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g24018",
+      "enabled": true,
+      "displayText": "提出期限確認中",
+      "kanaText": "ていしゅつきげんかくにんちゅう",
+      "primaryRoman": "teishutukigenkakunintyuu",
+      "extraVariants": [
+        "teishutsukigenkakuninchuu"
+      ],
+      "length": 24,
+      "difficultyScore": 28.4,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=24, top=14, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=28.4, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -42023,251 +41261,6 @@
       "note": ""
     },
     {
-      "phraseId": "g22001",
-      "enabled": true,
-      "displayText": "検索結果再検索",
-      "kanaText": "けんさくけっかさいけんさく",
-      "primaryRoman": "kensakukekkasaikensaku",
-      "extraVariants": [],
-      "length": 22,
-      "difficultyScore": 24.1,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
-      "divisions": [
-        "D5"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "sokuon",
-        "n"
-      ],
-      "inputStep": "sokuon",
-      "inputStepLevel": 6,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=22, top=6, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=24.1, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g21001",
-      "enabled": true,
-      "displayText": "参照先再参照",
-      "kanaText": "さんしょうさきさいさんしょう",
-      "primaryRoman": "sanshousakisaisanshou",
-      "extraVariants": [],
-      "length": 21,
-      "difficultyScore": 23.6,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
-      "divisions": [
-        "D5"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=21, top=6, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=23.6, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g23020",
-      "enabled": true,
-      "displayText": "通信障害調査中",
-      "kanaText": "つうしんしょうがいちょうさちゅう",
-      "primaryRoman": "tuusinshougaityousatyuu",
-      "extraVariants": [
-        "tsuushinshougaichousachuu"
-      ],
-      "length": 23,
-      "difficultyScore": 27.7,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=23, top=15, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=27.7, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g22007",
-      "enabled": true,
-      "displayText": "画像形式変換中",
-      "kanaText": "がぞうけいしきへんかんちゅう",
-      "primaryRoman": "gazoukeisikihenkantyuu",
-      "extraVariants": [
-        "gazoukeishikihenkanchuu"
-      ],
-      "length": 22,
-      "difficultyScore": 25.3,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=22, top=11, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=25.3, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g22005",
-      "enabled": true,
-      "displayText": "動画形式変換中",
-      "kanaText": "どうがけいしきへんかんちゅう",
-      "primaryRoman": "dougakeisikihenkantyuu",
-      "extraVariants": [
-        "dougakeishikihenkanchuu"
-      ],
-      "length": 22,
-      "difficultyScore": 25.1,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=22, top=11, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=25.1, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g32001",
-      "enabled": true,
-      "displayText": "隣の竹垣に竹立てかけた",
-      "kanaText": "となりのたけがきにたけたてかけた",
-      "primaryRoman": "tonarinotakegakinitaketatekaketa",
-      "extraVariants": [],
-      "length": 32,
-      "difficultyScore": 35.8,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=32, top=16, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=35.8, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
       "phraseId": "g24001",
       "enabled": true,
       "displayText": "竹垣に竹立てかけた",
@@ -42302,6 +41295,284 @@
       "meaningText": "早口言葉",
       "adviceText": "",
       "difficultyDetail": "base=24, top=11, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=26.4, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g24006",
+      "enabled": true,
+      "displayText": "生海苔生海苔生海苔",
+      "kanaText": "なまのりなまのりなまのり",
+      "primaryRoman": "namanorinamanorinamanori",
+      "extraVariants": [],
+      "length": 24,
+      "difficultyScore": 27.6,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=24, top=9, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=27.6, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g24015",
+      "enabled": true,
+      "displayText": "取捨選択選択中",
+      "kanaText": "しゅしゃせんたくせんたくちゅう",
+      "primaryRoman": "shushasentakusentakutyuu",
+      "extraVariants": [
+        "shushasentakusentakuchuu"
+      ],
+      "length": 24,
+      "difficultyScore": 28.1,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉風",
+      "adviceText": "",
+      "difficultyDetail": "base=24, top=11, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=28.1, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g25005",
+      "enabled": true,
+      "displayText": "赤パジャマ青パジャマ黄パジャマ",
+      "kanaText": "あかぱじゃまあおぱじゃまきぱじゃま",
+      "primaryRoman": "akapajamaaopajamakipajama",
+      "extraVariants": [],
+      "length": 25,
+      "difficultyScore": 28.1,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "katakana",
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=25, top=5, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=28.1, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g25008",
+      "enabled": true,
+      "displayText": "庭には二羽鶏がいる",
+      "kanaText": "にわにはにわにわとりがいる",
+      "primaryRoman": "niwaniwaniwaniwatorigairu",
+      "extraVariants": [],
+      "length": 25,
+      "difficultyScore": 28.8,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=25, top=15, bottom=4, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=28.8, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g25019",
+      "enabled": true,
+      "displayText": "除雪車除雪作業中",
+      "kanaText": "じょせつしゃじょせつさぎょうちゅう",
+      "primaryRoman": "josetushajosetusagyoutyuu",
+      "extraVariants": [
+        "josetsushajosetsusagyouchuu"
+      ],
+      "length": 25,
+      "difficultyScore": 30.5,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=25, top=15, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=30.5, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g25006",
+      "enabled": true,
+      "displayText": "赤生姜青生姜黄生姜",
+      "kanaText": "あかしょうがあおしょうがきしょうが",
+      "primaryRoman": "akashougaaoshougakishouga",
+      "extraVariants": [],
+      "length": 25,
+      "difficultyScore": 28.1,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=25, top=8, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=28.1, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g25017",
+      "enabled": true,
+      "displayText": "出席者数集計中",
+      "kanaText": "しゅっせきしゃすうしゅうけいちゅう",
+      "primaryRoman": "shussekishasuushuukeityuu",
+      "extraVariants": [
+        "shussekishasuushuukeichuu"
+      ],
+      "length": 25,
+      "difficultyScore": 30.1,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "kanji",
+        "sokuon",
+        "yoon"
+      ],
+      "inputStep": "sokuon",
+      "inputStepLevel": 6,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=25, top=13, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=30.1, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -42345,123 +41616,6 @@
       "meaningText": "早口言葉",
       "adviceText": "",
       "difficultyDetail": "base=25, top=15, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=29.2, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g30001",
-      "enabled": true,
-      "displayText": "この寿司は少し酢がききすぎた",
-      "kanaText": "このすしはすこしすがききすぎた",
-      "primaryRoman": "konosusihasukosisugakikisugita",
-      "extraVariants": [
-        "konosushihasukoshisugakikisugita"
-      ],
-      "length": 30,
-      "difficultyScore": 32.8,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=30, top=13, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=32.8, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g30002",
-      "enabled": true,
-      "displayText": "生バナナ生バナナ生バナナ",
-      "kanaText": "なまばなななまばなななまばなな",
-      "primaryRoman": "namabanananamabanananamabanana",
-      "extraVariants": [],
-      "length": 30,
-      "difficultyScore": 33,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "bottom"
-      ],
-      "skillTags": [
-        "katakana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=30, top=0, bottom=15, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=33, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g24006",
-      "enabled": true,
-      "displayText": "生海苔生海苔生海苔",
-      "kanaText": "なまのりなまのりなまのり",
-      "primaryRoman": "namanorinamanorinamanori",
-      "extraVariants": [],
-      "length": 24,
-      "difficultyScore": 27.6,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=24, top=9, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=27.6, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -42588,55 +41742,14 @@
       "note": ""
     },
     {
-      "phraseId": "g22002",
+      "phraseId": "g25001",
       "enabled": true,
-      "displayText": "赤絵の具青絵の具黄絵の具",
-      "kanaText": "あかえのぐあおえのぐきえのぐ",
-      "primaryRoman": "akaenoguaoenogukienogu",
+      "displayText": "赤魚青魚黄魚",
+      "kanaText": "あかざかなあおざかなきざかな",
+      "primaryRoman": "akazakanaaosakanakizakana",
       "extraVariants": [],
-      "length": 22,
-      "difficultyScore": 24.8,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
-      "divisions": [
-        "D5"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=22, top=11, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=24.8, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g28002",
-      "enabled": true,
-      "displayText": "鹿もカモシカも鹿の仲間",
-      "kanaText": "しかもかもしかもしかのなかま",
-      "primaryRoman": "sikamokamosikamosikanonakama",
-      "extraVariants": [
-        "shikamokamoshikamoshikanonakama"
-      ],
-      "length": 28,
-      "difficultyScore": 30.6,
+      "length": 25,
+      "difficultyScore": 26.4,
       "divisionLevel": 5,
       "phraseLevel": 5,
       "divisions": [
@@ -42653,8 +41766,44 @@
         "bottom"
       ],
       "skillTags": [
-        "hiragana",
-        "katakana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉風",
+      "adviceText": "",
+      "difficultyDetail": "base=25, top=2, bottom=5, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=26.4, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g26001",
+      "enabled": true,
+      "displayText": "生麦生米生卵",
+      "kanaText": "なまむぎなまごめなまたまご",
+      "primaryRoman": "namamuginamagomenamatamago",
+      "extraVariants": [],
+      "length": 26,
+      "difficultyScore": 29,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
         "kanji"
       ],
       "inputStep": "bottom",
@@ -42663,187 +41812,26 @@
       "divisionsV2": [],
       "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=28, top=7, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=30.6, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "difficultyDetail": "base=26, top=6, bottom=9, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=29, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
     },
     {
-      "phraseId": "g20005",
+      "phraseId": "g26011",
       "enabled": true,
-      "displayText": "猿すべり猿すべる",
-      "kanaText": "さるすべりさるすべる",
-      "primaryRoman": "sarusuberisarusuberu",
-      "extraVariants": [],
-      "length": 20,
-      "difficultyScore": 22.8,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
-      "divisions": [
-        "D5"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=20, top=12, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=22.8, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g18001",
-      "enabled": true,
-      "displayText": "子鹿鹿の子鹿",
-      "kanaText": "こじかしかのこじか",
-      "primaryRoman": "kojikasikanokojika",
+      "displayText": "骨粗鬆症訴訟勝訴",
+      "kanaText": "こつそしょうしょうそしょうしょうそ",
+      "primaryRoman": "kotusoshoushousoshoushouso",
       "extraVariants": [
-        "kojikashikanokojika"
+        "kotsusoshoushousoshoushouso"
       ],
-      "length": 18,
-      "difficultyScore": 19.4,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
+      "length": 26,
+      "difficultyScore": 30.8,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
       "divisions": [
-        "D5"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji",
-        "ji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=18, top=6, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=19.4, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g30004",
-      "enabled": true,
-      "displayText": "貴社の記者が汽車で帰社した",
-      "kanaText": "きしゃのきしゃがきしゃできしゃした",
-      "primaryRoman": "kishanokishagakishadekishasita",
-      "extraVariants": [
-        "kishanokishagakishadekishashita"
-      ],
-      "length": 30,
-      "difficultyScore": 33.8,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji",
-        "yoon"
-      ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=30, top=8, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=33.8, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g28013",
-      "enabled": true,
-      "displayText": "坊主が屏風に坊主の絵を描く",
-      "kanaText": "ぼうずがびょうぶにぼうずのえをかく",
-      "primaryRoman": "bouzugabyoubunibouzunoeokaku",
-      "extraVariants": [],
-      "length": 28,
-      "difficultyScore": 33.1,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji",
-        "yoon"
-      ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=28, top=15, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=33.1, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g36003",
-      "enabled": true,
-      "displayText": "蛙ぴょこぴょこ合わせて六ぴょこぴょこ",
-      "kanaText": "かえるぴょこぴょこあわせてろくぴょこぴょこ",
-      "primaryRoman": "kaerupyokopyokoawaseterokupyokopyoko",
-      "extraVariants": [],
-      "length": 36,
-      "difficultyScore": 43.2,
-      "divisionLevel": 7,
-      "phraseLevel": 7,
-      "divisions": [
-        "D8"
+        "D6"
       ],
       "tags": [],
       "category": [
@@ -42855,7 +41843,6 @@
         "top"
       ],
       "skillTags": [
-        "hiragana",
         "kanji",
         "yoon"
       ],
@@ -42865,184 +41852,26 @@
       "divisionsV2": [],
       "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=36, top=26, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=43.2, scoreLevel=D8, minLevel=D1, final=D8, minReasons=",
+      "difficultyDetail": "base=26, top=14, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=30.8, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
     },
     {
-      "phraseId": "g40001",
+      "phraseId": "g26010",
       "enabled": true,
-      "displayText": "赤炙りカルビ青炙りカルビ黄炙りカルビ",
-      "kanaText": "あかあぶりかるびあおあぶりかるびきあぶりかるび",
-      "primaryRoman": "akaaburikarubiaoaburikarubikiaburikarubi",
-      "extraVariants": [],
-      "length": 40,
-      "difficultyScore": 45.2,
-      "divisionLevel": 7,
-      "phraseLevel": 7,
-      "divisions": [
-        "D8"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "katakana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=40, top=20, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=45.2, scoreLevel=D8, minLevel=D1, final=D8, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g20011",
-      "enabled": true,
-      "displayText": "右耳にミニニキビ",
-      "kanaText": "みぎみみにみににきび",
-      "primaryRoman": "migimiminimininikibi",
-      "extraVariants": [],
-      "length": 20,
-      "difficultyScore": 23.6,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
-      "divisions": [
-        "D5"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "katakana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=20, top=10, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=23.6, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g28003",
-      "enabled": true,
-      "displayText": "この釘抜きで釘を引き抜く",
-      "kanaText": "このくぎぬきでくぎをひきぬく",
-      "primaryRoman": "konokuginukidekugiwohikinuku",
-      "extraVariants": [],
-      "length": 28,
-      "difficultyScore": 31.6,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=28, top=15, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=31.6, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g27001",
-      "enabled": true,
-      "displayText": "赤アロエ飴青アロエ飴黄アロエ飴",
-      "kanaText": "あかあろえあめあおあろえあめきあろえあめ",
-      "primaryRoman": "akaaroeameaoroeamekiaroeame",
-      "extraVariants": [],
-      "length": 27,
-      "difficultyScore": 30.4,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "katakana",
-        "kanji"
-      ],
-      "inputStep": "bottom",
-      "inputStepLevel": 3,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉",
-      "adviceText": "",
-      "difficultyDetail": "base=27, top=14, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=30.4, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g28008",
-      "enabled": true,
-      "displayText": "派出所の隣の写真館",
-      "kanaText": "はしゅつじょのとなりのしゃしんかん",
-      "primaryRoman": "hashutujonotonarinoshasinkan",
+      "displayText": "出欠確認確認中",
+      "kanaText": "しゅっけつかくにんかくにんちゅう",
+      "primaryRoman": "shukketukakuninkakunintyuu",
       "extraVariants": [
-        "hashutsujonotonarinoshashinkan"
+        "shukketsukakuninkakuninchuu"
       ],
-      "length": 28,
-      "difficultyScore": 32.7,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
+      "length": 26,
+      "difficultyScore": 30.7,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
       "divisions": [
-        "D7"
+        "D6"
       ],
       "tags": [],
       "category": [
@@ -43055,37 +41884,37 @@
         "bottom"
       ],
       "skillTags": [
-        "hiragana",
         "kanji",
+        "sokuon",
         "yoon",
         "n"
       ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
+      "inputStep": "sokuon",
+      "inputStepLevel": 6,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=28, top=11, bottom=5, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=32.7, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
+      "difficultyDetail": "base=26, top=12, bottom=4, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=30.7, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
     },
     {
-      "phraseId": "g29003",
+      "phraseId": "g26007",
       "enabled": true,
-      "displayText": "著作者著作権処理中",
-      "kanaText": "ちょさくしゃちょさくけんしょりちゅう",
-      "primaryRoman": "tyosakushatyosakukenshorityuu",
+      "displayText": "接続確認確認中",
+      "kanaText": "せつぞくかくにんかくにんちゅう",
+      "primaryRoman": "setuzokukakuninkakunintyuu",
       "extraVariants": [
-        "chosakushachosakukenshorichuu"
+        "setsuzokukakuninkakuninchuu"
       ],
-      "length": 29,
-      "difficultyScore": 34.9,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
+      "length": 26,
+      "difficultyScore": 30.1,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
       "divisions": [
-        "D7"
+        "D6"
       ],
       "tags": [],
       "category": [
@@ -43106,89 +41935,9 @@
       "inputStepLevel": 5,
       "phraseLevelV2": "",
       "divisionsV2": [],
-      "meaningText": "早口言葉風",
+      "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=29, top=16, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=34.9, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g19017",
-      "enabled": true,
-      "displayText": "初期処理処理中",
-      "kanaText": "しょきしょりしょりちゅう",
-      "primaryRoman": "shokishorishorityuu",
-      "extraVariants": [
-        "shokishorishorichuu"
-      ],
-      "length": 19,
-      "difficultyScore": 23.4,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
-      "divisions": [
-        "D5"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon"
-      ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉風",
-      "adviceText": "",
-      "difficultyDetail": "base=19, top=12, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=23.4, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g21011",
-      "enabled": true,
-      "displayText": "手術室視察中",
-      "kanaText": "しゅじゅつしつしさつちゅう",
-      "primaryRoman": "shujutusitusisatutyuu",
-      "extraVariants": [
-        "shujutsushitsushisatsuchuu"
-      ],
-      "length": 21,
-      "difficultyScore": 25.3,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon"
-      ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉風",
-      "adviceText": "",
-      "difficultyDetail": "base=21, top=14, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=25.3, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "difficultyDetail": "base=26, top=13, bottom=5, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=30.1, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -43275,16 +42024,53 @@
       "note": ""
     },
     {
-      "phraseId": "g32003",
+      "phraseId": "g27001",
       "enabled": true,
-      "displayText": "老若男女除雪作業者",
-      "kanaText": "ろうにゃくなんにょじょせつさぎょうしゃ",
-      "primaryRoman": "rounyakunannyonyojosetusagyousha",
-      "extraVariants": [
-        "rounyakunannyonyojosetsusagyousha"
+      "displayText": "赤アロエ飴青アロエ飴黄アロエ飴",
+      "kanaText": "あかあろえあめあおあろえあめきあろえあめ",
+      "primaryRoman": "akaaroeameaoroeamekiaroeame",
+      "extraVariants": [],
+      "length": 27,
+      "difficultyScore": 30.4,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
       ],
-      "length": 32,
-      "difficultyScore": 38.7,
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "katakana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=27, top=14, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=30.4, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g28015",
+      "enabled": true,
+      "displayText": "蛙ぴょこぴょこ三ぴょこぴょこ",
+      "kanaText": "かえるぴょこぴょこさんぴょこぴょこ",
+      "primaryRoman": "kaerupyokopyokosanpyokopyoko",
+      "extraVariants": [],
+      "length": 28,
+      "difficultyScore": 34,
       "divisionLevel": 6,
       "phraseLevel": 6,
       "divisions": [
@@ -43301,116 +42087,116 @@
         "bottom"
       ],
       "skillTags": [
+        "hiragana",
         "kanji",
         "yoon",
-        "n",
-        "n_before_n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉風",
-      "adviceText": "",
-      "difficultyDetail": "base=32, top=16, bottom=5, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=38.7, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g34001",
-      "enabled": true,
-      "displayText": "肩固かったから買った肩たたき機",
-      "kanaText": "かたかたかったからかったかたたたきき",
-      "primaryRoman": "katakatakattakarakattakatatatakiki",
-      "extraVariants": [],
-      "length": 34,
-      "difficultyScore": 37.4,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji",
-        "sokuon"
-      ],
-      "inputStep": "sokuon",
-      "inputStepLevel": 6,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉風",
-      "adviceText": "",
-      "difficultyDetail": "base=34, top=12, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=37.4, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g38001",
-      "enabled": true,
-      "displayText": "笹山さんが笹かまを三皿差し出す",
-      "kanaText": "ささやまさんがささかまをさんさらさしだす",
-      "primaryRoman": "sasayamasangasasakamawosansarasasidasu",
-      "extraVariants": [
-        "sasayamasangasasakamawosansarasashidasu"
-      ],
-      "length": 38,
-      "difficultyScore": 40,
-      "divisionLevel": 7,
-      "phraseLevel": 7,
-      "divisions": [
-        "D8"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "hiragana",
-        "kanji",
         "n"
       ],
       "inputStep": "n",
       "inputStepLevel": 5,
       "phraseLevelV2": "",
       "divisionsV2": [],
-      "meaningText": "早口言葉風",
+      "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=38, top=6, bottom=4, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=40, scoreLevel=D8, minLevel=D4, final=D8, minReasons=latin",
+      "difficultyDetail": "base=28, top=19, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=34, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
     },
     {
-      "phraseId": "g25001",
+      "phraseId": "g28001",
       "enabled": true,
-      "displayText": "赤魚青魚黄魚",
-      "kanaText": "あかざかなあおざかなきざかな",
-      "primaryRoman": "akazakanaaosakanakizakana",
+      "displayText": "鴨が米噛む亀が鴨噛む",
+      "kanaText": "かもがこめかむかめがかもかむ",
+      "primaryRoman": "kamogakomekamukamegakamokamu",
       "extraVariants": [],
-      "length": 25,
-      "difficultyScore": 26.4,
+      "length": 28,
+      "difficultyScore": 30.6,
       "divisionLevel": 5,
       "phraseLevel": 5,
       "divisions": [
         "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=28, top=7, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=30.6, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g28004",
+      "enabled": true,
+      "displayText": "猫の子子猫獅子の子子獅子",
+      "kanaText": "ねこのここねこししのここじし",
+      "primaryRoman": "nekonokokonekosisinokokojisi",
+      "extraVariants": [
+        "nekonokokonekoshishinokokojishi"
+      ],
+      "length": 28,
+      "difficultyScore": 31.6,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "ji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=28, top=14, bottom=4, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=31.6, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g28009",
+      "enabled": true,
+      "displayText": "右目右耳右耳右目",
+      "kanaText": "みぎめみぎみみみぎみみみぎめ",
+      "primaryRoman": "migimemigimimimigimimimigime",
+      "extraVariants": [],
+      "length": 28,
+      "difficultyScore": 32.8,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
       ],
       "tags": [],
       "category": [
@@ -43429,9 +42215,173 @@
       "inputStepLevel": 3,
       "phraseLevelV2": "",
       "divisionsV2": [],
-      "meaningText": "早口言葉風",
+      "meaningText": "早口言葉",
       "adviceText": "",
-      "difficultyDetail": "base=25, top=2, bottom=5, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=26.4, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
+      "difficultyDetail": "base=28, top=14, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=32.8, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g28002",
+      "enabled": true,
+      "displayText": "鹿もカモシカも鹿の仲間",
+      "kanaText": "しかもかもしかもしかのなかま",
+      "primaryRoman": "sikamokamosikamosikanonakama",
+      "extraVariants": [
+        "shikamokamoshikamoshikanonakama"
+      ],
+      "length": 28,
+      "difficultyScore": 30.6,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "katakana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=28, top=7, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=30.6, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g28013",
+      "enabled": true,
+      "displayText": "坊主が屏風に坊主の絵を描く",
+      "kanaText": "ぼうずがびょうぶにぼうずのえをかく",
+      "primaryRoman": "bouzugabyoubunibouzunoeokaku",
+      "extraVariants": [],
+      "length": 28,
+      "difficultyScore": 33.1,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=28, top=15, bottom=8, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=33.1, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g28003",
+      "enabled": true,
+      "displayText": "この釘抜きで釘を引き抜く",
+      "kanaText": "このくぎぬきでくぎをひきぬく",
+      "primaryRoman": "konokuginukidekugiwohikinuku",
+      "extraVariants": [],
+      "length": 28,
+      "difficultyScore": 31.6,
+      "divisionLevel": 5,
+      "phraseLevel": 5,
+      "divisions": [
+        "D6"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=28, top=15, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=31.6, scoreLevel=D6, minLevel=D1, final=D6, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g28008",
+      "enabled": true,
+      "displayText": "派出所の隣の写真館",
+      "kanaText": "はしゅつじょのとなりのしゃしんかん",
+      "primaryRoman": "hashutujonotonarinoshasinkan",
+      "extraVariants": [
+        "hashutsujonotonarinoshashinkan"
+      ],
+      "length": 28,
+      "difficultyScore": 32.7,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "yoon",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=28, top=11, bottom=5, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=32.7, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -43473,48 +42423,6 @@
       "meaningText": "早口言葉風",
       "adviceText": "",
       "difficultyDetail": "base=28, top=19, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=8, total=35.8, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g24015",
-      "enabled": true,
-      "displayText": "取捨選択選択中",
-      "kanaText": "しゅしゃせんたくせんたくちゅう",
-      "primaryRoman": "shushasentakusentakutyuu",
-      "extraVariants": [
-        "shushasentakusentakuchuu"
-      ],
-      "length": 24,
-      "difficultyScore": 28.1,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉風",
-      "adviceText": "",
-      "difficultyDetail": "base=24, top=11, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=28.1, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -43563,90 +42471,6 @@
       "note": ""
     },
     {
-      "phraseId": "g23009",
-      "enabled": true,
-      "displayText": "三者三様参照中",
-      "kanaText": "さんしゃさんようさんしょうちゅう",
-      "primaryRoman": "sanshasanyousanshoutyuu",
-      "extraVariants": [
-        "sanshasanyousanshouchuu"
-      ],
-      "length": 23,
-      "difficultyScore": 26.9,
-      "divisionLevel": 5,
-      "phraseLevel": 5,
-      "divisions": [
-        "D6"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉風",
-      "adviceText": "",
-      "difficultyDetail": "base=23, top=9, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=3, total=26.9, scoreLevel=D6, minLevel=D4, final=D6, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
-      "phraseId": "g31006",
-      "enabled": true,
-      "displayText": "車掌車掌車中巡回中",
-      "kanaText": "しゃしょうしゃしょうしゃちゅうじゅんかいちゅう",
-      "primaryRoman": "shashoushashoushatyuujunkaityuu",
-      "extraVariants": [
-        "shashoushashoushachuujunkaichuu"
-      ],
-      "length": 31,
-      "difficultyScore": 38,
-      "divisionLevel": 6,
-      "phraseLevel": 6,
-      "divisions": [
-        "D7"
-      ],
-      "tags": [],
-      "category": [
-        "tongue_twister"
-      ],
-      "questOnly": false,
-      "keyRows": [
-        "home",
-        "top",
-        "bottom"
-      ],
-      "skillTags": [
-        "kanji",
-        "yoon",
-        "n"
-      ],
-      "inputStep": "n",
-      "inputStepLevel": 5,
-      "phraseLevelV2": "",
-      "divisionsV2": [],
-      "meaningText": "早口言葉風",
-      "adviceText": "",
-      "difficultyDetail": "base=31, top=14, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=8, total=38, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
-      "scoreVersion": "v3.0",
-      "source": "teacher",
-      "note": ""
-    },
-    {
       "phraseId": "g28012",
       "enabled": true,
       "displayText": "新人歌手新春歌唱中",
@@ -43690,20 +42514,59 @@
       "note": ""
     },
     {
-      "phraseId": "g18017",
+      "phraseId": "g29001",
       "enabled": true,
-      "displayText": "申請書審査中",
-      "kanaText": "しんせいしょしんさちゅう",
-      "primaryRoman": "sinseishosinsatyuu",
-      "extraVariants": [
-        "shinseishoshinsachuu"
-      ],
-      "length": 18,
-      "difficultyScore": 21.2,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
+      "displayText": "この釘は引き抜きにくい釘だ",
+      "kanaText": "このくぎはひきぬきにくいくぎだ",
+      "primaryRoman": "konokugihahikinukinikuikugida",
+      "extraVariants": [],
+      "length": 29,
+      "difficultyScore": 32.2,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
       "divisions": [
-        "D5"
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=29, top=13, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=32.2, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g29003",
+      "enabled": true,
+      "displayText": "著作者著作権処理中",
+      "kanaText": "ちょさくしゃちょさくけんしょりちゅう",
+      "primaryRoman": "tyosakushatyosakukenshorityuu",
+      "extraVariants": [
+        "chosakushachosakukenshorichuu"
+      ],
+      "length": 29,
+      "difficultyScore": 34.9,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
       ],
       "tags": [],
       "category": [
@@ -43726,7 +42589,324 @@
       "divisionsV2": [],
       "meaningText": "早口言葉風",
       "adviceText": "",
-      "difficultyDetail": "base=18, top=9, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=21.2, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
+      "difficultyDetail": "base=29, top=16, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=34.9, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g30003",
+      "enabled": true,
+      "displayText": "生なまず生なまこ生なめこ",
+      "kanaText": "なまなまずなまなまこなまなめこ",
+      "primaryRoman": "namanamazunamanamakonamanameko",
+      "extraVariants": [],
+      "length": 30,
+      "difficultyScore": 33.4,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=30, top=4, bottom=13, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=33.4, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g30001",
+      "enabled": true,
+      "displayText": "この寿司は少し酢がききすぎた",
+      "kanaText": "このすしはすこしすがききすぎた",
+      "primaryRoman": "konosusihasukosisugakikisugita",
+      "extraVariants": [
+        "konosushihasukoshisugakikisugita"
+      ],
+      "length": 30,
+      "difficultyScore": 32.8,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=30, top=13, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=32.8, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g30002",
+      "enabled": true,
+      "displayText": "生バナナ生バナナ生バナナ",
+      "kanaText": "なまばなななまばなななまばなな",
+      "primaryRoman": "namabanananamabanananamabanana",
+      "extraVariants": [],
+      "length": 30,
+      "difficultyScore": 33,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "bottom"
+      ],
+      "skillTags": [
+        "katakana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=30, top=0, bottom=15, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=33, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g30004",
+      "enabled": true,
+      "displayText": "貴社の記者が汽車で帰社した",
+      "kanaText": "きしゃのきしゃがきしゃできしゃした",
+      "primaryRoman": "kishanokishagakishadekishasita",
+      "extraVariants": [
+        "kishanokishagakishadekishashita"
+      ],
+      "length": 30,
+      "difficultyScore": 33.8,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=30, top=8, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=33.8, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g31003",
+      "enabled": true,
+      "displayText": "赤巻紙青巻紙黄巻紙",
+      "kanaText": "あかまきがみあおまきがみきまきがみ",
+      "primaryRoman": "akamakigamiaomakigamikimakigami",
+      "extraVariants": [],
+      "length": 31,
+      "difficultyScore": 33.8,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=31, top=8, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=33.8, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g31001",
+      "enabled": true,
+      "displayText": "青巻紙赤巻紙黄巻紙",
+      "kanaText": "あおまきがみあかまきがみきまきがみ",
+      "primaryRoman": "aomakigamiakamakigamikimakigami",
+      "extraVariants": [],
+      "length": 31,
+      "difficultyScore": 33.8,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=31, top=8, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=33.8, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g31002",
+      "enabled": true,
+      "displayText": "赤カマキリ青カマキリ黄カマキリ",
+      "kanaText": "あかかまきりあおかまきりきかまきり",
+      "primaryRoman": "akakamakiriaokamakirikikamakiri",
+      "extraVariants": [],
+      "length": 31,
+      "difficultyScore": 33.8,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "katakana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=31, top=11, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=33.8, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g31006",
+      "enabled": true,
+      "displayText": "車掌車掌車中巡回中",
+      "kanaText": "しゃしょうしゃしょうしゃちゅうじゅんかいちゅう",
+      "primaryRoman": "shashoushashoushatyuujunkaityuu",
+      "extraVariants": [
+        "shashoushashoushachuujunkaichuu"
+      ],
+      "length": 31,
+      "difficultyScore": 38,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉風",
+      "adviceText": "",
+      "difficultyDetail": "base=31, top=14, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=8, total=38, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -43776,20 +42956,18 @@
       "note": ""
     },
     {
-      "phraseId": "g21007",
+      "phraseId": "g32002",
       "enabled": true,
-      "displayText": "高速道路工事中",
-      "kanaText": "こうそくどうろこうじちゅう",
-      "primaryRoman": "kousokudourokoujityuu",
-      "extraVariants": [
-        "kousokudourokoujichuu"
-      ],
-      "length": 21,
-      "difficultyScore": 24.5,
-      "divisionLevel": 4,
-      "phraseLevel": 4,
+      "displayText": "旅客機百機客各百人",
+      "kanaText": "りょかくきひゃっききゃくかくひゃくにん",
+      "primaryRoman": "ryokakukihyakkikyakukakuhyakunin",
+      "extraVariants": [],
+      "length": 32,
+      "difficultyScore": 37.5,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
       "divisions": [
-        "D5"
+        "D7"
       ],
       "tags": [],
       "category": [
@@ -43798,20 +42976,104 @@
       "questOnly": false,
       "keyRows": [
         "home",
-        "top"
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "sokuon",
+        "yoon",
+        "n"
+      ],
+      "inputStep": "sokuon",
+      "inputStepLevel": 6,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=32, top=13, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=37.5, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g32001",
+      "enabled": true,
+      "displayText": "隣の竹垣に竹立てかけた",
+      "kanaText": "となりのたけがきにたけたてかけた",
+      "primaryRoman": "tonarinotakegakinitaketatekaketa",
+      "extraVariants": [],
+      "length": 32,
+      "difficultyScore": 35.8,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=32, top=16, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=35.8, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g32003",
+      "enabled": true,
+      "displayText": "老若男女除雪作業者",
+      "kanaText": "ろうにゃくなんにょじょせつさぎょうしゃ",
+      "primaryRoman": "rounyakunannyonyojosetusagyousha",
+      "extraVariants": [
+        "rounyakunannyonyojosetsusagyousha"
+      ],
+      "length": 32,
+      "difficultyScore": 38.7,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
       ],
       "skillTags": [
         "kanji",
         "yoon",
-        "ji"
+        "n",
+        "n_before_n"
       ],
-      "inputStep": "yoon",
-      "inputStepLevel": 4,
+      "inputStep": "n",
+      "inputStepLevel": 5,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "早口言葉風",
       "adviceText": "",
-      "difficultyDetail": "base=21, top=15, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=24.5, scoreLevel=D5, minLevel=D4, final=D5, minReasons=latin",
+      "difficultyDetail": "base=32, top=16, bottom=5, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=38.7, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -43854,6 +43116,450 @@
       "meaningText": "早口言葉風",
       "adviceText": "",
       "difficultyDetail": "base=32, top=24, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=5, total=39.5, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g33001",
+      "enabled": true,
+      "displayText": "隣の客はよく柿食う客だ",
+      "kanaText": "となりのきゃくはよくかきくうきゃくだ",
+      "primaryRoman": "tonarinokyakuhayokukakikuukyakuda",
+      "extraVariants": [],
+      "length": 33,
+      "difficultyScore": 37.4,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=33, top=15, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=37.4, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g34002",
+      "enabled": true,
+      "displayText": "赤唐辛子青唐辛子黄唐辛子",
+      "kanaText": "あかとうがらしあおとうがらしきとうがらし",
+      "primaryRoman": "akatougarasiaotougarasikitougarasi",
+      "extraVariants": [
+        "akatougarashiaotougarashikitougarashi"
+      ],
+      "length": 34,
+      "difficultyScore": 37.4,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "kanji"
+      ],
+      "inputStep": "top",
+      "inputStepLevel": 2,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=34, top=17, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=37.4, scoreLevel=D7, minLevel=D4, final=D7, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g34001",
+      "enabled": true,
+      "displayText": "肩固かったから買った肩たたき機",
+      "kanaText": "かたかたかったからかったかたたたきき",
+      "primaryRoman": "katakatakattakarakattakatatatakiki",
+      "extraVariants": [],
+      "length": 34,
+      "difficultyScore": 37.4,
+      "divisionLevel": 6,
+      "phraseLevel": 6,
+      "divisions": [
+        "D7"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "sokuon"
+      ],
+      "inputStep": "sokuon",
+      "inputStepLevel": 6,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉風",
+      "adviceText": "",
+      "difficultyDetail": "base=34, top=12, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=37.4, scoreLevel=D7, minLevel=D1, final=D7, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "q35001",
+      "enabled": true,
+      "displayText": "新設診察室手術室視察",
+      "kanaText": "しんせつしんさつしつしゅじゅつしつしさつ",
+      "primaryRoman": "sinsetusinsatusitushujutusitusisatu",
+      "extraVariants": [
+        "shinsetsushinsatsushitsushujutsushitsushisatsu"
+      ],
+      "length": 35,
+      "difficultyScore": 40.4,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji",
+        "yoon",
+        "n",
+        "long_text"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=35, top=20, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=40.4, scoreLevel=D8, minLevel=D9, final=D9, minReasons=latin,long_text",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g36002",
+      "enabled": true,
+      "displayText": "坊主が屏風に上手に坊主の絵を描いた",
+      "kanaText": "ぼうずがびょうぶにじょうずにぼうずのえをかいた",
+      "primaryRoman": "bouzugabyoubunijouzunibouzunoeokaita",
+      "extraVariants": [],
+      "length": 36,
+      "difficultyScore": 43,
+      "divisionLevel": 7,
+      "phraseLevel": 7,
+      "divisions": [
+        "D8"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=36, top=20, bottom=10, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=43, scoreLevel=D8, minLevel=D1, final=D8, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g36001",
+      "enabled": true,
+      "displayText": "左目左耳左耳左目",
+      "kanaText": "ひだりめひだりみみひだりみみひだりめ",
+      "primaryRoman": "hidarimehidarimimihidarimimihidarime",
+      "extraVariants": [],
+      "length": 36,
+      "difficultyScore": 40.8,
+      "divisionLevel": 7,
+      "phraseLevel": 7,
+      "divisions": [
+        "D8"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=36, top=18, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=40.8, scoreLevel=D8, minLevel=D1, final=D8, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g36003",
+      "enabled": true,
+      "displayText": "蛙ぴょこぴょこ合わせて六ぴょこぴょこ",
+      "kanaText": "かえるぴょこぴょこあわせてろくぴょこぴょこ",
+      "primaryRoman": "kaerupyokopyokoawaseterokupyokopyoko",
+      "extraVariants": [],
+      "length": 36,
+      "difficultyScore": 43.2,
+      "divisionLevel": 7,
+      "phraseLevel": 7,
+      "divisions": [
+        "D8"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "yoon"
+      ],
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=36, top=26, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=4, total=43.2, scoreLevel=D8, minLevel=D1, final=D8, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g38001",
+      "enabled": true,
+      "displayText": "笹山さんが笹かまを三皿差し出す",
+      "kanaText": "ささやまさんがささかまをさんさらさしだす",
+      "primaryRoman": "sasayamasangasasakamawosansarasasidasu",
+      "extraVariants": [
+        "sasayamasangasasakamawosansarasashidasu"
+      ],
+      "length": 38,
+      "difficultyScore": 40,
+      "divisionLevel": 7,
+      "phraseLevel": 7,
+      "divisions": [
+        "D8"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "n"
+      ],
+      "inputStep": "n",
+      "inputStepLevel": 5,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉風",
+      "adviceText": "",
+      "difficultyDetail": "base=38, top=6, bottom=4, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=40, scoreLevel=D8, minLevel=D4, final=D8, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "g40001",
+      "enabled": true,
+      "displayText": "赤炙りカルビ青炙りカルビ黄炙りカルビ",
+      "kanaText": "あかあぶりかるびあおあぶりかるびきあぶりかるび",
+      "primaryRoman": "akaaburikarubiaoaburikarubikiaburikarubi",
+      "extraVariants": [],
+      "length": 40,
+      "difficultyScore": 45.2,
+      "divisionLevel": 7,
+      "phraseLevel": 7,
+      "divisions": [
+        "D8"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "katakana",
+        "kanji"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=40, top=20, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=45.2, scoreLevel=D8, minLevel=D1, final=D8, minReasons=",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "q43001",
+      "enabled": true,
+      "displayText": "瓜売りが瓜売りに来て瓜売り残し瓜売り帰る",
+      "kanaText": "うりうりがうりうりにきてうりうりのこしうりうりかえる",
+      "primaryRoman": "uriurigauriurinikiteuriurinokosiuriurikaeru",
+      "extraVariants": [
+        "uriurigauriurinikiteuriurinokoshiuriurikaeru"
+      ],
+      "length": 43,
+      "difficultyScore": 50.2,
+      "divisionLevel": 8,
+      "phraseLevel": 8,
+      "divisions": [
+        "D9"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "hiragana",
+        "kanji",
+        "long_text"
+      ],
+      "inputStep": "bottom",
+      "inputStepLevel": 3,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=43, top=34, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=50.2, scoreLevel=D9, minLevel=D9, final=D9, minReasons=latin,long_text",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "q54001",
+      "enabled": true,
+      "displayText": "東京特許許可局局長今日急遽許可却下",
+      "kanaText": "とうきょうとっきょきょかきょくきょくちょうきょうきゅうきょきょかきゃっか",
+      "primaryRoman": "toukyoutokkyokyokakyokukyokutyoukyoukyuukyokyokakyakka",
+      "extraVariants": [
+        "toukyoutokkyokyokakyokukyokuchoukyoukyuukyokyokakyakka"
+      ],
+      "length": 54,
+      "difficultyScore": 67.1,
+      "divisionLevel": 9,
+      "phraseLevel": 9,
+      "divisions": [
+        "D10"
+      ],
+      "tags": [],
+      "category": [
+        "tongue_twister"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "kanji",
+        "sokuon",
+        "yoon",
+        "long_text"
+      ],
+      "inputStep": "sokuon",
+      "inputStepLevel": 6,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "早口言葉",
+      "adviceText": "",
+      "difficultyDetail": "base=54, top=33, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=13, total=67.1, scoreLevel=D10, minLevel=D9, final=D10, minReasons=latin,long_text",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
