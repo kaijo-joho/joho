@@ -1,4 +1,4 @@
-const update = '2026-06-08 14:30:57';
+const update = '2026-06-13 00:00:37';
 
 const quizzes = {
   "py11": {
@@ -1248,6 +1248,11 @@ const urls = {
     "title": "課題提出・回答状況",
     "description": "",
     "url": "https://script.google.com/a/gfe.kaijo.ed.jp/macros/s/AKfycbwfONqIrp3-_QmskOawRQLYlejDJBOMFB0ZTG_rD718VhPleZaev3Uv9yaJg5ivl4fx/exec"
+  },
+  "typing": {
+    "title": "Typing Quest",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwewt6mGEp3eyT8L33Tx2xGEPA8Dy-a1wIaqXpk11-JuqGM0VblGBxF3ev70KYnqOFYMg/exec"
   }
 };
 window.urls = urls;
