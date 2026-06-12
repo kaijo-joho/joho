@@ -35,9 +35,10 @@
     *{box-sizing:border-box}
     body{
       margin:0;
+      height:100vh;
       min-height:100vh;
       display:grid;
-      grid-template-rows:minmax(64px,10vh) minmax(0,1fr) minmax(44px,10vh);
+      grid-template-rows:minmax(64px,10vh) minmax(0,1fr) minmax(40px,8vh);
       overflow:hidden;
       font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
       background: radial-gradient(circle at top left, rgba(37,99,235,.16), transparent 28rem), var(--bg);
@@ -65,11 +66,13 @@
       align-items:center;
       justify-content:center;
       min-height:0;
-      padding:8px 16px;
+      padding:5px 16px;
       border-top:1px solid rgba(148,163,184,.16);
       text-align:center;
       color:var(--muted);
-      font-size:.8rem;
+      font-size:clamp(.68rem, 1.05vw, .8rem);
+      line-height:1.22;
+      overflow-wrap:anywhere;
     }
     .panel{
       background:var(--panel);
@@ -436,6 +439,11 @@
     body[data-screen-state="timeUpGrace"] .target.denseText .displayText{font-size:clamp(1.25rem, 3.5vw, 2.08rem)}
     body[data-screen-state="playing"] .target.extraDenseText .displayText,
     body[data-screen-state="timeUpGrace"] .target.extraDenseText .displayText{font-size:clamp(1rem, 2.8vw, 1.62rem)}
+    body[data-screen-state="countdown"] .progress,
+    body[data-screen-state="countdown"] #inputPanel{
+      visibility:hidden;
+      pointer-events:none;
+    }
     .track{height:20px;background:rgba(100,116,139,.18);border-radius:999px;width:100%;overflow:hidden}
     .fill{height:100%;width:100%;transform:scaleX(0);transform-origin:left;background:var(--accent);transition:transform .12s linear}
     .progress.isCaution .fill{background:var(--warn)}
@@ -486,20 +494,73 @@
       line-height:1.45;
     }
     .resultTitle{font-size:1.4rem;font-weight:900;margin:0 0 10px}
+    body[data-screen-state="result"] main,
+    body[data-screen-state="saving"] main{
+      max-width:none;
+      width:100%;
+      height:100%;
+      min-height:0;
+      overflow:hidden;
+      padding:0 16px 12px;
+    }
+    body[data-screen-state="result"] #resultPanel,
+    body[data-screen-state="saving"] #resultPanel{
+      width:min(100%, 1180px);
+      height:100%;
+      min-height:0;
+      margin:0 auto;
+      padding:0;
+      border:0;
+      border-radius:0;
+      background:transparent;
+      box-shadow:none;
+      display:grid;
+      grid-template-rows:minmax(0, 1fr) minmax(0, 1fr);
+      gap:14px;
+    }
+    body[data-screen-state="result"] #historyPanel,
+    body[data-screen-state="saving"] #historyPanel{
+      width:100%;
+      margin:0;
+      box-shadow:none;
+    }
+    .resultTop{
+      display:grid;
+      grid-template-columns:minmax(0, 2fr) minmax(280px, 1fr);
+      align-items:stretch;
+      gap:18px;
+      min-height:0;
+    }
+    .resultHeroColumn{
+      display:grid;
+      grid-template-rows:minmax(0, 1fr) auto;
+      align-items:center;
+      justify-items:center;
+      gap:10px;
+      min-height:0;
+    }
+    .resultStatsColumn{
+      display:grid;
+      grid-template-rows:auto auto minmax(0, 1fr);
+      gap:10px;
+      min-height:0;
+      overflow:hidden;
+    }
     .scoreHero{
       display:grid;
       gap:4px;
       justify-items:center;
-      padding:20px 14px;
-      border:1px solid var(--line);
-      border-radius:16px;
-      background:linear-gradient(180deg, rgba(37,99,235,.16), rgba(100,116,139,.06));
+      width:100%;
+      padding:4px 14px 0;
+      border:0;
+      border-radius:0;
+      background:transparent;
     }
     .scoreHero .label{color:var(--muted);font-size:.9rem;font-weight:900}
-    .scoreHero .value{font-size:clamp(3rem, 10vw, 6rem);font-weight:1000;line-height:1;font-variant-numeric:tabular-nums;color:var(--accent)}
-    .resultGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:12px}
+    .scoreHero .value{font-size:clamp(4.6rem, 14vw, 10rem);font-weight:1000;line-height:.9;font-variant-numeric:tabular-nums;color:var(--accent)}
+    .resultGrid{display:grid;grid-template-columns:1fr;gap:10px;margin:0}
     .resultBlock{
-      border:1px solid var(--line);
+      border:1px solid rgba(148,163,184,.16);
       border-radius:14px;
       padding:14px;
       background:rgba(100,116,139,.08);
@@ -513,12 +574,22 @@
     .resultLine.secondary .number{font-size:1.25rem;color:var(--muted)}
     .accuracyValue{font-size:2.3rem;font-weight:950;font-variant-numeric:tabular-nums}
     .missDetail{color:var(--muted);font-size:.9rem;font-weight:800}
-    .resultHeader{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:10px}
+    .resultHeader{display:flex;justify-content:flex-end;align-items:flex-start;gap:12px;margin-bottom:0}
+    .resultTop .resultTitle{display:none}
     .resultHeader .resultTitle{margin:0}
     .resultSave{display:grid;justify-items:end;gap:8px}
-    .reviewGrid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-auto-rows:1fr;align-items:stretch;gap:12px;margin-top:14px}
+    .reviewGrid{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      grid-auto-rows:minmax(0, 1fr);
+      align-items:stretch;
+      gap:12px;
+      height:100%;
+      min-height:0;
+      margin:0;
+    }
     .reviewPanel{
-      border:1px solid var(--line);
+      border:1px solid rgba(148,163,184,.16);
       border-radius:14px;
       padding:14px;
       background:rgba(100,116,139,.06);
@@ -526,14 +597,17 @@
       min-height:0;
       display:flex;
       flex-direction:column;
+      overflow:hidden;
     }
     .reviewPanel h3{font-size:1rem;margin:0}
     .advicePanel{
-      border:1px solid var(--line);
+      border:1px solid rgba(96,165,250,.18);
       border-radius:14px;
       padding:14px;
       background:rgba(37,99,235,.07);
-      margin-top:12px;
+      margin:0;
+      min-height:0;
+      overflow:auto;
     }
     .advicePanel h3{font-size:1rem;margin:0 0 8px}
     .analysisList{
@@ -542,18 +616,22 @@
       margin:10px 0;
       padding:0;
       list-style:none;
-      max-height:min(360px, 42vh);
+      max-height:none;
+      min-height:0;
+      flex:1;
       overflow-y:auto;
       padding-right:4px;
     }
     .analysisList li{
-      display:flex;
-      justify-content:space-between;
-      gap:10px;
       padding:8px 10px;
       border-radius:10px;
       background:rgba(100,116,139,.1);
       font-weight:800;
+    }
+    .analysisList li:not(.analysisItem){
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
     }
     .analysisList li.analysisItem{display:block}
     .analysisHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
@@ -602,29 +680,29 @@
       margin:12px 0 0;
       padding:0;
       list-style:none;
-      max-height:min(360px, 42vh);
+      max-height:none;
+      min-height:0;
+      flex:1;
       overflow-y:auto;
+      overflow-x:hidden;
       padding-right:4px;
     }
     .phraseList li{
-      display:flex;
-      justify-content:space-between;
-      gap:12px;
-      align-items:center;
       padding:8px 10px;
-      border:1px solid var(--line);
+      border:0;
       border-radius:10px;
       background:rgba(100,116,139,.08);
+      min-width:0;
     }
     .phraseList .phraseName{font-weight:800}
     .phraseList .phraseStatus{color:var(--muted);font-size:.86rem;font-weight:800;white-space:nowrap}
     .phraseList .okMark{color:var(--ok)}
     .phraseList .ngMark{color:var(--ng)}
-    .resultActions{display:flex;justify-content:center;margin-top:16px}
+    .resultActions{display:flex;justify-content:center;margin-top:0}
     .retryStack{
       display:grid;
       justify-items:center;
-      gap:10px;
+      gap:8px;
       width:min(100%, 560px);
     }
     .motivationPanel{
@@ -632,21 +710,151 @@
       display:grid;
       gap:5px;
       justify-items:center;
-      padding:12px 14px;
-      border:1px solid var(--line);
-      border-radius:14px;
-      background:rgba(100,116,139,.08);
+      padding:0 14px;
+      border:0;
+      border-radius:0;
+      background:transparent;
       text-align:center;
     }
     .achievementText{font-size:1.05rem;font-weight:950;color:var(--accent)}
     .scoreDeltaText{color:var(--muted);font-size:.9rem;font-weight:850}
     .nextGoalText{font-size:.95rem;font-weight:900}
     .retryLarge{min-width:min(100%, 280px);padding:14px 28px;font-size:1.05rem}
-    .modeSelectBtn{background:transparent;color:var(--muted)}
+    .modeSelectBtn{background:transparent;color:var(--muted);padding:6px 10px;font-size:.86rem}
+    .resultContent{
+      width:100%;
+      min-height:0;
+      margin:0;
+      padding-top:14px;
+      border-top:1px solid rgba(148,163,184,.18);
+      display:grid;
+    }
     .historyHead{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:4px}
-    @media (max-width:720px){
+    .resultHistoryPanel{overflow:hidden}
+    .resultListEmpty{color:var(--muted);font-weight:800;margin:10px 0 0}
+    .resultDisclosure{width:100%;min-width:0}
+    .resultDisclosure > summary{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:12px;
+      min-width:0;
+      cursor:pointer;
+      list-style:none;
+    }
+    .resultDisclosure > summary::-webkit-details-marker{display:none}
+    .resultDisclosure > summary::after{
+      content:"";
+      width:7px;
+      height:7px;
+      flex:0 0 auto;
+      border-right:2px solid var(--muted);
+      border-bottom:2px solid var(--muted);
+      transform:rotate(45deg);
+      transition:transform .16s ease;
+    }
+    .resultDisclosure[open] > summary::after{transform:rotate(225deg)}
+    .resultDisclosureSummaryText{
+      min-width:0;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+    }
+    .phraseDisclosure > summary{
+      display:grid;
+      grid-template-columns:2.8ch 1.5ch minmax(0,1fr) auto 12px;
+      align-items:start;
+      column-gap:4px;
+    }
+    .phraseDisclosure .resultDisclosureSummaryText{
+      white-space:normal;
+      overflow:visible;
+      text-overflow:clip;
+      overflow-wrap:anywhere;
+      word-break:normal;
+    }
+    .phraseDisclosure.isStatic .phraseStaticSummary{
+      display:grid;
+      grid-template-columns:2.8ch 1.5ch minmax(0,1fr) auto;
+      align-items:start;
+      column-gap:4px;
+    }
+    .phraseNo,
+    .phraseMark{
+      font-variant-numeric:tabular-nums;
+      text-align:right;
+      white-space:nowrap;
+    }
+    .phraseMark{text-align:center}
+    .phraseTitle{min-width:0;overflow-wrap:anywhere}
+    .missDisclosure > summary{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) auto 12px;
+      align-items:start;
+    }
+    .resultDisclosureDetail{
+      display:grid;
+      gap:6px;
+      margin-top:9px;
+      padding-top:9px;
+      border-top:1px solid rgba(148,163,184,.14);
+      color:var(--muted);
+      font-size:.84rem;
+      font-weight:750;
+      line-height:1.45;
+    }
+    .phraseMeaningText{
+      margin:0;
+      color:var(--muted);
+      font-size:.86rem;
+      font-weight:600;
+      line-height:1.55;
+      text-align:left;
+      overflow-wrap:anywhere;
+    }
+    .resultDetailRow{display:flex;justify-content:space-between;gap:12px}
+    .resultDetailRow span:last-child{text-align:right;color:var(--fg);overflow-wrap:anywhere}
+    .historyList{
+      display:grid;
+      gap:6px;
+      margin-top:10px;
+      min-height:0;
+      flex:1;
+      overflow-y:auto;
+      overflow-x:hidden;
+      padding-right:4px;
+    }
+    .historyEntry{
+      padding:8px 10px;
+      border-radius:10px;
+      background:rgba(100,116,139,.08);
+      font-weight:800;
+    }
+    .historyEntry > summary{
+      display:grid;
+      grid-template-columns:minmax(0,1fr) minmax(5ch,8ch) 12px;
+      align-items:start;
+    }
+    .historyScore{
+      color:var(--accent);
+      font-variant-numeric:tabular-nums;
+      white-space:nowrap;
+      text-align:right;
+    }
+    @media (max-width:900px){
+      body[data-screen-state="result"] main,
+      body[data-screen-state="saving"] main{overflow:auto}
+      body[data-screen-state="result"] #resultPanel,
+      body[data-screen-state="saving"] #resultPanel{
+        height:auto;
+        min-height:100%;
+        grid-template-rows:auto auto;
+      }
+      .resultTop{grid-template-columns:1fr}
+      .resultStatsColumn{overflow:visible}
       .resultHeader{align-items:stretch}
       .reviewGrid{grid-template-columns:1fr;grid-auto-rows:auto}
+      .reviewPanel{min-height:220px}
       .deleteEvent{grid-template-columns:auto minmax(0,1fr)}
     }
     .historyTable{width:100%;border-collapse:collapse;font-size:.92rem}
@@ -1162,6 +1370,7 @@
       overflow:hidden;
     }
     .layerTopPanel{
+      position:relative;
       display:grid;
       grid-template-rows:70% 30%;
       gap:0;
@@ -1296,10 +1505,41 @@
       overflow-x:auto;
       overflow-y:hidden;
       scroll-snap-type:x proximity;
-      padding:2px 2px 10px;
-      scrollbar-width:thin;
+      scroll-padding-inline:52px;
+      padding:2px 52px 10px;
+      scrollbar-width:none;
       height:100%;
     }
+    .itemCarousel::-webkit-scrollbar{display:none}
+    .itemCarouselNav{
+      display:none;
+      position:absolute;
+      top:85%;
+      z-index:4;
+      width:38px;
+      height:54px;
+      padding:0;
+      transform:translateY(-50%);
+      align-items:center;
+      justify-content:center;
+      border-radius:999px;
+      border:1px solid rgba(148,163,184,.20);
+      background:rgba(15,23,42,.62);
+      color:var(--fg);
+      font-size:1.25rem;
+      box-shadow:0 10px 24px rgba(15,23,42,.18);
+      backdrop-filter:blur(6px);
+    }
+    .itemCarouselNav:hover{
+      border-color:rgba(96,165,250,.55);
+      background:rgba(37,99,235,.22);
+      transform:translateY(calc(-50% - 1px));
+    }
+    .itemCarouselNav:disabled{opacity:.35;cursor:not-allowed;transform:translateY(-50%)}
+    .itemCarouselPrev{left:8px}
+    .itemCarouselNext{right:8px}
+    body[data-nav-screen="list"] .itemCarouselNav,
+    body[data-nav-screen="detail"] .itemCarouselNav{display:flex}
     .itemCarousel .modeCard{
       flex:0 0 240px;
       scroll-snap-align:start;
@@ -1412,8 +1652,6 @@
     body[data-screen-state="saving"] #playPanel,
     body[data-screen-state="saving"] #historyPanel{display:none}
     body[data-screen-state="countdown"] .playMeta,
-    body[data-screen-state="countdown"] .progress,
-    body[data-screen-state="countdown"] #inputPanel,
     body[data-screen-state="countdown"] #liveMetrics,
     body[data-screen-state="playing"] .playMeta,
     body[data-screen-state="playing"] #liveMetrics,
@@ -1442,7 +1680,9 @@
           </section>
 
           <div class="columnTitle" id="courseColumnTitle" hidden>コース一覧</div>
+          <button class="itemCarouselNav itemCarouselPrev" id="itemCarouselPrev" type="button" data-carousel-dir="-1" aria-label="前のカード" hidden>◀</button>
           <div class="modeGrid currentLayerGrid" id="modeGrid" role="listbox" aria-label="現在層の選択"></div>
+          <button class="itemCarouselNav itemCarouselNext" id="itemCarouselNext" type="button" data-carousel-dir="1" aria-label="次のカード" hidden>▶</button>
         </section>
 
         <section class="gameDetailLayer">
@@ -1542,93 +1782,94 @@
     </section>
 
     <section class="panel hidden" id="resultPanel">
-      <div class="resultHeader">
-        <h2 class="resultTitle">結果</h2>
-        <div class="resultSave">
-          <div class="saveStatus" id="saveStatus" aria-live="polite">自動保存待ち</div>
-          <div class="saveRetry hidden" id="saveRetryArea" role="alert">
-            <div class="row">
-              <span class="badge">保存に失敗しました</span>
-              <button id="retrySaveBtn" type="button" disabled>再送信</button>
+      <section class="resultTop">
+        <div class="resultHeroColumn">
+          <div class="scoreHero">
+            <div class="label">総合スコア</div>
+            <div class="value" id="rScore">0</div>
+          </div>
+          <div class="resultActions">
+            <div class="retryStack">
+              <div class="motivationPanel">
+                <div class="achievementText" id="rAchievement">今回から記録開始</div>
+                <div class="scoreDeltaText" id="rScoreDelta">次のプレイから前回比を表示します</div>
+                <div class="nextGoalText" id="rNextGoal">次の目標：まずは1フレーズ完了しよう</div>
+              </div>
+              <button class="primary retryLarge" id="retryBtn">もう一度</button>
+              <button class="modeSelectBtn" id="modeSelectBtn" type="button">モード選択へ</button>
             </div>
           </div>
         </div>
-      </div>
-      <div class="scoreHero">
-        <div class="label">総合スコア</div>
-        <div class="value" id="rScore">0</div>
-      </div>
-      <div class="resultGrid">
-        <div class="resultBlock">
-          <h3>スピード</h3>
-          <div class="resultLine" title="1分あたりに正しく入力したローマ字文字数です">
-            <span class="name">CPM</span>
-            <span><span class="number" id="rCpm">0</span> <span class="unit">文字/分</span></span>
+        <div class="resultStatsColumn">
+          <div class="resultHeader">
+            <h2 class="resultTitle">結果</h2>
+            <div class="resultSave">
+              <div class="saveStatus" id="saveStatus" aria-live="polite">自動保存待ち</div>
+              <div class="saveRetry hidden" id="saveRetryArea" role="alert">
+                <div class="row">
+                  <span class="badge">保存に失敗しました</span>
+                  <button id="retrySaveBtn" type="button" disabled>再送信</button>
+                </div>
+              </div>
+            </div>
           </div>
-          <div class="resultLine secondary" title="CPMを5で割った参考値です。英単語数ではありません">
-            <span class="name">WPM</span>
-            <span><span class="number" id="rWpm">0</span> <span class="unit">語/分</span></span>
+          <div class="resultGrid">
+            <section class="resultBlock">
+              <h3>スピード</h3>
+              <div class="resultLine" title="1分あたりに正しく入力したローマ字文字数です">
+                <span class="name">CPM</span>
+                <span><span class="number" id="rCpm">0</span> <span class="unit">文字/分</span></span>
+              </div>
+              <div class="resultLine secondary" title="CPMを5で割った参考値です。英単語数ではありません">
+                <span class="name">WPM</span>
+                <span><span class="number" id="rWpm">0</span> <span class="unit">語/分</span></span>
+              </div>
+              <div class="resultLine secondary">
+                <span class="name">正タイプ数</span>
+                <span><span class="number" id="rCorrectKeys">0</span> <span class="unit">キー</span></span>
+              </div>
+            </section>
+            <section class="resultBlock">
+              <h3>正確さ</h3>
+              <div class="resultLine">
+                <span class="name">正確率</span>
+                <span class="accuracyValue" id="rAcc">0%</span>
+              </div>
+              <div class="missDetail">ミス <b id="rMiss">0</b> 回 / 入力 <b id="rTotalKeys">0</b> キー</div>
+            </section>
           </div>
-          <div class="resultLine secondary" title="制限時間内に正しく入力され、typedRoman に追加されたローマ字文字数です">
-            <span class="name">正タイプ数</span>
-            <span><span class="number" id="rCorrectKeys">0</span> <span class="unit">キー</span></span>
-          </div>
+          <section class="advicePanel">
+            <h3>改善案・アドバイス</h3>
+            <p class="analysisText" id="trendComment">結果に合わせてコメントを表示します。</p>
+            <p class="analysisText" id="improvementComment">次の目標を表示します。</p>
+          </section>
         </div>
-        <div class="resultBlock">
-          <h3>正確さ</h3>
-          <div class="resultLine">
-            <span class="name">正確率</span>
-            <span><span class="number" id="rAcc">0%</span></span>
-          </div>
-          <div class="resultLine secondary">
-            <span class="name">ミス</span>
-            <span><span class="number" id="rMiss">0</span> <span class="unit">回 / 総打鍵 <span id="rTotalKeys">0</span> キー</span></span>
-          </div>
-        </div>
-      </div>
-      <div class="reviewGrid">
-        <section class="reviewPanel">
-          <div class="row between">
-            <h3>今回のフレーズ一覧</h3>
-            <span class="badge">完了: <b id="rCompleted">0</b></span>
-          </div>
-          <ul class="phraseList" id="resultPhraseList"></ul>
-        </section>
-        <section class="reviewPanel">
-          <h3>ミス分析</h3>
-          <ul class="analysisList" id="missAnalysisList"></ul>
-        </section>
-      </div>
-      <section class="advicePanel">
-        <h3>改善案・アドバイス</h3>
-        <p class="analysisText" id="trendComment"></p>
-        <p class="analysisText" id="improvementComment"></p>
       </section>
-      <div class="resultActions">
-        <div class="retryStack">
-          <div class="motivationPanel">
-            <div class="achievementText" id="rAchievement">今回から記録開始</div>
-            <div class="scoreDeltaText" id="rScoreDelta">次のプレイから前回比を表示します</div>
-            <div class="nextGoalText" id="rNextGoal">次の目標：まずは1フレーズ完了しよう</div>
-          </div>
-          <button class="primary retryLarge" id="retryBtn">もう一度</button>
-          <button class="modeSelectBtn" id="modeSelectBtn" type="button">モード選択へ</button>
-        </div>
-      </div>
-    </section>
 
-    <section class="panel" id="historyPanel">
-      <div class="historyHead">
-        <h2 class="resultTitle" style="margin:0">この端末の履歴</h2>
-        <div class="row">
-          <span class="badge">localStorage保存</span>
-          <button id="clearHistoryPanelBtn">履歴を消す</button>
+      <section class="resultContent">
+        <div class="reviewGrid">
+          <section class="reviewPanel">
+            <div class="row between">
+              <h3>今回のフレーズ一覧</h3>
+              <span class="badge">完了: <b id="rCompleted">0</b></span>
+            </div>
+            <ul class="phraseList" id="resultPhraseList"></ul>
+          </section>
+          <section class="reviewPanel">
+            <h3>ミス分析</h3>
+            <ul class="analysisList" id="missAnalysisList"></ul>
+          </section>
+          <section class="reviewPanel resultHistoryPanel" id="historyPanel">
+            <div class="historyHead">
+              <h3>この端末の履歴</h3>
+              <button id="clearHistoryPanelBtn">履歴を消す</button>
+            </div>
+            <div class="historyList" id="historyBody">
+              <p class="resultListEmpty">履歴はまだありません。</p>
+            </div>
+          </section>
         </div>
-      </div>
-      <table class="historyTable">
-        <thead><tr><th>日時</th><th>モード</th><th>CPM</th><th>正確率</th><th>スコア</th></tr></thead>
-        <tbody id="historyBody"><tr><td colspan="5">履歴はまだありません。</td></tr></tbody>
-      </table>
+      </section>
     </section>
   </main>
 
@@ -1849,7 +2090,7 @@
 
   const $ = (q) => document.querySelector(q);
   const els = {
-    modeSel: $('#modeSel'), modeTabs: $('#modeTabs'), modeGrid: $('#modeGrid'), secSel: $('#secSel'), timeControl: $('#timeControl'),
+    modeSel: $('#modeSel'), modeTabs: $('#modeTabs'), modeGrid: $('#modeGrid'), itemCarouselPrev: $('#itemCarouselPrev'), itemCarouselNext: $('#itemCarouselNext'), secSel: $('#secSel'), timeControl: $('#timeControl'),
     setupShell: $('#setupShell'), layerTitleMeta: $('#layerTitleMeta'), courseColumnTitle: $('#courseColumnTitle'), modeDetailPanel: $('#modeDetailPanel'), devModeBadge: $('#devModeBadge'),
     setupWarn: $('#setupWarn'), modeDesc: $('#modeDesc'), candidateInfo: $('#candidateInfo'),
     dataInfo: $('#dataInfo'), recordModeInfo: $('#recordModeInfo'), dataVersionInfo: $('#dataVersionInfo'),
@@ -1921,6 +2162,7 @@
     totalMissCount: 0,
     currentPhraseMisses: 0,
     currentDeleteEvents: [],
+    currentMissEvents: [],
     completedPhrases: [],
     typedRoman: '',
     typingSyncFrame: null,
@@ -2162,6 +2404,13 @@
       if (card.dataset.modeId) {
         selectDrillGame(card.dataset.modeId);
       }
+    });
+    [els.itemCarouselPrev, els.itemCarouselNext].forEach(button => {
+      if (!button) return;
+      button.addEventListener('click', () => {
+        if (!(state.navScreen === 'list' || state.navScreen === 'detail')) return;
+        moveDrillSelection(Number(button.dataset.carouselDir || 0));
+      });
     });
     els.modeDetailPanel.addEventListener('click', (e) => {
       const back = e.target.closest('[data-nav-back]');
@@ -3040,11 +3289,12 @@
 
   function renderDetailTimeSelector(mode){
     if (!isTimeSelectableMode(mode)) return '';
+    const options = playDurationOptions(mode);
     return `
       <div class="detailTimeSelector" aria-label="プレイ時間">
         <h3>プレイ時間</h3>
         <div class="detailTimeCards">
-          ${[30, 60, 90].map(sec => `
+          ${options.map(sec => `
             <button class="detailTimeBtn" type="button" data-detail-time="${sec}" aria-pressed="${state.durationSec === sec ? 'true' : 'false'}">${sec}秒</button>
           `).join('')}
         </div>
@@ -3185,7 +3435,19 @@
 
   function isTimeSelectableMode(mode){
     const group = modeGroupKey(mode);
-    return group === 'arcade' || group === 'free';
+    return group === 'arcade' || group === 'free' || isAdminMode();
+  }
+
+  function playDurationOptions(mode){
+    const base = modeDurationSec(mode);
+    const options = modeGroupKey(mode) === 'arcade' || modeGroupKey(mode) === 'free'
+      ? [30, 60, 90]
+      : [base];
+    if (isAdminMode()) options.unshift(1, 10);
+    return uniqueList(options)
+      .map(value => Number(value))
+      .filter(value => Number.isFinite(value) && value > 0)
+      .sort((a, b) => a - b);
   }
 
   function filterConditionSummary(filter){
@@ -3553,6 +3815,7 @@
             ? 'Steps'
             : 'Games';
       els.modeGrid.innerHTML = '';
+      updateItemCarouselNavState();
       return;
     }
     const layer = currentLayerKind();
@@ -3565,6 +3828,17 @@
       return;
     }
     renderItemCurrentLayer();
+    updateItemCarouselNavState();
+  }
+
+  function updateItemCarouselNavState(){
+    const visible = state.navScreen === 'list' || state.navScreen === 'detail';
+    const itemCount = els.modeGrid ? els.modeGrid.querySelectorAll('[data-mode-id]').length : 0;
+    [els.itemCarouselPrev, els.itemCarouselNext].forEach(button => {
+      if (!button) return;
+      button.hidden = !visible;
+      button.disabled = itemCount <= 1;
+    });
   }
 
   function renderRootCurrentLayer(){
@@ -4213,7 +4487,7 @@
         const id = state.activeRoot === 'quest' ? state.selectedQuestStageGameId : state.mode && state.mode.id;
         const card = els.modeGrid.querySelector(`[data-mode-id="${cssEscape(id || '')}"]`);
         if (card) {
-          card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+          scrollItemCardIntoView(card);
           card.focus();
         }
         return;
@@ -4261,8 +4535,23 @@
       const id = state.activeRoot === 'quest' ? state.selectedQuestStageGameId : state.mode && state.mode.id;
       if (!id) return;
       const card = els.modeGrid && els.modeGrid.querySelector(`[data-mode-id="${cssEscape(id)}"]`);
-      if (card) card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      if (card) scrollItemCardIntoView(card);
     });
+  }
+
+  function scrollItemCardIntoView(card){
+    if (!card || !els.modeGrid) return;
+    const cards = [...els.modeGrid.querySelectorAll('[data-mode-id]')];
+    const index = cards.indexOf(card);
+    if (index <= 0) {
+      els.modeGrid.scrollTo({ left: 0, behavior: 'smooth' });
+      return;
+    }
+    if (index === cards.length - 1) {
+      els.modeGrid.scrollTo({ left: Math.max(0, els.modeGrid.scrollWidth - els.modeGrid.clientWidth), behavior: 'smooth' });
+      return;
+    }
+    card.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   }
 
   function setActiveColumn(column, options = {}){
@@ -4305,7 +4594,30 @@
       finishCurrentPhraseByEnterAfterTimeUp();
       return;
     }
-    if (state.screen === 'result' && (e.code === 'Enter' || e.code === 'Space')) {
+    if (state.screen === 'result' && e.code === 'ArrowDown') {
+      e.preventDefault();
+      if (document.activeElement === els.retryBtn) els.modeSelectBtn.focus();
+      return;
+    }
+    if (state.screen === 'result' && e.code === 'ArrowUp') {
+      e.preventDefault();
+      if (document.activeElement === els.modeSelectBtn) els.retryBtn.focus();
+      return;
+    }
+    if (state.screen === 'result' && e.code === 'Space') {
+      e.preventDefault();
+      if (document.activeElement === els.modeSelectBtn) {
+        els.modeSelectBtn.click();
+        return;
+      }
+      if (document.activeElement === els.retryBtn) {
+        els.retryBtn.click();
+        return;
+      }
+      els.retryBtn.focus();
+      return;
+    }
+    if (state.screen === 'result' && e.code === 'Enter') {
       e.preventDefault();
       return;
     }
@@ -4317,10 +4629,16 @@
     if (!(state.screen === 'ready' || state.screen === 'setup')) return;
     const target = e.target;
     if (target && target.closest && target.closest('.adminPhrasePreview, .adminPhraseModal, .detailHistoryPanel, textarea, select')) return;
+    const detailStartButton = target && target.closest && target.closest('[data-detail-start]');
+    if (detailStartButton && e.code === 'ArrowDown') {
+      e.preventDefault();
+      return;
+    }
     const detailTimeButton = target && target.closest && target.closest('[data-detail-time]');
     if (detailTimeButton) {
       if (e.code === 'ArrowDown') {
         e.preventDefault();
+        setSelectedDuration(Number(detailTimeButton.dataset.detailTime || 60));
         focusDetailStartButton();
         return;
       }
@@ -4332,6 +4650,7 @@
       if (e.code === 'Enter' || e.code === 'Space') {
         e.preventDefault();
         setSelectedDuration(Number(detailTimeButton.dataset.detailTime || 60), { focusTime: detailTimeButton });
+        if (e.code === 'Space') focusDetailStartButton();
         return;
       }
     }
@@ -4408,8 +4727,10 @@
 
   function syncDurationFromMode(){
     const selectableTime = isTimeSelectableMode(state.mode);
+    const options = selectableTime ? playDurationOptions(state.mode) : [];
+    const preferredSec = Number(els.secSel.value || state.durationSec || modeDurationSec(state.mode));
     const sec = selectableTime
-      ? Number(els.secSel.value || state.durationSec || 60)
+      ? (options.includes(preferredSec) ? preferredSec : modeDurationSec(state.mode))
       : modeDurationSec(state.mode);
     state.durationSec = sec;
     ensureDurationOption(sec);
@@ -4493,6 +4814,7 @@
     state.totalMissCount = 0;
     state.currentPhraseMisses = 0;
     state.currentDeleteEvents = [];
+    state.currentMissEvents = [];
     state.completedPhrases = [];
     state.typedRoman = '';
     state.typingSyncFrame = null;
@@ -4601,6 +4923,7 @@
     els.inputField.classList.remove('hasError');
     state.currentPhraseMisses = 0;
     state.currentDeleteEvents = [];
+    state.currentMissEvents = [];
     state.currentAttempt = beginPhraseAttempt(w);
     assertTypingSync('showCurrentWord');
   }
@@ -4735,6 +5058,7 @@
     assertRomanPrefixSync('beforeKey');
     const nextRaw = state.typedRoman + ch;
     if (!isAcceptableRomanPrefix(nextRaw, w)) {
+      recordMissEvent(w, ch);
       countTypedRomanKey(false);
       renderTypedRomanState(w, true);
       checkTimeUpAfterInput();
@@ -4761,6 +5085,31 @@
     else state.totalMissCount++;
     state.totalKeyCount++;
     if (!isCorrect) state.currentPhraseMisses++;
+  }
+
+  function recordMissEvent(w, actualChar){
+    if (!w) return;
+    const typedBefore = String(state.typedRoman || '');
+    const expectedChars = expectedRomanCharsFor(w, typedBefore);
+    state.currentMissEvents.push({
+      phraseId: w.phraseId,
+      displayText: w.display,
+      position: typedBefore.length + 1,
+      typedBefore,
+      expectedChars,
+      expectedText: expectedChars.join(' / '),
+      actualChar: String(actualChar || ''),
+      targetRoman: currentTargetRomanFor(w, typedBefore)
+    });
+  }
+
+  function expectedRomanCharsFor(w, typedBefore){
+    const prefix = String(typedBefore || '');
+    const chars = activeRomanCandidates(w)
+      .filter(candidate => candidate.startsWith(prefix))
+      .map(candidate => candidate.charAt(prefix.length))
+      .filter(Boolean);
+    return uniqueList(chars);
   }
 
   function setTypedRoman(value){
@@ -5088,6 +5437,7 @@
       endedByEnterAfterTimeUp: false,
       missCount: 0,
       deleteEvents: [],
+      missEvents: [],
       cycleNo: w.cycleNo || state.cycleCount || 1
     };
     w.attemptNo = attempt.attemptNo;
@@ -5109,7 +5459,12 @@
     attempt.endedByEnterAfterTimeUp = !!attempt.endedByEnterAfterTimeUp || !!flags.endedByEnterAfterTimeUp;
     attempt.missCount = state.currentPhraseMisses;
     attempt.deleteEvents = state.currentDeleteEvents.map(event => ({ ...event }));
-    return { ...attempt, deleteEvents: attempt.deleteEvents.map(event => ({ ...event })) };
+    attempt.missEvents = state.currentMissEvents.map(event => ({ ...event, expectedChars: [...(event.expectedChars || [])] }));
+    return {
+      ...attempt,
+      deleteEvents: attempt.deleteEvents.map(event => ({ ...event })),
+      missEvents: attempt.missEvents.map(event => ({ ...event, expectedChars: [...(event.expectedChars || [])] }))
+    };
   }
 
   function tick(){
@@ -5340,7 +5695,15 @@
       completed: !!attempt.completed,
       completedAfterTimeUp: !!attempt.completedAfterTimeUp,
       endedByEnterAfterTimeUp: !!attempt.endedByEnterAfterTimeUp,
-      missCount: Number(attempt.missCount || 0)
+      missCount: Number(attempt.missCount || 0),
+      missEvents: (attempt.missEvents || []).map(event => ({
+        position: event.position,
+        typedBefore: event.typedBefore || '',
+        expectedChars: [...(event.expectedChars || [])],
+        expectedText: event.expectedText || '',
+        actualChar: event.actualChar || '',
+        targetRoman: event.targetRoman || ''
+      }))
     };
   }
 
@@ -5369,7 +5732,8 @@
     syncCurrentAttemptForResult();
     const list = state.attempts.map(attempt => ({
       ...attempt,
-      deleteEvents: (attempt.deleteEvents || []).map(event => ({ ...event }))
+      deleteEvents: (attempt.deleteEvents || []).map(event => ({ ...event })),
+      missEvents: (attempt.missEvents || []).map(event => ({ ...event, expectedChars: [...(event.expectedChars || [])] }))
     }));
     return list;
   }
@@ -5393,18 +5757,39 @@
   function renderResultPhraseList(phrases){
     const list = phrases || resultPhrases();
     if (!list.length) {
-      els.resultPhraseList.innerHTML = '<li>完了したフレーズはありません。</li>';
+      els.resultPhraseList.innerHTML = '<li class="resultListEmpty">完了したフレーズはありません。</li>';
       return;
     }
     els.resultPhraseList.innerHTML = list.map((phrase, index) => {
       const mark = phraseResultMark(phrase);
-      const markHtml = mark.text ? `<span class="${mark.className}">${mark.text}</span> ` : '';
       const attemptNo = Number(phrase.attemptNo || index + 1);
       const status = phraseStatusText(phrase);
+      const phraseName = phrase.displayText || phrase.display;
+      const markHtml = mark.text ? `<span class="phraseMark ${mark.className}">${mark.text}</span>` : '<span class="phraseMark"></span>';
+      const meaning = String(phrase.meaningText || '').trim();
+      const summaryHtml = `
+        <span class="phraseNo">${attemptNo}.</span>
+        ${markHtml}
+        <span class="phraseName phraseTitle">${escapeHtml(phraseName)}</span>
+        <span class="phraseStatus">${escapeHtml(status)}</span>
+      `;
+      if (!meaning) {
+        return `
+      <li>
+        <div class="resultDisclosure phraseDisclosure isStatic">
+          <div class="phraseStaticSummary">${summaryHtml}</div>
+        </div>
+      </li>
+    `;
+      }
       return `
       <li>
-        <span class="phraseName">${attemptNo}. ${markHtml}${escapeHtml(phrase.displayText || phrase.display)}</span>
-        <span class="phraseStatus">${escapeHtml(status)}</span>
+        <details class="resultDisclosure phraseDisclosure">
+          <summary>${summaryHtml}</summary>
+          <div class="resultDisclosureDetail">
+            <p class="phraseMeaningText">${escapeHtml(meaning)}</p>
+          </div>
+        </details>
       </li>
     `;
     }).join('');
@@ -5438,11 +5823,18 @@
     } else {
       els.missAnalysisList.innerHTML = missed.map(phrase => `
         <li class="analysisItem">
-          <div class="analysisHead">
-            <span>${escapeHtml(phraseDisplayName(phrase))}</span>
-            <span class="missCount">ミス ${phrase.missCount}</span>
-          </div>
-          ${renderDeleteDetails(phrase.deleteEvents)}
+          <details class="resultDisclosure missDisclosure">
+            <summary>
+              <span class="resultDisclosureSummaryText">${escapeHtml(phraseDisplayName(phrase))}</span>
+              <span class="missCount">ミス ${phrase.missCount}</span>
+            </summary>
+            <div class="resultDisclosureDetail">
+              <div class="resultDetailRow"><span>ミス数</span><span>${phrase.missCount} 回</span></div>
+              <div class="resultDetailRow"><span>かな</span><span>${escapeHtml(phrase.kana || phrase.kanaText || '-')}</span></div>
+              <div class="resultDetailRow"><span>ローマ字</span><span>${escapeHtml(phrase.roman || phrase.primaryRoman || '-')}</span></div>
+              ${renderMissEventDetails(phrase.missEvents)}
+            </div>
+          </details>
         </li>
       `).join('');
     }
@@ -5451,21 +5843,29 @@
     els.improvementComment.textContent = improvementComment(result, missed);
   }
 
-  function renderDeleteDetails(deleteEvents){
-    const events = Array.isArray(deleteEvents) ? deleteEvents : [];
-    if (!events.length) return '<div class="deleteDetails">削除前入力の記録はありません。</div>';
+  function renderMissEventDetails(missEvents){
+    const events = Array.isArray(missEvents) ? missEvents : [];
+    if (!events.length) return '<div class="deleteDetails">ミスしたキーの詳細はまだ記録されていません。</div>';
     return `
       <div class="deleteDetails">
         ${events.map(event => `
           <div class="deleteEvent">
-            <span class="deleteLabel">削除前</span>
-            <span class="deleteValue">${escapeHtml(event.beforeDelete)}</span>
-            <span class="deleteLabel">削除文字</span>
-            <span class="deleteValue">${escapeHtml(event.deletedChar)}</span>
+            <span class="deleteLabel">位置</span>
+            <span class="deleteValue">${escapeHtml(event.position || '-')}</span>
+            <span class="deleteLabel">本来</span>
+            <span class="deleteValue">${escapeHtml(event.expectedText || expectedTextFromEvent(event) || '-')}</span>
+            <span class="deleteLabel">入力</span>
+            <span class="deleteValue">${escapeHtml(event.actualChar || '-')}</span>
+            <span class="deleteLabel">直前</span>
+            <span class="deleteValue">${escapeHtml(event.typedBefore || '先頭')}</span>
           </div>
         `).join('')}
       </div>
     `;
+  }
+
+  function expectedTextFromEvent(event){
+    return Array.isArray(event && event.expectedChars) ? event.expectedChars.join(' / ') : '';
   }
 
   function trendComment(result, missed){
@@ -5687,6 +6087,9 @@
       wpm: result.wpm,
       accPct: result.accPct,
       mistakes: result.mistakes,
+      correctKeyCount: result.correctKeyCount,
+      totalKeyCount: result.totalKeyCount,
+      missCount: result.mistakes,
       completed: result.completed,
       score: result.score
     });
@@ -5696,16 +6099,35 @@
   function renderHistory(){
     const arr = historyForCurrentMode(readHistoryRecords());
     if (!arr.length) {
-      if (els.historyBody) els.historyBody.innerHTML = '<tr><td colspan="5">履歴はまだありません。</td></tr>';
+      if (els.historyBody) els.historyBody.innerHTML = '<p class="resultListEmpty">履歴はまだありません。</p>';
       if (els.detailHistoryBody) els.detailHistoryBody.innerHTML = '<tr><td colspan="4">履歴はまだありません。</td></tr>';
       return;
     }
-    if (els.historyBody) els.historyBody.innerHTML = arr.map(r => `
-      <tr><td>${escapeHtml(r.at)}</td><td>${escapeHtml(modeDisplayName(r.mode || r.modeId))}</td><td>${r.cpm}</td><td>${r.accPct}%</td><td>${r.score}</td></tr>
-    `).join('');
+    if (els.historyBody) els.historyBody.innerHTML = arr.map(r => renderResultHistoryEntry(r)).join('');
     if (els.detailHistoryBody) els.detailHistoryBody.innerHTML = arr.slice(0, 5).map(r => `
       <tr><td>${escapeHtml(compactHistoryDate(r.at))}</td><td>${r.cpm}</td><td>${r.accPct}%</td><td>${r.score}</td></tr>
     `).join('');
+  }
+
+  function renderResultHistoryEntry(record){
+    const totalKeys = firstDefined(record.totalKeyCount, record.totalKeys, record.total, null);
+    const missKeys = firstDefined(record.missCount, record.mistakes, null);
+    const correctKeys = firstDefined(record.correctKeyCount, record.correct, null);
+    return `
+      <details class="resultDisclosure historyEntry">
+        <summary>
+          <span class="resultDisclosureSummaryText">${escapeHtml(record.at || '-')}</span>
+          <span class="historyScore">${escapeHtml(record.score ?? '-')}</span>
+        </summary>
+        <div class="resultDisclosureDetail">
+          <div class="resultDetailRow"><span>CPM</span><span>${escapeHtml(record.cpm ?? '-')}</span></div>
+          <div class="resultDetailRow"><span>正確率</span><span>${escapeHtml(record.accPct ?? '-')}%</span></div>
+          <div class="resultDetailRow"><span>入力キー数</span><span>${escapeHtml(totalKeys ?? '-')}</span></div>
+          <div class="resultDetailRow"><span>ミスキー数</span><span>${escapeHtml(missKeys ?? '-')}</span></div>
+          <div class="resultDetailRow"><span>正タイプ数</span><span>${escapeHtml(correctKeys ?? '-')}</span></div>
+        </div>
+      </details>
+    `;
   }
 
   function compactHistoryDate(value){
