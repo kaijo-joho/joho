@@ -1,0 +1,4147 @@
+<!-- 
+  時間割チェッカー v1.0
+  教務の時間割のCSVを読み込んで、時間割を確認できます。
+  CSVはブラウザのローカルキャッシュに保存されます（インターネット上へのアップロードではありません）。
+-->
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>時間割チェッカー</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='4' y='4' width='56' height='56' rx='12' fill='%2312395e'/%3E%3Crect x='10' y='12' width='44' height='40' rx='4' fill='%23f6f7f9'/%3E%3Cpath d='M10 22h44M10 32h44M10 42h44M22 12v40M34 12v40M46 12v40' stroke='%23b9c2cc' stroke-width='2'/%3E%3Cpath d='M10 16a4 4 0 0 1 4-4h36a4 4 0 0 1 4 4v6H10z' fill='%23d5e8f8'/%3E%3Crect x='24' y='25' width='8' height='5' rx='1.5' fill='%23fecdd3'/%3E%3Crect x='36' y='25' width='8' height='5' rx='1.5' fill='%23a7f3d0'/%3E%3Crect x='24' y='35' width='8' height='5' rx='1.5' fill='%23fecdd3'/%3E%3Crect x='48' y='35' width='4' height='5' rx='1.5' fill='%23fde68a'/%3E%3Crect x='12' y='44' width='8' height='6' rx='2' fill='%23d5e8f8'/%3E%3C/svg%3E">
+  <style>
+    :root {
+      color-scheme: light dark;
+      --bg: #f6f7f9;
+      --surface: #ffffff;
+      --surface-strong: #f0f3f6;
+      --surface-soft: #fbfcfd;
+      --line: #d8dde3;
+      --line-strong: #b9c2cc;
+      --text: #1c2430;
+      --muted: #667382;
+      --accent: rgb(26, 77, 123);
+      --accent-dark: #12395e;
+      --accent-soft: #e5f0fa;
+      --accent-hover: #d5e8f8;
+      --accent-ring: rgba(26, 77, 123, 0.22);
+      --current-bg: #dcecf7;
+      --current-strong: #7aa8cb;
+      --blue: #2563eb;
+      --blue-soft: #dbeafe;
+      --free: #087f5b;
+      --free-bg: #dff7ec;
+      --free-border: #a7f3d0;
+      --research: #a16207;
+      --research-bg: #fef3c7;
+      --research-border: #fde68a;
+      --busy: #9f1239;
+      --busy-bg: #ffe4e6;
+      --busy-cell-bg: #fff0f2;
+      --busy-border: #fecdd3;
+      --closed: #475569;
+      --closed-bg: #e2e8f0;
+      --closed-border: #cbd5e1;
+      --shadow-sm: 0 1px 2px rgba(28, 36, 48, 0.06);
+      --shadow: 0 1px 2px rgba(28, 36, 48, 0.04), 0 12px 28px rgba(28, 36, 48, 0.07);
+      --radius-sm: 6px;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --font: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", "YuGothic", "Segoe UI", sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      min-width: 320px;
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      letter-spacing: 0;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-size: 16px;
+      line-height: 1.55;
+    }
+
+    button,
+    input,
+    select {
+      font: inherit;
+      letter-spacing: 0;
+    }
+
+    button {
+      min-height: 40px;
+      border: 1px solid var(--line-strong);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+    }
+
+    button:hover {
+      border-color: var(--accent);
+      color: var(--accent-dark);
+    }
+
+    button:active {
+      transform: translateY(1px);
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.55;
+      transform: none;
+    }
+
+    input,
+    select {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 6px;
+      background: var(--surface);
+      color: var(--text);
+      padding: 8px 10px;
+    }
+
+    input:focus,
+    select:focus,
+    button:focus-visible {
+      outline: 3px solid var(--accent-ring);
+      outline-offset: 2px;
+      border-color: var(--accent);
+    }
+
+    .app-shell {
+      min-height: 100vh;
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      background: rgba(255, 255, 255, 0.94);
+      border-bottom: 1px solid var(--line);
+      backdrop-filter: blur(14px);
+    }
+
+    .topbar-inner {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 10px 20px;
+      display: grid;
+      grid-template-columns: minmax(190px, 1fr) auto auto auto;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .brand {
+      min-width: 0;
+    }
+
+    .brand h1 {
+      margin: 0;
+      color: var(--accent);
+      font-size: 1.22rem;
+      line-height: 1.2;
+      font-weight: 800;
+    }
+
+    .mode-tabs {
+      display: inline-flex;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-strong);
+      padding: 3px;
+      gap: 3px;
+      min-height: 48px;
+      align-items: center;
+    }
+
+    .mode-tab {
+      min-height: 40px;
+      border: 0;
+      border-radius: 5px;
+      background: transparent;
+      color: var(--muted);
+      padding: 5px 12px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .mode-tab.is-active {
+      background: var(--accent);
+      color: #fff;
+      box-shadow: 0 4px 10px rgba(26, 77, 123, 0.18);
+    }
+
+    .mode-tab:hover {
+      color: var(--accent-dark);
+      background: var(--accent-hover);
+    }
+
+    .mode-tab.is-active:hover {
+      color: #fff;
+      background: var(--accent-dark);
+    }
+
+    .now-strip {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(150px, 1fr));
+      gap: 8px;
+    }
+
+    .mini-stat {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-strong);
+      min-height: 48px;
+      padding: 5px 10px;
+      display: grid;
+      align-content: center;
+    }
+
+    .mini-stat dt {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 700;
+    }
+
+    .mini-stat dd {
+      margin: 0;
+      min-height: 1.2em;
+      font-size: 0.98rem;
+      line-height: 1.2;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      align-items: center;
+    }
+
+    .icon-button {
+      width: 44px;
+      min-width: 44px;
+      height: 44px;
+      min-height: 44px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      line-height: 1;
+    }
+
+    .icon-button svg {
+      width: 22px;
+      height: 22px;
+      display: block;
+      stroke: currentColor;
+      stroke-width: 2.4;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
+
+    .settings-panel {
+      display: none;
+      border-top: 1px solid var(--line);
+      background: var(--surface-soft);
+    }
+
+    .settings-panel.is-open {
+      display: block;
+    }
+
+    .settings-close-row {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 10px 20px 0;
+      display: flex;
+      justify-content: flex-end;
+    }
+
+    .settings-close-button {
+      width: 40px;
+      min-width: 40px;
+      height: 40px;
+      min-height: 40px;
+    }
+
+    .settings-inner {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 8px 20px 12px;
+      display: grid;
+      grid-template-columns: minmax(260px, 320px) minmax(0, 1fr);
+      gap: 16px;
+      align-items: start;
+    }
+
+    .settings-side-column {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
+
+    .settings-inner label {
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .settings-card {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .teacher-settings-card {
+      min-width: 0;
+    }
+
+    .settings-card h2,
+    .settings-card h3 {
+      margin: 0;
+      color: var(--text);
+      font-size: 0.98rem;
+      line-height: 1.3;
+    }
+
+    .setting-subtitle {
+      padding-top: 6px;
+      border-top: 1px solid var(--line);
+    }
+
+    .setting-field {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .setting-check-row {
+      min-height: 42px;
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    .setting-check-row input {
+      width: 18px;
+      min-height: 18px;
+      height: 18px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .setting-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: end;
+    }
+
+    .employment-setting-row {
+      grid-template-columns: minmax(260px, 1fr) minmax(190px, 240px) auto;
+    }
+
+    .setting-row button {
+      padding: 8px 12px;
+      white-space: nowrap;
+    }
+
+    .page {
+      width: min(1280px, 100%);
+      margin: 0 auto;
+      padding: 22px 20px 40px;
+      display: grid;
+      grid-template-columns: minmax(250px, 300px) minmax(0, 1fr);
+      gap: 18px;
+      align-items: start;
+    }
+
+    .side-stack,
+    .main-stack {
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--surface);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .panel-header {
+      min-height: 54px;
+      padding: 13px 16px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .panel-header h2 {
+      margin: 0;
+      font-size: 1rem;
+      line-height: 1.25;
+    }
+
+    .panel-body {
+      padding: 16px;
+    }
+
+    .field-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .field-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .field-row button {
+      padding: 8px 14px;
+      white-space: nowrap;
+    }
+
+    .file-input {
+      min-height: 42px;
+      padding: 7px 10px;
+    }
+
+    .primary-button {
+      border-color: var(--accent);
+      background: var(--accent);
+      color: #fff;
+      font-weight: 700;
+    }
+
+    .primary-button:hover {
+      border-color: var(--accent-dark);
+      background: var(--accent-dark);
+      color: #fff;
+    }
+
+    .danger-button {
+      border-color: var(--busy-border);
+      background: #fff1f2;
+      color: #9f1239;
+      font-weight: 700;
+    }
+
+    .danger-button:hover {
+      border-color: #fb7185;
+      color: #881337;
+    }
+
+    .ghost-button {
+      background: transparent;
+      border-color: var(--line);
+      color: var(--muted);
+    }
+
+    .meta-list {
+      display: grid;
+      gap: 6px;
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+    }
+
+    .meta-line {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .status-message {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-strong);
+      padding: 10px 12px;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .status-message[data-tone="error"] {
+      border-color: var(--busy-border);
+      background: #fff1f2;
+      color: #9f1239;
+    }
+
+    .status-message[data-tone="success"] {
+      border-color: var(--free-border);
+      background: #ecfdf5;
+      color: #047857;
+    }
+
+    .status-message[data-tone="warn"] {
+      border-color: var(--research-border);
+      background: #fffbeb;
+      color: #92400e;
+    }
+
+    .search-box {
+      display: grid;
+      gap: 12px;
+    }
+
+    .teacher-results,
+    .department-list,
+    .favorite-list,
+    .settings-chip-list,
+    .class-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .teacher-results {
+      max-height: 300px;
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .teacher-results:empty {
+      display: none;
+    }
+
+    .settings-chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 34px;
+      align-items: center;
+    }
+
+    .list-title {
+      margin-top: 4px;
+      padding-top: 10px;
+      border-top: 1px solid var(--line);
+    }
+
+    .department-list {
+      max-height: min(54vh, 520px);
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .favorite-list {
+      margin-bottom: 4px;
+    }
+
+    .class-list {
+      max-height: min(56vh, 560px);
+      overflow: auto;
+      padding-right: 3px;
+    }
+
+    .class-grade-group {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+
+    .class-grade-title {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.3;
+      font-weight: 800;
+    }
+
+    .class-grade-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 6px;
+    }
+
+    .class-option {
+      min-height: 40px;
+      padding: 7px 4px;
+      font-weight: 700;
+      border-color: var(--line);
+      background: var(--surface);
+      text-align: center;
+    }
+
+    .class-option:hover {
+      border-color: var(--accent);
+      background: var(--accent-hover);
+    }
+
+    .class-option.is-selected {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      box-shadow: inset 4px 0 0 var(--accent);
+    }
+
+    .teacher-option {
+      width: 100%;
+      min-height: 42px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 6px;
+      align-items: center;
+      padding: 0;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-color: var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    }
+
+    .teacher-select-button {
+      width: 100%;
+      min-height: 42px;
+      display: grid;
+      justify-content: start;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 10px;
+      border: 0;
+      background: transparent;
+      color: inherit;
+      padding: 8px 0 8px 10px;
+      text-align: left;
+    }
+
+    .teacher-select-button:hover {
+      background: transparent;
+      color: inherit;
+      box-shadow: none;
+      transform: none;
+    }
+
+    .favorite-toggle-button {
+      width: 38px;
+      min-width: 38px;
+      min-height: 38px;
+      padding: 0;
+      display: grid;
+      place-items: center;
+      border-color: transparent;
+      background: transparent;
+      color: inherit;
+      font-size: 1.15rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+
+    .favorite-toggle-button:hover {
+      border-color: transparent;
+      background: rgba(255, 255, 255, 0.04);
+      color: inherit;
+    }
+
+    .favorite-toggle-button.is-active {
+      border-color: transparent;
+      background: transparent;
+      color: inherit;
+    }
+
+    .teacher-option:hover {
+      border-color: var(--accent);
+      background: var(--accent-hover);
+      color: var(--accent-dark);
+      box-shadow: 0 8px 18px rgba(26, 77, 123, 0.14);
+      transform: translateY(-1px);
+    }
+
+    .teacher-option.is-selected {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      box-shadow: inset 4px 0 0 var(--accent);
+    }
+
+    .teacher-option.is-selected:hover {
+      background: var(--accent-hover);
+      box-shadow: inset 4px 0 0 var(--accent), 0 8px 18px rgba(26, 77, 123, 0.16);
+    }
+
+    .teacher-name {
+      min-width: 0;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+    }
+
+    .teacher-dept {
+      color: var(--muted);
+      font-size: 0.82rem;
+      white-space: nowrap;
+    }
+
+    .teacher-option:hover .teacher-dept,
+    .teacher-option.is-selected .teacher-dept {
+      color: var(--accent-dark);
+    }
+
+    .chip-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      min-height: 40px;
+      align-items: center;
+    }
+
+    .chip {
+      display: inline-flex;
+      max-width: 100%;
+      min-height: 34px;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid #a7c4dd;
+      border-radius: 999px;
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      padding: 4px 6px 4px 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .chip span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .chip button {
+      width: 26px;
+      min-width: 26px;
+      height: 26px;
+      min-height: 26px;
+      border-radius: 999px;
+      border-color: transparent;
+      background: rgba(26, 77, 123, 0.12);
+      color: var(--accent-dark);
+      padding: 0;
+      line-height: 1;
+    }
+
+    .selected-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: flex-end;
+      margin-top: 8px;
+    }
+
+    .selected-actions button {
+      padding: 6px 10px;
+      min-height: 34px;
+    }
+
+    .inline-name-button {
+      min-height: 30px;
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      padding: 3px 9px;
+      font-weight: 700;
+    }
+
+    .inline-name-button:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    .department-group {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      overflow: visible;
+    }
+
+    .department-group.is-self-department {
+      border-color: #a7c4dd;
+      box-shadow: inset 4px 0 0 var(--accent);
+    }
+
+    .department-heading {
+      width: 100%;
+      min-height: 52px;
+      border: 0;
+      border-radius: 0;
+      padding: 10px 12px;
+      font-weight: 800;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface-strong);
+      color: var(--text);
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .department-heading:hover {
+      background: var(--accent-hover);
+      color: var(--accent-dark);
+    }
+
+    .department-heading[aria-expanded="true"] {
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+    }
+
+    .department-heading-main {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+
+    .department-count {
+      color: var(--muted);
+      font-weight: 700;
+    }
+
+    .department-chevron {
+      color: var(--muted);
+      font-size: 0.72rem;
+      line-height: 1;
+      transition: transform 0.15s ease;
+    }
+
+    .department-heading[aria-expanded="true"] .department-chevron {
+      transform: rotate(90deg);
+    }
+
+    .department-members {
+      border-top: 1px solid var(--line);
+      padding: 8px;
+      display: grid;
+      gap: 6px;
+    }
+
+    .department-members[hidden] {
+      display: none;
+    }
+
+    .result-hero {
+      display: grid;
+      gap: 14px;
+    }
+
+    .result-title {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: baseline;
+      justify-content: space-between;
+    }
+
+    .result-title h2 {
+      margin: 0;
+      font-size: 1.3rem;
+      line-height: 1.25;
+    }
+
+    .result-title .dept {
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .summary-item {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 14px 16px;
+      min-width: 0;
+    }
+
+    .summary-item.full {
+      grid-column: 1 / -1;
+    }
+
+    .summary-item h3,
+    .section-title {
+      margin: 0 0 8px;
+      color: var(--muted);
+      font-size: 0.82rem;
+      line-height: 1.3;
+      font-weight: 800;
+    }
+
+    .big-state {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      font-size: 1.08rem;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .pill {
+      display: inline-flex;
+      min-height: 28px;
+      align-items: center;
+      border-radius: 999px;
+      padding: 3px 10px;
+      font-size: 0.84rem;
+      font-weight: 800;
+      white-space: nowrap;
+      border: 1px solid transparent;
+    }
+
+    .pill[data-status="free"] {
+      background: var(--free-bg);
+      color: var(--free);
+      border-color: var(--free-border);
+    }
+
+    .pill[data-status="research"] {
+      background: var(--research-bg);
+      color: var(--research);
+      border-color: var(--research-border);
+    }
+
+    .pill[data-status="busy"] {
+      background: var(--busy-bg);
+      color: var(--busy);
+      border-color: var(--busy-border);
+    }
+
+    .pill[data-status="closed"],
+    .pill[data-status="none"],
+    .pill[data-status="staff"] {
+      background: var(--closed-bg);
+      color: var(--closed);
+      border-color: var(--closed-border);
+    }
+
+    .period-list {
+      display: grid;
+      gap: 8px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .period-item {
+      display: grid;
+      grid-template-columns: 70px minmax(0, 1fr);
+      gap: 10px;
+      align-items: start;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 8px;
+    }
+
+    .period-item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .period-label {
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    .slot-badges {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .slot-badge {
+      min-height: 28px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: var(--surface-strong);
+      padding: 3px 9px;
+      font-weight: 800;
+      font-size: 0.84rem;
+    }
+
+    .selected-day-note {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .common-week-tables {
+      display: grid;
+      gap: 14px;
+    }
+
+    .weekday-table-block {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .weekday-table-block.is-current-day .selected-day-note strong {
+      border: 1px solid var(--current-strong);
+      border-radius: 999px;
+      background: var(--current-bg);
+      color: var(--accent-dark);
+      padding: 2px 9px;
+    }
+
+    .teacher-week {
+      display: grid;
+      gap: 10px;
+    }
+
+    .schedule-cell {
+      min-height: 68px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+      padding: 8px;
+      display: grid;
+      gap: 4px;
+      align-content: start;
+      min-width: 0;
+    }
+
+    .schedule-cell[data-status="free"] {
+      border-color: var(--free-border);
+      background: var(--free-bg);
+    }
+
+    .schedule-cell.is-empty-free {
+      border-color: transparent;
+      background: transparent;
+      box-shadow: none;
+    }
+
+    .schedule-cell.is-empty-free.is-common-free {
+      outline: none;
+    }
+
+    .schedule-cell.is-empty-free .cell-state,
+    .schedule-cell.is-empty-free .cell-text {
+      display: none;
+    }
+
+    .schedule-cell[data-status="research"] {
+      border-color: var(--research-border);
+      background: var(--research-bg);
+    }
+
+    .schedule-cell[data-status="busy"] {
+      border-color: var(--busy-border);
+      background: var(--busy-cell-bg);
+    }
+
+    .schedule-cell[data-status="closed"],
+    .schedule-cell[data-status="none"],
+    .schedule-cell[data-status="off"],
+    .schedule-cell[data-status="staff"] {
+      border-color: var(--closed-border);
+      background: var(--closed-bg);
+    }
+
+    .schedule-cell[data-status="off"],
+    .schedule-cell[data-status="staff"] {
+      color: var(--muted);
+      filter: grayscale(0.25);
+    }
+
+    .schedule-cell.is-common-free {
+      outline: 3px solid rgba(8, 127, 91, 0.28);
+      outline-offset: -3px;
+    }
+
+    .schedule-cell.is-current {
+      outline: 3px solid var(--accent);
+      outline-offset: -3px;
+      box-shadow: 0 0 0 3px var(--accent-ring);
+    }
+
+    .schedule-cell.is-target {
+      outline: 4px solid var(--accent-dark);
+      outline-offset: -4px;
+      box-shadow: 0 0 0 4px var(--accent-ring);
+    }
+
+    .schedule-cell.is-linkable {
+      cursor: pointer;
+    }
+
+    .schedule-cell.is-linkable:hover {
+      border-color: var(--accent);
+      box-shadow: 0 8px 18px rgba(26, 77, 123, 0.14);
+    }
+
+    .cell-period,
+    .cell-state {
+      color: var(--muted);
+      font-size: 0.76rem;
+      line-height: 1.25;
+      font-weight: 700;
+    }
+
+    .cell-state[data-status="free"] {
+      color: var(--free);
+    }
+
+    .cell-state[data-status="research"] {
+      color: var(--research);
+    }
+
+    .cell-state[data-status="busy"] {
+      color: var(--busy);
+    }
+
+    .cell-state[data-status="off"] {
+      color: var(--closed);
+    }
+
+    .cell-state[data-status="staff"] {
+      color: var(--closed);
+    }
+
+    .cell-text {
+      min-width: 0;
+      color: var(--text);
+      font-size: 0.88rem;
+      line-height: 1.35;
+      font-weight: 600;
+      overflow-wrap: anywhere;
+    }
+
+    .schedule-cell[data-status="busy"] .cell-text {
+      color: var(--busy);
+    }
+
+    .timetable-wrap {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface);
+    }
+
+    .timetable {
+      width: 100%;
+      min-width: 680px;
+      border-collapse: collapse;
+      table-layout: fixed;
+    }
+
+    .timetable th,
+    .timetable td {
+      border-bottom: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      padding: 8px;
+      vertical-align: top;
+    }
+
+    .timetable tr:last-child th,
+    .timetable tr:last-child td {
+      border-bottom: 0;
+    }
+
+    .timetable th:last-child,
+    .timetable td:last-child {
+      border-right: 0;
+    }
+
+    .timetable thead th {
+      background: var(--surface-strong);
+      color: var(--muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .timetable thead th.is-common-free-header {
+      background: var(--free-bg);
+      color: var(--free);
+      box-shadow: inset 0 -3px 0 rgba(8, 127, 91, 0.32);
+    }
+
+    .timetable thead th.is-current-period {
+      background: var(--current-bg);
+      color: var(--accent-dark);
+      box-shadow: inset 0 -3px 0 var(--accent);
+    }
+
+    .timetable thead th.is-target-period {
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+      box-shadow: inset 0 -3px 0 var(--accent-dark);
+    }
+
+    .timetable thead th.is-common-free-header.is-current-period {
+      background: linear-gradient(180deg, var(--current-bg), var(--free-bg));
+      color: var(--accent-dark);
+      box-shadow: inset 0 3px 0 var(--accent), inset 0 -3px 0 var(--free);
+    }
+
+    .timetable thead th.no-period-header {
+      background: var(--surface-soft);
+      color: transparent;
+      box-shadow: none;
+    }
+
+    .timetable .teacher-heading {
+      width: 132px;
+      text-align: left;
+    }
+
+    .timetable .period-heading {
+      width: 92px;
+    }
+
+    .timetable.period-row-timetable col.period-label-column {
+      width: 58px;
+    }
+
+    .timetable.period-row-timetable .period-heading {
+      width: 58px;
+      padding-left: 6px;
+      padding-right: 6px;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .timetable.period-row-timetable .day-heading,
+    .timetable.period-row-timetable .teacher-heading {
+      width: auto;
+    }
+
+    .timetable .day-heading {
+      width: 54px;
+      text-align: center;
+    }
+
+    .timetable tbody th {
+      background: var(--surface-soft);
+      color: var(--text);
+      font-weight: 700;
+      text-align: left;
+      overflow-wrap: anywhere;
+    }
+
+    .timetable tbody th.is-current-day,
+    .timetable td.is-current-period {
+      background: var(--current-bg);
+    }
+
+    .timetable tbody th.is-current-day {
+      color: var(--accent-dark);
+      box-shadow: inset 4px 0 0 var(--accent);
+    }
+
+    .timetable tbody th.is-common-free-row {
+      background: var(--free-bg);
+      color: var(--free);
+      box-shadow: inset 4px 0 0 var(--free);
+    }
+
+    .common-timetable.period-row-timetable tbody tr.is-common-free-row th,
+    .common-timetable.period-row-timetable tbody tr.is-common-free-row td,
+    .common-timetable tbody td.is-common-free-column {
+      background: var(--free-bg);
+    }
+
+    .common-timetable.period-row-timetable tbody tr.is-common-free-row th {
+      color: var(--free);
+      box-shadow: inset 4px 0 0 var(--free);
+    }
+
+    .timetable tbody tr.is-day-off-row th,
+    .timetable tbody tr.is-day-off-row td {
+      background: #f1f5f9;
+    }
+
+    .timetable tbody tr.is-day-off-row th {
+      color: var(--muted);
+      box-shadow: inset 4px 0 0 var(--closed-border);
+    }
+
+    .single-timetable {
+      min-width: 760px;
+    }
+
+    .common-timetable {
+      width: max(100%, var(--table-width));
+      min-width: var(--table-width);
+    }
+
+    .class-timetable {
+      min-width: 760px;
+    }
+
+    .schedule-cell[data-status="unregistered"] {
+      border-color: var(--line);
+      background: var(--surface-soft);
+      color: var(--muted);
+    }
+
+    .class-lesson-card {
+      width: 100%;
+      min-height: 54px;
+      border: 0;
+      border-radius: 6px;
+      background: transparent;
+      padding: 0;
+      display: grid;
+      gap: 3px;
+      text-align: left;
+      color: inherit;
+    }
+
+    .class-lesson-card:hover {
+      color: var(--accent-dark);
+      background: rgba(26, 77, 123, 0.08);
+      box-shadow: none;
+    }
+
+    .class-teachers,
+    .class-target {
+      color: var(--muted);
+      font-size: 0.78rem;
+      line-height: 1.3;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+
+    .route-choice,
+    .class-detail {
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      padding: 12px;
+      margin-bottom: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .route-choice h3,
+    .class-detail h3 {
+      margin: 0;
+      color: var(--muted);
+      font-size: 0.88rem;
+      line-height: 1.3;
+    }
+
+    .route-buttons,
+    .teacher-nav-buttons {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .route-buttons button,
+    .teacher-nav-buttons button {
+      min-height: 34px;
+      padding: 5px 10px;
+      font-weight: 800;
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent-dark);
+    }
+
+    .no-period {
+      background: var(--surface-soft);
+      color: var(--muted);
+    }
+
+    .empty-state {
+      min-height: 110px;
+      display: grid;
+      gap: 4px;
+      place-items: center;
+      border: 1px dashed var(--line-strong);
+      border-radius: var(--radius);
+      background: var(--surface-soft);
+      color: var(--muted);
+      padding: 20px;
+      text-align: center;
+      font-weight: 700;
+    }
+
+    .empty-state-note {
+      color: var(--muted);
+      font-size: 0.86rem;
+      font-weight: 700;
+    }
+
+    .compact-note {
+      color: var(--muted);
+      font-size: 0.88rem;
+      overflow-wrap: anywhere;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @media (max-width: 980px) {
+      .topbar-inner {
+        grid-template-columns: 1fr auto;
+      }
+
+      .settings-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .employment-setting-row {
+        grid-template-columns: minmax(240px, 1fr) minmax(170px, 220px) auto;
+      }
+
+      .now-strip {
+        grid-column: 1 / -1;
+        order: 3;
+      }
+
+      .page {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 680px) {
+      body {
+        font-size: 15px;
+      }
+
+      .topbar-inner,
+      .settings-close-row,
+      .settings-inner,
+      .page {
+        padding-left: 12px;
+        padding-right: 12px;
+      }
+
+      .topbar-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .header-actions {
+        justify-content: flex-end;
+      }
+
+      .now-strip,
+      .summary-grid,
+      .field-row,
+      .setting-row,
+      .employment-setting-row,
+      .settings-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .period-item,
+      .mini-stat dd {
+        white-space: normal;
+      }
+    }
+
+    /* 所属教科別リストはアコーディオン（見出しクリックで開閉）。
+       以前ここにあった「常時展開」を強制する !important ルール群は、
+       折りたたみを無効化してしまうため撤去した。 */
+
+    /* ===== ダークモード（OS設定に追従）。テーマ青 rgb(26,77,123) は維持し、
+       暗背景で読みづらくなる文字・枠・面だけ明度を上げて調整する。 ===== */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #0e151e;
+        --surface: #161e29;
+        --surface-strong: #1e2937;
+        --surface-soft: #131b25;
+        --line: #2a3643;
+        --line-strong: #3b4a5b;
+        --text: #e6ecf3;
+        --muted: #9aabbc;
+        --accent: rgb(26, 77, 123);
+        --accent-dark: #8fbce6;
+        --accent-soft: #1b3656;
+        --accent-hover: #233f5e;
+        --accent-ring: rgba(122, 168, 203, 0.45);
+        --current-bg: #1c3a57;
+        --current-strong: #5e90c0;
+        --blue: #60a5fa;
+        --blue-soft: #1e3a5f;
+        --free: #5cd39b;
+        --free-bg: #122c20;
+        --free-border: #1f6e4d;
+        --research: #f2c869;
+        --research-bg: #342a13;
+        --research-border: #6d551f;
+        --busy: #fb8298;
+        --busy-bg: #3a1822;
+        --busy-cell-bg: #2b121a;
+        --busy-border: #6f2839;
+        --closed: #a3b3c4;
+        --closed-bg: #222e3c;
+        --closed-border: #3a4858;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.45);
+        --shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 12px 30px rgba(0, 0, 0, 0.5);
+      }
+
+      /* var() で届かないハードコード箇所の上書き */
+      .topbar { background: rgba(14, 21, 30, 0.92); }
+      .brand h1 { color: var(--accent-dark); }
+      .mode-tab.is-active:hover,
+      .primary-button:hover { background: #2a6298; }
+      .status-message[data-tone="error"] { background: #371721; color: #fca5b4; }
+      .status-message[data-tone="success"] { background: #122c20; color: #6ee7a8; }
+      .status-message[data-tone="warn"] { background: #342a13; color: #f2c869; }
+      .danger-button { background: #371721; color: #fca5b4; }
+      .danger-button:hover { border-color: #b04256; color: #ffd7dd; }
+      .timetable tbody tr.is-day-off-row th,
+      .timetable tbody tr.is-day-off-row td { background: #1a2330; }
+      .department-group.is-self-department { border-color: #2f5a86; }
+      .chip { border-color: #2f5a86; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="topbar-inner">
+        <div class="brand">
+          <h1>時間割チェッカー</h1>
+        </div>
+        <div class="mode-tabs" role="tablist" aria-label="表示モード">
+          <button class="mode-tab is-active" id="teacherModeButton" type="button" data-mode="teacher" role="tab" aria-selected="true">教員時間割</button>
+          <button class="mode-tab" id="classModeButton" type="button" data-mode="class" role="tab" aria-selected="false">クラス時間割</button>
+        </div>
+        <dl class="now-strip" aria-label="現在の判定">
+          <div class="mini-stat">
+            <dt>現在</dt>
+            <dd id="nowText">--</dd>
+          </div>
+          <div class="mini-stat">
+            <dt>判定</dt>
+            <dd id="currentSlotText">--</dd>
+          </div>
+        </dl>
+        <div class="header-actions">
+          <button class="settings-toggle icon-button" id="settingsToggle" type="button" aria-label="設定を開く" title="設定" aria-expanded="false" aria-controls="settingsPanel">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M4 7h16"></path>
+              <path d="M4 12h16"></path>
+              <path d="M4 17h16"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      <div class="settings-panel" id="settingsPanel">
+        <div class="settings-close-row">
+          <button class="ghost-button settings-close-button icon-button" id="settingsCloseButton" type="button" aria-label="設定を閉じる" title="閉じる">
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M6 6l12 12"></path>
+              <path d="M18 6L6 18"></path>
+            </svg>
+          </button>
+        </div>
+        <div class="settings-inner">
+          <div class="settings-side-column">
+            <section class="settings-card" aria-labelledby="csvTitle">
+              <h2 id="csvTitle">CSV読み込み</h2>
+              <input class="file-input" id="csvFileInput" type="file" accept=".csv,text/csv">
+              <div class="field-row">
+                <button class="primary-button" id="importButton" type="button">読み込み</button>
+                <button class="danger-button" id="clearCacheButton" type="button">キャッシュ削除</button>
+              </div>
+              <div class="meta-list" aria-live="polite">
+                <div class="meta-line" id="loadedFileText">読み込み済みCSVなし</div>
+                <div class="meta-line" id="importedAtText">読み込み日時なし</div>
+              </div>
+              <div class="status-message hidden" id="appMessage"></div>
+            </section>
+            <section class="settings-card" aria-labelledby="timeSettingsTitle">
+              <h2 id="timeSettingsTitle">時程設定</h2>
+              <label class="setting-field" for="timeOffsetSelect">
+                時程遅延
+                <select id="timeOffsetSelect"></select>
+              </label>
+            </section>
+            <section class="settings-card" aria-labelledby="displaySettingsTitle">
+              <h2 id="displaySettingsTitle">表示設定</h2>
+              <label class="setting-check-row" for="transposeTimetablesCheckbox">
+                <input id="transposeTimetablesCheckbox" type="checkbox">
+                <span>時間割表を縦=時限の表示にする</span>
+              </label>
+            </section>
+          </div>
+          <section class="settings-card teacher-settings-card" aria-labelledby="teacherSettingsTitle">
+            <h2 id="teacherSettingsTitle">教員設定</h2>
+            <label class="setting-field" for="myTeacherSelect">
+              自分
+              <select id="myTeacherSelect"></select>
+            </label>
+            <div class="setting-row">
+              <label class="setting-field" for="favoriteTeacherSelect">
+                お気に入り教員
+                <select id="favoriteTeacherSelect"></select>
+              </label>
+              <button class="primary-button" id="addFavoriteButton" type="button">追加</button>
+            </div>
+            <div class="settings-chip-list" id="favoriteSettingsList"></div>
+            <h3 class="setting-subtitle">専任／非常勤の判定設定</h3>
+            <div class="setting-row employment-setting-row">
+              <label class="setting-field" for="employmentTeacherSelect">
+                教員
+                <select id="employmentTeacherSelect"></select>
+              </label>
+              <label class="setting-field" for="employmentTypeSelect">
+                判定
+                <select id="employmentTypeSelect"></select>
+              </label>
+              <button class="primary-button" id="applyEmploymentButton" type="button">適用</button>
+            </div>
+            <div class="compact-note" id="employmentInferenceNote"></div>
+            <div class="settings-chip-list" id="employmentOverrideList" aria-label="自動判定から変更した教員"></div>
+          </section>
+        </div>
+      </div>
+    </header>
+
+    <main class="page">
+      <aside class="side-stack">
+        <section class="panel" id="teacherSelectedPanel" aria-labelledby="selectedTitle">
+          <div class="panel-header">
+            <h2 id="selectedTitle">選択中</h2>
+          </div>
+          <div class="panel-body">
+            <div class="chip-list" id="selectedChips"></div>
+            <div class="selected-actions">
+              <button class="ghost-button" id="showAllSelectedButton" type="button">選択中全員を表示</button>
+              <button class="ghost-button" id="clearSelectionButton" type="button">すべて解除</button>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" id="teacherSearchPanel" aria-labelledby="searchTitle">
+          <div class="panel-header">
+            <h2 id="searchTitle">教員検索・リスト</h2>
+          </div>
+          <div class="panel-body search-box">
+            <div id="selfQuickBlock"></div>
+            <h3 class="section-title">お気に入り教員</h3>
+            <div class="favorite-list" id="favoriteList"></div>
+            <input id="teacherSearchInput" type="search" autocomplete="off" placeholder="教員名・教科">
+            <div class="teacher-results" id="teacherResults"></div>
+            <h3 class="section-title list-title">所属教科別リスト</h3>
+            <div class="department-list" id="departmentList"></div>
+          </div>
+        </section>
+
+        <section class="panel hidden" id="classPanel" aria-labelledby="classPanelTitle">
+          <div class="panel-header">
+            <h2 id="classPanelTitle">クラス選択</h2>
+          </div>
+          <div class="panel-body search-box">
+            <select id="classSelect" aria-label="表示するクラス"></select>
+            <div class="class-list" id="classList"></div>
+          </div>
+        </section>
+      </aside>
+
+      <div class="main-stack">
+        <section class="panel" aria-labelledby="resultTitle">
+          <div class="panel-header">
+            <h2 id="resultTitle">現在の状況</h2>
+          </div>
+          <div class="panel-body">
+            <div id="linkChoiceArea"></div>
+            <div id="resultArea"></div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "teacherFreeTimeApp.v1";
+    const DAYS = [
+      { key: "mon", label: "月", longLabel: "月曜", jsDay: 1 },
+      { key: "tue", label: "火", longLabel: "火曜", jsDay: 2 },
+      { key: "wed", label: "水", longLabel: "水曜", jsDay: 3 },
+      { key: "thu", label: "木", longLabel: "木曜", jsDay: 4 },
+      { key: "fri", label: "金", longLabel: "金曜", jsDay: 5 },
+      { key: "sat", label: "土", longLabel: "土曜", jsDay: 6 }
+    ];
+    const DAY_BY_KEY = Object.fromEntries(DAYS.map((day) => [day.key, day]));
+    const CLASS_IDS = Array.from({ length: 6 }, (_, gradeIndex) => (
+      Array.from({ length: 8 }, (_, classIndex) => `${gradeIndex + 1}-${classIndex + 1}`)
+    )).flat();
+    const GRADE_THREE_INQUIRY_CLASSES = CLASS_IDS.filter((classId) => classId.startsWith("6-"));
+    const MORAL_GENERAL_CLASSES = CLASS_IDS.filter((classId) => /^[1-3]-/.test(classId));
+    const INQUIRY_CLASSES = CLASS_IDS.filter((classId) => /^[4-5]-/.test(classId));
+    const DEPARTMENT_ORDER = ["国語", "社会", "数学", "理科", "英語", "体育", "芸術", "技術科", "家庭科", "情報科", "その他"];
+    const SUBJECT_KEYWORDS = {
+      "国語": ["国語", "論理国語", "現代文", "古典", "言語文化"],
+      "社会": ["社会", "地理", "歴史", "公民", "公共", "政治", "経済", "世史", "日史", "地歴"],
+      "数学": ["数学"],
+      "理科": ["理科", "物理", "化学", "生物", "地学"],
+      "英語": ["英語", "英コミュ", "論理・表現", "英文法"],
+      "体育": ["体育", "保健", "武道"],
+      "芸術": ["美術", "音楽", "芸術"],
+      "技術科": ["技術"],
+      "家庭科": ["家庭"],
+      "情報科": ["情報"]
+    };
+    const PERIODS = {
+      hr: { label: "HR", start: 8 * 60, end: 8 * 60 + 25 },
+      1: { start: 8 * 60 + 40, end: 9 * 60 + 30 },
+      2: { start: 9 * 60 + 40, end: 10 * 60 + 30 },
+      3: { start: 10 * 60 + 40, end: 11 * 60 + 30 },
+      lunch: { label: "昼休み", start: 11 * 60 + 30, end: 12 * 60 + 10 },
+      4: { start: 12 * 60 + 10, end: 13 * 60 },
+      5: { start: 13 * 60 + 10, end: 14 * 60 },
+      6: { start: 14 * 60 + 10, end: 15 * 60 }
+    };
+
+    const defaultState = () => ({
+      version: 1,
+      sourceFileName: "",
+      importedAt: "",
+      teachers: [],
+      settings: {
+        timeOffsetMinutes: 0,
+        transposeTimetables: false,
+        myTeacherId: "",
+        favoriteTeacherIds: [],
+        employmentTypeOverrides: {}
+      }
+    });
+
+    let appState = defaultState();
+    let selectedTeacherIds = [];
+    let focusedTeacherId = "";
+    let expandedDepartments = new Set();
+    let currentState = null;
+    let viewMode = "teacher";
+    let selectedClassId = CLASS_IDS[0];
+    let focusDayKey = "";
+    let focusPeriod = null;
+    let selectedClassLesson = null;
+    let derivedData = {
+      lessonInstances: [],
+      classTimetables: {}
+    };
+
+    const elements = {
+      teacherModeButton: document.getElementById("teacherModeButton"),
+      classModeButton: document.getElementById("classModeButton"),
+      nowText: document.getElementById("nowText"),
+      currentSlotText: document.getElementById("currentSlotText"),
+      settingsToggle: document.getElementById("settingsToggle"),
+      settingsCloseButton: document.getElementById("settingsCloseButton"),
+      settingsPanel: document.getElementById("settingsPanel"),
+      timeOffsetSelect: document.getElementById("timeOffsetSelect"),
+      transposeTimetablesCheckbox: document.getElementById("transposeTimetablesCheckbox"),
+      myTeacherSelect: document.getElementById("myTeacherSelect"),
+      favoriteTeacherSelect: document.getElementById("favoriteTeacherSelect"),
+      addFavoriteButton: document.getElementById("addFavoriteButton"),
+      favoriteSettingsList: document.getElementById("favoriteSettingsList"),
+      employmentTeacherSelect: document.getElementById("employmentTeacherSelect"),
+      employmentTypeSelect: document.getElementById("employmentTypeSelect"),
+      applyEmploymentButton: document.getElementById("applyEmploymentButton"),
+      employmentInferenceNote: document.getElementById("employmentInferenceNote"),
+      employmentOverrideList: document.getElementById("employmentOverrideList"),
+      csvFileInput: document.getElementById("csvFileInput"),
+      importButton: document.getElementById("importButton"),
+      clearCacheButton: document.getElementById("clearCacheButton"),
+      loadedFileText: document.getElementById("loadedFileText"),
+      importedAtText: document.getElementById("importedAtText"),
+      appMessage: document.getElementById("appMessage"),
+      teacherSearchInput: document.getElementById("teacherSearchInput"),
+      teacherResults: document.getElementById("teacherResults"),
+      teacherSelectedPanel: document.getElementById("teacherSelectedPanel"),
+      teacherSearchPanel: document.getElementById("teacherSearchPanel"),
+      selectedChips: document.getElementById("selectedChips"),
+      showAllSelectedButton: document.getElementById("showAllSelectedButton"),
+      clearSelectionButton: document.getElementById("clearSelectionButton"),
+      selfQuickBlock: document.getElementById("selfQuickBlock"),
+      favoriteList: document.getElementById("favoriteList"),
+      departmentList: document.getElementById("departmentList"),
+      classPanel: document.getElementById("classPanel"),
+      classSelect: document.getElementById("classSelect"),
+      classList: document.getElementById("classList"),
+      linkChoiceArea: document.getElementById("linkChoiceArea"),
+      resultArea: document.getElementById("resultArea")
+    };
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function classAttribute(classes) {
+      const value = classes.filter(Boolean).join(" ");
+      return value ? ` class="${escapeHtml(value)}"` : "";
+    }
+
+    function normalizeText(value) {
+      return String(value ?? "")
+        .normalize("NFKC")
+        .replace(/[‐‑‒–—―ー−]/g, "-")
+        .replace(/\u3000/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function normalizeDisplayText(value) {
+      return String(value ?? "")
+        .replace(/[\uFF01-\uFF5E]/g, (char) => String.fromCharCode(char.charCodeAt(0) - 0xFEE0))
+        .replace(/[‐‑‒–—―ー−]/g, "-")
+        .replace(/\u3000/g, " ")
+        .replace(/\s+/g, " ")
+        .trim()
+        .replace(/([\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}])\s+([\p{Script=Hiragana}\p{Script=Katakana}\p{Script=Han}])/gu, "$1$2");
+    }
+
+    function normalizeSearchText(value) {
+      return normalizeDisplayText(value)
+        .normalize("NFKC")
+        .toLowerCase()
+        .replace(/\s+/g, "");
+    }
+
+    function uniqueValues(values) {
+      return values.filter((value, index, array) => value && array.indexOf(value) === index);
+    }
+
+    function isGradeThreeInquiryText(value) {
+      return normalizeSearchText(value).includes("高3探究");
+    }
+
+    function isSlashPlaceholder(value) {
+      const text = normalizeDisplayText(value).replace(/\s+/g, "");
+      return /^\/+$/.test(text);
+    }
+
+    function isMoralGeneralSlot(slot) {
+      return isSlashPlaceholder(slot?.classText) && normalizeSearchText(slot?.subjectText).includes("道徳総合");
+    }
+
+    function isInquirySlot(slot) {
+      const text = normalizeSearchText(slot?.subjectText);
+      return isSlashPlaceholder(slot?.classText) && text.includes("探究") && !text.includes("高3探究");
+    }
+
+    function isGradeWidePlaceholderSlot(slot) {
+      return isMoralGeneralSlot(slot) || isInquirySlot(slot);
+    }
+
+    function extractClassIds(value) {
+      const normalized = normalizeDisplayText(value);
+      const ids = [];
+      const pattern = /([1-6])\s*-\s*([1-8])/g;
+      let match = pattern.exec(normalized);
+      while (match) {
+        ids.push(`${match[1]}-${match[2]}`);
+        match = pattern.exec(normalized);
+      }
+      return uniqueValues(ids).filter((classId) => CLASS_IDS.includes(classId));
+    }
+
+    function stripClassIds(value) {
+      return normalizeDisplayText(value)
+        .replace(/([1-6])\s*-\s*([1-8])/g, "")
+        .replace(/[\/／,，、]+/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+
+    function explicitClassIdsForSlot(slot) {
+      const combined = [slot?.classText, slot?.subjectText, slot?.displayText].filter(Boolean).join(" ");
+      if (isGradeThreeInquiryText(combined)) return [...GRADE_THREE_INQUIRY_CLASSES];
+      return extractClassIds(combined);
+    }
+
+    function classIdsForSlot(slot) {
+      return explicitClassIdsForSlot(slot);
+    }
+
+    function gradeWideCandidateClassIdsForSlot(slot) {
+      if (isMoralGeneralSlot(slot)) return [...MORAL_GENERAL_CLASSES];
+      if (isInquirySlot(slot)) return [...INQUIRY_CLASSES];
+      return [];
+    }
+
+    function lessonOccupancyKey(classId, dayKey, period) {
+      return `${classId}|${dayKey}|${period}`;
+    }
+
+    function gradeWideClassIdsForSlot(slot, dayKey, period, explicitOccupied) {
+      const candidates = gradeWideCandidateClassIdsForSlot(slot);
+      const grades = uniqueValues(candidates.map((classId) => classId.split("-")[0]));
+      const targetGrades = grades.filter((grade) => {
+        const gradeClassIds = candidates.filter((classId) => classId.startsWith(`${grade}-`));
+        return gradeClassIds.length > 0 && gradeClassIds.every((classId) => (
+          !explicitOccupied.has(lessonOccupancyKey(classId, dayKey, period))
+        ));
+      });
+      return candidates.filter((classId) => targetGrades.includes(classId.split("-")[0]));
+    }
+
+    function gradeTargetLabelForClassIds(classIds) {
+      const grades = uniqueValues(classIds.map((classId) => Number(classId.split("-")[0]))).sort((a, b) => a - b);
+      if (!grades.length) return "";
+      if (grades.length === 1) return `${grades[0]}年`;
+      const contiguous = grades.every((grade, index) => index === 0 || grade === grades[index - 1] + 1);
+      return contiguous ? `${grades[0]}〜${grades[grades.length - 1]}年` : `${grades.join("・")}年`;
+    }
+
+    function lessonSubjectForSlot(slot) {
+      const combined = [slot?.classText, slot?.subjectText, slot?.displayText].filter(Boolean).join(" ");
+      if (isGradeThreeInquiryText(combined)) return "高3探究";
+      if (isMoralGeneralSlot(slot)) return "道徳総合";
+      if (isInquirySlot(slot)) return "探究";
+      const subject = stripClassIds(slot?.subjectText ?? "");
+      if (subject) return subject;
+      return stripClassIds(slot?.displayText || slot?.classText || "") || "授業";
+    }
+
+    function lessonTargetLabelForSlot(slot) {
+      const combined = [slot?.classText, slot?.subjectText, slot?.displayText].filter(Boolean).join(" ");
+      if (isGradeThreeInquiryText(combined)) return "6年全体";
+      return "";
+    }
+
+    function canInferClassLessonTeachers(slot) {
+      return !isMoralGeneralSlot(slot) && !isInquirySlot(slot);
+    }
+
+    function classTargetsForScheduleCell(slot, dayKey, period) {
+      const explicitClassIds = explicitClassIdsForSlot(slot);
+      if (explicitClassIds.length) return explicitClassIds;
+      if (!isGradeWidePlaceholderSlot(slot) || !dayKey || !period) return [];
+      const subject = lessonSubjectForSlot(slot);
+      return CLASS_IDS.filter((classId) => (
+        getClassLessons(classId, dayKey, period).some((lesson) => (
+          !lesson.hasTeacherInfo && lesson.subject === subject
+        ))
+      ));
+    }
+
+    function createEmptyClassTimetables() {
+      const timetables = {};
+      CLASS_IDS.forEach((classId) => {
+        timetables[classId] = {};
+        DAYS.forEach((day) => {
+          timetables[classId][day.key] = {};
+          for (let period = 1; period <= getMaxPeriod(day.key); period += 1) {
+            timetables[classId][day.key][period] = [];
+          }
+        });
+      });
+      return timetables;
+    }
+
+    function buildDerivedData(teachers) {
+      const lessonInstances = [];
+      const grouped = {};
+      const explicitOccupied = new Set();
+      const gradeWidePlaceholders = [];
+
+      CLASS_IDS.forEach((classId) => {
+        grouped[classId] = {};
+        DAYS.forEach((day) => {
+          grouped[classId][day.key] = {};
+          for (let period = 1; period <= getMaxPeriod(day.key); period += 1) {
+            grouped[classId][day.key][period] = new Map();
+          }
+        });
+      });
+
+      const addLesson = ({ teacher, dayKey, period, slot, classIds, targetLabel, hasTeacherInfo }) => {
+        if (!classIds.length) return;
+        const subject = lessonSubjectForSlot(slot);
+        const instance = {
+          id: `lesson-${lessonInstances.length + 1}`,
+          teacherId: teacher.id,
+          teacherName: teacher.name,
+          dayKey,
+          period,
+          classIds,
+          subject,
+          targetLabel
+        };
+        lessonInstances.push(instance);
+
+        classIds.forEach((classId) => {
+          const key = `${subject}||${targetLabel}`;
+          const classMap = grouped[classId]?.[dayKey]?.[period];
+          if (!classMap) return;
+          if (!classMap.has(key)) {
+            classMap.set(key, {
+              subject,
+              targetLabel,
+              hasTeacherInfo,
+              classIds: [...classIds],
+              teachers: [],
+              teacherIds: []
+            });
+          }
+          const lesson = classMap.get(key);
+          lesson.hasTeacherInfo = lesson.hasTeacherInfo || hasTeacherInfo;
+          if (hasTeacherInfo && !lesson.teacherIds.includes(teacher.id)) {
+            lesson.teacherIds.push(teacher.id);
+            lesson.teachers.push({
+              id: teacher.id,
+              name: teacher.name
+            });
+          }
+        });
+      };
+
+      (teachers ?? []).forEach((teacher) => {
+        DAYS.forEach((day) => {
+          for (let period = 1; period <= getMaxPeriod(day.key); period += 1) {
+            const slot = getSlot(teacher, day.key, period);
+            if (slot.status !== "busy") continue;
+
+            const explicitClassIds = explicitClassIdsForSlot(slot);
+            if (explicitClassIds.length) {
+              explicitClassIds.forEach((classId) => {
+                explicitOccupied.add(lessonOccupancyKey(classId, day.key, period));
+              });
+              addLesson({
+                teacher,
+                dayKey: day.key,
+                period,
+                slot,
+                classIds: explicitClassIds,
+                targetLabel: lessonTargetLabelForSlot(slot),
+                hasTeacherInfo: canInferClassLessonTeachers(slot)
+              });
+              continue;
+            }
+
+            if (isGradeWidePlaceholderSlot(slot)) {
+              gradeWidePlaceholders.push({
+                teacher,
+                dayKey: day.key,
+                period,
+                slot
+              });
+            }
+          }
+        });
+      });
+
+      gradeWidePlaceholders.forEach(({ teacher, dayKey, period, slot }) => {
+        const classIds = gradeWideClassIdsForSlot(slot, dayKey, period, explicitOccupied);
+        addLesson({
+          teacher,
+          dayKey,
+          period,
+          slot,
+          classIds,
+          targetLabel: gradeTargetLabelForClassIds(classIds),
+          hasTeacherInfo: false
+        });
+      });
+
+      const classTimetables = createEmptyClassTimetables();
+      CLASS_IDS.forEach((classId) => {
+        DAYS.forEach((day) => {
+          for (let period = 1; period <= getMaxPeriod(day.key); period += 1) {
+            classTimetables[classId][day.key][period] = Array.from(grouped[classId][day.key][period].values());
+          }
+        });
+      });
+
+      return {
+        lessonInstances,
+        classTimetables
+      };
+    }
+
+    function formatDateTime(date) {
+      const parts = new Intl.DateTimeFormat("ja-JP", {
+        month: "2-digit",
+        day: "2-digit",
+        weekday: "short",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false
+      }).formatToParts(date);
+      const part = (type) => parts.find((entry) => entry.type === type)?.value ?? "";
+      return `${part("month")}/${part("day")}(${part("weekday")}) ${part("hour")}:${part("minute")}`;
+    }
+
+    function formatImportedAt(value) {
+      if (!value) return "読み込み日時なし";
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return "読み込み日時不明";
+      return `読み込み日時：${new Intl.DateTimeFormat("ja-JP", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false
+      }).format(date)}`;
+    }
+
+    function minutesToLabel(minutes) {
+      const normalized = ((minutes % (24 * 60)) + (24 * 60)) % (24 * 60);
+      const hour = Math.floor(normalized / 60);
+      const minute = normalized % 60;
+      return `${hour}:${String(minute).padStart(2, "0")}`;
+    }
+
+    function shiftedPeriod(period, offset) {
+      const entry = PERIODS[period];
+      return {
+        start: entry.start + offset,
+        end: entry.end + offset
+      };
+    }
+
+    function getMaxPeriod(dayKey) {
+      return dayKey === "sat" ? 4 : 6;
+    }
+
+    function getDayFromDate(date) {
+      return DAYS.find((day) => day.jsDay === date.getDay()) ?? null;
+    }
+
+    function describePeriod(dayKey, period, offset) {
+      const day = DAY_BY_KEY[dayKey];
+      const window = shiftedPeriod(period, offset);
+      return `${day.longLabel} ${period}限 ${minutesToLabel(window.start)}-${minutesToLabel(window.end)}`;
+    }
+
+    function getCurrentScheduleState(date = new Date()) {
+      const offset = Number(appState.settings.timeOffsetMinutes) || 0;
+      const day = getDayFromDate(date);
+      if (!day) {
+        return {
+          type: "sunday",
+          shortLabel: "日曜",
+          message: "日曜は時間割の判定対象外です。",
+          dayKey: null,
+          period: null
+        };
+      }
+
+      const nowMinutes = date.getHours() * 60 + date.getMinutes();
+      const maxPeriod = getMaxPeriod(day.key);
+      const hr = shiftedPeriod("hr", offset);
+      const lunch = shiftedPeriod("lunch", offset);
+
+      if (nowMinutes < hr.start) {
+        return {
+          type: "before",
+          shortLabel: "授業開始前",
+          message: "授業開始前です。",
+          dayKey: day.key,
+          period: null
+        };
+      }
+
+      if (nowMinutes >= hr.start && nowMinutes < hr.end) {
+        return {
+          type: "hr",
+          shortLabel: "HR",
+          message: "HR時間です。授業時間割の判定対象外です。",
+          dayKey: day.key,
+          period: null
+        };
+      }
+
+      for (let period = 1; period <= maxPeriod; period += 1) {
+        const current = shiftedPeriod(period, offset);
+        if (nowMinutes >= current.start && nowMinutes < current.end) {
+          return {
+            type: "period",
+            shortLabel: describePeriod(day.key, period, offset),
+            message: describePeriod(day.key, period, offset),
+            dayKey: day.key,
+            period
+          };
+        }
+
+        const nextPeriod = period + 1;
+        if (nextPeriod <= maxPeriod) {
+          const next = shiftedPeriod(nextPeriod, offset);
+          if (period === 3 && nowMinutes >= lunch.start && nowMinutes < lunch.end) {
+            return {
+              type: "lunch",
+              shortLabel: "昼休み",
+              message: "昼休みです。",
+              dayKey: day.key,
+              period: null,
+              nextPeriod: 4
+            };
+          }
+          if (nowMinutes >= current.end && nowMinutes < next.start) {
+            return {
+              type: "break",
+              shortLabel: "休み時間",
+              message: `休み時間です。次の時限は${nextPeriod}限です。`,
+              dayKey: day.key,
+              period: null,
+              nextPeriod
+            };
+          }
+        }
+      }
+
+      const firstPeriod = shiftedPeriod(1, offset);
+      if (nowMinutes >= hr.end && nowMinutes < firstPeriod.start) {
+        return {
+          type: "break",
+          shortLabel: "休み時間",
+          message: "休み時間です。次の時限は1限です。",
+          dayKey: day.key,
+          period: null,
+          nextPeriod: 1
+        };
+      }
+
+      if (nowMinutes >= lunch.start && nowMinutes < lunch.end && maxPeriod >= 4) {
+        return {
+          type: "lunch",
+          shortLabel: "昼休み",
+          message: "昼休みです。",
+          dayKey: day.key,
+          period: null,
+          nextPeriod: 4
+        };
+      }
+
+      return {
+        type: "after",
+        shortLabel: "放課後",
+        message: "本日の授業時間は終了しています。",
+        dayKey: day.key,
+        period: null
+      };
+    }
+
+    function nextPeriodsForToday(date = new Date()) {
+      const state = getCurrentScheduleState(date);
+      if (!state.dayKey || state.type === "sunday") return [];
+      const offset = Number(appState.settings.timeOffsetMinutes) || 0;
+      const maxPeriod = getMaxPeriod(state.dayKey);
+      const nowMinutes = date.getHours() * 60 + date.getMinutes();
+      const periods = [];
+
+      for (let period = 1; period <= maxPeriod; period += 1) {
+        const window = shiftedPeriod(period, offset);
+        if (window.start >= nowMinutes && state.type !== "period") {
+          periods.push(period);
+        } else if (state.type === "period" && period > state.period) {
+          periods.push(period);
+        } else if (["before", "hr", "break", "lunch"].includes(state.type) && period >= (state.nextPeriod || 1)) {
+          periods.push(period);
+        }
+      }
+
+      return [...new Set(periods)].filter((period) => period >= 1 && period <= maxPeriod);
+    }
+
+    function parseCsv(text) {
+      const rows = [];
+      let row = [];
+      let cell = "";
+      let inQuotes = false;
+
+      for (let index = 0; index < text.length; index += 1) {
+        const char = text[index];
+        const next = text[index + 1];
+
+        if (char === '"') {
+          if (inQuotes && next === '"') {
+            cell += '"';
+            index += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+          continue;
+        }
+
+        if (char === "," && !inQuotes) {
+          row.push(cell);
+          cell = "";
+          continue;
+        }
+
+        if ((char === "\n" || char === "\r") && !inQuotes) {
+          if (char === "\r" && next === "\n") index += 1;
+          row.push(cell);
+          rows.push(row);
+          row = [];
+          cell = "";
+          continue;
+        }
+
+        cell += char;
+      }
+
+      if (cell.length || row.length) {
+        row.push(cell);
+        rows.push(row);
+      }
+
+      return rows;
+    }
+
+    function isResearchText(value) {
+      return /^研\([^)]*\)$/.test(normalizeText(value));
+    }
+
+    function isSubstituteText(value) {
+      return normalizeSearchText(value).includes("補欠");
+    }
+
+    function getSlotFromRows(classRow, subjectRow, column) {
+      const classText = normalizeDisplayText(classRow[column] ?? "");
+      const subjectText = normalizeDisplayText(subjectRow[column] ?? "");
+      const combined = [classText, subjectText].filter(Boolean).join(" ");
+
+      if (!classText && !subjectText) {
+        return {
+          classText,
+          subjectText,
+          status: "free",
+          displayText: "空き"
+        };
+      }
+
+      if (isResearchText(classText) || isResearchText(subjectText)) {
+        return {
+          classText,
+          subjectText,
+          status: "research",
+          displayText: "研究日"
+        };
+      }
+
+      if (isSubstituteText(classText) || isSubstituteText(subjectText)) {
+        return {
+          classText,
+          subjectText,
+          status: "free",
+          displayText: combined || "補欠"
+        };
+      }
+
+      return {
+        classText,
+        subjectText,
+        status: "busy",
+        displayText: combined || "内容あり"
+      };
+    }
+
+    function shouldIgnoreForDepartment(value) {
+      const text = normalizeSearchText(value);
+      if (!text) return true;
+      if (text === "hr" || text.includes("道徳") || text.includes("総合") || text.includes("探究")) return true;
+      if (text.includes("補欠") || /^研\([^)]*\)$/.test(text)) return true;
+      return false;
+    }
+
+    function inferDepartment(subjects) {
+      const scores = Object.fromEntries(DEPARTMENT_ORDER.map((department) => [department, 0]));
+
+      subjects.forEach((subject) => {
+        if (shouldIgnoreForDepartment(subject)) return;
+        const normalized = normalizeSearchText(subject);
+        Object.entries(SUBJECT_KEYWORDS).forEach(([department, keywords]) => {
+          keywords.forEach((keyword) => {
+            if (normalized.includes(normalizeSearchText(keyword))) {
+              scores[department] += 1;
+            }
+          });
+        });
+      });
+
+      let bestDepartment = "その他";
+      let bestScore = 0;
+      DEPARTMENT_ORDER.forEach((department) => {
+        if (department === "その他") return;
+        if (scores[department] > bestScore) {
+          bestScore = scores[department];
+          bestDepartment = department;
+        }
+      });
+
+      return bestScore > 0 ? bestDepartment : "その他";
+    }
+
+    function stabilizeDepartmentsByOrder(teachers) {
+      const normalizedTeachers = teachers.map((teacher) => ({ ...teacher }));
+      let index = 0;
+
+      while (index < normalizedTeachers.length) {
+        if (normalizedTeachers[index].department !== "その他") {
+          index += 1;
+          continue;
+        }
+
+        const start = index;
+        while (index < normalizedTeachers.length && normalizedTeachers[index].department === "その他") {
+          index += 1;
+        }
+        const end = index;
+        const prevDepartment = start > 0 ? normalizedTeachers[start - 1].department : "";
+        const nextDepartment = end < normalizedTeachers.length ? normalizedTeachers[end].department : "";
+
+        if (!prevDepartment || !nextDepartment || prevDepartment === "その他" || nextDepartment === "その他") {
+          continue;
+        }
+
+        for (let teacherIndex = start; teacherIndex < end; teacherIndex += 1) {
+          const department = prevDepartment === nextDepartment
+            ? prevDepartment
+            : (teacherIndex - start + 1 <= end - teacherIndex ? prevDepartment : nextDepartment);
+          normalizedTeachers[teacherIndex].department = department;
+          normalizedTeachers[teacherIndex].departmentSource = "order";
+        }
+      }
+
+      return normalizedTeachers;
+    }
+
+    function isValidEmploymentType(value) {
+      return value === "full_time" || value === "part_time" || value === "support_staff";
+    }
+
+    function employmentTypeLabel(type) {
+      if (type === "support_staff") return "通常授業なし";
+      return type === "part_time" ? "非常勤講師" : "専任教諭";
+    }
+
+    function employmentSourceLabel(source) {
+      const labels = {
+        manual: "手動設定",
+        all_blank_week: "全曜日全コマ空白",
+        research_day: "研究日あり",
+        all_blank_day: "終日空白日あり",
+        no_blank_day: "終日空白日なし"
+      };
+      return labels[source] ?? "自動推定";
+    }
+
+    function teacherHasResearchDay(teacher) {
+      return DAYS.some((day) => isResearchDay(teacher, day.key));
+    }
+
+    function inferEmploymentTypes(teachers) {
+      return teachers.map((teacher) => {
+        if (isAllBlankWeek(teacher)) {
+          return {
+            ...teacher,
+            employmentType: "support_staff",
+            employmentSource: "all_blank_week"
+          };
+        }
+
+        if (teacherHasResearchDay(teacher)) {
+          return {
+            ...teacher,
+            employmentType: "full_time",
+            employmentSource: "research_day"
+          };
+        }
+
+        if (teacherHasAllBlankDay(teacher)) {
+          return {
+            ...teacher,
+            employmentType: "part_time",
+            employmentSource: "all_blank_day"
+          };
+        }
+
+        return {
+          ...teacher,
+          employmentType: "full_time",
+          employmentSource: "no_blank_day"
+        };
+      });
+    }
+
+    function applyEmploymentOverrides(teachers, settings) {
+      const overrides = settings?.employmentTypeOverrides ?? {};
+      return teachers.map((teacher) => {
+        const override = overrides[teacher.id];
+        if (!isValidEmploymentType(override)) return teacher;
+        return {
+          ...teacher,
+          employmentType: override,
+          employmentSource: "manual"
+        };
+      });
+    }
+
+    function normalizeTeachers(teachers, settings = defaultState().settings) {
+      return applyEmploymentOverrides(
+        inferEmploymentTypes(stabilizeDepartmentsByOrder(teachers ?? [])),
+        settings
+      );
+    }
+
+    function parseTeachersFromRows(rows) {
+      if (!Array.isArray(rows) || rows.length < 3) {
+        throw new Error("CSV形式が想定と違います。3行以上のCSVを選択してください。");
+      }
+
+      const maxColumns = Math.max(...rows.map((row) => row.length));
+      if (maxColumns < 31) {
+        throw new Error("CSV形式が想定と違います。月曜から金曜までの列数を確認してください。");
+      }
+
+      const teachers = [];
+      for (let rowIndex = 2; rowIndex < rows.length; rowIndex += 2) {
+        const classRow = rows[rowIndex] ?? [];
+        const subjectRow = rows[rowIndex + 1] ?? [];
+        const name = normalizeDisplayText(classRow[0] ?? "");
+        if (!name) continue;
+
+        const slots = {};
+        const subjectsForDepartment = [];
+        DAYS.forEach((day, dayIndex) => {
+          slots[day.key] = {};
+          const maxPeriod = getMaxPeriod(day.key);
+          for (let period = 1; period <= maxPeriod; period += 1) {
+            const column = 1 + dayIndex * 6 + (period - 1);
+            const slot = getSlotFromRows(classRow, subjectRow, column);
+            slots[day.key][period] = slot;
+            if (slot.subjectText) subjectsForDepartment.push(slot.subjectText);
+          }
+        });
+
+        const department = inferDepartment(subjectsForDepartment);
+        teachers.push({
+          id: `teacher-${String(teachers.length + 1).padStart(3, "0")}`,
+          name,
+          department,
+          departmentSource: department === "その他" ? "unknown" : "subjects",
+          aliases: [],
+          slots
+        });
+      }
+
+      if (!teachers.length) {
+        throw new Error("教員データが0件です。3行目以降の教員名を確認してください。");
+      }
+
+      return normalizeTeachers(teachers);
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    }
+
+    function normalizeSettings(settings, teachers) {
+      const base = defaultState().settings;
+      const teacherIds = new Set((teachers ?? []).map((teacher) => teacher.id));
+      const favoriteTeacherIds = Array.isArray(settings?.favoriteTeacherIds)
+        ? settings.favoriteTeacherIds.filter((id, index, ids) => teacherIds.has(id) && ids.indexOf(id) === index)
+        : [];
+      const myTeacherId = teacherIds.has(settings?.myTeacherId) ? settings.myTeacherId : "";
+      const rawOverrides = settings?.employmentTypeOverrides && typeof settings.employmentTypeOverrides === "object"
+        ? settings.employmentTypeOverrides
+        : {};
+      const employmentTypeOverrides = Object.fromEntries(
+        Object.entries(rawOverrides).filter(([id, type]) => (
+          teacherIds.has(id) && isValidEmploymentType(type)
+        ))
+      );
+
+      return {
+        ...base,
+        ...(settings ?? {}),
+        timeOffsetMinutes: Number(settings?.timeOffsetMinutes) || 0,
+        transposeTimetables: Boolean(
+          settings?.transposeTimetables
+          || settings?.transposeSingleTeacherTimetable
+          || settings?.transposeMultipleTeacherTimetable
+        ),
+        myTeacherId,
+        favoriteTeacherIds,
+        employmentTypeOverrides
+      };
+    }
+
+    function normalizeAppState(state) {
+      const rawTeachers = Array.isArray(state.teachers) ? state.teachers : [];
+      const settings = normalizeSettings(state.settings, rawTeachers);
+      const teachers = normalizeTeachers(rawTeachers, settings);
+      return {
+        ...defaultState(),
+        ...state,
+        teachers,
+        settings
+      };
+    }
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        appState = defaultState();
+        return;
+      }
+
+      try {
+        const parsed = JSON.parse(raw);
+        appState = normalizeAppState(parsed);
+      } catch (error) {
+        appState = defaultState();
+        showMessage("localStorage読み込み失敗。キャッシュを削除してCSVを読み込み直してください。", "error");
+      }
+    }
+
+    function showMessage(message, tone = "warn") {
+      elements.appMessage.textContent = message;
+      elements.appMessage.dataset.tone = tone;
+      elements.appMessage.classList.remove("hidden");
+    }
+
+    function hideMessage() {
+      elements.appMessage.classList.add("hidden");
+      elements.appMessage.textContent = "";
+      elements.appMessage.removeAttribute("data-tone");
+    }
+
+    function csvMissingMessageHtml(options = {}) {
+      const note = "設定から時間割CSVを読み込んでください。";
+      if (options.compact) {
+        return `<div class="compact-note">CSV未読み込み<br>${escapeHtml(note)}</div>`;
+      }
+
+      return `
+        <div class="empty-state">
+          <div>CSV未読み込み</div>
+          <div class="empty-state-note">${escapeHtml(note)}</div>
+        </div>
+      `;
+    }
+
+    function setSettingsPanelOpen(open) {
+      elements.settingsPanel.classList.toggle("is-open", open);
+      elements.settingsToggle.setAttribute("aria-expanded", String(open));
+      elements.settingsToggle.setAttribute("aria-label", open ? "設定を閉じる" : "設定を開く");
+      elements.settingsToggle.setAttribute("title", open ? "閉じる" : "設定");
+    }
+
+    function getTeacherById(id) {
+      return appState.teachers.find((teacher) => teacher.id === id) ?? null;
+    }
+
+    function getSelectedTeachers() {
+      return selectedTeacherIds
+        .map((id) => getTeacherById(id))
+        .filter(Boolean);
+    }
+
+    function pruneSelectedTeachers() {
+      selectedTeacherIds = selectedTeacherIds.filter((id, index, ids) => (
+        ids.indexOf(id) === index && appState.teachers.some((teacher) => teacher.id === id)
+      ));
+      if (focusedTeacherId && !selectedTeacherIds.includes(focusedTeacherId)) {
+        focusedTeacherId = "";
+      }
+    }
+
+    function applyMyTeacherDefault(options = {}) {
+      const myTeacherId = appState.settings.myTeacherId;
+      if (!myTeacherId || !getTeacherById(myTeacherId)) return;
+      if (options.force || selectedTeacherIds.length === 0) {
+        selectedTeacherIds = [myTeacherId];
+        focusedTeacherId = "";
+      }
+    }
+
+    function normalizeSlot(slot) {
+      if (!slot) return slot;
+      if (slot.status === "busy" && (
+        isSubstituteText(slot.classText)
+        || isSubstituteText(slot.subjectText)
+        || isSubstituteText(slot.displayText)
+      )) {
+        const displayText = slot.displayText || [slot.classText, slot.subjectText].filter(Boolean).join(" ") || "補欠";
+        return {
+          ...slot,
+          status: "free",
+          displayText
+        };
+      }
+      return slot;
+    }
+
+    function getSlot(teacher, dayKey, period) {
+      const slot = teacher?.slots?.[dayKey]?.[period];
+      if (slot) return normalizeSlot(slot);
+      return {
+        classText: "",
+        subjectText: "",
+        status: "closed",
+        displayText: "校時なし"
+      };
+    }
+
+    function isBlankSlot(slot) {
+      return !slot?.classText && !slot?.subjectText;
+    }
+
+    function isCommonFreeSlot(slot) {
+      return slot?.status === "free";
+    }
+
+    function isPartTimeTeacher(teacher) {
+      return teacher?.employmentType === "part_time";
+    }
+
+    function isSupportStaffTeacher(teacher) {
+      return teacher?.employmentType === "support_staff";
+    }
+
+    function isAllBlankDay(teacher, dayKey) {
+      if (!teacher?.slots?.[dayKey]) return false;
+      const maxPeriod = getMaxPeriod(dayKey);
+      for (let period = 1; period <= maxPeriod; period += 1) {
+        if (!isBlankSlot(getSlot(teacher, dayKey, period))) return false;
+      }
+      return true;
+    }
+
+    function teacherHasAllBlankDay(teacher) {
+      return DAYS.some((day) => isAllBlankDay(teacher, day.key));
+    }
+
+    function isAllBlankWeek(teacher) {
+      return DAYS.every((day) => isAllBlankDay(teacher, day.key));
+    }
+
+    function isDayOff(teacher, dayKey) {
+      return isPartTimeTeacher(teacher) && isAllBlankDay(teacher, dayKey);
+    }
+
+    function isUnavailableDay(teacher, dayKey) {
+      return isSupportStaffTeacher(teacher) || isDayOff(teacher, dayKey);
+    }
+
+    function isResearchDay(teacher, dayKey) {
+      if (!teacher?.slots?.[dayKey]) return false;
+      const maxPeriod = getMaxPeriod(dayKey);
+      for (let period = 1; period <= maxPeriod; period += 1) {
+        if (getSlot(teacher, dayKey, period).status !== "research") return false;
+      }
+      return true;
+    }
+
+    // 通常授業なしスタッフ、非常勤講師の全コマ空白日、研究日は共通空き判定では不在として扱う。
+    function dayAbsence(teacher, dayKey) {
+      if (isSupportStaffTeacher(teacher)) return "staff";
+      if (isDayOff(teacher, dayKey)) return "off";
+      if (isResearchDay(teacher, dayKey)) return "research";
+      return "";
+    }
+
+    function getDisplaySlot(teacher, dayKey, period) {
+      if (isSupportStaffTeacher(teacher)) {
+        return {
+          classText: "",
+          subjectText: "",
+          status: "staff",
+          displayText: "通常授業なし"
+        };
+      }
+
+      // 研究日は機能的には不在(dayAbsence)扱いだが、表示は研究日(黄色)のまま残す。
+      // 非常勤講師の全コマ空白日のみグレーの「非出勤」に置き換える。
+      if (period <= getMaxPeriod(dayKey) && isDayOff(teacher, dayKey)) {
+        return {
+          classText: "",
+          subjectText: "",
+          status: "off",
+          displayText: "非出勤"
+        };
+      }
+      return getSlot(teacher, dayKey, period);
+    }
+
+    function isCommonFree(teachers, dayKey, period) {
+      return teachers.length > 0 && teachers.every((teacher) => {
+        if (dayAbsence(teacher, dayKey)) return false;
+        const slot = getSlot(teacher, dayKey, period);
+        return isCommonFreeSlot(slot);
+      });
+    }
+
+    function isCurrentDay(dayKey) {
+      return currentState?.type === "period" && currentState.dayKey === dayKey;
+    }
+
+    function isCurrentPeriodColumn(period) {
+      return currentState?.type === "period" && currentState.period === period;
+    }
+
+    function isCurrentPeriod(dayKey, period) {
+      return isCurrentDay(dayKey) && isCurrentPeriodColumn(period);
+    }
+
+    function isTargetPeriod(dayKey, period) {
+      return focusDayKey === dayKey && Number(focusPeriod) === Number(period);
+    }
+
+    function slotStatusLabel(status) {
+      const labels = {
+        free: "空き",
+        research: "研究日",
+        busy: "授業等",
+        off: "非出勤",
+        staff: "通常授業なし",
+        closed: "校時なし",
+        none: "対象外"
+      };
+      return labels[status] ?? "授業等";
+    }
+
+    function statusPill(status, text) {
+      return `<span class="pill" data-status="${escapeHtml(status)}">${escapeHtml(text || slotStatusLabel(status))}</span>`;
+    }
+
+    function scheduleCell(slot, options = {}) {
+      const status = slot.status ?? "closed";
+      const label = slotStatusLabel(status);
+      const isBusy = status === "busy";
+      const isCustomFreeText = status === "free" && slot.displayText && slot.displayText !== label;
+      const showState = !isBusy && !isCustomFreeText;
+      const showText = slot.displayText && (isBusy || isCustomFreeText || slot.displayText !== label);
+      const classTargets = options.enableClassLink && isBusy
+        ? classTargetsForScheduleCell(slot, options.dayKey, options.period)
+        : [];
+      const classes = [
+        "schedule-cell",
+        status === "free" && !isCustomFreeText ? "is-empty-free" : "",
+        options.commonFree ? "is-common-free" : "",
+        options.current ? "is-current" : "",
+        options.target ? "is-target" : "",
+        classTargets.length ? "is-linkable" : ""
+      ];
+      const classLinkAttrs = classTargets.length
+        ? ` data-class-targets="${escapeHtml(classTargets.join(","))}" data-day-key="${escapeHtml(options.dayKey)}" data-period="${escapeHtml(options.period)}"`
+        : "";
+
+      return `
+        <div${classAttribute(classes)} data-status="${escapeHtml(status)}"${classLinkAttrs}>
+          ${showState ? `<div class="cell-state" data-status="${escapeHtml(status)}">${escapeHtml(label)}</div>` : ""}
+          ${showText ? `<div class="cell-text">${escapeHtml(slot.displayText)}</div>` : ""}
+        </div>
+      `;
+    }
+
+    function renderTimeOffsetOptions() {
+      elements.timeOffsetSelect.innerHTML = "";
+      for (let minutes = 0; minutes <= 60; minutes += 5) {
+        const option = document.createElement("option");
+        option.value = String(minutes);
+        option.textContent = `${minutes}分`;
+        if (minutes === Number(appState.settings.timeOffsetMinutes || 0)) {
+          option.selected = true;
+        }
+        elements.timeOffsetSelect.append(option);
+      }
+    }
+
+    function renderDisplaySettings() {
+      elements.transposeTimetablesCheckbox.checked = Boolean(appState.settings.transposeTimetables);
+    }
+
+    function teacherSelectOptions(selectedId, options = {}) {
+      if (!appState.teachers.length) {
+        return `<option value="">CSV未読み込み</option>`;
+      }
+
+      const teachers = options.excludeFavorite
+        ? appState.teachers.filter((teacher) => !appState.settings.favoriteTeacherIds.includes(teacher.id))
+        : appState.teachers;
+      const firstLabel = options.firstLabel ?? "未設定";
+      const body = teachers.map((teacher) => (
+        `<option value="${escapeHtml(teacher.id)}" ${teacher.id === selectedId ? "selected" : ""}>${escapeHtml(teacher.name)}（${escapeHtml(teacher.department)}）</option>`
+      )).join("");
+
+      return `<option value="">${escapeHtml(firstLabel)}</option>${body}`;
+    }
+
+    function renderTeacherSettings() {
+      elements.myTeacherSelect.innerHTML = teacherSelectOptions(appState.settings.myTeacherId, {
+        firstLabel: "未設定"
+      });
+      elements.myTeacherSelect.disabled = !appState.teachers.length;
+
+      elements.favoriteTeacherSelect.innerHTML = teacherSelectOptions("", {
+        firstLabel: appState.teachers.length ? "追加する教員を選択" : "CSV未読み込み",
+        excludeFavorite: true
+      });
+      elements.favoriteTeacherSelect.disabled = !appState.teachers.length;
+      elements.addFavoriteButton.disabled = !appState.teachers.length || appState.settings.favoriteTeacherIds.length >= appState.teachers.length;
+
+      const favorites = appState.settings.favoriteTeacherIds
+        .map((id) => getTeacherById(id))
+        .filter(Boolean);
+      elements.favoriteSettingsList.innerHTML = favorites.length
+        ? favorites.map((teacher) => `
+          <span class="chip">
+            <span>${escapeHtml(teacher.name)}</span>
+            <button type="button" aria-label="${escapeHtml(teacher.name)}をお気に入りから解除" data-remove-favorite-id="${escapeHtml(teacher.id)}">×</button>
+          </span>
+        `).join("")
+        : `<span class="compact-note">お気に入り未設定</span>`;
+
+      const currentEmploymentTeacherId = elements.employmentTeacherSelect.value;
+      const selectedEmploymentTeacherId = getTeacherById(currentEmploymentTeacherId)
+        ? currentEmploymentTeacherId
+        : (appState.teachers[0]?.id ?? "");
+      elements.employmentTeacherSelect.innerHTML = appState.teachers.length
+        ? appState.teachers.map((teacher) => `
+          <option value="${escapeHtml(teacher.id)}" ${teacher.id === selectedEmploymentTeacherId ? "selected" : ""}>
+            ${escapeHtml(teacher.name)}（${escapeHtml(teacher.department)}・${escapeHtml(employmentTypeLabel(teacher.employmentType))}）
+          </option>
+        `).join("")
+        : `<option value="">CSV未読み込み</option>`;
+      elements.employmentTeacherSelect.disabled = !appState.teachers.length;
+
+      const employmentTeacher = getTeacherById(selectedEmploymentTeacherId);
+      const overrideType = employmentTeacher
+        ? (appState.settings.employmentTypeOverrides[employmentTeacher.id] ?? "")
+        : "";
+      const automaticEmploymentTeacher = employmentTeacher
+        ? inferEmploymentTypes(stabilizeDepartmentsByOrder(appState.teachers)).find((teacher) => teacher.id === employmentTeacher.id)
+        : null;
+      const autoLabel = employmentTeacher
+        ? `自動判定（${employmentTypeLabel(automaticEmploymentTeacher?.employmentType)}）`
+        : "自動判定";
+      elements.employmentTypeSelect.innerHTML = `
+        <option value="" ${overrideType ? "" : "selected"}>${escapeHtml(autoLabel)}</option>
+        <option value="full_time" ${overrideType === "full_time" ? "selected" : ""}>専任教諭</option>
+        <option value="part_time" ${overrideType === "part_time" ? "selected" : ""}>非常勤講師</option>
+        <option value="support_staff" ${overrideType === "support_staff" ? "selected" : ""}>通常授業なし</option>
+      `;
+      elements.employmentTypeSelect.disabled = !employmentTeacher;
+      elements.applyEmploymentButton.disabled = !employmentTeacher;
+      elements.employmentInferenceNote.textContent = employmentTeacher
+        ? `${employmentTeacher.name}：${employmentTypeLabel(employmentTeacher.employmentType)}（${employmentSourceLabel(employmentTeacher.employmentSource)}）`
+        : "CSV読み込み後に立場を確認できます。";
+
+      const employmentOverrides = Object.entries(appState.settings.employmentTypeOverrides)
+        .map(([id, type]) => ({
+          teacher: getTeacherById(id),
+          type
+        }))
+        .filter(({ teacher, type }) => teacher && isValidEmploymentType(type));
+      elements.employmentOverrideList.innerHTML = employmentOverrides.length
+        ? employmentOverrides.map(({ teacher, type }) => `
+          <span class="chip">
+            <span>${escapeHtml(teacher.name)}：${escapeHtml(employmentTypeLabel(type))}</span>
+            <button type="button" aria-label="${escapeHtml(teacher.name)}を自動判定に戻す" data-clear-employment-id="${escapeHtml(teacher.id)}">×</button>
+          </span>
+        `).join("")
+        : `<span class="compact-note">自動判定から変更した教員なし</span>`;
+    }
+
+    function renderCacheInfo() {
+      const fileName = appState.sourceFileName;
+      elements.loadedFileText.textContent = fileName ? `読み込み済みCSV：${fileName}` : "読み込み済みCSVなし";
+      elements.importedAtText.textContent = formatImportedAt(appState.importedAt);
+      elements.clearCacheButton.disabled = !fileName && appState.teachers.length === 0;
+    }
+
+    function renderNow() {
+      currentState = getCurrentScheduleState(new Date());
+      elements.nowText.textContent = formatDateTime(new Date());
+      elements.currentSlotText.textContent = currentState.shortLabel;
+    }
+
+    function renderTeacherOptionButton(teacher) {
+      const selected = selectedTeacherIds.includes(teacher.id);
+      const favorite = appState.settings.favoriteTeacherIds.includes(teacher.id);
+      const teacherLabel = `${teacher.department}・${employmentTypeLabel(teacher.employmentType)}`;
+      const selfLabel = teacher.id === appState.settings.myTeacherId ? "自分" : teacherLabel;
+      return `
+        <div class="teacher-option ${selected ? "is-selected" : ""}">
+          <button class="teacher-select-button" type="button" data-teacher-id="${escapeHtml(teacher.id)}">
+            <span class="teacher-name">${escapeHtml(teacher.name)}</span>
+            <span class="teacher-dept">${escapeHtml(selfLabel)}</span>
+          </button>
+          <button class="favorite-toggle-button ${favorite ? "is-active" : ""}" type="button" data-toggle-favorite-id="${escapeHtml(teacher.id)}" title="${favorite ? "お気に入りから解除" : "お気に入りに追加"}" aria-label="${escapeHtml(teacher.name)}を${favorite ? "お気に入りから解除" : "お気に入りに追加"}">
+            ${favorite ? "★" : "☆"}
+          </button>
+        </div>
+      `;
+    }
+
+    function renderTeacherSearch() {
+      const query = normalizeSearchText(elements.teacherSearchInput.value);
+      const teachers = appState.teachers;
+      if (!query) {
+        elements.teacherResults.innerHTML = "";
+        return;
+      }
+
+      if (!teachers.length) {
+        elements.teacherResults.innerHTML = csvMissingMessageHtml();
+        return;
+      }
+
+      const candidates = teachers
+        .filter((teacher) => {
+          const target = [teacher.name, teacher.department, employmentTypeLabel(teacher.employmentType), ...(teacher.aliases ?? [])]
+            .map(normalizeSearchText)
+            .join(" ");
+          return target.includes(query);
+        })
+        .slice(0, 12);
+
+      if (!candidates.length) {
+        elements.teacherResults.innerHTML = `<div class="empty-state">該当なし</div>`;
+        return;
+      }
+
+      elements.teacherResults.innerHTML = candidates.map(renderTeacherOptionButton).join("");
+    }
+
+    function renderSelectedChips() {
+      const selected = getSelectedTeachers();
+      if (!selected.length) {
+        elements.selectedChips.innerHTML = `<span class="compact-note">選択教員なし</span>`;
+        elements.clearSelectionButton.disabled = true;
+        elements.showAllSelectedButton.disabled = true;
+        return;
+      }
+
+      elements.clearSelectionButton.disabled = false;
+      elements.showAllSelectedButton.disabled = selected.length < 2 || !focusedTeacherId;
+      elements.selectedChips.innerHTML = selected.map((teacher) => `
+        <span class="chip">
+          <span>${escapeHtml(teacher.name)}</span>
+          <button type="button" aria-label="${escapeHtml(teacher.name)}を解除" data-remove-teacher-id="${escapeHtml(teacher.id)}">×</button>
+        </span>
+      `).join("");
+    }
+
+    function renderSelfQuickBlock() {
+      const myTeacher = getTeacherById(appState.settings.myTeacherId);
+      if (!myTeacher || selectedTeacherIds.includes(myTeacher.id)) {
+        elements.selfQuickBlock.innerHTML = "";
+        return;
+      }
+
+      elements.selfQuickBlock.innerHTML = `
+        <h3 class="section-title">自分</h3>
+        <div class="favorite-list">${renderTeacherOptionButton(myTeacher)}</div>
+      `;
+    }
+
+    function renderFavoriteList() {
+      if (!appState.teachers.length) {
+        elements.favoriteList.innerHTML = csvMissingMessageHtml({ compact: true });
+        return;
+      }
+
+      const favorites = appState.settings.favoriteTeacherIds
+        .map((id) => getTeacherById(id))
+        .filter(Boolean);
+
+      elements.favoriteList.innerHTML = favorites.length
+        ? favorites.map(renderTeacherOptionButton).join("")
+        : `<div class="compact-note">お気に入り未設定</div>`;
+    }
+
+    function renderDepartmentList() {
+      if (!appState.teachers.length) {
+        elements.departmentList.innerHTML = csvMissingMessageHtml();
+        return;
+      }
+
+      const groups = new Map(DEPARTMENT_ORDER.map((department) => [department, []]));
+      appState.teachers.forEach((teacher) => {
+        const department = groups.has(teacher.department) ? teacher.department : "その他";
+        groups.get(department).push(teacher);
+      });
+
+      const visibleDepartments = DEPARTMENT_ORDER.filter((department) => groups.get(department).length > 0);
+      const myTeacher = getTeacherById(appState.settings.myTeacherId);
+
+      elements.departmentList.innerHTML = visibleDepartments
+        .map((department, index) => {
+          const teachers = groups.get(department);
+          const membersId = `department-members-${index}`;
+          return `
+            <section class="department-group ${department === myTeacher?.department ? "is-self-department" : ""}" data-department-group="${escapeHtml(department)}">
+              <button class="department-heading" type="button" data-toggle-department="${escapeHtml(department)}" aria-expanded="${expandedDepartments.has(department)}" aria-controls="${escapeHtml(membersId)}">
+                <span class="department-heading-main">${escapeHtml(department)}</span>
+                <span class="department-count">${teachers.length}</span>
+                <span class="department-chevron" aria-hidden="true">▸</span>
+              </button>
+              <div class="department-members" id="${escapeHtml(membersId)}"${expandedDepartments.has(department) ? "" : " hidden"}>
+                ${teachers.map(renderTeacherOptionButton).join("")}
+              </div>
+            </section>
+          `;
+        }).join("");
+    }
+
+    function renderSlotLine(slot) {
+      if (slot.status === "busy") {
+        return `
+          <div class="big-state">
+            <span>${escapeHtml(slot.displayText)}</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="big-state">
+          ${statusPill(slot.status, slotStatusLabel(slot.status))}
+          <span>${escapeHtml(slot.displayText)}</span>
+        </div>
+      `;
+    }
+
+    function renderUpcomingForTeacher(teacher) {
+      if (!currentState?.dayKey || currentState.type === "sunday") {
+        return `<div class="compact-note">${escapeHtml(currentState?.message ?? "対象外です。")}</div>`;
+      }
+
+      const absence = dayAbsence(teacher, currentState.dayKey);
+      if (absence === "staff") {
+        return `<div class="compact-note">通常授業を持たないスタッフです。</div>`;
+      }
+      if (absence === "research") {
+        return `<div class="compact-note">研究日です（出勤義務日ではありません）。</div>`;
+      }
+      if (absence === "off") {
+        return `<div class="compact-note">出勤日ではありません。</div>`;
+      }
+
+      const periods = nextPeriodsForToday(new Date());
+      if (!periods.length) return `<div class="compact-note">なし</div>`;
+
+      return `
+        <ul class="period-list">
+          ${periods.map((period) => {
+            const slot = getDisplaySlot(teacher, currentState.dayKey, period);
+            const content = slot.status === "busy"
+              ? escapeHtml(slot.displayText)
+              : `${statusPill(slot.status, slotStatusLabel(slot.status))} ${escapeHtml(slot.displayText)}`;
+            return `
+              <li class="period-item">
+                <span class="period-label">${period}限</span>
+                <span>${content}</span>
+              </li>
+            `;
+          }).join("")}
+        </ul>
+      `;
+    }
+
+    function commonFreePeriods(teachers, dayKey) {
+      const maxPeriod = getMaxPeriod(dayKey);
+      const periods = [];
+      for (let period = 1; period <= maxPeriod; period += 1) {
+        if (isCommonFree(teachers, dayKey, period)) periods.push(period);
+      }
+      return periods;
+    }
+
+    function renderTeacherWeekSchedule(teacher) {
+      if (appState.settings.transposeTimetables) {
+        return renderTeacherWeekScheduleTransposed(teacher);
+      }
+
+      const periods = [1, 2, 3, 4, 5, 6];
+      return `
+        <div class="timetable-wrap">
+          <table class="timetable single-timetable" aria-label="${escapeHtml(teacher.name)}の週間時間割">
+            <thead>
+              <tr>
+                <th class="day-heading">曜日</th>
+                ${periods.map((period) => `<th${classAttribute([
+                  isCurrentPeriodColumn(period) ? "is-current-period" : "",
+                  Number(focusPeriod) === period ? "is-target-period" : ""
+                ])}>${period}限</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${DAYS.map((day) => `
+                <tr${classAttribute([isUnavailableDay(teacher, day.key) ? "is-day-off-row" : ""])}>
+                  <th scope="row"${classAttribute(["day-heading", isCurrentDay(day.key) ? "is-current-day" : "", focusDayKey === day.key ? "is-current-day" : ""])}>${escapeHtml(day.label)}</th>
+                  ${periods.map((period) => period <= getMaxPeriod(day.key)
+                    ? `<td${classAttribute([isCurrentPeriod(day.key, period) ? "is-current-period" : ""])}>${scheduleCell(getDisplaySlot(teacher, day.key, period), {
+                      current: isCurrentPeriod(day.key, period),
+                      target: isTargetPeriod(day.key, period),
+                      enableClassLink: true,
+                      dayKey: day.key,
+                      period
+                    })}</td>`
+                    : `<td class="no-period" aria-hidden="true"></td>`
+                  ).join("")}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderTeacherWeekScheduleTransposed(teacher) {
+      const periods = [1, 2, 3, 4, 5, 6];
+      return `
+        <div class="timetable-wrap">
+          <table class="timetable single-timetable period-row-timetable" aria-label="${escapeHtml(teacher.name)}の週間時間割">
+            <colgroup>
+              <col class="period-label-column">
+              ${DAYS.map(() => "<col>").join("")}
+            </colgroup>
+            <thead>
+              <tr>
+                <th class="period-heading">時限</th>
+                ${DAYS.map((day) => `<th${classAttribute([
+                  "day-heading",
+                  isCurrentDay(day.key) ? "is-current-period" : "",
+                  focusDayKey === day.key ? "is-target-period" : ""
+                ])}>${escapeHtml(day.label)}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${periods.map((period) => `
+                <tr>
+                  <th scope="row"${classAttribute([
+                    "period-heading",
+                    isCurrentPeriodColumn(period) ? "is-current-day" : "",
+                    Number(focusPeriod) === period ? "is-current-day" : ""
+                  ])}>${period}限</th>
+                  ${DAYS.map((day) => period <= getMaxPeriod(day.key)
+                    ? `<td${classAttribute([
+                      isCurrentPeriod(day.key, period) ? "is-current-period" : "",
+                      isTargetPeriod(day.key, period) ? "is-current-period" : ""
+                    ])}>${scheduleCell(getDisplaySlot(teacher, day.key, period), {
+                      current: isCurrentPeriod(day.key, period),
+                      target: isTargetPeriod(day.key, period),
+                      enableClassLink: true,
+                      dayKey: day.key,
+                      period
+                    })}</td>`
+                    : `<td class="no-period" aria-hidden="true"></td>`
+                  ).join("")}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderCommonTimetableForDay(teachers, day) {
+      if (appState.settings.transposeTimetables) {
+        return renderCommonTimetableForDayTransposed(teachers, day);
+      }
+
+      const periods = [1, 2, 3, 4, 5, 6];
+      const maxPeriod = getMaxPeriod(day.key);
+      const commonPeriods = commonFreePeriods(teachers, day.key);
+      const tableWidth = 132 + periods.length * 92;
+
+      return `
+        <section class="weekday-table-block ${isCurrentDay(day.key) ? "is-current-day" : ""}">
+          <div class="selected-day-note">
+            <strong>${escapeHtml(day.longLabel)}</strong>
+            <span class="compact-note">共通空き：</span>
+            <span class="slot-badges">
+              ${commonPeriods.length ? commonPeriods.map((period) => `<span class="slot-badge">${period}限</span>`).join("") : `<span class="compact-note">なし</span>`}
+            </span>
+          </div>
+          <div class="timetable-wrap">
+            <table class="timetable common-timetable" style="--table-width: ${tableWidth}px;" aria-label="${escapeHtml(day.longLabel)}の選択教員時間割">
+              <thead>
+                <tr>
+                  <th class="teacher-heading">教員</th>
+                  ${periods.map((period) => period <= maxPeriod
+                    ? `<th${classAttribute([
+                      "period-heading",
+                      commonPeriods.includes(period) ? "is-common-free-header" : "",
+                      isCurrentPeriod(day.key, period) ? "is-current-period" : "",
+                      isTargetPeriod(day.key, period) ? "is-target-period" : ""
+                    ])}>${period}限</th>`
+                    : `<th class="period-heading no-period-header" aria-hidden="true"></th>`
+                  ).join("")}
+                </tr>
+              </thead>
+              <tbody>
+                ${teachers.map((teacher) => `
+                  <tr${classAttribute([isUnavailableDay(teacher, day.key) ? "is-day-off-row" : ""])}>
+                    <th scope="row"${classAttribute([isCurrentDay(day.key) ? "is-current-day" : "", focusDayKey === day.key ? "is-current-day" : ""])}>${escapeHtml(teacher.name)}</th>
+                    ${periods.map((period) => period <= maxPeriod
+                      ? `
+                        <td${classAttribute([
+                          commonPeriods.includes(period) ? "is-common-free-column" : "",
+                          isCurrentPeriod(day.key, period) ? "is-current-period" : "",
+                          isTargetPeriod(day.key, period) ? "is-current-period" : ""
+                        ])}>
+                          ${scheduleCell(getDisplaySlot(teacher, day.key, period), {
+                            commonFree: isCommonFree(teachers, day.key, period),
+                            current: isCurrentPeriod(day.key, period),
+                            target: isTargetPeriod(day.key, period),
+                            enableClassLink: true,
+                            dayKey: day.key,
+                            period
+                          })}
+                        </td>
+                      `
+                      : `<td class="no-period" aria-hidden="true"></td>`
+                    ).join("")}
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderCommonTimetableForDayTransposed(teachers, day) {
+      const maxPeriod = getMaxPeriod(day.key);
+      const periods = Array.from({ length: maxPeriod }, (_, index) => index + 1);
+      const commonPeriods = commonFreePeriods(teachers, day.key);
+      const tableWidth = 58 + teachers.length * 132;
+
+      return `
+        <section class="weekday-table-block ${isCurrentDay(day.key) ? "is-current-day" : ""}">
+          <div class="selected-day-note">
+            <strong>${escapeHtml(day.longLabel)}</strong>
+            <span class="compact-note">共通空き：</span>
+            <span class="slot-badges">
+              ${commonPeriods.length ? commonPeriods.map((period) => `<span class="slot-badge">${period}限</span>`).join("") : `<span class="compact-note">なし</span>`}
+            </span>
+          </div>
+          <div class="timetable-wrap">
+            <table class="timetable common-timetable period-row-timetable" style="--table-width: ${tableWidth}px;" aria-label="${escapeHtml(day.longLabel)}の選択教員時間割">
+              <colgroup>
+                <col class="period-label-column">
+                ${teachers.map(() => "<col>").join("")}
+              </colgroup>
+              <thead>
+                <tr>
+                  <th class="period-heading">時限</th>
+                  ${teachers.map((teacher) => `<th class="teacher-heading">${escapeHtml(teacher.name)}</th>`).join("")}
+                </tr>
+              </thead>
+              <tbody>
+                ${periods.map((period) => `
+                  <tr${classAttribute([commonPeriods.includes(period) ? "is-common-free-row" : ""])}>
+                    <th scope="row"${classAttribute([
+                      "period-heading",
+                      commonPeriods.includes(period) ? "is-common-free-row" : "",
+                      isCurrentPeriod(day.key, period) ? "is-current-day" : "",
+                      isTargetPeriod(day.key, period) ? "is-current-day" : ""
+                    ])}>${period}限</th>
+                    ${teachers.map((teacher) => `
+                      <td${classAttribute([isCurrentPeriod(day.key, period) ? "is-current-period" : "", isTargetPeriod(day.key, period) ? "is-current-period" : ""])}>
+                        ${scheduleCell(getDisplaySlot(teacher, day.key, period), {
+                          commonFree: isCommonFree(teachers, day.key, period),
+                          current: isCurrentPeriod(day.key, period),
+                          target: isTargetPeriod(day.key, period),
+                          enableClassLink: true,
+                          dayKey: day.key,
+                          period
+                        })}
+                      </td>
+                    `).join("")}
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderAllCommonTimetables(teachers) {
+      return `
+        <div class="common-week-tables">
+          ${DAYS.map((day) => renderCommonTimetableForDay(teachers, day)).join("")}
+        </div>
+      `;
+    }
+
+    function getClassLessons(classId, dayKey, period) {
+      return derivedData.classTimetables?.[classId]?.[dayKey]?.[period] ?? [];
+    }
+
+    function renderClassList() {
+      elements.classSelect.innerHTML = CLASS_IDS.map((classId) => (
+        `<option value="${escapeHtml(classId)}" ${classId === selectedClassId ? "selected" : ""}>${escapeHtml(classId)}</option>`
+      )).join("");
+
+      elements.classList.innerHTML = Array.from({ length: 6 }, (_, gradeIndex) => {
+        const grade = gradeIndex + 1;
+        const classIds = CLASS_IDS.filter((classId) => classId.startsWith(`${grade}-`));
+        return `
+          <section class="class-grade-group" aria-labelledby="class-grade-${grade}">
+            <h3 class="class-grade-title" id="class-grade-${grade}">${grade}年</h3>
+            <div class="class-grade-grid">
+              ${classIds.map((classId) => `
+                <button class="class-option ${classId === selectedClassId ? "is-selected" : ""}" type="button" data-class-select-id="${escapeHtml(classId)}">
+                  ${escapeHtml(classId)}
+                </button>
+              `).join("")}
+            </div>
+          </section>
+        `;
+      }).join("");
+    }
+
+    function renderClassScheduleCell(classId, dayKey, period) {
+      const lessons = getClassLessons(classId, dayKey, period);
+      const target = isTargetPeriod(dayKey, period);
+      if (!lessons.length) {
+        return `
+          <div${classAttribute(["schedule-cell", "class-schedule-cell", target ? "is-target" : ""])} data-status="unregistered">
+            <div class="cell-state" data-status="none">未登録</div>
+          </div>
+        `;
+      }
+
+      return `
+        <div${classAttribute(["schedule-cell", "class-schedule-cell", target ? "is-target" : ""])} data-status="busy">
+          ${lessons.map((lesson, index) => `
+            <button class="class-lesson-card" type="button" data-class-lesson-class="${escapeHtml(classId)}" data-class-lesson-day="${escapeHtml(dayKey)}" data-class-lesson-period="${escapeHtml(period)}" data-class-lesson-index="${escapeHtml(index)}">
+              <span class="cell-text">${escapeHtml(lesson.subject)}</span>
+              ${lesson.teachers.length ? `<span class="class-teachers">担当: ${escapeHtml(lesson.teachers.map((teacher) => teacher.name).join(" / "))}</span>` : ""}
+              ${lesson.targetLabel ? `<span class="class-target">対象: ${escapeHtml(lesson.targetLabel)}</span>` : ""}
+            </button>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    function renderClassDetail() {
+      if (!selectedClassLesson) {
+        return `
+          <section class="class-detail">
+            <h3>授業詳細</h3>
+            <div class="compact-note">授業セルをクリックすると担当教員を表示します。</div>
+          </section>
+        `;
+      }
+
+      const { classId, dayKey, period, lessonIndex } = selectedClassLesson;
+      const lesson = getClassLessons(classId, dayKey, period)[lessonIndex];
+      const day = DAY_BY_KEY[dayKey];
+      if (!lesson || !day) {
+        return `
+          <section class="class-detail">
+            <h3>授業詳細</h3>
+            <div class="compact-note">授業情報を表示できません。</div>
+          </section>
+        `;
+      }
+
+      return `
+        <section class="class-detail">
+          <h3>${escapeHtml(classId)} ${escapeHtml(day.longLabel)}${escapeHtml(period)}限</h3>
+          <div class="big-state">
+            <span>${escapeHtml(lesson.subject)}</span>
+          </div>
+          ${lesson.teachers.length
+            ? `<div class="compact-note">担当: ${escapeHtml(lesson.teachers.map((teacher) => teacher.name).join(" / "))}</div>`
+            : `<div class="compact-note">担当: CSVからは判定できません。</div>`}
+          ${lesson.targetLabel ? `<div class="compact-note">対象: ${escapeHtml(lesson.targetLabel)}</div>` : ""}
+          ${lesson.teachers.length ? `
+            <div class="teacher-nav-buttons">
+              ${lesson.teachers.map((teacher) => `
+                <button type="button" data-go-teacher-id="${escapeHtml(teacher.id)}" data-go-day-key="${escapeHtml(dayKey)}" data-go-period="${escapeHtml(period)}">
+                  ${escapeHtml(teacher.name)}の時間割へ
+                </button>
+              `).join("")}
+            </div>
+          ` : ""}
+        </section>
+      `;
+    }
+
+    function renderClassTimetable(classId) {
+      if (appState.settings.transposeTimetables) {
+        return renderClassTimetableTransposed(classId);
+      }
+
+      const periods = [1, 2, 3, 4, 5, 6];
+      return `
+        <div class="timetable-wrap">
+          <table class="timetable class-timetable" aria-label="${escapeHtml(classId)}の週間時間割">
+            <thead>
+              <tr>
+                <th class="day-heading">曜日</th>
+                ${periods.map((period) => `<th${classAttribute([
+                  isCurrentPeriodColumn(period) ? "is-current-period" : "",
+                  Number(focusPeriod) === period ? "is-target-period" : ""
+                ])}>${period}限</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${DAYS.map((day) => `
+                <tr>
+                  <th scope="row"${classAttribute(["day-heading", isCurrentDay(day.key) ? "is-current-day" : "", focusDayKey === day.key ? "is-current-day" : ""])}>${escapeHtml(day.label)}</th>
+                  ${periods.map((period) => period <= getMaxPeriod(day.key)
+                    ? `<td${classAttribute([isCurrentPeriod(day.key, period) ? "is-current-period" : "", isTargetPeriod(day.key, period) ? "is-current-period" : ""])}>${renderClassScheduleCell(classId, day.key, period)}</td>`
+                    : `<td class="no-period" aria-hidden="true"></td>`
+                  ).join("")}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderClassTimetableTransposed(classId) {
+      const periods = [1, 2, 3, 4, 5, 6];
+      return `
+        <div class="timetable-wrap">
+          <table class="timetable class-timetable period-row-timetable" aria-label="${escapeHtml(classId)}の週間時間割">
+            <colgroup>
+              <col class="period-label-column">
+              ${DAYS.map(() => "<col>").join("")}
+            </colgroup>
+            <thead>
+              <tr>
+                <th class="period-heading">時限</th>
+                ${DAYS.map((day) => `<th${classAttribute([
+                  "day-heading",
+                  isCurrentDay(day.key) ? "is-current-period" : "",
+                  focusDayKey === day.key ? "is-target-period" : ""
+                ])}>${escapeHtml(day.label)}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>
+              ${periods.map((period) => `
+                <tr>
+                  <th scope="row"${classAttribute([
+                    "period-heading",
+                    isCurrentPeriodColumn(period) ? "is-current-day" : "",
+                    Number(focusPeriod) === period ? "is-current-day" : ""
+                  ])}>${period}限</th>
+                  ${DAYS.map((day) => period <= getMaxPeriod(day.key)
+                    ? `<td${classAttribute([
+                      isCurrentPeriod(day.key, period) ? "is-current-period" : "",
+                      isTargetPeriod(day.key, period) ? "is-current-period" : ""
+                    ])}>${renderClassScheduleCell(classId, day.key, period)}</td>`
+                    : `<td class="no-period" aria-hidden="true"></td>`
+                  ).join("")}
+                </tr>
+              `).join("")}
+            </tbody>
+          </table>
+        </div>
+      `;
+    }
+
+    function renderClassResult() {
+      return `
+        <div class="result-hero">
+          <div class="result-title">
+            <h2>${escapeHtml(selectedClassId)} 時間割</h2>
+            <span class="dept">クラス時間割</span>
+          </div>
+          ${renderClassDetail()}
+          <div class="summary-grid">
+            <section class="summary-item full">
+              <h3>週間時間割</h3>
+              ${renderClassTimetable(selectedClassId)}
+            </section>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderSingleTeacherResult(teacher, options = {}) {
+      let currentHtml = "";
+      if (currentState.type === "period" && currentState.dayKey) {
+        currentHtml = renderSlotLine(getDisplaySlot(teacher, currentState.dayKey, currentState.period));
+      } else {
+        currentHtml = `
+          <div class="big-state">
+            ${statusPill("none", "対象外")}
+            <span>${escapeHtml(currentState.message)}</span>
+          </div>
+        `;
+      }
+
+      return `
+        <div class="result-hero">
+          <div class="result-title">
+            <h2>${escapeHtml(teacher.name)}</h2>
+            <span class="dept">${escapeHtml(teacher.department)} / ${escapeHtml(employmentTypeLabel(teacher.employmentType))}</span>
+            ${options.focused ? `<button class="ghost-button" type="button" data-show-all-selected>戻る</button>` : ""}
+          </div>
+          <div class="summary-grid">
+            <section class="summary-item">
+              <h3>現在</h3>
+              ${currentHtml}
+            </section>
+            <section class="summary-item">
+              <h3>今日このあとの予定</h3>
+              ${renderUpcomingForTeacher(teacher)}
+            </section>
+            <section class="summary-item full">
+              <h3>週間の空き・時間割</h3>
+              ${renderTeacherWeekSchedule(teacher)}
+            </section>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderUpcomingCommon(teachers) {
+      if (!currentState?.dayKey || currentState.type === "sunday") {
+        return `<div class="compact-note">${escapeHtml(currentState?.message ?? "対象外です。")}</div>`;
+      }
+
+      const periods = nextPeriodsForToday(new Date())
+        .filter((period) => isCommonFree(teachers, currentState.dayKey, period));
+
+      if (!periods.length) return `<div class="compact-note">なし</div>`;
+      return `
+        <div class="slot-badges">
+          ${periods.map((period) => `<span class="slot-badge">${period}限</span>`).join("")}
+        </div>
+      `;
+    }
+
+    function renderMultipleTeacherResult(teachers) {
+      const currentCommon = currentState.type === "period" && currentState.dayKey
+        ? isCommonFree(teachers, currentState.dayKey, currentState.period)
+        : false;
+      const currentText = currentState.type === "period"
+        ? (currentCommon ? "全員空きです。" : "共通空きではありません。")
+        : currentState.message;
+      const currentStatus = currentState.type === "period"
+        ? (currentCommon ? "free" : "busy")
+        : "none";
+
+      return `
+        <div class="result-hero">
+          <div class="result-title">
+            <h2>選択中：
+              ${teachers.map((teacher) => `
+                <button class="inline-name-button" type="button" data-focus-teacher-id="${escapeHtml(teacher.id)}">
+                  ${escapeHtml(teacher.name)}
+                </button>
+              `).join(" ")}
+            </h2>
+          </div>
+          <div class="summary-grid">
+            <section class="summary-item">
+              <h3>現在</h3>
+              <div class="big-state">
+                ${statusPill(currentStatus, currentCommon ? "共通空き" : "共通空きなし")}
+                <span>${escapeHtml(currentText)}</span>
+              </div>
+            </section>
+            <section class="summary-item">
+              <h3>今日このあとの共通空き</h3>
+              ${renderUpcomingCommon(teachers)}
+            </section>
+            <section class="summary-item full">
+              <h3>曜日ごとの時間割</h3>
+              ${renderAllCommonTimetables(teachers)}
+            </section>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderModeShell() {
+      const teacherMode = viewMode === "teacher";
+      elements.teacherModeButton.classList.toggle("is-active", teacherMode);
+      elements.classModeButton.classList.toggle("is-active", !teacherMode);
+      elements.teacherModeButton.setAttribute("aria-selected", String(teacherMode));
+      elements.classModeButton.setAttribute("aria-selected", String(!teacherMode));
+      elements.teacherSelectedPanel.classList.toggle("hidden", !teacherMode);
+      elements.teacherSearchPanel.classList.toggle("hidden", !teacherMode);
+      elements.classPanel.classList.toggle("hidden", teacherMode);
+      elements.linkChoiceArea.innerHTML = "";
+    }
+
+    function renderResults() {
+      if (viewMode === "class") {
+        if (!appState.teachers.length) {
+          elements.resultArea.innerHTML = csvMissingMessageHtml();
+          return;
+        }
+        elements.resultArea.innerHTML = renderClassResult();
+        return;
+      }
+
+      if (!appState.teachers.length) {
+        elements.resultArea.innerHTML = csvMissingMessageHtml();
+        return;
+      }
+
+      const selected = getSelectedTeachers();
+      if (!selected.length) {
+        elements.resultArea.innerHTML = `<div class="empty-state">教員を選択してください。</div>`;
+        return;
+      }
+
+      if (selected.length > 1 && focusedTeacherId) {
+        const focusedTeacher = selected.find((teacher) => teacher.id === focusedTeacherId);
+        if (focusedTeacher) {
+          elements.resultArea.innerHTML = renderSingleTeacherResult(focusedTeacher, { focused: true });
+          return;
+        }
+        focusedTeacherId = "";
+      }
+
+      elements.resultArea.innerHTML = selected.length === 1
+        ? renderSingleTeacherResult(selected[0])
+        : renderMultipleTeacherResult(selected);
+    }
+
+    function renderAll() {
+      derivedData = buildDerivedData(appState.teachers);
+      renderNow();
+      renderModeShell();
+      renderTimeOffsetOptions();
+      renderDisplaySettings();
+      renderTeacherSettings();
+      renderCacheInfo();
+      renderClassList();
+      renderTeacherSearch();
+      renderSelectedChips();
+      renderSelfQuickBlock();
+      renderFavoriteList();
+      renderDepartmentList();
+      renderResults();
+    }
+
+    async function importCsvFile() {
+      const file = elements.csvFileInput.files?.[0];
+      if (!file) {
+        showMessage("CSVファイルを選択してください。", "warn");
+        return;
+      }
+
+      try {
+        hideMessage();
+        const buffer = await file.arrayBuffer();
+        let text = "";
+        try {
+          text = new TextDecoder("shift-jis", { fatal: true }).decode(buffer);
+        } catch (error) {
+          throw new Error("Shift_JISデコード失敗。CSVの文字コードを確認してください。");
+        }
+
+        const rows = parseCsv(text);
+        let teachers = parseTeachersFromRows(rows);
+        const settings = normalizeSettings(appState.settings, teachers);
+        teachers = normalizeTeachers(teachers, settings);
+        appState = {
+          version: 1,
+          sourceFileName: file.name,
+          importedAt: new Date().toISOString(),
+          teachers,
+          settings
+        };
+        pruneSelectedTeachers();
+        applyMyTeacherDefault();
+        saveState();
+        showMessage(`${teachers.length}名の教員データを読み込みました。`, "success");
+        renderAll();
+      } catch (error) {
+        showMessage(error.message || "CSV読み込みに失敗しました。", "error");
+      }
+    }
+
+    function clearCache() {
+      localStorage.removeItem(STORAGE_KEY);
+      appState = defaultState();
+      selectedTeacherIds = [];
+      focusedTeacherId = "";
+      elements.csvFileInput.value = "";
+      hideMessage();
+      renderAll();
+      showMessage("キャッシュを削除しました。", "success");
+    }
+
+    function toggleTeacher(id) {
+      if (!appState.teachers.some((teacher) => teacher.id === id)) return;
+      if (selectedTeacherIds.includes(id)) {
+        selectedTeacherIds = selectedTeacherIds.filter((teacherId) => teacherId !== id);
+      } else {
+        selectedTeacherIds = [...selectedTeacherIds, id];
+      }
+      pruneSelectedTeachers();
+      renderTeacherSearch();
+      renderSelectedChips();
+      renderSelfQuickBlock();
+      renderFavoriteList();
+      renderDepartmentList();
+      renderResults();
+    }
+
+    function addFavoriteTeacher(id) {
+      if (!id || !getTeacherById(id)) return;
+      if (!appState.settings.favoriteTeacherIds.includes(id)) {
+        appState.settings.favoriteTeacherIds = [...appState.settings.favoriteTeacherIds, id];
+        saveState();
+      }
+      renderTeacherSettings();
+      renderTeacherSearch();
+      renderSelfQuickBlock();
+      renderFavoriteList();
+      renderDepartmentList();
+    }
+
+    function removeFavoriteTeacher(id) {
+      appState.settings.favoriteTeacherIds = appState.settings.favoriteTeacherIds.filter((teacherId) => teacherId !== id);
+      saveState();
+      renderTeacherSettings();
+      renderTeacherSearch();
+      renderSelfQuickBlock();
+      renderFavoriteList();
+      renderDepartmentList();
+    }
+
+    function toggleFavoriteTeacher(id) {
+      if (appState.settings.favoriteTeacherIds.includes(id)) {
+        removeFavoriteTeacher(id);
+      } else {
+        addFavoriteTeacher(id);
+      }
+    }
+
+    function setEmploymentOverride(id, type) {
+      if (!getTeacherById(id)) return;
+      const employmentTypeOverrides = {
+        ...appState.settings.employmentTypeOverrides
+      };
+
+      if (isValidEmploymentType(type)) {
+        employmentTypeOverrides[id] = type;
+      } else {
+        delete employmentTypeOverrides[id];
+      }
+
+      appState.settings.employmentTypeOverrides = employmentTypeOverrides;
+      appState.settings = normalizeSettings(appState.settings, appState.teachers);
+      appState.teachers = normalizeTeachers(appState.teachers, appState.settings);
+      saveState();
+      renderAll();
+    }
+
+    function clearRouteChoice() {
+      elements.linkChoiceArea.innerHTML = "";
+    }
+
+    function showClassTargetChooser(classIds, dayKey, period) {
+      const uniqueClassIds = uniqueValues(classIds).filter((classId) => CLASS_IDS.includes(classId));
+      if (!uniqueClassIds.length) return;
+      if (uniqueClassIds.length === 1) {
+        goToClassView(uniqueClassIds[0], dayKey, period);
+        return;
+      }
+
+      elements.linkChoiceArea.innerHTML = `
+        <section class="route-choice">
+          <h3>表示するクラスを選択</h3>
+          <div class="route-buttons">
+            ${uniqueClassIds.map((classId) => `
+              <button type="button" data-go-class-id="${escapeHtml(classId)}" data-go-day-key="${escapeHtml(dayKey)}" data-go-period="${escapeHtml(period)}">
+                ${escapeHtml(classId)}
+              </button>
+            `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function goToClassView(classId, dayKey, period) {
+      if (!CLASS_IDS.includes(classId)) return;
+      viewMode = "class";
+      selectedClassId = classId;
+      selectedClassLesson = null;
+      focusDayKey = dayKey || "";
+      focusPeriod = period ? Number(period) : null;
+      clearRouteChoice();
+      renderAll();
+    }
+
+    function goToTeacherView(teacherId, dayKey, period) {
+      if (!getTeacherById(teacherId)) return;
+      viewMode = "teacher";
+      selectedTeacherIds = [teacherId];
+      focusedTeacherId = "";
+      focusDayKey = dayKey || "";
+      focusPeriod = period ? Number(period) : null;
+      selectedClassLesson = null;
+      clearRouteChoice();
+      renderAll();
+    }
+
+    function setViewMode(mode) {
+      viewMode = mode === "class" ? "class" : "teacher";
+      selectedClassLesson = null;
+      focusDayKey = "";
+      focusPeriod = null;
+      clearRouteChoice();
+      renderAll();
+    }
+
+    function bindEvents() {
+      elements.teacherModeButton.addEventListener("click", () => {
+        setViewMode("teacher");
+      });
+
+      elements.classModeButton.addEventListener("click", () => {
+        setViewMode("class");
+      });
+
+      elements.settingsToggle.addEventListener("click", () => {
+        const nextOpen = !elements.settingsPanel.classList.contains("is-open");
+        setSettingsPanelOpen(nextOpen);
+      });
+
+      elements.settingsCloseButton.addEventListener("click", () => {
+        setSettingsPanelOpen(false);
+      });
+
+      elements.timeOffsetSelect.addEventListener("change", () => {
+        appState.settings.timeOffsetMinutes = Number(elements.timeOffsetSelect.value) || 0;
+        saveState();
+        renderNow();
+        renderResults();
+      });
+
+      elements.transposeTimetablesCheckbox.addEventListener("change", () => {
+        appState.settings.transposeTimetables = elements.transposeTimetablesCheckbox.checked;
+        saveState();
+        renderResults();
+      });
+
+      elements.myTeacherSelect.addEventListener("change", () => {
+        appState.settings.myTeacherId = elements.myTeacherSelect.value;
+        appState.settings = normalizeSettings(appState.settings, appState.teachers);
+        applyMyTeacherDefault({ force: Boolean(appState.settings.myTeacherId) });
+        saveState();
+        renderAll();
+      });
+
+      elements.addFavoriteButton.addEventListener("click", () => {
+        addFavoriteTeacher(elements.favoriteTeacherSelect.value);
+      });
+
+      elements.employmentTeacherSelect.addEventListener("change", renderTeacherSettings);
+      elements.applyEmploymentButton.addEventListener("click", () => {
+        setEmploymentOverride(elements.employmentTeacherSelect.value, elements.employmentTypeSelect.value);
+      });
+
+      elements.importButton.addEventListener("click", importCsvFile);
+      elements.clearCacheButton.addEventListener("click", clearCache);
+      elements.teacherSearchInput.addEventListener("input", renderTeacherSearch);
+      elements.classSelect.addEventListener("change", () => {
+        selectedClassId = elements.classSelect.value || CLASS_IDS[0];
+        selectedClassLesson = null;
+        focusDayKey = "";
+        focusPeriod = null;
+        renderAll();
+      });
+      elements.showAllSelectedButton.addEventListener("click", () => {
+        focusedTeacherId = "";
+        renderSelectedChips();
+        renderResults();
+      });
+      elements.clearSelectionButton.addEventListener("click", () => {
+        selectedTeacherIds = [];
+        focusedTeacherId = "";
+        renderTeacherSearch();
+        renderSelectedChips();
+        renderSelfQuickBlock();
+        renderFavoriteList();
+        renderDepartmentList();
+        renderResults();
+      });
+
+      document.addEventListener("click", (event) => {
+        const classOption = event.target.closest("[data-class-select-id]");
+        if (classOption) {
+          selectedClassId = classOption.dataset.classSelectId;
+          selectedClassLesson = null;
+          focusDayKey = "";
+          focusPeriod = null;
+          renderAll();
+          return;
+        }
+
+        const classChoiceButton = event.target.closest("[data-go-class-id]");
+        if (classChoiceButton) {
+          goToClassView(
+            classChoiceButton.dataset.goClassId,
+            classChoiceButton.dataset.goDayKey,
+            classChoiceButton.dataset.goPeriod
+          );
+          return;
+        }
+
+        const teacherNavButton = event.target.closest("[data-go-teacher-id]");
+        if (teacherNavButton) {
+          goToTeacherView(
+            teacherNavButton.dataset.goTeacherId,
+            teacherNavButton.dataset.goDayKey,
+            teacherNavButton.dataset.goPeriod
+          );
+          return;
+        }
+
+        const classLessonButton = event.target.closest("[data-class-lesson-class]");
+        if (classLessonButton) {
+          selectedClassLesson = {
+            classId: classLessonButton.dataset.classLessonClass,
+            dayKey: classLessonButton.dataset.classLessonDay,
+            period: Number(classLessonButton.dataset.classLessonPeriod),
+            lessonIndex: Number(classLessonButton.dataset.classLessonIndex)
+          };
+          selectedClassId = selectedClassLesson.classId;
+          focusDayKey = selectedClassLesson.dayKey;
+          focusPeriod = selectedClassLesson.period;
+          renderResults();
+          return;
+        }
+
+        const classLinkCell = event.target.closest("[data-class-targets]");
+        if (classLinkCell) {
+          const classIds = classLinkCell.dataset.classTargets.split(",").filter(Boolean);
+          showClassTargetChooser(classIds, classLinkCell.dataset.dayKey, classLinkCell.dataset.period);
+          return;
+        }
+
+        const showAllButton = event.target.closest("[data-show-all-selected]");
+        if (showAllButton) {
+          focusedTeacherId = "";
+          renderSelectedChips();
+          renderResults();
+          return;
+        }
+
+        const focusTeacherButton = event.target.closest("[data-focus-teacher-id]");
+        if (focusTeacherButton) {
+          focusedTeacherId = focusTeacherButton.dataset.focusTeacherId;
+          renderSelectedChips();
+          renderResults();
+          return;
+        }
+
+        const toggleFavoriteButton = event.target.closest("[data-toggle-favorite-id]");
+        if (toggleFavoriteButton) {
+          toggleFavoriteTeacher(toggleFavoriteButton.dataset.toggleFavoriteId);
+          return;
+        }
+
+        const removeFavoriteButton = event.target.closest("[data-remove-favorite-id]");
+        if (removeFavoriteButton) {
+          removeFavoriteTeacher(removeFavoriteButton.dataset.removeFavoriteId);
+          return;
+        }
+
+        const clearEmploymentButton = event.target.closest("[data-clear-employment-id]");
+        if (clearEmploymentButton) {
+          setEmploymentOverride(clearEmploymentButton.dataset.clearEmploymentId, "");
+          return;
+        }
+
+        const departmentToggle = event.target.closest("[data-toggle-department]");
+        if (departmentToggle) {
+          const department = departmentToggle.dataset.toggleDepartment;
+          const willOpen = !expandedDepartments.has(department);
+          if (willOpen) {
+            expandedDepartments.add(department);
+          } else {
+            expandedDepartments.delete(department);
+          }
+          departmentToggle.setAttribute("aria-expanded", String(willOpen));
+          const membersId = departmentToggle.getAttribute("aria-controls");
+          const members = membersId ? document.getElementById(membersId) : null;
+          if (members) members.hidden = !willOpen;
+          return;
+        }
+
+        const teacherButton = event.target.closest("[data-teacher-id]");
+        if (teacherButton) {
+          toggleTeacher(teacherButton.dataset.teacherId);
+          return;
+        }
+
+        const removeButton = event.target.closest("[data-remove-teacher-id]");
+        if (removeButton) {
+          selectedTeacherIds = selectedTeacherIds.filter((id) => id !== removeButton.dataset.removeTeacherId);
+          pruneSelectedTeachers();
+          renderTeacherSearch();
+          renderSelectedChips();
+          renderSelfQuickBlock();
+          renderFavoriteList();
+          renderDepartmentList();
+          renderResults();
+        }
+      });
+
+      window.addEventListener("storage", (event) => {
+        if (event.key !== STORAGE_KEY) return;
+        loadState();
+        pruneSelectedTeachers();
+        applyMyTeacherDefault();
+        renderAll();
+      });
+    }
+
+    function init() {
+      loadState();
+      pruneSelectedTeachers();
+      applyMyTeacherDefault();
+      bindEvents();
+      renderAll();
+      setInterval(() => {
+        renderNow();
+        renderResults();
+      }, 30000);
+    }
+
+    init();
+  </script>
+</body>
+</html>
