@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-06-12T14:32:44.349Z",
+  "generatedAt": "2026-06-16T14:27:13.909Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-06-12T14:32:44.349Z",
+    "generatedAt": "2026-06-16T14:27:13.909Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -1440,7 +1440,12 @@
         "avgLength": 3.75,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 90,
+        "cpm": 30,
+        "correctCount": 30,
+        "missMax": 10
+      },
       "quest": {},
       "promotion": {}
     },
@@ -1468,7 +1473,12 @@
         "avgLength": 5.917241379310345,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 91,
+        "cpm": 45,
+        "correctCount": 45,
+        "missMax": 10
+      },
       "quest": {},
       "promotion": {}
     },
@@ -1496,7 +1506,12 @@
         "avgLength": 8.757281553398059,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 92,
+        "cpm": 55,
+        "correctCount": 55,
+        "missMax": 9
+      },
       "quest": {},
       "promotion": {}
     },
@@ -1524,7 +1539,12 @@
         "avgLength": 10.906976744186046,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 92,
+        "cpm": 65,
+        "correctCount": 65,
+        "missMax": 8
+      },
       "quest": {},
       "promotion": {}
     },
@@ -1552,7 +1572,12 @@
         "avgLength": 18.714285714285715,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 93,
+        "cpm": 90,
+        "correctCount": 90,
+        "missMax": 7
+      },
       "quest": {},
       "promotion": {}
     },
@@ -1580,7 +1605,12 @@
         "avgLength": 23.887323943661972,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 94,
+        "cpm": 120,
+        "correctCount": 120,
+        "missMax": 6
+      },
       "quest": {},
       "promotion": {}
     },
@@ -1608,7 +1638,12 @@
         "avgLength": 29.952380952380953,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 95,
+        "cpm": 150,
+        "correctCount": 150,
+        "missMax": 5
+      },
       "quest": {},
       "promotion": {}
     },
@@ -1636,7 +1671,12 @@
         "avgLength": 37.18181818181818,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 96,
+        "cpm": 180,
+        "correctCount": 180,
+        "missMax": 4
+      },
       "quest": {},
       "promotion": {}
     },
@@ -1664,7 +1704,12 @@
         "avgLength": 47.72727272727273,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 97,
+        "cpm": 210,
+        "correctCount": 210,
+        "missMax": 3
+      },
       "quest": {},
       "promotion": {}
     },
@@ -1692,7 +1737,12 @@
         "avgLength": 61.25,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 98,
+        "cpm": 240,
+        "correctCount": 240,
+        "missMax": 2
+      },
       "quest": {},
       "promotion": {}
     },
@@ -2001,8 +2051,10 @@
         "visible": true
       },
       "clearConditions": {
-        "accuracy": 90,
-        "missMax": 8
+        "accuracy": 93,
+        "cpm": 45,
+        "correctCount": 45,
+        "missMax": 7
       },
       "quest": {},
       "promotion": {
@@ -2036,8 +2088,10 @@
         "visible": true
       },
       "clearConditions": {
-        "accuracy": 90,
-        "missMax": 8
+        "accuracy": 94,
+        "cpm": 65,
+        "correctCount": 65,
+        "missMax": 6
       },
       "quest": {},
       "promotion": {
@@ -2071,8 +2125,10 @@
         "visible": true
       },
       "clearConditions": {
-        "accuracy": 90,
-        "missMax": 8
+        "accuracy": 95,
+        "cpm": 85,
+        "correctCount": 85,
+        "missMax": 5
       },
       "quest": {},
       "promotion": {
@@ -2106,8 +2162,10 @@
         "visible": true
       },
       "clearConditions": {
-        "accuracy": 92,
-        "missMax": 6
+        "accuracy": 96,
+        "cpm": 110,
+        "correctCount": 110,
+        "missMax": 5
       },
       "quest": {},
       "promotion": {
@@ -2141,8 +2199,10 @@
         "visible": true
       },
       "clearConditions": {
-        "accuracy": 92,
-        "missMax": 6
+        "accuracy": 97,
+        "cpm": 150,
+        "correctCount": 150,
+        "missMax": 4
       },
       "quest": {},
       "promotion": {
@@ -2176,8 +2236,10 @@
         "visible": true
       },
       "clearConditions": {
-        "accuracy": 92,
-        "missMax": 6
+        "accuracy": 98,
+        "cpm": 185,
+        "correctCount": 185,
+        "missMax": 3
       },
       "quest": {},
       "promotion": {
@@ -2211,8 +2273,10 @@
         "visible": true
       },
       "clearConditions": {
-        "accuracy": 93,
-        "missMax": 5
+        "accuracy": 98.5,
+        "cpm": 220,
+        "correctCount": 220,
+        "missMax": 3
       },
       "quest": {},
       "promotion": {
@@ -2246,8 +2310,10 @@
         "visible": true
       },
       "clearConditions": {
-        "accuracy": 93,
-        "missMax": 5
+        "accuracy": 99,
+        "cpm": 260,
+        "correctCount": 260,
+        "missMax": 2
       },
       "quest": {},
       "promotion": {
@@ -2281,8 +2347,10 @@
         "visible": true
       },
       "clearConditions": {
-        "accuracy": 93,
-        "missMax": 5
+        "accuracy": 99,
+        "cpm": 300,
+        "correctCount": 300,
+        "missMax": 1
       },
       "quest": {},
       "promotion": {
@@ -2316,8 +2384,10 @@
         "visible": true
       },
       "clearConditions": {
-        "accuracy": 94,
-        "missMax": 5
+        "accuracy": 99.5,
+        "cpm": 340,
+        "correctCount": 340,
+        "missMax": 1
       },
       "quest": {},
       "promotion": {
