@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-06-16T14:27:13.909Z",
+  "generatedAt": "2026-06-17T14:02:49.716Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-06-16T14:27:13.909Z",
+    "generatedAt": "2026-06-17T14:02:49.716Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -942,10 +942,10 @@
         }
       },
       "matching": {
-        "phraseCount": 1,
-        "totalLength": 11,
-        "avgLength": 11,
-        "visible": false
+        "phraseCount": 51,
+        "totalLength": 532,
+        "avgLength": 10.431372549019608,
+        "visible": true
       },
       "clearConditions": {},
       "quest": {},
@@ -1345,10 +1345,10 @@
         }
       },
       "matching": {
-        "phraseCount": 1,
-        "totalLength": 11,
-        "avgLength": 11,
-        "visible": false
+        "phraseCount": 51,
+        "totalLength": 532,
+        "avgLength": 10.431372549019608,
+        "visible": true
       },
       "clearConditions": {},
       "quest": {},
@@ -1417,13 +1417,13 @@
       "promotion": {}
     },
     {
-      "gameId": "PR-D1",
+      "gameId": "TR-D1",
       "enabled": true,
       "visibility": "public",
-      "mode": "practice",
+      "mode": "training",
       "gameType": "timeAttack",
-      "title": "基本",
-      "subtitle": "プラクティス D1",
+      "title": "D1 スターター（初心者級）",
+      "subtitle": "トレーニング D1",
       "description": "短い語句を中心に、基本的なキー入力を練習する。",
       "durationSec": 60,
       "phraseCount": 999,
@@ -1442,7 +1442,6 @@
       },
       "clearConditions": {
         "accuracy": 90,
-        "cpm": 30,
         "correctCount": 30,
         "missMax": 10
       },
@@ -1450,13 +1449,13 @@
       "promotion": {}
     },
     {
-      "gameId": "PR-D2",
+      "gameId": "TR-D2",
       "enabled": true,
       "visibility": "public",
-      "mode": "practice",
+      "mode": "training",
       "gameType": "timeAttack",
-      "title": "初級",
-      "subtitle": "プラクティス D2",
+      "title": "D2 ビギナー（準初級）",
+      "subtitle": "トレーニング D2",
       "description": "少し長い語句や複数のキー列を含む入力を練習する。",
       "durationSec": 60,
       "phraseCount": 999,
@@ -1475,7 +1474,6 @@
       },
       "clearConditions": {
         "accuracy": 91,
-        "cpm": 45,
         "correctCount": 45,
         "missMax": 10
       },
@@ -1483,13 +1481,13 @@
       "promotion": {}
     },
     {
-      "gameId": "PR-D3",
+      "gameId": "TR-D3",
       "enabled": true,
       "visibility": "public",
-      "mode": "practice",
+      "mode": "training",
       "gameType": "timeAttack",
-      "title": "数字",
-      "subtitle": "プラクティス D3",
+      "title": "D3 ルーキー（初級）",
+      "subtitle": "トレーニング D3",
       "description": "数字を含む語句を扱い、数字キーを使う入力を練習する。",
       "durationSec": 60,
       "phraseCount": 999,
@@ -1508,7 +1506,6 @@
       },
       "clearConditions": {
         "accuracy": 92,
-        "cpm": 55,
         "correctCount": 55,
         "missMax": 9
       },
@@ -1516,13 +1513,13 @@
       "promotion": {}
     },
     {
-      "gameId": "PR-D4",
+      "gameId": "TR-D4",
       "enabled": true,
       "visibility": "public",
-      "mode": "practice",
+      "mode": "training",
       "gameType": "timeAttack",
-      "title": "英字・記号",
-      "subtitle": "プラクティス D4",
+      "title": "D4 チャレンジャー（準中級）",
+      "subtitle": "トレーニング D4",
       "description": "英字、大文字、複数数字、記号を含む入力を練習する。",
       "durationSec": 60,
       "phraseCount": 999,
@@ -1541,7 +1538,6 @@
       },
       "clearConditions": {
         "accuracy": 92,
-        "cpm": 65,
         "correctCount": 65,
         "missMax": 8
       },
@@ -1549,13 +1545,13 @@
       "promotion": {}
     },
     {
-      "gameId": "PR-D5",
+      "gameId": "TR-D5",
       "enabled": true,
       "visibility": "public",
-      "mode": "practice",
+      "mode": "training",
       "gameType": "timeAttack",
-      "title": "スペース",
-      "subtitle": "プラクティス D5",
+      "title": "D5 トレーニー（中級）",
+      "subtitle": "トレーニング D5",
       "description": "半角スペースを含む語句や英語風の入力を練習する。",
       "durationSec": 60,
       "phraseCount": 999,
@@ -1567,14 +1563,13 @@
         ]
       },
       "matching": {
-        "phraseCount": 182,
-        "totalLength": 3406,
-        "avgLength": 18.714285714285715,
+        "phraseCount": 232,
+        "totalLength": 3927,
+        "avgLength": 16.926724137931036,
         "visible": true
       },
       "clearConditions": {
         "accuracy": 93,
-        "cpm": 90,
         "correctCount": 90,
         "missMax": 7
       },
@@ -1582,13 +1577,13 @@
       "promotion": {}
     },
     {
-      "gameId": "PR-D6",
+      "gameId": "TR-D6",
       "enabled": true,
       "visibility": "public",
-      "mode": "practice",
+      "mode": "training",
       "gameType": "timeAttack",
-      "title": "標準",
-      "subtitle": "プラクティス D6",
+      "title": "D6 タイパー（準上級）",
+      "subtitle": "トレーニング D6",
       "description": "標準的な長さの語句や文を安定して入力する。",
       "durationSec": 60,
       "phraseCount": 999,
@@ -1607,7 +1602,6 @@
       },
       "clearConditions": {
         "accuracy": 94,
-        "cpm": 120,
         "correctCount": 120,
         "missMax": 6
       },
@@ -1615,13 +1609,13 @@
       "promotion": {}
     },
     {
-      "gameId": "PR-D7",
+      "gameId": "TR-D7",
       "enabled": true,
       "visibility": "public",
-      "mode": "practice",
+      "mode": "training",
       "gameType": "timeAttack",
-      "title": "発展",
-      "subtitle": "プラクティス D7",
+      "title": "D7 アドバンサー（上級）",
+      "subtitle": "トレーニング D7",
       "description": "やや長い語句や複数の入力特徴を含む文を練習する。",
       "durationSec": 60,
       "phraseCount": 999,
@@ -1640,7 +1634,6 @@
       },
       "clearConditions": {
         "accuracy": 95,
-        "cpm": 150,
         "correctCount": 150,
         "missMax": 5
       },
@@ -1648,13 +1641,13 @@
       "promotion": {}
     },
     {
-      "gameId": "PR-D8",
+      "gameId": "TR-D8",
       "enabled": true,
       "visibility": "public",
-      "mode": "practice",
+      "mode": "training",
       "gameType": "timeAttack",
-      "title": "上級",
-      "subtitle": "プラクティス D8",
+      "title": "D8 エキスパート（準達人級）",
+      "subtitle": "トレーニング D8",
       "description": "長めの文や入力負荷の高い語句を練習する。",
       "durationSec": 60,
       "phraseCount": 999,
@@ -1673,7 +1666,6 @@
       },
       "clearConditions": {
         "accuracy": 96,
-        "cpm": 180,
         "correctCount": 180,
         "missMax": 4
       },
@@ -1681,13 +1673,13 @@
       "promotion": {}
     },
     {
-      "gameId": "PR-D9",
+      "gameId": "TR-D9",
       "enabled": true,
       "visibility": "public",
-      "mode": "practice",
+      "mode": "training",
       "gameType": "timeAttack",
-      "title": "長文・ボス",
-      "subtitle": "プラクティス D9",
+      "title": "D9 マスター（達人級）",
+      "subtitle": "トレーニング D9",
       "description": "長文やボス用フレーズなど、高負荷の入力に挑戦する。",
       "durationSec": 60,
       "phraseCount": 999,
@@ -1706,7 +1698,6 @@
       },
       "clearConditions": {
         "accuracy": 97,
-        "cpm": 210,
         "correctCount": 210,
         "missMax": 3
       },
@@ -1714,13 +1705,13 @@
       "promotion": {}
     },
     {
-      "gameId": "PR-D10",
+      "gameId": "TR-D10",
       "enabled": true,
       "visibility": "public",
-      "mode": "practice",
+      "mode": "training",
       "gameType": "timeAttack",
-      "title": "最難関",
-      "subtitle": "プラクティス D10",
+      "title": "D10 レジェンド（伝説級）",
+      "subtitle": "トレーニング D10",
       "description": "非常に長い文や総合的な入力力が必要なフレーズに挑戦する。",
       "durationSec": 60,
       "phraseCount": 999,
@@ -1739,7 +1730,6 @@
       },
       "clearConditions": {
         "accuracy": 98,
-        "cpm": 240,
         "correctCount": 240,
         "missMax": 2
       },
@@ -1752,9 +1742,9 @@
       "visibility": "public",
       "mode": "championship",
       "gameType": "timeAttack",
-      "title": "基本チャンピオン",
+      "title": "D1 スターター（初心者級）",
       "subtitle": "チャンピオンシップ D1",
-      "description": "基本レベルのチャンピオンシップ。昇格判定は行わない。",
+      "description": "D1 スターター（初心者級） のチャンピオンシップ",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 4010,
@@ -1780,9 +1770,9 @@
       "visibility": "public",
       "mode": "championship",
       "gameType": "timeAttack",
-      "title": "初級チャンピオン",
+      "title": "D2 ビギナー（準初級）",
       "subtitle": "チャンピオンシップ D2",
-      "description": "初級レベルのチャンピオンシップ。昇格判定は行わない。",
+      "description": "D2 ビギナー（準初級） のチャンピオンシップ",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 4020,
@@ -1808,9 +1798,9 @@
       "visibility": "public",
       "mode": "championship",
       "gameType": "timeAttack",
-      "title": "数字チャンピオン",
+      "title": "D3 ルーキー（初級）",
       "subtitle": "チャンピオンシップ D3",
-      "description": "数字レベルのチャンピオンシップ。昇格判定は行わない。",
+      "description": "D3 ルーキー（初級） のチャンピオンシップ",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 4030,
@@ -1836,9 +1826,9 @@
       "visibility": "public",
       "mode": "championship",
       "gameType": "timeAttack",
-      "title": "英字・記号チャンピオン",
+      "title": "D4 チャレンジャー（準中級）",
       "subtitle": "チャンピオンシップ D4",
-      "description": "英字・記号レベルのチャンピオンシップ。昇格判定は行わない。",
+      "description": "D4 チャレンジャー（準中級） のチャンピオンシップ",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 4040,
@@ -1864,9 +1854,9 @@
       "visibility": "public",
       "mode": "championship",
       "gameType": "timeAttack",
-      "title": "スペースチャンピオン",
+      "title": "D5 トレーニー（中級）",
       "subtitle": "チャンピオンシップ D5",
-      "description": "スペースレベルのチャンピオンシップ。昇格判定は行わない。",
+      "description": "D5 トレーニー（中級） のチャンピオンシップ",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 4050,
@@ -1877,9 +1867,9 @@
         ]
       },
       "matching": {
-        "phraseCount": 182,
-        "totalLength": 3406,
-        "avgLength": 18.714285714285715,
+        "phraseCount": 232,
+        "totalLength": 3927,
+        "avgLength": 16.926724137931036,
         "visible": true
       },
       "clearConditions": {},
@@ -1892,9 +1882,9 @@
       "visibility": "public",
       "mode": "championship",
       "gameType": "timeAttack",
-      "title": "標準チャンピオン",
+      "title": "D6 タイパー（準上級）",
       "subtitle": "チャンピオンシップ D6",
-      "description": "標準レベルのチャンピオンシップ。昇格判定は行わない。",
+      "description": "D6 タイパー（準上級） のチャンピオンシップ",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 4060,
@@ -1920,9 +1910,9 @@
       "visibility": "public",
       "mode": "championship",
       "gameType": "timeAttack",
-      "title": "発展チャンピオン",
+      "title": "D7 アドバンサー（上級）",
       "subtitle": "チャンピオンシップ D7",
-      "description": "発展レベルのチャンピオンシップ。昇格判定は行わない。",
+      "description": "D7 アドバンサー（上級） のチャンピオンシップ",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 4070,
@@ -1948,9 +1938,9 @@
       "visibility": "public",
       "mode": "championship",
       "gameType": "timeAttack",
-      "title": "上級チャンピオン",
+      "title": "D8 エキスパート（準達人級）",
       "subtitle": "チャンピオンシップ D8",
-      "description": "上級レベルのチャンピオンシップ。昇格判定は行わない。",
+      "description": "D8 エキスパート（準達人級） のチャンピオンシップ",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 4080,
@@ -1976,9 +1966,9 @@
       "visibility": "public",
       "mode": "championship",
       "gameType": "timeAttack",
-      "title": "長文・ボスチャンピオン",
+      "title": "D9 マスター（達人級）",
       "subtitle": "チャンピオンシップ D9",
-      "description": "長文・ボスレベルのチャンピオンシップ。昇格判定は行わない。",
+      "description": "D9 マスター（達人級） のチャンピオンシップ",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 4090,
@@ -2004,9 +1994,9 @@
       "visibility": "public",
       "mode": "championship",
       "gameType": "timeAttack",
-      "title": "最難関チャンピオン",
+      "title": "D10 レジェンド（伝説級）",
       "subtitle": "チャンピオンシップ D10",
-      "description": "最難関レベルのチャンピオンシップ。昇格判定は行わない。",
+      "description": "D10 レジェンド（伝説級） のチャンピオンシップ",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 4100,
@@ -2032,9 +2022,9 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "基本昇格試験",
-      "subtitle": "プロモーション D1",
-      "description": "基本レベルの昇格試験。",
+      "title": "D2 昇格戦",
+      "subtitle": "D2 ビギナー（準初級） への昇格",
+      "description": "合格すると D2 ビギナー（準初級） に昇格します",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 5010,
@@ -2052,7 +2042,6 @@
       },
       "clearConditions": {
         "accuracy": 93,
-        "cpm": 45,
         "correctCount": 45,
         "missMax": 7
       },
@@ -2060,7 +2049,7 @@
       "promotion": {
         "requiredClears": 3,
         "targetGameId": "PM-D2",
-        "unlockMessage": "「初級昇格試験」が解放されました。"
+        "unlockMessage": "「D3 昇格戦」が解放されました。"
       }
     },
     {
@@ -2069,9 +2058,9 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "初級昇格試験",
-      "subtitle": "プロモーション D2",
-      "description": "初級レベルの昇格試験。",
+      "title": "D3 昇格戦",
+      "subtitle": "D3 ルーキー（初級） への昇格",
+      "description": "合格すると D3 ルーキー（初級） に昇格します",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 5020,
@@ -2089,7 +2078,6 @@
       },
       "clearConditions": {
         "accuracy": 94,
-        "cpm": 65,
         "correctCount": 65,
         "missMax": 6
       },
@@ -2097,7 +2085,7 @@
       "promotion": {
         "requiredClears": 3,
         "targetGameId": "PM-D3",
-        "unlockMessage": "「数字昇格試験」が解放されました。"
+        "unlockMessage": "「D4 昇格戦」が解放されました。"
       }
     },
     {
@@ -2106,9 +2094,9 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "数字昇格試験",
-      "subtitle": "プロモーション D3",
-      "description": "数字レベルの昇格試験。",
+      "title": "D4 昇格戦",
+      "subtitle": "D4 チャレンジャー（準中級） への昇格",
+      "description": "合格すると D4 チャレンジャー（準中級） に昇格します",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 5030,
@@ -2126,7 +2114,6 @@
       },
       "clearConditions": {
         "accuracy": 95,
-        "cpm": 85,
         "correctCount": 85,
         "missMax": 5
       },
@@ -2134,7 +2121,7 @@
       "promotion": {
         "requiredClears": 3,
         "targetGameId": "PM-D4",
-        "unlockMessage": "「英字・記号昇格試験」が解放されました。"
+        "unlockMessage": "「D5 昇格戦」が解放されました。"
       }
     },
     {
@@ -2143,9 +2130,9 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "英字・記号昇格試験",
-      "subtitle": "プロモーション D4",
-      "description": "英字・記号レベルの昇格試験。",
+      "title": "D5 昇格戦",
+      "subtitle": "D5 トレーニー（中級） への昇格",
+      "description": "合格すると D5 トレーニー（中級） に昇格します",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 5040,
@@ -2163,7 +2150,6 @@
       },
       "clearConditions": {
         "accuracy": 96,
-        "cpm": 110,
         "correctCount": 110,
         "missMax": 5
       },
@@ -2171,7 +2157,7 @@
       "promotion": {
         "requiredClears": 3,
         "targetGameId": "PM-D5",
-        "unlockMessage": "「スペース昇格試験」が解放されました。"
+        "unlockMessage": "「D6 昇格戦」が解放されました。"
       }
     },
     {
@@ -2180,9 +2166,9 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "スペース昇格試験",
-      "subtitle": "プロモーション D5",
-      "description": "スペースレベルの昇格試験。",
+      "title": "D6 昇格戦",
+      "subtitle": "D6 タイパー（準上級） への昇格",
+      "description": "合格すると D6 タイパー（準上級） に昇格します",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 5050,
@@ -2193,14 +2179,13 @@
         ]
       },
       "matching": {
-        "phraseCount": 182,
-        "totalLength": 3406,
-        "avgLength": 18.714285714285715,
+        "phraseCount": 232,
+        "totalLength": 3927,
+        "avgLength": 16.926724137931036,
         "visible": true
       },
       "clearConditions": {
         "accuracy": 97,
-        "cpm": 150,
         "correctCount": 150,
         "missMax": 4
       },
@@ -2208,7 +2193,7 @@
       "promotion": {
         "requiredClears": 3,
         "targetGameId": "PM-D6",
-        "unlockMessage": "「標準昇格試験」が解放されました。"
+        "unlockMessage": "「D7 昇格戦」が解放されました。"
       }
     },
     {
@@ -2217,9 +2202,9 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "標準昇格試験",
-      "subtitle": "プロモーション D6",
-      "description": "標準レベルの昇格試験。",
+      "title": "D7 昇格戦",
+      "subtitle": "D7 アドバンサー（上級） への昇格",
+      "description": "合格すると D7 アドバンサー（上級） に昇格します",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 5060,
@@ -2237,15 +2222,14 @@
       },
       "clearConditions": {
         "accuracy": 98,
-        "cpm": 185,
         "correctCount": 185,
         "missMax": 3
       },
       "quest": {},
       "promotion": {
-        "requiredClears": 3,
+        "requiredClears": 4,
         "targetGameId": "PM-D7",
-        "unlockMessage": "「発展昇格試験」が解放されました。"
+        "unlockMessage": "「D8 昇格戦」が解放されました。"
       }
     },
     {
@@ -2254,9 +2238,9 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "発展昇格試験",
-      "subtitle": "プロモーション D7",
-      "description": "発展レベルの昇格試験。",
+      "title": "D8 昇格戦",
+      "subtitle": "D8 エキスパート（準達人級） への昇格",
+      "description": "合格すると D8 エキスパート（準達人級） に昇格します",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 5070,
@@ -2274,15 +2258,14 @@
       },
       "clearConditions": {
         "accuracy": 98.5,
-        "cpm": 220,
         "correctCount": 220,
         "missMax": 3
       },
       "quest": {},
       "promotion": {
-        "requiredClears": 3,
+        "requiredClears": 4,
         "targetGameId": "PM-D8",
-        "unlockMessage": "「上級昇格試験」が解放されました。"
+        "unlockMessage": "「D9 昇格戦」が解放されました。"
       }
     },
     {
@@ -2291,9 +2274,9 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "上級昇格試験",
-      "subtitle": "プロモーション D8",
-      "description": "上級レベルの昇格試験。",
+      "title": "D9 昇格戦",
+      "subtitle": "D9 マスター（達人級） への昇格",
+      "description": "合格すると D9 マスター（達人級） に昇格します",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 5080,
@@ -2311,15 +2294,14 @@
       },
       "clearConditions": {
         "accuracy": 99,
-        "cpm": 260,
         "correctCount": 260,
         "missMax": 2
       },
       "quest": {},
       "promotion": {
-        "requiredClears": 3,
+        "requiredClears": 4,
         "targetGameId": "PM-D9",
-        "unlockMessage": "「長文・ボス昇格試験」が解放されました。"
+        "unlockMessage": "「D10 昇格戦」が解放されました。"
       }
     },
     {
@@ -2328,9 +2310,9 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "長文・ボス昇格試験",
-      "subtitle": "プロモーション D9",
-      "description": "長文・ボスレベルの昇格試験。",
+      "title": "D10 昇格戦",
+      "subtitle": "D10 レジェンド（伝説級） への昇格",
+      "description": "合格すると D10 レジェンド（伝説級） に昇格します",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 5090,
@@ -2348,15 +2330,14 @@
       },
       "clearConditions": {
         "accuracy": 99,
-        "cpm": 300,
         "correctCount": 300,
         "missMax": 1
       },
       "quest": {},
       "promotion": {
-        "requiredClears": 3,
+        "requiredClears": 5,
         "targetGameId": "PM-D10",
-        "unlockMessage": "「最難関昇格試験」が解放されました。"
+        "unlockMessage": "「アルティメット認定」が解放されました。"
       }
     },
     {
@@ -2365,9 +2346,9 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "最難関昇格試験",
-      "subtitle": "プロモーション D10",
-      "description": "最難関レベルの昇格試験。",
+      "title": "アルティメット認定",
+      "subtitle": "究極のタイピスト認定",
+      "description": "合格すると 「アルティメット（究極のタイピスト）」に認定されます。",
       "durationSec": 60,
       "phraseCount": 999,
       "sortOrder": 5100,
@@ -2385,13 +2366,12 @@
       },
       "clearConditions": {
         "accuracy": 99.5,
-        "cpm": 340,
         "correctCount": 340,
         "missMax": 1
       },
       "quest": {},
       "promotion": {
-        "requiredClears": 3
+        "requiredClears": 5
       }
     },
     {
@@ -3196,9 +3176,9 @@
         }
       },
       "matching": {
-        "phraseCount": 993,
-        "totalLength": 17669,
-        "avgLength": 17.793554884189327,
+        "phraseCount": 1043,
+        "totalLength": 18190,
+        "avgLength": 17.440076701821667,
         "visible": true
       },
       "clearConditions": {},
@@ -43951,6 +43931,1979 @@
       "meaningText": "",
       "adviceText": "",
       "difficultyDetail": "base=45, top=25, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=7, total=53.9, scoreLevel=D9, minLevel=D4, final=D9, minReasons=latin",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i12003",
+      "enabled": true,
+      "displayText": "google drive",
+      "kanaText": "google drive",
+      "primaryRoman": "google drive",
+      "extraVariants": [],
+      "length": 12,
+      "difficultyScore": 13.9,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=12, top=6, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=13.9, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i16005",
+      "enabled": true,
+      "displayText": "google classroom",
+      "kanaText": "google classroom",
+      "primaryRoman": "google classroom",
+      "extraVariants": [],
+      "length": 16,
+      "difficultyScore": 18.1,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=16, top=6, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=18.1, scoreLevel=D4, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i12004",
+      "enabled": true,
+      "displayText": "google forms",
+      "kanaText": "google forms",
+      "primaryRoman": "google forms",
+      "extraVariants": [],
+      "length": 12,
+      "difficultyScore": 13.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "fo",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=12, top=5, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=13.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i13002",
+      "enabled": true,
+      "displayText": "google sheets",
+      "kanaText": "google sheets",
+      "primaryRoman": "google sheets",
+      "extraVariants": [],
+      "length": 13,
+      "difficultyScore": 14.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=13, top=6, bottom=0, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=14.7, scoreLevel=D4, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i13003",
+      "enabled": true,
+      "displayText": "google slides",
+      "kanaText": "google slides",
+      "primaryRoman": "google slides",
+      "extraVariants": [],
+      "length": 13,
+      "difficultyScore": 14.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=13, top=5, bottom=0, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=14.5, scoreLevel=D4, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i12005",
+      "enabled": true,
+      "displayText": "google colab",
+      "kanaText": "google colab",
+      "primaryRoman": "google colab",
+      "extraVariants": [],
+      "length": 12,
+      "difficultyScore": 13.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=12, top=4, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=13.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i15002",
+      "enabled": true,
+      "displayText": "microsoft teams",
+      "kanaText": "microsoft teams",
+      "primaryRoman": "microsoft teams",
+      "extraVariants": [],
+      "length": 15,
+      "difficultyScore": 17.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=15, top=7, bottom=3, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=17.5, scoreLevel=D4, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i13004",
+      "enabled": true,
+      "displayText": "visual studio",
+      "kanaText": "visual studio",
+      "primaryRoman": "visual studio",
+      "extraVariants": [],
+      "length": 13,
+      "difficultyScore": 14.9,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=13, top=6, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=14.9, scoreLevel=D4, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i11006",
+      "enabled": true,
+      "displayText": "visual code",
+      "kanaText": "visual code",
+      "primaryRoman": "visual code",
+      "extraVariants": [],
+      "length": 11,
+      "difficultyScore": 12.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=11, top=4, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=12.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i11007",
+      "enabled": true,
+      "displayText": "web browser",
+      "kanaText": "web browser",
+      "primaryRoman": "web browser",
+      "extraVariants": [],
+      "length": 11,
+      "difficultyScore": 13.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=11, top=7, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=13.3, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i13005",
+      "enabled": true,
+      "displayText": "search engine",
+      "kanaText": "search engine",
+      "primaryRoman": "search engine",
+      "extraVariants": [],
+      "length": 13,
+      "difficultyScore": 15.1,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=13, top=5, bottom=3, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=15.1, scoreLevel=D4, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i11008",
+      "enabled": true,
+      "displayText": "text editor",
+      "kanaText": "text editor",
+      "primaryRoman": "text editor",
+      "extraVariants": [],
+      "length": 11,
+      "difficultyScore": 13.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=11, top=8, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=13.3, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09001",
+      "enabled": true,
+      "displayText": "file name",
+      "kanaText": "file name",
+      "primaryRoman": "file name",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=3, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.5, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09002",
+      "enabled": true,
+      "displayText": "file type",
+      "kanaText": "file type",
+      "primaryRoman": "file type",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=6, bottom=0, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09003",
+      "enabled": true,
+      "displayText": "save file",
+      "kanaText": "save file",
+      "primaryRoman": "save file",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=3, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.3, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09004",
+      "enabled": true,
+      "displayText": "open file",
+      "kanaText": "open file",
+      "primaryRoman": "open file",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=5, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i08002",
+      "enabled": true,
+      "displayText": "new file",
+      "kanaText": "new file",
+      "primaryRoman": "new file",
+      "extraVariants": [],
+      "length": 8,
+      "difficultyScore": 9.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=8, top=4, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=9.5, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09005",
+      "enabled": true,
+      "displayText": "copy file",
+      "kanaText": "copy file",
+      "primaryRoman": "copy file",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=5, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09006",
+      "enabled": true,
+      "displayText": "move file",
+      "kanaText": "move file",
+      "primaryRoman": "move file",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=4, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i11009",
+      "enabled": true,
+      "displayText": "delete file",
+      "kanaText": "delete file",
+      "primaryRoman": "delete file",
+      "extraVariants": [],
+      "length": 11,
+      "difficultyScore": 12.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=11, top=6, bottom=0, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=12.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i13006",
+      "enabled": true,
+      "displayText": "download file",
+      "kanaText": "download file",
+      "primaryRoman": "download file",
+      "extraVariants": [],
+      "length": 13,
+      "difficultyScore": 14.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=13, top=5, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=14.7, scoreLevel=D4, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i11010",
+      "enabled": true,
+      "displayText": "upload file",
+      "kanaText": "upload file",
+      "primaryRoman": "upload file",
+      "extraVariants": [],
+      "length": 11,
+      "difficultyScore": 12.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=11, top=5, bottom=0, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=12.5, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i10001",
+      "enabled": true,
+      "displayText": "share file",
+      "kanaText": "share file",
+      "primaryRoman": "share file",
+      "extraVariants": [],
+      "length": 10,
+      "difficultyScore": 11.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=10, top=4, bottom=0, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=11.3, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i12006",
+      "enabled": true,
+      "displayText": "click button",
+      "kanaText": "click button",
+      "primaryRoman": "click button",
+      "extraVariants": [],
+      "length": 12,
+      "difficultyScore": 14.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=12, top=5, bottom=4, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=14.3, scoreLevel=D4, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09007",
+      "enabled": true,
+      "displayText": "type name",
+      "kanaText": "type name",
+      "primaryRoman": "type name",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.9,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=5, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.9, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i10002",
+      "enabled": true,
+      "displayText": "enter text",
+      "kanaText": "enter text",
+      "primaryRoman": "enter text",
+      "extraVariants": [],
+      "length": 10,
+      "difficultyScore": 12.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=10, top=7, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=12.3, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09008",
+      "enabled": true,
+      "displayText": "read code",
+      "kanaText": "read code",
+      "primaryRoman": "read code",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=4, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.5, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i10003",
+      "enabled": true,
+      "displayText": "write code",
+      "kanaText": "write code",
+      "primaryRoman": "write code",
+      "extraVariants": [],
+      "length": 10,
+      "difficultyScore": 12.1,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=10, top=7, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=12.1, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i08003",
+      "enabled": true,
+      "displayText": "run code",
+      "kanaText": "run code",
+      "primaryRoman": "run code",
+      "extraVariants": [],
+      "length": 8,
+      "difficultyScore": 9.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=8, top=4, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=9.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i12007",
+      "enabled": true,
+      "displayText": "check result",
+      "kanaText": "check result",
+      "primaryRoman": "check result",
+      "extraVariants": [],
+      "length": 12,
+      "difficultyScore": 13.9,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "che",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=12, top=5, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=13.9, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i11011",
+      "enabled": true,
+      "displayText": "print hello",
+      "kanaText": "print hello",
+      "primaryRoman": "print hello",
+      "extraVariants": [],
+      "length": 11,
+      "difficultyScore": 12.9,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=11, top=6, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=12.9, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i10004",
+      "enabled": true,
+      "displayText": "input name",
+      "kanaText": "input name",
+      "primaryRoman": "input name",
+      "extraVariants": [],
+      "length": 10,
+      "difficultyScore": 12.1,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=10, top=5, bottom=3, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=12.1, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i08004",
+      "enabled": true,
+      "displayText": "for loop",
+      "kanaText": "for loop",
+      "primaryRoman": "for loop",
+      "extraVariants": [],
+      "length": 8,
+      "difficultyScore": 9.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "latin",
+        "fo",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=8, top=5, bottom=0, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=9.5, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i10005",
+      "enabled": true,
+      "displayText": "while loop",
+      "kanaText": "while loop",
+      "primaryRoman": "while loop",
+      "extraVariants": [],
+      "length": 10,
+      "difficultyScore": 11.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=10, top=6, bottom=0, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=11.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i12008",
+      "enabled": true,
+      "displayText": "if statement",
+      "kanaText": "if statement",
+      "primaryRoman": "if statement",
+      "extraVariants": [],
+      "length": 12,
+      "difficultyScore": 14.1,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=12, top=6, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=14.1, scoreLevel=D4, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i14003",
+      "enabled": true,
+      "displayText": "else statement",
+      "kanaText": "else statement",
+      "primaryRoman": "else statement",
+      "extraVariants": [],
+      "length": 14,
+      "difficultyScore": 16.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=14, top=7, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=16.3, scoreLevel=D4, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09009",
+      "enabled": true,
+      "displayText": "list data",
+      "kanaText": "list data",
+      "primaryRoman": "list data",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.1,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=3, bottom=0, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.1, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i11012",
+      "enabled": true,
+      "displayText": "string data",
+      "kanaText": "string data",
+      "primaryRoman": "string data",
+      "extraVariants": [],
+      "length": 11,
+      "difficultyScore": 12.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=11, top=4, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=12.5, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09010",
+      "enabled": true,
+      "displayText": "html file",
+      "kanaText": "html file",
+      "primaryRoman": "html file",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=3, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.3, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i08005",
+      "enabled": true,
+      "displayText": "css file",
+      "kanaText": "css file",
+      "primaryRoman": "css file",
+      "extraVariants": [],
+      "length": 8,
+      "difficultyScore": 9.1,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=8, top=2, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=9.1, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i07001",
+      "enabled": true,
+      "displayText": "js file",
+      "kanaText": "js file",
+      "primaryRoman": "js file",
+      "extraVariants": [],
+      "length": 7,
+      "difficultyScore": 7.9,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top"
+      ],
+      "skillTags": [
+        "latin",
+        "fi",
+        "small_vowel",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=7, top=2, bottom=0, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=7.9, scoreLevel=D2, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i10006",
+      "enabled": true,
+      "displayText": "index html",
+      "kanaText": "index html",
+      "primaryRoman": "index html",
+      "extraVariants": [],
+      "length": 10,
+      "difficultyScore": 11.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=10, top=3, bottom=3, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=11.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09011",
+      "enabled": true,
+      "displayText": "style css",
+      "kanaText": "style css",
+      "primaryRoman": "style css",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=3, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.3, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09012",
+      "enabled": true,
+      "displayText": "script js",
+      "kanaText": "script js",
+      "primaryRoman": "script js",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=4, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.5, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i08006",
+      "enabled": true,
+      "displayText": "web page",
+      "kanaText": "web page",
+      "primaryRoman": "web page",
+      "extraVariants": [],
+      "length": 8,
+      "difficultyScore": 9.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=8, top=4, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=9.5, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09013",
+      "enabled": true,
+      "displayText": "home page",
+      "kanaText": "home page",
+      "primaryRoman": "home page",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=4, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.5, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i10007",
+      "enabled": true,
+      "displayText": "data table",
+      "kanaText": "data table",
+      "primaryRoman": "data table",
+      "extraVariants": [],
+      "length": 10,
+      "difficultyScore": 11.3,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=10, top=3, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=11.3, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09014",
+      "enabled": true,
+      "displayText": "bar chart",
+      "kanaText": "bar chart",
+      "primaryRoman": "bar chart",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=3, bottom=2, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.5, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i10008",
+      "enabled": true,
+      "displayText": "line graph",
+      "kanaText": "line graph",
+      "primaryRoman": "line graph",
+      "extraVariants": [],
+      "length": 10,
+      "difficultyScore": 11.5,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=10, top=4, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=11.5, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
+      "scoreVersion": "v3.0",
+      "source": "teacher",
+      "note": ""
+    },
+    {
+      "phraseId": "i09015",
+      "enabled": true,
+      "displayText": "pie chart",
+      "kanaText": "pie chart",
+      "primaryRoman": "pie chart",
+      "extraVariants": [],
+      "length": 9,
+      "difficultyScore": 10.7,
+      "divisionLevel": 4,
+      "phraseLevel": 4,
+      "divisions": [
+        "D5"
+      ],
+      "tags": [],
+      "category": [
+        "it"
+      ],
+      "questOnly": false,
+      "keyRows": [
+        "home",
+        "top",
+        "bottom"
+      ],
+      "skillTags": [
+        "latin",
+        "space"
+      ],
+      "inputStep": "space",
+      "inputStepLevel": 11,
+      "phraseLevelV2": "",
+      "divisionsV2": [],
+      "meaningText": "",
+      "adviceText": "",
+      "difficultyDetail": "base=9, top=5, bottom=1, number=0, upper=0, symbol=1, shiftStart=0, shiftContinue=0, jpSpecial=0, total=10.7, scoreLevel=D3, minLevel=D5, final=D5, minReasons=latin,space",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
