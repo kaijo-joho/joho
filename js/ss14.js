@@ -4,7 +4,7 @@ const slidesData = [
   },
   {
     "title": "1.1. 人口の割合",
-    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【C30】に各区の人口の合計値はすでに入力されている。</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【C7】に「=C7/C30」を入力し、確定する。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>【C7】から【C29】までオートフィルをして、数式をコピーする。</span></span><br>",
+    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【C30】に各区の人口の合計値はすでに入力されている。</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【D7】に「=C7/C30」を入力し、確定する。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>【D7】から【D29】までオートフィルをして、数式をコピーする。</span></span><br>",
     "image": "img_slide/ss14_03.png"
   },
   {
