@@ -4,17 +4,17 @@ const slidesData = [
   },
   {
     "title": "1.1. 人口の割合",
-    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【C30】に各区の人口の合計値はすでに入力されている。</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【D7】に「=C7/C30」を入力し、確定する。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>【D7】から【D29】までオートフィルをして、数式をコピーする。</span></span><br>",
+    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【C30】に各区の人口の合計値はすでに入力されている。</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【D7】に<code>=C7/C30</code>を入力し、確定する。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>【D7】から【D29】までオートフィルをして、数式をコピーする。</span></span><br>",
     "image": "img_slide/ss14_03.png"
   },
   {
     "title": "1.2. オートフィルの結果の確認",
-    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>オートフィルの結果【D8:D29】は「<span style='color:rgb(227, 59, 53);'>#DIV/0!</span>」となる。</span></span><br>※「<span style='color:rgb(227, 59, 53);'>#DIV/0!</span>」はゼロ除算エラー（ 0 または 値なし（空白のセル）で除算した場合のエラー）<br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【D8】を選択すると「=C8/C31」が入力されている。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>これは、オートフィルをすると、<strong>オートフィルの方向にセルの参照先も自動的に移動する</strong>からである。</span></span><br>",
+    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>オートフィルの結果【D8:D29】は「<span style='color:rgb(227, 59, 53);'>#DIV/0!</span>」となる。</span></span><br>※「<span style='color:rgb(227, 59, 53);'>#DIV/0!</span>」はゼロ除算エラー（ 0 または 値なし（空白のセル）で除算した場合のエラー）<br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【D8】を選択すると<code>=C8/C31</code>が入力されている。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>これは、オートフィルをすると、<strong>オートフィルの方向にセルの参照先も自動的に移動する</strong>からである。</span></span><br>",
     "image": "img_slide/ss14_04.png"
   },
   {
     "title": "1.3. 絶対参照のオートフィル",
-    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【D7】に「=C7/C&#36;30」を入力する。</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【D7】から【D29】にオートフィルする。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>【D8】を選択すると「=C8/C<span style='color:rgb(227, 59, 53);'>&#36;30</span>」が入力されていることが確認できる。オートフィルをするときに、セルの参照先を行方向に移動させたくないので、行番号の前に「<span style='color:rgb(227, 59, 53);'>&#36;</span>」をつける。</span></span><br><br><strong>相対参照と絶対参照</strong><br>オートフィルをするときに、セルの参照先を自動的に移動させたくない場合、数式を入力するときに移動させたくない行または列番号の前に「<span style='color:rgb(227, 59, 53);'>&#36;</span>」をつけて表す。このようなセル参照を<strong>絶対参照</strong>という。<br>これに対して、オートフィルをするときにセルの参照先が自動的に移動するセル参照を<strong>相対参照</strong>という。<br>・行方向に移動させたくない場合「<code>A$1</code>」<br>・列方向に移動させたくない場合「<code>$A1</code>」<br>・行方向にも列方向にも移動させたくない場合「<code>$A$1</code>」<br><br>",
+    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【D7】に<code>=C7/C$30</code>を入力する。</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【D7】から【D29】にオートフィルする。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>【D8】を選択すると<code>=C8/C<span style='color:rgb(227, 59, 53);'>$30</span></code>が入力されていることが確認できる。オートフィルをするときに、セルの参照先を行方向に移動させたくないので、行番号の前に「<span style='color:rgb(227, 59, 53);'>&#36;</span>」をつける。</span></span><br><br><strong>相対参照と絶対参照</strong><br>オートフィルをするときに、セルの参照先を自動的に移動させたくない場合、数式を入力するときに移動させたくない行または列番号の前に「<span style='color:rgb(227, 59, 53);'>&#36;</span>」をつけて表す。このようなセル参照を<strong>絶対参照</strong>という。<br>これに対して、オートフィルをするときにセルの参照先が自動的に移動するセル参照を<strong>相対参照</strong>という。<br>・行方向に移動させたくない場合「<code>A$1</code>」<br>・列方向に移動させたくない場合「<code>$A1</code>」<br>・行方向にも列方向にも移動させたくない場合「<code>$A$1</code>」<br><br>",
     "image": "img_slide/ss14_05.png"
   },
   {
@@ -24,7 +24,7 @@ const slidesData = [
   },
   {
     "title": "1.5. 表の書式設定",
-    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【C30】に人口の割合の合計値を求める。（【C30】から右方向にオートフィルするか、「=SUM(D7:D29)」を入力する）</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【B6:D30】を選択し、表の枠線を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>【B6:D6】を選択し、太字，下の枠線を太線，塗りつぶしの色を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>④</strong></span><span class='circBody'>【B7:B30】を選択し、太字を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>⑤</strong></span><span class='circBody'>【B29:B29】を選択し、下の枠線を二重線に設定する。</span></span><br><br>",
+    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【C30】に人口の割合の合計値を求める。（【C30】から右方向にオートフィルするか、<code>=SUM(D7:D29)</code>を入力する）</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【B6:D30】を選択し、表の枠線を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>【B6:D6】を選択し、太字，下の枠線を太線，塗りつぶしの色を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>④</strong></span><span class='circBody'>【B7:B30】を選択し、太字を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>⑤</strong></span><span class='circBody'>【B29:B29】を選択し、下の枠線を二重線に設定する。</span></span><br><br>",
     "image": "img_slide/ss14_07.png"
   },
   {
@@ -32,7 +32,7 @@ const slidesData = [
   },
   {
     "title": "2.1. 順位を求める",
-    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【D7】に「=RANK(C7, C7:C29)」と入力し、確定する。</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【D7】から【D29】までオートフィルする。</span></span><br><br>",
+    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【D7】に<code>=RANK(C7, C7:C29)</code>と入力し、確定する。</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【D7】から【D29】までオートフィルする。</span></span><br><br>",
     "image": "img_slide/ss14_09.png"
   },
   {
@@ -65,7 +65,7 @@ const slidesData = [
   },
   {
     "title": "3.4. 換算表の作成（入力すべき数式）",
-    "note": "<br><span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【C12】に「=ROUND(&#36;B12/C&#36;7, 2)」を入力する。</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>右方向、下方向にオートフィルする。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>途中のセルで、参照先を確認する。</span></span><br>",
+    "note": "<br><span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【C12】に<code>=ROUND($B12/C$7, 2)</code>を入力する。</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>右方向、下方向にオートフィルする。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>途中のセルで、参照先を確認する。</span></span><br>",
     "image": "img_slide/ss14_16.png",
     "showInDetails": true
   },
