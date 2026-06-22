@@ -24,7 +24,7 @@ const slidesData = [
   },
   {
     "title": "1.5. 表の書式設定",
-    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【C30】に人口の割合の合計値を求める。（【C30】から右方向にオートフィルするか、<code>=SUM(D7:D29)</code>を入力する）</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【B6:D30】を選択し、表の枠線を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>【B6:D6】を選択し、太字，下の枠線を太線，塗りつぶしの色を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>④</strong></span><span class='circBody'>【B7:B30】を選択し、太字を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>⑤</strong></span><span class='circBody'>【B29:B29】を選択し、下の枠線を二重線に設定する。</span></span><br><br>",
+    "note": "<span class='circLine'><span class='circHead'><strong>①</strong></span><span class='circBody'>【C30】に人口の割合の合計値を求める。（【C30】から右方向にオートフィルするか、<code>=SUM(D7:D29)</code>を入力する）</span></span><br><span class='circLine'><span class='circHead'><strong>②</strong></span><span class='circBody'>【B6:D30】を選択し、表の枠線を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>③</strong></span><span class='circBody'>【B6:D6】を選択し、太字，下の枠線を太線，塗りつぶしの色を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>④</strong></span><span class='circBody'>【B7:B30】を選択し、太字を設定する。</span></span><br><span class='circLine'><span class='circHead'><strong>⑤</strong></span><span class='circBody'>【B29:D29】を選択し、下の枠線を二重線に設定する。</span></span><br><br>",
     "image": "img_slide/ss14_07.png"
   },
   {
