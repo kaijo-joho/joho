@@ -1,4 +1,4 @@
-const update = '2026-06-13 00:00:37';
+const update = '2026-06-23 09:05:58';
 
 const quizzes = {
   "py11": {
@@ -1252,7 +1252,7 @@ const urls = {
   "typing": {
     "title": "Typing Quest",
     "description": "",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwewt6mGEp3eyT8L33Tx2xGEPA8Dy-a1wIaqXpk11-JuqGM0VblGBxF3ev70KYnqOFYMg/exec"
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwgrT23bKqVA4U8NQhQ8i6W4tJKzjwpkUwCWK9LQq7YiK_4W_Oy6DzaFHO-3n35Jadb/exec"
   }
 };
 window.urls = urls;
