@@ -1,4 +1,4 @@
-const update = '2026-06-29 07:59:54';
+const update = '2026-06-29 08:04:40';
 
 const quizzes = {
   "py11": {
@@ -676,6 +676,11 @@ const notices = {
     "title": "情報の授業について高1",
     "description": "",
     "url": "https://docs.google.com/presentation/d/1WBxMjmE6O3_VwZ6Swq4zDb5MLnIBiLbwfGMOJqd3GcA/edit?usp=drivesdk"
+  },
+  "tq": {
+    "title": "タイピング練習アプリのお知らせ",
+    "description": "",
+    "url": "https://docs.google.com/document/d/1JBxZoVZmWQzE-6CeI8Mo8nzxkvgwsfzXHFpex9EER6g/edit?usp=drivesdk"
   }
 };
 window.notices = notices;
