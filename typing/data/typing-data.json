@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-06-29T02:18:05.158Z",
+  "generatedAt": "2026-06-29T03:10:40.851Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-06-29T02:18:05.158Z",
+    "generatedAt": "2026-06-29T03:10:40.851Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -1142,9 +1142,9 @@
         }
       },
       "matching": {
-        "phraseCount": 172,
-        "totalLength": 2675,
-        "avgLength": 15.55232558139535,
+        "phraseCount": 175,
+        "totalLength": 2711,
+        "avgLength": 15.491428571428571,
         "visible": true
       },
       "clearConditions": {},
@@ -1275,12 +1275,14 @@
         "j10082",
         "j09066",
         "j10086",
+        "j09068",
         "j11052",
         "j11053",
         "j12041",
         "j09069",
         "j11062",
         "j11064",
+        "j09070",
         "j12047",
         "j12049",
         "j12050",
@@ -1313,6 +1315,7 @@
         "j12093",
         "j14062",
         "j16032",
+        "j14068",
         "j16038",
         "j19014",
         "j16039",
@@ -1344,9 +1347,9 @@
         }
       },
       "matching": {
-        "phraseCount": 508,
-        "totalLength": 8601,
-        "avgLength": 16.931102362204726,
+        "phraseCount": 513,
+        "totalLength": 8705,
+        "avgLength": 16.968810916179336,
         "visible": true
       },
       "clearConditions": {},
@@ -1732,6 +1735,7 @@
         "j11073",
         "j11075",
         "j14023",
+        "j13052",
         "j12058",
         "j13053",
         "j14024",
@@ -1754,6 +1758,7 @@
         "j13063",
         "j15020",
         "j12070",
+        "j13065",
         "j12071",
         "j13066",
         "j14032",
@@ -1770,6 +1775,7 @@
         "j13076",
         "j13077",
         "j13078",
+        "j14037",
         "j12084",
         "j14038",
         "j14042",
@@ -1808,6 +1814,7 @@
         "j13090",
         "j17021",
         "j16022",
+        "j17023",
         "j17024",
         "j15042",
         "j18023",
@@ -1856,6 +1863,7 @@
         "j24010",
         "j25014",
         "j27003",
+        "j39001",
         "j07084",
         "j07086",
         "j15047",
@@ -2061,9 +2069,9 @@
         }
       },
       "matching": {
-        "phraseCount": 244,
-        "totalLength": 3305,
-        "avgLength": 13.545081967213115,
+        "phraseCount": 246,
+        "totalLength": 3330,
+        "avgLength": 13.536585365853659,
         "visible": true
       },
       "clearConditions": {},
@@ -2253,9 +2261,11 @@
         "j09065",
         "j10092",
         "j10093",
+        "j11050",
         "j10097",
         "j11055",
         "j13040",
+        "j11065",
         "j12046",
         "j11068",
         "j10108",
@@ -2476,9 +2486,9 @@
         }
       },
       "matching": {
-        "phraseCount": 69,
-        "totalLength": 681,
-        "avgLength": 9.869565217391305,
+        "phraseCount": 57,
+        "totalLength": 500,
+        "avgLength": 8.771929824561404,
         "visible": true
       },
       "clearConditions": {},
@@ -2489,7 +2499,6 @@
         "g03010",
         "g04022",
         "g04023",
-        "g04035",
         "g04036",
         "g04041",
         "g04042",
@@ -2518,7 +2527,6 @@
         "g08019",
         "g08016",
         "g19016",
-        "g27007",
         "g28010",
         "i06001",
         "i15001",
@@ -2533,22 +2541,12 @@
         "j05040",
         "j06046",
         "j08058",
-        "j11050",
-        "j09068",
-        "j11065",
-        "j09070",
-        "j13052",
-        "j13065",
         "j13070",
         "j13071",
-        "j14037",
         "j12085",
         "j14048",
         "j14049",
         "j14050",
-        "j17023",
-        "j14068",
-        "j39001",
         "j08068",
         "j16040",
         "j16041",
@@ -3179,15 +3177,16 @@
         }
       },
       "matching": {
-        "phraseCount": 67,
-        "totalLength": 1366,
-        "avgLength": 20.388059701492537,
+        "phraseCount": 69,
+        "totalLength": 1400,
+        "avgLength": 20.28985507246377,
         "visible": true
       },
       "clearConditions": {},
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
+        "g04035",
         "g05065",
         "g05066",
         "g07027",
@@ -3205,6 +3204,7 @@
         "g20007",
         "g23016",
         "g26008",
+        "g27007",
         "i14001",
         "i16003",
         "i18003",
@@ -3778,9 +3778,9 @@
         }
       },
       "matching": {
-        "phraseCount": 172,
-        "totalLength": 2675,
-        "avgLength": 15.55232558139535,
+        "phraseCount": 175,
+        "totalLength": 2711,
+        "avgLength": 15.491428571428571,
         "visible": true
       },
       "clearConditions": {},
@@ -3911,12 +3911,14 @@
         "j10082",
         "j09066",
         "j10086",
+        "j09068",
         "j11052",
         "j11053",
         "j12041",
         "j09069",
         "j11062",
         "j11064",
+        "j09070",
         "j12047",
         "j12049",
         "j12050",
@@ -3949,6 +3951,7 @@
         "j12093",
         "j14062",
         "j16032",
+        "j14068",
         "j16038",
         "j19014",
         "j16039",
@@ -3980,9 +3983,9 @@
         }
       },
       "matching": {
-        "phraseCount": 508,
-        "totalLength": 8601,
-        "avgLength": 16.931102362204726,
+        "phraseCount": 513,
+        "totalLength": 8705,
+        "avgLength": 16.968810916179336,
         "visible": true
       },
       "clearConditions": {},
@@ -4368,6 +4371,7 @@
         "j11073",
         "j11075",
         "j14023",
+        "j13052",
         "j12058",
         "j13053",
         "j14024",
@@ -4390,6 +4394,7 @@
         "j13063",
         "j15020",
         "j12070",
+        "j13065",
         "j12071",
         "j13066",
         "j14032",
@@ -4406,6 +4411,7 @@
         "j13076",
         "j13077",
         "j13078",
+        "j14037",
         "j12084",
         "j14038",
         "j14042",
@@ -4444,6 +4450,7 @@
         "j13090",
         "j17021",
         "j16022",
+        "j17023",
         "j17024",
         "j15042",
         "j18023",
@@ -4492,6 +4499,7 @@
         "j24010",
         "j25014",
         "j27003",
+        "j39001",
         "j07084",
         "j07086",
         "j15047",
@@ -4697,9 +4705,9 @@
         }
       },
       "matching": {
-        "phraseCount": 244,
-        "totalLength": 3305,
-        "avgLength": 13.545081967213115,
+        "phraseCount": 246,
+        "totalLength": 3330,
+        "avgLength": 13.536585365853659,
         "visible": true
       },
       "clearConditions": {},
@@ -4889,9 +4897,11 @@
         "j09065",
         "j10092",
         "j10093",
+        "j11050",
         "j10097",
         "j11055",
         "j13040",
+        "j11065",
         "j12046",
         "j11068",
         "j10108",
@@ -5112,9 +5122,9 @@
         }
       },
       "matching": {
-        "phraseCount": 69,
-        "totalLength": 681,
-        "avgLength": 9.869565217391305,
+        "phraseCount": 57,
+        "totalLength": 500,
+        "avgLength": 8.771929824561404,
         "visible": true
       },
       "clearConditions": {},
@@ -5125,7 +5135,6 @@
         "g03010",
         "g04022",
         "g04023",
-        "g04035",
         "g04036",
         "g04041",
         "g04042",
@@ -5154,7 +5163,6 @@
         "g08019",
         "g08016",
         "g19016",
-        "g27007",
         "g28010",
         "i06001",
         "i15001",
@@ -5169,22 +5177,12 @@
         "j05040",
         "j06046",
         "j08058",
-        "j11050",
-        "j09068",
-        "j11065",
-        "j09070",
-        "j13052",
-        "j13065",
         "j13070",
         "j13071",
-        "j14037",
         "j12085",
         "j14048",
         "j14049",
         "j14050",
-        "j17023",
-        "j14068",
-        "j39001",
         "j08068",
         "j16040",
         "j16041",
@@ -5815,15 +5813,16 @@
         }
       },
       "matching": {
-        "phraseCount": 67,
-        "totalLength": 1366,
-        "avgLength": 20.388059701492537,
+        "phraseCount": 69,
+        "totalLength": 1400,
+        "avgLength": 20.28985507246377,
         "visible": true
       },
       "clearConditions": {},
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
+        "g04035",
         "g05065",
         "g05066",
         "g07027",
@@ -5841,6 +5840,7 @@
         "g20007",
         "g23016",
         "g26008",
+        "g27007",
         "i14001",
         "i16003",
         "i18003",
@@ -6286,9 +6286,9 @@
         ]
       },
       "matching": {
-        "phraseCount": 379,
-        "totalLength": 3655,
-        "avgLength": 9.643799472295514,
+        "phraseCount": 378,
+        "totalLength": 3648,
+        "avgLength": 9.65079365079365,
         "visible": true
       },
       "clearConditions": {
@@ -6591,7 +6591,6 @@
         "j11048",
         "j12036",
         "j11049",
-        "j11050",
         "j09068",
         "j10096",
         "j11051",
@@ -6699,9 +6698,9 @@
         ]
       },
       "matching": {
-        "phraseCount": 665,
-        "totalLength": 6656,
-        "avgLength": 10.009022556390978,
+        "phraseCount": 666,
+        "totalLength": 6677,
+        "avgLength": 10.025525525525525,
         "visible": true
       },
       "clearConditions": {
@@ -7173,6 +7172,7 @@
         "j09067",
         "j10094",
         "j10095",
+        "j11050",
         "j13039",
         "j13040",
         "j13041",
@@ -7399,8 +7399,8 @@
       },
       "matching": {
         "phraseCount": 443,
-        "totalLength": 7325,
-        "avgLength": 16.534988713318285,
+        "totalLength": 7327,
+        "avgLength": 16.539503386004515,
         "visible": true
       },
       "clearConditions": {
@@ -8185,8 +8185,8 @@
       },
       "matching": {
         "phraseCount": 89,
-        "totalLength": 2598,
-        "avgLength": 29.191011235955056,
+        "totalLength": 2599,
+        "avgLength": 29.202247191011235,
         "visible": true
       },
       "clearConditions": {
@@ -8308,8 +8308,8 @@
       },
       "matching": {
         "phraseCount": 44,
-        "totalLength": 1606,
-        "avgLength": 36.5,
+        "totalLength": 1607,
+        "avgLength": 36.52272727272727,
         "visible": true
       },
       "clearConditions": {
@@ -8864,9 +8864,9 @@
         ]
       },
       "matching": {
-        "phraseCount": 379,
-        "totalLength": 3655,
-        "avgLength": 9.643799472295514,
+        "phraseCount": 378,
+        "totalLength": 3648,
+        "avgLength": 9.65079365079365,
         "visible": true
       },
       "clearConditions": {},
@@ -9165,7 +9165,6 @@
         "j11048",
         "j12036",
         "j11049",
-        "j11050",
         "j09068",
         "j10096",
         "j11051",
@@ -9273,9 +9272,9 @@
         ]
       },
       "matching": {
-        "phraseCount": 665,
-        "totalLength": 6656,
-        "avgLength": 10.009022556390978,
+        "phraseCount": 666,
+        "totalLength": 6677,
+        "avgLength": 10.025525525525525,
         "visible": true
       },
       "clearConditions": {},
@@ -9743,6 +9742,7 @@
         "j09067",
         "j10094",
         "j10095",
+        "j11050",
         "j13039",
         "j13040",
         "j13041",
@@ -9969,8 +9969,8 @@
       },
       "matching": {
         "phraseCount": 443,
-        "totalLength": 7325,
-        "avgLength": 16.534988713318285,
+        "totalLength": 7327,
+        "avgLength": 16.539503386004515,
         "visible": true
       },
       "clearConditions": {},
@@ -10747,8 +10747,8 @@
       },
       "matching": {
         "phraseCount": 89,
-        "totalLength": 2598,
-        "avgLength": 29.191011235955056,
+        "totalLength": 2599,
+        "avgLength": 29.202247191011235,
         "visible": true
       },
       "clearConditions": {},
@@ -10866,8 +10866,8 @@
       },
       "matching": {
         "phraseCount": 44,
-        "totalLength": 1606,
-        "avgLength": 36.5,
+        "totalLength": 1607,
+        "avgLength": 36.52272727272727,
         "visible": true
       },
       "clearConditions": {},
@@ -11426,9 +11426,9 @@
         ]
       },
       "matching": {
-        "phraseCount": 379,
-        "totalLength": 3655,
-        "avgLength": 9.643799472295514,
+        "phraseCount": 378,
+        "totalLength": 3648,
+        "avgLength": 9.65079365079365,
         "visible": true
       },
       "clearConditions": {
@@ -11735,7 +11735,6 @@
         "j11048",
         "j12036",
         "j11049",
-        "j11050",
         "j09068",
         "j10096",
         "j11051",
@@ -11843,9 +11842,9 @@
         ]
       },
       "matching": {
-        "phraseCount": 665,
-        "totalLength": 6656,
-        "avgLength": 10.009022556390978,
+        "phraseCount": 666,
+        "totalLength": 6677,
+        "avgLength": 10.025525525525525,
         "visible": true
       },
       "clearConditions": {
@@ -12321,6 +12320,7 @@
         "j09067",
         "j10094",
         "j10095",
+        "j11050",
         "j13039",
         "j13040",
         "j13041",
@@ -12547,8 +12547,8 @@
       },
       "matching": {
         "phraseCount": 443,
-        "totalLength": 7325,
-        "avgLength": 16.534988713318285,
+        "totalLength": 7327,
+        "avgLength": 16.539503386004515,
         "visible": true
       },
       "clearConditions": {
@@ -13341,8 +13341,8 @@
       },
       "matching": {
         "phraseCount": 89,
-        "totalLength": 2598,
-        "avgLength": 29.191011235955056,
+        "totalLength": 2599,
+        "avgLength": 29.202247191011235,
         "visible": true
       },
       "clearConditions": {
@@ -13468,8 +13468,8 @@
       },
       "matching": {
         "phraseCount": 44,
-        "totalLength": 1606,
-        "avgLength": 36.5,
+        "totalLength": 1607,
+        "avgLength": 36.52272727272727,
         "visible": true
       },
       "clearConditions": {
@@ -14078,9 +14078,9 @@
       "filterId": "Q_GEN05",
       "filter": {},
       "matching": {
-        "phraseCount": 106,
-        "totalLength": 1182,
-        "avgLength": 11.150943396226415,
+        "phraseCount": 108,
+        "totalLength": 1203,
+        "avgLength": 11.13888888888889,
         "visible": true
       },
       "clearConditions": {
@@ -14158,6 +14158,7 @@
         "j10086",
         "j12035",
         "j11048",
+        "j09068",
         "j11052",
         "j11053",
         "j13039",
@@ -14168,6 +14169,7 @@
         "j14021",
         "j11064",
         "j12044",
+        "j09070",
         "j12047",
         "j13042",
         "j12049",
@@ -14219,9 +14221,9 @@
       "filterId": "Q_GEN06",
       "filter": {},
       "matching": {
-        "phraseCount": 51,
-        "totalLength": 602,
-        "avgLength": 11.803921568627452,
+        "phraseCount": 52,
+        "totalLength": 617,
+        "avgLength": 11.865384615384615,
         "visible": true
       },
       "clearConditions": {
@@ -14284,6 +14286,7 @@
         "j18024",
         "j18025",
         "j16032",
+        "j14068",
         "j16038",
         "j16039",
         "j17031",
@@ -14600,9 +14603,9 @@
       "filterId": "Q_GEN10",
       "filter": {},
       "matching": {
-        "phraseCount": 134,
-        "totalLength": 1577,
-        "avgLength": 11.76865671641791,
+        "phraseCount": 136,
+        "totalLength": 1606,
+        "avgLength": 11.808823529411764,
         "visible": true
       },
       "clearConditions": {
@@ -14680,6 +14683,7 @@
         "j12054",
         "j12056",
         "j14023",
+        "j13052",
         "j12058",
         "j13053",
         "j14024",
@@ -14699,6 +14703,7 @@
         "j13063",
         "j15020",
         "j12070",
+        "j13065",
         "j12071",
         "j13066",
         "j14032",
@@ -14769,9 +14774,9 @@
       "filterId": "Q_GEN11",
       "filter": {},
       "matching": {
-        "phraseCount": 45,
-        "totalLength": 518,
-        "avgLength": 11.511111111111111,
+        "phraseCount": 46,
+        "totalLength": 534,
+        "avgLength": 11.608695652173912,
         "visible": true
       },
       "clearConditions": {
@@ -14824,6 +14829,7 @@
         "j11082",
         "j12077",
         "j12083",
+        "j14037",
         "j16017",
         "j16021",
         "j16022",
@@ -14849,9 +14855,9 @@
       "filterId": "Q_GEN12",
       "filter": {},
       "matching": {
-        "phraseCount": 65,
-        "totalLength": 1020,
-        "avgLength": 15.692307692307692,
+        "phraseCount": 66,
+        "totalLength": 1039,
+        "avgLength": 15.742424242424242,
         "visible": true
       },
       "clearConditions": {
@@ -14914,6 +14920,7 @@
         "j18019",
         "j18020",
         "j17021",
+        "j17023",
         "j17024",
         "j18023",
         "j17025",
@@ -15047,9 +15054,9 @@
       "filterId": "Q_GEN14",
       "filter": {},
       "matching": {
-        "phraseCount": 113,
-        "totalLength": 1610,
-        "avgLength": 14.247787610619469,
+        "phraseCount": 115,
+        "totalLength": 1635,
+        "avgLength": 14.217391304347826,
         "visible": true
       },
       "clearConditions": {
@@ -15149,9 +15156,11 @@
         "j10075",
         "j10092",
         "j10093",
+        "j11050",
         "j10097",
         "j11055",
         "j13040",
+        "j11065",
         "j12046",
         "j11068",
         "j10108",
@@ -15914,9 +15923,9 @@
       "filterId": "Q_GEN21",
       "filter": {},
       "matching": {
-        "phraseCount": 77,
-        "totalLength": 2592,
-        "avgLength": 33.66233766233766,
+        "phraseCount": 78,
+        "totalLength": 2621,
+        "avgLength": 33.6025641025641,
         "visible": true
       },
       "clearConditions": {
@@ -15932,6 +15941,7 @@
       "promotion": {},
       "filterExpression": "(GEN + JOHO + IT)*(m28)",
       "candidatePhraseIds": [
+        "g27007",
         "g28010",
         "g28005",
         "g28006",
@@ -17315,9 +17325,9 @@
       "filterId": "Q_JOHO03",
       "filter": {},
       "matching": {
-        "phraseCount": 140,
-        "totalLength": 1570,
-        "avgLength": 11.214285714285714,
+        "phraseCount": 143,
+        "totalLength": 1606,
+        "avgLength": 11.23076923076923,
         "visible": true
       },
       "clearConditions": {
@@ -17403,6 +17413,7 @@
         "j10090",
         "j12035",
         "j11048",
+        "j09068",
         "j11052",
         "j11053",
         "j13039",
@@ -17413,6 +17424,7 @@
         "j14021",
         "j11064",
         "j12044",
+        "j09070",
         "j12047",
         "j13042",
         "j12049",
@@ -17458,6 +17470,7 @@
         "j18024",
         "j18025",
         "j16032",
+        "j14068",
         "j16038",
         "j19014",
         "j16039",
@@ -17490,9 +17503,9 @@
       "filterId": "Q_JOHO04",
       "filter": {},
       "matching": {
-        "phraseCount": 308,
-        "totalLength": 3885,
-        "avgLength": 12.613636363636363,
+        "phraseCount": 316,
+        "totalLength": 4025,
+        "avgLength": 12.737341772151899,
         "visible": true
       },
       "clearConditions": {
@@ -17606,6 +17619,7 @@
         "j11046",
         "j11047",
         "j12036",
+        "j09068",
         "j10096",
         "j11051",
         "j12037",
@@ -17633,6 +17647,7 @@
         "j12042",
         "j11064",
         "j12043",
+        "j09070",
         "j12045",
         "j10104",
         "j12047",
@@ -17654,6 +17669,7 @@
         "j11075",
         "j14023",
         "j13050",
+        "j13052",
         "j12058",
         "j13053",
         "j14024",
@@ -17682,6 +17698,7 @@
         "j15020",
         "j12070",
         "j13064",
+        "j13065",
         "j12071",
         "j13066",
         "j14030",
@@ -17702,6 +17719,7 @@
         "j13076",
         "j13077",
         "j13078",
+        "j14037",
         "j12084",
         "j14038",
         "j14040",
@@ -17752,6 +17770,7 @@
         "j13090",
         "j17021",
         "j16022",
+        "j17023",
         "j17024",
         "j15042",
         "j18023",
@@ -17765,6 +17784,7 @@
         "j16032",
         "j16033",
         "j16034",
+        "j14068",
         "j16036",
         "j15045",
         "j16038",
@@ -17811,6 +17831,7 @@
         "j24010",
         "j25014",
         "j27003",
+        "j39001",
         "j07084",
         "j07086",
         "j15047",
@@ -17833,9 +17854,9 @@
       "filterId": "Q_JOHO05",
       "filter": {},
       "matching": {
-        "phraseCount": 295,
-        "totalLength": 3720,
-        "avgLength": 12.610169491525424,
+        "phraseCount": 300,
+        "totalLength": 3824,
+        "avgLength": 12.746666666666666,
         "visible": true
       },
       "clearConditions": {
@@ -17997,6 +18018,7 @@
         "j11075",
         "j13049",
         "j14023",
+        "j13052",
         "j12058",
         "j13053",
         "j14024",
@@ -18020,6 +18042,7 @@
         "j13063",
         "j15020",
         "j12070",
+        "j13065",
         "j12071",
         "j13066",
         "j11082",
@@ -18039,6 +18062,7 @@
         "j13076",
         "j13077",
         "j13078",
+        "j14037",
         "j12084",
         "j14038",
         "j14039",
@@ -18087,6 +18111,7 @@
         "j16022",
         "j16023",
         "j16024",
+        "j17023",
         "j17024",
         "j15042",
         "j18023",
@@ -18141,6 +18166,7 @@
         "j24010",
         "j25014",
         "j27003",
+        "j39001",
         "j07084",
         "j07086",
         "j15047",
@@ -18163,9 +18189,9 @@
       "filterId": "Q_JOHO06",
       "filter": {},
       "matching": {
-        "phraseCount": 222,
-        "totalLength": 2865,
-        "avgLength": 12.905405405405405,
+        "phraseCount": 224,
+        "totalLength": 2890,
+        "avgLength": 12.901785714285714,
         "visible": true
       },
       "clearConditions": {
@@ -18319,9 +18345,11 @@
         "j10092",
         "j10093",
         "j11049",
+        "j11050",
         "j10097",
         "j11055",
         "j13040",
+        "j11065",
         "j12046",
         "j11066",
         "j11068",
@@ -18420,9 +18448,9 @@
       "filterId": "Q_JOHO07",
       "filter": {},
       "matching": {
-        "phraseCount": 251,
-        "totalLength": 3369,
-        "avgLength": 13.422310756972111,
+        "phraseCount": 253,
+        "totalLength": 3394,
+        "avgLength": 13.41501976284585,
         "visible": true
       },
       "clearConditions": {
@@ -18606,11 +18634,13 @@
         "j09065",
         "j10092",
         "j10093",
+        "j11050",
         "j10097",
         "j11055",
         "j13040",
         "j11061",
         "j11063",
+        "j11065",
         "j12046",
         "j11068",
         "j10108",
@@ -18706,9 +18736,9 @@
       "filterId": "Q_JOHO08",
       "filter": {},
       "matching": {
-        "phraseCount": 112,
-        "totalLength": 1503,
-        "avgLength": 13.419642857142858,
+        "phraseCount": 102,
+        "totalLength": 1353,
+        "avgLength": 13.264705882352942,
         "visible": true
       },
       "clearConditions": {
@@ -18793,30 +18823,21 @@
         "j05040",
         "j06046",
         "j08058",
-        "j11050",
-        "j09068",
         "j11061",
         "j11063",
-        "j11065",
-        "j09070",
         "j10110",
         "j13051",
-        "j13052",
-        "j13065",
         "j14029",
         "j12073",
         "j12074",
         "j13070",
         "j13071",
-        "j14037",
         "j14041",
         "j12085",
         "j14048",
         "j14049",
         "j14050",
         "j12094",
-        "j17023",
-        "j14068",
         "j16037",
         "j17029",
         "j20013",
@@ -18830,7 +18851,6 @@
         "j24007",
         "j23011",
         "j22015",
-        "j39001",
         "j08068",
         "j16040",
         "j16041",
@@ -18853,9 +18873,9 @@
       "filterId": "Q_JOHO09",
       "filter": {},
       "matching": {
-        "phraseCount": 129,
-        "totalLength": 1064,
-        "avgLength": 8.248062015503876,
+        "phraseCount": 119,
+        "totalLength": 914,
+        "avgLength": 7.680672268907563,
         "visible": true
       },
       "clearConditions": {
@@ -18969,22 +18989,12 @@
         "j07077",
         "j08058",
         "j07080",
-        "j11050",
-        "j09068",
-        "j11065",
-        "j09070",
-        "j13052",
-        "j13065",
         "j13070",
         "j13071",
-        "j14037",
         "j12085",
         "j14048",
         "j14049",
         "j14050",
-        "j17023",
-        "j14068",
-        "j39001",
         "j05042",
         "j05043",
         "j03058",
@@ -20192,9 +20202,9 @@
       "filterId": "SES2",
       "filter": {},
       "matching": {
-        "phraseCount": 399,
-        "totalLength": 3569,
-        "avgLength": 8.94486215538847,
+        "phraseCount": 402,
+        "totalLength": 3605,
+        "avgLength": 8.967661691542288,
         "visible": true
       },
       "clearConditions": {},
@@ -20528,6 +20538,7 @@
         "j11045",
         "j12035",
         "j11048",
+        "j09068",
         "j11052",
         "j11053",
         "j13039",
@@ -20538,6 +20549,7 @@
         "j14021",
         "j11064",
         "j12044",
+        "j09070",
         "j12047",
         "j12048",
         "j13042",
@@ -20590,6 +20602,7 @@
         "j18024",
         "j18025",
         "j16032",
+        "j14068",
         "j16038",
         "j19014",
         "j16039",
@@ -20618,9 +20631,9 @@
       "filterId": "SES3",
       "filter": {},
       "matching": {
-        "phraseCount": 635,
-        "totalLength": 7867,
-        "avgLength": 12.388976377952757,
+        "phraseCount": 642,
+        "totalLength": 7967,
+        "avgLength": 12.409657320872274,
         "visible": true
       },
       "clearConditions": {},
@@ -21032,6 +21045,7 @@
         "j12035",
         "j11048",
         "j12036",
+        "j09068",
         "j10096",
         "j11051",
         "j12037",
@@ -21063,6 +21077,7 @@
         "j11064",
         "j12043",
         "j12044",
+        "j09070",
         "j12045",
         "j10104",
         "j12047",
@@ -21092,6 +21107,7 @@
         "j13048",
         "j14023",
         "j13050",
+        "j13052",
         "j12058",
         "j13053",
         "j14024",
@@ -21120,6 +21136,7 @@
         "j15020",
         "j12070",
         "j13064",
+        "j13065",
         "j12071",
         "j13066",
         "j14030",
@@ -21141,6 +21158,7 @@
         "j13076",
         "j13077",
         "j13078",
+        "j14037",
         "j12084",
         "j14038",
         "j14040",
@@ -21193,6 +21211,7 @@
         "j13090",
         "j17021",
         "j16022",
+        "j17023",
         "j17024",
         "j15042",
         "j18023",
@@ -21208,6 +21227,7 @@
         "j16032",
         "j16033",
         "j16034",
+        "j14068",
         "j16036",
         "j15045",
         "j16038",
@@ -21280,9 +21300,9 @@
       "filterId": "SES4",
       "filter": {},
       "matching": {
-        "phraseCount": 608,
-        "totalLength": 8165,
-        "avgLength": 13.429276315789474,
+        "phraseCount": 615,
+        "totalLength": 8265,
+        "avgLength": 13.439024390243903,
         "visible": true
       },
       "clearConditions": {},
@@ -21665,6 +21685,7 @@
         "j11047",
         "j12036",
         "j11049",
+        "j09068",
         "j10096",
         "j11051",
         "j12037",
@@ -21692,6 +21713,7 @@
         "j12042",
         "j11064",
         "j12043",
+        "j09070",
         "j12045",
         "j11066",
         "j10104",
@@ -21716,6 +21738,7 @@
         "j13049",
         "j14023",
         "j13050",
+        "j13052",
         "j12058",
         "j13053",
         "j14024",
@@ -21745,6 +21768,7 @@
         "j15020",
         "j12070",
         "j13064",
+        "j13065",
         "j12071",
         "j13066",
         "j11082",
@@ -21768,6 +21792,7 @@
         "j13076",
         "j13077",
         "j13078",
+        "j14037",
         "j12084",
         "j14038",
         "j14039",
@@ -21828,6 +21853,7 @@
         "j16022",
         "j16023",
         "j16024",
+        "j17023",
         "j17024",
         "j15042",
         "j18023",
@@ -21842,6 +21868,7 @@
         "j16032",
         "j16033",
         "j16034",
+        "j14068",
         "j16036",
         "j15045",
         "j16038",
@@ -21915,9 +21942,9 @@
       "filterId": "SES5",
       "filter": {},
       "matching": {
-        "phraseCount": 700,
-        "totalLength": 9402,
-        "avgLength": 13.43142857142857,
+        "phraseCount": 707,
+        "totalLength": 9531,
+        "avgLength": 13.480905233380481,
         "visible": true
       },
       "clearConditions": {},
@@ -22379,6 +22406,7 @@
         "j11047",
         "j12036",
         "j11049",
+        "j11050",
         "j10096",
         "j11051",
         "j10097",
@@ -22403,6 +22431,7 @@
         "j10103",
         "j12042",
         "j12043",
+        "j11065",
         "j12045",
         "j12046",
         "j11066",
@@ -22424,6 +22453,7 @@
         "j13049",
         "j12057",
         "j14023",
+        "j13052",
         "j12058",
         "j13053",
         "j14024",
@@ -22453,6 +22483,7 @@
         "j13063",
         "j15020",
         "j12070",
+        "j13065",
         "j12071",
         "j12072",
         "j13066",
@@ -22478,6 +22509,7 @@
         "j13076",
         "j13077",
         "j13078",
+        "j14037",
         "j12084",
         "j14038",
         "j14039",
@@ -22539,6 +22571,7 @@
         "j16022",
         "j16023",
         "j16024",
+        "j17023",
         "j17024",
         "j15042",
         "j18023",
@@ -22615,6 +22648,7 @@
         "j25014",
         "j27003",
         "j27004",
+        "j39001",
         "j37002",
         "j36001",
         "j07084",
@@ -22647,8 +22681,8 @@
       },
       "matching": {
         "phraseCount": 2246,
-        "totalLength": 32481,
-        "avgLength": 14.461709706144257,
+        "totalLength": 32499,
+        "avgLength": 14.469723953695459,
         "visible": true
       },
       "clearConditions": {},
@@ -26469,10 +26503,10 @@
       "enabled": true,
       "displayText": "{n}分",
       "kanaText": "{}ふん",
-      "primaryRoman": "",
+      "primaryRoman": "{}hunn",
       "extraVariants": [],
-      "length": 4,
-      "difficultyScore": 4.7,
+      "length": 6,
+      "difficultyScore": 8.4,
       "divisionLevel": 3,
       "phraseLevel": 3,
       "divisions": [
@@ -26486,21 +26520,21 @@
       "keyRows": [
         "home",
         "top",
-        "bottom",
-        "number"
+        "bottom"
       ],
       "skillTags": [
         "kanji",
-        "number",
-        "n"
+        "latin",
+        "n",
+        "symbol"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "symbol",
+      "inputStepLevel": 13,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=4, top=1, bottom=1, number=1, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=4.7, scoreLevel=D1, minLevel=D4, final=D4, minReasons=number,latin",
+      "difficultyDetail": "base=6, top=1, bottom=2, number=0, upper=0, symbol=2, shiftStart=1, shiftContinue=1, jpSpecial=0, total=8.4, scoreLevel=D2, minLevel=D4, final=D4, minReasons=latin,symbol",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -46212,12 +46246,12 @@
       "enabled": true,
       "displayText": "{n}時{10-59}分の提出締切",
       "kanaText": "{}ji{}ふんのていしゅつしめきり",
-      "primaryRoman": "",
+      "primaryRoman": "{}ji{}hunnnoteishutusimekiri",
       "extraVariants": [
         "6ji30punnnoteishutsushimekiri"
       ],
-      "length": 27,
-      "difficultyScore": 32.2,
+      "length": 28,
+      "difficultyScore": 35.7,
       "divisionLevel": 6,
       "phraseLevel": 6,
       "divisions": [
@@ -46231,26 +46265,27 @@
       "keyRows": [
         "home",
         "top",
-        "bottom",
-        "number"
+        "bottom"
       ],
       "skillTags": [
         "hiragana",
         "kanji",
+        "latin",
         "number",
-        "multi_number",
         "yoon",
+        "ji",
+        "multi_number",
         "n",
         "n_before_n",
-        "ji"
+        "symbol"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "symbol",
+      "inputStepLevel": 13,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=27, top=15, bottom=4, number=3, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=32.2, scoreLevel=D7, minLevel=D4, final=D7, minReasons=number,multi_number,latin",
+      "difficultyDetail": "base=28, top=14, bottom=4, number=0, upper=0, symbol=4, shiftStart=2, shiftContinue=2, jpSpecial=1, total=35.7, scoreLevel=D7, minLevel=D4, final=D7, minReasons=number,multi_number,latin,symbol",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": ""
@@ -99333,12 +99368,12 @@
       "kanaText": "いちじげんこーど",
       "primaryRoman": "itijigenko-do",
       "extraVariants": [],
-      "length": 11,
-      "difficultyScore": 12.8,
-      "divisionLevel": 2,
-      "phraseLevel": 2,
+      "length": 13,
+      "difficultyScore": 15.1,
+      "divisionLevel": 3,
+      "phraseLevel": 3,
       "divisions": [
-        "D3"
+        "D4"
       ],
       "tags": [],
       "category": [
@@ -99348,25 +99383,23 @@
       "keyRows": [
         "home",
         "top",
-        "bottom",
-        "number"
+        "bottom"
       ],
       "skillTags": [
         "katakana",
         "kanji",
-        "number",
         "hyphen",
         "ji",
         "long",
         "n"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "long",
+      "inputStepLevel": 7,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=11, top=4, bottom=1, number=1, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=12.8, scoreLevel=D3, minLevel=D3, final=D3, minReasons=number",
+      "difficultyDetail": "base=13, top=7, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=15.1, scoreLevel=D4, minLevel=D1, final=D4, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": "source=index; 教科書索引A:p1; kana=needs_ai_kanji"
@@ -99378,8 +99411,8 @@
       "kanaText": "いちじじょうほう",
       "primaryRoman": "itijijouhou",
       "extraVariants": [],
-      "length": 9,
-      "difficultyScore": 10.8,
+      "length": 11,
+      "difficultyScore": 13.1,
       "divisionLevel": 2,
       "phraseLevel": 2,
       "divisions": [
@@ -99392,22 +99425,20 @@
       "questOnly": false,
       "keyRows": [
         "home",
-        "top",
-        "number"
+        "top"
       ],
       "skillTags": [
         "kanji",
-        "number",
         "yoon",
         "ji"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=9, top=5, bottom=0, number=1, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=10.8, scoreLevel=D3, minLevel=D3, final=D3, minReasons=number",
+      "difficultyDetail": "base=11, top=8, bottom=0, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=13.1, scoreLevel=D3, minLevel=D1, final=D3, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": "source=index; 教科書索引A:p1; kana=needs_ai_kanji"
@@ -100842,8 +100873,8 @@
       "kanaText": "にじげんこーど",
       "primaryRoman": "nijigenko-do",
       "extraVariants": [],
-      "length": 11,
-      "difficultyScore": 12.8,
+      "length": 12,
+      "difficultyScore": 13.9,
       "divisionLevel": 2,
       "phraseLevel": 2,
       "divisions": [
@@ -100857,28 +100888,26 @@
       "keyRows": [
         "home",
         "top",
-        "bottom",
-        "number"
+        "bottom"
       ],
       "skillTags": [
         "katakana",
         "kanji",
-        "number",
         "hyphen",
         "ji",
         "long",
         "n"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "long",
+      "inputStepLevel": 7,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=11, top=4, bottom=1, number=1, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=12.8, scoreLevel=D3, minLevel=D3, final=D3, minReasons=number",
+      "difficultyDetail": "base=12, top=5, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=13.9, scoreLevel=D3, minLevel=D1, final=D3, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
-      "note": "source=index; 教科書索引A:p3; kana=needs_ai_kanji"
+      "note": ""
     },
     {
       "phraseId": "j09070",
@@ -100887,8 +100916,8 @@
       "kanaText": "にじじょうほう",
       "primaryRoman": "nijijouhou",
       "extraVariants": [],
-      "length": 9,
-      "difficultyScore": 10.8,
+      "length": 10,
+      "difficultyScore": 11.9,
       "divisionLevel": 2,
       "phraseLevel": 2,
       "divisions": [
@@ -100902,24 +100931,23 @@
       "keyRows": [
         "home",
         "top",
-        "number"
+        "bottom"
       ],
       "skillTags": [
         "kanji",
-        "number",
         "yoon",
         "ji"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=9, top=5, bottom=0, number=1, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=10.8, scoreLevel=D3, minLevel=D3, final=D3, minReasons=number",
+      "difficultyDetail": "base=10, top=6, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=11.9, scoreLevel=D3, minLevel=D1, final=D3, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
-      "note": "source=index; 教科書索引A:p3; kana=needs_ai_kanji"
+      "note": ""
     },
     {
       "phraseId": "j12045",
@@ -102885,8 +102913,8 @@
       "kanaText": "いちじげんはいれつ",
       "primaryRoman": "itijigenhairetu",
       "extraVariants": [],
-      "length": 13,
-      "difficultyScore": 14.9,
+      "length": 15,
+      "difficultyScore": 17.2,
       "divisionLevel": 3,
       "phraseLevel": 3,
       "divisions": [
@@ -102900,22 +102928,20 @@
       "keyRows": [
         "home",
         "top",
-        "bottom",
-        "number"
+        "bottom"
       ],
       "skillTags": [
         "kanji",
-        "number",
         "ji",
         "n"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "n",
+      "inputStepLevel": 5,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=13, top=7, bottom=1, number=1, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=14.9, scoreLevel=D4, minLevel=D3, final=D4, minReasons=number",
+      "difficultyDetail": "base=15, top=10, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=17.2, scoreLevel=D4, minLevel=D1, final=D4, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": "source=index; 教科書索引A:p1; kana=needs_ai_kanji"
@@ -104363,8 +104389,8 @@
       "kanaText": "にじげんはいれつ",
       "primaryRoman": "nijigenhairetu",
       "extraVariants": [],
-      "length": 13,
-      "difficultyScore": 14.9,
+      "length": 14,
+      "difficultyScore": 16,
       "divisionLevel": 3,
       "phraseLevel": 3,
       "divisions": [
@@ -104378,25 +104404,23 @@
       "keyRows": [
         "home",
         "top",
-        "bottom",
-        "number"
+        "bottom"
       ],
       "skillTags": [
         "kanji",
-        "number",
         "ji",
         "n"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "n",
+      "inputStepLevel": 5,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=13, top=7, bottom=1, number=1, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=14.9, scoreLevel=D4, minLevel=D3, final=D4, minReasons=number",
+      "difficultyDetail": "base=14, top=8, bottom=2, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=0, total=16, scoreLevel=D4, minLevel=D1, final=D4, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
-      "note": "source=index; 教科書索引A:p3; kana=needs_ai_kanji"
+      "note": ""
     },
     {
       "phraseId": "j12071",
@@ -105982,8 +106006,8 @@
       "kanaText": "いろのさんげんしょく",
       "primaryRoman": "ironosangenshoku",
       "extraVariants": [],
-      "length": 14,
-      "difficultyScore": 16.6,
+      "length": 16,
+      "difficultyScore": 18.5,
       "divisionLevel": 3,
       "phraseLevel": 3,
       "divisions": [
@@ -105997,26 +106021,24 @@
       "keyRows": [
         "home",
         "top",
-        "bottom",
-        "number"
+        "bottom"
       ],
       "skillTags": [
         "hiragana",
         "kanji",
-        "number",
         "yoon",
         "n"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "n",
+      "inputStepLevel": 5,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=14, top=7, bottom=2, number=1, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=16.6, scoreLevel=D4, minLevel=D3, final=D4, minReasons=number",
+      "difficultyDetail": "base=16, top=7, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=18.5, scoreLevel=D4, minLevel=D1, final=D4, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
-      "note": "source=index; 教科書索引A:p1;教科書索引B:p1; kana=needs_ai_kanji"
+      "note": ""
     },
     {
       "phraseId": "j12084",
@@ -109501,8 +109523,8 @@
       "kanaText": "ひかりのさんげんしょく",
       "primaryRoman": "hikarinosangenshoku",
       "extraVariants": [],
-      "length": 17,
-      "difficultyScore": 19.6,
+      "length": 19,
+      "difficultyScore": 21.5,
       "divisionLevel": 4,
       "phraseLevel": 4,
       "divisions": [
@@ -109516,26 +109538,24 @@
       "keyRows": [
         "home",
         "top",
-        "bottom",
-        "number"
+        "bottom"
       ],
       "skillTags": [
         "hiragana",
         "kanji",
-        "number",
         "yoon",
         "n"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "n",
+      "inputStepLevel": 5,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=17, top=7, bottom=2, number=1, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=19.6, scoreLevel=D5, minLevel=D3, final=D5, minReasons=number",
+      "difficultyDetail": "base=19, top=7, bottom=3, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=21.5, scoreLevel=D5, minLevel=D1, final=D5, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
-      "note": "source=index; 教科書索引A:p3;教科書索引B:p3; kana=needs_ai_kanji"
+      "note": ""
     },
     {
       "phraseId": "j17024",
@@ -110570,8 +110590,8 @@
       "extraVariants": [
         "saishoujijouhou"
       ],
-      "length": 14,
-      "difficultyScore": 16.7,
+      "length": 15,
+      "difficultyScore": 17.8,
       "divisionLevel": 3,
       "phraseLevel": 3,
       "divisions": [
@@ -110585,23 +110605,22 @@
       "keyRows": [
         "home",
         "top",
-        "number"
+        "bottom"
       ],
       "skillTags": [
         "kanji",
-        "number",
         "yoon"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "yoon",
+      "inputStepLevel": 4,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=14, top=7, bottom=0, number=1, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=16.7, scoreLevel=D4, minLevel=D3, final=D4, minReasons=number",
+      "difficultyDetail": "base=15, top=8, bottom=1, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=2, total=17.8, scoreLevel=D4, minLevel=D4, final=D4, minReasons=latin",
       "scoreVersion": "v3.0",
       "source": "teacher",
-      "note": "source=index; 教科書索引A:p2; kana=needs_ai_kanji"
+      "note": ""
     },
     {
       "phraseId": "j16036",
@@ -114058,8 +114077,8 @@
       "kanaText": "にじてきちょさくぶつのりようにかんするけんり",
       "primaryRoman": "nijitekityosakubutunoriyounikansurukenri",
       "extraVariants": [],
-      "length": 39,
-      "difficultyScore": 45.6,
+      "length": 40,
+      "difficultyScore": 46.7,
       "divisionLevel": 7,
       "phraseLevel": 7,
       "divisions": [
@@ -114073,24 +114092,22 @@
       "keyRows": [
         "home",
         "top",
-        "bottom",
-        "number"
+        "bottom"
       ],
       "skillTags": [
         "hiragana",
         "kanji",
-        "number",
         "yoon",
         "ji",
         "n"
       ],
-      "inputStep": "number",
-      "inputStepLevel": 9,
+      "inputStep": "n",
+      "inputStepLevel": 5,
       "phraseLevelV2": "",
       "divisionsV2": [],
       "meaningText": "",
       "adviceText": "",
-      "difficultyDetail": "base=39, top=24, bottom=5, number=1, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=45.6, scoreLevel=D8, minLevel=D3, final=D8, minReasons=number",
+      "difficultyDetail": "base=40, top=25, bottom=6, number=0, upper=0, symbol=0, shiftStart=0, shiftContinue=0, jpSpecial=1, total=46.7, scoreLevel=D8, minLevel=D1, final=D8, minReasons=",
       "scoreVersion": "v3.0",
       "source": "teacher",
       "note": "source=index; 教科書索引A:p3;教科書索引A:p4; kana=needs_ai_kanji"
