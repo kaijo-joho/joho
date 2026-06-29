@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-06-29T03:10:40.851Z",
+  "generatedAt": "2026-06-29T05:09:56.903Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-06-29T03:10:40.851Z",
+    "generatedAt": "2026-06-29T05:09:56.903Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -19880,7 +19880,7 @@
       "gameId": "SES1",
       "enabled": true,
       "visibility": "public",
-      "mode": "training",
+      "mode": "session",
       "gameType": "timeAttack",
       "title": "授業内モード 1",
       "subtitle": "",
@@ -20191,7 +20191,7 @@
       "gameId": "SES2",
       "enabled": true,
       "visibility": "public",
-      "mode": "training",
+      "mode": "session",
       "gameType": "timeAttack",
       "title": "授業内モード 2",
       "subtitle": "",
@@ -20620,7 +20620,7 @@
       "gameId": "SES3",
       "enabled": true,
       "visibility": "public",
-      "mode": "training",
+      "mode": "session",
       "gameType": "timeAttack",
       "title": "授業内モード 3",
       "subtitle": "",
@@ -21289,7 +21289,7 @@
       "gameId": "SES4",
       "enabled": true,
       "visibility": "public",
-      "mode": "training",
+      "mode": "session",
       "gameType": "timeAttack",
       "title": "授業内モード 4",
       "subtitle": "",
@@ -21931,7 +21931,7 @@
       "gameId": "SES5",
       "enabled": true,
       "visibility": "public",
-      "mode": "training",
+      "mode": "session",
       "gameType": "timeAttack",
       "title": "授業内モード 5",
       "subtitle": "",
