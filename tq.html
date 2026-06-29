@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <title>Typing Quest</title>
+  <meta name="robots" content="noindex">
+  <script>
+    const TQ_WEB_APP_URL = 'https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby4OYGw6Gg0Nr-UPOl43GcDUe6q3QJqL876lWTGD4n8L4YJdQs6iG33wriZ3IStFblO/exec';
+
+    const params = new URLSearchParams(location.search);
+    const s = params.get('s');
+    const m = params.get('m');
+
+    let target = TQ_WEB_APP_URL;
+
+    if (s) {
+      target += '?session=' + encodeURIComponent(s);
+    } else if (m) {
+      target += '?monitor=' + encodeURIComponent(m);
+    }
+
+    location.replace(target);
+  </script>
+</head>
+<body>
+  <p>Typing Quest を開いています...</p>
+</body>
+</html>
