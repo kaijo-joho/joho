@@ -58,8 +58,27 @@
     h1{margin:.2rem 0;font-size:clamp(1.7rem, 3vw, 2.4rem)}
     .subtitle{color:var(--muted);font-size:.95rem}
     .productSubtitle{display:none}
-    .loginButton{
+    .headerPlayContext{
+      display:none;
+      margin-top:2px;
+      color:var(--muted);
+      font-size:.74rem;
+      font-weight:850;
+      line-height:1.25;
+      overflow-wrap:anywhere;
+    }
+    body[data-screen-state="countdown"] .headerPlayContext,
+    body[data-screen-state="playing"] .headerPlayContext,
+    body[data-screen-state="timeUpGrace"] .headerPlayContext{display:block}
+    .headerPlayContext[hidden]{display:none!important}
+    .headerActions{
       justify-self:end;
+      display:flex;
+      align-items:center;
+      gap:8px;
+      min-width:0;
+    }
+    .loginButton{
       min-width:110px;
       padding:9px 14px;
       border-radius:999px;
@@ -72,6 +91,99 @@
       background:rgba(96,165,250,.2);
       border-color:rgba(96,165,250,.68);
     }
+    .notificationDock{position:relative}
+    .notificationDock[hidden]{display:none!important}
+    body[data-screen-state="opening"] .notificationDock,
+    body[data-screen-state="countdown"] .notificationDock,
+    body[data-screen-state="playing"] .notificationDock,
+    body[data-screen-state="timeUpGrace"] .notificationDock{display:none}
+    .adminButton[hidden]{display:none!important}
+    body[data-screen-state="opening"] .adminButton,
+    body[data-screen-state="countdown"] .adminButton,
+    body[data-screen-state="playing"] .adminButton,
+    body[data-screen-state="timeUpGrace"] .adminButton{display:none}
+    .noticeButton,
+    .adminButton{
+      position:relative;
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      width:42px;
+      height:42px;
+      padding:0;
+      border-radius:999px;
+      border-color:rgba(96,165,250,.42);
+      background:rgba(96,165,250,.12);
+      color:var(--fg);
+    }
+    .noticeButton:hover,
+    .adminButton:hover{
+      background:rgba(96,165,250,.2);
+      border-color:rgba(96,165,250,.68);
+    }
+    .noticeButton svg,
+    .adminButton svg{width:20px;height:20px;stroke:currentColor;stroke-width:2.2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+    .noticeUnreadDot{
+      position:absolute;
+      top:7px;
+      right:8px;
+      width:9px;
+      height:9px;
+      border-radius:999px;
+      background:var(--ng);
+      border:2px solid var(--panel);
+      box-shadow:0 0 0 2px rgba(220,38,38,.18);
+    }
+    .noticeUnreadDot[hidden]{display:none!important}
+    .noticePanel{
+      position:absolute;
+      top:calc(100% + 8px);
+      right:0;
+      z-index:60;
+      width:min(360px, calc(100vw - 24px));
+      max-height:min(520px, calc(100vh - 90px));
+      overflow:auto;
+      padding:12px;
+      border:1px solid rgba(148,163,184,.28);
+      border-radius:14px;
+      background:var(--panel);
+      box-shadow:var(--shadow);
+    }
+    .noticePanel[hidden]{display:none!important}
+    .noticePanelHead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+    .noticePanelHead h2{margin:0;font-size:1rem}
+    .noticeCloseBtn{min-height:0;padding:6px 10px;border-radius:999px;background:transparent;color:var(--muted);font-size:.78rem}
+    .noticeList{display:grid;gap:9px}
+    .noticeCard{
+      display:grid;
+      gap:7px;
+      padding:10px;
+      border:1px solid rgba(148,163,184,.22);
+      border-radius:12px;
+      background:rgba(100,116,139,.07);
+    }
+    .noticeCard.forceDisplay{border-color:rgba(217,119,6,.36);background:rgba(217,119,6,.09)}
+    .noticeMeta{display:flex;gap:6px;flex-wrap:wrap;align-items:center;color:var(--muted);font-size:.7rem;font-weight:900;text-transform:uppercase}
+    .noticeMeta .severitySuccess{color:var(--ok)}
+    .noticeMeta .severityWarning{color:var(--warn)}
+    .noticeMeta .severityDanger{color:var(--ng)}
+    .noticeTitle{margin:0;font-size:.98rem;font-weight:950}
+    .noticeBody{display:grid;gap:6px;color:var(--fg);font-size:.86rem;font-weight:750;line-height:1.55}
+    .noticeBody p{margin:0}
+    .noticeBody ul{margin:0;padding-left:1.15rem}
+    .noticeBody h3{margin:0;font-size:.9rem}
+    .noticeBody code{padding:1px 4px;border-radius:5px;background:rgba(100,116,139,.12);font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace}
+    .noticeActionBtn{
+      justify-self:start;
+      min-height:0;
+      padding:7px 11px;
+      border-radius:999px;
+      background:rgba(96,165,250,.14);
+      border-color:rgba(96,165,250,.38);
+      color:var(--accent);
+      font-size:.82rem;
+    }
+    .noticeEmpty{margin:0;padding:12px;border:1px dashed var(--line);border-radius:12px;color:var(--muted);font-size:.86rem;font-weight:850;text-align:center}
     main{
       width:100%;
       max-width:980px;
@@ -515,7 +627,16 @@
     body[data-screen-state="opening"] .openingTarget .displayText{font-size:clamp(1.85rem, 6vw, 4rem)}
     .openingTarget .kanaText,
     .openingTarget .romajiText{color:var(--accent)}
-    .openingInputField .ghostRoman{width:min(100%, calc(12ch + 34px))}
+    .openingInputField .ghostRoman{width:min(100%, calc(var(--guide-width, 12ch) + 34px))}
+    .openingBootStatus{
+      width:min(100%, 760px);
+      margin:7px auto 0;
+      color:rgba(148,163,184,.64);
+      font-size:.72rem;
+      font-weight:850;
+      text-align:center;
+      overflow-wrap:anywhere;
+    }
     body[data-screen-state="playing"] .target,
     body[data-screen-state="timeUpGrace"] .target{gap:8px;padding:20px 14px}
     body[data-screen-state="playing"] .displayText,
@@ -567,6 +688,115 @@
     .warn{display:none;color:var(--warn);font-weight:800;text-align:center;margin:10px 0 0}
     .playMessageSlot .warn{margin:0}
     .setupWarn.isVisible{display:block}
+    .sessionLobbyPanel{
+      display:none;
+      min-height:min(620px, calc(100vh - 150px));
+      place-items:center;
+      padding:20px 12px;
+    }
+    body[data-session-lobby="true"] .sessionLobbyPanel{display:grid}
+    body[data-session-lobby="true"] #setupShell,
+    body[data-session-lobby="true"] .readyBox,
+    body[data-session-lobby="true"] #setupWarn,
+    body[data-session-lobby="true"] #modeDesc,
+    body[data-session-lobby="true"] #candidateInfo,
+    body[data-session-lobby="true"] #startupInfo,
+    body[data-session-lobby="true"] #dataInfo,
+    body[data-session-lobby="true"] #detailHistoryPanel,
+    body[data-session-lobby="true"] .loginButton{display:none!important}
+    .sessionLobbyCard{
+      width:min(100%, 720px);
+      border:1px solid var(--line);
+      border-radius:8px;
+      background:rgba(15,23,42,.46);
+      padding:clamp(22px, 4vw, 42px);
+      box-shadow:0 24px 80px rgba(0,0,0,.24);
+      text-align:center;
+    }
+    .sessionLobbyCard .eyebrow{
+      margin:0 0 8px;
+      color:var(--accent);
+      font-size:.82rem;
+      font-weight:900;
+      text-transform:uppercase;
+      letter-spacing:0;
+    }
+    .sessionLobbyCard h2{
+      margin:0;
+      font-size:clamp(1.55rem, 3vw, 2.35rem);
+      line-height:1.18;
+    }
+    .sessionLobbyStatus{
+      margin-top:22px;
+      color:var(--text);
+      font-size:clamp(1.1rem, 2vw, 1.45rem);
+      font-weight:900;
+    }
+    .sessionLobbyCount{
+      margin:10px auto 0;
+      display:flex;
+      align-items:flex-end;
+      justify-content:center;
+      gap:8px;
+      color:var(--accent);
+      font-size:clamp(2.1rem, 6vw, 4rem);
+      font-weight:1000;
+      line-height:1;
+    }
+    .sessionLobbyCount .unit{
+      padding-bottom:.28em;
+      color:var(--muted);
+      font-size:.34em;
+      font-weight:900;
+    }
+    .sessionLobbyMeta{
+      margin:24px auto 0;
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0, 1fr));
+      gap:8px;
+      text-align:left;
+    }
+    .sessionLobbyMetaItem{
+      min-width:0;
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:8px;
+      background:rgba(15,23,42,.32);
+      padding:10px 12px;
+    }
+    .sessionLobbyMetaItem .label{
+      display:block;
+      color:var(--muted);
+      font-size:.72rem;
+      font-weight:900;
+    }
+    .sessionLobbyMetaItem .value{
+      display:block;
+      margin-top:4px;
+      overflow-wrap:anywhere;
+      color:var(--text);
+      font-size:.92rem;
+      font-weight:850;
+    }
+    .sessionLobbyActions{
+      margin-top:26px;
+      display:grid;
+      justify-items:center;
+      gap:12px;
+    }
+    .sessionLobbyActions .primary{
+      min-width:min(100%, 280px);
+      min-height:56px;
+      font-size:1.05rem;
+    }
+    .sessionLobbyMessage{
+      margin:0;
+      color:var(--muted);
+      font-weight:850;
+      min-height:1.4em;
+    }
+    @media (max-width: 640px){
+      .sessionLobbyMeta{grid-template-columns:1fr}
+    }
     .timeUpNotice{
       width:min(100%, 760px);
       margin:0 auto;
@@ -581,6 +811,187 @@
       line-height:1.45;
     }
     .resultTitle{font-size:1.4rem;font-weight:900;margin:0 0 10px}
+    .sessionResultPanel,
+    .championshipResultPanel{
+      min-height:0;
+      display:none;
+      grid-template-rows:auto minmax(0, 1fr) auto;
+      gap:14px;
+      overflow:hidden;
+    }
+    .sessionResultHeader,
+    .sessionResultFooter{
+      min-width:0;
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:14px;
+      background:rgba(100,116,139,.07);
+    }
+    .sessionResultHeader{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:14px;
+      padding:16px;
+    }
+    .sessionResultHeader h2{
+      margin:0;
+      font-size:1.45rem;
+      line-height:1.2;
+      overflow-wrap:anywhere;
+    }
+    .sessionResultMeta{
+      color:var(--muted);
+      font-weight:900;
+      line-height:1.4;
+      overflow-wrap:anywhere;
+    }
+    .sessionResultStatus{
+      color:var(--accent);
+      font-size:.9rem;
+      font-weight:1000;
+      text-align:right;
+    }
+    .sessionResultBody{
+      min-height:0;
+      display:grid;
+      grid-template-columns:minmax(280px, .9fr) minmax(0, 1.4fr);
+      gap:14px;
+      padding:14px;
+      overflow:hidden;
+    }
+    .sessionResultSection{
+      min-width:0;
+      min-height:0;
+      display:flex;
+      flex-direction:column;
+      gap:12px;
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:14px;
+      background:rgba(100,116,139,.07);
+      padding:14px;
+      overflow:hidden;
+    }
+    .sessionResultSection h3{
+      margin:0;
+      font-size:1.05rem;
+      line-height:1.25;
+    }
+    .sessionResultMetricGrid{
+      display:grid;
+      grid-template-columns:repeat(2, minmax(0, 1fr));
+      gap:8px;
+    }
+    .sessionResultMetric{
+      min-width:0;
+      border:1px solid rgba(148,163,184,.14);
+      border-radius:12px;
+      background:rgba(15,23,42,.26);
+      padding:10px;
+    }
+    .sessionResultMetric .name{
+      display:block;
+      color:var(--muted);
+      font-size:.78rem;
+      font-weight:900;
+    }
+    .sessionResultMetric .value{
+      display:block;
+      margin-top:4px;
+      font-size:1.25rem;
+      font-weight:1000;
+      font-variant-numeric:tabular-nums;
+      overflow-wrap:anywhere;
+    }
+    .sessionRankBox{
+      border:1px solid rgba(96,165,250,.22);
+      border-radius:12px;
+      background:rgba(37,99,235,.08);
+      padding:12px;
+      font-weight:950;
+      line-height:1.45;
+    }
+    .sessionRankingList{
+      min-height:0;
+      overflow:auto;
+      display:grid;
+      gap:8px;
+      margin:0;
+      padding:0;
+      list-style:none;
+    }
+    .sessionRankingItem{
+      display:grid;
+      grid-template-columns:42px minmax(0, 1fr) auto;
+      align-items:center;
+      gap:10px;
+      border:1px solid rgba(148,163,184,.14);
+      border-radius:12px;
+      background:rgba(15,23,42,.24);
+      padding:10px 12px;
+      font-weight:900;
+    }
+    .sessionRankingItem.isCurrentUser{
+      border-color:rgba(96,165,250,.72);
+      background:rgba(37,99,235,.2);
+    }
+    .sessionRankingRank{color:var(--accent);font-variant-numeric:tabular-nums}
+    .sessionRankingName{min-width:0;overflow-wrap:anywhere}
+    .sessionRankingScore{text-align:right;font-variant-numeric:tabular-nums}
+    .sessionRankingSub{
+      grid-column:2 / 4;
+      color:var(--muted);
+      font-size:.78rem;
+      font-weight:850;
+    }
+    .sessionCurrentUserBox{
+      border:1px solid rgba(250,204,21,.28);
+      border-radius:12px;
+      background:rgba(250,204,21,.08);
+      padding:12px;
+      font-weight:900;
+      line-height:1.45;
+    }
+    .championshipResultActionBox .sessionResultActions{margin-top:8px}
+    .sessionResultFooter{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      padding:12px 16px;
+      color:var(--muted);
+      font-weight:850;
+    }
+    .sessionResultActions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      flex-wrap:wrap;
+    }
+    .sessionResultActions button{
+      min-height:0;
+      padding:8px 12px;
+      font-size:.84rem;
+    }
+    .sessionRankingStatus{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:.86rem;
+      font-weight:900;
+      line-height:1.45;
+      overflow-wrap:anywhere;
+    }
+    @media (max-width: 900px){
+      .sessionResultPanel,
+      .championshipResultPanel,
+      .sessionResultBody{overflow:auto}
+      .sessionResultBody{grid-template-columns:1fr}
+      .sessionResultHeader,
+      .sessionResultFooter{
+        align-items:flex-start;
+        flex-direction:column;
+      }
+      .sessionResultStatus{text-align:left}
+    }
     body[data-screen-state="result"] main,
     body[data-screen-state="saving"] main{
       max-width:none;
@@ -605,6 +1016,18 @@
       grid-template-rows:minmax(0, 1fr) minmax(0, 1fr);
       gap:14px;
     }
+    body[data-screen-state="result"] #resultPanel.isSessionResult,
+    body[data-screen-state="saving"] #resultPanel.isSessionResult,
+    body[data-screen-state="result"] #resultPanel.isChampionshipResult,
+    body[data-screen-state="saving"] #resultPanel.isChampionshipResult{
+      grid-template-rows:minmax(0, 1fr);
+    }
+    #resultPanel.isSessionResult .resultTop,
+    #resultPanel.isSessionResult .resultContent,
+    #resultPanel.isChampionshipResult .resultTop,
+    #resultPanel.isChampionshipResult .resultContent{display:none}
+    #resultPanel.isSessionResult .sessionResultPanel{display:grid}
+    #resultPanel.isChampionshipResult .championshipResultPanel{display:grid}
     body[data-screen-state="result"] #historyPanel,
     body[data-screen-state="saving"] #historyPanel{
       width:100%;
@@ -1074,6 +1497,11 @@
       border-color:rgba(96,165,250,.24);
       background:rgba(96,165,250,.08);
       color:var(--muted);
+    }
+    .saveStatus[data-save-state="retrying"]{
+      border-color:rgba(234,179,8,.38);
+      background:rgba(234,179,8,.12);
+      color:var(--warn);
     }
     .saveStatus[data-save-state="failed"]{
       border-color:rgba(220,38,38,.35);
@@ -1732,6 +2160,157 @@
       font-size:.78rem;
       font-weight:850;
     }
+    .adminNoticePanel{
+      display:grid;
+      gap:10px;
+      padding:12px;
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:12px;
+      background:rgba(15,23,42,.32);
+    }
+    .adminScreen{
+      display:grid;
+      gap:14px;
+      width:100%;
+      min-height:0;
+    }
+    .adminStandalonePanel{
+      display:grid;
+      gap:14px;
+      min-height:min(720px, calc(100vh - 120px));
+      align-content:start;
+    }
+    .adminStandalonePanel[hidden]{display:none!important}
+    .adminStandaloneHead{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;
+      gap:14px;
+      border-bottom:1px solid var(--line);
+      padding-bottom:12px;
+    }
+    .adminStandaloneHead h2{margin:0;font-size:1.55rem}
+    .adminStandaloneHead p{margin:.35rem 0 0;color:var(--muted);font-weight:850}
+    .adminStandaloneClose{
+      min-height:0;
+      padding:8px 12px;
+      border-radius:999px;
+      white-space:nowrap;
+    }
+    .adminStandaloneTabs{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      border-bottom:1px solid rgba(148,163,184,.16);
+      padding-bottom:10px;
+    }
+    .adminStandaloneTab{
+      min-height:0;
+      padding:9px 13px;
+      border-radius:999px;
+      color:var(--muted);
+      background:rgba(148,163,184,.08);
+      border-color:rgba(148,163,184,.18);
+      font-weight:950;
+    }
+    .adminStandaloneTab[aria-selected="true"]{
+      color:var(--accent);
+      background:rgba(37,99,235,.16);
+      border-color:rgba(96,165,250,.42);
+    }
+    .adminStandaloneBody{min-height:0}
+    .adminScreenHeader{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+      border-bottom:1px solid var(--line);
+      padding-bottom:12px;
+    }
+    .adminScreenHeader h2{margin:0;font-size:1.35rem}
+    .adminScreenHeader p{margin:.35rem 0 0;color:var(--muted);font-weight:850}
+    .adminScreenActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .adminScreenActions button,
+    .adminTodoAction{
+      min-height:0;
+      padding:8px 12px;
+      border-radius:999px;
+      border:1px solid rgba(96,165,250,.28);
+      background:rgba(37,99,235,.13);
+      color:var(--accent);
+      font-weight:950;
+    }
+    .adminDashboardGrid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+      gap:10px;
+    }
+    .adminDashboardItem,
+    .adminTodoItem{
+      border:1px solid var(--line);
+      border-radius:12px;
+      background:rgba(15,23,42,.32);
+      padding:12px;
+      display:grid;
+      gap:8px;
+      align-content:start;
+    }
+    .adminDashboardItem strong,
+    .adminTodoItem strong{font-size:.95rem}
+    .adminDashboardItem span,
+    .adminTodoItem p{margin:0;color:var(--muted);font-weight:850;font-size:.82rem}
+    .adminTodoList{display:grid;gap:10px}
+    .adminTodoHead{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+    .adminPriority{
+      border:1px solid rgba(96,165,250,.28);
+      border-radius:999px;
+      padding:3px 8px;
+      color:var(--accent);
+      background:rgba(37,99,235,.12);
+      font-size:.72rem;
+      font-weight:950;
+      white-space:nowrap;
+    }
+    .adminPriority.high{color:var(--warn);border-color:rgba(217,119,6,.28);background:rgba(217,119,6,.1)}
+    .adminPriority.done{color:var(--ok);border-color:rgba(22,163,74,.28);background:rgba(22,163,74,.1)}
+    .adminNoticePanel h3{margin:0;font-size:.95rem}
+    .adminNoticeActions{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+    .adminNoticeActions button,
+    .adminNoticeCard button{
+      min-height:0;
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:.78rem;
+    }
+    .adminNoticeStatus{margin:0;color:var(--muted);font-size:.78rem;font-weight:850}
+    .adminNoticeList{display:grid;gap:8px;max-height:360px;overflow:auto;padding-right:3px}
+    .adminNoticeCard{
+      display:grid;
+      gap:7px;
+      padding:9px;
+      border:1px solid rgba(148,163,184,.18);
+      border-radius:12px;
+      background:rgba(148,163,184,.07);
+      font-size:.78rem;
+      font-weight:800;
+    }
+    .adminNoticeCardHead{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+    .adminNoticeCardHead strong{font-size:.86rem;overflow-wrap:anywhere}
+    .adminNoticePreview{
+      max-height:84px;
+      overflow:auto;
+      padding:7px 8px;
+      border-radius:9px;
+      background:rgba(15,23,42,.14);
+      color:var(--muted);
+      line-height:1.45;
+      white-space:pre-wrap;
+    }
+    .adminNoticeMeta{display:flex;gap:5px;flex-wrap:wrap;color:var(--muted)}
+    .adminNoticeDecision{display:flex;gap:6px;flex-wrap:wrap}
+    .adminNoticeDecision .approve{color:var(--ok);border-color:rgba(22,163,74,.28);background:rgba(22,163,74,.1)}
+    .adminNoticeDecision .reject{color:var(--ng);border-color:rgba(220,38,38,.28);background:rgba(220,38,38,.1)}
+    .adminNoticeDecision .hold{color:var(--muted);background:rgba(100,116,139,.08)}
     .adminPhraseTsvBox{display:grid;gap:6px;margin-top:10px}
     .adminPhraseTsv{
       width:100%;
@@ -2028,6 +2607,17 @@
       font-weight:950;
       letter-spacing:0;
     }
+    .layerCardSchedule{
+      color:var(--accent);
+      font-size:.7rem;
+      font-weight:900;
+      line-height:1.25;
+      overflow-wrap:anywhere;
+      display:-webkit-box;
+      -webkit-line-clamp:2;
+      -webkit-box-orient:vertical;
+      overflow:hidden;
+    }
     .currentLayerGrid,
     .drilldownShell .courseColumn .currentLayerGrid{
       display:grid;
@@ -2267,8 +2857,34 @@
     <div class="headerText">
       <h1>Typing Quest</h1>
       <div class="subtitle productSubtitle">ステップ別・難易度別に練習できるタイピング教材</div>
+      <div class="headerPlayContext" id="playContextLabel" aria-live="polite" hidden></div>
     </div>
-    <button class="loginButton" id="loginBtn" type="button">ログイン</button>
+    <div class="headerActions">
+      <div class="notificationDock" id="notificationDock" hidden>
+        <button class="noticeButton" id="noticeButton" type="button" aria-label="お知らせ" aria-expanded="false">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"></path>
+            <path d="M10 21h4"></path>
+          </svg>
+          <span class="noticeUnreadDot" id="noticeUnreadDot" hidden></span>
+        </button>
+        <section class="noticePanel" id="noticePanel" aria-label="お知らせ" hidden>
+          <div class="noticePanelHead">
+            <h2>お知らせ</h2>
+            <button class="noticeCloseBtn" id="noticeCloseBtn" type="button">閉じる</button>
+          </div>
+          <div class="noticeList" id="noticeList"></div>
+          <p class="noticeEmpty" id="noticeEmpty">現在表示するお知らせはありません。</p>
+        </section>
+      </div>
+      <button class="adminButton" id="adminButton" type="button" aria-label="管理者画面" aria-expanded="false" hidden>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 21a8 8 0 0 0-16 0"></path>
+          <circle cx="12" cy="7" r="4"></circle>
+        </svg>
+      </button>
+      <button class="loginButton" id="loginBtn" type="button">ログイン</button>
+    </div>
   </header>
 
   <main>
@@ -2291,11 +2907,43 @@
           </div>
         </div>
       </div>
+      <div class="openingBootStatus" id="openingBootStatus">boot: html</div>
     </section>
 
     <section class="panel" id="setupPanel">
       <label class="srOnly" for="modeSel">モード</label>
       <select class="srOnly" id="modeSel" tabindex="-1"></select>
+      <section class="sessionLobbyPanel" id="sessionLobbyPanel" aria-label="Session lobby">
+        <div class="sessionLobbyCard">
+          <p class="eyebrow">Session Lobby</p>
+          <h2 id="sessionLobbyTitle">タイピング選手権</h2>
+          <div class="sessionLobbyStatus" id="sessionLobbyStatus">参加登録中...</div>
+          <div class="sessionLobbyCount" aria-label="参加人数">
+            <span id="sessionLobbyJoined">0</span>
+            <span class="unit">/</span>
+            <span id="sessionLobbyRequired">20</span>
+            <span class="unit">人</span>
+          </div>
+          <div class="sessionLobbyMeta">
+            <div class="sessionLobbyMetaItem">
+              <span class="label">待機中</span>
+              <span class="value" id="sessionLobbyWaiting">0人</span>
+            </div>
+            <div class="sessionLobbyMetaItem">
+              <span class="label">プレイ中</span>
+              <span class="value" id="sessionLobbyPlaying">0人</span>
+            </div>
+            <div class="sessionLobbyMetaItem">
+              <span class="label">終了</span>
+              <span class="value" id="sessionLobbyFinished">0人</span>
+            </div>
+          </div>
+          <div class="sessionLobbyActions">
+            <button class="primary" id="sessionLobbyStartBtn" type="button" disabled>プレイ開始</button>
+            <p class="sessionLobbyMessage" id="sessionLobbyMessage">人数がそろうまでお待ちください。</p>
+          </div>
+        </div>
+      </section>
       <div class="setupShell app-shell drilldownShell layerShell" id="setupShell" data-layout="layer">
         <section class="layerTopPanel" aria-label="コース選択">
           <section class="ancestorLayers" id="ancestorLayers">
@@ -2362,6 +3010,19 @@
       </div>
     </section>
 
+    <section class="panel adminStandalonePanel" id="adminScreenPanel" aria-label="管理者画面" hidden>
+      <div class="adminStandaloneHead">
+        <div>
+          <p class="eyebrow">Admin</p>
+          <h2>管理者画面</h2>
+          <p>通知管理や運用ToDoを、ゲーム選択画面とは別のレイアウトで扱います。</p>
+        </div>
+        <button class="adminStandaloneClose" id="adminScreenCloseBtn" type="button">閉じる</button>
+      </div>
+      <div class="adminStandaloneTabs" id="adminScreenTabs" role="tablist" aria-label="管理者メニュー"></div>
+      <div class="adminStandaloneBody" id="adminScreenBody"></div>
+    </section>
+
     <section class="panel" id="playPanel">
       <div class="row between playMeta">
         <span class="badge">現在：<b id="currentModeLabel">-</b><small class="modeId" id="currentModeId"></small></span>
@@ -2407,6 +3068,61 @@
     </section>
 
     <section class="panel hidden" id="resultPanel">
+      <section class="championshipResultPanel hidden" id="championshipResultPanel" aria-label="Championship result"></section>
+      <section class="sessionResultPanel hidden" id="sessionResultPanel" aria-label="Session result">
+        <header class="sessionResultHeader">
+          <div>
+            <p class="sessionResultMeta" id="sessionResultMeta">Typing Quest Session</p>
+            <h2>タイピング選手権 結果</h2>
+          </div>
+          <div class="sessionResultStatus" id="sessionResultStatus" aria-live="polite">保存中...</div>
+        </header>
+        <div class="sessionResultBody">
+          <section class="sessionResultSection" aria-label="あなたの結果">
+            <h3>あなたの結果</h3>
+            <div class="sessionResultMetricGrid">
+              <div class="sessionResultMetric">
+                <span class="name">スコア</span>
+                <span class="value" id="sessionResultScore">-</span>
+              </div>
+              <div class="sessionResultMetric">
+                <span class="name">CPM</span>
+                <span class="value" id="sessionResultCpm">-</span>
+              </div>
+              <div class="sessionResultMetric">
+                <span class="name">正確率</span>
+                <span class="value" id="sessionResultAccuracy">-</span>
+              </div>
+              <div class="sessionResultMetric">
+                <span class="name">ミス</span>
+                <span class="value" id="sessionResultMiss">-</span>
+              </div>
+            </div>
+            <div class="sessionRankBox" id="sessionResultRank">順位を集計しています。</div>
+            <div class="sessionCurrentUserBox hidden" id="sessionResultCurrentUserBox"></div>
+          </section>
+          <section class="sessionResultSection" aria-label="ランキング TOP 5">
+            <h3>ランキング TOP 5</h3>
+            <ol class="sessionRankingList" id="sessionRankingList">
+              <li class="sessionRankingItem">
+                <span class="sessionRankingRank">-</span>
+                <span class="sessionRankingName">保存完了後に表示します</span>
+                <span class="sessionRankingScore">-</span>
+              </li>
+            </ol>
+          </section>
+        </div>
+        <footer class="sessionResultFooter">
+          <div>
+            <span id="sessionCompletedCount">完了者: -</span>
+            <span id="sessionResultRefreshStatus">保存完了後、ランキングを更新します。</span>
+          </div>
+          <div class="sessionResultActions">
+            <button id="sessionRetrySaveBtn" type="button" disabled>保存する</button>
+            <button id="sessionResultLobbyBtn" type="button">モード選択</button>
+          </div>
+        </footer>
+      </section>
       <section class="resultTop">
         <aside class="resultContextPanel result-reveal-item result-reveal-side" aria-label="今回のステージ">
           <div class="resultContextEyebrow" id="resultBreadcrumb">Typing Quest</div>
@@ -2464,7 +3180,9 @@
                 <button class="modeSelectBtn" id="modeSelectBtn" type="button">モード選択</button>
                 <button class="primary retryLarge" id="retryBtn" type="button">もう一度</button>
                 <button class="nextStageBtn" id="nextStageBtn" type="button" hidden>次のステージ</button>
+                <button class="primary sessionRankingBtn" id="sessionRankingBtn" type="button" hidden disabled>ランキングを見る</button>
               </div>
+              <p class="sessionRankingStatus hidden" id="sessionRankingStatus">全員の終了を待っています。</p>
             </div>
           </div>
         </div>
@@ -2536,8 +3254,41 @@
 
 <?!= sessionBootstrapScript || '' ?>
 <script>
+(function(){
+  function mark(label, detail){
+    var text = 'boot: ' + String(label || '');
+    if (detail) text += ' | ' + String(detail).slice(0, 500);
+    window.TQ_BOOT_TRACE = window.TQ_BOOT_TRACE || [];
+    window.TQ_BOOT_TRACE.push({
+      at: new Date().toISOString(),
+      label: String(label || ''),
+      detail: detail ? String(detail) : ''
+    });
+    var node = document.getElementById('openingBootStatus');
+    if (node) node.textContent = text;
+  }
+  window.TQ_BOOT_MARK = mark;
+  window.addEventListener('error', function(event){
+    var detail = event && event.message ? event.message : 'unknown error';
+    if (event && (event.lineno || event.colno)) {
+      detail += ' @ ' + (event.filename || 'inline') + ':' + (event.lineno || '?') + ':' + (event.colno || '?');
+    }
+    if (event && event.error && event.error.stack) {
+      detail += ' | ' + String(event.error.stack).split('\n').slice(0, 2).join(' / ');
+    }
+    mark('window-error', detail);
+  });
+  window.addEventListener('unhandledrejection', function(event){
+    var reason = event && event.reason;
+    mark('unhandled-rejection', reason && reason.message ? reason.message : String(reason || 'unknown rejection'));
+  });
+  mark('pre-main');
+})();
+</script>
+<script>
 (() => {
   'use strict';
+  markBoot('main-start');
 
   const GAS_RUNTIME_AVAILABLE = isGasRuntimeAvailable();
   const TQ_PUBLISHED_JSON_URL = 'https://joho.kaijo.ed.jp/typing/data/typing-data.json';
@@ -2573,10 +3324,26 @@
   const LAST_GAME_ID_KEY = 'typingQuest.lastGameId';
   const PLAYER_STATE_KEY = 'typingQuest.playerState';
   const PENDING_RESULTS_KEY = 'typingQuest.pendingResults';
+  const READ_NOTICE_IDS_KEY = 'TQ_READ_NOTICE_IDS';
+  const AUTO_SAVE_RETRY_DELAYS_MS = [3000, 7000, 15000, 30000];
+  const PLAY_MAINTENANCE_TIME_ZONE = 'Asia/Tokyo';
+  const PLAY_MAINTENANCE_BLOCK_START_MIN = 22 * 60 + 30;
+  const PLAY_MAINTENANCE_BLOCK_END_MIN = 4 * 60 + 30;
+  const PLAY_MAINTENANCE_DISPLAY_LABEL = 'メンテナンス中（22:00〜4:30）';
+  const PLAY_MAINTENANCE_REFRESH_MS = 60000;
+  const SESSION_LOBBY_POLL_MS = 5000;
+  const SESSION_RESULT_REFRESH_INTERVAL_MS = 5000;
+  const SESSION_RESULT_REFRESH_MAX_MS = 180000;
   const CUSTOM_CSV_STORAGE_KEY = 'typingQuest.customCsv.lastDataset';
   const CUSTOM_CSV_MODE_ID = 'CUSTOM-CSV';
   const OPENING_PHRASE = 'Typing Quest';
-  const OPENING_DURATION_MS = 3000;
+  const OPENING_DURATION_MS = 1800;
+  const ADMIN_OPENING_DURATION_MS = 0;
+  const OPENING_FAILSAFE_EXTRA_MS = 750;
+  const BOOT_USER_TIMEOUT_MS = 4500;
+  const BOOT_DATA_TIMEOUT_MS = 20000;
+  const BOOT_NOTIFICATION_TIMEOUT_MS = 5000;
+  const APP_UPDATED_DATE = '2026-07-04';
   const MAX_MISS_SUMMARY_ITEMS = 3;
   const SCORE_VERSION = 'v2-keycount-misshalf-battle';
   const SCORE_UNIT = 10;
@@ -2632,6 +3399,8 @@
       { key: 'custom', label: 'Custom', en: 'カスタム', desc: 'CSVを読み込んで、自分の語句で練習できます' }
     ],
     admin: [
+      { key: 'adminTodo', label: '管理者ToDo', en: 'ToDo', desc: '優先度の高い管理作業を確認する' },
+      { key: 'adminNotices', label: '通知管理', en: 'Notices', desc: 'ユーザー画面に表示する通知を管理する' },
       { key: 'debug', label: 'Debug', en: '管理', desc: 'ローマ字・候補確認用' }
     ]
   };
@@ -2775,7 +3544,9 @@
     active: false,
     done: false,
     startedAt: 0,
-    frame: null
+    frame: null,
+    timeout: null,
+    finish: null
   };
 
   const $ = (q) => document.querySelector(q);
@@ -2783,17 +3554,24 @@
     openingPanel: $('#openingPanel'), openingTimeProgress: $('#openingTimeProgress'), openingBar: $('#openingBar'), openingRemain: $('#openingRemain'),
     openingDisplayText: $('#openingDisplayText'), openingKanaText: $('#openingKanaText'), openingRomanText: $('#openingRomanText'),
     openingInputField: $('#openingInputField'), openingGhostTyped: $('#openingGhostTyped'), openingGhostCursor: $('#openingGhostCursor'), openingGhostRest: $('#openingGhostRest'),
-    loginBtn: $('#loginBtn'), loginRequiredModal: $('#loginRequiredModal'), loginRequiredCloseBtn: $('#loginRequiredCloseBtn'), loginRequiredConfirmBtn: $('#loginRequiredConfirmBtn'),
-    modeSel: $('#modeSel'), modeTabs: $('#modeTabs'), modeGrid: $('#modeGrid'), itemCarouselPrev: $('#itemCarouselPrev'), itemCarouselNext: $('#itemCarouselNext'), secSel: $('#secSel'), timeControl: $('#timeControl'),
+    loginBtn: $('#loginBtn'), playContextLabel: $('#playContextLabel'), notificationDock: $('#notificationDock'), noticeButton: $('#noticeButton'), noticeUnreadDot: $('#noticeUnreadDot'), noticePanel: $('#noticePanel'), noticeCloseBtn: $('#noticeCloseBtn'), noticeList: $('#noticeList'), noticeEmpty: $('#noticeEmpty'),
+    adminButton: $('#adminButton'), adminScreenPanel: $('#adminScreenPanel'), adminScreenCloseBtn: $('#adminScreenCloseBtn'), adminScreenTabs: $('#adminScreenTabs'), adminScreenBody: $('#adminScreenBody'),
+    loginRequiredModal: $('#loginRequiredModal'), loginRequiredCloseBtn: $('#loginRequiredCloseBtn'), loginRequiredConfirmBtn: $('#loginRequiredConfirmBtn'),
+    setupPanel: $('#setupPanel'), modeSel: $('#modeSel'), modeTabs: $('#modeTabs'), modeGrid: $('#modeGrid'), itemCarouselPrev: $('#itemCarouselPrev'), itemCarouselNext: $('#itemCarouselNext'), secSel: $('#secSel'), timeControl: $('#timeControl'),
     setupShell: $('#setupShell'), layerTitleMeta: $('#layerTitleMeta'), courseColumnTitle: $('#courseColumnTitle'), modeDetailPanel: $('#modeDetailPanel'), devModeBadge: $('#devModeBadge'),
+    sessionLobbyPanel: $('#sessionLobbyPanel'), sessionLobbyTitle: $('#sessionLobbyTitle'), sessionLobbyStatus: $('#sessionLobbyStatus'), sessionLobbyJoined: $('#sessionLobbyJoined'), sessionLobbyRequired: $('#sessionLobbyRequired'),
+    sessionLobbyWaiting: $('#sessionLobbyWaiting'), sessionLobbyPlaying: $('#sessionLobbyPlaying'), sessionLobbyFinished: $('#sessionLobbyFinished'), sessionLobbyStartBtn: $('#sessionLobbyStartBtn'), sessionLobbyMessage: $('#sessionLobbyMessage'),
     setupWarn: $('#setupWarn'), modeDesc: $('#modeDesc'), candidateInfo: $('#candidateInfo'),
     dataInfo: $('#dataInfo'), recordModeInfo: $('#recordModeInfo'), dataVersionInfo: $('#dataVersionInfo'),
     gamesCountInfo: $('#gamesCountInfo'), phrasesCountInfo: $('#phrasesCountInfo'), selectedModeName: $('#selectedModeName'), selectedModeDetail: $('#selectedModeDetail'), readyRecordMode: $('#readyRecordMode'),
-    startBtn: $('#startBtn'), retryBtn: $('#retryBtn'), modeSelectBtn: $('#modeSelectBtn'), nextStageBtn: $('#nextStageBtn'), clearHistoryBtn: $('#clearHistoryBtn'), clearHistoryPanelBtn: $('#clearHistoryPanelBtn'), retrySaveBtn: $('#retrySaveBtn'),
+    startBtn: $('#startBtn'), retryBtn: $('#retryBtn'), modeSelectBtn: $('#modeSelectBtn'), nextStageBtn: $('#nextStageBtn'), sessionRankingBtn: $('#sessionRankingBtn'), sessionRankingStatus: $('#sessionRankingStatus'), clearHistoryBtn: $('#clearHistoryBtn'), clearHistoryPanelBtn: $('#clearHistoryPanelBtn'), retrySaveBtn: $('#retrySaveBtn'),
     currentModeLabel: $('#currentModeLabel'), currentModeId: $('#currentModeId'), phraseCount: $('#phraseCount'),
     targetCard: $('#targetCard'), displayText: $('#displayText'), kanaText: $('#kanaText'), romajiText: $('#romajiText'),
     typebox: $('#typebox'), inputField: $('#inputField'), ghostRoman: $('#ghostRoman'), ghostTyped: $('#ghostTyped'), ghostCursor: $('#ghostCursor'), ghostRest: $('#ghostRest'), typedLog: $('#typedLog'), inputPanel: $('#inputPanel'), imeWarn: $('#imeWarn'),
-    timeProgress: $('#timeProgress'), bar: $('#bar'), remain: $('#remain'), resultPanel: $('#resultPanel'), liveMetrics: $('#liveMetrics'), historyBody: $('#historyBody'), detailHistoryBody: $('#detailHistoryBody'),
+    timeProgress: $('#timeProgress'), bar: $('#bar'), remain: $('#remain'), resultPanel: $('#resultPanel'), championshipResultPanel: $('#championshipResultPanel'), liveMetrics: $('#liveMetrics'), historyBody: $('#historyBody'), detailHistoryBody: $('#detailHistoryBody'),
+    sessionResultPanel: $('#sessionResultPanel'), sessionResultMeta: $('#sessionResultMeta'), sessionResultStatus: $('#sessionResultStatus'), sessionResultScore: $('#sessionResultScore'), sessionResultCpm: $('#sessionResultCpm'),
+    sessionResultAccuracy: $('#sessionResultAccuracy'), sessionResultMiss: $('#sessionResultMiss'), sessionResultRank: $('#sessionResultRank'), sessionResultCurrentUserBox: $('#sessionResultCurrentUserBox'),
+    sessionRankingList: $('#sessionRankingList'), sessionCompletedCount: $('#sessionCompletedCount'), sessionResultRefreshStatus: $('#sessionResultRefreshStatus'), sessionRetrySaveBtn: $('#sessionRetrySaveBtn'), sessionResultLobbyBtn: $('#sessionResultLobbyBtn'),
     timeUpNotice: $('#timeUpNotice'), battleEnemyHpReserve: $('#battleEnemyHpReserve'), playerHpReserve: $('#playerHpReserve'),
     saveStatus: $('#saveStatus'), saveRetryArea: $('#saveRetryArea'),
     mCpm: $('#mCpm'), mWpm: $('#mWpm'), mAcc: $('#mAcc'), mMiss: $('#mMiss'), mScore: $('#mScore'),
@@ -2812,6 +3590,9 @@
     sessionView: SESSION_VIEW,
     sessionError: '',
     sessionReleaseTimer: null,
+    sessionLobbyState: null,
+    sessionLobbyTimer: null,
+    sessionLobbyStarting: false,
     questWorlds: [],
     questStages: [],
     questClearRules: QUEST_CLEAR_DEFAULTS,
@@ -2871,6 +3652,23 @@
     absorbedTrailingNCount: 0,
     lastResultPayload: null,
     lastSubmitResponse: null,
+    saveRetryTimer: null,
+    saveRetryCount: 0,
+    lastSessionResultSummary: null,
+    sessionResultTimer: null,
+    sessionResultRefreshStartedAt: 0,
+    sessionResultRefreshing: false,
+    notificationPayload: null,
+    notifications: [],
+    notificationPanelOpen: false,
+    notificationLoading: false,
+    notificationUiBound: false,
+    adminPanelOpen: false,
+    adminActiveTab: 'adminTodo',
+    announcementAdmin: null,
+    announcementAdminLoading: false,
+    announcementAdminMessage: '',
+    playMaintenanceTimer: null,
     loginConfirmAction: null,
     resultRevealComplete: true,
     resultRevealTimer: null,
@@ -2918,6 +3716,50 @@
         }
         return response || { ok: false };
       },
+      async joinSessionLobby(sessionId){
+        if (!gasRuntime) return staticSessionLobbyState(sessionId);
+        return gasRun('joinTqSession', sessionId);
+      },
+      async loadSessionLobbyState(sessionId){
+        if (!gasRuntime) return staticSessionLobbyState(sessionId);
+        return gasRun('getTqSessionLobbyState', sessionId);
+      },
+      async markSessionStarted(sessionId){
+        if (!gasRuntime) return { ...staticSessionLobbyState(sessionId), status: 'started' };
+        return gasRun('markTqSessionStarted', sessionId);
+      },
+      async loadSessionResultSummary(sessionId){
+        if (!gasRuntime) return staticSessionResultSummary(sessionId);
+        return gasRun('getTqSessionResultSummary', sessionId);
+      },
+      async loadChampionshipResultSummary(termId = ''){
+        if (!gasRuntime) return { ok: false, error: 'GAS版でのみ利用できます。' };
+        return gasRun('getTqChampionshipResultSummary', termId || '');
+      },
+      async loadChampionshipResultPreview(){
+        if (!gasRuntime) return staticChampionshipResultPreview();
+        return gasRun('getTqChampionshipResultPreview');
+      },
+      async loadNotificationPayload(){
+        if (!gasRuntime) return { ok: true, enabled: false, notices: [] };
+        return gasRun('getTqNotificationPayload');
+      },
+      async loadAnnouncementAdminPayload(){
+        if (!gasRuntime) return { ok: false, error: 'GAS版でのみ利用できます。' };
+        return gasRun('getTqAnnouncementAdminPayload');
+      },
+      async approveAnnouncementNotice(noticeId){
+        if (!gasRuntime) return { ok: false, error: 'GAS版でのみ利用できます。' };
+        return gasRun('approveTqAnnouncementNotice', noticeId);
+      },
+      async rejectAnnouncementNotice(noticeId){
+        if (!gasRuntime) return { ok: false, error: 'GAS版でのみ利用できます。' };
+        return gasRun('rejectTqAnnouncementNotice', noticeId);
+      },
+      async holdAnnouncementNotice(noticeId){
+        if (!gasRuntime) return { ok: false, error: 'GAS版でのみ利用できます。' };
+        return gasRun('holdTqAnnouncementNotice', noticeId);
+      },
       async loadRanking(gameId){
         console.info('loadRanking skipped in current runtime', gameId);
         return [];
@@ -2932,11 +3774,19 @@
   async function loadGasBootData(runtimeConfig){
     let userEnvelope = null;
     try {
-      userEnvelope = await gasRun('getTypingQuestUser');
+      markBoot('user-start');
+      userEnvelope = await withTimeout(
+        gasRun('getTypingQuestUser'),
+        BOOT_USER_TIMEOUT_MS,
+        `ユーザー情報の読み込みが${Math.round(BOOT_USER_TIMEOUT_MS / 1000)}秒以内に完了しませんでした。`
+      );
+      markBoot('user-loaded');
     } catch (err) {
       console.warn('GAS user load failed:', err);
+      markBoot('user-fallback', err && err.message ? err.message : String(err || ''));
       userEnvelope = { user: emptyPlayerState().user };
     }
+    applyRuntimeUserIdentity(userEnvelope && userEnvelope.user, { render: false });
 
     const serverConfig = userEnvelope && userEnvelope.config || {};
     const candidates = typingDataUrlCandidates(runtimeConfig, serverConfig);
@@ -3061,6 +3911,8 @@
       nextTermId: '',
       nextTitle: '',
       nextStartAt: '',
+      nextEndAt: '',
+      championshipPlayerName: '',
       currentDivisionId: 'D1',
       targetChampionshipGameId: 'CH-D1',
       syncedAt: ''
@@ -3187,15 +4039,89 @@
     return playerStateFromProgressByGame(user, progressByGame, response && response.divisionState, response && response.championshipState);
   }
 
-  async function refreshPlayerStateFromRuntime(){
-    if (!(APP_CONFIG.runtime === 'gas' && isGasRuntimeAvailable())) return;
+  function normalizeRuntimeUserIdentity(user){
+    const source = user && typeof user === 'object' ? user : {};
+    const email = String(source.email || '').trim().toLowerCase();
+    if (!email && !Object.prototype.hasOwnProperty.call(source, 'isAdmin')) return null;
+    return {
+      email,
+      isAdmin: !!(APP_CONFIG.adminMode || source.isAdmin)
+    };
+  }
+
+  function applyRuntimeUserIdentity(user, options = {}){
+    const normalized = normalizeRuntimeUserIdentity(user);
+    if (!normalized) return false;
+    if (normalized.email) APP_CONFIG.userEmail = normalized.email;
+
+    const currentUser = PLAYER_STATE.user || emptyPlayerState().user;
+    const currentEmail = String(currentUser.email || '').trim().toLowerCase();
+    const nextEmail = normalized.email || currentEmail;
+    const sameUser = !currentEmail || !nextEmail || currentEmail === nextEmail;
+    const nextUser = {
+      ...currentUser,
+      ...normalized,
+      email: nextEmail,
+      isAdmin: !!(APP_CONFIG.adminMode || normalized.isAdmin || (sameUser && currentUser.isAdmin))
+    };
+    PLAYER_STATE = normalizePlayerState({
+      ...PLAYER_STATE,
+      user: nextUser
+    });
+    skipOpeningForAdminIfNeeded();
+
+    if (options.render !== false) {
+      renderModeInfo();
+      if (state.screen === 'ready') renderSetupWarningForMode();
+      if (state.adminPanelOpen && !isAdminMode()) closeAdminScreen();
+    } else {
+      updateAdminButton();
+    }
+    return true;
+  }
+
+  async function refreshRuntimeUserIdentityFromRuntime(){
+    if (!(APP_CONFIG.runtime === 'gas' && isGasRuntimeAvailable())) {
+      updateAdminButton();
+      return;
+    }
     try {
+      const userEnvelope = await gasRun('getTypingQuestUser');
+      applyRuntimeUserIdentity(userEnvelope && userEnvelope.user);
+    } catch (err) {
+      console.warn('GAS user identity refresh failed:', err);
+      updateAdminButton();
+    }
+  }
+
+  async function refreshPlayerStateFromRuntime(){
+    if (!(APP_CONFIG.runtime === 'gas' && isGasRuntimeAvailable())) {
+      updateAdminButton();
+      return;
+    }
+    try {
+      const previousUser = PLAYER_STATE.user || emptyPlayerState().user;
       const refreshed = await TQ_RUNTIME.refreshUserState({ dataVersion: optionsDataVersion() });
-      PLAYER_STATE = normalizePlayerState(refreshed);
+      const refreshedUser = refreshed && refreshed.user && typeof refreshed.user === 'object'
+        ? refreshed.user
+        : {};
+      const previousEmail = String(previousUser.email || '').trim().toLowerCase();
+      const refreshedEmail = String(refreshedUser.email || '').trim().toLowerCase();
+      const keepPreviousAdmin = !!previousUser.isAdmin &&
+        (!previousEmail || !refreshedEmail || previousEmail === refreshedEmail);
+      PLAYER_STATE = normalizePlayerState({
+        ...refreshed,
+        user: {
+          ...previousUser,
+          ...refreshedUser,
+          isAdmin: !!(APP_CONFIG.adminMode || keepPreviousAdmin || refreshedUser.isAdmin)
+        }
+      });
       renderModeInfo();
       if (state.screen === 'ready') renderSetupWarningForMode();
     } catch (err) {
       console.warn('GAS progress refresh failed:', err);
+      updateAdminButton();
     }
   }
 
@@ -3299,6 +4225,8 @@
       nextTermId: String(item.nextTermId || ''),
       nextTitle: String(item.nextTitle || ''),
       nextStartAt: String(item.nextStartAt || ''),
+      nextEndAt: String(item.nextEndAt || ''),
+      championshipPlayerName: String(item.championshipPlayerName || ''),
       currentDivisionId,
       targetChampionshipGameId,
       syncedAt: String(item.syncedAt || '')
@@ -3328,9 +4256,12 @@
   }
 
   async function init(){
+    markBoot('init-start');
+    setScreenState('opening');
+    const openingPromise = runOpeningAnimation(openingDurationForCurrentUser());
     document.body.dataset.debugView = DEBUG_VIEW ? 'true' : 'false';
     document.querySelectorAll('[data-copyright-footer]').forEach(node => {
-      node.textContent = `Copyright © ${new Date().getFullYear()} Kaijo Junior and Senior High School. All Rights Reserved.`;
+      node.textContent = `Typing Quest ${APP_UPDATED_DATE} | Copyright © ${new Date().getFullYear()} Kaijo Junior and Senior High School. All Rights Reserved.`;
     });
     if (els.loginBtn) {
       els.loginBtn.classList.toggle('hidden', isLoginAppContext());
@@ -3348,15 +4279,19 @@
         if (typeof action === 'function') action();
       });
     }
-    els.devModeBadge.classList.toggle('hidden', !DEV_VIEW);
-    setScreenState('opening');
-    const openingPromise = runOpeningAnimation(OPENING_DURATION_MS);
+    if (els.devModeBadge) els.devModeBadge.classList.toggle('hidden', !DEV_VIEW);
     els.modeSel.innerHTML = '<option>データ読み込み中...</option>';
     els.modeSel.disabled = true;
     els.startBtn.disabled = true;
-    const dataPromise = loadTypingData();
-    const data = await dataPromise;
+    markBoot('load-data');
+    const data = await withTimeout(
+      loadTypingData(),
+      BOOT_DATA_TIMEOUT_MS,
+      `起動データの読み込みが${Math.round(BOOT_DATA_TIMEOUT_MS / 1000)}秒以内に完了しませんでした。`
+    );
+    markBoot('data-loaded');
     PLAYER_STATE = normalizePlayerState(data.playerState);
+    skipOpeningForAdminIfNeeded();
     MODES = data.modes;
     state.customCsv = loadCustomCsvDataset();
     MODES = upsertCustomCsvMode(MODES);
@@ -3478,6 +4413,36 @@
         openAdminPhraseModal(openAdminPhrases);
         return;
       }
+      const adminNavSub = e.target.closest('[data-admin-nav-sub]');
+      if (adminNavSub) {
+        selectNavSub(adminNavSub.dataset.adminNavSub, { focusItem: true });
+        return;
+      }
+      const adminNoticeLoad = e.target.closest('[data-admin-notice-load]');
+      if (adminNoticeLoad) {
+        loadAnnouncementAdminPayload();
+        return;
+      }
+      const adminNoticeAction = e.target.closest('[data-admin-notice-action]');
+      if (adminNoticeAction) {
+        applyAnnouncementAdminAction(adminNoticeAction);
+        return;
+      }
+      const adminNoticePreview = e.target.closest('[data-admin-notice-preview]');
+      if (adminNoticePreview) {
+        previewAdminNotifications(adminNoticePreview.dataset.adminNoticePreview || 'notifications');
+        return;
+      }
+      const championshipResult = e.target.closest('[data-championship-result]');
+      if (championshipResult) {
+        showChampionshipResult(championshipResult.dataset.championshipResult || '');
+        return;
+      }
+      const championshipPreview = e.target.closest('[data-admin-championship-preview]');
+      if (championshipPreview) {
+        showChampionshipResultPreview();
+        return;
+      }
       const clearCustomCsv = e.target.closest('[data-custom-csv-clear]');
       if (clearCustomCsv) {
         clearCustomCsvDataset();
@@ -3520,16 +4485,32 @@
     els.retryBtn.addEventListener('click', startGame);
     els.modeSelectBtn.addEventListener('click', backToModeSelect);
     if (els.nextStageBtn) els.nextStageBtn.addEventListener('click', goToNextQuestStageFromResult);
+    if (els.sessionRankingBtn) els.sessionRankingBtn.addEventListener('click', showSessionRankingScreen);
     if (els.resultPanel) {
       els.resultPanel.addEventListener('pointerdown', () => {
         if (state.screen !== 'result') return;
         state.resultRevealUserInteracted = true;
         if (!state.resultRevealComplete) completeResultReveal({ focusRetry: false });
       }, true);
+      els.resultPanel.addEventListener('click', (e) => {
+        const championshipBack = e.target.closest('[data-championship-result-back]');
+        if (championshipBack) {
+          backToModeSelect();
+        }
+      });
     }
     els.clearHistoryBtn.addEventListener('click', clearHistory);
     if (els.clearHistoryPanelBtn) els.clearHistoryPanelBtn.addEventListener('click', clearHistory);
-    if (els.retrySaveBtn) els.retrySaveBtn.addEventListener('click', () => submitLastResultPayload({ retry: true }));
+    if (els.retrySaveBtn) els.retrySaveBtn.addEventListener('click', () => {
+      cancelScheduledSaveRetry();
+      submitLastResultPayload({ retry: true, manual: true });
+    });
+    if (els.sessionRetrySaveBtn) els.sessionRetrySaveBtn.addEventListener('click', () => {
+      cancelScheduledSaveRetry();
+      submitLastResultPayload({ retry: true, manual: true });
+    });
+    if (els.sessionResultLobbyBtn) els.sessionResultLobbyBtn.addEventListener('click', goToTypingQuestTop);
+    if (els.sessionLobbyStartBtn) els.sessionLobbyStartBtn.addEventListener('click', startSessionFromLobby);
     document.addEventListener('keydown', handleGlobalKeydown);
     els.typebox.addEventListener('compositionstart', () => {
       state.composing = true;
@@ -3555,14 +4536,135 @@
     syncDurationFromMode();
     renderModeInfo();
     renderHistory();
+    initializeSessionLobby();
+    markBoot('opening-wait');
     await openingPromise;
     completeOpeningScreen();
     setScreenState('ready');
+    markBoot('ready');
+    startPlayMaintenanceRefresh();
     focusInitialNavigationControl();
+    refreshRuntimeUserIdentityFromRuntime();
     refreshPlayerStateFromRuntime();
+    handleInitialChampionshipResultRoute();
+    bindNotificationUi();
+    initializeNotifications();
+  }
+
+  function handleBootError(error){
+    console.error('Typing Quest boot failed:', error);
+    markBoot('boot-error', error && error.message ? error.message : String(error || ''));
+    try {
+      completeOpeningScreen();
+      state.bootError = error || new Error('boot failed');
+      if (els.modeSel) {
+        els.modeSel.innerHTML = '<option>起動エラー</option>';
+        els.modeSel.disabled = true;
+      }
+      if (els.startBtn) els.startBtn.disabled = true;
+      if (els.setupWarn) {
+        els.setupWarn.textContent = `Typing Questを起動できませんでした。画面を再読み込みしてください。\n${error && error.message ? error.message : String(error || '')}`;
+        els.setupWarn.classList.add('isVisible');
+      }
+      if (els.dataInfo) els.dataInfo.textContent = 'data: boot failed';
+      setScreenState('ready');
+    } catch (fallbackError) {
+      console.error('Typing Quest boot fallback failed:', fallbackError);
+    }
+  }
+
+  function bindNotificationUi(){
+    if (state.notificationUiBound) return;
+    state.notificationUiBound = true;
+    if (els.noticeButton) {
+      els.noticeButton.addEventListener('click', toggleNotificationPanel);
+    }
+    if (els.noticeCloseBtn) {
+      els.noticeCloseBtn.addEventListener('click', () => closeNotificationPanel());
+    }
+    if (els.noticePanel) {
+      els.noticePanel.addEventListener('click', (e) => {
+        const action = e.target && e.target.closest
+          ? e.target.closest('[data-notice-action]')
+          : null;
+        if (action) handleNoticeAction(action);
+      });
+    }
+    if (els.adminButton) {
+      els.adminButton.addEventListener('click', toggleAdminScreen);
+    }
+    if (els.adminScreenCloseBtn) {
+      els.adminScreenCloseBtn.addEventListener('click', closeAdminScreen);
+    }
+    if (els.adminScreenTabs) {
+      els.adminScreenTabs.addEventListener('click', (e) => {
+        const tab = e.target && e.target.closest
+          ? e.target.closest('[data-admin-screen-tab]')
+          : null;
+        if (tab) setAdminScreenTab(tab.dataset.adminScreenTab);
+      });
+    }
+    if (els.adminScreenBody) {
+      els.adminScreenBody.addEventListener('click', (e) => {
+        const tab = e.target && e.target.closest
+          ? e.target.closest('[data-admin-screen-tab]')
+          : null;
+        if (tab) {
+          setAdminScreenTab(tab.dataset.adminScreenTab);
+          return;
+        }
+        const adminNoticeLoad = e.target.closest('[data-admin-notice-load]');
+        if (adminNoticeLoad) {
+          loadAnnouncementAdminPayload();
+          return;
+        }
+        const adminNoticeAction = e.target.closest('[data-admin-notice-action]');
+        if (adminNoticeAction) {
+          applyAnnouncementAdminAction(adminNoticeAction);
+          return;
+        }
+        const adminNoticePreview = e.target.closest('[data-admin-notice-preview]');
+        if (adminNoticePreview) {
+          previewAdminNotifications(adminNoticePreview.dataset.adminNoticePreview || 'notifications');
+        }
+      });
+    }
+    updateAdminButton();
+  }
+
+  function withTimeout(promise, timeoutMs, message){
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        reject(new Error(message || '処理がタイムアウトしました。'));
+      }, Math.max(0, Number(timeoutMs) || 0));
+      Promise.resolve(promise).then(
+        value => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          resolve(value);
+        },
+        error => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(timer);
+          reject(error);
+        }
+      );
+    });
+  }
+
+  function markBoot(label, detail){
+    if (typeof window !== 'undefined' && typeof window.TQ_BOOT_MARK === 'function') {
+      window.TQ_BOOT_MARK(label, detail || '');
+    }
   }
 
   function renderModeInfo(){
+    updateAdminButton();
     state.visibleModes = selectableModes();
     if (!state.mode) {
       els.modeDesc.textContent = '';
@@ -3570,9 +4672,10 @@
       els.selectedModeName.textContent = '-';
       els.selectedModeDetail.textContent = '-';
       els.readyRecordMode.textContent = currentRecordMode();
-      els.currentModeLabel.textContent = '-';
-      els.currentModeId.textContent = '';
-      els.phraseCount.textContent = '0';
+	      els.currentModeLabel.textContent = '-';
+	      els.currentModeId.textContent = '';
+	      updatePlayContextLabel();
+	      els.phraseCount.textContent = '0';
       renderHiddenModeSelect();
       renderNavigation();
       renderStartupInfo();
@@ -3589,9 +4692,10 @@
     els.selectedModeName.textContent = state.mode.label;
     els.selectedModeDetail.textContent = selectedModeDetailText(state.mode);
     els.readyRecordMode.textContent = currentRecordMode();
-    els.currentModeLabel.textContent = state.mode.label;
-    els.currentModeId.textContent = `(${state.mode.id})`;
-    els.phraseCount.textContent = String(candidatePhraseCount(state.mode));
+	    els.currentModeLabel.textContent = state.mode.label;
+	    els.currentModeId.textContent = `(${state.mode.id})`;
+	    updatePlayContextLabel();
+	    els.phraseCount.textContent = String(candidatePhraseCount(state.mode));
     renderHiddenModeSelect();
     renderNavigation();
     renderStartupInfo();
@@ -3641,6 +4745,7 @@
   function allSelectableModes(){
     return modePoolForCurrentApp().filter(mode => {
       const group = modeGroupKey(mode);
+      if (group === 'session') return hasSessionView();
       if (group === 'debug') return isAdminMode();
       if (group === 'class') return classContextEnabled() || isAdminMode();
       return isModeVisibleForCurrentUser(mode);
@@ -4238,6 +5343,8 @@
       sessionId,
       gameCode: String(value.gameCode || ''),
       gameIndex: value.gameIndex === '' || value.gameIndex === undefined || value.gameIndex === null ? '' : Number(value.gameIndex),
+      variant: String(value.variant || ''),
+      variantIndex: value.variantIndex === '' || value.variantIndex === undefined || value.variantIndex === null ? '' : Number(value.variantIndex),
       gameId,
       releaseAt: String(value.releaseAt || ''),
       validFrom: String(value.validFrom || ''),
@@ -4301,11 +5408,311 @@
     return `${mm}月${dd}日 ${hh}:${mi}`;
   }
 
+  function staticSessionLobbyState(sessionId){
+    return {
+      ok: true,
+      sessionId: String(sessionId || ''),
+      joinedCount: 1,
+      requiredParticipantCount: 1,
+      canStartByCount: true,
+      status: 'joined'
+    };
+  }
+
+  function staticSessionResultSummary(sessionId){
+    const payload = state.lastResultPayload || {};
+    const metrics = payload.result || {};
+    const email = String(APP_CONFIG.userEmail || PLAYER_STATE.user && PLAYER_STATE.user.email || '').trim();
+    const displayName = sessionDisplayNameFromEmail(email);
+    const row = {
+      rank: 1,
+      email,
+      displayName,
+      score: Number(firstDefined(metrics.score, payload.score, 0) || 0),
+      cpm: Number(firstDefined(metrics.cpm, payload.cpm, 0) || 0),
+      accuracy: Number(firstDefined(metrics.accuracyPercent, payload.accuracyPercent, 0) || 0),
+      missCount: Number(firstDefined(metrics.missCount, payload.missCount, 0) || 0),
+      correctCount: Number(firstDefined(metrics.correctKeyCount, payload.correctCount, 0) || 0),
+      timestamp: payload.finishedAt || '',
+      resultId: payload.resultId || '',
+      inTop: true,
+      isCurrentUser: true
+    };
+    return {
+      ok: true,
+      sessionId: String(sessionId || payload.sessionId || ''),
+      completedCount: payload.resultId ? 1 : 0,
+      joinedCount: payload.resultId ? 1 : 0,
+      finishedCount: payload.resultId ? 1 : 0,
+      playingCount: 0,
+      enteredCount: payload.resultId ? 1 : 0,
+      requiredParticipantCount: 1,
+      expectedParticipantCount: 1,
+      rankingEligibleStartedCount: 0,
+      rankingEligibleFinishedCount: payload.resultId ? 1 : 0,
+      rankingEligibleStartedOrFinishedCount: payload.resultId ? 1 : 0,
+      rankingEligiblePlayingCount: 0,
+      rankingExcludedStartedCount: 0,
+      rankingExcludedFinishedCount: 0,
+      canShowRanking: !!payload.resultId,
+      rankingReady: !!payload.resultId,
+      rankingState: payload.resultId ? 'ready' : 'not_enough_eligible',
+      rankingStateMessage: payload.resultId ? 'ランキング表示可能です。' : '最少催行人数の終了を待っています。',
+      rankingCutoffAt: payload.resultId ? payload.finishedAt || '' : '',
+      rankingTargetFinalized: !!payload.resultId,
+      rankingTopLimit: 5,
+      ranking: payload.resultId ? [row] : [],
+      currentUser: payload.resultId ? row : null,
+      currentUserRankingEligible: !!payload.resultId,
+      currentUserRankingExcludedReason: '',
+      updatedAt: new Date().toISOString(),
+      staticPreview: true
+    };
+  }
+
+  function staticChampionshipResultPreview(){
+    return {
+      ok: true,
+      preview: true,
+      termId: '2026-TX',
+      title: '第X回 Typing Quest Championship',
+      publishAt: '2026-07-19T08:00:00+09:00',
+      entryDivisionId: 'D4',
+      divisionName: 'D4 チャレンジャー',
+      participantCount: 12,
+      topLimit: 3,
+      currentUser: {
+        rank: 7,
+        championshipPlayerName: 'TQ-A7F3',
+        inTop: false,
+        score: 9870,
+        cpm: 210.5,
+        accuracy: 96.2,
+        missCount: 5,
+        correctCount: 150,
+        timestamp: '2026-07-18 10:27:00',
+        resultId: 'dummy-current',
+        isCurrentUser: true
+      },
+      ranking: [
+        { rank: 1, championshipPlayerName: 'TQ-K8D2', score: 12345, cpm: 256.8, accuracy: 98.5, missCount: 2, correctCount: 180, resultId: 'dummy-1' },
+        { rank: 2, championshipPlayerName: 'TQ-Q91A', score: 11980, cpm: 242.4, accuracy: 97.4, missCount: 3, correctCount: 172, resultId: 'dummy-2' },
+        { rank: 3, championshipPlayerName: 'TQ-A2P8', score: 11240, cpm: 235.1, accuracy: 96.8, missCount: 4, correctCount: 168, resultId: 'dummy-3' }
+      ],
+      updatedAt: new Date().toISOString()
+    };
+  }
+
+  function normalizeSessionLobbyState(source){
+    const item = source && typeof source === 'object' ? source : {};
+    const required = Math.max(1, Number(item.requiredParticipantCount || 20));
+    const joined = Math.max(0, Number(item.joinedCount || 0));
+    const playing = Math.max(0, Number(item.playingCount || 0));
+    const finished = Math.max(0, Number(item.finishedCount || 0));
+    const entered = Math.max(joined + playing + finished, Number(item.enteredCount || 0));
+    return {
+      ok: item.ok !== false,
+      sessionId: String(item.sessionId || state.sessionView && state.sessionView.sessionId || ''),
+      email: String(item.email || ''),
+      joinedCount: joined,
+      playingCount: playing,
+      finishedCount: finished,
+      enteredCount: entered,
+      requiredParticipantCount: required,
+      rankingEligibleStartedCount: Math.max(0, Number(item.rankingEligibleStartedCount || 0)),
+      rankingEligibleFinishedCount: Math.max(0, Number(item.rankingEligibleFinishedCount || 0)),
+      rankingEligibleStartedOrFinishedCount: Math.max(0, Number(item.rankingEligibleStartedOrFinishedCount || 0)),
+      rankingEligiblePlayingCount: Math.max(0, Number(item.rankingEligiblePlayingCount || 0)),
+      rankingExcludedStartedCount: Math.max(0, Number(item.rankingExcludedStartedCount || 0)),
+      rankingExcludedFinishedCount: Math.max(0, Number(item.rankingExcludedFinishedCount || 0)),
+      canStartByCount: item.canStartByCount === undefined ? entered >= required : !!item.canStartByCount,
+      canShowRanking: !!item.canShowRanking,
+      rankingState: String(item.rankingState || ''),
+      rankingStateMessage: String(item.rankingStateMessage || ''),
+      rankingCutoffAt: String(item.rankingCutoffAt || ''),
+      rankingTargetFinalized: !!item.rankingTargetFinalized,
+      canPlay: item.canPlay === undefined ? true : !!item.canPlay,
+      alreadyFinished: !!item.alreadyFinished,
+      status: String(item.status || '')
+    };
+  }
+
+  function applySessionLobbyState(lobbyState){
+    state.sessionLobbyState = normalizeSessionLobbyState(lobbyState);
+    renderSessionLobby();
+    maybeAutoShowSessionRankingFromLobby();
+  }
+
+  function maybeAutoShowSessionRankingFromLobby(){
+    const lobby = state.sessionLobbyState || {};
+    if (!hasSessionView() || !lobby.canShowRanking) return;
+    if (state.running || state.countdownActive || state.sessionLobbyStarting || isSessionResultPayload(state.lastResultPayload)) return;
+    showSessionRankingScreen({ allowWithoutResult: true, auto: true });
+  }
+
+  function sessionLobbyJoinedCount(){
+    return Number(state.sessionLobbyState && state.sessionLobbyState.joinedCount || 0);
+  }
+
+  function sessionLobbyPlayingCount(){
+    return Number(state.sessionLobbyState && state.sessionLobbyState.playingCount || 0);
+  }
+
+  function sessionLobbyFinishedCount(){
+    return Number(state.sessionLobbyState && state.sessionLobbyState.finishedCount || 0);
+  }
+
+  function sessionLobbyEnteredCount(){
+    return Number(state.sessionLobbyState && state.sessionLobbyState.enteredCount || 0);
+  }
+
+  function sessionLobbyRequiredCount(){
+    return Math.max(1, Number(state.sessionLobbyState && state.sessionLobbyState.requiredParticipantCount || 20));
+  }
+
+  function sessionLobbyCanStartByCount(){
+    const lobby = state.sessionLobbyState || {};
+    return !!lobby.canStartByCount && sessionLobbyEnteredCount() >= sessionLobbyRequiredCount();
+  }
+
+  function sessionLobbyCanStart(){
+    return hasSessionView()
+      && !playMaintenanceLockState().locked
+      && sessionReleased()
+      && sessionLobbyCanStartByCount()
+      && sessionLobbyCurrentUserCanPlay();
+  }
+
+  function sessionLobbyCurrentUserCanPlay(){
+    const lobby = state.sessionLobbyState || {};
+    return lobby.canPlay !== false && !lobby.alreadyFinished && lobby.status !== 'finished';
+  }
+
   function sessionStartDisabledReason(){
     if (state.sessionError) return state.sessionError;
     if (!hasSessionView()) return '';
+    const maintenanceLock = playMaintenanceLockState();
+    if (maintenanceLock.locked) return maintenanceLock.message;
     if (!sessionReleased()) return `開始時刻までお待ちください。開始予定: ${sessionReleaseLabel()}`;
+    if (!sessionLobbyCurrentUserCanPlay()) {
+      return (state.sessionLobbyState && state.sessionLobbyState.canShowRanking)
+        ? 'このセッションはプレイ済みです。ランキングを表示できます。'
+        : 'このセッションはプレイ済みです。ランキング表示までお待ちください。';
+    }
+    if (!sessionLobbyCanStartByCount()) {
+      return `参加者を待っています。${sessionLobbyEnteredCount()} / ${sessionLobbyRequiredCount()} 人`;
+    }
     return '';
+  }
+
+  function syncSessionLobbyVisibility(){
+    document.body.dataset.sessionLobby = hasSessionView() ? 'true' : 'false';
+  }
+
+  function renderSessionLobby(){
+    syncSessionLobbyVisibility();
+    if (!hasSessionView() || !els.sessionLobbyPanel) return;
+    const view = state.sessionView || {};
+    const joined = sessionLobbyJoinedCount();
+    const playing = sessionLobbyPlayingCount();
+    const finished = sessionLobbyFinishedCount();
+    const entered = sessionLobbyEnteredCount();
+    const required = sessionLobbyRequiredCount();
+    const canStart = sessionLobbyCanStart();
+    const reason = sessionStartDisabledReason();
+    const maintenanceLock = playMaintenanceLockState();
+    const status = state.sessionError
+      ? 'このセッションを開始できません'
+      : maintenanceLock.locked
+        ? 'メンテナンス中'
+      : !sessionReleased()
+        ? '開始時刻までお待ちください'
+        : sessionLobbyCanStartByCount()
+          ? '準備ができました'
+          : '参加者を待っています';
+    if (els.sessionLobbyTitle) els.sessionLobbyTitle.textContent = view.title || 'タイピング選手権';
+    if (els.sessionLobbyStatus) els.sessionLobbyStatus.textContent = status;
+    if (els.sessionLobbyJoined) els.sessionLobbyJoined.textContent = String(entered);
+    if (els.sessionLobbyRequired) els.sessionLobbyRequired.textContent = String(required);
+    if (els.sessionLobbyWaiting) els.sessionLobbyWaiting.textContent = `${joined}人`;
+    if (els.sessionLobbyPlaying) els.sessionLobbyPlaying.textContent = `${playing}人`;
+    if (els.sessionLobbyFinished) els.sessionLobbyFinished.textContent = `${finished}人`;
+    if (els.sessionLobbyStartBtn) {
+      els.sessionLobbyStartBtn.disabled = !canStart || state.sessionLobbyStarting;
+      els.sessionLobbyStartBtn.textContent = state.sessionLobbyStarting ? '開始準備中...' : 'プレイ開始';
+    }
+    if (els.sessionLobbyMessage) {
+      els.sessionLobbyMessage.textContent = state.sessionError
+        ? state.sessionError
+        : reason || '準備ができました。開始できます。';
+    }
+  }
+
+  async function initializeSessionLobby(){
+    syncSessionLobbyVisibility();
+    if (!hasSessionView()) return;
+    renderSessionLobby();
+    try {
+      const response = await TQ_RUNTIME.joinSessionLobby(state.sessionView.sessionId);
+      applySessionLobbyState(response);
+      startSessionLobbyPolling();
+    } catch (err) {
+      console.warn('Session lobby join failed:', err);
+      state.sessionError = String(err && err.message || err || 'セッション参加登録に失敗しました。');
+      renderSessionLobby();
+    }
+  }
+
+  function startSessionLobbyPolling(){
+    stopSessionLobbyPolling();
+    if (!hasSessionView()) return;
+    state.sessionLobbyTimer = setInterval(refreshSessionLobbyState, SESSION_LOBBY_POLL_MS);
+  }
+
+  function stopSessionLobbyPolling(){
+    if (!state.sessionLobbyTimer) return;
+    clearInterval(state.sessionLobbyTimer);
+    state.sessionLobbyTimer = null;
+  }
+
+  async function refreshSessionLobbyState(){
+    if (!hasSessionView() || state.running || state.countdownActive) {
+      stopSessionLobbyPolling();
+      return;
+    }
+    try {
+      const response = await TQ_RUNTIME.loadSessionLobbyState(state.sessionView.sessionId);
+      applySessionLobbyState(response);
+    } catch (err) {
+      console.warn('Session lobby refresh failed:', err);
+    }
+  }
+
+  async function startSessionFromLobby(){
+    if (!hasSessionView() || state.sessionLobbyStarting) return;
+    if (!sessionLobbyCanStart()) {
+      renderSessionLobby();
+      return;
+    }
+    state.sessionLobbyStarting = true;
+    renderSessionLobby();
+    try {
+      const response = await TQ_RUNTIME.markSessionStarted(state.sessionView.sessionId);
+      applySessionLobbyState(response);
+      if (response && response.canPlay === false) {
+        state.sessionLobbyStarting = false;
+        renderSessionLobby();
+        return;
+      }
+      stopSessionLobbyPolling();
+      state.sessionLobbyStarting = false;
+      startGame();
+    } catch (err) {
+      console.warn('Session lobby start failed:', err);
+      state.sessionLobbyStarting = false;
+      state.sessionError = String(err && err.message || err || '開始登録に失敗しました。');
+      renderSessionLobby();
+    }
   }
 
   function scheduleSessionReleaseRefresh(){
@@ -4329,6 +5736,7 @@
       sessionId: state.sessionView.sessionId,
       sessionAttemptNo: Number(state.sessionView.sessionAttemptNo || 1),
       sessionGameCode: state.sessionView.gameCode || '',
+      sessionVariant: state.sessionView.variant || '',
       sessionMode: true
     };
   }
@@ -4701,7 +6109,7 @@
       return {
         locked: true,
         reason: 'championship_not_open',
-        message: '開催期間外です',
+        message: championshipClosedMessage(championship),
         label: 'LOCKED',
         statusClass: 'locked'
       };
@@ -4729,18 +6137,63 @@
     return {
       locked: false,
       reason: '',
-      message: championship.title
-        ? `${championship.title} 開催中`
-        : 'チャンピオンシップ開催中',
+      message: championshipOpenMessage(championship, division),
       label: '参加可',
       statusClass: 'challenge'
     };
   }
 
+  function playMaintenanceLockState(now = new Date()){
+    const minutes = minutesInTimeZone(now, PLAY_MAINTENANCE_TIME_ZONE);
+    const locked = Number.isFinite(minutes)
+      ? isMinuteInOvernightWindow(
+        minutes,
+        PLAY_MAINTENANCE_BLOCK_START_MIN,
+        PLAY_MAINTENANCE_BLOCK_END_MIN
+      )
+      : false;
+    return {
+      locked,
+      reason: locked ? 'night_maintenance' : '',
+      message: locked ? PLAY_MAINTENANCE_DISPLAY_LABEL : '',
+      label: locked ? 'メンテナンス中' : '',
+      statusClass: locked ? 'locked' : ''
+    };
+  }
+
+  function minutesInTimeZone(date, timeZone){
+    const target = date instanceof Date ? date : new Date(date);
+    if (!(target instanceof Date) || Number.isNaN(target.getTime())) return NaN;
+    try {
+      const formatter = new Intl.DateTimeFormat('ja-JP', {
+        timeZone,
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false,
+        hourCycle: 'h23'
+      });
+      const parts = formatter.formatToParts(target);
+      const hour = Number((parts.find(part => part.type === 'hour') || {}).value);
+      const minute = Number((parts.find(part => part.type === 'minute') || {}).value);
+      if (Number.isFinite(hour) && Number.isFinite(minute)) return (hour % 24) * 60 + minute;
+    } catch (err) {
+      console.warn('Time zone maintenance check failed:', err);
+    }
+    return target.getHours() * 60 + target.getMinutes();
+  }
+
+  function isMinuteInOvernightWindow(minutes, startMin, endMin){
+    if (!Number.isFinite(minutes)) return false;
+    if (startMin === endMin) return true;
+    if (startMin < endMin) return minutes >= startMin && minutes < endMin;
+    return minutes >= startMin || minutes < endMin;
+  }
+
   function canStartSelectedMode(mode){
     if (state.sessionError) return false;
     if (state.bootError || !mode) return false;
-    if (modeGroupKey(mode) === 'session' && !sessionReleased()) return false;
+    if (playMaintenanceLockState().locked) return false;
+    if (modeGroupKey(mode) === 'session' && !sessionLobbyCanStart()) return false;
     if (modeRequiresLoginForWeb(mode)) return false;
     if (!isCustomCsvMode(mode) && Number(state.dataInfo && state.dataInfo.phrasesCount || 0) === 0) return false;
     if (!(mode.phrases && mode.phrases.length)) return false;
@@ -4758,6 +6211,8 @@
   function startDisabledReason(mode){
     if (state.sessionError) return state.sessionError;
     if (state.bootError) return 'typing-data.json を読み込めませんでした。';
+    const maintenanceLock = playMaintenanceLockState();
+    if (maintenanceLock.locked) return maintenanceLock.message;
     if (modeGroupKey(mode) === 'session') return sessionStartDisabledReason();
     if (modeRequiresLoginForWeb(mode)) return loginRequiredMessage();
     if (isCustomCsvMode(mode) && !(mode && mode.phrases && mode.phrases.length)) return 'CSVをアップロードしてください。';
@@ -4830,6 +6285,660 @@
     return number % 1 === 0 ? String(number) : number.toFixed(1);
   }
 
+  function formatDateTimeMinuteLabel(value){
+    const text = String(value || '').trim();
+    if (!text) return '';
+    const time = Date.parse(text);
+    if (!Number.isFinite(time)) return text.replace('T', ' ');
+    const date = new Date(time);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mi = String(date.getMinutes()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+  }
+
+  function formatDateTimeMinuteSlashLabel(value){
+    const text = String(value || '').trim();
+    if (!text) return '';
+    const localMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})/);
+    if (localMatch) {
+      return `${localMatch[1]}/${localMatch[2]}/${localMatch[3]} ${localMatch[4]}:${localMatch[5]}`;
+    }
+    const time = Date.parse(text);
+    if (!Number.isFinite(time)) return text.replace('T', ' ');
+    const date = new Date(time);
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mi = String(date.getMinutes()).padStart(2, '0');
+    return `${yyyy}/${mm}/${dd} ${hh}:${mi}`;
+  }
+
+  function championshipPeriodText(startAt, endAt){
+    const start = formatDateTimeMinuteSlashLabel(startAt);
+    const end = formatDateTimeMinuteSlashLabel(endAt);
+    if (start && end) return `${start} - ${end}`;
+    return start || end || '';
+  }
+
+  function championshipNextScheduleText(championship = currentChampionshipState()){
+    const title = String((championship && (championship.nextTitle || championship.nextTermId)) || '').trim();
+    const period = championshipPeriodText(
+      championship && championship.nextStartAt,
+      championship && championship.nextEndAt
+    );
+    if (!title && !period) return '';
+    return [title || '次回Championship', period].filter(Boolean).join(' / ');
+  }
+
+  function championshipClosedMessage(championship = currentChampionshipState()){
+    const next = championshipNextScheduleText(championship);
+    return next ? `次回開催：${next}` : '開催期間外です';
+  }
+
+  function championshipOpenMessage(championship = currentChampionshipState(), division = currentDivisionState()){
+    const title = String(championship && championship.title || '').trim() || 'Typing Quest Championship';
+    const divisionLabel = String(division && (division.currentDivisionLabel || division.currentDivisionId) || '').trim();
+    return divisionLabel
+      ? `${title} 開催中 / 参加Division：${divisionLabel}`
+      : `${title} 開催中`;
+  }
+
+  function currentChampionshipResultTermId(){
+    const championship = currentChampionshipState();
+    return String(championship.termId || championship.nextTermId || '').trim();
+  }
+
+  function renderChampionshipResultActions(){
+    if (!isLoginRuntime()) return '';
+    const termId = currentChampionshipResultTermId();
+    const playerName = String(currentChampionshipState().championshipPlayerName || '').trim();
+    return `
+      <div class="sessionCurrentUserBox championshipResultActionBox">
+        ${playerName ? `<div>今回のプレイヤー名: ${escapeHtml(playerName)}</div>` : ''}
+        <div class="sessionResultActions">
+          <button type="button" data-championship-result="${escapeHtml(termId)}">チャンピオンシップ結果を見る</button>
+          ${isAdminMode() ? '<button type="button" data-admin-championship-preview>Preview: Championship Result</button>' : ''}
+        </div>
+      </div>
+    `;
+  }
+
+  function initializeNotifications(){
+    if (!els.notificationDock || hasSessionView()) return;
+    refreshNotificationPayload({ autoOpen: true });
+  }
+
+  async function refreshNotificationPayload(options = {}){
+    if (hasSessionView() || !els.notificationDock) return;
+    state.notificationLoading = true;
+    try {
+      const payload = await withTimeout(
+        TQ_RUNTIME.loadNotificationPayload(),
+        BOOT_NOTIFICATION_TIMEOUT_MS,
+        `通知の読み込みが${Math.round(BOOT_NOTIFICATION_TIMEOUT_MS / 1000)}秒以内に完了しませんでした。`
+      );
+      applyNotificationPayload(payload, {
+        autoOpen: options.autoOpen !== false
+      });
+    } catch (err) {
+      console.warn('Notification payload load failed:', err);
+      state.notificationPayload = { ok: false, enabled: false, notices: [] };
+      state.notifications = [];
+      els.notificationDock.hidden = true;
+    } finally {
+      state.notificationLoading = false;
+    }
+  }
+
+  function applyNotificationPayload(payload, options = {}){
+    const source = payload && typeof payload === 'object' ? payload : {};
+    const enabled = source.enabled !== false && source.ok !== false;
+    const notices = normalizeClientNotices(source.notices).filter(notice => !notice.suppressed);
+    state.notificationPayload = {
+      ...source,
+      enabled,
+      notices
+    };
+    state.notifications = notices;
+    if (els.notificationDock) els.notificationDock.hidden = hasSessionView() || !enabled;
+    renderNotificationPanel();
+    updateNotificationButton();
+    if (enabled && options.autoOpen) {
+      const unreadForce = notices.find(notice => notice.forceDisplay && (!notice.dismissible || !isNoticeRead(notice.noticeId)));
+      if (unreadForce) openNotificationPanel({ auto: true });
+    }
+  }
+
+  function normalizeClientNotices(notices){
+    return (Array.isArray(notices) ? notices : [])
+      .map(notice => {
+        const source = notice && typeof notice === 'object' ? notice : {};
+        return {
+          noticeId: String(source.noticeId || '').trim(),
+          type: String(source.type || 'info').trim(),
+          severity: String(source.severity || 'info').trim(),
+          title: String(source.title || '').trim(),
+          bodyHtml: String(source.bodyHtml || ''),
+          buttonLabel: String(source.buttonLabel || '').trim(),
+          buttonAction: String(source.buttonAction || 'none').trim(),
+          buttonPayload: String(source.buttonPayload || '').trim(),
+          startAt: String(source.startAt || ''),
+          endAt: String(source.endAt || ''),
+          forceDisplay: !!source.forceDisplay,
+          dismissible: source.dismissible !== false,
+          priority: Number(source.priority || 0),
+          source: String(source.source || ''),
+          sourceRef: String(source.sourceRef || ''),
+          notifyReason: String(source.notifyReason || ''),
+          suppressed: !!source.suppressed
+        };
+      })
+      .filter(notice => notice.noticeId && notice.title)
+      .sort(compareClientNoticeOrder);
+  }
+
+  function compareClientNoticeOrder(a, b){
+    if (a.forceDisplay !== b.forceDisplay) return a.forceDisplay ? -1 : 1;
+    if (a.priority !== b.priority) return b.priority - a.priority;
+    const left = Date.parse(a.startAt || '');
+    const right = Date.parse(b.startAt || '');
+    if (Number.isFinite(left) && Number.isFinite(right) && left !== right) return right - left;
+    return a.noticeId.localeCompare(b.noticeId, 'ja');
+  }
+
+  function visibleNotificationCards(){
+    return state.notifications.slice().sort(compareClientNoticeOrder).slice(0, 3);
+  }
+
+  function updateNotificationButton(){
+    if (!els.noticeUnreadDot || !els.noticeButton) return;
+    const hasUnread = state.notifications.some(notice => !isNoticeRead(notice.noticeId));
+    els.noticeUnreadDot.hidden = !hasUnread;
+    els.noticeButton.setAttribute('aria-expanded', state.notificationPanelOpen ? 'true' : 'false');
+  }
+
+  function updateAdminButton(){
+    if (!els.adminButton) return;
+    const available = isAdminMode() && !hasSessionView();
+    els.adminButton.hidden = !available;
+    els.adminButton.setAttribute('aria-expanded', state.adminPanelOpen ? 'true' : 'false');
+  }
+
+  function toggleAdminScreen(){
+    if (state.adminPanelOpen) closeAdminScreen();
+    else openAdminScreen();
+  }
+
+  function openAdminScreen(tabKey){
+    if (!els.adminScreenPanel || !isAdminMode()) return;
+    closeNotificationPanel();
+    state.adminPanelOpen = true;
+    if (tabKey) state.adminActiveTab = normalizeAdminScreenTab_(tabKey);
+    if (els.setupPanel) els.setupPanel.hidden = true;
+    els.adminScreenPanel.hidden = false;
+    renderAdminStandaloneScreen();
+    updateAdminButton();
+    if (state.adminActiveTab === 'adminNotices') ensureAnnouncementAdminPayloadLoaded();
+  }
+
+  function closeAdminScreen(){
+    state.adminPanelOpen = false;
+    if (els.adminScreenPanel) els.adminScreenPanel.hidden = true;
+    if (els.setupPanel) els.setupPanel.hidden = false;
+    updateAdminButton();
+    renderModeInfo();
+  }
+
+  function setAdminScreenTab(tabKey){
+    state.adminActiveTab = normalizeAdminScreenTab_(tabKey);
+    renderAdminStandaloneScreen();
+    if (state.adminActiveTab === 'adminNotices') ensureAnnouncementAdminPayloadLoaded();
+  }
+
+  function normalizeAdminScreenTab_(tabKey){
+    const key = String(tabKey || '').trim();
+    return adminScreenTabs_().some(tab => tab.key === key) ? key : 'adminTodo';
+  }
+
+  function adminScreenTabs_(){
+    return [
+      { key: 'adminTodo', label: '管理者ToDo' },
+      { key: 'adminNotices', label: '通知管理' }
+    ];
+  }
+
+  function renderAdminStandaloneScreen(){
+    if (!els.adminScreenPanel || !els.adminScreenTabs || !els.adminScreenBody) return;
+    const active = normalizeAdminScreenTab_(state.adminActiveTab);
+    state.adminActiveTab = active;
+    els.adminScreenTabs.innerHTML = adminScreenTabs_().map(tab => `
+      <button class="adminStandaloneTab" type="button" role="tab" data-admin-screen-tab="${escapeHtml(tab.key)}" aria-selected="${tab.key === active ? 'true' : 'false'}">
+        ${escapeHtml(tab.label)}
+      </button>
+    `).join('');
+    els.adminScreenBody.innerHTML = active === 'adminNotices'
+      ? renderAdminNoticeManagementPanel()
+      : renderAdminTodoPanel();
+  }
+
+  function renderNotificationPanel(){
+    if (!els.noticeList || !els.noticeEmpty) return;
+    const notices = visibleNotificationCards();
+    els.noticeList.innerHTML = notices.map(renderNotificationCard).join('');
+    els.noticeEmpty.hidden = notices.length > 0;
+  }
+
+  function renderNotificationCard(notice){
+    const severityClass = noticeSeverityClass(notice.severity);
+    const action = notice.buttonAction && notice.buttonAction !== 'none' && notice.buttonLabel
+      ? `<button class="noticeActionBtn" type="button" data-notice-action="${escapeHtml(notice.buttonAction)}" data-notice-payload="${escapeHtml(notice.buttonPayload)}">${escapeHtml(notice.buttonLabel)}</button>`
+      : '';
+    return `
+      <article class="noticeCard ${notice.forceDisplay ? 'forceDisplay' : ''}">
+        <div class="noticeMeta">
+          <span>${escapeHtml(notice.type || 'info')}</span>
+          <span class="${severityClass}">${escapeHtml(notice.severity || 'info')}</span>
+        </div>
+        <h3 class="noticeTitle">${escapeHtml(notice.title)}</h3>
+        <div class="noticeBody">${notice.bodyHtml || ''}</div>
+        ${action}
+      </article>
+    `;
+  }
+
+  function noticeSeverityClass(severity){
+    const value = String(severity || '').toLowerCase();
+    if (value === 'success') return 'severitySuccess';
+    if (value === 'warning') return 'severityWarning';
+    if (value === 'danger') return 'severityDanger';
+    return '';
+  }
+
+  function toggleNotificationPanel(){
+    if (state.notificationPanelOpen) closeNotificationPanel();
+    else openNotificationPanel();
+  }
+
+  function openNotificationPanel(options = {}){
+    if (!els.noticePanel || !els.noticeButton) return;
+    state.notificationPanelOpen = true;
+    renderNotificationPanel();
+    els.noticePanel.hidden = false;
+    els.noticeButton.setAttribute('aria-expanded', 'true');
+    if (options.markRead !== false) markNoticesRead(state.notifications.map(notice => notice.noticeId));
+    updateNotificationButton();
+  }
+
+  function closeNotificationPanel(){
+    if (!els.noticePanel || !els.noticeButton) return;
+    state.notificationPanelOpen = false;
+    els.noticePanel.hidden = true;
+    els.noticeButton.setAttribute('aria-expanded', 'false');
+    updateNotificationButton();
+  }
+
+  function handleNoticeAction(button){
+    const action = String(button && button.dataset.noticeAction || 'none');
+    const payload = parseNoticeButtonPayload(button && button.dataset.noticePayload);
+    if (action === 'openChampionshipResult') {
+      closeNotificationPanel();
+      showChampionshipResult(payload.termId || '');
+      return;
+    }
+    const targetUrl = String(payload.url || '').trim();
+    if (action === 'openUrl' && targetUrl.toLowerCase().indexOf('https://') === 0) {
+      location.href = targetUrl;
+    }
+  }
+
+  function parseNoticeButtonPayload(value){
+    const text = String(value || '').trim();
+    if (!text) return {};
+    try {
+      const parsed = JSON.parse(text);
+      return parsed && typeof parsed === 'object' ? parsed : {};
+    } catch (err) {
+      return {};
+    }
+  }
+
+  function readNoticeIds(){
+    try {
+      const parsed = JSON.parse(localStorage.getItem(READ_NOTICE_IDS_KEY) || '[]');
+      return Array.isArray(parsed) ? parsed.map(id => String(id || '').trim()).filter(Boolean) : [];
+    } catch (err) {
+      return [];
+    }
+  }
+
+  function isNoticeRead(noticeId){
+    return readNoticeIds().includes(String(noticeId || '').trim());
+  }
+
+  function markNoticesRead(noticeIds){
+    const ids = readNoticeIds();
+    (Array.isArray(noticeIds) ? noticeIds : []).forEach(noticeId => {
+      const id = String(noticeId || '').trim();
+      if (id && !ids.includes(id)) ids.push(id);
+    });
+    try {
+      localStorage.setItem(READ_NOTICE_IDS_KEY, JSON.stringify(ids.slice(-100)));
+    } catch (err) {
+      console.warn('Notice read state save failed:', err);
+    }
+  }
+
+  function renderAdminPanelDetail(){
+    if (!isAdminMode()) {
+      els.modeDetailPanel.innerHTML = '<div class="emptyPanel">管理者のみ利用できます。</div>';
+      return;
+    }
+    els.modeDetailPanel.innerHTML = state.activeSub === 'adminNotices'
+      ? renderAdminNoticeManagementPanel()
+      : renderAdminTodoPanel();
+  }
+
+  function renderAdminScreenHeader(title, description, actions = ''){
+    return `
+      <div class="adminScreenHeader">
+        <div>
+          <p class="eyebrow">Admin</p>
+          <h2>${escapeHtml(title || '')}</h2>
+          ${description ? `<p>${escapeHtml(description)}</p>` : ''}
+        </div>
+        ${actions ? `<div class="adminScreenActions">${actions}</div>` : ''}
+      </div>
+    `;
+  }
+
+  function renderAdminTodoPanel(){
+    const stats = adminNoticeStats();
+    const actions = `
+      <button type="button" data-admin-screen-tab="adminNotices">通知管理へ</button>
+      <button type="button" data-admin-notice-load ${state.announcementAdminLoading ? 'disabled' : ''}>通知候補を更新</button>
+    `;
+    return `
+      <section class="adminScreen" aria-label="管理者ToDo">
+        ${renderAdminScreenHeader('管理者ToDo', '優先度の高い管理作業と、今後追加する管理タブ候補をまとめます。', actions)}
+        <div class="adminDashboardGrid">
+          <div class="adminDashboardItem">
+            <strong>通知管理</strong>
+            <span>${escapeHtml(stats.loaded ? `${stats.visible} / ${stats.total}件を表示中` : '候補は未読み込みです')}</span>
+          </div>
+          <div class="adminDashboardItem">
+            <strong>Championship通知</strong>
+            <span>${escapeHtml(stats.loaded ? `${stats.championship}件の自動通知候補` : '自動通知はterm cacheから生成されます')}</span>
+          </div>
+          <div class="adminDashboardItem">
+            <strong>GAS認識ユーザー</strong>
+            <span>${escapeHtml(adminNoticeUserLabel())}</span>
+          </div>
+        </div>
+        <div class="adminTodoList">
+          ${adminTodoItems(stats).map(renderAdminTodoItem).join('')}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderAdminTodoItem(item){
+    const action = item.actionSub
+      ? `<button class="adminTodoAction" type="button" data-admin-screen-tab="${escapeHtml(item.actionSub)}">${escapeHtml(item.actionLabel || '開く')}</button>`
+      : '';
+    return `
+      <article class="adminTodoItem">
+        <div class="adminTodoHead">
+          <strong>${escapeHtml(item.title || '')}</strong>
+          <span class="adminPriority ${escapeHtml(item.priorityClass || '')}">${escapeHtml(item.priority || '')}</span>
+        </div>
+        <p>${escapeHtml(item.body || '')}</p>
+        ${action}
+      </article>
+    `;
+  }
+
+  function adminTodoItems(stats){
+    return [
+      {
+        title: '通知候補の承認',
+        priority: stats.loaded && stats.pending === 0 ? 'OK' : '優先',
+        priorityClass: stats.loaded && stats.pending === 0 ? 'done' : 'high',
+        body: stats.loaded
+          ? `gs直書き候補 ${stats.total}件、表示中 ${stats.visible}件、保留 ${stats.pending}件。`
+          : 'gs直書き候補を読み込み、ユーザー画面に表示するかを確認します。',
+        actionSub: 'adminNotices',
+        actionLabel: '通知管理を開く'
+      },
+      {
+        title: 'Championship管理タブ',
+        priority: '未実装',
+        body: 'term cache同期、開催期間、結果公開、ランキング導線をまとめて扱う予定です。'
+      },
+      {
+        title: 'Session管理タブ',
+        priority: '未実装',
+        body: 'セッション参加者、開始可否、ランキング集計状態を確認する予定です。'
+      },
+      {
+        title: '結果ログ・保存監視タブ',
+        priority: '未実装',
+        body: '保存失敗や同時実行、最近のエラー率を確認する予定です。'
+      },
+      {
+        title: 'データ/JSON管理タブ',
+        priority: '未実装',
+        body: '公開JSON、ローカルdata、候補数の整合性を確認する予定です。'
+      },
+      {
+        title: '権限・設定タブ',
+        priority: '未実装',
+        body: '管理者メール、Script Properties、保守設定を確認する予定です。'
+      }
+    ];
+  }
+
+  function renderAdminNoticeManagementPanel(){
+    const actions = `
+      <button type="button" data-admin-notice-load ${state.announcementAdminLoading ? 'disabled' : ''}>通知候補を更新</button>
+      <button type="button" data-admin-screen-tab="adminTodo">ToDoへ</button>
+    `;
+    return `
+      <section class="adminScreen" aria-label="通知管理">
+        ${renderAdminScreenHeader('通知管理', 'gsに直書きしている通知候補を確認し、ユーザー画面に表示するかを選びます。', actions)}
+        ${renderAdminNoticePanel()}
+      </section>
+    `;
+  }
+
+  function adminNoticeStats(){
+    const payload = state.announcementAdmin;
+    const candidates = payload && Array.isArray(payload.candidates) ? payload.candidates : [];
+    const visible = candidates.filter(notice => !!notice.visible).length;
+    const pending = candidates.filter(notice => String(notice.approvalStatus || 'pending') === 'pending' && !notice.visible).length;
+    const rejected = candidates.filter(notice => String(notice.approvalStatus || '') === 'rejected').length;
+    const championship = payload && Array.isArray(payload.championshipNotices) ? payload.championshipNotices.length : 0;
+    return {
+      loaded: !!payload,
+      total: candidates.length,
+      visible,
+      pending,
+      rejected,
+      championship
+    };
+  }
+
+  function adminNoticeSummaryText(){
+    const stats = adminNoticeStats();
+    return stats.loaded ? `${stats.visible}/${stats.total} 表示` : '未読込';
+  }
+
+  function adminNoticeUserLabel(){
+    const payload = state.announcementAdmin;
+    const serverUser = payload && payload.adminUser && typeof payload.adminUser === 'object' ? payload.adminUser : null;
+    const clientUser = PLAYER_STATE && PLAYER_STATE.user ? PLAYER_STATE.user : {};
+    return serverUser
+      ? `GAS認識: ${serverUser.email || '空'} / admin: ${serverUser.isAdmin ? 'yes' : 'no'}`
+      : `起動時ユーザー: ${clientUser.email || '空'} / admin: ${clientUser.isAdmin ? 'yes' : 'no'}`;
+  }
+
+  function renderAdminNoticePanel(){
+    if (!isAdminMode()) return '';
+    const payload = state.announcementAdmin;
+    const candidates = payload && Array.isArray(payload.candidates) ? payload.candidates : [];
+    const userLabel = adminNoticeUserLabel();
+    const status = state.announcementAdminLoading
+      ? '通知候補を読み込んでいます...'
+      : state.announcementAdminMessage || (payload ? `${candidates.length}件の候補` : '通知候補は未読み込みです。');
+    return `
+      <section class="adminNoticePanel">
+        <h3>通知候補</h3>
+        <div class="adminNoticeActions">
+          <button type="button" data-admin-notice-load ${state.announcementAdminLoading ? 'disabled' : ''}>通知候補を読み込む</button>
+          <button type="button" data-admin-notice-preview="notifications">Preview: Notifications</button>
+          <button type="button" data-admin-notice-preview="championship">Preview: Championship Notice</button>
+        </div>
+        <p class="adminNoticeStatus">${escapeHtml(status)}</p>
+        <p class="adminNoticeStatus">${escapeHtml(userLabel)}</p>
+        <div class="adminNoticeList">
+          ${candidates.length ? candidates.map(renderAdminNoticeCard).join('') : '<p class="emptyPanel">候補を読み込むと、ここに表示されます。</p>'}
+        </div>
+      </section>
+    `;
+  }
+
+  function renderAdminNoticeCard(notice){
+    const status = String(notice.approvalStatus || 'pending');
+    const visible = !!notice.visible;
+    return `
+      <article class="adminNoticeCard">
+        <div class="adminNoticeCardHead">
+          <strong>${escapeHtml(notice.title || notice.noticeId)}</strong>
+          <span class="adminBadge ${visible ? 'debug' : ''}">${escapeHtml(visible ? 'visible' : status)}</span>
+        </div>
+        <div class="adminNoticeMeta">
+          <span>${escapeHtml(notice.noticeId || '')}</span>
+          <span>${escapeHtml(notice.sourceRef || '')}</span>
+          <span>${escapeHtml(notice.startAt || '')}${notice.endAt ? ` - ${escapeHtml(notice.endAt)}` : ''}</span>
+        </div>
+        <div class="adminNoticePreview">${escapeHtml(notice.bodyMarkdown || '')}</div>
+        <div class="adminNoticeMeta">
+          <span>reason: ${escapeHtml(notice.notifyReason || '-')}</span>
+          <span>updated: ${escapeHtml(notice.updatedAt || '-')}</span>
+        </div>
+        <div class="adminNoticeDecision">
+          <button class="approve" type="button" data-admin-notice-action="approve" data-notice-id="${escapeHtml(notice.noticeId)}" ${state.announcementAdminLoading ? 'disabled' : ''}>ユーザー画面に表示</button>
+          <button class="reject" type="button" data-admin-notice-action="reject" data-notice-id="${escapeHtml(notice.noticeId)}" ${state.announcementAdminLoading ? 'disabled' : ''}>非表示</button>
+          <button class="hold" type="button" data-admin-notice-action="hold" data-notice-id="${escapeHtml(notice.noticeId)}" ${state.announcementAdminLoading ? 'disabled' : ''}>保留</button>
+        </div>
+      </article>
+    `;
+  }
+
+  async function loadAnnouncementAdminPayload(){
+    if (!isAdminMode()) return;
+    state.announcementAdminLoading = true;
+    state.announcementAdminMessage = '通知候補を読み込んでいます...';
+    renderAdminSurfaces();
+    try {
+      const payload = await TQ_RUNTIME.loadAnnouncementAdminPayload();
+      state.announcementAdmin = payload && typeof payload === 'object' ? payload : null;
+      state.announcementAdminMessage = payload && payload.ok === false
+        ? String(payload.error || '通知候補を読み込めませんでした。')
+        : '通知候補を読み込みました。';
+    } catch (err) {
+      state.announcementAdminMessage = err && err.message ? err.message : '通知候補を読み込めませんでした。';
+    } finally {
+      state.announcementAdminLoading = false;
+      renderAdminSurfaces();
+    }
+  }
+
+  function ensureAnnouncementAdminPayloadLoaded(){
+    if (!isAdminMode() || state.announcementAdmin || state.announcementAdminLoading) return;
+    loadAnnouncementAdminPayload();
+  }
+
+  function renderAdminSurfaces(){
+    renderModeDetail();
+    if (state.adminPanelOpen) renderAdminStandaloneScreen();
+  }
+
+  async function applyAnnouncementAdminAction(button){
+    const noticeId = String(button && button.dataset.noticeId || '').trim();
+    const action = String(button && button.dataset.adminNoticeAction || '');
+    if (!noticeId || state.announcementAdminLoading) return;
+    state.announcementAdminLoading = true;
+    state.announcementAdminMessage = `${noticeId} を更新しています...`;
+    renderAdminSurfaces();
+    try {
+      let payload = null;
+      if (action === 'approve') payload = await TQ_RUNTIME.approveAnnouncementNotice(noticeId);
+      else if (action === 'reject') payload = await TQ_RUNTIME.rejectAnnouncementNotice(noticeId);
+      else payload = await TQ_RUNTIME.holdAnnouncementNotice(noticeId);
+      state.announcementAdmin = payload && typeof payload === 'object' ? payload : null;
+      state.announcementAdminMessage = `${noticeId} を更新しました。`;
+      refreshNotificationPayload({ autoOpen: false });
+    } catch (err) {
+      state.announcementAdminMessage = err && err.message ? err.message : '通知候補を更新できませんでした。';
+    } finally {
+      state.announcementAdminLoading = false;
+      renderAdminSurfaces();
+    }
+  }
+
+  function previewAdminNotifications(kind){
+    const payload = state.announcementAdmin && state.announcementAdmin.previewPayload
+      ? state.announcementAdmin.previewPayload
+      : buildClientNotificationPreviewPayload();
+    const notices = normalizeClientNotices(payload.notices);
+    const filtered = kind === 'championship'
+      ? notices.filter(notice => notice.type === 'championship')
+      : notices;
+    applyNotificationPayload({
+      ok: true,
+      enabled: true,
+      notices: filtered
+    }, { autoOpen: false });
+    openNotificationPanel({ markRead: false });
+  }
+
+  function buildClientNotificationPreviewPayload(){
+    return {
+      ok: true,
+      enabled: true,
+      notices: [
+        {
+          noticeId: 'PREVIEW-NOTIFICATION',
+          type: 'update',
+          severity: 'info',
+          title: '通知プレビュー',
+          bodyHtml: '<p>生徒画面ではこのように通知が表示されます。</p><ul><li>最大3件を表示します</li><li>重要なお知らせは自動で表示されます</li></ul>',
+          buttonAction: 'none',
+          forceDisplay: false,
+          dismissible: true,
+          priority: 60
+        },
+        {
+          noticeId: 'PREVIEW-CHAMPIONSHIP-RESULT',
+          type: 'championship',
+          severity: 'success',
+          title: 'チャンピオンシップ結果を公開しました',
+          bodyHtml: '<p>あなたのDivisionのランキングを確認できます。</p>',
+          buttonLabel: 'ランキングを見る',
+          buttonAction: 'openChampionshipResult',
+          buttonPayload: JSON.stringify({ termId: '' }),
+          forceDisplay: true,
+          dismissible: true,
+          priority: 90
+        }
+      ]
+    };
+  }
+
   function formatPctValue(value){
     if (value === null || value === undefined || value === '') return '-';
     const number = Number(value);
@@ -4873,23 +6982,16 @@
   function renderDivisionStatusPanel(){
     if (state.activeRoot !== 'challenge') return '';
     const division = currentDivisionState();
-    const championship = currentChampionshipState();
     const currentTitle = division.currentDivisionLabel || division.currentDivisionTitle || division.currentDivisionId || '-';
     const required = Number(division.promotionRequiredClears || 0);
     const count = Number(division.trainingClearCountForPromotion || 0);
     const progressText = division.promotionReady
       ? `${division.targetPromotionTitle || '昇格戦'}に挑戦できます`
       : `昇格戦まで：Training ${Math.min(count, required)} / ${required}`;
-    const championshipText = championship.isOpen
-      ? `${championship.title || 'Typing Quest Championship'} 開催中 / 参加Division：${division.currentDivisionLabel || division.currentDivisionId}`
-      : championship.nextTermId
-      ? `次回Championship：${championship.nextTitle || championship.nextTermId} ${championship.nextStartAt || ''}`
-      : '';
     return `
       <div class="divisionStatusPanel" aria-live="polite">
         <strong>現在のディビジョン：${escapeHtml(currentTitle)}</strong>
         <span>${escapeHtml(progressText)}</span>
-        ${championshipText ? `<span>${escapeHtml(championshipText)}</span>` : ''}
       </div>
     `;
   }
@@ -4928,8 +7030,9 @@
     if (modeGroupKey(mode) === 'promotion' && promotionLock.message) {
       return `<span class="modeCandidateMeta">${escapeHtml(promotionLock.message)}</span>`;
     }
+    if (modeGroupKey(mode) === 'championship') return '';
     const championshipLock = championshipLockState(mode);
-    if (modeGroupKey(mode) === 'championship' && championshipLock.message) {
+    if (championshipLock.message) {
       return `<span class="modeCandidateMeta">${escapeHtml(championshipLock.message)}</span>`;
     }
     return '';
@@ -5575,7 +7678,7 @@
     if (rootKey === 'quest') return questWorldSummaries().some(world => world.stages.length);
     if (rootKey === 'challenge') return navSubOptions('challenge').length > 0;
     if (rootKey === 'freeplay') return navSubOptions('freeplay').length > 0;
-    if (rootKey === 'admin') return isAdminMode() && navSubOptions('admin').length > 0;
+    if (rootKey === 'admin') return false;
     return false;
   }
 
@@ -5592,7 +7695,14 @@
     if (rootKey === 'challenge' && (classContextEnabled() || isAdminMode()) && modesForNavSub('class').length) {
       base.splice(1, 0, { key: 'class', label: 'Class', en: '授業', desc: '教員指定の課題に取り組む' });
     }
+    if (rootKey === 'admin') {
+      return base.filter(sub => isAdminPanelSubKey(sub.key) || modesForNavSub(sub.key).length > 0);
+    }
     return base.filter(sub => modesForNavSub(sub.key).length > 0);
+  }
+
+  function isAdminPanelSubKey(subKey){
+    return ['adminTodo', 'adminNotices'].includes(String(subKey || ''));
   }
 
   function firstAvailableNavSub(rootKey){
@@ -5610,14 +7720,43 @@
   }
 
   function modesForNavSub(subKey){
+    if (isAdminPanelSubKey(subKey)) return [];
     if (subKey === 'session' && hasSessionView()) return state.mode ? [state.mode] : [];
     let modes = allSelectableModes().filter(mode => modeGroupKey(mode) === subKey);
     if (subKey === 'class' && classContextEnabled()) modes = scopedClassModes(modes);
     return modes;
   }
 
+  function navSubGameCount(subKey){
+    const modes = modesForNavSub(subKey);
+    const jsonModes = modes.filter(mode => mode && mode.sourceGame);
+    return jsonModes.length || modes.length;
+  }
+
+  function navSubProgressText(subKey){
+    if (subKey === 'adminTodo') return '管理';
+    if (subKey === 'adminNotices') return adminNoticeSummaryText();
+    return `${navSubGameCount(subKey)} games`;
+  }
+
+  function navSubExtraText(subKey){
+    if (subKey !== 'championship') return '';
+    const championship = currentChampionshipState();
+    return championship.isOpen
+      ? championshipOpenMessage(championship, currentDivisionState())
+      : championshipNextScheduleText(championship)
+        ? championshipClosedMessage(championship)
+        : '';
+  }
+
+  function renderNavSubExtraMeta(subKey){
+    const text = navSubExtraText(subKey);
+    return text ? `<span class="modeCandidateMeta">${escapeHtml(text)}</span>` : '';
+  }
+
   function selectableModes(){
     if (hasSessionView()) return state.mode ? [state.mode] : [];
+    if (isAdminPanelSubKey(state.activeSub)) return [];
     if (state.activeRoot === 'quest') {
       return allSelectableModes().filter(mode => modeGroupKey(mode) === 'quest');
     }
@@ -5724,6 +7863,12 @@
     }
     state.activeModeGroup = state.activeSub;
     state.visibleModes = selectableModes();
+    if (isAdminPanelSubKey(state.activeSub)) {
+      state.mode = null;
+      state.selectedGameId = '';
+      state.selectedModeIndex = 0;
+      return;
+    }
     if (!state.visibleModes.some(mode => mode.id === (state.mode && state.mode.id))) {
       state.mode = state.visibleModes[0] || state.mode || allSelectableModes()[0] || MODES[0];
     }
@@ -5821,7 +7966,8 @@
         key: sub.key,
         title: sub.label,
         meta: sub.desc || '',
-        progress: `${modesForNavSub(sub.key).length} games`,
+        progress: navSubProgressText(sub.key),
+        extra: navSubExtraText(sub.key),
         selected: sub.key === state.activeSub,
         dataset: `data-sub-key="${escapeHtml(sub.key)}"`
       }))));
@@ -5845,7 +7991,7 @@
       }
     }
     const third = state.navScreen === 'list' || state.navScreen === 'detail'
-      ? (state.activeRoot === 'quest' ? 'Stages' : state.activeRoot === 'challenge' ? 'Divisions' : 'Steps')
+      ? (state.activeRoot === 'quest' ? 'Stages' : state.activeRoot === 'challenge' ? 'Divisions' : state.activeRoot === 'admin' ? 'Panels' : 'Steps')
       : '';
     els.layerTitleMeta.textContent = [root.label, second, third].filter(Boolean).join(' / ');
   }
@@ -5859,6 +8005,7 @@
             <span class="layerCardTitle">${escapeHtml(card.title || '')}</span>
             ${card.meta ? `<span class="layerCardMeta">${escapeHtml(card.meta)}</span>` : ''}
             ${card.progress ? `<span class="layerCardProgress">${escapeHtml(card.progress)}</span>` : ''}
+            ${card.extra ? `<span class="layerCardSchedule">${escapeHtml(card.extra)}</span>` : ''}
           </button>
         `).join('') || '<div class="emptyPanel">選択肢がありません。</div>'}
       </div>
@@ -5878,7 +8025,9 @@
           ? 'Divisions'
           : state.activeRoot === 'freeplay'
             ? 'Steps'
-            : 'Games';
+            : state.activeRoot === 'admin'
+              ? 'Panels'
+              : 'Games';
       els.modeGrid.innerHTML = '';
       updateItemCarouselNavState();
       return;
@@ -5974,13 +8123,14 @@
       ${renderLayerHeaderCard(root.label, root.desc)}
       ${subs.map(sub => {
         const selected = sub.key === state.activeSub;
-        const count = modesForNavSub(sub.key).length;
+        const progress = navSubProgressText(sub.key);
         return `
           <div class="modeCard currentLayerCard course-card" role="option" data-sub-key="${escapeHtml(sub.key)}" aria-selected="${selected ? 'true' : 'false'}" tabindex="${selected ? '0' : '-1'}">
             <strong>${escapeHtml(sub.label)}</strong>
             <span class="modeMeta">${escapeHtml(sub.en || '')}</span>
             <span class="description">${escapeHtml(sub.desc || '')}</span>
-            <span class="bestMini">${count} courses</span>
+            <span class="bestMini">${escapeHtml(progress)}</span>
+            ${renderNavSubExtraMeta(sub.key)}
           </div>
         `;
       }).join('') || '<div class="emptyPanel">表示できるカテゴリがありません。</div>'}
@@ -6001,6 +8151,11 @@
       return;
     }
 
+    if (state.activeRoot === 'admin' && isAdminPanelSubKey(state.activeSub)) {
+      renderAdminPanelCurrentLayer();
+      return;
+    }
+
     state.visibleModes = selectableModes();
     if (!state.visibleModes.some(mode => mode.id === (state.mode && state.mode.id))) {
       state.mode = state.visibleModes[0] || state.mode;
@@ -6012,6 +8167,15 @@
     els.modeGrid.innerHTML = `
       ${renderDivisionStatusPanel()}
       ${state.visibleModes.map(mode => renderDrillGameCard(mode)).join('') || '<div class="emptyPanel">このカテゴリのゲームはまだありません。</div>'}
+    `;
+  }
+
+  function renderAdminPanelCurrentLayer(){
+    const sub = navSubMeta(state.activeSub);
+    els.courseColumnTitle.textContent = 'Admin';
+    els.modeGrid.innerHTML = `
+      ${renderLayerHeaderCard(sub.label || 'Admin', sub.desc || '管理画面')}
+      <div class="emptyPanel">下の管理パネルで操作できます。</div>
     `;
   }
 
@@ -6065,7 +8229,7 @@
         <div class="stageBadges"></div>
         <span class="bestMini">${escapeHtml(bestMiniText(mode.id))}</span>
         ${renderDivisionModeMeta(mode)}
-        <span class="modeCandidateMeta">候補 ${candidateCount} / 平均長 ${formatDecimal(matching.avgLength)}</span>
+        ${isAdminMode() ? `<span class="modeCandidateMeta">候補 ${candidateCount} / 平均長 ${formatDecimal(matching.avgLength)}</span>` : ''}
       </div>
     `;
   }
@@ -6093,6 +8257,10 @@
     }
     if (state.sessionError) {
       els.modeDetailPanel.innerHTML = `<div class="dataError"><strong>${escapeHtml(state.sessionError)}</strong></div>`;
+      return;
+    }
+    if (state.activeRoot === 'admin' && isAdminPanelSubKey(state.activeSub)) {
+      renderAdminPanelDetail();
       return;
     }
     if (!state.mode) {
@@ -6205,6 +8373,7 @@
             ${renderClearConditionDetailItem(mode.clearConditions)}
             ${modeGroupKey(mode) === 'session' && hasSessionView() ? detailItem('sessionId', state.sessionView.sessionId) : ''}
             ${modeGroupKey(mode) === 'session' && hasSessionView() ? detailItem('gameCode', state.sessionView.gameCode || '-') : ''}
+            ${modeGroupKey(mode) === 'session' && hasSessionView() ? detailItem('variant', state.sessionView.variant || '-') : ''}
             ${modeGroupKey(mode) === 'session' && hasSessionView() ? detailItem('開始予定', sessionReleaseLabel() || '-') : ''}
             ${modeGroupKey(mode) === 'championship' ? detailItem('Championship', championshipLock.locked ? championshipLock.message : championshipLock.message || '参加できます') : ''}
             ${modeGroupKey(mode) === 'promotion' ? detailItem('昇格戦', promotionLock.locked ? promotionLock.message : promotionLock.message || '挑戦できます') : ''}
@@ -6218,6 +8387,7 @@
           <button class="primary detailStartBtn" type="button" data-detail-start ${canStart ? '' : 'disabled'}>プレイ開始</button>
           <span class="detailLockedNote">${escapeHtml(canStart ? 'Enter / Space でも開始できます' : championshipLock.message || promotionLock.message || trainingLock.message || options.lockReason || startDisabledReason(mode))}</span>
           <div class="bestBox">${renderBestResult(bestResultForGame(mode.id))}</div>
+          ${modeGroupKey(mode) === 'championship' ? renderChampionshipResultActions() : ''}
           <div class="detailBadges"><span class="badge muted">バッジはまだありません</span></div>
           ${renderFilterMismatchWarning(mode)}
           ${!isCustomCsvMode(mode) && Number(state.dataInfo && state.dataInfo.phrasesCount || 0) === 0
@@ -6386,6 +8556,15 @@
     }
     state.activeSub = subKey;
     state.activeModeGroup = subKey;
+    if (isAdminPanelSubKey(subKey)) {
+      state.visibleModes = [];
+      state.mode = null;
+      state.selectedGameId = '';
+      state.selectedModeIndex = 0;
+      setDrillScreen('list', { focus: !!options.focusItem });
+      if (subKey === 'adminNotices') ensureAnnouncementAdminPayloadLoaded();
+      return;
+    }
     state.visibleModes = selectableModes();
     state.mode = state.visibleModes[0] || state.mode;
     state.selectedGameId = state.mode && state.mode.id || '';
@@ -6723,6 +8902,10 @@
     requestAnimationFrame(() => {
       if (!(state.screen === 'ready' || state.screen === 'setup')) return;
       if (document.activeElement && document.activeElement !== document.body && document.activeElement !== els.modeSel) return;
+      if (hasSessionView()) {
+        els.sessionLobbyStartBtn?.focus();
+        return;
+      }
       focusDrillSelectedCard();
     });
   }
@@ -6795,6 +8978,17 @@
     if (target && target.closest && target.closest('.adminPhrasePreview, .adminPhraseModal, .detailHistoryPanel, textarea')) return;
     const targetSelect = target && target.closest && target.closest('select');
     if (targetSelect && targetSelect !== els.modeSel) return;
+    if (hasSessionView()) {
+      if (e.code === 'Enter' || e.code === 'Space') {
+        e.preventDefault();
+        if (els.sessionLobbyStartBtn && !els.sessionLobbyStartBtn.disabled) startSessionFromLobby();
+        return;
+      }
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'Backspace'].includes(e.code)) {
+        e.preventDefault();
+        return;
+      }
+    }
     const detailStartButton = target && target.closest && target.closest('[data-detail-start]');
     if (detailStartButton && e.code === 'ArrowUp' && isTimeSelectableMode(state.mode)) {
       e.preventDefault();
@@ -6879,8 +9073,36 @@
   }
 
   function setScreenState(nextState){
+    if (nextState !== 'result') stopSessionResultRefresh();
+    if (!['setup', 'ready'].includes(nextState) && state.adminPanelOpen) {
+      state.adminPanelOpen = false;
+      if (els.adminScreenPanel) els.adminScreenPanel.hidden = true;
+      if (els.setupPanel) els.setupPanel.hidden = false;
+      updateAdminButton();
+    }
     state.screen = nextState;
     document.body.dataset.screenState = nextState;
+    updatePlayContextLabel();
+  }
+
+  function startPlayMaintenanceRefresh(){
+    stopPlayMaintenanceRefresh();
+    state.playMaintenanceTimer = setInterval(refreshPlayMaintenanceUi, PLAY_MAINTENANCE_REFRESH_MS);
+  }
+
+  function stopPlayMaintenanceRefresh(){
+    if (!state.playMaintenanceTimer) return;
+    clearInterval(state.playMaintenanceTimer);
+    state.playMaintenanceTimer = null;
+  }
+
+  function refreshPlayMaintenanceUi(){
+    if (state.running || state.countdownActive) return;
+    if (state.screen === 'ready' || state.screen === 'setup' || state.screen === 'result') {
+      if (hasSessionView()) renderSessionLobby();
+      renderSetupWarningForMode();
+      renderModeDetail();
+    }
   }
 
   function nowMs(){
@@ -6898,24 +9120,58 @@
     else clearTimeout(frame);
   }
 
+  function openingDurationForCurrentUser(){
+    return isAdminMode() ? ADMIN_OPENING_DURATION_MS : OPENING_DURATION_MS;
+  }
+
+  function openingFailsafeMs(durationMs){
+    return Math.max(0, Number(durationMs) || 0) + OPENING_FAILSAFE_EXTRA_MS;
+  }
+
+  function skipOpeningForAdminIfNeeded(){
+    if (!isAdminMode()) return;
+    if (state.screen !== 'opening' && !OPENING_STATE.active) return;
+    completeOpeningScreen();
+  }
+
   function runOpeningAnimation(durationMs = OPENING_DURATION_MS){
+    const duration = Math.max(0, Number(durationMs) || 0);
     OPENING_STATE.active = true;
     OPENING_STATE.done = false;
     OPENING_STATE.startedAt = 0;
     cancelOpeningFrame(OPENING_STATE.frame);
+    clearTimeout(OPENING_STATE.timeout);
     OPENING_STATE.frame = null;
-    renderOpeningFrame(0, durationMs);
+    OPENING_STATE.timeout = null;
+    OPENING_STATE.finish = null;
+    renderOpeningFrame(duration > 0 ? 0 : 1, duration);
     return new Promise(resolve => {
+      let resolved = false;
+      const finish = () => {
+        if (resolved) return;
+        resolved = true;
+        OPENING_STATE.active = false;
+        OPENING_STATE.done = true;
+        OPENING_STATE.frame = null;
+        clearTimeout(OPENING_STATE.timeout);
+        OPENING_STATE.timeout = null;
+        OPENING_STATE.finish = null;
+        renderOpeningFrame(1, 0);
+        resolve();
+      };
+      OPENING_STATE.finish = finish;
+      if (duration <= 0) {
+        finish();
+        return;
+      }
+      OPENING_STATE.timeout = setTimeout(finish, openingFailsafeMs(duration));
       const step = (timestamp) => {
         if (!OPENING_STATE.startedAt) OPENING_STATE.startedAt = timestamp || nowMs();
         const elapsed = Math.max(0, (timestamp || nowMs()) - OPENING_STATE.startedAt);
-        const progress = Math.min(1, elapsed / durationMs);
-        renderOpeningFrame(progress, Math.max(0, durationMs - elapsed));
+        const progress = Math.min(1, elapsed / duration);
+        renderOpeningFrame(progress, Math.max(0, duration - elapsed));
         if (progress >= 1) {
-          OPENING_STATE.done = true;
-          OPENING_STATE.frame = null;
-          renderOpeningFrame(1, 0);
-          resolve();
+          finish();
           return;
         }
         OPENING_STATE.frame = requestOpeningFrame(step);
@@ -6930,34 +9186,76 @@
     const typedLength = ratio >= 1 ? phraseLength : Math.floor(ratio * phraseLength);
     if (els.openingDisplayText) els.openingDisplayText.textContent = OPENING_PHRASE;
     if (els.openingKanaText) els.openingKanaText.textContent = OPENING_PHRASE;
-    if (els.openingRomanText) els.openingRomanText.textContent = OPENING_PHRASE;
+    if (els.openingRomanText) {
+      els.openingRomanText.textContent = OPENING_PHRASE;
+      els.openingRomanText.style.setProperty('--guide-width', `${phraseLength}ch`);
+    }
     if (els.openingInputField) els.openingInputField.style.setProperty('--guide-width', `${phraseLength}ch`);
     if (els.openingGhostTyped) els.openingGhostTyped.textContent = OPENING_PHRASE.slice(0, typedLength);
-    if (els.openingGhostRest) els.openingGhostRest.textContent = OPENING_PHRASE.slice(typedLength);
-    if (els.openingGhostCursor) els.openingGhostCursor.classList.toggle('isComplete', ratio >= 1);
+    if (els.openingGhostCursor) {
+      els.openingGhostCursor.textContent = OPENING_PHRASE.slice(typedLength, typedLength + 1) || ' ';
+      els.openingGhostCursor.classList.toggle('isComplete', typedLength >= phraseLength);
+    }
+    if (els.openingGhostRest) els.openingGhostRest.textContent = OPENING_PHRASE.slice(typedLength + 1);
     if (els.openingBar) els.openingBar.style.transform = `scaleX(${ratio})`;
     if (els.openingRemain) els.openingRemain.textContent = `${(Math.max(0, remainingMs) / 1000).toFixed(1)}s`;
   }
 
   function completeOpeningScreen(){
+    if (!OPENING_STATE.done && typeof OPENING_STATE.finish === 'function') {
+      OPENING_STATE.finish();
+      return;
+    }
     cancelOpeningFrame(OPENING_STATE.frame);
+    clearTimeout(OPENING_STATE.timeout);
     OPENING_STATE.frame = null;
+    OPENING_STATE.timeout = null;
+    OPENING_STATE.finish = null;
     OPENING_STATE.active = false;
     OPENING_STATE.done = true;
     renderOpeningFrame(1, 0);
   }
 
-  function setSaveState(saveState){
+  function setSaveState(saveState, message){
     const labels = {
       idle: '',
       saving: '保存中...',
+      retrying: '保存処理が混み合っています。自動で再試行します',
       saved: '',
       failed: '保存できませんでした'
     };
-    els.saveStatus.textContent = labels[saveState] || labels.idle;
+    els.saveStatus.textContent = message || labels[saveState] || labels.idle;
     els.saveStatus.dataset.saveState = saveState;
     els.saveRetryArea.classList.toggle('hidden', saveState !== 'failed');
     els.retrySaveBtn.disabled = saveState !== 'failed';
+    if (els.sessionResultStatus) els.sessionResultStatus.textContent = message || labels[saveState] || labels.idle;
+    if (els.sessionRetrySaveBtn) els.sessionRetrySaveBtn.disabled = saveState !== 'failed';
+  }
+
+  function cancelScheduledSaveRetry(){
+    if (!state.saveRetryTimer) return;
+    clearTimeout(state.saveRetryTimer);
+    state.saveRetryTimer = null;
+  }
+
+  function resetSaveRetryState(){
+    cancelScheduledSaveRetry();
+    state.saveRetryCount = 0;
+  }
+
+  function scheduleResultSaveRetry(){
+    if (!state.lastResultPayload) return false;
+    cancelScheduledSaveRetry();
+    if (state.saveRetryCount >= AUTO_SAVE_RETRY_DELAYS_MS.length) return false;
+    const delayMs = AUTO_SAVE_RETRY_DELAYS_MS[state.saveRetryCount];
+    state.saveRetryCount += 1;
+    const sec = Math.max(1, Math.round(delayMs / 1000));
+    setSaveState('retrying', `保存処理が混み合っています。${sec}秒後に再試行します`);
+    state.saveRetryTimer = setTimeout(() => {
+      state.saveRetryTimer = null;
+      submitLastResultPayload({ retry: true, auto: true });
+    }, delayMs);
+    return true;
   }
 
   function syncDurationFromMode(){
@@ -7024,6 +9322,7 @@
     if (modeGroupKey(state.mode) !== 'session') rememberLastGameId(state.mode.id);
     state.durationSec = Number(els.secSel.value || 60);
     setScreenState('countdown');
+    resetSaveRetryState();
     setSaveState('idle');
     state.index = 0;
     state.deckNo = 0;
@@ -7060,8 +9359,14 @@
     state.lastResultPayload = null;
     state.battleLoseReason = '';
     state.battleClearReason = '';
+    stopSessionResultRefresh();
+    state.lastSessionResultSummary = null;
     resetResultRevealState();
     if (typeof window !== 'undefined') window.typingQuestLastResultPayload = null;
+    els.resultPanel.classList.remove('isSessionResult', 'isChampionshipResult');
+    if (els.sessionResultPanel) els.sessionResultPanel.classList.add('hidden');
+    if (els.championshipResultPanel) els.championshipResultPanel.classList.add('hidden');
+    resetSessionRankingAction();
     els.resultPanel.classList.add('hidden');
     els.liveMetrics.classList.remove('hidden');
     els.inputPanel.classList.remove('hidden');
@@ -7094,7 +9399,12 @@
     els.typebox.disabled = true;
     setTypeboxReadOnly(false);
     els.startBtn.disabled = false;
+    stopSessionResultRefresh();
     resetResultRevealState();
+    els.resultPanel.classList.remove('isSessionResult', 'isChampionshipResult');
+    if (els.sessionResultPanel) els.sessionResultPanel.classList.add('hidden');
+    if (els.championshipResultPanel) els.championshipResultPanel.classList.add('hidden');
+    resetSessionRankingAction();
     els.resultPanel.classList.add('hidden');
     els.liveMetrics.classList.remove('hidden');
     els.inputPanel.classList.remove('hidden');
@@ -7829,7 +10139,9 @@
     applyBattleResultState(result);
     applyScoreResultState(result);
     result.achievements = evaluateAchievements(result, state.mode);
+    resetSaveRetryState();
     state.lastResultPayload = buildResultPayload(result);
+    const isSessionResult = isSessionResultPayload(state.lastResultPayload);
     if (typeof window !== 'undefined') window.typingQuestLastResultPayload = state.lastResultPayload;
     els.rCpm.textContent = String(result.cpm);
     els.rWpm.textContent = String(result.wpm);
@@ -7841,11 +10153,15 @@
       ? `${result.timedCompletedPhraseCount} + 時間外 ${result.overtimeCompletedPhraseCount}`
       : String(result.timedCompletedPhraseCount);
     els.rTotalKeys.textContent = String(result.total);
+    els.resultPanel.classList.remove('isSessionResult', 'isChampionshipResult');
+    if (els.sessionResultPanel) els.sessionResultPanel.classList.add('hidden');
+    if (els.championshipResultPanel) els.championshipResultPanel.classList.add('hidden');
     renderResultContext(result);
     renderResultActions(result);
     renderResultPhraseList(result.phrases);
     renderMissAnalysis(result);
     renderRetryMotivation(result, historyRecordsForGame(state.mode.id));
+    configureSessionResultActions(isSessionResult);
     els.liveMetrics.classList.add('hidden');
     els.resultPanel.classList.remove('hidden');
     setSaveState('idle');
@@ -8146,10 +10462,12 @@
       payload.sessionId = sessionFields.sessionId;
       payload.sessionAttemptNo = sessionFields.sessionAttemptNo;
       payload.sessionGameCode = sessionFields.sessionGameCode;
+      payload.sessionVariant = sessionFields.sessionVariant;
       payload.result.sessionMode = true;
       payload.result.sessionId = sessionFields.sessionId;
       payload.result.sessionAttemptNo = sessionFields.sessionAttemptNo;
       payload.result.sessionGameCode = sessionFields.sessionGameCode;
+      payload.result.sessionVariant = sessionFields.sessionVariant;
     }
     payload.clearResult = result.clearResult || evaluateClearConditions(result, state.mode && state.mode.clearConditions);
     if (result.battle) {
@@ -8179,9 +10497,12 @@
   async function submitLastResultPayload(options = {}){
     const payload = state.lastResultPayload;
     if (!payload) return;
+    if (!options.auto) cancelScheduledSaveRetry();
     if (!shouldSubmitResultPayload(payload)) {
       saveStaticSubmittedResult(payload);
+      resetSaveRetryState();
       setSaveState('saved');
+      if (isSessionResultPayload(payload)) await refreshSessionResultSummary({ startAutoRefresh: true });
       return;
     }
 
@@ -8190,8 +10511,10 @@
       const response = await TQ_RUNTIME.submitResult(payload);
       if (response && response.ok !== false) {
         state.lastSubmitResponse = response;
+        resetSaveRetryState();
         setSaveState('saved');
         removePendingResult(payload.resultId);
+        if (isSessionResultPayload(payload)) await refreshSessionResultSummary({ startAutoRefresh: true });
         if (response.progressByGame || response.divisionState || response.championshipState) {
           const nextState = normalizePlayerState({
             user: response.user || PLAYER_STATE.user,
@@ -8212,8 +10535,468 @@
     } catch (err) {
       console.warn(options.retry ? 'Result retry failed:' : 'Result submit failed:', err);
       savePendingResult(payload);
-      setSaveState('failed');
+      if (scheduleResultSaveRetry()) return;
+      setSaveState('failed', '保存できませんでした。少し待ってから保存してください');
     }
+  }
+
+  function isSessionResultPayload(payload){
+    return !!(payload && String(payload.mode || payload.recordMode || '').trim().toLowerCase() === 'session' && payload.sessionId);
+  }
+
+  function configureSessionResultActions(isSessionResult){
+    if (els.modeSelectBtn) els.modeSelectBtn.hidden = !!isSessionResult;
+    if (els.retryBtn) els.retryBtn.hidden = !!isSessionResult;
+    if (els.nextStageBtn && isSessionResult) els.nextStageBtn.hidden = true;
+    if (els.sessionRankingBtn) {
+      els.sessionRankingBtn.hidden = !isSessionResult;
+      els.sessionRankingBtn.disabled = true;
+    }
+    if (els.sessionRankingStatus) {
+      els.sessionRankingStatus.classList.toggle('hidden', !isSessionResult);
+      els.sessionRankingStatus.textContent = isSessionResult
+        ? '保存完了後、全員の終了を確認してランキングを表示できます。'
+        : '';
+    }
+  }
+
+  function resetSessionRankingAction(){
+    if (els.modeSelectBtn) els.modeSelectBtn.hidden = false;
+    if (els.retryBtn) els.retryBtn.hidden = false;
+    if (els.sessionRankingBtn) {
+      els.sessionRankingBtn.hidden = true;
+      els.sessionRankingBtn.disabled = true;
+    }
+    if (els.sessionRankingStatus) {
+      els.sessionRankingStatus.classList.add('hidden');
+      els.sessionRankingStatus.textContent = '';
+    }
+  }
+
+  function renderSessionResultInitial(result){
+    if (!els.sessionResultPanel) return;
+    const payload = state.lastResultPayload || {};
+    const metrics = payload.result || {};
+    els.resultPanel.classList.remove('isChampionshipResult');
+    els.resultPanel.classList.add('isSessionResult');
+    if (els.championshipResultPanel) els.championshipResultPanel.classList.add('hidden');
+    els.sessionResultPanel.classList.remove('hidden');
+    if (els.sessionResultMeta) {
+      const view = state.sessionView || {};
+      els.sessionResultMeta.textContent = [
+        view.title || 'Typing Quest Session',
+        view.gameId || '',
+        payload.sessionId || ''
+      ].filter(Boolean).join(' / ');
+    }
+    const score = firstDefined(metrics.score, result && result.score, 0);
+    const cpm = firstDefined(metrics.cpm, result && result.cpm, 0);
+    const accuracy = firstDefined(metrics.accuracyPercent, result && result.accPct, 0);
+    const missCount = firstDefined(metrics.missCount, result && result.missCount, result && result.mistakes, 0);
+    if (els.sessionResultScore) els.sessionResultScore.textContent = formatSessionResultInteger(score);
+    if (els.sessionResultCpm) els.sessionResultCpm.textContent = formatDecimal(cpm);
+    if (els.sessionResultAccuracy) els.sessionResultAccuracy.textContent = `${formatDecimal(accuracy)}%`;
+    if (els.sessionResultMiss) els.sessionResultMiss.textContent = formatSessionResultInteger(missCount);
+    if (els.sessionResultRank) els.sessionResultRank.textContent = '順位を集計しています。';
+    if (els.sessionResultCurrentUserBox) {
+      els.sessionResultCurrentUserBox.classList.add('hidden');
+      els.sessionResultCurrentUserBox.textContent = '';
+    }
+    if (els.sessionRankingList) {
+      els.sessionRankingList.innerHTML = '<li class="sessionRankingItem"><span class="sessionRankingRank">-</span><span class="sessionRankingName">保存完了後に表示します</span><span class="sessionRankingScore">-</span></li>';
+    }
+    if (els.sessionCompletedCount) els.sessionCompletedCount.textContent = '完了者: -';
+    if (els.sessionResultRefreshStatus) els.sessionResultRefreshStatus.textContent = '保存完了後、ランキングを更新します。';
+  }
+
+  async function refreshSessionResultSummary(options = {}){
+    const payload = state.lastResultPayload || {};
+    const sessionId = payload.sessionId || state.sessionView && state.sessionView.sessionId || '';
+    if (!sessionId || state.sessionResultRefreshing) return null;
+    state.sessionResultRefreshing = true;
+    if (!options.silent && els.sessionResultRefreshStatus) {
+      els.sessionResultRefreshStatus.textContent = 'ランキングを取得しています。';
+    }
+    try {
+      const summary = await TQ_RUNTIME.loadSessionResultSummary(sessionId);
+      if (!summary || summary.ok === false) {
+        throw new Error(summary && summary.error || 'session ranking failed');
+      }
+      state.lastSessionResultSummary = summary;
+      renderSessionResultSummary(summary);
+      if (options.startAutoRefresh && !(summary.canShowRanking || summary.rankingReady)) startSessionResultRefresh();
+      return summary;
+    } catch (err) {
+      console.warn('Session result summary failed:', err);
+      if (els.sessionResultRefreshStatus) {
+        els.sessionResultRefreshStatus.textContent = 'ランキングを取得できませんでした。しばらくしてから更新します。';
+      }
+      if (els.sessionRankingStatus && isSessionResultPayload(state.lastResultPayload)) {
+        els.sessionRankingStatus.textContent = 'ランキングの準備状況を取得できませんでした。しばらく待っています。';
+      }
+      if (options.startAutoRefresh) startSessionResultRefresh();
+      return null;
+    } finally {
+      state.sessionResultRefreshing = false;
+    }
+  }
+
+  function renderSessionResultSummary(summary){
+    const source = summary || {};
+    updateSessionRankingAction(source);
+    const current = source.currentUser || {};
+    const completed = Number(source.completedCount || 0);
+    const hasCurrentResult = !!current.resultId;
+    const rankText = hasCurrentResult && current.rank
+      ? `${current.rank}位 / ${completed}人中`
+      : completed
+        ? `集計中 / ${completed}人中`
+        : '集計中';
+    if (els.sessionResultScore) els.sessionResultScore.textContent = hasCurrentResult ? formatSessionResultInteger(current.score) : '-';
+    if (els.sessionResultCpm) els.sessionResultCpm.textContent = hasCurrentResult ? formatDecimal(current.cpm) : '-';
+    if (els.sessionResultAccuracy) els.sessionResultAccuracy.textContent = hasCurrentResult ? `${formatDecimal(current.accuracy)}%` : '-';
+    if (els.sessionResultMiss) els.sessionResultMiss.textContent = hasCurrentResult ? formatSessionResultInteger(current.missCount) : '-';
+    if (els.sessionResultRank) {
+      els.sessionResultRank.textContent = hasCurrentResult && current.rank
+        ? `順位: ${rankText}`
+        : source.currentUserRankingEligible === false
+          ? 'この結果はランキング対象外です。'
+          : 'ランキング表示用の結果を待っています。';
+    }
+    renderSessionRankingList(source.ranking || [], current);
+    renderSessionCurrentUserBox(source);
+    if (els.sessionCompletedCount) els.sessionCompletedCount.textContent = `完了者: ${completed}人`;
+    if (els.sessionResultRefreshStatus) {
+      els.sessionResultRefreshStatus.textContent = (source.canShowRanking || source.rankingReady)
+        ? '全員の結果がそろいました。'
+        : '全員の結果がそろうまで順位は変わることがあります。';
+    }
+  }
+
+  function updateSessionRankingAction(summary){
+    if (!isSessionResultPayload(state.lastResultPayload)) return;
+    const source = summary || {};
+    const ready = !!(source.canShowRanking || source.rankingReady);
+    const completed = Number(source.completedCount || 0);
+    const required = Number(source.requiredParticipantCount || 0);
+    const eligible = Number(source.rankingEligibleStartedOrFinishedCount || 0);
+    const eligiblePlaying = Number(source.rankingEligiblePlayingCount || 0);
+    const eligibleFinished = Number(source.rankingEligibleFinishedCount || completed || 0);
+    if (els.sessionRankingBtn) {
+      els.sessionRankingBtn.hidden = false;
+      els.sessionRankingBtn.disabled = !ready;
+    }
+    if (els.sessionRankingStatus) {
+      els.sessionRankingStatus.classList.remove('hidden');
+      els.sessionRankingStatus.textContent = ready
+        ? '全員終了しました。ランキングを表示できます。'
+        : `${source.rankingStateMessage || 'ランキング集計中です。'} ランキング対象: ${eligible} / ${required || '?'}人、プレイ中: ${eligiblePlaying}人、終了: ${eligibleFinished}人`;
+    }
+    if (ready) stopSessionResultRefresh();
+  }
+
+  async function showSessionRankingScreen(options = {}){
+    const sessionId = currentSessionIdForRanking();
+    if (!sessionId) return;
+    if (!options.allowWithoutResult && !isSessionResultPayload(state.lastResultPayload)) return;
+    let summary = state.lastSessionResultSummary;
+    if (!summary || !(summary.canShowRanking || summary.rankingReady)) {
+      summary = await refreshSessionResultSummary({ silent: false });
+    }
+    if (!summary || !(summary.canShowRanking || summary.rankingReady)) {
+      updateSessionRankingAction(summary || {});
+      return;
+    }
+    stopSessionResultRefresh();
+    renderSessionResultInitial(null);
+    renderSessionResultSummary(summary);
+    els.resultPanel.classList.remove('hidden');
+    els.liveMetrics.classList.add('hidden');
+    els.inputPanel.classList.add('hidden');
+    setScreenState('result');
+    completeResultReveal({ focusRetry: false });
+  }
+
+  function currentSessionIdForRanking(){
+    return String(
+      state.lastResultPayload && state.lastResultPayload.sessionId ||
+      state.sessionView && state.sessionView.sessionId ||
+      ''
+    ).trim();
+  }
+
+  function goToTypingQuestTop(){
+    stopSessionResultRefresh();
+    const topUrl = APP_CONFIG.schoolAppUrl || (location.origin + location.pathname);
+    location.href = topUrl;
+  }
+
+  function renderSessionRankingList(ranking, currentUser){
+    if (!els.sessionRankingList) return;
+    const rows = Array.isArray(ranking) ? ranking : [];
+    if (!rows.length) {
+      els.sessionRankingList.innerHTML = '<li class="sessionRankingItem"><span class="sessionRankingRank">-</span><span class="sessionRankingName">まだ完了者はいません</span><span class="sessionRankingScore">-</span></li>';
+      return;
+    }
+    els.sessionRankingList.innerHTML = rows.map(row => renderSessionRankingItem(row, currentUser)).join('');
+  }
+
+  function renderSessionRankingItem(row, currentUser){
+    const item = row || {};
+    const isCurrent = !!item.isCurrentUser || (!!currentUser && item.resultId && item.resultId === currentUser.resultId);
+    const label = isCurrent ? ' <span class="badge">あなた</span>' : '';
+    return `
+      <li class="sessionRankingItem ${isCurrent ? 'isCurrentUser' : ''}">
+        <span class="sessionRankingRank">${escapeHtml(item.rank ? `${item.rank}.` : '-')}</span>
+        <span class="sessionRankingName">${escapeHtml(item.displayName || sessionDisplayNameFromEmail(item.email))}${label}</span>
+        <span class="sessionRankingScore">${escapeHtml(formatSessionResultInteger(item.score))}点</span>
+        <span class="sessionRankingSub">CPM ${escapeHtml(formatDecimal(item.cpm))} / 正確率 ${escapeHtml(formatDecimal(item.accuracy))}% / ミス ${escapeHtml(formatSessionResultInteger(item.missCount))}</span>
+      </li>
+    `;
+  }
+
+  function renderSessionCurrentUserBox(summary){
+    if (!els.sessionResultCurrentUserBox) return;
+    const current = summary && summary.currentUser || null;
+    if (summary && summary.currentUserRankingEligible === false) {
+      els.sessionResultCurrentUserBox.classList.remove('hidden');
+      els.sessionResultCurrentUserBox.innerHTML = 'この結果はランキング対象外です。<br>ランキング対象の締切後に開始したため、順位には反映されません。';
+      return;
+    }
+    if (!current || !current.rank || current.inTop) {
+      els.sessionResultCurrentUserBox.classList.add('hidden');
+      els.sessionResultCurrentUserBox.textContent = '';
+      return;
+    }
+    const completed = Number(summary.completedCount || 0);
+    els.sessionResultCurrentUserBox.classList.remove('hidden');
+    els.sessionResultCurrentUserBox.innerHTML = `
+      あなたの順位: ${escapeHtml(current.rank)}位 / ${escapeHtml(completed)}人中<br>
+      スコア: ${escapeHtml(formatSessionResultInteger(current.score))}点 / CPM ${escapeHtml(formatDecimal(current.cpm))} / 正確率 ${escapeHtml(formatDecimal(current.accuracy))}% / ミス ${escapeHtml(formatSessionResultInteger(current.missCount))}
+    `;
+  }
+
+  function startSessionResultRefresh(){
+    stopSessionResultRefresh();
+    state.sessionResultRefreshStartedAt = Date.now();
+    state.sessionResultTimer = setInterval(() => {
+      const elapsed = Date.now() - state.sessionResultRefreshStartedAt;
+      if (state.screen !== 'result' || elapsed >= SESSION_RESULT_REFRESH_MAX_MS || !isSessionResultPayload(state.lastResultPayload)) {
+        stopSessionResultRefresh();
+        if (els.sessionResultRefreshStatus) els.sessionResultRefreshStatus.textContent = 'ランキングの自動更新を停止しました。';
+        return;
+      }
+      refreshSessionResultSummary({ silent: true });
+    }, SESSION_RESULT_REFRESH_INTERVAL_MS);
+  }
+
+  function stopSessionResultRefresh(){
+    if (!state.sessionResultTimer) return;
+    clearInterval(state.sessionResultTimer);
+    state.sessionResultTimer = null;
+    state.sessionResultRefreshStartedAt = 0;
+  }
+
+  function handleInitialChampionshipResultRoute(){
+    const params = currentUrlParams();
+    if (params.get('adminPreview') === 'championshipResult') {
+      showChampionshipResultPreview();
+      return;
+    }
+    if (params.has('championshipResult')) {
+      showChampionshipResult(params.get('championshipResult') || '');
+    }
+  }
+
+  async function showChampionshipResult(termId = ''){
+    renderChampionshipResultLoading(termId);
+    try {
+      const summary = await TQ_RUNTIME.loadChampionshipResultSummary(termId || '');
+      renderChampionshipResult(summary || { ok: false, error: '結果を取得できませんでした。' });
+    } catch (err) {
+      console.warn('Championship result summary failed:', err);
+      renderChampionshipResult({
+        ok: false,
+        error: err && err.message ? err.message : '結果を取得できませんでした。'
+      });
+    }
+  }
+
+  async function showChampionshipResultPreview(){
+    renderChampionshipResultLoading('', { preview: true });
+    try {
+      const summary = await TQ_RUNTIME.loadChampionshipResultPreview();
+      renderChampionshipResult(summary || { ok: false, error: 'プレビューを取得できませんでした。' });
+    } catch (err) {
+      console.warn('Championship result preview failed:', err);
+      renderChampionshipResult({
+        ok: false,
+        error: err && err.message ? err.message : 'プレビューを取得できませんでした。'
+      });
+    }
+  }
+
+  function prepareChampionshipResultScreen(){
+    stopSessionResultRefresh();
+    resetResultRevealState();
+    resetSessionRankingAction();
+    state.lastResultPayload = null;
+    state.lastSessionResultSummary = null;
+    els.resultPanel.classList.remove('isSessionResult');
+    els.resultPanel.classList.add('isChampionshipResult');
+    if (els.sessionResultPanel) els.sessionResultPanel.classList.add('hidden');
+    if (els.championshipResultPanel) els.championshipResultPanel.classList.remove('hidden');
+    els.liveMetrics.classList.add('hidden');
+    els.inputPanel.classList.add('hidden');
+    els.resultPanel.classList.remove('hidden');
+    setScreenState('result');
+    state.resultRevealComplete = true;
+    els.resultPanel.classList.remove('isRevealing');
+    els.resultPanel.classList.add('isRevealComplete');
+  }
+
+  function renderChampionshipResultLoading(termId, options = {}){
+    prepareChampionshipResultScreen();
+    if (!els.championshipResultPanel) return;
+    els.championshipResultPanel.innerHTML = `
+      <header class="sessionResultHeader">
+        <div>
+          <p class="sessionResultMeta">Championship ${escapeHtml(termId || '')}</p>
+          <h2>${options.preview ? 'チャンピオンシップ結果プレビュー' : 'チャンピオンシップ結果'}</h2>
+        </div>
+        <div class="sessionResultStatus">読み込み中...</div>
+      </header>
+      <div class="sessionResultBody">
+        <section class="sessionResultSection">
+          <h3>結果を取得しています</h3>
+          <p class="emptyPanel">しばらくお待ちください。</p>
+        </section>
+      </div>
+      <footer class="sessionResultFooter">
+        <span></span>
+        <div class="sessionResultActions"><button type="button" data-championship-result-back>モード選択</button></div>
+      </footer>
+    `;
+  }
+
+  function renderChampionshipResult(payload){
+    prepareChampionshipResultScreen();
+    const source = payload && typeof payload === 'object' ? payload : {};
+    if (!els.championshipResultPanel) return;
+    if (source.ok === false) {
+      els.championshipResultPanel.innerHTML = renderChampionshipResultMessage(source);
+      return;
+    }
+    const current = source.currentUser || {};
+    const ranking = Array.isArray(source.ranking) ? source.ranking : [];
+    const title = String(source.title || 'Typing Quest Championship');
+    const divisionName = String(source.divisionName || source.entryDivisionId || '');
+    const participantCount = Number(source.participantCount || 0);
+    const topLimit = Number(source.topLimit || ranking.length || 0);
+    const currentRank = current && current.rank
+      ? `${current.rank}位 / ${participantCount}人中`
+      : participantCount ? `- / ${participantCount}人中` : '-';
+    els.championshipResultPanel.innerHTML = `
+      <header class="sessionResultHeader">
+        <div>
+          <p class="sessionResultMeta">${escapeHtml([source.termId || '', source.preview ? 'Preview' : ''].filter(Boolean).join(' / '))}</p>
+          <h2>${escapeHtml(title)} 結果</h2>
+        </div>
+        <div class="sessionResultStatus">${escapeHtml(formatDateTimeMinuteLabel(source.publishAt) || '公開中')}</div>
+      </header>
+      <div class="sessionResultBody">
+        <section class="sessionResultSection" aria-label="あなたの結果">
+          <h3>${escapeHtml(divisionName || 'あなたのDivision')}</h3>
+          <div class="sessionRankBox">
+            あなたのプレイヤー名: ${escapeHtml(current.championshipPlayerName || '-')}<br>
+            あなたの順位: ${escapeHtml(currentRank)}
+          </div>
+          <div class="sessionResultMetricGrid">
+            <div class="sessionResultMetric"><span class="name">スコア</span><span class="value">${escapeHtml(formatSessionResultInteger(current.score))}</span></div>
+            <div class="sessionResultMetric"><span class="name">CPM</span><span class="value">${escapeHtml(formatDecimal(current.cpm))}</span></div>
+            <div class="sessionResultMetric"><span class="name">正確率</span><span class="value">${escapeHtml(formatDecimal(current.accuracy))}%</span></div>
+            <div class="sessionResultMetric"><span class="name">ミス</span><span class="value">${escapeHtml(formatSessionResultInteger(current.missCount))}</span></div>
+          </div>
+          ${current && current.inTop ? '' : renderChampionshipCurrentUserBox(source)}
+        </section>
+        <section class="sessionResultSection" aria-label="Championship ranking">
+          <h3>${escapeHtml(divisionName || 'Division')} TOP ${escapeHtml(String(topLimit || ranking.length))}</h3>
+          <ol class="sessionRankingList">
+            ${ranking.length ? ranking.map(row => renderChampionshipRankingItem(row, current)).join('') : '<li class="sessionRankingItem"><span class="sessionRankingRank">-</span><span class="sessionRankingName">結果はまだありません</span><span class="sessionRankingScore">-</span></li>'}
+          </ol>
+        </section>
+      </div>
+      <footer class="sessionResultFooter">
+        <span>${escapeHtml(participantCount ? `${participantCount}人中 / TOP ${topLimit}` : '')}</span>
+        <div class="sessionResultActions"><button type="button" data-championship-result-back>モード選択</button></div>
+      </footer>
+    `;
+  }
+
+  function renderChampionshipResultMessage(source){
+    const current = source && source.currentUser || {};
+    const publishAt = formatDateTimeMinuteLabel(source && source.publishAt);
+    const notPublished = String(source && source.error || '') === 'championship results are not published yet';
+    const message = notPublished
+      ? '結果はまだ公開されていません。'
+      : String(source && source.error || '結果を表示できませんでした。');
+    return `
+      <header class="sessionResultHeader">
+        <div>
+          <p class="sessionResultMeta">${escapeHtml(source && source.termId || '')}</p>
+          <h2>${escapeHtml(source && source.title || 'チャンピオンシップ結果')}</h2>
+        </div>
+        <div class="sessionResultStatus">${escapeHtml(notPublished ? '未公開' : '確認が必要です')}</div>
+      </header>
+      <div class="sessionResultBody">
+        <section class="sessionResultSection">
+          <h3>${escapeHtml(message)}</h3>
+          ${current.championshipPlayerName ? `<div class="sessionRankBox">今回のプレイヤー名: ${escapeHtml(current.championshipPlayerName)}</div>` : ''}
+          ${publishAt ? `<p class="emptyPanel">公開予定: ${escapeHtml(publishAt)}</p>` : ''}
+        </section>
+      </div>
+      <footer class="sessionResultFooter">
+        <span></span>
+        <div class="sessionResultActions"><button type="button" data-championship-result-back>モード選択</button></div>
+      </footer>
+    `;
+  }
+
+  function renderChampionshipRankingItem(row, currentUser){
+    const item = row || {};
+    const isCurrent = !!item.isCurrentUser || (!!currentUser && item.resultId && item.resultId === currentUser.resultId);
+    const label = isCurrent ? ' <span class="badge">あなた</span>' : '';
+    return `
+      <li class="sessionRankingItem ${isCurrent ? 'isCurrentUser' : ''}">
+        <span class="sessionRankingRank">${escapeHtml(item.rank ? `${item.rank}.` : '-')}</span>
+        <span class="sessionRankingName">${escapeHtml(item.championshipPlayerName || '-')}${label}</span>
+        <span class="sessionRankingScore">${escapeHtml(formatSessionResultInteger(item.score))}点</span>
+        <span class="sessionRankingSub">CPM ${escapeHtml(formatDecimal(item.cpm))} / 正確率 ${escapeHtml(formatDecimal(item.accuracy))}% / ミス ${escapeHtml(formatSessionResultInteger(item.missCount))}</span>
+      </li>
+    `;
+  }
+
+  function renderChampionshipCurrentUserBox(summary){
+    const current = summary && summary.currentUser || {};
+    if (!current || !current.rank) return '';
+    return `
+      <div class="sessionCurrentUserBox">
+        あなたの順位: ${escapeHtml(current.rank)}位 / ${escapeHtml(summary.participantCount || 0)}人中<br>
+        プレイヤー名: ${escapeHtml(current.championshipPlayerName || '-')}<br>
+        スコア: ${escapeHtml(formatSessionResultInteger(current.score))}点 / CPM ${escapeHtml(formatDecimal(current.cpm))} / 正確率 ${escapeHtml(formatDecimal(current.accuracy))}% / ミス ${escapeHtml(formatSessionResultInteger(current.missCount))}
+      </div>
+    `;
+  }
+
+  function formatSessionResultInteger(value){
+    const number = Number(value);
+    return Number.isFinite(number) ? String(Math.round(number)) : '-';
+  }
+
+  function sessionDisplayNameFromEmail(email){
+    const text = String(email || '').trim();
+    const localPart = text ? text.split('@')[0] : '';
+    return localPart || 'unknown';
   }
 
   function applyDivisionSubmitResponseToResult(response){
@@ -8850,8 +11633,8 @@
     if (els.resultBattleSummary) els.resultBattleSummary.innerHTML = renderResultMiniCards(resultContextSummaryItems(result, context, outcome));
   }
 
-  function resultStageContext(mode){
-    const group = modeGroupKey(mode);
+	  function resultStageContext(mode){
+	    const group = modeGroupKey(mode);
     if (group === 'quest') {
       const match = questStageForMode(mode);
       if (match && match.world && match.stage) {
@@ -8876,7 +11659,60 @@
     };
   }
 
-  function resultModeTitle(mode){
+  function updatePlayContextLabel(){
+    if (!els.playContextLabel) return;
+    const text = playContextText(state.mode);
+    els.playContextLabel.textContent = text;
+    els.playContextLabel.hidden = !text;
+  }
+
+  function playContextText(mode){
+    if (!mode) return '';
+    const group = modeGroupKey(mode);
+    if (group === 'quest') {
+      const match = questStageForMode(mode);
+      if (match && match.world && match.stage) {
+        return `Quest > ${match.world.title} > Stage${match.stage.stageNo || '-'}`;
+      }
+      return 'Quest';
+    }
+    const root = navRootMeta(navRootForMode(mode));
+    const parts = [root.label, playContextSubLabel(group)];
+    const tail = playContextTail(mode, group);
+    if (tail && !parts.includes(tail)) parts.push(tail);
+    return parts.filter(Boolean).join(' > ');
+  }
+
+  function playContextSubLabel(group){
+    const labels = {
+      training: 'Training',
+      promotion: 'Promotion',
+      championship: 'Championship',
+      class: 'Class',
+      free: 'Free Practice',
+      arcade: 'Arcade',
+      custom: 'Custom',
+      session: 'Session',
+      debug: 'Debug'
+    };
+    return labels[group] || (navSubMeta(group).label || modeGroupLabel(group));
+  }
+
+  function playContextTail(mode, group){
+    if (!mode) return '';
+    const division = playContextDivisionCode(mode);
+    if (['training', 'promotion', 'championship'].includes(group) && division) return division;
+    if (group === 'custom') return '';
+    if (group === 'session' && state.sessionView && state.sessionView.title) return state.sessionView.title;
+    return resultModeTitle(mode);
+  }
+
+  function playContextDivisionCode(mode){
+    const label = modeShortLabel(mode);
+    return label.code || modeDivisions(mode)[0] || modeLevels(mode)[0] || '';
+  }
+
+	  function resultModeTitle(mode){
     if (!mode) return '-';
     const label = modeShortLabel(mode);
     const codeName = [label.code, label.name].filter(Boolean).join(' ');
@@ -9052,6 +11888,12 @@
   function focusResultRetryButton(){
     requestAnimationFrame(() => {
       if (state.screen !== 'result' || !els.retryBtn || !state.resultRevealComplete || state.resultRevealUserInteracted) return;
+      if (isSessionResultPayload(state.lastResultPayload)) {
+        if (els.sessionRankingBtn && !els.sessionRankingBtn.hidden && !els.sessionRankingBtn.disabled) {
+          els.sessionRankingBtn.focus();
+        }
+        return;
+      }
       const active = document.activeElement;
       const canMoveFocus = !active
         || active === document.body
@@ -10820,6 +13662,8 @@
 
   function toCanon(s){
     let t = String(s || '').toLowerCase();
+    const nMarker = '\u0000';
+    t = t.replace(/xn/g, nMarker);
     t = t.replace(/x([a-z])/g, 'l$1');
     t = t.replace(/fu([aieo])/g, 'hul$1');
     t = t.replace(/f([aieo])/g, 'hul$1');
@@ -10836,6 +13680,7 @@
     t = t.replace(/th([aiueo])/g, 'tel$1');
     t = t.replace(/dh([aiueo])/g, 'del$1');
     t = t.replace(/nn/g, 'n');
+    t = t.replace(new RegExp(nMarker, 'g'), 'n');
     return t;
   }
 
@@ -11777,9 +14622,12 @@
       variants.add(prefix);
       return;
     }
-    if (source.slice(index, index + 2).toLowerCase() === 'nn' && canTypeSingleNForNnAt(source, index)) {
-      collectNnShortForms(source, index + 2, `${prefix}n`, variants);
+    if (source.slice(index, index + 2).toLowerCase() === 'nn') {
+      if (canTypeSingleNForNnAt(source, index)) {
+        collectNnShortForms(source, index + 2, `${prefix}n`, variants);
+      }
       collectNnShortForms(source, index + 2, `${prefix}${source.slice(index, index + 2)}`, variants);
+      collectNnShortForms(source, index + 2, `${prefix}xn`, variants);
       return;
     }
     collectNnShortForms(source, index + 1, prefix + source[index], variants);
@@ -11799,6 +14647,7 @@
       if (prev === 'n' || next === 'n') continue;
       if (!next || isNonAmbiguousConsonantAfterN(next)) {
         variants.add(source.slice(0, index) + `${source[index]}n` + source.slice(index + 1));
+        variants.add(source.slice(0, index) + 'xn' + source.slice(index + 1));
       }
     }
   }
@@ -11844,7 +14693,7 @@
     return String(s).replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
   }
 
-  init();
+  init().catch(handleBootError);
 })();
 </script>
 </body>
