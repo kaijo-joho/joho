@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-06-29T05:09:56.903Z",
+  "generatedAt": "2026-07-06T01:39:15.833Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-06-29T05:09:56.903Z",
+    "generatedAt": "2026-07-06T01:39:15.833Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -17036,7 +17036,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO01",
+      "gameId": "Q-JOHO01",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -17061,7 +17061,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO01",
+        "stageId": "Q-JOHO01",
         "stageNo": 1,
         "boss": false
       },
@@ -17137,7 +17137,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO02",
+      "gameId": "Q-JOHO02",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -17162,7 +17162,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO02",
+        "stageId": "Q-JOHO02",
         "stageNo": 2,
         "boss": false
       },
@@ -17311,7 +17311,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO03",
+      "gameId": "Q-JOHO03",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -17336,7 +17336,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO03",
+        "stageId": "Q-JOHO03",
         "stageNo": 3,
         "boss": false
       },
@@ -17489,7 +17489,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO04",
+      "gameId": "Q-JOHO04",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -17514,7 +17514,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO04",
+        "stageId": "Q-JOHO04",
         "stageNo": 4,
         "boss": false
       },
@@ -17840,7 +17840,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO05",
+      "gameId": "Q-JOHO05",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -17865,7 +17865,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO05",
+        "stageId": "Q-JOHO05",
         "stageNo": 5,
         "boss": false
       },
@@ -18175,7 +18175,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO06",
+      "gameId": "Q-JOHO06",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -18200,7 +18200,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO06",
+        "stageId": "Q-JOHO06",
         "stageNo": 6,
         "boss": false
       },
@@ -18434,7 +18434,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO07",
+      "gameId": "Q-JOHO07",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -18459,7 +18459,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO07",
+        "stageId": "Q-JOHO07",
         "stageNo": 7,
         "boss": false
       },
@@ -18722,7 +18722,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO08",
+      "gameId": "Q-JOHO08",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -18747,7 +18747,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO08",
+        "stageId": "Q-JOHO08",
         "stageNo": 8,
         "boss": false
       },
@@ -18859,7 +18859,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO09",
+      "gameId": "Q-JOHO09",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -18884,7 +18884,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO09",
+        "stageId": "Q-JOHO09",
         "stageNo": 9,
         "boss": false
       },
@@ -19013,7 +19013,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO10",
+      "gameId": "Q-JOHO10",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -19038,7 +19038,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO10",
+        "stageId": "Q-JOHO10",
         "stageNo": 10,
         "boss": false
       },
@@ -19234,7 +19234,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO11",
+      "gameId": "Q-JOHO11",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -19259,7 +19259,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO11",
+        "stageId": "Q-JOHO11",
         "stageNo": 11,
         "boss": false
       },
@@ -19590,7 +19590,7 @@
       ]
     },
     {
-      "gameId": "Q_JOHO12",
+      "gameId": "Q-JOHO12",
       "enabled": true,
       "visibility": "public",
       "mode": "quest",
@@ -19615,7 +19615,7 @@
       },
       "quest": {
         "worldId": "JOHO",
-        "stageId": "Q_JOHO12",
+        "stageId": "Q-JOHO12",
         "stageNo": 12,
         "boss": true
       },
@@ -22660,6 +22660,381 @@
         "j22016",
         "j12096"
       ]
+    },
+    {
+      "gameId": "SES6",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 6",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800060,
+      "filterId": "SES6",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES7",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 7",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800070,
+      "filterId": "SES7",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES8",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 8",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800080,
+      "filterId": "SES8",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES9",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 9",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800090,
+      "filterId": "SES9",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES10",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 10",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800100,
+      "filterId": "SES10",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES11",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 11",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800110,
+      "filterId": "SES11",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES12",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 12",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800120,
+      "filterId": "SES12",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES13",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 13",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800130,
+      "filterId": "SES13",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES14",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 14",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800140,
+      "filterId": "SES14",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES15",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 15",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800150,
+      "filterId": "SES15",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES16",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 16",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800160,
+      "filterId": "SES16",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES17",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 17",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800170,
+      "filterId": "SES17",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES18",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 18",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800180,
+      "filterId": "SES18",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES19",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 19",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800190,
+      "filterId": "SES19",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
+    },
+    {
+      "gameId": "SES20",
+      "enabled": true,
+      "visibility": "public",
+      "mode": "session",
+      "gameType": "timeAttack",
+      "title": "授業内モード 20",
+      "subtitle": "",
+      "description": "",
+      "durationSec": 60,
+      "phraseCount": 999,
+      "sortOrder": 800200,
+      "filterId": "SES20",
+      "filter": {},
+      "matching": {
+        "phraseCount": 0,
+        "totalLength": 0,
+        "avgLength": 0,
+        "visible": false
+      },
+      "clearConditions": {},
+      "quest": {},
+      "promotion": {},
+      "candidatePhraseIds": []
     },
     {
       "gameId": "DEBUG-ROMA",
