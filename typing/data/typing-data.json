@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-07-06T01:39:15.833Z",
+  "generatedAt": "2026-07-07T01:14:29.746Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-07-06T01:39:15.833Z",
+    "generatedAt": "2026-07-07T01:14:29.746Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -302,7 +302,7 @@
       {
         "division": "D1",
         "level": 0,
-        "title": "基本",
+        "title": "スターター（初心者級）",
         "description": "短い語句を中心に、基本的なキー入力を練習する",
         "minScore": 0,
         "maxScore": 4.999,
@@ -312,7 +312,7 @@
       {
         "division": "D2",
         "level": 1,
-        "title": "初級",
+        "title": "ビギナー（準初級）",
         "description": "少し長い語句や複数のキー列を含む入力を練習する",
         "minScore": 5,
         "maxScore": 8.999,
@@ -322,7 +322,7 @@
       {
         "division": "D3",
         "level": 2,
-        "title": "数字",
+        "title": "ルーキー（初級）",
         "description": "数字を含む語句を扱い、数字キーを使う入力を練習する",
         "minScore": 9,
         "maxScore": 13.999,
@@ -334,7 +334,7 @@
       {
         "division": "D4",
         "level": 3,
-        "title": "英字・記号",
+        "title": "チャレンジャー（準中級）",
         "description": "英字、大文字、複数数字、記号を含む入力を練習する",
         "minScore": 14,
         "maxScore": 18.999,
@@ -349,7 +349,7 @@
       {
         "division": "D5",
         "level": 4,
-        "title": "スペース",
+        "title": "トレーニー（中級）",
         "description": "半角スペースを含む語句や英語風の入力を練習する",
         "minScore": 19,
         "maxScore": 24.999,
@@ -361,7 +361,7 @@
       {
         "division": "D6",
         "level": 5,
-        "title": "標準",
+        "title": "タイパー（準上級）",
         "description": "標準的な長さの語句や文を安定して入力する",
         "minScore": 25,
         "maxScore": 31.999,
@@ -371,7 +371,7 @@
       {
         "division": "D7",
         "level": 6,
-        "title": "発展",
+        "title": "アドバンサー（上級）",
         "description": "やや長い語句や複数の入力特徴を含む文を練習する",
         "minScore": 32,
         "maxScore": 39.999,
@@ -381,7 +381,7 @@
       {
         "division": "D8",
         "level": 7,
-        "title": "上級",
+        "title": "エキスパート（準達人級）",
         "description": "長めの文や入力負荷の高い語句を練習する",
         "minScore": 40,
         "maxScore": 49.999,
@@ -391,7 +391,7 @@
       {
         "division": "D9",
         "level": 8,
-        "title": "長文・ボス",
+        "title": "マスター（達人級）",
         "description": "長文やボス用フレーズなど、高負荷の入力に挑戦する",
         "minScore": 50,
         "maxScore": 64.999,
@@ -404,7 +404,7 @@
       {
         "division": "D10",
         "level": 9,
-        "title": "最難関",
+        "title": "レジェンド（伝説級）",
         "description": "非常に長い文や総合的な入力力が必要なフレーズに挑戦する",
         "minScore": 65,
         "maxScore": null,
@@ -510,7 +510,7 @@
     {
       "division": "D1",
       "level": 0,
-      "title": "基本",
+      "title": "スターター（初心者級）",
       "description": "短い語句を中心に、基本的なキー入力を練習する",
       "minScore": 0,
       "maxScore": 4.999,
@@ -520,7 +520,7 @@
     {
       "division": "D2",
       "level": 1,
-      "title": "初級",
+      "title": "ビギナー（準初級）",
       "description": "少し長い語句や複数のキー列を含む入力を練習する",
       "minScore": 5,
       "maxScore": 8.999,
@@ -530,7 +530,7 @@
     {
       "division": "D3",
       "level": 2,
-      "title": "数字",
+      "title": "ルーキー（初級）",
       "description": "数字を含む語句を扱い、数字キーを使う入力を練習する",
       "minScore": 9,
       "maxScore": 13.999,
@@ -542,7 +542,7 @@
     {
       "division": "D4",
       "level": 3,
-      "title": "英字・記号",
+      "title": "チャレンジャー（準中級）",
       "description": "英字、大文字、複数数字、記号を含む入力を練習する",
       "minScore": 14,
       "maxScore": 18.999,
@@ -557,7 +557,7 @@
     {
       "division": "D5",
       "level": 4,
-      "title": "スペース",
+      "title": "トレーニー（中級）",
       "description": "半角スペースを含む語句や英語風の入力を練習する",
       "minScore": 19,
       "maxScore": 24.999,
@@ -569,7 +569,7 @@
     {
       "division": "D6",
       "level": 5,
-      "title": "標準",
+      "title": "タイパー（準上級）",
       "description": "標準的な長さの語句や文を安定して入力する",
       "minScore": 25,
       "maxScore": 31.999,
@@ -579,7 +579,7 @@
     {
       "division": "D7",
       "level": 6,
-      "title": "発展",
+      "title": "アドバンサー（上級）",
       "description": "やや長い語句や複数の入力特徴を含む文を練習する",
       "minScore": 32,
       "maxScore": 39.999,
@@ -589,7 +589,7 @@
     {
       "division": "D8",
       "level": 7,
-      "title": "上級",
+      "title": "エキスパート（準達人級）",
       "description": "長めの文や入力負荷の高い語句を練習する",
       "minScore": 40,
       "maxScore": 49.999,
@@ -599,7 +599,7 @@
     {
       "division": "D9",
       "level": 8,
-      "title": "長文・ボス",
+      "title": "マスター（達人級）",
       "description": "長文やボス用フレーズなど、高負荷の入力に挑戦する",
       "minScore": 50,
       "maxScore": 64.999,
@@ -612,7 +612,7 @@
     {
       "division": "D10",
       "level": 9,
-      "title": "最難関",
+      "title": "レジェンド（伝説級）",
       "description": "非常に長い文や総合的な入力力が必要なフレーズに挑戦する",
       "minScore": 65,
       "maxScore": null,
