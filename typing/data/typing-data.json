@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-07-07T01:14:29.746Z",
+  "generatedAt": "2026-07-07T01:39:07.968Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-07-07T01:14:29.746Z",
+    "generatedAt": "2026-07-07T01:39:07.968Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -307,6 +307,7 @@
         "minScore": 0,
         "maxScore": 4.999,
         "minIfAnySkillTags": [],
+        "icon": "🐥",
         "enabled": true
       },
       {
@@ -317,6 +318,7 @@
         "minScore": 5,
         "maxScore": 8.999,
         "minIfAnySkillTags": [],
+        "icon": "🐭",
         "enabled": true
       },
       {
@@ -329,6 +331,7 @@
         "minIfAnySkillTags": [
           "number"
         ],
+        "icon": "🐰",
         "enabled": true
       },
       {
@@ -344,6 +347,7 @@
           "uppercase",
           "symbol"
         ],
+        "icon": "🐨",
         "enabled": true
       },
       {
@@ -356,6 +360,7 @@
         "minIfAnySkillTags": [
           "space"
         ],
+        "icon": "🐱",
         "enabled": true
       },
       {
@@ -366,6 +371,7 @@
         "minScore": 25,
         "maxScore": 31.999,
         "minIfAnySkillTags": [],
+        "icon": "🐶",
         "enabled": true
       },
       {
@@ -376,6 +382,7 @@
         "minScore": 32,
         "maxScore": 39.999,
         "minIfAnySkillTags": [],
+        "icon": "🦊",
         "enabled": true
       },
       {
@@ -386,6 +393,7 @@
         "minScore": 40,
         "maxScore": 49.999,
         "minIfAnySkillTags": [],
+        "icon": "🐻",
         "enabled": true
       },
       {
@@ -399,6 +407,7 @@
           "long_text",
           "boss"
         ],
+        "icon": "🐯",
         "enabled": true
       },
       {
@@ -409,6 +418,7 @@
         "minScore": 65,
         "maxScore": null,
         "minIfAnySkillTags": [],
+        "icon": "🦁",
         "enabled": true
       }
     ]
@@ -515,6 +525,7 @@
       "minScore": 0,
       "maxScore": 4.999,
       "minIfAnySkillTags": [],
+      "icon": "🐥",
       "enabled": true
     },
     {
@@ -525,6 +536,7 @@
       "minScore": 5,
       "maxScore": 8.999,
       "minIfAnySkillTags": [],
+      "icon": "🐭",
       "enabled": true
     },
     {
@@ -537,6 +549,7 @@
       "minIfAnySkillTags": [
         "number"
       ],
+      "icon": "🐰",
       "enabled": true
     },
     {
@@ -552,6 +565,7 @@
         "uppercase",
         "symbol"
       ],
+      "icon": "🐨",
       "enabled": true
     },
     {
@@ -564,6 +578,7 @@
       "minIfAnySkillTags": [
         "space"
       ],
+      "icon": "🐱",
       "enabled": true
     },
     {
@@ -574,6 +589,7 @@
       "minScore": 25,
       "maxScore": 31.999,
       "minIfAnySkillTags": [],
+      "icon": "🐶",
       "enabled": true
     },
     {
@@ -584,6 +600,7 @@
       "minScore": 32,
       "maxScore": 39.999,
       "minIfAnySkillTags": [],
+      "icon": "🦊",
       "enabled": true
     },
     {
@@ -594,6 +611,7 @@
       "minScore": 40,
       "maxScore": 49.999,
       "minIfAnySkillTags": [],
+      "icon": "🐻",
       "enabled": true
     },
     {
@@ -607,6 +625,7 @@
         "long_text",
         "boss"
       ],
+      "icon": "🐯",
       "enabled": true
     },
     {
@@ -617,6 +636,7 @@
       "minScore": 65,
       "maxScore": null,
       "minIfAnySkillTags": [],
+      "icon": "🦁",
       "enabled": true
     }
   ],
