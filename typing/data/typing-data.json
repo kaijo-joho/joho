@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-07-08T07:21:11.399Z",
+  "generatedAt": "2026-07-08T07:38:58.628Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-07-08T07:21:11.399Z",
+    "generatedAt": "2026-07-08T07:38:58.628Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -23316,7 +23316,7 @@
       "visibility": "admin",
       "mode": "debug",
       "gameType": "timeAttack",
-      "gameCode": "",
+      "gameCode": "Debug",
       "gameIcon": "",
       "title": "DEBUG Romaji / ローマ字ゆれ確認",
       "subtitle": "デバッグ用",
