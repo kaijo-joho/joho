@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-07-07T01:39:07.968Z",
+  "generatedAt": "2026-07-08T06:50:31.400Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-07-07T01:39:07.968Z",
+    "generatedAt": "2026-07-08T06:50:31.400Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -11051,7 +11051,7 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "D2 昇格戦",
+      "title": "D2 昇格審査",
       "subtitle": "D2 ビギナー（準初級） への昇格",
       "description": "合格すると D2 ビギナー（準初級） に昇格します",
       "durationSec": 60,
@@ -11078,7 +11078,7 @@
       "promotion": {
         "requiredClears": 3,
         "targetGameId": "PM-D2",
-        "unlockMessage": "「D3 昇格戦」が解放されました。"
+        "unlockMessage": "「D3 昇格審査」が解放されました。"
       },
       "candidatePhraseIds": [
         "g03001",
@@ -11143,7 +11143,7 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "D3 昇格戦",
+      "title": "D3 昇格審査",
       "subtitle": "D3 ルーキー（初級） への昇格",
       "description": "合格すると D3 ルーキー（初級） に昇格します",
       "durationSec": 60,
@@ -11170,7 +11170,7 @@
       "promotion": {
         "requiredClears": 3,
         "targetGameId": "PM-D3",
-        "unlockMessage": "「D4 昇格戦」が解放されました。"
+        "unlockMessage": "「D4 昇格審査」が解放されました。"
       },
       "candidatePhraseIds": [
         "g05001",
@@ -11433,7 +11433,7 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "D4 昇格戦",
+      "title": "D4 昇格審査",
       "subtitle": "D4 チャレンジャー（準中級） への昇格",
       "description": "合格すると D4 チャレンジャー（準中級） に昇格します",
       "durationSec": 60,
@@ -11460,7 +11460,7 @@
       "promotion": {
         "requiredClears": 3,
         "targetGameId": "PM-D4",
-        "unlockMessage": "「D5 昇格戦」が解放されました。"
+        "unlockMessage": "「D5 昇格審査」が解放されました。"
       },
       "candidatePhraseIds": [
         "g03009",
@@ -11849,7 +11849,7 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "D5 昇格戦",
+      "title": "D5 昇格審査",
       "subtitle": "D5 トレーニー（中級） への昇格",
       "description": "合格すると D5 トレーニー（中級） に昇格します",
       "durationSec": 60,
@@ -11876,7 +11876,7 @@
       "promotion": {
         "requiredClears": 3,
         "targetGameId": "PM-D5",
-        "unlockMessage": "「D6 昇格戦」が解放されました。"
+        "unlockMessage": "「D6 昇格審査」が解放されました。"
       },
       "candidatePhraseIds": [
         "g04032",
@@ -12553,7 +12553,7 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "D6 昇格戦",
+      "title": "D6 昇格審査",
       "subtitle": "D6 タイパー（準上級） への昇格",
       "description": "合格すると D6 タイパー（準上級） に昇格します",
       "durationSec": 60,
@@ -12580,7 +12580,7 @@
       "promotion": {
         "requiredClears": 3,
         "targetGameId": "PM-D6",
-        "unlockMessage": "「D7 昇格戦」が解放されました。"
+        "unlockMessage": "「D7 昇格審査」が解放されました。"
       },
       "candidatePhraseIds": [
         "g16014",
@@ -13034,7 +13034,7 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "D7 昇格戦",
+      "title": "D7 昇格審査",
       "subtitle": "D7 アドバンサー（上級） への昇格",
       "description": "合格すると D7 アドバンサー（上級） に昇格します",
       "durationSec": 60,
@@ -13061,7 +13061,7 @@
       "promotion": {
         "requiredClears": 4,
         "targetGameId": "PM-D7",
-        "unlockMessage": "「D8 昇格戦」が解放されました。"
+        "unlockMessage": "「D8 昇格審査」が解放されました。"
       },
       "candidatePhraseIds": [
         "g21008",
@@ -13347,7 +13347,7 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "D8 昇格戦",
+      "title": "D8 昇格審査",
       "subtitle": "D8 エキスパート（準達人級） への昇格",
       "description": "合格すると D8 エキスパート（準達人級） に昇格します",
       "durationSec": 60,
@@ -13374,7 +13374,7 @@
       "promotion": {
         "requiredClears": 4,
         "targetGameId": "PM-D8",
-        "unlockMessage": "「D9 昇格戦」が解放されました。"
+        "unlockMessage": "「D9 昇格審査」が解放されました。"
       },
       "candidatePhraseIds": [
         "g27009",
@@ -13474,7 +13474,7 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "D9 昇格戦",
+      "title": "D9 昇格審査",
       "subtitle": "D9 マスター（達人級） への昇格",
       "description": "合格すると D9 マスター（達人級） に昇格します",
       "durationSec": 60,
@@ -13501,7 +13501,7 @@
       "promotion": {
         "requiredClears": 4,
         "targetGameId": "PM-D9",
-        "unlockMessage": "「D10 昇格戦」が解放されました。"
+        "unlockMessage": "「D10 昇格審査」が解放されました。"
       },
       "candidatePhraseIds": [
         "i31003",
@@ -13556,7 +13556,7 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "D10 昇格戦",
+      "title": "D10 昇格審査",
       "subtitle": "D10 レジェンド（伝説級） への昇格",
       "description": "合格すると D10 レジェンド（伝説級） に昇格します",
       "durationSec": 60,
@@ -13583,7 +13583,7 @@
       "promotion": {
         "requiredClears": 5,
         "targetGameId": "PM-D10",
-        "unlockMessage": "「アルティメット認定」が解放されました。"
+        "unlockMessage": "「アルティメット認定審査」が解放されました。"
       },
       "candidatePhraseIds": [
         "i40001",
@@ -13619,8 +13619,8 @@
       "visibility": "public",
       "mode": "promotion",
       "gameType": "timeAttack",
-      "title": "アルティメット認定",
-      "subtitle": "究極のタイピスト認定",
+      "title": "アルティメット認定審査",
+      "subtitle": "アルティメット認定審査",
       "description": "合格すると 「アルティメット（究極のタイピスト）」に認定されます。",
       "durationSec": 60,
       "phraseCount": 999,
