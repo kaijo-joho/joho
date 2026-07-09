@@ -1,7 +1,7 @@
 {
   "schemaVersion": "1.0",
   "dataVersion": "2026-06-06-001",
-  "generatedAt": "2026-07-08T07:38:58.628Z",
+  "generatedAt": "2026-07-09T12:02:09.181Z",
   "source": {
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -9,7 +9,7 @@
   "meta": {
     "schemaVersion": "1.0",
     "dataVersion": "2026-06-06-001",
-    "generatedAt": "2026-07-08T07:38:58.628Z",
+    "generatedAt": "2026-07-09T12:02:09.181Z",
     "source": "Typing Quest",
     "spreadsheetId": "1NZEI43jRSW-8Fx9ARwEiQGrLIuv9UumnbyizZAzytGw",
     "spreadsheetName": "タイピングv2"
@@ -8597,7 +8597,11 @@
         "avgLength": 3.7222222222222223,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 93,
+        "correctCount": 45,
+        "missMax": 7
+      },
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
@@ -8683,7 +8687,11 @@
         "avgLength": 6.067460317460317,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 94,
+        "correctCount": 65,
+        "missMax": 6
+      },
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
@@ -8967,7 +8975,11 @@
         "avgLength": 9.65079365079365,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 95,
+        "correctCount": 85,
+        "missMax": 5
+      },
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
@@ -9377,7 +9389,11 @@
         "avgLength": 10.025525525525525,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 96,
+        "correctCount": 110,
+        "missMax": 5
+      },
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
@@ -10075,7 +10091,11 @@
         "avgLength": 16.539503386004515,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 97,
+        "correctCount": 150,
+        "missMax": 4
+      },
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
@@ -10550,7 +10570,11 @@
         "avgLength": 23.658181818181816,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 98,
+        "correctCount": 185,
+        "missMax": 3
+      },
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
@@ -10857,7 +10881,11 @@
         "avgLength": 29.202247191011235,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 98.5,
+        "correctCount": 220,
+        "missMax": 3
+      },
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
@@ -10978,7 +11006,11 @@
         "avgLength": 36.52272727272727,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 99,
+        "correctCount": 260,
+        "missMax": 2
+      },
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
@@ -11054,7 +11086,11 @@
         "avgLength": 47.2,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 99,
+        "correctCount": 300,
+        "missMax": 1
+      },
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
@@ -11111,7 +11147,11 @@
         "avgLength": 61.25,
         "visible": true
       },
-      "clearConditions": {},
+      "clearConditions": {
+        "accuracy": 99.5,
+        "correctCount": 340,
+        "missMax": 1
+      },
       "quest": {},
       "promotion": {},
       "candidatePhraseIds": [
