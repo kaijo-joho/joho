@@ -1,4 +1,4 @@
-const update = '2026-06-29 08:04:40';
+const update = '2026-07-15 15:10:43';
 
 const quizzes = {
   "py11": {
@@ -488,7 +488,17 @@ const submitForms = {
   "picto26": {
     "title": "ピクトグラム最終課題",
     "description": "",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=submit&pid=picto26"
+    "url": "https://script.google.com/a/gfe.kaijo.ed.jp/macros/s/AKfycbzqjPPf0oZL4LwpoYyrAcHaks0jLYFXIQ9C9YmZ7BTYav2tu6FZb6SVwF94A5lxH4hu1g/exec?page=submit&pid=picto26"
+  },
+  "logocard": {
+    "title": "架空会社の名刺制作",
+    "description": "",
+    "url": "https://script.google.com/a/gfe.kaijo.ed.jp/macros/s/AKfycbzqjPPf0oZL4LwpoYyrAcHaks0jLYFXIQ9C9YmZ7BTYav2tu6FZb6SVwF94A5lxH4hu1g/exec?page=submit&pid=logocard"
+  },
+  "pysmr": {
+    "title": "高1夏休みの課題",
+    "description": "",
+    "url": "https://script.google.com/a/gfe.kaijo.ed.jp/macros/s/AKfycbzqjPPf0oZL4LwpoYyrAcHaks0jLYFXIQ9C9YmZ7BTYav2tu6FZb6SVwF94A5lxH4hu1g/exec?page=submit&pid=pysmr"
   }
 };
 window.submitForms = submitForms;
@@ -567,7 +577,17 @@ const reviewForms = {
   "picto26": {
     "title": "ピクトグラム最終課題",
     "description": "",
-    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?mode=review&pid=picto26"
+    "url": "https://script.google.com/a/gfe.kaijo.ed.jp/macros/s/AKfycbzqjPPf0oZL4LwpoYyrAcHaks0jLYFXIQ9C9YmZ7BTYav2tu6FZb6SVwF94A5lxH4hu1g/exec?page=review&pid=picto26"
+  },
+  "logocard": {
+    "title": "架空会社の名刺制作",
+    "description": "",
+    "url": "https://script.google.com/a/gfe.kaijo.ed.jp/macros/s/AKfycbzqjPPf0oZL4LwpoYyrAcHaks0jLYFXIQ9C9YmZ7BTYav2tu6FZb6SVwF94A5lxH4hu1g/exec?page=review&pid=logocard"
+  },
+  "pysmr": {
+    "title": "高1夏休みの課題",
+    "description": "",
+    "url": "https://script.google.com/a/gfe.kaijo.ed.jp/macros/s/AKfycbzqjPPf0oZL4LwpoYyrAcHaks0jLYFXIQ9C9YmZ7BTYav2tu6FZb6SVwF94A5lxH4hu1g/exec?page=review&pid=pysmr"
   }
 };
 window.reviewForms = reviewForms;
