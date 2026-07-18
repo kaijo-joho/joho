@@ -1,4 +1,4 @@
-// ./js/script.js まるっと置き換え可（IIFE）
+// ./js/script.js
 (() => {
   'use strict';
 
@@ -13,21 +13,11 @@
 
   let inited = false;
 
-  /** ========= メタ情報の取得 ========= 
-   * 旧
-  function getPageMeta() {
-    const id = getFileName();
-    const pages =
-      (window.page && typeof window.page === 'object' ? window.page : null) ||
-      (window.pages && typeof window.pages === 'object' ? window.pages : null) ||
-      {};
-
-    const p = pages[id];
-
-
-
-    return p;
-  }*/
+  /** ========= メタ情報の取得 ========= */
+  function getCurrentPageId() {
+    const name = location.pathname.split('/').pop() || 'index';
+    return name.replace(/\.html?$/i, '') || 'index';
+  }
 
   function getPageMeta() {
     const pages =
@@ -35,7 +25,7 @@
       (window.pages && typeof window.pages === 'object' ? window.pages : null) ||
       {};
 
-    const id = getFileName(); // ここで "index" 等が返る
+    const id = getCurrentPageId();
 
     // "index" と "index.html" の両取り、拡張子ありなしの両取り
     const candidates = id === 'index'
@@ -48,256 +38,248 @@
     return null;
   }
 
+  const meta = getPageMeta();
 
-  const meta = getPageMeta() || {};
-  console.log(meta);
+  function hasMeaningfulContent(element) {
+    if (!element) return false;
+    return Array.from(element.childNodes).some(node =>
+      node.nodeType === Node.ELEMENT_NODE ||
+      (node.nodeType === Node.TEXT_NODE && node.textContent.trim() !== '')
+    );
+  }
+
+  function text(value) {
+    return typeof value === 'string' ? value.trim() : '';
+  }
+
+  function releasedItems(type) {
+    const items = meta && Array.isArray(meta[type]) ? meta[type] : [];
+    return items.filter(item =>
+      item && item.release !== false && text(item.url) !== ''
+    );
+  }
 
   /** ========= ヘッダ生成 ========= */
   function ensureHeader() {
-    //const meta = getPageMeta() || {};
-    const label = `${meta.mainTitle}` || '';
+    const label = meta ? text(meta.mainTitle) : '';
+    const legacyHeader = document.getElementById('headerbar');
+    const keepLegacyHeader = hasMeaningfulContent(legacyHeader);
+
+    // コメントだけの旧プレースホルダーは、空白領域を残さないよう除去する。
+    if (legacyHeader && !keepLegacyHeader) legacyHeader.remove();
 
     let header = document.getElementById('site-header');
-    if (!header) {
+    if (!header && !keepLegacyHeader) {
       header = document.createElement('header');
       header.id = 'site-header';
       header.setAttribute('role', 'banner');
       document.body.insertBefore(header, document.body.firstChild);
     }
 
-    // headerbar要素の作成
-    const headerbar = document.createElement('div');
-    headerbar.className = 'headerbar';
+    if (header && !header.querySelector('.headerbar')) {
+      const headerbar = document.createElement('div');
+      headerbar.className = 'headerbar';
 
-    // headerbar__brand要素の作成
-    const headerbarBrand = document.createElement('div');
-    headerbarBrand.className = 'headerbar__brand';
-    headerbarBrand.setAttribute('aria-label', '学校名');
+      const headerbarBrand = document.createElement('div');
+      headerbarBrand.className = 'headerbar__brand';
+      headerbarBrand.setAttribute('aria-label', '学校名');
 
-    // headerbar__brand内のアンカータグを作成
-    const brandLink = document.createElement('a');
-    brandLink.href = './index.html';
-    brandLink.textContent = '海城中学高等学校'; // 後ろにスペースを追加
+      const brandLink = document.createElement('a');
+      brandLink.href = './index.html';
+      brandLink.append('海城中学高等学校');
 
-    // brandLink内のspan要素を作成
-    const subjectSpan = document.createElement('span');
-    subjectSpan.className = 'subject';
-    subjectSpan.textContent = '情報科';
+      const subjectSpan = document.createElement('span');
+      subjectSpan.className = 'subject';
+      subjectSpan.textContent = '情報科';
+      brandLink.appendChild(subjectSpan);
+      headerbarBrand.appendChild(brandLink);
+      headerbar.appendChild(headerbarBrand);
 
-    // 要素の組み立て
-    brandLink.appendChild(subjectSpan);
-    headerbarBrand.appendChild(brandLink);
-
-    headerbar.appendChild(headerbarBrand);
-
-
-
-    // headerbar__course要素の作成
-    if(label !== ''){
-      const headerbarCourse = document.createElement('a');
-      headerbarCourse.id = 'headerbar__course';
-      headerbarCourse.className = 'headerbar__course';
-      headerbarCourse.textContent = label;
-      headerbarCourse.setAttribute('aria-label', `${label}`);
-      headerbarCourse.href = meta.backFile;
-      headerbarCourse.classList.remove('is-disabled');
-      headerbarCourse.removeAttribute('aria-disabled');
-      headerbarCourse.setAttribute('aria-label', '講座名');
-
-      headerbar.appendChild(headerbarCourse);
-    }
-
-    // 作成したheaderbarをbody要素などに追加
-    header.appendChild(headerbar);
-
-
-    if(meta.id !== 'link'){
-      const ph = document.createElement('section');
-      ph.id = 'page_header';
-      const phArticle = document.createElement('article');
-      const pyErrorLink = meta.mainTitle === 'Python講座' && !(meta.id === 'py00' || meta.id === 'py91') ? '<p>エラーが出たら<a href="./py91.html" target="_blank">エラー処理</a>を参照し修正してください。</p>' : '';
-
-      phArticle.innerHTML = `
-        <h1><a id="title">${meta.title}</a></h1>
-        <p class="page_detail">${meta.detail}</p>
-        ${pyErrorLink}
-      `;
-      
-      createDescAndFileList(phArticle, 'dlFile');
-      createDescAndFileList(phArticle, 'practiceFile');
-
-      ph.appendChild(phArticle);
-
-      header.after(ph);
-    }
-
-    
-
-  }
-
-  function createDescAndFileList(parentElem, type, subDesc = ''){
-    if(meta[type] === false) return;
-    const p1 = document.createElement('p');
-    p1.innerHTML = COMMON_DESCRIPTION[type];
-    parentElem.appendChild(p1);
-    
-    // ulと一緒に、特定条件のファイルが存在したかどうかのフラグを受け取る
-    const { ul, hasRightClickFile } = createFileList(type);
-    
-    if(ul !== null) {
-      parentElem.appendChild(ul);
-      
-      // 条件に合致するファイルがあった場合のみ、ulの直後にpタグを追加
-      if (hasRightClickFile) {
-        const pGuide = document.createElement('p');
-        pGuide.innerHTML = '※右クリックしてメニューを開き<b>リンク先を別名で保存...</b>を選択する';
-        pGuide.className = 'small-text';
-        parentElem.appendChild(pGuide);
+      if (label !== '') {
+        const headerbarCourse = document.createElement('a');
+        headerbarCourse.id = 'headerbar__course';
+        headerbarCourse.className = 'headerbar__course';
+        headerbarCourse.textContent = label;
+        headerbarCourse.setAttribute('aria-label', '講座名');
+        const backFile = text(meta.backFile);
+        if (backFile) {
+          headerbarCourse.href = backFile;
+        } else {
+          headerbarCourse.classList.add('is-disabled');
+          headerbarCourse.setAttribute('aria-disabled', 'true');
+        }
+        headerbar.appendChild(headerbarCourse);
       }
+
+      header.appendChild(headerbar);
     }
 
-    const p2 = document.createElement('p');
-    p2.innerHTML = subDesc;
-    parentElem.appendChild(p2);
+    if (!meta || meta.id === 'link' || text(meta.title) === '') return;
+
+    let pageHeader = document.getElementById('page_header');
+    if (pageHeader && hasMeaningfulContent(pageHeader)) return;
+
+    if (!pageHeader) {
+      pageHeader = document.createElement('section');
+      pageHeader.id = 'page_header';
+      const anchor = header || (keepLegacyHeader ? legacyHeader : null);
+      if (anchor) anchor.after(pageHeader);
+      else document.body.insertBefore(pageHeader, document.body.firstChild);
+    }
+
+    const article = document.createElement('article');
+    const h1 = document.createElement('h1');
+    const titleAnchor = document.createElement('a');
+    titleAnchor.id = 'title';
+    titleAnchor.textContent = text(meta.title);
+    h1.appendChild(titleAnchor);
+    article.appendChild(h1);
+
+    const detail = text(meta.detail);
+    if (detail) {
+      const detailParagraph = document.createElement('p');
+      detailParagraph.className = 'page_detail';
+      detailParagraph.textContent = detail;
+      article.appendChild(detailParagraph);
+    }
+
+    if (meta.mainTitle === 'Python講座' && !['py00', 'py91'].includes(meta.id)) {
+      const errorGuide = document.createElement('p');
+      errorGuide.append('エラーが出たら');
+      const errorLink = document.createElement('a');
+      errorLink.href = './py91.html';
+      errorLink.target = '_blank';
+      errorLink.rel = 'noopener';
+      errorLink.textContent = 'エラー処理';
+      errorGuide.append(errorLink, 'を参照し修正してください。');
+      article.appendChild(errorGuide);
+    }
+
+    createDescAndFileList(article, 'dlFile');
+    createDescAndFileList(article, 'practiceFile');
+    pageHeader.appendChild(article);
   }
 
-  function createFileList(type){
-    const files = meta[type];
-    if(!files) return { ul: null, hasRightClickFile: false };
+  function createDescAndFileList(parentElem, type, subDesc = '') {
+    const files = releasedItems(type);
+    if (files.length === 0) return false;
 
+    const p1 = document.createElement('p');
+    p1.innerHTML = COMMON_DESCRIPTION[type] || '';
+    parentElem.appendChild(p1);
+
+    const { ul, hasRightClickFile } = createFileList(files, type);
+    parentElem.appendChild(ul);
+
+    if (hasRightClickFile) {
+      const pGuide = document.createElement('p');
+      pGuide.innerHTML = '※右クリックしてメニューを開き<b>リンク先を別名で保存...</b>を選択する';
+      pGuide.className = 'small-text';
+      parentElem.appendChild(pGuide);
+    }
+
+    if (text(subDesc)) {
+      const p2 = document.createElement('p');
+      p2.innerHTML = subDesc;
+      parentElem.appendChild(p2);
+    }
+    return true;
+  }
+
+  function createFileList(files, type) {
     const ul = document.createElement('ul');
     ul.className = 'file-list';
-    
-    // フラグを初期化
     let hasRightClickFile = false;
 
     files.forEach(file => {
-      if(!file.release) return;
+      const url = text(file.url);
+      const label = text(file.text) || text(file.title) || text(file.fileName) || 'ファイルを開く';
+      const isLocalFile = url.startsWith('./');
+      if (isLocalFile) hasRightClickFile = true;
 
-      // 条件判定
-      const isLocalFile = file.url.startsWith('./');
-      if (isLocalFile) {
-        hasRightClickFile = true; // 1つでもあればtrueにする
+      const li = document.createElement('li');
+      li.className = 'practiceFile_listitem';
+      const links = document.createElement('span');
+      links.className = 'file-links';
+
+      if (type === 'dlFile') {
+        const name = document.createElement('span');
+        name.className = 'file-name';
+        name.textContent = label;
+        li.appendChild(name);
+
+        const download = document.createElement('a');
+        download.href = url;
+        download.className = 'file-link';
+        download.textContent = `💾ダウンロード${isLocalFile ? '(右クリック)' : ''}`;
+        if (isLocalFile) download.setAttribute('download', label);
+        links.appendChild(download);
+
+        const submitUrl = text(file.submitUrl);
+        if (submitUrl) {
+          links.append(' ');
+          const submit = document.createElement('a');
+          submit.href = submitUrl;
+          submit.className = 'file-link';
+          submit.target = '_blank';
+          submit.rel = 'noopener';
+          submit.textContent = '📤提出フォーム';
+          links.appendChild(submit);
+        }
+      } else {
+        const open = document.createElement('a');
+        open.href = url;
+        open.className = 'file-link';
+        open.target = '_blank';
+        open.rel = 'noopener';
+        open.textContent = label;
+        links.appendChild(open);
       }
 
-      const dl_click = isLocalFile ? '(右クリック)' : '';
-      const li = document.createElement('li');
-      li.className = 'practiceFile_listitem';
-      li.innerHTML = type === 'dlFile' ?
-        `
-          <span class="file-name">${file.text}</span>
-          <span class="file-links">
-          <a href="${file.url}" class="file-link" type="text/html" download="${file.text}">💾ダウンロード${dl_click}</a> 
-          <a href="${file.submitUrl}" class="file-link" target="_blank">📤提出フォーム</a>
-          </span>
-        ` :
-        `
-          <span class="file-links">
-          <a href="${file.url}" class="file-link" target="_blank">${file.text}</a>
-          </span>
-        `;
+      li.appendChild(links);
       ul.appendChild(li);
     });
 
-    // ulとフラグをオブジェクトとして返す
-    return { ul: ul.hasChildNodes() ? ul : null, hasRightClickFile };
+    return { ul, hasRightClickFile };
   }
-  /*
-  function createDescAndFileList(parentElem, type, subDesc = ''){
-    if(meta[type] === false) return;
-    const p1 = document.createElement('p');
-    p1.innerHTML = COMMON_DESCRIPTION[type]; //`実習のはじめに、下記リンク先から実習ファイルを各自の個別フォルダにダウンロードしてください。`;
-    parentElem.appendChild(p1);
-    
-    const ul = createFileList(type);
-    if(ul !== null) parentElem.appendChild(ul);
-
-    const p2 = document.createElement('p');
-    p2.innerHTML = subDesc;  //提出状況へのリンクを貼る場合にはここにリンク先を記述
-    parentElem.appendChild(p2);
-  }
-
-  function createFileList(type){
-    const files = meta[type];
-    if(!files) return null;
-    const ul = document.createElement('ul');
-    ul.className = 'file-list';
-    files.forEach(file => {
-      if(!file.release) return;
-      const dl_click = file.url.startsWith('./') ? '(右クリック)' : '';
-      const li = document.createElement('li');
-      li.className = 'practiceFile_listitem';
-      li.innerHTML = type === 'dlFile' ?
-        `
-          <span class="file-name">${file.text}</span>
-          <span class="file-links">
-          <a href="${file.url}" class="file-link" type="text/html" download="${file.text}">💾ダウンロード${dl_click}</a> 
-          <a href="${file.submitUrl}" class="file-link" target="_blank">📤提出フォーム</a>
-          </span>
-        ` :
-        `
-          <span class="file-links">
-          <a href="${file.url}" class="file-link" target="_blank">${file.text}</a>
-          </span>
-        `;
-      ul.appendChild(li);
-    });
-    return ul;
-  }
-    */
-
-
-
-
-
-
-
-
-
   /** ========= フッタ生成 ========= */
   function ensureFooter() {
-    
-    // === 演習問題と確認テスト ===
-    if( (meta.questionFile !== false || meta.quizForm !== false)){
+    const groups = [
+      { type: 'questionFile', title: '演習問題' },
+      { type: 'quizForm', title: '確認テスト' }
+    ].filter(group => releasedItems(group.type).length > 0);
+
+    if (groups.length > 0) {
       let q = document.getElementById('questions');
-      if(!q){
+      if (!q) {
         q = document.createElement('section');
         q.id = 'questions';
         document.body.appendChild(q);
       }
-      let article = document.createElement('article');
-      q.appendChild(article);
 
-      const secTitle = document.createElement('h2');
-      secTitle.id = 'questions_title';
-      secTitle.innerText = (meta.questionFile !== false && meta.quizForm !== false) ? `演習問題と確認テスト` :
-                            meta.questionFile !== false ? `演習問題` : 
-                            meta.quizForm !== false ?     `確認テスト` : 
-                            '';
-      article.appendChild(secTitle);
+      if (!hasMeaningfulContent(q)) {
+        const article = document.createElement('article');
+        q.appendChild(article);
 
-      // === 演習問題 ===
-      if(meta.questionFile !== false){
-        const questionTitle = document.createElement('h3');
-        questionTitle.id = 'question_title';
-        questionTitle.innerText = `演習問題`;
-        article.appendChild(questionTitle);
-        createDescAndFileList(article, 'questionFile');
-      }
+        const secTitle = document.createElement('h2');
+        secTitle.id = 'questions_title';
+        secTitle.textContent = groups.length === 2 ? '演習問題と確認テスト' : groups[0].title;
+        article.appendChild(secTitle);
 
-      // === 確認テスト ===
-      if(meta.quizForm !== false){
-        const quizTitle = document.createElement('h3');
-        quizTitle.id = 'quiz_title';
-        quizTitle.innerText = `確認テスト`;
-        article.appendChild(quizTitle);
-        createDescAndFileList(article, 'quizForm');
+        groups.forEach(group => {
+          const itemTitle = document.createElement('h3');
+          itemTitle.id = group.type === 'questionFile' ? 'question_title' : 'quiz_title';
+          itemTitle.textContent = group.title;
+          article.appendChild(itemTitle);
+          createDescAndFileList(article, group.type);
+        });
       }
     }
 
-
-    // === 次回は、、、 ===
-    if(meta.next){
+    const nextItems = meta && Array.isArray(meta.next)
+      ? meta.next.filter(item => item && item.release !== false && text(item.url) !== '')
+      : [];
+    if (nextItems.length > 0) {
       let nextPageElement = document.getElementById('next_page');
       if (!nextPageElement) {
         nextPageElement = document.createElement('section');
@@ -305,44 +287,47 @@
         document.body.appendChild(nextPageElement);
       }
 
-      const article = document.createElement('article');
-      nextPageElement.appendChild(article);
 
-      const secTitle = document.createElement('h2');
-      secTitle.id = 'headline_next';
-      secTitle.innerText = '次回は、、、';
-      article.appendChild(secTitle);
+      if (!hasMeaningfulContent(nextPageElement)) {
+        const article = document.createElement('article');
+        nextPageElement.appendChild(article);
 
+        const secTitle = document.createElement('h2');
+        secTitle.id = 'headline_next';
+        secTitle.textContent = '次回は、、、';
+        article.appendChild(secTitle);
 
-      meta.next.forEach(nextPage => {
-        
-        const itemTitle = document.createElement('h3');
-        article.appendChild(itemTitle);
+        nextItems.forEach(nextPage => {
+          const itemTitle = document.createElement('h3');
+          const link = document.createElement('a');
+          link.href = text(nextPage.url);
+          link.title = text(nextPage.title);
+          link.textContent = text(nextPage.text) || text(nextPage.title) || '次のページ';
+          itemTitle.appendChild(link);
+          article.appendChild(itemTitle);
 
-        const a = document.createElement('a');
-        a.href =  nextPage.url;
-        a.title = nextPage.title;
-        a.textContent = nextPage.text;
-        itemTitle.appendChild(a);
-
-        const p = document.createElement('p');
-        p.className = 'page_detail';
-        p.innerText = nextPage.detail;
-        article.appendChild(p);
-      });
-      
-      document.body.appendChild(nextPageElement);
+          const detail = text(nextPage.detail);
+          if (detail) {
+            const p = document.createElement('p');
+            p.className = 'page_detail';
+            p.textContent = detail;
+            article.appendChild(p);
+          }
+        });
+      }
     }
-    
 
-
-    // === フッター ===
-    const footer = document.createElement('footer');
-    footer.id = 'site-footer';
-    footer.setAttribute('role', 'contentinfo');
-    document.body.appendChild(footer);
-    const year = new Date().getFullYear();
-    footer.textContent = `Copyright © ${year} Kaijo Junior and Senior High School. All Rights Reserved.`;
+    let footer = document.getElementById('site-footer');
+    if (!footer) {
+      footer = document.createElement('footer');
+      footer.id = 'site-footer';
+      footer.setAttribute('role', 'contentinfo');
+      document.body.appendChild(footer);
+    }
+    if (text(footer.textContent) === '') {
+      const year = new Date().getFullYear();
+      footer.textContent = `Copyright © ${year} Kaijo Junior and Senior High School. All Rights Reserved.`;
+    }
   }
 
   /** ========= 初期化 ========= */
@@ -426,7 +411,7 @@
           link.appendChild(img);
         } else {
           // 既存 a を活かしつつ最低限の属性を補う
-          if (!preserveExistingHref && !link.getAttribute('href')) {
+          if (candidateHref && (!preserveExistingHref || !link.getAttribute('href'))) {
             link.href = candidateHref;
           }
           if (!link.getAttribute('data-lightbox')) {

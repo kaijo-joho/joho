@@ -154,7 +154,7 @@
 
     // ?redirect=0 のときだけ自動遷移しない。
     if (getParam('redirect') !== '0') {
-      location.href = url;
+      location.replace(url);
     }
   }
 

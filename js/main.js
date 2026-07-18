@@ -2,43 +2,72 @@
 (() => {
   "use strict";
 
+  if (window.__johoMainBootstrapped) return;
+  window.__johoMainBootstrapped = true;
+
   /** ---------- 小さなユーティリティ ---------- */
   const abs = (u) => new URL(u, location.href).href;
 
-  const loadScript = (src, { async = false } = {}) =>
+  const loadScript = (src, { async = false, ready = () => false, timeout = 10000 } = {}) =>
     new Promise((resolve, reject) => {
       const a = abs(src);
-      const dup = Array.from(document.scripts).some(s => s.src && s.src === a);
-      if (dup) return resolve(src);
+      if (ready()) {
+        resolve(src);
+        return;
+      }
 
-      const s = document.createElement("script");
-      s.src = src;
-      s.async = async;
-      s.defer = false;                // await で順序制御する
-      s.onload = () => resolve(src);
-      s.onerror = () => reject(new Error(`failed to load: ${src}`));
-      document.head.appendChild(s);
-    });
+      const existing = Array.from(document.scripts).find(s => s.src && s.src === a);
+      const script = existing || document.createElement("script");
+      let timer = null;
 
-  const loadCSS = (href) =>
-    new Promise((resolve, reject) => {
-      const a = abs(href);
-      const dup = Array.from(document.querySelectorAll('link[rel="stylesheet"]'))
-        .some(l => l.href === a);
-      if (dup) return resolve(href);
+      const cleanup = () => {
+        clearTimeout(timer);
+        script.removeEventListener('load', onLoad);
+        script.removeEventListener('error', onError);
+      };
 
-      const l = document.createElement("link");
-      l.rel = "stylesheet";
-      l.href = href;
-      l.onload = () => resolve(href);
-      l.onerror = () => reject(new Error(`Failed to load CSS: ${href}`));
-      document.head.appendChild(l);
+      const onLoad = () => {
+        cleanup();
+        if (ready()) {
+          resolve(src);
+        } else {
+          reject(new Error(`loaded but not initialized: ${src}`));
+        }
+      };
+
+      const onError = () => {
+        cleanup();
+        reject(new Error(`failed to load: ${src}`));
+      };
+
+      script.addEventListener('load', onLoad, { once: true });
+      script.addEventListener('error', onError, { once: true });
+      timer = setTimeout(() => {
+        cleanup();
+        if (ready()) resolve(src);
+        else reject(new Error(`timed out while loading: ${src}`));
+      }, timeout);
+
+      // addEventListener直前に既存scriptの実行が完了した場合も拾う。
+      queueMicrotask(() => {
+        if (ready()) {
+          cleanup();
+          resolve(src);
+        }
+      });
+
+      if (existing) return;
+
+      script.src = src;
+      script.async = async;
+      script.defer = false;                // await で順序制御する
+      document.head.appendChild(script);
     });
 
   // 任意スクリプト用：読み込みに失敗しても全体を止めない
-  const loadOptionalScript = async (src, { async = false } = {}) => {
+  const loadOptionalScript = async (src, options = {}) => {
     try {
-      return await loadScript(src, { async });
+      return await loadScript(src, options);
     } catch (e) {
       console.warn(`[main.js] optional script skipped: ${src}`, e);
       return null;
@@ -50,6 +79,19 @@
     document.readyState === 'loading'
       ? new Promise(r => document.addEventListener('DOMContentLoaded', r, { once: true }))
       : Promise.resolve();
+
+  const runInitializer = (name) => {
+    const initializer = window[name];
+    if (typeof initializer !== 'function') return false;
+
+    try {
+      initializer();
+      return true;
+    } catch (error) {
+      console.error(`[main.js] ${name} failed:`, error);
+      return false;
+    }
+  };
 
   /** ---------- パス定義（必要なら調整） ---------- */
   const PATH = {
@@ -66,63 +108,53 @@
   /** ---------- 起動シーケンス ---------- */
   (async function bootstrap() {
     try {
-      // 1) ヘッダ系（副作用的に設定される想定）
-      await loadScript(PATH.head);
-
-      // 2) pages を先に用意（以降の機能が依存）
-      await loadScript(PATH.pages);
-
-      // 3) FAQデータを用意
-      //    lesson_dock.js の初期化前に FAQ_DATA が存在している必要がある。
-      //    万一 faq.js が存在しない環境でも、LessonDock全体は止めない。
-      await loadOptionalScript(PATH.faq);
-
-      // 4) DOM 準備
-      await domReady();
-
-      // 5) レイアウトの“器”を先に用意（ヘッダー/フッター等）
-      await loadScript(PATH.script);
-      if (typeof window.initLayout === "function") {
-        window.initLayout();
-      }
-
-      // 6) ナビ・ハイライト・ドックを並列読み込み
-      //    FAQ_DATA は上で読み込み済みなので、lesson_dock.js 側で参照できる。
+      // 1) 共通設定とデータを並列で準備する。どれか1つの失敗では全体を止めない。
       await Promise.all([
-        loadScript(PATH.nav),
-        loadScript(PATH.highlightLocal),
-        loadScript(PATH.lessonDock)
+        loadOptionalScript(PATH.head, {
+          ready: () => window.__headInitialized === true
+        }),
+        loadOptionalScript(PATH.pages, {
+          ready: () => Boolean(window.pages && typeof window.pages === 'object')
+        }),
+        loadOptionalScript(PATH.faq, {
+          ready: () => Array.isArray(window.FAQ_DATA)
+        })
       ]);
 
-      // 7) 念のため DOM 準備を再確認
+      // 2) DOM 準備
       await domReady();
 
-      // 8) ナビ初期化
-      if (typeof window.initNav === "function") {
-        window.initNav();
-      }
+      // 3) レイアウトの“器”を先に用意（ヘッダー/フッター等）
+      await loadOptionalScript(PATH.script, {
+        ready: () => typeof window.initLayout === 'function'
+      });
+      runInitializer('initLayout');
 
-      // 9) ドック（pages + FAQ_DATA から生成）
-      if (typeof window.initLessonDockFromPages === "function") {
-        window.initLessonDockFromPages();
-      } else {
-        console.warn("[main.js] lesson_dock.js が見つかりません。PATH.lessonDock のパスと Network タブを確認してください。");
-      }
+      // 4) ナビ・ハイライト・ドックを並列読み込み
+      await Promise.all([
+        loadOptionalScript(PATH.nav, {
+          ready: () => typeof window.initNav === 'function'
+        }),
+        loadOptionalScript(PATH.highlightLocal, {
+          ready: () => typeof window.highlightCodeBlocksWithIds === 'function'
+        }),
+        loadOptionalScript(PATH.lessonDock, {
+          ready: () => typeof window.initLessonDockFromPages === 'function'
+        })
+      ]);
 
-      // 10) ページ固有スクリプトを読み込んでから初期化
-      await loadScript(PATH.scriptPages);
-      if (typeof window.initPageScripts === "function") {
-        try {
-          window.initPageScripts();
-        } catch (e) {
-          console.error("[main.js] initPageScripts failed:", e);
-        }
-      }
+      // 5) 利用できる機能だけを個別に初期化する。
+      runInitializer('initNav');
+      runInitializer('initLessonDockFromPages');
 
-      // 11) コードハイライトを最後に一括適用
-      if (typeof window.highlightCodeBlocksWithIds === "function") {
-        window.highlightCodeBlocksWithIds();
-      } else {
+      // 6) ページ固有スクリプト。失敗してもハイライト処理へ進む。
+      await loadOptionalScript(PATH.scriptPages, {
+        ready: () => typeof window.initPageScripts === 'function'
+      });
+      runInitializer('initPageScripts');
+
+      // 7) 動的に追加されたコードも含め、最後に一括適用する。
+      if (!runInitializer('highlightCodeBlocksWithIds')) {
         console.warn("[main.js] highlightCodeBlocksWithIds() が見つかりませんでした。");
       }
 

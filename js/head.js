@@ -7,6 +7,8 @@
 // ----------------------------------------------------------------------
 
 (function () {
+  if (window.__headInitialized) return;
+
   // ---------- helpers ----------
   const abs = (u) => new URL(u, location.href).href;
   const hasLink = (rel, href) =>
@@ -36,6 +38,9 @@
     const s = document.createElement('script');
     s.src = src; s.defer = defer; s.async = async;
     if (typeof onload === 'function') s.addEventListener('load', onload, { once: true });
+    s.addEventListener('error', () => {
+      console.warn(`[head.js] 外部スクリプトを読み込めませんでした: ${src}`);
+    }, { once: true });
     document.head.appendChild(s);
   };
 
@@ -57,18 +62,39 @@
     document.head.appendChild(m);
   }
 
-  // ---------- 共通CSS/JS（必要に応じて編集） ----------
-  // Lightbox & jQuery
-  addStylesheet('https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.min.css');
-  addScriptSrc('https://code.jquery.com/jquery-1.12.4.min.js');            // 互換重視
-  addScriptSrc('https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js');
+  // ---------- ページ内容に応じた共通CSS/JS ----------
+  // 通常はmain.js（defer）から呼ばれるためbodyを検査できる。
+  // bodyより先に直接読み込まれた場合は、機能を落とさないよう従来どおり読み込む。
+  const canInspectBody = Boolean(document.body);
+  const needsLightbox = !canInspectBody || Boolean(document.body.querySelector(
+    'img.screen_shot, a[data-lightbox], script[src*="slide_pages.js"]'
+  ));
 
-  // MathJax
-  window.MathJax = window.MathJax || {
-    tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
-    svg: { fontCache: 'global' }
+  if (needsLightbox) {
+    addStylesheet('https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/css/lightbox.min.css');
+    addScriptSrc('https://code.jquery.com/jquery-1.12.4.min.js');
+    addScriptSrc('https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.7.1/js/lightbox.min.js');
+  }
+
+  const getMathText = () => {
+    if (!canInspectBody) return '';
+    const clone = document.body.cloneNode(true);
+    clone.querySelectorAll('script, style, pre, code').forEach(node => node.remove());
+    return clone.textContent || '';
   };
-  addScriptSrc('https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js');
+  const mathText = getMathText();
+  const hasSingleDollarMath = /(^|[^$])\$[^$\n]{1,500}\$(?!\$)/m.test(mathText);
+  const needsMathJax = !canInspectBody ||
+    /\\\(|\\\[|\$\$|\\begin\{/.test(mathText) ||
+    hasSingleDollarMath;
+
+  if (needsMathJax) {
+    window.MathJax = window.MathJax || {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+    addScriptSrc('https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js');
+  }
 
   // ---------- Google Fonts ----------
   addPreconnect('https://fonts.googleapis.com');
@@ -107,4 +133,5 @@
   //addScriptSrc('./js/nav.js', { onload: () => {
   //  if (typeof window.buildNav === 'function') window.buildNav();
   //}});
+  window.__headInitialized = true;
 })();

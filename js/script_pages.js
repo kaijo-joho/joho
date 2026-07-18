@@ -1,28 +1,14 @@
 // script_pages.js
 // HTML側で pages.js を先に読み込む（または main.js の bootstrap で PATH.pages を await 済み前提）
 
-/* ===================== 小ユーティリティ ===================== */
-function loadScript(src, callback) {
-  const script = document.createElement('script');
-  script.src = src;
-  script.onload = callback;
-  document.head.appendChild(script);
-}
-
-// 現在ページのIDを決定（?id= を優先。なければファイル名。index/拡張子揺れにも対応）
+// 現在ページのIDをファイル名から決定する。
+// ?id= は print.html / link.html が転送先の識別子として使うため、ページIDには使わない。
 function getPageId() {
-  return getFileName();
-  /*
-  const u = new URL(location.href);
-  const byQuery = u.searchParams.get('id');
-  if (byQuery) return byQuery;
-
-  // main.js に getFileName() があればそれを使う（互換）
   if (typeof getFileName === 'function') return getFileName();
 
+  const u = new URL(location.href);
   let name = u.pathname.split('/').pop() || 'index';
   return name.replace(/\.html?$/,''); // .html/.htm を除去
-  */
 }
 
 /* ===================== メイン処理 ===================== */
@@ -47,7 +33,8 @@ function main() {
   try {
     const left  = page.title || page.mainTitle || document.title;
     const right = page.mainTitle && page.mainTitle !== left ? ` | ${page.mainTitle}` : '';
-    if(pageId !== 'link'){  // 中間リンクページはhtml内でタイトルを設定
+    if (!['link', 'print', 'gfe'].includes(pageId)) {
+      // 中継ページは各HTML内で、転送対象に合わせたタイトルを設定する。
       document.title = `${left}${right}`;
     }
   } catch(e){

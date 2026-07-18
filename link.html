@@ -146,7 +146,7 @@
 
     // ?redirect=0 以外は自動遷移
     if (getParam('redirect') !== '0') {
-      location.href = item.url;
+      location.replace(item.url);
     }
   }
 
@@ -155,4 +155,3 @@
 </script>
 </body>
 </html>
-

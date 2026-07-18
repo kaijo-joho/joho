@@ -2943,7 +2943,7 @@ const pages = {
   "link": {
     "id": "link",
     "release": true,
-    "fileName": "links.html",
+    "fileName": "link.html",
     "mainTitle": "",
     "category": "index",
     "title": "中間リンク",

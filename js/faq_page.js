@@ -52,6 +52,7 @@
 
   const getFaqData = () => Array.isArray(window.FAQ_DATA) ? window.FAQ_DATA : [];
   const getCategoryData = () => Array.isArray(window.FAQ_CATEGORY_DATA) ? window.FAQ_CATEGORY_DATA : [];
+  const getPublicFaqs = () => getFaqData().filter(faq => faq.status === '公開' || !faq.status);
 
   function getParam(name) {
     return new URL(location.href).searchParams.get(name) || '';
@@ -185,10 +186,13 @@
       btn.addEventListener('click', () => {
         state.course = value;
         state.unit = '';
+        state.category = '';
         state.keyword = '';
 
         setParam('course', value);
         setParam('unit', '');
+        setParam('type', '');
+        setParam('faqCategory', '');
         setParam('keyword', '');
 
         onChange();
@@ -228,8 +232,8 @@
     return label;
   }
 
-  function renderFilterArticle(state, onChange) {
-    const allFaqs = getFaqData();
+  function renderFilterArticle(state, onChange, onSearch) {
+    const allFaqs = getPublicFaqs();
     const baseFaqs = state.course
       ? allFaqs.filter(faq => faq.course === state.course)
       : allFaqs;
@@ -274,14 +278,30 @@
 
     const searchInput = search.querySelector('input');
     let timer = null;
+    let isComposing = false;
 
-    searchInput.addEventListener('input', () => {
+    const scheduleSearch = (delay = 120) => {
       clearTimeout(timer);
       timer = setTimeout(() => {
         state.q = searchInput.value.trim();
         setParam('q', state.q);
-        onChange();
-      }, 120);
+        onSearch();
+      }, delay);
+    };
+
+    searchInput.addEventListener('compositionstart', () => {
+      isComposing = true;
+      clearTimeout(timer);
+    });
+
+    searchInput.addEventListener('compositionend', () => {
+      isComposing = false;
+      scheduleSearch(0);
+    });
+
+    searchInput.addEventListener('input', event => {
+      if (isComposing || event.isComposing) return;
+      scheduleSearch();
     });
 
     const unitSelect = renderSelect(
@@ -302,6 +322,7 @@
       (v) => {
         state.category = v;
         setParam('type', v);
+        setParam('faqCategory', '');
         onChange();
       }
     );
@@ -454,7 +475,7 @@
   }
 
   function renderResultsArticle(state) {
-    const allFaqs = getFaqData().filter(faq => faq.status === '公開' || !faq.status);
+    const allFaqs = getPublicFaqs();
     const filtered = applyFilters(allFaqs, state);
 
     const article = el('article', { class: 'faq-results-article' });
@@ -477,6 +498,41 @@
     return article;
   }
 
+  function sanitizeState(state) {
+    const faqs = state.course
+      ? getPublicFaqs().filter(faq => faq.course === state.course)
+      : getPublicFaqs();
+
+    const hasValue = (field, value) => !value || faqs.some(faq => {
+      if (field === 'keywords') {
+        return Array.isArray(faq.keywords) && faq.keywords.includes(value);
+      }
+      return normalizeText(faq[field]) === value;
+    });
+
+    if (!hasValue('unit', state.unit)) {
+      state.unit = '';
+      setParam('unit', '');
+    }
+    if (!hasValue('category', state.category)) {
+      state.category = '';
+      setParam('type', '');
+      setParam('faqCategory', '');
+    }
+    if (!hasValue('keywords', state.keyword)) {
+      state.keyword = '';
+      setParam('keyword', '');
+    }
+  }
+
+  function highlightRenderedFaq(root) {
+    if (typeof window.highlightEmbeddedCodeBlocks === 'function') {
+      window.highlightEmbeddedCodeBlocks(root);
+    }
+  }
+
+  let appRendered = false;
+
   function renderApp() {
     const root = $('#faq-app');
     if (!root) return;
@@ -491,14 +547,30 @@
     }
 
     const state = getInitialState();
+    sanitizeState(state);
+    let resultsArticle = null;
+
+    const updateResults = () => {
+      const nextResults = renderResultsArticle(state);
+      if (resultsArticle && resultsArticle.isConnected) {
+        resultsArticle.replaceWith(nextResults);
+      } else {
+        root.appendChild(nextResults);
+      }
+      resultsArticle = nextResults;
+      highlightRenderedFaq(resultsArticle);
+    };
 
     const update = () => {
-      root.innerHTML = '';
-      root.appendChild(renderFilterArticle(state, update));
-      root.appendChild(renderResultsArticle(state));
+      sanitizeState(state);
+      root.replaceChildren();
+      resultsArticle = null;
+      root.appendChild(renderFilterArticle(state, update, updateResults));
+      updateResults();
     };
 
     update();
+    appRendered = true;
   }
 
   function waitForFaqDataAndRender() {
@@ -537,6 +609,6 @@
   }
 
   document.addEventListener('pages:ready', () => {
-    if (Array.isArray(window.FAQ_DATA)) renderApp();
+    if (!appRendered && Array.isArray(window.FAQ_DATA)) renderApp();
   });
 })();
