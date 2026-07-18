@@ -262,6 +262,7 @@
         q.appendChild(article);
 
         const secTitle = document.createElement('h2');
+        secTitle.setAttribute('data-skip-numbering', '');
         secTitle.id = 'questions_title';
         secTitle.textContent = groups.length === 2 ? '演習問題と確認テスト' : groups[0].title;
         article.appendChild(secTitle);
@@ -293,6 +294,7 @@
         nextPageElement.appendChild(article);
 
         const secTitle = document.createElement('h2');
+        secTitle.setAttribute('data-skip-numbering', '');
         secTitle.id = 'headline_next';
         secTitle.textContent = '次回は、、、';
         article.appendChild(secTitle);
