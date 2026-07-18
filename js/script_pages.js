@@ -48,6 +48,13 @@ function main() {
     console.error('[script_pages] render index failed', e);
   }
 
+  // 講座内の各ページで公開されている実習ファイルを一覧表示する。
+  try {
+    renderPracticeFileIndex(releasedPages, pageId);
+  } catch(e){
+    console.error('[script_pages] render practice file index failed', e);
+  }
+
   // †/‡ のツールチップ
   try { addTooltips_to_daggers(); } catch(e){ console.error('[script_pages] addTooltips_to_daggers failed', e); }
 
@@ -162,6 +169,100 @@ function getHtml_Index(pagesDict, currentId) {
   }
   if (opened) html += '</article>';
   return html;
+}
+
+function getPracticeFileGroups(pagesDict, currentId) {
+  const currentPage = pagesDict[currentId];
+  if (!currentPage?.mainTitle) return [];
+
+  const groups = [];
+  const groupByCategory = new Map();
+
+  for (const page of Object.values(pagesDict)) {
+    if (!page || page.release !== true || page.mainTitle !== currentPage.mainTitle || page.show === false) continue;
+
+    const files = Array.isArray(page.practiceFile)
+      ? page.practiceFile.filter(file =>
+          file && file.release !== false && typeof file.url === 'string' && file.url.trim() !== ''
+        )
+      : [];
+    if (files.length === 0) continue;
+
+    const category = page.category || 'その他';
+    let group = groupByCategory.get(category);
+    if (!group) {
+      group = { category, pages: [] };
+      groupByCategory.set(category, group);
+      groups.push(group);
+    }
+    group.pages.push({ page, files });
+  }
+
+  return groups;
+}
+
+function renderPracticeFileIndex(pagesDict, currentId) {
+  const container = document.getElementById('section_filelist');
+  if (!container || container.dataset.fileList !== 'practiceFile') return;
+
+  const groups = getPracticeFileGroups(pagesDict, currentId);
+  container.replaceChildren();
+
+  if (groups.length === 0) {
+    const article = document.createElement('article');
+    const message = document.createElement('p');
+    message.textContent = '現在公開中の配付ノートブックはありません。';
+    article.appendChild(message);
+    container.appendChild(article);
+    return;
+  }
+
+  for (const group of groups) {
+    const article = document.createElement('article');
+    const categoryTitle = document.createElement('h2');
+    categoryTitle.id = group.category;
+    categoryTitle.textContent = group.category;
+    if (group.category === 'はじめに') {
+      categoryTitle.setAttribute('data-skip-numbering', '');
+    }
+    article.appendChild(categoryTitle);
+
+    for (const { page, files } of group.pages) {
+      const pageTitle = document.createElement('h3');
+      const pageLink = document.createElement('a');
+      pageLink.href = page.fileName || `${page.id}.html`;
+      pageLink.textContent = page.title || page.id;
+      if (page.detail) pageLink.title = page.detail;
+      pageTitle.appendChild(pageLink);
+      article.appendChild(pageTitle);
+
+      const list = document.createElement('ul');
+      list.className = 'file-list';
+
+      for (const file of files) {
+        const item = document.createElement('li');
+        item.className = 'practiceFile_listitem';
+
+        const links = document.createElement('span');
+        links.className = 'file-links';
+
+        const fileLink = document.createElement('a');
+        fileLink.href = file.url.trim();
+        fileLink.className = 'file-link';
+        fileLink.target = '_blank';
+        fileLink.rel = 'noopener';
+        fileLink.textContent = file.text || file.title || file.fileName || 'ノートブックを開く';
+
+        links.appendChild(fileLink);
+        item.appendChild(links);
+        list.appendChild(item);
+      }
+
+      article.appendChild(list);
+    }
+
+    container.appendChild(article);
+  }
 }
 
 /* ===================== エクスポート ===================== */
