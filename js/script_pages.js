@@ -146,7 +146,10 @@ function getHtml_Index(pagesDict, currentId) {
       if (page.category !== previousCategory) {
         if (opened) html += '</article>';
         html += '<article>';
-        html += `<h2 id="${page.category}">${page.category}</h2>`;
+        const numberingAttr = page.category === 'はじめに'
+          ? ' data-skip-numbering'
+          : '';
+        html += `<h2 id="${page.category}"${numberingAttr}>${page.category}</h2>`;
         opened = true;
       }
       const fileName = page.fileName || `${page.id}.html`;

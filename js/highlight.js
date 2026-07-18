@@ -553,12 +553,19 @@ function highlightCodeBlocksWithIds() {
   let sectionIndex = 0;
 
   headings.forEach(h2 => {
-    sectionIndex++;
+    // data-skip-numbering がある見出しは、表示も連番のカウントも変更しない。
+    const skipNumbering = h2.matches('[data-skip-numbering]');
 
-    // 「X. タイトル」形式で見出しテキストを上書き
-    const originalText = h2.textContent.replace(/^\(?\d+\)?[.、）]?\s*/, '').trim();
-    setNumberedHeading(h2, `${sectionIndex}. ${originalText}`);
-    h2.setAttribute('data-section-index', sectionIndex);
+    if (!skipNumbering) {
+      sectionIndex++;
+
+      // 「X. タイトル」形式で見出しテキストを上書き
+      const originalText = h2.textContent
+        .replace(/^(?:\(\d+\)|\d+[.、）])\s*/, '')
+        .trim();
+      setNumberedHeading(h2, `${sectionIndex}. ${originalText}`);
+      h2.setAttribute('data-section-index', sectionIndex);
+    }
 
     let exerciseIndex = 1;
     let exampleIndex = 1;
@@ -594,7 +601,7 @@ function highlightCodeBlocksWithIds() {
         let commentLabel = '';
         let idText = '';
 
-        if (lang !== 'result') {
+        if (lang !== 'result' && !skipNumbering) {
           const labelType = isExample ? '例' : '実習';
           const subIndex = isExample ? exampleIndex++ : exerciseIndex++;
           idText = `${labelType} ${sectionIndex}-${String(subIndex).padStart(2, '0')}`;
