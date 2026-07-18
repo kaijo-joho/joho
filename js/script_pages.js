@@ -48,11 +48,11 @@ function main() {
     console.error('[script_pages] render index failed', e);
   }
 
-  // 講座内の各ページで公開されている実習ファイルを一覧表示する。
+  // 講座内の各ページで公開されている教材リンクを一覧表示する。
   try {
-    renderPracticeFileIndex(releasedPages, pageId);
+    renderCourseResourceIndex(releasedPages, pageId);
   } catch(e){
-    console.error('[script_pages] render practice file index failed', e);
+    console.error('[script_pages] render course resource index failed', e);
   }
 
   // †/‡ のツールチップ
@@ -171,7 +171,13 @@ function getHtml_Index(pagesDict, currentId) {
   return html;
 }
 
-function getPracticeFileGroups(pagesDict, currentId) {
+const COURSE_RESOURCE_TYPES = [
+  { key: 'practiceFile', label: '配付ノートブック', fallback: 'ノートブックを開く' },
+  { key: 'questionFile', label: '演習問題', fallback: '演習問題を開く' },
+  { key: 'quizForm', label: '確認テスト', fallback: '確認テストを開く' }
+];
+
+function getCourseResourceGroups(pagesDict, currentId) {
   const currentPage = pagesDict[currentId];
   if (!currentPage?.mainTitle) return [];
 
@@ -181,12 +187,15 @@ function getPracticeFileGroups(pagesDict, currentId) {
   for (const page of Object.values(pagesDict)) {
     if (!page || page.release !== true || page.mainTitle !== currentPage.mainTitle || page.show === false) continue;
 
-    const files = Array.isArray(page.practiceFile)
-      ? page.practiceFile.filter(file =>
-          file && file.release !== false && typeof file.url === 'string' && file.url.trim() !== ''
-        )
-      : [];
-    if (files.length === 0) continue;
+    const resources = COURSE_RESOURCE_TYPES.map(type => ({
+      ...type,
+      items: Array.isArray(page[type.key])
+        ? page[type.key].filter(item =>
+            item && item.release !== false && typeof item.url === 'string' && item.url.trim() !== ''
+          )
+        : []
+    })).filter(resource => resource.items.length > 0);
+    if (resources.length === 0) continue;
 
     const category = page.category || 'その他';
     let group = groupByCategory.get(category);
@@ -195,23 +204,23 @@ function getPracticeFileGroups(pagesDict, currentId) {
       groupByCategory.set(category, group);
       groups.push(group);
     }
-    group.pages.push({ page, files });
+    group.pages.push({ page, resources });
   }
 
   return groups;
 }
 
-function renderPracticeFileIndex(pagesDict, currentId) {
+function renderCourseResourceIndex(pagesDict, currentId) {
   const container = document.getElementById('section_filelist');
-  if (!container || container.dataset.fileList !== 'practiceFile') return;
+  if (!container || container.dataset.fileList !== 'courseResources') return;
 
-  const groups = getPracticeFileGroups(pagesDict, currentId);
+  const groups = getCourseResourceGroups(pagesDict, currentId);
   container.replaceChildren();
 
   if (groups.length === 0) {
     const article = document.createElement('article');
     const message = document.createElement('p');
-    message.textContent = '現在公開中の配付ノートブックはありません。';
+    message.textContent = '現在公開中の教材リンクはありません。';
     article.appendChild(message);
     container.appendChild(article);
     return;
@@ -227,7 +236,7 @@ function renderPracticeFileIndex(pagesDict, currentId) {
     }
     article.appendChild(categoryTitle);
 
-    for (const { page, files } of group.pages) {
+    for (const { page, resources } of group.pages) {
       const pageTitle = document.createElement('h3');
       const pageLink = document.createElement('a');
       pageLink.href = page.fileName || `${page.id}.html`;
@@ -236,29 +245,30 @@ function renderPracticeFileIndex(pagesDict, currentId) {
       pageTitle.appendChild(pageLink);
       article.appendChild(pageTitle);
 
-      const list = document.createElement('ul');
-      list.className = 'file-list';
+      const resourceList = document.createElement('dl');
+      resourceList.className = 'course-resource-list noBullet ddBullet';
 
-      for (const file of files) {
-        const item = document.createElement('li');
-        item.className = 'practiceFile_listitem';
+      for (const resource of resources) {
+        const resourceTitle = document.createElement('dt');
+        resourceTitle.textContent = resource.label;
+        resourceList.appendChild(resourceTitle);
 
-        const links = document.createElement('span');
-        links.className = 'file-links';
+        for (const item of resource.items) {
+          const resourceItem = document.createElement('dd');
 
-        const fileLink = document.createElement('a');
-        fileLink.href = file.url.trim();
-        fileLink.className = 'file-link';
-        fileLink.target = '_blank';
-        fileLink.rel = 'noopener';
-        fileLink.textContent = file.text || file.title || file.fileName || 'ノートブックを開く';
+          const resourceLink = document.createElement('a');
+          resourceLink.href = item.url.trim();
+          resourceLink.className = 'file-link';
+          resourceLink.target = '_blank';
+          resourceLink.rel = 'noopener';
+          resourceLink.textContent = item.text || item.title || item.fileName || resource.fallback;
 
-        links.appendChild(fileLink);
-        item.appendChild(links);
-        list.appendChild(item);
+          resourceItem.appendChild(resourceLink);
+          resourceList.appendChild(resourceItem);
+        }
       }
 
-      article.appendChild(list);
+      article.appendChild(resourceList);
     }
 
     container.appendChild(article);
