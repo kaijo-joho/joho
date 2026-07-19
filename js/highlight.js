@@ -527,7 +527,9 @@ function highlightLinesForLanguage(lines, lang) {
 function highlightEmbeddedCodeBlocks(root = document) {
   if (!root || typeof root.querySelectorAll !== 'function') return;
 
-  const selector = 'pre.codeInDescription, pre[class*="language-"]';
+  // 入れ子になったコード例も含めて全 pre を確認し、
+  // getCodeLanguage() で対応言語と判定できたものだけを装飾する。
+  const selector = 'pre';
   const blocks = [];
   if (root.matches && root.matches(selector)) blocks.push(root);
   blocks.push(...root.querySelectorAll(selector));
