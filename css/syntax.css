@@ -425,25 +425,19 @@ pre:not([class*="example"]):not([class*="copy-ok"]){
 
 
 
-  /* ====================================================================== */
-  /* Spreadsheet tokens                                                      */
-  /* ====================================================================== */
-  .token-func      { color: var(--tk-func-ss);  font-weight: 700; } /* SUM, XLOOKUP 等 */
-  .token-cell      { color: var(--tk-cell); }
-  .token-range     { color: var(--tk-range);    font-weight: 700; } /* A1:B10 */
-  .token-sheet     { color: var(--tk-sheet); }                      /* '売上 2025'! */
-  .token-table,
-  .token-field     { color: var(--tk-table); }                      /* Table[列] / [@列] */
-  .token-bracket   { color: var(--tk-bracket); }                    /* [ ] */
-  .token-compare,
-  .token-operator,
-  .token-argsep    { font-weight: 700; }                            /* = <> <= + - * / ^ & , ; : */
-  .token-error     { color: var(--tk-error-ss); font-weight: 800; } /* #REF! #N/A ... */
-
-
-
-
-
-
-
 }
+
+/* ====================================================================== */
+/* Spreadsheet tokens（ライト／ダーク共通）                                */
+/* ====================================================================== */
+.token-func      { color: var(--tk-func-ss);  font-weight: 700; } /* SUM, XLOOKUP 等 */
+.token-cell      { color: var(--tk-cell); }
+.token-range     { color: var(--tk-range);    font-weight: 700; } /* A1:B10 */
+.token-sheet     { color: var(--tk-sheet); }                      /* '売上 2025'! */
+.token-table,
+.token-field     { color: var(--tk-table); }                      /* Table[列] / [@列] */
+.token-bracket   { color: var(--tk-bracket); }                    /* [ ] */
+.token-compare,
+.token-operator,
+.token-argsep    { font-weight: 700; }                            /* = <> <= + - * / ^ & , ; : */
+.token-error     { color: var(--tk-error-ss); font-weight: 800; } /* #REF! #N/A ... */

@@ -286,22 +286,19 @@ mjx-container[display="true"] {
 
 
 iframe {
-  width: 720px;
-  height: 441px;
-}
-
-iframe {
+  display: block;
+  width: min(100%, 720px);
+  height: auto;
+  aspect-ratio: 720 / 441;
   background-color: transparent;
   border: none;
 }
 /* Googleスライド埋め込み */
 iframe.gslide {
-  display: block;
-  width: 648px;
-  height: 401px;
+  width: min(100%, 648px);
+  height: auto;
+  aspect-ratio: 648 / 401;
   margin: 0.5rem auto;
-  background-color: transparent;
-  border: none;
 }
 
 
@@ -518,6 +515,5 @@ button[disabled] {
   }
 
 }
-
 
 

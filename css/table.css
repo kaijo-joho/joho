@@ -76,9 +76,13 @@ section table tr:first-child :is(th, td){
 
 /* 横スクロールラッパ */
 div.table-scroll{
-  overflow-x: scroll;
-  margin: 10px 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  margin: 10px auto;
   width: 90%;
+  max-width: 100%;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-inline: contain;
 }
 
 /* テーブル汎用（既存を踏襲） */
@@ -89,6 +93,22 @@ table{
   padding: 10px;
   margin: 10px auto;
   font-size: var(--tbl-font-size);
+}
+
+/* 狭い画面では table 自身を横スクロール領域にする。
+   画面内へ収め、内容がはみ出す表だけ横スクロール可能にする。 */
+@media (max-width: 720px){
+  section table{
+    display: block;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-inline: contain;
+  }
 }
 
 th, td{
