@@ -607,7 +607,7 @@
   .lesson-dock__panel--faq {
     box-sizing: border-box;
     min-width: 0;
-    max-width: calc(100vw - 104px);
+    max-width: calc(100vw - var(--ld-safe-gap, 76px));
   }
 
   .faq-controls {

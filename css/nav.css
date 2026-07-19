@@ -90,10 +90,18 @@
   top: 50%;
   right: calc(-1 * (var(--nav-handle-outset) + var(--nav-handle-hit)/2));
   transform: translateY(-50%);
+  box-sizing: border-box;
   width: var(--nav-handle-hit);
+  min-width: 0;
   height: 120px;
+  padding: 0;
   background: transparent;
   border: 0;
+  border-radius: 0;
+  box-shadow: none;
+  appearance: none;
+  -webkit-appearance: none;
+  letter-spacing: normal;
   cursor: pointer;
   outline-offset: 4px;
   z-index: 2;

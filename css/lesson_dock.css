@@ -46,8 +46,12 @@
 /* スマホ寄りではほぼ全幅に（任意） */
 @media (max-width: 600px) {
   :root {
-    --ld-panel-minw: 260px;     /* 最小幅を少し下げる */
-    --ld-panel-ideal: 86vw;     /* ほぼ全幅 */
+    --ld-btn-size: 44px;         /* タッチ領域を保ちつつ本文の遮蔽を減らす */
+    --ld-gap: 8px;
+    --ld-panel-minw: 0px;
+    --ld-safe-gap: 76px;
+    --ld-panel-ideal: calc(100vw - var(--ld-safe-gap));
+    --ld-panel-pad: 10px 12px;
   }
 }
 
@@ -91,12 +95,18 @@
 
 /* ---- FAB ボタン（無彩色ガラス） --------------------------------------- */
 .lesson-dock__btn {
+  box-sizing: border-box;
+  min-width: 0;
   width: var(--ld-btn-size);
   height: var(--ld-btn-size);
+  padding: 0;
   border: 1px solid var(--ld-border);
   border-radius: 50%;
   display: grid;
   place-items: center;
+  appearance: none;
+  -webkit-appearance: none;
+  letter-spacing: normal;
   cursor: pointer;
 
   /* 画像でも絵文字でも見える neutral glass */
@@ -120,6 +130,10 @@
   box-shadow:
     0 22px 50px rgba(0,0,0,.22),
     0 6px 12px rgba(0,0,0,.14);
+}
+.lesson-dock__btn:active {
+  transform: translateY(0);
+  box-shadow: var(--ld-shadow);
 }
 .lesson-dock__btn:focus-visible {
   outline: 3px solid rgba(255,255,255,.55);
@@ -260,6 +274,32 @@
   margin: .25rem 0 0;
   font-size: .92rem;
   opacity: .85;
+}
+
+/* スマホではドックを画面端へ寄せ、開いたパネルを画面内でスクロール可能にする。 */
+@media (max-width: 600px) {
+  #lesson-dock.lesson-dock {
+    right: max(8px, env(safe-area-inset-right));
+    bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .lesson-dock__btn {
+    font-size: 22px;
+  }
+
+  .lesson-dock__btn img,
+  .lesson-dock__btn svg {
+    width: 24px;
+    height: 24px;
+  }
+
+  .lesson-dock__panel {
+    right: calc(var(--ld-btn-size) + 8px);
+    bottom: 0;
+    max-height: calc(100dvh - 24px);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 }
 
 /* ---- 低モーション環境 --------------------------------------------------- */
