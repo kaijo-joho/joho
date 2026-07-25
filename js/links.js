@@ -1,4 +1,4 @@
-const update = '2026-07-15 15:10:43';
+const update = '2026-07-25 14:20:48';
 
 const quizzes = {
   "py11": {
@@ -410,6 +410,111 @@ const quizzes = {
     "title": "色のデジタル表現",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=iro01"
+  },
+  "ctp11": {
+    "title": "1-1. 四則演算（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp11"
+  },
+  "ctp12": {
+    "title": "1-2. 変数と画面出力（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp12"
+  },
+  "ctp21": {
+    "title": "2-1. 条件分岐（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp21"
+  },
+  "ctp22a": {
+    "title": "2-2. 繰り返し① A基本問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp22a"
+  },
+  "ctp22b": {
+    "title": "2-2. 繰り返し① B応用問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp22b"
+  },
+  "ctp23a": {
+    "title": "2-3. 繰り返し② A基本問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp23a"
+  },
+  "ctp23b": {
+    "title": "2-3. 繰り返し② B応用問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp23b"
+  },
+  "ctp24a": {
+    "title": "2-4. 繰り返し③ A基本問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp24a"
+  },
+  "ctp24b": {
+    "title": "2-4. 繰り返し③ B応用問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp24b"
+  },
+  "ctp25a": {
+    "title": "2-5. 繰り返し④ A基本問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp25a"
+  },
+  "ctp25b": {
+    "title": "2-5. 繰り返し④ B応用問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp25b"
+  },
+  "ctp31a": {
+    "title": "3-1. 配列 A基本問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp31a"
+  },
+  "ctp31b": {
+    "title": "3-1. 配列 B応用問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp31b"
+  },
+  "ctp32": {
+    "title": "3-2. 関数定義（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp32"
+  },
+  "ctp33a": {
+    "title": "3-3. 2次元配列 A基本問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp33a"
+  },
+  "ctp33b": {
+    "title": "3-3. 2次元配列 B応用問題（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp33b"
+  },
+  "ctp41": {
+    "title": "4-1. リニアサーチ（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp41"
+  },
+  "ctp42": {
+    "title": "4-2. バイナリサーチ（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp42"
+  },
+  "ctp43": {
+    "title": "4-3. バブルソート（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp43"
+  },
+  "ctp44": {
+    "title": "4-4. 選択ソート（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp44"
+  },
+  "ctp45": {
+    "title": "4-5. 挿入ソート（共通テスト表記）",
+    "description": "",
+    "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=ctp45"
   }
 };
 window.quizzes = quizzes;
@@ -1076,7 +1181,7 @@ const files = {
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss15wa"
   },
   "ss21t": {
-    "title": "SS2-1_課題",
+    "title": "SS2-1_課題（問題）",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss21t"
   },
@@ -1091,7 +1196,7 @@ const files = {
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss21w"
   },
   "ss22t": {
-    "title": "SS2-2_課題",
+    "title": "SS2-2_課題（問題）",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss22t"
   },
@@ -1196,7 +1301,7 @@ const files = {
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41s"
   },
   "ss41t": {
-    "title": "SS4-1_演習_レジの待ち行列（問題）",
+    "title": "SS4-1_演習1_レジの待ち行列（問題）",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41t"
   },
