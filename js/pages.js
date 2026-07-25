@@ -1,4 +1,4 @@
-//2026-07-18 09:14:40;
+//2026-07-25 01:24:21;
 const pages = {
   "index": {
     "id": "index",
@@ -1629,7 +1629,7 @@ const pages = {
     "practiceFile": [
       {
         "id": "py33nb",
-        "release": true,
+        "release": false,
         "title": "3-3. 2次元リスト ノートブック.ipynb",
         "fileName": "3-3. 2次元リスト ノートブック.ipynb",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py33nb",
@@ -1655,6 +1655,13 @@ const pages = {
         "text": "3-3. 2次元リスト A基本問題",
         "release": true,
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py33a"
+      },
+      {
+        "id": "py33b",
+        "title": "3-3. 2次元リスト B応用問題",
+        "text": "3-3. 2次元リスト B応用問題",
+        "release": true,
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=py33b"
       }
     ],
     "back": "py00",
@@ -1682,7 +1689,7 @@ const pages = {
     "practiceFile": [
       {
         "id": "py34nb",
-        "release": true,
+        "release": false,
         "title": "3-4. 辞書（dictionary） ノートブック.ipynb",
         "fileName": "3-4. 辞書（dictionary） ノートブック.ipynb",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py34nb",
@@ -1718,7 +1725,7 @@ const pages = {
     "practiceFile": [
       {
         "id": "py35nb",
-        "release": true,
+        "release": false,
         "title": "3-5. ファイルの入出力 ノートブック.ipynb",
         "fileName": "3-5. ファイルの入出力 ノートブック.ipynb",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=py35nb",
@@ -2493,7 +2500,7 @@ const pages = {
     "practiceFile": [
       {
         "id": "ss15w",
-        "release": true,
+        "release": false,
         "title": "SS1-5_実習_グラフ_気温と降水量",
         "fileName": "SS1-5_実習_グラフ_気温と降水量",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss15w",
@@ -2505,7 +2512,7 @@ const pages = {
     "questionFile": [
       {
         "id": "ss15t",
-        "release": true,
+        "release": false,
         "title": "SS1-5_課題（問題）",
         "fileName": "SS1-5_課題（問題）",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss15t",
@@ -2551,10 +2558,10 @@ const pages = {
       {
         "id": "ss21t",
         "release": true,
-        "title": "SS2-1_課題",
-        "fileName": "SS2-1_課題",
+        "title": "SS2-1_課題（問題）",
+        "fileName": "SS2-1_課題（問題）",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss21t",
-        "text": "SS2-1_課題"
+        "text": "SS2-1_課題（問題）"
       }
     ],
     "quizForm": false,
@@ -2596,10 +2603,10 @@ const pages = {
       {
         "id": "ss22t",
         "release": true,
-        "title": "SS2-2_課題",
-        "fileName": "SS2-2_課題",
+        "title": "SS2-2_課題（問題）",
+        "fileName": "SS2-2_課題（問題）",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss22t",
-        "text": "SS2-2_課題"
+        "text": "SS2-2_課題（問題）"
       }
     ],
     "quizForm": false,
@@ -2836,10 +2843,10 @@ const pages = {
       {
         "id": "ss41t",
         "release": true,
-        "title": "SS4-1_演習_レジの待ち行列（問題）",
-        "fileName": "SS4-1_演習_レジの待ち行列（問題）",
+        "title": "SS4-1_演習1_レジの待ち行列（問題）",
+        "fileName": "SS4-1_演習1_レジの待ち行列（問題）",
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=ss41t",
-        "text": "SS4-1_演習_レジの待ち行列（問題）"
+        "text": "SS4-1_演習1_レジの待ち行列（問題）"
       }
     ],
     "dlFile": false,
