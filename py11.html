@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 	<style id="critical-colors">
 	  html { color:#191919; color-scheme: light dark; background: transparent; }
 	  @media (prefers-color-scheme: dark) {
@@ -27,7 +28,7 @@
       <h2 id="headline_1">(1) 簡単な計算</h2>
       <p class="centered-content">
         CodeセルにPythonの式を入力して、実行する（<img data-no-wrap src="./img/py11_002_colab_codecell_execute.png"
-          style="height:24px;">をクリック）と、その結果の値がセルの下に表示されます。
+          style="height:24px;" alt="コードセルの実行ボタン" decoding="async">をクリック）と、その結果の値がセルの下に表示されます。
       </p>
       <p>四則演算に使う <tt>+</tt>（プラス），<tt>-</tt>（マイナス），<tt>*</tt>（アスタリスク）などを<strong>演算子</strong>といいます。<br>
         <span class="red">数字・演算子・括弧はすべて<b>半角</b>で入力をします</span>（全角で入力してしまうと、エラーになります）。<br>
@@ -38,11 +39,11 @@
       <p class="centered-content">
         足し算は <tt>+</tt> を使います。<br>
         <tt>+</tt>（プラス）は
-        <img data-no-wrap src="./img/keyboard/key_shift.png">を押しながら<img data-no-wrap src="./img/keyboard/key_semicolon.png">を押します。
+        <img data-no-wrap src="./img/keyboard/key_shift.png" alt="Shiftキー" decoding="async" loading="lazy">を押しながら<img data-no-wrap src="./img/keyboard/key_semicolon.png" alt="セミコロンキー" decoding="async" loading="lazy">を押します。
       </p>
       <p class="centered-content">
         次のコードを記入し、<img data-no-wrap src="./img/py11_002_colab_codecell_execute.png"
-          style="height:24px;">を押して実行しましょう（警告が出た場合は、<b>そのまま実行</b>をクリックします）。
+          style="height:24px;" alt="コードセルの実行ボタン" decoding="async" loading="lazy">を押して実行しましょう（警告が出た場合は、<b>そのまま実行</b>をクリックします）。
       </p>
       
       <pre class="python" data-title="足し算"><code>123 + 456</code></pre>
@@ -50,13 +51,13 @@
 
       <h3>引き算</h3>
       <p class="centered-content">引き算は <tt>-</tt>を使います。<br>
-        <tt>-</tt>（マイナス）は、<img data-no-wrap src="./img/keyboard/key_ho.png">を押します。
+        <tt>-</tt>（マイナス）は、<img data-no-wrap src="./img/keyboard/key_ho.png" alt="ほ・マイナス・イコールキー" decoding="async" loading="lazy">を押します。
       </p>
       <p class="centered-content">
         Colaboratoryノートブック左上の
-        <img data-no-wrap src="./img/py11_001_colab_add_codecell.png" style="border: solid thin #cccccc; height:24px">
+        <img data-no-wrap src="./img/py11_001_colab_add_codecell.png" style="border: solid thin #cccccc; height:24px" alt="コードセルを追加するボタン" decoding="async" loading="lazy">
         を押して、新規追加したコードセルに次のコードを記入し、<img data-no-wrap src="./img/py11_002_colab_codecell_execute.png"
-          style="height:24px;">を押して実行しましょう。
+          style="height:24px;" alt="コードセルの実行ボタン" decoding="async" loading="lazy">を押して実行しましょう。
       </p>
       <pre class="python" data-title="引き算"><code>789 - 123</code></pre>
       <pre class="result"><code>666</code></pre>
@@ -64,7 +65,7 @@
       <h3>かけ算</h3>
       <p class="centered-content">
         かけ算は <tt>*</tt> （アスタリスク）を使います。<br>
-        <tt>*</tt> は<img data-no-wrap src="./img/keyboard/key_shift.png">を押しながら<img data-no-wrap src="./img/keyboard/key_colon.png">を押します。
+        <tt>*</tt> は<img data-no-wrap src="./img/keyboard/key_shift.png" alt="Shiftキー" decoding="async" loading="lazy">を押しながら<img data-no-wrap src="./img/keyboard/key_colon.png" alt="コロンキー" decoding="async" loading="lazy">を押します。
       </p>
       <pre class="python" data-title="かけ算"><code>456 * 789</code></pre>
       <pre class="result"><code>359784</code></pre>
@@ -72,7 +73,7 @@
       <h3>割り算（除算）</h3>
       <p class="centered-content">
         実数の割り算は <tt>/</tt>（スラッシュ）を使います。<br>
-        <tt>/</tt>は、<img data-no-wrap src="./img/keyboard/key_slash.png">を押します。
+        <tt>/</tt>は、<img data-no-wrap src="./img/keyboard/key_slash.png" alt="スラッシュキー" decoding="async" loading="lazy">を押します。
       </p>
       <pre class="python" data-title="割り算（除算）"><code>123 / 5</code></pre>
       <pre class="result"><code>24.6</code></pre>
@@ -87,7 +88,7 @@
 
         ZeroDivisionError: division by zero
       </code></pre>
-      <p>エラーの詳細は<a href="./py91.html#headline_ZeroDivisionError" target="_blank">ZeroDivisionError</a>を参照してください。</p>
+      <p>エラーの詳細は<a href="./py91.html#headline_ZeroDivisionError" target="_blank" rel="noopener">ZeroDivisionError</a>を参照してください。</p>
 
       <h3>割り算（整数除算）</h3>
       <p class="centered-content">
@@ -99,7 +100,7 @@
       <h3>余り（整数除算の剰余）</h3>
       <p class="centered-content">
         整数の割り算の余りを求めるときは <tt>%</tt>（パーセント）を用います。<br>
-        <tt>%</tt>は、<img data-no-wrap src="./img/keyboard/key_shift.png">を押しながら<img data-no-wrap src="./img/keyboard/key5.png">を押します。
+        <tt>%</tt>は、<img data-no-wrap src="./img/keyboard/key_shift.png" alt="Shiftキー" decoding="async" loading="lazy">を押しながら<img data-no-wrap src="./img/keyboard/key5.png" alt="5キー" decoding="async" loading="lazy">を押します。
       </p>
       <pre class="python" data-title="余り（整数除算の剰余）"><code>123 % 5</code></pre>
       <pre class="result"><code>3</code></pre>

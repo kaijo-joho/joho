@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 	<style id="critical-colors">
 	  html { color:#191919; color-scheme: light dark; background: transparent; }
 	  @media (prefers-color-scheme: dark) {
@@ -44,7 +45,7 @@
       </code></pre>
 
       <p>これをブラウザで表示すると、次のように、項目の先頭に●が付きます。</p>
-      <p class="center"><img src="./img/html16_001.png" width="240px"></p>
+      <p class="center"><img src="./img/html16_001.png" width="240px" alt="箇条書きリストの表示例" decoding="async"></p>
 
 
       <h4>箇条書きリストの実習</h4>
@@ -80,7 +81,7 @@
       </code></pre>
 
       <p>これをブラウザで表示すると、次のように、項目の先頭に数字が付きます。</p>
-      <p class="center"><img src="./img/html16_002.png" width="240px"></p>
+      <p class="center"><img src="./img/html16_002.png" width="240px" alt="番号付きリストの表示例" decoding="async" loading="lazy"></p>
 
 
       <h4>番号付きリストの実習</h4>
@@ -134,7 +135,7 @@
       </code></pre>
 
       <p>これをブラウザで表示すると、次のように、階層構造となります。</p>
-      <p class="center"><img src="./img/html16_003.png" width="240px"></p>
+      <p class="center"><img src="./img/html16_003.png" width="240px" alt="3階層にネストした箇条書きリストの表示例" decoding="async" loading="lazy"></p>
 
       <p class="small-text">エディタ上のインデントは編集者が見やすくするためなので、直接リストのレベルに反映はされません。必ずタグの組み合わせでネストしてください。エディタ上のインデントは編集で間違えにくくする効果がありますので、しっかりとインデントする習慣をつけてください。</p>
 
@@ -142,12 +143,12 @@
       ブラウザは間違った構造でも賢く解釈してそれっぽく表示してくれることが多いですが、CSSが意図通りに適用されない，スクリーンリーダーなどの支援技術が正しく読み上げられない，エラーになるなどが起こる可能性があります。
       したがって、<strong>&lt;li&gt;の中に&lt;ul&gt;を入れる</strong>という文法を守るようにしてください。</p>
 
-      <p><b>CotEditor</b>でインデントガイドをオンにすると編集しやすくなります（<a href="./html11.html#coteditor_setting" target="_blank">CotEditorの設定</a>）。
+      <p><b>CotEditor</b>でインデントガイドをオンにすると編集しやすくなります（<a href="./html11.html#coteditor_setting" target="_blank" rel="noopener">CotEditorの設定</a>）。
 
 
       <h4>箇条書きリストのネストの実習</h4>
       <p>次のように表示されるように、<b>sample1-6.html ＞ 実習コード③</b>にタグを追加してみましょう。</p>
-      <img src="./img/html16_101.png" class="screen_shot">
+      <img src="./img/html16_101.png" class="screen_shot" alt="個人情報保護法の項目をネストした箇条書きリストの完成例" decoding="async" loading="lazy">
 
       <!--
       <details>

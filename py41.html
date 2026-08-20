@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 	<style id="critical-colors">
 	  html { color:#191919; color-scheme: light dark; background: transparent; }
 	  @media (prefers-color-scheme: dark) {
@@ -31,7 +32,7 @@
       <p>単純でわかりやすい方法ですが、値をひとつひとつ調べていくので、データが大量になると時間がかかってしまう欠点があります。</p>
       
       <h3>フローチャート</h3>
-      <img src="img/search_linear.png" alt="リニアサーチのフローチャート" class="image">
+      <img src="img/search_linear.png" alt="リニアサーチのフローチャート" class="image" decoding="async">
       
       <h3>デモンストレーション</h3>
       <div id="linear-search" class="demo">
@@ -39,7 +40,7 @@
         <input type="number" id="arrayLength1" class="arrayLength" value="8" min="2" max="20">
         <label for="searchValueInput1">探索値:</label>
         <input type="number" id="searchValueInput1" class="arrayLength" value="1">
-        <button onclick="initialize()">配列をリセット</button>
+        <button onclick="initialize()" type="button">配列をリセット</button>
 
         <div class="container" id="arycontainer"></div>
 
@@ -52,7 +53,7 @@
 
         <div id="description" class="description"></div>
 
-        <button onclick="nextStep()">次へ</button>
+        <button onclick="nextStep()" type="button">次へ</button>
       </div>
       
       

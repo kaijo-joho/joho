@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 	<style id="critical-colors">
 	  html { color:#191919; color-scheme: light dark; background: transparent; }
 	  @media (prefers-color-scheme: dark) {
@@ -38,7 +39,7 @@
         <li>変数<tt>b</tt>に変数<tt>tmp</tt>を代入する。</li>
       </ol>
       <p class="center">
-        <img src="./img/py43_001.png" alt="２値交換">
+        <img src="./img/py43_001.png" alt="２値交換" decoding="async">
       </p>
       <p>これをプログラムで書くと、次のようになります。</p>
       <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
@@ -107,7 +108,7 @@ print(arr)  # 交換後の値を表示
       <div id="bubble-sort" class="demo">
         <label for="arrayLength1">配列の長さ:</label>
         <input type="number" id="arrayLength1" class="arrayLength" value="8" min="2">
-        <button onclick="initialize()">配列をリセット</button>
+        <button onclick="initialize()" type="button">配列をリセット</button>
         <!--
         <details>
           <summary>詳細設定</summary>
@@ -118,7 +119,7 @@ print(arr)  # 交換後の値を表示
         -->
         <div class="container" id="arycontainer"></div>
         <div id="description" class="description"></div>
-        <button onclick="nextStep()">次へ</button>
+        <button onclick="nextStep()" type="button">次へ</button>
       </div>
 
       
@@ -126,7 +127,7 @@ print(arr)  # 交換後の値を表示
       <h4>バブルソートの基本</h4>
       <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
       <p><tt>for j in range(n - 2, i - 1, -1):</tt>では、<tt>j</tt>が<tt>n - 2</tt>から<tt>i</tt>まで<tt>1</tt>ずつ減らしながら繰り返します。</p>
-      <p>range関数の使い方（<tt>range(開始値, 終了値, ステップ)</tt>）で、ステップに負数を指定する場合は、<a href="./py24.html#range_a_b_c_reduce" target="_blank">減っていくforループ</a>を参照してください。</p>
+      <p>range関数の使い方（<tt>range(開始値, 終了値, ステップ)</tt>）で、ステップに負数を指定する場合は、<a href="./py24.html#range_a_b_c_reduce" target="_blank" rel="noopener">減っていくforループ</a>を参照してください。</p>
       <pre class="python" data-title="バブルソート"><code>
 arr = [6, 3, 2, 0, 7, 1, 4, 5]            # 元のリスト
 print("ソート前", arr)                    # ソート前を出力

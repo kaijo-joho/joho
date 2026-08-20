@@ -36,6 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSection = null;
     let currentArticle = null;
     let headlineCount = 0; // h2 の順番カウント
+    let slideImageCount = 0;
 
     window.slidesData.forEach(entry => {
 
@@ -91,6 +92,9 @@ document.addEventListener('DOMContentLoaded', () => {
         img.alt = entry.title;
         img.className = 'slide_img screen_shot'; // クラス両方つける
         img.style.maxWidth = '90%';
+        img.decoding = 'async';
+        img.loading = slideImageCount === 0 ? 'eager' : 'lazy';
+        slideImageCount++;
 
         // aタグとdivでラップ
         const aTag = document.createElement('a');
@@ -121,4 +125,3 @@ document.addEventListener('DOMContentLoaded', () => {
     content.appendChild(container);
   }
 });
-

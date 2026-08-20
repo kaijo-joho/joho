@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 	<style id="critical-colors">
 	  html { color:#191919; color-scheme: light dark; background: transparent; }
 	  @media (prefers-color-scheme: dark) {
@@ -55,7 +56,7 @@
       <div id="quick-sort" class="demo">
         <label for="arrayLength2">配列の長さ:</label>
         <input type="number" id="arrayLength2" class="arrayLength" value="10" min="2" max="20">
-        <button onclick="initialize()">配列をリセット</button>
+        <button onclick="initialize()" type="button">配列をリセット</button>
 
         <div class="container" id="arycontainer"></div>
 
@@ -71,7 +72,7 @@
 
         <div id="description" class="description"></div>
 
-        <button onclick="nextStep()">次へ</button>
+        <button onclick="nextStep()" type="button">次へ</button>
       </div>
       
       

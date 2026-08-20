@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 	<style id="critical-colors">
 	  html { color:#191919; color-scheme: light dark; background: transparent; }
 	  @media (prefers-color-scheme: dark) {
@@ -40,7 +41,7 @@
       </ol>
       
       <h3>フローチャート</h3>
-      <img src="img/search_binary.png" alt="バイナリサーチのフローチャート" class="image">
+      <img src="img/search_binary.png" alt="バイナリサーチのフローチャート" class="image" decoding="async">
       
       <h3>デモンストレーション</h3>
       <div id="binary-search" class="demo">
@@ -48,7 +49,7 @@
         <input type="number" id="arrayLength2" class="arrayLength" value="12" min="2" max="20">
         <label for="searchValueInput2">探索値:</label>
         <input type="number" id="searchValueInput2" class="arrayLength" value="6">
-        <button onclick="initialize()">配列をリセット</button>
+        <button onclick="initialize()" type="button">配列をリセット</button>
 
         <div class="container" id="arycontainer"></div>
 
@@ -61,7 +62,7 @@
 
         <div id="description" class="description"></div>
 
-        <button onclick="nextStep()">次へ</button>
+        <button onclick="nextStep()" type="button">次へ</button>
       </div>
       
       <h3>プログラム（基本）</h3>
@@ -429,7 +430,7 @@ else:
       
       <h3>最大探索回数の比較</h3>
       <p>リニアサーチとバイナリサーチの探索回数を比較すると、次のようになります。</p>
-      <img src="./img/py41_001.png" alt="リニアサーチとバイナリサーチの最大探索回数の比較" class="screen_shot">
+      <img src="./img/py41_001.png" alt="リニアサーチとバイナリサーチの最大探索回数の比較" class="screen_shot" decoding="async" loading="lazy">
       <p>データ数が多くなっても、バイナリサーチはリニアサーチに比べてあまり増加しないことがわかります。バイナリサーチでは、データ数が２倍になっても、探索回数は１回増えるだけなので、効率がいい探索方法であることがわかります（ただし、データが昇順または降順に並んでいる必要があります）。</p>
       
     </article>

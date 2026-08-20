@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 	<style id="critical-colors">
 	  html { color:#191919; color-scheme: light dark; background: transparent; }
 	  @media (prefers-color-scheme: dark) {
@@ -84,7 +85,7 @@ y = [2, 1, 5, 3, 4]
 plt.plot(x, y)  # 折れ線グラフを作成
 plt.show()      # グラフを表示する
       </code></pre>
-      <div class="result"><img src="./img/py51_001.png" class="pyplot" alt="折れ線グラフの表示例"></div>
+      <div class="result"><img src="./img/py51_001.png" class="pyplot" alt="折れ線グラフの表示例" decoding="async"></div>
 
 
       
@@ -103,7 +104,7 @@ y = [2, 1, 5, 3, 4]
 plt.bar(x, y)   # 棒グラフを作成
 plt.show()      # グラフを表示する
       </code></pre>
-      <div class="result"><img src="./img/py51_002.png" class="pyplot" alt="棒グラフの表示例"></div>
+      <div class="result"><img src="./img/py51_002.png" class="pyplot" alt="棒グラフの表示例" decoding="async" loading="lazy"></div>
 
 
       
@@ -167,7 +168,7 @@ plt.show()      # グラフを表示する
           <td class="text-align-left">データの不確実性を示すエラーバーを含んだグラフを描画します。</td>
         </tr>
       </table>
-      <p>その他のグラフの種類は、<a href="https://matplotlib.org/stable/plot_types/index.html" target="_blank">matplotlibの公式ドキュメント</a>を参照してください。</p>
+      <p>その他のグラフの種類は、<a href="https://matplotlib.org/stable/plot_types/index.html" target="_blank" rel="noopener">matplotlibの公式ドキュメント</a>を参照してください。</p>
       
       
       
@@ -390,7 +391,7 @@ plt.legend(loc="lower left")            # 凡例を表示
 plt.grid(True)                          # グリッド線を表示
 plt.show()                              # グラフを表示
       </code></pre>
-      <div class="result"><img src="./img/py51_003.png" class="pyplot" alt="放物線のグラフ"></div>
+      <div class="result"><img src="./img/py51_003.png" class="pyplot" alt="放物線のグラフ" decoding="async" loading="lazy"></div>
 
 
       <p><tt>y = x**2</tt>のところを<tt>y = 2 * x**2 - 20 * x - 20</tt>などと変えてもう一度実行してみましょう。</p>
@@ -417,7 +418,7 @@ plt.legend()                                # 凡例を表示
 plt.grid(True)                              # グリッド線を表示
 plt.show()                                  # グラフを表示
       </code></pre>
-      <div class="result"><img src="./img/py51_004.png" class="pyplot" alt="サインカーブのグラフ"></div>
+      <div class="result"><img src="./img/py51_004.png" class="pyplot" alt="サインカーブのグラフ" decoding="async" loading="lazy"></div>
 
 
       <p><tt>y = np.sin(radians)</tt>のところを、<tt>y = 2 * np.sin(2 * radians + np.pi / 8)</tt>などと変えてもう一度実行してみましょう。</p>
@@ -452,7 +453,7 @@ plt.legend()                                            # 凡例を表示
 plt.grid(True)                                          # グリッド線を表示
 plt.show()                                              # グラフを表示
       </code></pre>
-      <div class="result"><img src="./img/py51_005.png" class="pyplot" alt="挿入ソートとクイックソートの比較回数のグラフ"></div>
+      <div class="result"><img src="./img/py51_005.png" class="pyplot" alt="挿入ソートとクイックソートの比較回数のグラフ" decoding="async" loading="lazy"></div>
 
       
       
@@ -488,7 +489,7 @@ plt.axvline(0, color="black", lw=0.5)   # y軸を表示(x=0の線を描く)
 plt.grid(True)                          # グリッド線を表示
 plt.show()                              # グラフの表示
       </code></pre>
-      <div class="result"><img src="./img/py51_007.png" class="pyplot" alt="円のグラフ"></div>
+      <div class="result"><img src="./img/py51_007.png" class="pyplot" alt="円のグラフ" decoding="async" loading="lazy"></div>
 
 
       
@@ -532,7 +533,7 @@ plt.axhline(0, color="black", lw=1)  # y軸
 plt.grid(True)
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py51_006.png" class="pyplot" alt="リサジュー曲線のグラフ"></div>
+      <div class="result"><img src="./img/py51_006.png" class="pyplot" alt="リサジュー曲線のグラフ" decoding="async" loading="lazy"></div>
 
       <p>$a$,$b$の値を、<b>$a=1$,$b=2$</b>や<b>$a=5$,$b=4$</b>などと変えてもう一度実行してみましょう。</p>
       

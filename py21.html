@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
 	<style id="critical-colors">
 	  html { color:#191919; color-scheme: light dark; background: transparent; }
 	  @media (prefers-color-scheme: dark) {
@@ -31,7 +32,7 @@
       <p>条件に応じて実行する処理を分けることを<strong>条件分岐</strong>といいます。</p>
 
       <p class="center">
-        <img src="./img/py21_001.png" width="260px" alt="条件分岐の流れ図">
+        <img src="./img/py21_001.png" width="260px" alt="条件分岐の流れ図" decoding="async">
       </p>
 
 
@@ -67,10 +68,10 @@
       <p>Pythonではインデントとして半角スペース４個分を指定することが推奨されています。<br>
         Google Colaboratoryでは初期設定がスペース２個分となっているので、ツール＞設定＞エディタ＞インデント幅（スペース）の値を「<b>４</b>」に変更することをオススメします。<br>
         また、行頭で<b>Tab⇥</b>を入力すれば、自動的にこの書式のインデントが挿入されます（戻すときは<b>Shift⇧</b>＋<b>Tab⇥</b>）。<br>
-        <span class="small-text">（参照：<a href="./py02.html#change_indent" target="_blank">実習の始め方 - インデント幅の変更</a>）</span></p>
+        <span class="small-text">（参照：<a href="./py02.html#change_indent" target="_blank" rel="noopener">実習の始め方 - インデント幅の変更</a>）</span></p>
 
       <p class="center">
-        <img src="./img/py21_002.png" width="360px" alt="Colaboratoryのインデント幅設定画面">
+        <img src="./img/py21_002.png" width="360px" alt="Colaboratoryのインデント幅設定画面" decoding="async" loading="lazy">
       </p>
 
 
@@ -90,7 +91,7 @@
 
       <h3>if文でよくあるエラー</h3>
       <h4>SyntaxError</h4>
-      <p>次のように、<tt>if</tt>や<tt>else</tt>の行末に「<tt>:</tt>(コロン)」がない場合は、<a href="./py91.html#headline_SyntaxError" target="_blank"><strong>SyntaxError</strong></a>となります。</p>
+      <p>次のように、<tt>if</tt>や<tt>else</tt>の行末に「<tt>:</tt>(コロン)」がない場合は、<a href="./py91.html#headline_SyntaxError" target="_blank" rel="noopener"><strong>SyntaxError</strong></a>となります。</p>
       <pre class="python example error" data-title="if文の基本"><code>
         age = 16
 
@@ -107,7 +108,7 @@
       </code></pre>
 
       <h4>IndentationError</h4>
-      <p>次のように、インデントが正しくない場合は、<a href="./py91.html#headline_IndentationError" target="_blank"><strong>IndentationError</strong></a>となります。</p>
+      <p>次のように、インデントが正しくない場合は、<a href="./py91.html#headline_IndentationError" target="_blank" rel="noopener"><strong>IndentationError</strong></a>となります。</p>
       <pre class="python example error" data-title="if文の基本"><code>
         age = 16
 
@@ -123,7 +124,7 @@
       IndentationError: expected an indented block after 'else' statement on line 5
       </code></pre>
 
-      <p>その他のエラーについては、<a href="./py91.html" target="_blank">エラー処理</a>を参考にしてください。</p>
+      <p>その他のエラーについては、<a href="./py91.html" target="_blank" rel="noopener">エラー処理</a>を参考にしてください。</p>
 
     </article>
 
@@ -194,7 +195,7 @@
       <h3>くじびき</h3>
       <p>次の例では、0〜9の整数の乱数を発生させて、5より大きければ「あたり」、そうでなければ「はずれ」と表示するプログラムです。</p>
       <p>1行目<tt>import random</tt>では乱数を発生させるためのモジュールを読み込み、2行目<tt>random.randint(0, 9)</tt>で0以上9以下の整数の乱数を発生させています。</p>
-      <p class="small-text"><a href="./py13.html#random-module" target="_blank" class="no-bold">ランダム・モジュールについてはコチラを参照してください</a></p>
+      <p class="small-text"><a href="./py13.html#random-module" target="_blank" class="no-bold" rel="noopener">ランダム・モジュールについてはコチラを参照してください</a></p>
       <pre class="python"><code>
         import random # 乱数を発生させるためのモジュールを読み込む
         n = random.randint(0, 9) # 0以上9以下の整数の乱数を発生させて、nに代入する
@@ -250,11 +251,11 @@
             <td>Aが偽であれば真</td>
           </tr>
           <tr>
-            <td style="padding:5px"><img src="./img/AorB.png" alt="A or B" style="width:300px;" class="image_center no-radius">
+            <td style="padding:5px"><img src="./img/AorB.png" alt="A or B" style="width:300px;" class="image_center no-radius" decoding="async" loading="lazy">
             </td>
-            <td style="padding:5px"><img src="./img/AandB.png" alt="A and B" style="width:300px;" class="image_center no-radius">
+            <td style="padding:5px"><img src="./img/AandB.png" alt="A and B" style="width:300px;" class="image_center no-radius" decoding="async" loading="lazy">
             </td>
-            <td style="padding:5px"><img src="./img/notA.png" alt="not A" style="width:300px;" class="image_center no-radius">
+            <td style="padding:5px"><img src="./img/notA.png" alt="not A" style="width:300px;" class="image_center no-radius" decoding="async" loading="lazy">
             </td>
           </tr>
         </tbody>
