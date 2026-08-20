@@ -160,6 +160,13 @@ table.example tr th{
   min-width: 40px;
 }
 
+/* クリックで解答を表示するセルはキーボードでも現在位置が分かるようにする。 */
+.table-toggle-cell td.clickable:focus-visible{
+  outline: 3px solid var(--theme-color, #225386);
+  outline-offset: -3px;
+  background: color-mix(in oklab, var(--theme-color, #225386) 12%, transparent);
+}
+
 /* 幅ユーティリティ */
 .min-width-20px{min-width: 20px;}
 .min-width-40px{min-width: 40px;}

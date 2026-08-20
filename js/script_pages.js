@@ -79,13 +79,60 @@ function addTooltips_to_daggers() {
 }
 
 function addEvent_tableToggleCell() {
-  // <table class="table-toggle-cell"> 内の <td class="clickable transparent"> をクリックで透明⇄表示
+  const cellSelector = 'td.clickable';
+
+  const updateCellState = (cell) => {
+    const hidden = cell.classList.contains('transparent');
+    const answer = (cell.dataset.answer || cell.textContent || '').trim();
+
+    cell.dataset.answer = answer;
+    cell.tabIndex = 0;
+    cell.setAttribute('role', 'button');
+    cell.setAttribute('aria-pressed', String(!hidden));
+    cell.setAttribute(
+      'aria-label',
+      hidden ? '解答を表示' : `解答：${answer}。押すと非表示`
+    );
+  };
+
+  const initializeCells = (root) => {
+    if (root.matches?.(cellSelector)) updateCellState(root);
+    root.querySelectorAll?.(cellSelector).forEach(updateCellState);
+  };
+
+  const toggleCell = (cell) => {
+    cell.classList.toggle('transparent');
+    updateCellState(cell);
+  };
+
   document.querySelectorAll('.table-toggle-cell').forEach(table => {
+    if (table.dataset.toggleCellInitialized === 'true') return;
+    table.dataset.toggleCellInitialized = 'true';
+    initializeCells(table);
+
     table.addEventListener('click', (e) => {
-      if (e.target.tagName === 'TD' && e.target.classList.contains('clickable')) {
-        e.target.classList.toggle('transparent');
-      }
+      const cell = e.target.closest?.(cellSelector);
+      if (cell && table.contains(cell)) toggleCell(cell);
     });
+
+    table.addEventListener('keydown', (e) => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const cell = e.target.closest?.(cellSelector);
+      if (!cell || !table.contains(cell)) return;
+
+      e.preventDefault();
+      toggleCell(cell);
+    });
+
+    // 問題をJavaScriptで再生成するページにも同じ操作性を適用する。
+    const observer = new MutationObserver(records => {
+      records.forEach(record => {
+        record.addedNodes.forEach(node => {
+          if (node instanceof Element) initializeCells(node);
+        });
+      });
+    });
+    observer.observe(table, { childList: true, subtree: true });
   });
 }
 

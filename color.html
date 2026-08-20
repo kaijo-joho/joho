@@ -139,9 +139,11 @@
       transform: translateX(50%);
     }
     
-    .circle {
+    button.circle {
         width: 120px;
         height: 120px;
+        flex: 0 0 120px;
+        padding: 0;
         border-radius: 50%; /* 角を丸くして円形にする */
         display: flex;
         align-items: center;
@@ -151,24 +153,37 @@
         cursor: pointer; /* カーソルをポインターに変更 */
         margin: 10px; /* 円同士の間隔を設定 */
         border: solid 2px #000;
+        box-shadow: none;
+        letter-spacing: normal;
     }
-    .red {
+    button.circle:hover {
+        transform: none;
+        box-shadow: 0 0 0 4px rgba(34, 83, 134, .18);
+    }
+    .complementary-demo {
+        display: flex;
+        flex-wrap: wrap;
+        margin: auto;
+        justify-content: center;
+        align-items: center;
+    }
+    .circle.red {
         background-color: #EE0026;
     }
 
-    .blue {
+    .circle.blue {
         background-color: #0F218B;
     }
 
-    .yellow {
+    .circle.yellow {
         background-color: #FFE600;
     }
 
-    .green {
+    .circle.green {
         background-color: #33A23D;
     }
 
-    .white {
+    .circle.white {
         background-color: white;
     }
   </style>
@@ -348,7 +363,7 @@
       <div style="display: flex;">
         <div class="cc-tile-col03" style="padding:2px;">
           <div style="display: flex;">
-            <div style="background-color:while;" class="cc-tile cc-tile-col01"><p style="color:hsl(0, 50%, 50%);">色相0°（赤）</p></div>
+            <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(0, 50%, 50%);">色相0°（赤）</p></div>
           </div>
           <div style="display: flex;">
             <div style="background-color:hsl(  0, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(0, 50%, 50%);" class="small-text">75%/75%</p></div>
@@ -369,7 +384,7 @@
         
         <div class="cc-tile-col03" style="padding:2px;">
           <div style="display: flex;">
-            <div style="background-color:while;" class="cc-tile cc-tile-col01"><p style="color:hsl(60, 50%, 50%);">色相60°（黄）</p></div>
+            <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(60, 50%, 50%);">色相60°（黄）</p></div>
           </div>
           <div style="display: flex;">
             <div style="background-color:hsl( 60, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(60, 50%, 50%);" class="small-text">75%/75%</p></div>
@@ -390,7 +405,7 @@
         
         <div class="cc-tile-col03" style="padding:2px;">
           <div style="display: flex;">
-            <div style="background-color:while;" class="cc-tile cc-tile-col01"><p style="color:hsl(120, 50%, 50%);">色相120°（緑）</p></div>
+            <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(120, 50%, 50%);">色相120°（緑）</p></div>
           </div>
           <div style="display: flex;">
             <div style="background-color:hsl(120, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">75%/75%</p></div>
@@ -413,7 +428,7 @@
       <div style="display: flex;">
         <div class="cc-tile-col03" style="padding:2px;">
           <div style="display: flex;">
-            <div style="background-color:while;" class="cc-tile cc-tile-col01"><p style="color:hsl(180, 50%, 50%);">色相180°（シアン）</p></div>
+            <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(180, 50%, 50%);">色相180°（シアン）</p></div>
           </div>
           <div style="display: flex;">
             <div style="background-color:hsl(180, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(180, 50%, 50%);" class="small-text">75%/75%</p></div>
@@ -434,7 +449,7 @@
         
         <div class="cc-tile-col03" style="padding:2px;">
           <div style="display: flex;">
-            <div style="background-color:while;" class="cc-tile cc-tile-col01"><p style="color:hsl(240, 50%, 50%);">色相240°（青）</p></div>
+            <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(240, 50%, 50%);">色相240°（青）</p></div>
           </div>
           <div style="display: flex;">
             <div style="background-color:hsl(240, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(240, 50%, 50%);" class="small-text">75%/75%</p></div>
@@ -455,7 +470,7 @@
         
         <div class="cc-tile-col03" style="padding:2px;">
           <div style="display: flex;">
-            <div style="background-color:while;" class="cc-tile cc-tile-col01"><p style="color:hsl(300, 50%, 50%);">色相300°（マゼンタ）</p></div>
+            <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(300, 50%, 50%);">色相300°（マゼンタ）</p></div>
           </div>
           <div style="display: flex;">
             <div style="background-color:hsl(300, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">75%/75%</p></div>
@@ -483,11 +498,11 @@
       <h3>心理補色</h3>
       <p>赤を見続けたあと、白いところを見ると、一瞬うっすらと青緑や水色が浮かんで見えます。また、青を見続けたあと、白いところを見ると、黄色があらわれます。このように特定の色を見続けたあとに残像として現れる色を<strong>心理補色</strong>といいます。</p>
       
-      <div style="display: flex;margin: auto; justify-content: center;align-items: center ">
-        <div class="circle red" onclick="toggleColor(this, 'red')"></div>
-        <div class="circle yellow" onclick="toggleColor(this, 'yellow')"></div>
-        <div class="circle green" onclick="toggleColor(this, 'green')"></div>
-        <div class="circle blue" onclick="toggleColor(this, 'blue')"></div>
+      <div class="complementary-demo">
+        <button type="button" class="circle red" data-color="red" data-color-label="赤" aria-label="赤の円を白に切り替える" aria-pressed="false"></button>
+        <button type="button" class="circle yellow" data-color="yellow" data-color-label="黄" aria-label="黄の円を白に切り替える" aria-pressed="false"></button>
+        <button type="button" class="circle green" data-color="green" data-color-label="緑" aria-label="緑の円を白に切り替える" aria-pressed="false"></button>
+        <button type="button" class="circle blue" data-color="blue" data-color-label="青" aria-label="青の円を白に切り替える" aria-pressed="false"></button>
       </div>
       
       <p>上の円を見続けたあと、円をクリックしてみると心理補色が現れます（これに対して、上記(1)で扱った混合すると無彩色になる補色を<strong>物理補色</strong>といいます）。心理補色は人間の感覚に沿ったもので、赤の心理補色は緑，黄の心理補色は青となっています。例えば、医療現場の手術着は青緑ですが、これは血の色である赤の心理補色で、値を見続けたあとに白い壁や布を見ることで発生する残像を緩和するはたらきがあります。</p>
@@ -606,12 +621,21 @@
         if (element.classList.contains('white')) {
           element.classList.remove('white');
           element.classList.add(originalColor);
+          element.setAttribute('aria-pressed', 'false');
+          element.setAttribute('aria-label', `${element.dataset.colorLabel}の円を白に切り替える`);
         } else {
           element.classList.remove(originalColor);
           element.classList.add('white');
+          element.setAttribute('aria-pressed', 'true');
+          element.setAttribute('aria-label', `白い円を${element.dataset.colorLabel}に戻す`);
         }
       }
+
+      document.querySelectorAll('.circle[data-color]').forEach(element => {
+        element.addEventListener('click', () => {
+          toggleColor(element, element.dataset.color);
+        });
+      });
     </script>
 </body>
 </html>
-

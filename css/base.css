@@ -307,6 +307,36 @@ code, pre {
   font-family: var(--font-code);
 }
 
+/* キーボード操作時だけ表示する「本文へスキップ」リンク */
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10000;
+  padding: .65rem 1rem;
+  border-radius: 8px;
+  background: var(--theme-color, #225386);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  transform: translateY(calc(-100% - 16px));
+  transition: transform .15s ease-out;
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+  outline: 3px solid color-mix(in oklab, var(--theme-color, #225386) 45%, #fff 55%);
+  outline-offset: 2px;
+}
+
+#main-content:focus {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skip-link { transition: none; }
+}
+
 
 /* ===================================================================== */
 /* デフォルトボタンスタイル                                               */
@@ -515,5 +545,4 @@ button[disabled] {
   }
 
 }
-
 

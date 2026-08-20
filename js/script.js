@@ -332,6 +332,39 @@
     }
   }
 
+  /** ========= 本文ランドマークとスキップリンク ========= */
+  function ensureMainContent() {
+    let main = document.querySelector('body > main');
+
+    if (!main) {
+      const sections = Array.from(document.body.children)
+        .filter(element => element.tagName === 'SECTION');
+
+      if (sections.length === 0) return;
+
+      main = document.createElement('main');
+      main.id = 'main-content';
+      sections[0].before(main);
+      sections.forEach(section => main.appendChild(section));
+    } else if (!main.id) {
+      main.id = 'main-content';
+    }
+
+    main.tabIndex = -1;
+
+    let skipLink = document.querySelector('.skip-link');
+    if (!skipLink) {
+      skipLink = document.createElement('a');
+      skipLink.className = 'skip-link';
+      skipLink.textContent = '本文へスキップ';
+      document.body.prepend(skipLink);
+    }
+    skipLink.href = `#${main.id}`;
+    skipLink.addEventListener('click', () => {
+      requestAnimationFrame(() => main.focus({ preventScroll: true }));
+    });
+  }
+
   /** ========= 初期化 ========= */
   function initLayout() {
     if (inited) return;
@@ -339,6 +372,7 @@
 
     ensureHeader();
     ensureFooter();
+    ensureMainContent();
 
 
     // ダーク/ライト切替でも背景色を追従
