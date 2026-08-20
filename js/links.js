@@ -1,4 +1,4 @@
-const update = '2026-07-25 14:20:48';
+const update = '2026-08-21 08:33:04';
 
 const quizzes = {
   "py11": {
@@ -723,7 +723,7 @@ window.pubFiles = pubFiles;
 
 const notices = {
   "ai_policy": {
-    "title": "生成AI指針テンプレ",
+    "title": "情報科 生成AI 利用ポリシー",
     "description": "",
     "url": "https://docs.google.com/document/d/18C7jqZzge9PPf55VPpwRGDNowAp4Ug5i-RHvNgkYMdI/edit?usp=drivesdk"
   },
@@ -733,7 +733,7 @@ const notices = {
     "url": "https://docs.google.com/document/d/19sKZqGnCX6BfwyFn1IVad-PQQdRpzZ9gHrg9axs4yno/edit?usp=drivesdk"
   },
   "hw3_exam": {
-    "title": "中3_入試期間中の課題",
+    "title": "中3_入試期間中の課題（自主学習「情報セキュリティ」）",
     "description": "",
     "url": "https://docs.google.com/document/d/1V_22zJpyHMq-5w6cj0L7WRaTayu-zvkEs4ZwbIpwp5I/edit?usp=drivesdk"
   },
@@ -743,7 +743,7 @@ const notices = {
     "url": "https://docs.google.com/document/d/1d0ATx9JCiGVu93Hx1prE82HqxmC6mmupqkPnegVmQIc/edit?usp=drivesdk"
   },
   "hw3_html": {
-    "title": "HTML最終課題の提出",
+    "title": "HTML実習_最終課題_提出方法2024",
     "description": "",
     "url": "https://docs.google.com/presentation/d/107suvqG5EMDPoG428EyPlOIni8EkYAS9i3wOMlxjuP8/edit?usp=drivesdk"
   },
@@ -1326,7 +1326,7 @@ const files = {
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=test"
   },
   "test1": {
-    "title": "テンプレテスト1xxx",
+    "title": "テンプレテスト1",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=file&target=test1"
   },
@@ -1383,6 +1383,11 @@ const urls = {
     "title": "Typing Quest",
     "description": "",
     "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycby4OYGw6Gg0Nr-UPOl43GcDUe6q3QJqL876lWTGD4n8L4YJdQs6iG33wriZ3IStFblO/exec"
+  },
+  "oc2026": {
+    "title": "オープンキャンパス2026",
+    "description": "",
+    "url": "https://script.google.com/macros/s/AKfycbz5HPsmE3FhhiHnRKiZsRuEzk-EUd_51GJXUa2s9eiIbShNNlAeMJd3sI3V1LgbpReAzQ/exec"
   }
 };
 window.urls = urls;
