@@ -20,7 +20,7 @@
   --font-size-h3: 1.4rem;
   --font-size-h4: 1.2rem;
   --font-size-h5: 1rem;
-  --font-size-p: 1rem;
+  --font-size-p: 1.1rem;
   --font-size-p-small: 0.8em;
   --font-size-code-em: 0.9rem;
   --font-size-result-em: 0.9rem;
@@ -426,11 +426,11 @@ button[disabled] {
 
 @media (max-width: 600px) {
   :root {
-    --font-size-h1: 1.2rem;
-    --font-size-h2: 1.2rem;
-    --font-size-h3: 1.2rem;
+    --font-size-h1: 1.6rem;
+    --font-size-h2: 1.4rem;
+    --font-size-h3: 1.22rem;
     --font-size-h4: 1.1rem;
-    --font-size-p: 1.0rem;
+    --font-size-p: 1.1rem;
     --font-size-p-small: 0.8em;
     --font-size-code-em: 0.9rem;
     --font-size-result-em: 0.9rem;
@@ -487,11 +487,11 @@ button[disabled] {
 
 @media (min-width: 601px) and (max-width: 719px) {
   :root {
-    --font-size-h1: 1.2rem;
-    --font-size-h2: 1.2rem;
-    --font-size-h3: 1.2rem;
+    --font-size-h1: 1.6rem;
+    --font-size-h2: 1.4rem;
+    --font-size-h3: 1.22rem;
     --font-size-h4: 1.1rem;
-    --font-size-p: 1.0rem;
+    --font-size-p: 1.1rem;
     --font-size-p-small: 0.8em;
     --font-size-code-em: 0.9rem;
     --font-size-result-em: 0.9rem;
@@ -545,4 +545,3 @@ button[disabled] {
   }
 
 }
-

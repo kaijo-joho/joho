@@ -198,23 +198,26 @@ function getHtml_Index(pagesDict, currentId) {
     if (!page) continue;
     if (page.mainTitle === thisMainTitle && page.show !== false) {
       if (page.category !== previousCategory) {
-        if (opened) html += '</article>';
-        html += '<article>';
+        if (opened) html += '</div></article>';
+        html += '<article class="course-index__category">';
         const numberingAttr = page.category === 'はじめに'
           ? ' data-skip-numbering'
           : '';
         html += `<h2 id="${page.category}"${numberingAttr}>${page.category}</h2>`;
+        html += '<div class="course-index__grid">';
         opened = true;
       }
       const fileName = page.fileName || `${page.id}.html`;
       const detail   = page.detail || '';
       const title    = page.title  || page.id;
-      html += `<h3><a href="${fileName}" title="${detail}">${title}</a></h3>`;
-      if (detail) html += `<p>${detail}</p>`;
+      html += `<a class="course-index__card" href="${fileName}" title="${detail}">`;
+      html += `<h3 class="course-index__title">${title}</h3>`;
+      if (detail) html += `<p class="course-index__detail">${detail}</p>`;
+      html += '</a>';
       previousCategory = page.category;
     }
   }
-  if (opened) html += '</article>';
+  if (opened) html += '</div></article>';
   return html;
 }
 

@@ -87,6 +87,8 @@ article h3:first-of-type { margin-top: clamp(10px, 1.2vw, 20px); }
 section article {
   margin: 0 auto;
   width: min(90%, var(--content-max)) !important;
+  font-size: var(--font-size-p);
+  line-height: 1.75;
 
   background: linear-gradient(
     135deg,
@@ -174,8 +176,8 @@ section h5 strong, section h5 b{
 /* ========== paragraph & emphasis ===================================== */
 
 section article p{
-  font-size: var(--font-size-p);
-  font-weight: 300;
+  font-size: 1em;
+  font-weight: 400;
   margin: 8px 16px;
   box-sizing: content-box;
 }
@@ -218,6 +220,94 @@ section > article > p > b.tag{
   padding: 0 .35em;
 }
 
+/* ========== course index ============================================== */
+
+#html_index .course-index__grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  align-items: stretch;
+  gap: clamp(10px, 1.4vw, 14px);
+  padding: clamp(12px, 1.5vw, 18px) 4px 4px;
+}
+
+#html_index .course-index__card{
+  position: relative;
+  display: block;
+  min-width: 0;
+  height: 100%;
+  padding: .9rem 2.6rem .9rem 1rem;
+  border: 1px solid color-mix(in oklab, var(--theme-color) 26%, transparent);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--theme-color) 6%, transparent);
+  color: var(--font-color-normal-text);
+  text-decoration: none;
+  box-shadow: 0 2px 8px rgba(0,0,0,.07);
+  transition:
+    transform .16s ease,
+    border-color .16s ease,
+    background-color .16s ease,
+    box-shadow .16s ease;
+}
+
+#html_index .course-index__card::after{
+  content: "→";
+  position: absolute;
+  top: .9rem;
+  right: 1rem;
+  color: var(--theme-color);
+  font-weight: 700;
+  line-height: 1.4;
+  transition: transform .16s ease;
+}
+
+#html_index .course-index__card:hover,
+#html_index .course-index__card:focus-visible{
+  border-color: color-mix(in oklab, var(--theme-color) 58%, transparent);
+  background: color-mix(in oklab, var(--theme-color) 11%, transparent);
+  box-shadow: 0 7px 18px rgba(0,0,0,.12);
+  transform: translateY(-2px);
+}
+
+#html_index .course-index__card:hover::after,
+#html_index .course-index__card:focus-visible::after{
+  transform: translateX(3px);
+}
+
+#html_index .course-index__card:focus-visible{
+  outline: 3px solid color-mix(in oklab, var(--theme-color) 38%, transparent);
+  outline-offset: 2px;
+}
+
+#html_index .course-index__title{
+  margin: 0;
+  color: var(--theme-color);
+  font-size: 1.1em;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
+#html_index .course-index__detail{
+  margin: .35rem 0 0;
+  color: var(--font-color-normal-text);
+  font-size: .95em;
+  line-height: 1.65;
+  text-align: left;
+}
+
+@media (max-width: 600px){
+  #html_index .course-index__grid{
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  #html_index .course-index__card,
+  #html_index .course-index__card::after{
+    transition: none;
+  }
+}
+
 /* ========== lists ===================================================== */
 
 section article p.center{ text-align: center; }
@@ -228,7 +318,7 @@ section article ul.list-style-none{ list-style: none; }
 section article ul > li{
   color: var(--font-color-normal-text);
   margin: 10px 0;
-  font-size: 1rem;
+  font-size: 1em;
   text-indent: .1em;
 }
 section article ul li  a{
@@ -246,7 +336,7 @@ section article ul ul{ list-style: none; }
 section article ul ul li{
   color: var(--font-color-normal-text);
   margin: 2px 0;
-  font-size: 1rem;
+  font-size: 1em;
 }
 section article > ul > li > p{ margin-left: 40px; }
 
@@ -266,7 +356,7 @@ section article dl{
 section article dt,
 section article dd {
   color: var(--font-color-normal-text);
-  font-size: 1rem;
+  font-size: 1em;
   text-indent: .1em;
 }
 
@@ -569,8 +659,6 @@ section article > details > summary{
   font-weight: bold;
   margin: 5px 10px 5px 10px;
 }
-
-
 
 
 
