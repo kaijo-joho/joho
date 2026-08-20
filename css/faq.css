@@ -549,6 +549,88 @@
   background: color-mix(in oklab, currentColor 5%, transparent);
 }
 
+.faq-ai-escalation {
+  margin-top: 0.9rem;
+  padding: 1.1rem;
+  border: 1px solid color-mix(in oklab, var(--theme-color, #225386) 42%, transparent);
+  border-radius: 14px;
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--theme-color, #225386) 12%, transparent),
+      color-mix(in oklab, var(--theme-color, #225386) 4%, transparent)
+    );
+}
+
+.faq-ai-escalation__title {
+  margin: 0;
+  color: var(--font-color-strong-text, var(--theme-color, #225386));
+  font-size: 1.12rem;
+}
+
+.faq-ai-escalation__lead {
+  margin: 0.45rem 0 0;
+  line-height: 1.75;
+}
+
+.faq-ai-escalation__note {
+  margin: 0.45rem 0 0;
+  font-size: 0.88rem;
+  line-height: 1.7;
+  opacity: 0.82;
+}
+
+.faq-ai-escalation__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin-top: 1rem;
+}
+
+.faq-ai-escalation__yes,
+.faq-ai-escalation__no {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  padding: 0.5rem 1rem;
+  font: inherit;
+  font-weight: 800;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+}
+
+.faq-ai-escalation__yes {
+  border: 1px solid var(--theme-color, #225386);
+  color: #fff;
+  background: var(--theme-color, #225386);
+  box-shadow: 0 5px 14px color-mix(in oklab, #000 16%, transparent);
+}
+
+.faq-ai-escalation__yes:hover {
+  color: #fff;
+  background: color-mix(in oklab, var(--theme-color, #225386) 86%, #fff 14%);
+  transform: translateY(-1px);
+}
+
+.faq-ai-escalation__no {
+  border: 1px solid color-mix(in oklab, currentColor 28%, transparent);
+  color: var(--font-color-strong-text, inherit);
+  background: color-mix(in oklab, canvas 88%, transparent);
+}
+
+.faq-ai-escalation__no:hover {
+  background: color-mix(in oklab, var(--theme-color, #225386) 12%, transparent);
+}
+
+.faq-ai-escalation__yes:focus-visible,
+.faq-ai-escalation__no:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--theme-color, #225386) 35%, transparent);
+  outline-offset: 2px;
+}
+
 .ld-faq__q code,
 .faq-card__question code {
   font-size: 0.92em;
@@ -616,6 +698,10 @@
 
   .faq-card__summary {
     padding-left: 2rem;
+  }
+
+  .faq-ai-escalation__actions {
+    display: grid;
   }
 }
 

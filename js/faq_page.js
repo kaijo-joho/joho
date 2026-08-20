@@ -4,6 +4,9 @@
 
   const COURSE_KEYS = ['il', 'html', 'ss', 'py'];
 
+  const FAQBOT_WEB_APP_URL =
+    'https://script.google.com/macros/s/AKfycbzSuitUdIidJRMXTrJCOcdxE1fdcFLj8NB-LfHM1z0KABRzv463y131Y6KR2TYoOtk/exec';
+
   const COURSE_LABEL_FALLBACK = {
     il: 'Illustrator実習',
     html: 'HTML実習',
@@ -474,6 +477,64 @@
     return details;
   }
 
+  function buildFaqBotUrl(state) {
+    const faqBotUrl = new URL(FAQBOT_WEB_APP_URL);
+    const returnUrl = new URL('./faq.html', location.href);
+
+    if (COURSE_KEYS.includes(state.course)) {
+      faqBotUrl.searchParams.set('course', state.course);
+      returnUrl.searchParams.set('course', state.course);
+    }
+
+    faqBotUrl.searchParams.set('page', 'faq');
+    faqBotUrl.searchParams.set('returnUrl', returnUrl.href);
+
+    return faqBotUrl.href;
+  }
+
+  function renderAiEscalation(state) {
+    const section = el('section', {
+      class: 'faq-ai-escalation',
+      'aria-labelledby': 'faq-ai-escalation-title'
+    });
+
+    section.appendChild(el('h3', {
+      id: 'faq-ai-escalation-title',
+      class: 'faq-ai-escalation__title'
+    }, 'AIに質問しますか？'));
+
+    section.appendChild(el('p', { class: 'faq-ai-escalation__lead' },
+      '「はい」を選ぶと、学校のGoogleアカウントで利用するAI相談室へ移動します。質問は移動先で改めて入力してください。'
+    ));
+
+    section.appendChild(el('p', { class: 'faq-ai-escalation__note' },
+      '検索語は引き継がれません。氏名、メールアドレス、学籍番号などの個人情報は入力しないでください。'
+    ));
+
+    const yesLink = el('a', {
+      href: buildFaqBotUrl(state),
+      class: 'faq-ai-escalation__yes',
+      'data-faqbot-link': ''
+    }, 'はい、AI相談室へ');
+
+    const noButton = el('button', {
+      type: 'button',
+      class: 'faq-ai-escalation__no'
+    }, 'いいえ、検索を続ける');
+
+    noButton.addEventListener('click', () => {
+      const searchInput = $('.faq-search__input');
+      if (searchInput) searchInput.focus();
+    });
+
+    section.appendChild(el('div', { class: 'faq-ai-escalation__actions' }, [
+      yesLink,
+      noButton
+    ]));
+
+    return section;
+  }
+
   function renderResultsArticle(state) {
     const allFaqs = getPublicFaqs();
     const filtered = applyFilters(allFaqs, state);
@@ -484,6 +545,7 @@
 
     if (!filtered.length) {
       article.appendChild(el('p', { class: 'faq-empty' }, '条件に一致するFAQはありません。'));
+      article.appendChild(renderAiEscalation(state));
       return article;
     }
 
