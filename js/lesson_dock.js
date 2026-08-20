@@ -199,6 +199,16 @@
       .slice(0, LD_CFG.maxFaqItems);
   }
 
+  function buildFaqPageUrl(course, query = '') {
+    const url = new URL('./faq.html', location.href);
+    const trimmedQuery = String(query || '').trim();
+
+    if (course) url.searchParams.set('course', course);
+    if (trimmedQuery) url.searchParams.set('q', trimmedQuery);
+
+    return url.href;
+  }
+
   // ==================== 中間モデルの構築 ====================
   function normalizeItem(raw, kind) {
     if (!raw || raw.release === false) return null;
@@ -228,6 +238,7 @@
   }
 
   function buildLessonDockModel(curr, pages, currentPageKey) {
+    const course       = inferCourseFromPageKey(currentPageKey);
     const practicefile = listFrom(curr.practiceFile, 'practicefile');
     const exercise     = listFrom(curr.questionFile, 'exercise');
     const quiz         = listFrom(curr.quizForm,     'quiz');
@@ -286,6 +297,7 @@
     }
 
     return {
+      course,
       practicefile,
       exercise,
       quiz,
@@ -351,9 +363,60 @@
     return sec;
   }
 
-  function secFaq(title, items) {
+  function secFaq(title, items, course) {
     const sec = el('div', { class: 'ld-sec ld-sec--faq' });
     sec.appendChild(el('h3', { class: 'ld-sec__title' }, title));
+
+    const searchInput = el('input', {
+      id: 'lesson-dock-faq-search',
+      type: 'search',
+      class: 'ld-faq-search__input',
+      placeholder: 'キーワードを入力',
+      autocomplete: 'off',
+      enterkeyhint: 'search'
+    });
+
+    const searchForm = el('form', {
+      class: 'ld-faq-search__form',
+      role: 'search',
+      'aria-label': 'FAQを検索'
+    }, [
+      searchInput,
+      el('button', {
+        type: 'submit',
+        class: 'ld-faq-search__button'
+      }, '検索')
+    ]);
+
+    searchForm.addEventListener('submit', event => {
+      event.preventDefault();
+
+      const query = searchInput.value.trim();
+      searchInput.value = query;
+
+      if (!query) {
+        searchInput.focus();
+        return;
+      }
+
+      window.open(buildFaqPageUrl(course, query), '_blank', 'noopener');
+    });
+
+    const search = el('div', { class: 'ld-faq-search' }, [
+      el('label', {
+        class: 'ld-faq-search__label',
+        for: 'lesson-dock-faq-search'
+      }, 'FAQ全体を検索'),
+      searchForm,
+      el('a', {
+        href: buildFaqPageUrl(course),
+        target: '_blank',
+        rel: 'noopener',
+        class: 'ld-faq-search__all'
+      }, 'すべてのFAQを見る')
+    ]);
+
+    sec.appendChild(search);
 
     const wrap = el('div', { class: 'ld-faq-list' });
 
@@ -454,15 +517,18 @@
 
   function buildGroup({ key, label, section }) {
     const group = el('div', { class: 'lesson-dock__group' });
+    const panelId = `lesson-dock-panel-${key}`;
 
     const btn = el('button', {
       type: 'button',
       class: `lesson-dock__btn lesson-dock__btn--${key}`,
       'aria-label': label,
+      'aria-controls': panelId,
       'aria-expanded': 'false'
     }, createIconNode(key));
 
     const panel = el('div', {
+      id: panelId,
       class: `lesson-dock__panel lesson-dock__panel--${key}`,
       role: 'group',
       'aria-label': label
@@ -501,13 +567,27 @@
 
     const scheduleClose = () => {
       clearTimeout(tOpen);
-      tClose = setTimeout(close, closeDelay);
+      clearTimeout(tClose);
+
+      if (panel.contains(document.activeElement)) return;
+
+      tClose = setTimeout(() => {
+        if (!panel.contains(document.activeElement)) close();
+      }, closeDelay);
     };
 
     btn.addEventListener('mouseenter', scheduleOpen);
     panel.addEventListener('mouseenter', () => clearTimeout(tClose));
     group.addEventListener('mouseenter', () => clearTimeout(tClose));
     group.addEventListener('mouseleave', scheduleClose);
+    panel.addEventListener('focusin', () => {
+      clearTimeout(tClose);
+      open();
+    });
+    panel.addEventListener('focusout', event => {
+      if (panel.contains(event.relatedTarget)) return;
+      scheduleClose();
+    });
 
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -578,11 +658,11 @@
       }));
     }
 
-    if (model.faq.length) {
+    if (model.course) {
       groups.push(buildGroup({
         key: 'faq',
         label: 'よくある質問',
-        section: secFaq('よくある質問', model.faq)
+        section: secFaq('よくある質問', model.faq, model.course)
       }));
     }
 

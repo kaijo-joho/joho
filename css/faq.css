@@ -114,6 +114,97 @@
   overscroll-behavior: contain;
 }
 
+.ld-faq-search {
+  display: grid;
+  gap: 0.55rem;
+  margin-bottom: 0.85rem;
+  padding: 0.7rem;
+  border: 1px solid var(--ld-border, color-mix(in oklab, currentColor 14%, transparent));
+  border-radius: 12px;
+  background: rgba(var(--ld-glass-rgb, 255, 255, 255), calc(var(--ld-item-alpha, 0.06) + 0.08));
+}
+
+.ld-faq-search__label {
+  font-size: 0.84rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: var(--ld-h-title, currentColor);
+}
+
+.ld-faq-search__form {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: stretch;
+}
+
+.ld-faq-search__input,
+.ld-faq-search__button {
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 2.5rem;
+  border-radius: 9px;
+  font: inherit;
+}
+
+.ld-faq-search__input {
+  width: 100%;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid color-mix(in oklab, currentColor 24%, transparent);
+  color: var(--ld-fg, inherit);
+  background: color-mix(in oklab, canvas 88%, transparent);
+}
+
+.ld-faq-search__input::placeholder {
+  color: currentColor;
+  opacity: 0.62;
+}
+
+.ld-faq-search__button {
+  appearance: none;
+  border: 1px solid var(--theme-color, #225386);
+  padding: 0.45rem 0.85rem;
+  color: #fff;
+  background: var(--theme-color, #225386);
+  font-weight: 800;
+  letter-spacing: normal;
+  cursor: pointer;
+  box-shadow: none;
+}
+
+.ld-faq-search__button:hover {
+  background: color-mix(in oklab, var(--theme-color, #225386) 86%, #fff 14%);
+  box-shadow: 0 4px 10px color-mix(in oklab, #000 18%, transparent);
+}
+
+#lesson-dock.lesson-dock .ld-faq-search__all {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.18rem 0.28rem;
+  border-radius: 6px;
+  color: var(--ld-fg, inherit);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+#lesson-dock.lesson-dock .ld-faq-search__all::after {
+  content: "↗";
+  opacity: 0.78;
+}
+
+#lesson-dock.lesson-dock .ld-faq-search__all:hover {
+  background: rgba(var(--ld-glass-rgb, 255, 255, 255), calc(var(--ld-item-alpha, 0.06) + 0.18));
+}
+
+.ld-faq-search__input:focus-visible,
+.ld-faq-search__button:focus-visible,
+#lesson-dock.lesson-dock .ld-faq-search__all:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--theme-color, #225386) 42%, transparent);
+  outline-offset: 2px;
+}
+
 .ld-faq-list {
   display: grid;
   gap: 0.65rem;
@@ -703,6 +794,14 @@
   .faq-ai-escalation__actions {
     display: grid;
   }
+
+  .ld-faq-search {
+    padding: 0.65rem;
+  }
+
+  .ld-faq-search__button {
+    padding-inline: 0.7rem;
+  }
 }
 
 /* =========================
@@ -710,6 +809,15 @@
 ========================= */
 
 @media (prefers-color-scheme: dark) {
+  .ld-faq-search {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .ld-faq-search__input {
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.08);
+  }
+
   .ld-faq__q {
     color: var(--font-color-strong-text, #e6e6e6);
   }
