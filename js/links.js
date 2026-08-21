@@ -1,4 +1,4 @@
-const update = '2026-08-21 08:33:04';
+const update = '2026-08-21 10:32:10';
 
 const quizzes = {
   "py11": {
@@ -1388,6 +1388,21 @@ const urls = {
     "title": "オープンキャンパス2026",
     "description": "",
     "url": "https://script.google.com/macros/s/AKfycbz5HPsmE3FhhiHnRKiZsRuEzk-EUd_51GJXUa2s9eiIbShNNlAeMJd3sI3V1LgbpReAzQ/exec"
+  },
+  "oc2026picto": {
+    "title": "オープンキャンパス2026 ピクトグラム",
+    "description": "",
+    "url": "https://script.google.com/macros/s/AKfycbz5HPsmE3FhhiHnRKiZsRuEzk-EUd_51GJXUa2s9eiIbShNNlAeMJd3sI3V1LgbpReAzQ/exec?quiz=picto"
+  },
+  "oc2026history": {
+    "title": "オープンキャンパス2026 歴史クイズ",
+    "description": "",
+    "url": "https://script.google.com/macros/s/AKfycbz5HPsmE3FhhiHnRKiZsRuEzk-EUd_51GJXUa2s9eiIbShNNlAeMJd3sI3V1LgbpReAzQ/exec?quiz=history"
+  },
+  "oc2026proverb": {
+    "title": "オープンキャンパス2026 ことわざクイズ",
+    "description": "",
+    "url": "https://script.google.com/macros/s/AKfycbz5HPsmE3FhhiHnRKiZsRuEzk-EUd_51GJXUa2s9eiIbShNNlAeMJd3sI3V1LgbpReAzQ/exec?quiz=proverb"
   }
 };
 window.urls = urls;
