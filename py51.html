@@ -154,7 +154,7 @@ plt.show()      # グラフを表示する
         <tr>
           <th>箱ひげ図</th>
           <td class="text-align-left"><tt>plt.boxplot()</tt></td>
-          <td class="text-align-left">データの分布、中央値、最大値、最小値を表示します。外れ値の検出にも使われます。</td>
+          <td class="text-align-left">データの四分位範囲や中央値、ひげ、外れ値を表示します。ひげの端は、設定によっては実際の最大値・最小値と一致しない場合があります。</td>
         </tr>
 
         <tr>
@@ -190,7 +190,7 @@ plt.ylabel("y軸のラベル")
 plt.axvline(0, color="black", lw=0.5)  # y軸(x=0の線)を表示
 plt.axhline(0, color="black", lw=0.5)  # x軸(y=0の線)を表示
       </code></pre>
-      <p><tt>plt.axvline(x, color, linestyle, linewidth)</tt>は座標xの位置に垂直線を描くために用います。基本的には上記のように軸を表示するために用います。また、<tt>plt.axhline(y, color, linestyle, linewidth)</tt>は座標yの位置に水平線を描くために用います。</p>
+      <p><tt>plt.axvline(x, color="色", linestyle="線種", linewidth=線幅)</tt>は座標xの位置に垂直線を描くために用います。基本的には上記のように軸を表示するために用います。また、<tt>plt.axhline(y, color="色", linestyle="線種", linewidth=線幅)</tt>は座標yの位置に水平線を描くために用います。<tt>color</tt>などは、上記の例のように引数名を付けて指定します。</p>
       <p><tt>color</tt>は、<tt>"red"</tt>，<tt>"blue"</tt>などの色名のほか、カラーコード（#FF5733など）で指定します。</p>
       <p><tt>linestyle</tt>は、<tt>"-"</tt>(実線:デフォルト)，<tt>"--"</tt>:破線，<tt>":"</tt>: 点線，<tt>"-."</tt>: 点と破線が使えます。</p>
       
@@ -268,10 +268,10 @@ files.download("ファイル名.png") # 対象のファイルをダウンロー�
       
 
       <h3>NumPy配列の生成</h3>
-      <p>NumPyの機能を用いて、実数値のリストを生成するためには、<tt>np.arange(<em>start</em>, <em>stop</em>, <em>step</em>)</tt>を用います。末尾の値<em>stop</em>は含まれません。</p>
-      <p>例えば、<tt>-1.0</tt>から<tt>+1.0</tt>まで<tt>0.1</tt>間隔の値のリストを生成するには、<tt>np.arange(-1.0, 1.1, 0.1)</tt>と書きます。</p>
-      <p>このようにして生成したリストを<strong>NumPy配列</strong>といいます。</p>
-      <p class="small-text">※通常の<strong>range関数</strong>で作成したリストでは整数しか扱えないのに対して、NumPy配列（<strong>np.arange</strong>で作成したリスト）は実数値を扱えます。</p>
+      <p>NumPyの機能を用いて、一定間隔の実数値を持つNumPy配列を生成するためには、<tt>np.arange(<em>start</em>, <em>stop</em>, <em>step</em>)</tt>を用います。末尾の値<em>stop</em>は含まれません。</p>
+      <p>例えば、<tt>-1.0</tt>から<tt>+1.0</tt>まで<tt>0.1</tt>間隔の値を持つNumPy配列を生成するには、<tt>np.arange(-1.0, 1.1, 0.1)</tt>と書きます。</p>
+      <p>このようにして生成した値は、Pythonのリストではなく<strong>NumPy配列（ndarray）</strong>です。</p>
+      <p class="small-text">※通常の<strong>range関数</strong>は整数列を表す<tt>range</tt>オブジェクトを作るのに対して、<strong>np.arange</strong>は実数値も扱えるNumPy配列を作ります。</p>
       <pre class="python" data-title="NumPy配列の生成"><code>
 import numpy as np  # numpy: 数値計算用のライブラリ
 x = np.arange(-1.0, 1.1, 0.1)
@@ -426,7 +426,7 @@ plt.show()                                  # グラフを表示
       <h3>２系列のグラフ</h3>
       <p>複数の系列を同時に表示するためには、次のように<tt>y1</tt>, <tt>y2</tt>のNumPy配列を用意し、それぞれについてプロットを作成する記述<tt>plt.plot(x, y1, ...)</tt>，<tt>plt.plot(x, y2, ...)</tt>を書きます。</p>
       <h4>実習3 挿入ソートとクイックソートの比較回数</h4>
-      <p>挿入ソートの平均比較回数は $n(n-1)/4$，クイックソートの平均比較回数はおよそ$n \log_2{n}$ と表せます。次の例では、挿入ソートの平均比較回数とクイックソートの平均比較回数を比較するために2系列のグラフを表示します。</p>
+      <p>挿入ソートの平均移動回数はおよそ $n(n-1)/4$ で、平均比較回数はこれより少し多くなります。クイックソートの平均比較回数はおよそ$n \log_2{n}$ と表せます。次の例では、処理回数の増え方を比較するために、$n(n-1)/4$ と $n \log_2{n}$ を目安として2系列のグラフを表示します。</p>
       <pre class="python" data-title="挿入ソートとクイックソートの比較回数のグラフ"><code>
 import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
 import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
@@ -467,7 +467,7 @@ plt.show()                                              # グラフを表示
         y = \sin t
       \]
       <p>$t$を$-\pi$〜$+\pi$まで変化させたとき、$x$と$y$の値についてグラフを作成し表示します。</p>
-      <p>NumPyを用いて$-\pi$〜$\pi$まで1000等分した値を生成して配列tに格納するときは、<tt>t = np.linspace(-np.pi, np.pi, 1000)</tt>と書きます。</p>
+      <p>NumPyを用いて$-\pi$〜$\pi$までの範囲に1000個の値を生成して配列tに格納するときは、<tt>t = np.linspace(-np.pi, np.pi, 1000)</tt>と書きます。</p>
       
       <pre class="python" data-title="円のグラフ"><code>
 import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
@@ -475,7 +475,7 @@ import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化
 import numpy as np              # numpy: 数値計算用のライブラリ
 
 # 媒介変数t設定
-t = np.linspace(-np.pi, np.pi, 1000)  # -π〜+πまで1000等分した値を生成
+t = np.linspace(-np.pi, np.pi, 1000)  # -π〜+πまでの範囲に1000個の値を生成
 
 # xとyの値を設定
 x = np.cos(t)
@@ -486,6 +486,7 @@ plt.figure(figsize=(6, 6))              # グラフの大きさを設定
 plt.plot(x, y)                          # xとyの値をプロット
 plt.axhline(0, color="black", lw=0.5)   # x軸を表示(y=0の線を描く)
 plt.axvline(0, color="black", lw=0.5)   # y軸を表示(x=0の線を描く)
+plt.axis("equal")                       # x軸とy軸の1目盛りの長さをそろえる
 plt.grid(True)                          # グリッド線を表示
 plt.show()                              # グラフの表示
       </code></pre>
@@ -495,7 +496,7 @@ plt.show()                              # グラフの表示
       
       
       <h4>実習5 リサジュー曲線</h4>
-      <p>互いに直交する二つの単振動を合成して得られる平面図形を<strong>リサジュー曲線</strong>といいます。リサジュー曲線は音波などの周波数の測定に用いられることが多く、基準波を横軸に、被測定波を縦軸に入力すると、上下に描かれた山の数と左右に描かれた山の数が基準波と被測定波の周波数比となって現れます。これを画面に表示したものが<strong>オシロスコープ</strong>です。</p>
+      <p>互いに直交する二つの単振動を合成して得られる平面図形を<strong>リサジュー曲線</strong>といいます。リサジュー曲線は音波などの周波数の測定に用いられることが多く、基準波を横軸に、被測定波を縦軸に入力すると、上下に描かれた山の数と左右に描かれた山の数が基準波と被測定波の周波数比となって現れます。オシロスコープをXY表示にすると、このような図形を画面上で観察できます。</p>
       <p>簡単なリサジュー曲線の式は次のように表すことができます。</p>
       \[
         x = \sin (at + \delta)
@@ -516,7 +517,7 @@ a = 3
 b = 4
 
 delta = np.pi / 2  # 90度の位相差
-t = np.linspace(-np.pi, np.pi, 1000)  # -π〜+πまで1000等分した値を生成
+t = np.linspace(-np.pi, np.pi, 1000)  # -π〜+πまでの範囲に1000個の値を生成
 
 # リサジュー曲線の方程式
 x = np.sin(a * t + delta)
@@ -530,6 +531,7 @@ plt.xlabel("x")
 plt.ylabel("y")
 plt.axvline(0, color="black", lw=1)  # x軸
 plt.axhline(0, color="black", lw=1)  # y軸
+plt.axis("equal")                    # x軸とy軸の1目盛りの長さをそろえる
 plt.grid(True)
 plt.show()
       </code></pre>

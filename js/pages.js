@@ -2027,7 +2027,7 @@ const pages = {
         "text": "4-6. クイックソート",
         "release": true,
         "url": "py46.html",
-        "detail": "クイックソートは、最も速くソートできるアルゴリズムです。"
+        "detail": "クイックソートは、平均的に高速なソートアルゴリズムの一つです。"
       }
     ],
     "show": true,
@@ -2040,7 +2040,7 @@ const pages = {
     "mainTitle": "Python講座",
     "category": "基本のアルゴリズム",
     "title": "4-6. クイックソート",
-    "detail": "クイックソートは、最も速くソートできるアルゴリズムです。",
+    "detail": "クイックソートは、平均的に高速なソートアルゴリズムの一つです。",
     "practiceFile": [
       {
         "id": "py46nb",

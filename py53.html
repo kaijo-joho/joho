@@ -107,18 +107,14 @@ import random
 trials = list(range(1, 6001))   # 試行回数の配列 [1, 2, 3, 4, ..., 6000]
 
 # グラフ用の配列の準備
-means = []                      # 各試行回数における平均値を保存する配列
+means = []                      # 各試行回数における累積平均を保存する配列
+total = 0                       # サイコロの出目の合計値
 
 for n in trials:
-    total = 0                           # サイコロの出目の合計値
-    
-    # シミュレーション（サイコロをn回投げて、出目の数を集計）
-    for i in range(n):
-        roll = random.randint(1, 6)     # サイコロの出目（1〜6の乱数を発生）
-        total = total + roll            # 出目を集計
-
-    mean = total / n                    # 出目の合計を試行回数で割って平均値を求める
-    means.append(mean)                  # 試行回数ごとの平均値を配列meansに保存
+    roll = random.randint(1, 6)         # サイコロを新たに1回振る
+    total = total + roll                # これまでの出目の合計に加える
+    mean = total / n                    # 1回目からn回目までの累積平均を求める
+    means.append(mean)                  # 試行回数ごとの累積平均を配列meansに保存
 
 # グラフの表示
 plt.plot(trials, means, label="試行回数ごとの平均値")
@@ -146,6 +142,7 @@ plt.show()
         <img src="./img/py53_201.png" class="center" width="400px" alt="天気の状態遷移図" decoding="async" loading="lazy">
       </p>
       <p>0日後の天気が「晴れ」として、30日後までの天気がどのように変化するか、また、各天気の種類の日が何日あるかを棒グラフで示しなさい。ただし、天気は、「晴れ」「曇り」「雨」の3種類とし、その天気が1日中続くものとします。</p>
+      <p class="small-text">※ このプログラムでは、0日後の天気も1日分として数えるため、集計対象は0日後から30日後までの31日分です。</p>
       
       
       <pre class="python" data-title="天気のシミュレーション"><code>
