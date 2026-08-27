@@ -1,4 +1,4 @@
-//2026-08-27 03:01:58;
+//2026-08-27 03:16:10;
 const pages = {
   "index": {
     "id": "index",
@@ -507,7 +507,7 @@ const pages = {
         "text": "HTMLの応用",
         "release": true,
         "url": "html18.html",
-        "detail": "自由製作に役立つHTMLの構造と、情報を整理して伝える要素を学びます。"
+        "detail": "その他のHTMLタグと、情報を整理して伝える要素を学びます。"
       }
     ],
     "show": true,
@@ -518,9 +518,9 @@ const pages = {
     "release": true,
     "fileName": "html18.html",
     "mainTitle": "HTML実習",
-    "category": "3. 自由製作（発展）",
+    "category": "1. HTMLの基本",
     "title": "HTMLの応用",
-    "detail": "自由製作に役立つHTMLの構造と、情報を整理して伝える要素を学びます。",
+    "detail": "その他のHTMLタグと、情報を整理して伝える要素を学びます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
@@ -534,7 +534,7 @@ const pages = {
         "text": "CSSの応用",
         "release": true,
         "url": "html25.html",
-        "detail": "値を変えながら、自由製作に役立つCSSの効果を確かめます。"
+        "detail": "その他のCSSについて学びます。"
       }
     ],
     "show": true,
@@ -545,9 +545,9 @@ const pages = {
     "release": true,
     "fileName": "html25.html",
     "mainTitle": "HTML実習",
-    "category": "3. 自由製作（発展）",
+    "category": "2. CSSの基本",
     "title": "CSSの応用",
-    "detail": "値を変えながら、自由製作に役立つCSSの効果を確かめます。",
+    "detail": "その他のCSSについて学びます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
