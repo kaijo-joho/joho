@@ -310,7 +310,7 @@ plt.show()
     
     
     <article>
-      <h2 id="headline_6">(6) 疾病感染者数のシミュレーション</h2>
+      <h2 id="headline_6">(6) 感染状況の推移</h2>
 
       <h3>SIRモデル</h3>
       <p>SIRモデルは感染症の流行をシミュレーションする単純な数理モデルです。原型となったのは、W・O・カーマックとA・G・マッケンドリックによる1927年に報告された論文で、単純なSIRモデルであっても1905年のボンベイにおけるペスト流行のデータをうまく再現できることで知られています。</p>
@@ -351,7 +351,7 @@ plt.show()
 
       
       
-      <pre class="python" data-title="疾病感染者数のシミュレーション"><code>
+      <pre class="python" data-title="感染状況の推移"><code>
 import matplotlib.pyplot as plt
 import japanize_matplotlib
 
@@ -401,18 +401,18 @@ plt.plot(x, yS, label="$S$ 感受性保持者 (Susceptible) ")
 plt.plot(x, yI, label="$I$ 感染者 (Infected)")
 plt.plot(x, yR, label="$R$ 免疫保持者 (Recovered)")
 plt.xlabel("時間[日]")
-plt.ylabel("割合")
+plt.ylabel("人口に占める割合")
 plt.legend()
-plt.title("SIRモデル（疾病感染者数のシミュレーション）")
+plt.title("SIRモデル（感染状況の推移）")
 plt.grid(True)
 
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py52_601.png" class="pyplot" alt="SIRモデルのシミュレーショングラフ" decoding="async" loading="lazy"></div>
+      <div class="result"><img src="./img/py52_601.png" class="pyplot" alt="SIRモデルによる感染状況の推移グラフ" decoding="async" loading="lazy"></div>
 
       <dl>
         <dt>感染の拡大</dt>
-        <dd>初期段階では\(S\) が多く、\(I\) が少ない状態からスタートします。しかし、\(I\) の数が増加すると、\(S\) から\(I\) への移行が増え、感染が拡大します。</dd>
+        <dd>初期段階では\(S\) が多く、\(I\) が少ない状態からスタートします。しかし、\(I\) の割合が増加すると、\(S\) から\(I\) への移行が増え、感染が拡大します。</dd>
 
         <dt>感染のピーク</dt>
         <dd>ある点で\(I\) が最大に達し、その後は減少し始めます。これは、多くの人々が感染から回復し始め、また新たに感染する\(S\) の割合が減少するためです。</dd>
