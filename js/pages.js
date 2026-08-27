@@ -1,4 +1,4 @@
-//2026-07-25 01:24:21;
+//2026-08-27 11:31:34;
 const pages = {
   "index": {
     "id": "index",
@@ -625,10 +625,10 @@ const pages = {
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
-    "back": "ss00",
+    "back": "html00",
     "next": false,
     "show": true,
-    "backFile": "ss00.html"
+    "backFile": "html00.html"
   },
   "il_kadai01": {
     "id": "il_kadai01",
