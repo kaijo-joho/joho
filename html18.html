@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme: light dark; background: transparent; }
+    @media (prefers-color-scheme: dark) {
+      html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
+    }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme: dark) {
+      body { background-color:#0b0b0b; }
+    }
+  </style>
+  <title>海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/html18.css">
+  <script defer src="./js/main.js"></script>
+</head>
+
+<body>
+  <section>
+    <article>
+      <h2 id="headline_1">HTMLを役割で選ぶ</h2>
+      <p>HTMLの基本では、見出し・文章・画像・リンク・リスト・表を作りました。自由製作では、内容に合うタグを選んで組み合わせると、ページの構造や情報どうしの関係が伝わりやすくなります。</p>
+      <p>このページでは、観光促進サイトに取り入れやすいHTMLを紹介します。見た目の細かな調整はCSSで行うため、まずは各タグが表す<strong>役割</strong>に注目しましょう。</p>
+
+      <div class="html18-key-points" aria-label="このページで扱うHTML">
+        <span>ページの構造</span>
+        <span>写真と説明</span>
+        <span>項目名と内容</span>
+        <span>開閉できる補足</span>
+      </div>
+    </article>
+
+    <article>
+      <h2 id="headline_2">ページの構造を表す</h2>
+      <p><code>header</code>・<code>nav</code>・<code>main</code>・<code>section</code>・<code>footer</code>を使うと、それぞれの部分がページ内でどのような役割をもつのかを表せます。</p>
+
+      <div class="html18-tag-grid">
+        <div><code>&lt;header&gt;</code><p>ページのタイトルや導入をまとめる。</p></div>
+        <div><code>&lt;nav&gt;</code><p>ページ内や他ページへの主要なリンクをまとめる。</p></div>
+        <div><code>&lt;main&gt;</code><p>そのページの中心となる内容をまとめる。原則として1ページに1つ。</p></div>
+        <div><code>&lt;section&gt;</code><p>見出しと、それに対応する内容を1つのまとまりにする。</p></div>
+        <div><code>&lt;footer&gt;</code><p>ページ末尾の補足や制作者情報などをまとめる。</p></div>
+      </div>
+
+      <div class="html18-structure" role="img" aria-label="header、nav、main、section、footerで構成したページの模式図">
+        <div class="html18-structure__part html18-structure__header"><code>&lt;header&gt;</code><strong>観光地の名称と紹介</strong></div>
+        <div class="html18-structure__part html18-structure__nav"><code>&lt;nav&gt;</code><span>見どころ　歴史　アクセス</span></div>
+        <div class="html18-structure__part html18-structure__main">
+          <code>&lt;main&gt;</code>
+          <div class="html18-structure__section"><code>&lt;section&gt;</code><strong>見どころ</strong></div>
+          <div class="html18-structure__section"><code>&lt;section&gt;</code><strong>アクセス</strong></div>
+        </div>
+        <div class="html18-structure__part html18-structure__footer"><code>&lt;footer&gt;</code><span>ページ末尾の情報</span></div>
+      </div>
+
+      <pre class="html example copy-ok"><code>&lt;body&gt;
+  &lt;header&gt;
+    &lt;h1&gt;海辺の展望台&lt;/h1&gt;
+    &lt;p&gt;海と街を一望できるスポットです。&lt;/p&gt;
+  &lt;/header&gt;
+
+  &lt;nav aria-label="ページ内の目次"&gt;
+    &lt;a href="#highlight"&gt;見どころ&lt;/a&gt;
+    &lt;a href="#access"&gt;アクセス&lt;/a&gt;
+  &lt;/nav&gt;
+
+  &lt;main&gt;
+    &lt;section id="highlight"&gt;
+      &lt;h2&gt;見どころ&lt;/h2&gt;
+      &lt;p&gt;夕方には海に沈む夕日を楽しめます。&lt;/p&gt;
+    &lt;/section&gt;
+
+    &lt;section id="access"&gt;
+      &lt;h2&gt;アクセス&lt;/h2&gt;
+      &lt;p&gt;○○駅から徒歩15分です。&lt;/p&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+
+  &lt;footer&gt;
+    &lt;p&gt;海辺の展望台 観光ガイド&lt;/p&gt;
+  &lt;/footer&gt;
+&lt;/body&gt;</code></pre>
+    </article>
+
+    <article>
+      <h2 id="headline_3">写真と説明をまとめる</h2>
+      <p><code>figure</code>は、写真や図と、その説明を1つのまとまりとして扱うときに使います。画面に表示する説明は<code>figcaption</code>に記述します。</p>
+
+      <figure class="html18-figure-demo">
+        <img src="./img/html25_landscape.svg" width="800" height="450" alt="山に囲まれた湖と夕日の風景">
+        <figcaption>展望台から見た、夕暮れの湖</figcaption>
+      </figure>
+
+      <div class="html18-role-compare">
+        <p><code>alt</code><span>画像を見られない場合にも内容が伝わるようにする代替文字列</span></p>
+        <p><code>figcaption</code><span>画像と一緒に、画面上にも表示する題名や説明</span></p>
+      </div>
+
+      <pre class="html example copy-ok"><code>&lt;figure&gt;
+  &lt;img src="./images/view.jpg"
+       width="800" height="450"
+       alt="山に囲まれた湖と夕日の風景"&gt;
+  &lt;figcaption&gt;展望台から見た、夕暮れの湖&lt;/figcaption&gt;
+&lt;/figure&gt;</code></pre>
+    </article>
+
+    <article>
+      <h2 id="headline_4">項目名と内容を組にする</h2>
+      <p><code>dl</code>は、項目名とその説明を組にした<strong>説明リスト</strong>です。項目名を<code>dt</code>、対応する内容を<code>dd</code>で表します。所在地・営業時間・料金・アクセスなどの整理に向いています。</p>
+
+      <div class="html18-demo-panel">
+        <dl class="html18-info-list">
+          <dt>所在地</dt>
+          <dd>○○県○○市 海岸通り1-2</dd>
+          <dt>開館時間</dt>
+          <dd>9:00〜17:00</dd>
+          <dt>料金</dt>
+          <dd>無料</dd>
+          <dt>アクセス</dt>
+          <dd>○○駅から徒歩15分</dd>
+        </dl>
+      </div>
+
+      <pre class="html example copy-ok"><code>&lt;dl&gt;
+  &lt;dt&gt;所在地&lt;/dt&gt;
+  &lt;dd&gt;○○県○○市 海岸通り1-2&lt;/dd&gt;
+
+  &lt;dt&gt;開館時間&lt;/dt&gt;
+  &lt;dd&gt;9:00〜17:00&lt;/dd&gt;
+
+  &lt;dt&gt;料金&lt;/dt&gt;
+  &lt;dd&gt;無料&lt;/dd&gt;
+
+  &lt;dt&gt;アクセス&lt;/dt&gt;
+  &lt;dd&gt;○○駅から徒歩15分&lt;/dd&gt;
+&lt;/dl&gt;</code></pre>
+    </article>
+
+    <article>
+      <h2 id="headline_5">開閉できる補足情報を作る</h2>
+      <p><code>details</code>を使うと、JavaScriptを書かなくても内容を開閉できます。最初に表示する見出しを<code>summary</code>に、その内側へ開いたときに見せる内容を記述します。</p>
+
+      <div class="html18-details-demo">
+        <details>
+          <summary>おすすめの時間帯</summary>
+          <p>夕日の見える時刻の30分ほど前に到着すると、空の色が変化する様子を楽しめます。</p>
+        </details>
+        <details open>
+          <summary>雨の日でも見学できますか？</summary>
+          <p>屋内の展示室は見学できます。屋外の展望デッキは閉鎖される場合があります。</p>
+        </details>
+      </div>
+
+      <p><code>details</code>に<code>open</code>属性を付けると、最初から内容を開いた状態にできます。不要なら<code>open</code>を削除します。</p>
+
+      <pre class="html example copy-ok"><code>&lt;details&gt;
+  &lt;summary&gt;おすすめの時間帯&lt;/summary&gt;
+  &lt;p&gt;夕日の見える時刻の30分ほど前がおすすめです。&lt;/p&gt;
+&lt;/details&gt;
+
+&lt;details open&gt;
+  &lt;summary&gt;雨の日でも見学できますか？&lt;/summary&gt;
+  &lt;p&gt;屋内の展示室は見学できます。&lt;/p&gt;
+&lt;/details&gt;</code></pre>
+
+      <p>これらの要素は、HTMLだけでも役割や動作を持ちます。見た目を作品に合わせて整えたい場合は、次の「CSSの応用」で<code>nav</code>・リスト・<code>details</code>の装飾を試してみましょう。</p>
+    </article>
+  </section>
+</body>
+</html>

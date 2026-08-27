@@ -351,71 +351,190 @@
     </article>
 
     <article>
-      <h2 id="headline_8">ページの役割を表すHTML</h2>
-      <p><code>header</code>・<code>nav</code>・<code>main</code>・<code>section</code>・<code>footer</code>を使うと、見た目だけでなく、各部分の役割もHTMLで表せます。選択欄を切り替えて、それぞれが担当する範囲を確かめてみましょう。</p>
+      <h2 id="headline_8">ナビゲーションのデザイン</h2>
+      <p><code>nav</code>の中のリンクを<code>display: flex</code>で並べると、ページ内の案内を見つけやすくできます。並ぶ向き・間隔・角の丸みを変えて、作品に合う形を探してみましょう。</p>
 
-      <div class="css-lab" data-lab="semantic">
+      <div class="css-lab" data-lab="nav">
         <fieldset class="css-lab__controls">
-          <legend>ページ内の役割を選ぶ</legend>
+          <legend>値を変えてみる</legend>
           <div class="css-lab__control">
-            <label for="semantic-part">確認する要素</label>
-            <select id="semantic-part">
-              <option value="all" selected>すべての構造</option>
-              <option value="header">header（ページ上部）</option>
-              <option value="nav">nav（主要なリンク）</option>
-              <option value="main">main（中心となる内容）</option>
-              <option value="section">section（内容のまとまり）</option>
-              <option value="footer">footer（ページ下部）</option>
+            <label for="nav-direction">並ぶ向き <code>flex-direction</code></label>
+            <select id="nav-direction">
+              <option value="row" selected>row（横）</option>
+              <option value="column">column（縦）</option>
             </select>
           </div>
-          <button class="css-lab__reset" type="button" data-reset-lab="semantic">全体表示に戻す</button>
+          <div class="css-lab__control">
+            <label for="nav-gap">リンクの間隔 <code>gap</code></label>
+            <div class="css-lab__input-row">
+              <input id="nav-gap" type="range" min="0" max="32" step="2" value="12">
+              <output for="nav-gap" id="nav-gap-output">12px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="nav-radius">角の丸み <code>border-radius</code></label>
+            <div class="css-lab__input-row">
+              <input id="nav-radius" type="range" min="0" max="24" step="2" value="8">
+              <output for="nav-radius" id="nav-radius-output">8px</output>
+            </div>
+          </div>
+          <button class="css-lab__reset" type="button" data-reset-lab="nav">初期値に戻す</button>
         </fieldset>
 
-        <p class="css-lab__state" id="semantic-state">ページ全体の構造を表示しています。</p>
+        <div class="css-lab__stage css-lab__stage--compact">
+          <nav class="demo-site-nav" id="nav-preview" aria-label="観光サイトのナビゲーション例">
+            <a href="#headline_8" aria-current="page">見どころ</a>
+            <a href="#headline_8">歴史</a>
+            <a href="#headline_8">アクセス</a>
+          </nav>
+        </div>
+
+        <pre class="css example copy-ok css-lab__code" data-live-code="nav"><code>.site-nav {
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+}
+
+.site-nav a {
+  padding: 10px 16px;
+  border-radius: 8px;
+  background-color: #225386;
+  color: white;
+  text-decoration: none;
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS nav flex ナビゲーション メニュー</p>
+      </div>
+    </article>
+
+    <article>
+      <h2 id="headline_9"><code>ul</code>・<code>ol</code>のデザイン</h2>
+      <p><code>list-style-type</code>で箇条書きの記号や番号を選べます。<code>::marker</code>を使うと、記号や番号だけに色や太さを指定できます。</p>
+
+      <div class="css-lab" data-lab="list">
+        <fieldset class="css-lab__controls">
+          <legend>値を変えてみる</legend>
+          <div class="css-lab__control">
+            <label for="ul-marker"><code>ul</code>の記号</label>
+            <select id="ul-marker">
+              <option value="disc">disc（●）</option>
+              <option value="circle">circle（○）</option>
+              <option value="square" selected>square（■）</option>
+            </select>
+          </div>
+          <div class="css-lab__control">
+            <label for="ol-marker"><code>ol</code>の番号</label>
+            <select id="ol-marker">
+              <option value="decimal">decimal（1, 2, 3）</option>
+              <option value="decimal-leading-zero" selected>decimal-leading-zero（01, 02, 03）</option>
+              <option value="upper-roman">upper-roman（I, II, III）</option>
+            </select>
+          </div>
+          <div class="css-lab__control">
+            <label for="list-indent">左側の余白 <code>padding-left</code></label>
+            <div class="css-lab__input-row">
+              <input id="list-indent" type="range" min="16" max="52" step="2" value="32">
+              <output for="list-indent" id="list-indent-output">32px</output>
+            </div>
+          </div>
+          <div class="css-lab__control">
+            <label for="list-marker-color">記号・番号の色</label>
+            <input id="list-marker-color" type="color" value="#c14f2b">
+          </div>
+          <button class="css-lab__reset" type="button" data-reset-lab="list">初期値に戻す</button>
+        </fieldset>
+
         <div class="css-lab__stage">
-          <div class="demo-semantic-page" id="semantic-preview">
-            <div class="demo-semantic-part" data-semantic-part="header">
-              <span>&lt;header&gt;</span>
-              <strong>観光地の名称</strong>
+          <div class="demo-list-layout">
+            <div class="demo-list-panel">
+              <h3><code>ul</code>：順序のない一覧</h3>
+              <ul id="ul-preview">
+                <li>季節の景色</li>
+                <li>展望スポット</li>
+                <li>地元の名物</li>
+              </ul>
             </div>
-            <div class="demo-semantic-part" data-semantic-part="nav">
-              <span>&lt;nav&gt;</span>
-              <small>見どころ　歴史　アクセス</small>
-            </div>
-            <div class="demo-semantic-part" data-semantic-part="main">
-              <span>&lt;main&gt;</span>
-              <div class="demo-semantic-part" data-semantic-part="section">
-                <span>&lt;section&gt;</span>
-                <strong>見どころ</strong>
-                <small>写真や文章をまとめる部分</small>
-              </div>
-            </div>
-            <div class="demo-semantic-part" data-semantic-part="footer">
-              <span>&lt;footer&gt;</span>
-              <small>ページ下部の情報</small>
+            <div class="demo-list-panel">
+              <h3><code>ol</code>：順序のある一覧</h3>
+              <ol id="ol-preview">
+                <li>駅を出発する</li>
+                <li>参道を歩く</li>
+                <li>展望台に到着する</li>
+              </ol>
             </div>
           </div>
         </div>
 
-        <pre class="html example copy-ok css-lab__code"><code>&lt;header&gt;
-  &lt;h1&gt;観光地の名称&lt;/h1&gt;
-&lt;/header&gt;
+        <pre class="css example copy-ok css-lab__code" data-live-code="list"><code>.feature-list,
+.route-list {
+  padding-left: 32px;
+}
 
-&lt;nav&gt;
-  &lt;a href="#highlight"&gt;見どころ&lt;/a&gt;
-&lt;/nav&gt;
+.feature-list {
+  list-style-type: square;
+}
 
-&lt;main&gt;
-  &lt;section id="highlight"&gt;
-    &lt;h2&gt;見どころ&lt;/h2&gt;
-    &lt;p&gt;写真や文章をまとめる部分&lt;/p&gt;
-  &lt;/section&gt;
-&lt;/main&gt;
+.route-list {
+  list-style-type: decimal-leading-zero;
+}
 
-&lt;footer&gt;
-  ページ下部の情報
-&lt;/footer&gt;</code></pre>
-        <p class="css-lab__search"><strong>検索語：</strong>HTML header nav main section footer セマンティック</p>
+.feature-list li::marker,
+.route-list li::marker {
+  color: #c14f2b;
+  font-weight: bold;
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS list-style-type marker ul ol</p>
+      </div>
+    </article>
+
+    <article>
+      <h2 id="headline_10"><code>details</code>・<code>summary</code>のデザイン</h2>
+      <p><code>summary</code>はクリックできる見出しです。<code>details[open]</code>を使うと、開いているときだけ見た目を変えられます。「最初から開く」を切り替えて、HTMLの<code>open</code>属性の働きも確かめましょう。</p>
+
+      <div class="css-lab" data-lab="details">
+        <fieldset class="css-lab__controls">
+          <legend>値を変えてみる</legend>
+          <div class="css-lab__control">
+            <label for="details-color">見出しの色</label>
+            <input id="details-color" type="color" value="#225386">
+          </div>
+          <div class="css-lab__control">
+            <label for="details-radius">角の丸み <code>border-radius</code></label>
+            <div class="css-lab__input-row">
+              <input id="details-radius" type="range" min="0" max="24" step="2" value="12">
+              <output for="details-radius" id="details-radius-output">12px</output>
+            </div>
+          </div>
+          <label class="css-lab__check" for="details-open">
+            <input id="details-open" type="checkbox" checked>
+            最初から開く（<code>open</code>属性）
+          </label>
+          <button class="css-lab__reset" type="button" data-reset-lab="details">初期値に戻す</button>
+        </fieldset>
+
+        <div class="css-lab__stage css-lab__stage--compact">
+          <details class="demo-spot-details" id="details-preview" open>
+            <summary>おすすめの時間帯</summary>
+            <p>夕暮れ前に到着すると、昼の景色と夕景の両方を楽しめます。</p>
+          </details>
+        </div>
+
+        <pre class="css example copy-ok css-lab__code" data-live-code="details"><code>.spot-details {
+  border: 2px solid #225386;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.spot-details summary {
+  padding: 12px 16px;
+  background-color: #225386;
+  color: white;
+  cursor: pointer;
+}
+
+.spot-details[open] summary {
+  border-bottom: 1px solid #225386;
+}</code></pre>
+        <p class="css-lab__search"><strong>検索語：</strong>CSS details summary open アコーディオン</p>
       </div>
     </article>
   </section>

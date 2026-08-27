@@ -412,91 +412,147 @@
   box-shadow: 0 9px 18px rgba(23, 69, 111, 0.24);
 }
 
-/* HTML構造の実験 */
-.demo-semantic-page {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  grid-template-areas:
-    "header header"
-    "nav main"
-    "footer footer";
-  gap: 0.55rem;
-  width: min(100%, 520px);
-  padding: 0.75rem;
+/* ナビゲーションの実験 */
+.css-lab__stage--compact {
+  min-height: 200px;
+}
+
+.demo-site-nav {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
+  width: min(100%, 560px);
+  padding: 1rem;
   border: 1px solid rgba(34, 83, 134, 0.2);
-  border-radius: 10px;
+  border-radius: 12px;
+  background: #ffffff;
+}
+
+.demo-site-nav a {
+  flex: 1 1 120px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 16px;
+  border: 2px solid #225386;
+  border-radius: 8px;
+  background-color: #225386;
+  color: #ffffff;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.demo-site-nav.is-column a {
+  flex-basis: auto;
+}
+
+.demo-site-nav a:hover,
+.demo-site-nav a:focus-visible,
+.demo-site-nav a[aria-current="page"] {
+  background-color: #ffffff;
+  color: #225386;
+}
+
+/* リストの実験 */
+.demo-list-layout {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  width: min(100%, 680px);
+}
+
+.demo-list-panel {
+  --demo-marker-color: #c14f2b;
+  min-width: 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(34, 83, 134, 0.2);
+  border-radius: 12px;
   background: #ffffff;
   color: #263442;
 }
 
-.demo-semantic-part {
-  position: relative;
-  min-width: 0;
-  margin: 0;
-  padding: 1rem;
-  border: 2px solid #b7c8d8;
-  border-radius: 7px;
-  background: #edf3f8;
+.demo-list-panel h3 {
+  margin: 0 0 0.8rem;
   color: #263442;
-  transition:
-    border-color 160ms ease,
-    background-color 160ms ease,
-    box-shadow 160ms ease,
-    opacity 160ms ease;
+  font-size: 1rem;
 }
 
-.demo-semantic-part > span {
+section article .demo-list-panel :is(ul, ol) {
   display: block;
-  margin-bottom: 0.35rem;
-  color: #2c6a9f;
-  font-family: var(--font-code);
-  font-size: 0.72rem;
+  margin: 0;
+  padding-left: 32px;
+  list-style-position: outside;
+  counter-reset: none;
+}
+
+section article .demo-list-panel ul {
+  list-style-type: square;
+}
+
+section article .demo-list-panel ol {
+  list-style-type: decimal-leading-zero;
+}
+
+section article .demo-list-panel :is(ul, ol) li {
+  position: static;
+  margin: 0.5rem 0;
+  padding: 0;
+  color: #263442;
+  text-indent: 0;
+}
+
+section article .demo-list-panel ol li::before {
+  content: none;
+  counter-increment: none;
+}
+
+.demo-list-panel li::marker {
+  color: var(--demo-marker-color);
   font-weight: 800;
 }
 
-.demo-semantic-part > strong,
-.demo-semantic-part > small {
-  display: block;
-  color: inherit;
-}
-
-.demo-semantic-part > small {
-  margin-top: 0.2rem;
-  color: #657789;
-  font-size: 0.78rem;
-}
-
-.demo-semantic-page > [data-semantic-part="header"] {
-  grid-area: header;
-}
-
-.demo-semantic-page > [data-semantic-part="nav"] {
-  grid-area: nav;
-}
-
-.demo-semantic-page > [data-semantic-part="main"] {
-  grid-area: main;
-}
-
-.demo-semantic-page > [data-semantic-part="footer"] {
-  grid-area: footer;
-}
-
-.demo-semantic-page [data-semantic-part="main"] > [data-semantic-part="section"] {
-  width: 100%;
-  margin: 0.45rem 0 0;
-  padding: 0.8rem;
+/* details・summaryの実験 */
+.demo-spot-details {
+  --demo-details-color: #225386;
+  --demo-details-text: #ffffff;
+  width: min(100%, 560px);
+  margin: 0;
+  border: 2px solid var(--demo-details-color);
+  border-radius: 12px;
+  overflow: hidden;
   background: #ffffff;
+  color: #263442;
 }
 
-.demo-semantic-page.is-filtering .demo-semantic-part:not(.is-highlighted) {
-  opacity: 0.36;
+.demo-spot-details summary {
+  padding: 12px 16px;
+  background-color: var(--demo-details-color);
+  color: var(--demo-details-text);
+  font-weight: 750;
+  cursor: pointer;
 }
 
-.demo-semantic-part.is-highlighted {
-  border-color: #2c79b9;
-  background: #dceeff;
-  box-shadow: 0 0 0 4px rgba(44, 121, 185, 0.18);
+.demo-spot-details summary::marker {
+  color: currentColor;
+}
+
+.demo-spot-details[open] summary {
+  border-bottom: 1px solid var(--demo-details-color);
+}
+
+.demo-spot-details p {
+  margin: 0;
+  padding: 1rem;
+  color: #263442;
+}
+
+.demo-spot-details summary:focus-visible {
+  outline: 3px solid #1677c8;
+  outline-offset: -5px;
 }
 
 @media (max-width: 600px) {
@@ -518,13 +574,8 @@
     font-size: 0.9rem;
   }
 
-  .demo-semantic-page {
+  .demo-list-layout {
     grid-template-columns: 1fr;
-    grid-template-areas:
-      "header"
-      "nav"
-      "main"
-      "footer";
   }
 }
 

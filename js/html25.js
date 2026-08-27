@@ -286,31 +286,130 @@
       'link-fixed': false
     }, updateLinkLab);
 
-    const semanticDescriptions = {
-      all: 'ページ全体の構造を表示しています。',
-      header: 'headerは、ページ上部のタイトルや導入部分を表します。',
-      nav: 'navは、ページ内や他ページへ移動する主要なリンクをまとめます。',
-      main: 'mainは、そのページの中心となる内容を表します。',
-      section: 'sectionは、見出しと内容からなる一つのまとまりを表します。',
-      footer: 'footerは、ページ下部の補足情報などを表します。'
-    };
+    const updateNavLab = () => {
+      const direction = byId('nav-direction').value;
+      const gap = numberValue('nav-gap');
+      const radius = numberValue('nav-radius');
+      const preview = byId('nav-preview');
 
-    const updateSemanticLab = () => {
-      const selected = byId('semantic-part').value;
-      const preview = byId('semantic-preview');
-      const isFiltering = selected !== 'all';
-
-      preview.classList.toggle('is-filtering', isFiltering);
-      preview.querySelectorAll('[data-semantic-part]').forEach((part) => {
-        part.classList.toggle('is-highlighted', isFiltering && part.dataset.semanticPart === selected);
+      preview.style.flexDirection = direction;
+      preview.style.gap = `${gap}px`;
+      preview.classList.toggle('is-column', direction === 'column');
+      preview.querySelectorAll('a').forEach((link) => {
+        link.style.borderRadius = `${radius}px`;
       });
-      byId('semantic-state').textContent = semanticDescriptions[selected] || semanticDescriptions.all;
+      setOutput('nav-gap-output', `${gap}px`);
+      setOutput('nav-radius-output', `${radius}px`);
+
+      updateLiveCode('nav', `.site-nav {
+  display: flex;
+  flex-direction: ${direction};
+  gap: ${gap}px;
+}
+
+.site-nav a {
+  padding: 10px 16px;
+  border-radius: ${radius}px;
+  background-color: #225386;
+  color: white;
+  text-decoration: none;
+}`);
     };
 
-    bindInputs(['semantic-part'], updateSemanticLab);
-    bindReset('semantic', {
-      'semantic-part': 'all'
-    }, updateSemanticLab);
+    bindInputs(['nav-direction', 'nav-gap', 'nav-radius'], updateNavLab);
+    bindReset('nav', {
+      'nav-direction': 'row',
+      'nav-gap': 12,
+      'nav-radius': 8
+    }, updateNavLab);
+    byId('nav-preview')?.querySelectorAll('a').forEach((link) => {
+      link.addEventListener('click', (event) => event.preventDefault());
+    });
+
+    const updateListLab = () => {
+      const unorderedMarker = byId('ul-marker').value;
+      const orderedMarker = byId('ol-marker').value;
+      const indent = numberValue('list-indent');
+      const markerColor = byId('list-marker-color').value.toLowerCase();
+      const unorderedList = byId('ul-preview');
+      const orderedList = byId('ol-preview');
+
+      unorderedList.style.listStyleType = unorderedMarker;
+      orderedList.style.listStyleType = orderedMarker;
+      [unorderedList, orderedList].forEach((list) => {
+        list.style.paddingLeft = `${indent}px`;
+        list.closest('.demo-list-panel').style.setProperty('--demo-marker-color', markerColor);
+      });
+      setOutput('list-indent-output', `${indent}px`);
+
+      updateLiveCode('list', `.feature-list,
+.route-list {
+  padding-left: ${indent}px;
+}
+
+.feature-list {
+  list-style-type: ${unorderedMarker};
+}
+
+.route-list {
+  list-style-type: ${orderedMarker};
+}
+
+.feature-list li::marker,
+.route-list li::marker {
+  color: ${markerColor};
+  font-weight: bold;
+}`);
+    };
+
+    bindInputs(['ul-marker', 'ol-marker', 'list-indent', 'list-marker-color'], updateListLab);
+    bindReset('list', {
+      'ul-marker': 'square',
+      'ol-marker': 'decimal-leading-zero',
+      'list-indent': 32,
+      'list-marker-color': '#c14f2b'
+    }, updateListLab);
+
+    const updateDetailsLab = () => {
+      const color = byId('details-color').value.toLowerCase();
+      const radius = numberValue('details-radius');
+      const isOpen = byId('details-open').checked;
+      const textColor = readableTextColor(color);
+      const preview = byId('details-preview');
+
+      preview.style.setProperty('--demo-details-color', color);
+      preview.style.setProperty('--demo-details-text', textColor);
+      preview.style.borderRadius = `${radius}px`;
+      preview.open = isOpen;
+      setOutput('details-radius-output', `${radius}px`);
+
+      updateLiveCode('details', `.spot-details {
+  border: 2px solid ${color};
+  border-radius: ${radius}px;
+  overflow: hidden;
+}
+
+.spot-details summary {
+  padding: 12px 16px;
+  background-color: ${color};
+  color: ${textColor};
+  cursor: pointer;
+}
+
+.spot-details[open] summary {
+  border-bottom: 1px solid ${color};
+}`);
+    };
+
+    bindInputs(['details-color', 'details-radius', 'details-open'], updateDetailsLab);
+    bindReset('details', {
+      'details-color': '#225386',
+      'details-radius': 12,
+      'details-open': true
+    }, updateDetailsLab);
+    byId('details-preview')?.addEventListener('toggle', (event) => {
+      byId('details-open').checked = event.currentTarget.open;
+    });
 
     updatePageLab();
     updateImageLab();
@@ -318,6 +417,8 @@
     updateCardLab();
     updateMediaLab();
     updateLinkLab();
-    updateSemanticLab();
+    updateNavLab();
+    updateListLab();
+    updateDetailsLab();
   });
 })();
