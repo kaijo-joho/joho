@@ -1,4 +1,4 @@
-//2026-08-27 02:32:55;
+//2026-08-27 03:01:58;
 const pages = {
   "index": {
     "id": "index",
@@ -496,6 +496,33 @@ const pages = {
         "text": "sample2-4.html"
       }
     ],
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "html00",
+    "next": [
+      {
+        "id": "html18",
+        "title": "HTMLの応用",
+        "text": "HTMLの応用",
+        "release": true,
+        "url": "html18.html",
+        "detail": "自由製作に役立つHTMLの構造と、情報を整理して伝える要素を学びます。"
+      }
+    ],
+    "show": true,
+    "backFile": "html00.html"
+  },
+  "html18": {
+    "id": "html18",
+    "release": true,
+    "fileName": "html18.html",
+    "mainTitle": "HTML実習",
+    "category": "3. 自由製作（発展）",
+    "title": "HTMLの応用",
+    "detail": "自由製作に役立つHTMLの構造と、情報を整理して伝える要素を学びます。",
+    "practiceFile": false,
+    "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
