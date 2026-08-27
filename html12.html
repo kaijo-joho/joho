@@ -40,9 +40,10 @@
       <p>行頭の字下げ（インデント）は、<b>半角スペース2つ</b>分を入力します。</p>
       <pre class="html" data-title="sample1-2.html"><code>
         &lt;!doctype html&gt;
-        &lt;html&gt;
+        &lt;html lang="ja"&gt;
           &lt;head&gt;
             &lt;meta charset="UTF-8"&gt;
+            &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
             &lt;title&gt;タイトル&lt;/title&gt;
           &lt;/head&gt;
           &lt;body&gt;
@@ -70,8 +71,8 @@
       </p>
 
       <h4>CotEditorで編集する</h4>
-      <p>CotEditorで<b>sample1-2.html</b>を開いて、10行目に次のコードを入力します。</p>
-      <pre class="html" data-title="sample1-2.html 10行目"><code>
+      <p>CotEditorで<b>sample1-2.html</b>を開いて、<b>&lt;/body&gt;</b>の直前に次のコードを入力します。</p>
+      <pre class="html" data-title="sample1-2.html &lt;/body&gt;の直前"><code>
         &lt;p&gt;新しい段落を追加します。&lt;/p&gt;
 			</code></pre>
 
@@ -88,9 +89,10 @@
 
       <pre class="html" data-title="sample1-2.html"><code>
         &lt;!doctype html&gt;
-        &lt;html&gt;
+        &lt;html lang="ja"&gt;
           &lt;head&gt;
             &lt;meta charset="UTF-8"&gt;
+            &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
             &lt;title&gt;タイトル&lt;/title&gt;
           &lt;/head&gt;
           &lt;body&gt;
@@ -106,9 +108,10 @@
       <p>HTMLにはいくつかバージョンがあり、この書き方は現在主流になっている<b>HTML5</b>というバージョンの書き方になります。</p>
       <p>厳密には、ドキュメントタイプ宣言はタグではありません。</p>
 
-      <h4>&lt;html&gt;〜&lt;/html&gt;</h4>
+      <h4>&lt;html lang="ja"&gt;〜&lt;/html&gt;</h4>
       <p>この文書がHTML文書であることを指定します。</p>
       <p><b>&lt;html&gt;</b>〜<b>&lt;/html&gt;</b>のあいだに、後述の<b>headタグ</b>と<b>bodyタグ</b>を１つずつ指定します。</p>
+      <p><b>lang="ja"</b>は、このページの主な言語が日本語であることをブラウザや読み上げソフトに伝えます。</p>
 
       <h4>&lt;head&gt;〜&lt;/head&gt;</h4>
       <p>このあいだにページのタイトルや説明文、使用する外部ファイルのリンクなど、ページの情報を記述します。</p>
@@ -122,6 +125,9 @@
       <h3>headタグ</h3>
       <h4>&lt;meta charset="UTF-8"&gt;</h4>
       <p>文字コードを<b>UTF-8</b>に指定します。</p>
+
+      <h4>&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;</h4>
+      <p>スマートフォンなどでも、画面の幅に合わせて適切な大きさで表示するための設定です。</p>
 
       <h4>&lt;title&gt;〜&lt;/title&gt;</h4>
       <p>ページのタイトルを記述します。ブラウザのタブやブックマーク，検索したときの見出しなどとして表示されます。</p>

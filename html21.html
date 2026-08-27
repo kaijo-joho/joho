@@ -28,8 +28,9 @@
       <h2 id="headline_1">(1) CSSとは</h2>
 
       <h3>CSSとは</h3>
-      <p><b>CSS</b>とは<b>Cascading Style Sheet</b>の略で、HTML文書の装飾をするための言語です。</p>
-      <p>これまでは白背景に黒文字といったシンプルなHTMLを作成してきましたが、CSS使えばフォントや背景などの大きさや色などを自在に装飾することができます。</p>
+      <p class="small-text">このページは読むだけで構いません。配付用の実習ファイルはありません。CSSの基本的な形と、何ができるかを確認します。</p>
+      <p><b>CSS</b>とは<b>Cascading Style Sheets</b>の略で、HTML文書を装飾するための言語です。</p>
+      <p>これまでは白背景に黒文字といったシンプルなHTMLを作成してきましたが、CSSを使えば文字や背景の大きさ・色などを自在に装飾できます。</p>
 
 
       <h3>CSSの適用方法</h3>
@@ -40,9 +41,10 @@
 
       <pre class="html example"><code>
         &lt;!doctype html&gt;
-        &lt;html&gt;
+        &lt;html lang="ja"&gt;
           &lt;head&gt;
             &lt;meta charset="UTF-8"&gt;
+            &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
             &lt;title&gt;CSSとは&lt;/title&gt;
             &lt;style&gt;
               /* ▼実習コード① ここから▼ */
@@ -91,11 +93,11 @@
       </p>
 
       <h4><span class="token-prop">プロパティ</span></h4>
-      <p>セレクタで指定された部分の何を変えるのかを書きます。例えば、文字色ならfont-color，文字サイズならfont-sizeのように指定します。プロパティに続けて、値との間にはコロン<b>:</b>を書いて区切ります。
+      <p>セレクタで指定された部分の何を変えるのかを書きます。例えば、文字色ならcolor，文字サイズならfont-sizeのように指定します。プロパティに続けて、値との間にはコロン<b>:</b>を書いて区切ります。
       </p>
 
       <h4><span class="token-value">値</span></h4>
-      <p>値では見た目をどのように変えるのかを書きます。文字色ならred，文字サイズなら16pxのように指定します。値に最後にはセミコロン<b>;</b>を加えます。</p>
+      <p>値では見た目をどのように変えるのかを書きます。文字色ならred，文字サイズなら16pxのように指定します。値の最後にはセミコロン<b>;</b>を加えます。</p>
 
 
 

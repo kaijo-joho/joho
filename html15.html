@@ -103,14 +103,12 @@
 
       <h4>画像ファイルのダウンロード</h4>
       <p>次のリンクをクリックして、画像をダウンロードし、<b>images</b>フォルダの中に保存してください。</p>
-      <p>
       <ul>
         <li><a href="./html/images/evolution_of_internet.png" download>evolution_of_internet.png</a></li>
         <li><a href="./html/images/history_of_programming_languages.png"
             download>history_of_programming_languages.png</a></li>
         <li><a href="./html/images/futuristic_technologies.png" download>futuristic_technologies.png</a></li>
       </ul>
-      </p>
       <p>※ChatGPT(4o)がこの課題の例文とそれを表現した画像を生成してくれました。</p>
 
 
@@ -142,7 +140,7 @@
           &lt;p&gt;5Gや光ファイバーなどの高速通信技術もインターネットの利用範囲を広げています。&lt;/p&gt;
           &lt;p&gt;今後も、AIやブロックチェーンなど新しい技術がインターネットと統合されることで、社会に大きな変化をもたらすと考えられています。&lt;/p&gt;
           &lt;p&gt;インターネットの利用はますます日常生活の一部となりつつあります。&lt;/p&gt;
-          &lt;img src="./images/evolution_of_internet.png" width="400px"&gt;
+          &lt;img src="./images/evolution_of_internet.png" width="400" alt="インターネットの歴史を表すイメージ"&gt;
 
         &lt;h2 id="topic-b"&gt;プログラミング言語の歴史&lt;/h2&gt;
           &lt;p&gt;プログラミング言語の歴史は、1950年代に遡ります。&lt;/p&gt;
@@ -155,7 +153,7 @@
           &lt;p&gt;また、AIやデータ分析の分野で使われる言語として、RやScalaなどもあります。&lt;/p&gt;
           &lt;p&gt;プログラミング言語の選択は、用途やプロジェクトに応じて多様化しています。&lt;/p&gt;
           &lt;p&gt;未来のプログラミング言語は、さらなる効率性と柔軟性を提供することが期待されています。&lt;/p&gt;
-          &lt;img src="./images/history_of_programming_languages.png" width="400px"&gt;
+          &lt;img src="./images/history_of_programming_languages.png" width="400" alt="プログラミング言語の歴史を表すイメージ"&gt;
 
         &lt;h2 id="topic-c"&gt;未来の技術&lt;/h2&gt;
           &lt;p&gt;未来の技術は、現在の科学技術の発展によって支えられています。&lt;/p&gt;
@@ -168,19 +166,17 @@
           &lt;p&gt;ナノテクノロジーも、医療や製造業において大きな影響を与えるでしょう。&lt;/p&gt;
           &lt;p&gt;未来技術の発展は、社会全体に多大な影響を与えると考えられます。&lt;/p&gt;
           &lt;p&gt;これらの技術革新は、私たちの生活の質を劇的に向上させる可能性を秘めています。&lt;/p&gt;	
-          &lt;img src="./images/futuristic_technologies.png" width="400px"&gt;
+          &lt;img src="./images/futuristic_technologies.png" width="400" alt="未来の技術を表すイメージ"&gt;
       </code></pre>
 
       <h3>ID属性について</h3>
-      <p><b>ID属性</b>は、任意のタグに<b>id="ID名"</b>を加えます。ID名をつけるときは、次のルールを守る必要があります。</p>
-      <p>
+      <p><b>ID属性</b>は、任意のタグに<b>id="ID名"</b>を加えます。HTMLの仕様上は、次のルールを守る必要があります。</p>
       <ul>
         <li class="normal-list">1つのIDは、同じ文書内で１回のみ使用できます。</li>
-        <li class="normal-list">使用できる文字は半角の英数字，ハイフン(<tt>-</tt>)，アンダースコア(<tt>_</tt>)です。</li>
-        <li class="normal-list">アルファベットで始めなくてはなりません。</li>
+        <li class="normal-list">ID名は空にせず、半角スペース・タブ・改行などのASCII空白文字を含めません。</li>
         <li class="normal-list">アルファベットの大文字と小文字は区別されています。</li>
       </ul>
-      </p>
+      <p class="small-text">この実習では、入力ミスを避けて扱いやすくするため、英字で始め、半角の英数字・ハイフン（<tt>-</tt>）・アンダースコア（<tt>_</tt>）を使うことにします。</p>
 
 
       <h3>別のページの特定部分へのリンク</h3>

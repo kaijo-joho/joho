@@ -48,7 +48,7 @@
     <article>
       <h2 id="headline_2">(2) ブロック要素のスタイル</h2>
       <h3>ブロックの横幅と高さ width・height</h3>
-      <p>横幅はwidthプロパティ，高さはheightプロパティで指定します。値にはpx，rem，%などの数値を指定します。また、値にAutoを指定すると、関連するプロパティによって自動的に設定されます。</p>
+      <p>横幅はwidthプロパティ，高さはheightプロパティで指定します。値にはpx，rem，%などの数値を指定します。widthやheightでは、値に<code>auto</code>を指定するとブラウザが自動的に大きさを計算します。<code>auto</code>は、対応しているプロパティにだけ使えます。</p>
 
       <p>次の例では、sampleクラスをもつdiv要素の横幅を600px，高さを400pxに指定しています。</p>
       <pre class="css example"><code>
@@ -64,14 +64,14 @@
       <p>次の例では、sampleクラスをもつdiv要素の背景色を薄い青色にします。</p>
       <pre class="css example"><code>
         div.sample{
-          background-color: #000033;
+          background-color: #d9ecff;
         }
       </code></pre>
 
 
       <h3>ブロックの余白 padding・margin</h3>
       <p>
-        ブロックの余白はpaddingとmarginの２種類があります。要素を箱（ボックス）としたとき、marginは他のボックスまでの距離、paddingはボックス内のコンテンツまでの距離を表します。また、marginとpaddingの間の枠線のことをborderといいます。値にはpx，rem，%などの数値を指定します。また、値にAutoを指定すると、関連するプロパティによって自動的に設定されます。
+        ブロックの余白はpaddingとmarginの２種類があります。要素を箱（ボックス）としたとき、marginは他のボックスまでの距離、paddingはボックス内のコンテンツまでの距離を表します。また、marginとpaddingの間の枠線のことをborderといいます。値にはpx，rem，%などの数値を指定します。marginでは<code>auto</code>を使える場合がありますが、paddingには使えません。
       </p>
       <p>
         padding，margin，borderは上下左右にありますが、一括で指定することもできますし、上下左右個別に指定することもできます。padding，margin，borderのあとにtop(上)，bottom(下)，left(左)，right(右)を組み合わせて、margin-top:
@@ -84,7 +84,7 @@
 
       <p>次の例では、sampleクラスをもつdiv要素のmarginを10px，padding-topを4px，padding-bottomを6pxに指定しています。</p>
       <pre class="css example"><code>
-        div.sample</b>{
+        div.sample{
           margin: 10px;
           padding-top: 4px;
           padding-bottom: 6px;
@@ -96,7 +96,7 @@
 
       <h4>線の種類（border-style）と線の太さ(border-width)</h4>
       <p>
-        線の種類はborder-styleプロパティ，線の太さはborder-widthプロパティで指定します。border-styleは、none，solide，double，dashed，dotted，groove，ridge，inset，outsetなどのキーワードがあります。また、border-widthはthin(細線)，medium(標準)，thivk(太線)のキーワードまたは数値(px，rem，%などの単位つき)で指定します。
+        線の種類はborder-styleプロパティ，線の太さはborder-widthプロパティで指定します。border-styleは、none，solid，double，dashed，dotted，groove，ridge，inset，outsetなどのキーワードがあります。また、border-widthはthin(細線)，medium(標準)，thick(太線)のキーワードまたは数値(px，remなどの単位つき)で指定します。
       </p>
       <table>
         <tr>
@@ -263,8 +263,8 @@
         padding: 10px;<br>
         border-width: 4px;<br>
         border-style: outset;<br>
-        border-color: #cbcbff;<br>
-        background-color: #cbcbff;<br>
+        border-color: #cbffcb;<br>
+        background-color: #cbffcb;<br>
       </div>
 
     </article>
@@ -314,6 +314,10 @@
           /* ここにtest05のスタイルを記述します */
         }
       </code></pre>
+
+      <h3>自由製作へ</h3>
+      <p>ここまでに紹介したCSSは、デザインを整えるための基本です。必要な色・余白・配置などは、作りたい表現に合わせて各自で調べながら適用してください。</p>
+      <p>自由製作では、修学旅行で訪れたスポットを1つ選び、その魅力を伝える<strong>1ページの観光促進サイト</strong>を制作します。HTMLで内容をわかりやすく構成し、CSSでそのスポットに合うデザインに仕上げましょう。</p>
     </article>
   </section>
 
