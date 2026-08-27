@@ -500,34 +500,34 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "html00",
-    "next": false,
+    "next": [
+      {
+        "id": "html25",
+        "title": "発展. 自由製作のためのCSS",
+        "text": "発展. 自由製作のためのCSS",
+        "release": true,
+        "url": "html25.html",
+        "detail": "値を変えながら、自由製作に役立つCSSの効果を確かめます。"
+      }
+    ],
     "show": true,
     "backFile": "html00.html"
   },
   "html25": {
     "id": "html25",
-    "release": false,
+    "release": true,
     "fileName": "html25.html",
     "mainTitle": "HTML実習",
-    "category": "2. CSSの基本",
-    "title": "2-5. ",
-    "detail": "",
+    "category": "3. 自由製作（発展）",
+    "title": "発展. 自由製作のためのCSS",
+    "detail": "値を変えながら、自由製作に役立つCSSの効果を確かめます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
     "back": "html00",
-    "next": [
-      {
-        "id": "html26",
-        "title": "2-6. ",
-        "text": "2-6. ",
-        "release": false,
-        "url": "html26.html",
-        "detail": ""
-      }
-    ],
+    "next": false,
     "show": true,
     "backFile": "html00.html"
   },
