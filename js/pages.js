@@ -1,4 +1,4 @@
-//2026-08-27 11:31:34;
+//2026-08-27 02:32:55;
 const pages = {
   "index": {
     "id": "index",
@@ -503,8 +503,8 @@ const pages = {
     "next": [
       {
         "id": "html25",
-        "title": "発展. 自由製作のためのCSS",
-        "text": "発展. 自由製作のためのCSS",
+        "title": "CSSの応用",
+        "text": "CSSの応用",
         "release": true,
         "url": "html25.html",
         "detail": "値を変えながら、自由製作に役立つCSSの効果を確かめます。"
@@ -519,7 +519,7 @@ const pages = {
     "fileName": "html25.html",
     "mainTitle": "HTML実習",
     "category": "3. 自由製作（発展）",
-    "title": "発展. 自由製作のためのCSS",
+    "title": "CSSの応用",
     "detail": "値を変えながら、自由製作に役立つCSSの効果を確かめます。",
     "practiceFile": false,
     "dlFile": false,
