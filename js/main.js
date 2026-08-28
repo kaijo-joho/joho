@@ -2,6 +2,87 @@
 (() => {
   "use strict";
 
+  const SITE_THEME_STORAGE_KEY = 'joho.siteTheme';
+  const SITE_THEME_OPTIONS = ['system', 'light', 'dark'];
+
+  function initializeSiteTheme() {
+    const root = document.documentElement;
+    const systemDark = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(prefers-color-scheme: dark)')
+      : { matches: false };
+    let preference = 'system';
+
+    try {
+      const stored = localStorage.getItem(SITE_THEME_STORAGE_KEY);
+      if (SITE_THEME_OPTIONS.includes(stored)) preference = stored;
+    } catch {}
+
+    const resolvedTheme = () =>
+      preference === 'system' ? (systemDark.matches ? 'dark' : 'light') : preference;
+
+    const applyPreference = () => {
+      const resolved = resolvedTheme();
+      root.dataset.themePreference = preference;
+
+      if (preference === 'system') {
+        delete root.dataset.theme;
+        root.style.colorScheme = 'light dark';
+      } else {
+        root.dataset.theme = preference;
+        root.style.colorScheme = preference;
+      }
+
+      let themeColor = document.head.querySelector('meta[name="theme-color"]');
+      if (!themeColor) {
+        themeColor = document.createElement('meta');
+        themeColor.name = 'theme-color';
+        document.head.appendChild(themeColor);
+      }
+      themeColor.content = resolved === 'dark' ? '#0b0b0b' : '#f3f3f3';
+
+      document.dispatchEvent(new CustomEvent('joho:theme-change', {
+        detail: { preference, resolvedTheme: resolved }
+      }));
+    };
+
+    const setPreference = (value, { persist = true } = {}) => {
+      preference = SITE_THEME_OPTIONS.includes(value) ? value : 'system';
+
+      if (persist) {
+        try {
+          if (preference === 'system') localStorage.removeItem(SITE_THEME_STORAGE_KEY);
+          else localStorage.setItem(SITE_THEME_STORAGE_KEY, preference);
+        } catch {}
+      }
+
+      applyPreference();
+    };
+
+    const handleSystemThemeChange = () => {
+      if (preference === 'system') applyPreference();
+    };
+    if (typeof systemDark.addEventListener === 'function') {
+      systemDark.addEventListener('change', handleSystemThemeChange);
+    } else if (typeof systemDark.addListener === 'function') {
+      systemDark.addListener(handleSystemThemeChange);
+    }
+
+    window.addEventListener('storage', event => {
+      if (event.key !== SITE_THEME_STORAGE_KEY) return;
+      setPreference(event.newValue || 'system', { persist: false });
+    });
+
+    applyPreference();
+
+    return {
+      get preference() { return preference; },
+      get resolvedTheme() { return resolvedTheme(); },
+      setPreference
+    };
+  }
+
+  if (!window.siteTheme) window.siteTheme = initializeSiteTheme();
+
   if (window.__johoMainBootstrapped) return;
   window.__johoMainBootstrapped = true;
 

@@ -323,7 +323,7 @@ section article ul > li{
 }
 section article ul li  a{
   color: var(--font-color-normal-text);
-  text-decoration: underline #333;
+  text-decoration: underline currentColor;
   display: inline-block;
   font-weight: bolder;
 }
@@ -390,7 +390,7 @@ section article dd {
 section article dt a,
 section article dd a {
   color: var(--font-color-normal-text);
-  text-decoration: underline #333;
+  text-decoration: underline currentColor;
   display: inline-block;
   font-weight: bolder;
 }
@@ -659,7 +659,6 @@ section article > details > summary{
   font-weight: bold;
   margin: 5px 10px 5px 10px;
 }
-
 
 
 

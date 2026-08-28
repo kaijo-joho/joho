@@ -59,6 +59,45 @@
     );
   }
 
+  function createThemePicker() {
+    const picker = document.createElement('label');
+    picker.className = 'site-theme-picker';
+    picker.title = '表示テーマを選択';
+
+    const label = document.createElement('span');
+    label.className = 'site-theme-picker__label';
+    label.textContent = '表示';
+
+    const select = document.createElement('select');
+    select.className = 'site-theme-picker__select';
+    select.setAttribute('aria-label', '表示テーマ');
+
+    [
+      ['system', '自動'],
+      ['light', 'ライト'],
+      ['dark', 'ダーク']
+    ].forEach(([value, optionLabel]) => {
+      const option = document.createElement('option');
+      option.value = value;
+      option.textContent = optionLabel;
+      select.appendChild(option);
+    });
+
+    const theme = window.siteTheme;
+    if (theme && typeof theme.setPreference === 'function') {
+      select.value = theme.preference;
+      select.addEventListener('change', () => theme.setPreference(select.value));
+      document.addEventListener('joho:theme-change', event => {
+        select.value = event.detail?.preference || 'system';
+      });
+    } else {
+      select.disabled = true;
+    }
+
+    picker.append(label, select);
+    return picker;
+  }
+
   /** ========= ヘッダ生成 ========= */
   function ensureHeader() {
     const label = meta ? text(meta.mainTitle) : '';
@@ -93,7 +132,9 @@
       subjectSpan.textContent = '情報科';
       brandLink.appendChild(subjectSpan);
       headerbarBrand.appendChild(brandLink);
-      headerbar.appendChild(headerbarBrand);
+
+      const headerbarActions = document.createElement('div');
+      headerbarActions.className = 'headerbar__actions';
 
       if (label !== '') {
         const headerbarCourse = document.createElement('a');
@@ -108,10 +149,18 @@
           headerbarCourse.classList.add('is-disabled');
           headerbarCourse.setAttribute('aria-disabled', 'true');
         }
-        headerbar.appendChild(headerbarCourse);
+        headerbarActions.appendChild(headerbarCourse);
       }
 
+      headerbarActions.appendChild(createThemePicker());
+      headerbar.append(headerbarBrand, headerbarActions);
       header.appendChild(headerbar);
+    }
+
+    if (keepLegacyHeader && !legacyHeader.querySelector('.site-theme-picker')) {
+      const legacyThemePicker = createThemePicker();
+      legacyThemePicker.classList.add('site-theme-picker--legacy');
+      legacyHeader.appendChild(legacyThemePicker);
     }
 
     if (!meta || meta.id === 'link' || text(meta.title) === '') return;
@@ -376,12 +425,6 @@
     ensureFooter();
     ensureMainContent();
 
-
-    // ダーク/ライト切替でも背景色を追従
-    try {
-      const mq = matchMedia('(prefers-color-scheme: dark)');
-    } catch {}
-    
     // ★追加：背景用 figure を先に作ってから、中央寄せ/ライトボックス化
     try { wrapImages(); } catch (e) { console.error('[wrapImages] failed', e); }
     try { enhanceImages(); } catch (e) { console.error('[enhanceImages] failed', e); }

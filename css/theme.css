@@ -1,0 +1,460 @@
+@charset "UTF-8";
+
+/*
+  サイト内で表示テーマを明示したときの上書き。
+  data-theme がない「自動」では、各CSSの prefers-color-scheme をそのまま使う。
+*/
+
+:root[data-theme="light"] {
+  color-scheme: light;
+
+  --theme-color: oklch(0.4353 0.0996 251.94);
+  --accent: #ffffff;
+  --accent-bg: rgba(255, 255, 255, .14);
+  --site-bg: url("../img/bg/bg-light-2560x1600.webp");
+  --font-color-normal-text: #666666;
+  --font-color-sub-text: #666666;
+  --font-color-strong-text: #333333;
+  --font-color-strongest-text: #000000;
+  --background-color-lighterred: rgba(242, 206, 231, 1);
+  --background-color-lightred: rgba(242, 182, 224, 1);
+
+  --button-border: color-mix(in oklab, var(--theme-color) 80%, #111 20%);
+  --button-bg: var(--theme-color);
+  --button-hover-bg: color-mix(in oklab, var(--theme-color) 80%, #fff 20%);
+  --button-text: #fff;
+  --button-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+  --button-hover-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+  --button-active-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+  --button-focus: color-mix(in oklab, var(--theme-color) 60%, #fff 40%);
+
+  --article-glass-rgb: 255, 255, 255;
+  --article-glass-top: .68;
+  --article-glass-bottom: .42;
+  --article-blur: 12px;
+  --article-sat: 1.12;
+  --article-border: rgba(0, 0, 0, .06);
+  --article-shadow: 0 12px 28px rgba(0, 0, 0, .12), 0 2px 8px rgba(0, 0, 0, .06);
+  --chip-bg: rgba(34, 83, 134, .10);
+  --chip-fg: color-mix(in oklab, var(--theme-color) 70%, #111 30%);
+  --inline-code-bg: rgba(20, 24, 32, .08);
+  --inline-code-border: rgba(0, 0, 0, .10);
+  --inline-code-fg: color-mix(in oklab, var(--theme-color) 60%, #111 40%);
+  --code-panel-bg: rgba(var(--article-glass-rgb), .35);
+  --code-panel-border: var(--article-border);
+
+  --tbl-surface: var(--surface, #ffffff);
+  --tbl-text: #111111;
+  --tbl-border: color-mix(in oklab, #000 10%, transparent);
+  --tbl-cell-top-border: color-mix(in oklab, #000 10%, transparent);
+  --tbl-th-bg: rgba(0, 84, 138, .90);
+  --tbl-th-text: rgba(255, 255, 255, .90);
+  --tbl-row-alt-bg: rgba(200, 200, 200, .30);
+  --tbl-row-alt-bg-none: rgba(255, 255, 255, .30);
+  --tbl-code-bg: transparent;
+
+  --code-fg: #202124;
+  --code-bg: #f4f6f8;
+  --code-bg-python: rgba(230, 238, 255, var(--bg-alpha));
+  --code-bg-result: rgba(245, 245, 245, var(--bg-alpha));
+  --code-bg-example: rgba(240, 250, 240, var(--bg-alpha));
+  --code-bg-error: rgba(255, 233, 233, var(--bg-alpha));
+  --code-border: #d7dce2;
+  --code-divider: #d7dce2;
+  --code-img-border: #c9ced6;
+  --code-accent: var(--theme-color, #225386);
+  --code-accent-tint: color-mix(in oklab, var(--code-accent) 82%, white 18%);
+  --code-font-size: 1.1rem;
+  --tk-keyword: #7e57c2;
+  --tk-builtins: #1565c0;
+  --tk-number: #1b9e77;
+  --tk-string: #9f3a30;
+  --tk-comment: #5a964a;
+  --tk-boolean: #00897b;
+  --tk-method: #3949ab;
+  --tk-paren: #666699;
+  --tk-tag: #7e57c2;
+  --tk-attr: #1565c0;
+  --tk-value: #ef6c00;
+  --tk-selector: #1e88e5;
+  --tk-prop: #43a047;
+  --tk-func-ss: #1565c0;
+  --tk-cell: #2a73cc;
+  --tk-range: #2a73cc;
+  --tk-sheet: #a26b2a;
+  --tk-table: #8c4fb3;
+  --tk-bracket: #7a8699;
+  --tk-error-ss: #c0392b;
+
+  --glass-dim: .20;
+  --glass-panel-bg-1: rgba(245, 247, 250, .16);
+  --glass-panel-bg-2: rgba(245, 247, 250, .08);
+  --glass-panel-border: rgba(255, 255, 255, .14);
+  --glass-panel-shadow: 0 12px 40px rgba(0, 0, 0, .10);
+  --glass-detail-bg-1: rgba(80, 86, 96, .52);
+  --glass-detail-bg-2: rgba(72, 78, 88, .40);
+  --glass-detail-border: rgba(255, 255, 255, .20);
+  --glass-detail-shadow: 0 10px 28px rgba(0, 0, 0, .18);
+  --nav-fg: #111;
+  --nav-fg-contrast: #fff;
+  --nav-handle-color: rgba(255, 255, 255, .90);
+  --logo-plate-bg: rgba(255, 255, 255, .82);
+  --logo-plate-border: rgba(0, 0, 0, .08);
+
+  --ld-glass-rgb: 255, 255, 255;
+  --ld-glass-top: .48;
+  --ld-glass-bottom: .26;
+  --ld-blur: 14px;
+  --ld-sat: 1.15;
+  --ld-fg: rgba(0, 0, 0, .92);
+  --ld-h-title: rgba(0, 0, 0, .86);
+  --ld-item-alpha: .06;
+  --ld-border: rgba(0, 0, 0, .07);
+  --ld-shadow: 0 18px 40px rgba(0, 0, 0, .18), 0 2px 6px rgba(0, 0, 0, .12);
+
+  --html18-border: rgba(34, 83, 134, .24);
+  --html18-panel: #eef4f8;
+  --html18-panel-strong: #ffffff;
+  --html18-text: #263442;
+  --html18-muted: #5b6c7b;
+  --html18-accent: #225386;
+  --html18-soft-accent: #dcecff;
+  --html18-focus: #1677c8;
+
+  --css-lab-border: rgba(34, 83, 134, .22);
+  --css-lab-panel: rgba(255, 255, 255, .62);
+  --css-lab-control: rgba(34, 83, 134, .06);
+  --css-lab-stage: #eef3f7;
+  --css-lab-grid: rgba(34, 83, 134, .08);
+  --css-lab-text: #263442;
+  --css-lab-muted: #5c6d7d;
+  --css-lab-accent: #225386;
+  --css-lab-focus: #1677c8;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --theme-color: color-mix(in oklab, #225386 68%, white 32%);
+  --accent: #ffffff;
+  --accent-bg: rgba(255, 255, 255, .18);
+  --site-bg: url("../img/bg/bg-dark-2560x1600.webp");
+  --font-color-normal-text: #999999;
+  --font-color-sub-text: #b8b8b8;
+  --font-color-strong-text: #cccccc;
+  --font-color-strongest-text: #ffffff;
+  --background-color-lighterred: rgba(64, 48, 59, 1);
+  --background-color-lightred: rgba(64, 41, 57, 1);
+
+  --button-border: color-mix(in oklab, var(--theme-color) 65%, #000 35%);
+  --button-bg: color-mix(in oklab, var(--theme-color) 72%, #000 28%);
+  --button-hover-bg: color-mix(in oklab, var(--theme-color) 78%, #000 22%);
+  --button-text: #fff;
+  --button-shadow: 0 4px 12px rgba(0, 0, 0, .70);
+  --button-hover-shadow: 0 5px 14px rgba(0, 0, 0, .72);
+  --button-active-shadow: 0 2px 6px rgba(0, 0, 0, .62);
+  --button-focus: color-mix(in oklab, var(--theme-color) 70%, #000 30%);
+
+  --article-glass-rgb: 10, 12, 15;
+  --article-glass-top: .72;
+  --article-glass-bottom: .56;
+  --article-blur: 14px;
+  --article-sat: 1.15;
+  --article-border: rgba(255, 255, 255, .10);
+  --article-shadow: 0 16px 36px rgba(0, 0, 0, .45), 0 4px 10px rgba(0, 0, 0, .35);
+  --chip-bg: rgba(34, 83, 134, .16);
+  --chip-fg: color-mix(in oklab, var(--theme-color) 50%, #fff 50%);
+  --inline-code-bg: rgba(255, 255, 255, .06);
+  --inline-code-border: rgba(255, 255, 255, .12);
+  --inline-code-fg: color-mix(in oklab, var(--theme-color) 52%, #fff 48%);
+  --code-panel-bg: rgba(18, 22, 30, .50);
+  --code-panel-border: rgba(255, 255, 255, .10);
+
+  --tbl-surface: color-mix(in oklab, #0c1116 92%, #ffffff 8%);
+  --tbl-text: rgba(255, 255, 255, .88);
+  --tbl-border: color-mix(in oklab, #ffffff 18%, transparent);
+  --tbl-cell-top-border: color-mix(in oklab, #ffffff 18%, transparent);
+  --tbl-th-bg: color-mix(in oklab, #00548a 60%, #000000 40%);
+  --tbl-th-text: rgba(255, 255, 255, .94);
+  --tbl-row-alt-bg: color-mix(in oklab, #ffffff 7%, transparent);
+  --tbl-row-alt-bg-none: transparent;
+  --tbl-code-bg: color-mix(in oklab, #ffffff 6%, transparent);
+
+  --code-fg: #e8ecf1;
+  --code-bg: #151a22;
+  --code-bg-python: rgba(54, 68, 90, var(--bg-alpha));
+  --code-bg-result: rgba(44, 56, 72, var(--bg-alpha));
+  --code-bg-example: rgba(48, 76, 52, var(--bg-alpha));
+  --code-bg-error: rgba(84, 54, 54, var(--bg-alpha));
+  --code-border: #2a3140;
+  --code-divider: #2a3140;
+  --code-img-border: #3a4252;
+  --code-accent: var(--theme-color, #4a8ad0);
+  --code-accent-tint: color-mix(in oklab, var(--code-accent) 68%, white 32%);
+  --code-font-size: 1.05rem;
+  --tk-keyword: #c792ea;
+  --tk-builtins: #82aaff;
+  --tk-number: #b5cea8;
+  --tk-string: #ecc48d;
+  --tk-comment: #8b9aaa;
+  --tk-boolean: #7fd1b9;
+  --tk-method: #89ddff;
+  --tk-paren: #8aa0b3;
+  --tk-tag: #c792ea;
+  --tk-attr: #82aaff;
+  --tk-value: #f78c6c;
+  --tk-selector: #80cbc4;
+  --tk-prop: #a3e635;
+  --tk-func-ss: #82aaff;
+  --tk-cell: #8ab4f8;
+  --tk-range: #8ab4f8;
+  --tk-sheet: #d19a66;
+  --tk-table: #c792ea;
+  --tk-bracket: #9aa0b1;
+  --tk-error-ss: #ef5350;
+
+  --glass-dim: .34;
+  --glass-panel-bg-1: rgba(24, 28, 34, .17);
+  --glass-panel-bg-2: rgba(24, 28, 34, .10);
+  --glass-panel-border: rgba(24, 28, 34, .08);
+  --glass-panel-shadow: 0 14px 44px rgba(0, 0, 0, .25);
+  --glass-detail-bg-1: rgba(36, 40, 48, .60);
+  --glass-detail-bg-2: rgba(36, 40, 48, .46);
+  --glass-detail-border: rgba(255, 255, 255, .14);
+  --glass-detail-shadow: 0 12px 30px rgba(0, 0, 0, .48);
+  --nav-fg: #eef2f7;
+  --nav-fg-contrast: #fff;
+  --nav-handle-color: rgba(255, 255, 255, .60);
+  --logo-plate-bg: rgba(255, 255, 255, .80);
+  --logo-plate-border: rgba(255, 255, 255, .10);
+
+  --ld-glass-rgb: 6, 8, 10;
+  --ld-glass-top: .74;
+  --ld-glass-bottom: .58;
+  --ld-blur: 16px;
+  --ld-sat: 1.20;
+  --ld-fg: rgba(255, 255, 255, .94);
+  --ld-h-title: rgba(255, 255, 255, .96);
+  --ld-item-alpha: .10;
+  --ld-border: rgba(255, 255, 255, .12);
+  --ld-shadow: 0 20px 44px rgba(0, 0, 0, .55), 0 6px 14px rgba(0, 0, 0, .38);
+
+  --html18-border: rgba(142, 188, 232, .30);
+  --html18-panel: #17212a;
+  --html18-panel-strong: #111820;
+  --html18-text: #e6edf3;
+  --html18-muted: #b5c2cd;
+  --html18-accent: #9bc7ef;
+  --html18-soft-accent: #18334b;
+  --html18-focus: #7fc2ff;
+
+  --css-lab-border: rgba(142, 188, 232, .28);
+  --css-lab-panel: rgba(16, 23, 31, .72);
+  --css-lab-control: rgba(142, 188, 232, .08);
+  --css-lab-stage: #151d25;
+  --css-lab-grid: rgba(159, 199, 235, .09);
+  --css-lab-text: #e6edf3;
+  --css-lab-muted: #aebdca;
+  --css-lab-accent: #8ebce8;
+  --css-lab-focus: #7fc2ff;
+}
+
+:root[data-theme="light"] body { background-color: #f3f3f3; }
+:root[data-theme="dark"] body { background-color: #0b0b0b; }
+
+/* ヘッダー */
+:root[data-theme="light"] #site-header {
+  background: color-mix(in oklab, var(--brand) 30%, transparent);
+  border-bottom-color: color-mix(in oklab, var(--brand) 30%, var(--glass-stroke-light) 70%);
+  box-shadow: var(--glass-shadow);
+}
+
+:root[data-theme="dark"] #site-header {
+  background: color-mix(in oklab, var(--brand-dark) 40%, transparent);
+  border-bottom-color: color-mix(in oklab, var(--brand-dark) 50%, var(--glass-stroke-dark) 50%);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, .30);
+}
+
+:root[data-theme="light"] .headerbar__course { border-color: rgba(255, 255, 255, .26); }
+:root[data-theme="dark"] .headerbar__course { border-color: rgba(255, 255, 255, .32); }
+
+@supports not (backdrop-filter: blur(1px)) {
+  :root[data-theme="light"] #site-header {
+    background: color-mix(in oklab, var(--brand) 85%, #fff 0%);
+  }
+  :root[data-theme="dark"] #site-header {
+    background: color-mix(in oklab, var(--brand-dark) 85%, #000 0%);
+  }
+}
+
+/* 透過画像の読みやすさ */
+:root[data-theme="light"] figure.img-wrapper {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  opacity: 1;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+:root[data-theme="dark"] figure.img-wrapper {
+  padding: 10px;
+  border: 1px solid color-mix(in oklab, #fff 18%, transparent);
+  background: color-mix(in oklab, #fff 36%, transparent);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, .20);
+  opacity: .92;
+  -webkit-backdrop-filter: brightness(1.4) contrast(.96) saturate(120%) blur(10px);
+  backdrop-filter: brightness(1.4) contrast(.96) saturate(120%) blur(10px);
+}
+
+@supports not (backdrop-filter: blur(1px)) {
+  :root[data-theme="dark"] figure.img-wrapper {
+    background: color-mix(in oklab, #fff 20%, transparent);
+  }
+}
+
+/* FAQ検索 */
+:root[data-theme="light"] .ld-faq-search {
+  background: rgba(var(--ld-glass-rgb, 255, 255, 255), calc(var(--ld-item-alpha, .06) + .08));
+}
+
+:root[data-theme="light"] .ld-faq-search__input {
+  border-color: color-mix(in oklab, currentColor 24%, transparent);
+  background: color-mix(in oklab, canvas 88%, transparent);
+}
+
+:root[data-theme="dark"] .ld-faq-search { background: rgba(255, 255, 255, .06); }
+:root[data-theme="dark"] .ld-faq-search__input {
+  border-color: rgba(255, 255, 255, .22);
+  background: rgba(255, 255, 255, .08);
+}
+
+:root[data-theme] .ld-faq__q { color: var(--font-color-strong-text); }
+:root[data-theme] :is(.ld-faq__short, .faq-card__short) { color: var(--font-color-sub-text); }
+
+/* コードのトークン。OSがライトでも、明示ダークではライト用上書きを戻す。 */
+:root[data-theme="dark"] .token-keyword { color: var(--tk-keyword); }
+:root[data-theme="dark"] .token-builtins { color: var(--tk-builtins); }
+:root[data-theme="dark"] .token-number { color: var(--tk-number); }
+:root[data-theme="dark"] .token-string { color: var(--tk-string); }
+:root[data-theme="dark"] .token-comment { color: var(--tk-comment); }
+:root[data-theme="dark"] .token-boolean { color: var(--tk-boolean); }
+:root[data-theme="dark"] .token-method { color: var(--tk-method); }
+:root[data-theme="dark"] .token-paren { color: var(--tk-paren); }
+:root[data-theme="dark"] .token-tag { color: var(--tk-tag); }
+:root[data-theme="dark"] .token-attr { color: var(--tk-attr); }
+:root[data-theme="dark"] .token-value { color: var(--tk-value); }
+:root[data-theme="dark"] .token-selector { color: var(--tk-selector); }
+:root[data-theme="dark"] .token-prop { color: var(--tk-prop); }
+:root[data-theme="dark"] :is(pre, pre code, div.result) { color: var(--code-fg); }
+
+:root[data-theme="light"] .token-keyword,
+:root[data-theme="light"] .token-tag {
+  color: color-mix(in oklab, #7e57c2 78%, var(--code-fg) 22%);
+}
+:root[data-theme="light"] .token-builtins,
+:root[data-theme="light"] .token-attr {
+  color: color-mix(in oklab, #1565c0 70%, var(--code-fg) 30%);
+}
+:root[data-theme="light"] .token-number {
+  color: color-mix(in oklab, #1b9e77 70%, var(--code-fg) 30%);
+}
+:root[data-theme="light"] .token-string {
+  color: color-mix(in oklab, #9f3a30 68%, var(--code-fg) 32%);
+}
+:root[data-theme="light"] .token-comment { color: #6c8f67; }
+:root[data-theme="light"] .token-boolean {
+  color: color-mix(in oklab, #00897b 70%, var(--code-fg) 30%);
+}
+:root[data-theme="light"] .token-method {
+  color: color-mix(in oklab, #3949ab 75%, var(--code-fg) 25%);
+}
+:root[data-theme="light"] .token-paren { color: #6a6f85; }
+:root[data-theme="light"] .token-value {
+  color: color-mix(in oklab, #ef6c00 72%, var(--code-fg) 28%);
+}
+:root[data-theme="light"] .token-selector {
+  color: color-mix(in oklab, #1e88e5 74%, var(--code-fg) 26%);
+}
+:root[data-theme="light"] .token-prop {
+  color: color-mix(in oklab, #43a047 72%, var(--code-fg) 28%);
+}
+:root[data-theme="light"] :is(pre, pre code, div.result) {
+  color: color-mix(in oklab, var(--code-fg) 90%, black 10%);
+}
+
+/* py41〜43のアルゴリズム表示 */
+:root[data-theme="light"] .demo {
+  --demo-surface: #f7f9fc;
+  --demo-tile: #eef2f6;
+  --background-color-lightestgray: var(--demo-surface);
+  --background-color-lightgray: var(--demo-tile);
+  --demo-border: rgba(0, 0, 0, .22);
+  --demo-text-strong: #0b3b64;
+  --demo-index-bg: #333333;
+  --demo-index-text: #dddddd;
+  --demo-hi-1: #e5f0ff;
+  --demo-hi-2: #cfe4ff;
+  --color-blue-lightest: var(--demo-hi-1);
+  --color-blue-lighter: var(--demo-hi-2);
+  --demo-lowlight-bg: #aaaaaa;
+  --demo-lowlight-text: #666666;
+  --demo-swapped-bg: #e5aacc;
+  --demo-sorted-bg: #96a7e7;
+  --demo-sorted-text: #666666;
+  --demo-accent-tint: rgba(10, 84, 138, .08);
+  --demo-btn-bg: #f4f7fb;
+  --demo-btn-text: #0b3b64;
+  --demo-btn-border: rgba(0, 0, 0, .18);
+  --demo-btn-hover-bg: #e9f0f7;
+  --demo-btn-active-bg: #dbe7f3;
+  --demo-btn-disabled-bg: rgba(0, 0, 0, .06);
+  --demo-btn-focus-rgb: 96, 164, 255;
+  --demo-input-bg: #ffffff;
+  --demo-input-text: #0f172a;
+  --demo-input-border: rgba(0, 0, 0, .18);
+  --demo-input-hover-bg: #f7fafc;
+  --demo-input-placeholder: rgba(0, 0, 0, .45);
+  --demo-input-disabled-bg: rgba(0, 0, 0, .06);
+  --demo-input-readonly-bg: rgba(0, 0, 0, .04);
+  --demo-input-invalid: #c2410c;
+  --demo-input-valid: #166534;
+}
+
+:root[data-theme="dark"] .demo {
+  --demo-surface: color-mix(in oklab, #ffffff 6%, #0b0f14);
+  --demo-tile: color-mix(in oklab, #ffffff 10%, #0b0f14);
+  --background-color-lightestgray: var(--demo-surface);
+  --background-color-lightgray: var(--demo-tile);
+  --demo-border: color-mix(in oklab, #ffffff 18%, transparent);
+  --demo-text-strong: #e6edf7;
+  --demo-index-bg: #1f2630;
+  --demo-index-text: #d8dde7;
+  --demo-hi-1: color-mix(in oklab, #60a4ff 22%, transparent);
+  --demo-hi-2: color-mix(in oklab, #60a4ff 36%, transparent);
+  --color-blue-lightest: var(--demo-hi-1);
+  --color-blue-lighter: var(--demo-hi-2);
+  --demo-lowlight-bg: #4b5565;
+  --demo-lowlight-text: #cbd5e1;
+  --demo-swapped-bg: color-mix(in oklab, #ff82c1 35%, transparent);
+  --demo-sorted-bg: color-mix(in oklab, #7da0ff 30%, transparent);
+  --demo-sorted-text: #e5e7eb;
+  --demo-accent-tint: color-mix(in oklab, #60a4ff 18%, transparent);
+  --demo-btn-bg: color-mix(in oklab, #ffffff 10%, #0b0f14);
+  --demo-btn-text: #e6edf7;
+  --demo-btn-border: color-mix(in oklab, #ffffff 18%, transparent);
+  --demo-btn-hover-bg: color-mix(in oklab, #ffffff 14%, #0b0f14);
+  --demo-btn-active-bg: color-mix(in oklab, #ffffff 18%, #0b0f14);
+  --demo-btn-disabled-bg: rgba(255, 255, 255, .10);
+  --demo-btn-focus-rgb: 96, 164, 255;
+  --demo-input-bg: color-mix(in oklab, #ffffff 8%, #0b0f14);
+  --demo-input-text: #e6edf7;
+  --demo-input-border: color-mix(in oklab, #ffffff 18%, transparent);
+  --demo-input-hover-bg: color-mix(in oklab, #ffffff 12%, #0b0f14);
+  --demo-input-placeholder: rgba(255, 255, 255, .5);
+  --demo-input-disabled-bg: rgba(255, 255, 255, .10);
+  --demo-input-readonly-bg: rgba(255, 255, 255, .06);
+  --demo-input-invalid: #f59e0b;
+  --demo-input-valid: #34d399;
+}

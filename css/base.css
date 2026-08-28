@@ -70,6 +70,15 @@
   --background-color-result: #f8f8f8;
   --background-color-example: #CAE6C3;
   --background-color-html-header: var(--background-color-darkerblue);
+
+  --button-border: color-mix(in oklab, var(--theme-color) 80%, #111 20%);
+  --button-bg: var(--theme-color);
+  --button-hover-bg: color-mix(in oklab, var(--theme-color) 80%, #fff 20%);
+  --button-text: #fff;
+  --button-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+  --button-hover-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+  --button-active-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+  --button-focus: color-mix(in oklab, var(--theme-color) 60%, #fff 40%);
 }
 
 /*
@@ -90,6 +99,14 @@
 
     --background-color-lighterred: rgba(64, 48, 59, 1);
     --background-color-lightred: rgba(64, 41, 57, 1);
+
+    --button-border: color-mix(in oklab, var(--theme-color) 65%, #000 35%);
+    --button-bg: color-mix(in oklab, var(--theme-color) 72%, #000 28%);
+    --button-hover-bg: color-mix(in oklab, var(--theme-color) 78%, #000 22%);
+    --button-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
+    --button-hover-shadow: 0 5px 14px rgba(0, 0, 0, 0.72);
+    --button-active-shadow: 0 2px 6px rgba(0, 0, 0, 0.62);
+    --button-focus: color-mix(in oklab, var(--theme-color) 70%, #000 30%);
   }
 }
 
@@ -126,7 +143,7 @@ footer{
   text-align:center;
   font-size:0.85rem;
   letter-spacing:0.5px;
-  color:#666;
+  color:var(--font-color-normal-text);
   background-color: transparent;
 }
 
@@ -354,16 +371,16 @@ button {
   padding: 0.5rem 1.6rem;
   border-radius: 999px;
 
-  border: 1px solid color-mix(in oklab, var(--theme-color) 80%, #111 20%);
-  background: var(--theme-color);
-  color: #fff;
+  border: 1px solid var(--button-border);
+  background: var(--button-bg);
+  color: var(--button-text);
 
   font-weight: 600;
   letter-spacing: 0.08em;
   text-decoration: none;
 
   cursor: pointer;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--button-shadow);
   transition:
     background-color 0.15s ease-out,
     box-shadow 0.15s ease-out,
@@ -373,20 +390,20 @@ button {
 
 /* ホバー時：少しだけ明るくして浮かせる */
 button:hover {
-  background: color-mix(in oklab, var(--theme-color) 80%, #fff 20%);
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.22);
+  background: var(--button-hover-bg);
+  box-shadow: var(--button-hover-shadow);
   transform: translateY(-1px);
 }
 
 /* クリック時：押し込んだ感じに */
 button:active {
   transform: translateY(0);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--button-active-shadow);
 }
 
 /* フォーカス（キーボード操作） */
 button:focus-visible {
-  outline: 2px solid color-mix(in oklab, var(--theme-color) 60%, #fff 40%);
+  outline: 2px solid var(--button-focus);
   outline-offset: 3px;
 }
 
@@ -396,37 +413,6 @@ button[disabled] {
   opacity: 0.7;
   box-shadow: none;
 }
-
-/* ===================================================================== */
-/* ダークモード時の調整                                                   */
-/* ===================================================================== */
-
-@media (prefers-color-scheme: dark) {
-  button {
-    /* root 側で theme-color が少し明るめに変わるので、
-       ボタンはやや暗め＆コントラスト強めに */
-    border-color: color-mix(in oklab, var(--theme-color) 65%, #000 35%);
-    background: color-mix(in oklab, var(--theme-color) 72%, #000 28%);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.7);
-    color: #fff;
-  }
-
-  button:hover {
-    background: color-mix(in oklab, var(--theme-color) 78%, #000 22%);
-  }
-
-  button:focus-visible {
-    outline-color: color-mix(in oklab, var(--theme-color) 70%, #000 30%);
-  }
-}
-
-
-
-
-
-
-
-
 
 @media (max-width: 600px) {
   :root {
