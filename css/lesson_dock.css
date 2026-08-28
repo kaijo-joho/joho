@@ -92,9 +92,13 @@
   position: relative;
   pointer-events: auto;    /* ボタン/パネルは操作可 */
 }
+.lesson-dock__group--compact {
+  display: none;
+}
 
 /* ---- FAB ボタン（無彩色ガラス） --------------------------------------- */
 .lesson-dock__btn {
+  position: relative;
   box-sizing: border-box;
   min-width: 0;
   width: var(--ld-btn-size);
@@ -137,8 +141,61 @@
   box-shadow: var(--ld-shadow);
 }
 .lesson-dock__btn:focus-visible {
-  outline: 3px solid rgba(255,255,255,.55);
+  outline: 3px solid color-mix(in oklab, var(--theme-color, #225386) 58%, #fff 42%);
   outline-offset: 2px;
+}
+
+.ld-svg-only {
+  display: grid;
+  width: 28px;
+  height: 28px;
+  place-items: center;
+  pointer-events: none;
+}
+
+.ld-svg-only svg {
+  width: 100%;
+  height: 100%;
+  filter: none;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lesson-dock__btn[data-label]::after {
+    content: attr(data-label);
+    position: absolute;
+    top: 50%;
+    right: calc(100% + 9px);
+    z-index: 2;
+    max-width: min(320px, 70vw);
+    padding: 6px 9px;
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 8px;
+    background: rgba(10, 14, 20, .92);
+    box-shadow: 0 8px 20px rgba(0,0,0,.24);
+    color: #fff;
+    font-size: .78rem;
+    font-weight: 700;
+    line-height: 1.35;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    text-overflow: ellipsis;
+    transform: translate(4px, -50%);
+    transition: opacity 140ms ease, transform 140ms ease;
+    visibility: hidden;
+    white-space: nowrap;
+  }
+
+  .lesson-dock__btn[data-label]:is(:hover, :focus-visible)::after {
+    opacity: 1;
+    transform: translate(0, -50%);
+    visibility: visible;
+  }
+
+  .lesson-dock__btn[data-label][aria-expanded="true"]::after {
+    opacity: 0;
+    visibility: hidden;
+  }
 }
 
 /* ボタンに PNG/SVG を入れた場合の体裁 */
@@ -278,10 +335,23 @@
 }
 
 /* スマホではドックを画面端へ寄せ、開いたパネルを画面内でスクロール可能にする。 */
-@media (max-width: 600px) {
+@media (max-width: 900px), (max-height: 600px) {
+  :root {
+    --ld-btn-size: 44px;
+    --ld-gap: 8px;
+  }
+
   #lesson-dock.lesson-dock {
     right: max(8px, env(safe-area-inset-right));
     bottom: max(12px, env(safe-area-inset-bottom));
+  }
+
+  .lesson-dock__group--desktop {
+    display: none;
+  }
+
+  .lesson-dock__group--compact {
+    display: block;
   }
 
   .lesson-dock__btn {
@@ -289,7 +359,8 @@
   }
 
   .lesson-dock__btn img,
-  .lesson-dock__btn svg {
+  .lesson-dock__btn svg,
+  .ld-svg-only {
     width: 24px;
     height: 24px;
   }
@@ -300,6 +371,15 @@
     max-height: calc(100dvh - 24px);
     overflow-y: auto;
     overscroll-behavior: contain;
+  }
+
+  .lesson-dock__group--compact .lesson-dock__panel {
+    max-height: calc(100dvh - 76px);
+  }
+
+  .lesson-dock__panel--menu .ld-sec--faq {
+    max-height: none;
+    overflow: visible;
   }
 }
 

@@ -86,7 +86,7 @@ article h3:first-of-type { margin-top: clamp(10px, 1.2vw, 20px); }
 /* ===== Article as frosted glass card ================================= */
 section article {
   margin: 0 auto;
-  width: min(90%, var(--content-max)) !important;
+  width: var(--content-width) !important;
   font-size: var(--font-size-p);
   line-height: 1.75;
 
@@ -659,7 +659,6 @@ section article > details > summary{
   font-weight: bold;
   margin: 5px 10px 5px 10px;
 }
-
 
 
 

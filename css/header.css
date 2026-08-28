@@ -21,7 +21,7 @@
   justify-content: space-between;
   gap: 12px;
   padding: 10px 0;
-  width: min(90%, var(--content-max));
+  width: var(--content-width);
   margin: 0 auto;
 }
 .headerbar a:focus-visible {

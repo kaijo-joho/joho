@@ -2,6 +2,8 @@
 (() => {
   'use strict';
 
+  const OVERLAY_OPEN_EVENT = 'joho:overlay-open';
+
 
   /** 現在ページID（拡張子なし） */
   function getFileName() {
@@ -52,7 +54,15 @@
       handle.setAttribute('aria-expanded', 'false');
       drawer.appendChild(handle);
     }
-    return { drawer, panel, handle };
+    let backdrop = document.getElementById('nav-backdrop');
+    if (!backdrop) {
+      backdrop = document.createElement('div');
+      backdrop.id = 'nav-backdrop';
+      backdrop.setAttribute('aria-hidden', 'true');
+      drawer.before(backdrop);
+    }
+
+    return { drawer, panel, handle, backdrop };
   }
 
   /** ナビ本体を構築（JSON定義順を維持／categoryごとに <details><summary>） */
@@ -90,6 +100,24 @@
               alt="海城中学高等学校 情報科 ロゴ">
         </a>`;
       panel.prepend(logo);   // ★ パネルの一番上にロゴを入れる
+    }
+
+    if (!logo.querySelector('.nav-drawer__toolbar')) {
+      const toolbar = document.createElement('div');
+      toolbar.className = 'nav-drawer__toolbar';
+
+      const toolbarTitle = document.createElement('strong');
+      toolbarTitle.className = 'nav-drawer__title';
+      toolbarTitle.textContent = '目次';
+
+      const closeButton = document.createElement('button');
+      closeButton.type = 'button';
+      closeButton.className = 'nav-drawer__close';
+      closeButton.setAttribute('aria-label', '目次を閉じる');
+      closeButton.textContent = '×';
+
+      toolbar.append(toolbarTitle, closeButton);
+      logo.appendChild(toolbar);
     }
 
     // その後に nav を append（既存のまま）
@@ -177,6 +205,8 @@
 function setupDrawerBehavior(drawer, { openDelay = 360, closeDelay = 1200 } = {}) {
   const handle = drawer.querySelector('#nav-handle');
   const panel  = drawer.querySelector('.nav-drawer__panel');
+  const backdrop = document.getElementById('nav-backdrop');
+  const closeButton = drawer.querySelector('.nav-drawer__close');
 
   const devNoAutoClose =
     ['localhost', '127.0.0.1'].includes(location.hostname) ||
@@ -201,10 +231,34 @@ function setupDrawerBehavior(drawer, { openDelay = 360, closeDelay = 1200 } = {}
 
   const recentlyInteracted = () => (Date.now() - lastInteractAt) < 800; // 適宜調整
 
+  const scrollCurrentIntoView = () => {
+    requestAnimationFrame(() => {
+      const currentLink = panel.querySelector('[aria-current="page"]');
+      if (!currentLink) return;
+
+      const panelRect = panel.getBoundingClientRect();
+      const logoRect = panel.querySelector('.nav-drawer__logo')?.getBoundingClientRect();
+      const linkRect = currentLink.getBoundingClientRect();
+      const visibleTop = Math.max(panelRect.top, logoRect?.bottom || panelRect.top);
+
+      if (linkRect.top < visibleTop || linkRect.bottom > panelRect.bottom) {
+        currentLink.scrollIntoView({ block: 'center', inline: 'nearest' });
+      }
+    });
+  };
+
   const open  = () => {
     clearTimeout(closeTimer);          // 開いた瞬間、閉じ予約は必ず解除
+    if (!drawer.classList.contains('is-open')) {
+      document.dispatchEvent(new CustomEvent(OVERLAY_OPEN_EVENT, {
+        detail: { source: 'nav' }
+      }));
+    }
     drawer.classList.add('is-open');
+    backdrop?.classList.add('is-open');
+    document.body.classList.add('has-nav-drawer-open');
     handle.setAttribute('aria-expanded', 'true');
+    scrollCurrentIntoView();
   };
 
   // ★ 変更: 実行直前ガードを追加
@@ -217,6 +271,8 @@ function setupDrawerBehavior(drawer, { openDelay = 360, closeDelay = 1200 } = {}
     }
     clearTimeout(openTimer);
     drawer.classList.remove('is-open');
+    backdrop?.classList.remove('is-open');
+    document.body.classList.remove('has-nav-drawer-open');
     handle.setAttribute('aria-expanded', 'false');
   };
 
@@ -253,6 +309,33 @@ function setupDrawerBehavior(drawer, { openDelay = 360, closeDelay = 1200 } = {}
     const willOpen = !drawer.classList.contains('is-open');
     cancelAll();
     if (willOpen) open(); else close(true);  // 手動は force=true で閉じる
+  });
+
+  closeButton?.addEventListener('click', () => {
+    cancelAll();
+    close(true);
+    handle.focus();
+  });
+
+  backdrop?.addEventListener('click', () => close(true));
+
+  document.addEventListener('pointerdown', event => {
+    if (!drawer.classList.contains('is-open')) return;
+    if (drawer.contains(event.target) || event.target === backdrop) return;
+    close(true);
+  });
+
+  document.addEventListener('keydown', event => {
+    if (event.key !== 'Escape' || !drawer.classList.contains('is-open')) return;
+    cancelAll();
+    close(true);
+    handle.focus();
+  });
+
+  document.addEventListener(OVERLAY_OPEN_EVENT, event => {
+    if (event.detail?.source === 'nav') return;
+    cancelAll();
+    close(true);
   });
 
   if (devNoAutoClose) open();
@@ -316,10 +399,22 @@ function setupDrawerBehavior(drawer, { openDelay = 360, closeDelay = 1200 } = {}
       const close = async () => { if (!det.open) return; await animate(false); det.open = false; };
 
       const scheduleOpen  = () => { clearTimeout(closeTimer); if (!det.open) openTimer  = setTimeout(open,  openDelay);  };
-      const scheduleClose = () => { clearTimeout(openTimer);  closeTimer = setTimeout(close, closeDelay); };
+      const scheduleClose = () => {
+        clearTimeout(openTimer);
+        clearTimeout(closeTimer);
+        if (det.contains(document.activeElement)) return;
+        closeTimer = setTimeout(() => {
+          if (!det.contains(document.activeElement)) close();
+        }, closeDelay);
+      };
 
       det.addEventListener('mouseenter', scheduleOpen);
       det.addEventListener('mouseleave', scheduleClose);
+      det.addEventListener('focusin', () => clearTimeout(closeTimer));
+      det.addEventListener('focusout', event => {
+        if (det.contains(event.relatedTarget)) return;
+        scheduleClose();
+      });
 
       if (sum) {
         sum.addEventListener('click', (e) => {

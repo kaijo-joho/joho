@@ -3,8 +3,12 @@
   /*グローバル変数を定義*/
   --theme-color: oklch(0.4353 0.0996 251.94); /*#225386;*/
 
-  --content-max: 720px;
-  --content-width: min(90%, var(--content-max));
+  /* 720pxまでは従来の見え方を保ち、広い画面では読みやすい範囲で緩やかに拡張する。 */
+  --content-base: 720px;
+  --content-max: 960px;
+  --content-gutter: clamp(12px, 5vw, 72px);
+  --content-fluid: clamp(var(--content-base), 68vw, var(--content-max));
+  --content-width: min(calc(100% - var(--content-gutter) - var(--content-gutter)), var(--content-fluid));
   --site-bg: url("../img/bg/bg-light-2560x1600.webp");
 
   --font-sans: 

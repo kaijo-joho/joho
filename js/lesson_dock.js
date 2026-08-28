@@ -2,6 +2,8 @@
 (() => {
   'use strict';
 
+  const OVERLAY_OPEN_EVENT = 'joho:overlay-open';
+
   // ==================== アイコン設定（任意） ====================
   const ICON_PATHS = {
     // practicefile: './img/icons/notebook.svg',
@@ -18,7 +20,24 @@
     quiz:         '📝',
     download:     '📥',
     faq:          '💬',
-    next:         '⏭'
+    next:         '⏭',
+    menu:         '☰'
+  };
+
+  const svgIcon = (body) => `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+      stroke-linecap="round" stroke-linejoin="round" focusable="false">
+      ${body}
+    </svg>`;
+
+  const DEFAULT_SVG = {
+    practicefile: svgIcon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4"/>'),
+    exercise:     svgIcon('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>'),
+    quiz:         svgIcon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h4M9 16h2"/>'),
+    download:     svgIcon('<path d="M12 3v12M8 11l4 4 4-4M5 21h14"/>'),
+    faq:          svgIcon('<path d="M21 12a8 8 0 0 1-9 8 9 9 0 0 1-4 1l1-3a8 8 0 1 1 12-6Z"/><path d="M9.8 9a2.3 2.3 0 0 1 4.4 1c0 1.5-2.2 1.7-2.2 3M12 16h.01"/>'),
+    next:         svgIcon('<path d="m6 7 5 5-5 5M13 7l5 5-5 5"/>'),
+    menu:         svgIcon('<path d="M4 6h16M4 12h16M4 18h16"/>')
   };
 
   // ==================== helpers ====================
@@ -78,17 +97,30 @@
     const fromLocal  = ICON_PATHS?.[key];
     const pick = (fromGlobal !== undefined) ? fromGlobal : fromLocal;
 
-    if (!pick) return { src: '', emoji: DEFAULT_EMOJI[key] };
-    if (typeof pick === 'string') return { src: pick, emoji: DEFAULT_EMOJI[key] };
-    if (typeof pick === 'object') return { src: pick.src || '', emoji: pick.emoji || DEFAULT_EMOJI[key] };
+    if (!pick) return { src: '', emoji: DEFAULT_EMOJI[key], svg: DEFAULT_SVG[key] || '' };
+    if (typeof pick === 'string') return { src: pick, emoji: DEFAULT_EMOJI[key], svg: '' };
+    if (typeof pick === 'object') {
+      return {
+        src: pick.src || '',
+        emoji: pick.emoji || DEFAULT_EMOJI[key],
+        svg: pick.svg || ''
+      };
+    }
 
-    return { src: '', emoji: DEFAULT_EMOJI[key] };
+    return { src: '', emoji: DEFAULT_EMOJI[key], svg: DEFAULT_SVG[key] || '' };
   }
 
   function createIconNode(key) {
-    const { src, emoji } = getIconConf(key);
+    const { src, emoji, svg } = getIconConf(key);
 
     if (!src) {
+      if (svg) {
+        return el('span', {
+          class: 'ld-svg-only',
+          'aria-hidden': 'true',
+          html: svg
+        });
+      }
       return el('span', { class: 'ld-emoji-only', 'aria-hidden': 'true' }, emoji);
     }
 
@@ -363,12 +395,14 @@
     return sec;
   }
 
-  function secFaq(title, items, course) {
+  function secFaq(title, items, course, idSuffix = '') {
     const sec = el('div', { class: 'ld-sec ld-sec--faq' });
     sec.appendChild(el('h3', { class: 'ld-sec__title' }, title));
 
+    const searchId = `lesson-dock-faq-search${idSuffix ? `-${idSuffix}` : ''}`;
+
     const searchInput = el('input', {
-      id: 'lesson-dock-faq-search',
+      id: searchId,
       type: 'search',
       class: 'ld-faq-search__input',
       placeholder: 'キーワードを入力',
@@ -405,7 +439,7 @@
     const search = el('div', { class: 'ld-faq-search' }, [
       el('label', {
         class: 'ld-faq-search__label',
-        for: 'lesson-dock-faq-search'
+        for: searchId
       }, 'FAQ全体を検索'),
       searchForm,
       el('a', {
@@ -515,16 +549,26 @@
 
   // ==================== group (button + panel) ====================
 
-  function buildGroup({ key, label, section, directUrl = '' }) {
-    const group = el('div', { class: 'lesson-dock__group' });
+  function buildGroup({
+    key,
+    label,
+    section,
+    directUrl = '',
+    groupClass = '',
+    triggerLabel = label
+  }) {
+    const group = el('div', {
+      class: `lesson-dock__group${groupClass ? ` ${groupClass}` : ''}`
+    });
     const panelId = `lesson-dock-panel-${key}`;
     const isDirectLink = Boolean(directUrl);
 
     const triggerAttrs = {
       class: `lesson-dock__btn lesson-dock__btn--${key}`,
-      'aria-label': isDirectLink ? `${label}へ移動` : label,
+      'aria-label': isDirectLink ? `${triggerLabel}へ移動` : triggerLabel,
       'aria-controls': panelId,
-      'aria-expanded': 'false'
+      'aria-expanded': 'false',
+      dataset: { label: triggerLabel }
     };
 
     if (isDirectLink) triggerAttrs.href = directUrl;
@@ -549,20 +593,35 @@
 
   // ==================== hover open / delayed close ====================
 
-  function wireHover({ group, btn, panel, isDirectLink }, { openDelay = 220, closeDelay = 420 } = {}) {
+  function wireHover(
+    { group, btn, panel, isDirectLink },
+    {
+      openDelay = 220,
+      closeDelay = 420,
+      onBeforeOpen = () => {},
+      onOpened = () => {},
+      onClosed = () => {}
+    } = {}
+  ) {
     let tOpen = null;
     let tClose = null;
 
     const open  = () => {
       clearTimeout(tClose);
+      if (panel.classList.contains('is-open')) return;
+      onBeforeOpen();
       panel.classList.add('is-open');
       btn.setAttribute('aria-expanded', 'true');
+      onOpened();
     };
 
     const close = () => {
       clearTimeout(tOpen);
+      clearTimeout(tClose);
+      if (!panel.classList.contains('is-open')) return;
       panel.classList.remove('is-open');
       btn.setAttribute('aria-expanded', 'false');
+      onClosed();
     };
 
     const scheduleOpen  = () => {
@@ -574,10 +633,10 @@
       clearTimeout(tOpen);
       clearTimeout(tClose);
 
-      if (panel.contains(document.activeElement)) return;
+      if (group.contains(document.activeElement)) return;
 
       tClose = setTimeout(() => {
-        if (!panel.contains(document.activeElement)) close();
+        if (!group.contains(document.activeElement)) close();
       }, closeDelay);
     };
 
@@ -594,19 +653,21 @@
       scheduleClose();
     });
 
-    if (isDirectLink) return;
+    if (!isDirectLink) {
+      btn.addEventListener('click', (e) => {
+        e.preventDefault();
 
-    btn.addEventListener('click', (e) => {
-      e.preventDefault();
+        const willOpen = !panel.classList.contains('is-open');
 
-      const willOpen = !panel.classList.contains('is-open');
+        clearTimeout(tOpen);
+        clearTimeout(tClose);
 
-      clearTimeout(tOpen);
-      clearTimeout(tClose);
+        if (willOpen) open();
+        else close();
+      });
+    }
 
-      if (willOpen) open();
-      else close();
-    });
+    return { group, btn, panel, open, close };
   }
 
   // ==================== entry point ====================
@@ -624,6 +685,9 @@
     // デバッグ用
     window.lessonDockData = model;
 
+    if (typeof window.__lessonDockCleanup === 'function') {
+      window.__lessonDockCleanup();
+    }
     $('#lesson-dock')?.remove();
 
     const root  = el('div', { id: 'lesson-dock', class: 'lesson-dock' });
@@ -632,44 +696,64 @@
     root.appendChild(stack);
 
     const groups = [];
+    const compactSections = [];
 
     if (model.practicefile.length) {
       groups.push(buildGroup({
         key: 'practicefile',
         label: '実習ファイル',
-        section: secList('実習ファイル', model.practicefile)
+        section: secList('実習ファイル', model.practicefile),
+        groupClass: 'lesson-dock__group--desktop'
       }));
+      compactSections.push(secList('実習ファイル', model.practicefile));
     }
 
     if (model.exercise.length) {
       groups.push(buildGroup({
         key: 'exercise',
         label: '演習問題',
-        section: secList('演習問題', model.exercise)
+        section: secList('演習問題', model.exercise),
+        groupClass: 'lesson-dock__group--desktop'
       }));
+      compactSections.push(secList('演習問題', model.exercise));
     }
 
     if (model.quiz.length) {
       groups.push(buildGroup({
         key: 'quiz',
         label: '確認テスト',
-        section: secList('確認テスト', model.quiz)
+        section: secList('確認テスト', model.quiz),
+        groupClass: 'lesson-dock__group--desktop'
       }));
+      compactSections.push(secList('確認テスト', model.quiz));
     }
 
     if (model.download.length) {
       groups.push(buildGroup({
         key: 'download',
         label: 'ダウンロードファイル',
-        section: secDownload('ダウンロードファイル', model.download)
+        section: secDownload('ダウンロードファイル', model.download),
+        groupClass: 'lesson-dock__group--desktop'
       }));
+      compactSections.push(secDownload('ダウンロードファイル', model.download));
     }
 
     if (model.course) {
       groups.push(buildGroup({
         key: 'faq',
         label: 'よくある質問',
-        section: secFaq('よくある質問', model.faq, model.course)
+        section: secFaq('よくある質問', model.faq, model.course),
+        groupClass: 'lesson-dock__group--desktop'
+      }));
+      compactSections.push(secFaq('よくある質問', model.faq, model.course, 'compact'));
+    }
+
+    if (compactSections.length) {
+      groups.push(buildGroup({
+        key: 'menu',
+        label: '教材メニュー',
+        section: el('div', { class: 'ld-compact-menu' }, compactSections),
+        groupClass: 'lesson-dock__group--compact'
       }));
     }
 
@@ -678,7 +762,11 @@
         key: 'next',
         label: '次回',
         section: secNexts(model.next),
-        directUrl: model.next.length === 1 ? model.next[0].url : ''
+        directUrl: model.next.length === 1 ? model.next[0].url : '',
+        groupClass: 'lesson-dock__group--next',
+        triggerLabel: model.next.length === 1
+          ? `次回：${model.next[0].title || '次のページ'}`
+          : `次回（${model.next.length}件）`
       }));
     }
 
@@ -687,7 +775,75 @@
     groups.forEach(g => stack.appendChild(g.group));
     document.body.appendChild(root);
 
-    groups.forEach(g => wireHover(g, { openDelay: 220, closeDelay: 420 }));
+    const controllers = [];
+    let activeController = null;
+
+    groups.forEach(group => {
+      let controller = null;
+      controller = wireHover(group, {
+        openDelay: 220,
+        closeDelay: 420,
+        onBeforeOpen: () => {
+          controllers.forEach(other => {
+            if (other !== controller) other.close();
+          });
+          document.dispatchEvent(new CustomEvent(OVERLAY_OPEN_EVENT, {
+            detail: { source: 'lesson-dock' }
+          }));
+        },
+        onOpened: () => {
+          activeController = controller;
+        },
+        onClosed: () => {
+          if (activeController === controller) activeController = null;
+        }
+      });
+      controllers.push(controller);
+    });
+
+    const closeAll = () => controllers.forEach(controller => controller.close());
+
+    const handleExternalOverlay = event => {
+      if (event.detail?.source === 'lesson-dock') return;
+      closeAll();
+    };
+
+    const handleOutsidePointer = event => {
+      if (!root.contains(event.target)) closeAll();
+    };
+
+    const handleEscape = event => {
+      if (event.key !== 'Escape' || !activeController) return;
+      const trigger = activeController.btn;
+      closeAll();
+      trigger.focus();
+    };
+
+    const compactQuery = window.matchMedia('(max-width: 900px), (max-height: 600px)');
+    const handleCompactChange = () => closeAll();
+
+    document.addEventListener(OVERLAY_OPEN_EVENT, handleExternalOverlay);
+    document.addEventListener('pointerdown', handleOutsidePointer);
+    document.addEventListener('keydown', handleEscape);
+
+    if (typeof compactQuery.addEventListener === 'function') {
+      compactQuery.addEventListener('change', handleCompactChange);
+    } else {
+      compactQuery.addListener(handleCompactChange);
+    }
+
+    window.__lessonDockCleanup = () => {
+      closeAll();
+      document.removeEventListener(OVERLAY_OPEN_EVENT, handleExternalOverlay);
+      document.removeEventListener('pointerdown', handleOutsidePointer);
+      document.removeEventListener('keydown', handleEscape);
+
+      if (typeof compactQuery.removeEventListener === 'function') {
+        compactQuery.removeEventListener('change', handleCompactChange);
+      } else {
+        compactQuery.removeListener(handleCompactChange);
+      }
+    };
   }
 
   // main.js から呼ぶ
