@@ -245,7 +245,7 @@ for i in range(steps):
 plt.figure(figsize=(8, 5))
 plt.plot(x, yA, label="A")
 plt.plot(x, yB, label="B")
-plt.plot(x, yS, '--', label="A + B（一定のはず）")
+plt.plot(x, yS, linestyle="--", label="A + B（一定のはず）")
 plt.xlabel("時間")
 plt.ylabel("量")
 plt.xlim(0, T)

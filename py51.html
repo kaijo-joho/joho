@@ -168,6 +168,7 @@ plt.show()      # グラフを表示する
           <td class="text-align-left">データの不確実性を示すエラーバーを含んだグラフを描画します。</td>
         </tr>
       </table>
+      <p class="small-text"><tt>plt.step(x, y, where="post")</tt>とすると、各<tt>x</tt>の位置から次の<tt>x</tt>の位置までその点の<tt>y</tt>の値を保ち、次の位置で値が切り替わります。時点ごとの状態の変化などを表すときに便利です。</p>
       <p>その他のグラフの種類は、<a href="https://matplotlib.org/stable/plot_types/index.html" target="_blank" rel="noopener">matplotlibの公式ドキュメント</a>を参照してください。</p>
       
       
@@ -193,6 +194,14 @@ plt.axhline(0, color="black", lw=0.5)  # x軸(y=0の線)を表示
       <p><tt>plt.axvline(x, color="色", linestyle="線種", linewidth=線幅)</tt>は座標xの位置に垂直線を描くために用います。基本的には上記のように軸を表示するために用います。また、<tt>plt.axhline(y, color="色", linestyle="線種", linewidth=線幅)</tt>は座標yの位置に水平線を描くために用います。<tt>color</tt>などは、上記の例のように引数名を付けて指定します。</p>
       <p><tt>color</tt>は、<tt>"red"</tt>，<tt>"blue"</tt>などの色名のほか、カラーコード（#FF5733など）で指定します。</p>
       <p><tt>linestyle</tt>は、<tt>"-"</tt>(実線:デフォルト)，<tt>"--"</tt>:破線，<tt>":"</tt>: 点線，<tt>"-."</tt>: 点と破線が使えます。</p>
+
+      <h5>縦横の目盛り幅をそろえる</h5>
+      <p>円などを縦横同じ比率で表示するには、<tt>plt.axis("equal")</tt>を使います。これにより、x軸とy軸の1目盛りの長さが同じになります。</p>
+      <pre class="python example" data-title=""><code>plt.axis("equal")</code></pre>
+
+      <h5>目盛りの位置とラベル</h5>
+      <p><tt>plt.yticks(位置のリスト, ラベルのリスト)</tt>を使うと、y軸の各位置に表示するラベルを指定できます。次の例では、y軸の<tt>0</tt>、<tt>1</tt>、<tt>2</tt>を、それぞれ「晴れ」「曇り」「雨」と表示します。</p>
+      <pre class="python example" data-title=""><code>plt.yticks([0, 1, 2], ["晴れ", "曇り", "雨"])</code></pre>
       
       
       <h4>グラフの描画範囲</h4>
@@ -205,6 +214,11 @@ plt.ylim(-5, 5)  # y軸を-5〜5の範囲で描画
       <h4>グリッド線</h4>
       <p>次のコードでグラフのグリッド線を追加します。</p>
       <pre class="python example" data-title=""><code>plt.grid(True)</code></pre>
+
+      <h4>グラフ内への文字の表示</h4>
+      <p><tt>plt.text(x座標, y座標, "文字列")</tt>を使うと、グラフ内の指定した座標に文字を表示できます。</p>
+      <pre class="python example" data-title=""><code>plt.text(3, 10, "10", ha="center", va="bottom")</code></pre>
+      <p class="small-text"><tt>ha</tt>は文字の横方向のそろえ方、<tt>va</tt>は縦方向のそろえ方です。上の例では、文字を座標の中央にそろえ、座標のすぐ上に表示します。</p>
       
       <h4>マーカーの書式と系列名</h4>
       <p>複数の系列がある場合、次のように<tt>plt.plot</tt>を複数回呼び出します。また、このときマーカーの書式と系列名を指定します（系列名は後述の<strong>凡例</strong>で表示します。）。</p>
