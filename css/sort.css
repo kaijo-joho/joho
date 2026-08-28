@@ -462,10 +462,12 @@
 
 .algorithm-demo .algorithm-array{
   display: grid;
-  grid-template-columns: repeat(var(--algorithm-item-count, 8), minmax(0, 1fr));
+  grid-template-columns: repeat(var(--algorithm-item-count, 8), minmax(0, 52px));
+  justify-content: center;
   gap: clamp(2px, .55vw, 6px);
   width: 100%;
-  margin: .7rem 0;
+  max-width: var(--algorithm-array-max-width, 458px);
+  margin: .7rem auto;
   overflow: visible;
 }
 
@@ -651,6 +653,5 @@
     transition: none;
   }
 }
-
 
 

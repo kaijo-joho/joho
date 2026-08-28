@@ -4,6 +4,8 @@
 
   const MIN_ARRAY_LENGTH = 2;
   const MAX_ARRAY_LENGTH = 12;
+  const MAX_TILE_WIDTH = 52;
+  const MAX_TILE_GAP = 6;
   const TILE_STATE_CLASSES = [
     "highlighted",
     "highlighted2",
@@ -64,6 +66,9 @@
   function renderArray(container, values) {
     container.replaceChildren();
     container.style.setProperty("--algorithm-item-count", values.length);
+    const maxArrayWidth = values.length * MAX_TILE_WIDTH
+      + Math.max(values.length - 1, 0) * MAX_TILE_GAP;
+    container.style.setProperty("--algorithm-array-max-width", `${maxArrayWidth}px`);
 
     const valueElements = values.map((value, index) => {
       const item = document.createElement("div");
