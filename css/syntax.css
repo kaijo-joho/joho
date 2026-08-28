@@ -201,6 +201,19 @@ div.result img{
   display: block;
   margin: .5em auto;
 }
+div.result img.pyplot{
+  margin-left: 0;
+  margin-right: auto;
+}
+div.result figure.img-wrapper:has(img.pyplot){
+  display: block;
+  width: fit-content;
+  max-width: 100%;
+  margin: .5em auto .5em 0;
+}
+div.result figure.img-wrapper:has(img.pyplot) img.pyplot{
+  margin: 0;
+}
 img.pyplot{
   border: 1px solid var(--code-img-border);
   border-radius: 4px;
