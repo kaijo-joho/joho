@@ -113,8 +113,9 @@
       button.className = 'site-theme-menu__option';
       button.dataset.themeValue = option.value;
       button.dataset.label = option.label;
-      button.setAttribute('role', 'menuitem');
+      button.setAttribute('role', 'menuitemradio');
       button.setAttribute('aria-label', option.ariaLabel);
+      button.setAttribute('aria-checked', 'false');
       button.innerHTML = option.icon;
       button.tabIndex = -1;
       optionPanel.appendChild(button);
@@ -141,7 +142,9 @@
       );
 
       optionButtons.forEach(button => {
-        button.hidden = button.dataset.themeValue === currentValue;
+        const selected = button.dataset.themeValue === currentValue;
+        button.classList.toggle('is-selected', selected);
+        button.setAttribute('aria-checked', String(selected));
         button.tabIndex = -1;
       });
 
