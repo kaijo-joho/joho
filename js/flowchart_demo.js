@@ -4,7 +4,9 @@
   const resultLabels = {
     searching: "探索中",
     found: "発見",
-    missing: "見つからない"
+    missing: "見つからない",
+    sorting: "並べ替え中",
+    sorted: "完了"
   };
 
   function makeStep(node, edge, description, state, result = "searching") {
@@ -270,6 +272,7 @@
       const item = document.createElement("span");
       const code = document.createElement("code");
       item.className = "flowchart-demo__state-item";
+      if (name === "arr") item.classList.add("flowchart-demo__state-item--array");
       code.textContent = `${name} = ${value === null ? "—" : value}`;
       item.append(code);
       fragment.append(item);
@@ -304,7 +307,7 @@
     }
   }
 
-  function setupFlowchart(root) {
+  function setupFlowchart(root, providedBuildSteps = null) {
     const type = root.dataset.flowchartDemo;
     const array = parseArray(root.dataset.flowArray);
     const svg = root.querySelector("svg.flowchart");
@@ -318,14 +321,14 @@
     const backButton = root.querySelector("[data-flow-back]");
     const nextButton = root.querySelector("[data-flow-next]");
 
-    if (!array.length || !svg || !figure || !form || !input || !description
+    if (!array.length || !svg || !figure || !form || !description
       || !progress || !stateContainer || !restartButton || !backButton || !nextButton) {
       return;
     }
 
-    const buildSteps = type === "linear" ? buildLinearSteps
+    const buildSteps = providedBuildSteps || (type === "linear" ? buildLinearSteps
       : type === "binary" ? buildBinarySteps
-        : null;
+        : null);
     if (!buildSteps) return;
 
     const nodeElements = collectElements(svg, "data-flow-node");
@@ -343,7 +346,9 @@
       delete svg.dataset.currentNode;
       delete progress.dataset.result;
       progress.textContent = "デモ未開始 ・ 全体表示";
-      description.textContent = "探索値を指定して「この値で開始」を押すと、処理を順番にたどれます。";
+      description.textContent = input
+        ? "探索値を指定して「この値で開始」を押すと、処理を順番にたどれます。"
+        : "「この配列で開始」を押すと、処理を順番にたどれます。";
       stateContainer.replaceChildren();
       restartButton.disabled = true;
       backButton.disabled = true;
@@ -379,16 +384,19 @@
     }
 
     function start() {
-      input.setCustomValidity("");
-      const target = Number(input.value);
-      if (!input.checkValidity() || !Number.isSafeInteger(target)) {
-        input.setCustomValidity("探索値には整数を入力してください。");
-        input.reportValidity();
-        input.focus();
-        return;
+      let target;
+      if (input) {
+        input.setCustomValidity("");
+        target = Number(input.value);
+        if (!input.checkValidity() || !Number.isSafeInteger(target)) {
+          input.setCustomValidity("探索値には整数を入力してください。");
+          input.reportValidity();
+          input.focus();
+          return;
+        }
       }
 
-      steps = buildSteps(array, target);
+      steps = input ? buildSteps(array, target) : buildSteps(array);
       currentIndex = 0;
       render();
     }
@@ -397,7 +405,7 @@
       event.preventDefault();
       start();
     });
-    input.addEventListener("input", () => input.setCustomValidity(""));
+    if (input) input.addEventListener("input", () => input.setCustomValidity(""));
     restartButton.addEventListener("click", () => {
       currentIndex = 0;
       render();
@@ -418,7 +426,8 @@
 
   const api = Object.freeze({
     buildLinearSteps,
-    buildBinarySteps
+    buildBinarySteps,
+    mount: setupFlowchart
   });
 
   globalThis.FlowchartDemo = api;

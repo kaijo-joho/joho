@@ -233,7 +233,7 @@ svg.flowchart{
   font-variant-numeric: tabular-nums;
 }
 
-.flowchart-demo__progress[data-result="found"]{
+.flowchart-demo__progress:is([data-result="found"], [data-result="sorted"]){
   color: #166534;
 }
 
@@ -267,6 +267,14 @@ svg.flowchart{
 
 .flowchart-demo__state-item code{
   line-height: 1.2;
+}
+
+.flowchart-demo__state-item--array{
+  flex: 1 1 100%;
+  justify-content: center;
+  overflow-x: auto;
+  border-radius: 8px;
+  white-space: nowrap;
 }
 
 .flowchart-demo .flowchart-figure{
@@ -340,7 +348,7 @@ svg.flowchart{
     --flowchart-terminal-fill: rgba(240, 138, 201, .10);
   }
 
-  :root:not([data-theme]) .flowchart-demo__progress[data-result="found"]{
+  :root:not([data-theme]) .flowchart-demo__progress:is([data-result="found"], [data-result="sorted"]){
     color: #86efac;
   }
 
@@ -373,7 +381,7 @@ svg.flowchart{
   --flowchart-terminal-fill: rgba(240, 138, 201, .10);
 }
 
-:root[data-theme="dark"] .flowchart-demo__progress[data-result="found"]{
+:root[data-theme="dark"] .flowchart-demo__progress:is([data-result="found"], [data-result="sorted"]){
   color: #86efac;
 }
 
