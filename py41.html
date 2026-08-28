@@ -32,7 +32,65 @@
       <p>単純でわかりやすい方法ですが、値をひとつひとつ調べていくので、データが大量になると時間がかかってしまう欠点があります。</p>
       
       <h3>フローチャート</h3>
-      <img src="img/search_linear.png" alt="リニアサーチのフローチャート" class="image" decoding="async">
+      <figure class="flowchart-figure">
+        <svg class="flowchart flowchart--linear" viewBox="0 0 900 760" role="img" aria-labelledby="linear-flow-title linear-flow-desc">
+          <title id="linear-flow-title">リニアサーチのフローチャート</title>
+          <desc id="linear-flow-desc">配列を先頭から順番に調べ、探索値と一致した位置を記録する。最後まで一致しなければ、探索値は存在しない。</desc>
+          <defs>
+            <marker id="linear-flow-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+              <path class="flowchart__arrow" d="M0,0 L12,6 L0,12 Z"></path>
+            </marker>
+          </defs>
+
+          <rect class="flowchart__terminal" x="125" y="20" width="480" height="76" rx="30"></rect>
+          <text class="flowchart__text" x="365" y="52">
+            <tspan x="365">配列 <tspan class="flowchart__code">arr</tspan> と</tspan>
+            <tspan x="365" dy="28">探索値 <tspan class="flowchart__code">target</tspan> を準備する</tspan>
+          </text>
+
+          <path class="flowchart__path" d="M365 96 V130" marker-end="url(#linear-flow-arrow)"></path>
+          <rect class="flowchart__process" x="145" y="130" width="440" height="84"></rect>
+          <text class="flowchart__text flowchart__text--small flowchart__text--start" x="175" y="164">
+            探索値の位置　<tspan class="flowchart__code">x = -1</tspan>（初期値）
+          </text>
+          <text class="flowchart__text flowchart__text--small flowchart__text--start" x="175" y="195">
+            配列の長さ　　<tspan class="flowchart__code">n = len(arr)</tspan>
+          </text>
+
+          <path class="flowchart__path" d="M365 214 V245" marker-end="url(#linear-flow-arrow)"></path>
+          <path class="flowchart__loop" d="M170 245 H560 L585 270 L560 295 H170 L145 270 Z"></path>
+          <text class="flowchart__text" x="365" y="278">
+            <tspan class="flowchart__code">i = 0</tspan> から <tspan class="flowchart__code">n - 1</tspan> まで繰り返す
+          </text>
+
+          <path class="flowchart__path" d="M365 295 V335" marker-end="url(#linear-flow-arrow)"></path>
+          <path class="flowchart__decision" d="M365 335 L585 405 L365 475 L145 405 Z"></path>
+          <text class="flowchart__text flowchart__code" x="365" y="413">arr[i] == target</text>
+
+          <text class="flowchart__branch-label" x="604" y="389">True</text>
+          <path class="flowchart__path" d="M585 405 H750 V520" marker-end="url(#linear-flow-arrow)"></path>
+          <rect class="flowchart__process" x="620" y="520" width="260" height="70"></rect>
+          <text class="flowchart__text flowchart__text--small" x="750" y="548">
+            <tspan class="flowchart__code" x="750">x = i</tspan>
+            <tspan x="750" dy="23">繰り返しを終了</tspan>
+          </text>
+
+          <text class="flowchart__branch-label" x="384" y="503">False</text>
+          <path class="flowchart__path" d="M365 475 V520" marker-end="url(#linear-flow-arrow)"></path>
+          <path class="flowchart__loop" d="M170 520 H560 L585 550 L560 580 H170 L145 550 Z"></path>
+          <text class="flowchart__text" x="365" y="558">次の要素について繰り返す</text>
+
+          <path class="flowchart__path flowchart__path--return" d="M145 550 H40 V270 H145" marker-end="url(#linear-flow-arrow)"></path>
+          <path class="flowchart__path" d="M365 580 V635 H310 V665" marker-end="url(#linear-flow-arrow)"></path>
+          <text class="flowchart__annotation" x="385" y="630">x は -1 のまま</text>
+          <rect class="flowchart__terminal" x="70" y="665" width="480" height="70" rx="28"></rect>
+          <text class="flowchart__text" x="310" y="707">探索値は存在しない</text>
+
+          <path class="flowchart__path" d="M750 590 V635 H720 V665" marker-end="url(#linear-flow-arrow)"></path>
+          <rect class="flowchart__terminal" x="560" y="665" width="320" height="70" rx="28"></rect>
+          <text class="flowchart__text" x="720" y="707">探索値の位置は x 番目</text>
+        </svg>
+      </figure>
       
       <h3>デモンストレーション</h3>
       <div id="linear-search" class="demo algorithm-demo">

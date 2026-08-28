@@ -60,6 +60,150 @@ img.width100px{width: 100px;}
 img.center{	margin: 0 auto;}
 
 
+/* 探索アルゴリズムのインラインSVGフローチャート */
+figure.flowchart-figure{
+  width: 100%;
+  max-width: 980px;
+  margin: 1rem auto 1.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+svg.flowchart{
+  --flowchart-text: #20242b;
+  --flowchart-process: #285b8d;
+  --flowchart-path: #278345;
+  --flowchart-terminal: #bd4b97;
+  --flowchart-note: #94641f;
+  --flowchart-node-fill: rgba(255, 255, 255, .42);
+  --flowchart-terminal-fill: rgba(189, 75, 151, .06);
+
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: auto;
+  color: var(--flowchart-text);
+  shape-rendering: geometricPrecision;
+}
+
+.flowchart :is(.flowchart__process, .flowchart__loop, .flowchart__decision){
+  fill: var(--flowchart-node-fill);
+  stroke: var(--flowchart-process);
+  stroke-width: 5;
+  stroke-linejoin: round;
+}
+
+.flowchart .flowchart__terminal{
+  fill: var(--flowchart-terminal-fill);
+  stroke: var(--flowchart-terminal);
+  stroke-width: 5;
+}
+
+.flowchart .flowchart__path{
+  fill: none;
+  stroke: var(--flowchart-path);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.flowchart .flowchart__path--return{
+  stroke-dasharray: 10 10;
+}
+
+.flowchart .flowchart__arrow{
+  fill: var(--flowchart-path);
+}
+
+.flowchart .flowchart__text{
+  fill: var(--flowchart-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 23px;
+  font-weight: 500;
+  text-anchor: middle;
+}
+
+.flowchart .flowchart__text--small{
+  font-size: 19px;
+}
+
+.flowchart .flowchart__text--start{
+  text-anchor: start;
+}
+
+.flowchart .flowchart__code{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  letter-spacing: .01em;
+}
+
+.flowchart .flowchart__branch-label{
+  fill: var(--flowchart-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+  font-size: 20px;
+  font-weight: 700;
+}
+
+.flowchart .flowchart__annotation{
+  fill: var(--flowchart-note);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme]) svg.flowchart{
+    --flowchart-text: #f1f5f9;
+    --flowchart-process: #83baf0;
+    --flowchart-path: #6ed78c;
+    --flowchart-terminal: #f08ac9;
+    --flowchart-note: #e7b967;
+    --flowchart-node-fill: rgba(3, 9, 18, .24);
+    --flowchart-terminal-fill: rgba(240, 138, 201, .10);
+  }
+}
+
+:root[data-theme="light"] svg.flowchart{
+  --flowchart-text: #20242b;
+  --flowchart-process: #285b8d;
+  --flowchart-path: #278345;
+  --flowchart-terminal: #bd4b97;
+  --flowchart-note: #94641f;
+  --flowchart-node-fill: rgba(255, 255, 255, .42);
+  --flowchart-terminal-fill: rgba(189, 75, 151, .06);
+}
+
+:root[data-theme="dark"] svg.flowchart{
+  --flowchart-text: #f1f5f9;
+  --flowchart-process: #83baf0;
+  --flowchart-path: #6ed78c;
+  --flowchart-terminal: #f08ac9;
+  --flowchart-note: #e7b967;
+  --flowchart-node-fill: rgba(3, 9, 18, .24);
+  --flowchart-terminal-fill: rgba(240, 138, 201, .10);
+}
+
+@media (max-width: 559px){
+  svg.flowchart{
+    width: 620px;
+    min-width: 620px;
+  }
+}
+
+@media print{
+  svg.flowchart{
+    --flowchart-text: #000;
+    --flowchart-process: #285b8d;
+    --flowchart-path: #278345;
+    --flowchart-terminal: #a63b82;
+    --flowchart-note: #704a18;
+    --flowchart-node-fill: transparent;
+    --flowchart-terminal-fill: transparent;
+  }
+}
+
+
 
 /* 画像ラッパのリセット（サイズ崩れ防止） */
 figure.img-wrapper {
@@ -113,6 +257,5 @@ figure.img-wrapper > a > img {
     figure.img-wrapper { background: color-mix(in oklab, #fff 20%, transparent); }
   }
 }
-
 
 
