@@ -515,17 +515,22 @@
 
   // ==================== group (button + panel) ====================
 
-  function buildGroup({ key, label, section }) {
+  function buildGroup({ key, label, section, directUrl = '' }) {
     const group = el('div', { class: 'lesson-dock__group' });
     const panelId = `lesson-dock-panel-${key}`;
+    const isDirectLink = Boolean(directUrl);
 
-    const btn = el('button', {
-      type: 'button',
+    const triggerAttrs = {
       class: `lesson-dock__btn lesson-dock__btn--${key}`,
-      'aria-label': label,
+      'aria-label': isDirectLink ? `${label}へ移動` : label,
       'aria-controls': panelId,
       'aria-expanded': 'false'
-    }, createIconNode(key));
+    };
+
+    if (isDirectLink) triggerAttrs.href = directUrl;
+    else triggerAttrs.type = 'button';
+
+    const btn = el(isDirectLink ? 'a' : 'button', triggerAttrs, createIconNode(key));
 
     const panel = el('div', {
       id: panelId,
@@ -539,12 +544,12 @@
     group.appendChild(btn);
     group.appendChild(panel);
 
-    return { group, btn, panel };
+    return { group, btn, panel, isDirectLink };
   }
 
   // ==================== hover open / delayed close ====================
 
-  function wireHover({ group, btn, panel }, { openDelay = 220, closeDelay = 420 } = {}) {
+  function wireHover({ group, btn, panel, isDirectLink }, { openDelay = 220, closeDelay = 420 } = {}) {
     let tOpen = null;
     let tClose = null;
 
@@ -588,6 +593,8 @@
       if (panel.contains(event.relatedTarget)) return;
       scheduleClose();
     });
+
+    if (isDirectLink) return;
 
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -670,7 +677,8 @@
       groups.push(buildGroup({
         key: 'next',
         label: '次回',
-        section: secNexts(model.next)
+        section: secNexts(model.next),
+        directUrl: model.next.length === 1 ? model.next[0].url : ''
       }));
     }
 

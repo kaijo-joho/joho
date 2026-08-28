@@ -108,6 +108,7 @@
   -webkit-appearance: none;
   letter-spacing: normal;
   cursor: pointer;
+  text-decoration: none;
 
   /* 画像でも絵文字でも見える neutral glass */
   background: linear-gradient(
