@@ -72,9 +72,11 @@
       return;
     }
 
-    const { drawer, panel } = ensureDrawerShell();
-
     const id = getFileName();
+    // トップページにはページ別の目次がないため、ドロワー自体を生成しない。
+    if (id === 'index') return;
+
+    const { drawer, panel } = ensureDrawerShell();
     const current = window.pages[id] || null;
     const targetMain = current ? current.mainTitle : null;
 
