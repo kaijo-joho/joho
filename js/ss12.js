@@ -4,17 +4,17 @@ const slidesData = [
   },
   {
     "title": "1.1. 「合計」列の見出しの作成",
-    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【E3】をクリック</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">「合計」と入力&gt;</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">⏎リターンキーを押す（【E3】の編集が確定する）。</span></span><br><br>",
+    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【E3】をクリックする。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">「合計」と入力する。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">〈リターン⏎〉を押す（【E3】の編集が確定する）。</span></span><br><br>",
     "image": "img_slide/ss12_03.png"
   },
   {
     "title": "1.2. 合計を求める",
-    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【E4】をクリックし「=」を入力する</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【C4】をクリック（【C4】が点線で囲まれる</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">「+」を入力</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>④</strong></span><span class=\"circBody\">【D4】をクリック（【C4】と【D4】が点線で囲まれる）</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>⑤</strong></span><span class=\"circBody\">⏎リターンキーを押す。</span></span><br><br>",
+    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【E4】をクリックし「=」を入力する。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【C4】をクリックする（【C4】が点線で囲まれる）。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">「+」を入力する。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>④</strong></span><span class=\"circBody\">【D4】をクリックする（【C4】と【D4】が点線で囲まれる）。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>⑤</strong></span><span class=\"circBody\">〈リターン⏎〉を押す。</span></span><br><br>",
     "image": "img_slide/ss12_04.png"
   },
   {
     "title": "1.3. オートフィル（数式のコピー）",
-    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【E4】を選択する</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【E4】セルの右下の </span></span><span style=\"color: rgb(25,76,196);\">●</span> にポインタを乗せ、ポインタの形を ＋ にする<br>（セル右下の <span style=\"color: rgb(25,76,196);\">●</span> を <strong>フィルハンドル</strong> という）<br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">【E26】まで<strong>ドラッグ</strong>する</span></span><br><br>",
+    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【E4】を選択する</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【E4】セルの右下の <span style=\"color: rgb(25,76,196);\">●</span> にポインタを乗せ、ポインタの形を ＋ にする</span></span><br>（セル右下の <span style=\"color: rgb(25,76,196);\">●</span> を <strong>フィルハンドル</strong> という）<br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">【E26】まで<strong>ドラッグ</strong>する</span></span><br><br>",
     "image": "img_slide/ss12_05.png"
   },
   {
@@ -32,18 +32,18 @@ const slidesData = [
   },
   {
     "title": "2.2. 表の枠線",
-    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【B3:F26】を選択（【B3】にポインタを乗せて【F26】までドラッグ）</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">メニューバーの 《</span></span>田》 をクリックし、《すべての枠線》をクリック<br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">表に枠線が適用される。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>④</strong></span><span class=\"circBody\">セル範囲の選択を解除するときは、他のセルをクリックする。</span></span><br><br>",
+    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【B3:F26】を選択する（【B3】にポインタを乗せて【F26】までドラッグ）。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">メニューバーの「枠線」ボタンをクリックし、「すべての枠線」を選択する。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">表に枠線が適用される。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>④</strong></span><span class=\"circBody\">セル範囲の選択を解除するときは、他のセルをクリックする。</span></span><br><br>",
     "image": "img_slide/ss12_09.png"
   },
   {
     "title": "2.3. セルのテキストの書式",
-    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【B3:F3】を選択</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">メニューバーの 《</span></span>B》 をクリックして《太字》を設定する。<br>",
+    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【B3:F3】を選択する。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">メニューバーの「太字」ボタンをクリックして、太字を設定する。</span></span><br>",
     "image": "img_slide/ss12_10.png"
   },
   {
     "title": "2.4. セルの塗りつぶしの色",
-    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【B3:F3】を選択</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">メニューバーの 《</span></span>塗りつぶしの色》をクリックして、塗りつぶしの色を《明るい緑 3》にする（他の色でもよい）。<br><br>",
+    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【B3:F3】を選択する。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">メニューバーの「塗りつぶしの色」ボタンをクリックし、塗りつぶしの色を「明るい緑 3」にする（他の色でもよい）。</span></span><br><br>",
     "image": "img_slide/ss12_11.png"
   }
 ]
-window.slidesData = slidesData;;
+window.slidesData = slidesData;
