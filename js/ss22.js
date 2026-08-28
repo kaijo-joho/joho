@@ -1,6 +1,6 @@
 const slidesData = [
   {
-    "section": "1. 条件に一致するセルを数える COUNTIF関数"
+    "section": "1. 条件に一致するセルを数える\nCOUNTIF関数"
   },
   {
     "title": "1.1. COUNTIF関数",
@@ -24,7 +24,7 @@ const slidesData = [
     "showInDetails": true
   },
   {
-    "section": "2. 条件に一致するの合計値・平均値 SUMIF関数・AVERAGEIF関数"
+    "section": "2. 条件に一致するセルの合計値・平均値\nSUMIF関数・AVERAGEIF関数"
   },
   {
     "title": "2.1. SUMIF関数・AVERAGEIF関数",
@@ -50,10 +50,11 @@ const slidesData = [
   {
     "title": "例題3. クラス平均",
     "note": "<br>",
-    "image": "img_slide/ss22_12.png"
+    "image": "img_slide/ss22_12.png",
+    "showInDetails": true
   },
   {
-    "section": "3. 複雑な条件に一致するセルの計算 *IFS関数"
+    "section": "3. 複雑な条件に一致するセルの計算\n*IFS関数"
   },
   {
     "title": "3.1. *IFS関数",
@@ -61,7 +62,7 @@ const slidesData = [
     "image": "img_slide/ss22_14.png"
   },
   {
-    "title": "3.1. COUNTIFS関数",
+    "title": "3.2. COUNTIFS関数",
     "note": "<br>",
     "image": "img_slide/ss22_15.png"
   },
