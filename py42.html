@@ -42,8 +42,7 @@
       
       <h3>フローチャート</h3>
       <figure class="flowchart-figure">
-        <svg class="flowchart flowchart--binary" viewBox="0 0 900 1160" role="img" aria-labelledby="binary-flow-title binary-flow-desc">
-          <title id="binary-flow-title">バイナリサーチのフローチャート</title>
+        <svg class="flowchart flowchart--binary" viewBox="0 0 900 1160" role="img" aria-label="バイナリサーチのフローチャート" aria-describedby="binary-flow-desc">
           <desc id="binary-flow-desc">整列済み配列の中央の値と探索値を比較し、探索範囲を半分ずつ狭める。一致した位置を記録し、探索範囲がなくなるまで一致しなければ探索値は存在しない。</desc>
           <defs>
             <marker id="binary-flow-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
@@ -99,30 +98,30 @@
           <path class="flowchart__decision" d="M360 645 L590 710 L360 775 L130 710 Z"></path>
           <text class="flowchart__text flowchart__code" x="360" y="718">arr[mid] &lt; target</text>
 
-          <text class="flowchart__branch-label" x="610" y="693">True</text>
-          <path class="flowchart__path" d="M590 710 H705 V825" marker-end="url(#binary-flow-arrow)"></path>
-          <rect class="flowchart__process" x="540" y="825" width="330" height="70"></rect>
-          <text class="flowchart__text flowchart__code" x="705" y="867">left = mid + 1</text>
+          <text class="flowchart__branch-label" x="604" y="693" text-anchor="end">True</text>
+          <path class="flowchart__path" d="M590 710 H610 V800 H715 V825" marker-end="url(#binary-flow-arrow)"></path>
+          <rect class="flowchart__process" x="560" y="825" width="310" height="70"></rect>
+          <text class="flowchart__text flowchart__code" x="715" y="867">left = mid + 1</text>
 
           <text class="flowchart__branch-label" x="382" y="802">False</text>
           <path class="flowchart__path" d="M360 775 V825" marker-end="url(#binary-flow-arrow)"></path>
-          <rect class="flowchart__process" x="130" y="825" width="420" height="70"></rect>
-          <text class="flowchart__text flowchart__code" x="340" y="867">right = mid - 1</text>
+          <rect class="flowchart__process" x="130" y="825" width="390" height="70"></rect>
+          <text class="flowchart__text flowchart__code" x="325" y="867">right = mid - 1</text>
 
-          <path class="flowchart__path" d="M705 895 V930 H360 V960" marker-end="url(#binary-flow-arrow)"></path>
-          <path class="flowchart__path" d="M340 895 V960" marker-end="url(#binary-flow-arrow)"></path>
+          <path class="flowchart__path" d="M715 895 V930 H430 V960" marker-end="url(#binary-flow-arrow)"></path>
+          <path class="flowchart__path" d="M325 895 V960" marker-end="url(#binary-flow-arrow)"></path>
           <path class="flowchart__loop" d="M155 960 H565 L590 990 L565 1020 H155 L130 990 Z"></path>
           <text class="flowchart__text" x="360" y="998">狭めた範囲について繰り返す</text>
 
           <path class="flowchart__path flowchart__path--return" d="M130 990 H40 V320 H130" marker-end="url(#binary-flow-arrow)"></path>
-          <path class="flowchart__path" d="M360 1020 V1040 H310 V1060" marker-end="url(#binary-flow-arrow)"></path>
+          <path class="flowchart__path" d="M360 1020 V1040 H300 V1060" marker-end="url(#binary-flow-arrow)"></path>
           <text class="flowchart__annotation" x="385" y="1043">x は -1 のまま</text>
-          <rect class="flowchart__terminal" x="60" y="1060" width="500" height="70" rx="28"></rect>
-          <text class="flowchart__text" x="310" y="1102">探索値は存在しない</text>
+          <rect class="flowchart__terminal" x="60" y="1060" width="480" height="70" rx="28"></rect>
+          <text class="flowchart__text" x="300" y="1102">探索値は存在しない</text>
 
-          <path class="flowchart__path" d="M755 720 H885 V1035 H735 V1060" marker-end="url(#binary-flow-arrow)"></path>
-          <rect class="flowchart__terminal" x="570" y="1060" width="310" height="70" rx="28"></rect>
-          <text class="flowchart__text" x="725" y="1102">探索値の位置は x 番目</text>
+          <path class="flowchart__path" d="M755 720 V750 H890 V1035 H730 V1060" marker-end="url(#binary-flow-arrow)"></path>
+          <rect class="flowchart__terminal" x="580" y="1060" width="300" height="70" rx="28"></rect>
+          <text class="flowchart__text" x="730" y="1102">探索値の位置は x 番目</text>
         </svg>
       </figure>
       
