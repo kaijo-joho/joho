@@ -13,7 +13,7 @@ const slidesData = [
     "image": "img_slide/ss21_04.png"
   },
   {
-    "title": "例題1. 合否判定②",
+    "title": "例題1. 合否判定①",
     "note": "<br><br>",
     "image": "img_slide/ss21_05.png",
     "showInDetails": true
@@ -53,12 +53,12 @@ const slidesData = [
   },
   {
     "title": "3.1. IF関数のネスト",
-    "note": "IF関数を<strong>ネスト（入れ子）</strong>にすると、複雑な条件を指定することができます。<br>",
+    "note": "IF関数を<strong>ネスト（入れ子）</strong>にすると、複雑な条件を指定できます。<br><pre class=\"codeInDescription\"><code>=IF(A1&gt;=70, \"A\", IF(A1&gt;=60, \"B\", IF(A1&gt;=40, \"C\", IF(A1&gt;=30, \"D\", \"E\"))))</code></pre><br>括弧の対応と条件の順序を確認しましょう。<br>",
     "image": "img_slide/ss21_13.png"
   },
   {
     "title": "3.2. IFS関数",
-    "note": "<strong>IFS関数</strong>を使うと、前ページのようにIF関数をネストする必要がないので便利です。<br>",
+    "note": "<strong>IFS関数</strong>を使うと、IF関数を何重にもネストせず、複数の条件を順番に判定できます。<br><pre class=\"codeInDescription\"><code>=IFS(A1&gt;=70, \"A\", A1&gt;=60, \"B\", A1&gt;=40, \"C\", A1&gt;=30, \"D\", TRUE, \"E\")</code></pre><br>最後に <code>TRUE</code> を指定すると、それまでの条件を満たさなかった場合の値を返せます。<br>",
     "image": "img_slide/ss21_14.png"
   },
   {
@@ -73,4 +73,4 @@ const slidesData = [
     "showInDetails": true
   }
 ]
-window.slidesData = slidesData;;
+window.slidesData = slidesData;
