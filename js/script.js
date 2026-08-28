@@ -59,43 +59,105 @@
     );
   }
 
-  function createThemePicker() {
-    const picker = document.createElement('label');
-    picker.className = 'site-theme-picker';
-    picker.title = '表示テーマを選択';
+  function createThemeSwitcher() {
+    const switcher = document.createElement('div');
+    switcher.className = 'site-theme-switcher';
+    switcher.setAttribute('role', 'radiogroup');
+    switcher.setAttribute('aria-label', '表示テーマ');
 
-    const label = document.createElement('span');
-    label.className = 'site-theme-picker__label';
-    label.textContent = '表示';
+    const options = [
+      {
+        value: 'system',
+        label: '自動',
+        ariaLabel: '自動：端末の設定に合わせる',
+        icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <rect x="3" y="4" width="18" height="13" rx="2"></rect>
+          <path d="M8 21h8M12 17v4"></path>
+        </svg>`
+      },
+      {
+        value: 'light',
+        label: 'ライト',
+        ariaLabel: 'ライトモード',
+        icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <circle cx="12" cy="12" r="3.5"></circle>
+          <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path>
+        </svg>`
+      },
+      {
+        value: 'dark',
+        label: 'ダーク',
+        ariaLabel: 'ダークモード',
+        icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+          <path d="M20 15.2A8 8 0 0 1 8.8 4 8 8 0 1 0 20 15.2Z"></path>
+        </svg>`
+      }
+    ];
 
-    const select = document.createElement('select');
-    select.className = 'site-theme-picker__select';
-    select.setAttribute('aria-label', '表示テーマ');
-
-    [
-      ['system', '自動'],
-      ['light', 'ライト'],
-      ['dark', 'ダーク']
-    ].forEach(([value, optionLabel]) => {
-      const option = document.createElement('option');
-      option.value = value;
-      option.textContent = optionLabel;
-      select.appendChild(option);
+    const buttons = options.map(option => {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'site-theme-switcher__button';
+      button.dataset.themeValue = option.value;
+      button.dataset.label = option.label;
+      button.setAttribute('role', 'radio');
+      button.setAttribute('aria-label', option.ariaLabel);
+      button.setAttribute('aria-checked', 'false');
+      button.innerHTML = option.icon;
+      switcher.appendChild(button);
+      return button;
     });
+
+    const syncSelection = value => {
+      const selectedValue = options.some(option => option.value === value) ? value : 'system';
+      buttons.forEach(button => {
+        const selected = button.dataset.themeValue === selectedValue;
+        button.classList.toggle('is-selected', selected);
+        button.setAttribute('aria-checked', String(selected));
+        button.tabIndex = selected ? 0 : -1;
+      });
+    };
 
     const theme = window.siteTheme;
     if (theme && typeof theme.setPreference === 'function') {
-      select.value = theme.preference;
-      select.addEventListener('change', () => theme.setPreference(select.value));
+      buttons.forEach(button => {
+        button.addEventListener('click', () => {
+          theme.setPreference(button.dataset.themeValue);
+        });
+      });
+
+      switcher.addEventListener('keydown', event => {
+        const currentIndex = buttons.indexOf(document.activeElement);
+        if (currentIndex < 0) return;
+
+        let nextIndex = null;
+        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
+          nextIndex = (currentIndex + 1) % buttons.length;
+        } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
+          nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+        } else if (event.key === 'Home') {
+          nextIndex = 0;
+        } else if (event.key === 'End') {
+          nextIndex = buttons.length - 1;
+        }
+
+        if (nextIndex === null) return;
+        event.preventDefault();
+        const nextButton = buttons[nextIndex];
+        theme.setPreference(nextButton.dataset.themeValue);
+        nextButton.focus();
+      });
+
+      syncSelection(theme.preference);
       document.addEventListener('joho:theme-change', event => {
-        select.value = event.detail?.preference || 'system';
+        syncSelection(event.detail?.preference || 'system');
       });
     } else {
-      select.disabled = true;
+      buttons.forEach(button => { button.disabled = true; });
+      syncSelection('system');
     }
 
-    picker.append(label, select);
-    return picker;
+    return switcher;
   }
 
   /** ========= ヘッダ生成 ========= */
@@ -152,15 +214,15 @@
         headerbarActions.appendChild(headerbarCourse);
       }
 
-      headerbarActions.appendChild(createThemePicker());
+      headerbarActions.appendChild(createThemeSwitcher());
       headerbar.append(headerbarBrand, headerbarActions);
       header.appendChild(headerbar);
     }
 
-    if (keepLegacyHeader && !legacyHeader.querySelector('.site-theme-picker')) {
-      const legacyThemePicker = createThemePicker();
-      legacyThemePicker.classList.add('site-theme-picker--legacy');
-      legacyHeader.appendChild(legacyThemePicker);
+    if (keepLegacyHeader && !legacyHeader.querySelector('.site-theme-switcher')) {
+      const legacyThemeSwitcher = createThemeSwitcher();
+      legacyThemeSwitcher.classList.add('site-theme-switcher--legacy');
+      legacyHeader.appendChild(legacyThemeSwitcher);
     }
 
     if (!meta || meta.id === 'link' || text(meta.title) === '') return;

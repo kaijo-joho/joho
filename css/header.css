@@ -58,56 +58,153 @@
   border: 1px solid color-mix(in oklab, var(--accent) 60%, transparent);
 }
 
-.site-theme-picker {
-  display: inline-flex;
+.site-theme-switcher {
+  display: grid;
+  grid-template-columns: repeat(3, 40px);
   align-items: center;
-  gap: .35rem;
-  min-height: 36px;
-  padding: .25rem .4rem .25rem .65rem;
+  padding: 2px;
   border: 1px solid rgba(255, 255, 255, .42);
   border-radius: 999px;
-  background: color-mix(in oklab, #fff 18%, transparent);
-  color: #fff;
-  font-size: .84rem;
-  font-weight: 600;
+  background: color-mix(in oklab, #fff 14%, transparent);
+  color: rgba(255, 255, 255, .88);
+}
+
+.site-theme-switcher__button {
+  position: relative;
+  width: 40px;
+  min-width: 40px;
+  height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: 1rem;
+  letter-spacing: normal;
   line-height: 1;
-  white-space: nowrap;
+  opacity: .82;
+  transform: none;
+  transition: background-color 140ms ease, color 140ms ease, opacity 140ms ease;
 }
 
-.site-theme-picker:hover {
-  background: color-mix(in oklab, #fff 25%, transparent);
-  border-color: rgba(255, 255, 255, .56);
+.site-theme-switcher__button:hover {
+  background: color-mix(in oklab, #fff 16%, transparent);
+  box-shadow: none;
+  color: #fff;
+  opacity: 1;
+  transform: none;
 }
 
-.site-theme-picker:focus-within {
-  outline: 2px solid color-mix(in oklab, #fff 90%, transparent);
+.site-theme-switcher__button:active {
+  box-shadow: none;
+  transform: none;
+}
+
+.site-theme-switcher__button.is-selected {
+  background: rgba(255, 255, 255, .92);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .16);
+  color: var(--brand, #225386);
+  opacity: 1;
+}
+
+.site-theme-switcher__button.is-selected:hover {
+  background: #fff;
+  color: var(--brand, #225386);
+}
+
+.site-theme-switcher__button:focus-visible {
+  z-index: 2;
+  outline: 3px solid rgba(255, 255, 255, .92);
   outline-offset: 2px;
 }
 
-.site-theme-picker__select {
-  max-width: 6.5rem;
-  padding: .2rem .15rem;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: inherit;
-  font: inherit;
-  line-height: 1.2;
-  cursor: pointer;
+.site-theme-switcher__button svg {
+  display: block;
+  width: 21px;
+  height: 21px;
+  margin: auto;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
 }
 
-.site-theme-picker__select:focus {
-  outline: none;
-}
-
-.site-theme-picker__select option {
-  background: Canvas;
-  color: CanvasText;
-}
-
-.site-theme-picker--legacy {
+.site-theme-switcher--legacy {
   margin: 8px;
-  background: var(--theme-color, #225386);
+  border-color: color-mix(in oklab, var(--theme-color, #225386) 65%, #fff 35%);
+  background: color-mix(in oklab, var(--theme-color, #225386) 88%, #000 12%);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .site-theme-switcher__button[data-label]::after {
+    content: attr(data-label);
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 50%;
+    z-index: 5;
+    padding: 6px 8px;
+    border: 1px solid rgba(255, 255, 255, .16);
+    border-radius: 7px;
+    background: rgba(10, 14, 20, .94);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .24);
+    color: #fff;
+    font-size: .75rem;
+    font-weight: 700;
+    line-height: 1.2;
+    opacity: 0;
+    pointer-events: none;
+    transform: translate(-50%, -3px);
+    transition: opacity 120ms ease, transform 120ms ease;
+    visibility: hidden;
+    white-space: nowrap;
+  }
+
+  .site-theme-switcher__button[data-label]:is(:hover, :focus-visible)::after {
+    opacity: 1;
+    transform: translate(-50%, 0);
+    visibility: visible;
+  }
+
+  .site-theme-switcher__button:first-child::after {
+    left: 0;
+    transform: translateY(-3px);
+  }
+
+  .site-theme-switcher__button:first-child:is(:hover, :focus-visible)::after {
+    transform: translateY(0);
+  }
+
+  .site-theme-switcher__button:last-child::after {
+    right: 0;
+    left: auto;
+    transform: translateY(-3px);
+  }
+
+  .site-theme-switcher__button:last-child:is(:hover, :focus-visible)::after {
+    transform: translateY(0);
+  }
+}
+
+@media (pointer: coarse) {
+  .site-theme-switcher {
+    grid-template-columns: repeat(3, 44px);
+  }
+  .site-theme-switcher__button {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-theme-switcher__button,
+  .site-theme-switcher__button::after {
+    transition: none;
+  }
 }
 
 /* スマホ時は縦積みに */
