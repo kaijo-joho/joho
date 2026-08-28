@@ -318,6 +318,7 @@
     const progress = root.querySelector("[data-flow-progress]");
     const stateContainer = root.querySelector("[data-flow-state]");
     const restartButton = root.querySelector("[data-flow-restart]");
+    const applyButton = form && form.querySelector("[data-flow-apply]");
     const backButton = root.querySelector("[data-flow-back]");
     const nextButton = root.querySelector("[data-flow-next]");
 
@@ -337,7 +338,7 @@
     let steps = [];
     let currentIndex = 0;
 
-    function showOverview() {
+    function showOverview(focusApplyButton = false) {
       steps = [];
       currentIndex = 0;
       taggedElements.forEach((element) => element.classList.remove("is-visited", "is-current"));
@@ -354,6 +355,12 @@
       backButton.disabled = true;
       nextButton.disabled = true;
       nextButton.textContent = "次へ";
+      if (typeof figure.scrollTo === "function") {
+        figure.scrollTo({ left: 0, top: 0, behavior: "auto" });
+      }
+      if (focusApplyButton && applyButton && typeof applyButton.focus === "function") {
+        applyButton.focus();
+      }
     }
 
     function render() {
@@ -406,10 +413,7 @@
       start();
     });
     if (input) input.addEventListener("input", () => input.setCustomValidity(""));
-    restartButton.addEventListener("click", () => {
-      currentIndex = 0;
-      render();
-    });
+    restartButton.addEventListener("click", () => showOverview(true));
     backButton.addEventListener("click", () => {
       if (currentIndex === 0) return;
       currentIndex -= 1;

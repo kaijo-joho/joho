@@ -827,7 +827,7 @@
     state.setAttribute("data-flow-state", "");
     state.setAttribute("aria-label", "変数と配列の状態");
     const actions = htmlElement("div", "algorithm-actions");
-    const restart = htmlElement("button", "", "最初から");
+    const restart = htmlElement("button", "", "開始前に戻す");
     restart.type = "button";
     restart.setAttribute("data-flow-restart", "");
     const back = htmlElement("button", "", "戻る");
