@@ -1,0 +1,45 @@
+@charset "UTF-8";
+
+/* 本文・見出し・表・コードを拡大し、固定ナビゲーションの寸法は維持する。 */
+:root[data-text-size="large"] {
+  --font-size-h1: 2.15rem;
+  --font-size-h2: 1.95rem;
+  --font-size-h3: 1.52rem;
+  --font-size-h4: 1.3rem;
+  --font-size-h5: 1.08rem;
+  --font-size-p: 1.22rem;
+  --font-size-code-em: 1rem;
+  --font-size-result-em: 1rem;
+  --code-font-size: 1.2rem;
+  --tbl-font-size: 1.1rem;
+}
+
+:root[data-text-size="xlarge"] {
+  --font-size-h1: 2.3rem;
+  --font-size-h2: 2.1rem;
+  --font-size-h3: 1.65rem;
+  --font-size-h4: 1.4rem;
+  --font-size-h5: 1.16rem;
+  --font-size-p: 1.34rem;
+  --font-size-code-em: 1.12rem;
+  --font-size-result-em: 1.12rem;
+  --code-font-size: 1.3rem;
+  --tbl-font-size: 1.2rem;
+}
+
+/* 狭い画面では見出しの拡大量を抑え、本文の読みやすさを優先する。 */
+@media (max-width: 719px) {
+  :root[data-text-size="large"] {
+    --font-size-h1: 1.72rem;
+    --font-size-h2: 1.52rem;
+    --font-size-h3: 1.33rem;
+    --font-size-h4: 1.2rem;
+  }
+
+  :root[data-text-size="xlarge"] {
+    --font-size-h1: 1.84rem;
+    --font-size-h2: 1.64rem;
+    --font-size-h3: 1.44rem;
+    --font-size-h4: 1.3rem;
+  }
+}

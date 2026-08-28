@@ -4,6 +4,8 @@
 
   const SITE_THEME_STORAGE_KEY = 'joho.siteTheme';
   const SITE_THEME_OPTIONS = ['system', 'light', 'dark'];
+  const SITE_TEXT_SIZE_STORAGE_KEY = 'joho.textSize';
+  const SITE_TEXT_SIZE_OPTIONS = ['standard', 'large', 'xlarge'];
 
   function initializeSiteTheme() {
     const root = document.documentElement;
@@ -82,6 +84,50 @@
   }
 
   if (!window.siteTheme) window.siteTheme = initializeSiteTheme();
+
+  function initializeSiteTextSize() {
+    const root = document.documentElement;
+    let preference = 'standard';
+
+    try {
+      const stored = localStorage.getItem(SITE_TEXT_SIZE_STORAGE_KEY);
+      if (SITE_TEXT_SIZE_OPTIONS.includes(stored)) preference = stored;
+    } catch {}
+
+    const applyPreference = () => {
+      root.dataset.textSize = preference;
+      document.dispatchEvent(new CustomEvent('joho:text-size-change', {
+        detail: { preference }
+      }));
+    };
+
+    const setPreference = (value, { persist = true } = {}) => {
+      preference = SITE_TEXT_SIZE_OPTIONS.includes(value) ? value : 'standard';
+
+      if (persist) {
+        try {
+          if (preference === 'standard') localStorage.removeItem(SITE_TEXT_SIZE_STORAGE_KEY);
+          else localStorage.setItem(SITE_TEXT_SIZE_STORAGE_KEY, preference);
+        } catch {}
+      }
+
+      applyPreference();
+    };
+
+    window.addEventListener('storage', event => {
+      if (event.key !== SITE_TEXT_SIZE_STORAGE_KEY) return;
+      setPreference(event.newValue || 'standard', { persist: false });
+    });
+
+    applyPreference();
+
+    return {
+      get preference() { return preference; },
+      setPreference
+    };
+  }
+
+  if (!window.siteTextSize) window.siteTextSize = initializeSiteTextSize();
 
   if (window.__johoMainBootstrapped) return;
   window.__johoMainBootstrapped = true;

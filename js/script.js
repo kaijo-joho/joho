@@ -12,7 +12,8 @@
   };
 
   let inited = false;
-  let themeMenuSequence = 0;
+  let preferenceMenuSequence = 0;
+  let activePreferenceMenu = null;
 
   /** ========= メタ情報の取得 ========= */
   function getCurrentPageId() {
@@ -60,58 +61,37 @@
     );
   }
 
-  function createThemeMenu() {
-    const options = [
-      {
-        value: 'system',
-        label: '自動',
-        ariaLabel: '自動：端末の設定に合わせる',
-        icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <rect x="3" y="4" width="18" height="13" rx="2"></rect>
-          <path d="M8 21h8M12 17v4"></path>
-        </svg>`
-      },
-      {
-        value: 'light',
-        label: 'ライト',
-        ariaLabel: 'ライトモード',
-        icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <circle cx="12" cy="12" r="3.5"></circle>
-          <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path>
-        </svg>`
-      },
-      {
-        value: 'dark',
-        label: 'ダーク',
-        ariaLabel: 'ダークモード',
-        icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-          <path d="M20 15.2A8 8 0 0 1 8.8 4 8 8 0 1 0 20 15.2Z"></path>
-        </svg>`
-      }
-    ];
-
+  function createPreferenceMenu({
+    idPrefix,
+    className,
+    preferenceName,
+    panelLabel,
+    options,
+    controller,
+    changeEvent
+  }) {
     const menu = document.createElement('div');
-    menu.className = 'site-theme-menu';
+    menu.className = `site-preference-menu ${className}`;
 
     const trigger = document.createElement('button');
     trigger.type = 'button';
-    trigger.className = 'site-theme-menu__trigger';
+    trigger.className = `site-preference-menu__trigger ${className}__trigger`;
     trigger.setAttribute('aria-haspopup', 'menu');
     trigger.setAttribute('aria-expanded', 'false');
 
     const optionPanel = document.createElement('div');
-    optionPanel.className = 'site-theme-menu__options';
-    optionPanel.id = `site-theme-options-${++themeMenuSequence}`;
+    optionPanel.className = `site-preference-menu__options ${className}__options`;
+    optionPanel.id = `site-${idPrefix}-options-${++preferenceMenuSequence}`;
     optionPanel.setAttribute('role', 'menu');
-    optionPanel.setAttribute('aria-label', '表示テーマを変更');
+    optionPanel.setAttribute('aria-label', panelLabel);
     optionPanel.hidden = true;
     trigger.setAttribute('aria-controls', optionPanel.id);
 
     const optionButtons = options.map(option => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'site-theme-menu__option';
-      button.dataset.themeValue = option.value;
+      button.className = `site-preference-menu__option ${className}__option`;
+      button.dataset.preferenceValue = option.value;
       button.dataset.label = option.label;
       button.setAttribute('role', 'menuitemradio');
       button.setAttribute('aria-label', option.ariaLabel);
@@ -124,25 +104,25 @@
 
     menu.append(trigger, optionPanel);
 
-    let currentValue = 'system';
+    let currentValue = options[0].value;
     let closeTimer = null;
     let lastPointerType = '';
 
     const visibleOptionButtons = () => optionButtons.filter(button => !button.hidden);
 
-    const syncCurrentTheme = value => {
-      currentValue = options.some(option => option.value === value) ? value : 'system';
+    const syncCurrentPreference = value => {
+      currentValue = options.some(option => option.value === value) ? value : options[0].value;
       const current = options.find(option => option.value === currentValue);
 
       trigger.innerHTML = current.icon;
       trigger.dataset.label = current.label;
       trigger.setAttribute(
         'aria-label',
-        `現在の表示テーマ：${current.ariaLabel}。ほかのテーマを選ぶ`
+        `現在の${preferenceName}：${current.ariaLabel}。ほかの${preferenceName}を選ぶ`
       );
 
       optionButtons.forEach(button => {
-        const selected = button.dataset.themeValue === currentValue;
+        const selected = button.dataset.preferenceValue === currentValue;
         button.classList.toggle('is-selected', selected);
         button.setAttribute('aria-checked', String(selected));
         button.tabIndex = -1;
@@ -157,10 +137,16 @@
     const isOpen = () => trigger.getAttribute('aria-expanded') === 'true';
 
     const openMenu = ({ focus = 'none' } = {}) => {
+      if (activePreferenceMenu && activePreferenceMenu.menu !== menu) {
+        activePreferenceMenu.close({
+          restoreFocus: activePreferenceMenu.menu.contains(document.activeElement)
+        });
+      }
       clearTimeout(closeTimer);
       optionPanel.hidden = false;
       menu.classList.add('is-open');
       trigger.setAttribute('aria-expanded', 'true');
+      activePreferenceMenu = { menu, close: closeMenu };
 
       const visible = visibleOptionButtons();
       visible.forEach((button, index) => {
@@ -177,14 +163,14 @@
       menu.classList.remove('is-open');
       trigger.setAttribute('aria-expanded', 'false');
       optionButtons.forEach(button => { button.tabIndex = -1; });
+      if (activePreferenceMenu?.menu === menu) activePreferenceMenu = null;
       if (restoreFocus) trigger.focus({ preventScroll: true });
     };
 
-    const theme = window.siteTheme;
-    if (theme && typeof theme.setPreference === 'function') {
+    if (controller && typeof controller.setPreference === 'function') {
       optionButtons.forEach(button => {
         button.addEventListener('click', () => {
-          theme.setPreference(button.dataset.themeValue);
+          controller.setPreference(button.dataset.preferenceValue);
           closeMenu({ restoreFocus: true });
         });
       });
@@ -266,16 +252,95 @@
         if (event.key === 'Escape' && isOpen()) closeMenu({ restoreFocus: true });
       });
 
-      syncCurrentTheme(theme.preference);
-      document.addEventListener('joho:theme-change', event => {
-        syncCurrentTheme(event.detail?.preference || 'system');
+      syncCurrentPreference(controller.preference);
+      document.addEventListener(changeEvent, event => {
+        syncCurrentPreference(event.detail?.preference || options[0].value);
       });
     } else {
       trigger.disabled = true;
-      syncCurrentTheme('system');
+      syncCurrentPreference(options[0].value);
     }
 
     return menu;
+  }
+
+  function createThemeMenu() {
+    return createPreferenceMenu({
+      idPrefix: 'theme',
+      className: 'site-theme-menu',
+      preferenceName: '表示テーマ',
+      panelLabel: '表示テーマを変更',
+      controller: window.siteTheme,
+      changeEvent: 'joho:theme-change',
+      options: [
+        {
+          value: 'system',
+          label: '自動',
+          ariaLabel: '自動：端末の設定に合わせる',
+          icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <rect x="3" y="4" width="18" height="13" rx="2"></rect>
+            <path d="M8 21h8M12 17v4"></path>
+          </svg>`
+        },
+        {
+          value: 'light',
+          label: 'ライト',
+          ariaLabel: 'ライトモード',
+          icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <circle cx="12" cy="12" r="3.5"></circle>
+            <path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"></path>
+          </svg>`
+        },
+        {
+          value: 'dark',
+          label: 'ダーク',
+          ariaLabel: 'ダークモード',
+          icon: `<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path d="M20 15.2A8 8 0 0 1 8.8 4 8 8 0 1 0 20 15.2Z"></path>
+          </svg>`
+        }
+      ]
+    });
+  }
+
+  function createTextSizeMenu() {
+    return createPreferenceMenu({
+      idPrefix: 'text-size',
+      className: 'site-text-size-menu',
+      preferenceName: '文字サイズ',
+      panelLabel: '文字サイズを変更',
+      controller: window.siteTextSize,
+      changeEvent: 'joho:text-size-change',
+      options: [
+        {
+          value: 'standard',
+          label: '標準',
+          ariaLabel: '標準',
+          icon: '<span class="site-text-size-icon site-text-size-icon--standard" aria-hidden="true">A</span>'
+        },
+        {
+          value: 'large',
+          label: '大',
+          ariaLabel: '大きい',
+          icon: '<span class="site-text-size-icon site-text-size-icon--large" aria-hidden="true">A</span>'
+        },
+        {
+          value: 'xlarge',
+          label: '特大',
+          ariaLabel: '特大',
+          icon: '<span class="site-text-size-icon site-text-size-icon--xlarge" aria-hidden="true">A</span>'
+        }
+      ]
+    });
+  }
+
+  function createSitePreferenceControls() {
+    const controls = document.createElement('div');
+    controls.className = 'site-preference-controls';
+    controls.setAttribute('role', 'group');
+    controls.setAttribute('aria-label', '表示設定');
+    controls.append(createTextSizeMenu(), createThemeMenu());
+    return controls;
   }
 
   /** ========= ヘッダ生成 ========= */
@@ -332,15 +397,15 @@
         headerbarActions.appendChild(headerbarCourse);
       }
 
-      headerbarActions.appendChild(createThemeMenu());
+      headerbarActions.appendChild(createSitePreferenceControls());
       headerbar.append(headerbarBrand, headerbarActions);
       header.appendChild(headerbar);
     }
 
-    if (keepLegacyHeader && !legacyHeader.querySelector('.site-theme-menu')) {
-      const legacyThemeMenu = createThemeMenu();
-      legacyThemeMenu.classList.add('site-theme-menu--legacy');
-      legacyHeader.appendChild(legacyThemeMenu);
+    if (keepLegacyHeader && !legacyHeader.querySelector('.site-preference-controls')) {
+      const legacyPreferenceControls = createSitePreferenceControls();
+      legacyPreferenceControls.classList.add('site-preference-controls--legacy');
+      legacyHeader.appendChild(legacyPreferenceControls);
     }
 
     if (!meta || meta.id === 'link' || text(meta.title) === '') return;
