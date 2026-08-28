@@ -77,6 +77,8 @@ svg.flowchart{
   --flowchart-path: #278345;
   --flowchart-terminal: #bd4b97;
   --flowchart-note: #94641f;
+  --flowchart-current: #b45309;
+  --flowchart-current-glow: rgba(180, 83, 9, .28);
   --flowchart-node-fill: rgba(255, 255, 255, .42);
   --flowchart-terminal-fill: rgba(189, 75, 151, .06);
 
@@ -115,6 +117,7 @@ svg.flowchart{
 
 .flowchart .flowchart__arrow{
   fill: var(--flowchart-path);
+  fill: context-stroke;
 }
 
 .flowchart .flowchart__text{
@@ -152,6 +155,172 @@ svg.flowchart{
   font-weight: 600;
 }
 
+/* フローチャートを順にたどる独立デモ */
+.flowchart-demo.demo{
+  width: 100%;
+  max-width: 980px;
+  min-width: 0;
+  margin: 1rem auto 1.5rem;
+  padding: clamp(.75rem, 2.4vw, 1.1rem);
+  border: 1px solid var(--demo-border);
+  border-radius: 12px;
+  background: var(--demo-surface);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .06);
+}
+
+.flowchart-demo__setup{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: .65rem 1rem;
+}
+
+.flowchart-demo__example{
+  display: grid;
+  gap: .25rem;
+  min-width: 0;
+}
+
+.flowchart-demo__example > span,
+.flowchart-demo__field > span{
+  color: var(--font-color-sub-text, currentColor);
+  font-size: .82em;
+  font-weight: 600;
+}
+
+.flowchart-demo__example > code{
+  overflow-wrap: anywhere;
+  font-weight: 600;
+}
+
+.flowchart-demo__form{
+  display: flex;
+  align-items: end;
+  gap: .55rem;
+}
+
+.flowchart-demo__field{
+  display: grid;
+  gap: .25rem;
+}
+
+.flowchart-demo .flowchart-demo__field input{
+  width: 7rem;
+  box-sizing: border-box;
+}
+
+.flowchart-demo__hint{
+  margin: .65rem 0;
+  color: var(--font-color-sub-text, currentColor);
+  font-size: .84em;
+  line-height: 1.55;
+}
+
+.flowchart-demo__panel{
+  display: grid;
+  gap: .55rem;
+  padding: .75rem;
+  border: 1px solid var(--demo-border);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--demo-surface) 84%, transparent);
+}
+
+.flowchart-demo__progress{
+  color: var(--font-color-sub-text, currentColor);
+  font-size: .84em;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.flowchart-demo__progress[data-result="found"]{
+  color: #166534;
+}
+
+.flowchart-demo__progress[data-result="missing"]{
+  color: #9a3412;
+}
+
+.flowchart-demo__description{
+  min-height: 3.1em;
+  margin: 0;
+  line-height: 1.55;
+}
+
+.flowchart-demo__state{
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem;
+}
+
+.flowchart-demo__state-item{
+  display: inline-flex;
+  align-items: center;
+  min-height: 1.8rem;
+  padding: .18rem .5rem;
+  border: 1px solid var(--demo-border);
+  border-radius: 999px;
+  background: var(--demo-tile);
+  font-size: .78em;
+  font-variant-numeric: tabular-nums;
+}
+
+.flowchart-demo__state-item code{
+  line-height: 1.2;
+}
+
+.flowchart-demo .flowchart-figure{
+  width: 100%;
+  max-height: min(70vh, 760px);
+  margin: .85rem 0 0;
+  padding: .35rem;
+  overflow: auto;
+  border: 1px solid var(--demo-border);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--demo-surface) 70%, transparent);
+  scrollbar-gutter: stable;
+}
+
+.flowchart-demo.is-ready .flowchart :is([data-flow-node], [data-flow-edge]){
+  opacity: .3;
+  transition: opacity 180ms ease, stroke 180ms ease, stroke-width 180ms ease,
+    fill 180ms ease, filter 180ms ease;
+}
+
+.flowchart-demo.is-ready .flowchart :is([data-flow-node], [data-flow-edge]).is-visited{
+  opacity: .72;
+}
+
+.flowchart-demo.is-ready .flowchart :is([data-flow-node], [data-flow-edge]).is-current{
+  opacity: 1;
+}
+
+.flowchart-demo .flowchart :is(
+  .flowchart__process,
+  .flowchart__loop,
+  .flowchart__decision,
+  .flowchart__terminal
+)[data-flow-node].is-current{
+  stroke: var(--flowchart-current);
+  stroke-width: 8;
+  filter: drop-shadow(0 0 7px var(--flowchart-current-glow));
+}
+
+.flowchart-demo .flowchart .flowchart__path[data-flow-edge].is-current{
+  stroke: var(--flowchart-current);
+  stroke-width: 7;
+  filter: drop-shadow(0 0 6px var(--flowchart-current-glow));
+}
+
+.flowchart-demo .flowchart :is(
+  .flowchart__text[data-flow-node],
+  .flowchart__branch-label[data-flow-edge],
+  .flowchart__annotation[data-flow-edge]
+).is-current{
+  fill: var(--flowchart-current);
+  font-weight: 700;
+}
+
 @media (prefers-color-scheme: dark){
   :root:not([data-theme]) svg.flowchart{
     --flowchart-text: #f1f5f9;
@@ -159,8 +328,18 @@ svg.flowchart{
     --flowchart-path: #6ed78c;
     --flowchart-terminal: #f08ac9;
     --flowchart-note: #e7b967;
+    --flowchart-current: #fbbf24;
+    --flowchart-current-glow: rgba(251, 191, 36, .34);
     --flowchart-node-fill: rgba(3, 9, 18, .24);
     --flowchart-terminal-fill: rgba(240, 138, 201, .10);
+  }
+
+  :root:not([data-theme]) .flowchart-demo__progress[data-result="found"]{
+    color: #86efac;
+  }
+
+  :root:not([data-theme]) .flowchart-demo__progress[data-result="missing"]{
+    color: #fdba74;
   }
 }
 
@@ -170,6 +349,8 @@ svg.flowchart{
   --flowchart-path: #278345;
   --flowchart-terminal: #bd4b97;
   --flowchart-note: #94641f;
+  --flowchart-current: #b45309;
+  --flowchart-current-glow: rgba(180, 83, 9, .28);
   --flowchart-node-fill: rgba(255, 255, 255, .42);
   --flowchart-terminal-fill: rgba(189, 75, 151, .06);
 }
@@ -180,11 +361,46 @@ svg.flowchart{
   --flowchart-path: #6ed78c;
   --flowchart-terminal: #f08ac9;
   --flowchart-note: #e7b967;
+  --flowchart-current: #fbbf24;
+  --flowchart-current-glow: rgba(251, 191, 36, .34);
   --flowchart-node-fill: rgba(3, 9, 18, .24);
   --flowchart-terminal-fill: rgba(240, 138, 201, .10);
 }
 
+:root[data-theme="dark"] .flowchart-demo__progress[data-result="found"]{
+  color: #86efac;
+}
+
+:root[data-theme="dark"] .flowchart-demo__progress[data-result="missing"]{
+  color: #fdba74;
+}
+
 @media (max-width: 559px){
+  .flowchart-demo.demo{
+    padding: .65rem;
+  }
+
+  .flowchart-demo__setup{
+    align-items: stretch;
+  }
+
+  .flowchart-demo__example,
+  .flowchart-demo__form{
+    width: 100%;
+  }
+
+  .flowchart-demo__field{
+    flex: 1 1 auto;
+  }
+
+  .flowchart-demo .flowchart-demo__field input{
+    width: 100%;
+  }
+
+  .flowchart-demo__panel{
+    padding: .65rem;
+  }
+
   svg.flowchart{
     width: 620px;
     min-width: 620px;
@@ -192,6 +408,63 @@ svg.flowchart{
 }
 
 @media print{
+  .flowchart-demo.demo{
+    max-width: none;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+  }
+
+  .flowchart-demo__form,
+  .flowchart-demo__hint,
+  .flowchart-demo__panel{
+    display: none;
+  }
+
+  .flowchart-demo .flowchart-figure{
+    max-height: none;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+  }
+
+  .flowchart-demo.is-ready .flowchart :is([data-flow-node], [data-flow-edge]){
+    opacity: 1;
+    filter: none;
+  }
+
+  .flowchart-demo .flowchart :is(
+    .flowchart__process,
+    .flowchart__loop,
+    .flowchart__decision
+  )[data-flow-node].is-current{
+    stroke: var(--flowchart-process);
+    stroke-width: 5;
+  }
+
+  .flowchart-demo .flowchart .flowchart__terminal[data-flow-node].is-current{
+    stroke: var(--flowchart-terminal);
+    stroke-width: 5;
+  }
+
+  .flowchart-demo .flowchart .flowchart__path[data-flow-edge].is-current{
+    stroke: var(--flowchart-path);
+    stroke-width: 5;
+  }
+
+  .flowchart-demo .flowchart .flowchart__text[data-flow-node].is-current{
+    fill: var(--flowchart-text);
+    font-weight: 500;
+  }
+
+  .flowchart-demo .flowchart .flowchart__branch-label[data-flow-edge].is-current{
+    fill: var(--flowchart-text);
+  }
+
+  .flowchart-demo .flowchart .flowchart__annotation[data-flow-edge].is-current{
+    fill: var(--flowchart-note);
+  }
+
   svg.flowchart{
     --flowchart-text: #000;
     --flowchart-process: #285b8d;
@@ -200,6 +473,12 @@ svg.flowchart{
     --flowchart-note: #704a18;
     --flowchart-node-fill: transparent;
     --flowchart-terminal-fill: transparent;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .flowchart-demo.is-ready .flowchart :is([data-flow-node], [data-flow-edge]){
+    transition: none;
   }
 }
 
@@ -257,5 +536,3 @@ figure.img-wrapper > a > img {
     figure.img-wrapper { background: color-mix(in oklab, #fff 20%, transparent); }
   }
 }
-
-

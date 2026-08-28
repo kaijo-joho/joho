@@ -16,6 +16,7 @@
   <title>海城中学高等学校 情報科</title>
   <link rel="stylesheet" href="./css/css.css">
   <script defer src="./js/main.js"></script>
+  <script defer src="./js/flowchart_demo.js"></script>
 </head>
 <body>
   
@@ -41,7 +42,34 @@
       </ol>
       
       <h3>フローチャート</h3>
-      <figure class="flowchart-figure">
+      <div class="flowchart-demo demo" data-flowchart-demo="binary" data-flow-array="0,1,2,3,4,5,6,7,8,9,10,11">
+        <div class="flowchart-demo__setup">
+          <div class="flowchart-demo__example">
+            <span>例の整列済み配列</span>
+            <code>[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]</code>
+          </div>
+          <form class="flowchart-demo__form">
+            <label class="flowchart-demo__field" for="binary-flow-target">
+              <span>探索値 <code>target</code></span>
+              <input id="binary-flow-target" data-flow-target type="number" value="6" step="1" required>
+            </label>
+            <button type="submit" data-flow-apply>この値で開始</button>
+          </form>
+        </div>
+        <p class="flowchart-demo__hint">整数を指定し、フローチャート上の処理を順番にたどってみましょう。配列にない値も指定できます。</p>
+
+        <div class="flowchart-demo__panel">
+          <div class="flowchart-demo__progress" data-flow-progress></div>
+          <p class="flowchart-demo__description" data-flow-description></p>
+          <div class="flowchart-demo__state" data-flow-state aria-label="変数の状態"></div>
+          <div class="algorithm-actions">
+            <button type="button" data-flow-restart>最初から</button>
+            <button type="button" data-flow-back>戻る</button>
+            <button type="button" class="algorithm-next" data-flow-next>次へ</button>
+          </div>
+        </div>
+
+        <figure class="flowchart-figure">
         <svg class="flowchart flowchart--binary" viewBox="0 0 900 1160" role="img" aria-label="バイナリサーチのフローチャート" aria-describedby="binary-flow-desc">
           <desc id="binary-flow-desc">整列済み配列の中央の値と探索値を比較し、探索範囲を半分ずつ狭める。一致した位置を記録し、探索範囲がなくなるまで一致しなければ探索値は存在しない。</desc>
           <defs>
@@ -50,80 +78,81 @@
             </marker>
           </defs>
 
-          <rect class="flowchart__terminal" x="110" y="20" width="500" height="76" rx="30"></rect>
-          <text class="flowchart__text" x="360" y="52">
+          <rect class="flowchart__terminal" data-flow-node="prepare" x="110" y="20" width="500" height="76" rx="30"></rect>
+          <text class="flowchart__text" data-flow-node="prepare" x="360" y="52">
             <tspan x="360">整列済みの配列 <tspan class="flowchart__code">arr</tspan> と</tspan>
             <tspan x="360" dy="28">探索値 <tspan class="flowchart__code">target</tspan> を準備する</tspan>
           </text>
 
-          <path class="flowchart__path" d="M360 96 V130" marker-end="url(#binary-flow-arrow)"></path>
-          <rect class="flowchart__process" x="130" y="130" width="460" height="150"></rect>
-          <text class="flowchart__text flowchart__text--small flowchart__text--start" x="155" y="163">
+          <path class="flowchart__path" data-flow-edge="prepare-init" d="M360 96 V130" marker-end="url(#binary-flow-arrow)"></path>
+          <rect class="flowchart__process" data-flow-node="init" x="130" y="130" width="460" height="150"></rect>
+          <text class="flowchart__text flowchart__text--small flowchart__text--start" data-flow-node="init" x="155" y="163">
             探索値の位置　<tspan class="flowchart__code">x = -1</tspan>（初期値）
           </text>
-          <text class="flowchart__text flowchart__text--small flowchart__text--start" x="155" y="195">
+          <text class="flowchart__text flowchart__text--small flowchart__text--start" data-flow-node="init" x="155" y="195">
             配列の長さ　　<tspan class="flowchart__code">n = len(arr)</tspan>
           </text>
-          <text class="flowchart__text flowchart__text--small flowchart__text--start" x="155" y="227">
+          <text class="flowchart__text flowchart__text--small flowchart__text--start" data-flow-node="init" x="155" y="227">
             左端の位置　　<tspan class="flowchart__code">left = 0</tspan>
           </text>
-          <text class="flowchart__text flowchart__text--small flowchart__text--start" x="155" y="259">
+          <text class="flowchart__text flowchart__text--small flowchart__text--start" data-flow-node="init" x="155" y="259">
             右端の位置　　<tspan class="flowchart__code">right = n - 1</tspan>
           </text>
 
-          <path class="flowchart__path" d="M360 280 V295" marker-end="url(#binary-flow-arrow)"></path>
-          <path class="flowchart__loop" d="M155 295 H565 L590 320 L565 345 H155 L130 320 Z"></path>
-          <text class="flowchart__text" x="360" y="328">
+          <path class="flowchart__path" data-flow-edge="init-loop" d="M360 280 V295" marker-end="url(#binary-flow-arrow)"></path>
+          <path class="flowchart__loop" data-flow-node="loop" d="M155 295 H565 L590 320 L565 345 H155 L130 320 Z"></path>
+          <text class="flowchart__text" data-flow-node="loop" x="360" y="328">
             <tspan class="flowchart__code">left &lt;= right</tspan> の間は繰り返す
           </text>
 
-          <path class="flowchart__path" d="M360 345 V385" marker-end="url(#binary-flow-arrow)"></path>
-          <rect class="flowchart__process" x="130" y="385" width="460" height="70"></rect>
-          <text class="flowchart__text flowchart__code" x="360" y="427">mid = (left + right) // 2</text>
+          <path class="flowchart__path" data-flow-edge="loop-mid" d="M360 345 V385" marker-end="url(#binary-flow-arrow)"></path>
+          <rect class="flowchart__process" data-flow-node="mid" x="130" y="385" width="460" height="70"></rect>
+          <text class="flowchart__text flowchart__code" data-flow-node="mid" x="360" y="427">mid = (left + right) // 2</text>
 
-          <path class="flowchart__path" d="M360 455 V475" marker-end="url(#binary-flow-arrow)"></path>
-          <path class="flowchart__decision" d="M360 475 L590 540 L360 605 L130 540 Z"></path>
-          <text class="flowchart__text flowchart__code" x="360" y="548">arr[mid] == target</text>
+          <path class="flowchart__path" data-flow-edge="mid-equal" d="M360 455 V475" marker-end="url(#binary-flow-arrow)"></path>
+          <path class="flowchart__decision" data-flow-node="equal" d="M360 475 L590 540 L360 605 L130 540 Z"></path>
+          <text class="flowchart__text flowchart__code" data-flow-node="equal" x="360" y="548">arr[mid] == target</text>
 
-          <text class="flowchart__branch-label" x="610" y="523">True</text>
-          <path class="flowchart__path" d="M590 540 H755 V650" marker-end="url(#binary-flow-arrow)"></path>
-          <rect class="flowchart__process" x="630" y="650" width="250" height="70"></rect>
-          <text class="flowchart__text flowchart__text--small" x="755" y="678">
+          <text class="flowchart__branch-label" data-flow-edge="equal-found" x="610" y="523">True</text>
+          <path class="flowchart__path" data-flow-edge="equal-found" d="M590 540 H755 V650" marker-end="url(#binary-flow-arrow)"></path>
+          <rect class="flowchart__process" data-flow-node="set-found" x="630" y="650" width="250" height="70"></rect>
+          <text class="flowchart__text flowchart__text--small" data-flow-node="set-found" x="755" y="678">
             <tspan class="flowchart__code" x="755">x = mid</tspan>
             <tspan x="755" dy="23">繰り返しを終了</tspan>
           </text>
 
-          <text class="flowchart__branch-label" x="382" y="632">False</text>
-          <path class="flowchart__path" d="M360 605 V645" marker-end="url(#binary-flow-arrow)"></path>
-          <path class="flowchart__decision" d="M360 645 L590 710 L360 775 L130 710 Z"></path>
-          <text class="flowchart__text flowchart__code" x="360" y="718">arr[mid] &lt; target</text>
+          <text class="flowchart__branch-label" data-flow-edge="equal-less" x="382" y="632">False</text>
+          <path class="flowchart__path" data-flow-edge="equal-less" d="M360 605 V645" marker-end="url(#binary-flow-arrow)"></path>
+          <path class="flowchart__decision" data-flow-node="less" d="M360 645 L590 710 L360 775 L130 710 Z"></path>
+          <text class="flowchart__text flowchart__code" data-flow-node="less" x="360" y="718">arr[mid] &lt; target</text>
 
-          <text class="flowchart__branch-label" x="604" y="693" text-anchor="end">True</text>
-          <path class="flowchart__path" d="M590 710 H610 V800 H715 V825" marker-end="url(#binary-flow-arrow)"></path>
-          <rect class="flowchart__process" x="560" y="825" width="310" height="70"></rect>
-          <text class="flowchart__text flowchart__code" x="715" y="867">left = mid + 1</text>
+          <text class="flowchart__branch-label" data-flow-edge="less-left" x="604" y="693" text-anchor="end">True</text>
+          <path class="flowchart__path" data-flow-edge="less-left" d="M590 710 H610 V800 H715 V825" marker-end="url(#binary-flow-arrow)"></path>
+          <rect class="flowchart__process" data-flow-node="left" x="560" y="825" width="310" height="70"></rect>
+          <text class="flowchart__text flowchart__code" data-flow-node="left" x="715" y="867">left = mid + 1</text>
 
-          <text class="flowchart__branch-label" x="382" y="802">False</text>
-          <path class="flowchart__path" d="M360 775 V825" marker-end="url(#binary-flow-arrow)"></path>
-          <rect class="flowchart__process" x="130" y="825" width="390" height="70"></rect>
-          <text class="flowchart__text flowchart__code" x="325" y="867">right = mid - 1</text>
+          <text class="flowchart__branch-label" data-flow-edge="less-right" x="382" y="802">False</text>
+          <path class="flowchart__path" data-flow-edge="less-right" d="M360 775 V825" marker-end="url(#binary-flow-arrow)"></path>
+          <rect class="flowchart__process" data-flow-node="right" x="130" y="825" width="390" height="70"></rect>
+          <text class="flowchart__text flowchart__code" data-flow-node="right" x="325" y="867">right = mid - 1</text>
 
-          <path class="flowchart__path" d="M715 895 V930 H430 V960" marker-end="url(#binary-flow-arrow)"></path>
-          <path class="flowchart__path" d="M325 895 V960" marker-end="url(#binary-flow-arrow)"></path>
-          <path class="flowchart__loop" d="M155 960 H565 L590 990 L565 1020 H155 L130 990 Z"></path>
-          <text class="flowchart__text" x="360" y="998">狭めた範囲について繰り返す</text>
+          <path class="flowchart__path" data-flow-edge="left-repeat" d="M715 895 V930 H430 V960" marker-end="url(#binary-flow-arrow)"></path>
+          <path class="flowchart__path" data-flow-edge="right-repeat" d="M325 895 V960" marker-end="url(#binary-flow-arrow)"></path>
+          <path class="flowchart__loop" data-flow-node="repeat" d="M155 960 H565 L590 990 L565 1020 H155 L130 990 Z"></path>
+          <text class="flowchart__text" data-flow-node="repeat" x="360" y="998">狭めた範囲について繰り返す</text>
 
-          <path class="flowchart__path flowchart__path--return" d="M130 990 H40 V320 H130" marker-end="url(#binary-flow-arrow)"></path>
-          <path class="flowchart__path" d="M360 1020 V1040 H300 V1060" marker-end="url(#binary-flow-arrow)"></path>
-          <text class="flowchart__annotation" x="385" y="1043">x は -1 のまま</text>
-          <rect class="flowchart__terminal" x="60" y="1060" width="480" height="70" rx="28"></rect>
-          <text class="flowchart__text" x="300" y="1102">探索値は存在しない</text>
+          <path class="flowchart__path flowchart__path--return" data-flow-edge="repeat-loop" d="M130 990 H40 V320 H130" marker-end="url(#binary-flow-arrow)"></path>
+          <path class="flowchart__path" data-flow-edge="repeat-missing" d="M360 1020 V1040 H300 V1060" marker-end="url(#binary-flow-arrow)"></path>
+          <text class="flowchart__annotation" data-flow-edge="repeat-missing" x="385" y="1043">x は -1 のまま</text>
+          <rect class="flowchart__terminal" data-flow-node="missing" x="60" y="1060" width="480" height="70" rx="28"></rect>
+          <text class="flowchart__text" data-flow-node="missing" x="300" y="1102">探索値は存在しない</text>
 
-          <path class="flowchart__path" d="M755 720 V750 H890 V1035 H730 V1060" marker-end="url(#binary-flow-arrow)"></path>
-          <rect class="flowchart__terminal" x="580" y="1060" width="300" height="70" rx="28"></rect>
-          <text class="flowchart__text" x="730" y="1102">探索値の位置は x 番目</text>
+          <path class="flowchart__path" data-flow-edge="found-result" d="M755 720 V750 H890 V1035 H730 V1060" marker-end="url(#binary-flow-arrow)"></path>
+          <rect class="flowchart__terminal" data-flow-node="found" x="580" y="1060" width="300" height="70" rx="28"></rect>
+          <text class="flowchart__text" data-flow-node="found" x="730" y="1102">探索値の位置は x 番目</text>
         </svg>
-      </figure>
+        </figure>
+      </div>
       
       <h3>デモンストレーション</h3>
       <div id="binary-search" class="demo algorithm-demo">
