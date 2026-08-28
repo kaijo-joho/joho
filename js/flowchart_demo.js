@@ -334,6 +334,23 @@
     let steps = [];
     let currentIndex = 0;
 
+    function showOverview() {
+      steps = [];
+      currentIndex = 0;
+      taggedElements.forEach((element) => element.classList.remove("is-visited", "is-current"));
+      root.classList.remove("is-ready");
+      delete root.dataset.flowResult;
+      delete svg.dataset.currentNode;
+      delete progress.dataset.result;
+      progress.textContent = "デモ未開始 ・ 全体表示";
+      description.textContent = "探索値を指定して「この値で開始」を押すと、処理を順番にたどれます。";
+      stateContainer.replaceChildren();
+      restartButton.disabled = true;
+      backButton.disabled = true;
+      nextButton.disabled = true;
+      nextButton.textContent = "次へ";
+    }
+
     function render() {
       const current = steps[currentIndex];
       if (!current) return;
@@ -354,6 +371,7 @@
       description.textContent = current.description;
       renderState(stateContainer, current.state);
 
+      restartButton.disabled = false;
       backButton.disabled = currentIndex === 0;
       nextButton.disabled = currentIndex === steps.length - 1;
       nextButton.textContent = currentIndex === steps.length - 1 ? "完了" : "次へ";
@@ -395,7 +413,7 @@
       render();
     });
 
-    start();
+    showOverview();
   }
 
   const api = Object.freeze({

@@ -271,13 +271,19 @@ svg.flowchart{
 
 .flowchart-demo .flowchart-figure{
   width: 100%;
-  max-height: min(70vh, 760px);
+  max-height: none;
   margin: .85rem 0 0;
   padding: .35rem;
-  overflow: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   border: 1px solid var(--demo-border);
   border-radius: 10px;
   background: color-mix(in oklab, var(--demo-surface) 70%, transparent);
+}
+
+.flowchart-demo.is-ready .flowchart-figure{
+  max-height: min(70vh, 760px);
+  overflow: auto;
   scrollbar-gutter: stable;
 }
 
