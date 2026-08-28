@@ -53,26 +53,46 @@
       
       
       <h3>デモンストレーション</h3>
-      <div id="quick-sort" class="demo">
-        <label for="arrayLength2">配列の長さ:</label>
-        <input type="number" id="arrayLength2" class="arrayLength" value="10" min="2" max="20">
-        <button onclick="initialize()" type="button">配列をリセット</button>
+      <div id="quick-sort" class="demo algorithm-demo">
+        <div class="algorithm-controls">
+          <label for="arrayLength2" class="algorithm-field">
+            <span>配列の長さ（2〜12）</span>
+            <input type="number" id="arrayLength2" class="arrayLength" value="10" min="2" max="12">
+          </label>
+          <button id="newArrayButton" type="button">新しい配列</button>
+        </div>
 
-        <div class="container" id="arycontainer"></div>
+        <div class="container algorithm-array" id="arycontainer" role="list" aria-label="並べ替える配列"></div>
 
-        <div class="container" id="pivotContainer">
+        <div class="container algorithm-aux" id="pivotContainer">
           <div class="item" id="divPivot">
             <div class="divValue" id="pivotValue"></div>
             <div class="divIndex">pivot</div>
           </div>
-
-          <div id="divcountSwap" class="item2"></div>
-
         </div>
 
+        <div class="algorithm-legend" aria-label="色の意味">
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch highlighted"></span>探索中</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch highlighted2"></span>交換対象</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch lowlighted"></span>現在の範囲外</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch swapped"></span>交換直後</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch sorted"></span>処理済み</span>
+        </div>
+        <div class="algorithm-status">
+          <span>ステップ <b data-stat="step">0</b></span>
+          <span>比較 <b data-stat="compare">0</b>回</span>
+          <span>交換 <b data-stat="swap">0</b>回</span>
+          <span>範囲 <b data-stat="range">—</b></span>
+          <span>left <b data-stat="left">—</b></span>
+          <span>right <b data-stat="right">—</b></span>
+        </div>
         <div id="description" class="description"></div>
 
-        <button onclick="nextStep()" type="button">次へ</button>
+        <div class="algorithm-actions">
+          <button id="restartButton" type="button">最初から</button>
+          <button id="backButton" type="button" disabled>戻る</button>
+          <button id="nextButton" class="algorithm-next" type="button">次へ</button>
+        </div>
       </div>
       
       
@@ -235,8 +255,25 @@ print(arr)    # ソート後
 
 
 
+    <script src="./js/algorithm_demo.js"></script>
     <script>
+      (() => {
+      "use strict";
+
+      const demo = window.AlgorithmDemo;
+      const demoRoot = document.getElementById("quick-sort");
+      const container = document.getElementById("arycontainer");
+      const description = document.getElementById("description");
+      const pivotValue = document.getElementById("pivotValue");
+      const lengthInput = document.getElementById("arrayLength2");
+      const newArrayButton = document.getElementById("newArrayButton");
+      const restartButton = document.getElementById("restartButton");
+      const backButton = document.getElementById("backButton");
+      const nextButton = document.getElementById("nextButton");
+
       let divs = [];
+      let initialValues = [];
+      let history = [];
       let target = [];
       let step = 0;
       let left = 0;
@@ -244,60 +281,89 @@ print(arr)    # ソート後
       let pivot = 0;
       let startId = 0;
       let endId = 0;
+      let stepCount = 0;
+      let countCompare = 0;
       let countSwap = 0;
       let divsactive = [];
-      
-      
-      const container = document.getElementById("arycontainer");
-      const description = document.getElementById("description");
-      const pivotValue = document.getElementById("pivotValue");
-      const divcountSwap = document.getElementById("divcountSwap");
-      
+      let completed = false;
 
-      initialize();
-      
-
-      function initialize() {
-        description.innerHTML = `クイックソートを開始します。<b>次へ</b>を押してください。`;
-        const lengthInput = document.getElementById("arrayLength2");
-        let arrayLength = parseInt(lengthInput.value, 10);
-
-        if (Number.isNaN(arrayLength)) {
-          arrayLength = 10;
+      function initialize(createNewArray) {
+        if (createNewArray || initialValues.length === 0) {
+          const arrayLength = demo.clampArrayLength(lengthInput, 10);
+          initialValues = demo.shuffledRange(arrayLength);
+        } else {
+          lengthInput.value = initialValues.length;
         }
-        arrayLength = Math.min(Math.max(arrayLength, 2), 20);
-        lengthInput.value = arrayLength;
 
-        divs = createDivs(container, arrayLength, true);
-        divsactive = [];
-        for (let x = 0; x < divs.length; x++) {
-          divsactive.push(true);
-          
-          divs[x].classList.remove("sorted");
-          divs[x].classList.remove("highlighted");
-          divs[x].classList.remove("highlighted2");
-          divs[x].classList.remove("lowlighted");
-          divs[x].classList.remove("swapped");
-        }
-        
-        
+        divs = demo.renderArray(container, initialValues);
+        history = [];
+        divsactive = divs.map(() => true);
         target = [[0, divs.length - 1]];
         pivotValue.textContent = "";
         step = 0;
         left = 0;
         right = 0;
         pivot = 0;
+        startId = 0;
+        endId = divs.length - 1;
+        stepCount = 0;
+        countCompare = 0;
         countSwap = 0;
-        divcountSwap.innerHTML = `交換回数: <b>${countSwap}</b>`;
+        completed = false;
+        description.innerHTML = `クイックソートを開始します。<b>次へ</b>を押してください。`;
+        updateUi();
+      }
+
+      function captureState() {
+        return {
+          tiles: demo.captureTiles(divs),
+          target: target.map(range => range.slice()),
+          divsactive: divsactive.slice(),
+          step,
+          left,
+          right,
+          pivot,
+          startId,
+          endId,
+          stepCount,
+          countCompare,
+          countSwap,
+          completed,
+          pivotText: pivotValue.textContent,
+          description: description.innerHTML
+        };
+      }
+
+      function restoreState(state) {
+        demo.restoreTiles(divs, state.tiles);
+        target = state.target.map(range => range.slice());
+        divsactive = state.divsactive.slice();
+        step = state.step;
+        left = state.left;
+        right = state.right;
+        pivot = state.pivot;
+        startId = state.startId;
+        endId = state.endId;
+        stepCount = state.stepCount;
+        countCompare = state.countCompare;
+        countSwap = state.countSwap;
+        completed = state.completed;
+        pivotValue.textContent = state.pivotText;
+        description.innerHTML = state.description;
+        updateUi();
       }
       
       function nextStep() {
         // クイックソート　次へ
-        
+        if (completed) return;
+        history.push(captureState());
+        stepCount += 1;
+
         let flgCollision = false;
         
         if (target.length <= 0) {
           finishSort();
+          updateUi();
           return;
         }
         
@@ -350,18 +416,17 @@ print(arr)    # ソート後
           
           if (left > right || left > endId) {
             flgCollision = true;
-          } else if (parseInt(divs[left].textContent, 10) < pivot) {
-            divs[left].classList.add("highlighted");
-            description.innerHTML = `インデックス番号<b>${left}</b>の値<b>${divs[left].textContent}</b> ＜ <tt>pivot</tt><b>${pivot}</b>なので、次に進みます。`;
-            left++;
-          
-            
           } else {
-            divs[left].classList.add("highlighted2");
-            description.innerHTML = `インデックス番号<b>${left}</b>の値<b>${divs[left].textContent}</b> ≧ <tt>pivot</tt><b>${pivot}</b>なので、交換対象とします。次に、交換する相手を右端から調べます。`;
-
-            step = 2;
-                              
+            countCompare += 1;
+            if (parseInt(divs[left].textContent, 10) < pivot) {
+              divs[left].classList.add("highlighted");
+              description.innerHTML = `インデックス番号<b>${left}</b>の値<b>${divs[left].textContent}</b> ＜ <tt>pivot</tt><b>${pivot}</b>なので、次に進みます。`;
+              left++;
+            } else {
+              divs[left].classList.add("highlighted2");
+              description.innerHTML = `インデックス番号<b>${left}</b>の値<b>${divs[left].textContent}</b> ≧ <tt>pivot</tt><b>${pivot}</b>なので、交換対象とします。次に、交換する相手を右端から調べます。`;
+              step = 2;
+            }
           }
           
         } else if (step === 2) {
@@ -371,15 +436,17 @@ print(arr)    # ソート後
           
           if (right < left || right < startId) {
             flgCollision = true;
-          } else if (parseInt(divs[right].textContent, 10) > pivot) {
-            divs[right].classList.add("highlighted");
-            description.innerHTML = `インデックス番号<b>${right}</b>の値<b>${divs[right].textContent}</b> ＞ <tt>pivot</tt><b>${pivot}</b>なので、次に進みます。`;
-            right--;
-          
           } else {
-            divs[right].classList.add("highlighted2");
-            description.innerHTML = `インデックス番号<b>${right}</b>の値<b>${divs[right].textContent}</b> ≦ <tt>pivot</tt><b>${pivot}</b>なので、左側の交換対象と交換します。`;
-            step = 3;
+            countCompare += 1;
+            if (parseInt(divs[right].textContent, 10) > pivot) {
+              divs[right].classList.add("highlighted");
+              description.innerHTML = `インデックス番号<b>${right}</b>の値<b>${divs[right].textContent}</b> ＞ <tt>pivot</tt><b>${pivot}</b>なので、次に進みます。`;
+              right--;
+            } else {
+              divs[right].classList.add("highlighted2");
+              description.innerHTML = `インデックス番号<b>${right}</b>の値<b>${divs[right].textContent}</b> ≦ <tt>pivot</tt><b>${pivot}</b>なので、左側の交換対象と交換します。`;
+              step = 3;
+            }
           }
           
         } else if (step === 3) {
@@ -404,7 +471,8 @@ print(arr)    # ソート後
         if (flgCollision) {
           finishPartition();
         }
-        
+
+        updateUi();
       }
 
       function finishPartition() {
@@ -427,11 +495,14 @@ print(arr)    # ソート後
           }
         }
         step = 0;
+
+        if (target.length === 0) finishSort();
       }
 
       function finishSort() {
         description.innerHTML = `並び替え完了です。`;
         pivotValue.textContent = "";
+        completed = true;
         for (let x = 0; x < divs.length; x++) {
           divs[x].classList.add("sorted");
           divs[x].classList.remove("highlighted");
@@ -445,50 +516,43 @@ print(arr)    # ソート後
         [divs[i].textContent, divs[j].textContent] = [divs[j].textContent, divs[i].textContent];
         
         countSwap++;
-        divcountSwap.innerHTML = `交換回数: <b>${countSwap}</b>`;
         divs[i].classList.remove("highlighted");
         divs[j].classList.remove("highlighted");
         divs[i].classList.add("swapped");
         divs[j].classList.add("swapped");
+        demo.syncTileLabels(divs);
       }
 
-      function createDivs(container, arrayLength, shuffle = true) {
-        container.innerHTML = "";
-        let aryNum = Array.from({ length: arrayLength }, (_, i) => i);
-        
-        if (shuffle) {
-          aryNum = shuffleArray(aryNum);
-        }
-        
-        let aryDiv = [];
-        
-        for (let i = 0; i < aryNum.length; i++) {
-          const div = document.createElement("div");
-          div.classList.add("item");
-          container.appendChild(div);
-          
-          const divValue = document.createElement("div");
-          divValue.classList.add("divValue");
-          divValue.textContent = aryNum[i];
-          aryDiv.push(divValue);
-          div.appendChild(divValue);
-          
-          const divIndex = document.createElement("div");
-          divIndex.classList.add("divIndex");
-          divIndex.textContent = i;
-          div.appendChild(divIndex);
-        }
-        
-        return aryDiv;
+      function previousStep() {
+        const state = history.pop();
+        if (!state) return;
+        restoreState(state);
       }
-      
-      function shuffleArray(ary) {
-        for (let i = (ary.length - 1); 0 < i; i--) {
-          const r = Math.floor(Math.random() * (i + 1));
-          [ary[i], ary[r]] = [ary[r], ary[i]];
-        }
-        return ary;
+
+      function updateUi() {
+        demo.updateStats(demoRoot, {
+          step: stepCount,
+          compare: countCompare,
+          swap: countSwap,
+          range: stepCount === 0 || completed ? "—" : `${startId}〜${endId}`,
+          left: stepCount === 0 || completed ? "—" : left,
+          right: stepCount === 0 || completed ? "—" : right
+        });
+        demo.updateActionButtons({
+          backButton,
+          nextButton,
+          historyLength: history.length,
+          completed
+        });
       }
+
+      newArrayButton.addEventListener("click", () => initialize(true));
+      restartButton.addEventListener("click", () => initialize(false));
+      backButton.addEventListener("click", previousStep);
+      nextButton.addEventListener("click", nextStep);
+      demo.bindEnter(lengthInput, () => initialize(true));
+      initialize(true);
+      })();
     </script>
   
 </body>

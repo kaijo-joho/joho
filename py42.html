@@ -44,25 +44,47 @@
       <img src="img/search_binary.png" alt="バイナリサーチのフローチャート" class="image" decoding="async">
       
       <h3>デモンストレーション</h3>
-      <div id="binary-search" class="demo">
-        <label for="arrayLength2">配列の長さ:</label>
-        <input type="number" id="arrayLength2" class="arrayLength" value="12" min="2" max="20">
-        <label for="searchValueInput2">探索値:</label>
-        <input type="number" id="searchValueInput2" class="arrayLength" value="6">
-        <button onclick="initialize()" type="button">配列をリセット</button>
+      <div id="binary-search" class="demo algorithm-demo">
+        <div class="algorithm-controls">
+          <label for="arrayLength2" class="algorithm-field">
+            <span>配列の長さ（2〜12）</span>
+            <input type="number" id="arrayLength2" class="arrayLength" value="12" min="2" max="12">
+          </label>
+          <label for="searchValueInput2" class="algorithm-field">
+            <span>探索値</span>
+            <input type="number" id="searchValueInput2" class="arrayLength" value="6">
+          </label>
+          <button id="newArrayButton" type="button">条件を適用</button>
+        </div>
 
-        <div class="container" id="arycontainer"></div>
+        <div class="container algorithm-array" id="arycontainer" role="list" aria-label="探索対象の整列済み配列"></div>
 
-        <div class="container" id="searchValuecontainer">
+        <div class="container algorithm-aux" id="searchValuecontainer">
           <div class="item">
             <div class="divValue" id="searchValue"></div>
             <div class="divIndex">探索値</div>
           </div>
         </div>
 
+        <div class="algorithm-legend" aria-label="色の意味">
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch highlighted"></span>中央の値</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch lowlighted"></span>探索対象外</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch sorted"></span>発見</span>
+        </div>
+        <div class="algorithm-status">
+          <span>ステップ <b data-stat="step">0</b></span>
+          <span>比較 <b data-stat="compare">0</b>回</span>
+          <span>left <b data-stat="left">0</b></span>
+          <span>mid <b data-stat="mid">—</b></span>
+          <span>right <b data-stat="right">11</b></span>
+        </div>
         <div id="description" class="description"></div>
 
-        <button onclick="nextStep()" type="button">次へ</button>
+        <div class="algorithm-actions">
+          <button id="restartButton" type="button">最初から</button>
+          <button id="backButton" type="button" disabled>戻る</button>
+          <button id="nextButton" class="algorithm-next" type="button">次へ</button>
+        </div>
       </div>
       
       <h3>プログラム（基本）</h3>
@@ -548,127 +570,172 @@ arr = list(range(256))
     
     
 
+    <script src="./js/algorithm_demo.js"></script>
     <script>
-      
-      let divs = [];
-      let left = 0;
-      let right = 0;
-      let mid = 0;
-      let step = 0;
-      
-      
-      let searchValue = 0;
-      
-      
+      (() => {
+      "use strict";
+
+      const demo = window.AlgorithmDemo;
+      const demoRoot = document.getElementById("binary-search");
       const container = document.getElementById("arycontainer");
       const description = document.getElementById("description");
       const search = document.getElementById("searchValue");
-      
-      
-      initialize();
-      
-      
-      
-      function initialize(){
-        description.innerHTML = `バイナリサーチを開始します（<b>次へ</b>を押してください）。`;
-        container.innerHTML ="";
-        
-        let arrayLength = parseInt(document.getElementById("arrayLength2").value);
+      const lengthInput = document.getElementById("arrayLength2");
+      const searchInput = document.getElementById("searchValueInput2");
+      const newArrayButton = document.getElementById("newArrayButton");
+      const restartButton = document.getElementById("restartButton");
+      const backButton = document.getElementById("backButton");
+      const nextButton = document.getElementById("nextButton");
 
-        divs = createDivs(container, arrayLength, false);
-        
-        searchValue = parseInt(document.getElementById("searchValueInput2").value);
-        search.textContent = searchValue;
-        
-        left = 0;
-        right = divs.length - 1;
-        mid = 0;
-        step = 0;
+      let divs = [];
+      let initialValues = [];
+      let history = [];
+      let left = 0;
+      let right = 0;
+      let mid = null;
+      let phase = 0;
+      let searchValue = 0;
+      let stepCount = 0;
+      let compareCount = 0;
+      let completed = false;
 
-      }
-      
-      function nextStep(){
-        // バイナリサーチ 次へ
-        if(left > right){
-          description.innerHTML = `探索値<b>${searchValue}</b>は存在しません。`;
+      function initialize(applyLength) {
+        const nextSearchValue = demo.readInteger(searchInput);
+        if (nextSearchValue === null) {
+          description.textContent = "探索値には整数を入力してください。";
+          nextButton.disabled = true;
           return;
         }
 
-        if(divs[mid].classList.contains("sorted")){return;}
+        if (applyLength || initialValues.length === 0) {
+          const arrayLength = demo.clampArrayLength(lengthInput, 12);
+          initialValues = demo.range(arrayLength);
+        } else {
+          lengthInput.value = initialValues.length;
+        }
 
-        if(step%2===0){
+        searchValue = nextSearchValue;
+        search.textContent = searchValue;
+        divs = demo.renderArray(container, initialValues);
+        history = [];
+        left = 0;
+        right = divs.length - 1;
+        mid = null;
+        phase = 0;
+        stepCount = 0;
+        compareCount = 0;
+        completed = false;
+        description.innerHTML = `バイナリサーチを開始します（<b>次へ</b>を押してください）。`;
+        updateUi();
+      }
+
+      function captureState() {
+        return {
+          tiles: demo.captureTiles(divs),
+          left,
+          right,
+          mid,
+          phase,
+          searchValue,
+          stepCount,
+          compareCount,
+          completed,
+          description: description.innerHTML
+        };
+      }
+
+      function restoreState(state) {
+        demo.restoreTiles(divs, state.tiles);
+        left = state.left;
+        right = state.right;
+        mid = state.mid;
+        phase = state.phase;
+        searchValue = state.searchValue;
+        searchInput.value = searchValue;
+        search.textContent = searchValue;
+        stepCount = state.stepCount;
+        compareCount = state.compareCount;
+        completed = state.completed;
+        description.innerHTML = state.description;
+        updateUi();
+      }
+
+      function nextStep() {
+        if (completed) return;
+        history.push(captureState());
+        stepCount += 1;
+
+        if (phase === 0) {
           mid = Math.floor((left + right) / 2);
           divs[mid].classList.add("highlighted");
-          description.innerHTML = `中央の値は<b>${divs[mid].textContent}</b>です。`;
-          
-        }else if(step%2===1){
-          const midValue = parseInt(divs[mid].textContent);
-          if(searchValue === midValue){
-            //探索値と中央の値が等しいなら、終了
+          description.innerHTML = `探索範囲<b>${left}</b>〜<b>${right}</b>の中央はインデックス番号<b>${mid}</b>、値は<b>${divs[mid].textContent}</b>です。`;
+          phase = 1;
+        } else {
+          const midValue = Number.parseInt(divs[mid].textContent, 10);
+          compareCount += 1;
+
+          if (searchValue === midValue) {
             divs[mid].classList.remove("highlighted");
             divs[mid].classList.add("sorted");
             description.innerHTML = `探索値<b>${searchValue}</b>のインデックス番号は<b>${mid}</b>です（探索終了）。`;
-            
-          }else if(midValue < searchValue){
-            //中央の値＜探索値なら、左端を＋１
-            description.innerHTML = `探索値<b>${searchValue}</b>は中央より左側にはないので、次に右側を調べます。`;
-            for(let j=left;j<=mid;j++){
-              divs[j].classList.remove("highlighted");
-              divs[j].classList.add("lowlighted");
+            completed = true;
+          } else if (midValue < searchValue) {
+            for (let index = left; index <= mid; index += 1) {
+              divs[index].classList.remove("highlighted");
+              divs[index].classList.add("lowlighted");
             }
-            
             left = mid + 1;
-                   
-          }else{
-            //中央の値＞探索値なら、右端をー１
-            description.innerHTML = `探索値<b>${searchValue}</b>は中央より右側にはないので、次に左側を調べます。`;
-            
-            for(let j=mid;j<=right;j++){
-              divs[j].classList.remove("highlighted");
-              divs[j].classList.add("lowlighted");
+            description.innerHTML = `中央の値<b>${midValue}</b>より探索値<b>${searchValue}</b>の方が大きいので、右側に探索範囲を絞ります。`;
+            phase = 0;
+          } else {
+            for (let index = mid; index <= right; index += 1) {
+              divs[index].classList.remove("highlighted");
+              divs[index].classList.add("lowlighted");
             }
             right = mid - 1;
+            description.innerHTML = `中央の値<b>${midValue}</b>より探索値<b>${searchValue}</b>の方が小さいので、左側に探索範囲を絞ります。`;
+            phase = 0;
           }
-          
+
+          if (!completed && left > right) {
+            description.innerHTML += ` 探索範囲がなくなったため、探索値は存在しません。`;
+            completed = true;
+          }
         }
-        step++;
+
+        updateUi();
       }
-      
-      function createDivs(container, arrayLength, shuffle = true){
-        container.innerHTML = "";
-        let aryNum = Array.from({ length: arrayLength }, (_, i) => i);
-        
-        if(shuffle){aryNum = shuffleArray(aryNum);}
-        
-        let aryDiv = [];
-        
-        for(let i=0;i<aryNum.length;i++){
-          const div = document.createElement("div");
-          div.classList.add("item");
-          container.appendChild(div);
-          
-          const divValue = document.createElement("div");
-          divValue.classList.add("divValue");
-          divValue.textContent = aryNum[i];
-          aryDiv.push(divValue);
-          div.appendChild(divValue);
-          
-          const divIndex = document.createElement("div");
-          divIndex.classList.add("divIndex");
-          divIndex.textContent = i;
-          div.appendChild(divIndex);
-        }
-        
-        return aryDiv;
+
+      function previousStep() {
+        const state = history.pop();
+        if (!state) return;
+        restoreState(state);
       }
-      
-      function shuffleArray(ary) {
-        for (let i = (ary.length - 1); 0 < i; i--) {
-          let r = Math.floor(Math.random() * (i + 1));
-          [ary[i], ary[r]] = [ary[r], ary[i]];
-        }
-        return ary;
+
+      function updateUi() {
+        demo.updateStats(demoRoot, {
+          step: stepCount,
+          compare: compareCount,
+          left,
+          mid: mid ?? "—",
+          right
+        });
+        demo.updateActionButtons({
+          backButton,
+          nextButton,
+          historyLength: history.length,
+          completed
+        });
       }
+
+      newArrayButton.addEventListener("click", () => initialize(true));
+      restartButton.addEventListener("click", () => initialize(false));
+      backButton.addEventListener("click", previousStep);
+      nextButton.addEventListener("click", nextStep);
+      demo.bindEnter(lengthInput, () => initialize(true));
+      demo.bindEnter(searchInput, () => initialize(false));
+      initialize(true);
+      })();
     </script>
 </body>
 </html>

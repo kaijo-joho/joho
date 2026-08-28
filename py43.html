@@ -105,21 +105,32 @@ print(arr)  # 交換後の値を表示
       </ol>
       
       <h3>デモンストレーション</h3>
-      <div id="bubble-sort" class="demo">
-        <label for="arrayLength1">配列の長さ:</label>
-        <input type="number" id="arrayLength1" class="arrayLength" value="8" min="2" max="20">
-        <button onclick="initialize()" type="button">配列をリセット</button>
-        <!--
-        <details>
-          <summary>詳細設定</summary>
-          <input type="radio" name="arrayType1" value="serial" checked> 連番：<br>
-          <input type="radio" name="arrayType1" value="random"> 乱数：<input type="number">〜<input type="number"><br>
-          <input type="radio" name="arrayType1" value="user"> 指定：<input type="text">
-        </details>
-        -->
-        <div class="container" id="arycontainer"></div>
+      <div id="bubble-sort" class="demo algorithm-demo">
+        <div class="algorithm-controls">
+          <label for="arrayLength1" class="algorithm-field">
+            <span>配列の長さ（2〜12）</span>
+            <input type="number" id="arrayLength1" class="arrayLength" value="8" min="2" max="12">
+          </label>
+          <button id="newArrayButton" type="button">新しい配列</button>
+        </div>
+        <div class="container algorithm-array" id="arycontainer" role="list" aria-label="並べ替える配列"></div>
+        <div class="algorithm-legend" aria-label="色の意味">
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch highlighted"></span>比較中</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch swapped"></span>交換直後</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch sorted"></span>整列済み</span>
+        </div>
+        <div class="algorithm-status">
+          <span>ステップ <b data-stat="step">0</b></span>
+          <span>比較 <b data-stat="compare">0</b>回</span>
+          <span>交換 <b data-stat="swap">0</b>回</span>
+          <span>比較位置 j=<b data-stat="index">—</b></span>
+        </div>
         <div id="description" class="description"></div>
-        <button onclick="nextStep()" type="button">次へ</button>
+        <div class="algorithm-actions">
+          <button id="restartButton" type="button">最初から</button>
+          <button id="backButton" type="button" disabled>戻る</button>
+          <button id="nextButton" class="algorithm-next" type="button">次へ</button>
+        </div>
       </div>
 
       
@@ -267,120 +278,171 @@ print(arr)                                # ソート後を出力
   
 
 
-  <script>    
+  <script src="./js/algorithm_demo.js"></script>
+  <script>
+    (() => {
+    "use strict";
 
-    let divs = [];
-    let i = 0;
-    let j = 0;
-    let countCompare = 0;
-    let countSwap = 0;
-
+    const demo = window.AlgorithmDemo;
+    const demoRoot = document.getElementById("bubble-sort");
     const container = document.getElementById("arycontainer");
     const description = document.getElementById("description");
+    const lengthInput = document.getElementById("arrayLength1");
+    const newArrayButton = document.getElementById("newArrayButton");
+    const restartButton = document.getElementById("restartButton");
+    const backButton = document.getElementById("backButton");
+    const nextButton = document.getElementById("nextButton");
 
+    let divs = [];
+    let initialValues = [];
+    let history = [];
+    let i = 0;
+    let j = 0;
+    let activeIndex = null;
+    let phase = "compare";
+    let stepCount = 0;
+    let countCompare = 0;
+    let countSwap = 0;
+    let completed = false;
 
-    initialize();
-    question_initialize();
+    function initialize(createNewArray) {
+      if (createNewArray || initialValues.length === 0) {
+        const arrayLength = demo.clampArrayLength(lengthInput, 8);
+        initialValues = demo.shuffledRange(arrayLength);
+      } else {
+        lengthInput.value = initialValues.length;
+      }
 
-
-    function initialize(){
-      description.textContent = `バブルソートを開始します。`;
-      container.innerHTML ="";
-
-      let arrayLength = parseInt(document.getElementById("arrayLength1").value);
-
-      divs = createDivs(container, arrayLength, true);
-
+      divs = demo.renderArray(container, initialValues);
+      history = [];
       i = 0;
       j = divs.length - 2;
+      activeIndex = null;
+      phase = "compare";
+      stepCount = 0;
       countCompare = 0;
       countSwap = 0;
+      completed = false;
+      description.innerHTML = `バブルソートを開始します（<b>次へ</b>を押してください）。`;
+      updateUi();
     }
 
-    function nextStep(){
-      //バブルソート　次へ
-      if(i>=divs.length-1){
-        divs[j+1].classList.add("sorted");
-        description.innerHTML = `最後に ${divs[j+1].textContent} が整列済みになり、終了です。<br>比較回数${countCompare}，交換回数${countSwap}`;
-        return;
-      }
+    function captureState() {
+      return {
+        tiles: demo.captureTiles(divs),
+        i,
+        j,
+        activeIndex,
+        phase,
+        stepCount,
+        countCompare,
+        countSwap,
+        completed,
+        description: description.innerHTML
+      };
+    }
 
-      if(j+2<divs.length){
-        divs[j+2].classList.remove("highlighted");
-        divs[j+2].classList.remove("swapped");
-      }
-      divs[j+1].classList.remove("swapped");
+    function restoreState(state) {
+      demo.restoreTiles(divs, state.tiles);
+      i = state.i;
+      j = state.j;
+      activeIndex = state.activeIndex;
+      phase = state.phase;
+      stepCount = state.stepCount;
+      countCompare = state.countCompare;
+      countSwap = state.countSwap;
+      completed = state.completed;
+      description.innerHTML = state.description;
+      updateUi();
+    }
 
+    function nextStep() {
+      if (completed) return;
+      history.push(captureState());
+      stepCount += 1;
 
-      if(j<i){
-        divs[j+1].classList.remove("highlighted");
-        divs[j+2].classList.remove("highlighted");
-        divs[j+1].classList.remove("swapped");
-        divs[j+2].classList.remove("swapped");
-        divs[j+1].classList.add("sorted");
-        description.innerHTML = ` ${divs[j+1].textContent} が整列済みになりました。<br>比較回数${countCompare}，交換回数${countSwap}`;
-        i++;
-        j = divs.length - 2;
-      }else{
-        if(divs[j].classList.contains("highlighted") && divs[j+1].classList.contains("highlighted")){
-          const leftValue = parseInt(divs[j].textContent);
-          const rightValue = parseInt(divs[j+1].textContent);
+      if (phase === "compare") {
+        divs.forEach(valueElement => {
+          valueElement.classList.remove("highlighted", "swapped");
+        });
+        activeIndex = j;
+        divs[j].classList.add("highlighted");
+        divs[j + 1].classList.add("highlighted");
+        countCompare += 1;
+        description.innerHTML = `インデックス番号<b>${j}</b>の値<b>${divs[j].textContent}</b>と、右隣の値<b>${divs[j + 1].textContent}</b>を比較します。`;
+        phase = "resolve";
+      } else {
+        const leftValue = Number.parseInt(divs[j].textContent, 10);
+        const rightValue = Number.parseInt(divs[j + 1].textContent, 10);
+        const settledIndex = i;
 
-          if(leftValue > rightValue){
-            divs[j].classList.remove("highlighted");
-            divs[j+1].classList.remove("highlighted");
-            [divs[j].textContent, divs[j+1].textContent] = [divs[j+1].textContent, divs[j].textContent];
-            countSwap++;
-            divs[j].classList.add("swapped");
-            divs[j+1].classList.add("swapped");
-            description.innerHTML = ` ${leftValue} ＞ ${rightValue} なので、交換しました。<br><tt>i=${i}, j=${j}</tt>，比較回数${countCompare}，交換回数${countSwap}`;
+        if (leftValue > rightValue) {
+          [divs[j].textContent, divs[j + 1].textContent] = [divs[j + 1].textContent, divs[j].textContent];
+          countSwap += 1;
+          divs[j].classList.remove("highlighted");
+          divs[j + 1].classList.remove("highlighted");
+          divs[j].classList.add("swapped");
+          divs[j + 1].classList.add("swapped");
+          description.innerHTML = `<b>${leftValue}</b> ＞ <b>${rightValue}</b>なので、2つの値を交換しました。`;
+        } else {
+          description.innerHTML = `<b>${leftValue}</b> ≦ <b>${rightValue}</b>なので、交換しません。`;
+        }
 
-          }else{
-            description.innerHTML = ` ${leftValue} ≦ ${rightValue} なので、交換しません。<br><tt>i=${i}, j=${j}</tt>，比較回数${countCompare}，交換回数${countSwap}`;
+        demo.syncTileLabels(divs);
+        j -= 1;
+        phase = "compare";
+
+        if (j < i) {
+          divs[settledIndex].classList.remove("highlighted", "swapped");
+          divs[settledIndex].classList.add("sorted");
+          i += 1;
+
+          if (i >= divs.length - 1) {
+            divs.forEach(valueElement => {
+              valueElement.classList.remove("highlighted", "swapped");
+              valueElement.classList.add("sorted");
+            });
+            description.innerHTML += ` すべての値が整列済みになり、並べ替え完了です。`;
+            completed = true;
+          } else {
+            description.innerHTML += ` インデックス番号<b>${settledIndex}</b>の値が整列済みになりました。`;
+            j = divs.length - 2;
           }
-
-          j--;
-
-        }else{
-          countCompare++;
-          divs[j].classList.add("highlighted");
-          divs[j+1].classList.add("highlighted");
-          description.innerHTML = ` ${divs[j].textContent} と ${divs[j+1].textContent} を比較します。<br><tt>i=${i}, j=${j}</tt>，比較回数${countCompare}`;
-        } 
-      }
-    }
-
-    
-    
-    function createDivs(container, arrayLength, shuffle = true){
-      container.innerHTML = "";
-      let aryNum = Array.from({ length: arrayLength }, (_, i) => i);
-
-      if(shuffle){aryNum = shuffleArray(aryNum);}
-
-      let aryDiv = [];
-
-      for(let i=0;i<aryNum.length;i++){
-        const div = document.createElement("div");
-        div.classList.add("item");
-        container.appendChild(div);
-
-        const divValue = document.createElement("div");
-        divValue.classList.add("divValue");
-        divValue.textContent = aryNum[i];
-        aryDiv.push(divValue);
-        div.appendChild(divValue);
-
-        const divIndex = document.createElement("div");
-        divIndex.classList.add("divIndex");
-        divIndex.textContent = i;
-        div.appendChild(divIndex);
+        }
       }
 
-      return aryDiv;
+      updateUi();
     }
 
-    
+    function previousStep() {
+      const state = history.pop();
+      if (!state) return;
+      restoreState(state);
+    }
+
+    function updateUi() {
+      demo.updateStats(demoRoot, {
+        step: stepCount,
+        compare: countCompare,
+        swap: countSwap,
+        index: activeIndex ?? "—"
+      });
+      demo.updateActionButtons({
+        backButton,
+        nextButton,
+        historyLength: history.length,
+        completed
+      });
+    }
+
+    newArrayButton.addEventListener("click", () => initialize(true));
+    restartButton.addEventListener("click", () => initialize(false));
+    backButton.addEventListener("click", previousStep);
+    nextButton.addEventListener("click", nextStep);
+    demo.bindEnter(lengthInput, () => initialize(true));
+    initialize(true);
+    question_initialize();
+
     // バブルソートの関数
     function bubbleSort(arr) {
         const process = [arr.slice()];  // ソートの途中経過を保存
@@ -506,6 +568,7 @@ print(arr)                                # ソート後を出力
       }
       return ary;
     }
+    })();
   </script>
   
 </body>

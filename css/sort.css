@@ -1,6 +1,6 @@
 @charset "UTF-8";
 /* =========================================================
-   py41〜43 アルゴリズム・デモ用 CSS（ダーク対応／変数ベース）
+   py41〜46 アルゴリズム・デモ用 CSS（ダーク対応／変数ベース）
    既存のHTML/CSSクラスは維持。色は .demo 内の変数で制御。
    ========================================================= */
 
@@ -30,11 +30,11 @@
   --color-blue-lighter:   var(--demo-hi-2);
 
   --demo-lowlight-bg:     #aaaaaa;          /* lowlighted 背景 */
-  --demo-lowlight-text:   #666666;
+  --demo-lowlight-text:   #263238;
 
   --demo-swapped-bg:      #e5aacc;          /* swapped 背景 */
   --demo-sorted-bg:       #96a7e7;          /* sorted 背景 */
-  --demo-sorted-text:     #666666;
+  --demo-sorted-text:     #172554;
 
   /* アクセント（description内 <b> の淡い面色） */
   --demo-accent-tint:     rgba(10,84,138,0.08);
@@ -418,6 +418,239 @@
 }
 
 
+/* =========================================================
+   py41〜46 共通のレスポンシブ操作パネル
+   ========================================================= */
+
+.algorithm-demo{
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  margin: 1rem auto;
+  padding: clamp(.75rem, 2.4vw, 1.1rem);
+  border: 1px solid var(--demo-border);
+  border-radius: 12px;
+  background: var(--demo-surface);
+  box-shadow: 0 10px 28px rgba(0, 0, 0, .06);
+}
+
+.algorithm-controls{
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: .65rem .8rem;
+  margin-bottom: .9rem;
+}
+
+.algorithm-field{
+  display: grid;
+  gap: .25rem;
+  min-width: 6.75rem;
+}
+
+.algorithm-field > span{
+  color: var(--font-color-sub-text, currentColor);
+  font-size: .82em;
+  font-weight: 600;
+}
+
+.algorithm-demo .algorithm-field .arrayLength{
+  width: 5.5rem;
+  box-sizing: border-box;
+}
+
+.algorithm-demo .algorithm-array{
+  display: grid;
+  grid-template-columns: repeat(var(--algorithm-item-count, 8), minmax(0, 1fr));
+  gap: clamp(2px, .55vw, 6px);
+  width: 100%;
+  margin: .7rem 0;
+  overflow: visible;
+}
+
+.algorithm-demo .item{
+  width: auto;
+  min-width: 0;
+  height: auto;
+  min-height: 52px;
+  margin: 0;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.algorithm-demo .algorithm-array .divValue{
+  display: grid;
+  place-items: center;
+  height: 38px;
+  min-width: 0;
+  font-size: clamp(.84rem, 3.8vw, var(--demo-value-font));
+  line-height: 1;
+}
+
+.algorithm-demo .divIndex{
+  display: grid;
+  place-items: center;
+  box-sizing: border-box;
+  min-width: 0;
+  padding: 0 1px;
+  line-height: 1;
+}
+
+.algorithm-demo .algorithm-aux{
+  display: flex;
+  align-items: center;
+  gap: .65rem;
+  min-height: 54px;
+  margin: .55rem 0;
+  overflow: visible;
+}
+
+.algorithm-demo .algorithm-aux .item{
+  width: var(--demo-item-w);
+  min-width: var(--demo-item-w);
+}
+
+.algorithm-legend{
+  display: flex;
+  flex-wrap: wrap;
+  gap: .35rem .75rem;
+  margin: .7rem 0 .45rem;
+  color: var(--font-color-sub-text, currentColor);
+  font-size: .78em;
+}
+
+.algorithm-legend__item{
+  display: inline-flex;
+  align-items: center;
+  gap: .3rem;
+  white-space: nowrap;
+}
+
+.algorithm-legend__swatch{
+  display: inline-block;
+  width: .85rem;
+  height: .85rem;
+  box-sizing: border-box;
+  border: 1px solid var(--demo-border);
+  border-radius: 3px;
+}
+
+.algorithm-status{
+  display: flex;
+  flex-wrap: wrap;
+  gap: .3rem .9rem;
+  min-height: 1.5rem;
+  margin: .35rem 0;
+  color: var(--font-color-sub-text, currentColor);
+  font-size: .84em;
+  font-variant-numeric: tabular-nums;
+}
+
+.algorithm-status b{
+  color: var(--font-color-strong-text, currentColor);
+  font-family: var(--font-code);
+}
+
+.algorithm-demo .description{
+  height: auto;
+  min-height: 4.6em;
+  box-sizing: border-box;
+  margin: .45rem 0 .75rem;
+  padding: .65rem .75rem;
+  border: 1px solid var(--demo-border);
+  border-radius: 8px;
+  line-height: 1.55;
+  overflow: visible;
+  overflow-wrap: anywhere;
+}
+
+.algorithm-demo .description p{
+  margin: 0;
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.algorithm-demo .description p + p{
+  margin-top: .3rem;
+}
+
+.algorithm-actions{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: .5rem;
+}
+
+.algorithm-demo .algorithm-next{
+  min-width: 5.5rem;
+  border-color: color-mix(in oklab, var(--theme-color, #225386) 62%, var(--demo-btn-border));
+  background: color-mix(in oklab, var(--theme-color, #225386) 14%, var(--demo-btn-bg));
+  font-weight: 700;
+}
+
+.algorithm-demo .highlighted{
+  outline: 2px solid color-mix(in oklab, currentColor 62%, transparent);
+  outline-offset: -2px;
+}
+
+.algorithm-demo .highlighted2{
+  outline: 3px double color-mix(in oklab, currentColor 72%, transparent);
+  outline-offset: -3px;
+}
+
+.algorithm-demo .swapped{
+  outline: 2px dashed color-mix(in oklab, currentColor 68%, transparent);
+  outline-offset: -2px;
+}
+
+.algorithm-demo .sorted{
+  box-shadow: inset 0 -4px 0 color-mix(in oklab, currentColor 58%, transparent);
+}
+
+.algorithm-demo .lowlighted{
+  text-decoration: line-through;
+  text-decoration-thickness: 1px;
+}
+
+@media (max-width: 479px){
+  .algorithm-demo{
+    padding: .65rem;
+  }
+
+  .algorithm-field{
+    flex: 1 1 7rem;
+    min-width: 0;
+  }
+
+  .algorithm-demo .algorithm-field .arrayLength{
+    width: 100%;
+  }
+
+  .algorithm-controls > button{
+    flex: 1 1 100%;
+  }
+
+  .algorithm-actions > button{
+    flex: 1 1 5.5rem;
+  }
+
+  .algorithm-demo .algorithm-array .divValue{
+    font-size: clamp(.78rem, 3.7vw, 1rem);
+  }
+
+  .algorithm-demo .divIndex{
+    font-size: .56rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce){
+  .algorithm-demo .item,
+  .algorithm-demo button,
+  .algorithm-demo input{
+    transition: none;
+  }
+}
 
 
 

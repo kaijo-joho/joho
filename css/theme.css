@@ -384,7 +384,7 @@
   color: color-mix(in oklab, var(--code-fg) 90%, black 10%);
 }
 
-/* py41〜43のアルゴリズム表示 */
+/* py41〜46のアルゴリズム表示 */
 :root[data-theme="light"] .demo {
   --demo-surface: #f7f9fc;
   --demo-tile: #eef2f6;
@@ -399,10 +399,10 @@
   --color-blue-lightest: var(--demo-hi-1);
   --color-blue-lighter: var(--demo-hi-2);
   --demo-lowlight-bg: #aaaaaa;
-  --demo-lowlight-text: #666666;
+  --demo-lowlight-text: #263238;
   --demo-swapped-bg: #e5aacc;
   --demo-sorted-bg: #96a7e7;
-  --demo-sorted-text: #666666;
+  --demo-sorted-text: #172554;
   --demo-accent-tint: rgba(10, 84, 138, .08);
   --demo-btn-bg: #f4f7fb;
   --demo-btn-text: #0b3b64;

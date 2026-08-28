@@ -41,21 +41,40 @@
       </ol>
       
       <h3>デモンストレーション</h3>
-      <div id="insertion-sort" class="demo">
-        <label for="arrayLength1">配列の長さ:</label>
-        <input type="number" id="arrayLength1" class="arrayLength" value="8" min="2" max="20">
-        <button onclick="initialize()" type="button">配列をリセット</button>
+      <div id="insertion-sort" class="demo algorithm-demo">
+        <div class="algorithm-controls">
+          <label for="arrayLength1" class="algorithm-field">
+            <span>配列の長さ（2〜12）</span>
+            <input type="number" id="arrayLength1" class="arrayLength" value="8" min="2" max="12">
+          </label>
+          <button id="newArrayButton" type="button">新しい配列</button>
+        </div>
 
-        <div class="container" id="arycontainer"></div>
+        <div class="container algorithm-array" id="arycontainer" role="list" aria-label="並べ替える配列"></div>
 
-        <div class="container" id="tmpcontainer">
+        <div class="container algorithm-aux" id="tmpcontainer">
           <div class="item" id="divTmp">
             <div class="divValue" id="divTmpValue1"></div>
             <div class="divIndex">tmp</div>
           </div>
         </div>
+        <div class="algorithm-legend" aria-label="色の意味">
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch highlighted"></span>注目中</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch sorted"></span>整列済み</span>
+        </div>
+        <div class="algorithm-status">
+          <span>ステップ <b data-stat="step">0</b></span>
+          <span>比較 <b data-stat="compare">0</b>回</span>
+          <span>右へずらした回数 <b data-stat="move">0</b>回</span>
+          <span>i=<b data-stat="i">1</b></span>
+          <span>j=<b data-stat="j">—</b></span>
+        </div>
         <div id="description" class="description"></div>
-        <button onclick="nextStep()" type="button">次へ</button>
+        <div class="algorithm-actions">
+          <button id="restartButton" type="button">最初から</button>
+          <button id="backButton" type="button" disabled>戻る</button>
+          <button id="nextButton" class="algorithm-next" type="button">次へ</button>
+        </div>
       </div>
 
       
@@ -219,121 +238,192 @@ print(arr)     # ソート後
 
 
 
+    <script src="./js/algorithm_demo.js"></script>
     <script>
-      
-      let divs = [];
-      let step = 0;
-      let i = 0;
-      let j = 0;
-      
-      
+      (() => {
+      "use strict";
+
+      const demo = window.AlgorithmDemo;
+      const demoRoot = document.getElementById("insertion-sort");
       const container = document.getElementById("arycontainer");
       const description = document.getElementById("description");
       const divTmp = document.getElementById("divTmpValue1");
-      
-      initialize();
-      question_initialize();
-      
-      
-      function initialize() {
-        description.innerHTML = `<p>挿入ソートを開始します。<b>次へ</b>を押してください。</p>`;
-        container.innerHTML = "";
-        
-        let arrayLength = parseInt(document.getElementById("arrayLength1").value, 10);
-        
-        divs = createDivs(container, arrayLength, true);
-        step = 0;
-        divTmp.textContent = "";
+      const lengthInput = document.getElementById("arrayLength1");
+      const newArrayButton = document.getElementById("newArrayButton");
+      const restartButton = document.getElementById("restartButton");
+      const backButton = document.getElementById("backButton");
+      const nextButton = document.getElementById("nextButton");
+
+      let divs = [];
+      let initialValues = [];
+      let history = [];
+      let phase = "pick";
+      let key = null;
+      let i = 1;
+      let j = null;
+      let stepCount = 0;
+      let countCompare = 0;
+      let countMove = 0;
+      let completed = false;
+
+      function initialize(createNewArray) {
+        if (createNewArray || initialValues.length === 0) {
+          const arrayLength = demo.clampArrayLength(lengthInput, 8);
+          initialValues = demo.shuffledRange(arrayLength);
+        } else {
+          lengthInput.value = initialValues.length;
+        }
+
+        divs = demo.renderArray(container, initialValues);
+        divs[0].classList.add("sorted");
+        history = [];
+        phase = "pick";
+        key = null;
         i = 1;
-        j = 0;
+        j = null;
+        stepCount = 0;
+        countCompare = 0;
+        countMove = 0;
+        completed = false;
+        divTmp.textContent = "";
+        divTmp.className = "divValue";
+        description.innerHTML = `<p>先頭の要素<b>${divs[0].textContent}</b>を整列済みとして、挿入ソートを開始します。</p>`;
+        updateUi();
+      }
+
+      function captureState() {
+        return {
+          tiles: demo.captureTiles(divs),
+          tmpText: divTmp.textContent,
+          tmpClassName: divTmp.className,
+          phase,
+          key,
+          i,
+          j,
+          stepCount,
+          countCompare,
+          countMove,
+          completed,
+          description: description.innerHTML
+        };
+      }
+
+      function restoreState(state) {
+        demo.restoreTiles(divs, state.tiles);
+        divTmp.textContent = state.tmpText;
+        divTmp.className = state.tmpClassName;
+        phase = state.phase;
+        key = state.key;
+        i = state.i;
+        j = state.j;
+        stepCount = state.stepCount;
+        countCompare = state.countCompare;
+        countMove = state.countMove;
+        completed = state.completed;
+        description.innerHTML = state.description;
+        updateUi();
       }
       
       function nextStep() {
-        //挿入ソート　次へ
-        
-        if (i >= divs.length) {
-          description.innerHTML = `<p>すべてが整列済みになり、並び替え完了です。</p>`;
-          return;
-        }
-        
-        if (step === 0 && !divs[0].classList.contains("sorted")) {
-          divs[0].classList.add("sorted");
-          description.innerHTML = `<p>先頭の要素<b>${divs[0].textContent}</b>を整列済みとします。</p>`;
-          
-        } else if (step % 4 === 0) {
-          divTmp.textContent = divs[i].textContent;
-          divs[i].classList.add("highlighted");
+        if (completed) return;
+        history.push(captureState());
+        stepCount += 1;
+
+        if (phase === "pick") {
+          divs.forEach(valueElement => valueElement.classList.remove("highlighted"));
+          key = Number.parseInt(divs[i].textContent, 10);
+          divTmp.textContent = key;
           divTmp.classList.add("highlighted");
-          description.innerHTML = `<p><tt>i = ${i}</tt></p><p>未整列の先頭（インデックス番号<b>${i}</b>）の要素<b>${divs[i].textContent}</b>を変数<tt>tmp</tt>に入れます。</p>`;
-          step++;
-        } else if (step % 4 === 1) {
+          divs[i].classList.add("highlighted");
+          description.innerHTML = `<p><tt>i = ${i}</tt></p><p>未整列範囲の先頭にある値<b>${key}</b>を、変数<tt>tmp</tt>に入れます。</p>`;
+          phase = "remove";
+        } else if (phase === "remove") {
           divs[i].textContent = "";
-          description.innerHTML = `<p><tt>i = ${i}</tt></p><p><tt>tmp</tt>に入れたインデックス番号<b>${i}</b>の要素をカラにします。</p>`;
-          j = i - 1;
-          step++;
-        } else if (step % 4 === 2) {
           divs[i].classList.remove("highlighted");
-          divTmp.classList.remove("highlighted");
-          if (j >= 0 && parseInt(divs[j].textContent, 10) > parseInt(divTmp.textContent, 10)) {
-            divs[j + 1].textContent = divs[j].textContent;
-            divs[j].textContent = "";
-            divs[j + 1].classList.add("sorted");
-            divs[j].classList.add("sorted");
-            description.innerHTML = `<p><tt>i = ${i}</tt>, <tt>j = ${j}</tt>のとき、<tt>arr[j + 1] = arr[j]</tt></p><p><tt>tmp</tt>（<b>${divTmp.textContent}</b>）より大きい整列済みの要素を、後から順に右に１つずつずらします。</p>`;
-            j--;
+          j = i - 1;
+          description.innerHTML = `<p><tt>i = ${i}</tt></p><p><tt>tmp</tt>に移した位置を空にし、整列済み範囲を後ろから調べます。</p>`;
+          phase = "compare";
+          demo.syncTileLabels(divs);
+        } else if (phase === "compare") {
+          divs.forEach(valueElement => valueElement.classList.remove("highlighted"));
+          divTmp.classList.add("highlighted");
+
+          if (j >= 0) {
+            const currentValue = Number.parseInt(divs[j].textContent, 10);
+            countCompare += 1;
+            divs[j].classList.add("highlighted");
+
+            if (currentValue > key) {
+              divs[j + 1].textContent = divs[j].textContent;
+              divs[j].textContent = "";
+              divs[j + 1].classList.add("sorted");
+              divs[j].classList.add("sorted");
+              countMove += 1;
+              description.innerHTML = `<p><tt>i = ${i}</tt>, <tt>j = ${j}</tt></p><p>値<b>${currentValue}</b>は<tt>tmp</tt>の値<b>${key}</b>より大きいので、右へ1つずらします。</p>`;
+              j -= 1;
+              demo.syncTileLabels(divs);
+            } else {
+              description.innerHTML = `<p><tt>i = ${i}</tt>, <tt>j = ${j}</tt></p><p>値<b>${currentValue}</b>は<tt>tmp</tt>の値<b>${key}</b>以下なので、その右側が挿入位置です。</p>`;
+              phase = "insert";
+            }
           } else {
-            divs[j + 1].classList.remove("highlighted");
-            divs[j + 1].classList.add("sorted");
-            divs[j + 1].textContent = divTmp.textContent;
-            description.innerHTML = `<p><tt>i = ${i}</tt>, <tt>j = ${j}</tt>のとき、<tt>arr[j + 1] = tmp</tt></p><p>挿入位置は<tt>j + 1</tt>なので、<tt>tmp</tt>（<b>${divTmp.textContent}</b>）をインデックス番号<b>${j + 1}</b>に入れます。</p>`;
-            
-            divTmp.textContent = "";
-            step++;
+            description.innerHTML = `<p><tt>j = -1</tt></p><p>整列済み範囲の先頭まで調べたため、インデックス番号<b>0</b>が挿入位置です。</p>`;
+            phase = "insert";
           }
-          
-        } else if (step % 4 === 3) {
-          i++;
-          step++;
-          
         } else {
-          step++;
+          const insertId = j + 1;
+          divs.forEach(valueElement => valueElement.classList.remove("highlighted"));
+          divs[insertId].textContent = key;
+          divs[insertId].classList.add("sorted");
+          divTmp.textContent = "";
+          divTmp.classList.remove("highlighted");
+          description.innerHTML = `<p><tt>arr[${insertId}] = tmp</tt></p><p><tt>tmp</tt>の値<b>${key}</b>をインデックス番号<b>${insertId}</b>に挿入します。</p>`;
+          demo.syncTileLabels(divs);
+          i += 1;
+          j = null;
+
+          if (i >= divs.length) {
+            divs.forEach(valueElement => valueElement.classList.add("sorted"));
+            description.innerHTML += `<p>すべての値が整列済みになり、並べ替え完了です。</p>`;
+            completed = true;
+          } else {
+            phase = "pick";
+          }
         }
-        
-        
+
+        updateUi();
       }
-      
-      
-      function createDivs(container, arrayLength, shuffle = true) {
-        container.innerHTML = "";
-        let aryNum = Array.from({ length: arrayLength }, (_, i) => i);
-        
-        if (shuffle) {
-          aryNum = shuffleArray(aryNum);
-        }
-        
-        let aryDiv = [];
-        
-        for (let i = 0; i < aryNum.length; i++) {
-          const div = document.createElement("div");
-          div.classList.add("item");
-          container.appendChild(div);
-          
-          const divValue = document.createElement("div");
-          divValue.classList.add("divValue");
-          divValue.textContent = aryNum[i];
-          aryDiv.push(divValue);
-          div.appendChild(divValue);
-          
-          const divIndex = document.createElement("div");
-          divIndex.classList.add("divIndex");
-          divIndex.textContent = i;
-          div.appendChild(divIndex);
-        }
-        
-        return aryDiv;
+
+      function previousStep() {
+        const state = history.pop();
+        if (!state) return;
+        restoreState(state);
       }
-      
-      
+
+      function updateUi() {
+        demo.updateStats(demoRoot, {
+          step: stepCount,
+          compare: countCompare,
+          move: countMove,
+          i: completed ? "—" : i,
+          j: j ?? "—"
+        });
+        demo.updateActionButtons({
+          backButton,
+          nextButton,
+          historyLength: history.length,
+          completed
+        });
+      }
+
+      newArrayButton.addEventListener("click", () => initialize(true));
+      restartButton.addEventListener("click", () => initialize(false));
+      backButton.addEventListener("click", previousStep);
+      nextButton.addEventListener("click", nextStep);
+      demo.bindEnter(lengthInput, () => initialize(true));
+      initialize(true);
+      question_initialize();
+
       
       
       // 挿入ソートの関数
@@ -470,6 +560,7 @@ print(arr)     # ソート後
         }
         return ary;
       }
+      })();
     </script>
   
 </body>

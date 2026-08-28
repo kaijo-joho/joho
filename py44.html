@@ -39,13 +39,34 @@
       
       
       <h3>デモンストレーション</h3>
-      <div id="selection-sort" class="demo">
-        <label for="arrayLength2">配列の長さ:</label>
-        <input type="number" id="arrayLength2" class="arrayLength" value="8" min="2" max="20">
-        <button onclick="initialize()" type="button">配列をリセット</button>
-        <div class="container" id="arycontainer"></div>
+      <div id="selection-sort" class="demo algorithm-demo">
+        <div class="algorithm-controls">
+          <label for="arrayLength2" class="algorithm-field">
+            <span>配列の長さ（2〜12）</span>
+            <input type="number" id="arrayLength2" class="arrayLength" value="8" min="2" max="12">
+          </label>
+          <button id="newArrayButton" type="button">新しい配列</button>
+        </div>
+        <div class="container algorithm-array" id="arycontainer" role="list" aria-label="並べ替える配列"></div>
+        <div class="algorithm-legend" aria-label="色の意味">
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch highlighted"></span>比較中</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch highlighted2"></span>暫定最小値</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch swapped"></span>交換直後</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch sorted"></span>整列済み</span>
+        </div>
+        <div class="algorithm-status">
+          <span>ステップ <b data-stat="step">0</b></span>
+          <span>比較 <b data-stat="compare">0</b>回</span>
+          <span>交換 <b data-stat="swap">0</b>回</span>
+          <span>探索位置 <b data-stat="scan">—</b></span>
+          <span>最小値位置 <b data-stat="min">—</b></span>
+        </div>
         <div id="description" class="description"></div>
-        <button onclick="nextStep()" type="button">次へ</button>
+        <div class="algorithm-actions">
+          <button id="restartButton" type="button">最初から</button>
+          <button id="backButton" type="button" disabled>戻る</button>
+          <button id="nextButton" class="algorithm-next" type="button">次へ</button>
+        </div>
       </div>
       
       
@@ -146,124 +167,185 @@ print(arr)    # ソート後を出力
   
 
 
-  <script>    
+  <script src="./js/algorithm_demo.js"></script>
+  <script>
+    (() => {
+    "use strict";
 
-    let divs = [];
-    let minId = 0;
-    let startId = 0;
-    let step = 0;
-
-
+    const demo = window.AlgorithmDemo;
+    const demoRoot = document.getElementById("selection-sort");
     const container = document.getElementById("arycontainer");
     const description = document.getElementById("description");
+    const lengthInput = document.getElementById("arrayLength2");
+    const newArrayButton = document.getElementById("newArrayButton");
+    const restartButton = document.getElementById("restartButton");
+    const backButton = document.getElementById("backButton");
+    const nextButton = document.getElementById("nextButton");
 
-    initialize();
-    question_initialize();
+    let divs = [];
+    let initialValues = [];
+    let history = [];
+    let minId = 0;
+    let startId = 0;
+    let scanId = 1;
+    let activeScanId = null;
+    let phase = "start";
+    let stepCount = 0;
+    let countCompare = 0;
+    let countSwap = 0;
+    let completed = false;
 
+    function initialize(createNewArray) {
+      if (createNewArray || initialValues.length === 0) {
+        const arrayLength = demo.clampArrayLength(lengthInput, 8);
+        initialValues = demo.shuffledRange(arrayLength);
+      } else {
+        lengthInput.value = initialValues.length;
+      }
 
-    function initialize(){
-      description.textContent = `選択ソートを開始します。`;
-      let arrayLength = parseInt(document.getElementById("arrayLength2").value);
-
-      divs = createDivs(container, arrayLength, true);
-
+      divs = demo.renderArray(container, initialValues);
+      history = [];
       minId = 0;
       startId = 0;
-      step = 0;
+      scanId = 1;
+      activeScanId = null;
+      phase = "start";
+      stepCount = 0;
+      countCompare = 0;
+      countSwap = 0;
+      completed = false;
+      description.innerHTML = `選択ソートを開始します（<b>次へ</b>を押してください）。`;
+      updateUi();
     }
 
-    function nextStep(){
-      //選択ソート 次へ
+    function captureState() {
+      return {
+        tiles: demo.captureTiles(divs),
+        minId,
+        startId,
+        scanId,
+        activeScanId,
+        phase,
+        stepCount,
+        countCompare,
+        countSwap,
+        completed,
+        description: description.innerHTML
+      };
+    }
 
-      if(startId >= divs.length-1){
-        divs[startId].classList.remove("swapped");
-        divs[startId].classList.add("sorted");
-        description.textContent = ` すべてが整列済みになり、並び替え完了です。`;
-        return;
-      }
+    function restoreState(state) {
+      demo.restoreTiles(divs, state.tiles);
+      minId = state.minId;
+      startId = state.startId;
+      scanId = state.scanId;
+      activeScanId = state.activeScanId;
+      phase = state.phase;
+      stepCount = state.stepCount;
+      countCompare = state.countCompare;
+      countSwap = state.countSwap;
+      completed = state.completed;
+      description.innerHTML = state.description;
+      updateUi();
+    }
 
-      if(step % 4 === 0){
-        //startIdをハイライト
-        divs[startId].classList.add("highlighted");
-        description.textContent = ` 未整列の先頭を暫定の最小値とします。`;
-      }else if(step % 4 === 1){
-        //startId〜最後までの最小値を探し、最小値をハイライト
-        minId = findMin();
-        divs[minId].classList.add("highlighted");
-        description.textContent = ` 未整列の範囲の最小値を探します。`;
-      }else if(step % 4 === 2){
-        //startIdと最小値を交換
-        if(startId !== minId){
-          swap(startId, minId);
-          description.textContent = ` 未整列の先頭と最小値を交換します。`;
-        }else{
-          description.textContent = ` 未整列の先頭が最小値なので、交換しません。`;
+    function nextStep() {
+      if (completed) return;
+      history.push(captureState());
+      stepCount += 1;
+
+      if (phase === "start") {
+        demo.clearTileStates(divs, { keepSorted: true });
+        minId = startId;
+        scanId = startId + 1;
+        activeScanId = null;
+        divs[minId].classList.add("highlighted2");
+        description.innerHTML = `未整列範囲の先頭にある値<b>${divs[minId].textContent}</b>を、暫定の最小値とします。`;
+        phase = "scan";
+      } else if (phase === "scan") {
+        divs.forEach(valueElement => valueElement.classList.remove("highlighted"));
+        const currentId = scanId;
+        activeScanId = currentId;
+        const currentValue = Number.parseInt(divs[currentId].textContent, 10);
+        const minValue = Number.parseInt(divs[minId].textContent, 10);
+        countCompare += 1;
+
+        if (currentValue < minValue) {
+          divs[minId].classList.remove("highlighted2");
+          minId = currentId;
+          divs[minId].classList.add("highlighted2");
+          description.innerHTML = `値<b>${currentValue}</b>の方が暫定最小値<b>${minValue}</b>より小さいため、暫定最小値を更新します。`;
+        } else {
+          divs[currentId].classList.add("highlighted");
+          description.innerHTML = `値<b>${currentValue}</b>は暫定最小値<b>${minValue}</b>以上なので、暫定最小値は変わりません。`;
         }
 
-      }else{
-        //startIdをsortedに換え、startId++
-        divs[startId].classList.remove("highlighted");
-        divs[minId].classList.remove("highlighted");
-        divs[startId].classList.remove("swapped");
-        divs[minId].classList.remove("swapped");
+        scanId += 1;
+        if (scanId >= divs.length) phase = "place";
+      } else if (phase === "place") {
+        divs.forEach(valueElement => valueElement.classList.remove("highlighted", "highlighted2"));
+        activeScanId = null;
+        if (startId !== minId) {
+          const startValue = divs[startId].textContent;
+          const minValue = divs[minId].textContent;
+          [divs[startId].textContent, divs[minId].textContent] = [minValue, startValue];
+          divs[startId].classList.add("swapped");
+          divs[minId].classList.add("swapped");
+          countSwap += 1;
+          description.innerHTML = `未整列範囲の先頭にある値<b>${startValue}</b>と、最小値<b>${minValue}</b>を交換します。`;
+          demo.syncTileLabels(divs);
+        } else {
+          description.innerHTML = `未整列範囲の先頭が最小値なので、交換しません。`;
+        }
+        phase = "commit";
+      } else {
+        divs.forEach(valueElement => valueElement.classList.remove("highlighted", "highlighted2", "swapped"));
         divs[startId].classList.add("sorted");
-        description.textContent = ` 未整列の先頭を整列済みにします。`;
-        startId++;
-      }
+        const settledIndex = startId;
+        startId += 1;
 
-      step++;
-    }
-
-    function findMin(){
-      let min = parseInt(divs[startId].textContent);
-      let k = startId;
-
-      for(let i=startId + 1;i<divs.length;i++){
-        if(min > parseInt(divs[i].textContent)){
-          min = parseInt(divs[i].textContent);
-          k = i;
+        if (startId >= divs.length - 1) {
+          divs.forEach(valueElement => valueElement.classList.add("sorted"));
+          description.innerHTML = `インデックス番号<b>${settledIndex}</b>までが整列済みになり、並べ替え完了です。`;
+          completed = true;
+        } else {
+          description.innerHTML = `インデックス番号<b>${settledIndex}</b>の値を整列済みとし、次の未整列範囲を調べます。`;
+          phase = "start";
         }
       }
 
-      return k;
+      updateUi();
     }
 
-    function swap(i, j){
-      [divs[i].textContent, divs[j].textContent] = [divs[j].textContent, divs[i].textContent];
-
-      divs[i].classList.remove("highlighted");
-      divs[j].classList.remove("highlighted");
-      divs[i].classList.add("swapped");
-      divs[j].classList.add("swapped");
+    function previousStep() {
+      const state = history.pop();
+      if (!state) return;
+      restoreState(state);
     }
 
-    function createDivs(container, arrayLength, shuffle = true){
-      container.innerHTML = "";
-      let aryNum = Array.from({ length: arrayLength }, (_, i) => i);
-
-      if(shuffle){aryNum = shuffleArray(aryNum);}
-
-      let aryDiv = [];
-
-      for(let i=0;i<aryNum.length;i++){
-        const div = document.createElement("div");
-        div.classList.add("item");
-        container.appendChild(div);
-
-        const divValue = document.createElement("div");
-        divValue.classList.add("divValue");
-        divValue.textContent = aryNum[i];
-        aryDiv.push(divValue);
-        div.appendChild(divValue);
-
-        const divIndex = document.createElement("div");
-        divIndex.classList.add("divIndex");
-        divIndex.textContent = i;
-        div.appendChild(divIndex);
-      }
-
-      return aryDiv;
+    function updateUi() {
+      demo.updateStats(demoRoot, {
+        step: stepCount,
+        compare: countCompare,
+        swap: countSwap,
+        scan: activeScanId ?? "—",
+        min: stepCount === 0 ? "—" : minId
+      });
+      demo.updateActionButtons({
+        backButton,
+        nextButton,
+        historyLength: history.length,
+        completed
+      });
     }
+
+    newArrayButton.addEventListener("click", () => initialize(true));
+    restartButton.addEventListener("click", () => initialize(false));
+    backButton.addEventListener("click", previousStep);
+    nextButton.addEventListener("click", nextStep);
+    demo.bindEnter(lengthInput, () => initialize(true));
+    initialize(true);
+    question_initialize();
 
       // 選択ソートの関数
       function selectionSort(arr) {
@@ -394,6 +476,7 @@ print(arr)    # ソート後を出力
       }
       return ary;
     }
+    })();
   </script>
   
 </body>
