@@ -425,9 +425,9 @@ plt.show()                                  # グラフを表示
       
       <h3>２系列のグラフ</h3>
       <p>複数の系列を同時に表示するためには、次のように<tt>y1</tt>, <tt>y2</tt>のNumPy配列を用意し、それぞれについてプロットを作成する記述<tt>plt.plot(x, y1, ...)</tt>，<tt>plt.plot(x, y2, ...)</tt>を書きます。</p>
-      <h4>実習3 挿入ソートとクイックソートの比較回数</h4>
-      <p>挿入ソートの平均移動回数はおよそ $n(n-1)/4$ で、平均比較回数はこれより少し多くなります。クイックソートの平均比較回数はおよそ$n \log_2{n}$ と表せます。次の例では、処理回数の増え方を比較するために、$n(n-1)/4$ と $n \log_2{n}$ を目安として2系列のグラフを表示します。</p>
-      <pre class="python" data-title="挿入ソートとクイックソートの比較回数のグラフ"><code>
+      <h4>実習3 挿入ソートとクイックソートの処理回数の増え方</h4>
+      <p>挿入ソートの平均移動回数はおよそ $n(n-1)/4$ で、平均比較回数はこれより少し多くなります。クイックソートの平均比較回数はおよそ$n \log_2{n}$ と表せます。厳密に同じ種類の回数を比べるものではありませんが、データ数に対する処理回数の増え方を比べる目安として、$n(n-1)/4$ と $n \log_2{n}$ の2系列をグラフにします。</p>
+      <pre class="python" data-title="挿入ソートとクイックソートの処理回数の増え方"><code>
 import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
 import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
 import numpy as np              # numpy: 数値計算用のライブラリ
@@ -436,15 +436,15 @@ import numpy as np              # numpy: 数値計算用のライブラリ
 x = np.arange(1, 101)
 
 # yの値を計算
-y1 = x * (x - 1) / 4  # 挿入ソートの平均比較回数
-y2 = x * np.log2(x)  # クイックソートの平均比較回数
+y1 = x * (x - 1) / 4  # 挿入ソートの処理回数の目安
+y2 = x * np.log2(x)    # クイックソートの処理回数の目安
 
 # グラフの作成と表示
 plt.plot(x, y1, label="挿入ソート", color="blue")       # 挿入ソートのグラフをプロット
 plt.plot(x, y2, label="クイックソート", color="red")    # クイックソートのグラフをプロット
-plt.title("挿入ソートとクイックソートの比較回数")       # グラフのタイトルを設定
+plt.title("挿入ソートとクイックソートの処理回数の増え方") # グラフのタイトルを設定
 plt.xlabel("データ数")                                  # x軸のラベルを設定
-plt.ylabel("比較回数")                                  # y軸のラベルを設定
+plt.ylabel("処理回数（目安）")                          # y軸のラベルを設定
 plt.axhline(0, color="black", lw=0.5)                   # x軸を表示(y=0の線を描く)
 plt.axvline(0, color="black", lw=0.5)                   # y軸を表示(x=0の線を描く)
 plt.xlim(0, 100)                                        # x軸の範囲を設定
@@ -453,7 +453,7 @@ plt.legend()                                            # 凡例を表示
 plt.grid(True)                                          # グリッド線を表示
 plt.show()                                              # グラフを表示
       </code></pre>
-      <div class="result"><img src="./img/py51_005.png" class="pyplot" alt="挿入ソートとクイックソートの比較回数のグラフ" decoding="async" loading="lazy"></div>
+      <div class="result"><img src="./img/py51_005.png" class="pyplot" alt="挿入ソートとクイックソートの処理回数の増え方を比較したグラフ" decoding="async" loading="lazy"></div>
 
       
       

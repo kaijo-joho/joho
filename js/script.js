@@ -696,7 +696,7 @@
       // 中央寄せの対象
       centerSelector     = 'img.image, img.screen_shot',
       // ライトボックスの対象
-      lightboxSelector   = 'img.screen_shot',
+      lightboxSelector   = 'img.screen_shot, img.pyplot',
       // 除外（機能ごとに分ける）
       excludeCenter      = '.no-wrap, [data-no-wrap]',  // ← ラップだけ除外
       excludeLightbox    = '',                          // ← 既定で除外なし

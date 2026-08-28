@@ -64,7 +64,7 @@ y = [amount]      # リスト型変数yの0番目の要素に変数amount
 
 # 年ごとの残高を計算
 for i in range(years):
-    interest = int(amount * rate)   # 利息 = 前年の金額 * 利率
+    interest = int(amount * rate)   # 利息 = 前年の金額 * 利率（1円未満は切り捨て）
     amount = amount + interest      # 今年の金額 = 前年の金額 + 利息
     x.append(i + 1)
     y.append(amount)
@@ -96,6 +96,7 @@ plt.show()
 10 年目:  16284 円
       </code></pre>
       <div class="result"><img src="./img/py52_201.png" class="pyplot" alt="複利計算のグラフ" decoding="async"></div>
+      <p class="small-text">※ この例では、<tt>int(amount * rate)</tt>によって1円未満の利息を毎年切り捨てています。そのため、小数を含む理論上の複利計算とは結果がわずかに異なります。</p>
  
       
     </article>
@@ -124,6 +125,7 @@ years = 20      # シミュレーション期間
 x  = [0]            # x軸の配列
 yA = [nA]           # y軸の配列（A市の人口）
 yB = [nB]           # y軸の配列（B市の人口）
+overtake_year = -1   # A市の人口がB市の人口を初めて上回る年（未確定は -1）
 
 # シミュレーションの実行
 for i in range(years):
@@ -136,6 +138,16 @@ for i in range(years):
     x.append(i + 1)
     yA.append(nA)
     yB.append(nB)
+
+    if overtake_year == -1 and nA > nB:
+        overtake_year = i + 1
+
+
+# A市がB市を上回る年を表示
+if overtake_year == -1:
+    print(years, "年以内にはA市の人口はB市の人口を上回りません。")
+else:
+    print("A市の人口がB市の人口を上回るのは", overtake_year, "年後です。")
 
 
 # グラフを描画
@@ -151,6 +163,7 @@ plt.legend()
 
 plt.show()
       </code></pre>
+      <pre class="result"><code>A市の人口がB市の人口を上回るのは 11 年後です。</code></pre>
       <div class="result"><img src="./img/py52_301.png" class="pyplot" alt="A市とB市の人口予測グラフ" decoding="async" loading="lazy"></div>
 
       
@@ -195,7 +208,7 @@ import matplotlib.pyplot as plt
 import japanize_matplotlib
 
 # パラメータ
-k  = 0.40    # Aの変化率（単位時間あたりのAの変化量）
+k  = 0.40    # Aの変化率（単位時間あたりに変化する割合）
 T  = 15      # シミュレーション期間（単位は、年 / 日 / 時間 / 分 / 秒など）
 dt = 0.2     # 時間間隔：1回の計算で進める時間。単位はTと同じにする。
 

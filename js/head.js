@@ -67,7 +67,7 @@
   // bodyより先に直接読み込まれた場合は、機能を落とさないよう従来どおり読み込む。
   const canInspectBody = Boolean(document.body);
   const needsLightbox = !canInspectBody || Boolean(document.body.querySelector(
-    'img.screen_shot, a[data-lightbox], script[src*="slide_pages.js"]'
+    'img.screen_shot, img.pyplot, a[data-lightbox], script[src*="slide_pages.js"]'
   ));
 
   if (needsLightbox) {

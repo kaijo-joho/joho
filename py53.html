@@ -69,22 +69,22 @@ plt.show()
       <dl>
 
         <dt><tt>n=60</tt>の実行結果</dt>
-        <dd><img src="./img/py53_111.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを60回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
+        <dd><img src="./img/py53_111.png" class="pyplot width300px" alt="サイコロを60回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
 
         <dt><tt>n=600</tt>の実行結果</dt>
-        <dd><img src="./img/py53_112.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを600回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
+        <dd><img src="./img/py53_112.png" class="pyplot width300px" alt="サイコロを600回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
         
         <dt><tt>n=6000</tt>の実行結果</dt>
-        <dd><img src="./img/py53_113.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを6000回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
+        <dd><img src="./img/py53_113.png" class="pyplot width300px" alt="サイコロを6000回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
 
         <dt><tt>n=60000</tt>の実行結果</dt>
-        <dd><img src="./img/py53_114.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを60000回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
+        <dd><img src="./img/py53_114.png" class="pyplot width300px" alt="サイコロを60000回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
 
         <dt><tt>n=600000</tt>の実行結果</dt>
-        <dd><img src="./img/py53_115.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを600000回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
+        <dd><img src="./img/py53_115.png" class="pyplot width300px" alt="サイコロを600000回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
 
         <dt><tt>n=6000000</tt>の実行結果</dt>
-        <dd><img src="./img/py53_116.png" class="pyplot" style="margin-left:40px; width:300px;" alt="サイコロを6000000回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
+        <dd><img src="./img/py53_116.png" class="pyplot width300px" alt="サイコロを6000000回振った結果の棒グラフ" decoding="async" loading="lazy"></dd>
       </dl>
       
       <p>このように、試行回数が多くなればなるほど、理論値に近づいていくことがわかります。</p>
@@ -139,7 +139,7 @@ plt.show()
       <h2 id="headline_2">(2) 天気のシミュレーション</h2>
       <p>次の図は、ある地域のある時期の日単位の天気の移り変わりを示したもので、数値は翌日の天気の変化の確率を表しています（このような図を<strong>状態遷移図</strong>といいます）。</p>
       <p class="center">
-        <img src="./img/py53_201.png" class="center" width="400px" alt="天気の状態遷移図" decoding="async" loading="lazy">
+        <img src="./img/py53_201.png" class="center width400px" alt="天気の状態遷移図" decoding="async" loading="lazy">
       </p>
       <p>0日後の天気が「晴れ」として、30日後までの天気がどのように変化するか、また、各天気の種類の日が何日あるかを棒グラフで示しなさい。ただし、天気は、「晴れ」「曇り」「雨」の3種類とし、その天気が1日中続くものとします。</p>
       <p class="small-text">※ このプログラムでは、0日後の天気も1日分として数えるため、集計対象は0日後から30日後までの31日分です。</p>
@@ -202,7 +202,7 @@ plt.xlabel("天気")
 plt.ylabel("日数")
 plt.title("各天気の日数")
 for i in range(len(weather_labels)):
-    ratio = int(weather_counts[i] / (days + 1) * 100)
+    ratio = round(weather_counts[i] / (days + 1) * 100, 1)
     plt.text(i, weather_counts[i], str(weather_counts[i]) + " (" + str(ratio) + "%)", ha="center", va="bottom")
 plt.show()
       </code></pre>
@@ -231,6 +231,7 @@ plt.show()
       <pre class="python" data-title="モンテカルロ法を用いた円周率の近似計算"><code>
 import matplotlib.pyplot as plt # matplotlib: グラフを表示するためのライブラリ
 import japanize_matplotlib      # japanize_matplotlib: matplotlibを日本語化するためのライブラリ
+import numpy as np              # numpy: 数値計算用のライブラリ
 import random
 
 n = 5000  # 試行回数
@@ -262,19 +263,25 @@ plt.figure(figsize=(6, 6))  # グラフのサイズを設定
 plt.scatter(x1, y1, color="red", s=1, label="円の内側")
 plt.scatter(x2, y2, color="blue", s=1, label="円の外側")
 
+# 単位円の第1象限部分を表示
+circle_x = np.linspace(0, 1, 200)
+circle_y = np.sqrt(1 - circle_x ** 2)
+plt.plot(circle_x, circle_y, color="black", linewidth=1.5, label="円周")
+
 plt.title("モンテカルロ法による円周率のシミュレーション")  # グラフのタイトル
 plt.xlim(0, 1)
 plt.ylim(0, 1)
+plt.axis("equal")
 plt.grid(True)
 plt.legend(loc="lower left")
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py53_005.png" class="pyplot" alt="モンテカルロ法による円周率の近似計算の散布図" decoding="async" loading="lazy"></div>
       <pre class="result"><code>
 n = 5000
 cnt = 3926
 π = 3.1408
       </code></pre>
+      <div class="result"><img src="./img/py53_005.png" class="pyplot" alt="単位円の境界と点を示したモンテカルロ法による円周率の近似計算の散布図" decoding="async" loading="lazy"></div>
       
       <p>プログラムを何度か実行すると、毎回結果が異なることがわかります。また、試行回数を増やして実行してみましょう。試行回数が多くなれば、結果はより円周率に近づくことがわかります。</p>
     </article>
@@ -399,14 +406,18 @@ for i in range(n):
 
 # グラフを表示
 plt.plot(x, y)
+plt.scatter(x[0], y[0], color="green", s=40, label="開始点")
+plt.scatter(x[-1], y[-1], color="red", s=40, label="終了点")
 plt.title("ブラウン運動のシミュレーション")
 plt.xlabel("$x$")
 plt.ylabel("$y$")
+plt.axis("equal")
 plt.grid(True)
+plt.legend()
 
 plt.show()
       </code></pre>
-      <div class="result"><img src="./img/py53_006.png" class="pyplot" alt="ブラウン運動のシミュレーショングラフ" decoding="async" loading="lazy"></div>
+      <div class="result"><img src="./img/py53_006.png" class="pyplot" alt="開始点と終了点を示したブラウン運動のシミュレーショングラフ" decoding="async" loading="lazy"></div>
     </article>
   </section>
 </body>
