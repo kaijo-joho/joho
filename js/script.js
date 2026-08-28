@@ -337,15 +337,17 @@
     let main = document.querySelector('body > main');
 
     if (!main) {
-      const sections = Array.from(document.body.children)
-        .filter(element => element.tagName === 'SECTION');
+      const mainContentElements = Array.from(document.body.children)
+        .filter(element =>
+          element.tagName === 'SECTION' || element.id === 'content'
+        );
 
-      if (sections.length === 0) return;
+      if (mainContentElements.length === 0) return;
 
       main = document.createElement('main');
       main.id = 'main-content';
-      sections[0].before(main);
-      sections.forEach(section => main.appendChild(section));
+      mainContentElements[0].before(main);
+      mainContentElements.forEach(element => main.appendChild(element));
     } else if (!main.id) {
       main.id = 'main-content';
     }
