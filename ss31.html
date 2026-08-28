@@ -26,7 +26,7 @@
     <article>
       <h2 id="headline_1">(1) 度数分布表とヒストグラム</h2>
 			<h3>度数分布表</h3>
-      <p>データを階級ごとに集計した表を<b>度数分布表</b>といいます。また、度数分布表において、区切られた各区間を<strong>階級</strong>、区間の幅を<strong>階級幅</strong>、各階級に含まれる値の個数を<strong>度数</strong>、各階級の中央値を<strong>階級値</strong>といいます。</p>
+	      <p>データを階級ごとに集計した表を<b>度数分布表</b>といいます。また、度数分布表において、区切られた各区間を<strong>階級</strong>、区間の幅を<strong>階級幅</strong>、各階級に含まれる値の個数を<strong>度数</strong>、各階級の下限と上限の中央の値を<strong>階級値</strong>といいます。</p>
 
       <p class="center" style="margin-bottom:2px;">熊谷市の1950年から2023年までの8月の最高気温の度数分布表</p>
       <table style="margin-top:2px;">
@@ -49,8 +49,9 @@
       
 
       <p>スプレッドシートで度数を求めるときは、次のように<b>COUNTIF関数</b>または<b>COUNTIFS関数</b>を使います。</p>
-      <pre class="example excel">=COUNTIF(範囲, ">="&階級の下限値) - COUNTIF(範囲, ">"&階級の上限値)</code></pre>
-      <pre class="example excel">=COUNTIFS(範囲, ">="&階級の下限値, 範囲, "<="&階級の上限値)</code></pre>
+	      <p>上の表のように「下限以上、上限未満」の階級を数える場合は、上限値を含めないようにします。</p>
+	      <pre class="example excel"><code>=COUNTIF(範囲, ">="&階級の下限値) - COUNTIF(範囲, ">="&階級の上限値)</code></pre>
+	      <pre class="example excel"><code>=COUNTIFS(範囲, ">="&階級の下限値, 範囲, "<"&階級の上限値)</code></pre>
       
       
 
@@ -227,9 +228,9 @@
       <p>表１はある試験を行った結果である。これについて、次の各問いに答えよ。</p>
       
       <h4>(1) 度数分布表の作成</h4>
-      <p>表１の点数について、表２に度数分布表を作成します。度数を求めるときは、次の<b>COUNTIF関数</b>または<b>COUNTIFS関数</b>を使います。</p>
-      <pre class="example excel">=COUNTIF(範囲, ">="&階級の下限値) - COUNTIF(範囲, ">"&階級の上限値)</code></pre>
-      <pre class="example excel">=COUNTIFS(範囲, ">="&階級の下限値, 範囲, "<="&階級の上限値)</code></pre>
+	      <p>表１の点数について、表２に度数分布表を作成します。この例では「80点以上89点以下」のように、整数で表した下限値と上限値の両方を階級に含めます。度数を求めるときは、次の<b>COUNTIF関数</b>または<b>COUNTIFS関数</b>を使います。</p>
+	      <pre class="example excel"><code>=COUNTIF(範囲, ">="&階級の下限値) - COUNTIF(範囲, ">"&階級の上限値)</code></pre>
+	      <pre class="example excel"><code>=COUNTIFS(範囲, ">="&階級の下限値, 範囲, "<="&階級の上限値)</code></pre>
       
       <h4>(2) 最大値・最小値と四分位数</h4>
       <p>表１の点数について、表３に最大値・最小値・四分位数を求めます。最大値・最小値は、それぞれ<b>MAX関数</b>や<b>MIN関数</b>を使っても求めることができますが、四分位数を求める<b><span class="tooltip" tooltip-data="クォータイル">QUARTILE関数</span></b>を使うことで、四分位数も含めて求めることができます。</p>
@@ -247,7 +248,7 @@
       <p><span class="notes">❶表１の点数を選択</span>した状態でメニューバーの<span class="notes">❷挿入</span> ＞ <span class="notes">❸グラフ</span>を選択します。</p>
       <img src="./img/ss31_902.png" class="screen_shot" width="400px" alt="点数の範囲を選択してグラフを挿入する操作" decoding="async" loading="lazy">
       
-      <p>グラフエディタの<span class="notes">❶設定</span>から、<span class="notes">❷グラフの種類</span>を<span class="notes">❸ヒストグラム</span>にします。次に、グラフエディタの<span class="notes">❹カスタマイズ</span>から、<span class="notes">❺ヒストグラム</span>を選択し、<span class="notes">❻パケットサイズ</span>を<span class="notes">10</span>に変更します（パケットサイズは階級幅のことです）。また、<span class="notes">❼横軸</span>を選択し、<span class="notes">❽最小値</span>を<span class="notes">0</span>，<span class="notes">❾最大値</span>を<span class="notes">100</span>に変更します。</p>
+	      <p>グラフエディタの<span class="notes">❶設定</span>から、<span class="notes">❷グラフの種類</span>を<span class="notes">❸ヒストグラム</span>にします。次に、グラフエディタの<span class="notes">❹カスタマイズ</span>から、<span class="notes">❺ヒストグラム</span>を選択し、<span class="notes">❻バケットサイズ</span>を<span class="notes">10</span>に変更します（バケットサイズは階級幅のことです）。また、<span class="notes">❼横軸</span>を選択し、<span class="notes">❽最小値</span>を<span class="notes">0</span>，<span class="notes">❾最大値</span>を<span class="notes">100</span>に変更します。</p>
       <img src="./img/ss31_903.png" class="screen_shot" alt="グラフエディタでヒストグラムのバケットサイズと軸範囲を設定する画面" decoding="async" loading="lazy">
       
       <p>バケットサイズは階級幅、最小値と最大値は横軸の範囲を示します。</p>
