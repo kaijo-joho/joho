@@ -49,7 +49,7 @@
         </div>
         <div class="container algorithm-array" id="arycontainer" role="list" aria-label="並べ替える配列"></div>
         <div class="algorithm-legend" aria-label="色の意味">
-          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch highlighted"></span>比較中</span>
+          <span class="algorithm-legend__item"><span class="algorithm-legend__swatch highlighted inspecting"></span>比較中（注目）</span>
           <span class="algorithm-legend__item"><span class="algorithm-legend__swatch highlighted2"></span>暫定最小値</span>
           <span class="algorithm-legend__item"><span class="algorithm-legend__swatch swapped"></span>交換直後</span>
           <span class="algorithm-legend__item"><span class="algorithm-legend__swatch sorted"></span>整列済み</span>
@@ -249,6 +249,21 @@ print(arr)    # ソート後を出力
       updateUi();
     }
 
+    function updateActiveScan() {
+      divs.forEach((valueElement, index) => {
+        const item = valueElement.parentElement;
+        if (!item) return;
+
+        const isActive = index === activeScanId;
+        item.classList.toggle("inspecting", isActive);
+        if (isActive) {
+          item.setAttribute("aria-current", "step");
+        } else {
+          item.removeAttribute("aria-current");
+        }
+      });
+    }
+
     function nextStep() {
       if (completed) return;
       history.push(captureState());
@@ -324,6 +339,7 @@ print(arr)    # ソート後を出力
     }
 
     function updateUi() {
+      updateActiveScan();
       demo.updateStats(demoRoot, {
         step: stepCount,
         compare: countCompare,

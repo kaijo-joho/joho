@@ -35,6 +35,8 @@
   --demo-swapped-bg:      #e5aacc;          /* swapped 背景 */
   --demo-sorted-bg:       #96a7e7;          /* sorted 背景 */
   --demo-sorted-text:     #172554;
+  --demo-inspecting-ring: #b45309;          /* 現在比較している要素 */
+  --demo-inspecting-glow: rgba(180, 83, 9, .28);
 
   /* アクセント（description内 <b> の淡い面色） */
   --demo-accent-tint:     rgba(10,84,138,0.08);
@@ -105,6 +107,8 @@
     --demo-swapped-bg:      #53394a;   /* ピンク系の落ち着いた面色 */
     --demo-sorted-bg:       #3b4e7b;
     --demo-sorted-text:     #e5e7eb;
+    --demo-inspecting-ring: #fbbf24;
+    --demo-inspecting-glow: rgba(251, 191, 36, .34);
 
     --demo-accent-tint:     rgba(96,164,255,0.16); /* <b> 背景の淡い青 */
 
@@ -479,6 +483,8 @@
   margin: 0;
   overflow: hidden;
   box-sizing: border-box;
+  transition: background-color .5s, color .3s, border-color .3s,
+    box-shadow .18s ease, transform .18s ease;
 }
 
 .algorithm-demo .algorithm-array .divValue{
@@ -536,6 +542,11 @@
   box-sizing: border-box;
   border: 1px solid var(--demo-border);
   border-radius: 3px;
+}
+
+.algorithm-legend__swatch.inspecting{
+  border-color: var(--demo-inspecting-ring);
+  box-shadow: 0 0 0 2px var(--demo-inspecting-glow);
 }
 
 .algorithm-status{
@@ -601,6 +612,15 @@
   outline-offset: -3px;
 }
 
+.algorithm-demo .algorithm-array .item.inspecting{
+  position: relative;
+  z-index: 1;
+  border-color: var(--demo-inspecting-ring);
+  box-shadow: 0 0 0 3px var(--demo-inspecting-glow),
+    0 7px 14px rgba(0, 0, 0, .16);
+  transform: translateY(-3px);
+}
+
 .algorithm-demo .swapped{
   outline: 2px dashed color-mix(in oklab, currentColor 68%, transparent);
   outline-offset: -2px;
@@ -653,5 +673,4 @@
     transition: none;
   }
 }
-
 

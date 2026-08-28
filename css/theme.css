@@ -403,6 +403,8 @@
   --demo-swapped-bg: #e5aacc;
   --demo-sorted-bg: #96a7e7;
   --demo-sorted-text: #172554;
+  --demo-inspecting-ring: #b45309;
+  --demo-inspecting-glow: rgba(180, 83, 9, .28);
   --demo-accent-tint: rgba(10, 84, 138, .08);
   --demo-btn-bg: #f4f7fb;
   --demo-btn-text: #0b3b64;
@@ -440,6 +442,8 @@
   --demo-swapped-bg: color-mix(in oklab, #ff82c1 35%, transparent);
   --demo-sorted-bg: color-mix(in oklab, #7da0ff 30%, transparent);
   --demo-sorted-text: #e5e7eb;
+  --demo-inspecting-ring: #fbbf24;
+  --demo-inspecting-glow: rgba(251, 191, 36, .34);
   --demo-accent-tint: color-mix(in oklab, #60a4ff 18%, transparent);
   --demo-btn-bg: color-mix(in oklab, #ffffff 10%, #0b0f14);
   --demo-btn-text: #e6edf7;
