@@ -12,6 +12,7 @@
   };
 
   let inited = false;
+  let themeMenuSequence = 0;
 
   /** ========= メタ情報の取得 ========= */
   function getCurrentPageId() {
@@ -59,12 +60,7 @@
     );
   }
 
-  function createThemeSwitcher() {
-    const switcher = document.createElement('div');
-    switcher.className = 'site-theme-switcher';
-    switcher.setAttribute('role', 'radiogroup');
-    switcher.setAttribute('aria-label', '表示テーマ');
-
+  function createThemeMenu() {
     const options = [
       {
         value: 'system',
@@ -94,70 +90,189 @@
       }
     ];
 
-    const buttons = options.map(option => {
+    const menu = document.createElement('div');
+    menu.className = 'site-theme-menu';
+
+    const trigger = document.createElement('button');
+    trigger.type = 'button';
+    trigger.className = 'site-theme-menu__trigger';
+    trigger.setAttribute('aria-haspopup', 'menu');
+    trigger.setAttribute('aria-expanded', 'false');
+
+    const optionPanel = document.createElement('div');
+    optionPanel.className = 'site-theme-menu__options';
+    optionPanel.id = `site-theme-options-${++themeMenuSequence}`;
+    optionPanel.setAttribute('role', 'menu');
+    optionPanel.setAttribute('aria-label', '表示テーマを変更');
+    optionPanel.hidden = true;
+    trigger.setAttribute('aria-controls', optionPanel.id);
+
+    const optionButtons = options.map(option => {
       const button = document.createElement('button');
       button.type = 'button';
-      button.className = 'site-theme-switcher__button';
+      button.className = 'site-theme-menu__option';
       button.dataset.themeValue = option.value;
       button.dataset.label = option.label;
-      button.setAttribute('role', 'radio');
+      button.setAttribute('role', 'menuitem');
       button.setAttribute('aria-label', option.ariaLabel);
-      button.setAttribute('aria-checked', 'false');
       button.innerHTML = option.icon;
-      switcher.appendChild(button);
+      button.tabIndex = -1;
+      optionPanel.appendChild(button);
       return button;
     });
 
-    const syncSelection = value => {
-      const selectedValue = options.some(option => option.value === value) ? value : 'system';
-      buttons.forEach(button => {
-        const selected = button.dataset.themeValue === selectedValue;
-        button.classList.toggle('is-selected', selected);
-        button.setAttribute('aria-checked', String(selected));
-        button.tabIndex = selected ? 0 : -1;
+    menu.append(trigger, optionPanel);
+
+    let currentValue = 'system';
+    let closeTimer = null;
+    let lastPointerType = '';
+
+    const visibleOptionButtons = () => optionButtons.filter(button => !button.hidden);
+
+    const syncCurrentTheme = value => {
+      currentValue = options.some(option => option.value === value) ? value : 'system';
+      const current = options.find(option => option.value === currentValue);
+
+      trigger.innerHTML = current.icon;
+      trigger.dataset.label = current.label;
+      trigger.setAttribute(
+        'aria-label',
+        `現在の表示テーマ：${current.ariaLabel}。ほかのテーマを選ぶ`
+      );
+
+      optionButtons.forEach(button => {
+        button.hidden = button.dataset.themeValue === currentValue;
+        button.tabIndex = -1;
       });
+
+      if (trigger.getAttribute('aria-expanded') === 'true') {
+        const visible = visibleOptionButtons();
+        if (visible[0]) visible[0].tabIndex = 0;
+      }
+    };
+
+    const isOpen = () => trigger.getAttribute('aria-expanded') === 'true';
+
+    const openMenu = ({ focus = 'none' } = {}) => {
+      clearTimeout(closeTimer);
+      optionPanel.hidden = false;
+      menu.classList.add('is-open');
+      trigger.setAttribute('aria-expanded', 'true');
+
+      const visible = visibleOptionButtons();
+      visible.forEach((button, index) => {
+        button.tabIndex = index === 0 ? 0 : -1;
+      });
+
+      if (focus === 'first') visible[0]?.focus();
+      if (focus === 'last') visible[visible.length - 1]?.focus();
+    };
+
+    const closeMenu = ({ restoreFocus = false } = {}) => {
+      clearTimeout(closeTimer);
+      optionPanel.hidden = true;
+      menu.classList.remove('is-open');
+      trigger.setAttribute('aria-expanded', 'false');
+      optionButtons.forEach(button => { button.tabIndex = -1; });
+      if (restoreFocus) trigger.focus({ preventScroll: true });
     };
 
     const theme = window.siteTheme;
     if (theme && typeof theme.setPreference === 'function') {
-      buttons.forEach(button => {
+      optionButtons.forEach(button => {
         button.addEventListener('click', () => {
           theme.setPreference(button.dataset.themeValue);
+          closeMenu({ restoreFocus: true });
         });
       });
 
-      switcher.addEventListener('keydown', event => {
-        const currentIndex = buttons.indexOf(document.activeElement);
+      trigger.addEventListener('pointerdown', event => {
+        lastPointerType = event.pointerType || '';
+      });
+
+      trigger.addEventListener('click', () => {
+        if (isOpen() && lastPointerType === 'mouse') {
+          lastPointerType = '';
+          return;
+        }
+        if (isOpen()) closeMenu();
+        else openMenu();
+        lastPointerType = '';
+      });
+
+      trigger.addEventListener('keydown', event => {
+        if (['ArrowRight', 'ArrowDown', 'Home'].includes(event.key)) {
+          event.preventDefault();
+          openMenu({ focus: 'first' });
+        } else if (['ArrowLeft', 'ArrowUp', 'End'].includes(event.key)) {
+          event.preventDefault();
+          openMenu({ focus: 'last' });
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          closeMenu();
+        }
+      });
+
+      optionPanel.addEventListener('keydown', event => {
+        const visible = visibleOptionButtons();
+        const currentIndex = visible.indexOf(document.activeElement);
         if (currentIndex < 0) return;
 
         let nextIndex = null;
         if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
-          nextIndex = (currentIndex + 1) % buttons.length;
+          nextIndex = (currentIndex + 1) % visible.length;
         } else if (event.key === 'ArrowLeft' || event.key === 'ArrowUp') {
-          nextIndex = (currentIndex - 1 + buttons.length) % buttons.length;
+          nextIndex = (currentIndex - 1 + visible.length) % visible.length;
         } else if (event.key === 'Home') {
           nextIndex = 0;
         } else if (event.key === 'End') {
-          nextIndex = buttons.length - 1;
+          nextIndex = visible.length - 1;
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          closeMenu({ restoreFocus: true });
+          return;
         }
 
         if (nextIndex === null) return;
         event.preventDefault();
-        const nextButton = buttons[nextIndex];
-        theme.setPreference(nextButton.dataset.themeValue);
-        nextButton.focus();
+        visible.forEach(button => { button.tabIndex = -1; });
+        visible[nextIndex].tabIndex = 0;
+        visible[nextIndex].focus();
       });
 
-      syncSelection(theme.preference);
+      menu.addEventListener('pointerenter', event => {
+        if (event.pointerType !== 'touch') openMenu();
+      });
+      menu.addEventListener('pointerleave', event => {
+        if (event.pointerType === 'touch') return;
+        clearTimeout(closeTimer);
+        closeTimer = setTimeout(() => {
+          if (!menu.contains(document.activeElement)) closeMenu();
+        }, 220);
+      });
+
+      menu.addEventListener('focusout', event => {
+        if (!menu.contains(event.relatedTarget)) closeMenu();
+      });
+
+      document.addEventListener('pointerdown', event => {
+        if (isOpen() && !menu.contains(event.target)) closeMenu();
+      });
+
+      document.addEventListener('keydown', event => {
+        if (event.key === 'Escape' && isOpen()) closeMenu({ restoreFocus: true });
+      });
+
+      syncCurrentTheme(theme.preference);
       document.addEventListener('joho:theme-change', event => {
-        syncSelection(event.detail?.preference || 'system');
+        syncCurrentTheme(event.detail?.preference || 'system');
       });
     } else {
-      buttons.forEach(button => { button.disabled = true; });
-      syncSelection('system');
+      trigger.disabled = true;
+      syncCurrentTheme('system');
     }
 
-    return switcher;
+    return menu;
   }
 
   /** ========= ヘッダ生成 ========= */
@@ -214,15 +329,15 @@
         headerbarActions.appendChild(headerbarCourse);
       }
 
-      headerbarActions.appendChild(createThemeSwitcher());
+      headerbarActions.appendChild(createThemeMenu());
       headerbar.append(headerbarBrand, headerbarActions);
       header.appendChild(headerbar);
     }
 
-    if (keepLegacyHeader && !legacyHeader.querySelector('.site-theme-switcher')) {
-      const legacyThemeSwitcher = createThemeSwitcher();
-      legacyThemeSwitcher.classList.add('site-theme-switcher--legacy');
-      legacyHeader.appendChild(legacyThemeSwitcher);
+    if (keepLegacyHeader && !legacyHeader.querySelector('.site-theme-menu')) {
+      const legacyThemeMenu = createThemeMenu();
+      legacyThemeMenu.classList.add('site-theme-menu--legacy');
+      legacyHeader.appendChild(legacyThemeMenu);
     }
 
     if (!meta || meta.id === 'link' || text(meta.title) === '') return;
