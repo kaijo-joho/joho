@@ -14,7 +14,7 @@ const slidesData = [
   },
   {
     "title": "1.3. 《練習》各区の面積の合計値・平均値・最大値・最小値",
-    "note": "《練習》<br><span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【D30】に各区の面積の合計値を求めなさい。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【D31】に各区の面積の平均値を求めなさい。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">【D32】に各区の面積の最大値を求めなさい。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">【D33】に各区の面積の最小値を求めなさい。</span></span><br>",
+    "note": "《練習》<br><span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【D30】に各区の面積の合計値を求めなさい。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【D31】に各区の面積の平均値を求めなさい。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">【D32】に各区の面積の最大値を求めなさい。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>④</strong></span><span class=\"circBody\">【D33】に各区の面積の最小値を求めなさい。</span></span><br>",
     "image": "img_slide/ss13_05.png"
   },
   {
@@ -27,11 +27,11 @@ const slidesData = [
   },
   {
     "title": "2.2. 関数のオートフィル（１）",
-    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【E7】を選択しする【E29】までオートフィルして数式をコピーする。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【E7:E29】まで同様に求めることができる。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">【E29】をクリックし、数式が正しく適用できているか確認する。</span></span><br>",
+    "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【E7】を選択し、【E29】までオートフィルして数式をコピーする。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【E7:E29】まで同様に求めることができる。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>③</strong></span><span class=\"circBody\">【E29】をクリックし、数式が正しく適用できているか確認する。</span></span><br>",
     "image": "img_slide/ss13_08.png"
   },
   {
-    "title": "2.2. 関数のオートフィル（２）",
+    "title": "2.3. 関数のオートフィル（２）",
     "note": "<span class=\"circLine\"><span class=\"circHead\"><strong>①</strong></span><span class=\"circBody\">【D30:D33】を選択し、右に１列オートフィルして数式をコピーする。</span></span><br><span class=\"circLine\"><span class=\"circHead\"><strong>②</strong></span><span class=\"circBody\">【E30:E33】の数式が正しくコピーされているかを確認する。</span></span><br><br>",
     "image": "img_slide/ss13_09.png"
   },
@@ -49,4 +49,4 @@ const slidesData = [
     "image": "img_slide/ss13_12.png"
   }
 ]
-window.slidesData = slidesData;;
+window.slidesData = slidesData;
