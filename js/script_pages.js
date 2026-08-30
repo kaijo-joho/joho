@@ -13,10 +13,6 @@ function getPageId() {
 
 /* ===================== メイン処理 ===================== */
 function main() {
-  // 事前ユーティリティ（落ちても他に影響しないように）
-  try { addEvent_tableToggleCell(); } catch(e){ console.error('[script_pages] addEvent_tableToggleCell failed', e); }
-  try { setPre(); } catch(e){ console.error('[script_pages] setPre failed', e); }
-
   const allPages = (typeof window !== 'undefined' ? window.pages : undefined) || {};
   const pageId   = getPageId();
   const page     = allPages[pageId];
@@ -55,11 +51,7 @@ function main() {
     console.error('[script_pages] render course resource index failed', e);
   }
 
-  // †/‡ のツールチップ
-  try { addTooltips_to_daggers(); } catch(e){ console.error('[script_pages] addTooltips_to_daggers failed', e); }
-
-  // 横スクロールラッパ（重複ラップを回避）
-  try { setXScroll('table, ul.x-scroll, ul.file-link'); } catch(e){ console.error('[script_pages] setXScroll failed', e); }
+  enhanceGeneratedPageContent();
 
   document.dispatchEvent(new Event('pages:ready'));
 }
@@ -68,6 +60,8 @@ function main() {
 function addTooltips_to_daggers() {
   const headers = document.querySelectorAll('h3, h4');
   headers.forEach(header => {
+    if (header.querySelector('.dagger')) return;
+
     if (header.textContent.includes('†')) {
       header.innerHTML = header.innerHTML.replace(/(†)/g,
         '<span class="dagger" tooltip-data="応用的な内容： 初学者はスキップしてよいが、授業ではあとから必要になる項目。">$1</span>');
@@ -76,6 +70,13 @@ function addTooltips_to_daggers() {
         '<span class="double-dagger dagger" tooltip-data="発展的な内容： 授業では扱うことはないが、将来Pythonを学ぶときには修得しておきたい項目。">$1</span>');
     }
   });
+}
+
+function enhanceGeneratedPageContent() {
+  try { addEvent_tableToggleCell(); } catch(e){ console.error('[script_pages] addEvent_tableToggleCell failed', e); }
+  try { setPre(); } catch(e){ console.error('[script_pages] setPre failed', e); }
+  try { addTooltips_to_daggers(); } catch(e){ console.error('[script_pages] addTooltips_to_daggers failed', e); }
+  try { setXScroll('table, ul.x-scroll, ul.file-link'); } catch(e){ console.error('[script_pages] setXScroll failed', e); }
 }
 
 function addEvent_tableToggleCell() {
@@ -159,13 +160,18 @@ function setPre() {
   const preBlocks = document.querySelectorAll('pre');
   preBlocks.forEach(pre => {
     const className = pre.className || '';
-    if (!className.includes('example') && !className.includes('result') && !className.includes('copy-ok')) {
-      pre.addEventListener('copy', e => e.preventDefault());
-      pre.addEventListener('cut', e => e.preventDefault());
-      pre.addEventListener('contextmenu', e => e.preventDefault());
-      pre.addEventListener('selectstart', e => e.preventDefault());
-      pre.style.userSelect = 'none';
-    }
+    const copyAllowed =
+      className.includes('example') ||
+      className.includes('result') ||
+      className.includes('copy-ok');
+    if (copyAllowed || pre.dataset.copyProtectionInitialized === 'true') return;
+
+    pre.dataset.copyProtectionInitialized = 'true';
+    pre.addEventListener('copy', e => e.preventDefault());
+    pre.addEventListener('cut', e => e.preventDefault());
+    pre.addEventListener('contextmenu', e => e.preventDefault());
+    pre.addEventListener('selectstart', e => e.preventDefault());
+    pre.style.userSelect = 'none';
   });
 }
 
@@ -327,3 +333,4 @@ function renderCourseResourceIndex(pagesDict, currentId) {
 
 /* ===================== エクスポート ===================== */
 window.initPageScripts = main;
+window.enhanceGeneratedPageContent = enhanceGeneratedPageContent;

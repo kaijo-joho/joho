@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>スライド・HTMLハイブリッド表示テスト</title>
+  <link rel="stylesheet" href="../css/css.css">
+</head>
+<body>
+  <section>
+    <article>
+      <h2 data-skip-numbering>ネイティブHTMLの説明</h2>
+      <p id="hybrid-before">この段落はHTMLに直接記述されています。</p>
+
+      <div
+        data-slide-content
+        data-slide-source="ss11"
+        data-slide-section="1. スプレッドシートの画面"
+        data-slide-layout="inline"
+        data-slide-heading-level="3"
+      ></div>
+
+      <p id="hybrid-between">ここで再び、HTMLに直接記述した概念説明へ戻ります。</p>
+
+      <div
+        data-slide-content
+        data-slide-source="ss11"
+        data-slide-section="3. 数式の入力"
+        data-slide-layout="inline"
+        data-slide-heading-level="3"
+      ></div>
+
+      <p id="hybrid-after">この段落もHTMLに直接記述されています。</p>
+    </article>
+  </section>
+
+  <script src="../js/slide_pages.js"></script>
+</body>
+</html>

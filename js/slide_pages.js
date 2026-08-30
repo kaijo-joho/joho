@@ -1,127 +1,366 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const htmlFileName = location.pathname.split('/').pop().replace('.html', '');
-  const scriptPath = `js/${htmlFileName}.js`;
+(() => {
+  'use strict';
 
-  const dataScript = document.createElement('script');
-  dataScript.src = scriptPath;
-  dataScript.onload = () => renderSlides();
-  dataScript.onerror = () => {
-    const el = document.getElementById('content');
-    if (el) el.textContent = 'スライドデータが見つかりません';
-    else console.error('content 要素が見つかりませんでした');
-  };
+  const loaderScript = document.currentScript;
+  const dataScriptBaseUrl = new URL('./', loaderScript?.src || document.baseURI);
+  const siteBaseUrl = new URL('../', dataScriptBaseUrl);
+  const sourcePattern = /^[A-Za-z0-9_-]+$/;
+  const supportedLayouts = new Set(['sections', 'inline']);
+  let initializationPromise = null;
 
-  const head = document.head || document.getElementsByTagName('head')[0];
-  if (head) {
-    head.appendChild(dataScript);
-  } else {
-    console.error('head 要素が見つかりませんでした');
+  function getPageId() {
+    const fileName = location.pathname.split('/').pop() || 'index';
+    return fileName.replace(/\.html?$/i, '') || 'index';
   }
 
-  function renderSlides() {
-    const content = document.getElementById('content');
-    if (!content) {
-      console.error('content 要素が見つかりません');
-      return;
+  function getRenderTargets() {
+    const targets = Array.from(document.querySelectorAll('[data-slide-content]'));
+    const legacyTarget = document.getElementById('content');
+
+    if (legacyTarget && !targets.includes(legacyTarget)) {
+      targets.unshift(legacyTarget);
+    }
+    return targets;
+  }
+
+  function getSlideSource(target, fallbackSource) {
+    return (target.dataset.slideSource || fallbackSource).trim();
+  }
+
+  function resolveSingleSource(targets) {
+    const fallbackSource = getPageId();
+    const sources = new Set(targets.map(target => getSlideSource(target, fallbackSource)));
+
+    if (sources.size !== 1) {
+      throw new Error(
+        '現在のスライドデータ形式では、1ページにつき1つのスライド原本を指定してください。'
+      );
     }
 
-    if (!window.slidesData || !Array.isArray(window.slidesData)) {
-      content.textContent = 'スライドデータが読み込まれていません。';
-      return;
+    const source = Array.from(sources)[0];
+    if (!sourcePattern.test(source)) {
+      throw new Error(`スライド原本ID「${source}」は使用できません。`);
     }
+    return source;
+  }
 
-    const container = document.createElement('div');
-    container.classList.add('slides-container');
+  function loadSlideData(source) {
+    return new Promise((resolve, reject) => {
+      const scriptUrl = new URL(`${source}.js`, dataScriptBaseUrl).href;
+      const existing = Array.from(document.scripts).find(script => script.src === scriptUrl);
 
-    let currentSection = null;
-    let currentArticle = null;
-    let headlineCount = 0; // h2 の順番カウント
-    let slideImageCount = 0;
-
-    window.slidesData.forEach(entry => {
-
-      if (entry.slideTitle) {
-        /*
-        const h1 = document.createElement('h1');
-        h1.textContent = entry.slideTitle;
-        container.appendChild(h1);
-        */
-        return;
-        
-      }
-
-
-      if (entry.section) {
-        // 新しいセクションを開始
-        headlineCount++; // カウントをインクリメント
-
-        currentSection = document.createElement('section');
-        currentArticle = document.createElement('article');
-
-        const h2 = document.createElement('h2');
-        h2.textContent = entry.section;
-        h2.id = `headline_${headlineCount}`; // ← ID追加！
-        currentArticle.appendChild(h2);
-
-        currentSection.appendChild(currentArticle);
-        container.appendChild(currentSection);
+      if (existing && Array.isArray(window.slidesData)) {
+        resolve(window.slidesData.map(entry => ({ ...entry })));
         return;
       }
 
-      // スライド（同じセクション内）
-      if (!currentArticle) {
-        // セクションなしなら仮のセクション作成
-        currentSection = document.createElement('section');
-        currentArticle = document.createElement('article');
-        currentSection.appendChild(currentArticle);
-        container.appendChild(currentSection);
-      }
-
-      const h3 = document.createElement('h3');
-      h3.textContent = entry.title;
-      currentArticle.appendChild(h3);
-
-      const note = document.createElement('div');
-      note.className = 'note';
-      note.innerHTML = entry.note;
-      currentArticle.appendChild(note);
-
-      if (entry.image) {
-        const img = document.createElement('img');
-        img.src = entry.image;
-        img.alt = entry.title;
-        img.className = 'slide_img screen_shot'; // クラス両方つける
-        img.style.maxWidth = '90%';
-        img.decoding = 'async';
-        img.loading = slideImageCount === 0 ? 'eager' : 'lazy';
-        slideImageCount++;
-
-        // aタグとdivでラップ
-        const aTag = document.createElement('a');
-        aTag.href = img.src;
-        aTag.setAttribute('data-lightbox', 'abc');
-        aTag.className = 'expand-img';
-
-        const divTag = document.createElement('div');
-        divTag.className = 'center';
-
-        aTag.appendChild(img);
-        divTag.appendChild(aTag);
-
-        if (entry.showInDetails) {
-          const details = document.createElement('details');
-          const summary = document.createElement('summary');
-          summary.textContent = '画像を表示';
-          details.appendChild(summary);
-          details.appendChild(divTag); // ← ラップした画像を入れる
-          currentArticle.appendChild(details);
-        } else {
-          currentArticle.appendChild(divTag); // ← ラップしてそのまま入れる
+      const dataScript = existing || document.createElement('script');
+      const handleLoad = () => {
+        cleanup();
+        if (!Array.isArray(window.slidesData)) {
+          reject(new Error(`スライドデータ「${source}」を読み取れませんでした。`));
+          return;
         }
+        resolve(window.slidesData.map(entry => ({ ...entry })));
+      };
+      const handleError = () => {
+        cleanup();
+        reject(new Error(`スライドデータ「${source}」が見つかりません。`));
+      };
+      const cleanup = () => {
+        dataScript.removeEventListener('load', handleLoad);
+        dataScript.removeEventListener('error', handleError);
+      };
+
+      dataScript.addEventListener('load', handleLoad, { once: true });
+      dataScript.addEventListener('error', handleError, { once: true });
+
+      if (!existing) {
+        window.slidesData = undefined;
+        dataScript.src = scriptUrl;
+        dataScript.async = false;
+        dataScript.dataset.slideDataSource = source;
+        document.head.appendChild(dataScript);
+      }
+    });
+  }
+
+  function validateSlideData(entries) {
+    const errors = [];
+
+    if (!Array.isArray(entries) || entries.length === 0) {
+      return ['スライドデータが空です。'];
+    }
+
+    entries.forEach((entry, index) => {
+      const label = `${index + 1}件目`;
+      if (!entry || typeof entry !== 'object' || Array.isArray(entry)) {
+        errors.push(`${label}がオブジェクトではありません。`);
+        return;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(entry, 'section')) {
+        if (typeof entry.section !== 'string' || entry.section.trim() === '') {
+          errors.push(`${label}のsectionが空です。`);
+        }
+        return;
+      }
+
+      if (Object.prototype.hasOwnProperty.call(entry, 'slideTitle')) {
+        if (typeof entry.slideTitle !== 'string') {
+          errors.push(`${label}のslideTitleが文字列ではありません。`);
+        }
+        return;
+      }
+
+      if (typeof entry.title !== 'string' || entry.title.trim() === '') {
+        errors.push(`${label}のtitleが空です。`);
+      }
+      if (typeof entry.note !== 'string') {
+        errors.push(`${label}のnoteが文字列ではありません。`);
+      }
+      if (
+        Object.prototype.hasOwnProperty.call(entry, 'image') &&
+        (typeof entry.image !== 'string' || entry.image.trim() === '')
+      ) {
+        errors.push(`${label}のimageが不正です。`);
+      }
+      if (
+        Object.prototype.hasOwnProperty.call(entry, 'imageAlt') &&
+        typeof entry.imageAlt !== 'string'
+      ) {
+        errors.push(`${label}のimageAltが文字列ではありません。`);
       }
     });
 
-    content.innerHTML = '';
-    content.appendChild(container);
+    return errors;
   }
-});
+
+  function selectEntriesForTarget(entries, target) {
+    const sectionName = (target.dataset.slideSection || '').trim();
+    if (!sectionName) return entries;
+
+    const selected = [];
+    let inRequestedSection = false;
+    let found = false;
+
+    entries.forEach(entry => {
+      if (Object.prototype.hasOwnProperty.call(entry, 'section')) {
+        inRequestedSection = entry.section.trim() === sectionName;
+        if (inRequestedSection) found = true;
+      }
+      if (inRequestedSection) selected.push(entry);
+    });
+
+    if (!found) {
+      throw new Error(`指定したセクション「${sectionName}」が見つかりません。`);
+    }
+
+    if (target.dataset.slideSectionHeading === 'false' && selected[0]?.section) {
+      return selected.slice(1);
+    }
+    return selected;
+  }
+
+  function getLayout(target) {
+    const explicitLayout = (target.dataset.slideLayout || '').trim();
+    const layout = explicitLayout || (target.hasAttribute('data-slide-content') ? 'inline' : 'sections');
+
+    if (!supportedLayouts.has(layout)) {
+      throw new Error(`data-slide-layout="${layout}"は使用できません。`);
+    }
+    return layout;
+  }
+
+  function getSlideHeadingLevel(target) {
+    const value = Number(target.dataset.slideHeadingLevel || 3);
+    return Number.isInteger(value) && value >= 3 && value <= 6 ? value : 3;
+  }
+
+  function dispatchImageError(source, entry, imageUrl) {
+    const detail = {
+      source,
+      renderedCount: 0,
+      targetCount: getRenderTargets().length,
+      errors: [`画像「${imageUrl}」を読み込めませんでした。`],
+      slideTitle: entry.title || ''
+    };
+    console.error('[slide_pages]', detail.errors[0]);
+    document.dispatchEvent(new CustomEvent('slides:error', { detail }));
+  }
+
+  function appendSlide(parent, entry, source, headingLevel, renderState) {
+    const heading = document.createElement(`h${headingLevel}`);
+    heading.textContent = entry.title;
+    if (entry.slideObjectId) heading.dataset.slideObjectId = String(entry.slideObjectId);
+    parent.appendChild(heading);
+
+    const note = document.createElement('div');
+    note.className = 'note';
+    note.innerHTML = entry.note;
+    parent.appendChild(note);
+
+    if (!entry.image) return;
+
+    const imageUrl = new URL(entry.image, siteBaseUrl).href;
+    const image = document.createElement('img');
+    image.src = imageUrl;
+    image.alt = (entry.imageAlt || entry.title).trim();
+    image.className = 'slide_img screen_shot';
+    image.style.maxWidth = '90%';
+    image.decoding = 'async';
+    image.loading = renderState.imageCount === 0 ? 'eager' : 'lazy';
+    image.addEventListener(
+      'error',
+      () => dispatchImageError(source, entry, imageUrl),
+      { once: true }
+    );
+    renderState.imageCount++;
+
+    const link = document.createElement('a');
+    link.href = imageUrl;
+    link.setAttribute('data-lightbox', 'abc');
+    link.className = 'expand-img';
+    link.appendChild(image);
+
+    const centered = document.createElement('div');
+    centered.className = 'center';
+    centered.appendChild(link);
+
+    if (entry.showInDetails) {
+      const details = document.createElement('details');
+      const summary = document.createElement('summary');
+      summary.textContent = '画像を表示';
+      details.append(summary, centered);
+      parent.appendChild(details);
+    } else {
+      parent.appendChild(centered);
+    }
+  }
+
+  function renderAsSections(entries, target, source, renderState) {
+    const container = document.createElement('div');
+    container.className = 'slides-container slides-container--sections';
+    let currentArticle = null;
+
+    entries.forEach(entry => {
+      if (entry.slideTitle) return;
+
+      if (entry.section) {
+        const section = document.createElement('section');
+        currentArticle = document.createElement('article');
+        const heading = document.createElement('h2');
+        heading.textContent = entry.section;
+        renderState.headlineCount++;
+        heading.id = `headline_${renderState.headlineCount}`;
+        currentArticle.appendChild(heading);
+        section.appendChild(currentArticle);
+        container.appendChild(section);
+        return;
+      }
+
+      if (!currentArticle) {
+        const section = document.createElement('section');
+        currentArticle = document.createElement('article');
+        section.appendChild(currentArticle);
+        container.appendChild(section);
+      }
+
+      appendSlide(currentArticle, entry, source, 3, renderState);
+    });
+
+    target.replaceChildren(container);
+  }
+
+  function renderInline(entries, target, source, renderState) {
+    const container = document.createElement('div');
+    container.className = 'slides-container slides-container--inline';
+    const headingLevel = getSlideHeadingLevel(target);
+
+    entries.forEach(entry => {
+      if (entry.section || entry.slideTitle) return;
+      appendSlide(container, entry, source, headingLevel, renderState);
+    });
+
+    target.replaceChildren(container);
+  }
+
+  function renderTarget(entries, target, source, renderState) {
+    const selectedEntries = selectEntriesForTarget(entries, target);
+    const layout = getLayout(target);
+
+    if (layout === 'inline') renderInline(selectedEntries, target, source, renderState);
+    else renderAsSections(selectedEntries, target, source, renderState);
+
+    target.dataset.slidesState = 'ready';
+    target.dataset.slideSource = source;
+    target.removeAttribute('aria-busy');
+  }
+
+  function showTargetError(target, message) {
+    const error = document.createElement('p');
+    error.className = 'slide-content-error';
+    error.setAttribute('role', 'alert');
+    error.textContent = message;
+    target.replaceChildren(error);
+    target.dataset.slidesState = 'error';
+    target.removeAttribute('aria-busy');
+  }
+
+  function dispatchReady(detail) {
+    document.documentElement.dataset.slidesState = detail.errors.length ? 'error' : 'ready';
+    document.dispatchEvent(new CustomEvent('slides:ready', { detail }));
+    if (detail.errors.length) {
+      document.dispatchEvent(new CustomEvent('slides:error', { detail }));
+    }
+  }
+
+  async function initializeSlidePages() {
+    if (initializationPromise) return initializationPromise;
+
+    initializationPromise = (async () => {
+      const targets = getRenderTargets();
+      if (targets.length === 0) return;
+
+      targets.forEach(target => target.setAttribute('aria-busy', 'true'));
+      const errors = [];
+      let source = '';
+      let renderedCount = 0;
+
+      try {
+        source = resolveSingleSource(targets);
+        const entries = await loadSlideData(source);
+        const dataErrors = validateSlideData(entries);
+        if (dataErrors.length) throw new Error(dataErrors.join(' '));
+
+        const renderState = { imageCount: 0, headlineCount: 0 };
+        targets.forEach(target => {
+          try {
+            renderTarget(entries, target, source, renderState);
+            renderedCount++;
+          } catch (error) {
+            const message = String(error?.message || error);
+            errors.push(message);
+            showTargetError(target, message);
+          }
+        });
+      } catch (error) {
+        const message = String(error?.message || error);
+        errors.push(message);
+        targets.forEach(target => showTargetError(target, message));
+      }
+
+      dispatchReady({ source, renderedCount, targetCount: targets.length, errors });
+    })();
+
+    return initializationPromise;
+  }
+
+  window.initSlidePages = initializeSlidePages;
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeSlidePages, { once: true });
+  } else {
+    initializeSlidePages();
+  }
+})();

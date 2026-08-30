@@ -220,6 +220,38 @@
     }
   };
 
+  const postProcessSlideContent = () => {
+    const slideRoots = Array.from(document.querySelectorAll('.slides-container'));
+    if (slideRoots.length === 0) return false;
+
+    runInitializer('enhanceGeneratedPageContent');
+    runInitializer('wrapImages');
+    runInitializer('enhanceImages');
+    runInitializer('highlightCodeBlocksWithIds');
+
+    const mathRoots = slideRoots.filter(root => !root.dataset.mathJaxProcessed);
+    if (mathRoots.length > 0 && typeof window.MathJax?.typesetPromise === 'function') {
+      mathRoots.forEach(root => { root.dataset.mathJaxProcessed = 'pending'; });
+      window.MathJax.typesetPromise(mathRoots)
+        .then(() => {
+          mathRoots.forEach(root => { root.dataset.mathJaxProcessed = 'true'; });
+        })
+        .catch(error => {
+          mathRoots.forEach(root => { delete root.dataset.mathJaxProcessed; });
+          console.error('[main.js] MathJax slide typesetting failed:', error);
+        });
+    }
+
+    return true;
+  };
+
+  document.addEventListener('slides:ready', event => {
+    if (event.detail?.errors?.length) {
+      console.warn('[main.js] slide rendering completed with errors:', event.detail.errors);
+    }
+    postProcessSlideContent();
+  });
+
   /** ---------- パス定義（必要なら調整） ---------- */
   const PATH = {
     head: "./js/head.js",                 // フォント/CDN/MathJax/CSS 等（即時実行）
@@ -284,6 +316,7 @@
       if (!runInitializer('highlightCodeBlocksWithIds')) {
         console.warn("[main.js] highlightCodeBlocksWithIds() が見つかりませんでした。");
       }
+      postProcessSlideContent();
 
     } catch (err) {
       console.error("[main.js] bootstrap failed:", err);

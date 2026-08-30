@@ -121,6 +121,28 @@ section p{
   text-align: justify;
 }
 
+/* Googleスライド由来の本文。inline は既存article内へ手順だけを差し込む。 */
+[data-slide-content][aria-busy="true"],
+#content[aria-busy="true"] {
+  min-height: 4rem;
+}
+
+.slides-container--inline > h3:first-child,
+.slides-container--inline > h4:first-child,
+.slides-container--inline > h5:first-child,
+.slides-container--inline > h6:first-child {
+  margin-top: clamp(10px, 1.2vw, 20px);
+}
+
+.slide-content-error {
+  margin: 1rem !important;
+  padding: .8rem 1rem;
+  border-left: 4px solid var(--font-color-red, #b3261e);
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--font-color-red, #b3261e) 10%, transparent);
+  color: var(--font-color-strong-text);
+}
+
 /* ========== headings ================================================== */
 
 article > h2{
@@ -659,7 +681,6 @@ section article > details > summary{
   font-weight: bold;
   margin: 5px 10px 5px 10px;
 }
-
 
 
 
