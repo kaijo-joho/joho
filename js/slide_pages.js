@@ -4,8 +4,10 @@
   const loaderScript = document.currentScript;
   const dataScriptBaseUrl = new URL('./', loaderScript?.src || document.baseURI);
   const siteBaseUrl = new URL('../', dataScriptBaseUrl);
+  const slideDataBaseUrl = new URL('data/slides/', siteBaseUrl);
   const sourcePattern = /^[A-Za-z0-9_-]+$/;
   const supportedLayouts = new Set(['sections', 'inline']);
+  const slideDataPromises = new Map();
   let initializationPromise = null;
 
   function getPageId() {
@@ -27,17 +29,7 @@
     return (target.dataset.slideSource || fallbackSource).trim();
   }
 
-  function resolveSingleSource(targets) {
-    const fallbackSource = getPageId();
-    const sources = new Set(targets.map(target => getSlideSource(target, fallbackSource)));
-
-    if (sources.size !== 1) {
-      throw new Error(
-        '現在のスライドデータ形式では、1ページにつき1つのスライド原本を指定してください。'
-      );
-    }
-
-    const source = Array.from(sources)[0];
+  function validateSlideSource(source) {
     if (!sourcePattern.test(source)) {
       throw new Error(`スライド原本ID「${source}」は使用できません。`);
     }
@@ -45,44 +37,57 @@
   }
 
   function loadSlideData(source) {
-    return new Promise((resolve, reject) => {
-      const scriptUrl = new URL(`${source}.js`, dataScriptBaseUrl).href;
-      const existing = Array.from(document.scripts).find(script => script.src === scriptUrl);
+    if (slideDataPromises.has(source)) return slideDataPromises.get(source);
 
-      if (existing && Array.isArray(window.slidesData)) {
-        resolve(window.slidesData.map(entry => ({ ...entry })));
-        return;
+    const dataUrl = new URL(`${source}.json`, slideDataBaseUrl).href;
+    const promise = (async () => {
+      let response;
+      try {
+        response = await fetch(dataUrl, {
+          headers: { Accept: 'application/json' },
+          credentials: 'same-origin'
+        });
+      } catch (error) {
+        throw new Error(
+          `スライドデータ「${source}」を取得できませんでした: ${String(error?.message || error)}`
+        );
       }
 
-      const dataScript = existing || document.createElement('script');
-      const handleLoad = () => {
-        cleanup();
-        if (!Array.isArray(window.slidesData)) {
-          reject(new Error(`スライドデータ「${source}」を読み取れませんでした。`));
-          return;
-        }
-        resolve(window.slidesData.map(entry => ({ ...entry })));
-      };
-      const handleError = () => {
-        cleanup();
-        reject(new Error(`スライドデータ「${source}」が見つかりません。`));
-      };
-      const cleanup = () => {
-        dataScript.removeEventListener('load', handleLoad);
-        dataScript.removeEventListener('error', handleError);
-      };
-
-      dataScript.addEventListener('load', handleLoad, { once: true });
-      dataScript.addEventListener('error', handleError, { once: true });
-
-      if (!existing) {
-        window.slidesData = undefined;
-        dataScript.src = scriptUrl;
-        dataScript.async = false;
-        dataScript.dataset.slideDataSource = source;
-        document.head.appendChild(dataScript);
+      if (!response.ok) {
+        throw new Error(
+          `スライドデータ「${source}」が見つかりません（HTTP ${response.status}）。`
+        );
       }
-    });
+
+      let payload;
+      try {
+        payload = await response.json();
+      } catch (error) {
+        throw new Error(
+          `スライドデータ「${source}」をJSONとして読み取れません: ${String(error?.message || error)}`
+        );
+      }
+
+      if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+        throw new Error(`スライドデータ「${source}」の形式が不正です。`);
+      }
+      if (payload.schemaVersion !== 1) {
+        throw new Error(`スライドデータ「${source}」のschemaVersionに対応していません。`);
+      }
+      if (payload.source !== source) {
+        throw new Error(
+          `スライドデータのsource「${String(payload.source || '')}」が要求元「${source}」と一致しません。`
+        );
+      }
+      if (!Array.isArray(payload.slides)) {
+        throw new Error(`スライドデータ「${source}」のslidesが配列ではありません。`);
+      }
+
+      return payload.slides.map(entry => ({ ...entry }));
+    })();
+
+    slideDataPromises.set(source, promise);
+    return promise;
   }
 
   function validateSlideData(entries) {
@@ -323,34 +328,66 @@
       if (targets.length === 0) return;
 
       targets.forEach(target => target.setAttribute('aria-busy', 'true'));
-      const errors = [];
-      let source = '';
+      const errors = new Set();
+      const fallbackSource = getPageId();
+      const targetSources = new Map();
       let renderedCount = 0;
 
-      try {
-        source = resolveSingleSource(targets);
-        const entries = await loadSlideData(source);
-        const dataErrors = validateSlideData(entries);
-        if (dataErrors.length) throw new Error(dataErrors.join(' '));
+      targets.forEach(target => {
+        try {
+          const source = validateSlideSource(getSlideSource(target, fallbackSource));
+          targetSources.set(target, source);
+        } catch (error) {
+          const message = String(error?.message || error);
+          errors.add(message);
+          showTargetError(target, message);
+        }
+      });
 
-        const renderState = { imageCount: 0, headlineCount: 0 };
-        targets.forEach(target => {
+      const sources = Array.from(new Set(targetSources.values()));
+      const sourceResults = new Map(
+        await Promise.all(sources.map(async source => {
           try {
-            renderTarget(entries, target, source, renderState);
-            renderedCount++;
+            const entries = await loadSlideData(source);
+            const dataErrors = validateSlideData(entries);
+            if (dataErrors.length) {
+              throw new Error(`スライドデータ「${source}」: ${dataErrors.join(' ')}`);
+            }
+            return [source, { entries, error: null }];
           } catch (error) {
-            const message = String(error?.message || error);
-            errors.push(message);
-            showTargetError(target, message);
+            return [source, { entries: null, error }];
           }
-        });
-      } catch (error) {
-        const message = String(error?.message || error);
-        errors.push(message);
-        targets.forEach(target => showTargetError(target, message));
-      }
+        }))
+      );
 
-      dispatchReady({ source, renderedCount, targetCount: targets.length, errors });
+      const renderState = { imageCount: 0, headlineCount: 0 };
+      targetSources.forEach((source, target) => {
+        const result = sourceResults.get(source);
+        if (!result || result.error) {
+          const message = String(result?.error?.message || result?.error || '不明な読込エラー');
+          errors.add(message);
+          showTargetError(target, message);
+          return;
+        }
+
+        try {
+          renderTarget(result.entries, target, source, renderState);
+          renderedCount++;
+        } catch (error) {
+          const message = String(error?.message || error);
+          errors.add(message);
+          showTargetError(target, message);
+        }
+      });
+
+      const errorList = Array.from(errors);
+      dispatchReady({
+        source: sources.length === 1 ? sources[0] : '',
+        sources,
+        renderedCount,
+        targetCount: targets.length,
+        errors: errorList
+      });
     })();
 
     return initializationPromise;

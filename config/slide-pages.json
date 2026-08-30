@@ -1,0 +1,13 @@
+{
+  "schemaVersion": 1,
+  "template": "templates/slide-page.html",
+  "pages": [
+    { "id": "ss11", "source": "ss11" },
+    { "id": "ss12", "source": "ss12" },
+    { "id": "ss13", "source": "ss13" },
+    { "id": "ss14", "source": "ss14" },
+    { "id": "ss15", "source": "ss15" },
+    { "id": "ss21", "source": "ss21" },
+    { "id": "ss22", "source": "ss22" }
+  ]
+}

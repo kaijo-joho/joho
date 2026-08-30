@@ -7,7 +7,9 @@ GoogleスライドをそのままHTMLへ変換するのではなく、次の役�
 - スライド画面・タイトル: 視覚原本。PNGと見出しを生成する。
 - 発表者ノート: 学習者に公開する文章原本。独自MarkdownからHTMLへ変換する。
 - `pages.js`のページ情報: 実習ファイル、演習問題、確認テスト、次回ページの原本。
-- `js/ss*.js`と`img_slide/*.png`: 自動生成物。直接編集しない。
+- `data/slides/<ID>.json`と`img_slide/*.png`: 自動生成物。直接編集しない。
+- `config/slide-pages.json`: 全文をスライドから生成するHTMLページの一覧。
+- `templates/slide-page.html`: 全文型ページの共通HTMLテンプレート。
 
 発表者ノートの内容はすべて公開用として扱う。教員だけの進行メモは、公開部分と分離する変換仕様を実装するまで発表者ノートへ混在させない。
 
@@ -18,9 +20,21 @@ GoogleスライドをそのままHTMLへ変換するのではなく、次の役�
 `ss11`〜`ss22`と同様に、ページ本文全体をスライドから生成する。
 
 ```html
-<div id="content"><!-- slide_pages.js --></div>
+<div
+  id="content"
+  data-slide-content
+  data-slide-source="ss11"
+  data-slide-layout="sections"
+><!-- slide_pages.js --></div>
 <section id="examples_and_questions"><!-- script_pages.js --></section>
 <script src="js/slide_pages.js"></script>
+```
+
+`ss11.html`〜`ss22.html`は直接編集せず、`config/slide-pages.json`と
+`templates/slide-page.html`を変更してから次のコマンドで再生成する。
+
+```console
+node scripts/generate-slide-pages.mjs
 ```
 
 ### ハイブリッドページ
@@ -49,22 +63,22 @@ GoogleスライドをそのままHTMLへ変換するのではなく、次の役�
 
 指定できる属性:
 
-- `data-slide-source`: `js/<ID>.js`の`<ID>`。省略時はHTMLファイル名を使う。
+- `data-slide-source`: `data/slides/<ID>.json`の`<ID>`。省略時はHTMLファイル名を使う。
 - `data-slide-section`: 差し込むセクション名。省略時は全データを使う。
 - `data-slide-layout`: `inline`または`sections`。明示的な差し込み先では`inline`が既定。
 - `data-slide-heading-level`: `inline`内のスライドタイトル。`3`〜`6`、既定は`3`。
 - `data-slide-section-heading`: `sections`表示時にセクション見出しを省く場合は`false`。
 
-現行の生成JSは`window.slidesData`を使うため、1つのHTMLページで指定できるスライド原本は1つとする。同じ原本の複数セクションは複数箇所へ差し込める。
+同じHTMLページ内で複数のスライド原本を指定できる。各原本は教材別JSONとして個別に取得され、同じ原本はページ内で1回だけ読み込まれる。
 
 ## 公開手順
 
 通常公開では、個別のJSON更新・PNG更新を組み合わせず、Commonメニューの「PNG＋JSON一括公開」を使う。
 
 1. Googleスライドと公開用発表者ノートを編集する。
-2. 全PNGと`slidesData` JSを生成する。
-3. JS内の画像参照と生成PNG一式を検証する。
-4. PNGとJSをGitHubへ1コミットで反映する。
+2. 全PNGと教材別JSONを生成する。
+3. JSON内の画像参照と生成PNG一式を検証する。
+4. PNGとJSONをGitHubへ1コミットで反映する。
 5. 対象ページをブラウザで確認する。
 
 ページ別のPNG化や「保存してJSON更新」は、公開済み素材の補修時だけ使用する。
@@ -74,12 +88,14 @@ GoogleスライドをそのままHTMLへ変換するのではなく、次の役�
 リポジトリで次を実行する。
 
 ```console
+node scripts/generate-slide-pages.mjs --check
 node scripts/validate-slide-content.mjs
 ```
 
 検査対象:
 
-- HTMLが参照する`js/<ID>.js`の存在と構文
+- 生成HTMLと共通テンプレートの一致
+- HTMLが参照する`data/slides/<ID>.json`の存在、スキーマ、原本ID
 - `title`、`note`、`section`、`imageAlt`の型
 - 公開前の制御記号の残存
 - 指定セクションの存在

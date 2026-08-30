@@ -1,6 +1,5 @@
 import { access, readdir, readFile } from 'node:fs/promises';
 import path from 'node:path';
-import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
@@ -37,31 +36,31 @@ function addWarning(filePath, message) {
 async function loadSlideData(source, htmlPath) {
   if (dataCache.has(source)) return dataCache.get(source);
 
-  const dataPath = path.join(projectRoot, 'js', `${source}.js`);
-  let sourceText;
+  const dataPath = path.join(projectRoot, 'data', 'slides', `${source}.json`);
+  let payload;
   try {
-    sourceText = await readFile(dataPath, 'utf8');
+    payload = JSON.parse(await readFile(dataPath, 'utf8'));
   } catch {
-    addError(htmlPath, `js/${source}.js が見つかりません。`);
+    addError(htmlPath, `data/slides/${source}.jsonが見つからないか、JSONとして不正です。`);
     dataCache.set(source, null);
     return null;
   }
 
-  const sandbox = { window: {} };
-  try {
-    vm.runInNewContext(sourceText, sandbox, {
-      filename: dataPath,
-      timeout: 1000
-    });
-  } catch (error) {
-    addError(dataPath, `JavaScriptとして読み込めません: ${error.message}`);
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload)) {
+    addError(dataPath, 'ルートがオブジェクトではありません。');
     dataCache.set(source, null);
     return null;
   }
+  if (payload.schemaVersion !== 1) {
+    addError(dataPath, 'schemaVersionが1ではありません。');
+  }
+  if (payload.source !== source) {
+    addError(dataPath, `source「${String(payload.source || '')}」がファイル名と一致しません。`);
+  }
 
-  const entries = sandbox.window.slidesData;
+  const entries = payload.slides;
   if (!Array.isArray(entries) || entries.length === 0) {
-    addError(dataPath, 'window.slidesData が空、または配列ではありません。');
+    addError(dataPath, 'slidesが空、または配列ではありません。');
     dataCache.set(source, null);
     return null;
   }
@@ -132,21 +131,20 @@ async function validateHtmlFile(htmlPath) {
     hosts.map(attributes => (attributes['data-slide-source'] || fallbackSource).trim())
   );
 
-  if (sources.size !== 1) {
-    addError(htmlPath, '1ページで複数のdata-slide-sourceを使用しています。');
-    return true;
+  const slideDataBySource = new Map();
+  for (const source of sources) {
+    if (!sourcePattern.test(source)) {
+      addError(htmlPath, `data-slide-source「${source}」は使用できません。`);
+      continue;
+    }
+    slideDataBySource.set(source, await loadSlideData(source, htmlPath));
   }
-
-  const source = Array.from(sources)[0];
-  if (!sourcePattern.test(source)) {
-    addError(htmlPath, `data-slide-source「${source}」は使用できません。`);
-    return true;
-  }
-
-  const slideData = await loadSlideData(source, htmlPath);
-  if (!slideData) return true;
 
   hosts.forEach(attributes => {
+    const source = (attributes['data-slide-source'] || fallbackSource).trim();
+    const slideData = slideDataBySource.get(source);
+    if (!slideData) return;
+
     const explicitHost = Object.prototype.hasOwnProperty.call(attributes, 'data-slide-content');
     const layout = (attributes['data-slide-layout'] || (explicitHost ? 'inline' : 'sections')).trim();
     if (!['inline', 'sections'].includes(layout)) {
@@ -155,7 +153,7 @@ async function validateHtmlFile(htmlPath) {
 
     const section = (attributes['data-slide-section'] || '').trim();
     if (section && !slideData.sections.has(section)) {
-      addError(htmlPath, `data-slide-section「${section}」がjs/${source}.jsにありません。`);
+      addError(htmlPath, `data-slide-section「${section}」がdata/slides/${source}.jsonにありません。`);
     }
 
     const sectionHeading = attributes['data-slide-section-heading'];
