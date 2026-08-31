@@ -21,6 +21,7 @@
     download:     '📥',
     faq:          '💬',
     next:         '⏭',
+    search:       '🔎',
     menu:         '☰'
   };
 
@@ -37,6 +38,7 @@
     download:     svgIcon('<path d="M12 3v12M8 11l4 4 4-4M5 21h14"/>'),
     faq:          svgIcon('<path d="M21 12a8 8 0 0 1-9 8 9 9 0 0 1-4 1l1-3a8 8 0 1 1 12-6Z"/><path d="M9.8 9a2.3 2.3 0 0 1 4.4 1c0 1.5-2.2 1.7-2.2 3M12 16h.01"/>'),
     next:         svgIcon('<path d="m6 7 5 5-5 5M13 7l5 5-5 5"/>'),
+    search:       svgIcon('<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>'),
     menu:         svgIcon('<path d="M4 6h16M4 12h16M4 18h16"/>')
   };
 
@@ -591,6 +593,25 @@
     return { group, btn, panel, isDirectLink };
   }
 
+  function buildActionButton({ key, label, onActivate }) {
+    const group = el('div', {
+      class: `lesson-dock__group lesson-dock__group--${key}`
+    });
+    const btn = el('button', {
+      type: 'button',
+      class: `lesson-dock__btn lesson-dock__btn--${key}`,
+      'aria-label': label,
+      dataset: { label }
+    }, createIconNode(key));
+
+    btn.addEventListener('click', event => {
+      event.preventDefault();
+      onActivate?.(btn);
+    });
+    group.appendChild(btn);
+    return { group, btn };
+  }
+
   // ==================== hover open / delayed close ====================
 
   function wireHover(
@@ -676,11 +697,14 @@
     if (!window.pages) return;
 
     const id = pageId();
-    const curr = window.pages[id];
+    const curr = window.pages[id] || null;
+    const searchAvailable =
+      document.documentElement.dataset.siteSearchReady === 'true' &&
+      typeof window.openSiteSearch === 'function';
 
-    if (!curr) return;
+    if (!curr && !searchAvailable) return;
 
-    const model = buildLessonDockModel(curr, window.pages, id);
+    const model = buildLessonDockModel(curr || {}, window.pages, id);
 
     // デバッグ用
     window.lessonDockData = model;
@@ -770,9 +794,18 @@
       }));
     }
 
-    if (!groups.length) return;
+    const searchAction = searchAvailable
+      ? buildActionButton({
+          key: 'search',
+          label: '教材サイト内検索',
+          onActivate: button => window.openSiteSearch(button)
+        })
+      : null;
+
+    if (!groups.length && !searchAction) return;
 
     groups.forEach(g => stack.appendChild(g.group));
+    if (searchAction) stack.appendChild(searchAction.group);
     document.body.appendChild(root);
 
     const controllers = [];

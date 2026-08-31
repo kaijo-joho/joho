@@ -260,6 +260,8 @@
     nav: "./js/nav.js",                   // window.initNav()
     scriptPages: "./js/script_pages.js",  // window.initPageScripts()
     highlightLocal: "./js/highlight.js",  // 自前のハイライト
+    searchCore: "./js/site_search_core.js", // window.__siteSearchCore
+    siteSearch: "./js/site_search.js",     // window.initSiteSearch()
     lessonDock: "./js/lesson_dock.js",    // フローティングドック
     script: "./js/script.js"              // レイアウトやその他の共通初期化
   };
@@ -289,7 +291,7 @@
       });
       runInitializer('initLayout');
 
-      // 4) ナビ・ハイライト・ドックを並列読み込み
+      // 4) ナビ・ハイライト・検索コアを並列読み込み
       await Promise.all([
         loadOptionalScript(PATH.nav, {
           ready: () => typeof window.initNav === 'function'
@@ -297,22 +299,35 @@
         loadOptionalScript(PATH.highlightLocal, {
           ready: () => typeof window.highlightCodeBlocksWithIds === 'function'
         }),
+        loadOptionalScript(PATH.searchCore, {
+          ready: () => Boolean(window.__siteSearchCore?.searchDocuments)
+        })
+      ]);
+
+      // 5) 検索UIとLessonDockを準備する。検索を先に初期化してからDockへ入口を追加する。
+      await Promise.all([
+        loadOptionalScript(PATH.siteSearch, {
+          ready: () =>
+            typeof window.initSiteSearch === 'function' &&
+            typeof window.openSiteSearch === 'function'
+        }),
         loadOptionalScript(PATH.lessonDock, {
           ready: () => typeof window.initLessonDockFromPages === 'function'
         })
       ]);
 
-      // 5) 利用できる機能だけを個別に初期化する。
+      // 6) 利用できる機能だけを個別に初期化する。
       runInitializer('initNav');
+      runInitializer('initSiteSearch');
       runInitializer('initLessonDockFromPages');
 
-      // 6) ページ固有スクリプト。失敗してもハイライト処理へ進む。
+      // 7) ページ固有スクリプト。失敗してもハイライト処理へ進む。
       await loadOptionalScript(PATH.scriptPages, {
         ready: () => typeof window.initPageScripts === 'function'
       });
       runInitializer('initPageScripts');
 
-      // 7) 動的に追加されたコードも含め、最後に一括適用する。
+      // 8) 動的に追加されたコードも含め、最後に一括適用する。
       if (!runInitializer('highlightCodeBlocksWithIds')) {
         console.warn("[main.js] highlightCodeBlocksWithIds() が見つかりませんでした。");
       }
