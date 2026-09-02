@@ -3,6 +3,8 @@ import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const LogicCore = require('../js/logic-core.js');
+require('../js/logic-renderer.js');
+const LogicRenderer = globalThis.LogicRenderer;
 
 const cases = [
   ['A-B', '0001'],
@@ -40,6 +42,48 @@ assert.notEqual(LogicCore.createSvgFilename('(A-B)-C'), LogicCore.createSvgFilen
 assert.throws(() => LogicCore.parse('A+ B'), LogicCore.LogicSyntaxError);
 assert.throws(() => LogicCore.parse('A-'), LogicCore.LogicSyntaxError);
 
+function collectGateTypes(ast, found = []) {
+  if (ast.type === 'gate') {
+    found.push(ast.gate);
+    ast.inputs.forEach(child => collectGateTypes(child, found));
+  }
+  return found;
+}
+
+const xorAst = LogicCore.parse('A^B');
+const basicXorAst = LogicCore.toBasicGateAst(xorAst);
+assert.deepEqual(
+  [...new Set(collectGateTypes(basicXorAst))].sort(),
+  ['AND', 'NOT', 'OR'],
+  'XORの回路図はAND・OR・NOTだけへ展開する'
+);
+assert.equal(LogicCore.truthCode(basicXorAst), LogicCore.truthCode(xorAst), 'XOR展開後も論理的な意味を保つ');
+
+const nestedXorAst = LogicCore.parse('n((A^B)_C)');
+const basicNestedXorAst = LogicCore.toBasicGateAst(nestedXorAst);
+assert.equal(
+  collectGateTypes(basicNestedXorAst).every(gate => LogicCore.BASIC_GATES.includes(gate)),
+  true,
+  '複合回路内のXORも基本ゲートへ展開する'
+);
+assert.equal(
+  LogicCore.truthCode(basicNestedXorAst),
+  LogicCore.truthCode(nestedXorAst),
+  '複合回路の展開後も論理的な意味を保つ'
+);
+
+assert.equal(
+  LogicRenderer.orthogonalWirePath({ x: 10, y: 20 }, { x: 110, y: 80 }),
+  'M 10 20 H 60 V 80 H 110',
+  '曲がる配線は水平・垂直の直交線にする'
+);
+assert.equal(
+  LogicRenderer.orthogonalWirePath({ x: 10, y: 20 }, { x: 110, y: 20 }),
+  'M 10 20 H 110',
+  '同じ高さの配線は一本の直線にする'
+);
+assert.throws(() => LogicRenderer.gateGeometry('XOR'), /AND・OR・NOT/);
+
 const validGraph = {
   nodes: [
     { id: 'A', type: 'input', name: 'A' },
@@ -55,6 +99,11 @@ const validGraph = {
 };
 assert.equal(LogicCore.graphAnalysis(validGraph).structureExpr, 'A-B');
 assert.equal(LogicCore.graphAnalysis(validGraph).truthCode, '0001');
+
+const xorGraph = structuredClone(validGraph);
+xorGraph.nodes.find(node => node.id === 'g1').type = 'XOR';
+assert.equal(LogicCore.graphAnalysis(xorGraph).valid, false);
+assert.match(LogicCore.graphAnalysis(xorGraph).errors.join(' '), /AND・OR・NOT/);
 
 const incomplete = structuredClone(validGraph);
 incomplete.wires.pop();
@@ -77,4 +126,4 @@ const cyclic = {
 assert.equal(LogicCore.graphAnalysis(cyclic).valid, false);
 assert.match(LogicCore.graphAnalysis(cyclic).errors.join(' '), /循環/);
 
-console.log(`logic-core: ${cases.length + 11}件の検証に合格`);
+console.log(`logic-core: ${cases.length + 20}件の検証に合格`);

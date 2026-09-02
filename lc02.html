@@ -23,17 +23,17 @@
   <section>
     <article>
       <h2 id="headline_1">(1) 自由に論理回路を組み立てる</h2>
-      <p class="logic-lead">AND・OR・NOT・XORゲートを配置して、入力A〜Dから出力Fまでをつないでみましょう。完成した回路は入力を切り替えながら信号の流れを確認でき、構造式と真理値表も自動で生成されます。</p>
+      <p class="logic-lead">AND・OR・NOTの基本ゲートを配置して、入力A〜Dから出力Fまでをつないでみましょう。完成した回路は入力を切り替えながら信号の流れを確認でき、構造式と真理値表も自動で生成されます。</p>
       <div class="logic-operation-guide">
         <strong>基本操作</strong>
         <ol>
-          <li>上部の「AND」「OR」「NOT」「XOR」からゲートを追加します。</li>
+          <li>上部の「AND」「OR」「NOT」からゲートを追加します。</li>
           <li>接続元の<strong>出力端子（○）</strong>を選び、次に接続先の<strong>入力端子（○）</strong>を選びます。</li>
           <li>入力A〜Dの箱をクリックすると0/1が切り替わります。部品はドラッグして移動できます。</li>
           <li>ゲートまたは配線を選び、「選択を削除」かDeleteキーで削除します。</li>
         </ol>
       </div>
-      <p class="logic-note">同じ入力端子への重複接続、逆向き接続、循環する接続は自動的に防止されます。操作を戻したいときはUndoを使ってください。</p>
+      <p class="logic-note">同じ入力端子への重複接続、逆向き接続、循環する接続は自動的に防止されます。配線は水平・垂直に引かれ、曲がる箇所は直角になります。操作を戻したいときはUndoを使ってください。</p>
     </article>
   </section>
 
@@ -44,8 +44,8 @@
         <span>例を読み込む：</span>
         <button type="button" class="logic-secondary-button" data-load-logic-example="A-B">AND</button>
         <button type="button" class="logic-secondary-button" data-load-logic-example="(A-B)_C">(A-B)_C</button>
-        <button type="button" class="logic-secondary-button" data-load-logic-example="n(A_B)">NOR</button>
-        <button type="button" class="logic-secondary-button" data-load-logic-example="(A^B)-C">(A^B)-C</button>
+        <button type="button" class="logic-secondary-button" data-load-logic-example="n(A_B)">NOR相当</button>
+        <button type="button" class="logic-secondary-button" data-load-logic-example="(A^B)-C">XOR相当を含む例</button>
       </div>
       <div id="logic-editor"></div>
 
@@ -87,7 +87,7 @@
   <section>
     <article>
       <h2 id="headline_4">(4) structureExprの読み方</h2>
-      <p>この教材は画像ではなく、接続構造をデータとして管理します。<code>-</code> はAND、<code>_</code> はOR、<code>^</code> はXOR、<code>n</code> はNOTです。子ゲートを括弧で囲むため、<code>(A-B)-C</code> と <code>A-(B-C)</code> のような接続順の違いも区別できます。</p>
+      <p>この教材は画像ではなく、接続構造をデータとして管理します。<code>-</code> はAND、<code>_</code> はOR、<code>^</code> はXOR相当の演算、<code>n</code> はNOTです。子ゲートを括弧で囲むため、<code>(A-B)-C</code> と <code>A-(B-C)</code> のような接続順の違いも区別できます。<code>^</code> を含む例を読み込んだときは、AND・OR・NOTだけの回路へ自動展開します。</p>
       <p><code>truthCode</code> は全入力の出力Fを順に並べた文字列です。回路の形が違ってもtruthCodeが同じなら、論理的には同じ働きをします。</p>
       <p><a href="./lc03.html">問題モードへ進み、回路の読み取りと組み立てに挑戦する</a></p>
     </article>

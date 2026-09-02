@@ -9,6 +9,8 @@
   const GATE_SYMBOLS = Object.freeze({ AND: '-', OR: '_', XOR: '^' });
   const BINARY_BY_TOKEN = Object.freeze({ '-': 'AND', '_': 'OR', '^': 'XOR' });
   const REQUIRED_INPUTS = Object.freeze({ AND: 2, OR: 2, XOR: 2, NOT: 1 });
+  const BASIC_GATES = Object.freeze(['AND', 'OR', 'NOT']);
+  const BASIC_GATE_SET = new Set(BASIC_GATES);
 
   class LogicSyntaxError extends Error {
     constructor(message, position) {
@@ -214,6 +216,46 @@
     };
   }
 
+  // XORなどの派生演算を、回路図で使用するAND・OR・NOTだけのASTへ展開する。
+  // XOR = (A OR B) AND NOT(A AND B)
+  function toBasicGateAst(ast) {
+    assertAstNode(ast);
+    let serial = 0;
+
+    function makeInput(node) {
+      return {
+        id: `basic-${++serial}`,
+        type: 'input',
+        name: node.name,
+        sourceId: node.sourceId || node.id
+      };
+    }
+
+    function makeGate(gate, inputs, source) {
+      return {
+        id: `basic-${++serial}`,
+        type: 'gate',
+        gate,
+        inputs,
+        sourceId: source.sourceId || source.id
+      };
+    }
+
+    function convert(node) {
+      if (node.type === 'input') return makeInput(node);
+      if (node.gate !== 'XOR') {
+        return makeGate(node.gate, node.inputs.map(convert), node);
+      }
+
+      const either = makeGate('OR', [convert(node.inputs[0]), convert(node.inputs[1])], node);
+      const both = makeGate('AND', [convert(node.inputs[0]), convert(node.inputs[1])], node);
+      const notBoth = makeGate('NOT', [both], node);
+      return makeGate('AND', [either, notBoth], node);
+    }
+
+    return convert(ast);
+  }
+
   function dedupeMessages(messages) {
     return Array.from(new Set(messages));
   }
@@ -297,8 +339,8 @@
       if (children.some(child => !child)) return null;
       if (node.type === 'output') return children[0];
       const gate = String(node.type || '').toUpperCase();
-      if (!REQUIRED_INPUTS[gate]) {
-        errors.push('未対応のゲートがあります。');
+      if (!BASIC_GATE_SET.has(gate)) {
+        errors.push('回路図で使用できるゲートはAND・OR・NOTだけです。');
         return null;
       }
       return { id: `graph-ast-${++astSerial}`, type: 'gate', gate, inputs: children, sourceId: node.id };
@@ -361,6 +403,7 @@
 
   return Object.freeze({
     LogicSyntaxError,
+    BASIC_GATES,
     REQUIRED_INPUTS,
     tokenize,
     parse,
@@ -372,6 +415,7 @@
     buildTruthTable,
     truthCode,
     parseAndAnalyze,
+    toBasicGateAst,
     graphToAst,
     graphAnalysis,
     wouldCreateCycle,

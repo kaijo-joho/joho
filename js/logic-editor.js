@@ -8,7 +8,7 @@
 
   const WIDTH = 900;
   const HEIGHT = 520;
-  const GATES = ['AND', 'OR', 'NOT', 'XOR'];
+  const GATES = Core.BASIC_GATES;
 
   function htmlElement(name, className, text) {
     const node = document.createElement(name);
@@ -87,10 +87,17 @@
         'logic-editor__guide',
         '① ゲートを追加　② 出力端子（○）を選ぶ　③ 接続先の入力端子（○）を選ぶ。部品はドラッグで移動できます。'
       );
+      const scrollHint = htmlElement(
+        'p',
+        'logic-editor__scroll-hint',
+        'キャンバスの空いている場所をスワイプすると、左右に移動できます。'
+      );
       this.status = htmlElement('div', 'logic-editor__status');
       this.status.setAttribute('role', 'status');
       this.status.setAttribute('aria-live', 'polite');
       this.canvasWrap = htmlElement('div', 'logic-editor__canvas-wrap');
+      this.canvasWrap.tabIndex = 0;
+      this.canvasWrap.setAttribute('aria-label', '横にスクロールできる論理回路編集エリア');
       this.svg = Renderer.svgElement('svg', {
         class: 'logic-editor__canvas',
         viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
@@ -99,7 +106,7 @@
         preserveAspectRatio: 'xMidYMid meet'
       });
       this.canvasWrap.appendChild(this.svg);
-      this.editor.append(toolbar, guide, this.status, this.canvasWrap);
+      this.editor.append(toolbar, guide, scrollHint, this.status, this.canvasWrap);
       this.container.replaceChildren(this.editor);
     }
 
@@ -212,9 +219,7 @@
     }
 
     connectionPath(from, to) {
-      const direction = to.x >= from.x ? 1 : -1;
-      const bend = Math.max(45, Math.min(115, Math.abs(to.x - from.x) * 0.48));
-      return `M ${from.x} ${from.y} C ${from.x + bend * direction} ${from.y}, ${to.x - bend * direction} ${to.y}, ${to.x} ${to.y}`;
+      return Renderer.orthogonalWirePath(from, to);
     }
 
     startConnection(nodeId) {
@@ -337,7 +342,7 @@
         else if (node.type === 'NOT') value = operands[0] ? 0 : 1;
         else if (node.type === 'AND') value = operands[0] && operands[1] ? 1 : 0;
         else if (node.type === 'OR') value = operands[0] || operands[1] ? 1 : 0;
-        else value = operands[0] !== operands[1] ? 1 : 0;
+        else value = null;
         cache.set(node.id, value);
         return value;
       };
@@ -352,7 +357,7 @@
         class: `logic-editor-port logic-editor-port--${kind}${selected ? ' is-pending' : ''}`,
         cx: point.x,
         cy: point.y,
-        r: selected ? 10 : 8,
+        r: selected ? 12 : 10,
         tabindex: 0,
         role: 'button',
         'aria-label': kind === 'output'
@@ -480,8 +485,8 @@
       });
       this.svg.append(path, hit);
       if (value != null) {
-        const x = (from.x + to.x) / 2;
-        const y = (from.y + to.y) / 2 - 10;
+        const labelPoint = Renderer.wireLabelPoint(from, to);
+        const { x, y } = labelPoint;
         const badge = Renderer.svgElement('g', { class: `logic-editor-value${value === 1 ? ' is-one' : ''}` });
         badge.append(
           Renderer.svgElement('rect', { x: x - 10, y: y - 10, width: 20, height: 20, rx: 6 }),
@@ -579,7 +584,7 @@
         height: HEIGHT,
         rx: 12
       });
-      background.addEventListener('pointerdown', () => {
+      background.addEventListener('click', () => {
         this.pendingFrom = null;
         this.selected = null;
         this.notice = '選択を解除しました。';
@@ -633,6 +638,7 @@
       const parsed = Core.parseAndAnalyze(expression);
       const missing = parsed.inputs.filter(name => !this.inputNames.includes(name));
       if (missing.length) throw new Error(`利用できない入力「${missing.join('、')}」が含まれています。`);
+      const diagramAst = Core.toBasicGateAst(parsed.ast);
       this.resetBaseGraph();
       const inputNodes = new Map(this.graph.nodes.filter(node => node.type === 'input').map(node => [node.name, node]));
       const occupied = new Map();
@@ -640,7 +646,7 @@
       function astDepth(node) {
         return node.type === 'input' ? 0 : 1 + Math.max(...node.inputs.map(astDepth));
       }
-      const maxDepth = astDepth(parsed.ast);
+      const maxDepth = astDepth(diagramAst);
 
       const create = node => {
         if (node.type === 'input') return inputNodes.get(node.name);
@@ -674,7 +680,7 @@
         return gate;
       };
 
-      const rootNode = create(parsed.ast);
+      const rootNode = create(diagramAst);
       const output = this.findNode('output-F');
       output.y = rootNode.y;
       this.wireSerial += 1;
@@ -684,7 +690,7 @@
         to: output.id,
         port: 0
       });
-      this.notice = `例「${parsed.structureExpr}」を読み込みました。`;
+      this.notice = `例「${parsed.structureExpr}」をAND・OR・NOTで読み込みました。`;
       if (options.resetHistory !== false) this.resetHistory();
       this.render();
     }

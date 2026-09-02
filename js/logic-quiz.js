@@ -27,7 +27,7 @@
   const BUILD_PROBLEMS = [
     { type: 'buildCircuit', level: 1, structureExpr: 'A-B', hint: '基本ゲート1個で作れます。' },
     { type: 'buildCircuit', level: 1, structureExpr: 'A_B', hint: '基本ゲート1個で作れます。' },
-    { type: 'buildCircuit', level: 1, structureExpr: 'A^B', hint: '2つの入力が異なるときだけ1です。' },
+    { type: 'buildCircuit', level: 2, structureExpr: 'A^B', hint: 'XOR専用ゲートは使わず、AND・OR・NOTを組み合わせます。' },
     { type: 'buildCircuit', level: 2, structureExpr: 'n(A-B)', hint: 'ANDの結果を反転する回路です。' },
     { type: 'buildCircuit', level: 2, structureExpr: 'n(A_B)', hint: 'ORの結果を反転する回路です。' },
     { type: 'buildCircuit', level: 2, structureExpr: '(A-B)_C', hint: '3入力・2段の回路です。' },

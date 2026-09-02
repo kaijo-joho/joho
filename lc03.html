@@ -23,7 +23,7 @@
   <section>
     <article>
       <h2 id="headline_1">(1) 論理回路の問題に挑戦する</h2>
-      <p class="logic-lead">3種類の問題を切り替えて練習できます。問題はページを再読み込みせずに変わり、正答はすべて回路構造からその場で計算します。</p>
+      <p class="logic-lead">3種類の問題を切り替えて練習できます。NAND・NOR・XORも問題として登場しますが、回路図と組み立てに使う部品はAND・OR・NOTの基本ゲートだけです。</p>
       <div class="logic-tabs" id="logic-quiz-tabs" role="tablist" aria-label="問題の種類">
         <button type="button" class="logic-tabs__tab" role="tab" id="tab-single" aria-controls="panel-single" aria-selected="true" data-mode="single">1. 入力値 → 出力F</button>
         <button type="button" class="logic-tabs__tab" role="tab" id="tab-table" aria-controls="panel-table" aria-selected="false" data-mode="table">2. 回路 → 真理値表</button>
@@ -98,7 +98,7 @@
         <button type="button" class="logic-primary-button" id="build-judge" disabled>判定</button>
         <button type="button" class="logic-secondary-button" id="build-next">次の問題</button>
       </div>
-      <p class="logic-note">ANDやORの入力順、ゲートの組み合わせが模範回路と違っても構いません。提示された真理値表と同じ出力になれば正解です。</p>
+      <p class="logic-note">使用できる部品はAND・OR・NOTです。入力順やゲートの組み合わせが模範回路と違っても、提示された真理値表と同じ出力になれば正解です。</p>
     </article>
   </section>
 

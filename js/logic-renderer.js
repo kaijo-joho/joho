@@ -17,7 +17,11 @@
   }
 
   function gateGeometry(type) {
-    return type === 'NOT'
+    const gate = String(type).toUpperCase();
+    if (!Core.BASIC_GATES.includes(gate)) {
+      throw new TypeError(`回路図で使用できるゲートはAND・OR・NOTだけです（指定: ${type}）。`);
+    }
+    return gate === 'NOT'
       ? { inputX: -31, outputX: 38, inputYs: [0] }
       : { inputX: -31, outputX: 31, inputYs: [-14, 14] };
   }
@@ -37,13 +41,7 @@
         class: 'logic-gate__body',
         d: 'M -30 -26 L -8 -26 C 17 -26 30 -15 30 0 C 30 15 17 26 -8 26 L -30 26 Z'
       }));
-    } else if (gate === 'OR' || gate === 'XOR') {
-      if (gate === 'XOR') {
-        group.appendChild(svgElement('path', {
-          class: 'logic-gate__detail',
-          d: 'M -38 -26 C -25 -10 -25 10 -38 26'
-        }));
-      }
+    } else if (gate === 'OR') {
       group.appendChild(svgElement('path', {
         class: 'logic-gate__body',
         d: 'M -31 -26 C -12 -22 9 -19 30 0 C 9 19 -12 22 -31 26 C -18 10 -18 -10 -31 -26 Z'
@@ -68,7 +66,7 @@
   const INTERNAL_STYLE = `
     .logic-svg { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; }
     .logic-svg__background { fill: var(--logic-svg-bg, #ffffff); }
-    .logic-wire { fill: none; stroke: var(--logic-wire, #64748b); stroke-width: 3; stroke-linecap: round; }
+    .logic-wire { fill: none; stroke: var(--logic-wire, #64748b); stroke-width: 3; stroke-linecap: round; stroke-linejoin: miter; }
     .logic-wire.is-one { stroke: var(--logic-one, #d9483b); stroke-width: 5; }
     .logic-gate__body { fill: var(--logic-gate-fill, #f8fafc); stroke: var(--logic-gate-stroke, #23384d); stroke-width: 2.6; }
     .logic-gate__detail { fill: none; stroke: var(--logic-gate-stroke, #23384d); stroke-width: 2.6; }
@@ -140,10 +138,16 @@
     return { positions, width, height, outputX, maxDepth };
   }
 
-  function wirePath(from, to) {
-    const distance = Math.max(36, to.x - from.x);
-    const bend = Math.min(72, distance * 0.46);
-    return `M ${from.x} ${from.y} C ${from.x + bend} ${from.y}, ${to.x - bend} ${to.y}, ${to.x} ${to.y}`;
+  function orthogonalWirePath(from, to) {
+    if (from.y === to.y) return `M ${from.x} ${from.y} H ${to.x}`;
+    const middleX = Number(((from.x + to.x) / 2).toFixed(2));
+    return `M ${from.x} ${from.y} H ${middleX} V ${to.y} H ${to.x}`;
+  }
+
+  function wireLabelPoint(from, to) {
+    if (from.y === to.y) return { x: (from.x + to.x) / 2, y: from.y - 17 };
+    const middleX = (from.x + to.x) / 2;
+    return { x: (from.x + middleX) / 2, y: from.y - 14 };
   }
 
   function renderCircuit(target, ast, options = {}) {
@@ -151,12 +155,14 @@
     const inputValues = options.inputs || {};
     const showSignals = options.showSignals !== false;
     const titleText = options.title || `論理回路 ${Core.toStructureExpr(ast)}`;
-    const descriptionText = options.description || '入力から各ゲートを通り、右端の出力Fへ信号が流れる論理回路図です。';
-    const detailed = showSignals ? Core.evaluateDetailed(ast, inputValues) : { value: null, values: {} };
-    const layout = computeLayout(ast);
+    const descriptionText = options.description || 'AND・OR・NOTの基本ゲートを通り、右端の出力Fへ信号が流れる論理回路図です。';
+    const diagramAst = Core.toBasicGateAst(ast);
+    const detailed = showSignals ? Core.evaluateDetailed(diagramAst, inputValues) : { value: null, values: {} };
+    const layout = computeLayout(diagramAst);
     const svg = svgElement('svg', {
       class: 'logic-svg',
       viewBox: `0 0 ${layout.width} ${layout.height}`,
+      style: `--logic-natural-width: ${layout.width}px`,
       role: 'img',
       'aria-labelledby': `logic-title-${Math.random().toString(36).slice(2)}`,
       preserveAspectRatio: 'xMidYMid meet'
@@ -185,7 +191,7 @@
         edges.push({ child, parent: node, port });
         collectEdges(child);
       });
-    })(ast);
+    })(diagramAst);
 
     edges.forEach(({ child, parent, port }) => {
       const childPosition = layout.positions.get(child.id);
@@ -203,7 +209,7 @@
       const value = showSignals ? detailed.values[child.id] : null;
       const path = svgElement('path', {
         class: `logic-wire${value === 1 ? ' is-one' : ''}`,
-        d: wirePath(from, to),
+        d: orthogonalWirePath(from, to),
         'data-value': showSignals ? value : '',
         'aria-label': showSignals ? `信号 ${value}` : '配線'
       });
@@ -214,20 +220,23 @@
         cy: to.y,
         r: 3.6
       }));
-      if (showSignals) appendValueBadge(svg, (from.x + to.x) / 2, (from.y + to.y) / 2 - 11, value, '配線の信号');
+      if (showSignals) {
+        const labelPoint = wireLabelPoint(from, to);
+        appendValueBadge(svg, labelPoint.x, labelPoint.y, value, '配線の信号');
+      }
     });
 
-    const rootPosition = layout.positions.get(ast.id);
-    const rootGeometry = ast.type === 'gate' ? gateGeometry(ast.gate) : null;
+    const rootPosition = layout.positions.get(diagramAst.id);
+    const rootGeometry = diagramAst.type === 'gate' ? gateGeometry(diagramAst.gate) : null;
     const rootOut = {
-      x: ast.type === 'gate' ? rootPosition.x + rootGeometry.outputX : rootPosition.x + 26,
+      x: diagramAst.type === 'gate' ? rootPosition.x + rootGeometry.outputX : rootPosition.x + 26,
       y: rootPosition.y
     };
     const fIn = { x: layout.outputX - 30, y: rootPosition.y };
     const rootValue = showSignals ? detailed.value : null;
     svg.appendChild(svgElement('path', {
       class: `logic-wire${rootValue === 1 ? ' is-one' : ''}`,
-      d: wirePath(rootOut, fIn),
+      d: orthogonalWirePath(rootOut, fIn),
       'data-value': showSignals ? rootValue : '',
       'aria-label': showSignals ? `出力直前の信号 ${rootValue}` : '出力Fへの配線'
     }));
@@ -271,7 +280,7 @@
         );
       }
     }
-    drawNode(ast);
+    drawNode(diagramAst);
 
     svg.appendChild(svgElement('rect', {
       class: `logic-output-box${rootValue === 1 ? ' is-one' : ''}`,
@@ -296,8 +305,12 @@
       }, String(rootValue)));
     }
 
-    target.replaceChildren(svg);
-    return { svg, output: rootValue, values: detailed.values, layout };
+    const scrollHint = document.createElement('div');
+    scrollHint.className = 'logic-circuit__scroll-hint';
+    scrollHint.setAttribute('aria-hidden', 'true');
+    scrollHint.textContent = '↔ 回路図は左右に動かせます';
+    target.replaceChildren(scrollHint, svg);
+    return { svg, output: rootValue, values: detailed.values, layout, diagramAst };
   }
 
   function renderMessage(target, message) {
@@ -338,6 +351,8 @@
     svgElement,
     gateGeometry,
     createGateSymbol,
+    orthogonalWirePath,
+    wireLabelPoint,
     renderCircuit,
     renderMessage,
     serializeSvg,

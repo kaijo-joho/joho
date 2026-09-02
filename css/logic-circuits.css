@@ -201,6 +201,10 @@ section article .logic-explorer__title {
   min-height: 205px;
 }
 
+.logic-circuit__scroll-hint {
+  display: none;
+}
+
 .logic-explorer__side {
   display: grid;
   gap: 12px;
@@ -485,10 +489,28 @@ section article .logic-editor__guide {
   color: var(--logic-success);
 }
 
+section article .logic-editor__scroll-hint {
+  display: none;
+  margin: 0;
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--logic-border);
+  background: color-mix(in oklab, var(--theme-color, #225386) 7%, transparent);
+  color: var(--logic-muted);
+  font-size: .8em;
+  text-align: left;
+}
+
 .logic-editor__canvas-wrap {
   max-width: 100%;
   overflow: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
   background: var(--logic-canvas-bg);
+}
+
+.logic-editor__canvas-wrap:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--logic-focus) 64%, transparent);
+  outline-offset: -3px;
 }
 
 .logic-editor__canvas {
@@ -496,7 +518,7 @@ section article .logic-editor__guide {
   width: 100%;
   min-width: 700px;
   height: auto;
-  touch-action: none;
+  touch-action: pan-x pan-y;
   user-select: none;
 }
 
@@ -509,6 +531,7 @@ section article .logic-editor__guide {
   stroke: var(--logic-wire);
   stroke-width: 3;
   stroke-linecap: round;
+  stroke-linejoin: miter;
   pointer-events: none;
 }
 
@@ -533,6 +556,7 @@ section article .logic-editor__guide {
 
 .logic-editor-node {
   cursor: grab;
+  touch-action: none;
 }
 
 .logic-editor-node:active {
@@ -592,6 +616,7 @@ section article .logic-editor__guide {
   stroke: var(--logic-gate-stroke);
   stroke-width: 2.5;
   cursor: crosshair;
+  touch-action: none;
 }
 
 .logic-editor-port:hover,
@@ -856,28 +881,123 @@ section article .logic-editor__guide {
 }
 
 @media (max-width: 560px) {
+  .logic-explorer {
+    margin-inline: 0;
+    padding: 10px;
+  }
+
   .logic-concept-grid,
   .logic-gate-summary {
     grid-template-columns: 1fr;
     margin-inline: 4px;
   }
 
+  .logic-note,
+  .logic-operation-guide {
+    margin-inline: 4px;
+  }
+
+  .logic-explorer__diagram,
+  .logic-circuit {
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-inline: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .logic-circuit .logic-svg,
+  .logic-explorer__diagram .logic-svg {
+    width: 100%;
+    min-width: min(var(--logic-natural-width, 520px), 640px);
+    max-width: none;
+  }
+
+  .logic-circuit__scroll-hint {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    display: block;
+    width: max-content;
+    max-width: 100%;
+    padding: 5px 9px;
+    border-bottom: 1px solid var(--logic-border);
+    border-right: 1px solid var(--logic-border);
+    border-bottom-right-radius: 8px;
+    background: color-mix(in oklab, var(--logic-svg-bg) 90%, transparent);
+    color: var(--logic-muted);
+    font-size: .72em;
+    line-height: 1.4;
+  }
+
   .logic-editor__toolbar {
     align-items: stretch;
+    padding: 10px;
   }
 
   .logic-editor__palette,
   .logic-editor__actions {
+    display: grid;
     width: 100%;
   }
 
-  .logic-editor__gate-button,
-  .logic-editor__action-button {
-    flex: 1 1 auto;
+  .logic-editor__palette {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .logic-editor__actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .logic-editor__toolbar-label {
+    grid-column: 1 / -1;
+  }
+
+  .logic-editor .logic-editor__gate-button,
+  .logic-editor .logic-editor__action-button {
+    width: 100%;
+    min-height: 44px;
   }
 
   .logic-input-controls {
-    justify-content: center;
+    justify-content: space-around;
+  }
+
+  section article .logic-editor__scroll-hint {
+    display: block;
+  }
+
+  .logic-editor__canvas {
+    width: 720px;
+    min-width: 720px;
+  }
+
+  .logic-save-row > span:first-child {
+    flex-basis: 100%;
+  }
+
+  .logic-save-row .logic-secondary-button,
+  .logic-question-actions > button {
+    flex: 1 1 130px;
+  }
+
+  .logic-answer-button {
+    flex: 1 1 0;
+    min-height: 52px;
+  }
+}
+
+@media (pointer: coarse) {
+  .logic-bit-button,
+  .logic-table-answer,
+  .logic-primary-button,
+  .logic-secondary-button,
+  .logic-tabs__tab {
+    min-height: 44px;
+  }
+
+  .logic-editor-wire-hit {
+    stroke-width: 24;
+    touch-action: none;
   }
 }
 
