@@ -1,4 +1,4 @@
-//2026-08-31 10:31:26;
+//2026-09-02;
 const pages = {
   "index": {
     "id": "index",
@@ -71,6 +71,78 @@ const pages = {
     "next": false,
     "show": false,
     "backFile": "il00.html"
+  },
+  "lc01": {
+    "id": "lc01",
+    "release": true,
+    "fileName": "lc01.html",
+    "mainTitle": "論理回路教材",
+    "category": "論理回路",
+    "title": "1. 論理回路の基本",
+    "detail": "基本ゲート、回路図、真理値表の関係を操作しながら学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": [
+      {
+        "id": "lc02",
+        "title": "2. 論理回路の自由接続",
+        "text": "2. 論理回路の自由接続",
+        "release": true,
+        "url": "lc02.html",
+        "detail": "ゲートを自由に配置・接続して、回路の働きを確かめます。"
+      }
+    ],
+    "show": true,
+    "backFile": "index.html"
+  },
+  "lc02": {
+    "id": "lc02",
+    "release": true,
+    "fileName": "lc02.html",
+    "mainTitle": "論理回路教材",
+    "category": "論理回路",
+    "title": "2. 論理回路の自由接続",
+    "detail": "ゲートを自由に配置・接続して、回路の働きと真理値表を確かめます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "lc01",
+    "next": [
+      {
+        "id": "lc03",
+        "title": "3. 論理回路の問題",
+        "text": "3. 論理回路の問題",
+        "release": true,
+        "url": "lc03.html",
+        "detail": "出力、真理値表、回路構成の3種類の問題に挑戦します。"
+      }
+    ],
+    "show": true,
+    "backFile": "lc01.html"
+  },
+  "lc03": {
+    "id": "lc03",
+    "release": true,
+    "fileName": "lc03.html",
+    "mainTitle": "論理回路教材",
+    "category": "論理回路",
+    "title": "3. 論理回路の問題",
+    "detail": "入力値、真理値表、回路構成の問題を解いて理解を確認します。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "lc01",
+    "next": false,
+    "show": true,
+    "backFile": "lc01.html"
   },
   "html00": {
     "id": "html00",

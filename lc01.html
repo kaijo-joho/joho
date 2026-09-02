@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme:light dark; background:transparent; }
+    @media (prefers-color-scheme:dark) { html { color:#e6e6e6; color-scheme:dark light; } }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme:dark) { body { background-color:#0b0b0b; } }
+  </style>
+  <title>海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/logic-circuits.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/logic-core.js"></script>
+  <script defer src="./js/logic-renderer.js"></script>
+  <script defer src="./js/logic-widgets.js"></script>
+  <script defer src="./js/logic-lessons.js"></script>
+</head>
+<body>
+  <section>
+    <article>
+      <h2 id="headline_1">(1) 0と1で考える</h2>
+      <p class="logic-lead">コンピュータの内部では、情報を<strong>0と1</strong>の組み合わせとして扱います。論理回路は、0または1を入力として受け取り、決められた規則に従って0または1を出力する小さな仕組みです。</p>
+      <div class="logic-concept-grid">
+        <div class="logic-concept-card"><strong>0</strong>電圧が低い／スイッチが切れている状態。論理では「偽（false）」に対応します。</div>
+        <div class="logic-concept-card"><strong>1</strong>電圧が高い／スイッチが入っている状態。論理では「真（true）」に対応します。</div>
+        <div class="logic-concept-card"><strong>入力 A・B・C…</strong>回路へ与える0/1です。複数の入力を組み合わせて考えます。</div>
+        <div class="logic-concept-card"><strong>出力 F</strong>回路が計算した結果です。この教材では1つの出力をFと表します。</div>
+      </div>
+      <p class="logic-note">回路図では、信号が<strong>1の配線を太い赤系の線</strong>で示します。各配線には0/1の数字も表示するため、色だけに頼らず状態を確認できます。</p>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_2">(2) 基本の論理ゲート</h2>
+      <p>論理ゲートは、入力に対して1つの論理演算を行う部品です。次の4種類を組み合わせると、さまざまな条件を表現できます。</p>
+      <div class="logic-gate-summary">
+        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__symbol">−</span>AND（論理積）</strong>AとBが両方とも1のときだけ1</div>
+        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__symbol">_</span>OR（論理和）</strong>AとBの少なくとも一方が1なら1</div>
+        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__symbol">n</span>NOT（否定）</strong>入力の0と1を反対にする</div>
+        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__symbol">^</span>XOR（排他的論理和）</strong>AとBのどちらか一方だけが1なら1</div>
+      </div>
+      <p>表にすべての入力の組み合わせと出力を並べたものを<strong>真理値表</strong>といいます。下の例では入力ボタンまたは表の行を選び、回路図・出力F・真理値表が同時に変わることを確かめましょう。</p>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_3">(3) ANDゲート</h2>
+      <p>ANDは「A<strong>かつ</strong>B」を表します。2つの条件がどちらも満たされたときだけ、出力Fが1になります。構造式では <code>A-B</code> と書きます。</p>
+      <div data-logic-explorer data-expression="A-B" data-title="AND：A-B"></div>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_4">(4) ORゲート</h2>
+      <p>ORは「A<strong>または</strong>B」を表します。少なくとも一方の条件が満たされると、出力Fが1になります。構造式では <code>A_B</code> と書きます。</p>
+      <div data-logic-explorer data-expression="A_B" data-title="OR：A_B"></div>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_5">(5) NOTゲート</h2>
+      <p>NOTは入力を<strong>反転</strong>します。Aが0ならFは1、Aが1ならFは0です。回路記号の出力側にある小さな丸が否定を示します。構造式では <code>nA</code> と書きます。</p>
+      <div data-logic-explorer data-expression="nA" data-title="NOT：nA"></div>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_6">(6) XORゲート</h2>
+      <p>XORは「AとBが<strong>異なる</strong>」ときに1になります。ORゲートに似ていますが、両方とも1のときは0です。回路記号はORの入力側に曲線を1本追加して区別します。構造式では <code>A^B</code> と書きます。</p>
+      <div data-logic-explorer data-expression="A^B" data-title="XOR：A^B"></div>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_7">(7) 回路図と真理値表</h2>
+      <p>複数のゲートをつなぐときは、入力から順に中間結果を求めます。例えば <code>(A-B)_C</code> は、最初にAとBのANDを求め、その結果とCのORを求める回路です。</p>
+      <div data-logic-explorer data-expression="(A-B)_C" data-title="複合回路：(A-B)_C"></div>
+      <p>NANDとNORは、ANDまたはORの結果をNOTで反転したものです。構造式ではNANDを <code>n(A-B)</code>、NORを <code>n(A_B)</code> と表せます。</p>
+      <div class="logic-operation-guide">
+        <strong>次の実習</strong>
+        <ol>
+          <li><a href="./lc02.html">自由接続モード</a>で、自分の回路を組み立てる</li>
+          <li><a href="./lc03.html">問題モード</a>で、出力・真理値表・回路構成に挑戦する</li>
+        </ol>
+      </div>
+    </article>
+  </section>
+
+  <section id="examples_and_questions"><!-- script_pages.js --></section>
+</body>
+</html>

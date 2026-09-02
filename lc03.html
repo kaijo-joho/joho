@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme:light dark; background:transparent; }
+    @media (prefers-color-scheme:dark) { html { color:#e6e6e6; color-scheme:dark light; } }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme:dark) { body { background-color:#0b0b0b; } }
+  </style>
+  <title>海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/logic-circuits.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/logic-core.js"></script>
+  <script defer src="./js/logic-renderer.js"></script>
+  <script defer src="./js/logic-widgets.js"></script>
+  <script defer src="./js/logic-editor.js"></script>
+  <script defer src="./js/logic-quiz.js"></script>
+</head>
+<body>
+  <section>
+    <article>
+      <h2 id="headline_1">(1) 論理回路の問題に挑戦する</h2>
+      <p class="logic-lead">3種類の問題を切り替えて練習できます。問題はページを再読み込みせずに変わり、正答はすべて回路構造からその場で計算します。</p>
+      <div class="logic-tabs" id="logic-quiz-tabs" role="tablist" aria-label="問題の種類">
+        <button type="button" class="logic-tabs__tab" role="tab" id="tab-single" aria-controls="panel-single" aria-selected="true" data-mode="single">1. 入力値 → 出力F</button>
+        <button type="button" class="logic-tabs__tab" role="tab" id="tab-table" aria-controls="panel-table" aria-selected="false" data-mode="table">2. 回路 → 真理値表</button>
+        <button type="button" class="logic-tabs__tab" role="tab" id="tab-build" aria-controls="panel-build" aria-selected="false" data-mode="build">3. 真理値表 → 回路</button>
+      </div>
+    </article>
+  </section>
+
+  <section class="logic-quiz-panel" id="panel-single" role="tabpanel" aria-labelledby="tab-single" data-panel="single">
+    <article>
+      <div class="logic-question-header">
+        <h3>入力値から出力を答える</h3>
+        <output class="logic-score" data-logic-score>解答 0問 ／ 正解 0問</output>
+      </div>
+      <div class="logic-prompt" id="single-prompt"></div>
+      <div class="logic-circuit" id="single-circuit"></div>
+      <div class="logic-answer-buttons" aria-label="Fの回答">
+        <button type="button" class="logic-answer-button" data-single-answer="0">0</button>
+        <button type="button" class="logic-answer-button" data-single-answer="1">1</button>
+      </div>
+      <div class="logic-feedback" id="single-feedback" role="status" aria-live="polite"></div>
+      <div class="logic-question-actions">
+        <button type="button" class="logic-primary-button" id="single-next">次の問題</button>
+      </div>
+    </article>
+  </section>
+
+  <section class="logic-quiz-panel" id="panel-table" role="tabpanel" aria-labelledby="tab-table" data-panel="table" hidden>
+    <article>
+      <div class="logic-question-header">
+        <h3>回路から真理値表を完成させる</h3>
+        <output class="logic-score" data-logic-score>解答 0問 ／ 正解 0問</output>
+      </div>
+      <p class="logic-prompt" id="table-question-text"></p>
+      <div class="logic-quiz-grid">
+        <div class="logic-circuit" id="table-circuit"></div>
+        <div id="table-answer-grid"></div>
+      </div>
+      <div class="logic-feedback" id="table-feedback" role="status" aria-live="polite"></div>
+      <div class="logic-question-actions">
+        <button type="button" class="logic-primary-button" id="table-judge">判定</button>
+        <button type="button" class="logic-secondary-button" id="table-next">次の問題</button>
+      </div>
+    </article>
+  </section>
+
+  <section class="logic-quiz-panel" id="panel-build" role="tabpanel" aria-labelledby="tab-build" data-panel="build" hidden>
+    <article>
+      <div class="logic-question-header">
+        <h3>真理値表から回路を組み立てる</h3>
+        <output class="logic-score" data-logic-score>解答 0問 ／ 正解 0問</output>
+      </div>
+      <p class="logic-prompt" id="build-question-text"></p>
+      <div id="build-target-table"></div>
+      <div id="build-editor"></div>
+      <div class="logic-live-details" aria-live="polite">
+        <div class="logic-live-details__item">
+          <span class="logic-live-details__label">作成したstructureExpr</span>
+          <output id="build-candidate-expression">未完成</output>
+        </div>
+        <div class="logic-live-details__item">
+          <span class="logic-live-details__label">作成したtruthCode</span>
+          <output id="build-candidate-code">未完成</output>
+        </div>
+        <div class="logic-live-details__item">
+          <span class="logic-live-details__label">正解条件</span>
+          <span>truthCodeの一致</span>
+        </div>
+      </div>
+      <div class="logic-feedback" id="build-feedback" role="status" aria-live="polite"></div>
+      <div class="logic-question-actions">
+        <button type="button" class="logic-primary-button" id="build-judge" disabled>判定</button>
+        <button type="button" class="logic-secondary-button" id="build-next">次の問題</button>
+      </div>
+      <p class="logic-note">ANDやORの入力順、ゲートの組み合わせが模範回路と違っても構いません。提示された真理値表と同じ出力になれば正解です。</p>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_2">(2) 解き方のヒント</h2>
+      <p><strong>入力値 → 出力F</strong>では、左からゲートを1つずつ計算し、中間結果を次のゲートへ渡します。</p>
+      <p><strong>回路 → 真理値表</strong>では、入力の各行を独立した問題として考えます。判定後は行を選ぶと、その行の信号を図上で確認できます。</p>
+      <p><strong>真理値表 → 回路</strong>では、まず基本ゲート1個の表と比べます。複雑な表では、Fが1になる条件を小さな条件へ分けて組み合わせましょう。</p>
+      <p><a href="./lc02.html">自由接続モードに戻って回路を試す</a></p>
+    </article>
+  </section>
+
+  <section id="examples_and_questions"><!-- script_pages.js --></section>
+</body>
+</html>
