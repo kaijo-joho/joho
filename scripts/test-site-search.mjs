@@ -104,7 +104,7 @@ const slideResults = core.searchDocuments(index.documents, '版の復元');
 assert.equal(slideResults[0]?.document.id, 'ss11');
 assert.equal(slideResults[0]?.section.heading, '2.5. 版の復元');
 
-const soundResults = core.searchDocuments(index.documents, 'PCM', { course: 'dr' });
+const soundResults = core.searchDocuments(index.documents, '量子化', { course: 'dr' });
 assert.ok(soundResults.some(result => result.document.id === 'dr31'));
 assert.ok(soundResults.some(result => result.document.id === 'dr33'));
 assert.equal(soundResults.every(result => result.document.course === 'dr'), true);

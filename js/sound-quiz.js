@@ -27,7 +27,7 @@
       level: definition.level,
       params,
       expected: Object.freeze(Core.deriveDigitizationAnswers(params.values, params)),
-      explanation: definition.explanation || '標本時刻の値を読み、最も近い量子化段階へそろえてから、量子化番号を固定長2進数にします。'
+      explanation: definition.explanation || '標本時刻の値を読み、最も近い段階値へそろえてから、決められたビット数の2進数にします。'
     });
   }
 
@@ -99,11 +99,11 @@
       type: 'samplingTheoremChoice',
       level: definition.level,
       params: Object.freeze({
-        prompt: `信号の最高周波数が${definition.signalFrequency}Hz、標本化周波数が${definition.sampleRate}Hzです。状態として最も適切なものを選んでください。`,
+        prompt: `成分波の最大周波数が${definition.signalFrequency}Hz、標本化周波数が${definition.sampleRate}Hzです。状態として最も適切なものを選んでください。`,
         choices: Object.freeze([
-          Object.freeze({ value: 'sufficient', label: '条件を満たしている（fs > 2fmax）' }),
-          Object.freeze({ value: 'boundary', label: '境界である（fs = 2fmax）' }),
-          Object.freeze({ value: 'insufficient', label: '標本不足である（fs < 2fmax）' })
+          Object.freeze({ value: 'sufficient', label: '標本化周波数が最大周波数の2倍より大きい' }),
+          Object.freeze({ value: 'boundary', label: '標本化周波数が最大周波数の2倍と等しい' }),
+          Object.freeze({ value: 'insufficient', label: '標本化周波数が最大周波数の2倍より小さい' })
         ])
       }),
       expected: theorem.state,
@@ -111,7 +111,7 @@
         ? `${definition.sampleRate} > 2 × ${definition.signalFrequency} なので条件を満たします。`
         : theorem.state === 'boundary'
           ? `${definition.sampleRate} = 2 × ${definition.signalFrequency} の境界です。位相によって一意に判断できない場合があります。`
-          : `${definition.sampleRate} < 2 × ${definition.signalFrequency} なので標本不足で、エイリアシングが発生し得ます。`
+          : `${definition.sampleRate} < 2 × ${definition.signalFrequency} なので標本化する回数が不足し、元の波形とは異なる波形として見える場合があります。`
     });
   }
 
@@ -145,7 +145,7 @@
     {
       id: 'term-encoding', type: 'termChoice', level: 1,
       params: {
-        prompt: '量子化番号を、固定長の0と1の組み合わせへ変換する操作はどれですか。',
+        prompt: '量子化した段階値を、0と1の組み合わせで表現する操作はどれですか。',
         choices: [
           { value: 'sampling', label: '標本化' },
           { value: 'encoding', label: '符号化（コード化）' },
@@ -153,20 +153,20 @@
         ]
       },
       expected: 'encoding',
-      explanation: '符号化（コード化）は、量子化番号を決められたビット数の2進数へ変換する操作です。'
+      explanation: '符号化（コード化）は、量子化した段階値を2進数で表現する操作です。'
     },
     {
       id: 'term-pcm', type: 'termChoice', level: 1,
       params: {
-        prompt: '標本化・量子化・符号化によって音声信号をデジタル化する代表的な方式はどれですか。',
+        prompt: '「パルス符号変調」を表す略語はどれですか。',
         choices: [
-          { value: 'pcm', label: 'PCM（パルス符号変調）' },
-          { value: 'fft', label: 'FFT' },
-          { value: 'rgb', label: 'RGB' }
+          { value: 'pcm', label: 'PCM' },
+          { value: 'hz', label: 'Hz' },
+          { value: 'bit', label: 'bit' }
         ]
       },
       expected: 'pcm',
-      explanation: 'PCMはパルス符号変調の略で、標本化・量子化・符号化の流れを使います。'
+      explanation: 'PCMは「パルス符号変調」の略です。'
     },
     {
       id: 'term-frequency', type: 'termChoice', level: 2,
@@ -197,20 +197,20 @@
     {
       id: 'term-theorem', type: 'termChoice', level: 2,
       params: {
-        prompt: '最高周波数fmaxを含む信号について、この教材で採用する標本化定理の条件はどれですか。',
+        prompt: '元の波形を再現するための標本化定理の条件はどれですか。',
         choices: [
-          { value: 'greater', label: 'fs > 2fmax' },
-          { value: 'equalOrGreater', label: 'fs ≥ fmax' },
-          { value: 'less', label: 'fs < 2fmax' }
+          { value: 'greater', label: '成分波の最大周波数の2倍より大きい周波数で標本化する' },
+          { value: 'equalOrGreater', label: '成分波の最大周波数以上で標本化する' },
+          { value: 'less', label: '成分波の最大周波数の2倍より小さい周波数で標本化する' }
         ]
       },
       expected: 'greater',
-      explanation: '境界fs = 2fmaxでは位相によって一意に判断できない場合があるため、2倍を超える条件として扱います。'
+      explanation: '成分波の最大周波数の2倍より大きい周波数で標本化すれば、元の波形を再現できます。'
     },
     {
       id: 'term-boundary', type: 'termChoice', level: 3,
       params: {
-        prompt: 'fs = 2fmax の境界について、最も適切な説明はどれですか。',
+        prompt: '標本化周波数が成分波の最大周波数の2倍と等しい場合について、最も適切な説明はどれですか。',
         choices: [
           { value: 'always', label: '位相に関係なく、必ず元の波形を一意に判断できる' },
           { value: 'phase', label: '位相によっては、元の波形を一意に判断できない' },
@@ -260,7 +260,7 @@
         sampleRate: 5,
         bitDepth: 4,
         range: { min: 0, max: 16 },
-        explanation: '授業資料の4bit演習です。符号列は0100 1100 1100 0010となります。'
+        explanation: '授業資料の4bit演習です。2進数は0100 1100 1100 0010となります。'
       }),
       ...generatedDigitizationProblems(random)
     ];
@@ -384,8 +384,8 @@
       input.dataset.answerIndex = String(row);
       const fieldNames = {
         sampleValue: '標本値',
-        quantizedValue: '量子化値',
-        code: '量子化番号',
+        quantizedValue: '量子化後の値',
+        code: '段階値',
         binary: '2進数'
       };
       input.setAttribute('aria-label', `標本${row + 1}の${fieldNames[field]}`);
@@ -417,25 +417,25 @@
       const problem = result.problem;
       const params = problem.params;
       byId('digitization-prompt').replaceChildren();
-      const promptText = el('div', '', `波形から各標本の値を読み取り、量子化値・量子化番号・${params.bitDepth}bitの符号を入力してください。（Level ${problem.level}）`);
+      const promptText = el('div', '', `波形から各標本の値を読み取り、量子化後の値・段階値・${params.bitDepth}bitの2進数を入力してください。（難易度 ${problem.level}）`);
       const conditions = el('div', 'dr-condition-list');
       [
         `fs = ${params.sampleRate} Hz`,
         `T = ${Widgets.formatNumber(Core.samplingPeriod(params.sampleRate), 3)} 秒`,
         `${params.bitDepth} bit（${Core.quantizationLevels(params.bitDepth)}段階）`,
         `範囲 ${params.range.min}以上${params.range.max}未満`,
-        `量子化幅 ${Widgets.formatNumber(Core.quantizationWidth(params.bitDepth, params.range), 3)}`
+        `量子化の幅 ${Widgets.formatNumber(Core.quantizationWidth(params.bitDepth, params.range), 3)}`
       ].forEach(text => conditions.appendChild(el('span', 'dr-condition', text)));
       byId('digitization-prompt').append(promptText, conditions);
       Renderer.renderDigitizationProblem(byId('digitization-graph'), params, {
-        title: `Level ${problem.level}のデジタル化問題`
+        title: `難易度${problem.level}のデジタル化問題`
       });
 
       const table = el('table', 'dr-answer-table');
       table.appendChild(el('caption', '', '標本ごとに入力してください'));
       const thead = document.createElement('thead');
       const header = document.createElement('tr');
-      ['時刻［秒］', '標本値', '量子化値', '量子化番号', `${params.bitDepth}bitの2進数`].forEach(text => header.appendChild(el('th', '', text)));
+      ['時刻［秒］', '標本値', '量子化後の値', '段階値', `${params.bitDepth}bitの2進数`].forEach(text => header.appendChild(el('th', '', text)));
       thead.appendChild(header);
       const tbody = document.createElement('tbody');
       problem.expected.forEach((expected, index) => {
@@ -499,7 +499,7 @@
     function renderCalculation() {
       const result = state.calculation;
       const problem = result.problem;
-      byId('calculation-prompt').textContent = `${problem.prompt}（Level ${problem.level}）`;
+      byId('calculation-prompt').textContent = `${problem.prompt}（難易度 ${problem.level}）`;
       const input = byId('calculation-answer');
       input.value = result.answer;
       input.disabled = result.judged;
@@ -542,7 +542,7 @@
     function renderTerminology() {
       const result = state.terminology;
       const problem = result.problem;
-      byId('terminology-prompt').textContent = `${problem.params.prompt}（Level ${problem.level}）`;
+      byId('terminology-prompt').textContent = `${problem.params.prompt}（難易度 ${problem.level}）`;
       const choices = problem.params.choices.map(choice => {
         const button = el('button', 'dr-choice', choice.label);
         button.type = 'button';

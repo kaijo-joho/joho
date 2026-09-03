@@ -217,7 +217,7 @@
       state,
       signalFrequency: frequency,
       sampleRate: rate,
-      nyquistFrequency: rate / 2,
+      halfSampleRate: rate / 2,
       requiredExclusiveRate: boundary,
       ratio: rate / frequency
     });
@@ -230,7 +230,7 @@
   }
 
   function aliasCandidate(options = {}) {
-    const frequency = positiveNumber(options.frequency, '信号周波数');
+    const frequency = positiveNumber(options.frequency, '元の波の周波数');
     const sampleRate = positiveNumber(options.sampleRate, '標本化周波数');
     const amplitude = finiteNumber(options.amplitude ?? 1, '振幅');
     const offset = finiteNumber(options.offset ?? 0, '中心値');
@@ -244,7 +244,7 @@
       if (zeroCrossing) {
         return Object.freeze({ frequency: 0, amplitude: 0, phase: 0, offset, kind: 'boundary-flat' });
       }
-      // Nyquist境界の標本値は A sin(phase) だけで決まる。
+      // 標本化周波数が元の周波数の2倍ちょうどの場合、標本値は A sin(phase) だけで決まる。
       // 通常はπ−phase、90°付近では振幅と位相の別組合せを選び、必ず異なる候補を返す。
       const quarterCycle = Math.abs(Math.cos(phase)) <= 1e-8;
       const candidateAmplitude = quarterCycle ? amplitude * 1.25 : amplitude;

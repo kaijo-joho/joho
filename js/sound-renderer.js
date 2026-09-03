@@ -240,6 +240,43 @@
     });
   }
 
+  function renderAnalogWave(target, model, options = {}) {
+    assertTarget(target);
+    const width = 1040;
+    const height = 390;
+    const range = model.range || Core.DEFAULT_VOLTAGE_RANGE;
+    const plot = createPlot({
+      width,
+      height,
+      xMin: model.start,
+      xMax: model.end,
+      yMin: range.min,
+      yMax: range.max,
+      margin: { top: 38, right: 28, bottom: 70, left: 68 }
+    });
+    const svg = createSvg({
+      width,
+      height,
+      className: 'dr-svg--analog-intro',
+      title: options.title || '音のアナログ波形',
+      description: options.description || '横軸を時間、縦軸を電圧として、連続的に変化する音の電気信号を曲線で示します。'
+    });
+
+    const drawingArea = layer('drawing-area');
+    appendPlotBackground(drawingArea, plot);
+    svg.appendChild(drawingArea);
+    appendAxes(svg, plot, {
+      xStep: model.axisTimeStep ?? 0.1,
+      yStep: model.axisVoltageStep ?? 1,
+      labelEveryX: model.axisLabelEvery ?? 2
+    });
+    const analogLayer = layer('analog-wave');
+    appendWave(analogLayer, model.wavePoints || [], plot, 'dr-svg__wave--analog', '時間とともに連続的に変化するアナログ波形');
+    svg.appendChild(analogLayer);
+    target.replaceChildren(svg);
+    return { svg, plot };
+  }
+
   function renderPCM(target, model, options = {}) {
     assertTarget(target);
     const width = 1160;
@@ -260,8 +297,8 @@
       width,
       height,
       className: 'dr-svg--pcm',
-      title: options.title || 'PCMの変換工程',
-      description: options.description || 'アナログ波形を標本化し、量子化した値を固定長2進数へ符号化する工程を段階的に示します。'
+      title: options.title || '音のデジタル化の手順',
+      description: options.description || 'アナログ波形から一定間隔で値を取り出し、最も近い段階値へそろえ、決められたビット数の2進数で表す手順を示します。'
     });
 
     const drawingArea = layer('drawing-area');
@@ -372,7 +409,7 @@
         class: 'dr-svg__staircase',
         d: staircasePath(samples, plot),
         fill: 'none',
-        'aria-label': '量子化した値の階段状表示'
+        'aria-label': '量子化後の値の階段状表示'
       }));
     }
     svg.appendChild(staircaseLayer);
@@ -399,7 +436,7 @@
         class: 'dr-svg__code-heading',
         x: plot.left,
         y: plot.bottom + 82
-      }, '固定長2進数'));
+      }, `${model.bitDepth}ビットの2進数`));
       samples.forEach(sample => {
         binaryLayer.appendChild(svgElement('text', {
           class: 'dr-svg__binary-label',
@@ -438,7 +475,7 @@
           fill: 'transparent',
           tabindex: 0,
           role: 'button',
-          'aria-label': `標本${sample.index + 1}。時刻${numberText(sample.time, 3)}秒、元の値${numberText(sample.value, 3)}${stage >= 3 ? `、量子化値${numberText(sample.quantizedValue, 3)}、番号${sample.code}` : ''}${stage >= 4 ? `、2進数${sample.binary}` : ''}`,
+          'aria-label': `標本${sample.index + 1}。時刻${numberText(sample.time, 3)}秒、元の値${numberText(sample.value, 3)}${stage >= 3 ? `、量子化後の値${numberText(sample.quantizedValue, 3)}、段階値${sample.code}` : ''}${stage >= 4 ? `、2進数${sample.binary}` : ''}`,
           'data-sample-index': sample.index
         })
       );
@@ -556,8 +593,8 @@
       width,
       height,
       className: `dr-svg--sampling-theorem is-${theorem.state}`,
-      title: options.title || '標本化定理とエイリアシング',
-      description: options.description || '元の正弦波、標本時刻と標本点、同じ標本値から区別できない別候補を表示します。破線は復元結果ではありません。'
+      title: options.title || '標本化定理を確かめるグラフ',
+      description: options.description || '元の正弦波、標本時刻と標本点、同じ標本点を通る別の波形を表示します。破線は復元結果ではありません。'
     });
     const background = layer('drawing-area');
     appendPlotBackground(background, plot);
@@ -601,7 +638,7 @@
         candidatePoints,
         plot,
         'dr-svg__wave--candidate',
-        '同じ標本点から区別できない別の候補（破線。復元結果ではありません）'
+        '同じ標本点を通る別の波形（破線。復元結果ではありません）'
       );
     }
     svg.appendChild(candidateLayer);
@@ -693,6 +730,7 @@
     createPlot,
     pathFromPoints,
     numberText,
+    renderAnalogWave,
     renderPCM,
     renderSuperposition,
     renderSamplingTheorem,

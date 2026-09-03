@@ -48,13 +48,13 @@ equal(SoundCore.quantize(2.49, { bitDepth: 3 }).code, 2, '境界直前は下側'
 equal(SoundCore.quantize(2.5, { bitDepth: 3 }).code, 3, 'ちょうど中間は上側へ丸める');
 equal(SoundCore.quantize(2.51, { bitDepth: 3 }).code, 3, '境界直後は上側');
 equal(SoundCore.quantize(0, { bitDepth: 3 }).code, 0, '最小値');
-equal(SoundCore.quantize(-0.2, { bitDepth: 3 }).code, 0, '最小値未満をクリップ');
-equal(SoundCore.quantize(-0.2, { bitDepth: 3 }).clipped, true, '下側クリッピングを記録');
+equal(SoundCore.quantize(-0.2, { bitDepth: 3 }).code, 0, '最小値未満は最小段階として扱う');
+equal(SoundCore.quantize(-0.2, { bitDepth: 3 }).clipped, true, '下側の範囲外扱いを記録');
 equal(SoundCore.quantize(7.49, { bitDepth: 3 }).code, 7, '最大段階付近');
 equal(SoundCore.quantize(7.5, { bitDepth: 3 }).code, 7, '上端の中間は最大番号へ飽和');
-equal(SoundCore.quantize(8, { bitDepth: 3 }).code, 7, '範囲上端を最大番号へクリップ');
-equal(SoundCore.quantize(8, { bitDepth: 3 }).clipped, true, '上側クリッピングを記録');
-equal(SoundCore.quantize(99, { bitDepth: 4 }).code, 15, '大きな範囲外値を最大番号へクリップ');
+equal(SoundCore.quantize(8, { bitDepth: 3 }).code, 7, '範囲上端は最大段階として扱う');
+equal(SoundCore.quantize(8, { bitDepth: 3 }).clipped, true, '上側の範囲外扱いを記録');
+equal(SoundCore.quantize(99, { bitDepth: 4 }).code, 15, '大きな範囲外値は最大段階として扱う');
 
 // PDF掲載の符号化例。
 equal(SoundCore.fixedBitString(2, 3), '010', 'PDF例：3bitで2→010');
@@ -77,7 +77,7 @@ deepEqual(
   ['0100', '1100', '1100', '0010'],
   'PDF演習の4bit符号列'
 );
-throws(() => SoundCore.fixedBitString(8, 3), RangeError, '固定長を超える番号は拒否');
+throws(() => SoundCore.fixedBitString(8, 3), RangeError, '3ビットで表せる範囲を超える段階値は拒否');
 
 // 音声データ量と単位換算。PDFで混在する1000/1024を明示して検証する。
 equal(SoundCore.audioDataSize({ sampleRate: 200, seconds: 60, bitDepth: 4, channels: 1 }).bytes, 6000, 'PDF例：6000B');
@@ -95,7 +95,7 @@ close(SoundCore.convertBytes(highResolution.bytes, 'MB', 1024), 281.25, 'PDF演�
 equal(SoundCore.requiredBitsForLevels(16), 4, '16段階に必要なビット数');
 equal(SoundCore.requiredBitsForLevels(17), 5, '17段階に必要なビット数');
 
-// 標本化定理とエイリアス候補。
+// 標本化定理と、同じ標本点を通る別の波形。
 equal(SoundCore.samplingTheoremState(4, 10).state, 'sufficient', 'fs > 2f');
 equal(SoundCore.samplingTheoremState(5, 10).state, 'boundary', 'fs = 2f');
 equal(SoundCore.samplingTheoremState(6, 10).state, 'insufficient', 'fs < 2f');

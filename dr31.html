@@ -21,8 +21,9 @@
 <body>
   <section>
     <article>
-      <h2 id="headline_1">(1) 音と波形</h2>
-      <p class="dr-lead">音は空気の振動として伝わります。マイクはその振動を電気信号へ変えます。時間とともに連続して変化する電圧をグラフにすると、音の<strong>アナログ波形</strong>として見ることができます。</p>
+      <h2 id="headline_1">(1) 音とアナログ波形</h2>
+      <p class="dr-lead">音は空気の振動です。マイクで電気信号に変換すると、時間とともに連続して変化する電圧を<strong>アナログ波形</strong>として表せます。</p>
+      <div data-sound-analog-intro></div>
       <div class="dr-term-grid">
         <dl class="dr-term">
           <dt>アナログ</dt>
@@ -43,24 +44,19 @@
 
   <section>
     <article>
-      <h2 id="headline_2">(2) PCMの4工程</h2>
-      <p>授業では、アナログ信号をデジタル信号へ変える流れを次の順序で考えます。</p>
-      <ol class="dr-process">
-        <li><strong>アナログ波形</strong><span>時間とともに連続して変化する元の信号</span></li>
-        <li><strong>標本化</strong><span>一定の時間間隔で波形の値を取り出す</span></li>
-        <li><strong>量子化</strong><span>取り出した値を決められた段階の値へそろえる</span></li>
-        <li><strong>符号化</strong><span>量子化番号を固定長の2進数で表す</span></li>
-      </ol>
-      <p><strong>標本化 → 量子化 → 符号化</strong>によって音をデジタル化する代表的な方式を、<strong>パルス符号変調（PCM）</strong>といいます。</p>
+      <h2 id="headline_2">(2) 標本化・量子化・符号化</h2>
+      <p>アナログ信号をデジタル化するときは、<strong>標本化 → 量子化 → 符号化</strong>の順に進めます。まずは授業資料と同じ固定条件で、一つずつ確認してください。</p>
+      <div data-sound-pcm-guide></div>
+      <p class="dr-note"><strong>PCM：</strong>「パルス符号変調」の略です。</p>
     </article>
   </section>
 
   <section>
     <article>
-      <h2 id="headline_3">(3) PCM Explorer</h2>
-      <p>工程ボタンを順に選び、標本化周波数や量子化ビット数を変えてください。SVG上の標本と下の表は同じ番号で結びついており、マウス、タップ、キーボードのどれでも同期して選べます。</p>
-      <div data-sound-pcm></div>
-      <p class="dr-rule-note"><strong>この教材の量子化規則：</strong>基本範囲は0以上8未満です。最も近い表現値へそろえ、ちょうど中間なら上側を選びます。範囲外は最小または最大の符号へクリップします。通常の問題では、丸め方向が曖昧にならない値を使います。</p>
+      <h2 id="headline_3">(3) 条件を変えて確かめる</h2>
+      <p>3つの手順を確認したら、標本化周波数や量子化ビット数などを変えて比べます。SVG上の点と下の表は同じ標本を表し、マウス、タップ、キーボードのどれでも同期して選べます。</p>
+      <div data-sound-pcm data-stage="4"></div>
+      <p class="dr-rule-note"><strong>この教材での値の扱い：</strong>基本範囲は0以上8未満です。最も近い段階値へそろえ、ちょうど中間なら上側を選びます。表示範囲を超えた値は、最小または最大の段階値として扱います。通常の問題では、どちらへそろえるか迷わない値を使います。</p>
     </article>
   </section>
 
@@ -82,7 +78,7 @@
         </dl>
         <dl class="dr-term">
           <dt>量子化</dt>
-          <dd>標本値を、用意した段階のうち最も近い値へそろえることです。元の値との差を量子化誤差といいます。</dd>
+          <dd>標本化で得られた波の高さを、縦軸に沿って最も近い段階値へそろえることです。元の値との差は「誤差」として図に示します。</dd>
         </dl>
         <dl class="dr-term">
           <dt>量子化ビット数 n</dt>
@@ -94,17 +90,17 @@
         </dl>
         <dl class="dr-term">
           <dt>符号化（コード化）</dt>
-          <dd>量子化番号を0と1の組み合わせに変換します。3bitの番号2は <code>010</code> です。</dd>
+          <dd>量子化した段階値を2進数で表現することです。3bitの段階値2は <code>010</code> です。</dd>
         </dl>
         <dl class="dr-term">
           <dt>PCM</dt>
-          <dd>パルス符号変調。標本化・量子化・符号化の工程で、音声信号をデジタルデータへ変換する方式です。</dd>
+          <dd>「パルス符号変調」の略です。</dd>
         </dl>
       </div>
       <div class="dr-card">
         <h3>資料の例を確かめる</h3>
-        <p>基本範囲0以上8未満では、3bitの量子化幅は <code>8 ÷ 8 = 1</code> なので、値2の番号と符号は <code>2 → 010</code> です。</p>
-        <p>4bitでは16段階、量子化幅は <code>8 ÷ 16 = 0.5</code> です。値2は番号4となり <code>0100</code>、値6は番号12となり <code>1100</code> です。</p>
+        <p>基本範囲0以上8未満では、3bitの量子化の幅は <code>8 ÷ 8 = 1</code> なので、段階値2を2進数で表すと <code>2 → 010</code> です。</p>
+        <p>4bitでは16段階、量子化の幅は <code>8 ÷ 16 = 0.5</code> です。値2の段階値は4となり <code>0100</code>、値6の段階値は12となり <code>1100</code> です。</p>
       </div>
       <p><a href="./dr32.html">次は、波の重ね合わせと標本化定理を操作して確かめる</a></p>
     </article>

@@ -178,7 +178,7 @@ const pages = {
     "mainTitle": "Digital Representation",
     "category": "音のデジタル表現",
     "title": "3-1. 音のデジタル表現",
-    "detail": "アナログ波形から標本化・量子化・符号化へ進むPCMの工程を操作しながら学びます。",
+    "detail": "アナログ波形を見てから、標本化・量子化・符号化の手順と条件による違いを学びます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
@@ -192,7 +192,7 @@ const pages = {
         "text": "3-2. 波と標本化",
         "release": true,
         "url": "dr32.html",
-        "detail": "波の重ね合わせ、標本化定理、エイリアシングを可視化して確かめます。"
+        "detail": "波の重ね合わせと、標本化する回数による波形の見え方の違いを確かめます。"
       }
     ],
     "show": true,
@@ -205,7 +205,7 @@ const pages = {
     "mainTitle": "Digital Representation",
     "category": "音のデジタル表現",
     "title": "3-2. 波と標本化",
-    "detail": "正弦波の重ね合わせと、標本化定理・エイリアシングを操作しながら学びます。",
+    "detail": "正弦波の重ね合わせと標本化定理を、波形を操作しながら学びます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,

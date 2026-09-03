@@ -37,12 +37,15 @@ equal(pages.dr32.back, 'dr31', 'dr32からdr31への前ページ');
 equal(pages.dr32.next?.[0]?.id, 'dr33', 'dr32からdr33への次ページ');
 equal(pages.dr33.back, 'dr32', 'dr33からdr32への前ページ');
 
-const [dr31, dr32, dr33, css, lessons, links, searchIndexSource] = await Promise.all([
+const [dr31, dr32, dr33, css, renderer, widgets, lessons, quiz, links, searchIndexSource] = await Promise.all([
   source('dr31.html'),
   source('dr32.html'),
   source('dr33.html'),
   source('css/digital-representation.css'),
+  source('js/sound-renderer.js'),
+  source('js/sound-widgets.js'),
   source('js/sound-lessons.js'),
+  source('js/sound-quiz.js'),
   source('js/links.js'),
   source('data/search-index.json')
 ]);
@@ -53,18 +56,31 @@ for (const [name, html] of [['dr31', dr31], ['dr32', dr32], ['dr33', dr33]]) {
   ok(html.indexOf('./js/sound-core.js') < html.indexOf('./js/sound-renderer.js'), `${name}のCore→Renderer読み込み順`);
 }
 
-ok(dr31.includes('data-sound-pcm'), 'dr31にPCM Explorer');
+ok(dr31.includes('data-sound-analog-intro'), 'dr31に最初のアナログ波形');
+ok(dr31.includes('data-sound-pcm-guide'), 'dr31に固定条件の段階学習');
+ok(dr31.includes('data-sound-pcm data-stage="4"'), 'dr31に全工程から始まる可変グラフ');
+ok(dr31.indexOf('data-sound-analog-intro') < dr31.indexOf('data-sound-pcm-guide'), 'アナログ波形の後に変換手順を説明');
+ok(dr31.indexOf('data-sound-pcm-guide') < dr31.indexOf('data-sound-pcm data-stage'), '変換手順の後に可変グラフを配置');
+ok(renderer.includes('renderAnalogWave'), 'アナログ波形専用SVG Renderer');
+ok(widgets.includes('class PcmWalkthrough'), '固定条件の段階学習ウィジェット');
 for (const term of ['アナログ', 'デジタル', '標本化', 'サンプリング', '標本化周波数', '標本化周期', '量子化', '量子化ビット数', '量子化段階数', '符号化', 'PCM']) {
   ok(dr31.includes(term), `dr31に用語「${term}」`);
 }
 ok(dr31.includes('0以上8未満'), 'dr31に基本量子化範囲');
 ok(dr31.includes('ちょうど中間なら上側'), 'dr31に丸め規則');
-ok(dr31.includes('クリップ'), 'dr31にクリッピング規則');
+ok(dr31.includes('表示範囲を超えた値'), 'dr31に表示範囲外の規則');
+ok(dr31.includes('PCM：</strong>「パルス符号変調」の略です'), 'PCMは資料どおり略語として説明');
 
 ok(dr32.includes('data-sound-superposition'), 'dr32に波の重ね合わせ教材');
 ok(dr32.includes('data-sound-sampling-theorem'), 'dr32に標本化定理教材');
 ok(lessons.includes('復元された正解波形') && lessons.includes('ではありません'), '破線を復元結果と誤説明しない');
-ok(dr32.includes('fs &gt; 2fmax') && dr32.includes('fs = 2fmax') && dr32.includes('fs &lt; 2fmax'), '標本化定理の3状態');
+ok(dr32.includes('2倍より大きい場合') && dr32.includes('2倍ちょうどの場合') && dr32.includes('2倍より小さい場合'), '標本化定理の3状態');
+ok(dr32.includes('元の波形とは異なる波形'), '資料の表現で標本化不足を説明');
+
+const learnerFacingSources = [dr31, dr32, dr33, renderer, widgets, lessons, quiz, pagesSource].join('\n');
+for (const unsupportedTerm of ['エイリアシング', 'ナイキスト', 'Nyquist', 'PCM Explorer', 'fmax', '量子化番号', '量子化誤差']) {
+  ok(!learnerFacingSources.includes(unsupportedTerm), `資料にない表示用語「${unsupportedTerm}」を使わない`);
+}
 
 equal((dr33.match(/role="tab"/g) || []).length, 3, 'dr33の3タブ');
 equal((dr33.match(/role="tabpanel"/g) || []).length, 3, 'dr33の3タブパネル');

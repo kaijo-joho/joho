@@ -78,7 +78,7 @@
 
     build() {
       this.container.classList.add('dr-lab');
-      const heading = el('h3', '', '波の重ね合わせ Explorer');
+      const heading = el('h3', '', '波の重ね合わせを確かめる');
       const intro = el('p', '', '波Aと波Bを同じ時間軸に重ね、選んだ時刻で「高さを足す」ことを確かめます。');
       const controlGrid = el('div', 'dr-wave-control-grid');
       const waveA = this.buildWaveControls('a', '波A（青・実線）');
@@ -185,13 +185,13 @@
 
     build() {
       this.container.classList.add('dr-lab');
-      const heading = el('h3', '', 'Sampling Theorem Lab');
-      const intro = el('p', '', '信号周波数 f と標本化周波数 fs を動かし、同じ標本点から別の波を区別できなくなる条件を調べます。');
+      const heading = el('h3', '', '標本化定理を確かめる');
+      const intro = el('p', '', '元の波の周波数と標本化周波数を動かし、標本化する回数によって波形の見え方がどう変わるか調べます。');
       const grid = el('div', 'dr-lab-grid');
       const controls = el('div', 'dr-control-panel');
       const frequency = Widgets.createRangeControl({
         id: `dr-theorem-${this.serial}-frequency`,
-        label: '信号周波数 f',
+        label: '元の波の周波数',
         value: this.state.frequency,
         min: 1,
         max: 10,
@@ -244,7 +244,7 @@
       visual.append(this.metrics, this.status, this.legend, scroll);
       grid.append(controls, visual);
       const warning = el('p', 'dr-warning-note');
-      warning.innerHTML = '<strong>破線について：</strong>破線は「復元された正解波形」ではありません。標本点だけを見ると元の波と区別できない、別の候補を示します。標本点を折れ線で結んだ表示でもありません。';
+      warning.innerHTML = '<strong>破線について：</strong>破線は「復元された正解波形」ではありません。同じ標本点を通る、元の波とは別の波形です。標本点を折れ線で結んだ表示でもありません。';
       this.container.replaceChildren(heading, intro, grid, warning);
     }
 
@@ -260,10 +260,9 @@
       });
       const twice = this.state.frequency * 2;
       const metrics = [
-        ['信号周波数', `f = ${Widgets.formatNumber(this.state.frequency, 1)} Hz`],
+        ['元の波の周波数', `${Widgets.formatNumber(this.state.frequency, 1)} Hz`],
         ['標本化周波数', `fs = ${this.state.sampleRate} Hz`],
-        ['比較する値', `2f = ${Widgets.formatNumber(twice, 1)} Hz`],
-        ['ナイキスト周波数', `fs / 2 = ${Widgets.formatNumber(this.state.sampleRate / 2, 2)} Hz`]
+        ['最大周波数の2倍', `${Widgets.formatNumber(this.state.frequency, 1)} × 2 = ${Widgets.formatNumber(twice, 1)} Hz`]
       ];
       this.metrics.replaceChildren(...metrics.map(([term, value]) => {
         const card = el('div', 'dr-metric');
@@ -273,24 +272,24 @@
 
       this.status.className = `dr-theorem-status is-${result.theorem.state}`;
       if (result.theorem.state === 'sufficient') {
-        this.status.innerHTML = `<strong>条件を満たしています：fs = ${this.state.sampleRate} Hz &gt; 2f = ${Widgets.formatNumber(twice, 1)} Hz</strong>標本化周波数が最高周波数の2倍を超えています。この正弦波について、低い周波数へ折り返す別候補は表示されません。`;
+        this.status.innerHTML = `<strong>条件を満たしています：${this.state.sampleRate} Hz &gt; ${Widgets.formatNumber(this.state.frequency, 1)} Hz × 2</strong>標本化周波数が元の波の周波数の2倍より大きいため、元の波形を再現できます。`;
       } else if (result.theorem.state === 'boundary') {
         const detail = result.candidate?.kind === 'boundary-flat'
-          ? '現在の位相では標本値がすべて0になり、平らな信号とも区別できません。位相を動かして違いを比べてください。'
-          : '位相によって標本値は変わります。同じ標本列になる別の位相もあり、境界では一意に判断できるとは限りません。';
-        this.status.innerHTML = `<strong>境界です：fs = ${this.state.sampleRate} Hz = 2f = ${Widgets.formatNumber(twice, 1)} Hz</strong>${detail}`;
+          ? '現在の位相では標本値がすべて0になり、平らな線とも区別できません。位相を動かして違いを比べてください。'
+          : '位相によって標本値は変わります。同じ標本の並びになる別の波形もあり、2倍ちょうどでは元の波形を一意に判断できるとは限りません。';
+        this.status.innerHTML = `<strong>2倍ちょうどです：${this.state.sampleRate} Hz = ${Widgets.formatNumber(this.state.frequency, 1)} Hz × 2</strong>${detail}`;
       } else {
-        const aliasText = result.candidate
-          ? `${Widgets.formatNumber(result.candidate.frequency, 2)} Hzの候補（破線）`
-          : '別候補';
-        this.status.innerHTML = `<strong>標本不足です：fs = ${this.state.sampleRate} Hz &lt; 2f = ${Widgets.formatNumber(twice, 1)} Hz</strong>エイリアシングが発生し得ます。元の${Widgets.formatNumber(this.state.frequency, 1)} Hzと${aliasText}が、同じ標本点を通ります。`;
+        const otherWaveText = result.candidate
+          ? `${Widgets.formatNumber(result.candidate.frequency, 2)} Hzの別の波形（破線）`
+          : '別の波形';
+        this.status.innerHTML = `<strong>標本化する回数が不足しています：${this.state.sampleRate} Hz &lt; ${Widgets.formatNumber(this.state.frequency, 1)} Hz × 2</strong>元の${Widgets.formatNumber(this.state.frequency, 1)} Hzの波形と${otherWaveText}が同じ標本点を通るため、元の波形とは異なる波形として見えてしまいます。`;
       }
       const legendParts = [
         '<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--analog"></span>元の波形（実線）</span>',
         '<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--sample"></span>標本時刻・標本点</span>'
       ];
       if (result.candidate) {
-        legendParts.push('<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--candidate"></span>区別できない別候補（破線）</span>');
+        legendParts.push('<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--candidate"></span>同じ標本点を通る別の波形（破線）</span>');
       }
       this.legend.innerHTML = legendParts.join('');
     }
