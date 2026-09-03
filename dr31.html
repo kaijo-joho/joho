@@ -17,13 +17,20 @@
   <script defer src="./js/sound-renderer.js"></script>
   <script defer src="./js/sound-widgets.js"></script>
   <script defer src="./js/sound-lessons.js"></script>
+  <script defer src="./js/dr-slide-deck.js"></script>
 </head>
-<body>
-  <section>
+<body data-dr-slide-deck data-dr-slide-next-url="./dr32.html" data-dr-slide-next-label="波と標本化へ">
+  <section data-dr-slide data-dr-slide-title="音とアナログ波形">
     <article>
       <h2 id="headline_1">(1) 音とアナログ波形</h2>
-      <p class="dr-lead">音は空気の振動です。マイクで電気信号に変換すると、時間とともに連続して変化する電圧を<strong>アナログ波形</strong>として表せます。</p>
       <div data-sound-analog-intro></div>
+    </article>
+  </section>
+
+  <section data-dr-slide data-dr-slide-title="アナログとデジタル">
+    <article>
+      <h2 id="headline_analog_digital">(2) アナログとデジタル</h2>
+      <p class="dr-lead">連続して変化するアナログの音を、コンピュータで扱える数値と0・1へ変換していきます。</p>
       <div class="dr-term-grid">
         <dl class="dr-term">
           <dt>アナログ</dt>
@@ -38,31 +45,31 @@
           <dd>横軸を時間、縦軸を電圧などの大きさとして、信号の変化を表したグラフです。</dd>
         </dl>
       </div>
-      <p class="dr-note">アナログの音をコンピュータで扱うには、連続した波形から値を取り出し、限られた数値と0・1へ変換します。</p>
+      <p class="dr-note">次のスライドから、連続した波形を<strong>標本化 → 量子化 → 符号化</strong>の順に変換します。</p>
     </article>
   </section>
 
-  <section>
+  <section data-dr-slide data-dr-slide-title="標本化・量子化・符号化">
     <article>
-      <h2 id="headline_2">(2) 標本化・量子化・符号化</h2>
+      <h2 id="headline_2">(3) 標本化・量子化・符号化</h2>
       <p>アナログ信号をデジタル化するときは、<strong>標本化 → 量子化 → 符号化</strong>の順に進めます。まずは条件を固定し、一つずつ確認してください。</p>
       <div data-sound-pcm-guide></div>
       <p class="dr-note"><strong>PCM：</strong>「パルス符号変調」の略です。</p>
     </article>
   </section>
 
-  <section>
+  <section data-dr-slide data-dr-slide-title="条件を変えて確かめる">
     <article>
-      <h2 id="headline_3">(3) 条件を変えて確かめる</h2>
+      <h2 id="headline_3">(4) 条件を変えて確かめる</h2>
       <p>3つの手順を確認したら、標本化周波数や量子化ビット数などを変えて比べます。SVG上の点と下の表は同じ標本を表し、マウス、タップ、キーボードのどれでも同期して選べます。</p>
       <div data-sound-pcm data-stage="4"></div>
       <p class="dr-rule-note"><strong>この教材での値の扱い：</strong>基本範囲は0以上8未満です。最も近い段階値へそろえ、ちょうど中間なら上側を選びます。表示範囲を超えた値は、最小または最大の段階値として扱います。通常の問題では、どちらへそろえるか迷わない値を使います。</p>
     </article>
   </section>
 
-  <section>
+  <section data-dr-slide data-dr-slide-title="数値と用語の整理">
     <article>
-      <h2 id="headline_4">(4) 数値と用語を整理する</h2>
+      <h2 id="headline_4">(5) 数値と用語を整理する</h2>
       <div class="dr-term-grid">
         <dl class="dr-term">
           <dt>標本化（サンプリング）</dt>
@@ -102,7 +109,7 @@
         <p>基本範囲0以上8未満では、3bitの量子化の幅は <code>8 ÷ 8 = 1</code> なので、段階値2を2進数で表すと <code>2 → 010</code> です。</p>
         <p>4bitでは16段階、量子化の幅は <code>8 ÷ 16 = 0.5</code> です。値2の段階値は4となり <code>0100</code>、値6の段階値は12となり <code>1100</code> です。</p>
       </div>
-      <p><a href="./dr32.html">次は、波の重ね合わせと標本化定理を操作して確かめる</a></p>
+      <p class="dr-slide-fallback-next"><a href="./dr32.html">次は、波の重ね合わせと標本化定理を操作して確かめる</a></p>
     </article>
   </section>
 

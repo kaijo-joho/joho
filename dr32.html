@@ -17,9 +17,10 @@
   <script defer src="./js/sound-renderer.js"></script>
   <script defer src="./js/sound-widgets.js"></script>
   <script defer src="./js/sound-lessons.js"></script>
+  <script defer src="./js/dr-slide-deck.js"></script>
 </head>
-<body>
-  <section>
+<body data-dr-slide-deck data-dr-slide-next-url="./dr33.html" data-dr-slide-next-label="問題演習へ">
+  <section data-dr-slide data-dr-slide-title="波を決める3つの量">
     <article>
       <h2 id="headline_1">(1) 波を決める3つの量</h2>
       <p class="dr-lead">音の波形は複雑ですが、基本となる正弦波を組み合わせて考えられます。正弦波の形と位置は、振幅・周波数・位相を使って表します。</p>
@@ -40,7 +41,7 @@
     </article>
   </section>
 
-  <section>
+  <section data-dr-slide data-dr-slide-title="波の重ね合わせ">
     <article>
       <h2 id="headline_2">(2) 波の重ね合わせ</h2>
       <p>複数の波が同時に存在するとき、同じ時刻におけるそれぞれの波の高さを加えたものが合成波になります。別々のグラフとして眺めるだけでなく、選択時刻の値を数式でも確かめましょう。</p>
@@ -49,7 +50,7 @@
     </article>
   </section>
 
-  <section>
+  <section data-dr-slide data-dr-slide-title="標本化定理">
     <article>
       <h2 id="headline_3">(3) 標本化定理</h2>
       <p>元の波形を構成する<strong>成分波の最大周波数</strong>の2倍より大きい周波数で標本化すれば、元の波形を再現できます。この教材では、2倍より大きい場合、2倍ちょうどの場合、2倍より小さい場合を比べます。</p>
@@ -69,7 +70,7 @@
         </dl>
       </div>
       <p class="dr-note">複数の成分波を含む音では、比べる相手は<strong>成分波の最大周波数</strong>です。破線が現れたら、丸い標本点で実線と破線が重なることを確認してください。</p>
-      <p><a href="./dr33.html">理解できたら、音のデジタル表現の問題演習へ進む</a></p>
+      <p class="dr-slide-fallback-next"><a href="./dr33.html">理解できたら、音のデジタル表現の問題演習へ進む</a></p>
     </article>
   </section>
 

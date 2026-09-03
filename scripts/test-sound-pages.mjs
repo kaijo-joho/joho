@@ -37,11 +37,12 @@ equal(pages.dr32.back, 'dr31', 'dr32からdr31への前ページ');
 equal(pages.dr32.next?.[0]?.id, 'dr33', 'dr32からdr33への次ページ');
 equal(pages.dr33.back, 'dr32', 'dr33からdr32への前ページ');
 
-const [dr31, dr32, dr33, css, renderer, widgets, lessons, quiz, links, searchIndexSource] = await Promise.all([
+const [dr31, dr32, dr33, css, slideDeck, renderer, widgets, lessons, quiz, links, searchIndexSource] = await Promise.all([
   source('dr31.html'),
   source('dr32.html'),
   source('dr33.html'),
   source('css/digital-representation.css'),
+  source('js/dr-slide-deck.js'),
   source('js/sound-renderer.js'),
   source('js/sound-widgets.js'),
   source('js/sound-lessons.js'),
@@ -63,6 +64,18 @@ ok(dr31.indexOf('data-sound-analog-intro') < dr31.indexOf('data-sound-pcm-guide'
 ok(dr31.indexOf('data-sound-pcm-guide') < dr31.indexOf('data-sound-pcm data-stage'), '変換手順の後に可変グラフを配置');
 ok(renderer.includes('renderAnalogWave'), 'アナログ波形専用SVG Renderer');
 ok(widgets.includes('class PcmWalkthrough'), '固定条件の段階学習ウィジェット');
+for (const [name, html, expectedSlides] of [['dr31', dr31, 5], ['dr32', dr32, 3]]) {
+  ok(html.includes('data-dr-slide-deck'), `${name}をスライドページとして設定`);
+  equal((html.match(/<section data-dr-slide(?:\s|>)/g) || []).length, expectedSlides, `${name}のスライド数`);
+  ok(html.includes('./js/dr-slide-deck.js'), `${name}が共通スライド機構を読み込む`);
+}
+ok(!dr33.includes('data-dr-slide-deck'), '問題演習dr33はタブ型ページを維持');
+for (const requirement of ['class DrSlideDeck', 'dr-slide-deck__navigation', 'dr-slide-deck__steps', 'aria-current', 'ArrowRight', 'PageDown', 'location.hash']) {
+  ok(slideDeck.includes(requirement), `スライド機構に ${requirement}`);
+}
+for (const requirement of ['.dr-slide-deck', '--dr-slide-deck-height', '.dr-slide-deck__navigation', '.dr-slide-deck__steps', 'body.dr-slide-ready', 'max-height: 520px']) {
+  ok(css.includes(requirement), `スライド表示CSSに ${requirement}`);
+}
 for (const term of ['アナログ', 'デジタル', '標本化', 'サンプリング', '標本化周波数', '標本化周期', '量子化', '量子化ビット数', '量子化段階数', '符号化', 'PCM']) {
   ok(dr31.includes(term), `dr31に用語「${term}」`);
 }
@@ -77,7 +90,7 @@ ok(lessons.includes('復元された正解波形') && lessons.includes('では�
 ok(dr32.includes('2倍より大きい場合') && dr32.includes('2倍ちょうどの場合') && dr32.includes('2倍より小さい場合'), '標本化定理の3状態');
 ok(dr32.includes('元の波形とは異なる波形'), '指定した表現で標本化不足を説明');
 
-const learnerFacingSources = [dr31, dr32, dr33, renderer, widgets, lessons, quiz, pagesSource].join('\n');
+const learnerFacingSources = [dr31, dr32, dr33, slideDeck, renderer, widgets, lessons, quiz, pagesSource].join('\n');
 for (const unsupportedTerm of ['エイリアシング', 'ナイキスト', 'Nyquist', 'PCM Explorer', 'fmax', '量子化番号', '量子化誤差', '資料']) {
   ok(!learnerFacingSources.includes(unsupportedTerm), `学習画面で使わない表現「${unsupportedTerm}」を含めない`);
 }
