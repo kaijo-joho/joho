@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme:light dark; background:transparent; }
+    @media (prefers-color-scheme:dark) { html { color:#e6e6e6; color-scheme:dark light; } }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme:dark) { body { background-color:#0b0b0b; } }
+  </style>
+  <title>海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/digital-representation.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/sound-core.js"></script>
+  <script defer src="./js/sound-renderer.js"></script>
+  <script defer src="./js/sound-widgets.js"></script>
+  <script defer src="./js/sound-lessons.js"></script>
+</head>
+<body>
+  <section>
+    <article>
+      <h2 id="headline_1">(1) 音と波形</h2>
+      <p class="dr-lead">音は空気の振動として伝わります。マイクはその振動を電気信号へ変えます。時間とともに連続して変化する電圧をグラフにすると、音の<strong>アナログ波形</strong>として見ることができます。</p>
+      <div class="dr-term-grid">
+        <dl class="dr-term">
+          <dt>アナログ</dt>
+          <dd>時間や大きさが連続して変化する表し方です。波形の途中にも、無数の値があります。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>デジタル</dt>
+          <dd>値をとびとびの数値として表す方法です。コンピュータでは、最終的に0と1の組み合わせで扱います。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>波形</dt>
+          <dd>横軸を時間、縦軸を電圧などの大きさとして、信号の変化を表したグラフです。</dd>
+        </dl>
+      </div>
+      <p class="dr-note">アナログの音をコンピュータで扱うには、連続した波形から値を取り出し、限られた数値と0・1へ変換します。</p>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_2">(2) PCMの4工程</h2>
+      <p>授業では、アナログ信号をデジタル信号へ変える流れを次の順序で考えます。</p>
+      <ol class="dr-process">
+        <li><strong>アナログ波形</strong><span>時間とともに連続して変化する元の信号</span></li>
+        <li><strong>標本化</strong><span>一定の時間間隔で波形の値を取り出す</span></li>
+        <li><strong>量子化</strong><span>取り出した値を決められた段階の値へそろえる</span></li>
+        <li><strong>符号化</strong><span>量子化番号を固定長の2進数で表す</span></li>
+      </ol>
+      <p><strong>標本化 → 量子化 → 符号化</strong>によって音をデジタル化する代表的な方式を、<strong>パルス符号変調（PCM）</strong>といいます。</p>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_3">(3) PCM Explorer</h2>
+      <p>工程ボタンを順に選び、標本化周波数や量子化ビット数を変えてください。SVG上の標本と下の表は同じ番号で結びついており、マウス、タップ、キーボードのどれでも同期して選べます。</p>
+      <div data-sound-pcm></div>
+      <p class="dr-rule-note"><strong>この教材の量子化規則：</strong>基本範囲は0以上8未満です。最も近い表現値へそろえ、ちょうど中間なら上側を選びます。範囲外は最小または最大の符号へクリップします。通常の問題では、丸め方向が曖昧にならない値を使います。</p>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_4">(4) 数値と用語を整理する</h2>
+      <div class="dr-term-grid">
+        <dl class="dr-term">
+          <dt>標本化（サンプリング）</dt>
+          <dd>一定の時間間隔で、アナログ波形の値を取り出すことです。取り出した一つ一つを標本と考えます。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>標本化周波数 fs</dt>
+          <dd>1秒間に標本化する回数です。単位はHzです。10Hzなら1秒間に10回、値を取り出します。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>標本化周期 T</dt>
+          <dd>標本と次の標本の時間間隔です。<code>T = 1 / fs</code> で求めます。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>量子化</dt>
+          <dd>標本値を、用意した段階のうち最も近い値へそろえることです。元の値との差を量子化誤差といいます。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>量子化ビット数 n</dt>
+          <dd>1つの標本を何bitで表すかを示します。ビット数が増えると、より細かく表せます。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>量子化段階数</dt>
+          <dd><code>2ⁿ</code> 段階です。3bitなら8段階、4bitなら16段階です。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>符号化（コード化）</dt>
+          <dd>量子化番号を0と1の組み合わせに変換します。3bitの番号2は <code>010</code> です。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>PCM</dt>
+          <dd>パルス符号変調。標本化・量子化・符号化の工程で、音声信号をデジタルデータへ変換する方式です。</dd>
+        </dl>
+      </div>
+      <div class="dr-card">
+        <h3>資料の例を確かめる</h3>
+        <p>基本範囲0以上8未満では、3bitの量子化幅は <code>8 ÷ 8 = 1</code> なので、値2の番号と符号は <code>2 → 010</code> です。</p>
+        <p>4bitでは16段階、量子化幅は <code>8 ÷ 16 = 0.5</code> です。値2は番号4となり <code>0100</code>、値6は番号12となり <code>1100</code> です。</p>
+      </div>
+      <p><a href="./dr32.html">次は、波の重ね合わせと標本化定理を操作して確かめる</a></p>
+    </article>
+  </section>
+
+  <section id="examples_and_questions"><!-- script_pages.js --></section>
+</body>
+</html>

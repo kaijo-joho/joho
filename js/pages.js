@@ -1,4 +1,4 @@
-//2026-09-02;
+//2026-09-03;
 const pages = {
   "index": {
     "id": "index",
@@ -143,6 +143,78 @@ const pages = {
     "next": false,
     "show": true,
     "backFile": "lc01.html"
+  },
+  "dr31": {
+    "id": "dr31",
+    "release": true,
+    "fileName": "dr31.html",
+    "mainTitle": "Digital Representation",
+    "category": "音のデジタル表現",
+    "title": "3-1. 音のデジタル表現",
+    "detail": "アナログ波形から標本化・量子化・符号化へ進むPCMの工程を操作しながら学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": [
+      {
+        "id": "dr32",
+        "title": "3-2. 波と標本化",
+        "text": "3-2. 波と標本化",
+        "release": true,
+        "url": "dr32.html",
+        "detail": "波の重ね合わせ、標本化定理、エイリアシングを可視化して確かめます。"
+      }
+    ],
+    "show": true,
+    "backFile": "index.html"
+  },
+  "dr32": {
+    "id": "dr32",
+    "release": true,
+    "fileName": "dr32.html",
+    "mainTitle": "Digital Representation",
+    "category": "音のデジタル表現",
+    "title": "3-2. 波と標本化",
+    "detail": "正弦波の重ね合わせと、標本化定理・エイリアシングを操作しながら学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr31",
+    "next": [
+      {
+        "id": "dr33",
+        "title": "3-3. 音のデジタル表現 問題演習",
+        "text": "3-3. 音のデジタル表現 問題演習",
+        "release": true,
+        "url": "dr33.html",
+        "detail": "波形のデジタル化、データ量、基本用語の問題に挑戦します。"
+      }
+    ],
+    "show": true,
+    "backFile": "dr31.html"
+  },
+  "dr33": {
+    "id": "dr33",
+    "release": true,
+    "fileName": "dr33.html",
+    "mainTitle": "Digital Representation",
+    "category": "音のデジタル表現",
+    "title": "3-3. 音のデジタル表現 問題演習",
+    "detail": "波形のデジタル化、周期・段階数・音声データ量、用語と標本化定理を練習します。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr32",
+    "next": false,
+    "show": true,
+    "backFile": "dr32.html"
   },
   "html00": {
     "id": "html00",

@@ -1,7 +1,7 @@
 (() => {
   'use strict';
 
-  const COURSE_KEYS = new Set(['html', 'il', 'ss', 'py']);
+  const COURSE_KEYS = new Set(['dr', 'html', 'il', 'ss', 'py']);
 
   function normalizeText(value) {
     return String(value ?? '')

@@ -16,7 +16,8 @@ const COURSE_KEYS = new Map([
   ['HTML実習', 'html'],
   ['Illustrator実習', 'il'],
   ['スプレッドシート実習', 'ss'],
-  ['Python講座', 'py']
+  ['Python講座', 'py'],
+  ['Digital Representation', 'dr']
 ]);
 
 const ENTITY_MAP = new Map([

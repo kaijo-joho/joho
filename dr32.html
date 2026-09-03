@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme:light dark; background:transparent; }
+    @media (prefers-color-scheme:dark) { html { color:#e6e6e6; color-scheme:dark light; } }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme:dark) { body { background-color:#0b0b0b; } }
+  </style>
+  <title>海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/digital-representation.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/sound-core.js"></script>
+  <script defer src="./js/sound-renderer.js"></script>
+  <script defer src="./js/sound-widgets.js"></script>
+  <script defer src="./js/sound-lessons.js"></script>
+</head>
+<body>
+  <section>
+    <article>
+      <h2 id="headline_1">(1) 波を決める3つの量</h2>
+      <p class="dr-lead">音の波形は複雑ですが、基本となる正弦波を組み合わせて考えられます。正弦波の形と位置は、振幅・周波数・位相を使って表します。</p>
+      <div class="dr-term-grid">
+        <dl class="dr-term">
+          <dt>振幅</dt>
+          <dd>波の中心から山または谷までの大きさです。振幅を大きくすると、波は縦方向に大きくなります。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>周波数 f</dt>
+          <dd>1秒間に波が繰り返す回数です。単位はHzです。周波数が高いほど、同じ時間内の波の数が増えます。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>位相</dt>
+          <dd>波の繰り返しの開始位置です。位相を変えると、波の山や谷が時間方向へ移動します。</dd>
+        </dl>
+      </div>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_2">(2) 波の重ね合わせ</h2>
+      <p>複数の波が同時に存在するとき、同じ時刻におけるそれぞれの波の高さを加えたものが合成波になります。別々のグラフとして眺めるだけでなく、選択時刻の値を数式でも確かめましょう。</p>
+      <div data-sound-superposition></div>
+      <p class="dr-note"><strong>観察のポイント：</strong>波Aまたは波Bの表示を切り替えても、合成波の計算そのものは変わりません。振幅・周波数・位相を一つずつ動かし、合成波のどこが変わるか比べてください。</p>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_3">(3) 標本化定理とエイリアシング</h2>
+      <p>波形に含まれる最高周波数を <code>fmax</code> とすると、元の信号を標本から区別して扱うには、標本化周波数 <code>fs</code> が <code>2fmax</code> を<strong>超える</strong>ようにします。この教材では、境界も別の状態として観察します。</p>
+      <div data-sound-sampling-theorem></div>
+      <div class="dr-term-grid">
+        <dl class="dr-term">
+          <dt>fs &gt; 2fmax</dt>
+          <dd>標本化定理の条件を満たします。1周期あたりの標本数を増やして、点の並びを観察してください。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>fs = 2fmax</dt>
+          <dd>境界です。位相によってはすべて同じ値を標本化するなど、元の波を一意に判断できない場合があります。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>fs &lt; 2fmax</dt>
+          <dd>標本が不足し、高い周波数が別の低い周波数のように見えるエイリアシングが発生し得ます。</dd>
+        </dl>
+      </div>
+      <p class="dr-note">複数の周波数を含む音では、比べる相手は一つの成分ではなく<strong>最高周波数 fmax</strong>です。破線が現れたら、丸い標本点で実線と破線が重なることを確認してください。</p>
+      <p><a href="./dr33.html">理解できたら、音のデジタル表現の問題演習へ進む</a></p>
+    </article>
+  </section>
+
+  <section id="examples_and_questions"><!-- script_pages.js --></section>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme:light dark; background:transparent; }
+    @media (prefers-color-scheme:dark) { html { color:#e6e6e6; color-scheme:dark light; } }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme:dark) { body { background-color:#0b0b0b; } }
+  </style>
+  <title>海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/digital-representation.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/sound-core.js"></script>
+  <script defer src="./js/sound-renderer.js"></script>
+  <script defer src="./js/sound-widgets.js"></script>
+  <script defer src="./js/sound-quiz.js"></script>
+</head>
+<body>
+  <section>
+    <article>
+      <h2 id="headline_1">(1) 音のデジタル表現を練習する</h2>
+      <p class="dr-lead">3種類の問題を切り替えて練習できます。判定後は、正しかった箇所・異なる箇所・計算や用語の考え方を確認してから次へ進みましょう。</p>
+      <div class="dr-tabs" id="sound-quiz-tabs" role="tablist" aria-label="問題の種類">
+        <button type="button" class="dr-tabs__tab" role="tab" id="tab-digitization" aria-controls="panel-digitization" aria-selected="true" data-mode="digitization">1. 波形のデジタル化</button>
+        <button type="button" class="dr-tabs__tab" role="tab" id="tab-calculation" aria-controls="panel-calculation" aria-selected="false" data-mode="calculation" tabindex="-1">2. 周期・段階数・データ量</button>
+        <button type="button" class="dr-tabs__tab" role="tab" id="tab-terminology" aria-controls="panel-terminology" aria-selected="false" data-mode="terminology" tabindex="-1">3. 用語・標本化定理</button>
+      </div>
+      <p class="dr-seed" id="sound-quiz-seed">問題シード：</p>
+    </article>
+  </section>
+
+  <section class="dr-quiz-panel" id="panel-digitization" role="tabpanel" aria-labelledby="tab-digitization" data-panel="digitization">
+    <article>
+      <div class="dr-question-card">
+        <div class="dr-question-header">
+          <h3>波形をデジタル化</h3>
+          <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+        </div>
+        <div class="dr-prompt" id="digitization-prompt"></div>
+        <div class="dr-visual">
+          <div class="dr-visual__scroll" tabindex="0" aria-label="問題の波形。狭い画面では横方向にスクロールできます。">
+            <p class="dr-visual__hint">横にスクロールしてグラフ全体を確認できます</p>
+            <div id="digitization-graph"></div>
+          </div>
+        </div>
+        <div id="digitization-answer-grid"></div>
+        <div class="dr-feedback" id="digitization-feedback" role="status" aria-live="polite"></div>
+        <div class="dr-question-actions">
+          <button type="button" class="dr-button dr-button--primary" id="digitization-judge">判定</button>
+          <button type="button" class="dr-button" id="digitization-next">次の問題</button>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="dr-quiz-panel" id="panel-calculation" role="tabpanel" aria-labelledby="tab-calculation" data-panel="calculation" hidden>
+    <article>
+      <div class="dr-question-card">
+        <div class="dr-question-header">
+          <h3>周期・段階数・データ量</h3>
+          <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+        </div>
+        <p class="dr-prompt" id="calculation-prompt"></p>
+        <div class="dr-number-answer">
+          <label for="calculation-answer">答え</label>
+          <input class="dr-quiz-input" id="calculation-answer" type="number" step="any" inputmode="decimal">
+          <span class="dr-answer-unit" id="calculation-unit"></span>
+        </div>
+        <div class="dr-feedback" id="calculation-feedback" role="status" aria-live="polite"></div>
+        <div class="dr-question-actions">
+          <button type="button" class="dr-button dr-button--primary" id="calculation-judge">判定</button>
+          <button type="button" class="dr-button" id="calculation-next">次の問題</button>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section class="dr-quiz-panel" id="panel-terminology" role="tabpanel" aria-labelledby="tab-terminology" data-panel="terminology" hidden>
+    <article>
+      <div class="dr-question-card">
+        <div class="dr-question-header">
+          <h3>用語・標本化定理</h3>
+          <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+        </div>
+        <p class="dr-prompt" id="terminology-prompt"></p>
+        <div class="dr-choice-list" id="terminology-choices" role="group" aria-label="選択肢"></div>
+        <div class="dr-feedback" id="terminology-feedback" role="status" aria-live="polite"></div>
+        <div class="dr-question-actions">
+          <button type="button" class="dr-button dr-button--primary" id="terminology-judge">判定</button>
+          <button type="button" class="dr-button" id="terminology-next">次の問題</button>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_2">(2) 計算の確認</h2>
+      <div class="dr-term-grid">
+        <dl class="dr-term">
+          <dt>標本化周期と周波数</dt>
+          <dd><code>T = 1 / fs</code>、<code>fs = 1 / T</code>。周期の単位は秒、周波数の単位はHzです。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>量子化段階数</dt>
+          <dd>n bitなら <code>2ⁿ</code> 段階です。段階数から必要bit数を求めるときは、その段階数以上になる最小のnを選びます。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>音声データ量</dt>
+          <dd><code>標本化周波数 × 時間 × 量子化ビット数 × チャンネル数</code> でbit数を求め、8で割るとBになります。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>チャンネル数</dt>
+          <dd>モノラルは1、ステレオは2です。5.1チャンネルは6チャンネル分として、圧縮前のデータ量を計算します。</dd>
+        </dl>
+      </div>
+      <p class="dr-warning-note"><strong>単位換算：</strong>この資料には1000倍換算と1024倍換算の例があります。各問題文に「1KB = 1000B」または「この問題では1KB = 1024B、1MB = 1024KB」と必ず明記し、途中で暗黙に切り替えません。</p>
+      <p><a href="./dr31.html">PCM Explorerへ戻る</a> ／ <a href="./dr32.html">波と標本化へ戻る</a></p>
+    </article>
+  </section>
+
+  <section id="examples_and_questions"><!-- script_pages.js --></section>
+</body>
+</html>

@@ -6,6 +6,7 @@
   const SEARCH_DELAY_MS = 160;
   const COURSE_FILTERS = [
     { value: '', label: 'すべて' },
+    { value: 'dr', label: 'デジタル表現' },
     { value: 'html', label: 'HTML' },
     { value: 'il', label: 'Illustrator' },
     { value: 'ss', label: 'スプレッドシート' },
