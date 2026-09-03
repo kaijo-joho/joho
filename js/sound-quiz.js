@@ -251,7 +251,7 @@
         sampleRate: 10,
         bitDepth: 3,
         range: { min: 0, max: 8 },
-        explanation: '授業資料の3bit例です。範囲0以上8未満を幅1で量子化し、各番号を3桁の2進数にします。'
+        explanation: '3bitの例です。範囲0以上8未満を幅1で量子化し、各段階値を3桁の2進数にします。'
       }),
       makeDigitizationProblem({
         id: 'pdf-4bit-wave',
@@ -260,7 +260,7 @@
         sampleRate: 5,
         bitDepth: 4,
         range: { min: 0, max: 16 },
-        explanation: '授業資料の4bit演習です。2進数は0100 1100 1100 0010となります。'
+        explanation: '4bitの例です。2進数は0100 1100 1100 0010となります。'
       }),
       ...generatedDigitizationProblems(random)
     ];

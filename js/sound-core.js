@@ -310,7 +310,7 @@
     const center = finiteNumber(options.center ?? 4, '中心値');
     const cyclePosition = (t * frequency + phase / (2 * Math.PI)) * LESSON_SAMPLE_VALUES.length;
     const raw = interpolateGrid(LESSON_SAMPLE_VALUES, cyclePosition, { periodic: true });
-    // Catmull-Rom補間のわずかなオーバーシュートを、資料の格子値0〜7の範囲に収める。
+    // Catmull-Rom補間のわずかなオーバーシュートを、この教材の格子値0〜7の範囲に収める。
     const bounded = Math.min(7, Math.max(0, raw));
     return center + (bounded - center) * amplitudeScale;
   }

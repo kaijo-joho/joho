@@ -140,7 +140,7 @@
 
     build() {
       this.container.classList.add('dr-card', 'dr-guide');
-      const title = element('h3', '', '資料の固定例を順に見る');
+      const title = element('h3', '', '固定した条件で順に見る');
       const intro = element('p', '', '先ほどのアナログ波形を、0.1秒間隔・3ビットでデジタル化します。ここでは条件を変えず、3つの手順に注目します。');
       this.stageSelector = element('fieldset', 'dr-stage-selector dr-stage-selector--three');
       this.stageSelector.appendChild(element('legend', '', '確認する手順'));
@@ -360,7 +360,7 @@
         label: '波形',
         value: this.state.waveform,
         options: [
-          { value: 'lesson', label: '授業資料の例' },
+          { value: 'lesson', label: 'このページの例' },
           { value: 'sine', label: '正弦波' },
           { value: 'composite', label: '2つの正弦波の合成' }
         ],

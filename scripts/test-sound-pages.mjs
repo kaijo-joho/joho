@@ -69,17 +69,17 @@ for (const term of ['アナログ', 'デジタル', '標本化', 'サンプリ�
 ok(dr31.includes('0以上8未満'), 'dr31に基本量子化範囲');
 ok(dr31.includes('ちょうど中間なら上側'), 'dr31に丸め規則');
 ok(dr31.includes('表示範囲を超えた値'), 'dr31に表示範囲外の規則');
-ok(dr31.includes('PCM：</strong>「パルス符号変調」の略です'), 'PCMは資料どおり略語として説明');
+ok(dr31.includes('PCM：</strong>「パルス符号変調」の略です'), 'PCMは略語としてのみ説明');
 
 ok(dr32.includes('data-sound-superposition'), 'dr32に波の重ね合わせ教材');
 ok(dr32.includes('data-sound-sampling-theorem'), 'dr32に標本化定理教材');
 ok(lessons.includes('復元された正解波形') && lessons.includes('ではありません'), '破線を復元結果と誤説明しない');
 ok(dr32.includes('2倍より大きい場合') && dr32.includes('2倍ちょうどの場合') && dr32.includes('2倍より小さい場合'), '標本化定理の3状態');
-ok(dr32.includes('元の波形とは異なる波形'), '資料の表現で標本化不足を説明');
+ok(dr32.includes('元の波形とは異なる波形'), '指定した表現で標本化不足を説明');
 
 const learnerFacingSources = [dr31, dr32, dr33, renderer, widgets, lessons, quiz, pagesSource].join('\n');
-for (const unsupportedTerm of ['エイリアシング', 'ナイキスト', 'Nyquist', 'PCM Explorer', 'fmax', '量子化番号', '量子化誤差']) {
-  ok(!learnerFacingSources.includes(unsupportedTerm), `資料にない表示用語「${unsupportedTerm}」を使わない`);
+for (const unsupportedTerm of ['エイリアシング', 'ナイキスト', 'Nyquist', 'PCM Explorer', 'fmax', '量子化番号', '量子化誤差', '資料']) {
+  ok(!learnerFacingSources.includes(unsupportedTerm), `学習画面で使わない表現「${unsupportedTerm}」を含めない`);
 }
 
 equal((dr33.match(/role="tab"/g) || []).length, 3, 'dr33の3タブ');
