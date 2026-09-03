@@ -52,6 +52,35 @@
     return button;
   }
 
+  function createSaveIcon() {
+    const svg = Renderer.svgElement('svg', {
+      class: 'logic-editor__save-icon',
+      viewBox: '0 0 24 24',
+      'aria-hidden': 'true',
+      focusable: 'false'
+    });
+    svg.append(
+      Renderer.svgElement('path', {
+        class: 'logic-editor__save-icon-path',
+        d: 'M 12 3 V 15 M 7.5 10.5 L 12 15 L 16.5 10.5'
+      }),
+      Renderer.svgElement('path', {
+        class: 'logic-editor__save-icon-path',
+        d: 'M 5 18 H 19'
+      })
+    );
+    return svg;
+  }
+
+  function makeSaveButton(onClick) {
+    const button = makeButton('', 'logic-editor__action-button logic-editor__save-button', onClick);
+    button.append(
+      createSaveIcon(),
+      htmlElement('span', 'logic-editor__save-button-label', 'SVG保存')
+    );
+    return button;
+  }
+
   function createGateButtonIcon(type) {
     const gate = String(type).toUpperCase();
     const geometry = Renderer.gateGeometry(gate);
@@ -262,15 +291,19 @@
       actions.setAttribute('aria-label', '回路の編集操作');
       this.undoButton = makeHistoryButton('undo', () => this.undo());
       this.redoButton = makeHistoryButton('redo', () => this.redo());
-      this.deleteButton = makeButton('選択を削除', 'logic-editor__action-button', () => this.deleteSelected());
+      this.saveButton = this.options.enableSvgSave ? makeSaveButton(() => this.saveSvg()) : null;
+      this.deleteButton = makeButton('選択を削除', 'logic-editor__action-button logic-editor__delete-button', () => this.deleteSelected());
       this.clearButton = makeButton('全消去', 'logic-editor__action-button logic-editor__action-button--danger', () => this.clear());
-      actions.append(this.undoButton, this.redoButton, this.deleteButton, this.clearButton);
+      if (this.saveButton) actions.classList.add('logic-editor__actions--with-save');
+      actions.append(this.undoButton, this.redoButton);
+      if (this.saveButton) actions.appendChild(this.saveButton);
+      actions.append(this.deleteButton, this.clearButton);
       toolbar.append(palette, actions);
 
       const guide = htmlElement(
         'p',
         'logic-editor__guide',
-        '① ＋付きのゲートを選ぶ　② 端子（●）を順に選ぶか、端子から接続先までドラッグする。部品もドラッグで移動できます。'
+        '① ＋付きのゲートを選ぶ　② 端子（●）を順に選ぶか、端子間をドラッグする。接続済みの入力端子をドラッグすると配線を付け替えられます。'
       );
       const scrollHint = htmlElement(
         'p',
@@ -287,7 +320,7 @@
         class: 'logic-editor__canvas',
         viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
         role: 'application',
-        'aria-label': '論理回路編集キャンバス。ゲートを移動し、小さな黒い端子を順番に選ぶか、端子間をドラッグして接続します。',
+        'aria-label': '論理回路編集キャンバス。ゲートを移動し、小さな黒い端子を順番に選ぶか、端子間をドラッグして接続・付け替えします。',
         preserveAspectRatio: 'xMidYMid meet'
       });
       this.canvasWrap.appendChild(this.svg);
@@ -388,6 +421,49 @@
 
     findNode(id) {
       return this.graph.nodes.find(node => node.id === id);
+    }
+
+    incomingWire(nodeId, port) {
+      return this.graph.wires.find(wire => {
+        return wire.to === nodeId && Number(wire.port) === Number(port);
+      }) || null;
+    }
+
+    rewireConnection(wireId, fromId, toId, port) {
+      const wire = this.graph.wires.find(candidate => candidate.id === wireId);
+      const from = this.findNode(fromId);
+      const to = this.findNode(toId);
+      const targetPort = Number(port);
+      this.pendingFrom = null;
+      this.selected = null;
+      if (!wire || !from || !to || from.type === 'output' || to.type === 'input') {
+        this.notice = 'その端子へ配線を付け替えることはできません。';
+        this.render();
+        return;
+      }
+      if (wire.from === from.id && wire.to === to.id && Number(wire.port) === targetPort) {
+        this.notice = '配線の接続は変更されませんでした。';
+        this.render();
+        return;
+      }
+      const otherWires = this.graph.wires.filter(candidate => candidate.id !== wire.id);
+      if (otherWires.some(candidate => candidate.to === to.id && Number(candidate.port) === targetPort)) {
+        this.notice = 'この入力端子には、すでに別の配線があります。';
+        this.render();
+        return;
+      }
+      const graphWithoutWire = { nodes: this.graph.nodes, wires: otherWires };
+      if (Core.wouldCreateCycle(graphWithoutWire, from.id, to.id)) {
+        this.notice = '循環する接続には付け替えられません。';
+        this.render();
+        return;
+      }
+      wire.from = from.id;
+      wire.to = to.id;
+      wire.port = targetPort;
+      const fromLabel = from.name || from.type;
+      const toLabel = to.type === 'output' ? 'F' : `${to.type}の入力${targetPort + 1}`;
+      this.commit(`配線を${fromLabel}から${toLabel}へ付け替えました。`);
     }
 
     inputCount(node) {
@@ -540,15 +616,23 @@
       const chosen = candidates.sort((left, right) => left.score - right.score)[0];
       if (!chosen) return null;
 
-      const junctionKeys = new Set();
-      const junctions = [];
-      [from.y, ...entries.map(entry => branchYByWire.get(entry.wire.id))].forEach(y => {
-        const point = routePoint(chosen.laneX, y);
-        const key = `${point.x}:${point.y}`;
-        if (junctionKeys.has(key)) return;
-        junctionKeys.add(key);
-        junctions.push(point);
+      const branchCounts = new Map();
+      entries.forEach(entry => {
+        const y = branchYByWire.get(entry.wire.id);
+        branchCounts.set(y, (branchCounts.get(y) || 0) + 1);
       });
+      const branchYs = Array.from(branchCounts.keys());
+      const minimumY = Math.min(from.y, ...branchYs);
+      const maximumY = Math.max(from.y, ...branchYs);
+      const junctions = Array.from(new Set([from.y, ...branchYs]))
+        .filter(y => {
+          const directionCount = Number(y > minimumY)
+            + Number(y < maximumY)
+            + Number(y === from.y)
+            + (branchCounts.get(y) || 0);
+          return directionCount >= 3;
+        })
+        .map(y => routePoint(chosen.laneX, y));
       const trunkSegments = chosen.common.filter(segment => segment.axis === 'h');
       return {
         bundle: {
@@ -571,9 +655,10 @@
       };
     }
 
-    computeWireRouting() {
+    computeWireRouting(excludedWireId = null) {
       const groups = new Map();
       this.graph.wires.forEach(wire => {
+        if (wire.id === excludedWireId) return;
         const fromNode = this.findNode(wire.from);
         const toNode = this.findNode(wire.to);
         if (!fromNode || !toNode) return;
@@ -756,20 +841,24 @@
 
     makePort(node, kind, port) {
       const point = kind === 'output' ? this.outputPoint(node) : this.inputPoint(node, port);
+      const connectedWire = kind === 'input' ? this.incomingWire(node.id, port) : null;
       const selected = kind === 'output' && this.pendingFrom === node.id;
       const dragging = this.connectionDrag?.nodeId === node.id
         && this.connectionDrag?.kind === kind
         && Number(this.connectionDrag?.port) === Number(port);
       const marker = Renderer.svgElement('g', {
-        class: `logic-editor-port logic-editor-port--${kind}${selected ? ' is-pending' : ''}${dragging ? ' is-dragging' : ''}`,
+        class: `logic-editor-port logic-editor-port--${kind}${connectedWire ? ' is-connected' : ''}${selected ? ' is-pending' : ''}${dragging ? ' is-dragging' : ''}`,
         tabindex: 0,
         role: 'button',
         'data-node-id': node.id,
         'data-kind': kind,
         'data-port': Number(port),
+        'data-wire-id': connectedWire?.id || null,
         'aria-label': kind === 'output'
           ? `${node.name || node.type}の出力端子。選ぶか、入力端子までドラッグして接続`
-          : `${node.name || node.type}の入力${Number(port) + 1}端子。選ぶか、出力端子からここまでドラッグして接続`
+          : connectedWire
+            ? `${node.name || node.type}の入力${Number(port) + 1}端子、接続済み。クリックで配線を選択、別の端子へドラッグして付け替え`
+            : `${node.name || node.type}の入力${Number(port) + 1}端子。選ぶか、出力端子からここまでドラッグして接続`
       });
       marker.append(
         Renderer.svgElement('circle', {
@@ -789,6 +878,7 @@
         event.preventDefault();
         event.stopPropagation();
         if (kind === 'output') this.startConnection(node.id);
+        else if (connectedWire && !this.pendingFrom) this.selectWire(connectedWire.id);
         else this.finishConnection(node.id, Number(port));
       };
       marker.addEventListener('pointerdown', event => this.beginPortGesture(event, node, kind, Number(port)));
@@ -804,6 +894,9 @@
       event.stopPropagation();
       const start = this.toSvgPoint(event.clientX, event.clientY);
       const previousPendingFrom = this.pendingFrom;
+      const connectedWire = kind === 'input' && !previousPendingFrom
+        ? this.incomingWire(node.id, port)
+        : null;
       this.connectionDrag = {
         pointerId: event.pointerId,
         nodeId: node.id,
@@ -813,9 +906,15 @@
         current: start,
         moved: false,
         previousPendingFrom,
-        wasPendingSame: kind === 'output' && previousPendingFrom === node.id
+        wasPendingSame: kind === 'output' && previousPendingFrom === node.id,
+        rewireWireId: connectedWire?.id || null,
+        hoverKind: kind
       };
-      if (kind === 'output') {
+      if (connectedWire) {
+        this.pendingFrom = null;
+        this.selected = null;
+        this.notice = '配線の末端を、付け替え先の入力端子または出力端子までドラッグしてください。';
+      } else if (kind === 'output') {
         this.pendingFrom = node.id;
         this.selected = { kind: 'node', id: node.id };
         this.notice = '入力端子までドラッグするか、接続先の端子を選んでください。';
@@ -832,11 +931,29 @@
       if (!gesture?.moved) return;
       const node = this.findNode(gesture.nodeId);
       if (!node) return;
-      const fixed = gesture.kind === 'output'
-        ? this.outputPoint(node)
-        : this.inputPoint(node, Number(gesture.port));
-      const from = gesture.kind === 'output' ? fixed : gesture.current;
-      const to = gesture.kind === 'output' ? gesture.current : fixed;
+      let from;
+      let to;
+      const rewireWire = gesture.rewireWireId
+        ? this.graph.wires.find(wire => wire.id === gesture.rewireWireId)
+        : null;
+      if (rewireWire) {
+        const sourceNode = this.findNode(rewireWire.from);
+        const destinationNode = this.findNode(rewireWire.to);
+        if (!sourceNode || !destinationNode) return;
+        if (gesture.hoverKind === 'output') {
+          from = gesture.current;
+          to = this.inputPoint(destinationNode, Number(rewireWire.port));
+        } else {
+          from = this.outputPoint(sourceNode);
+          to = gesture.current;
+        }
+      } else {
+        const fixed = gesture.kind === 'output'
+          ? this.outputPoint(node)
+          : this.inputPoint(node, Number(gesture.port));
+        from = gesture.kind === 'output' ? fixed : gesture.current;
+        to = gesture.kind === 'output' ? gesture.current : fixed;
+      }
       this.svg.append(
         Renderer.svgElement('path', {
           class: 'logic-editor-wire-preview',
@@ -948,6 +1065,8 @@
           x: clamp(point.x, 0, WIDTH),
           y: clamp(point.y, 0, HEIGHT)
         };
+        const hoveredPort = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('.logic-editor-port');
+        this.connectionDrag.hoverKind = hoveredPort?.getAttribute('data-kind') || null;
         if (this.connectionDrag.moved) this.render({ notify: false });
         return;
       }
@@ -972,6 +1091,23 @@
           const targetKind = dropped?.getAttribute('data-kind');
           const targetNodeId = dropped?.getAttribute('data-node-id');
           const targetPort = Number(dropped?.getAttribute('data-port') || 0);
+          const rewireWire = gesture.rewireWireId
+            ? this.graph.wires.find(wire => wire.id === gesture.rewireWireId)
+            : null;
+          if (rewireWire && targetKind === 'input') {
+            this.rewireConnection(rewireWire.id, rewireWire.from, targetNodeId, targetPort);
+            return;
+          }
+          if (rewireWire && targetKind === 'output') {
+            this.rewireConnection(rewireWire.id, targetNodeId, rewireWire.to, rewireWire.port);
+            return;
+          }
+          if (rewireWire) {
+            this.pendingFrom = null;
+            this.notice = '配線の付け替えをキャンセルしました。';
+            this.render();
+            return;
+          }
           if (gesture.kind === 'output' && targetKind === 'input') {
             this.pendingFrom = gesture.nodeId;
             this.finishConnection(targetNodeId, targetPort);
@@ -985,6 +1121,11 @@
           this.pendingFrom = gesture.kind === 'input' ? gesture.previousPendingFrom : null;
           this.notice = '接続できませんでした。入力端子と出力端子の間をドラッグしてください。';
           this.render();
+          return;
+        }
+        if (gesture.rewireWireId) {
+          this.pendingFrom = null;
+          this.selectWire(gesture.rewireWireId);
           return;
         }
         if (gesture.kind === 'output') {
@@ -1232,13 +1373,16 @@
         this.render();
       });
       const title = Renderer.svgElement('title', {}, '自由に編集できる論理回路');
-      const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力Fがあります。端子を順に選ぶか端子間をドラッグして接続します。配線は重なりを避け、同じ出力からは途中で分岐します。');
+      const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力Fがあります。端子を順に選ぶか端子間をドラッグして接続します。接続済み入力端子のドラッグで配線を付け替えられます。配線は重なりを避け、同じ出力からは途中で分岐します。');
       this.svg.replaceChildren(title, desc, background);
-      const routing = this.computeWireRouting();
+      const rewiringWireId = this.connectionDrag?.moved ? this.connectionDrag.rewireWireId : null;
+      const routing = this.computeWireRouting(rewiringWireId);
       this.currentWireRoutes = routing.routes;
       this.valueBadgePositions = [];
       routing.bundles.forEach(bundle => this.drawWireBundle(bundle, signals));
-      this.graph.wires.forEach(wire => this.drawWire(wire, signals, routing.routes.get(wire.id)));
+      this.graph.wires.forEach(wire => {
+        if (wire.id !== rewiringWireId) this.drawWire(wire, signals, routing.routes.get(wire.id));
+      });
       this.drawConnectionPreview();
       this.graph.nodes.forEach(node => this.drawNode(node, signals));
       this.drawDeleteControl();
@@ -1248,16 +1392,24 @@
         : `回路が完成していません：${analysis.errors[0] || 'ゲートを配置してFへ接続してください。'}`;
       this.status.classList.toggle('is-complete', analysis.valid);
       this.status.textContent = this.notice ? `${this.notice}　${completion}` : completion;
-      this.updateToolbar();
+      this.updateToolbar(analysis);
       if (options.notify !== false && typeof this.options.onChange === 'function') {
         this.options.onChange(this.getState());
       }
     }
 
-    updateToolbar() {
+    updateToolbar(analysis = this.getAnalysis()) {
       this.undoButton.disabled = this.historyIndex <= 0;
       this.redoButton.disabled = this.historyIndex >= this.history.length - 1;
       this.deleteButton.disabled = !this.selected;
+      if (this.saveButton) {
+        const filename = Core.createSvgFilename();
+        this.saveButton.disabled = !analysis.valid;
+        this.saveButton.title = analysis.valid
+          ? `${filename} として保存`
+          : `回路を完成すると ${filename} として保存できます`;
+        this.saveButton.setAttribute('aria-label', this.saveButton.title);
+      }
     }
 
     getAnalysis(inputNames) {
@@ -1340,6 +1492,16 @@
       this.notice = '回路例をAND・OR・NOTで読み込みました。';
       if (options.resetHistory !== false) this.resetHistory();
       this.render();
+    }
+
+    saveSvg() {
+      try {
+        this.exportSvg();
+        this.notice = '回路図をSVGとして保存しました。';
+      } catch (error) {
+        this.notice = `SVGを保存できません：${error.message}`;
+      }
+      this.render({ notify: false });
     }
 
     exportSvg() {

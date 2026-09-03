@@ -5,23 +5,16 @@
     const host = document.getElementById('logic-editor');
     if (!host || !window.LogicEditor) return;
 
-    const filenameOutput = document.getElementById('logic-svg-filename');
     const tableTarget = document.getElementById('logic-workbench-table');
-    const saveButton = document.getElementById('logic-save-svg');
-    const saveStatus = document.getElementById('logic-save-status');
     let editor;
 
     function update(state) {
       const { analysis, inputValues } = state;
       if (!analysis.valid) {
-        filenameOutput.textContent = '回路完成後に決まります';
-        saveButton.disabled = true;
         window.LogicRenderer.renderMessage(tableTarget, '回路が完成すると真理値表を表示します。');
         return;
       }
 
-      filenameOutput.textContent = window.LogicCore.createSvgFilename();
-      saveButton.disabled = false;
       window.LogicWidgets.renderTruthTable(tableTarget, {
         inputNames: analysis.inputs,
         rows: analysis.truthTable,
@@ -34,28 +27,15 @@
     editor = new window.LogicEditor(host, {
       inputNames: ['A', 'B', 'C', 'D'],
       initialExpression: 'A-B',
+      enableSvgSave: true,
       onChange: update
     });
     update(editor.getState());
 
     document.querySelectorAll('[data-load-logic-example]').forEach(button => {
       button.addEventListener('click', () => {
-        try {
-          editor.loadExpression(button.dataset.loadLogicExample);
-          saveStatus.textContent = `「${button.textContent.trim()}」を読み込みました。`;
-        } catch (error) {
-          saveStatus.textContent = error.message;
-        }
+        editor.loadExpression(button.dataset.loadLogicExample);
       });
-    });
-
-    saveButton.addEventListener('click', () => {
-      try {
-        const filename = editor.exportSvg();
-        saveStatus.textContent = `${filename} を保存しました。`;
-      } catch (error) {
-        saveStatus.textContent = `保存できません：${error.message}`;
-      }
     });
 
     window.logicWorkbenchEditor = editor;

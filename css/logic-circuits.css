@@ -656,6 +656,32 @@ section article .logic-truth-table th {
   stroke-linejoin: round;
 }
 
+.logic-editor__save-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.logic-editor__save-icon {
+  display: block;
+  width: 20px;
+  height: 20px;
+  pointer-events: none;
+}
+
+.logic-editor__save-icon-path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.logic-editor__save-button-label {
+  font-weight: 750;
+}
+
 .logic-editor__action-button--danger {
   color: var(--logic-error) !important;
 }
@@ -865,6 +891,14 @@ section article .logic-editor__scroll-hint {
 .logic-editor-port {
   cursor: crosshair;
   touch-action: none;
+}
+
+.logic-editor-port.is-connected {
+  cursor: grab;
+}
+
+.logic-editor-port.is-connected:active {
+  cursor: grabbing;
 }
 
 .logic-editor-port__hit {
@@ -1235,6 +1269,22 @@ section article .logic-editor__scroll-hint {
 
   .logic-editor__actions {
     grid-template-columns: 44px 44px repeat(2, minmax(0, 1fr));
+  }
+
+  .logic-editor__actions--with-save {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+
+  .logic-editor__actions--with-save .logic-editor__save-button {
+    grid-column: 3 / 7;
+  }
+
+  .logic-editor__actions--with-save .logic-editor__delete-button {
+    grid-column: 1 / 4;
+  }
+
+  .logic-editor__actions--with-save .logic-editor__action-button--danger {
+    grid-column: 4 / 7;
   }
 
   .logic-editor .logic-editor__gate-button,

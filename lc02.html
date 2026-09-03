@@ -29,8 +29,10 @@
         <ol>
           <li>上部の「AND」「OR」「NOT」からゲートを追加します。</li>
           <li><strong>出力端子（●）</strong>から<strong>入力端子（●）</strong>までドラッグします。端子を順番に選ぶ方法でも接続できます。</li>
+          <li>接続済みの入力端子を別の入力端子へドラッグすると接続先を、別の出力端子へドラッグすると接続元を付け替えられます。</li>
           <li>入力A〜Dの箱をクリックすると0/1が切り替わります。部品はドラッグして移動できます。</li>
           <li>ゲートまたは配線を選び、近くに出る「×」、「選択を削除」、またはDeleteキーで削除します。</li>
+          <li>完成した回路は、ツールバーの「SVG保存」から保存できます。ファイル名はボタンにマウスを重ねると確認できます。</li>
         </ol>
       </div>
       <p class="logic-note">同じ入力端子への重複接続、逆向き接続、循環する接続は自動的に防止されます。配線は水平・垂直に引かれ、重なりを避けて自動調整されます。同じ出力を複数箇所へつなぐと、途中で分岐します。</p>
@@ -54,22 +56,7 @@
 
   <section>
     <article>
-      <h2 id="headline_3">(3) 回路図をSVGとして保存</h2>
-      <div>
-        <p>完成した回路図はSVG形式で保存できます。</p>
-        <div class="logic-save-row">
-          <button type="button" class="logic-primary-button" id="logic-save-svg" disabled>SVGとして保存</button>
-          <span class="logic-inline-status" id="logic-save-status" role="status" aria-live="polite"></span>
-        </div>
-        <p>保存ファイル名：<code id="logic-svg-filename">回路完成後に決まります</code></p>
-        <p class="logic-note">保存するSVGには回路図・入力値・中間値・出力値が含まれます。拡大しても線や文字がぼやけません。</p>
-      </div>
-    </article>
-  </section>
-
-  <section>
-    <article>
-      <h2 id="headline_4">(4) 回路を読み取るポイント</h2>
+      <h2 id="headline_3">(3) 回路を読み取るポイント</h2>
       <p>左側の入力から配線をたどり、ゲートごとの結果を順番に求めると、右端の出力Fへ到達できます。途中で配線が分岐しているときは、同じ入力値がそれぞれの接続先へ届きます。</p>
       <p>回路の形やゲートの並べ方が異なっていても、すべての入力の組み合わせに対する出力Fが同じなら、論理的には同じ働きです。</p>
       <p><a href="./lc03.html">問題モードへ進み、回路の読み取りと組み立てに挑戦する</a></p>
