@@ -479,6 +479,7 @@ section article table.logic-truth-table {
   margin: 0;
   border: 0;
   border-collapse: collapse;
+  overflow: visible;
   table-layout: fixed;
   background: var(--logic-panel-strong);
   color: var(--logic-text);
@@ -537,6 +538,146 @@ section article .logic-truth-table th {
   background: var(--logic-zero-soft);
   color: var(--logic-text);
   font-family: inherit;
+}
+
+section article .logic-truth-table td.logic-answer-cell {
+  position: relative;
+  min-width: 128px;
+  overflow: visible;
+}
+
+.logic-answer-control {
+  position: relative;
+  z-index: 1;
+  display: inline-grid;
+  place-items: center;
+  isolation: isolate;
+}
+
+.logic-answer-control:hover,
+.logic-answer-control:focus-within,
+.logic-answer-control.is-quick-open,
+.logic-answer-control.is-menu-open {
+  z-index: 9;
+}
+
+.logic-answer-control .logic-table-answer {
+  touch-action: manipulation;
+}
+
+.logic-answer-control.is-readonly .logic-table-answer {
+  cursor: default;
+}
+
+.logic-answer-control__quick,
+.logic-answer-control__menu {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 50%;
+  display: grid;
+  grid-template-columns: repeat(3, 36px);
+  gap: 4px;
+  width: max-content;
+  padding: 5px;
+  border: 1px solid color-mix(in oklab, var(--logic-focus) 52%, var(--logic-border));
+  border-radius: 10px;
+  background: var(--logic-panel-strong);
+  box-shadow: 0 8px 20px rgba(20, 43, 63, .22);
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, -50%) scale(.96);
+  transform-origin: center;
+  visibility: hidden;
+  transition: opacity .12s ease, transform .12s ease, visibility .12s ease;
+}
+
+.logic-answer-control__menu[hidden] {
+  display: none;
+}
+
+.logic-answer-control__choice,
+.logic-answer-control__current {
+  display: inline-grid;
+  box-sizing: border-box;
+  width: 36px;
+  min-width: 36px;
+  height: 36px;
+  min-height: 36px;
+  padding: 0;
+  place-items: center;
+  border: 1px solid var(--logic-border);
+  border-radius: 8px;
+  background: var(--logic-zero-soft);
+  color: var(--logic-text);
+  font: inherit;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.logic-answer-control__choice {
+  cursor: pointer;
+  pointer-events: auto;
+}
+
+.logic-answer-control__choice:hover {
+  border-color: var(--logic-focus);
+  background: color-mix(in oklab, var(--logic-focus) 12%, var(--logic-panel-strong));
+}
+
+.logic-answer-control__choice:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--logic-focus) 64%, transparent);
+  outline-offset: 1px;
+}
+
+.logic-answer-control__current {
+  color: var(--logic-muted);
+  pointer-events: none;
+}
+
+.logic-answer-control.is-quick-open .logic-answer-control__quick,
+.logic-answer-control.is-menu-open .logic-answer-control__menu {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+  visibility: visible;
+}
+
+.logic-answer-control.is-menu-open .logic-answer-control__quick {
+  opacity: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .logic-answer-control.is-empty:not(.is-readonly):not(.is-menu-open):hover .logic-answer-control__quick,
+  .logic-answer-control.is-empty:not(.is-readonly):not(.is-menu-open):focus-within .logic-answer-control__quick {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+    visibility: visible;
+  }
+
+  .logic-answer-control.is-empty:not(.is-readonly):not(.is-menu-open):hover .logic-table-answer,
+  .logic-answer-control.is-empty:not(.is-readonly):not(.is-menu-open):focus-within .logic-table-answer {
+    box-shadow: none;
+    transform: none;
+  }
+}
+
+@media (max-width: 720px) {
+  .logic-answer-cell:last-child .logic-answer-control__quick,
+  .logic-answer-cell:last-child .logic-answer-control__menu {
+    right: 0;
+    left: auto;
+    transform: translateY(-50%) scale(.96);
+    transform-origin: right center;
+  }
+
+  .logic-answer-cell:last-child .logic-answer-control.is-quick-open .logic-answer-control__quick,
+  .logic-answer-cell:last-child .logic-answer-control.is-menu-open .logic-answer-control__menu,
+  .logic-answer-cell:last-child .logic-answer-control.is-empty:not(.is-readonly):not(.is-menu-open):hover .logic-answer-control__quick,
+  .logic-answer-cell:last-child .logic-answer-control.is-empty:not(.is-readonly):not(.is-menu-open):focus-within .logic-answer-control__quick {
+    transform: translateY(-50%) scale(1);
+  }
 }
 
 .logic-truth-table td.is-correct {
@@ -1780,12 +1921,29 @@ section article .logic-extension-card h3 {
 }
 
 @media (pointer: coarse) {
+  section article .logic-truth-table td.logic-answer-cell {
+    min-width: 144px;
+  }
+
   .logic-bit-button,
   .logic-table-answer,
   .logic-primary-button,
   .logic-secondary-button,
   .logic-tabs__tab {
     min-height: 44px;
+  }
+
+  .logic-answer-control__quick,
+  .logic-answer-control__menu {
+    grid-template-columns: repeat(3, 40px);
+  }
+
+  .logic-answer-control__choice,
+  .logic-answer-control__current {
+    width: 40px;
+    min-width: 40px;
+    height: 40px;
+    min-height: 40px;
   }
 
   .logic-editor-wire-hit {

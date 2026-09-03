@@ -2,6 +2,8 @@
 (function (root) {
   'use strict';
 
+  const Widgets = root.LogicWidgets;
+
   const SVG_STYLE = `
     .logic-svg { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; }
     .logic-svg__background { fill: var(--logic-svg-bg, #ffffff); }
@@ -482,29 +484,22 @@
         circuit.inputs.forEach(name => tr.appendChild(createElement('td', { text: row.inputs[name] })));
         circuit.outputs.forEach((output, outputIndex) => {
           const cell = createElement('td', {
-            className: `${outputIndex === 0 ? 'logic-truth-table__divider ' : ''}${state.truthSolved ? 'is-correct' : ''}`.trim()
+            className: `${outputIndex === 0 ? 'logic-truth-table__divider ' : ''}logic-answer-cell ${state.truthSolved ? 'is-correct' : ''}`.trim()
           });
-          const button = createElement('button', {
-            className: 'logic-table-answer logic-application-table__answer',
-            text: state.answers[rowIndex][output] == null ? '？' : state.answers[rowIndex][output],
-            attributes: {
-              type: 'button',
-              disabled: state.truthSolved ? '' : null,
-              'data-row': rowIndex,
-              'data-output': output,
-              'aria-label': `${circuit.inputs.map(name => `${name}=${row.inputs[name]}`).join('、')}のとき、${output}は${state.answers[rowIndex][output] == null ? '未入力' : state.answers[rowIndex][output]}`
+          const control = Widgets.createTruthAnswerControl({
+            value: state.answers[rowIndex][output],
+            readOnly: state.truthSolved,
+            disabled: state.truthSolved,
+            className: 'logic-application-table__answer',
+            attributes: { 'data-row': rowIndex, 'data-output': output },
+            ariaLabel: current => `${circuit.inputs.map(name => `${name}=${row.inputs[name]}`).join('、')}のとき、${output}は${current == null ? '未入力' : current}`,
+            onChange: next => {
+              state.answers[rowIndex][output] = next;
+              cell.classList.remove('is-correct', 'is-wrong', 'is-unanswered');
+              setFeedback(feedback, 'すべての出力欄を埋めたら、「真理値表を判定」を選びます。');
             }
           });
-          button.addEventListener('click', () => {
-            if (state.truthSolved) return;
-            const current = state.answers[rowIndex][output];
-            state.answers[rowIndex][output] = current == null ? 0 : current === 0 ? 1 : null;
-            button.textContent = state.answers[rowIndex][output] == null ? '？' : state.answers[rowIndex][output];
-            button.setAttribute('aria-label', `${circuit.inputs.map(name => `${name}=${row.inputs[name]}`).join('、')}のとき、${output}は${state.answers[rowIndex][output] == null ? '未入力' : state.answers[rowIndex][output]}`);
-            cell.classList.remove('is-correct', 'is-wrong', 'is-unanswered');
-            setFeedback(feedback, 'すべての出力欄を埋めたら、「真理値表を判定」を選びます。');
-          });
-          cell.appendChild(button);
+          cell.appendChild(control.element);
           tr.appendChild(cell);
         });
         tbody.appendChild(tr);
@@ -644,7 +639,7 @@
       truthStep.appendChild(createElement('p', { className: 'logic-application-step__prompt', text: '入力の組み合わせごとに、回路を通ったあとの出力を求めます。' }));
       const truthFeedback = createElement('div', {
         className: `logic-feedback${state.truthSolved ? ' is-correct' : ''}`,
-        text: state.truthSolved ? '全セル正解です。' : '出力欄の「？」を選んで、0または1に変えてください。',
+        text: state.truthSolved ? '全セル正解です。' : '未入力の−に触れて0か1を選びます。入力後はクリックで切り替え、長押しで未入力にも戻せます。',
         attributes: { role: 'status', 'aria-live': 'polite' }
       });
 

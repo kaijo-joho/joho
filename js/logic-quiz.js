@@ -170,10 +170,9 @@
           : '真理値表を完成させてください',
         hoverHint: result.judged
           ? ''
-          : 'F欄を選ぶと「空欄 → 0 → 1」の順に変わります',
+          : '未入力の−に触れると0と1を選べます。入力後はクリックで切り替え、長押しで未入力にも戻せます',
         onAnswerChange: (index, value) => {
           result.answers[index] = value;
-          renderTableAnswers();
         },
         onRowSelect: inputs => {
           result.activeInputs = inputs;
@@ -198,7 +197,7 @@
       byId('table-question-text').textContent =
         `回路を読み取り、F列をすべて完成させてください。（Level ${problem.level}）`;
       byId('table-judge').disabled = false;
-      setFeedback(byId('table-feedback'), 'F欄をクリックして、すべての行に0または1を入力します。', '');
+      setFeedback(byId('table-feedback'), 'F欄をすべて0または1で埋めます。操作方法はF列のⓘに触れると確認できます。', '');
       renderTableCircuit();
       renderTableAnswers();
     }
