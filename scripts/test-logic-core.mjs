@@ -16,9 +16,22 @@ const cases = [
   ['(A-B)_C', '01010111']
 ];
 
+const displayCases = [
+  ['A-B', 'A ∧ B'],
+  ['A_B', 'A ∨ B'],
+  ['A^B', 'A ⊕ B'],
+  ['nA', '¬A'],
+  ['n(A-B)', '¬(A ∧ B)'],
+  ['(A-B)_C', '(A ∧ B) ∨ C']
+];
+
 for (const [expression, expected] of cases) {
   const ast = LogicCore.parse(expression);
   assert.equal(LogicCore.truthCode(ast), expected, `${expression}のtruthCode`);
+}
+
+for (const [expression, expected] of displayCases) {
+  assert.equal(LogicCore.toDisplayExpr(LogicCore.parse(expression)), expected, `${expression}の表示用論理式`);
 }
 
 const ab = LogicCore.parseAndAnalyze('A-B');
@@ -36,8 +49,8 @@ const equivalentB = LogicCore.parseAndAnalyze('n(nA-nB)');
 assert.equal(equivalentA.truthCode, equivalentB.truthCode, '異なる構造の論理的同値をtruthCodeで判定する');
 
 assert.equal(LogicCore.parseAndAnalyze('A-B^C_D').structureExpr, '((A-B)^C)_D', '優先順位 NOT > AND > XOR > OR');
-assert.equal(LogicCore.createSvgFilename('(A-B)_C'), 'lc__~28A-B~29_C.svg');
-assert.notEqual(LogicCore.createSvgFilename('(A-B)-C'), LogicCore.createSvgFilename('A-(B-C)'));
+assert.equal(LogicCore.createSvgFilename('(A-B)_C'), 'logic-circuit.svg');
+assert.equal(LogicCore.createSvgFilename('A-(B-C)'), 'logic-circuit.svg');
 
 assert.throws(() => LogicCore.parse('A+ B'), LogicCore.LogicSyntaxError);
 assert.throws(() => LogicCore.parse('A-'), LogicCore.LogicSyntaxError);
@@ -126,4 +139,4 @@ const cyclic = {
 assert.equal(LogicCore.graphAnalysis(cyclic).valid, false);
 assert.match(LogicCore.graphAnalysis(cyclic).errors.join(' '), /循環/);
 
-console.log(`logic-core: ${cases.length + 20}件の検証に合格`);
+console.log(`logic-core: ${cases.length + displayCases.length + 20}件の検証に合格`);

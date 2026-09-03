@@ -72,6 +72,8 @@
     .logic-gate__detail { fill: none; stroke: var(--logic-gate-stroke, #23384d); stroke-width: 2.6; }
     .logic-terminal { fill: var(--logic-gate-stroke, #23384d); }
     .logic-terminal.is-one { fill: var(--logic-one, #d9483b); }
+    .logic-junction { fill: var(--logic-gate-stroke, #23384d); }
+    .logic-junction.is-one { fill: var(--logic-one, #d9483b); }
     .logic-node-label { fill: var(--logic-text, #17212b); font-size: 18px; font-weight: 700; }
     .logic-node-sub { fill: var(--logic-muted, #536577); font-size: 12px; }
     .logic-value-badge { fill: var(--logic-value-bg, #ffffff); stroke: var(--logic-wire, #64748b); stroke-width: 1.5; }
@@ -106,6 +108,7 @@
   function computeLayout(ast) {
     let leafCursor = 0;
     const positions = new Map();
+    const inputOccurrences = new Map();
 
     function depth(node) {
       if (node.type === 'input') return 0;
@@ -117,6 +120,8 @@
         const position = { x: 66, y: 66 + leafCursor * 78, depth: 0 };
         leafCursor += 1;
         positions.set(node.id, position);
+        if (!inputOccurrences.has(node.name)) inputOccurrences.set(node.name, []);
+        inputOccurrences.get(node.name).push({ node, position });
         return position;
       }
       const childPositions = node.inputs.map(place);
@@ -135,7 +140,17 @@
     const height = Math.max(210, 132 + Math.max(1, leafCursor - 1) * 78);
     const outputX = Math.max(430, rootPosition.x + 118);
     const width = outputX + 82;
-    return { positions, width, height, outputX, maxDepth };
+    const inputGroups = new Map();
+    const maxBranchX = 104 + Math.max(0, inputOccurrences.size - 1) * 14;
+    Array.from(inputOccurrences.entries()).forEach(([name, occurrences], index) => {
+      inputGroups.set(name, {
+        name,
+        occurrences,
+        origin: { x: 66, y: occurrences[0].position.y },
+        branchX: maxBranchX - index * 14
+      });
+    });
+    return { positions, inputGroups, width, height, outputX, maxDepth };
   }
 
   function orthogonalWirePath(from, to) {
@@ -154,7 +169,7 @@
     if (!(target instanceof Element)) throw new TypeError('SVGの表示先要素を指定してください。');
     const inputValues = options.inputs || {};
     const showSignals = options.showSignals !== false;
-    const titleText = options.title || `論理回路 ${Core.toStructureExpr(ast)}`;
+    const titleText = options.title || `論理回路：${Core.toDisplayExpr(ast)}`;
     const descriptionText = options.description || 'AND・OR・NOTの基本ゲートを通り、右端の出力Fへ信号が流れる論理回路図です。';
     const diagramAst = Core.toBasicGateAst(ast);
     const detailed = showSignals ? Core.evaluateDetailed(diagramAst, inputValues) : { value: null, values: {} };
@@ -184,6 +199,25 @@
       })
     );
 
+    layout.inputGroups.forEach(group => {
+      const ys = group.occurrences.map(({ position }) => position.y);
+      const minY = Math.min(group.origin.y, ...ys);
+      const maxY = Math.max(group.origin.y, ...ys);
+      const value = showSignals ? detailed.values[group.occurrences[0].node.id] : null;
+      const trunkPath = minY === maxY
+        ? `M ${group.origin.x} ${group.origin.y} H ${group.branchX}`
+        : `M ${group.origin.x} ${group.origin.y} H ${group.branchX} M ${group.branchX} ${minY} V ${maxY}`;
+      svg.appendChild(svgElement('path', {
+        class: `logic-wire logic-input-trunk${value === 1 ? ' is-one' : ''}`,
+        d: trunkPath,
+        'data-input-trunk': group.name,
+        'data-value': showSignals ? value : '',
+        'aria-label': showSignals
+          ? `入力${group.name}から分岐する配線、信号${value}`
+          : `入力${group.name}から分岐する配線`
+      }));
+    });
+
     const edges = [];
     (function collectEdges(node) {
       if (node.type !== 'gate') return;
@@ -198,10 +232,9 @@
       const parentPosition = layout.positions.get(parent.id);
       const childGeometry = child.type === 'gate' ? gateGeometry(child.gate) : null;
       const parentGeometry = gateGeometry(parent.gate);
-      const from = {
-        x: child.type === 'gate' ? childPosition.x + childGeometry.outputX : childPosition.x + 26,
-        y: childPosition.y
-      };
+      const from = child.type === 'gate'
+        ? { x: childPosition.x + childGeometry.outputX, y: childPosition.y }
+        : { x: layout.inputGroups.get(child.name).branchX, y: childPosition.y };
       const to = {
         x: parentPosition.x + parentGeometry.inputX,
         y: parentPosition.y + parentGeometry.inputYs[port]
@@ -228,10 +261,9 @@
 
     const rootPosition = layout.positions.get(diagramAst.id);
     const rootGeometry = diagramAst.type === 'gate' ? gateGeometry(diagramAst.gate) : null;
-    const rootOut = {
-      x: diagramAst.type === 'gate' ? rootPosition.x + rootGeometry.outputX : rootPosition.x + 26,
-      y: rootPosition.y
-    };
+    const rootOut = diagramAst.type === 'gate'
+      ? { x: rootPosition.x + rootGeometry.outputX, y: rootPosition.y }
+      : { x: layout.inputGroups.get(diagramAst.name).branchX, y: rootPosition.y };
     const fIn = { x: layout.outputX - 30, y: rootPosition.y };
     const rootValue = showSignals ? detailed.value : null;
     svg.appendChild(svgElement('path', {
@@ -244,30 +276,7 @@
 
     function drawNode(node) {
       const position = layout.positions.get(node.id);
-      if (node.type === 'input') {
-        const value = showSignals ? detailed.values[node.id] : null;
-        svg.appendChild(svgElement('line', {
-          class: `logic-wire${value === 1 ? ' is-one' : ''}`,
-          x1: position.x,
-          y1: position.y,
-          x2: position.x + 26,
-          y2: position.y
-        }));
-        svg.appendChild(svgElement('circle', {
-          class: `logic-terminal${value === 1 ? ' is-one' : ''}`,
-          cx: position.x,
-          cy: position.y,
-          r: 5
-        }));
-        svg.appendChild(svgElement('text', {
-          class: 'logic-node-label',
-          x: position.x - 16,
-          y: position.y + 6,
-          'text-anchor': 'end'
-        }, node.name));
-        if (showSignals) appendValueBadge(svg, position.x + 13, position.y - 17, value, `入力${node.name}`);
-        return;
-      }
+      if (node.type === 'input') return;
       node.inputs.forEach(drawNode);
       svg.appendChild(createGateSymbol(node.gate, position.x, position.y));
       if (showSignals) {
@@ -280,6 +289,35 @@
         );
       }
     }
+
+    layout.inputGroups.forEach(group => {
+      const value = showSignals ? detailed.values[group.occurrences[0].node.id] : null;
+      svg.appendChild(svgElement('circle', {
+        class: `logic-terminal${value === 1 ? ' is-one' : ''}`,
+        cx: group.origin.x,
+        cy: group.origin.y,
+        r: 5
+      }));
+      svg.appendChild(svgElement('text', {
+        class: 'logic-node-label',
+        x: group.origin.x - 16,
+        y: group.origin.y + 6,
+        'text-anchor': 'end'
+      }, group.name));
+      if (group.occurrences.length > 1) {
+        group.occurrences.forEach(({ position }) => {
+          svg.appendChild(svgElement('circle', {
+            class: `logic-junction${value === 1 ? ' is-one' : ''}`,
+            cx: group.branchX,
+            cy: position.y,
+            r: 4,
+            'data-input-branch': group.name,
+            'aria-hidden': 'true'
+          }));
+        });
+      }
+      if (showSignals) appendValueBadge(svg, group.origin.x + 13, group.origin.y - 17, value, `入力${group.name}`);
+    });
     drawNode(diagramAst);
 
     svg.appendChild(svgElement('rect', {
@@ -332,13 +370,13 @@
     return `<?xml version=\"1.0\" encoding=\"UTF-8\"?>\\n${new XMLSerializer().serializeToString(clone)}`;
   }
 
-  function downloadSvg(svg, structureExpr) {
-    const source = serializeSvg(svg, `論理回路 ${structureExpr}`);
+  function downloadSvg(svg, title = '論理回路') {
+    const source = serializeSvg(svg, title);
     const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = Core.createSvgFilename(structureExpr);
+    anchor.download = Core.createSvgFilename();
     document.body.appendChild(anchor);
     anchor.click();
     anchor.remove();

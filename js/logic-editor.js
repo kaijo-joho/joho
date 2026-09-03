@@ -28,6 +28,40 @@
     return button;
   }
 
+  function createGateButtonIcon(type) {
+    const gate = String(type).toUpperCase();
+    const geometry = Renderer.gateGeometry(gate);
+    const center = { x: 55, y: 32 };
+    const svg = Renderer.svgElement('svg', {
+      class: 'logic-editor__gate-icon',
+      viewBox: '0 0 110 64',
+      'aria-hidden': 'true',
+      focusable: 'false',
+      preserveAspectRatio: 'xMidYMid meet'
+    });
+    geometry.inputYs.forEach(offsetY => {
+      svg.appendChild(Renderer.svgElement('line', {
+        class: 'logic-editor__gate-icon-wire',
+        x1: 5,
+        y1: center.y + offsetY,
+        x2: center.x + geometry.inputX,
+        y2: center.y + offsetY
+      }));
+    });
+    svg.appendChild(Renderer.svgElement('line', {
+      class: 'logic-editor__gate-icon-wire',
+      x1: center.x + geometry.outputX,
+      y1: center.y,
+      x2: 105,
+      y2: center.y
+    }));
+    const symbol = Renderer.createGateSymbol(gate, center.x, center.y);
+    symbol.querySelector('title')?.remove();
+    symbol.setAttribute('aria-hidden', 'true');
+    svg.appendChild(symbol);
+    return svg;
+  }
+
   class LogicEditor {
     constructor(container, options = {}) {
       if (!(container instanceof Element)) throw new TypeError('回路エディタの表示先が必要です。');
@@ -67,8 +101,13 @@
       palette.setAttribute('aria-label', '追加するゲート');
       palette.appendChild(htmlElement('span', 'logic-editor__toolbar-label', 'ゲートを追加'));
       GATES.forEach(gate => {
-        const button = makeButton(gate, 'logic-editor__gate-button', () => this.addGate(gate));
+        const button = makeButton('', 'logic-editor__gate-button', () => this.addGate(gate));
         button.dataset.gate = gate;
+        button.setAttribute('aria-label', `${gate}ゲートを追加`);
+        button.append(
+          createGateButtonIcon(gate),
+          htmlElement('span', 'logic-editor__gate-button-label', gate)
+        );
         palette.appendChild(button);
       });
 
@@ -85,7 +124,7 @@
       const guide = htmlElement(
         'p',
         'logic-editor__guide',
-        '① ゲートを追加　② 出力端子（○）を選ぶ　③ 接続先の入力端子（○）を選ぶ。部品はドラッグで移動できます。'
+        '① ゲートを追加　② 出力端子（□）を選ぶ　③ 接続先の入力端子（□）を選ぶ。部品はドラッグで移動できます。'
       );
       const scrollHint = htmlElement(
         'p',
@@ -102,7 +141,7 @@
         class: 'logic-editor__canvas',
         viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
         role: 'application',
-        'aria-label': '論理回路編集キャンバス。ゲートを移動し、丸い端子を順番に選んで接続します。',
+        'aria-label': '論理回路編集キャンバス。ゲートを移動し、四角い端子を順番に選んで接続します。',
         preserveAspectRatio: 'xMidYMid meet'
       });
       this.canvasWrap.appendChild(this.svg);
@@ -231,7 +270,7 @@
       } else {
         this.pendingFrom = nodeId;
         this.selected = { kind: 'node', id: nodeId };
-        this.notice = '接続先の白い入力端子を選んでください。Escでキャンセルできます。';
+        this.notice = '接続先の四角い入力端子を選んでください。Escでキャンセルできます。';
       }
       this.render();
     }
@@ -353,11 +392,14 @@
     makePort(node, kind, port) {
       const point = kind === 'output' ? this.outputPoint(node) : this.inputPoint(node, port);
       const selected = kind === 'output' && this.pendingFrom === node.id;
-      const circle = Renderer.svgElement('circle', {
+      const size = selected ? 22 : 18;
+      const marker = Renderer.svgElement('rect', {
         class: `logic-editor-port logic-editor-port--${kind}${selected ? ' is-pending' : ''}`,
-        cx: point.x,
-        cy: point.y,
-        r: selected ? 12 : 10,
+        x: point.x - size / 2,
+        y: point.y - size / 2,
+        width: size,
+        height: size,
+        rx: 2,
         tabindex: 0,
         role: 'button',
         'aria-label': kind === 'output'
@@ -370,11 +412,11 @@
         if (kind === 'output') this.startConnection(node.id);
         else this.finishConnection(node.id, Number(port));
       };
-      circle.addEventListener('pointerdown', activate);
-      circle.addEventListener('keydown', event => {
+      marker.addEventListener('pointerdown', activate);
+      marker.addEventListener('keydown', event => {
         if (event.key === 'Enter' || event.key === ' ') activate(event);
       });
-      return circle;
+      return marker;
     }
 
     startDrag(event, node) {
@@ -584,20 +626,20 @@
         height: HEIGHT,
         rx: 12
       });
-      background.addEventListener('click', () => {
+      background.addEventListener('pointerdown', () => {
         this.pendingFrom = null;
         this.selected = null;
         this.notice = '選択を解除しました。';
         this.render();
       });
       const title = Renderer.svgElement('title', {}, '自由に編集できる論理回路');
-      const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力Fがあります。ゲートを追加し、丸い端子を順に選択して配線します。');
+      const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力Fがあります。ゲートを追加し、四角い端子を順に選択して配線します。');
       this.svg.replaceChildren(title, desc, background);
       this.graph.wires.forEach(wire => this.drawWire(wire, signals));
       this.graph.nodes.forEach(node => this.drawNode(node, signals));
 
       const completion = analysis.valid
-        ? `回路完成：${analysis.structureExpr} ／ truthCode ${analysis.truthCode}`
+        ? '回路が完成しました。入力を切り替えたり、真理値表を確認したりできます。'
         : `回路が完成していません：${analysis.errors[0] || 'ゲートを配置してFへ接続してください。'}`;
       this.status.classList.toggle('is-complete', analysis.valid);
       this.status.textContent = this.notice ? `${this.notice}　${completion}` : completion;
@@ -690,7 +732,7 @@
         to: output.id,
         port: 0
       });
-      this.notice = `例「${parsed.structureExpr}」をAND・OR・NOTで読み込みました。`;
+      this.notice = '回路例をAND・OR・NOTで読み込みました。';
       if (options.resetHistory !== false) this.resetHistory();
       this.render();
     }
@@ -699,11 +741,12 @@
       const analysis = this.getAnalysis();
       if (!analysis.valid) throw new Error(analysis.errors[0] || '回路が完成していません。');
       const temporary = document.createElement('div');
+      const displayExpression = Core.toDisplayExpr(analysis.ast);
       const rendered = Renderer.renderCircuit(temporary, analysis.ast, {
         inputs: this.inputValues,
-        title: `論理回路 ${analysis.structureExpr}`
+        title: `論理回路：${displayExpression}`
       });
-      return Renderer.downloadSvg(rendered.svg, analysis.structureExpr);
+      return Renderer.downloadSvg(rendered.svg, `論理回路：${displayExpression}`);
     }
 
     destroy() {

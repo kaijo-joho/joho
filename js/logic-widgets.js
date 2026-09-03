@@ -116,8 +116,8 @@
       if (!(container instanceof Element)) throw new TypeError('CircuitExplorerの表示先が必要です。');
       this.container = container;
       this.expression = options.expression || container.dataset.expression || '';
-      this.title = options.title || container.dataset.title || this.expression;
       this.analysis = Core.parseAndAnalyze(this.expression);
+      this.title = options.title || container.dataset.title || Core.toDisplayExpr(this.analysis.ast);
       this.inputs = Object.fromEntries(this.analysis.inputs.map(name => [name, 0]));
       this.build();
       this.render();

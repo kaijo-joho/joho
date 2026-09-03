@@ -5,8 +5,6 @@
     const host = document.getElementById('logic-editor');
     if (!host || !window.LogicEditor) return;
 
-    const structureOutput = document.getElementById('logic-structure-expr');
-    const truthOutput = document.getElementById('logic-truth-code');
     const currentOutput = document.getElementById('logic-current-output');
     const filenameOutput = document.getElementById('logic-svg-filename');
     const tableTarget = document.getElementById('logic-workbench-table');
@@ -17,8 +15,6 @@
     function update(state) {
       const { analysis, inputValues } = state;
       if (!analysis.valid) {
-        structureOutput.textContent = '未完成';
-        truthOutput.textContent = '未完成';
         currentOutput.textContent = 'F = －';
         filenameOutput.textContent = '回路完成後に決まります';
         saveButton.disabled = true;
@@ -27,10 +23,8 @@
       }
 
       const output = window.LogicCore.evaluate(analysis.ast, inputValues);
-      structureOutput.textContent = analysis.structureExpr;
-      truthOutput.textContent = analysis.truthCode;
       currentOutput.textContent = `F = ${output}`;
-      filenameOutput.textContent = window.LogicCore.createSvgFilename(analysis.structureExpr);
+      filenameOutput.textContent = window.LogicCore.createSvgFilename();
       saveButton.disabled = false;
       window.LogicWidgets.renderTruthTable(tableTarget, {
         inputNames: analysis.inputs,
@@ -52,7 +46,7 @@
       button.addEventListener('click', () => {
         try {
           editor.loadExpression(button.dataset.loadLogicExample);
-          saveStatus.textContent = `例「${button.dataset.loadLogicExample}」を読み込みました。`;
+          saveStatus.textContent = `「${button.textContent.trim()}」を読み込みました。`;
         } catch (error) {
           saveStatus.textContent = error.message;
         }

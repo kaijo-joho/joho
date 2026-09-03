@@ -558,8 +558,29 @@ section article .logic-truth-table th {
 }
 
 .logic-editor__gate-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding-block: 3px;
   border-color: color-mix(in oklab, var(--theme-color, #225386) 42%, transparent) !important;
   color: var(--theme-color, #225386) !important;
+}
+
+.logic-editor__gate-icon {
+  display: block;
+  width: 68px;
+  height: 40px;
+  pointer-events: none;
+}
+
+.logic-editor__gate-icon-wire {
+  stroke: var(--logic-gate-stroke);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.logic-editor__gate-button-label {
+  font-weight: 800;
 }
 
 .logic-editor__action-button--danger {
@@ -675,6 +696,12 @@ section article .logic-editor__scroll-hint {
   stroke-width: 2;
 }
 
+.logic-editor .logic-gate__body {
+  fill: var(--logic-gate-fill);
+  stroke: var(--logic-gate-stroke);
+  stroke-width: 2.6;
+}
+
 .logic-editor-node__box--output {
   fill: var(--logic-output-bg);
 }
@@ -722,6 +749,8 @@ section article .logic-editor__scroll-hint {
   stroke: var(--logic-gate-stroke);
   stroke-width: 2.5;
   cursor: crosshair;
+  transform-box: fill-box;
+  transform-origin: center;
   touch-action: none;
 }
 
@@ -758,7 +787,7 @@ section article .logic-editor__scroll-hint {
 }
 
 @keyframes logic-pulse {
-  to { r: 12px; }
+  to { transform: scale(1.16); }
 }
 
 .logic-live-details {
@@ -766,6 +795,11 @@ section article .logic-editor__scroll-hint {
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin: 14px 0;
+}
+
+.logic-live-details--single {
+  grid-template-columns: minmax(0, 1fr);
+  max-width: 320px;
 }
 
 .logic-live-details__item {
@@ -1084,6 +1118,17 @@ section article .logic-editor__scroll-hint {
   .logic-editor .logic-editor__action-button {
     width: 100%;
     min-height: 44px;
+  }
+
+  .logic-editor .logic-editor__gate-button {
+    flex-direction: column;
+    gap: 0;
+    min-height: 74px;
+  }
+
+  .logic-editor__gate-icon {
+    width: 72px;
+    height: 42px;
   }
 
   .logic-input-controls {

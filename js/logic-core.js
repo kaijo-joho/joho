@@ -7,6 +7,7 @@
   'use strict';
 
   const GATE_SYMBOLS = Object.freeze({ AND: '-', OR: '_', XOR: '^' });
+  const DISPLAY_GATE_SYMBOLS = Object.freeze({ AND: '∧', OR: '∨', XOR: '⊕' });
   const BINARY_BY_TOKEN = Object.freeze({ '-': 'AND', '_': 'OR', '^': 'XOR' });
   const REQUIRED_INPUTS = Object.freeze({ AND: 2, OR: 2, XOR: 2, NOT: 1 });
   const BASIC_GATES = Object.freeze(['AND', 'OR', 'NOT']);
@@ -21,7 +22,7 @@
   }
 
   function tokenize(source) {
-    if (typeof source !== 'string') throw new TypeError('structureExprは文字列で指定してください。');
+    if (typeof source !== 'string') throw new TypeError('論理式は文字列で指定してください。');
     const tokens = [];
     for (let index = 0; index < source.length; index += 1) {
       const value = source[index];
@@ -86,7 +87,7 @@
     const parseXor = () => parseBinary(parseAnd, '^');
     function parseOr() { return parseBinary(parseXor, '_'); }
 
-    if (current().type === 'EOF') throw new LogicSyntaxError('structureExprが空です', 0);
+    if (current().type === 'EOF') throw new LogicSyntaxError('論理式が空です', 0);
     const ast = parseOr();
     if (current().type !== 'EOF') {
       throw new LogicSyntaxError(`「${current().value}」の前に演算子が必要です`, current().position);
@@ -123,6 +124,26 @@
         ? `(${serialize(node.inputs[1])})`
         : serialize(node.inputs[1]);
       return `${left}${GATE_SYMBOLS[node.gate]}${right}`;
+    }
+    return serialize(ast);
+  }
+
+  // 学習者に見せるときは、内部の構文記号ではなく一般的な論理記号で表す。
+  function toDisplayExpr(ast) {
+    assertAstNode(ast);
+    function serialize(node) {
+      if (node.type === 'input') return node.name;
+      if (node.gate === 'NOT') {
+        const child = node.inputs[0];
+        return child.type === 'input' ? `¬${serialize(child)}` : `¬(${serialize(child)})`;
+      }
+      const left = node.inputs[0].type === 'gate'
+        ? `(${serialize(node.inputs[0])})`
+        : serialize(node.inputs[0]);
+      const right = node.inputs[1].type === 'gate'
+        ? `(${serialize(node.inputs[1])})`
+        : serialize(node.inputs[1]);
+      return `${left} ${DISPLAY_GATE_SYMBOLS[node.gate]} ${right}`;
     }
     return serialize(ast);
   }
@@ -392,13 +413,8 @@
     return false;
   }
 
-  function createSvgFilename(structureExpr) {
-    if (typeof structureExpr !== 'string' || !structureExpr) return 'lc__incomplete.svg';
-    const safe = Array.from(structureExpr).map(character => {
-      if (/[A-Za-z0-9_-]/.test(character)) return character;
-      return `~${character.codePointAt(0).toString(16).toUpperCase().padStart(2, '0')}`;
-    }).join('');
-    return `lc__${safe}.svg`;
+  function createSvgFilename() {
+    return 'logic-circuit.svg';
   }
 
   return Object.freeze({
@@ -408,6 +424,7 @@
     tokenize,
     parse,
     toStructureExpr,
+    toDisplayExpr,
     collectInputs,
     evaluate,
     evaluateDetailed,

@@ -31,7 +31,7 @@
     { type: 'buildCircuit', level: 2, structureExpr: 'n(A-B)', hint: 'ANDの結果を反転する回路です。' },
     { type: 'buildCircuit', level: 2, structureExpr: 'n(A_B)', hint: 'ORの結果を反転する回路です。' },
     { type: 'buildCircuit', level: 2, structureExpr: '(A-B)_C', hint: '3入力・2段の回路です。' },
-    { type: 'buildCircuit', level: 3, structureExpr: '(nA-B)_(A-nB)', hint: '同じtruthCodeを作れれば、回路の形は問いません。' }
+    { type: 'buildCircuit', level: 3, structureExpr: '(nA-B)_(A-nB)', hint: '同じ真理値表を作れれば、回路の形は問いません。' }
   ];
 
   function chooseProblem(pool, previousExpression) {
@@ -225,8 +225,6 @@
       const target = state.build;
       if (!target) return;
       const analysis = Core.graphAnalysis(editorState.graph, target.analysis.inputs);
-      byId('build-candidate-expression').textContent = analysis.valid ? analysis.structureExpr : '未完成';
-      byId('build-candidate-code').textContent = analysis.valid ? analysis.truthCode : '未完成';
       byId('build-judge').disabled = !analysis.valid;
     }
 
@@ -247,8 +245,6 @@
         inputNames: analysis.inputs,
         onChange: updateBuildCandidate
       });
-      byId('build-candidate-expression').textContent = '未完成';
-      byId('build-candidate-code').textContent = '未完成';
       byId('build-judge').disabled = true;
       setFeedback(
         byId('build-feedback'),
@@ -272,8 +268,8 @@
       setFeedback(
         byId('build-feedback'),
         correct
-          ? `正解です。作成した構造は「${candidate.structureExpr}」。目標とtruthCodeが一致しました。`
-          : `まだ一致しません。作成した回路は ${candidate.truthCode}、目標は ${result.analysis.truthCode} です。修正して再判定できます。`,
+          ? '正解です。作成した回路の真理値表が目標と一致しました。'
+          : 'まだ一致しません。入力の組み合わせごとの出力Fを見直し、回路を修正して再判定しましょう。',
         correct ? 'correct' : 'wrong'
       );
     });
