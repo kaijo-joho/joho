@@ -140,6 +140,33 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "lc01",
+    "next": [
+      {
+        "id": "lc04",
+        "title": "4. 有名な組合せ回路",
+        "text": "4. 有名な組合せ回路",
+        "release": true,
+        "url": "lc04.html",
+        "detail": "回路図と真理値表から、多数決・比較・半加算・全加算回路の働きと名前を考えます。"
+      }
+    ],
+    "show": true,
+    "backFile": "lc01.html"
+  },
+  "lc04": {
+    "id": "lc04",
+    "release": true,
+    "fileName": "lc04.html",
+    "mainTitle": "論理回路教材",
+    "category": "論理回路",
+    "title": "4. 有名な組合せ回路",
+    "detail": "回路図と真理値表から、多数決・比較・半加算・全加算回路の働きと名前を考えます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "lc01",
     "next": false,
     "show": true,
     "backFile": "lc01.html"

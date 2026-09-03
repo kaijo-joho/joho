@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme:light dark; background:transparent; }
+    @media (prefers-color-scheme:dark) { html { color:#e6e6e6; color-scheme:dark light; } }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme:dark) { body { background-color:#0b0b0b; } }
+  </style>
+  <title>海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/logic-circuits.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/logic-core.js"></script>
+  <script defer src="./js/logic-renderer.js"></script>
+  <script defer src="./js/logic-applications.js"></script>
+</head>
+<body>
+  <section>
+    <article>
+      <h2 id="headline_1">(1) 有名な組合せ回路を見つける</h2>
+      <p class="logic-lead">回路図と入出力の関係から、4つの有名な回路の正体を見破りましょう。回路図に使われているゲートは、AND・OR・NOTだけです。</p>
+      <div class="logic-learning-path" aria-label="各回路の学習手順">
+        <div class="logic-learning-path__step"><span>1</span><strong>回路図を読む</strong><small>信号の流れを追う</small></div>
+        <div class="logic-learning-path__step"><span>2</span><strong>表を埋める</strong><small>すべての出力を求める</small></div>
+        <div class="logic-learning-path__step"><span>3</span><strong>機能を考える</strong><small>何をしているか説明する</small></div>
+        <div class="logic-learning-path__step"><span>4</span><strong>名前を当てる</strong><small>回路の正体を選ぶ</small></div>
+      </div>
+      <p class="logic-note">各出力欄は、選ぶたびに「？ → 0 → 1」の順に変わります。半加算回路や全加算回路の候補には、出力が2つあります。</p>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <div class="logic-application-heading">
+        <h2 id="headline_2">(2) 回路の正体を見破る</h2>
+        <output class="logic-score" id="logic-application-progress" aria-live="polite">完成 0 / 4</output>
+      </div>
+      <div class="logic-circuit-selector" id="logic-circuit-selector" aria-label="調べる回路を選ぶ"></div>
+      <div id="logic-application-challenge"></div>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_3">(3) 発展：次に扱える組合せ回路</h2>
+      <p>循環する配線を持たず、同じように回路図と真理値表から考えられる回路には、次のようなものがあります。</p>
+      <div class="logic-extension-grid">
+        <section class="logic-extension-card">
+          <h3>パリティ生成・検査回路</h3>
+          <p>1の個数が偶数か奇数かを調べます。通信データの誤り検出につながる題材です。</p>
+          <span>おすすめ：3入力</span>
+        </section>
+        <section class="logic-extension-card">
+          <h3>セレクタ（マルチプレクサ）</h3>
+          <p>選択信号に応じて、複数の入力から1つを出力します。制御信号の役割を学べます。</p>
+          <span>おすすめ：2入力1選択</span>
+        </section>
+        <section class="logic-extension-card">
+          <h3>デコーダ</h3>
+          <p>2進数の入力に対応する出力だけを1にします。アドレス指定や7セグ表示へ発展できます。</p>
+          <span>おすすめ：2入力4出力</span>
+        </section>
+        <section class="logic-extension-card">
+          <h3>2ビット加算回路</h3>
+          <p>半加算回路と全加算回路をつないで、複数桁の2進数を加える考え方へ進みます。</p>
+          <span>おすすめ：桁上がりの追跡</span>
+        </section>
+      </div>
+    </article>
+  </section>
+
+  <section id="examples_and_questions"><!-- script_pages.js --></section>
+</body>
+</html>
