@@ -592,13 +592,6 @@ section article .logic-truth-table th {
   gap: 7px;
 }
 
-.logic-editor__toolbar-label {
-  margin-right: 3px;
-  color: var(--logic-muted);
-  font-size: .88em;
-  font-weight: 700;
-}
-
 .logic-editor__gate-button,
 .logic-editor__action-button {
   min-height: 36px;
@@ -611,7 +604,7 @@ section article .logic-truth-table th {
 .logic-editor__gate-button {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   padding-block: 3px;
   border-color: color-mix(in oklab, var(--theme-color, #225386) 42%, transparent) !important;
   color: var(--theme-color, #225386) !important;
@@ -619,8 +612,8 @@ section article .logic-truth-table th {
 
 .logic-editor__gate-icon {
   display: block;
-  width: 68px;
-  height: 40px;
+  width: 58px;
+  height: 36px;
   pointer-events: none;
 }
 
@@ -632,6 +625,35 @@ section article .logic-truth-table th {
 
 .logic-editor__gate-button-label {
   font-weight: 800;
+}
+
+.logic-editor__gate-plus {
+  color: var(--theme-color, #225386);
+  font-size: 1.15em;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.logic-editor__history-button {
+  width: 40px;
+  min-width: 40px;
+  padding: 7px;
+}
+
+.logic-editor__history-icon {
+  display: block;
+  width: 23px;
+  height: 23px;
+  margin: auto;
+  pointer-events: none;
+}
+
+.logic-editor__history-icon-path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .logic-editor__action-button--danger {
@@ -741,6 +763,34 @@ section article .logic-editor__scroll-hint {
   stroke-dasharray: 10 7;
 }
 
+.logic-editor-junction {
+  fill: var(--logic-wire);
+  stroke: var(--logic-canvas-bg);
+  stroke-width: 1.2;
+  pointer-events: none;
+}
+
+.logic-editor-junction.is-one {
+  fill: var(--logic-one);
+}
+
+.logic-editor-wire-preview {
+  fill: none;
+  stroke: var(--logic-focus);
+  stroke-width: 3.5;
+  stroke-linecap: round;
+  stroke-linejoin: miter;
+  stroke-dasharray: 9 7;
+  pointer-events: none;
+}
+
+.logic-editor-wire-preview__end {
+  fill: var(--logic-focus);
+  stroke: var(--logic-canvas-bg);
+  stroke-width: 2;
+  pointer-events: none;
+}
+
 .logic-editor-wire-hit {
   fill: none;
   stroke: transparent;
@@ -844,6 +894,13 @@ section article .logic-editor__scroll-hint {
   stroke: var(--logic-one-soft);
   stroke-width: 2.5;
   animation: logic-pulse 1s ease-in-out infinite alternate;
+}
+
+.logic-editor-port.is-dragging .logic-editor-port__dot {
+  fill: var(--logic-focus);
+  stroke: var(--logic-panel-strong);
+  stroke-width: 2.5;
+  transform: scale(1.25);
 }
 
 .logic-editor-delete-control {
@@ -1177,11 +1234,7 @@ section article .logic-editor__scroll-hint {
   }
 
   .logic-editor__actions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .logic-editor__toolbar-label {
-    grid-column: 1 / -1;
+    grid-template-columns: 44px 44px repeat(2, minmax(0, 1fr));
   }
 
   .logic-editor .logic-editor__gate-button,
@@ -1191,14 +1244,23 @@ section article .logic-editor__scroll-hint {
   }
 
   .logic-editor .logic-editor__gate-button {
-    flex-direction: column;
-    gap: 0;
-    min-height: 74px;
+    flex-direction: row;
+    gap: 2px;
+    min-height: 56px;
+    padding-inline: 4px;
   }
 
   .logic-editor__gate-icon {
-    width: 72px;
-    height: 42px;
+    width: 42px;
+    height: 34px;
+  }
+
+  .logic-editor__gate-plus {
+    font-size: .92em;
+  }
+
+  .logic-editor__gate-button-label {
+    font-size: .78em;
   }
 
   .logic-input-controls {

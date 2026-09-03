@@ -1,4 +1,4 @@
-// lc02/lc03で共有する、クリック接続式の組合せ回路エディタ。
+// lc02/lc03で共有する、クリック・ドラッグ接続式の組合せ回路エディタ。
 (function (root) {
   'use strict';
 
@@ -25,6 +25,30 @@
     const button = htmlElement('button', className, label);
     button.type = 'button';
     button.addEventListener('click', onClick);
+    return button;
+  }
+
+  function createHistoryIcon(direction) {
+    const svg = Renderer.svgElement('svg', {
+      class: 'logic-editor__history-icon',
+      viewBox: '0 0 24 24',
+      'aria-hidden': 'true',
+      focusable: 'false'
+    });
+    svg.appendChild(Renderer.svgElement('path', {
+      class: 'logic-editor__history-icon-path',
+      d: 'M 9 6.5 L 4.5 11 L 9 15.5 M 5 11 H 13 C 16.6 11 19 13.2 19 16.5 V 18',
+      transform: direction === 'redo' ? 'translate(24 0) scale(-1 1)' : null
+    }));
+    return svg;
+  }
+
+  function makeHistoryButton(direction, onClick) {
+    const label = direction === 'undo' ? '元に戻す' : 'やり直す';
+    const button = makeButton('', 'logic-editor__action-button logic-editor__history-button', onClick);
+    button.setAttribute('aria-label', label);
+    button.title = label;
+    button.appendChild(createHistoryIcon(direction));
     return button;
   }
 
@@ -62,6 +86,125 @@
     return svg;
   }
 
+  function clamp(value, minimum, maximum) {
+    return Math.max(minimum, Math.min(maximum, value));
+  }
+
+  function routePoint(x, y) {
+    return {
+      x: Number(Number(x).toFixed(1)),
+      y: Number(Number(y).toFixed(1))
+    };
+  }
+
+  function compactRoutePoints(points) {
+    const compact = [];
+    points.forEach(point => {
+      const next = routePoint(point.x, point.y);
+      const previous = compact[compact.length - 1];
+      if (previous && previous.x === next.x && previous.y === next.y) return;
+      compact.push(next);
+      while (compact.length >= 3) {
+        const first = compact[compact.length - 3];
+        const middle = compact[compact.length - 2];
+        const last = compact[compact.length - 1];
+        const sameHorizontal = first.y === middle.y && middle.y === last.y;
+        const sameVertical = first.x === middle.x && middle.x === last.x;
+        if (!sameHorizontal && !sameVertical) break;
+        compact.splice(compact.length - 2, 1);
+      }
+    });
+    return compact;
+  }
+
+  function routeSegments(points) {
+    const compact = compactRoutePoints(points);
+    const segments = [];
+    for (let index = 1; index < compact.length; index += 1) {
+      const from = compact[index - 1];
+      const to = compact[index];
+      if (from.x !== to.x && from.y !== to.y) continue;
+      segments.push({
+        from,
+        to,
+        axis: from.y === to.y ? 'h' : 'v',
+        fixed: from.y === to.y ? from.y : from.x,
+        start: from.y === to.y ? Math.min(from.x, to.x) : Math.min(from.y, to.y),
+        end: from.y === to.y ? Math.max(from.x, to.x) : Math.max(from.y, to.y)
+      });
+    }
+    return segments;
+  }
+
+  function segmentsToPath(segments) {
+    return segments.map(segment => {
+      const command = segment.axis === 'h' ? `H ${segment.to.x}` : `V ${segment.to.y}`;
+      return `M ${segment.from.x} ${segment.from.y} ${command}`;
+    }).join(' ');
+  }
+
+  function segmentLength(segment) {
+    return segment.end - segment.start;
+  }
+
+  function routeCollisionPenalty(segments, occupied) {
+    let penalty = 0;
+    segments.forEach(segment => {
+      occupied.forEach(existing => {
+        if (segment.axis === existing.axis) {
+          if (Math.abs(segment.fixed - existing.fixed) > 0.5) return;
+          const overlap = Math.min(segment.end, existing.end) - Math.max(segment.start, existing.start);
+          if (overlap > 1) penalty += 1000 + overlap * 20;
+          return;
+        }
+        const horizontal = segment.axis === 'h' ? segment : existing;
+        const vertical = segment.axis === 'v' ? segment : existing;
+        const crossesHorizontal = vertical.fixed > horizontal.start + 2 && vertical.fixed < horizontal.end - 2;
+        const crossesVertical = horizontal.fixed > vertical.start + 2 && horizontal.fixed < vertical.end - 2;
+        if (crossesHorizontal && crossesVertical) penalty += 3;
+      });
+    });
+    return penalty;
+  }
+
+  function routeObstaclePenalty(segments, obstacles) {
+    let penalty = 0;
+    segments.forEach(segment => {
+      obstacles.forEach(rectangle => {
+        if (segment.axis === 'h') {
+          const insideY = segment.fixed > rectangle.top && segment.fixed < rectangle.bottom;
+          const overlap = Math.min(segment.end, rectangle.right) - Math.max(segment.start, rectangle.left);
+          if (insideY && overlap > 1) penalty += 1 + overlap;
+          return;
+        }
+        const insideX = segment.fixed > rectangle.left && segment.fixed < rectangle.right;
+        const overlap = Math.min(segment.end, rectangle.bottom) - Math.max(segment.start, rectangle.top);
+        if (insideX && overlap > 1) penalty += 1 + overlap;
+      });
+    });
+    return penalty;
+  }
+
+  function routeScore(segments, occupied, obstacles = []) {
+    const length = segments.reduce((sum, segment) => sum + segmentLength(segment), 0);
+    return routeObstaclePenalty(segments, obstacles) * 1000000
+      + routeCollisionPenalty(segments, occupied) * 1000
+      + length
+      + Math.max(0, segments.length - 1) * 8;
+  }
+
+  function routeAnchor(segments, offset = 22) {
+    if (!segments.length) return { x: WIDTH / 2, y: HEIGHT / 2 };
+    const horizontal = segments
+      .filter(segment => segment.axis === 'h')
+      .sort((left, right) => segmentLength(right) - segmentLength(left))[0];
+    const selected = horizontal || [...segments].sort((left, right) => segmentLength(right) - segmentLength(left))[0];
+    if (selected.axis === 'h') {
+      return routePoint((selected.start + selected.end) / 2, clamp(selected.fixed - offset, 22, HEIGHT - 22));
+    }
+    return routePoint(clamp(selected.fixed + offset, 22, WIDTH - 22), (selected.start + selected.end) / 2);
+  }
+
   class LogicEditor {
     constructor(container, options = {}) {
       if (!(container instanceof Element)) throw new TypeError('回路エディタの表示先が必要です。');
@@ -75,6 +218,9 @@
       this.pendingFrom = null;
       this.selected = null;
       this.drag = null;
+      this.connectionDrag = null;
+      this.currentWireRoutes = new Map();
+      this.valueBadgePositions = [];
       this.notice = '';
       this.history = [];
       this.historyIndex = -1;
@@ -99,12 +245,12 @@
       const palette = htmlElement('div', 'logic-editor__palette');
       palette.setAttribute('role', 'group');
       palette.setAttribute('aria-label', '追加するゲート');
-      palette.appendChild(htmlElement('span', 'logic-editor__toolbar-label', 'ゲートを追加'));
       GATES.forEach(gate => {
         const button = makeButton('', 'logic-editor__gate-button', () => this.addGate(gate));
         button.dataset.gate = gate;
         button.setAttribute('aria-label', `${gate}ゲートを追加`);
         button.append(
+          htmlElement('span', 'logic-editor__gate-plus', '＋'),
           createGateButtonIcon(gate),
           htmlElement('span', 'logic-editor__gate-button-label', gate)
         );
@@ -114,8 +260,8 @@
       const actions = htmlElement('div', 'logic-editor__actions');
       actions.setAttribute('role', 'group');
       actions.setAttribute('aria-label', '回路の編集操作');
-      this.undoButton = makeButton('↶ Undo', 'logic-editor__action-button', () => this.undo());
-      this.redoButton = makeButton('↷ Redo', 'logic-editor__action-button', () => this.redo());
+      this.undoButton = makeHistoryButton('undo', () => this.undo());
+      this.redoButton = makeHistoryButton('redo', () => this.redo());
       this.deleteButton = makeButton('選択を削除', 'logic-editor__action-button', () => this.deleteSelected());
       this.clearButton = makeButton('全消去', 'logic-editor__action-button logic-editor__action-button--danger', () => this.clear());
       actions.append(this.undoButton, this.redoButton, this.deleteButton, this.clearButton);
@@ -124,7 +270,7 @@
       const guide = htmlElement(
         'p',
         'logic-editor__guide',
-        '① ゲートを追加　② 出力端子（●）を選ぶ　③ 接続先の入力端子（●）を選ぶ。部品はドラッグで移動できます。'
+        '① ＋付きのゲートを選ぶ　② 端子（●）を順に選ぶか、端子から接続先までドラッグする。部品もドラッグで移動できます。'
       );
       const scrollHint = htmlElement(
         'p',
@@ -141,7 +287,7 @@
         class: 'logic-editor__canvas',
         viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
         role: 'application',
-        'aria-label': '論理回路編集キャンバス。ゲートを移動し、小さな黒い端子を順番に選んで接続します。',
+        'aria-label': '論理回路編集キャンバス。ゲートを移動し、小さな黒い端子を順番に選ぶか、端子間をドラッグして接続します。',
         preserveAspectRatio: 'xMidYMid meet'
       });
       this.canvasWrap.appendChild(this.svg);
@@ -170,6 +316,8 @@
       this.wireSerial = 0;
       this.pendingFrom = null;
       this.selected = null;
+      this.connectionDrag = null;
+      this.currentWireRoutes = new Map();
     }
 
     resetHistory() {
@@ -187,6 +335,7 @@
       this.inputValues = deepCopy(snapshot.inputValues);
       this.pendingFrom = null;
       this.selected = null;
+      this.connectionDrag = null;
       this.render();
     }
 
@@ -221,6 +370,8 @@
     addGate(type) {
       const gate = String(type).toUpperCase();
       if (!GATES.includes(gate)) return;
+      this.pendingFrom = null;
+      this.connectionDrag = null;
       this.nodeSerial += 1;
       const lane = (this.nodeSerial - 1) % 5;
       const column = Math.floor((this.nodeSerial - 1) / 5) % 3;
@@ -261,9 +412,221 @@
       return Renderer.orthogonalWirePath(from, to);
     }
 
+    routingObstacles(excludedIds = new Set()) {
+      return this.graph.nodes
+        .filter(node => !excludedIds.has(node.id))
+        .map(node => {
+          const halfWidth = node.type === 'input' || node.type === 'output' ? 42 : 46;
+          const halfHeight = node.type === 'input' || node.type === 'output' ? 36 : 45;
+          return {
+            id: node.id,
+            left: node.x - halfWidth,
+            right: node.x + halfWidth,
+            top: node.y - halfHeight,
+            bottom: node.y + halfHeight
+          };
+        });
+    }
+
+    routingLaneCandidates(from, targets, direction) {
+      const targetXs = targets.map(target => target.x);
+      const nearestX = direction > 0 ? Math.min(...targetXs) : Math.max(...targetXs);
+      const paddedStart = from.x + direction * 30;
+      const paddedEnd = nearestX - direction * 30;
+      const lower = Math.min(paddedStart, paddedEnd);
+      const upper = Math.max(paddedStart, paddedEnd);
+      const midpoint = (from.x + nearestX) / 2;
+      const preferred = from.x + (nearestX - from.x) * 0.46;
+      const raw = [preferred, midpoint];
+      [18, -18, 36, -36, 54, -54, 72, -72].forEach(offset => raw.push(preferred + offset));
+      for (let part = 1; part <= 5; part += 1) raw.push(lower + (upper - lower) * part / 6);
+      const safeLower = upper - lower < 12 ? Math.min(from.x, nearestX) + 8 : lower;
+      const safeUpper = upper - lower < 12 ? Math.max(from.x, nearestX) - 8 : upper;
+      return Array.from(new Set(raw.map(value => {
+        const bounded = safeUpper >= safeLower ? clamp(value, safeLower, safeUpper) : midpoint;
+        return Number(bounded.toFixed(1));
+      })));
+    }
+
+    chooseSingleWireRoute(entry, occupied, obstacles = []) {
+      const { from, to } = entry;
+      const direction = to.x >= from.x ? 1 : -1;
+      const candidates = [];
+      if (from.y === to.y) candidates.push(routeSegments([from, to]));
+      this.routingLaneCandidates(from, [to], direction).forEach(laneX => {
+        candidates.push(routeSegments([
+          from,
+          { x: laneX, y: from.y },
+          { x: laneX, y: to.y },
+          to
+        ]));
+      });
+
+      const escapeX = clamp(from.x + direction * 28, 20, WIDTH - 20);
+      const approachX = clamp(to.x - direction * 28, 20, WIDTH - 20);
+      const middleY = (from.y + to.y) / 2;
+      const detourYs = [
+        middleY,
+        middleY - 24,
+        middleY + 24,
+        Math.min(from.y, to.y) - 28,
+        Math.max(from.y, to.y) + 28
+      ];
+      detourYs.forEach(value => {
+        const laneY = clamp(value, 22, HEIGHT - 22);
+        candidates.push(routeSegments([
+          from,
+          { x: escapeX, y: from.y },
+          { x: escapeX, y: laneY },
+          { x: approachX, y: laneY },
+          { x: approachX, y: to.y },
+          to
+        ]));
+      });
+
+      const usable = candidates.filter(segments => segments.length);
+      const chosen = usable.sort((left, right) => {
+        return routeScore(left, occupied, obstacles) - routeScore(right, occupied, obstacles);
+      })[0] || [];
+      return {
+        path: segmentsToPath(chosen),
+        segments: chosen,
+        labelPoint: routeAnchor(chosen, 16),
+        deletePoint: routeAnchor(chosen, 25),
+        score: routeScore(chosen, occupied, obstacles)
+      };
+    }
+
+    chooseWireBundle(entries, occupied, direction) {
+      const from = entries[0].from;
+      const yCounts = new Map();
+      entries.forEach(entry => yCounts.set(entry.to.y, (yCounts.get(entry.to.y) || 0) + 1));
+      const yIndexes = new Map();
+      const branchYByWire = new Map();
+      entries.forEach(entry => {
+        const count = yCounts.get(entry.to.y);
+        const index = yIndexes.get(entry.to.y) || 0;
+        yIndexes.set(entry.to.y, index + 1);
+        const offset = count > 1 ? (index - (count - 1) / 2) * 18 : 0;
+        branchYByWire.set(entry.wire.id, clamp(entry.to.y + offset, 24, HEIGHT - 24));
+      });
+
+      const commonObstacles = this.routingObstacles(new Set([entries[0].wire.from]));
+      const candidates = this.routingLaneCandidates(from, entries.map(entry => entry.to), direction).map(laneX => {
+        const branchYs = entries.map(entry => branchYByWire.get(entry.wire.id));
+        const minimumY = Math.min(from.y, ...branchYs);
+        const maximumY = Math.max(from.y, ...branchYs);
+        const trunk = routeSegments([from, { x: laneX, y: from.y }]);
+        const bus = routeSegments([{ x: laneX, y: minimumY }, { x: laneX, y: maximumY }]);
+        const common = [...trunk, ...bus];
+        const branches = new Map();
+        const branchOccupied = [...occupied, ...common];
+        let score = routeScore(common, occupied, commonObstacles);
+        entries.forEach(entry => {
+          const branchY = branchYByWire.get(entry.wire.id);
+          const branchEntry = {
+            ...entry,
+            from: { x: laneX, y: branchY }
+          };
+          const branchObstacles = this.routingObstacles(new Set([entry.wire.from, entry.wire.to]));
+          const branch = this.chooseSingleWireRoute(branchEntry, branchOccupied, branchObstacles);
+          branches.set(entry.wire.id, branch.segments);
+          branchOccupied.push(...branch.segments);
+          score += branch.score;
+        });
+        const allSegments = [...common, ...Array.from(branches.values()).flat()];
+        return { laneX, common, branches, allSegments, score };
+      });
+      const chosen = candidates.sort((left, right) => left.score - right.score)[0];
+      if (!chosen) return null;
+
+      const junctionKeys = new Set();
+      const junctions = [];
+      [from.y, ...entries.map(entry => branchYByWire.get(entry.wire.id))].forEach(y => {
+        const point = routePoint(chosen.laneX, y);
+        const key = `${point.x}:${point.y}`;
+        if (junctionKeys.has(key)) return;
+        junctionKeys.add(key);
+        junctions.push(point);
+      });
+      const trunkSegments = chosen.common.filter(segment => segment.axis === 'h');
+      return {
+        bundle: {
+          sourceId: entries[0].wire.from,
+          path: segmentsToPath(chosen.common),
+          segments: chosen.common,
+          junctions,
+          labelPoint: routeAnchor(trunkSegments.length ? trunkSegments : chosen.common, 16)
+        },
+        routes: entries.map(entry => {
+          const segments = chosen.branches.get(entry.wire.id) || [];
+          return {
+            wire: entry.wire,
+            path: segmentsToPath(segments),
+            segments,
+            deletePoint: routeAnchor(segments, 25)
+          };
+        }),
+        occupied: chosen.allSegments
+      };
+    }
+
+    computeWireRouting() {
+      const groups = new Map();
+      this.graph.wires.forEach(wire => {
+        const fromNode = this.findNode(wire.from);
+        const toNode = this.findNode(wire.to);
+        if (!fromNode || !toNode) return;
+        const entry = {
+          wire,
+          fromNode,
+          toNode,
+          from: this.outputPoint(fromNode),
+          to: this.inputPoint(toNode, Number(wire.port))
+        };
+        if (!groups.has(wire.from)) groups.set(wire.from, []);
+        groups.get(wire.from).push(entry);
+      });
+
+      const occupied = [];
+      const routes = new Map();
+      const bundles = [];
+      const badgeSources = new Set();
+      groups.forEach(entries => {
+        const directions = new Map();
+        entries.forEach(entry => {
+          const direction = entry.to.x >= entry.from.x ? 1 : -1;
+          if (!directions.has(direction)) directions.set(direction, []);
+          directions.get(direction).push(entry);
+        });
+        directions.forEach((directionEntries, direction) => {
+          const sourceId = directionEntries[0].wire.from;
+          const showValue = !badgeSources.has(sourceId);
+          badgeSources.add(sourceId);
+          if (directionEntries.length > 1) {
+            const result = this.chooseWireBundle(directionEntries, occupied, Number(direction));
+            if (!result) return;
+            result.bundle.showValue = showValue;
+            bundles.push(result.bundle);
+            result.routes.forEach(route => routes.set(route.wire.id, route));
+            occupied.push(...result.occupied);
+            return;
+          }
+          const entry = directionEntries[0];
+          const obstacles = this.routingObstacles(new Set([entry.wire.from, entry.wire.to]));
+          const route = this.chooseSingleWireRoute(entry, occupied, obstacles);
+          route.showValue = showValue;
+          routes.set(directionEntries[0].wire.id, route);
+          occupied.push(...route.segments);
+        });
+      });
+      return { bundles, routes };
+    }
+
     startConnection(nodeId) {
       const node = this.findNode(nodeId);
       if (!node || node.type === 'output') return;
+      this.connectionDrag = null;
       if (this.pendingFrom === nodeId) {
         this.pendingFrom = null;
         this.notice = '接続をキャンセルしました。';
@@ -276,6 +639,7 @@
     }
 
     finishConnection(nodeId, port) {
+      this.connectionDrag = null;
       if (!this.pendingFrom) {
         this.notice = '先に、接続元の出力端子を選んでください。';
         this.render();
@@ -312,6 +676,7 @@
 
     selectWire(id) {
       this.pendingFrom = null;
+      this.connectionDrag = null;
       this.selected = { kind: 'wire', id };
       this.notice = '配線を選択しました。「選択を削除」またはDeleteキーで消せます。';
       this.render();
@@ -392,13 +757,19 @@
     makePort(node, kind, port) {
       const point = kind === 'output' ? this.outputPoint(node) : this.inputPoint(node, port);
       const selected = kind === 'output' && this.pendingFrom === node.id;
+      const dragging = this.connectionDrag?.nodeId === node.id
+        && this.connectionDrag?.kind === kind
+        && Number(this.connectionDrag?.port) === Number(port);
       const marker = Renderer.svgElement('g', {
-        class: `logic-editor-port logic-editor-port--${kind}${selected ? ' is-pending' : ''}`,
+        class: `logic-editor-port logic-editor-port--${kind}${selected ? ' is-pending' : ''}${dragging ? ' is-dragging' : ''}`,
         tabindex: 0,
         role: 'button',
+        'data-node-id': node.id,
+        'data-kind': kind,
+        'data-port': Number(port),
         'aria-label': kind === 'output'
-          ? `${node.name || node.type}の出力端子。接続元にする`
-          : `${node.name || node.type}の入力${Number(port) + 1}端子。ここへ接続`
+          ? `${node.name || node.type}の出力端子。選ぶか、入力端子までドラッグして接続`
+          : `${node.name || node.type}の入力${Number(port) + 1}端子。選ぶか、出力端子からここまでドラッグして接続`
       });
       marker.append(
         Renderer.svgElement('circle', {
@@ -420,11 +791,66 @@
         if (kind === 'output') this.startConnection(node.id);
         else this.finishConnection(node.id, Number(port));
       };
-      marker.addEventListener('pointerdown', activate);
+      marker.addEventListener('pointerdown', event => this.beginPortGesture(event, node, kind, Number(port)));
       marker.addEventListener('keydown', event => {
         if (event.key === 'Enter' || event.key === ' ') activate(event);
       });
       return marker;
+    }
+
+    beginPortGesture(event, node, kind, port) {
+      if (event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const start = this.toSvgPoint(event.clientX, event.clientY);
+      const previousPendingFrom = this.pendingFrom;
+      this.connectionDrag = {
+        pointerId: event.pointerId,
+        nodeId: node.id,
+        kind,
+        port: Number(port),
+        start,
+        current: start,
+        moved: false,
+        previousPendingFrom,
+        wasPendingSame: kind === 'output' && previousPendingFrom === node.id
+      };
+      if (kind === 'output') {
+        this.pendingFrom = node.id;
+        this.selected = { kind: 'node', id: node.id };
+        this.notice = '入力端子までドラッグするか、接続先の端子を選んでください。';
+      } else {
+        this.notice = previousPendingFrom
+          ? 'この入力端子で離すと接続します。'
+          : '出力端子までドラッグすると接続できます。';
+      }
+      this.render({ notify: false });
+    }
+
+    drawConnectionPreview() {
+      const gesture = this.connectionDrag;
+      if (!gesture?.moved) return;
+      const node = this.findNode(gesture.nodeId);
+      if (!node) return;
+      const fixed = gesture.kind === 'output'
+        ? this.outputPoint(node)
+        : this.inputPoint(node, Number(gesture.port));
+      const from = gesture.kind === 'output' ? fixed : gesture.current;
+      const to = gesture.kind === 'output' ? gesture.current : fixed;
+      this.svg.append(
+        Renderer.svgElement('path', {
+          class: 'logic-editor-wire-preview',
+          d: this.connectionPath(from, to),
+          'aria-hidden': 'true'
+        }),
+        Renderer.svgElement('circle', {
+          class: 'logic-editor-wire-preview__end',
+          cx: gesture.current.x,
+          cy: gesture.current.y,
+          r: 5,
+          'aria-hidden': 'true'
+        })
+      );
     }
 
     drawDeleteControl() {
@@ -441,11 +867,12 @@
         const fromNode = wire ? this.findNode(wire.from) : null;
         const toNode = wire ? this.findNode(wire.to) : null;
         if (!wire || !fromNode || !toNode) return;
-        const from = this.outputPoint(fromNode);
-        const to = this.inputPoint(toNode, Number(wire.port));
-        point = from.y === to.y
-          ? { x: (from.x + to.x) / 2, y: from.y - 28 }
-          : { x: (from.x + to.x) / 2 + 25, y: (from.y + to.y) / 2 };
+        point = this.currentWireRoutes.get(wire.id)?.deletePoint;
+        if (!point) {
+          const from = this.outputPoint(fromNode);
+          const to = this.inputPoint(toNode, Number(wire.port));
+          point = routePoint((from.x + to.x) / 2, (from.y + to.y) / 2 - 25);
+        }
         label = '選択した配線を削除';
       } else {
         return;
@@ -486,6 +913,7 @@
       event.preventDefault();
       this.selected = { kind: 'node', id: node.id };
       this.pendingFrom = null;
+      this.connectionDrag = null;
       this.drag = {
         nodeId: node.id,
         pointerId: event.pointerId,
@@ -510,6 +938,19 @@
     }
 
     handlePointerMove(event) {
+      if (this.connectionDrag && event.pointerId === this.connectionDrag.pointerId) {
+        event.preventDefault();
+        const point = this.toSvgPoint(event.clientX, event.clientY);
+        const dx = point.x - this.connectionDrag.start.x;
+        const dy = point.y - this.connectionDrag.start.y;
+        if (Math.hypot(dx, dy) > 4) this.connectionDrag.moved = true;
+        this.connectionDrag.current = {
+          x: clamp(point.x, 0, WIDTH),
+          y: clamp(point.y, 0, HEIGHT)
+        };
+        if (this.connectionDrag.moved) this.render({ notify: false });
+        return;
+      }
       if (!this.drag || event.pointerId !== this.drag.pointerId) return;
       const node = this.findNode(this.drag.nodeId);
       if (!node) return;
@@ -523,6 +964,44 @@
     }
 
     handlePointerUp(event) {
+      if (this.connectionDrag && event.pointerId === this.connectionDrag.pointerId) {
+        const gesture = this.connectionDrag;
+        this.connectionDrag = null;
+        if (gesture.moved) {
+          const dropped = document.elementFromPoint(event.clientX, event.clientY)?.closest?.('.logic-editor-port');
+          const targetKind = dropped?.getAttribute('data-kind');
+          const targetNodeId = dropped?.getAttribute('data-node-id');
+          const targetPort = Number(dropped?.getAttribute('data-port') || 0);
+          if (gesture.kind === 'output' && targetKind === 'input') {
+            this.pendingFrom = gesture.nodeId;
+            this.finishConnection(targetNodeId, targetPort);
+            return;
+          }
+          if (gesture.kind === 'input' && targetKind === 'output') {
+            this.pendingFrom = targetNodeId;
+            this.finishConnection(gesture.nodeId, gesture.port);
+            return;
+          }
+          this.pendingFrom = gesture.kind === 'input' ? gesture.previousPendingFrom : null;
+          this.notice = '接続できませんでした。入力端子と出力端子の間をドラッグしてください。';
+          this.render();
+          return;
+        }
+        if (gesture.kind === 'output') {
+          if (gesture.wasPendingSame) {
+            this.pendingFrom = null;
+            this.notice = '接続をキャンセルしました。';
+          } else {
+            this.pendingFrom = gesture.nodeId;
+            this.notice = '接続先の黒い入力端子を選んでください。Escでキャンセルできます。';
+          }
+          this.render();
+          return;
+        }
+        this.pendingFrom = gesture.previousPendingFrom;
+        this.finishConnection(gesture.nodeId, gesture.port);
+        return;
+      }
       if (!this.drag || event.pointerId !== this.drag.pointerId) return;
       const drag = this.drag;
       this.drag = null;
@@ -537,9 +1016,10 @@
 
     handleDocumentKeyDown(event) {
       if (this.destroyed) return;
-      const withinEditor = this.container.contains(document.activeElement) || this.drag;
-      if (event.key === 'Escape' && this.pendingFrom) {
+      const withinEditor = this.container.contains(document.activeElement) || this.drag || this.connectionDrag;
+      if (event.key === 'Escape' && (this.pendingFrom || this.connectionDrag)) {
         this.pendingFrom = null;
+        this.connectionDrag = null;
         this.notice = '接続をキャンセルしました。';
         this.render();
         return;
@@ -557,18 +1037,83 @@
       }
     }
 
-    drawWire(wire, signals) {
+    drawWireValue(point, value) {
+      if (!point || value == null) return;
+      const candidates = [
+        point,
+        { x: point.x - 25, y: point.y },
+        { x: point.x + 25, y: point.y },
+        { x: point.x, y: point.y - 24 },
+        { x: point.x, y: point.y + 24 },
+        { x: point.x - 50, y: point.y },
+        { x: point.x + 50, y: point.y }
+      ].map(candidate => ({
+        x: clamp(candidate.x, 14, WIDTH - 14),
+        y: clamp(candidate.y, 14, HEIGHT - 14)
+      }));
+      const obstacles = this.routingObstacles();
+      const score = candidate => {
+        const badgeOverlap = this.valueBadgePositions.reduce((total, existing) => {
+          return total + (Math.abs(existing.x - candidate.x) < 24 && Math.abs(existing.y - candidate.y) < 24 ? 10000 : 0);
+        }, 0);
+        const nodeOverlap = obstacles.reduce((total, rectangle) => {
+          const inside = candidate.x > rectangle.left - 11
+            && candidate.x < rectangle.right + 11
+            && candidate.y > rectangle.top - 11
+            && candidate.y < rectangle.bottom + 11;
+          return total + (inside ? 1000 : 0);
+        }, 0);
+        return badgeOverlap + nodeOverlap
+          + Math.abs(candidate.x - point.x)
+          + Math.abs(candidate.y - point.y);
+      };
+      const placed = candidates.sort((left, right) => score(left) - score(right))[0];
+      this.valueBadgePositions.push(placed);
+      const { x, y } = placed;
+      const badge = Renderer.svgElement('g', { class: `logic-editor-value${value === 1 ? ' is-one' : ''}` });
+      badge.append(
+        Renderer.svgElement('rect', { x: x - 10, y: y - 10, width: 20, height: 20, rx: 6 }),
+        Renderer.svgElement('text', { x, y: y + 1, 'text-anchor': 'middle' }, String(value))
+      );
+      this.svg.appendChild(badge);
+    }
+
+    drawWireBundle(bundle, signals) {
+      const value = signals.get(bundle.sourceId);
+      if (bundle.path) {
+        this.svg.appendChild(Renderer.svgElement('path', {
+          class: `logic-editor-wire logic-editor-wire--bundle${value === 1 ? ' is-one' : ''}`,
+          d: bundle.path,
+          'data-source': bundle.sourceId,
+          'data-value': value == null ? '' : value,
+          'aria-hidden': 'true'
+        }));
+      }
+      bundle.junctions.forEach(point => {
+        this.svg.appendChild(Renderer.svgElement('circle', {
+          class: `logic-editor-junction${value === 1 ? ' is-one' : ''}`,
+          cx: point.x,
+          cy: point.y,
+          r: 4.2,
+          'data-source': bundle.sourceId,
+          'aria-hidden': 'true'
+        }));
+      });
+      if (bundle.showValue) this.drawWireValue(bundle.labelPoint, value);
+    }
+
+    drawWire(wire, signals, route) {
       const fromNode = this.findNode(wire.from);
       const toNode = this.findNode(wire.to);
-      if (!fromNode || !toNode) return;
-      const from = this.outputPoint(fromNode);
-      const to = this.inputPoint(toNode, Number(wire.port));
-      const pathData = this.connectionPath(from, to);
+      if (!fromNode || !toNode || !route?.path) return;
+      const pathData = route.path;
       const value = signals.get(fromNode.id);
       const selected = this.selected?.kind === 'wire' && this.selected.id === wire.id;
       const path = Renderer.svgElement('path', {
         class: `logic-editor-wire${value === 1 ? ' is-one' : ''}${selected ? ' is-selected' : ''}`,
         d: pathData,
+        'data-wire-id': wire.id,
+        'data-source': wire.from,
         'data-value': value == null ? '' : value
       });
       const hit = Renderer.svgElement('path', {
@@ -588,16 +1133,7 @@
         if (event.key === 'Enter' || event.key === ' ') select(event);
       });
       this.svg.append(path, hit);
-      if (value != null) {
-        const labelPoint = Renderer.wireLabelPoint(from, to);
-        const { x, y } = labelPoint;
-        const badge = Renderer.svgElement('g', { class: `logic-editor-value${value === 1 ? ' is-one' : ''}` });
-        badge.append(
-          Renderer.svgElement('rect', { x: x - 10, y: y - 10, width: 20, height: 20, rx: 6 }),
-          Renderer.svgElement('text', { x, y: y + 1, 'text-anchor': 'middle' }, String(value))
-        );
-        this.svg.appendChild(badge);
-      }
+      if (route.showValue) this.drawWireValue(route.labelPoint, value);
     }
 
     drawNode(node, signals) {
@@ -690,14 +1226,20 @@
       });
       background.addEventListener('pointerdown', () => {
         this.pendingFrom = null;
+        this.connectionDrag = null;
         this.selected = null;
         this.notice = '選択を解除しました。';
         this.render();
       });
       const title = Renderer.svgElement('title', {}, '自由に編集できる論理回路');
-      const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力Fがあります。ゲートを追加し、小さな黒い端子を順に選択して配線します。');
+      const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力Fがあります。端子を順に選ぶか端子間をドラッグして接続します。配線は重なりを避け、同じ出力からは途中で分岐します。');
       this.svg.replaceChildren(title, desc, background);
-      this.graph.wires.forEach(wire => this.drawWire(wire, signals));
+      const routing = this.computeWireRouting();
+      this.currentWireRoutes = routing.routes;
+      this.valueBadgePositions = [];
+      routing.bundles.forEach(bundle => this.drawWireBundle(bundle, signals));
+      this.graph.wires.forEach(wire => this.drawWire(wire, signals, routing.routes.get(wire.id)));
+      this.drawConnectionPreview();
       this.graph.nodes.forEach(node => this.drawNode(node, signals));
       this.drawDeleteControl();
 
