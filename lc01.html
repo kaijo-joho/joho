@@ -38,52 +38,80 @@
       <h2 id="headline_2">(2) 基本の論理ゲート</h2>
       <p>論理ゲートは、入力に対して1つの論理演算を行う部品です。この教材の回路図では、次の<strong>AND・OR・NOTの3種類</strong>を基本ゲートとして使います。</p>
       <div class="logic-gate-summary">
-        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__symbol">−</span>AND（論理積）</strong>AとBが両方とも1のときだけ1</div>
-        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__symbol">_</span>OR（論理和）</strong>AとBの少なくとも一方が1なら1</div>
-        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__symbol">n</span>NOT（否定）</strong>入力の0と1を反対にする</div>
+        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__icon" data-logic-gate-icon="AND">AND</span>AND（論理積）</strong>AとBが両方とも1のときだけ1</div>
+        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__icon" data-logic-gate-icon="OR">OR</span>OR（論理和）</strong>AとBの少なくとも一方が1なら1</div>
+        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__icon" data-logic-gate-icon="NOT">NOT</span>NOT（否定）</strong>入力の0と1を反対にする</div>
       </div>
       <p>表にすべての入力の組み合わせと出力を並べたものを<strong>真理値表</strong>といいます。下の例では入力ボタンまたは表の行を選び、回路図・出力F・真理値表が同時に変わることを確かめましょう。</p>
+
+      <div class="logic-gate-topic" id="logic-gate-and">
+        <h3>① ANDゲート（論理積）</h3>
+        <div class="logic-gate-topic__overview">
+          <p class="logic-gate-topic__description">ANDは「A<strong>かつ</strong>B」を表します。2つの条件がどちらも満たされたときだけ、出力Fが1になります。構造式では <code>A-B</code> と書きます。ベン図では、AとBが重なる部分が1になる範囲です。</p>
+          <figure class="logic-venn-card" data-logic-venn="AND" data-caption="AND：AとBの共通部分"></figure>
+        </div>
+        <div data-logic-explorer data-expression="A-B" data-title="AND：A-B"></div>
+      </div>
+
+      <div class="logic-gate-topic" id="logic-gate-or">
+        <h3>② ORゲート（論理和）</h3>
+        <div class="logic-gate-topic__overview">
+          <p class="logic-gate-topic__description">ORは「A<strong>または</strong>B」を表します。少なくとも一方の条件が満たされると、出力Fが1になります。構造式では <code>A_B</code> と書きます。ベン図では、AとBの内側全体が1になる範囲です。</p>
+          <figure class="logic-venn-card" data-logic-venn="OR" data-caption="OR：AまたはBの範囲"></figure>
+        </div>
+        <div data-logic-explorer data-expression="A_B" data-title="OR：A_B"></div>
+      </div>
+
+      <div class="logic-gate-topic" id="logic-gate-not">
+        <h3>③ NOTゲート（否定）</h3>
+        <div class="logic-gate-topic__overview">
+          <p class="logic-gate-topic__description">NOTは入力を<strong>反転</strong>します。Aが0ならFは1、Aが1ならFは0です。回路記号の出力側にある小さな丸が否定を示し、構造式では <code>nA</code> と書きます。ベン図では、全体のうちAの外側が1になる範囲です。</p>
+          <figure class="logic-venn-card" data-logic-venn="NOT" data-caption="NOT：Aではない範囲"></figure>
+        </div>
+        <div data-logic-explorer data-expression="nA" data-title="NOT：nA"></div>
+      </div>
     </article>
   </section>
 
   <section>
     <article>
-      <h2 id="headline_3">(3) ANDゲート</h2>
-      <p>ANDは「A<strong>かつ</strong>B」を表します。2つの条件がどちらも満たされたときだけ、出力Fが1になります。構造式では <code>A-B</code> と書きます。</p>
-      <div data-logic-explorer data-expression="A-B" data-title="AND：A-B"></div>
+      <h2 id="headline_3">(3) 主な論理ゲート</h2>
+      <p>NAND・NOR・XORは、基本ゲートを組み合わせて作れる代表的な論理演算です。この教材の回路図では専用ゲートを使わず、AND・OR・NOTだけの回路へ展開して示します。</p>
+
+      <div class="logic-gate-topic" id="logic-gate-nand">
+        <h3>① NANDゲート（否定論理積）</h3>
+        <div class="logic-gate-topic__overview">
+          <p class="logic-gate-topic__description">NANDはANDの結果をNOTで反転します。AとBが両方とも1のときだけ0になり、それ以外は1です。構造式では <code>n(A-B)</code> と書きます。ベン図では、AとBの共通部分以外が1になる範囲です。</p>
+          <figure class="logic-venn-card" data-logic-venn="NAND" data-caption="NAND：AとBの共通部分ではない範囲"></figure>
+        </div>
+        <div data-logic-explorer data-expression="n(A-B)" data-title="NAND相当回路：n(A-B)"></div>
+      </div>
+
+      <div class="logic-gate-topic" id="logic-gate-nor">
+        <h3>② NORゲート（否定論理和）</h3>
+        <div class="logic-gate-topic__overview">
+          <p class="logic-gate-topic__description">NORはORの結果をNOTで反転します。AとBが両方とも0のときだけ1です。構造式では <code>n(A_B)</code> と書きます。ベン図では、AとBのどちらにも含まれない外側が1になる範囲です。</p>
+          <figure class="logic-venn-card" data-logic-venn="NOR" data-caption="NOR：AでもBでもない範囲"></figure>
+        </div>
+        <div data-logic-explorer data-expression="n(A_B)" data-title="NOR相当回路：n(A_B)"></div>
+      </div>
+
+      <div class="logic-gate-topic" id="logic-gate-xor">
+        <h3>③ XORゲート（排他的論理和）</h3>
+        <div class="logic-gate-topic__overview">
+          <p class="logic-gate-topic__description">XORは「AとBが<strong>異なる</strong>」ときに1になります。どちらか一方だけが1のときに1、両方が同じときは0です。構造式では <code>A^B</code> と略記します。ベン図では、AとBが重ならない左右の部分が1になる範囲です。</p>
+          <figure class="logic-venn-card" data-logic-venn="XOR" data-caption="XOR：AとBの一方だけに含まれる範囲"></figure>
+        </div>
+        <div data-logic-explorer data-expression="A^B" data-title="XOR相当回路：A^B"></div>
+      </div>
     </article>
   </section>
 
   <section>
     <article>
-      <h2 id="headline_4">(4) ORゲート</h2>
-      <p>ORは「A<strong>または</strong>B」を表します。少なくとも一方の条件が満たされると、出力Fが1になります。構造式では <code>A_B</code> と書きます。</p>
-      <div data-logic-explorer data-expression="A_B" data-title="OR：A_B"></div>
-    </article>
-  </section>
-
-  <section>
-    <article>
-      <h2 id="headline_5">(5) NOTゲート</h2>
-      <p>NOTは入力を<strong>反転</strong>します。Aが0ならFは1、Aが1ならFは0です。回路記号の出力側にある小さな丸が否定を示します。構造式では <code>nA</code> と書きます。</p>
-      <div data-logic-explorer data-expression="nA" data-title="NOT：nA"></div>
-    </article>
-  </section>
-
-  <section>
-    <article>
-      <h2 id="headline_6">(6) XOR（排他的論理和）</h2>
-      <p>XORは「AとBが<strong>異なる</strong>」ときに1になる演算です。ORに似ていますが、両方とも1のときは0です。構造式では <code>A^B</code> と略記し、下の回路図ではXOR専用ゲートを使わず、AND・OR・NOTの組み合わせに展開して示します。</p>
-      <div data-logic-explorer data-expression="A^B" data-title="XOR相当回路：A^B"></div>
-    </article>
-  </section>
-
-  <section>
-    <article>
-      <h2 id="headline_7">(7) 回路図と真理値表</h2>
+      <h2 id="headline_4">(4) 回路図と真理値表</h2>
       <p>複数のゲートをつなぐときは、入力から順に中間結果を求めます。例えば <code>(A-B)_C</code> は、最初にAとBのANDを求め、その結果とCのORを求める回路です。</p>
       <div data-logic-explorer data-expression="(A-B)_C" data-title="複合回路：(A-B)_C"></div>
-      <p>NANDとNORは、ANDまたはORの結果をNOTで反転した演算です。構造式ではNANDを <code>n(A-B)</code>、NORを <code>n(A_B)</code> と表します。これらも専用ゲートは使わず、基本ゲートを組み合わせた回路図として扱います。</p>
       <div class="logic-operation-guide">
         <strong>次の実習</strong>
         <ol>

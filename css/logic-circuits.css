@@ -7,6 +7,7 @@
   --logic-text: #203040;
   --logic-muted: #5d6f80;
   --logic-svg-bg: #fbfdff;
+  --logic-venn-active: #c7def2;
   --logic-canvas-bg: #edf3f8;
   --logic-grid: rgba(34, 83, 134, .08);
   --logic-wire: #68798b;
@@ -34,6 +35,7 @@
     --logic-text: #e6edf3;
     --logic-muted: #a9bac8;
     --logic-svg-bg: #121a22;
+    --logic-venn-active: #31536e;
     --logic-canvas-bg: #0f171e;
     --logic-grid: rgba(159, 199, 235, .08);
     --logic-wire: #9baab8;
@@ -61,6 +63,7 @@
   --logic-text: #203040;
   --logic-muted: #5d6f80;
   --logic-svg-bg: #fbfdff;
+  --logic-venn-active: #c7def2;
   --logic-canvas-bg: #edf3f8;
   --logic-grid: rgba(34, 83, 134, .08);
   --logic-wire: #68798b;
@@ -87,6 +90,7 @@
   --logic-text: #e6edf3;
   --logic-muted: #a9bac8;
   --logic-svg-bg: #121a22;
+  --logic-venn-active: #31536e;
   --logic-canvas-bg: #0f171e;
   --logic-grid: rgba(159, 199, 235, .08);
   --logic-wire: #9baab8;
@@ -128,23 +132,125 @@
 
 .logic-concept-card strong,
 .logic-gate-summary__item strong {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: 10px;
   margin-bottom: 5px;
   color: var(--logic-text);
 }
 
-.logic-gate-summary__symbol {
-  display: inline-flex;
-  min-width: 2.2em;
-  min-height: 2.2em;
+.logic-concept-card strong {
+  display: block;
+}
+
+.logic-gate-summary__icon {
+  display: inline-grid;
+  width: 92px;
+  height: 58px;
+  flex: 0 0 92px;
   align-items: center;
   justify-content: center;
-  margin-right: .45em;
-  border-radius: 999px;
+  overflow: hidden;
+  border-radius: 9px;
   background: color-mix(in oklab, var(--theme-color, #225386) 12%, transparent);
   color: var(--theme-color, #225386);
-  font-family: var(--font-code, monospace);
+  font-family: var(--font-sans, sans-serif);
+  font-size: .75em;
   font-weight: 800;
+}
+
+.logic-gate-icon {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.logic-gate-icon__wire {
+  stroke: var(--logic-gate-stroke);
+  stroke-width: 3;
+  stroke-linecap: round;
+}
+
+.logic-gate-icon .logic-gate__body {
+  fill: var(--logic-gate-fill);
+  stroke: var(--logic-gate-stroke);
+  stroke-width: 2.8;
+}
+
+.logic-gate-topic {
+  margin: 24px 4px 34px;
+  padding-top: 18px;
+  border-top: 1px solid var(--logic-border);
+}
+
+section article .logic-gate-topic > h3 {
+  margin: 0 0 12px;
+  color: var(--theme-color, #225386);
+  font-size: clamp(1.12rem, 2vw, 1.36rem);
+  font-weight: 750;
+}
+
+.logic-gate-topic__overview {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+  gap: 16px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid var(--logic-border);
+  border-radius: 12px;
+  background: var(--logic-panel);
+}
+
+section article p.logic-gate-topic__description {
+  margin: 0;
+}
+
+.logic-venn-card {
+  width: 100%;
+  max-width: 280px;
+  margin: 0 auto;
+  overflow: hidden;
+  border: 1px solid var(--logic-border);
+  border-radius: 11px;
+  background: var(--logic-panel-strong);
+}
+
+.logic-venn {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.logic-venn__frame {
+  fill: var(--logic-svg-bg);
+  stroke: var(--logic-gate-stroke);
+  stroke-width: 2;
+}
+
+.logic-venn__active {
+  fill: var(--logic-venn-active);
+}
+
+.logic-venn__set {
+  fill: none;
+  stroke: var(--logic-gate-stroke);
+  stroke-width: 3;
+}
+
+.logic-venn__label {
+  fill: var(--logic-text);
+  font-size: 25px;
+  font-weight: 800;
+}
+
+.logic-venn-card figcaption {
+  padding: 7px 10px 9px;
+  border-top: 1px solid var(--logic-border);
+  color: var(--logic-muted);
+  font-size: .75em;
+  font-weight: 650;
+  line-height: 1.45;
+  text-align: center;
 }
 
 .logic-note,
@@ -875,6 +981,10 @@ section article .logic-editor__scroll-hint {
     grid-template-columns: 1fr;
   }
 
+  .logic-gate-topic__overview {
+    grid-template-columns: 1fr;
+  }
+
   .logic-editor__canvas {
     width: 800px;
   }
@@ -890,6 +1000,24 @@ section article .logic-editor__scroll-hint {
   .logic-gate-summary {
     grid-template-columns: 1fr;
     margin-inline: 4px;
+  }
+
+  .logic-gate-summary__item strong {
+    align-items: center;
+  }
+
+  .logic-gate-summary__icon {
+    width: 84px;
+    height: 54px;
+    flex-basis: 84px;
+  }
+
+  .logic-gate-topic {
+    margin-inline: 0;
+  }
+
+  .logic-gate-topic__overview {
+    padding: 10px;
   }
 
   .logic-note,
