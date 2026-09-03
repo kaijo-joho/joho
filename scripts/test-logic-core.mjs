@@ -95,6 +95,7 @@ assert.equal(
   'M 10 20 H 110',
   '同じ高さの配線は一本の直線にする'
 );
+assert.equal(LogicRenderer.gateGeometry('OR').inputX, -25, 'ORの入力端子をゲート本体の曲線へ接触させる');
 assert.throws(() => LogicRenderer.gateGeometry('XOR'), /AND・OR・NOT/);
 
 const validGraph = {
@@ -139,4 +140,4 @@ const cyclic = {
 assert.equal(LogicCore.graphAnalysis(cyclic).valid, false);
 assert.match(LogicCore.graphAnalysis(cyclic).errors.join(' '), /循環/);
 
-console.log(`logic-core: ${cases.length + displayCases.length + 20}件の検証に合格`);
+console.log(`logic-core: ${cases.length + displayCases.length + 21}件の検証に合格`);

@@ -124,7 +124,7 @@
       const guide = htmlElement(
         'p',
         'logic-editor__guide',
-        '① ゲートを追加　② 出力端子（□）を選ぶ　③ 接続先の入力端子（□）を選ぶ。部品はドラッグで移動できます。'
+        '① ゲートを追加　② 出力端子（●）を選ぶ　③ 接続先の入力端子（●）を選ぶ。部品はドラッグで移動できます。'
       );
       const scrollHint = htmlElement(
         'p',
@@ -141,12 +141,12 @@
         class: 'logic-editor__canvas',
         viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
         role: 'application',
-        'aria-label': '論理回路編集キャンバス。ゲートを移動し、四角い端子を順番に選んで接続します。',
+        'aria-label': '論理回路編集キャンバス。ゲートを移動し、小さな黒い端子を順番に選んで接続します。',
         preserveAspectRatio: 'xMidYMid meet'
       });
       this.canvasWrap.appendChild(this.svg);
-      this.editor.append(toolbar, guide, scrollHint, this.status, this.canvasWrap);
-      this.container.replaceChildren(this.editor);
+      this.editor.append(toolbar, scrollHint, this.canvasWrap, this.status);
+      this.container.replaceChildren(guide, this.editor);
     }
 
     resetBaseGraph() {
@@ -248,13 +248,13 @@
     outputPoint(node) {
       if (node.type === 'input') return { x: node.x + 38, y: node.y };
       const geometry = Renderer.gateGeometry(node.type);
-      return { x: node.x + geometry.outputX + 6, y: node.y };
+      return { x: node.x + geometry.outputX, y: node.y };
     }
 
     inputPoint(node, port) {
-      if (node.type === 'output') return { x: node.x - 38, y: node.y };
+      if (node.type === 'output') return { x: node.x - 35, y: node.y };
       const geometry = Renderer.gateGeometry(node.type);
-      return { x: node.x + geometry.inputX - 6, y: node.y + geometry.inputYs[port] };
+      return { x: node.x + geometry.inputX, y: node.y + geometry.inputYs[port] };
     }
 
     connectionPath(from, to) {
@@ -270,7 +270,7 @@
       } else {
         this.pendingFrom = nodeId;
         this.selected = { kind: 'node', id: nodeId };
-        this.notice = '接続先の四角い入力端子を選んでください。Escでキャンセルできます。';
+        this.notice = '接続先の黒い入力端子を選んでください。Escでキャンセルできます。';
       }
       this.render();
     }
@@ -392,20 +392,28 @@
     makePort(node, kind, port) {
       const point = kind === 'output' ? this.outputPoint(node) : this.inputPoint(node, port);
       const selected = kind === 'output' && this.pendingFrom === node.id;
-      const size = selected ? 22 : 18;
-      const marker = Renderer.svgElement('rect', {
+      const marker = Renderer.svgElement('g', {
         class: `logic-editor-port logic-editor-port--${kind}${selected ? ' is-pending' : ''}`,
-        x: point.x - size / 2,
-        y: point.y - size / 2,
-        width: size,
-        height: size,
-        rx: 2,
         tabindex: 0,
         role: 'button',
         'aria-label': kind === 'output'
           ? `${node.name || node.type}の出力端子。接続元にする`
           : `${node.name || node.type}の入力${Number(port) + 1}端子。ここへ接続`
       });
+      marker.append(
+        Renderer.svgElement('circle', {
+          class: 'logic-editor-port__hit',
+          cx: point.x,
+          cy: point.y,
+          r: 14
+        }),
+        Renderer.svgElement('circle', {
+          class: 'logic-editor-port__dot',
+          cx: point.x,
+          cy: point.y,
+          r: selected ? 5.5 : 4.5
+        })
+      );
       const activate = event => {
         event.preventDefault();
         event.stopPropagation();
@@ -417,6 +425,60 @@
         if (event.key === 'Enter' || event.key === ' ') activate(event);
       });
       return marker;
+    }
+
+    drawDeleteControl() {
+      if (!this.selected) return;
+      let point;
+      let label;
+      if (this.selected.kind === 'node') {
+        const node = this.findNode(this.selected.id);
+        if (!node || node.type === 'input' || node.type === 'output') return;
+        point = { x: node.x + 43, y: node.y - 38 };
+        label = `${node.type}ゲートを削除`;
+      } else if (this.selected.kind === 'wire') {
+        const wire = this.graph.wires.find(candidate => candidate.id === this.selected.id);
+        const fromNode = wire ? this.findNode(wire.from) : null;
+        const toNode = wire ? this.findNode(wire.to) : null;
+        if (!wire || !fromNode || !toNode) return;
+        const from = this.outputPoint(fromNode);
+        const to = this.inputPoint(toNode, Number(wire.port));
+        point = from.y === to.y
+          ? { x: (from.x + to.x) / 2, y: from.y - 28 }
+          : { x: (from.x + to.x) / 2 + 25, y: (from.y + to.y) / 2 };
+        label = '選択した配線を削除';
+      } else {
+        return;
+      }
+      point.x = Math.max(24, Math.min(WIDTH - 24, point.x));
+      point.y = Math.max(24, Math.min(HEIGHT - 24, point.y));
+      const control = Renderer.svgElement('g', {
+        class: 'logic-editor-delete-control',
+        transform: `translate(${point.x} ${point.y})`,
+        tabindex: 0,
+        role: 'button',
+        'aria-label': label
+      });
+      control.append(
+        Renderer.svgElement('circle', { class: 'logic-editor-delete-control__hit', cx: 0, cy: 0, r: 28 }),
+        Renderer.svgElement('circle', { class: 'logic-editor-delete-control__button', cx: 0, cy: 0, r: 13 }),
+        Renderer.svgElement('text', {
+          class: 'logic-editor-delete-control__mark',
+          x: 0,
+          y: 1,
+          'text-anchor': 'middle'
+        }, '×')
+      );
+      const remove = event => {
+        event.preventDefault();
+        event.stopPropagation();
+        this.deleteSelected();
+      };
+      control.addEventListener('pointerdown', remove);
+      control.addEventListener('keydown', event => {
+        if (event.key === 'Enter' || event.key === ' ') remove(event);
+      });
+      this.svg.appendChild(control);
     }
 
     startDrag(event, node) {
@@ -633,10 +695,11 @@
         this.render();
       });
       const title = Renderer.svgElement('title', {}, '自由に編集できる論理回路');
-      const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力Fがあります。ゲートを追加し、四角い端子を順に選択して配線します。');
+      const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力Fがあります。ゲートを追加し、小さな黒い端子を順に選択して配線します。');
       this.svg.replaceChildren(title, desc, background);
       this.graph.wires.forEach(wire => this.drawWire(wire, signals));
       this.graph.nodes.forEach(node => this.drawNode(node, signals));
+      this.drawDeleteControl();
 
       const completion = analysis.valid
         ? '回路が完成しました。入力を切り替えたり、真理値表を確認したりできます。'

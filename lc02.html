@@ -28,9 +28,9 @@
         <strong>基本操作</strong>
         <ol>
           <li>上部の「AND」「OR」「NOT」からゲートを追加します。</li>
-          <li>接続元の<strong>出力端子（□）</strong>を選び、次に接続先の<strong>入力端子（□）</strong>を選びます。</li>
+          <li>接続元の<strong>出力端子（●）</strong>を選び、次に接続先の<strong>入力端子（●）</strong>を選びます。</li>
           <li>入力A〜Dの箱をクリックすると0/1が切り替わります。部品はドラッグして移動できます。</li>
-          <li>ゲートまたは配線を選び、「選択を削除」かDeleteキーで削除します。</li>
+          <li>ゲートまたは配線を選び、近くに出る「×」、「選択を削除」、またはDeleteキーで削除します。</li>
         </ol>
       </div>
       <p class="logic-note">同じ入力端子への重複接続、逆向き接続、循環する接続は自動的に防止されます。配線は水平・垂直に引かれ、曲がる箇所は直角になります。操作を戻したいときはUndoを使ってください。</p>
@@ -48,30 +48,21 @@
         <button type="button" class="logic-secondary-button" data-load-logic-example="(A^B)-C">XOR相当を含む例</button>
       </div>
       <div id="logic-editor"></div>
-
-      <div class="logic-live-details logic-live-details--single" aria-live="polite">
-        <div class="logic-live-details__item">
-          <span class="logic-live-details__label">現在の出力</span>
-          <output id="logic-current-output">F = －</output>
-        </div>
-      </div>
+      <div id="logic-workbench-table" class="logic-editor-truth-table" aria-live="polite"></div>
     </article>
   </section>
 
   <section>
     <article>
-      <h2 id="headline_3">(3) 真理値表とSVG保存</h2>
-      <div class="logic-workspace-results">
-        <div>
-          <p>完成した回路では、入力に使った変数の全組み合わせを自動計算します。表の行を選ぶと、その入力が回路へ反映されます。</p>
-          <div class="logic-save-row">
-            <button type="button" class="logic-primary-button" id="logic-save-svg" disabled>SVGとして保存</button>
-            <span class="logic-inline-status" id="logic-save-status" role="status" aria-live="polite"></span>
-          </div>
-          <p>保存ファイル名：<code id="logic-svg-filename">回路完成後に決まります</code></p>
-          <p class="logic-note">保存するSVGには回路図・入力値・中間値・出力値が含まれます。拡大しても線や文字がぼやけません。</p>
+      <h2 id="headline_3">(3) 回路図をSVGとして保存</h2>
+      <div>
+        <p>完成した回路図はSVG形式で保存できます。</p>
+        <div class="logic-save-row">
+          <button type="button" class="logic-primary-button" id="logic-save-svg" disabled>SVGとして保存</button>
+          <span class="logic-inline-status" id="logic-save-status" role="status" aria-live="polite"></span>
         </div>
-        <div id="logic-workbench-table"></div>
+        <p>保存ファイル名：<code id="logic-svg-filename">回路完成後に決まります</code></p>
+        <p class="logic-note">保存するSVGには回路図・入力値・中間値・出力値が含まれます。拡大しても線や文字がぼやけません。</p>
       </div>
     </article>
   </section>

@@ -167,6 +167,9 @@
         selectAfterJudgement: true,
         caption: result.judged
           ? '判定結果（行を選ぶと信号を確認できます）'
+          : '真理値表を完成させてください',
+        hoverHint: result.judged
+          ? ''
           : 'F欄を選ぶと「空欄 → 0 → 1」の順に変わります',
         onAnswerChange: (index, value) => {
           result.answers[index] = value;

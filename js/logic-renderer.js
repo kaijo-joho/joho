@@ -21,9 +21,9 @@
     if (!Core.BASIC_GATES.includes(gate)) {
       throw new TypeError(`回路図で使用できるゲートはAND・OR・NOTだけです（指定: ${type}）。`);
     }
-    return gate === 'NOT'
-      ? { inputX: -31, outputX: 38, inputYs: [0] }
-      : { inputX: -31, outputX: 31, inputYs: [-14, 14] };
+    if (gate === 'NOT') return { inputX: -31, outputX: 38, inputYs: [0] };
+    if (gate === 'OR') return { inputX: -25, outputX: 31, inputYs: [-14, 14] };
+    return { inputX: -31, outputX: 31, inputYs: [-14, 14] };
   }
 
   function createGateSymbol(type, x = 0, y = 0, options = {}) {

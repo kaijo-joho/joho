@@ -5,7 +5,6 @@
     const host = document.getElementById('logic-editor');
     if (!host || !window.LogicEditor) return;
 
-    const currentOutput = document.getElementById('logic-current-output');
     const filenameOutput = document.getElementById('logic-svg-filename');
     const tableTarget = document.getElementById('logic-workbench-table');
     const saveButton = document.getElementById('logic-save-svg');
@@ -15,15 +14,12 @@
     function update(state) {
       const { analysis, inputValues } = state;
       if (!analysis.valid) {
-        currentOutput.textContent = 'F = －';
         filenameOutput.textContent = '回路完成後に決まります';
         saveButton.disabled = true;
         window.LogicRenderer.renderMessage(tableTarget, '回路が完成すると真理値表を表示します。');
         return;
       }
 
-      const output = window.LogicCore.evaluate(analysis.ast, inputValues);
-      currentOutput.textContent = `F = ${output}`;
       filenameOutput.textContent = window.LogicCore.createSvgFilename();
       saveButton.disabled = false;
       window.LogicWidgets.renderTruthTable(tableTarget, {

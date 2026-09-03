@@ -4,6 +4,7 @@
 
   const Core = root.LogicCore;
   const Renderer = root.LogicRenderer;
+  let truthTableHintSerial = 0;
   if (!Core || !Renderer) throw new Error('logic-widgets.jsの依存ファイルが読み込まれていません。');
 
   function element(name, className, text) {
@@ -52,7 +53,17 @@
     const thead = document.createElement('thead');
     const header = document.createElement('tr');
     inputNames.forEach(name => header.appendChild(element('th', '', name)));
-    header.appendChild(element('th', 'logic-truth-table__divider', 'F'));
+    const outputHeader = element('th', 'logic-truth-table__divider', 'F');
+    const hoverHint = String(config.hoverHint || '').trim();
+    if (hoverHint) {
+      outputHeader.classList.add('logic-truth-table__output-header');
+      outputHeader.tabIndex = 0;
+      outputHeader.setAttribute('aria-label', `F列。${hoverHint}`);
+      const hintIcon = element('span', 'logic-truth-table__hint-icon', 'ⓘ');
+      hintIcon.setAttribute('aria-hidden', 'true');
+      outputHeader.appendChild(hintIcon);
+    }
+    header.appendChild(outputHeader);
     thead.appendChild(header);
     const tbody = document.createElement('tbody');
 
@@ -107,7 +118,41 @@
     table.append(caption, thead, tbody);
     const scroller = element('div', 'logic-table-scroll');
     scroller.appendChild(table);
-    target.replaceChildren(scroller);
+    if (hoverHint) {
+      truthTableHintSerial += 1;
+      const shell = element('div', 'logic-table-shell');
+      const hint = element('div', 'logic-table-hover-hint', hoverHint);
+      hint.id = `logic-table-hint-${truthTableHintSerial}`;
+      hint.hidden = true;
+      hint.setAttribute('role', 'tooltip');
+      hint.setAttribute('aria-hidden', 'true');
+      outputHeader.setAttribute('aria-describedby', hint.id);
+      const showHint = () => {
+        hint.hidden = false;
+        hint.setAttribute('aria-hidden', 'false');
+        const shellBox = shell.getBoundingClientRect();
+        const headerBox = outputHeader.getBoundingClientRect();
+        hint.style.top = `${headerBox.bottom - shellBox.top + 6}px`;
+        hint.style.right = 'auto';
+        hint.style.left = '8px';
+        const hintWidth = hint.getBoundingClientRect().width;
+        const desiredLeft = headerBox.right - shellBox.left - hintWidth;
+        const maxLeft = Math.max(8, shellBox.width - hintWidth - 8);
+        hint.style.left = `${Math.max(8, Math.min(maxLeft, desiredLeft))}px`;
+      };
+      const hideHint = () => {
+        hint.hidden = true;
+        hint.setAttribute('aria-hidden', 'true');
+      };
+      outputHeader.addEventListener('pointerenter', showHint);
+      outputHeader.addEventListener('pointerleave', hideHint);
+      outputHeader.addEventListener('focus', showHint);
+      outputHeader.addEventListener('blur', hideHint);
+      shell.append(scroller, hint);
+      target.replaceChildren(shell);
+    } else {
+      target.replaceChildren(scroller);
+    }
     return table;
   }
 
