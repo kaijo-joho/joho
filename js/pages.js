@@ -1,4 +1,4 @@
-//2026-09-04 01:28:03;
+//2026-09-04 05:50:50;
 const pages = {
   "index": {
     "id": "index",
@@ -215,6 +215,32 @@ const pages = {
     "next": false,
     "show": true,
     "backFile": "dr31.html"
+  },
+  "nw11": {
+    "id": "nw11",
+    "release": false,
+    "fileName": "nw11.html",
+    "mainTitle": "ネットワークのしくみ",
+    "category": "インターネットとプロトコル",
+    "title": "1-1. インターネットとプロトコル",
+    "detail": "LAN・WAN、パケット交換、プロトコルと4階層の関係を図の穴埋めで学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": [
+      {
+        "id": "l61",
+        "title": "6-1. 情報通信ネットワークのしくみ",
+        "text": "6-1. 情報通信ネットワークのしくみ",
+        "release": true,
+        "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=l61"
+      }
+    ],
+    "back": "index",
+    "next": false,
+    "show": true,
+    "backFile": "index.html"
   },
   "html00": {
     "id": "html00",
