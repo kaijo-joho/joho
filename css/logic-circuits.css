@@ -1967,3 +1967,891 @@ section article .logic-extension-card h3 {
     transition: none;
   }
 }
+
+/* 座学用スライド基盤に載せた論理回路ページ */
+body.lesson-slide-ready .lesson-slide > article > p {
+  margin-block: 8px;
+}
+
+body.lesson-slide-ready .lesson-slide > article > h2:first-child {
+  margin-bottom: 6px;
+}
+
+body.lesson-slide-ready .logic-note,
+body.lesson-slide-ready .logic-operation-guide {
+  margin-block: 9px;
+}
+
+body.lesson-slide-ready .logic-concept-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin: 12px 4px;
+}
+
+body.lesson-slide-ready .logic-concept-card {
+  padding: 11px 12px;
+  font-size: .9em;
+  line-height: 1.45;
+}
+
+body.lesson-slide-ready .logic-gate-summary {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin: 9px 0 10px;
+  padding: 0;
+}
+
+body.lesson-slide-ready .logic-gate-summary__item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 2px 8px;
+  align-items: center;
+  min-width: 0;
+  padding: 7px 9px;
+  border-radius: 10px;
+  text-align: left;
+}
+
+body.lesson-slide-ready .logic-gate-summary__item > strong {
+  display: flex;
+  grid-row: 1 / 3;
+  margin: 0;
+  font-size: .86em;
+  line-height: 1.25;
+}
+
+body.lesson-slide-ready .logic-gate-summary__item > span {
+  min-width: 0;
+  color: var(--logic-muted);
+  font-size: .74em;
+  line-height: 1.3;
+}
+
+body.lesson-slide-ready .logic-gate-summary__icon {
+  width: 64px;
+  height: 40px;
+  flex-basis: 64px;
+  border-radius: 7px;
+}
+
+body.lesson-slide-ready .logic-gate-summary--text .logic-gate-summary__item {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+}
+
+body.lesson-slide-ready .logic-gate-summary--text .logic-gate-summary__item > strong {
+  display: block;
+  grid-row: auto;
+}
+
+body.lesson-slide-ready .logic-gate-topic {
+  display: grid;
+  grid-template-columns: minmax(210px, .58fr) minmax(430px, 1.42fr);
+  grid-template-areas:
+    "heading heading"
+    "overview explorer";
+  gap: 8px 12px;
+  align-items: start;
+  margin: 6px 0 0;
+  padding: 0;
+  border-top: 0;
+}
+
+body.lesson-slide-ready section article .logic-gate-topic > h3 {
+  grid-area: heading;
+  margin: 0;
+  font-size: clamp(1.02rem, 1.8vw, 1.25rem);
+}
+
+body.lesson-slide-ready .logic-gate-topic__overview {
+  display: grid;
+  grid-area: overview;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 10px;
+}
+
+body.lesson-slide-ready section article p.logic-gate-topic__description {
+  font-size: .82em;
+  line-height: 1.45;
+}
+
+body.lesson-slide-ready .logic-venn-card {
+  width: min(100%, 165px);
+}
+
+body.lesson-slide-ready .logic-venn-card figcaption {
+  padding: 4px 7px 5px;
+  font-size: .66em;
+}
+
+body.lesson-slide-ready .logic-gate-topic .logic-explorer {
+  grid-area: explorer;
+  margin: 0;
+  padding: 9px;
+}
+
+body.lesson-slide-ready .logic-gate-topic .logic-explorer__title {
+  display: none;
+}
+
+body.lesson-slide-ready .logic-gate-topic .logic-explorer__grid {
+  gap: 8px;
+}
+
+body.lesson-slide-ready .logic-gate-topic .logic-input-controls {
+  position: relative;
+  padding: 6px 9px;
+}
+
+body.lesson-slide-ready .logic-gate-topic .logic-input-controls__legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+body.lesson-slide-ready .logic-gate-topic .logic-output-readout {
+  padding: 6px 9px;
+  font-size: 1.08em;
+}
+
+body.lesson-slide-ready .logic-gate-topic .logic-explorer__side {
+  gap: 6px;
+}
+
+body.lesson-slide-ready .logic-gate-topic .logic-circuit .logic-svg,
+body.lesson-slide-ready .logic-gate-topic .logic-explorer__diagram .logic-svg {
+  min-height: 160px;
+  max-height: min(31dvh, 245px);
+}
+
+body.lesson-slide-ready .logic-gate-topic .logic-truth-table caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+body.lesson-slide-ready .logic-gate-topic .logic-truth-table th,
+body.lesson-slide-ready .logic-gate-topic .logic-truth-table td {
+  padding: 4px 6px;
+}
+
+body.lesson-slide-ready .logic-compound-slide .logic-slide-next-links {
+  display: none;
+}
+
+body.lesson-slide-ready .logic-compound-slide .logic-explorer {
+  margin: 8px 0 0;
+  padding: 9px;
+}
+
+body.lesson-slide-ready .logic-compound-slide .logic-explorer__title {
+  display: none;
+}
+
+body.lesson-slide-ready .logic-compound-slide .logic-input-controls {
+  position: relative;
+  padding: 6px 9px;
+}
+
+body.lesson-slide-ready .logic-compound-slide .logic-input-controls__legend,
+body.lesson-slide-ready .logic-compound-slide .logic-truth-table caption {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+body.lesson-slide-ready .logic-compound-slide .logic-explorer__grid {
+  gap: 8px;
+}
+
+body.lesson-slide-ready .logic-compound-slide .logic-explorer__side {
+  gap: 6px;
+}
+
+body.lesson-slide-ready .logic-compound-slide .logic-output-readout {
+  padding: 6px 9px;
+  font-size: 1.08em;
+}
+
+body.lesson-slide-ready .logic-compound-slide .logic-explorer__diagram .logic-svg {
+  min-height: 190px;
+  max-height: min(44dvh, 350px);
+}
+
+body.lesson-slide-ready .logic-compound-slide .logic-truth-table th,
+body.lesson-slide-ready .logic-compound-slide .logic-truth-table td {
+  padding: 3px 6px;
+}
+
+.logic-quick-start,
+.logic-quiz-overview {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 15px 4px;
+}
+
+.logic-quick-start > div,
+.logic-quiz-overview > div {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 1px 9px;
+  align-items: center;
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--logic-border);
+  border-radius: 11px;
+  background: var(--logic-panel);
+  color: var(--logic-text);
+}
+
+.logic-quick-start > div > span:first-child {
+  display: grid;
+  grid-row: 1 / 3;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--theme-color, #225386);
+  color: #fff;
+  font-family: var(--font-code, monospace);
+  font-weight: 850;
+}
+
+.logic-quick-start small,
+.logic-quiz-overview span {
+  color: var(--logic-muted);
+  font-size: .74em;
+  line-height: 1.35;
+}
+
+.logic-quiz-overview > div {
+  grid-template-columns: 1fr;
+}
+
+.lesson-supplement-trigger {
+  display: block;
+  margin: 12px auto 0;
+}
+
+.logic-example-picker {
+  position: relative;
+  z-index: 12;
+  width: max-content;
+  max-width: 100%;
+  margin: 0 0 8px;
+}
+
+.logic-example-picker > summary {
+  box-sizing: border-box;
+  min-height: 40px;
+  padding: 7px 12px;
+  border: 1px solid var(--logic-border);
+  border-radius: 9px;
+  background: var(--logic-panel-strong);
+  color: var(--logic-text);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.logic-example-picker[open] > summary {
+  border-color: var(--theme-color, #225386);
+}
+
+body.lesson-slide-ready .logic-example-picker .logic-save-row {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 15;
+  box-sizing: border-box;
+  width: min(720px, calc(100vw - 48px));
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--logic-border);
+  border-radius: 11px;
+  background: var(--logic-panel-strong);
+  box-shadow: 0 12px 28px rgba(20, 43, 63, .2);
+}
+
+.logic-workspace-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(230px, .55fr);
+  gap: 10px;
+  min-height: 0;
+  align-items: start;
+}
+
+body.lesson-slide-ready .logic-workspace-grid .logic-editor-host,
+body.lesson-slide-ready .logic-workspace-grid .logic-editor-truth-table {
+  margin: 0;
+}
+
+body.lesson-slide-ready .logic-workspace-grid .logic-editor__toolbar {
+  gap: 7px 12px;
+  padding: 8px;
+}
+
+body.lesson-slide-ready .logic-workspace-grid .logic-editor__canvas-wrap {
+  height: clamp(240px, calc(100dvh - 470px), 440px);
+}
+
+body.lesson-slide-ready .logic-workspace-table {
+  box-sizing: border-box;
+  max-height: clamp(360px, calc(100dvh - 220px), 570px);
+  overflow: auto;
+  overscroll-behavior: contain;
+  border: 1px solid var(--logic-border);
+  border-radius: 11px;
+  background: var(--logic-panel-strong);
+}
+
+body.lesson-slide-ready .logic-workspace-table .logic-table-scroll {
+  border: 0;
+  border-radius: 0;
+}
+
+body.lesson-slide-ready .logic-quiz-slide .logic-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin: 3px 0 5px;
+  padding: 5px;
+}
+
+body.lesson-slide-ready .logic-quiz-slide .logic-tabs__tab {
+  min-height: 38px;
+  padding: 6px 8px;
+  font-size: .83em;
+}
+
+.logic-quiz-stage {
+  min-height: 0;
+}
+
+body.lesson-slide-ready .logic-quiz-panel__content {
+  padding: 0 2px 4px;
+}
+
+body.lesson-slide-ready .logic-question-header {
+  margin: 4px 0 7px;
+}
+
+body.lesson-slide-ready .logic-question-header h3 {
+  font-size: 1.04em;
+}
+
+body.lesson-slide-ready .logic-prompt {
+  margin-block: 5px;
+  padding: 8px 10px;
+  font-size: .9em;
+}
+
+body.lesson-slide-ready .logic-prompt__inputs {
+  gap: 6px;
+  margin-top: 5px;
+}
+
+body.lesson-slide-ready .logic-prompt__bit {
+  padding: 3px 8px;
+}
+
+body.lesson-slide-ready .logic-quiz-panel .logic-circuit .logic-svg {
+  min-height: 145px;
+  max-height: min(24dvh, 220px);
+}
+
+body.lesson-slide-ready #single-circuit .logic-svg {
+  min-height: 135px;
+  max-height: min(21dvh, 175px);
+}
+
+body.lesson-slide-ready .logic-quiz-panel .logic-answer-buttons,
+body.lesson-slide-ready .logic-quiz-panel .logic-question-actions {
+  margin-block: 5px;
+}
+
+body.lesson-slide-ready .logic-quiz-panel .logic-answer-button {
+  min-height: 42px;
+  padding-block: 5px;
+}
+
+body.lesson-slide-ready .logic-quiz-panel .logic-feedback {
+  min-height: 1.3em;
+  padding-block: 7px;
+  font-size: .84em;
+}
+
+body.lesson-slide-ready .logic-quiz-panel .logic-truth-table th,
+body.lesson-slide-ready .logic-quiz-panel .logic-truth-table td {
+  padding: 4px 6px;
+}
+
+body.lesson-slide-ready #table-answer-grid .logic-table-scroll {
+  max-height: 245px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+body.lesson-slide-ready .logic-quiz-panel .logic-editor-host {
+  margin-block: 8px;
+}
+
+body.lesson-slide-ready .logic-quiz-panel .logic-editor__canvas-wrap {
+  max-height: min(35dvh, 330px);
+}
+
+body.lesson-slide-ready #panel-build .logic-quiz-panel__content {
+  display: grid;
+  grid-template-columns: minmax(220px, .48fr) minmax(0, 1.52fr);
+  grid-template-areas:
+    "header header"
+    "prompt prompt"
+    "table editor"
+    "footer footer"
+    "note note";
+  gap: 5px 10px;
+  align-items: start;
+}
+
+body.lesson-slide-ready #panel-build .logic-quiz-panel__content > * {
+  margin-block: 0;
+}
+
+body.lesson-slide-ready #panel-build .logic-question-header {
+  grid-area: header;
+}
+
+body.lesson-slide-ready #build-question-text {
+  grid-area: prompt;
+}
+
+body.lesson-slide-ready #build-target-table {
+  grid-area: table;
+}
+
+body.lesson-slide-ready #build-target-table .logic-table-scroll {
+  max-height: 300px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+body.lesson-slide-ready #build-editor {
+  grid-area: editor;
+  min-width: 0;
+}
+
+body.lesson-slide-ready #build-editor .logic-editor__guide {
+  display: none;
+}
+
+body.lesson-slide-ready #build-editor .logic-editor__gate-button,
+body.lesson-slide-ready #build-editor .logic-editor__action-button {
+  padding-inline: 6px;
+  font-size: .76em;
+}
+
+body.lesson-slide-ready #build-editor .logic-editor__gate-icon {
+  width: 42px;
+  height: 30px;
+}
+
+body.lesson-slide-ready #build-editor .logic-editor__toolbar {
+  flex-wrap: nowrap;
+  gap: 5px;
+  padding: 7px;
+}
+
+body.lesson-slide-ready #build-editor .logic-editor__palette,
+body.lesson-slide-ready #build-editor .logic-editor__actions {
+  flex-wrap: nowrap;
+  gap: 4px;
+}
+
+body.lesson-slide-ready #build-editor .logic-editor__canvas-wrap {
+  max-height: 230px;
+}
+
+body.lesson-slide-ready #build-feedback {
+  grid-area: footer;
+  padding-inline-end: 190px;
+}
+
+body.lesson-slide-ready #panel-build .logic-question-actions {
+  z-index: 1;
+  grid-area: footer;
+  align-self: center;
+  justify-self: end;
+  justify-content: flex-end;
+}
+
+body.lesson-slide-ready #panel-build .logic-note {
+  grid-area: note;
+  display: none;
+}
+
+body.lesson-slide-ready .logic-application-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1.18fr) minmax(300px, .82fr);
+  grid-template-areas:
+    "header header"
+    "primary secondary"
+    "reveal reveal"
+    "footer footer";
+  margin: 8px 0 0;
+}
+
+body.lesson-slide-ready .logic-application-card__header {
+  grid-area: header;
+  padding: 7px 12px;
+}
+
+body.lesson-slide-ready section article .logic-application-card__header h3 {
+  font-size: clamp(1.05rem, 1.8vw, 1.28rem);
+}
+
+body.lesson-slide-ready .logic-application-card__eyebrow {
+  font-size: .68em;
+}
+
+body.lesson-slide-ready .logic-application-card > .logic-application-step,
+body.lesson-slide-ready .logic-application-card > .logic-application-reveal,
+body.lesson-slide-ready .logic-application-card > .logic-application-card__footer {
+  display: none;
+}
+
+body.lesson-slide-ready .logic-application-card > .logic-application-card__header {
+  display: flex;
+}
+
+body.lesson-slide-ready .logic-application-card--truth .logic-application-step--diagram,
+body.lesson-slide-ready .logic-application-card--complete .logic-application-step--diagram,
+body.lesson-slide-ready .logic-application-card--function .logic-application-step:nth-of-type(2),
+body.lesson-slide-ready .logic-application-card--name .logic-application-step:nth-of-type(3) {
+  display: block;
+  grid-area: primary;
+}
+
+body.lesson-slide-ready .logic-application-card--truth .logic-application-step:nth-of-type(2),
+body.lesson-slide-ready .logic-application-card--function .logic-application-step:nth-of-type(3),
+body.lesson-slide-ready .logic-application-card--name .logic-application-step:nth-of-type(4),
+body.lesson-slide-ready .logic-application-card--complete .logic-application-reveal {
+  display: block;
+  grid-area: secondary;
+}
+
+body.lesson-slide-ready .logic-application-card > .logic-application-step {
+  min-width: 0;
+  height: clamp(285px, calc(100dvh - 395px), 440px);
+  padding: 10px 12px;
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+body.lesson-slide-ready .logic-application-card > .logic-application-step:nth-of-type(2),
+body.lesson-slide-ready .logic-application-card > .logic-application-step:nth-of-type(4),
+body.lesson-slide-ready .logic-application-card--complete .logic-application-reveal {
+  border-left: 1px solid var(--logic-border);
+}
+
+body.lesson-slide-ready .logic-application-card--complete .logic-application-reveal {
+  margin: 0;
+  height: clamp(285px, calc(100dvh - 395px), 440px);
+  box-sizing: border-box;
+  overflow: auto;
+  border-top: 0;
+  border-right: 0;
+  border-bottom: 0;
+  border-radius: 0;
+}
+
+body.lesson-slide-ready .logic-application-card--complete .logic-application-card__footer {
+  display: flex;
+  grid-area: footer;
+  padding: 8px 12px 10px;
+}
+
+body.lesson-slide-ready .logic-application-step__prompt {
+  font-size: .84em;
+}
+
+body.lesson-slide-ready .logic-application-diagram .logic-svg {
+  max-height: min(42dvh, 390px);
+}
+
+body.lesson-slide-ready .logic-application-step .logic-truth-table caption {
+  padding-block: 5px;
+}
+
+body.lesson-slide-ready .logic-application-step .logic-truth-table th,
+body.lesson-slide-ready .logic-application-step .logic-truth-table td {
+  padding-block: 4px;
+}
+
+body.lesson-slide-ready .logic-application-step .logic-question-actions,
+body.lesson-slide-ready .logic-application-step .logic-feedback {
+  margin-block: 7px;
+}
+
+body.lesson-slide-ready .logic-circuit-selector {
+  margin: 4px 0 5px;
+  padding: 5px;
+}
+
+body.lesson-slide-ready .logic-circuit-selector__button {
+  min-height: 38px;
+  padding-block: 3px;
+}
+
+body.lesson-slide-ready .logic-extension-grid {
+  gap: 9px;
+  margin-block: 10px;
+}
+
+body.lesson-slide-ready .logic-extension-card {
+  padding: 11px 13px;
+  font-size: .9em;
+}
+
+@media (max-width: 900px) {
+  body.lesson-slide-ready .logic-gate-topic {
+    grid-template-columns: minmax(180px, .52fr) minmax(350px, 1.48fr);
+  }
+
+  body.lesson-slide-ready .logic-gate-summary__item > span {
+    display: none;
+  }
+
+  .logic-workspace-grid {
+    grid-template-columns: minmax(0, 1.5fr) minmax(200px, .5fr);
+  }
+
+  body.lesson-slide-ready .logic-application-card {
+    grid-template-columns: minmax(0, 1fr) minmax(270px, .8fr);
+  }
+}
+
+@media (max-width: 620px) {
+  body.lesson-slide-ready .logic-concept-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  body.lesson-slide-ready .logic-concept-card {
+    padding: 8px 9px;
+    font-size: .8em;
+  }
+
+  body.lesson-slide-ready .logic-gate-summary {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  body.lesson-slide-ready .logic-gate-summary__item {
+    display: flex;
+    min-height: 54px;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+    padding: 4px;
+    text-align: center;
+  }
+
+  body.lesson-slide-ready .logic-gate-summary__item > strong {
+    flex-direction: column;
+    gap: 1px;
+    font-size: .7em;
+  }
+
+  body.lesson-slide-ready .logic-gate-summary__icon {
+    width: 48px;
+    height: 29px;
+    flex-basis: 29px;
+  }
+
+  body.lesson-slide-ready .logic-gate-summary--text .logic-gate-summary__item > strong {
+    font-size: .68em;
+  }
+
+  body.lesson-slide-ready .logic-gate-topic {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "heading"
+      "overview"
+      "explorer";
+    gap: 6px;
+  }
+
+  body.lesson-slide-ready .logic-gate-topic__overview {
+    grid-template-columns: minmax(0, 1fr) 116px;
+    align-items: center;
+    padding: 7px;
+  }
+
+  body.lesson-slide-ready section article p.logic-gate-topic__description {
+    font-size: .72em;
+    line-height: 1.36;
+  }
+
+  body.lesson-slide-ready .logic-venn-card figcaption {
+    display: none;
+  }
+
+  body.lesson-slide-ready .logic-gate-topic .logic-explorer {
+    padding: 7px;
+  }
+
+  body.lesson-slide-ready .logic-gate-topic .logic-explorer__title {
+    display: none;
+  }
+
+  body.lesson-slide-ready .logic-gate-topic .logic-circuit .logic-svg,
+  body.lesson-slide-ready .logic-gate-topic .logic-explorer__diagram .logic-svg {
+    min-height: 135px;
+    max-height: 180px;
+  }
+
+  body.lesson-slide-ready .logic-gate-topic .logic-input-controls {
+    padding-block: 4px;
+  }
+
+  .logic-quick-start,
+  .logic-quiz-overview {
+    gap: 6px;
+    margin: 10px 0;
+  }
+
+  .logic-quick-start > div,
+  .logic-quiz-overview > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+    padding: 8px;
+    text-align: center;
+  }
+
+  .logic-quick-start > div > span:first-child {
+    grid-row: auto;
+    width: 25px;
+    height: 25px;
+    margin-inline: auto;
+    font-size: .78em;
+  }
+
+  .logic-quick-start strong,
+  .logic-quiz-overview strong {
+    font-size: .75em;
+  }
+
+  .logic-quick-start small,
+  .logic-quiz-overview span {
+    font-size: .62em;
+  }
+
+  body.lesson-slide-ready .logic-example-picker .logic-save-row {
+    position: fixed;
+    top: auto;
+    right: 8px;
+    bottom: 72px;
+    left: 8px;
+    width: auto;
+  }
+
+  .logic-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+
+  body.lesson-slide-ready .logic-workspace-grid .logic-editor__canvas-wrap {
+    height: min(40dvh, 350px);
+  }
+
+  body.lesson-slide-ready .logic-workspace-table {
+    max-height: 300px;
+  }
+
+  body.lesson-slide-ready .logic-quiz-slide .logic-tabs__tab {
+    min-width: 0;
+    padding-inline: 4px;
+    font-size: .67em;
+    line-height: 1.3;
+  }
+
+  body.lesson-slide-ready .logic-quiz-panel .logic-circuit .logic-svg {
+    min-height: 130px;
+    max-height: 185px;
+  }
+
+  body.lesson-slide-ready #panel-build .logic-quiz-panel__content {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "prompt"
+      "table"
+      "editor"
+      "feedback"
+      "actions"
+      "note";
+  }
+
+  body.lesson-slide-ready #build-feedback {
+    grid-area: feedback;
+    padding-inline-end: 10px;
+  }
+
+  body.lesson-slide-ready #panel-build .logic-question-actions {
+    grid-area: actions;
+    justify-self: stretch;
+  }
+
+  body.lesson-slide-ready .logic-application-card {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "header"
+      "primary"
+      "secondary"
+      "reveal"
+      "footer";
+  }
+
+  body.lesson-slide-ready .logic-application-card > .logic-application-step:nth-of-type(2),
+  body.lesson-slide-ready .logic-application-card > .logic-application-step:nth-of-type(4),
+  body.lesson-slide-ready .logic-application-card--complete .logic-application-reveal {
+    border-left: 0;
+  }
+
+  body.lesson-slide-ready .logic-application-card > .logic-application-step,
+  body.lesson-slide-ready .logic-application-card--complete .logic-application-reveal {
+    height: clamp(230px, 31dvh, 270px);
+  }
+
+  body.lesson-slide-ready .logic-application-diagram .logic-svg {
+    max-height: 220px;
+  }
+
+  body.lesson-slide-ready .logic-extension-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  body.lesson-slide-ready .logic-extension-card {
+    padding: 8px;
+    font-size: .76em;
+  }
+
+  body.lesson-slide-ready .logic-extension-card span {
+    font-size: .66em;
+  }
+}

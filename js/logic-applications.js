@@ -459,7 +459,7 @@
       });
     }
 
-    function renderTruthTable(container, circuit, state, feedback, functionStep) {
+    function renderTruthTable(container, circuit, state, feedback, functionStep, onSolved) {
       const scroll = createElement('div', { className: 'logic-table-scroll' });
       const table = createElement('table', { className: 'logic-truth-table logic-application-table' });
       table.appendChild(createElement('caption', { text: '出力欄を選び、真理値表を完成させてください' }));
@@ -542,6 +542,7 @@
         judge.textContent = '真理値表 正解 ✓';
         functionStep.hidden = false;
         setFeedback(feedback, '全セル正解です。次に、この入出力が表す機能を考えましょう。', 'correct');
+        onSolved?.();
       });
       actions.appendChild(judge);
       container.append(actions, feedback);
@@ -608,7 +609,24 @@
       const state = states[circuit.id];
       challengeHost.replaceChildren();
 
-      const card = createElement('section', { className: 'logic-application-card', attributes: { 'aria-labelledby': `logic-application-${circuit.id}` } });
+      const stage = state.nameSolved ? 'complete' : state.functionSolved ? 'name' : state.truthSolved ? 'function' : 'truth';
+      const card = createElement('section', {
+        className: `logic-application-card logic-application-card--${stage}`,
+        attributes: { 'aria-labelledby': `logic-application-${circuit.id}`, 'data-application-stage': stage }
+      });
+      const setCardStage = (nextStage, focusTarget) => {
+        ['truth', 'function', 'name', 'complete'].forEach(name => {
+          card.classList.toggle(`logic-application-card--${name}`, name === nextStage);
+        });
+        card.dataset.applicationStage = nextStage;
+        document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+        requestAnimationFrame(() => {
+          const heading = focusTarget?.querySelector?.('.logic-application-step__title, h4');
+          if (!heading) return;
+          heading.tabIndex = -1;
+          heading.focus({ preventScroll: true });
+        });
+      };
       const header = createElement('header', { className: 'logic-application-card__header' });
       const titleWrap = createElement('div');
       titleWrap.append(
@@ -649,7 +667,9 @@
       const nameStep = createElement('section', { className: 'logic-application-step logic-application-step--locked', attributes: { hidden: state.functionSolved ? null : '' } });
       const nameFeedback = createElement('div', { className: `logic-feedback${state.nameSolved ? ' is-correct' : ''}`, text: state.nameSolved ? `正解は「${circuit.name}」です。` : 'この働きを持つ回路の名前を選びます。', attributes: { role: 'status', 'aria-live': 'polite' } });
 
-      renderTruthTable(truthStep, circuit, state, truthFeedback, functionStep);
+      renderTruthTable(truthStep, circuit, state, truthFeedback, functionStep, () => {
+        setCardStage('function', functionStep);
+      });
       renderChoiceStep(functionStep, {
         title: '3. 回路の機能を考える',
         prompt: '完成した真理値表は、どのような働きを表していますか？',
@@ -663,7 +683,10 @@
         wrongText: 'もう一度、出力が1になる行に注目して考えましょう。',
         correctText: '正解です。最後に、この機能を持つ回路の名前を当てましょう。',
         markSolved: () => { state.functionSolved = true; },
-        onSolved: () => { nameStep.hidden = false; }
+        onSolved: () => {
+          nameStep.hidden = false;
+          setCardStage('name', nameStep);
+        }
       });
 
       renderChoiceStep(nameStep, {
@@ -682,6 +705,7 @@
         onSolved: () => {
           reveal.hidden = false;
           nextButton.hidden = false;
+          setCardStage('complete', reveal);
           titleWrap.querySelector('h3').textContent = `回路${circuit.marker}：${circuit.name}`;
           renderSelector();
           updateProgress();
@@ -715,7 +739,7 @@
         renderSelector();
         renderChallenge();
         document.getElementById(`logic-application-${next.id}`)?.focus({ preventScroll: true });
-        challengeHost.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        challengeHost.closest('.lesson-slide')?.scrollTo({ top: 0, behavior: 'smooth' });
       });
       footer.appendChild(nextButton);
 

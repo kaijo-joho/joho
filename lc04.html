@@ -11,15 +11,17 @@
   </style>
   <title>海城中学高等学校 情報科</title>
   <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/logic-circuits.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/logic-core.js"></script>
   <script defer src="./js/logic-renderer.js"></script>
   <script defer src="./js/logic-widgets.js"></script>
   <script defer src="./js/logic-applications.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
-<body>
-  <section>
+<body data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="有名な組合せ回路">
     <article>
       <h2 id="headline_1">(1) 有名な組合せ回路を見つける</h2>
       <p class="logic-lead">回路図と入出力の関係から、4つの有名な回路の正体を見破りましょう。回路図に使われているゲートは、AND・OR・NOTだけです。</p>
@@ -33,18 +35,18 @@
     </article>
   </section>
 
-  <section>
+  <section data-lesson-slide data-lesson-slide-title="回路の正体を見破る" data-lesson-slide-layout="exercise">
     <article>
       <div class="logic-application-heading">
         <h2 id="headline_2">(2) 回路の正体を見破る</h2>
         <output class="logic-score" id="logic-application-progress" aria-live="polite">完成 0 / 4</output>
       </div>
       <div class="logic-circuit-selector" id="logic-circuit-selector" aria-label="調べる回路を選ぶ"></div>
-      <div id="logic-application-challenge"></div>
+      <div id="logic-application-challenge" data-lesson-slide-navigation-lock></div>
     </article>
   </section>
 
-  <section>
+  <section data-lesson-slide data-lesson-slide-title="次に扱える組合せ回路">
     <article>
       <h2 id="headline_3">(3) 発展：次に扱える組合せ回路</h2>
       <p>循環する配線を持たず、同じように回路図と真理値表から考えられる回路には、次のようなものがあります。</p>

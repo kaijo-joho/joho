@@ -11,15 +11,17 @@
   </style>
   <title>海城中学高等学校 情報科</title>
   <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/logic-circuits.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/logic-core.js"></script>
   <script defer src="./js/logic-renderer.js"></script>
   <script defer src="./js/logic-widgets.js"></script>
   <script defer src="./js/logic-lessons.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
-<body>
-  <section>
+<body data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="0と1で考える">
     <article>
       <h2 id="headline_1">(1) 0と1で考える</h2>
       <p class="logic-lead">コンピュータの内部では、情報を<strong>0と1</strong>の組み合わせとして扱います。論理回路は、0または1を入力として受け取り、決められた規則に従って0または1を出力する小さな仕組みです。</p>
@@ -33,18 +35,18 @@
     </article>
   </section>
 
-  <section>
+  <section data-lesson-slide data-lesson-slide-title="基本の論理ゲート">
     <article>
       <h2 id="headline_2">(2) 基本の論理ゲート</h2>
       <p>論理ゲートは、入力に対して1つの論理演算を行う部品です。この教材の回路図では、次の<strong>AND・OR・NOTの3種類</strong>を基本ゲートとして使います。</p>
-      <div class="logic-gate-summary">
-        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__icon" data-logic-gate-icon="AND">AND</span>AND（論理積）</strong>AとBが両方とも1のときだけ1</div>
-        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__icon" data-logic-gate-icon="OR">OR</span>OR（論理和）</strong>AとBの少なくとも一方が1なら1</div>
-        <div class="logic-gate-summary__item"><strong><span class="logic-gate-summary__icon" data-logic-gate-icon="NOT">NOT</span>NOT（否定）</strong>入力の0と1を反対にする</div>
-      </div>
-      <p>表にすべての入力の組み合わせと出力を並べたものを<strong>真理値表</strong>といいます。下の例では入力ボタンまたは表の行を選び、回路図・出力F・真理値表が同時に変わることを確かめましょう。</p>
+      <div class="logic-gate-view" data-lesson-view-group data-lesson-default-view="and">
+        <div class="logic-gate-summary" data-lesson-view-controls role="tablist" aria-label="基本ゲートを選ぶ">
+          <button type="button" class="logic-gate-summary__item" data-lesson-view="and"><strong><span class="logic-gate-summary__icon" data-logic-gate-icon="AND">AND</span>AND（論理積）</strong><span>AとBが両方とも1のときだけ1</span></button>
+          <button type="button" class="logic-gate-summary__item" data-lesson-view="or"><strong><span class="logic-gate-summary__icon" data-logic-gate-icon="OR">OR</span>OR（論理和）</strong><span>AとBの少なくとも一方が1なら1</span></button>
+          <button type="button" class="logic-gate-summary__item" data-lesson-view="not"><strong><span class="logic-gate-summary__icon" data-logic-gate-icon="NOT">NOT</span>NOT（否定）</strong><span>入力の0と1を反対にする</span></button>
+        </div>
 
-      <div class="logic-gate-topic" id="logic-gate-and">
+      <div class="logic-gate-topic" id="logic-gate-and" data-lesson-view-panel="and">
         <h3>① ANDゲート（論理積）</h3>
         <div class="logic-gate-topic__overview">
           <p class="logic-gate-topic__description">ANDは「A<strong>かつ</strong>B」を表します。2つの条件がどちらも満たされたときだけ、出力Fが1になります。論理式では <code>A ∧ B</code> と書きます。ベン図では、AとBが重なる部分が1になる範囲です。</p>
@@ -53,7 +55,7 @@
         <div data-logic-explorer data-expression="A-B" data-title="AND：A ∧ B"></div>
       </div>
 
-      <div class="logic-gate-topic" id="logic-gate-or">
+      <div class="logic-gate-topic" id="logic-gate-or" data-lesson-view-panel="or">
         <h3>② ORゲート（論理和）</h3>
         <div class="logic-gate-topic__overview">
           <p class="logic-gate-topic__description">ORは「A<strong>または</strong>B」を表します。少なくとも一方の条件が満たされると、出力Fが1になります。論理式では <code>A ∨ B</code> と書きます。ベン図では、AとBの内側全体が1になる範囲です。</p>
@@ -62,7 +64,7 @@
         <div data-logic-explorer data-expression="A_B" data-title="OR：A ∨ B"></div>
       </div>
 
-      <div class="logic-gate-topic" id="logic-gate-not">
+      <div class="logic-gate-topic" id="logic-gate-not" data-lesson-view-panel="not">
         <h3>③ NOTゲート（否定）</h3>
         <div class="logic-gate-topic__overview">
           <p class="logic-gate-topic__description">NOTは入力を<strong>反転</strong>します。Aが0ならFは1、Aが1ならFは0です。回路記号の出力側にある小さな丸が否定を示し、論理式では <code>¬A</code> と書きます。ベン図では、全体のうちAの外側が1になる範囲です。</p>
@@ -70,15 +72,23 @@
         </div>
         <div data-logic-explorer data-expression="nA" data-title="NOT：¬A"></div>
       </div>
+      </div>
     </article>
   </section>
 
-  <section>
+  <section data-lesson-slide data-lesson-slide-title="主な論理ゲート">
     <article>
       <h2 id="headline_3">(3) 主な論理ゲート</h2>
       <p>NAND・NOR・XORは、基本ゲートを組み合わせて作れる代表的な論理演算です。この教材の回路図では専用ゲートを使わず、AND・OR・NOTだけの回路へ展開して示します。</p>
 
-      <div class="logic-gate-topic" id="logic-gate-nand">
+      <div class="logic-gate-view" data-lesson-view-group data-lesson-default-view="nand">
+        <div class="logic-gate-summary logic-gate-summary--text" data-lesson-view-controls role="tablist" aria-label="主な論理ゲートを選ぶ">
+          <button type="button" class="logic-gate-summary__item" data-lesson-view="nand"><strong>NAND（否定論理積）</strong><span>ANDの結果を反転</span></button>
+          <button type="button" class="logic-gate-summary__item" data-lesson-view="nor"><strong>NOR（否定論理和）</strong><span>ORの結果を反転</span></button>
+          <button type="button" class="logic-gate-summary__item" data-lesson-view="xor"><strong>XOR（排他的論理和）</strong><span>AとBが異なるとき1</span></button>
+        </div>
+
+      <div class="logic-gate-topic" id="logic-gate-nand" data-lesson-view-panel="nand">
         <h3>① NANDゲート（否定論理積）</h3>
         <div class="logic-gate-topic__overview">
           <p class="logic-gate-topic__description">NANDはANDの結果をNOTで反転します。AとBが両方とも1のときだけ0になり、それ以外は1です。論理式では <code>¬(A ∧ B)</code> と書きます。ベン図では、AとBの共通部分以外が1になる範囲です。</p>
@@ -87,7 +97,7 @@
         <div data-logic-explorer data-expression="n(A-B)" data-title="NAND相当回路：¬(A ∧ B)"></div>
       </div>
 
-      <div class="logic-gate-topic" id="logic-gate-nor">
+      <div class="logic-gate-topic" id="logic-gate-nor" data-lesson-view-panel="nor">
         <h3>② NORゲート（否定論理和）</h3>
         <div class="logic-gate-topic__overview">
           <p class="logic-gate-topic__description">NORはORの結果をNOTで反転します。AとBが両方とも0のときだけ1です。論理式では <code>¬(A ∨ B)</code> と書きます。ベン図では、AとBのどちらにも含まれない外側が1になる範囲です。</p>
@@ -96,7 +106,7 @@
         <div data-logic-explorer data-expression="n(A_B)" data-title="NOR相当回路：¬(A ∨ B)"></div>
       </div>
 
-      <div class="logic-gate-topic" id="logic-gate-xor">
+      <div class="logic-gate-topic" id="logic-gate-xor" data-lesson-view-panel="xor">
         <h3>③ XORゲート（排他的論理和）</h3>
         <div class="logic-gate-topic__overview">
           <p class="logic-gate-topic__description">XORは「AとBが<strong>異なる</strong>」ときに1になります。どちらか一方だけが1のときに1、両方が同じときは0です。論理式では <code>A ⊕ B</code> と書きます。ベン図では、AとBが重ならない左右の部分が1になる範囲です。</p>
@@ -104,15 +114,16 @@
         </div>
         <div data-logic-explorer data-expression="A^B" data-title="XOR相当回路：A ⊕ B"></div>
       </div>
+      </div>
     </article>
   </section>
 
-  <section>
+  <section class="logic-compound-slide" data-lesson-slide data-lesson-slide-title="回路図と真理値表">
     <article>
       <h2 id="headline_4">(4) 回路図と真理値表</h2>
       <p>複数のゲートをつなぐときは、入力から順に中間結果を求めます。例えば <code>(A ∧ B) ∨ C</code> は、最初にAとBのANDを求め、その結果とCのORを求める回路です。</p>
       <div data-logic-explorer data-expression="(A-B)_C" data-title="複合回路：(A ∧ B) ∨ C"></div>
-      <div class="logic-operation-guide">
+      <div class="logic-operation-guide logic-slide-next-links">
         <strong>次の実習</strong>
         <ol>
           <li><a href="./lc02.html">自由接続モード</a>で、自分の回路を組み立てる</li>

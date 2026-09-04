@@ -11,6 +11,7 @@
   </style>
   <title>海城中学高等学校 情報科</title>
   <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/logic-circuits.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/logic-core.js"></script>
@@ -18,43 +19,61 @@
   <script defer src="./js/logic-widgets.js"></script>
   <script defer src="./js/logic-editor.js"></script>
   <script defer src="./js/logic-workbench.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
-<body>
-  <section>
+<body data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="自由に組み立てる">
     <article>
       <h2 id="headline_1">(1) 自由に論理回路を組み立てる</h2>
       <p class="logic-lead">AND・OR・NOTの基本ゲートを配置して、入力A〜Dから出力Fまでをつないでみましょう。完成した回路は入力を切り替えながら信号の流れを確認でき、真理値表も自動で生成されます。</p>
-      <div class="logic-operation-guide">
-        <strong>基本操作</strong>
-        <ol>
-          <li>上部の「AND」「OR」「NOT」からゲートを追加します。</li>
-          <li><strong>出力端子（●）</strong>から<strong>入力端子（●）</strong>までドラッグします。端子を順番に選ぶ方法でも接続できます。</li>
-          <li>接続済みの入力端子を別の入力端子へドラッグすると接続先を、別の出力端子へドラッグすると接続元を付け替えられます。</li>
-          <li>入力A〜Dの箱をクリックすると0/1が切り替わります。部品はドラッグして移動できます。</li>
-          <li>ゲートまたは配線を選び、近くに出る「×」、「選択を削除」、またはDeleteキーで削除します。</li>
-          <li>完成した回路は、ツールバーの「SVG保存」から保存できます。ファイル名はボタンにマウスを重ねると確認できます。</li>
-        </ol>
+      <div class="logic-quick-start" aria-label="基本操作の3段階">
+        <div><span>1</span><strong>ゲートを置く</strong><small>AND・OR・NOTを追加</small></div>
+        <div><span>2</span><strong>端子をつなぐ</strong><small>出力●から入力●へドラッグ</small></div>
+        <div><span>3</span><strong>入力を試す</strong><small>0/1と真理値表を確認</small></div>
       </div>
-      <p class="logic-note">同じ入力端子への重複接続、逆向き接続、循環する接続は自動的に防止されます。配線は水平・垂直に引かれ、重なりを避けて自動調整されます。同じ出力を複数箇所へつなぐと、途中で分岐します。</p>
+      <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="lc02-operation-dialog" data-lesson-supplement-preview="接続の付け替え、削除、SVG保存などの操作を確認できます。">詳しい操作方法</button>
+      <dialog class="lesson-supplement-dialog" id="lc02-operation-dialog" data-lesson-supplement-dialog aria-labelledby="lc02-operation-title">
+        <div class="lesson-supplement-dialog__header">
+          <h3 id="lc02-operation-title">回路エディタの詳しい操作</h3>
+          <button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="詳しい操作方法を閉じる">×</button>
+        </div>
+        <div class="lesson-supplement-dialog__body">
+          <ol>
+            <li>上部の「AND」「OR」「NOT」からゲートを追加します。</li>
+            <li><strong>出力端子（●）</strong>から<strong>入力端子（●）</strong>までドラッグします。端子を順番に選ぶ方法でも接続できます。</li>
+            <li>接続済みの入力端子を別の入力端子へドラッグすると接続先を、別の出力端子へドラッグすると接続元を付け替えられます。</li>
+            <li>入力A〜Dの箱をクリックすると0/1が切り替わります。部品はドラッグして移動できます。</li>
+            <li>ゲートまたは配線を選び、近くに出る「×」、「選択を削除」、またはDeleteキーで削除します。</li>
+            <li>完成した回路は、ツールバーの「SVG保存」から保存できます。ファイル名はボタンにマウスを重ねると確認できます。</li>
+          </ol>
+          <p class="logic-note">同じ入力端子への重複接続、逆向き接続、循環する接続は自動的に防止されます。配線は水平・垂直に引かれ、重なりを避けて自動調整されます。同じ出力を複数箇所へつなぐと、途中で分岐します。</p>
+        </div>
+      </dialog>
     </article>
   </section>
 
-  <section>
+  <section data-lesson-slide data-lesson-slide-title="回路エディタ" data-lesson-slide-layout="workspace">
     <article>
       <h2 id="headline_2">(2) 回路エディタ</h2>
-      <div class="logic-save-row" aria-label="回路例">
-        <span>例を読み込む：</span>
-        <button type="button" class="logic-secondary-button" data-load-logic-example="A-B">AND</button>
-        <button type="button" class="logic-secondary-button" data-load-logic-example="(A-B)_C">ANDの出力をORへつなぐ例</button>
-        <button type="button" class="logic-secondary-button" data-load-logic-example="n(A_B)">NOR相当</button>
-        <button type="button" class="logic-secondary-button" data-load-logic-example="(A^B)-C">XOR相当を含む例</button>
+      <details class="logic-example-picker">
+        <summary>回路例を読み込む</summary>
+        <div class="logic-save-row" aria-label="回路例">
+          <button type="button" class="logic-secondary-button" data-load-logic-example="A-B">AND</button>
+          <button type="button" class="logic-secondary-button" data-load-logic-example="(A-B)_C">ANDの出力をORへつなぐ例</button>
+          <button type="button" class="logic-secondary-button" data-load-logic-example="n(A_B)">NOR相当</button>
+          <button type="button" class="logic-secondary-button" data-load-logic-example="(A^B)-C">XOR相当を含む例</button>
+        </div>
+      </details>
+      <div class="logic-workspace-grid" data-lesson-slide-navigation-lock>
+        <div id="logic-editor"></div>
+        <aside class="logic-workspace-table" aria-label="作成した回路の真理値表">
+          <div id="logic-workbench-table" class="logic-editor-truth-table" aria-live="polite"></div>
+        </aside>
       </div>
-      <div id="logic-editor"></div>
-      <div id="logic-workbench-table" class="logic-editor-truth-table" aria-live="polite"></div>
     </article>
   </section>
 
-  <section>
+  <section data-lesson-slide data-lesson-slide-title="回路を読み取るポイント">
     <article>
       <h2 id="headline_3">(3) 回路を読み取るポイント</h2>
       <p>左側の入力から配線をたどり、ゲートごとの結果を順番に求めると、右端の出力Fへ到達できます。途中で配線が分岐しているときは、同じ入力値がそれぞれの接続先へ届きます。</p>
