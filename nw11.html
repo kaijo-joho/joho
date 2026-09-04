@@ -21,7 +21,7 @@
   <section data-lesson-slide data-lesson-slide-title="インターネットのしくみ">
     <article class="nw-slide nw-slide--map">
       <h2 id="headline_1">(1) インターネットのしくみ</h2>
-      <p class="nw-lead">家庭や学校などの小さなネットワークを、通信事業者の設備を通して互いにつなぐことで、インターネットが構成されます。</p>
+      <p class="nw-lead">家庭や学校などのLANが、ISPや通信キャリアの設備を介して互いにつながることで、インターネットが構成されます。まず、端末からインターネットまでの経路と各機器の役割を確認します。</p>
 
       <figure class="nw-figure" data-network-reveal-group aria-labelledby="nw-map-caption">
         <figcaption id="nw-map-caption" class="nw-figure__caption">
@@ -237,6 +237,7 @@
   <section data-lesson-slide data-lesson-slide-title="データの伝送方式" data-lesson-slide-layout="workspace">
     <article class="nw-slide nw-slide--transport" data-network-reveal-group data-network-reveal-group-id="transport">
       <h2 id="headline_2">(2) データの伝送方式</h2>
+      <p class="nw-lead">前のスライドでは、端末からインターネットまでの接続を確認しました。ここでは、その経路でデータを運ぶ2つの方式を比べます。</p>
       <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden data-network-reveal-controls="transport">
         <output data-network-reveal-progress aria-live="polite">0 / 4</output>
         <button type="button" data-network-reveal-all>すべて表示</button>
@@ -416,6 +417,7 @@
   <section data-lesson-slide data-lesson-slide-title="プロトコル" data-lesson-slide-layout="workspace">
     <article class="nw-slide nw-slide--protocol" data-network-reveal-group data-network-reveal-group-id="protocol">
       <h2 id="headline_3">(3) プロトコル</h2>
+      <p class="nw-lead">前のスライドのパケット交換方式では、宛先や順番を示す情報を付けてデータを送ります。送信側と受信側がその情報を同じように読めるよう、通信には共通の約束ごとが必要です。</p>
       <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden data-network-reveal-controls="protocol">
         <output data-network-reveal-progress aria-live="polite">0 / 6</output>
         <button type="button" data-network-reveal-all>すべて表示</button>
@@ -570,7 +572,7 @@
   <section data-lesson-slide data-lesson-slide-title="プロトコルの階層構造" data-lesson-slide-layout="workspace">
     <article class="nw-slide nw-slide--layers" data-network-reveal-group data-network-reveal-group-id="layers">
       <h2 id="headline_4">(4) プロトコルの階層構造</h2>
-      <p class="nw-lead">通信機能は処理に応じて4つの階層に分かれます。1つのデータが届くまでを、送信側から順に確認しましょう。</p>
+      <p class="nw-lead">プロトコルが定める役割は、4つの階層が分担します。送信側と受信側で、同じデータをどのように受け渡すか確認します。</p>
       <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden data-network-reveal-controls="layers">
         <output data-network-reveal-progress aria-live="polite">0 / 4</output>
         <button type="button" data-network-reveal-all>すべて表示</button>
@@ -701,6 +703,49 @@
 
         <p class="nw-layer-journey-summary" data-layer-journey-summary>階層化すると、ある階層の仕様を変更しても、ほかの階層への影響を小さくできます。</p>
       </figure>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="語句とポイントのまとめ">
+    <article class="nw-slide nw-slide--review">
+      <h2 id="headline_5">(5) 語句とポイントのまとめ</h2>
+      <p class="nw-lead">ここまで、ネットワークの接続、データの伝送、通信の約束、階層ごとの処理を順に見てきました。語句と関係を整理します。</p>
+
+      <ol class="nw-review-flow" aria-label="このページで学んだ内容のつながり">
+        <li><b aria-hidden="true">1</b><strong>接続をつくる</strong><span>LANを機器と事業者の回線でつなぐ</span></li>
+        <li><b aria-hidden="true">2</b><strong>データを運ぶ</strong><span>パケットに分け、回線を共有して送る</span></li>
+        <li><b aria-hidden="true">3</b><strong>約束をそろえる</strong><span>プロトコルに従って宛先や順番を読む</span></li>
+        <li><b aria-hidden="true">4</b><strong>処理を分担する</strong><span>4つの階層がヘッダを付け外しする</span></li>
+      </ol>
+
+      <div class="nw-review-body">
+        <section class="nw-review-section" aria-labelledby="nw-review-terms-title">
+          <h3 id="nw-review-terms-title">重要語句</h3>
+          <dl class="nw-review-terms">
+            <div><dt>LAN / WAN</dt><dd>LANは限られた範囲のネットワーク、WANは離れたLANどうしをつなぐ広域ネットワーク。</dd></div>
+            <div><dt>スイッチングハブ / アクセスポイント</dt><dd>有線機器をまとめる装置と、無線LAN対応機器を接続する装置。</dd></div>
+            <div><dt>ルーター / 終端装置</dt><dd>異なるネットワークを中継する装置と、回線の信号を変換する装置。</dd></div>
+            <div><dt>ISP / 通信キャリア</dt><dd>インターネット接続サービスと、携帯電話などの通信網を提供する事業者。</dd></div>
+            <div><dt>回線交換 / パケット交換</dt><dd>1本の経路を確保する方式と、データを小分けにして回線を共有する方式。</dd></div>
+            <div><dt>パケット / ヘッダ情報</dt><dd>小分けにしたデータと、宛先や通し番号などを記した付加情報。</dd></div>
+            <div><dt>プロトコル / IPアドレス</dt><dd>通信の約束ごとと、ネットワーク上で端末を区別する住所。</dd></div>
+            <div><dt>プロトコルの4階層</dt><dd>アプリケーション、トランスポート、インターネット、ネットワークインターフェース。</dd></div>
+          </dl>
+        </section>
+
+        <section class="nw-review-section" aria-labelledby="nw-review-points-title">
+          <h3 id="nw-review-points-title">押さえるポイント</h3>
+          <ul class="nw-review-points">
+            <li><strong>インターネットはネットワークどうしの接続</strong><span>家庭や学校のLANは、複数の機器や事業者の設備を通ってほかのLANへつながります。</span></li>
+            <li><strong>パケット交換では回線を共有</strong><span>データを小分けにするため、複数の通信が同じ回線を効率よく使えます。</span></li>
+            <li><strong>ヘッダ情報が配送と復元を支える</strong><span>パケットが別々の経路を通っても、宛先や通し番号を使って元のデータへ戻せます。</span></li>
+            <li><strong>プロトコルが通信方法を共通化</strong><span>機器どうしが同じ約束に従うことで、データを正しく安全にやりとりできます。</span></li>
+            <li><strong>階層化が処理の役割を分ける</strong><span>送信側は上から下へヘッダを付け、受信側は下から上へ読んで外します。各階層の変更もほかの階層へ影響しにくくなります。</span></li>
+          </ul>
+        </section>
+      </div>
+
+      <p class="nw-review-conclusion">機器、パケット、プロトコル、階層は別々の話ではありません。1つのデータを相手へ届けるために、順につながって働きます。</p>
     </article>
   </section>
 

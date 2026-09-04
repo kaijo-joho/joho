@@ -1854,6 +1854,193 @@ section article .nw-protocol-definition {
   display: none !important;
 }
 
+.nw-review-flow {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 9px;
+  margin: 12px 4px 14px;
+  padding: 0;
+  list-style: none;
+}
+
+.nw-review-flow > li::before {
+  display: none !important;
+  content: none !important;
+}
+
+.nw-review-flow li {
+  --nw-review-accent: var(--nw-focus);
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  grid-template-areas:
+    "number title"
+    "number description";
+  gap: 2px 8px;
+  align-items: center;
+  min-width: 0;
+  margin: 0;
+  padding: 9px 10px;
+  border-block-start: 3px solid var(--nw-review-accent);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--nw-review-accent) 8%, var(--nw-panel-strong));
+}
+
+.nw-review-flow li:nth-child(1) {
+  --nw-review-accent: var(--nw-pdu-data);
+}
+
+.nw-review-flow li:nth-child(2) {
+  --nw-review-accent: var(--nw-pdu-transport);
+}
+
+.nw-review-flow li:nth-child(3) {
+  --nw-review-accent: var(--nw-pdu-internet);
+}
+
+.nw-review-flow li:nth-child(4) {
+  --nw-review-accent: var(--nw-pdu-interface);
+}
+
+.nw-review-flow b {
+  grid-area: number;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--nw-review-accent);
+  color: var(--nw-panel-strong);
+  font-size: .82em;
+}
+
+.nw-review-flow strong {
+  grid-area: title;
+  font-size: .86em;
+}
+
+.nw-review-flow span {
+  grid-area: description;
+  color: var(--nw-muted);
+  font-size: .72em;
+  line-height: 1.35;
+}
+
+.nw-review-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr);
+  gap: 18px;
+  margin: 0 4px;
+  padding: 14px;
+  border: 1px solid var(--nw-border);
+  border-radius: 12px;
+  background: var(--nw-panel);
+  box-shadow: var(--nw-shadow);
+}
+
+.nw-review-section {
+  min-width: 0;
+}
+
+.nw-review-section h3 {
+  margin: 0 0 7px;
+  padding-block-end: 6px;
+  border-block-end: 2px solid color-mix(in oklab, var(--nw-focus) 58%, var(--nw-border));
+  color: var(--nw-focus);
+  font-size: 1em;
+  text-align: left;
+}
+
+.nw-review-terms {
+  margin: 0;
+}
+
+.nw-review-terms > div {
+  display: grid;
+  grid-template-columns: minmax(11em, .82fr) minmax(0, 1.18fr);
+  gap: 9px;
+  padding: 7px 2px;
+  border-block-end: 1px solid color-mix(in oklab, var(--nw-border) 72%, transparent);
+  text-align: left;
+}
+
+.nw-review-terms > div:last-child {
+  border-block-end: 0;
+}
+
+.nw-review-terms dt {
+  color: var(--nw-text);
+  font-size: .78em;
+  font-weight: 850;
+  line-height: 1.4;
+}
+
+.nw-review-terms dd {
+  margin: 0;
+  color: var(--nw-muted);
+  font-size: .74em;
+  line-height: 1.45;
+}
+
+.nw-review-points {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.nw-review-points > li {
+  position: relative;
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 8px 2px 8px 27px;
+  border-block-end: 1px solid color-mix(in oklab, var(--nw-border) 72%, transparent);
+  text-align: left;
+}
+
+.nw-review-points > li:last-child {
+  border-block-end: 0;
+}
+
+.nw-review-points > li::before {
+  position: absolute;
+  inset-block-start: 9px;
+  inset-inline-start: 2px;
+  display: grid;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--nw-focus) 16%, var(--nw-panel-strong));
+  color: var(--nw-focus);
+  content: "✓";
+  font-size: .68em;
+  font-weight: 900;
+}
+
+.nw-review-points strong {
+  font-size: .8em;
+}
+
+.nw-review-points span {
+  color: var(--nw-muted);
+  font-size: .74em;
+  line-height: 1.45;
+}
+
+.nw-review-conclusion {
+  margin: 12px 4px 0;
+  padding: 10px 12px;
+  border-inline-start: 4px solid var(--nw-focus);
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in oklab, var(--nw-focus) 9%, var(--nw-panel-strong));
+  font-size: .86em;
+  font-weight: 760;
+  line-height: 1.55;
+  text-align: left;
+}
+
 .lesson-slide-deck.is-height-compact .nw-figure {
   margin-top: 8px;
   padding: 8px;
@@ -1910,6 +2097,14 @@ section article .nw-protocol-definition {
   font-size: .94em;
 }
 
+.lesson-slide-deck.is-height-compact .nw-review-flow {
+  margin-block: 8px 10px;
+}
+
+.lesson-slide-deck.is-height-compact .nw-review-body {
+  padding: 10px;
+}
+
 @media (max-width: 980px) {
   .nw-layer-journey-stage {
     grid-template-columns: 1fr;
@@ -1917,6 +2112,10 @@ section article .nw-protocol-definition {
 
   .nw-layer-transform {
     min-height: 126px;
+  }
+
+  .nw-review-body {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -1931,6 +2130,10 @@ section article .nw-protocol-definition {
 
   .nw-protocol-role-list {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .nw-review-flow {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
 }
@@ -2062,6 +2265,25 @@ section article .nw-protocol-definition {
 
   .nw-layer-choice > small {
     min-height: 2.4em;
+  }
+
+  .nw-review-flow {
+    grid-template-columns: minmax(0, 1fr);
+    margin-inline: 0;
+  }
+
+  .nw-review-body {
+    margin-inline: 0;
+    padding: 10px;
+  }
+
+  .nw-review-terms > div {
+    grid-template-columns: 1fr;
+    gap: 2px;
+  }
+
+  .nw-review-conclusion {
+    margin-inline: 0;
   }
 
   .nw-layer-transform {

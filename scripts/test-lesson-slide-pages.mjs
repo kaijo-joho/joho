@@ -27,7 +27,7 @@ const pageSpecs = [
   { id: 'lc04', slides: 3 },
   { id: 'dr31', slides: 6 },
   { id: 'dr32', slides: 3 },
-  { id: 'nw11', slides: 4 }
+  { id: 'nw11', slides: 5 }
 ];
 
 const [deck, css, logicCss, networkCss, networkJs, applications, ...pages] = await Promise.all([
@@ -170,6 +170,26 @@ ok(
   layerSlide.includes('d="M36 68H94V20H152V68H210V20H326V68H384V20H442V68H500"'),
   'nw11の伝送媒体は0/1の二つの高さだけで波形を描く'
 );
+for (const connectionText of [
+  '端末からインターネットまでの経路と各機器の役割',
+  '前のスライドでは、端末からインターネットまでの接続',
+  '前のスライドのパケット交換方式では',
+  'プロトコルが定める役割は、4つの階層が分担'
+]) {
+  ok(networkPage.includes(connectionText), `nw11のスライド間をつなぐ説明に「${connectionText}」`);
+}
+const reviewSlide = networkPage.slice(
+  networkPage.indexOf('data-lesson-slide-title="語句とポイントのまとめ"'),
+  networkPage.indexOf('id="examples_and_questions"')
+);
+ok(reviewSlide.includes('id="headline_5"'), 'nw11の5枚目に語句とポイントのまとめ');
+equal((reviewSlide.match(/<li><b aria-hidden="true">[1-4]<\/b>/g) || []).length, 4, 'nw11のまとめに4段階の学習内容のつながり');
+equal((reviewSlide.match(/<div><dt>/g) || []).length, 8, 'nw11のまとめに8組の重要語句');
+const reviewPoints = reviewSlide.slice(reviewSlide.indexOf('class="nw-review-points"'), reviewSlide.indexOf('</ul>'));
+equal((reviewPoints.match(/<li>/g) || []).length, 5, 'nw11のまとめに5つの押さえるポイント');
+for (const term of ['LAN / WAN', '回線交換 / パケット交換', 'プロトコル / IPアドレス', 'プロトコルの4階層']) {
+  ok(reviewSlide.includes(term), `nw11のまとめに重要語句「${term}」`);
+}
 for (const device of ['switch', 'router', 'access-point', 'terminal']) {
   equal(
     (networkPage.match(new RegExp(`data-network-device="${device}"`, 'g')) || []).length,
@@ -325,6 +345,10 @@ for (const requirement of [
   '.nw-protocol-role-list',
   '.nw-layer-journey',
   '.nw-binary-waveform',
+  '.nw-review-flow',
+  '.nw-review-body',
+  '.nw-review-terms',
+  '.nw-review-points',
   '.nw-moving-parcel',
   '.nw-circuit-dot',
   '@media (max-width: 390px)',
