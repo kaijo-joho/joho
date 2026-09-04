@@ -65,9 +65,12 @@ ok(dr31.indexOf('data-sound-pcm-guide') < dr31.indexOf('data-sound-pcm data-stag
 ok(renderer.includes('renderAnalogWave'), 'アナログ波形専用SVG Renderer');
 ok(widgets.includes('class PcmWalkthrough'), '固定条件の段階学習ウィジェット');
 ok(widgets.includes('this.state = { stage: 1, selectedIndex: null }'), '固定条件グラフは元の波形だけ・未選択から開始');
-for (const label of ['元の波形', '1. 標本化', '2. 量子化', '3. 符号化']) {
+for (const label of ['0. アナログ波形', '1. 標本化', '2. 量子化', '3. 符号化']) {
   ok(widgets.includes(label), `固定条件グラフに工程「${label}」`);
 }
+ok(widgets.includes('this.stageLabels = stages.map((name, index) => `${index}. ${name}`)'), '可変グラフも0〜3の工程番号を使用');
+ok(/const bitDepth = createRangeControl\(\{[\s\S]*?id: `dr-pcm-bit-depth-[\s\S]*?min: 2,[\s\S]*?max: 4,[\s\S]*?step: 1,/.test(widgets), '量子化ビット数は2〜4bitの整数スライダー');
+ok(/if \(this\.state\.waveform === 'composite'\)[\s\S]*?frequency: this\.state\.frequency,\s*phase\s*\}[\s\S]*?phase: phase \+ Math\.PI \/ 3/.test(widgets), '合成波の位相操作は2つの成分へ共通に反映');
 ok(widgets.includes('createInfoTip') && widgets.includes('aria-controls'), '補足アイコンをフォーカス・タップでも確認可能');
 for (const [name, html, expectedSlides] of [['dr31', dr31, 5], ['dr32', dr32, 3]]) {
   ok(html.includes('data-dr-slide-deck'), `${name}をスライドページとして設定`);

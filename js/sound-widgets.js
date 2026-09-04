@@ -162,7 +162,7 @@
       this.container.classList.add('dr-card', 'dr-guide', 'dr-guide--pcm-walkthrough');
       const setup = element('div', 'dr-guide__setup');
       const setupText = element('p', 'dr-guide__setup-text');
-      setupText.innerHTML = '<strong>元の波形から開始：</strong>同じグラフに要素を順番に追加します。';
+      setupText.innerHTML = '<strong>0. アナログ波形から開始：</strong>同じグラフに要素を順番に追加します。';
       setup.append(
         setupText,
         createInfoTip({
@@ -176,7 +176,7 @@
       this.stageSelector = element('fieldset', 'dr-stage-selector dr-stage-selector--walkthrough');
       this.stageSelector.setAttribute('aria-label', '波形に表示する工程');
       const stages = [
-        { stage: 1, label: '元の波形' },
+        { stage: 1, label: '0. アナログ波形' },
         { stage: 2, label: '1. 標本化' },
         { stage: 3, label: '2. 量子化' },
         { stage: 4, label: '3. 符号化' }
@@ -228,12 +228,12 @@
     render() {
       const descriptions = {
         1: {
-          title: '元のアナログ波形',
-          text: '時間とともに連続して変化する、元の波形だけを表示します。',
+          title: '0. アナログ波形',
+          text: '時間とともに連続して変化する、アナログ波形だけを表示します。',
           point: 'まだ値を取り出していないため、標本点や2進数はありません。次に「標本化」を押してください。'
         },
         2: {
-          title: '1. 標本化（サンプリング）',
+          title: '1. 標本化',
           text: '時間を0.1秒ごとに区切り、その時点の波の高さを取り出します。',
           point: 'この例では標本化の幅は0.1秒です。縦の線と丸い点を左から順に見てください。'
         },
@@ -243,7 +243,7 @@
           point: 'この例は3ビット量子化なので8段階です。この固定例では各点が段階値と重なるため、誤差は0です。'
         },
         4: {
-          title: '3. 符号化（コード化）',
+          title: '3. 符号化',
           text: '量子化した段階値を、3桁の2進数で表します。',
           point: '値2は010、値3は011、値5は101になります。PCMは「パルス符号変調」の略です。'
         }
@@ -383,11 +383,13 @@
       this.stageSelector = element('fieldset', 'dr-stage-selector');
       this.stageSelector.appendChild(element('legend', '', '表示する工程'));
       const stages = ['アナログ波形', '標本化', '量子化', '符号化'];
+      this.stageLabels = stages.map((name, index) => `${index}. ${name}`);
       this.stageButtons = stages.map((name, index) => {
-        const button = element('button', 'dr-stage-button', `${index + 1}. ${name}`);
+        const label = this.stageLabels[index];
+        const button = element('button', 'dr-stage-button', label);
         button.type = 'button';
         button.dataset.stage = String(index + 1);
-        button.setAttribute('aria-label', `${index + 1}. ${name}`);
+        button.setAttribute('aria-label', label);
         button.addEventListener('click', () => {
           const nextStage = index + 1;
           this.pendingAnimationStage = nextStage > this.state.stage ? nextStage : 0;
@@ -467,13 +469,16 @@
           this.render();
         }
       });
-      const bitDepth = createSelectControl({
+      const bitDepth = createRangeControl({
         id: `dr-pcm-bit-depth-${this.serial}`,
         label: '量子化ビット数',
         value: this.state.bitDepth,
-        options: [2, 3, 4].map(value => ({ value, label: `${value} bit` })),
-        onChange: value => {
-          this.state.bitDepth = Number(value);
+        min: 2,
+        max: 4,
+        step: 1,
+        format: value => `${value} bit`,
+        onInput: value => {
+          this.state.bitDepth = value;
           this.render();
         }
       });
@@ -602,7 +607,7 @@
         }
       });
       if (this.state.stage === 1) {
-        this.selectedReadout.innerHTML = '<strong>アナログ波形：</strong>「標本化」へ進むと、波形から取り出した点を選べます。';
+        this.selectedReadout.innerHTML = '<strong>0. アナログ波形：</strong>「標本化」へ進むと、波形から取り出した点を選べます。';
         return;
       }
       const { samples } = this.derive();
@@ -628,7 +633,7 @@
       });
       if (!this.selectedReadout) return;
       if (this.state.stage === 1) {
-        this.selectedReadout.innerHTML = '<strong>アナログ波形：</strong>「標本化」へ進むと、波形から取り出した点を選べます。';
+        this.selectedReadout.innerHTML = '<strong>0. アナログ波形：</strong>「標本化」へ進むと、波形から取り出した点を選べます。';
         return;
       }
       this.selectedReadout.innerHTML = '<strong>標本を選択：</strong>グラフの点または表の行にポインタを合わせるか、キーボードで選ぶと値を確認できます。';
@@ -646,7 +651,7 @@
         button.setAttribute('aria-pressed', stageNumber === this.state.stage ? 'true' : 'false');
         button.classList.toggle('is-complete', stageNumber <= this.state.stage);
       });
-      this.stageHelp.innerHTML = `<strong>工程 ${this.state.stage}：</strong>${stageDescriptions[this.state.stage - 1]}`;
+      this.stageHelp.innerHTML = `<strong>${this.stageLabels[this.state.stage - 1]}：</strong>${stageDescriptions[this.state.stage - 1]}`;
 
       this.state.selectedIndex = null;
       const derived = this.derive();
