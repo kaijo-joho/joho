@@ -136,6 +136,14 @@ equal(
   'nw11の各スライドに穴埋めグループ'
 );
 ok(!/class="nw-reveal__answer"\s+hidden/.test(networkPage), 'JavaScript無効時もnw11の答えを読める');
+const protocolSlide = networkPage.slice(
+  networkPage.indexOf('data-lesson-slide-title="プロトコル"'),
+  networkPage.indexOf('data-lesson-slide-title="プロトコルの階層構造"')
+);
+ok(
+  protocolSlide.indexOf('data-network-reveal-toolbar') < protocolSlide.indexOf('aria-label="空欄1の答えを表示"'),
+  'nw11のプロトコル一括操作は空欄1より前に表示'
+);
 for (const answer of [
   'LAN',
   'WAN',
@@ -178,6 +186,8 @@ for (const requirement of [
   ':root[data-theme="dark"]',
   '.nw-diagram-scroll',
   'overflow-x: auto',
+  'width: 1200px',
+  '.nw-svg-callout',
   '.nw-reveal:focus-visible',
   '@media (max-width: 390px)',
   '@media (prefers-reduced-motion: reduce)',

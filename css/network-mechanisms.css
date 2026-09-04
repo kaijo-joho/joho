@@ -161,6 +161,11 @@ section article .nw-protocol-definition {
   white-space: nowrap;
 }
 
+.nw-figure__mobile-hint {
+  display: none;
+  flex-basis: 100%;
+}
+
 .nw-legend-line {
   width: 34px;
   border-top: 3px solid var(--nw-line);
@@ -289,7 +294,9 @@ section article .nw-protocol-definition {
 }
 
 .nw-map-canvas {
-  aspect-ratio: 1200 / 560;
+  width: 1200px;
+  min-width: 1200px;
+  height: 600px;
   border: 1px solid var(--nw-border);
   border-radius: 11px;
   background: var(--nw-panel-soft);
@@ -332,8 +339,14 @@ section article .nw-protocol-definition {
 }
 
 .nw-svg-note {
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 650;
+}
+
+.nw-svg-callout rect {
+  fill: color-mix(in oklab, var(--nw-panel-strong) 92%, transparent);
+  stroke: var(--nw-border);
+  stroke-width: 1;
 }
 
 .nw-svg-small {
@@ -386,14 +399,15 @@ section article .nw-protocol-definition {
   z-index: 3;
   min-height: 44px;
   font-size: 15px;
+  white-space: nowrap;
 }
 
-.nw-reveal--map-1 { inset: 3.7% auto auto 2.2%; width: 19%; }
-.nw-reveal--map-2 { inset: 3.7% auto auto 36.5%; width: 19%; }
-.nw-reveal--map-3 { inset: 29% auto auto 24.6%; width: 14%; }
-.nw-reveal--map-4 { inset: 63.5% auto auto 17.1%; width: 18%; }
-.nw-reveal--map-5 { inset: 86.2% auto auto 17.1%; width: 18%; }
-.nw-reveal--map-6 { inset: 62.8% auto auto 41.1%; width: 17%; }
+.nw-reveal--map-1 { inset: 35px auto auto 28px; width: 350px; }
+.nw-reveal--map-2 { inset: 35px auto auto 435px; width: 360px; }
+.nw-reveal--map-3 { inset: 160px auto auto 230px; width: 162px; }
+.nw-reveal--map-4 { inset: 346px auto auto 170px; width: 220px; }
+.nw-reveal--map-5 { inset: 488px auto auto 150px; width: 245px; }
+.nw-reveal--map-6 { inset: 374px auto auto 500px; width: 260px; }
 
 .nw-transport-grid {
   display: grid;
@@ -778,6 +792,10 @@ section article .nw-protocol-definition {
 }
 
 @media (max-width: 850px) {
+  .nw-figure__mobile-hint {
+    display: block;
+  }
+
   .nw-transport-grid {
     grid-template-columns: 1fr;
   }

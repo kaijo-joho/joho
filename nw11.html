@@ -27,6 +27,7 @@
         <figcaption id="nw-map-caption" class="nw-figure__caption">
           <span>図の空欄をクリックすると、語句が表示されます。</span>
           <span class="nw-figure__legend"><i class="nw-legend-line" aria-hidden="true"></i>機器やネットワークの接続</span>
+          <span class="nw-figure__mobile-hint">左右にスクロールして図全体を確認できます。</span>
         </figcaption>
         <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
           <output data-network-reveal-progress aria-live="polite">0 / 6</output>
@@ -36,12 +37,12 @@
 
         <div class="nw-diagram-scroll" tabindex="0" aria-label="インターネットを構成する機器の図。狭い画面では横方向にスクロールできます。">
           <div class="nw-diagram-canvas nw-map-canvas">
-            <svg class="nw-diagram-svg" viewBox="0 0 1200 560" role="img" aria-labelledby="nw-map-svg-title nw-map-svg-desc">
+            <svg class="nw-diagram-svg" viewBox="0 0 1200 600" role="img" aria-labelledby="nw-map-svg-title nw-map-svg-desc">
               <title id="nw-map-svg-title">LANとWANをつないだインターネットの構成</title>
               <desc id="nw-map-svg-desc">家庭内の端末がスイッチングハブ、アクセスポイント、ルーター、終端装置を経由し、ISPや通信キャリアを通して別のLANへ接続される図です。</desc>
 
-              <rect class="nw-svg-zone nw-svg-zone--lan" x="18" y="28" width="382" height="510" rx="20"/>
-              <rect class="nw-svg-zone nw-svg-zone--wan" x="420" y="28" width="760" height="510" rx="20"/>
+              <rect class="nw-svg-zone nw-svg-zone--lan" x="18" y="28" width="382" height="560" rx="20"/>
+              <rect class="nw-svg-zone nw-svg-zone--wan" x="420" y="28" width="760" height="560" rx="20"/>
               <text class="nw-svg-caption" x="36" y="100">家庭やオフィスなど限られた範囲内のネットワーク</text>
               <text class="nw-svg-caption" x="440" y="100">LANどうしをつなげる広域ネットワーク</text>
 
@@ -80,8 +81,8 @@
                 <text x="18" y="119">終端装置</text>
               </g>
 
-              <path class="nw-svg-link" d="M280 322V431H330"/>
-              <g class="nw-svg-device" transform="translate(330 392)">
+              <path class="nw-svg-link" d="M280 322V431H125"/>
+              <g class="nw-svg-device" transform="translate(125 392)">
                 <rect x="0" y="17" width="34" height="64" rx="7"/>
                 <path d="M17 17V0M5 12Q17-2 29 12M-2 3Q17-18 36 3"/>
               </g>
@@ -136,10 +137,34 @@
                 <text x="44" y="116">LAN</text>
               </g>
 
-              <text class="nw-svg-note" x="290" y="189">異なるネットワークどうしを接続し、データを中継する装置</text>
-              <text class="nw-svg-note" x="191" y="369">ケーブルを集線・延長してネットワークを構成する装置</text>
-              <text class="nw-svg-note" x="200" y="494">無線LAN対応機器をネットワークへ接続する中継器</text>
-              <text class="nw-svg-note" x="492" y="387">インターネット接続サービスを提供する事業者</text>
+              <g class="nw-svg-callout nw-svg-callout--map-3">
+                <rect x="174" y="108" width="220" height="46" rx="8"/>
+                <text class="nw-svg-note" x="184" y="126">
+                  <tspan x="184">異なるネットワークどうしを接続し、</tspan>
+                  <tspan x="184" dy="17">データを中継する装置</tspan>
+                </text>
+              </g>
+              <g class="nw-svg-callout nw-svg-callout--map-4">
+                <rect x="170" y="398" width="220" height="48" rx="8"/>
+                <text class="nw-svg-note" x="180" y="417">
+                  <tspan x="180">ケーブルを集線・延長して</tspan>
+                  <tspan x="180" dy="17">ネットワークを構成する装置</tspan>
+                </text>
+              </g>
+              <g class="nw-svg-callout nw-svg-callout--map-5">
+                <rect x="150" y="540" width="245" height="44" rx="8"/>
+                <text class="nw-svg-note" x="160" y="558">
+                  <tspan x="160">無線LAN対応機器をネットワークへ</tspan>
+                  <tspan x="160" dy="17">接続する中継器</tspan>
+                </text>
+              </g>
+              <g class="nw-svg-callout nw-svg-callout--map-6">
+                <rect x="500" y="426" width="260" height="44" rx="8"/>
+                <text class="nw-svg-note" x="510" y="444">
+                  <tspan x="510">インターネット接続サービスを</tspan>
+                  <tspan x="510" dy="17">提供する事業者</tspan>
+                </text>
+              </g>
             </svg>
 
             <button type="button" class="nw-reveal nw-reveal--map-1" data-network-reveal aria-label="空欄1の答えを表示">
@@ -249,17 +274,17 @@
   <section data-lesson-slide data-lesson-slide-title="プロトコル">
     <article class="nw-slide nw-slide--protocol" data-network-reveal-group data-network-reveal-group-id="protocol">
       <h2 id="headline_3">(3) プロトコル</h2>
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden data-network-reveal-controls="protocol">
+        <output data-network-reveal-progress aria-live="polite">0 / 6</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
       <p class="nw-protocol-definition">通信するときの「約束ごと」を
         <button type="button" class="nw-reveal nw-reveal--inline nw-reveal--definition" data-network-reveal aria-label="空欄1の答えを表示">
           <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">プロトコル</span>
         </button>
         といいます。
       </p>
-      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden data-network-reveal-controls="protocol">
-        <output data-network-reveal-progress aria-live="polite">0 / 6</output>
-        <button type="button" data-network-reveal-all>すべて表示</button>
-        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
-      </div>
 
       <ol class="nw-protocol-list" start="2">
         <li>
