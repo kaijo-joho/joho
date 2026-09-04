@@ -64,7 +64,7 @@ ok(dr31.indexOf('data-sound-analog-intro') < dr31.indexOf('data-sound-pcm-guide'
 ok(dr31.indexOf('data-sound-pcm-guide') < dr31.indexOf('data-sound-pcm data-stage'), '変換手順の後に可変グラフを配置');
 ok(renderer.includes('renderAnalogWave'), 'アナログ波形専用SVG Renderer');
 ok(widgets.includes('class PcmWalkthrough'), '固定条件の段階学習ウィジェット');
-ok(widgets.includes('this.state = { stage: 1, selectedIndex: 0 }'), '固定条件グラフは元の波形だけから開始');
+ok(widgets.includes('this.state = { stage: 1, selectedIndex: null }'), '固定条件グラフは元の波形だけ・未選択から開始');
 for (const label of ['元の波形', '1. 標本化', '2. 量子化', '3. 符号化']) {
   ok(widgets.includes(label), `固定条件グラフに工程「${label}」`);
 }
@@ -82,6 +82,9 @@ for (const requirement of ['.dr-slide-deck', '--dr-slide-deck-height', '.dr-slid
   ok(css.includes(requirement), `スライド表示CSSに ${requirement}`);
 }
 ok(renderer.includes('dr-svg--stage-enter-${animationStage}'), 'Rendererが進めた工程をSVGクラスへ反映');
+ok(renderer.includes("svg.addEventListener('pointerleave'"), 'グラフ外へポインタが出たら標本強調を解除');
+ok(renderer.includes("svg.addEventListener('focusout'"), 'グラフ外へキーボードフォーカスが移ったら標本強調を解除');
+ok(!renderer.includes('dr-svg__sample-highlight'), '標本選択時の背景帯を描画しない');
 for (const stage of [2, 3, 4]) ok(css.includes(`.dr-svg--stage-enter-${stage}`), `SVG工程${stage}の追加アニメーション`);
 for (const term of ['アナログ', 'デジタル', '標本化', 'サンプリング', '標本化周波数', '標本化周期', '量子化', '量子化ビット数', '量子化段階数', '符号化', 'PCM']) {
   ok(dr31.includes(term), `dr31に用語「${term}」`);

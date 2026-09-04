@@ -224,7 +224,9 @@
     return d;
   }
 
-  function bindSampleTargets(svg, samples, onSelect) {
+  function bindSampleTargets(svg, samples, options = {}) {
+    const onSelect = options.onSampleSelect;
+    const onClear = options.onSampleClear;
     if (typeof onSelect !== 'function') return;
     svg.querySelectorAll('.dr-svg__sample-target').forEach(target => {
       const index = Number(target.dataset.sampleIndex);
@@ -238,6 +240,17 @@
         activate();
       });
     });
+    if (typeof onClear === 'function') {
+      svg.addEventListener('pointerleave', () => {
+        // キーボード操作中の明示的なフォーカス表示は、ポインタ位置にかかわらず維持する。
+        if (svg.querySelector('.dr-svg__sample-target:focus-visible')) return;
+        onClear();
+      });
+      svg.addEventListener('focusout', event => {
+        if (event.relatedTarget && svg.contains(event.relatedTarget)) return;
+        onClear();
+      });
+    }
   }
 
   function renderAnalogWave(target, model, options = {}) {
@@ -468,35 +481,23 @@
       const nextX = sample.index < samples.length - 1 ? plot.x(samples[sample.index + 1].time) : plot.x(sample.time);
       const halfLeft = sample.index > 0 ? (plot.x(sample.time) - previousX) / 2 : Math.max(16, (nextX - plot.x(sample.time)) / 2);
       const halfRight = sample.index < samples.length - 1 ? (nextX - plot.x(sample.time)) / 2 : Math.max(16, (plot.x(sample.time) - previousX) / 2);
-      const active = sample.index === model.selectedIndex;
-      highlightLayer.append(
-        svgElement('rect', {
-          class: `dr-svg__sample-highlight${active ? ' is-active' : ''}`,
-          x: plot.x(sample.time) - halfLeft,
-          y: plot.top,
-          width: halfLeft + halfRight,
-          height: plot.bottom - plot.top,
-          rx: 5,
-          'data-sample-index': sample.index
-        }),
-        svgElement('rect', {
-          class: 'dr-svg__sample-target',
-          x: plot.x(sample.time) - Math.max(18, halfLeft),
-          y: plot.top,
-          width: Math.max(36, halfLeft + halfRight),
-          height: plot.bottom - plot.top + (stage >= 4 ? (compact ? 76 : 122) : 0),
-          fill: 'transparent',
-          tabindex: 0,
-          role: 'button',
-          'aria-label': `標本${sample.index + 1}。時刻${numberText(sample.time, 3)}秒、元の値${numberText(sample.value, 3)}${stage >= 3 ? `、量子化後の値${numberText(sample.quantizedValue, 3)}、段階値${sample.code}` : ''}${stage >= 4 ? `、2進数${sample.binary}` : ''}`,
-          'data-sample-index': sample.index
-        })
-      );
+      highlightLayer.appendChild(svgElement('rect', {
+        class: 'dr-svg__sample-target',
+        x: plot.x(sample.time) - Math.max(18, halfLeft),
+        y: plot.top,
+        width: Math.max(36, halfLeft + halfRight),
+        height: plot.bottom - plot.top + (stage >= 4 ? (compact ? 76 : 122) : 0),
+        fill: 'transparent',
+        tabindex: 0,
+        role: 'button',
+        'aria-label': `標本${sample.index + 1}。時刻${numberText(sample.time, 3)}秒、元の値${numberText(sample.value, 3)}${stage >= 3 ? `、量子化後の値${numberText(sample.quantizedValue, 3)}、段階値${sample.code}` : ''}${stage >= 4 ? `、2進数${sample.binary}` : ''}`,
+        'data-sample-index': sample.index
+      }));
     });
     svg.appendChild(highlightLayer);
 
     target.replaceChildren(svg);
-    bindSampleTargets(svg, samples, options.onSampleSelect);
+    bindSampleTargets(svg, samples, options);
     return { svg, plot };
   }
 

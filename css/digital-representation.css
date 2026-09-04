@@ -703,26 +703,9 @@ section article .dr-guide__explanation h4 {
   font-weight: 850;
 }
 
-.dr-svg__sample-highlight {
-  fill: transparent;
-  pointer-events: none;
-}
-
-.dr-svg__sample-highlight.is-active {
-  fill: color-mix(in oklab, var(--theme-color, #225386) 12%, transparent);
-  stroke: color-mix(in oklab, var(--theme-color, #225386) 42%, transparent);
-  stroke-width: 1.5;
-}
-
 .dr-svg__sample-target {
   cursor: pointer;
   outline: none;
-}
-
-.dr-svg__sample-target:focus-visible {
-  fill: color-mix(in oklab, var(--dr-focus) 8%, transparent);
-  stroke: var(--dr-focus);
-  stroke-width: 2.5;
 }
 
 .dr-svg [data-sample-index].is-active.dr-svg__sample-guide,
@@ -739,11 +722,6 @@ section article .dr-guide__explanation h4 {
 .dr-svg [data-sample-index].is-active.dr-svg__quantized-point {
   stroke: var(--dr-code);
   stroke-width: 3;
-}
-
-.dr-svg [data-sample-index].is-active.dr-svg__value-label,
-.dr-svg [data-sample-index].is-active.dr-svg__binary-label {
-  font-size: 15px;
 }
 
 /* 工程を進めた瞬間だけ、追加されたSVGレイヤーを左から順に見せる。 */

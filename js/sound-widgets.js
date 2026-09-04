@@ -151,7 +151,7 @@
     constructor(container) {
       if (!(container instanceof Element)) throw new TypeError('デジタル化手順の表示先が必要です。');
       this.container = container;
-      this.state = { stage: 1, selectedIndex: 0 };
+      this.state = { stage: 1, selectedIndex: null };
       this.pendingAnimationStage = 0;
       this.model = fixedLessonModel();
       this.build();
@@ -207,6 +207,7 @@
       const nextStage = Math.max(1, Math.min(4, Number(stage) || 1));
       this.pendingAnimationStage = nextStage > this.state.stage ? nextStage : 0;
       this.state.stage = nextStage;
+      this.state.selectedIndex = null;
       this.render();
     }
 
@@ -214,6 +215,13 @@
       this.state.selectedIndex = index;
       this.container.querySelectorAll('[data-sample-index]').forEach(node => {
         node.classList.toggle('is-active', Number(node.dataset.sampleIndex) === index);
+      });
+    }
+
+    clearSample() {
+      this.state.selectedIndex = null;
+      this.container.querySelectorAll('[data-sample-index].is-active').forEach(node => {
+        node.classList.remove('is-active');
       });
     }
 
@@ -286,10 +294,11 @@
       }, {
         title: `${description.title}の固定例`,
         description: `${description.text} ${description.point}`,
-        onSampleSelect: index => this.selectSample(index)
+        onSampleSelect: index => this.selectSample(index),
+        onSampleClear: () => this.clearSample()
       });
       this.pendingAnimationStage = 0;
-      this.selectSample(this.state.selectedIndex);
+      this.clearSample();
       document.dispatchEvent(new CustomEvent('dr:content-resize'));
     }
   }
@@ -311,7 +320,7 @@
         start: 0,
         end: 1.5,
         stage: Number(options.stage ?? 1),
-        selectedIndex: 0,
+        selectedIndex: null,
         showStaircase: true
       };
       this.pendingAnimationStage = 0;
@@ -454,7 +463,7 @@
         format: value => `${value} Hz`,
         onInput: value => {
           this.state.sampleRate = value;
-          this.state.selectedIndex = 0;
+          this.state.selectedIndex = null;
           this.render();
         }
       });
@@ -567,6 +576,11 @@
         });
         tbody.appendChild(row);
       });
+      tbody.addEventListener('pointerleave', () => this.clearSample());
+      tbody.addEventListener('focusout', event => {
+        if (event.relatedTarget && tbody.contains(event.relatedTarget)) return;
+        this.clearSample();
+      });
       table.append(thead, tbody);
       const scroll = element('div', 'dr-table-scroll');
       scroll.appendChild(table);
@@ -574,11 +588,16 @@
     }
 
     selectSample(index) {
-      this.state.selectedIndex = index;
+      const selectedIndex = Number(index);
+      if (!Number.isInteger(selectedIndex)) {
+        this.clearSample();
+        return;
+      }
+      this.state.selectedIndex = selectedIndex;
       this.container.querySelectorAll('[data-sample-index]').forEach(node => {
-        node.classList.toggle('is-active', Number(node.dataset.sampleIndex) === index);
+        node.classList.toggle('is-active', Number(node.dataset.sampleIndex) === selectedIndex);
         if (node.matches('tr')) {
-          if (Number(node.dataset.sampleIndex) === index) node.setAttribute('aria-current', 'true');
+          if (Number(node.dataset.sampleIndex) === selectedIndex) node.setAttribute('aria-current', 'true');
           else node.removeAttribute('aria-current');
         }
       });
@@ -587,10 +606,10 @@
         return;
       }
       const { samples } = this.derive();
-      const sample = samples[index];
+      const sample = samples[selectedIndex];
       if (!sample) return;
       const details = [
-        `標本 ${index + 1}`,
+        `標本 ${selectedIndex + 1}`,
         `t = ${formatNumber(sample.time, 3)} 秒`,
         `元の値 = ${formatNumber(sample.value, 3)}`
       ];
@@ -599,6 +618,20 @@
       }
       if (this.state.stage >= 4) details.push(`${this.state.bitDepth}bitの2進数 = ${sample.binary}`);
       this.selectedReadout.innerHTML = `<strong>選択中：</strong>${details.join(' ／ ')}`;
+    }
+
+    clearSample() {
+      this.state.selectedIndex = null;
+      this.container.querySelectorAll('[data-sample-index]').forEach(node => {
+        node.classList.remove('is-active');
+        if (node.matches('tr')) node.removeAttribute('aria-current');
+      });
+      if (!this.selectedReadout) return;
+      if (this.state.stage === 1) {
+        this.selectedReadout.innerHTML = '<strong>アナログ波形：</strong>「標本化」へ進むと、波形から取り出した点を選べます。';
+        return;
+      }
+      this.selectedReadout.innerHTML = '<strong>標本を選択：</strong>グラフの点または表の行にポインタを合わせるか、キーボードで選ぶと値を確認できます。';
     }
 
     render() {
@@ -615,8 +648,8 @@
       });
       this.stageHelp.innerHTML = `<strong>工程 ${this.state.stage}：</strong>${stageDescriptions[this.state.stage - 1]}`;
 
+      this.state.selectedIndex = null;
       const derived = this.derive();
-      if (this.state.selectedIndex >= derived.samples.length) this.state.selectedIndex = 0;
       this.renderMetrics(derived.samples.length);
       Renderer.renderPCM(this.graph, {
         ...this.state,
@@ -626,11 +659,12 @@
         axisLabelEvery: 2,
         axisVoltageStep: 1
       }, {
-        onSampleSelect: index => this.selectSample(index)
+        onSampleSelect: index => this.selectSample(index),
+        onSampleClear: () => this.clearSample()
       });
       this.pendingAnimationStage = 0;
       this.renderTable(derived.samples);
-      this.selectSample(this.state.selectedIndex);
+      this.clearSample();
       document.dispatchEvent(new CustomEvent('dr:content-resize'));
     }
   }
