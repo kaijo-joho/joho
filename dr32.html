@@ -16,61 +16,102 @@
   <script defer src="./js/sound-core.js"></script>
   <script defer src="./js/sound-renderer.js"></script>
   <script defer src="./js/sound-widgets.js"></script>
-  <script defer src="./js/sound-lessons.js"></script>
-  <script defer src="./js/dr-slide-deck.js"></script>
+  <script defer src="./js/sound-quiz.js"></script>
 </head>
-<body data-dr-slide-deck data-dr-slide-next-url="./dr33.html" data-dr-slide-next-label="問題演習へ">
-  <section data-dr-slide data-dr-slide-title="波を決める3つの量">
+<body data-sound-quiz-seed="dr32-classroom-v1">
+  <section>
     <article>
-      <h2 id="headline_1">(1) 波を決める3つの量</h2>
-      <p class="dr-lead">音の波形は複雑ですが、基本となる正弦波を組み合わせて考えられます。正弦波の形と位置は、振幅・周波数・位相を使って表します。</p>
-      <div class="dr-term-grid">
-        <dl class="dr-term">
-          <dt>振幅</dt>
-          <dd>波の中心から山または谷までの大きさです。振幅を大きくすると、波は縦方向に大きくなります。</dd>
+      <h2 id="headline_1">(1) 音のチャンネル</h2>
+      <p class="dr-lead">音の信号の伝送系統や、その単位を<strong>チャンネル</strong>といいます。チャンネル数と音のデータ量は比例します。</p>
+      <div class="dr-term-grid dr-channel-grid">
+        <dl class="dr-term dr-channel-card">
+          <dt>モノラル（1チャンネル）</dt>
+          <dd>左右のスピーカーで、同じ音信号を再生します。</dd>
         </dl>
-        <dl class="dr-term">
-          <dt>周波数 f</dt>
-          <dd>1秒間に波が繰り返す回数です。単位はHzです。周波数が高いほど、同じ時間内の波の数が増えます。</dd>
+        <dl class="dr-term dr-channel-card">
+          <dt>ステレオ（2チャンネル）</dt>
+          <dd>左右のスピーカーで異なる音信号を再生します。左右の耳に届く音の位相差や音量の違いから音源の方向を感じ取りやすくなり、臨場感が生まれます。</dd>
         </dl>
-        <dl class="dr-term">
-          <dt>位相</dt>
-          <dd>波の繰り返しの開始位置です。位相を変えると、波の山や谷が時間方向へ移動します。</dd>
+        <dl class="dr-term dr-channel-card">
+          <dt>ホームシアター（5.1チャンネル）</dt>
+          <dd>5個のスピーカーで5種類の音信号を再生し、低音域をサブウーファーで再生します。データ量の計算では6チャンネル分として扱います。</dd>
         </dl>
+      </div>
+      <p class="dr-note"><strong>データ量の関係：</strong>同じ標本化周波数・時間・量子化ビット数なら、ステレオはモノラルの2倍のデータ量になります。</p>
+    </article>
+  </section>
+
+  <section>
+    <article>
+      <h2 id="headline_2">(2) 計算と用語を練習する</h2>
+      <p class="dr-lead">2種類の問題を切り替えて練習できます。判定後は、計算や用語の考え方を確認してから次へ進みましょう。</p>
+      <div class="dr-tabs" id="sound-quiz-tabs" role="tablist" aria-label="問題の種類">
+        <button type="button" class="dr-tabs__tab" role="tab" id="tab-calculation" aria-controls="panel-calculation" aria-selected="true" data-mode="calculation">1. 周期・段階数・データ量</button>
+        <button type="button" class="dr-tabs__tab" role="tab" id="tab-terminology" aria-controls="panel-terminology" aria-selected="false" data-mode="terminology" tabindex="-1">2. 用語・標本化定理</button>
+      </div>
+      <p class="dr-seed" id="sound-quiz-seed">問題シード：</p>
+    </article>
+  </section>
+
+  <section class="dr-quiz-panel" id="panel-calculation" role="tabpanel" aria-labelledby="tab-calculation" data-panel="calculation">
+    <article>
+      <div class="dr-question-card">
+        <div class="dr-question-header">
+          <h3>周期・段階数・データ量</h3>
+          <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+        </div>
+        <p class="dr-prompt" id="calculation-prompt"></p>
+        <div class="dr-number-answer">
+          <label for="calculation-answer">答え</label>
+          <input class="dr-quiz-input" id="calculation-answer" type="number" step="any" inputmode="decimal">
+          <span class="dr-answer-unit" id="calculation-unit"></span>
+        </div>
+        <div class="dr-feedback" id="calculation-feedback" role="status" aria-live="polite"></div>
+        <div class="dr-question-actions">
+          <button type="button" class="dr-button dr-button--primary" id="calculation-judge">判定</button>
+          <button type="button" class="dr-button" id="calculation-next">次の問題</button>
+        </div>
       </div>
     </article>
   </section>
 
-  <section data-dr-slide data-dr-slide-title="波の重ね合わせ">
+  <section class="dr-quiz-panel" id="panel-terminology" role="tabpanel" aria-labelledby="tab-terminology" data-panel="terminology" hidden>
     <article>
-      <h2 id="headline_2">(2) 波の重ね合わせ</h2>
-      <p>複数の波が同時に存在するとき、同じ時刻におけるそれぞれの波の高さを加えたものが合成波になります。別々のグラフとして眺めるだけでなく、選択時刻の値を数式でも確かめましょう。</p>
-      <div data-sound-superposition></div>
-      <p class="dr-note"><strong>観察のポイント：</strong>波Aまたは波Bの表示を切り替えても、合成波の計算そのものは変わりません。振幅・周波数・位相を一つずつ動かし、合成波のどこが変わるか比べてください。</p>
+      <div class="dr-question-card">
+        <div class="dr-question-header">
+          <h3>用語・標本化定理</h3>
+          <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+        </div>
+        <p class="dr-prompt" id="terminology-prompt"></p>
+        <div class="dr-choice-list" id="terminology-choices" role="group" aria-label="選択肢"></div>
+        <div class="dr-feedback" id="terminology-feedback" role="status" aria-live="polite"></div>
+        <div class="dr-question-actions">
+          <button type="button" class="dr-button dr-button--primary" id="terminology-judge">判定</button>
+          <button type="button" class="dr-button" id="terminology-next">次の問題</button>
+        </div>
+      </div>
     </article>
   </section>
 
-  <section data-dr-slide data-dr-slide-title="標本化定理">
+  <section>
     <article>
-      <h2 id="headline_3">(3) 標本化定理</h2>
-      <p>元の波形を構成する<strong>成分波の最大周波数</strong>の2倍より大きい周波数で標本化すれば、元の波形を再現できます。この教材では、2倍より大きい場合、2倍ちょうどの場合、2倍より小さい場合を比べます。</p>
-      <div data-sound-sampling-theorem></div>
+      <h2 id="headline_3">(3) 計算の確認</h2>
       <div class="dr-term-grid">
         <dl class="dr-term">
-          <dt>標本化周波数 ＞ 最大周波数の2倍</dt>
-          <dd>標本化定理の条件を満たします。1周期あたりに取り出す点が増え、元の波形を再現できます。</dd>
+          <dt>標本化周期と周波数</dt>
+          <dd><code>T = 1 / fs</code>、<code>fs = 1 / T</code>。周期の単位は秒、周波数の単位はHzです。</dd>
         </dl>
         <dl class="dr-term">
-          <dt>標本化周波数 ＝ 最大周波数の2倍</dt>
-          <dd>境界です。位相によってはすべて同じ値を標本化するなど、元の波を一意に判断できない場合があります。</dd>
+          <dt>量子化段階数</dt>
+          <dd>n bitなら <code>2ⁿ</code> 段階です。段階数から必要bit数を求めるときは、その段階数以上になる最小のnを選びます。</dd>
         </dl>
         <dl class="dr-term">
-          <dt>標本化周波数 ＜ 最大周波数の2倍</dt>
-          <dd>標本化する回数が不足し、元の波形とは異なる波形として見えてしまいます。</dd>
+          <dt>音声データ量</dt>
+          <dd><code>標本化周波数 × 時間 × 量子化ビット数 × チャンネル数</code> でbit数を求め、8で割るとBになります。</dd>
         </dl>
       </div>
-      <p class="dr-note">複数の成分波を含む音では、比べる相手は<strong>成分波の最大周波数</strong>です。破線が現れたら、丸い標本点で実線と破線が重なることを確認してください。</p>
-      <p class="dr-slide-fallback-next"><a href="./dr33.html">理解できたら、音のデジタル表現の問題演習へ進む</a></p>
+      <p class="dr-warning-note"><strong>単位換算：</strong>このページでは1000倍換算と1024倍換算の問題を扱います。換算方法は、各問題文に「1KB = 1000B」または「この問題では1KB = 1024B、1MB = 1024KB」と明記しています。</p>
+      <p><a href="./dr31.html">音の波形とデジタル化へ戻る</a></p>
     </article>
   </section>
 

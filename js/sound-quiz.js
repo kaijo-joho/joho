@@ -230,10 +230,13 @@
 
   function initialize() {
     const tabsHost = byId('sound-quiz-tabs');
-    if (!tabsHost) return;
+    const hasDigitization = Boolean(byId('digitization-judge'));
+    const hasCalculation = Boolean(byId('calculation-judge'));
+    const hasTerminology = Boolean(byId('terminology-judge'));
+    if (!hasDigitization && !hasCalculation && !hasTerminology) return;
 
     const querySeed = new URLSearchParams(window.location.search).get('seed');
-    const seed = querySeed || 'dr33-classroom-v1';
+    const seed = querySeed || document.body.dataset.soundQuizSeed || 'sound-classroom-v1';
     const random = Core.createSeededRandom(seed);
     const score = { attempted: 0, correct: 0 };
     const state = {
@@ -345,7 +348,8 @@
       theoremChoice({ id: 'theorem-insufficient', level: 2, signalFrequency: 7, sampleRate: 10 })
     ];
 
-    byId('sound-quiz-seed').textContent = `問題シード：${seed}`;
+    const seedOutput = byId('sound-quiz-seed');
+    if (seedOutput) seedOutput.textContent = `問題シード：${seed}`;
 
     function updateScore() {
       document.querySelectorAll('[data-sound-score]').forEach(output => {
@@ -451,6 +455,7 @@
       scroll.appendChild(table);
       byId('digitization-answer-grid').replaceChildren(scroll);
       byId('digitization-judge').disabled = result.judged;
+      document.dispatchEvent(new CustomEvent('dr:content-resize'));
     }
 
     function newDigitizationProblem() {
@@ -465,36 +470,38 @@
       renderDigitization();
     }
 
-    byId('digitization-judge').addEventListener('click', () => {
-      const result = state.digitization;
-      if (!result || result.judged) return;
-      result.judged = true;
-      const incorrectSamples = [];
-      let correctCells = 0;
-      let unansweredCells = 0;
-      result.problem.expected.forEach((expected, index) => {
-        let sampleCorrect = true;
-        ['sampleValue', 'quantizedValue', 'code', 'binary'].forEach(field => {
-          const raw = result.answers[index][field];
-          if (String(raw).trim() === '') unansweredCells += 1;
-          const correct = field === 'binary'
-            ? String(raw).replace(/\s/g, '') === expected.binary
-            : Number.isFinite(Number(raw)) && String(raw).trim() !== '' && Math.abs(Number(raw) - expected[field]) <= 1e-6;
-          if (correct) correctCells += 1;
-          else sampleCorrect = false;
+    if (hasDigitization) {
+      byId('digitization-judge').addEventListener('click', () => {
+        const result = state.digitization;
+        if (!result || result.judged) return;
+        result.judged = true;
+        const incorrectSamples = [];
+        let correctCells = 0;
+        let unansweredCells = 0;
+        result.problem.expected.forEach((expected, index) => {
+          let sampleCorrect = true;
+          ['sampleValue', 'quantizedValue', 'code', 'binary'].forEach(field => {
+            const raw = result.answers[index][field];
+            if (String(raw).trim() === '') unansweredCells += 1;
+            const correct = field === 'binary'
+              ? String(raw).replace(/\s/g, '') === expected.binary
+              : Number.isFinite(Number(raw)) && String(raw).trim() !== '' && Math.abs(Number(raw) - expected[field]) <= 1e-6;
+            if (correct) correctCells += 1;
+            else sampleCorrect = false;
+          });
+          if (!sampleCorrect) incorrectSamples.push(index + 1);
         });
-        if (!sampleCorrect) incorrectSamples.push(index + 1);
+        const totalCells = result.problem.expected.length * 4;
+        const correct = correctCells === totalCells;
+        record(result, correct);
+        const detail = correct
+          ? `全${totalCells}セル正解です。${result.problem.explanation}`
+          : `${correctCells}/${totalCells}セルが正解です。見直す標本：${incorrectSamples.join('、')}。${unansweredCells ? `未回答は${unansweredCells}セルです。` : ''} ${result.problem.explanation}`;
+        setFeedback(byId('digitization-feedback'), detail, correct ? 'correct' : 'wrong');
+        renderDigitization();
       });
-      const totalCells = result.problem.expected.length * 4;
-      const correct = correctCells === totalCells;
-      record(result, correct);
-      const detail = correct
-        ? `全${totalCells}セル正解です。${result.problem.explanation}`
-        : `${correctCells}/${totalCells}セルが正解です。見直す標本：${incorrectSamples.join('、')}。${unansweredCells ? `未回答は${unansweredCells}セルです。` : ''} ${result.problem.explanation}`;
-      setFeedback(byId('digitization-feedback'), detail, correct ? 'correct' : 'wrong');
-      renderDigitization();
-    });
-    byId('digitization-next').addEventListener('click', newDigitizationProblem);
+      byId('digitization-next').addEventListener('click', newDigitizationProblem);
+    }
 
     function renderCalculation() {
       const result = state.calculation;
@@ -515,29 +522,31 @@
       byId('calculation-answer').focus({ preventScroll: true });
     }
 
-    byId('calculation-answer').addEventListener('input', event => {
-      if (state.calculation) state.calculation.answer = event.target.value;
-    });
-    byId('calculation-judge').addEventListener('click', () => {
-      const result = state.calculation;
-      if (!result || result.judged) return;
-      const answer = Number(result.answer);
-      const correct = result.answer.trim() !== ''
-        && Number.isFinite(answer)
-        && Math.abs(answer - result.problem.expected) <= result.problem.tolerance;
-      result.judged = true;
-      record(result, correct);
-      const expected = Widgets.formatNumber(result.problem.expected, 4);
-      setFeedback(
-        byId('calculation-feedback'),
-        correct
-          ? `正解です。${result.problem.explanation}`
-          : `正解は ${expected}${result.problem.answerUnit} です。${result.problem.explanation}`,
-        correct ? 'correct' : 'wrong'
-      );
-      renderCalculation();
-    });
-    byId('calculation-next').addEventListener('click', newCalculationProblem);
+    if (hasCalculation) {
+      byId('calculation-answer').addEventListener('input', event => {
+        if (state.calculation) state.calculation.answer = event.target.value;
+      });
+      byId('calculation-judge').addEventListener('click', () => {
+        const result = state.calculation;
+        if (!result || result.judged) return;
+        const answer = Number(result.answer);
+        const correct = result.answer.trim() !== ''
+          && Number.isFinite(answer)
+          && Math.abs(answer - result.problem.expected) <= result.problem.tolerance;
+        result.judged = true;
+        record(result, correct);
+        const expected = Widgets.formatNumber(result.problem.expected, 4);
+        setFeedback(
+          byId('calculation-feedback'),
+          correct
+            ? `正解です。${result.problem.explanation}`
+            : `正解は ${expected}${result.problem.answerUnit} です。${result.problem.explanation}`,
+          correct ? 'correct' : 'wrong'
+        );
+        renderCalculation();
+      });
+      byId('calculation-next').addEventListener('click', newCalculationProblem);
+    }
 
     function renderTerminology() {
       const result = state.terminology;
@@ -574,22 +583,24 @@
       renderTerminology();
     }
 
-    byId('terminology-judge').addEventListener('click', () => {
-      const result = state.terminology;
-      if (!result || result.judged || !result.answer) return;
-      result.judged = true;
-      const correct = result.answer === result.problem.expected;
-      record(result, correct);
-      setFeedback(
-        byId('terminology-feedback'),
-        `${correct ? '正解です。' : '不正解です。'}${result.problem.explanation}`,
-        correct ? 'correct' : 'wrong'
-      );
-      renderTerminology();
-    });
-    byId('terminology-next').addEventListener('click', newTerminologyProblem);
+    if (hasTerminology) {
+      byId('terminology-judge').addEventListener('click', () => {
+        const result = state.terminology;
+        if (!result || result.judged || !result.answer) return;
+        result.judged = true;
+        const correct = result.answer === result.problem.expected;
+        record(result, correct);
+        setFeedback(
+          byId('terminology-feedback'),
+          `${correct ? '正解です。' : '不正解です。'}${result.problem.explanation}`,
+          correct ? 'correct' : 'wrong'
+        );
+        renderTerminology();
+      });
+      byId('terminology-next').addEventListener('click', newTerminologyProblem);
+    }
 
-    const tabs = Array.from(tabsHost.querySelectorAll('[role="tab"][data-mode]'));
+    const tabs = tabsHost ? Array.from(tabsHost.querySelectorAll('[role="tab"][data-mode]')) : [];
     function activateTab(mode, focus = false) {
       tabs.forEach(tab => {
         const active = tab.dataset.mode === mode;
@@ -616,10 +627,10 @@
     });
 
     updateScore();
-    newDigitizationProblem();
-    newCalculationProblem();
-    newTerminologyProblem();
-    activateTab('digitization');
+    if (hasDigitization) newDigitizationProblem();
+    if (hasCalculation) newCalculationProblem();
+    if (hasTerminology) newTerminologyProblem();
+    if (tabs.length) activateTab(tabs[0].dataset.mode);
   }
 
   root.SoundQuiz = Object.freeze({

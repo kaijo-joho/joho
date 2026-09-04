@@ -114,7 +114,7 @@ Colab原本は別プロジェクトの`~/Documents/Colab/`に同期されてい�
 - ヘッダー、ナビゲーション、LessonDock、本文幅、テーマ、文字サイズ、アクセシビリティなどの基本デザインは、実習・座学で共通にする。
 - 教材固有の図、シミュレーション、回路エディタ、問題UIなどにはシリーズ別のCSSとJavaScriptを使用してよい。個別設定は必要な範囲へ限定し、共通部分をページごとに複製しない。
 - 複数ページで必要になる差異は、可能な限りdata属性、CSS変数、共通設定、共通コンポーネントとして表現する。ページ固有の判断は`docs/page-specific-editing-notes.md`へ記録する。
-- 座学の概念説明ページは、本文全体を縦に並べるのではなく、現在の`dr31.html`、`dr32.html`のように内容を順番にめくるスライド形式を基本とする。
+- 座学の概念説明ページは、本文全体を縦に並べるのではなく、現在の`dr31.html`のように内容を順番にめくるスライド形式を基本とする。
 - 自由操作、問題演習、エディタなどは学習内容に適した専用UIを優先し、無理にすべてをスライド内へ収めない。
 - ここでいうスライド形式はHTMLページ内の表示・操作方式であり、「スライド由来教材」のGoogleスライド生成フローとは別である。表示形式だけを理由に`config/slide-pages.json`へ登録しない。
 - `lc`シリーズはスライド形式への対応途中である。現状を完成仕様とみなさず、座学ページを整備するときは`dr`シリーズを基準に段階的に揃える。
@@ -275,7 +275,7 @@ node scripts/test-logic-applications.mjs
 
 ### 音のデジタル表現関連
 
-`js/sound-*.js`、`js/dr-slide-deck.js`、`dr31.html`〜`dr33.html`、`css/digital-representation.css`を変更した場合に実行する。
+`js/sound-*.js`、`js/dr-slide-deck.js`、`dr31.html`、`dr32.html`、`css/digital-representation.css`を変更した場合に実行する。
 
 ```sh
 node scripts/test-sound-core.mjs

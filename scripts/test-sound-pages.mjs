@@ -26,21 +26,20 @@ const context = { window: {} };
 vm.runInNewContext(pagesSource, context, { filename: 'js/pages.js', timeout: 1000 });
 const pages = context.window.pages;
 
-for (const id of ['dr31', 'dr32', 'dr33']) {
-  equal(pages[id]?.release, true, `${id}を公開ページとして登録`);
+for (const id of ['dr31', 'dr32']) {
+  equal(pages[id]?.release, false, `${id}を非公開ページとして登録`);
   equal(pages[id]?.show, true, `${id}をサイドナビへ表示`);
   equal(pages[id]?.mainTitle, 'Digital Representation', `${id}のシリーズ名`);
   equal(pages[id]?.category, '音のデジタル表現', `${id}のカテゴリ`);
 }
 equal(pages.dr31.next?.[0]?.id, 'dr32', 'dr31からdr32への次ページ');
 equal(pages.dr32.back, 'dr31', 'dr32からdr31への前ページ');
-equal(pages.dr32.next?.[0]?.id, 'dr33', 'dr32からdr33への次ページ');
-equal(pages.dr33.back, 'dr32', 'dr33からdr32への前ページ');
+equal(pages.dr32.next, false, 'dr32を音シリーズの末尾に設定');
+equal(pages.dr33, undefined, '旧dr33をページ登録から削除');
 
-const [dr31, dr32, dr33, css, slideDeck, renderer, widgets, lessons, quiz, links, searchIndexSource] = await Promise.all([
+const [dr31, dr32, css, slideDeck, renderer, widgets, lessons, quiz, links, searchIndexSource] = await Promise.all([
   source('dr31.html'),
   source('dr32.html'),
-  source('dr33.html'),
   source('css/digital-representation.css'),
   source('js/dr-slide-deck.js'),
   source('js/sound-renderer.js'),
@@ -51,7 +50,7 @@ const [dr31, dr32, dr33, css, slideDeck, renderer, widgets, lessons, quiz, links
   source('data/search-index.json')
 ]);
 
-for (const [name, html] of [['dr31', dr31], ['dr32', dr32], ['dr33', dr33]]) {
+for (const [name, html] of [['dr31', dr31], ['dr32', dr32]]) {
   ok(html.includes('./js/main.js'), `${name}が共通サイト機能を読み込む`);
   ok(html.includes('./css/digital-representation.css'), `${name}が共通DRスタイルを読み込む`);
   ok(html.indexOf('./js/sound-core.js') < html.indexOf('./js/sound-renderer.js'), `${name}のCore→Renderer読み込み順`);
@@ -83,12 +82,10 @@ ok(!widgets.includes("['量子化の幅'"), '可変PCMグラフに量子化の�
 ok(!widgets.includes('renderTable(') && !widgets.includes("element('table', 'dr-sample-table')"), '可変PCMグラフの下に標本値表を置かない');
 ok(!dr31.includes('SVG上の点と下の表'), '条件変更スライドで削除した表へ言及しない');
 ok(widgets.includes('createInfoTip') && widgets.includes('aria-controls'), '補足アイコンをフォーカス・タップでも確認可能');
-for (const [name, html, expectedSlides] of [['dr31', dr31, 5], ['dr32', dr32, 3]]) {
-  ok(html.includes('data-dr-slide-deck'), `${name}をスライドページとして設定`);
-  equal((html.match(/<section data-dr-slide(?:\s|>)/g) || []).length, expectedSlides, `${name}のスライド数`);
-  ok(html.includes('./js/dr-slide-deck.js'), `${name}が共通スライド機構を読み込む`);
-}
-ok(!dr33.includes('data-dr-slide-deck'), '問題演習dr33はタブ型ページを維持');
+ok(dr31.includes('data-dr-slide-deck'), 'dr31をスライドページとして設定');
+equal((dr31.match(/<section data-dr-slide(?:\s|>)/g) || []).length, 8, '統合後のdr31は8スライド');
+ok(dr31.includes('./js/dr-slide-deck.js'), 'dr31が共通スライド機構を読み込む');
+ok(!dr32.includes('data-dr-slide-deck'), '問題演習dr32はタブ型ページを維持');
 for (const requirement of ['class DrSlideDeck', 'dr-slide-deck__navigation', 'dr-slide-deck__steps', 'aria-current', 'ArrowRight', 'PageDown', 'location.hash', 'dr-slide-page--content', 'is-height-compact']) {
   ok(slideDeck.includes(requirement), `スライド機構に ${requirement}`);
 }
@@ -108,36 +105,41 @@ ok(dr31.includes('ちょうど中間なら上側'), 'dr31に丸め規則');
 ok(dr31.includes('表示範囲を超えた値'), 'dr31に表示範囲外の規則');
 ok(dr31.includes('<dt>PCM</dt>') && widgets.includes('PCMは「パルス符号変調」の略です'), 'PCMは略語としてのみ説明');
 
-ok(dr32.includes('data-sound-superposition'), 'dr32に波の重ね合わせ教材');
-ok(dr32.includes('data-sound-sampling-theorem'), 'dr32に標本化定理教材');
+ok(dr31.includes('data-sound-superposition'), 'dr31に波の重ね合わせ教材を統合');
+ok(dr31.includes('data-sound-sampling-theorem'), 'dr31に標本化定理教材を統合');
 ok(lessons.includes('復元された正解波形') && lessons.includes('ではありません'), '破線を復元結果と誤説明しない');
-ok(dr32.includes('2倍より大きい場合') && dr32.includes('2倍ちょうどの場合') && dr32.includes('2倍より小さい場合'), '標本化定理の3状態');
-ok(dr32.includes('元の波形とは異なる波形'), '指定した表現で標本化不足を説明');
+ok(dr31.includes('2倍より大きい場合') && dr31.includes('2倍ちょうどの場合') && dr31.includes('2倍より小さい場合'), '標本化定理の3状態');
+ok(dr31.includes('元の波形とは異なる波形'), '指定した表現で標本化不足を説明');
 
-const learnerFacingSources = [dr31, dr32, dr33, slideDeck, renderer, widgets, lessons, quiz, pagesSource].join('\n');
+const learnerFacingSources = [dr31, dr32, slideDeck, renderer, widgets, lessons, quiz, pagesSource].join('\n');
 for (const unsupportedTerm of ['エイリアシング', 'ナイキスト', 'Nyquist', 'PCM Explorer', 'fmax', '量子化番号', '量子化誤差', '資料']) {
   ok(!learnerFacingSources.includes(unsupportedTerm), `学習画面で使わない表現「${unsupportedTerm}」を含めない`);
 }
 
-equal((dr33.match(/role="tab"/g) || []).length, 3, 'dr33の3タブ');
-equal((dr33.match(/role="tabpanel"/g) || []).length, 3, 'dr33の3タブパネル');
-for (const id of ['digitization-judge', 'calculation-judge', 'terminology-judge']) {
-  ok(dr33.includes(`id="${id}"`), `dr33の判定ボタン ${id}`);
+ok(dr31.includes('id="digitization-judge"'), '波形デジタル化問題をdr31末尾へ移動');
+ok(dr31.indexOf('data-sound-sampling-theorem') < dr31.indexOf('id="digitization-judge"'), '標本化定理の後に波形問題を配置');
+ok(quiz.includes('hasDigitization') && quiz.includes('hasCalculation') && quiz.includes('hasTerminology'), '存在する問題カテゴリだけを初期化');
+equal((dr32.match(/role="tab"/g) || []).length, 2, 'dr32の2タブ');
+equal((dr32.match(/role="tabpanel"/g) || []).length, 2, 'dr32の2タブパネル');
+for (const id of ['calculation-judge', 'terminology-judge']) {
+  ok(dr32.includes(`id="${id}"`), `dr32の判定ボタン ${id}`);
 }
-ok(dr33.includes('1KB = 1000B'), '1000倍換算を明記');
-ok(dr33.includes('1KB = 1024B'), '1024倍換算を明記');
-ok(dr33.includes('チャンネル数'), 'チャンネル数の説明');
+ok(!dr32.includes('id="digitization-judge"'), 'dr32では波形問題を重複させない');
+ok(dr32.includes('1KB = 1000B'), '1000倍換算を明記');
+ok(dr32.includes('1KB = 1024B'), '1024倍換算を明記');
+for (const term of ['音のチャンネル', 'モノラル（1チャンネル）', 'ステレオ（2チャンネル）', 'ホームシアター（5.1チャンネル）', 'チャンネル数と音のデータ量は比例']) {
+  ok(dr32.includes(term), `dr32のチャンネル説明「${term}」`);
+}
 
 for (const query of ['max-width: 820px', 'max-width: 560px', 'max-width: 390px', 'prefers-reduced-motion', 'data-theme="light"', 'data-theme="dark"']) {
   ok(css.includes(query), `DRスタイルに ${query}`);
 }
 
 const searchIndex = JSON.parse(searchIndexSource);
-for (const id of ['dr31', 'dr32', 'dr33']) {
-  const document = searchIndex.documents.find(entry => entry.id === id);
-  ok(document, `${id}を検索索引へ登録`);
-  equal(document?.course, 'dr', `${id}の検索講座キー`);
+for (const id of ['dr31', 'dr32']) {
+  ok(!searchIndex.documents.some(entry => entry.id === id), `${id}をrelease:falseの間は検索索引へ含めない`);
 }
+ok(!searchIndex.documents.some(entry => entry.id === 'dr33'), '旧dr33を検索索引から削除');
 
 ok(/"l35"\s*:\s*\{/.test(links), '既存の外部小テストl35を維持');
 ok(/quizId=l35/.test(links), 'l35の既存外部リンクを維持');

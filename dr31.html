@@ -17,21 +17,15 @@
   <script defer src="./js/sound-renderer.js"></script>
   <script defer src="./js/sound-widgets.js"></script>
   <script defer src="./js/sound-lessons.js"></script>
+  <script defer src="./js/sound-quiz.js"></script>
   <script defer src="./js/dr-slide-deck.js"></script>
 </head>
-<body data-dr-slide-deck data-dr-slide-next-url="./dr32.html" data-dr-slide-next-label="波と標本化へ">
-  <section data-dr-slide data-dr-slide-title="音とアナログ波形">
-    <article>
-      <h2 id="headline_1">(1) 音とアナログ波形</h2>
+<body data-dr-slide-deck data-dr-slide-next-url="./dr32.html" data-dr-slide-next-label="計算と用語の問題演習へ" data-sound-quiz-seed="dr31-wave-v1">
+  <section data-dr-slide data-dr-slide-title="音とアナログ・デジタル">
+    <article class="dr-analog-digital-slide">
+      <h2 id="headline_1">(1) 音とアナログ・デジタル</h2>
       <div data-sound-analog-intro></div>
-    </article>
-  </section>
-
-  <section data-dr-slide data-dr-slide-title="アナログとデジタル">
-    <article>
-      <h2 id="headline_analog_digital">(2) アナログとデジタル</h2>
-      <p class="dr-lead">連続して変化するアナログの音を、コンピュータで扱える数値と0・1へ変換していきます。</p>
-      <div class="dr-term-grid">
+      <div class="dr-term-grid dr-term-grid--compact">
         <dl class="dr-term">
           <dt>アナログ</dt>
           <dd>時間や大きさが連続して変化する表し方です。波形の途中にも、無数の値があります。</dd>
@@ -45,13 +39,13 @@
           <dd>横軸を時間、縦軸を電圧などの大きさとして、信号の変化を表したグラフです。</dd>
         </dl>
       </div>
-      <p class="dr-note">次のスライドから、連続した波形を<strong>標本化 → 量子化 → 符号化</strong>の順に変換します。</p>
+      <p class="dr-note">連続したアナログ波形を、次のスライドで<strong>標本化 → 量子化 → 符号化</strong>の順にデジタル化します。</p>
     </article>
   </section>
 
   <section data-dr-slide data-dr-slide-title="標本化・量子化・符号化">
     <article>
-      <h2 id="headline_2">(3) 標本化・量子化・符号化</h2>
+      <h2 id="headline_2">(2) 標本化・量子化・符号化</h2>
       <p class="dr-enhancement-summary">同じグラフを使い、アナログ波形に<strong>標本化 → 量子化 → 符号化</strong>の要素を順番に加えます。最初は波形だけを見てから、各工程のボタンを押してください。</p>
       <div data-sound-pcm-guide></div>
     </article>
@@ -59,7 +53,7 @@
 
   <section data-dr-slide data-dr-slide-title="条件を変えて確かめる">
     <article>
-      <h2 id="headline_3">(4) 条件を変えて確かめる</h2>
+      <h2 id="headline_3">(3) 条件を変えて確かめる</h2>
       <p>3つの手順を確認したら、波形・周波数・振幅・標本化周波数・量子化ビット数を変えて比べます。グラフの標本点は、マウス、タップ、キーボードのどれでも選べます。</p>
       <div data-sound-pcm data-stage="4"></div>
       <p class="dr-rule-note"><strong>この教材での値の扱い：</strong>基本範囲は0以上8未満です。最も近い段階値へそろえ、ちょうど中間なら上側を選びます。表示範囲を超えた値は、最小または最大の段階値として扱います。通常の問題では、どちらへそろえるか迷わない値を使います。</p>
@@ -68,7 +62,7 @@
 
   <section data-dr-slide data-dr-slide-title="数値と用語の整理">
     <article>
-      <h2 id="headline_4">(5) 数値と用語を整理する</h2>
+      <h2 id="headline_4">(4) 数値と用語を整理する</h2>
       <div class="dr-term-grid">
         <dl class="dr-term">
           <dt>標本化（サンプリング）</dt>
@@ -108,7 +102,87 @@
         <p>基本範囲0以上8未満では、3bitの量子化の幅は <code>8 ÷ 8 = 1</code> なので、段階値2を2進数で表すと <code>2 → 010</code> です。</p>
         <p>4bitでは16段階、量子化の幅は <code>8 ÷ 16 = 0.5</code> です。値2の段階値は4となり <code>0100</code>、値6の段階値は12となり <code>1100</code> です。</p>
       </div>
-      <p class="dr-slide-fallback-next"><a href="./dr32.html">次は、波の重ね合わせと標本化定理を操作して確かめる</a></p>
+    </article>
+  </section>
+
+  <section data-dr-slide data-dr-slide-title="波を決める3つの量">
+    <article>
+      <h2 id="headline_5">(5) 波を決める3つの量</h2>
+      <p class="dr-lead">音の波形は複雑ですが、基本となる正弦波を組み合わせて考えられます。正弦波の形と位置は、振幅・周波数・位相を使って表します。</p>
+      <div class="dr-term-grid">
+        <dl class="dr-term">
+          <dt>振幅</dt>
+          <dd>波の中心から山または谷までの大きさです。振幅を大きくすると、波は縦方向に大きくなります。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>周波数 f</dt>
+          <dd>1秒間に波が繰り返す回数です。単位はHzです。周波数が高いほど、同じ時間内の波の数が増えます。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>位相</dt>
+          <dd>波の繰り返しの開始位置です。位相を変えると、波の山や谷が時間方向へ移動します。</dd>
+        </dl>
+      </div>
+    </article>
+  </section>
+
+  <section data-dr-slide data-dr-slide-title="波の重ね合わせ">
+    <article>
+      <h2 id="headline_6">(6) 波の重ね合わせ</h2>
+      <p>複数の波が同時に存在するとき、同じ時刻におけるそれぞれの波の高さを加えたものが合成波になります。別々のグラフとして眺めるだけでなく、選択時刻の値を数式でも確かめましょう。</p>
+      <div data-sound-superposition></div>
+      <p class="dr-note"><strong>観察のポイント：</strong>波Aまたは波Bの表示を切り替えても、合成波の計算そのものは変わりません。振幅・周波数・位相を一つずつ動かし、合成波のどこが変わるか比べてください。</p>
+    </article>
+  </section>
+
+  <section data-dr-slide data-dr-slide-title="標本化定理">
+    <article>
+      <h2 id="headline_7">(7) 標本化定理</h2>
+      <p>元の波形を構成する<strong>成分波の最大周波数</strong>の2倍より大きい周波数で標本化すれば、元の波形を再現できます。この教材では、2倍より大きい場合、2倍ちょうどの場合、2倍より小さい場合を比べます。</p>
+      <div data-sound-sampling-theorem></div>
+      <div class="dr-term-grid">
+        <dl class="dr-term">
+          <dt>標本化周波数 ＞ 最大周波数の2倍</dt>
+          <dd>標本化定理の条件を満たします。1周期あたりに取り出す点が増え、元の波形を再現できます。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>標本化周波数 ＝ 最大周波数の2倍</dt>
+          <dd>境界です。位相によってはすべて同じ値を標本化するなど、元の波を一意に判断できない場合があります。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>標本化周波数 ＜ 最大周波数の2倍</dt>
+          <dd>標本化する回数が不足し、元の波形とは異なる波形として見えてしまいます。</dd>
+        </dl>
+      </div>
+      <p class="dr-note">複数の成分波を含む音では、比べる相手は<strong>成分波の最大周波数</strong>です。破線が現れたら、丸い標本点で実線と破線が重なることを確認してください。</p>
+    </article>
+  </section>
+
+  <section data-dr-slide data-dr-slide-title="波形をデジタル化" class="dr-quiz-panel" data-panel="digitization">
+    <article>
+      <h2 id="headline_8">(8) 波形をデジタル化する</h2>
+      <p class="dr-lead">ここまでの手順を使い、波形から標本値・量子化後の値・段階値・2進数を読み取ります。</p>
+      <p class="dr-seed" id="sound-quiz-seed">問題シード：</p>
+      <div class="dr-question-card">
+        <div class="dr-question-header">
+          <h3>波形をデジタル化</h3>
+          <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+        </div>
+        <div class="dr-prompt" id="digitization-prompt"></div>
+        <div class="dr-visual">
+          <div class="dr-visual__scroll" tabindex="0" aria-label="問題の波形。狭い画面では横方向にスクロールできます。">
+            <p class="dr-visual__hint">横にスクロールしてグラフ全体を確認できます</p>
+            <div id="digitization-graph"></div>
+          </div>
+        </div>
+        <div id="digitization-answer-grid"></div>
+        <div class="dr-feedback" id="digitization-feedback" role="status" aria-live="polite"></div>
+        <div class="dr-question-actions">
+          <button type="button" class="dr-button dr-button--primary" id="digitization-judge">判定</button>
+          <button type="button" class="dr-button" id="digitization-next">次の問題</button>
+        </div>
+      </div>
+      <p class="dr-slide-fallback-next"><a href="./dr32.html">次は、音のチャンネルと計算・用語の問題演習へ進む</a></p>
     </article>
   </section>
 
