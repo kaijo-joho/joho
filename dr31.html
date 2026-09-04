@@ -11,6 +11,7 @@
   </style>
   <title>海城中学高等学校 情報科</title>
   <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/sound-core.js"></script>
@@ -18,10 +19,10 @@
   <script defer src="./js/sound-widgets.js"></script>
   <script defer src="./js/sound-lessons.js"></script>
   <script defer src="./js/sound-quiz.js"></script>
-  <script defer src="./js/dr-slide-deck.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
-<body data-dr-slide-deck data-dr-slide-next-url="./dr32.html" data-dr-slide-next-label="計算と用語の問題演習へ" data-sound-quiz-seed="dr31-wave-v1">
-  <section data-dr-slide data-dr-slide-title="音とアナログ・デジタル">
+<body data-lesson-slide-deck data-sound-quiz-seed="dr31-wave-v1">
+  <section data-lesson-slide data-lesson-slide-title="音とアナログ・デジタル">
     <article class="dr-analog-digital-slide">
       <h2 id="headline_1">(1) 音とアナログ・デジタル</h2>
       <div data-sound-analog-intro></div>
@@ -43,39 +44,39 @@
     </article>
   </section>
 
-  <section data-dr-slide data-dr-slide-title="標本化・量子化・符号化">
+  <section data-lesson-slide data-lesson-slide-title="標本化・量子化・符号化">
     <article>
       <h2 id="headline_2">(2) 標本化・量子化・符号化</h2>
       <p class="dr-enhancement-summary">同じグラフを使い、アナログ波形に<strong>標本化 → 量子化 → 符号化</strong>の要素を順番に加えます。最初は波形だけを見てから、各工程のボタンを押してください。</p>
-      <div data-sound-pcm-guide></div>
+      <div data-sound-pcm-guide data-lesson-slide-navigation-lock></div>
     </article>
   </section>
 
-  <section data-dr-slide data-dr-slide-title="条件を変えて確かめる">
+  <section data-lesson-slide data-lesson-slide-title="条件を変えて確かめる">
     <article>
       <h2 id="headline_3">(3) 条件を変えて確かめる</h2>
       <p>3つの手順を確認したら、波形・周波数・振幅・標本化周波数・量子化ビット数を変えて比べます。グラフの標本点は、マウス、タップ、キーボードのどれでも選べます。</p>
-      <div data-sound-pcm data-stage="4"></div>
+      <div data-sound-pcm data-stage="4" data-lesson-slide-navigation-lock></div>
       <p class="dr-rule-note"><strong>この教材での値の扱い：</strong>基本範囲は0以上8未満です。最も近い段階値へそろえ、ちょうど中間なら上側を選びます。表示範囲を超えた値は、最小または最大の段階値として扱います。通常の問題では、どちらへそろえるか迷わない値を使います。</p>
     </article>
   </section>
 
-  <section data-dr-slide data-dr-slide-title="標本化定理">
+  <section data-lesson-slide data-lesson-slide-title="標本化定理">
     <article>
       <h2 id="headline_4">(4) 標本化定理</h2>
       <p>元の波形を構成する<strong>成分波の最大周波数</strong>の2倍より大きい周波数で標本化すれば、元の波形を再現できます。まず標本化周波数を決めて丸い標本点を確認し、その標本点から波形を描いて、2倍より大きい場合、2倍ちょうどの場合、2倍より小さい場合を比べます。</p>
       <div class="dr-supplement-links" aria-label="標本化定理の補足">
         <span class="dr-supplement-links__label">必要に応じて確認</span>
-        <button type="button" class="dr-supplement-link" data-dr-supplement-open="dr-wave-basics-dialog">
+        <button type="button" class="dr-supplement-link" data-lesson-supplement-open="dr-wave-basics-dialog">
           <span class="dr-supplement-link__icon" aria-hidden="true">?</span>
           正弦波の基本（振幅・周波数・位相）
         </button>
-        <button type="button" class="dr-supplement-link" data-dr-supplement-open="dr-superposition-dialog">
+        <button type="button" class="dr-supplement-link" data-lesson-supplement-open="dr-superposition-dialog">
           <span class="dr-supplement-link__icon" aria-hidden="true">?</span>
           波の重ね合わせ
         </button>
       </div>
-      <div data-sound-sampling-theorem></div>
+      <div data-sound-sampling-theorem data-lesson-slide-navigation-lock></div>
       <div class="dr-term-grid">
         <dl class="dr-term">
           <dt>標本化周波数 ＞ 最大周波数の2倍</dt>
@@ -94,7 +95,7 @@
     </article>
   </section>
 
-  <section data-dr-slide data-dr-slide-title="用語と数値の例">
+  <section data-lesson-slide data-lesson-slide-title="用語と数値の例">
     <article>
       <h2 id="headline_5">(5) 用語と数値の例</h2>
       <div class="dr-reference-grid">
@@ -179,12 +180,12 @@
     </article>
   </section>
 
-  <section data-dr-slide data-dr-slide-title="波形をデジタル化" class="dr-quiz-panel" data-panel="digitization">
+  <section data-lesson-slide data-lesson-slide-title="波形をデジタル化" data-lesson-slide-layout="exercise" class="dr-quiz-panel" data-panel="digitization">
     <article>
       <h2 id="headline_6">(6) 波形をデジタル化する</h2>
       <p class="dr-lead">ここまでの手順を使い、波形から標本値・量子化後の値・段階値・2進数を読み取ります。</p>
       <p class="dr-seed" id="sound-quiz-seed">問題シード：</p>
-      <div class="dr-question-card">
+      <div class="dr-question-card" data-lesson-slide-navigation-lock>
         <div class="dr-question-header">
           <h3>波形をデジタル化</h3>
           <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
@@ -203,15 +204,15 @@
           <button type="button" class="dr-button" id="digitization-next">次の問題</button>
         </div>
       </div>
-      <p class="dr-slide-fallback-next"><a href="./dr32.html">次は、音のチャンネルと計算・用語の問題演習へ進む</a></p>
+      <p class="lesson-slide-fallback-next"><a href="./dr32.html">次は、音のチャンネルと計算・用語の問題演習へ進む</a></p>
     </article>
   </section>
 
-  <dialog class="dr-supplement-dialog" id="dr-wave-basics-dialog" data-dr-supplement-dialog aria-labelledby="dr-wave-basics-title">
+  <dialog class="dr-supplement-dialog" id="dr-wave-basics-dialog" data-lesson-supplement-dialog aria-labelledby="dr-wave-basics-title">
     <div class="dr-supplement-dialog__panel">
       <header class="dr-supplement-dialog__header">
         <h2 id="dr-wave-basics-title" data-skip-numbering>補足：正弦波を決める3つの量</h2>
-        <button type="button" class="dr-supplement-dialog__close" data-dr-supplement-close aria-label="正弦波の基本の補足を閉じる">×</button>
+        <button type="button" class="dr-supplement-dialog__close" data-lesson-supplement-close aria-label="正弦波の基本の補足を閉じる">×</button>
       </header>
       <p class="dr-lead">音の波形は複雑ですが、基本となる正弦波を組み合わせて考えられます。正弦波の形と位置は、振幅・周波数・位相を使って表します。</p>
       <div class="dr-term-grid">
@@ -231,11 +232,11 @@
     </div>
   </dialog>
 
-  <dialog class="dr-supplement-dialog dr-supplement-dialog--wide" id="dr-superposition-dialog" data-dr-supplement-dialog aria-labelledby="dr-superposition-title">
+  <dialog class="dr-supplement-dialog dr-supplement-dialog--wide" id="dr-superposition-dialog" data-lesson-supplement-dialog aria-labelledby="dr-superposition-title">
     <div class="dr-supplement-dialog__panel">
       <header class="dr-supplement-dialog__header">
         <h2 id="dr-superposition-title" data-skip-numbering>補足：波の重ね合わせ</h2>
-        <button type="button" class="dr-supplement-dialog__close" data-dr-supplement-close aria-label="波の重ね合わせの補足を閉じる">×</button>
+        <button type="button" class="dr-supplement-dialog__close" data-lesson-supplement-close aria-label="波の重ね合わせの補足を閉じる">×</button>
       </header>
       <p>複数の波が同時に存在するとき、同じ時刻におけるそれぞれの波の高さを加えたものが合成波になります。選択時刻の値を数式でも確かめましょう。</p>
       <div data-sound-superposition></div>

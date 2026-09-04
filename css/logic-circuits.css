@@ -25,6 +25,12 @@
   --logic-warning: #8a5700;
   --logic-warning-soft: #fff4d6;
   --logic-focus: #1677c8;
+  --lesson-theme-panel: var(--logic-panel-strong);
+  --lesson-theme-panel-soft: var(--logic-panel);
+  --lesson-theme-border: var(--logic-border);
+  --lesson-theme-text: var(--logic-text);
+  --lesson-theme-muted: var(--logic-muted);
+  --lesson-theme-focus: var(--logic-focus);
 }
 
 @media (prefers-color-scheme: dark) {

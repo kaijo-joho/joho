@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -26,6 +27,8 @@ const context = { window: {} };
 vm.runInNewContext(pagesSource, context, { filename: 'js/pages.js', timeout: 1000 });
 const pages = context.window.pages;
 
+ok(!existsSync(path.join(root, 'js/dr-slide-deck.js')), '旧DR専用スライドJavaScriptを削除');
+
 for (const id of ['dr31', 'dr32']) {
   equal(pages[id]?.release, false, `${id}を非公開ページとして登録`);
   equal(pages[id]?.show, true, `${id}をサイドナビへ表示`);
@@ -37,11 +40,12 @@ equal(pages.dr32.back, 'dr31', 'dr32からdr31への前ページ');
 equal(pages.dr32.next, false, 'dr32を音シリーズの末尾に設定');
 equal(pages.dr33, undefined, '旧dr33をページ登録から削除');
 
-const [dr31, dr32, css, slideDeck, renderer, widgets, lessons, quiz, links, searchIndexSource] = await Promise.all([
+const [dr31, dr32, css, lessonCss, slideDeck, renderer, widgets, lessons, quiz, links, searchIndexSource] = await Promise.all([
   source('dr31.html'),
   source('dr32.html'),
   source('css/digital-representation.css'),
-  source('js/dr-slide-deck.js'),
+  source('css/lesson-slide-deck.css'),
+  source('js/lesson-slide-deck.js'),
   source('js/sound-renderer.js'),
   source('js/sound-widgets.js'),
   source('js/sound-lessons.js'),
@@ -52,8 +56,12 @@ const [dr31, dr32, css, slideDeck, renderer, widgets, lessons, quiz, links, sear
 
 for (const [name, html] of [['dr31', dr31], ['dr32', dr32]]) {
   ok(html.includes('./js/main.js'), `${name}が共通サイト機能を読み込む`);
+  ok(html.includes('./css/lesson-slide-deck.css'), `${name}が共通スライドCSSを読み込む`);
   ok(html.includes('./css/digital-representation.css'), `${name}が共通DRスタイルを読み込む`);
+  ok(html.includes('./js/lesson-slide-deck.js'), `${name}が共通スライドJavaScriptを読み込む`);
+  ok(!html.includes('./js/dr-slide-deck.js'), `${name}が旧DR専用スライドJavaScriptを読み込まない`);
   ok(html.indexOf('./js/sound-core.js') < html.indexOf('./js/sound-renderer.js'), `${name}のCore→Renderer読み込み順`);
+  ok(html.indexOf('./js/sound-quiz.js') < html.indexOf('./js/lesson-slide-deck.js'), `${name}は教材固有処理の後に共通スライド基盤を読み込む`);
 }
 
 ok(dr31.includes('data-sound-analog-intro'), 'dr31に最初のアナログ波形');
@@ -84,22 +92,29 @@ ok(!widgets.includes("['量子化の幅'"), '可変PCMグラフに量子化の�
 ok(!widgets.includes('renderTable(') && !widgets.includes("element('table', 'dr-sample-table')"), '可変PCMグラフの下に標本値表を置かない');
 ok(!dr31.includes('SVG上の点と下の表'), '条件変更スライドで削除した表へ言及しない');
 ok(widgets.includes('createInfoTip') && widgets.includes('aria-controls'), '補足アイコンをフォーカス・タップでも確認可能');
-ok(dr31.includes('data-dr-slide-deck'), 'dr31をスライドページとして設定');
-equal((dr31.match(/<section data-dr-slide(?:\s|>)/g) || []).length, 6, 'dr31は補足を除いて6スライド');
-ok(dr31.includes('./js/dr-slide-deck.js'), 'dr31が共通スライド機構を読み込む');
-equal((dr31.match(/data-dr-supplement-dialog/g) || []).length, 2, '正弦波と重ね合わせを2つの補足dialogに配置');
-equal((dr31.match(/data-dr-supplement-open=/g) || []).length, 2, '標本化定理から2つの補足を開ける');
-ok(dr31.indexOf('data-dr-supplement-open=') < dr31.indexOf('data-sound-sampling-theorem'), '補足リンクを標本化定理の説明内に配置');
+ok(dr31.includes('data-lesson-slide-deck'), 'dr31を共通スライドページとして設定');
+equal((dr31.match(/<section\b[^>]*\bdata-lesson-slide(?:\s|>)/g) || []).length, 6, 'dr31は補足を除いて6スライド');
+equal((dr31.match(/data-lesson-supplement-dialog/g) || []).length, 2, '正弦波と重ね合わせを2つの補足dialogに配置');
+equal((dr31.match(/data-lesson-supplement-open=/g) || []).length, 2, '標本化定理から2つの補足を開ける');
+ok(dr31.indexOf('data-lesson-supplement-open=') < dr31.indexOf('data-sound-sampling-theorem'), '補足リンクを標本化定理の説明内に配置');
 ok(slideDeck.includes('initializeSupplementDialogs') && slideDeck.includes("aria-haspopup', 'dialog"), '補足dialogをキーボード操作可能に初期化');
 ok(slideDeck.includes('joho:overlay-open') && slideDeck.includes("dialog.addEventListener('close'"), '補足dialogの排他制御とフォーカス復帰');
 ok(slideDeck.includes("event.key !== 'Escape'") && slideDeck.includes('event.preventDefault()'), '補足dialogをEscapeで閉じる');
-ok(!dr32.includes('data-dr-slide-deck'), '問題演習dr32はタブ型ページを維持');
-for (const requirement of ['class DrSlideDeck', 'dr-slide-deck__navigation', 'dr-slide-deck__steps', 'aria-current', 'ArrowRight', 'PageDown', 'location.hash', 'dr-slide-page--content', 'is-height-compact']) {
+ok(dr32.includes('data-lesson-slide-deck'), '問題演習dr32も共通スライドページとして設定');
+equal((dr32.match(/<section\b[^>]*\bdata-lesson-slide(?:\s|>)/g) || []).length, 3, 'dr32は3スライド');
+ok(dr32.includes('class="dr-quiz-stage" data-lesson-slide-navigation-lock'), 'dr32は問題操作領域だけページ送りを抑止');
+for (const requirement of ['class LessonSlideDeck', 'lesson-slide-deck__navigation', 'lesson-slide-deck__steps', 'aria-current', 'ArrowRight', 'PageDown', 'location.hash', 'lesson-slide-page--content', 'is-height-compact']) {
   ok(slideDeck.includes(requirement), `スライド機構に ${requirement}`);
 }
-for (const requirement of ['.dr-slide-deck', '--dr-slide-deck-height', '.dr-slide-deck__navigation', '.dr-slide-deck__steps', 'body.dr-slide-ready', 'max-height: 520px', '.dr-info-tip', 'dr-sampling-divider-in', 'dr-quantization-level-in', 'dr-code-in']) {
-  ok(css.includes(requirement), `スライド表示CSSに ${requirement}`);
+for (const requirement of ['.lesson-slide-deck', '--lesson-slide-deck-height', '.lesson-slide-deck__navigation', '.lesson-slide-deck__steps', 'body.lesson-slide-ready', 'max-height: 520px']) {
+  ok(lessonCss.includes(requirement), `共通スライドCSSに ${requirement}`);
 }
+for (const requirement of ['.dr-info-tip', 'dr-sampling-divider-in', 'dr-quantization-level-in', 'dr-code-in', '.dr-quiz-slide', '.dr-quiz-stage']) {
+  ok(css.includes(requirement), `音教材固有CSSに ${requirement}`);
+}
+ok(!css.includes('.dr-slide-deck'), '音教材CSSへ旧DR専用ナビゲーションを重複実装しない');
+ok(css.includes('--lesson-theme-panel: var(--dr-panel-strong)'), '音教材テーマを共通スライド基盤へ接続');
+ok(widgets.includes('joho:lesson-content-resize') && quiz.includes('joho:lesson-content-resize'), '動的な音教材から共通基盤へ高さ再計測を通知');
 ok(renderer.includes('dr-svg--stage-enter-${animationStage}'), 'Rendererが進めた工程をSVGクラスへ反映');
 ok(renderer.includes("svg.addEventListener('pointerleave'"), 'グラフ外へポインタが出たら標本強調を解除');
 ok(renderer.includes("svg.addEventListener('focusout'"), 'グラフ外へキーボードフォーカスが移ったら標本強調を解除');

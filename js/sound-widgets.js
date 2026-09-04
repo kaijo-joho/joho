@@ -335,7 +335,7 @@
       });
       this.pendingAnimationStage = 0;
       this.clearSample();
-      document.dispatchEvent(new CustomEvent('dr:content-resize'));
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
   }
 
@@ -673,7 +673,7 @@
       });
       this.pendingAnimationStage = 0;
       this.clearSample();
-      document.dispatchEvent(new CustomEvent('dr:content-resize'));
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
   }
 

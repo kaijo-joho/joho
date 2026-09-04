@@ -20,23 +20,31 @@ async function source(file) {
   return readFile(path.join(root, file), 'utf8');
 }
 
+const pageSpecs = [
+  { id: 'lc01', slides: 4 },
+  { id: 'lc02', slides: 3 },
+  { id: 'lc03', slides: 3 },
+  { id: 'lc04', slides: 3 },
+  { id: 'dr31', slides: 6 },
+  { id: 'dr32', slides: 3 }
+];
+
 const [deck, css, logicCss, applications, ...pages] = await Promise.all([
   source('js/lesson-slide-deck.js'),
   source('css/lesson-slide-deck.css'),
   source('css/logic-circuits.css'),
   source('js/logic-applications.js'),
-  ...['lc01.html', 'lc02.html', 'lc03.html', 'lc04.html'].map(source)
+  ...pageSpecs.map(({ id }) => source(`${id}.html`))
 ]);
 
-const expectedSlideCounts = [4, 3, 3, 3];
 pages.forEach((html, index) => {
-  const id = `lc0${index + 1}`;
-  ok(html.includes('<body data-lesson-slide-deck>'), `${id}が共通スライド基盤を使用`);
+  const { id, slides } = pageSpecs[index];
+  ok(/<body\b[^>]*\bdata-lesson-slide-deck(?:\s|>)/.test(html), `${id}が共通スライド基盤を使用`);
   ok(html.includes('./css/lesson-slide-deck.css'), `${id}が共通スライドCSSを読み込む`);
   ok(html.includes('./js/lesson-slide-deck.js'), `${id}が共通スライドJavaScriptを読み込む`);
   equal(
     (html.match(/<section\b[^>]*\bdata-lesson-slide(?:\s|>)/g) || []).length,
-    expectedSlideCounts[index],
+    slides,
     `${id}のスライド数`
   );
   ok(
@@ -62,13 +70,16 @@ for (const requirement of [
   ok(deck.includes(requirement) || css.includes(requirement), `共通基盤に ${requirement}`);
 }
 
-for (const pageId of ['lc01', 'lc02', 'lc03', 'lc04']) {
+for (const pageId of pageSpecs.map(({ id }) => id)) {
   ok(!deck.includes(pageId), `共通JavaScriptへ${pageId}固有処理を持ち込まない`);
   ok(!css.includes(pageId), `共通CSSへ${pageId}固有処理を持ち込まない`);
 }
 
 for (const requirement of [
   'body.lesson-slide-ready',
+  '--content-max: 1480px',
+  '--content-fluid: min(96vw, var(--content-max))',
+  '--lesson-theme-panel',
   '.lesson-slide-deck__viewport',
   '.lesson-slide-deck__navigation',
   '.lesson-supplement-dialog',
@@ -78,6 +89,7 @@ for (const requirement of [
 ]) {
   ok(css.includes(requirement), `共通CSSに ${requirement}`);
 }
+ok(logicCss.includes('--lesson-theme-panel: var(--logic-panel-strong)'), '論理回路テーマを共通スライド基盤へ接続');
 
 equal((pages[0].match(/data-lesson-view-panel=/g) || []).length, 6, 'lc01は6ゲートを表示切替');
 ok(pages[0].includes('data-lesson-view-panel="xor"'), 'lc01にXORの表示パネル');

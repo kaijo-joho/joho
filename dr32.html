@@ -11,15 +11,17 @@
   </style>
   <title>海城中学高等学校 情報科</title>
   <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/sound-core.js"></script>
   <script defer src="./js/sound-renderer.js"></script>
   <script defer src="./js/sound-widgets.js"></script>
   <script defer src="./js/sound-quiz.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
-<body data-sound-quiz-seed="dr32-classroom-v1">
-  <section>
+<body data-lesson-slide-deck data-sound-quiz-seed="dr32-classroom-v1">
+  <section data-lesson-slide data-lesson-slide-title="音のチャンネル">
     <article>
       <h2 id="headline_1">(1) 音のチャンネル</h2>
       <p class="dr-lead">音の信号の伝送系統や、その単位を<strong>チャンネル</strong>といいます。チャンネル数と音のデータ量は比例します。</p>
@@ -41,8 +43,8 @@
     </article>
   </section>
 
-  <section>
-    <article>
+  <section data-lesson-slide data-lesson-slide-title="計算と用語の問題" data-lesson-slide-layout="exercise">
+    <article class="dr-quiz-slide">
       <h2 id="headline_2">(2) 計算と用語を練習する</h2>
       <p class="dr-lead">2種類の問題を切り替えて練習できます。判定後は、計算や用語の考え方を確認してから次へ進みましょう。</p>
       <div class="dr-tabs" id="sound-quiz-tabs" role="tablist" aria-label="問題の種類">
@@ -50,50 +52,51 @@
         <button type="button" class="dr-tabs__tab" role="tab" id="tab-terminology" aria-controls="panel-terminology" aria-selected="false" data-mode="terminology" tabindex="-1">2. 用語・標本化定理</button>
       </div>
       <p class="dr-seed" id="sound-quiz-seed">問題シード：</p>
-    </article>
-  </section>
+      <div class="dr-quiz-stage" data-lesson-slide-navigation-lock>
+        <div class="dr-quiz-panel" id="panel-calculation" role="tabpanel" aria-labelledby="tab-calculation" data-panel="calculation">
+          <div class="dr-quiz-panel__content">
+            <div class="dr-question-card">
+              <div class="dr-question-header">
+                <h3>周期・段階数・データ量</h3>
+                <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+              </div>
+              <p class="dr-prompt" id="calculation-prompt"></p>
+              <div class="dr-number-answer">
+                <label for="calculation-answer">答え</label>
+                <input class="dr-quiz-input" id="calculation-answer" type="number" step="any" inputmode="decimal">
+                <span class="dr-answer-unit" id="calculation-unit"></span>
+              </div>
+              <div class="dr-feedback" id="calculation-feedback" role="status" aria-live="polite"></div>
+              <div class="dr-question-actions">
+                <button type="button" class="dr-button dr-button--primary" id="calculation-judge">判定</button>
+                <button type="button" class="dr-button" id="calculation-next">次の問題</button>
+              </div>
+            </div>
+          </div>
+        </div>
 
-  <section class="dr-quiz-panel" id="panel-calculation" role="tabpanel" aria-labelledby="tab-calculation" data-panel="calculation">
-    <article>
-      <div class="dr-question-card">
-        <div class="dr-question-header">
-          <h3>周期・段階数・データ量</h3>
-          <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
-        </div>
-        <p class="dr-prompt" id="calculation-prompt"></p>
-        <div class="dr-number-answer">
-          <label for="calculation-answer">答え</label>
-          <input class="dr-quiz-input" id="calculation-answer" type="number" step="any" inputmode="decimal">
-          <span class="dr-answer-unit" id="calculation-unit"></span>
-        </div>
-        <div class="dr-feedback" id="calculation-feedback" role="status" aria-live="polite"></div>
-        <div class="dr-question-actions">
-          <button type="button" class="dr-button dr-button--primary" id="calculation-judge">判定</button>
-          <button type="button" class="dr-button" id="calculation-next">次の問題</button>
+        <div class="dr-quiz-panel" id="panel-terminology" role="tabpanel" aria-labelledby="tab-terminology" data-panel="terminology" hidden>
+          <div class="dr-quiz-panel__content">
+            <div class="dr-question-card">
+              <div class="dr-question-header">
+                <h3>用語・標本化定理</h3>
+                <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+              </div>
+              <p class="dr-prompt" id="terminology-prompt"></p>
+              <div class="dr-choice-list" id="terminology-choices" role="group" aria-label="選択肢"></div>
+              <div class="dr-feedback" id="terminology-feedback" role="status" aria-live="polite"></div>
+              <div class="dr-question-actions">
+                <button type="button" class="dr-button dr-button--primary" id="terminology-judge">判定</button>
+                <button type="button" class="dr-button" id="terminology-next">次の問題</button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </article>
   </section>
 
-  <section class="dr-quiz-panel" id="panel-terminology" role="tabpanel" aria-labelledby="tab-terminology" data-panel="terminology" hidden>
-    <article>
-      <div class="dr-question-card">
-        <div class="dr-question-header">
-          <h3>用語・標本化定理</h3>
-          <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
-        </div>
-        <p class="dr-prompt" id="terminology-prompt"></p>
-        <div class="dr-choice-list" id="terminology-choices" role="group" aria-label="選択肢"></div>
-        <div class="dr-feedback" id="terminology-feedback" role="status" aria-live="polite"></div>
-        <div class="dr-question-actions">
-          <button type="button" class="dr-button dr-button--primary" id="terminology-judge">判定</button>
-          <button type="button" class="dr-button" id="terminology-next">次の問題</button>
-        </div>
-      </div>
-    </article>
-  </section>
-
-  <section>
+  <section data-lesson-slide data-lesson-slide-title="計算の確認">
     <article>
       <h2 id="headline_3">(3) 計算の確認</h2>
       <div class="dr-term-grid">

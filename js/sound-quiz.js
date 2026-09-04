@@ -455,7 +455,7 @@
       scroll.appendChild(table);
       byId('digitization-answer-grid').replaceChildren(scroll);
       byId('digitization-judge').disabled = result.judged;
-      document.dispatchEvent(new CustomEvent('dr:content-resize'));
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
 
     function newDigitizationProblem() {
