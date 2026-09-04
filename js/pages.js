@@ -1,4 +1,4 @@
-//2026-09-03;
+//2026-09-04 01:28:03;
 const pages = {
   "index": {
     "id": "index",
@@ -74,7 +74,7 @@ const pages = {
   },
   "lc01": {
     "id": "lc01",
-    "release": true,
+    "release": false,
     "fileName": "lc01.html",
     "mainTitle": "論理回路教材",
     "category": "論理回路",
@@ -91,9 +91,9 @@ const pages = {
         "id": "lc02",
         "title": "2. 論理回路の自由接続",
         "text": "2. 論理回路の自由接続",
-        "release": true,
+        "release": false,
         "url": "lc02.html",
-        "detail": "ゲートを自由に配置・接続して、回路の働きを確かめます。"
+        "detail": "ゲートを自由に配置・接続して、回路の働きと真理値表を確かめます。"
       }
     ],
     "show": true,
@@ -101,7 +101,7 @@ const pages = {
   },
   "lc02": {
     "id": "lc02",
-    "release": true,
+    "release": false,
     "fileName": "lc02.html",
     "mainTitle": "論理回路教材",
     "category": "論理回路",
@@ -118,9 +118,9 @@ const pages = {
         "id": "lc03",
         "title": "3. 論理回路の問題",
         "text": "3. 論理回路の問題",
-        "release": true,
+        "release": false,
         "url": "lc03.html",
-        "detail": "出力、真理値表、回路構成の3種類の問題に挑戦します。"
+        "detail": "入力値、真理値表、回路構成の問題を解いて理解を確認します。"
       }
     ],
     "show": true,
@@ -128,7 +128,7 @@ const pages = {
   },
   "lc03": {
     "id": "lc03",
-    "release": true,
+    "release": false,
     "fileName": "lc03.html",
     "mainTitle": "論理回路教材",
     "category": "論理回路",
@@ -145,7 +145,7 @@ const pages = {
         "id": "lc04",
         "title": "4. 有名な組合せ回路",
         "text": "4. 有名な組合せ回路",
-        "release": true,
+        "release": false,
         "url": "lc04.html",
         "detail": "回路図と真理値表から、多数決・比較・半加算・全加算回路の働きと名前を考えます。"
       }
@@ -155,7 +155,7 @@ const pages = {
   },
   "lc04": {
     "id": "lc04",
-    "release": true,
+    "release": false,
     "fileName": "lc04.html",
     "mainTitle": "論理回路教材",
     "category": "論理回路",
@@ -173,12 +173,12 @@ const pages = {
   },
   "dr31": {
     "id": "dr31",
-    "release": true,
+    "release": false,
     "fileName": "dr31.html",
     "mainTitle": "Digital Representation",
     "category": "音のデジタル表現",
     "title": "3-1. 音のデジタル表現",
-    "detail": "アナログ波形を見てから、標本化・量子化・符号化の手順と条件による違いを学びます。",
+    "detail": "アナログ波形のデジタル化、波の重ね合わせ、標本化定理を操作と問題で学びます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
@@ -188,11 +188,11 @@ const pages = {
     "next": [
       {
         "id": "dr32",
-        "title": "3-2. 波と標本化",
-        "text": "3-2. 波と標本化",
-        "release": true,
+        "title": "3-2. 音のデジタル表現 問題演習",
+        "text": "3-2. 音のデジタル表現 問題演習",
+        "release": false,
         "url": "dr32.html",
-        "detail": "波の重ね合わせと、標本化する回数による波形の見え方の違いを確かめます。"
+        "detail": "音のチャンネルを確認し、周期・段階数・音声データ量、用語と標本化定理を練習します。"
       }
     ],
     "show": true,
@@ -200,48 +200,21 @@ const pages = {
   },
   "dr32": {
     "id": "dr32",
-    "release": true,
+    "release": false,
     "fileName": "dr32.html",
     "mainTitle": "Digital Representation",
     "category": "音のデジタル表現",
-    "title": "3-2. 波と標本化",
-    "detail": "正弦波の重ね合わせと標本化定理を、波形を操作しながら学びます。",
+    "title": "3-2. 音のデジタル表現 問題演習",
+    "detail": "音のチャンネルを確認し、周期・段階数・音声データ量、用語と標本化定理を練習します。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
     "back": "dr31",
-    "next": [
-      {
-        "id": "dr33",
-        "title": "3-3. 音のデジタル表現 問題演習",
-        "text": "3-3. 音のデジタル表現 問題演習",
-        "release": true,
-        "url": "dr33.html",
-        "detail": "波形のデジタル化、データ量、基本用語の問題に挑戦します。"
-      }
-    ],
-    "show": true,
-    "backFile": "dr31.html"
-  },
-  "dr33": {
-    "id": "dr33",
-    "release": true,
-    "fileName": "dr33.html",
-    "mainTitle": "Digital Representation",
-    "category": "音のデジタル表現",
-    "title": "3-3. 音のデジタル表現 問題演習",
-    "detail": "波形のデジタル化、周期・段階数・音声データ量、用語と標本化定理を練習します。",
-    "practiceFile": false,
-    "dlFile": false,
-    "exampleFile": false,
-    "questionFile": false,
-    "quizForm": false,
-    "back": "dr32",
     "next": false,
     "show": true,
-    "backFile": "dr32.html"
+    "backFile": "dr31.html"
   },
   "html00": {
     "id": "html00",
@@ -537,6 +510,33 @@ const pages = {
     "show": true,
     "backFile": "html00.html"
   },
+  "html18": {
+    "id": "html18",
+    "release": true,
+    "fileName": "html18.html",
+    "mainTitle": "HTML実習",
+    "category": "1. HTMLの基本",
+    "title": "HTMLの応用",
+    "detail": "その他のHTMLタグと、情報を整理して伝える要素を学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "html00",
+    "next": [
+      {
+        "id": "html25",
+        "title": "CSSの応用",
+        "text": "CSSの応用",
+        "release": true,
+        "url": "html25.html",
+        "detail": "その他のCSSについて学びます。"
+      }
+    ],
+    "show": true,
+    "backFile": "html00.html"
+  },
   "html21": {
     "id": "html21",
     "release": true,
@@ -679,33 +679,6 @@ const pages = {
         "release": true,
         "url": "html18.html",
         "detail": "その他のHTMLタグと、情報を整理して伝える要素を学びます。"
-      }
-    ],
-    "show": true,
-    "backFile": "html00.html"
-  },
-  "html18": {
-    "id": "html18",
-    "release": true,
-    "fileName": "html18.html",
-    "mainTitle": "HTML実習",
-    "category": "1. HTMLの基本",
-    "title": "HTMLの応用",
-    "detail": "その他のHTMLタグと、情報を整理して伝える要素を学びます。",
-    "practiceFile": false,
-    "dlFile": false,
-    "exampleFile": false,
-    "questionFile": false,
-    "quizForm": false,
-    "back": "html00",
-    "next": [
-      {
-        "id": "html25",
-        "title": "CSSの応用",
-        "text": "CSSの応用",
-        "release": true,
-        "url": "html25.html",
-        "detail": "その他のCSSについて学びます。"
       }
     ],
     "show": true,
