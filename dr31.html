@@ -60,54 +60,9 @@
     </article>
   </section>
 
-  <section data-dr-slide data-dr-slide-title="数値と用語の整理">
-    <article>
-      <h2 id="headline_4">(4) 数値と用語を整理する</h2>
-      <div class="dr-term-grid">
-        <dl class="dr-term">
-          <dt>標本化（サンプリング）</dt>
-          <dd>一定の時間間隔で、アナログ波形の値を取り出すことです。取り出した一つ一つを標本と考えます。</dd>
-        </dl>
-        <dl class="dr-term">
-          <dt>標本化周波数 fs</dt>
-          <dd>1秒間に標本化する回数です。単位はHzです。10Hzなら1秒間に10回、値を取り出します。</dd>
-        </dl>
-        <dl class="dr-term">
-          <dt>標本化周期 T</dt>
-          <dd>標本と次の標本の時間間隔です。<code>T = 1 / fs</code> で求めます。</dd>
-        </dl>
-        <dl class="dr-term">
-          <dt>量子化</dt>
-          <dd>標本化で得られた波の高さを、縦軸に沿って最も近い段階値へそろえることです。元の値との差は「誤差」として図に示します。</dd>
-        </dl>
-        <dl class="dr-term">
-          <dt>量子化ビット数 n</dt>
-          <dd>1つの標本を何bitで表すかを示します。ビット数が増えると、より細かく表せます。</dd>
-        </dl>
-        <dl class="dr-term">
-          <dt>量子化段階数</dt>
-          <dd><code>2ⁿ</code> 段階です。3bitなら8段階、4bitなら16段階です。</dd>
-        </dl>
-        <dl class="dr-term">
-          <dt>符号化（コード化）</dt>
-          <dd>量子化した段階値を2進数で表現することです。3bitの段階値2は <code>010</code> です。</dd>
-        </dl>
-        <dl class="dr-term">
-          <dt>PCM</dt>
-          <dd>「パルス符号変調」の略です。</dd>
-        </dl>
-      </div>
-      <div class="dr-card">
-        <h3>数値の例を確かめる</h3>
-        <p>基本範囲0以上8未満では、3bitの量子化の幅は <code>8 ÷ 8 = 1</code> なので、段階値2を2進数で表すと <code>2 → 010</code> です。</p>
-        <p>4bitでは16段階、量子化の幅は <code>8 ÷ 16 = 0.5</code> です。値2の段階値は4となり <code>0100</code>、値6の段階値は12となり <code>1100</code> です。</p>
-      </div>
-    </article>
-  </section>
-
   <section data-dr-slide data-dr-slide-title="標本化定理">
     <article>
-      <h2 id="headline_5">(5) 標本化定理</h2>
+      <h2 id="headline_4">(4) 標本化定理</h2>
       <p>元の波形を構成する<strong>成分波の最大周波数</strong>の2倍より大きい周波数で標本化すれば、元の波形を再現できます。まず標本化周波数を決めて丸い標本点を確認し、その標本点から波形を描いて、2倍より大きい場合、2倍ちょうどの場合、2倍より小さい場合を比べます。</p>
       <div class="dr-supplement-links" aria-label="標本化定理の補足">
         <span class="dr-supplement-links__label">必要に応じて確認</span>
@@ -136,6 +91,91 @@
         </dl>
       </div>
       <p class="dr-note">複数の成分波を含む音では、比べる相手は<strong>成分波の最大周波数</strong>です。「標本点を結ぶグラフを描く」を押したら、丸い標本点で実線と破線が重なることを確認してください。</p>
+    </article>
+  </section>
+
+  <section data-dr-slide data-dr-slide-title="用語と数値の例">
+    <article>
+      <h2 id="headline_5">(5) 用語と数値の例</h2>
+      <div class="dr-reference-grid">
+        <section class="dr-reference-card" aria-labelledby="dr-terms-title">
+          <header class="dr-reference-card__header">
+            <h3 id="dr-terms-title">用語</h3>
+            <p>用語名をクリックすると、説明が開きます。</p>
+          </header>
+          <div class="dr-reveal-list">
+            <details class="dr-reveal-item">
+              <summary>標本化（サンプリング）</summary>
+              <div class="dr-reveal-item__body">一定の時間間隔で、アナログ波形の値を取り出すことです。取り出した一つ一つを標本と考えます。</div>
+            </details>
+            <details class="dr-reveal-item">
+              <summary>標本化周波数 fs</summary>
+              <div class="dr-reveal-item__body">1秒間に標本化する回数です。単位はHzです。10Hzなら1秒間に10回、値を取り出します。</div>
+            </details>
+            <details class="dr-reveal-item">
+              <summary>標本化周期 T</summary>
+              <div class="dr-reveal-item__body">標本と次の標本の時間間隔です。<code>T = 1 / fs</code> で求めます。</div>
+            </details>
+            <details class="dr-reveal-item">
+              <summary>量子化</summary>
+              <div class="dr-reveal-item__body">標本化で得られた波の高さを、縦軸に沿って最も近い段階値へそろえることです。</div>
+            </details>
+            <details class="dr-reveal-item">
+              <summary>量子化ビット数 n</summary>
+              <div class="dr-reveal-item__body">1つの標本を何bitで表すかを示します。ビット数が増えると、より細かく表せます。</div>
+            </details>
+            <details class="dr-reveal-item">
+              <summary>量子化段階数</summary>
+              <div class="dr-reveal-item__body"><code>2ⁿ</code> 段階です。3bitなら8段階、4bitなら16段階です。</div>
+            </details>
+            <details class="dr-reveal-item">
+              <summary>符号化（コード化）</summary>
+              <div class="dr-reveal-item__body">量子化した段階値を、決められた桁数の2進数で表現することです。</div>
+            </details>
+            <details class="dr-reveal-item">
+              <summary>パルス符号変調（PCM）方式</summary>
+              <div class="dr-reveal-item__body">標本化・量子化・符号化によって、音をデジタルデータとして表す方式です。PCMは「パルス符号変調」の略です。</div>
+            </details>
+            <details class="dr-reveal-item">
+              <summary>標本化定理</summary>
+              <div class="dr-reveal-item__body">元の波形を再現するには、成分波の最大周波数の2倍より大きい周波数で標本化する必要がある、という関係です。2倍ちょうどは境界です。</div>
+            </details>
+          </div>
+        </section>
+
+        <section class="dr-reference-card" aria-labelledby="dr-number-examples-title">
+          <header class="dr-reference-card__header">
+            <h3 id="dr-number-examples-title">数値の例</h3>
+            <p>問題をクリックすると、途中式と答えが開きます。</p>
+          </header>
+          <div class="dr-reveal-list dr-reveal-list--examples">
+            <details class="dr-reveal-item dr-reveal-item--example">
+              <summary>標本化周波数が10Hzのとき、標本化周期は？</summary>
+              <div class="dr-reveal-item__body"><code>T = 1 / fs = 1 / 10 = 0.1秒</code><strong>答え：0.1秒</strong></div>
+            </details>
+            <details class="dr-reveal-item dr-reveal-item--example">
+              <summary>標本化周期が0.05秒のとき、標本化周波数は？</summary>
+              <div class="dr-reveal-item__body"><code>fs = 1 / T = 1 / 0.05 = 20Hz</code><strong>答え：20Hz</strong></div>
+            </details>
+            <details class="dr-reveal-item dr-reveal-item--example">
+              <summary>量子化ビット数が3bitのとき、量子化段階数は？</summary>
+              <div class="dr-reveal-item__body"><code>2ⁿ = 2³ = 8段階</code><strong>答え：8段階</strong></div>
+            </details>
+            <details class="dr-reveal-item dr-reveal-item--example">
+              <summary>量子化段階数が16段階のとき、必要なビット数は？</summary>
+              <div class="dr-reveal-item__body"><code>2⁴ = 16</code> なので、16段階を表すには4bit必要です。<strong>答え：4bit</strong></div>
+            </details>
+            <details class="dr-reveal-item dr-reveal-item--example">
+              <summary>3bitで段階値2を符号化すると？</summary>
+              <div class="dr-reveal-item__body">2を2進数にすると <code>10</code>。3桁になるよう先頭を0で埋めると <code>010</code> です。<strong>答え：010</strong></div>
+            </details>
+            <details class="dr-reveal-item dr-reveal-item--example">
+              <summary>4bitで段階値12を符号化すると？</summary>
+              <div class="dr-reveal-item__body"><code>12 = 8 + 4</code> なので、4桁の2進数では <code>1100</code> です。<strong>答え：1100</strong></div>
+            </details>
+          </div>
+        </section>
+      </div>
     </article>
   </section>
 

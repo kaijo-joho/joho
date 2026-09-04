@@ -67,6 +67,8 @@ ok(widgets.includes('this.state = { stage: 1, selectedIndex: null }'), '固定�
 for (const label of ['0. アナログ波形', '1. 標本化', '2. 量子化', '3. 符号化']) {
   ok(widgets.includes(label), `固定条件グラフに工程「${label}」`);
 }
+const walkthroughSource = widgets.slice(widgets.indexOf('class PcmWalkthrough'), widgets.indexOf('class PcmExplorer'));
+ok(walkthroughSource.includes('パルス符号変調（PCM）方式') && walkthroughSource.includes('標本化・量子化・符号化'), 'スライド2でPCM方式を3工程と結び付けて説明');
 ok(widgets.includes('this.stageLabels = stages.map((name, index) => `${index}. ${name}`)'), '可変グラフも0〜3の工程番号を使用');
 ok(/const bitDepth = createRangeControl\(\{[\s\S]*?id: `dr-pcm-bit-depth-[\s\S]*?min: 2,[\s\S]*?max: 4,[\s\S]*?step: 1,/.test(widgets), '量子化ビット数は2〜4bitの整数スライダー');
 ok(!widgets.includes('dr-pcm-phase-') && !widgets.includes('phaseDegrees'), '可変PCMグラフには位相操作を置かない');
@@ -103,16 +105,29 @@ ok(renderer.includes("svg.addEventListener('pointerleave'"), 'グラフ外へポ
 ok(renderer.includes("svg.addEventListener('focusout'"), 'グラフ外へキーボードフォーカスが移ったら標本強調を解除');
 ok(!renderer.includes('dr-svg__sample-highlight'), '標本選択時の背景帯を描画しない');
 for (const stage of [2, 3, 4]) ok(css.includes(`.dr-svg--stage-enter-${stage}`), `SVG工程${stage}の追加アニメーション`);
-for (const term of ['アナログ', 'デジタル', '標本化', 'サンプリング', '標本化周波数', '標本化周期', '量子化', '量子化ビット数', '量子化段階数', '符号化', 'PCM']) {
+for (const term of ['アナログ', 'デジタル', '標本化', 'サンプリング', '標本化周波数', '標本化周期', '量子化', '量子化ビット数', '量子化段階数', '符号化', 'PCM', '標本化定理']) {
   ok(dr31.includes(term), `dr31に用語「${term}」`);
 }
 ok(dr31.includes('0以上8未満'), 'dr31に基本量子化範囲');
 ok(dr31.includes('ちょうど中間なら上側'), 'dr31に丸め規則');
 ok(dr31.includes('表示範囲を超えた値'), 'dr31に表示範囲外の規則');
-ok(dr31.includes('<dt>PCM</dt>') && widgets.includes('PCMは「パルス符号変調」の略です'), 'PCMは略語としてのみ説明');
+ok(dr31.includes('<summary>パルス符号変調（PCM）方式</summary>') && widgets.includes('PCMは「パルス符号変調」の略です'), 'PCM方式と略語を説明');
 
 ok(dr31.includes('data-sound-superposition'), 'dr31に波の重ね合わせ教材を統合');
 ok(dr31.includes('data-sound-sampling-theorem'), 'dr31に標本化定理教材を統合');
+ok(dr31.includes('<h2 id="headline_4">(4) 標本化定理</h2>'), '標本化定理をスライド4へ移動');
+ok(dr31.includes('<h2 id="headline_5">(5) 用語と数値の例</h2>'), '用語と数値の例をスライド5へ移動');
+ok(dr31.indexOf('data-sound-pcm data-stage') < dr31.indexOf('data-sound-sampling-theorem'), '条件変更の後に標本化定理を配置');
+ok(dr31.indexOf('data-sound-sampling-theorem') < dr31.indexOf('class="dr-reference-grid"'), '標本化定理の後に用語と数値の例を配置');
+equal((dr31.match(/<details class="dr-reveal-item/g) || []).length, 15, '用語9項目と数値例6項目をクリック展開にする');
+equal((dr31.match(/class="dr-reference-card"/g) || []).length, 2, '用語と数値の例を2つのまとまりに分ける');
+for (const example of ['T = 1 / fs = 1 / 10 = 0.1秒', 'fs = 1 / T = 1 / 0.05 = 20Hz', '2ⁿ = 2³ = 8段階', '2⁴ = 16', '答え：010', '答え：1100']) {
+  ok(dr31.includes(example), `クリック式の数値例に「${example}」`);
+}
+for (const selector of ['.dr-reference-grid', '.dr-reference-card', '.dr-reveal-list', '.dr-reveal-item > summary', '.dr-reveal-item__body']) {
+  ok(css.includes(selector), `用語・数値例の表示CSSに ${selector}`);
+}
+ok(css.includes('min-height: 44px') && css.includes('.dr-reveal-item > summary:focus-visible'), '展開項目にタッチ領域とキーボードフォーカスを用意');
 ok(lessons.includes('元の波の位相（境界の確認用）') && lessons.includes('2倍ちょうどにしたとき'), '位相操作を境界確認用と明示');
 ok(lessons.includes('標本点を結ぶグラフを描く') && lessons.includes('showReconstruction'), '標本点を確認してから波形を描く操作');
 ok((lessons.match(/this\.state\.showReconstruction = false/g) || []).length === 3, '条件を変えたら描画前の状態へ戻す');
@@ -137,6 +152,7 @@ for (const unsupportedTerm of ['エイリアシング', 'ナイキスト', 'Nyqu
 
 ok(dr31.includes('id="digitization-judge"'), '波形デジタル化問題をdr31末尾へ移動');
 ok(dr31.indexOf('data-sound-sampling-theorem') < dr31.indexOf('id="digitization-judge"'), '標本化定理の後に波形問題を配置');
+ok(dr31.indexOf('class="dr-reference-grid"') < dr31.indexOf('id="digitization-judge"'), '用語と数値の例の後に波形問題を配置');
 ok(quiz.includes('hasDigitization') && quiz.includes('hasCalculation') && quiz.includes('hasTerminology'), '存在する問題カテゴリだけを初期化');
 equal((dr32.match(/role="tab"/g) || []).length, 2, 'dr32の2タブ');
 equal((dr32.match(/role="tabpanel"/g) || []).length, 2, 'dr32の2タブパネル');
