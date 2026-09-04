@@ -313,7 +313,6 @@
         waveform: options.waveform || 'lesson',
         frequency: Number(options.frequency ?? 0.625),
         amplitude: Number(options.amplitude ?? 4),
-        phaseDegrees: Number(options.phaseDegrees ?? 0),
         sampleRate: Number(options.sampleRate ?? 10),
         bitDepth: Number(options.bitDepth ?? 3),
         range: { min: 0, max: 8 },
@@ -329,12 +328,11 @@
     }
 
     valueAt(time) {
-      const phase = Core.degreesToRadians(this.state.phaseDegrees);
       if (this.state.waveform === 'sine') {
         return Core.sineValue({
           amplitude: this.state.amplitude,
           frequency: this.state.frequency,
-          phase,
+          phase: 0,
           offset: 4
         }, time);
       }
@@ -343,19 +341,19 @@
           {
             amplitude: this.state.amplitude * 0.68,
             frequency: this.state.frequency,
-            phase
+            phase: 0
           },
           {
             amplitude: this.state.amplitude * 0.32,
             frequency: this.state.frequency * 2,
-            phase: phase + Math.PI / 3
+            phase: Math.PI / 3
           }
         ], time, 4);
       }
       return Core.lessonWaveValue(time, {
         frequency: this.state.frequency,
         amplitudeScale: this.state.amplitude / 4,
-        phase,
+        phase: 0,
         center: 4
       });
     }
@@ -442,19 +440,6 @@
           this.render();
         }
       });
-      const phase = createRangeControl({
-        id: `dr-pcm-phase-${this.serial}`,
-        label: '位相',
-        value: this.state.phaseDegrees,
-        min: 0,
-        max: 315,
-        step: 45,
-        format: value => `${value}°`,
-        onInput: value => {
-          this.state.phaseDegrees = value;
-          this.render();
-        }
-      });
       const sampleRate = createRangeControl({
         id: `dr-pcm-sample-rate-${this.serial}`,
         label: '標本化周波数 fs',
@@ -469,6 +454,17 @@
           this.render();
         }
       });
+      this.sampleRateControl = sampleRate;
+      this.sampleRateAvailability = element('p', 'dr-control__availability');
+      this.sampleRateAvailability.id = `dr-pcm-sample-rate-availability-${this.serial}`;
+      this.sampleRateMetrics = element('dl', 'dr-control__metrics');
+      this.sampleRateMetrics.id = `dr-pcm-sample-rate-metrics-${this.serial}`;
+      sampleRate.input.setAttribute(
+        'aria-describedby',
+        `${this.sampleRateAvailability.id} ${this.sampleRateMetrics.id}`
+      );
+      sampleRate.wrapper.append(this.sampleRateAvailability, this.sampleRateMetrics);
+
       const bitDepth = createRangeControl({
         id: `dr-pcm-bit-depth-${this.serial}`,
         label: '量子化ビット数',
@@ -482,16 +478,25 @@
           this.render();
         }
       });
+      this.bitDepthControl = bitDepth;
+      this.bitDepthAvailability = element('p', 'dr-control__availability');
+      this.bitDepthAvailability.id = `dr-pcm-bit-depth-availability-${this.serial}`;
+      this.bitDepthMetrics = element('dl', 'dr-control__metrics');
+      this.bitDepthMetrics.id = `dr-pcm-bit-depth-metrics-${this.serial}`;
+      bitDepth.input.setAttribute(
+        'aria-describedby',
+        `${this.bitDepthAvailability.id} ${this.bitDepthMetrics.id}`
+      );
+      bitDepth.wrapper.append(this.bitDepthAvailability, this.bitDepthMetrics);
+
       this.controls.append(
         waveform.wrapper,
         frequency.wrapper,
         amplitude.wrapper,
-        phase.wrapper,
         sampleRate.wrapper,
         bitDepth.wrapper
       );
 
-      this.metrics = element('dl', 'dr-metrics');
       this.visual = element('figure', 'dr-visual');
       this.legend = element('figcaption', 'dr-legend');
       this.legend.innerHTML = [
@@ -512,31 +517,56 @@
         this.stageSelector,
         this.stageHelp,
         this.controls,
-        this.metrics,
         this.visual,
         this.tableHost
       );
     }
 
-    renderMetrics(sampleCount) {
+    renderControlMetrics(sampleCount) {
       const fs = this.state.sampleRate;
       const period = Core.samplingPeriod(fs);
       const bits = this.state.bitDepth;
       const levels = Core.quantizationLevels(bits);
       const width = Core.quantizationWidth(bits, this.state.range);
-      const metrics = [
-        ['標本化周波数', `fs = ${fs} Hz`],
+      const exponent = { 2: '²', 3: '³', 4: '⁴' }[bits] || String(bits);
+
+      const replaceMetrics = (host, metrics) => {
+        host.replaceChildren(...metrics.flatMap(([term, value]) => [
+          element('dt', '', term),
+          element('dd', '', value)
+        ]));
+      };
+      replaceMetrics(this.sampleRateMetrics, [
         ['標本化周期', `T = 1 / fs = 1 / ${fs} = ${formatNumber(period, 4)} 秒`],
-        ['量子化ビット数', `n = ${bits} bit`],
-        ['量子化段階数', `2ⁿ = 2${bits === 2 ? '²' : bits === 3 ? '³' : '⁴'} = ${levels} 段階`],
-        ['量子化の幅', `(8 − 0) / ${levels} = ${formatNumber(width, 3)}`],
-        ['表示範囲の標本数', `0〜1.5秒の範囲内：${sampleCount} 個`]
+        ['表示範囲の標本数', `0〜1.5秒：${sampleCount} 個`]
+      ]);
+      replaceMetrics(this.bitDepthMetrics, [
+        ['量子化段階数', `2ⁿ = 2${exponent} = ${levels} 段階`],
+        ['量子化の幅', `(8 − 0) / ${levels} = ${formatNumber(width, 3)}`]
+      ]);
+    }
+
+    updateControlAvailability() {
+      const settings = [
+        {
+          control: this.sampleRateControl,
+          availability: this.sampleRateAvailability,
+          disabled: this.state.stage < 2,
+          message: '1. 標本化から変更できます'
+        },
+        {
+          control: this.bitDepthControl,
+          availability: this.bitDepthAvailability,
+          disabled: this.state.stage < 3,
+          message: '2. 量子化から変更できます'
+        }
       ];
-      this.metrics.replaceChildren(...metrics.map(([term, value]) => {
-        const card = element('div', 'dr-metric');
-        card.append(element('dt', '', term), element('dd', '', value));
-        return card;
-      }));
+      settings.forEach(({ control, availability, disabled, message }) => {
+        control.input.disabled = disabled;
+        control.wrapper.classList.toggle('is-disabled', disabled);
+        availability.hidden = !disabled;
+        availability.textContent = disabled ? message : '';
+      });
     }
 
     renderTable(samples) {
@@ -655,7 +685,8 @@
 
       this.state.selectedIndex = null;
       const derived = this.derive();
-      this.renderMetrics(derived.samples.length);
+      this.updateControlAvailability();
+      this.renderControlMetrics(derived.samples.length);
       Renderer.renderPCM(this.graph, {
         ...this.state,
         ...derived,

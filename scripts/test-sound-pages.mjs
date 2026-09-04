@@ -70,7 +70,13 @@ for (const label of ['0. アナログ波形', '1. 標本化', '2. 量子化', '3
 }
 ok(widgets.includes('this.stageLabels = stages.map((name, index) => `${index}. ${name}`)'), '可変グラフも0〜3の工程番号を使用');
 ok(/const bitDepth = createRangeControl\(\{[\s\S]*?id: `dr-pcm-bit-depth-[\s\S]*?min: 2,[\s\S]*?max: 4,[\s\S]*?step: 1,/.test(widgets), '量子化ビット数は2〜4bitの整数スライダー');
-ok(/if \(this\.state\.waveform === 'composite'\)[\s\S]*?frequency: this\.state\.frequency,\s*phase\s*\}[\s\S]*?phase: phase \+ Math\.PI \/ 3/.test(widgets), '合成波の位相操作は2つの成分へ共通に反映');
+ok(!widgets.includes('dr-pcm-phase-') && !widgets.includes('phaseDegrees'), '可変PCMグラフには位相操作を置かない');
+ok(/if \(this\.state\.waveform === 'composite'\)[\s\S]*?frequency: this\.state\.frequency,\s*phase: 0[\s\S]*?phase: Math\.PI \/ 3/.test(widgets), '合成波の成分間の位相差は固定');
+ok(widgets.includes('disabled: this.state.stage < 2') && widgets.includes('disabled: this.state.stage < 3'), '工程前の標本化・量子化スライダーを無効化');
+ok(widgets.includes("control.input.disabled = disabled") && widgets.includes("classList.toggle('is-disabled', disabled)"), '無効状態を操作と表示の両方へ反映');
+ok(widgets.includes("this.sampleRateMetrics = element('dl', 'dr-control__metrics')"), '標本化の計算値を標本化周波数スライダー内に配置');
+ok(widgets.includes("this.bitDepthMetrics = element('dl', 'dr-control__metrics')"), '量子化の計算値を量子化ビット数スライダー内に配置');
+ok(!widgets.includes("this.metrics = element('dl', 'dr-metrics')"), '可変PCMグラフには独立した計算カードを置かない');
 ok(widgets.includes('createInfoTip') && widgets.includes('aria-controls'), '補足アイコンをフォーカス・タップでも確認可能');
 for (const [name, html, expectedSlides] of [['dr31', dr31, 5], ['dr32', dr32, 3]]) {
   ok(html.includes('data-dr-slide-deck'), `${name}をスライドページとして設定`);
