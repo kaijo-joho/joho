@@ -177,7 +177,8 @@
         sampleRate: 10,
         amplitude: 3,
         phaseDegrees: 0,
-        duration: 1
+        duration: 1,
+        showReconstruction: false
       };
       this.build();
       this.render();
@@ -199,6 +200,7 @@
         format: value => `${Widgets.formatNumber(value, 1)} Hz`,
         onInput: value => {
           this.state.frequency = value;
+          this.state.showReconstruction = false;
           this.render();
         }
       });
@@ -212,6 +214,7 @@
         format: value => `${value} Hz`,
         onInput: value => {
           this.state.sampleRate = value;
+          this.state.showReconstruction = false;
           this.render();
         }
       });
@@ -225,6 +228,7 @@
         format: value => `${value}°`,
         onInput: value => {
           this.state.phaseDegrees = value;
+          this.state.showReconstruction = false;
           this.render();
         }
       });
@@ -240,15 +244,26 @@
       scroll.setAttribute('aria-label', '標本化定理を確認するグラフ。狭い画面では横方向にスクロールできます。');
       scroll.appendChild(el('p', 'dr-visual__hint', '横にスクロールしてグラフ全体を確認できます'));
       this.graph = el('div');
+      this.graph.id = `dr-theorem-${this.serial}-graph`;
       scroll.appendChild(this.graph);
-      visual.append(this.metrics, this.status, this.legend, scroll);
+      this.drawButton = el('button', 'dr-button dr-button--primary dr-theorem-draw-button', '標本点を結ぶグラフを描く');
+      this.drawButton.type = 'button';
+      this.drawButton.setAttribute('aria-controls', this.graph.id);
+      this.drawButton.addEventListener('click', () => {
+        this.state.showReconstruction = true;
+        this.render({ animateReconstruction: true });
+      });
+      const actions = el('div', 'dr-theorem-actions');
+      actions.appendChild(this.drawButton);
+      const warning = el('p', 'dr-warning-note dr-theorem-note');
+      warning.innerHTML = '<strong>描く波形について：</strong>丸い標本点を直線で結ぶのではなく、標本点を通る滑らかな波形を描きます。条件を満たさない場合は、元の波形と区別できない別の候補が現れます。';
+      // 判定文や補足文の長さが変わってもグラフ位置が動かないよう、可変テキストはグラフより後ろに置く。
+      visual.append(this.metrics, actions, scroll, this.legend, this.status, warning);
       grid.append(controls, visual);
-      const warning = el('p', 'dr-warning-note');
-      warning.innerHTML = '<strong>破線について：</strong>破線は「復元された正解波形」ではありません。同じ標本点を通る、元の波とは別の波形です。標本点を折れ線で結んだ表示でもありません。';
-      this.container.replaceChildren(heading, intro, grid, warning);
+      this.container.replaceChildren(heading, intro, grid);
     }
 
-    render() {
+    render(options = {}) {
       const phase = Core.degreesToRadians(this.state.phaseDegrees);
       const result = Renderer.renderSamplingTheorem(this.graph, {
         frequency: this.state.frequency,
@@ -257,6 +272,9 @@
         phase,
         offset: 0,
         duration: this.state.duration
+      }, {
+        showReconstruction: this.state.showReconstruction,
+        animateReconstruction: options.animateReconstruction === true
       });
       const twice = this.state.frequency * 2;
       const metrics = [
@@ -270,26 +288,41 @@
         return card;
       }));
 
-      this.status.className = `dr-theorem-status is-${result.theorem.state}`;
-      if (result.theorem.state === 'sufficient') {
-        this.status.innerHTML = `<strong>条件を満たしています：${this.state.sampleRate} Hz &gt; ${Widgets.formatNumber(this.state.frequency, 1)} Hz × 2</strong>標本化周波数が元の波の周波数の2倍より大きいため、元の波形を再現できます。`;
+      this.drawButton.textContent = this.state.showReconstruction
+        ? '標本点を結ぶグラフをもう一度描く'
+        : '標本点を結ぶグラフを描く';
+
+      let statusHtml;
+      this.status.className = 'dr-theorem-status';
+      if (!this.state.showReconstruction) {
+        this.status.classList.add('is-pending');
+        statusHtml = '<strong>丸い標本点を確認してください。</strong>標本化周波数を決めたら、「標本点を結ぶグラフを描く」を押して、標本点からどのような波形が得られるか確かめます。';
+      } else if (result.theorem.state === 'sufficient') {
+        this.status.classList.add('is-sufficient');
+        statusHtml = `<strong>条件を満たしています：${this.state.sampleRate} Hz &gt; ${Widgets.formatNumber(this.state.frequency, 1)} Hz × 2</strong>標本点から描いた破線は元の波形と重なり、元の波形を再現できます。`;
       } else if (result.theorem.state === 'boundary') {
+        this.status.classList.add('is-boundary');
         const detail = result.candidate?.kind === 'boundary-flat'
           ? '現在の位相では標本値がすべて0になり、平らな線とも区別できません。位相を動かして違いを比べてください。'
           : '位相によって標本値は変わります。同じ標本の並びになる別の波形もあり、2倍ちょうどでは元の波形を一意に判断できるとは限りません。';
-        this.status.innerHTML = `<strong>2倍ちょうどです：${this.state.sampleRate} Hz = ${Widgets.formatNumber(this.state.frequency, 1)} Hz × 2</strong>${detail}`;
+        statusHtml = `<strong>2倍ちょうどです：${this.state.sampleRate} Hz = ${Widgets.formatNumber(this.state.frequency, 1)} Hz × 2</strong>${detail}`;
       } else {
+        this.status.classList.add('is-insufficient');
         const otherWaveText = result.candidate
           ? `${Widgets.formatNumber(result.candidate.frequency, 2)} Hzの別の波形（破線）`
           : '別の波形';
-        this.status.innerHTML = `<strong>標本化する回数が不足しています：${this.state.sampleRate} Hz &lt; ${Widgets.formatNumber(this.state.frequency, 1)} Hz × 2</strong>元の${Widgets.formatNumber(this.state.frequency, 1)} Hzの波形と${otherWaveText}が同じ標本点を通るため、元の波形とは異なる波形として見えてしまいます。`;
+        statusHtml = `<strong>標本化する回数が不足しています：${this.state.sampleRate} Hz &lt; ${Widgets.formatNumber(this.state.frequency, 1)} Hz × 2</strong>元の${Widgets.formatNumber(this.state.frequency, 1)} Hzの波形と${otherWaveText}が同じ標本点を通るため、元の波形とは異なる波形として見えてしまいます。`;
       }
+      if (this.status.innerHTML !== statusHtml) this.status.innerHTML = statusHtml;
       const legendParts = [
         '<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--analog"></span>元の波形（実線）</span>',
         '<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--sample"></span>標本時刻・標本点</span>'
       ];
-      if (result.candidate) {
-        legendParts.push('<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--candidate"></span>同じ標本点を通る別の波形（破線）</span>');
+      if (this.state.showReconstruction) {
+        const reconstructionLabel = result.candidate
+          ? '同じ標本点を通る別の波形（破線）'
+          : '標本点から再現した波形（破線）';
+        legendParts.push(`<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--candidate"></span>${reconstructionLabel}</span>`);
       }
       this.legend.innerHTML = legendParts.join('');
     }

@@ -114,7 +114,13 @@ ok(dr31.includes('<dt>PCM</dt>') && widgets.includes('PCMは「パルス符号�
 ok(dr31.includes('data-sound-superposition'), 'dr31に波の重ね合わせ教材を統合');
 ok(dr31.includes('data-sound-sampling-theorem'), 'dr31に標本化定理教材を統合');
 ok(lessons.includes('元の波の位相（境界の確認用）') && lessons.includes('2倍ちょうどにしたとき'), '位相操作を境界確認用と明示');
-ok(lessons.includes('復元された正解波形') && lessons.includes('ではありません'), '破線を復元結果と誤説明しない');
+ok(lessons.includes('標本点を結ぶグラフを描く') && lessons.includes('showReconstruction'), '標本点を確認してから波形を描く操作');
+ok((lessons.match(/this\.state\.showReconstruction = false/g) || []).length === 3, '条件を変えたら描画前の状態へ戻す');
+ok(lessons.indexOf("actions, scroll, this.legend, this.status") >= 0, '描画操作はグラフ直前、判定コメントはグラフの下へ配置');
+ok(renderer.includes("options.showReconstruction === true") && renderer.includes("layer('reconstruction')"), '操作前は標本点からの波形を描かない');
+ok(renderer.includes('dr-svg--reconstruction-enter') && css.includes('@keyframes dr-reconstruction-wipe'), '標本点からの波形をワイプ表示');
+ok(renderer.includes("matchMedia('(prefers-reduced-motion: reduce)')") && css.includes('.dr-svg--reconstruction-enter .dr-svg__reconstruction-wipe'), '波形アニメーションで動きを減らす設定を尊重');
+ok(lessons.includes('丸い標本点を直線で結ぶのではなく') && lessons.includes('元の波形と区別できない別の候補'), '折れ線を復元波形と誤説明しない');
 ok(dr31.includes('2倍より大きい場合') && dr31.includes('2倍ちょうどの場合') && dr31.includes('2倍より小さい場合'), '標本化定理の3状態');
 ok(dr31.includes('元の波形とは異なる波形'), '指定した表現で標本化不足を説明');
 

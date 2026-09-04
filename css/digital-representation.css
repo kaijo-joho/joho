@@ -887,6 +887,17 @@ section article .dr-guide__explanation h4 {
   stroke-dasharray: 12 7;
 }
 
+.dr-svg--reconstruction-enter .dr-svg__reconstruction-wipe {
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: dr-reconstruction-wipe .9s cubic-bezier(.2, .75, .25, 1) both;
+}
+
+@keyframes dr-reconstruction-wipe {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
 .dr-legend {
   margin: 10px 2px;
   color: var(--dr-muted);
@@ -1118,6 +1129,26 @@ section article .dr-answer-table th {
   margin: 12px 0;
   border-left-width: 5px;
   border-left-style: solid;
+}
+
+.dr-theorem-status.is-pending {
+  border-left-color: var(--dr-info);
+  background: var(--dr-info-soft);
+  color: var(--dr-text);
+}
+
+.dr-theorem-actions {
+  display: flex;
+  justify-content: center;
+  margin: 12px 0 8px;
+}
+
+.dr-theorem-draw-button {
+  min-width: min(100%, 280px);
+}
+
+.dr-theorem-note {
+  margin-bottom: 0;
 }
 
 .dr-theorem-status.is-sufficient {
@@ -2212,6 +2243,10 @@ body.dr-slide-ready :is(.dr-svg--superposition, .dr-svg--sampling-theorem) {
   .dr-svg--stage-enter-2 :is(.dr-svg__sample-guide, .dr-svg__stem, .dr-svg__sample-point),
   .dr-svg--stage-enter-3 :is(.dr-svg__quantization-line, .dr-svg__quantized-point, .dr-svg__value-label, .dr-svg__error-line, .dr-svg__staircase),
   .dr-svg--stage-enter-4 :is(.dr-svg__code-heading, .dr-svg__binary-label) {
+    animation: none;
+  }
+
+  .dr-svg--reconstruction-enter .dr-svg__reconstruction-wipe {
     animation: none;
   }
 }

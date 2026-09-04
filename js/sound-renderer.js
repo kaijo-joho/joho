@@ -586,6 +586,10 @@
       margin: { top: 38, right: 24, bottom: 66, left: 66 }
     });
     const theorem = Core.samplingTheoremState(model.frequency, model.sampleRate);
+    const showReconstruction = options.showReconstruction === true;
+    const animateReconstruction = showReconstruction
+      && options.animateReconstruction === true
+      && !(typeof root.matchMedia === 'function' && root.matchMedia('(prefers-reduced-motion: reduce)').matches);
     const original = {
       amplitude,
       frequency: model.frequency,
@@ -606,9 +610,11 @@
     const svg = createSvg({
       width,
       height,
-      className: `dr-svg--sampling-theorem is-${theorem.state}`,
+      className: `dr-svg--sampling-theorem is-${theorem.state}${animateReconstruction ? ' dr-svg--reconstruction-enter' : ''}`,
       title: options.title || '標本化定理を確かめるグラフ',
-      description: options.description || '元の正弦波、標本時刻と標本点、同じ標本点を通る別の波形を表示します。破線は復元結果ではありません。'
+      description: options.description || (showReconstruction
+        ? '元の正弦波、標本時刻と標本点、標本点を通る滑らかな波形を表示します。条件を満たさない場合の破線は、元の波形と区別できない別の候補です。'
+        : '元の正弦波と、指定した標本化周波数で取り出した丸い標本点を表示します。')
     });
     const background = layer('drawing-area');
     appendPlotBackground(background, plot);
@@ -618,6 +624,42 @@
     const originalLayer = layer('original-wave');
     appendWave(originalLayer, originalPoints, plot, 'dr-svg__wave--original', '元の波形（実線）');
     svg.appendChild(originalLayer);
+
+    const reconstructionLayer = layer('reconstruction');
+    if (showReconstruction) {
+      const reconstruction = candidate || original;
+      const reconstructionPoints = Core.waveformPoints(t => Core.sineValue(reconstruction, t), {
+        start: 0,
+        end: model.duration,
+        count: 721
+      });
+      const reconstructionLabel = candidate
+        ? '同じ標本点を通る別の滑らかな波形（破線。元の波形とは限りません）'
+        : '標本点から再現した滑らかな波形（破線）';
+      if (animateReconstruction) {
+        const clipId = `dr-reconstruction-clip-${svgSerial}`;
+        const definitions = svgElement('defs');
+        const clip = svgElement('clipPath', { id: clipId });
+        clip.appendChild(svgElement('rect', {
+          class: 'dr-svg__reconstruction-wipe',
+          x: plot.left,
+          y: plot.top - 8,
+          width: plot.right - plot.left,
+          height: plot.bottom - plot.top + 16
+        }));
+        definitions.appendChild(clip);
+        svg.appendChild(definitions);
+        reconstructionLayer.setAttribute('clip-path', `url(#${clipId})`);
+      }
+      appendWave(
+        reconstructionLayer,
+        reconstructionPoints,
+        plot,
+        'dr-svg__wave--candidate dr-svg__wave--reconstruction',
+        reconstructionLabel
+      );
+    }
+    svg.appendChild(reconstructionLayer);
 
     const guides = layer('sample-guides');
     const points = layer('sample-points');
@@ -640,24 +682,8 @@
     });
     svg.append(guides, points);
 
-    const candidateLayer = layer('alias-candidate');
-    if (candidate) {
-      const candidatePoints = Core.waveformPoints(t => Core.sineValue(candidate, t), {
-        start: 0,
-        end: model.duration,
-        count: 721
-      });
-      appendWave(
-        candidateLayer,
-        candidatePoints,
-        plot,
-        'dr-svg__wave--candidate',
-        '同じ標本点を通る別の波形（破線。復元結果ではありません）'
-      );
-    }
-    svg.appendChild(candidateLayer);
     target.replaceChildren(svg);
-    return { svg, plot, theorem, candidate, samples };
+    return { svg, plot, theorem, candidate, samples, showReconstruction };
   }
 
   function renderDigitizationProblem(target, model, options = {}) {
