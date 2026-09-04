@@ -167,6 +167,8 @@ for (const link of [
   'router-terminal',
   'terminal-isp',
   'isp-internet',
+  'carrier-internet',
+  'carrier-smartphone',
   'internet-corporate-router',
   'corporate-router-branches',
   'corporate-admin-lan',
@@ -184,9 +186,19 @@ equal(
   1,
   'nw11で通信キャリアとISPを物理回線ではなく分類階層として分岐'
 );
-for (const obsoleteLink of ['terminal-provider-network', 'provider-network-internet', 'provider-branch', 'branch-carrier', 'branch-isp', 'carrier-internet']) {
+for (const obsoleteLink of ['terminal-provider-network', 'provider-network-internet', 'provider-branch', 'branch-carrier', 'branch-isp']) {
   ok(!networkPage.includes(`data-network-link="${obsoleteLink}"`), `nw11に旧並列回線 ${obsoleteLink} を残さない`);
 }
+equal(
+  (networkPage.match(/class="nw-svg-link--wireless"\s+data-network-link="carrier-smartphone"/g) || []).length,
+  1,
+  'nw11で通信キャリアとスマートフォンを無線接続'
+);
+equal(
+  (networkPage.match(/data-network-device="carrier-smartphone"/g) || []).length,
+  1,
+  'nw11に通信キャリアへ接続するスマートフォンを1台配置'
+);
 const carrierPosition = networkPage.match(/id="nw-carrier"[^>]*transform="translate\((\d+) (\d+)\)"/);
 const ispPosition = networkPage.match(/id="nw-isp"[^>]*transform="translate\((\d+) (\d+)\)"/);
 ok(carrierPosition && ispPosition, 'nw11の通信キャリアとISPに位置を指定');

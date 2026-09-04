@@ -28,6 +28,7 @@
           <span>図の空欄をクリックすると、語句が表示されます。</span>
           <span class="nw-figure__legend"><i class="nw-legend-line" aria-hidden="true"></i>機器やネットワークの接続</span>
           <span class="nw-figure__legend"><i class="nw-legend-branch" aria-hidden="true"></i>同じ階層の分類</span>
+          <span class="nw-figure__legend"><i class="nw-legend-wireless" aria-hidden="true"></i>無線接続</span>
           <span class="nw-figure__mobile-hint">左右にスクロールして図全体を確認できます。</span>
         </figcaption>
         <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
@@ -40,7 +41,7 @@
           <div class="nw-diagram-canvas nw-map-canvas">
             <svg class="nw-diagram-svg" viewBox="0 0 1400 700" role="img" aria-labelledby="nw-map-svg-title nw-map-svg-desc">
               <title id="nw-map-svg-title">LANとWANをつないだインターネットの構成</title>
-              <desc id="nw-map-svg-desc">家庭内の有線端末は重ならない配線でスイッチングハブへ、無線端末はアクセスポイントへ接続され、ルーターと終端装置を経てISPへつながります。ISPからインターネットへ続く実線とは別に、通信キャリアとISPを通信事業者の子要素として示す分類の枝があります。会社内では1台のルーターが総務LAN、営業LAN、サーバLANを接続しています。</desc>
+              <desc id="nw-map-svg-desc">家庭内の有線端末は重ならない配線でスイッチングハブへ、無線端末はアクセスポイントへ接続され、ルーターと終端装置を経てISPへつながります。ISPと通信キャリアはそれぞれインターネットへ接続され、通信キャリアにはスマートフォンが無線で接続されています。通信キャリアとISPを通信事業者の子要素として示す分類の枝もあります。会社内では1台のルーターが総務LAN、営業LAN、サーバLANを接続しています。</desc>
 
               <rect class="nw-svg-zone nw-svg-zone--lan" x="18" y="28" width="482" height="660" rx="20"/>
               <rect class="nw-svg-zone nw-svg-zone--wan" x="520" y="28" width="862" height="660" rx="20"/>
@@ -98,6 +99,8 @@
               <g class="nw-svg-network-links" aria-hidden="true">
                 <path data-network-link="terminal-isp" d="M575 300H700"/>
                 <path data-network-link="isp-internet" d="M900 300H932"/>
+                <path data-network-link="carrier-internet" d="M900 472H1040V334H1014"/>
+                <path class="nw-svg-link--wireless" data-network-link="carrier-smartphone" d="M800 504V536H950"/>
               </g>
               <g id="nw-isp" class="nw-svg-provider-anchor" data-network-provider="isp" transform="translate(700 268)" aria-hidden="true">
                 <rect x="0" y="0" width="200" height="64" rx="9"/>
@@ -113,6 +116,11 @@
               <g id="nw-carrier" class="nw-svg-provider-role" data-network-provider="carrier" transform="translate(700 440)">
                 <rect x="0" y="0" width="200" height="64" rx="14"/>
                 <text x="100" y="38">通信キャリア</text>
+              </g>
+              <g class="nw-svg-device" data-network-device="carrier-smartphone" transform="translate(950 500)">
+                <rect x="0" y="0" width="42" height="72" rx="8"/>
+                <circle cx="21" cy="62" r="2"/>
+                <text x="21" y="95">スマートフォン</text>
               </g>
 
               <g class="nw-svg-globe" transform="translate(980 300)">

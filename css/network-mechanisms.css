@@ -176,6 +176,11 @@ section article .nw-protocol-definition {
   border-top: 2px dashed var(--nw-muted);
 }
 
+.nw-legend-wireless {
+  width: 34px;
+  border-top: 3px dotted var(--nw-line);
+}
+
 .nw-reveal-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -455,7 +460,7 @@ section article .nw-protocol-definition {
 }
 
 .nw-svg-network-links .nw-svg-link--wireless {
-  stroke-dasharray: 6 7;
+  stroke-dasharray: 2 7;
   opacity: .9;
 }
 
