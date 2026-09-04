@@ -27,6 +27,7 @@
         <figcaption id="nw-map-caption" class="nw-figure__caption">
           <span>図の空欄をクリックすると、語句が表示されます。</span>
           <span class="nw-figure__legend"><i class="nw-legend-line" aria-hidden="true"></i>機器やネットワークの接続</span>
+          <span class="nw-figure__legend"><i class="nw-legend-branch" aria-hidden="true"></i>同じ階層の分類</span>
           <span class="nw-figure__mobile-hint">左右にスクロールして図全体を確認できます。</span>
         </figcaption>
         <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
@@ -37,22 +38,22 @@
 
         <div class="nw-diagram-scroll" tabindex="0" aria-label="インターネットを構成する機器の図。狭い画面では横方向にスクロールできます。">
           <div class="nw-diagram-canvas nw-map-canvas">
-            <svg class="nw-diagram-svg" viewBox="0 0 1400 640" role="img" aria-labelledby="nw-map-svg-title nw-map-svg-desc">
+            <svg class="nw-diagram-svg" viewBox="0 0 1400 700" role="img" aria-labelledby="nw-map-svg-title nw-map-svg-desc">
               <title id="nw-map-svg-title">LANとWANをつないだインターネットの構成</title>
-              <desc id="nw-map-svg-desc">家庭内の有線端末はスイッチングハブへ、無線端末はアクセスポイントへ接続され、ルーターと終端装置を経てWANへ出ます。WANでは通信キャリアとISPを並列に示し、インターネットの先にルーター、スイッチ、端末から成る社内LANを示しています。</desc>
+              <desc id="nw-map-svg-desc">家庭内の有線端末は重ならない配線でスイッチングハブへ、無線端末はアクセスポイントへ接続され、ルーターと終端装置を経てWANへ出ます。主回線は通信事業者のネットワークを通ってインターネットへつながり、通信キャリアとISPは通信事業者の子要素として同じ階層に示しています。会社内では1台のルーターが総務LAN、営業LAN、サーバLANを接続しています。</desc>
 
-              <rect class="nw-svg-zone nw-svg-zone--lan" x="18" y="28" width="472" height="584" rx="20"/>
-              <rect class="nw-svg-zone nw-svg-zone--wan" x="510" y="28" width="872" height="584" rx="20"/>
+              <rect class="nw-svg-zone nw-svg-zone--lan" x="18" y="28" width="482" height="660" rx="20"/>
+              <rect class="nw-svg-zone nw-svg-zone--wan" x="520" y="28" width="862" height="660" rx="20"/>
               <text class="nw-svg-caption" x="40" y="104">家庭やオフィスなど限られた範囲内のネットワーク</text>
-              <text class="nw-svg-caption" x="530" y="104">LANどうしをつなげる広域ネットワーク</text>
+              <text class="nw-svg-caption" x="540" y="104">LANどうしをつなげる広域ネットワーク</text>
 
               <g class="nw-svg-network-links" aria-hidden="true">
-                <path data-network-link="desktop-switch" d="M152 174H170V230H195"/>
-                <path data-network-link="laptop-switch" d="M128 288H160V252H195"/>
-                <path data-network-link="switch-router" d="M300 239H380"/>
-                <path data-network-link="access-point-switch" d="M145 456H125V268H195"/>
-                <path class="nw-svg-link--wireless" data-network-link="mobile-access-point" d="M111 446H128L145 456"/>
-                <path data-network-link="router-terminal" d="M452 239H495V288H535"/>
+                <path data-network-link="desktop-switch" d="M152 174H220"/>
+                <path data-network-link="laptop-switch" d="M128 288H220"/>
+                <path data-network-link="switch-router" d="M280 240H390"/>
+                <path data-network-link="access-point-switch" d="M250 320H325V381H282"/>
+                <path class="nw-svg-link--wireless" data-network-link="mobile-access-point" d="M111 381H218"/>
+                <path data-network-link="router-terminal" d="M462 240H535"/>
               </g>
 
               <g class="nw-svg-device" data-network-device="desktop" transform="translate(45 145)">
@@ -66,129 +67,152 @@
                 <path d="M0 45h78v8H0zM16 53h46v8H16z"/>
                 <text x="39" y="83">ノートPC</text>
               </g>
-              <g class="nw-svg-device" data-network-device="mobile" transform="translate(58 410)">
+              <g class="nw-svg-device" data-network-device="mobile" transform="translate(58 345)">
                 <rect x="0" y="0" width="53" height="72" rx="8"/>
                 <circle cx="26.5" cy="62" r="2"/>
                 <text x="27" y="94">端末</text>
               </g>
-              <g id="nw-local-switch" class="nw-svg-device nw-svg-device--switch" data-network-device="switch" transform="translate(195 210)">
-                <rect x="0" y="0" width="105" height="58" rx="9"/>
-                <circle cx="17" cy="22" r="4"/><circle cx="35" cy="22" r="4"/><circle cx="53" cy="22" r="4"/><circle cx="71" cy="22" r="4"/><circle cx="89" cy="22" r="4"/>
-                <circle cx="17" cy="39" r="4"/><circle cx="35" cy="39" r="4"/><circle cx="53" cy="39" r="4"/><circle cx="71" cy="39" r="4"/><circle cx="89" cy="39" r="4"/>
+              <g id="nw-local-switch" class="nw-svg-device nw-svg-device--switch" data-network-device="switch" transform="translate(220 135)">
+                <rect x="0" y="0" width="60" height="185" rx="10"/>
+                <circle cx="18" cy="35" r="4"/><circle cx="42" cy="35" r="4"/>
+                <circle cx="18" cy="72" r="4"/><circle cx="42" cy="72" r="4"/>
+                <circle cx="18" cy="109" r="4"/><circle cx="42" cy="109" r="4"/>
+                <circle cx="18" cy="146" r="4"/><circle cx="42" cy="146" r="4"/>
               </g>
-              <g id="nw-local-router" class="nw-svg-device nw-svg-device--router" data-network-device="router" transform="translate(380 210)">
-                <rect x="0" y="0" width="72" height="58" rx="9"/>
-                <path class="nw-svg-symbol-line" d="M15 19H57M49 12l8 7-8 7M57 39H15M23 32l-8 7 8 7"/>
+              <g id="nw-local-router" class="nw-svg-device nw-svg-device--router" data-network-device="router" transform="translate(390 210)">
+                <rect x="0" y="0" width="72" height="60" rx="9"/>
+                <path class="nw-svg-symbol-line" d="M15 20H57M49 13l8 7-8 7M57 40H15M23 33l-8 7 8 7"/>
               </g>
-              <g id="nw-local-access-point" class="nw-svg-device nw-svg-device--access-point" data-network-device="access-point" transform="translate(145 430)">
+              <g id="nw-local-access-point" class="nw-svg-device nw-svg-device--access-point" data-network-device="access-point" transform="translate(218 355)">
                 <rect x="0" y="12" width="64" height="40" rx="8"/>
                 <path class="nw-svg-symbol-line" d="M32 12V1M18 8Q32-5 46 8M10 1Q32-19 54 1"/>
                 <circle cx="32" cy="39" r="3"/>
               </g>
 
-              <g id="nw-terminal-device" class="nw-svg-device nw-svg-device--terminal" data-network-device="terminal" transform="translate(535 240)">
+              <g id="nw-terminal-device" class="nw-svg-device nw-svg-device--terminal" data-network-device="terminal" transform="translate(535 192)">
                 <rect x="0" y="0" width="40" height="96" rx="9"/>
                 <circle cx="20" cy="73" r="3"/><circle cx="20" cy="83" r="3"/>
                 <text x="20" y="121">終端装置</text>
               </g>
 
               <g class="nw-svg-network-links" aria-hidden="true">
-                <path data-network-link="terminal-provider" d="M575 288H620"/>
-                <path data-network-link="provider-branch" d="M620 210V398"/>
-                <path data-network-link="branch-carrier" d="M620 210H675"/>
-                <path data-network-link="branch-isp" d="M620 398H675"/>
-                <path data-network-link="carrier-internet" d="M745 210H885V300H912"/>
-                <path data-network-link="isp-internet" d="M745 398H885V300"/>
+                <path data-network-link="terminal-provider-network" d="M575 240H650"/>
+                <path data-network-link="provider-network-internet" d="M850 240H902"/>
               </g>
-              <circle class="nw-svg-junction" cx="620" cy="288" r="5"/>
-              <circle class="nw-svg-junction" cx="885" cy="300" r="5"/>
+              <g class="nw-svg-provider-network" data-network-device="provider-network">
+                <rect x="650" y="198" width="200" height="84" rx="24"/>
+                <text x="750" y="228">
+                  <tspan x="750">通信事業者</tspan>
+                  <tspan x="750" dy="21">のネットワーク</tspan>
+                </text>
+              </g>
+              <g class="nw-svg-hierarchy-links" aria-hidden="true">
+                <path data-network-hierarchy="provider-roles" d="M750 282V320M660 320H840M660 320V350M840 320V350"/>
+              </g>
 
-              <g id="nw-carrier" class="nw-svg-building nw-svg-provider" data-network-provider="carrier" transform="translate(675 165)">
+              <g id="nw-carrier" class="nw-svg-building nw-svg-provider" data-network-provider="carrier" transform="translate(625 350)">
                 <path d="M0 90V20h70v70M12 20V0h46v20"/>
                 <path d="M15 37h10M45 37h10M15 55h10M45 55h10M15 73h10M45 73h10"/>
                 <text x="35" y="116">通信キャリア</text>
               </g>
-              <g id="nw-isp" class="nw-svg-building nw-svg-provider" data-network-provider="isp" transform="translate(675 353)">
+              <g id="nw-isp" class="nw-svg-building nw-svg-provider" data-network-provider="isp" transform="translate(805 350)">
                 <path d="M0 90V20h70v70M12 20V0h46v20"/>
                 <path d="M15 37h10M45 37h10M15 55h10M45 55h10M15 73h10M45 73h10"/>
               </g>
 
-              <g class="nw-svg-globe" transform="translate(960 300)">
+              <g class="nw-svg-globe" transform="translate(950 240)">
                 <circle cx="0" cy="0" r="48"/>
                 <ellipse cx="0" cy="0" rx="21" ry="48"/>
                 <path d="M-45-17H45M-48 0H48M-45 17H45"/>
                 <text x="0" y="78">インターネット</text>
               </g>
 
-              <rect id="nw-corporate-lan" class="nw-svg-zone nw-svg-zone--campus" data-network-device="corporate-lan" x="1030" y="130" width="350" height="472" rx="18"/>
-              <text class="nw-svg-corporate-title" x="1205" y="169">社内LAN</text>
+              <rect id="nw-corporate-network" class="nw-svg-zone nw-svg-zone--campus" data-network-device="corporate-network" x="1056" y="130" width="326" height="530" rx="18"/>
+              <text class="nw-svg-corporate-title" x="1219" y="162">会社内のネットワーク</text>
+              <text class="nw-svg-corporate-subtitle" x="1219" y="184">複数のLANをルーターで接続</text>
+              <rect id="nw-admin-lan" class="nw-svg-subnet" data-network-device="corporate-admin-lan" x="1068" y="330" width="94" height="285" rx="12"/>
+              <rect id="nw-sales-lan" class="nw-svg-subnet" data-network-device="corporate-sales-lan" x="1172" y="330" width="94" height="285" rx="12"/>
+              <rect id="nw-server-lan" class="nw-svg-subnet" data-network-device="corporate-server-lan" x="1276" y="330" width="94" height="285" rx="12"/>
               <g class="nw-svg-network-links" aria-hidden="true">
-                <path data-network-link="internet-corporate-router" d="M1008 300H1045V239H1060"/>
-                <path data-network-link="corporate-router-switch" d="M1132 239H1190"/>
-                <path data-network-link="corporate-switch-bus" d="M1245 268V330M1105 330H1330M1105 330V365M1225 330V380M1330 330V365"/>
-                <path class="nw-svg-link--wireless" data-network-link="corporate-access-point-mobile" d="M1330 421V485"/>
+                <path data-network-link="internet-corporate-router" d="M998 240H1183"/>
+                <path data-network-link="corporate-router-branches" d="M1219 263V305M1115 305H1323M1115 305V330M1219 305V330M1323 305V330"/>
+                <path data-network-link="corporate-admin-lan" d="M1115 330V375M1115 419V450M1095 450H1135M1095 450V478M1135 450V478"/>
+                <path data-network-link="corporate-sales-lan" d="M1219 330V375M1219 419V450M1199 450H1239M1199 450V478M1239 450V478"/>
+                <path data-network-link="corporate-server-lan" d="M1323 330V375M1323 419V450M1303 450H1343M1303 450V466M1343 450V466"/>
               </g>
-              <g class="nw-svg-device nw-svg-device--router" data-network-device="corporate-router" transform="translate(1060 210)">
+              <g class="nw-svg-device nw-svg-device--router" data-network-device="corporate-router" transform="translate(1183 205)">
                 <rect x="0" y="0" width="72" height="58" rx="9"/>
                 <path class="nw-svg-symbol-line" d="M15 19H57M49 12l8 7-8 7M57 39H15M23 32l-8 7 8 7"/>
-                <text x="36" y="84">入口</text>
-              </g>
-              <g class="nw-svg-device nw-svg-device--switch" data-network-device="corporate-switch" transform="translate(1190 210)">
-                <rect x="0" y="0" width="110" height="58" rx="9"/>
-                <circle cx="18" cy="22" r="4"/><circle cx="37" cy="22" r="4"/><circle cx="56" cy="22" r="4"/><circle cx="75" cy="22" r="4"/><circle cx="94" cy="22" r="4"/>
-                <circle cx="18" cy="39" r="4"/><circle cx="37" cy="39" r="4"/><circle cx="56" cy="39" r="4"/><circle cx="75" cy="39" r="4"/><circle cx="94" cy="39" r="4"/>
-                <text x="55" y="84">有線機器</text>
-              </g>
-              <g class="nw-svg-device nw-svg-device--server" data-network-device="corporate-server" transform="translate(1075 365)">
-                <rect x="0" y="0" width="60" height="88" rx="8"/>
-                <path class="nw-svg-symbol-line" d="M12 23H48M12 43H48M12 63H38"/>
-                <circle cx="47" cy="64" r="3"/>
-                <text x="30" y="113">サーバ</text>
-              </g>
-              <g class="nw-svg-device" data-network-device="corporate-pc" transform="translate(1190 380)">
-                <rect x="0" y="0" width="70" height="44" rx="5"/>
-                <path d="M35 44v12M17 56h36"/>
-                <text x="35" y="78">PC</text>
-              </g>
-              <g class="nw-svg-device nw-svg-device--access-point" data-network-device="corporate-access-point" transform="translate(1305 365)">
-                <rect x="0" y="12" width="50" height="44" rx="8"/>
-                <path class="nw-svg-symbol-line" d="M25 12V1M13 8Q25-4 37 8M7 1Q25-16 43 1"/>
-                <text x="25" y="82">無線</text>
-              </g>
-              <g class="nw-svg-device" data-network-device="corporate-mobile" transform="translate(1314 485)">
-                <rect x="0" y="0" width="32" height="58" rx="7"/>
-                <circle cx="16" cy="49" r="2"/>
-                <text x="16" y="78">端末</text>
+                <text x="36" y="84">社内の入口</text>
               </g>
 
+              <text class="nw-svg-subnet-title" x="1115" y="590">総務LAN</text>
+              <g class="nw-svg-device nw-svg-device--mini-switch" data-network-device="corporate-admin-switch">
+                <rect x="1077" y="375" width="76" height="44" rx="7"/>
+                <circle cx="1090" cy="397" r="3"/><circle cx="1107" cy="397" r="3"/><circle cx="1124" cy="397" r="3"/><circle cx="1141" cy="397" r="3"/>
+              </g>
+              <g class="nw-svg-device nw-svg-device--mini" data-network-device="corporate-admin-pc" transform="translate(1080 478)">
+                <rect x="0" y="0" width="30" height="23" rx="3"/><path d="M15 23v7M6 30h18"/>
+              </g>
+              <g class="nw-svg-device nw-svg-device--mini" data-network-device="corporate-admin-printer" transform="translate(1120 478)">
+                <rect x="2" y="0" width="26" height="13" rx="2"/><rect x="0" y="13" width="30" height="20" rx="3"/><path d="M6 25h18"/>
+              </g>
+              <text class="nw-svg-subnet-note" x="1115" y="548">PC・プリンタ</text>
+
+              <text class="nw-svg-subnet-title" x="1219" y="590">営業LAN</text>
+              <g class="nw-svg-device nw-svg-device--mini-switch" data-network-device="corporate-sales-switch">
+                <rect x="1181" y="375" width="76" height="44" rx="7"/>
+                <circle cx="1194" cy="397" r="3"/><circle cx="1211" cy="397" r="3"/><circle cx="1228" cy="397" r="3"/><circle cx="1245" cy="397" r="3"/>
+              </g>
+              <g class="nw-svg-device nw-svg-device--mini" data-network-device="corporate-sales-pc-a" transform="translate(1184 478)">
+                <rect x="0" y="0" width="30" height="23" rx="3"/><path d="M15 23v7M6 30h18"/>
+              </g>
+              <g class="nw-svg-device nw-svg-device--mini" data-network-device="corporate-sales-pc-b" transform="translate(1224 478)">
+                <rect x="0" y="0" width="30" height="23" rx="3"/><path d="M15 23v7M6 30h18"/>
+              </g>
+              <text class="nw-svg-subnet-note" x="1219" y="548">複数のPC</text>
+
+              <text class="nw-svg-subnet-title" x="1323" y="590">サーバLAN</text>
+              <g class="nw-svg-device nw-svg-device--mini-switch" data-network-device="corporate-server-switch">
+                <rect x="1285" y="375" width="76" height="44" rx="7"/>
+                <circle cx="1298" cy="397" r="3"/><circle cx="1315" cy="397" r="3"/><circle cx="1332" cy="397" r="3"/><circle cx="1349" cy="397" r="3"/>
+              </g>
+              <g class="nw-svg-device nw-svg-device--mini-server" data-network-device="corporate-server-a" transform="translate(1289 466)">
+                <rect x="0" y="0" width="28" height="65" rx="4"/><path class="nw-svg-symbol-line" d="M6 16h16M6 31h16M6 46h10"/><circle cx="21" cy="49" r="2"/>
+              </g>
+              <g class="nw-svg-device nw-svg-device--mini-server" data-network-device="corporate-server-b" transform="translate(1329 466)">
+                <rect x="0" y="0" width="28" height="65" rx="4"/><path class="nw-svg-symbol-line" d="M6 16h16M6 31h16M6 46h10"/><circle cx="21" cy="49" r="2"/>
+              </g>
+              <text class="nw-svg-subnet-note" x="1323" y="558">複数のサーバ</text>
+
               <g class="nw-svg-callout nw-svg-callout--map-4">
-                <rect x="140" y="350" width="185" height="64" rx="8"/>
-                <text class="nw-svg-note" x="150" y="368">
-                  <tspan x="150">複数の有線機器を</tspan>
-                  <tspan x="150" dy="17">まとめてLANに</tspan>
-                  <tspan x="150" dy="17">接続する装置</tspan>
+                <rect x="95" y="500" width="210" height="64" rx="8"/>
+                <text class="nw-svg-note" x="105" y="518">
+                  <tspan x="105">複数の有線機器を</tspan>
+                  <tspan x="105" dy="17">まとめてLANに</tspan>
+                  <tspan x="105" dy="17">接続する装置</tspan>
                 </text>
               </g>
               <g class="nw-svg-callout nw-svg-callout--map-3">
-                <rect x="330" y="350" width="145" height="64" rx="8"/>
-                <text class="nw-svg-note" x="340" y="368">
-                  <tspan x="340">異なるネットワークを</tspan>
-                  <tspan x="340" dy="17">接続し、データを</tspan>
-                  <tspan x="340" dy="17">中継する装置</tspan>
+                <rect x="320" y="500" width="160" height="64" rx="8"/>
+                <text class="nw-svg-note" x="330" y="518">
+                  <tspan x="330">異なるネットワークを</tspan>
+                  <tspan x="330" dy="17">接続し、データを</tspan>
+                  <tspan x="330" dy="17">中継する装置</tspan>
                 </text>
               </g>
               <g class="nw-svg-callout nw-svg-callout--map-5">
-                <rect x="140" y="552" width="330" height="52" rx="8"/>
-                <text class="nw-svg-note" x="150" y="572">
-                  <tspan x="150">無線LAN対応機器をネットワークへ</tspan>
-                  <tspan x="150" dy="17">接続する中継器</tspan>
+                <rect x="110" y="630" width="300" height="58" rx="8"/>
+                <text class="nw-svg-note" x="120" y="651">
+                  <tspan x="120">無線LAN対応機器をネットワークへ</tspan>
+                  <tspan x="120" dy="17">接続する中継器</tspan>
                 </text>
               </g>
               <g class="nw-svg-callout nw-svg-callout--map-6">
-                <rect x="640" y="522" width="310" height="52" rx="8"/>
-                <text class="nw-svg-note" x="650" y="542">
-                  <tspan x="650">インターネット接続サービスを</tspan>
-                  <tspan x="650" dy="17">提供する事業者</tspan>
+                <rect x="730" y="542" width="220" height="58" rx="8"/>
+                <text class="nw-svg-note" x="740" y="563">
+                  <tspan x="740">インターネット接続サービスを</tspan>
+                  <tspan x="740" dy="17">提供する事業者</tspan>
                 </text>
               </g>
             </svg>

@@ -171,6 +171,11 @@ section article .nw-protocol-definition {
   border-top: 3px solid var(--nw-line);
 }
 
+.nw-legend-branch {
+  width: 34px;
+  border-top: 2px dashed var(--nw-muted);
+}
+
 .nw-reveal-toolbar {
   display: flex;
   flex-wrap: wrap;
@@ -296,7 +301,7 @@ section article .nw-protocol-definition {
 .nw-map-canvas {
   width: 1400px;
   min-width: 1400px;
-  height: 640px;
+  height: 700px;
   border: 1px solid var(--nw-border);
   border-radius: 11px;
   background: var(--nw-panel-soft);
@@ -350,8 +355,55 @@ section article .nw-protocol-definition {
 }
 
 .nw-svg-corporate-title {
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 850;
+  text-anchor: middle;
+}
+
+.nw-svg-corporate-subtitle {
+  fill: var(--nw-muted) !important;
+  font-size: 12px;
+  font-weight: 650;
+  text-anchor: middle;
+}
+
+.nw-svg-provider-network rect {
+  fill: color-mix(in oklab, var(--nw-zone-wan) 68%, var(--nw-panel-strong));
+  stroke: var(--nw-line);
+  stroke-width: 2;
+}
+
+.nw-svg-provider-network text {
+  font-size: 15px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+.nw-svg-hierarchy-links path {
+  fill: none;
+  stroke: var(--nw-muted);
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nw-svg-subnet {
+  fill: color-mix(in oklab, var(--nw-zone-campus) 64%, var(--nw-panel-strong));
+  stroke: var(--nw-border);
+  stroke-width: 2;
+}
+
+.nw-svg-subnet-title {
+  font-size: 13px;
+  font-weight: 850;
+  text-anchor: middle;
+}
+
+.nw-svg-subnet-note {
+  fill: var(--nw-muted) !important;
+  font-size: 11px;
+  font-weight: 700;
   text-anchor: middle;
 }
 
@@ -406,10 +458,6 @@ section article .nw-protocol-definition {
   stroke-linejoin: round;
 }
 
-.nw-svg-junction {
-  fill: var(--nw-line);
-}
-
 .nw-reveal--map-1,
 .nw-reveal--map-2,
 .nw-reveal--map-3,
@@ -423,12 +471,12 @@ section article .nw-protocol-definition {
   white-space: nowrap;
 }
 
-.nw-reveal--map-1 { inset: 35px auto auto 30px; width: 440px; }
-.nw-reveal--map-2 { inset: 35px auto auto 522px; width: 840px; }
-.nw-reveal--map-3 { inset: 295px auto auto 330px; width: 145px; }
-.nw-reveal--map-4 { inset: 295px auto auto 140px; width: 185px; }
-.nw-reveal--map-5 { inset: 500px auto auto 140px; width: 330px; }
-.nw-reveal--map-6 { inset: 470px auto auto 640px; width: 270px; }
+.nw-reveal--map-1 { inset: 35px auto auto 30px; width: 450px; }
+.nw-reveal--map-2 { inset: 35px auto auto 532px; width: 830px; }
+.nw-reveal--map-3 { inset: 450px auto auto 320px; width: 160px; }
+.nw-reveal--map-4 { inset: 450px auto auto 95px; width: 210px; }
+.nw-reveal--map-5 { inset: 580px auto auto 110px; width: 300px; }
+.nw-reveal--map-6 { inset: 490px auto auto 730px; width: 220px; }
 
 .nw-transport-grid {
   display: grid;
