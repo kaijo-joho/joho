@@ -26,13 +26,16 @@ const pageSpecs = [
   { id: 'lc03', slides: 3 },
   { id: 'lc04', slides: 3 },
   { id: 'dr31', slides: 6 },
-  { id: 'dr32', slides: 3 }
+  { id: 'dr32', slides: 3 },
+  { id: 'nw11', slides: 4 }
 ];
 
-const [deck, css, logicCss, applications, ...pages] = await Promise.all([
+const [deck, css, logicCss, networkCss, networkJs, applications, ...pages] = await Promise.all([
   source('js/lesson-slide-deck.js'),
   source('css/lesson-slide-deck.css'),
   source('css/logic-circuits.css'),
+  source('css/network-mechanisms.css'),
+  source('js/network-lessons.js'),
   source('js/logic-applications.js'),
   ...pageSpecs.map(({ id }) => source(`${id}.html`))
 ]);
@@ -112,6 +115,75 @@ for (const selector of [
   '.logic-application-card--truth'
 ]) {
   ok(logicCss.includes(selector), `論理回路CSSにスライド用レイアウト ${selector}`);
+}
+
+const networkPage = pages[pageSpecs.findIndex(({ id }) => id === 'nw11')];
+ok(networkPage.includes('./css/network-mechanisms.css'), 'nw11がネットワーク教材CSSを読み込む');
+ok(networkPage.includes('./js/network-lessons.js'), 'nw11が穴埋めJavaScriptを読み込む');
+ok(
+  networkPage.indexOf('./js/main.js') < networkPage.indexOf('./js/network-lessons.js')
+    && networkPage.indexOf('./js/network-lessons.js') < networkPage.indexOf('./js/lesson-slide-deck.js'),
+  'nw11は共通サイト初期化、穴埋め、スライド基盤の順で読み込む'
+);
+equal(
+  (networkPage.match(/<button\b[^>]*\bdata-network-reveal(?:\s|>)/g) || []).length,
+  20,
+  'nw11に元スライドどおり20個の穴埋め'
+);
+equal(
+  (networkPage.match(/\bdata-network-reveal-group(?:\s|>)/g) || []).length,
+  4,
+  'nw11の各スライドに穴埋めグループ'
+);
+ok(!/class="nw-reveal__answer"\s+hidden/.test(networkPage), 'JavaScript無効時もnw11の答えを読める');
+for (const answer of [
+  'LAN',
+  'WAN',
+  'ルーター',
+  'スイッチングハブ',
+  'アクセスポイント',
+  'ISP（プロバイダ）',
+  '回線交換方式',
+  'パケット交換方式',
+  'パケット',
+  'ヘッダ情報',
+  'プロトコル',
+  '物理的な仕様',
+  '通信相手の特定',
+  'パケットの転送',
+  '信頼性の確立',
+  'セキュリティの確保',
+  'アプリケーション',
+  'トランスポート',
+  'インターネット',
+  'ネットワークインターフェース'
+]) {
+  ok(networkPage.includes(`class="nw-reveal__answer">${answer}</span>`), `nw11に穴埋め語句「${answer}」`);
+}
+
+for (const requirement of [
+  "'[data-network-reveal-group]'",
+  "'[data-network-reveal]'",
+  "'aria-pressed'",
+  "'joho:lesson-content-resize'",
+  "event.key !== 'Enter'",
+  'data-network-reveal-all',
+  'data-network-reveal-reset'
+]) {
+  ok(networkJs.includes(requirement), `穴埋めJavaScriptに ${requirement}`);
+}
+
+for (const requirement of [
+  ':root[data-theme="light"]',
+  ':root[data-theme="dark"]',
+  '.nw-diagram-scroll',
+  'overflow-x: auto',
+  '.nw-reveal:focus-visible',
+  '@media (max-width: 390px)',
+  '@media (prefers-reduced-motion: reduce)',
+  '@media print'
+]) {
+  ok(networkCss.includes(requirement), `ネットワーク教材CSSに ${requirement}`);
 }
 
 console.log(`lesson-slide-pages: ${checks}件の検証に合格`);

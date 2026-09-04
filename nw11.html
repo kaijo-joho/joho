@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme:light dark; background:transparent; }
+    @media (prefers-color-scheme:dark) { html { color:#e6e6e6; color-scheme:dark light; } }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme:dark) { body { background-color:#0b0b0b; } }
+  </style>
+  <title>海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/network-mechanisms.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/network-lessons.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="インターネットのしくみ">
+    <article class="nw-slide nw-slide--map">
+      <h2 id="headline_1">(1) インターネットのしくみ</h2>
+      <p class="nw-lead">家庭や学校などの小さなネットワークを、通信事業者の設備を通して互いにつなぐことで、インターネットが構成されます。</p>
+
+      <figure class="nw-figure" data-network-reveal-group aria-labelledby="nw-map-caption">
+        <figcaption id="nw-map-caption" class="nw-figure__caption">
+          <span>図の空欄をクリックすると、語句が表示されます。</span>
+          <span class="nw-figure__legend"><i class="nw-legend-line" aria-hidden="true"></i>機器やネットワークの接続</span>
+        </figcaption>
+        <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
+          <output data-network-reveal-progress aria-live="polite">0 / 6</output>
+          <button type="button" data-network-reveal-all>すべて表示</button>
+          <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+        </div>
+
+        <div class="nw-diagram-scroll" tabindex="0" aria-label="インターネットを構成する機器の図。狭い画面では横方向にスクロールできます。">
+          <div class="nw-diagram-canvas nw-map-canvas">
+            <svg class="nw-diagram-svg" viewBox="0 0 1200 560" role="img" aria-labelledby="nw-map-svg-title nw-map-svg-desc">
+              <title id="nw-map-svg-title">LANとWANをつないだインターネットの構成</title>
+              <desc id="nw-map-svg-desc">家庭内の端末がスイッチングハブ、アクセスポイント、ルーター、終端装置を経由し、ISPや通信キャリアを通して別のLANへ接続される図です。</desc>
+
+              <rect class="nw-svg-zone nw-svg-zone--lan" x="18" y="28" width="382" height="510" rx="20"/>
+              <rect class="nw-svg-zone nw-svg-zone--wan" x="420" y="28" width="760" height="510" rx="20"/>
+              <text class="nw-svg-caption" x="36" y="100">家庭やオフィスなど限られた範囲内のネットワーク</text>
+              <text class="nw-svg-caption" x="440" y="100">LANどうしをつなげる広域ネットワーク</text>
+
+              <g class="nw-svg-device" transform="translate(58 140)">
+                <rect x="0" y="0" width="72" height="46" rx="5"/>
+                <path d="M36 46v13M17 59h38"/>
+                <rect x="82" y="3" width="25" height="56" rx="4"/>
+                <text x="53" y="82">コンピュータ</text>
+              </g>
+              <g class="nw-svg-device" transform="translate(59 260)">
+                <rect x="8" y="0" width="62" height="45" rx="5"/>
+                <path d="M0 45h78v8H0zM16 53h46v8H16z"/>
+                <text x="39" y="83">ノートPC</text>
+              </g>
+              <g class="nw-svg-device" transform="translate(68 382)">
+                <rect x="0" y="0" width="53" height="72" rx="8"/>
+                <circle cx="26.5" cy="62" r="2"/>
+                <text x="27" y="94">端末</text>
+              </g>
+
+              <path class="nw-svg-link" d="M165 165H238M165 285H238M165 415H238"/>
+              <g class="nw-svg-device" transform="translate(238 210)">
+                <rect x="0" y="0" width="42" height="128" rx="9"/>
+                <circle cx="21" cy="17" r="5"/><circle cx="21" cy="35" r="5"/><circle cx="21" cy="53" r="5"/>
+                <circle cx="21" cy="71" r="5"/><circle cx="21" cy="89" r="5"/><circle cx="21" cy="107" r="5"/>
+              </g>
+              <path class="nw-svg-link" d="M280 275H332"/>
+              <g class="nw-svg-device" transform="translate(332 228)">
+                <rect x="0" y="0" width="32" height="92" rx="9"/>
+                <circle cx="16" cy="71" r="3"/><circle cx="16" cy="80" r="3"/>
+              </g>
+              <path class="nw-svg-link" d="M364 275H447"/>
+              <g class="nw-svg-device" transform="translate(447 228)">
+                <rect x="0" y="0" width="35" height="92" rx="8"/>
+                <circle cx="17.5" cy="70" r="3"/><circle cx="17.5" cy="79" r="3"/>
+                <text x="18" y="119">終端装置</text>
+              </g>
+
+              <path class="nw-svg-link" d="M280 322V431H330"/>
+              <g class="nw-svg-device" transform="translate(330 392)">
+                <rect x="0" y="17" width="34" height="64" rx="7"/>
+                <path d="M17 17V0M5 12Q17-2 29 12M-2 3Q17-18 36 3"/>
+              </g>
+
+              <path class="nw-svg-link" d="M482 275H579M482 298H579"/>
+              <g class="nw-svg-building" transform="translate(579 222)">
+                <path d="M0 116V36h68v80M12 36V12h44v24"/>
+                <path d="M15 50h10M42 50h10M15 69h10M42 69h10M15 88h10M42 88h10"/>
+                <text x="34" y="140">ISP</text>
+              </g>
+              <path class="nw-svg-link" d="M647 278H731V189"/>
+              <g class="nw-svg-building" transform="translate(704 105)">
+                <path d="M0 84V24h58v60M12 24V0h34v24"/>
+                <path d="M12 38h9M37 38h9M12 55h9M37 55h9"/>
+                <text x="29" y="108">通信キャリア</text>
+              </g>
+              <g class="nw-svg-device" transform="translate(627 119)">
+                <rect x="0" y="0" width="38" height="67" rx="7"/>
+                <path d="M46 13q18 20 0 40M55 5q27 28 0 56"/>
+              </g>
+              <path class="nw-svg-link" d="M762 146H884"/>
+              <g class="nw-svg-globe" transform="translate(925 146)">
+                <circle cx="0" cy="0" r="46"/>
+                <ellipse cx="0" cy="0" rx="20" ry="46"/>
+                <path d="M-43-16H43M-46 0H46M-43 16H43"/>
+                <text x="0" y="75">インターネット</text>
+              </g>
+
+              <path class="nw-svg-link" d="M971 188V248H1009"/>
+              <g class="nw-svg-building" transform="translate(1009 198)">
+                <path d="M0 84V18h64v66M12 18V0h40v18"/>
+                <path d="M13 33h9M39 33h9M13 49h9M39 49h9M13 65h9M39 65h9"/>
+              </g>
+              <rect class="nw-svg-zone nw-svg-zone--campus" x="776" y="314" width="384" height="204" rx="14"/>
+              <path class="nw-svg-link" d="M1041 282V314M1041 338H836M1041 338H968M1041 338H1100"/>
+              <g class="nw-svg-lan-box" transform="translate(794 355)">
+                <rect x="0" y="0" width="105" height="132" rx="10"/>
+                <circle cx="28" cy="34" r="14"/><circle cx="77" cy="34" r="14"/>
+                <circle cx="28" cy="73" r="14"/><circle cx="77" cy="73" r="14"/>
+                <text x="52" y="116">LAN</text>
+              </g>
+              <g class="nw-svg-lan-box" transform="translate(927 355)">
+                <rect x="0" y="0" width="105" height="132" rx="10"/>
+                <circle cx="28" cy="34" r="14"/><circle cx="77" cy="34" r="14"/>
+                <circle cx="28" cy="73" r="14"/><circle cx="77" cy="73" r="14"/>
+                <text x="52" y="116">LAN</text>
+              </g>
+              <g class="nw-svg-lan-box" transform="translate(1060 355)">
+                <rect x="0" y="0" width="88" height="132" rx="10"/>
+                <circle cx="25" cy="34" r="14"/><circle cx="64" cy="34" r="14"/>
+                <circle cx="25" cy="73" r="14"/><circle cx="64" cy="73" r="14"/>
+                <text x="44" y="116">LAN</text>
+              </g>
+
+              <text class="nw-svg-note" x="290" y="189">異なるネットワークどうしを接続し、データを中継する装置</text>
+              <text class="nw-svg-note" x="191" y="369">ケーブルを集線・延長してネットワークを構成する装置</text>
+              <text class="nw-svg-note" x="200" y="494">無線LAN対応機器をネットワークへ接続する中継器</text>
+              <text class="nw-svg-note" x="492" y="387">インターネット接続サービスを提供する事業者</text>
+            </svg>
+
+            <button type="button" class="nw-reveal nw-reveal--map-1" data-network-reveal aria-label="空欄1の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">LAN</span>
+            </button>
+            <button type="button" class="nw-reveal nw-reveal--map-2" data-network-reveal aria-label="空欄2の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">WAN</span>
+            </button>
+            <button type="button" class="nw-reveal nw-reveal--map-3" data-network-reveal aria-label="空欄3の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ルーター</span>
+            </button>
+            <button type="button" class="nw-reveal nw-reveal--map-4" data-network-reveal aria-label="空欄4の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">4</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">スイッチングハブ</span>
+            </button>
+            <button type="button" class="nw-reveal nw-reveal--map-5" data-network-reveal aria-label="空欄5の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">5</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">アクセスポイント</span>
+            </button>
+            <button type="button" class="nw-reveal nw-reveal--map-6" data-network-reveal aria-label="空欄6の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">6</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ISP（プロバイダ）</span>
+            </button>
+          </div>
+        </div>
+      </figure>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="データの伝送方式">
+    <article class="nw-slide nw-slide--transport" data-network-reveal-group data-network-reveal-group-id="transport">
+      <h2 id="headline_2">(2) データの伝送方式</h2>
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden data-network-reveal-controls="transport">
+        <output data-network-reveal-progress aria-live="polite">0 / 4</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <div class="nw-transport-grid">
+        <section class="nw-method nw-method--circuit" aria-labelledby="nw-circuit-title">
+          <h3 id="nw-circuit-title">
+            <button type="button" class="nw-reveal nw-reveal--heading" data-network-reveal aria-label="空欄1の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">回線交換方式</span>
+            </button>
+          </h3>
+          <ul>
+            <li>1対1の伝送路をつくり、やりとりが終わるまで使い続けます。</li>
+            <li>安定した通信品質を確保できますが、回線の利用効率が下がります。</li>
+          </ul>
+          <svg class="nw-method-svg" viewBox="0 0 480 170" role="img" aria-labelledby="nw-circuit-svg-title nw-circuit-svg-desc">
+            <title id="nw-circuit-svg-title">回線交換方式</title>
+            <desc id="nw-circuit-svg-desc">左右の端末間に赤、緑、灰色の専用経路が作られ、通信中はほかの端末がその経路を使えないことを示します。</desc>
+            <g class="nw-svg-terminal"><rect x="10" y="12" width="55" height="35" rx="4"/><rect x="10" y="68" width="55" height="35" rx="4"/><rect x="10" y="124" width="55" height="35" rx="4"/></g>
+            <g class="nw-svg-terminal"><rect x="415" y="12" width="55" height="35" rx="4"/><rect x="415" y="68" width="55" height="35" rx="4"/><rect x="415" y="124" width="55" height="35" rx="4"/></g>
+            <rect class="nw-svg-exchange" x="155" y="16" width="58" height="140" rx="6"/><rect class="nw-svg-exchange" x="268" y="16" width="58" height="140" rx="6"/>
+            <path class="nw-svg-route nw-svg-route--a" d="M65 29H155L184 49H268L297 29H415"/>
+            <path class="nw-svg-route nw-svg-route--b" d="M65 85H155L184 85H268L297 85H415"/>
+            <path class="nw-svg-route nw-svg-route--c" d="M65 141H155L184 121H268L297 141H415"/>
+            <text class="nw-svg-small" x="184" y="166">回線交換機</text><text class="nw-svg-small" x="297" y="166">回線交換機</text>
+          </svg>
+        </section>
+
+        <section class="nw-method nw-method--packet" aria-labelledby="nw-packet-title">
+          <h3 id="nw-packet-title">
+            <button type="button" class="nw-reveal nw-reveal--heading" data-network-reveal aria-label="空欄2の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">パケット交換方式</span>
+            </button>
+          </h3>
+          <p class="nw-method__sentence">データを
+            <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄3の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">パケット</span>
+            </button>
+            に分割し、
+            <button type="button" class="nw-reveal nw-reveal--inline nw-reveal--wide" data-network-reveal aria-label="空欄4の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">4</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ヘッダ情報</span>
+            </button>
+            をつけて送り出します。
+          </p>
+          <p>必要なときだけ回線を使うので、複数の通信が回線を共有できます。</p>
+          <div class="nw-packet-sample" aria-label="パケットの例">
+            <span class="nw-packet-sample__payload">データ</span><span class="nw-packet-sample__header">A宛・順番4</span>
+          </div>
+        </section>
+      </div>
+
+      <figure class="nw-route-figure">
+        <figcaption>同じデータのパケットでも、通る経路や届く順番は同じとは限りません。</figcaption>
+        <div class="nw-diagram-scroll" tabindex="0" aria-label="パケット交換方式の経路図。狭い画面では横方向にスクロールできます。">
+          <svg class="nw-route-svg" viewBox="0 0 1120 245" role="img" aria-labelledby="nw-route-title nw-route-desc">
+            <title id="nw-route-title">パケット交換方式の経路</title>
+            <desc id="nw-route-desc">複数の送信端末と宛先A、宛先Bが交換機でつながり、A宛とB宛のパケットが異なる経路を通る図です。</desc>
+            <g class="nw-svg-terminal nw-svg-terminal--source"><rect x="20" y="22" width="70" height="42" rx="5"/><rect x="20" y="100" width="70" height="42" rx="5"/><rect x="20" y="178" width="70" height="42" rx="5"/></g>
+            <g class="nw-svg-node"><rect x="205" y="25" width="68" height="36" rx="6"/><rect x="205" y="104" width="68" height="36" rx="6"/><rect x="205" y="182" width="68" height="36" rx="6"/>
+              <rect x="490" y="25" width="68" height="36" rx="6"/><rect x="490" y="104" width="68" height="36" rx="6"/><rect x="490" y="182" width="68" height="36" rx="6"/>
+              <rect x="770" y="25" width="68" height="36" rx="6"/><rect x="770" y="104" width="68" height="36" rx="6"/><rect x="770" y="182" width="68" height="36" rx="6"/></g>
+            <g class="nw-svg-network-links">
+              <path d="M90 43H205M90 121H205M90 199H205M273 43L490 43M273 43L490 121M273 121L490 43M273 121L490 199M273 199L490 121M273 199L490 199M558 43L770 43M558 43L770 121M558 121L770 43M558 121L770 121M558 199L770 121M558 199L770 199M838 43H1030M838 121H1030M838 199H1030"/>
+            </g>
+            <g class="nw-svg-terminal"><rect x="1030" y="22" width="70" height="42" rx="5"/><rect x="1030" y="100" width="70" height="42" rx="5"/><rect x="1030" y="178" width="70" height="42" rx="5"/></g>
+            <text class="nw-svg-destination nw-svg-destination--a" x="1065" y="50">A</text><text class="nw-svg-destination nw-svg-destination--b" x="1065" y="128">B</text>
+            <g class="nw-svg-packet nw-svg-packet--a"><rect x="150" y="24" width="38" height="38" rx="6"/><text x="169" y="49">A4</text><rect x="405" y="103" width="38" height="38" rx="6"/><text x="424" y="128">A2</text><rect x="672" y="24" width="38" height="38" rx="6"/><text x="691" y="49">A1</text><rect x="900" y="24" width="38" height="38" rx="6"/><text x="919" y="49">A3</text></g>
+            <g class="nw-svg-packet nw-svg-packet--b"><rect x="150" y="180" width="38" height="38" rx="6"/><text x="169" y="205">B2</text><rect x="405" y="181" width="38" height="38" rx="6"/><text x="424" y="206">B3</text><rect x="672" y="103" width="38" height="38" rx="6"/><text x="691" y="128">B1</text></g>
+            <text class="nw-svg-small" x="239" y="82">パケット交換機</text><text class="nw-svg-small" x="524" y="82">パケット交換機</text><text class="nw-svg-small" x="804" y="82">パケット交換機</text>
+          </svg>
+        </div>
+      </figure>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="プロトコル">
+    <article class="nw-slide nw-slide--protocol" data-network-reveal-group data-network-reveal-group-id="protocol">
+      <h2 id="headline_3">(3) プロトコル</h2>
+      <p class="nw-protocol-definition">通信するときの「約束ごと」を
+        <button type="button" class="nw-reveal nw-reveal--inline nw-reveal--definition" data-network-reveal aria-label="空欄1の答えを表示">
+          <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">プロトコル</span>
+        </button>
+        といいます。
+      </p>
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden data-network-reveal-controls="protocol">
+        <output data-network-reveal-progress aria-live="polite">0 / 6</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <ol class="nw-protocol-list" start="2">
+        <li>
+          <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal aria-label="空欄2の答えを表示">
+            <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">物理的な仕様</span>
+          </button>
+          <p>ケーブルの素材やコネクタの形状、無線で使う周波数や変調方式などを定めます。</p>
+        </li>
+        <li>
+          <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal aria-label="空欄3の答えを表示">
+            <span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">通信相手の特定</span>
+          </button>
+          <p>ネットワーク上の住所であるIPアドレスから、送信相手を区別します。</p>
+        </li>
+        <li class="nw-protocol-list__packet">
+          <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal aria-label="空欄4の答えを表示">
+            <span class="nw-reveal__number" aria-hidden="true">4</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">パケットの転送</span>
+          </button>
+          <p>送信元・宛先や復元するための通し番号などを、ヘッダ情報として付加します。</p>
+          <div class="nw-header-scroll" tabindex="0" aria-label="パケットのヘッダ情報の図。狭い画面では横方向にスクロールできます。">
+            <div class="nw-header-diagram" role="img" aria-label="送信データに、送信先IPアドレス、送信元IPアドレス、復元するための通し番号、生存期間のヘッダ情報を付ける例">
+              <span class="nw-header-diagram__payload">送信データ</span>
+              <span>送信先<br>IPアドレス</span><span>送信元<br>IPアドレス</span><span>復元するための<br>通し番号</span><span>生存期間</span>
+            </div>
+          </div>
+        </li>
+        <li>
+          <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal aria-label="空欄5の答えを表示">
+            <span class="nw-reveal__number" aria-hidden="true">5</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">信頼性の確立</span>
+          </button>
+          <p>壊れたパケットの検出や再送を行い、ネットワークが飽和しないよう通信量を調整します。</p>
+        </li>
+        <li>
+          <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal aria-label="空欄6の答えを表示">
+            <span class="nw-reveal__number" aria-hidden="true">6</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">セキュリティの確保</span>
+          </button>
+          <p>正しい通信相手であるかを認証し、通信内容を暗号化します。</p>
+        </li>
+      </ol>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="プロトコルの階層構造">
+    <article class="nw-slide nw-slide--layers" data-network-reveal-group data-network-reveal-group-id="layers">
+      <h2 id="headline_4">(4) プロトコルの階層構造</h2>
+      <p class="nw-lead">通信機能は処理に応じて4つの階層に分かれます。送信側では各層のヘッダを加え、受信側では逆の順に読み取ります。</p>
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden data-network-reveal-controls="layers">
+        <output data-network-reveal-progress aria-live="polite">0 / 4</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <div class="nw-diagram-scroll" tabindex="0" aria-label="送信側と受信側のプロトコル階層図。狭い画面では横方向にスクロールできます。">
+        <div class="nw-layer-board">
+          <div class="nw-layer-board__heading">送信側</div>
+          <div class="nw-layer-board__heading">階層と役割</div>
+          <div class="nw-layer-board__heading">受信側</div>
+
+          <div class="nw-layer-flow nw-layer-flow--sender nw-layer-flow--application">
+            <span class="nw-flow-arrow" aria-hidden="true">↓</span>
+            <div class="nw-pdu"><span class="nw-pdu__data">データ</span></div>
+            <small>送るデータ</small>
+          </div>
+          <div class="nw-layer-description nw-layer-description--application">
+            <span class="nw-layer-number">第4層</span>
+            <button type="button" class="nw-reveal nw-reveal--layer" data-network-reveal aria-label="空欄4の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">4</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">アプリケーション</span>
+            </button>
+            <p>ファイル転送やメールなど、アプリケーションに固有の処理を行う<br><small>HTTP、DNS、FTP、TLS、SMTPなど</small></p>
+          </div>
+          <div class="nw-layer-flow nw-layer-flow--receiver nw-layer-flow--application">
+            <span class="nw-flow-arrow" aria-hidden="true">↑</span>
+            <div class="nw-pdu"><span class="nw-pdu__data">データ</span></div>
+            <small>受け取ったデータ</small>
+          </div>
+
+          <div class="nw-layer-flow nw-layer-flow--sender nw-layer-flow--transport">
+            <span class="nw-flow-arrow" aria-hidden="true">↓</span>
+            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span></div>
+            <small>データを分割し、ヘッダを付ける</small>
+          </div>
+          <div class="nw-layer-description nw-layer-description--transport">
+            <span class="nw-layer-number">第3層</span>
+            <button type="button" class="nw-reveal nw-reveal--layer" data-network-reveal aria-label="空欄3の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">トランスポート</span>
+            </button>
+            <p>アプリケーションを識別し、目的に応じて通信を制御する<br><small>TCP、UDP</small></p>
+          </div>
+          <div class="nw-layer-flow nw-layer-flow--receiver nw-layer-flow--transport">
+            <span class="nw-flow-arrow" aria-hidden="true">↑</span>
+            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span></div>
+            <small>ヘッダを読み、分割されたデータを結合</small>
+          </div>
+
+          <div class="nw-layer-flow nw-layer-flow--sender nw-layer-flow--internet">
+            <span class="nw-flow-arrow" aria-hidden="true">↓</span>
+            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span><span class="nw-pdu__internet">IPヘッダ</span></div>
+            <small>宛先ネットワークを指定する</small>
+          </div>
+          <div class="nw-layer-description nw-layer-description--internet">
+            <span class="nw-layer-number">第2層</span>
+            <button type="button" class="nw-reveal nw-reveal--layer" data-network-reveal aria-label="空欄2の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">インターネット</span>
+            </button>
+            <p>異なるネットワークにいる端末との通信経路を確立する<br><small>IPなど</small></p>
+          </div>
+          <div class="nw-layer-flow nw-layer-flow--receiver nw-layer-flow--internet">
+            <span class="nw-flow-arrow" aria-hidden="true">↑</span>
+            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span><span class="nw-pdu__internet">IPヘッダ</span></div>
+            <small>IPヘッダを読み、送信元を特定する</small>
+          </div>
+
+          <div class="nw-layer-flow nw-layer-flow--sender nw-layer-flow--interface">
+            <span class="nw-flow-arrow" aria-hidden="true">↓</span>
+            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span><span class="nw-pdu__internet">IPヘッダ</span><span class="nw-pdu__interface">イーサネット<br>ヘッダ</span></div>
+            <small>次の機器へ渡すためのヘッダを付ける</small>
+          </div>
+          <div class="nw-layer-description nw-layer-description--interface">
+            <span class="nw-layer-number">第1層</span>
+            <button type="button" class="nw-reveal nw-reveal--layer" data-network-reveal aria-label="空欄1の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ネットワークインターフェース</span>
+            </button>
+            <p>物理的な通信手段の仕様を決め、同じネットワーク内の通信経路を確立する<br><small>有線LANや無線LANの規格など</small></p>
+          </div>
+          <div class="nw-layer-flow nw-layer-flow--receiver nw-layer-flow--interface">
+            <span class="nw-flow-arrow" aria-hidden="true">↑</span>
+            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span><span class="nw-pdu__internet">IPヘッダ</span><span class="nw-pdu__interface">イーサネット<br>ヘッダ</span></div>
+            <small>ヘッダを読み、次の機器から受け取る</small>
+          </div>
+
+          <div class="nw-signal nw-signal--sender">
+            <code>1 0 0 1 0 1 1 0 0 1 0 1 0…</code>
+            <svg viewBox="0 0 310 34" aria-hidden="true"><path d="M2 30V16H28V3H56V16H83V30H110V16H138V3H165V30H193V16H220V3H248V16H276V30H308"/></svg>
+            <small>ビット列を伝送媒体に流せる信号へ変換</small>
+          </div>
+          <div class="nw-signal-label">電気信号・光信号・電波</div>
+          <div class="nw-signal nw-signal--receiver">
+            <svg viewBox="0 0 310 34" aria-hidden="true"><path d="M2 30V16H28V3H56V16H83V30H110V16H138V3H165V30H193V16H220V3H248V16H276V30H308"/></svg>
+            <code>1 0 0 1 0 1 1 0 0 1 0 1 0…</code>
+            <small>信号を受け取ってビット列へ変換</small>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section id="examples_and_questions"><!-- script_pages.js --></section>
+</body>
+</html>
