@@ -64,25 +64,32 @@ ok(dr31.indexOf('data-sound-analog-intro') < dr31.indexOf('data-sound-pcm-guide'
 ok(dr31.indexOf('data-sound-pcm-guide') < dr31.indexOf('data-sound-pcm data-stage'), '変換手順の後に可変グラフを配置');
 ok(renderer.includes('renderAnalogWave'), 'アナログ波形専用SVG Renderer');
 ok(widgets.includes('class PcmWalkthrough'), '固定条件の段階学習ウィジェット');
+ok(widgets.includes('this.state = { stage: 1, selectedIndex: 0 }'), '固定条件グラフは元の波形だけから開始');
+for (const label of ['元の波形', '1. 標本化', '2. 量子化', '3. 符号化']) {
+  ok(widgets.includes(label), `固定条件グラフに工程「${label}」`);
+}
+ok(widgets.includes('createInfoTip') && widgets.includes('aria-controls'), '補足アイコンをフォーカス・タップでも確認可能');
 for (const [name, html, expectedSlides] of [['dr31', dr31, 5], ['dr32', dr32, 3]]) {
   ok(html.includes('data-dr-slide-deck'), `${name}をスライドページとして設定`);
   equal((html.match(/<section data-dr-slide(?:\s|>)/g) || []).length, expectedSlides, `${name}のスライド数`);
   ok(html.includes('./js/dr-slide-deck.js'), `${name}が共通スライド機構を読み込む`);
 }
 ok(!dr33.includes('data-dr-slide-deck'), '問題演習dr33はタブ型ページを維持');
-for (const requirement of ['class DrSlideDeck', 'dr-slide-deck__navigation', 'dr-slide-deck__steps', 'aria-current', 'ArrowRight', 'PageDown', 'location.hash']) {
+for (const requirement of ['class DrSlideDeck', 'dr-slide-deck__navigation', 'dr-slide-deck__steps', 'aria-current', 'ArrowRight', 'PageDown', 'location.hash', 'dr-slide-page--content', 'is-height-compact']) {
   ok(slideDeck.includes(requirement), `スライド機構に ${requirement}`);
 }
-for (const requirement of ['.dr-slide-deck', '--dr-slide-deck-height', '.dr-slide-deck__navigation', '.dr-slide-deck__steps', 'body.dr-slide-ready', 'max-height: 520px']) {
+for (const requirement of ['.dr-slide-deck', '--dr-slide-deck-height', '.dr-slide-deck__navigation', '.dr-slide-deck__steps', 'body.dr-slide-ready', 'max-height: 520px', '.dr-info-tip', 'dr-sampling-divider-in', 'dr-quantization-level-in', 'dr-code-in']) {
   ok(css.includes(requirement), `スライド表示CSSに ${requirement}`);
 }
+ok(renderer.includes('dr-svg--stage-enter-${animationStage}'), 'Rendererが進めた工程をSVGクラスへ反映');
+for (const stage of [2, 3, 4]) ok(css.includes(`.dr-svg--stage-enter-${stage}`), `SVG工程${stage}の追加アニメーション`);
 for (const term of ['アナログ', 'デジタル', '標本化', 'サンプリング', '標本化周波数', '標本化周期', '量子化', '量子化ビット数', '量子化段階数', '符号化', 'PCM']) {
   ok(dr31.includes(term), `dr31に用語「${term}」`);
 }
 ok(dr31.includes('0以上8未満'), 'dr31に基本量子化範囲');
 ok(dr31.includes('ちょうど中間なら上側'), 'dr31に丸め規則');
 ok(dr31.includes('表示範囲を超えた値'), 'dr31に表示範囲外の規則');
-ok(dr31.includes('PCM：</strong>「パルス符号変調」の略です'), 'PCMは略語としてのみ説明');
+ok(dr31.includes('<dt>PCM</dt>') && widgets.includes('PCMは「パルス符号変調」の略です'), 'PCMは略語としてのみ説明');
 
 ok(dr32.includes('data-sound-superposition'), 'dr32に波の重ね合わせ教材');
 ok(dr32.includes('data-sound-sampling-theorem'), 'dr32に標本化定理教材');

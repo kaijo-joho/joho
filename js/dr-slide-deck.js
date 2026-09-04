@@ -168,6 +168,7 @@
       });
       window.addEventListener('resize', () => this.scheduleMeasure(), { passive: true });
       document.addEventListener('joho:text-size-change', () => this.scheduleMeasure());
+      document.addEventListener('dr:content-resize', () => this.scheduleMeasure());
 
       if (typeof ResizeObserver === 'function') {
         this.resizeObserver = new ResizeObserver(() => this.scheduleMeasure());
@@ -203,6 +204,8 @@
       const nextIndex = Math.max(0, Math.min(this.slides.length - 1, Number(index) || 0));
       const { focusHeading = false, updateHash = true } = options;
       this.currentIndex = nextIndex;
+      this.page.classList.toggle('dr-slide-page--intro', nextIndex === 0);
+      this.page.classList.toggle('dr-slide-page--content', nextIndex > 0);
 
       this.slides.forEach((slide, slideIndex) => {
         const active = slideIndex === nextIndex;
@@ -262,6 +265,7 @@
       const top = Math.max(0, this.deck.getBoundingClientRect().top);
       const available = Math.max(280, Math.floor(window.innerHeight - top - 8));
       this.deck.style.setProperty('--dr-slide-deck-height', `${available}px`);
+      this.deck.classList.toggle('is-height-compact', available < 760);
 
       const currentSlide = this.slides[this.currentIndex];
       const scrollable = currentSlide.scrollHeight > currentSlide.clientHeight + 2;

@@ -7,12 +7,32 @@
   if (!Core || !Renderer) throw new Error('sound-widgets.jsの依存ファイルが読み込まれていません。');
 
   let widgetSerial = 0;
+  let infoTipSerial = 0;
 
   function element(name, className, text) {
     const node = document.createElement(name);
     if (className) node.className = className;
     if (text != null) node.textContent = text;
     return node;
+  }
+
+  function createInfoTip(config = {}) {
+    infoTipSerial += 1;
+    const tone = ['info', 'question', 'warning'].includes(config.tone) ? config.tone : 'info';
+    const symbol = config.symbol || (tone === 'question' ? '?' : tone === 'warning' ? '!' : 'i');
+    const label = config.label || '補足情報';
+    const details = element('details', `dr-info-tip dr-info-tip--${tone}`);
+    const summary = element('summary', 'dr-info-tip__trigger', symbol);
+    const panel = element('div', 'dr-info-tip__panel');
+    panel.id = `dr-info-tip-${infoTipSerial}`;
+    panel.setAttribute('role', 'note');
+    summary.setAttribute('aria-label', label);
+    summary.setAttribute('aria-controls', panel.id);
+    summary.title = label;
+    if (config.title) panel.appendChild(element('strong', 'dr-info-tip__title', config.title));
+    if (config.text) panel.appendChild(element('p', '', config.text));
+    details.append(summary, panel);
+    return details;
   }
 
   function formatNumber(value, digits = 3) {
@@ -96,10 +116,9 @@
 
     build() {
       this.container.classList.add('dr-card', 'dr-analog-intro');
-      const title = element('h3', '', 'まず、元のアナログ波形を見る');
       const description = element(
         'p',
-        '',
+        'dr-widget-lead',
         '音は空気の振動です。マイクで電気信号に変換すると、時間とともに連続して変化する波形として表せます。'
       );
       const visual = element('figure', 'dr-visual');
@@ -114,7 +133,7 @@
       const point = element('p', 'dr-selected-readout');
       point.innerHTML = '<strong>見るポイント：</strong>横軸は時間、縦軸は電圧です。曲線上では、時間も電圧も連続して変化しています。';
       visual.append(legend, scroll, point);
-      this.container.replaceChildren(title, description, visual);
+      this.container.replaceChildren(description, visual);
     }
 
     render() {
@@ -132,19 +151,32 @@
     constructor(container) {
       if (!(container instanceof Element)) throw new TypeError('デジタル化手順の表示先が必要です。');
       this.container = container;
-      this.state = { stage: 2, selectedIndex: 0 };
+      this.state = { stage: 1, selectedIndex: 0 };
+      this.pendingAnimationStage = 0;
       this.model = fixedLessonModel();
       this.build();
       this.render();
     }
 
     build() {
-      this.container.classList.add('dr-card', 'dr-guide');
-      const title = element('h3', '', '固定した条件で順に見る');
-      const intro = element('p', '', '先ほどのアナログ波形を、0.1秒間隔・3ビットでデジタル化します。ここでは条件を変えず、3つの手順に注目します。');
-      this.stageSelector = element('fieldset', 'dr-stage-selector dr-stage-selector--three');
-      this.stageSelector.appendChild(element('legend', '', '確認する手順'));
+      this.container.classList.add('dr-card', 'dr-guide', 'dr-guide--pcm-walkthrough');
+      const setup = element('div', 'dr-guide__setup');
+      const setupText = element('p', 'dr-guide__setup-text');
+      setupText.innerHTML = '<strong>元の波形から開始：</strong>同じグラフに要素を順番に追加します。';
+      setup.append(
+        setupText,
+        createInfoTip({
+          symbol: 'i',
+          tone: 'info',
+          label: 'このグラフの固定条件',
+          title: '固定条件',
+          text: '標本化周期は0.1秒、量子化ビット数は3ビットです。ここでは条件を変えず、変換による見え方の変化に注目します。'
+        })
+      );
+      this.stageSelector = element('fieldset', 'dr-stage-selector dr-stage-selector--walkthrough');
+      this.stageSelector.setAttribute('aria-label', '波形に表示する工程');
       const stages = [
+        { stage: 1, label: '元の波形' },
         { stage: 2, label: '1. 標本化' },
         { stage: 3, label: '2. 量子化' },
         { stage: 4, label: '3. 符号化' }
@@ -153,44 +185,29 @@
         const button = element('button', 'dr-stage-button', item.label);
         button.type = 'button';
         button.dataset.stage = String(item.stage);
-        button.addEventListener('click', () => {
-          this.state.stage = item.stage;
-          this.render();
-        });
+        button.setAttribute('aria-label', item.label);
+        button.addEventListener('click', () => this.setStage(item.stage));
         this.stageSelector.appendChild(button);
         return button;
       });
-      this.explanation = element('div', 'dr-guide__explanation');
+      this.explanation = element('div', 'dr-guide__explanation dr-guide__explanation--compact');
       this.visual = element('figure', 'dr-visual');
-      const legend = element('figcaption', 'dr-legend');
-      legend.innerHTML = [
-        '<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--analog"></span>アナログ波形</span>',
-        '<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--sample"></span>標本化した点</span>',
-        '<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--quantized"></span>量子化後の値</span>'
-      ].join('');
+      this.legend = element('figcaption', 'dr-legend');
       const scroll = element('div', 'dr-visual__scroll');
       scroll.tabIndex = 0;
       scroll.setAttribute('aria-label', '標本化・量子化・符号化を順に示すグラフ。狭い画面では横方向にスクロールできます。');
       scroll.appendChild(element('p', 'dr-visual__hint', '横にスクロールしてグラフ全体を確認できます'));
       this.graph = element('div');
       scroll.appendChild(this.graph);
-      this.sampleReadout = element('p', 'dr-selected-readout');
-      this.visual.append(legend, scroll, this.sampleReadout);
-      const actions = element('div', 'dr-guide__actions');
-      this.previousButton = element('button', 'dr-button', '前の手順');
-      this.previousButton.type = 'button';
-      this.previousButton.addEventListener('click', () => {
-        this.state.stage = Math.max(2, this.state.stage - 1);
-        this.render();
-      });
-      this.nextButton = element('button', 'dr-button dr-button--primary', '次の手順');
-      this.nextButton.type = 'button';
-      this.nextButton.addEventListener('click', () => {
-        this.state.stage = Math.min(4, this.state.stage + 1);
-        this.render();
-      });
-      actions.append(this.previousButton, this.nextButton);
-      this.container.replaceChildren(title, intro, this.stageSelector, this.explanation, this.visual, actions);
+      this.visual.append(this.legend, scroll);
+      this.container.replaceChildren(setup, this.stageSelector, this.explanation, this.visual);
+    }
+
+    setStage(stage) {
+      const nextStage = Math.max(1, Math.min(4, Number(stage) || 1));
+      this.pendingAnimationStage = nextStage > this.state.stage ? nextStage : 0;
+      this.state.stage = nextStage;
+      this.render();
     }
 
     selectSample(index) {
@@ -198,32 +215,28 @@
       this.container.querySelectorAll('[data-sample-index]').forEach(node => {
         node.classList.toggle('is-active', Number(node.dataset.sampleIndex) === index);
       });
-      const sample = this.model.samples[index];
-      if (!sample) return;
-      const parts = [
-        `時刻 ${formatNumber(sample.time, 1)} 秒`,
-        `波の高さ ${formatNumber(sample.value, 1)}`
-      ];
-      if (this.state.stage >= 3) parts.push(`量子化後 ${formatNumber(sample.quantizedValue, 1)}`, `段階値 ${sample.code}`);
-      if (this.state.stage >= 4) parts.push(`3ビットの2進数 ${sample.binary}`);
-      this.sampleReadout.innerHTML = `<strong>選んだ点：</strong>${parts.join(' ／ ')}`;
     }
 
     render() {
       const descriptions = {
+        1: {
+          title: '元のアナログ波形',
+          text: '時間とともに連続して変化する、元の波形だけを表示します。',
+          point: 'まだ値を取り出していないため、標本点や2進数はありません。次に「標本化」を押してください。'
+        },
         2: {
           title: '1. 標本化（サンプリング）',
-          text: 'アナログ信号の横軸（時間）に沿って、一定の間隔で波の高さ（電圧の強さ）を取り出します。',
+          text: '時間を0.1秒ごとに区切り、その時点の波の高さを取り出します。',
           point: 'この例では標本化の幅は0.1秒です。縦の線と丸い点を左から順に見てください。'
         },
         3: {
           title: '2. 量子化',
-          text: '標本化で得られた波の高さを、縦軸（電圧）に沿って最も近い段階値にそろえます。',
+          text: '各標本の高さを、最も近い8段階の値にそろえます。',
           point: 'この例は3ビット量子化なので8段階です。この固定例では各点が段階値と重なるため、誤差は0です。'
         },
         4: {
           title: '3. 符号化（コード化）',
-          text: '量子化した段階値を2進数で表現します。3ビットなので、どの値も3桁の0と1で表します。',
+          text: '量子化した段階値を、3桁の2進数で表します。',
           point: '値2は010、値3は011、値5は101になります。PCMは「パルス符号変調」の略です。'
         }
       };
@@ -233,15 +246,38 @@
         button.setAttribute('aria-pressed', stage === this.state.stage ? 'true' : 'false');
         button.classList.toggle('is-complete', stage <= this.state.stage);
       });
-      const heading = element('h4', '', description.title);
+      const stageTitle = element('strong', 'dr-guide__stage-title', description.title);
+      const stageText = element('p', 'dr-guide__stage-text', description.text);
       this.explanation.replaceChildren(
-        heading,
-        element('p', '', description.text),
-        element('p', 'dr-guide__point', description.point)
+        stageTitle,
+        stageText,
+        createInfoTip({
+          symbol: this.state.stage === 4 ? 'i' : '?',
+          tone: this.state.stage === 4 ? 'info' : 'question',
+          label: `${description.title}の見るポイント`,
+          title: '見るポイント',
+          text: description.point
+        })
       );
+      const legendItems = [
+        '<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--analog"></span>アナログ波形</span>'
+      ];
+      if (this.state.stage >= 2) {
+        legendItems.push('<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--sample"></span>標本化した点</span>');
+      }
+      if (this.state.stage >= 3) {
+        legendItems.push('<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--quantized"></span>量子化後の値</span>');
+      }
+      if (this.state.stage >= 4) {
+        legendItems.push('<span class="dr-legend__item"><span class="dr-legend__code">010</span>3ビットの2進数</span>');
+      }
+      this.legend.innerHTML = legendItems.join('');
+      const animationStage = this.pendingAnimationStage;
       Renderer.renderPCM(this.graph, {
         ...this.model,
         stage: this.state.stage,
+        animationStage,
+        compact: true,
         selectedIndex: this.state.selectedIndex,
         showStaircase: false,
         axisTimeStep: 0.1,
@@ -252,10 +288,9 @@
         description: `${description.text} ${description.point}`,
         onSampleSelect: index => this.selectSample(index)
       });
-      this.previousButton.disabled = this.state.stage === 2;
-      this.nextButton.disabled = this.state.stage === 4;
-      this.nextButton.textContent = this.state.stage === 4 ? '3つの手順を確認しました' : '次の手順';
+      this.pendingAnimationStage = 0;
       this.selectSample(this.state.selectedIndex);
+      document.dispatchEvent(new CustomEvent('dr:content-resize'));
     }
   }
 
@@ -279,6 +314,7 @@
         selectedIndex: 0,
         showStaircase: true
       };
+      this.pendingAnimationStage = 0;
       this.build();
       this.render();
     }
@@ -335,9 +371,6 @@
 
     build() {
       this.container.classList.add('dr-explorer');
-      const title = element('h3', '', '標本化周波数と量子化ビット数を変えてみる');
-      const intro = element('p', '', 'ここからは条件を自由に変えます。値を動かし、標本化した点の数や量子化の段階がどう変わるか確かめましょう。工程の表示は累積されます。');
-
       this.stageSelector = element('fieldset', 'dr-stage-selector');
       this.stageSelector.appendChild(element('legend', '', '表示する工程'));
       const stages = ['アナログ波形', '標本化', '量子化', '符号化'];
@@ -345,8 +378,11 @@
         const button = element('button', 'dr-stage-button', `${index + 1}. ${name}`);
         button.type = 'button';
         button.dataset.stage = String(index + 1);
+        button.setAttribute('aria-label', `${index + 1}. ${name}`);
         button.addEventListener('click', () => {
-          this.state.stage = index + 1;
+          const nextStage = index + 1;
+          this.pendingAnimationStage = nextStage > this.state.stage ? nextStage : 0;
+          this.state.stage = nextStage;
           this.render();
         });
         this.stageSelector.appendChild(button);
@@ -459,8 +495,6 @@
       this.visual.append(this.legend, this.scroll, this.selectedReadout);
       this.tableHost = element('div');
       this.container.replaceChildren(
-        title,
-        intro,
         this.stageSelector,
         this.stageHelp,
         this.controls,
@@ -587,14 +621,17 @@
       Renderer.renderPCM(this.graph, {
         ...this.state,
         ...derived,
+        animationStage: this.pendingAnimationStage,
         axisTimeStep: 0.1,
         axisLabelEvery: 2,
         axisVoltageStep: 1
       }, {
         onSampleSelect: index => this.selectSample(index)
       });
+      this.pendingAnimationStage = 0;
       this.renderTable(derived.samples);
       this.selectSample(this.state.selectedIndex);
+      document.dispatchEvent(new CustomEvent('dr:content-resize'));
     }
   }
 
@@ -635,6 +672,7 @@
     formatNumber,
     createRangeControl,
     createSelectControl,
+    createInfoTip,
     AnalogWaveIntro,
     PcmWalkthrough,
     PcmExplorer,

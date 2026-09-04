@@ -280,8 +280,10 @@
   function renderPCM(target, model, options = {}) {
     assertTarget(target);
     const width = 1160;
-    const height = 520;
+    const compact = model.compact === true;
+    const height = compact ? 330 : 520;
     const stage = Math.max(1, Math.min(4, Number(model.stage) || 1));
+    const animationStage = Math.max(0, Math.min(4, Number(model.animationStage) || 0));
     const range = model.range || Core.DEFAULT_VOLTAGE_RANGE;
     const samples = model.samples || [];
     const plot = createPlot({
@@ -291,12 +293,14 @@
       xMax: model.end,
       yMin: range.min,
       yMax: range.max,
-      margin: { top: 38, right: 28, bottom: 145, left: 68 }
+      margin: compact
+        ? { top: 26, right: 28, bottom: 86, left: 68 }
+        : { top: 38, right: 28, bottom: 145, left: 68 }
     });
     const svg = createSvg({
       width,
       height,
-      className: 'dr-svg--pcm',
+      className: `dr-svg--pcm${animationStage ? ` dr-svg--stage-enter-${animationStage}` : ''}`,
       title: options.title || '音のデジタル化の手順',
       description: options.description || 'アナログ波形から一定間隔で値を取り出し、最も近い段階値へそろえ、決められたビット数の2進数で表す手順を示します。'
     });
@@ -321,7 +325,8 @@
           x1: plot.left,
           y1: plot.y(value),
           x2: plot.right,
-          y2: plot.y(value)
+          y2: plot.y(value),
+          style: `--dr-sequence: ${code}`
         }));
       }
     }
@@ -340,6 +345,7 @@
           y1: plot.top,
           x2: plot.x(sample.time),
           y2: plot.bottom,
+          style: `--dr-sequence: ${sample.index}`,
           'data-sample-index': sample.index
         }));
       });
@@ -358,6 +364,7 @@
             y1: plot.bottom,
             x2: x,
             y2: y,
+            style: `--dr-sequence: ${sample.index}`,
             'data-sample-index': sample.index
           }),
           svgElement('circle', {
@@ -365,6 +372,7 @@
             cx: x,
             cy: y,
             r: 5.5,
+            style: `--dr-sequence: ${sample.index}`,
             'data-sample-index': sample.index
           })
         );
@@ -382,6 +390,7 @@
           width: 10,
           height: 10,
           rx: 1.5,
+          style: `--dr-sequence: ${sample.index}`,
           'data-sample-index': sample.index
         }));
       });
@@ -397,6 +406,7 @@
           y1: plot.y(sample.value),
           x2: plot.x(sample.time),
           y2: plot.y(sample.quantizedValue),
+          style: `--dr-sequence: ${sample.index}`,
           'data-sample-index': sample.index
         }));
       });
@@ -424,6 +434,7 @@
           x: plot.x(sample.time),
           y: labelY,
           'text-anchor': 'middle',
+          style: `--dr-sequence: ${sample.index}`,
           'data-sample-index': sample.index
         }, numberText(sample.quantizedValue, 2)));
       });
@@ -435,14 +446,16 @@
       binaryLayer.appendChild(svgElement('text', {
         class: 'dr-svg__code-heading',
         x: plot.left,
-        y: plot.bottom + 82
+        y: plot.bottom + (compact ? 40 : 82),
+        style: '--dr-sequence: 0'
       }, `${model.bitDepth}ビットの2進数`));
       samples.forEach(sample => {
         binaryLayer.appendChild(svgElement('text', {
           class: 'dr-svg__binary-label',
           x: plot.x(sample.time),
-          y: plot.bottom + 112,
+          y: plot.bottom + (compact ? 68 : 112),
           'text-anchor': 'middle',
+          style: `--dr-sequence: ${sample.index}`,
           'data-sample-index': sample.index
         }, sample.binary));
       });
@@ -471,7 +484,7 @@
           x: plot.x(sample.time) - Math.max(18, halfLeft),
           y: plot.top,
           width: Math.max(36, halfLeft + halfRight),
-          height: plot.bottom - plot.top + (stage >= 4 ? 122 : 0),
+          height: plot.bottom - plot.top + (stage >= 4 ? (compact ? 76 : 122) : 0),
           fill: 'transparent',
           tabindex: 0,
           role: 'button',
