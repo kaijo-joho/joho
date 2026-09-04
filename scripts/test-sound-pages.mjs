@@ -116,7 +116,13 @@ ok(dr31.includes('data-sound-sampling-theorem'), 'dr31に標本化定理教材�
 ok(lessons.includes('元の波の位相（境界の確認用）') && lessons.includes('2倍ちょうどにしたとき'), '位相操作を境界確認用と明示');
 ok(lessons.includes('標本点を結ぶグラフを描く') && lessons.includes('showReconstruction'), '標本点を確認してから波形を描く操作');
 ok((lessons.match(/this\.state\.showReconstruction = false/g) || []).length === 3, '条件を変えたら描画前の状態へ戻す');
-ok(lessons.indexOf("actions, scroll, this.legend, this.status") >= 0, '描画操作はグラフ直前、判定コメントはグラフの下へ配置');
+ok(lessons.includes('controls.append(frequency.wrapper, sampleRate.wrapper, phase.wrapper, this.metrics, actions)'), '計算値と描画ボタンをスライダー枠内の下部へ配置');
+ok(lessons.includes('visual.append(scroll, this.legend, this.status, warning)'), '判定コメントをグラフの下へ配置');
+ok(/label: '元の波の周波数',[\s\S]*?min: 1,[\s\S]*?max: 20,[\s\S]*?allowedMax: 10,/.test(lessons), '元の波の周波数は共通目盛1〜20Hzのうち1〜10Hzを使用');
+ok(/label: '標本化周波数 fs',[\s\S]*?min: 1,[\s\S]*?max: 20,[\s\S]*?allowedMin: 2,/.test(lessons), '標本化周波数は共通目盛1〜20Hzのうち2〜20Hzを使用');
+ok(widgets.includes('dr-control--bounded-range') && widgets.includes('灰色部分は選択できません'), '選択できないスライダー範囲を見た目と文章で示す');
+ok(widgets.includes("input.setAttribute('aria-valuemin'") && widgets.includes("input.setAttribute('aria-valuemax'"), 'スライダーの有効範囲を支援技術へ伝える');
+ok(css.includes('.dr-svg__wave--original') && css.includes('stroke-width: 7'), '標本化定理の元の波形を約2倍の太さで表示');
 ok(renderer.includes("options.showReconstruction === true") && renderer.includes("layer('reconstruction')"), '操作前は標本点からの波形を描かない');
 ok(renderer.includes('dr-svg--reconstruction-enter') && css.includes('@keyframes dr-reconstruction-wipe'), '標本点からの波形をワイプ表示');
 ok(renderer.includes("matchMedia('(prefers-reduced-motion: reduce)')") && css.includes('.dr-svg--reconstruction-enter .dr-svg__reconstruction-wipe'), '波形アニメーションで動きを減らす設定を尊重');

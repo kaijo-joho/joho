@@ -42,25 +42,61 @@
   function createRangeControl(config) {
     const wrapper = element('div', 'dr-control');
     const id = config.id;
+    const minimum = Number(config.min);
+    const maximum = Number(config.max);
+    const allowedMin = Number(config.allowedMin ?? minimum);
+    const allowedMax = Number(config.allowedMax ?? maximum);
+    if (![minimum, maximum, allowedMin, allowedMax].every(Number.isFinite)
+      || maximum <= minimum
+      || allowedMin < minimum
+      || allowedMax > maximum
+      || allowedMax < allowedMin) {
+      throw new RangeError('スライダーの範囲が不正です。');
+    }
+    const clampToAllowedRange = value => Math.min(allowedMax, Math.max(allowedMin, Number(value)));
+    const initialValue = clampToAllowedRange(config.value);
+    const toPercent = value => `${((value - minimum) / (maximum - minimum) * 100).toFixed(4)}%`;
     const label = element('label');
     label.htmlFor = id;
     const name = element('span', '', config.label);
-    const output = element('output', '', config.format(config.value));
+    const output = element('output', '', config.format(initialValue));
     output.htmlFor = id;
     label.append(name, output);
     const input = element('input');
     input.type = 'range';
     input.id = id;
-    input.min = String(config.min);
-    input.max = String(config.max);
+    input.min = String(minimum);
+    input.max = String(maximum);
     input.step = String(config.step);
-    input.value = String(config.value);
+    input.value = String(initialValue);
+    const updateRangePosition = value => {
+      wrapper.style.setProperty('--dr-range-value-position', toPercent(value));
+    };
+    if (allowedMin !== minimum || allowedMax !== maximum) {
+      wrapper.classList.add('dr-control--bounded-range');
+      wrapper.style.setProperty('--dr-range-allowed-start', toPercent(allowedMin));
+      wrapper.style.setProperty('--dr-range-allowed-end', toPercent(allowedMax));
+      input.setAttribute('aria-valuemin', String(allowedMin));
+      input.setAttribute('aria-valuemax', String(allowedMax));
+      const availability = element(
+        'p',
+        'dr-control__availability',
+        `共通目盛：${config.format(minimum)}〜${config.format(maximum)} ／ 操作範囲：${config.format(allowedMin)}〜${config.format(allowedMax)}（灰色部分は選択できません）`
+      );
+      availability.id = `${id}-availability`;
+      input.setAttribute('aria-describedby', availability.id);
+      wrapper.append(label, input, availability);
+    } else {
+      wrapper.append(label, input);
+    }
+    updateRangePosition(initialValue);
     input.addEventListener('input', () => {
-      const value = Number(input.value);
+      const value = clampToAllowedRange(input.value);
+      if (Number(input.value) !== value) input.value = String(value);
       output.value = config.format(value);
+      updateRangePosition(value);
       config.onInput(value);
     });
-    wrapper.append(label, input);
     return { wrapper, input, output };
   }
 

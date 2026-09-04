@@ -189,13 +189,14 @@
       const heading = el('h3', '', '標本化定理を確かめる');
       const intro = el('p', '', '元の波の周波数と標本化周波数を動かし、標本化する回数によって波形の見え方がどう変わるか調べます。2倍ちょうどにしたときは、位相も動かして標本値の違いを確かめます。');
       const grid = el('div', 'dr-lab-grid');
-      const controls = el('div', 'dr-control-panel');
+      const controls = el('div', 'dr-control-panel dr-theorem-controls');
       const frequency = Widgets.createRangeControl({
         id: `dr-theorem-${this.serial}-frequency`,
         label: '元の波の周波数',
         value: this.state.frequency,
         min: 1,
-        max: 10,
+        max: 20,
+        allowedMax: 10,
         step: 0.5,
         format: value => `${Widgets.formatNumber(value, 1)} Hz`,
         onInput: value => {
@@ -208,8 +209,9 @@
         id: `dr-theorem-${this.serial}-sample-rate`,
         label: '標本化周波数 fs',
         value: this.state.sampleRate,
-        min: 2,
+        min: 1,
         max: 20,
+        allowedMin: 2,
         step: 1,
         format: value => `${value} Hz`,
         onInput: value => {
@@ -232,7 +234,6 @@
           this.render();
         }
       });
-      controls.append(frequency.wrapper, sampleRate.wrapper, phase.wrapper);
       const visual = el('div', 'dr-lab-grid__visual');
       this.metrics = el('dl', 'dr-metrics');
       this.status = el('div', 'dr-theorem-status');
@@ -255,10 +256,11 @@
       });
       const actions = el('div', 'dr-theorem-actions');
       actions.appendChild(this.drawButton);
+      controls.append(frequency.wrapper, sampleRate.wrapper, phase.wrapper, this.metrics, actions);
       const warning = el('p', 'dr-warning-note dr-theorem-note');
       warning.innerHTML = '<strong>描く波形について：</strong>丸い標本点を直線で結ぶのではなく、標本点を通る滑らかな波形を描きます。条件を満たさない場合は、元の波形と区別できない別の候補が現れます。';
       // 判定文や補足文の長さが変わってもグラフ位置が動かないよう、可変テキストはグラフより後ろに置く。
-      visual.append(this.metrics, actions, scroll, this.legend, this.status, warning);
+      visual.append(scroll, this.legend, this.status, warning);
       grid.append(controls, visual);
       this.container.replaceChildren(heading, intro, grid);
     }
