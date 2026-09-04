@@ -234,7 +234,7 @@
     </article>
   </section>
 
-  <section data-lesson-slide data-lesson-slide-title="データの伝送方式">
+  <section data-lesson-slide data-lesson-slide-title="データの伝送方式" data-lesson-slide-layout="workspace">
     <article class="nw-slide nw-slide--transport" data-network-reveal-group data-network-reveal-group-id="transport">
       <h2 id="headline_2">(2) データの伝送方式</h2>
       <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden data-network-reveal-controls="transport">
@@ -243,74 +243,173 @@
         <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
       </div>
 
-      <div class="nw-transport-grid">
-        <section class="nw-method nw-method--circuit" aria-labelledby="nw-circuit-title">
-          <h3 id="nw-circuit-title">
-            <button type="button" class="nw-reveal nw-reveal--heading" data-network-reveal aria-label="空欄1の答えを表示">
-              <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">回線交換方式</span>
-            </button>
-          </h3>
-          <ul>
-            <li>1対1の伝送路をつくり、やりとりが終わるまで使い続けます。</li>
-            <li>安定した通信品質を確保できますが、回線の利用効率が下がります。</li>
-          </ul>
-          <svg class="nw-method-svg" viewBox="0 0 480 170" role="img" aria-labelledby="nw-circuit-svg-title nw-circuit-svg-desc">
-            <title id="nw-circuit-svg-title">回線交換方式</title>
-            <desc id="nw-circuit-svg-desc">左右の端末間に赤、緑、灰色の専用経路が作られ、通信中はほかの端末がその経路を使えないことを示します。</desc>
-            <g class="nw-svg-terminal"><rect x="10" y="12" width="55" height="35" rx="4"/><rect x="10" y="68" width="55" height="35" rx="4"/><rect x="10" y="124" width="55" height="35" rx="4"/></g>
-            <g class="nw-svg-terminal"><rect x="415" y="12" width="55" height="35" rx="4"/><rect x="415" y="68" width="55" height="35" rx="4"/><rect x="415" y="124" width="55" height="35" rx="4"/></g>
-            <rect class="nw-svg-exchange" x="155" y="16" width="58" height="140" rx="6"/><rect class="nw-svg-exchange" x="268" y="16" width="58" height="140" rx="6"/>
-            <path class="nw-svg-route nw-svg-route--a" d="M65 29H155L184 49H268L297 29H415"/>
-            <path class="nw-svg-route nw-svg-route--b" d="M65 85H155L184 85H268L297 85H415"/>
-            <path class="nw-svg-route nw-svg-route--c" d="M65 141H155L184 121H268L297 141H415"/>
-            <text class="nw-svg-small" x="184" y="166">回線交換機</text><text class="nw-svg-small" x="297" y="166">回線交換機</text>
-          </svg>
-        </section>
-
-        <section class="nw-method nw-method--packet" aria-labelledby="nw-packet-title">
-          <h3 id="nw-packet-title">
-            <button type="button" class="nw-reveal nw-reveal--heading" data-network-reveal aria-label="空欄2の答えを表示">
-              <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">パケット交換方式</span>
-            </button>
-          </h3>
-          <p class="nw-method__sentence">データを
-            <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄3の答えを表示">
-              <span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">パケット</span>
-            </button>
-            に分割し、
-            <button type="button" class="nw-reveal nw-reveal--inline nw-reveal--wide" data-network-reveal aria-label="空欄4の答えを表示">
-              <span class="nw-reveal__number" aria-hidden="true">4</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ヘッダ情報</span>
-            </button>
-            をつけて送り出します。
-          </p>
-          <p>必要なときだけ回線を使うので、複数の通信が回線を共有できます。</p>
-          <div class="nw-packet-sample" aria-label="パケットの例">
-            <span class="nw-packet-sample__payload">データ</span><span class="nw-packet-sample__header">A宛・順番4</span>
-          </div>
-        </section>
-      </div>
-
-      <figure class="nw-route-figure">
-        <figcaption>同じデータのパケットでも、通る経路や届く順番は同じとは限りません。</figcaption>
-        <div class="nw-diagram-scroll" tabindex="0" aria-label="パケット交換方式の経路図。狭い画面では横方向にスクロールできます。">
-          <svg class="nw-route-svg" viewBox="0 0 1120 245" role="img" aria-labelledby="nw-route-title nw-route-desc">
-            <title id="nw-route-title">パケット交換方式の経路</title>
-            <desc id="nw-route-desc">複数の送信端末と宛先A、宛先Bが交換機でつながり、A宛とB宛のパケットが異なる経路を通る図です。</desc>
-            <g class="nw-svg-terminal nw-svg-terminal--source"><rect x="20" y="22" width="70" height="42" rx="5"/><rect x="20" y="100" width="70" height="42" rx="5"/><rect x="20" y="178" width="70" height="42" rx="5"/></g>
-            <g class="nw-svg-node"><rect x="205" y="25" width="68" height="36" rx="6"/><rect x="205" y="104" width="68" height="36" rx="6"/><rect x="205" y="182" width="68" height="36" rx="6"/>
-              <rect x="490" y="25" width="68" height="36" rx="6"/><rect x="490" y="104" width="68" height="36" rx="6"/><rect x="490" y="182" width="68" height="36" rx="6"/>
-              <rect x="770" y="25" width="68" height="36" rx="6"/><rect x="770" y="104" width="68" height="36" rx="6"/><rect x="770" y="182" width="68" height="36" rx="6"/></g>
-            <g class="nw-svg-network-links">
-              <path d="M90 43H205M90 121H205M90 199H205M273 43L490 43M273 43L490 121M273 121L490 43M273 121L490 199M273 199L490 121M273 199L490 199M558 43L770 43M558 43L770 121M558 121L770 43M558 121L770 121M558 199L770 121M558 199L770 199M838 43H1030M838 121H1030M838 199H1030"/>
-            </g>
-            <g class="nw-svg-terminal"><rect x="1030" y="22" width="70" height="42" rx="5"/><rect x="1030" y="100" width="70" height="42" rx="5"/><rect x="1030" y="178" width="70" height="42" rx="5"/></g>
-            <text class="nw-svg-destination nw-svg-destination--a" x="1065" y="50">A</text><text class="nw-svg-destination nw-svg-destination--b" x="1065" y="128">B</text>
-            <g class="nw-svg-packet nw-svg-packet--a"><rect x="150" y="24" width="38" height="38" rx="6"/><text x="169" y="49">A4</text><rect x="405" y="103" width="38" height="38" rx="6"/><text x="424" y="128">A2</text><rect x="672" y="24" width="38" height="38" rx="6"/><text x="691" y="49">A1</text><rect x="900" y="24" width="38" height="38" rx="6"/><text x="919" y="49">A3</text></g>
-            <g class="nw-svg-packet nw-svg-packet--b"><rect x="150" y="180" width="38" height="38" rx="6"/><text x="169" y="205">B2</text><rect x="405" y="181" width="38" height="38" rx="6"/><text x="424" y="206">B3</text><rect x="672" y="103" width="38" height="38" rx="6"/><text x="691" y="128">B1</text></g>
-            <text class="nw-svg-small" x="239" y="82">パケット交換機</text><text class="nw-svg-small" x="524" y="82">パケット交換機</text><text class="nw-svg-small" x="804" y="82">パケット交換機</text>
-          </svg>
+      <div class="nw-transmission-demo" data-network-transmission data-mode="circuit" data-step="0">
+        <div class="nw-transmission-mode-switch" role="group" aria-label="伝送方式を切り替える">
+          <button type="button" data-transmission-mode="circuit" aria-pressed="true">
+            <span>方式①</span><small>経路を確保</small>
+          </button>
+          <button type="button" data-transmission-mode="packet" aria-pressed="false">
+            <span>方式②</span><small>小分けにして送る</small>
+          </button>
         </div>
-      </figure>
+
+        <div class="nw-transmission-definitions">
+          <section class="nw-transmission-definition" data-transmission-definition="circuit" aria-labelledby="nw-circuit-title">
+            <h3 id="nw-circuit-title">
+              <button type="button" class="nw-reveal nw-reveal--heading" data-network-reveal aria-label="空欄1の答えを表示">
+                <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">回線交換方式</span>
+              </button>
+            </h3>
+            <p>1対1の伝送路をつくり、やりとりが終わるまで使い続けます。通信品質は安定しますが、回線の利用効率は下がります。</p>
+          </section>
+
+          <section class="nw-transmission-definition" data-transmission-definition="packet" aria-labelledby="nw-packet-title">
+            <h3 id="nw-packet-title">
+              <button type="button" class="nw-reveal nw-reveal--heading" data-network-reveal aria-label="空欄2の答えを表示">
+                <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">パケット交換方式</span>
+              </button>
+            </h3>
+            <p class="nw-transmission-definition__sentence">データを
+              <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄3の答えを表示">
+                <span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">パケット</span>
+              </button>
+              に分割し、
+              <button type="button" class="nw-reveal nw-reveal--inline nw-reveal--wide" data-network-reveal aria-label="空欄4の答えを表示">
+                <span class="nw-reveal__number" aria-hidden="true">4</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ヘッダ情報</span>
+              </button>
+              をつけて送り出します。
+            </p>
+          </section>
+        </div>
+
+        <figure class="nw-transmission-figure">
+          <figcaption>
+            <span class="nw-transmission-stage-count">STEP <output data-transmission-step-index>1</output> / <span data-transmission-step-count>5</span></span>
+            <strong data-transmission-step-title>送るデータ</strong>
+          </figcaption>
+          <div class="nw-transmission-canvas">
+            <svg class="nw-transmission-svg" viewBox="0 0 560 300" role="img" aria-labelledby="nw-transmission-title nw-transmission-desc">
+              <title id="nw-transmission-title">回線交換方式とパケット交換方式の通信の流れ</title>
+              <desc id="nw-transmission-desc" data-transmission-description>端末Aから宛先Aへデータを送る前の状態です。</desc>
+              <defs>
+                <path id="nw-path-circuit" data-transmission-path="circuit" d="M72 62H150H185V145H260H305V62H370H395V145H460H475V62H488"/>
+                <path id="nw-path-a-upper" data-transmission-path="a-upper" d="M72 62H150H185V145H260H305V62H370H395V145H460H475V62H488"/>
+                <path id="nw-path-a-direct" data-transmission-path="a-direct" d="M72 62H150H185V145H420H460H475V62H488"/>
+                <path id="nw-path-a-lower" data-transmission-path="a-lower" d="M72 62H150H185V145H260H305V227H370H395V145H460H475V62H488"/>
+                <path id="nw-path-b-lower" data-transmission-path="b-lower" d="M72 227H150H185V145H260H305V227H370H395V145H460H475V227H488"/>
+                <path id="nw-path-b-direct" data-transmission-path="b-direct" d="M72 227H150H185V145H420H460H475V227H488"/>
+              </defs>
+
+              <g class="nw-topology-links" aria-hidden="true">
+                <path d="M72 62H110M72 227H110M150 62H185V145H220M150 227H185V145H220M260 145H305V62H330M260 145H420M260 145H305V227H330M370 62H395V145H420M370 227H395V145H420M460 145H475V62H488M460 145H475V227H488"/>
+              </g>
+              <g class="nw-topology-terminals" aria-hidden="true">
+                <rect x="12" y="40" width="60" height="44" rx="8"/><rect x="12" y="205" width="60" height="44" rx="8"/>
+                <rect x="488" y="40" width="60" height="44" rx="8"/><rect x="488" y="205" width="60" height="44" rx="8"/>
+                <text x="42" y="58">送信</text><text x="42" y="76">A</text><text x="42" y="223">送信</text><text x="42" y="241">B</text>
+                <text x="518" y="58">宛先</text><text x="518" y="76">A</text><text x="518" y="223">宛先</text><text x="518" y="241">B</text>
+              </g>
+              <g class="nw-topology-nodes" aria-hidden="true">
+                <g transform="translate(110 42)"><rect width="40" height="40" rx="8"/><path d="M11 12h18M11 20h18M11 28h18"/></g>
+                <g transform="translate(110 207)"><rect width="40" height="40" rx="8"/><path d="M11 12h18M11 20h18M11 28h18"/></g>
+                <g transform="translate(220 123)"><rect width="40" height="44" rx="8"/><path d="M11 13h18M11 22h18M11 31h18"/></g>
+                <g transform="translate(330 42)"><rect width="40" height="40" rx="8"/><path d="M11 12h18M11 20h18M11 28h18"/></g>
+                <g transform="translate(330 207)"><rect width="40" height="40" rx="8"/><path d="M11 12h18M11 20h18M11 28h18"/></g>
+                <g transform="translate(420 123)"><rect width="40" height="44" rx="8"/><path d="M11 13h18M11 22h18M11 31h18"/></g>
+              </g>
+
+              <g class="nw-transmission-static" aria-hidden="true">
+                <rect class="nw-data-block" x="17" y="94" width="50" height="24" rx="6"/><text x="42" y="111">データ</text>
+              </g>
+              <g data-transmission-visual="source-data" hidden aria-hidden="true">
+                <rect class="nw-data-block" x="17" y="94" width="50" height="24" rx="6"/><text x="42" y="111">データ</text>
+              </g>
+
+              <path class="nw-active-route nw-active-route--circuit" data-transmission-visual="circuit-route" hidden aria-hidden="true" d="M72 62H150H185V145H260H305V62H370H395V145H460H475V62H488"/>
+              <g data-transmission-visual="circuit-dots" hidden aria-hidden="true">
+                <circle class="nw-circuit-dot" data-transmission-mover="circuit-1" data-transmission-path-ref="circuit" r="6"/>
+                <circle class="nw-circuit-dot" data-transmission-mover="circuit-2" data-transmission-path-ref="circuit" r="6"/>
+                <circle class="nw-circuit-dot" data-transmission-mover="circuit-3" data-transmission-path-ref="circuit" r="6"/>
+                <circle class="nw-circuit-dot" data-transmission-mover="circuit-4" data-transmission-path-ref="circuit" r="6"/>
+                <circle class="nw-circuit-dot" data-transmission-mover="circuit-5" data-transmission-path-ref="circuit" r="6"/>
+                <circle class="nw-circuit-dot" data-transmission-mover="circuit-6" data-transmission-path-ref="circuit" r="6"/>
+              </g>
+              <g class="nw-route-label" data-transmission-visual="circuit-in-use" hidden aria-hidden="true">
+                <rect x="249" y="91" width="102" height="28" rx="14"/><text x="300" y="110">Aが通信中</text>
+              </g>
+              <g class="nw-wait-label" data-transmission-visual="circuit-wait" hidden aria-hidden="true">
+                <path d="M79 227H100"/><rect x="19" y="259" width="142" height="28" rx="7"/><text x="90" y="278">Bは空くまで待つ</text>
+              </g>
+              <g data-transmission-visual="circuit-received" hidden aria-hidden="true">
+                <rect class="nw-data-block" x="493" y="94" width="50" height="24" rx="6"/><text x="518" y="111">受信</text>
+                <g class="nw-release-label"><rect x="221" y="91" width="158" height="28" rx="14"/><text x="300" y="110">経路を解放</text></g>
+              </g>
+
+              <g class="nw-packet-split" data-transmission-visual="packet-split" hidden aria-hidden="true">
+                <text x="14" y="111">分割</text>
+                <g transform="translate(17 121)"><rect width="28" height="24" rx="5"/><rect class="nw-parcel-header" x="18" y="1" width="9" height="22" rx="3"/><text x="10" y="17">A1</text></g>
+                <g transform="translate(49 121)"><rect width="28" height="24" rx="5"/><rect class="nw-parcel-header" x="18" y="1" width="9" height="22" rx="3"/><text x="10" y="17">A2</text></g>
+                <g transform="translate(81 121)"><rect width="28" height="24" rx="5"/><rect class="nw-parcel-header" x="18" y="1" width="9" height="22" rx="3"/><text x="10" y="17">A3</text></g>
+                <g transform="translate(113 121)"><rect width="28" height="24" rx="5"/><rect class="nw-parcel-header" x="18" y="1" width="9" height="22" rx="3"/><text x="10" y="17">A4</text></g>
+                <text class="nw-packet-header-label" x="79" y="161">色の濃い部分がヘッダ</text>
+              </g>
+              <g data-transmission-visual="packet-routes-a" hidden aria-hidden="true">
+                <path class="nw-active-route nw-active-route--packet-a" d="M72 62H150H185V145H260H305V62H370H395V145H460H475V62H488"/>
+                <path class="nw-active-route nw-active-route--packet-a" d="M72 62H150H185V145H420H460H475V62H488"/>
+                <path class="nw-active-route nw-active-route--packet-a" d="M72 62H150H185V145H260H305V227H370H395V145H460H475V62H488"/>
+              </g>
+              <g data-transmission-visual="packet-routes-b" hidden aria-hidden="true">
+                <path class="nw-active-route nw-active-route--packet-b" d="M72 227H150H185V145H260H305V227H370H395V145H460H475V227H488"/>
+                <path class="nw-active-route nw-active-route--packet-b" d="M72 227H150H185V145H420H460H475V227H488"/>
+              </g>
+              <g data-transmission-visual="packet-movers-a" hidden aria-hidden="true">
+                <g class="nw-moving-parcel nw-moving-parcel--a" data-transmission-mover="a1" data-transmission-path-ref="a-upper"><rect x="-14" y="-11" width="28" height="22" rx="5"/><rect class="nw-parcel-header" x="5" y="-10" width="8" height="20" rx="3"/><text x="-4" y="4">A1</text></g>
+                <g class="nw-moving-parcel nw-moving-parcel--a" data-transmission-mover="a2" data-transmission-path-ref="a-direct"><rect x="-14" y="-11" width="28" height="22" rx="5"/><rect class="nw-parcel-header" x="5" y="-10" width="8" height="20" rx="3"/><text x="-4" y="4">A2</text></g>
+                <g class="nw-moving-parcel nw-moving-parcel--a" data-transmission-mover="a3" data-transmission-path-ref="a-lower"><rect x="-14" y="-11" width="28" height="22" rx="5"/><rect class="nw-parcel-header" x="5" y="-10" width="8" height="20" rx="3"/><text x="-4" y="4">A3</text></g>
+                <g class="nw-moving-parcel nw-moving-parcel--a" data-transmission-mover="a4" data-transmission-path-ref="a-upper"><rect x="-14" y="-11" width="28" height="22" rx="5"/><rect class="nw-parcel-header" x="5" y="-10" width="8" height="20" rx="3"/><text x="-4" y="4">A4</text></g>
+              </g>
+              <g data-transmission-visual="packet-movers-b" hidden aria-hidden="true">
+                <g class="nw-moving-parcel nw-moving-parcel--b" data-transmission-mover="b1" data-transmission-path-ref="b-lower"><rect x="-14" y="-11" width="28" height="22" rx="5"/><rect class="nw-parcel-header" x="5" y="-10" width="8" height="20" rx="3"/><text x="-4" y="4">B1</text></g>
+                <g class="nw-moving-parcel nw-moving-parcel--b" data-transmission-mover="b2" data-transmission-path-ref="b-direct"><rect x="-14" y="-11" width="28" height="22" rx="5"/><rect class="nw-parcel-header" x="5" y="-10" width="8" height="20" rx="3"/><text x="-4" y="4">B2</text></g>
+              </g>
+              <g class="nw-shared-line-label" data-transmission-visual="packet-shared" hidden aria-hidden="true">
+                <path d="M300 145v-19"/><rect x="243" y="93" width="114" height="32" rx="8"/><text x="300" y="114">回線を共有</text>
+              </g>
+              <g class="nw-packet-restored" data-transmission-visual="packet-restored" hidden aria-hidden="true">
+                <rect class="nw-data-block" x="493" y="94" width="50" height="24" rx="6"/><text x="518" y="111">復元</text>
+              </g>
+            </svg>
+          </div>
+
+          <div class="nw-transmission-arrivals" data-transmission-visual="packet-arrivals" hidden aria-label="パケットの到着順">
+            <span>A宛の到着順</span>
+            <b data-transmission-arrival="a2">A2</b><b data-transmission-arrival="a1">A1</b><b data-transmission-arrival="a4">A4</b><b data-transmission-arrival="a3">A3</b>
+            <span>B宛</span><b data-transmission-arrival="b1">B1</b><b data-transmission-arrival="b2">B2</b>
+          </div>
+          <div class="nw-transmission-reassembly" data-transmission-visual="packet-reassembly" hidden>
+            <span>到着順：A2 → A1 → A4 → A3</span>
+            <strong>A1 ＋ A2 ＋ A3 ＋ A4 → 元のデータ</strong>
+          </div>
+        </figure>
+
+        <div class="nw-transmission-narration" aria-live="polite" aria-atomic="true">
+          <span data-transmission-mode-label>方式①</span>
+          <p data-transmission-narration>端末Aから宛先Aへ、ひとまとまりのデータを送ります。</p>
+        </div>
+        <div class="nw-transmission-progress" aria-hidden="true">
+          <span class="is-current" data-transmission-step-marker="0"></span><span data-transmission-step-marker="1"></span><span data-transmission-step-marker="2"></span><span data-transmission-step-marker="3"></span><span data-transmission-step-marker="4"></span>
+        </div>
+        <div class="nw-transmission-controls" data-transmission-controls hidden>
+          <button type="button" data-transmission-prev>← 戻る</button>
+          <button type="button" data-transmission-replay disabled>↻ もう一度</button>
+          <button type="button" class="nw-transmission-controls__next" data-transmission-next>次へ →</button>
+        </div>
+
+        <div class="nw-transmission-takeaways" aria-label="2つの方式の違い">
+          <p><span>方式①</span><strong>通信中は1本の経路を確保</strong></p>
+          <p><span>方式②</span><strong>必要なときだけ回線を共有</strong></p>
+        </div>
+      </div>
     </article>
   </section>
 

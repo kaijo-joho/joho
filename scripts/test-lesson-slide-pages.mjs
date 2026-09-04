@@ -205,6 +205,33 @@ ok(networkPage.includes('id="nw-corporate-network"'), 'nw11に会社内ネット
 for (const lan of ['admin', 'sales', 'server']) {
   ok(networkPage.includes(`id="nw-${lan}-lan"`), `nw11の会社内に独立した${lan} LAN`);
 }
+const transportSlide = networkPage.slice(
+  networkPage.indexOf('data-lesson-slide-title="データの伝送方式"'),
+  networkPage.indexOf('data-lesson-slide-title="プロトコル"')
+);
+ok(transportSlide.includes('data-lesson-slide-layout="workspace"'), 'nw11の伝送方式を操作教材向けレイアウトで表示');
+equal((transportSlide.match(/\bdata-network-transmission(?:\s|>)/g) || []).length, 1, 'nw11の伝送方式は1つの比較教材');
+equal((transportSlide.match(/\bdata-transmission-mode=/g) || []).length, 2, 'nw11の伝送方式を2つのモードで切り替え');
+equal((transportSlide.match(/\bdata-transmission-step-marker=/g) || []).length, 5, 'nw11の伝送方式を5段階で説明');
+for (const control of ['prev', 'replay', 'next']) {
+  equal(
+    (transportSlide.match(new RegExp(`data-transmission-${control}(?:\\s|>)`, 'g')) || []).length,
+    1,
+    `nw11の伝送方式に${control}操作`
+  );
+}
+equal((transportSlide.match(/data-transmission-mover="circuit-/g) || []).length, 6, 'nw11の回線交換方式に点列アニメーション');
+for (const packet of ['a1', 'a2', 'a3', 'a4', 'b1', 'b2']) {
+  equal(
+    (transportSlide.match(new RegExp(`data-transmission-mover="${packet}"`, 'g')) || []).length,
+    1,
+    `nw11のパケット交換方式に小包${packet.toUpperCase()}`
+  );
+}
+ok(transportSlide.includes('data-transmission-arrival="a2"'), 'nw11で番号と異なるパケット到着順を表示');
+ok(transportSlide.includes('A1 ＋ A2 ＋ A3 ＋ A4 → 元のデータ'), 'nw11でパケットを順番に並べて復元');
+ok(!transportSlide.includes('nw-transport-grid'), 'nw11の伝送方式に縦積みの旧比較カードを残さない');
+ok(!transportSlide.includes('nw-route-svg'), 'nw11の伝送方式に横スクロール前提の旧経路図を残さない');
 for (const answer of [
   'LAN',
   'WAN',
@@ -233,11 +260,16 @@ for (const answer of [
 for (const requirement of [
   "'[data-network-reveal-group]'",
   "'[data-network-reveal]'",
+  "'[data-network-transmission]'",
   "'aria-pressed'",
   "'joho:lesson-content-resize'",
   "event.key !== 'Enter'",
   'data-network-reveal-all',
-  'data-network-reveal-reset'
+  'data-network-reveal-reset',
+  'class NetworkTransmission',
+  'requestAnimationFrame',
+  'getPointAtLength',
+  "matchMedia?.('(prefers-reduced-motion: reduce)')"
 ]) {
   ok(networkJs.includes(requirement), `穴埋めJavaScriptに ${requirement}`);
 }
@@ -251,11 +283,16 @@ for (const requirement of [
   'height: 700px',
   '.nw-svg-callout',
   '.nw-reveal:focus-visible',
+  '.nw-transmission-mode-switch',
+  '.nw-transmission-svg',
+  '.nw-moving-parcel',
+  '.nw-circuit-dot',
   '@media (max-width: 390px)',
   '@media (prefers-reduced-motion: reduce)',
   '@media print'
 ]) {
   ok(networkCss.includes(requirement), `ネットワーク教材CSSに ${requirement}`);
 }
+ok(!networkCss.includes('min-width: 820px'), 'nw11の伝送方式にモバイルで横スクロールする固定幅を残さない');
 
 console.log(`lesson-slide-pages: ${checks}件の検証に合格`);

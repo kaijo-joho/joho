@@ -126,8 +126,7 @@ section article .nw-protocol-definition {
 }
 
 .nw-figure,
-.nw-method,
-.nw-route-figure,
+.nw-transmission-demo,
 .nw-protocol-list > li {
   border: 1px solid var(--nw-border);
   border-radius: 14px;
@@ -135,14 +134,12 @@ section article .nw-protocol-definition {
   box-shadow: var(--nw-shadow);
 }
 
-.nw-figure,
-.nw-route-figure {
+.nw-figure {
   margin: 12px 4px 0;
   padding: 12px;
 }
 
-.nw-figure__caption,
-.nw-route-figure > figcaption {
+.nw-figure__caption {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -315,8 +312,7 @@ section article .nw-protocol-definition {
 }
 
 .nw-diagram-svg text,
-.nw-method-svg text,
-.nw-route-svg text {
+.nw-transmission-svg text {
   fill: var(--nw-text);
   font-family: var(--font-sans, sans-serif);
 }
@@ -474,39 +470,109 @@ section article .nw-protocol-definition {
 .nw-reveal--map-5 { inset: 565px auto auto 170px; width: 310px; }
 .nw-reveal--map-6 { inset: 268px auto auto 700px; width: 200px; height: 64px; }
 
-.nw-transport-grid {
+.nw-transmission-demo {
+  margin: 0 2px;
+  padding: clamp(10px, 1.5vw, 16px);
+}
+
+.nw-transmission-mode-switch {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
+  gap: 8px;
 }
 
-.nw-method {
-  min-width: 0;
-  padding: clamp(12px, 1.6vw, 18px);
+.nw-transmission-mode-switch button,
+.nw-transmission-controls button {
+  box-sizing: border-box;
+  min-height: 44px;
+  border: 1px solid var(--nw-border);
+  border-radius: 10px;
+  background: var(--nw-panel-strong);
+  color: var(--nw-text);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
 }
 
-.nw-method h3 {
-  margin: 0 0 9px;
-  text-align: center;
-}
-
-.nw-reveal--heading {
-  min-width: min(100%, 18em);
-  font-size: 1rem;
-}
-
-.nw-method ul,
-.nw-method p {
-  margin-block: 7px;
+.nw-transmission-mode-switch button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 4px 10px;
+  padding: 7px 12px;
   text-align: left;
 }
 
-.nw-method li + li {
-  margin-top: 5px;
+.nw-transmission-mode-switch button > span {
+  grid-row: 1 / 3;
+  display: grid;
+  min-width: 3.8em;
+  min-height: 32px;
+  padding-inline: 8px;
+  place-items: center;
+  border-radius: 999px;
+  background: var(--nw-panel-soft);
+  color: var(--nw-muted);
+  font-size: .84em;
 }
 
-.nw-method__sentence {
-  line-height: 2.85;
+.nw-transmission-mode-switch button > small {
+  font-size: .86em;
+  line-height: 1.35;
+}
+
+.nw-transmission-mode-switch button[aria-pressed="true"] {
+  border-color: color-mix(in oklab, var(--nw-focus) 68%, var(--nw-border));
+  background: color-mix(in oklab, var(--nw-focus) 10%, var(--nw-panel-strong));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--nw-focus) 38%, transparent);
+}
+
+.nw-transmission-mode-switch button[aria-pressed="true"] > span {
+  background: var(--nw-focus);
+  color: #fff;
+}
+
+.nw-transmission-definitions {
+  margin-top: 9px;
+}
+
+.nw-transmission-definition {
+  display: grid;
+  grid-template-columns: minmax(190px, .72fr) minmax(0, 1.8fr);
+  gap: 8px 16px;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 10px;
+  border: 1px solid var(--nw-border);
+  border-radius: 11px;
+  background: var(--nw-panel-strong);
+}
+
+.nw-transmission-definition + .nw-transmission-definition {
+  margin-top: 8px;
+}
+
+.nw-transmission-definition[hidden] {
+  display: none;
+}
+
+.nw-transmission-definition h3,
+.nw-transmission-definition p {
+  margin: 0;
+}
+
+.nw-transmission-definition p {
+  text-align: left;
+}
+
+.nw-reveal--heading {
+  width: 100%;
+  min-width: 0;
+  font-size: 1rem;
+}
+
+.nw-transmission-definition__sentence {
+  line-height: 2.75;
 }
 
 .nw-reveal--inline {
@@ -519,86 +585,399 @@ section article .nw-protocol-definition {
   min-width: 10.5em;
 }
 
-.nw-method-svg {
-  display: block;
-  width: min(100%, 540px);
-  margin: 10px auto 0;
-}
-
-.nw-svg-route {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-width: 5;
-}
-
-.nw-svg-route--a { stroke: var(--nw-route-a); }
-.nw-svg-route--b { stroke: var(--nw-route-b); }
-.nw-svg-route--c { stroke: var(--nw-route-c); }
-
-.nw-packet-sample {
-  display: flex;
-  width: min(100%, 310px);
-  min-height: 58px;
-  margin: 18px auto 8px;
-  border: 2px solid var(--nw-line);
-  border-radius: 8px;
-  overflow: hidden;
-  font-weight: 780;
-}
-
-.nw-packet-sample > span {
-  display: grid;
-  place-items: center;
-  padding: 7px;
-}
-
-.nw-packet-sample__payload {
-  flex: 1 1 auto;
-  background: color-mix(in oklab, var(--nw-pdu-data) 25%, var(--nw-panel-strong));
-}
-
-.nw-packet-sample__header {
-  flex: 0 0 42%;
-  border-inline-start: 2px solid var(--nw-line);
-  background: color-mix(in oklab, var(--nw-pdu-internet) 35%, var(--nw-panel-strong));
-}
-
-.nw-route-figure {
-  margin-top: 12px;
-}
-
-.nw-route-svg {
-  display: block;
-  min-width: 820px;
-  width: 100%;
-  border-radius: 8px;
+.nw-transmission-figure {
+  margin: 10px 0 0;
+  padding: 9px;
+  border: 1px solid var(--nw-border);
+  border-radius: 12px;
   background: var(--nw-panel-soft);
 }
 
-.nw-svg-destination {
-  font-size: 22px;
-  font-weight: 900;
+.nw-transmission-figure > figcaption {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 12px;
+  align-items: center;
+  margin: 0 2px 7px;
+  text-align: left;
+}
+
+.nw-transmission-stage-count {
+  display: inline-flex;
+  gap: .3em;
+  align-items: baseline;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--nw-focus) 12%, var(--nw-panel-strong));
+  color: var(--nw-focus);
+  font-family: var(--font-code, monospace);
+  font-size: .76em;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.nw-transmission-figure > figcaption strong {
+  font-size: .98em;
+}
+
+.nw-transmission-canvas {
+  border: 1px solid color-mix(in oklab, var(--nw-border) 74%, transparent);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--nw-panel-strong) 84%, transparent);
+  overflow: hidden;
+}
+
+.nw-transmission-svg {
+  display: block;
+  width: min(100%, 790px);
+  height: auto;
+  margin-inline: auto;
+}
+
+.nw-transmission-svg [hidden],
+.nw-transmission-demo [data-transmission-visual][hidden] {
+  display: none !important;
+}
+
+.nw-transmission-demo.is-ready .nw-transmission-static {
+  display: none;
+}
+
+.nw-topology-links path,
+.nw-active-route,
+.nw-wait-label > path,
+.nw-shared-line-label > path {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-topology-links path {
+  stroke: color-mix(in oklab, var(--nw-line) 68%, transparent);
+  stroke-width: 2.25;
+}
+
+.nw-topology-terminals rect,
+.nw-topology-nodes rect {
+  fill: var(--nw-panel-strong);
+  stroke: var(--nw-line);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-topology-terminals text {
+  font-size: 13px;
+  font-weight: 820;
   text-anchor: middle;
 }
 
-.nw-svg-destination--a { fill: var(--nw-route-a) !important; }
-.nw-svg-destination--b { fill: var(--nw-route-b) !important; }
-
-.nw-svg-packet rect {
-  stroke: var(--nw-panel-strong);
+.nw-topology-nodes path {
+  fill: none;
+  stroke: var(--nw-line);
+  stroke-linecap: round;
   stroke-width: 2;
+  vector-effect: non-scaling-stroke;
 }
 
-.nw-svg-packet text {
-  fill: #fff;
-  font-size: 13px;
+.nw-topology-nodes > text {
+  fill: var(--nw-muted) !important;
+  font-size: 12px;
+  font-weight: 720;
+  text-anchor: middle;
+}
+
+.nw-data-block {
+  fill: color-mix(in oklab, var(--nw-route-a) 20%, var(--nw-panel-strong));
+  stroke: var(--nw-route-a);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-data-block + text,
+.nw-transmission-static text {
+  font-size: 11px;
   font-weight: 850;
   text-anchor: middle;
 }
 
-.nw-svg-packet--a rect { fill: var(--nw-route-a); }
-.nw-svg-packet--b rect { fill: var(--nw-route-b); }
+.nw-active-route {
+  stroke-width: 5;
+}
+
+.nw-active-route--circuit {
+  stroke: var(--nw-route-a);
+}
+
+.nw-active-route--packet-a,
+.nw-active-route--packet-b {
+  stroke-width: 3;
+  stroke-dasharray: 6 8;
+}
+
+.nw-active-route--packet-a {
+  stroke: color-mix(in oklab, var(--nw-route-a) 78%, transparent);
+}
+
+.nw-active-route--packet-b {
+  stroke: color-mix(in oklab, var(--nw-route-b) 78%, transparent);
+}
+
+.nw-circuit-dot {
+  fill: var(--nw-route-a);
+  stroke: var(--nw-panel-strong);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-route-label rect,
+.nw-release-label rect,
+.nw-wait-label rect,
+.nw-shared-line-label rect {
+  fill: var(--nw-panel-strong);
+  stroke: var(--nw-border);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-route-label text,
+.nw-release-label text,
+.nw-wait-label text,
+.nw-shared-line-label text {
+  font-size: 12px;
+  font-weight: 820;
+  text-anchor: middle;
+}
+
+.nw-wait-label > path,
+.nw-shared-line-label > path {
+  stroke: var(--nw-muted);
+  stroke-width: 1.5;
+}
+
+.nw-packet-split > text {
+  font-size: 11px;
+  font-weight: 780;
+}
+
+.nw-packet-split g rect,
+.nw-moving-parcel rect {
+  fill: color-mix(in oklab, var(--nw-route-a) 24%, var(--nw-panel-strong));
+  stroke: var(--nw-route-a);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-packet-split .nw-parcel-header,
+.nw-moving-parcel .nw-parcel-header {
+  fill: color-mix(in oklab, var(--nw-route-a) 72%, var(--nw-panel-strong));
+  stroke: var(--nw-route-a);
+  stroke-width: 1.5;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-packet-split g text,
+.nw-moving-parcel text {
+  font-size: 8px;
+  font-weight: 900;
+  text-anchor: middle;
+}
+
+.nw-packet-split .nw-packet-header-label {
+  fill: var(--nw-muted) !important;
+  font-size: 10px;
+  text-anchor: start;
+}
+
+.nw-moving-parcel--b rect {
+  fill: color-mix(in oklab, var(--nw-route-b) 24%, var(--nw-panel-strong));
+  stroke: var(--nw-route-b);
+}
+
+.nw-moving-parcel--b .nw-parcel-header {
+  fill: color-mix(in oklab, var(--nw-route-b) 72%, var(--nw-panel-strong));
+  stroke: var(--nw-route-b);
+}
+
+.nw-moving-parcel.is-arrived {
+  opacity: 0 !important;
+}
+
+.nw-transmission-arrivals,
+.nw-transmission-reassembly {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  margin-top: 7px;
+  padding: 5px 8px;
+  border: 1px solid var(--nw-border);
+  border-radius: 9px;
+  background: var(--nw-panel-strong);
+  font-size: .76em;
+}
+
+.nw-transmission-arrivals > span {
+  color: var(--nw-muted);
+  font-weight: 760;
+}
+
+.nw-transmission-arrivals > b {
+  display: grid;
+  min-width: 2.4em;
+  min-height: 25px;
+  padding-inline: 5px;
+  place-items: center;
+  border: 1px solid currentColor;
+  border-radius: 5px;
+  color: var(--nw-route-a);
+  opacity: .2;
+  transition: opacity .16s ease, transform .16s ease;
+}
+
+.nw-transmission-arrivals > b:nth-last-child(-n + 2) {
+  color: var(--nw-route-b);
+}
+
+.nw-transmission-arrivals > b.is-arrived {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.nw-transmission-reassembly {
+  justify-content: space-around;
+}
+
+.nw-transmission-reassembly > span {
+  color: var(--nw-muted);
+}
+
+.nw-transmission-reassembly > strong {
+  color: var(--nw-route-a);
+}
+
+.nw-transmission-narration {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 10px;
+  align-items: center;
+  min-height: 54px;
+  margin-top: 9px;
+  padding: 8px 10px;
+  border-inline-start: 4px solid var(--nw-focus);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--nw-focus) 8%, var(--nw-panel-strong));
+}
+
+.nw-transmission-narration > span {
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: var(--nw-focus);
+  color: #fff;
+  font-size: .76em;
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.nw-transmission-narration p {
+  margin: 0;
+  font-size: .91em;
+  line-height: 1.55;
+  text-align: left;
+}
+
+.nw-transmission-progress {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 5px;
+  margin: 8px 2px;
+}
+
+.nw-transmission-progress span {
+  height: 4px;
+  border-radius: 999px;
+  background: var(--nw-border);
+}
+
+.nw-transmission-progress span.is-complete,
+.nw-transmission-progress span.is-current {
+  background: var(--nw-focus);
+}
+
+.nw-transmission-progress span.is-current {
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--nw-focus) 22%, transparent);
+}
+
+.nw-transmission-controls {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.nw-transmission-controls[hidden] {
+  display: none;
+}
+
+.nw-transmission-controls button {
+  padding: 6px 8px;
+  font-size: .86em;
+}
+
+.nw-transmission-controls button:disabled {
+  cursor: not-allowed;
+  opacity: .4;
+}
+
+.nw-transmission-controls__next:not(:disabled) {
+  border-color: var(--nw-focus);
+  background: var(--nw-focus);
+  color: #fff;
+}
+
+.nw-transmission-mode-switch button:hover,
+.nw-transmission-controls button:not(:disabled):hover {
+  box-shadow: 0 4px 11px color-mix(in oklab, var(--nw-focus) 18%, transparent);
+  transform: translateY(-1px);
+}
+
+.nw-transmission-mode-switch button:focus-visible,
+.nw-transmission-controls button:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--nw-focus) 68%, transparent);
+  outline-offset: 2px;
+}
+
+.nw-transmission-takeaways {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 10px;
+}
+
+.nw-transmission-takeaways p {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 7px;
+  align-items: center;
+  margin: 0;
+  padding: 7px 9px;
+  border: 1px solid var(--nw-border);
+  border-radius: 9px;
+  background: var(--nw-panel-strong);
+  font-size: .78em;
+  text-align: left;
+}
+
+.nw-transmission-takeaways span {
+  color: var(--nw-focus);
+  font-weight: 850;
+  white-space: nowrap;
+}
+
+.nw-transmission-takeaways strong {
+  line-height: 1.4;
+}
 
 .nw-protocol-definition {
   font-size: 1.08em;
@@ -845,10 +1224,17 @@ section article .nw-protocol-definition {
   text-align: center;
 }
 
-.lesson-slide-deck.is-height-compact .nw-figure,
-.lesson-slide-deck.is-height-compact .nw-route-figure {
+.lesson-slide-deck.is-height-compact .nw-figure {
   margin-top: 8px;
   padding: 8px;
+}
+
+.lesson-slide-deck.is-height-compact .nw-transmission-demo {
+  padding: 9px;
+}
+
+.lesson-slide-deck.is-height-compact .nw-transmission-figure {
+  margin-top: 7px;
 }
 
 .lesson-slide-deck.is-height-compact .nw-lead {
@@ -861,7 +1247,7 @@ section article .nw-protocol-definition {
     display: block;
   }
 
-  .nw-transport-grid {
+  .nw-transmission-definition {
     grid-template-columns: 1fr;
   }
 
@@ -880,7 +1266,6 @@ section article .nw-protocol-definition {
 
 @media (max-width: 520px) {
   .nw-figure,
-  .nw-route-figure,
   .nw-protocol-list {
     margin-inline: 0;
   }
@@ -899,13 +1284,49 @@ section article .nw-protocol-definition {
     flex: 1 1 9em;
   }
 
-  .nw-method {
-    padding-inline: 10px;
+  .nw-transmission-demo {
+    margin-inline: 0;
+    padding: 8px;
   }
 
-  .nw-method__sentence,
+  .nw-transmission-mode-switch button {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    gap: 3px;
+    padding-inline: 6px;
+    text-align: center;
+  }
+
+  .nw-transmission-mode-switch button > span {
+    grid-row: auto;
+    min-height: 27px;
+  }
+
+  .nw-transmission-definition {
+    padding-inline: 8px;
+  }
+
+  .nw-transmission-definition__sentence,
   .nw-protocol-definition {
     line-height: 2.55;
+  }
+
+  .nw-transmission-figure {
+    padding: 6px;
+  }
+
+  .nw-transmission-narration {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .nw-transmission-narration > span {
+    justify-self: start;
+  }
+
+  .nw-transmission-takeaways p {
+    grid-template-columns: 1fr;
+    gap: 2px;
   }
 }
 
@@ -914,18 +1335,35 @@ section article .nw-protocol-definition {
     margin-inline: -3px;
   }
 
-  .nw-figure__caption,
-  .nw-route-figure > figcaption {
+  .nw-figure__caption {
     font-size: .8em;
   }
 
   .nw-reveal--inline {
     margin-inline: 0;
   }
+
+  .nw-transmission-controls button {
+    padding-inline: 4px;
+    font-size: .8em;
+  }
+
+  .nw-transmission-controls {
+    grid-template-columns: 1fr 1.15fr 1fr;
+    padding-inline-end: 42px;
+  }
+
+  .nw-transmission-arrivals {
+    gap: 4px;
+    padding-inline: 4px;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .nw-reveal {
+  .nw-reveal,
+  .nw-transmission-arrivals > b,
+  .nw-transmission-mode-switch button,
+  .nw-transmission-controls button {
     transition: none;
   }
 }
@@ -950,5 +1388,17 @@ section article .nw-protocol-definition {
 
   .nw-diagram-scroll {
     overflow: visible;
+  }
+
+  .nw-transmission-mode-switch,
+  .nw-transmission-progress,
+  .nw-transmission-controls,
+  .nw-transmission-narration,
+  .nw-transmission-figure {
+    display: none !important;
+  }
+
+  .nw-transmission-definition[hidden] {
+    display: grid !important;
   }
 }
