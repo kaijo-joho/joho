@@ -1358,6 +1358,8 @@ section article .dr-question-header h3 {
 
 .dr-stage-button:hover,
 .dr-button:hover:not(:disabled),
+.dr-supplement-link:hover,
+.dr-supplement-dialog__close:hover,
 .dr-tabs__tab:hover,
 .dr-choice:hover:not(:disabled) {
   transform: translateY(-1px);
@@ -1366,6 +1368,8 @@ section article .dr-question-header h3 {
 
 .dr-stage-button:focus-visible,
 .dr-button:focus-visible,
+.dr-supplement-link:focus-visible,
+.dr-supplement-dialog__close:focus-visible,
 .dr-tabs__tab:focus-visible,
 .dr-choice:focus-visible,
 .dr-quiz-input:focus-visible,
@@ -1374,6 +1378,122 @@ section article .dr-question-header h3 {
 .dr-toggle input:focus-visible {
   outline: 3px solid color-mix(in oklab, var(--dr-focus) 64%, transparent);
   outline-offset: 2px;
+}
+
+.dr-supplement-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0;
+  padding: 8px 10px;
+  border: 1px solid var(--dr-border);
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--dr-info-soft) 58%, var(--dr-panel));
+}
+
+.dr-supplement-links__label {
+  color: var(--dr-muted);
+  font-size: .78em;
+  font-weight: 750;
+}
+
+.dr-supplement-link {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in oklab, var(--theme-color, #225386) 34%, var(--dr-border));
+  border-radius: 999px;
+  background: var(--dr-panel-strong);
+  color: var(--theme-color, #225386);
+  font: inherit;
+  font-size: .82em;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dr-supplement-link__icon {
+  display: grid;
+  flex: 0 0 24px;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--theme-color, #225386);
+  color: #fff;
+  font-family: var(--font-code, monospace);
+  font-size: .82em;
+}
+
+.dr-supplement-dialog {
+  width: min(760px, calc(100vw - 24px));
+  max-width: none;
+  max-height: min(90dvh, 900px);
+  padding: 0;
+  border: 1px solid var(--dr-border);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--dr-panel-strong);
+  color: var(--dr-text);
+  box-shadow: 0 24px 70px rgba(0, 0, 0, .32);
+}
+
+.dr-supplement-dialog--wide {
+  width: min(1180px, calc(100vw - 24px));
+}
+
+.dr-supplement-dialog::backdrop {
+  background: rgba(9, 20, 32, .62);
+  -webkit-backdrop-filter: blur(3px);
+  backdrop-filter: blur(3px);
+}
+
+.dr-supplement-dialog__panel {
+  max-height: min(90dvh, 900px);
+  padding: 0 clamp(14px, 2vw, 24px) clamp(16px, 2vw, 24px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.dr-supplement-dialog__header {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-inline: clamp(-24px, -2vw, -14px);
+  margin-bottom: 12px;
+  padding: 12px clamp(14px, 2vw, 24px);
+  border-bottom: 1px solid var(--dr-border);
+  background: color-mix(in oklab, var(--dr-panel-strong) 94%, transparent);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+}
+
+.dr-supplement-dialog__header h2 {
+  margin: 0;
+  color: var(--theme-color, #225386);
+  font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+}
+
+.dr-supplement-dialog__close {
+  display: grid;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid var(--dr-border);
+  border-radius: 50%;
+  background: var(--dr-panel);
+  color: var(--dr-text);
+  font: inherit;
+  font-size: 1.35rem;
+  cursor: pointer;
 }
 
 .dr-seed {

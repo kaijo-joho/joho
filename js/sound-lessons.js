@@ -186,7 +186,7 @@
     build() {
       this.container.classList.add('dr-lab');
       const heading = el('h3', '', '標本化定理を確かめる');
-      const intro = el('p', '', '元の波の周波数と標本化周波数を動かし、標本化する回数によって波形の見え方がどう変わるか調べます。');
+      const intro = el('p', '', '元の波の周波数と標本化周波数を動かし、標本化する回数によって波形の見え方がどう変わるか調べます。2倍ちょうどにしたときは、位相も動かして標本値の違いを確かめます。');
       const grid = el('div', 'dr-lab-grid');
       const controls = el('div', 'dr-control-panel');
       const frequency = Widgets.createRangeControl({
@@ -217,7 +217,7 @@
       });
       const phase = Widgets.createRangeControl({
         id: `dr-theorem-${this.serial}-phase`,
-        label: '元の波の位相',
+        label: '元の波の位相（境界の確認用）',
         value: this.state.phaseDegrees,
         min: 0,
         max: 180,

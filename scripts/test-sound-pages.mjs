@@ -83,8 +83,14 @@ ok(!widgets.includes('renderTable(') && !widgets.includes("element('table', 'dr-
 ok(!dr31.includes('SVG上の点と下の表'), '条件変更スライドで削除した表へ言及しない');
 ok(widgets.includes('createInfoTip') && widgets.includes('aria-controls'), '補足アイコンをフォーカス・タップでも確認可能');
 ok(dr31.includes('data-dr-slide-deck'), 'dr31をスライドページとして設定');
-equal((dr31.match(/<section data-dr-slide(?:\s|>)/g) || []).length, 8, '統合後のdr31は8スライド');
+equal((dr31.match(/<section data-dr-slide(?:\s|>)/g) || []).length, 6, 'dr31は補足を除いて6スライド');
 ok(dr31.includes('./js/dr-slide-deck.js'), 'dr31が共通スライド機構を読み込む');
+equal((dr31.match(/data-dr-supplement-dialog/g) || []).length, 2, '正弦波と重ね合わせを2つの補足dialogに配置');
+equal((dr31.match(/data-dr-supplement-open=/g) || []).length, 2, '標本化定理から2つの補足を開ける');
+ok(dr31.indexOf('data-dr-supplement-open=') < dr31.indexOf('data-sound-sampling-theorem'), '補足リンクを標本化定理の説明内に配置');
+ok(slideDeck.includes('initializeSupplementDialogs') && slideDeck.includes("aria-haspopup', 'dialog"), '補足dialogをキーボード操作可能に初期化');
+ok(slideDeck.includes('joho:overlay-open') && slideDeck.includes("dialog.addEventListener('close'"), '補足dialogの排他制御とフォーカス復帰');
+ok(slideDeck.includes("event.key !== 'Escape'") && slideDeck.includes('event.preventDefault()'), '補足dialogをEscapeで閉じる');
 ok(!dr32.includes('data-dr-slide-deck'), '問題演習dr32はタブ型ページを維持');
 for (const requirement of ['class DrSlideDeck', 'dr-slide-deck__navigation', 'dr-slide-deck__steps', 'aria-current', 'ArrowRight', 'PageDown', 'location.hash', 'dr-slide-page--content', 'is-height-compact']) {
   ok(slideDeck.includes(requirement), `スライド機構に ${requirement}`);
@@ -107,6 +113,7 @@ ok(dr31.includes('<dt>PCM</dt>') && widgets.includes('PCMは「パルス符号�
 
 ok(dr31.includes('data-sound-superposition'), 'dr31に波の重ね合わせ教材を統合');
 ok(dr31.includes('data-sound-sampling-theorem'), 'dr31に標本化定理教材を統合');
+ok(lessons.includes('元の波の位相（境界の確認用）') && lessons.includes('2倍ちょうどにしたとき'), '位相操作を境界確認用と明示');
 ok(lessons.includes('復元された正解波形') && lessons.includes('ではありません'), '破線を復元結果と誤説明しない');
 ok(dr31.includes('2倍より大きい場合') && dr31.includes('2倍ちょうどの場合') && dr31.includes('2倍より小さい場合'), '標本化定理の3状態');
 ok(dr31.includes('元の波形とは異なる波形'), '指定した表現で標本化不足を説明');

@@ -105,40 +105,21 @@
     </article>
   </section>
 
-  <section data-dr-slide data-dr-slide-title="波を決める3つの量">
-    <article>
-      <h2 id="headline_5">(5) 波を決める3つの量</h2>
-      <p class="dr-lead">音の波形は複雑ですが、基本となる正弦波を組み合わせて考えられます。正弦波の形と位置は、振幅・周波数・位相を使って表します。</p>
-      <div class="dr-term-grid">
-        <dl class="dr-term">
-          <dt>振幅</dt>
-          <dd>波の中心から山または谷までの大きさです。振幅を大きくすると、波は縦方向に大きくなります。</dd>
-        </dl>
-        <dl class="dr-term">
-          <dt>周波数 f</dt>
-          <dd>1秒間に波が繰り返す回数です。単位はHzです。周波数が高いほど、同じ時間内の波の数が増えます。</dd>
-        </dl>
-        <dl class="dr-term">
-          <dt>位相</dt>
-          <dd>波の繰り返しの開始位置です。位相を変えると、波の山や谷が時間方向へ移動します。</dd>
-        </dl>
-      </div>
-    </article>
-  </section>
-
-  <section data-dr-slide data-dr-slide-title="波の重ね合わせ">
-    <article>
-      <h2 id="headline_6">(6) 波の重ね合わせ</h2>
-      <p>複数の波が同時に存在するとき、同じ時刻におけるそれぞれの波の高さを加えたものが合成波になります。別々のグラフとして眺めるだけでなく、選択時刻の値を数式でも確かめましょう。</p>
-      <div data-sound-superposition></div>
-      <p class="dr-note"><strong>観察のポイント：</strong>波Aまたは波Bの表示を切り替えても、合成波の計算そのものは変わりません。振幅・周波数・位相を一つずつ動かし、合成波のどこが変わるか比べてください。</p>
-    </article>
-  </section>
-
   <section data-dr-slide data-dr-slide-title="標本化定理">
     <article>
-      <h2 id="headline_7">(7) 標本化定理</h2>
+      <h2 id="headline_5">(5) 標本化定理</h2>
       <p>元の波形を構成する<strong>成分波の最大周波数</strong>の2倍より大きい周波数で標本化すれば、元の波形を再現できます。この教材では、2倍より大きい場合、2倍ちょうどの場合、2倍より小さい場合を比べます。</p>
+      <div class="dr-supplement-links" aria-label="標本化定理の補足">
+        <span class="dr-supplement-links__label">必要に応じて確認</span>
+        <button type="button" class="dr-supplement-link" data-dr-supplement-open="dr-wave-basics-dialog">
+          <span class="dr-supplement-link__icon" aria-hidden="true">?</span>
+          正弦波の基本（振幅・周波数・位相）
+        </button>
+        <button type="button" class="dr-supplement-link" data-dr-supplement-open="dr-superposition-dialog">
+          <span class="dr-supplement-link__icon" aria-hidden="true">?</span>
+          波の重ね合わせ
+        </button>
+      </div>
       <div data-sound-sampling-theorem></div>
       <div class="dr-term-grid">
         <dl class="dr-term">
@@ -160,7 +141,7 @@
 
   <section data-dr-slide data-dr-slide-title="波形をデジタル化" class="dr-quiz-panel" data-panel="digitization">
     <article>
-      <h2 id="headline_8">(8) 波形をデジタル化する</h2>
+      <h2 id="headline_6">(6) 波形をデジタル化する</h2>
       <p class="dr-lead">ここまでの手順を使い、波形から標本値・量子化後の値・段階値・2進数を読み取ります。</p>
       <p class="dr-seed" id="sound-quiz-seed">問題シード：</p>
       <div class="dr-question-card">
@@ -185,6 +166,42 @@
       <p class="dr-slide-fallback-next"><a href="./dr32.html">次は、音のチャンネルと計算・用語の問題演習へ進む</a></p>
     </article>
   </section>
+
+  <dialog class="dr-supplement-dialog" id="dr-wave-basics-dialog" data-dr-supplement-dialog aria-labelledby="dr-wave-basics-title">
+    <div class="dr-supplement-dialog__panel">
+      <header class="dr-supplement-dialog__header">
+        <h2 id="dr-wave-basics-title" data-skip-numbering>補足：正弦波を決める3つの量</h2>
+        <button type="button" class="dr-supplement-dialog__close" data-dr-supplement-close aria-label="正弦波の基本の補足を閉じる">×</button>
+      </header>
+      <p class="dr-lead">音の波形は複雑ですが、基本となる正弦波を組み合わせて考えられます。正弦波の形と位置は、振幅・周波数・位相を使って表します。</p>
+      <div class="dr-term-grid">
+        <dl class="dr-term">
+          <dt>振幅</dt>
+          <dd>波の中心から山または谷までの大きさです。振幅を大きくすると、波は縦方向に大きくなります。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>周波数 f</dt>
+          <dd>1秒間に波が繰り返す回数です。単位はHzです。周波数が高いほど、同じ時間内の波の数が増えます。</dd>
+        </dl>
+        <dl class="dr-term">
+          <dt>位相</dt>
+          <dd>波の繰り返しの開始位置です。位相を変えると、波の山や谷が時間方向へ移動します。</dd>
+        </dl>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="dr-supplement-dialog dr-supplement-dialog--wide" id="dr-superposition-dialog" data-dr-supplement-dialog aria-labelledby="dr-superposition-title">
+    <div class="dr-supplement-dialog__panel">
+      <header class="dr-supplement-dialog__header">
+        <h2 id="dr-superposition-title" data-skip-numbering>補足：波の重ね合わせ</h2>
+        <button type="button" class="dr-supplement-dialog__close" data-dr-supplement-close aria-label="波の重ね合わせの補足を閉じる">×</button>
+      </header>
+      <p>複数の波が同時に存在するとき、同じ時刻におけるそれぞれの波の高さを加えたものが合成波になります。選択時刻の値を数式でも確かめましょう。</p>
+      <div data-sound-superposition></div>
+      <p class="dr-note"><strong>観察のポイント：</strong>波Aまたは波Bの表示を切り替えても、合成波の計算そのものは変わりません。振幅・周波数・位相を一つずつ動かし、合成波のどこが変わるか比べてください。</p>
+    </div>
+  </dialog>
 
   <section id="examples_and_questions"><!-- script_pages.js --></section>
 </body>

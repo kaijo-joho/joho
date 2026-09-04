@@ -4,6 +4,9 @@
 
   const PAGE_SELECTOR = '[data-dr-slide-deck]';
   const SLIDE_SELECTOR = '[data-dr-slide]';
+  const SUPPLEMENT_DIALOG_SELECTOR = '[data-dr-supplement-dialog]';
+  const SUPPLEMENT_OPEN_SELECTOR = '[data-dr-supplement-open]';
+  const OVERLAY_OPEN_EVENT = 'joho:overlay-open';
   const INTERACTIVE_SELECTOR = [
     'a',
     'button',
@@ -274,6 +277,67 @@
     }
   }
 
+  function initializeSupplementDialogs(scope = document) {
+    const dialogs = Array.from(scope.querySelectorAll?.(SUPPLEMENT_DIALOG_SELECTOR) || []);
+    const triggers = Array.from(scope.querySelectorAll?.(SUPPLEMENT_OPEN_SELECTOR) || []);
+
+    dialogs.forEach(dialog => {
+      if (dialog.dataset.drSupplementReady === 'true') return;
+      const source = `dr-supplement:${dialog.id}`;
+      const closeButton = dialog.querySelector('[data-dr-supplement-close]');
+      const closeDialog = () => {
+        if (typeof dialog.close === 'function') dialog.close();
+        else dialog.removeAttribute('open');
+      };
+
+      closeButton?.addEventListener('click', closeDialog);
+      dialog.addEventListener('click', event => {
+        if (event.target === dialog) closeDialog();
+      });
+      dialog.addEventListener('keydown', event => {
+        if (event.key !== 'Escape') return;
+        event.preventDefault();
+        closeDialog();
+      });
+      dialog.addEventListener('close', () => {
+        const opener = dialog.__drSupplementOpener;
+        dialog.__drSupplementOpener = null;
+        triggers
+          .filter(trigger => trigger.dataset.drSupplementOpen === dialog.id)
+          .forEach(trigger => trigger.setAttribute('aria-expanded', 'false'));
+        if (opener instanceof HTMLElement && opener.isConnected) opener.focus({ preventScroll: true });
+      });
+      document.addEventListener(OVERLAY_OPEN_EVENT, event => {
+        if (event.detail?.source !== source && dialog.open) closeDialog();
+      });
+      dialog.dataset.drSupplementReady = 'true';
+    });
+
+    triggers.forEach(trigger => {
+      if (trigger.dataset.drSupplementTriggerReady === 'true') return;
+      const dialogId = trigger.dataset.drSupplementOpen?.trim();
+      const dialog = dialogId ? document.getElementById(dialogId) : null;
+      if (!dialog) return;
+
+      trigger.setAttribute('aria-haspopup', 'dialog');
+      trigger.setAttribute('aria-controls', dialog.id);
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.addEventListener('click', () => {
+        if (dialog.open) return;
+        const source = `dr-supplement:${dialog.id}`;
+        document.dispatchEvent(new CustomEvent(OVERLAY_OPEN_EVENT, { detail: { source } }));
+        dialog.__drSupplementOpener = trigger;
+        trigger.setAttribute('aria-expanded', 'true');
+        if (typeof dialog.showModal === 'function') dialog.showModal();
+        else dialog.setAttribute('open', '');
+        requestAnimationFrame(() => dialog.querySelector('[data-dr-supplement-close]')?.focus({ preventScroll: true }));
+      });
+      trigger.dataset.drSupplementTriggerReady = 'true';
+    });
+
+    return dialogs.length;
+  }
+
   function initializeDrSlideDeck(scope = document) {
     const page = scope.querySelector?.(PAGE_SELECTOR);
     if (!page || page.__drSlideDeck) return page?.__drSlideDeck || null;
@@ -287,6 +351,7 @@
   }
 
   function boot() {
+    initializeSupplementDialogs();
     let attempts = 0;
     const tryInitialize = () => {
       if (initializeDrSlideDeck()) return;
@@ -298,6 +363,7 @@
 
   window.DrSlideDeck = DrSlideDeck;
   window.initDrSlideDeck = initializeDrSlideDeck;
+  window.initDrSupplementDialogs = initializeSupplementDialogs;
 
   if (document.readyState === 'complete') boot();
   else window.addEventListener('load', boot, { once: true });
