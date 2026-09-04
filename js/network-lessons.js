@@ -6,6 +6,7 @@
   const REVEAL_SELECTOR = '[data-network-reveal]';
   const TRANSMISSION_SELECTOR = '[data-network-transmission]';
   const PROTOCOL_SELECTOR = '[data-network-protocol]';
+  const LAYER_JOURNEY_SELECTOR = '[data-network-layer-journey]';
   const CONTENT_RESIZE_EVENT = 'joho:lesson-content-resize';
   const REVEAL_CHANGE_EVENT = 'joho:network-reveal-change';
 
@@ -16,6 +17,111 @@
     reliability: '壊れたパケットの検出と再送',
     security: '通信を守る鍵'
   };
+
+  const LAYER_JOURNEY_STEPS = [
+    {
+      phase: 'send',
+      side: 'send',
+      layer: 'application',
+      x: 120,
+      y: 55,
+      segments: ['data'],
+      action: '送るデータ',
+      packetLabel: '送信するデータ',
+      description: '送信側の第4層で、アプリケーションがデータを用意しています。'
+    },
+    {
+      phase: 'send',
+      side: 'send',
+      layer: 'transport',
+      x: 120,
+      y: 85,
+      segments: ['data', 'transport'],
+      action: 'TCP/UDPヘッダを付ける',
+      packetLabel: 'データにTCPまたはUDPのヘッダを付けた状態',
+      description: '送信側の第3層で、データにTCPまたはUDPのヘッダを付けています。'
+    },
+    {
+      phase: 'send',
+      side: 'send',
+      layer: 'internet',
+      x: 120,
+      y: 115,
+      segments: ['data', 'transport', 'internet'],
+      action: 'IPヘッダを付ける',
+      packetLabel: 'データにTCPまたはUDPのヘッダとIPヘッダを付けた状態',
+      description: '送信側の第2層で、宛先ネットワークを示すIPヘッダを付けています。'
+    },
+    {
+      phase: 'send',
+      side: 'send',
+      layer: 'interface',
+      x: 120,
+      y: 145,
+      segments: ['data', 'transport', 'internet', 'interface'],
+      action: 'イーサネットヘッダを付ける',
+      packetLabel: 'データに三つのヘッダを付けた状態',
+      description: '送信側の第1層で、次の機器へ渡すためのイーサネットヘッダを付けています。'
+    },
+    {
+      phase: 'medium',
+      side: null,
+      layer: null,
+      x: 260,
+      y: 170,
+      segments: [],
+      action: '0/1のビット列を信号に変換',
+      packetLabel: '0と1のビット列を二つの高さで表した信号',
+      description: '0と1のビット列を信号へ変換し、送信側から受信側へ伝送しています。'
+    },
+    {
+      phase: 'receive',
+      side: 'receive',
+      layer: 'interface',
+      x: 400,
+      y: 145,
+      segments: ['data', 'transport', 'internet', 'interface'],
+      reading: 'interface',
+      action: 'イーサネットヘッダを読んで外す',
+      packetLabel: '受信側でイーサネットヘッダを読み取っている状態',
+      description: '受信側の第1層で、信号をビット列へ戻し、イーサネットヘッダを読んで外します。'
+    },
+    {
+      phase: 'receive',
+      side: 'receive',
+      layer: 'internet',
+      x: 400,
+      y: 115,
+      segments: ['data', 'transport', 'internet'],
+      reading: 'internet',
+      action: 'IPヘッダを読んで外す',
+      packetLabel: '受信側でIPヘッダを読み取っている状態',
+      description: '受信側の第2層で、IPヘッダを読んで外し、上の層へ渡します。'
+    },
+    {
+      phase: 'receive',
+      side: 'receive',
+      layer: 'transport',
+      x: 400,
+      y: 85,
+      segments: ['data', 'transport'],
+      reading: 'transport',
+      action: 'TCP/UDPヘッダを読んで外す',
+      packetLabel: '受信側でTCPまたはUDPのヘッダを読み取っている状態',
+      description: '受信側の第3層で、TCPまたはUDPのヘッダを読んで外し、データを結合します。'
+    },
+    {
+      phase: 'receive',
+      side: 'receive',
+      layer: 'application',
+      x: 400,
+      y: 55,
+      segments: ['data'],
+      action: '元のデータを受け取る',
+      packetLabel: '受信側のアプリケーションへ届いた元のデータ',
+      description: '受信側の第4層で、アプリケーションが元のデータを受け取っています。'
+    }
+  ];
 
   const TRANSMISSION_STEPS = {
     circuit: [
@@ -301,6 +407,145 @@
     }
   }
 
+  class NetworkLayerJourney {
+    constructor(root) {
+      if (!(root instanceof HTMLElement)) throw new TypeError('プロトコル階層の図が必要です。');
+      if (root.__networkLayerJourney) return root.__networkLayerJourney;
+
+      this.root = root;
+      this.step = Math.min(
+        LAYER_JOURNEY_STEPS.length - 1,
+        Math.max(0, Number.parseInt(root.dataset.step || '0', 10) || 0)
+      );
+      this.renderedStep = null;
+      this.controls = root.querySelector('[data-layer-journey-controls]');
+      this.previousButton = root.querySelector('[data-layer-journey-prev]');
+      this.nextButton = root.querySelector('[data-layer-journey-next]');
+      this.resetButton = root.querySelector('[data-layer-journey-reset]');
+      this.stepIndex = root.querySelector('[data-layer-journey-index]');
+      this.layerChoices = Array.from(root.querySelectorAll('[data-layer-choice]'));
+      this.routeNodes = Array.from(root.querySelectorAll('[data-layer-route-node]'));
+      this.traveler = root.querySelector('[data-layer-traveler]');
+      this.routeSignal = root.querySelector('[data-layer-route-signal]');
+      this.routeDescription = root.querySelector('[data-layer-route-description]');
+      this.packet = root.querySelector('[data-layer-packet]');
+      this.packetAction = root.querySelector('[data-layer-packet-action]');
+      this.packetSegments = Array.from(root.querySelectorAll('[data-layer-segment]'));
+      this.binarySignal = root.querySelector('[data-layer-binary-signal]');
+      this.stepDetails = Array.from(root.querySelectorAll('[data-layer-journey-step]'));
+      this.summary = root.querySelector('[data-layer-journey-summary]');
+      this.reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+      if (this.layerChoices.length !== 4 || this.stepDetails.length !== LAYER_JOURNEY_STEPS.length) {
+        throw new Error('プロトコル階層の役割または段階が不足しています。');
+      }
+
+      this.bind();
+      this.root.dataset.networkLayerJourneyReady = 'true';
+      if (this.controls) this.controls.hidden = false;
+      this.render(false);
+      root.__networkLayerJourney = this;
+    }
+
+    bind() {
+      this.previousButton?.addEventListener('click', () => this.setStep(this.step - 1));
+      this.nextButton?.addEventListener('click', () => this.setStep(this.step + 1));
+      this.resetButton?.addEventListener('click', () => this.setStep(0));
+      this.controls?.addEventListener('keydown', event => {
+        const keys = {
+          ArrowLeft: this.step - 1,
+          ArrowRight: this.step + 1,
+          Home: 0,
+          End: LAYER_JOURNEY_STEPS.length - 1
+        };
+        if (!(event.key in keys)) return;
+        event.preventDefault();
+        this.setStep(keys[event.key]);
+      });
+    }
+
+    setStep(nextStep) {
+      const boundedStep = Math.min(LAYER_JOURNEY_STEPS.length - 1, Math.max(0, nextStep));
+      if (boundedStep === this.step) return;
+      this.step = boundedStep;
+      this.render(true);
+    }
+
+    render(animate) {
+      const previousStep = this.renderedStep;
+      const step = LAYER_JOURNEY_STEPS[this.step];
+      const previousSegments = new Set(
+        previousStep === null ? [] : LAYER_JOURNEY_STEPS[previousStep].segments
+      );
+      const visibleSegments = new Set(step.segments);
+
+      this.root.dataset.step = String(this.step);
+      this.root.dataset.phase = step.phase;
+      this.layerChoices.forEach(choice => {
+        const current = choice.dataset.layerChoice === step.layer;
+        choice.classList.toggle('is-current', current);
+        if (current) {
+          choice.setAttribute('aria-current', 'step');
+        } else {
+          choice.removeAttribute('aria-current');
+        }
+      });
+      this.routeNodes.forEach(node => {
+        node.classList.toggle(
+          'is-current',
+          node.dataset.layerRouteNode === step.layer && node.dataset.layerRouteSide === step.side
+        );
+      });
+
+      if (this.traveler) {
+        this.traveler.toggleAttribute('hidden', step.phase === 'medium');
+        this.traveler.style.setProperty('--nw-layer-x', `${step.x}px`);
+        this.traveler.style.setProperty('--nw-layer-y', `${step.y}px`);
+      }
+      if (this.routeSignal) this.routeSignal.toggleAttribute('hidden', step.phase !== 'medium');
+      if (this.packet) {
+        this.packet.hidden = step.phase === 'medium';
+        this.packet.setAttribute('aria-label', step.packetLabel);
+      }
+      if (this.binarySignal) {
+        this.binarySignal.hidden = step.phase !== 'medium';
+        this.binarySignal.setAttribute('aria-label', step.packetLabel);
+      }
+      if (this.packetAction) this.packetAction.textContent = step.action;
+
+      this.packetSegments.forEach(segment => {
+        const key = segment.dataset.layerSegment;
+        const visible = visibleSegments.has(key);
+        segment.toggleAttribute('hidden', !visible);
+        segment.classList.remove('is-entering');
+        segment.classList.toggle('is-being-read', key === step.reading);
+        if (animate && step.phase === 'send' && visible && !previousSegments.has(key) && !this.reducedMotion) {
+          void segment.getBoundingClientRect();
+          segment.classList.add('is-entering');
+        }
+      });
+
+      this.stepDetails.forEach((detail, index) => {
+        detail.hidden = index !== this.step;
+      });
+      if (this.summary) this.summary.hidden = this.step !== LAYER_JOURNEY_STEPS.length - 1;
+      if (this.stepIndex) this.stepIndex.textContent = String(this.step + 1);
+      if (this.previousButton) this.previousButton.disabled = this.step === 0;
+      if (this.nextButton) this.nextButton.disabled = this.step === LAYER_JOURNEY_STEPS.length - 1;
+      if (this.resetButton) this.resetButton.disabled = this.step === 0;
+      if (this.routeDescription) this.routeDescription.textContent = step.description;
+
+      this.root.classList.remove('is-signal-animating');
+      if (animate && step.phase === 'medium' && !this.reducedMotion) {
+        void this.root.getBoundingClientRect();
+        this.root.classList.add('is-signal-animating');
+      }
+
+      this.renderedStep = this.step;
+      notifyContentResize();
+    }
+  }
+
   class NetworkTransmission {
     constructor(root) {
       if (!(root instanceof HTMLElement)) throw new TypeError('伝送方式の比較領域が必要です。');
@@ -559,6 +804,14 @@
         new NetworkProtocol(root);
       } catch (error) {
         console.warn('プロトコルの図を初期化できませんでした。', error);
+      }
+    });
+
+    document.querySelectorAll(LAYER_JOURNEY_SELECTOR).forEach(root => {
+      try {
+        new NetworkLayerJourney(root);
+      } catch (error) {
+        console.warn('プロトコル階層の図を初期化できませんでした。', error);
       }
     });
 

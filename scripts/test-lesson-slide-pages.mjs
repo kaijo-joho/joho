@@ -153,6 +153,23 @@ for (const headerField of ['送信先IP', '送信元IP', '通し番号', '生存
 }
 ok(!protocolSlide.includes('nw-protocol-list'), 'nw11のプロトコルに縦積みの旧一覧を残さない');
 ok(!protocolSlide.includes('nw-header-scroll'), 'nw11のプロトコルに横スクロールする旧ヘッダ表を残さない');
+const layerSlide = networkPage.slice(
+  networkPage.indexOf('data-lesson-slide-title="プロトコルの階層構造"'),
+  networkPage.indexOf('id="examples_and_questions"')
+);
+ok(layerSlide.includes('data-lesson-slide-layout="workspace"'), 'nw11の階層構造を操作教材向けレイアウトで表示');
+equal((layerSlide.match(/\bdata-network-layer-journey(?:\s|>)/g) || []).length, 1, 'nw11の階層構造は1つの連続した通信図');
+equal((layerSlide.match(/\bdata-layer-choice=/g) || []).length, 4, 'nw11の階層構造に4階層の穴埋め選択');
+equal((layerSlide.match(/\bdata-layer-journey-step=/g) || []).length, 9, 'nw11の階層構造に送信から受信までの9段階');
+for (const control of ['data-layer-journey-prev', 'data-layer-journey-next', 'data-layer-journey-reset']) {
+  ok(layerSlide.includes(control), `nw11の階層構造に段階操作 ${control}`);
+}
+ok(!layerSlide.includes('nw-diagram-scroll'), 'nw11の階層構造を横スクロールさせない');
+ok(!layerSlide.includes('nw-layer-board'), 'nw11の階層構造に旧三列ボードを残さない');
+ok(
+  layerSlide.includes('d="M36 68H94V20H152V68H210V20H326V68H384V20H442V68H500"'),
+  'nw11の伝送媒体は0/1の二つの高さだけで波形を描く'
+);
 for (const device of ['switch', 'router', 'access-point', 'terminal']) {
   equal(
     (networkPage.match(new RegExp(`data-network-device="${device}"`, 'g')) || []).length,
@@ -271,6 +288,7 @@ for (const requirement of [
   "'[data-network-reveal]'",
   "'[data-network-transmission]'",
   "'[data-network-protocol]'",
+  "'[data-network-layer-journey]'",
   "'aria-pressed'",
   "'joho:lesson-content-resize'",
   "'joho:network-reveal-change'",
@@ -278,7 +296,9 @@ for (const requirement of [
   'data-network-reveal-all',
   'data-network-reveal-reset',
   'class NetworkProtocol',
+  'class NetworkLayerJourney',
   'class NetworkTransmission',
+  'LAYER_JOURNEY_STEPS',
   'requestAnimationFrame',
   'getPointAtLength',
   "matchMedia?.('(prefers-reduced-motion: reduce)')"
@@ -303,6 +323,8 @@ for (const requirement of [
   '.nw-transmission-svg',
   '.nw-protocol-svg',
   '.nw-protocol-role-list',
+  '.nw-layer-journey',
+  '.nw-binary-waveform',
   '.nw-moving-parcel',
   '.nw-circuit-dot',
   '@media (max-width: 390px)',
@@ -312,5 +334,6 @@ for (const requirement of [
   ok(networkCss.includes(requirement), `ネットワーク教材CSSに ${requirement}`);
 }
 ok(!networkCss.includes('min-width: 820px'), 'nw11の伝送方式にモバイルで横スクロールする固定幅を残さない');
+ok(!networkCss.includes('min-width: 1080px'), 'nw11の階層構造に横スクロールする固定幅を残さない');
 
 console.log(`lesson-slide-pages: ${checks}件の検証に合格`);

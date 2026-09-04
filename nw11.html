@@ -567,107 +567,140 @@
     </article>
   </section>
 
-  <section data-lesson-slide data-lesson-slide-title="プロトコルの階層構造">
+  <section data-lesson-slide data-lesson-slide-title="プロトコルの階層構造" data-lesson-slide-layout="workspace">
     <article class="nw-slide nw-slide--layers" data-network-reveal-group data-network-reveal-group-id="layers">
       <h2 id="headline_4">(4) プロトコルの階層構造</h2>
-      <p class="nw-lead">通信機能は処理に応じて4つの階層に分かれます。送信側では各層のヘッダを加え、受信側では逆の順に読み取ります。</p>
+      <p class="nw-lead">通信機能は処理に応じて4つの階層に分かれます。1つのデータが届くまでを、送信側から順に確認しましょう。</p>
       <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden data-network-reveal-controls="layers">
         <output data-network-reveal-progress aria-live="polite">0 / 4</output>
         <button type="button" data-network-reveal-all>すべて表示</button>
         <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
       </div>
 
-      <div class="nw-diagram-scroll" tabindex="0" aria-label="送信側と受信側のプロトコル階層図。狭い画面では横方向にスクロールできます。">
-        <div class="nw-layer-board">
-          <div class="nw-layer-board__heading">送信側</div>
-          <div class="nw-layer-board__heading">階層と役割</div>
-          <div class="nw-layer-board__heading">受信側</div>
+      <figure class="nw-layer-journey" data-network-layer-journey data-step="0">
+        <figcaption>
+          <strong>1つのデータが届くまで</strong>
+          <span>送信側は第4層から第1層へ、受信側は第1層から第4層へ進みます。</span>
+        </figcaption>
 
-          <div class="nw-layer-flow nw-layer-flow--sender nw-layer-flow--application">
-            <span class="nw-flow-arrow" aria-hidden="true">↓</span>
-            <div class="nw-pdu"><span class="nw-pdu__data">データ</span></div>
-            <small>送るデータ</small>
-          </div>
-          <div class="nw-layer-description nw-layer-description--application">
-            <span class="nw-layer-number">第4層</span>
+        <div class="nw-layer-journey-controls" data-layer-journey-controls data-lesson-slide-navigation-lock role="group" aria-label="データが届くまでの段階操作" hidden>
+          <button type="button" data-layer-journey-prev aria-label="1つ前の段階へ">← 前へ</button>
+          <output aria-live="polite"><span data-layer-journey-index>1</span> / 9</output>
+          <button type="button" data-layer-journey-next aria-label="1つ次の段階へ">次へ →</button>
+          <button type="button" data-layer-journey-reset>最初から</button>
+        </div>
+
+        <ol class="nw-layer-choices" aria-label="TCP/IPの4階層">
+          <li class="nw-layer-choice nw-layer-choice--application" data-layer-choice="application">
+            <span class="nw-layer-choice__number">第4層</span>
             <button type="button" class="nw-reveal nw-reveal--layer" data-network-reveal aria-label="空欄4の答えを表示">
               <span class="nw-reveal__number" aria-hidden="true">4</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">アプリケーション</span>
             </button>
-            <p>ファイル転送やメールなど、アプリケーションに固有の処理を行う<br><small>HTTP、DNS、FTP、TLS、SMTPなど</small></p>
-          </div>
-          <div class="nw-layer-flow nw-layer-flow--receiver nw-layer-flow--application">
-            <span class="nw-flow-arrow" aria-hidden="true">↑</span>
-            <div class="nw-pdu"><span class="nw-pdu__data">データ</span></div>
-            <small>受け取ったデータ</small>
-          </div>
-
-          <div class="nw-layer-flow nw-layer-flow--sender nw-layer-flow--transport">
-            <span class="nw-flow-arrow" aria-hidden="true">↓</span>
-            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span></div>
-            <small>データを分割し、ヘッダを付ける</small>
-          </div>
-          <div class="nw-layer-description nw-layer-description--transport">
-            <span class="nw-layer-number">第3層</span>
+            <small>HTTP、DNS、FTP、TLS、SMTPなど</small>
+          </li>
+          <li class="nw-layer-choice nw-layer-choice--transport" data-layer-choice="transport">
+            <span class="nw-layer-choice__number">第3層</span>
             <button type="button" class="nw-reveal nw-reveal--layer" data-network-reveal aria-label="空欄3の答えを表示">
               <span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">トランスポート</span>
             </button>
-            <p>アプリケーションを識別し、目的に応じて通信を制御する<br><small>TCP、UDP</small></p>
-          </div>
-          <div class="nw-layer-flow nw-layer-flow--receiver nw-layer-flow--transport">
-            <span class="nw-flow-arrow" aria-hidden="true">↑</span>
-            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span></div>
-            <small>ヘッダを読み、分割されたデータを結合</small>
-          </div>
-
-          <div class="nw-layer-flow nw-layer-flow--sender nw-layer-flow--internet">
-            <span class="nw-flow-arrow" aria-hidden="true">↓</span>
-            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span><span class="nw-pdu__internet">IPヘッダ</span></div>
-            <small>宛先ネットワークを指定する</small>
-          </div>
-          <div class="nw-layer-description nw-layer-description--internet">
-            <span class="nw-layer-number">第2層</span>
+            <small>TCP、UDP</small>
+          </li>
+          <li class="nw-layer-choice nw-layer-choice--internet" data-layer-choice="internet">
+            <span class="nw-layer-choice__number">第2層</span>
             <button type="button" class="nw-reveal nw-reveal--layer" data-network-reveal aria-label="空欄2の答えを表示">
               <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">インターネット</span>
             </button>
-            <p>異なるネットワークにいる端末との通信経路を確立する<br><small>IPなど</small></p>
-          </div>
-          <div class="nw-layer-flow nw-layer-flow--receiver nw-layer-flow--internet">
-            <span class="nw-flow-arrow" aria-hidden="true">↑</span>
-            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span><span class="nw-pdu__internet">IPヘッダ</span></div>
-            <small>IPヘッダを読み、送信元を特定する</small>
-          </div>
-
-          <div class="nw-layer-flow nw-layer-flow--sender nw-layer-flow--interface">
-            <span class="nw-flow-arrow" aria-hidden="true">↓</span>
-            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span><span class="nw-pdu__internet">IPヘッダ</span><span class="nw-pdu__interface">イーサネット<br>ヘッダ</span></div>
-            <small>次の機器へ渡すためのヘッダを付ける</small>
-          </div>
-          <div class="nw-layer-description nw-layer-description--interface">
-            <span class="nw-layer-number">第1層</span>
+            <small>IPなど</small>
+          </li>
+          <li class="nw-layer-choice nw-layer-choice--interface" data-layer-choice="interface">
+            <span class="nw-layer-choice__number">第1層</span>
             <button type="button" class="nw-reveal nw-reveal--layer" data-network-reveal aria-label="空欄1の答えを表示">
               <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ネットワークインターフェース</span>
             </button>
-            <p>物理的な通信手段の仕様を決め、同じネットワーク内の通信経路を確立する<br><small>有線LANや無線LANの規格など</small></p>
-          </div>
-          <div class="nw-layer-flow nw-layer-flow--receiver nw-layer-flow--interface">
-            <span class="nw-flow-arrow" aria-hidden="true">↑</span>
-            <div class="nw-pdu"><span class="nw-pdu__data">データ</span><span class="nw-pdu__transport">TCP/UDP<br>ヘッダ</span><span class="nw-pdu__internet">IPヘッダ</span><span class="nw-pdu__interface">イーサネット<br>ヘッダ</span></div>
-            <small>ヘッダを読み、次の機器から受け取る</small>
+            <small>有線LANや無線LANの規格など</small>
+          </li>
+        </ol>
+
+        <div class="nw-layer-journey-stage">
+          <div class="nw-layer-route-frame">
+            <svg class="nw-layer-route" viewBox="0 0 520 205" role="img" aria-labelledby="nw-layer-route-title nw-layer-route-description">
+              <title id="nw-layer-route-title">送信側から受信側へデータが届く経路</title>
+              <desc id="nw-layer-route-description" data-layer-route-description>送信側の第4層にデータがあります。次へを選ぶと、各層での処理を順番に確認できます。</desc>
+              <defs>
+                <marker id="nw-layer-route-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth">
+                  <path class="nw-layer-route-arrowhead" d="M0 0L8 4 0 8z"/>
+                </marker>
+              </defs>
+
+              <text class="nw-layer-route-heading" x="120" y="18">送信側 4→1</text>
+              <text class="nw-layer-route-heading" x="400" y="18">受信側 1→4</text>
+              <path class="nw-layer-route-line" d="M120 27V170H400V27"/>
+              <path class="nw-layer-route-direction" d="M176 48V148" marker-end="url(#nw-layer-route-arrow)"/>
+              <path class="nw-layer-route-direction" d="M344 148V48" marker-end="url(#nw-layer-route-arrow)"/>
+
+              <g class="nw-layer-route-nodes" aria-hidden="true">
+                <g class="nw-layer-route-node nw-layer-route-node--application" data-layer-route-node="application" data-layer-route-side="send"><rect x="22" y="43" width="76" height="24" rx="6"/><text x="60" y="60">第4層</text></g>
+                <g class="nw-layer-route-node nw-layer-route-node--transport" data-layer-route-node="transport" data-layer-route-side="send"><rect x="22" y="73" width="76" height="24" rx="6"/><text x="60" y="90">第3層</text></g>
+                <g class="nw-layer-route-node nw-layer-route-node--internet" data-layer-route-node="internet" data-layer-route-side="send"><rect x="22" y="103" width="76" height="24" rx="6"/><text x="60" y="120">第2層</text></g>
+                <g class="nw-layer-route-node nw-layer-route-node--interface" data-layer-route-node="interface" data-layer-route-side="send"><rect x="22" y="133" width="76" height="24" rx="6"/><text x="60" y="150">第1層</text></g>
+                <g class="nw-layer-route-node nw-layer-route-node--interface" data-layer-route-node="interface" data-layer-route-side="receive"><rect x="422" y="133" width="76" height="24" rx="6"/><text x="460" y="150">第1層</text></g>
+                <g class="nw-layer-route-node nw-layer-route-node--internet" data-layer-route-node="internet" data-layer-route-side="receive"><rect x="422" y="103" width="76" height="24" rx="6"/><text x="460" y="120">第2層</text></g>
+                <g class="nw-layer-route-node nw-layer-route-node--transport" data-layer-route-node="transport" data-layer-route-side="receive"><rect x="422" y="73" width="76" height="24" rx="6"/><text x="460" y="90">第3層</text></g>
+                <g class="nw-layer-route-node nw-layer-route-node--application" data-layer-route-node="application" data-layer-route-side="receive"><rect x="422" y="43" width="76" height="24" rx="6"/><text x="460" y="60">第4層</text></g>
+              </g>
+
+              <g class="nw-layer-traveler" data-layer-traveler style="--nw-layer-x: 120px; --nw-layer-y: 55px;" aria-hidden="true">
+                <rect x="-21" y="-11" width="42" height="22" rx="6"/>
+                <text x="0" y="4">データ</text>
+              </g>
+
+              <g class="nw-layer-route-signal" data-layer-route-signal aria-hidden="true">
+                <path d="M138 170H382"/>
+                <circle cx="145" cy="170" r="5" style="--nw-signal-index: 0; --nw-signal-end: 230px;"/>
+                <circle cx="145" cy="170" r="5" style="--nw-signal-index: 1; --nw-signal-end: 212px;"/>
+                <circle cx="145" cy="170" r="5" style="--nw-signal-index: 2; --nw-signal-end: 194px;"/>
+                <circle cx="145" cy="170" r="5" style="--nw-signal-index: 3; --nw-signal-end: 176px;"/>
+                <circle cx="145" cy="170" r="5" style="--nw-signal-index: 4; --nw-signal-end: 158px;"/>
+              </g>
+              <text class="nw-layer-route-medium" x="260" y="194">ネットワークを通って伝送</text>
+            </svg>
           </div>
 
-          <div class="nw-signal nw-signal--sender">
-            <code>1 0 0 1 0 1 1 0 0 1 0 1 0…</code>
-            <svg viewBox="0 0 310 34" aria-hidden="true"><path d="M2 30V16H28V3H56V16H83V30H110V16H138V3H165V30H193V16H220V3H248V16H276V30H308"/></svg>
-            <small>ビット列を伝送媒体に流せる信号へ変換</small>
-          </div>
-          <div class="nw-signal-label">電気信号・光信号・電波</div>
-          <div class="nw-signal nw-signal--receiver">
-            <svg viewBox="0 0 310 34" aria-hidden="true"><path d="M2 30V16H28V3H56V16H83V30H110V16H138V3H165V30H193V16H220V3H248V16H276V30H308"/></svg>
-            <code>1 0 0 1 0 1 1 0 0 1 0 1 0…</code>
-            <small>信号を受け取ってビット列へ変換</small>
+          <div class="nw-layer-transform">
+            <strong data-layer-packet-action>送るデータ</strong>
+            <div class="nw-layer-packet" data-layer-packet role="img" aria-label="送信するデータ">
+              <span class="nw-layer-segment nw-layer-segment--data" data-layer-segment="data">データ</span>
+              <span class="nw-layer-segment nw-layer-segment--transport" data-layer-segment="transport">TCP/UDP<br>ヘッダ</span>
+              <span class="nw-layer-segment nw-layer-segment--internet" data-layer-segment="internet">IP<br>ヘッダ</span>
+              <span class="nw-layer-segment nw-layer-segment--interface" data-layer-segment="interface">イーサネット<br>ヘッダ</span>
+            </div>
+
+            <div class="nw-binary-signal" data-layer-binary-signal role="img" aria-label="0と1の二つの高さだけで表した信号の模式図">
+              <code>0 1 0 1 1 0 1 0</code>
+              <svg viewBox="0 0 520 92" aria-hidden="true">
+                <text x="12" y="25">1</text><text x="12" y="72">0</text>
+                <path class="nw-binary-guide" d="M34 20H510M34 68H510"/>
+                <path class="nw-binary-waveform" data-binary-waveform d="M36 68H94V20H152V68H210V20H326V68H384V20H442V68H500"/>
+              </svg>
+              <small>0と1の二つの高さだけで表した模式図</small>
+            </div>
           </div>
         </div>
-      </div>
+
+        <div class="nw-layer-journey-details" aria-live="polite" aria-atomic="true">
+          <p id="nw-layer-step-0" data-layer-journey-step="0"><strong>送信側・第4層</strong><span>アプリケーションが、ファイルやメールなどの送るデータを用意します。</span></p>
+          <p id="nw-layer-step-1" data-layer-journey-step="1"><strong>送信側・第3層</strong><span>データを分割し、アプリケーションを識別するTCP/UDPヘッダを付けます。</span></p>
+          <p id="nw-layer-step-2" data-layer-journey-step="2"><strong>送信側・第2層</strong><span>宛先ネットワークを指定するIPヘッダを付けます。</span></p>
+          <p id="nw-layer-step-3" data-layer-journey-step="3"><strong>送信側・第1層</strong><span>次の機器へデータを渡すため、イーサネットヘッダを付けます。</span></p>
+          <p id="nw-layer-step-4" data-layer-journey-step="4"><strong>伝送媒体</strong><span>0/1のビット列を、電気信号・光信号・電波へ変換してネットワークへ流します。</span></p>
+          <p id="nw-layer-step-5" data-layer-journey-step="5"><strong>受信側・第1層</strong><span>信号をビット列へ戻し、イーサネットヘッダを読んで外します。</span></p>
+          <p id="nw-layer-step-6" data-layer-journey-step="6"><strong>受信側・第2層</strong><span>IPヘッダを読み、送信元を特定して上の層へ渡します。</span></p>
+          <p id="nw-layer-step-7" data-layer-journey-step="7"><strong>受信側・第3層</strong><span>TCP/UDPヘッダを読み、分割されたデータを結合します。</span></p>
+          <p id="nw-layer-step-8" data-layer-journey-step="8"><strong>受信側・第4層</strong><span>アプリケーションが元のデータを受け取ります。</span></p>
+        </div>
+
+        <p class="nw-layer-journey-summary" data-layer-journey-summary>階層化すると、ある階層の仕様を変更しても、ほかの階層への影響を小さくできます。</p>
+      </figure>
     </article>
   </section>
 
