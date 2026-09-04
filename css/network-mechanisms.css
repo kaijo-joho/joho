@@ -367,16 +367,23 @@ section article .nw-protocol-definition {
   text-anchor: middle;
 }
 
-.nw-svg-provider-network rect {
-  fill: color-mix(in oklab, var(--nw-zone-wan) 68%, var(--nw-panel-strong));
+.nw-svg-provider-category rect,
+.nw-svg-provider-role rect {
+  fill: color-mix(in oklab, var(--nw-zone-wan) 62%, var(--nw-panel-strong));
   stroke: var(--nw-line);
   stroke-width: 2;
 }
 
-.nw-svg-provider-network text {
+.nw-svg-provider-category text,
+.nw-svg-provider-role text {
   font-size: 15px;
   font-weight: 800;
   text-anchor: middle;
+}
+
+.nw-svg-provider-anchor rect {
+  fill: transparent;
+  stroke: none;
 }
 
 .nw-svg-hierarchy-links path {
@@ -473,10 +480,10 @@ section article .nw-protocol-definition {
 
 .nw-reveal--map-1 { inset: 35px auto auto 30px; width: 450px; }
 .nw-reveal--map-2 { inset: 35px auto auto 532px; width: 830px; }
-.nw-reveal--map-3 { inset: 450px auto auto 320px; width: 160px; }
-.nw-reveal--map-4 { inset: 450px auto auto 95px; width: 210px; }
-.nw-reveal--map-5 { inset: 580px auto auto 110px; width: 300px; }
-.nw-reveal--map-6 { inset: 490px auto auto 730px; width: 220px; }
+.nw-reveal--map-3 { inset: 345px auto auto 300px; width: 180px; }
+.nw-reveal--map-4 { inset: 135px auto auto 275px; width: 205px; }
+.nw-reveal--map-5 { inset: 565px auto auto 170px; width: 310px; }
+.nw-reveal--map-6 { inset: 268px auto auto 700px; width: 200px; height: 64px; }
 
 .nw-transport-grid {
   display: grid;

@@ -165,8 +165,8 @@ for (const link of [
   'switch-router',
   'access-point-switch',
   'router-terminal',
-  'terminal-provider-network',
-  'provider-network-internet',
+  'terminal-isp',
+  'isp-internet',
   'internet-corporate-router',
   'corporate-router-branches',
   'corporate-admin-lan',
@@ -184,13 +184,14 @@ equal(
   1,
   'nw11で通信キャリアとISPを物理回線ではなく分類階層として分岐'
 );
-for (const obsoleteLink of ['provider-branch', 'branch-carrier', 'branch-isp', 'carrier-internet', 'isp-internet']) {
+for (const obsoleteLink of ['terminal-provider-network', 'provider-network-internet', 'provider-branch', 'branch-carrier', 'branch-isp', 'carrier-internet']) {
   ok(!networkPage.includes(`data-network-link="${obsoleteLink}"`), `nw11に旧並列回線 ${obsoleteLink} を残さない`);
 }
 const carrierPosition = networkPage.match(/id="nw-carrier"[^>]*transform="translate\((\d+) (\d+)\)"/);
 const ispPosition = networkPage.match(/id="nw-isp"[^>]*transform="translate\((\d+) (\d+)\)"/);
 ok(carrierPosition && ispPosition, 'nw11の通信キャリアとISPに位置を指定');
-equal(carrierPosition?.[2], ispPosition?.[2], 'nw11の通信キャリアとISPを同じ階層に配置');
+equal(carrierPosition?.[1], ispPosition?.[1], 'nw11の通信キャリアとISPを分類ツリーの同じ深さに配置');
+ok(!networkPage.includes('社内の入口'), 'nw11の社内ルーターに曖昧な入口ラベルを付けない');
 ok(networkPage.includes('id="nw-corporate-network"'), 'nw11に会社内ネットワークの領域');
 for (const lan of ['admin', 'sales', 'server']) {
   ok(networkPage.includes(`id="nw-${lan}-lan"`), `nw11の会社内に独立した${lan} LAN`);
