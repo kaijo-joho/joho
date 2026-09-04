@@ -1460,7 +1460,7 @@ section article .nw-protocol-definition {
 
 .nw-layer-choices {
   display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: minmax(0, 1fr);
   gap: 7px;
   margin: 0 0 8px;
   padding: 0;
@@ -1933,9 +1933,6 @@ section article .nw-protocol-definition {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .nw-layer-choices {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 }
 
 @media (max-width: 520px) {

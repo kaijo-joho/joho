@@ -335,5 +335,8 @@ for (const requirement of [
 }
 ok(!networkCss.includes('min-width: 820px'), 'nw11の伝送方式にモバイルで横スクロールする固定幅を残さない');
 ok(!networkCss.includes('min-width: 1080px'), 'nw11の階層構造に横スクロールする固定幅を残さない');
+const layerChoiceColumnRules = [...networkCss.matchAll(/\.nw-layer-choices\s*\{[^}]*grid-template-columns:\s*([^;]+);/g)];
+equal(layerChoiceColumnRules.length, 1, 'nw11の4階層一覧の列指定を画面幅で上書きしない');
+equal(layerChoiceColumnRules[0][1].trim(), 'minmax(0, 1fr)', 'nw11の4階層一覧を常に縦1列で表示');
 
 console.log(`lesson-slide-pages: ${checks}件の検証に合格`);
