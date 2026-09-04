@@ -294,9 +294,9 @@ section article .nw-protocol-definition {
 }
 
 .nw-map-canvas {
-  width: 1200px;
-  min-width: 1200px;
-  height: 600px;
+  width: 1400px;
+  min-width: 1400px;
+  height: 640px;
   border: 1px solid var(--nw-border);
   border-radius: 11px;
   background: var(--nw-panel-soft);
@@ -349,6 +349,12 @@ section article .nw-protocol-definition {
   stroke-width: 1;
 }
 
+.nw-svg-corporate-title {
+  font-size: 20px;
+  font-weight: 850;
+  text-anchor: middle;
+}
+
 .nw-svg-small {
   font-size: 12px;
   text-anchor: middle;
@@ -389,6 +395,21 @@ section article .nw-protocol-definition {
   opacity: .68;
 }
 
+.nw-svg-network-links .nw-svg-link--wireless {
+  stroke-dasharray: 6 7;
+  opacity: .9;
+}
+
+.nw-svg-device .nw-svg-symbol-line {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.nw-svg-junction {
+  fill: var(--nw-line);
+}
+
 .nw-reveal--map-1,
 .nw-reveal--map-2,
 .nw-reveal--map-3,
@@ -402,12 +423,12 @@ section article .nw-protocol-definition {
   white-space: nowrap;
 }
 
-.nw-reveal--map-1 { inset: 35px auto auto 28px; width: 350px; }
-.nw-reveal--map-2 { inset: 35px auto auto 435px; width: 360px; }
-.nw-reveal--map-3 { inset: 160px auto auto 230px; width: 162px; }
-.nw-reveal--map-4 { inset: 346px auto auto 170px; width: 220px; }
-.nw-reveal--map-5 { inset: 488px auto auto 150px; width: 245px; }
-.nw-reveal--map-6 { inset: 374px auto auto 500px; width: 260px; }
+.nw-reveal--map-1 { inset: 35px auto auto 30px; width: 440px; }
+.nw-reveal--map-2 { inset: 35px auto auto 522px; width: 840px; }
+.nw-reveal--map-3 { inset: 295px auto auto 330px; width: 145px; }
+.nw-reveal--map-4 { inset: 295px auto auto 140px; width: 185px; }
+.nw-reveal--map-5 { inset: 500px auto auto 140px; width: 330px; }
+.nw-reveal--map-6 { inset: 470px auto auto 640px; width: 270px; }
 
 .nw-transport-grid {
   display: grid;

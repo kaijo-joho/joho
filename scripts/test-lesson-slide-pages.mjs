@@ -144,6 +144,37 @@ ok(
   protocolSlide.indexOf('data-network-reveal-toolbar') < protocolSlide.indexOf('aria-label="空欄1の答えを表示"'),
   'nw11のプロトコル一括操作は空欄1より前に表示'
 );
+for (const device of ['switch', 'router', 'access-point', 'terminal']) {
+  equal(
+    (networkPage.match(new RegExp(`data-network-device="${device}"`, 'g')) || []).length,
+    1,
+    `nw11の家庭側${device}は独立した機器として1台だけ配置`
+  );
+}
+for (const provider of ['carrier', 'isp']) {
+  equal(
+    (networkPage.match(new RegExp(`data-network-provider="${provider}"`, 'g')) || []).length,
+    1,
+    `nw11の${provider}を並列経路の独立した事業者として配置`
+  );
+}
+for (const link of [
+  'switch-router',
+  'access-point-switch',
+  'router-terminal',
+  'terminal-provider',
+  'branch-carrier',
+  'branch-isp',
+  'corporate-router-switch',
+  'corporate-switch-bus'
+]) {
+  equal(
+    (networkPage.match(new RegExp(`data-network-link="${link}"`, 'g')) || []).length,
+    1,
+    `nw11の接続 ${link} は1本だけ存在`
+  );
+}
+ok(networkPage.includes('id="nw-corporate-lan"'), 'nw11に入口・集線装置・端末を含む社内LAN');
 for (const answer of [
   'LAN',
   'WAN',
@@ -186,7 +217,7 @@ for (const requirement of [
   ':root[data-theme="dark"]',
   '.nw-diagram-scroll',
   'overflow-x: auto',
-  'width: 1200px',
+  'width: 1400px',
   '.nw-svg-callout',
   '.nw-reveal:focus-visible',
   '@media (max-width: 390px)',
