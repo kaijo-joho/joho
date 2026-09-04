@@ -77,6 +77,11 @@ ok(widgets.includes("control.input.disabled = disabled") && widgets.includes("cl
 ok(widgets.includes("this.sampleRateMetrics = element('dl', 'dr-control__metrics')"), '標本化の計算値を標本化周波数スライダー内に配置');
 ok(widgets.includes("this.bitDepthMetrics = element('dl', 'dr-control__metrics')"), '量子化の計算値を量子化ビット数スライダー内に配置');
 ok(!widgets.includes("this.metrics = element('dl', 'dr-metrics')"), '可変PCMグラフには独立した計算カードを置かない');
+ok(widgets.includes('end: 1.2'), '可変PCMグラフの表示範囲は0〜1.2秒');
+ok(!widgets.includes('表示範囲の標本数'), '可変PCMグラフに標本数を重複表示しない');
+ok(!widgets.includes("['量子化の幅'"), '可変PCMグラフに量子化の幅を重複表示しない');
+ok(!widgets.includes('renderTable(') && !widgets.includes("element('table', 'dr-sample-table')"), '可変PCMグラフの下に標本値表を置かない');
+ok(!dr31.includes('SVG上の点と下の表'), '条件変更スライドで削除した表へ言及しない');
 ok(widgets.includes('createInfoTip') && widgets.includes('aria-controls'), '補足アイコンをフォーカス・タップでも確認可能');
 for (const [name, html, expectedSlides] of [['dr31', dr31, 5], ['dr32', dr32, 3]]) {
   ok(html.includes('data-dr-slide-deck'), `${name}をスライドページとして設定`);

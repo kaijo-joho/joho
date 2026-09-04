@@ -317,7 +317,7 @@
         bitDepth: Number(options.bitDepth ?? 3),
         range: { min: 0, max: 8 },
         start: 0,
-        end: 1.5,
+        end: 1.2,
         stage: Number(options.stage ?? 1),
         selectedIndex: null,
         showStaircase: true
@@ -512,22 +512,19 @@
       this.scroll.appendChild(this.graph);
       this.selectedReadout = element('p', 'dr-selected-readout');
       this.visual.append(this.legend, this.scroll, this.selectedReadout);
-      this.tableHost = element('div');
       this.container.replaceChildren(
         this.stageSelector,
         this.stageHelp,
         this.controls,
-        this.visual,
-        this.tableHost
+        this.visual
       );
     }
 
-    renderControlMetrics(sampleCount) {
+    renderControlMetrics() {
       const fs = this.state.sampleRate;
       const period = Core.samplingPeriod(fs);
       const bits = this.state.bitDepth;
       const levels = Core.quantizationLevels(bits);
-      const width = Core.quantizationWidth(bits, this.state.range);
       const exponent = { 2: '²', 3: '³', 4: '⁴' }[bits] || String(bits);
 
       const replaceMetrics = (host, metrics) => {
@@ -537,12 +534,10 @@
         ]));
       };
       replaceMetrics(this.sampleRateMetrics, [
-        ['標本化周期', `T = 1 / fs = 1 / ${fs} = ${formatNumber(period, 4)} 秒`],
-        ['表示範囲の標本数', `0〜1.5秒：${sampleCount} 個`]
+        ['標本化周期', `T = 1 / fs = 1 / ${fs} = ${formatNumber(period, 4)} 秒`]
       ]);
       replaceMetrics(this.bitDepthMetrics, [
-        ['量子化段階数', `2ⁿ = 2${exponent} = ${levels} 段階`],
-        ['量子化の幅', `(8 − 0) / ${levels} = ${formatNumber(width, 3)}`]
+        ['量子化段階数', `2ⁿ = 2${exponent} = ${levels} 段階`]
       ]);
     }
 
@@ -569,59 +564,6 @@
       });
     }
 
-    renderTable(samples) {
-      if (this.state.stage === 1) {
-        const note = element('p', 'dr-note', '「標本化」へ進むと、標本ごとの値を表で確認できます。');
-        this.tableHost.replaceChildren(note);
-        return;
-      }
-      const table = element('table', 'dr-sample-table');
-      table.appendChild(element('caption', '', 'SVGと同期する標本値表（行を選ぶと同じ標本を強調）'));
-      const thead = document.createElement('thead');
-      const header = document.createElement('tr');
-      ['標本', '時刻［秒］', '元の波形値', '量子化後の値', '段階値', '2進数'].forEach(text => {
-        header.appendChild(element('th', '', text));
-      });
-      thead.appendChild(header);
-      const tbody = document.createElement('tbody');
-      samples.forEach(sample => {
-        const row = document.createElement('tr');
-        row.tabIndex = 0;
-        row.setAttribute('role', 'button');
-        row.dataset.sampleIndex = String(sample.index);
-        row.setAttribute('aria-label', `標本${sample.index + 1}を選択`);
-        const quantizedVisible = this.state.stage >= 3;
-        const codeVisible = this.state.stage >= 4;
-        [
-          String(sample.index + 1),
-          formatNumber(sample.time, 3),
-          formatNumber(sample.value, 3),
-          quantizedVisible ? formatNumber(sample.quantizedValue, 3) : '—',
-          quantizedVisible ? String(sample.code) : '—',
-          codeVisible ? sample.binary : '—'
-        ].forEach(value => row.appendChild(element('td', '', value)));
-        const activate = () => this.selectSample(sample.index);
-        row.addEventListener('pointerenter', activate);
-        row.addEventListener('focus', activate);
-        row.addEventListener('click', activate);
-        row.addEventListener('keydown', event => {
-          if (event.key !== 'Enter' && event.key !== ' ') return;
-          event.preventDefault();
-          activate();
-        });
-        tbody.appendChild(row);
-      });
-      tbody.addEventListener('pointerleave', () => this.clearSample());
-      tbody.addEventListener('focusout', event => {
-        if (event.relatedTarget && tbody.contains(event.relatedTarget)) return;
-        this.clearSample();
-      });
-      table.append(thead, tbody);
-      const scroll = element('div', 'dr-table-scroll');
-      scroll.appendChild(table);
-      this.tableHost.replaceChildren(scroll);
-    }
-
     selectSample(index) {
       const selectedIndex = Number(index);
       if (!Number.isInteger(selectedIndex)) {
@@ -631,10 +573,6 @@
       this.state.selectedIndex = selectedIndex;
       this.container.querySelectorAll('[data-sample-index]').forEach(node => {
         node.classList.toggle('is-active', Number(node.dataset.sampleIndex) === selectedIndex);
-        if (node.matches('tr')) {
-          if (Number(node.dataset.sampleIndex) === selectedIndex) node.setAttribute('aria-current', 'true');
-          else node.removeAttribute('aria-current');
-        }
       });
       if (this.state.stage === 1) {
         this.selectedReadout.innerHTML = '<strong>0. アナログ波形：</strong>「標本化」へ進むと、波形から取り出した点を選べます。';
@@ -659,14 +597,13 @@
       this.state.selectedIndex = null;
       this.container.querySelectorAll('[data-sample-index]').forEach(node => {
         node.classList.remove('is-active');
-        if (node.matches('tr')) node.removeAttribute('aria-current');
       });
       if (!this.selectedReadout) return;
       if (this.state.stage === 1) {
         this.selectedReadout.innerHTML = '<strong>0. アナログ波形：</strong>「標本化」へ進むと、波形から取り出した点を選べます。';
         return;
       }
-      this.selectedReadout.innerHTML = '<strong>標本を選択：</strong>グラフの点または表の行にポインタを合わせるか、キーボードで選ぶと値を確認できます。';
+      this.selectedReadout.innerHTML = '<strong>標本を選択：</strong>グラフの点にポインタを合わせるか、タップまたはキーボードで選ぶと値を確認できます。';
     }
 
     render() {
@@ -686,7 +623,7 @@
       this.state.selectedIndex = null;
       const derived = this.derive();
       this.updateControlAvailability();
-      this.renderControlMetrics(derived.samples.length);
+      this.renderControlMetrics();
       Renderer.renderPCM(this.graph, {
         ...this.state,
         ...derived,
@@ -699,7 +636,6 @@
         onSampleClear: () => this.clearSample()
       });
       this.pendingAnimationStage = 0;
-      this.renderTable(derived.samples);
       this.clearSample();
       document.dispatchEvent(new CustomEvent('dr:content-resize'));
     }
