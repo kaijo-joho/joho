@@ -5,7 +5,17 @@
   const GROUP_SELECTOR = '[data-network-reveal-group]';
   const REVEAL_SELECTOR = '[data-network-reveal]';
   const TRANSMISSION_SELECTOR = '[data-network-transmission]';
+  const PROTOCOL_SELECTOR = '[data-network-protocol]';
   const CONTENT_RESIZE_EVENT = 'joho:lesson-content-resize';
+  const REVEAL_CHANGE_EVENT = 'joho:network-reveal-change';
+
+  const PROTOCOL_VISUAL_DESCRIPTIONS = {
+    physical: 'ケーブルのコネクタと無線の電波',
+    partner: '端末Bの宛先IPアドレス',
+    packet: '送信データに付加するヘッダ情報',
+    reliability: '壊れたパケットの検出と再送',
+    security: '通信を守る鍵'
+  };
 
   const TRANSMISSION_STEPS = {
     circuit: [
@@ -145,12 +155,14 @@
       this.allButton?.addEventListener('click', () => {
         this.buttons.forEach((button, index) => this.setRevealed(button, index, true));
         this.updateControls();
+        this.emitChange('all');
         notifyContentResize();
       });
 
       this.resetButton?.addEventListener('click', () => {
         this.buttons.forEach((button, index) => this.setRevealed(button, index, false));
         this.updateControls();
+        this.emitChange('reset');
         notifyContentResize();
       });
     }
@@ -175,7 +187,14 @@
       if (button.classList.contains('is-revealed')) return;
       this.setRevealed(button, index, true);
       this.updateControls();
+      this.emitChange('reveal', button);
       notifyContentResize();
+    }
+
+    emitChange(action, button = null) {
+      this.group.dispatchEvent(new CustomEvent(REVEAL_CHANGE_EVENT, {
+        detail: { action, button }
+      }));
     }
 
     updateControls() {
@@ -183,6 +202,102 @@
       if (this.progress) this.progress.textContent = `${revealedCount} / ${this.buttons.length}`;
       if (this.allButton) this.allButton.disabled = revealedCount === this.buttons.length;
       if (this.resetButton) this.resetButton.disabled = revealedCount === 0;
+    }
+  }
+
+  class NetworkProtocol {
+    constructor(root) {
+      if (!(root instanceof HTMLElement)) throw new TypeError('プロトコルの図が必要です。');
+      if (root.__networkProtocol) return root.__networkProtocol;
+
+      this.root = root;
+      this.group = root.closest(GROUP_SELECTOR);
+      if (!this.group) throw new Error('プロトコルの穴埋めグループが見つかりません。');
+
+      this.roleButtons = Array.from(root.querySelectorAll('[data-protocol-role]'));
+      this.visuals = new Map(
+        Array.from(root.querySelectorAll('[data-protocol-visual]'))
+          .map(visual => [visual.dataset.protocolVisual, visual])
+      );
+      this.details = new Map(
+        Array.from(root.querySelectorAll('[data-protocol-detail]'))
+          .map(detail => [detail.dataset.protocolDetail, detail])
+      );
+      this.description = root.querySelector('[data-protocol-description]');
+      this.summary = root.querySelector('[data-protocol-summary]');
+      this.currentKey = 'intro';
+      this.reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false;
+
+      if (this.roleButtons.length !== this.visuals.size) {
+        throw new Error('プロトコルの役割と図の数が一致しません。');
+      }
+
+      this.prepare();
+      this.group.addEventListener(REVEAL_CHANGE_EVENT, event => this.handleRevealChange(event));
+      root.__networkProtocol = this;
+    }
+
+    prepare() {
+      this.root.dataset.networkProtocolReady = 'true';
+      this.render('intro');
+    }
+
+    handleRevealChange(event) {
+      const action = event.detail?.action;
+      const button = event.detail?.button;
+      const key = button?.dataset.protocolKey;
+      const role = button?.dataset.protocolRole;
+
+      if (action === 'reset') {
+        this.currentKey = 'intro';
+      } else if (action === 'all') {
+        this.currentKey = 'complete';
+      } else if (key && this.details.has(key)) {
+        this.currentKey = key;
+      }
+
+      this.render(this.currentKey, action === 'reveal' ? role : null);
+    }
+
+    render(detailKey, animatedRole = null) {
+      const revealedRoles = new Set(
+        this.roleButtons
+          .filter(button => button.classList.contains('is-revealed'))
+          .map(button => button.dataset.protocolRole)
+      );
+
+      this.visuals.forEach((visual, role) => {
+        const visible = revealedRoles.has(role);
+        visual.toggleAttribute('hidden', !visible);
+        visual.classList.remove('is-animating');
+        if (visible && role === animatedRole && !this.reducedMotion) {
+          void visual.getBoundingClientRect();
+          visual.classList.add('is-animating');
+        }
+      });
+
+      this.roleButtons.forEach(button => {
+        button.classList.toggle('is-protocol-current', button.dataset.protocolKey === detailKey);
+      });
+
+      this.details.forEach((detail, key) => {
+        detail.hidden = key !== detailKey;
+      });
+
+      const allRolesRevealed = this.roleButtons.every(button => button.classList.contains('is-revealed'));
+      if (this.summary) this.summary.hidden = !allRolesRevealed;
+      this.updateDescription(revealedRoles);
+    }
+
+    updateDescription(revealedRoles) {
+      if (!this.description) return;
+      const visibleDescriptions = Object.entries(PROTOCOL_VISUAL_DESCRIPTIONS)
+        .filter(([role]) => revealedRoles.has(role))
+        .map(([, description]) => description);
+
+      this.description.textContent = visibleDescriptions.length
+        ? `端末Aと端末Bを結ぶ通信に、${visibleDescriptions.join('、')}が示されています。`
+        : '端末Aと端末Bがネットワークでつながっています。番号を選ぶと、通信を支える約束が図に加わります。';
     }
   }
 
@@ -436,6 +551,14 @@
         new NetworkRevealGroup(group);
       } catch (error) {
         console.warn('ネットワーク教材の穴埋めを初期化できませんでした。', error);
+      }
+    });
+
+    document.querySelectorAll(PROTOCOL_SELECTOR).forEach(root => {
+      try {
+        new NetworkProtocol(root);
+      } catch (error) {
+        console.warn('プロトコルの図を初期化できませんでした。', error);
       }
     });
 

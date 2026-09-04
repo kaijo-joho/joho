@@ -144,6 +144,15 @@ ok(
   protocolSlide.indexOf('data-network-reveal-toolbar') < protocolSlide.indexOf('aria-label="空欄1の答えを表示"'),
   'nw11のプロトコル一括操作は空欄1より前に表示'
 );
+ok(protocolSlide.includes('data-lesson-slide-layout="workspace"'), 'nw11のプロトコルを操作教材向けレイアウトで表示');
+equal((protocolSlide.match(/\bdata-network-protocol(?:\s|>)/g) || []).length, 1, 'nw11のプロトコルは1つの通信図');
+equal((protocolSlide.match(/\bdata-protocol-role=/g) || []).length, 5, 'nw11のプロトコルに5つの役割選択');
+equal((protocolSlide.match(/\bdata-protocol-visual=/g) || []).length, 5, 'nw11のプロトコルに5つの累積表示');
+for (const headerField of ['送信先IP', '送信元IP', '通し番号', '生存期間']) {
+  ok(protocolSlide.includes(headerField), `nw11の荷札型ヘッダに${headerField}`);
+}
+ok(!protocolSlide.includes('nw-protocol-list'), 'nw11のプロトコルに縦積みの旧一覧を残さない');
+ok(!protocolSlide.includes('nw-header-scroll'), 'nw11のプロトコルに横スクロールする旧ヘッダ表を残さない');
 for (const device of ['switch', 'router', 'access-point', 'terminal']) {
   equal(
     (networkPage.match(new RegExp(`data-network-device="${device}"`, 'g')) || []).length,
@@ -261,11 +270,14 @@ for (const requirement of [
   "'[data-network-reveal-group]'",
   "'[data-network-reveal]'",
   "'[data-network-transmission]'",
+  "'[data-network-protocol]'",
   "'aria-pressed'",
   "'joho:lesson-content-resize'",
+  "'joho:network-reveal-change'",
   "event.key !== 'Enter'",
   'data-network-reveal-all',
   'data-network-reveal-reset',
+  'class NetworkProtocol',
   'class NetworkTransmission',
   'requestAnimationFrame',
   'getPointAtLength',
@@ -289,6 +301,8 @@ for (const requirement of [
   '.nw-reveal:focus-visible',
   '.nw-transmission-mode-switch',
   '.nw-transmission-svg',
+  '.nw-protocol-svg',
+  '.nw-protocol-role-list',
   '.nw-moving-parcel',
   '.nw-circuit-dot',
   '@media (max-width: 390px)',

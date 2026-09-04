@@ -413,7 +413,7 @@
     </article>
   </section>
 
-  <section data-lesson-slide data-lesson-slide-title="プロトコル">
+  <section data-lesson-slide data-lesson-slide-title="プロトコル" data-lesson-slide-layout="workspace">
     <article class="nw-slide nw-slide--protocol" data-network-reveal-group data-network-reveal-group-id="protocol">
       <h2 id="headline_3">(3) プロトコル</h2>
       <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden data-network-reveal-controls="protocol">
@@ -422,50 +422,148 @@
         <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
       </div>
       <p class="nw-protocol-definition">通信するときの「約束ごと」を
-        <button type="button" class="nw-reveal nw-reveal--inline nw-reveal--definition" data-network-reveal aria-label="空欄1の答えを表示">
+        <button type="button" class="nw-reveal nw-reveal--inline nw-reveal--definition" data-network-reveal data-protocol-key="definition" aria-label="空欄1の答えを表示" aria-controls="nw-protocol-detail-definition">
           <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">プロトコル</span>
         </button>
         といいます。
       </p>
 
-      <ol class="nw-protocol-list" start="2">
-        <li>
-          <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal aria-label="空欄2の答えを表示">
-            <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">物理的な仕様</span>
-          </button>
-          <p>ケーブルの素材やコネクタの形状、無線で使う周波数や変調方式などを定めます。</p>
-        </li>
-        <li>
-          <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal aria-label="空欄3の答えを表示">
-            <span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">通信相手の特定</span>
-          </button>
-          <p>ネットワーク上の住所であるIPアドレスから、送信相手を区別します。</p>
-        </li>
-        <li class="nw-protocol-list__packet">
-          <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal aria-label="空欄4の答えを表示">
-            <span class="nw-reveal__number" aria-hidden="true">4</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">パケットの転送</span>
-          </button>
-          <p>送信元・宛先や復元するための通し番号などを、ヘッダ情報として付加します。</p>
-          <div class="nw-header-scroll" tabindex="0" aria-label="パケットのヘッダ情報の図。狭い画面では横方向にスクロールできます。">
-            <div class="nw-header-diagram" role="img" aria-label="送信データに、送信先IPアドレス、送信元IPアドレス、復元するための通し番号、生存期間のヘッダ情報を付ける例">
-              <span class="nw-header-diagram__payload">送信データ</span>
-              <span>送信先<br>IPアドレス</span><span>送信元<br>IPアドレス</span><span>復元するための<br>通し番号</span><span>生存期間</span>
-            </div>
-          </div>
-        </li>
-        <li>
-          <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal aria-label="空欄5の答えを表示">
-            <span class="nw-reveal__number" aria-hidden="true">5</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">信頼性の確立</span>
-          </button>
-          <p>壊れたパケットの検出や再送を行い、ネットワークが飽和しないよう通信量を調整します。</p>
-        </li>
-        <li>
-          <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal aria-label="空欄6の答えを表示">
-            <span class="nw-reveal__number" aria-hidden="true">6</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">セキュリティの確保</span>
-          </button>
-          <p>正しい通信相手であるかを認証し、通信内容を暗号化します。</p>
-        </li>
-      </ol>
+      <figure class="nw-protocol-figure" data-network-protocol>
+        <figcaption>
+          <strong>1つの通信を支える5つの約束</strong>
+          <span>番号は説明順です。通信では、これらの役割を組み合わせて使います。</span>
+        </figcaption>
+
+        <ol class="nw-protocol-role-list" start="2" aria-label="プロトコルの5つの役割">
+          <li>
+            <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal data-protocol-key="physical" data-protocol-role="physical" aria-label="空欄2の答えを表示" aria-controls="nw-protocol-visual-physical nw-protocol-detail-physical">
+              <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">物理的な仕様</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal data-protocol-key="partner" data-protocol-role="partner" aria-label="空欄3の答えを表示" aria-controls="nw-protocol-visual-partner nw-protocol-detail-partner">
+              <span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">通信相手の特定</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal data-protocol-key="packet" data-protocol-role="packet" aria-label="空欄4の答えを表示" aria-controls="nw-protocol-visual-packet nw-protocol-detail-packet">
+              <span class="nw-reveal__number" aria-hidden="true">4</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">パケットの転送</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal data-protocol-key="reliability" data-protocol-role="reliability" aria-label="空欄5の答えを表示" aria-controls="nw-protocol-visual-reliability nw-protocol-detail-reliability">
+              <span class="nw-reveal__number" aria-hidden="true">5</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">信頼性の確立</span>
+            </button>
+          </li>
+          <li>
+            <button type="button" class="nw-reveal nw-reveal--topic" data-network-reveal data-protocol-key="security" data-protocol-role="security" aria-label="空欄6の答えを表示" aria-controls="nw-protocol-visual-security nw-protocol-detail-security">
+              <span class="nw-reveal__number" aria-hidden="true">6</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">セキュリティの確保</span>
+            </button>
+          </li>
+        </ol>
+
+        <div class="nw-protocol-scene">
+          <svg class="nw-protocol-svg" viewBox="0 0 520 280" role="img" aria-labelledby="nw-protocol-svg-title nw-protocol-svg-desc">
+            <title id="nw-protocol-svg-title">1つの通信を支えるプロトコルの役割</title>
+            <desc id="nw-protocol-svg-desc" data-protocol-description>端末Aと端末Bがネットワークでつながっています。番号を選ぶと、通信を支える約束が図に加わります。</desc>
+            <defs>
+              <marker id="nw-protocol-arrow" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto" markerUnits="strokeWidth">
+                <path class="nw-protocol-arrowhead" d="M0 0L8 4 0 8z"/>
+              </marker>
+            </defs>
+
+            <g class="nw-protocol-base" aria-hidden="true">
+              <path class="nw-protocol-link" d="M86 110H434"/>
+              <g class="nw-protocol-terminal" transform="translate(14 84)">
+                <rect width="72" height="52" rx="8"/>
+                <path d="M20 40H52M36 40V47M25 47H47"/>
+                <text x="36" y="78">端末A</text>
+              </g>
+              <g class="nw-protocol-terminal" transform="translate(434 84)">
+                <rect width="72" height="52" rx="8"/>
+                <path d="M20 40H52M36 40V47M25 47H47"/>
+                <text x="36" y="78">端末B</text>
+              </g>
+              <g class="nw-protocol-nodes">
+                <g transform="translate(135 90)"><rect width="40" height="40" rx="8"/><path d="M11 12H29M11 20H29M11 28H29"/></g>
+                <g transform="translate(240 90)"><rect width="40" height="40" rx="8"/><path d="M11 12H29M11 20H29M11 28H29"/></g>
+                <g transform="translate(345 90)"><rect width="40" height="40" rx="8"/><path d="M11 12H29M11 20H29M11 28H29"/></g>
+              </g>
+              <text class="nw-protocol-network-label" x="260" y="146">ネットワーク</text>
+            </g>
+
+            <g id="nw-protocol-visual-physical" class="nw-protocol-visual nw-protocol-visual--physical" data-protocol-visual="physical" aria-hidden="true">
+              <path class="nw-protocol-highlight-line" d="M86 110H135"/>
+              <g class="nw-protocol-plug nw-protocol-plug--left">
+                <rect x="94" y="99" width="16" height="22" rx="3"/><path d="M110 104H116M110 116H116"/>
+              </g>
+              <g class="nw-protocol-plug nw-protocol-plug--right">
+                <rect x="122" y="99" width="13" height="22" rx="3"/><path d="M116 104H122M116 116H122"/>
+              </g>
+              <path class="nw-protocol-wireless" d="M98 78Q114 61 130 78M104 84Q114 73 124 84M112 89H116"/>
+            </g>
+
+            <g id="nw-protocol-visual-partner" class="nw-protocol-visual nw-protocol-visual--partner" data-protocol-visual="partner" aria-hidden="true">
+              <rect class="nw-protocol-address" x="384" y="15" width="122" height="46" rx="9"/>
+              <path class="nw-protocol-address-line" d="M445 61V82"/>
+              <text class="nw-protocol-address-title" x="445" y="34">宛先IP</text>
+              <text class="nw-protocol-address-value" x="445" y="52">203.0.113.24</text>
+              <rect class="nw-protocol-target-ring" x="429" y="79" width="82" height="62" rx="12"/>
+            </g>
+
+            <g id="nw-protocol-visual-packet" class="nw-protocol-visual nw-protocol-visual--packet" data-protocol-visual="packet" aria-hidden="true">
+              <g class="nw-protocol-parcel">
+                <rect class="nw-protocol-parcel__data" x="208" y="87" width="49" height="42" rx="7"/>
+                <rect class="nw-protocol-parcel__header" x="257" y="87" width="27" height="42" rx="5"/>
+                <text x="232" y="113">データ</text>
+              </g>
+              <path class="nw-protocol-packet-leader" d="M260 132V160"/>
+              <g class="nw-protocol-header-label">
+                <rect class="nw-protocol-header-label__payload" x="102" y="160" width="88" height="92" rx="10"/>
+                <path d="M190 160H360V252H190z"/>
+                <text class="nw-protocol-header-payload" x="146" y="211">送信データ</text>
+                <text class="nw-protocol-header-title" x="275" y="181">ヘッダ</text>
+                <text x="232" y="208">送信先IP</text>
+                <text x="318" y="208">送信元IP</text>
+                <text x="232" y="235">通し番号</text>
+                <text x="318" y="235">生存期間</text>
+              </g>
+            </g>
+
+            <g id="nw-protocol-visual-reliability" class="nw-protocol-visual nw-protocol-visual--reliability" data-protocol-visual="reliability" aria-hidden="true">
+              <path class="nw-protocol-retry-arrow" d="M412 197C452 201 452 239 412 243" marker-end="url(#nw-protocol-arrow)"/>
+              <g class="nw-protocol-broken-packet">
+                <rect x="370" y="180" width="42" height="34" rx="6"/>
+                <path d="M379 189L403 205M403 189L379 205"/>
+              </g>
+              <g class="nw-protocol-retry-packet">
+                <rect x="370" y="226" width="42" height="34" rx="6"/>
+                <path d="M379 243L387 251 403 233"/>
+              </g>
+              <text class="nw-protocol-retry-label" x="338" y="272">検出して再送</text>
+            </g>
+
+            <g id="nw-protocol-visual-security" class="nw-protocol-visual nw-protocol-visual--security" data-protocol-visual="security" aria-hidden="true">
+              <path class="nw-protocol-secure-line" d="M385 110H434"/>
+              <path class="nw-protocol-lock-shackle" d="M399 101V91C399 76 423 76 423 91V101"/>
+              <rect class="nw-protocol-lock-body" x="393" y="101" width="36" height="31" rx="6"/>
+              <circle cx="411" cy="115" r="3"/><path class="nw-protocol-lock-key" d="M411 118V124"/>
+            </g>
+          </svg>
+        </div>
+
+        <div class="nw-protocol-details" aria-live="polite" aria-atomic="true">
+          <p class="nw-protocol-detail nw-protocol-detail--intro" data-protocol-detail="intro"><strong>図の番号を選択</strong><span>その約束が通信のどこに必要かを図で確認できます。</span></p>
+          <p id="nw-protocol-detail-definition" class="nw-protocol-detail" data-protocol-detail="definition"><strong>プロトコル</strong><span>機器どうしが同じ約束ごとに従うことで、データをやりとりできます。</span></p>
+          <p id="nw-protocol-detail-physical" class="nw-protocol-detail" data-protocol-detail="physical"><strong>物理的な仕様</strong><span>ケーブルの素材やコネクタの形状・ピン配列、無線の周波数や変調方式などを定めます。</span></p>
+          <p id="nw-protocol-detail-partner" class="nw-protocol-detail" data-protocol-detail="partner"><strong>通信相手の特定</strong><span>ネットワーク上の住所であるIPアドレスから、送信相手を区別します。</span></p>
+          <p id="nw-protocol-detail-packet" class="nw-protocol-detail" data-protocol-detail="packet"><strong>パケットの転送</strong><span>送信先IP・送信元IP・通し番号・生存期間などを、ヘッダ情報として付加します。</span></p>
+          <p id="nw-protocol-detail-reliability" class="nw-protocol-detail" data-protocol-detail="reliability"><strong>信頼性の確立</strong><span>壊れたパケットの検出や再送を行い、ネットワークが飽和しないよう通信量を調整します。</span></p>
+          <p id="nw-protocol-detail-security" class="nw-protocol-detail" data-protocol-detail="security"><strong>セキュリティの確保</strong><span>正しい通信相手であるかを認証し、通信内容を暗号化します。</span></p>
+          <p class="nw-protocol-detail" data-protocol-detail="complete"><strong>5つの役割</strong><span>機器の接続から安全性まで、複数の約束ごとが同じ通信を支えます。</span></p>
+        </div>
+        <p class="nw-protocol-summary" data-protocol-summary hidden>これらの役割を分担するため、プロトコルは階層に分けられています。</p>
+      </figure>
     </article>
   </section>
 

@@ -127,7 +127,7 @@ section article .nw-protocol-definition {
 
 .nw-figure,
 .nw-transmission-demo,
-.nw-protocol-list > li {
+.nw-protocol-figure {
   border: 1px solid var(--nw-border);
   border-radius: 14px;
   background: var(--nw-panel);
@@ -988,82 +988,397 @@ section article .nw-protocol-definition {
   min-width: 11em;
 }
 
-.nw-protocol-list {
+.nw-protocol-figure {
+  margin: 8px 4px 0;
+  padding: 10px;
+}
+
+.nw-protocol-figure > figcaption {
   display: grid;
-  gap: 10px;
-  margin: 10px 4px 0;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 14px;
+  align-items: baseline;
+  margin: 0 2px 8px;
+  text-align: left;
+}
+
+.nw-protocol-figure > figcaption strong {
+  font-size: 1em;
+}
+
+.nw-protocol-figure > figcaption span {
+  color: var(--nw-muted);
+  font-size: .8em;
+}
+
+.nw-protocol-role-list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+  margin: 0 0 8px;
   padding: 0;
   list-style: none;
-  counter-reset: nw-purpose 1;
 }
 
-.nw-protocol-list > li {
-  display: grid;
-  grid-template-columns: minmax(190px, 16em) minmax(0, 1fr);
-  gap: 8px 18px;
-  align-items: center;
-  padding: 10px 12px;
-  counter-increment: nw-purpose;
-}
-
-.nw-protocol-list > li::before {
-  display: none;
-  content: counter(nw-purpose);
-}
-
-.nw-protocol-list p {
+.nw-protocol-role-list > li {
+  min-width: 0;
   margin: 0;
-  text-align: left;
+  padding: 0;
+}
+
+.nw-protocol-role-list > li::before {
+  display: none !important;
+  content: none !important;
 }
 
 .nw-reveal--topic {
   width: 100%;
-}
-
-.nw-protocol-list__packet {
-  grid-template-rows: auto auto;
-}
-
-.nw-header-scroll {
-  grid-column: 1 / -1;
   min-width: 0;
-  max-width: 100%;
-  overflow-x: auto;
-  overflow-y: hidden;
-  border-radius: 8px;
-  overscroll-behavior-inline: contain;
-  scrollbar-gutter: stable;
-}
-
-.nw-header-scroll:focus-visible {
-  outline: 3px solid color-mix(in oklab, var(--nw-focus) 68%, transparent);
-  outline-offset: 2px;
-}
-
-.nw-header-diagram {
-  display: grid;
-  grid-template-columns: minmax(120px, 2.2fr) repeat(4, minmax(92px, 1fr));
-  min-width: 650px;
-  border: 2px solid var(--nw-line);
-  border-radius: 8px;
-  overflow: hidden;
+  min-height: 50px;
+  height: 100%;
+  padding: 6px 8px 6px 39px;
   font-size: .8em;
-  font-weight: 740;
+}
+
+.nw-reveal--topic.is-protocol-current {
+  border-color: var(--nw-focus);
+  box-shadow: 0 0 0 3px color-mix(in oklab, var(--nw-focus) 22%, transparent);
+}
+
+.nw-protocol-scene {
+  overflow: hidden;
+  border-block: 1px solid color-mix(in oklab, var(--nw-border) 76%, transparent);
+  background: color-mix(in oklab, var(--nw-panel-soft) 72%, transparent);
+}
+
+.nw-protocol-svg {
+  display: block;
+  width: min(100%, 720px);
+  height: auto;
+  margin-inline: auto;
+}
+
+.nw-protocol-svg text {
+  fill: var(--nw-text);
+  font-family: var(--font-sans, sans-serif);
+}
+
+.nw-protocol-svg [data-protocol-visual][hidden] {
+  display: none !important;
+}
+
+.nw-protocol-link,
+.nw-protocol-terminal path,
+.nw-protocol-nodes path,
+.nw-protocol-highlight-line,
+.nw-protocol-plug path,
+.nw-protocol-wireless,
+.nw-protocol-address-line,
+.nw-protocol-packet-leader,
+.nw-protocol-retry-arrow,
+.nw-protocol-broken-packet path,
+.nw-protocol-retry-packet path,
+.nw-protocol-secure-line,
+.nw-protocol-lock-shackle,
+.nw-protocol-lock-key {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-protocol-link {
+  stroke: color-mix(in oklab, var(--nw-line) 60%, transparent);
+  stroke-width: 3;
+}
+
+.nw-protocol-terminal rect,
+.nw-protocol-nodes rect {
+  fill: var(--nw-panel-strong);
+  stroke: var(--nw-line);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-protocol-terminal path,
+.nw-protocol-nodes path {
+  stroke: var(--nw-line);
+  stroke-width: 2;
+}
+
+.nw-protocol-terminal text {
+  font-size: 19px;
+  font-weight: 820;
+  text-anchor: middle;
+}
+
+.nw-protocol-network-label {
+  fill: var(--nw-muted) !important;
+  font-size: 18px;
+  font-weight: 760;
+  text-anchor: middle;
+}
+
+.nw-protocol-visual {
+  pointer-events: none;
+}
+
+.nw-protocol-highlight-line,
+.nw-protocol-plug :is(rect, path),
+.nw-protocol-wireless {
+  stroke: var(--nw-focus);
+  stroke-width: 3;
+}
+
+.nw-protocol-highlight-line {
+  stroke-width: 6;
+}
+
+.nw-protocol-plug rect {
+  fill: color-mix(in oklab, var(--nw-focus) 18%, var(--nw-panel-strong));
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-protocol-address {
+  fill: color-mix(in oklab, var(--nw-pdu-internet) 22%, var(--nw-panel-strong));
+  stroke: var(--nw-pdu-internet);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-protocol-address-line,
+.nw-protocol-target-ring {
+  fill: none;
+  stroke: var(--nw-pdu-internet);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-protocol-target-ring {
+  stroke-dasharray: 5 5;
+}
+
+.nw-protocol-address-title,
+.nw-protocol-address-value {
+  font-weight: 820;
+  text-anchor: middle;
+}
+
+.nw-protocol-address-title {
+  font-size: 18px;
+}
+
+.nw-protocol-address-value {
+  font-family: var(--font-code, monospace) !important;
+  font-size: 15px;
+}
+
+.nw-protocol-parcel :is(rect),
+.nw-protocol-header-label :is(rect, path),
+.nw-protocol-broken-packet rect,
+.nw-protocol-retry-packet rect,
+.nw-protocol-lock-body {
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.nw-protocol-parcel__data,
+.nw-protocol-header-label__payload {
+  fill: color-mix(in oklab, var(--nw-pdu-data) 24%, var(--nw-panel-strong));
+  stroke: var(--nw-pdu-data);
+}
+
+.nw-protocol-parcel__header,
+.nw-protocol-header-label path {
+  fill: color-mix(in oklab, var(--nw-pdu-internet) 26%, var(--nw-panel-strong));
+  stroke: var(--nw-pdu-internet);
+}
+
+.nw-protocol-parcel text,
+.nw-protocol-header-label text {
+  font-size: 17px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+.nw-protocol-packet-leader {
+  stroke: var(--nw-muted);
+  stroke-width: 2;
+}
+
+.nw-protocol-header-title {
+  fill: var(--nw-pdu-internet) !important;
+  font-size: 18px !important;
+}
+
+.nw-protocol-header-payload {
+  fill: var(--nw-pdu-data) !important;
+}
+
+.nw-protocol-retry-arrow {
+  stroke: var(--nw-route-b);
+  stroke-width: 3;
+}
+
+.nw-protocol-arrowhead {
+  fill: var(--nw-route-b);
+}
+
+.nw-protocol-broken-packet rect {
+  fill: color-mix(in oklab, var(--nw-route-a) 15%, var(--nw-panel-strong));
+  stroke: var(--nw-route-a);
+}
+
+.nw-protocol-broken-packet path {
+  stroke: var(--nw-route-a);
+  stroke-width: 3;
+}
+
+.nw-protocol-retry-packet rect {
+  fill: color-mix(in oklab, var(--nw-route-b) 15%, var(--nw-panel-strong));
+  stroke: var(--nw-route-b);
+}
+
+.nw-protocol-retry-packet path {
+  stroke: var(--nw-route-b);
+  stroke-width: 3;
+}
+
+.nw-protocol-retry-label {
+  fill: var(--nw-route-b) !important;
+  font-size: 16px;
+  font-weight: 820;
+  text-anchor: middle;
+}
+
+.nw-protocol-secure-line,
+.nw-protocol-lock-shackle,
+.nw-protocol-lock-key {
+  stroke: var(--nw-focus);
+  stroke-width: 3;
+}
+
+.nw-protocol-lock-body {
+  fill: color-mix(in oklab, var(--nw-focus) 24%, var(--nw-panel-strong));
+  stroke: var(--nw-focus);
+}
+
+.nw-protocol-visual--security circle {
+  fill: var(--nw-focus);
+}
+
+.nw-protocol-plug,
+.nw-protocol-visual--partner,
+.nw-protocol-parcel,
+.nw-protocol-broken-packet,
+.nw-protocol-retry-packet,
+.nw-protocol-lock-shackle {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.nw-protocol-visual--physical.is-animating .nw-protocol-plug--left {
+  animation: nw-protocol-plug-left-in .52s ease-out both;
+}
+
+.nw-protocol-visual--physical.is-animating .nw-protocol-plug--right {
+  animation: nw-protocol-plug-right-in .52s ease-out both;
+}
+
+.nw-protocol-visual--partner.is-animating {
+  animation: nw-protocol-address-in .5s ease-out both;
+}
+
+.nw-protocol-visual--packet.is-animating .nw-protocol-parcel {
+  animation: nw-protocol-packet-in .62s ease-out both;
+}
+
+.nw-protocol-visual--reliability.is-animating .nw-protocol-retry-arrow {
+  animation: nw-protocol-retry-in .72s ease-out both;
+}
+
+.nw-protocol-visual--reliability.is-animating .nw-protocol-retry-packet {
+  animation: nw-protocol-retry-packet-in .72s ease-out both;
+}
+
+.nw-protocol-visual--security.is-animating .nw-protocol-lock-shackle {
+  animation: nw-protocol-lock-in .55s ease-out both;
+}
+
+@keyframes nw-protocol-plug-left-in {
+  from { transform: translateX(-14px); }
+}
+
+@keyframes nw-protocol-plug-right-in {
+  from { transform: translateX(14px); }
+}
+
+@keyframes nw-protocol-address-in {
+  from { transform: translateY(-14px) scale(.94); }
+}
+
+@keyframes nw-protocol-packet-in {
+  from { transform: translateX(-72px); }
+}
+
+@keyframes nw-protocol-retry-in {
+  from { stroke-dasharray: 210; stroke-dashoffset: 210; }
+  to { stroke-dasharray: 210; stroke-dashoffset: 0; }
+}
+
+@keyframes nw-protocol-retry-packet-in {
+  0%, 45% { transform: translateY(-46px) scale(.88); }
+  100% { transform: translate(0, 0) scale(1); }
+}
+
+@keyframes nw-protocol-lock-in {
+  from { transform: translateY(-9px); }
+}
+
+.nw-protocol-details {
+  min-height: 62px;
+  margin-top: 8px;
+}
+
+.nw-protocol-detail {
+  display: grid;
+  grid-template-columns: minmax(9.5em, .42fr) minmax(0, 1fr);
+  gap: 7px 14px;
+  align-items: center;
+  min-height: 62px;
+  margin: 0;
+  padding: 8px 10px;
+  border-inline-start: 4px solid var(--nw-focus);
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--nw-focus) 8%, var(--nw-panel-strong));
+  text-align: left;
+}
+
+.nw-protocol-detail[hidden] {
+  display: none;
+}
+
+.nw-protocol-detail strong {
+  color: var(--nw-focus);
+}
+
+.nw-protocol-detail span {
+  font-size: .9em;
+  line-height: 1.55;
+}
+
+.nw-protocol-summary {
+  margin: 8px 2px 0;
+  padding-top: 7px;
+  border-top: 1px solid var(--nw-border);
+  color: var(--nw-muted);
+  font-size: .84em;
+  font-weight: 720;
   text-align: center;
 }
 
-.nw-header-diagram > span {
-  display: grid;
-  min-height: 56px;
-  padding: 6px;
-  place-items: center;
-  border-inline-start: 1px solid var(--nw-line);
-  background: color-mix(in oklab, var(--nw-pdu-internet) 28%, var(--nw-panel-strong));
-}
-
-.nw-header-diagram > span:first-child {
-  border-inline-start: 0;
-  background: color-mix(in oklab, var(--nw-pdu-data) 24%, var(--nw-panel-strong));
+.nw-protocol-summary[hidden] {
+  display: none;
 }
 
 .nw-layer-board {
@@ -1237,6 +1552,25 @@ section article .nw-protocol-definition {
   margin-top: 7px;
 }
 
+.lesson-slide-deck.is-height-compact .nw-protocol-figure {
+  margin-top: 4px;
+  padding: 7px;
+}
+
+.lesson-slide-deck.is-height-compact .nw-protocol-role-list {
+  margin-bottom: 6px;
+}
+
+.lesson-slide-deck.is-height-compact .nw-protocol-details {
+  min-height: 56px;
+  margin-top: 6px;
+}
+
+.lesson-slide-deck.is-height-compact .nw-protocol-detail {
+  min-height: 56px;
+  padding-block: 6px;
+}
+
 .lesson-slide-deck.is-height-compact .nw-lead {
   margin-bottom: 8px;
   font-size: .94em;
@@ -1251,22 +1585,14 @@ section article .nw-protocol-definition {
     grid-template-columns: 1fr;
   }
 
-  .nw-protocol-list > li {
-    grid-template-columns: 1fr;
-  }
-
-  .nw-header-diagram {
-    overflow: visible;
-  }
-
-  .nw-header-scroll {
-    grid-column: 1;
+  .nw-protocol-role-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 520px) {
   .nw-figure,
-  .nw-protocol-list {
+  .nw-protocol-figure {
     margin-inline: 0;
   }
 
@@ -1328,6 +1654,33 @@ section article .nw-protocol-definition {
     grid-template-columns: 1fr;
     gap: 2px;
   }
+
+  .nw-protocol-figure {
+    padding: 7px;
+  }
+
+  .nw-protocol-figure > figcaption,
+  .nw-protocol-detail {
+    grid-template-columns: 1fr;
+  }
+
+  .nw-protocol-figure > figcaption {
+    gap: 2px;
+  }
+
+  .nw-protocol-role-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .nw-protocol-role-list > li:last-child {
+    grid-column: 1 / -1;
+  }
+
+  .nw-protocol-detail {
+    gap: 2px;
+    min-height: 70px;
+  }
 }
 
 @media (max-width: 390px) {
@@ -1357,6 +1710,11 @@ section article .nw-protocol-definition {
     gap: 4px;
     padding-inline: 4px;
   }
+
+  .nw-reveal--topic {
+    padding-inline: 37px 6px;
+    font-size: .76em;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1365,6 +1723,11 @@ section article .nw-protocol-definition {
   .nw-transmission-mode-switch button,
   .nw-transmission-controls button {
     transition: none;
+  }
+
+  .nw-protocol-visual.is-animating,
+  .nw-protocol-visual.is-animating * {
+    animation: none !important;
   }
 }
 
@@ -1400,5 +1763,18 @@ section article .nw-protocol-definition {
 
   .nw-transmission-definition[hidden] {
     display: grid !important;
+  }
+
+  .nw-protocol-svg [data-protocol-visual][hidden] {
+    display: inline !important;
+  }
+
+  .nw-protocol-detail[hidden] {
+    display: grid !important;
+  }
+
+  .nw-protocol-detail--intro,
+  .nw-protocol-summary {
+    display: none !important;
   }
 }
