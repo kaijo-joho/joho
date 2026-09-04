@@ -27,7 +27,6 @@
         <figcaption id="nw-map-caption" class="nw-figure__caption">
           <span>図の空欄をクリックすると、語句が表示されます。</span>
           <span class="nw-figure__legend"><i class="nw-legend-line" aria-hidden="true"></i>機器やネットワークの接続</span>
-          <span class="nw-figure__legend"><i class="nw-legend-branch" aria-hidden="true"></i>同じ階層の分類</span>
           <span class="nw-figure__legend"><i class="nw-legend-wireless" aria-hidden="true"></i>無線接続</span>
           <span class="nw-figure__mobile-hint">左右にスクロールして図全体を確認できます。</span>
         </figcaption>
@@ -41,7 +40,7 @@
           <div class="nw-diagram-canvas nw-map-canvas">
             <svg class="nw-diagram-svg" viewBox="0 0 1400 700" role="img" aria-labelledby="nw-map-svg-title nw-map-svg-desc">
               <title id="nw-map-svg-title">LANとWANをつないだインターネットの構成</title>
-              <desc id="nw-map-svg-desc">家庭内の有線端末は重ならない配線でスイッチングハブへ、無線端末はアクセスポイントへ接続され、ルーターと終端装置を経てISPへつながります。ISPと通信キャリアはそれぞれインターネットへ接続され、通信キャリアにはスマートフォンが無線で接続されています。通信キャリアとISPを通信事業者の子要素として示す分類の枝もあります。会社内では1台のルーターが総務LAN、営業LAN、サーバLANを接続しています。</desc>
+              <desc id="nw-map-svg-desc">家庭内の有線端末は重ならない配線でスイッチングハブへ、無線端末はアクセスポイントへ接続され、ルーターと終端装置を経てISPへつながります。ISPと通信キャリアはそれぞれインターネットへ接続され、通信キャリアにはスマートフォンが無線で接続されています。会社内では1台のルーターが総務LAN、営業LAN、サーバLANを接続しています。</desc>
 
               <rect class="nw-svg-zone nw-svg-zone--lan" x="18" y="28" width="482" height="660" rx="20"/>
               <rect class="nw-svg-zone nw-svg-zone--wan" x="520" y="28" width="862" height="660" rx="20"/>
@@ -104,14 +103,6 @@
               </g>
               <g id="nw-isp" class="nw-svg-provider-anchor" data-network-provider="isp" transform="translate(700 268)" aria-hidden="true">
                 <rect x="0" y="0" width="200" height="64" rx="9"/>
-              </g>
-              <g class="nw-svg-hierarchy-links" aria-hidden="true">
-                <path data-network-hierarchy="provider-roles" d="M675 472H685M685 330V472M685 330H700M685 472H700"/>
-              </g>
-
-              <g class="nw-svg-provider-category" transform="translate(565 440)">
-                <rect x="0" y="0" width="110" height="64" rx="14"/>
-                <text x="55" y="38">通信事業者</text>
               </g>
               <g id="nw-carrier" class="nw-svg-provider-role" data-network-provider="carrier" transform="translate(700 440)">
                 <rect x="0" y="0" width="200" height="64" rx="14"/>

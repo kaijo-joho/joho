@@ -171,11 +171,6 @@ section article .nw-protocol-definition {
   border-top: 3px solid var(--nw-line);
 }
 
-.nw-legend-branch {
-  width: 34px;
-  border-top: 2px dashed var(--nw-muted);
-}
-
 .nw-legend-wireless {
   width: 34px;
   border-top: 3px dotted var(--nw-line);
@@ -372,14 +367,12 @@ section article .nw-protocol-definition {
   text-anchor: middle;
 }
 
-.nw-svg-provider-category rect,
 .nw-svg-provider-role rect {
   fill: color-mix(in oklab, var(--nw-zone-wan) 62%, var(--nw-panel-strong));
   stroke: var(--nw-line);
   stroke-width: 2;
 }
 
-.nw-svg-provider-category text,
 .nw-svg-provider-role text {
   font-size: 15px;
   font-weight: 800;
@@ -389,15 +382,6 @@ section article .nw-protocol-definition {
 .nw-svg-provider-anchor rect {
   fill: transparent;
   stroke: none;
-}
-
-.nw-svg-hierarchy-links path {
-  fill: none;
-  stroke: var(--nw-muted);
-  stroke-width: 2;
-  stroke-dasharray: 5 5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
 }
 
 .nw-svg-subnet {

@@ -155,7 +155,7 @@ for (const provider of ['carrier', 'isp']) {
   equal(
     (networkPage.match(new RegExp(`data-network-provider="${provider}"`, 'g')) || []).length,
     1,
-    `nw11の${provider}を通信事業者の分類として1つだけ配置`
+    `nw11の${provider}を1つだけ配置`
   );
 }
 for (const link of [
@@ -181,11 +181,8 @@ for (const link of [
     `nw11の接続 ${link} は1本だけ存在`
   );
 }
-equal(
-  (networkPage.match(/data-network-hierarchy="provider-roles"/g) || []).length,
-  1,
-  'nw11で通信キャリアとISPを物理回線ではなく分類階層として分岐'
-);
+ok(!networkPage.includes('data-network-hierarchy='), 'nw11に通信事業者の分類線を置かない');
+ok(!networkPage.includes('nw-svg-provider-category'), 'nw11に通信事業者の分類ノードを置かない');
 for (const obsoleteLink of ['terminal-provider-network', 'provider-network-internet', 'provider-branch', 'branch-carrier', 'branch-isp']) {
   ok(!networkPage.includes(`data-network-link="${obsoleteLink}"`), `nw11に旧並列回線 ${obsoleteLink} を残さない`);
 }
@@ -202,7 +199,7 @@ equal(
 const carrierPosition = networkPage.match(/id="nw-carrier"[^>]*transform="translate\((\d+) (\d+)\)"/);
 const ispPosition = networkPage.match(/id="nw-isp"[^>]*transform="translate\((\d+) (\d+)\)"/);
 ok(carrierPosition && ispPosition, 'nw11の通信キャリアとISPに位置を指定');
-equal(carrierPosition?.[1], ispPosition?.[1], 'nw11の通信キャリアとISPを分類ツリーの同じ深さに配置');
+equal(carrierPosition?.[1], ispPosition?.[1], 'nw11の通信キャリアとISPをWAN内で縦に揃えて配置');
 ok(!networkPage.includes('社内の入口'), 'nw11の社内ルーターに曖昧な入口ラベルを付けない');
 ok(networkPage.includes('id="nw-corporate-network"'), 'nw11に会社内ネットワークの領域');
 for (const lan of ['admin', 'sales', 'server']) {
