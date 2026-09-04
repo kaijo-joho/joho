@@ -237,7 +237,8 @@
           const mode = button.dataset.transmissionMode;
           if (!(mode in TRANSMISSION_STEPS) || mode === this.mode) return;
           this.mode = mode;
-          this.render(true);
+          this.step = 0;
+          this.render(false);
         });
       });
 

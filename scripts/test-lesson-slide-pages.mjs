@@ -273,6 +273,10 @@ for (const requirement of [
 ]) {
   ok(networkJs.includes(requirement), `穴埋めJavaScriptに ${requirement}`);
 }
+ok(
+  /this\.mode = mode;\s+this\.step = 0;\s+this\.render\(false\);/.test(networkJs),
+  'nw11は伝送方式を切り替えるとSTEP 1へ戻る'
+);
 
 for (const requirement of [
   ':root[data-theme="light"]',
