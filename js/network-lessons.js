@@ -7,6 +7,7 @@
   const TRANSMISSION_SELECTOR = '[data-network-transmission]';
   const PROTOCOL_SELECTOR = '[data-network-protocol]';
   const LAYER_JOURNEY_SELECTOR = '[data-network-layer-journey]';
+  const REVIEW_TERMS_SELECTOR = '[data-network-review-terms]';
   const CONTENT_RESIZE_EVENT = 'joho:lesson-content-resize';
   const REVEAL_CHANGE_EVENT = 'joho:network-reveal-change';
 
@@ -790,6 +791,86 @@
     }
   }
 
+  class NetworkReviewTerms {
+    constructor(root) {
+      if (!(root instanceof HTMLElement)) throw new TypeError('重要語句のまとまりが必要です。');
+      if (root.__networkReviewTerms) return root.__networkReviewTerms;
+
+      this.root = root;
+      this.controls = root.querySelector('[data-review-term-controls]');
+      this.openAllButton = root.querySelector('[data-review-terms-open]');
+      this.closeAllButton = root.querySelector('[data-review-terms-close]');
+      this.entries = Array.from(root.querySelectorAll('[data-review-term-toggle]')).map(button => {
+        const descriptionId = button.getAttribute('aria-controls');
+        const description = descriptionId ? document.getElementById(descriptionId) : null;
+        if (!description || !root.contains(description)) {
+          throw new Error(`重要語句「${button.textContent.trim()}」の説明が見つかりません。`);
+        }
+        return {
+          button,
+          description,
+          term: button.textContent.trim()
+        };
+      });
+
+      if (!this.entries.length) throw new Error('重要語句が見つかりません。');
+
+      this.prepare();
+      this.bind();
+      this.updateControls();
+      root.__networkReviewTerms = this;
+    }
+
+    prepare() {
+      this.entries.forEach(entry => this.setExpanded(entry, false));
+      if (this.controls) this.controls.hidden = false;
+      this.root.dataset.networkReviewTermsReady = 'true';
+    }
+
+    bind() {
+      this.entries.forEach(entry => {
+        entry.button.addEventListener('click', () => this.toggle(entry));
+        entry.button.addEventListener('keydown', event => {
+          if (event.key !== 'Enter' && event.key !== ' ') return;
+          event.preventDefault();
+          this.toggle(entry);
+        });
+      });
+
+      this.openAllButton?.addEventListener('click', () => {
+        this.entries.forEach(entry => this.setExpanded(entry, true));
+        this.updateControls();
+        notifyContentResize();
+      });
+
+      this.closeAllButton?.addEventListener('click', () => {
+        this.entries.forEach(entry => this.setExpanded(entry, false));
+        this.updateControls();
+        notifyContentResize();
+      });
+    }
+
+    toggle(entry) {
+      const expanded = entry.button.getAttribute('aria-expanded') === 'true';
+      this.setExpanded(entry, !expanded);
+      this.updateControls();
+      notifyContentResize();
+    }
+
+    setExpanded(entry, expanded) {
+      entry.button.setAttribute('aria-expanded', String(expanded));
+      entry.button.setAttribute('aria-label', `${entry.term}の説明を${expanded ? '閉じる' : '表示'}`);
+      entry.button.classList.toggle('is-expanded', expanded);
+      entry.description.hidden = !expanded;
+    }
+
+    updateControls() {
+      const expandedCount = this.entries.filter(entry => entry.button.getAttribute('aria-expanded') === 'true').length;
+      if (this.openAllButton) this.openAllButton.disabled = expandedCount === this.entries.length;
+      if (this.closeAllButton) this.closeAllButton.disabled = expandedCount === 0;
+    }
+  }
+
   function initialize() {
     document.querySelectorAll(GROUP_SELECTOR).forEach(group => {
       try {
@@ -820,6 +901,14 @@
         new NetworkTransmission(root);
       } catch (error) {
         console.warn('データの伝送方式を初期化できませんでした。', error);
+      }
+    });
+
+    document.querySelectorAll(REVIEW_TERMS_SELECTOR).forEach(root => {
+      try {
+        new NetworkReviewTerms(root);
+      } catch (error) {
+        console.warn('重要語句のまとめを初期化できませんでした。', error);
       }
     });
   }

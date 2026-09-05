@@ -184,7 +184,12 @@ const reviewSlide = networkPage.slice(
 );
 ok(reviewSlide.includes('id="headline_5"'), 'nw11の5枚目に語句とポイントのまとめ');
 equal((reviewSlide.match(/<li><b aria-hidden="true">[1-4]<\/b>/g) || []).length, 4, 'nw11のまとめに4段階の学習内容のつながり');
-equal((reviewSlide.match(/<div><dt>/g) || []).length, 8, 'nw11のまとめに8組の重要語句');
+equal((reviewSlide.match(/\bdata-review-term-toggle(?:\s|>)/g) || []).length, 8, 'nw11のまとめに8個の重要語句ボタン');
+equal((reviewSlide.match(/\bdata-review-term-description(?:\s|>)/g) || []).length, 8, 'nw11のまとめに8個の語句説明');
+ok(reviewSlide.includes('data-network-review-terms'), 'nw11の重要語句を開閉操作のまとまりにする');
+ok(reviewSlide.includes('data-review-terms-open'), 'nw11の重要語句に一括表示操作');
+ok(reviewSlide.includes('data-review-terms-close'), 'nw11の重要語句に一括閉じる操作');
+ok(!/data-review-term-description[^>]*\shidden(?:\s|>)/.test(reviewSlide), 'JavaScript無効時もnw11の語句説明を読める');
 const reviewPoints = reviewSlide.slice(reviewSlide.indexOf('class="nw-review-points"'), reviewSlide.indexOf('</ul>'));
 equal((reviewPoints.match(/<li>/g) || []).length, 5, 'nw11のまとめに5つの押さえるポイント');
 for (const term of ['LAN / WAN', '回線交換 / パケット交換', 'プロトコル / IPアドレス', 'プロトコルの4階層']) {
@@ -309,6 +314,7 @@ for (const requirement of [
   "'[data-network-transmission]'",
   "'[data-network-protocol]'",
   "'[data-network-layer-journey]'",
+  "'[data-network-review-terms]'",
   "'aria-pressed'",
   "'joho:lesson-content-resize'",
   "'joho:network-reveal-change'",
@@ -318,6 +324,9 @@ for (const requirement of [
   'class NetworkProtocol',
   'class NetworkLayerJourney',
   'class NetworkTransmission',
+  'class NetworkReviewTerms',
+  'data-review-terms-open',
+  'data-review-terms-close',
   'LAYER_JOURNEY_STEPS',
   'requestAnimationFrame',
   'getPointAtLength',
@@ -348,6 +357,8 @@ for (const requirement of [
   '.nw-review-flow',
   '.nw-review-body',
   '.nw-review-terms',
+  '.nw-review-term__toggle',
+  '.nw-review-term-controls',
   '.nw-review-points',
   '.nw-moving-parcel',
   '.nw-circuit-dot',

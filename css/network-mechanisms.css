@@ -1950,15 +1950,77 @@ section article .nw-protocol-definition {
   text-align: left;
 }
 
+.nw-review-section__heading {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 0 0 5px;
+  padding-block-end: 6px;
+  border-block-end: 2px solid color-mix(in oklab, var(--nw-focus) 58%, var(--nw-border));
+}
+
+.nw-review-section__heading h3 {
+  flex: 1 1 auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.nw-review-term-controls {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 5px;
+}
+
+.nw-review-term-controls[hidden] {
+  display: none;
+}
+
+.nw-review-term-controls button {
+  box-sizing: border-box;
+  min-height: 44px;
+  padding: 6px 9px;
+  border: 1px solid color-mix(in oklab, var(--nw-focus) 56%, var(--nw-border));
+  border-radius: 7px;
+  background: color-mix(in oklab, var(--nw-focus) 7%, var(--nw-panel-strong));
+  color: var(--nw-text);
+  font: inherit;
+  font-size: .64em;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.nw-review-term-controls button:disabled {
+  cursor: not-allowed;
+  opacity: .46;
+}
+
+.nw-review-term-controls button:not(:disabled):hover {
+  background: color-mix(in oklab, var(--nw-focus) 14%, var(--nw-panel-strong));
+}
+
+.nw-review-term-controls button:focus-visible,
+.nw-review-term__toggle:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--nw-focus) 68%, transparent);
+  outline-offset: 2px;
+}
+
+.nw-review-term-instruction {
+  margin: 0 2px 5px;
+  color: var(--nw-muted);
+  font-size: .7em;
+  line-height: 1.4;
+  text-align: left;
+}
+
 .nw-review-terms {
   margin: 0;
 }
 
 .nw-review-terms > div {
-  display: grid;
-  grid-template-columns: minmax(11em, .82fr) minmax(0, 1.18fr);
-  gap: 9px;
-  padding: 7px 2px;
+  padding: 4px 0;
   border-block-end: 1px solid color-mix(in oklab, var(--nw-border) 72%, transparent);
   text-align: left;
 }
@@ -1968,17 +2030,65 @@ section article .nw-protocol-definition {
 }
 
 .nw-review-terms dt {
-  color: var(--nw-text);
-  font-size: .78em;
-  font-weight: 850;
-  line-height: 1.4;
+  margin: 0;
 }
 
 .nw-review-terms dd {
-  margin: 0;
+  margin: 4px 2px 1px;
+  padding: 8px 10px;
+  border-inline-start: 3px solid var(--nw-focus);
+  border-radius: 0 7px 7px 0;
+  background: color-mix(in oklab, var(--nw-focus) 7%, var(--nw-panel-strong));
   color: var(--nw-muted);
   font-size: .74em;
   line-height: 1.45;
+}
+
+.nw-review-terms dd[hidden] {
+  display: none !important;
+}
+
+.nw-review-term__toggle {
+  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: 44px;
+  padding: 7px 40px 7px 10px;
+  border: 1px solid color-mix(in oklab, var(--nw-border) 76%, transparent);
+  border-radius: 8px;
+  background: var(--nw-panel-strong);
+  color: var(--nw-text);
+  font: inherit;
+  font-size: .78em;
+  font-weight: 850;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+  transition: background-color .16s ease, border-color .16s ease;
+}
+
+.nw-review-term__toggle::after {
+  position: absolute;
+  inset-inline-end: 11px;
+  top: 50%;
+  color: var(--nw-focus);
+  content: "＋";
+  font-size: 1.35em;
+  font-weight: 700;
+  line-height: 1;
+  transform: translateY(-50%);
+}
+
+.nw-review-term__toggle:hover,
+.nw-review-term__toggle.is-expanded {
+  border-color: color-mix(in oklab, var(--nw-focus) 56%, var(--nw-border));
+  background: color-mix(in oklab, var(--nw-focus) 9%, var(--nw-panel-strong));
+}
+
+.nw-review-term__toggle.is-expanded::after {
+  content: "−";
 }
 
 .nw-review-points {
@@ -2277,9 +2387,20 @@ section article .nw-protocol-definition {
     padding: 10px;
   }
 
-  .nw-review-terms > div {
-    grid-template-columns: 1fr;
-    gap: 2px;
+  .nw-review-section__heading {
+    align-items: stretch;
+  }
+
+  .nw-review-section__heading h3 {
+    flex-basis: 100%;
+  }
+
+  .nw-review-term-controls {
+    flex: 1 1 100%;
+  }
+
+  .nw-review-term-controls button {
+    flex: 1 1 0;
   }
 
   .nw-review-conclusion {
@@ -2358,7 +2479,8 @@ section article .nw-protocol-definition {
   .nw-reveal,
   .nw-transmission-arrivals > b,
   .nw-transmission-mode-switch button,
-  .nw-transmission-controls button {
+  .nw-transmission-controls button,
+  .nw-review-term__toggle {
     transition: none;
   }
 
@@ -2444,6 +2566,26 @@ section article .nw-protocol-definition {
   }
 
   .nw-layer-journey-summary[hidden] {
+    display: block !important;
+  }
+
+  .nw-review-term-controls,
+  .nw-review-term-instruction {
+    display: none !important;
+  }
+
+  .nw-review-term__toggle {
+    min-height: 0;
+    padding: 5px 2px;
+    border: 0;
+    background: transparent;
+  }
+
+  .nw-review-term__toggle::after {
+    display: none;
+  }
+
+  .nw-review-terms dd[hidden] {
     display: block !important;
   }
 }
