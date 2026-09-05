@@ -1,4 +1,4 @@
-//2026-09-05 11:24:29;
+//2026-09-05 02:41:15;
 const pages = {
   "index": {
     "id": "index",
@@ -265,9 +265,36 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "nw11",
-    "next": false,
+    "next": [
+      {
+        "id": "nw13",
+        "title": "1-3. インターネット層とIPアドレス",
+        "text": "1-3. インターネット層とIPアドレス",
+        "release": false,
+        "url": "nw13.html",
+        "detail": "ルーターによる中継、IPv4アドレスの表し方、DHCP・NAT、IPv6を図と段階操作で学びます。"
+      }
+    ],
     "show": true,
     "backFile": "nw11.html"
+  },
+  "nw13": {
+    "id": "nw13",
+    "release": false,
+    "fileName": "nw13.html",
+    "mainTitle": "ネットワークのしくみ",
+    "category": "インターネットとプロトコル",
+    "title": "1-3. インターネット層とIPアドレス",
+    "detail": "ルーターによる中継、IPv4アドレスの表し方、DHCP・NAT、IPv6を図と段階操作で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "nw12",
+    "next": false,
+    "show": true,
+    "backFile": "nw12.html"
   },
   "html00": {
     "id": "html00",
