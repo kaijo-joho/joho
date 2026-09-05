@@ -1,0 +1,635 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme:light dark; background:transparent; }
+    @media (prefers-color-scheme:dark) { html { color:#e6e6e6; color-scheme:dark light; } }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme:dark) { body { background-color:#0b0b0b; } }
+  </style>
+  <title>海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/network-mechanisms.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/network-lessons.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="ネットワークインターフェース層の役割" data-lesson-slide-layout="workspace">
+    <article class="nw-slide nw-slide--interface-intro" data-network-reveal-group>
+      <h2 id="headline_1">(1) ネットワークインターフェース層の役割</h2>
+      <p class="nw-lead">前のページでは、通信を4つの階層に分けて考えました。ここでは、一番下のネットワークインターフェース層が、データを実際の信号として送り出すまでを見ていきます。</p>
+
+      <aside class="nw-scope-note" aria-labelledby="nw12-scope-title">
+        <strong id="nw12-scope-title">このページで使う補助語句</strong>
+        <p>しくみを説明しやすくするために「物理層」「データリンク層」「ヘッダ」「ペイロード」などの専門用語を注釈内で使います。いずれも学習範囲外なので、名称や構造の暗記は不要です。</p>
+      </aside>
+
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
+        <output data-network-reveal-progress aria-live="polite">0 / 1</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <figure class="nw-interface-flow" data-network-interface-flow data-step="0">
+        <figcaption>
+          <strong>データが信号になるまで</strong>
+          <span>「次へ」を押して、送り出すまでの変化をたどります。</span>
+        </figcaption>
+
+        <div class="nw-interface-flow__controls" data-interface-flow-controls data-lesson-slide-navigation-lock role="group" aria-label="データが信号になるまでの段階操作" hidden>
+          <button type="button" data-interface-flow-prev aria-label="1つ前の段階へ">← 前へ</button>
+          <output aria-live="polite"><span data-interface-flow-index>1</span> / 4</output>
+          <button type="button" data-interface-flow-next aria-label="1つ次の段階へ">次へ →</button>
+          <button type="button" data-interface-flow-reset>最初から</button>
+        </div>
+
+        <ol class="nw-interface-flow__stages" aria-label="データを信号へ変換する4段階">
+          <li data-interface-stage="0">
+            <b aria-hidden="true">1</b>
+            <strong>送りたいデータ</strong>
+            <span>上の階層からデータを受け取る</span>
+          </li>
+          <li data-interface-stage="1">
+            <b aria-hidden="true">2</b>
+            <strong>届ける準備</strong>
+            <span>
+              <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示">
+                <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">宛先などの情報</span>
+              </button>
+              を付け加える
+            </span>
+          </li>
+          <li data-interface-stage="2">
+            <b aria-hidden="true">3</b>
+            <strong>0と1の並び</strong>
+            <span>機器が扱えるビット列にする</span>
+          </li>
+          <li data-interface-stage="3">
+            <b aria-hidden="true">4</b>
+            <strong>伝送できる信号</strong>
+            <span>電気・光・電波の変化にする</span>
+          </li>
+        </ol>
+
+        <div class="nw-interface-flow__conversion" aria-hidden="true">
+          <div class="nw-interface-flow__data" data-interface-visual="data">送りたいデータ</div>
+          <span>＋</span>
+          <div class="nw-interface-flow__address" data-interface-visual="address">届ける情報</div>
+          <span>→</span>
+          <div class="nw-interface-flow__bits" data-interface-visual="bits">1 0 0 1 0 1 1 0</div>
+          <span>→</span>
+          <svg class="nw-interface-flow__wave" data-interface-visual="signal" viewBox="0 0 210 62">
+            <path d="M5 50H35V12H66V50H96V12H126V50H156V12H186V50H205"/>
+          </svg>
+        </div>
+
+        <p class="nw-interface-flow__narration" data-interface-flow-narration aria-live="polite">上の階層から、相手へ送りたいデータを受け取ります。</p>
+        <p class="nw-out-of-scope-note"><strong>補足：</strong>信号へ変えるはたらきを「物理層」、同じLAN内で届けるはたらきを「データリンク層」と分けて説明することがあります。どちらも説明用語です。</p>
+      </figure>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="有線でデータを送る" data-lesson-slide-layout="workspace">
+    <article class="nw-slide nw-slide--wired" data-network-reveal-group>
+      <h2 id="headline_2">(2) 有線でデータを送る</h2>
+      <p class="nw-lead">データを信号へ変えたら、相手まで運ぶ媒体が必要です。有線LANでよく使う2種類のケーブルを比べます。</p>
+
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
+        <output data-network-reveal-progress aria-live="polite">0 / 2</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <figure class="nw-medium-figure" data-network-medium-demo>
+        <figcaption>
+          <strong>電気で送るケーブルと、光で送るケーブル</strong>
+          <button type="button" data-medium-replay>信号を送る</button>
+        </figcaption>
+
+        <div class="nw-cable-comparison">
+          <section class="nw-cable nw-cable--copper">
+            <h3>
+              <button type="button" class="nw-reveal nw-reveal--heading" data-network-reveal aria-label="空欄1の答えを表示">
+                <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ツイストペアケーブル</span>
+              </button>
+            </h3>
+            <svg viewBox="0 0 420 180" role="img" aria-labelledby="nw-copper-title nw-copper-desc">
+              <title id="nw-copper-title">ツイストペアケーブルの模式図</title>
+              <desc id="nw-copper-desc">外側の被覆の中で、銅線を2本ずつより合わせた組が複数並び、電気信号が進む様子を示します。</desc>
+              <rect class="nw-cable__jacket" x="18" y="25" width="384" height="130" rx="62"/>
+              <path class="nw-cable__wire nw-cable__wire--a" d="M46 65C92 18 132 112 178 65S264 18 310 65 366 105 390 65"/>
+              <path class="nw-cable__wire nw-cable__wire--b" d="M46 113C92 66 132 160 178 113S264 66 310 113 366 153 390 113"/>
+              <path class="nw-cable__pulse" data-medium-signal="electric" d="M42 89H394"/>
+              <circle class="nw-cable__signal nw-cable__signal--electric" data-medium-moving-signal="electric" cx="42" cy="89" r="9"/>
+            </svg>
+            <p><strong>銅線を流れる電気信号</strong><span>家庭や学校などのLANで広く使われます。</span></p>
+          </section>
+
+          <section class="nw-cable nw-cable--fiber">
+            <h3>
+              <button type="button" class="nw-reveal nw-reveal--heading" data-network-reveal aria-label="空欄2の答えを表示">
+                <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">光ファイバーケーブル</span>
+              </button>
+            </h3>
+            <svg viewBox="0 0 420 180" role="img" aria-labelledby="nw-fiber-title nw-fiber-desc">
+              <title id="nw-fiber-title">光ファイバーケーブルの模式図</title>
+              <desc id="nw-fiber-desc">ガラス製の中心部を光が全反射しながら進む様子を示します。</desc>
+              <rect class="nw-fiber__cladding" x="18" y="25" width="384" height="130" rx="62"/>
+              <rect class="nw-fiber__core" x="30" y="55" width="360" height="70" rx="34"/>
+              <path class="nw-fiber__light-path" d="M46 90L102 62 158 118 214 62 270 118 326 62 382 90"/>
+              <circle class="nw-cable__signal nw-cable__signal--light" data-medium-moving-signal="light" cx="46" cy="90" r="10"/>
+            </svg>
+            <p><strong>ガラスの中を進む光信号</strong><span>長距離・大容量の通信に向いています。</span></p>
+          </section>
+        </div>
+
+        <table class="nw-medium-table">
+          <caption>2種類のケーブルの比較</caption>
+          <thead><tr><th scope="col">比べる点</th><th scope="col">ツイストペア</th><th scope="col">光ファイバー</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">信号</th><td>電気</td><td>光</td></tr>
+            <tr><th scope="row">主な素材</th><td>銅</td><td>ガラス</td></tr>
+            <tr><th scope="row">伝送距離</th><td>比較的短い</td><td>長い</td></tr>
+            <tr><th scope="row">ノイズ</th><td>影響を受けやすい</td><td>影響を受けにくい</td></tr>
+            <tr><th scope="row">取り回し</th><td>しやすい</td><td>慎重な扱いが必要</td></tr>
+            <tr><th scope="row">主な用途</th><td>LAN</td><td>WAN・幹線</td></tr>
+          </tbody>
+        </table>
+        <p class="nw-out-of-scope-note"><strong>説明用語：</strong>ケーブルや電波など、信号を送る方法を定める部分を「物理層」と呼ぶことがあります。</p>
+      </figure>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="無線でデータを送る" data-lesson-slide-layout="workspace">
+    <article class="nw-slide nw-slide--wireless" data-network-reveal-group>
+      <h2 id="headline_3">(3) 無線でデータを送る</h2>
+      <p class="nw-lead">ケーブルを使わない場合は、データを電波の変化として送ります。周波数帯によって、届き方や電波干渉の起こりやすさが異なります。</p>
+
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
+        <output data-network-reveal-progress aria-live="polite">0 / 2</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <div class="nw-wireless-layout">
+        <figure class="nw-wireless-figure">
+          <figcaption><strong>アクセスポイントから端末へ電波を送る</strong></figcaption>
+          <svg viewBox="0 0 760 290" role="img" aria-labelledby="nw-wireless-title nw-wireless-desc">
+            <title id="nw-wireless-title">無線LANの接続</title>
+            <desc id="nw-wireless-desc">中央のアクセスポイントから、左のノートパソコンと右のスマートフォンへ電波が届き、壁と電子レンジが電波へ影響する様子です。</desc>
+            <g class="nw-wireless-device nw-wireless-device--laptop" transform="translate(55 105)">
+              <rect x="12" y="0" width="118" height="74" rx="7"/>
+              <path d="M0 76H142L130 92H12Z"/>
+              <text x="71" y="122">ノートPC</text>
+            </g>
+            <g class="nw-wireless-device nw-wireless-device--ap" transform="translate(325 105)">
+              <rect x="0" y="28" width="110" height="64" rx="12"/>
+              <path d="M55 28V6M32 20Q55-4 78 20M17 11Q55-26 93 11"/>
+              <circle cx="55" cy="72" r="5"/>
+              <text x="55" y="122">アクセスポイント</text>
+            </g>
+            <g class="nw-wireless-device nw-wireless-device--phone" transform="translate(635 95)">
+              <rect x="0" y="0" width="62" height="106" rx="12"/>
+              <circle cx="31" cy="91" r="4"/>
+              <text x="31" y="137">スマートフォン</text>
+            </g>
+            <g class="nw-wireless-waves" aria-hidden="true">
+              <path d="M315 120Q260 145 315 170"/>
+              <path d="M298 95Q205 145 298 195"/>
+              <path d="M445 120Q500 145 445 170"/>
+              <path d="M462 95Q555 145 462 195"/>
+            </g>
+            <g class="nw-wireless-obstacle" transform="translate(535 32)">
+              <rect width="34" height="220" rx="5"/>
+              <text x="17" y="244">壁</text>
+            </g>
+            <g class="nw-wireless-microwave" transform="translate(225 224)">
+              <rect width="100" height="50" rx="7"/>
+              <rect x="10" y="10" width="58" height="30" rx="3"/>
+              <circle cx="83" cy="18" r="4"/><circle cx="83" cy="33" r="4"/>
+              <text x="50" y="-8">電子レンジ</text>
+            </g>
+          </svg>
+        </figure>
+
+        <div class="nw-wireless-explanation">
+          <p>異なるメーカーの無線LAN機器が接続できることを認定する枠組みを
+            <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">Wi-Fi</span>
+            </button>
+            といいます。</p>
+          <p>同じ周波数帯を分けて使う、それぞれの範囲を
+            <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄2の答えを表示">
+              <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">チャネル</span>
+            </button>
+            といいます。</p>
+
+          <div class="nw-band-switch" data-lesson-view-group data-lesson-default-view="2g">
+            <div class="nw-band-switch__controls" data-lesson-view-controls aria-label="周波数帯を選ぶ">
+              <button type="button" data-lesson-view="2g">2.4GHz帯</button>
+              <button type="button" data-lesson-view="5g">5GHz帯</button>
+            </div>
+            <section id="nw-band-2g" data-lesson-view-panel="2g">
+              <h3>2.4GHz帯</h3>
+              <p>壁などの障害物があっても届きやすい一方、電子レンジなどの電波と干渉することがあります。原本では13チャネルに分けて説明しています。</p>
+            </section>
+            <section id="nw-band-5g" data-lesson-view-panel="5g">
+              <h3>5GHz帯</h3>
+              <p>利用できるチャネルが多く、ほかの家電との干渉が比較的少ない一方、障害物の影響を受けやすくなります。原本では19チャネルに分けて説明しています。</p>
+            </section>
+          </div>
+        </div>
+      </div>
+
+      <details class="nw-support-details">
+        <summary>原本の無線LAN規格表を確認</summary>
+        <div class="nw-support-details__scroll" tabindex="0" aria-label="無線LAN規格表。狭い画面では横方向にスクロールできます。">
+          <table>
+            <thead><tr><th scope="col">規格</th><th scope="col">策定年</th><th scope="col">最大速度</th><th scope="col">周波数帯</th><th scope="col">チャネル幅</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">IEEE 802.11a</th><td>1999</td><td>54Mbps</td><td>5GHz</td><td>20MHz</td></tr>
+              <tr><th scope="row">IEEE 802.11g</th><td>2003</td><td>54Mbps</td><td>2.4GHz</td><td>20MHz</td></tr>
+              <tr><th scope="row">IEEE 802.11n</th><td>2009</td><td>600Mbps</td><td>2.4 / 5GHz</td><td>20, 40MHz</td></tr>
+              <tr><th scope="row">IEEE 802.11ac</th><td>2014</td><td>6.93Gbps</td><td>5GHz</td><td>20, 40, 80, 160MHz</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </details>
+      <p class="nw-wireless-note"><strong>無線LANとWi-Fi：</strong>現在はほぼ同じ意味で使われますが、Wi-Fiは本来、機器どうしが接続できることを認定する枠組みです。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="LAN内で相手を区別するしくみ" data-lesson-slide-layout="workspace">
+    <article class="nw-slide nw-slide--mac" data-network-reveal-group>
+      <h2 id="headline_4">(4) LAN内で相手を区別するしくみ</h2>
+      <p class="nw-lead">信号を送るだけでは、同じLANにいるどの端末へ届けるか決まりません。そこで、端末ごとに割り振られた識別情報を使います。</p>
+
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
+        <output data-network-reveal-progress aria-live="polite">0 / 1</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <p class="nw-mac-definition">LANへ接続した端末を区別する識別情報を
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示">
+          <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">MACアドレス</span>
+        </button>
+        といいます。</p>
+
+      <figure class="nw-mac-figure">
+        <figcaption>
+          <strong>PC1からPC2へ届ける</strong>
+          <span>送りたいデータへ、LAN内で使う送信元と送信先の情報を付けます。</span>
+        </figcaption>
+        <div class="nw-mac-route" aria-label="PC1からスイッチングハブを通ってPC2へデータを送る図">
+          <div class="nw-mac-device nw-mac-device--pc">
+            <span class="nw-mac-device__screen" aria-hidden="true"></span>
+            <strong>PC1</strong>
+            <small>00:a1:b2:c3:d4:11</small>
+          </div>
+          <span class="nw-mac-route__line" aria-hidden="true"></span>
+          <div class="nw-mac-device nw-mac-device--switch">
+            <span aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+            <strong>スイッチングハブ</strong>
+            <small>送信先を見て転送</small>
+          </div>
+          <span class="nw-mac-route__line" aria-hidden="true"></span>
+          <div class="nw-mac-device nw-mac-device--pc">
+            <span class="nw-mac-device__screen" aria-hidden="true"></span>
+            <strong>PC2</strong>
+            <small>00:a1:b2:c3:d4:22</small>
+          </div>
+        </div>
+
+        <div class="nw-mac-data" aria-label="LAN内で送るデータの構成">
+          <span class="nw-mac-data__destination"><b>送信先</b>PC2のMACアドレス</span>
+          <span class="nw-mac-data__source"><b>送信元</b>PC1のMACアドレス</span>
+          <span class="nw-mac-data__content"><b>内容</b>送りたいデータ</span>
+        </div>
+        <p class="nw-mac-format"><strong>表し方：</strong>MACアドレスは「00:a1:b2:c3:d4:11」のように、2桁ずつ区切った12桁の16進数で表します。</p>
+        <p class="nw-out-of-scope-note"><strong>補足（暗記不要）：</strong>LAN内で送るデータのまとまりを「フレーム」、付け加えた部分を「イーサネットヘッダ」と呼びます。これらの具体的な構造は学習範囲外です。</p>
+      </figure>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="スイッチングハブの転送" data-lesson-slide-layout="workspace">
+    <article class="nw-slide nw-slide--switch" data-network-reveal-group>
+      <h2 id="headline_5">(5) スイッチングハブの転送</h2>
+      <p class="nw-lead">MACアドレスを使うと、スイッチングハブはデータを送るポートを選べます。最初は相手の場所が分からないため、通信を受け取りながら接続先を学習します。</p>
+
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
+        <output data-network-reveal-progress aria-live="polite">0 / 1</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <p class="nw-switch-definition">ポートと送信元MACアドレスの対応を
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示">
+          <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">MACアドレステーブル</span>
+        </button>
+        に記録します。</p>
+
+      <figure class="nw-switch-demo" data-network-switch-demo data-step="0">
+        <figcaption>
+          <strong>PC1からPC2へ送り、返信を受け取るまで</strong>
+          <span>ピンク色のデータと、表へ追加される記録に注目します。</span>
+        </figcaption>
+
+        <div class="nw-switch-demo__controls" data-switch-controls data-lesson-slide-navigation-lock role="group" aria-label="スイッチングハブの転送手順" hidden>
+          <button type="button" data-switch-prev aria-label="1つ前の手順へ">← 前へ</button>
+          <output aria-live="polite"><span data-switch-index>1</span> / 6</output>
+          <button type="button" data-switch-replay>もう一度</button>
+          <button type="button" data-switch-next aria-label="1つ次の手順へ">次へ →</button>
+          <button type="button" data-switch-reset>最初から</button>
+        </div>
+
+        <p class="nw-switch-status" data-switch-status aria-live="polite">送信前：表にはまだ何も記録されていません。</p>
+
+        <svg class="nw-switch-svg nw-switch-svg--wide" viewBox="0 0 860 450" role="img" aria-labelledby="nw-switch-title nw-switch-desc">
+          <title id="nw-switch-title">スイッチングハブが接続先を学習する手順</title>
+          <desc id="nw-switch-desc">PC1、PC2、PC3がポートA、B、Cへ接続されています。PC1からPC2へのデータを受けたハブはPC1を記録し、PC2の場所が分からないためBとCへコピーを送ります。PC2の返信を受けてPC2も記録し、返信をPC1だけへ送ります。</desc>
+
+          <g class="nw-switch-links" aria-hidden="true">
+            <path d="M185 356C185 285 268 260 332 225"/>
+            <path d="M430 356V225"/>
+            <path d="M675 356C675 285 592 260 528 225"/>
+          </g>
+          <g class="nw-switch-paths" aria-hidden="true">
+            <path data-switch-path="pc1-switch" d="M185 356C185 285 268 260 332 225"/>
+            <path data-switch-path="switch-pc2" d="M430 225V356"/>
+            <path data-switch-path="switch-pc3" d="M528 225C592 260 675 285 675 356"/>
+            <path data-switch-path="pc2-switch" d="M430 356V225"/>
+            <path data-switch-path="switch-pc1" d="M332 225C268 260 185 285 185 356"/>
+          </g>
+
+          <g class="nw-switch-box" transform="translate(235 34)">
+            <rect width="390" height="192" rx="20"/>
+            <text class="nw-switch-box__title" x="195" y="34">スイッチングハブ</text>
+            <g class="nw-switch-table" transform="translate(36 50)">
+              <rect width="318" height="94" rx="9"/>
+              <path d="M0 31H318M88 0V94M0 62H318"/>
+              <text x="44" y="22">ポート</text><text x="203" y="22">記録したMACアドレス</text>
+              <g data-switch-table-row="pc1"><text x="44" y="54">A</text><text x="203" y="54">PC1：…:11</text></g>
+              <g data-switch-table-row="pc2"><text x="44" y="85">B</text><text x="203" y="85">PC2：…:22</text></g>
+            </g>
+            <g class="nw-switch-ports" transform="translate(77 160)">
+              <g data-switch-port="a"><rect x="0" width="58" height="32" rx="5"/><text x="29" y="23">A</text></g>
+              <g data-switch-port="b"><rect x="89" width="58" height="32" rx="5"/><text x="118" y="23">B</text></g>
+              <g data-switch-port="c"><rect x="178" width="58" height="32" rx="5"/><text x="207" y="23">C</text></g>
+            </g>
+          </g>
+
+          <g class="nw-switch-pc" transform="translate(125 356)">
+            <rect width="120" height="70" rx="8"/><path d="M60 70V84M28 84H92"/>
+            <text x="60" y="31">PC1</text><text x="60" y="51">…:11</text>
+          </g>
+          <g class="nw-switch-pc" transform="translate(370 356)">
+            <rect width="120" height="70" rx="8"/><path d="M60 70V84M28 84H92"/>
+            <text x="60" y="31">PC2</text><text x="60" y="51">…:22</text>
+          </g>
+          <g class="nw-switch-pc" transform="translate(615 356)">
+            <rect width="120" height="70" rx="8"/><path d="M60 70V84M28 84H92"/>
+            <text x="60" y="31">PC3</text><text x="60" y="51">…:33</text>
+          </g>
+
+          <g class="nw-switch-frame" data-switch-mover="outbound" data-switch-path-ref="pc1-switch" hidden>
+            <rect x="-45" y="-18" width="90" height="36" rx="7"/><text y="6">PC1→PC2</text>
+          </g>
+          <g class="nw-switch-frame" data-switch-mover="flood-b" data-switch-path-ref="switch-pc2" hidden>
+            <rect x="-45" y="-18" width="90" height="36" rx="7"/><text y="6">PC1→PC2</text>
+          </g>
+          <g class="nw-switch-frame" data-switch-mover="flood-c" data-switch-path-ref="switch-pc3" hidden>
+            <rect x="-45" y="-18" width="90" height="36" rx="7"/><text y="6">PC1→PC2</text>
+          </g>
+          <g class="nw-switch-frame nw-switch-frame--reply" data-switch-mover="reply-in" data-switch-path-ref="pc2-switch" hidden>
+            <rect x="-45" y="-18" width="90" height="36" rx="7"/><text y="6">PC2→PC1</text>
+          </g>
+          <g class="nw-switch-frame nw-switch-frame--reply" data-switch-mover="reply-out" data-switch-path-ref="switch-pc1" hidden>
+            <rect x="-45" y="-18" width="90" height="36" rx="7"/><text y="6">PC2→PC1</text>
+          </g>
+          <g class="nw-switch-result" data-switch-result="received" hidden><text x="430" y="340">PC2が受信</text></g>
+          <g class="nw-switch-result nw-switch-result--discard" data-switch-result="discard" hidden><text x="675" y="340">PC3は破棄</text></g>
+        </svg>
+
+        <svg class="nw-switch-svg nw-switch-svg--mobile" viewBox="0 0 360 660" role="img" aria-labelledby="nw-switch-mobile-title nw-switch-mobile-desc">
+          <title id="nw-switch-mobile-title">スイッチングハブが接続先を学習する手順</title>
+          <desc id="nw-switch-mobile-desc">スマートフォン向けに縦長に配置した図です。上のスイッチングハブと下のPC1、PC2、PC3をポートA、B、Cで接続し、MACアドレスを学習して転送する流れを示します。</desc>
+
+          <g class="nw-switch-links" aria-hidden="true">
+            <path d="M99 240C99 350 60 390 60 515"/>
+            <path d="M181 240V515"/>
+            <path d="M263 240C263 350 300 390 300 515"/>
+          </g>
+          <g class="nw-switch-paths" aria-hidden="true">
+            <path data-switch-mobile-path="pc1-switch" d="M60 515C60 390 99 350 99 240"/>
+            <path data-switch-mobile-path="switch-pc2" d="M181 240V515"/>
+            <path data-switch-mobile-path="switch-pc3" d="M263 240C263 350 300 390 300 515"/>
+            <path data-switch-mobile-path="pc2-switch" d="M181 515V240"/>
+            <path data-switch-mobile-path="switch-pc1" d="M99 240C99 350 60 390 60 515"/>
+          </g>
+
+          <g class="nw-switch-box" transform="translate(25 18)">
+            <rect width="310" height="224" rx="18"/>
+            <text class="nw-switch-box__title" x="155" y="34">スイッチングハブ</text>
+            <g class="nw-switch-table" transform="translate(28 51)">
+              <rect width="254" height="105" rx="8"/>
+              <path d="M0 35H254M70 0V105M0 70H254"/>
+              <text x="35" y="24">ポート</text><text class="nw-switch-table__heading-wide" x="162" y="24">記録したMACアドレス</text><text class="nw-switch-table__heading-short" x="162" y="24">MACアドレス</text>
+              <g data-switch-mobile-table-row="pc1"><text x="35" y="59">A</text><text x="162" y="59">PC1：…:11</text></g>
+              <g data-switch-mobile-table-row="pc2"><text x="35" y="94">B</text><text x="162" y="94">PC2：…:22</text></g>
+            </g>
+            <g class="nw-switch-ports" transform="translate(45 174)">
+              <g data-switch-mobile-port="a"><rect x="0" width="58" height="42" rx="5"/><text x="29" y="28">A</text></g>
+              <g data-switch-mobile-port="b"><rect x="82" width="58" height="42" rx="5"/><text x="111" y="28">B</text></g>
+              <g data-switch-mobile-port="c"><rect x="164" width="58" height="42" rx="5"/><text x="193" y="28">C</text></g>
+            </g>
+          </g>
+
+          <g class="nw-switch-pc" transform="translate(15 515)">
+            <rect width="90" height="76" rx="8"/><path d="M45 76V89M20 89H70"/>
+            <text x="45" y="32">PC1</text><text x="45" y="55">…:11</text>
+          </g>
+          <g class="nw-switch-pc" transform="translate(135 515)">
+            <rect width="90" height="76" rx="8"/><path d="M45 76V89M20 89H70"/>
+            <text x="45" y="32">PC2</text><text x="45" y="55">…:22</text>
+          </g>
+          <g class="nw-switch-pc" transform="translate(255 515)">
+            <rect width="90" height="76" rx="8"/><path d="M45 76V89M20 89H70"/>
+            <text x="45" y="32">PC3</text><text x="45" y="55">…:33</text>
+          </g>
+
+          <g class="nw-switch-frame" data-switch-mobile-mover="outbound" data-switch-mobile-path-ref="pc1-switch" hidden>
+            <rect x="-39" y="-17" width="78" height="34" rx="7"/><text y="6">PC1→PC2</text>
+          </g>
+          <g class="nw-switch-frame" data-switch-mobile-mover="flood-b" data-switch-mobile-path-ref="switch-pc2" hidden>
+            <rect x="-39" y="-17" width="78" height="34" rx="7"/><text y="6">PC1→PC2</text>
+          </g>
+          <g class="nw-switch-frame" data-switch-mobile-mover="flood-c" data-switch-mobile-path-ref="switch-pc3" hidden>
+            <rect x="-39" y="-17" width="78" height="34" rx="7"/><text y="6">PC1→PC2</text>
+          </g>
+          <g class="nw-switch-frame nw-switch-frame--reply" data-switch-mobile-mover="reply-in" data-switch-mobile-path-ref="pc2-switch" hidden>
+            <rect x="-39" y="-17" width="78" height="34" rx="7"/><text y="6">PC2→PC1</text>
+          </g>
+          <g class="nw-switch-frame nw-switch-frame--reply" data-switch-mobile-mover="reply-out" data-switch-mobile-path-ref="switch-pc1" hidden>
+            <rect x="-39" y="-17" width="78" height="34" rx="7"/><text y="6">PC2→PC1</text>
+          </g>
+          <g class="nw-switch-result" data-switch-mobile-result="received" hidden><text x="180" y="495">PC2が受信</text></g>
+          <g class="nw-switch-result nw-switch-result--discard" data-switch-mobile-result="discard" hidden><text x="300" y="495">PC3は破棄</text></g>
+        </svg>
+
+        <ol class="nw-switch-sequence" aria-label="スイッチングハブが接続先を学習する6段階">
+          <li data-switch-step="0"><strong>送信前</strong><span>表にはまだ何も記録されていません。</span></li>
+          <li data-switch-step="1"><strong>PC1から送信</strong><span>PC1が、PC2宛のデータをポートAへ送ります。</span></li>
+          <li data-switch-step="2"><strong>PC1を記録</strong><span>受け取ったポートAと、送信元PC1のMACアドレスを記録します。</span></li>
+          <li data-switch-step="3"><strong>複数のポートへ転送</strong><span>PC2の場所は未登録なので、BとCへコピーを送ります。PC2は受信し、PC3は自分宛ではないため破棄します。</span></li>
+          <li data-switch-step="4"><strong>PC2から返信</strong><span>PC2の返信を受け取り、PC2がポートBにいることを記録します。</span></li>
+          <li data-switch-step="5"><strong>記録を使って転送</strong><span>PC1はポートAにいると分かっているので、返信をAだけへ送ります。</span></li>
+        </ol>
+        <p class="nw-out-of-scope-note"><strong>補足：</strong>宛先が未登録のとき、複数のポートへコピーを送る処理を「フラッディング」と呼ぶことがあります。名称の暗記は不要です。</p>
+      </figure>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="語句とポイントのまとめ">
+    <article class="nw-slide nw-slide--review nw-slide--interface-review">
+      <h2 id="headline_6">(6) 語句とポイントのまとめ</h2>
+      <p class="nw-lead">ここまで、データを信号へ変える方法と、同じLAN内で目的の端末へ届ける方法を見てきました。学習範囲の語句と関係を整理します。</p>
+
+      <ol class="nw-review-flow" aria-label="このページで学んだ内容のつながり">
+        <li><b aria-hidden="true">1</b><strong>信号に変える</strong><span>データを電気・光・電波の変化として表す</span></li>
+        <li><b aria-hidden="true">2</b><strong>媒体で運ぶ</strong><span>有線ケーブルまたは無線LANで信号を送る</span></li>
+        <li><b aria-hidden="true">3</b><strong>端末を区別する</strong><span>MACアドレスでLAN内の送信元と送信先を示す</span></li>
+        <li><b aria-hidden="true">4</b><strong>転送先を選ぶ</strong><span>スイッチングハブが接続先を学習して送る</span></li>
+      </ol>
+
+      <div class="nw-review-body">
+        <section class="nw-review-section" data-network-review-terms aria-labelledby="nw12-review-terms-title">
+          <div class="nw-review-section__heading">
+            <h3 id="nw12-review-terms-title">重要語句</h3>
+            <div class="nw-review-term-controls" data-review-term-controls role="group" aria-label="重要語句の説明を一括操作" hidden>
+              <button type="button" data-review-terms-open>すべて表示</button>
+              <button type="button" data-review-terms-close>すべて閉じる</button>
+            </div>
+          </div>
+          <p class="nw-review-term-instruction" id="nw12-review-terms-help">語句をクリックすると、説明が表示されます。</p>
+          <div class="nw-review-terms" aria-describedby="nw12-review-terms-help">
+            <details class="nw-review-term" data-review-term>
+              <summary>ネットワークインターフェース層</summary>
+              <div class="nw-review-term__body">データを信号に変え、同じLAN内の相手へ届けるための処理を担当する階層。</div>
+            </details>
+            <details class="nw-review-term" data-review-term>
+              <summary>ツイストペアケーブル</summary>
+              <div class="nw-review-term__body">銅線を2本ずつより合わせ、電気信号を送るケーブル。LANで広く使われます。</div>
+            </details>
+            <details class="nw-review-term" data-review-term>
+              <summary>光ファイバーケーブル</summary>
+              <div class="nw-review-term__body">ガラスの中へ光を通して信号を送るケーブル。長距離・大容量の通信に向いています。</div>
+            </details>
+            <details class="nw-review-term" data-review-term>
+              <summary>無線LAN</summary>
+              <div class="nw-review-term__body">ケーブルの代わりに電波を使って、端末をLANへ接続する方法。</div>
+            </details>
+            <details class="nw-review-term" data-review-term>
+              <summary>Wi-Fi</summary>
+              <div class="nw-review-term__body">異なるメーカーの無線LAN機器が、互いに接続できることを認定する枠組み。</div>
+            </details>
+            <details class="nw-review-term" data-review-term>
+              <summary>チャネル</summary>
+              <div class="nw-review-term__body">同じ周波数帯を分けて利用する、それぞれの周波数の範囲。</div>
+            </details>
+            <details class="nw-review-term" data-review-term>
+              <summary>MACアドレス</summary>
+              <div class="nw-review-term__body">同じLANに接続している端末を区別するための識別情報。</div>
+            </details>
+            <details class="nw-review-term" data-review-term>
+              <summary>MACアドレステーブル</summary>
+              <div class="nw-review-term__body">スイッチングハブが、ポートと接続先のMACアドレスの対応を記録する表。</div>
+            </details>
+            <details class="nw-review-term" data-review-term>
+              <summary>スイッチングハブ</summary>
+              <div class="nw-review-term__body">接続した端末の場所を学習し、MACアドレスを見てLAN内のデータを転送する装置。</div>
+            </details>
+          </div>
+        </section>
+
+        <section class="nw-review-section" aria-labelledby="nw12-review-points-title">
+          <h3 id="nw12-review-points-title">押さえるポイント</h3>
+          <ul class="nw-review-points">
+            <li><strong>データは信号へ変換して送る</strong><span>ケーブルでは電気や光、無線では電波の変化を使います。</span></li>
+            <li><strong>媒体によって特徴が異なる</strong><span>伝送距離、ノイズの影響、取り回しなどを考えて使い分けます。</span></li>
+            <li><strong>Wi-Fiと無線LANは本来の意味が異なる</strong><span>Wi-Fiは機器どうしの接続を認定する枠組みです。</span></li>
+            <li><strong>MACアドレスはLAN内で使う</strong><span>送信元と送信先の端末を区別するために使います。</span></li>
+            <li><strong>ハブは通信から接続先を学ぶ</strong><span>送信元とポートの対応を記録し、転送先を選びます。</span></li>
+          </ul>
+          <p class="nw-review-scope-reminder"><strong>まとめに含めない用語：</strong>物理層、データリンク層、ヘッダ、ペイロード、フレームは説明を簡潔にするための補助語句で、暗記は不要です。</p>
+        </section>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="問題演習" data-lesson-slide-layout="exercise">
+    <article class="nw-slide nw-slide--quiz">
+      <h2 id="headline_7">(7) 問題演習</h2>
+      <p class="nw-lead">媒体の特徴と、MACアドレスを使ってデータを届ける流れを確認します。補助語句の名称やデータ構造は出題しません。</p>
+
+      <form class="nw-quiz" data-network-quiz data-lesson-slide-navigation-lock>
+        <div class="nw-quiz__header">
+          <h3>5問で確認</h3>
+          <output data-network-quiz-score aria-live="polite">未判定</output>
+        </div>
+
+        <fieldset class="nw-quiz__question" data-network-question data-correct="twisted" data-explanation="ツイストペアケーブルは銅線へ電気信号を流します。">
+          <legend>問1　銅線に電気信号を流して送るケーブルはどれですか。</legend>
+          <label><input type="radio" name="nw12-q1" value="fiber">光ファイバーケーブル</label>
+          <label><input type="radio" name="nw12-q1" value="twisted">ツイストペアケーブル</label>
+          <label><input type="radio" name="nw12-q1" value="wireless">無線LAN</label>
+          <p class="nw-quiz__feedback" data-network-feedback aria-live="polite"></p>
+        </fieldset>
+
+        <fieldset class="nw-quiz__question" data-network-question data-correct="fiber" data-explanation="光ファイバーケーブルは長距離の伝送に向き、電気的なノイズの影響を受けにくい媒体です。">
+          <legend>問2　長距離の通信に向き、電気的なノイズの影響を受けにくいものはどれですか。</legend>
+          <label><input type="radio" name="nw12-q2" value="fiber">光ファイバーケーブル</label>
+          <label><input type="radio" name="nw12-q2" value="twisted">ツイストペアケーブル</label>
+          <label><input type="radio" name="nw12-q2" value="channel">チャネル</label>
+          <p class="nw-quiz__feedback" data-network-feedback aria-live="polite"></p>
+        </fieldset>
+
+        <fieldset class="nw-quiz__question" data-network-question data-correct="certification" data-explanation="Wi-Fiは、異なるメーカーの無線LAN機器が互いに接続できることを認定する枠組みです。">
+          <legend>問3　Wi-Fiの本来の意味として、最も適切なものはどれですか。</legend>
+          <label><input type="radio" name="nw12-q3" value="cable">光信号を送るケーブルの規格</label>
+          <label><input type="radio" name="nw12-q3" value="certification">無線LAN機器どうしの接続を認定する枠組み</label>
+          <label><input type="radio" name="nw12-q3" value="address">端末へ割り振る識別情報</label>
+          <p class="nw-quiz__feedback" data-network-feedback aria-live="polite"></p>
+        </fieldset>
+
+        <fieldset class="nw-quiz__question" data-network-question data-correct="identify" data-explanation="MACアドレスは、同じLANへ接続した端末を区別するために使います。">
+          <legend>問4　MACアドレスは何のために使いますか。</legend>
+          <label><input type="radio" name="nw12-q4" value="speed">ケーブルの伝送速度を表す</label>
+          <label><input type="radio" name="nw12-q4" value="identify">LAN内の端末を区別する</label>
+          <label><input type="radio" name="nw12-q4" value="encrypt">通信内容を暗号化する</label>
+          <p class="nw-quiz__feedback" data-network-feedback aria-live="polite"></p>
+        </fieldset>
+
+        <fieldset class="nw-quiz__question" data-network-question data-correct="copy" data-explanation="送信先が表にない場合、ハブは受信したポート以外へコピーを送り、該当する端末だけが受信します。">
+          <legend>問5　スイッチングハブの表に送信先がまだ記録されていないとき、ハブはどうしますか。</legend>
+          <label><input type="radio" name="nw12-q5" value="discard">必ずその場で破棄する</label>
+          <label><input type="radio" name="nw12-q5" value="internet">インターネットへ送り出す</label>
+          <label><input type="radio" name="nw12-q5" value="copy">受信したポート以外へコピーを送る</label>
+          <p class="nw-quiz__feedback" data-network-feedback aria-live="polite"></p>
+        </fieldset>
+
+        <div class="nw-quiz__actions">
+          <button type="button" data-network-quiz-check>答え合わせ</button>
+          <button type="reset" data-network-quiz-reset>やり直す</button>
+        </div>
+      </form>
+    </article>
+  </section>
+
+  <section id="examples_and_questions"><!-- script_pages.js --></section>
+</body>
+</html>

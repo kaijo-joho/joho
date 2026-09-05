@@ -27,7 +27,8 @@ const pageSpecs = [
   { id: 'lc04', slides: 3 },
   { id: 'dr31', slides: 6 },
   { id: 'dr32', slides: 3 },
-  { id: 'nw11', slides: 5 }
+  { id: 'nw11', slides: 5 },
+  { id: 'nw12', slides: 7 }
 ];
 
 const [deck, css, logicCss, networkCss, networkJs, applications, ...pages] = await Promise.all([
@@ -400,5 +401,161 @@ const reviewTermsScript = networkJs.slice(
 );
 ok(!reviewTermsScript.includes('notifyContentResize()'), 'nw11の語句開閉でスライドの再計測を要求しない');
 ok(networkCss.includes('overflow-anchor: none'), 'nw11の語句開閉をスクロール位置の基準から外す');
+
+const networkInterfacePage = pages[pageSpecs.findIndex(({ id }) => id === 'nw12')];
+ok(networkInterfacePage.includes('./css/network-mechanisms.css'), 'nw12がネットワーク教材CSSを読み込む');
+ok(networkInterfacePage.includes('./js/network-lessons.js'), 'nw12がネットワーク教材JavaScriptを読み込む');
+ok(
+  networkInterfacePage.indexOf('./js/main.js') < networkInterfacePage.indexOf('./js/network-lessons.js')
+    && networkInterfacePage.indexOf('./js/network-lessons.js') < networkInterfacePage.indexOf('./js/lesson-slide-deck.js'),
+  'nw12は共通サイト初期化、教材固有処理、スライド基盤の順で読み込む'
+);
+for (const title of [
+  'ネットワークインターフェース層の役割',
+  '有線でデータを送る',
+  '無線でデータを送る',
+  'LAN内で相手を区別するしくみ',
+  'スイッチングハブの転送',
+  '語句とポイントのまとめ',
+  '問題演習'
+]) {
+  ok(networkInterfacePage.includes(`data-lesson-slide-title="${title}"`), `nw12に「${title}」スライド`);
+}
+equal(
+  (networkInterfacePage.match(/<button\b[^>]*\bdata-network-reveal(?:\s|>)/g) || []).length,
+  7,
+  'nw12に学習範囲の7個の穴埋め'
+);
+ok(!/class="nw-reveal__answer"\s+hidden/.test(networkInterfacePage), 'JavaScript無効時もnw12の答えを読める');
+
+const interfaceIntroSlide = networkInterfacePage.slice(
+  networkInterfacePage.indexOf('data-lesson-slide-title="ネットワークインターフェース層の役割"'),
+  networkInterfacePage.indexOf('data-lesson-slide-title="有線でデータを送る"')
+);
+equal((interfaceIntroSlide.match(/\bdata-interface-stage=/g) || []).length, 4, 'nw12はデータを信号へ変える4段階を表示');
+for (const control of ['prev', 'next', 'reset']) {
+  ok(interfaceIntroSlide.includes(`data-interface-flow-${control}`), `nw12の信号変換図に${control}操作`);
+}
+for (const term of ['物理層', 'データリンク層', 'ヘッダ', 'ペイロード']) {
+  ok(interfaceIntroSlide.includes(term), `nw12の範囲注釈に補助語句「${term}」`);
+}
+ok(interfaceIntroSlide.includes('名称や構造の暗記は不要'), 'nw12は補助語句が範囲外であることを明示');
+
+const wiredSlide = networkInterfacePage.slice(
+  networkInterfacePage.indexOf('data-lesson-slide-title="有線でデータを送る"'),
+  networkInterfacePage.indexOf('data-lesson-slide-title="無線でデータを送る"')
+);
+equal((wiredSlide.match(/\bdata-medium-moving-signal=/g) || []).length, 2, 'nw12の有線比較に電気と光の移動信号');
+ok(wiredSlide.includes('data-medium-replay'), 'nw12の有線比較に信号アニメーションの再生操作');
+for (const answer of ['ツイストペアケーブル', '光ファイバーケーブル']) {
+  ok(wiredSlide.includes(`class="nw-reveal__answer">${answer}</span>`), `nw12の有線比較に「${answer}」`);
+}
+
+const wirelessSlide = networkInterfacePage.slice(
+  networkInterfacePage.indexOf('data-lesson-slide-title="無線でデータを送る"'),
+  networkInterfacePage.indexOf('data-lesson-slide-title="LAN内で相手を区別するしくみ"')
+);
+equal((wirelessSlide.match(/\bdata-lesson-view-panel=/g) || []).length, 2, 'nw12の無線説明は2.4GHz帯と5GHz帯を切り替える');
+ok(wirelessSlide.includes('data-lesson-default-view="2g"'), 'nw12の無線説明は2.4GHz帯から開始');
+for (const answer of ['Wi-Fi', 'チャネル']) {
+  ok(wirelessSlide.includes(`class="nw-reveal__answer">${answer}</span>`), `nw12の無線説明に「${answer}」`);
+}
+equal((wirelessSlide.match(/IEEE 802\.11(?:a|g|n|ac)<\/th>/g) || []).length, 4, 'nw12は原本の無線LAN規格表を補足表示');
+
+const macSlide = networkInterfacePage.slice(
+  networkInterfacePage.indexOf('data-lesson-slide-title="LAN内で相手を区別するしくみ"'),
+  networkInterfacePage.indexOf('data-lesson-slide-title="スイッチングハブの転送"')
+);
+ok(macSlide.includes('class="nw-reveal__answer">MACアドレス</span>'), 'nw12のLAN内識別にMACアドレスの穴埋め');
+equal((macSlide.match(/class="nw-mac-route__line"/g) || []).length, 2, 'nw12のMACアドレス図はPC1、ハブ、PC2を2本の線で接続');
+for (const field of ['送信先', '送信元', '内容']) {
+  ok(macSlide.includes(`<b>${field}</b>`), `nw12のLAN内データ図に「${field}」`);
+}
+
+const switchSlide = networkInterfacePage.slice(
+  networkInterfacePage.indexOf('data-lesson-slide-title="スイッチングハブの転送"'),
+  networkInterfacePage.indexOf('data-lesson-slide-title="語句とポイントのまとめ"')
+);
+equal((switchSlide.match(/\bdata-switch-step=/g) || []).length, 6, 'nw12のスイッチングハブ図に6段階');
+equal((switchSlide.match(/\bdata-switch-path=/g) || []).length, 5, 'nw12のスイッチングハブ図に5本の移動経路');
+equal((switchSlide.match(/\bdata-switch-mover=/g) || []).length, 5, 'nw12のスイッチングハブ図に5つのデータ移動表示');
+equal((switchSlide.match(/\bdata-switch-mobile-path=/g) || []).length, 5, 'nw12のモバイル用スイッチングハブ図に5本の移動経路');
+equal((switchSlide.match(/\bdata-switch-mobile-mover=/g) || []).length, 5, 'nw12のモバイル用スイッチングハブ図に5つのデータ移動表示');
+for (const control of ['prev', 'replay', 'next', 'reset']) {
+  ok(switchSlide.includes(`data-switch-${control}`), `nw12のスイッチングハブ図に${control}操作`);
+}
+ok(switchSlide.includes('class="nw-reveal__answer">MACアドレステーブル</span>'), 'nw12の転送説明にMACアドレステーブルの穴埋め');
+
+const interfaceReviewSlide = networkInterfacePage.slice(
+  networkInterfacePage.indexOf('data-lesson-slide-title="語句とポイントのまとめ"'),
+  networkInterfacePage.indexOf('data-lesson-slide-title="問題演習"')
+);
+equal((interfaceReviewSlide.match(/<details\b[^>]*\bdata-review-term(?:\s|>)/g) || []).length, 9, 'nw12のまとめに9個の独立した重要語句');
+equal((interfaceReviewSlide.match(/class="nw-review-term__body"/g) || []).length, 9, 'nw12のまとめに9個の語句説明');
+ok(!/<details\b[^>]*\bdata-review-term[^>]*\bopen(?:\s|>)/.test(interfaceReviewSlide), 'nw12の語句説明を最初から展開しない');
+for (const term of [
+  'ネットワークインターフェース層',
+  'ツイストペアケーブル',
+  '光ファイバーケーブル',
+  '無線LAN',
+  'Wi-Fi',
+  'チャネル',
+  'MACアドレス',
+  'MACアドレステーブル',
+  'スイッチングハブ'
+]) {
+  ok(interfaceReviewSlide.includes(`<summary>${term}</summary>`), `nw12のまとめに独立した重要語句「${term}」`);
+}
+for (const supplementalTerm of ['物理層', 'データリンク層', 'ヘッダ', 'ペイロード', 'フレーム']) {
+  ok(!interfaceReviewSlide.includes(`<summary>${supplementalTerm}</summary>`), `nw12のまとめは範囲外語句「${supplementalTerm}」を暗記対象にしない`);
+}
+
+const interfaceQuizSlide = networkInterfacePage.slice(
+  networkInterfacePage.indexOf('data-lesson-slide-title="問題演習"'),
+  networkInterfacePage.indexOf('id="examples_and_questions"')
+);
+equal((interfaceQuizSlide.match(/\bdata-network-question(?:\s|>)/g) || []).length, 5, 'nw12の問題演習に5問');
+equal((interfaceQuizSlide.match(/\bdata-network-feedback(?:\s|>)/g) || []).length, 5, 'nw12の各問題に固定位置の解説欄');
+for (const supplementalTerm of ['物理層', 'データリンク層', 'ヘッダ', 'ペイロード', 'フレーム']) {
+  ok(!interfaceQuizSlide.includes(supplementalTerm), `nw12の問題演習に範囲外語句「${supplementalTerm}」を出題しない`);
+}
+
+for (const requirement of [
+  'class NetworkInterfaceFlow',
+  'class NetworkMediumDemo',
+  'class NetworkSwitchDemo',
+  'class NetworkQuiz',
+  "'[data-network-interface-flow]'",
+  "'[data-network-medium-demo]'",
+  "'[data-network-switch-demo]'",
+  "'[data-network-quiz]'",
+  'SWITCH_DEMO_STEPS',
+  'getTotalLength',
+  'data-network-quiz-score'
+]) {
+  ok(networkJs.includes(requirement), `nw12の教材JavaScriptに ${requirement}`);
+}
+
+for (const requirement of [
+  '.nw-scope-note',
+  '.nw-interface-flow__stages',
+  '.nw-cable-comparison',
+  '.nw-wireless-layout',
+  '.nw-mac-route',
+  '.nw-switch-svg',
+  '.nw-switch-sequence',
+  '.nw-quiz__question',
+  '.nw-review-scope-reminder'
+]) {
+  ok(networkCss.includes(requirement), `nw12の教材CSSに ${requirement}`);
+}
+ok(
+  /@media \(max-width: 520px\)[\s\S]*?\.nw-mac-route\s*\{[\s\S]*?grid-template-columns:\s*1fr;/.test(networkCss),
+  'nw12のMACアドレス経路図を狭い画面では縦に配置'
+);
+ok(
+  /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.nw-medium-figure\.is-playing/.test(networkCss),
+  'nw12の信号アニメーションは動きを減らす設定へ対応'
+);
 
 console.log(`lesson-slide-pages: ${checks}件の検証に合格`);

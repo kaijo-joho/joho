@@ -8,6 +8,10 @@
   const PROTOCOL_SELECTOR = '[data-network-protocol]';
   const LAYER_JOURNEY_SELECTOR = '[data-network-layer-journey]';
   const REVIEW_TERMS_SELECTOR = '[data-network-review-terms]';
+  const INTERFACE_FLOW_SELECTOR = '[data-network-interface-flow]';
+  const MEDIUM_DEMO_SELECTOR = '[data-network-medium-demo]';
+  const SWITCH_DEMO_SELECTOR = '[data-network-switch-demo]';
+  const QUIZ_SELECTOR = '[data-network-quiz]';
   const CONTENT_RESIZE_EVENT = 'joho:lesson-content-resize';
   const REVEAL_CHANGE_EVENT = 'joho:network-reveal-change';
 
@@ -18,6 +22,64 @@
     reliability: '壊れたパケットの検出と再送',
     security: '通信を守る鍵'
   };
+
+  const INTERFACE_FLOW_STEPS = [
+    '上の階層から、相手へ送りたいデータを受け取ります。',
+    '同じLAN内で届けられるように、宛先などの情報を付け加えます。',
+    'データと届けるための情報を、機器が扱える0と1の並びにします。',
+    '0と1を電気・光・電波の変化にして、ケーブルや空間へ送り出します。'
+  ];
+
+  const SWITCH_DEMO_STEPS = [
+    {
+      title: '送信前',
+      description: '表にはまだ何も記録されていません。',
+      rows: [],
+      ports: [],
+      movers: [],
+      results: []
+    },
+    {
+      title: 'PC1から送信',
+      description: 'PC1が、PC2宛のデータをポートAへ送ります。',
+      rows: [],
+      ports: ['a'],
+      movers: ['outbound'],
+      results: []
+    },
+    {
+      title: 'PC1を記録',
+      description: '受け取ったポートAと、送信元PC1のMACアドレスを記録します。',
+      rows: ['pc1'],
+      ports: ['a'],
+      movers: [],
+      results: []
+    },
+    {
+      title: '複数のポートへ転送',
+      description: 'PC2の場所は未登録なので、BとCへコピーを送ります。PC2は受信し、PC3は破棄します。',
+      rows: ['pc1'],
+      ports: ['b', 'c'],
+      movers: ['flood-b', 'flood-c'],
+      results: ['received', 'discard']
+    },
+    {
+      title: 'PC2から返信',
+      description: 'PC2の返信を受け取り、PC2がポートBにいることを記録します。',
+      rows: ['pc1', 'pc2'],
+      ports: ['b'],
+      movers: ['reply-in'],
+      results: []
+    },
+    {
+      title: '記録を使って転送',
+      description: 'PC1はポートAにいると分かっているので、返信をAだけへ送ります。',
+      rows: ['pc1', 'pc2'],
+      ports: ['a'],
+      movers: ['reply-out'],
+      results: []
+    }
+  ];
 
   const LAYER_JOURNEY_STEPS = [
     {
@@ -791,6 +853,404 @@
     }
   }
 
+  class NetworkInterfaceFlow {
+    constructor(root) {
+      if (!(root instanceof HTMLElement)) throw new TypeError('信号へ変換する図が必要です。');
+      if (root.__networkInterfaceFlow) return root.__networkInterfaceFlow;
+
+      this.root = root;
+      this.step = Math.min(
+        INTERFACE_FLOW_STEPS.length - 1,
+        Math.max(0, Number.parseInt(root.dataset.step || '0', 10) || 0)
+      );
+      this.controls = root.querySelector('[data-interface-flow-controls]');
+      this.previousButton = root.querySelector('[data-interface-flow-prev]');
+      this.nextButton = root.querySelector('[data-interface-flow-next]');
+      this.resetButton = root.querySelector('[data-interface-flow-reset]');
+      this.stepIndex = root.querySelector('[data-interface-flow-index]');
+      this.stages = Array.from(root.querySelectorAll('[data-interface-stage]'));
+      this.narration = root.querySelector('[data-interface-flow-narration]');
+      this.reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)') || { matches: false };
+
+      if (this.stages.length !== INTERFACE_FLOW_STEPS.length) {
+        throw new Error('信号へ変換する4段階がそろっていません。');
+      }
+
+      this.bind();
+      this.root.classList.add('is-ready');
+      if (this.controls) this.controls.hidden = false;
+      this.render(false);
+      root.__networkInterfaceFlow = this;
+    }
+
+    bind() {
+      this.previousButton?.addEventListener('click', () => this.setStep(this.step - 1));
+      this.nextButton?.addEventListener('click', () => this.setStep(this.step + 1));
+      this.resetButton?.addEventListener('click', () => this.setStep(0));
+      this.controls?.addEventListener('keydown', event => {
+        const keys = {
+          ArrowLeft: this.step - 1,
+          ArrowRight: this.step + 1,
+          Home: 0,
+          End: INTERFACE_FLOW_STEPS.length - 1
+        };
+        if (!(event.key in keys)) return;
+        event.preventDefault();
+        this.setStep(keys[event.key]);
+      });
+    }
+
+    setStep(nextStep) {
+      const boundedStep = Math.min(INTERFACE_FLOW_STEPS.length - 1, Math.max(0, nextStep));
+      if (boundedStep === this.step) return;
+      this.step = boundedStep;
+      this.render(true);
+    }
+
+    render(animate) {
+      this.root.dataset.step = String(this.step);
+      this.stages.forEach((stage, index) => {
+        const current = index === this.step;
+        stage.classList.toggle('is-current', current);
+        stage.classList.toggle('is-complete', index < this.step);
+        if (current) {
+          stage.setAttribute('aria-current', 'step');
+        } else {
+          stage.removeAttribute('aria-current');
+        }
+      });
+      if (this.stepIndex) this.stepIndex.textContent = String(this.step + 1);
+      if (this.narration) this.narration.textContent = INTERFACE_FLOW_STEPS[this.step];
+      if (this.previousButton) this.previousButton.disabled = this.step === 0;
+      if (this.nextButton) this.nextButton.disabled = this.step === INTERFACE_FLOW_STEPS.length - 1;
+      if (this.resetButton) this.resetButton.disabled = this.step === 0;
+
+      this.root.classList.remove('is-signal-animating');
+      if (animate && this.step === INTERFACE_FLOW_STEPS.length - 1 && !this.reducedMotion.matches) {
+        void this.root.getBoundingClientRect();
+        this.root.classList.add('is-signal-animating');
+      }
+    }
+  }
+
+  class NetworkMediumDemo {
+    constructor(root) {
+      if (!(root instanceof HTMLElement)) throw new TypeError('伝送媒体の比較図が必要です。');
+      if (root.__networkMediumDemo) return root.__networkMediumDemo;
+
+      this.root = root;
+      this.replayButton = root.querySelector('[data-medium-replay]');
+      this.reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)') || { matches: false };
+      this.replayButton?.addEventListener('click', () => this.play());
+      this.root.dataset.networkMediumDemoReady = 'true';
+      root.__networkMediumDemo = this;
+    }
+
+    play() {
+      this.root.classList.remove('is-playing', 'is-animation-complete');
+      void this.root.getBoundingClientRect();
+      if (this.reducedMotion.matches) {
+        this.root.classList.add('is-animation-complete');
+      } else {
+        this.root.classList.add('is-playing');
+      }
+    }
+  }
+
+  class NetworkSwitchDemo {
+    constructor(root) {
+      if (!(root instanceof HTMLElement)) throw new TypeError('スイッチングハブの転送図が必要です。');
+      if (root.__networkSwitchDemo) return root.__networkSwitchDemo;
+
+      this.root = root;
+      this.step = Math.min(
+        SWITCH_DEMO_STEPS.length - 1,
+        Math.max(0, Number.parseInt(root.dataset.step || '0', 10) || 0)
+      );
+      this.controls = root.querySelector('[data-switch-controls]');
+      this.previousButton = root.querySelector('[data-switch-prev]');
+      this.nextButton = root.querySelector('[data-switch-next]');
+      this.replayButton = root.querySelector('[data-switch-replay]');
+      this.resetButton = root.querySelector('[data-switch-reset]');
+      this.stepIndex = root.querySelector('[data-switch-index]');
+      this.status = root.querySelector('[data-switch-status]');
+      this.stepDetails = Array.from(root.querySelectorAll('[data-switch-step]'));
+      this.tableRows = new Map(
+        Array.from(root.querySelectorAll('[data-switch-table-row]'))
+          .map(row => [row.dataset.switchTableRow, row])
+      );
+      this.ports = new Map(
+        Array.from(root.querySelectorAll('[data-switch-port]'))
+          .map(port => [port.dataset.switchPort, port])
+      );
+      this.results = new Map(
+        Array.from(root.querySelectorAll('[data-switch-result]'))
+          .map(result => [result.dataset.switchResult, result])
+      );
+      this.paths = new Map(
+        Array.from(root.querySelectorAll('[data-switch-path]'))
+          .map(path => [path.dataset.switchPath, path])
+      );
+      this.movers = new Map(
+        Array.from(root.querySelectorAll('[data-switch-mover]'))
+          .map(mover => [mover.dataset.switchMover, mover])
+      );
+      this.mobileTableRows = new Map(
+        Array.from(root.querySelectorAll('[data-switch-mobile-table-row]'))
+          .map(row => [row.dataset.switchMobileTableRow, row])
+      );
+      this.mobilePorts = new Map(
+        Array.from(root.querySelectorAll('[data-switch-mobile-port]'))
+          .map(port => [port.dataset.switchMobilePort, port])
+      );
+      this.mobileResults = new Map(
+        Array.from(root.querySelectorAll('[data-switch-mobile-result]'))
+          .map(result => [result.dataset.switchMobileResult, result])
+      );
+      this.mobilePaths = new Map(
+        Array.from(root.querySelectorAll('[data-switch-mobile-path]'))
+          .map(path => [path.dataset.switchMobilePath, path])
+      );
+      this.mobileMovers = new Map(
+        Array.from(root.querySelectorAll('[data-switch-mobile-mover]'))
+          .map(mover => [mover.dataset.switchMobileMover, mover])
+      );
+      this.animationFrame = 0;
+      this.animationGeneration = 0;
+      this.reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)') || { matches: false };
+
+      if (this.stepDetails.length !== SWITCH_DEMO_STEPS.length) {
+        throw new Error('スイッチングハブの6段階がそろっていません。');
+      }
+
+      this.bind();
+      this.root.classList.add('is-ready');
+      if (this.controls) this.controls.hidden = false;
+      this.render(false);
+      root.__networkSwitchDemo = this;
+    }
+
+    bind() {
+      this.previousButton?.addEventListener('click', () => this.setStep(this.step - 1));
+      this.nextButton?.addEventListener('click', () => this.setStep(this.step + 1));
+      this.replayButton?.addEventListener('click', () => this.render(true));
+      this.resetButton?.addEventListener('click', () => this.setStep(0));
+      this.controls?.addEventListener('keydown', event => {
+        const keys = {
+          ArrowLeft: this.step - 1,
+          ArrowRight: this.step + 1,
+          Home: 0,
+          End: SWITCH_DEMO_STEPS.length - 1
+        };
+        if (!(event.key in keys)) return;
+        event.preventDefault();
+        this.setStep(keys[event.key]);
+      });
+    }
+
+    setStep(nextStep) {
+      const boundedStep = Math.min(SWITCH_DEMO_STEPS.length - 1, Math.max(0, nextStep));
+      if (boundedStep === this.step) return;
+      this.step = boundedStep;
+      this.render(true);
+    }
+
+    render(animate) {
+      this.cancelAnimation();
+      const step = SWITCH_DEMO_STEPS[this.step];
+      const visibleRows = new Set(step.rows);
+      const activePorts = new Set(step.ports);
+      const visibleResults = new Set(step.results);
+      const activeMovers = new Set(step.movers);
+
+      this.root.dataset.step = String(this.step);
+      this.tableRows.forEach((row, key) => {
+        row.toggleAttribute('hidden', !visibleRows.has(key));
+        row.classList.toggle('is-current', visibleRows.has(key));
+      });
+      this.mobileTableRows.forEach((row, key) => {
+        row.toggleAttribute('hidden', !visibleRows.has(key));
+        row.classList.toggle('is-current', visibleRows.has(key));
+      });
+      this.ports.forEach((port, key) => {
+        port.classList.toggle('is-active', activePorts.has(key));
+      });
+      this.mobilePorts.forEach((port, key) => {
+        port.classList.toggle('is-active', activePorts.has(key));
+      });
+      this.results.forEach((result, key) => {
+        result.toggleAttribute('hidden', !visibleResults.has(key));
+      });
+      this.mobileResults.forEach((result, key) => {
+        result.toggleAttribute('hidden', !visibleResults.has(key));
+      });
+      this.stepDetails.forEach((detail, index) => {
+        detail.hidden = index !== this.step;
+      });
+      this.movers.forEach((mover, key) => {
+        const visible = activeMovers.has(key);
+        mover.toggleAttribute('hidden', !visible);
+        mover.style.removeProperty('opacity');
+        if (visible) this.positionMover(mover, animate ? 0 : 1);
+      });
+      this.mobileMovers.forEach((mover, key) => {
+        const visible = activeMovers.has(key);
+        mover.toggleAttribute('hidden', !visible);
+        mover.style.removeProperty('opacity');
+        if (visible) this.positionMover(mover, animate ? 0 : 1);
+      });
+
+      if (this.stepIndex) this.stepIndex.textContent = String(this.step + 1);
+      if (this.status) this.status.textContent = `${step.title}：${step.description}`;
+      if (this.previousButton) this.previousButton.disabled = this.step === 0;
+      if (this.nextButton) this.nextButton.disabled = this.step === SWITCH_DEMO_STEPS.length - 1;
+      if (this.resetButton) this.resetButton.disabled = this.step === 0;
+      if (this.replayButton) this.replayButton.disabled = step.movers.length === 0;
+
+      if (animate && step.movers.length) this.animateMovers(step.movers);
+    }
+
+    animateMovers(names) {
+      const items = names
+        .flatMap((name, index) => [
+          { mover: this.movers.get(name), delay: index * 120 },
+          { mover: this.mobileMovers.get(name), delay: index * 120 }
+        ])
+        .filter(item => item.mover && this.pathForMover(item.mover));
+      if (!items.length) return;
+
+      if (this.reducedMotion.matches) {
+        items.forEach(item => this.positionMover(item.mover, 1));
+        this.root.classList.add('is-animation-complete');
+        return;
+      }
+
+      const generation = ++this.animationGeneration;
+      const startTime = performance.now();
+      this.root.classList.remove('is-animation-complete');
+      this.root.classList.add('is-animating');
+      items.forEach(item => {
+        this.positionMover(item.mover, 0);
+        item.mover.style.opacity = '0';
+      });
+
+      const tick = now => {
+        if (generation !== this.animationGeneration) return;
+        let running = false;
+        items.forEach(item => {
+          const elapsed = now - startTime - item.delay;
+          if (elapsed < 0) {
+            running = true;
+            return;
+          }
+          const progress = Math.min(1, elapsed / 900);
+          const eased = 1 - Math.pow(1 - progress, 2);
+          item.mover.style.opacity = '1';
+          this.positionMover(item.mover, eased);
+          if (progress < 1) running = true;
+        });
+
+        if (running) {
+          this.animationFrame = requestAnimationFrame(tick);
+        } else {
+          this.animationFrame = 0;
+          this.root.classList.remove('is-animating');
+          this.root.classList.add('is-animation-complete');
+        }
+      };
+      this.animationFrame = requestAnimationFrame(tick);
+    }
+
+    positionMover(mover, progress) {
+      const path = this.pathForMover(mover);
+      if (!path || typeof path.getTotalLength !== 'function') return;
+      const length = path.getTotalLength();
+      const point = path.getPointAtLength(Math.min(1, Math.max(0, progress)) * length);
+      mover.setAttribute('transform', `translate(${point.x} ${point.y})`);
+    }
+
+    pathForMover(mover) {
+      const desktopKey = mover.dataset.switchPathRef;
+      const mobileKey = mover.dataset.switchMobilePathRef;
+      return desktopKey ? this.paths.get(desktopKey) : this.mobilePaths.get(mobileKey);
+    }
+
+    cancelAnimation() {
+      this.animationGeneration += 1;
+      if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = 0;
+      this.root.classList.remove('is-animating', 'is-animation-complete');
+    }
+  }
+
+  class NetworkQuiz {
+    constructor(root) {
+      if (!(root instanceof HTMLFormElement)) throw new TypeError('ネットワークの問題フォームが必要です。');
+      if (root.__networkQuiz) return root.__networkQuiz;
+
+      this.root = root;
+      this.questions = Array.from(root.querySelectorAll('[data-network-question]'));
+      this.checkButton = root.querySelector('[data-network-quiz-check]');
+      this.resetButton = root.querySelector('[data-network-quiz-reset]');
+      this.score = root.querySelector('[data-network-quiz-score]');
+
+      if (!this.questions.length) throw new Error('問題が見つかりません。');
+
+      this.checkButton?.addEventListener('click', () => this.check());
+      this.root.addEventListener('change', event => this.clearQuestion(event.target));
+      this.root.addEventListener('reset', () => requestAnimationFrame(() => this.reset()));
+      this.root.dataset.networkQuizReady = 'true';
+      root.__networkQuiz = this;
+    }
+
+    clearQuestion(target) {
+      const question = target instanceof Element ? target.closest('[data-network-question]') : null;
+      if (!question) return;
+      question.classList.remove('is-correct', 'is-incorrect', 'is-unanswered');
+      const feedback = question.querySelector('[data-network-feedback]');
+      if (feedback) feedback.textContent = '';
+      if (this.score) this.score.textContent = '未判定';
+    }
+
+    check() {
+      let answered = 0;
+      let correct = 0;
+      this.questions.forEach(question => {
+        const selected = question.querySelector('input[type="radio"]:checked');
+        const feedback = question.querySelector('[data-network-feedback]');
+        const isCorrect = selected?.value === question.dataset.correct;
+        question.classList.toggle('is-unanswered', !selected);
+        question.classList.toggle('is-correct', Boolean(selected && isCorrect));
+        question.classList.toggle('is-incorrect', Boolean(selected && !isCorrect));
+
+        if (!selected) {
+          if (feedback) feedback.textContent = '答えを選んでください。';
+          return;
+        }
+
+        answered += 1;
+        if (isCorrect) correct += 1;
+        if (feedback) {
+          feedback.textContent = `${isCorrect ? '正解。' : '確認。'}${question.dataset.explanation || ''}`;
+        }
+      });
+
+      if (!this.score) return;
+      this.score.textContent = answered === this.questions.length
+        ? `${correct} / ${this.questions.length} 正解`
+        : `${answered} / ${this.questions.length} 問を判定`;
+    }
+
+    reset() {
+      this.questions.forEach(question => {
+        question.classList.remove('is-correct', 'is-incorrect', 'is-unanswered');
+        const feedback = question.querySelector('[data-network-feedback]');
+        if (feedback) feedback.textContent = '';
+      });
+      if (this.score) this.score.textContent = '未判定';
+    }
+  }
+
   class NetworkReviewTerms {
     constructor(root) {
       if (!(root instanceof HTMLElement)) throw new TypeError('重要語句のまとまりが必要です。');
@@ -874,6 +1334,38 @@
         new NetworkTransmission(root);
       } catch (error) {
         console.warn('データの伝送方式を初期化できませんでした。', error);
+      }
+    });
+
+    document.querySelectorAll(INTERFACE_FLOW_SELECTOR).forEach(root => {
+      try {
+        new NetworkInterfaceFlow(root);
+      } catch (error) {
+        console.warn('信号へ変換する図を初期化できませんでした。', error);
+      }
+    });
+
+    document.querySelectorAll(MEDIUM_DEMO_SELECTOR).forEach(root => {
+      try {
+        new NetworkMediumDemo(root);
+      } catch (error) {
+        console.warn('伝送媒体の比較図を初期化できませんでした。', error);
+      }
+    });
+
+    document.querySelectorAll(SWITCH_DEMO_SELECTOR).forEach(root => {
+      try {
+        new NetworkSwitchDemo(root);
+      } catch (error) {
+        console.warn('スイッチングハブの転送図を初期化できませんでした。', error);
+      }
+    });
+
+    document.querySelectorAll(QUIZ_SELECTOR).forEach(root => {
+      try {
+        new NetworkQuiz(root);
+      } catch (error) {
+        console.warn('ネットワークの問題演習を初期化できませんでした。', error);
       }
     });
 
