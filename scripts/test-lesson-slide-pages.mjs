@@ -28,7 +28,8 @@ const pageSpecs = [
   { id: 'dr31', slides: 6 },
   { id: 'dr32', slides: 3 },
   { id: 'nw11', slides: 5 },
-  { id: 'nw12', slides: 7 }
+  { id: 'nw12', slides: 7 },
+  { id: 'nw13', slides: 7 }
 ];
 
 const [deck, css, logicCss, networkCss, networkJs, applications, ...pages] = await Promise.all([
@@ -565,6 +566,141 @@ ok(
 ok(
   /@media \(prefers-reduced-motion: reduce\)[\s\S]*?\.nw-medium-figure\.is-playing/.test(networkCss),
   'nw12の信号アニメーションは動きを減らす設定へ対応'
+);
+
+const internetLayerPage = pages[pageSpecs.findIndex(({ id }) => id === 'nw13')];
+ok(internetLayerPage.includes('./css/network-mechanisms.css'), 'nw13がネットワーク教材CSSを読み込む');
+ok(internetLayerPage.includes('./js/network-lessons.js'), 'nw13がネットワーク教材JavaScriptを読み込む');
+ok(
+  internetLayerPage.indexOf('./js/main.js') < internetLayerPage.indexOf('./js/network-lessons.js')
+    && internetLayerPage.indexOf('./js/network-lessons.js') < internetLayerPage.indexOf('./js/lesson-slide-deck.js'),
+  'nw13は共通サイト初期化、教材固有処理、スライド基盤の順で読み込む'
+);
+for (const title of [
+  'インターネット層の役割',
+  'IPv4アドレスの表し方',
+  'ネットワーク部とホスト部',
+  'IPアドレスの割り当てと変換',
+  'IPv4の不足とIPv6',
+  '語句とポイントのまとめ',
+  '問題演習'
+]) {
+  ok(internetLayerPage.includes(`data-lesson-slide-title="${title}"`), `nw13に「${title}」スライド`);
+}
+equal(
+  (internetLayerPage.match(/<button\b[^>]*\bdata-network-reveal(?:\s|>)/g) || []).length,
+  15,
+  'nw13に学習範囲の15個の穴埋め'
+);
+ok(!/class="nw-reveal__answer"\s+hidden/.test(internetLayerPage), 'JavaScript無効時もnw13の答えを読める');
+
+const internetRoleSlide = internetLayerPage.slice(
+  internetLayerPage.indexOf('data-lesson-slide-title="インターネット層の役割"'),
+  internetLayerPage.indexOf('data-lesson-slide-title="IPv4アドレスの表し方"')
+);
+equal((internetRoleSlide.match(/\bdata-network-step-detail(?:\s|>)/g) || []).length, 6, 'nw13のルーター中継図に6段階');
+equal((internetRoleSlide.match(/\bdata-network-step-path=/g) || []).length, 6, 'nw13のルーター中継図にデスクトップ・モバイル各3経路');
+equal((internetRoleSlide.match(/\bdata-network-step-mover(?:\s|>)/g) || []).length, 6, 'nw13のルーター中継図にデスクトップ・モバイル各3移動表示');
+for (const control of ['prev', 'next', 'replay', 'reset']) {
+  ok(internetRoleSlide.includes(`data-network-step-${control}`), `nw13のルーター中継図に${control}操作`);
+}
+for (const relation of ['最終的な宛先', '次に渡す相手', '途中のルーターを通っても変わりません']) {
+  ok(internetRoleSlide.includes(relation), `nw13のIPアドレスとLAN内転送の対比に「${relation}」`);
+}
+
+const ipv4FormatSlide = internetLayerPage.slice(
+  internetLayerPage.indexOf('data-lesson-slide-title="IPv4アドレスの表し方"'),
+  internetLayerPage.indexOf('data-lesson-slide-title="ネットワーク部とホスト部"')
+);
+equal((ipv4FormatSlide.match(/\bdata-network-step-detail(?:\s|>)/g) || []).length, 4, 'nw13のIPv4表記図に4段階');
+ok(ipv4FormatSlide.includes('11000000101010000110010000000001'), 'nw13のIPv4表記図に32ビットの例');
+ok(ipv4FormatSlide.includes('192<span>.</span>168<span>.</span>100<span>.</span>1'), 'nw13は2進数から192.168.100.1へ変換');
+
+const prefixSlide = internetLayerPage.slice(
+  internetLayerPage.indexOf('data-lesson-slide-title="ネットワーク部とホスト部"'),
+  internetLayerPage.indexOf('data-lesson-slide-title="IPアドレスの割り当てと変換"')
+);
+equal((prefixSlide.match(/\bdata-lesson-view-panel=/g) || []).length, 2, 'nw13は/24と/26の区切りを切り替えて比較');
+for (const example of ['192.168.100.1/24', '255.255.255.0', '192.168.100.1/26', '255.255.255.192']) {
+  ok(prefixSlide.includes(example), `nw13の区切り図に「${example}」`);
+}
+ok(prefixSlide.includes('ネットワークアドレス、ブロードキャストアドレス、割り当て可能な範囲の計算はnw14'), 'nw13はアドレス範囲の計算をnw14へつなぐ');
+
+const natSlide = internetLayerPage.slice(
+  internetLayerPage.indexOf('data-lesson-slide-title="IPアドレスの割り当てと変換"'),
+  internetLayerPage.indexOf('data-lesson-slide-title="IPv4の不足とIPv6"')
+);
+equal((natSlide.match(/\bdata-network-step-detail(?:\s|>)/g) || []).length, 6, 'nw13のDHCP・NAT図に6段階');
+equal((natSlide.match(/\bdata-network-step-mover(?:\s|>)/g) || []).length, 12, 'nw13のDHCP・NAT図にデスクトップ・モバイル各6移動表示');
+for (const address of ['192.168.0.101', '192.168.0.102', '203.0.113.5', '198.51.100.20']) {
+  ok(natSlide.includes(address), `nw13のDHCP・NAT図に有効な説明用アドレス「${address}」`);
+}
+for (const invalidAddress of ['123.345', '.xxx', '.aaa']) {
+  ok(!natSlide.includes(invalidAddress), `nw13へ原本の無効な例示「${invalidAddress}」を持ち込まない`);
+}
+
+const ipv6Slide = internetLayerPage.slice(
+  internetLayerPage.indexOf('data-lesson-slide-title="IPv4の不足とIPv6"'),
+  internetLayerPage.indexOf('data-lesson-slide-title="語句とポイントのまとめ"')
+);
+equal((ipv6Slide.match(/class="nw-ip-version-row nw-ip-version-row--v4"/g) || []).length, 1, 'nw13にIPv4の比較行');
+equal((ipv6Slide.match(/class="nw-ip-version-row nw-ip-version-row--v6"/g) || []).length, 1, 'nw13にIPv6の比較行');
+ok(ipv6Slide.includes('IPv4とIPv6は並行して使われています'), 'nw13はIPv4とIPv6の併用を説明');
+
+const internetReviewSlide = internetLayerPage.slice(
+  internetLayerPage.indexOf('data-lesson-slide-title="語句とポイントのまとめ"'),
+  internetLayerPage.indexOf('data-lesson-slide-title="問題演習"')
+);
+equal((internetReviewSlide.match(/<details\b[^>]*\bdata-review-term(?:\s|>)/g) || []).length, 13, 'nw13のまとめに13個の独立した重要語句');
+equal((internetReviewSlide.match(/class="nw-review-term__body"/g) || []).length, 13, 'nw13のまとめに13個の語句説明');
+ok(!/<details\b[^>]*\bdata-review-term[^>]*\bopen(?:\s|>)/.test(internetReviewSlide), 'nw13の語句説明を最初から展開しない');
+for (const term of ['インターネット層', 'IPアドレス', 'ルーター', 'IPv4', 'ネットワーク部', 'ホスト部', 'サブネットマスク', 'CIDR表記', 'グローバルアドレス', 'プライベートアドレス', 'DHCP', 'NAT', 'IPv6']) {
+  ok(internetReviewSlide.includes(`<summary>${term}</summary>`), `nw13のまとめに独立した重要語句「${term}」`);
+}
+ok(!internetReviewSlide.includes('<summary>IPアドレスのクラス</summary>'), 'IPアドレスのクラス表をnw13の重要語句にしない');
+ok(internetReviewSlide.includes('IPアドレスのクラス表は参考・補足'), 'クラス表をnw14の参考・補足へ送る');
+
+const internetQuizSlide = internetLayerPage.slice(
+  internetLayerPage.indexOf('data-lesson-slide-title="問題演習"'),
+  internetLayerPage.indexOf('id="examples_and_questions"')
+);
+equal((internetQuizSlide.match(/\bdata-network-question(?:\s|>)/g) || []).length, 6, 'nw13の問題演習に6問');
+equal((internetQuizSlide.match(/\bdata-network-feedback(?:\s|>)/g) || []).length, 6, 'nw13の各問題に固定位置の解説欄');
+ok(!internetQuizSlide.includes('IPアドレスのクラス'), 'nw13の問題演習でIPアドレスのクラスを出題しない');
+
+for (const requirement of [
+  'class NetworkStepDemo',
+  "'[data-network-step-demo]'",
+  'data-network-step-detail',
+  'data-network-step-mover',
+  'networkStepPathRef',
+  "visual.toggleAttribute('hidden'",
+  "!visual.hasAttribute('hidden')",
+  'reducedMotion.matches',
+  'getPointAtLength'
+]) {
+  ok(networkJs.includes(requirement), `nw13の教材JavaScriptに ${requirement}`);
+}
+ok(
+  networkJs.includes("summary?.addEventListener('pointerdown'")
+    && networkJs.includes('restoreScrollPosition()'),
+  '語句の個別開閉でもタップ前のスライド内スクロール位置を保つ'
+);
+
+for (const requirement of [
+  '.nw-step-demo__controls',
+  '.nw-step-svg--mobile',
+  '.nw-routing-addresses',
+  '.nw-ipv4-format-visual',
+  '.nw-prefix-demo',
+  '.nw-nat-zone--private',
+  '.nw-ip-version-comparison'
+]) {
+  ok(networkCss.includes(requirement), `nw13の教材CSSに ${requirement}`);
+}
+ok(
+  /@media \(max-width: 520px\)[\s\S]*?\.nw-step-svg--wide\s*\{[\s\S]*?display:\s*none;[\s\S]*?\.nw-step-svg--mobile\s*\{[\s\S]*?display:\s*block;/.test(networkCss),
+  'nw13は狭い画面で縦向きの経路図へ切り替える'
 );
 
 console.log(`lesson-slide-pages: ${checks}件の検証に合格`);

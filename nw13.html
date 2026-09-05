@@ -1,0 +1,553 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style id="critical-colors">
+    html { color:#191919; color-scheme:light dark; background:transparent; }
+    @media (prefers-color-scheme:dark) { html { color:#e6e6e6; color-scheme:dark light; } }
+    body { background-color:#f3f3f3; }
+    @media (prefers-color-scheme:dark) { body { background-color:#0b0b0b; } }
+  </style>
+  <title>海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/network-mechanisms.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/network-lessons.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="インターネット層の役割" data-lesson-slide-layout="workspace">
+    <article class="nw-slide nw-slide--internet-role" data-network-reveal-group>
+      <h2 id="headline_1">(1) インターネット層の役割</h2>
+      <p class="nw-lead">前のページでは、MACアドレスを使って同じLAN内の相手へ届けるしくみを確認しました。ここからは、異なるLANにいる相手までデータを届ける方法を考えます。</p>
+
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
+        <output data-network-reveal-progress aria-live="polite">0 / 2</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <p class="nw-internet-definition">
+        異なるネットワークにいる端末を識別するために
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示">
+          <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">IPアドレス</span>
+        </button>
+        を使い、ネットワークの間では
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄2の答えを表示">
+          <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ルーター</span>
+        </button>
+        が次のネットワークへ中継します。
+      </p>
+
+      <figure class="nw-step-demo nw-routing-demo" data-network-step-demo data-step="0">
+        <figcaption>
+          <strong>異なるLANのPC2へ届くまで</strong>
+          <span>IPアドレスで最終的な宛先を示し、ルーターが順番に中継します。</span>
+        </figcaption>
+
+        <div class="nw-step-demo__controls" data-network-step-controls data-lesson-slide-navigation-lock role="group" aria-label="ルーターによる中継の段階操作" hidden>
+          <button type="button" data-network-step-prev aria-label="1つ前の段階へ">← 前へ</button>
+          <output aria-live="polite"><span data-network-step-index>1</span> / <span data-network-step-count>6</span></output>
+          <button type="button" data-network-step-next aria-label="1つ次の段階へ">次へ →</button>
+          <button type="button" data-network-step-replay>もう一度</button>
+          <button type="button" data-network-step-reset>最初から</button>
+        </div>
+
+        <svg class="nw-step-svg nw-step-svg--wide" viewBox="0 0 1080 400" role="img" aria-label="PC1から複数のルーターを経由して、異なるLANのPC2へデータを届ける図">
+          <rect class="nw-route-zone nw-route-zone--lan" x="18" y="56" width="320" height="272" rx="22"/>
+          <rect class="nw-route-zone nw-route-zone--internet" x="350" y="36" width="380" height="312" rx="42"/>
+          <rect class="nw-route-zone nw-route-zone--lan" x="742" y="56" width="320" height="272" rx="22"/>
+          <text class="nw-step-svg__zone-label" x="40" y="88">LAN 1</text>
+          <text class="nw-step-svg__zone-label" x="540" y="72">インターネット</text>
+          <text class="nw-step-svg__zone-label" x="1038" y="88" text-anchor="end">LAN 2</text>
+
+          <g class="nw-step-links">
+            <path d="M128 210H252"/>
+            <path d="M326 210C385 210 392 126 460 126S530 274 610 274 673 210 754 210"/>
+            <path d="M828 210H950"/>
+          </g>
+          <g class="nw-step-paths" aria-hidden="true">
+            <path data-network-step-path="route-lan1" d="M165 210H215"/>
+            <path data-network-step-path="route-core" d="M370 188C400 150 420 126 460 126S530 274 610 274 665 225 710 212"/>
+            <path data-network-step-path="route-lan2" d="M865 210H915"/>
+          </g>
+
+          <g class="nw-route-pc" transform="translate(40 162)">
+            <rect x="0" y="0" width="88" height="58" rx="7"/>
+            <path d="M12 70H76M44 58V70"/>
+            <text x="44" y="98">PC1</text>
+            <text class="nw-step-svg__small" x="44" y="119">192.168.1.10</text>
+          </g>
+          <g class="nw-route-router" transform="translate(252 164)">
+            <rect x="0" y="0" width="74" height="92" rx="12"/>
+            <circle cx="23" cy="28" r="5"/><circle cx="23" cy="48" r="5"/><circle cx="23" cy="68" r="5"/>
+            <path d="M42 28H60M42 48H60M42 68H60"/>
+            <text x="37" y="118">ルーターR1</text>
+          </g>
+          <g class="nw-route-core-router" transform="translate(430 96)"><circle r="30"/><path d="M-15 0H15M0-15V15"/></g>
+          <g class="nw-route-core-router" transform="translate(610 274)"><circle r="30"/><path d="M-15 0H15M0-15V15"/></g>
+          <g class="nw-route-router" transform="translate(754 164)">
+            <rect x="0" y="0" width="74" height="92" rx="12"/>
+            <circle cx="23" cy="28" r="5"/><circle cx="23" cy="48" r="5"/><circle cx="23" cy="68" r="5"/>
+            <path d="M42 28H60M42 48H60M42 68H60"/>
+            <text x="37" y="118">ルーターR2</text>
+          </g>
+          <g class="nw-route-pc" transform="translate(950 162)">
+            <rect x="0" y="0" width="88" height="58" rx="7"/>
+            <path d="M12 70H76M44 58V70"/>
+            <text x="44" y="98">PC2</text>
+            <text class="nw-step-svg__small" x="44" y="119">192.168.2.10</text>
+          </g>
+
+          <g class="nw-route-data" data-network-step-visual="1" transform="translate(84 132)"><rect x="-43" y="-19" width="86" height="38" rx="8"/><text y="6">PC1→PC2</text></g>
+          <g class="nw-route-data" data-network-step-visual="2" data-network-step-mover data-network-step-path-ref="route-lan1"><rect x="-35" y="-19" width="70" height="38" rx="8"/><text y="6">PC1→PC2</text></g>
+          <g class="nw-route-data" data-network-step-visual="3" data-network-step-mover data-network-step-path-ref="route-core"><rect x="-43" y="-19" width="86" height="38" rx="8"/><text y="6">PC1→PC2</text></g>
+          <g class="nw-route-data" data-network-step-visual="4" data-network-step-mover data-network-step-path-ref="route-lan2"><rect x="-35" y="-19" width="70" height="38" rx="8"/><text y="6">PC1→PC2</text></g>
+          <g class="nw-route-data nw-route-data--received" data-network-step-visual="5" transform="translate(994 136)"><rect x="-43" y="-19" width="86" height="38" rx="8"/><text y="6">受信完了</text></g>
+        </svg>
+
+        <svg class="nw-step-svg nw-step-svg--mobile" viewBox="0 0 360 720" role="img" aria-label="PC1から複数のルーターを経由して、異なるLANのPC2へデータを届ける縦向きの図">
+          <rect class="nw-route-zone nw-route-zone--lan" x="20" y="16" width="320" height="190" rx="20"/>
+          <rect class="nw-route-zone nw-route-zone--internet" x="20" y="220" width="320" height="280" rx="36"/>
+          <rect class="nw-route-zone nw-route-zone--lan" x="20" y="514" width="320" height="190" rx="20"/>
+          <text class="nw-step-svg__zone-label" x="40" y="46">LAN 1</text>
+          <text class="nw-step-svg__zone-label" x="180" y="250">インターネット</text>
+          <text class="nw-step-svg__zone-label" x="40" y="544">LAN 2</text>
+          <g class="nw-step-links"><path d="M122 103H252M289 140V278C289 310 260 320 260 320C230 360 180 385 110 425C80 445 71 475 71 558M108 591H238"/></g>
+          <g class="nw-step-paths" aria-hidden="true">
+            <path data-network-step-path="route-lan1" d="M158 103H216"/>
+            <path data-network-step-path="route-core" d="M289 226V278C289 310 260 320 260 320C230 360 180 385 110 425C80 445 71 475 71 500"/>
+            <path data-network-step-path="route-lan2" d="M146 591H200"/>
+          </g>
+          <g class="nw-route-pc" transform="translate(34 70)"><rect width="88" height="58" rx="7"/><path d="M12 70H76M44 58V70"/><text x="44" y="96">PC1</text><text class="nw-step-svg__small" x="44" y="116">192.168.1.10</text></g>
+          <g class="nw-route-router" transform="translate(252 74)"><rect width="74" height="66" rx="12"/><circle cx="23" cy="20" r="4"/><circle cx="23" cy="34" r="4"/><circle cx="23" cy="48" r="4"/><path d="M40 20H58M40 34H58M40 48H58"/><text x="37" y="92">R1</text></g>
+          <g class="nw-route-core-router" transform="translate(260 320)"><circle r="27"/><path d="M-13 0H13M0-13V13"/></g>
+          <g class="nw-route-core-router" transform="translate(110 425)"><circle r="27"/><path d="M-13 0H13M0-13V13"/></g>
+          <g class="nw-route-router" transform="translate(34 558)"><rect width="74" height="66" rx="12"/><circle cx="23" cy="20" r="4"/><circle cx="23" cy="34" r="4"/><circle cx="23" cy="48" r="4"/><path d="M40 20H58M40 34H58M40 48H58"/><text x="37" y="92">R2</text></g>
+          <g class="nw-route-pc" transform="translate(238 558)"><rect width="88" height="58" rx="7"/><path d="M12 70H76M44 58V70"/><text x="44" y="96">PC2</text><text class="nw-step-svg__small" x="44" y="116">192.168.2.10</text></g>
+          <g class="nw-route-data nw-route-data--mobile" data-network-step-visual="1" transform="translate(180 49)"><rect x="-36" y="-16" width="72" height="32" rx="8"/><text y="5">PC1→PC2</text></g>
+          <g class="nw-route-data nw-route-data--mobile" data-network-step-visual="2" data-network-step-mover data-network-step-path-ref="route-lan1"><rect x="-36" y="-16" width="72" height="32" rx="8"/><text y="5">PC1→PC2</text></g>
+          <g class="nw-route-data nw-route-data--mobile" data-network-step-visual="3" data-network-step-mover data-network-step-path-ref="route-core"><rect x="-36" y="-16" width="72" height="32" rx="8"/><text y="5">PC1→PC2</text></g>
+          <g class="nw-route-data nw-route-data--mobile" data-network-step-visual="4" data-network-step-mover data-network-step-path-ref="route-lan2"><rect x="-36" y="-16" width="72" height="32" rx="8"/><text y="5">PC1→PC2</text></g>
+          <g class="nw-route-data nw-route-data--received nw-route-data--mobile" data-network-step-visual="5" transform="translate(282 536)"><rect x="-36" y="-16" width="72" height="32" rx="8"/><text y="5">受信完了</text></g>
+        </svg>
+
+        <div class="nw-routing-addresses" aria-label="IPアドレスとLAN内の宛先の違い">
+          <p><strong>最終的な宛先</strong><span>PC2のIPアドレス。途中のルーターを通っても変わりません。</span></p>
+          <p><strong>次に渡す相手</strong><span>同じLAN内ではMACアドレスを使い、まずルーターへ渡します。</span></p>
+        </div>
+
+        <ol class="nw-step-sequence" aria-label="異なるLANへ届ける6段階">
+          <li data-network-step-detail data-step-title="送信前"><span>PC1とPC2は異なるLANに接続しています。</span></li>
+          <li data-network-step-detail data-step-title="最終宛先を指定"><span>PC1は、最終的な宛先としてPC2のIPアドレスを指定します。</span></li>
+          <li data-network-step-detail data-step-title="LAN 1から送信"><span>PC2は同じLANにいないため、PC1はまずルーターR1へ渡します。</span></li>
+          <li data-network-step-detail data-step-title="ルーターが中継"><span>各ルーターは宛先IPアドレスを確かめ、次のルーターへ送ります。</span></li>
+          <li data-network-step-detail data-step-title="LAN 2へ到着"><span>ルーターR2は、LAN 2にいるPC2へデータを渡します。</span></li>
+          <li data-network-step-detail data-step-title="PC2が受信"><span>IPアドレスで示した最終的な宛先へデータが届きました。</span></li>
+        </ol>
+        <p class="nw-step-status" data-network-step-status aria-live="polite"><strong data-network-step-status-title></strong><span data-network-step-status-description></span></p>
+      </figure>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="IPv4アドレスの表し方" data-lesson-slide-layout="workspace">
+    <article class="nw-slide nw-slide--ipv4-format" data-network-reveal-group>
+      <h2 id="headline_2">(2) IPv4アドレスの表し方</h2>
+      <p class="nw-lead">ルーターが最終的な宛先を判断するには、機器ごとのIPアドレスが必要です。現在も広く使われているIPv4の表し方を見ていきます。</p>
+
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
+        <output data-network-reveal-progress aria-live="polite">0 / 2</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <p class="nw-ipv4-definition">
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示">
+          <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">IPv4</span>
+        </button>
+        のIPアドレスは
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄2の答えを表示">
+          <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">32ビット</span>
+        </button>
+        で構成され、8ビットずつ10進数へ直して表します。
+      </p>
+
+      <figure class="nw-step-demo nw-ipv4-format-demo" data-network-step-demo data-step="0">
+        <figcaption>
+          <strong>32ビットがIPアドレスになるまで</strong>
+          <span>例として、192.168.100.1へ変換します。</span>
+        </figcaption>
+        <div class="nw-step-demo__controls nw-step-demo__controls--simple" data-network-step-controls data-lesson-slide-navigation-lock role="group" aria-label="IPv4アドレス表記の段階操作" hidden>
+          <button type="button" data-network-step-prev aria-label="1つ前の段階へ">← 前へ</button>
+          <output aria-live="polite"><span data-network-step-index>1</span> / <span data-network-step-count>4</span></output>
+          <button type="button" data-network-step-next aria-label="1つ次の段階へ">次へ →</button>
+          <button type="button" data-network-step-reset>最初から</button>
+        </div>
+
+        <div class="nw-ipv4-format-visual" aria-live="polite">
+          <div class="nw-ipv4-format-stage" data-network-step-visual="0">
+            <span class="nw-ipv4-format-stage__label">32ビットの2進数</span>
+            <code class="nw-ipv4-bitstream">11000000101010000110010000000001</code>
+          </div>
+          <div class="nw-ipv4-format-stage" data-network-step-visual="1">
+            <span class="nw-ipv4-format-stage__label">8ビットずつ4組に分ける</span>
+            <div class="nw-ipv4-groups nw-ipv4-groups--binary"><code>11000000</code><code>10101000</code><code>01100100</code><code>00000001</code></div>
+          </div>
+          <div class="nw-ipv4-format-stage" data-network-step-visual="2">
+            <span class="nw-ipv4-format-stage__label">各組を10進数へ直す</span>
+            <div class="nw-ipv4-groups nw-ipv4-groups--converted">
+              <span><code>11000000</code><b>192</b></span><span><code>10101000</code><b>168</b></span><span><code>01100100</code><b>100</b></span><span><code>00000001</code><b>1</b></span>
+            </div>
+          </div>
+          <div class="nw-ipv4-format-stage" data-network-step-visual="3">
+            <span class="nw-ipv4-format-stage__label">ピリオドでつなぐ</span>
+            <strong class="nw-ipv4-address">192<span>.</span>168<span>.</span>100<span>.</span>1</strong>
+          </div>
+        </div>
+
+        <ol class="nw-step-sequence" aria-label="IPv4アドレスを表す4段階">
+          <li data-network-step-detail data-step-title="32ビット"><span>IPv4アドレスは、0と1を32個並べた値です。</span></li>
+          <li data-network-step-detail data-step-title="4組に分割"><span>左から8ビットずつ、4つの組に分けます。</span></li>
+          <li data-network-step-detail data-step-title="10進数へ変換"><span>それぞれの8ビットを、0から255までの10進数へ直します。</span></li>
+          <li data-network-step-detail data-step-title="IPv4表記"><span>4つの数をピリオドでつなぎ、192.168.100.1と表します。</span></li>
+        </ol>
+        <p class="nw-step-status" data-network-step-status aria-live="polite"><strong data-network-step-status-title></strong><span data-network-step-status-description></span></p>
+      </figure>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="ネットワーク部とホスト部" data-lesson-slide-layout="workspace">
+    <article class="nw-slide nw-slide--prefix" data-network-reveal-group>
+      <h2 id="headline_3">(3) ネットワーク部とホスト部</h2>
+      <p class="nw-lead">IPアドレスは、ネットワークを示す部分と、その中の端末を示す部分に分かれます。どこで区切るかを表す方法を確認します。</p>
+
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
+        <output data-network-reveal-progress aria-live="polite">0 / 4</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <p class="nw-prefix-definition">
+        IPアドレスは、ネットワークを識別する
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示"><span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ネットワーク部</span></button>
+        と、その中の端末を識別する
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄2の答えを表示"><span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ホスト部</span></button>
+        で構成されます。
+      </p>
+      <p class="nw-prefix-definition">
+        区切り位置は
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄3の答えを表示"><span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">サブネットマスク</span></button>
+        で示し、末尾へネットワーク部のビット数を書く方法を
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄4の答えを表示"><span class="nw-reveal__number" aria-hidden="true">4</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">CIDR表記</span></button>
+        といいます。
+      </p>
+
+      <div class="nw-prefix-demo" data-lesson-view-group data-lesson-default-view="24">
+        <div class="nw-prefix-demo__controls" data-lesson-view-controls aria-label="ネットワーク部の長さを選ぶ">
+          <button type="button" data-lesson-view="24">/24 の例</button>
+          <button type="button" data-lesson-view="26">/26 の例</button>
+        </div>
+
+        <section id="nw-prefix-24" data-lesson-view-panel="24" aria-labelledby="nw-prefix-24-title">
+          <h3 id="nw-prefix-24-title">192.168.100.1/24</h3>
+          <p>/24は、先頭から24ビットがネットワーク部であることを表します。</p>
+          <div class="nw-prefix-address" aria-label="192.168.100.1をネットワーク部とホスト部に分けた図">
+            <span class="is-network"><b>192</b><small>ネットワーク部</small></span>
+            <span class="is-network"><b>168</b><small>ネットワーク部</small></span>
+            <span class="is-network"><b>100</b><small>ネットワーク部</small></span>
+            <span class="is-host"><b>1</b><small>ホスト部</small></span>
+          </div>
+          <div class="nw-prefix-mask"><strong>サブネットマスク</strong><code>255.255.255.0</code></div>
+          <div class="nw-prefix-last-octet" aria-label="最後の8ビットはすべてホスト部">
+            <span class="is-host">0</span><span class="is-host">0</span><span class="is-host">0</span><span class="is-host">0</span><span class="is-host">0</span><span class="is-host">0</span><span class="is-host">0</span><span class="is-host">1</span>
+          </div>
+        </section>
+
+        <section id="nw-prefix-26" data-lesson-view-panel="26" aria-labelledby="nw-prefix-26-title">
+          <h3 id="nw-prefix-26-title">192.168.100.1/26</h3>
+          <p>/26は、4組目の先頭2ビットまでがネットワーク部です。</p>
+          <div class="nw-prefix-address" aria-label="192.168.100.1を26ビットのネットワーク部と6ビットのホスト部に分けた図">
+            <span class="is-network"><b>192</b><small>ネットワーク部</small></span>
+            <span class="is-network"><b>168</b><small>ネットワーク部</small></span>
+            <span class="is-network"><b>100</b><small>ネットワーク部</small></span>
+            <span class="is-split"><b>1</b><small>2ビット＋6ビット</small></span>
+          </div>
+          <div class="nw-prefix-mask"><strong>サブネットマスク</strong><code>255.255.255.192</code></div>
+          <div class="nw-prefix-last-octet" aria-label="最後の8ビットのうち先頭2ビットがネットワーク部、残り6ビットがホスト部">
+            <span class="is-network">0</span><span class="is-network">0</span><span class="is-host">0</span><span class="is-host">0</span><span class="is-host">0</span><span class="is-host">0</span><span class="is-host">0</span><span class="is-host">1</span>
+          </div>
+        </section>
+
+        <div class="nw-prefix-legend"><span class="is-network">ネットワーク部</span><span class="is-host">ホスト部</span></div>
+      </div>
+      <p class="nw-out-of-scope-note"><strong>次のページで扱う内容：</strong>ネットワークアドレス、ブロードキャストアドレス、割り当て可能な範囲の計算はnw14で確認します。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="IPアドレスの割り当てと変換" data-lesson-slide-layout="workspace">
+    <article class="nw-slide nw-slide--nat" data-network-reveal-group>
+      <h2 id="headline_4">(4) IPアドレスの割り当てと変換</h2>
+      <p class="nw-lead">ネットワーク部とホスト部が決まると、LAN内の各端末へ重複しないIPアドレスを割り当てられます。家庭内LANからインターネットへ出るときの変化を追います。</p>
+
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
+        <output data-network-reveal-progress aria-live="polite">0 / 4</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <p class="nw-nat-definition">
+        LAN内では
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示"><span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">プライベートアドレス</span></button>
+        を使い、インターネット側では
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄2の答えを表示"><span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">グローバルアドレス</span></button>
+        を使います。
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄3の答えを表示"><span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">DHCP</span></button>
+        はLAN内のアドレスを自動で割り当て、
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄4の答えを表示"><span class="nw-reveal__number" aria-hidden="true">4</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">NAT</span></button>
+        は内外のアドレスを変換します。
+      </p>
+
+      <figure class="nw-step-demo nw-nat-demo" data-network-step-demo data-step="0">
+        <figcaption>
+          <strong>家庭内LANからWebサーバーへ</strong>
+          <span>数値は説明用です。送信元と宛先の変化に注目します。</span>
+        </figcaption>
+        <div class="nw-step-demo__controls" data-network-step-controls data-lesson-slide-navigation-lock role="group" aria-label="DHCPとNATの段階操作" hidden>
+          <button type="button" data-network-step-prev aria-label="1つ前の段階へ">← 前へ</button>
+          <output aria-live="polite"><span data-network-step-index>1</span> / <span data-network-step-count>6</span></output>
+          <button type="button" data-network-step-next aria-label="1つ次の段階へ">次へ →</button>
+          <button type="button" data-network-step-replay>もう一度</button>
+          <button type="button" data-network-step-reset>最初から</button>
+        </div>
+
+        <svg class="nw-step-svg nw-step-svg--wide" viewBox="0 0 1080 420" role="img" aria-label="家庭内LANの端末へDHCPでアドレスを割り当て、ルーターがNATで変換してWebサーバーと通信する図">
+          <rect class="nw-nat-zone nw-nat-zone--private" x="18" y="42" width="398" height="330" rx="24"/>
+          <rect class="nw-nat-zone nw-nat-zone--global" x="526" y="42" width="536" height="330" rx="24"/>
+          <text class="nw-step-svg__zone-label" x="42" y="78">家庭内LAN</text>
+          <text class="nw-step-svg__zone-label" x="1038" y="78" text-anchor="end">グローバル側</text>
+          <g class="nw-step-links"><path d="M158 150H447M146 276H447M513 213H868"/></g>
+          <g class="nw-step-paths" aria-hidden="true">
+            <path data-network-step-path="dhcp-pc" d="M447 185C350 104 280 112 220 150"/>
+            <path data-network-step-path="dhcp-phone" d="M447 240C350 312 280 300 220 276"/>
+            <path data-network-step-path="nat-out-local" d="M250 150H350"/>
+            <path data-network-step-path="nat-out-global" d="M620 213H780"/>
+            <path data-network-step-path="nat-in-global" d="M780 235H620"/>
+            <path data-network-step-path="nat-in-local" d="M350 250C320 220 285 185 250 170"/>
+          </g>
+          <g class="nw-nat-device nw-nat-device--pc" transform="translate(70 112)"><rect width="88" height="58" rx="7"/><path d="M12 70H76M44 58V70"/><text x="44" y="96">PC1</text><text class="nw-step-svg__small" x="44" y="116">192.168.0.101</text></g>
+          <g class="nw-nat-device nw-nat-device--phone" transform="translate(92 224)"><rect width="54" height="82" rx="10"/><circle cx="27" cy="68" r="3"/><text x="27" y="106">端末2</text><text class="nw-step-svg__small" x="27" y="126">192.168.0.102</text></g>
+          <g class="nw-nat-router" transform="translate(447 154)"><rect width="66" height="118" rx="13"/><circle cx="20" cy="28" r="4"/><circle cx="20" cy="48" r="4"/><circle cx="20" cy="68" r="4"/><path d="M36 28H53M36 48H53M36 68H53"/><text x="33" y="142">ルーター</text><text class="nw-step-svg__small" x="33" y="162">内側 192.168.0.1</text><text class="nw-step-svg__small" x="33" y="180">外側 203.0.113.5</text></g>
+          <g class="nw-nat-cloud" transform="translate(665 205)"><ellipse rx="102" ry="62"/><text y="7">インターネット</text></g>
+          <g class="nw-nat-server" transform="translate(868 139)"><rect width="112" height="132" rx="12"/><path d="M18 40H94M18 70H94M18 100H94"/><circle cx="28" cy="25" r="5"/><circle cx="28" cy="55" r="5"/><circle cx="28" cy="85" r="5"/><text x="56" y="160">Webサーバー</text><text class="nw-step-svg__small" x="56" y="180">198.51.100.20</text></g>
+
+          <g class="nw-nat-message nw-nat-message--assign" data-network-step-visual="1" data-network-step-mover data-network-step-path-ref="dhcp-pc"><rect x="-48" y="-18" width="96" height="36" rx="8"/><text y="6">.101を割当</text></g>
+          <g class="nw-nat-message nw-nat-message--assign" data-network-step-visual="1" data-network-step-mover data-network-step-path-ref="dhcp-phone"><rect x="-48" y="-18" width="96" height="36" rx="8"/><text y="6">.102を割当</text></g>
+          <g class="nw-nat-message" data-network-step-visual="2" data-network-step-mover data-network-step-path-ref="nat-out-local"><rect x="-82" y="-22" width="164" height="44" rx="8"/><text y="-3">送信元 192.168.0.101</text><text y="15">宛先 198.51.100.20</text></g>
+          <g class="nw-nat-message" data-network-step-visual="3" data-network-step-mover data-network-step-path-ref="nat-out-global"><rect x="-80" y="-22" width="160" height="44" rx="8"/><text y="-3">送信元 203.0.113.5</text><text y="15">宛先 198.51.100.20</text></g>
+          <g class="nw-nat-message nw-nat-message--return" data-network-step-visual="4" data-network-step-mover data-network-step-path-ref="nat-in-global"><rect x="-80" y="-22" width="160" height="44" rx="8"/><text y="-3">送信元 198.51.100.20</text><text y="15">宛先 203.0.113.5</text></g>
+          <g class="nw-nat-message nw-nat-message--return" data-network-step-visual="5" data-network-step-mover data-network-step-path-ref="nat-in-local"><rect x="-82" y="-22" width="164" height="44" rx="8"/><text y="-3">送信元 198.51.100.20</text><text y="15">宛先 192.168.0.101</text></g>
+        </svg>
+
+        <svg class="nw-step-svg nw-step-svg--mobile" viewBox="0 0 360 890" role="img" aria-label="家庭内LANの端末へDHCPでアドレスを割り当て、ルーターがNATで変換してWebサーバーと通信する縦向きの図">
+          <rect class="nw-nat-zone nw-nat-zone--private" x="18" y="18" width="324" height="410" rx="22"/>
+          <rect class="nw-nat-zone nw-nat-zone--global" x="18" y="442" width="324" height="430" rx="22"/>
+          <text class="nw-step-svg__zone-label" x="96" y="50">家庭内LAN</text><text class="nw-step-svg__zone-label" x="180" y="478">グローバル側</text>
+          <g class="nw-step-links"><path d="M144 101H180V240M127 243H180M180 368V521M180 629V710"/></g>
+          <g class="nw-step-paths" aria-hidden="true">
+            <path data-network-step-path="dhcp-pc" d="M180 276C190 220 200 160 205 114"/>
+            <path data-network-step-path="dhcp-phone" d="M180 276C195 265 200 250 205 243"/>
+            <path data-network-step-path="nat-out-local" d="M240 145V215"/>
+            <path data-network-step-path="nat-out-global" d="M180 500V660"/>
+            <path data-network-step-path="nat-in-global" d="M205 660V500"/>
+            <path data-network-step-path="nat-in-local" d="M240 215V145"/>
+          </g>
+          <g class="nw-nat-device nw-nat-device--pc" transform="translate(56 72)"><rect width="88" height="58" rx="7"/><path d="M12 70H76M44 58V70"/><text x="44" y="96">PC1</text><text class="nw-step-svg__small" x="44" y="116">192.168.0.101</text></g>
+          <g class="nw-nat-device nw-nat-device--phone" transform="translate(73 202)"><rect width="54" height="82" rx="10"/><circle cx="27" cy="68" r="3"/><text x="27" y="106">端末2</text><text class="nw-step-svg__small" x="27" y="126">192.168.0.102</text></g>
+          <g class="nw-nat-router" transform="translate(147 276)"><rect width="66" height="92" rx="13"/><circle cx="20" cy="24" r="4"/><circle cx="20" cy="43" r="4"/><circle cx="20" cy="62" r="4"/><path d="M36 24H53M36 43H53M36 62H53"/><text x="33" y="114">ルーター</text><text class="nw-step-svg__small" x="33" y="134">内側 192.168.0.1</text><text class="nw-step-svg__small" x="33" y="151">外側 203.0.113.5</text></g>
+          <g class="nw-nat-cloud" transform="translate(180 575)"><ellipse rx="102" ry="54"/><text y="7">インターネット</text></g>
+          <g class="nw-nat-server" transform="translate(124 710)"><rect width="112" height="98" rx="12"/><path d="M18 34H94M18 60H94"/><circle cx="28" cy="20" r="5"/><circle cx="28" cy="46" r="5"/><text x="56" y="120">Webサーバー</text><text class="nw-step-svg__small" x="56" y="140">198.51.100.20</text></g>
+          <g class="nw-nat-message nw-nat-message--assign" data-network-step-visual="1" data-network-step-mover data-network-step-path-ref="dhcp-pc"><rect x="-46" y="-17" width="92" height="34" rx="8"/><text y="6">.101を割当</text></g>
+          <g class="nw-nat-message nw-nat-message--assign" data-network-step-visual="1" data-network-step-mover data-network-step-path-ref="dhcp-phone"><rect x="-46" y="-17" width="92" height="34" rx="8"/><text y="6">.102を割当</text></g>
+          <g class="nw-nat-message" data-network-step-visual="2" data-network-step-mover data-network-step-path-ref="nat-out-local"><rect x="-80" y="-21" width="160" height="42" rx="8"/><text y="-3">送信元 192.168.0.101</text><text y="14">宛先 198.51.100.20</text></g>
+          <g class="nw-nat-message" data-network-step-visual="3" data-network-step-mover data-network-step-path-ref="nat-out-global"><rect x="-78" y="-21" width="156" height="42" rx="8"/><text y="-3">送信元 203.0.113.5</text><text y="14">宛先 198.51.100.20</text></g>
+          <g class="nw-nat-message nw-nat-message--return" data-network-step-visual="4" data-network-step-mover data-network-step-path-ref="nat-in-global"><rect x="-78" y="-21" width="156" height="42" rx="8"/><text y="-3">送信元 198.51.100.20</text><text y="14">宛先 203.0.113.5</text></g>
+          <g class="nw-nat-message nw-nat-message--return" data-network-step-visual="5" data-network-step-mover data-network-step-path-ref="nat-in-local"><rect x="-80" y="-21" width="160" height="42" rx="8"/><text y="-3">送信元 198.51.100.20</text><text y="14">宛先 192.168.0.101</text></g>
+        </svg>
+
+        <ol class="nw-step-sequence" aria-label="DHCPとNATの6段階">
+          <li data-network-step-detail data-step-title="内側と外側"><span>家庭内LANではプライベートアドレス、インターネット側ではグローバルアドレスを使います。</span></li>
+          <li data-network-step-detail data-step-title="DHCPで割り当て"><span>ルーターのDHCP機能が、LAN内で重複しないプライベートアドレスを端末へ自動で割り当てます。</span></li>
+          <li data-network-step-detail data-step-title="ルーターへ送信"><span>PC1は、プライベートアドレスを送信元としてルーターへ送ります。</span></li>
+          <li data-network-step-detail data-step-title="NATで外向きに変換"><span>ルーターは送信元を自分のグローバルアドレスへ変換し、Webサーバーへ送ります。</span></li>
+          <li data-network-step-detail data-step-title="返答がルーターへ"><span>Webサーバーからの返答は、ルーターのグローバルアドレスを宛先として戻ります。</span></li>
+          <li data-network-step-detail data-step-title="PC1へ返す"><span>ルーターは宛先をPC1のプライベートアドレスへ戻し、家庭内LANへ渡します。</span></li>
+        </ol>
+        <p class="nw-step-status" data-network-step-status aria-live="polite"><strong data-network-step-status-title></strong><span data-network-step-status-description></span></p>
+      </figure>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="IPv4の不足とIPv6" data-lesson-slide-layout="workspace">
+    <article class="nw-slide nw-slide--ipv6" data-network-reveal-group>
+      <h2 id="headline_5">(5) IPv4の不足とIPv6</h2>
+      <p class="nw-lead">プライベートアドレスとNATは、限られたIPv4アドレスを複数の端末で利用するためにも役立ちます。より多くのアドレスを扱える規格も作られました。</p>
+
+      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
+        <output data-network-reveal-progress aria-live="polite">0 / 3</output>
+        <button type="button" data-network-reveal-all>すべて表示</button>
+        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
+      </div>
+
+      <p class="nw-ipv6-definition">
+        32ビットのIPv4で表せるアドレスは最大
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示"><span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">2<sup>32</sup>個</span></button>
+        です。新しい規格である
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄2の答えを表示"><span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">IPv6</span></button>
+        は
+        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄3の答えを表示"><span class="nw-reveal__number" aria-hidden="true">3</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">128ビット</span></button>
+        でアドレスを表します。
+      </p>
+
+      <figure class="nw-ip-version-comparison">
+        <figcaption><strong>アドレスの長さと数を比較</strong></figcaption>
+        <div class="nw-ip-version-row nw-ip-version-row--v4">
+          <div><strong>IPv4</strong><span>32ビット</span></div>
+          <div class="nw-ip-version-bits" aria-label="32ビットを8ビットずつ4区画で表した図"><i></i><i></i><i></i><i></i></div>
+          <p><b>2<sup>32</sup></b><span>約43億通り</span></p>
+        </div>
+        <div class="nw-ip-version-row nw-ip-version-row--v6">
+          <div><strong>IPv6</strong><span>128ビット</span></div>
+          <div class="nw-ip-version-bits" aria-label="128ビットを8ビットずつ16区画で表した図"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          <p><b>2<sup>128</sup></b><span>非常に多い</span></p>
+        </div>
+      </figure>
+
+      <ol class="nw-ipv6-flow" aria-label="IPv4の不足とIPv6の関係">
+        <li><strong>接続する機器が増える</strong><span>32ビットのIPv4アドレスだけでは不足します。</span></li>
+        <li><strong>IPv4を有効に使う</strong><span>プライベートアドレスとNATを利用します。</span></li>
+        <li><strong>IPv6も利用する</strong><span>128ビットのアドレスを使えるIPv6が普及しています。</span></li>
+      </ol>
+      <p class="nw-wireless-note"><strong>現在の利用：</strong>IPv4とIPv6は並行して使われています。IPv6で直接通信するときは、通信経路もIPv6に対応している必要があります。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="語句とポイントのまとめ">
+    <article class="nw-slide nw-slide--review nw-slide--internet-review">
+      <h2 id="headline_6">(6) 語句とポイントのまとめ</h2>
+      <p class="nw-lead">異なるLANへ届ける役割から、IPアドレスの表し方、割り当て、変換、IPv6までをつなげて整理します。</p>
+
+      <ol class="nw-review-flow" aria-label="このページで学んだ内容のつながり">
+        <li><b aria-hidden="true">1</b><strong>宛先を示す</strong><span>IPアドレスで異なるLANの端末を識別する</span></li>
+        <li><b aria-hidden="true">2</b><strong>区切りを読む</strong><span>ネットワーク部とホスト部を見分ける</span></li>
+        <li><b aria-hidden="true">3</b><strong>割り当てる</strong><span>DHCPでLAN内のアドレスを自動設定する</span></li>
+        <li><b aria-hidden="true">4</b><strong>内外をつなぐ</strong><span>NATでプライベートとグローバルを変換する</span></li>
+      </ol>
+
+      <div class="nw-review-body">
+        <section class="nw-review-section" data-network-review-terms aria-labelledby="nw13-review-terms-title">
+          <div class="nw-review-section__heading">
+            <h3 id="nw13-review-terms-title">重要語句</h3>
+            <div class="nw-review-term-controls" data-review-term-controls role="group" aria-label="重要語句の説明を一括操作" hidden>
+              <button type="button" data-review-terms-open>すべて表示</button>
+              <button type="button" data-review-terms-close>すべて閉じる</button>
+            </div>
+          </div>
+          <p class="nw-review-term-instruction" id="nw13-review-terms-help">語句をクリックすると、説明が表示されます。</p>
+          <div class="nw-review-terms" aria-describedby="nw13-review-terms-help">
+            <details class="nw-review-term" data-review-term><summary>インターネット層</summary><div class="nw-review-term__body">異なるネットワークにいる端末までデータを届ける経路を扱う階層。</div></details>
+            <details class="nw-review-term" data-review-term><summary>IPアドレス</summary><div class="nw-review-term__body">インターネット層で、最終的な送信元と宛先の端末を識別するためのアドレス。</div></details>
+            <details class="nw-review-term" data-review-term><summary>ルーター</summary><div class="nw-review-term__body">異なるネットワークをつなぎ、IPアドレスを見て次の経路へデータを中継する装置。</div></details>
+            <details class="nw-review-term" data-review-term><summary>IPv4</summary><div class="nw-review-term__body">32ビットでIPアドレスを表す規格。8ビットずつ10進数へ直し、4つの数で表します。</div></details>
+            <details class="nw-review-term" data-review-term><summary>ネットワーク部</summary><div class="nw-review-term__body">IPアドレスのうち、どのネットワークに属するかを識別する部分。</div></details>
+            <details class="nw-review-term" data-review-term><summary>ホスト部</summary><div class="nw-review-term__body">IPアドレスのうち、そのネットワーク内の端末を識別する部分。</div></details>
+            <details class="nw-review-term" data-review-term><summary>サブネットマスク</summary><div class="nw-review-term__body">IPアドレスのネットワーク部とホスト部の区切り位置を示す値。</div></details>
+            <details class="nw-review-term" data-review-term><summary>CIDR表記</summary><div class="nw-review-term__body">IPアドレスの末尾へ「/24」のようにネットワーク部のビット数を書く表し方。</div></details>
+            <details class="nw-review-term" data-review-term><summary>グローバルアドレス</summary><div class="nw-review-term__body">インターネット上で重複しないように割り当てられるIPアドレス。</div></details>
+            <details class="nw-review-term" data-review-term><summary>プライベートアドレス</summary><div class="nw-review-term__body">家庭や組織など、限られたネットワークの中で利用するIPアドレス。</div></details>
+            <details class="nw-review-term" data-review-term><summary>DHCP</summary><div class="nw-review-term__body">LAN内の端末へ、重複しないIPアドレスなどの設定を自動で割り当てるプロトコル。</div></details>
+            <details class="nw-review-term" data-review-term><summary>NAT</summary><div class="nw-review-term__body">LAN内のプライベートアドレスと、インターネット側のグローバルアドレスを変換する機能。</div></details>
+            <details class="nw-review-term" data-review-term><summary>IPv6</summary><div class="nw-review-term__body">128ビットでIPアドレスを表し、IPv4より非常に多くのアドレスを扱える規格。</div></details>
+          </div>
+        </section>
+
+        <section class="nw-review-section" aria-labelledby="nw13-review-points-title">
+          <h3 id="nw13-review-points-title">押さえるポイント</h3>
+          <ul class="nw-review-points">
+            <li><strong>IPアドレスは最終的な宛先を示す</strong><span>ルーターを経由して異なるLANまで届けるために使います。</span></li>
+            <li><strong>IPv4は32ビット</strong><span>8ビットずつ4組に分け、10進数をピリオドでつないで表します。</span></li>
+            <li><strong>区切り位置を確認する</strong><span>サブネットマスクやCIDR表記でネットワーク部の長さが分かります。</span></li>
+            <li><strong>家庭内とインターネットでアドレスを使い分ける</strong><span>DHCPで割り当て、NATで内外のアドレスを変換します。</span></li>
+            <li><strong>IPv4とIPv6は併用されている</strong><span>IPv6は128ビットで、IPv4より多くのアドレスを扱えます。</span></li>
+          </ul>
+          <p class="nw-review-scope-reminder"><strong>次のページへ：</strong>ネットワークアドレス、ブロードキャストアドレス、割り当て可能な範囲をnw14で扱います。IPアドレスのクラス表は参考・補足として確認します。</p>
+        </section>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="問題演習" data-lesson-slide-layout="exercise">
+    <article class="nw-slide nw-slide--quiz">
+      <h2 id="headline_7">(7) 問題演習</h2>
+      <p class="nw-lead">インターネット層の役割と、IPアドレスの表し方・割り当て・変換を確認します。アドレス範囲の計算は次のページで扱います。</p>
+
+      <form class="nw-quiz" data-network-quiz data-lesson-slide-navigation-lock>
+        <div class="nw-quiz__header"><h3>6問で確認</h3><output data-network-quiz-score aria-live="polite">未判定</output></div>
+
+        <fieldset class="nw-quiz__question" data-network-question data-correct="final" data-explanation="IPアドレスは、異なるネットワークをまたいで最終的な送信先を示します。">
+          <legend>問1　IPアドレスの主な役割はどれですか。</legend>
+          <label><input type="radio" name="nw13-q1" value="speed">通信速度を決める</label>
+          <label><input type="radio" name="nw13-q1" value="final">最終的な送信先を示す</label>
+          <label><input type="radio" name="nw13-q1" value="encrypt">通信内容を暗号化する</label>
+          <p class="nw-quiz__feedback" data-network-feedback aria-live="polite"></p>
+        </fieldset>
+
+        <fieldset class="nw-quiz__question" data-network-question data-correct="four" data-explanation="IPv4は32ビットを8ビットずつ4組に分け、各組を10進数で表します。">
+          <legend>問2　IPv4アドレスの表し方として正しいものはどれですか。</legend>
+          <label><input type="radio" name="nw13-q2" value="two">16ビットを8ビットずつ2組にする</label>
+          <label><input type="radio" name="nw13-q2" value="four">32ビットを8ビットずつ4組にする</label>
+          <label><input type="radio" name="nw13-q2" value="eight">64ビットを8ビットずつ8組にする</label>
+          <p class="nw-quiz__feedback" data-network-feedback aria-live="polite"></p>
+        </fieldset>
+
+        <fieldset class="nw-quiz__question" data-network-question data-correct="boundary" data-explanation="サブネットマスクは、ネットワーク部とホスト部の区切り位置を示します。">
+          <legend>問3　サブネットマスクは何を示しますか。</legend>
+          <label><input type="radio" name="nw13-q3" value="boundary">ネットワーク部とホスト部の区切り</label>
+          <label><input type="radio" name="nw13-q3" value="route">インターネットまでの物理的な距離</label>
+          <label><input type="radio" name="nw13-q3" value="device">端末を製造した会社</label>
+          <p class="nw-quiz__feedback" data-network-feedback aria-live="polite"></p>
+        </fieldset>
+
+        <fieldset class="nw-quiz__question" data-network-question data-correct="private" data-explanation="家庭や組織など、限られたLAN内ではプライベートアドレスを利用します。">
+          <legend>問4　家庭内LANで各端末へ割り当てるアドレスはどれですか。</legend>
+          <label><input type="radio" name="nw13-q4" value="private">プライベートアドレス</label>
+          <label><input type="radio" name="nw13-q4" value="global">グローバルアドレス</label>
+          <label><input type="radio" name="nw13-q4" value="mac-table">MACアドレステーブル</label>
+          <p class="nw-quiz__feedback" data-network-feedback aria-live="polite"></p>
+        </fieldset>
+
+        <fieldset class="nw-quiz__question" data-network-question data-correct="nat" data-explanation="NATは、LAN内のプライベートアドレスとインターネット側のグローバルアドレスを変換します。">
+          <legend>問5　LANの内側と外側でIPアドレスを変換する機能はどれですか。</legend>
+          <label><input type="radio" name="nw13-q5" value="dhcp">DHCP</label>
+          <label><input type="radio" name="nw13-q5" value="nat">NAT</label>
+          <label><input type="radio" name="nw13-q5" value="wifi">Wi-Fi</label>
+          <p class="nw-quiz__feedback" data-network-feedback aria-live="polite"></p>
+        </fieldset>
+
+        <fieldset class="nw-quiz__question" data-network-question data-correct="ipv6" data-explanation="IPv6は128ビットでIPアドレスを表し、IPv4より非常に多くのアドレスを扱えます。">
+          <legend>問6　128ビットでIPアドレスを表す規格はどれですか。</legend>
+          <label><input type="radio" name="nw13-q6" value="ipv4">IPv4</label>
+          <label><input type="radio" name="nw13-q6" value="ipv6">IPv6</label>
+          <label><input type="radio" name="nw13-q6" value="cidr">CIDR</label>
+          <p class="nw-quiz__feedback" data-network-feedback aria-live="polite"></p>
+        </fieldset>
+
+        <div class="nw-quiz__actions"><button type="button" data-network-quiz-check>答え合わせ</button><button type="reset" data-network-quiz-reset>やり直す</button></div>
+      </form>
+    </article>
+  </section>
+
+  <section id="examples_and_questions"><!-- script_pages.js --></section>
+</body>
+</html>

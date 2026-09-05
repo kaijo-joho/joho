@@ -11,6 +11,7 @@
   const INTERFACE_FLOW_SELECTOR = '[data-network-interface-flow]';
   const MEDIUM_DEMO_SELECTOR = '[data-network-medium-demo]';
   const SWITCH_DEMO_SELECTOR = '[data-network-switch-demo]';
+  const STEP_DEMO_SELECTOR = '[data-network-step-demo]';
   const QUIZ_SELECTOR = '[data-network-quiz]';
   const CONTENT_RESIZE_EVENT = 'joho:lesson-content-resize';
   const REVEAL_CHANGE_EVENT = 'joho:network-reveal-change';
@@ -1183,6 +1184,169 @@
     }
   }
 
+  class NetworkStepDemo {
+    constructor(root) {
+      if (!(root instanceof HTMLElement)) throw new TypeError('段階表示する図が必要です。');
+      if (root.__networkStepDemo) return root.__networkStepDemo;
+
+      this.root = root;
+      this.details = Array.from(root.querySelectorAll('[data-network-step-detail]'));
+      this.visuals = Array.from(root.querySelectorAll('[data-network-step-visual]'));
+      this.controls = root.querySelector('[data-network-step-controls]');
+      this.previousButton = root.querySelector('[data-network-step-prev]');
+      this.nextButton = root.querySelector('[data-network-step-next]');
+      this.replayButton = root.querySelector('[data-network-step-replay]');
+      this.resetButton = root.querySelector('[data-network-step-reset]');
+      this.stepIndex = root.querySelector('[data-network-step-index]');
+      this.stepCount = root.querySelector('[data-network-step-count]');
+      this.status = root.querySelector('[data-network-step-status]');
+      this.statusTitle = root.querySelector('[data-network-step-status-title]');
+      this.statusDescription = root.querySelector('[data-network-step-status-description]');
+      this.step = Math.min(
+        this.details.length - 1,
+        Math.max(0, Number.parseInt(root.dataset.step || '0', 10) || 0)
+      );
+      this.animationFrame = 0;
+      this.animationGeneration = 0;
+      this.reducedMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)') || { matches: false };
+
+      if (!this.details.length) throw new Error('段階ごとの説明が見つかりません。');
+
+      this.bind();
+      this.root.classList.add('is-ready');
+      if (this.controls) this.controls.hidden = false;
+      this.render(false);
+      root.__networkStepDemo = this;
+    }
+
+    bind() {
+      this.previousButton?.addEventListener('click', () => this.setStep(this.step - 1));
+      this.nextButton?.addEventListener('click', () => this.setStep(this.step + 1));
+      this.replayButton?.addEventListener('click', () => this.play());
+      this.resetButton?.addEventListener('click', () => this.setStep(0));
+      this.controls?.addEventListener('keydown', event => {
+        const nextSteps = {
+          ArrowLeft: this.step - 1,
+          ArrowRight: this.step + 1,
+          Home: 0,
+          End: this.details.length - 1
+        };
+        if (!(event.key in nextSteps)) return;
+        event.preventDefault();
+        this.setStep(nextSteps[event.key]);
+      });
+    }
+
+    stepsFor(visual) {
+      return String(visual.dataset.networkStepVisual || '')
+        .split(/[\s,]+/)
+        .map(value => Number.parseInt(value, 10))
+        .filter(Number.isInteger);
+    }
+
+    visibleMovers() {
+      return this.visuals.filter(visual => !visual.hasAttribute('hidden') && visual.hasAttribute('data-network-step-mover'));
+    }
+
+    pathFor(mover) {
+      const key = mover.dataset.networkStepPathRef;
+      const svg = mover.closest('svg');
+      if (!key || !svg) return null;
+      return Array.from(svg.querySelectorAll('[data-network-step-path]'))
+        .find(path => path.dataset.networkStepPath === key) || null;
+    }
+
+    setStep(nextStep) {
+      const boundedStep = Math.min(this.details.length - 1, Math.max(0, nextStep));
+      if (boundedStep === this.step) return;
+      this.step = boundedStep;
+      this.render(true);
+    }
+
+    render(animate) {
+      this.cancelAnimation();
+      this.root.dataset.step = String(this.step);
+      this.visuals.forEach(visual => {
+        visual.toggleAttribute('hidden', !this.stepsFor(visual).includes(this.step));
+      });
+      this.details.forEach((detail, index) => {
+        const current = index === this.step;
+        detail.hidden = !current;
+        detail.classList.toggle('is-current', current);
+        if (current) detail.setAttribute('aria-current', 'step');
+        else detail.removeAttribute('aria-current');
+      });
+
+      const currentDetail = this.details[this.step];
+      if (this.statusTitle) this.statusTitle.textContent = currentDetail?.dataset.stepTitle || `段階${this.step + 1}`;
+      if (this.statusDescription) this.statusDescription.textContent = currentDetail?.textContent?.trim() || '';
+      if (this.stepIndex) this.stepIndex.textContent = String(this.step + 1);
+      if (this.stepCount) this.stepCount.textContent = String(this.details.length);
+      if (this.previousButton) this.previousButton.disabled = this.step === 0;
+      if (this.nextButton) this.nextButton.disabled = this.step === this.details.length - 1;
+      if (this.resetButton) this.resetButton.disabled = this.step === 0;
+
+      const movers = this.visibleMovers();
+      if (this.replayButton) this.replayButton.disabled = movers.length === 0;
+      movers.forEach(mover => this.positionMover(mover, animate ? 0 : 1));
+      notifyContentResize();
+      if (animate && movers.length) this.play();
+    }
+
+    play() {
+      const movers = this.visibleMovers();
+      if (!movers.length) return;
+      this.cancelAnimation();
+
+      const items = movers.map(mover => {
+        const path = this.pathFor(mover);
+        if (!path || typeof path.getTotalLength !== 'function') return null;
+        return { mover, path, length: path.getTotalLength() };
+      }).filter(Boolean);
+      if (!items.length) return;
+
+      if (this.reducedMotion.matches) {
+        items.forEach(item => this.positionMover(item.mover, 1, item.path, item.length));
+        this.root.classList.add('is-animation-complete');
+        return;
+      }
+
+      items.forEach(item => this.positionMover(item.mover, 0, item.path, item.length));
+      const duration = Math.max(450, Number.parseInt(this.root.dataset.stepDuration || '1150', 10) || 1150);
+      const generation = ++this.animationGeneration;
+      const startedAt = performance.now();
+      this.root.classList.add('is-animating');
+
+      const tick = now => {
+        if (generation !== this.animationGeneration) return;
+        const progress = Math.min(1, (now - startedAt) / duration);
+        const eased = 1 - Math.pow(1 - progress, 3);
+        items.forEach(item => this.positionMover(item.mover, eased, item.path, item.length));
+        if (progress < 1) {
+          this.animationFrame = requestAnimationFrame(tick);
+          return;
+        }
+        this.animationFrame = 0;
+        this.root.classList.remove('is-animating');
+        this.root.classList.add('is-animation-complete');
+      };
+      this.animationFrame = requestAnimationFrame(tick);
+    }
+
+    positionMover(mover, progress, path = this.pathFor(mover), length = path?.getTotalLength?.()) {
+      if (!path || !Number.isFinite(length)) return;
+      const point = path.getPointAtLength(length * Math.min(1, Math.max(0, progress)));
+      mover.setAttribute('transform', `translate(${point.x} ${point.y})`);
+    }
+
+    cancelAnimation() {
+      this.animationGeneration += 1;
+      if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
+      this.animationFrame = 0;
+      this.root.classList.remove('is-animating', 'is-animation-complete');
+    }
+  }
+
   class NetworkQuiz {
     constructor(root) {
       if (!(root instanceof HTMLFormElement)) throw new TypeError('ネットワークの問題フォームが必要です。');
@@ -1261,6 +1425,7 @@
       this.openAllButton = root.querySelector('[data-review-terms-open]');
       this.closeAllButton = root.querySelector('[data-review-terms-close]');
       this.entries = Array.from(root.querySelectorAll('[data-review-term]'));
+      this.pendingScroll = null;
 
       if (!this.entries.length) throw new Error('重要語句が見つかりません。');
 
@@ -1276,11 +1441,40 @@
     }
 
     bind() {
-      this.entries.forEach(entry => entry.addEventListener('toggle', () => this.updateControls()));
+      this.entries.forEach(entry => {
+        const summary = entry.querySelector('summary');
+        summary?.addEventListener('pointerdown', () => this.rememberScrollPosition());
+        summary?.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') this.rememberScrollPosition();
+        });
+        entry.addEventListener('toggle', () => {
+          this.updateControls();
+          this.restoreScrollPosition();
+        });
+      });
 
       this.openAllButton?.addEventListener('click', () => this.setAll(true));
 
       this.closeAllButton?.addEventListener('click', () => this.setAll(false));
+    }
+
+    rememberScrollPosition() {
+      const slide = this.root.closest('.lesson-slide');
+      if (!slide) return;
+      this.pendingScroll = { slide, scrollTop: slide.scrollTop };
+    }
+
+    restoreScrollPosition() {
+      if (!this.pendingScroll) return;
+      const { slide, scrollTop } = this.pendingScroll;
+      this.pendingScroll = null;
+      slide.scrollTop = scrollTop;
+      requestAnimationFrame(() => {
+        slide.scrollTop = scrollTop;
+        requestAnimationFrame(() => {
+          slide.scrollTop = scrollTop;
+        });
+      });
     }
 
     setAll(open) {
@@ -1358,6 +1552,14 @@
         new NetworkSwitchDemo(root);
       } catch (error) {
         console.warn('スイッチングハブの転送図を初期化できませんでした。', error);
+      }
+    });
+
+    document.querySelectorAll(STEP_DEMO_SELECTOR).forEach(root => {
+      try {
+        new NetworkStepDemo(root);
+      } catch (error) {
+        console.warn('ネットワークの段階図を初期化できませんでした。', error);
       }
     });
 
