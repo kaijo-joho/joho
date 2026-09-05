@@ -730,36 +730,64 @@
           <p class="nw-review-term-instruction" id="nw-review-terms-help">語句をクリックすると、説明が表示されます。</p>
           <dl class="nw-review-terms noBullet" aria-describedby="nw-review-terms-help">
             <div>
-              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-lan-wan">LAN / WAN</button></dt>
-              <dd id="nw-review-term-lan-wan" data-review-term-description>LANは限られた範囲のネットワーク、WANは離れたLANどうしをつなぐ広域ネットワーク。</dd>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-lan">LAN</button></dt>
+              <dd id="nw-review-term-lan" data-review-term-description>家庭やオフィスなど、限られた範囲内につくられるネットワーク。</dd>
             </div>
             <div>
-              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-lan-devices">スイッチングハブ / アクセスポイント</button></dt>
-              <dd id="nw-review-term-lan-devices" data-review-term-description>有線機器をまとめる装置と、無線LAN対応機器を接続する装置。</dd>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-wan">WAN</button></dt>
+              <dd id="nw-review-term-wan" data-review-term-description>離れた場所にあるLANどうしをつなぐ、広い範囲のネットワーク。</dd>
             </div>
             <div>
-              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-router-terminal">ルーター / 終端装置</button></dt>
-              <dd id="nw-review-term-router-terminal" data-review-term-description>異なるネットワークを中継する装置と、回線の信号を変換する装置。</dd>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-switching-hub">スイッチングハブ</button></dt>
+              <dd id="nw-review-term-switching-hub" data-review-term-description>複数の有線機器をケーブルでまとめ、同じLANへ接続する装置。</dd>
             </div>
             <div>
-              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-provider">ISP / 通信キャリア</button></dt>
-              <dd id="nw-review-term-provider" data-review-term-description>インターネット接続サービスと、携帯電話などの通信網を提供する事業者。</dd>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-access-point">アクセスポイント</button></dt>
+              <dd id="nw-review-term-access-point" data-review-term-description>無線LAN対応機器を、無線でLANへ接続するための中継器。</dd>
             </div>
             <div>
-              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-switching">回線交換 / パケット交換</button></dt>
-              <dd id="nw-review-term-switching" data-review-term-description>1本の経路を確保する方式と、データを小分けにして回線を共有する方式。</dd>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-router">ルーター</button></dt>
+              <dd id="nw-review-term-router" data-review-term-description>異なるネットワークどうしを接続し、宛先に応じてデータを中継する装置。</dd>
             </div>
             <div>
-              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-packet-header">パケット / ヘッダ情報</button></dt>
-              <dd id="nw-review-term-packet-header" data-review-term-description>小分けにしたデータと、宛先や通し番号などを記した付加情報。</dd>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-terminal-device">終端装置</button></dt>
+              <dd id="nw-review-term-terminal-device" data-review-term-description>通信回線をLANへつなぐため、回線の信号を変換する装置。</dd>
             </div>
             <div>
-              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-protocol-address">プロトコル / IPアドレス</button></dt>
-              <dd id="nw-review-term-protocol-address" data-review-term-description>通信の約束ごとと、ネットワーク上で端末を区別する住所。</dd>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-isp">ISP（プロバイダ）</button></dt>
+              <dd id="nw-review-term-isp" data-review-term-description>家庭やオフィスへ、インターネット接続サービスを提供する事業者。</dd>
+            </div>
+            <div>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-carrier">通信キャリア</button></dt>
+              <dd id="nw-review-term-carrier" data-review-term-description>携帯電話などの通信網を提供し、端末をインターネットへ接続する事業者。</dd>
+            </div>
+            <div>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-circuit-switching">回線交換方式</button></dt>
+              <dd id="nw-review-term-circuit-switching" data-review-term-description>通信を始める前に1本の経路を確保し、通信中はその回線を占有する方式。</dd>
+            </div>
+            <div>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-packet-switching">パケット交換方式</button></dt>
+              <dd id="nw-review-term-packet-switching" data-review-term-description>データを小分けにして送り、複数の通信で回線を共有する方式。</dd>
+            </div>
+            <div>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-packet">パケット</button></dt>
+              <dd id="nw-review-term-packet" data-review-term-description>ネットワークで送るために、小さく分けたデータのまとまり。</dd>
+            </div>
+            <div>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-header">ヘッダ情報</button></dt>
+              <dd id="nw-review-term-header" data-review-term-description>宛先、送信元、通し番号など、パケットへ付け加える情報。</dd>
+            </div>
+            <div>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-protocol">プロトコル</button></dt>
+              <dd id="nw-review-term-protocol" data-review-term-description>機器どうしが正しく通信するために共通して守る約束ごと。</dd>
+            </div>
+            <div>
+              <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-ip-address">IPアドレス</button></dt>
+              <dd id="nw-review-term-ip-address" data-review-term-description>ネットワーク上で通信相手を区別するための住所。</dd>
             </div>
             <div>
               <dt><button type="button" class="nw-review-term__toggle" data-review-term-toggle aria-controls="nw-review-term-layers">プロトコルの4階層</button></dt>
-              <dd id="nw-review-term-layers" data-review-term-description>アプリケーション、トランスポート、インターネット、ネットワークインターフェース。</dd>
+              <dd id="nw-review-term-layers" data-review-term-description>通信の役割を、アプリケーション、トランスポート、インターネット、ネットワークインターフェースの4つに分けた階層構造。</dd>
             </div>
           </dl>
         </section>

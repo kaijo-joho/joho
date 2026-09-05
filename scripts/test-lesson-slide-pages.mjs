@@ -184,16 +184,35 @@ const reviewSlide = networkPage.slice(
 );
 ok(reviewSlide.includes('id="headline_5"'), 'nw11の5枚目に語句とポイントのまとめ');
 equal((reviewSlide.match(/<li><b aria-hidden="true">[1-4]<\/b>/g) || []).length, 4, 'nw11のまとめに4段階の学習内容のつながり');
-equal((reviewSlide.match(/\bdata-review-term-toggle(?:\s|>)/g) || []).length, 8, 'nw11のまとめに8個の重要語句ボタン');
-equal((reviewSlide.match(/\bdata-review-term-description(?:\s|>)/g) || []).length, 8, 'nw11のまとめに8個の語句説明');
+equal((reviewSlide.match(/\bdata-review-term-toggle(?:\s|>)/g) || []).length, 15, 'nw11のまとめに15個の重要語句ボタン');
+equal((reviewSlide.match(/\bdata-review-term-description(?:\s|>)/g) || []).length, 15, 'nw11のまとめに15個の語句説明');
 ok(reviewSlide.includes('data-network-review-terms'), 'nw11の重要語句を開閉操作のまとまりにする');
 ok(reviewSlide.includes('data-review-terms-open'), 'nw11の重要語句に一括表示操作');
 ok(reviewSlide.includes('data-review-terms-close'), 'nw11の重要語句に一括閉じる操作');
 ok(!/data-review-term-description[^>]*\shidden(?:\s|>)/.test(reviewSlide), 'JavaScript無効時もnw11の語句説明を読める');
 const reviewPoints = reviewSlide.slice(reviewSlide.indexOf('class="nw-review-points"'), reviewSlide.indexOf('</ul>'));
 equal((reviewPoints.match(/<li>/g) || []).length, 5, 'nw11のまとめに5つの押さえるポイント');
-for (const term of ['LAN / WAN', '回線交換 / パケット交換', 'プロトコル / IPアドレス', 'プロトコルの4階層']) {
-  ok(reviewSlide.includes(term), `nw11のまとめに重要語句「${term}」`);
+for (const term of [
+  'LAN',
+  'WAN',
+  'スイッチングハブ',
+  'アクセスポイント',
+  'ルーター',
+  '終端装置',
+  'ISP（プロバイダ）',
+  '通信キャリア',
+  '回線交換方式',
+  'パケット交換方式',
+  'パケット',
+  'ヘッダ情報',
+  'プロトコル',
+  'IPアドレス',
+  'プロトコルの4階層'
+]) {
+  ok(reviewSlide.includes(`>${term}</button>`), `nw11のまとめに独立した重要語句「${term}」`);
+}
+for (const combinedTerm of ['LAN / WAN', 'ルーター / 終端装置', 'パケット / ヘッダ情報']) {
+  ok(!reviewSlide.includes(`>${combinedTerm}</button>`), `nw11のまとめで「${combinedTerm}」を1項目にまとめない`);
 }
 for (const device of ['switch', 'router', 'access-point', 'terminal']) {
   equal(
