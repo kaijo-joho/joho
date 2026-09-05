@@ -2941,11 +2941,19 @@ section article .nw-protocol-definition {
 .nw-cable__wire {
   fill: none;
   stroke-linecap: round;
+  stroke-linejoin: round;
   stroke-width: 11;
 }
 
 .nw-cable__wire--a { stroke: #d36a42; }
 .nw-cable__wire--b { stroke: #3278ad; }
+
+.nw-cable__wire-gap {
+  fill: none;
+  stroke: color-mix(in oklab, var(--nw-line) 14%, var(--nw-panel-soft));
+  stroke-linecap: round;
+  stroke-width: 19;
+}
 
 .nw-cable__pulse {
   fill: none;
@@ -2995,6 +3003,49 @@ section article .nw-protocol-definition {
 
 .nw-cable p strong { font-size: .8em; }
 .nw-cable p span { color: var(--nw-muted); font-size: .72em; line-height: 1.4; }
+
+.nw-cable-photo {
+  display: grid;
+  grid-template-columns: minmax(118px, .85fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  margin-top: 7px;
+  padding: 6px;
+  border: 1px solid var(--nw-border);
+  border-radius: 9px;
+  background: var(--nw-panel-soft);
+}
+
+.nw-cable-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 3 / 2;
+  border-radius: 6px;
+  object-fit: cover;
+  object-position: 50% 48%;
+}
+
+.nw-cable-photo__caption {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+  text-align: left;
+}
+
+.nw-cable-photo__caption strong {
+  font-size: .75em;
+}
+
+.nw-cable-photo__caption small {
+  color: var(--nw-muted);
+  font-size: .6em;
+  line-height: 1.45;
+}
+
+.nw-cable-photo__caption a {
+  color: var(--nw-focus);
+}
 
 .nw-medium-table,
 .nw-support-details table {
@@ -3055,17 +3106,14 @@ section article .nw-protocol-definition {
   height: auto;
 }
 
-.nw-wireless-device rect,
-.nw-wireless-microwave rect,
-.nw-wireless-obstacle rect {
+.nw-wireless-device rect {
   fill: var(--nw-panel-strong);
   stroke: var(--nw-line);
   stroke-width: 4;
 }
 
 .nw-wireless-device path,
-.nw-wireless-device circle,
-.nw-wireless-microwave circle {
+.nw-wireless-device circle {
   fill: none;
   stroke: var(--nw-line);
   stroke-linecap: round;
@@ -3073,9 +3121,7 @@ section article .nw-protocol-definition {
   stroke-width: 4;
 }
 
-.nw-wireless-device text,
-.nw-wireless-microwave text,
-.nw-wireless-obstacle text {
+.nw-wireless-device text {
   fill: var(--nw-text);
   font-size: 18px;
   font-weight: 800;
@@ -3093,10 +3139,6 @@ section article .nw-protocol-definition {
 
 @keyframes nw-wireless-wave {
   to { stroke-dashoffset: -30; }
-}
-
-.nw-wireless-obstacle rect {
-  fill: color-mix(in oklab, var(--nw-route-c) 22%, var(--nw-panel-soft));
 }
 
 .nw-wireless-explanation {

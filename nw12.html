@@ -119,13 +119,28 @@
             </h3>
             <svg viewBox="0 0 420 180" role="img" aria-labelledby="nw-copper-title nw-copper-desc">
               <title id="nw-copper-title">ツイストペアケーブルの模式図</title>
-              <desc id="nw-copper-desc">外側の被覆の中で、銅線を2本ずつより合わせた組が複数並び、電気信号が進む様子を示します。</desc>
-              <rect class="nw-cable__jacket" x="18" y="25" width="384" height="130" rx="62"/>
-              <path class="nw-cable__wire nw-cable__wire--a" d="M46 65C92 18 132 112 178 65S264 18 310 65 366 105 390 65"/>
-              <path class="nw-cable__wire nw-cable__wire--b" d="M46 113C92 66 132 160 178 113S264 66 310 113 366 153 390 113"/>
+              <desc id="nw-copper-desc">横向きに切り開いた外側の被覆の中で、赤と青の2本の銅線が互いに交差しながらより合わされ、電気信号が進む様子を示します。</desc>
+              <rect class="nw-cable__jacket" x="18" y="25" width="384" height="130"/>
+              <path class="nw-cable__wire nw-cable__wire--a" data-twisted-pair-wire d="M36 90C58 42 106 42 128 90S198 138 220 90 290 42 312 90 382 138 404 90"/>
+              <path class="nw-cable__wire nw-cable__wire--b" data-twisted-pair-wire d="M36 90C58 138 106 138 128 90S198 42 220 90 290 138 312 90 382 42 404 90"/>
+              <g aria-hidden="true">
+                <path class="nw-cable__wire-gap" d="M116 70Q128 90 140 110"/>
+                <path class="nw-cable__wire nw-cable__wire--a" d="M116 70Q128 90 140 110"/>
+                <path class="nw-cable__wire-gap" d="M208 70Q220 90 232 110"/>
+                <path class="nw-cable__wire nw-cable__wire--b" d="M208 70Q220 90 232 110"/>
+                <path class="nw-cable__wire-gap" d="M300 70Q312 90 324 110"/>
+                <path class="nw-cable__wire nw-cable__wire--a" d="M300 70Q312 90 324 110"/>
+              </g>
               <path class="nw-cable__pulse" data-medium-signal="electric" d="M42 89H394"/>
               <circle class="nw-cable__signal nw-cable__signal--electric" data-medium-moving-signal="electric" cx="42" cy="89" r="9"/>
             </svg>
+            <div class="nw-cable-photo">
+              <img src="./img/nw12-lan-cable.jpg" width="1280" height="857" loading="lazy" decoding="async" alt="青いLANケーブルと、その先端にある透明なコネクタ">
+              <div class="nw-cable-photo__caption">
+                <strong>実際のLANケーブル</strong>
+                <small>写真：<a href="https://commons.wikimedia.org/wiki/File:RJ45.jpg" target="_blank" rel="noopener noreferrer">Devcore / Wikimedia Commons</a>（CC0）</small>
+              </div>
+            </div>
             <p><strong>銅線を流れる電気信号</strong><span>家庭や学校などのLANで広く使われます。</span></p>
           </section>
 
@@ -138,8 +153,8 @@
             <svg viewBox="0 0 420 180" role="img" aria-labelledby="nw-fiber-title nw-fiber-desc">
               <title id="nw-fiber-title">光ファイバーケーブルの模式図</title>
               <desc id="nw-fiber-desc">ガラス製の中心部を光が全反射しながら進む様子を示します。</desc>
-              <rect class="nw-fiber__cladding" x="18" y="25" width="384" height="130" rx="62"/>
-              <rect class="nw-fiber__core" x="30" y="55" width="360" height="70" rx="34"/>
+              <rect class="nw-fiber__cladding" x="18" y="25" width="384" height="130"/>
+              <rect class="nw-fiber__core" x="30" y="55" width="360" height="70"/>
               <path class="nw-fiber__light-path" d="M46 90L102 62 158 118 214 62 270 118 326 62 382 90"/>
               <circle class="nw-cable__signal nw-cable__signal--light" data-medium-moving-signal="light" cx="46" cy="90" r="10"/>
             </svg>
@@ -178,9 +193,9 @@
       <div class="nw-wireless-layout">
         <figure class="nw-wireless-figure">
           <figcaption><strong>アクセスポイントから端末へ電波を送る</strong></figcaption>
-          <svg viewBox="0 0 760 290" role="img" aria-labelledby="nw-wireless-title nw-wireless-desc">
+          <svg viewBox="0 0 760 250" role="img" aria-labelledby="nw-wireless-title nw-wireless-desc">
             <title id="nw-wireless-title">無線LANの接続</title>
-            <desc id="nw-wireless-desc">中央のアクセスポイントから、左のノートパソコンと右のスマートフォンへ電波が届き、壁と電子レンジが電波へ影響する様子です。</desc>
+            <desc id="nw-wireless-desc">中央のアクセスポイントから、左のノートパソコンと右のスマートフォンへ電波が届く様子です。</desc>
             <g class="nw-wireless-device nw-wireless-device--laptop" transform="translate(55 105)">
               <rect x="12" y="0" width="118" height="74" rx="7"/>
               <path d="M0 76H142L130 92H12Z"/>
@@ -202,16 +217,6 @@
               <path d="M298 95Q205 145 298 195"/>
               <path d="M445 120Q500 145 445 170"/>
               <path d="M462 95Q555 145 462 195"/>
-            </g>
-            <g class="nw-wireless-obstacle" transform="translate(535 32)">
-              <rect width="34" height="220" rx="5"/>
-              <text x="17" y="244">壁</text>
-            </g>
-            <g class="nw-wireless-microwave" transform="translate(225 224)">
-              <rect width="100" height="50" rx="7"/>
-              <rect x="10" y="10" width="58" height="30" rx="3"/>
-              <circle cx="83" cy="18" r="4"/><circle cx="83" cy="33" r="4"/>
-              <text x="50" y="-8">電子レンジ</text>
             </g>
           </svg>
         </figure>
@@ -246,7 +251,7 @@
       </div>
 
       <details class="nw-support-details">
-        <summary>原本の無線LAN規格表を確認</summary>
+        <summary>主な無線LAN規格</summary>
         <div class="nw-support-details__scroll" tabindex="0" aria-label="無線LAN規格表。狭い画面では横方向にスクロールできます。">
           <table>
             <thead><tr><th scope="col">規格</th><th scope="col">策定年</th><th scope="col">最大速度</th><th scope="col">周波数帯</th><th scope="col">チャネル幅</th></tr></thead>

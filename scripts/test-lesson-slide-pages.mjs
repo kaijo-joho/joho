@@ -447,6 +447,11 @@ const wiredSlide = networkInterfacePage.slice(
 );
 equal((wiredSlide.match(/\bdata-medium-moving-signal=/g) || []).length, 2, 'nw12の有線比較に電気と光の移動信号');
 ok(wiredSlide.includes('data-medium-replay'), 'nw12の有線比較に信号アニメーションの再生操作');
+equal((wiredSlide.match(/\bdata-twisted-pair-wire/g) || []).length, 2, 'nw12のツイストペアは赤と青の2本で描画');
+ok(!/<rect class="nw-cable__jacket"[^>]*\brx=/.test(wiredSlide), 'nw12のツイストペアは横断面の端を丸めない');
+ok(!/<rect class="nw-fiber__(?:cladding|core)"[^>]*\brx=/.test(wiredSlide), 'nw12の光ファイバーは横断面の端を丸めない');
+ok(wiredSlide.includes('./img/nw12-lan-cable.jpg'), 'nw12の有線比較に実際のLANケーブル写真');
+ok(wiredSlide.includes('File:RJ45.jpg') && wiredSlide.includes('（CC0）'), 'nw12のLANケーブル写真に出典とライセンス表記');
 for (const answer of ['ツイストペアケーブル', '光ファイバーケーブル']) {
   ok(wiredSlide.includes(`class="nw-reveal__answer">${answer}</span>`), `nw12の有線比較に「${answer}」`);
 }
@@ -457,6 +462,9 @@ const wirelessSlide = networkInterfacePage.slice(
 );
 equal((wirelessSlide.match(/\bdata-lesson-view-panel=/g) || []).length, 2, 'nw12の無線説明は2.4GHz帯と5GHz帯を切り替える');
 ok(wirelessSlide.includes('data-lesson-default-view="2g"'), 'nw12の無線説明は2.4GHz帯から開始');
+ok(!wirelessSlide.includes('nw-wireless-obstacle'), 'nw12のアクセスポイント図に壁を置かない');
+ok(!wirelessSlide.includes('nw-wireless-microwave'), 'nw12のアクセスポイント図に電子レンジを置かない');
+ok(wirelessSlide.includes('<summary>主な無線LAN規格</summary>'), 'nw12の無線LAN規格表は内容を表す見出しを使用');
 for (const answer of ['Wi-Fi', 'チャネル']) {
   ok(wirelessSlide.includes(`class="nw-reveal__answer">${answer}</span>`), `nw12の無線説明に「${answer}」`);
 }
