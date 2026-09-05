@@ -1,4 +1,4 @@
-//2026-09-04 05:50:50;
+//2026-09-05 11:24:29;
 const pages = {
   "index": {
     "id": "index",
@@ -238,9 +238,36 @@ const pages = {
       }
     ],
     "back": "index",
-    "next": false,
+    "next": [
+      {
+        "id": "nw12",
+        "title": "1-2. ネットワークインターフェース層",
+        "text": "1-2. ネットワークインターフェース層",
+        "release": false,
+        "url": "nw12.html",
+        "detail": "有線・無線の伝送媒体、MACアドレス、スイッチングハブの働きを図と操作で学びます。"
+      }
+    ],
     "show": true,
     "backFile": "index.html"
+  },
+  "nw12": {
+    "id": "nw12",
+    "release": false,
+    "fileName": "nw12.html",
+    "mainTitle": "ネットワークのしくみ",
+    "category": "インターネットとプロトコル",
+    "title": "1-2. ネットワークインターフェース層",
+    "detail": "有線・無線の伝送媒体、MACアドレス、スイッチングハブの働きを図と操作で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "nw11",
+    "next": false,
+    "show": true,
+    "backFile": "nw11.html"
   },
   "html00": {
     "id": "html00",
