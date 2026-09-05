@@ -461,6 +461,7 @@ for (const answer of ['Wi-Fi', 'チャネル']) {
   ok(wirelessSlide.includes(`class="nw-reveal__answer">${answer}</span>`), `nw12の無線説明に「${answer}」`);
 }
 equal((wirelessSlide.match(/IEEE 802\.11(?:a|g|n|ac)<\/th>/g) || []).length, 4, 'nw12は原本の無線LAN規格表を補足表示');
+ok(/IEEE 802\.11ac<\/th><td>2013<\/td>/.test(wirelessSlide), 'nw12はIEEE 802.11acの策定年を2013年に補正');
 
 const macSlide = networkInterfacePage.slice(
   networkInterfacePage.indexOf('data-lesson-slide-title="LAN内で相手を区別するしくみ"'),
