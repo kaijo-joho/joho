@@ -184,12 +184,12 @@ const reviewSlide = networkPage.slice(
 );
 ok(reviewSlide.includes('id="headline_5"'), 'nw11の5枚目に語句とポイントのまとめ');
 equal((reviewSlide.match(/<li><b aria-hidden="true">[1-4]<\/b>/g) || []).length, 4, 'nw11のまとめに4段階の学習内容のつながり');
-equal((reviewSlide.match(/\bdata-review-term-toggle(?:\s|>)/g) || []).length, 15, 'nw11のまとめに15個の重要語句ボタン');
-equal((reviewSlide.match(/\bdata-review-term-description(?:\s|>)/g) || []).length, 15, 'nw11のまとめに15個の語句説明');
+equal((reviewSlide.match(/<details\b[^>]*\bdata-review-term(?:\s|>)/g) || []).length, 15, 'nw11のまとめに15個の重要語句開閉項目');
+equal((reviewSlide.match(/class="nw-review-term__body"/g) || []).length, 15, 'nw11のまとめに15個の語句説明');
 ok(reviewSlide.includes('data-network-review-terms'), 'nw11の重要語句を開閉操作のまとまりにする');
 ok(reviewSlide.includes('data-review-terms-open'), 'nw11の重要語句に一括表示操作');
 ok(reviewSlide.includes('data-review-terms-close'), 'nw11の重要語句に一括閉じる操作');
-ok(!/data-review-term-description[^>]*\shidden(?:\s|>)/.test(reviewSlide), 'JavaScript無効時もnw11の語句説明を読める');
+ok(!/<details\b[^>]*\bdata-review-term[^>]*\bopen(?:\s|>)/.test(reviewSlide), 'nw11の語句説明を最初から展開しない');
 const reviewPoints = reviewSlide.slice(reviewSlide.indexOf('class="nw-review-points"'), reviewSlide.indexOf('</ul>'));
 equal((reviewPoints.match(/<li>/g) || []).length, 5, 'nw11のまとめに5つの押さえるポイント');
 for (const term of [
@@ -209,10 +209,10 @@ for (const term of [
   'IPアドレス',
   'プロトコルの4階層'
 ]) {
-  ok(reviewSlide.includes(`>${term}</button>`), `nw11のまとめに独立した重要語句「${term}」`);
+  ok(reviewSlide.includes(`<summary>${term}</summary>`), `nw11のまとめに独立した重要語句「${term}」`);
 }
 for (const combinedTerm of ['LAN / WAN', 'ルーター / 終端装置', 'パケット / ヘッダ情報']) {
-  ok(!reviewSlide.includes(`>${combinedTerm}</button>`), `nw11のまとめで「${combinedTerm}」を1項目にまとめない`);
+  ok(!reviewSlide.includes(`<summary>${combinedTerm}</summary>`), `nw11のまとめで「${combinedTerm}」を1項目にまとめない`);
 }
 for (const device of ['switch', 'router', 'access-point', 'terminal']) {
   equal(
@@ -344,6 +344,7 @@ for (const requirement of [
   'class NetworkLayerJourney',
   'class NetworkTransmission',
   'class NetworkReviewTerms',
+  "'[data-review-term]'",
   'data-review-terms-open',
   'data-review-terms-close',
   'LAYER_JOURNEY_STEPS',
@@ -376,7 +377,8 @@ for (const requirement of [
   '.nw-review-flow',
   '.nw-review-body',
   '.nw-review-terms',
-  '.nw-review-term__toggle',
+  '.nw-review-term > summary',
+  '.nw-review-term__body',
   '.nw-review-term-controls',
   '.nw-review-points',
   '.nw-moving-parcel',
@@ -392,5 +394,11 @@ ok(!networkCss.includes('min-width: 1080px'), 'nw11の階層構造に横スク�
 const layerChoiceColumnRules = [...networkCss.matchAll(/\.nw-layer-choices\s*\{[^}]*grid-template-columns:\s*([^;]+);/g)];
 equal(layerChoiceColumnRules.length, 1, 'nw11の4階層一覧の列指定を画面幅で上書きしない');
 equal(layerChoiceColumnRules[0][1].trim(), 'minmax(0, 1fr)', 'nw11の4階層一覧を常に縦1列で表示');
+const reviewTermsScript = networkJs.slice(
+  networkJs.indexOf('class NetworkReviewTerms'),
+  networkJs.indexOf('function initialize()')
+);
+ok(!reviewTermsScript.includes('notifyContentResize()'), 'nw11の語句開閉でスライドの再計測を要求しない');
+ok(networkCss.includes('overflow-anchor: none'), 'nw11の語句開閉をスクロール位置の基準から外す');
 
 console.log(`lesson-slide-pages: ${checks}件の検証に合格`);

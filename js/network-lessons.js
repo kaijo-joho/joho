@@ -800,18 +800,7 @@
       this.controls = root.querySelector('[data-review-term-controls]');
       this.openAllButton = root.querySelector('[data-review-terms-open]');
       this.closeAllButton = root.querySelector('[data-review-terms-close]');
-      this.entries = Array.from(root.querySelectorAll('[data-review-term-toggle]')).map(button => {
-        const descriptionId = button.getAttribute('aria-controls');
-        const description = descriptionId ? document.getElementById(descriptionId) : null;
-        if (!description || !root.contains(description)) {
-          throw new Error(`重要語句「${button.textContent.trim()}」の説明が見つかりません。`);
-        }
-        return {
-          button,
-          description,
-          term: button.textContent.trim()
-        };
-      });
+      this.entries = Array.from(root.querySelectorAll('[data-review-term]'));
 
       if (!this.entries.length) throw new Error('重要語句が見つかりません。');
 
@@ -822,50 +811,34 @@
     }
 
     prepare() {
-      this.entries.forEach(entry => this.setExpanded(entry, false));
       if (this.controls) this.controls.hidden = false;
       this.root.dataset.networkReviewTermsReady = 'true';
     }
 
     bind() {
+      this.entries.forEach(entry => entry.addEventListener('toggle', () => this.updateControls()));
+
+      this.openAllButton?.addEventListener('click', () => this.setAll(true));
+
+      this.closeAllButton?.addEventListener('click', () => this.setAll(false));
+    }
+
+    setAll(open) {
+      const slide = this.root.closest('.lesson-slide');
+      const scrollTop = slide?.scrollTop;
       this.entries.forEach(entry => {
-        entry.button.addEventListener('click', () => this.toggle(entry));
-        entry.button.addEventListener('keydown', event => {
-          if (event.key !== 'Enter' && event.key !== ' ') return;
-          event.preventDefault();
-          this.toggle(entry);
-        });
+        entry.open = open;
       });
-
-      this.openAllButton?.addEventListener('click', () => {
-        this.entries.forEach(entry => this.setExpanded(entry, true));
-        this.updateControls();
-        notifyContentResize();
-      });
-
-      this.closeAllButton?.addEventListener('click', () => {
-        this.entries.forEach(entry => this.setExpanded(entry, false));
-        this.updateControls();
-        notifyContentResize();
-      });
-    }
-
-    toggle(entry) {
-      const expanded = entry.button.getAttribute('aria-expanded') === 'true';
-      this.setExpanded(entry, !expanded);
       this.updateControls();
-      notifyContentResize();
-    }
-
-    setExpanded(entry, expanded) {
-      entry.button.setAttribute('aria-expanded', String(expanded));
-      entry.button.setAttribute('aria-label', `${entry.term}の説明を${expanded ? '閉じる' : '表示'}`);
-      entry.button.classList.toggle('is-expanded', expanded);
-      entry.description.hidden = !expanded;
+      if (!slide || typeof scrollTop !== 'number') return;
+      slide.scrollTop = scrollTop;
+      requestAnimationFrame(() => {
+        slide.scrollTop = scrollTop;
+      });
     }
 
     updateControls() {
-      const expandedCount = this.entries.filter(entry => entry.button.getAttribute('aria-expanded') === 'true').length;
+      const expandedCount = this.entries.filter(entry => entry.open).length;
       if (this.openAllButton) this.openAllButton.disabled = expandedCount === this.entries.length;
       if (this.closeAllButton) this.closeAllButton.disabled = expandedCount === 0;
     }
