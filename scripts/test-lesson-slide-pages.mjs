@@ -26,7 +26,7 @@ const pageSpecs = [
   { id: 'lc03', slides: 3 },
   { id: 'lc04', slides: 3 },
   { id: 'dr31', slides: 6 },
-  { id: 'dr32', slides: 3 },
+  { id: 'dr32', slides: 5 },
   { id: 'nw11', slides: 5 },
   { id: 'nw12', slides: 7 },
   { id: 'nw13', slides: 7 }

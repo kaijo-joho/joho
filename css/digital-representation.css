@@ -1130,11 +1130,153 @@ section article .dr-answer-table th {
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.dr-channel-card {
+  min-width: 0;
+}
+
 .dr-channel-card dt::before {
   content: "◉";
   margin-right: .45em;
   color: var(--dr-sample);
   font-size: .8em;
+}
+
+.dr-channel-card dd > p {
+  margin: 8px 0 0;
+}
+
+.dr-channel-figure {
+  margin: 9px 0 0;
+}
+
+.dr-channel-figure figcaption {
+  margin-top: 3px;
+  color: var(--dr-text);
+  font-size: .76em;
+  font-weight: 750;
+  text-align: center;
+}
+
+.dr-channel-svg {
+  display: block;
+  width: 100%;
+  max-height: 180px;
+  border: 1px solid var(--dr-border);
+  border-radius: 9px;
+  background: var(--dr-svg-bg);
+}
+
+.dr-channel-svg__speaker rect {
+  fill: var(--dr-axis);
+  stroke: color-mix(in oklab, var(--dr-axis) 70%, var(--dr-svg-bg));
+  stroke-width: 2;
+}
+
+.dr-channel-svg__speaker circle {
+  fill: var(--dr-svg-bg);
+  stroke: color-mix(in oklab, var(--dr-svg-bg) 72%, var(--dr-axis));
+  stroke-width: 2;
+}
+
+.dr-channel-svg__source rect {
+  fill: color-mix(in oklab, var(--dr-wave-b) 12%, var(--dr-svg-bg));
+  stroke: var(--dr-wave-b);
+  stroke-width: 2;
+}
+
+.dr-channel-svg__source--right rect {
+  fill: color-mix(in oklab, var(--dr-wave-a) 12%, var(--dr-svg-bg));
+  stroke: var(--dr-wave-a);
+  stroke-dasharray: 7 4;
+}
+
+.dr-channel-svg__source text,
+.dr-channel-svg__screen text,
+.dr-channel-svg__subwoofer text {
+  fill: var(--dr-text);
+  font-family: var(--font-sans, sans-serif);
+  font-size: 13px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+.dr-channel-svg__route {
+  fill: none;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.dr-channel-svg__route--shared,
+.dr-channel-svg__route--left {
+  stroke: var(--dr-wave-b);
+}
+
+.dr-channel-svg__route--right {
+  stroke: var(--dr-wave-a);
+  stroke-dasharray: 8 5;
+}
+
+.dr-channel-svg__sound-waves path,
+.dr-channel-svg__sound-paths path {
+  fill: none;
+  stroke: color-mix(in oklab, var(--dr-axis) 52%, transparent);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 2 7;
+  vector-effect: non-scaling-stroke;
+}
+
+.dr-channel-svg__sound-paths .dr-channel-svg__sound-path--bass {
+  stroke: var(--dr-code);
+  stroke-width: 4;
+  stroke-dasharray: 3 8;
+}
+
+.dr-channel-svg__screen rect {
+  fill: color-mix(in oklab, var(--theme-color, #225386) 12%, var(--dr-svg-bg));
+  stroke: var(--theme-color, #225386);
+  stroke-width: 1.5;
+}
+
+.dr-channel-svg__screen text {
+  font-size: 11px;
+}
+
+.dr-channel-svg__position-labels text {
+  fill: var(--dr-text);
+  font-family: var(--font-sans, sans-serif);
+  font-size: 11px;
+  font-weight: 800;
+  text-anchor: middle;
+}
+
+.dr-channel-svg__listener circle,
+.dr-channel-svg__listener path {
+  fill: color-mix(in oklab, var(--theme-color, #225386) 76%, var(--dr-svg-bg));
+  stroke: var(--dr-svg-bg);
+  stroke-width: 2;
+}
+
+.dr-channel-svg__listener--plan circle,
+.dr-channel-svg__listener--plan path {
+  fill: color-mix(in oklab, var(--theme-color, #225386) 64%, var(--dr-svg-bg));
+}
+
+.dr-channel-svg__subwoofer rect {
+  fill: var(--dr-code);
+}
+
+.dr-channel-svg__subwoofer circle {
+  fill: var(--dr-svg-bg);
+  stroke: color-mix(in oklab, var(--dr-code) 72%, var(--dr-svg-bg));
+  stroke-width: 2;
+}
+
+.dr-channel-svg__subwoofer text {
+  fill: var(--dr-code);
+  font-size: 10px;
 }
 
 .dr-term {
@@ -1607,6 +1749,59 @@ section article .dr-question-header h3 {
   color: var(--dr-info);
 }
 
+.dr-feedback__result {
+  margin: 0;
+  font-weight: 800;
+}
+
+.dr-solution {
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid color-mix(in oklab, currentColor 32%, transparent);
+  color: var(--dr-text);
+}
+
+.dr-solution__title {
+  margin: 0 0 7px;
+  color: var(--dr-text);
+  font-size: .96em;
+}
+
+.dr-solution__steps {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding-left: 1.6em;
+}
+
+.dr-solution__steps li {
+  padding-left: .25em;
+}
+
+.dr-solution__step-label {
+  display: block;
+  color: var(--theme-color, #225386);
+  font-size: .82em;
+}
+
+.dr-solution__step-text {
+  display: block;
+  margin-top: 1px;
+  color: var(--dr-text);
+  line-height: 1.45;
+}
+
+.dr-solution__point {
+  margin: 9px 0 0;
+  padding: 7px 9px;
+  border-left: 3px solid var(--dr-info);
+  border-radius: 6px;
+  background: var(--dr-info-soft);
+  color: var(--dr-info);
+  font-size: .88em;
+  line-height: 1.45;
+}
+
 .dr-question-actions {
   display: flex;
   flex-wrap: wrap;
@@ -1886,6 +2081,23 @@ body.lesson-slide-ready .dr-guide--pcm-walkthrough {
   max-height: min(42dvh, 390px);
 }
 
+.lesson-slide-deck.is-height-compact .dr-channel-grid {
+  margin-block: 8px;
+}
+
+.lesson-slide-deck.is-height-compact .dr-channel-card {
+  padding: 9px 10px;
+}
+
+.lesson-slide-deck.is-height-compact .dr-channel-svg {
+  max-height: 132px;
+}
+
+.lesson-slide-deck.is-height-compact .dr-channel-card dd > p {
+  font-size: .78em;
+  line-height: 1.35;
+}
+
 body.lesson-slide-ready :is(.dr-svg--superposition, .dr-svg--sampling-theorem) {
   width: min(100%, 960px);
   margin-inline: auto;
@@ -1905,7 +2117,7 @@ body.lesson-slide-ready :is(.dr-svg--superposition, .dr-svg--sampling-theorem) {
   }
 
   .dr-channel-grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(auto-fit, minmax(min(230px, 100%), 1fr));
   }
 
   .dr-reference-grid {

@@ -22,99 +22,238 @@
 </head>
 <body data-lesson-slide-deck data-sound-quiz-seed="dr32-classroom-v1">
   <section data-lesson-slide data-lesson-slide-title="音のチャンネル">
-    <article>
+    <article class="dr-channel-slide">
       <h2 id="headline_1">(1) 音のチャンネル</h2>
       <p class="dr-lead">音の信号の伝送系統や、その単位を<strong>チャンネル</strong>といいます。チャンネル数と音のデータ量は比例します。</p>
       <div class="dr-term-grid dr-channel-grid">
         <dl class="dr-term dr-channel-card">
           <dt>モノラル（1チャンネル）</dt>
-          <dd>左右のスピーカーで、同じ音信号を再生します。</dd>
+          <dd>
+            <figure class="dr-channel-figure">
+              <svg class="dr-channel-svg" viewBox="0 0 360 180" role="img" aria-labelledby="mono-title mono-desc">
+                <title id="mono-title">モノラルの信号</title>
+                <desc id="mono-desc">1つの信号Aが二つに分かれ、左右両方のスピーカーから聞き手へ届く図です。</desc>
+                <g class="dr-channel-svg__source dr-channel-svg__source--shared">
+                  <rect x="120" y="8" width="120" height="32" rx="16"></rect>
+                  <text x="180" y="29">信号A（1系統）</text>
+                </g>
+                <path class="dr-channel-svg__route dr-channel-svg__route--shared" d="M180 40 V51 H58 V59 M180 51 H302 V59"></path>
+                <g class="dr-channel-svg__speaker" transform="translate(34 59)">
+                  <rect width="48" height="68" rx="7"></rect>
+                  <circle cx="24" cy="19" r="7"></circle>
+                  <circle cx="24" cy="47" r="15"></circle>
+                </g>
+                <g class="dr-channel-svg__speaker" transform="translate(278 59)">
+                  <rect width="48" height="68" rx="7"></rect>
+                  <circle cx="24" cy="19" r="7"></circle>
+                  <circle cx="24" cy="47" r="15"></circle>
+                </g>
+                <g class="dr-channel-svg__sound-waves" aria-hidden="true">
+                  <path d="M88 94 Q126 98 155 124"></path>
+                  <path d="M272 94 Q234 98 205 124"></path>
+                </g>
+                <g class="dr-channel-svg__listener">
+                  <circle cx="180" cy="134" r="19"></circle>
+                  <circle cx="158" cy="134" r="5"></circle>
+                  <circle cx="202" cy="134" r="5"></circle>
+                  <path d="M144 178 C147 151 213 151 216 178 Z"></path>
+                </g>
+              </svg>
+              <figcaption>スピーカーが2台でも、信号は同じ1系統</figcaption>
+            </figure>
+            <p>左右のスピーカーで、同じ音信号を再生します。</p>
+          </dd>
         </dl>
         <dl class="dr-term dr-channel-card">
           <dt>ステレオ（2チャンネル）</dt>
-          <dd>左右のスピーカーで異なる音信号を再生します。左右の耳に届く音の位相差や音量の違いから音源の方向を感じ取りやすくなり、臨場感が生まれます。</dd>
+          <dd>
+            <figure class="dr-channel-figure">
+              <svg class="dr-channel-svg" viewBox="0 0 360 180" role="img" aria-labelledby="stereo-title stereo-desc">
+                <title id="stereo-title">ステレオの信号</title>
+                <desc id="stereo-desc">独立した信号Aと信号Bが、それぞれ左と右のスピーカーから聞き手へ届く図です。</desc>
+                <g class="dr-channel-svg__source dr-channel-svg__source--left">
+                  <rect x="24" y="8" width="128" height="32" rx="16"></rect>
+                  <text x="88" y="29">左：信号A</text>
+                </g>
+                <g class="dr-channel-svg__source dr-channel-svg__source--right">
+                  <rect x="208" y="8" width="128" height="32" rx="16"></rect>
+                  <text x="272" y="29">右：信号B</text>
+                </g>
+                <path class="dr-channel-svg__route dr-channel-svg__route--left" d="M88 40 V50 H58 V59"></path>
+                <path class="dr-channel-svg__route dr-channel-svg__route--right" d="M272 40 V50 H302 V59"></path>
+                <g class="dr-channel-svg__speaker" transform="translate(34 59)">
+                  <rect width="48" height="68" rx="7"></rect>
+                  <circle cx="24" cy="19" r="7"></circle>
+                  <circle cx="24" cy="47" r="15"></circle>
+                </g>
+                <g class="dr-channel-svg__speaker" transform="translate(278 59)">
+                  <rect width="48" height="68" rx="7"></rect>
+                  <circle cx="24" cy="19" r="7"></circle>
+                  <circle cx="24" cy="47" r="15"></circle>
+                </g>
+                <g class="dr-channel-svg__sound-waves" aria-hidden="true">
+                  <path d="M88 94 Q126 98 155 124"></path>
+                  <path d="M272 94 Q234 98 205 124"></path>
+                </g>
+                <g class="dr-channel-svg__listener">
+                  <circle cx="180" cy="134" r="19"></circle>
+                  <circle cx="158" cy="134" r="5"></circle>
+                  <circle cx="202" cy="134" r="5"></circle>
+                  <path d="M144 178 C147 151 213 151 216 178 Z"></path>
+                </g>
+              </svg>
+              <figcaption>左右で異なる音信号を再生</figcaption>
+            </figure>
+            <p>左右の耳に届く音の位相差や音量の違いから、音源の方向を感じ取りやすくなり、臨場感が生まれます。</p>
+          </dd>
         </dl>
         <dl class="dr-term dr-channel-card">
           <dt>ホームシアター（5.1チャンネル）</dt>
-          <dd>5個のスピーカーで5種類の音信号を再生し、低音域をサブウーファーで再生します。データ量の計算では6チャンネル分として扱います。</dd>
+          <dd>
+            <figure class="dr-channel-figure">
+              <svg class="dr-channel-svg dr-channel-svg--surround" viewBox="0 0 360 180" role="img" aria-labelledby="surround-title surround-desc">
+                <title id="surround-title">5.1チャンネルのスピーカー配置</title>
+                <desc id="surround-desc">スクリーン側に前左、中央、前右、聞き手の後方に後左、後右の5個のスピーカーを配置し、低音専用のサブウーファーを加えた図です。</desc>
+                <g class="dr-channel-svg__screen">
+                  <rect x="106" y="5" width="148" height="18" rx="4"></rect>
+                  <text x="180" y="18">スクリーン（前）</text>
+                </g>
+                <g class="dr-channel-svg__sound-paths" aria-hidden="true">
+                  <path d="M77 61 Q119 67 158 94"></path>
+                  <path d="M180 58 Q180 76 180 88"></path>
+                  <path d="M283 61 Q241 67 202 94"></path>
+                  <path d="M78 144 Q123 131 159 115"></path>
+                  <path d="M282 144 Q237 131 201 115"></path>
+                  <path class="dr-channel-svg__sound-path--bass" d="M51 103 Q111 100 158 104"></path>
+                </g>
+                <g class="dr-channel-svg__speaker dr-channel-svg__speaker--small" transform="translate(59 39)"><rect width="36" height="36" rx="5"></rect><circle cx="18" cy="18" r="10"></circle></g>
+                <g class="dr-channel-svg__speaker dr-channel-svg__speaker--small" transform="translate(162 31)"><rect width="36" height="36" rx="5"></rect><circle cx="18" cy="18" r="10"></circle></g>
+                <g class="dr-channel-svg__speaker dr-channel-svg__speaker--small" transform="translate(265 39)"><rect width="36" height="36" rx="5"></rect><circle cx="18" cy="18" r="10"></circle></g>
+                <g class="dr-channel-svg__speaker dr-channel-svg__speaker--small" transform="translate(60 139)"><rect width="36" height="36" rx="5"></rect><circle cx="18" cy="18" r="10"></circle></g>
+                <g class="dr-channel-svg__speaker dr-channel-svg__speaker--small" transform="translate(264 139)"><rect width="36" height="36" rx="5"></rect><circle cx="18" cy="18" r="10"></circle></g>
+                <g class="dr-channel-svg__subwoofer" transform="translate(13 84)">
+                  <rect width="38" height="38" rx="5"></rect><circle cx="19" cy="19" r="12"></circle><text x="19" y="24">.1</text>
+                </g>
+                <g class="dr-channel-svg__listener dr-channel-svg__listener--plan">
+                  <circle cx="180" cy="105" r="17"></circle>
+                  <path d="M153 135 C156 114 204 114 207 135 Z"></path>
+                </g>
+                <g class="dr-channel-svg__position-labels">
+                  <text x="77" y="36">前左</text><text x="180" y="29">中央</text><text x="283" y="36">前右</text>
+                  <text x="78" y="136">後左</text><text x="282" y="136">後右</text><text x="32" y="81">低音</text>
+                </g>
+              </svg>
+              <figcaption>5方向の音信号に低音用の信号を追加</figcaption>
+            </figure>
+            <p>5個のスピーカーで5種類の音信号を再生し、低音域をサブウーファーで再生します。データ量の計算では6チャンネル分として扱います。</p>
+          </dd>
         </dl>
       </div>
       <p class="dr-note"><strong>データ量の関係：</strong>同じ標本化周波数・時間・量子化ビット数なら、ステレオはモノラルの2倍のデータ量になります。</p>
     </article>
   </section>
 
-  <section data-lesson-slide data-lesson-slide-title="計算と用語の問題" data-lesson-slide-layout="exercise">
+  <section data-lesson-slide data-lesson-slide-title="周波数と周期の問題" data-lesson-slide-layout="exercise">
     <article class="dr-quiz-slide">
-      <h2 id="headline_2">(2) 計算と用語を練習する</h2>
-      <p class="dr-lead">2種類の問題を切り替えて練習できます。判定後は、計算や用語の考え方を確認してから次へ進みましょう。</p>
-      <div class="dr-tabs" id="sound-quiz-tabs" role="tablist" aria-label="問題の種類">
-        <button type="button" class="dr-tabs__tab" role="tab" id="tab-calculation" aria-controls="panel-calculation" aria-selected="true" data-mode="calculation">1. 周期・段階数・データ量</button>
-        <button type="button" class="dr-tabs__tab" role="tab" id="tab-terminology" aria-controls="panel-terminology" aria-selected="false" data-mode="terminology" tabindex="-1">2. 用語・標本化定理</button>
-      </div>
-      <p class="dr-seed" id="sound-quiz-seed">問題シード：</p>
+      <h2 id="headline_2">(2) 標本化周波数と標本化周期</h2>
+      <p class="dr-lead"><code>T = 1 / fs</code> と <code>fs = 1 / T</code> を使い分け、周波数と周期を相互に変換します。</p>
+      <p class="dr-seed" data-sound-quiz-seed-output>問題シード：</p>
       <div class="dr-quiz-stage" data-lesson-slide-navigation-lock>
-        <div class="dr-quiz-panel" id="panel-calculation" role="tabpanel" aria-labelledby="tab-calculation" data-panel="calculation">
-          <div class="dr-quiz-panel__content">
-            <div class="dr-question-card">
-              <div class="dr-question-header">
-                <h3>周期・段階数・データ量</h3>
-                <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
-              </div>
-              <p class="dr-prompt" id="calculation-prompt"></p>
-              <div class="dr-number-answer">
-                <label for="calculation-answer">答え</label>
-                <input class="dr-quiz-input" id="calculation-answer" type="number" step="any" inputmode="decimal">
-                <span class="dr-answer-unit" id="calculation-unit"></span>
-              </div>
-              <div class="dr-feedback" id="calculation-feedback" role="status" aria-live="polite"></div>
-              <div class="dr-question-actions">
-                <button type="button" class="dr-button dr-button--primary" id="calculation-judge">判定</button>
-                <button type="button" class="dr-button" id="calculation-next">次の問題</button>
-              </div>
-            </div>
+        <div class="dr-question-card" data-sound-calculation="sampling">
+          <div class="dr-question-header">
+            <h3>周波数と周期を相互変換</h3>
+            <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
           </div>
-        </div>
-
-        <div class="dr-quiz-panel" id="panel-terminology" role="tabpanel" aria-labelledby="tab-terminology" data-panel="terminology" hidden>
-          <div class="dr-quiz-panel__content">
-            <div class="dr-question-card">
-              <div class="dr-question-header">
-                <h3>用語・標本化定理</h3>
-                <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
-              </div>
-              <p class="dr-prompt" id="terminology-prompt"></p>
-              <div class="dr-choice-list" id="terminology-choices" role="group" aria-label="選択肢"></div>
-              <div class="dr-feedback" id="terminology-feedback" role="status" aria-live="polite"></div>
-              <div class="dr-question-actions">
-                <button type="button" class="dr-button dr-button--primary" id="terminology-judge">判定</button>
-                <button type="button" class="dr-button" id="terminology-next">次の問題</button>
-              </div>
-            </div>
+          <p class="dr-prompt" data-calculation-prompt></p>
+          <div class="dr-number-answer">
+            <label for="sampling-answer">答え</label>
+            <input class="dr-quiz-input" id="sampling-answer" data-calculation-answer type="number" step="any" inputmode="decimal">
+            <span class="dr-answer-unit" data-calculation-unit></span>
+          </div>
+          <div class="dr-feedback" data-calculation-feedback role="status" aria-live="polite"></div>
+          <div class="dr-question-actions">
+            <button type="button" class="dr-button dr-button--primary" data-calculation-judge>判定</button>
+            <button type="button" class="dr-button" data-calculation-next>次の問題</button>
           </div>
         </div>
       </div>
     </article>
   </section>
 
-  <section data-lesson-slide data-lesson-slide-title="計算の確認">
-    <article>
-      <h2 id="headline_3">(3) 計算の確認</h2>
-      <div class="dr-term-grid">
-        <dl class="dr-term">
-          <dt>標本化周期と周波数</dt>
-          <dd><code>T = 1 / fs</code>、<code>fs = 1 / T</code>。周期の単位は秒、周波数の単位はHzです。</dd>
-        </dl>
-        <dl class="dr-term">
-          <dt>量子化段階数</dt>
-          <dd>n bitなら <code>2ⁿ</code> 段階です。段階数から必要bit数を求めるときは、その段階数以上になる最小のnを選びます。</dd>
-        </dl>
-        <dl class="dr-term">
-          <dt>音声データ量</dt>
-          <dd><code>標本化周波数 × 時間 × 量子化ビット数 × チャンネル数</code> でbit数を求め、8で割るとBになります。</dd>
-        </dl>
+  <section data-lesson-slide data-lesson-slide-title="ビット数と段階数の問題" data-lesson-slide-layout="exercise">
+    <article class="dr-quiz-slide">
+      <h2 id="headline_3">(3) 量子化ビット数と量子化段階数</h2>
+      <p class="dr-lead"><code>2ⁿ</code> の関係を使い、ビット数から段階数、段階数から必要なビット数を求めます。</p>
+      <p class="dr-seed" data-sound-quiz-seed-output>問題シード：</p>
+      <div class="dr-quiz-stage" data-lesson-slide-navigation-lock>
+        <div class="dr-question-card" data-sound-calculation="quantization">
+          <div class="dr-question-header">
+            <h3>ビット数と段階数を相互変換</h3>
+            <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+          </div>
+          <p class="dr-prompt" data-calculation-prompt></p>
+          <div class="dr-number-answer">
+            <label for="quantization-answer">答え</label>
+            <input class="dr-quiz-input" id="quantization-answer" data-calculation-answer type="number" step="any" inputmode="decimal">
+            <span class="dr-answer-unit" data-calculation-unit></span>
+          </div>
+          <div class="dr-feedback" data-calculation-feedback role="status" aria-live="polite"></div>
+          <div class="dr-question-actions">
+            <button type="button" class="dr-button dr-button--primary" data-calculation-judge>判定</button>
+            <button type="button" class="dr-button" data-calculation-next>次の問題</button>
+          </div>
+        </div>
       </div>
-      <p class="dr-warning-note"><strong>単位換算：</strong>このページでは1000倍換算と1024倍換算の問題を扱います。換算方法は、各問題文に「1KB = 1000B」または「この問題では1KB = 1024B、1MB = 1024KB」と明記しています。</p>
-      <p><a href="./dr31.html">音の波形とデジタル化へ戻る</a></p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="音声データ量の問題" data-lesson-slide-layout="exercise">
+    <article class="dr-quiz-slide">
+      <h2 id="headline_4">(4) 音声データ量</h2>
+      <p class="dr-lead">標本化周波数・時間・量子化ビット数・チャンネル数からデータ量を求めます。単位の換算方法は問題文で確認してください。</p>
+      <p class="dr-seed" data-sound-quiz-seed-output>問題シード：</p>
+      <div class="dr-quiz-stage" data-lesson-slide-navigation-lock>
+        <div class="dr-question-card" data-sound-calculation="data-size">
+          <div class="dr-question-header">
+            <h3>音声データ量を計算</h3>
+            <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+          </div>
+          <p class="dr-prompt" data-calculation-prompt></p>
+          <div class="dr-number-answer">
+            <label for="data-size-answer">答え</label>
+            <input class="dr-quiz-input" id="data-size-answer" data-calculation-answer type="number" step="any" inputmode="decimal">
+            <span class="dr-answer-unit" data-calculation-unit></span>
+          </div>
+          <div class="dr-feedback" data-calculation-feedback role="status" aria-live="polite"></div>
+          <div class="dr-question-actions">
+            <button type="button" class="dr-button dr-button--primary" data-calculation-judge>判定</button>
+            <button type="button" class="dr-button" data-calculation-next>次の問題</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="用語と標本化定理の問題" data-lesson-slide-layout="exercise">
+    <article class="dr-quiz-slide">
+      <h2 id="headline_5">(5) 用語と標本化定理</h2>
+      <p class="dr-lead">音のデジタル表現の基本用語と、元の波形を再現するための標本化の条件を確認します。</p>
+      <p class="dr-seed" data-sound-quiz-seed-output>問題シード：</p>
+      <div class="dr-quiz-stage" data-lesson-slide-navigation-lock>
+        <div class="dr-question-card" data-sound-terminology>
+          <div class="dr-question-header">
+            <h3>最も適切な説明を選ぶ</h3>
+            <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+          </div>
+          <p class="dr-prompt" data-terminology-prompt></p>
+          <div class="dr-choice-list" data-terminology-choices role="group" aria-label="選択肢"></div>
+          <div class="dr-feedback" data-terminology-feedback role="status" aria-live="polite"></div>
+          <div class="dr-question-actions">
+            <button type="button" class="dr-button dr-button--primary" data-terminology-judge>判定</button>
+            <button type="button" class="dr-button" data-terminology-next>次の問題</button>
+          </div>
+        </div>
+      </div>
     </article>
   </section>
 

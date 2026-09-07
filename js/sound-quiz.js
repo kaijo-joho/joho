@@ -60,6 +60,84 @@
     return problems;
   }
 
+  function calculationNumber(value, digits = 4) {
+    const number = Number(value);
+    if (!Number.isFinite(number)) return '—';
+    return new Intl.NumberFormat('ja-JP', {
+      maximumFractionDigits: digits,
+      minimumFractionDigits: 0
+    }).format(number);
+  }
+
+  function calculationSolution(kind, params, expected, answerUnit, answerDigits) {
+    let steps;
+    let point;
+    if (kind === 'periodFromRate') {
+      steps = [
+        { label: '式を選ぶ', text: '標本化周期は T = 1 / fs で求めます。' },
+        { label: '値を代入する', text: `T = 1 / ${calculationNumber(params.sampleRate)} とします。` },
+        { label: '計算して単位を付ける', text: `T = ${calculationNumber(expected, answerDigits)}秒です。` }
+      ];
+      point = 'Hzは1秒間の標本化回数です。逆数をとると、1回あたりの時間である標本化周期になります。';
+    } else if (kind === 'rateFromPeriod') {
+      steps = [
+        { label: '式を選ぶ', text: '標本化周波数は fs = 1 / T で求めます。' },
+        { label: '値を代入する', text: `fs = 1 / ${calculationNumber(params.period)} とします。` },
+        { label: '計算して単位を付ける', text: `fs = ${calculationNumber(expected, answerDigits)}Hzです。` }
+      ];
+      point = '周期の単位を秒にそろえてから逆数をとります。周波数の単位はHzです。';
+    } else if (kind === 'levelsFromBits') {
+      steps = [
+        { label: '式を選ぶ', text: 'n bitで表せる量子化段階数は 2^n です。' },
+        { label: 'ビット数を代入する', text: `2^${params.bitDepth} を計算します。` },
+        { label: '段階数を求める', text: `${calculationNumber(expected, answerDigits)}段階です。` }
+      ];
+      point = '1bitごとに0と1の2通りがあるため、n bitの組み合わせは2^n通りです。';
+    } else if (kind === 'bitsFromLevels') {
+      const lowerBits = Math.max(0, expected - 1);
+      const lowerLevels = 2 ** lowerBits;
+      const upperLevels = 2 ** expected;
+      steps = [
+        { label: '必要な条件を立てる', text: `2^n が${calculationNumber(params.levels)}段階以上になる、最小のnを探します。` },
+        { label: '前後の段階数を比べる', text: `2^${lowerBits} = ${calculationNumber(lowerLevels)}、2^${expected} = ${calculationNumber(upperLevels)}です。` },
+        { label: '最小のビット数を選ぶ', text: `${calculationNumber(expected, answerDigits)}bit必要です。` }
+      ];
+      point = '段階数と同じ値になる場合だけでなく、必要な段階数をすべて表せる最小のビット数を選びます。';
+    } else if (kind === 'dataSize') {
+      const size = Core.audioDataSize(params);
+      const duration = params.durationParts
+        ? `${params.durationParts.minutes} × 60 + ${params.durationParts.seconds} = ${calculationNumber(params.seconds)}秒`
+        : `${calculationNumber(params.seconds)}秒`;
+      steps = [
+        { label: '時間を秒にそろえる', text: `音声の長さは${duration}です。` },
+        { label: '標本化回数を求める', text: `${calculationNumber(params.sampleRate)} × ${calculationNumber(params.seconds)} = ${calculationNumber(size.sampleFrames)}回です。` },
+        { label: '全チャンネルのbit数を求める', text: `${calculationNumber(size.sampleFrames)} × ${params.bitDepth}bit × ${params.channels}チャンネル = ${calculationNumber(size.bits)}bitです。` },
+        { label: 'Bへ変換する', text: `${calculationNumber(size.bits)} ÷ 8 = ${calculationNumber(size.bytes)}Bです。` }
+      ];
+      if (answerUnit !== 'B') {
+        const powers = { KB: 1, MB: 2, GB: 3, KiB: 1, MiB: 2, GiB: 3 };
+        const power = powers[answerUnit] || 1;
+        const base = params.base ?? (answerUnit.includes('i') ? 1024 : 1000);
+        const divisors = Array.from({ length: power }, () => calculationNumber(base)).join(' ÷ ');
+        steps.push({
+          label: `${answerUnit}へ変換する`,
+          text: `${calculationNumber(size.bytes)} ÷ ${divisors} = ${calculationNumber(expected, answerDigits)}${answerUnit}です。`
+        });
+      }
+      const conversionRule = answerUnit === 'B'
+        ? '最後に8bit = 1Bで換算します。'
+        : `この問題では${params.base === 1024 ? '1024倍' : '1000倍'}で単位を換算します。`;
+      point = `音声データ量は、標本化周波数 × 時間 × 量子化ビット数 × チャンネル数で求めます。${conversionRule}`;
+    } else {
+      steps = [];
+      point = '';
+    }
+    return Object.freeze({
+      steps: Object.freeze(steps.map(step => Object.freeze(step))),
+      point
+    });
+  }
+
   function createCalculationProblem(definition) {
     const params = Object.freeze({ ...definition.params });
     let expected;
@@ -79,16 +157,19 @@
     } else {
       throw new TypeError(`未対応の計算問題「${definition.kind}」です。`);
     }
+    const answerDigits = definition.answerDigits ?? 4;
     return Object.freeze({
       id: definition.id,
       type: definition.kind,
+      pattern: definition.pattern,
       level: definition.level,
       params,
       expected,
       prompt: definition.prompt,
       answerUnit: definition.answerUnit,
+      answerDigits,
       tolerance: definition.tolerance ?? Math.max(1e-7, Math.abs(expected) * 1e-6),
-      explanation: definition.explanation
+      solution: calculationSolution(definition.kind, params, expected, definition.answerUnit, answerDigits)
     });
   }
 
@@ -229,10 +310,11 @@
   })));
 
   function initialize() {
-    const tabsHost = byId('sound-quiz-tabs');
     const hasDigitization = Boolean(byId('digitization-judge'));
-    const hasCalculation = Boolean(byId('calculation-judge'));
-    const hasTerminology = Boolean(byId('terminology-judge'));
+    const calculationHosts = Array.from(document.querySelectorAll('[data-sound-calculation]'));
+    const terminologyHost = document.querySelector('[data-sound-terminology]');
+    const hasCalculation = calculationHosts.length > 0;
+    const hasTerminology = Boolean(terminologyHost);
     if (!hasDigitization && !hasCalculation && !hasTerminology) return;
 
     const querySeed = new URLSearchParams(window.location.search).get('seed');
@@ -241,7 +323,6 @@
     const score = { attempted: 0, correct: 0 };
     const state = {
       digitization: null,
-      calculation: null,
       terminology: null,
       last: { digitization: '', calculation: '', terminology: '' }
     };
@@ -270,76 +351,96 @@
 
     const calculationProblems = [
       createCalculationProblem({
-        id: 'period-10hz', kind: 'periodFromRate', level: 1,
+        id: 'period-10hz', kind: 'periodFromRate', pattern: 'sampling', level: 1,
         params: { sampleRate: 10 },
         prompt: '標本化周波数が10Hzのとき、標本化周期Tは何秒ですか。',
-        answerUnit: '秒',
-        explanation: 'T = 1 / fs = 1 / 10 = 0.1秒です。'
+        answerUnit: '秒'
       }),
       createCalculationProblem({
-        id: 'rate-002sec', kind: 'rateFromPeriod', level: 1,
+        id: 'rate-002sec', kind: 'rateFromPeriod', pattern: 'sampling', level: 1,
         params: { period: 0.02 },
         prompt: '標本化周期が0.02秒のとき、標本化周波数fsは何Hzですか。',
-        answerUnit: 'Hz',
-        explanation: 'fs = 1 / T = 1 / 0.02 = 50Hzです。'
+        answerUnit: 'Hz'
       }),
       createCalculationProblem({
-        id: 'levels-4bit', kind: 'levelsFromBits', level: 1,
+        id: 'levels-4bit', kind: 'levelsFromBits', pattern: 'quantization', level: 1,
         params: { bitDepth: 4 },
         prompt: '量子化ビット数が4bitのとき、量子化段階数はいくつですか。',
-        answerUnit: '段階',
-        explanation: '2⁴ = 16段階です。'
+        answerUnit: '段階'
       }),
       createCalculationProblem({
-        id: 'bits-32levels', kind: 'bitsFromLevels', level: 2,
+        id: 'bits-32levels', kind: 'bitsFromLevels', pattern: 'quantization', level: 2,
         params: { levels: 32 },
         prompt: '32段階を区別するために必要な量子化ビット数は何bitですか。',
-        answerUnit: 'bit',
-        explanation: '2⁵ = 32なので5bit必要です。'
+        answerUnit: 'bit'
       }),
       createCalculationProblem({
-        id: 'pdf-6000b', kind: 'dataSize', level: 2,
+        id: 'bits-17levels', kind: 'bitsFromLevels', pattern: 'quantization', level: 2,
+        params: { levels: 17 },
+        prompt: '17段階を区別するために必要な量子化ビット数は何bitですか。',
+        answerUnit: 'bit'
+      }),
+      createCalculationProblem({
+        id: 'pdf-6000b', kind: 'dataSize', pattern: 'data-size', level: 2,
         params: { sampleRate: 200, seconds: 60, bitDepth: 4, channels: 1, answerUnit: 'B' },
         prompt: '標本化周波数200Hz、量子化4bit、モノラル、60秒の音声データは何Bですか。',
-        answerUnit: 'B',
-        explanation: '200 × 60 × 4 × 1 = 48,000bit、8で割って6,000Bです。'
+        answerUnit: 'B'
       }),
       createCalculationProblem({
-        id: 'pdf-81920b', kind: 'dataSize', level: 2,
+        id: 'pdf-81920b', kind: 'dataSize', pattern: 'data-size', level: 2,
         params: { sampleRate: 20480, seconds: 2, bitDepth: 16, channels: 1, answerUnit: 'B' },
         prompt: '標本化周波数20,480Hz、量子化16bit、モノラル、2秒の音声データは何Bですか。',
-        answerUnit: 'B',
-        explanation: '20,480 × 2 × 16 × 1 ÷ 8 = 81,920Bです。'
+        answerUnit: 'B'
       }),
       createCalculationProblem({
-        id: 'pdf-80kb-binary', kind: 'dataSize', level: 2,
+        id: 'pdf-80kb-binary', kind: 'dataSize', pattern: 'data-size', level: 2,
         params: { sampleRate: 20480, seconds: 2, bitDepth: 16, channels: 1, answerUnit: 'KB', base: 1024 },
         prompt: '標本化周波数20,480Hz、量子化16bit、モノラル、2秒の音声データは何KBですか。この問題では1KB = 1024Bで換算します。',
-        answerUnit: 'KB',
-        explanation: '81,920B ÷ 1,024 = 80KBです。この問題の換算基数は1024です。'
+        answerUnit: 'KB'
       }),
       createCalculationProblem({
-        id: 'cd-one-second-decimal', kind: 'dataSize', level: 2,
+        id: 'cd-one-second-decimal', kind: 'dataSize', pattern: 'data-size', level: 2,
         params: { sampleRate: 44100, seconds: 1, bitDepth: 16, channels: 2, answerUnit: 'KB', base: 1000 },
         prompt: 'CD音質（44,100Hz、16bit、ステレオ）の1秒分は何KBですか。1KB = 1000Bで換算します。',
-        answerUnit: 'KB',
-        explanation: '44,100 × 1 × 16 × 2 ÷ 8 = 176,400B、1,000で割って176.4KBです。'
+        answerUnit: 'KB', answerDigits: 1
       }),
       createCalculationProblem({
-        id: 'cd-full-binary', kind: 'dataSize', level: 3,
-        params: { sampleRate: 44100, seconds: 74 * 60 + 42, bitDepth: 16, channels: 2, answerUnit: 'MB', base: 1024 },
+        id: 'cd-full-binary', kind: 'dataSize', pattern: 'data-size', level: 3,
+        params: {
+          sampleRate: 44100,
+          seconds: 74 * 60 + 42,
+          durationParts: { minutes: 74, seconds: 42 },
+          bitDepth: 16,
+          channels: 2,
+          answerUnit: 'MB',
+          base: 1024
+        },
         prompt: 'CD音質（44,100Hz、16bit、ステレオ）で74分42秒を記録すると約何MBですか。この問題では1KB = 1024B、1MB = 1024KBで換算し、小数第1位まで答えてください。',
-        answerUnit: 'MB', tolerance: 0.06,
-        explanation: '74分42秒 = 4,482秒。790,624,800B ÷ 1,024² ≈ 754.0MBです。'
+        answerUnit: 'MB', answerDigits: 1, tolerance: 0.06
       }),
       createCalculationProblem({
-        id: 'high-resolution-binary', kind: 'dataSize', level: 3,
-        params: { sampleRate: 192000, seconds: 256, bitDepth: 24, channels: 2, answerUnit: 'MB', base: 1024 },
-        prompt: '192kHz、24bit、ステレオ、256秒の音声データは何MBですか。この問題では1KB = 1024B、1MB = 1024KBで換算します。',
-        answerUnit: 'MB',
-        explanation: '192,000 × 256 × 24 × 2 ÷ 8 = 294,912,000B、1,024²で割って281.25MBです。'
+        id: 'high-resolution-binary', kind: 'dataSize', pattern: 'data-size', level: 3,
+        params: {
+          sampleRate: 192000,
+          seconds: 4 * 60 + 16,
+          durationParts: { minutes: 4, seconds: 16 },
+          bitDepth: 24,
+          channels: 2,
+          answerUnit: 'MB',
+          base: 1024
+        },
+        prompt: '192kHz、24bit、ステレオ、4分16秒の音声データは何MBですか。この問題では1KB = 1024B、1MB = 1024KBで換算します。',
+        answerUnit: 'MB', answerDigits: 2
       })
     ];
+
+    const calculationPatterns = Object.freeze(['sampling', 'quantization', 'data-size']);
+    const calculationProblemGroups = Object.freeze(Object.fromEntries(
+      calculationPatterns.map(pattern => [
+        pattern,
+        Object.freeze(calculationProblems.filter(problem => problem.pattern === pattern))
+      ])
+    ));
 
     const terminologyProblems = [
       ...TERM_PROBLEMS,
@@ -348,8 +449,9 @@
       theoremChoice({ id: 'theorem-insufficient', level: 2, signalFrequency: 7, sampleRate: 10 })
     ];
 
-    const seedOutput = byId('sound-quiz-seed');
-    if (seedOutput) seedOutput.textContent = `問題シード：${seed}`;
+    document.querySelectorAll('[data-sound-quiz-seed-output]').forEach(output => {
+      output.textContent = `問題シード：${seed}`;
+    });
 
     function updateScore() {
       document.querySelectorAll('[data-sound-score]').forEach(output => {
@@ -369,6 +471,39 @@
     function setFeedback(target, message, kind = '') {
       target.className = `dr-feedback${kind ? ` is-${kind}` : ''}`;
       target.textContent = message;
+    }
+
+    function renderCalculationFeedback(host, result, correct) {
+      const problem = result.problem;
+      const target = host.querySelector('[data-calculation-feedback]');
+      target.className = `dr-feedback ${correct ? 'is-correct' : 'is-wrong'}`;
+      const outcome = el(
+        'p',
+        'dr-feedback__result',
+        correct
+          ? '正解です。'
+          : `正解は ${calculationNumber(problem.expected, problem.answerDigits)}${problem.answerUnit} です。`
+      );
+      const solution = el('div', 'dr-solution');
+      solution.appendChild(el('h4', 'dr-solution__title', '解き方'));
+      const list = el('ol', 'dr-solution__steps');
+      problem.solution.steps.forEach(step => {
+        const item = document.createElement('li');
+        item.append(
+          el('strong', 'dr-solution__step-label', step.label),
+          el('span', 'dr-solution__step-text', step.text)
+        );
+        list.appendChild(item);
+      });
+      solution.appendChild(list);
+      const point = el('p', 'dr-solution__point');
+      point.append(
+        el('strong', '', 'ポイント'),
+        document.createTextNode(`：${problem.solution.point}`)
+      );
+      solution.appendChild(point);
+      target.replaceChildren(outcome, solution);
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
 
     function choose(mode, pool) {
@@ -421,7 +556,7 @@
       const problem = result.problem;
       const params = problem.params;
       byId('digitization-prompt').replaceChildren();
-      const promptText = el('div', '', `波形から各標本の値を読み取り、量子化後の値・段階値・${params.bitDepth}bitの2進数を入力してください。（難易度 ${problem.level}）`);
+      const promptText = el('div', '', `波形から各標本の値を読み取り、量子化後の値・段階値・${params.bitDepth}bitの2進数を入力してください。`);
       const conditions = el('div', 'dr-condition-list');
       [
         `fs = ${params.sampleRate} Hz`,
@@ -432,7 +567,7 @@
       ].forEach(text => conditions.appendChild(el('span', 'dr-condition', text)));
       byId('digitization-prompt').append(promptText, conditions);
       Renderer.renderDigitizationProblem(byId('digitization-graph'), params, {
-        title: `難易度${problem.level}のデジタル化問題`
+        title: '波形のデジタル化問題'
       });
 
       const table = el('table', 'dr-answer-table');
@@ -503,31 +638,39 @@
       byId('digitization-next').addEventListener('click', newDigitizationProblem);
     }
 
-    function renderCalculation() {
-      const result = state.calculation;
+    function renderCalculation(controller) {
+      const { host, result } = controller;
       const problem = result.problem;
-      byId('calculation-prompt').textContent = `${problem.prompt}（難易度 ${problem.level}）`;
-      const input = byId('calculation-answer');
+      host.querySelector('[data-calculation-prompt]').textContent = problem.prompt;
+      const input = host.querySelector('[data-calculation-answer]');
       input.value = result.answer;
       input.disabled = result.judged;
-      byId('calculation-unit').textContent = problem.answerUnit;
-      byId('calculation-judge').disabled = result.judged;
+      host.querySelector('[data-calculation-unit]').textContent = problem.answerUnit;
+      host.querySelector('[data-calculation-judge]').disabled = result.judged;
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
 
-    function newCalculationProblem() {
-      const problem = choose('calculation', calculationProblems);
-      state.calculation = { problem, answer: '', judged: false, counted: false };
-      setFeedback(byId('calculation-feedback'), '式を立てて数値を入力してください。単位は問題文と入力欄の右側で確認できます。');
-      renderCalculation();
-      byId('calculation-answer').focus({ preventScroll: true });
+    function newCalculationProblem(controller, focusAnswer = true) {
+      const problem = choose(`calculation-${controller.pattern}`, calculationProblemGroups[controller.pattern]);
+      controller.result = { problem, answer: '', judged: false, counted: false };
+      setFeedback(
+        controller.host.querySelector('[data-calculation-feedback]'),
+        '式を立てて数値を入力してください。単位は問題文と入力欄の右側で確認できます。'
+      );
+      renderCalculation(controller);
+      if (focusAnswer) controller.host.querySelector('[data-calculation-answer]').focus({ preventScroll: true });
     }
 
-    if (hasCalculation) {
-      byId('calculation-answer').addEventListener('input', event => {
-        if (state.calculation) state.calculation.answer = event.target.value;
+    function initializeCalculation(host) {
+      const pattern = host.dataset.soundCalculation;
+      if (!calculationProblemGroups[pattern]) return;
+      const controller = { host, pattern, result: null };
+      const input = host.querySelector('[data-calculation-answer]');
+      input.addEventListener('input', event => {
+        if (controller.result) controller.result.answer = event.target.value;
       });
-      byId('calculation-judge').addEventListener('click', () => {
-        const result = state.calculation;
+      host.querySelector('[data-calculation-judge]').addEventListener('click', () => {
+        const result = controller.result;
         if (!result || result.judged) return;
         const answer = Number(result.answer);
         const correct = result.answer.trim() !== ''
@@ -535,23 +678,19 @@
           && Math.abs(answer - result.problem.expected) <= result.problem.tolerance;
         result.judged = true;
         record(result, correct);
-        const expected = Widgets.formatNumber(result.problem.expected, 4);
-        setFeedback(
-          byId('calculation-feedback'),
-          correct
-            ? `正解です。${result.problem.explanation}`
-            : `正解は ${expected}${result.problem.answerUnit} です。${result.problem.explanation}`,
-          correct ? 'correct' : 'wrong'
-        );
-        renderCalculation();
+        renderCalculationFeedback(host, result, correct);
+        renderCalculation(controller);
       });
-      byId('calculation-next').addEventListener('click', newCalculationProblem);
+      host.querySelector('[data-calculation-next]').addEventListener('click', () => {
+        newCalculationProblem(controller);
+      });
+      newCalculationProblem(controller, false);
     }
 
     function renderTerminology() {
       const result = state.terminology;
       const problem = result.problem;
-      byId('terminology-prompt').textContent = `${problem.params.prompt}（難易度 ${problem.level}）`;
+      terminologyHost.querySelector('[data-terminology-prompt]').textContent = problem.params.prompt;
       const choices = problem.params.choices.map(choice => {
         const button = el('button', 'dr-choice', choice.label);
         button.type = 'button';
@@ -566,71 +705,44 @@
           if (result.judged) return;
           result.answer = choice.value;
           renderTerminology();
-          const selected = Array.from(byId('terminology-choices').querySelectorAll('.dr-choice'))
+          const selected = Array.from(terminologyHost.querySelectorAll('[data-terminology-choices] .dr-choice'))
             .find(node => node.dataset.choice === choice.value);
           selected?.focus();
         });
         return button;
       });
-      byId('terminology-choices').replaceChildren(...choices);
-      byId('terminology-judge').disabled = result.judged || !result.answer;
+      terminologyHost.querySelector('[data-terminology-choices]').replaceChildren(...choices);
+      terminologyHost.querySelector('[data-terminology-judge]').disabled = result.judged || !result.answer;
     }
 
     function newTerminologyProblem() {
       const problem = choose('terminology', terminologyProblems);
       state.terminology = { problem, answer: '', judged: false, counted: false };
-      setFeedback(byId('terminology-feedback'), '最も適切な選択肢を1つ選んでください。');
+      setFeedback(terminologyHost.querySelector('[data-terminology-feedback]'), '最も適切な選択肢を1つ選んでください。');
       renderTerminology();
     }
 
     if (hasTerminology) {
-      byId('terminology-judge').addEventListener('click', () => {
+      terminologyHost.querySelector('[data-terminology-judge]').addEventListener('click', () => {
         const result = state.terminology;
         if (!result || result.judged || !result.answer) return;
         result.judged = true;
         const correct = result.answer === result.problem.expected;
         record(result, correct);
         setFeedback(
-          byId('terminology-feedback'),
+          terminologyHost.querySelector('[data-terminology-feedback]'),
           `${correct ? '正解です。' : '不正解です。'}${result.problem.explanation}`,
           correct ? 'correct' : 'wrong'
         );
         renderTerminology();
       });
-      byId('terminology-next').addEventListener('click', newTerminologyProblem);
+      terminologyHost.querySelector('[data-terminology-next]').addEventListener('click', newTerminologyProblem);
     }
-
-    const tabs = tabsHost ? Array.from(tabsHost.querySelectorAll('[role="tab"][data-mode]')) : [];
-    function activateTab(mode, focus = false) {
-      tabs.forEach(tab => {
-        const active = tab.dataset.mode === mode;
-        tab.setAttribute('aria-selected', active ? 'true' : 'false');
-        tab.tabIndex = active ? 0 : -1;
-        if (focus && active) tab.focus();
-      });
-      document.querySelectorAll('.dr-quiz-panel').forEach(panel => {
-        panel.hidden = panel.dataset.panel !== mode;
-      });
-    }
-    tabs.forEach((tab, index) => {
-      tab.addEventListener('click', () => activateTab(tab.dataset.mode));
-      tab.addEventListener('keydown', event => {
-        let nextIndex = null;
-        if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabs.length;
-        if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabs.length) % tabs.length;
-        if (event.key === 'Home') nextIndex = 0;
-        if (event.key === 'End') nextIndex = tabs.length - 1;
-        if (nextIndex == null) return;
-        event.preventDefault();
-        activateTab(tabs[nextIndex].dataset.mode, true);
-      });
-    });
 
     updateScore();
     if (hasDigitization) newDigitizationProblem();
-    if (hasCalculation) newCalculationProblem();
+    if (hasCalculation) calculationHosts.forEach(initializeCalculation);
     if (hasTerminology) newTerminologyProblem();
-    if (tabs.length) activateTab(tabs[0].dataset.mode);
   }
 
   root.SoundQuiz = Object.freeze({
