@@ -69,6 +69,45 @@
     }).format(number);
   }
 
+  function greatestCommonDivisor(left, right) {
+    let a = Math.abs(Math.trunc(left));
+    let b = Math.abs(Math.trunc(right));
+    while (b !== 0) {
+      [a, b] = [b, a % b];
+    }
+    return a;
+  }
+
+  function simplifiedDataSizeExpression(params, answerUnit) {
+    const powers = { B: 0, KB: 1, MB: 2, GB: 3, KiB: 1, MiB: 2, GiB: 3 };
+    const power = powers[answerUnit] ?? 0;
+    const base = params.base ?? (answerUnit.includes('i') ? 1024 : 1000);
+    const numerators = [params.sampleRate, params.seconds, params.bitDepth, params.channels];
+    const denominators = [8, ...Array.from({ length: power }, () => base)];
+
+    denominators.forEach((denominator, denominatorIndex) => {
+      let remaining = denominator;
+      // bit→Bは量子化ビット数から、KB・MB等は時間や標本化周波数から先に約分する。
+      const priority = denominatorIndex === 0 ? [2, 3, 0, 1] : [1, 0, 3, 2];
+      priority.forEach(index => {
+        if (remaining === 1) return;
+        const divisor = greatestCommonDivisor(numerators[index], remaining);
+        numerators[index] /= divisor;
+        remaining /= divisor;
+      });
+      denominators[denominatorIndex] = remaining;
+    });
+
+    const numeratorText = numerators
+      .filter(value => value !== 1)
+      .map(value => calculationNumber(value))
+      .join(' × ') || '1';
+    const remainingDenominators = denominators.filter(value => value !== 1);
+    return remainingDenominators.length
+      ? `${numeratorText} ÷ ${remainingDenominators.map(value => calculationNumber(value)).join(' ÷ ')}`
+      : numeratorText;
+  }
+
   function calculationSolution(kind, params, expected, answerUnit, answerDigits) {
     let steps;
     let point;
@@ -104,30 +143,43 @@
       ];
       point = '段階数と同じ値になる場合だけでなく、必要な段階数をすべて表せる最小のビット数を選びます。';
     } else if (kind === 'dataSize') {
-      const size = Core.audioDataSize(params);
       const duration = params.durationParts
         ? `${params.durationParts.minutes} × 60 + ${params.durationParts.seconds} = ${calculationNumber(params.seconds)}秒`
         : `${calculationNumber(params.seconds)}秒`;
+      const powers = { B: 0, KB: 1, MB: 2, GB: 3, KiB: 1, MiB: 2, GiB: 3 };
+      const power = powers[answerUnit] ?? 0;
+      const base = params.base ?? (answerUnit.includes('i') ? 1024 : 1000);
+      const byteUnits = answerUnit.includes('i')
+        ? ['B', 'KiB', 'MiB', 'GiB']
+        : ['B', 'KB', 'MB', 'GB'];
+      const divisions = [
+        ' ÷ 8［bit/B］',
+        ...Array.from(
+          { length: power },
+          (_, index) => ` ÷ ${calculationNumber(base)}［${byteUnits[index]}/${byteUnits[index + 1]}］`
+        )
+      ].join('');
+      const fullExpression = [
+        `${calculationNumber(params.sampleRate)}［回/秒］`,
+        `${calculationNumber(params.seconds)}［秒］`,
+        `${calculationNumber(params.bitDepth)}［bit］`,
+        `${calculationNumber(params.channels)}［チャンネル］`
+      ].join(' × ') + divisions;
+      const conversionText = power === 0
+        ? '「÷ 8」は、8bit = 1Bの換算です。'
+        : `「÷ 8」でbitをBへ直し、続く「÷ ${calculationNumber(base)}」${power > 1 ? `を${power}回` : ''}で${answerUnit}まで換算します。`;
       steps = [
         { label: '時間を秒にそろえる', text: `音声の長さは${duration}です。` },
-        { label: '標本化回数を求める', text: `${calculationNumber(params.sampleRate)} × ${calculationNumber(params.seconds)} = ${calculationNumber(size.sampleFrames)}回です。` },
-        { label: '全チャンネルのbit数を求める', text: `${calculationNumber(size.sampleFrames)} × ${params.bitDepth}bit × ${params.channels}チャンネル = ${calculationNumber(size.bits)}bitです。` },
-        { label: 'Bへ変換する', text: `${calculationNumber(size.bits)} ÷ 8 = ${calculationNumber(size.bytes)}Bです。` }
+        {
+          label: '換算まで含めて式を立てる',
+          text: `${fullExpression} と立式します。${conversionText}`
+        },
+        {
+          label: '約分して、まとめて計算する',
+          text: `計算しやすい形にすると、${simplifiedDataSizeExpression(params, answerUnit)} = ${calculationNumber(expected, answerDigits)}${answerUnit}です。`
+        }
       ];
-      if (answerUnit !== 'B') {
-        const powers = { KB: 1, MB: 2, GB: 3, KiB: 1, MiB: 2, GiB: 3 };
-        const power = powers[answerUnit] || 1;
-        const base = params.base ?? (answerUnit.includes('i') ? 1024 : 1000);
-        const divisors = Array.from({ length: power }, () => calculationNumber(base)).join(' ÷ ');
-        steps.push({
-          label: `${answerUnit}へ変換する`,
-          text: `${calculationNumber(size.bytes)} ÷ ${divisors} = ${calculationNumber(expected, answerDigits)}${answerUnit}です。`
-        });
-      }
-      const conversionRule = answerUnit === 'B'
-        ? '最後に8bit = 1Bで換算します。'
-        : `この問題では${params.base === 1024 ? '1024倍' : '1000倍'}で単位を換算します。`;
-      point = `音声データ量は、標本化周波数 × 時間 × 量子化ビット数 × チャンネル数で求めます。${conversionRule}`;
+      point = '途中ごとに大きな数を求めず、単位換算まで含む一本の式を先に立てます。掛け算と割り算をまとめると、割り切れる部分を先に約分して計算量を減らせます。';
     } else {
       steps = [];
       point = '';
@@ -481,27 +533,34 @@
         'p',
         'dr-feedback__result',
         correct
-          ? '正解です。'
+          ? `正解です。答えは ${calculationNumber(problem.expected, problem.answerDigits)}${problem.answerUnit} です。`
           : `正解は ${calculationNumber(problem.expected, problem.answerDigits)}${problem.answerUnit} です。`
       );
       const solution = el('div', 'dr-solution');
       solution.appendChild(el('h4', 'dr-solution__title', '解き方'));
-      const list = el('ol', 'dr-solution__steps');
-      problem.solution.steps.forEach(step => {
-        const item = document.createElement('li');
-        item.append(
-          el('strong', 'dr-solution__step-label', step.label),
-          el('span', 'dr-solution__step-text', step.text)
+      if (result.revealedSteps === 0) {
+        solution.appendChild(el('p', 'dr-solution__prompt', '「次へ」を押すと、解き方を一段階ずつ確認できます。'));
+      } else {
+        const list = el('ol', 'dr-solution__steps');
+        problem.solution.steps.slice(0, result.revealedSteps).forEach((step, index) => {
+          const item = document.createElement('li');
+          if (index === result.revealedSteps - 1) item.classList.add('is-new');
+          item.append(
+            el('strong', 'dr-solution__step-label', step.label),
+            el('span', 'dr-solution__step-text', step.text)
+          );
+          list.appendChild(item);
+        });
+        solution.appendChild(list);
+      }
+      if (result.revealedSteps === problem.solution.steps.length) {
+        const point = el('p', 'dr-solution__point is-new');
+        point.append(
+          el('strong', '', 'ポイント'),
+          document.createTextNode(`：${problem.solution.point}`)
         );
-        list.appendChild(item);
-      });
-      solution.appendChild(list);
-      const point = el('p', 'dr-solution__point');
-      point.append(
-        el('strong', '', 'ポイント'),
-        document.createTextNode(`：${problem.solution.point}`)
-      );
-      solution.appendChild(point);
+        solution.appendChild(point);
+      }
       target.replaceChildren(outcome, solution);
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
@@ -647,12 +706,21 @@
       input.disabled = result.judged;
       host.querySelector('[data-calculation-unit]').textContent = problem.answerUnit;
       host.querySelector('[data-calculation-judge]').disabled = result.judged;
+      const nextButton = host.querySelector('[data-calculation-next]');
+      const hasHiddenSteps = result.judged && result.revealedSteps < problem.solution.steps.length;
+      nextButton.textContent = hasHiddenSteps ? '次へ' : '次の問題';
+      nextButton.setAttribute(
+        'aria-label',
+        hasHiddenSteps
+          ? `解き方の${result.revealedSteps + 1}段階目を表示`
+          : '次の問題を表示'
+      );
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
 
     function newCalculationProblem(controller, focusAnswer = true) {
       const problem = choose(`calculation-${controller.pattern}`, calculationProblemGroups[controller.pattern]);
-      controller.result = { problem, answer: '', judged: false, counted: false };
+      controller.result = { problem, answer: '', judged: false, counted: false, revealedSteps: 0 };
       setFeedback(
         controller.host.querySelector('[data-calculation-feedback]'),
         '式を立てて数値を入力してください。単位は問題文と入力欄の右側で確認できます。'
@@ -677,11 +745,21 @@
           && Number.isFinite(answer)
           && Math.abs(answer - result.problem.expected) <= result.problem.tolerance;
         result.judged = true;
+        result.correct = correct;
         record(result, correct);
         renderCalculationFeedback(host, result, correct);
         renderCalculation(controller);
+        host.querySelector('[data-calculation-next]').focus({ preventScroll: true });
       });
       host.querySelector('[data-calculation-next]').addEventListener('click', () => {
+        const result = controller.result;
+        if (result?.judged && result.revealedSteps < result.problem.solution.steps.length) {
+          result.revealedSteps += 1;
+          renderCalculationFeedback(host, result, result.correct);
+          renderCalculation(controller);
+          host.querySelector('[data-calculation-next]').scrollIntoView({ block: 'nearest' });
+          return;
+        }
         newCalculationProblem(controller);
       });
       newCalculationProblem(controller, false);

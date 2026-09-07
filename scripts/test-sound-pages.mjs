@@ -40,12 +40,13 @@ equal(pages.dr32.back, 'dr31', 'dr32からdr31への前ページ');
 equal(pages.dr32.next, false, 'dr32を音シリーズの末尾に設定');
 equal(pages.dr33, undefined, '旧dr33をページ登録から削除');
 
-const [dr31, dr32, css, lessonCss, slideDeck, renderer, widgets, lessons, quiz, links, searchIndexSource] = await Promise.all([
+const [dr31, dr32, css, lessonCss, slideDeck, core, renderer, widgets, lessons, quiz, links, searchIndexSource] = await Promise.all([
   source('dr31.html'),
   source('dr32.html'),
   source('css/digital-representation.css'),
   source('css/lesson-slide-deck.css'),
   source('js/lesson-slide-deck.js'),
+  source('js/sound-core.js'),
   source('js/sound-renderer.js'),
   source('js/sound-widgets.js'),
   source('js/sound-lessons.js'),
@@ -199,12 +200,55 @@ for (const pattern of ["pattern: 'sampling'", "pattern: 'quantization'", "patter
 }
 ok(quiz.includes('calculationProblemGroups[controller.pattern]') && quiz.includes('calculation-${controller.pattern}'), '各スライドの計算パターン内から連続出題');
 ok(quiz.includes('calculationHosts.forEach(initializeCalculation)'), '3つの計算スライドをそれぞれ初期化');
-for (const requirement of ['dr-solution__steps', '式を選ぶ', '時間を秒にそろえる', '全チャンネルのbit数を求める', 'ポイント']) {
+for (const requirement of ['dr-solution__steps', '式を選ぶ', '時間を秒にそろえる', '換算まで含めて式を立てる', '約分して、まとめて計算する', 'ポイント']) {
   ok(quiz.includes(requirement), `計算問題の段階的な解説に「${requirement}」`);
 }
-for (const selector of ['.dr-channel-figure', '.dr-channel-svg', '.dr-channel-svg__route', '.dr-channel-svg__sound-paths', '.dr-solution__steps', '.dr-solution__point']) {
+for (const unit of ['［回/秒］', '［秒］', '［bit］', '［チャンネル］', '［bit/B］']) {
+  ok(quiz.includes(unit), `音声データ量の立式に単位「${unit}」`);
+}
+for (const requirement of ['revealedSteps', "nextButton.textContent = hasHiddenSteps ? '次へ' : '次の問題'", 'problem.solution.steps.slice(0, result.revealedSteps)']) {
+  ok(quiz.includes(requirement), `計算問題の解法を順次表示する実装「${requirement}」`);
+}
+ok(quiz.includes('192000') && quiz.includes('4 * 60 + 16'), '添付例と同じ192kHz・24bit・ステレオ・4分16秒の問題を維持');
+
+const quizContext = {
+  console,
+  Intl,
+  document: { readyState: 'loading', addEventListener() {} },
+  SoundRenderer: {},
+  SoundWidgets: { element() {} }
+};
+quizContext.globalThis = quizContext;
+vm.createContext(quizContext);
+vm.runInContext(core, quizContext, { filename: 'js/sound-core.js', timeout: 1000 });
+vm.runInContext(quiz, quizContext, { filename: 'js/sound-quiz.js', timeout: 1000 });
+const highResolutionSolution = quizContext.SoundQuiz.createCalculationProblem({
+  id: 'high-resolution-solution-test',
+  kind: 'dataSize',
+  pattern: 'data-size',
+  level: 3,
+  params: {
+    sampleRate: 192000,
+    seconds: 4 * 60 + 16,
+    durationParts: { minutes: 4, seconds: 16 },
+    bitDepth: 24,
+    channels: 2,
+    answerUnit: 'MB',
+    base: 1024
+  },
+  prompt: '',
+  answerUnit: 'MB',
+  answerDigits: 2
+});
+equal(highResolutionSolution.expected, 281.25, '192kHz・24bit・ステレオ・4分16秒は281.25MB');
+equal(highResolutionSolution.solution.steps.length, 3, '音声データ量は秒換算・立式・まとめた計算の3段階');
+ok(highResolutionSolution.solution.steps[1].text.includes('192,000［回/秒］ × 256［秒］ × 24［bit］ × 2［チャンネル］'), '音声データ量を途中計算せず一つの式へ立式');
+ok(highResolutionSolution.solution.steps[1].text.includes('÷ 8［bit/B］ ÷ 1,024［B/KB］ ÷ 1,024［KB/MB］'), 'bitからMBまでの換算を同じ式へ含める');
+ok(highResolutionSolution.solution.steps[2].text.includes('375 × 3 ÷ 4 = 281.25MB'), '約分後の小さい数でまとめて計算');
+for (const selector of ['.dr-channel-figure', '.dr-channel-svg', '.dr-channel-svg__route', '.dr-channel-svg__sound-paths', '.dr-solution__steps', '.dr-solution__point', '.dr-solution__prompt']) {
   ok(css.includes(selector), `dr32の追加UIスタイルに ${selector}`);
 }
+ok(css.includes('@keyframes dr-solution-step-in'), '解法の新しい段階をアニメーションで表示');
 
 for (const query of ['max-width: 820px', 'max-width: 560px', 'max-width: 390px', 'prefers-reduced-motion', 'data-theme="light"', 'data-theme="dark"']) {
   ok(css.includes(query), `DRスタイルに ${query}`);

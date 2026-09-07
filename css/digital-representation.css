@@ -1767,6 +1767,12 @@ section article .dr-question-header h3 {
   font-size: .96em;
 }
 
+.dr-solution__prompt {
+  margin: 0;
+  color: var(--dr-muted);
+  font-size: .88em;
+}
+
 .dr-solution__steps {
   display: grid;
   gap: 6px;
@@ -1776,6 +1782,18 @@ section article .dr-question-header h3 {
 
 .dr-solution__steps li {
   padding-left: .25em;
+}
+
+.dr-solution__steps li.is-new,
+.dr-solution__point.is-new {
+  animation: dr-solution-step-in .24s ease-out both;
+}
+
+@keyframes dr-solution-step-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
 }
 
 .dr-solution__step-label {
@@ -2310,6 +2328,11 @@ body.lesson-slide-ready :is(.dr-svg--superposition, .dr-svg--sampling-theorem) {
   }
 
   .dr-svg--reconstruction-enter .dr-svg__reconstruction-wipe {
+    animation: none;
+  }
+
+  .dr-solution__steps li.is-new,
+  .dr-solution__point.is-new {
     animation: none;
   }
 }
