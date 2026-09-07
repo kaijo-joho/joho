@@ -102,8 +102,8 @@ ok(slideDeck.includes('initializeSupplementDialogs') && slideDeck.includes("aria
 ok(slideDeck.includes('joho:overlay-open') && slideDeck.includes("dialog.addEventListener('close'"), '補足dialogの排他制御とフォーカス復帰');
 ok(slideDeck.includes("event.key !== 'Escape'") && slideDeck.includes('event.preventDefault()'), '補足dialogをEscapeで閉じる');
 ok(dr32.includes('data-lesson-slide-deck'), '問題演習dr32も共通スライドページとして設定');
-equal((dr32.match(/<section\b[^>]*\bdata-lesson-slide(?:\s|>)/g) || []).length, 5, 'dr32はチャンネル説明と4種類の問題で5スライド');
-equal((dr32.match(/class="dr-quiz-stage" data-lesson-slide-navigation-lock/g) || []).length, 4, 'dr32は各問題操作領域だけページ送りを抑止');
+equal((dr32.match(/<section\b[^>]*\bdata-lesson-slide(?:\s|>)/g) || []).length, 6, 'dr32はチャンネル説明・例題・4種類の問題で6スライド');
+equal((dr32.match(/class="dr-quiz-stage" data-lesson-slide-navigation-lock/g) || []).length, 5, 'dr32は例題と各問題の操作領域だけページ送りを抑止');
 for (const requirement of ['class LessonSlideDeck', 'lesson-slide-deck__navigation', 'lesson-slide-deck__select', 'aria-controls', 'ArrowRight', 'PageDown', 'location.hash', 'lesson-slide-page--content', 'is-height-compact']) {
   ok(slideDeck.includes(requirement), `スライド機構に ${requirement}`);
 }
@@ -169,9 +169,13 @@ for (const unsupportedTerm of ['エイリアシング', 'ナイキスト', 'Nyqu
 ok(dr31.includes('id="digitization-judge"'), '波形デジタル化問題をdr31末尾へ移動');
 ok(dr31.indexOf('data-sound-sampling-theorem') < dr31.indexOf('id="digitization-judge"'), '標本化定理の後に波形問題を配置');
 ok(dr31.indexOf('class="dr-reference-grid"') < dr31.indexOf('id="digitization-judge"'), '用語と数値の例の後に波形問題を配置');
-ok(quiz.includes('hasDigitization') && quiz.includes('hasCalculation') && quiz.includes('hasTerminology'), '存在する問題カテゴリだけを初期化');
+ok(quiz.includes('hasDigitization') && quiz.includes('hasCalculation') && quiz.includes('hasWorkedExample') && quiz.includes('hasTerminology'), '存在する問題カテゴリと例題だけを初期化');
 equal((dr32.match(/role="tab"/g) || []).length, 0, 'dr32は問題種類をタブへ重ねない');
 equal((dr32.match(/data-lesson-slide-layout="exercise"/g) || []).length, 4, '4種類の問題を独立した演習スライドに分ける');
+equal((dr32.match(/data-lesson-slide(?:\s|>)/g) || []).length, 6, 'dr32をチャンネル・例題・4種類の問題の6スライドで構成');
+ok(dr32.includes('data-lesson-slide-title="チャンネル数とデータ量の例題"'), '音のチャンネル直後にデータ量の例題スライドを追加');
+ok(dr32.indexOf('data-lesson-slide-title="音のチャンネル"') < dr32.indexOf('data-lesson-slide-title="チャンネル数とデータ量の例題"')
+  && dr32.indexOf('data-lesson-slide-title="チャンネル数とデータ量の例題"') < dr32.indexOf('data-lesson-slide-title="周波数と周期の問題"'), 'チャンネル、例題、問題演習の順に配置');
 for (const title of ['周波数と周期の問題', 'ビット数と段階数の問題', '音声データ量の問題', '用語と標本化定理の問題']) {
   ok(dr32.includes(`data-lesson-slide-title="${title}"`), `dr32に問題スライド「${title}」`);
 }
@@ -191,6 +195,9 @@ equal((dr32.match(/<title id="(?:mono|stereo|surround)-title">/g) || []).length,
 equal((dr32.match(/<desc id="(?:mono|stereo|surround)-desc">/g) || []).length, 3, '各チャンネルSVGにdescを設定');
 ok(dr32.includes('信号A（1系統）') && dr32.includes('左：信号A') && dr32.includes('右：信号B'), 'モノラルとステレオの信号系統を図示');
 ok(dr32.includes('スクリーン（前）') && dr32.includes('dr-channel-svg__subwoofer') && dr32.includes('>.1</text>'), '5.1チャンネルの向きと低音用信号を図示');
+for (const requirement of ['data-sound-worked-example="channel-data"', '標本化周波数 44,100Hz', '量子化ビット数 16bit', 'ステレオ 2チャンネル', '1KB = 1,000B', 'data-worked-example-next']) {
+  ok(dr32.includes(requirement), `チャンネル数とデータ量の例題に「${requirement}」`);
+}
 equal((dr32.match(/data-sound-calculation="/g) || []).length, 3, '計算問題を3パターンのスライドへ分割');
 for (const pattern of ['sampling', 'quantization', 'data-size']) {
   ok(dr32.includes(`data-sound-calculation="${pattern}"`), `計算スライドに分類「${pattern}」`);
@@ -200,13 +207,14 @@ for (const pattern of ["pattern: 'sampling'", "pattern: 'quantization'", "patter
 }
 ok(quiz.includes('calculationProblemGroups[controller.pattern]') && quiz.includes('calculation-${controller.pattern}'), '各スライドの計算パターン内から連続出題');
 ok(quiz.includes('calculationHosts.forEach(initializeCalculation)'), '3つの計算スライドをそれぞれ初期化');
+ok(quiz.includes('workedExampleHosts.forEach(initializeWorkedExample)'), '例題を独立した段階表示として初期化');
 for (const requirement of ['dr-solution__steps', '式を選ぶ', '時間を秒にそろえる', '標本化周波数を置く', '時間を掛ける', '量子化ビット数を掛ける', 'チャンネル数を掛ける', 'bitからBへ換算する', '約分して、まとめて計算する', 'ポイント']) {
   ok(quiz.includes(requirement), `計算問題の段階的な解説に「${requirement}」`);
 }
 for (const unit of ['［回/秒］', '［秒］', '［bit］', '［チャンネル］', '［bit/B］']) {
   ok(quiz.includes(unit), `音声データ量の立式に単位「${unit}」`);
 }
-for (const requirement of ['revealedSteps', "nextButton.textContent = hasHiddenSteps ? '次へ' : '次の問題'", 'problem.solution.steps.slice(0, result.revealedSteps)', 'replaceGroupIndexes']) {
+for (const requirement of ['revealedSteps', "nextButton.textContent = hasHiddenSteps ? '次へ' : '次の問題'", 'problem.solution.steps.slice(0, revealedSteps)', 'replaceGroupIndexes']) {
   ok(quiz.includes(requirement), `計算問題の解法を順次表示する実装「${requirement}」`);
 }
 ok(quiz.includes('192000') && quiz.includes('4 * 60 + 16'), '添付例と同じ192kHz・24bit・ステレオ・4分16秒の問題を維持');
@@ -222,6 +230,24 @@ quizContext.globalThis = quizContext;
 vm.createContext(quizContext);
 vm.runInContext(core, quizContext, { filename: 'js/sound-core.js', timeout: 1000 });
 vm.runInContext(quiz, quizContext, { filename: 'js/sound-quiz.js', timeout: 1000 });
+const channelDataExample = quizContext.SoundQuiz.createChannelDataExample();
+equal(channelDataExample.expected.bytesPerSample, 4, 'CD音質のステレオは1回の標本化で4B');
+equal(channelDataExample.expected.bytesPerSecond, 176400, 'CD音質のステレオ1秒分は176,400B');
+equal(channelDataExample.expected.kilobytesPerSecond, 176.4, '1000倍換算でCD音質のステレオ1秒分は176.4KB');
+equal(channelDataExample.solution.steps.length, 5, 'チャンネル数とデータ量の例題を5段階で解説');
+const expectedChannelExampleFormulas = [
+  '16［bit］',
+  '16［bit］ × 2［チャンネル］',
+  '16［bit］ × 2［チャンネル］ ÷ 8［bit/B］ = 4［B/回］',
+  '4［B/回］ × 44,100［回/秒］ = 176,400［B/秒］',
+  '4［B/回］ × 44,100［回/秒］ ÷ 1,000［B/KB］ = 176.4［KB/秒］'
+];
+expectedChannelExampleFormulas.forEach((formula, index) => {
+  equal(channelDataExample.solution.steps[index].formula, formula, `チャンネル数とデータ量の例題の${index + 1}段階目`);
+  ok(channelDataExample.solution.steps[index].text.length > 0, `例題の${index + 1}段階目に解説を付ける`);
+});
+equal(channelDataExample.solution.steps[0].replaceGroup, channelDataExample.solution.steps[2].replaceGroup, '1回分の式を同じ位置で伸ばす');
+equal(channelDataExample.solution.steps[3].replaceGroup, channelDataExample.solution.steps[4].replaceGroup, '1秒分の式を同じ位置で伸ばす');
 const highResolutionSolution = quizContext.SoundQuiz.createCalculationProblem({
   id: 'high-resolution-solution-test',
   kind: 'dataSize',
@@ -258,7 +284,7 @@ expectedFormulas.forEach((formula, index) => {
 });
 const highResolutionFinalStep = highResolutionSolution.solution.steps[highResolutionSolution.solution.steps.length - 1];
 ok(highResolutionFinalStep.text.includes('375 × 3 ÷ 4 = 281.25MB'), '約分後の小さい数でまとめて計算');
-for (const selector of ['.dr-channel-figure', '.dr-channel-svg', '.dr-channel-svg__route', '.dr-channel-svg__sound-paths', '.dr-solution__steps', '.dr-solution__point', '.dr-solution__prompt', '.dr-solution__formula']) {
+for (const selector of ['.dr-channel-figure', '.dr-channel-svg', '.dr-channel-svg__route', '.dr-channel-svg__sound-paths', '.dr-solution--standalone', '.dr-solution__steps', '.dr-solution__point', '.dr-solution__prompt', '.dr-solution__formula']) {
   ok(css.includes(selector), `dr32の追加UIスタイルに ${selector}`);
 }
 ok(css.includes('@keyframes dr-solution-step-in'), '解法の新しい段階をアニメーションで表示');

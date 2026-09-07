@@ -261,6 +261,79 @@
     });
   }
 
+  function createChannelDataExample() {
+    const params = Object.freeze({
+      sampleRate: 44100,
+      seconds: 1,
+      bitDepth: 16,
+      channels: 2,
+      answerUnit: 'KB',
+      base: 1000
+    });
+    const oneSample = Core.audioDataSize({
+      sampleRate: 1,
+      seconds: 1,
+      bitDepth: params.bitDepth,
+      channels: params.channels
+    });
+    const oneSecond = Core.audioDataSize(params);
+    const kilobytesPerSecond = Core.convertBytes(oneSecond.bytes, params.answerUnit, params.base);
+    const sampleGroup = 'channel-data-one-sample';
+    const secondGroup = 'channel-data-one-second';
+    const sampleFormulaBase = `${calculationNumber(params.bitDepth)}［bit］`;
+    const sampleFormulaWithChannels = `${sampleFormulaBase} × ${calculationNumber(params.channels)}［チャンネル］`;
+    const sampleFormulaBytes = `${sampleFormulaWithChannels} ÷ 8［bit/B］ = ${calculationNumber(oneSample.bytes)}［B/回］`;
+    const secondFormulaBase = `${calculationNumber(oneSample.bytes)}［B/回］ × ${calculationNumber(params.sampleRate)}［回/秒］`;
+
+    const steps = [
+      {
+        replaceGroup: sampleGroup,
+        label: '量子化ビット数を置く',
+        formula: sampleFormulaBase,
+        text: `1回・1チャンネル分の音を${calculationNumber(params.bitDepth)}bitで記録します。`
+      },
+      {
+        replaceGroup: sampleGroup,
+        label: '2チャンネル分を掛ける',
+        formula: sampleFormulaWithChannels,
+        text: 'ステレオには左右2系統の音信号があるため、2チャンネル分を掛けます。'
+      },
+      {
+        replaceGroup: sampleGroup,
+        label: '1回分をBへ換算する',
+        formula: sampleFormulaBytes,
+        text: `8bit = 1Bなので、1回の標本化で生じるデータ量は${calculationNumber(oneSample.bytes)}Bです。`
+      },
+      {
+        replaceGroup: secondGroup,
+        label: '1秒間の標本化回数を掛ける',
+        formula: `${secondFormulaBase} = ${calculationNumber(oneSecond.bytes)}［B/秒］`,
+        text: `1秒間に${calculationNumber(params.sampleRate)}回標本化するため、1回分の${calculationNumber(oneSample.bytes)}Bに${calculationNumber(params.sampleRate)}回を掛けます。`
+      },
+      {
+        replaceGroup: secondGroup,
+        label: 'KBへ換算する',
+        formula: `${secondFormulaBase} ÷ 1,000［B/KB］ = ${calculationNumber(kilobytesPerSecond, 1)}［KB/秒］`,
+        text: `1KB = 1,000Bとして換算すると、1秒あたり${calculationNumber(kilobytesPerSecond, 1)}KBです。`
+      }
+    ];
+
+    return Object.freeze({
+      id: 'channel-data-cd-one-second',
+      type: 'workedExample',
+      params,
+      expected: Object.freeze({
+        bytesPerSample: oneSample.bytes,
+        bytesPerSecond: oneSecond.bytes,
+        kilobytesPerSecond
+      }),
+      solution: Object.freeze({
+        steps: Object.freeze(steps.map(step => Object.freeze(step))),
+        point: '計算で掛けるのはスピーカーの台数ではなく、独立した音信号の系統数です。ステレオは2チャンネルとして計算します。'
+      })
+    });
+  }
+
   function theoremChoice(definition) {
     const theorem = Core.samplingTheoremState(definition.signalFrequency, definition.sampleRate);
     return Object.freeze({
@@ -400,10 +473,12 @@
   function initialize() {
     const hasDigitization = Boolean(byId('digitization-judge'));
     const calculationHosts = Array.from(document.querySelectorAll('[data-sound-calculation]'));
+    const workedExampleHosts = Array.from(document.querySelectorAll('[data-sound-worked-example]'));
     const terminologyHost = document.querySelector('[data-sound-terminology]');
     const hasCalculation = calculationHosts.length > 0;
+    const hasWorkedExample = workedExampleHosts.length > 0;
     const hasTerminology = Boolean(terminologyHost);
-    if (!hasDigitization && !hasCalculation && !hasTerminology) return;
+    if (!hasDigitization && !hasCalculation && !hasWorkedExample && !hasTerminology) return;
 
     const querySeed = new URLSearchParams(window.location.search).get('seed');
     const seed = querySeed || document.body.dataset.soundQuizSeed || 'sound-classroom-v1';
@@ -561,27 +636,17 @@
       target.textContent = message;
     }
 
-    function renderCalculationFeedback(host, result, correct) {
-      const problem = result.problem;
-      const target = host.querySelector('[data-calculation-feedback]');
-      target.className = `dr-feedback ${correct ? 'is-correct' : 'is-wrong'}`;
-      const outcome = el(
-        'p',
-        'dr-feedback__result',
-        correct
-          ? `正解です。答えは ${calculationNumber(problem.expected, problem.answerDigits)}${problem.answerUnit} です。`
-          : `正解は ${calculationNumber(problem.expected, problem.answerDigits)}${problem.answerUnit} です。`
-      );
+    function buildSolution(problem, revealedSteps) {
       const solution = el('div', 'dr-solution');
       solution.appendChild(el('h4', 'dr-solution__title', '解き方'));
-      if (result.revealedSteps === 0) {
+      if (revealedSteps === 0) {
         solution.appendChild(el('p', 'dr-solution__prompt', '「次へ」を押すと、解き方を一段階ずつ確認できます。'));
       } else {
         const list = el('ol', 'dr-solution__steps');
-        const revealedSteps = problem.solution.steps.slice(0, result.revealedSteps);
+        const revealed = problem.solution.steps.slice(0, revealedSteps);
         const visibleSteps = [];
         const replaceGroupIndexes = new Map();
-        revealedSteps.forEach(step => {
+        revealed.forEach(step => {
           if (!step.replaceGroup) {
             visibleSteps.push(step);
             return;
@@ -593,7 +658,7 @@
           replaceGroupIndexes.set(step.replaceGroup, visibleSteps.length);
           visibleSteps.push(step);
         });
-        const newestStep = revealedSteps[revealedSteps.length - 1];
+        const newestStep = revealed[revealed.length - 1];
         visibleSteps.forEach(step => {
           const item = document.createElement('li');
           if (step === newestStep) item.classList.add('is-new');
@@ -604,7 +669,7 @@
         });
         solution.appendChild(list);
       }
-      if (result.revealedSteps === problem.solution.steps.length) {
+      if (revealedSteps === problem.solution.steps.length) {
         const point = el('p', 'dr-solution__point is-new');
         point.append(
           el('strong', '', 'ポイント'),
@@ -612,8 +677,53 @@
         );
         solution.appendChild(point);
       }
+      return solution;
+    }
+
+    function renderCalculationFeedback(host, result, correct) {
+      const problem = result.problem;
+      const target = host.querySelector('[data-calculation-feedback]');
+      target.className = `dr-feedback ${correct ? 'is-correct' : 'is-wrong'}`;
+      const outcome = el(
+        'p',
+        'dr-feedback__result',
+        correct
+          ? `正解です。答えは ${calculationNumber(problem.expected, problem.answerDigits)}${problem.answerUnit} です。`
+          : `正解は ${calculationNumber(problem.expected, problem.answerDigits)}${problem.answerUnit} です。`
+      );
+      const solution = buildSolution(problem, result.revealedSteps);
       target.replaceChildren(outcome, solution);
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+    }
+
+    function initializeWorkedExample(host) {
+      if (host.dataset.soundWorkedExample !== 'channel-data') return;
+      const problem = createChannelDataExample();
+      const target = host.querySelector('[data-worked-example-feedback]');
+      const nextButton = host.querySelector('[data-worked-example-next]');
+      if (!target || !nextButton) return;
+      let revealedSteps = 0;
+
+      function render() {
+        const solution = buildSolution(problem, revealedSteps);
+        solution.classList.add('dr-solution--standalone');
+        target.className = 'dr-feedback is-info';
+        target.replaceChildren(solution);
+        const finished = revealedSteps === problem.solution.steps.length;
+        nextButton.textContent = finished ? '最初から見る' : '次へ';
+        nextButton.setAttribute(
+          'aria-label',
+          finished ? '例題の解き方を最初から見る' : `解き方の${revealedSteps + 1}段階目を表示`
+        );
+        document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+      }
+
+      nextButton.addEventListener('click', () => {
+        revealedSteps = revealedSteps === problem.solution.steps.length ? 0 : revealedSteps + 1;
+        render();
+        nextButton.scrollIntoView({ block: 'nearest' });
+      });
+      render();
     }
 
     function choose(mode, pool) {
@@ -871,12 +981,14 @@
     updateScore();
     if (hasDigitization) newDigitizationProblem();
     if (hasCalculation) calculationHosts.forEach(initializeCalculation);
+    if (hasWorkedExample) workedExampleHosts.forEach(initializeWorkedExample);
     if (hasTerminology) newTerminologyProblem();
   }
 
   root.SoundQuiz = Object.freeze({
     makeDigitizationProblem,
     createCalculationProblem,
+    createChannelDataExample,
     theoremChoice
   });
 

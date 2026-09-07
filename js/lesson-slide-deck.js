@@ -232,7 +232,8 @@
       this.page.classList.add('lesson-slide-ready');
 
       const requestedIndex = this.indexFromHash(location.hash);
-      this.show(requestedIndex >= 0 ? requestedIndex : 0, { updateHash: false });
+      const defaultIndex = this.indexFromDefaultSlide();
+      this.show(requestedIndex >= 0 ? requestedIndex : defaultIndex, { updateHash: false });
       this.scheduleMeasure();
     }
 
@@ -411,6 +412,16 @@
 
     indexFromHash(hash) {
       const id = decodedHashId(hash);
+      return this.indexContainingId(id);
+    }
+
+    indexFromDefaultSlide() {
+      const id = this.page.dataset.lessonDefaultSlide?.trim() || '';
+      const index = this.indexContainingId(id);
+      return index >= 0 ? index : 0;
+    }
+
+    indexContainingId(id) {
       if (!id) return -1;
       return this.slides.findIndex(slide =>
         slide.id === id || Array.from(slide.querySelectorAll('[id]')).some(node => node.id === id)

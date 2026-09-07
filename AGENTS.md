@@ -112,9 +112,14 @@ Colab原本は別プロジェクトの`~/Documents/Colab/`に同期されてい�
 - 座学ページ: `dr`、`lc`シリーズ。
 
 - ヘッダー、ナビゲーション、LessonDock、本文幅、テーマ、文字サイズ、アクセシビリティなどの基本デザインは、実習・座学で共通にする。
+- 座学ページは、原則として`css/lesson-slide-deck.css`と`js/lesson-slide-deck.js`の座学共通スライド基盤を使用する。実装時は`docs/lesson-slide-deck.md`を確認し、`body`の`data-lesson-slide-deck`、各スライドの`data-lesson-slide`と`data-lesson-slide-title`を用いる。同等のスライド操作をページ別・シリーズ別のCSSやJavaScriptへ重複実装しない。
+- 座学ページを新規作成または編集するときは、`/Users/takashi/授業スライド`にある対応するPPTまたはPPTXファイルを参考にし、教材内容、説明順、用語、図表との整合性を確認する。
+- 指定ディレクトリへアクセスできない、または対応するPPTファイルを特定できない場合は、参照したものとして扱わず、未確認事項としてユーザーへ報告する。PPTファイル自体は、明示的な依頼がない限り変更しない。
 - 教材固有の図、シミュレーション、回路エディタ、問題UIなどにはシリーズ別のCSSとJavaScriptを使用してよい。個別設定は必要な範囲へ限定し、共通部分をページごとに複製しない。
 - 複数ページで必要になる差異は、可能な限りdata属性、CSS変数、共通設定、共通コンポーネントとして表現する。ページ固有の判断は`docs/page-specific-editing-notes.md`へ記録する。
 - 座学の概念説明ページは、本文全体を縦に並べるのではなく、現在の`dr31.html`のように内容を順番にめくるスライド形式を基本とする。
+- 座学ページでは、単元の最後に「語句まとめ・ポイントまとめ」のスライドと、その後に「問題演習」のスライドを置くことを基本とする。ただし、学習内容やページの目的に合わない場合は無理に追加せず、必要性を単元ごとに判断する。
+- 「語句まとめ」は、現在の`dr31.html`のように、各用語をクリックすると説明が表示される形式を基本とし、最初からすべての説明文を展開しない。
 - 自由操作、問題演習、エディタなどは学習内容に適した専用UIを優先し、無理にすべてをスライド内へ収めない。
 - ここでいうスライド形式はHTMLページ内の表示・操作方式であり、「スライド由来教材」のGoogleスライド生成フローとは別である。表示形式だけを理由に`config/slide-pages.json`へ登録しない。
 - `lc`シリーズはスライド形式への対応途中である。現状を完成仕様とみなさず、座学ページを整備するときは`dr`シリーズを基準に段階的に揃える。
@@ -273,6 +278,16 @@ node scripts/generate-slide-pages.mjs --check
 node scripts/validate-slide-content.mjs
 ```
 
+### 座学共通スライド基盤関連
+
+`js/lesson-slide-deck.js`、`css/lesson-slide-deck.css`、またはHTMLの`data-lesson-slide-*`構造を変更した場合に実行する。
+
+```sh
+node scripts/test-lesson-slide-pages.mjs
+node scripts/test-logic-applications.mjs
+node scripts/test-sound-pages.mjs
+```
+
 ### 論理回路関連
 
 `js/logic-*.js`、`lc*.html`、`css/logic-circuits.css`を変更した場合に実行する。
@@ -284,7 +299,7 @@ node scripts/test-logic-applications.mjs
 
 ### 音のデジタル表現関連
 
-`js/sound-*.js`、`js/dr-slide-deck.js`、`dr31.html`、`dr32.html`、`css/digital-representation.css`を変更した場合に実行する。
+`js/sound-*.js`、`dr31.html`、`dr32.html`、`css/digital-representation.css`を変更した場合に実行する。共通スライド基盤も変更した場合は、上の「座学共通スライド基盤関連」も実行する。
 
 ```sh
 node scripts/test-sound-core.mjs

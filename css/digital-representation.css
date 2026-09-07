@@ -1761,6 +1761,12 @@ section article .dr-question-header h3 {
   color: var(--dr-text);
 }
 
+.dr-solution--standalone {
+  margin-top: 0;
+  padding-top: 0;
+  border-top: 0;
+}
+
 .dr-solution__title {
   margin: 0 0 7px;
   color: var(--dr-text);

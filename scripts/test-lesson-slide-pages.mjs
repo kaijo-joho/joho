@@ -26,7 +26,7 @@ const pageSpecs = [
   { id: 'lc03', slides: 3 },
   { id: 'lc04', slides: 3 },
   { id: 'dr31', slides: 6 },
-  { id: 'dr32', slides: 5 },
+  { id: 'dr32', slides: 6 },
   { id: 'nw11', slides: 5 },
   { id: 'nw12', slides: 7 },
   { id: 'nw13', slides: 7 }
@@ -61,6 +61,8 @@ pages.forEach((html, index) => {
 for (const requirement of [
   'class LessonSlideDeck',
   'class LessonViewGroup',
+  'indexFromDefaultSlide()',
+  'this.page.dataset.lessonDefaultSlide',
   'location.hash',
   'ArrowRight',
   'PageDown',
@@ -100,6 +102,7 @@ equal((pages[0].match(/data-lesson-view-panel=/g) || []).length, 6, 'lc01は6ゲ
 ok(pages[0].includes('data-lesson-view-panel="xor"'), 'lc01にXORの表示パネル');
 ok(pages[1].includes('data-lesson-supplement-open="lc02-operation-dialog"'), 'lc02に操作方法の補足dialog入口');
 ok(pages[1].includes('data-lesson-supplement-dialog'), 'lc02に操作方法の補足dialog');
+ok(pages[1].includes('data-lesson-default-slide="headline_2"'), 'lc02は回路エディタを初期表示');
 ok(pages[1].includes('class="logic-workspace-grid" data-lesson-slide-navigation-lock'), 'lc02はエディタ操作領域だけページ送りを抑止');
 ok(pages[2].includes('class="logic-quiz-stage" data-lesson-slide-navigation-lock'), 'lc03は問題操作領域だけページ送りを抑止');
 equal((pages[2].match(/role="tabpanel"/g) || []).length, 3, 'lc03は3種類の問題タブを維持');
