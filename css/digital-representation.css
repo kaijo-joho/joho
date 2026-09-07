@@ -1809,6 +1809,20 @@ section article .dr-question-header h3 {
   line-height: 1.45;
 }
 
+.dr-solution__formula {
+  display: block;
+  margin: 4px 0 3px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  background: color-mix(in oklab, var(--theme-color, #225386) 9%, transparent);
+  color: var(--dr-text);
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: .9em;
+  font-weight: 700;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
 .dr-solution__point {
   margin: 9px 0 0;
   padding: 7px 9px;

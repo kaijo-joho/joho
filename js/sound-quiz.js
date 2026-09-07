@@ -152,28 +152,64 @@
       const byteUnits = answerUnit.includes('i')
         ? ['B', 'KiB', 'MiB', 'GiB']
         : ['B', 'KB', 'MB', 'GB'];
-      const divisions = [
-        ' ÷ 8［bit/B］',
-        ...Array.from(
-          { length: power },
-          (_, index) => ` ÷ ${calculationNumber(base)}［${byteUnits[index]}/${byteUnits[index + 1]}］`
-        )
-      ].join('');
-      const fullExpression = [
-        `${calculationNumber(params.sampleRate)}［回/秒］`,
-        `${calculationNumber(params.seconds)}［秒］`,
-        `${calculationNumber(params.bitDepth)}［bit］`,
-        `${calculationNumber(params.channels)}［チャンネル］`
-      ].join(' × ') + divisions;
-      const conversionText = power === 0
-        ? '「÷ 8」は、8bit = 1Bの換算です。'
-        : `「÷ 8」でbitをBへ直し、続く「÷ ${calculationNumber(base)}」${power > 1 ? `を${power}回` : ''}で${answerUnit}まで換算します。`;
+      const unitDivisions = Array.from(
+        { length: power },
+        (_, index) => ` ÷ ${calculationNumber(base)}［${byteUnits[index]}/${byteUnits[index + 1]}］`
+      );
+      const unitRules = Array.from(
+        { length: power },
+        (_, index) => `1${byteUnits[index + 1]} = ${calculationNumber(base)}${byteUnits[index]}`
+      ).join('、');
+      const formulaGroup = 'data-size-formula';
+      let formula = `${calculationNumber(params.sampleRate)}［回/秒］`;
+      const formulaSteps = [
+        {
+          replaceGroup: formulaGroup,
+          label: '標本化周波数を置く',
+          formula,
+          text: `1秒間に${calculationNumber(params.sampleRate)}回、音の大きさを取り出します。`
+        }
+      ];
+      formula += ` × ${calculationNumber(params.seconds)}［秒］`;
+      formulaSteps.push({
+        replaceGroup: formulaGroup,
+        label: '時間を掛ける',
+        formula,
+        text: `${calculationNumber(params.seconds)}秒分を掛け、録音時間全体を表します。ここではまだ計算しません。`
+      });
+      formula += ` × ${calculationNumber(params.bitDepth)}［bit］`;
+      formulaSteps.push({
+        replaceGroup: formulaGroup,
+        label: '量子化ビット数を掛ける',
+        formula,
+        text: `1回・1チャンネルあたり${calculationNumber(params.bitDepth)}bitで記録します。`
+      });
+      formula += ` × ${calculationNumber(params.channels)}［チャンネル］`;
+      formulaSteps.push({
+        replaceGroup: formulaGroup,
+        label: 'チャンネル数を掛ける',
+        formula,
+        text: `${params.channels === 1 ? 'モノラル' : params.channels === 2 ? 'ステレオ' : `${params.channels}チャンネル`}なので、${calculationNumber(params.channels)}チャンネル分を掛けます。`
+      });
+      formula += ' ÷ 8［bit/B］';
+      formulaSteps.push({
+        replaceGroup: formulaGroup,
+        label: 'bitからBへ換算する',
+        formula,
+        text: '8bit = 1Bなので、8で割ります。'
+      });
+      if (power > 0) {
+        formula += unitDivisions.join('');
+        formulaSteps.push({
+          replaceGroup: formulaGroup,
+          label: `${answerUnit}へ換算する`,
+          formula,
+          text: `${unitRules}なので、${calculationNumber(base)}で${power > 1 ? `${power}回` : '1回'}割ります。`
+        });
+      }
       steps = [
         { label: '時間を秒にそろえる', text: `音声の長さは${duration}です。` },
-        {
-          label: '換算まで含めて式を立てる',
-          text: `${fullExpression} と立式します。${conversionText}`
-        },
+        ...formulaSteps,
         {
           label: '約分して、まとめて計算する',
           text: `計算しやすい形にすると、${simplifiedDataSizeExpression(params, answerUnit)} = ${calculationNumber(expected, answerDigits)}${answerUnit}です。`
@@ -542,13 +578,28 @@
         solution.appendChild(el('p', 'dr-solution__prompt', '「次へ」を押すと、解き方を一段階ずつ確認できます。'));
       } else {
         const list = el('ol', 'dr-solution__steps');
-        problem.solution.steps.slice(0, result.revealedSteps).forEach((step, index) => {
+        const revealedSteps = problem.solution.steps.slice(0, result.revealedSteps);
+        const visibleSteps = [];
+        const replaceGroupIndexes = new Map();
+        revealedSteps.forEach(step => {
+          if (!step.replaceGroup) {
+            visibleSteps.push(step);
+            return;
+          }
+          if (replaceGroupIndexes.has(step.replaceGroup)) {
+            visibleSteps[replaceGroupIndexes.get(step.replaceGroup)] = step;
+            return;
+          }
+          replaceGroupIndexes.set(step.replaceGroup, visibleSteps.length);
+          visibleSteps.push(step);
+        });
+        const newestStep = revealedSteps[revealedSteps.length - 1];
+        visibleSteps.forEach(step => {
           const item = document.createElement('li');
-          if (index === result.revealedSteps - 1) item.classList.add('is-new');
-          item.append(
-            el('strong', 'dr-solution__step-label', step.label),
-            el('span', 'dr-solution__step-text', step.text)
-          );
+          if (step === newestStep) item.classList.add('is-new');
+          item.appendChild(el('strong', 'dr-solution__step-label', step.label));
+          if (step.formula) item.appendChild(el('span', 'dr-solution__formula', step.formula));
+          item.appendChild(el('span', 'dr-solution__step-text', step.text));
           list.appendChild(item);
         });
         solution.appendChild(list);
