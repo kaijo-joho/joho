@@ -1,4 +1,4 @@
-//2026-09-07 04:33:54;
+//2026-09-07 08:50:28;
 const pages = {
   "index": {
     "id": "index",
@@ -112,7 +112,7 @@ const pages = {
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
-    "back": "index",
+    "back": "lc00",
     "next": [
       {
         "id": "lc02",
@@ -124,7 +124,7 @@ const pages = {
       }
     ],
     "show": true,
-    "backFile": "index.html"
+    "backFile": "lc00.html"
   },
   "lc02": {
     "id": "lc02",
@@ -238,7 +238,7 @@ const pages = {
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
-    "back": "index",
+    "back": "dr00",
     "next": [
       {
         "id": "dr32",
@@ -250,7 +250,7 @@ const pages = {
       }
     ],
     "show": true,
-    "backFile": "index.html"
+    "backFile": "dr00.html"
   },
   "dr32": {
     "id": "dr32",
@@ -318,7 +318,7 @@ const pages = {
         "url": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbwdaKYb66pN0Oo6VVgTjhTRw22jDvPl9M8WxlPzXPrsU99R5WV2l0RbXB3-bKCLLeHG/exec?quizId=l61"
       }
     ],
-    "back": "index",
+    "back": "nw00",
     "next": [
       {
         "id": "nw12",
@@ -330,7 +330,7 @@ const pages = {
       }
     ],
     "show": true,
-    "backFile": "index.html"
+    "backFile": "nw00.html"
   },
   "nw12": {
     "id": "nw12",
