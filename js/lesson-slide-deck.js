@@ -229,9 +229,9 @@
       this.deck.setAttribute('role', 'region');
       this.deck.setAttribute('aria-roledescription', 'スライド教材');
       this.deck.setAttribute('aria-label', document.querySelector('#title')?.textContent?.trim() || '座学教材');
-      this.deck.style.setProperty('--lesson-slide-count', String(this.slides.length));
 
       this.viewport = createElement('div', 'lesson-slide-deck__viewport');
+      this.viewport.id = `${this.id}-viewport`;
       this.viewport.setAttribute('aria-live', 'off');
       const firstSlide = this.slides[0];
       firstSlide.before(this.deck);
@@ -250,49 +250,55 @@
       });
 
       this.navigation = createElement('nav', 'lesson-slide-deck__navigation');
-      this.navigation.setAttribute('aria-label', 'スライドの操作と進行状況');
-      this.previousButton = this.makeNavigationButton('previous', '←', '戻る');
-      this.nextButton = this.makeNavigationButton('next', '→', '次へ');
+      this.navigation.setAttribute('aria-label', 'スライド間の移動');
+      this.previousButton = this.makeNavigationButton('previous', '←', '前のスライド');
+      this.nextButton = this.makeNavigationButton('next', '→', '次のスライド');
 
-      const progress = createElement('div', 'lesson-slide-deck__progress');
-      const progressHeading = createElement('div', 'lesson-slide-deck__progress-heading');
-      this.counter = createElement('output', 'lesson-slide-deck__counter');
-      this.counter.setAttribute('aria-live', 'polite');
-      this.counter.setAttribute('aria-atomic', 'true');
-      this.currentTitle = createElement('strong', 'lesson-slide-deck__current-title');
-      progressHeading.append(this.counter, this.currentTitle);
-
-      this.stepList = createElement('ol', 'lesson-slide-deck__steps');
-      this.stepButtons = this.slides.map((slide, index) => {
-        const item = createElement('li', 'lesson-slide-deck__step');
-        const button = createElement('button', 'lesson-slide-deck__step-button');
-        const number = createElement('span', 'lesson-slide-deck__step-number', String(index + 1));
-        const label = createElement('span', 'lesson-slide-deck__step-label', this.titles[index]);
-        button.type = 'button';
-        button.setAttribute('aria-label', `スライド${index + 1}「${this.titles[index]}」へ移動`);
-        button.setAttribute('aria-controls', slide.id);
-        button.append(number, label);
-        button.addEventListener('click', () => this.show(index, { focusHeading: true }));
-        item.appendChild(button);
-        this.stepList.appendChild(item);
-        return button;
+      this.slideSelect = createElement('select', 'lesson-slide-deck__select');
+      this.slideSelect.setAttribute('aria-label', 'スライドを選択');
+      this.slideSelect.setAttribute('aria-controls', this.viewport.id);
+      this.slides.forEach((slide, index) => {
+        const option = createElement('option', '', `${index + 1} / ${this.slides.length}　${this.titles[index]}`);
+        option.value = String(index);
+        this.slideSelect.appendChild(option);
       });
 
-      progress.append(progressHeading, this.stepList);
-      this.navigation.append(this.previousButton, progress, this.nextButton);
-      this.deck.append(this.viewport, this.navigation);
+      this.status = createElement('output', 'lesson-slide-deck__status');
+      this.status.setAttribute('aria-live', 'polite');
+      this.status.setAttribute('aria-atomic', 'true');
+      this.navigation.append(this.previousButton, this.slideSelect, this.nextButton, this.status);
+      this.deck.appendChild(this.viewport);
+
+      // ページ紹介の表示・非表示で移動バーの位置が変わらないよう、本文の外へ置く。
+      this.siteHeader = document.getElementById('site-header');
+      if (this.siteHeader) this.siteHeader.after(this.navigation);
+      else this.deck.before(this.navigation);
     }
 
     makeNavigationButton(direction, symbol, label) {
       const button = createElement('button', `lesson-slide-deck__button lesson-slide-deck__button--${direction}`);
       const symbolNode = createElement('span', 'lesson-slide-deck__button-symbol', symbol);
       const labelNode = createElement('span', 'lesson-slide-deck__button-label', label);
+      symbolNode.setAttribute('aria-hidden', 'true');
       button.type = 'button';
       button.append(symbolNode, labelNode);
       return button;
     }
 
     bind() {
+      this.slideSelect.addEventListener('change', () => {
+        // ネイティブselectの連続選択を妨げないよう、フォーカスは移さない。
+        this.show(Number(this.slideSelect.value));
+      });
+      const openSlideSelect = () => {
+        document.dispatchEvent(new CustomEvent(OVERLAY_OPEN_EVENT, {
+          detail: { source: 'lesson-slide-select' }
+        }));
+      };
+      this.slideSelect.addEventListener('pointerdown', openSlideSelect);
+      this.slideSelect.addEventListener('keydown', event => {
+        if (['Enter', ' ', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) openSlideSelect();
+      });
       this.previousButton.addEventListener('click', () => {
         if (this.currentIndex > 0) this.show(this.currentIndex - 1, { focusHeading: true });
       });
@@ -331,7 +337,7 @@
 
       if (typeof ResizeObserver === 'function') {
         this.resizeObserver = new ResizeObserver(() => this.scheduleMeasure());
-        [document.getElementById('site-header'), document.getElementById('page_header'), this.deck]
+        [this.siteHeader, document.getElementById('page_header'), this.navigation, this.deck]
           .filter(Boolean)
           .forEach(node => this.resizeObserver.observe(node));
       }
@@ -372,29 +378,21 @@
         slide.classList.toggle('is-current', active);
         if (active) slide.scrollTop = 0;
       });
-      this.stepButtons.forEach((button, buttonIndex) => {
-        const active = buttonIndex === nextIndex;
-        button.setAttribute('aria-current', active ? 'step' : 'false');
-        button.classList.toggle('is-current', active);
-        button.classList.toggle('is-complete', buttonIndex < nextIndex);
-      });
-
-      this.counter.value = `${nextIndex + 1} / ${this.slides.length}`;
-      this.counter.textContent = `${nextIndex + 1} / ${this.slides.length}`;
-      this.currentTitle.textContent = this.titles[nextIndex];
+      this.slideSelect.value = String(nextIndex);
+      this.status.value = `スライド ${nextIndex + 1} / ${this.slides.length}：${this.titles[nextIndex]}`;
       this.previousButton.disabled = nextIndex === 0;
 
       const last = nextIndex === this.slides.length - 1;
       const nextLabel = this.nextButton.querySelector('.lesson-slide-deck__button-label');
       if (last) {
-        nextLabel.textContent = this.nextLesson.url ? this.nextLesson.label : '完了';
+        nextLabel.textContent = this.nextLesson.url ? '次の教材' : '完了';
         this.nextButton.disabled = !this.nextLesson.url;
         this.nextButton.classList.toggle('is-page-link', Boolean(this.nextLesson.url));
         this.nextButton.setAttribute('aria-label', this.nextLesson.url
           ? `${this.nextLesson.label}：次のページへ進む`
           : 'この教材は完了です');
       } else {
-        nextLabel.textContent = '次へ';
+        nextLabel.textContent = '次のスライド';
         this.nextButton.disabled = false;
         this.nextButton.classList.remove('is-page-link');
         this.nextButton.setAttribute('aria-label', `次のスライド「${this.titles[nextIndex + 1]}」へ進む`);
@@ -419,6 +417,8 @@
     }
 
     measure() {
+      const headerHeight = this.siteHeader?.getBoundingClientRect().height || 0;
+      this.navigation.style.setProperty('--lesson-slide-header-height', `${headerHeight}px`);
       const top = Math.max(0, this.deck.getBoundingClientRect().top);
       const available = Math.max(300, Math.floor(window.innerHeight - top - 8));
       this.deck.style.setProperty('--lesson-slide-deck-height', `${available}px`);

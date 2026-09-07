@@ -103,10 +103,10 @@ ok(slideDeck.includes("event.key !== 'Escape'") && slideDeck.includes('event.pre
 ok(dr32.includes('data-lesson-slide-deck'), '問題演習dr32も共通スライドページとして設定');
 equal((dr32.match(/<section\b[^>]*\bdata-lesson-slide(?:\s|>)/g) || []).length, 3, 'dr32は3スライド');
 ok(dr32.includes('class="dr-quiz-stage" data-lesson-slide-navigation-lock'), 'dr32は問題操作領域だけページ送りを抑止');
-for (const requirement of ['class LessonSlideDeck', 'lesson-slide-deck__navigation', 'lesson-slide-deck__steps', 'aria-current', 'ArrowRight', 'PageDown', 'location.hash', 'lesson-slide-page--content', 'is-height-compact']) {
+for (const requirement of ['class LessonSlideDeck', 'lesson-slide-deck__navigation', 'lesson-slide-deck__select', 'aria-controls', 'ArrowRight', 'PageDown', 'location.hash', 'lesson-slide-page--content', 'is-height-compact']) {
   ok(slideDeck.includes(requirement), `スライド機構に ${requirement}`);
 }
-for (const requirement of ['.lesson-slide-deck', '--lesson-slide-deck-height', '.lesson-slide-deck__navigation', '.lesson-slide-deck__steps', 'body.lesson-slide-ready', 'max-height: 520px']) {
+for (const requirement of ['.lesson-slide-deck', '--lesson-slide-deck-height', '.lesson-slide-deck__navigation', '.lesson-slide-deck__select', 'body.lesson-slide-ready', 'max-height: 520px']) {
   ok(lessonCss.includes(requirement), `共通スライドCSSに ${requirement}`);
 }
 for (const requirement of ['.dr-info-tip', 'dr-sampling-divider-in', 'dr-quantization-level-in', 'dr-code-in', '.dr-quiz-slide', '.dr-quiz-stage']) {

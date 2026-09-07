@@ -50,7 +50,7 @@ body.lesson-slide-ready .lesson-slide-fallback-next {
   width: var(--content-width);
   height: var(--lesson-slide-deck-height, calc(100dvh - 180px));
   min-height: 0;
-  grid-template-rows: minmax(0, 1fr) auto;
+  grid-template-rows: minmax(0, 1fr);
   margin: 0 auto 8px;
   color: var(--lesson-slide-text);
 }
@@ -122,24 +122,27 @@ body.lesson-slide-ready .lesson-slide-fallback-next {
 }
 
 .lesson-slide-deck__navigation {
-  position: relative;
+  position: sticky;
+  top: var(--lesson-slide-header-height, 0px);
   z-index: 20;
   display: grid;
-  grid-template-columns: minmax(88px, auto) minmax(0, 1fr) minmax(104px, auto);
-  gap: clamp(8px, 1.4vw, 18px);
+  box-sizing: border-box;
+  width: var(--content-width);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: clamp(6px, 1.2vw, 14px);
   align-items: center;
-  padding: 9px clamp(10px, 1.5vw, 18px);
+  margin: 0 auto 8px;
+  padding: 8px clamp(8px, 1.2vw, 16px);
   border: 1px solid var(--lesson-slide-border);
-  border-top-color: color-mix(in oklab, var(--theme-color, #225386) 38%, var(--lesson-slide-border));
-  border-radius: 10px 10px 16px 16px;
-  background: color-mix(in oklab, var(--lesson-slide-panel) 92%, transparent);
-  box-shadow: 0 -8px 24px rgba(24, 47, 70, .08), 0 8px 24px rgba(24, 47, 70, .08);
-  -webkit-backdrop-filter: blur(16px) saturate(120%);
-  backdrop-filter: blur(16px) saturate(120%);
+  border-top: 0;
+  border-radius: 0 0 12px 12px;
+  background: var(--lesson-slide-panel);
+  color: var(--lesson-slide-text);
+  box-shadow: 0 4px 12px rgba(24, 47, 70, .08);
 }
 
 .lesson-slide-deck__button,
-.lesson-slide-deck__step-button,
+.lesson-slide-deck__select,
 [data-lesson-view] {
   box-sizing: border-box;
   min-height: 44px;
@@ -153,11 +156,17 @@ body.lesson-slide-ready .lesson-slide-fallback-next {
   align-items: center;
   justify-content: center;
   gap: 8px;
+  min-width: 44px;
   padding: 8px 14px;
   border-radius: 10px;
   background: var(--lesson-slide-panel);
   color: var(--lesson-slide-text);
+  font-size: .9em;
   font-weight: 800;
+}
+
+.lesson-slide-deck__button-label {
+  white-space: nowrap;
 }
 
 .lesson-slide-deck__button--next {
@@ -170,24 +179,19 @@ body.lesson-slide-ready .lesson-slide-fallback-next {
   order: 2;
 }
 
-.lesson-slide-deck__button.is-page-link {
-  min-width: 128px;
-}
-
 .lesson-slide-deck__button:disabled {
   cursor: not-allowed;
   opacity: .46;
 }
 
 .lesson-slide-deck__button:not(:disabled):hover,
-.lesson-slide-deck__step-button:hover,
 [data-lesson-view]:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
 }
 
 .lesson-slide-deck__button:focus-visible,
-.lesson-slide-deck__step-button:focus-visible,
+.lesson-slide-deck__select:focus-visible,
 [data-lesson-view]:focus-visible,
 [data-lesson-supplement-open]:focus-visible,
 [data-lesson-supplement-close]:focus-visible {
@@ -195,105 +199,38 @@ body.lesson-slide-ready .lesson-slide-fallback-next {
   outline-offset: 2px;
 }
 
-.lesson-slide-deck__progress {
-  min-width: 0;
-}
-
-.lesson-slide-deck__progress-heading {
-  display: flex;
-  min-width: 0;
-  align-items: center;
-  justify-content: center;
-  gap: 9px;
-  margin-bottom: 5px;
-  line-height: 1.25;
-}
-
-.lesson-slide-deck__counter {
-  flex: 0 0 auto;
-  padding: 2px 8px;
-  border-radius: 999px;
-  background: color-mix(in oklab, var(--theme-color, #225386) 12%, var(--lesson-slide-panel));
-  color: var(--theme-color, #225386);
-  font-family: var(--font-code, monospace);
-  font-size: .78em;
-  font-weight: 850;
-}
-
-.lesson-slide-deck__current-title {
-  min-width: 0;
-  overflow: hidden;
-  color: var(--lesson-slide-text);
-  font-size: .82em;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.lesson-slide-deck__steps {
-  display: grid;
-  grid-template-columns: repeat(var(--lesson-slide-count), minmax(0, 1fr));
-  gap: 5px;
-  margin: 0;
-  padding: 0;
-  list-style: none;
-}
-
-.lesson-slide-deck__step {
-  min-width: 0;
-}
-
-.lesson-slide-deck__step-button {
-  display: flex;
+.lesson-slide-deck__select {
+  -webkit-appearance: none;
+  appearance: none;
   width: 100%;
   min-width: 0;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  padding: 4px 7px;
-  border-radius: 999px;
-  background: var(--lesson-slide-panel);
-  color: var(--lesson-slide-muted);
-  transition: transform .15s ease, box-shadow .15s ease, border-color .15s ease, background-color .15s ease;
-}
-
-.lesson-slide-deck__step-number {
-  display: grid;
-  flex: 0 0 24px;
-  width: 24px;
-  height: 24px;
-  place-items: center;
-  border-radius: 50%;
-  background: color-mix(in oklab, var(--lesson-slide-muted) 12%, transparent);
-  font-family: var(--font-code, monospace);
-  font-size: .75em;
-  font-weight: 850;
-}
-
-.lesson-slide-deck__step-label {
-  min-width: 0;
+  max-width: 100%;
+  padding: 8px 32px 8px 10px;
   overflow: hidden;
-  font-size: .72em;
+  border-radius: 10px;
+  background: var(--lesson-slide-panel);
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 17px center, right 12px center;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+  color: var(--lesson-slide-text);
+  font-size: .92em;
   font-weight: 700;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.lesson-slide-deck__step-button.is-complete {
-  border-color: color-mix(in oklab, var(--theme-color, #225386) 34%, var(--lesson-slide-border));
-  background: color-mix(in oklab, var(--theme-color, #225386) 7%, var(--lesson-slide-panel));
-  color: var(--lesson-slide-text);
-}
-
-.lesson-slide-deck__step-button.is-current {
-  border-color: var(--theme-color, #225386);
-  background: color-mix(in oklab, var(--theme-color, #225386) 14%, var(--lesson-slide-panel));
-  color: var(--theme-color, #225386);
-  box-shadow: inset 0 -2px 0 var(--theme-color, #225386);
-}
-
-.lesson-slide-deck__step-button.is-current .lesson-slide-deck__step-number {
-  background: var(--theme-color, #225386);
-  color: #fff;
+.lesson-slide-deck__status {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  border: 0;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 [data-lesson-view-controls] {
@@ -421,18 +358,6 @@ body.lesson-slide-ready [data-lesson-view-controls] {
     gap: 2px;
   }
 
-  .lesson-slide-deck__navigation {
-    grid-template-columns: minmax(80px, auto) minmax(0, 1fr) minmax(92px, auto);
-    gap: 8px;
-  }
-
-  .lesson-slide-deck__step-label {
-    display: none;
-  }
-
-  body.lesson-slide-ready #lesson-dock.lesson-dock {
-    bottom: 112px;
-  }
 }
 
 @media (max-width: 560px) {
@@ -482,47 +407,21 @@ body.lesson-slide-ready [data-lesson-view-controls] {
   }
 
   .lesson-slide-deck__navigation {
-    grid-template-columns: 44px minmax(0, 1fr) 68px;
+    grid-template-columns: 44px minmax(0, 1fr) 44px;
     gap: 6px;
     padding: 6px;
-    border-radius: 8px 8px 12px 12px;
-  }
-
-  .lesson-slide-deck__progress {
-    grid-column: 2;
-    grid-row: 1;
-  }
-
-  .lesson-slide-deck__button--previous {
-    grid-column: 1;
-    grid-row: 1;
-  }
-
-  .lesson-slide-deck__button--next {
-    grid-column: 3;
-    grid-row: 1;
-  }
-
-  .lesson-slide-deck__progress-heading {
-    display: none;
   }
 
   .lesson-slide-deck__button {
-    min-width: 0;
     padding-inline: 4px;
   }
 
-  .lesson-slide-deck__button.is-page-link {
-    min-width: 0;
-  }
-
-  .lesson-slide-deck__button--previous .lesson-slide-deck__button-label,
-  .lesson-slide-deck__button.is-page-link .lesson-slide-deck__button-label {
+  .lesson-slide-deck__button-label {
     display: none;
   }
 
-  .lesson-slide-deck__step-button {
-    padding-inline: 3px;
+  .lesson-slide-deck__select {
+    padding-left: 6px;
   }
 
   .lesson-supplement-dialog {
@@ -541,7 +440,6 @@ body.lesson-slide-ready [data-lesson-view-controls] {
 @media (prefers-reduced-motion: reduce) {
   .lesson-slide,
   .lesson-slide-deck__button,
-  .lesson-slide-deck__step-button,
   [data-lesson-view],
   [data-lesson-supplement-preview]::after {
     scroll-behavior: auto;
@@ -579,14 +477,16 @@ body.lesson-slide-ready [data-lesson-view-controls] {
     overflow: visible;
   }
 
-  .lesson-slide {
+  .lesson-slide,
+  .lesson-slide[hidden] {
     display: block !important;
     height: auto;
     overflow: visible;
     break-after: page;
   }
 
-  [data-lesson-view-panel] {
+  [data-lesson-view-panel],
+  [data-lesson-view-panel][hidden] {
     display: block !important;
   }
 
