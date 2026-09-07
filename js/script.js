@@ -422,6 +422,13 @@
     }
 
     const article = document.createElement('article');
+    const isLesson = document.body.hasAttribute('data-lesson-slide-deck');
+    if (isLesson && text(meta.mainTitle)) {
+      const series = document.createElement('p');
+      series.className = 'lesson-slide-cover__series';
+      series.textContent = text(meta.mainTitle);
+      article.appendChild(series);
+    }
     const h1 = document.createElement('h1');
     const titleAnchor = document.createElement('a');
     titleAnchor.id = 'title';
@@ -450,19 +457,33 @@
     }
 
     createDescAndFileList(article, 'dlFile');
-    createDescAndFileList(article, 'practiceFile');
+    createDescAndFileList(article, 'practiceFile', '', { worksheet: isLesson });
+    if (isLesson) {
+      const seriesIndex = Object.values(window.pages || {}).find(page =>
+        /^[a-z]{2}00$/.test(page.id) && page.mainTitle === meta.mainTitle && page.release === true
+      );
+      if (seriesIndex && text(seriesIndex.fileName)) {
+        const indexLink = document.createElement('a');
+        indexLink.className = 'lesson-slide-cover__index';
+        indexLink.href = seriesIndex.fileName;
+        indexLink.textContent = `${text(meta.mainTitle)}の目次へ`;
+        article.appendChild(indexLink);
+      }
+    }
     pageHeader.appendChild(article);
   }
 
-  function createDescAndFileList(parentElem, type, subDesc = '') {
+  function createDescAndFileList(parentElem, type, subDesc = '', { worksheet = false } = {}) {
     const files = releasedItems(type);
     if (files.length === 0) return false;
 
     const p1 = document.createElement('p');
-    p1.innerHTML = COMMON_DESCRIPTION[type] || '';
+    p1.innerHTML = worksheet
+      ? 'ワークシート（PDF）をダウンロードして、学習に使ってください。'
+      : COMMON_DESCRIPTION[type] || '';
     parentElem.appendChild(p1);
 
-    const { ul, hasRightClickFile } = createFileList(files, type);
+    const { ul, hasRightClickFile } = createFileList(files, type, { worksheet });
     parentElem.appendChild(ul);
 
     if (hasRightClickFile) {
@@ -480,7 +501,7 @@
     return true;
   }
 
-  function createFileList(files, type) {
+  function createFileList(files, type, { worksheet = false } = {}) {
     const ul = document.createElement('ul');
     ul.className = 'file-list';
     let hasRightClickFile = false;
@@ -489,14 +510,29 @@
       const url = text(file.url);
       const label = text(file.text) || text(file.title) || text(file.fileName) || 'ファイルを開く';
       const isLocalFile = url.startsWith('./');
-      if (isLocalFile) hasRightClickFile = true;
+      if (isLocalFile && !worksheet) hasRightClickFile = true;
 
       const li = document.createElement('li');
       li.className = 'practiceFile_listitem';
       const links = document.createElement('span');
       links.className = 'file-links';
 
-      if (type === 'dlFile') {
+      if (worksheet) {
+        const name = document.createElement('span');
+        name.className = 'file-name';
+        name.textContent = label;
+        li.appendChild(name);
+
+        const download = document.createElement('a');
+        download.href = url;
+        download.className = 'file-link';
+        download.textContent = 'PDFをダウンロード';
+        download.setAttribute('aria-label', `${label}：PDFをダウンロード`);
+        download.target = '_blank';
+        download.rel = 'noopener';
+        if (isLocalFile) download.setAttribute('download', '');
+        links.appendChild(download);
+      } else if (type === 'dlFile') {
         const name = document.createElement('span');
         name.className = 'file-name';
         name.textContent = label;

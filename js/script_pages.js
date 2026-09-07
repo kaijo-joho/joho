@@ -39,7 +39,11 @@ function main() {
 
   // 目次HTML（対象セクションのみ）を出力
   try {
-    setInnerHTML('html_index', getHtml_Index(releasedPages, pageId));
+    const indexHtml = getHtml_Index(releasedPages, pageId);
+    const lessonIndex = document.querySelector('#html_index[data-lesson-series]');
+    setInnerHTML('html_index', indexHtml || (lessonIndex
+      ? '<article><p>公開中の教材はありません。</p></article>'
+      : ''));
   } catch(e){
     console.error('[script_pages] render index failed', e);
   }

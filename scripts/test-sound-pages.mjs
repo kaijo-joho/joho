@@ -32,7 +32,7 @@ ok(!existsSync(path.join(root, 'js/dr-slide-deck.js')), '旧DR専用スライド
 for (const id of ['dr31', 'dr32']) {
   equal(pages[id]?.release, false, `${id}を非公開ページとして登録`);
   equal(pages[id]?.show, true, `${id}をサイドナビへ表示`);
-  equal(pages[id]?.mainTitle, 'Digital Representation', `${id}のシリーズ名`);
+  equal(pages[id]?.mainTitle, pages.dr00.mainTitle, `${id}と座学目次のシリーズ名が一致`);
   equal(pages[id]?.category, '音のデジタル表現', `${id}のカテゴリ`);
 }
 equal(pages.dr31.next?.[0]?.id, 'dr32', 'dr31からdr32への次ページ');

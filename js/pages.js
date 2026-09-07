@@ -1,4 +1,4 @@
-//2026-09-07 02:53:27;
+//2026-09-07 15:20:00;
 const pages = {
   "index": {
     "id": "index",
@@ -71,6 +71,33 @@ const pages = {
     "next": false,
     "show": false,
     "backFile": "il00.html"
+  },
+  "lc00": {
+    "id": "lc00",
+    "release": false,
+    "fileName": "lc00.html",
+    "mainTitle": "論理回路教材",
+    "category": "論理回路",
+    "title": "論理回路教材の目次",
+    "detail": "論理回路の教材を単元ごとに選べます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "lc00",
+    "next": [
+      {
+        "id": "lc01",
+        "title": "1. 論理回路の基本",
+        "text": "1. 論理回路の基本",
+        "release": false,
+        "url": "lc01.html",
+        "detail": "基本ゲート、回路図、真理値表の関係を操作しながら学びます。"
+      }
+    ],
+    "show": false,
+    "backFile": "lc00.html"
   },
   "lc01": {
     "id": "lc01",
@@ -171,6 +198,33 @@ const pages = {
     "show": true,
     "backFile": "lc01.html"
   },
+  "dr00": {
+    "id": "dr00",
+    "release": false,
+    "fileName": "dr00.html",
+    "mainTitle": "デジタル表現",
+    "category": "音のデジタル表現",
+    "title": "デジタル表現の目次",
+    "detail": "デジタル表現の教材を単元ごとに選べます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr00",
+    "next": [
+      {
+        "id": "dr31",
+        "title": "3-1. 音のデジタル表現",
+        "text": "3-1. 音のデジタル表現",
+        "release": false,
+        "url": "dr31.html",
+        "detail": "アナログ波形のデジタル化、波の重ね合わせ、標本化定理を操作と問題で学びます。"
+      }
+    ],
+    "show": false,
+    "backFile": "dr00.html"
+  },
   "dr31": {
     "id": "dr31",
     "release": false,
@@ -215,6 +269,33 @@ const pages = {
     "next": false,
     "show": true,
     "backFile": "dr31.html"
+  },
+  "nw00": {
+    "id": "nw00",
+    "release": false,
+    "fileName": "nw00.html",
+    "mainTitle": "ネットワークのしくみ",
+    "category": "インターネットとプロトコル",
+    "title": "ネットワークのしくみの目次",
+    "detail": "ネットワークのしくみの教材を単元ごとに選べます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "nw00",
+    "next": [
+      {
+        "id": "nw11",
+        "title": "1-1. インターネットとプロトコル",
+        "text": "1-1. インターネットとプロトコル",
+        "release": false,
+        "url": "nw11.html",
+        "detail": "LAN・WAN、パケット交換、プロトコルと4階層の関係を図の穴埋めで学びます。"
+      }
+    ],
+    "show": false,
+    "backFile": "nw00.html"
   },
   "nw11": {
     "id": "nw11",

@@ -205,6 +205,18 @@
       this.slides = Array.from(page.querySelectorAll(SLIDE_SELECTOR));
       if (this.slides.length < 2) throw new Error('スライドは2枚以上必要です。');
 
+      this.cover = page.querySelector('#page_header');
+      if (this.cover?.querySelector('h1')) {
+        this.cover.dataset.lessonSlide = '';
+        this.cover.dataset.lessonSlideTitle = 'タイトル';
+        this.cover.classList.add('lesson-slide--cover');
+        this.slides.unshift(this.cover);
+      } else {
+        this.cover = null;
+      }
+      this.firstSlideNumber = this.cover ? 0 : 1;
+      this.lastSlideNumber = this.slides.length - 1 + this.firstSlideNumber;
+
       this.id = `lesson-slide-deck-${++deckSequence}`;
       this.currentIndex = 0;
       this.titles = this.slides.map(titleForSlide);
@@ -224,6 +236,10 @@
       this.scheduleMeasure();
     }
 
+    slidePosition(index) {
+      return `${index + this.firstSlideNumber} / ${this.lastSlideNumber}`;
+    }
+
     build() {
       this.deck = createElement('div', 'lesson-slide-deck');
       this.deck.id = this.id;
@@ -239,16 +255,23 @@
 
       this.slides.forEach((slide, index) => {
         const heading = slide.querySelector('h1, h2, h3');
-        if (!slide.id) slide.id = `${this.id}-slide-${index + 1}`;
+        if (!slide.id) slide.id = `${this.id}-slide-${index + this.firstSlideNumber}`;
         slide.classList.add('lesson-slide');
         slide.dataset.lessonSlideIndex = String(index);
         slide.setAttribute('role', 'group');
         slide.setAttribute('aria-roledescription', 'スライド');
-        slide.setAttribute('aria-label', `${index + 1} / ${this.slides.length}：${this.titles[index]}`);
+        slide.setAttribute('aria-label', `${this.slidePosition(index)}：${this.titles[index]}`);
         slide.hidden = true;
         if (heading && !heading.hasAttribute('tabindex')) heading.tabIndex = -1;
         this.viewport.appendChild(slide);
       });
+
+      if (this.cover) {
+        const start = createElement('button', 'lesson-slide-deck__button lesson-slide-cover__start', '学習を始める →');
+        start.type = 'button';
+        start.addEventListener('click', () => this.show(1, { focusHeading: true }));
+        this.cover.querySelector('article').appendChild(start);
+      }
 
       this.navigation = createElement('nav', 'lesson-slide-deck__navigation');
       this.navigation.setAttribute('aria-label', 'スライド間の移動');
@@ -261,11 +284,11 @@
       this.choiceButtons = this.slides.map((slide, index) => {
         const button = createElement('button', 'lesson-slide-deck__choice');
         button.type = 'button';
-        button.setAttribute('aria-label', `${index + 1} / ${this.slides.length}：${this.titles[index]}`);
+        button.setAttribute('aria-label', `${this.slidePosition(index)}：${this.titles[index]}`);
         button.setAttribute('aria-controls', this.viewport.id);
-        button.title = `${index + 1}：${this.titles[index]}`;
+        button.title = `${index + this.firstSlideNumber}：${this.titles[index]}`;
         button.append(
-          createElement('span', 'lesson-slide-deck__choice-number', String(index + 1)),
+          createElement('span', 'lesson-slide-deck__choice-number', String(index + this.firstSlideNumber)),
           createElement('span', 'lesson-slide-deck__choice-title', this.titles[index])
         );
         this.slideChoices.appendChild(button);
@@ -283,7 +306,7 @@
       this.slideSelect.setAttribute('aria-label', 'スライドを選択');
       this.slideSelect.setAttribute('aria-controls', this.viewport.id);
       this.slides.forEach((slide, index) => {
-        const option = createElement('option', '', `${index + 1} / ${this.slides.length}　${this.titles[index]}`);
+        const option = createElement('option', '', `${this.slidePosition(index)}　${this.titles[index]}`);
         option.value = String(index);
         this.slideSelect.appendChild(option);
       });
@@ -422,7 +445,7 @@
         if (index === nextIndex) button.setAttribute('aria-current', 'step');
         else button.removeAttribute('aria-current');
       });
-      this.status.value = `スライド ${nextIndex + 1} / ${this.slides.length}：${this.titles[nextIndex]}`;
+      this.status.value = `スライド ${this.slidePosition(nextIndex)}：${this.titles[nextIndex]}`;
       this.previousButton.disabled = nextIndex === 0;
 
       const last = nextIndex === this.slides.length - 1;
