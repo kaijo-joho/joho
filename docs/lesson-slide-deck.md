@@ -95,6 +95,8 @@
 
 教材固有JavaScriptが表示内容の高さを大きく変えた場合は、`document`へ`joho:lesson-content-resize`を送出し、共通基盤へ表示領域の再計測を依頼する。
 
+NWシリーズの語句の穴埋めは`js/network-lessons.js`の共通処理を使い、同じボタンの再操作で個別に非表示へ戻せる。表示数や連動する図を含む仕様は[Networkシリーズの編集方針](page-specific-editing-notes.md#networknwシリーズ)を参照する。
+
 ## 1枚の中の表示切替
 
 複数の説明を同時に縦積みしない場合は、表示切替グループを使う。

@@ -266,10 +266,9 @@ section article .nw-protocol-definition {
 .nw-reveal.is-revealed {
   border-color: color-mix(in oklab, var(--nw-blank) 42%, var(--nw-border));
   background: var(--nw-panel-strong);
-  cursor: default;
 }
 
-.nw-reveal:not(.is-revealed):hover,
+.nw-reveal:hover,
 .nw-reveal-toolbar button:not(:disabled):hover {
   box-shadow: 0 4px 11px color-mix(in oklab, var(--nw-blank) 19%, transparent);
   transform: translateY(-1px);
