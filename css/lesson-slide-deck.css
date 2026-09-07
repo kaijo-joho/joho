@@ -142,6 +142,7 @@ body.lesson-slide-ready .lesson-slide-fallback-next {
 }
 
 .lesson-slide-deck__button,
+.lesson-slide-deck__choice,
 .lesson-slide-deck__select,
 [data-lesson-view] {
   box-sizing: border-box;
@@ -185,18 +186,102 @@ body.lesson-slide-ready .lesson-slide-fallback-next {
 }
 
 .lesson-slide-deck__button:not(:disabled):hover,
+.lesson-slide-deck__choice:hover,
 [data-lesson-view]:hover {
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
 }
 
 .lesson-slide-deck__button:focus-visible,
+.lesson-slide-deck__choice:focus-visible,
 .lesson-slide-deck__select:focus-visible,
 [data-lesson-view]:focus-visible,
 [data-lesson-supplement-open]:focus-visible,
 [data-lesson-supplement-close]:focus-visible {
   outline: 3px solid color-mix(in oklab, var(--lesson-slide-focus) 64%, transparent);
   outline-offset: 2px;
+}
+
+.lesson-slide-deck__chooser {
+  min-width: 0;
+}
+
+.lesson-slide-deck__choices {
+  display: flex;
+  gap: 6px;
+}
+
+.lesson-slide-deck__choices[hidden],
+.lesson-slide-deck__select[hidden] {
+  display: none !important;
+}
+
+.lesson-slide-deck__choice {
+  display: inline-flex;
+  flex: 1 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 44px;
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--lesson-slide-panel);
+  color: var(--lesson-slide-text);
+  font-size: .82em;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.lesson-slide-deck__choice-number {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  min-height: 24px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--lesson-slide-text) 9%, var(--lesson-slide-panel));
+  font-size: .9em;
+}
+
+.lesson-slide-deck__choice.is-number-only {
+  flex-grow: 0;
+}
+
+.lesson-slide-deck__choice.is-number-only .lesson-slide-deck__choice-title {
+  display: none;
+}
+
+.lesson-slide-deck__choice[aria-current="step"] {
+  border-color: var(--theme-color, #225386);
+  background: color-mix(in oklab, var(--theme-color, #225386) 13%, var(--lesson-slide-panel));
+  box-shadow: inset 0 -3px 0 var(--theme-color, #225386);
+}
+
+.lesson-slide-deck__choice[aria-current="step"] .lesson-slide-deck__choice-number {
+  background: var(--theme-color, #225386);
+  color: #fff;
+}
+
+.lesson-slide-deck__choices--measure {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: max-content;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.lesson-slide-deck__navigation.has-compact-controls {
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+}
+
+.lesson-slide-deck__navigation.has-compact-controls .lesson-slide-deck__button {
+  padding-inline: 4px;
+}
+
+.lesson-slide-deck__navigation.has-compact-controls .lesson-slide-deck__button-label {
+  display: none;
 }
 
 .lesson-slide-deck__select {

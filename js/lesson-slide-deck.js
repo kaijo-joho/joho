@@ -212,6 +212,7 @@
       this.resizeFrame = 0;
       this.resizeObserver = null;
       this.contentObserver = null;
+      this.preserveSelectFocus = false;
 
       this.build();
       this.bind();
@@ -254,6 +255,30 @@
       this.previousButton = this.makeNavigationButton('previous', '←', '前のスライド');
       this.nextButton = this.makeNavigationButton('next', '→', '次のスライド');
 
+      this.chooser = createElement('div', 'lesson-slide-deck__chooser');
+      this.slideChoices = createElement('div', 'lesson-slide-deck__choices');
+      this.slideChoices.hidden = true;
+      this.choiceButtons = this.slides.map((slide, index) => {
+        const button = createElement('button', 'lesson-slide-deck__choice');
+        button.type = 'button';
+        button.setAttribute('aria-label', `${index + 1} / ${this.slides.length}：${this.titles[index]}`);
+        button.setAttribute('aria-controls', this.viewport.id);
+        button.title = `${index + 1}：${this.titles[index]}`;
+        button.append(
+          createElement('span', 'lesson-slide-deck__choice-number', String(index + 1)),
+          createElement('span', 'lesson-slide-deck__choice-title', this.titles[index])
+        );
+        this.slideChoices.appendChild(button);
+        return button;
+      });
+
+      // 非表示の計測用コピーで、選択中のボタンやフォーカスを動かさず全文の幅を測る。
+      this.choiceMeasurements = this.slideChoices.cloneNode(true);
+      this.choiceMeasurements.classList.add('lesson-slide-deck__choices--measure');
+      this.choiceMeasurements.hidden = false;
+      this.choiceMeasurements.inert = true;
+      this.choiceMeasurements.setAttribute('aria-hidden', 'true');
+
       this.slideSelect = createElement('select', 'lesson-slide-deck__select');
       this.slideSelect.setAttribute('aria-label', 'スライドを選択');
       this.slideSelect.setAttribute('aria-controls', this.viewport.id);
@@ -266,7 +291,8 @@
       this.status = createElement('output', 'lesson-slide-deck__status');
       this.status.setAttribute('aria-live', 'polite');
       this.status.setAttribute('aria-atomic', 'true');
-      this.navigation.append(this.previousButton, this.slideSelect, this.nextButton, this.status);
+      this.chooser.append(this.slideChoices, this.slideSelect, this.choiceMeasurements);
+      this.navigation.append(this.previousButton, this.chooser, this.nextButton, this.status);
       this.deck.appendChild(this.viewport);
 
       // ページ紹介の表示・非表示で移動バーの位置が変わらないよう、本文の外へ置く。
@@ -286,9 +312,17 @@
     }
 
     bind() {
+      this.choiceButtons.forEach((button, index) => {
+        button.addEventListener('click', () => this.show(index, { focusHeading: true }));
+      });
       this.slideSelect.addEventListener('change', () => {
         // ネイティブselectの連続選択を妨げないよう、フォーカスは移さない。
+        this.preserveSelectFocus = true;
         this.show(Number(this.slideSelect.value));
+      });
+      this.slideSelect.addEventListener('blur', () => {
+        this.preserveSelectFocus = false;
+        this.scheduleMeasure();
       });
       const openSlideSelect = () => {
         document.dispatchEvent(new CustomEvent(OVERLAY_OPEN_EVENT, {
@@ -331,13 +365,18 @@
         const index = this.indexFromHash(location.hash);
         if (index >= 0 && index !== this.currentIndex) this.show(index, { updateHash: false });
       });
-      window.addEventListener('resize', () => this.scheduleMeasure(), { passive: true });
-      document.addEventListener('joho:text-size-change', () => this.scheduleMeasure());
+      const resizeNavigation = () => {
+        this.preserveSelectFocus = false;
+        this.scheduleMeasure();
+      };
+      window.addEventListener('resize', resizeNavigation, { passive: true });
+      document.addEventListener('joho:text-size-change', resizeNavigation);
       document.addEventListener(CONTENT_RESIZE_EVENT, () => this.scheduleMeasure());
+      document.fonts?.ready.then(() => this.scheduleMeasure());
 
       if (typeof ResizeObserver === 'function') {
         this.resizeObserver = new ResizeObserver(() => this.scheduleMeasure());
-        [this.siteHeader, document.getElementById('page_header'), this.navigation, this.deck]
+        [this.siteHeader, document.getElementById('page_header'), this.navigation, this.chooser, this.deck]
           .filter(Boolean)
           .forEach(node => this.resizeObserver.observe(node));
       }
@@ -379,6 +418,10 @@
         if (active) slide.scrollTop = 0;
       });
       this.slideSelect.value = String(nextIndex);
+      this.choiceButtons.forEach((button, index) => {
+        if (index === nextIndex) button.setAttribute('aria-current', 'step');
+        else button.removeAttribute('aria-current');
+      });
       this.status.value = `スライド ${nextIndex + 1} / ${this.slides.length}：${this.titles[nextIndex]}`;
       this.previousButton.disabled = nextIndex === 0;
 
@@ -416,7 +459,54 @@
       this.resizeFrame = requestAnimationFrame(() => this.measure());
     }
 
+    measureNavigation() {
+      const activeElement = document.activeElement;
+      const choiceHadFocus = this.slideChoices.contains(activeElement);
+      const selectHadFocus = activeElement === this.slideSelect;
+      const gap = parseFloat(getComputedStyle(this.slideChoices).columnGap) || 0;
+      const widths = Array.from(this.choiceMeasurements.children, button => {
+        const style = getComputedStyle(button);
+        const numberWidth = button.querySelector('.lesson-slide-deck__choice-number').getBoundingClientRect().width;
+        const compact = Math.max(parseFloat(style.minWidth), numberWidth
+          + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight)
+          + parseFloat(style.borderLeftWidth) + parseFloat(style.borderRightWidth));
+        return { full: button.getBoundingClientRect().width, compact };
+      });
+      const titleModes = [
+        { name: 'all', visible: widths.map(() => true) },
+        { name: 'nearby', visible: widths.map((_, index) => index === this.currentIndex || index === this.currentIndex + 1) },
+        { name: 'current', visible: widths.map((_, index) => index === this.currentIndex) }
+      ];
+      const fits = (mode, available) => widths.reduce((total, width, index) =>
+        total + (mode.visible[index] ? width.full : width.compact), gap * (widths.length - 1)) <= available - 1;
+
+      // 全タイトルが収まらないときは、まず前後ボタンを矢印表示にして選択肢の幅を確保する。
+      this.navigation.classList.remove('has-compact-controls');
+      let mode = null;
+      if (!window.matchMedia('(max-width: 560px)').matches) {
+        if (fits(titleModes[0], this.chooser.getBoundingClientRect().width)) mode = titleModes[0];
+        else {
+          this.navigation.classList.add('has-compact-controls');
+          const available = this.chooser.getBoundingClientRect().width;
+          mode = titleModes.find(candidate => fits(candidate, available)) || null;
+        }
+      }
+      // 短いタイトルへ選び直しても、selectでの連続操作中は横並びへ切り替えない。
+      if (selectHadFocus && this.preserveSelectFocus) mode = null;
+
+      this.navigation.dataset.lessonSlideNavigation = mode?.name || 'select';
+      this.choiceButtons.forEach((button, index) => {
+        button.classList.toggle('is-number-only', Boolean(mode && !mode.visible[index]));
+      });
+      this.slideChoices.hidden = !mode;
+      this.slideSelect.hidden = Boolean(mode);
+      // リサイズや文字サイズ変更で操作部品が入れ替わっても、フォーカスを失わせない。
+      if (!mode && choiceHadFocus) this.slideSelect.focus({ preventScroll: true });
+      if (mode && selectHadFocus) this.choiceButtons[this.currentIndex].focus({ preventScroll: true });
+    }
+
     measure() {
+      this.measureNavigation();
       const headerHeight = this.siteHeader?.getBoundingClientRect().height || 0;
       this.navigation.style.setProperty('--lesson-slide-header-height', `${headerHeight}px`);
       const top = Math.max(0, this.deck.getBoundingClientRect().top);
