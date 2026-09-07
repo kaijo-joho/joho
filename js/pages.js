@@ -1,4 +1,4 @@
-//2026-09-05 02:41:15;
+//2026-09-07 02:53:27;
 const pages = {
   "index": {
     "id": "index",
@@ -175,7 +175,7 @@ const pages = {
     "id": "dr31",
     "release": false,
     "fileName": "dr31.html",
-    "mainTitle": "Digital Representation",
+    "mainTitle": "デジタル表現",
     "category": "音のデジタル表現",
     "title": "3-1. 音のデジタル表現",
     "detail": "アナログ波形のデジタル化、波の重ね合わせ、標本化定理を操作と問題で学びます。",
@@ -202,7 +202,7 @@ const pages = {
     "id": "dr32",
     "release": false,
     "fileName": "dr32.html",
-    "mainTitle": "Digital Representation",
+    "mainTitle": "デジタル表現",
     "category": "音のデジタル表現",
     "title": "3-2. 音のデジタル表現 問題演習",
     "detail": "音のチャンネルを確認し、周期・段階数・音声データ量、用語と標本化定理を練習します。",
