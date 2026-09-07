@@ -17,7 +17,10 @@ const COURSE_KEYS = new Map([
   ['Illustrator実習', 'il'],
   ['スプレッドシート実習', 'ss'],
   ['Python講座', 'py'],
-  ['Digital Representation', 'dr']
+  ['Digital Representation', 'dr'],
+  ['デジタル表現', 'dr'],
+  ['論理回路教材', 'lc'],
+  ['ネットワークのしくみ', 'nw']
 ]);
 
 const ENTITY_MAP = new Map([

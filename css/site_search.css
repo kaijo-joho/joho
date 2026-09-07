@@ -170,7 +170,6 @@ html.site-search-is-open body {
 }
 
 .site-search__filter {
-  min-height: 36px;
   padding: 6px 11px;
   border: 1px solid var(--ld-border, rgba(0, 0, 0, .10));
   appearance: none;
@@ -395,7 +394,6 @@ html.site-search-is-open body {
   }
 
   .site-search__filter {
-    min-height: 34px;
     padding-inline: 9px;
     font-size: .78rem;
   }

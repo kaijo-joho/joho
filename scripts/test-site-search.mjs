@@ -105,10 +105,23 @@ assert.equal(slideResults[0]?.document.id, 'ss11');
 assert.equal(slideResults[0]?.section.heading, '2.5. 版の復元');
 
 const soundResults = core.searchDocuments(index.documents, '量子化', { course: 'dr' });
-assert.equal(soundResults.some(result => result.document.id === 'dr31'), false);
-assert.equal(soundResults.some(result => result.document.id === 'dr32'), false);
+assert.equal(soundResults.some(result => result.document.id === 'dr31'), true);
+assert.equal(soundResults.some(result => result.document.id === 'dr32'), true);
 assert.equal(soundResults.some(result => result.document.id === 'dr33'), false);
 assert.equal(soundResults.every(result => result.document.course === 'dr'), true);
+
+for (const id of ['dr00', 'dr31', 'dr32', 'lc00', 'lc01', 'lc02', 'lc03', 'lc04', 'nw00', 'nw11', 'nw12', 'nw13']) {
+  const document = index.documents.find(document => document.id === id);
+  assert.ok(document, `公開した座学ページを索引に含める: ${id}`);
+  assert.equal(document.course, id.slice(0, 2), `座学シリーズで絞り込める: ${id}`);
+}
+for (const [course, query] of [['lc', '回路'], ['nw', 'プロトコル']]) {
+  const results = core.searchDocuments(index.documents, query, { course });
+  assert.ok(results.length > 0, `${course}の教材が見つかる`);
+  assert.ok(results.every(result => result.document.course === course), `${course}以外を含めない`);
+  assert.equal(core.searchDocuments(index.documents, 'plt.plot', { course }).length, 0);
+  assert.equal(new URL(core.buildFaqUrl('https://joho.kaijo.ed.jp/', query, course)).searchParams.has('course'), false);
+}
 
 assert.equal(core.searchDocuments(index.documents, '開始前に戻す').length, 0);
 

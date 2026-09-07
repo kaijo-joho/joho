@@ -1,7 +1,8 @@
 (() => {
   'use strict';
 
-  const COURSE_KEYS = new Set(['dr', 'html', 'il', 'ss', 'py']);
+  const FAQ_COURSE_KEYS = new Set(['dr', 'html', 'il', 'ss', 'py']);
+  const COURSE_KEYS = new Set([...FAQ_COURSE_KEYS, 'lc', 'nw']);
 
   function normalizeText(value) {
     return String(value ?? '')
@@ -275,7 +276,7 @@
     const trimmedQuery = String(query ?? '').trim();
 
     if (trimmedQuery) url.searchParams.set('q', trimmedQuery);
-    if (COURSE_KEYS.has(course)) url.searchParams.set('course', course);
+    if (FAQ_COURSE_KEYS.has(course)) url.searchParams.set('course', course);
     return url.href;
   }
 

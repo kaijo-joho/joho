@@ -30,7 +30,7 @@ const pages = context.window.pages;
 ok(!existsSync(path.join(root, 'js/dr-slide-deck.js')), '旧DR専用スライドJavaScriptを削除');
 
 for (const id of ['dr31', 'dr32']) {
-  equal(pages[id]?.release, false, `${id}を非公開ページとして登録`);
+  equal(pages[id]?.release, true, `${id}を公開ページとして登録`);
   equal(pages[id]?.show, true, `${id}をサイドナビへ表示`);
   equal(pages[id]?.mainTitle, pages.dr00.mainTitle, `${id}と座学目次のシリーズ名が一致`);
   equal(pages[id]?.category, '音のデジタル表現', `${id}のカテゴリ`);
@@ -212,7 +212,7 @@ for (const query of ['max-width: 820px', 'max-width: 560px', 'max-width: 390px',
 
 const searchIndex = JSON.parse(searchIndexSource);
 for (const id of ['dr31', 'dr32']) {
-  ok(!searchIndex.documents.some(entry => entry.id === id), `${id}をrelease:falseの間は検索索引へ含めない`);
+  ok(searchIndex.documents.some(entry => entry.id === id), `${id}を公開教材として検索索引へ含める`);
 }
 ok(!searchIndex.documents.some(entry => entry.id === 'dr33'), '旧dr33を検索索引から削除');
 

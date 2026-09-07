@@ -7,6 +7,8 @@
   const COURSE_FILTERS = [
     { value: '', label: 'すべて' },
     { value: 'dr', label: 'デジタル表現' },
+    { value: 'lc', label: '論理回路' },
+    { value: 'nw', label: 'ネットワーク' },
     { value: 'html', label: 'HTML' },
     { value: 'il', label: 'Illustrator' },
     { value: 'ss', label: 'スプレッドシート' },

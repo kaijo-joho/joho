@@ -1,4 +1,4 @@
-//2026-09-07 15:20:00;
+//2026-09-07 04:16:27;
 const pages = {
   "index": {
     "id": "index",
@@ -74,7 +74,7 @@ const pages = {
   },
   "lc00": {
     "id": "lc00",
-    "release": false,
+    "release": true,
     "fileName": "lc00.html",
     "mainTitle": "論理回路教材",
     "category": "論理回路",
@@ -91,7 +91,7 @@ const pages = {
         "id": "lc01",
         "title": "1. 論理回路の基本",
         "text": "1. 論理回路の基本",
-        "release": false,
+        "release": true,
         "url": "lc01.html",
         "detail": "基本ゲート、回路図、真理値表の関係を操作しながら学びます。"
       }
@@ -101,7 +101,7 @@ const pages = {
   },
   "lc01": {
     "id": "lc01",
-    "release": false,
+    "release": true,
     "fileName": "lc01.html",
     "mainTitle": "論理回路教材",
     "category": "論理回路",
@@ -118,7 +118,7 @@ const pages = {
         "id": "lc02",
         "title": "2. 論理回路の自由接続",
         "text": "2. 論理回路の自由接続",
-        "release": false,
+        "release": true,
         "url": "lc02.html",
         "detail": "ゲートを自由に配置・接続して、回路の働きと真理値表を確かめます。"
       }
@@ -128,7 +128,7 @@ const pages = {
   },
   "lc02": {
     "id": "lc02",
-    "release": false,
+    "release": true,
     "fileName": "lc02.html",
     "mainTitle": "論理回路教材",
     "category": "論理回路",
@@ -145,7 +145,7 @@ const pages = {
         "id": "lc03",
         "title": "3. 論理回路の問題",
         "text": "3. 論理回路の問題",
-        "release": false,
+        "release": true,
         "url": "lc03.html",
         "detail": "入力値、真理値表、回路構成の問題を解いて理解を確認します。"
       }
@@ -155,7 +155,7 @@ const pages = {
   },
   "lc03": {
     "id": "lc03",
-    "release": false,
+    "release": true,
     "fileName": "lc03.html",
     "mainTitle": "論理回路教材",
     "category": "論理回路",
@@ -172,7 +172,7 @@ const pages = {
         "id": "lc04",
         "title": "4. 有名な組合せ回路",
         "text": "4. 有名な組合せ回路",
-        "release": false,
+        "release": true,
         "url": "lc04.html",
         "detail": "回路図と真理値表から、多数決・比較・半加算・全加算回路の働きと名前を考えます。"
       }
@@ -182,7 +182,7 @@ const pages = {
   },
   "lc04": {
     "id": "lc04",
-    "release": false,
+    "release": true,
     "fileName": "lc04.html",
     "mainTitle": "論理回路教材",
     "category": "論理回路",
@@ -200,7 +200,7 @@ const pages = {
   },
   "dr00": {
     "id": "dr00",
-    "release": false,
+    "release": true,
     "fileName": "dr00.html",
     "mainTitle": "デジタル表現",
     "category": "音のデジタル表現",
@@ -217,7 +217,7 @@ const pages = {
         "id": "dr31",
         "title": "3-1. 音のデジタル表現",
         "text": "3-1. 音のデジタル表現",
-        "release": false,
+        "release": true,
         "url": "dr31.html",
         "detail": "アナログ波形のデジタル化、波の重ね合わせ、標本化定理を操作と問題で学びます。"
       }
@@ -227,7 +227,7 @@ const pages = {
   },
   "dr31": {
     "id": "dr31",
-    "release": false,
+    "release": true,
     "fileName": "dr31.html",
     "mainTitle": "デジタル表現",
     "category": "音のデジタル表現",
@@ -244,7 +244,7 @@ const pages = {
         "id": "dr32",
         "title": "3-2. 音のデジタル表現 問題演習",
         "text": "3-2. 音のデジタル表現 問題演習",
-        "release": false,
+        "release": true,
         "url": "dr32.html",
         "detail": "音のチャンネルを確認し、周期・段階数・音声データ量、用語と標本化定理を練習します。"
       }
@@ -254,7 +254,7 @@ const pages = {
   },
   "dr32": {
     "id": "dr32",
-    "release": false,
+    "release": true,
     "fileName": "dr32.html",
     "mainTitle": "デジタル表現",
     "category": "音のデジタル表現",
@@ -272,7 +272,7 @@ const pages = {
   },
   "nw00": {
     "id": "nw00",
-    "release": false,
+    "release": true,
     "fileName": "nw00.html",
     "mainTitle": "ネットワークのしくみ",
     "category": "インターネットとプロトコル",
@@ -289,7 +289,7 @@ const pages = {
         "id": "nw11",
         "title": "1-1. インターネットとプロトコル",
         "text": "1-1. インターネットとプロトコル",
-        "release": false,
+        "release": true,
         "url": "nw11.html",
         "detail": "LAN・WAN、パケット交換、プロトコルと4階層の関係を図の穴埋めで学びます。"
       }
@@ -299,7 +299,7 @@ const pages = {
   },
   "nw11": {
     "id": "nw11",
-    "release": false,
+    "release": true,
     "fileName": "nw11.html",
     "mainTitle": "ネットワークのしくみ",
     "category": "インターネットとプロトコル",
@@ -324,7 +324,7 @@ const pages = {
         "id": "nw12",
         "title": "1-2. ネットワークインターフェース層",
         "text": "1-2. ネットワークインターフェース層",
-        "release": false,
+        "release": true,
         "url": "nw12.html",
         "detail": "有線・無線の伝送媒体、MACアドレス、スイッチングハブの働きを図と操作で学びます。"
       }
@@ -334,7 +334,7 @@ const pages = {
   },
   "nw12": {
     "id": "nw12",
-    "release": false,
+    "release": true,
     "fileName": "nw12.html",
     "mainTitle": "ネットワークのしくみ",
     "category": "インターネットとプロトコル",
@@ -351,7 +351,7 @@ const pages = {
         "id": "nw13",
         "title": "1-3. インターネット層とIPアドレス",
         "text": "1-3. インターネット層とIPアドレス",
-        "release": false,
+        "release": true,
         "url": "nw13.html",
         "detail": "ルーターによる中継、IPv4アドレスの表し方、DHCP・NAT、IPv6を図と段階操作で学びます。"
       }
@@ -361,7 +361,7 @@ const pages = {
   },
   "nw13": {
     "id": "nw13",
-    "release": false,
+    "release": true,
     "fileName": "nw13.html",
     "mainTitle": "ネットワークのしくみ",
     "category": "インターネットとプロトコル",
