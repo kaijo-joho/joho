@@ -14,6 +14,9 @@
   let inited = false;
   let preferenceMenuSequence = 0;
   let activePreferenceMenu = null;
+  const pageLinkBaseUrl = document.currentScript?.src
+    ? new URL('../', document.currentScript.src)
+    : new URL('./', document.baseURI);
 
   /** ========= メタ情報の取得 ========= */
   function getCurrentPageId() {
@@ -53,6 +56,54 @@
   function text(value) {
     return typeof value === 'string' ? value.trim() : '';
   }
+
+  function pageLinkKey(value, base = document.baseURI) {
+    try {
+      const url = new URL(value, base);
+      const pathname = decodeURIComponent(url.pathname).replace(/\/$/, '/index.html');
+      return `${url.origin}${pathname}`;
+    } catch {
+      return '';
+    }
+  }
+
+  function isPageLinkReleased(value) {
+    const link = typeof value === 'string' ? { url: value } : value;
+    if (!link || link.release === false) return false;
+    const url = text(link.url) || text(link.fileName);
+    if (!url) return false;
+    const pages = window.pages || window.page || {};
+    if (pages[link.id]?.release === false) return false;
+    const target = pageLinkKey(url);
+    if (!target) return false;
+    if (target === pageLinkKey(location.href)) return true;
+    return !Object.entries(pages).some(([id, page]) =>
+      page?.release === false && target === pageLinkKey(page.fileName || `${page.id || id}.html`, pageLinkBaseUrl)
+    );
+  }
+
+  function initializePageLinks() {
+    const pages = window.pages || window.page || {};
+    document.querySelectorAll('[data-page-link]').forEach(placeholder => {
+      const page = pages[placeholder.dataset.pageLink];
+      if (!page || !isPageLinkReleased(page)) return;
+      const link = document.createElement('a');
+      link.href = text(page.fileName);
+      link.dataset.pageLink = placeholder.dataset.pageLink;
+      link.append(...placeholder.childNodes);
+      placeholder.replaceWith(link);
+    });
+    document.querySelectorAll('a[href]').forEach(link => {
+      if (isPageLinkReleased(link.href)) return;
+      const label = document.createElement('span');
+      if (link.id) label.id = link.id;
+      label.className = link.className;
+      label.append(...link.childNodes);
+      link.replaceWith(label);
+    });
+  }
+
+  window.isPageLinkReleased = isPageLinkReleased;
 
   function releasedItems(type) {
     const items = meta && Array.isArray(meta[type]) ? meta[type] : [];
@@ -388,7 +439,7 @@
         headerbarCourse.textContent = label;
         headerbarCourse.setAttribute('aria-label', '講座名');
         const backFile = text(meta.backFile);
-        if (backFile) {
+        if (backFile && isPageLinkReleased(backFile)) {
           headerbarCourse.href = backFile;
         } else {
           headerbarCourse.classList.add('is-disabled');
@@ -608,7 +659,7 @@
     }
 
     const nextItems = meta && Array.isArray(meta.next)
-      ? meta.next.filter(item => item && item.release !== false && text(item.url) !== '')
+      ? meta.next.filter(item => text(item?.url) && isPageLinkReleased(item))
       : [];
     if (nextItems.length > 0) {
       let nextPageElement = document.getElementById('next_page');
@@ -704,6 +755,7 @@
 
     ensureHeader();
     ensureFooter();
+    initializePageLinks();
     ensureMainContent();
 
     // ★追加：背景用 figure を先に作ってから、中央寄せ/ライトボックス化

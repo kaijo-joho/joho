@@ -284,10 +284,8 @@
 
       if (typeof nx === 'string') {
         const p = pages[nx] || {};
-        if (p.release === false) return null;
-
         const url = p.url || p.fileName || `${nx}.html`;
-        if (!url && LD_CFG.strictUrl) return null;
+        if (!window.isPageLinkReleased?.({ id: nx, url })) return null;
 
         return {
           title: p.title || nx,
@@ -297,11 +295,8 @@
       }
 
       if (typeof nx === 'object') {
-        if (nx.release === false) return null;
-
         const pid = nx.id;
         const p = pid ? (pages[pid] || {}) : {};
-        if (p.release === false) return null;
 
         let url = nx.url || '';
 
@@ -309,7 +304,7 @@
           url = p.url || p.fileName || `${pid}.html` || '';
         }
 
-        if (!url && LD_CFG.strictUrl) return null;
+        if (!window.isPageLinkReleased?.({ ...nx, url })) return null;
 
         return {
           title: nx.title || nx.text || pid || '次回',
