@@ -199,7 +199,7 @@
 
       const index = await response.json();
       if (!core().validateIndex(index)) throw new Error('unsupported search index');
-      documents = index.documents;
+      documents = index.documents.filter(document => window.isPageLinkReleased?.(document));
       return documents;
     })().catch(error => {
       indexPromise = null;

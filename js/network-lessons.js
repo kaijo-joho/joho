@@ -314,11 +314,11 @@
 
     bind() {
       this.buttons.forEach((button, index) => {
-        button.addEventListener('click', () => this.reveal(button, index));
+        button.addEventListener('click', () => this.toggle(button, index));
         button.addEventListener('keydown', event => {
           if (event.key !== 'Enter' && event.key !== ' ') return;
           event.preventDefault();
-          this.reveal(button, index);
+          if (!event.repeat) this.toggle(button, index);
         });
       });
 
@@ -347,17 +347,17 @@
       button.setAttribute('aria-pressed', String(revealed));
       button.setAttribute(
         'aria-label',
-        revealed ? `空欄${number}の答え：${answerLabel}` : `空欄${number}の答えを表示`
+        revealed ? `空欄${number}の答え：${answerLabel}。非表示に戻す` : `空欄${number}の答えを表示`
       );
       if (prompt) prompt.hidden = revealed;
       if (answer) answer.hidden = !revealed;
     }
 
-    reveal(button, index) {
-      if (button.classList.contains('is-revealed')) return;
-      this.setRevealed(button, index, true);
+    toggle(button, index) {
+      const revealed = !button.classList.contains('is-revealed');
+      this.setRevealed(button, index, revealed);
       this.updateControls();
-      this.emitChange('reveal', button);
+      this.emitChange(revealed ? 'reveal' : 'hide', button);
       notifyContentResize();
     }
 
@@ -422,6 +422,8 @@
         this.currentKey = 'intro';
       } else if (action === 'all') {
         this.currentKey = 'complete';
+      } else if (action === 'hide') {
+        if (this.currentKey === key || this.currentKey === 'complete') this.currentKey = 'intro';
       } else if (key && this.details.has(key)) {
         this.currentKey = key;
       }

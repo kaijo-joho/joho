@@ -62,8 +62,10 @@
   }
 
   function nextLesson(page) {
+    const unavailable = { url: '', label: '次の教材へ' };
     const explicitUrl = page.dataset.lessonSlideNextUrl?.trim();
     if (explicitUrl) {
+      if (!window.isPageLinkReleased?.(explicitUrl)) return unavailable;
       return {
         url: explicitUrl,
         label: page.dataset.lessonSlideNextLabel?.trim() || '次の教材へ'
@@ -71,19 +73,22 @@
     }
 
     const metadata = window.pages?.[page.dataset.lessonPageId?.trim() || currentPageId()];
-    const candidates = Array.isArray(metadata?.next) ? metadata.next : [];
-    const next = candidates.find(item => item && typeof item.url === 'string' && item.url.trim());
-    if (next) {
-      return {
+    if (metadata && Object.prototype.hasOwnProperty.call(metadata, 'next')) {
+      const candidates = Array.isArray(metadata.next) ? metadata.next : [];
+      const next = candidates.find(item =>
+        typeof item?.url === 'string' && item.url.trim() && window.isPageLinkReleased?.(item)
+      );
+      return next ? {
         url: next.url.trim(),
         label: String(next.text || next.title || '次の教材へ').trim()
-      };
+      } : unavailable;
     }
 
-    const generatedLink = document.querySelector('#next_page a[href]');
+    const generatedLink = Array.from(document.querySelectorAll('#next_page a[href]'))
+      .find(link => window.isPageLinkReleased?.(link.href));
     return generatedLink
       ? { url: generatedLink.href, label: generatedLink.textContent?.trim() || '次の教材へ' }
-      : { url: '', label: '次の教材へ' };
+      : unavailable;
   }
 
   class LessonViewGroup {
