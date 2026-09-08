@@ -40,9 +40,93 @@
         <li>変数<tt>a</tt>に変数<tt>b</tt>を代入する。</li>
         <li>変数<tt>b</tt>に変数<tt>tmp</tt>を代入する。</li>
       </ol>
-      <p class="center">
-        <img src="./img/py43_001.png" alt="２値交換" decoding="async">
-      </p>
+      <figure class="concept-figure concept-figure--readable">
+        <svg class="concept-diagram concept-diagram--swap" viewBox="0 0 760 610" role="img" aria-labelledby="py43-swap-title" aria-describedby="py43-swap-desc">
+          <title id="py43-swap-title">一時変数を使った2値交換の手順</title>
+          <desc id="py43-swap-desc">最初はaが5、bが7です。tmpにaの5を保存し、aにbの7を代入し、最後にbへtmpの5を代入すると、aとbの値が交換されます。</desc>
+          <defs>
+            <marker id="py43-swap-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" orient="auto" markerUnits="userSpaceOnUse">
+              <path class="concept-diagram__arrow" d="M0,0 L12,6 L0,12 Z"></path>
+            </marker>
+          </defs>
+
+          <path class="concept-diagram__path" d="M360 150 H400" marker-end="url(#py43-swap-arrow)"></path>
+          <path class="concept-diagram__path" d="M575 280 V305 H185 V330" marker-end="url(#py43-swap-arrow)"></path>
+          <path class="concept-diagram__path" d="M360 460 H400" marker-end="url(#py43-swap-arrow)"></path>
+
+          <g transform="translate(20 20)">
+            <rect class="concept-diagram__surface" width="330" height="260" rx="18"></rect>
+            <text class="concept-diagram__text concept-diagram__text--small" x="165" y="40">交換前</text>
+            <rect class="concept-diagram__surface concept-diagram__surface--strong" x="30" y="70" width="70" height="130" rx="10"></rect>
+            <rect class="concept-diagram__surface concept-diagram__surface--strong" x="130" y="70" width="70" height="130" rx="10"></rect>
+            <rect class="concept-diagram__surface concept-diagram__surface--strong" x="230" y="70" width="70" height="130" rx="10"></rect>
+            <line class="concept-diagram__divider" x1="30" y1="160" x2="100" y2="160"></line>
+            <line class="concept-diagram__divider" x1="130" y1="160" x2="200" y2="160"></line>
+            <line class="concept-diagram__divider" x1="230" y1="160" x2="300" y2="160"></line>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__code" x="65" y="125">5</text>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__code" x="165" y="125">7</text>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__muted" x="265" y="125">—</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="65" y="190">a</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="165" y="190">b</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="265" y="190">tmp</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__muted" x="165" y="238">tmpは空</text>
+          </g>
+
+          <g transform="translate(410 20)">
+            <rect class="concept-diagram__surface" width="330" height="260" rx="18"></rect>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="165" y="40">tmp = a</text>
+            <rect class="concept-diagram__surface concept-diagram__surface--strong" x="30" y="70" width="70" height="130" rx="10"></rect>
+            <rect class="concept-diagram__surface concept-diagram__surface--strong" x="130" y="70" width="70" height="130" rx="10"></rect>
+            <rect class="concept-diagram__surface concept-diagram__surface--accent" x="230" y="70" width="70" height="130" rx="10"></rect>
+            <line class="concept-diagram__divider" x1="30" y1="160" x2="100" y2="160"></line>
+            <line class="concept-diagram__divider" x1="130" y1="160" x2="200" y2="160"></line>
+            <line class="concept-diagram__divider" x1="230" y1="160" x2="300" y2="160"></line>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__code" x="65" y="125">5</text>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__code" x="165" y="125">7</text>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__code concept-diagram__accent-text" x="265" y="125">5</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="65" y="190">a</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="165" y="190">b</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="265" y="190">tmp</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__note" x="165" y="238">5を一時保存</text>
+          </g>
+
+          <g transform="translate(20 330)">
+            <rect class="concept-diagram__surface" width="330" height="260" rx="18"></rect>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="165" y="40">a = b</text>
+            <rect class="concept-diagram__surface concept-diagram__surface--accent" x="30" y="70" width="70" height="130" rx="10"></rect>
+            <rect class="concept-diagram__surface concept-diagram__surface--strong" x="130" y="70" width="70" height="130" rx="10"></rect>
+            <rect class="concept-diagram__surface concept-diagram__surface--strong" x="230" y="70" width="70" height="130" rx="10"></rect>
+            <line class="concept-diagram__divider" x1="30" y1="160" x2="100" y2="160"></line>
+            <line class="concept-diagram__divider" x1="130" y1="160" x2="200" y2="160"></line>
+            <line class="concept-diagram__divider" x1="230" y1="160" x2="300" y2="160"></line>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__code concept-diagram__accent-text" x="65" y="125">7</text>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__code" x="165" y="125">7</text>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__code" x="265" y="125">5</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="65" y="190">a</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="165" y="190">b</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="265" y="190">tmp</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__note" x="165" y="238">aを7に変更</text>
+          </g>
+
+          <g transform="translate(410 330)">
+            <rect class="concept-diagram__surface" width="330" height="260" rx="18"></rect>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="165" y="40">b = tmp</text>
+            <rect class="concept-diagram__surface concept-diagram__surface--strong" x="30" y="70" width="70" height="130" rx="10"></rect>
+            <rect class="concept-diagram__surface concept-diagram__surface--accent" x="130" y="70" width="70" height="130" rx="10"></rect>
+            <rect class="concept-diagram__surface concept-diagram__surface--strong" x="230" y="70" width="70" height="130" rx="10"></rect>
+            <line class="concept-diagram__divider" x1="30" y1="160" x2="100" y2="160"></line>
+            <line class="concept-diagram__divider" x1="130" y1="160" x2="200" y2="160"></line>
+            <line class="concept-diagram__divider" x1="230" y1="160" x2="300" y2="160"></line>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__code" x="65" y="125">7</text>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__code concept-diagram__accent-text" x="165" y="125">5</text>
+            <text class="concept-diagram__text concept-diagram__text--large concept-diagram__code" x="265" y="125">5</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="65" y="190">a</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="165" y="190">b</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__code" x="265" y="190">tmp</text>
+            <text class="concept-diagram__text concept-diagram__text--small concept-diagram__note" x="165" y="238">交換完了</text>
+          </g>
+        </svg>
+      </figure>
       <p>これをプログラムで書くと、次のようになります。</p>
       <p>Colaboratoryのノートブックに書き写しながら、理解しましょう。</p>
       <pre class="python" data-title="２値交換"><code>

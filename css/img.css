@@ -71,6 +71,10 @@ figure.flowchart-figure{
   -webkit-overflow-scrolling: touch;
 }
 
+figure.flowchart-figure--compact{
+  max-width: 620px;
+}
+
 svg.flowchart{
   --flowchart-text: #20242b;
   --flowchart-process: #285b8d;
@@ -493,6 +497,259 @@ svg.flowchart{
 @media (prefers-reduced-motion: reduce){
   .flowchart-demo.is-ready .flowchart :is([data-flow-node], [data-flow-edge]){
     transition: none;
+  }
+}
+
+
+/* 教材内の概念図・状態遷移図などに使うインラインSVG */
+figure.concept-figure{
+  --concept-max-width: 760px;
+  --concept-min-width: 0;
+  width: min(100%, var(--concept-max-width));
+  margin: 1rem auto 1.5rem;
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+figure.concept-figure--compact{
+  --concept-max-width: 620px;
+}
+
+figure.concept-figure--wide{
+  --concept-max-width: 980px;
+}
+
+svg.concept-diagram{
+  --diagram-text: #20242b;
+  --diagram-line: #285b8d;
+  --diagram-path: #278345;
+  --diagram-accent: #bd4b97;
+  --diagram-note: #94641f;
+  --diagram-surface: rgba(255, 255, 255, .50);
+  --diagram-surface-strong: #eef3f8;
+  --diagram-accent-surface: #f8e8f3;
+  --diagram-active: #c7def2;
+  --diagram-muted: #64748b;
+  --diagram-sun: #ffc247;
+  --diagram-cloud: #d6d9de;
+  --diagram-rain: #43a5ea;
+  --diagram-state-text: #17191d;
+
+  display: block;
+  width: 100%;
+  min-width: var(--concept-min-width);
+  height: auto;
+  color: var(--diagram-text);
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", sans-serif;
+  shape-rendering: geometricPrecision;
+}
+
+figure.concept-figure--readable{
+  --concept-min-width: 560px;
+}
+
+figure.concept-figure--readable-wide{
+  --concept-min-width: 680px;
+}
+
+figure.concept-figure--scroll{
+  --concept-min-width: 820px;
+}
+
+.concept-diagram .concept-diagram__surface{
+  fill: var(--diagram-surface);
+  stroke: var(--diagram-line);
+  stroke-width: 4;
+  stroke-linejoin: round;
+}
+
+.concept-diagram .concept-diagram__surface--strong{
+  fill: var(--diagram-surface-strong);
+}
+
+.concept-diagram .concept-diagram__surface--accent{
+  fill: var(--diagram-accent-surface);
+  stroke: var(--diagram-accent);
+}
+
+.concept-diagram .concept-diagram__line{
+  fill: none;
+  stroke: var(--diagram-line);
+  stroke-width: 4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.concept-diagram .concept-diagram__path{
+  fill: none;
+  stroke: var(--diagram-path);
+  stroke-width: 5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.concept-diagram .concept-diagram__arrow{
+  fill: var(--diagram-path);
+}
+
+.concept-diagram .concept-diagram__text{
+  fill: var(--diagram-text);
+  font-size: 24px;
+  font-weight: 500;
+  text-anchor: middle;
+}
+
+.concept-diagram .concept-diagram__text--large{
+  font-size: 30px;
+  font-weight: 700;
+}
+
+.concept-diagram .concept-diagram__text--small{
+  font-size: 19px;
+}
+
+.concept-diagram .concept-diagram__text--start{
+  text-anchor: start;
+}
+
+.concept-diagram .concept-diagram__code{
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+}
+
+.concept-diagram .concept-diagram__accent-text{
+  fill: var(--diagram-accent);
+  font-weight: 700;
+}
+
+.concept-diagram .concept-diagram__note{
+  fill: var(--diagram-note);
+  font-weight: 600;
+}
+
+.concept-diagram .concept-diagram__muted{
+  fill: var(--diagram-muted);
+}
+
+.concept-diagram .concept-diagram__divider{
+  stroke: var(--diagram-line);
+  stroke-width: 3;
+}
+
+.concept-diagram .concept-diagram__state{
+  stroke: var(--diagram-text);
+  stroke-width: 4;
+}
+
+.concept-diagram .concept-diagram__state--sun{
+  fill: var(--diagram-sun);
+}
+
+.concept-diagram .concept-diagram__state--cloud{
+  fill: var(--diagram-cloud);
+}
+
+.concept-diagram .concept-diagram__state--rain{
+  fill: var(--diagram-rain);
+}
+
+.concept-diagram .concept-diagram__state-label{
+  fill: var(--diagram-state-text);
+  font-size: 30px;
+  font-weight: 700;
+  text-anchor: middle;
+}
+
+.concept-diagram .concept-diagram__venn-frame{
+  fill: var(--diagram-surface);
+  stroke: var(--diagram-line);
+  stroke-width: 4;
+}
+
+.concept-diagram .concept-diagram__venn-active{
+  fill: var(--diagram-active);
+}
+
+.concept-diagram .concept-diagram__venn-set{
+  fill: none;
+  stroke: var(--diagram-line);
+  stroke-width: 4;
+}
+
+.concept-diagram--venn{
+  width: min(100%, 300px);
+  margin-inline: auto;
+}
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme]) svg.concept-diagram{
+    --diagram-text: #f1f5f9;
+    --diagram-line: #83baf0;
+    --diagram-path: #6ed78c;
+    --diagram-accent: #f08ac9;
+    --diagram-note: #e7b967;
+    --diagram-surface: rgba(3, 9, 18, .25);
+    --diagram-surface-strong: #18222d;
+    --diagram-accent-surface: #3b2235;
+    --diagram-active: #31536e;
+    --diagram-muted: #a9b5c4;
+    --diagram-cloud: #b9c0c9;
+  }
+}
+
+:root[data-theme="light"] svg.concept-diagram{
+  --diagram-text: #20242b;
+  --diagram-line: #285b8d;
+  --diagram-path: #278345;
+  --diagram-accent: #bd4b97;
+  --diagram-note: #94641f;
+  --diagram-surface: rgba(255, 255, 255, .50);
+  --diagram-surface-strong: #eef3f8;
+  --diagram-accent-surface: #f8e8f3;
+  --diagram-active: #c7def2;
+  --diagram-muted: #64748b;
+  --diagram-cloud: #d6d9de;
+}
+
+:root[data-theme="dark"] svg.concept-diagram{
+  --diagram-text: #f1f5f9;
+  --diagram-line: #83baf0;
+  --diagram-path: #6ed78c;
+  --diagram-accent: #f08ac9;
+  --diagram-note: #e7b967;
+  --diagram-surface: rgba(3, 9, 18, .25);
+  --diagram-surface-strong: #18222d;
+  --diagram-accent-surface: #3b2235;
+  --diagram-active: #31536e;
+  --diagram-muted: #a9b5c4;
+  --diagram-cloud: #b9c0c9;
+}
+
+@media (max-width: 559px){
+  figure.concept-figure--scroll{
+    --concept-min-width: 760px;
+  }
+}
+
+@media print{
+  figure.concept-figure{
+    --concept-min-width: 0;
+    max-width: none;
+    overflow: visible;
+  }
+
+  svg.concept-diagram{
+    --diagram-text: #000;
+    --diagram-line: #285b8d;
+    --diagram-path: #278345;
+    --diagram-accent: #a63b82;
+    --diagram-note: #704a18;
+    --diagram-surface: transparent;
+    --diagram-surface-strong: #f4f4f4;
+    --diagram-accent-surface: #faedf5;
+    --diagram-active: #d6e5f3;
+    --diagram-muted: #555;
   }
 }
 

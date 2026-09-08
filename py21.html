@@ -31,9 +31,40 @@
       <h3>条件分岐</h3>
       <p>条件に応じて実行する処理を分けることを<strong>条件分岐</strong>といいます。</p>
 
-      <p class="center">
-        <img src="./img/py21_001.png" width="260px" alt="条件分岐の流れ図" decoding="async">
-      </p>
+      <figure class="flowchart-figure flowchart-figure--compact">
+        <svg class="flowchart flowchart--if" viewBox="0 0 760 680" role="img" aria-labelledby="py21-if-flow-title" aria-describedby="py21-if-flow-desc">
+          <title id="py21-if-flow-title">条件分岐のフローチャート</title>
+          <desc id="py21-if-flow-desc">if文を開始して条件を判定し、真なら真のときの処理、偽なら偽のときの処理を実行してから、if文を終了します。</desc>
+          <defs>
+            <marker id="py21-if-flow-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" orient="auto" markerUnits="userSpaceOnUse">
+              <path class="flowchart__arrow" d="M0,0 L12,6 L0,12 Z"></path>
+            </marker>
+          </defs>
+
+          <path class="flowchart__path" d="M220 90 V125" marker-end="url(#py21-if-flow-arrow)"></path>
+          <path class="flowchart__path" d="M220 305 V360" marker-end="url(#py21-if-flow-arrow)"></path>
+          <path class="flowchart__path" d="M400 215 H570 V360" marker-end="url(#py21-if-flow-arrow)"></path>
+          <path class="flowchart__path" d="M220 440 V525"></path>
+          <path class="flowchart__path" d="M570 440 V505 H220 V525"></path>
+          <path class="flowchart__path" d="M220 525 V570" marker-end="url(#py21-if-flow-arrow)"></path>
+
+          <rect class="flowchart__terminal" x="60" y="20" width="320" height="70" rx="30"></rect>
+          <text class="flowchart__text" x="220" y="63">if文の開始</text>
+
+          <path class="flowchart__decision" d="M220 125 L400 215 L220 305 L40 215 Z"></path>
+          <text class="flowchart__text" x="220" y="223">条件</text>
+          <text class="flowchart__branch-label" x="240" y="340">真（True）</text>
+          <text class="flowchart__branch-label" x="420" y="195">偽（False）</text>
+
+          <rect class="flowchart__process" x="40" y="360" width="360" height="80"></rect>
+          <text class="flowchart__text" x="220" y="408">真のときの処理</text>
+          <rect class="flowchart__process" x="400" y="360" width="340" height="80"></rect>
+          <text class="flowchart__text" x="570" y="408">偽のときの処理</text>
+
+          <rect class="flowchart__terminal" x="60" y="570" width="320" height="70" rx="30"></rect>
+          <text class="flowchart__text" x="220" y="613">if文の終了</text>
+        </svg>
+      </figure>
 
 
       <h3>if文の書き方</h3>
@@ -251,11 +282,46 @@
             <td>Aが偽であれば真</td>
           </tr>
           <tr>
-            <td style="padding:5px"><img src="./img/AorB.png" alt="A or B" style="width:300px;" class="image_center no-radius" decoding="async" loading="lazy">
+            <td style="padding:5px">
+              <svg class="concept-diagram concept-diagram--venn" viewBox="0 0 280 190" role="img" aria-labelledby="py21-venn-or-title" aria-describedby="py21-venn-or-desc">
+                <title id="py21-venn-or-title">A or Bのベン図</title>
+                <desc id="py21-venn-or-desc">集合Aまたは集合Bに含まれる、2つの円を合わせた範囲に色が付いています。</desc>
+                <rect class="concept-diagram__venn-frame" x="7" y="7" width="266" height="176" rx="12"></rect>
+                <circle class="concept-diagram__venn-active" cx="108" cy="92" r="58"></circle>
+                <circle class="concept-diagram__venn-active" cx="172" cy="92" r="58"></circle>
+                <circle class="concept-diagram__venn-set" cx="108" cy="92" r="58"></circle>
+                <circle class="concept-diagram__venn-set" cx="172" cy="92" r="58"></circle>
+                <text class="concept-diagram__text concept-diagram__text--large" x="88" y="101">A</text>
+                <text class="concept-diagram__text concept-diagram__text--large" x="192" y="101">B</text>
+              </svg>
             </td>
-            <td style="padding:5px"><img src="./img/AandB.png" alt="A and B" style="width:300px;" class="image_center no-radius" decoding="async" loading="lazy">
+            <td style="padding:5px">
+              <svg class="concept-diagram concept-diagram--venn" viewBox="0 0 280 190" role="img" aria-labelledby="py21-venn-and-title" aria-describedby="py21-venn-and-desc">
+                <title id="py21-venn-and-title">A and Bのベン図</title>
+                <desc id="py21-venn-and-desc">集合Aと集合Bの両方に含まれる、2つの円の重なった範囲だけに色が付いています。</desc>
+                <defs>
+                  <clipPath id="py21-venn-and-intersection">
+                    <circle cx="172" cy="92" r="58"></circle>
+                  </clipPath>
+                </defs>
+                <rect class="concept-diagram__venn-frame" x="7" y="7" width="266" height="176" rx="12"></rect>
+                <circle class="concept-diagram__venn-active" cx="108" cy="92" r="58" clip-path="url(#py21-venn-and-intersection)"></circle>
+                <circle class="concept-diagram__venn-set" cx="108" cy="92" r="58"></circle>
+                <circle class="concept-diagram__venn-set" cx="172" cy="92" r="58"></circle>
+                <text class="concept-diagram__text concept-diagram__text--large" x="88" y="101">A</text>
+                <text class="concept-diagram__text concept-diagram__text--large" x="192" y="101">B</text>
+              </svg>
             </td>
-            <td style="padding:5px"><img src="./img/notA.png" alt="not A" style="width:300px;" class="image_center no-radius" decoding="async" loading="lazy">
+            <td style="padding:5px">
+              <svg class="concept-diagram concept-diagram--venn" viewBox="0 0 280 190" role="img" aria-labelledby="py21-venn-not-title" aria-describedby="py21-venn-not-desc">
+                <title id="py21-venn-not-title">not Aのベン図</title>
+                <desc id="py21-venn-not-desc">全体のうち集合Aの円の外側に色が付いています。</desc>
+                <rect class="concept-diagram__venn-active" x="7" y="7" width="266" height="176" rx="12"></rect>
+                <circle class="concept-diagram__surface--strong" cx="140" cy="92" r="60"></circle>
+                <rect class="concept-diagram__venn-frame" x="7" y="7" width="266" height="176" rx="12"></rect>
+                <circle class="concept-diagram__venn-set" cx="140" cy="92" r="60"></circle>
+                <text class="concept-diagram__text concept-diagram__text--large" x="140" y="101">A</text>
+              </svg>
             </td>
           </tr>
         </tbody>

@@ -138,9 +138,47 @@ plt.show()
     <article>
       <h2 id="headline_2">(2) 天気のシミュレーション</h2>
       <p>次の図は、ある地域のある時期の日単位の天気の移り変わりを示したもので、数値は翌日の天気の変化の確率を表しています（このような図を<strong>状態遷移図</strong>といいます）。</p>
-      <p class="center">
-        <img src="./img/py53_201.png" class="center width400px" alt="天気の状態遷移図" decoding="async" loading="lazy">
-      </p>
+      <figure class="concept-figure concept-figure--compact concept-figure--readable">
+        <svg class="concept-diagram concept-diagram--state" viewBox="0 0 760 560" role="img" aria-labelledby="py53-weather-title" aria-describedby="py53-weather-desc">
+          <title id="py53-weather-title">晴れ・曇り・雨の状態遷移図</title>
+          <desc id="py53-weather-desc">晴れからは晴れ0.5、曇り0.3、雨0.2。曇りからは晴れ0.4、曇り0.4、雨0.2。雨からは晴れ0.2、曇り0.5、雨0.3の確率で翌日の天気へ移ります。</desc>
+          <defs>
+            <marker id="py53-weather-arrow" viewBox="0 0 12 12" refX="10" refY="6" markerWidth="12" markerHeight="12" orient="auto" markerUnits="userSpaceOnUse">
+              <path class="concept-diagram__arrow" d="M0,0 L12,6 L0,12 Z"></path>
+            </marker>
+          </defs>
+
+          <path class="concept-diagram__path" d="M320 110 C260 15 500 15 440 110" marker-end="url(#py53-weather-arrow)"></path>
+          <text class="concept-diagram__text concept-diagram__code" x="235" y="62">0.5</text>
+
+          <path class="concept-diagram__path" d="M295 175 L180 392" marker-end="url(#py53-weather-arrow)"></path>
+          <text class="concept-diagram__text concept-diagram__code" x="218" y="252">0.3</text>
+          <path class="concept-diagram__path" d="M225 392 L345 198" marker-end="url(#py53-weather-arrow)"></path>
+          <text class="concept-diagram__text concept-diagram__code" x="294" y="315">0.4</text>
+
+          <path class="concept-diagram__path" d="M465 175 L580 392" marker-end="url(#py53-weather-arrow)"></path>
+          <text class="concept-diagram__text concept-diagram__code" x="542" y="252">0.2</text>
+          <path class="concept-diagram__path" d="M535 392 L415 198" marker-end="url(#py53-weather-arrow)"></path>
+          <text class="concept-diagram__text concept-diagram__code" x="466" y="315">0.2</text>
+
+          <path class="concept-diagram__path" d="M278 420 H482" marker-end="url(#py53-weather-arrow)"></path>
+          <text class="concept-diagram__text concept-diagram__code" x="380" y="405">0.2</text>
+          <path class="concept-diagram__path" d="M482 460 H278" marker-end="url(#py53-weather-arrow)"></path>
+          <text class="concept-diagram__text concept-diagram__code" x="380" y="500">0.5</text>
+
+          <path class="concept-diagram__path" d="M75 480 C-5 535 -10 375 45 415" marker-end="url(#py53-weather-arrow)"></path>
+          <text class="concept-diagram__text concept-diagram__code" x="52" y="540">0.4</text>
+          <path class="concept-diagram__path" d="M685 480 C765 535 770 375 715 415" marker-end="url(#py53-weather-arrow)"></path>
+          <text class="concept-diagram__text concept-diagram__code" x="708" y="540">0.3</text>
+
+          <rect class="concept-diagram__state concept-diagram__state--sun" x="270" y="110" width="220" height="80" rx="16"></rect>
+          <text class="concept-diagram__state-label" x="380" y="160">晴れ</text>
+          <rect class="concept-diagram__state concept-diagram__state--cloud" x="50" y="400" width="220" height="80" rx="16"></rect>
+          <text class="concept-diagram__state-label" x="160" y="450">曇り</text>
+          <rect class="concept-diagram__state concept-diagram__state--rain" x="490" y="400" width="220" height="80" rx="16"></rect>
+          <text class="concept-diagram__state-label" x="600" y="450">雨</text>
+        </svg>
+      </figure>
       <p>0日後の天気が「晴れ」として、30日後までの天気がどのように変化するか、また、各天気の種類の日が何日あるかを棒グラフで示しなさい。ただし、天気は、「晴れ」「曇り」「雨」の3種類とし、その天気が1日中続くものとします。</p>
       <p class="small-text">※ このプログラムでは、0日後の天気も1日分として数えるため、集計対象は0日後から30日後までの31日分です。</p>
       
