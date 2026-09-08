@@ -601,7 +601,7 @@ const internetRoleSlide = internetLayerPage.slice(
   internetLayerPage.indexOf('data-lesson-slide-title="インターネット層の役割"'),
   internetLayerPage.indexOf('data-lesson-slide-title="IPv4アドレスの表し方"')
 );
-equal((internetRoleSlide.match(/\bdata-network-step-detail(?:\s|>)/g) || []).length, 6, 'nw13のルーター中継図に6段階');
+equal((internetRoleSlide.match(/\bdata-network-step-detail(?:\s|>)/g) || []).length, 9, 'nw13のルーター中継図に情報の追加・取り外しを追う9段階');
 equal((internetRoleSlide.match(/\bdata-network-step-path=/g) || []).length, 6, 'nw13のルーター中継図にデスクトップ・モバイル各3経路');
 equal((internetRoleSlide.match(/\bdata-network-step-mover(?:\s|>)/g) || []).length, 6, 'nw13のルーター中継図にデスクトップ・モバイル各3移動表示');
 for (const control of ['prev', 'next', 'replay', 'reset']) {
@@ -703,7 +703,7 @@ for (const requirement of [
 }
 ok(
   /@media \(max-width: 520px\)[\s\S]*?\.nw-step-svg--wide\s*\{[\s\S]*?display:\s*none;[\s\S]*?\.nw-step-svg--mobile\s*\{[\s\S]*?display:\s*block;/.test(networkCss),
-  'nw13は狭い画面で縦向きの経路図へ切り替える'
+  'nw13は狭い画面でモバイル用の経路図へ切り替える'
 );
 
 console.log(`lesson-slide-pages: ${checks}件の検証に合格`);

@@ -44,111 +44,161 @@
       <figure class="nw-step-demo nw-routing-demo" data-network-step-demo data-step="0">
         <figcaption>
           <strong>異なるLANのPC2へ届くまで</strong>
-          <span>IPアドレスで最終的な宛先を示し、ルーターが順番に中継します。</span>
+          <span>図の移動と、下にあるIP・MACの情報を見比べます。</span>
         </figcaption>
 
         <div class="nw-step-demo__controls" data-network-step-controls data-lesson-slide-navigation-lock role="group" aria-label="ルーターによる中継の段階操作" hidden>
           <button type="button" data-network-step-prev aria-label="1つ前の手順へ">← 前の手順</button>
-          <output aria-live="polite"><span data-network-step-index>1</span> / <span data-network-step-count>6</span></output>
+          <output aria-live="polite"><span data-network-step-index>1</span> / <span data-network-step-count>9</span></output>
           <button type="button" data-network-step-next aria-label="1つ次の手順へ">次の手順 →</button>
           <button type="button" data-network-step-replay>もう一度</button>
           <button type="button" data-network-step-reset>最初から</button>
         </div>
 
-        <svg class="nw-step-svg nw-step-svg--wide" viewBox="0 0 1080 400" role="img" aria-label="PC1から複数のルーターを経由して、異なるLANのPC2へデータを届ける図">
-          <rect class="nw-route-zone nw-route-zone--lan" x="18" y="56" width="320" height="272" rx="22"/>
-          <rect class="nw-route-zone nw-route-zone--internet" x="350" y="36" width="380" height="312" rx="42"/>
-          <rect class="nw-route-zone nw-route-zone--lan" x="742" y="56" width="320" height="272" rx="22"/>
-          <text class="nw-step-svg__zone-label" x="40" y="88">LAN 1</text>
-          <text class="nw-step-svg__zone-label" x="540" y="72">インターネット</text>
-          <text class="nw-step-svg__zone-label" x="1038" y="88" text-anchor="end">LAN 2</text>
+        <p class="nw-step-status" data-network-step-status aria-live="polite"><strong data-network-step-status-title></strong><span data-network-step-status-description></span></p>
+
+        <svg class="nw-step-svg nw-step-svg--wide" viewBox="0 0 1080 240" role="img" aria-label="PC1、ルーターR1、ルーターR2、PC2を順に結ぶ図。R1とR2の間は1区間として示す">
+          <rect class="nw-route-zone nw-route-zone--lan" x="18" y="14" width="320" height="212" rx="22"/>
+          <rect class="nw-route-zone nw-route-zone--internet" x="350" y="40" width="380" height="160" rx="32"/>
+          <rect class="nw-route-zone nw-route-zone--lan" x="742" y="14" width="320" height="212" rx="22"/>
+          <text class="nw-step-svg__zone-label" x="78" y="43">LAN 1</text>
+          <text class="nw-step-svg__zone-label" x="540" y="78">ルーター間</text>
+          <text class="nw-step-svg__small" x="540" y="180">1区間として表した例</text>
+          <text class="nw-step-svg__zone-label" x="1002" y="43">LAN 2</text>
 
           <g class="nw-step-links">
-            <path d="M128 210H252"/>
-            <path d="M326 210C385 210 392 126 460 126S530 274 610 274 673 210 754 210"/>
-            <path d="M828 210H950"/>
+            <path d="M128 118H252"/>
+            <path d="M326 118H754"/>
+            <path d="M828 118H950"/>
           </g>
           <g class="nw-step-paths" aria-hidden="true">
-            <path data-network-step-path="route-lan1" d="M165 210H215"/>
-            <path data-network-step-path="route-core" d="M370 188C400 150 420 126 460 126S530 274 610 274 665 225 710 212"/>
-            <path data-network-step-path="route-lan2" d="M865 210H915"/>
+            <path data-network-step-path="route-lan1" d="M165 118H215"/>
+            <path data-network-step-path="route-core" d="M370 118H710"/>
+            <path data-network-step-path="route-lan2" d="M865 118H915"/>
           </g>
 
-          <g class="nw-route-pc" transform="translate(40 162)">
+          <g class="nw-route-pc" transform="translate(40 70)">
             <rect x="0" y="0" width="88" height="58" rx="7"/>
             <path d="M12 70H76M44 58V70"/>
             <text x="44" y="98">PC1</text>
             <text class="nw-step-svg__small" x="44" y="119">192.168.1.10</text>
           </g>
-          <g class="nw-route-router" transform="translate(252 164)">
+          <g class="nw-route-router" transform="translate(252 72)">
             <rect x="0" y="0" width="74" height="92" rx="12"/>
             <circle cx="23" cy="28" r="5"/><circle cx="23" cy="48" r="5"/><circle cx="23" cy="68" r="5"/>
             <path d="M42 28H60M42 48H60M42 68H60"/>
             <text x="37" y="118">ルーターR1</text>
           </g>
-          <g class="nw-route-core-router" transform="translate(430 96)"><circle r="30"/><path d="M-15 0H15M0-15V15"/></g>
-          <g class="nw-route-core-router" transform="translate(610 274)"><circle r="30"/><path d="M-15 0H15M0-15V15"/></g>
-          <g class="nw-route-router" transform="translate(754 164)">
+          <g class="nw-route-router" transform="translate(754 72)">
             <rect x="0" y="0" width="74" height="92" rx="12"/>
             <circle cx="23" cy="28" r="5"/><circle cx="23" cy="48" r="5"/><circle cx="23" cy="68" r="5"/>
             <path d="M42 28H60M42 48H60M42 68H60"/>
             <text x="37" y="118">ルーターR2</text>
           </g>
-          <g class="nw-route-pc" transform="translate(950 162)">
+          <g class="nw-route-pc" transform="translate(950 70)">
             <rect x="0" y="0" width="88" height="58" rx="7"/>
             <path d="M12 70H76M44 58V70"/>
             <text x="44" y="98">PC2</text>
             <text class="nw-step-svg__small" x="44" y="119">192.168.2.10</text>
           </g>
 
-          <g class="nw-route-data" data-network-step-visual="1" transform="translate(84 132)"><rect x="-43" y="-19" width="86" height="38" rx="8"/><text y="6">PC1→PC2</text></g>
+          <g class="nw-route-data" data-network-step-visual="0 1" transform="translate(176 70)"><rect x="-43" y="-19" width="86" height="38" rx="8"/><text y="6">送るデータ</text></g>
           <g class="nw-route-data" data-network-step-visual="2" data-network-step-mover data-network-step-path-ref="route-lan1"><rect x="-35" y="-19" width="70" height="38" rx="8"/><text y="6">PC1→PC2</text></g>
-          <g class="nw-route-data" data-network-step-visual="3" data-network-step-mover data-network-step-path-ref="route-core"><rect x="-43" y="-19" width="86" height="38" rx="8"/><text y="6">PC1→PC2</text></g>
-          <g class="nw-route-data" data-network-step-visual="4" data-network-step-mover data-network-step-path-ref="route-lan2"><rect x="-35" y="-19" width="70" height="38" rx="8"/><text y="6">PC1→PC2</text></g>
-          <g class="nw-route-data nw-route-data--received" data-network-step-visual="5" transform="translate(994 136)"><rect x="-43" y="-19" width="86" height="38" rx="8"/><text y="6">受信完了</text></g>
+          <g class="nw-route-data" data-network-step-visual="3" transform="translate(289 43)"><rect x="-43" y="-19" width="86" height="38" rx="8"/><text y="6">IPを確認</text></g>
+          <g class="nw-route-data" data-network-step-visual="4" data-network-step-mover data-network-step-path-ref="route-core"><rect x="-43" y="-19" width="86" height="38" rx="8"/><text y="6">PC1→PC2</text></g>
+          <g class="nw-route-data" data-network-step-visual="5" transform="translate(791 43)"><rect x="-43" y="-19" width="86" height="38" rx="8"/><text y="6">IPを確認</text></g>
+          <g class="nw-route-data" data-network-step-visual="6" data-network-step-mover data-network-step-path-ref="route-lan2"><rect x="-35" y="-19" width="70" height="38" rx="8"/><text y="6">PC1→PC2</text></g>
+          <g class="nw-route-data nw-route-data--received" data-network-step-visual="7 8" transform="translate(906 70)"><rect x="-43" y="-19" width="86" height="38" rx="8"/><text y="6">PC2で受信</text></g>
         </svg>
 
-        <svg class="nw-step-svg nw-step-svg--mobile" viewBox="0 0 360 720" role="img" aria-label="PC1から複数のルーターを経由して、異なるLANのPC2へデータを届ける縦向きの図">
-          <rect class="nw-route-zone nw-route-zone--lan" x="20" y="16" width="320" height="190" rx="20"/>
-          <rect class="nw-route-zone nw-route-zone--internet" x="20" y="220" width="320" height="280" rx="36"/>
-          <rect class="nw-route-zone nw-route-zone--lan" x="20" y="514" width="320" height="190" rx="20"/>
-          <text class="nw-step-svg__zone-label" x="40" y="46">LAN 1</text>
-          <text class="nw-step-svg__zone-label" x="180" y="250">インターネット</text>
-          <text class="nw-step-svg__zone-label" x="40" y="544">LAN 2</text>
-          <g class="nw-step-links"><path d="M122 103H252M289 140V278C289 310 260 320 260 320C230 360 180 385 110 425C80 445 71 475 71 558M108 591H238"/></g>
+        <svg class="nw-step-svg nw-step-svg--mobile" viewBox="0 0 360 160" role="img" aria-label="LAN 1のPC1からR1、R2を通り、LAN 2のPC2へ送る図。R1とR2の間は1区間">
+          <rect class="nw-route-zone nw-route-zone--lan" x="8" y="10" width="152" height="120" rx="14"/>
+          <rect class="nw-route-zone nw-route-zone--lan" x="200" y="10" width="152" height="120" rx="14"/>
+          <text class="nw-step-svg__zone-label" x="84" y="37">LAN 1</text>
+          <text class="nw-step-svg__zone-label" x="276" y="37">LAN 2</text>
+          <g class="nw-step-links"><path d="M64 77H110M146 77H214M250 77H296"/></g>
           <g class="nw-step-paths" aria-hidden="true">
-            <path data-network-step-path="route-lan1" d="M158 103H216"/>
-            <path data-network-step-path="route-core" d="M289 226V278C289 310 260 320 260 320C230 360 180 385 110 425C80 445 71 475 71 500"/>
-            <path data-network-step-path="route-lan2" d="M146 591H200"/>
+            <path data-network-step-path="route-lan1" d="M76 77H98"/>
+            <path data-network-step-path="route-core" d="M158 77H202"/>
+            <path data-network-step-path="route-lan2" d="M262 77H284"/>
           </g>
-          <g class="nw-route-pc" transform="translate(34 70)"><rect width="88" height="58" rx="7"/><path d="M12 70H76M44 58V70"/><text x="44" y="96">PC1</text><text class="nw-step-svg__small" x="44" y="116">192.168.1.10</text></g>
-          <g class="nw-route-router" transform="translate(252 74)"><rect width="74" height="66" rx="12"/><circle cx="23" cy="20" r="4"/><circle cx="23" cy="34" r="4"/><circle cx="23" cy="48" r="4"/><path d="M40 20H58M40 34H58M40 48H58"/><text x="37" y="92">R1</text></g>
-          <g class="nw-route-core-router" transform="translate(260 320)"><circle r="27"/><path d="M-13 0H13M0-13V13"/></g>
-          <g class="nw-route-core-router" transform="translate(110 425)"><circle r="27"/><path d="M-13 0H13M0-13V13"/></g>
-          <g class="nw-route-router" transform="translate(34 558)"><rect width="74" height="66" rx="12"/><circle cx="23" cy="20" r="4"/><circle cx="23" cy="34" r="4"/><circle cx="23" cy="48" r="4"/><path d="M40 20H58M40 34H58M40 48H58"/><text x="37" y="92">R2</text></g>
-          <g class="nw-route-pc" transform="translate(238 558)"><rect width="88" height="58" rx="7"/><path d="M12 70H76M44 58V70"/><text x="44" y="96">PC2</text><text class="nw-step-svg__small" x="44" y="116">192.168.2.10</text></g>
-          <g class="nw-route-data nw-route-data--mobile" data-network-step-visual="1" transform="translate(180 49)"><rect x="-36" y="-16" width="72" height="32" rx="8"/><text y="5">PC1→PC2</text></g>
-          <g class="nw-route-data nw-route-data--mobile" data-network-step-visual="2" data-network-step-mover data-network-step-path-ref="route-lan1"><rect x="-36" y="-16" width="72" height="32" rx="8"/><text y="5">PC1→PC2</text></g>
-          <g class="nw-route-data nw-route-data--mobile" data-network-step-visual="3" data-network-step-mover data-network-step-path-ref="route-core"><rect x="-36" y="-16" width="72" height="32" rx="8"/><text y="5">PC1→PC2</text></g>
-          <g class="nw-route-data nw-route-data--mobile" data-network-step-visual="4" data-network-step-mover data-network-step-path-ref="route-lan2"><rect x="-36" y="-16" width="72" height="32" rx="8"/><text y="5">PC1→PC2</text></g>
-          <g class="nw-route-data nw-route-data--received nw-route-data--mobile" data-network-step-visual="5" transform="translate(282 536)"><rect x="-36" y="-16" width="72" height="32" rx="8"/><text y="5">受信完了</text></g>
+          <g class="nw-route-pc" transform="translate(20 59)"><rect width="44" height="30" rx="4"/><path d="M5 38H39M22 30V38"/><text x="22" y="58">PC1</text></g>
+          <g class="nw-route-router" transform="translate(110 57)"><rect width="36" height="42" rx="6"/><circle cx="11" cy="12" r="2"/><circle cx="11" cy="24" r="2"/><path d="M22 12H28M22 24H28"/><text x="18" y="60">R1</text></g>
+          <g class="nw-route-router" transform="translate(214 57)"><rect width="36" height="42" rx="6"/><circle cx="11" cy="12" r="2"/><circle cx="11" cy="24" r="2"/><path d="M22 12H28M22 24H28"/><text x="18" y="60">R2</text></g>
+          <g class="nw-route-pc" transform="translate(296 59)"><rect width="44" height="30" rx="4"/><path d="M5 38H39M22 30V38"/><text x="22" y="58">PC2</text></g>
+          <text class="nw-step-svg__small" x="180" y="151">R1・R2はルーター</text>
+          <g class="nw-route-data" data-network-step-visual="0 1" transform="translate(42 49)"><rect x="-11" y="-8" width="22" height="16" rx="3"/></g>
+          <g class="nw-route-data" data-network-step-visual="2" data-network-step-mover data-network-step-path-ref="route-lan1"><rect x="-10" y="-8" width="20" height="16" rx="3"/></g>
+          <g class="nw-route-data" data-network-step-visual="3" transform="translate(128 47)"><rect x="-11" y="-8" width="22" height="16" rx="3"/></g>
+          <g class="nw-route-data" data-network-step-visual="4" data-network-step-mover data-network-step-path-ref="route-core"><rect x="-10" y="-8" width="20" height="16" rx="3"/></g>
+          <g class="nw-route-data" data-network-step-visual="5" transform="translate(232 47)"><rect x="-11" y="-8" width="22" height="16" rx="3"/></g>
+          <g class="nw-route-data" data-network-step-visual="6" data-network-step-mover data-network-step-path-ref="route-lan2"><rect x="-10" y="-8" width="20" height="16" rx="3"/></g>
+          <g class="nw-route-data nw-route-data--received" data-network-step-visual="7 8" transform="translate(318 49)"><rect x="-11" y="-8" width="22" height="16" rx="3"/></g>
         </svg>
+
+        <div class="nw-route-inspector" aria-label="通信中のデータと、送信元・送信先の情報">
+          <h3>データに付ける情報</h3>
+          <p class="nw-route-inspector__fallback">PC1からR1へ送るときの例です。情報の変化は下の手順で確認できます。</p>
+          <div class="nw-route-packet">
+            <div class="nw-route-packet__data"><strong>送るデータ</strong><span>中継中も同じ内容</span></div>
+            <div class="nw-route-fields nw-route-fields--ip">
+              <p class="nw-route-fields__label"><strong>IPの情報</strong><small>インターネット層</small></p>
+              <div class="nw-route-fields__slot">
+                <dl class="nw-route-field-pair" data-network-step-visual="1 2 3 4 5 6 7">
+                  <div><dt>送信元IP</dt><dd><b>PC1</b><code>192.168.1.10</code></dd></div>
+                  <div><dt>送信先IP</dt><dd><b>PC2</b><code>192.168.2.10</code></dd></div>
+                </dl>
+                <p class="nw-route-fields__empty" data-network-step-visual="0" hidden>まだ付けていません</p>
+                <p class="nw-route-fields__empty" data-network-step-visual="8" hidden>PC2で確認して外す</p>
+              </div>
+            </div>
+            <div class="nw-route-fields nw-route-fields--mac">
+              <p class="nw-route-fields__label"><strong>MACの情報</strong><small>ネットワークインターフェース層</small></p>
+              <div class="nw-route-fields__slot">
+                <dl class="nw-route-field-pair" data-network-step-visual="2">
+                  <div><dt>送信元MAC</dt><dd><b>PC1</b></dd></div>
+                  <div><dt>送信先MAC</dt><dd><b>R1</b></dd></div>
+                </dl>
+                <dl class="nw-route-field-pair" data-network-step-visual="4" hidden>
+                  <div><dt>送信元MAC</dt><dd><b>R1</b></dd></div>
+                  <div><dt>送信先MAC</dt><dd><b>R2</b></dd></div>
+                </dl>
+                <dl class="nw-route-field-pair" data-network-step-visual="6" hidden>
+                  <div><dt>送信元MAC</dt><dd><b>R2</b></dd></div>
+                  <div><dt>送信先MAC</dt><dd><b>PC2</b></dd></div>
+                </dl>
+                <p class="nw-route-fields__empty" data-network-step-visual="0 1" hidden>まだ付けていません</p>
+                <p class="nw-route-fields__empty" data-network-step-visual="3" hidden><s>PC1 → R1</s><span>R1で外す</span></p>
+                <p class="nw-route-fields__empty" data-network-step-visual="5" hidden><s>R1 → R2</s><span>R2で外す</span></p>
+                <p class="nw-route-fields__empty" data-network-step-visual="7" hidden><s>R2 → PC2</s><span>PC2で外す</span></p>
+                <p class="nw-route-fields__empty" data-network-step-visual="8" hidden>取り外し済み</p>
+              </div>
+            </div>
+          </div>
+        </div>
 
         <div class="nw-routing-addresses" aria-label="IPアドレスとLAN内の宛先の違い">
           <p><strong>最終的な宛先</strong><span>PC2のIPアドレス。途中のルーターを通っても変わりません。</span></p>
-          <p><strong>次に渡す相手</strong><span>同じLAN内ではMACアドレスを使い、まずルーターへ渡します。</span></p>
+          <p><strong>次に渡す相手</strong><span>MACアドレスで指定します。ルーターを通るたびに、送信元・送信先のMACを付け直します。</span></p>
         </div>
 
-        <ol class="nw-step-sequence" aria-label="異なるLANへ届ける6段階">
-          <li data-network-step-detail data-step-title="送信前"><span>PC1とPC2は異なるLANに接続しています。</span></li>
-          <li data-network-step-detail data-step-title="最終宛先を指定"><span>PC1は、最終的な宛先としてPC2のIPアドレスを指定します。</span></li>
-          <li data-network-step-detail data-step-title="LAN 1から送信"><span>PC2は同じLANにいないため、PC1はまずルーターR1へ渡します。</span></li>
-          <li data-network-step-detail data-step-title="ルーターが中継"><span>各ルーターは宛先IPアドレスを確かめ、次のルーターへ送ります。</span></li>
-          <li data-network-step-detail data-step-title="LAN 2へ到着"><span>ルーターR2は、LAN 2にいるPC2へデータを渡します。</span></li>
-          <li data-network-step-detail data-step-title="PC2が受信"><span>IPアドレスで示した最終的な宛先へデータが届きました。</span></li>
+        <ol class="nw-step-sequence" aria-label="異なるLANへ届ける9段階">
+          <li data-network-step-detail data-step-title="PC1：送るデータ"><span>トランスポート層から受け取ったデータを、別のLANにいるPC2へ送ります。</span></li>
+          <li data-network-step-detail data-step-title="PC1：IPを付ける"><span>送信元IPをPC1、送信先IPをPC2として付けます。この2つのIPアドレスは、中継中も同じです。</span></li>
+          <li data-network-step-detail data-step-title="PC1からR1へ"><span>送信元MACはPC1、送信先MACはR1です。PC2は別のLANにいるため、最初にR1へ渡します。</span></li>
+          <li data-network-step-detail data-step-title="R1：MACを外す"><span>受け取ったMACの情報を外し、送信先IPがPC2であることを確認します。送るデータと2つのIPアドレスはそのままです。</span></li>
+          <li data-network-step-detail data-step-title="R1からR2へ"><span>次の区間用に、送信元MACをR1、送信先MACをR2として付け直します。送信元IPはPC1、送信先IPはPC2のままです。</span></li>
+          <li data-network-step-detail data-step-title="R2：MACを外す"><span>R2もMACの情報を外して送信先IPを確認します。宛先のPC2がLAN 2にいるので、次はPC2へ渡します。</span></li>
+          <li data-network-step-detail data-step-title="R2からPC2へ"><span>送信元MACをR2、送信先MACをPC2として付け直します。2つのIPアドレスを保ったままPC2へ送ります。</span></li>
+          <li data-network-step-detail data-step-title="PC2：MACを外す"><span>PC2は自分宛てのデータを受け取り、MACの情報を外してインターネット層へ渡します。</span></li>
+          <li data-network-step-detail data-step-title="PC2：上の層へ"><span>送信先IPが自分であることを確認してIPの情報を外し、受け取ったデータをトランスポート層へ渡します。</span></li>
         </ol>
-        <p class="nw-step-status" data-network-step-status aria-live="polite"><strong data-network-step-status-title></strong><span data-network-step-status-description></span></p>
+        <p class="nw-route-model-note">各区間を有線LANでつないだ模式図です。MAC欄の機器名は、その区間につながる接続口のMACアドレスを表します。途中にルーターが増えても、同じ付け直しを繰り返します。</p>
       </figure>
+      <details class="nw-support-details">
+        <summary>補足：ヘッダという呼び方</summary>
+        <p>IPやMACの情報など、データを届けるために付ける制御情報を「ヘッダ」と呼びます。この図では送信元・送信先の項目に絞って示しています。NATによるIPアドレスの変換は4枚目で扱います。</p>
+      </details>
     </article>
   </section>
 

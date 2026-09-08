@@ -3800,6 +3800,190 @@ section article .nw-protocol-definition {
   font-size: 11px;
 }
 
+.nw-routing-demo [data-network-step-controls] {
+  position: sticky;
+  top: 0;
+  z-index: 3;
+  padding-block: 6px;
+  background: var(--nw-panel-strong);
+}
+
+.nw-routing-demo .nw-step-demo__controls output {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .3em;
+}
+
+.nw-routing-demo .nw-step-status {
+  min-height: 4.6em;
+  margin: 0 0 10px;
+}
+
+.nw-route-inspector {
+  margin-top: 12px;
+  text-align: left;
+}
+
+.nw-route-inspector h3 {
+  margin: 0 0 8px;
+  font-size: 1em;
+}
+
+.nw-route-packet {
+  display: grid;
+  grid-template-columns: minmax(90px, .48fr) repeat(2, minmax(0, 1fr));
+  align-items: stretch;
+  gap: 8px;
+}
+
+.nw-route-packet__data {
+  display: grid;
+  align-content: center;
+  gap: 7px;
+  padding: 10px;
+  border: 2px solid var(--nw-pdu-data);
+  border-radius: 7px;
+  background: var(--nw-layer-application);
+  text-align: center;
+}
+
+.nw-route-packet__data strong {
+  font-size: 1em;
+}
+
+.nw-route-packet__data span {
+  font-size: .65em;
+  line-height: 1.4;
+}
+
+.nw-route-fields {
+  min-width: 0;
+  --route-field-color: var(--nw-pdu-internet);
+  --route-field-background: var(--nw-layer-internet);
+}
+
+.nw-route-fields--mac {
+  --route-field-color: var(--nw-pdu-interface);
+  --route-field-background: var(--nw-layer-interface);
+}
+
+.nw-route-fields__label {
+  display: grid;
+  align-content: start;
+  min-height: 3.1em;
+  gap: 3px;
+  margin: 0 0 5px;
+  padding-inline-start: 8px;
+  border-inline-start: 4px solid var(--route-field-color);
+  text-align: left;
+}
+
+.nw-route-fields__label strong {
+  font-size: .95em;
+}
+
+.nw-route-fields__label small {
+  color: var(--nw-muted);
+  font-size: .72em;
+  line-height: 1.4;
+}
+
+.nw-route-fields__slot {
+  display: grid;
+  min-height: 110px;
+}
+
+.nw-route-fields__slot > * {
+  grid-area: 1 / 1;
+}
+
+.nw-route-field-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin: 0;
+  border: 2px solid var(--route-field-color);
+  border-radius: 7px;
+  background: var(--route-field-background);
+}
+
+.nw-route-field-pair > div {
+  min-width: 0;
+  padding: 8px 5px;
+  text-align: center;
+}
+
+.nw-route-field-pair > div + div {
+  border-inline-start: 1px solid var(--route-field-color);
+}
+
+.nw-route-field-pair dt {
+  margin: 0 0 5px;
+  font-size: .88em;
+  font-weight: 750;
+  text-indent: 0;
+}
+
+.nw-route-field-pair dt::before {
+  content: none;
+}
+
+.nw-route-field-pair dd {
+  display: grid;
+  gap: 3px;
+  margin: 0;
+  text-indent: 0;
+}
+
+.nw-route-field-pair b {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 1.18em;
+}
+
+.nw-route-field-pair code {
+  padding: 0;
+  border: 0;
+  box-shadow: none;
+  background: transparent;
+  color: var(--nw-text);
+  font-size: .8em;
+  overflow-wrap: anywhere;
+}
+
+.nw-route-fields__empty {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 10px;
+  border: 2px dashed var(--nw-border);
+  border-radius: 7px;
+  color: var(--nw-muted);
+  font-size: .74em;
+  text-align: center;
+}
+
+.nw-routing-demo:is([data-step="3"], [data-step="5"], [data-step="7"]) .nw-route-fields--ip .nw-route-field-pair {
+  outline: 3px solid var(--nw-pdu-internet);
+  outline-offset: 2px;
+}
+
+.nw-route-model-note,
+.nw-route-inspector__fallback {
+  margin: 10px 2px 0;
+  color: var(--nw-muted);
+  font-size: .66em;
+  line-height: 1.65;
+  text-align: left;
+}
+
+.nw-routing-demo.is-ready .nw-route-inspector__fallback {
+  display: none;
+}
+
 .nw-routing-addresses {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -4401,6 +4585,35 @@ section article .nw-protocol-definition {
     grid-template-columns: 1fr;
   }
 
+  .nw-route-packet {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+
+  .nw-route-packet__data {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    padding: 5px 8px;
+  }
+
+  .nw-route-fields__label {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 3px 8px;
+    min-height: 0;
+  }
+
+  .nw-route-fields__slot {
+    min-height: 100px;
+  }
+
+  .nw-routing-demo .nw-step-status {
+    min-height: 6.6em;
+  }
+
   .nw-step-status,
   .nw-step-sequence li {
     grid-template-columns: 1fr;
@@ -4694,6 +4907,19 @@ section article .nw-protocol-definition {
 
   .nw-step-svg--mobile {
     display: none !important;
+  }
+
+  .nw-routing-demo .nw-route-inspector__fallback {
+    display: block;
+  }
+
+  .nw-route-fields__slot > [data-network-step-visual] {
+    display: none !important;
+  }
+
+  .nw-route-fields--ip .nw-route-field-pair,
+  .nw-route-fields--mac [data-network-step-visual="2"] {
+    display: grid !important;
   }
 
   .nw-prefix-demo [data-lesson-view-panel][hidden] {
