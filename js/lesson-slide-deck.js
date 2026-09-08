@@ -235,6 +235,7 @@
       this.bind();
       this.page.__lessonSlideDeck = this;
       this.page.classList.add('lesson-slide-ready');
+      this.initializeFullscreen();
 
       const requestedIndex = this.indexFromHash(location.hash);
       const defaultIndex = this.indexFromDefaultSlide();
@@ -338,6 +339,92 @@
       button.type = 'button';
       button.append(symbolNode, labelNode);
       return button;
+    }
+
+    initializeFullscreen() {
+      const controls = this.siteHeader?.querySelector('.site-preference-controls');
+      // 文書全体を対象にして、本文外のLessonDock・検索・補足dialogと背景も維持する。
+      const target = document.documentElement;
+      const useStandard = typeof target.requestFullscreen === 'function' && document.fullscreenEnabled !== false;
+      const request = useStandard ? target.requestFullscreen
+        : document.webkitFullscreenEnabled !== false && target.webkitRequestFullscreen;
+      const exit = useStandard ? document.exitFullscreen : document.webkitExitFullscreen;
+      if (!controls || typeof request !== 'function' || typeof exit !== 'function') return;
+
+      const button = createElement('button', 'lesson-slide-deck__fullscreen');
+      button.type = 'button';
+      button.setAttribute('aria-controls', this.deck.id);
+      button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path></path></svg>';
+      const icon = button.querySelector('path');
+      const message = createElement('p', 'lesson-slide-deck__fullscreen-error');
+      message.hidden = true;
+      message.setAttribute('role', 'status');
+      this.chooser.appendChild(message);
+      controls.appendChild(button);
+
+      let active = false;
+      let pending = false;
+      const updateButton = () => {
+        const label = active ? '全画面表示を終了' : 'スライドを全画面表示';
+        button.setAttribute('aria-label', label);
+        button.setAttribute('aria-pressed', String(active));
+        button.title = active ? `${label}（Esc）` : label;
+        icon.setAttribute('d', active
+          ? 'M3 8h5V3M21 8h-5V3M16 21v-5h5M8 21v-5H3'
+          : 'M8 3H3v5M16 3h5v5M21 16v5h-5M3 16v5h5');
+      };
+      const finishRequest = () => {
+        pending = false;
+        button.removeAttribute('aria-disabled');
+      };
+      const closeOverlays = () => {
+        document.dispatchEvent(new CustomEvent(OVERLAY_OPEN_EVENT, {
+          detail: { source: 'lesson-slide-fullscreen' }
+        }));
+      };
+      const sync = () => {
+        const nextActive = (document.fullscreenElement || document.webkitFullscreenElement) === target;
+        if (nextActive === active) return;
+        active = nextActive;
+        finishRequest();
+        message.hidden = true;
+        closeOverlays();
+        document.body.classList.toggle('is-lesson-fullscreen', active);
+        // 同じボタンを移動し、ヘッダーを隠した全画面内にも終了操作を残す。
+        (active ? this.navigation : controls).appendChild(button);
+        updateButton();
+        button.focus({ preventScroll: true });
+        this.preserveSelectFocus = false;
+        this.scheduleMeasure();
+      };
+      const showError = () => {
+        finishRequest();
+        message.textContent = '全画面表示を切り替えられませんでした。もう一度お試しください。';
+        message.hidden = false;
+        button.focus({ preventScroll: true });
+        this.scheduleMeasure();
+      };
+
+      button.addEventListener('click', async () => {
+        if (pending) return;
+        pending = true;
+        button.setAttribute('aria-disabled', 'true');
+        message.hidden = true;
+        closeOverlays();
+        try {
+          await (active ? exit.call(document) : request.call(target));
+          sync();
+        } catch {
+          showError();
+        } finally {
+          finishRequest();
+        }
+      });
+      document.addEventListener('fullscreenchange', sync);
+      document.addEventListener('webkitfullscreenchange', sync);
+      target.addEventListener('fullscreenerror', showError);
+      target.addEventListener('webkitfullscreenerror', showError);
+      updateButton();
     }
 
     bind() {

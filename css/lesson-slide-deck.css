@@ -14,6 +14,71 @@ body.lesson-slide-ready {
   overflow: hidden;
 }
 
+body.lesson-slide-ready.is-lesson-fullscreen {
+  background-color: var(--lesson-slide-panel);
+}
+
+body.lesson-slide-ready.is-lesson-fullscreen #site-header {
+  display: none;
+}
+
+.lesson-slide-deck__fullscreen {
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  cursor: pointer;
+}
+
+.lesson-slide-deck__fullscreen:is(:hover, :active) {
+  border-color: currentColor;
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.lesson-slide-deck__fullscreen:focus-visible {
+  outline: 3px solid currentColor;
+  outline-offset: 2px;
+}
+
+.lesson-slide-deck__fullscreen svg {
+  width: 21px;
+  height: 21px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  pointer-events: none;
+}
+
+.lesson-slide-deck__navigation .lesson-slide-deck__fullscreen {
+  grid-column: 4;
+  grid-row: 1;
+  border-color: var(--lesson-slide-border);
+  border-radius: 10px;
+  color: var(--lesson-slide-text);
+}
+
+.lesson-slide-deck__navigation .lesson-slide-deck__fullscreen:focus-visible {
+  outline-color: var(--lesson-slide-focus);
+}
+
+.lesson-slide-deck__fullscreen-error {
+  margin: 6px 0 0;
+  color: var(--lesson-slide-text);
+  font-size: .9em;
+}
+
 body.lesson-slide-ready #page_header article {
   display: flex;
   flex-direction: column;
@@ -619,6 +684,7 @@ body.lesson-slide-ready [data-lesson-view-controls] {
   }
 
   .lesson-slide-deck__navigation,
+  .lesson-slide-deck__fullscreen,
   .lesson-slide-cover__start,
   [data-lesson-view-controls] {
     display: none !important;
