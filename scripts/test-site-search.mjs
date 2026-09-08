@@ -3,12 +3,19 @@ import { createRequire } from 'node:module';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import vm from 'node:vm';
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, '..');
 const require = createRequire(import.meta.url);
 const core = require(path.join(projectRoot, 'js', 'site_search_core.js'));
 const index = JSON.parse(await readFile(path.join(projectRoot, 'data', 'search-index.json'), 'utf8'));
+const pagesContext = { window: {} };
+vm.runInNewContext(await readFile(path.join(projectRoot, 'js', 'pages.js'), 'utf8'), pagesContext, {
+  filename: 'js/pages.js',
+  timeout: 1000
+});
+const pages = pagesContext.window.pages;
 
 assert.equal(Object.hasOwn(globalThis, '__siteSearchCore'), false);
 assert.equal(core.normalizeText('  ＰＬＴ．ＰＬＯＴ\n'), 'plt.plot');
@@ -87,6 +94,7 @@ assert.equal(new Set(index.documents.map(document => document.url)).size, index.
 
 const excludedIds = new Set(['color', 'faq', 'gfe', 'link', 'print', 'test']);
 for (const document of index.documents) {
+  assert.equal(pages[document.id]?.release, true, `未公開ページを索引へ含めない: ${document.id}`);
   assert.ok(!excludedIds.has(document.id), `除外対象が索引に含まれています: ${document.id}`);
   assert.ok(!document.url.includes('/answer'), `配付用解答が索引に含まれています: ${document.url}`);
   assert.ok(!document.url.startsWith('archive/'));
@@ -112,12 +120,15 @@ assert.equal(soundResults.every(result => result.document.course === 'dr'), true
 
 for (const id of ['dr00', 'dr31', 'dr32', 'lc00', 'lc01', 'lc02', 'lc03', 'lc04', 'nw00', 'nw11', 'nw12', 'nw13']) {
   const document = index.documents.find(document => document.id === id);
-  assert.ok(document, `公開した座学ページを索引に含める: ${id}`);
-  assert.equal(document.course, id.slice(0, 2), `座学シリーズで絞り込める: ${id}`);
+  assert.ok(pages[id], `座学ページの掲載設定が存在する: ${id}`);
+  assert.equal(Boolean(document), pages[id].release === true, `座学ページの掲載設定に従う: ${id}`);
+  if (document) {
+    assert.equal(document.course, id.slice(0, 2), `座学シリーズで絞り込める: ${id}`);
+  }
 }
-for (const [course, query] of [['lc', '回路'], ['nw', 'プロトコル']]) {
+for (const [course, query, id] of [['lc', '回路', 'lc01'], ['nw', 'プロトコル', 'nw11']]) {
   const results = core.searchDocuments(index.documents, query, { course });
-  assert.ok(results.length > 0, `${course}の教材が見つかる`);
+  assert.equal(results.some(result => result.document.id === id), pages[id].release === true, `公開した${course}の教材が見つかる`);
   assert.ok(results.every(result => result.document.course === course), `${course}以外を含めない`);
   assert.equal(core.searchDocuments(index.documents, 'plt.plot', { course }).length, 0);
   assert.equal(new URL(core.buildFaqUrl('https://joho.kaijo.ed.jp/', query, course)).searchParams.has('course'), false);

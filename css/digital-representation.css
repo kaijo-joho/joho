@@ -734,6 +734,13 @@ section article .dr-guide__explanation h4 {
   stroke-dasharray: 3 5;
 }
 
+.dr-svg__quantization-block {
+  fill: color-mix(in oklab, var(--dr-quantized) 46%, transparent);
+  stroke: color-mix(in oklab, var(--dr-quantized) 88%, var(--dr-svg-bg));
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
 .dr-svg__wave {
   fill: none;
   stroke-linecap: round;
@@ -781,13 +788,7 @@ section article .dr-guide__explanation h4 {
   stroke-dasharray: 2 3;
 }
 
-.dr-svg__staircase {
-  stroke: color-mix(in oklab, var(--dr-quantized) 62%, transparent);
-  stroke-width: 2;
-  stroke-dasharray: 8 4;
-}
-
-.dr-svg__value-label {
+.dr-svg__level-label {
   fill: var(--dr-quantized);
   font-family: var(--font-code, monospace);
   font-size: 12px;
@@ -825,6 +826,12 @@ section article .dr-guide__explanation h4 {
   stroke-width: 3;
 }
 
+.dr-svg [data-sample-index].is-active.dr-svg__quantization-block {
+  fill: color-mix(in oklab, var(--dr-quantized) 70%, transparent);
+  stroke: var(--dr-code);
+  stroke-width: 2;
+}
+
 /* 工程を進めた瞬間だけ、追加されたSVGレイヤーを左から順に見せる。 */
 .dr-svg--stage-enter-2 .dr-svg__sample-guide,
 .dr-svg--stage-enter-2 .dr-svg__stem {
@@ -848,7 +855,14 @@ section article .dr-guide__explanation h4 {
   transform-origin: 0 50%;
 }
 
-.dr-svg--stage-enter-3 :is(.dr-svg__quantized-point, .dr-svg__value-label) {
+.dr-svg--stage-enter-3 .dr-svg__quantization-block {
+  animation: dr-quantization-block-in .3s cubic-bezier(.2, .8, .3, 1) both;
+  animation-delay: calc(110ms + var(--dr-sequence, 0) * 44ms + var(--dr-block-level, 0) * 16ms);
+  transform-box: fill-box;
+  transform-origin: 50% 100%;
+}
+
+.dr-svg--stage-enter-3 :is(.dr-svg__quantized-point, .dr-svg__level-label) {
   animation: dr-quantized-value-in .34s ease-out both;
   animation-delay: calc(170ms + var(--dr-sequence, 0) * 58ms);
   transform-box: fill-box;
@@ -860,10 +874,6 @@ section article .dr-guide__explanation h4 {
   animation-delay: calc(220ms + var(--dr-sequence, 0) * 58ms);
   transform-box: fill-box;
   transform-origin: 50% 0;
-}
-
-.dr-svg--stage-enter-3 .dr-svg__staircase {
-  animation: dr-layer-fade-in .55s ease-out .22s both;
 }
 
 .dr-svg--stage-enter-4 :is(.dr-svg__code-heading, .dr-svg__binary-label) {
@@ -893,14 +903,14 @@ section article .dr-guide__explanation h4 {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
-@keyframes dr-quantization-error-in {
+@keyframes dr-quantization-block-in {
   from { opacity: 0; transform: scaleY(0); }
   to { opacity: 1; transform: scaleY(1); }
 }
 
-@keyframes dr-layer-fade-in {
-  from { opacity: 0; }
-  to { opacity: 1; }
+@keyframes dr-quantization-error-in {
+  from { opacity: 0; transform: scaleY(0); }
+  to { opacity: 1; transform: scaleY(1); }
 }
 
 @keyframes dr-code-in {
@@ -976,7 +986,18 @@ section article .dr-guide__explanation h4 {
 
 .dr-legend__line--analog { color: var(--dr-analog); }
 .dr-legend__line--sample { border-top-style: dotted; color: var(--dr-sample); }
-.dr-legend__line--quantized { border-top-style: dashed; color: var(--dr-quantized); }
+.dr-legend__blocks {
+  display: inline-block;
+  width: 30px;
+  height: 16px;
+  border: 1px solid var(--dr-quantized);
+  border-radius: 2px;
+  background: repeating-linear-gradient(
+    to top,
+    color-mix(in oklab, var(--dr-quantized) 60%, transparent) 0 4px,
+    transparent 4px 5px
+  );
+}
 .dr-legend__line--a { color: var(--dr-wave-a); }
 .dr-legend__line--b { border-top-style: dashed; color: var(--dr-wave-b); }
 .dr-legend__line--sum { border-top-width: 4px; color: var(--dr-wave-sum); }
@@ -2026,6 +2047,59 @@ body.lesson-slide-ready .lesson-slide :is(.dr-card, .dr-explorer, .dr-lab, .dr-q
   margin-block: 12px;
 }
 
+.dr-analog-digital-slide__visual {
+  display: grid;
+  min-width: 0;
+  gap: 8px;
+}
+
+.dr-sound-capture {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  margin: 0;
+  padding: 5px 10px 7px;
+  border: 1px solid var(--dr-border);
+  border-radius: 12px;
+  background: var(--dr-panel-strong);
+}
+
+.dr-sound-capture__svg {
+  display: block;
+  width: min(100%, 440px);
+  max-height: clamp(72px, 11dvh, 104px);
+  color: var(--dr-text);
+}
+
+.dr-sound-capture__source {
+  fill: currentColor;
+}
+
+.dr-sound-capture__waves,
+.dr-sound-capture__microphone {
+  fill: none;
+  stroke: var(--theme-color, #225386);
+  stroke-width: 9;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.dr-sound-capture__waves {
+  stroke: var(--dr-analog);
+}
+
+.dr-sound-capture__microphone-slots {
+  stroke-width: 7;
+}
+
+.dr-sound-capture figcaption {
+  margin: 0;
+  color: var(--dr-muted);
+  font-size: .78em;
+  line-height: 1.35;
+  text-align: center;
+}
+
 body.lesson-slide-ready .dr-svg--analog-intro {
   width: min(100%, 1040px);
   max-height: clamp(200px, 27dvh, 350px);
@@ -2045,7 +2119,7 @@ body.lesson-slide-ready .dr-svg--analog-intro {
     grid-column: 1 / -1;
   }
 
-  body.lesson-slide-ready .dr-analog-digital-slide > [data-sound-analog-intro] {
+  body.lesson-slide-ready .dr-analog-digital-slide > .dr-analog-digital-slide__visual {
     grid-column: 1;
     grid-row: 2 / 4;
     align-self: stretch;
@@ -2342,7 +2416,7 @@ body.lesson-slide-ready :is(.dr-svg--superposition, .dr-svg--sampling-theorem) {
   }
 
   .dr-svg--stage-enter-2 :is(.dr-svg__sample-guide, .dr-svg__stem, .dr-svg__sample-point),
-  .dr-svg--stage-enter-3 :is(.dr-svg__quantization-line, .dr-svg__quantized-point, .dr-svg__value-label, .dr-svg__error-line, .dr-svg__staircase),
+  .dr-svg--stage-enter-3 :is(.dr-svg__quantization-line, .dr-svg__quantization-block, .dr-svg__quantized-point, .dr-svg__level-label, .dr-svg__error-line),
   .dr-svg--stage-enter-4 :is(.dr-svg__code-heading, .dr-svg__binary-label) {
     animation: none;
   }

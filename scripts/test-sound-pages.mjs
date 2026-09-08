@@ -66,6 +66,14 @@ for (const [name, html] of [['dr31', dr31], ['dr32', dr32]]) {
 }
 
 ok(dr31.includes('data-sound-analog-intro'), 'dr31に最初のアナログ波形');
+ok(dr31.includes('class="dr-sound-capture"'), 'dr31の1枚目に音源とマイクの図');
+ok(dr31.indexOf('class="dr-sound-capture"') < dr31.indexOf('data-sound-analog-intro'), '音源とマイクの図の後に電気信号の波形を表示');
+ok(dr31.includes('<title id="dr-sound-capture-title">') && dr31.includes('<desc id="dr-sound-capture-desc">'), '音源とマイクのSVGにtitleとdescを設定');
+ok(dr31.includes('dr-sound-capture__source') && dr31.includes('dr-sound-capture__waves') && dr31.includes('dr-sound-capture__microphone'), '音源・空気の振動・マイクをSVGで描画');
+ok(dr31.includes('マイク</strong>がその変化を電気信号へ変換'), '図の内容をHTMLの説明文でも確認可能');
+for (const selector of ['.dr-analog-digital-slide__visual', '.dr-sound-capture', '.dr-sound-capture__svg', '.dr-sound-capture__waves', '.dr-sound-capture__microphone']) {
+  ok(css.includes(selector), `音源とマイクの図にスタイル「${selector}」`);
+}
 ok(dr31.includes('data-sound-pcm-guide'), 'dr31に固定条件の段階学習');
 ok(dr31.includes('data-sound-pcm data-stage="4"'), 'dr31に全工程から始まる可変グラフ');
 ok(dr31.indexOf('data-sound-analog-intro') < dr31.indexOf('data-sound-pcm-guide'), 'アナログ波形の後に変換手順を説明');
@@ -110,7 +118,7 @@ for (const requirement of ['class LessonSlideDeck', 'lesson-slide-deck__navigati
 for (const requirement of ['.lesson-slide-deck', '--lesson-slide-deck-height', '.lesson-slide-deck__navigation', '.lesson-slide-deck__select', 'body.lesson-slide-ready', 'max-height: 520px']) {
   ok(lessonCss.includes(requirement), `共通スライドCSSに ${requirement}`);
 }
-for (const requirement of ['.dr-info-tip', 'dr-sampling-divider-in', 'dr-quantization-level-in', 'dr-code-in', '.dr-quiz-slide', '.dr-quiz-stage']) {
+for (const requirement of ['.dr-info-tip', 'dr-sampling-divider-in', 'dr-quantization-level-in', 'dr-quantization-block-in', 'dr-code-in', '.dr-svg__quantization-block', '.dr-legend__blocks', '.dr-quiz-slide', '.dr-quiz-stage']) {
   ok(css.includes(requirement), `音教材固有CSSに ${requirement}`);
 }
 ok(!css.includes('.dr-slide-deck'), '音教材CSSへ旧DR専用ナビゲーションを重複実装しない');
@@ -120,6 +128,11 @@ ok(renderer.includes('dr-svg--stage-enter-${animationStage}'), 'Rendererが進�
 ok(renderer.includes("svg.addEventListener('pointerleave'"), 'グラフ外へポインタが出たら標本強調を解除');
 ok(renderer.includes("svg.addEventListener('focusout'"), 'グラフ外へキーボードフォーカスが移ったら標本強調を解除');
 ok(!renderer.includes('dr-svg__sample-highlight'), '標本選択時の背景帯を描画しない');
+ok(renderer.includes("layer('quantization-blocks')") && renderer.includes('block < sample.code'), '段階値の個数だけ量子化幅1段分のブロックを積み上げる');
+ok(renderer.includes("'data-quantization-level': block + 1"), '量子化ブロックに段階番号を付与');
+ok(renderer.includes("class: 'dr-svg__level-label'") && renderer.includes('}, String(sample.code))'), 'グラフ上の数字は量子化後の電圧でなく段階値を表示');
+ok(!renderer.includes('staircasePath') && !css.includes('.dr-svg__staircase'), '従来の階段線を量子化ブロックへ置き換える');
+ok(widgets.includes('ブロック数・数字＝段階値') && widgets.includes('量子化幅1段分のブロック'), '凡例と工程説明でブロックと段階値の関係を明示');
 for (const stage of [2, 3, 4]) ok(css.includes(`.dr-svg--stage-enter-${stage}`), `SVG工程${stage}の追加アニメーション`);
 for (const term of ['アナログ', 'デジタル', '標本化', 'サンプリング', '標本化周波数', '標本化周期', '量子化', '量子化ビット数', '量子化段階数', '符号化', 'PCM', '標本化定理']) {
   ok(dr31.includes(term), `dr31に用語「${term}」`);

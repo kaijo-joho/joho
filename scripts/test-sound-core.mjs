@@ -43,6 +43,8 @@ equal(SoundCore.quantizationLevels(3), 8, '3bitは8段階');
 equal(SoundCore.quantizationLevels(4), 16, '4bitは16段階');
 close(SoundCore.quantizationWidth(3), 1, '3bit・範囲8の量子化幅は1');
 close(SoundCore.quantizationWidth(4), 0.5, '4bit・範囲8の量子化幅は0.5');
+equal(SoundCore.quantize(2.5, { bitDepth: 4 }).code, 5, '4bitでは電圧2.5の段階値は5');
+close(SoundCore.quantize(2.5, { bitDepth: 4 }).quantizedValue, 2.5, '4bitの段階値5は電圧2.5を表す');
 equal(SoundCore.quantize(2, { bitDepth: 3 }).code, 2, '3bitで2は番号2');
 equal(SoundCore.quantize(2.49, { bitDepth: 3 }).code, 2, '境界直前は下側');
 equal(SoundCore.quantize(2.5, { bitDepth: 3 }).code, 3, 'ちょうど中間は上側へ丸める');

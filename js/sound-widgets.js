@@ -275,8 +275,8 @@
         },
         3: {
           title: '2. 量子化',
-          text: '各標本の高さを、最も近い8段階の値にそろえます。',
-          point: 'この例は3ビット量子化なので8段階です。この固定例では各点が段階値と重なるため、誤差は0です。'
+          text: '各標本の高さを、最も近い8段階の値にそろえます。量子化幅1段分のブロックを、段階値の個数だけ積み上げます。',
+          point: 'この例は3ビット量子化なので8段階です。ブロック数と上の数字が段階値を表します。'
         },
         4: {
           title: '3. 符号化',
@@ -310,7 +310,7 @@
         legendItems.push('<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--sample"></span>標本化した点</span>');
       }
       if (this.state.stage >= 3) {
-        legendItems.push('<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--quantized"></span>量子化後の値</span>');
+        legendItems.push('<span class="dr-legend__item"><span class="dr-legend__blocks" aria-hidden="true"></span>ブロック数・数字＝段階値</span>');
       }
       if (this.state.stage >= 4) {
         legendItems.push('<span class="dr-legend__item"><span class="dr-legend__code">010</span>3ビットの2進数</span>');
@@ -323,7 +323,6 @@
         animationStage,
         compact: true,
         selectedIndex: this.state.selectedIndex,
-        showStaircase: false,
         axisTimeStep: 0.1,
         axisLabelEvery: 1,
         axisVoltageStep: 1
@@ -355,8 +354,7 @@
         start: 0,
         end: 1.2,
         stage: Number(options.stage ?? 1),
-        selectedIndex: null,
-        showStaircase: true
+        selectedIndex: null
       };
       this.pendingAnimationStage = 0;
       this.build();
@@ -538,7 +536,7 @@
       this.legend.innerHTML = [
         '<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--analog"></span>アナログ波形</span>',
         '<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--sample"></span>標本化した点</span>',
-        '<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--quantized"></span>量子化後の値・階段</span>'
+        '<span class="dr-legend__item"><span class="dr-legend__blocks" aria-hidden="true"></span>ブロック数・数字＝段階値</span>'
       ].join('');
       this.scroll = element('div', 'dr-visual__scroll');
       this.scroll.tabIndex = 0;
@@ -646,7 +644,7 @@
       const stageDescriptions = [
         '連続的に変化する電圧を、時間に沿った曲線として見ます。',
         '一定の時間間隔 T ごとに波形の値を取り出します。縦の補助線と丸い点が標本です。',
-        '標本化で得られた波の高さを、最も近い段階値へそろえます。丸が元の値、四角が量子化後の値、赤い点線が誤差です。',
+        '標本化で得られた波の高さを、最も近い段階値へそろえます。量子化幅1段分のブロックを積み上げ、ブロック数と上の数字で段階値を示します。丸が元の値、四角が量子化後の値、赤い点線が誤差です。',
         '量子化した段階値を、量子化ビット数に合わせた桁数の2進数で表します。'
       ];
       this.stageButtons.forEach((button, index) => {

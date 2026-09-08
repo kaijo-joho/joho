@@ -214,14 +214,13 @@
     }));
   }
 
-  function staircasePath(samples, plot) {
-    if (!samples.length) return '';
-    let d = `M ${numberText(plot.x(samples[0].time), 2)} ${numberText(plot.y(samples[0].quantizedValue), 2)}`;
-    for (let index = 1; index < samples.length; index += 1) {
-      const x = plot.x(samples[index].time);
-      d += ` H ${numberText(x, 2)} V ${numberText(plot.y(samples[index].quantizedValue), 2)}`;
-    }
-    return d;
+  function quantizationColumnWidth(samples, index, plot) {
+    const x = plot.x(samples[index].time);
+    const distances = [];
+    if (index > 0) distances.push(x - plot.x(samples[index - 1].time));
+    if (index < samples.length - 1) distances.push(plot.x(samples[index + 1].time) - x);
+    const spacing = distances.length ? Math.min(...distances) : plot.right - plot.left;
+    return Math.max(14, Math.min(48, spacing * 0.62));
   }
 
   function bindSampleTargets(svg, samples, options = {}) {
@@ -315,8 +314,19 @@
       height,
       className: `dr-svg--pcm${animationStage ? ` dr-svg--stage-enter-${animationStage}` : ''}`,
       title: options.title || '音のデジタル化の手順',
-      description: options.description || 'アナログ波形から一定間隔で値を取り出し、最も近い段階値へそろえ、決められたビット数の2進数で表す手順を示します。'
+      description: options.description || 'アナログ波形から一定間隔で値を取り出し、最も近い段階値へそろえます。量子化後は、量子化幅1段分のブロックを段階値の個数だけ積み上げ、決められたビット数の2進数で表します。'
     });
+    const plotClipId = `dr-svg-plot-clip-${svgSerial}`;
+    const definitions = svgElement('defs');
+    const plotClip = svgElement('clipPath', { id: plotClipId });
+    plotClip.appendChild(svgElement('rect', {
+      x: plot.left,
+      y: plot.top,
+      width: plot.right - plot.left,
+      height: plot.bottom - plot.top
+    }));
+    definitions.appendChild(plotClip);
+    svg.appendChild(definitions);
 
     const drawingArea = layer('drawing-area');
     appendPlotBackground(drawingArea, plot);
@@ -328,11 +338,12 @@
     });
 
     const quantizationLayer = layer('quantization-levels');
+    let quantizationWidth = 0;
     if (stage >= 3) {
-      const widthValue = Core.quantizationWidth(model.bitDepth, range);
+      quantizationWidth = Core.quantizationWidth(model.bitDepth, range);
       const levels = Core.quantizationLevels(model.bitDepth);
       for (let code = 0; code < levels; code += 1) {
-        const value = range.min + code * widthValue;
+        const value = range.min + code * quantizationWidth;
         quantizationLayer.appendChild(svgElement('line', {
           class: 'dr-svg__quantization-line',
           x1: plot.left,
@@ -344,6 +355,32 @@
       }
     }
     svg.appendChild(quantizationLayer);
+
+    const quantizationBlockLayer = layer('quantization-blocks');
+    quantizationBlockLayer.setAttribute('clip-path', `url(#${plotClipId})`);
+    if (stage >= 3) {
+      samples.forEach(sample => {
+        const columnWidth = quantizationColumnWidth(samples, sample.index, plot);
+        for (let block = 0; block < sample.code; block += 1) {
+          const lowerValue = range.min + block * quantizationWidth;
+          const upperValue = lowerValue + quantizationWidth;
+          const top = plot.y(upperValue);
+          const bottom = plot.y(lowerValue);
+          quantizationBlockLayer.appendChild(svgElement('rect', {
+            class: 'dr-svg__quantization-block',
+            x: plot.x(sample.time) - columnWidth / 2,
+            y: top + 0.75,
+            width: columnWidth,
+            height: Math.max(1, bottom - top - 1.5),
+            rx: 1.5,
+            style: `--dr-sequence: ${sample.index}; --dr-block-level: ${block}`,
+            'data-sample-index': sample.index,
+            'data-quantization-level': block + 1
+          }));
+        }
+      });
+    }
+    svg.appendChild(quantizationBlockLayer);
 
     const analogLayer = layer('analog-wave');
     appendWave(analogLayer, model.wavePoints || [], plot, 'dr-svg__wave--analog', '連続したアナログ波形');
@@ -426,30 +463,20 @@
     }
     svg.appendChild(errorLayer);
 
-    const staircaseLayer = layer('staircase');
-    if (stage >= 3 && model.showStaircase !== false) {
-      staircaseLayer.appendChild(svgElement('path', {
-        class: 'dr-svg__staircase',
-        d: staircasePath(samples, plot),
-        fill: 'none',
-        'aria-label': '量子化後の値の階段状表示'
-      }));
-    }
-    svg.appendChild(staircaseLayer);
-
     const valueLayer = layer('quantized-values');
     if (stage >= 3) {
       samples.forEach(sample => {
         const quantizedY = plot.y(sample.quantizedValue);
         const labelY = Math.max(plot.top + 15, quantizedY - 11);
         valueLayer.appendChild(svgElement('text', {
-          class: 'dr-svg__value-label',
+          class: 'dr-svg__level-label',
           x: plot.x(sample.time),
           y: labelY,
           'text-anchor': 'middle',
           style: `--dr-sequence: ${sample.index}`,
+          'aria-label': `段階値${sample.code}`,
           'data-sample-index': sample.index
-        }, numberText(sample.quantizedValue, 2)));
+        }, String(sample.code)));
       });
     }
     svg.appendChild(valueLayer);
