@@ -25,6 +25,13 @@ function main() {
   // release=true のみ抽出
   const releasedPages = filterByrelease(allPages);
 
+  // サイトトップでは、HTMLに指定されたシリーズだけを公開状態に応じて表示する。
+  try {
+    renderSiteIndex(allPages);
+  } catch(e){
+    console.error('[script_pages] render site index failed', e);
+  }
+
   // タイトル設定（存在する要素を優先採用）
   try {
     const left  = page.title || page.mainTitle || document.title;
@@ -189,6 +196,54 @@ function setXScroll(selector) {
     div.className = 'x-scroll';
     target.parentElement.insertBefore(div, target);
     div.appendChild(target);
+  });
+}
+
+function renderSiteIndex(pagesDict) {
+  const container = document.querySelector('#html_index[data-site-index]');
+  if (!container) return;
+
+  container.querySelectorAll('[data-site-index-group]').forEach(group => {
+    const grid = group.querySelector('.course-index__grid');
+    if (!grid) return;
+
+    grid.replaceChildren();
+    const pageIds = (group.dataset.pageIds || '')
+      .split(',')
+      .map(id => id.trim())
+      .filter(Boolean);
+
+    pageIds.forEach(pageId => {
+      const page = pagesDict[pageId];
+      const fileName = typeof page?.fileName === 'string' ? page.fileName.trim() : '';
+      if (page?.release !== true || !fileName) return;
+
+      const card = document.createElement('a');
+      card.className = 'course-index__card';
+      card.href = fileName;
+
+      const title = document.createElement('h3');
+      title.className = 'course-index__title';
+      title.textContent = page.mainTitle || page.title || pageId;
+      card.appendChild(title);
+
+      const detailText = typeof page.detail === 'string' ? page.detail.trim() : '';
+      if (detailText) {
+        const detail = document.createElement('p');
+        detail.className = 'course-index__detail';
+        detail.textContent = detailText;
+        card.appendChild(detail);
+      }
+
+      grid.appendChild(card);
+    });
+
+    if (grid.childElementCount === 0) {
+      const message = document.createElement('p');
+      message.className = 'course-index__empty';
+      message.textContent = '現在公開中の教材はありません。';
+      grid.appendChild(message);
+    }
   });
 }
 
