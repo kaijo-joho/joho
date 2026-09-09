@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="800" viewBox="0 0 800 800" role="img" aria-labelledby="title desc">
+  <title id="title">山の上に浮かぶ気球</title>
+  <desc id="desc">青い空と緑の山を背景に、赤、黄色、青の帯がある気球が浮かんでいます。空や気球のなめらかな濃淡と、輪郭の細かさを比べるための見本です。</desc>
+  <defs>
+    <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#286fb8"/><stop offset="1" stop-color="#e1f2f7"/></linearGradient>
+    <linearGradient id="red" x2="1" y2="1"><stop stop-color="#ffd29a"/><stop offset=".3" stop-color="#f46537"/><stop offset="1" stop-color="#962d55"/></linearGradient>
+    <linearGradient id="yellow" x2="1" y2="1"><stop stop-color="#fff6b1"/><stop offset=".5" stop-color="#f8c955"/><stop offset="1" stop-color="#ef772d"/></linearGradient>
+    <linearGradient id="blue" x2="1" y2="1"><stop stop-color="#b1e4ef"/><stop offset=".45" stop-color="#398dbe"/><stop offset="1" stop-color="#283877"/></linearGradient>
+    <linearGradient id="near" x2="0" y2="1"><stop stop-color="#2d865f"/><stop offset="1" stop-color="#114e50"/></linearGradient>
+    <clipPath id="envelope"><path d="M204 244 C204 59 586 59 586 244 C586 347 490 425 460 465 H330 C300 425 204 347 204 244Z"/></clipPath>
+  </defs>
+  <rect width="800" height="800" fill="url(#sky)"/>
+  <circle cx="669" cy="127" r="56" fill="#fff4c0"/>
+  <path d="M0 535 143 387 273 547 428 411 653 602 800 487V800H0Z" fill="#89b7ad"/>
+  <path d="m82 450 61-63 65 80-66-22Z" fill="#e0e9d7"/>
+  <path d="M0 687C183 503 316 543 439 636S656 519 800 541V800H0Z" fill="#579879"/>
+  <g clip-path="url(#envelope)">
+    <rect x="200" y="70" width="390" height="410" fill="url(#red)"/>
+    <path d="M329 82C260 218 299 363 362 465H414C450 300 456 170 450 82Z" fill="url(#yellow)"/>
+    <path d="M429 82C510 209 492 353 428 465H461C551 356 579 180 482 90Z" fill="url(#blue)"/>
+  </g>
+  <g fill="none" stroke="#744b38" stroke-width="5"><path d="m330 465 18 47m112-47-18 47m-55-47 2 47"/></g>
+  <path d="M341 507H450L438 553H353Z" fill="#97622f"/>
+  <path d="M343 516H448M350 539H442" stroke="#d7a86b" stroke-width="5"/>
+  <path d="M0 734C208 615 341 742 509 698S704 622 800 686V800H0Z" fill="url(#near)"/>
+</svg>

@@ -1,4 +1,4 @@
-//2026-09-09 06:43:22;
+//2026-09-09 08:39:41;
 const pages = {
   "index": {
     "id": "index",
@@ -289,6 +289,24 @@ const pages = {
       }
     ],
     "backFile": "dr31.html"
+  },
+  "dr41": {
+    "id": "dr41",
+    "release": false,
+    "fileName": "dr41.html",
+    "mainTitle": "デジタル表現",
+    "category": "画像のデジタル表現",
+    "title": "4-1. 画像のデジタル表現",
+    "detail": "画像の標本化・量子化・符号化、解像度と階調、グレースケール、画像のデータ量を操作と問題で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr00",
+    "next": false,
+    "show": true,
+    "backFile": "dr00.html"
   },
   "nw00": {
     "id": "nw00",

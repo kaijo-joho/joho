@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>4-1. 画像のデジタル表現 | 海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/digital-representation.css">
+  <link rel="stylesheet" href="./css/image-representation.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/image-core.js"></script>
+  <script defer src="./js/image-lessons.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="画像のデジタル化">
+    <article>
+      <h2 id="headline_1">(1) 画像のデジタル化</h2>
+      <p>画像も、音と同じように<strong>標本化 → 量子化 → 符号化</strong>の順にデジタル化します。カラー画像では、光の三原色である<strong>赤（R）・緑（G）・青（B）</strong>の成分ごとに明るさを調べます。</p>
+      <div class="im-widget" data-image-guide data-lesson-slide-navigation-lock>
+        <div class="im-controls im-enhancement" hidden>
+          <div class="im-button-group" data-image-stages role="group" aria-label="画像のデジタル化の工程">
+            <button class="dr-button" type="button" data-stage="0" aria-pressed="true">0. 元の画像</button>
+            <button class="dr-button" type="button" data-stage="1" aria-pressed="false">1. 標本化</button>
+            <button class="dr-button" type="button" data-stage="2" aria-pressed="false">2. 量子化</button>
+            <button class="dr-button" type="button" data-stage="3" aria-pressed="false">3. 符号化</button>
+          </div>
+          <label class="im-select">調べる成分 <select data-image-channel><option value="0">R（赤）</option><option value="1">G（緑）</option><option value="2">B（青）</option></select></label>
+        </div>
+        <div class="im-comparison">
+          <figure>
+            <img class="im-picture" src="./img/digital-representation/balloon.svg" width="800" height="800" alt="青空と緑の山の上に浮かぶ、赤・黄・青の気球。輪郭と濃淡を比べるための見本。" decoding="async">
+            <figcaption>元のカラー画像</figcaption>
+          </figure>
+          <figure class="im-enhancement" hidden>
+            <canvas class="im-picture" width="400" height="400" data-image-guide-canvas role="img" aria-label="R成分の明るさ。元のなめらかな画像。"></canvas>
+            <figcaption data-image-guide-caption>R成分の明るさ</figcaption>
+          </figure>
+          <div class="im-guide-description">
+            <p class="im-step-text" data-image-stage-text>光の三原色に分け、それぞれの成分の明るさを調べます。</p>
+            <ol class="im-process-list">
+              <li><strong>標本化</strong>：画像を等間隔のマス目に分け、各マス内の平均の明るさを取り出します。このマス目を<strong>画素（ピクセル）</strong>といいます。</li>
+              <li><strong>量子化</strong>：各画素の明るさを、決められた段階の値にします。</li>
+              <li><strong>符号化</strong>：段階値を2進数で表し、左上から順に並べます。</li>
+            </ol>
+            <p class="im-enhancement im-hint" hidden>この見本は8×8画素、各色2bit（4階調）です。工程とRGBの成分を切り替えて比べましょう。</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="解像度と階調">
+    <article>
+      <h2 id="headline_2">(2) 解像度と階調</h2>
+      <p><strong>解像度</strong>は画素の細かさを表し、ここでは横の画素数×縦の画素数で示します。<strong>階調</strong>は明るさの段階数です。同じ大きさで表示し、輪郭と色の変化を比べましょう。</p>
+      <div class="im-widget" data-image-explorer data-lesson-slide-navigation-lock>
+        <div class="im-controls im-enhancement" hidden>
+          <label class="im-select">解像度 <select data-image-resolution><option value="10">10×10</option><option value="20">20×20</option><option value="50" selected>50×50</option><option value="100">100×100</option><option value="200">200×200</option><option value="800">800×800</option></select></label>
+          <label class="im-select">各色の量子化ビット数 <select data-image-bits><option value="1">1bit（2階調）</option><option value="2" selected>2bit（4階調）</option><option value="3">3bit（8階調）</option><option value="4">4bit（16階調）</option><option value="8">8bit（256階調）</option></select></label>
+          <button class="dr-button" type="button" data-image-reset>最初の条件に戻す</button>
+        </div>
+        <div class="im-comparison im-comparison--explorer">
+          <figure><img class="im-picture" src="./img/digital-representation/balloon.svg" width="800" height="800" alt="比較の基準となる、なめらかな輪郭と濃淡の気球の見本。" loading="lazy" decoding="async"><figcaption>比較用の見本</figcaption></figure>
+          <figure class="im-enhancement" hidden><canvas class="im-picture" width="800" height="800" data-image-explorer-canvas role="img" aria-label="条件を変えた気球の画像"></canvas><figcaption data-image-explorer-caption></figcaption></figure>
+          <div>
+            <dl class="im-metrics im-enhancement" data-image-metrics hidden></dl>
+            <p><strong>解像度だけ</strong>を上げると、曲線や斜めの輪郭が細かくなります。</p>
+            <p><strong>階調数だけ</strong>を増やすと、空や気球の色の変化がなめらかになります。</p>
+            <p>どちらを増やしても、必要なデータ量は増えます。</p>
+          </div>
+        </div>
+      </div>
+      <p class="dr-note">各色n bitなら、各色は2<sup>n</sup>階調です。RGB全体では1画素あたり3n bitで、最大2<sup>3n</sup>色を表せます。データ量は圧縮や付加情報を含めずに考えます。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="グレースケール">
+    <article>
+      <h2 id="headline_3">(3) グレースケール画像</h2>
+      <p><strong>グレースケール画像</strong>は、各画素に明るさの情報だけを持つ画像です。ここでは4×4画素に分け、各画素を3bit（8階調）で表します。段階値は<strong>0が最も暗く、7が最も明るい</strong>値です。</p>
+      <div class="im-widget" data-image-grayscale data-lesson-slide-navigation-lock>
+        <div class="im-controls im-enhancement" hidden>
+          <div class="im-button-group" role="group" aria-label="グレースケール画像の工程" data-image-stages>
+            <button class="dr-button" type="button" data-stage="0" aria-pressed="true">0. 元の画像</button>
+            <button class="dr-button" type="button" data-stage="1" aria-pressed="false">1. 標本化</button>
+            <button class="dr-button" type="button" data-stage="2" aria-pressed="false">2. 量子化</button>
+            <button class="dr-button" type="button" data-stage="3" aria-pressed="false">3. 符号化</button>
+          </div>
+        </div>
+        <div class="im-gray-layout">
+          <figure>
+            <svg class="im-picture" viewBox="0 0 320 320" role="img" aria-labelledby="im-gray-title im-gray-desc" data-image-grayscale-svg>
+              <title id="im-gray-title">左上が白く、右下が黒いグレースケール画像</title>
+              <desc id="im-gray-desc">左上から右下に向かって明るさが連続して変わります。工程ボタンで4×4画素への標本化、8階調への量子化、3桁の2進数への符号化を確認できます。</desc>
+              <defs><linearGradient id="im-gray-gradient" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient></defs>
+              <rect width="320" height="320" fill="url(#im-gray-gradient)"/>
+              <g data-image-grayscale-layer></g>
+            </svg>
+            <figcaption data-image-grayscale-caption>元のグレースケール画像</figcaption>
+          </figure>
+          <div>
+            <p class="im-step-text" data-image-stage-text>左上から右下へ、明るさが連続して変わっています。</p>
+            <p>符号化では、左上から右へ1行ずつ読みます。1画素の値が小さくても、<strong>3桁になるよう先頭を0で埋めます</strong>。</p>
+            <details class="dr-reveal-item"><summary>量子化後の値を表で確認</summary><div class="dr-reveal-item__body">
+              <table class="im-value-table"><caption>4×4画素の段階値（0〜7）</caption><thead><tr><th scope="col">行／列</th><th scope="col">1</th><th scope="col">2</th><th scope="col">3</th><th scope="col">4</th></tr></thead><tbody>
+                <tr><th scope="row">1</th><td>6</td><td>5</td><td>4</td><td>3</td></tr>
+                <tr><th scope="row">2</th><td>5</td><td>4</td><td>3</td><td>2</td></tr>
+                <tr><th scope="row">3</th><td>4</td><td>3</td><td>2</td><td>1</td></tr>
+                <tr><th scope="row">4</th><td>3</td><td>2</td><td>1</td><td>0</td></tr>
+              </tbody></table>
+            </div></details>
+            <p class="im-bitstream im-enhancement" data-image-bitstream hidden></p>
+            <button class="dr-supplement-link" type="button" data-lesson-supplement-open="im-quantization-rule">この教材の明るさの分け方</button>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="画像のデータ量">
+    <article>
+      <h2 id="headline_4">(4) 画像のデータ量</h2>
+      <p>圧縮せず、付加情報を含めない画像のデータ量は、<strong>全画素数×1画素あたりのビット数</strong>で求めます。</p>
+      <div class="im-size-formula"><span>横の画素数</span><b>×</b><span>縦の画素数</span><b>×</b><span>1画素あたりの<br>ビット数</span><b>＝</b><strong>データ量［bit］</strong></div>
+      <div class="dr-reference-grid">
+        <div class="dr-reference-card"><h3>グレースケール</h3><p>8階調なら1画素は3bitです。4×4画素の画像は、</p><p class="im-equation">4×4×3＝48bit＝6B</p><p>明るさの値を、各画素に1つずつ持ちます。</p></div>
+        <div class="dr-reference-card"><h3>24ビットフルカラー</h3><p>R・G・Bを各8bitで表すと、1画素は24bitです。</p><p class="im-equation">8＋8＋8＝24bit</p><p>各色は2<sup>8</sup>＝256階調、全体では2<sup>24</sup>＝16,777,216色を表せます。</p></div>
+      </div>
+      <p class="dr-note"><strong>換算に注意：</strong>8bit＝1Bです。KB・MBへの換算には1000倍と1024倍の扱いがあるため、問題文の指定に従います。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="語句・ポイントまとめ">
+    <article>
+      <h2 id="headline_5">(5) 語句・ポイントまとめ</h2>
+      <p>語句をクリックすると説明が開きます。まず自分の言葉で説明してから確認しましょう。</p>
+      <div class="dr-reference-grid">
+        <div class="dr-reference-card"><h3>語句まとめ</h3><div class="dr-reveal-list">
+          <details class="dr-reveal-item"><summary>画素（ピクセル）</summary><div class="dr-reveal-item__body">画像を等間隔に区切った、一つ一つのマス目です。各画素に明るさや色の値を持たせます。</div></details>
+          <details class="dr-reveal-item"><summary>標本化</summary><div class="dr-reveal-item__body">画像を等間隔のマス目に分け、各画素の明るさを取り出すことです。</div></details>
+          <details class="dr-reveal-item"><summary>量子化</summary><div class="dr-reveal-item__body">取り出した明るさを、決められた段階の値にすることです。</div></details>
+          <details class="dr-reveal-item"><summary>符号化</summary><div class="dr-reveal-item__body">量子化した値を、決められた桁数の2進数で表すことです。</div></details>
+          <details class="dr-reveal-item"><summary>解像度</summary><div class="dr-reveal-item__body">画素の細かさを表します。この教材では横の画素数×縦の画素数で示します。デジタルカメラでは総画素数で示すこともあります。</div></details>
+          <details class="dr-reveal-item"><summary>階調</summary><div class="dr-reveal-item__body">明るさの段階数です。n bitで2<sup>n</sup>階調を表せます。</div></details>
+          <details class="dr-reveal-item"><summary>グレースケール画像</summary><div class="dr-reveal-item__body">各画素に明るさの情報だけを持つ画像です。</div></details>
+          <details class="dr-reveal-item"><summary>24ビットフルカラー</summary><div class="dr-reveal-item__body">RGB各色に8bitずつ、1画素に合計24bitを使う表現です。各色256階調で、全体で16,777,216色を表せます。</div></details>
+        </div></div>
+        <div class="dr-reference-card"><h3>ポイントまとめ</h3><div class="dr-reveal-list">
+          <details class="dr-reveal-item"><summary>解像度と階調は、何を細かくする？</summary><div class="dr-reveal-item__body">解像度は画像を分けるマス目、階調は明るさの段階を細かくします。</div></details>
+          <details class="dr-reveal-item"><summary>横と縦の画素数を両方2倍にすると？</summary><div class="dr-reveal-item__body">全画素数は2×2＝4倍です。1画素あたりのビット数が同じなら、データ量も4倍です。</div></details>
+          <details class="dr-reveal-item"><summary>各色2bitのカラー画像は何色？</summary><div class="dr-reveal-item__body">各色4階調なので、4×4×4＝64色です。1画素には2＋2＋2＝6bitが必要です。</div></details>
+          <details class="dr-reveal-item"><summary>データ量の式で、最後に8で割るのはなぜ？</summary><div class="dr-reveal-item__body">bitからBへ単位をそろえるためです。1B＝8bitなので、bitの値を8で割ります。</div></details>
+        </div></div>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="符号化の問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_6">(6) グレースケール画像を符号化する</h2>
+      <p>4×4画素、8階調の画像です。各マスに表示された段階値を、<strong>3桁の2進数</strong>で入力しましょう。段階値と解答欄は同じ画素に対応します。</p>
+      <form class="im-widget" data-image-encoding-quiz data-lesson-slide-navigation-lock>
+        <div data-image-encoding-grid></div>
+        <div class="im-controls im-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button><button class="dr-button" type="button" data-image-encoding-clear>入力を消す</button></div>
+        <p class="im-feedback" data-image-encoding-feedback role="status"></p>
+        <noscript><p>解答用のマス目と自動判定にはJavaScriptが必要です。スライド3の段階値を、左上から順に3桁の2進数へ変換してください。</p></noscript>
+        <details class="dr-reveal-item"><summary>考え方と解答</summary><div class="dr-reveal-item__body"><p>各桁の重みは、左から4・2・1です。例えば6＝4＋2なので110、3＝2＋1なので011です。</p><p class="im-bitstream">1行目：110 101 100 011<br>2行目：101 100 011 010<br>3行目：100 011 010 001<br>4行目：011 010 001 000</p></div></details>
+      </form>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="データ量の問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_7">(7) 画像のデータ量を求める</h2>
+      <p>いずれも画像は圧縮せず、画素以外の付加情報は含めないものとします。途中では丸めずに計算してください。</p>
+      <div class="im-problems">
+        <form class="im-widget" data-image-size-quiz="full-color" data-lesson-slide-navigation-lock>
+          <h3>問題1　24ビットフルカラー</h3>
+          <p>解像度4096×3072の24ビットフルカラー画像について、RGB各色の階調数と画像のデータ量を求めましょう。</p>
+          <p class="im-hint">1MB＝1024KB、1KB＝1024Bとします。</p>
+          <div class="im-answer-fields"><label>各色の階調数 <span><input name="levels" type="text" inputmode="numeric" autocomplete="off" aria-label="問題1の各色の階調数"> 階調</span></label><label>画像のデータ量 <span><input name="size" type="text" inputmode="decimal" autocomplete="off" aria-label="問題1の画像のデータ量、MB"> MB</span></label></div>
+          <div class="im-controls im-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button></div>
+          <p class="im-feedback" data-image-size-feedback role="status"></p>
+          <details class="dr-reveal-item im-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body" data-image-solution>
+            <ol><li>24bitはRGB各色8bitずつ。各色は2<sup>8</sup>＝<strong>256階調</strong>です。</li><li>横と縦の画素数を掛けます。<p class="im-equation">4096×3072［画素］</p></li><li>1画素あたり24bitを掛けます。<p class="im-equation">4096×3072×24［bit］</p></li><li>bitをBへ、BをKBへ、KBをMBへ換算します。<p class="im-equation">4096×3072×24÷8÷1024÷1024［MB］</p></li><li>約分してからまとめて計算します。<p class="im-equation">4×3×3＝<strong>36MB</strong></p></li></ol>
+            <button type="button" class="dr-button im-enhancement" data-image-solution-next hidden>次へ</button>
+          </div></details>
+        </form>
+        <form class="im-widget" data-image-size-quiz="color-count" data-lesson-slide-navigation-lock>
+          <h3>問題2　色数からビット数を求める</h3>
+          <p>解像度1000×800、色数32768（＝2<sup>15</sup>）色の画像について、1画素あたりのビット数と画像のデータ量を求めましょう。</p>
+          <p class="im-hint">1MB＝1000KB、1KB＝1000Bとします。</p>
+          <div class="im-answer-fields"><label>1画素あたり <span><input name="bits" type="text" inputmode="numeric" autocomplete="off" aria-label="問題2の1画素あたりのビット数"> bit</span></label><label>画像のデータ量 <span><input name="size" type="text" inputmode="decimal" autocomplete="off" aria-label="問題2の画像のデータ量、MB"> MB</span></label></div>
+          <div class="im-controls im-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button></div>
+          <p class="im-feedback" data-image-size-feedback role="status"></p>
+          <details class="dr-reveal-item im-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body" data-image-solution>
+            <ol><li>色数は2<sup>15</sup>色なので、1画素は<strong>15bit</strong>です。</li><li>横と縦の画素数を掛けます。<p class="im-equation">1000×800［画素］</p></li><li>1画素あたり15bitを掛けます。<p class="im-equation">1000×800×15［bit］</p></li><li>bitをBへ、BをKBへ、KBをMBへ換算します。<p class="im-equation">1000×800×15÷8÷1000÷1000［MB］</p></li><li>約分してからまとめて計算します。<p class="im-equation">15÷10＝<strong>1.5MB</strong></p></li></ol>
+            <button type="button" class="dr-button im-enhancement" data-image-solution-next hidden>次へ</button>
+          </div></details>
+        </form>
+      </div>
+    </article>
+  </section>
+
+  <dialog class="dr-supplement-dialog" id="im-quantization-rule" data-lesson-supplement-dialog aria-labelledby="im-quantization-rule-title">
+    <div class="dr-supplement-dialog__surface"><header class="dr-supplement-dialog__header"><h2 id="im-quantization-rule-title" data-skip-numbering>明るさの分け方</h2><button type="button" class="dr-button" data-lesson-supplement-close aria-label="明るさの分け方を閉じる">閉じる</button></header>
+      <p>明るさは0が黒、255が白です。各マス内の明るさの平均値を取り出し、0以上256未満の範囲を等しい幅の区間に分けます。</p>
+      <p>8階調の場合は幅32ずつです。0以上32未満を段階0、32以上64未満を段階1、…、224以上256未満を段階7とします。境界上の値は上側の段階に含めます。</p>
+      <p>4×4の例では、左上の画素内の平均は約223.1で段階6、右下は約31.9で段階0になります。元の画像の角に白と黒があっても、マス内の平均とは異なります。</p>
+      <p>図では、段階0を黒、最大の段階を白として等間隔の濃淡で表示します。</p>
+    </div>
+  </dialog>
+</body>
+</html>
