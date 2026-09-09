@@ -25,16 +25,32 @@
     }
 
     editor = new window.LogicEditor(host, {
-      inputNames: ['A', 'B', 'C', 'D'],
+      inputNames: ['A', 'B'],
+      availableInputNames: ['A', 'B', 'C', 'D'],
       initialExpression: 'A-B',
       enableSvgSave: true,
       onChange: update
     });
     update(editor.getState());
 
+    const examplePicker = document.querySelector('.logic-example-picker');
+    const closeExamples = (restoreFocus = false) => {
+      if (!examplePicker?.open) return;
+      examplePicker.open = false;
+      if (restoreFocus) examplePicker.querySelector('summary').focus();
+    };
+    document.addEventListener('pointerdown', event => {
+      if (!examplePicker?.contains(event.target)) closeExamples();
+    }, true);
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape') closeExamples(examplePicker?.contains(document.activeElement));
+    });
+    document.addEventListener('joho:overlay-open', () => closeExamples());
+    document.addEventListener('joho:lesson-slide-change', () => closeExamples());
     document.querySelectorAll('[data-load-logic-example]').forEach(button => {
       button.addEventListener('click', () => {
         editor.loadExpression(button.dataset.loadLogicExample);
+        closeExamples(true);
       });
     });
 
