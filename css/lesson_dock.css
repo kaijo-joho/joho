@@ -189,10 +189,15 @@
   opacity: .85;
 }
 
-/* 長いFAQも、教材パネル内の同じスクロール領域へ収める。 */
-.lesson-dock__panel--menu .ld-sec--faq {
+/* 長いFAQも、検索パネル内の同じスクロール領域へ収める。 */
+.lesson-dock__panel--search .ld-sec--faq {
   max-height: none;
   overflow: visible;
+}
+
+.lesson-dock__panel--search :is(.ld-faq-search__input, .ld-faq-search__button, .ld-faq-search__all) {
+  box-sizing: border-box;
+  min-height: 44px;
 }
 
 #lesson-dock.lesson-dock .lesson-dock__panel a,

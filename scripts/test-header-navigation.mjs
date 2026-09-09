@@ -81,6 +81,7 @@ for (const [name, type] of [['chrome', chromium], ['webkit', webkit]]) {
     const materials = page.locator('.lesson-dock__btn--menu');
     await materials.press('Enter');
     await expect(page.locator('#lesson-dock-panel-menu')).toBeVisible();
+    await expect(page.locator('#lesson-dock-panel-menu .ld-sec--faq')).toHaveCount(0);
     await fits(page, '#lesson-dock-panel-menu');
     await page.locator('#lesson-dock-panel-menu a').first().focus();
     await page.mouse.move(700,400);
@@ -92,11 +93,54 @@ for (const [name, type] of [['chrome', chromium], ['webkit', webkit]]) {
     await page.locator('.site-theme-menu__trigger').hover();
     await expect(page.locator('.site-theme-menu__options')).toBeVisible();
     await expect(page.locator('#lesson-dock-panel-menu')).toBeHidden();
-    await page.locator('.lesson-dock__btn--search').click();
+    const search = page.locator('.lesson-dock__btn--search');
+    const searchPanel = page.locator('#lesson-dock-panel-search');
+    await search.hover();
+    await expect(searchPanel).toBeVisible();
+    await search.click();
+    await expect(searchPanel).toBeVisible();
     await expect(page.locator('.site-theme-menu__options')).toBeHidden();
-    await expect(page.locator('dialog[open]')).toBeVisible();
+    await expect(page.locator('dialog[open]')).toHaveCount(0);
+    await fits(page, '#lesson-dock-panel-search');
+    const faqInput = searchPanel.getByRole('searchbox');
+    await faqInput.focus();
+    await page.mouse.move(700, 400);
+    await page.waitForTimeout(400);
+    await expect(searchPanel).toBeVisible();
+    await faqInput.fill('  インデント & "+"  ');
+    const faqOpened = page.waitForEvent('popup');
+    await faqInput.press('Enter');
+    const faqPage = await faqOpened;
+    await faqPage.waitForURL('**/faq.html?*');
+    const faqURL = new URL(faqPage.url());
+    assert.equal(faqURL.searchParams.get('q'), 'インデント & "+"');
+    assert.equal(faqURL.searchParams.get('course'), 'py');
+    assert.equal(new URL(page.url()).pathname, '/py21.html');
+    await faqPage.close();
+    await search.press('ArrowDown');
+    await expect(searchPanel.locator('.lesson-dock__search-action')).toBeFocused();
+    await page.keyboard.press('Tab');
+    await expect(faqInput).toBeFocused();
+    await faqInput.fill('   ');
+    await faqInput.press('Enter');
+    await expect(faqInput).toBeFocused();
+    await expect(faqInput).toHaveValue('');
+    assert.equal(context.pages().length, 1, 'empty FAQ query does not open a page');
+    const relatedQuestions = searchPanel.locator('.ld-faq');
+    const faqCount = await page.evaluate(() => window.lessonDockData.faq.length);
+    assert.ok(faqCount > 0, 'practice page has related questions');
+    await expect(relatedQuestions).toHaveCount(faqCount);
+    await relatedQuestions.first().locator('summary').press('Enter');
+    await expect(relatedQuestions.first()).toHaveAttribute('open', '');
     await page.keyboard.press('Escape');
-    await expect(page.locator('.lesson-dock__btn--search')).toBeFocused();
+    await expect(searchPanel).toBeHidden();
+    await expect(search).toBeFocused();
+    await search.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(page.locator('dialog[open]')).toBeVisible();
+    await expect(searchPanel).toBeHidden();
+    await page.keyboard.press('Escape');
+    await expect(search).toBeFocused();
 
     // Disclosure contents follow current metadata; unpublished pages never appear.
     assert.equal(await page.evaluate(() => Array.from(document.querySelectorAll('#auto-nav a')).every(link => {
@@ -114,6 +158,8 @@ for (const [name, type] of [['chrome', chromium], ['webkit', webkit]]) {
     await expect(page.locator('#lesson-dock-panel-menu a[href*="id=hidden"]')).toHaveCount(0);
     await expect(page.locator('#lesson-dock-panel-menu a[href="py23.html"]')).toHaveCount(0);
     await expect(page.locator('.lesson-dock__btn--menu')).toHaveCount(1);
+    await expect(search).toHaveCount(1);
+    await expect(searchPanel.locator('.ld-sec--faq')).toHaveCount(1);
     await expect(page.locator('#headerbar__course')).toHaveCount(1);
     await page.keyboard.press('Escape');
 
@@ -137,6 +183,14 @@ for (const [name, type] of [['chrome', chromium], ['webkit', webkit]]) {
             await expect(page.locator('#auto-nav')).toBeVisible();
             await fits(page, '#auto-nav');
             await page.keyboard.press('Escape');
+            await page.locator('.lesson-dock__btn--search').click();
+            await expect(searchPanel).toBeVisible();
+            await fits(page, '#lesson-dock-panel-search');
+            assert.equal(await searchPanel.evaluate(el => el.scrollWidth > el.clientWidth), false, 'search and FAQ fit inside the panel');
+            for (const control of await searchPanel.locator('.lesson-dock__search-action, .ld-faq-search__input, .ld-faq-search__button, .ld-faq-search__all').all()) {
+              assert.ok((await control.boundingBox()).height >= 44, 'search actions have 44px touch targets');
+            }
+            await page.keyboard.press('Escape');
             await page.locator('.lesson-dock__btn--menu').click();
             await expect(page.locator('#lesson-dock-panel-menu')).toBeVisible();
             await fits(page, '#lesson-dock-panel-menu');
@@ -158,8 +212,17 @@ for (const [name, type] of [['chrome', chromium], ['webkit', webkit]]) {
     await touchPage.locator('.lesson-dock__btn--menu').tap();
     await expect(touchPage.locator('#lesson-dock-panel-menu')).toBeVisible();
     assert.equal(await touchPage.locator('#lesson-dock-panel-menu').evaluate(el => getComputedStyle(el).animationName), 'none');
-    await touchPage.locator('.lesson-slide-deck__fullscreen').tap();
+    await touchPage.locator('.lesson-dock__btn--search').tap();
     await expect(touchPage.locator('#lesson-dock-panel-menu')).toBeHidden();
+    await expect(touchPage.locator('#lesson-dock-panel-search')).toBeVisible();
+    await touchPage.locator('.lesson-dock__search-action').tap();
+    await expect(touchPage.locator('dialog[open]')).toBeVisible();
+    await expect(touchPage.locator('#lesson-dock-panel-search')).toBeHidden();
+    await touchPage.keyboard.press('Escape');
+    await expect(touchPage.locator('.lesson-dock__btn--search')).toBeFocused();
+    await touchPage.locator('.lesson-dock__btn--search').tap();
+    await touchPage.locator('.lesson-slide-deck__fullscreen').tap();
+    await expect(touchPage.locator('#lesson-dock-panel-search')).toBeHidden();
     await expect(touchPage.locator('.lesson-slide-deck__fullscreen-menu')).toBeVisible();
     await touch.close();
 
@@ -177,6 +240,20 @@ for (const [name, type] of [['chrome', chromium], ['webkit', webkit]]) {
 
     await ready(page, 'index.html');
     await expect(page.locator('#auto-nav, #nav-handle')).toHaveCount(0);
+    // FAQ remains reachable without a supported course or the optional site-search UI.
+    await page.evaluate(() => {
+      delete document.documentElement.dataset.siteSearchReady;
+      window.openSiteSearch = undefined;
+      window.initLessonDockFromPages();
+    });
+    await search.click();
+    await expect(searchPanel).toBeVisible();
+    await expect(searchPanel.locator('.lesson-dock__search-action')).toHaveCount(0);
+    await expect(searchPanel.getByRole('searchbox')).toBeVisible();
+    const allFaqURL = new URL(await searchPanel.locator('.ld-faq-search__all').getAttribute('href'));
+    assert.equal(allFaqURL.pathname, '/faq.html');
+    assert.equal(allFaqURL.search, '');
+    console.log(`${name}: FAQ moved to search, related questions and query routing work, and site-search failure preserves FAQ`);
     assert.deepEqual(errors, []);
     await context.close();
     console.log(`${name}: keyboard, touch, overlay exclusion, release filtering, failure handling, and no local 404 passed`);

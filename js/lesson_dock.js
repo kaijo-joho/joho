@@ -594,9 +594,8 @@
     if (model.quiz.length) sections.push(secList('確認テスト', model.quiz));
     if (model.download.length) sections.push(secDownload('ダウンロードファイル', model.download));
     if (model.next.length) sections.push(secNexts(model.next));
-    if (model.course) sections.push(secFaq('よくある質問', model.faq, model.course));
 
-    let popup;
+    const popups = [];
     if (sections.length) {
       const group = el('div', { class: 'site-header-menu lesson-dock__group' });
       const trigger = el('button', {
@@ -609,19 +608,32 @@
       }, sections);
       group.append(trigger, panel);
       root.appendChild(group);
-      popup = bind({ root: group, trigger, panel });
+      popups.push(bind({ root: group, trigger, panel }));
     }
 
+    const searchGroup = el('div', { class: 'site-header-menu lesson-dock__group' });
+    const search = el('button', {
+      type: 'button', class: 'site-header-button lesson-dock__btn lesson-dock__btn--search',
+      'aria-label': '検索とFAQを開く', title: '検索・FAQ'
+    }, createIconNode('search'));
+    const searchPanel = el('div', {
+      id: 'lesson-dock-panel-search', class: 'site-header-panel lesson-dock__panel lesson-dock__panel--search',
+      role: 'group', 'aria-label': '検索とFAQ'
+    });
     if (document.documentElement.dataset.siteSearchReady === 'true' && typeof window.openSiteSearch === 'function') {
-      const search = el('button', {
-        type: 'button', tabindex: '0', class: 'site-header-button lesson-dock__btn lesson-dock__btn--search',
-        'aria-label': '教材サイト内検索', title: '教材サイト内検索'
-      }, createIconNode('search'));
-      search.addEventListener('click', () => window.openSiteSearch(search));
-      root.appendChild(search);
+      const action = el('button', {
+        type: 'button', class: 'site-header-panel__action lesson-dock__search-action'
+      }, '教材サイト内検索を開く');
+      // dialogを閉じた後は、非表示になるパネル内ではなくヘッダーへ戻す。
+      action.addEventListener('click', () => window.openSiteSearch(search));
+      searchPanel.appendChild(el('div', { class: 'ld-sec' }, action));
     }
+    searchPanel.appendChild(secFaq('よくある質問（FAQ）', model.faq, model.course));
+    searchGroup.append(search, searchPanel);
+    root.appendChild(searchGroup);
+    popups.push(bind({ root: searchGroup, trigger: search, panel: searchPanel }));
     if (root.childElementCount) controls.before(root);
-    window.__lessonDockCleanup = () => popup?.destroy();
+    window.__lessonDockCleanup = () => popups.forEach(popup => popup.destroy());
   }
 
   window.initLessonDockFromPages = initLessonDockFromPages;
