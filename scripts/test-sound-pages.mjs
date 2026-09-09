@@ -75,7 +75,7 @@ for (const selector of ['.dr-analog-digital-slide__visual', '.dr-sound-capture',
   ok(css.includes(selector), `音源とマイクの図にスタイル「${selector}」`);
 }
 ok(dr31.includes('data-sound-pcm-guide'), 'dr31に固定条件の段階学習');
-ok(dr31.includes('data-sound-pcm data-stage="4"'), 'dr31に全工程から始まる可変グラフ');
+ok(dr31.includes('data-sound-pcm data-stage="1"'), 'dr31の可変グラフは0. アナログ波形だけの初期表示から開始');
 ok(dr31.indexOf('data-sound-analog-intro') < dr31.indexOf('data-sound-pcm-guide'), 'アナログ波形の後に変換手順を説明');
 ok(dr31.indexOf('data-sound-pcm-guide') < dr31.indexOf('data-sound-pcm data-stage'), '変換手順の後に可変グラフを配置');
 ok(renderer.includes('renderAnalogWave'), 'アナログ波形専用SVG Renderer');
