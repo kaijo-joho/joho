@@ -543,6 +543,10 @@
       wrap.appendChild(det);
     });
 
+    if (!items.length) {
+      wrap.appendChild(el('p', { class: 'ld-faq-empty' }, 'このページに関連するFAQはありません。'));
+    }
+
     sec.appendChild(wrap);
 
     return sec;
@@ -611,27 +615,35 @@
       popups.push(bind({ root: group, trigger, panel }));
     }
 
-    const searchGroup = el('div', { class: 'site-header-menu lesson-dock__group' });
     const search = el('button', {
       type: 'button', class: 'site-header-button lesson-dock__btn lesson-dock__btn--search',
-      'aria-label': '検索とFAQを開く', title: '検索・FAQ'
+      'aria-label': '検索とよくある質問を開く', title: '検索・よくある質問'
     }, createIconNode('search'));
-    const searchPanel = el('div', {
-      id: 'lesson-dock-panel-search', class: 'site-header-panel lesson-dock__panel lesson-dock__panel--search',
-      role: 'group', 'aria-label': '検索とFAQ'
-    });
+
     if (document.documentElement.dataset.siteSearchReady === 'true' && typeof window.openSiteSearch === 'function') {
-      const action = el('button', {
-        type: 'button', class: 'site-header-panel__action lesson-dock__search-action'
-      }, '教材サイト内検索を開く');
-      // dialogを閉じた後は、非表示になるパネル内ではなくヘッダーへ戻す。
-      action.addEventListener('click', () => window.openSiteSearch(search));
-      searchPanel.appendChild(el('div', { class: 'ld-sec' }, action));
+      const faqContent = secFaq('このページのよくある質問', model.faq, model.course, 'site-search');
+      search.setAttribute('aria-haspopup', 'dialog');
+      search.setAttribute('aria-controls', 'site-search-dialog');
+      search.addEventListener('click', () => {
+        window.openSiteSearch(search, {
+          defaultView: 'faq',
+          faqContent,
+          faqCount: model.faq.length,
+          course: model.course
+        });
+      });
+      root.appendChild(search);
+    } else {
+      // サイト内検索UIを初期化できない場合も、FAQへの入口は残す。
+      const searchGroup = el('div', { class: 'site-header-menu lesson-dock__group' });
+      const searchPanel = el('div', {
+        id: 'lesson-dock-panel-search', class: 'site-header-panel lesson-dock__panel lesson-dock__panel--search',
+        role: 'group', 'aria-label': 'よくある質問'
+      }, secFaq('よくある質問（FAQ）', model.faq, model.course));
+      searchGroup.append(search, searchPanel);
+      root.appendChild(searchGroup);
+      popups.push(bind({ root: searchGroup, trigger: search, panel: searchPanel }));
     }
-    searchPanel.appendChild(secFaq('よくある質問（FAQ）', model.faq, model.course));
-    searchGroup.append(search, searchPanel);
-    root.appendChild(searchGroup);
-    popups.push(bind({ root: searchGroup, trigger: search, panel: searchPanel }));
     if (root.childElementCount) controls.before(root);
     window.__lessonDockCleanup = () => popups.forEach(popup => popup.destroy());
   }

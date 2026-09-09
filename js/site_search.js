@@ -34,8 +34,14 @@
   let resultsList = null;
   let loadMoreButton = null;
   let faqLink = null;
+  let faqTab = null;
+  let siteTab = null;
+  let faqView = null;
+  let siteView = null;
+  let faqContent = null;
   let filterButtons = [];
   let currentCourse = '';
+  let currentView = 'faq';
   let currentResults = [];
   let visibleCount = PAGE_SIZE;
   let debounceTimer = null;
@@ -246,6 +252,73 @@
     debounceTimer = setTimeout(() => searchNow({ resetCount: true }), SEARCH_DELAY_MS);
   }
 
+  function focusCurrentView(view = currentView) {
+    const target = view === 'faq'
+      ? faqContent.querySelector('.ld-faq-search__input, a[href], button, summary')
+      : input;
+    target?.focus({ preventScroll: true });
+    if (target instanceof HTMLInputElement) target.select();
+  }
+
+  function prepareSiteSearch() {
+    if (input.value.trim()) {
+      searchNow({ resetCount: true });
+      return;
+    }
+
+    if (documents.length) {
+      renderPrompt();
+      return;
+    }
+
+    status.textContent = '検索索引を読み込んでいます…';
+    loadIndex()
+      .then(() => {
+        if (dialog.open && currentView === 'site' && !input.value.trim()) renderPrompt();
+      })
+      .catch(error => {
+        if (dialog.open && currentView === 'site') renderLoadError(error);
+      });
+  }
+
+  function setView(view, { prepare = true } = {}) {
+    currentView = view === 'site' ? 'site' : 'faq';
+    const faqSelected = currentView === 'faq';
+
+    faqTab.setAttribute('aria-selected', String(faqSelected));
+    siteTab.setAttribute('aria-selected', String(!faqSelected));
+    faqTab.tabIndex = faqSelected ? 0 : -1;
+    siteTab.tabIndex = faqSelected ? -1 : 0;
+    faqView.hidden = !faqSelected;
+    siteView.hidden = faqSelected;
+
+    if (!faqSelected && prepare) prepareSiteSearch();
+  }
+
+  function setFaqContent(content, count = 0, course = '') {
+    faqContent.replaceChildren();
+
+    if (content instanceof Node) {
+      faqContent.appendChild(content);
+    } else {
+      const fallbackUrl = core().buildFaqUrl(siteBaseUrl.href, '', course);
+      faqContent.appendChild(el('div', { className: 'site-search__faq-fallback' }, [
+        el('p', {}, 'FAQページで、質問や困りごとを検索できます。'),
+        el('a', {
+          className: 'site-search__faq-link',
+          href: fallbackUrl,
+          target: '_blank',
+          rel: 'noopener'
+        }, 'すべてのFAQを見る')
+      ]));
+    }
+
+    const normalizedCount = Number.isFinite(Number(count)) ? Math.max(0, Number(count)) : 0;
+    faqTab.textContent = normalizedCount > 0
+      ? `よくある質問（${normalizedCount}）`
+      : 'よくある質問';
+  }
+
   function createFilter() {
     const group = el('div', {
       className: 'site-search__filters',
@@ -291,16 +364,66 @@
         id: 'site-search-title',
         className: 'site-search__title',
         'data-skip-numbering': ''
-      }, '教材サイト内検索'),
-      el('p', { id: 'site-search-help', className: 'site-search__help' }, '教材の本文・見出し・コードから検索します。')
+      }, '検索・よくある質問'),
+      el('p', { id: 'site-search-help', className: 'site-search__help' }, 'FAQと教材サイト内検索を切り替えられます。')
     ]);
     const closeButton = el('button', {
       type: 'button',
       className: 'site-search__close',
-      'aria-label': '検索を閉じる'
+      'aria-label': '検索・よくある質問を閉じる'
     }, '×');
     closeButton.addEventListener('click', () => dialog.close());
     header.append(headingWrap, closeButton);
+
+    const tabs = el('div', {
+      className: 'site-search__tabs',
+      role: 'tablist',
+      'aria-label': '調べ方を選ぶ'
+    });
+    faqTab = el('button', {
+      id: 'site-search-tab-faq',
+      type: 'button',
+      className: 'site-search__tab',
+      role: 'tab',
+      'aria-selected': 'true',
+      'aria-controls': 'site-search-view-faq'
+    }, 'よくある質問');
+    siteTab = el('button', {
+      id: 'site-search-tab-site',
+      type: 'button',
+      className: 'site-search__tab',
+      role: 'tab',
+      'aria-selected': 'false',
+      'aria-controls': 'site-search-view-site',
+      tabindex: '-1'
+    }, '教材サイト内検索');
+    tabs.append(faqTab, siteTab);
+
+    const selectTab = event => {
+      const next = event.currentTarget === siteTab ? 'site' : 'faq';
+      setView(next);
+    };
+    faqTab.addEventListener('click', selectTab);
+    siteTab.addEventListener('click', selectTab);
+    tabs.addEventListener('keydown', event => {
+      if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+      event.preventDefault();
+      const next = event.key === 'Home'
+        ? 'faq'
+        : event.key === 'End'
+          ? 'site'
+          : currentView === 'faq' ? 'site' : 'faq';
+      setView(next);
+      (next === 'site' ? siteTab : faqTab).focus({ preventScroll: true });
+    });
+
+    faqContent = el('div', { className: 'site-search__faq-content' });
+    faqView = el('section', {
+      id: 'site-search-view-faq',
+      className: 'site-search__view site-search__view--faq',
+      role: 'tabpanel',
+      'aria-labelledby': faqTab.id
+    }, faqContent);
 
     input = el('input', {
       id: 'site-search-input',
@@ -373,13 +496,26 @@
       faqLink
     ]);
 
-    panel.append(header, form, createFilter(), resultsRegion, footer);
+    siteView = el('section', {
+      id: 'site-search-view-site',
+      className: 'site-search__view site-search__view--site',
+      role: 'tabpanel',
+      'aria-labelledby': siteTab.id,
+      hidden: true
+    }, [form, createFilter(), resultsRegion, footer]);
+
+    panel.append(header, tabs, faqView, siteView);
     dialog.appendChild(panel);
     document.body.appendChild(dialog);
 
     dialog.addEventListener('click', event => {
       if (event.target === dialog) dialog.close();
     });
+    dialog.addEventListener('keydown', event => {
+      if (event.key !== 'Escape' || event.isComposing) return;
+      event.preventDefault();
+      dialog.close();
+    }, { capture: true });
     dialog.addEventListener('close', () => {
       document.documentElement.classList.remove('site-search-is-open');
       const target = opener;
@@ -413,10 +549,13 @@
     return true;
   }
 
-  function openSiteSearch(trigger = null) {
+  function openSiteSearch(trigger = null, options = {}) {
     if (!initialized && !initSiteSearch()) return false;
     if (dialog.open) return true;
 
+    setFaqContent(options.faqContent, options.faqCount, options.course);
+    setView(options.defaultView === 'site' ? 'site' : 'faq', { prepare: false });
+    faqView.scrollTop = 0;
     opener = trigger instanceof HTMLElement ? trigger : document.activeElement;
     document.dispatchEvent(new CustomEvent(OVERLAY_OPEN_EVENT, {
       detail: { source: 'site-search' }
@@ -424,23 +563,10 @@
 
     dialog.showModal();
     document.documentElement.classList.add('site-search-is-open');
-    requestAnimationFrame(() => {
-      input.focus({ preventScroll: true });
-      input.select();
-    });
+    const viewToFocus = currentView;
+    requestAnimationFrame(() => focusCurrentView(viewToFocus));
 
-    if (input.value.trim()) {
-      searchNow({ resetCount: true });
-    } else {
-      status.textContent = '検索索引を読み込んでいます…';
-      loadIndex()
-        .then(() => {
-          if (dialog.open && !input.value.trim()) renderPrompt();
-        })
-        .catch(error => {
-          if (dialog.open) renderLoadError(error);
-        });
-    }
+    if (currentView === 'site') prepareSiteSearch();
     return true;
   }
 
