@@ -1,4 +1,4 @@
-//2026-09-08 02:50:34;
+//2026-09-09 03:30:13;
 const pages = {
   "index": {
     "id": "index",
@@ -250,6 +250,16 @@ const pages = {
       }
     ],
     "show": true,
+    "worksheetApp": [
+      {
+        "id": "dr31",
+        "title": "3-1. 音のデジタル表現 ワークシート",
+        "text": "3-1. 音のデジタル表現 ワークシート",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr31",
+        "detail": "問題の印刷と、公開後の解答・解説を確認できます。"
+      }
+    ],
     "backFile": "dr00.html"
   },
   "dr32": {
