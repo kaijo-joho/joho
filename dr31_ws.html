@@ -133,15 +133,17 @@
       -webkit-print-color-adjust: exact;
     }
 
-    .ws-page > :not(.ws-header) {
+    .ws-page > .ws-intro,
+    .ws-section > :not(.ws-section-heading) {
       margin-left: 4mm;
+      width: auto;
     }
 
     .ws-page p {
       margin: 1.4mm 0;
     }
 
-    .ws-header {
+    .ws-title-area {
       display: grid;
       grid-template-columns: minmax(56mm, 1fr) minmax(86mm, 1.42fr);
       gap: 5mm;
@@ -150,7 +152,7 @@
       font-family: "Yu Gothic", "YuGothic", "Hiragino Kaku Gothic ProN", sans-serif;
     }
 
-    .ws-header h1 {
+    .ws-title-area h1 {
       margin: 0;
       font-size: 12pt;
       line-height: 1.1;
@@ -210,6 +212,7 @@
     }
 
     .ws-answer {
+      position: relative;
       display: inline-flex;
       min-width: 15mm;
       min-height: 1.55em;
@@ -219,7 +222,7 @@
       border: 0;
       border-bottom: 0.32mm solid #4e5966;
       border-radius: 2px 2px 0 0;
-      padding: 0 1mm;
+      padding: 0 1mm 0 6mm;
       color: var(--ws-answer);
       background: transparent;
       font-family: "Yu Gothic", "YuGothic", "Hiragino Kaku Gothic ProN", sans-serif;
@@ -232,12 +235,23 @@
 
     .ws-answer::before {
       content: "(" counter(ws-answer) ")";
-      flex: 0 0 auto;
-      margin-right: 0.8mm;
+      position: absolute;
+      top: 50%;
+      left: 0.8mm;
       color: var(--ws-muted);
       font-size: 6pt;
       font-weight: 500;
       line-height: 1;
+      transform: translateY(-50%);
+    }
+
+    .ws-answer--unnumbered {
+      padding-inline: 1mm;
+      counter-increment: none;
+    }
+
+    .ws-answer--unnumbered::before {
+      content: none;
     }
 
     .ws-answer:hover {
@@ -311,12 +325,28 @@
 
     .ws-condition-grid > div {
       display: flex;
-      min-height: 10mm;
+      min-height: 13mm;
+      flex-direction: column;
+      gap: 0.5mm;
       align-items: center;
       justify-content: center;
       border-right: 0.25mm solid var(--ws-line);
       padding: 1mm;
       font-weight: 700;
+    }
+
+    .ws-condition-label {
+      color: var(--ws-muted);
+      font-size: 6.5pt;
+      line-height: 1.15;
+    }
+
+    .ws-condition-formula {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: baseline;
+      justify-content: center;
+      line-height: 1.2;
     }
 
     .ws-condition-grid > div:last-child {
@@ -453,7 +483,46 @@
     }
 
     .ws-choice-answer {
-      white-space: nowrap;
+      min-height: 12mm;
+      border-bottom: 0;
+      padding: 0.7mm 1mm;
+      white-space: normal;
+    }
+
+    .ws-choice-answer__options {
+      display: grid;
+      width: 100%;
+      gap: 0.3mm;
+      color: var(--ws-ink);
+      font-size: 7pt;
+      font-weight: 500;
+      line-height: 1.15;
+      text-align: left;
+    }
+
+    .ws-choice-answer__option::before {
+      content: "□";
+      display: inline-block;
+      width: 1.4em;
+    }
+
+    .ws-choice-answer.is-revealed .ws-choice-answer__option[data-correct] {
+      color: var(--ws-answer);
+      font-weight: 700;
+      text-decoration: underline;
+      text-underline-offset: 0.15em;
+    }
+
+    .ws-choice-answer.is-revealed .ws-choice-answer__option[data-correct]::before {
+      content: "■";
+    }
+
+    .ws-choice-answer .ws-answer__value {
+      display: none !important;
+    }
+
+    .ws-choice-answer::after {
+      content: none !important;
     }
 
     .ws-writing-area {
@@ -465,19 +534,19 @@
     }
 
     .ws-table--theorem th:nth-child(1) {
-      width: 22mm;
+      width: 19mm;
     }
 
     .ws-table--theorem th:nth-child(2) {
-      width: 28mm;
+      width: 27mm;
     }
 
     .ws-table--theorem th:nth-child(3) {
-      width: 37mm;
+      width: 48mm;
     }
 
     .ws-table--theorem td {
-      height: 11mm;
+      height: 14mm;
       text-align: center;
     }
 
@@ -491,6 +560,7 @@
 
     .ws-table--terms td {
       height: 7.4mm;
+      border: 0;
       padding-block: 0.8mm;
     }
 
@@ -501,15 +571,6 @@
 
     .ws-table--terms td:nth-child(2) {
       width: 58mm;
-    }
-
-    .ws-table--summary td {
-      height: 14mm;
-      padding: 2mm;
-    }
-
-    .ws-table--summary td:first-child {
-      width: 50%;
     }
 
     .ws-dialog {
@@ -618,7 +679,7 @@
         font-size: clamp(11px, 3.1vw, 12px);
       }
 
-      .ws-header {
+      .ws-title-area {
         grid-template-columns: 1fr;
         gap: 8px;
       }
@@ -787,7 +848,7 @@
 <body>
   <header class="ws-toolbar" aria-label="ワークシート操作">
     <p class="ws-toolbar__title">3-1. 音のデジタル表現 ワークシート</p>
-    <output data-answer-progress aria-live="polite">0 / 65 表示</output>
+    <output data-answer-progress aria-live="polite">0 / 58 表示</output>
     <button type="button" data-reveal-all>すべての解答を表示</button>
     <button type="button" data-hide-all>すべて隠す</button>
     <button type="button" data-print>印刷</button>
@@ -798,7 +859,7 @@
 
   <main class="ws-preview">
     <article class="ws-page" aria-label="ワークシート表面">
-      <header class="ws-header">
+      <header class="ws-title-area">
         <h1>3-1. 音のデジタル表現</h1>
         <div class="ws-student-fields" aria-label="学年、組、番号、氏名">
           <span>中学3年</span><span class="ws-write-line" aria-hidden="true"></span>
@@ -843,10 +904,22 @@
         <p>この一連の方法を <button class="ws-answer ws-answer--long" type="button" data-answer="パルス符号変調（PCM）"><span class="ws-answer__value" hidden>パルス符号変調（PCM）</span></button> 方式という。</p>
 
         <div class="ws-condition-grid" aria-label="標本化と量子化の条件">
-          <div>f<sub>s</sub>　10 Hz</div>
-          <div>T　<button class="ws-answer ws-answer--short" type="button" data-answer="0.1"><span class="ws-answer__value" hidden>0.1</span></button> 秒</div>
-          <div>n　3 bit</div>
-          <div><button class="ws-answer ws-answer--short" type="button" data-answer="8"><span class="ws-answer__value" hidden>8</span></button> 段階</div>
+          <div>
+            <span class="ws-condition-label">標本化周波数</span>
+            <span class="ws-condition-formula">f<sub>s</sub> ＝ 10 Hz</span>
+          </div>
+          <div>
+            <span class="ws-condition-label">標本化周期</span>
+            <span class="ws-condition-formula">T ＝ 1 ÷ f<sub>s</sub> ＝ <button class="ws-answer ws-answer--short ws-answer--unnumbered" type="button" data-answer="0.1" data-answer-context="標本化周期"><span class="ws-answer__value" hidden>0.1</span></button> 秒</span>
+          </div>
+          <div>
+            <span class="ws-condition-label">量子化ビット数</span>
+            <span class="ws-condition-formula">n ＝ 3 bit</span>
+          </div>
+          <div>
+            <span class="ws-condition-label">量子化段階数</span>
+            <span class="ws-condition-formula">2<sup>n</sup> ＝ <button class="ws-answer ws-answer--short ws-answer--unnumbered" type="button" data-answer="8" data-answer-context="3 bitの量子化段階数"><span class="ws-answer__value" hidden>8</span></button> 段階</span>
+          </div>
         </div>
 
         <figure class="ws-figure">
@@ -916,9 +989,33 @@
               <tr><th scope="col">時刻 秒</th><th scope="col">0.0</th><th scope="col">0.1</th><th scope="col">0.2</th><th scope="col">0.3</th><th scope="col">0.4</th><th scope="col">0.5</th></tr>
             </thead>
             <tbody>
-              <tr><th scope="row">標本値</th><td><button class="ws-answer ws-answer--block" type="button" data-answer="2"><span class="ws-answer__value" hidden>2</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="3"><span class="ws-answer__value" hidden>3</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="6"><span class="ws-answer__value" hidden>6</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="7"><span class="ws-answer__value" hidden>7</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="6"><span class="ws-answer__value" hidden>6</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="3"><span class="ws-answer__value" hidden>3</span></button></td></tr>
-              <tr><th scope="row">量子化後の値</th><td><button class="ws-answer ws-answer--block" type="button" data-answer="2"><span class="ws-answer__value" hidden>2</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="3"><span class="ws-answer__value" hidden>3</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="6"><span class="ws-answer__value" hidden>6</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="7"><span class="ws-answer__value" hidden>7</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="6"><span class="ws-answer__value" hidden>6</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="3"><span class="ws-answer__value" hidden>3</span></button></td></tr>
-              <tr><th scope="row">符号 3 bit</th><td><button class="ws-answer ws-answer--block" type="button" data-answer="010"><span class="ws-answer__value" hidden>010</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="011"><span class="ws-answer__value" hidden>011</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="110"><span class="ws-answer__value" hidden>110</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="111"><span class="ws-answer__value" hidden>111</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="110"><span class="ws-answer__value" hidden>110</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="011"><span class="ws-answer__value" hidden>011</span></button></td></tr>
+              <tr>
+                <th scope="row">標本値</th>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="2" data-answer-context="0.0秒の標本値"><span class="ws-answer__value" hidden>2</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="3" data-answer-context="0.1秒の標本値"><span class="ws-answer__value" hidden>3</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="6" data-answer-context="0.2秒の標本値"><span class="ws-answer__value" hidden>6</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="7" data-answer-context="0.3秒の標本値"><span class="ws-answer__value" hidden>7</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="6" data-answer-context="0.4秒の標本値"><span class="ws-answer__value" hidden>6</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="3" data-answer-context="0.5秒の標本値"><span class="ws-answer__value" hidden>3</span></button></td>
+              </tr>
+              <tr>
+                <th scope="row">量子化後の値</th>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="2" data-answer-context="0.0秒の量子化後の値"><span class="ws-answer__value" hidden>2</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="3" data-answer-context="0.1秒の量子化後の値"><span class="ws-answer__value" hidden>3</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="6" data-answer-context="0.2秒の量子化後の値"><span class="ws-answer__value" hidden>6</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="7" data-answer-context="0.3秒の量子化後の値"><span class="ws-answer__value" hidden>7</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="6" data-answer-context="0.4秒の量子化後の値"><span class="ws-answer__value" hidden>6</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="3" data-answer-context="0.5秒の量子化後の値"><span class="ws-answer__value" hidden>3</span></button></td>
+              </tr>
+              <tr>
+                <th scope="row">符号 3 bit</th>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="010" data-answer-context="0.0秒の符号"><span class="ws-answer__value" hidden>010</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="011" data-answer-context="0.1秒の符号"><span class="ws-answer__value" hidden>011</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="110" data-answer-context="0.2秒の符号"><span class="ws-answer__value" hidden>110</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="111" data-answer-context="0.3秒の符号"><span class="ws-answer__value" hidden>111</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="110" data-answer-context="0.4秒の符号"><span class="ws-answer__value" hidden>110</span></button></td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="011" data-answer-context="0.5秒の符号"><span class="ws-answer__value" hidden>011</span></button></td>
+              </tr>
             </tbody>
           </table>
         </div>
@@ -941,7 +1038,7 @@
             </tr>
             <tr>
               <td data-label="操作">nを2 bitから4 bitへ</td>
-              <td data-label="操作前の予想">段階数は <button class="ws-answer ws-answer--short" type="button" data-answer="4"><span class="ws-answer__value" hidden>4</span></button> から <button class="ws-answer ws-answer--short" type="button" data-answer="16"><span class="ws-answer__value" hidden>16</span></button> へ</td>
+              <td data-label="操作前の予想">段階数は <button class="ws-answer ws-answer--short ws-answer--unnumbered" type="button" data-answer="4" data-answer-context="2 bitの段階数"><span class="ws-answer__value" hidden>4</span></button> から <button class="ws-answer ws-answer--short ws-answer--unnumbered" type="button" data-answer="16" data-answer-context="4 bitの段階数"><span class="ws-answer__value" hidden>16</span></button> へ</td>
               <td data-label="操作後に分かったこと"><button class="ws-answer ws-answer--block" type="button" data-answer="量子化ビット数が大きいほど段階数が増え、元の波形との差が小さくなる。"><span class="ws-answer__value" hidden>量子化ビット数が大きいほど段階数が増え、元の波形との差が小さくなる。</span></button></td>
             </tr>
           </tbody>
@@ -955,22 +1052,65 @@
           <h2 id="ws-section-4">4　標本化定理</h2>
           <button class="ws-explain-open" type="button" data-dialog-open="ws-dialog-4">解説</button>
         </div>
-        <p>元の波の最大周波数を4 Hzとする。最大周波数の2倍は <button class="ws-answer ws-answer--short" type="button" data-answer="8"><span class="ws-answer__value" hidden>8</span></button> Hzである。</p>
+        <p>元の波の最大周波数を f ＝ 4 Hz とする。最大周波数の2倍は 2f ＝ <button class="ws-answer ws-answer--short" type="button" data-answer="8"><span class="ws-answer__value" hidden>8</span></button> Hzである。</p>
+        <p><strong>判定欄：</strong>「条件を満たす」「境界」「標本不足」から選ぶ。</p>
         <div class="ws-table-scroll" tabindex="0" aria-label="標本化定理の条件を確認する表">
           <table class="ws-table ws-table--theorem">
             <thead>
               <tr><th scope="col">f<sub>s</sub></th><th scope="col">2fとの関係</th><th scope="col">判定</th><th scope="col">確認後の気づき</th></tr>
             </thead>
             <tbody>
-              <tr><td>10 Hz</td><td><button class="ws-answer ws-answer--block" type="button" data-answer="10 ＞ 8"><span class="ws-answer__value" hidden>10 ＞ 8</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="条件を満たす"><span class="ws-answer__value" hidden>条件を満たす</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="元の波形を再現できる。"><span class="ws-answer__value" hidden>元の波形を再現できる。</span></button></td></tr>
-              <tr><td>8 Hz</td><td><button class="ws-answer ws-answer--block" type="button" data-answer="8 ＝ 8"><span class="ws-answer__value" hidden>8 ＝ 8</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="境界"><span class="ws-answer__value" hidden>境界</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="位相によっては一意に判断できない。"><span class="ws-answer__value" hidden>位相によっては一意に判断できない。</span></button></td></tr>
-              <tr><td>6 Hz</td><td><button class="ws-answer ws-answer--block" type="button" data-answer="6 ＜ 8"><span class="ws-answer__value" hidden>6 ＜ 8</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="標本不足"><span class="ws-answer__value" hidden>標本不足</span></button></td><td><button class="ws-answer ws-answer--block" type="button" data-answer="元とは異なる波形として解釈され得る。"><span class="ws-answer__value" hidden>元とは異なる波形として解釈され得る。</span></button></td></tr>
+              <tr>
+                <td>10 Hz</td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="10 ＞ 8" data-answer-context="10 Hzと2fの関係"><span class="ws-answer__value" hidden>10 ＞ 8</span></button></td>
+                <td>
+                  <button class="ws-answer ws-answer--block ws-answer--unnumbered ws-choice-answer" type="button" data-answer="条件を満たす" data-answer-context="10 Hzの判定">
+                    <span class="ws-choice-answer__options" aria-hidden="true">
+                      <span class="ws-choice-answer__option" data-correct>条件を満たす</span>
+                      <span class="ws-choice-answer__option">境界</span>
+                      <span class="ws-choice-answer__option">標本不足</span>
+                    </span>
+                    <span class="ws-answer__value" hidden>条件を満たす</span>
+                  </button>
+                </td>
+                <td><button class="ws-answer ws-answer--block" type="button" data-answer="元の波形を再現できる。"><span class="ws-answer__value" hidden>元の波形を再現できる。</span></button></td>
+              </tr>
+              <tr>
+                <td>8 Hz</td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="8 ＝ 8" data-answer-context="8 Hzと2fの関係"><span class="ws-answer__value" hidden>8 ＝ 8</span></button></td>
+                <td>
+                  <button class="ws-answer ws-answer--block ws-answer--unnumbered ws-choice-answer" type="button" data-answer="境界" data-answer-context="8 Hzの判定">
+                    <span class="ws-choice-answer__options" aria-hidden="true">
+                      <span class="ws-choice-answer__option">条件を満たす</span>
+                      <span class="ws-choice-answer__option" data-correct>境界</span>
+                      <span class="ws-choice-answer__option">標本不足</span>
+                    </span>
+                    <span class="ws-answer__value" hidden>境界</span>
+                  </button>
+                </td>
+                <td><button class="ws-answer ws-answer--block" type="button" data-answer="位相によっては一意に判断できない。"><span class="ws-answer__value" hidden>位相によっては一意に判断できない。</span></button></td>
+              </tr>
+              <tr>
+                <td>6 Hz</td>
+                <td><button class="ws-answer ws-answer--block ws-answer--unnumbered" type="button" data-answer="6 ＜ 8" data-answer-context="6 Hzと2fの関係"><span class="ws-answer__value" hidden>6 ＜ 8</span></button></td>
+                <td>
+                  <button class="ws-answer ws-answer--block ws-answer--unnumbered ws-choice-answer" type="button" data-answer="標本不足" data-answer-context="6 Hzの判定">
+                    <span class="ws-choice-answer__options" aria-hidden="true">
+                      <span class="ws-choice-answer__option">条件を満たす</span>
+                      <span class="ws-choice-answer__option">境界</span>
+                      <span class="ws-choice-answer__option" data-correct>標本不足</span>
+                    </span>
+                    <span class="ws-answer__value" hidden>標本不足</span>
+                  </button>
+                </td>
+                <td><button class="ws-answer ws-answer--block" type="button" data-answer="元とは異なる波形として解釈され得る。"><span class="ws-answer__value" hidden>元とは異なる波形として解釈され得る。</span></button></td>
+              </tr>
             </tbody>
           </table>
         </div>
         <p>
-          元の波形を再現するには、成分波の <button class="ws-answer ws-answer--medium" type="button" data-answer="最大周波数"><span class="ws-answer__value" hidden>最大周波数</span></button> の2倍より
-          <button class="ws-answer ws-answer--medium" type="button" data-answer="大きい"><span class="ws-answer__value" hidden>大きい</span></button> 標本化周波数が必要である。
+          元の波形を再現するには、標本化周波数 f<sub>s</sub> を最大周波数 f の2倍より
+          <button class="ws-answer ws-answer--medium" type="button" data-answer="大きく"><span class="ws-answer__value" hidden>大きく</span></button> 設定する。
           2倍ちょうどは <button class="ws-answer ws-answer--medium" type="button" data-answer="境界"><span class="ws-answer__value" hidden>境界</span></button> である。
         </p>
       </section>
@@ -997,24 +1137,6 @@
         </table>
       </section>
 
-      <section class="ws-section" aria-labelledby="ws-section-6">
-        <div class="ws-section-heading">
-          <h2 id="ws-section-6">6　ポイントまとめ</h2>
-          <button class="ws-explain-open" type="button" data-dialog-open="ws-dialog-6">解説</button>
-        </div>
-        <table class="ws-table ws-table--summary">
-          <tbody>
-            <tr>
-              <td>標本化周期　T ＝ <button class="ws-answer ws-answer--short" type="button" data-answer="1"><span class="ws-answer__value" hidden>1</span></button> ÷ f<sub>s</sub></td>
-              <td>n bitで表せる段階数 ＝ <button class="ws-answer ws-answer--short" type="button" data-answer="2ⁿ"><span class="ws-answer__value" hidden>2ⁿ</span></button></td>
-            </tr>
-            <tr>
-              <td>元の波を再現する条件　f<sub>s</sub> <button class="ws-answer ws-answer--short" type="button" data-answer="＞"><span class="ws-answer__value" hidden>＞</span></button> 2f<sub>max</sub></td>
-              <td>PCM方式　<button class="ws-answer ws-answer--medium" type="button" data-answer="標本化"><span class="ws-answer__value" hidden>標本化</span></button> → <button class="ws-answer ws-answer--medium" type="button" data-answer="量子化"><span class="ws-answer__value" hidden>量子化</span></button> → <button class="ws-answer ws-answer--medium" type="button" data-answer="符号化"><span class="ws-answer__value" hidden>符号化</span></button></td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
     </article>
   </main>
 
@@ -1068,26 +1190,13 @@
       <button class="ws-dialog__close" type="button" data-dialog-close>閉じる</button>
     </header>
     <div class="ws-dialog__body">
-      <p>最大周波数が4 Hzなら、その2倍は8 Hzです。元の波形を再現するには、標本化周波数を8 Hzより大きくします。</p>
+      <p>元の波の最大周波数を f ＝ 4 Hzとすると、その2倍の2fは8 Hzです。元の波形を再現するには、標本化周波数を8 Hzより大きくします。</p>
       <ul>
         <li><strong>10 Hz：</strong>10 ＞ 8なので条件を満たします。</li>
         <li><strong>8 Hz：</strong>8 ＝ 8で境界です。位相によっては元の波形を一意に判断できません。</li>
         <li><strong>6 Hz：</strong>6 ＜ 8なので標本不足です。元とは異なる波形として解釈される可能性があります。</li>
       </ul>
-      <p class="ws-dialog__formula">元の波形を再現する条件：f<sub>s</sub> ＞ 2f<sub>max</sub></p>
-    </div>
-  </dialog>
-
-  <dialog class="ws-dialog" id="ws-dialog-6" aria-labelledby="ws-dialog-6-title">
-    <header class="ws-dialog__header">
-      <h2 id="ws-dialog-6-title">6　ポイントまとめの解説</h2>
-      <button class="ws-dialog__close" type="button" data-dialog-close>閉じる</button>
-    </header>
-    <div class="ws-dialog__body">
-      <p class="ws-dialog__formula">標本化周期：T ＝ 1 ÷ f<sub>s</sub></p>
-      <p class="ws-dialog__formula">量子化段階数：2<sup>n</sup></p>
-      <p class="ws-dialog__formula">標本化定理の条件：f<sub>s</sub> ＞ 2f<sub>max</sub></p>
-      <p>PCM方式は、標本化、量子化、符号化の順に処理します。式だけでなく、それぞれが「時間」「値の段階」「2進数」のどれを決める操作なのかを対応させて覚えます。</p>
+      <p class="ws-dialog__formula">元の波形を再現する条件：f<sub>s</sub> ＞ 2f</p>
     </div>
   </dialog>
 
@@ -1101,14 +1210,17 @@
       const setAnswer = (button, revealed) => {
         const value = button.querySelector('.ws-answer__value');
         const number = button.dataset.answerNumber;
+        const reference = number
+          ? '空欄(' + number + ')'
+          : button.dataset.answerContext || 'この解答欄';
         button.classList.toggle('is-revealed', revealed);
         button.setAttribute('aria-pressed', String(revealed));
         value.hidden = !revealed;
         button.setAttribute(
           'aria-label',
           revealed
-            ? '空欄(' + number + ')の解答：' + button.dataset.answer + '。押すと隠します'
-            : '空欄(' + number + ')の解答を表示'
+            ? reference + 'の解答：' + button.dataset.answer + '。押すと隠します'
+            : reference + 'の解答を表示'
         );
       };
 
@@ -1123,8 +1235,12 @@
         progress.textContent = count + ' / ' + answers.length + ' 表示';
       };
 
-      answers.forEach((button, index) => {
-        button.dataset.answerNumber = String(index + 1);
+      let answerNumber = 0;
+      answers.forEach((button) => {
+        if (!button.classList.contains('ws-answer--unnumbered')) {
+          answerNumber += 1;
+          button.dataset.answerNumber = String(answerNumber);
+        }
         setAnswer(button, false);
         button.addEventListener('click', () => {
           setAnswer(button, !button.classList.contains('is-revealed'));
