@@ -1,4 +1,4 @@
-//2026-09-09 03:30:13;
+//2026-09-09 06:43:22;
 const pages = {
   "index": {
     "id": "index",
@@ -278,6 +278,16 @@ const pages = {
     "back": "dr31",
     "next": false,
     "show": true,
+    "worksheetApp": [
+      {
+        "id": "dr32",
+        "title": "3-2. 音のデジタル表現 ワークシート",
+        "text": "3-2. 音のデジタル表現 ワークシート",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr32",
+        "detail": "音のチャンネルと、例題・演習の印刷、公開後の解答・解法を確認できます。"
+      }
+    ],
     "backFile": "dr31.html"
   },
   "nw00": {
