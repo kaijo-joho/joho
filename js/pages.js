@@ -1,4 +1,4 @@
-//2026-09-09 08:39:41;
+//2026-09-09 11:02:19;
 const pages = {
   "index": {
     "id": "index",
@@ -6,8 +6,8 @@ const pages = {
     "fileName": "index.html",
     "mainTitle": "",
     "category": "index",
-    "title": "情報科 実習サイト",
-    "detail": "本サイトは情報科の実習内容を掲載しているサイトです。",
+    "title": "情報科 教材サイト",
+    "detail": "本サイトは情報科の授業で使用する実習・座学教材を掲載しています。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
