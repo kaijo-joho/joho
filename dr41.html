@@ -20,33 +20,54 @@
       <p>画像も、音と同じように<strong>標本化 → 量子化 → 符号化</strong>の順にデジタル化します。カラー画像では、光の三原色である<strong>赤（R）・緑（G）・青（B）</strong>の成分ごとに明るさを調べます。</p>
       <div class="im-widget" data-image-guide data-lesson-slide-navigation-lock>
         <div class="im-controls im-enhancement" hidden>
-          <div class="im-button-group" data-image-stages role="group" aria-label="画像のデジタル化の工程">
-            <button class="dr-button" type="button" data-stage="0" aria-pressed="true">0. 元の画像</button>
-            <button class="dr-button" type="button" data-stage="1" aria-pressed="false">1. 標本化</button>
-            <button class="dr-button" type="button" data-stage="2" aria-pressed="false">2. 量子化</button>
-            <button class="dr-button" type="button" data-stage="3" aria-pressed="false">3. 符号化</button>
-          </div>
           <label class="im-select">調べる成分 <select data-image-channel><option value="0">R（赤）</option><option value="1">G（緑）</option><option value="2">B（青）</option></select></label>
+          <label class="im-slider">標本化の間隔 <output for="im-guide-resolution" data-image-guide-resolution-output>幅の1/32（32×32画素）</output><input id="im-guide-resolution" type="range" min="8" max="64" step="8" value="32" data-image-guide-resolution><span class="im-slider-scale"><span>粗い</span><span>細かい</span></span></label>
+          <label class="im-slider">各色の階調 <output for="im-guide-bits" data-image-guide-bits-output>4階調（2bit）</output><input id="im-guide-bits" type="range" min="1" max="8" step="1" value="2" data-image-guide-bits><span class="im-slider-scale"><span>少ない</span><span>多い</span></span></label>
         </div>
-        <div class="im-comparison">
-          <figure>
+        <div class="im-pipeline-scroll" tabindex="0" role="region" aria-label="画像のデジタル化の5工程。狭い画面では横にスクロールできます。">
+          <div class="im-pipeline">
+          <figure data-image-guide-step="0">
+            <figcaption>元画像</figcaption>
             <img class="im-picture" src="./img/digital-representation/balloon.svg" width="800" height="800" alt="青空と緑の山の上に浮かぶ、赤・黄・青の気球。輪郭と濃淡を比べるための見本。" decoding="async">
-            <figcaption>元のカラー画像</figcaption>
+            <p class="im-frame-note">なめらかな輪郭と濃淡</p>
           </figure>
-          <figure class="im-enhancement" hidden>
-            <canvas class="im-picture" width="400" height="400" data-image-guide-canvas role="img" aria-label="R成分の明るさ。元のなめらかな画像。"></canvas>
-            <figcaption data-image-guide-caption>R成分の明るさ</figcaption>
+          <figure class="im-enhancement" data-image-guide-step="1" hidden>
+            <figcaption>光の成分に分解</figcaption>
+            <canvas class="im-picture" width="800" height="800" data-image-guide-canvas="component" role="img" aria-label="R成分のなめらかな明るさ"></canvas>
+            <p class="im-frame-note" data-image-guide-caption="component">R（赤）成分</p>
           </figure>
-          <div class="im-guide-description">
-            <p class="im-step-text" data-image-stage-text>光の三原色に分け、それぞれの成分の明るさを調べます。</p>
-            <ol class="im-process-list">
-              <li><strong>標本化</strong>：画像を等間隔のマス目に分け、各マス内の平均の明るさを取り出します。このマス目を<strong>画素（ピクセル）</strong>といいます。</li>
-              <li><strong>量子化</strong>：各画素の明るさを、決められた段階の値にします。</li>
-              <li><strong>符号化</strong>：段階値を2進数で表し、左上から順に並べます。</li>
-            </ol>
-            <p class="im-enhancement im-hint" hidden>この見本は8×8画素、各色2bit（4階調）です。工程とRGBの成分を切り替えて比べましょう。</p>
+          <figure class="im-enhancement" data-image-guide-step="2" hidden>
+            <figcaption>標本化</figcaption>
+            <canvas class="im-picture" width="800" height="800" data-image-guide-canvas="sample" role="img" aria-label="R成分を32×32画素に標本化した画像"></canvas>
+            <p class="im-frame-note" data-image-guide-caption="sample">32×32画素</p>
+          </figure>
+          <figure class="im-enhancement" data-image-guide-step="3" hidden>
+            <figcaption>量子化</figcaption>
+            <canvas class="im-picture" width="800" height="800" data-image-guide-canvas="quantize" role="img" aria-label="R成分の明るさを4階調に量子化した画像"></canvas>
+            <p class="im-frame-note" data-image-guide-caption="quantize">明るさを4段階に</p>
+          </figure>
+          <figure class="im-enhancement" data-image-guide-step="4" hidden>
+            <figcaption>符号化</figcaption>
+            <canvas class="im-picture" width="1600" height="1600" data-image-guide-canvas="encode" role="img" aria-label="R成分の段階値を2桁の2進数にした画像"></canvas>
+            <p class="im-frame-note" data-image-guide-caption="encode">各画素を2桁の2進数に</p>
+          </figure>
           </div>
         </div>
+        <div class="im-controls im-step-controls im-enhancement" hidden>
+          <button class="dr-button" type="button" data-image-guide-prev aria-label="前の工程へ">前へ</button>
+          <span data-image-guide-progress>1 / 5</span>
+          <button class="dr-button dr-button--primary" type="button" data-image-guide-next aria-label="次の工程：光の成分に分解">次へ</button>
+        </div>
+        <p class="im-step-text" data-image-stage-text>「次へ」で、元画像からデジタル化する流れを順に確認しましょう。</p>
+        <details class="dr-reveal-item im-enhancement im-guide-zoom" data-image-guide-zoom hidden><summary>枠内の4×4画素を拡大して確認</summary><div class="dr-reveal-item__body">
+          <p class="im-hint" data-image-guide-zoom-caption></p>
+          <div class="im-zoom-comparison" data-image-guide-zoom-tables></div>
+        </div></details>
+        <ol class="im-process-list im-process-summary">
+          <li><strong>標本化</strong>：等間隔のマス目に分け、各マス内の平均の明るさを取り出します。このマス目が<strong>画素（ピクセル）</strong>です。</li>
+          <li><strong>量子化</strong>：各画素の明るさを、決められた段階の値にします。</li>
+          <li><strong>符号化</strong>：段階値を2進数で表し、左上から順に並べます。</li>
+        </ol>
       </div>
     </article>
   </section>
@@ -54,7 +75,7 @@
   <section data-lesson-slide data-lesson-slide-title="解像度と階調">
     <article>
       <h2 id="headline_2">(2) 解像度と階調</h2>
-      <p><strong>解像度</strong>は画素の細かさを表し、ここでは横の画素数×縦の画素数で示します。<strong>階調</strong>は明るさの段階数です。同じ大きさで表示し、輪郭と色の変化を比べましょう。</p>
+      <p>前のスライドで変えた<strong>標本化の間隔</strong>は、画素の細かさである<strong>解像度</strong>に関係します。<strong>階調</strong>は、量子化で決める明るさの段階数です。今度はRGBを合わせたカラー画像で、それぞれの効果を確かめましょう。</p>
       <div class="im-widget" data-image-explorer data-lesson-slide-navigation-lock>
         <div class="im-controls im-enhancement" hidden>
           <label class="im-select">解像度 <select data-image-resolution><option value="10">10×10</option><option value="20">20×20</option><option value="50" selected>50×50</option><option value="100">100×100</option><option value="200">200×200</option><option value="800">800×800</option></select></label>
@@ -66,8 +87,8 @@
           <figure class="im-enhancement" hidden><canvas class="im-picture" width="800" height="800" data-image-explorer-canvas role="img" aria-label="条件を変えた気球の画像"></canvas><figcaption data-image-explorer-caption></figcaption></figure>
           <div>
             <dl class="im-metrics im-enhancement" data-image-metrics hidden></dl>
-            <p><strong>解像度だけ</strong>を上げると、曲線や斜めの輪郭が細かくなります。</p>
-            <p><strong>階調数だけ</strong>を増やすと、空や気球の色の変化がなめらかになります。</p>
+            <p><strong>解像度</strong>は、ここでは横の画素数×縦の画素数で表します。標本化の間隔を狭くして解像度を上げると、曲線や斜めの輪郭が細かくなります。</p>
+            <p><strong>階調数</strong>を増やすと、空や気球の色の変化がなめらかになります。解像度と階調を一方ずつ変えて比べましょう。</p>
             <p>どちらを増やしても、必要なデータ量は増えます。</p>
           </div>
         </div>
@@ -160,9 +181,14 @@
   <section data-lesson-slide data-lesson-slide-title="符号化の問題" data-lesson-slide-layout="exercise">
     <article>
       <h2 id="headline_6">(6) グレースケール画像を符号化する</h2>
-      <p>4×4画素、8階調の画像です。各マスに表示された段階値を、<strong>3桁の2進数</strong>で入力しましょう。段階値と解答欄は同じ画素に対応します。</p>
+      <p>元画像 → 標本化 → 量子化の変化を見てから、符号化しましょう。量子化の図にある段階値を、符号化の表の<strong>同じ位置のマスへ3桁の2進数</strong>で入力します。4×4画素、8階調の画像です。</p>
       <form class="im-widget" data-image-encoding-quiz data-lesson-slide-navigation-lock>
-        <div data-image-encoding-grid></div>
+        <div class="im-quiz-pipeline im-enhancement" hidden>
+          <figure><figcaption>元画像</figcaption><div data-image-quiz-picture="0"></div><p class="im-frame-note">明るさが連続して変わる</p></figure>
+          <figure><figcaption>標本化</figcaption><div data-image-quiz-picture="1"></div><p class="im-frame-note">4×4画素に区切る</p></figure>
+          <figure><figcaption>量子化</figcaption><div data-image-quiz-picture="2"></div><p class="im-frame-note">明るさを0〜7の8段階に</p></figure>
+          <figure class="im-quiz-answer"><figcaption>符号化</figcaption><div data-image-encoding-grid></div><p class="im-frame-note">同じ位置の値を3桁の2進数で入力</p></figure>
+        </div>
         <div class="im-controls im-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button><button class="dr-button" type="button" data-image-encoding-clear>入力を消す</button></div>
         <p class="im-feedback" data-image-encoding-feedback role="status"></p>
         <noscript><p>解答用のマス目と自動判定にはJavaScriptが必要です。スライド3の段階値を、左上から順に3桁の2進数へ変換してください。</p></noscript>
