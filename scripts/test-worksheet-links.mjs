@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { access, readFile } from 'node:fs/promises';
 import vm from 'node:vm';
 
 class FakeElement {
@@ -197,4 +197,7 @@ const worksheetItems = [
   );
 }
 
-console.log('worksheet-links: 表紙・LessonDock・講座一覧の公開条件とリンク表示に合格');
+await assert.rejects(access(new URL('../dr31_ws.html', import.meta.url)), { code: 'ENOENT' }, '校了後の静的試作は再公開しない');
+await Promise.all(['dr31.html', 'dr32.html'].map(name => access(new URL('../' + name, import.meta.url))));
+
+console.log('worksheet-links: 表紙・LessonDock・講座一覧の公開条件、リンク表示、試作撤去に合格');
