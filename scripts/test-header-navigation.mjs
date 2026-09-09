@@ -1,11 +1,16 @@
 // Browser regression checks. Requires Playwright and a local server (JOHO_TEST_URL).
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 
 const require = createRequire(import.meta.url);
 const { chromium, webkit } = require('playwright');
 const { expect } = require('playwright/test');
 const baseURL = process.env.JOHO_TEST_URL || 'http://127.0.0.1:8884/';
+const searchIndex = JSON.parse(await readFile(new URL('../data/search-index.json', import.meta.url), 'utf8'));
+const courseOrder = ['dr', 'lc', 'nw', 'html', 'il', 'ss', 'py'];
+const indexedCourses = new Set(searchIndex.documents.map(document => document.course));
+const expectedCourseFilters = ['', ...courseOrder.filter(course => indexedCourses.has(course))];
 
 async function ready(page, path) {
   await page.goto(new URL(path, baseURL).href);
@@ -21,6 +26,15 @@ async function fits(page, selector) {
   const width = await page.evaluate(() => innerWidth);
   assert.ok(rect.x >= 7 && rect.x + rect.width <= width - 7, `${selector} fits ${width}px`);
   assert.ok(rect.y >= 0 && rect.y + rect.height <= await page.evaluate(() => innerHeight) + 1);
+}
+
+async function headerIsSingleRow(page) {
+  return page.evaluate(() => {
+    const brand = document.querySelector('.headerbar__brand')?.getBoundingClientRect();
+    const actions = document.querySelector('.headerbar__actions')?.getBoundingClientRect();
+    if (!brand || !actions) return false;
+    return brand.top < actions.bottom && actions.top < brand.bottom;
+  });
 }
 
 async function fullScreen(page) {
@@ -68,6 +82,36 @@ for (const name of selectedBrowsers) {
     page.on('response', response => {
       if (response.url().startsWith(baseURL) && response.status() === 404) errors.push(`404 ${response.url()}`);
     });
+    await page.route('**/data/search-index.json', route => route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        ...searchIndex,
+        documents: [
+          ...searchIndex.documents,
+          {
+            id: '__unreleased-lc-test',
+            url: 'lc01.html',
+            title: '未公開論理回路検証語',
+            course: 'lc',
+            courseLabel: '論理回路',
+            category: '',
+            detail: '',
+            sections: [{ heading: '', anchor: '', text: '未公開論理回路検証語', code: '' }]
+          },
+          {
+            id: '__unreleased-nw-test',
+            url: 'nw11.html',
+            title: '未公開ネットワーク検証語',
+            course: 'nw',
+            courseLabel: 'ネットワーク',
+            category: '',
+            detail: '',
+            sections: [{ heading: '', anchor: '', text: '未公開ネットワーク検証語', code: '' }]
+          }
+        ]
+      })
+    }));
 
     await ready(page, 'py21.html');
     await expect(page.locator('#nav-handle, #nav-drawer')).toHaveCount(0);
@@ -155,6 +199,17 @@ for (const name of selectedBrowsers) {
     await expect(searchDialog.locator('#site-search-input')).toBeFocused();
     await expect(searchDialog.locator('.site-search__status')).toHaveText('検索語を入力してください。');
     assert.equal(searchIndexRequests, 1, 'site-search index loads after selecting site search');
+    assert.deepEqual(
+      await searchDialog.locator('.site-search__filter').evaluateAll(buttons =>
+        buttons.map(button => button.dataset.course)
+      ),
+      expectedCourseFilters,
+      'course filters only show courses with released indexed pages'
+    );
+    await searchDialog.locator('#site-search-input').fill('未公開論理回路検証語');
+    await expect(searchDialog.locator('.site-search__status')).toContainText('一致する教材はありません');
+    await searchDialog.locator('#site-search-input').fill('');
+    await expect(searchDialog.locator('.site-search__status')).toHaveText('検索語を入力してください。');
     await page.keyboard.press('Escape');
     await expect(search).toBeFocused();
     await search.click();
@@ -196,8 +251,13 @@ for (const name of selectedBrowsers) {
 
     for (const path of ['dr31.html#headline_2', 'py21.html']) {
       await ready(page, path);
-      for (const width of [1800,720,390]) {
+      for (const width of [1800,915,720,390]) {
         await page.setViewportSize({width,height:900});
+        assert.equal(
+          await headerIsSingleRow(page),
+          width > 640,
+          `${path} header layout at ${width}px`
+        );
         for (const theme of ['light','dark','system']) {
           for (const size of ['standard','large','xlarge']) {
             await page.evaluate(({theme,size}) => { window.siteTheme.setPreference(theme); window.siteTextSize.setPreference(size); }, {theme,size});

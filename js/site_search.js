@@ -39,6 +39,7 @@
   let faqView = null;
   let siteView = null;
   let faqContent = null;
+  let filterGroup = null;
   let filterButtons = [];
   let currentCourse = '';
   let currentView = 'faq';
@@ -205,7 +206,10 @@
 
       const index = await response.json();
       if (!core().validateIndex(index)) throw new Error('unsupported search index');
-      documents = index.documents.filter(document => window.isPageLinkReleased?.(document));
+      documents = index.documents.filter(document =>
+        window.pages?.[document.id]?.release === true
+      );
+      renderCourseFilters();
       return documents;
     })().catch(error => {
       indexPromise = null;
@@ -319,33 +323,43 @@
       : 'よくある質問';
   }
 
+  function renderCourseFilters() {
+    if (!filterGroup) return;
+
+    const availableCourses = new Set(documents.map(document => document.course));
+    if (currentCourse && !availableCourses.has(currentCourse)) currentCourse = '';
+
+    filterButtons = COURSE_FILTERS
+      .filter(filter => !filter.value || availableCourses.has(filter.value))
+      .map(filter => {
+        const button = el('button', {
+          type: 'button',
+          className: 'site-search__filter',
+          'aria-pressed': String(filter.value === currentCourse),
+          dataset: { course: filter.value }
+        }, filter.label);
+
+        button.addEventListener('click', () => {
+          currentCourse = filter.value;
+          filterButtons.forEach(candidate => {
+            candidate.setAttribute('aria-pressed', String(candidate === button));
+          });
+          searchNow({ resetCount: true });
+        });
+        return button;
+      });
+
+    filterGroup.replaceChildren(...filterButtons);
+  }
+
   function createFilter() {
-    const group = el('div', {
+    filterGroup = el('div', {
       className: 'site-search__filters',
       role: 'group',
       'aria-label': '講座で絞り込む'
     });
-
-    filterButtons = COURSE_FILTERS.map(filter => {
-      const button = el('button', {
-        type: 'button',
-        className: 'site-search__filter',
-        'aria-pressed': filter.value === '' ? 'true' : 'false',
-        dataset: { course: filter.value }
-      }, filter.label);
-
-      button.addEventListener('click', () => {
-        currentCourse = filter.value;
-        filterButtons.forEach(candidate => {
-          candidate.setAttribute('aria-pressed', String(candidate === button));
-        });
-        searchNow({ resetCount: true });
-      });
-      group.appendChild(button);
-      return button;
-    });
-
-    return group;
+    renderCourseFilters();
+    return filterGroup;
   }
 
   function createDialog() {
