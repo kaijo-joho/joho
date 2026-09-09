@@ -510,6 +510,7 @@
     createDescAndFileList(article, 'dlFile');
     createDescAndFileList(article, 'practiceFile', '', { worksheet: isLesson });
     if (isLesson) {
+      createDescAndFileList(article, 'worksheetApp', '', { worksheetApp: true });
       const seriesIndex = Object.values(window.pages || {}).find(page =>
         /^[a-z]{2}00$/.test(page.id) && page.mainTitle === meta.mainTitle && page.release === true
       );
@@ -524,17 +525,24 @@
     pageHeader.appendChild(article);
   }
 
-  function createDescAndFileList(parentElem, type, subDesc = '', { worksheet = false } = {}) {
+  function createDescAndFileList(
+    parentElem,
+    type,
+    subDesc = '',
+    { worksheet = false, worksheetApp = false } = {}
+  ) {
     const files = releasedItems(type);
     if (files.length === 0) return false;
 
     const p1 = document.createElement('p');
-    p1.innerHTML = worksheet
-      ? 'ワークシート（PDF）をダウンロードして、学習に使ってください。'
-      : COMMON_DESCRIPTION[type] || '';
+    p1.innerHTML = worksheetApp
+      ? 'ブラウザでワークシートを開き、印刷や解答・解説の確認ができます。'
+      : worksheet
+        ? 'ワークシート（PDF）をダウンロードして、学習に使ってください。'
+        : COMMON_DESCRIPTION[type] || '';
     parentElem.appendChild(p1);
 
-    const { ul, hasRightClickFile } = createFileList(files, type, { worksheet });
+    const { ul, hasRightClickFile } = createFileList(files, type, { worksheet, worksheetApp });
     parentElem.appendChild(ul);
 
     if (hasRightClickFile) {
@@ -552,7 +560,7 @@
     return true;
   }
 
-  function createFileList(files, type, { worksheet = false } = {}) {
+  function createFileList(files, type, { worksheet = false, worksheetApp = false } = {}) {
     const ul = document.createElement('ul');
     ul.className = 'file-list';
     let hasRightClickFile = false;
@@ -568,21 +576,23 @@
       const links = document.createElement('span');
       links.className = 'file-links';
 
-      if (worksheet) {
+      if (worksheet || worksheetApp) {
         const name = document.createElement('span');
         name.className = 'file-name';
         name.textContent = label;
         li.appendChild(name);
 
-        const download = document.createElement('a');
-        download.href = url;
-        download.className = 'file-link';
-        download.textContent = 'PDFをダウンロード';
-        download.setAttribute('aria-label', `${label}：PDFをダウンロード`);
-        download.target = '_blank';
-        download.rel = 'noopener';
-        if (isLocalFile) download.setAttribute('download', '');
-        links.appendChild(download);
+        const action = document.createElement('a');
+        action.href = url;
+        action.className = 'file-link';
+        action.textContent = worksheetApp
+          ? 'ワークシートを開く（印刷・解答・解説）'
+          : 'PDFをダウンロード';
+        action.setAttribute('aria-label', `${label}：${action.textContent}`);
+        action.target = '_blank';
+        action.rel = 'noopener';
+        if (worksheet && isLocalFile) action.setAttribute('download', '');
+        links.appendChild(action);
       } else if (type === 'dlFile') {
         const name = document.createElement('span');
         name.className = 'file-name';

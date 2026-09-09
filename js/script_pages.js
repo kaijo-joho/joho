@@ -232,6 +232,12 @@ function getHtml_Index(pagesDict, currentId) {
 }
 
 const COURSE_RESOURCE_TYPES = [
+  {
+    key: 'worksheetApp',
+    label: 'ワークシート',
+    fallback: 'ワークシート',
+    actionLabel: 'ワークシートを開く（印刷・解答・解説）'
+  },
   { key: 'practiceFile', label: '配付ノートブック', fallback: 'ノートブックを開く' },
   { key: 'questionFile', label: '演習問題', fallback: '演習問題を開く' },
   { key: 'quizForm', label: '確認テスト', fallback: '確認テストを開く' }
@@ -321,7 +327,11 @@ function renderCourseResourceIndex(pagesDict, currentId) {
           resourceLink.className = 'file-link';
           resourceLink.target = '_blank';
           resourceLink.rel = 'noopener';
-          resourceLink.textContent = item.text || item.title || item.fileName || resource.fallback;
+          const itemLabel = item.text || item.title || item.fileName || resource.fallback;
+          resourceLink.textContent = resource.actionLabel || itemLabel;
+          if (resource.actionLabel) {
+            resourceLink.setAttribute('aria-label', `${itemLabel}：${resource.actionLabel}`);
+          }
 
           resourceItem.appendChild(resourceLink);
           resourceList.appendChild(resourceItem);

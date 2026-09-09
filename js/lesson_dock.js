@@ -7,6 +7,7 @@
   // ==================== アイコン設定（任意） ====================
   const ICON_PATHS = {
     // practicefile: './img/icons/notebook.svg',
+    // worksheet:    './img/icons/worksheet.svg',
     // exercise:     './img/icons/exercise.svg',
     // quiz:         { src: './img/icons/quiz.svg', emoji: '📝' },
     // download:     './img/icons/download.svg',
@@ -16,6 +17,7 @@
 
   const DEFAULT_EMOJI = {
     practicefile: '💾',
+    worksheet:    '📄',
     exercise:     '✍️',
     quiz:         '📝',
     download:     '📥',
@@ -33,6 +35,7 @@
 
   const DEFAULT_SVG = {
     practicefile: svgIcon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4"/>'),
+    worksheet:    svgIcon('<path d="M6 3h9l3 3v15H6Z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>'),
     exercise:     svgIcon('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>'),
     quiz:         svgIcon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h4M9 16h2"/>'),
     download:     svgIcon('<path d="M12 3v12M8 11l4 4 4-4M5 21h14"/>'),
@@ -248,9 +251,9 @@
     if (!raw || raw.release === false) return null;
 
     const text = textOf(raw) || '';
-    let url = raw.url || '';
+    let url = typeof raw.url === 'string' ? raw.url.trim() : '';
 
-    if (!url && LD_CFG.enableFallback) {
+    if (!url && LD_CFG.enableFallback && kind !== 'worksheet') {
       const fid = idOf(raw);
       if (fid) {
         url = (kind === 'quiz') ? quizURL(fid) : fileURL(fid);
@@ -273,6 +276,7 @@
 
   function buildLessonDockModel(curr, pages, currentPageKey) {
     const course       = inferCourseFromPageKey(currentPageKey);
+    const worksheet    = listFrom(curr.worksheetApp, 'worksheet');
     const practicefile = listFrom(curr.practiceFile, 'practicefile');
     const exercise     = listFrom(curr.questionFile, 'exercise');
     const quiz         = listFrom(curr.quizForm,     'quiz');
@@ -327,6 +331,7 @@
 
     return {
       course,
+      worksheet,
       practicefile,
       exercise,
       quiz,
@@ -351,6 +356,31 @@
 
     sec.appendChild(ul);
 
+    return sec;
+  }
+
+  function secWorksheet(title, items) {
+    const sec = el('div', { class: 'ld-sec' });
+    sec.appendChild(el('h3', { class: 'ld-sec__title' }, title));
+
+    const ul = el('ul', { class: 'ld-sec__list' });
+
+    items.forEach(it => {
+      const label = it.text || it.title || 'ワークシート';
+      const actionLabel = 'ワークシートを開く（印刷・解答・解説）';
+      const li = el('li', { class: 'ld-sec__item ld-worksheet' }, [
+        el('span', { class: 'ld-worksheet__title' }, label),
+        el('a', {
+          href: it.url,
+          target: '_blank',
+          rel: 'noopener',
+          'aria-label': `${label}：${actionLabel}`
+        }, actionLabel)
+      ]);
+      ul.appendChild(li);
+    });
+
+    sec.appendChild(ul);
     return sec;
   }
 
@@ -716,6 +746,16 @@
 
     const groups = [];
     const compactSections = [];
+
+    if (model.worksheet.length) {
+      groups.push(buildGroup({
+        key: 'worksheet',
+        label: 'ワークシート',
+        section: secWorksheet('ワークシート', model.worksheet),
+        groupClass: 'lesson-dock__group--desktop'
+      }));
+      compactSections.push(secWorksheet('ワークシート', model.worksheet));
+    }
 
     if (model.practicefile.length) {
       groups.push(buildGroup({

@@ -295,6 +295,29 @@
   transform: translateY(-1px);
 }
 
+.lesson-dock__panel .ld-worksheet {
+  display: grid;
+  gap: 6px;
+}
+
+.lesson-dock__panel .ld-worksheet__title {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.lesson-dock__panel .ld-worksheet a {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  overflow-wrap: anywhere;
+}
+
+.lesson-dock__panel .ld-worksheet a:focus-visible {
+  outline: 3px solid color-mix(in oklab, var(--theme-color, #225386) 58%, #fff 42%);
+  outline-offset: 2px;
+}
+
 /* ---- “次回” セクション（見出し＋タイトル＋説明） ---------------------- */
 .lesson-dock__panel .ld-next__title {
   font-weight: 800;
