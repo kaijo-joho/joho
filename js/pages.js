@@ -1,4 +1,4 @@
-//2026-09-09 11:02:19;
+//2026-09-09 11:13:03;
 const pages = {
   "index": {
     "id": "index",
@@ -422,7 +422,7 @@ const pages = {
     "mainTitle": "HTML実習",
     "category": "1. HTMLの基本",
     "title": "HTML実習の目次",
-    "detail": "HTML実習の目次",
+    "detail": "HTMLとCSSの基本を学び、Webページ制作に取り組みます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
@@ -922,7 +922,7 @@ const pages = {
         "text": "HTML実習の目次",
         "release": true,
         "url": "html00.html",
-        "detail": "HTML実習の目次"
+        "detail": "HTMLとCSSの基本を学び、Webページ制作に取り組みます。"
       }
     ],
     "show": true,
@@ -949,7 +949,7 @@ const pages = {
         "text": "HTML実習の目次",
         "release": true,
         "url": "html00.html",
-        "detail": "HTML実習の目次"
+        "detail": "HTMLとCSSの基本を学び、Webページ制作に取り組みます。"
       }
     ],
     "show": true,
@@ -976,7 +976,7 @@ const pages = {
         "text": "HTML実習の目次",
         "release": true,
         "url": "html00.html",
-        "detail": "HTML実習の目次"
+        "detail": "HTMLとCSSの基本を学び、Webページ制作に取り組みます。"
       }
     ],
     "show": true,
@@ -1025,7 +1025,7 @@ const pages = {
     "mainTitle": "Illustrator実習",
     "category": "Illustratorの基本",
     "title": "Illustrator実習の目次",
-    "detail": "Illustrator実習の目次ページです。",
+    "detail": "Illustratorの基本操作と、情報を伝えるためのデザインを学びます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
@@ -1282,7 +1282,7 @@ const pages = {
     "mainTitle": "Python講座",
     "category": "はじめに",
     "title": "Python講座の目次",
-    "detail": "Python講座の目次です。",
+    "detail": "Pythonの基本から、探索・整列、グラフ、シミュレーションまで学びます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
@@ -2659,7 +2659,7 @@ const pages = {
     "mainTitle": "スプレッドシート実習",
     "category": "1. スプレッドシートの基本",
     "title": "スプレッドシート実習目次",
-    "detail": "スプレッドシート実習の目次ページです。",
+    "detail": "スプレッドシートの基本操作から、関数、データ分析、モデル化とシミュレーションまで学びます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
