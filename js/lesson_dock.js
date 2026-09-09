@@ -2,8 +2,6 @@
 (() => {
   'use strict';
 
-  const OVERLAY_OPEN_EVENT = 'joho:overlay-open';
-
   // ==================== アイコン設定（任意） ====================
   const ICON_PATHS = {
     // practicefile: './img/icons/notebook.svg',
@@ -24,7 +22,7 @@
     faq:          '💬',
     next:         '⏭',
     search:       '🔎',
-    menu:         '☰'
+    menu:         '📄'
   };
 
   const svgIcon = (body) => `
@@ -42,7 +40,7 @@
     faq:          svgIcon('<path d="M21 12a8 8 0 0 1-9 8 9 9 0 0 1-4 1l1-3a8 8 0 1 1 12-6Z"/><path d="M9.8 9a2.3 2.3 0 0 1 4.4 1c0 1.5-2.2 1.7-2.2 3M12 16h.01"/>'),
     next:         svgIcon('<path d="m6 7 5 5-5 5M13 7l5 5-5 5"/>'),
     search:       svgIcon('<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>'),
-    menu:         svgIcon('<path d="M4 6h16M4 12h16M4 18h16"/>')
+    menu:         svgIcon('<rect x="7" y="3" width="13" height="16" rx="2"/><path d="M4 7v13a2 2 0 0 0 2 2h10M10 8h7M10 12h7"/>')
   };
 
   // ==================== helpers ====================
@@ -574,346 +572,57 @@
     return sec;
   }
 
-  // ==================== group (button + panel) ====================
-
-  function buildGroup({
-    key,
-    label,
-    section,
-    directUrl = '',
-    groupClass = '',
-    triggerLabel = label
-  }) {
-    const group = el('div', {
-      class: `lesson-dock__group${groupClass ? ` ${groupClass}` : ''}`
-    });
-    const panelId = `lesson-dock-panel-${key}`;
-    const isDirectLink = Boolean(directUrl);
-
-    const triggerAttrs = {
-      class: `lesson-dock__btn lesson-dock__btn--${key}`,
-      'aria-label': isDirectLink ? `${triggerLabel}へ移動` : triggerLabel,
-      'aria-controls': panelId,
-      'aria-expanded': 'false',
-      dataset: { label: triggerLabel }
-    };
-
-    if (isDirectLink) triggerAttrs.href = directUrl;
-    else triggerAttrs.type = 'button';
-
-    const btn = el(isDirectLink ? 'a' : 'button', triggerAttrs, createIconNode(key));
-
-    const panel = el('div', {
-      id: panelId,
-      class: `lesson-dock__panel lesson-dock__panel--${key}`,
-      role: 'group',
-      'aria-label': label
-    });
-
-    if (section) panel.appendChild(section);
-
-    group.appendChild(btn);
-    group.appendChild(panel);
-
-    return { group, btn, panel, isDirectLink };
-  }
-
-  function buildActionButton({ key, label, onActivate }) {
-    const group = el('div', {
-      class: `lesson-dock__group lesson-dock__group--${key}`
-    });
-    const btn = el('button', {
-      type: 'button',
-      class: `lesson-dock__btn lesson-dock__btn--${key}`,
-      'aria-label': label,
-      dataset: { label }
-    }, createIconNode(key));
-
-    btn.addEventListener('click', event => {
-      event.preventDefault();
-      onActivate?.(btn);
-    });
-    group.appendChild(btn);
-    return { group, btn };
-  }
-
-  // ==================== hover open / delayed close ====================
-
-  function wireHover(
-    { group, btn, panel, isDirectLink },
-    {
-      openDelay = 220,
-      closeDelay = 420,
-      onBeforeOpen = () => {},
-      onOpened = () => {},
-      onClosed = () => {}
-    } = {}
-  ) {
-    let tOpen = null;
-    let tClose = null;
-
-    const open  = () => {
-      clearTimeout(tClose);
-      if (panel.classList.contains('is-open')) return;
-      onBeforeOpen();
-      panel.classList.add('is-open');
-      btn.setAttribute('aria-expanded', 'true');
-      onOpened();
-    };
-
-    const close = () => {
-      clearTimeout(tOpen);
-      clearTimeout(tClose);
-      if (!panel.classList.contains('is-open')) return;
-      panel.classList.remove('is-open');
-      btn.setAttribute('aria-expanded', 'false');
-      onClosed();
-    };
-
-    const scheduleOpen  = () => {
-      clearTimeout(tClose);
-      tOpen = setTimeout(open, openDelay);
-    };
-
-    const scheduleClose = () => {
-      clearTimeout(tOpen);
-      clearTimeout(tClose);
-
-      if (group.contains(document.activeElement)) return;
-
-      tClose = setTimeout(() => {
-        if (!group.contains(document.activeElement)) close();
-      }, closeDelay);
-    };
-
-    btn.addEventListener('mouseenter', scheduleOpen);
-    panel.addEventListener('mouseenter', () => clearTimeout(tClose));
-    group.addEventListener('mouseenter', () => clearTimeout(tClose));
-    group.addEventListener('mouseleave', scheduleClose);
-    panel.addEventListener('focusin', () => {
-      clearTimeout(tClose);
-      open();
-    });
-    panel.addEventListener('focusout', event => {
-      if (panel.contains(event.relatedTarget)) return;
-      scheduleClose();
-    });
-
-    if (!isDirectLink) {
-      btn.addEventListener('click', (e) => {
-        e.preventDefault();
-
-        const willOpen = !panel.classList.contains('is-open');
-
-        clearTimeout(tOpen);
-        clearTimeout(tClose);
-
-        if (willOpen) open();
-        else close();
-      });
-    }
-
-    return { group, btn, panel, open, close };
-  }
-
-  // ==================== entry point ====================
+  // ==================== 共通ヘッダーへの教材・検索入口 ====================
 
   function initLessonDockFromPages() {
     if (!window.pages) return;
+    const controls = document.querySelector('.headerbar__actions .site-preference-controls, .site-preference-controls--legacy');
+    const bind = window.siteHeaderMenus?.bind;
+    if (!controls || !bind) return;
 
     const id = pageId();
-    const curr = window.pages[id] || null;
-    const searchAvailable =
-      document.documentElement.dataset.siteSearchReady === 'true' &&
-      typeof window.openSiteSearch === 'function';
-
-    if (!curr && !searchAvailable) return;
-
-    const model = buildLessonDockModel(curr || {}, window.pages, id);
-
-    // デバッグ用
+    const model = buildLessonDockModel(window.pages[id] || {}, window.pages, id);
     window.lessonDockData = model;
-
-    if (typeof window.__lessonDockCleanup === 'function') {
-      window.__lessonDockCleanup();
-    }
+    window.__lessonDockCleanup?.();
     $('#lesson-dock')?.remove();
 
-    const root  = el('div', { id: 'lesson-dock', class: 'lesson-dock' });
-    const stack = el('div', { class: 'lesson-dock__stack' });
+    const root = el('div', { id: 'lesson-dock', class: 'lesson-dock', role: 'group', 'aria-label': '教材と検索' });
+    const sections = [];
+    if (model.worksheet.length) sections.push(secWorksheet('ワークシート', model.worksheet));
+    if (model.practicefile.length) sections.push(secList('実習ファイル', model.practicefile));
+    if (model.exercise.length) sections.push(secList('演習問題', model.exercise));
+    if (model.quiz.length) sections.push(secList('確認テスト', model.quiz));
+    if (model.download.length) sections.push(secDownload('ダウンロードファイル', model.download));
+    if (model.next.length) sections.push(secNexts(model.next));
+    if (model.course) sections.push(secFaq('よくある質問', model.faq, model.course));
 
-    root.appendChild(stack);
-
-    const groups = [];
-    const compactSections = [];
-
-    if (model.worksheet.length) {
-      groups.push(buildGroup({
-        key: 'worksheet',
-        label: 'ワークシート',
-        section: secWorksheet('ワークシート', model.worksheet),
-        groupClass: 'lesson-dock__group--desktop'
-      }));
-      compactSections.push(secWorksheet('ワークシート', model.worksheet));
+    let popup;
+    if (sections.length) {
+      const group = el('div', { class: 'site-header-menu lesson-dock__group' });
+      const trigger = el('button', {
+        type: 'button', class: 'site-header-button lesson-dock__btn lesson-dock__btn--menu',
+        'aria-label': '教材メニューを開く', title: '教材メニュー'
+      }, createIconNode('menu'));
+      const panel = el('div', {
+        id: 'lesson-dock-panel-menu', class: 'site-header-panel lesson-dock__panel lesson-dock__panel--menu',
+        role: 'group', 'aria-label': 'このページの教材'
+      }, sections);
+      group.append(trigger, panel);
+      root.appendChild(group);
+      popup = bind({ root: group, trigger, panel });
     }
 
-    if (model.practicefile.length) {
-      groups.push(buildGroup({
-        key: 'practicefile',
-        label: '実習ファイル',
-        section: secList('実習ファイル', model.practicefile),
-        groupClass: 'lesson-dock__group--desktop'
-      }));
-      compactSections.push(secList('実習ファイル', model.practicefile));
+    if (document.documentElement.dataset.siteSearchReady === 'true' && typeof window.openSiteSearch === 'function') {
+      const search = el('button', {
+        type: 'button', tabindex: '0', class: 'site-header-button lesson-dock__btn lesson-dock__btn--search',
+        'aria-label': '教材サイト内検索', title: '教材サイト内検索'
+      }, createIconNode('search'));
+      search.addEventListener('click', () => window.openSiteSearch(search));
+      root.appendChild(search);
     }
-
-    if (model.exercise.length) {
-      groups.push(buildGroup({
-        key: 'exercise',
-        label: '演習問題',
-        section: secList('演習問題', model.exercise),
-        groupClass: 'lesson-dock__group--desktop'
-      }));
-      compactSections.push(secList('演習問題', model.exercise));
-    }
-
-    if (model.quiz.length) {
-      groups.push(buildGroup({
-        key: 'quiz',
-        label: '確認テスト',
-        section: secList('確認テスト', model.quiz),
-        groupClass: 'lesson-dock__group--desktop'
-      }));
-      compactSections.push(secList('確認テスト', model.quiz));
-    }
-
-    if (model.download.length) {
-      groups.push(buildGroup({
-        key: 'download',
-        label: 'ダウンロードファイル',
-        section: secDownload('ダウンロードファイル', model.download),
-        groupClass: 'lesson-dock__group--desktop'
-      }));
-      compactSections.push(secDownload('ダウンロードファイル', model.download));
-    }
-
-    if (model.course) {
-      groups.push(buildGroup({
-        key: 'faq',
-        label: 'よくある質問',
-        section: secFaq('よくある質問', model.faq, model.course),
-        groupClass: 'lesson-dock__group--desktop'
-      }));
-      compactSections.push(secFaq('よくある質問', model.faq, model.course, 'compact'));
-    }
-
-    if (compactSections.length) {
-      groups.push(buildGroup({
-        key: 'menu',
-        label: '教材メニュー',
-        section: el('div', { class: 'ld-compact-menu' }, compactSections),
-        groupClass: 'lesson-dock__group--compact'
-      }));
-    }
-
-    if (model.next.length) {
-      groups.push(buildGroup({
-        key: 'next',
-        label: '次回',
-        section: secNexts(model.next),
-        directUrl: model.next.length === 1 ? model.next[0].url : '',
-        groupClass: 'lesson-dock__group--next',
-        triggerLabel: model.next.length === 1
-          ? `次回：${model.next[0].title || '次のページ'}`
-          : `次回（${model.next.length}件）`
-      }));
-    }
-
-    const searchAction = searchAvailable
-      ? buildActionButton({
-          key: 'search',
-          label: '教材サイト内検索',
-          onActivate: button => window.openSiteSearch(button)
-        })
-      : null;
-
-    if (!groups.length && !searchAction) return;
-
-    groups.forEach(g => stack.appendChild(g.group));
-    if (searchAction) stack.appendChild(searchAction.group);
-    document.body.appendChild(root);
-
-    const controllers = [];
-    let activeController = null;
-
-    groups.forEach(group => {
-      let controller = null;
-      controller = wireHover(group, {
-        openDelay: 220,
-        closeDelay: 420,
-        onBeforeOpen: () => {
-          controllers.forEach(other => {
-            if (other !== controller) other.close();
-          });
-          document.dispatchEvent(new CustomEvent(OVERLAY_OPEN_EVENT, {
-            detail: { source: 'lesson-dock' }
-          }));
-        },
-        onOpened: () => {
-          activeController = controller;
-        },
-        onClosed: () => {
-          if (activeController === controller) activeController = null;
-        }
-      });
-      controllers.push(controller);
-    });
-
-    const closeAll = () => controllers.forEach(controller => controller.close());
-
-    const handleExternalOverlay = event => {
-      if (event.detail?.source === 'lesson-dock') return;
-      closeAll();
-    };
-
-    const handleOutsidePointer = event => {
-      if (!root.contains(event.target)) closeAll();
-    };
-
-    const handleEscape = event => {
-      if (event.key !== 'Escape' || !activeController) return;
-      const trigger = activeController.btn;
-      closeAll();
-      trigger.focus();
-    };
-
-    const compactQuery = window.matchMedia('(max-width: 900px), (max-height: 600px)');
-    const handleCompactChange = () => closeAll();
-
-    document.addEventListener(OVERLAY_OPEN_EVENT, handleExternalOverlay);
-    document.addEventListener('pointerdown', handleOutsidePointer);
-    document.addEventListener('keydown', handleEscape);
-
-    if (typeof compactQuery.addEventListener === 'function') {
-      compactQuery.addEventListener('change', handleCompactChange);
-    } else {
-      compactQuery.addListener(handleCompactChange);
-    }
-
-    window.__lessonDockCleanup = () => {
-      closeAll();
-      document.removeEventListener(OVERLAY_OPEN_EVENT, handleExternalOverlay);
-      document.removeEventListener('pointerdown', handleOutsidePointer);
-      document.removeEventListener('keydown', handleEscape);
-
-      if (typeof compactQuery.removeEventListener === 'function') {
-        compactQuery.removeEventListener('change', handleCompactChange);
-      } else {
-        compactQuery.removeListener(handleCompactChange);
-      }
-    };
+    if (root.childElementCount) controls.before(root);
+    window.__lessonDockCleanup = () => popup?.destroy();
   }
 
-  // main.js から呼ぶ
   window.initLessonDockFromPages = initLessonDockFromPages;
 })();

@@ -13,7 +13,6 @@
 
   let inited = false;
   let preferenceMenuSequence = 0;
-  let activePreferenceMenu = null;
   const pageLinkBaseUrl = document.currentScript?.src
     ? new URL('../', document.currentScript.src)
     : new URL('./', document.baseURI);
@@ -105,6 +104,108 @@
 
   window.isPageLinkReleased = isPageLinkReleased;
 
+  // ヘッダー内の目次・教材・表示設定・全画面開始に共通の開閉動作。
+  function bindHeaderMenu({ root, trigger, panel, onOpen = () => {}, onClose = () => {}, enabled = () => true }) {
+    const abort = new AbortController();
+    const listen = (target, type, handler, options = {}) =>
+      target.addEventListener(type, handler, { ...options, signal: abort.signal });
+    let openTimer;
+    let closeTimer;
+    let openedByHover = false;
+    panel.hidden = true;
+    trigger.tabIndex = 0;
+    // Safariの標準設定でも、メニュー内のリンクをTabで辿れるよう明示する。
+    panel.querySelectorAll('a[href], button, summary').forEach(item => {
+      if (!item.hasAttribute('tabindex')) item.tabIndex = 0;
+    });
+    trigger.setAttribute('aria-controls', panel.id);
+    trigger.setAttribute('aria-expanded', 'false');
+    const isOpen = () => !panel.hidden;
+    const cancelTimers = () => { clearTimeout(openTimer); clearTimeout(closeTimer); };
+    const position = () => {
+      if (!isOpen()) return;
+      panel.style.setProperty('--header-panel-offset', '0px');
+      const rect = panel.getBoundingClientRect();
+      const shift = Math.max(8 - rect.left, Math.min(0, document.documentElement.clientWidth - 8 - rect.right));
+      panel.style.setProperty('--header-panel-offset', `${shift}px`);
+      panel.style.setProperty('--header-panel-max-height', `${Math.max(44, window.innerHeight - rect.top - 8)}px`);
+    };
+    const open = ({ focus = false, hover = false } = {}) => {
+      cancelTimers();
+      if (!enabled() || trigger.disabled) return;
+      if (!isOpen()) {
+        document.dispatchEvent(new CustomEvent('joho:overlay-open', { detail: { source: panel.id } }));
+        panel.hidden = false;
+        root.classList.add('is-open');
+        trigger.setAttribute('aria-expanded', 'true');
+        openedByHover = hover;
+        onOpen();
+      }
+      position();
+      if (focus) {
+        const items = Array.from(panel.querySelectorAll('a[href], button:not(:disabled), input, select, summary, [tabindex]'))
+          .filter(item => item.getClientRects().length);
+        (focus === 'last' ? items.at(-1) : items[0])?.focus({ preventScroll: true });
+      }
+    };
+    const close = ({ restoreFocus = false } = {}) => {
+      cancelTimers();
+      if (!isOpen()) return;
+      panel.hidden = true;
+      root.classList.remove('is-open');
+      trigger.setAttribute('aria-expanded', 'false');
+      openedByHover = false;
+      onClose();
+      if (restoreFocus) trigger.focus({ preventScroll: true });
+    };
+    listen(trigger, 'click', event => {
+      if (!enabled()) return;
+      event.preventDefault();
+      cancelTimers();
+      // ホバーで開いた直後のクリックは開いた状態を保つ。
+      if (isOpen() && openedByHover && event.detail > 0) openedByHover = false;
+      else if (isOpen()) close();
+      else open();
+    });
+    listen(trigger, 'keydown', event => {
+      if (!enabled() || !['ArrowDown', 'ArrowUp'].includes(event.key)) return;
+      event.preventDefault();
+      open({ focus: event.key === 'ArrowUp' ? 'last' : 'first' });
+    });
+    listen(root, 'pointerenter', event => {
+      if (event.pointerType !== 'mouse' || !window.matchMedia('(hover: hover)').matches) return;
+      cancelTimers();
+      openTimer = setTimeout(() => open({ hover: true }), 180);
+    });
+    listen(root, 'pointerleave', event => {
+      if (event.pointerType !== 'mouse') return;
+      cancelTimers();
+      closeTimer = setTimeout(() => {
+        if (!root.contains(document.activeElement) && !root.matches(':hover')) close();
+      }, 300);
+    });
+    listen(root, 'focusin', cancelTimers);
+    listen(root, 'focusout', event => {
+      if (!root.contains(event.relatedTarget)) close();
+    });
+    listen(document, 'pointerdown', event => {
+      if (!root.contains(event.target)) close({ restoreFocus: panel.contains(document.activeElement) });
+    });
+    listen(document, 'keydown', event => {
+      if (event.key !== 'Escape' || !isOpen()) return;
+      event.preventDefault();
+      close({ restoreFocus: true });
+    });
+    listen(document, 'joho:overlay-open', event => {
+      if (event.detail?.source !== panel.id) close({ restoreFocus: panel.contains(document.activeElement) });
+    });
+    listen(window, 'resize', position);
+    listen(document, 'scroll', position, { capture: true, passive: true });
+    return { open, close, destroy: () => { close(); abort.abort(); } };
+  }
+
+  window.siteHeaderMenus = { bind: bindHeaderMenu };
+
   function releasedItems(type) {
     const items = meta && Array.isArray(meta[type]) ? meta[type] : [];
     return items.filter(item =>
@@ -122,16 +223,16 @@
     changeEvent
   }) {
     const menu = document.createElement('div');
-    menu.className = `site-preference-menu ${className}`;
+    menu.className = `site-header-menu site-preference-menu ${className}`;
 
     const trigger = document.createElement('button');
     trigger.type = 'button';
-    trigger.className = `site-preference-menu__trigger ${className}__trigger`;
+    trigger.className = `site-header-button site-preference-menu__trigger ${className}__trigger`;
     trigger.setAttribute('aria-haspopup', 'menu');
     trigger.setAttribute('aria-expanded', 'false');
 
     const optionPanel = document.createElement('div');
-    optionPanel.className = `site-preference-menu__options ${className}__options`;
+    optionPanel.className = `site-header-panel site-preference-menu__options ${className}__options`;
     optionPanel.id = `site-${idPrefix}-options-${++preferenceMenuSequence}`;
     optionPanel.setAttribute('role', 'menu');
     optionPanel.setAttribute('aria-label', panelLabel);
@@ -156,8 +257,6 @@
     menu.append(trigger, optionPanel);
 
     let currentValue = options[0].value;
-    let closeTimer = null;
-    let lastPointerType = '';
 
     const visibleOptionButtons = () => optionButtons.filter(button => !button.hidden);
 
@@ -185,72 +284,25 @@
       }
     };
 
-    const isOpen = () => trigger.getAttribute('aria-expanded') === 'true';
-
-    const openMenu = ({ focus = 'none' } = {}) => {
-      if (activePreferenceMenu && activePreferenceMenu.menu !== menu) {
-        activePreferenceMenu.close({
-          restoreFocus: activePreferenceMenu.menu.contains(document.activeElement)
-        });
-      }
-      clearTimeout(closeTimer);
-      optionPanel.hidden = false;
-      menu.classList.add('is-open');
-      trigger.setAttribute('aria-expanded', 'true');
-      activePreferenceMenu = { menu, close: closeMenu };
-
-      const visible = visibleOptionButtons();
-      visible.forEach((button, index) => {
-        button.tabIndex = index === 0 ? 0 : -1;
-      });
-
-      if (focus === 'first') visible[0]?.focus();
-      if (focus === 'last') visible[visible.length - 1]?.focus();
-    };
-
-    const closeMenu = ({ restoreFocus = false } = {}) => {
-      clearTimeout(closeTimer);
-      optionPanel.hidden = true;
-      menu.classList.remove('is-open');
-      trigger.setAttribute('aria-expanded', 'false');
-      optionButtons.forEach(button => { button.tabIndex = -1; });
-      if (activePreferenceMenu?.menu === menu) activePreferenceMenu = null;
-      if (restoreFocus) trigger.focus({ preventScroll: true });
-    };
+    const popup = bindHeaderMenu({
+      root: menu, trigger, panel: optionPanel,
+      onOpen: () => {
+        visibleOptionButtons().forEach((button, index) => { button.tabIndex = index === 0 ? 0 : -1; });
+      },
+      onClose: () => optionButtons.forEach(button => { button.tabIndex = -1; })
+    });
 
     if (controller && typeof controller.setPreference === 'function') {
+      trigger.addEventListener('keydown', event => {
+        if (!['ArrowRight', 'ArrowLeft', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        popup.open({ focus: ['ArrowLeft', 'End'].includes(event.key) ? 'last' : 'first' });
+      });
       optionButtons.forEach(button => {
         button.addEventListener('click', () => {
           controller.setPreference(button.dataset.preferenceValue);
-          closeMenu({ restoreFocus: true });
+          popup.close({ restoreFocus: true });
         });
-      });
-
-      trigger.addEventListener('pointerdown', event => {
-        lastPointerType = event.pointerType || '';
-      });
-
-      trigger.addEventListener('click', () => {
-        if (isOpen() && lastPointerType === 'mouse') {
-          lastPointerType = '';
-          return;
-        }
-        if (isOpen()) closeMenu();
-        else openMenu();
-        lastPointerType = '';
-      });
-
-      trigger.addEventListener('keydown', event => {
-        if (['ArrowRight', 'ArrowDown', 'Home'].includes(event.key)) {
-          event.preventDefault();
-          openMenu({ focus: 'first' });
-        } else if (['ArrowLeft', 'ArrowUp', 'End'].includes(event.key)) {
-          event.preventDefault();
-          openMenu({ focus: 'last' });
-        } else if (event.key === 'Escape') {
-          event.preventDefault();
-          closeMenu();
-        }
       });
 
       optionPanel.addEventListener('keydown', event => {
@@ -269,7 +321,7 @@
           nextIndex = visible.length - 1;
         } else if (event.key === 'Escape') {
           event.preventDefault();
-          closeMenu({ restoreFocus: true });
+          popup.close({ restoreFocus: true });
           return;
         }
 
@@ -278,29 +330,6 @@
         visible.forEach(button => { button.tabIndex = -1; });
         visible[nextIndex].tabIndex = 0;
         visible[nextIndex].focus();
-      });
-
-      menu.addEventListener('pointerenter', event => {
-        if (event.pointerType !== 'touch') openMenu();
-      });
-      menu.addEventListener('pointerleave', event => {
-        if (event.pointerType === 'touch') return;
-        clearTimeout(closeTimer);
-        closeTimer = setTimeout(() => {
-          if (!menu.contains(document.activeElement)) closeMenu();
-        }, 220);
-      });
-
-      menu.addEventListener('focusout', event => {
-        if (!menu.contains(event.relatedTarget)) closeMenu();
-      });
-
-      document.addEventListener('pointerdown', event => {
-        if (isOpen() && !menu.contains(event.target)) closeMenu();
-      });
-
-      document.addEventListener('keydown', event => {
-        if (event.key === 'Escape' && isOpen()) closeMenu({ restoreFocus: true });
       });
 
       syncCurrentPreference(controller.preference);

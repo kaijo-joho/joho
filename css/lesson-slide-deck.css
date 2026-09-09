@@ -75,6 +75,10 @@ body.lesson-slide-ready.is-lesson-fullscreen #site-header {
   outline-color: var(--lesson-slide-focus);
 }
 
+.lesson-slide-deck__fullscreen-menu {
+  width: min(270px, calc(100vw - 16px));
+}
+
 .lesson-slide-deck__fullscreen-error {
   margin: 6px 0 0;
   color: var(--lesson-slide-text);
@@ -558,30 +562,6 @@ body.lesson-slide-ready [data-lesson-view-controls] {
 @media (max-width: 560px) {
   body.lesson-slide-ready {
     --content-gutter: 8px;
-  }
-
-  body.lesson-slide-ready .headerbar {
-    flex-flow: row nowrap;
-    gap: 6px;
-    padding-block: 4px;
-  }
-
-  body.lesson-slide-ready .headerbar__brand {
-    flex: 1 1 auto;
-    font-size: clamp(.98rem, 4.5vw, 1.15rem);
-    white-space: nowrap;
-  }
-
-  body.lesson-slide-ready .headerbar__brand .subject,
-  body.lesson-slide-ready .headerbar__course {
-    display: none;
-  }
-
-  body.lesson-slide-ready .headerbar__actions {
-    width: auto;
-    flex: 0 0 auto;
-    flex-wrap: nowrap;
-    margin-left: auto;
   }
 
   body.lesson-slide-ready #page_header article {

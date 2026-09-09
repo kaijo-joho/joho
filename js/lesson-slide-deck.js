@@ -343,31 +343,43 @@
 
     initializeFullscreen() {
       const controls = this.siteHeader?.querySelector('.site-preference-controls');
-      // 文書全体を対象にして、本文外のLessonDock・検索・補足dialogと背景も維持する。
+      // 文書全体を対象にし、教材内の補足dialogと背景も維持する。
       const target = document.documentElement;
       const useStandard = typeof target.requestFullscreen === 'function' && document.fullscreenEnabled !== false;
       const request = useStandard ? target.requestFullscreen
         : document.webkitFullscreenEnabled !== false && target.webkitRequestFullscreen;
       const exit = useStandard ? document.exitFullscreen : document.webkitExitFullscreen;
-      if (!controls || typeof request !== 'function' || typeof exit !== 'function') return;
+      if (!controls || !window.siteHeaderMenus || typeof request !== 'function' || typeof exit !== 'function') return;
 
-      const button = createElement('button', 'lesson-slide-deck__fullscreen');
+      const menu = createElement('div', 'site-header-menu');
+      const button = createElement('button', 'site-header-button lesson-slide-deck__fullscreen');
       button.type = 'button';
-      button.setAttribute('aria-controls', this.deck.id);
       button.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path></path></svg>';
       const icon = button.querySelector('path');
+      const panel = createElement('div', 'site-header-panel lesson-slide-deck__fullscreen-menu');
+      panel.id = `${this.deck.id}-fullscreen-options`;
+      panel.setAttribute('role', 'group');
+      panel.setAttribute('aria-label', '全画面表示');
+      const start = createElement('button', 'site-header-panel__action', 'スライドを全画面表示');
+      start.type = 'button';
+      panel.appendChild(start);
+      menu.append(button, panel);
       const message = createElement('p', 'lesson-slide-deck__fullscreen-error');
       message.hidden = true;
       message.setAttribute('role', 'status');
       this.chooser.appendChild(message);
-      controls.appendChild(button);
+      controls.appendChild(menu);
 
       let active = false;
       let pending = false;
+      window.siteHeaderMenus.bind({ root: menu, trigger: button, panel, enabled: () => !active && !pending });
       const updateButton = () => {
-        const label = active ? '全画面表示を終了' : 'スライドを全画面表示';
+        const label = active ? '全画面表示を終了' : '全画面表示メニューを開く';
         button.setAttribute('aria-label', label);
         button.setAttribute('aria-pressed', String(active));
+        button.setAttribute('aria-controls', active ? this.deck.id : panel.id);
+        if (active) button.removeAttribute('aria-expanded');
+        else button.setAttribute('aria-expanded', 'false');
         button.title = active ? `${label}（Esc）` : label;
         icon.setAttribute('d', active
           ? 'M3 8h5V3M21 8h-5V3M16 21v-5h5M8 21v-5H3'
@@ -376,6 +388,7 @@
       const finishRequest = () => {
         pending = false;
         button.removeAttribute('aria-disabled');
+        start.removeAttribute('aria-disabled');
       };
       const closeOverlays = () => {
         document.dispatchEvent(new CustomEvent(OVERLAY_OPEN_EVENT, {
@@ -391,7 +404,8 @@
         closeOverlays();
         document.body.classList.toggle('is-lesson-fullscreen', active);
         // 同じボタンを移動し、ヘッダーを隠した全画面内にも終了操作を残す。
-        (active ? this.navigation : controls).appendChild(button);
+        if (active) this.navigation.appendChild(button);
+        else menu.insertBefore(button, panel);
         updateButton();
         button.focus({ preventScroll: true });
         this.preserveSelectFocus = false;
@@ -405,10 +419,11 @@
         this.scheduleMeasure();
       };
 
-      button.addEventListener('click', async () => {
+      const toggleFullscreen = async () => {
         if (pending) return;
         pending = true;
         button.setAttribute('aria-disabled', 'true');
+        start.setAttribute('aria-disabled', 'true');
         message.hidden = true;
         closeOverlays();
         try {
@@ -419,6 +434,11 @@
         } finally {
           finishRequest();
         }
+      };
+      start.addEventListener('click', toggleFullscreen);
+      button.addEventListener('click', () => {
+        // 通常時は共通メニューが開くだけ。全画面中は1クリックで終了する。
+        if (active) toggleFullscreen();
       });
       document.addEventListener('fullscreenchange', sync);
       document.addEventListener('webkitfullscreenchange', sync);
