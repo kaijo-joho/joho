@@ -153,9 +153,25 @@ body.lesson-slide-ready #page_header .file-link {
 body.lesson-slide-ready #examples_and_questions,
 body.lesson-slide-ready #questions,
 body.lesson-slide-ready #next_page,
-body.lesson-slide-ready #site-footer,
 body.lesson-slide-ready .lesson-slide-fallback-next {
   display: none;
+}
+
+@media screen {
+  body.lesson-slide-ready #site-footer {
+    box-sizing: border-box;
+    width: var(--content-width);
+    margin: 0 auto;
+    padding: 2px 8px 8px;
+    border-radius: 6px;
+    background-color: var(--lesson-slide-panel);
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  body.lesson-slide-ready.is-lesson-fullscreen #site-footer {
+    display: none;
+  }
 }
 
 .lesson-slide-deck {

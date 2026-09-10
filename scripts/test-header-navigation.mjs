@@ -37,26 +37,42 @@ async function headerIsSingleRow(page) {
   });
 }
 
+async function footerFits(page) {
+  await expect(page.locator('#site-footer')).toBeVisible();
+  await expect.poll(() => page.evaluate(() => {
+    const footer = document.querySelector('#site-footer').getBoundingClientRect();
+    const deck = document.querySelector('.lesson-slide-deck').getBoundingClientRect();
+    return footer.top >= deck.bottom && footer.left >= 7 && footer.right <= innerWidth - 7
+      && footer.bottom <= innerHeight + 1 && footer.bottom >= innerHeight - 2;
+  }), {message: 'footer fits below the slide without overlap or clipping'}).toBe(true);
+}
+
 async function fullScreen(page) {
   const trigger = page.locator('.lesson-slide-deck__fullscreen');
   const hash = new URL(page.url()).hash;
+  await footerFits(page);
   await trigger.click();
   await expect(page.locator('.lesson-slide-deck__fullscreen-menu')).toBeVisible();
   assert.equal(await page.evaluate(() => !!(document.fullscreenElement || document.webkitFullscreenElement)), false, 'icon only opens the menu');
   await page.getByRole('button', {name:'スライドを全画面表示',exact:true}).click();
   await expect(page.locator('body')).toHaveClass(/is-lesson-fullscreen/);
   await expect(page.locator('#site-header')).toBeHidden();
+  await expect(page.locator('#site-footer')).toBeHidden();
   await expect(page.locator('#lesson-dock')).toBeHidden();
   await expect(page.locator('#auto-nav')).toBeHidden();
   await expect(page.locator('.lesson-slide-deck__navigation .lesson-slide-deck__fullscreen')).toBeVisible();
   assert.equal(new URL(page.url()).hash, hash);
   await fits(page, '.lesson-slide-deck__navigation');
+  await expect.poll(() => page.locator('.lesson-slide-deck').evaluate(deck =>
+    Math.abs(innerHeight - deck.getBoundingClientRect().bottom - 8) < 2
+  ), {message: 'fullscreen gives the footer space back to the slide'}).toBe(true);
   await page.getByRole('button', {name:'全画面表示を終了',exact:true}).click();
   await expect(page.locator('body')).not.toHaveClass(/is-lesson-fullscreen/);
   await expect(trigger).toBeFocused();
   await expect(page.locator('#site-header')).toBeVisible();
   await expect(page.locator('.lesson-slide-deck__fullscreen-menu')).toBeHidden();
   assert.equal(new URL(page.url()).hash, hash);
+  await footerFits(page);
 }
 
 const browserTypes = new Map([['chrome', chromium], ['webkit', webkit]]);
@@ -261,6 +277,7 @@ for (const name of selectedBrowsers) {
         for (const theme of ['light','dark','system']) {
           for (const size of ['standard','large','xlarge']) {
             await page.evaluate(({theme,size}) => { window.siteTheme.setPreference(theme); window.siteTextSize.setPreference(size); }, {theme,size});
+            if (path.startsWith('dr')) await footerFits(page);
             await page.locator('#headerbar__course').click();
             await expect(page.locator('#auto-nav')).toBeVisible();
             await fits(page, '#auto-nav');

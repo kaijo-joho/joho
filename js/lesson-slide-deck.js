@@ -327,6 +327,7 @@
 
       // ページ紹介の表示・非表示で移動バーの位置が変わらないよう、本文の外へ置く。
       this.siteHeader = document.getElementById('site-header');
+      this.siteFooter = document.getElementById('site-footer');
       if (this.siteHeader) this.siteHeader.after(this.navigation);
       else this.deck.before(this.navigation);
     }
@@ -512,7 +513,7 @@
 
       if (typeof ResizeObserver === 'function') {
         this.resizeObserver = new ResizeObserver(() => this.scheduleMeasure());
-        [this.siteHeader, document.getElementById('page_header'), this.navigation, this.chooser, this.deck]
+        [this.siteHeader, this.siteFooter, document.getElementById('page_header'), this.navigation, this.chooser, this.deck]
           .filter(Boolean)
           .forEach(node => this.resizeObserver.observe(node));
       }
@@ -656,7 +657,9 @@
       const headerHeight = this.siteHeader?.getBoundingClientRect().height || 0;
       this.navigation.style.setProperty('--lesson-slide-header-height', `${headerHeight}px`);
       const top = Math.max(0, this.deck.getBoundingClientRect().top);
-      const available = Math.max(300, Math.floor(window.innerHeight - top - 8));
+      // 折り返したフッターも確保する。全画面時は非表示なので高さは0になる。
+      const footerHeight = this.siteFooter?.getBoundingClientRect().height || 0;
+      const available = Math.max(300, Math.floor(window.innerHeight - top - footerHeight - 8));
       this.deck.style.setProperty('--lesson-slide-deck-height', `${available}px`);
       this.deck.classList.toggle('is-height-compact', available < 680);
       const currentSlide = this.slides[this.currentIndex];
