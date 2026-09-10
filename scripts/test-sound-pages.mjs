@@ -79,6 +79,93 @@ ok(soundCaptureStyle.includes('width: min(100%, 320px)'), '音源とマイクの
 ok(soundCaptureStyle.includes('height: auto'), '音源とマイクの図は縦横比を保って縮小する');
 const analogVisualStyle = css.match(/\.dr-analog-digital-slide__visual\s*\{([^}]+)\}/)?.[1] || '';
 ok(analogVisualStyle.includes('grid-template-columns: minmax(0, 1fr)'), '音源の図の配置幅が横スクロールする波形グラフに引っ張られない');
+equal((dr31.match(/class="dr-sound-capture__wave"/g) || []).length, 4, '強弱を持つ4本の弧で伝わり方を演出');
+equal((dr31.match(/class="dr-sound-capture__arrival"/g) || []).length, 4, '4本それぞれに対応するマイクの到達反応');
+for (const requirement of ['dr-sound-wave-travel', 'dr-sound-wave-arrival', 'animation-delay: var(--dr-sound-delay)', 'animation-play-state: paused', 'animation-play-state: running']) {
+  ok(css.includes(requirement), `音の伝わり方のアニメーションに「${requirement}」`);
+}
+ok(dr31.includes('data-sound-animation-toggle hidden'), 'JavaScript無効時には操作できない再生ボタンを表示しない');
+ok(dr31.includes('模式図・音は出ません'), '強弱を示す模式表現であり、実際には音を鳴らさないことを明記');
+ok(widgets.includes('document.hidden') && widgets.includes('IntersectionObserver'), '非表示タブ・画面外では演出を停止');
+ok(css.slice(css.indexOf('@media print')).includes('.dr-sound-capture__toggle'), '印刷時には音の再生ボタンを非表示');
+ok(css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)')).includes('.dr-sound-capture__wave'), '動きを減らす設定をCSSでも尊重');
+
+// 演出の再生状態をDOMの最小スタブで検証し、実際の描画・同期はブラウザで確認する。
+class CaptureElement {
+  constructor() {
+    this.hidden = false;
+    this.attributes = new Map();
+    this.listeners = new Map();
+    this.classes = new Set();
+    this.classList = {
+      toggle: (name, enabled) => enabled ? this.classes.add(name) : this.classes.delete(name),
+      contains: name => this.classes.has(name)
+    };
+  }
+  querySelector() { return this.button; }
+  closest() { return this.slide; }
+  setAttribute(name, value) { this.attributes.set(name, value); }
+  addEventListener(name, callback) { this.listeners.set(name, callback); }
+  emit(name) { this.listeners.get(name)?.(); }
+}
+const captureDocument = new CaptureElement();
+const capturePreference = new CaptureElement();
+capturePreference.matches = false;
+let captureIntersection;
+const captureContext = {
+  console,
+  Element: CaptureElement,
+  document: captureDocument,
+  SoundCore: {},
+  SoundRenderer: {},
+  matchMedia: () => capturePreference,
+  IntersectionObserver: class {
+    constructor(callback) { captureIntersection = callback; }
+    observe() {}
+  }
+};
+vm.createContext(captureContext);
+vm.runInContext(widgets, captureContext, { filename: 'js/sound-widgets.js', timeout: 1000 });
+const captureHost = new CaptureElement();
+captureHost.button = new CaptureElement();
+captureHost.slide = new CaptureElement();
+new captureContext.SoundWidgets.SoundCaptureAnimation(captureHost);
+ok(!captureHost.classList.contains('is-playing'), '画面内へ入るまで音の演出は開始しない');
+captureIntersection([{ target: captureHost, isIntersecting: true }]);
+ok(captureHost.classList.contains('is-playing'), '画面内では音の演出を再生');
+captureHost.button.emit('click');
+ok(!captureHost.classList.contains('is-playing'), '一時停止ボタンで音の演出を停止');
+equal(captureHost.button.textContent, '再生', '一時停止後は再生ボタンになる');
+captureHost.slide.hidden = true;
+captureDocument.emit('joho:lesson-slide-change');
+captureHost.slide.hidden = false;
+captureDocument.emit('joho:lesson-slide-change');
+ok(!captureHost.classList.contains('is-playing'), 'スライドを戻っても生徒の一時停止状態を保持');
+captureHost.button.emit('click');
+ok(captureHost.classList.contains('is-playing'), '再生ボタンで再開');
+captureDocument.hidden = true;
+captureDocument.emit('visibilitychange');
+ok(!captureHost.classList.contains('is-playing'), 'ブラウザタブが非表示の間は停止');
+captureDocument.hidden = false;
+captureDocument.emit('visibilitychange');
+ok(captureHost.classList.contains('is-playing'), '表示タブへ戻ると再開');
+captureHost.slide.hidden = true;
+captureDocument.emit('joho:lesson-slide-change');
+ok(!captureHost.classList.contains('is-playing'), '別スライドへ移ると停止');
+captureHost.slide.hidden = false;
+captureDocument.emit('joho:lesson-slide-change');
+captureIntersection([{ target: captureHost, isIntersecting: false }]);
+ok(!captureHost.classList.contains('is-playing'), '図がスクロールで画面外へ出ると停止');
+captureIntersection([{ target: captureHost, isIntersecting: true }]);
+capturePreference.matches = true;
+capturePreference.emit('change');
+ok(!captureHost.classList.contains('is-animated') && !captureHost.classList.contains('is-playing'), '動きを減らす設定で静止図へ切り替え');
+ok(captureHost.button.disabled, '動きを減らす設定中は再生を無効にする');
+equal(captureHost.button.textContent, '静止表示', '動きを減らす設定を操作欄に表示');
+capturePreference.matches = false;
+capturePreference.emit('change');
+ok(captureHost.classList.contains('is-playing') && !captureHost.button.disabled, '動きを減らす設定の解除に追従');
+
 ok(dr31.includes('data-sound-pcm-guide'), 'dr31に固定条件の段階学習');
 ok(dr31.includes('data-sound-pcm data-stage="1"'), 'dr31の可変グラフは0. アナログ波形だけの初期表示から開始');
 ok(dr31.indexOf('data-sound-analog-intro') < dr31.indexOf('data-sound-pcm-guide'), 'アナログ波形の後に変換手順を説明');

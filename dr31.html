@@ -26,17 +26,23 @@
     <article class="dr-analog-digital-slide">
       <h2 id="headline_1">(1) 音とアナログ・デジタル</h2>
       <div class="dr-analog-digital-slide__visual">
-        <figure class="dr-sound-capture">
+        <figure class="dr-sound-capture" data-sound-capture>
           <svg class="dr-sound-capture__svg" viewBox="0 0 560 160" role="img" aria-labelledby="dr-sound-capture-title dr-sound-capture-desc">
             <title id="dr-sound-capture-title">音源からマイクへ伝わる音</title>
-            <desc id="dr-sound-capture-desc">左の音源から空気の振動が広がり、右のマイクへ届く様子を表した図です。</desc>
+            <desc id="dr-sound-capture-desc">左の音源から空気の振動が右のマイクへ伝わる模式図です。太く濃い弧は強い音、細く淡い弧は弱い音を表し、届くとマイクの輪郭が反応します。実際の音は出ません。</desc>
             <g class="dr-sound-capture__source" aria-hidden="true">
               <path d="M34 62 H82 L145 20 V140 L82 98 H34 Z"></path>
             </g>
             <g class="dr-sound-capture__waves" aria-hidden="true">
-              <path d="M169 62 C184 73 184 87 169 98"></path>
-              <path d="M204 43 C237 67 237 93 204 117"></path>
-              <path d="M242 24 C292 62 292 98 242 136"></path>
+              <path data-sound-pulse="1" d="M169 62 C184 73 184 87 169 98"></path>
+              <path data-sound-pulse="2" d="M204 43 C237 67 237 93 204 117"></path>
+              <path data-sound-pulse="3" d="M242 24 C292 62 292 98 242 136"></path>
+            </g>
+            <g class="dr-sound-capture__travel" aria-hidden="true">
+              <path class="dr-sound-capture__wave" data-sound-pulse="1" d="M0 -42 Q36 0 0 42"></path>
+              <path class="dr-sound-capture__wave" data-sound-pulse="2" d="M0 -42 Q36 0 0 42"></path>
+              <path class="dr-sound-capture__wave" data-sound-pulse="3" d="M0 -42 Q36 0 0 42"></path>
+              <path class="dr-sound-capture__wave" data-sound-pulse="4" d="M0 -42 Q36 0 0 42"></path>
             </g>
             <g class="dr-sound-capture__microphone" aria-hidden="true">
               <rect x="412" y="24" width="62" height="88" rx="31"></rect>
@@ -45,8 +51,20 @@
               <path d="M405 146 H481"></path>
               <path class="dr-sound-capture__microphone-slots" d="M443 49 H474 M443 64 H474 M443 79 H474"></path>
             </g>
+            <g class="dr-sound-capture__reception" aria-hidden="true">
+              <rect class="dr-sound-capture__arrival" data-sound-pulse="1" x="412" y="24" width="62" height="88" rx="31"></rect>
+              <rect class="dr-sound-capture__arrival" data-sound-pulse="2" x="412" y="24" width="62" height="88" rx="31"></rect>
+              <rect class="dr-sound-capture__arrival" data-sound-pulse="3" x="412" y="24" width="62" height="88" rx="31"></rect>
+              <rect class="dr-sound-capture__arrival" data-sound-pulse="4" x="412" y="24" width="62" height="88" rx="31"></rect>
+            </g>
           </svg>
-          <figcaption><strong>音源</strong>が空気を振動させ、<strong>マイク</strong>がその変化を電気信号へ変換します。</figcaption>
+          <figcaption>
+            <strong>音源</strong>が空気を振動させ、<strong>マイク</strong>がその変化を電気信号へ変換します。
+            <div class="dr-sound-capture__controls">
+              <span>太く濃い弧：強い音 ／ 細く淡い弧：弱い音（模式図・音は出ません）</span>
+              <button type="button" class="dr-button dr-sound-capture__toggle" data-sound-animation-toggle hidden>一時停止</button>
+            </div>
+          </figcaption>
         </figure>
         <div data-sound-analog-intro></div>
       </div>

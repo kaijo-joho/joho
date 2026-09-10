@@ -142,6 +142,49 @@
     return { start, end, sampleRate, bitDepth, range, wavePoints, samples };
   }
 
+  // 弧は振動の伝わり方を示す模式表現であり、空気の粒子や実時間の波形ではない。
+  // CSSが同じ速さの弧と到達時の反応を描画し、Controllerは停止の操作状態だけを持つ。
+  class SoundCaptureAnimation {
+    constructor(container) {
+      if (!(container instanceof Element)) throw new TypeError('音源とマイクの図が必要です。');
+      this.container = container;
+      this.button = container.querySelector('[data-sound-animation-toggle]');
+      this.paused = false;
+      this.inView = !root.IntersectionObserver;
+      this.motionPreference = root.matchMedia('(prefers-reduced-motion: reduce)');
+      this.update = this.update.bind(this);
+      this.button.addEventListener('click', () => {
+        this.paused = !this.paused;
+        this.update();
+      });
+      this.motionPreference.addEventListener('change', this.update);
+      document.addEventListener('visibilitychange', this.update);
+      document.addEventListener('joho:lesson-slide-change', this.update);
+      if (root.IntersectionObserver) {
+        this.observer = new root.IntersectionObserver(entries => {
+          this.inView = entries.some(entry => entry.target === this.container && entry.isIntersecting);
+          this.update();
+        });
+        this.observer.observe(container);
+      }
+      this.update();
+    }
+
+    update() {
+      const reduced = this.motionPreference.matches;
+      const slideHidden = this.container.closest('[data-lesson-slide]')?.hidden;
+      const playing = !reduced && !this.paused && this.inView && !document.hidden && !slideHidden;
+      this.container.classList.toggle('is-animated', !reduced);
+      this.container.classList.toggle('is-playing', playing);
+      this.button.hidden = false;
+      this.button.disabled = reduced;
+      this.button.textContent = reduced ? '静止表示' : this.paused ? '再生' : '一時停止';
+      this.button.setAttribute('aria-label', reduced
+        ? '動きを減らす設定に従い、音の伝わり方を静止表示しています'
+        : this.paused ? '音のアニメーションを再生' : '音のアニメーションを一時停止');
+    }
+  }
+
   class AnalogWaveIntro {
     constructor(container) {
       if (!(container instanceof Element)) throw new TypeError('アナログ波形の表示先が必要です。');
@@ -677,6 +720,14 @@
 
   function initializeWidgets(scope = document) {
     const instances = [];
+    scope.querySelectorAll('[data-sound-capture]').forEach(container => {
+      try {
+        instances.push(new SoundCaptureAnimation(container));
+      } catch (error) {
+        // 任意の演出だけが失敗しても静止図とほかの教材を残す。
+        console.error('[sound-widgets] sound capture animation initialization failed:', error);
+      }
+    });
     scope.querySelectorAll('[data-sound-analog-intro]').forEach(container => {
       try {
         instances.push(new AnalogWaveIntro(container));
@@ -713,6 +764,7 @@
     createRangeControl,
     createSelectControl,
     createInfoTip,
+    SoundCaptureAnimation,
     AnalogWaveIntro,
     PcmWalkthrough,
     PcmExplorer,

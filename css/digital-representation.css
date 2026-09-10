@@ -2094,12 +2094,148 @@ body.lesson-slide-ready .lesson-slide :is(.dr-card, .dr-explorer, .dr-lab, .dr-q
   stroke-width: 7;
 }
 
+.dr-sound-capture__travel,
+.dr-sound-capture__reception {
+  display: none;
+  fill: none;
+  stroke: var(--dr-analog);
+  stroke-linecap: round;
+  pointer-events: none;
+}
+
+.dr-sound-capture.is-animated .dr-sound-capture__waves {
+  display: none;
+}
+
+.dr-sound-capture.is-animated :is(.dr-sound-capture__travel, .dr-sound-capture__reception) {
+  display: inline;
+}
+
+/* 同じ速さ・一定間隔で進む。強弱は弧の太さ、濃さ、高さだけで示す。
+   各弧とマイクの反応に同じ周期・遅延を使い、到達時（周期の90%）を同期する。 */
+.dr-sound-capture [data-sound-pulse="1"] {
+  --dr-sound-delay: 0s;
+  --dr-sound-strength: 1;
+  --dr-sound-height: 1;
+  stroke-width: 10;
+}
+
+.dr-sound-capture [data-sound-pulse="2"] {
+  --dr-sound-delay: -1.2s;
+  --dr-sound-strength: .5;
+  --dr-sound-height: .6;
+  stroke-width: 5;
+}
+
+.dr-sound-capture [data-sound-pulse="3"] {
+  --dr-sound-delay: -2.4s;
+  --dr-sound-strength: .85;
+  --dr-sound-height: .9;
+  stroke-width: 8;
+}
+
+.dr-sound-capture [data-sound-pulse="4"] {
+  --dr-sound-delay: -3.6s;
+  --dr-sound-strength: .4;
+  --dr-sound-height: .5;
+  stroke-width: 4;
+}
+
+.dr-sound-capture__waves [data-sound-pulse] {
+  opacity: var(--dr-sound-strength);
+}
+
+.dr-sound-capture.is-animated :is(.dr-sound-capture__wave, .dr-sound-capture__arrival) {
+  opacity: 0;
+  animation-duration: 4.8s;
+  animation-delay: var(--dr-sound-delay);
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  animation-play-state: paused;
+}
+
+.dr-sound-capture.is-animated .dr-sound-capture__wave {
+  transform-box: view-box;
+  transform-origin: 0 0;
+  animation-name: dr-sound-wave-travel;
+}
+
+.dr-sound-capture.is-animated .dr-sound-capture__arrival {
+  animation-name: dr-sound-wave-arrival;
+}
+
+.dr-sound-capture.is-playing :is(.dr-sound-capture__wave, .dr-sound-capture__arrival) {
+  animation-play-state: running;
+}
+
+@keyframes dr-sound-wave-travel {
+  0% {
+    transform: translate(168px, 80px) scaleY(var(--dr-sound-height));
+    opacity: 0;
+  }
+  8%, 82% { opacity: var(--dr-sound-strength); }
+  90% {
+    transform: translate(395px, 80px) scaleY(var(--dr-sound-height));
+    opacity: var(--dr-sound-strength);
+  }
+  96%, 100% {
+    transform: translate(410px, 80px) scaleY(var(--dr-sound-height));
+    opacity: 0;
+  }
+}
+
+@keyframes dr-sound-wave-arrival {
+  0%, 84%, 100% { opacity: 0; }
+  90% { opacity: var(--dr-sound-strength); }
+}
+
 .dr-sound-capture figcaption {
   margin: 0;
   color: var(--dr-muted);
   font-size: .78em;
   line-height: 1.35;
   text-align: center;
+}
+
+.dr-sound-capture__controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 4px 10px;
+  margin-top: 4px;
+}
+
+.dr-sound-capture__toggle {
+  min-width: 88px;
+  padding: 5px 10px;
+  background: var(--dr-panel-strong);
+  color: var(--dr-text);
+  font-size: inherit;
+}
+
+.dr-sound-capture__toggle:hover:not(:disabled) {
+  background: var(--dr-info-soft);
+  color: var(--dr-text);
+}
+
+.dr-sound-capture__toggle[hidden] {
+  display: none;
+}
+
+@media print {
+  .dr-sound-capture.is-animated .dr-sound-capture__waves {
+    display: inline;
+  }
+
+  .dr-sound-capture.is-animated :is(.dr-sound-capture__travel, .dr-sound-capture__reception),
+  .dr-sound-capture__toggle {
+    display: none;
+  }
+
+  .dr-sound-capture.is-animated :is(.dr-sound-capture__wave, .dr-sound-capture__arrival) {
+    animation: none;
+  }
 }
 
 body.lesson-slide-ready .dr-svg--analog-intro {
@@ -2405,6 +2541,18 @@ body.lesson-slide-ready :is(.dr-svg--superposition, .dr-svg--sampling-theorem) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .dr-sound-capture.is-animated .dr-sound-capture__waves {
+    display: inline;
+  }
+
+  .dr-sound-capture.is-animated :is(.dr-sound-capture__travel, .dr-sound-capture__reception) {
+    display: none;
+  }
+
+  .dr-sound-capture.is-animated :is(.dr-sound-capture__wave, .dr-sound-capture__arrival) {
+    animation: none;
+  }
+
   .dr-stage-button,
   .dr-button,
   .dr-tabs__tab,
