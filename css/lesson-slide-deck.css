@@ -163,8 +163,6 @@ body.lesson-slide-ready .lesson-slide-fallback-next {
     width: var(--content-width);
     margin: 0 auto;
     padding: 2px 8px 8px;
-    border-radius: 6px;
-    background-color: var(--lesson-slide-panel);
     line-height: 1.4;
     overflow-wrap: anywhere;
   }
