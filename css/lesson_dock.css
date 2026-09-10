@@ -97,6 +97,16 @@
 }
 .lesson-dock__panel .ld-sec:first-child { border-top: none; padding-top: 2px; }
 
+.ld-sec__title {
+  display: flex;
+  align-items: center;
+  gap: .45em;
+}
+
+.ld-sec__label {
+  min-width: 0;
+}
+
 .lesson-dock__panel .ld-sec__title {
   margin: 0 0 6px;
   font-weight: 700;

@@ -450,6 +450,15 @@
 
 
 /* 目次・教材・表示設定・全画面開始の共通メニュー。 */
+.site-menu-icon {
+  display: block;
+  flex: 0 0 auto;
+  width: 1.25em;
+  height: 1.25em;
+  max-width: none;
+  pointer-events: none;
+}
+
 .site-header-menu {
   position: relative;
 }

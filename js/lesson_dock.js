@@ -25,24 +25,6 @@
     menu:         '📄'
   };
 
-  const svgIcon = (body) => `
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-      stroke-linecap="round" stroke-linejoin="round" focusable="false">
-      ${body}
-    </svg>`;
-
-  const DEFAULT_SVG = {
-    practicefile: svgIcon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4"/>'),
-    worksheet:    svgIcon('<path d="M6 3h9l3 3v15H6Z"/><path d="M14 3v4h4M9 12h6M9 16h6"/>'),
-    exercise:     svgIcon('<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>'),
-    quiz:         svgIcon('<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h4M9 16h2"/>'),
-    download:     svgIcon('<path d="M12 3v12M8 11l4 4 4-4M5 21h14"/>'),
-    faq:          svgIcon('<path d="M21 12a8 8 0 0 1-9 8 9 9 0 0 1-4 1l1-3a8 8 0 1 1 12-6Z"/><path d="M9.8 9a2.3 2.3 0 0 1 4.4 1c0 1.5-2.2 1.7-2.2 3M12 16h.01"/>'),
-    next:         svgIcon('<path d="m6 7 5 5-5 5M13 7l5 5-5 5"/>'),
-    search:       svgIcon('<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>'),
-    menu:         svgIcon('<rect x="7" y="3" width="13" height="16" rx="2"/><path d="M4 7v13a2 2 0 0 0 2 2h10M10 8h7M10 12h7"/>')
-  };
-
   // ==================== helpers ====================
   const $  = (sel, root = document) => root.querySelector(sel);
 
@@ -100,7 +82,7 @@
     const fromLocal  = ICON_PATHS?.[key];
     const pick = (fromGlobal !== undefined) ? fromGlobal : fromLocal;
 
-    if (!pick) return { src: '', emoji: DEFAULT_EMOJI[key], svg: DEFAULT_SVG[key] || '' };
+    if (!pick) return { src: '', emoji: DEFAULT_EMOJI[key], svg: '', useDefault: true };
     if (typeof pick === 'string') return { src: pick, emoji: DEFAULT_EMOJI[key], svg: '' };
     if (typeof pick === 'object') {
       return {
@@ -110,11 +92,16 @@
       };
     }
 
-    return { src: '', emoji: DEFAULT_EMOJI[key], svg: DEFAULT_SVG[key] || '' };
+    return { src: '', emoji: DEFAULT_EMOJI[key], svg: '', useDefault: true };
   }
 
   function createIconNode(key) {
-    const { src, emoji, svg } = getIconConf(key);
+    const { src, emoji, svg, useDefault } = getIconConf(key);
+
+    if (useDefault) {
+      const icon = window.siteHeaderMenus?.createIcon?.(key);
+      if (icon) return icon;
+    }
 
     if (!src) {
       if (svg) {
@@ -341,9 +328,16 @@
 
   // ==================== sections ====================
 
-  function secList(title, items) {
+  function sectionTitle(title, iconKey) {
+    return el('h3', { class: 'ld-sec__title' }, [
+      window.siteHeaderMenus?.createIcon?.(iconKey),
+      el('span', { class: 'ld-sec__label' }, title)
+    ]);
+  }
+
+  function secList(title, items, iconKey) {
     const sec = el('div', { class: 'ld-sec' });
-    sec.appendChild(el('h3', { class: 'ld-sec__title' }, title));
+    sec.appendChild(sectionTitle(title, iconKey));
 
     const ul = el('ul', { class: 'ld-sec__list' });
 
@@ -359,7 +353,7 @@
 
   function secWorksheet(title, items) {
     const sec = el('div', { class: 'ld-sec' });
-    sec.appendChild(el('h3', { class: 'ld-sec__title' }, title));
+    sec.appendChild(sectionTitle(title, 'worksheet'));
 
     const ul = el('ul', { class: 'ld-sec__list' });
 
@@ -384,7 +378,7 @@
 
   function secDownload(title, items) {
     const sec = el('div', { class: 'ld-sec' });
-    sec.appendChild(el('h3', { class: 'ld-sec__title' }, title));
+    sec.appendChild(sectionTitle(title, 'download'));
 
     const ul = el('ul', { class: 'ld-sec__list' });
 
@@ -422,7 +416,7 @@
 
   function secFaq(title, items, course, idSuffix = '') {
     const sec = el('div', { class: 'ld-sec ld-sec--faq' });
-    sec.appendChild(el('h3', { class: 'ld-sec__title' }, title));
+    sec.appendChild(sectionTitle(title, 'faq'));
 
     const searchId = `lesson-dock-faq-search${idSuffix ? `-${idSuffix}` : ''}`;
 
@@ -554,7 +548,7 @@
 
   function secNexts(nextList) {
     const sec = el('div', { class: 'ld-sec' });
-    sec.appendChild(el('h3', { class: 'ld-sec__title' }, '次回'));
+    sec.appendChild(sectionTitle('次回', 'next'));
 
     const wrap = el('div', { class: 'ld-next__cards' });
 
@@ -593,9 +587,9 @@
     const root = el('div', { id: 'lesson-dock', class: 'lesson-dock', role: 'group', 'aria-label': '教材と検索' });
     const sections = [];
     if (model.worksheet.length) sections.push(secWorksheet('ワークシート', model.worksheet));
-    if (model.practicefile.length) sections.push(secList('実習ファイル', model.practicefile));
-    if (model.exercise.length) sections.push(secList('演習問題', model.exercise));
-    if (model.quiz.length) sections.push(secList('確認テスト', model.quiz));
+    if (model.practicefile.length) sections.push(secList('実習ファイル', model.practicefile, 'practicefile'));
+    if (model.exercise.length) sections.push(secList('演習問題', model.exercise, 'exercise'));
+    if (model.quiz.length) sections.push(secList('確認テスト', model.quiz, 'quiz'));
     if (model.download.length) sections.push(secDownload('ダウンロードファイル', model.download));
     if (model.next.length) sections.push(secNexts(model.next));
 

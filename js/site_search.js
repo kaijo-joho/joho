@@ -35,6 +35,7 @@
   let loadMoreButton = null;
   let faqLink = null;
   let faqTab = null;
+  let faqTabLabel = null;
   let siteTab = null;
   let faqView = null;
   let siteView = null;
@@ -318,7 +319,7 @@
     }
 
     const normalizedCount = Number.isFinite(Number(count)) ? Math.max(0, Number(count)) : 0;
-    faqTab.textContent = normalizedCount > 0
+    faqTabLabel.textContent = normalizedCount > 0
       ? `よくある質問（${normalizedCount}）`
       : 'よくある質問';
   }
@@ -394,6 +395,7 @@
       role: 'tablist',
       'aria-label': '調べ方を選ぶ'
     });
+    faqTabLabel = el('span', { className: 'site-search__tab-label' }, 'よくある質問');
     faqTab = el('button', {
       id: 'site-search-tab-faq',
       type: 'button',
@@ -401,7 +403,7 @@
       role: 'tab',
       'aria-selected': 'true',
       'aria-controls': 'site-search-view-faq'
-    }, 'よくある質問');
+    }, [window.siteHeaderMenus?.createIcon?.('faq'), faqTabLabel]);
     siteTab = el('button', {
       id: 'site-search-tab-site',
       type: 'button',
@@ -410,7 +412,10 @@
       'aria-selected': 'false',
       'aria-controls': 'site-search-view-site',
       tabindex: '-1'
-    }, '教材サイト内検索');
+    }, [
+      window.siteHeaderMenus?.createIcon?.('search'),
+      el('span', { className: 'site-search__tab-label' }, '教材サイト内検索')
+    ]);
     tabs.append(faqTab, siteTab);
 
     const selectTab = event => {
