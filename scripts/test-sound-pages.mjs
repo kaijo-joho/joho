@@ -74,6 +74,11 @@ ok(dr31.includes('マイク</strong>がその変化を電気信号へ変換'), '
 for (const selector of ['.dr-analog-digital-slide__visual', '.dr-sound-capture', '.dr-sound-capture__svg', '.dr-sound-capture__waves', '.dr-sound-capture__microphone']) {
   ok(css.includes(selector), `音源とマイクの図にスタイル「${selector}」`);
 }
+const soundCaptureStyle = css.match(/\.dr-sound-capture__svg\s*\{([^}]+)\}/)?.[1] || '';
+ok(soundCaptureStyle.includes('width: min(100%, 320px)'), '音源とマイクの図は320pxを上限に画面幅へ収める');
+ok(soundCaptureStyle.includes('height: auto'), '音源とマイクの図は縦横比を保って縮小する');
+const analogVisualStyle = css.match(/\.dr-analog-digital-slide__visual\s*\{([^}]+)\}/)?.[1] || '';
+ok(analogVisualStyle.includes('grid-template-columns: minmax(0, 1fr)'), '音源の図の配置幅が横スクロールする波形グラフに引っ張られない');
 ok(dr31.includes('data-sound-pcm-guide'), 'dr31に固定条件の段階学習');
 ok(dr31.includes('data-sound-pcm data-stage="1"'), 'dr31の可変グラフは0. アナログ波形だけの初期表示から開始');
 ok(dr31.indexOf('data-sound-analog-intro') < dr31.indexOf('data-sound-pcm-guide'), 'アナログ波形の後に変換手順を説明');

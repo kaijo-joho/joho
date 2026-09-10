@@ -2049,6 +2049,7 @@ body.lesson-slide-ready .lesson-slide :is(.dr-card, .dr-explorer, .dr-lab, .dr-q
 
 .dr-analog-digital-slide__visual {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   min-width: 0;
   gap: 8px;
 }
@@ -2066,7 +2067,8 @@ body.lesson-slide-ready .lesson-slide :is(.dr-card, .dr-explorer, .dr-lab, .dr-q
 
 .dr-sound-capture__svg {
   display: block;
-  width: min(100%, 440px);
+  width: min(100%, 320px);
+  height: auto;
   max-height: clamp(72px, 11dvh, 104px);
   color: var(--dr-text);
 }
