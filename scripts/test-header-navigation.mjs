@@ -37,6 +37,113 @@ async function headerIsSingleRow(page) {
   });
 }
 
+async function scrollPage(page, top) {
+  await page.evaluate(value => window.scrollTo({top:value,behavior:'instant'}), top);
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+}
+
+async function headerPosition(page, shown) {
+  await expect.poll(() => page.locator('#site-header').evaluate(header => {
+    const rect = header.getBoundingClientRect();
+    return {top:rect.top,bottom:rect.bottom};
+  }).then(rect => shown ? Math.abs(rect.top) < 1 : rect.bottom <= 0), {
+    message: shown ? 'header is at the viewport top' : 'header is entirely above the viewport'
+  }).toBe(true);
+}
+
+async function scrollHeader(page) {
+  await ready(page, 'py22.html');
+  await page.evaluate(() => document.fonts.ready);
+  await page.mouse.move(10, 400);
+  await scrollPage(page, 0);
+  const contentTop = () => page.locator('#page_header').evaluate(element => element.getBoundingClientRect().top + scrollY);
+  const initialContentTop = await contentTop();
+  await scrollPage(page, 180);
+  await headerPosition(page, true);
+  await scrollPage(page, 1500);
+  await headerPosition(page, false);
+  await scrollPage(page, 1490);
+  await headerPosition(page, false);
+  await scrollPage(page, 1476);
+  await headerPosition(page, true);
+  await page.waitForTimeout(300);
+  await headerPosition(page, true);
+  await scrollPage(page, 1516);
+  await headerPosition(page, true);
+  await scrollPage(page, 1572);
+  await headerPosition(page, false);
+  assert.ok(Math.abs(await contentTop() - initialContentTop) < 1, 'hiding and revealing do not move the document content');
+
+  await scrollPage(page, 1548);
+  await headerPosition(page, true);
+  const materials = page.locator('.lesson-dock__btn--menu');
+  await materials.press('Enter');
+  await expect(page.locator('#lesson-dock-panel-menu')).toBeVisible();
+  await scrollPage(page, 1800);
+  await headerPosition(page, true);
+  await page.keyboard.press('Escape');
+  await expect(materials).toBeFocused();
+  await scrollPage(page, 2000);
+  await headerPosition(page, true);
+
+  await page.locator('#headerbar__course').press('Enter');
+  const nav = page.locator('#auto-nav');
+  await nav.locator('details').evaluateAll(items => items.forEach(item => { item.open = true; }));
+  const beforeInnerScroll = await page.evaluate(() => scrollY);
+  await nav.evaluate(element => { element.scrollTop = 200; });
+  await expect.poll(() => nav.evaluate(element => element.scrollTop)).toBeGreaterThan(0);
+  assert.equal(await page.evaluate(() => scrollY), beforeInnerScroll, 'menu scroll stays inside the menu');
+  await headerPosition(page, true);
+  await page.keyboard.press('Escape');
+
+  const search = page.locator('.lesson-dock__btn--search');
+  await search.press('Enter');
+  await expect(page.locator('#site-search-dialog')).toBeVisible();
+  await page.locator('#site-search-view-faq').evaluate(element => { element.scrollTop = 200; });
+  await page.mouse.move(10, 400);
+  await page.mouse.wheel(0, 200);
+  await page.waitForTimeout(150);
+  await headerPosition(page, true);
+  assert.equal(await page.evaluate(() => scrollY), beforeInnerScroll, 'FAQ scrolling does not move the page');
+  await page.keyboard.press('Escape');
+  await expect(search).toBeFocused();
+  await headerPosition(page, true);
+
+  // A mouse-picked preference must not pin the header after its menu closes.
+  await page.locator('.site-theme-menu__trigger').click();
+  await page.getByRole('menuitemradio', {name:'ライトモード',exact:true}).click();
+  await page.mouse.move(10, 400);
+  await scrollPage(page, 2100);
+  await headerPosition(page, false);
+  await page.keyboard.press('Enter');
+  await headerPosition(page, true);
+  await expect(page.locator('.site-theme-menu__options')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => document.activeElement.blur());
+  await scrollPage(page, 2200);
+  await headerPosition(page, false);
+  await scrollPage(page, 2176);
+  await headerPosition(page, true);
+
+  // A backward Tab from the first content link must reveal the hidden header.
+  await page.locator('#page_header a[href]').first().evaluate(link => link.focus({preventScroll:true}));
+  await scrollPage(page, 2300);
+  await headerPosition(page, false);
+  await page.keyboard.press('Shift+Tab');
+  assert.equal(await page.evaluate(() => document.querySelector('#site-header').contains(document.activeElement)), true);
+  await headerPosition(page, true);
+  await page.evaluate(() => document.activeElement.blur());
+  await scrollPage(page, 2600);
+  await headerPosition(page, false);
+  const bottom = await page.evaluate(() => document.documentElement.scrollHeight - innerHeight);
+  await scrollPage(page, bottom);
+  await scrollPage(page, bottom - 24);
+  await headerPosition(page, true);
+  await scrollPage(page, 0);
+  await headerPosition(page, true);
+  assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth), false);
+}
+
 async function footerFits(page) {
   await expect(page.locator('#site-footer')).toBeVisible();
   await expect.poll(() => page.evaluate(() => {
@@ -129,6 +236,8 @@ for (const name of selectedBrowsers) {
       })
     }));
 
+    await scrollHeader(page);
+    console.log(`${name}: deep-page reveal, asymmetric scroll thresholds, stable layout, menu guards, and keyboard focus pass`);
     await ready(page, 'py21.html');
     await expect(page.locator('#nav-handle, #nav-drawer')).toHaveCount(0);
     const course = page.locator('#headerbar__course');
@@ -308,6 +417,8 @@ for (const name of selectedBrowsers) {
 
     const touch = await browser.newContext({viewport:{width:390,height:844},hasTouch:true,reducedMotion:'reduce'});
     const touchPage = await touch.newPage();
+    await scrollHeader(touchPage);
+    assert.equal(await touchPage.locator('#site-header').evaluate(header => getComputedStyle(header).transitionDuration), '0s');
     await ready(touchPage, 'dr31.html');
     await touchPage.locator('#headerbar__course').tap();
     await expect(touchPage.locator('#auto-nav')).toBeVisible();

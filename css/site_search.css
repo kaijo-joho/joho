@@ -1,7 +1,7 @@
 @charset "UTF-8";
 
-html.site-search-is-open,
-html.site-search-is-open body {
+/* bodyも閉じるとheight:100%の本文が切り詰められ、背景が先頭へ戻る。 */
+html.site-search-is-open {
   overflow: hidden;
 }
 

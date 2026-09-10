@@ -385,6 +385,34 @@
   color: #fff;
 }
 
+/* JavaScript有効時は、bodyの高さに制限されずページ全体で固定する。 */
+#site-header.site-header--scroll-controlled {
+  position: fixed;
+  inset: 0 0 auto;
+  width: 100%;
+  transition: transform 200ms ease;
+  will-change: transform;
+}
+
+#site-header.site-header--scroll-controlled.is-scroll-hidden {
+  transform: translateY(-100%);
+  box-shadow: none;
+}
+
+#site-header.site-header--scroll-controlled.is-scroll-focus-reveal {
+  transition: none;
+}
+
+/* fixed化しても、通常時の本文開始位置は従来どおり維持する。 */
+.site-header-spacer {
+  display: block;
+}
+
+/* 全画面時は既存のヘッダー非表示と同様に余白も作らない。 */
+body.is-lesson-fullscreen .site-header-spacer {
+  display: none;
+}
+
 /* ダークモードは濃いめにしつつ透明度は維持 */
 @media (prefers-color-scheme: dark) {
   #site-header {
@@ -624,10 +652,12 @@
 
 @media (prefers-reduced-motion: reduce) {
   .site-header-panel { animation: none; }
+  #site-header.site-header--scroll-controlled { transition: none; }
 }
 
 @media print {
   #site-header,
+  .site-header-spacer,
   .site-header-menu,
   #lesson-dock { display: none !important; }
 }

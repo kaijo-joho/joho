@@ -454,6 +454,151 @@
     return controls;
   }
 
+  /** ========= スクロール時のヘッダー表示 ========= */
+  function initializeHeaderScrollBehavior() {
+    const header = document.getElementById('site-header');
+    if (!header || header.dataset.scrollBehaviorInitialized === 'true') return;
+
+    let spacer = document.getElementById('site-header-spacer');
+    if (!spacer) {
+      spacer = document.createElement('div');
+      spacer.id = 'site-header-spacer';
+      spacer.className = 'site-header-spacer';
+      spacer.setAttribute('aria-hidden', 'true');
+      header.after(spacer);
+    }
+    header.dataset.scrollBehaviorInitialized = 'true';
+    header.classList.add('site-header--scroll-controlled');
+
+    const TOP_VISIBLE_Y = 200;
+    const REVEAL_DISTANCE = 24;
+    const REHIDE_DISTANCE = 96;
+    const getScrollY = () => {
+      const documentHeight = Math.max(
+        document.documentElement.scrollHeight,
+        document.body?.scrollHeight || 0
+      );
+      const maximum = Math.max(0, documentHeight - window.innerHeight);
+      const position = window.scrollY || window.pageYOffset || 0;
+      return Math.min(maximum, Math.max(0, position));
+    };
+    let lastY = getScrollY();
+    let upwardDistance = 0;
+    let downwardDistance = 0;
+    let hidden = false;
+    let revealedSinceTop = false;
+    let scrollFrame = 0;
+
+    const updateSpacer = () => {
+      spacer.style.blockSize = `${header.getBoundingClientRect().height}px`;
+    };
+    const resetDistances = () => {
+      upwardDistance = 0;
+      downwardDistance = 0;
+    };
+    const isHeaderInUse = () => {
+      const activeElement = document.activeElement;
+      const hasKeyboardFocus =
+        activeElement instanceof Element &&
+        header.contains(activeElement) &&
+        activeElement.matches(':focus-visible');
+      return hasKeyboardFocus || header.querySelector('.site-header-menu.is-open') !== null;
+    };
+    const show = ({ revealed = false, immediate = false } = {}) => {
+      if (immediate) header.classList.add('is-scroll-focus-reveal');
+      header.classList.remove('is-scroll-hidden');
+      hidden = false;
+      resetDistances();
+      if (revealed) revealedSinceTop = true;
+      if (immediate) {
+        // フォーカスリングを画面外へ残さず、次の描画前に表示位置を確定する。
+        header.getBoundingClientRect();
+        requestAnimationFrame(() => header.classList.remove('is-scroll-focus-reveal'));
+      }
+    };
+    const hide = () => {
+      if (isHeaderInUse()) return;
+      header.classList.add('is-scroll-hidden');
+      hidden = true;
+      resetDistances();
+    };
+    const updateForScroll = () => {
+      scrollFrame = 0;
+      const y = getScrollY();
+      const delta = y - lastY;
+      lastY = y;
+
+      // 全画面の非表示は座学用の既存処理へ任せる。
+      if (document.body.classList.contains('is-lesson-fullscreen')) return;
+      // dialog内の操作による偶発的なルートスクロールでは状態を変えない。
+      if (document.documentElement.classList.contains('site-search-is-open')) {
+        resetDistances();
+        return;
+      }
+      if (y <= TOP_VISIBLE_Y) {
+        show();
+        revealedSinceTop = false;
+        return;
+      }
+      if (delta === 0 || isHeaderInUse()) {
+        resetDistances();
+        return;
+      }
+
+      if (delta < 0) {
+        downwardDistance = 0;
+        upwardDistance += -delta;
+        if (hidden && upwardDistance >= REVEAL_DISTANCE) show({ revealed: true });
+        return;
+      }
+
+      upwardDistance = 0;
+      if (hidden) return;
+      if (!revealedSinceTop) {
+        hide();
+        return;
+      }
+      downwardDistance += delta;
+      if (downwardDistance >= REHIDE_DISTANCE) hide();
+    };
+    const onScroll = () => {
+      if (!scrollFrame) scrollFrame = requestAnimationFrame(updateForScroll);
+    };
+
+    header.addEventListener('focusin', () => {
+      if (lastY > TOP_VISIBLE_Y) show({ revealed: true, immediate: true });
+    });
+    // ポインター操作で残ったフォーカスからEnter/Spaceを押しても、focusinなしで
+    // メニューが開く場合があるため、既存のメニュー処理より先に表示を戻す。
+    header.addEventListener('keydown', () => {
+      if (lastY > TOP_VISIBLE_Y) show({ revealed: true, immediate: true });
+    }, true);
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', updateSpacer, { passive: true });
+    document.addEventListener('fullscreenchange', updateSpacer);
+    document.addEventListener('webkitfullscreenchange', updateSpacer);
+    if (typeof ResizeObserver === 'function') {
+      try {
+        new ResizeObserver(updateSpacer).observe(header);
+      } catch (error) {
+        console.warn('[header scroll] ResizeObserver is unavailable', error);
+      }
+    }
+    // 座学の移動バーは後から header.after() で挿入される。スペーサーを常に
+    // ヘッダー直後へ戻し、通常表示で従来の縦位置を保つ。
+    if (typeof MutationObserver === 'function') {
+      try {
+        new MutationObserver(() => {
+          if (header.isConnected && header.nextElementSibling !== spacer) header.after(spacer);
+        }).observe(document.body, { childList: true });
+      } catch (error) {
+        console.warn('[header scroll] MutationObserver is unavailable', error);
+      }
+    }
+    updateSpacer();
+    if (lastY > TOP_VISIBLE_Y) hide();
+  }
+
   /** ========= ヘッダ生成 ========= */
   function ensureHeader() {
     const label = meta ? text(meta.mainTitle) : '';
@@ -824,6 +969,7 @@
     inited = true;
 
     ensureHeader();
+    try { initializeHeaderScrollBehavior(); } catch (error) { console.error('[header scroll] failed', error); }
     ensureFooter();
     initializePageLinks();
     ensureMainContent();
