@@ -57,6 +57,7 @@
       save: 'M 5 3 H 17 L 21 7 V 21 H 3 V 3 Z M 7 3 V 9 H 16 V 3 M 7 21 V 14 H 17 V 21',
       open: 'M 3 8 V 5 H 9 L 12 8 H 21 V 11 M 3 8 L 5 21 H 19 L 22 11 H 8 L 5 21',
       export: 'M 12 3 V 15 M 7 8 L 12 3 L 17 8 M 5 13 V 21 H 19 V 13',
+      align: 'M 4 3 V 21 M 20 3 V 21 M 8 5 H 16 V 9 H 8 Z M 10 15 H 14 V 19 H 10 Z M 12 9 V 15',
       swap: 'M 4 8 H 20 L 16 4 M 20 16 H 4 L 8 20',
       delete: 'M 4 6 H 20 M 9 6 V 3 H 15 V 6 M 6 6 L 7 21 H 17 L 18 6 M 10 10 V 17 M 14 10 V 17'
     };
@@ -275,7 +276,7 @@
       const toolbar = htmlElement('div', 'logic-editor__toolbar');
       const palette = htmlElement('div', 'logic-editor__palette');
       palette.setAttribute('role', 'group');
-      palette.setAttribute('aria-label', '追加するゲート');
+      palette.setAttribute('aria-label', '回路の部品を追加');
       GATES.forEach(gate => {
         const button = makeButton('', 'logic-editor__gate-button', event => {
           if (event.detail === 0 || !this.suppressPaletteClick) this.addGate(gate);
@@ -313,6 +314,8 @@
       this.fileSaveButton = this.options.onSave ? makeFileButton('save', '回路を保存', () => this.options.onSave()) : null;
       this.loadButton = this.options.onLoad ? makeFileButton('open', '回路を読み込む', () => this.options.onLoad()) : null;
       this.exportButton = this.options.onExport ? makeFileButton('export', '回路図を出力', () => this.options.onExport(), true) : null;
+      this.alignButton = this.options.enableAlignment ? makeFileButton('align', '回路全体を自動整列', () => this.alignCircuit()) : null;
+      if (this.alignButton) this.alignButton.title = '回路全体を自動整列（接続は変えず、Undoで戻せます）';
       this.deleteButton = makeButton('選択を削除', 'logic-editor__action-button logic-editor__delete-button', () => this.deleteSelected());
       this.clearButton = makeButton('全消去', 'logic-editor__action-button logic-editor__action-button--danger', () => {
         if (this.options.onClearRequest) this.options.onClearRequest();
@@ -328,8 +331,10 @@
       if (this.fileSaveButton || this.loadButton || this.exportButton) actions.classList.add('logic-editor__actions--files');
       actions.append(this.undoButton, this.redoButton);
       actions.append(...[this.fileSaveButton, this.loadButton, this.exportButton].filter(Boolean));
+      if (this.alignButton) actions.appendChild(this.alignButton);
       actions.append(this.swapButton, this.deleteButton, this.clearButton);
-      toolbar.append(palette, actions);
+      // 見た目だけでなくTab順も、編集操作→部品の追加にそろえる。
+      toolbar.append(actions, palette);
 
       this.help = htmlElement('details', 'logic-editor__help');
       const helpButton = htmlElement('summary', 'logic-editor__help-button', '？');
@@ -342,6 +347,7 @@
       );
       if (this.options.allowMultipleOutputs) helpContent.appendChild(htmlElement('p', '', '「＋ 出力」で出力を増やすとF₁・F₂…と表示され、すべての出力を真理値表と保存図で確認できます。出力が2つ以上あるときは、選んだ出力を削除して減らせます。'));
       if (this.fileSaveButton) helpContent.appendChild(htmlElement('p', '', '保存アイコンで作りかけも名前を付けて保存できます。読み込みアイコンから保存した回路やテンプレートを開きます。保存先はこのブラウザだけです。'));
+      if (this.options.enableAlignment) helpContent.appendChild(htmlElement('p', '', '整列アイコンで回路全体を入力・ゲート・出力の順に並べ直します。部品の追加・移動中は、他の部品と縦・横の中心がそろうと補助線が出て吸着します。少し離すと解除されます。Alt（Option）キーを押しながらドラッグすると吸着しません。Escapeで移動をキャンセルでき、確定後もUndoで戻せます。'));
       if (this.exportButton) helpContent.appendChild(htmlElement('p', '', '「出力」でSVG・PNGの形式と0/1の有無を選んで書き出します。保存図は現在の配置・配線を使い、入力・出力を点で示します。'));
       this.help.append(helpButton, helpContent);
       actions.appendChild(this.help);
@@ -377,6 +383,9 @@
         preserveAspectRatio: 'xMidYMid meet'
       });
       this.canvasWrap.appendChild(this.svg);
+      this.svg.addEventListener('lostpointercapture', event => {
+        if (this.drag?.pointerId === event.pointerId) this.cancelPointerGesture(event);
+      });
       this.editor.append(toolbar, scrollHint, this.canvasWrap, this.status);
       this.container.replaceChildren(this.editor);
     }
@@ -460,6 +469,31 @@
       this.commit('ゲートと配線をすべて消去し、出力をFだけに戻しました。Undoで戻せます。');
     }
 
+    alignCircuit() {
+      if (!this.options.enableAlignment || this.drag || this.paletteDrag || this.connectionDrag) return;
+      try {
+        if (!root.LogicLayout) throw new Error('整列機能を読み込めませんでした。ページを再読み込みしてください。');
+        const positions = root.LogicLayout.arrange(this.graph, { width: WIDTH, height: HEIGHT });
+        const changed = positions.some(point => {
+          const node = this.findNode(point.id);
+          return node.x !== point.x || node.y !== point.y;
+        });
+        if (!changed) {
+          this.notice = 'すでに整列しています。';
+          this.render({ notify: false });
+          return;
+        }
+        this.checkpoint();
+        positions.forEach(point => Object.assign(this.findNode(point.id), { x: point.x, y: point.y }));
+        this.pendingFrom = null;
+        this.pendingRewire = null;
+        this.commit('回路全体を整列しました。接続は変わりません。Undoで元の配置に戻せます。');
+      } catch (error) {
+        this.notice = error.message;
+        this.render({ notify: false });
+      }
+    }
+
     addGate(type, position) {
       const gate = String(type).toUpperCase();
       if (!GATES.includes(gate)) return;
@@ -512,7 +546,8 @@
       if (gesture.button.hasPointerCapture?.(event.pointerId)) gesture.button.releasePointerCapture(event.pointerId);
       if (!gesture.moved && !cancelled) return; // 通常のクリックで追加する。
       this.suppressPaletteClick = true; // ドロップ直後のclickで二重追加しない。
-      const position = cancelled ? null : this.paletteDropPoint(event);
+      const rawPosition = cancelled ? null : this.paletteDropPoint(event);
+      const position = rawPosition ? this.snapPosition({ type: gesture.gate }, rawPosition, gesture, event.altKey) : null;
       if (position) {
         this.addGate(gesture.gate, position);
         this.canvasWrap.focus({ preventScroll: true });
@@ -1283,12 +1318,63 @@
       return matrix ? point.matrixTransform(matrix.inverse()) : { x: clientX, y: clientY };
     }
 
+    snapPosition(node, position, gesture, bypass = false) {
+      const result = { x: clamp(position.x, 45, WIDTH - 45), y: clamp(position.y, 42, HEIGHT - 42) };
+      const previous = gesture.snap || {};
+      gesture.snap = {};
+      gesture.guides = [];
+      if (!this.options.enableAlignment || bypass) return result;
+      const others = this.graph.nodes.filter(other => other.id !== node.id);
+      const matrix = this.svg.getScreenCTM?.();
+      const scales = { x: Math.hypot(matrix?.a || 1, matrix?.b || 0), y: Math.hypot(matrix?.c || 0, matrix?.d || 1) };
+      const overlaps = point => others.some(other => Math.abs(point.x - other.x) < 84 && Math.abs(point.y - other.y) < 84);
+      for (const axis of ['x', 'y']) {
+        // 吸着は画面上7px以内。14px離すまで保持し、境界での細かな振動を防ぐ。
+        const candidates = others.filter(other => {
+          const threshold = (previous[axis] === other.id ? 14 : 7) / scales[axis];
+          return Math.abs(other[axis] - position[axis]) <= threshold;
+        }).sort((left, right) => {
+          const held = Number(previous[axis] === right.id) - Number(previous[axis] === left.id);
+          return held || Math.abs(left[axis] - position[axis]) - Math.abs(right[axis] - position[axis]);
+        });
+        const target = candidates.find(other => {
+          const candidate = { ...result, [axis]: other[axis] };
+          return candidate.x >= 45 && candidate.x <= WIDTH - 45 && candidate.y >= 42 && candidate.y <= HEIGHT - 42 && !overlaps(candidate);
+        });
+        if (!target) continue;
+        result[axis] = target[axis];
+        gesture.snap[axis] = target.id;
+        gesture.guides.push({ axis, value: target[axis], reference: target });
+      }
+      return result;
+    }
+
+    drawAlignmentGuides() {
+      const gesture = this.drag?.moved ? this.drag : this.paletteDrag;
+      const node = this.drag?.moved ? this.findNode(this.drag.nodeId) : this.paletteDrag?.position;
+      if (!node || !gesture?.guides?.length) return;
+      gesture.guides.forEach(guide => {
+        const vertical = guide.axis === 'x';
+        const along = vertical ? 'y' : 'x';
+        const from = Math.max(8, Math.min(node[along], guide.reference[along]) - 44);
+        const to = Math.min((vertical ? HEIGHT : WIDTH) - 8, Math.max(node[along], guide.reference[along]) + 44);
+        this.svg.appendChild(Renderer.svgElement('line', {
+          class: 'logic-editor-alignment-guide',
+          x1: vertical ? guide.value : from, y1: vertical ? from : guide.value,
+          x2: vertical ? guide.value : to, y2: vertical ? to : guide.value,
+          'data-axis': guide.axis, 'aria-hidden': 'true', 'vector-effect': 'non-scaling-stroke'
+        }));
+      });
+    }
+
     handlePointerMove(event) {
       if (this.paletteDrag?.pointerId === event.pointerId) {
         event.preventDefault();
         const gesture = this.paletteDrag;
         if (Math.hypot(event.clientX - gesture.start.x, event.clientY - gesture.start.y) > 5) gesture.moved = true;
-        gesture.position = this.paletteDropPoint(event);
+        const position = this.paletteDropPoint(event);
+        gesture.position = position ? this.snapPosition({ type: gesture.gate }, position, gesture, event.altKey) : null;
+        if (!position) { gesture.snap = {}; gesture.guides = []; }
         gesture.button.classList.toggle('is-dragging', gesture.moved);
         if (gesture.moved) this.render({ notify: false });
         return;
@@ -1325,9 +1411,12 @@
       const point = this.toSvgPoint(event.clientX, event.clientY);
       const dx = point.x - this.drag.start.x;
       const dy = point.y - this.drag.start.y;
-      if (Math.hypot(dx, dy) > 3) this.drag.moved = true;
-      node.x = Math.max(45, Math.min(WIDTH - 45, this.drag.originalX + dx));
-      node.y = Math.max(42, Math.min(HEIGHT - 42, this.drag.originalY + dy));
+      if (!this.drag.moved) {
+        if (Math.hypot(dx, dy) <= 3) return;
+        this.drag.moved = true;
+      }
+      const position = this.snapPosition(node, { x: this.drag.originalX + dx, y: this.drag.originalY + dy }, this.drag, event.altKey);
+      Object.assign(node, position);
       this.render({ notify: false });
     }
 
@@ -1401,10 +1490,20 @@
         return;
       }
       if (!this.drag || event.pointerId !== this.drag.pointerId) return;
+      // 高速なドラッグやタッチでmoveが間引かれても、離した位置で確定する。
+      if (Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) this.handlePointerMove(event);
       const drag = this.drag;
       this.drag = null;
       if (drag.moved) {
-        this.commit('部品を移動しました。');
+        const node = this.findNode(drag.nodeId);
+        if (node && (node.x !== drag.originalX || node.y !== drag.originalY)) {
+          // 確定するまで履歴に触れず、キャンセル時はRedoもそのまま残す。
+          const position = { x: node.x, y: node.y };
+          Object.assign(node, { x: drag.originalX, y: drag.originalY });
+          this.checkpoint();
+          Object.assign(node, position);
+          this.commit('部品を移動しました。');
+        } else this.render({ notify: false });
       } else if (drag.inputClick) {
         this.toggleInput(drag.nodeId);
       } else {
@@ -1419,6 +1518,13 @@
         if (event.key === 'Escape') {
           event.preventDefault();
           this.finishPaletteDrag({ pointerId: this.paletteDrag.pointerId }, true);
+        }
+        return;
+      }
+      if (this.drag) {
+        if (event.key === 'Escape') {
+          event.preventDefault();
+          this.cancelPointerGesture({ pointerId: this.drag.pointerId });
         }
         return;
       }
@@ -1692,6 +1798,7 @@
       const title = Renderer.svgElement('title', {}, '自由に編集できる論理回路');
       const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力があります。端子を順に選ぶか端子間をドラッグして接続します。接続済み入力端子のドラッグで配線を付け替えられます。配線は重なりを避け、同じ出力からは途中で分岐します。');
       this.svg.replaceChildren(title, desc, background);
+      this.drawAlignmentGuides();
       const rewiringWireId = this.connectionDrag?.moved ? this.connectionDrag.rewireWireId : null;
       const routing = this.computeWireRouting(rewiringWireId);
       this.currentWireRoutes = routing.routes;

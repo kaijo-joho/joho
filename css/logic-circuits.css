@@ -988,8 +988,8 @@ section article .logic-truth-table td.logic-answer-cell {
 .logic-editor__toolbar {
   position: relative;
   display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: stretch;
   gap: 10px 18px;
   padding: 12px;
   border-bottom: 1px solid var(--logic-border);
@@ -1036,6 +1036,13 @@ section article .logic-truth-table td.logic-answer-cell {
 .logic-editor-palette-preview .logic-gate__body {
   stroke: var(--logic-selected, #1677c8);
   stroke-dasharray: 5 3;
+}
+
+.logic-editor-alignment-guide {
+  stroke: var(--logic-focus);
+  stroke-width: 1.5;
+  stroke-dasharray: 5 4;
+  pointer-events: none;
 }
 
 .logic-editor__gate-icon {

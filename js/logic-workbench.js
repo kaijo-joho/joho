@@ -32,6 +32,7 @@
       availableInputNames: ['A', 'B', 'C', 'D'],
       allowInputDeletion: true,
       allowMultipleOutputs: true,
+      enableAlignment: true,
       initialExpression: 'A-B',
       onSave: () => files.openSave(),
       onLoad: () => files.openLoad(),

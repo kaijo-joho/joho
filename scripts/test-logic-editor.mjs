@@ -8,7 +8,7 @@ const context = vm.createContext({
   console,
   document: { elementFromPoint: () => dropTarget }
 });
-for (const name of ['logic-core', 'logic-renderer', 'logic-editor']) {
+for (const name of ['logic-core', 'logic-renderer', 'logic-layout', 'logic-editor']) {
   vm.runInContext(await readFile(new URL(`../js/${name}.js`, import.meta.url), 'utf8'), context);
 }
 const plain = value => JSON.parse(JSON.stringify(value));
@@ -301,4 +301,86 @@ for (let i = 0; i < segments.length; i += 1) {
     assert.ok(Math.min(segment.end, other.end) - Math.max(segment.start, other.start) <= 1, '線分を重ねない');
   }
 }
-console.log('logic-editor: ドラッグ追加・入力削除・複数出力・交換・両端の付け替え・接続の置き換え・履歴・接続制限・分岐経路を検証');
+// 全体整列は位置だけを変更し、未履歴の入力値も1回のUndoで元へ戻す。
+const aligned = editorFixture({ enableAlignment: true, allowMultipleOutputs: true });
+aligned.loadExpression('(A-B)_C');
+aligned.addOutput();
+aligned.graph.wires.push({ id: 'branch-output', from: aligned.graph.wires.find(w => w.to === 'output-F').from, to: aligned.graph.nodes.at(-1).id, port: 0 });
+aligned.resetHistory();
+aligned.setInputValues({ A: 1, B: 1, C: 0 });
+const beforeAlign = aligned.snapshot();
+const beforeTruth = aligned.getAnalysis().outputs.map(output => output.truthCode);
+aligned.alignCircuit();
+const afterAlign = aligned.snapshot();
+assert.deepEqual(afterAlign.graph.wires, beforeAlign.graph.wires, '整列で配線は不変');
+assert.deepEqual(afterAlign.inputValues, beforeAlign.inputValues, '整列で入力値は不変');
+assert.deepEqual(aligned.getAnalysis().outputs.map(output => output.truthCode), beforeTruth, '全出力の真理値を維持');
+assert.deepEqual(afterAlign.graph.nodes.map(({ x, y, ...node }) => node), beforeAlign.graph.nodes.map(({ x, y, ...node }) => node));
+assert.notDeepEqual(afterAlign, beforeAlign);
+const alignedHistory = aligned.historyIndex;
+aligned.alignCircuit();
+assert.deepEqual(aligned.snapshot(), afterAlign, '連続整列で位置は変わらない');
+assert.equal(aligned.historyIndex, alignedHistory, '連続整列で無意味な履歴を増やさない');
+aligned.undo();
+assert.deepEqual(aligned.snapshot(), beforeAlign, '真理値表で変更した値を含め1回のUndoで元の配置へ');
+aligned.redo();
+assert.deepEqual(aligned.snapshot(), afterAlign);
+aligned.graph.nodes.push(...Array.from({ length: 7 }, (_, index) => ({ id: `crowded-${index}`, type: 'AND', x: 250, y: 50 + index * 30 })));
+const crowdedBefore = aligned.snapshot();
+aligned.alignCircuit();
+assert.deepEqual(aligned.snapshot(), crowdedBefore, '密な回路の整列失敗は回路を動かさない');
+assert.match(aligned.notice, /多すぎる/);
+
+const snapping = editorFixture({ enableAlignment: true });
+snapping.graph = { nodes: [
+  { id: 'moving', type: 'AND', x: 300, y: 270 },
+  { id: 'column', type: 'OR', x: 500, y: 110 },
+  { id: 'row', type: 'NOT', x: 100, y: 350 }
+], wires: [] };
+const moving = snapping.findNode('moving');
+const gesture = {};
+assert.deepEqual(plain(snapping.snapPosition(moving, { x: 506, y: 354 }, gesture)), { x: 500, y: 350 }, '縦横の中心を別々の部品にそろえる');
+assert.equal(gesture.guides.length, 2);
+assert.deepEqual(plain(snapping.snapPosition(moving, { x: 512, y: 360 }, gesture)), { x: 500, y: 350 }, '14pxまで吸着を保持');
+assert.deepEqual(plain(snapping.snapPosition(moving, { x: 516, y: 365 }, gesture)), { x: 516, y: 365 }, '十分に離すと解除');
+assert.equal(gesture.guides.length, 0);
+assert.deepEqual(plain(snapping.snapPosition(moving, { x: 508, y: 359 }, gesture)), { x: 508, y: 359 }, '7pxより遠い位置では新しく吸着しない');
+assert.deepEqual(plain(snapping.snapPosition(moving, { x: 502, y: 352 }, gesture, true)), { x: 502, y: 352 }, 'Alt/Optionで吸着を回避');
+assert.equal(gesture.guides.length, 0);
+snapping.svg.getScreenCTM = () => ({ a: 2, b: 0, c: 0, d: 2 });
+assert.deepEqual(plain(snapping.snapPosition(moving, { x: 504, y: 354 }, {})), { x: 504, y: 354 }, '拡大時も取得範囲は画面上7px');
+assert.deepEqual(plain(snapping.snapPosition(moving, { x: 503, y: 353 }, {})), { x: 500, y: 350 });
+delete snapping.svg.getScreenCTM;
+snapping.graph.nodes.push({ id: 'overlap', type: 'AND', x: 500, y: 350 });
+assert.deepEqual(plain(snapping.snapPosition(moving, { x: 504, y: 354 }, {})), { x: 504, y: 354 }, '他の部品に重なる吸着を避ける');
+snapping.graph.nodes.pop();
+snapping.resetHistory();
+snapping.setInputValues({ A: 1, B: 0 });
+const beforeDrag = snapping.snapshot();
+const nodePointer = (x, y) => ({ button: 0, pointerId: 15, clientX: x, clientY: y, preventDefault() {} });
+snapping.startDrag(nodePointer(300, 270), moving);
+snapping.handlePointerMove(nodePointer(301, 271));
+assert.deepEqual(snapping.snapshot(), beforeDrag, '小さなクリックの揺れで部品を動かさない');
+snapping.handlePointerMove(nodePointer(505, 354));
+assert.deepEqual([moving.x, moving.y], [500, 350]);
+snapping.handleDocumentKeyDown({ key: 'Escape', preventDefault() {} });
+assert.equal(snapping.drag, null);
+assert.deepEqual(snapping.snapshot(), beforeDrag, 'Escapeで吸着前の位置へ');
+assert.equal(snapping.historyIndex, 0, 'キャンセルで履歴を増やさない');
+snapping.resetHistory();
+snapping.startDrag(nodePointer(300, 270), moving);
+snapping.handlePointerMove(nodePointer(505, 354));
+snapping.handlePointerUp(nodePointer(505, 354));
+assert.equal(snapping.historyIndex, 1, '移動全体で1回の履歴');
+snapping.undo();
+assert.deepEqual(snapping.snapshot(), beforeDrag);
+snapping.startDrag(nodePointer(300, 270), snapping.findNode('moving'));
+snapping.handlePointerMove(nodePointer(350, 320));
+snapping.handlePointerUp(nodePointer(505, 354));
+assert.deepEqual([snapping.findNode('moving').x, snapping.findNode('moving').y], [500, 350], '最後のmoveが省かれてもpointerupの位置で吸着を確定');
+snapping.undo();
+assert.deepEqual(snapping.snapshot(), beforeDrag);
+snapping.options.enableAlignment = false;
+assert.deepEqual(plain(snapping.snapPosition(snapping.findNode('moving'), { x: 505, y: 354 }, {})), { x: 505, y: 354 }, 'lc03は従来どおり');
+
+console.log('logic-editor: ドラッグ追加・入力削除・複数出力・交換・配線・履歴・分岐・全体整列・中心吸着を検証');
