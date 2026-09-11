@@ -756,6 +756,23 @@ section article .logic-truth-table td.logic-answer-cell {
   padding-block: 3px;
   border-color: color-mix(in oklab, var(--theme-color, #225386) 42%, transparent) !important;
   color: var(--theme-color, #225386) !important;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.logic-editor__gate-button.is-dragging {
+  cursor: grabbing;
+}
+
+.logic-editor-palette-preview {
+  opacity: .7;
+  pointer-events: none;
+}
+
+.logic-editor-palette-preview .logic-gate__body {
+  stroke: var(--logic-selected, #1677c8);
+  stroke-dasharray: 5 3;
 }
 
 .logic-editor__gate-icon {
@@ -1826,10 +1843,6 @@ section article .logic-extension-card h3 {
     grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
-  .logic-editor__actions--with-save .logic-editor__save-button {
-    grid-column: 3 / 6;
-  }
-
   .logic-editor__actions .logic-editor__help {
     grid-column: 6;
     grid-row: 1;
@@ -1860,6 +1873,34 @@ section article .logic-extension-card h3 {
     padding-inline: 6px;
     font-size: .84em;
     letter-spacing: .02em;
+  }
+
+  .logic-editor__actions--with-save {
+    display: flex;
+    flex-wrap: wrap;
+  }
+
+  .logic-editor .logic-editor__actions--with-save .logic-editor__action-button {
+    flex: 1 1 auto;
+    width: auto;
+    justify-content: center;
+  }
+
+  .logic-editor .logic-editor__actions--with-save .logic-editor__history-button,
+  .logic-editor__actions--with-save .logic-editor__help {
+    flex: 0 0 44px;
+    width: 44px;
+  }
+
+  .logic-editor__actions--with-save .logic-editor__save-icon {
+    display: none;
+  }
+
+  .logic-editor .logic-editor__actions--with-save .logic-editor__swap-button,
+  .logic-editor .logic-editor__actions--with-save .logic-editor__delete-button,
+  .logic-editor .logic-editor__actions--with-save .logic-editor__action-button--danger {
+    order: 1;
+    flex: 1 1 26%;
   }
 
   .logic-editor .logic-editor__gate-button {

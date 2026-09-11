@@ -13,9 +13,9 @@ for (const name of ['logic-core', 'logic-renderer', 'logic-editor']) {
 }
 const plain = value => JSON.parse(JSON.stringify(value));
 
-function editorFixture() {
+function editorFixture(options = { allowInputDeletion: true }) {
   const editor = Object.assign(Object.create(context.LogicEditor.prototype), {
-    options: {}, inputNames: ['A', 'B'], availableInputNames: ['A', 'B', 'C', 'D'],
+    options, inputNames: ['A', 'B'], availableInputNames: ['A', 'B', 'C', 'D'],
     inputValues: { A: 0, B: 0 }, history: [], historyIndex: -1,
     canvasWrap: { focus() {} }, svg: { contains: target => Boolean(target) },
     toSvgPoint: (x, y) => ({ x, y }), render() {}, updateToolbar() {}
@@ -88,7 +88,14 @@ assert.deepEqual(editor.snapshot(), unchanged, '左端を入力端子へドロ�
 editor.rewireConnection(selected.id, gate.id, gate.id, 0);
 assert.deepEqual(editor.snapshot(), unchanged, '循環接続を拒否');
 editor.rewireConnection(selected.id, 'input-B', gate.id, 1);
-assert.deepEqual(editor.snapshot(), unchanged, '他の配線で埋まった入力端子を拒否');
+assert.equal(editor.incomingWire(gate.id, 1).id, selected.id, '接続先の古い配線を、操作した配線へ置き換える');
+assert.equal(editor.graph.wires.length, unchanged.graph.wires.length - 1);
+assert.equal(editor.incomingWire(gate.id, 0), null, '元の接続先は空く');
+editor.undo();
+assert.deepEqual(editor.snapshot(), unchanged, '1回のUndoで、元の配線と置き換えられた配線を両方復元');
+editor.redo();
+assert.equal(editor.incomingWire(gate.id, 1).id, selected.id);
+editor.undo();
 editor.rewireConnection(selected.id, 'input-B', gate.id, 2);
 assert.deepEqual(editor.snapshot(), unchanged, '存在しない端子を拒否');
 editor.connectionDrag = { pointerId: 2, rewireWireId: selected.id, moved: true };
@@ -111,6 +118,82 @@ const example = editorFixture();
 example.loadExpression('(A-B)_C');
 assert.deepEqual(plain(example.inputNames), ['A', 'B', 'C'], '回路例に必要な追加入力も読み込める');
 assert.equal(example.getAnalysis().valid, true);
+
+// 自由編集だけで入力を削除でき、全分岐・値・配置を履歴から復元できる。
+const removable = editorFixture();
+removable.loadExpression('(A-B)_A');
+removable.setInputValues({ A: 1, B: 0 });
+removable.resetHistory();
+const beforeDeletion = removable.snapshot();
+removable.selected = { kind: 'node', id: 'input-A' };
+removable.deleteSelected();
+assert.equal(removable.findNode('input-A'), undefined);
+assert.equal('A' in removable.inputValues, false);
+assert.equal(removable.inputNames.includes('A'), false);
+assert.ok(removable.graph.wires.every(wire => wire.from !== 'input-A'));
+removable.undo();
+assert.deepEqual(removable.snapshot(), beforeDeletion);
+removable.redo();
+removable.addInput();
+assert.equal(removable.findNode('input-A').name, 'A');
+assert.equal(removable.inputValues.A, 0, '追加し直すと初期値0');
+removable.selected = { kind: 'node', id: 'output-F' };
+const beforeFixed = removable.snapshot();
+removable.deleteSelected();
+assert.deepEqual(removable.snapshot(), beforeFixed, '出力Fは削除できない');
+const quiz = editorFixture({});
+quiz.selected = { kind: 'node', id: 'input-A' };
+const beforeQuiz = quiz.snapshot();
+quiz.deleteSelected();
+assert.deepEqual(quiz.snapshot(), beforeQuiz, '問題モードの指定入力は削除できない');
+
+// 新規接続も同じ置き換え規則。循環する場合は、置き換え対象も含め何も消さない。
+const replace = editorFixture();
+const replaceGate = replace.graph.nodes.find(node => node.type === 'AND');
+const replaceBefore = replace.snapshot();
+replace.startConnection('input-B');
+replace.finishConnection(replaceGate.id, 0);
+assert.equal(replace.incomingWire(replaceGate.id, 0).from, 'input-B');
+assert.equal(replace.graph.wires.length, replaceBefore.graph.wires.length);
+replace.undo();
+assert.deepEqual(replace.snapshot(), replaceBefore);
+const toF = replace.incomingWire('output-F', 0);
+replace.rewireConnection(toF.id, replaceGate.id, replaceGate.id, 0);
+assert.deepEqual(replace.snapshot(), replaceBefore, '循環する置き換えでは両配線を保持');
+replace.startConnection(replaceGate.id);
+replace.finishConnection(replaceGate.id, 0);
+assert.deepEqual(replace.snapshot(), replaceBefore, '循環する新規接続でも既存の接続を保持');
+replace.startConnection('input-A');
+replace.finishConnection(replaceGate.id, 2);
+assert.deepEqual(replace.snapshot(), replaceBefore, '新規接続の存在しない端子も拒否');
+
+// パレットから配置する位置・キャンセル・履歴。実際のpointer captureとclickはブラウザで検証。
+const palette = editorFixture();
+palette.canvasWrap.getBoundingClientRect = () => ({ left: 0, top: 0, right: 900, bottom: 520 });
+const paletteButton = { focus() {}, classList: { remove() {}, toggle() {} } };
+const pointer = (x, y) => ({ button: 0, pointerId: 7, clientX: x, clientY: y, preventDefault() {} });
+dropTarget = {};
+const beforePalette = palette.snapshot();
+palette.beginPaletteDrag(pointer(20, -30), 'OR', paletteButton);
+palette.handlePointerMove(pointer(370, 310));
+assert.deepEqual(plain(palette.paletteDrag.position), { x: 370, y: 310 });
+assert.deepEqual(palette.snapshot(), beforePalette, 'ドラッグ中はプレビューだけで回路を変更しない');
+palette.handlePointerUp(pointer(370, 310));
+const placedGate = palette.findNode(palette.selected.id);
+assert.deepEqual([placedGate.type, placedGate.x, placedGate.y], ['OR', 370, 310]);
+assert.equal(palette.suppressPaletteClick, true, '直後のclickを抑止');
+palette.undo();
+assert.deepEqual(palette.snapshot(), beforePalette);
+for (const end of ['outside', 'escape', 'pointercancel']) {
+  palette.beginPaletteDrag(pointer(20, -30), 'NOT', paletteButton);
+  palette.handlePointerMove(pointer(300, 200));
+  if (end === 'outside') palette.handlePointerUp(pointer(-20, 200));
+  if (end === 'escape') palette.handleDocumentKeyDown({ key: 'Escape', preventDefault() {} });
+  if (end === 'pointercancel') palette.cancelPointerGesture({ pointerId: 7 });
+  assert.equal(palette.paletteDrag, null);
+  assert.deepEqual(palette.snapshot(), beforePalette, `${end}で部品・履歴を増やさない`);
+  assert.equal(palette.historyIndex, 0);
+}
 
 // 報告された配置：Aの配線との交差を避けるだけの余分な折り返しを作らない。
 editor.graph = {
@@ -143,4 +226,4 @@ for (let i = 0; i < segments.length; i += 1) {
     assert.ok(Math.min(segment.end, other.end) - Math.max(segment.start, other.start) <= 1, '線分を重ねない');
   }
 }
-console.log('logic-editor: 入力追加・交換・配線左端の付け替え・履歴・接続制限・分岐経路を検証');
+console.log('logic-editor: ドラッグ追加・入力削除・交換・両端の付け替え・接続の置き換え・履歴・接続制限・分岐経路を検証');

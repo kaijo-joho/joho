@@ -363,25 +363,83 @@
   function serializeSvg(svg, title) {
     if (!(svg instanceof SVGElement)) throw new TypeError('保存するSVG要素が見つかりません。');
     const clone = svg.cloneNode(true);
-    clone.setAttribute('xmlns', SVG_NS);
+    // 名前空間はXMLSerializerに任せる。通常のxmlns属性との二重出力を防ぐ。
+    clone.removeAttribute('xmlns');
+    clone.removeAttribute('style'); // 画面用の自然幅のCSS変数は保存しない。
     clone.setAttribute('width', clone.viewBox.baseVal.width || 900);
     clone.setAttribute('height', clone.viewBox.baseVal.height || 520);
-    if (title) clone.querySelector('title').textContent = title;
-    return `<?xml version=\"1.0\" encoding=\"UTF-8\"?>\\n${new XMLSerializer().serializeToString(clone)}`;
+    if (title) {
+      let titleNode = clone.querySelector('title');
+      if (!titleNode) {
+        titleNode = svgElement('title');
+        clone.prepend(titleNode);
+      }
+      titleNode.textContent = title;
+    }
+    // このファイルで定義した描画規則だけをSVG属性へ展開する。
+    // IllustratorなどCSS変数を扱わない環境でも、白背景で同じ色・線を保つ。
+    for (const [, selector, declarations] of INTERNAL_STYLE.matchAll(/([^{}]+)\{([^{}]*)\}/g)) {
+      const targets = [...clone.querySelectorAll(selector.trim())];
+      if (clone.matches(selector.trim())) targets.unshift(clone);
+      for (const declaration of declarations.split(';')) {
+        const separator = declaration.indexOf(':');
+        if (separator < 0) continue;
+        const property = declaration.slice(0, separator).trim();
+        const value = declaration.slice(separator + 1).trim().replace(/var\([^,]+,\s*([^)]+)\)/g, '$1');
+        targets.forEach(target => target.setAttribute(property, value));
+      }
+    }
+    clone.querySelectorAll('style').forEach(style => style.remove());
+    return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
   }
 
-  function downloadSvg(svg, title = '論理回路') {
-    const source = serializeSvg(svg, title);
-    const blob = new Blob([source], { type: 'image/svg+xml;charset=utf-8' });
+  function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement('a');
     anchor.href = url;
-    anchor.download = Core.createSvgFilename();
-    document.body.appendChild(anchor);
-    anchor.click();
-    anchor.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
-    return anchor.download;
+    anchor.download = filename;
+    try {
+      document.body.appendChild(anchor);
+      anchor.click();
+    } finally {
+      anchor.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    }
+    return filename;
+  }
+
+  function downloadSvg(svg, title = '論理回路') {
+    const blob = new Blob([serializeSvg(svg, title)], { type: 'image/svg+xml;charset=utf-8' });
+    return downloadBlob(blob, Core.createSvgFilename());
+  }
+
+  async function downloadPng(svg, title = '論理回路') {
+    const source = new Blob([serializeSvg(svg, title)], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(source);
+    try {
+      const image = new Image();
+      await new Promise((resolve, reject) => {
+        image.onload = resolve;
+        image.onerror = () => reject(new Error('回路図を画像に変換できませんでした。'));
+        image.src = url;
+      });
+      // 通常は2倍解像度。大きな回路は長辺4096px以内に収める。
+      const scale = Math.min(2, 4096 / image.naturalWidth, 4096 / image.naturalHeight);
+      const canvas = document.createElement('canvas');
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const context = canvas.getContext('2d');
+      if (!context) throw new Error('このブラウザではPNG画像を作成できません。');
+      context.fillStyle = '#ffffff';
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const blob = await new Promise((resolve, reject) => {
+        canvas.toBlob(result => result ? resolve(result) : reject(new Error('PNG画像を作成できませんでした。')), 'image/png');
+      });
+      return downloadBlob(blob, Core.createSvgFilename().replace(/\.svg$/i, '.png'));
+    } finally {
+      URL.revokeObjectURL(url);
+    }
   }
 
   root.LogicRenderer = Object.freeze({
@@ -394,6 +452,7 @@
     renderCircuit,
     renderMessage,
     serializeSvg,
-    downloadSvg
+    downloadSvg,
+    downloadPng
   });
 })(typeof globalThis !== 'undefined' ? globalThis : window);

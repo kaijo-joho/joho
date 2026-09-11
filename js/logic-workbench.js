@@ -27,8 +27,10 @@
     editor = new window.LogicEditor(host, {
       inputNames: ['A', 'B'],
       availableInputNames: ['A', 'B', 'C', 'D'],
+      allowInputDeletion: true,
       initialExpression: 'A-B',
       enableSvgSave: true,
+      enablePngSave: true,
       onChange: update
     });
     update(editor.getState());
