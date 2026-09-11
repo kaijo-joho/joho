@@ -847,12 +847,37 @@ section article .logic-truth-table td.logic-answer-cell {
   font-weight: 750;
 }
 
+.logic-editor__export-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding-inline: 4px;
+  color: var(--logic-text);
+  font-size: .78em;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.logic-editor__export-option input {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: var(--theme-color, #225386);
+}
+
+.logic-editor__export-option input:focus-visible {
+  outline: 3px solid var(--logic-selected, #1677c8);
+  outline-offset: 3px;
+}
+
 .logic-editor__action-button--danger {
   color: var(--logic-error) !important;
 }
 
 .logic-editor__swap-button,
-.logic-editor__add-input-button {
+.logic-editor__add-input-button,
+.logic-editor__add-output-button {
   white-space: nowrap;
 }
 

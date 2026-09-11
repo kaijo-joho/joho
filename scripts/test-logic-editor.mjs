@@ -147,6 +147,81 @@ const beforeQuiz = quiz.snapshot();
 quiz.deleteSelected();
 assert.deepEqual(quiz.snapshot(), beforeQuiz, '問題モードの指定入力は削除できない');
 
+// 複数出力は自由編集だけで有効化する。追加・接続・削除も既存の履歴操作を通す。
+const multi = editorFixture({ allowInputDeletion: true, allowMultipleOutputs: true });
+const originalOutputWire = plain(multi.incomingWire('output-F', 0));
+const originalParts = plain(multi.graph.nodes.map(node => ({ id: node.id, x: node.x, y: node.y })));
+multi.addOutput();
+const secondOutput = multi.selected.id;
+assert.deepEqual(plain(multi.graph.nodes.filter(node => node.type === 'output').map(node => node.name)), ['F₁', 'F₂']);
+assert.equal(multi.getAnalysis().valid, false, '追加直後のF₂が未接続なら回路は未完成');
+assert.match(multi.getAnalysis().errors.join(' '), /出力F₂/);
+assert.deepEqual(
+  plain(multi.graph.nodes.filter(node => node.id !== secondOutput).map(node => ({ id: node.id, x: node.x, y: node.y }))),
+  originalParts,
+  '出力追加で既存部品のIDと位置を変えない'
+);
+const existingAnd = multi.graph.nodes.find(node => node.type === 'AND');
+multi.startConnection(existingAnd.id);
+multi.finishConnection(secondOutput, 0);
+const completedMulti = multi.getAnalysis();
+assert.equal(completedMulti.valid, true, '既存ANDをF₂へ分岐すると複数出力回路が完成する');
+assert.deepEqual(plain(completedMulti.outputs.map(output => output.truthCode)), ['0001', '0001']);
+assert.deepEqual(plain(completedMulti.truthTable.map(row => [row.outputs['output-F'], row.outputs[secondOutput]])), [[0, 0], [0, 0], [0, 0], [1, 1]]);
+multi.selected = { kind: 'node', id: secondOutput };
+assert.equal(multi.canDeleteNode(multi.findNode(secondOutput)), true, '2つ以上の出力では選択出力を削除できる');
+multi.deleteSelected();
+assert.deepEqual(plain(multi.graph.nodes.filter(node => node.type === 'output').map(node => node.name)), ['F']);
+assert.deepEqual(plain(multi.incomingWire('output-F', 0)), originalOutputWire, 'F₁へ戻っても元の配線を保つ');
+multi.undo();
+assert.equal(multi.findNode(secondOutput).name, 'F₂', 'Undoで削除した出力名を復元する');
+assert.equal(multi.incomingWire(secondOutput, 0).from, existingAnd.id, 'Undoで削除出力の配線も復元する');
+multi.redo();
+assert.equal(multi.findNode(secondOutput), undefined, 'Redoで出力削除を再適用する');
+multi.undo();
+
+const manyOutputs = editorFixture({ allowInputDeletion: true, allowMultipleOutputs: true });
+for (let index = 0; index < 10; index += 1) manyOutputs.addOutput();
+const manyOutputNodes = manyOutputs.graph.nodes.filter(node => node.type === 'output');
+assert.equal(manyOutputNodes.length, 11);
+assert.equal(manyOutputNodes.at(-1).name, 'F₁₁', '10個を超える出力名も下付き数字で付ける');
+assert.equal(new Set(manyOutputNodes.map(node => node.id)).size, manyOutputNodes.length, '追加出力IDは一意');
+const lastOutputId = manyOutputNodes.at(-1).id;
+manyOutputs.undo();
+manyOutputs.addOutput();
+assert.notEqual(manyOutputs.selected.id, lastOutputId, 'Undo後の再追加でも出力IDを使い回さない');
+assert.equal(new Set(manyOutputs.graph.nodes.filter(node => node.type === 'output').map(node => node.id)).size, 11);
+
+const oneOutput = editorFixture({ allowInputDeletion: true, allowMultipleOutputs: true });
+oneOutput.selected = { kind: 'node', id: 'output-F' };
+const oneOutputBefore = oneOutput.snapshot();
+assert.equal(oneOutput.canDeleteNode(oneOutput.findNode('output-F')), false, '出力が1つだけなら削除不可');
+oneOutput.deleteSelected();
+assert.deepEqual(oneOutput.snapshot(), oneOutputBefore);
+quiz.addOutput();
+assert.deepEqual(quiz.snapshot(), beforeQuiz, '問題モードでは複数出力を追加できない');
+
+const multiInputDeletion = editorFixture({ allowInputDeletion: true, allowMultipleOutputs: true });
+multiInputDeletion.addOutput();
+const inputDeletionOutput = multiInputDeletion.selected.id;
+multiInputDeletion.startConnection('input-A');
+multiInputDeletion.finishConnection(inputDeletionOutput, 0);
+assert.equal(multiInputDeletion.incomingWire(inputDeletionOutput, 0).from, 'input-A');
+multiInputDeletion.selected = { kind: 'node', id: 'input-A' };
+multiInputDeletion.deleteSelected();
+assert.equal(multiInputDeletion.findNode('input-A'), undefined);
+assert.ok(multiInputDeletion.graph.wires.every(wire => wire.from !== 'input-A' && wire.to !== 'input-A'), '入力削除で複数出力への分岐配線も除去する');
+multiInputDeletion.undo();
+assert.equal(multiInputDeletion.incomingWire(inputDeletionOutput, 0).from, 'input-A', 'Undoで複数出力への入力配線を戻す');
+
+const resetOutputs = editorFixture({ allowInputDeletion: true, allowMultipleOutputs: true });
+resetOutputs.addOutput();
+resetOutputs.clear();
+assert.deepEqual(plain(resetOutputs.graph.nodes.filter(node => node.type === 'output').map(node => node.name)), ['F'], '全消去は出力1つのFへ戻す');
+resetOutputs.addOutput();
+resetOutputs.loadExpression('A-B');
+assert.deepEqual(plain(resetOutputs.graph.nodes.filter(node => node.type === 'output').map(node => node.name)), ['F'], '式の読込みも出力1つのFへ戻す');
+
 // 新規接続も同じ置き換え規則。循環する場合は、置き換え対象も含め何も消さない。
 const replace = editorFixture();
 const replaceGate = replace.graph.nodes.find(node => node.type === 'AND');
@@ -226,4 +301,4 @@ for (let i = 0; i < segments.length; i += 1) {
     assert.ok(Math.min(segment.end, other.end) - Math.max(segment.start, other.start) <= 1, '線分を重ねない');
   }
 }
-console.log('logic-editor: ドラッグ追加・入力削除・交換・両端の付け替え・接続の置き換え・履歴・接続制限・分岐経路を検証');
+console.log('logic-editor: ドラッグ追加・入力削除・複数出力・交換・両端の付け替え・接続の置き換え・履歴・接続制限・分岐経路を検証');

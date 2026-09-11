@@ -271,23 +271,39 @@
   function renderTruthTable(target, config) {
     const inputNames = config.inputNames || [];
     const rows = config.rows || [];
+    const outputDescriptors = Array.isArray(config.outputs) && config.outputs.length
+      ? config.outputs
+      : [{ id: null, name: 'F' }];
+    const hasOutputDescriptors = Array.isArray(config.outputs) && config.outputs.length > 0;
     const activeKey = config.activeInputs ? inputsKey(inputNames, config.activeInputs) : '';
     const table = element('table', 'logic-truth-table');
     const caption = element('caption', '', config.caption || '真理値表');
     const thead = document.createElement('thead');
     const header = document.createElement('tr');
-    inputNames.forEach(name => header.appendChild(element('th', '', name)));
-    const outputHeader = element('th', 'logic-truth-table__divider', 'F');
+    inputNames.forEach(name => {
+      const inputHeader = element('th', '', name);
+      inputHeader.setAttribute('scope', 'col');
+      header.appendChild(inputHeader);
+    });
     const hoverHint = String(config.hoverHint || '').trim();
-    if (hoverHint) {
-      outputHeader.classList.add('logic-truth-table__output-header');
-      outputHeader.tabIndex = 0;
-      outputHeader.setAttribute('aria-label', `F列。${hoverHint}`);
-      const hintIcon = element('span', 'logic-truth-table__hint-icon', 'ⓘ');
-      hintIcon.setAttribute('aria-hidden', 'true');
-      outputHeader.appendChild(hintIcon);
-    }
-    header.appendChild(outputHeader);
+    const outputHeaders = outputDescriptors.map((descriptor, outputIndex) => {
+      const outputHeader = element(
+        'th',
+        outputIndex === 0 ? 'logic-truth-table__divider' : '',
+        descriptor.name
+      );
+      outputHeader.setAttribute('scope', 'col');
+      if (hoverHint && outputIndex === 0) {
+        outputHeader.classList.add('logic-truth-table__output-header');
+        outputHeader.tabIndex = 0;
+        outputHeader.setAttribute('aria-label', `${descriptor.name}列。${hoverHint}`);
+        const hintIcon = element('span', 'logic-truth-table__hint-icon', 'ⓘ');
+        hintIcon.setAttribute('aria-hidden', 'true');
+        outputHeader.appendChild(hintIcon);
+      }
+      header.appendChild(outputHeader);
+      return outputHeader;
+    });
     thead.appendChild(header);
     const tbody = document.createElement('tbody');
 
@@ -300,30 +316,33 @@
         tr.setAttribute('aria-current', 'true');
       }
       inputNames.forEach(name => tr.appendChild(element('td', '', String(row.inputs[name]))));
-      const outputCell = element('td', 'logic-truth-table__divider');
-      if (config.editableValues) {
-        const answer = config.editableValues[rowIndex];
-        outputCell.classList.add('logic-answer-cell');
-        const labelFor = current => `${rowKey}のときのF。現在${current == null ? '未入力' : current}`;
-        let judgedLabel = '';
-        if (config.judged) {
-          const correct = answer === row.output;
-          outputCell.classList.add(answer == null ? 'is-unanswered' : correct ? 'is-correct' : 'is-wrong');
-          judgedLabel = answer == null ? '未回答' : correct ? '正解' : `不正解、正しくは${row.output}`;
-        }
-        const control = createTruthAnswerControl({
-          value: answer,
-          readOnly: config.judged,
-          ariaLabel: current => `${labelFor(current)}${judgedLabel ? `。${judgedLabel}` : ''}`,
-          onChange: next => {
-            if (typeof config.onAnswerChange === 'function') config.onAnswerChange(rowIndex, next);
+      outputDescriptors.forEach((descriptor, outputIndex) => {
+        const outputCell = element('td', outputIndex === 0 ? 'logic-truth-table__divider' : '');
+        if (config.editableValues && !hasOutputDescriptors) {
+          const answer = config.editableValues[rowIndex];
+          outputCell.classList.add('logic-answer-cell');
+          const labelFor = current => `${rowKey}のときのF。現在${current == null ? '未入力' : current}`;
+          let judgedLabel = '';
+          if (config.judged) {
+            const correct = answer === row.output;
+            outputCell.classList.add(answer == null ? 'is-unanswered' : correct ? 'is-correct' : 'is-wrong');
+            judgedLabel = answer == null ? '未回答' : correct ? '正解' : `不正解、正しくは${row.output}`;
           }
-        });
-        outputCell.appendChild(control.element);
-      } else {
-        outputCell.textContent = String(row.output);
-      }
-      tr.appendChild(outputCell);
+          const control = createTruthAnswerControl({
+            value: answer,
+            readOnly: config.judged,
+            ariaLabel: current => `${labelFor(current)}${judgedLabel ? `。${judgedLabel}` : ''}`,
+            onChange: next => {
+              if (typeof config.onAnswerChange === 'function') config.onAnswerChange(rowIndex, next);
+            }
+          });
+          outputCell.appendChild(control.element);
+        } else {
+          const outputValue = hasOutputDescriptors ? row.outputs?.[descriptor.id] : row.output;
+          outputCell.textContent = String(outputValue);
+        }
+        tr.appendChild(outputCell);
+      });
       if (typeof config.onRowSelect === 'function' && (!config.selectAfterJudgement || config.judged)) {
         tr.classList.add('is-selectable');
         tr.tabIndex = 0;
@@ -350,12 +369,12 @@
       hint.hidden = true;
       hint.setAttribute('role', 'tooltip');
       hint.setAttribute('aria-hidden', 'true');
-      outputHeader.setAttribute('aria-describedby', hint.id);
+      outputHeaders[0].setAttribute('aria-describedby', hint.id);
       const showHint = () => {
         hint.hidden = false;
         hint.setAttribute('aria-hidden', 'false');
         const shellBox = shell.getBoundingClientRect();
-        const headerBox = outputHeader.getBoundingClientRect();
+        const headerBox = outputHeaders[0].getBoundingClientRect();
         hint.style.top = `${headerBox.bottom - shellBox.top + 6}px`;
         hint.style.right = 'auto';
         hint.style.left = '8px';
@@ -368,10 +387,10 @@
         hint.hidden = true;
         hint.setAttribute('aria-hidden', 'true');
       };
-      outputHeader.addEventListener('pointerenter', showHint);
-      outputHeader.addEventListener('pointerleave', hideHint);
-      outputHeader.addEventListener('focus', showHint);
-      outputHeader.addEventListener('blur', hideHint);
+      outputHeaders[0].addEventListener('pointerenter', showHint);
+      outputHeaders[0].addEventListener('pointerleave', hideHint);
+      outputHeaders[0].addEventListener('focus', showHint);
+      outputHeaders[0].addEventListener('blur', hideHint);
       shell.append(scroller, hint);
       target.replaceChildren(shell);
     } else {

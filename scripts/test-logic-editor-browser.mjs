@@ -130,9 +130,14 @@ async function editChecks(page, name) {
   console.log(`${name}: palette drag/click/keyboard, input deletion, both wire ends, occupied ports, Undo and help`);
 }
 
-async function exportChecks(page, name) {
-  await reset(page);
-  await page.evaluate(() => window.logicWorkbenchEditor.setInputValues({ A: 1, B: 1 }));
+async function exportChecks(page, name, { resetCircuit = true, showSignals = true } = {}) {
+  if (resetCircuit) {
+    await reset(page);
+    await page.evaluate(() => window.logicWorkbenchEditor.setInputValues({ A: 1, B: 1 }));
+  }
+  const beforePreference = await state(page);
+  await page.getByRole('checkbox', { name: '保存図に0/1を表示', exact: true }).setChecked(showSignals);
+  assert.deepEqual(await state(page), beforePreference, 'export preference does not change circuit or input values');
   const svgDownload = page.waitForEvent('download');
   await page.locator('[data-format="svg"]').click();
   const svgFile = await svgDownload;
@@ -150,13 +155,35 @@ async function exportChecks(page, name) {
       width: Number(xml.documentElement.getAttribute('width')),
       height: Number(xml.documentElement.getAttribute('height')),
       gateFill: xml.querySelector('.logic-gate__body')?.getAttribute('fill'),
-      liveWire: xml.querySelector('.logic-wire.is-one')?.getAttribute('stroke')
+      liveWire: xml.querySelector('.logic-wire.is-one')?.getAttribute('stroke'),
+      badges: xml.querySelectorAll('.logic-value').length,
+      bits: [...xml.querySelectorAll('text')].filter(text => /^[01]$/.test(text.textContent)).length,
+      boxes: xml.querySelectorAll('.logic-output-box, .logic-editor-node__box').length,
+      terminalKinds: [...xml.querySelectorAll('.logic-terminal')].map(dot => dot.getAttribute('data-terminal-kind')),
+      outputLabels: [...xml.querySelectorAll('[data-terminal-label="output"]')].map(label => label.textContent),
+      junctions: xml.querySelectorAll('.logic-junction').length,
+      notBubbles: xml.querySelectorAll('.logic-gate__not-bubble').length,
+      junctionsAfterWires: [...xml.querySelectorAll('.logic-junction')].every(dot =>
+        [...xml.querySelectorAll('.logic-wire')].every(wire => Boolean(wire.compareDocumentPosition(dot) & Node.DOCUMENT_POSITION_FOLLOWING))),
+      gates: [...xml.querySelectorAll('.logic-gate')].map(gate => ({ id: gate.getAttribute('data-node-id'), transform: gate.getAttribute('transform') }))
     };
   }, source);
   assert.equal(parsed.error, undefined);
   assert.ok(parsed.width > 0 && parsed.height > 0);
   assert.equal(parsed.gateFill, '#f8fafc');
-  assert.equal(parsed.liveWire, '#d9483b');
+  assert.equal(parsed.liveWire, showSignals ? '#d9483b' : undefined);
+  assert.equal(parsed.boxes, 0, 'export outputs have no frames');
+  assert.ok(parsed.terminalKinds.every(kind => kind === 'input' || kind === 'output'), 'no gate port dots');
+  assert.deepEqual(parsed.outputLabels, beforePreference.graph.nodes.filter(node => node.type === 'output').map(node => node.name));
+  assert.equal(parsed.terminalKinds.filter(kind => kind === 'output').length, parsed.outputLabels.length);
+  assert.equal(parsed.bits > 0, showSignals);
+  assert.equal(parsed.badges > 0, showSignals);
+  assert.equal(parsed.notBubbles, beforePreference.graph.nodes.filter(node => node.type === 'NOT').length, 'NOT negation bubbles remain');
+  assert.equal(parsed.junctionsAfterWires, true, 'branch dots are not overwritten by the wires');
+  for (const gate of parsed.gates) {
+    const sourceNode = beforePreference.graph.nodes.find(node => node.id === gate.id);
+    assert.equal(gate.transform, `translate(${sourceNode.x} ${sourceNode.y})`, 'export preserves placement/shared gate identity');
+  }
   const pngDownload = page.waitForEvent('download');
   await page.locator('[data-format="png"]').click();
   const pngFile = await pngDownload;
@@ -224,8 +251,66 @@ async function exportChecks(page, name) {
   assert.equal(failed.busy, false);
   assert.equal(failed.released, 1, 'conversion failure releases the temporary SVG URL');
   await expect(page.locator('[data-format="png"]')).toBeEnabled();
-  await reset(page);
   console.log(`${name}: actual SVG XML/standalone rendering and PNG pixels/dimensions verified`);
+}
+
+async function multiOutputChecks(page, name) {
+  await reset(page);
+  const single = await state(page);
+  const and = single.graph.nodes.find(node => node.type === 'AND');
+  await page.getByRole('button', { name: '出力を追加', exact: true }).click();
+  const double = await state(page);
+  const outputs = double.graph.nodes.filter(node => node.type === 'output');
+  assert.deepEqual(outputs.map(node => node.name), ['F₁', 'F₂']);
+  assert.deepEqual(outputs[0], { ...single.graph.nodes.find(node => node.type === 'output'), name: 'F₁' });
+  await expect(page.locator('[data-format="svg"]')).toBeDisabled();
+  await expect(page.locator('[data-format="png"]')).toBeDisabled();
+  await mouseDrag(page, await center(port(page, and.id, 'output')), await center(port(page, outputs[1].id, 'input')));
+  assert.equal(await page.evaluate(() => logicWorkbenchEditor.getAnalysis().valid), true);
+  await expect(page.locator('[data-format="svg"]')).toBeEnabled();
+  assert.deepEqual(await page.locator('#logic-workbench-table thead th').allTextContents(), ['A', 'B', 'F₁', 'F₂']);
+  assert.deepEqual(await page.locator('#logic-workbench-table tbody tr').evaluateAll(rows => rows.map(row => [...row.cells].map(cell => cell.textContent))), [
+    ['0', '0', '0', '0'], ['0', '1', '0', '0'], ['1', '0', '0', '0'], ['1', '1', '1', '1']
+  ]);
+  await page.locator('#logic-workbench-table tbody tr').last().press('Enter');
+  await expect(page.locator('#logic-workbench-table tbody tr').last()).toHaveClass(/is-active/);
+  assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), ['1', '1']);
+  const shared = await state(page);
+  const exported = await page.evaluate(() => {
+    const { svg } = logicWorkbenchEditor.createExportDiagram();
+    return { gates: svg.querySelectorAll('.logic-gate').length, junctions: svg.querySelectorAll('.logic-junction').length };
+  });
+  assert.equal(exported.gates, 1, 'one shared gate, not copied for each output');
+  assert.equal(exported.junctions, 1, 'only the actual shared-output branch has a dot, not its bends');
+  await page.locator(`.logic-editor-node[data-node-id="${outputs[1].id}"]`).press('Enter');
+  await page.getByRole('button', { name: '出力F₂を削除', exact: true }).press('Enter');
+  assert.deepEqual((await state(page)).graph.nodes.filter(node => node.type === 'output').map(node => node.name), ['F']);
+  await undo(page);
+  assert.deepEqual(await state(page), shared, 'Undo restores output names, positions and branches');
+
+  const orPalette = page.getByRole('button', { name: 'ORゲートを追加', exact: true });
+  await mouseDrag(page, await center(orPalette), await canvasPoint(page, 480, 350));
+  const or = (await state(page)).graph.nodes.at(-1);
+  await mouseDrag(page, await center(port(page, 'input-A', 'output')), await center(port(page, or.id, 'input', 0)));
+  await mouseDrag(page, await center(port(page, 'input-B', 'output')), await center(port(page, or.id, 'input', 1)));
+  await mouseDrag(page, await center(port(page, or.id, 'output')), await center(port(page, outputs[1].id, 'input')));
+  assert.deepEqual(await page.locator('#logic-workbench-table tbody tr').evaluateAll(rows => rows.map(row => [...row.cells].map(cell => cell.textContent))), [
+    ['0', '0', '0', '0'], ['0', '1', '0', '1'], ['1', '0', '0', '1'], ['1', '1', '1', '1']
+  ]);
+  await page.locator('#logic-workbench-table tbody tr').nth(2).press('Enter');
+  assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), ['0', '1']);
+  await page.screenshot({ path: join(artifacts, `${name}-multiple-editor.png`) });
+  const exportPreference = page.getByRole('checkbox', { name: '保存図に0/1を表示', exact: true });
+  await exportPreference.press('Space');
+  await expect(exportPreference).not.toBeChecked();
+  await exportPreference.press('Space');
+  await expect(exportPreference).toBeChecked();
+  await exportChecks(page, `${name}-multiple-visible`, { resetCircuit: false, showSignals: true });
+  await exportChecks(page, `${name}-multiple-hidden`, { resetCircuit: false, showSignals: false });
+  assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), ['0', '1'], 'hidden export does not hide editor values');
+  await reset(page);
+  await page.getByRole('checkbox', { name: '保存図に0/1を表示', exact: true }).check();
+  console.log(`${name}: multiple outputs, shared branch, renaming/deletion/Undo, truth table and both export value modes`);
 }
 
 async function layoutChecks(page, name) {
@@ -241,7 +326,7 @@ async function layoutChecks(page, name) {
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         const layout = await page.evaluate(() => {
           const toolbar = document.querySelector('.logic-editor__toolbar').getBoundingClientRect();
-          const controls = [...document.querySelectorAll('.logic-editor__toolbar button, .logic-editor__help-button')];
+          const controls = [...document.querySelectorAll('.logic-editor__toolbar button, .logic-editor__export-option, .logic-editor__help-button')];
           return {
             width: document.documentElement.scrollWidth,
             controlsFit: controls.every(button => {
@@ -274,6 +359,12 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     await ready(page);
     await editChecks(page, name);
     await exportChecks(page, name);
+    await multiOutputChecks(page, name);
+    await page.evaluate(() => {
+      logicWorkbenchEditor.loadExpression('n(A_B)');
+      logicWorkbenchEditor.setInputValues({ A: 0, B: 0 });
+    });
+    await exportChecks(page, `${name}-not`, { resetCircuit: false });
     await layoutChecks(page, name);
     if (name === 'chrome') {
       const mobile = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
@@ -311,6 +402,7 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
       return editor.canDeleteNode(editor.graph.nodes.find(node => node.type === 'input'));
     }), false, 'quiz inputs remain fixed');
     await expect(quizPage.locator('.logic-editor__save-button')).toHaveCount(0);
+    await expect(quizPage.getByRole('button', { name: '出力を追加', exact: true })).toHaveCount(0);
   } finally {
     await browser.close();
   }

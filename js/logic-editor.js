@@ -256,6 +256,8 @@
       this.paletteDrag = null;
       this.suppressPaletteClick = false;
       this.savingPng = false;
+      this.exportShowSignals = options.exportShowSignals !== false;
+      this.outputSerial = 0;
       this.currentWireRoutes = new Map();
       this.valueBadgePositions = [];
       this.notice = '';
@@ -307,6 +309,11 @@
         this.addInputButton = makeButton('', 'logic-editor__action-button logic-editor__add-input-button', () => this.addInput());
         palette.appendChild(this.addInputButton);
       }
+      if (this.options.allowMultipleOutputs) {
+        this.addOutputButton = makeButton('＋ 出力', 'logic-editor__action-button logic-editor__add-output-button', () => this.addOutput());
+        this.addOutputButton.setAttribute('aria-label', '出力を追加');
+        palette.appendChild(this.addOutputButton);
+      }
 
       const actions = htmlElement('div', 'logic-editor__actions');
       actions.setAttribute('role', 'group');
@@ -322,6 +329,21 @@
       actions.append(this.undoButton, this.redoButton);
       if (this.saveButton) actions.appendChild(this.saveButton);
       if (this.pngButton) actions.appendChild(this.pngButton);
+      if (this.saveButton || this.pngButton) {
+        const exportOption = htmlElement('label', 'logic-editor__export-option');
+        exportOption.title = 'SVG・PNGに入力・途中・出力の0/1を表示します';
+        this.exportSignalsInput = document.createElement('input');
+        this.exportSignalsInput.type = 'checkbox';
+        this.exportSignalsInput.checked = this.exportShowSignals;
+        this.exportSignalsInput.setAttribute('aria-label', '保存図に0/1を表示');
+        this.exportSignalsInput.addEventListener('change', () => {
+          this.exportShowSignals = this.exportSignalsInput.checked;
+          this.notice = `保存図の0/1を${this.exportShowSignals ? '表示' : '非表示'}にしました。画面の入力値は変わりません。`;
+          this.render({ notify: false });
+        });
+        exportOption.append(this.exportSignalsInput, htmlElement('span', '', '保存図の0/1'));
+        actions.appendChild(exportOption);
+      }
       actions.append(this.swapButton, this.deleteButton, this.clearButton);
       toolbar.append(palette, actions);
 
@@ -334,6 +356,8 @@
         htmlElement('p', '', '配線を選ぶと両端が強調されます。左端を別の出力端子へ、右端を別の入力端子へドラッグして付け替えます。接続済みの入力端子につなぐと、その端子の古い配線を置き換えます。端子をEnterで順に選ぶ方法でも操作できます。'),
         htmlElement('p', '', `AND・ORゲートは選択後にツールバーで交換できます。入力の箱を選ぶと0/1が切り替わります。選択した${this.options.allowInputDeletion ? '入力・ゲート・配線' : 'ゲート・配線'}は×またはDeleteで削除でき、Undoで戻せます。`)
       );
+      if (this.options.allowMultipleOutputs) helpContent.appendChild(htmlElement('p', '', '「＋ 出力」で出力を増やすとF₁・F₂…と表示され、すべての出力を真理値表と保存図で確認できます。出力が2つ以上あるときは、選んだ出力を削除して減らせます。'));
+      if (this.saveButton || this.pngButton) helpContent.appendChild(htmlElement('p', '', '「保存図の0/1」のチェックでSVG・PNGの信号値を表示・非表示にできます。保存図は現在の配置・配線を使い、入力・出力を点で示します。'));
       this.help.append(helpButton, helpContent);
       actions.appendChild(this.help);
       this.help.addEventListener('pointerenter', event => {
@@ -392,6 +416,7 @@
       };
       this.nodeSerial = 0;
       this.wireSerial = 0;
+      this.outputSerial = 0;
       this.pendingFrom = null;
       this.pendingRewire = null;
       this.selected = null;
@@ -413,6 +438,7 @@
       this.graph = deepCopy(snapshot.graph);
       this.inputValues = deepCopy(snapshot.inputValues);
       this.inputNames = Array.from(snapshot.inputNames);
+      this.updateOutputNames();
       this.pendingFrom = null;
       this.pendingRewire = null;
       this.selected = null;
@@ -445,7 +471,7 @@
 
     clear() {
       this.resetBaseGraph();
-      this.commit('ゲートと配線をすべて消去しました。Undoで戻せます。');
+      this.commit('ゲートと配線をすべて消去し、出力をFだけに戻しました。Undoで戻せます。');
     }
 
     addGate(type, position) {
@@ -552,6 +578,32 @@
       this.commit(`${previousType}を${node.type}へ変更しました。接続と位置はそのままです。`);
     }
 
+    updateOutputNames() {
+      const outputs = this.graph.nodes.filter(node => node.type === 'output');
+      outputs.forEach((node, index) => { node.name = Core.outputName(index, outputs.length); });
+    }
+
+    addOutput() {
+      if (!this.options.allowMultipleOutputs) return;
+      const outputs = this.graph.nodes.filter(node => node.type === 'output');
+      const preferredY = outputs.at(-1).y + 98;
+      const ys = [preferredY, ...Array.from({ length: 7 }, (_, index) => 50 + index * 68)]
+        .filter(y => y >= 42 && y <= HEIGHT - 42);
+      const candidates = [828, 728, 628, 528, 428].flatMap(x => ys.map(y => ({ x, y })));
+      const score = point => this.graph.nodes.filter(node => Math.abs(node.x - point.x) < 88 && Math.abs(node.y - point.y) < 68).length;
+      const position = candidates.sort((left, right) => score(left) - score(right))[0];
+      // Serialは履歴から巻き戻さず、現存するIDとも照合して重複を避ける。
+      let id;
+      do { id = `output-added-${++this.outputSerial}`; } while (this.findNode(id));
+      const node = { id, type: 'output', ...position };
+      this.graph.nodes.push(node);
+      this.updateOutputNames();
+      this.pendingFrom = null;
+      this.pendingRewire = null;
+      this.selected = { kind: 'node', id };
+      this.commit(`出力${node.name}を追加しました。配線をつなぐと真理値表にも反映されます。`);
+    }
+
     findNode(id) {
       return this.graph.nodes.find(node => node.id === id);
     }
@@ -595,7 +647,7 @@
       // 検証後にまとめて変更する。失敗やキャンセルでは既存の配線を失わない。
       this.graph.wires = this.graph.wires.filter(candidate => candidate !== displaced || candidate === wire);
       const fromLabel = from.name || from.type;
-      const toLabel = to.type === 'output' ? 'F' : `${to.type}の入力${targetPort + 1}`;
+      const toLabel = to.type === 'output' ? to.name : `${to.type}の入力${targetPort + 1}`;
       this.commit(`配線を${fromLabel}から${toLabel}へ付け替えました。${displaced && displaced !== wire ? 'この端子の古い配線を置き換えました。Undoで戻せます。' : ''}`);
     }
 
@@ -909,7 +961,9 @@
     }
 
     canDeleteNode(node) {
-      return Boolean(node && node.type !== 'output' && (node.type !== 'input' || this.options.allowInputDeletion));
+      if (!node) return false;
+      if (node.type === 'output') return Boolean(this.options.allowMultipleOutputs && this.graph.nodes.filter(candidate => candidate.type === 'output').length > 1);
+      return node.type !== 'input' || Boolean(this.options.allowInputDeletion);
     }
 
     deleteSelected() {
@@ -940,8 +994,10 @@
         this.inputNames = this.inputNames.filter(name => name !== node.name);
         delete this.inputValues[node.name];
       }
+      this.updateOutputNames();
       this.selected = null;
-      this.commit(`${node.type === 'input' ? `入力${node.name}` : `${node.type}ゲート`}と接続配線を削除しました。Undoで戻せます。`);
+      const label = node.type === 'input' ? `入力${node.name}` : node.type === 'output' ? `出力${node.name}` : `${node.type}ゲート`;
+      this.commit(`${label}と接続配線を削除しました。Undoで戻せます。`);
     }
 
     toggleInput(nodeId) {
@@ -1161,7 +1217,7 @@
         const node = this.findNode(this.selected.id);
         if (!this.canDeleteNode(node)) return;
         point = { x: node.x + 43, y: node.y - 38 };
-        label = node.type === 'input' ? `入力${node.name}を削除` : `${node.type}ゲートを削除`;
+        label = node.type === 'input' ? `入力${node.name}を削除` : node.type === 'output' ? `出力${node.name}を削除` : `${node.type}ゲートを削除`;
       } else if (this.selected.kind === 'wire') {
         const wire = this.graph.wires.find(candidate => candidate.id === this.selected.id);
         const fromNode = wire ? this.findNode(wire.from) : null;
@@ -1540,7 +1596,7 @@
         role: 'button',
         'aria-label': node.type === 'input'
           ? `入力${node.name}、現在${this.inputValues[node.name]}。クリックで切り替え、ドラッグで移動`
-          : node.type === 'output' ? '出力F。ドラッグで移動' : `${node.type}ゲート。クリックまたはEnterで選択、ドラッグで移動`
+          : node.type === 'output' ? `出力${node.name}。ドラッグで移動` : `${node.type}ゲート。クリックまたはEnterで選択、ドラッグで移動`
       });
       group.addEventListener('pointerdown', event => this.startDrag(event, node));
       group.addEventListener('keydown', event => {
@@ -1579,7 +1635,7 @@
             height: 58,
             rx: 11
           }),
-          Renderer.svgElement('text', { class: 'logic-editor-node__label', x: 0, y: value == null ? 7 : -4, 'text-anchor': 'middle' }, 'F')
+          Renderer.svgElement('text', { class: 'logic-editor-node__label', x: 0, y: value == null ? 7 : -4, 'text-anchor': 'middle' }, node.name)
         );
         if (value != null) {
           group.appendChild(Renderer.svgElement('text', {
@@ -1619,7 +1675,7 @@
     render(options = {}) {
       const focusedKey = this.svg.contains(document.activeElement)
         ? document.activeElement.getAttribute('data-focus-key') : null;
-      const analysis = Core.graphAnalysis(this.graph);
+      const analysis = this.getAnalysis();
       const signals = this.evaluateSignals();
       const background = Renderer.svgElement('rect', {
         class: 'logic-editor__background',
@@ -1647,7 +1703,7 @@
         this.render();
       });
       const title = Renderer.svgElement('title', {}, '自由に編集できる論理回路');
-      const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力Fがあります。端子を順に選ぶか端子間をドラッグして接続します。接続済み入力端子のドラッグで配線を付け替えられます。配線は重なりを避け、同じ出力からは途中で分岐します。');
+      const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力があります。端子を順に選ぶか端子間をドラッグして接続します。接続済み入力端子のドラッグで配線を付け替えられます。配線は重なりを避け、同じ出力からは途中で分岐します。');
       this.svg.replaceChildren(title, desc, background);
       const rewiringWireId = this.connectionDrag?.moved ? this.connectionDrag.rewireWireId : null;
       const routing = this.computeWireRouting(rewiringWireId);
@@ -1693,6 +1749,10 @@
         this.addInputButton.textContent = nextName ? `＋ 入力${nextName}` : '入力A〜D';
         this.addInputButton.setAttribute('aria-label', nextName ? `入力${nextName}を追加` : '入力はすべて追加済みです');
       }
+      if (this.addOutputButton) {
+        const count = this.graph.nodes.filter(node => node.type === 'output').length;
+        this.addOutputButton.title = `出力${Core.outputName(count, count + 1)}を追加`;
+      }
       for (const button of [this.saveButton, this.pngButton].filter(Boolean)) {
         const format = button.dataset.format;
         const filename = Core.createSvgFilename().replace(/\.svg$/i, `.${format}`);
@@ -1705,7 +1765,7 @@
     }
 
     getAnalysis(inputNames) {
-      return Core.graphAnalysis(this.graph, inputNames);
+      return Core.graphAnalysis(this.graph, inputNames, { allowMultipleOutputs: Boolean(this.options.allowMultipleOutputs) });
     }
 
     getState() {
@@ -1823,12 +1883,12 @@
       const analysis = this.getAnalysis();
       if (!analysis.valid) throw new Error(analysis.errors[0] || '回路が完成していません。');
       const temporary = document.createElement('div');
-      const displayExpression = Core.toDisplayExpr(analysis.ast);
-      const rendered = Renderer.renderCircuit(temporary, analysis.ast, {
-        inputs: this.inputValues,
-        title: `論理回路：${displayExpression}`
+      const title = `論理回路：${analysis.outputs.map(output => output.name).join('、')}`;
+      const graph = { nodes: this.graph.nodes.filter(node => analysis.reachable.has(node.id)), wires: this.graph.wires };
+      const rendered = Renderer.renderGraphCircuit(temporary, graph, this.computeWireRouting(), {
+        signals: this.evaluateSignals(), showSignals: this.exportShowSignals, title
       });
-      return { svg: rendered.svg, title: `論理回路：${displayExpression}` };
+      return { svg: rendered.svg, title };
     }
 
     destroy() {

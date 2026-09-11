@@ -17,6 +17,7 @@
 
       window.LogicWidgets.renderTruthTable(tableTarget, {
         inputNames: analysis.inputs,
+        outputs: analysis.outputs,
         rows: analysis.truthTable,
         activeInputs: inputValues,
         caption: '真理値表（行を選ぶと回路の入力が変わります）',
@@ -28,6 +29,7 @@
       inputNames: ['A', 'B'],
       availableInputNames: ['A', 'B', 'C', 'D'],
       allowInputDeletion: true,
+      allowMultipleOutputs: true,
       initialExpression: 'A-B',
       enableSvgSave: true,
       enablePngSave: true,

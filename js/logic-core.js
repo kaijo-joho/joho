@@ -281,9 +281,18 @@
     return Array.from(new Set(messages));
   }
 
-  function graphToAst(graph) {
+  const SUBSCRIPT_DIGITS = Object.freeze(['₀', '₁', '₂', '₃', '₄', '₅', '₆', '₇', '₈', '₉']);
+
+  // 出力の表示名は保存された部品名ではなく、グラフ上の並び順から常に決める。
+  function outputName(index, count) {
+    if (count === 1) return 'F';
+    return `F${String(index + 1).split('').map(digit => SUBSCRIPT_DIGITS[Number(digit)]).join('')}`;
+  }
+
+  function graphToAst(graph, options = {}) {
     const nodes = Array.isArray(graph?.nodes) ? graph.nodes : [];
     const wires = Array.isArray(graph?.wires) ? graph.wires : [];
+    const allowMultipleOutputs = options.allowMultipleOutputs === true;
     const errors = [];
     const nodeMap = new Map(nodes.map(node => [node.id, node]));
     const incoming = new Map();
@@ -318,14 +327,17 @@
       outgoing.get(from.id).push(wire);
     }
 
-    const outputs = nodes.filter(node => node.type === 'output');
-    if (outputs.length !== 1) errors.push('出力Fを1つ配置してください。');
-    const output = outputs[0];
+    const outputNodes = nodes.filter(node => node.type === 'output');
+    if (allowMultipleOutputs) {
+      if (outputNodes.length < 1) errors.push('出力を1つ以上配置してください。');
+    } else if (outputNodes.length !== 1) {
+      errors.push('出力Fを1つ配置してください。');
+    }
     const reachable = new Set();
     const visiting = new Set();
     let astSerial = 0;
 
-    function build(nodeId) {
+    function build(nodeId, name) {
       if (visiting.has(nodeId)) {
         errors.push('循環する回路は作成できません。');
         return null;
@@ -349,11 +361,11 @@
         const wire = incoming.get(`${node.id}:${port}`);
         if (!wire) {
           errors.push(node.type === 'output'
-            ? '出力Fが接続されていません。'
+            ? `出力${name}が接続されていません。`
             : `${String(node.type).toUpperCase()}ゲートの入力が不足しています。`);
           children.push(null);
         } else {
-          children.push(build(wire.from));
+          children.push(build(wire.from, name));
         }
       }
       visiting.delete(nodeId);
@@ -367,28 +379,52 @@
       return { id: `graph-ast-${++astSerial}`, type: 'gate', gate, inputs: children, sourceId: node.id };
     }
 
-    const ast = output ? build(output.id) : null;
+    const outputs = outputNodes.map((node, index) => {
+      const name = outputName(index, outputNodes.length);
+      const ast = build(node.id, name);
+      return { id: node.id, name, ast, structureExpr: ast ? toStructureExpr(ast) : '', truthCode: '' };
+    });
+    const ast = outputs[0]?.ast || null;
 
     const detached = nodes.filter(node => node.type !== 'input' && node.type !== 'output' && !reachable.has(node.id));
-    if (detached.length) errors.push('出力Fにつながっていないゲートがあります。');
+    const outputLabel = allowMultipleOutputs ? 'いずれの出力にも' : '出力Fに';
+    if (detached.length) errors.push(`${outputLabel}つながっていないゲートがあります。`);
     const detachedWires = wires.filter(wire => !reachable.has(wire.from) || !reachable.has(wire.to));
-    if (detachedWires.length) errors.push('出力Fにつながっていない配線があります。');
+    if (detachedWires.length) errors.push(`${outputLabel}つながっていない配線があります。`);
 
     const uniqueErrors = dedupeMessages(errors);
-    return { valid: Boolean(ast) && uniqueErrors.length === 0, ast, errors: uniqueErrors, reachable };
+    return { valid: outputs.length > 0 && outputs.every(output => output.ast) && uniqueErrors.length === 0, ast, outputs, errors: uniqueErrors, reachable };
   }
 
-  function graphAnalysis(graph, inputNames) {
-    const compiled = graphToAst(graph);
+  function normalizeGraphInputNames(asts, inputNames) {
+    if (inputNames != null) return normalizeInputNames(asts[0], inputNames);
+    const names = new Set();
+    asts.forEach(ast => collectInputs(ast).forEach(name => names.add(name)));
+    return Array.from(names).sort();
+  }
+
+  function graphAnalysis(graph, inputNames, options = {}) {
+    const compiled = graphToAst(graph, options);
     if (!compiled.valid) return { ...compiled, structureExpr: '', truthCode: '', truthTable: [], inputs: [] };
-    const inputs = normalizeInputNames(compiled.ast, inputNames);
-    const table = buildTruthTable(compiled.ast, inputs);
+    const inputs = normalizeGraphInputNames(compiled.outputs.map(output => output.ast), inputNames);
+    const table = generateInputRows(inputs).map((rowInputs, index) => {
+      const outputBits = Object.create(null);
+      compiled.outputs.forEach(output => {
+        outputBits[output.id] = evaluate(output.ast, rowInputs);
+      });
+      return { index, inputs: rowInputs, output: outputBits[compiled.outputs[0].id], outputs: outputBits };
+    });
+    const outputs = compiled.outputs.map(output => ({
+      ...output,
+      truthCode: table.map(row => row.outputs[output.id]).join('')
+    }));
     return {
       ...compiled,
+      outputs,
       inputs,
-      structureExpr: toStructureExpr(compiled.ast),
+      structureExpr: outputs[0].structureExpr,
       truthTable: table,
-      truthCode: table.map(row => row.output).join('')
+      truthCode: outputs[0].truthCode
     };
   }
 
@@ -433,6 +469,7 @@
     truthCode,
     parseAndAnalyze,
     toBasicGateAst,
+    outputName,
     graphToAst,
     graphAnalysis,
     wouldCreateCycle,

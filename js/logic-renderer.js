@@ -1,4 +1,4 @@
-// ASTから、拡大縮小可能なSVG論理回路図を生成する。
+// AST・編集グラフから、拡大縮小可能なSVG論理回路図を生成する。
 (function (root) {
   'use strict';
 
@@ -360,6 +360,83 @@
     return wrapper;
   }
 
+  // 自由編集の保存図。ASTへ展開せず、共有部品・複数出力・分岐をそのまま描く。
+  // 経路はエディタのルーターを共用し、保存専用の別ルーターを持たない。
+  function renderGraphCircuit(target, graph, routing, options = {}) {
+    const showSignals = options.showSignals !== false;
+    const signals = options.signals || new Map();
+    const outputs = graph.nodes.filter(node => node.type === 'output');
+    const outputNames = new Map(outputs.map((node, index) => [node.id, Core.outputName(index, outputs.length)]));
+    const extent = graph.nodes.flatMap(node => [
+      { x: node.x - 64, y: node.y - 48 }, { x: node.x + 76, y: node.y + 45 }
+    ]);
+    [...routing.bundles, ...routing.routes.values()].forEach(route => {
+      route.segments.forEach(segment => extent.push(segment.from, segment.to));
+    });
+    const left = Math.floor(Math.min(...extent.map(point => point.x)) - 20);
+    const top = Math.floor(Math.min(...extent.map(point => point.y)) - 20);
+    const width = Math.ceil(Math.max(...extent.map(point => point.x)) - left + 20);
+    const height = Math.ceil(Math.max(...extent.map(point => point.y)) - top + 20);
+    const title = options.title || '論理回路';
+    const svg = svgElement('svg', {
+      class: 'logic-svg', viewBox: `${left} ${top} ${width} ${height}`,
+      role: 'img', 'aria-label': title
+    });
+    svg.append(
+      svgElement('title', {}, title),
+      svgElement('desc', {}, `AND・OR・NOTの回路。出力は${[...outputNames.values()].join('、')}。点は入力・出力の端と配線の分岐だけを示します。`),
+      svgElement('style', {}, INTERNAL_STYLE),
+      svgElement('rect', { class: 'logic-svg__background', x: left, y: top, width, height })
+    );
+    const valueFor = id => showSignals ? signals.get(id) : null;
+    const drawPath = (path, sourceId) => svg.appendChild(svgElement('path', {
+      class: `logic-wire${valueFor(sourceId) === 1 ? ' is-one' : ''}`,
+      d: path
+    }));
+    routing.bundles.forEach(bundle => {
+      drawPath(bundle.path, bundle.sourceId);
+    });
+    graph.wires.forEach(wire => {
+      const route = routing.routes.get(wire.id);
+      if (route) drawPath(route.path, wire.from);
+    });
+    // 配線より後に描き、分岐の点が配線に上書きされないようにする。
+    routing.bundles.forEach(bundle => {
+      bundle.junctions.forEach(point => svg.appendChild(svgElement('circle', {
+        class: `logic-junction${valueFor(bundle.sourceId) === 1 ? ' is-one' : ''}`,
+        cx: point.x, cy: point.y, r: 4, 'data-source-id': bundle.sourceId
+      })));
+    });
+    graph.nodes.forEach(node => {
+      const value = valueFor(node.id);
+      if (node.type === 'input' || node.type === 'output') {
+        const isInput = node.type === 'input';
+        // 接続位置はエディタと共通。保存図では箱を描かず、点と名前にする。
+        const x = node.x + (isInput ? 38 : -35);
+        const name = isInput ? node.name : outputNames.get(node.id);
+        svg.append(
+          svgElement('circle', {
+            class: `logic-terminal${value === 1 ? ' is-one' : ''}`,
+            cx: x, cy: node.y, r: 5, 'data-terminal-kind': node.type, 'data-node-id': node.id
+          }),
+          svgElement('text', {
+            class: 'logic-node-label', x: x + (isInput ? -14 : 14), y: node.y + 6,
+            'text-anchor': isInput ? 'end' : 'start', 'data-terminal-label': node.type
+          }, name)
+        );
+        if (value != null) appendValueBadge(svg, x + (isInput ? 14 : -14), node.y - 20, value, `${isInput ? '入力' : '出力'}${name}`);
+      } else {
+        const gate = createGateSymbol(node.type, node.x, node.y);
+        gate.setAttribute('data-node-id', node.id);
+        svg.appendChild(gate);
+        // ゲートの端子には点を付けない。NOTの否定を表す丸は記号の一部。
+        if (value != null) appendValueBadge(svg, node.x + gateGeometry(node.type).outputX + 14, node.y - 20, value, `${node.type}の出力`);
+      }
+    });
+    target.replaceChildren(svg);
+    return { svg };
+  }
+
   function serializeSvg(svg, title) {
     if (!(svg instanceof SVGElement)) throw new TypeError('保存するSVG要素が見つかりません。');
     const clone = svg.cloneNode(true);
@@ -450,6 +527,7 @@
     orthogonalWirePath,
     wireLabelPoint,
     renderCircuit,
+    renderGraphCircuit,
     renderMessage,
     serializeSvg,
     downloadSvg,
