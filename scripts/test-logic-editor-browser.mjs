@@ -31,10 +31,12 @@ const port = (page, node, kind, index = 0) => page.locator(`.logic-editor-port[d
 const exportButton = page => page.getByRole('button', { name: '回路図を出力', exact: true });
 
 async function prepareExport(page, format, showSignals) {
+  const toggle = page.getByRole('button', { name: '0/1の表示を切り替える', exact: true });
+  if (await toggle.getAttribute('aria-pressed') !== String(showSignals)) await toggle.click();
   await exportButton(page).click();
   const dialog = page.locator('#logic-file-dialog');
   await dialog.getByRole('radio', { name: format === 'svg' ? 'SVG（拡大・編集用）' : 'PNG（画像用）', exact: true }).check();
-  await dialog.getByRole('checkbox', { name: '0/1を表示する', exact: true }).setChecked(showSignals);
+  await expect(dialog.getByRole('checkbox')).toHaveCount(0);
   return dialog.getByRole('button', { name: '書き出す', exact: true });
 }
 
@@ -125,13 +127,12 @@ async function editChecks(page, name) {
   await undo(page);
   assert.deepEqual(await state(page), original);
 
-  // Native summary has no consistently exposed button role in all engines.
-  const summary = page.locator('.logic-editor__help > summary');
+  const summary = page.getByRole('button', { name: '回路エディタの操作方法', exact: true });
   await summary.press('Enter');
-  await expect(page.locator('.logic-editor__help-content')).toBeVisible();
+  await expect(page.locator('#lc02-operation-dialog')).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(summary).toBeFocused();
-  await expect(page.locator('.logic-editor__help-content')).toBeHidden();
+  await expect(page.locator('#lc02-operation-dialog')).toBeHidden();
   const loadButton = page.getByRole('button', { name: '回路を読み込む', exact: true });
   await loadButton.click();
   await expect(page.locator('#logic-file-dialog')).toBeVisible();
@@ -311,17 +312,22 @@ async function multiOutputChecks(page, name) {
   await page.locator('#logic-workbench-table tbody tr').nth(2).press('Enter');
   assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), ['0', '1']);
   await page.screenshot({ path: join(artifacts, `${name}-multiple-editor.png`) });
+  const modeBefore = await state(page);
+  const exportPreference = page.getByRole('button', { name: '0/1の表示を切り替える', exact: true });
+  await exportPreference.press('Space');
+  await expect(exportPreference).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('.logic-editor-node__bit, .logic-editor-node__gate-value, .logic-editor-value')).toHaveCount(0);
+  assert.deepEqual(await state(page), modeBefore, 'display toggle leaves circuit values and history unchanged');
+  await exportPreference.press('Space');
+  await expect(exportPreference).toHaveAttribute('aria-pressed', 'true');
   await prepareExport(page, 'svg', true);
-  const exportPreference = page.getByRole('checkbox', { name: '0/1を表示する', exact: true });
-  await exportPreference.press('Space');
-  await expect(exportPreference).not.toBeChecked();
-  await exportPreference.press('Space');
-  await expect(exportPreference).toBeChecked();
   await page.keyboard.press('Escape');
   await expect(exportButton(page)).toBeFocused();
   await exportChecks(page, `${name}-multiple-visible`, { resetCircuit: false, showSignals: true });
   await exportChecks(page, `${name}-multiple-hidden`, { resetCircuit: false, showSignals: false });
-  assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), ['0', '1'], 'hidden export does not hide editor values');
+  assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), [], 'export and editor use the same hidden-value mode');
+  await exportPreference.click();
+  assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), ['0', '1'], 'showing values again preserves actual outputs');
   await reset(page);
   console.log(`${name}: multiple outputs, shared branch, renaming/deletion/Undo, truth table and both export value modes`);
 }

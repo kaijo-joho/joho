@@ -296,6 +296,29 @@
   }
 }
 
+/* lc02 workspace boundary and modal help */
+.logic-workbench-boundary {
+  display: flex;
+  width: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
+  padding: 0;
+  border: 1px solid var(--logic-border);
+  border-radius: 999px;
+  background: var(--logic-panel-strong);
+  color: var(--logic-text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.logic-workbench-boundary:focus-visible {
+  outline: 3px solid var(--logic-focus);
+  outline-offset: 2px;
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --logic-panel: rgba(18, 27, 36, .74);
@@ -1047,6 +1070,37 @@ section article .logic-truth-table td.logic-answer-cell {
 
 .logic-editor-alignment-guide--wire {
   stroke: var(--logic-success);
+}
+
+.logic-editor__signal-button {
+  min-width: 44px;
+  min-height: 44px;
+  font-variant-numeric: tabular-nums;
+}
+
+.logic-editor__signal-button[aria-pressed="true"] {
+  color: var(--logic-focus);
+  background: var(--logic-output-bg);
+}
+
+.logic-editor-bend {
+  cursor: ns-resize;
+  touch-action: none;
+  outline: none;
+}
+
+.logic-editor-bend.is-vertical { cursor: ew-resize; }
+.logic-editor-bend__hit { fill: transparent; stroke: none; }
+.logic-editor-bend__knob {
+  fill: var(--logic-panel-strong);
+  stroke: var(--logic-focus);
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+.logic-editor-bend:focus-visible .logic-editor-bend__knob {
+  fill: var(--logic-focus);
+  stroke: var(--logic-text);
+  stroke-width: 3;
 }
 
 .logic-editor-guide-label {
@@ -2601,14 +2655,14 @@ body.lesson-slide-ready .logic-compound-slide .logic-truth-table td {
 
 .logic-workspace-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.7fr) minmax(230px, .55fr);
+  grid-template-columns: minmax(0, 1.7fr) 44px minmax(230px, .55fr);
   gap: 10px;
   min-height: 0;
   align-items: stretch;
 }
 
 .logic-workspace-grid.is-table-collapsed {
-  grid-template-columns: minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr) 44px;
 }
 
 .logic-workspace-table[hidden] {
@@ -3101,8 +3155,14 @@ body.lesson-slide-ready .logic-extension-card {
     font-size: .62em;
   }
 
-  .logic-workspace-grid {
+  .logic-workspace-grid,
+  .logic-workspace-grid.is-table-collapsed {
     grid-template-columns: 1fr;
+  }
+
+  .logic-workbench-boundary {
+    width: 100%;
+    justify-self: stretch;
   }
 
   body.lesson-slide-ready .logic-workspace-article {

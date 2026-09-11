@@ -1,13 +1,14 @@
 // Chrome/WebKit UI test for the lc02 browser circuit file workflow.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { mkdtemp } from 'node:fs/promises';
+import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const require = createRequire(import.meta.url);
 const { chromium, webkit } = require('playwright');
 const { expect } = require('playwright/test');
+const LogicStorage = require('../js/logic-storage.js');
 const baseURL = process.env.JOHO_TEST_URL || 'http://127.0.0.1:8765/';
 const errors = [];
 const artifacts = await mkdtemp(join(tmpdir(), 'logic-files-check-'));
@@ -66,11 +67,73 @@ async function fileWorkflow(page, name) {
   await saveNew(page, `${name}-unfinished`);
   const rawAfterFirstSave = await page.evaluate(() => localStorage.getItem('joho.logic-circuits.v1'));
   assert.ok(rawAfterFirstSave && rawAfterFirstSave.includes(`${name}-unfinished`));
+  const beforeSignalMode = await snapshot(page);
+  await page.getByRole('button', { name: '0/1の表示を切り替える', exact: true }).click();
+  assert.deepEqual(await snapshot(page), beforeSignalMode, '表示モードは保存対象・dirty判定の回路状態を変えない');
+  assert.match(await page.getByRole('button', { name: '回路を保存', exact: true }).getAttribute('title'), /保存済み/);
+  await page.getByRole('button', { name: '0/1の表示を切り替える', exact: true }).click();
+
+  await clickSave(page);
+  await fileDialog(page).getByLabel('回路の名前').fill(`${name}-file`);
+  const downloadPromise = page.waitForEvent('download');
+  await fileDialog(page).getByRole('button', { name: 'ファイルに保存', exact: true }).click();
+  const download = await downloadPromise;
+  assert.match(download.suggestedFilename(), /\.logic\.json$/);
+  const downloaded = LogicStorage.parseFile(await readFile(await download.path(), 'utf8'));
+  assert.deepEqual(JSON.parse(JSON.stringify(downloaded.snapshot)), unfinished, '実際のダウンロードファイルを再読込できる');
+  await assertDialogClosed(fileDialog(page));
+  assert.deepEqual(await snapshot(page), unfinished, 'ファイル保存開始は回路を変更しない');
+
+  await clickLoad(page);
+  await fileDialog(page).locator('input[type="file"]').setInputFiles({
+    name: `${name}-import.logic.json`, mimeType: 'application/json',
+    buffer: Buffer.from(LogicStorage.serializeFile({ name: `${name}-import`, snapshot: unfinished }))
+  });
+  await assertDialogClosed(fileDialog(page));
+  assert.deepEqual(await snapshot(page), unfinished, 'ファイル読込で未完成・複数出力の状態を復元する');
+  await clickLoad(page);
+  const beforeInvalidFile = await snapshot(page);
+  await fileDialog(page).locator('input[type="file"]').setInputFiles({ name: 'bad.logic.json', mimeType: 'application/json', buffer: Buffer.from('{bad') });
+  await fileDialog(page).getByRole('alert').waitFor();
+  assert.deepEqual(await snapshot(page), beforeInvalidFile, '無効ファイルは回路を変更しない');
+  await fileDialog(page).getByRole('button', { name: '回路のメニューを閉じる', exact: true }).click();
+  await clickLoad(page);
+  const beforeFileCancel = await snapshot(page);
+  const chooserPromise = page.waitForEvent('filechooser');
+  await fileDialog(page).locator('input[type="file"]').click();
+  const chooser = await chooserPromise;
+  await chooser.setFiles([]);
+  assert.deepEqual(await snapshot(page), beforeFileCancel, 'ファイル選択をキャンセルしても回路を変更しない');
+  await fileDialog(page).getByRole('button', { name: '回路のメニューを閉じる', exact: true }).click();
+  await clickLoad(page);
+  await fileDialog(page).locator('input[type="file"]').setInputFiles({ name: 'large.logic.json', mimeType: 'application/json', buffer: Buffer.alloc(1024 * 1024 + 1) });
+  await fileDialog(page).getByRole('alert').waitFor();
+  assert.deepEqual(await snapshot(page), beforeFileCancel, '上限超過ファイルは回路を変更しない');
+  await fileDialog(page).getByRole('button', { name: '回路のメニューを閉じる', exact: true }).click();
+
+  await page.evaluate(() => {
+    window.__logicOriginalGetItem = Storage.prototype.getItem;
+    Storage.prototype.getItem = () => { throw new DOMException('blocked', 'SecurityError'); };
+  });
+  await clickSave(page);
+  const blockedDownload = page.waitForEvent('download');
+  await fileDialog(page).getByRole('button', { name: 'ファイルに保存', exact: true }).click();
+  await blockedDownload;
+  await assertDialogClosed(fileDialog(page));
+  await clickLoad(page);
+  await fileDialog(page).locator('input[type="file"]').setInputFiles({
+    name: `${name}-blocked-read.logic.json`, mimeType: 'application/json',
+    buffer: Buffer.from(LogicStorage.serializeFile({ name: `${name}-blocked-read`, snapshot: unfinished }))
+  });
+  await fileDialog(page).getByRole('button', { name: '保存せず続ける', exact: true }).click();
+  await assertDialogClosed(fileDialog(page));
+  assert.deepEqual(await snapshot(page), unfinished, '保存領域を読めなくてもファイル読込はできる');
+  await page.evaluate(() => { Storage.prototype.getItem = window.__logicOriginalGetItem; });
 
   await dirtyByGate(page);
   await clickSave(page);
   await fileDialog(page).getByLabel('回路の名前').fill(`${name}-second`);
-  await fileDialog(page).getByRole('button', { name: '別の回路として保存', exact: true }).click();
+  await fileDialog(page).getByRole('button', { name: '保存', exact: true }).click();
   await assertDialogClosed(fileDialog(page));
   const rawWithTwo = await page.evaluate(() => localStorage.getItem('joho.logic-circuits.v1'));
   assert.ok(rawWithTwo?.includes(`${name}-unfinished`) && rawWithTwo.includes(`${name}-second`), 'two named circuits are retained');
@@ -140,6 +203,21 @@ async function fileWorkflow(page, name) {
 }
 
 async function dirtyConfirmChecks(page, savedName) {
+  const beforeFileContinue = await snapshot(page);
+  await page.getByRole('button', { name: '全消去', exact: true }).click();
+  const fileSaveDialog = fileDialog(page);
+  await fileSaveDialog.getByRole('button', { name: '保存して続ける', exact: true }).click();
+  const pendingDownload = page.waitForEvent('download');
+  await fileSaveDialog.getByRole('button', { name: 'ファイルに保存', exact: true }).click();
+  await pendingDownload;
+  await expectText(fileSaveDialog, 'ファイルの保存を確認');
+  assert.deepEqual(await snapshot(page), beforeFileContinue, '確認前はファイル保存開始だけで回路を消去しない');
+  await fileSaveDialog.getByRole('button', { name: '保存を確認して続ける', exact: true }).click();
+  await assertDialogClosed(fileSaveDialog);
+  assert.equal((await snapshot(page)).graph.wires.length, 0, '明示確認後に保留していた全消去を実行する');
+  await page.getByRole('button', { name: '元に戻す', exact: true }).click();
+  assert.deepEqual(await snapshot(page), beforeFileContinue, '確認後の全消去もUndoできる');
+
   await dirtyByGate(page);
   await page.evaluate(() => window.logicWorkbenchEditor.setInputValues({ A: 1 }));
   const beforeCancel = await snapshot(page);
@@ -233,7 +311,8 @@ async function exportAndLayoutChecks(page, name) {
   await expectText(dialog, '回路図を出力');
   assert.equal(await dialog.getByText('SVG（拡大・編集用）', { exact: true }).count(), 1);
   assert.equal(await dialog.getByText('PNG（画像用）', { exact: true }).count(), 1);
-  assert.equal(await dialog.getByLabel('0/1を表示する', { exact: true }).count(), 1);
+  assert.equal(await dialog.getByLabel('0/1を表示する', { exact: true }).count(), 0);
+  assert.match(await dialog.textContent(), /ツールバーの0\/1表示に従います/);
   await dialog.press('Escape');
   await assertDialogClosed(dialog);
 

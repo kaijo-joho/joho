@@ -442,4 +442,89 @@ assert.ok(!spacing.spacingSnapTargets(spacedMoving, { x: 300, y: 150 }, 'y').som
 spacing.findNode('right').x = 450;
 assert.equal(spacing.spacingSnapTargets(spacedMoving, { x: 300, y: 150 }, 'y').length, 0, '別の列の部品との偶然の等間隔を避ける');
 
-console.log('logic-editor: ドラッグ追加・入力削除・複数出力・交換・配線・履歴・分岐・全体整列・中心／直線／等間隔吸着を検証');
+// 手動の直交配線は、線分単位で動かし、部品・別ネットへは重ねない。
+function manualWireFixture() {
+  const manual = editorFixture({ enableWireEditing: true, enableAlignment: true, allowMultipleOutputs: true });
+  manual.graph = {
+    nodes: [
+      { id: 'input-A', type: 'input', name: 'A', x: 80, y: 120 },
+      { id: 'input-B', type: 'input', name: 'B', x: 80, y: 390 },
+      { id: 'gate', type: 'NOT', x: 300, y: 120 },
+      { id: 'output-F', type: 'output', name: 'F₁', x: 760, y: 120 },
+      { id: 'output-F2', type: 'output', name: 'F₂', x: 760, y: 390 }
+    ],
+    wires: [
+      { id: 'in', from: 'input-A', to: 'gate', port: 0 },
+      { id: 'out', from: 'gate', to: 'output-F', port: 0,
+        bends: [{ x: 420, y: 120 }, { x: 420, y: 240 }, { x: 600, y: 240 }, { x: 600, y: 120 }] }
+    ]
+  };
+  manual.currentWireRoutes = manual.computeWireRouting().routes;
+  manual.resetHistory();
+  return manual;
+}
+
+const manual = manualWireFixture();
+let manualOut = manual.graph.wires.find(item => item.id === 'out');
+const manualRoute = manual.computeWireRouting();
+assert.equal(manualRoute.bundles[0].junctions.length, 0, '次数2の折れ角には分岐点を置かない');
+const bendPoints = manual.bendPoints('out');
+assert.equal(bendPoints.length, 6);
+const verticalMove = manual.moveBendPoints(manualOut, bendPoints, 1, 28);
+assert.ok(verticalMove, '縦線分を左右へ移動できる');
+assert.equal(verticalMove[1].x, bendPoints[1].x + 28);
+assert.equal(verticalMove[2].x, bendPoints[2].x + 28);
+const horizontalMove = manual.moveBendPoints(manualOut, bendPoints, 2, -36);
+assert.ok(horizontalMove, '横線分を上下へ移動できる');
+assert.equal(horizontalMove[2].y, bendPoints[2].y - 36);
+assert.equal(horizontalMove[3].y, bendPoints[3].y - 36);
+
+const dragEvent = (pointerId, x, y) => ({ button: 0, pointerId, clientX: x, clientY: y, preventDefault() {}, stopPropagation() {} });
+manual.startBendDrag(dragEvent(31, 420, 180), manualOut, 1, bendPoints);
+manual.handlePointerMove(dragEvent(31, 452, 180));
+assert.equal(manualOut.bends[0].x, 452, 'ドラッグ中は縦線分の両端を同時に動かす');
+manual.handlePointerUp(dragEvent(31, 452, 180));
+const afterBendDrag = manual.snapshot();
+manual.undo();
+manualOut = manual.graph.wires.find(item => item.id === 'out');
+assert.deepEqual(plain(manualOut.bends), [{ x: 420, y: 120 }, { x: 420, y: 240 }, { x: 600, y: 240 }, { x: 600, y: 120 }], 'Undoで折れ点を戻す');
+manual.redo();
+manualOut = manual.graph.wires.find(item => item.id === 'out');
+assert.deepEqual(manual.snapshot(), afterBendDrag, 'Redoで折れ点を戻す');
+
+const beforeBendCancel = plain(manualOut.bends);
+manual.currentWireRoutes = manual.computeWireRouting().routes;
+manual.startBendDrag(dragEvent(32, 452, 180), manualOut, 1, manual.bendPoints('out'));
+manual.handlePointerMove(dragEvent(32, 480, 180));
+manual.cancelPointerGesture({ pointerId: 32 });
+assert.deepEqual(plain(manualOut.bends), beforeBendCancel, 'Escape・pointercancelで折れ点の途中変更を戻す');
+
+const candidate = manual.moveBendPoints(manualOut, manual.bendPoints('out'), 1, -20);
+assert.ok(candidate);
+manual.graph.nodes.push({ id: 'obstacle', type: 'AND', x: 510, y: 240 });
+assert.equal(manual.moveBendPoints(manualOut, manual.bendPoints('out'), 1, -20), null, '部品を貫通する折れ線への移動を拒否する');
+manual.graph.nodes.pop();
+manual.graph.wires.push({ id: 'other-net', from: 'input-B', to: 'output-F2', port: 0 });
+manual.currentWireRoutes.set('other-net', { fullSegments: manual.manualWireSegments({ ...manualOut, bends: candidate.slice(1, -1) }, candidate[0], candidate.at(-1)) });
+assert.equal(manual.moveBendPoints(manualOut, manual.bendPoints('out'), 1, -20), null, '別ネットと重なる折れ線への移動を拒否する');
+manual.graph.wires.pop();
+manual.currentWireRoutes.delete('other-net');
+
+const gateBeforeMove = { ...manual.findNode('gate') };
+manual.startDrag(dragEvent(33, gateBeforeMove.x, gateBeforeMove.y), manual.findNode('gate'));
+manual.handlePointerMove(dragEvent(33, gateBeforeMove.x + 45, gateBeforeMove.y + 40));
+manual.handlePointerUp(dragEvent(33, gateBeforeMove.x + 45, gateBeforeMove.y + 40));
+const movedRoute = manual.computeWireRouting().routes.get('out').fullSegments;
+assert.equal(movedRoute[0].from.y, manual.outputPoint(manual.findNode('gate')).y, '部品移動後も手動配線の始点が出力端子へ追従する');
+assert.equal(movedRoute.at(-1).to.y, manual.inputPoint(manual.findNode('output-F'), 0).y, '部品移動後も終点が入力端子へ追従する');
+
+manual.resetHistory();
+manual.rewireConnection('out', 'gate', 'output-F2', 0);
+assert.equal('bends' in manual.graph.wires.find(item => item.id === 'out'), false, '配線の付け替えで手動折れ点をリセットする');
+manual.undo();
+manualOut = manual.graph.wires.find(item => item.id === 'out');
+assert.ok(manual.graph.wires.find(item => item.id === 'out').bends, 'Undoで付け替え前の折れ点を戻す');
+manual.alignCircuit();
+assert.ok(manual.graph.wires.every(item => !item.bends), '自動整列で手動折れ点をリセットする');
+
+console.log('logic-editor: ドラッグ追加・入力削除・複数出力・交換・配線・手動折れ点・履歴・分岐・全体整列・中心／直線／等間隔吸着を検証');

@@ -8,24 +8,40 @@
     const tableTarget = document.getElementById('logic-workbench-table');
     const tablePanel = tableTarget?.closest('.logic-workspace-table');
     const workspace = host.closest('.logic-workspace-grid');
+    const boundary = document.createElement('button');
+    boundary.type = 'button';
+    boundary.className = 'logic-workbench-boundary';
+    boundary.textContent = '▶';
+    boundary.setAttribute('aria-label', '真理値表を折りたたむ');
+    boundary.setAttribute('aria-expanded', 'true');
+    boundary.setAttribute('aria-controls', tablePanel?.id || 'logic-workbench-table-panel');
+    workspace?.insertBefore(boundary, tablePanel);
     let tableVisible = true;
     let editor;
     let files;
+    // 共通基盤のdialogと開閉・フォーカス処理を使い、別スライドからも開ける位置へ置く。
+    const helpDialog = document.getElementById('lc02-operation-dialog');
+    if (helpDialog) document.body.appendChild(helpDialog);
 
     function setTableVisible(visible) {
-      if (!tablePanel || !workspace || !editor.tableButton) return;
-      if (editor.drag || editor.paletteDrag || editor.connectionDrag || editor.pan) return;
+      if (!tablePanel || !workspace) return;
+      if (editor.drag || editor.paletteDrag || editor.connectionDrag || editor.pan || editor.bendDrag) return;
       if (!tablePanel.id) tablePanel.id = 'logic-workbench-table-panel';
       tableVisible = visible;
       tablePanel.hidden = !visible;
       workspace.classList.toggle('is-table-collapsed', !visible);
       const label = visible ? '真理値表を折りたたむ' : '真理値表を表示';
-      editor.tableButton.setAttribute('aria-expanded', String(visible));
-      editor.tableButton.setAttribute('aria-controls', tablePanel.id);
-      editor.tableButton.setAttribute('aria-label', label);
-      editor.tableButton.title = label;
+      boundary.setAttribute('aria-expanded', String(visible));
+      boundary.setAttribute('aria-controls', tablePanel.id);
+      boundary.setAttribute('aria-label', label);
+      boundary.title = label;
+      boundary.textContent = visible ? '▶' : '◀';
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
+    boundary.addEventListener('click', () => {
+      setTableVisible(!tableVisible);
+      boundary.focus({ preventScroll: true });
+    });
 
     function update(state) {
       files?.refresh();
@@ -51,18 +67,23 @@
       allowInputDeletion: true,
       allowMultipleOutputs: true,
       enableAlignment: true,
+      allowSignalToggle: true,
+      enableWireEditing: true,
       initialExpression: 'A-B',
       onSave: () => files.openSave(),
       onLoad: () => files.openLoad(),
       onExport: () => files.openExport(),
       onClearRequest: () => files.requestClear(),
-      onToggleTable: tablePanel ? () => setTableVisible(!tableVisible) : null,
+      helpDialogId: 'lc02-operation-dialog',
       onChange: update
     });
     update(editor.getState());
     setTableVisible(true);
 
     files = new window.LogicWorkbenchFiles(editor);
+    document.addEventListener('joho:lesson-slide-change', () => {
+      if (helpDialog?.open) helpDialog.close();
+    });
     window.logicWorkbenchEditor = editor;
   }
 

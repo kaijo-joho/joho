@@ -15,6 +15,8 @@
   const MAX_NODES = 200;
   const MAX_WIRES = 500;
   const MAX_DOCUMENT_LENGTH = 1024 * 1024;
+  const FILE_FORMAT = 'joho.logic-circuit';
+  const FILE_VERSION = 1;
   const MAX_ID_LENGTH = 120;
   const INPUT_NAMES = Object.freeze(['A', 'B', 'C', 'D']);
   const INPUT_SET = new Set(INPUT_NAMES);
@@ -38,6 +40,24 @@
     return `F${String(index + 1).split('').map(digit => SUBSCRIPTS[Number(digit)]).join('')}`;
   }
   function requiredInputs(node) { return GATE_INPUTS[node.type] || 0; }
+
+  function normalizeBends(bends) {
+    if (!Array.isArray(bends) || bends.length < 2 || bends.length > 16 || bends.length % 2 !== 0) {
+      fail('配線の折れ点が不正です。');
+    }
+    const normalized = bends.map(point => {
+      if (!plainObject(point) || !Number.isFinite(point.x) || !Number.isFinite(point.y)
+        || point.x < 0 || point.x > 900 || point.y < 0 || point.y > 520) fail('配線の折れ点が不正です。');
+      return { x: point.x, y: point.y };
+    });
+    for (let index = 1; index < normalized.length; index += 1) {
+      const previous = normalized[index - 1];
+      const current = normalized[index];
+      const vertical = index % 2 === 1;
+      if ((vertical && previous.x !== current.x) || (!vertical && previous.y !== current.y)) fail('配線の折れ点の向きが不正です。');
+    }
+    return normalized;
+  }
 
   function normalizeSnapshot(snapshot) {
     if (!plainObject(snapshot) || !plainObject(snapshot.graph)) fail('保存する回路データが不正です。');
@@ -112,7 +132,9 @@
       const portKey = `${to}:${source.port}`;
       if (targetPorts.has(portKey)) fail('同じ入力端子に複数の配線があります。');
       targetPorts.add(portKey);
-      return { id, from, to, port: source.port };
+      const wire = { id, from, to, port: source.port };
+      if (own(source, 'bends')) wire.bends = normalizeBends(source.bends);
+      return wire;
     });
 
     const outgoing = new Map();
@@ -149,6 +171,33 @@
   }
   function cloneRecord(record) {
     return normalizeRecord(record);
+  }
+
+  function createFileDocument({ name, snapshot } = {}) {
+    return {
+      format: FILE_FORMAT,
+      version: FILE_VERSION,
+      name: normalizeName(name),
+      snapshot: normalizeSnapshot(snapshot)
+    };
+  }
+
+  function serializeFile({ name, snapshot } = {}) {
+    const raw = JSON.stringify(createFileDocument({ name, snapshot }));
+    if (raw.length > MAX_DOCUMENT_LENGTH) fail('保存する回路ファイルが大きすぎます。');
+    return raw;
+  }
+
+  function parseFile(raw) {
+    if (typeof raw !== 'string' || raw.length > MAX_DOCUMENT_LENGTH) fail('回路ファイルが大きすぎるか不正です。');
+    let document;
+    try { document = JSON.parse(raw); } catch (_) { fail('回路ファイルが壊れています。'); }
+    if (!plainObject(document) || document.format !== FILE_FORMAT || document.version !== FILE_VERSION
+      || !own(document, 'name') || !own(document, 'snapshot')
+      || Object.keys(document).some(key => !['format', 'version', 'name', 'snapshot'].includes(key))) {
+      fail('回路ファイルの形式またはバージョンに対応していません。');
+    }
+    return { name: normalizeName(document.name), snapshot: normalizeSnapshot(document.snapshot) };
   }
 
   class Store {
@@ -222,5 +271,5 @@
     }
   }
 
-  return Object.freeze({ STORAGE_KEY, normalizeSnapshot, Store });
+  return Object.freeze({ STORAGE_KEY, MAX_DOCUMENT_LENGTH, FILE_FORMAT, FILE_VERSION, normalizeSnapshot, createFileDocument, serializeFile, parseFile, Store });
 });

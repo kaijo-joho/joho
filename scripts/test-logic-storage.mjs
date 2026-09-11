@@ -42,6 +42,17 @@ const multi = validSnapshot();
 multi.graph.nodes.push({ id: 'output-2', type: 'output', x: 828, y: 350 });
 multi.graph.wires.push({ id: 'and-f2', from: 'and', to: 'output-2', port: 0 });
 assert.deepEqual(normalizeSnapshot(multi).graph.nodes.filter(node => node.type === 'output').map(node => node.name), ['F₁', 'F₂']);
+const bent = validSnapshot();
+bent.graph.wires[2].bends = [{ x: 600, y: 250 }, { x: 600, y: 300 }, { x: 700, y: 300 }, { x: 700, y: 250 }];
+const bentNormalized = normalizeSnapshot(bent);
+assert.deepEqual(bentNormalized.graph.wires[2].bends, bent.graph.wires[2].bends, '配線の折れ点をコピーする');
+const fileRaw = require('../js/logic-storage.js').serializeFile({ name: '  回路ファイル  ', snapshot: bent });
+assert.deepEqual(require('../js/logic-storage.js').parseFile(fileRaw), { name: '回路ファイル', snapshot: bentNormalized }, 'ファイル形式で座標・値・折れ点を往復する');
+assert.throws(() => require('../js/logic-storage.js').parseFile('{"format":"joho.logic-circuit","version":1,"name":"x"}'), /形式|対応/);
+assert.throws(() => require('../js/logic-storage.js').parseFile('x'.repeat(1024 * 1024 + 1)), /大きすぎる/);
+const badBends = clone(bent);
+badBends.graph.wires[2].bends[1].x = 601;
+assert.throws(() => normalizeSnapshot(badBends), /折れ点/);
 
 for (const mutate of [
   snapshot => { snapshot.graph.nodes[0].id = '__proto__'; },

@@ -342,10 +342,11 @@ async function touchSnapChecks(browser) {
   await page.getByRole('button', { name: '真理値表を表示', exact: true }).tap();
   await expect(page.locator('#logic-workbench-table-panel')).toBeVisible();
   assert.deepEqual(await state(page), tableBefore, 'touch table toggle preserves circuit');
+  // 境界ボタンはモバイルでは回路の下。タップ後のスクロール位置から回路へ戻す。
+  await page.locator('.logic-editor__canvas-wrap').scrollIntoViewIfNeeded();
   const wrap = await page.locator('.logic-editor__canvas-wrap').boundingBox();
   const anchor = { x: wrap.x + 80, y: wrap.y + 95 };
-  const from = { x: wrap.x + 240, y: wrap.y + 190 };
-  const to = { x: from.x, y: anchor.y + 3 };
+  let from = { x: wrap.x + 240, y: wrap.y + 190 };
   const anchorY = await page.evaluate(({ anchor, from }) => {
     const editor = window.logicWorkbenchEditor;
     const a = editor.toSvgPoint(anchor.x, anchor.y);
@@ -359,6 +360,10 @@ async function touchSnapChecks(browser) {
     editor.resetHistory(); editor.render();
     return a.y;
   }, { anchor, from });
+  // 回路の差し替えで真理値表の高さが変わり、外側のスクロール位置も変わり得る。
+  const movingPoint = (await state(page)).graph.nodes.find(node => node.id === 'touch-moving');
+  from = await canvasPoint(page, movingPoint.x, movingPoint.y);
+  const to = await canvasPoint(page, movingPoint.x, anchorY + 3);
   const before = await state(page);
   const session = await context.newCDPSession(page);
   const touch = (type, point) => session.send('Input.dispatchTouchEvent', { type, touchPoints: point ? [{ ...point, id: 1 }] : [] });
@@ -382,6 +387,8 @@ async function touchSnapChecks(browser) {
     return { x: node.x, y: editor.findNode('touch-anchor').y - (editor.inputPoint(node, 0).y - node.y) };
   });
   const beforeWire = await state(page);
+  const wireMoving = beforeWire.graph.nodes.find(node => node.id === 'touch-moving');
+  from = await canvasPoint(page, wireMoving.x, wireMoving.y);
   const wireTo = await canvasPoint(page, wireTarget.x, wireTarget.y + 3);
   await touch('touchStart', from);
   for (let i = 1; i <= 8; i++) await touch('touchMove', { x: from.x, y: from.y + (wireTo.y - from.y) * i / 8 });
@@ -405,7 +412,7 @@ async function touchSnapChecks(browser) {
     editor.inputNames = ['A']; editor.inputValues = { A: 0 };
     editor.resetHistory(); editor.render();
     return { from: { x: moving.x, y: moving.y }, to: { x: (a.x + b.x) / 2, y: a.y } };
-  }, wrap);
+  }, await page.locator('.logic-editor__canvas-wrap').boundingBox());
   const equalBefore = await state(page);
   const equalFrom = await canvasPoint(page, equalFixture.from.x, equalFixture.from.y);
   const equalTo = await canvasPoint(page, equalFixture.to.x + 3, equalFixture.to.y + 3);

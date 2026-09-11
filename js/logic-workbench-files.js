@@ -105,7 +105,6 @@
       this.error.setAttribute('role', 'alert');
       this.error.hidden = true;
       this.body.appendChild(this.error);
-      this.editor.help.open = false;
       if (!this.dialog.open) {
         document.dispatchEvent(new CustomEvent('joho:overlay-open', { detail: { source: 'logic-files' } }));
         this.dialog.showModal();
@@ -130,6 +129,20 @@
       this.editor.notice = message;
       this.editor.render({ notify: false });
       this.refresh();
+    }
+
+    downloadSnapshot(name, snapshot) {
+      const raw = root.LogicStorage.serializeFile({ name, snapshot });
+      const blob = new Blob([raw], { type: 'application/json;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${name.replace(/[\\/:*?"<>|]/g, '_')}.logic.json`;
+      link.hidden = true;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
 
     requestReplace(action, label, opener) {
@@ -186,12 +199,35 @@
           if (afterSave) afterSave();
         } catch (error) { this.showError(error); }
       };
+      const saveToFile = () => {
+        if (!form.reportValidity()) return;
+        try {
+          this.downloadSnapshot(name.value.trim(), this.editor.snapshot());
+          if (afterSave) {
+            this.show('ファイルの保存を確認', opener);
+            this.body.append(
+              element('p', '', '回路ファイルの保存を開始しました。ダウンロードが始まらない場合は、ブラウザのダウンロード設定を確認してください。'),
+              element('p', 'logic-file-note', '保存を確認してから、次の操作へ進んでください。')
+            );
+            const actions = element('div', 'logic-file-actions');
+            actions.append(
+              button('保存を確認して続ける', () => { this.close(); afterSave(); }),
+              button('キャンセル', () => this.close())
+            );
+            this.body.appendChild(actions);
+          } else {
+            this.close();
+            this.announce('回路ファイルの保存を開始しました。ダウンロードが始まらない場合は、ブラウザのダウンロード設定を確認してください。');
+          }
+        } catch (error) { this.showError(error); }
+      };
       form.addEventListener('submit', event => { event.preventDefault(); save(); });
       const actions = element('div', 'logic-file-actions');
       const submit = element('button', 'logic-secondary-button', existing ? '上書き保存' : '保存');
       submit.type = 'submit';
       actions.appendChild(submit);
       if (existing) actions.appendChild(button('別の回路として保存', () => save(true)));
+      actions.appendChild(button('ファイルに保存', saveToFile));
       actions.appendChild(button('キャンセル', () => this.close()));
       form.append(label, element('p', 'logic-file-note', '作りかけの回路も保存できます。最大30件。'), actions);
       this.body.append(form, element('p', 'logic-file-note', STORAGE_NOTE));
@@ -201,6 +237,37 @@
 
     openLoad() {
       this.show('回路を読み込む', this.editor.loadButton);
+      const fileLabel = element('label', 'logic-file-field', 'ローカルJSONファイルを選択');
+      const fileInput = element('input');
+      fileInput.type = 'file';
+      fileInput.accept = '.logic.json,application/json';
+      fileInput.addEventListener('change', async () => {
+        const file = fileInput.files?.[0];
+        if (!file) return;
+        if (file.size > root.LogicStorage.MAX_DOCUMENT_LENGTH) {
+          this.showError(new Error('回路ファイルが大きすぎるか不正です。'));
+          fileInput.value = '';
+          return;
+        }
+        try {
+          const raw = await file.text();
+          // 読み取り中に閉じた／別のメニューへ移った場合は古い選択を適用しない。
+          if (!this.dialog.open || !this.body.contains(fileInput) || fileInput.files?.[0] !== file) return;
+          const imported = root.LogicStorage.parseFile(raw);
+          this.requestReplace(() => {
+            this.editor.loadSnapshot(imported.snapshot);
+            this.currentId = null;
+            this.currentName = imported.name;
+            this.savedFingerprint = null;
+            this.refresh();
+          }, `ファイル「${imported.name}」の読み込み`, this.editor.loadButton);
+        } catch (error) {
+          if (this.dialog.open && this.body.contains(fileInput)) this.showError(error);
+        }
+        finally { fileInput.value = ''; }
+      });
+      fileLabel.appendChild(fileInput);
+      this.body.append(fileLabel, element('p', 'logic-file-note', 'この端末から選んだ .logic.json ファイルを読み込みます。'));
       this.body.appendChild(element('h4', '', '保存した回路'));
       try {
         const records = this.store().list();
@@ -288,11 +355,6 @@
         label.append(input, document.createTextNode(format === 'svg' ? 'SVG（拡大・編集用）' : 'PNG（画像用）'));
         formats.appendChild(label);
       });
-      const signalsLabel = element('label', 'logic-file-signals');
-      const signals = element('input');
-      signals.type = 'checkbox';
-      signals.checked = this.editor.exportShowSignals;
-      signalsLabel.append(signals, document.createTextNode('0/1を表示する'));
       const actions = element('div', 'logic-file-actions');
       const submit = element('button', 'logic-secondary-button', '書き出す');
       submit.type = 'submit';
@@ -301,7 +363,6 @@
       form.addEventListener('submit', async event => {
         event.preventDefault();
         if (submit.disabled) return;
-        this.editor.exportShowSignals = signals.checked;
         this.exportFormat = form.querySelector('input[type="radio"]:checked').value;
         submit.disabled = true;
         const success = this.exportFormat === 'png' ? await this.editor.savePng() : this.editor.saveSvg();
@@ -311,7 +372,7 @@
         else this.showError(new Error(this.editor.notice));
       });
       actions.append(submit, button('キャンセル', () => this.close()));
-      form.append(formats, signalsLabel, element('p', 'logic-file-note', '0/1を非表示にすると配線の色も統一します。エディタや真理値表の入力値は変わりません。'), actions);
+      form.append(formats, element('p', 'logic-file-note', `ツールバーの0/1表示に従います（現在${this.editor.showSignals === false ? '非表示' : '表示'}）。`), actions);
       this.body.appendChild(form);
       submit.title = filename();
       formats.querySelector('input:checked').focus({ preventScroll: true });
