@@ -33,6 +33,269 @@
   --lesson-theme-focus: var(--logic-focus);
 }
 
+/* lc02: 保存・読込・画像出力 */
+#logic-editor .logic-editor__actions--files {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+}
+
+#logic-editor .logic-editor__actions--files > button,
+#logic-editor .logic-editor__actions--files .logic-editor__icon-button,
+#logic-editor .logic-editor__actions--files .logic-editor__export-button {
+  min-height: 44px;
+  width: auto;
+}
+
+#logic-editor .logic-editor__icon-button,
+#logic-editor .logic-editor__actions--files .logic-editor__history-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  min-width: 44px;
+  flex: 0 0 44px;
+  padding: 8px;
+}
+
+#logic-editor .logic-editor__file-icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  pointer-events: none;
+}
+
+#logic-editor .logic-editor__file-icon path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#logic-editor .logic-editor__export-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  min-width: 76px;
+  padding-inline: 9px;
+  white-space: nowrap;
+}
+
+#logic-editor .logic-editor__export-button .logic-editor__file-icon {
+  width: 24px;
+  height: 24px;
+}
+
+#logic-editor .logic-editor__save-dirty {
+  position: relative;
+}
+
+#logic-editor .logic-editor__save-dirty::after {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--logic-warning, #b7791f);
+  content: '';
+}
+
+.logic-file-dialog {
+  box-sizing: border-box;
+  width: min(560px, calc(100vw - 32px));
+  max-width: calc(100vw - 32px);
+  max-height: 80dvh;
+  overflow: hidden;
+}
+
+.logic-file-dialog[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.logic-file-dialog > .lesson-supplement-dialog__header {
+  flex-shrink: 0;
+}
+
+.logic-file-dialog__body {
+  display: grid;
+  gap: 16px;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+}
+
+.logic-file-dialog h4 {
+  margin: 0;
+  font-size: 1em;
+}
+
+.logic-file-form,
+.logic-file-field,
+.logic-file-actions,
+.logic-file-formats,
+.logic-file-signals {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.logic-file-form,
+.logic-file-field {
+  align-items: stretch;
+  flex-direction: column;
+}
+
+.logic-file-field label {
+  font-weight: 700;
+}
+
+.logic-file-field input[type='text'] {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 8px 10px;
+  border: 1px solid var(--logic-border);
+  border-radius: 7px;
+  background: var(--logic-panel);
+  color: var(--logic-text);
+  font: inherit;
+}
+
+.logic-file-actions button,
+.logic-file-row button {
+  min-height: 44px;
+}
+
+.logic-file-note,
+.logic-file-meta {
+  color: var(--logic-muted);
+  font-size: .82em;
+  line-height: 1.5;
+}
+
+.logic-file-error {
+  color: var(--logic-error);
+  font-weight: 700;
+}
+
+.logic-file-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.logic-file-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  padding: 0;
+}
+
+.logic-file-load {
+  display: flex;
+  flex: 1 1 auto;
+  flex-wrap: wrap;
+  gap: 3px 8px;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  text-align: start;
+  white-space: normal;
+}
+
+.logic-file-load > span,
+.logic-file-dialog p {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.logic-file-row > .logic-file-delete,
+.logic-file-row > button[aria-label*='削除'] {
+  flex: 0 0 44px;
+  width: 44px;
+  min-width: 44px;
+  padding: 0;
+}
+
+.logic-file-formats,
+.logic-file-signals {
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--logic-border);
+  border-radius: 8px;
+}
+
+.logic-file-formats legend {
+  padding-inline: 4px;
+  font-weight: 700;
+}
+
+.logic-file-formats label,
+.logic-file-signals {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  cursor: pointer;
+}
+
+.logic-file-formats input,
+.logic-file-signals input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--theme-color, #225386);
+}
+
+.logic-file-dialog button:disabled,
+.logic-file-dialog input:disabled {
+  cursor: not-allowed;
+  opacity: .45;
+}
+
+.logic-file-dialog button:focus-visible,
+.logic-file-dialog input:focus-visible {
+  outline: 3px solid var(--logic-selected, #1677c8);
+  outline-offset: 2px;
+}
+
+@media (max-width: 600px) {
+  #logic-editor .logic-editor__actions--files {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible;
+  }
+
+  #logic-editor .logic-editor__actions--files > button,
+  #logic-editor .logic-editor__actions--files .logic-editor__export-button {
+    flex: 0 1 auto;
+  }
+
+  .logic-file-dialog {
+    width: calc(100vw - 16px);
+    max-width: calc(100vw - 16px);
+  }
+
+  .logic-file-row {
+    align-items: stretch;
+  }
+
+  .logic-file-load {
+    align-content: center;
+  }
+}
+
 @media (prefers-color-scheme: dark) {
   :root {
     --logic-panel: rgba(18, 27, 36, .74);
@@ -819,56 +1082,6 @@ section article .logic-truth-table td.logic-answer-cell {
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
-}
-
-.logic-editor__save-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  white-space: nowrap;
-}
-
-.logic-editor__save-icon {
-  display: block;
-  width: 20px;
-  height: 20px;
-  pointer-events: none;
-}
-
-.logic-editor__save-icon-path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.logic-editor__save-button-label {
-  font-weight: 750;
-}
-
-.logic-editor__export-option {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  min-height: 44px;
-  padding-inline: 4px;
-  color: var(--logic-text);
-  font-size: .78em;
-  white-space: nowrap;
-  cursor: pointer;
-}
-
-.logic-editor__export-option input {
-  width: 18px;
-  height: 18px;
-  margin: 0;
-  accent-color: var(--theme-color, #225386);
-}
-
-.logic-editor__export-option input:focus-visible {
-  outline: 3px solid var(--logic-selected, #1677c8);
-  outline-offset: 3px;
 }
 
 .logic-editor__action-button--danger {
@@ -1900,34 +2113,6 @@ section article .logic-extension-card h3 {
     letter-spacing: .02em;
   }
 
-  .logic-editor__actions--with-save {
-    display: flex;
-    flex-wrap: wrap;
-  }
-
-  .logic-editor .logic-editor__actions--with-save .logic-editor__action-button {
-    flex: 1 1 auto;
-    width: auto;
-    justify-content: center;
-  }
-
-  .logic-editor .logic-editor__actions--with-save .logic-editor__history-button,
-  .logic-editor__actions--with-save .logic-editor__help {
-    flex: 0 0 44px;
-    width: 44px;
-  }
-
-  .logic-editor__actions--with-save .logic-editor__save-icon {
-    display: none;
-  }
-
-  .logic-editor .logic-editor__actions--with-save .logic-editor__swap-button,
-  .logic-editor .logic-editor__actions--with-save .logic-editor__delete-button,
-  .logic-editor .logic-editor__actions--with-save .logic-editor__action-button--danger {
-    order: 1;
-    flex: 1 1 26%;
-  }
-
   .logic-editor .logic-editor__gate-button {
     flex-direction: row;
     gap: 2px;
@@ -2388,45 +2573,6 @@ body.lesson-slide-ready .logic-compound-slide .logic-truth-table td {
   margin: 12px auto 0;
 }
 
-.logic-example-picker {
-  position: relative;
-  z-index: 12;
-  width: max-content;
-  max-width: 100%;
-  margin: 0 0 8px;
-}
-
-.logic-example-picker > summary {
-  box-sizing: border-box;
-  min-height: 40px;
-  padding: 7px 12px;
-  border: 1px solid var(--logic-border);
-  border-radius: 9px;
-  background: var(--logic-panel-strong);
-  color: var(--logic-text);
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.logic-example-picker[open] > summary {
-  border-color: var(--theme-color, #225386);
-}
-
-body.lesson-slide-ready .logic-example-picker .logic-save-row {
-  position: absolute;
-  top: calc(100% + 6px);
-  left: 0;
-  z-index: 15;
-  box-sizing: border-box;
-  width: min(720px, calc(100vw - 48px));
-  margin: 0;
-  padding: 10px;
-  border: 1px solid var(--logic-border);
-  border-radius: 11px;
-  background: var(--logic-panel-strong);
-  box-shadow: 0 12px 28px rgba(20, 43, 63, .2);
-}
-
 .logic-workspace-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.7fr) minmax(230px, .55fr);
@@ -2438,7 +2584,7 @@ body.lesson-slide-ready .logic-example-picker .logic-save-row {
 body.lesson-slide-ready .logic-workspace-article {
   display: grid;
   height: 100%;
-  grid-template-rows: auto auto minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 body.lesson-slide-ready .logic-workspace-grid .logic-editor-host,
@@ -2921,22 +3067,13 @@ body.lesson-slide-ready .logic-extension-card {
     font-size: .62em;
   }
 
-  body.lesson-slide-ready .logic-example-picker .logic-save-row {
-    position: fixed;
-    top: auto;
-    right: 8px;
-    bottom: 72px;
-    left: 8px;
-    width: auto;
-  }
-
   .logic-workspace-grid {
     grid-template-columns: 1fr;
   }
 
   body.lesson-slide-ready .logic-workspace-article {
     height: auto;
-    grid-template-rows: auto auto 1fr;
+    grid-template-rows: auto 1fr;
   }
 
   body.lesson-slide-ready .logic-workspace-grid .logic-editor-host {

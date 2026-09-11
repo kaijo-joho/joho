@@ -7,8 +7,10 @@
 
     const tableTarget = document.getElementById('logic-workbench-table');
     let editor;
+    let files;
 
     function update(state) {
+      files?.refresh();
       const { analysis, inputValues } = state;
       if (!analysis.valid) {
         window.LogicRenderer.renderMessage(tableTarget, '回路が完成すると真理値表を表示します。');
@@ -31,33 +33,15 @@
       allowInputDeletion: true,
       allowMultipleOutputs: true,
       initialExpression: 'A-B',
-      enableSvgSave: true,
-      enablePngSave: true,
+      onSave: () => files.openSave(),
+      onLoad: () => files.openLoad(),
+      onExport: () => files.openExport(),
+      onClearRequest: () => files.requestClear(),
       onChange: update
     });
     update(editor.getState());
 
-    const examplePicker = document.querySelector('.logic-example-picker');
-    const closeExamples = (restoreFocus = false) => {
-      if (!examplePicker?.open) return;
-      examplePicker.open = false;
-      if (restoreFocus) examplePicker.querySelector('summary').focus();
-    };
-    document.addEventListener('pointerdown', event => {
-      if (!examplePicker?.contains(event.target)) closeExamples();
-    }, true);
-    document.addEventListener('keydown', event => {
-      if (event.key === 'Escape') closeExamples(examplePicker?.contains(document.activeElement));
-    });
-    document.addEventListener('joho:overlay-open', () => closeExamples());
-    document.addEventListener('joho:lesson-slide-change', () => closeExamples());
-    document.querySelectorAll('[data-load-logic-example]').forEach(button => {
-      button.addEventListener('click', () => {
-        editor.loadExpression(button.dataset.loadLogicExample);
-        closeExamples(true);
-      });
-    });
-
+    files = new window.LogicWorkbenchFiles(editor);
     window.logicWorkbenchEditor = editor;
   }
 

@@ -52,33 +52,23 @@
     return button;
   }
 
-  function createSaveIcon() {
+  function makeFileButton(kind, label, onClick, showLabel = false) {
+    const paths = {
+      save: 'M 5 3 H 17 L 21 7 V 21 H 3 V 3 Z M 7 3 V 9 H 16 V 3 M 7 21 V 14 H 17 V 21',
+      open: 'M 3 8 V 5 H 9 L 12 8 H 21 V 11 M 3 8 L 5 21 H 19 L 22 11 H 8 L 5 21',
+      export: 'M 12 3 V 15 M 7 8 L 12 3 L 17 8 M 5 13 V 21 H 19 V 13',
+      swap: 'M 4 8 H 20 L 16 4 M 20 16 H 4 L 8 20',
+      delete: 'M 4 6 H 20 M 9 6 V 3 H 15 V 6 M 6 6 L 7 21 H 17 L 18 6 M 10 10 V 17 M 14 10 V 17'
+    };
+    const button = makeButton('', `logic-editor__action-button ${showLabel ? 'logic-editor__export-button' : 'logic-editor__icon-button'}`, onClick);
+    button.setAttribute('aria-label', label);
+    button.title = label;
     const svg = Renderer.svgElement('svg', {
-      class: 'logic-editor__save-icon',
-      viewBox: '0 0 24 24',
-      'aria-hidden': 'true',
-      focusable: 'false'
+      class: 'logic-editor__file-icon', viewBox: '0 0 24 24', 'aria-hidden': 'true', focusable: 'false'
     });
-    svg.append(
-      Renderer.svgElement('path', {
-        class: 'logic-editor__save-icon-path',
-        d: 'M 12 3 V 15 M 7.5 10.5 L 12 15 L 16.5 10.5'
-      }),
-      Renderer.svgElement('path', {
-        class: 'logic-editor__save-icon-path',
-        d: 'M 5 18 H 19'
-      })
-    );
-    return svg;
-  }
-
-  function makeSaveButton(format, onClick) {
-    const button = makeButton('', 'logic-editor__action-button logic-editor__save-button', onClick);
-    button.dataset.format = format;
-    button.append(
-      createSaveIcon(),
-      htmlElement('span', 'logic-editor__save-button-label', `${format.toUpperCase()}保存`)
-    );
+    svg.appendChild(Renderer.svgElement('path', { d: paths[kind] }));
+    button.appendChild(svg);
+    if (showLabel) button.appendChild(htmlElement('span', '', '出力'));
     return button;
   }
 
@@ -320,30 +310,24 @@
       actions.setAttribute('aria-label', '回路の編集操作');
       this.undoButton = makeHistoryButton('undo', () => this.undo());
       this.redoButton = makeHistoryButton('redo', () => this.redo());
-      this.saveButton = this.options.enableSvgSave ? makeSaveButton('svg', () => this.saveSvg()) : null;
-      this.pngButton = this.options.enablePngSave ? makeSaveButton('png', () => this.savePng()) : null;
+      this.fileSaveButton = this.options.onSave ? makeFileButton('save', '回路を保存', () => this.options.onSave()) : null;
+      this.loadButton = this.options.onLoad ? makeFileButton('open', '回路を読み込む', () => this.options.onLoad()) : null;
+      this.exportButton = this.options.onExport ? makeFileButton('export', '回路図を出力', () => this.options.onExport(), true) : null;
       this.deleteButton = makeButton('選択を削除', 'logic-editor__action-button logic-editor__delete-button', () => this.deleteSelected());
-      this.clearButton = makeButton('全消去', 'logic-editor__action-button logic-editor__action-button--danger', () => this.clear());
+      this.clearButton = makeButton('全消去', 'logic-editor__action-button logic-editor__action-button--danger', () => {
+        if (this.options.onClearRequest) this.options.onClearRequest();
+        else this.clear();
+      });
       this.swapButton = makeButton('AND ⇄ OR', 'logic-editor__action-button logic-editor__swap-button', () => this.swapSelectedGate());
-      if (this.saveButton || this.pngButton) actions.classList.add('logic-editor__actions--with-save');
-      actions.append(this.undoButton, this.redoButton);
-      if (this.saveButton) actions.appendChild(this.saveButton);
-      if (this.pngButton) actions.appendChild(this.pngButton);
-      if (this.saveButton || this.pngButton) {
-        const exportOption = htmlElement('label', 'logic-editor__export-option');
-        exportOption.title = 'SVG・PNGに入力・途中・出力の0/1を表示します';
-        this.exportSignalsInput = document.createElement('input');
-        this.exportSignalsInput.type = 'checkbox';
-        this.exportSignalsInput.checked = this.exportShowSignals;
-        this.exportSignalsInput.setAttribute('aria-label', '保存図に0/1を表示');
-        this.exportSignalsInput.addEventListener('change', () => {
-          this.exportShowSignals = this.exportSignalsInput.checked;
-          this.notice = `保存図の0/1を${this.exportShowSignals ? '表示' : '非表示'}にしました。画面の入力値は変わりません。`;
-          this.render({ notify: false });
-        });
-        exportOption.append(this.exportSignalsInput, htmlElement('span', '', '保存図の0/1'));
-        actions.appendChild(exportOption);
+      if (this.fileSaveButton) {
+        this.deleteButton = makeFileButton('delete', '選択を削除', () => this.deleteSelected());
+        this.deleteButton.classList.add('logic-editor__delete-button');
+        this.swapButton = makeFileButton('swap', 'ANDとORを交換', () => this.swapSelectedGate());
+        this.swapButton.classList.add('logic-editor__swap-button');
       }
+      if (this.fileSaveButton || this.loadButton || this.exportButton) actions.classList.add('logic-editor__actions--files');
+      actions.append(this.undoButton, this.redoButton);
+      actions.append(...[this.fileSaveButton, this.loadButton, this.exportButton].filter(Boolean));
       actions.append(this.swapButton, this.deleteButton, this.clearButton);
       toolbar.append(palette, actions);
 
@@ -357,7 +341,8 @@
         htmlElement('p', '', `AND・ORゲートは選択後にツールバーで交換できます。入力の箱を選ぶと0/1が切り替わります。選択した${this.options.allowInputDeletion ? '入力・ゲート・配線' : 'ゲート・配線'}は×またはDeleteで削除でき、Undoで戻せます。`)
       );
       if (this.options.allowMultipleOutputs) helpContent.appendChild(htmlElement('p', '', '「＋ 出力」で出力を増やすとF₁・F₂…と表示され、すべての出力を真理値表と保存図で確認できます。出力が2つ以上あるときは、選んだ出力を削除して減らせます。'));
-      if (this.saveButton || this.pngButton) helpContent.appendChild(htmlElement('p', '', '「保存図の0/1」のチェックでSVG・PNGの信号値を表示・非表示にできます。保存図は現在の配置・配線を使い、入力・出力を点で示します。'));
+      if (this.fileSaveButton) helpContent.appendChild(htmlElement('p', '', '保存アイコンで作りかけも名前を付けて保存できます。読み込みアイコンから保存した回路やテンプレートを開きます。保存先はこのブラウザだけです。'));
+      if (this.exportButton) helpContent.appendChild(htmlElement('p', '', '「出力」でSVG・PNGの形式と0/1の有無を選んで書き出します。保存図は現在の配置・配線を使い、入力・出力を点で示します。'));
       this.help.append(helpButton, helpContent);
       actions.appendChild(this.help);
       this.help.addEventListener('pointerenter', event => {
@@ -470,6 +455,7 @@
     }
 
     clear() {
+      this.checkpoint();
       this.resetBaseGraph();
       this.commit('ゲートと配線をすべて消去し、出力をFだけに戻しました。Undoで戻せます。');
     }
@@ -1428,6 +1414,7 @@
 
     handleDocumentKeyDown(event) {
       if (this.destroyed) return;
+      if (document.activeElement?.closest?.('dialog[open]')) return;
       if (this.paletteDrag) {
         if (event.key === 'Escape') {
           event.preventDefault();
@@ -1741,7 +1728,9 @@
       this.deleteButton.disabled = this.selected?.kind !== 'wire' && !this.canDeleteNode(selectedNode);
       const canSwap = selectedNode && ['AND', 'OR'].includes(selectedNode.type);
       this.swapButton.disabled = !canSwap;
-      this.swapButton.textContent = canSwap ? `${selectedNode.type === 'AND' ? 'OR' : 'AND'}に変更` : 'AND ⇄ OR';
+      const swapLabel = canSwap ? `${selectedNode.type === 'AND' ? 'OR' : 'AND'}に変更` : 'AND ⇄ OR';
+      if (this.fileSaveButton) this.swapButton.setAttribute('aria-label', canSwap ? swapLabel : 'ANDとORを交換');
+      else this.swapButton.textContent = swapLabel;
       this.swapButton.title = canSwap ? '接続と位置を保ってゲートを交換' : 'ANDまたはORゲートを選ぶと交換できます';
       if (this.addInputButton) {
         const nextName = this.availableInputNames.find(name => !this.inputNames.includes(name));
@@ -1753,14 +1742,9 @@
         const count = this.graph.nodes.filter(node => node.type === 'output').length;
         this.addOutputButton.title = `出力${Core.outputName(count, count + 1)}を追加`;
       }
-      for (const button of [this.saveButton, this.pngButton].filter(Boolean)) {
-        const format = button.dataset.format;
-        const filename = Core.createSvgFilename().replace(/\.svg$/i, `.${format}`);
-        button.disabled = !analysis.valid || (format === 'png' && this.savingPng);
-        button.title = analysis.valid
-          ? `${filename} として保存`
-          : `回路を完成すると ${filename} として保存できます`;
-        button.setAttribute('aria-label', `${format.toUpperCase()}保存：${button.title}`);
+      if (this.exportButton) {
+        this.exportButton.disabled = !analysis.valid || this.savingPng;
+        this.exportButton.title = analysis.valid ? 'SVG・PNGの形式と0/1の有無を選んで出力' : '回路が完成すると画像を出力できます';
       }
     }
 
@@ -1785,10 +1769,23 @@
       this.render();
     }
 
+    // 保存モジュールで検証済みのデータを適用する。置換前へUndoで戻せる。
+    loadSnapshot(snapshot) {
+      this.checkpoint();
+      this.restore(snapshot);
+      this.commit('保存した回路を読み込みました。Undoで読み込み前に戻せます。');
+    }
+
+    checkpoint() {
+      // 真理値表からの入力変更など、まだ履歴にない現在値も置換前に残す。
+      if (this.historyIndex >= 0 && JSON.stringify(this.snapshot()) !== JSON.stringify(this.history[this.historyIndex])) this.commit(this.notice);
+    }
+
     loadExpression(expression, options = {}) {
       const parsed = Core.parseAndAnalyze(expression);
       const missing = parsed.inputs.filter(name => !this.availableInputNames.includes(name));
       if (missing.length) throw new Error(`利用できない入力「${missing.join('、')}」が含まれています。`);
+      if (options.resetHistory === false) this.checkpoint();
       this.inputNames = this.availableInputNames.filter(name => this.inputNames.includes(name) || parsed.inputs.includes(name));
       this.inputNames.forEach(name => { this.inputValues[name] ??= 0; });
       const diagramAst = Core.toBasicGateAst(parsed.ast);
@@ -1849,13 +1846,16 @@
     }
 
     saveSvg() {
+      let success = false;
       try {
         this.exportSvg();
         this.notice = '回路図をSVGとして保存しました。';
+        success = true;
       } catch (error) {
         this.notice = `SVGを保存できません：${error.message}`;
       }
       this.render({ notify: false });
+      return success;
     }
 
     exportSvg() {
@@ -1864,15 +1864,17 @@
     }
 
     async savePng() {
-      if (this.savingPng) return;
+      if (this.savingPng) return false;
       this.savingPng = true;
       this.updateToolbar();
       try {
         const { svg, title } = this.createExportDiagram();
         await Renderer.downloadPng(svg, title);
         this.notice = '回路図をPNGとして保存しました。';
+        return true;
       } catch (error) {
         this.notice = `PNGを保存できません：${error.message}`;
+        return false;
       } finally {
         this.savingPng = false;
         if (!this.destroyed) this.render({ notify: false });

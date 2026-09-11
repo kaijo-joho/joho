@@ -28,6 +28,15 @@ const state = page => page.evaluate(() => window.logicWorkbenchEditor.snapshot()
 const reset = page => page.evaluate(() => window.logicWorkbenchEditor.loadExpression('A-B'));
 const undo = page => page.getByRole('button', { name: '元に戻す', exact: true }).click();
 const port = (page, node, kind, index = 0) => page.locator(`.logic-editor-port[data-node-id="${node}"][data-kind="${kind}"]${kind === 'input' ? `[data-port="${index}"]` : ''}`);
+const exportButton = page => page.getByRole('button', { name: '回路図を出力', exact: true });
+
+async function prepareExport(page, format, showSignals) {
+  await exportButton(page).click();
+  const dialog = page.locator('#logic-file-dialog');
+  await dialog.getByRole('radio', { name: format === 'svg' ? 'SVG（拡大・編集用）' : 'PNG（画像用）', exact: true }).check();
+  await dialog.getByRole('checkbox', { name: '0/1を表示する', exact: true }).setChecked(showSignals);
+  return dialog.getByRole('button', { name: '書き出す', exact: true });
+}
 
 async function center(locator) {
   const rect = await locator.boundingBox();
@@ -123,10 +132,12 @@ async function editChecks(page, name) {
   await page.keyboard.press('Escape');
   await expect(summary).toBeFocused();
   await expect(page.locator('.logic-editor__help-content')).toBeHidden();
-  await page.locator('.logic-example-picker > summary').click();
-  await expect(page.locator('.logic-example-picker')).toHaveAttribute('open', '');
-  await page.locator('#headline_2').click();
-  await expect(page.locator('.logic-example-picker')).not.toHaveAttribute('open', '');
+  const loadButton = page.getByRole('button', { name: '回路を読み込む', exact: true });
+  await loadButton.click();
+  await expect(page.locator('#logic-file-dialog')).toBeVisible();
+  await page.mouse.click(5, 100);
+  await expect(page.locator('#logic-file-dialog')).toBeHidden();
+  await expect(loadButton).toBeFocused();
   console.log(`${name}: palette drag/click/keyboard, input deletion, both wire ends, occupied ports, Undo and help`);
 }
 
@@ -136,10 +147,10 @@ async function exportChecks(page, name, { resetCircuit = true, showSignals = tru
     await page.evaluate(() => window.logicWorkbenchEditor.setInputValues({ A: 1, B: 1 }));
   }
   const beforePreference = await state(page);
-  await page.getByRole('checkbox', { name: '保存図に0/1を表示', exact: true }).setChecked(showSignals);
+  const svgSubmit = await prepareExport(page, 'svg', showSignals);
   assert.deepEqual(await state(page), beforePreference, 'export preference does not change circuit or input values');
   const svgDownload = page.waitForEvent('download');
-  await page.locator('[data-format="svg"]').click();
+  await svgSubmit.click();
   const svgFile = await svgDownload;
   assert.equal(svgFile.suggestedFilename(), 'logic-circuit.svg');
   const svgPath = join(artifacts, `${name}.svg`);
@@ -184,8 +195,9 @@ async function exportChecks(page, name, { resetCircuit = true, showSignals = tru
     const sourceNode = beforePreference.graph.nodes.find(node => node.id === gate.id);
     assert.equal(gate.transform, `translate(${sourceNode.x} ${sourceNode.y})`, 'export preserves placement/shared gate identity');
   }
+  const pngSubmit = await prepareExport(page, 'png', showSignals);
   const pngDownload = page.waitForEvent('download');
-  await page.locator('[data-format="png"]').click();
+  await pngSubmit.click();
   const pngFile = await pngDownload;
   assert.equal(pngFile.suggestedFilename(), 'logic-circuit.png');
   await pngFile.saveAs(join(artifacts, `${name}.png`));
@@ -213,7 +225,7 @@ async function exportChecks(page, name, { resetCircuit = true, showSignals = tru
     assert.ok(pixels.ink > 1000, 'diagram is visibly rendered');
     assert.deepEqual(pixels.background, [255, 255, 255, 255]);
   }
-  await expect(page.locator('[data-format="png"]')).toBeEnabled();
+  await expect(exportButton(page)).toBeEnabled();
   const variants = await page.evaluate(() => {
     return ['A_B', 'nA', '(A^B)-C'].map(expression => {
       const host = document.createElement('div');
@@ -250,7 +262,7 @@ async function exportChecks(page, name, { resetCircuit = true, showSignals = tru
   assert.match(failed.notice, /PNGを保存できません/);
   assert.equal(failed.busy, false);
   assert.equal(failed.released, 1, 'conversion failure releases the temporary SVG URL');
-  await expect(page.locator('[data-format="png"]')).toBeEnabled();
+  await expect(exportButton(page)).toBeEnabled();
   console.log(`${name}: actual SVG XML/standalone rendering and PNG pixels/dimensions verified`);
 }
 
@@ -263,11 +275,10 @@ async function multiOutputChecks(page, name) {
   const outputs = double.graph.nodes.filter(node => node.type === 'output');
   assert.deepEqual(outputs.map(node => node.name), ['F₁', 'F₂']);
   assert.deepEqual(outputs[0], { ...single.graph.nodes.find(node => node.type === 'output'), name: 'F₁' });
-  await expect(page.locator('[data-format="svg"]')).toBeDisabled();
-  await expect(page.locator('[data-format="png"]')).toBeDisabled();
+  await expect(exportButton(page)).toBeDisabled();
   await mouseDrag(page, await center(port(page, and.id, 'output')), await center(port(page, outputs[1].id, 'input')));
   assert.equal(await page.evaluate(() => logicWorkbenchEditor.getAnalysis().valid), true);
-  await expect(page.locator('[data-format="svg"]')).toBeEnabled();
+  await expect(exportButton(page)).toBeEnabled();
   assert.deepEqual(await page.locator('#logic-workbench-table thead th').allTextContents(), ['A', 'B', 'F₁', 'F₂']);
   assert.deepEqual(await page.locator('#logic-workbench-table tbody tr').evaluateAll(rows => rows.map(row => [...row.cells].map(cell => cell.textContent))), [
     ['0', '0', '0', '0'], ['0', '1', '0', '0'], ['1', '0', '0', '0'], ['1', '1', '1', '1']
@@ -300,16 +311,18 @@ async function multiOutputChecks(page, name) {
   await page.locator('#logic-workbench-table tbody tr').nth(2).press('Enter');
   assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), ['0', '1']);
   await page.screenshot({ path: join(artifacts, `${name}-multiple-editor.png`) });
-  const exportPreference = page.getByRole('checkbox', { name: '保存図に0/1を表示', exact: true });
+  await prepareExport(page, 'svg', true);
+  const exportPreference = page.getByRole('checkbox', { name: '0/1を表示する', exact: true });
   await exportPreference.press('Space');
   await expect(exportPreference).not.toBeChecked();
   await exportPreference.press('Space');
   await expect(exportPreference).toBeChecked();
+  await page.keyboard.press('Escape');
+  await expect(exportButton(page)).toBeFocused();
   await exportChecks(page, `${name}-multiple-visible`, { resetCircuit: false, showSignals: true });
   await exportChecks(page, `${name}-multiple-hidden`, { resetCircuit: false, showSignals: false });
   assert.deepEqual(await page.locator('.logic-editor-node--output .logic-editor-node__bit').allTextContents(), ['0', '1'], 'hidden export does not hide editor values');
   await reset(page);
-  await page.getByRole('checkbox', { name: '保存図に0/1を表示', exact: true }).check();
   console.log(`${name}: multiple outputs, shared branch, renaming/deletion/Undo, truth table and both export value modes`);
 }
 
@@ -326,7 +339,7 @@ async function layoutChecks(page, name) {
         await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
         const layout = await page.evaluate(() => {
           const toolbar = document.querySelector('.logic-editor__toolbar').getBoundingClientRect();
-          const controls = [...document.querySelectorAll('.logic-editor__toolbar button, .logic-editor__export-option, .logic-editor__help-button')];
+          const controls = [...document.querySelectorAll('.logic-editor__toolbar button, .logic-editor__help-button')];
           return {
             width: document.documentElement.scrollWidth,
             controlsFit: controls.every(button => {
@@ -401,7 +414,7 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
       const editor = window.logicQuizBuildEditor;
       return editor.canDeleteNode(editor.graph.nodes.find(node => node.type === 'input'));
     }), false, 'quiz inputs remain fixed');
-    await expect(quizPage.locator('.logic-editor__save-button')).toHaveCount(0);
+    await expect(quizPage.locator('.logic-editor__export-button, .logic-editor__icon-button')).toHaveCount(0);
     await expect(quizPage.getByRole('button', { name: '出力を追加', exact: true })).toHaveCount(0);
   } finally {
     await browser.close();
