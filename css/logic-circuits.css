@@ -1045,6 +1045,25 @@ section article .logic-truth-table td.logic-answer-cell {
   pointer-events: none;
 }
 
+.logic-editor-alignment-guide--wire {
+  stroke: var(--logic-success);
+}
+
+.logic-editor-guide-label {
+  fill: var(--logic-focus);
+  stroke: var(--logic-canvas-bg);
+  stroke-width: 4px;
+  stroke-dasharray: none;
+  stroke-linejoin: round;
+  paint-order: stroke;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.logic-editor-alignment-guide--wire .logic-editor-guide-label {
+  fill: var(--logic-success);
+}
+
 .logic-editor__gate-icon {
   display: block;
   width: 58px;
@@ -2586,6 +2605,14 @@ body.lesson-slide-ready .logic-compound-slide .logic-truth-table td {
   gap: 10px;
   min-height: 0;
   align-items: stretch;
+}
+
+.logic-workspace-grid.is-table-collapsed {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.logic-workspace-table[hidden] {
+  display: none;
 }
 
 body.lesson-slide-ready .logic-workspace-article {

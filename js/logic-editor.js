@@ -58,6 +58,7 @@
       open: 'M 3 8 V 5 H 9 L 12 8 H 21 V 11 M 3 8 L 5 21 H 19 L 22 11 H 8 L 5 21',
       export: 'M 12 3 V 15 M 7 8 L 12 3 L 17 8 M 5 13 V 21 H 19 V 13',
       align: 'M 4 3 V 21 M 20 3 V 21 M 8 5 H 16 V 9 H 8 Z M 10 15 H 14 V 19 H 10 Z M 12 9 V 15',
+      table: 'M 3 4 H 21 V 20 H 3 Z M 3 9 H 21 M 3 14 H 21 M 9 4 V 20 M 15 4 V 20',
       swap: 'M 4 8 H 20 L 16 4 M 20 16 H 4 L 8 20',
       delete: 'M 4 6 H 20 M 9 6 V 3 H 15 V 6 M 6 6 L 7 21 H 17 L 18 6 M 10 10 V 17 M 14 10 V 17'
     };
@@ -316,6 +317,7 @@
       this.exportButton = this.options.onExport ? makeFileButton('export', '回路図を出力', () => this.options.onExport(), true) : null;
       this.alignButton = this.options.enableAlignment ? makeFileButton('align', '回路全体を自動整列', () => this.alignCircuit()) : null;
       if (this.alignButton) this.alignButton.title = '回路全体を自動整列（接続は変えず、Undoで戻せます）';
+      this.tableButton = this.options.onToggleTable ? makeFileButton('table', '真理値表を折りたたむ', () => this.options.onToggleTable()) : null;
       this.deleteButton = makeButton('選択を削除', 'logic-editor__action-button logic-editor__delete-button', () => this.deleteSelected());
       this.clearButton = makeButton('全消去', 'logic-editor__action-button logic-editor__action-button--danger', () => {
         if (this.options.onClearRequest) this.options.onClearRequest();
@@ -331,6 +333,7 @@
       if (this.fileSaveButton || this.loadButton || this.exportButton) actions.classList.add('logic-editor__actions--files');
       actions.append(this.undoButton, this.redoButton);
       actions.append(...[this.fileSaveButton, this.loadButton, this.exportButton].filter(Boolean));
+      if (this.tableButton) actions.appendChild(this.tableButton);
       if (this.alignButton) actions.appendChild(this.alignButton);
       actions.append(this.swapButton, this.deleteButton, this.clearButton);
       // 見た目だけでなくTab順も、編集操作→部品の追加にそろえる。
@@ -347,7 +350,8 @@
       );
       if (this.options.allowMultipleOutputs) helpContent.appendChild(htmlElement('p', '', '「＋ 出力」で出力を増やすとF₁・F₂…と表示され、すべての出力を真理値表と保存図で確認できます。出力が2つ以上あるときは、選んだ出力を削除して減らせます。'));
       if (this.fileSaveButton) helpContent.appendChild(htmlElement('p', '', '保存アイコンで作りかけも名前を付けて保存できます。読み込みアイコンから保存した回路やテンプレートを開きます。保存先はこのブラウザだけです。'));
-      if (this.options.enableAlignment) helpContent.appendChild(htmlElement('p', '', '整列アイコンで回路全体を入力・ゲート・出力の順に並べ直します。部品の追加・移動中は、他の部品と縦・横の中心がそろうと補助線が出て吸着します。少し離すと解除されます。Alt（Option）キーを押しながらドラッグすると吸着しません。Escapeで移動をキャンセルでき、確定後もUndoで戻せます。'));
+      if (this.tableButton) helpContent.appendChild(htmlElement('p', '', '表のアイコンで真理値表を折りたたむと、回路を広く表示できます。もう一度押すと、現在の入力値に対応する行を強調して真理値表を表示します。'));
+      if (this.options.enableAlignment) helpContent.appendChild(htmlElement('p', '', '整列アイコンで、配線をなるべく直線にしながら入力・ゲート・出力の順に並べ直します。部品の追加・移動中は、配線が直線になる位置、横・縦の部品の中心が等間隔になる位置、他の部品と中心がそろう位置に吸着し、補助線が出ます。少し離すと解除されます。Alt（Option）キーを押しながらドラッグすると吸着しません。Escapeで移動をキャンセルでき、確定後もUndoで戻せます。'));
       if (this.exportButton) helpContent.appendChild(htmlElement('p', '', '「出力」でSVG・PNGの形式と0/1の有無を選んで書き出します。保存図は現在の配置・配線を使い、入力・出力を点で示します。'));
       this.help.append(helpButton, helpContent);
       actions.appendChild(this.help);
@@ -473,7 +477,10 @@
       if (!this.options.enableAlignment || this.drag || this.paletteDrag || this.connectionDrag) return;
       try {
         if (!root.LogicLayout) throw new Error('整列機能を読み込めませんでした。ページを再読み込みしてください。');
-        const positions = root.LogicLayout.arrange(this.graph, { width: WIDTH, height: HEIGHT });
+        const positions = root.LogicLayout.arrange(this.graph, {
+          width: WIDTH, height: HEIGHT,
+          inputOffset: (node, port) => this.inputPoint(node, port).y - node.y
+        });
         const changed = positions.some(point => {
           const node = this.findNode(point.id);
           return node.x !== point.x || node.y !== point.y;
@@ -1329,24 +1336,73 @@
       const scales = { x: Math.hypot(matrix?.a || 1, matrix?.b || 0), y: Math.hypot(matrix?.c || 0, matrix?.d || 1) };
       const overlaps = point => others.some(other => Math.abs(point.x - other.x) < 84 && Math.abs(point.y - other.y) < 84);
       for (const axis of ['x', 'y']) {
+        const targets = others.map(other => ({
+          key: `center:${axis}:${other.id}`, kind: 'center', priority: 2,
+          axis, value: other[axis], reference: other
+        }));
+        targets.push(...this.spacingSnapTargets(node, result, axis));
+        if (axis === 'y') targets.push(...this.wireSnapTargets(node, result));
         // 吸着は画面上7px以内。14px離すまで保持し、境界での細かな振動を防ぐ。
-        const candidates = others.filter(other => {
-          const threshold = (previous[axis] === other.id ? 14 : 7) / scales[axis];
-          return Math.abs(other[axis] - position[axis]) <= threshold;
+        const candidates = targets.filter(target => {
+          const threshold = (previous[axis] === target.key ? 14 : 7) / scales[axis];
+          return Math.abs(target.value - position[axis]) <= threshold;
         }).sort((left, right) => {
-          const held = Number(previous[axis] === right.id) - Number(previous[axis] === left.id);
-          return held || Math.abs(left[axis] - position[axis]) - Math.abs(right[axis] - position[axis]);
+          const held = Number(previous[axis] === right.key) - Number(previous[axis] === left.key);
+          return left.priority - right.priority || held || Math.abs(left.value - position[axis]) - Math.abs(right.value - position[axis]);
         });
-        const target = candidates.find(other => {
-          const candidate = { ...result, [axis]: other[axis] };
+        const target = candidates.find(target => {
+          const candidate = { ...result, [axis]: target.value };
           return candidate.x >= 45 && candidate.x <= WIDTH - 45 && candidate.y >= 42 && candidate.y <= HEIGHT - 42 && !overlaps(candidate);
         });
         if (!target) continue;
-        result[axis] = target[axis];
-        gesture.snap[axis] = target.id;
-        gesture.guides.push({ axis, value: target[axis], reference: target });
+        result[axis] = target.value;
+        gesture.snap[axis] = target.key;
+        gesture.guides.push(target);
       }
       return result;
+    }
+
+    wireSnapTargets(node, position) {
+      if (!node.id) return []; // 追加中の部品には、まだ接続されている配線がない。
+      const targets = [];
+      this.graph.wires.forEach(wire => {
+        if (wire.from !== node.id && wire.to !== node.id) return;
+        const source = this.findNode(wire.from);
+        const destination = this.findNode(wire.to);
+        if (!source || !destination) return;
+        const offset = this.inputPoint(destination, Number(wire.port)).y - destination.y;
+        const value = wire.from === node.id ? destination.y + offset : source.y - offset;
+        const moved = { ...node, ...position, y: value };
+        const from = this.outputPoint(wire.from === node.id ? moved : source);
+        const to = this.inputPoint(wire.to === node.id ? moved : destination, Number(wire.port));
+        if (to.x - from.x < 18) return;
+        const segments = routeSegments([from, to]);
+        const obstacles = this.routingObstacles(new Set([wire.from, wire.to]));
+        if (routeObstaclePenalty(segments, obstacles) > 0) return;
+        targets.push({ key: `wire:${wire.id}`, kind: 'wire', priority: 0, axis: 'y', value, from, to });
+      });
+      return targets;
+    }
+
+    spacingSnapTargets(node, position, axis) {
+      const across = axis === 'x' ? 'y' : 'x';
+      // 同じ列・行にある隣同士の部品だけを比較し、遠い列の偶然の一致を避ける。
+      const row = this.graph.nodes.filter(other => other.id !== node.id && Math.abs(other[across] - position[across]) <= 28)
+        .sort((left, right) => left[axis] - right[axis]);
+      const targets = [];
+      for (let index = 1; index < row.length; index++) {
+        const a = row[index - 1];
+        const b = row[index];
+        if (Math.abs(a[across] - b[across]) > 28) continue;
+        const values = [(a[axis] + b[axis]) / 2, 2 * a[axis] - b[axis], 2 * b[axis] - a[axis]];
+        values.forEach((value, mode) => {
+          const coordinates = [a[axis], b[axis], value].sort((left, right) => left - right);
+          if (coordinates[1] - coordinates[0] < 84) return;
+          if (row.some(other => other !== a && other !== b && other[axis] > coordinates[0] && other[axis] < coordinates[2])) return;
+          targets.push({ key: `spacing:${axis}:${a.id}:${b.id}:${mode}`, kind: 'spacing', priority: 1, axis, value, references: [a, b] });
+        });
+      }
+      return targets;
     }
 
     drawAlignmentGuides() {
@@ -1354,6 +1410,22 @@
       const node = this.drag?.moved ? this.findNode(this.drag.nodeId) : this.paletteDrag?.position;
       if (!node || !gesture?.guides?.length) return;
       gesture.guides.forEach(guide => {
+        if (guide.kind === 'spacing') {
+          this.drawSpacingGuide(node, guide);
+          return;
+        }
+        if (guide.kind === 'wire') {
+          const group = Renderer.svgElement('g', {
+            class: 'logic-editor-alignment-guide logic-editor-alignment-guide--wire',
+            'data-axis': 'y', 'data-kind': 'wire', 'aria-hidden': 'true'
+          });
+          group.append(
+            Renderer.svgElement('line', { x1: guide.from.x - 8, x2: guide.to.x + 8, y1: guide.from.y - 9, y2: guide.from.y - 9, 'vector-effect': 'non-scaling-stroke' }),
+            Renderer.svgElement('text', { class: 'logic-editor-guide-label', x: (guide.from.x + guide.to.x) / 2, y: Math.max(18, guide.from.y - 34), 'text-anchor': 'middle' }, '直線')
+          );
+          this.svg.appendChild(group);
+          return;
+        }
         const vertical = guide.axis === 'x';
         const along = vertical ? 'y' : 'x';
         const from = Math.max(8, Math.min(node[along], guide.reference[along]) - 44);
@@ -1362,9 +1434,37 @@
           class: 'logic-editor-alignment-guide',
           x1: vertical ? guide.value : from, y1: vertical ? from : guide.value,
           x2: vertical ? guide.value : to, y2: vertical ? to : guide.value,
-          'data-axis': guide.axis, 'aria-hidden': 'true', 'vector-effect': 'non-scaling-stroke'
+          'data-axis': guide.axis, 'data-kind': 'center', 'aria-hidden': 'true', 'vector-effect': 'non-scaling-stroke'
         }));
       });
+    }
+
+    drawSpacingGuide(node, guide) {
+      const horizontal = guide.axis === 'x';
+      const across = horizontal ? 'y' : 'x';
+      const nodes = [...guide.references, node].sort((left, right) => left[guide.axis] - right[guide.axis]);
+      const baseline = clamp(Math.min(...nodes.map(item => item[across])) - 54, 24, (horizontal ? HEIGHT : WIDTH) - 24);
+      const group = Renderer.svgElement('g', {
+        class: 'logic-editor-alignment-guide', 'data-axis': guide.axis, 'data-kind': 'spacing', 'aria-hidden': 'true'
+      });
+      group.appendChild(Renderer.svgElement('line', {
+        x1: horizontal ? nodes[0].x : baseline, y1: horizontal ? baseline : nodes[0].y,
+        x2: horizontal ? nodes[2].x : baseline, y2: horizontal ? baseline : nodes[2].y,
+        'vector-effect': 'non-scaling-stroke'
+      }));
+      nodes.forEach(item => group.appendChild(Renderer.svgElement('line', {
+        x1: horizontal ? item.x : baseline - 5, y1: horizontal ? baseline - 5 : item.y,
+        x2: horizontal ? item.x : baseline + 5, y2: horizontal ? baseline + 5 : item.y,
+        'vector-effect': 'non-scaling-stroke'
+      })));
+      const labelOnRight = !horizontal && baseline < 56;
+      group.appendChild(Renderer.svgElement('text', {
+        class: 'logic-editor-guide-label',
+        x: horizontal ? nodes[1].x : labelOnRight ? Math.max(...nodes.map(item => item.x)) + 54 : baseline - 8,
+        y: horizontal ? baseline - 8 : nodes[1].y - 8,
+        'text-anchor': horizontal ? 'middle' : labelOnRight ? 'start' : 'end'
+      }, '等間隔'));
+      this.svg.appendChild(group);
     }
 
     handlePointerMove(event) {

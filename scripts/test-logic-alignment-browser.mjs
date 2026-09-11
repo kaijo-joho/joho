@@ -1,4 +1,4 @@
-// Chrome/WebKit UI checks for lc02 alignment, snapping and toolbar layout.
+// Chrome/WebKit UI checks for lc02 truth panel, alignment and smart snapping.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdtemp, readFile } from 'node:fs/promises';
@@ -80,6 +80,12 @@ async function alignmentChecks(page, name) {
   assert.deepEqual(arranged.inputValues, before.inputValues, `${name}: alignment preserves input values`);
   assert.deepEqual(arranged.graph.nodes.map(node => ({ id: node.id, type: node.type, name: node.name })), before.graph.nodes.map(node => ({ id: node.id, type: node.type, name: node.name })));
   assert.equal(await page.evaluate(() => window.logicWorkbenchEditor.getAnalysis().truthCode), beforeTruth, `${name}: truth table preserved`);
+  const directGateWires = await page.evaluate(() => {
+    const editor = window.logicWorkbenchEditor;
+    return editor.graph.wires.filter(wire => editor.findNode(wire.from).type !== 'input')
+      .map(wire => editor.currentWireRoutes.get(wire.id).segments.map(segment => segment.axis));
+  });
+  assert.deepEqual(directGateWires, [['h'], ['h']], `${name}: AND→OR input and OR→F use straight wires, not doglegs`);
   const arrangedAgain = await state(page);
   await align.click();
   assert.deepEqual(await state(page), arrangedAgain, `${name}: alignment is idempotent`);
@@ -174,6 +180,124 @@ async function snapThresholdChecks(page, name) {
   await page.evaluate(() => window.logicWorkbenchEditor.loadExpression('A-B'));
 }
 
+async function truthPanelChecks(page, name, viewportWidth) {
+  await page.evaluate(() => window.logicWorkbenchEditor.loadExpression('A-B'));
+  const panel = page.locator('#logic-workbench-table-panel');
+  await expect(panel).toBeVisible();
+  const widthBefore = (await page.locator('#logic-editor').boundingBox()).width;
+  const before = await state(page);
+  const hide = page.getByRole('button', { name: '真理値表を折りたたむ', exact: true });
+  await expect(hide).toHaveAttribute('aria-controls', 'logic-workbench-table-panel');
+  await hide.focus();
+  await page.keyboard.press('Enter');
+  await expect(panel).toBeHidden();
+  const show = page.getByRole('button', { name: '真理値表を表示', exact: true });
+  await expect(show).toBeFocused();
+  await expect(show).toHaveAttribute('aria-expanded', 'false');
+  assert.deepEqual(await state(page), before, `${name}: collapsing table does not edit circuit`);
+  if (viewportWidth > 620) {
+    await expect.poll(async () => (await page.locator('#logic-editor').boundingBox()).width).toBeGreaterThan(widthBefore + 100);
+  }
+  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewportWidth + 1);
+  await page.screenshot({ path: join(artifacts, `${name}-${viewportWidth}-table-collapsed.png`) });
+  for (const theme of ['light', 'dark', 'system']) {
+    for (const size of ['standard', 'large', 'xlarge']) {
+      await page.evaluate(({ theme, size }) => {
+        siteTheme.setPreference(theme); siteTextSize.setPreference(size);
+      }, { theme, size });
+      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewportWidth + 1);
+      const buttonBox = await show.boundingBox();
+      assert.ok(buttonBox.width >= 44 && buttonBox.height >= 44, 'table toggle has a full-size target at all text sizes');
+      await expect(panel).toBeHidden();
+    }
+  }
+  await page.evaluate(() => { siteTheme.setPreference('light'); siteTextSize.setPreference('standard'); });
+  if (viewportWidth > 620) {
+    await page.locator('.lesson-slide-deck__fullscreen').click();
+    await page.getByRole('button', { name: 'スライドを全画面表示', exact: true }).click();
+    await expect(page.locator('body')).toHaveClass(/is-lesson-fullscreen/);
+    await expect(panel).toBeHidden();
+    await show.click();
+    await expect(panel).toBeVisible();
+    await hide.click();
+    await expect(panel).toBeHidden();
+    await page.getByRole('button', { name: '全画面表示を終了', exact: true }).click();
+  }
+  await page.evaluate(() => window.logicWorkbenchEditor.setInputValues({ A: 1, B: 1 }));
+  await show.press('Space');
+  await expect(panel).toBeVisible();
+  await expect(hide).toHaveAttribute('aria-expanded', 'true');
+  assert.deepEqual(await panel.locator('tr[aria-current="true"] td').allTextContents(), ['1', '1', '1'], `${name}: reopened table highlights latest inputs`);
+  await panel.locator('tbody tr').first().press('Enter');
+  assert.deepEqual((await state(page)).inputValues, { A: 0, B: 0 }, 'truth row keyboard interaction still updates inputs');
+  await page.getByRole('button', { name: '回路全体を自動整列', exact: true }).focus();
+}
+
+async function smartSnapChecks(page, name) {
+  const setFixture = graph => page.evaluate(graph => {
+    const editor = window.logicWorkbenchEditor;
+    editor.graph = graph;
+    editor.inputNames = graph.nodes.filter(node => node.type === 'input').map(node => node.name);
+    editor.inputValues = Object.fromEntries(editor.inputNames.map(name => [name, 0]));
+    editor.selected = null; editor.resetHistory(); editor.render();
+  }, graph);
+  const checkDrag = async (id, target, expected, kind, axis, screenshot) => {
+    const before = await state(page);
+    const node = before.graph.nodes.find(node => node.id === id);
+    const from = await canvasPoint(page, node.x, node.y);
+    const to = await canvasPoint(page, target.x, target.y);
+    await page.mouse.move(from.x, from.y); await page.mouse.down();
+    await page.mouse.move(to.x, to.y, { steps: 10 });
+    await expect(page.locator(`.logic-editor-alignment-guide[data-kind="${kind}"][data-axis="${axis}"]`)).toHaveCount(1);
+    if (screenshot) await page.screenshot({ path: join(artifacts, `${name}-${screenshot}.png`) });
+    await page.mouse.up();
+    const moved = (await state(page)).graph.nodes.find(node => node.id === id);
+    assert.deepEqual({ x: moved.x, y: moved.y }, expected, `${name}: ${kind} ${axis} snapping`);
+    assert.equal(await page.locator('.logic-editor-alignment-guide').count(), 0);
+    await page.getByRole('button', { name: '元に戻す', exact: true }).click();
+    assert.deepEqual(await state(page), before, `${name}: ${kind} drag undoes as one edit`);
+  };
+  const wireFixture = { nodes: [
+    { id: 'input-A', type: 'input', name: 'A', x: 120, y: 180 },
+    { id: 'moving', type: 'AND', x: 450, y: 320 },
+    { id: 'near-center', type: 'OR', x: 650, y: 198 },
+    { id: 'output-F', type: 'output', name: 'F', x: 790, y: 260 }
+  ], wires: [{ id: 'in', from: 'input-A', to: 'moving', port: 0 }, { id: 'out', from: 'moving', to: 'output-F', port: 0 }] };
+  await setFixture(wireFixture);
+  await checkDrag('moving', { x: 450, y: 198 }, { x: 450, y: 194 }, 'wire', 'y', 'straight-guide');
+  await checkDrag('moving', { x: 450, y: 264 }, { x: 450, y: 260 }, 'wire', 'y');
+  await checkDrag('input-A', { x: 120, y: 310 }, { x: 120, y: 306 }, 'wire', 'y');
+  await checkDrag('output-F', { x: 790, y: 323 }, { x: 790, y: 320 }, 'wire', 'y');
+  wireFixture.nodes[1].type = 'OR'; wireFixture.wires[0].port = 1;
+  await setFixture(wireFixture);
+  await checkDrag('moving', { x: 450, y: 170 }, { x: 450, y: 166 }, 'wire', 'y');
+
+  const spacingFixture = { nodes: [
+    { id: 'input-A', type: 'input', name: 'A', x: 110, y: 240 },
+    { id: 'moving', type: 'AND', x: 410, y: 400 },
+    { id: 'output-F', type: 'output', name: 'F', x: 710, y: 240 }
+  ], wires: [] };
+  await setFixture(spacingFixture);
+  await checkDrag('moving', { x: 415, y: 244 }, { x: 410, y: 240 }, 'spacing', 'x', 'equal-spacing-guide');
+  // 部品追加も同じ等間隔候補を使う。
+  await page.evaluate(() => {
+    const editor = window.logicWorkbenchEditor;
+    editor.graph.nodes = editor.graph.nodes.filter(node => node.id !== 'moving');
+    editor.resetHistory(); editor.render();
+  });
+  await drag(page, await center(page.getByRole('button', { name: 'NOTゲートを追加', exact: true })), await canvasPoint(page, 415, 244));
+  const added = (await state(page)).graph.nodes.at(-1);
+  assert.deepEqual({ x: added.x, y: added.y }, { x: 410, y: 240 }, 'palette drop uses equal spacing');
+  spacingFixture.nodes[2].x = 310;
+  await setFixture(spacingFixture);
+  await checkDrag('moving', { x: 515, y: 244 }, { x: 510, y: 240 }, 'spacing', 'x');
+  Object.assign(spacingFixture.nodes[0], { x: 300, y: 90 });
+  Object.assign(spacingFixture.nodes[2], { x: 300, y: 410 });
+  await setFixture(spacingFixture);
+  await checkDrag('moving', { x: 304, y: 255 }, { x: 300, y: 250 }, 'spacing', 'y', 'vertical-spacing-guide');
+  await page.evaluate(() => window.logicWorkbenchEditor.loadExpression('A-B'));
+}
+
 async function saveReloadExportChecks(page, name) {
   await page.getByRole('button', { name: '回路全体を自動整列', exact: true }).press('Enter');
   await page.getByRole('button', { name: '回路を保存', exact: true }).click();
@@ -212,6 +336,12 @@ async function saveReloadExportChecks(page, name) {
 async function touchSnapChecks(browser) {
   const { context, page } = await ready(browser, { width: 390, height: 844 }, { hasTouch: true, isMobile: true });
   await toolbarAndAlignment(page, 'chrome-touch', 390);
+  const tableBefore = await state(page);
+  await page.getByRole('button', { name: '真理値表を折りたたむ', exact: true }).tap();
+  await expect(page.locator('#logic-workbench-table-panel')).toBeHidden();
+  await page.getByRole('button', { name: '真理値表を表示', exact: true }).tap();
+  await expect(page.locator('#logic-workbench-table-panel')).toBeVisible();
+  assert.deepEqual(await state(page), tableBefore, 'touch table toggle preserves circuit');
   const wrap = await page.locator('.logic-editor__canvas-wrap').boundingBox();
   const anchor = { x: wrap.x + 80, y: wrap.y + 95 };
   const from = { x: wrap.x + 240, y: wrap.y + 190 };
@@ -242,8 +372,53 @@ async function touchSnapChecks(browser) {
   await expect(page.locator('.logic-editor-alignment-guide')).toHaveCount(0);
   await page.getByRole('button', { name: '元に戻す', exact: true }).tap();
   assert.deepEqual(await state(page), before, 'touch drag restores with one Undo');
+
+  // 接続端子の高さへ、実際のタッチ操作で吸着する。
+  const wireTarget = await page.evaluate(() => {
+    const editor = window.logicWorkbenchEditor;
+    editor.graph.wires = [{ id: 'touch-wire', from: 'touch-anchor', to: 'touch-moving', port: 0 }];
+    editor.resetHistory(); editor.render();
+    const node = editor.findNode('touch-moving');
+    return { x: node.x, y: editor.findNode('touch-anchor').y - (editor.inputPoint(node, 0).y - node.y) };
+  });
+  const beforeWire = await state(page);
+  const wireTo = await canvasPoint(page, wireTarget.x, wireTarget.y + 3);
+  await touch('touchStart', from);
+  for (let i = 1; i <= 8; i++) await touch('touchMove', { x: from.x, y: from.y + (wireTo.y - from.y) * i / 8 });
+  await expect.poll(async () => (await state(page)).graph.nodes.find(node => node.id === 'touch-moving').y).toBe(wireTarget.y);
+  await expect(page.locator('.logic-editor-alignment-guide[data-kind="wire"]')).toHaveCount(1);
+  await page.screenshot({ path: join(artifacts, 'chrome-touch-straight-guide.png') });
+  await touch('touchEnd');
+  await page.getByRole('button', { name: '元に戻す', exact: true }).tap();
+  assert.deepEqual(await state(page), beforeWire, 'touch wire snap restores with one Undo');
+
+  const equalFixture = await page.evaluate(wrap => {
+    const editor = window.logicWorkbenchEditor;
+    const a = editor.toSvgPoint(wrap.x + 60, wrap.y + 95);
+    const b = editor.toSvgPoint(wrap.x + 295, wrap.y + 95);
+    const moving = editor.toSvgPoint(wrap.x + 200, wrap.y + 190);
+    editor.graph = { nodes: [
+      { id: 'input-A', type: 'input', name: 'A', x: a.x, y: a.y },
+      { id: 'touch-moving', type: 'AND', x: moving.x, y: moving.y },
+      { id: 'output-F', type: 'output', name: 'F', x: b.x, y: b.y }
+    ], wires: [] };
+    editor.inputNames = ['A']; editor.inputValues = { A: 0 };
+    editor.resetHistory(); editor.render();
+    return { from: { x: moving.x, y: moving.y }, to: { x: (a.x + b.x) / 2, y: a.y } };
+  }, wrap);
+  const equalBefore = await state(page);
+  const equalFrom = await canvasPoint(page, equalFixture.from.x, equalFixture.from.y);
+  const equalTo = await canvasPoint(page, equalFixture.to.x + 3, equalFixture.to.y + 3);
+  await touch('touchStart', equalFrom);
+  for (let i = 1; i <= 8; i++) await touch('touchMove', { x: equalFrom.x + (equalTo.x - equalFrom.x) * i / 8, y: equalFrom.y + (equalTo.y - equalFrom.y) * i / 8 });
+  await expect.poll(async () => (await state(page)).graph.nodes.find(node => node.id === 'touch-moving').x).toBe(equalFixture.to.x);
+  await expect(page.locator('.logic-editor-alignment-guide[data-kind="spacing"]')).toHaveCount(1);
+  await page.screenshot({ path: join(artifacts, 'chrome-touch-equal-spacing-guide.png') });
+  await touch('touchEnd');
+  await page.getByRole('button', { name: '元に戻す', exact: true }).tap();
+  assert.deepEqual(await state(page), equalBefore, 'touch equal spacing restores with one Undo');
   await context.close();
-  console.log('chrome: touch center snap, guide and Undo at 390px passed');
+  console.log('chrome: touch table toggle, center/wire/spacing snaps, guides and Undo at 390px passed');
 }
 
 for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
@@ -253,15 +428,19 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     await toolbarAndAlignment(page, name, 1440);
     await alignmentChecks(page, name);
     await snapThresholdChecks(page, name);
+    await smartSnapChecks(page, name);
+    await truthPanelChecks(page, name, 1440);
     await saveReloadExportChecks(page, name);
     await page.setViewportSize({ width: 390, height: 844 });
     await toolbarAndAlignment(page, name, 390);
+    await truthPanelChecks(page, name, 390);
     await context.close();
     if (name === 'chrome') await touchSnapChecks(browser);
     const lc03 = await browser.newPage({ viewport: { width: 390, height: 844 } });
     await lc03.goto(new URL('lc03.html#panel-build', baseURL).href);
     await lc03.locator('body.lesson-slide-ready').waitFor();
     assert.equal(await lc03.getByRole('button', { name: '回路全体を自動整列', exact: true }).count(), 0, `${name}: lc03 alignment disabled`);
+    assert.equal(await lc03.getByRole('button', { name: '真理値表を折りたたむ', exact: true }).count(), 0, `${name}: lc03 has no free-editor table toggle`);
     await lc03.close();
     console.log(`${name}: alignment, snapping, cancellation, save/load and 390px toolbar passed`);
   } finally {

@@ -22,7 +22,7 @@
     return Array.from({ length: count }, (_, index) => start + gap * index);
   }
 
-  function arrange(graph, { width = 900, height = 520 } = {}) {
+  function arrange(graph, { width = 900, height = 520, inputOffset = null } = {}) {
     if (!Number.isFinite(width) || !Number.isFinite(height) || width < 2 * 45 || height < 2 * 42) {
       fail('配置できる回路の大きさが不正です。');
     }
@@ -130,6 +130,64 @@
       positionColumn(levels.get(level) || [], left + (right - left) * level / (maxDepth + 1));
     }
     positionColumn(outputs, right);
+
+    // ゲート間・出力間で直線になる候補を右から左へ選び、最後に入力も接続先へ寄せる。
+    // 各列の順序と最小間隔は、未接続部品を含めて常に保つ。
+    const columnById = new Map();
+    columns.forEach(column => column.forEach(node => columnById.set(node.id, column)));
+    const y = new Map(nodes.map(node => [node.id, positions.get(node.id).y]));
+    const baselineY = new Map(y);
+    const offsetFor = (target, port) => {
+      if (typeof inputOffset !== 'function') return 0;
+      const value = inputOffset(target, port);
+      return Number.isFinite(value) ? value : 0;
+    };
+    function columnBounds(node) {
+      const column = columnById.get(node.id);
+      const index = column.indexOf(node);
+      return {
+        min: index > 0 ? y.get(column[index - 1].id) + MIN_Y : top,
+        max: index < column.length - 1 ? y.get(column[index + 1].id) - MIN_Y : bottom
+      };
+    }
+    function optimizeSource(source, boundsOverride = null) {
+      const clamp = value => {
+        const bounds = boundsOverride || columnBounds(source);
+        return Math.max(bounds.min, Math.min(bounds.max, value));
+      };
+      const targets = wires.filter(wire => wire.from === source.id)
+        .map(wire => ({ wire, target: nodeMap.get(wire.to) }))
+        .filter(({ target }) => target.type !== 'input');
+      if (!targets.length) {
+        if (boundsOverride) y.set(source.id, clamp(y.get(source.id)));
+        return;
+      }
+      const desired = targets.map(({ wire, target }) => y.get(target.id) + offsetFor(target, Number(wire.port)));
+      // clamp前ではなく、実際に置ける候補位置で直線数・縦差を比較する。
+      const candidates = Array.from(new Set(desired.map(clamp)));
+      candidates.sort((leftValue, rightValue) => {
+        const leftStraight = desired.filter(value => Math.abs(value - leftValue) < 0.001).length;
+        const rightStraight = desired.filter(value => Math.abs(value - rightValue) < 0.001).length;
+        const leftDifference = desired.reduce((sum, value) => sum + Math.abs(value - leftValue), 0);
+        const rightDifference = desired.reduce((sum, value) => sum + Math.abs(value - rightValue), 0);
+        return rightStraight - leftStraight || leftDifference - rightDifference
+          || Math.abs(leftValue - baselineY.get(source.id)) - Math.abs(rightValue - baselineY.get(source.id))
+          || leftValue - rightValue;
+      });
+      y.set(source.id, candidates[0]);
+    }
+    for (let level = maxDepth; level >= 1; level -= 1) {
+      (levels.get(level) || []).forEach(source => optimizeSource(source));
+    }
+    // 入力は最後に調整する。A→Dの順と84px以上の間隔を守るため、両端子への
+    // 同時整列が不可能なANDでも、実現可能な一方だけを選ぶ。
+    inputs.forEach((source, index) => {
+      optimizeSource(source, {
+        min: index > 0 ? y.get(inputs[index - 1].id) + MIN_Y : top,
+        max: bottom - (inputs.length - index - 1) * MIN_Y
+      });
+    });
+    nodes.forEach(node => { positions.get(node.id).y = y.get(node.id); });
     return nodes.map(node => positions.get(node.id) || { id: node.id, x: left, y: (top + bottom) / 2 });
   }
 

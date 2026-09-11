@@ -383,4 +383,63 @@ assert.deepEqual(snapping.snapshot(), beforeDrag);
 snapping.options.enableAlignment = false;
 assert.deepEqual(plain(snapping.snapPosition(snapping.findNode('moving'), { x: 505, y: 354 }, {})), { x: 505, y: 354 }, 'lc03は従来どおり');
 
-console.log('logic-editor: ドラッグ追加・入力削除・複数出力・交換・配線・履歴・分岐・全体整列・中心吸着を検証');
+// 接続中の端子位置を使い、ゲート中心の14px上・下へ配線をそろえる。
+const straightSnap = editorFixture({ enableAlignment: true });
+straightSnap.graph = { nodes: [
+  { id: 'source', type: 'input', name: 'A', x: 120, y: 180 },
+  { id: 'moving', type: 'AND', x: 450, y: 320 },
+  { id: 'near-center', type: 'OR', x: 650, y: 198 },
+  { id: 'output-F', type: 'output', name: 'F', x: 790, y: 260 }
+], wires: [{ id: 'in', from: 'source', to: 'moving', port: 0 }, { id: 'out', from: 'moving', to: 'output-F', port: 0 }] };
+const straightMoving = straightSnap.findNode('moving');
+const straightGesture = {};
+assert.equal(straightSnap.snapPosition(straightMoving, { x: 450, y: 198 }, straightGesture).y, 194, '近くの部品中心よりも接続端子の直線を優先');
+assert.equal(straightGesture.guides.find(guide => guide.axis === 'y').kind, 'wire');
+assert.equal(straightSnap.snapPosition(straightMoving, { x: 450, y: 207 }, straightGesture).y, 194, '直線の吸着も14pxまで保持');
+assert.notEqual(straightSnap.snapPosition(straightMoving, { x: 450, y: 211 }, straightGesture).y, 194, '直線から十分離すと解除');
+for (const [type, port, targetY] of [['AND', 0, 194], ['OR', 0, 194], ['AND', 1, 166], ['OR', 1, 166], ['NOT', 0, 180]]) {
+  straightMoving.type = type;
+  straightSnap.graph.wires[0].port = port;
+  assert.equal(straightSnap.snapPosition(straightMoving, { x: 450, y: targetY + 3 }, {}).y, targetY, `${type}の入力端子${port}へ直線で接続`);
+}
+straightMoving.type = 'AND'; straightSnap.graph.wires[0].port = 0;
+assert.equal(straightSnap.snapPosition(straightMoving, { x: 450, y: 264 }, {}).y, 260, 'ゲートの出力をFの端子へ直線にする');
+const movingInput = straightSnap.findNode('source');
+assert.equal(straightSnap.snapPosition(movingInput, { x: 120, y: 310 }, {}).y, 306, '入力部品も接続先ゲートの端子に合わせる');
+const movingOutput = straightSnap.findNode('output-F');
+assert.equal(straightSnap.snapPosition(movingOutput, { x: 790, y: 323 }, {}).y, 320, '出力部品も接続元へ合わせる');
+assert.equal(straightSnap.snapPosition(straightMoving, { x: 450, y: 197 }, {}, true).y, 197, 'Altで直線吸着も回避');
+straightSnap.graph.nodes.push({ id: 'obstacle', type: 'OR', x: 280, y: 180 });
+assert.ok(!straightSnap.wireSnapTargets(straightMoving, { x: 450, y: 194 }).some(target => target.key === 'wire:in'), '途中の部品を貫通する直線は候補にしない');
+assert.ok(!straightSnap.wireSnapTargets(straightMoving, { x: 50, y: 194 }).some(target => target.key === 'wire:in'), '逆方向の接続を直線と案内しない');
+
+// 入力・ゲート・出力を区別せず、横・縦の中心間隔が等しくなる位置へ吸着する。
+const spacing = editorFixture({ enableAlignment: true });
+spacing.graph = { nodes: [
+  { id: 'left', type: 'input', name: 'A', x: 100, y: 240 },
+  { id: 'moving', type: 'AND', x: 420, y: 400 },
+  { id: 'right', type: 'output', name: 'F', x: 700, y: 240 }
+], wires: [] };
+const spacedMoving = spacing.findNode('moving');
+const spacingGesture = {};
+assert.deepEqual(plain(spacing.snapPosition(spacedMoving, { x: 406, y: 245 }, spacingGesture)), { x: 400, y: 240 }, '入力と出力の真ん中へゲートを等間隔に配置');
+assert.equal(spacingGesture.guides.find(guide => guide.axis === 'x').kind, 'spacing');
+assert.equal(spacing.snapPosition(spacedMoving, { x: 412, y: 245 }, spacingGesture).x, 400, '等間隔も14pxまで保持');
+assert.equal(spacing.snapPosition(spacedMoving, { x: 416, y: 245 }, spacingGesture).x, 416, '等間隔から離すと解除');
+assert.deepEqual(plain(spacing.snapPosition(spacedMoving, { x: 405, y: 245 }, {}, true)), { x: 405, y: 245 }, 'Altで等間隔と中心の吸着を回避');
+assert.equal(spacing.snapPosition({ type: 'NOT' }, { x: 405, y: 245 }, {}).x, 400, 'パレットから追加する部品も等間隔にできる');
+spacing.findNode('right').x = 300;
+assert.equal(spacing.snapPosition(spacedMoving, { x: 505, y: 245 }, {}).x, 500, '隣接する2部品の右側へ同じ間隔で並べる');
+spacing.findNode('left').x = 400; spacing.findNode('right').x = 600;
+assert.equal(spacing.snapPosition(spacedMoving, { x: 205, y: 245 }, {}).x, 200, '隣接する2部品の左側へ同じ間隔で並べる');
+Object.assign(spacing.findNode('left'), { x: 300, y: 100 });
+Object.assign(spacing.findNode('right'), { x: 300, y: 400 });
+const verticalGesture = {};
+assert.deepEqual(plain(spacing.snapPosition(spacedMoving, { x: 305, y: 254 }, verticalGesture)), { x: 300, y: 250 }, '縦の等間隔も中心揃えと併用できる');
+assert.equal(verticalGesture.guides.find(guide => guide.axis === 'y').kind, 'spacing');
+spacing.findNode('right').y = 200;
+assert.ok(!spacing.spacingSnapTargets(spacedMoving, { x: 300, y: 150 }, 'y').some(target => target.value === 150), '重なる間隔へは吸着しない');
+spacing.findNode('right').x = 450;
+assert.equal(spacing.spacingSnapTargets(spacedMoving, { x: 300, y: 150 }, 'y').length, 0, '別の列の部品との偶然の等間隔を避ける');
+
+console.log('logic-editor: ドラッグ追加・入力削除・複数出力・交換・配線・履歴・分岐・全体整列・中心／直線／等間隔吸着を検証');
