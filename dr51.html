@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>5-1. データの圧縮とランレングス法 | 海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/digital-representation.css">
+  <link rel="stylesheet" href="./css/compression-representation.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/compression-core.js"></script>
+  <script defer src="./js/compression-lessons.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="圧縮と復元">
+    <article>
+      <h2 id="headline_1">(1) データの圧縮と復元</h2>
+      <p><strong>圧縮</strong>とは、決められた方法にしたがって、データを少ないデータ量で表す処理です。保存容量や通信量を減らせます。圧縮したデータから文字や画像などのデータを読み戻す処理を<strong>復元</strong>といいます。</p>
+      <div class="cp-comparison">
+        <div class="cp-equation cp-equation--process"><strong>元のデータ</strong><span>→ 圧縮 →</span><strong>圧縮したデータ</strong><span>→ 復元 →</span><strong>復元したデータ</strong></div>
+        <div class="cp-reference-card"><h3>可逆圧縮</h3><p>圧縮したデータを、元のデータと同じ内容へ戻せます。文書やプログラムのように、1bitの欠損も困るデータに使います。</p></div>
+        <div class="cp-reference-card"><h3>非可逆圧縮</h3><p>一部の情報を削除・変更するため、元のデータそのものへは戻せません。画像や音声では、見た目や聞こえ方の違いが目立ちにくい情報を減らします。</p></div>
+      </div>
+      <p class="cp-hint">復元は「展開」「伸張」「解凍」とも呼ばれます。可逆圧縮では元のデータと完全に一致するよう復元できますが、非可逆圧縮では元のデータそのものへは戻せません。</p>
+      <button class="dr-supplement-link" type="button" data-lesson-supplement-open="cp-formats-dialog">ファイル形式の例を確認</button>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="圧縮率">
+    <article>
+      <h2 id="headline_2">(2) 圧縮率</h2>
+      <p><strong>圧縮率</strong>は、圧縮前に対して圧縮後のデータがどれくらいの大きさになったかを表します。</p>
+      <p class="cp-equation">圧縮率（%）＝ <strong>圧縮後のサイズ［B］÷ 圧縮前のサイズ［B］× 100</strong></p>
+      <div class="cp-comparison cp-comparison--rate">
+        <div class="cp-reference-card"><h3>例：小さくなった場合</h3><p>圧縮前が16文字、圧縮後が10文字なら、</p><p class="cp-equation">10 ÷ 16 × 100 ＝ <strong>62.5%</strong></p><p>圧縮後は圧縮前の62.5%です。</p></div>
+        <div class="cp-reference-card"><h3>100%を超える場合</h3><p>圧縮後の情報を記録するための目印が増えると、圧縮後のサイズが大きくなる場合があります。</p><p class="cp-equation">圧縮率が <strong>100%超</strong> なら、データ量は増えています。</p></div>
+      </div>
+      <div class="cp-observation"><strong>文字数モデルとbit数は区別する。</strong>文字列を何文字で表すかを比べる問題と、符号化したデータが何bitになるかを比べる問題では、分母・分子の単位を確認します。</div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="文字列のランレングス法">
+    <article>
+      <h2 id="headline_3">(3) 文字列のランレングス法（RLE）</h2>
+      <p><strong>ランレングス法（RLE: run-length encoding）</strong>は、同じデータが連続する部分（まとまり）に注目する可逆圧縮です。連続する同じ文字について、文字と回数を順に書きます。</p>
+      <div class="cp-widget" data-cp-string-rle data-lesson-slide-navigation-lock>
+        <p class="cp-hint">回数が1回のまとまりも、ここでは<strong>文字と「1」</strong>を書きます。</p>
+        <div class="cp-rle-demo" aria-live="polite">
+          <div><h3>元の文字列</h3><p class="cp-string" data-cp-rle-original>AAAAAABBBBCCDAAA</p></div>
+          <div><h3>圧縮後</h3><p class="cp-string" data-cp-rle-compressed>A6B4C2D1A3</p></div>
+        </div>
+        <p class="cp-feedback" data-cp-rle-step role="status">1つ目のまとまり：A6</p>
+        <div class="cp-controls cp-enhancement" hidden><button class="dr-button dr-button--primary" type="button" data-cp-rle-next>次のまとまり</button><button class="dr-button" type="button" data-cp-rle-reset>最初から</button></div>
+        <p class="cp-equation" data-cp-rle-rate>元16文字 → 圧縮後10文字：10 ÷ 16 × 100 ＝ <strong>62.5%</strong></p>
+        <label class="cp-input-label" for="cp-rle-edit">元の文字列を変えて試す（A〜Z、最大40文字）</label>
+        <input id="cp-rle-edit" class="cp-edit" data-cp-rle-edit type="text" maxlength="40" pattern="[A-Za-z]*" value="AAAAAABBBBCCDAAA" autocomplete="off" spellcheck="false">
+        <p class="cp-hint">入力した文字列も、同じ文字が続くまとまりごとに圧縮します。</p>
+        <noscript><p>JavaScriptがなくても、上の例「AAAAAABBBBCCDAAA → A6B4C2D1A3」と圧縮率62.5%を確認できます。</p></noscript>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="二値画像のランレングス法">
+    <article>
+      <h2 id="headline_4">(4) 二値画像のランレングス法</h2>
+      <p>白と黒の二値画像も、左上から<strong>右方向へ1画素ずつ</strong>読み取って文字列にできます。右端まで読んだら次の行の左端へ移り、行末と次の行の先頭は続けて読みます。</p>
+      <div class="cp-widget" data-cp-image-rle data-lesson-slide-navigation-lock>
+        <div class="cp-comparison cp-comparison--image-rle">
+          <div>
+            <h3>元画像（クリックで白黒切替）</h3>
+            <div class="cp-binary-grid" data-cp-image-grid data-width="5" data-height="5" role="group" aria-label="5行5列の二値画像。左上から右へ、行末の次は次行の左端を読みます。">
+              <button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="1行1列、黒">黒</button><button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="1行2列、黒">黒</button><button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="1行3列、黒">黒</button><button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="1行4列、黒">黒</button><button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="1行5列、黒">黒</button>
+              <button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="2行1列、黒">黒</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="2行2列、白">白</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="2行3列、白">白</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="2行4列、白">白</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="2行5列、白">白</button>
+              <button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="3行1列、黒">黒</button><button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="3行2列、黒">黒</button><button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="3行3列、黒">黒</button><button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="3行4列、黒">黒</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="3行5列、白">白</button>
+              <button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="4行1列、黒">黒</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="4行2列、白">白</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="4行3列、白">白</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="4行4列、白">白</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="4行5列、白">白</button>
+              <button type="button" class="cp-cell cp-cell--black" data-cp-image-cell data-value="black" aria-label="5行1列、黒">黒</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="5行2列、白">白</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="5行3列、白">白</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="5行4列、白">白</button><button type="button" class="cp-cell cp-cell--white" data-cp-image-cell data-value="white" aria-label="5行5列、白">白</button>
+            </div>
+            <p class="cp-hint">セルをクリックすると白黒を切り替えられます。読み取りの順序とまとまりを確かめましょう。</p>
+          </div>
+          <div>
+            <h3>読み取りのまとまり</h3>
+            <ol class="cp-runs" data-cp-image-runs>
+              <li data-cp-image-run="0">黒6</li><li data-cp-image-run="1">白4</li><li data-cp-image-run="2">黒4</li><li data-cp-image-run="3">白1</li><li data-cp-image-run="4">黒1</li><li data-cp-image-run="5">白4</li><li data-cp-image-run="6">黒1</li><li data-cp-image-run="7">白4</li>
+            </ol>
+            <p class="cp-feedback" data-cp-image-step role="status">1つ目のまとまり：黒6</p>
+            <div class="cp-controls cp-enhancement" hidden><button class="dr-button cp-image-reset" type="button" data-cp-image-reset>元に戻す</button><button class="dr-button dr-button--primary" type="button" data-cp-image-next>読み取り次へ</button></div>
+          </div>
+        </div>
+        <p class="cp-equation" data-cp-image-encoded>圧縮後：<strong>黒6白4黒4白1黒1白4黒1白4</strong>（回数1も書くルール）</p>
+        <p class="cp-equation" data-cp-image-rate-summary>元25画素 → 圧縮後16文字：16 ÷ 25 × 100 ＝ <strong>64%</strong></p>
+        <noscript><p>図は5×5画素です。左上から行末・次行先頭を続けて読むと、黒6白4黒4白1黒1白4黒1白4になります。</p></noscript>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="語句・ポイントまとめ">
+    <article>
+      <h2 id="headline_5">(5) 語句・ポイントまとめ</h2>
+      <p>語句や問いをクリックすると説明が開きます。先に自分の言葉で説明してから確認しましょう。</p>
+      <div class="dr-reference-grid">
+        <div class="dr-reference-card"><h3>語句まとめ</h3><div class="dr-reveal-list">
+          <details class="dr-reveal-item"><summary>圧縮</summary><div class="dr-reveal-item__body">データを少ないデータ量で表す処理です。可逆圧縮と非可逆圧縮があります。</div></details>
+          <details class="dr-reveal-item"><summary>復元・可逆圧縮</summary><div class="dr-reveal-item__body">復元は圧縮データを読み戻す処理です。可逆圧縮では元のデータと同じ内容へ戻せます。</div></details>
+          <details class="dr-reveal-item"><summary>非可逆圧縮</summary><div class="dr-reveal-item__body">情報の一部を削除・変更して圧縮するため、元のデータそのものへは戻せません。</div></details>
+          <details class="dr-reveal-item"><summary>圧縮率</summary><div class="dr-reveal-item__body">圧縮後のサイズを圧縮前のサイズで割り、100を掛けます。100%を超えるとデータ量は増えています。</div></details>
+          <details class="dr-reveal-item"><summary>ランレングス法（RLE）</summary><div class="dr-reveal-item__body">同じデータが連続するまとまりを、データの値と連続する回数で表す可逆圧縮です。</div></details>
+        </div></div>
+        <div class="dr-reference-card"><h3>ポイントまとめ</h3><div class="dr-reveal-list">
+          <details class="dr-reveal-item"><summary>RLEで大切な読み方は？</summary><div class="dr-reveal-item__body">文字列は左から順に、画像は左上から右へ読み、行末の次は次の行の左端へ続けます。</div></details>
+          <details class="dr-reveal-item"><summary>回数が1のときは？</summary><div class="dr-reveal-item__body">例題・文字列演習では、回数が1でも文字と「1」を記録します。画像演習では、3個以上続く場合だけ回数を記録します。</div></details>
+          <details class="dr-reveal-item"><summary>連続性が小さいと？</summary><div class="dr-reveal-item__body">同じデータのまとまりが少ないと、回数を付けるための情報が増えて圧縮効率が悪くなることがあります。</div></details>
+          <details class="dr-reveal-item"><summary>文字数とbit数は同じ？</summary><div class="dr-reveal-item__body">同じではありません。問題で指定された単位をそろえて圧縮率を計算します。</div></details>
+        </div></div>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="文字列の問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_6">(6) 文字列のランレングス法を使う</h2>
+      <form class="cp-widget" data-cp-string-quiz data-lesson-slide-navigation-lock>
+        <h3>問題1　文字列を圧縮・復元する</h3>
+        <p>この問題では、連続する同じ文字について<strong>文字と回数を必ず書き、回数1も省略しない</strong>ものとします。</p>
+        <div class="cp-answer-fields">
+          <label for="cp-quiz-compress">「EEEECCABAB」を圧縮</label><input id="cp-quiz-compress" name="compress" data-cp-answer="compress" type="text" autocomplete="off" aria-label="問題1の圧縮後の文字列">
+          <label for="cp-quiz-restore">「A8E1F1D4」を復元</label><input id="cp-quiz-restore" name="restore" data-cp-answer="restore" type="text" autocomplete="off" aria-label="問題1の復元後の文字列">
+        </div>
+        <div class="cp-controls cp-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button><button class="dr-button" type="reset">入力を消す</button></div>
+        <p class="cp-feedback" data-cp-quiz-feedback role="status"></p>
+        <details class="dr-reveal-item"><summary>解き方を確認</summary><div class="dr-reveal-item__body" data-cp-quiz-solution>
+          <ol>
+            <li>「EEEECCABAB」を同じ文字のまとまりに分けます。<p class="cp-equation">E4・C2・A1・B1・A1・B1</p></li>
+            <li>文字と回数を順に並べます。<p class="cp-equation"><strong>E4C2A1B1A1B1</strong></p></li>
+            <li>「A8E1F1D4」はAが8回、Eが1回、Fが1回、Dが4回です。<p class="cp-equation"><strong>AAAAAAAAEFDDDD</strong></p></li>
+            <li>この圧縮では、元の10文字から12文字に増えます。<p class="cp-equation">12 ÷ 10 × 100 ＝ <strong>120%</strong></p>短いまとまりが多いと、回数を記録するための文字数が増えます。</li>
+          </ol>
+          <div class="cp-controls cp-enhancement" hidden><button class="dr-button" type="button" data-cp-quiz-solution-next>次へ</button><button class="dr-button" type="button" data-cp-quiz-solution-reset>最初から</button></div>
+        </div></details>
+        <noscript><p>自動判定にはJavaScriptが必要です。圧縮の答えはE4C2A1B1A1B1、復元の答えはAAAAAAAAEFDDDDです。</p></noscript>
+      </form>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="二値画像の問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_7">(7) 二値画像をランレングス法で圧縮する</h2>
+      <div class="cp-widget" data-cp-image-quiz data-lesson-slide-navigation-lock>
+        <h3>問題2　二値画像を比べる</h3>
+        <p>白と黒の2色で表現される画像を、左上から横方向へ読み、右端の次は次の行の左端から読みます。<strong>同じ色が3個以上続く場合だけ、色を表す文字と個数で表記</strong>し、1個または2個なら黒・白の文字をそのまま書きます。</p>
+        <p class="cp-hint">画像の縦と横の画素数は事前に分かっているものとします。「黒」「白」「数字」をそれぞれ1文字として比べます。</p>
+        <details class="dr-reveal-item"><summary>3×3画素の例で、このルールを確認</summary><div class="dr-reveal-item__body">
+          <svg class="cp-grid-figure" viewBox="0 0 150 150" role="img" aria-labelledby="cp-f1-title cp-f1-desc"><title id="cp-f1-title">図1：3行3列の二値画像</title><desc id="cp-f1-desc">1行目は黒黒黒、2行目は白黒黒、3行目は黒黒白。行をまたいでも同じ色を続けて読みます。</desc><rect width="150" height="150" fill="#fff"/><path d="M0 0H150V50H0ZM50 50H150V100H50ZM0 100H100V150H0Z" fill="#222"/><path d="M0 0H150V150H0ZM50 0V150M100 0V150M0 50H150M0 100H150" fill="none" stroke="#999"/></svg>
+          <p class="cp-equation">黒黒黒白黒黒黒黒白 → <strong>黒3白黒4白</strong></p><p>白が1個のところは「白」のままです。行末と次の行の先頭をつなぐと、黒が4個続きます。</p>
+        </div></details>
+        <div class="cp-question-block" data-cp-image-question="figure2">
+          <h4>図2　圧縮後の文字列</h4>
+          <div class="cp-grid-placeholder" data-cp-problem-figure="2" data-cp-grid="1111;1100;0111;0111" data-cp-run-sequence="黒6,白3,黒3,白,黒3">
+            <svg class="cp-grid-figure" viewBox="0 0 200 200" role="img" aria-labelledby="cp-figure2-title cp-figure2-desc"><title id="cp-figure2-title">図2の4行4列二値画像</title><desc id="cp-figure2-desc">4行4列。各行を左から読みます。1行目：黒黒黒黒。2行目：黒黒白白。3行目：白黒黒黒。4行目：白黒黒黒。</desc><rect width="200" height="200" fill="#fff" stroke="#222"/><g fill="#222"><rect x="0" y="0" width="50" height="50"/><rect x="50" y="0" width="50" height="50"/><rect x="100" y="0" width="50" height="50"/><rect x="150" y="0" width="50" height="50"/><rect x="0" y="50" width="50" height="50"/><rect x="50" y="50" width="50" height="50"/><rect x="50" y="100" width="50" height="50"/><rect x="100" y="100" width="50" height="50"/><rect x="150" y="100" width="50" height="50"/><rect x="50" y="150" width="50" height="50"/><rect x="100" y="150" width="50" height="50"/><rect x="150" y="150" width="50" height="50"/></g><path d="M50 0v200M100 0v200M150 0v200M0 50h200M0 100h200M0 150h200" stroke="#888"/></svg>
+            <span>図2の4×4画像（白0・黒1）</span>
+          </div>
+          <label for="cp-image-answer">答え</label><input id="cp-image-answer" data-cp-image-answer type="text" autocomplete="off" aria-label="図2の圧縮後の文字列">
+          <p class="cp-hint">同じ色が3個以上続く部分だけ、色と回数を続けて書きます。</p>
+        </div>
+        <div class="cp-question-block" data-cp-image-question="figure3">
+          <h4>図3　圧縮しても文字数を減らせないものをすべて選ぶ</h4>
+          <div class="cp-choice-grid" data-cp-problem-figure="3">
+            <label data-cp-grid="00001111;00001111;00001111;00001111;00001111;00001111;00001111;00001111"><input type="checkbox" name="figure3" value="1">①　図3①<svg class="cp-grid-figure cp-grid-figure--small" viewBox="0 0 160 160" role="img" aria-labelledby="cp-f31-title cp-f31-desc"><title id="cp-f31-title">図3①</title><desc id="cp-f31-desc">8行8列。各行を左から読みます。1行目：白白白白黒黒黒黒。2行目：白白白白黒黒黒黒。3行目：白白白白黒黒黒黒。4行目：白白白白黒黒黒黒。5行目：白白白白黒黒黒黒。6行目：白白白白黒黒黒黒。7行目：白白白白黒黒黒黒。8行目：白白白白黒黒黒黒。</desc><defs><pattern id="cp-f31-row" width="160" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="#fff"/><rect x="20" width="20" height="20" fill="#fff"/><rect x="40" width="20" height="20" fill="#fff"/><rect x="60" width="20" height="20" fill="#fff"/><rect x="80" width="20" height="20" fill="#222"/><rect x="100" width="20" height="20" fill="#222"/><rect x="120" width="20" height="20" fill="#222"/><rect x="140" width="20" height="20" fill="#222"/></pattern></defs><rect width="160" height="160" fill="url(#cp-f31-row)" stroke="#555"/><path d="M20 0v160M40 0v160M60 0v160M80 0v160M100 0v160M120 0v160M140 0v160M0 20h160M0 40h160M0 60h160M0 80h160M0 100h160M0 120h160M0 140h160" stroke="#999" stroke-width=".7"/></svg></label><label data-cp-grid="01010101;01010101;01010101;01010101;01010101;01010101;01010101;01010101"><input type="checkbox" name="figure3" value="2">②　図3②<svg class="cp-grid-figure cp-grid-figure--small" viewBox="0 0 160 160" role="img" aria-labelledby="cp-f32-title cp-f32-desc"><title id="cp-f32-title">図3②</title><desc id="cp-f32-desc">8行8列。各行を左から読みます。1行目：白黒白黒白黒白黒。2行目：白黒白黒白黒白黒。3行目：白黒白黒白黒白黒。4行目：白黒白黒白黒白黒。5行目：白黒白黒白黒白黒。6行目：白黒白黒白黒白黒。7行目：白黒白黒白黒白黒。8行目：白黒白黒白黒白黒。</desc><defs><pattern id="cp-f32-row" width="160" height="20" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="#fff"/><rect x="20" width="20" height="20" fill="#222"/><rect x="40" width="20" height="20" fill="#fff"/><rect x="60" width="20" height="20" fill="#222"/><rect x="80" width="20" height="20" fill="#fff"/><rect x="100" width="20" height="20" fill="#222"/><rect x="120" width="20" height="20" fill="#fff"/><rect x="140" width="20" height="20" fill="#222"/></pattern></defs><rect width="160" height="160" fill="url(#cp-f32-row)" stroke="#555"/><path d="M20 0v160M40 0v160M60 0v160M80 0v160M100 0v160M120 0v160M140 0v160M0 20h160M0 40h160M0 60h160M0 80h160M0 100h160M0 120h160M0 140h160" stroke="#999" stroke-width=".7"/></svg></label><label data-cp-grid="11111111;00000000;11111111;00000000;11111111;00000000;11111111;00000000"><input type="checkbox" name="figure3" value="3">③　図3③<svg class="cp-grid-figure cp-grid-figure--small" viewBox="0 0 160 160" role="img" aria-labelledby="cp-f33-title cp-f33-desc"><title id="cp-f33-title">図3③</title><desc id="cp-f33-desc">8行8列。各行を左から読みます。1行目：黒黒黒黒黒黒黒黒。2行目：白白白白白白白白。3行目：黒黒黒黒黒黒黒黒。4行目：白白白白白白白白。5行目：黒黒黒黒黒黒黒黒。6行目：白白白白白白白白。7行目：黒黒黒黒黒黒黒黒。8行目：白白白白白白白白。</desc><defs><pattern id="cp-f33-rows" width="160" height="40" patternUnits="userSpaceOnUse"><rect width="160" height="20" fill="#222"/><rect y="20" width="160" height="20" fill="#fff"/></pattern></defs><rect width="160" height="160" fill="url(#cp-f33-rows)" stroke="#555"/><path d="M20 0v160M40 0v160M60 0v160M80 0v160M100 0v160M120 0v160M140 0v160M0 20h160M0 40h160M0 60h160M0 80h160M0 100h160M0 120h160M0 140h160" stroke="#999" stroke-width=".7"/></svg></label><label data-cp-grid="10101010;01010101;10101010;01010101;10101010;01010101;10101010;01010101"><input type="checkbox" name="figure3" value="4">④　図3④<svg class="cp-grid-figure cp-grid-figure--small" viewBox="0 0 160 160" role="img" aria-labelledby="cp-f34-title cp-f34-desc"><title id="cp-f34-title">図3④</title><desc id="cp-f34-desc">8行8列。各行を左から読みます。1行目：黒白黒白黒白黒白。2行目：白黒白黒白黒白黒。3行目：黒白黒白黒白黒白。4行目：白黒白黒白黒白黒。5行目：黒白黒白黒白黒白。6行目：白黒白黒白黒白黒。7行目：黒白黒白黒白黒白。8行目：白黒白黒白黒白黒。</desc><defs><pattern id="cp-f34-rows" width="160" height="40" patternUnits="userSpaceOnUse"><rect width="20" height="20" fill="#222"/><rect x="20" width="20" height="20" fill="#fff"/><rect x="40" width="20" height="20" fill="#222"/><rect x="60" width="20" height="20" fill="#fff"/><rect x="80" width="20" height="20" fill="#222"/><rect x="100" width="20" height="20" fill="#fff"/><rect x="120" width="20" height="20" fill="#222"/><rect x="140" width="20" height="20" fill="#fff"/><rect y="20" width="20" height="20" fill="#fff"/><rect x="20" y="20" width="20" height="20" fill="#222"/><rect x="40" y="20" width="20" height="20" fill="#fff"/><rect x="60" y="20" width="20" height="20" fill="#222"/><rect x="80" y="20" width="20" height="20" fill="#fff"/><rect x="100" y="20" width="20" height="20" fill="#222"/><rect x="120" y="20" width="20" height="20" fill="#fff"/><rect x="140" y="20" width="20" height="20" fill="#222"/></pattern></defs><rect width="160" height="160" fill="url(#cp-f34-rows)" stroke="#555"/><path d="M20 0v160M40 0v160M60 0v160M80 0v160M100 0v160M120 0v160M140 0v160M0 20h160M0 40h160M0 60h160M0 80h160M0 100h160M0 120h160M0 140h160" stroke="#999" stroke-width=".7"/></svg></label>
+          </div>
+          <p class="cp-hint">同じ色が3個以上続くものだけが、色と回数の表記で短くなります。</p>
+        </div>
+          <div class="cp-question-block" data-cp-image-question="figure4">
+          <h4>図4　最も多く圧縮できるものと圧縮率</h4>
+          <div class="cp-choice-grid cp-choice-grid--stack" data-cp-problem-figure="4">
+            <label data-cp-grid="10001;01010;00100;01010;10001"><input type="radio" name="figure4" value="1">①　図4①<svg class="cp-grid-figure cp-grid-figure--small" viewBox="0 0 150 150" role="img" aria-labelledby="cp-f41-title cp-f41-desc"><title id="cp-f41-title">図4①</title><desc id="cp-f41-desc">5行5列。各行を左から読みます。1行目：黒白白白黒。2行目：白黒白黒白。3行目：白白黒白白。4行目：白黒白黒白。5行目：黒白白白黒。</desc><rect width="150" height="150" fill="#fff" stroke="#555"/><g fill="#222"><rect width="30" height="30"/><rect x="120" width="30" height="30"/><rect x="30" y="30" width="30" height="30"/><rect x="90" y="30" width="30" height="30"/><rect x="60" y="60" width="30" height="30"/><rect x="30" y="90" width="30" height="30"/><rect x="90" y="90" width="30" height="30"/><rect y="120" width="30" height="30"/><rect x="120" y="120" width="30" height="30"/></g><path d="M30 0v150M60 0v150M90 0v150M120 0v150M0 30h150M0 60h150M0 90h150M0 120h150" stroke="#999" stroke-width=".7"/></svg></label><label data-cp-grid="10001;01010;00100;00100;00100"><input type="radio" name="figure4" value="2">②　図4②<svg class="cp-grid-figure cp-grid-figure--small" viewBox="0 0 150 150" role="img" aria-labelledby="cp-f42-title cp-f42-desc"><title id="cp-f42-title">図4②</title><desc id="cp-f42-desc">5行5列。各行を左から読みます。1行目：黒白白白黒。2行目：白黒白黒白。3行目：白白黒白白。4行目：白白黒白白。5行目：白白黒白白。</desc><rect width="150" height="150" fill="#fff" stroke="#555"/><g fill="#222"><rect width="30" height="30"/><rect x="120" width="30" height="30"/><rect x="30" y="30" width="30" height="30"/><rect x="90" y="30" width="30" height="30"/><rect x="60" y="60" width="30" height="30"/><rect x="60" y="90" width="30" height="30"/><rect x="60" y="120" width="30" height="30"/></g><path d="M30 0v150M60 0v150M90 0v150M120 0v150M0 30h150M0 60h150M0 90h150M0 120h150" stroke="#999" stroke-width=".7"/></svg></label><label data-cp-grid="11111;00010;00100;01000;11111"><input type="radio" name="figure4" value="3">③　図4③<svg class="cp-grid-figure cp-grid-figure--small" viewBox="0 0 150 150" role="img" aria-labelledby="cp-f43-title cp-f43-desc"><title id="cp-f43-title">図4③</title><desc id="cp-f43-desc">5行5列。各行を左から読みます。1行目：黒黒黒黒黒。2行目：白白白黒白。3行目：白白黒白白。4行目：白黒白白白。5行目：黒黒黒黒黒。</desc><rect width="150" height="150" fill="#fff" stroke="#555"/><g fill="#222"><rect width="30" height="30"/><rect x="30" width="30" height="30"/><rect x="60" width="30" height="30"/><rect x="90" width="30" height="30"/><rect x="120" width="30" height="30"/><rect x="90" y="30" width="30" height="30"/><rect x="60" y="60" width="30" height="30"/><rect x="30" y="90" width="30" height="30"/><rect y="120" width="30" height="30"/><rect x="30" y="120" width="30" height="30"/><rect x="60" y="120" width="30" height="30"/><rect x="90" y="120" width="30" height="30"/><rect x="120" y="120" width="30" height="30"/></g><path d="M30 0v150M60 0v150M90 0v150M120 0v150M0 30h150M0 60h150M0 90h150M0 120h150" stroke="#999" stroke-width=".7"/></svg></label>
+          </div>
+          <label for="cp-image-rate">選んだ画像の圧縮率（%）</label><input id="cp-image-rate" data-cp-image-rate type="text" inputmode="decimal" autocomplete="off" aria-label="図4の圧縮率">
+          <p class="cp-hint">元の文字数は25文字です。選んだ画像の圧縮後の文字数と比べます。</p>
+        </div>
+        <div class="cp-controls cp-enhancement" hidden><button class="dr-button dr-button--primary" type="button" data-cp-image-quiz-submit>判定</button><button class="dr-button cp-image-quiz-reset" type="button" data-cp-image-quiz-reset>入力を消す</button></div>
+        <p class="cp-feedback" data-cp-image-quiz-feedback role="status"></p>
+        <details class="dr-reveal-item"><summary>解き方を確認</summary><div class="dr-reveal-item__body" data-cp-image-quiz-solution>
+          <ol><li>図2は左上から読み、同じ色が3個以上のまとまりだけを色と回数にします。<p class="cp-equation"><strong>黒6白3黒3白黒3</strong></p></li><li>図3は、3個以上同じ色が続く部分を持たない<strong>②と④</strong>です。</li><li>図4は③が15文字で最短です。元の25文字に対する圧縮率は、<p class="cp-equation">15 ÷ 25 × 100 ＝ <strong>60%</strong></p></li></ol>
+        </div></details>
+        <noscript><p>自動判定にはJavaScriptが必要です。「解き方を確認」から手順と解答を読めます。</p></noscript>
+      </div>
+    </article>
+  </section>
+
+  <dialog id="cp-formats-dialog" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="cp-formats-title">
+    <div class="lesson-supplement-dialog__header"><h2 id="cp-formats-title" data-skip-numbering>ファイル形式と圧縮の例</h2><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="ファイル形式の補足を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body">
+      <table class="cp-format-table"><caption>形式の例（参考）</caption><thead><tr><th scope="col">形式</th><th scope="col">種類</th><th scope="col">可逆性</th></tr></thead><tbody><tr><th scope="row">PNG / FLAC / ZIP</th><td>静止画 / 音声 / 圧縮ファイル</td><td>可逆</td></tr><tr><th scope="row">JPEG / MP3 / AAC<br>（通常の圧縮方式）</th><td>静止画 / 音声</td><td>非可逆</td></tr><tr><th scope="row">MP4</th><td>動画で使われるコンテナ形式の例</td><td>形式名だけでは圧縮方式を断定できない</td></tr></tbody></table>
+      <p class="cp-hint">実際の可逆性や圧縮方法は、形式の中で使われるコーデックや設定によって変わる場合があります。ここでは代表例として確認します。</p>
+    </div>
+  </dialog>
+</body>
+</html>
