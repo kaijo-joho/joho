@@ -28,6 +28,7 @@ const pageSpecs = [
   { id: 'dr31', slides: 6 },
   { id: 'dr32', slides: 6 },
   { id: 'dr42', slides: 7 },
+  { id: 'dr43', slides: 7 },
   { id: 'nw11', slides: 5 },
   { id: 'nw12', slides: 7 },
   { id: 'nw13', slides: 7 }
