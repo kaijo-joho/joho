@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>4-2. 動画のデジタル表現 | 海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/digital-representation.css">
+  <link rel="stylesheet" href="./css/video-representation.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/image-core.js"></script>
+  <script defer src="./js/video-core.js"></script>
+  <script defer src="./js/video-lessons.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="動画とフレーム">
+    <article>
+      <h2 id="headline_1">(1) 動画とフレーム</h2>
+      <p><strong>動画</strong>は、少しずつ異なる静止画を連続して表示することで、動いているように見せています。その一枚一枚の静止画を<strong>フレーム</strong>といいます。</p>
+      <div class="vd-widget" data-video-frames data-lesson-slide-navigation-lock>
+        <p>ボールが往復する2秒間の動きを、6枚のフレームで表してみましょう。</p>
+        <figure class="vd-player">
+          <svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-labelledby="vd-frame-title vd-frame-desc">
+            <title id="vd-frame-title">ボールの往復運動を表すフレーム</title>
+            <desc id="vd-frame-desc">ボールの位置を少しずつ変えた6枚の静止画を順に表示します。前のフレームと次のフレームのボタンで一枚ずつ確認できます。</desc>
+            <path class="vd-track" d="M32 106H288"/><path class="vd-ticks" d="M32 101v10m64-10v10m64-10v10m64-10v10m64-10v10"/>
+            <circle class="vd-ball" cx="32" cy="77" r="22" data-video-ball/>
+          </svg>
+          <figcaption data-video-frame-caption>フレーム1 / 6</figcaption>
+        </figure>
+        <div class="vd-filmstrip vd-enhancement" data-video-filmstrip role="group" aria-label="表示するフレームを選択" hidden></div>
+        <div class="vd-controls vd-enhancement" hidden>
+          <button class="dr-button" type="button" data-video-frame-prev>前のフレーム</button>
+          <button class="dr-button dr-button--primary" type="button" data-video-play aria-pressed="false">再生</button>
+          <button class="dr-button" type="button" data-video-frame-next>次のフレーム</button>
+          <button class="dr-button" type="button" data-video-reset>最初に戻す</button>
+        </div>
+        <p class="vd-hint">一枚ずつ見ると静止画です。「再生」で順に切り替えると、動きとして見えます。</p>
+        <noscript><p>連続再生とフレームの切り替えにはJavaScriptが必要です。</p></noscript>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="フレームレート">
+    <article>
+      <h2 id="headline_2">(2) フレームレート</h2>
+      <p>1秒間に表示するフレーム数を<strong>フレームレート</strong>といい、単位には<strong>fps（frames per second）</strong>を使います。30fpsなら、1秒間に30枚の静止画を表示します。</p>
+      <div class="vd-widget" data-video-rate data-lesson-slide-navigation-lock>
+        <div class="vd-controls vd-enhancement" hidden>
+          <label class="vd-slider" for="vd-rate">比較するフレームレート <output for="vd-rate" data-video-rate-output>6fps</output><input id="vd-rate" type="range" min="1" max="60" step="1" value="6" data-video-rate-input><span class="vd-scale"><span>1fps</span><span>60fps</span></span></label>
+          <button class="dr-button dr-button--primary" type="button" data-video-play aria-pressed="false">同時に再生</button>
+          <button class="dr-button" type="button" data-video-reset>最初に戻す</button>
+        </div>
+        <div class="vd-comparison">
+          <figure>
+            <figcaption><strong data-video-rate-label>6fps</strong>　<span data-video-rate-count>1秒間に6枚</span></figcaption>
+            <svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-labelledby="vd-rate-title vd-rate-desc">
+              <title id="vd-rate-title">フレームレートを変更するボールの動き</title><desc id="vd-rate-desc">比較するフレームレートを1から60fpsまで変えられます。基準と同じく2秒で1往復します。</desc>
+              <path class="vd-track" d="M32 106H288"/><circle class="vd-ball" cx="32" cy="77" r="22" data-video-ball="variable"/>
+            </svg>
+            <p class="vd-hint" data-video-rate-interval>1フレームの表示時間：約0.167秒</p>
+          </figure>
+          <figure>
+            <figcaption><strong>30fps</strong>　1秒間に30枚（基準）</figcaption>
+            <svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-labelledby="vd-reference-title vd-reference-desc">
+              <title id="vd-reference-title">基準となる30fpsのボールの動き</title><desc id="vd-reference-desc">1秒間に30枚のフレームを使い、2秒で1往復します。</desc>
+              <path class="vd-track" d="M32 106H288"/><circle class="vd-ball vd-ball--reference" cx="32" cy="77" r="22" data-video-ball="reference"/>
+            </svg>
+            <p class="vd-hint">1フレームの表示時間：約0.033秒</p>
+          </figure>
+        </div>
+        <p class="vd-observation"><strong>どちらも2秒で1往復。</strong>フレームレートを変えると、同じ時間の動きを表す枚数が変わります。少ない場合と多い場合で、動きのなめらかさを比べましょう。</p>
+        <p class="vd-hint">表示できる細かさは、画面の更新頻度や端末の処理にも左右されます。</p>
+        <noscript><p>フレームレートの変更と同時再生にはJavaScriptが必要です。</p></noscript>
+      </div>
+      <p class="dr-note">例えば24fpsなら1秒間に24枚、60fpsなら60枚です。1フレームのデータ量と再生時間が同じなら、フレームレートを2倍にすると、圧縮前のデータ量も2倍になります。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="動画の圧縮">
+    <article>
+      <h2 id="headline_3">(3) 動画の圧縮</h2>
+      <p>動画は多数のフレームを使うため、データ量が大きくなります。そこで、各フレームの特徴やフレームどうしの似ている部分を利用して<strong>圧縮</strong>します。</p>
+      <div class="dr-reference-grid">
+        <div class="dr-reference-card">
+          <h3>フレーム内圧縮</h3>
+          <p><strong>1枚のフレームの中</strong>でデータ量を減らします。例えば、見分けにくい色の違いなどを省く方法があります。</p>
+          <svg class="vd-tone-demo" viewBox="0 0 320 118" role="img" aria-labelledby="vd-intra-title vd-intra-desc">
+            <title id="vd-intra-title">1枚の画像の中で細かな違いを減らす例</title><desc id="vd-intra-desc">上は連続した濃淡、下は濃淡の段階を減らした模式図です。細かな違いを省くと、画質が変化する場合があります。</desc>
+            <defs><linearGradient id="vd-tone-gradient"><stop stop-color="#1d3557"/><stop offset="1" stop-color="#eaf4ff"/></linearGradient></defs>
+            <rect x="10" y="6" width="300" height="40" rx="5" fill="url(#vd-tone-gradient)"/>
+            <path d="M160 50v15m-6-6 6 6 6-6" class="vd-track"/>
+            <path d="M10 76h50v36H10z" fill="#1d3557"/><path d="M60 76h50v36H60z" fill="#465b78"/><path d="M110 76h50v36h-50z" fill="#6f819a"/><path d="M160 76h50v36h-50z" fill="#98a8bc"/><path d="M210 76h50v36h-50z" fill="#c1cede"/><path d="M260 76h50v36h-50z" fill="#eaf4ff"/>
+          </svg>
+          <p class="vd-hint">細かな違いを省く方法の模式図。省きすぎると、画質の変化が目立ちます。</p>
+        </div>
+        <div class="dr-reference-card">
+          <h3>フレーム間圧縮</h3>
+          <p><strong>前後のフレームの関係</strong>を使ってデータ量を減らします。例えば、前のフレームから変化した部分を記録する方法があります。</p>
+          <p>下の例では、背景は同じで、ボールの位置だけが変わっています。背景を毎回すべて記録する必要がありません。</p>
+          <button class="dr-supplement-link" type="button" data-lesson-supplement-open="vd-compression-detail">移動前の位置はどうなる？</button>
+        </div>
+      </div>
+      <div class="vd-inter-frames">
+        <figure><figcaption>前のフレーム</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-label="左寄りにボールがある前のフレーム"><path class="vd-track" d="M32 106H288"/><circle class="vd-ball" cx="96" cy="77" r="22"/></svg></figure>
+        <figure><figcaption>次のフレーム</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-label="同じ背景でボールが右寄りへ移動した次のフレーム"><path class="vd-track" d="M32 106H288"/><circle class="vd-ball" cx="224" cy="77" r="22"/></svg></figure>
+        <figure><figcaption>変化した部分に注目</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-labelledby="vd-difference-title vd-difference-desc"><title id="vd-difference-title">ボールの移動前と移動後の2か所を更新</title><desc id="vd-difference-desc">破線の枠は変化した範囲。左の枠内はボールを消して背景に戻し、右の枠内には移動後のボールを表示します。</desc><path class="vd-track" d="M32 106H288"/><rect class="vd-changed" x="68" y="49" width="56" height="56"/><rect class="vd-changed" x="196" y="49" width="56" height="56"/><circle class="vd-ball" cx="224" cy="77" r="22"/></svg></figure>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="動画のデータ量">
+    <article>
+      <h2 id="headline_4">(4) 動画のデータ量</h2>
+      <p><strong>圧縮しない動画</strong>は、1フレームのデータ量にフレームの総数を掛けて求めます。ここでは音声や付加情報を含めません。</p>
+      <div class="vd-formula"><span>1フレームのデータ量</span><b>×</b><span>フレームレート</span><b>×</b><span>再生時間</span><b>＝</b><strong>動画のデータ量</strong></div>
+      <div class="vd-widget" data-video-size data-lesson-slide-navigation-lock>
+        <div class="vd-size-controls vd-enhancement" hidden>
+          <label>解像度 <select data-video-size-resolution><option value="400,300">400×300</option><option value="800,600" selected>800×600</option><option value="1600,1200">1600×1200</option><option value="1920,1080">1920×1080</option></select></label>
+          <label>フレームレート <select data-video-size-fps><option value="15">15fps</option><option value="24">24fps</option><option value="30" selected>30fps</option><option value="60">60fps</option></select></label>
+          <label>再生時間 <select data-video-size-seconds><option value="1">1秒</option><option value="10">10秒</option><option value="30">30秒</option><option value="60" selected>60秒（1分）</option></select></label>
+          <button class="dr-button" type="button" data-video-size-reset>最初の条件に戻す</button>
+        </div>
+        <p class="vd-hint">24ビットフルカラー、1B＝8bit、1KB＝1000B、1MB＝1000KBとします。</p>
+        <dl class="vd-metrics">
+          <div><dt>1フレーム</dt><dd data-video-size-frame>1.44 MB</dd></div>
+          <div><dt>フレームの総数</dt><dd data-video-size-count>1,800 枚</dd></div>
+          <div><dt>動画全体</dt><dd data-video-size-total>2,592 MB</dd></div>
+        </dl>
+        <p class="vd-equation" data-video-size-frame-formula>800×600［画素］×24［bit/画素］÷8÷1000÷1000＝1.44［MB/枚］</p>
+        <p class="vd-equation" data-video-size-total-formula>1.44［MB/枚］×30［枚/秒］×60［秒］＝2,592［MB］</p>
+        <p class="vd-observation">条件を一つずつ変えて確かめましょう。フレームレートや再生時間を2倍にすると？ 横と縦の画素数を両方2倍にすると？</p>
+      </div>
+      <p class="dr-note">実際の動画ファイルは圧縮されていることが多く、この式の結果とファイルサイズが一致するとは限りません。計算問題では、圧縮の有無と単位の換算条件を確認します。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="語句・ポイントまとめ">
+    <article>
+      <h2 id="headline_5">(5) 語句・ポイントまとめ</h2>
+      <p>語句や問いをクリックすると説明が開きます。まず自分の言葉で説明してから確認しましょう。</p>
+      <div class="dr-reference-grid">
+        <div class="dr-reference-card"><h3>語句まとめ</h3><div class="dr-reveal-list">
+          <details class="dr-reveal-item"><summary>フレーム</summary><div class="dr-reveal-item__body">動画を構成する、一枚一枚の静止画です。</div></details>
+          <details class="dr-reveal-item"><summary>フレームレート・fps</summary><div class="dr-reveal-item__body">1秒間に表示するフレーム数です。単位fpsはframes per secondの略で、30fpsなら1秒間に30枚を表示します。</div></details>
+          <details class="dr-reveal-item"><summary>フレーム内圧縮</summary><div class="dr-reveal-item__body">1枚のフレームの中でデータ量を減らすことです。例えば、見分けにくい色の違いなどを省く方法があります。</div></details>
+          <details class="dr-reveal-item"><summary>フレーム間圧縮</summary><div class="dr-reveal-item__body">前後のフレームの関係を利用してデータ量を減らすことです。例えば、前のフレームから変化した部分を記録します。</div></details>
+        </div></div>
+        <div class="dr-reference-card"><h3>ポイントまとめ</h3><div class="dr-reveal-list">
+          <details class="dr-reveal-item"><summary>60fpsの動画を10秒間表示すると何枚？</summary><div class="dr-reveal-item__body">60［枚/秒］×10［秒］＝600枚です。</div></details>
+          <details class="dr-reveal-item"><summary>フレームレートを上げると、再生時間も短くなる？</summary><div class="dr-reveal-item__body">この比較のように、同じ時間の動きをより多くのフレームで表す場合、再生時間は変わりません。動きを表す時間の間隔が細かくなります。</div></details>
+          <details class="dr-reveal-item"><summary>圧縮しない動画のデータ量を求めるには？</summary><div class="dr-reveal-item__body">1フレームのデータ量×フレームレート×再生時間です。フレームレートがfpsなら、再生時間の単位を秒にそろえます。</div></details>
+          <details class="dr-reveal-item"><summary>背景が変わらず、ボールだけが動くときは？</summary><div class="dr-reveal-item__body">フレーム間圧縮では同じ背景を利用できます。移動前の位置を背景へ戻すことも、変化の一部です。</div></details>
+        </div></div>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="再生時間の問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_6">(6) 動画の再生時間を求める</h2>
+      <form class="vd-widget" data-video-quiz="duration" data-lesson-slide-navigation-lock>
+        <h3>問題1　何秒間の動画？</h3>
+        <p>1フレームのデータ量が<strong>1MB</strong>、フレームレートが<strong>24fps</strong>の動画があります。全体のデータ量が<strong>1.5GB</strong>のとき、再生時間を求めましょう。</p>
+        <p class="vd-hint">1GB＝1024MBとします。動画は圧縮せず、音声や付加情報は含めません。</p>
+        <div class="vd-answer-fields"><label>再生時間 <span><input name="duration" type="text" inputmode="decimal" autocomplete="off" aria-label="問題1の再生時間、秒"> 秒</span></label></div>
+        <div class="vd-controls vd-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button><button class="dr-button" type="reset">入力を消す</button></div>
+        <p class="vd-feedback" data-video-feedback role="status"></p>
+        <details class="dr-reveal-item"><summary>解き方を確認</summary><div class="dr-reveal-item__body" data-video-solution>
+          <ol>
+            <li>全体のデータ量を、1フレームと同じMBにそろえます。<p class="vd-equation">1.5［GB］×1024［MB/GB］</p></li>
+            <li>1フレームのデータ量で割ると、フレームの総数になります。<p class="vd-equation">1.5［GB］×1024［MB/GB］÷1［MB/枚］</p></li>
+            <li>1秒間のフレーム数で割ると、再生時間になります。<p class="vd-equation">1.5［GB］×1024［MB/GB］÷1［MB/枚］÷24［枚/秒］</p></li>
+            <li>約分してからまとめて計算します。<p class="vd-equation">1.5×1024÷1÷24＝<strong>64秒</strong></p></li>
+          </ol>
+          <div class="vd-controls vd-enhancement" hidden><button class="dr-button" type="button" data-video-solution-next>次へ</button><button class="dr-button" type="button" data-video-solution-reset>解説を最初から</button></div>
+        </div></details>
+        <noscript><p>自動判定にはJavaScriptが必要です。「解き方を確認」から解答を読めます。</p></noscript>
+      </form>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="データ量の問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_7">(7) 動画のデータ量を求める</h2>
+      <form class="vd-widget" data-video-quiz="size" data-lesson-slide-navigation-lock>
+        <h3>問題2　画像1枚から動画全体へ</h3>
+        <p><strong>800×600画素、24ビットフルカラー</strong>の画像を1フレームとし、<strong>30fps</strong>で<strong>1分間</strong>の動画を作ります。1フレームと動画全体のデータ量を、それぞれMBで求めましょう。</p>
+        <p class="vd-hint">1B＝8bit、1KB＝1000B、1MB＝1000KBとします。動画は圧縮せず、音声や付加情報は含めません。</p>
+        <div class="vd-answer-fields"><label>1フレーム <span><input name="frame" type="text" inputmode="decimal" autocomplete="off" aria-label="問題2の1フレームのデータ量、MB"> MB</span></label><label>動画全体 <span><input name="total" type="text" inputmode="decimal" autocomplete="off" aria-label="問題2の動画全体のデータ量、MB"> MB</span></label></div>
+        <div class="vd-controls vd-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button><button class="dr-button" type="reset">入力を消す</button></div>
+        <p class="vd-feedback" data-video-feedback role="status"></p>
+        <details class="dr-reveal-item"><summary>解き方を確認</summary><div class="dr-reveal-item__body" data-video-solution>
+          <ol>
+            <li>全画素数に1画素あたりのビット数を掛けます。<p class="vd-equation">800×600［画素］×24［bit/画素］</p></li>
+            <li>bitをBへ、BをKBへ、KBをMBへ換算して、1フレームのデータ量を求めます。<p class="vd-equation">800×600×24÷8÷1000÷1000＝<strong>1.44MB</strong></p></li>
+            <li>1秒間のフレーム数を掛けます。<p class="vd-equation">1.44［MB/枚］×30［枚/秒］</p></li>
+            <li>1分＝60秒にそろえ、再生時間を掛けます。<p class="vd-equation">1.44［MB/枚］×30［枚/秒］×60［秒］</p></li>
+            <li>まとめて計算します。<p class="vd-equation">1.44×30×60＝<strong>2592MB</strong></p></li>
+          </ol>
+          <div class="vd-controls vd-enhancement" hidden><button class="dr-button" type="button" data-video-solution-next>次へ</button><button class="dr-button" type="button" data-video-solution-reset>解説を最初から</button></div>
+        </div></details>
+        <noscript><p>自動判定にはJavaScriptが必要です。「解き方を確認」から解答を読めます。</p></noscript>
+      </form>
+    </article>
+  </section>
+
+  <dialog id="vd-compression-detail" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="vd-compression-detail-title">
+    <div class="lesson-supplement-dialog__header"><h2 id="vd-compression-detail-title" data-skip-numbering>移動前の位置も更新する</h2><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="補足を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body"><p>次のフレームを作るときは、ボールの移動先を描くだけでは足りません。移動前の位置にあったボールを消し、その部分を背景へ戻す必要があります。</p><p>図の破線の枠は、この2か所の変化を示しています。実際の圧縮では、物体の移動なども利用して、さらに効率よく表します。</p></div>
+  </dialog>
+</body>
+</html>
