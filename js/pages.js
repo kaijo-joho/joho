@@ -1,4 +1,4 @@
-//2026-09-09 11:13:03;
+//2026-09-12 08:56:12;
 const pages = {
   "index": {
     "id": "index",
@@ -304,9 +304,36 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "dr00",
-    "next": false,
+    "next": [
+      {
+        "id": "dr42",
+        "title": "4-2. 動画のデジタル表現",
+        "text": "4-2. 動画のデジタル表現",
+        "release": false,
+        "url": "dr42.html",
+        "detail": "フレームとフレームレート、動画の圧縮、圧縮しない動画のデータ量と再生時間を操作と問題で学びます。"
+      }
+    ],
     "show": true,
     "backFile": "dr00.html"
+  },
+  "dr42": {
+    "id": "dr42",
+    "release": false,
+    "fileName": "dr42.html",
+    "mainTitle": "デジタル表現",
+    "category": "動画のデジタル表現",
+    "title": "4-2. 動画のデジタル表現",
+    "detail": "フレームとフレームレート、動画の圧縮、圧縮しない動画のデータ量と再生時間を操作と問題で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr41",
+    "next": false,
+    "show": true,
+    "backFile": "dr41.html"
   },
   "nw00": {
     "id": "nw00",
