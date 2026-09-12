@@ -1,4 +1,4 @@
-//2026-09-12 11:14:08;
+//2026-09-13 02:12:27;
 const pages = {
   "index": {
     "id": "index",
@@ -223,6 +223,24 @@ const pages = {
       }
     ],
     "show": false,
+    "backFile": "dr00.html"
+  },
+  "dr01": {
+    "id": "dr01",
+    "release": false,
+    "fileName": "dr01.html",
+    "mainTitle": "デジタル表現",
+    "category": "デジタル表現の基礎",
+    "title": "デジタルとアナログ・データ量",
+    "detail": "アナログとデジタルの違い、ビット数と情報の通り数、必要なビット数、データ量の単位換算を操作と問題で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr00",
+    "next": false,
+    "show": true,
     "backFile": "dr00.html"
   },
   "dr31": {
