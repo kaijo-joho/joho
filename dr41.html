@@ -75,12 +75,31 @@
   <section data-lesson-slide data-lesson-slide-title="解像度と階調">
     <article>
       <h2 id="headline_2">(2) 解像度と階調</h2>
-      <p>前のスライドで変えた<strong>標本化の間隔</strong>は、画素の細かさである<strong>解像度</strong>に関係します。<strong>階調</strong>は、量子化で決める明るさの段階数です。今度はRGBを合わせたカラー画像で、それぞれの効果を確かめましょう。</p>
+      <p>前のスライドで変えた<strong>標本化の間隔</strong>は、画素の細かさである<strong>解像度</strong>に関係します。<strong>階調</strong>は、量子化で決める明るさの段階数です。濃淡の帯で明るさの分け方を見てから、カラー画像でその効果を確かめましょう。</p>
       <div class="im-widget" data-image-explorer data-lesson-slide-navigation-lock>
         <div class="im-controls im-enhancement" hidden>
           <label class="im-select">解像度 <select data-image-resolution><option value="10">10×10</option><option value="20">20×20</option><option value="50" selected>50×50</option><option value="100">100×100</option><option value="200">200×200</option><option value="800">800×800</option></select></label>
-          <label class="im-select">各色の量子化ビット数 <select data-image-bits><option value="1">1bit（2階調）</option><option value="2" selected>2bit（4階調）</option><option value="3">3bit（8階調）</option><option value="4">4bit（16階調）</option><option value="8">8bit（256階調）</option></select></label>
+          <label class="im-slider">各色の階調 <output for="im-explorer-bits" data-image-bits-output>4階調（2bit）</output><input id="im-explorer-bits" type="range" min="1" max="8" step="1" value="2" data-image-bits aria-label="各色の階調"><span class="im-slider-scale"><span>2階調</span><span>256階調</span></span></label>
           <button class="dr-button" type="button" data-image-reset>最初の条件に戻す</button>
+        </div>
+        <div class="im-gradation" data-image-gradation>
+          <figure>
+            <figcaption>量子化前：なめらかな明るさ</figcaption>
+            <svg class="im-tone-band" viewBox="0 0 1024 56" preserveAspectRatio="none" role="img" aria-labelledby="im-smooth-title im-smooth-desc">
+              <title id="im-smooth-title">黒から白へなめらかに変わる濃淡の帯</title><desc id="im-smooth-desc">左が最も暗く、右へ進むほど明るくなります。下の量子化後の帯と同じ位置で明るさを比べます。</desc>
+              <defs><linearGradient id="im-smooth-gradient"><stop stop-color="#000"/><stop offset="1" stop-color="#fff"/></linearGradient></defs>
+              <rect width="1024" height="56" fill="url(#im-smooth-gradient)"/>
+            </svg>
+          </figure>
+          <div class="im-gradation-arrow" aria-hidden="true">↓</div>
+          <figure>
+            <figcaption data-image-gradation-caption>量子化後：4階調（2bit）</figcaption>
+            <svg class="im-tone-band" viewBox="0 0 1024 56" preserveAspectRatio="none" role="img" aria-labelledby="im-quantized-title im-quantized-desc">
+              <title id="im-quantized-title">決められた段階の明るさに分けた濃淡の帯</title><desc id="im-quantized-desc" data-image-gradation-description>明るさを4段階に分けています。左端は黒、右端は白です。</desc>
+              <g data-image-gradation-steps shape-rendering="crispEdges"><rect width="256" height="56" fill="rgb(0,0,0)"/><rect x="256" width="256" height="56" fill="rgb(85,85,85)"/><rect x="512" width="256" height="56" fill="rgb(170,170,170)"/><rect x="768" width="256" height="56" fill="rgb(255,255,255)"/></g>
+            </svg>
+          </figure>
+          <p class="im-hint">帯は明るさを白黒で示した模式図です。スライダーで階調数を増やすと、段差が細かくなります。下のカラー画像では、RGB各色の明るさを同じ階調数に分けます。</p>
         </div>
         <div class="im-comparison im-comparison--explorer">
           <figure><img class="im-picture" src="./img/digital-representation/balloon.svg" width="800" height="800" alt="比較の基準となる、なめらかな輪郭と濃淡の気球の見本。" loading="lazy" decoding="async"><figcaption>比較用の見本</figcaption></figure>

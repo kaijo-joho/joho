@@ -222,11 +222,23 @@
     const canvas = host.querySelector('[data-image-explorer-canvas]');
     const caption = host.querySelector('[data-image-explorer-caption]');
     const metrics = host.querySelector('[data-image-metrics]');
+    const gradationSteps = host.querySelector('[data-image-gradation-steps]');
     let sampledResolution = 0;
     let samples;
+    let animation = 0;
     function update() {
       const resolution = Number(resolutionControl.value);
       const bits = Number(bitsControl.value);
+      const levels = Core.levels(bits);
+      const gradationLabel = `${levels}階調（${bits}bit）`;
+      host.querySelector('[data-image-bits-output]').textContent = gradationLabel;
+      bitsControl.setAttribute('aria-valuetext', gradationLabel);
+      host.querySelector('[data-image-gradation-caption]').textContent = `量子化後：${gradationLabel}`;
+      host.querySelector('[data-image-gradation-description]').textContent = `明るさを${levels}段階に分けています。左端は黒、右端は白です。各段階を${bits}bitで表せます。`;
+      gradationSteps.replaceChildren(...Array.from({ length: levels }, (_, code) => {
+        const tone = Core.tone(code, bits);
+        return svgNode('rect', { x: code * 1024 / levels, width: 1024 / levels, height: 56, fill: `rgb(${tone},${tone},${tone})` });
+      }));
       if (sampledResolution !== resolution) {
         samples = Core.sampleRgb(source.data, 800, 800, resolution, resolution);
         sampledResolution = resolution;
@@ -254,7 +266,12 @@
       ]) metrics.append(node('dt', '', label), node('dd', '', value));
       resized();
     }
-    resolutionControl.addEventListener('change', update); bitsControl.addEventListener('change', update);
+    function scheduleUpdate() {
+      cancelAnimationFrame(animation);
+      animation = requestAnimationFrame(update);
+    }
+    resolutionControl.addEventListener('change', update);
+    bitsControl.addEventListener('input', scheduleUpdate);
     host.querySelector('[data-image-reset]').addEventListener('click', () => { resolutionControl.value = '50'; bitsControl.value = '2'; update(); });
     update(); reveal(host);
   }

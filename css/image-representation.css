@@ -32,6 +32,11 @@ section article .im-process-summary li::before { left: 0; }
 .im-quiz-pipeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; align-items: start; margin-bottom: 24px; }
 .im-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .im-comparison { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(240px, 1.2fr); gap: clamp(12px, 2vw, 24px); align-items: start; }
+.im-gradation { width: min(100%, 900px); margin: 0 auto 24px; }
+section article .im-gradation figure { margin: 0; }
+section article .im-gradation figcaption { margin: 0 0 6px; color: var(--dr-text); font-size: .9em; font-weight: 700; }
+.im-tone-band { display: block; box-sizing: border-box; width: 100%; height: clamp(44px, 4vw, 56px); overflow: hidden; border: 1px solid var(--dr-border); border-radius: 7px; }
+.im-gradation-arrow { margin: 2px 0; color: var(--dr-axis); font-size: 1.5em; line-height: 1; text-align: center; }
 .im-comparison > *, .im-gray-layout > *, .im-problems > * { min-width: 0; }
 section article .im-comparison figure, section article .im-gray-layout figure { margin: 0; }
 .im-picture { display: block; width: 100%; height: auto; aspect-ratio: 1; border: 1px solid var(--dr-border); border-radius: 5px; overflow: hidden; }
@@ -113,6 +118,7 @@ section article .im-feedback { margin: 14px 0; font-weight: 700; }
   .im-controls, .im-solution button { display: none !important; }
   .im-solution li[hidden] { display: list-item !important; }
   .im-comparison, .im-gray-layout { break-inside: avoid; }
+  .im-gradation { break-inside: avoid; }
   .im-pipeline-scroll { overflow: visible; }
   .im-pipeline { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .im-pipeline .is-pending { visibility: visible; }
