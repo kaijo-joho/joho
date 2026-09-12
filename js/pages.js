@@ -1,4 +1,4 @@
-//2026-09-12 08:56:12;
+//2026-09-12 09:58:03;
 const pages = {
   "index": {
     "id": "index",
@@ -331,9 +331,36 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "dr41",
-    "next": false,
+    "next": [
+      {
+        "id": "dr43",
+        "title": "4-3. ディスプレイとプリンタ",
+        "text": "4-3. ディスプレイとプリンタ",
+        "release": false,
+        "url": "dr43.html",
+        "detail": "ディスプレイの画素と発色、リフレッシュレート、プリンタの解像度と印刷に必要な画素数を操作と問題で学びます。"
+      }
+    ],
     "show": true,
     "backFile": "dr41.html"
+  },
+  "dr43": {
+    "id": "dr43",
+    "release": false,
+    "fileName": "dr43.html",
+    "mainTitle": "デジタル表現",
+    "category": "ディスプレイとプリンタ",
+    "title": "4-3. ディスプレイとプリンタ",
+    "detail": "ディスプレイの画素と発色、リフレッシュレート、プリンタの解像度と印刷に必要な画素数を操作と問題で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr42",
+    "next": false,
+    "show": true,
+    "backFile": "dr42.html"
   },
   "nw00": {
     "id": "nw00",
