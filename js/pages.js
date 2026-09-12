@@ -1,4 +1,4 @@
-//2026-09-12 09:58:03;
+//2026-09-12 11:14:08;
 const pages = {
   "index": {
     "id": "index",
@@ -358,9 +358,63 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "dr42",
-    "next": false,
+    "next": [
+      {
+        "id": "dr51",
+        "title": "5-1. データの圧縮とランレングス法",
+        "text": "5-1. データの圧縮とランレングス法",
+        "release": false,
+        "url": "dr51.html",
+        "detail": "可逆圧縮と非可逆圧縮、圧縮率、文字列と二値画像のランレングス法を操作と問題で学びます。"
+      }
+    ],
     "show": true,
     "backFile": "dr42.html"
+  },
+  "dr51": {
+    "id": "dr51",
+    "release": false,
+    "fileName": "dr51.html",
+    "mainTitle": "デジタル表現",
+    "category": "データの圧縮",
+    "title": "5-1. データの圧縮とランレングス法",
+    "detail": "可逆圧縮と非可逆圧縮、圧縮率、文字列と二値画像のランレングス法を操作と問題で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr43",
+    "next": [
+      {
+        "id": "dr52",
+        "title": "5-2. ハフマン符号化",
+        "text": "5-2. ハフマン符号化",
+        "release": false,
+        "url": "dr52.html",
+        "detail": "文字の出現頻度からハフマン木を作り、符号化・復元と圧縮率を操作と問題で学びます。"
+      }
+    ],
+    "show": true,
+    "backFile": "dr43.html"
+  },
+  "dr52": {
+    "id": "dr52",
+    "release": false,
+    "fileName": "dr52.html",
+    "mainTitle": "デジタル表現",
+    "category": "データの圧縮",
+    "title": "5-2. ハフマン符号化",
+    "detail": "文字の出現頻度からハフマン木を作り、符号化・復元と圧縮率を操作と問題で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr51",
+    "next": false,
+    "show": true,
+    "backFile": "dr51.html"
   },
   "nw00": {
     "id": "nw00",
