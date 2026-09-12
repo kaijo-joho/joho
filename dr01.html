@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>デジタルとアナログ・データ量 | 海城中学高等学校 情報科</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/digital-representation.css">
+  <link rel="stylesheet" href="./css/digital-basics.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/digital-basics-core.js"></script>
+  <script defer src="./js/digital-basics-lessons.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="連続値と離散値">
+    <article>
+      <h2 id="headline_1">(1) 連続値と離散値</h2>
+      <p class="db-lead">長さや温度のように連続的に変化する量と、ものの個数のようにとびとびの値をとる量があります。</p>
+      <div class="db-two">
+        <div class="db-demo"><h3>連続値（連続量）</h3><p>長さ・重さ・体積・温度など。2つの値の間にも、さらに細かな値があります。</p>
+          <figure class="db-figure"><svg class="db-svg" viewBox="0 0 440 145" role="img" aria-labelledby="db-cont-title db-cont-desc"><title id="db-cont-title">長さの連続的な変化</title><desc id="db-cont-desc">5cmと6cmの間には5.3cmや5.35cmなど、さらに細かな値があります。</desc><path class="db-axis" d="M35 90H405 M35 80V100 M405 80V100"/><path class="db-analog" stroke-width="5" d="M35 65H146"/><circle class="db-analog" cx="146" cy="65" r="6"/><text x="35" y="128">5 cm</text><text x="352" y="128">6 cm</text><text x="113" y="36">5.3 cm</text><path class="db-grid-line" d="M146 78V102"/></svg><figcaption class="db-caption">測定では、必要な桁まで読み取って記録します。</figcaption></figure>
+        </div>
+        <div class="db-demo"><h3>離散値（離散量）</h3><p>ものの個数・サイコロの目など。決まった、とびとびの値をとります。</p>
+          <figure class="db-figure"><svg class="db-svg" viewBox="0 0 440 145" role="img" aria-labelledby="db-disc-title db-disc-desc"><title id="db-disc-title">個数のとびとびの変化</title><desc id="db-disc-desc">玉の個数は1個、2個、3個と数えます。玉を分けずに数えるとき、1個と2個の間の個数はありません。</desc><g class="db-digital"><circle cx="60" cy="62" r="12"/><circle cx="176" cy="62" r="12"/><circle cx="206" cy="62" r="12"/><circle cx="316" cy="62" r="12"/><circle cx="346" cy="62" r="12"/><circle cx="376" cy="62" r="12"/></g><text x="40" y="120">1個</text><text x="170" y="120">2個</text><text x="325" y="120">3個</text></svg><figcaption class="db-caption">玉を分けずに、個数を数える例です。</figcaption></figure>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="アナログとデジタル">
+    <article>
+      <h2 id="headline_2">(2) アナログとデジタル</h2>
+      <p><strong>アナログ</strong>は連続的な量で情報を表現する方法、<strong>デジタル</strong>はとびとびの値で情報を表現する方法です。連続量をデジタルで扱うときは、一定の間隔で区切った値にそろえます。</p>
+      <div class="db-demo" data-db-length>
+        <div class="db-controls db-enhancement" hidden data-lesson-slide-navigation-lock>
+          <label class="db-range-label"><span>元の長さ：<output data-db-length-value>5.3 cm</output></span><input type="range" min="0" max="10" step="0.01" value="5.3" data-db-length-input aria-label="元の長さ" tabindex="0"></label>
+          <label>値をそろえる間隔<select data-db-length-step><option value="2">2 cm</option><option value="1" selected>1 cm</option><option value="0.5">0.5 cm</option><option value="0.1">0.1 cm</option></select></label>
+          <button class="dr-button" type="button" data-db-length-reset>元に戻す</button>
+        </div>
+        <figure class="db-figure"><svg class="db-svg" viewBox="0 0 720 240" role="img" aria-labelledby="db-length-title db-length-desc"><title id="db-length-title">同じ長さをアナログとデジタルで表す</title><desc id="db-length-desc">上の線は元の長さ5.3cm、下の線は1cm間隔の値にそろえた5cmです。</desc>
+          <text x="35" y="28">アナログの表現</text><path class="db-axis" d="M40 80H680"/><path class="db-analog" stroke-width="7" d="M40 80H379.2" data-db-length-analog/><circle class="db-analog" cx="379.2" cy="80" r="7" data-db-length-dot/>
+          <text x="35" y="137">デジタルの表現</text><path class="db-axis" d="M40 180H680"/><g data-db-length-ticks></g><path class="db-digital" stroke-width="7" d="M40 180H360" data-db-length-digital/><rect class="db-digital" x="353" y="173" width="14" height="14" data-db-length-square/>
+          <text x="35" y="226">0 cm</text><text x="680" y="226" text-anchor="end">10 cm</text>
+        </svg><figcaption class="db-caption">長さの模式図です。画面上の線は実寸ではありません。</figcaption></figure>
+        <p class="db-result" data-db-length-result>5.3 cmを1 cm間隔にそろえると、5 cm</p>
+        <p class="db-hint">この図では最も近い値にそろえ、ちょうど中間なら大きい側の値にします。間隔を細かくしたときの変化を確かめましょう。</p>
+        <p class="db-hint">操作用スライダーは0.01cm刻みです。コンピュータ上の図は、連続量を説明するためのモデルです。</p>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="デジタル情報の特徴">
+    <article>
+      <h2 id="headline_3">(3) デジタル情報の特徴</h2>
+      <p class="db-lead">コンピュータでは、電気信号の低い状態・高い状態を<strong>0と1</strong>に対応させて情報を扱います。文字・音・画像なども、0と1の組合せで表せます。</p>
+      <div class="db-two">
+        <div><h3>デジタルデータのメリット</h3><ul class="db-properties"><li><strong>ノイズに強く、劣化しにくい。</strong><br>0と1を区別できれば、小さな信号の乱れがあっても値を読み取れます。</li><li><strong>管理しやすい。</strong><br>データを検索・分類・保存できます。</li><li><strong>編集・加工が容易。</strong><br>文字の書き換えや、音・画像の加工ができます。</li><li><strong>異なる情報を統合できる。</strong><br>文章・写真・音声などを一緒に扱えます。</li></ul></div>
+        <div><h3>デジタルデータのデメリット</h3><ul class="db-properties"><li><strong>データ量が大きくなることがある。</strong><br>細かく表現したり、たくさん記録したりするほど、必要な容量が増えます。</li><li><strong>デジタル化で細部の情報が失われる。</strong><br>とびとびの値にそろえると、同じ値にまとめられる違いがあります。</li><li><strong>情報流出への注意が必要。</strong><br>複製・共有が容易なため、保存先や共有相手を管理します。</li></ul></div>
+      </div>
+      <p class="db-hint">ノイズが大きく0と1の区別を誤る場合や、データを失った場合まで防げるわけではありません。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="ビット数と情報の通り数">
+    <article>
+      <h2 id="headline_4">(4) ビット数と情報の通り数</h2>
+      <p><strong>bit（ビット）</strong>は情報の量を表す最小の単位で、2進数の1桁に相当します。1bitには0と1の<strong>2通り</strong>があります。</p>
+      <div class="db-demo" data-db-bits>
+        <div class="db-controls db-enhancement" hidden><label>ビット数<select data-db-bit-count><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option><option>6</option><option>7</option><option>8</option></select></label><button type="button" class="dr-button" data-db-bits-reset>すべて0に戻す</button></div>
+        <p class="db-hint">各桁を押して、0と1を切り替えます。</p><div class="db-bit-row" data-db-bit-row><span class="db-bit">0</span><span class="db-bit">0</span><span class="db-bit">0</span></div>
+        <p class="db-result db-equation" data-db-bits-result>2 × 2 × 2 ＝ 2³ ＝ 8通り</p>
+        <h3>すべての組合せ</h3><div class="db-patterns" data-db-patterns><span class="db-pattern">000</span><span class="db-pattern">001</span><span class="db-pattern">010</span><span class="db-pattern">011</span><span class="db-pattern">100</span><span class="db-pattern">101</span><span class="db-pattern">110</span><span class="db-pattern">111</span></div>
+        <p class="db-hint">1bit増えるたびに、それぞれの組合せへ0・1を付けられるので、通り数は2倍になります。</p>
+      </div>
+      <p class="db-equation"><strong>n bitで表せる情報は2<sup>n</sup>通り。</strong>たとえば8bitでは、2<sup>8</sup>＝256通りです。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="必要なビット数">
+    <article>
+      <h2 id="headline_5">(5) 必要なビット数</h2>
+      <p>120通りの情報を表すには、何bit必要でしょうか。<strong>必要な通り数以上になる、最も小さいビット数</strong>を探します。</p>
+      <div class="db-demo" data-db-capacity>
+        <div class="db-controls db-enhancement" hidden><label>表したい情報の通り数<input type="number" min="2" max="65536" step="1" value="120" data-db-needed></label><button type="button" class="dr-button" data-db-capacity-reset>120通りに戻す</button></div>
+        <div class="db-capacity" aria-hidden="true"><span data-db-capacity-low-label>6bit：64通り</span><div class="db-capacity-track"><div class="db-capacity-fill" style="width:50%" data-db-capacity-low></div></div><span data-db-capacity-want-label>必要：120通り</span><div class="db-capacity-track"><div class="db-capacity-fill" style="width:93.75%;background:var(--dr-analog)" data-db-capacity-want></div></div><span data-db-capacity-high-label>7bit：128通り</span><div class="db-capacity-track"><div class="db-capacity-fill" style="width:100%"></div></div></div>
+        <p class="db-result db-equation" data-db-capacity-result>2⁶＝64 ＜ 120 ≦ 128＝2⁷ なので、少なくとも7bit必要です。</p>
+        <p class="db-hint">通り数を128、129に変えてみましょう。表せる通り数と必要な通り数が等しい場合は、そのビット数で足ります。</p>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="バイトと単位換算">
+    <article>
+      <h2 id="headline_6">(6) バイトと単位換算</h2>
+      <p><strong>8bitをまとめて1B（バイト）</strong>といいます。大きなデータ量には、KB・MB・GB・TBなどの単位を使います。</p>
+      <div class="db-byte-bracket"><div class="db-byte" aria-label="8個のビットで1バイト"><span>0</span><span>1</span><span>0</span><span>1</span><span>1</span><span>0</span><span>0</span><span>1</span></div><strong>8bit ＝ 1B</strong></div>
+      <div class="db-demo" data-db-converter>
+        <p><strong>このページの例題・演習は、断りがなければ1024倍換算です。</strong>日常の表示や問題の条件によって、1000倍で換算する場合もあります。</p>
+        <div class="db-controls db-enhancement" hidden><label>換算規則<select data-db-base><option value="1024">1024倍換算</option><option value="1000">1000倍換算</option></select></label></div>
+        <div class="db-two">
+          <div class="db-table-scroll"><table class="db-table"><caption>大きなデータ量の単位</caption><thead><tr><th scope="col">単位・読み方</th><th scope="col">関係</th></tr></thead><tbody>
+            <tr><th scope="row">KB（キロバイト）</th><td>1KB＝<span data-db-base-value>1024</span>B</td></tr><tr><th scope="row">MB（メガバイト）</th><td>1MB＝<span data-db-base-value>1024</span>KB</td></tr><tr><th scope="row">GB（ギガバイト）</th><td>1GB＝<span data-db-base-value>1024</span>MB</td></tr><tr><th scope="row">TB（テラバイト）</th><td>1TB＝<span data-db-base-value>1024</span>GB</td></tr>
+          </tbody></table><p class="db-hint">まずはT（テラ）まで覚えましょう。</p></div>
+          <div><h3>条件を変えて換算する</h3><div class="db-controls db-enhancement" hidden><label>数値<input type="number" min="0" max="1000000" step="any" value="4" data-db-convert-value></label><label>元の単位<select data-db-from><option>bit</option><option>B</option><option>KB</option><option>MB</option><option selected>GB</option><option>TB</option></select></label><label>換算先<select data-db-to><option>bit</option><option>B</option><option>KB</option><option selected>MB</option><option>GB</option><option>TB</option></select></label></div><p class="db-result" data-db-convert-result>4GB ＝ 4096MB</p><p class="db-equation" data-db-convert-equation>4 × 1024 ＝ 4096</p><p class="db-hint">小さい単位で表すと数値は大きくなり、大きい単位で表すと数値は小さくなります。</p><button type="button" class="dr-button db-enhancement" data-db-convert-reset hidden>4GBの例に戻す</button></div>
+        </div>
+        <p class="db-hint" data-db-base-note>1024＝2¹⁰なので、1MB＝2²⁰Bです。</p>
+        <button type="button" class="dr-supplement-link" data-lesson-supplement-open="db-unit-dialog">1000倍と1024倍の使い分け</button>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="語句・ポイントまとめ">
+    <article>
+      <h2 id="headline_7">(7) 語句・ポイントまとめ</h2>
+      <p>先に自分の言葉で説明してから、語句や問いをクリックして確かめましょう。</p>
+      <div class="dr-reference-grid"><div class="dr-reference-card"><h3>語句まとめ</h3><div class="dr-reveal-list"><details class="dr-reveal-item"><summary>連続値・離散値</summary><div class="dr-reveal-item__body">連続値は連続的に変化する値、離散値はとびとびの値です。長さは連続量、ものの個数は離散量の例です。</div></details><details class="dr-reveal-item"><summary>アナログ・デジタル</summary><div class="dr-reveal-item__body">アナログは連続的な量、デジタルはとびとびの値で情報を表現する方法です。</div></details><details class="dr-reveal-item"><summary>bit（ビット）</summary><div class="dr-reveal-item__body">0と1の2通りを表せる、情報の量の最小単位です。2進数の1桁に相当します。</div></details><details class="dr-reveal-item"><summary>B（バイト）</summary><div class="dr-reveal-item__body">8bitをまとめた単位です。1B＝8bitです。</div></details><details class="dr-reveal-item"><summary>K・M・G・T</summary><div class="dr-reveal-item__body">キロ・メガ・ギガ・テラ。このページでは、断りがなければ1024倍ごとに換算します。</div></details></div></div><div class="dr-reference-card"><h3>ポイントまとめ</h3><div class="dr-reveal-list"><details class="dr-reveal-item"><summary>n bitでは何通り？</summary><div class="dr-reveal-item__body">各桁に0・1の2通りがあるので、<strong>2<sup>n</sup>通り</strong>です。</div></details><details class="dr-reveal-item"><summary>必要なビット数はどう求める？</summary><div class="dr-reveal-item__body">2の累乗を順に比べ、必要な通り数以上になる最小のビット数を選びます。</div></details><details class="dr-reveal-item"><summary>データ量と通り数の違いは？</summary><div class="dr-reveal-item__body">1Bから2Bへ増やすとデータ量は2倍です。通り数は2<sup>8</sup>通りから2<sup>16</sup>通りになり、2<sup>8</sup>倍になります。</div></details><details class="dr-reveal-item"><summary>bitをBへ換算するには？</summary><div class="dr-reveal-item__body">1B＝8bitなので、bitで表した数値を<strong>8で割ります</strong>。逆にBからbitへは8を掛けます。</div></details><details class="dr-reveal-item"><summary>単位換算で確認することは？</summary><div class="dr-reveal-item__body">bitとBの違い、1000倍・1024倍のどちらを使うか、何段階の単位をまたぐかを確認します。</div></details></div></div></div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="考え方の確認問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_8">(8) 考え方の確認問題</h2>
+<div data-db-question-group><label class="db-question-picker db-enhancement" hidden>問題を選ぶ<select data-db-question-select></select></label><form class="db-exercise" data-db-question="continuous" data-db-question-title="問題1　連続値と離散値" data-db-choice-answer="discrete"><h3>問題1　連続値と離散値</h3><p>玉を分けずに数えたときの「玉の個数」は、どちらですか？</p><fieldset class="db-enhancement" hidden><legend>最も適切なものを選ぶ</legend><label class="db-choice"><input type="radio" name="db-continuous" value="analog"><span>連続値</span></label><label class="db-choice"><input type="radio" name="db-continuous" value="discrete"><span>離散値</span></label></fieldset><div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">選択を消す</button></div><p class="db-feedback" data-db-feedback role="status"></p><details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>玉の個数は1個、2個、3個のように数えます。</li><li>とびとびの値をとるので、<strong>離散値</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details></form><form class="db-exercise" data-db-question="fine" data-db-question-title="問題2　表現の細かさ" data-db-choice-answer="fine"><h3>問題2　表現の細かさ</h3><p>5.3cmの長さを、最も近い値にそろえて記録します。この例で元の長さとの差が小さくなるのは、どちらですか？</p><fieldset class="db-enhancement" hidden><legend>最も適切なものを選ぶ</legend><label class="db-choice"><input type="radio" name="db-fine" value="coarse"><span>1cm間隔で値をそろえる</span></label><label class="db-choice"><input type="radio" name="db-fine" value="fine"><span>0.1cm間隔で値をそろえる</span></label></fieldset><div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">選択を消す</button></div><p class="db-feedback" data-db-feedback role="status"></p><details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>1cm間隔では、5.3cmを5cmにそろえます。</li><li>0.1cm間隔では5.3cmをそのまま表せるので、この例では元の長さとの差が小さくなります。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details></form><form class="db-exercise" data-db-question="double" data-db-question-title="問題3　1bit増えると" data-db-choice-answer="two"><h3>問題3　1bit増えると</h3><p>ビット数を1bit増やすと、表せる情報の通り数はどうなりますか？</p><fieldset class="db-enhancement" hidden><legend>最も適切なものを選ぶ</legend><label class="db-choice"><input type="radio" name="db-double" value="one"><span>1通り増える</span></label><label class="db-choice"><input type="radio" name="db-double" value="two"><span>2倍になる</span></label><label class="db-choice"><input type="radio" name="db-double" value="same"><span>変わらない</span></label></fieldset><div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">選択を消す</button></div><p class="db-feedback" data-db-feedback role="status"></p><details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>元の各組合せに対して、新しい桁に0・1の2通りを付けられます。</li><li>2<sup>n+1</sup>＝2<sup>n</sup>×2なので、通り数は<strong>2倍</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details></form></div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="通り数・ビット数の問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_9">(9) 通り数・ビット数の問題</h2>
+<div data-db-question-group><label class="db-question-picker db-enhancement" hidden>問題を選ぶ<select data-db-question-select></select></label><form class="db-exercise" data-db-question="count8" data-db-question-title="問題1　8bitの通り数">
+        <h3>問題1　8bitの通り数</h3><p>8bitで表せる情報は何通りですか？</p>
+        <div class="db-answer-row db-enhancement" hidden><label for="db-count8">解答<input id="db-count8" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-count8"></label><span>通り</span></div>
+        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <p class="db-feedback" id="db-feedback-count8" data-db-feedback role="status"></p>
+        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>1bitには0と1の2通りがあります。</li><li>8桁の組合せは、2<sup>8</sup>通りです。</li><li>2<sup>8</sup>＝<strong>256通り</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+      </form><form class="db-exercise" data-db-question="need120" data-db-question-title="問題2　120通りに必要なbit数">
+        <h3>問題2　120通りに必要なbit数</h3><p>120通りの情報を表すには、少なくとも何bit必要ですか？</p>
+        <div class="db-answer-row db-enhancement" hidden><label for="db-need120">解答<input id="db-need120" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-need120"></label><span>bit</span></div>
+        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <p class="db-feedback" id="db-feedback-need120" data-db-feedback role="status"></p>
+        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>2<sup>6</sup>＝64なので、6bitでは足りません。</li><li>2<sup>7</sup>＝128なので、7bitなら足ります。</li><li>64 ＜ 120 ≦ 128より、少なくとも<strong>7bit</strong>必要です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+      </form><form class="db-exercise" data-db-question="count2bytes" data-db-question-title="問題3　2Bの通り数">
+        <h3>問題3　2Bの通り数</h3><p>2Bで表せる情報は何通りですか？</p>
+        <div class="db-answer-row db-enhancement" hidden><label for="db-count2bytes">解答<input id="db-count2bytes" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-count2bytes"></label><span>通り</span></div>
+        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <p class="db-feedback" id="db-feedback-count2bytes" data-db-feedback role="status"></p>
+        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>1B＝8bitなので、2B＝2×8＝16bitです。</li><li>16bitで表せる情報は2<sup>16</sup>通りです。</li><li>2<sup>16</sup>＝<strong>65,536通り</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+      </form><form class="db-exercise" data-db-question="need500" data-db-question-title="問題4　500通りに必要なbit数">
+        <h3>問題4　500通りに必要なbit数</h3><p>500通りの情報を表すには、少なくとも何bit必要ですか？</p>
+        <div class="db-answer-row db-enhancement" hidden><label for="db-need500">解答<input id="db-need500" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-need500"></label><span>bit</span></div>
+        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <p class="db-feedback" id="db-feedback-need500" data-db-feedback role="status"></p>
+        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>2<sup>8</sup>＝256なので、8bitでは足りません。</li><li>2<sup>9</sup>＝512なので、9bitなら足ります。</li><li>256 ＜ 500 ≦ 512より、少なくとも<strong>9bit</strong>必要です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+      </form><form class="db-exercise" data-db-question="ratio" data-db-question-title="問題5　2KBと1KBの通り数">
+        <h3>問題5　2KBと1KBの通り数</h3><p>2KBで表せる情報の通り数は、1KBで表せる情報の通り数の何倍ですか？ 1KB＝1024Bとし、答えを2<sup>n</sup>倍で表したときの<strong>指数n</strong>を入力してください。</p>
+        <div class="db-answer-row db-enhancement" hidden><label for="db-ratio">解答<input id="db-ratio" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-ratio"></label><span>（指数n）</span></div>
+        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <p class="db-feedback" id="db-feedback-ratio" data-db-feedback role="status"></p>
+        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>2KBの通り数は2<sup>2×1024×8</sup>通り、1KBの通り数は2<sup>1×1024×8</sup>通りです。</li><li>通り数の比は、2<sup>2×1024×8</sup> ÷ 2<sup>1×1024×8</sup>です。</li><li>指数を引くと、2<sup>(2−1)×1024×8</sup>＝2<sup>8192</sup>倍。入力する指数nは<strong>8192</strong>です。</li><li>データ量は2倍ですが、表せる情報の通り数は2<sup>8192</sup>倍です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+      </form></div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="単位換算の問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_10">(10) 単位換算の問題</h2>
+<div data-db-question-group><label class="db-question-picker db-enhancement" hidden>問題を選ぶ<select data-db-question-select></select></label><form class="db-exercise" data-db-question="gb4" data-db-question-title="問題1　GBからMBへ">
+        <h3>問題1　GBからMBへ</h3><p>4GBは何MBですか？ 1GB＝1024MBとします。</p>
+        <div class="db-answer-row db-enhancement" hidden><label for="db-gb4">解答<input id="db-gb4" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-gb4"></label><span>MB</span></div>
+        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <p class="db-feedback" id="db-feedback-gb4" data-db-feedback role="status"></p>
+        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>GBからMBへは、小さい単位に1段階進みます。</li><li>4［GB］×1024［MB/GB］</li><li>4×1024＝<strong>4096MB</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+      </form><form class="db-exercise" data-db-question="pixels" data-db-question-title="問題2　bitからMBへ">
+        <h3>問題2　bitからMBへ</h3><p>4096×3072bitは何MBですか？ 1B＝8bit、1KB＝1024B、1MB＝1024KBとします。</p>
+        <div class="db-answer-row db-enhancement" hidden><label for="db-pixels">解答<input id="db-pixels" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-pixels"></label><span>MB</span></div>
+        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <p class="db-feedback" id="db-feedback-pixels" data-db-feedback role="status"></p>
+        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>元のデータ量は4096×3072［bit］です。</li><li>bitをBへ換算します。<p class="db-equation">4096×3072÷8［B］</p></li><li>BをKB、KBをMBへ換算します。<p class="db-equation">4096×3072÷8÷1024÷1024［MB］</p></li><li>約分してから計算すると、4×3÷8＝<strong>1.5MB</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+      </form><form class="db-exercise" data-db-question="square" data-db-question-title="問題3　BからMBへ">
+        <h3>問題3　BからMBへ</h3><p>2048×2048Bは何MBですか？ 1KB＝1024B、1MB＝1024KBとします。</p>
+        <div class="db-answer-row db-enhancement" hidden><label for="db-square">解答<input id="db-square" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-square"></label><span>MB</span></div>
+        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <p class="db-feedback" id="db-feedback-square" data-db-feedback role="status"></p>
+        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>元のデータ量は2048×2048［B］です。</li><li>BをKBへ、KBをMBへ換算します。<p class="db-equation">2048×2048÷1024÷1024［MB］</p></li><li>約分してから計算すると、2×2＝<strong>4MB</strong>です。Bで与えられているので、8では割りません。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+      </form><form class="db-exercise" data-db-question="power" data-db-question-title="問題4　1MBを2の累乗で表す">
+        <h3>問題4　1MBを2の累乗で表す</h3><p>1MBは2の何乗Bですか？ 1KB＝1024B、1MB＝1024KBとし、指数を入力してください。</p>
+        <div class="db-answer-row db-enhancement" hidden><label for="db-power">解答<input id="db-power" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-power"></label><span>乗</span></div>
+        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <p class="db-feedback" id="db-feedback-power" data-db-feedback role="status"></p>
+        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>1024＝2<sup>10</sup>です。</li><li>1MB＝1024×1024［B］＝2<sup>10</sup>×2<sup>10</sup>［B］</li><li>指数を足すと2<sup>20</sup>B。答えは<strong>20乗</strong>です。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+      </form><form class="db-exercise" data-db-question="decimal" data-db-question-title="問題5　1000倍換算の場合">
+        <h3>問題5　1000倍換算の場合</h3><p>4GBは何MBですか？ この問題は<strong>1GB＝1000MB</strong>とします。</p>
+        <div class="db-answer-row db-enhancement" hidden><label for="db-decimal">解答<input id="db-decimal" type="text" inputmode="decimal" autocomplete="off" data-db-answer aria-describedby="db-feedback-decimal"></label><span>MB</span></div>
+        <div class="db-controls db-enhancement" hidden><button type="submit" class="dr-button dr-button--primary">判定</button><button type="reset" class="dr-button">入力を消す</button></div>
+        <p class="db-feedback" id="db-feedback-decimal" data-db-feedback role="status"></p>
+        <details class="dr-reveal-item db-solution"><summary>解き方を確認</summary><div class="dr-reveal-item__body"><ol><li>この問題の条件は1000倍換算です。</li><li>4［GB］×1000［MB/GB］</li><li>4×1000＝<strong>4000MB</strong>です。換算する前に、問題文の条件を確認します。</li></ol><div class="db-controls db-enhancement" hidden><button type="button" class="dr-button dr-button--primary" data-db-step-next>次へ</button><button type="button" class="dr-button" data-db-step-reset>解説を最初に戻す</button></div></div></details>
+      </form></div>
+    </article>
+  </section>
+  <dialog class="dr-supplement-dialog" id="db-unit-dialog" data-lesson-supplement-dialog aria-labelledby="db-unit-dialog-title">
+    <div class="dr-supplement-dialog__surface"><header class="dr-supplement-dialog__header"><h2 id="db-unit-dialog-title" data-skip-numbering>1000倍と1024倍の使い分け</h2><button type="button" class="dr-button" data-lesson-supplement-close aria-label="単位換算の補足を閉じる">閉じる</button></header>
+      <p>データ量の単位は、1000倍で換算する場合と、1024倍で換算する場合があります。この教材の例題では、原則として1024倍換算を使います。</p><p>「1GB＝1000MB」のように条件が指定されている場合は、その条件に従います。計算の途中で、2つの規則を混ぜないようにしましょう。</p><p>どちらの換算でも、<strong>1B＝8bit</strong>という関係は同じです。</p>
+    </div>
+  </dialog>
+</body>
+</html>

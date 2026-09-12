@@ -1,0 +1,84 @@
+@charset "UTF-8";
+
+.db-two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(16px, 3vw, 36px); align-items: start; }
+.db-two > *, .db-demo, .db-exercise { min-width: 0; }
+.db-demo { margin-block: 1.2em; padding: clamp(14px, 2vw, 24px); border: 1px solid var(--dr-border); border-radius: 12px; background: var(--dr-panel); color: var(--dr-text); }
+.db-demo h3, .db-exercise h3 { margin-block: 0 .65em; }
+.db-figure { margin: .75em 0; }
+.db-svg { display: block; width: 100%; height: auto; max-height: 240px; overflow: visible; color: var(--dr-axis); }
+.db-svg text { fill: currentColor; font: 18px system-ui, sans-serif; }
+.db-svg .db-small-text { font-size: 15px; }
+.db-axis { stroke: var(--dr-axis); stroke-width: 2; fill: none; }
+.db-grid-line { stroke: var(--dr-grid); stroke-width: 1; }
+.db-analog { fill: var(--dr-analog); stroke: var(--dr-analog); }
+.db-digital { fill: var(--dr-sample); stroke: var(--dr-sample); }
+.db-neutral { fill: var(--dr-panel-strong); stroke: var(--dr-border); stroke-width: 2; }
+.db-controls { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: end; margin-block: 1em; }
+.db-controls label, .db-answer-row label { display: grid; gap: 6px; font-weight: 700; }
+.db-controls select, .db-controls input, .db-answer-row input, .db-question-picker select { box-sizing: border-box; min-height: 44px; max-width: 100%; padding: 8px 12px; border: 1px solid var(--dr-border); border-radius: 6px; background: var(--dr-panel-strong); color: var(--dr-text); font: inherit; }
+.db-controls input[type="range"] { width: min(320px, 100%); min-width: 180px; padding-inline: 0; accent-color: var(--dr-sample); }
+.db-controls input[type="number"] { width: 9em; }
+.db-range-label { flex: 1 1 220px; }
+.db-range-label input { width: 100% !important; }
+.db-controls input:focus-visible, .db-controls select:focus-visible, .db-answer-row input:focus-visible, .db-question-picker select:focus-visible, .db-pattern:focus-visible, .db-choice:focus-within { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+.db-lead { font-size: 1.12em; line-height: 1.8; }
+.db-caption, .db-hint { color: var(--dr-muted); font-size: .93em; line-height: 1.7; }
+.db-result { margin-block: 1em .5em; padding: 12px 0; border-block: 1px solid var(--dr-border); font-size: clamp(1.1em, 2vw, 1.4em); font-weight: 700; overflow-wrap: anywhere; }
+.db-result strong { color: var(--dr-info); }
+.db-equation { font-variant-numeric: tabular-nums; line-height: 1.9; overflow-wrap: anywhere; }
+.db-equation sup { font-size: .75em; }
+.db-properties { padding-left: 1.35em; }
+.db-properties li { margin-bottom: .8em; line-height: 1.75; }
+.db-bit-row { display: flex; flex-wrap: wrap; gap: 8px; margin-block: 1em; }
+.db-bit { display: grid; place-content: center; min-width: 48px; min-height: 52px; padding: 8px; border: 2px solid var(--dr-axis); border-radius: 6px; color: var(--dr-text); background: var(--dr-panel-strong); font: 700 1.35em ui-monospace, monospace; }
+.db-bit[aria-pressed="true"] { color: var(--dr-panel-strong); background: var(--dr-axis); }
+.db-bit:focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+.db-patterns { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 6px; max-height: 240px; overflow: auto; padding: 6px; border: 1px solid var(--dr-border); border-radius: 6px; }
+.db-pattern { min-height: 44px; padding: 7px; border: 1px solid var(--dr-border); border-radius: 4px; color: var(--dr-text); background: var(--dr-panel-strong); font: 1em ui-monospace, monospace; }
+.db-pattern[aria-pressed="true"] { outline: 2px solid var(--dr-focus); outline-offset: -2px; background: var(--dr-info-soft); font-weight: 700; }
+.db-capacity { display: grid; grid-template-columns: auto 1fr; gap: 8px 16px; align-items: center; margin-block: 1em; }
+.db-capacity-track { height: 30px; border: 1px solid var(--dr-border); border-radius: 4px; background: var(--dr-panel-strong); }
+.db-capacity-fill { height: 100%; background: var(--dr-sample); border-radius: 3px; }
+.db-table-scroll { max-width: 100%; overflow-x: auto; }
+.db-table { width: 100%; border-collapse: collapse; color: var(--dr-text); }
+.db-table th, .db-table td { padding: 10px 12px; border: 1px solid var(--dr-border); text-align: left; background: var(--dr-panel-strong); }
+.db-table th { background: var(--dr-info-soft); color: var(--dr-text); }
+.db-byte { display: flex; flex-wrap: wrap; gap: 5px; margin-block: 1em; }
+.db-byte span { display: grid; place-content: center; min-width: 28px; height: 34px; border: 1px solid var(--dr-axis); font: 700 1em ui-monospace, monospace; }
+.db-byte-bracket { border-bottom: 2px solid var(--dr-axis); padding-bottom: 8px; width: fit-content; }
+.db-question-picker { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; margin-block: 1em; }
+.db-question-picker select { flex: 1 1 200px; width: 100%; }
+.db-exercise { padding-block: .5em; }
+.db-answer-row { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-block: 1em; }
+.db-answer-row input { width: 10em; }
+.db-feedback { min-height: 2em; line-height: 1.7; font-weight: 700; }
+.db-feedback[data-correct="true"] { color: var(--dr-success); }
+.db-feedback[data-correct="false"], .db-error { color: var(--dr-error); }
+.db-answer-row [aria-invalid="true"] { border: 2px solid var(--dr-error); }
+.db-solution ol { padding-left: 1.4em; }
+.db-solution li { padding-left: .35em; margin-bottom: .8em; line-height: 1.8; overflow-wrap: anywhere; }
+.db-choice { display: flex; gap: 10px; align-items: center; padding: 10px; min-height: 44px; border-bottom: 1px solid var(--dr-border); cursor: pointer; }
+.db-choice input { flex: 0 0 auto; width: 18px; height: 18px; accent-color: var(--dr-sample); }
+.db-exercise fieldset { border: 0; padding: 0; margin: 1em 0; min-width: 0; }
+.db-exercise legend { font-weight: 700; }
+.db-enhancement[hidden], [data-db-question][hidden], .db-solution li[hidden] { display: none !important; }
+
+@media (max-width: 760px) {
+  .db-two { grid-template-columns: minmax(0, 1fr); }
+  .db-demo { padding: 14px; }
+  .db-controls label { max-width: 100%; }
+  .db-patterns { max-height: 190px; }
+  .db-bit-row { gap: 5px; }
+  .db-bit { min-width: 44px; min-height: 48px; font-size: 1.1em; }
+  .db-table th, .db-table td { padding: 8px; }
+}
+@media (max-width: 520px) {
+  .db-svg text { font-size: 24px; }
+  [data-db-length] .db-svg text { font-size: 34px; }
+}
+@media print {
+  .db-enhancement, .db-feedback, .db-question-picker { display: none !important; }
+  [data-db-question][hidden], .db-solution li[hidden] { display: block !important; }
+  .db-demo, .db-exercise { break-inside: avoid; background: transparent; box-shadow: none; }
+  .db-patterns { max-height: none; overflow: visible; }
+}
