@@ -28,6 +28,14 @@
 [data-di-a], [data-di-b] { width: min(100%, 7em); }
 [data-db-answer-part] { font-family: ui-monospace, "Roboto Mono", monospace !important; }
 [data-di-stage][hidden], [data-di-output][hidden] { display: none !important; }
+.di-shift-reference { margin: 16px 0 0; padding: clamp(12px, 2vw, 20px); border: 1px solid var(--dr-border); border-radius: 12px; background: var(--dr-panel-strong); }
+#di-shift-dialog { font-size: var(--font-size-p, 1.1rem); line-height: 1.7; }
+.di-binary { display: inline-block; white-space: nowrap; }
+.di-shift-reference h3 { margin-top: 0; }
+.di-shift-reference .db-table-scroll:focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+.di-shift-work { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 20px; align-items: center; }
+.di-shift-work > * { min-width: 0; }
+body:not(.lesson-slide-ready) [data-lesson-supplement-open="di-shift-dialog"] { display: none; }
 
 @media (max-width: 760px) {
   .di-arithmetic-work { grid-template-columns: minmax(0, 1fr); gap: 12px; }
@@ -37,10 +45,12 @@
 }
 @media (max-width: 660px) {
   .di-reference-tables { grid-template-columns: minmax(0, 1fr); }
+  .di-shift-work { grid-template-columns: minmax(0, 1fr); }
 }
 @media print {
   .di-arithmetic-work { display: block; }
   [data-di-stage][hidden] { display: block !important; }
   tr[data-di-stage][hidden] { display: table-row !important; }
   [data-di-valid="false"] [data-di-output] { display: none !important; }
+  [data-di-shift-output][hidden] { display: none !important; }
 }

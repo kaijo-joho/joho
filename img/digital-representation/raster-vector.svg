@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64">
+  <title>ラスタ画像とベクタ画像の比較用の円と直線</title>
+  <desc>白い背景に、中心が32、32、半径20の桃色の円と、左下から右上へ伸びる青緑色の直線を描いた独自の図。</desc>
+  <rect width="64" height="64" fill="#fff"/>
+  <circle cx="32" cy="32" r="20" fill="#ef9eb1" stroke="#213449" stroke-width="2"/>
+  <line x1="8" y1="56" x2="56" y2="8" stroke="#177b87" stroke-width="3"/>
+</svg>

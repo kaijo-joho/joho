@@ -416,6 +416,22 @@
     reveal(host); update();
   }
 
+  function initializeFormats(host) {
+    const buttons = [...host.querySelectorAll('[data-image-format-zoom]')];
+    const caption = host.querySelector('[data-image-format-caption]');
+    function update(zoom) {
+      host.style.setProperty('--im-format-zoom', zoom);
+      buttons.forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.imageFormatZoom) === zoom)));
+      caption.textContent = zoom === 1
+        ? '同じ円と直線を、異なる方法で保存した画像です。'
+        : `全体を表示したときの${zoom}倍です。円と直線が交わる部分で、輪郭を比べましょう。`;
+      resized();
+    }
+    buttons.forEach(button => button.addEventListener('click', () => update(Number(button.dataset.imageFormatZoom))));
+    reveal(host);
+    update(1);
+  }
+
   async function safely(host, initialize) {
     try { await initialize(host); }
     catch (error) {
@@ -428,7 +444,7 @@
     for (const [selector, setup] of [
       ['[data-image-guide]', initializeGuide], ['[data-image-explorer]', initializeExplorer],
       ['[data-image-grayscale]', initializeGrayscale], ['[data-image-encoding-quiz]', initializeEncoding],
-      ['[data-image-size-quiz]', initializeSizeQuiz]
+      ['[data-image-size-quiz]', initializeSizeQuiz], ['[data-image-formats]', initializeFormats]
     ]) document.querySelectorAll(selector).forEach(host => safely(host, setup));
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, { once: true });

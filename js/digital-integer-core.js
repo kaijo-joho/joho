@@ -106,5 +106,35 @@
     };
   }
 
-  return Object.freeze({ range, parseInteger, normalizeBits, formatUnsigned, encode, decode, complement, arithmetic });
+  function unsignedShift(value, width, count, direction) {
+    const limits = range(width);
+    if (!Number.isSafeInteger(value) || value < 0 || value > limits.unsignedMax) throw new RangeError('符号なし整数');
+    if (!Number.isSafeInteger(count) || count < 0 || count > width) throw new RangeError('シフト数');
+    if (direction !== 'left' && direction !== 'right') throw new RangeError('シフト方向');
+
+    const originalBits = formatUnsigned(value, width);
+    const discardedBits = count === 0 ? '' : direction === 'left'
+      ? originalBits.slice(0, count)
+      : originalBits.slice(-count);
+    const bits = direction === 'left'
+      ? originalBits.slice(count) + '0'.repeat(count)
+      : '0'.repeat(count) + originalBits.slice(0, width - count);
+    const factor = 2 ** count;
+    const mathematicalValue = direction === 'left' ? value * factor : Math.floor(value / factor);
+    return {
+      value,
+      width,
+      count,
+      direction,
+      originalBits,
+      bits,
+      shiftedValue: Number.parseInt(bits, 2),
+      discardedBits,
+      factor,
+      remainder: direction === 'right' ? value % factor : null,
+      overflow: direction === 'left' && mathematicalValue > limits.unsignedMax
+    };
+  }
+
+  return Object.freeze({ range, parseInteger, normalizeBits, formatUnsigned, encode, decode, complement, arithmetic, unsignedShift });
 });

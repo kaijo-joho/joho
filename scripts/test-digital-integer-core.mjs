@@ -13,7 +13,7 @@ const browser = {};
 vm.runInNewContext(await readFile(new URL('../js/digital-integer-core.js', import.meta.url), 'utf8'), browser);
 equal(typeof browser.DigitalIntegerCore, 'object');
 equal(Object.isFrozen(browser.DigitalIntegerCore), true);
-equal(Object.keys(core).sort(), ['arithmetic', 'complement', 'decode', 'encode', 'formatUnsigned', 'normalizeBits', 'parseInteger', 'range']);
+equal(Object.keys(core).sort(), ['arithmetic', 'complement', 'decode', 'encode', 'formatUnsigned', 'normalizeBits', 'parseInteger', 'range', 'unsignedShift']);
 
 // 授業で使う4・6・8ビットの符号付き整数の範囲。
 equal(core.range(4), { min: -8, max: 7, unsignedMax: 15, size: 16 });
@@ -50,6 +50,30 @@ equal(core.encode(-128, 8), '10000000');
 equal(core.formatUnsigned(0, 6), '000000');
 equal(core.formatUnsigned(63, 6), '111111');
 
+// 符号なし整数のビットシフトは、8bit内での2の累乗による乗除算として扱う。
+equal(core.unsignedShift(34, 8, 2, 'left'), {
+  value: 34, width: 8, count: 2, direction: 'left', originalBits: '00100010', bits: '10001000',
+  shiftedValue: 136, discardedBits: '00', factor: 4, remainder: null, overflow: false
+});
+equal(core.unsignedShift(34, 8, 2, 'right'), {
+  value: 34, width: 8, count: 2, direction: 'right', originalBits: '00100010', bits: '00001000',
+  shiftedValue: 8, discardedBits: '10', factor: 4, remainder: 2, overflow: false
+});
+equal(core.unsignedShift(34, 8, 0, 'left'), {
+  value: 34, width: 8, count: 0, direction: 'left', originalBits: '00100010', bits: '00100010',
+  shiftedValue: 34, discardedBits: '', factor: 1, remainder: null, overflow: false
+});
+equal(core.unsignedShift(200, 8, 1, 'left').bits, '10010000');
+equal(core.unsignedShift(200, 8, 1, 'left').overflow, true);
+equal(core.unsignedShift(0, 8, 8, 'left'), {
+  value: 0, width: 8, count: 8, direction: 'left', originalBits: '00000000', bits: '00000000',
+  shiftedValue: 0, discardedBits: '00000000', factor: 256, remainder: null, overflow: false
+});
+equal(core.unsignedShift(255, 8, 8, 'right'), {
+  value: 255, width: 8, count: 8, direction: 'right', originalBits: '11111111', bits: '00000000',
+  shiftedValue: 0, discardedBits: '11111111', factor: 256, remainder: 255, overflow: false
+});
+
 // 桁あふれと符号付きの範囲外は別の概念として扱う。
 equal(core.arithmetic(6, -6, 4, 'add'), {
   leftBits: '0110', rightBits: '1010', operandBits: '1010', fullBits: '10000', bits: '0000', decoded: 0, expected: 0, carry: true, overflow: false
@@ -83,7 +107,9 @@ for (const raw of ['', '010', '01010', '0120', '0b10', '-010', 10]) equal(core.n
 for (const fn of [
   () => core.range(5), () => core.normalizeBits('0000', 5), () => core.formatUnsigned(-1, 4), () => core.formatUnsigned(16, 4),
   () => core.encode(8, 4), () => core.encode(-9, 4), () => core.decode('010', 4), () => core.complement('0102', 4),
-  () => core.arithmetic(8, 0, 4, 'add'), () => core.arithmetic(0, -9, 4, 'add'), () => core.arithmetic(0, 0, 4, 'multiply')
+  () => core.arithmetic(8, 0, 4, 'add'), () => core.arithmetic(0, -9, 4, 'add'), () => core.arithmetic(0, 0, 4, 'multiply'),
+  () => core.unsignedShift(-1, 8, 1, 'left'), () => core.unsignedShift(256, 8, 1, 'left'), () => core.unsignedShift(1, 8, 9, 'right'),
+  () => core.unsignedShift(1, 8, 1, 'up')
 ]) throws(fn);
 
 console.log(`digital-integer-core: ${checks}件の検証に合格（補数、範囲、演算、入力検証）`);

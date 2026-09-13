@@ -172,9 +172,51 @@
     </article>
   </section>
 
+  <section data-lesson-slide data-lesson-slide-title="ラスタ画像とベクタ画像">
+    <article>
+      <h2 id="headline_raster_vector">(5) ラスタ画像とベクタ画像の比較</h2>
+      <p>ここまで扱った、画素ごとに色を記録する画像を<strong>ラスタ画像</strong>といいます。一方、点の座標や線・図形の情報を数値で記録する画像を<strong>ベクタ画像</strong>といいます。</p>
+      <div class="im-widget" data-image-formats data-lesson-slide-navigation-lock>
+        <div class="im-controls im-enhancement" hidden>
+          <span id="im-format-zoom-label">同じ部分を拡大</span>
+          <div class="im-button-group" role="group" aria-labelledby="im-format-zoom-label">
+            <button type="button" class="dr-button" tabindex="0" data-image-format-zoom="1" aria-pressed="true">1倍（全体）</button>
+            <button type="button" class="dr-button" tabindex="0" data-image-format-zoom="2" aria-pressed="false">2倍</button>
+            <button type="button" class="dr-button" tabindex="0" data-image-format-zoom="4" aria-pressed="false">4倍</button>
+            <button type="button" class="dr-button" tabindex="0" data-image-format-zoom="8" aria-pressed="false">8倍</button>
+          </div>
+        </div>
+        <div class="im-format-comparison">
+          <figure>
+            <h3>ラスタ画像</h3>
+            <div class="im-format-window"><img class="im-format-image im-format-image--raster" src="./img/digital-representation/raster-vector.png" width="64" height="64" alt="画素ごとに色を記録した桃色の円と青緑色の直線。拡大すると画素の四角い形が目立つ。" decoding="async" draggable="false"></div>
+            <figcaption>64×64画素のPNG画像</figcaption>
+          </figure>
+          <figure>
+            <h3>ベクタ画像</h3>
+            <div class="im-format-window"><img class="im-format-image" src="./img/digital-representation/raster-vector.svg" width="64" height="64" alt="中心の座標・半径と直線の両端の座標で記録した、同じ円と直線。拡大時も図形の形を描き直せる。" decoding="async" draggable="false"></div>
+            <figcaption>円と直線の情報を持つSVG画像</figcaption>
+          </figure>
+        </div>
+        <p class="im-hint" data-image-format-caption>同じ円と直線を、異なる方法で保存した画像です。</p>
+        <div class="im-table-scroll x-scroll" role="region" aria-label="ラスタ画像とベクタ画像の比較表" tabindex="0">
+          <table class="im-format-table">
+            <thead><tr><th scope="col">比較する点</th><th scope="col">ラスタ画像</th><th scope="col">ベクタ画像</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">保存するもの</th><td>画素ごとの色</td><td>点の座標、線・曲線・図形の情報</td></tr>
+              <tr><th scope="row">拡大すると</th><td>元の画素が大きくなり、細部の情報は増えない</td><td>表示する大きさに合わせて図形を描き直せる</td></tr>
+              <tr><th scope="row">適した用途</th><td>写真など、複雑な色の変化がある画像</td><td>ロゴ・地図・図形など、形を組み合わせる画像</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="im-hint">見本では画素を観察できるよう、ラスタ側の各画素を四角く拡大しています。ベクタ画像も、画面に表示するときは画素に変換されます。</p>
+      </div>
+    </article>
+  </section>
+
   <section data-lesson-slide data-lesson-slide-title="語句・ポイントまとめ">
     <article>
-      <h2 id="headline_5">(5) 語句・ポイントまとめ</h2>
+      <h2 id="headline_5">(6) 語句・ポイントまとめ</h2>
       <p>語句をクリックすると説明が開きます。まず自分の言葉で説明してから確認しましょう。</p>
       <div class="dr-reference-grid">
         <div class="dr-reference-card"><h3>語句まとめ</h3><div class="dr-reveal-list">
@@ -186,12 +228,15 @@
           <details class="dr-reveal-item"><summary>階調</summary><div class="dr-reveal-item__body">明るさの段階数です。n bitで2<sup>n</sup>階調を表せます。</div></details>
           <details class="dr-reveal-item"><summary>グレースケール画像</summary><div class="dr-reveal-item__body">各画素に明るさの情報だけを持つ画像です。</div></details>
           <details class="dr-reveal-item"><summary>24ビットフルカラー</summary><div class="dr-reveal-item__body">RGB各色に8bitずつ、1画素に合計24bitを使う表現です。各色256階調で、全体で16,777,216色を表せます。</div></details>
+          <details class="dr-reveal-item"><summary>ラスタ画像</summary><div class="dr-reveal-item__body">画素ごとに色を記録する画像です。写真などの複雑な色の変化に適しています。拡大しても、元の画像にない細部の情報は増えません。</div></details>
+          <details class="dr-reveal-item"><summary>ベクタ画像</summary><div class="dr-reveal-item__body">点の座標や線・曲線・図形の情報を数値で記録する画像です。表示する大きさに合わせて図形を描き直せるため、ロゴや図形などに適しています。</div></details>
         </div></div>
         <div class="dr-reference-card"><h3>ポイントまとめ</h3><div class="dr-reveal-list">
           <details class="dr-reveal-item"><summary>解像度と階調は、何を細かくする？</summary><div class="dr-reveal-item__body">解像度は画像を分けるマス目、階調は明るさの段階を細かくします。</div></details>
           <details class="dr-reveal-item"><summary>横と縦の画素数を両方2倍にすると？</summary><div class="dr-reveal-item__body">全画素数は2×2＝4倍です。1画素あたりのビット数が同じなら、データ量も4倍です。</div></details>
           <details class="dr-reveal-item"><summary>各色2bitのカラー画像は何色？</summary><div class="dr-reveal-item__body">各色4階調なので、4×4×4＝64色です。1画素には2＋2＋2＝6bitが必要です。</div></details>
           <details class="dr-reveal-item"><summary>データ量の式で、最後に8で割るのはなぜ？</summary><div class="dr-reveal-item__body">bitからBへ単位をそろえるためです。1B＝8bitなので、bitの値を8で割ります。</div></details>
+          <details class="dr-reveal-item"><summary>画像を大きく表示すれば、細部も増える？</summary><div class="dr-reveal-item__body">ラスタ画像は拡大しても元の画素の情報までしか持ちません。ベクタ画像は保存した図形の情報から、大きさに合わせて線や曲線を描き直せます。</div></details>
         </div></div>
       </div>
     </article>
@@ -199,7 +244,7 @@
 
   <section data-lesson-slide data-lesson-slide-title="符号化の問題" data-lesson-slide-layout="exercise">
     <article>
-      <h2 id="headline_6">(6) グレースケール画像を符号化する</h2>
+      <h2 id="headline_6">(7) グレースケール画像を符号化する</h2>
       <p>元画像 → 標本化 → 量子化の変化を見てから、符号化しましょう。量子化の図にある段階値を、符号化の表の<strong>同じ位置のマスへ3桁の2進数</strong>で入力します。4×4画素、8階調の画像です。</p>
       <form class="im-widget" data-image-encoding-quiz data-lesson-slide-navigation-lock>
         <div class="im-quiz-pipeline im-enhancement" hidden>
@@ -218,7 +263,7 @@
 
   <section data-lesson-slide data-lesson-slide-title="データ量の問題" data-lesson-slide-layout="exercise">
     <article>
-      <h2 id="headline_7">(7) 画像のデータ量を求める</h2>
+      <h2 id="headline_7">(8) 画像のデータ量を求める</h2>
       <p>いずれも画像は圧縮せず、画素以外の付加情報は含めないものとします。途中では丸めずに計算してください。</p>
       <div class="im-problems">
         <form class="im-widget" data-image-size-quiz="full-color" data-lesson-slide-navigation-lock>

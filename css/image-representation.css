@@ -82,6 +82,19 @@ section article .im-feedback { margin: 14px 0; font-weight: 700; }
 .im-widget :is(button, select, input, summary, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
 .im-widget details { margin-block: 12px; }
 
+.im-format-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(12px, 3vw, 32px); width: min(100%, 720px); margin: 0 auto; }
+section article .im-format-comparison figure { min-width: 0; margin: 0; }
+section article .im-format-comparison h3 { margin: 0 0 10px; text-align: center; font-size: 1em; }
+.im-format-window { position: relative; width: min(100%, 200px); aspect-ratio: 1; margin: 0 auto; overflow: hidden; border: 1px solid var(--dr-border); border-radius: 6px; background: #fff; }
+section article .im-format-window .im-format-image { position: absolute; display: block; width: calc(var(--im-format-zoom, 1) * 100%); max-width: none; height: auto; margin: 0; left: calc((1 - var(--im-format-zoom, 1)) * 71.875%); top: calc((1 - var(--im-format-zoom, 1)) * 28.125%); border: 0; border-radius: 0; }
+.im-format-image--raster { image-rendering: pixelated; }
+section article .im-format-comparison figcaption { margin: 8px 0 0; color: var(--dr-muted); text-align: center; font-size: .82em; }
+section article .im-format-table { display: table; width: 100%; min-width: 420px; margin: 0; font-size: .9em; border-collapse: collapse; }
+.im-format-table :is(th, td) { padding: 10px 12px; border: 1px solid var(--dr-border); text-align: left; color: var(--dr-text); background: var(--dr-panel-strong); overflow-wrap: anywhere; }
+.im-format-table thead th { background: var(--dr-panel); }
+.im-format-table th:first-child { width: 20%; }
+.im-format-table td { width: 40%; }
+
 @media (max-width: 1100px) {
   .im-quiz-pipeline { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .im-quiz-pipeline .im-quiz-answer { grid-column: 1 / -1; width: min(100%, 360px); justify-self: center; margin-top: 16px; }
@@ -119,6 +132,8 @@ section article .im-feedback { margin: 14px 0; font-weight: 700; }
   .im-solution li[hidden] { display: list-item !important; }
   .im-comparison, .im-gray-layout { break-inside: avoid; }
   .im-gradation { break-inside: avoid; }
+  .im-format-comparison, .im-format-table { break-inside: avoid; }
+  .im-format-window { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
   .im-pipeline-scroll { overflow: visible; }
   .im-pipeline { grid-template-columns: repeat(5, minmax(0, 1fr)); }
   .im-pipeline .is-pending { visibility: visible; }

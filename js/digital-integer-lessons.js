@@ -132,8 +132,48 @@
     one(root, '[data-di-reset]').addEventListener('click', () => { input.value = '0'; render(); });
     enhance(root); render();
   }
+  function setupShift(root) {
+    const input = one(root, '[data-di-shift-value]');
+    const direction = one(root, '[data-di-shift-direction]');
+    const count = one(root, '[data-di-shift-count]');
+    function render() {
+      const value = Core.parseInteger(input.value);
+      const valid = value !== null && value >= 0 && value <= 255;
+      input.setAttribute('aria-invalid', String(!valid));
+      one(root, '[data-di-shift-error]').hidden = valid;
+      one(root, '[data-di-shift-output]').hidden = !valid;
+      if (!valid) { resize(); return; }
+      const result = Core.unsignedShift(value, 8, Number(count.value), direction.value);
+      setCode(root, '[data-di-shift-original]', result.originalBits);
+      one(root, '[data-di-shift-decimal]').textContent = value;
+      setCode(root, '[data-di-shift-result-bits]', result.bits);
+      one(root, '[data-di-shift-operation]').textContent = `${result.direction === 'left' ? '左' : '右'}へ${result.count}桁`;
+      const power = result.count === 1 ? '2' : `2の${result.count}乗`;
+      const factor = result.factor;
+      const resultValue = one(root, '[data-di-shift-result]');
+      if (result.direction === 'left') {
+        if (result.overflow) {
+          resultValue.replaceChildren(`${value} × ${factor} ＝ ${value * factor}（数学上の値）`, document.createElement('br'), `8bitで残る値は ${result.shiftedValue}`);
+        } else resultValue.textContent = `${value} × ${factor} ＝ ${result.shiftedValue}`;
+        one(root, '[data-di-shift-rule]').textContent = `左へ${result.count}桁：${power}倍。右端の${result.count}桁へ0を入れます。`;
+        one(root, '[data-di-shift-discarded]').textContent = result.overflow
+          ? `左から出たbit：${result.discardedBits || 'なし'}。8bitでは上位bitを失うため、${value}×${factor}＝${value * factor}を表せません。`
+          : `左から出たbit：${result.discardedBits || 'なし'}。8bitの範囲内です。`;
+      } else {
+        resultValue.replaceChildren(`${value} ÷ ${factor} ＝ ${result.shiftedValue} 余り ${result.remainder}`);
+        one(root, '[data-di-shift-rule]').textContent = `右へ${result.count}桁：${power}で割った商（整数）になります。左端の${result.count}桁へ0を入れます。`;
+        one(root, '[data-di-shift-discarded]').textContent = `右から出たbit：${result.discardedBits || 'なし'}（${result.remainder}を表します）。`;
+      }
+      resize();
+    }
+    input.addEventListener('input', render);
+    direction.addEventListener('change', render);
+    count.addEventListener('change', render);
+    one(root, '[data-di-shift-reset]').addEventListener('click', () => { input.value = '34'; direction.value = 'left'; count.value = '2'; render(); });
+    enhance(root); render();
+  }
   function init() {
-    for (const [selector, setup] of [['[data-di-unsigned]', setupUnsigned], ['[data-di-sign]', setupSign], ['[data-di-build]', setupBuild], ['[data-di-decode]', setupDecode], ['[data-di-arithmetic]', setupArithmetic], ['[data-di-range]', setupRange]]) {
+    for (const [selector, setup] of [['[data-di-unsigned]', setupUnsigned], ['[data-di-sign]', setupSign], ['[data-di-build]', setupBuild], ['[data-di-decode]', setupDecode], ['[data-di-arithmetic]', setupArithmetic], ['[data-di-range]', setupRange], ['[data-di-shift]', setupShift]]) {
       all(document, selector).forEach(root => { try { setup(root); } catch (error) { console.error('整数表現の操作を初期化できませんでした。', error); } });
     }
   }
