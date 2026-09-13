@@ -144,18 +144,34 @@
   }
   function setupQuestionGroup(root) {
     const forms = all(root, '[data-db-question]'), select = one(root, '[data-db-question-select]');
-    const Radix = window.DigitalRadixCore;
+    const Radix = window.DigitalRadixCore, Integer = window.DigitalIntegerCore;
     if (forms.some(form => form.hasAttribute('data-db-answer-base')) && !Radix) return;
+    if (forms.some(form => one(form, '[data-db-answer-part]')) && !Integer) return;
     select.replaceChildren(...forms.map((form, index) => { const option = node('option', `${index + 1} / ${forms.length}　${form.dataset.dbQuestionTitle}`); option.value = index; return option; }));
     function show() { forms.forEach((form, i) => { form.hidden = i !== Number(select.value); }); resize(); }
     forms.forEach(form => {
       const input = one(form, '[data-db-answer]'), feedback = one(form, '[data-db-feedback]');
+      const parts = all(form, '[data-db-answer-part]');
       const answerBase = Number(form.dataset.dbAnswerBase);
       const isRadix = form.hasAttribute('data-db-answer-base');
       const expected = isRadix ? Radix.parseNumeral(form.dataset.dbSource, Number(form.dataset.dbSourceBase)) : null;
-      const clear = () => { feedback.textContent = ''; delete feedback.dataset.correct; if (input) input.removeAttribute('aria-invalid'); };
+      const clear = () => { feedback.textContent = ''; delete feedback.dataset.correct; if (input) input.removeAttribute('aria-invalid'); parts.forEach(part => part.removeAttribute('aria-invalid')); };
       form.addEventListener('submit', event => {
         event.preventDefault();
+        if (parts.length) {
+          const results = parts.map(part => {
+            const bits = part.dataset.dbAnswerPart === 'bits';
+            const value = bits ? Integer.normalizeBits(part.value, Number(part.dataset.dbWidth)) : Integer.parseInteger(part.value);
+            const expectedValue = bits ? part.dataset.dbExpected : Number(part.dataset.dbExpected);
+            const correct = value !== null && value === expectedValue;
+            part.setAttribute('aria-invalid', String(!correct));
+            return { valid: value !== null, correct };
+          });
+          const correct = results.every(result => result.correct);
+          feedback.dataset.correct = String(correct);
+          feedback.textContent = correct ? '正解です。解き方も確認しましょう。' : results.some(result => !result.valid) ? '各欄の形式を確認してください。ビット列は指定の桁数で、10進数の負の整数には−を付けて入力します。' : 'もう一度考えてみましょう。枠で示した欄と、「解き方を確認」で途中の考え方を確かめられます。';
+          resize(); return;
+        }
         const selected = one(form, 'input[type="radio"]:checked');
         const value = input ? (isRadix ? Radix.parseNumeral(input.value, answerBase) : Core.parseAnswer(input.value)) : selected?.value;
         const correct = input ? value !== null && value === (isRadix ? expected : Core.expectedAnswer(form.dataset.dbQuestion)) : value === form.dataset.dbChoiceAnswer;

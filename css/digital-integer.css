@@ -1,0 +1,32 @@
+@charset "UTF-8";
+
+.di-code { display: inline-block; font-family: ui-monospace, "Roboto Mono", monospace; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: .08em; white-space: nowrap; }
+.di-step-table td, .di-decode-table td, .di-arithmetic-table td { text-align: center; }
+.di-step-table .di-code, .di-decode-table .di-code, .di-arithmetic-table .di-code { font-size: clamp(1.1em, 2vw, 1.5em); }
+.di-step-table th, .di-decode-table th, .di-arithmetic-table th { width: 45%; }
+.di-sign-bit { border-style: double; border-width: 4px; }
+.di-carry { display: inline-block; padding-inline: .3em; border: 2px dashed var(--dr-axis); font: 700 1.2em ui-monospace, monospace; }
+.di-status { padding: 10px 12px; border-left: 4px solid var(--dr-success); color: var(--dr-text); background: var(--dr-panel-strong); font-weight: 700; line-height: 1.7; }
+.di-status[data-overflow="true"] { border-left-color: var(--dr-error); border-left-style: double; }
+.di-range-table th, .di-range-table td { text-align: center; white-space: nowrap; }
+.di-arithmetic-work { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: clamp(20px, 3vw, 36px); align-items: start; }
+.di-arithmetic-work > * { min-width: 0; }
+.di-arithmetic-work .db-result { margin-top: 0; font-size: 1.1em; }
+[data-di-arithmetic] .db-controls { margin-block: .65em; }
+[data-di-value], [data-di-a], [data-di-b] { width: min(100%, 13em); }
+[data-di-a], [data-di-b] { width: min(100%, 7em); }
+[data-db-answer-part] { font-family: ui-monospace, "Roboto Mono", monospace !important; }
+[data-di-stage][hidden], [data-di-output][hidden] { display: none !important; }
+
+@media (max-width: 760px) {
+  .di-arithmetic-work { grid-template-columns: minmax(0, 1fr); gap: 12px; }
+  .di-step-table th, .di-decode-table th, .di-arithmetic-table th { width: auto; min-width: 8em; }
+  .di-step-table td, .di-decode-table td, .di-arithmetic-table td { min-width: 10em; }
+  .db-answer-row label { max-width: 100%; }
+}
+@media print {
+  .di-arithmetic-work { display: block; }
+  [data-di-stage][hidden] { display: block !important; }
+  tr[data-di-stage][hidden] { display: table-row !important; }
+  [data-di-valid="false"] [data-di-output] { display: none !important; }
+}
