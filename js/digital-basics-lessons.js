@@ -144,11 +144,12 @@
   }
   function setupQuestionGroup(root) {
     const forms = all(root, '[data-db-question]'), select = one(root, '[data-db-question-select]');
-    const Radix = window.DigitalRadixCore, Integer = window.DigitalIntegerCore, Real = window.DigitalRealCore;
+    const Radix = window.DigitalRadixCore, Integer = window.DigitalIntegerCore, Real = window.DigitalRealCore, Text = window.DigitalTextCore;
     const bitParser = Real || Integer;
     if (forms.some(form => form.hasAttribute('data-db-answer-base')) && !Radix) return;
     if (forms.some(form => one(form, '[data-db-answer-part]')) && !bitParser) return;
     if (forms.some(form => one(form, '[data-db-answer-part="decimal"]')) && !Real) return;
+    if (forms.some(form => one(form, '[data-db-answer-part="bytes"]')) && !Text) return;
     select.replaceChildren(...forms.map((form, index) => { const option = node('option', `${index + 1} / ${forms.length}　${form.dataset.dbQuestionTitle}`); option.value = index; return option; }));
     function show() { forms.forEach((form, i) => { form.hidden = i !== Number(select.value); }); resize(); }
     forms.forEach(form => {
@@ -162,13 +163,21 @@
         event.preventDefault();
         if (parts.length) {
           const results = parts.map(part => {
-            const bits = part.dataset.dbAnswerPart === 'bits';
-            let value;
-            if (bits) value = bitParser.normalizeBits(part.value, Number(part.dataset.dbWidth));
+            const type = part.dataset.dbAnswerPart, bits = type === 'bits';
+            let value, expectedValue;
+            if (type === 'bytes') {
+              const base = Number(part.dataset.dbByteBase);
+              const actual = Text.parseBytes(part.value, base), expected = Text.parseBytes(part.dataset.dbExpected, base);
+              value = actual ? actual.join(',') : null; expectedValue = expected ? expected.join(',') : null;
+            } else if (type === 'text') {
+              // 文字そのものを問う解答は、全角英字を半角へ変換しない。
+              const text = part.value.trim(); value = /^[\x20-\x7e]+$/.test(text) ? text : null;
+              expectedValue = part.dataset.dbExpected;
+            } else if (bits) value = bitParser.normalizeBits(part.value, Number(part.dataset.dbWidth));
             else if (part.dataset.dbAnswerPart === 'decimal') value = Real.parseDecimal(part.value);
             else if (Integer) value = Integer.parseInteger(part.value);
             else { value = Real.parseDecimal(part.value); if (!Number.isSafeInteger(value)) value = null; }
-            const expectedValue = bits ? part.dataset.dbExpected : Number(part.dataset.dbExpected);
+            if (type !== 'bytes' && type !== 'text') expectedValue = bits ? part.dataset.dbExpected : Number(part.dataset.dbExpected);
             const correct = value !== null && value === expectedValue;
             part.setAttribute('aria-invalid', String(!correct));
             return { valid: value !== null, correct };
