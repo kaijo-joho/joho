@@ -70,10 +70,62 @@
 </article></section>
 
 <section data-lesson-slide data-lesson-slide-title="表せる整数の範囲"><article><h2 id="headline_7">(7) 表せる整数の範囲</h2>
+<div id="di-range-views" data-lesson-view-group data-lesson-default-view="range">
+<div data-lesson-view-controls role="tablist" aria-label="整数の表を選ぶ"><button type="button" data-lesson-view="range">範囲と操作</button><button type="button" data-lesson-view="values">整数の一覧</button></div>
+<div id="di-range-overview" data-lesson-view-panel="range">
 <p class="db-lead">符号付き整数では、半分のビット列を0以上、残り半分を負の整数に使います。0を含むため、<strong>負の側の絶対値が1つ大きくなります。</strong></p>
 <div class="db-table-scroll"><table class="db-table di-range-table"><caption>2の補数で表す整数の範囲</caption><thead><tr><th scope="col">ビット数</th><th scope="col">最小値</th><th scope="col">そのビット列</th><th scope="col">最大値</th><th scope="col">そのビット列</th></tr></thead><tbody><tr><th scope="row">4bit</th><td>−8</td><td><span class="di-code">1000</span></td><td>7</td><td><span class="di-code">0111</span></td></tr><tr><th scope="row">6bit</th><td>−32</td><td><span class="di-code">100000</span></td><td>31</td><td><span class="di-code">011111</span></td></tr><tr><th scope="row">8bit</th><td>−128</td><td><span class="di-code">1000 0000</span></td><td>127</td><td><span class="di-code">0111 1111</span></td></tr></tbody></table></div>
 <p class="db-equation">n bitでは、<strong>−2<sup>n−1</sup> 〜 2<sup>n−1</sup>−1</strong>を表せます。</p>
 <div class="db-demo" data-di-range><div class="db-controls db-enhancement" hidden><label>ビット数<select data-di-width tabindex="0"><option value="4" selected>4bit</option><option value="6">6bit</option><option value="8">8bit</option></select></label><button type="button" class="dr-button" tabindex="0" data-di-decrease>1減らす</button><label for="di-range-value">整数<input id="di-range-value" type="text" inputmode="text" maxlength="32" autocomplete="off" spellcheck="false" value="0" tabindex="0" data-di-value></label><button type="button" class="dr-button" tabindex="0" data-di-increase>1増やす</button><button type="button" class="dr-button" tabindex="0" data-di-min>最小値</button><button type="button" class="dr-button" tabindex="0" data-di-max>最大値</button><button type="button" class="dr-button" tabindex="0" data-di-reset>0に戻す</button></div><p class="db-feedback db-error" data-di-error role="status" hidden></p><p class="db-result" data-di-output data-di-result>0 ＝ <span class="di-code">0000</span>（4bit）</p><p class="db-hint" data-di-limit>−8〜7の間で変化させます。</p></div>
+</div>
+<div id="di-integer-values" data-lesson-view-panel="values">
+<p>2の補数で表す符号付き整数を、10進数の大きい順に並べています。</p>
+<div class="di-reference-tables">
+<div><div class="db-table-scroll" tabindex="0" role="region" aria-label="4bitの整数一覧"><table class="db-table di-reference-table" data-di-reference-width="4">
+<caption>4bit：すべての値（16通り）</caption><thead><tr><th scope="col">10進数</th><th scope="col">2進数（4bit）</th></tr></thead><tbody>
+<tr><th scope="row">＋7 <span class="di-reference-label">最大値</span></th><td><span class="di-code">0111</span></td></tr>
+<tr><th scope="row">＋6</th><td><span class="di-code">0110</span></td></tr>
+<tr><th scope="row">＋5</th><td><span class="di-code">0101</span></td></tr>
+<tr><th scope="row">＋4</th><td><span class="di-code">0100</span></td></tr>
+<tr><th scope="row">＋3</th><td><span class="di-code">0011</span></td></tr>
+<tr><th scope="row">＋2</th><td><span class="di-code">0010</span></td></tr>
+<tr><th scope="row">＋1</th><td><span class="di-code">0001</span></td></tr>
+<tr class="di-reference-zero"><th scope="row">0</th><td><span class="di-code">0000</span></td></tr>
+<tr><th scope="row">−1</th><td><span class="di-code">1111</span></td></tr>
+<tr><th scope="row">−2</th><td><span class="di-code">1110</span></td></tr>
+<tr><th scope="row">−3</th><td><span class="di-code">1101</span></td></tr>
+<tr><th scope="row">−4</th><td><span class="di-code">1100</span></td></tr>
+<tr><th scope="row">−5</th><td><span class="di-code">1011</span></td></tr>
+<tr><th scope="row">−6</th><td><span class="di-code">1010</span></td></tr>
+<tr><th scope="row">−7</th><td><span class="di-code">1001</span></td></tr>
+<tr><th scope="row">−8 <span class="di-reference-label">最小値</span></th><td><span class="di-code">1000</span></td></tr>
+</tbody></table></div><p class="db-hint">＋8は4bitでは表せません。</p></div>
+<div><div class="db-table-scroll" tabindex="0" role="region" aria-label="8bitの整数一覧"><table class="db-table di-reference-table" data-di-reference-width="8">
+<caption>8bit：主な値</caption><thead><tr><th scope="col">10進数</th><th scope="col">2進数（8bit）</th></tr></thead><tbody>
+<tr><th scope="row">＋127 <span class="di-reference-label">最大値</span></th><td><span class="di-code">0111 1111</span></td></tr>
+<tr><th scope="row">＋126</th><td><span class="di-code">0111 1110</span></td></tr>
+<tr><th scope="row">＋125</th><td><span class="di-code">0111 1101</span></td></tr>
+<tr><th scope="row">＋124</th><td><span class="di-code">0111 1100</span></td></tr>
+<tr class="di-reference-omission"><td colspan="2" aria-label="＋123から＋5まで省略">⋮</td></tr>
+<tr><th scope="row">＋4</th><td><span class="di-code">0000 0100</span></td></tr>
+<tr><th scope="row">＋3</th><td><span class="di-code">0000 0011</span></td></tr>
+<tr><th scope="row">＋2</th><td><span class="di-code">0000 0010</span></td></tr>
+<tr><th scope="row">＋1</th><td><span class="di-code">0000 0001</span></td></tr>
+<tr class="di-reference-zero"><th scope="row">0</th><td><span class="di-code">0000 0000</span></td></tr>
+<tr><th scope="row">−1</th><td><span class="di-code">1111 1111</span></td></tr>
+<tr><th scope="row">−2</th><td><span class="di-code">1111 1110</span></td></tr>
+<tr><th scope="row">−3</th><td><span class="di-code">1111 1101</span></td></tr>
+<tr><th scope="row">−4</th><td><span class="di-code">1111 1100</span></td></tr>
+<tr class="di-reference-omission"><td colspan="2" aria-label="−5から−123まで省略">⋮</td></tr>
+<tr><th scope="row">−124</th><td><span class="di-code">1000 0100</span></td></tr>
+<tr><th scope="row">−125</th><td><span class="di-code">1000 0011</span></td></tr>
+<tr><th scope="row">−126</th><td><span class="di-code">1000 0010</span></td></tr>
+<tr><th scope="row">−127</th><td><span class="di-code">1000 0001</span></td></tr>
+<tr><th scope="row">−128 <span class="di-reference-label">最小値</span></th><td><span class="di-code">1000 0000</span></td></tr>
+</tbody></table></div><p class="db-hint">＋128は8bitでは表せません。「⋮」は中間の値の省略です。</p></div>
+</div>
+</div>
+</div>
 </article></section>
 
 <section data-lesson-slide data-lesson-slide-title="表現範囲の境界"><article><h2 id="headline_8">(8) 表現範囲の境界</h2>
