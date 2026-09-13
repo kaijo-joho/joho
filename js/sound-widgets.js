@@ -532,15 +532,21 @@
         }
       });
       this.sampleRateControl = sampleRate;
+      const sampleRateDescription = element(
+        'p',
+        'dr-control__description',
+        '1秒間に標本化する回数です（Hz＝回/秒）。大きいほど標本の時間間隔が短くなります。'
+      );
+      sampleRateDescription.id = `dr-pcm-sample-rate-description-${this.serial}`;
       this.sampleRateAvailability = element('p', 'dr-control__availability');
       this.sampleRateAvailability.id = `dr-pcm-sample-rate-availability-${this.serial}`;
       this.sampleRateMetrics = element('dl', 'dr-control__metrics');
       this.sampleRateMetrics.id = `dr-pcm-sample-rate-metrics-${this.serial}`;
       sampleRate.input.setAttribute(
         'aria-describedby',
-        `${this.sampleRateAvailability.id} ${this.sampleRateMetrics.id}`
+        `${sampleRateDescription.id} ${this.sampleRateAvailability.id} ${this.sampleRateMetrics.id}`
       );
-      sampleRate.wrapper.append(this.sampleRateAvailability, this.sampleRateMetrics);
+      sampleRate.wrapper.append(sampleRateDescription, this.sampleRateAvailability, this.sampleRateMetrics);
 
       const bitDepth = createRangeControl({
         id: `dr-pcm-bit-depth-${this.serial}`,
@@ -556,15 +562,21 @@
         }
       });
       this.bitDepthControl = bitDepth;
+      const bitDepthDescription = element(
+        'p',
+        'dr-control__description',
+        '1つの標本を表すビット数 n です。大きいほど量子化の段階数が増え、波の高さを細かく表せます。'
+      );
+      bitDepthDescription.id = `dr-pcm-bit-depth-description-${this.serial}`;
       this.bitDepthAvailability = element('p', 'dr-control__availability');
       this.bitDepthAvailability.id = `dr-pcm-bit-depth-availability-${this.serial}`;
       this.bitDepthMetrics = element('dl', 'dr-control__metrics');
       this.bitDepthMetrics.id = `dr-pcm-bit-depth-metrics-${this.serial}`;
       bitDepth.input.setAttribute(
         'aria-describedby',
-        `${this.bitDepthAvailability.id} ${this.bitDepthMetrics.id}`
+        `${bitDepthDescription.id} ${this.bitDepthAvailability.id} ${this.bitDepthMetrics.id}`
       );
-      bitDepth.wrapper.append(this.bitDepthAvailability, this.bitDepthMetrics);
+      bitDepth.wrapper.append(bitDepthDescription, this.bitDepthAvailability, this.bitDepthMetrics);
 
       this.controls.append(
         waveform.wrapper,

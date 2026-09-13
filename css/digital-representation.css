@@ -484,7 +484,8 @@ section article .dr-guide__explanation h4 {
   min-width: 0;
 }
 
-.dr-control.is-disabled {
+/* 工程前の操作欄も、用語の説明は薄くせず読める状態を保つ。 */
+.dr-control.is-disabled > :not(.dr-control__description) {
   opacity: .52;
 }
 
@@ -572,6 +573,14 @@ section article .dr-guide__explanation h4 {
   border-radius: 50%;
   background: var(--theme-color, #225386);
   box-shadow: 0 0 0 1px color-mix(in oklab, var(--theme-color, #225386) 70%, var(--dr-border));
+}
+
+.dr-control__description {
+  margin: 4px 0 8px;
+  color: var(--dr-text);
+  font-size: .8em;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .dr-control__availability {

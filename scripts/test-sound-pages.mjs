@@ -186,6 +186,15 @@ ok(widgets.includes('disabled: this.state.stage < 2') && widgets.includes('disab
 ok(widgets.includes("control.input.disabled = disabled") && widgets.includes("classList.toggle('is-disabled', disabled)"), '無効状態を操作と表示の両方へ反映');
 ok(widgets.includes("this.sampleRateMetrics = element('dl', 'dr-control__metrics')"), '標本化の計算値を標本化周波数スライダー内に配置');
 ok(widgets.includes("this.bitDepthMetrics = element('dl', 'dr-control__metrics')"), '量子化の計算値を量子化ビット数スライダー内に配置');
+ok(widgets.includes('1秒間に標本化する回数です（Hz＝回/秒）。大きいほど標本の時間間隔が短くなります。'), '標本化周波数の定義・単位・操作による変化を説明');
+ok(widgets.includes('1つの標本を表すビット数 n です。大きいほど量子化の段階数が増え、波の高さを細かく表せます。'), '量子化ビット数の定義と操作による変化を説明');
+for (const control of ['sampleRate', 'bitDepth']) {
+  ok(widgets.includes(`${control}.wrapper.append(${control}Description, this.${control}Availability, this.${control}Metrics)`), `${control}の説明を操作欄内の式と一緒に表示`);
+  const describedBy = [`${control}Description.id`, `this.${control}Availability.id`, `this.${control}Metrics.id`]
+    .map(id => '${' + id + '}').join(' ');
+  ok(widgets.includes(describedBy), `${control}の説明・操作可能な工程・式をaria-describedbyで関連付け`);
+}
+ok(css.includes('.dr-control.is-disabled > :not(.dr-control__description)'), '工程前でも用語の説明は薄くしない');
 ok(!widgets.includes("this.metrics = element('dl', 'dr-metrics')"), '可変PCMグラフには独立した計算カードを置かない');
 ok(widgets.includes('end: 1.2'), '可変PCMグラフの表示範囲は0〜1.2秒');
 ok(!widgets.includes('表示範囲の標本数'), '可変PCMグラフに標本数を重複表示しない');
