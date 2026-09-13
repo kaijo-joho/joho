@@ -1,4 +1,4 @@
-//2026-09-13 02:12:27;
+//2026-09-13 09:33:27;
 const pages = {
   "index": {
     "id": "index",
@@ -239,9 +239,36 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "dr00",
-    "next": false,
+    "next": [
+      {
+        "id": "dr02",
+        "title": "2進数と16進数",
+        "text": "2進数と16進数",
+        "release": false,
+        "url": "dr02.html",
+        "detail": "位取り、割り算の余り、4bitごとの対応を確かめながら、2進数・10進数・16進数の変換を学びます。"
+      }
+    ],
     "show": true,
     "backFile": "dr00.html"
+  },
+  "dr02": {
+    "id": "dr02",
+    "release": false,
+    "fileName": "dr02.html",
+    "mainTitle": "デジタル表現",
+    "category": "デジタル表現の基礎",
+    "title": "2進数と16進数",
+    "detail": "位取り、割り算の余り、4bitごとの対応を確かめながら、2進数・10進数・16進数の変換を学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr01",
+    "next": false,
+    "show": true,
+    "backFile": "dr01.html"
   },
   "dr31": {
     "id": "dr31",
