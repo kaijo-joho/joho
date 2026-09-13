@@ -36,7 +36,8 @@ const pageSpecs = [
   { id: 'nw13', slides: 7 },
   { id: 'dr01', slides: 10 },
   { id: 'dr02', slides: 11 },
-  { id: 'dr11', slides: 11 }
+  { id: 'dr11', slides: 11 },
+  { id: 'dr12', slides: 12 }
 ];
 
 const [deck, css, logicCss, networkCss, networkJs, applications, ...pages] = await Promise.all([

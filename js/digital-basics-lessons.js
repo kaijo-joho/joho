@@ -144,9 +144,11 @@
   }
   function setupQuestionGroup(root) {
     const forms = all(root, '[data-db-question]'), select = one(root, '[data-db-question-select]');
-    const Radix = window.DigitalRadixCore, Integer = window.DigitalIntegerCore;
+    const Radix = window.DigitalRadixCore, Integer = window.DigitalIntegerCore, Real = window.DigitalRealCore;
+    const bitParser = Real || Integer;
     if (forms.some(form => form.hasAttribute('data-db-answer-base')) && !Radix) return;
-    if (forms.some(form => one(form, '[data-db-answer-part]')) && !Integer) return;
+    if (forms.some(form => one(form, '[data-db-answer-part]')) && !bitParser) return;
+    if (forms.some(form => one(form, '[data-db-answer-part="decimal"]')) && !Real) return;
     select.replaceChildren(...forms.map((form, index) => { const option = node('option', `${index + 1} / ${forms.length}　${form.dataset.dbQuestionTitle}`); option.value = index; return option; }));
     function show() { forms.forEach((form, i) => { form.hidden = i !== Number(select.value); }); resize(); }
     forms.forEach(form => {
@@ -161,7 +163,11 @@
         if (parts.length) {
           const results = parts.map(part => {
             const bits = part.dataset.dbAnswerPart === 'bits';
-            const value = bits ? Integer.normalizeBits(part.value, Number(part.dataset.dbWidth)) : Integer.parseInteger(part.value);
+            let value;
+            if (bits) value = bitParser.normalizeBits(part.value, Number(part.dataset.dbWidth));
+            else if (part.dataset.dbAnswerPart === 'decimal') value = Real.parseDecimal(part.value);
+            else if (Integer) value = Integer.parseInteger(part.value);
+            else { value = Real.parseDecimal(part.value); if (!Number.isSafeInteger(value)) value = null; }
             const expectedValue = bits ? part.dataset.dbExpected : Number(part.dataset.dbExpected);
             const correct = value !== null && value === expectedValue;
             part.setAttribute('aria-invalid', String(!correct));
@@ -169,7 +175,8 @@
           });
           const correct = results.every(result => result.correct);
           feedback.dataset.correct = String(correct);
-          feedback.textContent = correct ? '正解です。解き方も確認しましょう。' : results.some(result => !result.valid) ? '各欄の形式を確認してください。ビット列は指定の桁数で、10進数の負の整数には−を付けて入力します。' : 'もう一度考えてみましょう。枠で示した欄と、「解き方を確認」で途中の考え方を確かめられます。';
+          const invalidMessage = form.dataset.dbAnswerHint || '各欄の形式を確認してください。ビット列は指定の桁数で、10進数の負の整数には−を付けて入力します。';
+          feedback.textContent = correct ? '正解です。解き方も確認しましょう。' : results.some(result => !result.valid) ? invalidMessage : 'もう一度考えてみましょう。枠で示した欄と、「解き方を確認」で途中の考え方を確かめられます。';
           resize(); return;
         }
         const selected = one(form, 'input[type="radio"]:checked');
