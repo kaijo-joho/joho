@@ -16,7 +16,7 @@
   }
   function binary(text) {
     const fragment = document.createDocumentFragment();
-    fragment.append(node('span', text, 'df-code'), node('sub', '2'));
+    fragment.append(node('span', text, 'df-code'), node('sub', '(2)'));
     return fragment;
   }
   function normalExpression(root, selector, significand, exponent, sign = '') {
@@ -46,7 +46,7 @@
       buttons.forEach((button, i) => setBit(button, bits[i], `1/${2 ** (i + 1)}`));
       const terms = weights.filter((_, i) => bits[i] === '1');
       set(root, '[data-df-sum]', terms.length ? terms.join(' ＋ ') : '1のある桁はありません。');
-      one(root, '[data-df-result]').replaceChildren(binary(`0.${bits}`), node('span', ` ＝ ${Core.decodeFixed(`0000${bits}`, 4)}`), node('sub', '10'));
+      one(root, '[data-df-result]').replaceChildren(binary(`0.${bits}`), node('span', ` ＝ ${Core.decodeFixed(`0000${bits}`, 4)}`), node('sub', '(10)'));
     }
     buttons.forEach((button, i) => button.addEventListener('click', () => { bits = bits.slice(0, i) + (bits[i] === '1' ? '0' : '1') + bits.slice(i + 1); render(); }));
     one(root, '[data-df-reset]').addEventListener('click', () => { bits = '1011'; render(); });
@@ -61,7 +61,7 @@
       const complete = shown >= converted.steps.length && converted.exact;
       const fraction = converted.fractionBits.slice(0, shown);
       const code = converted.integerBits + (fraction ? `.${fraction}` : '') + (complete ? '' : '…');
-      one(root, '[data-df-result]').replaceChildren(node('span', number(converted.value)), node('sub', '10'), node('span', ' ＝ '), binary(code));
+      one(root, '[data-df-result]').replaceChildren(node('span', number(converted.value)), node('sub', '(10)'), node('span', ' ＝ '), binary(code));
       set(root, '[data-df-note]', complete ? (converted.steps.length ? '残る小数部分が0になったので、変換は終了です。' : '小数部分が0なので、整数部分だけで表せます。') : shown >= converted.steps.length ? '小数部を8桁まで表示しました。残る小数が0でないため、この先も続きます。' : '取り出した整数部分を、上から順に小数点の右へ並べます。');
       resize();
     }
@@ -96,7 +96,7 @@
       buttons.forEach((button, i) => setBit(button, bits[i], i < 4 ? weights[i] : `1/${2 ** (i - 3)}`));
       const terms = weights.filter((_, i) => bits[i] === '1');
       set(root, '[data-df-sum]', terms.length ? terms.join(' ＋ ') : 'すべてのビットが0です。');
-      one(root, '[data-df-result]').replaceChildren(binary(`${bits.slice(0, 4)}.${bits.slice(4)}`), node('span', ` ＝ ${Core.decodeFixed(bits)}`), node('sub', '10'));
+      one(root, '[data-df-result]').replaceChildren(binary(`${bits.slice(0, 4)}.${bits.slice(4)}`), node('span', ` ＝ ${Core.decodeFixed(bits)}`), node('sub', '(10)'));
       one(root, '[data-df-stored]').replaceChildren(node('span', '保存する8bit：'), node('span', `${bits.slice(0, 4)} ${bits.slice(4)}`, 'df-code'));
       resize();
     }
@@ -117,7 +117,7 @@
       const f = Number(input.value), range = Core.fixedRange(f), bits = '01101100';
       set(root, '[data-df-range-result]', `0〜${range.max}`);
       set(root, '[data-df-step]', `1/${2 ** f} ＝ ${range.step}`);
-      one(root, '[data-df-result]').replaceChildren(binary(`${bits.slice(0, -f)}.${bits.slice(-f)}`), node('span', ` ＝ ${Core.decodeFixed(bits, f)}`), node('sub', '10'));
+      one(root, '[data-df-result]').replaceChildren(binary(`${bits.slice(0, -f)}.${bits.slice(-f)}`), node('span', ` ＝ ${Core.decodeFixed(bits, f)}`), node('sub', '(10)'));
       resize();
     }
     input.addEventListener('change', render); enhance(root); render();
@@ -170,7 +170,7 @@
       const parts = Core.floatParts(input.value, width), converted = Core.toBinary(input.value, 32);
       const normalized = Core.normalizeBinary(converted.bits), sign = value < 0 ? '−' : '＋';
       showError(root, ''); stage = 0;
-      one(root, '[data-df-binary]').replaceChildren(node('span', number(value)), node('sub', '10'), node('span', ' ＝ '), binary(`${value < 0 ? '−' : ''}${converted.bits}${converted.exact ? '' : '…'}`));
+      one(root, '[data-df-binary]').replaceChildren(node('span', number(value)), node('sub', '(10)'), node('span', ' ＝ '), binary(`${value < 0 ? '−' : ''}${converted.bits}${converted.exact ? '' : '…'}`));
       if (parts.kind === 'zero') {
         set(root, '[data-df-normal]', '0は1.……に正規化できないので、専用の表現を使います。');
         set(root, '[data-df-sign-work]', 'ここでは、符号部を0にします。');
