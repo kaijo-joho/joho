@@ -1,4 +1,4 @@
-//2026-09-13 03:54:15;
+//2026-09-13 05:33:50;
 const pages = {
   "index": {
     "id": "index",
@@ -347,9 +347,36 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "dr12",
-    "next": false,
+    "next": [
+      {
+        "id": "dr21",
+        "title": "文字のデジタル表現",
+        "text": "文字のデジタル表現",
+        "release": false,
+        "url": "dr21.html",
+        "detail": "文字とコードの対応、ASCII、Unicode、UTF-8、文字化けを、操作と問題で学びます。"
+      }
+    ],
     "show": true,
     "backFile": "dr12.html"
+  },
+  "dr21": {
+    "id": "dr21",
+    "release": false,
+    "fileName": "dr21.html",
+    "mainTitle": "デジタル表現",
+    "category": "文字と色のデジタル表現",
+    "title": "文字のデジタル表現",
+    "detail": "文字とコードの対応、ASCII、Unicode、UTF-8、文字化けを、操作と問題で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr13",
+    "next": false,
+    "show": true,
+    "backFile": "dr13.html"
   },
   "dr31": {
     "id": "dr31",
