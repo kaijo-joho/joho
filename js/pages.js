@@ -1,4 +1,4 @@
-//2026-09-13 09:33:27;
+//2026-09-13 11:34:59;
 const pages = {
   "index": {
     "id": "index",
@@ -266,9 +266,36 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "dr01",
-    "next": false,
+    "next": [
+      {
+        "id": "dr11",
+        "title": "数値のデジタル表現(整数)",
+        "text": "数値のデジタル表現(整数)",
+        "release": false,
+        "url": "dr11.html",
+        "detail": "符号ビット、2の補数、整数の表現範囲を、ビット列の操作と問題で学びます。"
+      }
+    ],
     "show": true,
     "backFile": "dr01.html"
+  },
+  "dr11": {
+    "id": "dr11",
+    "release": false,
+    "fileName": "dr11.html",
+    "mainTitle": "デジタル表現",
+    "category": "数値のデジタル表現",
+    "title": "数値のデジタル表現(整数)",
+    "detail": "符号ビット、2の補数、整数の表現範囲を、ビット列の操作と問題で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr02",
+    "next": false,
+    "show": true,
+    "backFile": "dr02.html"
   },
   "dr31": {
     "id": "dr31",
