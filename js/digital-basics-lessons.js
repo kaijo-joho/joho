@@ -144,18 +144,24 @@
   }
   function setupQuestionGroup(root) {
     const forms = all(root, '[data-db-question]'), select = one(root, '[data-db-question-select]');
+    const Radix = window.DigitalRadixCore;
+    if (forms.some(form => form.hasAttribute('data-db-answer-base')) && !Radix) return;
     select.replaceChildren(...forms.map((form, index) => { const option = node('option', `${index + 1} / ${forms.length}　${form.dataset.dbQuestionTitle}`); option.value = index; return option; }));
     function show() { forms.forEach((form, i) => { form.hidden = i !== Number(select.value); }); resize(); }
     forms.forEach(form => {
       const input = one(form, '[data-db-answer]'), feedback = one(form, '[data-db-feedback]');
+      const answerBase = Number(form.dataset.dbAnswerBase);
+      const isRadix = form.hasAttribute('data-db-answer-base');
+      const expected = isRadix ? Radix.parseNumeral(form.dataset.dbSource, Number(form.dataset.dbSourceBase)) : null;
       const clear = () => { feedback.textContent = ''; delete feedback.dataset.correct; if (input) input.removeAttribute('aria-invalid'); };
       form.addEventListener('submit', event => {
         event.preventDefault();
         const selected = one(form, 'input[type="radio"]:checked');
-        const value = input ? Core.parseAnswer(input.value) : selected?.value;
-        const correct = input ? value !== null && value === Core.expectedAnswer(form.dataset.dbQuestion) : value === form.dataset.dbChoiceAnswer;
+        const value = input ? (isRadix ? Radix.parseNumeral(input.value, answerBase) : Core.parseAnswer(input.value)) : selected?.value;
+        const correct = input ? value !== null && value === (isRadix ? expected : Core.expectedAnswer(form.dataset.dbQuestion)) : value === form.dataset.dbChoiceAnswer;
+        const invalidMessage = isRadix ? (answerBase === 2 ? '0と1で1〜16桁の2進数を入力してください。' : answerBase === 16 ? '0〜9・A〜Fで1〜4桁の16進数を入力してください。' : '0〜65,535の整数を入力してください。') : '数値を入力してください。全角数字や3桁ごとのカンマも使えます。';
         feedback.dataset.correct = String(correct);
-        feedback.textContent = correct ? '正解です。解き方も確認しましょう。' : (value === null || value === undefined ? (input ? '数値を入力してください。全角数字や3桁ごとのカンマも使えます。' : '選択肢を1つ選んでください。') : 'もう一度考えてみましょう。「解き方を確認」で途中の考え方を見られます。');
+        feedback.textContent = correct ? '正解です。解き方も確認しましょう。' : (value === null || value === undefined ? (input ? invalidMessage : '選択肢を1つ選んでください。') : 'もう一度考えてみましょう。「解き方を確認」で途中の考え方を見られます。');
         if (input) input.setAttribute('aria-invalid', String(!correct));
         resize();
       });
