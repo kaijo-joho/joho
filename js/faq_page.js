@@ -2,11 +2,6 @@
 (() => {
   'use strict';
 
-  const COURSE_KEYS = ['il', 'html', 'ss', 'py'];
-
-  const FAQBOT_WEB_APP_URL =
-    'https://script.google.com/macros/s/AKfycbzSuitUdIidJRMXTrJCOcdxE1fdcFLj8NB-LfHM1z0KABRzv463y131Y6KR2TYoOtk/exec';
-
   const COURSE_LABEL_FALLBACK = {
     il: 'Illustrator実習',
     html: 'HTML実習',
@@ -45,14 +40,6 @@
 
   const normalizeText = (s) => String(s || '').trim();
 
-  const normalizeForSearch = (s) => {
-    return String(s || '')
-      .toLowerCase()
-      .normalize('NFKC')
-      .replace(/\s+/g, ' ')
-      .trim();
-  };
-
   const getFaqData = () => Array.isArray(window.FAQ_DATA) ? window.FAQ_DATA : [];
   const getCategoryData = () => Array.isArray(window.FAQ_CATEGORY_DATA) ? window.FAQ_CATEGORY_DATA : [];
   const getPublicFaqs = () => getFaqData().filter(faq => faq.status === '公開' || !faq.status);
@@ -88,7 +75,7 @@
 
   function getCourseFromQuery() {
     const c = normalizeText(getParam('course'));
-    return COURSE_KEYS.includes(c) ? c : '';
+    return window.siteFaq.COURSE_KEYS.includes(c) ? c : '';
   }
 
   function getInitialState() {
@@ -116,59 +103,7 @@
     return Array.from(set).sort((a, b) => a.localeCompare(b, 'ja'));
   }
 
-  function stripHtml(html) {
-    const div = document.createElement('div');
-    div.innerHTML = String(html || '');
-    return div.textContent || div.innerText || '';
-  }
-
-  function getSearchTarget(faq) {
-    return normalizeForSearch([
-      faq.faqId,
-      faq.course,
-      faq.courseLabel,
-      faq.unit,
-      faq.category,
-      faq.question,
-      faq.shortAnswer,
-      stripHtml(faq.bodyHtml),
-      Array.isArray(faq.keywords) ? faq.keywords.join(' ') : ''
-    ].join(' '));
-  }
-
-  function applyFilters(faqs, state) {
-    const q = normalizeForSearch(state.q);
-    const keyword = normalizeText(state.keyword);
-
-    return faqs
-      .filter(faq => faq.status === '公開' || !faq.status)
-      .filter(faq => state.course ? faq.course === state.course : true)
-      .filter(faq => state.unit ? faq.unit === state.unit : true)
-      .filter(faq => state.category ? faq.category === state.category : true)
-      .filter(faq => {
-        if (!keyword) return true;
-        return Array.isArray(faq.keywords) && faq.keywords.includes(keyword);
-      })
-      .filter(faq => {
-        if (!q) return true;
-        return getSearchTarget(faq).includes(q);
-      })
-      .sort((a, b) => {
-        const ca = String(a.course || '');
-        const cb = String(b.course || '');
-        if (ca !== cb) return ca.localeCompare(cb);
-
-        const pa = Number(a.priority ?? 999);
-        const pb = Number(b.priority ?? 999);
-        if (pa !== pb) return pa - pb;
-
-        const sa = Number(a.sortOrder ?? 9999);
-        const sb = Number(b.sortOrder ?? 9999);
-        if (sa !== sb) return sa - sb;
-
-        return String(a.faqId || '').localeCompare(String(b.faqId || ''));
-      });
-  }
+  const applyFilters = (faqs, state) => window.siteFaq.applyFilters(faqs, state);
 
   function renderCourseTabs(state, onChange) {
     const wrap = el('div', {
@@ -396,143 +331,13 @@
     return summary;
   }
 
-  function renderFaqCard(faq) {
-    const details = el('details', { class: 'faq-card' });
-
-    const summary = el('summary', { class: 'faq-card__summary' });
-
-    summary.appendChild(el('span', { class: 'faq-card__course' }, getCourseLabel(faq.course)));
-    
-    const q = el('span', { class: 'faq-card__question' });
-
-    if (faq.questionHtml) {
-      q.innerHTML = faq.questionHtml;
-    } else {
-      q.textContent = faq.question || '質問';
-    }
-
-    summary.appendChild(q);
-
-
-    if (faq.shortAnswerHtml || faq.shortAnswer) {
-      const short = el('span', { class: 'faq-card__short' });
-      if (faq.shortAnswerHtml) {
-        short.innerHTML = faq.shortAnswerHtml;
-      } else {
-        short.textContent = faq.shortAnswer;
-      }
-      summary.appendChild(short);
-    }
-
-    const meta = el('span', { class: 'faq-card__meta' });
-
-    if (faq.unit) meta.appendChild(el('span', { class: 'faq-card__tag' }, faq.unit));
-    if (faq.category) meta.appendChild(el('span', { class: 'faq-card__tag' }, faq.category));
-
-    if (Array.isArray(faq.keywords)) {
-      faq.keywords.slice(0, 6).forEach(k => {
-        meta.appendChild(el('span', { class: 'faq-card__tag faq-card__tag--keyword' }, k));
-      });
-    }
-
-    summary.appendChild(meta);
-
-    const body = el('div', { class: 'faq-card__body' });
-
-    if (faq.bodyHtml) {
-      body.innerHTML = faq.bodyHtml;
-    } else if (faq.shortAnswerHtml) {
-      body.innerHTML = faq.shortAnswerHtml;
-    } else {
-      body.textContent = faq.shortAnswer || '';
-    }
-
-    const links = [];
-
-    if (faq.relatedPage) {
-      links.push(el('a', {
-        href: faq.relatedPage,
-        target: '_blank',
-        rel: 'noopener',
-        class: 'faq-card__related-link'
-      }, '関連教材を開く'));
-    }
-
-    if (faq.relatedSlide) {
-      links.push(el('a', {
-        href: faq.relatedSlide,
-        target: '_blank',
-        rel: 'noopener',
-        class: 'faq-card__related-link'
-      }, '関連スライドを開く'));
-    }
-
-    if (links.length) {
-      body.appendChild(el('div', { class: 'faq-card__related' }, links));
-    }
-
-    details.appendChild(summary);
-    details.appendChild(body);
-
-    return details;
-  }
-
-  function buildFaqBotUrl(state) {
-    const faqBotUrl = new URL(FAQBOT_WEB_APP_URL);
-    const returnUrl = new URL('./faq.html', location.href);
-
-    if (COURSE_KEYS.includes(state.course)) {
-      faqBotUrl.searchParams.set('course', state.course);
-      returnUrl.searchParams.set('course', state.course);
-    }
-
-    faqBotUrl.searchParams.set('page', 'faq');
-    faqBotUrl.searchParams.set('returnUrl', returnUrl.href);
-
-    return faqBotUrl.href;
-  }
+  const renderFaqCard = faq => window.siteFaq.renderFaqCard(faq);
 
   function renderAiEscalation(state) {
-    const section = el('section', {
-      class: 'faq-ai-escalation',
-      'aria-labelledby': 'faq-ai-escalation-title'
+    return window.siteFaq.renderAiEscalation(state, {
+      baseUrl: new URL('./faq.html', location.href).href,
+      onCancel: () => $('.faq-search__input')?.focus()
     });
-
-    section.appendChild(el('h3', {
-      id: 'faq-ai-escalation-title',
-      class: 'faq-ai-escalation__title'
-    }, 'AIに質問しますか？'));
-
-    section.appendChild(el('p', { class: 'faq-ai-escalation__lead' },
-      '「はい」を選ぶと、学校のGoogleアカウントで利用するAI相談室へ移動します。質問は移動先で改めて入力してください。'
-    ));
-
-    section.appendChild(el('p', { class: 'faq-ai-escalation__note' },
-      '検索語は引き継がれません。氏名、メールアドレス、学籍番号などの個人情報は入力しないでください。'
-    ));
-
-    const yesLink = el('a', {
-      href: buildFaqBotUrl(state),
-      class: 'faq-ai-escalation__yes',
-      'data-faqbot-link': ''
-    }, 'はい、AI相談室へ');
-
-    const noButton = el('button', {
-      type: 'button',
-      class: 'faq-ai-escalation__no'
-    }, 'いいえ、検索を続ける');
-
-    noButton.addEventListener('click', () => {
-      const searchInput = $('.faq-search__input');
-      if (searchInput) searchInput.focus();
-    });
-
-    section.appendChild(el('div', { class: 'faq-ai-escalation__actions' }, [
-      yesLink,
-      noButton
-    ]));
-
-    return section;
   }
 
   function renderResultsArticle(state) {
@@ -640,7 +445,7 @@
     const max = 80;
 
     const tick = () => {
-      if (Array.isArray(window.FAQ_DATA)) {
+      if (Array.isArray(window.FAQ_DATA) && window.siteFaq) {
         renderApp();
         return;
       }
@@ -671,6 +476,6 @@
   }
 
   document.addEventListener('pages:ready', () => {
-    if (!appRendered && Array.isArray(window.FAQ_DATA)) renderApp();
+    if (!appRendered && Array.isArray(window.FAQ_DATA) && window.siteFaq) renderApp();
   });
 })();

@@ -532,6 +532,32 @@
   display: none;
 }
 
+/* 共通検索・フォールバックでは、開くまで質問だけを表示する。 */
+.faq-card--compact:not([open]) :is(.faq-card__short, .faq-card__meta, .faq-card__course) {
+  display: none;
+}
+
+.faq-card--compact {
+  min-width: 0;
+  box-shadow: none;
+  overflow-wrap: anywhere;
+}
+
+.faq-card--compact .faq-card__summary {
+  box-sizing: border-box;
+  min-height: 44px;
+}
+
+.faq-card--compact .faq-card__summary:focus-visible {
+  outline: 3px solid var(--button-focus, var(--theme-color));
+  outline-offset: -3px;
+}
+
+.faq-card--compact pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
 .faq-card__summary::before {
   content: "▶";
   position: absolute;

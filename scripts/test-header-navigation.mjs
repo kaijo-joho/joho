@@ -99,12 +99,12 @@ async function scrollHeader(page) {
   const search = page.locator('.lesson-dock__btn--search');
   await search.press('Enter');
   await expect(page.locator('#site-search-dialog')).toBeVisible();
-  await page.locator('#site-search-view-faq').evaluate(element => { element.scrollTop = 200; });
+  await page.locator('.site-search__content').evaluate(element => { element.scrollTop = 200; });
   await page.mouse.move(10, 400);
   await page.mouse.wheel(0, 200);
   await page.waitForTimeout(150);
   await headerPosition(page, true);
-  assert.equal(await page.evaluate(() => scrollY), beforeInnerScroll, 'FAQ scrolling does not move the page');
+  assert.equal(await page.evaluate(() => scrollY), beforeInnerScroll, 'search dialog scrolling does not move the page');
   await page.keyboard.press('Escape');
   await expect(search).toBeFocused();
   await headerPosition(page, true);
@@ -284,46 +284,32 @@ for (const name of selectedBrowsers) {
     await expect(page.locator('.site-theme-menu__options')).toBeHidden();
     await fits(page, '#site-search-dialog .site-search__panel');
     await expect(searchDialog.locator('#site-search-tab-faq')).toHaveAttribute('aria-selected', 'true');
-    assert.equal(searchIndexRequests, 0, 'FAQ-first open does not fetch the site-search index');
-    const faqInput = searchDialog.locator('.ld-faq-search__input');
-    await expect(faqInput).toBeFocused();
+    assert.equal(searchIndexRequests, 0, 'empty initial FAQ view does not fetch the site-search index');
+    const searchInput = searchDialog.locator('#site-search-input');
+    await expect(searchInput).toBeFocused();
+    await expect(searchDialog.locator('.site-search__faq-content .faq-card')).toHaveCount(11);
+    assert.equal(await searchDialog.locator('input[type="search"]').count(), 1, 'dialog has one shared search input');
+    const faqListUrl = new URL(await searchDialog.locator('.site-search__faq-link').getAttribute('href'));
+    assert.equal(faqListUrl.pathname, '/faq.html');
+    assert.equal(faqListUrl.search, '');
     await page.mouse.move(700, 400);
     await page.waitForTimeout(400);
     await expect(searchDialog).toBeVisible();
-    await faqInput.fill('  インデント & "+"  ');
-    const faqOpened = page.waitForEvent('popup');
-    await faqInput.press('Enter');
-    const faqPage = await faqOpened;
-    await faqPage.waitForURL('**/faq.html?*');
-    const faqURL = new URL(faqPage.url());
-    assert.equal(faqURL.searchParams.get('q'), 'インデント & "+"');
-    assert.equal(faqURL.searchParams.get('course'), 'py');
-    assert.equal(new URL(page.url()).pathname, '/py21.html');
-    await faqPage.close();
-    await faqInput.fill('   ');
-    await faqInput.press('Enter');
-    await expect(faqInput).toBeFocused();
-    await expect(faqInput).toHaveValue('');
-    assert.equal(context.pages().length, 1, 'empty FAQ query does not open a page');
-    const relatedQuestions = searchDialog.locator('.ld-faq');
-    const faqCount = await page.evaluate(() => window.lessonDockData.faq.length);
-    assert.ok(faqCount > 0, 'practice page has related questions');
-    await expect(relatedQuestions).toHaveCount(faqCount);
-    await relatedQuestions.first().locator('summary').press('Enter');
-    await expect(relatedQuestions.first()).toHaveAttribute('open', '');
-    await page.keyboard.press('Escape');
-    await expect(searchDialog).toBeHidden();
-    await expect(search).toBeFocused();
-    await search.press('Enter');
-    await expect(searchDialog).toBeVisible();
-    await expect(searchDialog.locator('#site-search-tab-faq')).toHaveAttribute('aria-selected', 'true');
-    await expect(searchDialog.locator('.ld-faq-search__input')).toBeFocused();
+    await searchInput.fill('インデント エラー');
+    await expect(searchDialog.locator('#site-search-tab-faq')).toHaveText('FAQ（2件）');
+    await expect(searchDialog.locator('#site-search-tab-site')).toHaveText('教材（3件）');
+    assert.equal(searchIndexRequests, 1, 'typing in the shared input loads the site-search index once');
+    const matchingFaqs = searchDialog.locator('.site-search__faq-content .faq-card');
+    await expect(matchingFaqs).toHaveCount(2);
+    await matchingFaqs.first().locator('summary').press('Enter');
+    await expect(matchingFaqs.first()).toHaveAttribute('open', '');
     await searchDialog.locator('#site-search-tab-site').press('Enter');
     await expect(searchDialog.locator('#site-search-tab-site')).toHaveAttribute('aria-selected', 'true');
-    await page.keyboard.press('Tab');
-    await expect(searchDialog.locator('#site-search-input')).toBeFocused();
-    await expect(searchDialog.locator('.site-search__status')).toHaveText('検索語を入力してください。');
-    assert.equal(searchIndexRequests, 1, 'site-search index loads after selecting site search');
+    await expect(searchInput).toHaveValue('インデント エラー');
+    await expect(searchDialog.locator('#site-search-view-site .site-search__status')).toContainText('3件中');
+    await searchDialog.locator('#site-search-tab-faq').press('Enter');
+    await expect(searchDialog.locator('#site-search-tab-faq')).toHaveAttribute('aria-selected', 'true');
+    await expect(searchInput).toHaveValue('インデント エラー');
     assert.deepEqual(
       await searchDialog.locator('.site-search__filter').evaluateAll(buttons =>
         buttons.map(button => button.dataset.course)
@@ -331,10 +317,26 @@ for (const name of selectedBrowsers) {
       expectedCourseFilters,
       'course filters only show courses with released indexed pages'
     );
-    await searchDialog.locator('#site-search-input').fill('未公開論理回路検証語');
-    await expect(searchDialog.locator('.site-search__status')).toContainText('一致する教材はありません');
-    await searchDialog.locator('#site-search-input').fill('');
-    await expect(searchDialog.locator('.site-search__status')).toHaveText('検索語を入力してください。');
+    await searchInput.fill('未公開論理回路検証語');
+    await expect(searchDialog.locator('#site-search-tab-faq')).toHaveText('FAQ（0件）');
+    await expect(searchDialog.locator('#site-search-tab-site')).toHaveText('教材（0件）');
+    await expect(searchDialog.locator('.faq-ai-escalation')).toBeVisible();
+    const aiUrl = new URL(await searchDialog.locator('.faq-ai-escalation__yes').getAttribute('href'));
+    assert.equal(aiUrl.searchParams.get('course'), 'py');
+    assert.equal(aiUrl.searchParams.get('page'), 'py21');
+    assert.equal(aiUrl.searchParams.has('q'), false);
+    const returnUrl = new URL(aiUrl.searchParams.get('returnUrl'));
+    assert.equal(returnUrl.pathname, '/py21.html');
+    assert.equal(returnUrl.search, '');
+    assert.equal(returnUrl.hash, '');
+    await searchDialog.locator('.faq-ai-escalation__no').click();
+    await expect(searchDialog.locator('.faq-ai-escalation')).toHaveCount(0);
+    await expect(searchInput).toBeFocused();
+    await searchDialog.locator('.site-search__unresolved').click();
+    await expect(searchDialog.locator('.faq-ai-escalation')).toBeVisible();
+    await searchInput.fill('');
+    await expect(searchDialog.locator('#site-search-tab-faq')).toHaveText('FAQ（11件）');
+    await expect(searchDialog.locator('.site-search__faq-content .faq-card')).toHaveCount(11);
     await page.keyboard.press('Escape');
     await expect(search).toBeFocused();
     await search.click();
@@ -361,7 +363,7 @@ for (const name of selectedBrowsers) {
     await expect(page.locator('.lesson-dock__btn--menu')).toHaveCount(1);
     await expect(search).toHaveCount(1);
     await search.click();
-    await expect(searchDialog.locator('.ld-sec--faq')).toHaveCount(1);
+    await expect(searchDialog.locator('.site-search__faq-content .faq-card')).toHaveCount(11);
     await page.keyboard.press('Escape');
     await expect(page.locator('#headerbar__course')).toHaveCount(1);
 
@@ -399,7 +401,7 @@ for (const name of selectedBrowsers) {
             await fits(page, '#site-search-dialog .site-search__panel');
             await expect(searchDialog.locator('#site-search-tab-faq')).toHaveAttribute('aria-selected', 'true');
             assert.equal(await searchDialog.locator('.site-search__panel').evaluate(el => el.scrollWidth > el.clientWidth), false, 'search and FAQ fit inside the dialog');
-            for (const control of await searchDialog.locator('.site-search__tab, .ld-faq-search__input, .ld-faq-search__button, .ld-faq-search__all').all()) {
+            for (const control of await searchDialog.locator('.site-search__tab, #site-search-input, .site-search__submit, .site-search__faq-link').all()) {
               const box = await control.boundingBox();
               assert.ok(box.height >= 44, `${await control.getAttribute('class')} has a 44px touch target (${box.height}px)`);
             }
@@ -437,6 +439,44 @@ for (const name of selectedBrowsers) {
     await expect(touchPage.locator('.lesson-slide-deck__fullscreen-menu')).toBeVisible();
     await touch.close();
 
+    // A composing input, a pending index request, and a failed request must not be treated as 0 + 0.
+    const retryPage = await context.newPage();
+    let retryRequests = 0;
+    retryPage.on('pageerror', error => errors.push(error.message));
+    await retryPage.route('**/data/search-index.json', async route => {
+      retryRequests++;
+      if (retryRequests === 1) {
+        await new Promise(resolve => setTimeout(resolve, 350));
+        await route.fulfill({status: 500, contentType: 'text/plain', body: 'temporary failure'});
+        return;
+      }
+      await route.fulfill({status: 200, contentType: 'application/json', body: JSON.stringify(searchIndex)});
+    });
+    await ready(retryPage, 'py21.html');
+    await retryPage.locator('.lesson-dock__btn--search').click();
+    const retryDialog = retryPage.locator('#site-search-dialog');
+    const retryInput = retryDialog.locator('#site-search-input');
+    await retryInput.evaluate(input => {
+      input.dispatchEvent(new CompositionEvent('compositionstart', {bubbles:true}));
+      input.value = '未公開論理回路検証語';
+      input.dispatchEvent(new InputEvent('input', {bubbles:true, data:'語', inputType:'insertText', isComposing:true}));
+    });
+    await retryPage.waitForTimeout(250);
+    assert.equal(retryRequests, 0, 'IME変換中は索引を読み込まない');
+    await expect(retryDialog.locator('.faq-ai-escalation')).toHaveCount(0);
+    await retryInput.evaluate(input => input.dispatchEvent(new CompositionEvent('compositionend', {bubbles:true, data:'語'})));
+    await retryPage.waitForTimeout(220);
+    assert.equal(retryRequests, 1, '変換確定後に一度だけ索引を読む');
+    await expect(retryDialog.locator('.faq-ai-escalation')).toHaveCount(0);
+    await expect(retryDialog.locator('#site-search-view-site .site-search__status')).toHaveText('検索索引を読み込めませんでした。');
+    await expect(retryDialog.locator('.faq-ai-escalation')).toHaveCount(0);
+    await retryDialog.locator('#site-search-tab-site').click();
+    await expect(retryDialog.locator('#site-search-tab-site')).toHaveAttribute('aria-selected', 'true');
+    await retryDialog.locator('.site-search__retry').click();
+    await expect(retryDialog.locator('.faq-ai-escalation')).toBeVisible();
+    assert.equal(retryRequests, 2, '再試行では索引取得成功後にだけ0 + 0のAI案内を出す');
+    await retryPage.close();
+
     const rejected = await context.newPage();
     await rejected.addInitScript(() => {
       Element.prototype.requestFullscreen = () => Promise.reject(new Error('test denial'));
@@ -454,9 +494,9 @@ for (const name of selectedBrowsers) {
     await search.click();
     await expect(searchDialog).toBeVisible();
     await expect(searchDialog.locator('#site-search-tab-faq')).toHaveAttribute('aria-selected', 'true');
-    await expect(searchDialog.locator('.ld-faq')).toHaveCount(0);
-    await expect(searchDialog.locator('.ld-faq-empty')).toBeVisible();
-    const indexFaqURL = new URL(await searchDialog.locator('.ld-faq-search__all').getAttribute('href'));
+    await expect(searchDialog.locator('.site-search__faq-content .faq-card')).toHaveCount(0);
+    await expect(searchDialog.locator('.site-search__faq-content .site-search__empty')).toBeVisible();
+    const indexFaqURL = new URL(await searchDialog.locator('.site-search__faq-link').getAttribute('href'));
     assert.equal(indexFaqURL.pathname, '/faq.html');
     assert.equal(indexFaqURL.search, '');
     await page.keyboard.press('Escape');

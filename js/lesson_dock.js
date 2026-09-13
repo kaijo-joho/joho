@@ -473,69 +473,11 @@
 
     const wrap = el('div', { class: 'ld-faq-list' });
 
-    items.forEach((faq) => {
-      const det = el('details', {
-        class: 'ld-faq'
-      });
-
-      const summary = el('summary', { class: 'ld-faq__summary' });
-
-      // 質問
-      const q = el('span', { class: 'ld-faq__q' });
-
-      if (faq.questionHtml) {
-        q.innerHTML = faq.questionHtml;
-      } else {
-        q.textContent = faq.question || '質問';
-      }
-
-      summary.appendChild(q);
-      
-
-      // 短い回答
-      if (faq.shortAnswerHtml || faq.shortAnswer) {
-        const short = el('span', { class: 'ld-faq__short' });
-
-        if (faq.shortAnswerHtml) {
-          short.innerHTML = faq.shortAnswerHtml;
-        } else {
-          short.textContent = faq.shortAnswer || '';
-        }
-
-        summary.appendChild(short);
-      }
-
-      // タグ
-      summary.appendChild(el('span', { class: 'ld-faq__meta' }, [
-        faq.unit ? el('span', { class: 'ld-faq__tag' }, faq.unit) : null,
-        faq.category ? el('span', { class: 'ld-faq__tag' }, faq.category) : null
-      ].filter(Boolean)));
-
-      const body = el('div', { class: 'ld-faq__body' });
-
-      if (faq.bodyHtml) {
-        body.innerHTML = faq.bodyHtml;
-      } else if (faq.shortAnswerHtml) {
-        body.innerHTML = faq.shortAnswerHtml;
-      } else {
-        body.textContent = faq.shortAnswer || '';
-      }
-
-      // 関連教材リンク
-      if (faq.relatedPage) {
-        const related = el('p', { class: 'ld-faq__related' });
-        related.appendChild(el('a', {
-          href: faq.relatedPage,
-          target: '_blank',
-          rel: 'noopener'
-        }, '関連教材を開く'));
-        body.appendChild(related);
-      }
-
-      det.appendChild(summary);
-      det.appendChild(body);
-      wrap.appendChild(det);
-    });
+    if (window.siteFaq) {
+      items.forEach(faq => wrap.appendChild(window.siteFaq.renderFaqCard(faq, { compact: true })));
+    } else {
+      wrap.appendChild(el('p', { class: 'ld-faq-empty' }, '回答はFAQ一覧から確認してください。'));
+    }
 
     if (!items.length) {
       wrap.appendChild(el('p', { class: 'ld-faq-empty' }, 'このページに関連するFAQはありません。'));
@@ -615,14 +557,13 @@
     }, createIconNode('search'));
 
     if (document.documentElement.dataset.siteSearchReady === 'true' && typeof window.openSiteSearch === 'function') {
-      const faqContent = secFaq('このページのよくある質問', model.faq, model.course, 'site-search');
       search.setAttribute('aria-haspopup', 'dialog');
       search.setAttribute('aria-controls', 'site-search-dialog');
       search.addEventListener('click', () => {
         window.openSiteSearch(search, {
           defaultView: 'faq',
-          faqContent,
-          faqCount: model.faq.length,
+          faqItems: model.faq,
+          pageKey: id,
           course: model.course
         });
       });

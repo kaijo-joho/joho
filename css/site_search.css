@@ -162,17 +162,56 @@ html.site-search-is-open {
 }
 
 .site-search__view--faq {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+  overflow: visible;
 }
 
 .site-search__view--site {
-  display: flex;
+  overflow: visible;
+}
+
+.site-search__content {
   flex: 1 1 auto;
-  flex-direction: column;
-  overflow: hidden;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  overflow-wrap: anywhere;
+}
+
+.site-search__content [hidden] {
+  display: none;
+}
+
+.site-search__help-region {
+  margin-top: 14px;
+}
+
+.site-search__unresolved {
+  display: block;
+  min-height: 44px;
+  margin: 0 auto;
+  padding: 9px 14px;
+  border: 1px solid var(--ld-border);
+  border-radius: 10px;
+  background: transparent;
+  box-shadow: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+}
+
+.site-search__unresolved:hover {
+  background: color-mix(in oklab, var(--theme-color) 10%, transparent);
+  box-shadow: none;
+  transform: none;
+}
+
+.site-search .faq-ai-escalation {
+  margin: 0;
+}
+
+.site-search :is(.faq-ai-escalation__yes, .faq-ai-escalation__no) {
+  min-height: 44px;
 }
 
 .site-search__faq-content .ld-sec {
@@ -245,7 +284,8 @@ html.site-search-is-open {
 }
 
 .site-search__form {
-  margin: 0;
+  flex: 0 0 auto;
+  margin: 0 0 12px;
 }
 
 .site-search__label {
@@ -343,11 +383,7 @@ html.site-search-is-open {
 }
 
 .site-search__results-region {
-  flex: 1 1 auto;
   min-height: 150px;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
   border-top: 1px solid var(--ld-border, rgba(0, 0, 0, .10));
 }
 
@@ -487,6 +523,9 @@ html.site-search-is-open {
 .site-search__faq-link,
 .site-search__faq-link:link,
 .site-search__faq-link:visited {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
   color: color-mix(in oklab, var(--theme-color) 78%, currentColor 22%);
   font-weight: 800;
   text-decoration-thickness: .09em;
@@ -502,6 +541,7 @@ html.site-search-is-open {
   .site-search__result-link,
   .site-search__more,
   .site-search__retry,
+  .site-search__unresolved,
   .site-search__faq-link
 ):focus-visible {
   outline: 3px solid var(--button-focus, color-mix(in oklab, var(--theme-color) 60%, #fff 40%));

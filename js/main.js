@@ -256,6 +256,7 @@
   const PATH = {
     head: "./js/head.js",                 // フォント/CDN/MathJax/CSS 等（即時実行）
     pages: "./js/pages.js",               // window.pages を定義
+    faqShared: "./js/faq_shared.js",       // FAQ検索・表示・AI導線の共通処理
     faq: "./js/faq.js",                   // FAQ_DATA / FAQ_CATEGORY_DATA を定義
     nav: "./js/nav.js",                   // window.initNav()
     scriptPages: "./js/script_pages.js",  // window.initPageScripts()
@@ -276,6 +277,9 @@
         }),
         loadOptionalScript(PATH.pages, {
           ready: () => Boolean(window.pages && typeof window.pages === 'object')
+        }),
+        loadOptionalScript(PATH.faqShared, {
+          ready: () => Boolean(window.siteFaq)
         }),
         loadOptionalScript(PATH.faq, {
           ready: () => Array.isArray(window.FAQ_DATA)
