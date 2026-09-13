@@ -1,4 +1,4 @@
-//2026-09-13 05:33:50;
+//2026-09-13 07:01:25;
 const pages = {
   "index": {
     "id": "index",
@@ -374,9 +374,36 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "dr13",
-    "next": false,
+    "next": [
+      {
+        "id": "dr22",
+        "title": "色のデジタル表現",
+        "text": "色のデジタル表現",
+        "release": false,
+        "url": "dr22.html",
+        "detail": "光と色の三原色、RGB、色数とビット数、カラーコードを、操作と問題で学びます。"
+      }
+    ],
     "show": true,
     "backFile": "dr13.html"
+  },
+  "dr22": {
+    "id": "dr22",
+    "release": false,
+    "fileName": "dr22.html",
+    "mainTitle": "デジタル表現",
+    "category": "文字と色のデジタル表現",
+    "title": "色のデジタル表現",
+    "detail": "光と色の三原色、RGB、色数とビット数、カラーコードを、操作と問題で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr21",
+    "next": false,
+    "show": true,
+    "backFile": "dr21.html"
   },
   "dr31": {
     "id": "dr31",
