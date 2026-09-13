@@ -1,4 +1,4 @@
-//2026-09-13 02:11:06;
+//2026-09-13 03:54:15;
 const pages = {
   "index": {
     "id": "index",
@@ -320,9 +320,36 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "dr11",
-    "next": false,
+    "next": [
+      {
+        "id": "dr13",
+        "title": "演算誤差",
+        "text": "演算誤差",
+        "release": false,
+        "url": "dr13.html",
+        "detail": "丸め誤差、打ち切り誤差、情報落ち、桁落ち、表現範囲の限界を、操作と問題で学びます。"
+      }
+    ],
     "show": true,
     "backFile": "dr11.html"
+  },
+  "dr13": {
+    "id": "dr13",
+    "release": false,
+    "fileName": "dr13.html",
+    "mainTitle": "デジタル表現",
+    "category": "数値のデジタル表現",
+    "title": "演算誤差",
+    "detail": "丸め誤差、打ち切り誤差、情報落ち、桁落ち、表現範囲の限界を、操作と問題で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr12",
+    "next": false,
+    "show": true,
+    "backFile": "dr12.html"
   },
   "dr31": {
     "id": "dr31",
