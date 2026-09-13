@@ -1,4 +1,4 @@
-//2026-09-13 11:34:59;
+//2026-09-13 02:11:06;
 const pages = {
   "index": {
     "id": "index",
@@ -293,9 +293,36 @@ const pages = {
     "questionFile": false,
     "quizForm": false,
     "back": "dr02",
-    "next": false,
+    "next": [
+      {
+        "id": "dr12",
+        "title": "数値のデジタル表現(実数)",
+        "text": "数値のデジタル表現(実数)",
+        "release": false,
+        "url": "dr12.html",
+        "detail": "2進数の小数、固定小数点数、浮動小数点数の表し方を、ビット列の操作と問題で学びます。"
+      }
+    ],
     "show": true,
     "backFile": "dr02.html"
+  },
+  "dr12": {
+    "id": "dr12",
+    "release": false,
+    "fileName": "dr12.html",
+    "mainTitle": "デジタル表現",
+    "category": "数値のデジタル表現",
+    "title": "数値のデジタル表現(実数)",
+    "detail": "2進数の小数、固定小数点数、浮動小数点数の表し方を、ビット列の操作と問題で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "dr11",
+    "next": false,
+    "show": true,
+    "backFile": "dr11.html"
   },
   "dr31": {
     "id": "dr31",
