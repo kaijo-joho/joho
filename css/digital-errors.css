@@ -1,0 +1,62 @@
+@charset "UTF-8";
+
+.de-code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.de-code strong { font-family: inherit; }
+.de-table { display: table; min-width: 0; max-width: none; margin: .6em 0; padding: 0; }
+.de-table caption { text-align: left; margin-bottom: .5em; font-weight: 700; }
+.de-table th, .de-table td { vertical-align: middle; }
+.de-table-scroll:focus-visible { outline: 3px solid var(--dr-focus); outline-offset: -3px; }
+.de-controls label, .de-answer-row label { min-width: 0; max-width: 100%; }
+.de-controls input[type="text"] { width: 10em; }
+.de-controls select, #de-question-select {
+  min-width: 0;
+  min-height: 44px;
+  appearance: none;
+  -webkit-appearance: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  padding-right: 32px;
+  background-image: linear-gradient(45deg, transparent 50%, var(--dr-text) 50%), linear-gradient(135deg, var(--dr-text) 50%, transparent 50%);
+  background-position: right 16px center, right 10px center;
+  background-size: 6px 6px;
+  background-repeat: no-repeat;
+}
+.de-answer-row { align-items: end; }
+.de-flow { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; list-style: none; counter-reset: de-flow; margin: 1.4em 0; padding: 0; }
+.de-flow > li { position: relative; display: grid; gap: .5em; padding: 18px; border: 2px solid var(--dr-axis); border-radius: 8px; background: var(--dr-panel); counter-increment: de-flow; }
+.de-flow strong::before { content: counter(de-flow) "　"; }
+.de-flow > li::before { content: none; }
+.de-flow > li + li::before { content: "→"; position: absolute; left: -24px; width: 22px; top: 40%; text-align: center; }
+.de-flow small { color: var(--dr-muted); }
+.de-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; margin: 1em 0; }
+.de-metrics > div { padding: 14px; border: 1px solid var(--dr-border); border-radius: 8px; background: var(--dr-panel-strong); min-width: 0; }
+section article .de-metrics dt { color: var(--dr-muted); font-weight: 700; }
+section article .de-metrics dd { margin: .5em 0 0; padding: 0; color: var(--dr-text); font-size: 1.2em; font-weight: 700; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+section article .de-metrics dd::before { content: none; }
+.de-series-bar { display: flex; width: 100%; height: 54px; border: 2px solid var(--dr-axis); background: var(--dr-panel-strong); margin-block: 1em; overflow: hidden; }
+.de-series-filled { background: var(--dr-info); }
+.de-series-rest { background: repeating-linear-gradient(135deg, transparent 0 5px, var(--dr-axis) 5px 7px); }
+.de-legend { display: flex; flex-wrap: wrap; gap: .5em 1.5em; color: var(--dr-muted); font-size: .9em; }
+.de-kept { border-bottom: 3px solid var(--dr-info); }
+.de-discarded { color: var(--dr-muted); text-decoration: line-through; text-decoration-thickness: 2px; }
+.de-cancelled { background: var(--dr-info-soft); text-decoration: line-through; text-decoration-thickness: 2px; }
+.de-methods { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin: 1em 0; }
+.de-methods > div { padding: 12px; border-left: 4px solid var(--dr-axis); background: var(--dr-panel); }
+.de-methods p { margin-bottom: 0; }
+.de-choices { margin: 1em 0; padding: 10px; border: 1px solid var(--dr-border); border-radius: 8px; }
+.de-choices label { display: flex; align-items: center; gap: 10px; min-height: 44px; padding: 8px; border-radius: 6px; cursor: pointer; }
+.de-choices label:has(input:checked) { background: var(--dr-info-soft); }
+.de-choices input { flex: 0 0 auto; accent-color: var(--dr-info); }
+.de-choices label:focus-within { outline: 3px solid var(--dr-focus); outline-offset: -3px; }
+[data-de-output][hidden] { display: none !important; }
+
+@media (max-width: 720px) {
+  .de-flow, .de-methods { grid-template-columns: minmax(0, 1fr); }
+  .de-flow { gap: 24px; }
+  .de-flow > li + li::before { content: "↓"; left: calc(50% - 11px); top: -28px; }
+  .de-table th, .de-table td { padding: 7px; }
+}
+@media print {
+  .de-flow > li, .de-metrics > div, .de-methods > div { background: transparent; break-inside: avoid; }
+  .de-series-bar { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+}
