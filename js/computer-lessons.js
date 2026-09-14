@@ -15,6 +15,47 @@
     node.addEventListener('click', action);
     return node;
   }
+  function machine(root) {
+    const svg = root.querySelector('.cp-machine-arrows');
+    const nodes = Object.fromEntries(['input', 'control', 'arithmetic', 'memory', 'output'].map(name => [name, root.querySelector(`[data-lesson-view="${name}"]`)]));
+    const paths = Object.fromEntries([...svg.querySelectorAll('[data-cp-flow]')].map(path => [path.dataset.cpFlow, path]));
+    let pending = 0;
+    function draw() {
+      pending = 0;
+      const frame = root.getBoundingClientRect();
+      // 表紙や他のスライドを表示中は計測せず、再表示時に実寸へ合わせる。
+      if (!frame.width || !frame.height) return;
+      svg.setAttribute('viewBox', `0 0 ${frame.width} ${frame.height}`);
+      const boxes = Object.fromEntries(Object.entries(nodes).map(([name, node]) => {
+        const b = node.getBoundingClientRect();
+        return [name, { left: b.left - frame.left, right: b.right - frame.left, top: b.top - frame.top, bottom: b.bottom - frame.top, x: b.left + b.width / 2 - frame.left, y: b.top + b.height / 2 - frame.top, width: b.width }];
+      }));
+      const { input: i, control: c, arithmetic: a, memory: m, output: o } = boxes;
+      const setPath = (name, points) => paths[name].setAttribute('d', points.map(([x, y], index) => `${index ? 'L' : 'M'}${x.toFixed(2)} ${y.toFixed(2)}`).join(' '));
+      const dataX = c.left + c.width * .12;
+      const controlX = c.left + c.width * .29;
+      setPath('input-memory', [[i.right, i.y], [(i.right + m.left) / 2, i.y], [(i.right + m.left) / 2, m.y], [m.left, m.y]]);
+      setPath('memory-output', [[m.right, m.y], [(m.right + o.left) / 2, m.y], [(m.right + o.left) / 2, o.y], [o.left, o.y]]);
+      setPath('memory-control', [[dataX, m.top], [dataX, c.bottom]]);
+      setPath('memory-arithmetic', [[a.x, m.top], [a.x, a.bottom]]);
+      setPath('control-input', [[c.left, c.y], [i.x, c.y], [i.x, i.top]]);
+      setPath('control-output', [[c.right, c.y], [o.x, c.y], [o.x, o.top]]);
+      setPath('control-memory', [[controlX, c.bottom], [controlX, m.top]]);
+      setPath('control-arithmetic', [[a.x, c.bottom], [a.x, a.top]]);
+    }
+    const schedule = () => { if (!pending) pending = requestAnimationFrame(draw); };
+    if (typeof ResizeObserver === 'function') {
+      const observer = new ResizeObserver(schedule);
+      [root, ...Object.values(nodes)].forEach(node => observer.observe(node));
+    }
+    window.addEventListener('resize', schedule);
+    window.addEventListener('beforeprint', draw);
+    window.addEventListener('afterprint', schedule);
+    document.addEventListener('joho:lesson-slide-change', schedule);
+    document.addEventListener('joho:lesson-content-resize', schedule);
+    document.fonts?.ready.then(schedule);
+    schedule();
+  }
   function stepper(root, steps, render) {
     let index = 0;
     const controls = element('div', 'cp-stepper');
@@ -141,20 +182,57 @@
     const toolbar = element('div', 'cp-file-toolbar');
     const crumbs = element('nav', 'cp-breadcrumbs'); crumbs.setAttribute('aria-label', '現在のフォルダの階層');
     const up = button('↑ 上の階層', () => navigate(path.slice(0, -1)));
+    // Safari/WebKitでもフォルダ操作をTabでたどれるよう明示する。
+    up.tabIndex = 0;
     toolbar.append(up, crumbs);
     const list = element('ul', 'cp-file-list');
     const selection = element('div', 'cp-file-selection');
     const selectionTitle = element('strong');
     const location = element('p');
     selection.append(selectionTitle, location);
-    root.append(toolbar, list, selection);
+    const browser = element('div', 'cp-file-browser');
+    const tree = element('nav', 'cp-folder-tree');
+    tree.setAttribute('aria-label', 'フォルダツリー');
+    tree.append(element('h3', '', 'フォルダツリー'));
+    const treeItems = [];
+    const folderPath = part => [core.FILE_TREE.name, ...part.map((_, i) => core.fileAt(part.slice(0, i + 1)).name)].join(' ／ ');
+    function treeBranch(folder, part) {
+      const row = element('li');
+      // ネイティブのリストとボタンで階層を表す。独自のtreeキー操作は要求しない。
+      const item = button('', () => navigate(part, false), 'cp-button cp-folder-tree__item');
+      item.tabIndex = 0;
+      const icon = element('span', 'cp-folder-icon');
+      icon.setAttribute('aria-hidden', 'true');
+      item.append(icon, element('span', '', folder.name));
+      item.setAttribute('aria-label', `${folderPath(part)}を開く`);
+      row.append(item);
+      treeItems.push({ item, part });
+      const children = element('ul');
+      folder.children.forEach((entry, index) => { if (entry.children) children.append(treeBranch(entry, [...part, index])); });
+      if (children.childElementCount) row.append(children);
+      return row;
+    }
+    const branches = element('ul');
+    branches.append(treeBranch(core.FILE_TREE, []));
+    tree.append(branches);
+    const pane = element('div', 'cp-file-pane');
+    pane.append(toolbar, list, selection);
+    browser.append(tree, pane);
+    root.append(browser);
     function navigate(next, focus = true) {
-      path = next;
+      path = [...next];
       const folder = core.fileAt(path);
+      treeItems.forEach(({ item, part }) => {
+        const ancestor = part.every((index, depth) => index === path[depth]);
+        if (ancestor && part.length === path.length) item.setAttribute('aria-current', 'location');
+        else item.removeAttribute('aria-current');
+        item.toggleAttribute('data-current-ancestor', ancestor && part.length < path.length);
+      });
       crumbs.replaceChildren(); list.replaceChildren();
       [[], ...path.map((_, i) => path.slice(0, i + 1))].forEach((part, i) => {
         if (i > 0) crumbs.append(element('span', 'cp-breadcrumb-separator', '›'));
         const item = button(core.fileAt(part).name, () => navigate(part));
+        item.tabIndex = 0;
         if (i === path.length) item.setAttribute('aria-current', 'location');
         crumbs.append(item);
       });
@@ -167,9 +245,10 @@
             list.querySelectorAll('[aria-pressed]').forEach(node => node.setAttribute('aria-pressed', 'false'));
             item.setAttribute('aria-pressed', 'true');
             selectionTitle.textContent = `${entry.name}（${entry.kind}）`;
-            location.textContent = `保存場所：${[core.FILE_TREE.name, ...path.map((_, i) => core.fileAt(path.slice(0, i + 1)).name), entry.name].join(' ／ ')}`;
+            location.textContent = `保存場所：${folderPath(path)} ／ ${entry.name}`;
           }
         }, 'cp-file-entry');
+        item.tabIndex = 0;
         const icon = element('span', entry.children ? 'cp-folder-icon' : 'cp-file-icon');
         icon.setAttribute('aria-hidden', 'true');
         item.append(icon, element('span', '', entry.name), element('small', '', entry.children ? 'フォルダを開く' : entry.kind));
@@ -177,7 +256,7 @@
         row.append(item); list.append(row);
       });
       selectionTitle.textContent = 'フォルダやファイルを選んでみましょう';
-      location.textContent = `現在の場所：${[core.FILE_TREE.name, ...path.map((_, i) => core.fileAt(path.slice(0, i + 1)).name)].join(' ／ ')}`;
+      location.textContent = `現在の場所：${folderPath(path)}`;
       if (focus) list.querySelector('button')?.focus({ preventScroll: true });
     }
     navigate([], false);
@@ -257,6 +336,7 @@
       try { init(root); } catch (error) { root.replaceChildren(...original); console.error('CP教材の初期化に失敗しました。', error); }
     };
     document.querySelectorAll('[data-cp-demo]').forEach(root => { if (demos[root.dataset.cpDemo]) enhance(root, demos[root.dataset.cpDemo]); });
+    document.querySelectorAll('[data-cp-machine]').forEach(root => enhance(root, machine));
     document.querySelectorAll('[data-cp-files]').forEach(root => enhance(root, files));
     document.querySelectorAll('[data-cp-quiz]').forEach(root => enhance(root, quiz));
   }

@@ -26,4 +26,11 @@ for (const [a, b] of [['cp00', 'cp11'], ['cp11', 'cp12'], ['cp12', 'cp21'], ['cp
   assert.equal(ctx.registry[a].next[0].id, b);
   assert.equal(ctx.registry[b].back, a);
 }
+const hardware = read('cp11.html');
+assert.ok(hardware.includes('data-lesson-default-view="cpu"'));
+assert.ok(hardware.includes('id="device-cpu" data-lesson-view-panel="cpu"'));
+assert.equal((hardware.match(/data-cp-flow=/g) || []).length, 8);
+assert.ok(hardware.includes('marker-start="url(#cp-data-arrow)"'));
+assert.ok(hardware.includes('aria-labelledby="cp-flow-title cp-flow-desc"'));
+assert.equal((read('cp12.html').match(/<svg class="cp-layer-arrow"/g) || []).length, 2);
 console.log('computer-pages: 共通基盤・6枚構成・教材登録・補足リンク OK');

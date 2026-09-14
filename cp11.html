@@ -17,18 +17,45 @@
     <article>
       <h2 id="headline_1">(1) コンピュータの五大装置</h2>
       <p class="cp-lead">コンピュータの働きは、<strong>入力・出力・記憶・制御・演算</strong>の5つに分けられます。</p>
-      <div data-lesson-view-group data-lesson-default-view="control" id="cp-devices">
+      <div data-lesson-view-group data-lesson-default-view="cpu" id="cp-devices">
+        <div class="cp-machine-frame" data-cp-machine>
         <div class="cp-machine" role="tablist" data-lesson-view-controls aria-label="装置を選んで役割を調べる">
           <button class="cp-device cp-device--input" type="button" data-lesson-view="input"><span class="cp-eyebrow">データを入れる</span><strong>入力装置</strong><span>キーボード・マウス</span></button>
-          <div class="cp-machine__cpu"><span class="cp-machine__label">CPU（中央処理装置）</span>
-            <button class="cp-device" type="button" data-lesson-view="control"><span class="cp-eyebrow">全体を動かす</span><strong>制御装置</strong></button>
-            <button class="cp-device" type="button" data-lesson-view="arithmetic"><span class="cp-eyebrow">計算・判断する</span><strong>演算装置</strong></button>
+          <div class="cp-machine__cpu">
+            <button class="cp-device cp-machine__label" type="button" data-lesson-view="cpu"><strong>CPU</strong><span>（中央処理装置）</span></button>
+            <button class="cp-device cp-device--control" type="button" data-lesson-view="control"><strong>制御装置</strong></button>
+            <button class="cp-device cp-device--arithmetic" type="button" data-lesson-view="arithmetic"><strong>演算装置</strong></button>
           </div>
           <button class="cp-device cp-device--output" type="button" data-lesson-view="output"><span class="cp-eyebrow">結果を取り出す</span><strong>出力装置</strong><span>ディスプレイ・プリンタ</span></button>
-          <div class="cp-machine__flow" aria-hidden="true">データのやり取り　↕</div>
           <button class="cp-device cp-device--memory" type="button" data-lesson-view="memory"><span class="cp-eyebrow">命令やデータを覚える</span><strong>記憶装置</strong><span>主記憶装置・補助記憶装置</span></button>
         </div>
+        <svg class="cp-machine-arrows" role="img" aria-labelledby="cp-flow-title cp-flow-desc">
+          <title id="cp-flow-title">五大装置のデータと制御の流れ</title>
+          <desc id="cp-flow-desc">実線は、入力装置から記憶装置、記憶装置から出力装置、記憶装置と演算装置の双方向、記憶装置から制御装置への命令やデータの流れ。破線は、制御装置から入力・出力・記憶・演算装置への指示を表します。</desc>
+          <defs>
+            <marker id="cp-data-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" orient="auto-start-reverse" markerUnits="userSpaceOnUse"><path d="M1 1 L9 5 L1 9 Z" class="cp-flow-marker--data"/></marker>
+            <marker id="cp-control-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="11" markerHeight="11" orient="auto" markerUnits="userSpaceOnUse"><path d="M1 1 L9 5 L1 9 Z" class="cp-flow-marker--control"/></marker>
+          </defs>
+          <g class="cp-flow-lines cp-flow-lines--data" marker-end="url(#cp-data-arrow)">
+            <path data-cp-flow="input-memory"/>
+            <path data-cp-flow="memory-output"/>
+            <path data-cp-flow="memory-control"/>
+            <path data-cp-flow="memory-arithmetic" marker-start="url(#cp-data-arrow)"/>
+          </g>
+          <g class="cp-flow-lines cp-flow-lines--control" marker-end="url(#cp-control-arrow)">
+            <path data-cp-flow="control-input"/>
+            <path data-cp-flow="control-output"/>
+            <path data-cp-flow="control-memory"/>
+            <path data-cp-flow="control-arithmetic"/>
+          </g>
+        </svg>
+        </div>
+        <div class="cp-flow-legend">
+          <span><svg viewBox="0 0 58 16" aria-hidden="true"><path class="cp-flow-lines cp-flow-lines--data" d="M2 8 H54"/><path class="cp-flow-marker--data" d="M47 3 L55 8 L47 13 Z"/></svg>データの流れ（命令を含む）</span>
+          <span><svg viewBox="0 0 58 16" aria-hidden="true"><path class="cp-flow-lines cp-flow-lines--control" d="M2 8 H54"/><path class="cp-flow-marker--control" d="M47 3 L55 8 L47 13 Z"/></svg>制御の流れ（各装置への指示）</span>
+        </div>
         <div class="cp-explanation" id="device-input" data-lesson-view-panel="input"><h3>入力装置</h3><p>文字や操作などをデータとして取り込みます。キーボードやマウスのほか、マイクやカメラも入力装置です。</p></div>
+        <div class="cp-explanation" id="device-cpu" data-lesson-view-panel="cpu"><h3>CPU（中央処理装置）</h3><p><strong>制御装置と演算装置</strong>からなり、コンピュータの処理の中心となる装置です。記憶装置から命令を読み出し、各装置へ指示を出しながら計算や判断を行います。</p></div>
         <div class="cp-explanation" id="device-control" data-lesson-view-panel="control"><h3>制御装置</h3><p>命令を読み出して解読し、各装置へ指示を出します。<strong>制御装置と演算装置を合わせてCPU</strong>と呼びます。</p></div>
         <div class="cp-explanation" id="device-arithmetic" data-lesson-view-panel="arithmetic"><h3>演算装置</h3><p>足し算などの算術演算や、大小比較などの論理演算を行います。計算を支える論理回路は、後の単元で学びます。</p></div>
         <div class="cp-explanation" id="device-output" data-lesson-view-panel="output"><h3>出力装置</h3><p>処理した結果を、画面・音・印刷物などとして取り出します。スピーカーも出力装置です。</p></div>

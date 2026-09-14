@@ -24,6 +24,41 @@ async function fits(page, label, desktop = false) {
   assert.ok(box.slideWidth <= box.visibleWidth + 1, `${label}: スライド横はみ出し ${JSON.stringify(box)}`);
   if (desktop) assert.ok(box.scroll <= box.height + 2, `${label}: 標準サイズの本文は縦スクロールなし ${JSON.stringify(box)}`);
 }
+async function machineArrows(page, label) {
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  const geometry = await page.locator('[data-cp-machine]').evaluate(root => {
+    const frame = root.getBoundingClientRect();
+    const boxes = Object.fromEntries([...root.querySelectorAll('[data-lesson-view]')].map(node => {
+      const b = node.getBoundingClientRect();
+      return [node.dataset.lessonView, { left: b.left - frame.left, right: b.right - frame.left, top: b.top - frame.top, bottom: b.bottom - frame.top }];
+    }));
+    const paths = [...root.querySelectorAll('[data-cp-flow]')].map(path => {
+      const values = (path.getAttribute('d') || '').match(/-?\d+(?:\.\d+)?/g)?.map(Number) || [];
+      return { name: path.dataset.cpFlow, points: values.reduce((all, n, i) => { if (!(i % 2)) all.push([n, values[i + 1]]); return all; }, []), length: path.getTotalLength(), dash: getComputedStyle(path).strokeDasharray };
+    });
+    return { boxes, paths };
+  });
+  assert.equal(geometry.paths.length, 8, `${label}: データ4経路・制御4経路`);
+  const onEdge = ([x, y], box) => x >= box.left - 1 && x <= box.right + 1 && y >= box.top - 1 && y <= box.bottom + 1 && Math.min(Math.abs(x - box.left), Math.abs(x - box.right), Math.abs(y - box.top), Math.abs(y - box.bottom)) <= 1;
+  for (const path of geometry.paths) {
+    const [from, to] = path.name.split('-');
+    assert.ok(path.length > 4, `${label}: ${path.name}が潰れずに表示される`);
+    assert.ok(onEdge(path.points[0], geometry.boxes[from]), `${label}: ${path.name}の始点が装置に接する`);
+    assert.ok(onEdge(path.points.at(-1), geometry.boxes[to]), `${label}: ${path.name}の終点が装置に接する`);
+    assert.equal(path.dash === 'none', from !== 'control', `${label}: データは実線・制御は破線`);
+    path.points.slice(1).forEach(([x2, y2], index) => {
+      const [x1, y1] = path.points[index];
+      assert.ok(Math.abs(x2 - x1) < .1 || Math.abs(y2 - y1) < .1, `${label}: 直角の経路`);
+      for (const [name, box] of Object.entries(geometry.boxes)) {
+        if ([from, to].includes(name)) continue;
+        const crosses = Math.abs(x2 - x1) < .1
+          ? x1 > box.left + 1 && x1 < box.right - 1 && Math.max(y1, y2) > box.top + 1 && Math.min(y1, y2) < box.bottom - 1
+          : y1 > box.top + 1 && y1 < box.bottom - 1 && Math.max(x1, x2) > box.left + 1 && Math.min(x1, x2) < box.right - 1;
+        assert.ok(!crosses, `${label}: ${path.name}が${name}の文字を横切らない`);
+      }
+    });
+  }
+}
 async function dialog(page, id) {
   const trigger = page.locator(`[data-lesson-supplement-open="${id}"]`);
   const panel = page.locator(`#${id}`);
@@ -49,12 +84,25 @@ for (const name of selected) {
         await expect(page.locator('#page_header')).toContainText(id === 'cp11' ? '1-1. コンピュータの構成と動作' : '1-2. ソフトウェアとファイル管理');
         for (let i = 1; i <= 6; i++) {
           await slide(page, i); await fits(page, `${name} ${id} ${width} #${i}`, width === 1440);
+          if (id === 'cp11' && i === 1) {
+            await expect(page.locator('#device-cpu')).toBeVisible();
+            await expect(page.locator('#device-cpu')).toContainText('制御装置と演算装置');
+            await machineArrows(page, `${name} ${width}`);
+          }
+          if (id === 'cp12' && i === 1) {
+            await expect(page.locator('svg.cp-layer-arrow')).toHaveCount(2);
+            await expect(page.getByRole('img', { name: 'アプリとOSが双方向にやり取りする' })).toBeVisible();
+            await expect(page.getByRole('img', { name: 'OSとハードウェアが双方向にやり取りする' })).toBeVisible();
+          }
           if (artifacts && [1, 3].includes(i) && [1440, 390].includes(width)) await page.screenshot({ path: `${artifacts}/${name}-${id}-${width}-${i}.png` });
         }
       }
       await load(page, 'cp11.html#device-input');
       await expect(page.locator('#device-input')).toBeVisible();
       await page.locator('[data-lesson-view="input"]').focus();
+      await page.keyboard.press('ArrowRight');
+      await expect(page.locator('#device-cpu')).toBeVisible();
+      assert.equal(new URL(page.url()).hash, '#device-cpu');
       await page.keyboard.press('ArrowRight');
       await expect(page.locator('#device-control')).toBeVisible();
       assert.equal(new URL(page.url()).hash, '#device-control');
@@ -107,9 +155,15 @@ for (const name of selected) {
       await expect(number.locator('.cp-feedback')).toBeEmpty();
       await load(page, 'cp12.html#headline_3');
       const files = page.locator('[data-cp-files]');
+      const tree = files.getByRole('navigation', { name: 'フォルダツリー' });
+      await expect(tree.getByRole('button')).toHaveCount(6);
+      const currentFolder = path => expect(tree.locator('[aria-current="location"]')).toHaveAttribute('aria-label', `${path}を開く`);
+      await currentFolder('授業');
       const activate = async locator => width === 390 ? locator.tap() : locator.click();
       await activate(files.getByRole('button', { name: '情報 フォルダを開く' }));
+      await currentFolder('授業 ／ 情報');
       await activate(files.getByRole('button', { name: 'レポート フォルダを開く' }));
+      await currentFolder('授業 ／ 情報 ／ レポート');
       await activate(files.getByRole('button', { name: '原稿.docx 文書' }));
       await expect(files.locator('.cp-file-selection')).toContainText('授業 ／ 情報 ／ レポート ／ 原稿.docx');
       await files.getByRole('button', { name: '授業', exact: true }).click();
@@ -117,6 +171,26 @@ for (const name of selected) {
       await files.getByRole('button', { name: 'レポート フォルダを開く' }).press('Enter');
       await files.getByRole('button', { name: '原稿.docx 文書' }).press('Enter');
       await expect(files.locator('.cp-file-selection')).toContainText('授業 ／ 英語 ／ レポート ／ 原稿.docx');
+      await currentFolder('授業 ／ 英語 ／ レポート');
+      await files.getByRole('button', { name: '↑ 上の階層' }).press('Enter');
+      await currentFolder('授業 ／ 英語');
+      await activate(tree.getByRole('button', { name: '授業 ／ 情報 ／ 画像を開く', exact: true }));
+      await currentFolder('授業 ／ 情報 ／ 画像');
+      await expect(files.locator('.cp-breadcrumbs [aria-current]')).toHaveText('画像');
+      await expect(files.locator('.cp-file-list')).toContainText('校舎.png');
+      await expect(files.locator('.cp-file-selection')).not.toContainText('原稿.docx');
+      await tree.getByRole('button', { name: '授業 ／ 情報 ／ レポートを開く', exact: true }).focus();
+      await page.keyboard.press('Enter');
+      await expect(tree.locator('[aria-current="location"]')).toBeFocused();
+      await expect(files.locator('.cp-file-list')).toContainText('提出版.pdf');
+      await expect(files.locator('.cp-file-list')).toContainText('原稿.docx');
+      await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab');
+      await expect(tree.locator('[aria-current="location"]')).toBeFocused();
+      await tree.getByRole('button').last().focus(); await page.keyboard.press('Tab');
+      await expect(files.getByRole('button', { name: '↑ 上の階層' })).toBeFocused();
+      await slide(page, 4); await slide(page, 3);
+      await currentFolder('授業 ／ 情報 ／ レポート');
+      await expect(files.locator('.cp-breadcrumbs [aria-current]')).toHaveText('レポート');
       await slide(page, 2);
       for (const role of ['memory', 'io', 'file', 'user', 'task']) {
         await page.locator(`#cp-os-roles [data-lesson-view="${role}"]`).click();
@@ -155,6 +229,7 @@ for (const name of selected) {
             for (let i = 1; i <= 6; i++) {
               await slide(settingsPage, i);
               await fits(settingsPage, `${name} ${id} ${width} ${theme} ${size} #${i}`);
+              if (id === 'cp11' && i === 1) await machineArrows(settingsPage, `${name} ${width} ${theme} ${size}`);
             }
           }
         }
@@ -172,13 +247,21 @@ for (const name of selected) {
     await settingsPage.locator('[data-lesson-supplement-open="cp-cpu-detail"]').click();
     await expect(themeMenu).toHaveAttribute('aria-expanded', 'false');
     await settingsPage.keyboard.press('Escape');
+    await slide(settingsPage, 1);
+    await settingsPage.setViewportSize({ width: 1800, height: 1000 });
     const fullscreen = settingsPage.getByRole('button', { name: '全画面表示メニューを開く', exact: true });
     await fullscreen.click();
     await settingsPage.getByRole('button', { name: 'スライドを全画面表示', exact: true }).click();
     await expect(settingsPage.locator('body')).toHaveClass(/is-lesson-fullscreen/);
     await fits(settingsPage, `${name}: 全画面表示`);
+    await machineArrows(settingsPage, `${name}: 全画面1800px`);
     await settingsPage.getByRole('button', { name: '全画面表示を終了', exact: true }).click();
     await expect(settingsPage.locator('body')).not.toHaveClass(/is-lesson-fullscreen/);
+    await machineArrows(settingsPage, `${name}: 全画面終了後`);
+    await settingsPage.emulateMedia({ media: 'print' });
+    await expect(settingsPage.locator('.cp-machine')).toBeVisible();
+    await machineArrows(settingsPage, `${name}: 印刷用表示`);
+    await settingsPage.emulateMedia({ media: 'screen' });
     await settingsContext.close();
     console.log(`${name}: 全テーマ・3文字サイズ・全画面・補足dialogの排他制御 OK`);
     const context = await browser.newContext({ javaScriptEnabled: false, viewport: { width: 390, height: 900 } });
