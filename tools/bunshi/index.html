@@ -79,6 +79,8 @@ button,select,input{font:inherit;color:inherit}
 .fmtbar b{font-weight:600}
 .fmtbar button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:4px 9px;cursor:pointer}
 .fmtbar button:hover{background:#f4f6f9}
+.fmtbar select{border:1px solid var(--line);border-radius:7px;padding:3px 4px;background:#fff}
+.fmtbar .pivrow{display:inline-flex;align-items:center;gap:5px;color:var(--muted)}
 /* ---- 下部 ---- */
 .info{grid-area:info;display:flex;align-items:center;gap:12px;padding:6px 10px;background:var(--panel);
   border-top:1px solid var(--line);min-height:40px;flex-wrap:wrap}
@@ -218,8 +220,15 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <canvas id="ov"></canvas>
     <div class="fmtbar" id="selBar" hidden>
       <b id="selName"></b>
+      <label class="pivrow" id="selPivRow" hidden>回転の中心<select id="selPiv" title="この分子を回すときの中心にする不斉炭素（番号は図の中の数字）"></select></label>
+      <button id="btnReMirror" hidden title="選んだ分子を、もう一方の分子を鏡に映した位置・向きに戻す">鏡の位置に戻す</button>
+      <button id="btnToOrigin" title="選んだ分子の回転の中心（不斉炭素、なければ分子の中心）を、軸の原点に合わせる">原点へ</button>
       <button id="btnInvert" title="選んだ分子を、その鏡像（立体配置がすべて逆のもの）に置き換える">鏡像に変える</button>
       <button id="btnDelMol" title="選んだ分子を削除 (Delete)">削除</button>
+    </div>
+    <div class="fmtbar" id="mirBar" hidden>
+      <b>鏡像体</b>
+      <label class="pivrow" id="mirPivRow">回転の中心<select id="mirPiv" title="分子を回すときの中心にする不斉炭素（番号は図の中の数字）"></select></label>
     </div>
     <div id="hint"></div>
     <div id="glError" hidden>この環境では 3D 表示（WebGL2）が使えません。Google Chrome の最新版で開いてください。</div>
@@ -231,7 +240,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <div class="zoom">
       <button class="vb" id="btnFit" title="全体表示 (F)：分子全体が見える大きさにする"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>全体表示</button>
       <button class="vb" id="btnResetView" title="はじめの向きに戻す (R)"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 102.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>はじめの向き</button>
-      <button class="vb" id="tgAxes" title="軸の表示：x・y・z 軸の向きを画面の右下に表示する（x 赤・y 緑・z 青）"><svg viewBox="0 0 24 24"><path d="M7 17V4M7 17h13M7 17l-4 4"/></svg>軸</button>
+      <button class="vb" id="tgAxes" title="軸の表示：原点を通る x・y・z 軸を表示する（x 赤・y 緑・z 青）"><svg viewBox="0 0 24 24"><path d="M7 17V4M7 17h13M7 17l-4 4"/></svg>軸</button>
       <span class="sepv"></span>
       <button id="zOut" title="縮小">−</button>
       <span id="zLabel">100%</span>
@@ -263,6 +272,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
             <select id="expScale"><option value="1">1倍</option><option value="2" selected>2倍</option><option value="4">4倍（印刷向け）</option></select>
           </label>
           <label class="chk"><input type="checkbox" id="expTransparent">背景を透明にする</label>
+          <label class="chk"><input type="checkbox" id="expAxes">軸を入れる</label>
           <button class="sbtn primary" id="expPng">PNG で保存</button>
           <button class="sbtn" id="expCopy">画像をコピー</button>
           <p class="muted">いま画面に見えている向き・大きさで書き出します。コピーした画像は Word・PowerPoint に直接貼り付けできます。</p>
@@ -289,13 +299,13 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>分子を表示する</td><td>左上の「化合物ライブラリ」（または画面右端のタブ）から化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
         <tr><td>回す</td><td>ドラッグ、またはトラックパッドの 2 本指スクロール。矢印キーでも少しずつ回ります。<kbd>⌥/Alt</kbd>+ドラッグで、画面に垂直な軸（z 軸）のまわりに、画面の中で回します。</td></tr>
         <tr><td>移動・拡大</td><td><kbd>Shift</kbd>+ドラッグ（または右ドラッグ）で移動。<kbd>⌘/Ctrl</kbd>+ホイール・ピンチで拡大縮小。画面右下の「全体表示」(<kbd>F</kbd>)・「はじめの向き」(<kbd>R</kbd>)・− ＋ でも変えられます。</td></tr>
-        <tr><td>軸の表示</td><td>画面右下の「軸」で、分子の座標の x・y・z 軸の向き（x 赤・y 緑・z 青）を右下に表示します（書き出す画像には入りません）。</td></tr>
+        <tr><td>軸の表示</td><td>画面右下の「軸」で、原点（はじめは分子模型の中心）を通る x・y・z 軸（x 赤・y 緑・z 青）を表示します。分子をクリックして選び、ドラッグ・<kbd>Shift</kbd>+ドラッグすると、軸に対して分子を回したり動かしたりできます（ポップアップの「原点へ」で、回転の中心を原点に戻す）。画像に軸を入れるかは、書き出しパネルの「軸を入れる」で選べます。</td></tr>
         <tr><td>分子ごとに動かす</td><td>分子をクリックして選択すると、その分子の近くからのドラッグで、その分子だけが回ります（<kbd>Shift</kbd>+ドラッグで移動、<kbd>⌥/Alt</kbd>+ドラッグで z 軸まわり）。分子から離れたところからドラッグすると全体が回ります。何もないところをクリックすると選択を解除します。</td></tr>
         <tr><td>表示のしかた</td><td>上部の「球棒」「棒」「空間充填」(<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>)。二重結合は棒 2 本、三重結合は棒 3 本、ベンゼン環の結合は実線と点線（すべて同じ長さ 1.40 Å）で表します。空間充填モデルの球の大きさはファンデルワールス半径です。「表示 ▼」で原子の記号・H を隠す・背景を選べます。</td></tr>
         <tr><td>原子の色</td><td>C 黒・H 白・O 赤・N 青・S 黄・Cl 緑・Br 茶・I 紫。</td></tr>
         <tr><td>計測</td><td>左の計測のボタン（<kbd>D</kbd> 距離、<kbd>A</kbd> 結合角、<kbd>T</kbd> 二面角）を選び、原子を順にクリック。結果は図と画面下に出ます。画面下の × で消せます。</td></tr>
         <tr><td>不斉炭素・R/S</td><td>上部の「不斉炭素」で、4 つの異なる原子・原子団が結合した炭素をだいだい色の円で囲みます。「R/S」で R・S を表示します（CIP 順位規則。高校の範囲外の発展的な内容です。原子番号だけで順位を決めるので、まれに判定できないものがあります）。</td></tr>
-        <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。分子をクリックして選び、上に出る「鏡像に変える」でその分子だけを鏡像にもできます。</td></tr>
+        <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。回転の中心は不斉炭素（青い十字の印）で、2 つ以上あるときは上に出るプルダウンで選べます。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。<br>分子をクリックして選ぶと、その分子だけを回したり（ドラッグ）、動かしたり（<kbd>Shift</kbd>+ドラッグ）できます。もう一方に近づけたり、鏡を通り越して重ねたりして、重ならないことを確かめられます。「鏡の位置に戻す」で元の鏡像の位置に戻ります。「鏡像に変える」でその分子だけを鏡像にもできます。</td></tr>
         <tr><td>選択・削除</td><td>分子をクリックで選択（何もないところをクリックで解除）。<kbd>Delete</kbd> で削除。</td></tr>
         <tr><td>元に戻す</td><td><kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd>、やり直し <kbd>⇧</kbd>+<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd></td></tr>
         <tr><td>保存・開く</td><td>上部左の保存ボタンで .json に保存し、開くボタンで開きます。ほかのソフトの .mol・.sdf・.xyz ファイルも開けます。表示している内容はブラウザに自動保存されます。</td></tr>
@@ -306,7 +316,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.1 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.2 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1248,8 +1258,9 @@ out vec3 vN; out vec3 vCol; out float vPix;
 void main(){
   vec3 a0 = (uView*vec4(p0r.xyz, 1.0)).xyz, a1 = (uView*vec4(p1, 1.0)).xyz, ax = a1 - a0, d = normalize(ax);
   vec3 u = normalize(cross(d, abs(d.z) < 0.9 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0))), w = cross(d, u);
-  vec3 n = u*cyl.x + w*cyl.y, p = a0 + ax*cyl.z + n*p0r.w;
-  vN = n; vCol = col; vPix = p0r.w*uPx;
+  float rr = p0r.w < 0.0 ? -p0r.w*(1.0 - cyl.z) : p0r.w;   // 半径が負なら先がとがった円すい（軸の矢じり）
+  vec3 n = u*cyl.x + w*cyl.y, p = a0 + ax*cyl.z + n*rr;
+  vN = n; vCol = col; vPix = abs(p0r.w)*uPx;
   gl_Position = vec4(p.xy*uScale, ((uDepth.x - p.z)*uDepth.y)*2.0 - 1.0, 1.0);
 }`;
 const CYL_FS = `#version 300 es
@@ -1260,9 +1271,10 @@ out vec4 frag;
 ${SHADE}
 void main(){
   vec3 n = normalize(vN);
-  vec3 col = shade(n, vCol);
+  bool plain = vCol.r > 5.0;   // 色に 10 を足したものは輪郭線なし（軸）
+  vec3 col = shade(n, plain ? vCol - vec3(10.0) : vCol);
   float side = sqrt(max(0.0, 1.0 - n.z*n.z)), w = uLine/max(vPix, 1.0);
-  col = mix(col, uOutCol, smoothstep(1.0 - w*1.6, 1.0 - w*0.4, side));
+  if (!plain) col = mix(col, uOutCol, smoothstep(1.0 - w*1.6, 1.0 - w*0.4, side));
   frag = vec4(col, 1.0);
 }`;
 const PLANE_VS = `#version 300 es
@@ -1326,7 +1338,9 @@ function atomVisible(a){
   return !Object.values(doc.bonds).some(b => (b.a1 === a.id && doc.atoms[b.a2]?.el === 'C') || (b.a2 === a.id && doc.atoms[b.a1]?.el === 'C'));
 }
 let scene = null;   // {spheres, cyls, planes, visible:Set, bbox}
-function buildScene(){
+// 軸の長さ：原点から最も遠い原子より少し長く（鏡像の分子は数えない）
+function axisLength(){ const as = Object.values(doc.atoms).filter(a => !a.mir); return Math.max(2, ...as.map(a => Math.hypot(a.x, a.y, a.z) + 0.9)); }
+function buildScene(opt = {}){
   const S = [], Cy = [], vis = new Set();
   for (const a of Object.values(doc.atoms)) if (atomVisible(a)) vis.add(a.id);
   for (const a of Object.values(doc.atoms)){
@@ -1370,6 +1384,17 @@ function buildScene(){
       } else half(p, q, stick, cp, cq);
     }
   }
+  // 軸：原点を通る x・y・z 軸（赤・緑・青の細い棒と矢じり）
+  let axisL = 0;
+  if (opt.axes ?? state.axes){
+    axisL = axisLength();
+    const cols = [[0.84, 0.12, 0.12], [0.08, 0.5, 0.24], [0.11, 0.3, 0.85]];
+    for (let k = 0; k < 3; k++){
+      const e = [0, 0, 0]; e[k] = 1; const c = cols[k].map(v => v + 10);
+      Cy.push(...V.mul(e, -axisL), 0.035, ...V.mul(e, axisL - 0.32), ...c);
+      Cy.push(...V.mul(e, axisL - 0.32), -0.11, ...V.mul(e, axisL + 0.06), ...c);
+    }
+  }
   const planes = Object.values(doc.objs).filter(o => o.type === 'mirror');
   const pts = Object.values(doc.atoms).map(a => [a.x, a.y, a.z]);
   let bbox = null;
@@ -1377,7 +1402,7 @@ function buildScene(){
     const mn = [0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))), mx = [0, 1, 2].map(k => Math.max(...pts.map(p => p[k])));
     bbox = {mn, mx, c:V.mul(V.add(mn, mx), 0.5), r:Math.max(...pts.map(p => V.dist(p, V.mul(V.add(mn, mx), 0.5)))) + 2.2};
   }
-  scene = {spheres:new Float32Array(S), cyls:new Float32Array(Cy), planes, visible:vis, bbox};
+  scene = {spheres:new Float32Array(S), cyls:new Float32Array(Cy), planes, visible:vis, bbox, axisL};
   if (R3){
     gl.bindBuffer(gl.ARRAY_BUFFER, R3.sInst); gl.bufferData(gl.ARRAY_BUFFER, scene.spheres.length ? scene.spheres : new Float32Array(8), gl.DYNAMIC_DRAW); R3.nS = scene.spheres.length/8;
     gl.bindBuffer(gl.ARRAY_BUFFER, R3.cInst); gl.bufferData(gl.ARRAY_BUFFER, scene.cyls.length ? scene.cyls : new Float32Array(10), gl.DYNAMIC_DRAW); R3.nC = scene.cyls.length/10;
@@ -1477,32 +1502,19 @@ function occluded(id, W, H){   // 原子の中心の前に、ほかの原子の�
   }
   return false;
 }
-// 軸の表示：分子の座標の x・y・z 軸が画面でどちらを向いているか（奥を向く軸は薄く）
-function drawAxes(c, W, H){
-  const o = {x:W - 52, y:H - 52}, L = 30;
-  const ax = [['x', [1, 0, 0], '#d61f1f'], ['y', [0, 1, 0], '#15803d'], ['z', [0, 0, 1], '#1d4ed8']]
-    .map(([n, e, col]) => ({n, col, v:M3.apply(view.R, e)})).sort((p, q) => p.v[2] - q.v[2]);
-  c.save();
-  c.fillStyle = state.bg === 'black' ? 'rgba(255,255,255,.1)' : 'rgba(255,255,255,.8)';
-  c.strokeStyle = state.bg === 'black' ? 'rgba(255,255,255,.2)' : '#d9dde3'; c.lineWidth = 1;
-  c.beginPath(); c.arc(o.x, o.y, L + 15, 0, 2*Math.PI); c.fill(); c.stroke();
-  for (const a of ax){
-    const ex = o.x + a.v[0]*L, ey = o.y - a.v[1]*L, len = Math.hypot(ex - o.x, ey - o.y);
-    c.globalAlpha = a.v[2] < -0.05 ? 0.4 : 1;
-    c.strokeStyle = c.fillStyle = a.col; c.lineWidth = 2.4; c.lineCap = 'round';
-    c.beginPath(); c.moveTo(o.x, o.y); c.lineTo(ex, ey); c.stroke();
-    if (len > 4){   // 矢じり
-      const ux = (ex - o.x)/len, uy = (ey - o.y)/len;
-      c.beginPath(); c.moveTo(ex + ux*3, ey + uy*3); c.lineTo(ex - ux*5 - uy*3.5, ey - uy*5 + ux*3.5); c.lineTo(ex - ux*5 + uy*3.5, ey - uy*5 - ux*3.5); c.closePath(); c.fill();
-    }
-    c.font = 'italic 700 14px "Times New Roman", Times, serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-    c.fillText(a.n, o.x + a.v[0]*(L + 9), o.y - a.v[1]*(L + 9));
-  }
+// 軸の名前（x・y・z）を矢じりの先に
+function drawAxisLabels(c, W, H){
+  const L = scene.axisL + 0.5;
+  c.save(); c.font = 'italic 700 17px "Times New Roman", Times, serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+  [['x', '#d61f1f'], ['y', '#15803d'], ['z', '#1d4ed8']].forEach(([n, col], k) => {
+    const e = [0, 0, 0]; e[k] = L; const s = toScreen(e, W, H);
+    c.lineWidth = 4; c.strokeStyle = state.bg === 'black' ? '#000' : '#fff'; c.strokeText(n, s.x, s.y); c.fillStyle = col; c.fillText(n, s.x, s.y);
+  });
   c.restore();
 }
 function drawOverlay(c, W, H, forExport = false){
   c.clearRect(0, 0, W, H);
-  if (state.axes && !forExport) drawAxes(c, W, H);
+  if (scene && scene.axisL) drawAxisLabels(c, W, H);
   if (!scene) return;
   const scr = id => { const a = doc.atoms[id]; return toScreen([a.x, a.y, a.z], W, H); };
   const labelBox = (text, x, y, col, bg = 'rgba(255,255,255,.92)') => {
@@ -1538,6 +1550,22 @@ function drawOverlay(c, W, H, forExport = false){
         const x = s.x + (r + 6)*0.75 + 8, y = s.y - (r + 6)*0.75 - 8;
         c.font = 'italic 700 17px "Times New Roman", Times, serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
         c.lineWidth = 4; c.strokeStyle = state.bg === 'black' ? '#000' : '#fff'; c.strokeText(rs, x, y); c.fillStyle = '#c2410c'; c.fillText(rs, x, y);
+      }
+    }
+  }
+  // 回転の中心（青い十字）と、不斉炭素が 2 つ以上あるときの番号（鏡像体を並べているとき・分子を選んでいるとき。画像には入れない）
+  if (!forExport && (sel || mirrorObj())){
+    for (const ids of sel ? [[...sel]] : info.comps.map(x => x.ids)){
+      const st = stereoIn(ids), pa = pivotAtom(ids);
+      if (st.length >= 2) st.forEach((id, k) => {
+        if (!scene.visible.has(id)) return;
+        const s = scr(id), r = atomRadius(doc.atoms[id])*view.s;
+        labelBox(String(k + 1), s.x - r*0.75 - 12, s.y + r*0.75 + 10, '#ea7a00');
+      });
+      if (pa != null && scene.visible.has(pa)){
+        const s = scr(pa);
+        c.strokeStyle = '#fff'; c.lineWidth = 4.5; c.beginPath(); c.moveTo(s.x - 9, s.y); c.lineTo(s.x + 9, s.y); c.moveTo(s.x, s.y - 9); c.lineTo(s.x, s.y + 9); c.stroke();
+        c.strokeStyle = '#2563eb'; c.lineWidth = 2; c.stroke();
       }
     }
   }
@@ -1588,6 +1616,7 @@ function fitView(keepRot = true){
   view.pan = [0, 0]; autoFit = true;
   if (!atoms.length) { view.center = [0, 0, 0]; view.s = 60; requestDraw(); return; }
   const P = atoms.map(a => [a.x, a.y, a.z]), rad = atoms.map(atomRadius);
+  if (state.axes){ const L = axisLength() + 0.6; for (let k = 0; k < 3; k++) for (const sg of [-1, 1]) { const e = [0, 0, 0]; e[k] = sg*L; P.push(e); rad.push(0.2); } }
   const vs = P.map(p => M3.apply(view.R, p));
   const ext = k => [Math.min(...vs.map((v, i) => v[k] - rad[i])), Math.max(...vs.map((v, i) => v[k] + rad[i]))];
   const ex = ext(0), ey = ext(1), ez = ext(2);
@@ -1689,37 +1718,62 @@ function toggleMirror(){
   changed(); fitView();
 }
 function mirrorObj(){ return Object.values(doc.objs).find(o => o.type === 'mirror'); }
-// 動かした分子（ids）の鏡像を、鏡に映した位置に合わせ直す（鏡像の側を動かしたときは元の分子を合わせる）
-function syncMirror(ids){
-  const o = mirrorObj(); if (!o) return;
-  const n = V.norm(V.cross(o.u, o.v)), S = p => V.sub(p, V.mul(n, 2*V.dot(V.sub(p, o.c), n))), set = new Set(ids);
-  for (const a of Object.values(doc.atoms)){
-    if (a.mirOf == null || !doc.atoms[a.mirOf]) continue;
-    const src = doc.atoms[a.mirOf];
-    if (set.has(src.id)) { const q = S([src.x, src.y, src.z]); a.x = q[0]; a.y = q[1]; a.z = q[2]; }
-    else if (set.has(a.id)) { const q = S([a.x, a.y, a.z]); src.x = q[0]; src.y = q[1]; src.z = q[2]; }
-  }
+const posOf = id => [doc.atoms[id].x, doc.atoms[id].y, doc.atoms[id].z];
+const centroidOf = ids => ids.reduce((s, id) => V.add(s, posOf(id)), [0, 0, 0]).map(v => v/ids.length);
+function mirrorH(){   // 鏡に映す変換の向きの部分（I − 2nnᵀ）と、点を映す関数
+  const o = mirrorObj(); if (!o) return null;
+  const n = V.norm(V.cross(o.u, o.v));
+  return {H:[0, 1, 2].map(i => [0, 1, 2].map(j => (i === j ? 1 : 0) - 2*n[i]*n[j])), S:p => V.sub(p, V.mul(n, 2*V.dot(V.sub(p, o.c), n)))};
 }
-// ドラッグで動かす分子：鏡像体を並べているときはカーソルの近くの分子、分子を選択しているときはその分子（近くからドラッグしたとき）
+// 鏡像の相手の原子（鏡像の原子は mirOf で元の原子を覚えている）
+function partnerOf(id){
+  const a = doc.atoms[id]; if (!a) return null;
+  if (a.mirOf != null && doc.atoms[a.mirOf]) return a.mirOf;
+  const m = Object.values(doc.atoms).find(b => b.mirOf === id); return m ? m.id : null;
+}
+const partnerIds = ids => ids.map(partnerOf).filter(x => x != null);
+// 選んだ分子を、相手の分子を鏡に映した位置に戻す
+function restoreMirror(ids){
+  const m = mirrorH(); if (!m) return;
+  for (const id of ids){ const p = partnerOf(id); if (p == null) continue; const q = m.S(posOf(p)), a = doc.atoms[id]; a.x = q[0]; a.y = q[1]; a.z = q[2]; }
+}
+// 回転の中心：分子の不斉炭素（2 つ以上あるときは piv の印の付いたもの）、なければ分子の中心
+const stereoIn = ids => ids.filter(id => info.stereo.has(id)).sort((p, q) => p - q);
+function pivotAtom(ids){ const st = stereoIn(ids); return st.find(id => doc.atoms[id].piv) ?? st[0] ?? null; }
+function pivotPoint(ids){ const p = pivotAtom(ids); return p != null ? posOf(p) : centroidOf(ids); }
+function setPivot(ids, id){   // 鏡像の相手にも同じ印を付ける
+  for (const x of [...ids, ...partnerIds(ids)]) delete doc.atoms[x].piv;
+  doc.atoms[id].piv = true; const q = partnerOf(id); if (q != null) doc.atoms[q].piv = true;
+}
+// ドラッグで動かすもの：{ids, pair}。分子を選んでいるときはその分子だけ（その近くからドラッグしたとき）、
+// 鏡像体を並べているときは、近くの分子と鏡像の相手を一緒に（pair）。どちらでもなければ null（視点を回す）
 function compRegion(ids){
   const pts = ids.map(id => { const a = doc.atoms[id]; return {s:toScreen([a.x, a.y, a.z]), r:atomRadius(a)*view.s}; });
   const x = pts.reduce((t, p) => t + p.s.x, 0)/pts.length, y = pts.reduce((t, p) => t + p.s.y, 0)/pts.length;
   return {x, y, r:Math.max(...pts.map(p => Math.hypot(p.s.x - x, p.s.y - y) + p.r))};
 }
 function dragTarget(mx, my){
-  const cands = mirrorObj() ? info.comps.map(c => c.ids) : sel ? [[...sel]] : [];
+  const near = ids => { const g = compRegion(ids); return Math.hypot(mx - g.x, my - g.y)/(g.r + 18); };
+  if (sel) return near([...sel]) <= 1 ? {ids:[...sel], pair:false} : null;
+  if (!mirrorObj()) return null;
   let best = null;
-  for (const ids of cands){
-    const g = compRegion(ids), d = Math.hypot(mx - g.x, my - g.y)/(g.r + 18);
-    if (d <= 1 && (!best || d < best.d)) best = {d, ids};
-  }
-  return best && best.ids;
+  for (const c of info.comps){ const d = near(c.ids); if (d <= 1 && (!best || d < best.d)) best = {d, ids:c.ids}; }
+  return best && {ids:best.ids, pair:true};
 }
-const centroidOf = ids => ids.reduce((s, id) => V.add(s, [doc.atoms[id].x, doc.atoms[id].y, doc.atoms[id].z]), [0, 0, 0]).map(v => v/ids.length);
-function rotateAtoms(ids, c, Q){   // 画面の座標での回転 Q を、分子の中心 c のまわりにかける
-  const M = M3.mul(M3.tr(view.R), M3.mul(Q, view.R));
-  for (const id of ids){ const a = doc.atoms[id], q = V.add(c, M3.apply(M, V.sub([a.x, a.y, a.z], c))); a.x = q[0]; a.y = q[1]; a.z = q[2]; }
-  syncMirror(ids);
+function moveAtoms(ids, M, c, d){   // 中心 c のまわりに M で回し、d だけ動かす
+  for (const id of ids){
+    let q = posOf(id); if (M) q = V.add(c, M3.apply(M, V.sub(q, c))); if (d) q = V.add(q, d);
+    const a = doc.atoms[id]; a.x = q[0]; a.y = q[1]; a.z = q[2];
+  }
+}
+// 画面の座標での回転 Q（または分子の座標での移動 d）を、ドラッグの対象にかける。pair なら相手には鏡に映した動き（H M H、H d）
+function transformTarget(t, Q, d){
+  const M = Q ? M3.mul(M3.tr(view.R), M3.mul(Q, view.R)) : null;
+  const pa = pivotAtom(t.ids), c = pivotPoint(t.ids);
+  const pids = t.pair ? partnerIds(t.ids) : [], m = pids.length ? mirrorH() : null;
+  const cp = m ? (pa != null && partnerOf(pa) != null ? posOf(partnerOf(pa)) : centroidOf(pids)) : null;
+  moveAtoms(t.ids, M, c, d);
+  if (m) moveAtoms(pids, M ? M3.mul(m.H, M3.mul(M, m.H)) : null, cp, d ? M3.apply(m.H, d) : null);
 }
 function deleteAtom(id){
   delete doc.atoms[id];
@@ -1751,11 +1805,29 @@ function renderInfo(){
     return `<span class="chip meas">${name}　${measureValue(m.atoms).text}<button data-mid="${m.id}" title="この計測を消す">×</button></span>`;
   }).join('');
 }
-function renderSel(){
-  $('selBar').hidden = !sel;
-  updateHint();
-  if (sel) { const f = formulaOf([...sel].map(id => doc.atoms[id])); $('selName').innerHTML = f.html; }
+function pivotOptions(ids){   // 不斉炭素が 2 つ以上あるときの「回転の中心」の選択肢（番号は図の中の数字と同じ）
+  const st = stereoIn(ids), cur = pivotAtom(ids);
+  return st.length < 2 ? '' : st.map((id, k) => `<option value="${id}"${id === cur ? ' selected' : ''}>不斉炭素 ${k + 1}（${info.stereo.get(id)}）</option>`).join('');
 }
+function renderSel(){
+  const mir = !!mirrorObj();
+  $('selBar').hidden = !sel; $('mirBar').hidden = true;   // 鏡像体のバーは、回転の中心を選べるとき（不斉炭素が 2 つ以上）だけ
+  if (sel){
+    const ids = [...sel], o = pivotOptions(ids);
+    $('selName').innerHTML = formulaOf(ids.map(id => doc.atoms[id])).html;
+    $('selPivRow').hidden = !o; $('selPiv').innerHTML = o;
+    $('btnReMirror').hidden = !mir || !partnerIds(ids).length;
+  } else if (mir){
+    const k = info.comps.findIndex(c => c.ids.some(id => !doc.atoms[id].mir) && stereoIn(c.ids).length >= 2);
+    const o = k >= 0 ? pivotOptions(info.comps[k].ids) : '';
+    $('mirBar').hidden = !o; $('mirPiv').innerHTML = o; $('mirPiv').dataset.ci = k;
+  }
+  updateHint();
+}
+$('selPiv').onchange = e => { if (!sel) return; commit(); setPivot([...sel], +e.target.value); changed(); };
+$('mirPiv').onchange = e => { const c = info.comps[+e.target.dataset.ci]; if (!c) return; commit(); setPivot(c.ids, +e.target.value); changed(); };
+$('btnReMirror').onclick = () => { if (!sel) return; commit(); restoreMirror([...sel]); changed(); };
+$('btnToOrigin').onclick = () => { if (!sel) return; const ids = [...sel]; commit(); moveAtoms(ids, null, null, V.mul(pivotPoint(ids), -1)); changed(); };
 $('formulas').addEventListener('click', e => {
   const c = e.target.closest('.chip[data-ci]'); if (!c) return;
   sel = new Set(info.comps[+c.dataset.ci].ids); renderSel(); requestDraw(true);
@@ -1768,7 +1840,7 @@ $('measList').addEventListener('click', e => {
 // ===== ツール・表示の切り替え =====
 const HINTS = {
   rotate:'ドラッグで回転　⇧+ドラッグで移動　⌥+ドラッグで z 軸まわりに回転　⌘+ホイール・ピンチで拡大　クリックで分子を選択',
-  rotateMirror:'分子の近くからドラッグで分子だけ回転（鏡像も一緒に）　鏡から離れたところからドラッグで全体を回転　⇧+ドラッグで移動',
+  rotateMirror:'分子の近くからドラッグで鏡像と一緒に回転（中心は不斉炭素）　離れたところからドラッグで全体を回転　分子をクリックで選ぶとその分子だけ動かせる',
   rotateSel:'選んだ分子の近くからドラッグでその分子だけ回転（⇧で移動、⌥で z 軸まわり）　何もないところをクリックで選択を解除',
   dist:'原子を 2 つクリックすると、原子の中心どうしの距離（結合長）を測ります',
   angle:'原子を 3 つクリックすると、2 つ目の原子を頂点とする角度（結合角）を測ります',
@@ -1800,7 +1872,7 @@ document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click'
 document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
 $('tgStereo').onclick = () => { state.showStereo = !state.showStereo; syncToggles(); renderInfo(); requestDraw(); autosave(); };
 $('tgRS').onclick = () => { state.showRS = !state.showRS; syncToggles(); renderInfo(); requestDraw(); autosave(); };
-$('tgAxes').onclick = () => { state.axes = !state.axes; syncToggles(); requestDraw(); autosave(); };
+$('tgAxes').onclick = () => { state.axes = !state.axes; $('expAxes').checked = state.axes; syncToggles(); requestDraw(true); autosave(); };
 $('chkLabels').onchange = e => { state.labels = e.target.checked; requestDraw(); autosave(); };
 $('chkHideH').onchange = e => { state.hideH = e.target.checked; requestDraw(true); autosave(); };
 $('bgSel').onchange = e => { state.bg = e.target.value; syncToggles(); requestDraw(); autosave(); };
@@ -1824,9 +1896,9 @@ glc.addEventListener('pointerdown', e => {
   try { glc.setPointerCapture(e.pointerId); } catch {}
   const [mx, my] = localXY(e), hit = atomAt(mx, my);
   const kind = e.altKey ? 'zrot' : (e.button === 2 || spaceDown || e.shiftKey) ? 'pan' : 'rot';
-  const ids = spaceDown ? null : dragTarget(mx, my);
-  drag = {x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY, mx, my, hit, moved:false, kind, ids};
-  if (ids) { commit(); drag.c = centroidOf(ids); }
+  const t = spaceDown ? null : dragTarget(mx, my);
+  drag = {x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY, mx, my, hit, moved:false, kind, t};
+  if (t) commit();
   glc.classList.add('dragging');
 });
 glc.addEventListener('pointermove', e => {
@@ -1841,7 +1913,7 @@ glc.addEventListener('pointermove', e => {
   let Q = null;
   if (drag.kind === 'rot') Q = dragRotation(dx, dy);
   else if (drag.kind === 'zrot'){
-    const piv = toScreen(drag.ids ? drag.c : view.center);
+    const piv = toScreen(drag.t ? pivotPoint(drag.t.ids) : view.center);
     if (Math.hypot(mx - piv.x, my - piv.y) > 8 && Math.hypot(drag.mx - piv.x, drag.my - piv.y) > 8){
       let da = Math.atan2(my - piv.y, mx - piv.x) - Math.atan2(drag.my - piv.y, drag.mx - piv.x);
       da = ((da + 3*Math.PI) % (2*Math.PI)) - Math.PI;
@@ -1849,24 +1921,20 @@ glc.addEventListener('pointermove', e => {
     }
   }
   drag.mx = mx; drag.my = my;
-  if (!drag.ids){
+  if (!drag.t){
     if (Q) view.R = M3.mul(Q, view.R);
     else if (drag.kind === 'pan') { view.pan[0] += dx/view.s; view.pan[1] -= dy/view.s; autoFit = false; }
     requestDraw();
   } else {
-    if (Q) rotateAtoms(drag.ids, drag.c, Q);
-    else if (drag.kind === 'pan'){
-      const d = M3.apply(M3.tr(view.R), [dx/view.s, -dy/view.s, 0]);
-      for (const id of drag.ids){ const a = doc.atoms[id]; a.x += d[0]; a.y += d[1]; a.z += d[2]; }
-      drag.c = V.add(drag.c, d); syncMirror(drag.ids);
-    }
+    if (Q) transformTarget(drag.t, Q, null);
+    else if (drag.kind === 'pan') transformTarget(drag.t, null, M3.apply(M3.tr(view.R), [dx/view.s, -dy/view.s, 0]));
     requestDraw(true);
   }
 });
 const endDrag = e => {
   if (!drag) return;
   const d = drag; drag = null; glc.classList.remove('dragging');
-  if (d.ids) { if (d.moved) changed(); else { hist.undo.pop(); syncUndo(); } }
+  if (d.t) { if (d.moved) changed(); else { hist.undo.pop(); syncUndo(); } }
   else if (d.moved) autosave();
   if (!d.moved && e.type === 'pointerup' && e.button !== 2) clickAction(d.hit);
 };
@@ -1887,11 +1955,11 @@ glc.addEventListener('wheel', e => {
   const [mx, my] = localXY(e);
   if (e.ctrlKey || e.metaKey) { zoomAt(mx, my, Math.exp(-e.deltaY*0.01)); return; }
   const k = e.deltaMode === 1 ? 16 : 1, c = v => Math.max(-40, Math.min(40, v*k*0.5)), Q = dragRotation(c(-e.deltaX), c(-e.deltaY));
-  const ids = dragTarget(mx, my);   // ドラッグと同じ：鏡像体・選択中の分子の近くならその分子だけ
-  if (!ids) { view.R = M3.mul(Q, view.R); requestDraw(); clearTimeout(wheelTimer); wheelTimer = setTimeout(autosave, 400); return; }
+  const t = dragTarget(mx, my);   // ドラッグと同じ：選択中の分子・鏡像体の近くならその分子だけ
+  if (!t) { view.R = M3.mul(Q, view.R); requestDraw(); clearTimeout(wheelTimer); wheelTimer = setTimeout(autosave, 400); return; }
   if (performance.now() - wheelAt > 500) commit();   // ひと続きのスクロールを 1 回の「元に戻す」に
   wheelAt = performance.now();
-  rotateAtoms(ids, centroidOf(ids), Q); requestDraw(true);
+  transformTarget(t, Q, null); requestDraw(true);
   clearTimeout(wheelTimer); wheelTimer = setTimeout(changed, 400);
 }, {passive:false});
 let wheelAt = 0, wheelTimer = null;
@@ -1993,6 +2061,7 @@ function sanitize(d){
     if (!a || !num(a.id) || !ELEM[a.el] || ![a.x, a.y, a.z].every(num)) continue;
     out.atoms[a.id] = {id:a.id, el:a.el, charge:num(a.charge) ? a.charge : 0, hyb:String(a.hyb || ''), type:String(a.type || ''), x:a.x, y:a.y, z:a.z};
     if (a.mir) { out.atoms[a.id].mir = true; if (num(a.mirOf)) out.atoms[a.id].mirOf = a.mirOf; }
+    if (a.piv) out.atoms[a.id].piv = true;
     max = Math.max(max, a.id);
   }
   for (const b of Object.values(d?.bonds || {})){
@@ -2056,12 +2125,14 @@ function restore(){
 
 // ===== 書き出し =====
 // いま見えている向きで、分子のあるところだけを切り出した画像（キャンバス）を作る
-function renderImage(scale, transparent){
+function renderImage(scale, transparent, axes = state.axes){
   const W = glc.clientWidth, H = glc.clientHeight;
-  if (needScene) { buildScene(); needScene = false; }
+  if (!W || !H) return null;   // 画面が表示されていないとき
+  buildScene({axes}); needScene = true;   // 軸を入れるかは書き出しの設定で（画面は次の描画で元に戻る）
   let x0 = W, y0 = H, x1 = 0, y1 = 0;
   for (const id of scene.visible){ const a = doc.atoms[id], s = toScreen([a.x, a.y, a.z]), r = atomRadius(a)*view.s; x0 = Math.min(x0, s.x - r); y0 = Math.min(y0, s.y - r); x1 = Math.max(x1, s.x + r); y1 = Math.max(y1, s.y + r); }
   for (const o of scene.planes) for (const [p, q] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]){ const s = toScreen(V.add(o.c, V.add(V.mul(o.u, p*o.hu), V.mul(o.v, q*o.hv)))); x0 = Math.min(x0, s.x); y0 = Math.min(y0, s.y); x1 = Math.max(x1, s.x); y1 = Math.max(y1, s.y); }
+  if (scene.axisL) for (let k = 0; k < 3; k++) for (const sg of [-1, 1]){ const e = [0, 0, 0]; e[k] = sg*(scene.axisL + 0.7); const s = toScreen(e); x0 = Math.min(x0, s.x); y0 = Math.min(y0, s.y); x1 = Math.max(x1, s.x); y1 = Math.max(y1, s.y); }
   const m = 24; x0 = Math.max(0, Math.floor(x0 - m)); y0 = Math.max(0, Math.floor(y0 - m)); x1 = Math.min(W, Math.ceil(x1 + m)); y1 = Math.min(H, Math.ceil(y1 + m));
   if (x1 <= x0 || y1 <= y0) { x0 = 0; y0 = 0; x1 = W; y1 = H; }
   glc.width = Math.round(W*scale); glc.height = Math.round(H*scale);
@@ -2076,10 +2147,11 @@ function renderImage(scale, transparent){
   return out;
 }
 const pngBlob = cv => new Promise(r => cv.toBlob(r, 'image/png'));
-$('expPng').onclick = async () => { if (!Object.keys(doc.atoms).length) return; download(await pngBlob(renderImage(+$('expScale').value, $('expTransparent').checked)), fileBase() + '.png'); };
+const exportCanvas = () => Object.keys(doc.atoms).length ? renderImage(+$('expScale').value, $('expTransparent').checked, $('expAxes').checked) : null;
+$('expPng').onclick = async () => { const cv = exportCanvas(); if (cv) download(await pngBlob(cv), fileBase() + '.png'); };
 $('expCopy').onclick = async () => {
-  if (!Object.keys(doc.atoms).length) return;
-  try { await navigator.clipboard.write([new ClipboardItem({'image/png':pngBlob(renderImage(+$('expScale').value, $('expTransparent').checked))})]); toast('画像をコピーしました'); }
+  const cv = exportCanvas(); if (!cv) return;
+  try { await navigator.clipboard.write([new ClipboardItem({'image/png':pngBlob(cv)})]); toast('画像をコピーしました'); }
   catch { toast('コピーできませんでした（ブラウザが対応していない可能性があります）'); }
 };
 $('expMol').onclick = () => { const {atoms, bonds} = docArrays(); if (atoms.length) download(new Blob([toMolText(atoms, bonds, fileBase())], {type:'chemical/x-mdl-molfile'}), fileBase() + '.mol'); };
