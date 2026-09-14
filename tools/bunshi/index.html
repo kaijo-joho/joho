@@ -236,7 +236,9 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <div class="group xtalOnly"><div class="gl">断面（任意の面で切る）</div>
       <label class="chk xt-row"><input type="checkbox" id="xtCut">断面を表示</label>
       <div class="xt-sec">
+        <button class="wide" id="xtPick3" title="結晶の原子を 3 つクリックすると、その 3 つを通る面で切る（(h k l) を使わずに断面を選べる）">原子を 3 つクリックして面を決める</button>
         <div class="xt-row xt-hkl" title="切る面を 3 つの整数 (h k l) で指定（ミラー指数。立方格子では (1 1 1) が体対角線に垂直な面）">面 (<input type="number" id="xtH" min="-4" max="4" step="1"><input type="number" id="xtK" min="-4" max="4" step="1"><input type="number" id="xtL" min="-4" max="4" step="1">)</div>
+        <div class="muted" id="xtHklNote" hidden style="margin-top:4px">いまは 3 つの原子を通る面で切っています</div>
         <div class="grid4">
           <button data-hkl="1,0,0" title="(1 0 0)：立方体の面に平行">100</button><button data-hkl="1,1,0" title="(1 1 0)：立方体の対角面">110</button>
           <button data-hkl="1,1,1" title="(1 1 1)：体対角線に垂直な面（面心立方格子では最密の層）">111</button><button data-hkl="0,0,1" title="(0 0 1)：六方最密構造では最密の層（底面）">001</button>
@@ -372,7 +374,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <div class="body help" id="helpBody">
       <table>
         <tr><td>分子を表示する</td><td>左上の「化合物ライブラリ」（または画面右端のタブ）から化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
-        <tr><td>結晶格子</td><td>上部の「結晶」に切り替えると、結晶格子を表示します（体心立方格子・面心立方格子・六方最密構造・NaCl 型・CsCl 型・ZnS 型・CaF<sub>2</sub> 型・ダイヤモンド・黒鉛・ドライアイス・氷）。原子をクリックすると、まわりの最も近い粒子（分子結晶では分子）を強調して線で結び、画面下に数と距離を出します（並べた全体の端の原子は、外側がないので少なく見えます）。六方晶は「六角柱で表示」で六角柱の単位格子にできます。氷の水素結合は細い水色の線で表します（H の向きは氷の規則に合う一例）。左のパネルで種類と並べる単位格子の数を選び、「単位格子の面で原子を切る」で面からはみ出した部分を切ります（頂点の原子の 1/8 などが見えます）。「断面」では、3 つの整数 (h k l) で指定した面で切り、位置のスライダー（原子の中心が並ぶ面で一度止まります）と「断面を正面に」で切り口を見られます。「断面の面を表示」で切る面を半透明の板で示します。たとえば面心立方格子を (1 1 1) で切ると最密の層が現れ、立方最密構造と同じであることが分かります。画面下に格子定数・単位格子中の原子の数・配位数・充填率が出ます。「分子」で分子の表示に戻ります。</td></tr>
+        <tr><td>結晶格子</td><td>上部の「結晶」に切り替えると、結晶格子を表示します（体心立方格子・面心立方格子・六方最密構造・NaCl 型・CsCl 型・ZnS 型・CaF<sub>2</sub> 型・ダイヤモンド・二酸化ケイ素・黒鉛・ドライアイス・氷・フラーレン C<sub>60</sub> の結晶・カーボンナノチューブ）。フラーレン C<sub>60</sub> の分子は化合物ライブラリの「炭素の同素体」にあります。原子をクリックすると、まわりの最も近い粒子（分子結晶では分子）を強調して線で結び、画面下に数と距離を出します（並べた全体の端の原子は、外側がないので少なく見えます）。六方晶は「六角柱で表示」で六角柱の単位格子にできます。氷の水素結合は細い水色の線で表します（H の向きは氷の規則に合う一例）。左のパネルで種類と並べる単位格子の数を選び、「単位格子の面で原子を切る」で面からはみ出した部分を切ります（頂点の原子の 1/8 などが見えます）。「断面」では、3 つの整数 (h k l) で指定した面で切り、位置のスライダー（原子の中心が並ぶ面で一度止まります）と「断面を正面に」で切り口を見られます。「断面の面を表示」で切る面を半透明の板で示します。「原子を 3 つクリックして面を決める」を押して結晶の原子を 3 つクリックすると、その 3 つを通る面で切ることもできます（(h k l) を知らなくても断面を選べます）。たとえば面心立方格子を (1 1 1) で切ると最密の層が現れ、立方最密構造と同じであることが分かります。画面下に格子定数・単位格子中の原子の数・配位数・充填率が出ます。「分子」で分子の表示に戻ります。</td></tr>
         <tr><td>構造式エディタから</td><td>構造式エディタで描いた分子を 3D にできます。化合物ライブラリの「構造式エディタの図を取り込む」を押すと、同じブラウザで開いている構造式エディタの図（自動保存されたもの）を取り込みます。構造式エディタで保存した .json ファイルは「開く」から取り込めます。くさび形・破線くさびの結合、ハースの投影式の上下、二重結合のシス・トランスは立体配置として取り込み、置換基のラベル（COOH・C<sub>2</sub>H<sub>5</sub>・Ph など）は原子に直します。R・X などの一般の記号や金属を含む構造は取り込めません。</td></tr>
         <tr><td>回す</td><td>ドラッグ、またはトラックパッドの 2 本指スクロール。矢印キーでも少しずつ回ります。<kbd>⌥/Alt</kbd>+ドラッグで、画面に垂直な軸（z 軸）のまわりに、画面の中で回します。</td></tr>
         <tr><td>移動・拡大</td><td><kbd>Shift</kbd>+ドラッグ（または右ドラッグ）で移動。<kbd>⌘/Ctrl</kbd>+ホイール・ピンチで拡大縮小。画面右下の「全体表示」(<kbd>F</kbd>)・「はじめの向き」(<kbd>R</kbd>)・− ＋ でも変えられます。</td></tr>
@@ -396,7 +398,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.8 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.9 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -993,9 +995,10 @@ function idealAngle(mol, rings, c, i, j){
 }
 // 二重結合の両側の置換基を同じ平面に保つ距離（いまのシス・トランスのまま）。polish の extra に使う
 function doubleBondCons(mol, P){
-  const out = [], h = Math.sqrt(3)/2;
+  const out = [], h = Math.sqrt(3)/2, inRing = new Set();   // 環の中の二重結合は環の形に任せる（フラーレンのかご形などをつぶさない）
+  findRings(mol).forEach(r => r.forEach((a, k) => { const b = r[(k + 1) % r.length]; inRing.add(a < b ? a + ',' + b : b + ',' + a); }));
   for (const b of mol.bonds){
-    if (b.order !== 2) continue;
+    if (b.order !== 2 || inRing.has(b.a < b.b ? b.a + ',' + b.b : b.b + ',' + b.a)) continue;
     const L = bondLength(mol, b.a, b.b, 2);
     for (const i of mol.atoms[b.a].nb) for (const j of mol.atoms[b.b].nb){
       if (i === b.b || j === b.a) continue;
@@ -1082,11 +1085,12 @@ function makeOptimizer(mol, P0, fixed = []){
     while (q.length){ const x = q.shift(); if (dist.get(x) >= 3) continue; for (const y of A[x].nb) if (!dist.has(y)) { dist.set(y, dist.get(x) + 1); q.push(y); } }
     for (let j = i + 1; j < n; j++){ const t = dist.get(j); if (t != null && t < 3) continue; D.push([i, j, (ELEM[A[i].el].vdw + ELEM[A[j].el].vdw)*(t === 3 ? 0.62 : 0.78), 0.3, 1]); }
   }
+  const ringB = new Set(); rings.forEach(r => r.forEach((a, k) => ringB.add(pk(a, r[(k + 1) % r.length]))));
   for (const b of mol.bonds){   // ねじれ：E = kt(1 + sg·cos mφ)
     if (b.order !== 1) continue;
     const hb = A[b.a].hyb, hc = A[b.b].hyb; let t;
     if (hb === 'sp3' && hc === 'sp3') t = [0.012, 3, 1];        // 最小は ±60°・180°
-    else if (hb === 'sp2' && hc === 'sp2') t = [0.03, 2, -1];   // 最小は 0°・180°（共役・アミド）
+    else if (hb === 'sp2' && hc === 'sp2' && !ringB.has(pk(b.a, b.b))) t = [0.03, 2, -1];   // 最小は 0°・180°（共役・アミド。環の中は環の形に任せる）
     else continue;
     for (const i of A[b.a].nb) if (i !== b.b) for (const l of A[b.b].nb) if (l !== b.a) T.push([i, b.a, b.b, l, ...t]);
   }
@@ -1216,7 +1220,31 @@ function aromatize(mol){
 }
 
 // ---- 化合物を作る：SMILES 風の定義（または分子のグラフ）→ 3D の原子と結合 ----
-function makeMolecule(smiles){ return moleculeFromGraph(molFromSmiles(smiles)); }
+function makeMolecule(smiles){
+  if (smiles.startsWith('@')){ const fn = LIB_FN[smiles.slice(1)]; if (!fn) throw new Error('定義がありません：' + smiles); return fn(); }   // 座標から作るもの（フラーレンなど）
+  return moleculeFromGraph(molFromSmiles(smiles));
+}
+// フラーレン C60：切頂二十面体（辺の長さ 2）の頂点 (0, ±1, ±3φ)・(±1, ±(2+φ), ±2φ)・(±φ, ±2, ±(2φ+1)) の巡回置換を 0.71 倍（C–C 約 1.42 Å）。
+// 五員環の辺は単結合、六員環どうしの辺は二重結合（どの C も二重結合 1 本）
+function c60Model(){
+  const f = (1 + Math.sqrt(5))/2, pts = [];
+  for (const b of [[0, 1, 3*f], [1, 2 + f, 2*f], [f, 2, 2*f + 1]]) for (const [i, j, k] of [[0, 1, 2], [1, 2, 0], [2, 0, 1]])
+    for (const s0 of [1, -1]) for (const s1 of [1, -1]) for (const s2 of [1, -1]){
+      const p = [b[i]*s0, b[j]*s1, b[k]*s2].map(v => v*0.71); if (!pts.some(q => V.dist(q, p) < 1e-6)) pts.push(p);
+    }
+  const edges = [];
+  for (let i = 0; i < pts.length; i++) for (let j = i + 1; j < pts.length; j++) if (Math.abs(V.dist(pts[i], pts[j]) - 1.42) < 0.05) edges.push([i, j]);
+  const nb = pts.map(() => []); edges.forEach(([i, j]) => { nb[i].push(j); nb[j].push(i); });
+  const inPent = (u, v) => nb[u].some(a => a !== v && nb[a].some(b => b !== u && b !== v && nb[b].some(c => c !== a && c !== u && c !== v && nb[c].includes(v))));
+  return {pts, bonds:edges.map(([i, j]) => ({a:i, b:j, order:inPent(i, j) ? 1 : 2}))};
+}
+const LIB_FN = {
+  C60:() => {   // 形は標準の結合長・結合角（五員環 108°・六員環 120°）に整える
+    const {pts, bonds} = c60Model(), atoms = pts.map(p => ({el:'C', charge:0, x:p[0], y:p[1], z:p[2]})), g = graphOf(atoms, bonds), P = pts.map(p => [...p]);
+    polish(g.mol, P, findRings(g.mol), 200);
+    return {atoms:atoms.map((a, i) => ({...a, hyb:g.mol.atoms[i].hyb, type:g.mol.atoms[i].type, x:P[i][0], y:P[i][1], z:P[i][2]})), bonds, approx:false};
+  }
+};
 function moleculeFromGraph(mol){
   aromatize(mol); perceive(mol);
   const {P, approx} = build3D(mol);
@@ -1485,6 +1513,11 @@ const XTALS = [
     sp:{Ca:{color:[0.3, 0.58, 0.92], r:1.12}, F:{color:[0.62, 0.9, 0.36], r:1.24}}, info:'単位格子中の Ca²⁺ 4 個・F⁻ 8 個、配位数 Ca²⁺ 8・F⁻ 4'},
   {key:'diamond', cat:'共有結合の結晶', name:'ダイヤモンド（C）', a:3.57, cell:cubCell(3.57), basis:[...FCC_F, ...shiftF(FCC_F, [0.25, 0.25, 0.25])].map(f => ['C', f]),
     sp:{C:{color:ELEM.C.color, r:Math.sqrt(3)*3.57/8}}, bonds:[['C', 'C', Math.sqrt(3)*3.57/4]], info:'Si も同じ形。単位格子中の C 8 個、配位数 4（正四面体）、充填率 34%'},
+  {key:'sio2', cat:'共有結合の結晶', name:'二酸化ケイ素（SiO₂）', a:7.16, cell:cubCell(7.16),
+    basis:[...[...FCC_F, ...shiftF(FCC_F, [0.25, 0.25, 0.25])].map(f => ['Si', f]),
+      ...FCC_F.flatMap(f => [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]].map(d => ['O', f.map((v, q) => v + d[q]/8)]))],
+    sp:{Si:{color:[0.86, 0.72, 0.5], r:0.62}, O:{color:ELEM.O.color, r:0.93}}, bonds:[['Si', 'O', Math.sqrt(3)*7.16/8]],
+    info:'Si のまわりに O が 4 個（正四面体）、O は 2 個の Si をつなぐ。ダイヤモンドの C を Si に替え、Si と Si の間に O を入れた形（クリストバライトを単純にしたもの）'},
   {key:'graphite', cat:'共有結合の結晶', name:'黒鉛（C）', a:2.46, c:6.71, cell:hexCell(2.46, 6.71), hex:true,
     basis:[[0, 0, 0], [1/3, 2/3, 0], [0, 0, 0.5], [2/3, 1/3, 0.5]].map(f => ['C', f]),
     sp:{C:{color:ELEM.C.color, r:0.71}}, bonds:[['C', 'C', 1.42]], info:'平面の層が分子間力で重なる。層の中の C–C 1.42 Å、層の間 3.35 Å'},
@@ -1494,8 +1527,37 @@ const XTALS = [
       return [['C', f], ['O', f.map((v, q) => v + d[q])], ['O', f.map((v, q) => v - d[q])]]; }),
     sp:{C:{color:ELEM.C.color, r:1.7}, O:{color:ELEM.O.color, r:1.52}}, bonds:[['C', 'O', 1.153]],
     info:'分子結晶。CO₂ 分子が面心立方格子の位置に並ぶ。単位格子中の CO₂ 4 個、1 つの分子のまわりに最も近い分子 12 個'},
-  iceCrystal()
+  iceCrystal(),
+  (() => {   // フラーレンの結晶：分子の中心（'*'、描かない）と 60 個の C。結合は分子の中の辺（molBonds）
+    const {pts, bonds} = c60Model(), a = 14.17;
+    return {key:'c60', cat:'分子結晶', name:'フラーレン C₆₀ の結晶', a, cell:cubCell(a), molName:'C₆₀ 分子', maxN:2,
+      mols:FCC_F.map(f => [['*', f], ...pts.map(p => ['C', f.map((v, q) => v + p[q]/a)])]), molBonds:bonds.map(b => [b.a + 1, b.b + 1]),
+      sp:{C:{color:ELEM.C.color, r:1.7}}, info:'分子結晶（分子間力）。C₆₀ 分子が面心立方格子の位置に並ぶ。単位格子中の C₆₀ 4 個、1 つの分子のまわりに 12 個（原子が多いので 2×2×2 まで）'};
+  })(),
+  {key:'cnt', cat:'炭素の同素体など', name:'カーボンナノチューブ', a:2.46, finite:nanotube, sp:{C:{color:ELEM.C.color, r:0.71}}, bonds:[['C', 'C', 1.42]],
+    info:'黒鉛の層（グラフェン）を筒状に丸めた形（アームチェア型、直径 約 0.68 nm）。C は 3 個の C と結合'}
 ];
+// カーボンナノチューブ（アームチェア型 (5,5)）：グラフェンの原子を、巻く向き（C_h）と筒の向き（T）の長方形に取り、筒に丸める
+function nanotube(n){
+  const a = 2.46, m = 5, Ch = m*a*Math.sqrt(3), R = Ch/(2*Math.PI), L = a*(3 + 3*n), s3 = Math.sqrt(3), out = [];
+  for (let i = -40; i <= 40; i++) for (let j = -40; j <= 40; j++) for (const b of [[0, 0], [a/2, a*s3/6]]){
+    const x = i*a + j*a/2 + b[0], y = j*a*s3/2 + b[1], u = x*s3/2 + y/2, v = x/2 - y*s3/2;
+    if (u < -1e-6 || u >= Ch - 1e-6 || v < -1e-6 || v > L + 1e-6) continue;
+    const th = 2*Math.PI*u/Ch; out.push({sp:'C', m:out.length, c:false, p:[R*Math.cos(th), R*Math.sin(th), v - L/2]});
+  }
+  return out;
+}
+// 周期のない構造（ナノチューブ）：結合は距離で、外側の辺・面は原子を囲む直方体
+function finiteCrystal(x, n){
+  const atoms = x.finite(n), bonds = [];
+  for (let i = 0; i < atoms.length; i++) for (let j = i + 1; j < atoms.length; j++)
+    if ((x.bonds || []).some(([s1, s2, d0]) => ((atoms[i].sp === s1 && atoms[j].sp === s2) || (atoms[i].sp === s2 && atoms[j].sp === s1)) && Math.abs(V.dist(atoms[i].p, atoms[j].p) - d0) < 0.1)) bonds.push([i, j]);
+  const mn = [0, 1, 2].map(q => Math.min(...atoms.map(a => a.p[q])) - 0.8), mx = [0, 1, 2].map(q => Math.max(...atoms.map(a => a.p[q])) + 0.8);
+  const cs = [0, 1, 2, 3, 4, 5, 6, 7].map(b => [b & 1 ? mx[0] : mn[0], b & 2 ? mx[1] : mn[1], b & 4 ? mx[2] : mn[2]]), hull = [];
+  for (let b = 0; b < 8; b++) for (const bit of [1, 2, 4]) if (!(b & bit)) hull.push([cs[b], cs[b | bit]]);
+  const faces = [[1, 0, 0, mx[0]], [-1, 0, 0, -mn[0]], [0, 1, 0, mx[1]], [0, -1, 0, -mn[1]], [0, 0, 1, mx[2]], [0, 0, -1, -mn[2]]];
+  return {atoms, bonds, hbonds:[], edges:[], hull, faces};
+}
 // 氷：O は六方晶の網目（O–O 2.76 Å、正四面体の向き）。H は「各 O に H が 2 つ」になるよう、網目の辺を一筆書きでたどって向きを決める（氷の規則に合う一例）
 function iceCrystal(){
   const a = 4.52, c = 7.37, z = 0.0625, cell = hexCell(a, c);
@@ -1521,17 +1583,21 @@ function iceCrystal(){
 // n×n×n 個の単位格子（境界の原子も含む。分子結晶は中心が中にある分子を丸ごと）。prism：六方晶を六角柱の単位格子で。中心を原点に
 // 戻り値：atoms [{sp, p, m（分子の番号）, c（分子の中心か）}]、bonds・hbonds [[i, j]]、edges（枠の線）、hull（外側の辺）、faces（外側の面 [nx, ny, nz, d]）
 function buildCrystal(x, n, prism = false){
+  if (x.finite) return finiteCrystal(x, n);
+  if (x.maxN) n = Math.min(n, x.maxN);
   const [A, B, C] = x.cell, eps = 1e-6, hex = prism && x.hex, H = n*C[2], ap = A[0]*Math.sqrt(3)/2;
   const toP = u => [0, 1, 2].map(q => u[0]*A[q] + u[1]*B[q] + u[2]*C[q]);
   const cen = hex ? [0, 0, H/2] : toP([n/2, n/2, n/2]);
   const inHex = p => [30, 90, 150].every(t => Math.abs(p[0]*Math.cos(rad(t)) + p[1]*Math.sin(rad(t))) <= ap + 1e-4) && p[2] > -1e-4 && p[2] < H + 1e-4;
-  const groups = x.mols || x.basis.map(b => [b]), atoms = [], lo = hex ? -2 : 0, hi = hex ? 2 : n;
+  const groups = x.mols || x.basis.map(b => [b]), atoms = [], mb = [], lo = hex ? -2 : 0, hi = hex ? 2 : n;
   let mid = 0;
   for (let i = lo; i <= hi; i++) for (let j = lo; j <= hi; j++) for (let k = 0; k <= n; k++) for (const g of groups){
     const f0 = g[0][1], uc = [i, j, k].map((v, q) => v + f0[q] - Math.floor(f0[q] + eps));
     if (hex ? !inHex(toP(uc)) : uc.some(v => v > n + eps)) continue;
     const m = mid++;
+    const base = atoms.length;
     g.forEach(([sp, f], gi) => atoms.push({sp, m, c:gi === 0, p:V.sub(toP([0, 1, 2].map(q => uc[q] + f[q] - f0[q])), cen)}));
+    if (x.molBonds) for (const [i, j] of x.molBonds) mb.push([base + i, base + j]);   // 分子の中の結合（原子が多いときは距離で探さない）
   }
   const pairs = (list, sameMol) => {   // 種類と距離で結ぶ組（sameMol：同じ分子の中だけ／別の分子どうしだけ／null どちらも）
     const out = []; if (!list) return out;
@@ -1542,7 +1608,7 @@ function buildCrystal(x, n, prism = false){
     }
     return out;
   };
-  const bonds = pairs(x.bonds, x.mols ? true : null), hbonds = pairs(x.hbonds, false), edges = [], hull = [], faces = [];
+  const bonds = x.molBonds ? mb : pairs(x.bonds, x.mols ? true : null), hbonds = pairs(x.hbonds, false), edges = [], hull = [], faces = [];
   if (hex){
     const vt = [0, 1, 2, 3, 4, 5].map(k => [A[0]*Math.cos(rad(60*k)), A[0]*Math.sin(rad(60*k))]), P3 = (v, z) => [v[0], v[1], z - cen[2]];
     for (let l = 0; l <= n; l++) vt.forEach((v, k) => { const e = [P3(v, l*C[2]), P3(vt[(k + 1) % 6], l*C[2])]; edges.push(e); if (l === 0 || l === n) hull.push(e); });
@@ -1603,6 +1669,7 @@ const LIB = [
   ['鏡像異性体', [
     ['L-乳酸', 'C[C@@H](C(=O)O)O'], ['D-乳酸', 'C[C@H](C(=O)O)O'], ['L-アラニン', 'N[C@@H](C)C(=O)O'], ['D-アラニン', 'N[C@H](C)C(=O)O'],
     ['L-酒石酸', '[C@@H]([C@H](C(=O)O)O)(C(=O)O)O'], ['D-グリセルアルデヒド', 'C([C@H](C=O)O)O']]],
+  ['炭素の同素体', [['フラーレン C₆₀', '@C60']]],
   ['芳香族化合物', [
     ['ベンゼン', 'c1ccccc1'], ['トルエン', 'Cc1ccccc1'], ['o-キシレン', 'Cc1ccccc1C'], ['m-キシレン', 'Cc1cccc(C)c1'], ['p-キシレン', 'Cc1ccc(C)cc1'],
     ['スチレン', 'C=Cc1ccccc1'], ['ナフタレン', 'c1ccc2ccccc2c1'], ['フェノール', 'Oc1ccccc1'], ['安息香酸', 'OC(=O)c1ccccc1'],
@@ -1625,7 +1692,7 @@ function emptyDoc(){ return {atoms:{}, bonds:{}, objs:{}, meas:[], nid:1}; }
 let doc = emptyDoc();
 const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, tool:'rotate', addWhat:'C',
   world:'mol',   // 'mol' 分子、'xtal' 結晶格子
-  xt:{key:'fcc', n:2, cellCut:false, cut:false, h:1, k:1, l:1, t:0.5, flip:false, hex:false, plate:true}};
+  xt:{key:'fcc', n:2, cellCut:false, cut:false, h:1, k:1, l:1, t:0.5, flip:false, hex:false, plate:true, pn:null}};   // pn：3 つの原子で決めた面の法線
 const view = {R:M3.id(), s:60, pan:[0, 0], center:[0, 0, 0]};   // s：1 Å あたりの画面の px
 let sel = null;          // 選択中の分子（原子 id の Set）
 let picking = [];        // 計測でクリックした原子
@@ -1852,20 +1919,42 @@ function xtCache(){
 }
 const xtRadius = (x, sp) => state.mode === 'spacefill' ? x.sp[sp].r : state.mode === 'stick' ? 0.16 : x.sp[sp].r*0.35;
 let xtPick = null;   // 結晶格子でクリックした原子（まわりの配位を示す）
-function xtPickAt(mx, my){
+let xtPlaneMode = false, xtPlanePick = [];   // 「原子を 3 つクリックして面を決める」の途中
+function xtAtomAt(mx, my){
   const {x, cr} = xtCache(), W = glc.clientWidth, H = glc.clientHeight, cl = scene.clip || [];
   let best = null;
   cr.atoms.forEach((a, i) => {
-    if (cl.some(([nx, ny, nz, d]) => nx*a.p[0] + ny*a.p[1] + nz*a.p[2] > d)) return;   // 切り取られた原子は選ばない
+    if (a.sp === '*' || cl.some(([nx, ny, nz, d]) => nx*a.p[0] + ny*a.p[1] + nz*a.p[2] > d)) return;   // 分子の中心の印・切り取られた原子は選ばない
     const s = toScreen(a.p, W, H), r = Math.max(xtRadius(x, a.sp)*view.s, 6);
     if (Math.hypot(mx - s.x, my - s.y) <= r && (!best || s.z > best.z)) best = {i, z:s.z};
   });
-  xtPick = best ? best.i : null; renderInfo(); requestDraw(true);
+  return best ? best.i : null;
+}
+function xtPickAt(mx, my){
+  const i = xtAtomAt(mx, my);
+  if (xtPlaneMode) { if (i != null) xtPlaneAdd(i); return; }
+  xtPick = i; renderInfo(); requestDraw(true);
+}
+// 3 つの原子を通る面で切る。面の向きは手前側を取り除く向き（切り口が見える）
+function xtPlaneAdd(i){
+  if (xtPlanePick.includes(i)) return;
+  xtPlanePick.push(i);
+  if (xtPlanePick.length < 3) { syncXtal(); updateHint(); requestDraw(true); return; }
+  const {x, cr} = xtCache(), [p, q, r] = xtPlanePick.map(k => cr.atoms[k].p);
+  xtPlaneMode = false; xtPlanePick = [];
+  let n = V.cross(V.sub(q, p), V.sub(r, p));
+  if (V.len(n) < 1e-3) { toast('3 つの原子が一直線に並んでいるので、面が決まりません'); syncXtal(); updateHint(); requestDraw(true); return; }
+  n = V.norm(n); if (M3.apply(view.R, n)[2] < 0) n = V.mul(n, -1);
+  Object.assign(state.xt, {pn:n, cut:true, flip:false});
+  const sec = xtSection(x, cr); state.xt.t = (V.dot(n, p) - sec.lo)/(sec.hi - sec.lo);
+  xtChanged(); updateHint(); toast('3 つの原子を通る面で切りました');
 }
 // 断面：面 (h k l) の法線 n = h(b×c) + k(c×a) + l(a×b)。t（0〜1）で位置、layers は原子の中心が並ぶ面の位置
 function xtSection(x, cr){
-  const [A, B, C] = x.cell, {h, k, l} = state.xt;
-  let n = V.add(V.add(V.mul(V.cross(B, C), h), V.mul(V.cross(C, A), k)), V.mul(V.cross(A, B), l));
+  const {h, k, l} = state.xt;
+  let n;
+  if (state.xt.pn) n = [...state.xt.pn];   // 3 つの原子で決めた面
+  else { const [A, B, C] = x.cell || cubCell(1); n = V.add(V.add(V.mul(V.cross(B, C), h), V.mul(V.cross(C, A), k)), V.mul(V.cross(A, B), l)); }
   if (V.len(n) < 1e-9) return null;
   n = V.norm(n);
   const pr = cr.atoms.map(a => V.dot(n, a.p)), lo = Math.min(...pr) - 0.3, hi = Math.max(...pr) + 0.3;
@@ -1876,7 +1965,8 @@ function buildXtalScene(opt = {}){
   const {x, cr} = xtCache(), S = [], Cy = [];
   const co = xtPick != null && cr.atoms[xtPick] ? xtCoordination(x, cr, xtPick) : null, glow = new Map();
   if (co){ co.atoms.forEach(i => glow.set(i, 0.55)); cr.atoms.forEach((a, i) => { if (x.mols ? a.m === cr.atoms[co.center].m : i === co.center) glow.set(i, 1); }); }
-  cr.atoms.forEach((a, i) => { const c = x.sp[a.sp].color; S.push(...a.p, xtRadius(x, a.sp), c[0], c[1], c[2], glow.get(i) || 0); });
+  if (xtPlaneMode) xtPlanePick.forEach(i => glow.set(i, 1));   // 面を決めるために選んだ原子
+  cr.atoms.forEach((a, i) => { if (a.sp === '*') return; const c = x.sp[a.sp].color; S.push(...a.p, xtRadius(x, a.sp), c[0], c[1], c[2], glow.get(i) || 0); });
   if (state.mode !== 'spacefill'){
     const r = state.mode === 'stick' ? 0.16 : 0.1;
     for (const [i, j] of cr.bonds){
@@ -2140,7 +2230,7 @@ new ResizeObserver(() => { if (autoFit) fitView(); else requestDraw(); }).observ
 // ===== 視点の操作 =====
 function fitView(keepRot = true){
   const W = glc.clientWidth || 800, H = glc.clientHeight || 600;
-  const atoms = state.world === 'xtal' ? (() => { const {x, cr} = xtCache(); return cr.atoms.map(a => ({x:a.p[0], y:a.p[1], z:a.p[2], r:xtRadius(x, a.sp)})); })() : Object.values(doc.atoms);
+  const atoms = state.world === 'xtal' ? (() => { const {x, cr} = xtCache(); return cr.atoms.filter(a => a.sp !== '*').map(a => ({x:a.p[0], y:a.p[1], z:a.p[2], r:xtRadius(x, a.sp)})); })() : Object.values(doc.atoms);
   if (!keepRot) view.R = M3.id();
   view.pan = [0, 0]; autoFit = true;
   if (!atoms.length) { view.center = [0, 0, 0]; view.s = 60; requestDraw(); return; }
@@ -2595,23 +2685,34 @@ function syncXtal(){
   const X = state.xt;
   $('xtSel').value = X.key; $('xtN').value = String(X.n); $('xtCell').checked = X.cellCut; $('xtCut').checked = X.cut;
   $('xtH').value = X.h; $('xtK').value = X.k; $('xtL').value = X.l; $('xtPos').value = X.t; $('xtFlip').checked = X.flip;
-  const hx = !!curXtal().hex; $('xtHex').checked = X.hex && hx; $('xtHex').disabled = !hx; $('xtHexRow').style.opacity = hx ? 1 : 0.45;
+  const x = curXtal(), hx = !!x.hex; $('xtHex').checked = X.hex && hx; $('xtHex').disabled = !hx; $('xtHexRow').style.opacity = hx ? 1 : 0.45;
   $('xtPlate').checked = X.plate;
+  $('xtCell').disabled = !!x.finite;   // 周期のない構造（ナノチューブ）は単位格子がない
+  [...$('xtN').options].forEach((o, k) => { o.textContent = x.finite ? ['短い', '中くらい', '長い'][k] : `${k + 1}×${k + 1}×${k + 1}`; o.disabled = !!x.maxN && k + 1 > x.maxN; });
+  $('xtN').value = String(Math.min(X.n, x.maxN || 3));
+  if (X.pn) { $('xtH').value = $('xtK').value = $('xtL').value = ''; }
+  $('xtHklNote').hidden = !X.pn;
+  $('xtPick3').classList.toggle('on', xtPlaneMode);
+  $('xtPick3').textContent = xtPlaneMode ? `原子を選んでいます（${xtPlanePick.length}/3）　押すとやめる` : '原子を 3 つクリックして面を決める';
   document.querySelectorAll('.xt-sec').forEach(e => { e.style.opacity = X.cut ? 1 : 0.45; });
 }
 $('xtSel').innerHTML = [...new Set(XTALS.map(x => x.cat))].map(c => `<optgroup label="${c}">` + XTALS.filter(x => x.cat === c).map(x => `<option value="${x.key}">${x.name}</option>`).join('') + '</optgroup>').join('');
 document.querySelectorAll('#worldSeg button').forEach(b => b.addEventListener('click', () => { if (state.world !== b.dataset.world) setWorld(b.dataset.world); }));
 const xtChanged = (refit = false) => { if (refit) xtPick = null; syncXtal(); renderInfo(); requestDraw(true); if (refit) fitView(); autosave(); };
-$('xtSel').onchange = e => { state.xt.key = e.target.value; xtChanged(true); };
+$('xtSel').onchange = e => { state.xt.key = e.target.value; state.xt.pn = null; xtPlaneMode = false; xtChanged(true); };
+$('xtPick3').onclick = () => { xtPlaneMode = !xtPlaneMode; xtPlanePick = []; syncXtal(); updateHint(); requestDraw(true); };
 $('xtN').onchange = e => { state.xt.n = +e.target.value; xtChanged(true); };
 $('xtCell').onchange = e => { state.xt.cellCut = e.target.checked; xtChanged(); };
 $('xtCut').onchange = e => { state.xt.cut = e.target.checked; xtChanged(); };
 $('xtFlip').onchange = e => { state.xt.flip = e.target.checked; xtChanged(); };
 $('xtHex').onchange = e => { state.xt.hex = e.target.checked; xtChanged(true); };
 $('xtPlate').onchange = e => { state.xt.plate = e.target.checked; xtChanged(); };
-for (const k of ['h', 'k', 'l']) $('xt' + k.toUpperCase()).onchange = e => { state.xt[k] = Math.max(-4, Math.min(4, Math.round(+e.target.value) || 0)); state.xt.cut = true; xtChanged(); };
+for (const k of ['h', 'k', 'l']) $('xt' + k.toUpperCase()).onchange = e => {
+  if (state.xt.pn) { for (const q of ['h', 'k', 'l']) state.xt[q] = Math.round(+$('xt' + q.toUpperCase()).value) || 0; state.xt.pn = null; }   // (h k l) の指定に戻す
+  state.xt[k] = Math.max(-4, Math.min(4, Math.round(+e.target.value) || 0)); state.xt.cut = true; xtChanged();
+};
 document.querySelectorAll('[data-hkl]').forEach(b => b.addEventListener('click', () => {
-  const [h, k, l] = b.dataset.hkl.split(',').map(Number); Object.assign(state.xt, {h, k, l, cut:true, t:0.5}); xtChanged();
+  const [h, k, l] = b.dataset.hkl.split(',').map(Number); Object.assign(state.xt, {h, k, l, cut:true, t:0.5, pn:null}); xtChanged();
 }));
 // 位置のスライダー：原子の中心が並ぶ面（層）の近くで止まる
 $('xtPos').addEventListener('input', e => {
@@ -2677,7 +2778,8 @@ function renderInfo(){
       const co = xtCoordination(x, cr, xtPick), sp = cr.atoms[xtPick].sp;
       pick = `<span class="chip meas">選んだ ${x.mols ? x.molName : x.cat === 'イオン結晶' ? ION[sp] : sp} のまわりの最も近い${x.mols ? '分子' : '粒子'}：${co.cn} 個（${(co.d/10).toFixed(3)} nm）</span>`;
     }
-    $('formulas').innerHTML = `<span class="chip">${x.name}</span>${pick}<span class="muted">a = ${(x.a/10).toFixed(3)} nm${x.c ? `、c = ${(x.c/10).toFixed(3)} nm` : ''}　${xtPrism(x) && x.infoHex ? x.infoHex : x.info}</span>`;
+    const lat = x.finite ? '' : `a = ${(x.a/10).toFixed(3)} nm${x.c ? `、c = ${(x.c/10).toFixed(3)} nm` : ''}　`;
+    $('formulas').innerHTML = `<span class="chip">${x.name}</span>${pick}<span class="muted">${lat}${xtPrism(x) && x.infoHex ? x.infoHex : x.info}</span>`;
     $('measList').innerHTML = ''; return;
   }
   $('formulas').innerHTML = info.comps.length
@@ -2749,7 +2851,8 @@ function setTool(t){
 }
 function updateHint(){
   const t = state.tool;
-  $('hint').textContent = state.world === 'xtal' ? 'ドラッグで回転　⇧+ドラッグで移動　⌘+ホイール・ピンチで拡大　原子をクリックで配位を表示　左のパネルで格子・断面を選ぶ'
+  $('hint').textContent = state.world === 'xtal' ? (xtPlaneMode ? `断面が通る原子を 3 つクリックしてください（${xtPlanePick.length}/3）。回転はドラッグで`
+      : 'ドラッグで回転　⇧+ドラッグで移動　⌘+ホイール・ピンチで拡大　原子をクリックで配位を表示　左のパネルで格子・断面を選ぶ')
     : t !== 'rotate' ? HINTS[t] : mirrorObj() ? HINTS.rotateMirror : sel ? HINTS.rotateSel : HINTS.rotate;
 }
 function setMode(m){
@@ -2902,7 +3005,7 @@ function renderLibrary(){
     const its = items.filter(([n]) => !q || n.includes(q) || cat.includes(q));
     if (!its.length) return '';
     return `<div class="lib-cat">${cat}</div><div class="lib-list">` + its.map(([n, smi]) => {
-      if (!libFormula.has(smi)) { try { libFormula.set(smi, formulaOf(molFromSmiles(smi).atoms).html); } catch { libFormula.set(smi, ''); } }
+      if (!libFormula.has(smi)) { try { libFormula.set(smi, formulaOf((smi.startsWith('@') ? buildCached(smi) : molFromSmiles(smi)).atoms).html); } catch { libFormula.set(smi, ''); } }
       return `<button class="lib-item" data-smi="${esc(smi)}"><span>${esc(n)}</span><span class="f">${libFormula.get(smi)}</span></button>`;
     }).join('') + '</div>';
   }).join('') || '<p class="muted">見つかりません</p>';
@@ -3021,6 +3124,7 @@ function applyUIState(s){
     for (const k of ['cellCut', 'cut', 'flip', 'hex', 'plate']) if (typeof t[k] === 'boolean') X[k] = t[k];
     for (const k of ['h', 'k', 'l']) if (Number.isInteger(t[k]) && Math.abs(t[k]) <= 4) X[k] = t[k];
     if (isFinite(t.t) && t.t >= 0 && t.t <= 1) X.t = t.t;
+    X.pn = Array.isArray(t.pn) && t.pn.length === 3 && t.pn.every(v => isFinite(v)) && Math.hypot(...t.pn) > 1e-6 ? t.pn.map(Number) : null;
   }
   if (['ballstick', 'stick', 'spacefill'].includes(s.mode)) state.mode = s.mode;
   for (const k of UI_FLAGS) if (typeof s[k] === 'boolean') state[k] = s[k];
