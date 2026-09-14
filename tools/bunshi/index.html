@@ -218,6 +218,9 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <button data-tool="bond3" title="三重結合：結合をクリックすると三重結合に（H の数は自動で調整）"><svg viewBox="0 0 24 24"><path d="M3 16L16 3M5 19L19 5M8 21L21 8"/></svg></button>
         <button data-tool="erase" title="消しゴム (E)：原子をクリックすると、その原子と付いている H を消し、あいた所に H を付ける"><svg viewBox="0 0 24 24"><path d="M4 16l9-9 6 6-7 7H8z"/><path d="M9 11l6 6"/><path d="M12 20h8"/></svg></button>
       </div>
+      <div class="grid2" style="margin-top:4px">
+        <button class="wide" id="btnOptimize" title="形を整える（簡易的な構造最適化）：結合長・結合角・ねじれ・原子の重なりの簡単な力場で形を整える。分子を選んでいればその分子だけ、選んでいなければ全体"><svg viewBox="0 0 24 24"><path d="M12 3v3M12 18v3M3 12h3M18 12h3M5.6 5.6l2.1 2.1M16.3 16.3l2.1 2.1M5.6 18.4l2.1-2.1M16.3 7.7l2.1-2.1"/><circle cx="12" cy="12" r="3"/></svg>形を整える</button>
+      </div>
     </div>
     <div class="group"><div class="gl">計測（原子を順にクリック）</div>
       <div class="grid3">
@@ -253,6 +256,11 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
       <span class="muted" id="measNote"></span>
       <button id="measReset" title="標準の値（いちばん近いもの）にする">標準の値に戻す</button>
       <button id="measClose" title="値の編集を終える（Esc）">閉じる</button>
+    </div>
+    <div class="fmtbar" id="optBar" hidden>
+      <b>形を整える</b><span class="muted">値を保つ計測：</span><span id="optList" class="pivrow"></span>
+      <button id="optGo" title="チェックした計測の値は保ったまま、形を整える">整える</button>
+      <button id="optCancel">やめる</button>
     </div>
     <div class="fmtbar" id="mirBar" hidden>
       <b>鏡像体</b>
@@ -333,6 +341,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>原子の色</td><td>C 黒・H 白・O 赤・N 青・S 黄・Cl 緑・Br 茶・I 紫。</td></tr>
         <tr><td>計測</td><td>左の計測のボタン（<kbd>D</kbd> 距離、<kbd>A</kbd> 結合角、<kbd>T</kbd> 二面角）を選び、原子を順にクリック。結果は図と画面下に出ます。画面下の × で消せます。</td></tr>
         <tr><td>形を変える</td><td>測ると、上にバーが出て、結合長・結合角・二面角の値をスライダーや数値の入力で変えられます（画面下の計測をクリックしても出ます）。結合で分けた小さい方の原子団がまとめて動くので、形は崩れず、立体配置（R・S）も変わりません。二面角でエタンのねじれ形・重なり形、ブタンのアンチ形・ゴーシュ形などを作れます。環の中の値は変えられません。スライダーの目盛りは標準の値で、そこで一度止まります（結合長は結合の種類ごとの値、結合角は中心の原子の混成に応じた値（環の中は環の大きさから）、二面角はねじれ形 ±60°・180°、二重結合のまわりは 0°・180°）。「標準の長さに戻す」などのボタンで、いちばん近い標準の値にできます（<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> で元に戻せます）。</td></tr>
+        <tr><td>形を整える</td><td>左の「形を整える」で、結合長・結合角・二重結合の平面・ねじれ（単結合はねじれ形、共役した結合は平面）・原子の重なりを考えた簡単な力場で、形を少しずつ整えます（簡易的な構造最適化。実際の分子の形とは少し違うことがあります）。分子を選んでいればその分子だけ、選んでいなければ全体が対象です。計測があるときは、先に値を保つ計測を選べます（標準の値から変えたものは最初からチェックされています）。途中でキャンバスをクリックすると止まります。R・S は変わりません。</td></tr>
         <tr><td>組み立て</td><td>左の「組み立て」で元素（C・N・O・S・F・Cl・Br・I）や官能基（OH・NH₂・CHO・COOH・NO₂・CN・C₆H₅・OCH₃・COCH₃）を選び、H をクリックすると、その H が置き換わります（H は価数に合わせて自動で付きます）。H 以外の原子をクリックすると、その原子の元素が変わります。結合のボタン（単・二重・三重）で結合をクリックすると結合の種類が変わり、消しゴム (<kbd>E</kbd>) で原子をクリックすると、その原子を消してあいた所に H を付けます（分子が切れたときは大きい方だけが残るので、官能基の付け根の原子を消すと官能基ごと消えます）。変更のたびに、結合長・結合角・二重結合の平面・原子の重なりを簡単に整えます（構造最適化ではないので、形はおおよそです）。</td></tr>
         <tr><td>不斉炭素・R/S</td><td>上部の「不斉炭素」で、4 つの異なる原子・原子団が結合した炭素をだいだい色の円で囲みます。「R/S」で R・S を表示します（CIP 順位規則。高校の範囲外の発展的な内容です。原子番号だけで順位を決めるので、まれに判定できないものがあります）。</td></tr>
         <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。回転の中心は不斉炭素（青い十字の印）で、2 つ以上あるときは上に出るプルダウンで選べます。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。<br>分子をクリックして選ぶと、その分子だけを回したり（ドラッグ）、動かしたり（<kbd>Shift</kbd>+ドラッグ）できます。もう一方に近づけたり、鏡を通り越して重ねたりして、重ならないことを確かめられます。「鏡の位置に戻す」で元の鏡像の位置に戻ります。「鏡像に変える」でその分子だけを鏡像にもできます。</td></tr>
@@ -346,7 +355,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.4.1 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.5 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1000,6 +1009,112 @@ function relieveClashes(mol, P, rings){
     if (!changed) break;
   }
 }
+
+// ---- 簡易的な構造最適化（形を整える）：簡単な力場のエネルギーを FIRE 法で小さくする ----
+// 項：結合長、結合角（1-3 の距離）、二重結合の平面、ねじれ（sp3 どうしはねじれ形、共役した sp2 どうしは平面）、
+// 結合で 3 つ以上離れた原子どうしの反発、4 本の結合を持つ sp3 の原子の向き（鏡像にならないように）。
+// fixed：値を保つ計測 [{atoms:[番号], value（Å または °）}]。戻り値の step(k) を呼ぶと k 回ずつ進む（画面で少しずつ見せる）
+function makeOptimizer(mol, P0, fixed = []){
+  const A = mol.atoms, n = A.length, rings = findRings(mol), X = new Float64Array(3*n);
+  P0.forEach((p, i) => { X[3*i] = p[0]; X[3*i + 1] = p[1]; X[3*i + 2] = p[2]; });
+  const pk = (p, q) => p < q ? p + ',' + q : q + ',' + p;
+  const fixLen = new Map(), fixAng = new Map(), D = [], T = [], R = [], Ch = [];   // D：[i, j, 距離, 強さ, 反発だけか]
+  for (const f of fixed){
+    const a = f.atoms;
+    if (a.length === 2) fixLen.set(pk(a[0], a[1]), f.value);
+    else if (a.length === 3) fixAng.set(a[1] + ':' + pk(a[0], a[2]), f.value);
+    else R.push([a[0], a[1], a[2], a[3], rad(f.value), 20]);
+  }
+  for (const b of mol.bonds){ const f = fixLen.get(pk(b.a, b.b)); D.push([b.a, b.b, f ?? bondLength(mol, b.a, b.b, b.order), f != null ? 30 : 2, 0]); }
+  for (const [k, v] of fixLen){ const [p, q] = k.split(',').map(Number); if (!bondOrder(mol, p, q)) D.push([p, q, v, 30, 0]); }
+  for (let c = 0; c < n; c++){
+    const nb = A[c].nb;
+    for (let i = 0; i < nb.length; i++) for (let j = i + 1; j < nb.length; j++){
+      const f = fixAng.get(c + ':' + pk(nb[i], nb[j])), th = f ?? idealAngle(mol, rings, c, nb[i], nb[j]);
+      const l1 = bondLength(mol, c, nb[i], bondOrder(mol, c, nb[i])), l2 = bondLength(mol, c, nb[j], bondOrder(mol, c, nb[j]));
+      D.push([nb[i], nb[j], Math.sqrt(l1*l1 + l2*l2 - 2*l1*l2*Math.cos(rad(th))), f != null ? 10 : 0.5, 0]);
+    }
+  }
+  for (const [i, j, d0] of doubleBondCons(mol, P0)) D.push([i, j, d0, 0.3, 0]);
+  for (let i = 0; i < n; i++){   // 反発（1-4 は弱めの距離）
+    const dist = new Map([[i, 0]]), q = [i];
+    while (q.length){ const x = q.shift(); if (dist.get(x) >= 3) continue; for (const y of A[x].nb) if (!dist.has(y)) { dist.set(y, dist.get(x) + 1); q.push(y); } }
+    for (let j = i + 1; j < n; j++){ const t = dist.get(j); if (t != null && t < 3) continue; D.push([i, j, (ELEM[A[i].el].vdw + ELEM[A[j].el].vdw)*(t === 3 ? 0.62 : 0.78), 0.3, 1]); }
+  }
+  for (const b of mol.bonds){   // ねじれ：E = kt(1 + sg·cos mφ)
+    if (b.order !== 1) continue;
+    const hb = A[b.a].hyb, hc = A[b.b].hyb; let t;
+    if (hb === 'sp3' && hc === 'sp3') t = [0.012, 3, 1];        // 最小は ±60°・180°
+    else if (hb === 'sp2' && hc === 'sp2') t = [0.03, 2, -1];   // 最小は 0°・180°（共役・アミド）
+    else continue;
+    for (const i of A[b.a].nb) if (i !== b.b) for (const l of A[b.b].nb) if (l !== b.a) T.push([i, b.a, b.b, l, ...t]);
+  }
+  for (let c = 0; c < n; c++) if (A[c].hyb === 'sp3' && A[c].nb.length === 4){
+    const s = chiralSign(A[c].nb.map(j => P0[j])); Ch.push([...A[c].nb, Math.sign(s), 0.5*Math.abs(s)]);
+  }
+  const dih = (a, b, c, d) => {   // dihedralOf と同じ向き（ラジアン）
+    const b1x = X[3*b] - X[3*a], b1y = X[3*b+1] - X[3*a+1], b1z = X[3*b+2] - X[3*a+2];
+    const b2x = X[3*c] - X[3*b], b2y = X[3*c+1] - X[3*b+1], b2z = X[3*c+2] - X[3*b+2];
+    const b3x = X[3*d] - X[3*c], b3y = X[3*d+1] - X[3*c+1], b3z = X[3*d+2] - X[3*c+2];
+    const n1x = b1y*b2z - b1z*b2y, n1y = b1z*b2x - b1x*b2z, n1z = b1x*b2y - b1y*b2x;
+    const n2x = b2y*b3z - b2z*b3y, n2y = b2z*b3x - b2x*b3z, n2z = b2x*b3y - b2y*b3x;
+    const L = Math.hypot(b2x, b2y, b2z) || 1e-9;
+    const mx = (n1y*b2z - n1z*b2y)/L, my = (n1z*b2x - n1x*b2z)/L, mz = (n1x*b2y - n1y*b2x)/L;
+    return Math.atan2(mx*n2x + my*n2y + mz*n2z, n1x*n2x + n1y*n2y + n1z*n2z);
+  };
+  const vol = (a, b, c, d) => {   // chiralSign と同じ
+    const ux = X[3*b] - X[3*a], uy = X[3*b+1] - X[3*a+1], uz = X[3*b+2] - X[3*a+2];
+    const vx = X[3*c] - X[3*a], vy = X[3*c+1] - X[3*a+1], vz = X[3*c+2] - X[3*a+2];
+    const wx = X[3*d] - X[3*a], wy = X[3*d+1] - X[3*a+1], wz = X[3*d+2] - X[3*a+2];
+    return ux*(vy*wz - vz*wy) + uy*(vz*wx - vx*wz) + uz*(vx*wy - vy*wx);
+  };
+  const h = 1e-5;
+  const numTerm = (atoms, f, G) => {   // 角度の項の勾配は数値微分で（向きの取り違えが起きない）
+    const e0 = f();
+    for (const a of atoms) for (let q = 0; q < 3; q++){ const k = 3*a + q, x0 = X[k]; X[k] = x0 + h; const ep = f(); X[k] = x0 - h; const em = f(); X[k] = x0; G[k] += (ep - em)/(2*h); }
+    return e0;
+  };
+  const wrap = x => ((x + 3*Math.PI) % (2*Math.PI)) - Math.PI;
+  function evalEG(G){
+    G.fill(0); let E = 0;
+    for (const [i, j, d0, k, rep] of D){
+      const dx = X[3*j] - X[3*i], dy = X[3*j+1] - X[3*i+1], dz = X[3*j+2] - X[3*i+2], d = Math.hypot(dx, dy, dz) || 1e-9, df = d - d0;
+      if (rep && df >= 0) continue;
+      E += k*df*df; const f = 2*k*df/d;
+      G[3*i] -= f*dx; G[3*i+1] -= f*dy; G[3*i+2] -= f*dz; G[3*j] += f*dx; G[3*j+1] += f*dy; G[3*j+2] += f*dz;
+    }
+    for (const [i, j, k, l, kt, m, sg] of T) E += numTerm([i, j, k, l], () => kt*(1 + sg*Math.cos(m*dih(i, j, k, l))), G);
+    for (const [i, j, k, l, p0, kf] of R) E += numTerm([i, j, k, l], () => kf*wrap(dih(i, j, k, l) - p0)**2, G);
+    for (const [a, b, c, d, s, vmin] of Ch) E += numTerm([a, b, c, d], () => { const v = s*vol(a, b, c, d); return v < vmin ? (vmin - v)**2 : 0; }, G);
+    return E;
+  }
+  // ちょうど重なり形（0°）などの釣り合った形から抜け出せるよう、ごく小さく（0.003 Å）決まったずらしを入れる
+  for (let k = 0; k < 3*n; k++) X[k] += 0.003*Math.sin(12.9898*(k + 1));
+  const V = new Float64Array(3*n), G = new Float64Array(3*n);
+  let E = evalEG(G), dt = 0.1, alpha = 0.1, npos = 0, iter = 0, done = n === 0;
+  function step(k){
+    for (let s = 0; s < k && !done; s++){
+      iter++;
+      let pw = 0, vn = 0, fn = 0;
+      for (let i = 0; i < 3*n; i++){ pw -= G[i]*V[i]; vn += V[i]*V[i]; fn += G[i]*G[i]; }
+      vn = Math.sqrt(vn); fn = Math.sqrt(fn);
+      // 釣り合った形から離れるには時間がかかるので、はじめの 80 回は止めない
+      if ((fn < 3e-4 && iter > 80) || iter > 600) { done = true; break; }
+      if (pw > 0){ for (let i = 0; i < 3*n; i++) V[i] = (1 - alpha)*V[i] - alpha*vn*G[i]/fn; if (++npos > 5){ dt = Math.min(dt*1.1, 0.6); alpha *= 0.99; } }
+      else { V.fill(0); dt *= 0.5; alpha = 0.1; npos = 0; }
+      for (let i = 0; i < 3*n; i++) V[i] -= dt*G[i];
+      for (let a = 0; a < n; a++){   // 1 回に動かすのは 0.08 Å まで
+        let dx = dt*V[3*a], dy = dt*V[3*a+1], dz = dt*V[3*a+2]; const L = Math.hypot(dx, dy, dz);
+        if (L > 0.08){ dx *= 0.08/L; dy *= 0.08/L; dz *= 0.08/L; }
+        X[3*a] += dx; X[3*a+1] += dy; X[3*a+2] += dz;
+      }
+      E = evalEG(G);
+    }
+    return done;
+  }
+  return {step, get E(){ return E; }, get iter(){ return iter; }, positions:() => Array.from({length:n}, (_, i) => [X[3*i], X[3*i+1], X[3*i+2]])};
+}
+function optimizeAll(mol, P, fixed = []){ const o = makeOptimizer(mol, P, fixed); while (!o.step(50)); return o.positions(); }
 
 // ---- 見やすい向きにする（広がりの大きい方向を横・縦に。回転だけなので鏡像にはならない） ----
 function orient(mol, P){
@@ -1708,9 +1823,11 @@ function atomAt(mx, my){
 
 // ===== 履歴・変更 =====
 const hist = {undo:[], redo:[]};
-function commit(){ hist.undo.push(JSON.stringify(doc)); if (hist.undo.length > 100) hist.undo.shift(); hist.redo = []; syncUndo(); }
-function undo(){ if (!hist.undo.length) return; hist.redo.push(JSON.stringify(doc)); doc = JSON.parse(hist.undo.pop()); picking = []; changed(); }
-function redo(){ if (!hist.redo.length) return; hist.undo.push(JSON.stringify(doc)); doc = JSON.parse(hist.redo.pop()); picking = []; changed(); }
+// ほかの変更をするときは、形を整えている途中の処理をやめる（abort：途中の形のまま、確認もしない）
+function abortOptimize(){ if (optAnim) optAnim.abort = true; }
+function commit(){ abortOptimize(); hist.undo.push(JSON.stringify(doc)); if (hist.undo.length > 100) hist.undo.shift(); hist.redo = []; syncUndo(); }
+function undo(){ abortOptimize(); if (!hist.undo.length) return; hist.redo.push(JSON.stringify(doc)); doc = JSON.parse(hist.undo.pop()); picking = []; changed(); }
+function redo(){ abortOptimize(); if (!hist.redo.length) return; hist.undo.push(JSON.stringify(doc)); doc = JSON.parse(hist.redo.pop()); picking = []; changed(); }
 function syncUndo(){ $('btnUndo').disabled = !hist.undo.length; $('btnRedo').disabled = !hist.redo.length; }
 function changed(){
   if (sel) { for (const id of sel) if (!doc.atoms[id]) sel.delete(id); if (!sel.size) sel = null; }
@@ -2100,6 +2217,46 @@ $('addEls').innerHTML = ADD_ELEMS.map(el => `<button class="el" data-add="${el}"
 $('addGroups').innerHTML = ADD_GROUPS.map(([k, , label, name]) => `<button data-add="${k}" title="${name}：H をクリックすると置き換え">${label}</button>`).join('');
 document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => { state.addWhat = b.dataset.add; setTool('add'); }));
 
+// ===== 形を整える（簡易的な構造最適化） =====
+// 分子を選んでいればその分子だけ、なければ全体。計測があれば、値を保つものを先に選ぶ（標準の値から変えたものは最初からチェック）
+let optAnim = null;
+const optTargets = () => sel ? [...sel] : Object.keys(doc.atoms).map(Number);
+function measEdited(m){   // 標準の値からずれている計測か
+  const std = standardValues(m), n = m.atoms.length, v = measureValue(m.atoms).v; if (!std.length) return false;
+  return Math.min(...std.map(s => Math.abs(measDiff(n, v, s)))) > (n === 2 ? 0.02 : n === 3 ? 1.5 : 5);
+}
+$('btnOptimize').onclick = () => {
+  if (optAnim) return;
+  const ids = new Set(optTargets()); if (!ids.size) return;
+  const ms = doc.meas.filter(m => m.atoms.every(id => ids.has(id)));
+  if (!ms.length) { runOptimize([]); return; }
+  editMeas = null; renderSel(); $('selBar').hidden = $('mirBar').hidden = true;
+  $('optList').innerHTML = ms.map(m => `<label class="chk"><input type="checkbox" value="${m.id}"${measEdited(m) ? ' checked' : ''}>${m.atoms.map(id => doc.atoms[id].el).join('–')} ${measureValue(m.atoms).text}</label>`).join('');
+  $('optBar').hidden = false;
+};
+$('optCancel').onclick = () => { $('optBar').hidden = true; renderSel(); };
+$('optGo').onclick = () => { const keep = [...$('optList').querySelectorAll('input:checked')].map(x => +x.value); $('optBar').hidden = true; renderSel(); runOptimize(keep); };
+function runOptimize(keepIds){
+  const ids = optTargets(), {atoms, bonds} = docArrays(ids), idx = new Map(ids.map((id, i) => [id, i]));
+  const g = graphOf(atoms, bonds);
+  const fixed = doc.meas.filter(m => keepIds.includes(m.id)).map(m => ({atoms:m.atoms.map(id => idx.get(id)), value:measureValue(m.atoms).v}));
+  const rs0 = new Map([...info.stereo].filter(([id]) => idx.has(id)));
+  commit();
+  const opt = makeOptimizer(g.mol, atoms.map(a => [a.x, a.y, a.z]), fixed);
+  const write = () => opt.positions().forEach((p, i) => { const a = doc.atoms[ids[i]]; a.x = p[0]; a.y = p[1]; a.z = p[2]; });
+  optAnim = {stop:false};
+  const tick = () => {   // 少しずつ動かして、形が落ち着いていく様子を見せる
+    if (optAnim.abort || ids.some(id => !doc.atoms[id])) { optAnim = null; return; }   // 途中でほかの変更があった
+    const done = opt.step(10); write(); requestDraw(true);   // 1 フレームに 10 回（多くても 60 フレーム、約 1 秒）
+    if (!done && !optAnim.stop) { requestAnimationFrame(tick); return; }
+    optAnim = null; changed();
+    if ([...rs0].some(([id, rs]) => info.stereo.get(id) !== rs)){
+      doc = JSON.parse(hist.undo.pop()); syncUndo(); changed(); toast('立体配置が変わりそうになったため、元に戻しました');
+    } else toast('形を整えました');
+  };
+  requestAnimationFrame(tick);
+}
+
 // ===== 画面下の情報・選択時のポップアップ =====
 function renderInfo(){
   $('formulas').innerHTML = info.comps.length
@@ -2208,6 +2365,7 @@ glc.addEventListener('contextmenu', e => e.preventDefault());
 // ドラッグ：rot 回転、pan 移動、zrot 画面に垂直な軸（z 軸）のまわりの回転。ids があればその分子だけ（鏡像も合わせる）、なければ視点
 glc.addEventListener('pointerdown', e => {
   if (e.button > 2) return;
+  if (optAnim) optAnim.stop = true;   // 形を整えている途中でクリックしたら、そこで止める
   try { glc.setPointerCapture(e.pointerId); } catch {}
   const [mx, my] = localXY(e), hit = atomAt(mx, my);
   const kind = e.altKey ? 'zrot' : (e.button === 2 || spaceDown || e.shiftKey) ? 'pan' : 'rot';
