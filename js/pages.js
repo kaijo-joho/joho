@@ -1,4 +1,4 @@
-//2026-09-14 01:43:03;
+//2026-09-14 07:46:31;
 const pages = {
   "index": {
     "id": "index",
@@ -88,6 +88,60 @@ const pages = {
     "back": "index",
     "next": [
       {
+        "id": "cp11",
+        "title": "1-1. コンピュータの構成と動作",
+        "text": "1-1. コンピュータの構成と動作",
+        "release": false,
+        "url": "cp11.html",
+        "detail": "五大装置、記憶装置、CPUの動作と性能を、図と操作・問題演習で学びます。"
+      }
+    ],
+    "show": false,
+    "backFile": "index.html"
+  },
+  "cp11": {
+    "id": "cp11",
+    "release": false,
+    "fileName": "cp11.html",
+    "mainTitle": "コンピュータのしくみ",
+    "category": "ハードウェアとソフトウェア",
+    "title": "1-1. コンピュータの構成と動作",
+    "detail": "五大装置、記憶装置、CPUの動作と性能を、図と操作・問題演習で学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "cp00",
+    "next": [
+      {
+        "id": "cp12",
+        "title": "1-2. ソフトウェアとファイル管理",
+        "text": "1-2. ソフトウェアとファイル管理",
+        "release": false,
+        "url": "cp12.html",
+        "detail": "ハードウェアとソフトウェア、OSの役割、ファイル・フォルダ・拡張子を学びます。"
+      }
+    ],
+    "show": true,
+    "backFile": "cp00.html"
+  },
+  "cp12": {
+    "id": "cp12",
+    "release": false,
+    "fileName": "cp12.html",
+    "mainTitle": "コンピュータのしくみ",
+    "category": "ハードウェアとソフトウェア",
+    "title": "1-2. ソフトウェアとファイル管理",
+    "detail": "ハードウェアとソフトウェア、OSの役割、ファイル・フォルダ・拡張子を学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "cp11",
+    "next": [
+      {
         "id": "cp21",
         "title": "2-1. 論理回路の基本と演習",
         "text": "2-1. 論理回路の基本と演習",
@@ -96,8 +150,8 @@ const pages = {
         "detail": "基本ゲート、回路図、真理値表を学び、出力・真理値表・回路構成の問題で理解を確かめます。"
       }
     ],
-    "show": false,
-    "backFile": "index.html"
+    "show": true,
+    "backFile": "cp11.html"
   },
   "cp21": {
     "id": "cp21",
@@ -112,7 +166,7 @@ const pages = {
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
-    "back": "cp00",
+    "back": "cp12",
     "next": [
       {
         "id": "cp22",
@@ -124,7 +178,7 @@ const pages = {
       }
     ],
     "show": true,
-    "backFile": "cp00.html"
+    "backFile": "cp12.html"
   },
   "cp22": {
     "id": "cp22",
