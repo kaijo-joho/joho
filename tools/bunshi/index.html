@@ -290,6 +290,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
       <section class="side-pane" data-pane="lib" hidden>
         <header><span>化合物ライブラリ</span><button class="side-close" title="パネルを閉じる">▶</button></header>
         <div class="side-body">
+          <button class="sbtn" id="kzImport" title="同じブラウザで開いている構造式エディタの図（自動保存されたもの）を、3D にして取り込む（いまの分子と入れ替え）">構造式エディタの図を取り込む</button>
           <input type="text" id="libSearch" class="lib-search" placeholder="名前で絞り込み（例：酸、グルコース）" spellcheck="false" autocomplete="off">
           <p class="muted">クリックで表示（いまの分子と入れ替え）。<kbd>Shift</kbd>+クリックで横に追加。</p>
           <div id="libBody"></div>
@@ -333,6 +334,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <div class="body help" id="helpBody">
       <table>
         <tr><td>分子を表示する</td><td>左上の「化合物ライブラリ」（または画面右端のタブ）から化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
+        <tr><td>構造式エディタから</td><td>構造式エディタで描いた分子を 3D にできます。化合物ライブラリの「構造式エディタの図を取り込む」を押すと、同じブラウザで開いている構造式エディタの図（自動保存されたもの）を取り込みます。構造式エディタで保存した .json ファイルは「開く」から取り込めます。くさび形・破線くさびの結合、ハースの投影式の上下、二重結合のシス・トランスは立体配置として取り込み、置換基のラベル（COOH・C<sub>2</sub>H<sub>5</sub>・Ph など）は原子に直します。R・X などの一般の記号や金属を含む構造は取り込めません。</td></tr>
         <tr><td>回す</td><td>ドラッグ、またはトラックパッドの 2 本指スクロール。矢印キーでも少しずつ回ります。<kbd>⌥/Alt</kbd>+ドラッグで、画面に垂直な軸（z 軸）のまわりに、画面の中で回します。</td></tr>
         <tr><td>移動・拡大</td><td><kbd>Shift</kbd>+ドラッグ（または右ドラッグ）で移動。<kbd>⌘/Ctrl</kbd>+ホイール・ピンチで拡大縮小。画面右下の「全体表示」(<kbd>F</kbd>)・「はじめの向き」(<kbd>R</kbd>)・− ＋ でも変えられます。</td></tr>
         <tr><td>軸の表示</td><td>画面右下の「軸」で、原点（はじめは分子模型の中心）を通る x・y・z 軸（x 赤・y 緑・z 青）を表示します。分子をクリックして選び、ドラッグ・<kbd>Shift</kbd>+ドラッグすると、軸に対して分子を回したり動かしたりできます（ポップアップの「原点へ」で、回転の中心を原点に戻す）。画像に軸を入れるかは、書き出しパネルの「軸を入れる」で選べます。</td></tr>
@@ -355,7 +357,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.5 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.6 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1174,9 +1176,9 @@ function aromatize(mol){
   }
 }
 
-// ---- 化合物を作る：SMILES 風の定義 → 3D の原子と結合 ----
-function makeMolecule(smiles){
-  const mol = molFromSmiles(smiles);
+// ---- 化合物を作る：SMILES 風の定義（または分子のグラフ）→ 3D の原子と結合 ----
+function makeMolecule(smiles){ return moleculeFromGraph(molFromSmiles(smiles)); }
+function moleculeFromGraph(mol){
   aromatize(mol); perceive(mol);
   const {P, approx} = build3D(mol);
   return {atoms:mol.atoms.map((a, i) => ({el:a.el, charge:a.charge, hyb:a.hyb, type:a.type, x:P[i][0], y:P[i][1], z:P[i][2]})),
@@ -1318,6 +1320,107 @@ function finishImport(atoms, bonds){   // 読み込んだ分子：芳香族の�
   const {mol} = graphOf(atoms, bonds);
   aromatize(mol); perceive(mol);
   return {atoms:atoms.map((a, i) => ({...a, hyb:mol.atoms[i].hyb, type:mol.atoms[i].type})), bonds:mol.bonds.map(b => ({a:b.a, b:b.b, order:b.order}))};
+}
+
+// ---- 構造式エディタ（kouzoushiki）の図から分子のグラフを作る ----
+// 置換基のラベル（右向きの書き方＋電荷の符号）→ 付ける部分の SMILES（1 つ目の原子の H を 1 つ外して付ける）
+const KZ_GROUPS = {C2H5:'CC', C3H7:'CCC', 'CH(CH3)2':'C(C)C', C4H9:'CCCC', 'C(CH3)3':'C(C)(C)C', 'CH=CH2':'C=C', C6H5:'c1ccccc1',
+  OH:'O', CHO:'C=O', COOH:'C(=O)O', COCH3:'C(=O)C', COOCH3:'C(=O)OC', COOC2H5:'C(=O)OCC', OCH3:'OC', OC2H5:'OCC', OCOCH3:'OC(=O)C',
+  NH2:'N', NHCOCH3:'NC(=O)C', NO2:'[NH+](=O)[O-]', SO3H:'S(=O)(=O)O', CN:'C#N', CH2OH:'CO', CH3:'C', 'COO-':'C(=O)[O-]', 'NH3+':'[NH4+]',
+  ONa:'O[Na]', COONa:'C(=O)O[Na]', SO3Na:'S(=O)(=O)O[Na]',
+  Me:'C', Et:'CC', Pr:'CCC', nPr:'CCC', iPr:'C(C)C', Bu:'CCCC', nBu:'CCCC', tBu:'C(C)(C)C', Ph:'c1ccccc1', Ac:'C(=O)C', Bn:'Cc1ccccc1',
+  OMe:'OC', OEt:'OCC', OPh:'Oc1ccccc1', OAc:'OC(=O)C', NHAc:'NC(=O)C', COOMe:'C(=O)OC', COOEt:'C(=O)OCC'};
+const KZ_HCAP = new Set(['C', 'N', 'O', 'S', 'Cl', 'Br', 'I']);   // 構造式エディタで暗黙の H を持つ元素
+function kzValences(el, ch){   // 構造式エディタと同じ価数の決め方
+  const v = VALENCE[el] || [0];
+  if (!ch) return v;
+  if (el === 'N' || el === 'O' || el === 'S') return [Math.max(0, v[0] + ch)];
+  if (el === 'C') return [3];
+  return [Math.max(0, v[0] - Math.abs(ch))];
+}
+// 戻り値：{mols:[分子のグラフ], skipped:[取り込めなかった理由], notes:[注意]}。つながった部分ごとに 1 つの分子
+function molsFromKouzoushiki(kd){
+  const atoms = Object.values(kd?.atoms || {}).filter(a => a && !a.blank && isFinite(a.x) && isFinite(a.y));
+  const byId = new Map(atoms.map(a => [a.id, a]));
+  const bonds = Object.values(kd?.bonds || {}).filter(b => b && byId.has(b.a1) && byId.has(b.a2) && b.a1 !== b.a2 && !b.nv &&
+    b.style !== 'dash' && b.style !== 'coord' && [1, 2, 3].includes(b.order));
+  const nbK = new Map(atoms.map(a => [a.id, []]));
+  for (const b of bonds){ nbK.get(b.a1).push(b); nbK.get(b.a2).push(b); }
+  const out = {mols:[], skipped:[], notes:new Set()}, seen = new Set();
+  for (const a0 of atoms){
+    if (seen.has(a0.id)) continue;
+    const comp = [], st = [a0.id]; seen.add(a0.id);
+    while (st.length){ const x = st.pop(); comp.push(x); for (const b of nbK.get(x)){ const y = b.a1 === x ? b.a2 : b.a1; if (!seen.has(y)) { seen.add(y); st.push(y); } } }
+    try { out.mols.push(kzComponent(comp, byId, nbK, out.notes)); } catch (e) { out.skipped.push(e.message); }
+  }
+  return {mols:out.mols, skipped:out.skipped, notes:[...out.notes]};
+}
+function kzComponent(comp, byId, nbK, notes){
+  const mol = {atoms:[], bonds:[], stereoDB:[]}, node = new Map(), pos = [];   // pos：2D の座標（結合 1 本 = 1、y は上向き）。書かれていない原子は null
+  const addN = (el, charge, p) => { mol.atoms.push({el, charge, arom:false, nb:[], chir:null}); pos.push(p); return mol.atoms.length - 1; };
+  const addB = (i, j, o) => { mol.bonds.push({a:i, b:j, order:o}); mol.atoms[i].nb.push(j); mol.atoms[j].nb.push(i); };
+  const BONDPX = 40;   // 構造式エディタの結合の長さ（px）
+  for (const id of comp){
+    const a = byId.get(id), p = [a.x/BONDPX, -a.y/BONDPX];
+    if (a.grp){   // 置換基のラベルは原子に展開する（ラベルの原子＝付ける部分の 1 つ目の原子）
+      const key = a.grp + (a.charge > 0 ? '+' : a.charge < 0 ? '-' : ''), smi = KZ_GROUPS[key];
+      if (!smi) throw new Error(`置換基「${key}」を含む構造は取り込めません`);
+      const fm = molFromSmiles(smi), h0 = nbK.get(id).length ? fm.atoms[0].nb.find(j => fm.atoms[j].el === 'H') : -1, map = new Map();
+      fm.atoms.forEach((fa, i) => { if (i !== h0) map.set(i, addN(fa.el, fa.charge, i === 0 ? p : null)); });
+      fm.bonds.forEach(b => { if (b.a !== h0 && b.b !== h0) addB(map.get(b.a), map.get(b.b), b.order); });
+      node.set(id, map.get(0));
+    } else {
+      if (!ELEM[a.el]) throw new Error(`${a.el} を含む構造は取り込めません`);
+      node.set(id, addN(a.el, a.charge || 0, p));
+    }
+    if (a.pd || a.nm) notes.add('いす形・ニューマン投影式の立体配置は取り込みません');
+  }
+  const done = new Set();
+  for (const id of comp) for (const b of nbK.get(id)) if (!done.has(b)) { done.add(b); addB(node.get(b.a1), node.get(b.a2), b.order); }
+  // 暗黙の H を足す（構造式エディタと同じ数え方）
+  for (const id of comp){
+    const a = byId.get(id); if (a.grp) continue;
+    const i = node.get(id), s = mol.atoms[i].nb.reduce((t, j) => t + bondOrder(mol, i, j), 0);
+    const v = kzValences(a.el, a.charge || 0).find(v => v >= s);
+    if (v == null) throw new Error('価標の数が多すぎる原子があるため、取り込めません');
+    if (KZ_HCAP.has(a.el)) for (let k = 0; k < v - s; k++) addB(i, addN('H', 0, null), 1);
+  }
+  // 立体配置：図から「仮の 3D」を作り、@・@@ と同じ形（chir）にする
+  const wz = new Map();   // くさび（手前 +）・破線くさび（奥 −）。細い側（a1）が中心
+  for (const id of comp) for (const b of nbK.get(id)) if ((b.style === 'wedge' || b.style === 'hash') && b.a1 === id) wz.set(node.get(b.a1) + ',' + node.get(b.a2), b.style === 'wedge' ? 0.8 : -0.8);
+  const hw = new Set(comp.filter(id => byId.get(id).hw).map(id => node.get(id)));
+  for (let c = 0; c < mol.atoms.length; c++){
+    const A = mol.atoms[c]; if (A.el !== 'C' || A.nb.length !== 4 || !pos[c]) continue;
+    let P;
+    if (hw.has(c)){   // ハースの投影式：環は奥行きのある水平な面（図の下ほど手前）、置換基は上下
+      const ring = A.nb.filter(j => hw.has(j)), exo = A.nb.filter(j => !hw.has(j) && pos[j]);
+      if (ring.length !== 2 || !exo.length) continue;
+      const Pc = [pos[c][0], 0, -pos[c][1]];
+      P = new Map([[c, Pc], ...ring.map(j => [j, [pos[j][0], 0, -pos[j][1]]])]);
+      if (exo.some(j => Math.abs(pos[j][1] - pos[c][1]) < 0.3)) continue;
+      exo.forEach(j => P.set(j, V.add(Pc, [0, Math.sign(pos[j][1] - pos[c][1]), 0])));
+    } else {
+      const zs = A.nb.map(j => wz.get(c + ',' + j)); if (!zs.some(z => z != null)) continue;
+      P = new Map([[c, [pos[c][0], pos[c][1], 0]]]);
+      A.nb.forEach((j, k) => { if (pos[j]) { const d = V.norm([pos[j][0] - pos[c][0], pos[j][1] - pos[c][1], 0]); P.set(j, V.add(P.get(c), [d[0], d[1], zs[k] ?? 0])); } });
+    }
+    const known = A.nb.filter(j => P.has(j)), unknown = A.nb.filter(j => !P.has(j));
+    if (known.length < 3 || unknown.length > 1) continue;
+    if (unknown.length){ const s = known.reduce((t, j) => V.add(t, V.norm(V.sub(P.get(j), P.get(c)))), [0, 0, 0]); P.set(unknown[0], V.sub(P.get(c), V.norm(s))); }
+    const order = [...A.nb], sg = chiralSign(order.map(j => P.get(j)));
+    if (Math.abs(sg) > 1e-3) A.chir = {order, cw:sg < 0};
+  }
+  // 二重結合のシス・トランス：置換基が二重結合の同じ側に書いてあればシス
+  const ringAtoms = new Set(findRings(mol).flat());
+  for (const b of mol.bonds){
+    if (b.order !== 2 || (ringAtoms.has(b.a) && ringAtoms.has(b.b)) || !pos[b.a] || !pos[b.b]) continue;
+    const pick = (x, y) => mol.atoms[x].nb.filter(j => j !== y && pos[j]).sort((p, q) => (mol.atoms[q].el !== 'H') - (mol.atoms[p].el !== 'H'))[0];
+    const sa = pick(b.a, b.b), sb = pick(b.b, b.a); if (sa == null || sb == null) continue;
+    const e = [pos[b.b][0] - pos[b.a][0], pos[b.b][1] - pos[b.a][1]], cr = p => e[0]*(p[1] - pos[b.a][1]) - e[1]*(p[0] - pos[b.a][0]);
+    const ca = cr(pos[sa]), cb = cr(pos[sb]); if (Math.abs(ca) < 1e-3 || Math.abs(cb) < 1e-3) continue;
+    mol.stereoDB.push({a:b.a, b:b.b, sa, sb, cis:(ca > 0) === (cb > 0)});
+  }
+  return mol;
 }
 
 // ---- 化合物ライブラリ（座標はここの定義から組み立てる。外部のデータは使わない） ----
@@ -2500,6 +2603,26 @@ $('smiGo').onclick = fromSmilesInput;
 $('smiIn').addEventListener('keydown', e => { if (e.key === 'Enter') fromSmilesInput(); });
 $('btnLib').onclick = () => openSide('lib');
 
+// ===== 構造式エディタからの取り込み =====
+// 同じサイト（joho.kaijo.ed.jp）の構造式エディタは、描いた図をブラウザに自動保存している（kouzoushiki-v1）。保存した .json も「開く」から取り込める
+function importKouzoushiki(kd){
+  const r = molsFromKouzoushiki(kd), built = [];
+  for (const mol of r.mols){ try { built.push(moleculeFromGraph(mol)); } catch (e) { r.skipped.push('組み立てられませんでした：' + e.message); } }
+  if (!built.length) { toast(r.skipped[0] || '取り込める分子がありません'); return; }
+  built.forEach((m, k) => addMolecule(m, k === 0));
+  const msg = [`構造式エディタの図から ${built.length} 個の分子を取り込みました`];
+  if (r.skipped.length) msg.push(`${r.skipped.length} 個は取り込めませんでした（${r.skipped[0]}）`);
+  toast([...msg, ...r.notes].join('。'));
+}
+$('kzImport').onclick = () => {
+  let s = null; try { s = JSON.parse(localStorage.getItem('kouzoushiki-v1') || 'null'); } catch {}
+  if (!s || !s.doc || !Object.keys(s.doc.atoms || {}).length) {
+    toast('構造式エディタの図が見つかりません。同じブラウザで構造式エディタを開いて描いてから押してください（構造式エディタで保存した .json は「開く」からも取り込めます）');
+    return;
+  }
+  importKouzoushiki(s.doc);
+};
+
 // ===== 右側のパネル =====
 const SIDE_KEY = 'bunshi-side', SIDEW_KEY = 'bunshi-sidew';
 let sidePane = '';
@@ -2581,7 +2704,9 @@ $('fileInput').addEventListener('change', async e => {
   try {
     const text = await f.text(), ext = f.name.split('.').pop().toLowerCase();
     if (ext === 'json'){
-      const d = JSON.parse(text); if (d.app !== 'bunshi') throw new Error('分子模型エディタのファイルではありません');
+      const d = JSON.parse(text);
+      if (d.app === 'kouzoushiki') { importKouzoushiki(d.doc); return; }   // 構造式エディタで保存したファイル
+      if (d.app !== 'bunshi') throw new Error('分子模型エディタ・構造式エディタのファイルではありません');
       commit(); doc = sanitize(d.doc); applyViewState(d.view); applyUIState(d.state); sel = null;
       setMode(state.mode); syncToggles(); changed();
     } else if (ext === 'mol' || ext === 'sdf') addMolecule(fromMolText(text.split('$$$$')[0]), true);
@@ -2641,7 +2766,10 @@ function closeModals(){ document.querySelectorAll('.modal').forEach(m => { m.hid
 $('btnHelp').onclick = openModal;
 document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-close]')) closeModals(); }));
 let toastTimer = null;
-function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
+function toast(msg){   // 長い文は長めに出す
+  const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), Math.max(2600, msg.length*110));
+}
 const tipEl = $('tip');
 function showTip(el){
   if (el.hasAttribute('title')){ el.dataset.tip = el.getAttribute('title'); el.removeAttribute('title'); }
