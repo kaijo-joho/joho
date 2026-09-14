@@ -81,6 +81,10 @@ button,select,input{font:inherit;color:inherit}
 .fmtbar button:hover{background:#f4f6f9}
 .fmtbar select{border:1px solid var(--line);border-radius:7px;padding:3px 4px;background:#fff}
 .fmtbar .pivrow{display:inline-flex;align-items:center;gap:5px;color:var(--muted)}
+.fmtbar input[type=range]{width:190px}
+.fmtbar .mnum{width:74px;border:1px solid var(--line);border-radius:6px;padding:3px 5px}
+.chip.meas{cursor:pointer}
+.chip.meas.on{background:var(--accent-soft);border-color:var(--accent)}
 /* ---- 下部 ---- */
 .info{grid-area:info;display:flex;align-items:center;gap:12px;padding:6px 10px;background:var(--panel);
   border-top:1px solid var(--line);min-height:40px;flex-wrap:wrap}
@@ -226,6 +230,13 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
       <button id="btnInvert" title="選んだ分子を、その鏡像（立体配置がすべて逆のもの）に置き換える">鏡像に変える</button>
       <button id="btnDelMol" title="選んだ分子を削除 (Delete)">削除</button>
     </div>
+    <div class="fmtbar" id="measBar" hidden>
+      <b id="measName"></b>
+      <input type="range" id="measRange" title="ドラッグで値を変える（小さい方の原子団がまとめて動きます）">
+      <input type="number" id="measNum" class="mnum" title="値を入力して Enter"><span id="measUnit"></span>
+      <span class="muted" id="measNote"></span>
+      <button id="measClose" title="値の編集を終える（Esc）">閉じる</button>
+    </div>
     <div class="fmtbar" id="mirBar" hidden>
       <b>鏡像体</b>
       <label class="pivrow" id="mirPivRow">回転の中心<select id="mirPiv" title="分子を回すときの中心にする不斉炭素（番号は図の中の数字）"></select></label>
@@ -304,6 +315,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>表示のしかた</td><td>上部の「球棒」「棒」「空間充填」(<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>)。二重結合は棒 2 本、三重結合は棒 3 本、ベンゼン環の結合は実線と点線（すべて同じ長さ 1.40 Å）で表します。空間充填モデルの球の大きさはファンデルワールス半径です。「表示 ▼」で原子の記号・H を隠す・背景を選べます。</td></tr>
         <tr><td>原子の色</td><td>C 黒・H 白・O 赤・N 青・S 黄・Cl 緑・Br 茶・I 紫。</td></tr>
         <tr><td>計測</td><td>左の計測のボタン（<kbd>D</kbd> 距離、<kbd>A</kbd> 結合角、<kbd>T</kbd> 二面角）を選び、原子を順にクリック。結果は図と画面下に出ます。画面下の × で消せます。</td></tr>
+        <tr><td>形を変える</td><td>測ると、上にバーが出て、結合長・結合角・二面角の値をスライダーや数値の入力で変えられます（画面下の計測をクリックしても出ます）。結合で分けた小さい方の原子団がまとめて動くので、形は崩れず、立体配置（R・S）も変わりません。二面角でエタンのねじれ形・重なり形、ブタンのアンチ形・ゴーシュ形などを作れます。環の中の値は変えられません。<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> で元に戻せます。</td></tr>
         <tr><td>不斉炭素・R/S</td><td>上部の「不斉炭素」で、4 つの異なる原子・原子団が結合した炭素をだいだい色の円で囲みます。「R/S」で R・S を表示します（CIP 順位規則。高校の範囲外の発展的な内容です。原子番号だけで順位を決めるので、まれに判定できないものがあります）。</td></tr>
         <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。回転の中心は不斉炭素（青い十字の印）で、2 つ以上あるときは上に出るプルダウンで選べます。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。<br>分子をクリックして選ぶと、その分子だけを回したり（ドラッグ）、動かしたり（<kbd>Shift</kbd>+ドラッグ）できます。もう一方に近づけたり、鏡を通り越して重ねたりして、重ならないことを確かめられます。「鏡の位置に戻す」で元の鏡像の位置に戻ります。「鏡像に変える」でその分子だけを鏡像にもできます。</td></tr>
         <tr><td>選択・削除</td><td>分子をクリックで選択（何もないところをクリックで解除）。<kbd>Delete</kbd> で削除。</td></tr>
@@ -316,7 +328,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.2 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.3 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1572,8 +1584,8 @@ function drawOverlay(c, W, H, forExport = false){
   // 計測
   const MC = '#c2410c';
   for (const m of doc.meas){
-    const ps = m.atoms.map(scr);
-    c.strokeStyle = MC; c.lineWidth = 1.6; c.setLineDash([5, 4]);
+    const ps = m.atoms.map(scr), col = m.id === editMeas && !forExport ? '#2563eb' : MC;   // 値を変えている計測は青
+    c.strokeStyle = col; c.lineWidth = 1.6; c.setLineDash([5, 4]);
     c.beginPath(); ps.forEach((p, k) => k ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y)); c.stroke(); c.setLineDash([]);
     const val = measureValue(m.atoms).text;
     let at;
@@ -1584,7 +1596,7 @@ function drawOverlay(c, W, H, forExport = false){
       c.beginPath(); c.arc(v.x, v.y, 18, a1, a2, ((a2 - a1 + 3*Math.PI) % (2*Math.PI)) - Math.PI < 0); c.stroke();
       at = {x:v.x + bis[0]*38, y:v.y + bis[1]*38};
     } else at = {x:(ps[1].x + ps[2].x)/2, y:(ps[1].y + ps[2].y)/2 - 16};
-    labelBox(val, at.x, at.y, MC);
+    labelBox(val, at.x, at.y, col);
   }
   // 計測で選んでいる途中の原子・マウスが乗っている原子・選択中の分子
   const ring = (id, col, dash) => { const a = doc.atoms[id]; if (!a) return; const s = scr(id); c.strokeStyle = col; c.lineWidth = 2.2; c.setLineDash(dash ? [4, 3] : []); c.beginPath(); c.arc(s.x, s.y, atomRadius(a)*view.s + 4, 0, 2*Math.PI); c.stroke(); c.setLineDash([]); };
@@ -1794,6 +1806,84 @@ function invertSelection(){   // 選んだ分子を、画面の左右に鏡に�
   changed();
 }
 
+// ===== 形の編集（結合長・結合角・二面角） =====
+// 計測の値を変えると、結合で分けた小さい方の原子団をまとめて動かす（形は崩さず、立体配置も変わらない）
+let editMeas = null;   // 値を変えている計測の id
+function adjacency(){
+  const nb = new Map();
+  for (const b of Object.values(doc.bonds)){ (nb.get(b.a1) || nb.set(b.a1, []).get(b.a1)).push(b.a2); (nb.get(b.a2) || nb.set(b.a2, []).get(b.a2)).push(b.a1); }
+  return nb;
+}
+function sideFrom(nb, from, start){   // from を通らずに start から行ける原子
+  const seen = new Set([start]), st = [start];
+  while (st.length){ const x = st.pop(); for (const y of nb.get(x) || []) if (y !== from && !seen.has(y)) { seen.add(y); st.push(y); } }
+  return seen;
+}
+// 動かす原子団：{move:[id], sign}（sign：-1 なら反対側を逆向きに動かす）。変えられないときは {why}
+function editPlan(ids){
+  const nb = adjacency(), n = ids.length, bonded = (p, q) => (nb.get(p) || []).includes(q);
+  // 先に結合を確かめる（角度・二面角は結合でつながった原子だけ。距離は結合か、別の分子どうし）
+  if (n === 3 && !(bonded(ids[0], ids[1]) && bonded(ids[1], ids[2]))) return {why:'結合でつながった 3 つの原子の角度だけ変えられます'};
+  if (n === 4 && !bonded(ids[1], ids[2])) return {why:'2 つ目と 3 つ目の原子が結合していないため、変えられません'};
+  if (n === 2 && !bonded(ids[0], ids[1]) && sideFrom(nb, -1, ids[0]).has(ids[1])) return {why:'同じ分子の中で結合していない原子どうしの距離は変えられません'};
+  // 候補：[中心, 出発, 符号]。中心の原子のほかの隣を含む側は、動かすと結合が伸び縮みするので使えない（環）
+  const cands = n === 2 ? [[ids[0], ids[1], 1], [ids[1], ids[0], -1]]
+    : n === 3 ? [[ids[1], ids[2], 1], [ids[1], ids[0], -1]]
+    : [[ids[1], ids[2], 1], [ids[2], ids[1], -1]];
+  const ok = cands.map(([piv, start, sign]) => {
+    const side = sideFrom(nb, piv, start), others = (nb.get(piv) || []).filter(x => x !== start);
+    if (others.some(x => side.has(x)) || side.has(piv)) return null;
+    return {move:[...side], sign};
+  }).filter(Boolean).sort((p, q) => p.move.length - q.move.length);
+  if (!ok.length) return {why:'環の中にあるため、この値は変えられません'};
+  const plan = ok[0];
+  if (n === 4){
+    const b = Object.values(doc.bonds).find(x => (x.a1 === ids[1] && x.a2 === ids[2]) || (x.a2 === ids[1] && x.a1 === ids[2]));
+    if (b.order >= 1.5) plan.note = '二重結合のまわりは、実際には回転できません（π 結合が切れるため）';
+  }
+  return plan;
+}
+function applyMeasure(m, target){
+  const plan = editPlan(m.atoms); if (plan.why) return;
+  const n = m.atoms.length, P = m.atoms.map(posOf), cur = measureValue(m.atoms).v;
+  const saved = plan.move.map(posOf);
+  const setAll = f => plan.move.forEach((id, k) => { const q = f(saved[k]), a = doc.atoms[id]; a.x = q[0]; a.y = q[1]; a.z = q[2]; });
+  if (n === 2){ const d = V.mul(V.norm(V.sub(P[1], P[0])), plan.sign*(target - cur)); setAll(p => V.add(p, d)); return; }
+  let axis = n === 3 ? V.cross(V.sub(P[0], P[1]), V.sub(P[2], P[1])) : V.sub(P[2], P[1]);
+  if (V.len(axis) < 1e-6) axis = V.perp(V.sub(P[0], P[1]));
+  axis = V.norm(axis);
+  const wrap = x => ((x + 540) % 360) - 180, delta = n === 4 ? wrap(target - cur) : target - cur;
+  const rot = th => setAll(p => V.add(P[1], V.rot(V.sub(p, P[1]), axis, rad(th))));
+  rot(delta*plan.sign);
+  const now = measureValue(m.atoms).v;
+  if ((n === 4 ? Math.abs(wrap(now - target)) : Math.abs(now - target)) > 0.3) rot(-delta*plan.sign);   // 向きが逆だったとき
+}
+function renderMeasBar(){
+  const m = doc.meas.find(x => x.id === editMeas);
+  if (!m) { editMeas = null; $('measBar').hidden = true; return; }
+  const n = m.atoms.length, v = measureValue(m.atoms).v, plan = editPlan(m.atoms), r = $('measRange'), num = $('measNum');
+  $('measName').textContent = m.atoms.map(id => doc.atoms[id].el).join('–') + '　' + ['', '', '結合長・距離', '結合角', '二面角'][n];
+  const [lo, hi, st] = n === 2 ? [0.5, 4, 0.01] : n === 3 ? [1, 179.5, 0.5] : [-180, 180, 1];
+  r.min = num.min = lo; r.max = num.max = hi; r.step = num.step = st;
+  r.value = num.value = v.toFixed(n === 2 ? 2 : 1);
+  $('measUnit').textContent = n === 2 ? 'Å' : '°';
+  r.disabled = num.disabled = !!plan.why;
+  $('measNote').textContent = plan.why || plan.note || '';
+  $('measBar').hidden = false; $('selBar').hidden = true; $('mirBar').hidden = true;
+}
+let measGesture = false;
+function measInput(val, live){
+  const m = doc.meas.find(x => x.id === editMeas); if (!m || !isFinite(val)) return;
+  if (!measGesture) { commit(); measGesture = true; }
+  applyMeasure(m, Math.max(+$('measRange').min, Math.min(+$('measRange').max, val)));
+  if (live) { $('measNum').value = measureValue(m.atoms).v.toFixed(m.atoms.length === 2 ? 2 : 1); renderInfo(); requestDraw(true); }
+  else { measGesture = false; changed(); }
+}
+$('measRange').addEventListener('input', e => measInput(+e.target.value, true));
+$('measRange').addEventListener('change', () => { if (measGesture) { measGesture = false; changed(); } });
+$('measNum').addEventListener('change', e => measInput(+e.target.value, false));
+$('measClose').onclick = () => { editMeas = null; renderInfo(); renderSel(); requestDraw(); };
+
 // ===== 画面下の情報・選択時のポップアップ =====
 function renderInfo(){
   $('formulas').innerHTML = info.comps.length
@@ -1802,7 +1892,7 @@ function renderInfo(){
     : '<span class="muted">化合物ライブラリから分子を選んでください</span>';
   $('measList').innerHTML = doc.meas.map(m => {
     const name = m.atoms.map(id => doc.atoms[id].el).join('–');
-    return `<span class="chip meas">${name}　${measureValue(m.atoms).text}<button data-mid="${m.id}" title="この計測を消す">×</button></span>`;
+    return `<span class="chip meas${m.id === editMeas ? ' on' : ''}" data-eid="${m.id}" title="クリックで値を変える">${name}　${measureValue(m.atoms).text}<button data-mid="${m.id}" title="この計測を消す">×</button></span>`;
   }).join('');
 }
 function pivotOptions(ids){   // 不斉炭素が 2 つ以上あるときの「回転の中心」の選択肢（番号は図の中の数字と同じ）
@@ -1822,6 +1912,7 @@ function renderSel(){
     const o = k >= 0 ? pivotOptions(info.comps[k].ids) : '';
     $('mirBar').hidden = !o; $('mirPiv').innerHTML = o; $('mirPiv').dataset.ci = k;
   }
+  renderMeasBar();
   updateHint();
 }
 $('selPiv').onchange = e => { if (!sel) return; commit(); setPivot([...sel], +e.target.value); changed(); };
@@ -1833,8 +1924,10 @@ $('formulas').addEventListener('click', e => {
   sel = new Set(info.comps[+c.dataset.ci].ids); renderSel(); requestDraw(true);
 });
 $('measList').addEventListener('click', e => {
-  const b = e.target.closest('[data-mid]'); if (!b) return;
-  commit(); doc.meas = doc.meas.filter(m => m.id !== +b.dataset.mid); changed();
+  const b = e.target.closest('[data-mid]');
+  if (b) { commit(); doc.meas = doc.meas.filter(m => m.id !== +b.dataset.mid); changed(); return; }
+  const c = e.target.closest('[data-eid]'); if (!c) return;
+  editMeas = +c.dataset.eid; renderInfo(); renderSel(); requestDraw();
 });
 
 // ===== ツール・表示の切り替え =====
@@ -1842,9 +1935,9 @@ const HINTS = {
   rotate:'ドラッグで回転　⇧+ドラッグで移動　⌥+ドラッグで z 軸まわりに回転　⌘+ホイール・ピンチで拡大　クリックで分子を選択',
   rotateMirror:'分子の近くからドラッグで鏡像と一緒に回転（中心は不斉炭素）　離れたところからドラッグで全体を回転　分子をクリックで選ぶとその分子だけ動かせる',
   rotateSel:'選んだ分子の近くからドラッグでその分子だけ回転（⇧で移動、⌥で z 軸まわり）　何もないところをクリックで選択を解除',
-  dist:'原子を 2 つクリックすると、原子の中心どうしの距離（結合長）を測ります',
-  angle:'原子を 3 つクリックすると、2 つ目の原子を頂点とする角度（結合角）を測ります',
-  dihedral:'原子を 4 つクリックすると、2 つ目と 3 つ目の原子を結ぶ結合のまわりのねじれの角度（二面角）を測ります'
+  dist:'原子を 2 つクリックすると、原子の中心どうしの距離（結合長）を測ります。測った値は上のバーで変えられます',
+  angle:'原子を 3 つクリックすると、2 つ目の原子を頂点とする角度（結合角）を測ります。測った値は上のバーで変えられます',
+  dihedral:'原子を 4 つクリックすると、2 つ目と 3 つ目の原子を結ぶ結合のまわりのねじれの角度（二面角）を測ります。測った値は上のバーで変えられます'
 };
 function setTool(t){
   state.tool = t; picking = [];
@@ -1942,12 +2035,12 @@ glc.addEventListener('pointerup', endDrag);
 glc.addEventListener('pointercancel', endDrag);
 glc.addEventListener('pointerleave', () => { if (hoverAtom != null) { hoverAtom = null; requestDraw(); } });
 function clickAction(hit){
-  if (state.tool === 'rotate'){ sel = hit != null ? new Set(compOf(hit)) : null; renderSel(); requestDraw(true); return; }
+  if (state.tool === 'rotate'){ sel = hit != null ? new Set(compOf(hit)) : null; editMeas = null; renderInfo(); renderSel(); requestDraw(true); return; }
   if (hit == null) { picking = []; requestDraw(); return; }
   if (picking[picking.length - 1] === hit) return;
   picking.push(hit);
   if (picking.length === {dist:2, angle:3, dihedral:4}[state.tool]){
-    commit(); doc.meas.push({id:doc.nid++, atoms:[...picking]}); picking = []; changed();
+    commit(); editMeas = doc.nid; doc.meas.push({id:doc.nid++, atoms:[...picking]}); picking = []; changed();   // 測ったらすぐ値を変えられるように
   } else requestDraw();
 }
 glc.addEventListener('wheel', e => {
@@ -1984,7 +2077,7 @@ window.addEventListener('keydown', e => {
   if (k.toLowerCase() === 'f') { fitView(); return; }
   if (k.toLowerCase() === 'r') { fitView(false); return; }
   if (k === '?') { openModal(); return; }
-  if (k === 'Escape') { picking = []; sel = null; closeModals(); renderSel(); requestDraw(true); return; }
+  if (k === 'Escape') { picking = []; sel = null; editMeas = null; closeModals(); renderInfo(); renderSel(); requestDraw(true); return; }
   if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); deleteSelection(); return; }
   const arrows = {ArrowLeft:[-1, 0], ArrowRight:[1, 0], ArrowUp:[0, -1], ArrowDown:[0, 1]};
   if (arrows[k]) { e.preventDefault(); rotateView(arrows[k][0]*8.73, arrows[k][1]*8.73); }
