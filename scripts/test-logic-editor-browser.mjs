@@ -415,7 +415,7 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
       console.log('chrome: real touch sequence for palette drag and tap at 390px');
     }
     const quizPage = await browser.newPage({ viewport: { width: 1440, height: 1000 } });
-    await ready(quizPage, 'lc03.html#panel-build');
+    await ready(quizPage, 'cp31.html#panel-build');
     assert.equal(await quizPage.evaluate(() => {
       const editor = window.logicQuizBuildEditor;
       return editor.canDeleteNode(editor.graph.nodes.find(node => node.type === 'input'));

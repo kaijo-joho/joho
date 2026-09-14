@@ -200,15 +200,16 @@ assert.equal(soundResults.some(result => result.document.id === 'dr32'), true);
 assert.equal(soundResults.some(result => result.document.id === 'dr33'), false);
 assert.equal(soundResults.every(result => result.document.course === 'dr'), true);
 
-for (const id of ['dr00', 'dr31', 'dr32', 'lc00', 'lc01', 'lc02', 'lc03', 'lc04', 'nw00', 'nw11', 'nw12', 'nw13']) {
+for (const id of ['dr00', 'dr31', 'dr32', 'cp00', 'cp31', 'cp32', 'lc02', 'nw00', 'nw11', 'nw12', 'nw13']) {
   const document = index.documents.find(document => document.id === id);
   assert.ok(pages[id], `座学ページの掲載設定が存在する: ${id}`);
   assert.equal(Boolean(document), pages[id].release === true, `座学ページの掲載設定に従う: ${id}`);
   if (document) {
-    assert.equal(document.course, id.slice(0, 2), `座学シリーズで絞り込める: ${id}`);
+    const course = pages[id].mainTitle === 'コンピュータのしくみ' ? 'cp' : id.slice(0, 2);
+    assert.equal(document.course, course, `座学シリーズで絞り込める: ${id}`);
   }
 }
-for (const [course, query, id] of [['lc', '回路', 'lc01'], ['nw', 'プロトコル', 'nw11']]) {
+for (const [course, query, id] of [['cp', '回路', 'cp31'], ['nw', 'プロトコル', 'nw11']]) {
   const results = core.searchDocuments(index.documents, query, { course });
   assert.equal(results.some(result => result.document.id === id), pages[id].release === true, `公開した${course}の教材が見つかる`);
   assert.ok(results.every(result => result.document.course === course), `${course}以外を含めない`);

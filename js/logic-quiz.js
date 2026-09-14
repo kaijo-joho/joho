@@ -277,34 +277,11 @@
     });
     byId('build-next').addEventListener('click', newBuildProblem);
 
-    const tabs = Array.from(document.querySelectorAll('[role="tab"][data-mode]'));
-    function activateTab(mode, focus = false) {
-      tabs.forEach(tab => {
-        const active = tab.dataset.mode === mode;
-        tab.setAttribute('aria-selected', active ? 'true' : 'false');
-        tab.tabIndex = active ? 0 : -1;
-        if (focus && active) tab.focus();
-      });
-      document.querySelectorAll('.logic-quiz-panel').forEach(panel => {
-        panel.hidden = panel.dataset.panel !== mode;
-      });
-    }
-    tabs.forEach((tab, index) => {
-      tab.addEventListener('click', () => activateTab(tab.dataset.mode));
-      tab.addEventListener('keydown', event => {
-        if (!['ArrowLeft', 'ArrowRight'].includes(event.key)) return;
-        event.preventDefault();
-        const offset = event.key === 'ArrowRight' ? 1 : -1;
-        const next = tabs[(index + offset + tabs.length) % tabs.length];
-        activateTab(next.dataset.mode, true);
-      });
-    });
-
+    // タブ・URLハッシュ・キーボード操作は共通基盤のLessonViewGroupに任せる。
     updateScore();
     newSingleProblem();
     newTableProblem();
     newBuildProblem();
-    activateTab('single');
   }
 
   if (document.readyState === 'loading') {

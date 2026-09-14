@@ -7,6 +7,7 @@
   const COURSE_FILTERS = [
     { value: '', label: 'すべて' },
     { value: 'dr', label: 'デジタル表現' },
+    { value: 'cp', label: 'コンピュータのしくみ' },
     { value: 'lc', label: '論理回路' },
     { value: 'nw', label: 'ネットワーク' },
     { value: 'html', label: 'HTML' },

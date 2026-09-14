@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { readFile, access } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -21,10 +21,9 @@ async function source(file) {
 }
 
 const pageSpecs = [
-  { id: 'lc01', slides: 4 },
+  { id: 'cp31', slides: 6 },
   { id: 'lc02', slides: 3 },
-  { id: 'lc03', slides: 3 },
-  { id: 'lc04', slides: 3 },
+  { id: 'cp32', slides: 3 },
   { id: 'dr31', slides: 6 },
   { id: 'dr32', slides: 6 },
   { id: 'dr42', slides: 7 },
@@ -70,6 +69,18 @@ pages.forEach((html, index) => {
   );
 });
 
+ok(!pages[0].includes('lc01') && !pages[0].includes('lc03') && !pages[0].includes('lc04'), 'cp31に旧LC教材の内部表記を残さない');
+ok(!pages[2].includes('lc04'), 'cp32に旧LC04教材の内部表記を残さない');
+for (const script of ['./js/logic-lessons.js', './js/logic-quiz.js']) {
+  ok(pages[0].includes(`<script defer src="${script}"></script>`), `cp31が${script}を初期化`);
+}
+for (const id of ['logic-quiz-tabs', 'panel-single', 'panel-table', 'panel-build', 'cp31-quiz-guide-dialog']) {
+  ok(pages[0].includes(`id="${id}"`), `cp31に${id}`);
+}
+for (const id of ['headline_1', 'headline_2', 'headline_3', 'headline_4', 'headline_5', 'headline_6']) {
+  ok(pages[0].includes(`id="${id}"`), `cp31に${id}`);
+}
+
 for (const requirement of [
   'class LessonSlideDeck',
   'class LessonViewGroup',
@@ -110,19 +121,26 @@ for (const requirement of [
 }
 ok(logicCss.includes('--lesson-theme-panel: var(--logic-panel-strong)'), '論理回路テーマを共通スライド基盤へ接続');
 
-equal((pages[0].match(/data-lesson-view-panel=/g) || []).length, 6, 'lc01は6ゲートを表示切替');
-ok(pages[0].includes('data-lesson-view-panel="xor"'), 'lc01にXORの表示パネル');
+equal((pages[0].match(/data-lesson-view-panel=/g) || []).length, 9, 'cp31は6ゲートと3種類の問題を共通基盤で表示切替');
+ok(pages[0].includes('data-lesson-view-panel="xor"'), 'cp31にXORの表示パネル');
 ok(pages[1].includes('data-lesson-supplement-open="lc02-operation-dialog"'), 'lc02に操作方法の補足dialog入口');
 ok(pages[1].includes('data-lesson-supplement-dialog'), 'lc02に操作方法の補足dialog');
 ok(pages[1].includes('data-lesson-default-slide="headline_2"'), 'lc02は回路エディタを初期表示');
 ok(pages[1].includes('class="logic-workspace-grid" data-lesson-slide-navigation-lock'), 'lc02はエディタ操作領域だけページ送りを抑止');
-ok(pages[2].includes('class="logic-quiz-stage" data-lesson-slide-navigation-lock'), 'lc03は問題操作領域だけページ送りを抑止');
-equal((pages[2].match(/role="tabpanel"/g) || []).length, 3, 'lc03は3種類の問題タブを維持');
-ok(pages[3].includes('id="logic-application-challenge" data-lesson-slide-navigation-lock'), 'lc04は演習領域だけページ送りを抑止');
-ok(applications.includes("['truth', 'function', 'name', 'complete']"), 'lc04に4段階の表示状態');
-ok(applications.includes('logic-application-card--${stage}'), 'lc04は現在の段階をカードのクラスへ反映');
+ok(pages[0].includes('class="logic-quiz-stage" data-lesson-slide-navigation-lock'), 'cp31は問題操作領域だけページ送りを抑止');
+equal((pages[0].match(/role="tabpanel"/g) || []).length, 3, 'cp31は3種類の問題タブを維持');
+ok(pages[2].includes('id="logic-application-challenge" data-lesson-slide-navigation-lock'), 'cp32は演習領域だけページ送りを抑止');
+ok(applications.includes("['truth', 'function', 'name', 'complete']"), 'cp32に4段階の表示状態');
+ok(applications.includes('logic-application-card--${stage}'), 'cp32は現在の段階をカードのクラスへ反映');
 for (const stage of ['function', 'name', 'complete']) {
-  ok(applications.includes(`setCardStage('${stage}'`), `lc04が次の段階 ${stage} へ進む`);
+  ok(applications.includes(`setCardStage('${stage}'`), `cp32が次の段階 ${stage} へ進む`);
+}
+
+for (const oldPage of ['lc00.html', 'lc01.html', 'lc03.html', 'lc04.html']) {
+  await access(path.join(root, oldPage)).then(
+    () => assert.fail(`${oldPage}は削除されている`),
+    error => ok(error?.code === 'ENOENT', `${oldPage}は削除されている`)
+  );
 }
 
 for (const selector of [

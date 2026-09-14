@@ -33,6 +33,50 @@
   --lesson-theme-focus: var(--logic-focus);
 }
 
+/* 論理回路の語句・ポイントまとめ */
+.logic-review-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 3vw, 40px);
+}
+
+.logic-review-term {
+  min-width: 0;
+  color: var(--logic-text);
+}
+
+.logic-review-term details {
+  border-bottom: 1px solid var(--logic-border);
+}
+
+.logic-review-term summary {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding: 10px 4px;
+  color: var(--logic-text);
+  font-size: .82em;
+  font-weight: 700;
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+
+.logic-review-term summary:focus-visible {
+  outline: 3px solid var(--logic-focus);
+  outline-offset: 2px;
+}
+
+section article .logic-review-term p {
+  margin: 6px 4px 12px;
+  font-size: .78em;
+  line-height: 1.6;
+}
+
+@media (max-width: 680px) {
+  .logic-review-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 /* lc02: 保存・読込・画像出力 */
 #logic-editor .logic-editor__actions--files {
   display: flex;
@@ -1704,7 +1748,7 @@ section article .logic-editor__scroll-hint {
   font-family: var(--font-code, monospace);
 }
 
-/* lc04：有名な組合せ回路 */
+/* cp32：有名な組合せ回路 */
 .logic-learning-path {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -2877,7 +2921,12 @@ body.lesson-slide-ready #build-editor .logic-editor__actions {
 }
 
 body.lesson-slide-ready #build-editor .logic-editor__canvas-wrap {
-  max-height: 230px;
+  max-height: none;
+}
+
+body.lesson-slide-ready #build-editor .logic-editor__canvas {
+  /* SVGそのものの高さを合わせ、入力・出力をスクロール枠で切り取らない。 */
+  height: clamp(280px, calc(var(--lesson-slide-deck-height, 75dvh) - 430px), 420px);
 }
 
 body.lesson-slide-ready #build-feedback {

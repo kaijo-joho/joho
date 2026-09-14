@@ -1,4 +1,4 @@
-// Chrome/WebKit UI checks for lc02 truth panel, alignment and smart snapping.
+// Chrome/WebKit UI checks for lc02 editor, cp31 quiz and smart snapping.
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { mkdtemp, readFile } from 'node:fs/promises';
@@ -443,12 +443,12 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     await truthPanelChecks(page, name, 390);
     await context.close();
     if (name === 'chrome') await touchSnapChecks(browser);
-    const lc03 = await browser.newPage({ viewport: { width: 390, height: 844 } });
-    await lc03.goto(new URL('lc03.html#panel-build', baseURL).href);
-    await lc03.locator('body.lesson-slide-ready').waitFor();
-    assert.equal(await lc03.getByRole('button', { name: '回路全体を自動整列', exact: true }).count(), 0, `${name}: lc03 alignment disabled`);
-    assert.equal(await lc03.getByRole('button', { name: '真理値表を折りたたむ', exact: true }).count(), 0, `${name}: lc03 has no free-editor table toggle`);
-    await lc03.close();
+    const cp31 = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await cp31.goto(new URL('cp31.html#panel-build', baseURL).href);
+    await cp31.locator('body.lesson-slide-ready').waitFor();
+    assert.equal(await cp31.getByRole('button', { name: '回路全体を自動整列', exact: true }).count(), 0, `${name}: cp31 alignment disabled`);
+    assert.equal(await cp31.getByRole('button', { name: '真理値表を折りたたむ', exact: true }).count(), 0, `${name}: cp31 has no free-editor table toggle`);
+    await cp31.close();
     console.log(`${name}: alignment, snapping, cancellation, save/load and 390px toolbar passed`);
   } finally {
     await browser.close();

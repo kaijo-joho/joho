@@ -2,7 +2,7 @@
   'use strict';
 
   const FAQ_COURSE_KEYS = new Set(['dr', 'html', 'il', 'ss', 'py']);
-  const COURSE_KEYS = new Set([...FAQ_COURSE_KEYS, 'lc', 'nw']);
+  const COURSE_KEYS = new Set([...FAQ_COURSE_KEYS, 'cp', 'lc', 'nw']);
 
   function normalizeText(value) {
     return String(value ?? '')

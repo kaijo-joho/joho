@@ -8,14 +8,14 @@ const { chromium, webkit } = require('playwright');
 const { expect } = require('playwright/test');
 const baseURL = process.env.JOHO_TEST_URL || 'http://127.0.0.1:8884/';
 const searchIndex = JSON.parse(await readFile(new URL('../data/search-index.json', import.meta.url), 'utf8'));
-const courseOrder = ['dr', 'lc', 'nw', 'html', 'il', 'ss', 'py'];
+const courseOrder = ['dr', 'cp', 'lc', 'nw', 'html', 'il', 'ss', 'py'];
 const indexedCourses = new Set(searchIndex.documents.map(document => document.course));
 const expectedCourseFilters = ['', ...courseOrder.filter(course => indexedCourses.has(course))];
 
 async function ready(page, path) {
   await page.goto(new URL(path, baseURL).href);
   await page.locator('.lesson-dock__btn--search').waitFor();
-  if (/^(dr|lc|nw)\d+\.html/.test(path) && !/^[a-z]+00\.html/.test(path)) {
+  if (/^(dr|cp|lc|nw)\d+\.html/.test(path) && !/^[a-z]+00\.html/.test(path)) {
     await page.locator('body.lesson-slide-ready').waitFor();
   }
 }
@@ -213,10 +213,10 @@ for (const name of selectedBrowsers) {
         documents: [
           ...searchIndex.documents,
           {
-            id: '__unreleased-lc-test',
-            url: 'lc01.html',
+            id: '__unreleased-cp-test',
+            url: 'cp31.html',
             title: '未公開論理回路検証語',
-            course: 'lc',
+            course: 'cp',
             courseLabel: '論理回路',
             category: '',
             detail: '',
@@ -367,7 +367,7 @@ for (const name of selectedBrowsers) {
     await page.keyboard.press('Escape');
     await expect(page.locator('#headerbar__course')).toHaveCount(1);
 
-    for (const path of ['dr41.html#headline_1','dr31.html#headline_2','dr32.html#headline_1','lc01.html','lc02.html','lc03.html','lc04.html','nw11.html','nw12.html','nw13.html']) {
+    for (const path of ['dr41.html#headline_1','dr31.html#headline_2','dr32.html#headline_1','cp31.html','lc02.html','cp32.html','nw11.html','nw12.html','nw13.html']) {
       await ready(page, path);
       for (const width of [1440,390]) {
         await page.setViewportSize({width,height:900});

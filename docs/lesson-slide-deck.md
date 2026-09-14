@@ -1,12 +1,12 @@
 # 座学ページ共通スライド基盤
 
-`css/lesson-slide-deck.css`と`js/lesson-slide-deck.js`は、座学ページをHTML内のスライドとして表示する共通基盤である。2026年9月時点では`lc01.html`〜`lc04.html`、`dr31.html`〜`dr32.html`、`nw11.html`〜`nw13.html`へ適用している。共通基盤を変更するタスクは、この文書へ動作、設定、検証方法も記録する。
+`css/lesson-slide-deck.css`と`js/lesson-slide-deck.js`は、座学ページをHTML内のスライドとして表示する共通基盤である。2026年9月時点では`cp31.html`〜`cp32.html`、`lc02.html`（回路エディタ）、`dr31.html`〜`dr32.html`、`nw11.html`〜`nw13.html`などへ適用している。共通基盤を変更するタスクは、この文書へ動作、設定、検証方法も記録する。
 
 旧DR専用の`js/dr-slide-deck.js`は廃止し、この共通基盤へ統合している。DRページへ旧ファイルを再度読み込まない。
 
 ## シリーズの目次
 
-座学シリーズの目次は英字2文字に`00`を付けたファイルとし、`dr00.html`、`lc00.html`、`nw00.html`を用意する。`py00.html`・`il00.html`と同じ`#html_index`を使い、`js/script_pages.js`が`pages.js`の`mainTitle`、`category`、`title`、`detail`、`fileName`からカテゴリ別のカードを生成する。教材名やリンクをHTMLへ重複記述しない。目次自体にはスライド基盤を適用しない。
+座学シリーズの目次は英字2文字に`00`を付けたファイルとし、`dr00.html`、`cp00.html`、`nw00.html`を用意する。`py00.html`・`il00.html`と同じ`#html_index`を使い、`js/script_pages.js`が`pages.js`の`mainTitle`、`category`、`title`、`detail`、`fileName`からカテゴリ別のカードを生成する。教材名やリンクをHTMLへ重複記述しない。目次自体にはスライド基盤を適用しない。
 
 目次の`#html_index`には`data-lesson-series="dr"`のようにシリーズ名を付ける。掲載する教材がない場合は「公開中の教材はありません。」と表示する。掲載条件は実習と同じく`release: true`かつ`show !== false`であり、公開前のページを独自に掲載しない。目次自身は`show: false`として自分自身のカードを作らない。
 

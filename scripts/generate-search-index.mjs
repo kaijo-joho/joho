@@ -19,6 +19,7 @@ const COURSE_KEYS = new Map([
   ['Python講座', 'py'],
   ['Digital Representation', 'dr'],
   ['デジタル表現', 'dr'],
+  ['コンピュータのしくみ', 'cp'],
   ['論理回路教材', 'lc'],
   ['ネットワークのしくみ', 'nw']
 ]);
