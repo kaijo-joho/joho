@@ -1,5 +1,6 @@
 // Requires Playwright and a local HTTP server; see docs/page-specific-editing-notes.md.
 import assert from 'node:assert/strict';
+import { toolLayoutChecks } from './logic-tool-browser-helpers.mjs';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -19,7 +20,7 @@ async function ready(page, path = 'lc02.html') {
     if (response.status() >= 400 && response.url().startsWith(baseURL)) errors.push(`${response.status()} ${response.url()}`);
   });
   await page.goto(new URL(path, baseURL).href);
-  await page.locator('body.lesson-slide-ready').waitFor();
+  await page.locator(path.startsWith('cp21') ? 'body.lesson-slide-ready' : 'body.logic-tool-ready').waitFor();
   await page.waitForFunction(() => window.logicWorkbenchEditor || window.logicQuizBuildEditor);
   await page.evaluate(() => document.fonts.ready);
 }
@@ -33,9 +34,12 @@ const exportButton = page => page.getByRole('button', { name: '回路図を出�
 async function prepareExport(page, format, showSignals) {
   const toggle = page.getByRole('button', { name: '0/1の表示を切り替える', exact: true });
   if (await toggle.getAttribute('aria-pressed') !== String(showSignals)) await toggle.click();
-  await exportButton(page).click();
-  const dialog = page.locator('#logic-file-dialog');
-  await dialog.getByRole('radio', { name: format === 'svg' ? 'SVG（拡大・編集用）' : 'PNG（画像用）', exact: true }).check();
+  if (await exportButton(page).getAttribute('aria-expanded') !== 'true') await exportButton(page).click();
+  const dialog = page.locator('#export-panel');
+  const radio = dialog.getByRole('radio', { name: format === 'svg' ? 'SVG（拡大・編集用）' : 'PNG（画像用）', exact: true });
+  await radio.check();
+  // WebKitのチェック済みradioへのcheckはフォーカスを移さない。後続のキー操作先を明示する。
+  await radio.focus();
   await expect(dialog.getByRole('checkbox')).toHaveCount(0);
   return dialog.getByRole('button', { name: '書き出す', exact: true });
 }
@@ -269,6 +273,7 @@ async function exportChecks(page, name, { resetCircuit = true, showSignals = tru
 
 async function multiOutputChecks(page, name) {
   await reset(page);
+  if (await page.locator('[data-pane-button="truth"]').getAttribute('aria-expanded') !== 'true') await page.locator('[data-pane-button="truth"]').click();
   const single = await state(page);
   const and = single.graph.nodes.find(node => node.type === 'AND');
   await page.getByRole('button', { name: '出力を追加', exact: true }).click();
@@ -276,7 +281,7 @@ async function multiOutputChecks(page, name) {
   const outputs = double.graph.nodes.filter(node => node.type === 'output');
   assert.deepEqual(outputs.map(node => node.name), ['F₁', 'F₂']);
   assert.deepEqual(outputs[0], { ...single.graph.nodes.find(node => node.type === 'output'), name: 'F₁' });
-  await expect(exportButton(page)).toBeDisabled();
+  await expect(page.locator('#export-submit')).toBeDisabled();
   await mouseDrag(page, await center(port(page, and.id, 'output')), await center(port(page, outputs[1].id, 'input')));
   assert.equal(await page.evaluate(() => logicWorkbenchEditor.getAnalysis().valid), true);
   await expect(exportButton(page)).toBeEnabled();
@@ -333,42 +338,7 @@ async function multiOutputChecks(page, name) {
 }
 
 async function layoutChecks(page, name) {
-  await page.mouse.move(0, 0);
-  for (const width of [1800, 720, 390]) {
-    await page.setViewportSize({ width, height: 900 });
-    for (const theme of ['light', 'dark', 'system']) {
-      for (const size of ['standard', 'large', 'xlarge']) {
-        await page.evaluate(({ theme, size }) => {
-          window.siteTheme.setPreference(theme);
-          window.siteTextSize.setPreference(size);
-        }, { theme, size });
-        await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
-        const layout = await page.evaluate(() => {
-          const toolbar = document.querySelector('.logic-editor__toolbar').getBoundingClientRect();
-          const controls = [...document.querySelectorAll('.logic-editor__toolbar button, .logic-editor__help-button')];
-          return {
-            width: document.documentElement.scrollWidth,
-            controlsFit: controls.every(button => {
-              const box = button.getBoundingClientRect();
-              return box.left >= toolbar.left - 1 && box.right <= toolbar.right + 1 && button.scrollWidth <= button.clientWidth + 1;
-            }),
-            canvasHeight: document.querySelector('.logic-editor__canvas-wrap').clientHeight
-          };
-        });
-        assert.ok(layout.width <= width + 1 && layout.controlsFit && layout.canvasHeight > 100, `${name} ${width} ${theme} ${size}: ${JSON.stringify(layout)}`);
-      }
-    }
-    await page.screenshot({ path: join(artifacts, `${name}-${width}.png`) });
-  }
-  await page.evaluate(() => { siteTheme.setPreference('light'); siteTextSize.setPreference('standard'); });
-  await page.setViewportSize({ width: 1440, height: 900 });
-  await page.locator('.lesson-slide-deck__fullscreen').click();
-  await page.getByRole('button', { name: 'スライドを全画面表示', exact: true }).click();
-  await expect(page.locator('body')).toHaveClass(/is-lesson-fullscreen/);
-  await expect(page.locator('.logic-editor__canvas')).toBeVisible();
-  await page.getByRole('button', { name: '全画面表示を終了', exact: true }).click();
-  await expect(page.locator('body')).not.toHaveClass(/is-lesson-fullscreen/);
-  console.log(`${name}: desktop/half/mobile widths, themes/text sizes and actual fullscreen`);
+  await toolLayoutChecks(page, name, artifacts);
 }
 
 for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {

@@ -1,5 +1,6 @@
 // Chrome/WebKit UI checks for lc02 editor, cp21 quiz and smart snapping.
 import assert from 'node:assert/strict';
+import { setToolPreferences } from './logic-tool-browser-helpers.mjs';
 import { createRequire } from 'node:module';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -21,8 +22,8 @@ async function ready(browser, viewport, options = {}) {
     if (response.status() >= 400 && response.url().startsWith(baseURL)) errors.push(`${response.status()} ${response.url()}`);
   });
   await page.goto(new URL('lc02.html', baseURL).href);
-  await page.locator('body.lesson-slide-ready').waitFor();
-  await page.locator('#logic-editor .logic-editor__actions--files').waitFor();
+  await page.locator('body.logic-tool-ready').waitFor();
+  await page.locator('#basic-toolbar').waitFor();
   await page.waitForFunction(() => window.logicWorkbenchEditor?.options?.enableAlignment === true);
   await page.evaluate(() => document.fonts.ready);
   return { context, page };
@@ -46,24 +47,16 @@ async function drag(page, from, to, steps = 12) {
 }
 
 async function toolbarAndAlignment(page, name, viewportWidth) {
-  // 共通ヘッダーとスライドバーのResizeObserverによる再計測を待つ。
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewportWidth + 1);
-  const toolbar = page.locator('.logic-editor__toolbar');
-  const palette = page.locator('.logic-editor__palette');
   const layout = await page.evaluate(() => {
-    const palette = document.querySelector('.logic-editor__palette').getBoundingClientRect();
-    const actions = document.querySelector('.logic-editor__actions').getBoundingClientRect();
-    const toolbar = document.querySelector('.logic-editor__toolbar').getBoundingClientRect();
-    const shell = document.querySelector('.logic-editor__toolbar');
-    return { palette, actions, toolbar, scrollWidth: document.documentElement.scrollWidth,
-      actionsFirst: shell.firstElementChild.classList.contains('logic-editor__actions') };
+    const box = s => document.querySelector(s).getBoundingClientRect().toJSON();
+    return { top: box('.top'), palette: box('.palette'), stage: box('#stage') };
   });
-  assert.ok(layout.actions.bottom <= layout.palette.top + 1, `${name} ${viewportWidth}: actions are above palette`);
-  assert.ok(layout.scrollWidth <= viewportWidth + 1, `${name} ${viewportWidth}: no horizontal overflow`);
-  assert.ok(layout.actionsFirst, 'DOM and Tab order match the visible row order');
-  assert.ok(await toolbar.getByRole('button', { name: '回路全体を自動整列', exact: true }).count() === 1);
-  assert.ok(await palette.getByRole('button', { name: 'ANDゲートを追加', exact: true }).count() === 1);
-  await page.screenshot({ path: join(artifacts, `${name}-${viewportWidth}.png`) });
+  assert.ok(layout.top.bottom <= layout.palette.top + 1, 'single toolbar row above editor');
+  assert.ok(layout.palette.right <= layout.stage.left + 1, 'component tools are on the left');
+  await expect(page.locator('#layout-tools').getByRole('button', { name: '回路全体を自動整列', exact: true })).toBeVisible();
+  await expect(page.locator('.logic-editor__palette').getByRole('button', { name: 'ANDゲートを追加', exact: true })).toBeVisible();
+  await page.screenshot({ path: join(artifacts, name + '-' + viewportWidth + '.png') });
 }
 
 async function alignmentChecks(page, name) {
@@ -183,54 +176,30 @@ async function snapThresholdChecks(page, name) {
 async function truthPanelChecks(page, name, viewportWidth) {
   await page.evaluate(() => window.logicWorkbenchEditor.loadExpression('A-B'));
   const panel = page.locator('#logic-workbench-table-panel');
+  const tab = page.locator('[data-pane-button="truth"]');
+  if (await tab.getAttribute('aria-expanded') !== 'true') await tab.click();
   await expect(panel).toBeVisible();
   const widthBefore = (await page.locator('#logic-editor').boundingBox()).width;
   const before = await state(page);
-  const hide = page.getByRole('button', { name: '真理値表を折りたたむ', exact: true });
-  await expect(hide).toHaveAttribute('aria-controls', 'logic-workbench-table-panel');
-  await hide.focus();
-  await page.keyboard.press('Enter');
+  await tab.press('Enter');
   await expect(panel).toBeHidden();
-  const show = page.getByRole('button', { name: '真理値表を表示', exact: true });
-  await expect(show).toBeFocused();
-  await expect(show).toHaveAttribute('aria-expanded', 'false');
-  assert.deepEqual(await state(page), before, `${name}: collapsing table does not edit circuit`);
-  if (viewportWidth > 620) {
-    await expect.poll(async () => (await page.locator('#logic-editor').boundingBox()).width).toBeGreaterThan(widthBefore + 100);
-  }
-  await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewportWidth + 1);
-  await page.screenshot({ path: join(artifacts, `${name}-${viewportWidth}-table-collapsed.png`) });
-  for (const theme of ['light', 'dark', 'system']) {
-    for (const size of ['standard', 'large', 'xlarge']) {
-      await page.evaluate(({ theme, size }) => {
-        siteTheme.setPreference(theme); siteTextSize.setPreference(size);
-      }, { theme, size });
-      await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewportWidth + 1);
-      const buttonBox = await show.boundingBox();
-      assert.ok(buttonBox.width >= 44 && buttonBox.height >= 44, 'table toggle has a full-size target at all text sizes');
-      await expect(panel).toBeHidden();
-    }
-  }
-  await page.evaluate(() => { siteTheme.setPreference('light'); siteTextSize.setPreference('standard'); });
-  if (viewportWidth > 620) {
-    await page.locator('.lesson-slide-deck__fullscreen').click();
-    await page.getByRole('button', { name: 'スライドを全画面表示', exact: true }).click();
-    await expect(page.locator('body')).toHaveClass(/is-lesson-fullscreen/);
+  await expect(tab).toBeFocused();
+  assert.deepEqual(await state(page), before, 'folding table leaves circuit unchanged');
+  if (viewportWidth > 850) await expect.poll(async () => (await page.locator('#logic-editor').boundingBox()).width).toBeGreaterThan(widthBefore + 100);
+  for (const theme of ['light', 'dark', 'auto']) for (const size of ['standard', 'large', 'largest']) {
+    await setToolPreferences(page, theme, size);
     await expect(panel).toBeHidden();
-    await show.click();
-    await expect(panel).toBeVisible();
-    await hide.click();
-    await expect(panel).toBeHidden();
-    await page.getByRole('button', { name: '全画面表示を終了', exact: true }).click();
+    const box = await tab.boundingBox();
+    assert.ok(box.width >= 44 && box.height >= 44);
   }
+  await setToolPreferences(page, 'light', 'standard');
   await page.evaluate(() => window.logicWorkbenchEditor.setInputValues({ A: 1, B: 1 }));
-  await show.press('Space');
+  await tab.press('Space');
   await expect(panel).toBeVisible();
-  await expect(hide).toHaveAttribute('aria-expanded', 'true');
-  assert.deepEqual(await panel.locator('tr[aria-current="true"] td').allTextContents(), ['1', '1', '1'], `${name}: reopened table highlights latest inputs`);
+  assert.deepEqual(await panel.locator('tr[aria-current="true"] td').allTextContents(), ['1', '1', '1']);
   await panel.locator('tbody tr').first().press('Enter');
-  assert.deepEqual((await state(page)).inputValues, { A: 0, B: 0 }, 'truth row keyboard interaction still updates inputs');
-  await page.getByRole('button', { name: '回路全体を自動整列', exact: true }).focus();
+  assert.deepEqual((await state(page)).inputValues, { A: 0, B: 0 });
+  if (viewportWidth <= 850) await tab.click();
 }
 
 async function smartSnapChecks(page, name) {
@@ -307,7 +276,7 @@ async function saveReloadExportChecks(page, name) {
   await dialog.waitFor({ state: 'hidden' });
   const saved = await state(page);
   await page.reload();
-  await page.locator('body.lesson-slide-ready').waitFor();
+  await page.locator('body.logic-tool-ready').waitFor();
   await page.getByRole('button', { name: '回路を読み込む', exact: true }).click();
   const load = page.locator('#logic-file-dialog');
   await load.getByRole('button', { name: `保存した回路「${name}-aligned」を読み込む`, exact: true }).click();
@@ -317,7 +286,7 @@ async function saveReloadExportChecks(page, name) {
   await page.evaluate(() => window.logicWorkbenchEditor.alignCircuit());
   assert.equal(await page.locator('.logic-editor-alignment-guide').count(), 0, `${name}: exported circuit has no alignment guides`);
   await page.getByRole('button', { name: '回路図を出力', exact: true }).click();
-  const outputDialog = page.locator('#logic-file-dialog');
+  const outputDialog = page.locator('#export-panel');
   await expect(outputDialog).toBeVisible();
   await outputDialog.getByRole('radio', { name: 'SVG（拡大・編集用）', exact: true }).check();
   const downloadPromise = page.waitForEvent('download');
@@ -337,11 +306,13 @@ async function touchSnapChecks(browser) {
   const { context, page } = await ready(browser, { width: 390, height: 844 }, { hasTouch: true, isMobile: true });
   await toolbarAndAlignment(page, 'chrome-touch', 390);
   const tableBefore = await state(page);
+  await page.getByRole('button', { name: '真理値表を表示', exact: true }).tap();
   await page.getByRole('button', { name: '真理値表を折りたたむ', exact: true }).tap();
   await expect(page.locator('#logic-workbench-table-panel')).toBeHidden();
   await page.getByRole('button', { name: '真理値表を表示', exact: true }).tap();
   await expect(page.locator('#logic-workbench-table-panel')).toBeVisible();
   assert.deepEqual(await state(page), tableBefore, 'touch table toggle preserves circuit');
+  await page.getByRole('button', { name: '真理値表を折りたたむ', exact: true }).tap();
   // 境界ボタンはモバイルでは回路の下。タップ後のスクロール位置から回路へ戻す。
   await page.locator('.logic-editor__canvas-wrap').scrollIntoViewIfNeeded();
   const wrap = await page.locator('.logic-editor__canvas-wrap').boundingBox();

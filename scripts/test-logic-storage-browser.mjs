@@ -1,5 +1,6 @@
 // Chrome/WebKit UI test for the lc02 browser circuit file workflow.
 import assert from 'node:assert/strict';
+import { toolLayoutChecks, setToolPreferences } from './logic-tool-browser-helpers.mjs';
 import { createRequire } from 'node:module';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -22,8 +23,8 @@ async function openPage(browser, viewport = { width: 1440, height: 1000 }) {
     if (response.status() >= 400 && response.url().startsWith(baseURL)) errors.push(`${response.status()} ${response.url()}`);
   });
   await page.goto(new URL('lc02.html', baseURL).href);
-  await page.locator('body.lesson-slide-ready').waitFor();
-  await page.locator('#logic-editor .logic-editor__actions--files').waitFor();
+  await page.locator('body.logic-tool-ready').waitFor();
+  await page.locator('#basic-toolbar').waitFor();
   await page.waitForFunction(() => window.logicWorkbenchEditor && window.LogicWorkbenchFiles);
   return { context, page };
 }
@@ -150,7 +151,7 @@ async function fileWorkflow(page, name) {
   await page.evaluate(raw => localStorage.setItem('joho.logic-circuits.v1', raw), rawWithTwo);
 
   await page.reload();
-  await page.locator('#logic-editor .logic-editor__actions--files').waitFor();
+  await page.locator('#basic-toolbar').waitFor();
   await clickLoad(page);
   const dialog = fileDialog(page);
   await expectText(dialog, '回路を読み込む');
@@ -307,43 +308,29 @@ async function keyboardChecks(page) {
 async function exportAndLayoutChecks(page, name) {
   await page.evaluate(() => window.logicWorkbenchEditor.loadExpression('A-B'));
   await page.getByRole('button', { name: '回路図を出力', exact: true }).click();
-  const dialog = fileDialog(page);
-  await expectText(dialog, '回路図を出力');
-  assert.equal(await dialog.getByText('SVG（拡大・編集用）', { exact: true }).count(), 1);
-  assert.equal(await dialog.getByText('PNG（画像用）', { exact: true }).count(), 1);
-  assert.equal(await dialog.getByLabel('0/1を表示する', { exact: true }).count(), 0);
-  assert.match(await dialog.textContent(), /ツールバーの0\/1表示に従います/);
-  await dialog.press('Escape');
-  await assertDialogClosed(dialog);
-
+  const panel = page.locator('#export-panel');
+  await expect(panel).toBeVisible();
+  await expect(panel.getByRole('radio')).toHaveCount(2);
+  await expect(panel.getByRole('checkbox')).toHaveCount(0);
+  await panel.getByRole('radio').first().focus();
+  await page.keyboard.press('Escape');
+  await expect(panel).toBeHidden();
+  await toolLayoutChecks(page, name, artifacts);
   for (const width of [1440, 390]) {
     await page.setViewportSize({ width, height: 844 });
-    for (const theme of ['light', 'dark', 'system']) {
-      for (const size of ['standard', 'large', 'xlarge']) {
-        await page.evaluate(({ theme, size }) => { siteTheme.setPreference(theme); siteTextSize.setPreference(size); }, { theme, size });
-        for (const label of ['回路を保存', '回路を読み込む', '回路図を出力']) {
-          await page.getByRole('button', { name: label, exact: true }).click();
-          const box = await fileDialog(page).boundingBox();
-          const overflow = await fileDialog(page).evaluate(dialog => dialog.scrollWidth > dialog.clientWidth + 1);
-          assert.ok(box && box.width <= width && box.height <= 844 * .8 + 2 && !overflow, `${width}px ${theme} ${size} ${label} fits`);
-          if (theme === 'light' && size === 'standard') await page.screenshot({ path: join(artifacts, `${name}-${width}-${label}.png`) });
-          await fileDialog(page).press('Escape');
-          await expect(page.getByRole('button', { name: label, exact: true })).toBeFocused();
-        }
+    for (const theme of ['light', 'dark', 'auto']) for (const size of ['standard', 'large', 'largest']) {
+      await setToolPreferences(page, theme, size);
+      for (const label of ['回路を保存', '回路を読み込む']) {
+        const opener = page.getByRole('button', { name: label, exact: true });
+        await opener.click();
+        const box = await fileDialog(page).boundingBox();
+        assert.ok(box.width <= width && box.height <= 844, 'file dialog stays in viewport');
+        assert.equal(await fileDialog(page).evaluate(d => d.scrollWidth > d.clientWidth + 1), false);
+        await page.keyboard.press('Escape');
+        await expect(opener).toBeFocused();
       }
     }
   }
-  await page.setViewportSize({ width: 1440, height: 1000 });
-  await page.evaluate(() => { siteTextSize.setPreference('standard'); siteTheme.setPreference('light'); });
-  await page.locator('.lesson-slide-deck__fullscreen').click();
-  await page.getByRole('button', { name: 'スライドを全画面表示', exact: true }).click();
-  await expect(page.locator('body')).toHaveClass(/is-lesson-fullscreen/);
-  await clickSave(page);
-  await expect(fileDialog(page)).toBeVisible();
-  await fileDialog(page).getByRole('button', { name: '回路のメニューを閉じる', exact: true }).click();
-  await expect(fileDialog(page)).toBeHidden();
-  await expect(page.locator('body')).toHaveClass(/is-lesson-fullscreen/);
-  await page.getByRole('button', { name: '全画面表示を終了', exact: true }).click();
 }
 
 async function touchChecks(browser) {

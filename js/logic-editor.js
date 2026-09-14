@@ -1,4 +1,4 @@
-// lc02/cp21で共有する、クリック・ドラッグ接続式の組合せ回路エディタ。
+// tools/logicとcp21で共有する、クリック・ドラッグ接続式の組合せ回路エディタ。
 (function (root) {
   'use strict';
 
@@ -1851,7 +1851,8 @@
         }
         return;
       }
-      const withinEditor = this.container.contains(document.activeElement) || this.drag || this.connectionDrag;
+      const keyboardRoot = this.options.keyboardRoot || this.container;
+      const withinEditor = keyboardRoot.contains(document.activeElement) || this.drag || this.connectionDrag;
       if (event.key === 'Escape' && this.help?.open && withinEditor) {
         this.help.open = false;
         this.help.querySelector('summary').focus();
@@ -2113,7 +2114,8 @@
         rx: 12
       });
       background.addEventListener('pointerdown', event => {
-        if (event.pointerType === 'touch' || event.pointerType === 'pen') {
+        if (event.pointerType === 'touch' || event.pointerType === 'pen'
+          || (this.options.allowMousePan && event.button === 0)) {
           const slide = this.container.closest('.lesson-slide');
           this.pan = {
             pointerId: event.pointerId, x: event.clientX, y: event.clientY,
@@ -2161,6 +2163,8 @@
       if (options.notify !== false && typeof this.options.onChange === 'function') {
         this.options.onChange(this.getState());
       }
+      // 独立ツールの選択時UI・表示設定も、回路や履歴を変えずに同期する。
+      if (typeof this.options.onRender === 'function') this.options.onRender(this, analysis);
     }
 
     updateToolbar(analysis = this.getAnalysis()) {

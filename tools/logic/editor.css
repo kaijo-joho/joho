@@ -1,0 +1,167 @@
+@charset "UTF-8";
+
+/* 図・構造式エディタと同じアプリ型の配色と配置。回路の描画は共通CSSを利用する。 */
+:root {
+  color-scheme: light;
+  --bg: #eef0f3;
+  --panel: #fff;
+  --line: #d9dde3;
+  --text: #1f2933;
+  --muted: #596572;
+  --accent: #2563eb;
+  --accent-soft: #e3ecff;
+  --hover: #f4f6f9;
+  --shadow: 0 6px 22px #14233724;
+  --ui-size: 14px;
+}
+:root[data-theme="dark"], :root[data-resolved-theme="dark"] {
+  color-scheme: dark;
+  --bg: #19212b;
+  --panel: #252e3b;
+  --line: #4c596c;
+  --text: #eef2f7;
+  --muted: #bac4d1;
+  --accent: #9cbfff;
+  --accent-soft: #2c4469;
+  --hover: #354154;
+  --shadow: 0 6px 22px #0005;
+}
+:root[data-text-size="large"] { --ui-size: 16px; }
+:root[data-text-size="largest"] { --ui-size: 18px; }
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { margin: 0; width: 100%; height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font: var(--ui-size)/1.4 -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Yu Gothic", Meiryo, sans-serif; }
+button, input, select { font: inherit; color: inherit; }
+button, select { min-height: 44px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); padding: 5px 9px; }
+button { cursor: pointer; }
+button:hover:not(:disabled) { background: var(--hover); }
+button:disabled { opacity: .4; cursor: default; }
+button[aria-pressed="true"], button[aria-expanded="true"] { color: var(--accent); background: var(--accent-soft); }
+:focus-visible { outline: 3px solid var(--accent); outline-offset: -2px; }
+button svg, [data-icon] svg { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; vertical-align: middle; }
+.icon-button { width: 44px; height: 44px; padding: 0; flex: none; }
+button.primary { background: var(--accent); border-color: var(--accent); color: var(--panel); font-weight: 600; }
+button.primary:hover:not(:disabled) { background: color-mix(in srgb, var(--accent) 90%, var(--text)); }
+h1, h2, h3, p { margin: 0; }
+.muted { color: var(--muted); font-size: .9rem; line-height: 1.65; }
+
+#app { display: grid; grid-template: "top top top" 57px "palette workspace side" minmax(0, 1fr) / 152px minmax(0, 1fr) auto; height: 100dvh; overflow: hidden; }
+.top { grid-area: top; display: flex; gap: 8px; align-items: center; padding: 6px 9px; border-bottom: 1px solid var(--line); background: var(--panel); min-width: 0; z-index: 10; }
+.brand { display: flex; align-items: center; gap: 7px; font-size: 1.07rem; font-weight: 650; flex: none; white-space: nowrap; }
+.toolbar, .toolbar-end { display: flex; flex-flow: row nowrap; align-items: center; gap: 4px; }
+.toolbar { min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+.toolbar > button { flex: none; }
+.toolbar-end { margin-left: auto; flex: none; }
+#app .logic-editor__action-button, #app .logic-editor__help-button { min-height: 44px; height: 44px; min-width: 44px; margin: 0; box-shadow: none; font-size: 1rem; }
+#app .logic-editor__signal-button { font-size: .92rem; padding-inline: 7px; }
+#app .logic-editor__save-dirty::after { background: var(--accent); }
+.palette { grid-area: palette; min-height: 0; overflow-y: auto; padding: 10px 8px; background: var(--panel); border-right: 1px solid var(--line); }
+.palette h2 { color: var(--muted); font-size: .84rem; font-weight: 600; padding: 4px 2px 7px; }
+.palette h2:not(:first-child) { margin-top: 13px; }
+#app .logic-editor__palette { display: flex; flex-direction: column; flex-wrap: nowrap; align-items: stretch; gap: 7px; }
+#app .logic-editor__gate-button { width: 100%; min-height: 50px; height: auto; justify-content: center; padding: 5px; gap: 5px; color: var(--text) !important; border-color: var(--line) !important; border-radius: 7px; box-shadow: none; font-size: 1rem; }
+#app .logic-editor__gate-button svg { width: 48px; height: 34px; }
+#app .logic-editor__gate-plus { font-size: .9rem; }
+#app .logic-editor__add-input-button, #app .logic-editor__add-output-button { width: 100%; height: auto; font-size: .9rem; }
+#layout-tools button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: .9rem; }
+.workspace { grid-area: workspace; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+#stage { position: relative; flex: 1; min-height: 0; overflow: hidden; background: var(--logic-canvas-bg); }
+#logic-editor, #logic-editor .logic-editor { width: 100%; height: 100%; min-width: 0; border: 0; border-radius: 0; background: var(--logic-canvas-bg); }
+#logic-editor .logic-editor__toolbar, #logic-editor .logic-editor__scroll-hint { display: none; }
+#logic-editor .logic-editor__canvas-wrap { width: 100%; height: 100%; max-height: none; display: flex; overflow: auto; overscroll-behavior: contain; }
+#logic-editor .logic-editor__canvas { flex: none; margin: 0 auto; min-width: 0; max-width: none; max-height: none; touch-action: none; }
+#logic-editor .logic-editor__background { cursor: grab; }
+.selection-tools { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 7px; max-width: calc(100% - 16px); width: max-content; padding: 4px 7px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); box-shadow: var(--shadow); }
+#selection-name { font-size: .9rem; white-space: nowrap; }
+.operation-hint { flex: none; min-width: 0; height: calc(2.436rem + 14px); padding: 7px 12px; border-top: 1px solid var(--line); background: var(--panel); }
+#app .logic-editor__status, #app .logic-editor__status.is-complete { position: static; transform: none; width: auto; max-width: none; min-height: 0; max-height: 2.9em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; padding: 0; margin: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--muted); text-align: left; font-size: .84rem; font-weight: 400; pointer-events: auto; }
+.statusbar { flex: none; min-width: 0; min-height: 45px; display: flex; align-items: center; gap: 12px; padding: 0 8px; border-top: 1px solid var(--line); background: var(--panel); color: var(--muted); font-size: .8rem; }
+#save-status { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+#circuit-status { flex: none; }
+.zoom { display: flex; align-items: center; gap: 2px; margin-left: auto; flex: none; }
+.zoom button { width: 36px; padding: 0; border: 0; }
+.zoom select { width: 104px; border: 0; padding-inline: 4px; }
+.zoom svg { width: 18px; }
+.side { grid-area: side; display: flex; min-height: 0; background: var(--panel); border-left: 1px solid var(--line); }
+.side-main { display: none; width: clamp(265px, 23vw, 340px); min-height: 0; }
+.side.open .side-main { display: flex; }
+.side-main > section { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.side header, dialog > header, .lesson-supplement-dialog__header { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 6px 12px; border-bottom: 1px solid var(--line); }
+.side h2 { font-size: 1rem; font-weight: 650; }
+.side header button { width: 44px; border: 0; font-size: 1.3rem; }
+.side-body { min-height: 0; overflow: auto; padding: 12px; display: flex; flex-direction: column; gap: 14px; }
+.side-tabs { flex: none; width: 44px; display: flex; flex-direction: column; background: var(--hover); box-shadow: inset 1px 0 var(--line); }
+.side-tabs button { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 0; border: 0; border-bottom: 1px solid var(--line); border-radius: 0; color: var(--muted); background: transparent; }
+.side-tabs button[aria-expanded="true"] { color: var(--accent); background: var(--accent-soft); }
+.side-tabs button > span:last-child { writing-mode: vertical-rl; letter-spacing: 2px; font-size: .84rem; }
+.side-tabs svg { width: 18px; height: 18px; }
+.side .logic-file-list { margin: 0; padding: 0; list-style: none; }
+.side .logic-file-row { display: block; margin-block: 8px; }
+.side .logic-file-load { width: 100%; text-align: left; padding: 10px; font-size: .94rem; }
+.logic-editor-truth-table .logic-truth-table { display: table; width: 100%; min-width: 190px; border-collapse: collapse; table-layout: fixed; background: var(--panel); color: var(--text); font-size: .9rem; text-align: center; }
+.logic-editor-truth-table .logic-truth-table th, .logic-editor-truth-table .logic-truth-table td { padding: 12px 6px; border-top: 1px solid var(--line); }
+.logic-editor-truth-table .logic-truth-table th { background: var(--hover); }
+.logic-editor-truth-table .logic-truth-table tr[tabindex] { min-height: 44px; }
+#export-preview { background: #fff; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+#export-preview svg { width: 100%; height: auto; display: block; }
+#export-form { display: flex; flex-direction: column; gap: 14px; }
+.export-formats { border: 0; padding: 0; margin: 0; }
+.export-formats legend { font-weight: 600; margin-bottom: 7px; }
+.export-formats label { display: flex; align-items: center; gap: 7px; min-height: 44px; }
+#export-error { color: var(--logic-error); }
+#open-saved { display: flex; align-items: center; gap: 7px; text-align: left; }
+
+dialog { width: min(700px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; margin: auto; border: 1px solid var(--line); border-radius: 12px; color: var(--text); background: var(--panel); box-shadow: var(--shadow); }
+dialog::backdrop { background: #0d152b88; }
+dialog > header, .lesson-supplement-dialog__header { position: sticky; top: 0; z-index: 1; background: var(--panel); }
+dialog h2, dialog h3 { margin: 0; font-size: 1.1rem; }
+dialog header button, .lesson-supplement-dialog__close { width: 44px; border: 0; flex: none; }
+.dialog-body, .logic-file-dialog__body { padding: 18px; overflow-wrap: anywhere; }
+.help-body { line-height: 1.75; }
+.help-body h3 { margin-top: 20px; }
+.help-body h3:first-child { margin-top: 0; }
+.help-body ul { padding-left: 1.5em; }
+.help-body li { margin-block: 7px; }
+.stack, .logic-file-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 14px; }
+dialog input[type="text"], dialog input[type="file"] { max-width: 100%; min-width: 0; padding: 9px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); }
+.logic-file-form { display: flex; flex-direction: column; gap: 12px; }
+.logic-file-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+dialog .logic-secondary-button { box-shadow: none; font-size: 1rem; }
+.logic-file-note { color: var(--muted); font-size: .9rem; line-height: 1.6; }
+.logic-file-list { padding: 0; list-style: none; }
+.logic-file-row { display: flex; gap: 8px; margin-block: 8px; }
+.logic-file-load { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.logic-file-load span, .logic-file-meta { display: block; }
+.logic-file-error { color: var(--logic-error); }
+#settings-dialog { width: min(350px, calc(100vw - 24px)); }
+noscript { position: fixed; inset: 65px 15px auto; padding: 15px; background: var(--panel); }
+@media (max-width: 1100px) {
+  .brand span { display: none; }
+  #save-status { display: none; }
+}
+@media (max-width: 850px) {
+  #app { grid-template-columns: 106px minmax(0, 1fr) auto; }
+  .side.open .side-main { position: absolute; top: 57px; bottom: 0; right: 44px; width: min(320px, calc(100vw - 54px)); background: var(--panel); box-shadow: var(--shadow); z-index: 8; border-left: 1px solid var(--line); }
+  .side-tabs { z-index: 9; }
+  #app .logic-editor__gate-plus { display: none; }
+  #app .logic-editor__gate-button svg { width: 42px; }
+  .top { gap: 4px; padding-inline: 5px; }
+  #circuit-status { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+  .statusbar { gap: 0; padding-inline: 2px; }
+}
+@media (max-width: 560px) {
+  #app { grid-template-columns: 64px minmax(0, 1fr) auto; }
+  .brand { display: none; }
+  .palette { padding: 8px 4px; }
+  .palette h2 { text-align: center; }
+  #app .logic-editor__gate-button { flex-direction: column; gap: 0; font-size: .76rem; min-height: 60px; }
+  #app .logic-editor__gate-button svg { height: 29px; }
+  #app .logic-editor__add-input-button, #app .logic-editor__add-output-button { font-size: .75rem; padding: 5px 1px; }
+  #layout-tools button { flex-direction: column; font-size: .75rem; height: auto !important; }
+  .operation-hint { height: calc(2.436rem + 10px); padding: 5px 7px; }
+  #circuit-status { display: none; }
+  .zoom { margin-inline: auto; }
+  .zoom button { width: 40px; }
+  .zoom select { width: 94px; }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }

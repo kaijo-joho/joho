@@ -129,7 +129,7 @@ async function checks(page, name) {
   await page.getByRole('button', { name: '0/1の表示を切り替える', exact: true }).click();
   const exportPromise = page.waitForEvent('download');
   await page.getByRole('button', { name: '回路図を出力', exact: true }).click();
-  await menu(page).getByRole('button', { name: '書き出す', exact: true }).click();
+  await page.locator('#export-panel').getByRole('button', { name: '書き出す', exact: true }).click();
   const svg = await readFile(await (await exportPromise).path(), 'utf8');
   assert.ok(!svg.includes('logic-editor-bend'), 'editing handles are excluded from exported diagram');
   const rendered = await page.evaluate(svg => {
@@ -150,7 +150,7 @@ async function touchChecks(browser) {
   const context = await browser.newContext({ viewport: { width: 390, height: 844 }, isMobile: true, hasTouch: true });
   const page = await context.newPage();
   await page.goto(new URL('lc02.html', baseURL).href);
-  await page.locator('body.lesson-slide-ready').waitFor();
+  await page.locator('body.logic-tool-ready').waitFor();
   await fixture(page);
   const knob = handle(page, 1).locator('.logic-editor-bend__knob');
   await knob.scrollIntoViewIfNeeded();
@@ -174,7 +174,7 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     page.on('pageerror', error => errors.push(error.message));
     page.on('response', response => { if (response.status() >= 400 && response.url().startsWith(baseURL)) errors.push(response.url()); });
     await page.goto(new URL('lc02.html', baseURL).href);
-    await page.locator('body.lesson-slide-ready').waitFor();
+    await page.locator('body.logic-tool-ready').waitFor();
     await page.evaluate(() => document.fonts.ready);
     await checks(page, name);
     if (name === 'chrome') await touchChecks(browser);

@@ -25,8 +25,9 @@
   }
 
   class LogicWorkbenchFiles {
-    constructor(editor) {
+    constructor(editor, options = {}) {
       this.editor = editor;
+      this.options = options;
       this.currentId = null;
       this.currentName = '';
       this.savedFingerprint = null;
@@ -44,6 +45,9 @@
       this.dialog.append(header, this.body);
       document.body.appendChild(this.dialog);
       this.dialog.addEventListener('cancel', event => { event.preventDefault(); this.close(); });
+      this.dialog.addEventListener('keydown', event => {
+        if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); this.close(); }
+      });
       this.dialog.addEventListener('click', event => {
         if (event.target !== this.dialog) return;
         const rect = this.dialog.getBoundingClientRect();
@@ -93,6 +97,7 @@
       if (!save) return;
       save.classList.toggle('logic-editor__save-dirty', dirty);
       save.title = `回路を保存${this.currentName ? `：${this.currentName}` : ''}${dirty ? '（未保存の変更あり）' : '（保存済み）'}`;
+      this.options.onStatusChange?.({ name: this.currentName, dirty });
     }
 
     show(title, opener) {
@@ -297,6 +302,12 @@
         this.body.appendChild(records.length ? list : element('p', 'logic-file-note', '保存した回路はまだありません。'));
       } catch (error) { this.showError(error); }
       this.body.appendChild(element('h4', '', 'テンプレート'));
+      this.body.append(this.createTemplateList(this.editor.loadButton), element('p', 'logic-file-note', STORAGE_NOTE));
+      this.body.querySelector('button')?.focus({ preventScroll: true });
+    }
+
+    // 読み込みダイアログと独立ツールの右パネルで、置換・保存確認を共用する。
+    createTemplateList(opener) {
       const templates = element('ul', 'logic-file-list');
       TEMPLATES.forEach(template => {
         const row = element('li', 'logic-file-row');
@@ -308,14 +319,13 @@
             this.currentName = '';
             this.savedFingerprint = null;
             this.refresh();
-          }, `「${template.name}」の読み込み`, this.editor.loadButton);
+          }, `「${template.name}」の読み込み`, opener || load);
         }, 'logic-secondary-button logic-file-load');
         load.setAttribute('aria-label', `テンプレート「${template.name}」を読み込む`);
         row.appendChild(load);
         templates.appendChild(row);
       });
-      this.body.append(templates, element('p', 'logic-file-note', STORAGE_NOTE));
-      this.body.querySelector('button')?.focus({ preventScroll: true });
+      return templates;
     }
 
     confirmRemove(record) {

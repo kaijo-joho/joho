@@ -3,96 +3,12 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style id="critical-colors">
-    html { color:#191919; color-scheme:light dark; background:transparent; }
-    @media (prefers-color-scheme:dark) { html { color:#e6e6e6; color-scheme:dark light; } }
-    body { background-color:#f3f3f3; }
-    @media (prefers-color-scheme:dark) { body { background-color:#0b0b0b; } }
-  </style>
-  <title>海城中学高等学校 情報科</title>
-  <link rel="stylesheet" href="./css/css.css">
-  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
-  <link rel="stylesheet" href="./css/logic-circuits.css">
-  <script defer src="./js/main.js"></script>
-  <script defer src="./js/logic-core.js"></script>
-  <script defer src="./js/logic-renderer.js"></script>
-  <script defer src="./js/logic-widgets.js"></script>
-  <script defer src="./js/logic-layout.js"></script>
-  <script defer src="./js/logic-editor.js"></script>
-  <script defer src="./js/logic-storage.js"></script>
-  <script defer src="./js/logic-workbench-files.js"></script>
-  <script defer src="./js/logic-workbench.js"></script>
-  <script defer src="./js/lesson-slide-deck.js"></script>
+  <meta http-equiv="refresh" content="0; url=./tools/logic/">
+  <meta name="robots" content="noindex">
+  <title>論理回路エディタへ移動</title>
 </head>
-<body data-lesson-slide-deck data-lesson-default-slide="headline_2">
-  <section data-lesson-slide data-lesson-slide-title="自由に組み立てる">
-    <article>
-      <h2 id="headline_1">(1) 自由に論理回路を組み立てる</h2>
-      <p class="logic-lead">AND・OR・NOTの基本ゲートを配置して、入力A・Bから出力Fまでをつないでみましょう。入力C・Dも追加できます。完成した回路は入力を切り替えながら信号の流れを確認でき、真理値表も自動で生成されます。</p>
-      <div class="logic-quick-start" aria-label="基本操作の3段階">
-        <div><span>1</span><strong>ゲートを置く</strong><small>AND・OR・NOTを追加</small></div>
-        <div><span>2</span><strong>端子をつなぐ</strong><small>出力●から入力●へドラッグ</small></div>
-        <div><span>3</span><strong>入力を試す</strong><small>0/1と真理値表を確認</small></div>
-      </div>
-      <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="lc02-operation-dialog" data-lesson-supplement-preview="接続の付け替え、削除、SVG・PNG保存などの操作を確認できます。">詳しい操作方法</button>
-      <dialog class="lesson-supplement-dialog" id="lc02-operation-dialog" data-lesson-supplement-dialog aria-labelledby="lc02-operation-title">
-        <div class="lesson-supplement-dialog__header">
-          <h3 id="lc02-operation-title">回路エディタの詳しい操作</h3>
-          <button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="詳しい操作方法を閉じる">×</button>
-        </div>
-        <div class="lesson-supplement-dialog__body">
-          <h4>1. 部品を置く・変更する</h4>
-          <ul>
-            <li><strong>追加：</strong>下段の「＋ AND」「＋ OR」「＋ NOT」を回路内へドラッグします。クリックやEnterでも追加できます。「＋ 入力」でC・Dを、「＋ 出力」でF₁・F₂…を増やせます。</li>
-            <li><strong>移動・交換：</strong>部品をドラッグして移動します。AND・ORを選ぶと、上段の交換アイコンで種類を切り替えられます。</li>
-            <li><strong>削除：</strong>部品や配線を選び、近くの「×」、上段の削除アイコン、またはDeleteを押します。入力を消すと、その入力の配線も消えます。出力は最後の1つを残します。</li>
-          </ul>
-          <h4>2. 配線をつなぐ・曲がりを調整する</h4>
-          <ul>
-            <li><strong>接続：</strong>出力端子（●）から入力端子（●）へドラッグします。端子を順番にクリックしても接続できます。</li>
-            <li><strong>付け替え：</strong>配線を選び、左端・右端を別の同じ種類の端子へドラッグします。接続先に古い配線がある場合は置き換えます。分岐があっても選んだ配線だけを変更します。</li>
-            <li><strong>曲がる位置：</strong>配線を選ぶと途中にハンドルが現れます。縦の部分は左右へ、横の部分は上下へ動かせます。ハンドルにTabで移動し、矢印キー（Shift併用で大きく移動）でも調整できます。ハンドルを選んでDeleteを押すと、自動配線に戻ります。</li>
-          </ul>
-          <h4>3. 整列・表示・やり直し</h4>
-          <ul>
-            <li><strong>整列：</strong>整列アイコンで配線がなるべく直線になるように並べ直し、曲がり位置も自動に戻します。ドラッグ中は中心揃え・等間隔・配線が直線になる位置に吸着します。Alt（Option）を押すと吸着しません。</li>
-            <li><strong>値と表：</strong>入力の箱を押すと入力値が切り替わります。上段の「0/1」で回路内の値と信号色を表示・非表示にできます。真理値表の値は変わりません。境界の「▶」で表を折りたたみ、「◀」で再表示します。表の行を選んでも入力値が切り替わります。</li>
-            <li><strong>取り消し：</strong>ドラッグ中はEscapeでキャンセル、確定後はUndo・Redoで戻したりやり直したりできます。</li>
-          </ul>
-          <h4>4. 回路を保存・読み込み・画像出力する</h4>
-          <ul>
-            <li><strong>保存：</strong>保存アイコンから名前を付けて、ブラウザ（最大30件）またはローカルファイル（.logic.json）に保存します。作りかけの回路や、調整した曲がり位置も保存できます。ブラウザ保存は端末間で同期されず、閲覧データを消すと失われます。</li>
-            <li><strong>読み込み：</strong>読み込みアイコンから、ローカルファイル・ブラウザに保存した回路・テンプレートを選びます。回路ファイルは別の端末でも読み込んで編集できます。</li>
-            <li><strong>消去・置き換え前：</strong>未保存の変更があると保存を促します。ファイル保存を選んだ場合は、ダウンロードされたことを確認して「保存を確認して続ける」を押してください。</li>
-            <li><strong>画像出力：</strong>出力アイコンからSVG（拡大・編集用）またはPNG（画像用）を選びます。0/1の有無は上段の表示設定に従います。白背景で、入力・出力は枠なしの点、分岐点には●、NOTの否定には○を付けます。画像を回路として再読込はできないため、再編集には.logic.jsonを使います。</li>
-          </ul>
-          <p class="logic-note">1つの入力端子につながる配線は常に1本です。逆向き接続や循環する接続はできません。配線は水平・垂直に引かれ、重なりを避けて自動調整されます。同じ出力を複数箇所へつなぐと、途中で分岐します。</p>
-        </div>
-      </dialog>
-    </article>
-  </section>
-
-  <section data-lesson-slide data-lesson-slide-title="回路エディタ" data-lesson-slide-layout="workspace">
-    <article class="logic-workspace-article">
-      <h2 id="headline_2">(2) 回路エディタ</h2>
-      <div class="logic-workspace-grid" data-lesson-slide-navigation-lock>
-        <div id="logic-editor"></div>
-        <aside id="logic-workbench-table-panel" class="logic-workspace-table" aria-label="作成した回路の真理値表">
-          <div id="logic-workbench-table" class="logic-editor-truth-table" aria-live="polite"></div>
-        </aside>
-      </div>
-    </article>
-  </section>
-
-  <section data-lesson-slide data-lesson-slide-title="回路を読み取るポイント">
-    <article>
-      <h2 id="headline_3">(3) 回路を読み取るポイント</h2>
-      <p>左側の入力から配線をたどり、ゲートごとの結果を順番に求めると、右端の出力Fへ到達できます。途中で配線が分岐しているときは、同じ入力値がそれぞれの接続先へ届きます。</p>
-      <p>回路の形やゲートの並べ方が異なっていても、すべての入力の組み合わせに対する出力Fが同じなら、論理的には同じ働きです。</p>
-      <p><span data-page-link="cp21">論理回路の基本と演習で、回路の読み取りと組み立てに挑戦する</span></p>
-    </article>
-  </section>
-
-  <section id="examples_and_questions"><!-- script_pages.js --></section>
+<body>
+  <p>論理回路エディタは独立したツールになりました。</p>
+  <p><a href="./tools/logic/">論理回路エディタを開く</a></p>
 </body>
 </html>

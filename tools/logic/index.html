@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ja" data-theme="auto" data-text-size="standard">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>論理回路エディタ — 海城 情報科</title>
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  <link rel="stylesheet" href="../../css/logic-circuits.css">
+  <link rel="stylesheet" href="./editor.css">
+  <script defer src="../../js/logic-core.js"></script>
+  <script defer src="../../js/logic-renderer.js"></script>
+  <script defer src="../../js/logic-widgets.js"></script>
+  <script defer src="../../js/logic-layout.js"></script>
+  <script defer src="../../js/logic-editor.js"></script>
+  <script defer src="../../js/logic-storage.js"></script>
+  <script defer src="../../js/logic-workbench-files.js"></script>
+  <script defer src="./editor.js"></script>
+</head>
+<body>
+  <div id="app">
+    <header class="top">
+      <h1 class="brand"><img src="./icon.svg" width="26" height="26" alt=""><span>論理回路エディタ</span></h1>
+      <div id="basic-toolbar" class="toolbar" role="group" aria-label="基本ツールバー"></div>
+      <div id="display-toolbar" class="toolbar-end" role="group" aria-label="表示オプション">
+        <button id="settings-button" type="button" class="icon-button" aria-label="表示設定" title="テーマ・文字サイズ" aria-haspopup="dialog" aria-controls="settings-dialog"><span data-icon="settings"></span></button>
+        <button id="fullscreen-button" type="button" class="icon-button" aria-label="全画面表示" title="全画面表示"><span data-icon="fullscreen"></span></button>
+      </div>
+    </header>
+    <aside class="palette" aria-label="回路の編集ツール">
+      <h2>部品</h2><div id="component-tools"></div>
+      <h2>配置</h2><div id="layout-tools"></div>
+    </aside>
+    <main class="workspace" aria-label="論理回路の編集">
+      <div id="stage">
+        <div id="logic-editor"></div>
+        <div id="selection-tools" class="selection-tools" role="group" aria-label="選択したオブジェクトの操作" hidden><span id="selection-name"></span></div>
+      </div>
+      <div id="operation-hint" class="operation-hint"></div>
+      <footer class="statusbar">
+        <span id="circuit-status"></span><span id="save-status"></span>
+        <div class="zoom" role="group" aria-label="回路の表示倍率">
+          <button id="zoom-out" type="button" aria-label="縮小" title="縮小">−</button>
+          <select id="zoom" aria-label="表示倍率"><option value="current" hidden>100%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option><option value="3">300%</option><option value="4">400%</option><option value="fit">全体表示</option></select>
+          <button id="zoom-in" type="button" aria-label="拡大" title="拡大">＋</button>
+          <button id="zoom-fit" type="button" aria-label="回路全体を表示" title="回路全体を表示"><span data-icon="fit"></span></button>
+        </div>
+      </footer>
+    </main>
+    <aside id="side-panel" class="side" aria-label="真理値表・テンプレート・書き出し">
+      <div class="side-main">
+        <section id="logic-workbench-table-panel" data-pane="truth" aria-labelledby="truth-title" hidden>
+          <header><h2 id="truth-title">真理値表</h2><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></header>
+          <div class="side-body"><div id="logic-workbench-table" class="logic-editor-truth-table"></div><p class="muted">行を選ぶと入力が切り替わります。現在の入力の行を強調しています。</p></div>
+        </section>
+        <section id="templates-panel" data-pane="templates" aria-labelledby="templates-title" hidden>
+          <header><h2 id="templates-title">テンプレート</h2><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></header>
+          <div class="side-body"><p class="muted">基本ゲートを組み合わせた回路から始められます。</p><div id="template-list"></div><button id="open-saved" type="button"><span data-icon="open"></span>保存した回路を読み込む</button></div>
+        </section>
+        <section id="export-panel" data-pane="export" aria-labelledby="export-title" hidden>
+          <header><h2 id="export-title">書き出し</h2><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></header>
+          <div class="side-body">
+            <div id="export-preview" aria-label="白背景での書き出しプレビュー"></div>
+            <form id="export-form">
+              <fieldset class="export-formats"><legend>ファイル形式</legend><label><input type="radio" name="format" value="svg" checked>SVG（拡大・編集用）</label><label><input type="radio" name="format" value="png">PNG（画像用）</label></fieldset>
+              <p id="export-note" class="muted"></p><button id="export-submit" type="submit" class="primary">書き出す</button>
+              <p id="export-error" role="alert" hidden></p>
+            </form>
+            <p class="muted">画像は白背景で保存します。再編集する場合は、上部の保存アイコンから .logic.json を保存してください。</p>
+          </div>
+        </section>
+      </div>
+      <nav class="side-tabs" aria-label="右パネルを切り替える">
+        <button type="button" data-pane-button="truth" aria-controls="logic-workbench-table-panel" aria-expanded="false"><span data-icon="table"></span><span>真理値表</span></button>
+        <button type="button" data-pane-button="templates" aria-controls="templates-panel" aria-expanded="false"><span data-icon="templates"></span><span>テンプレート</span></button>
+        <button type="button" data-pane-button="export" aria-controls="export-panel" aria-expanded="false" aria-label="回路図を出力"><span data-icon="export"></span><span>書き出し</span></button>
+      </nav>
+    </aside>
+  </div>
+  <noscript>論理回路エディタを使うには、JavaScriptを有効にしてください。</noscript>
+  <dialog id="settings-dialog" aria-labelledby="settings-title">
+    <header><h2 id="settings-title">表示設定</h2><button type="button" data-close-dialog aria-label="表示設定を閉じる">×</button></header>
+    <div class="dialog-body"><label class="stack">テーマ<select id="theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label class="stack">文字サイズ<select id="text-size"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label></div>
+  </dialog>
+  <dialog id="lc02-operation-dialog" aria-labelledby="help-title">
+    <header><h2 id="help-title">論理回路エディタの使い方</h2><button type="button" data-close-dialog aria-label="詳しい操作方法を閉じる">×</button></header>
+    <div class="dialog-body help-body">
+      <h3>1. 部品を置く・変更する</h3>
+      <ul><li>左のAND・OR・NOTを回路内へ<strong>ドラッグ</strong>して配置します。クリック・Enterでも追加できます。「＋ 入力」でC・Dを、「＋ 出力」でF₁・F₂…を増やせます。</li><li>部品をドラッグして移動します。選択時に出る操作バーで<strong>AND・ORの交換</strong>や削除ができます。近くの「×」やDeleteでも削除できます。最後の出力は残します。</li></ul>
+      <h3>2. つなぐ・付け替える</h3>
+      <ul><li>出力端子（●）から入力端子（●）へドラッグします。端子を順にクリック、またはTab・Enterで選んでも接続できます。</li><li>配線を選び、<strong>左端・右端を別の端子へドラッグ</strong>すると付け替えられます。接続先の古い配線は置き換えます。分岐があっても選んだ1本だけを変更します。</li><li>配線を選ぶと曲がり位置のハンドルが出ます。ドラッグ・矢印キーで移動し、Shiftで大きく動かせます。ハンドル上でDeleteを押すと自動経路に戻ります。</li><li>配線は水平・垂直です。同じ信号は途中で分岐し、分岐点だけに●を付けます。循環する回路や逆向き接続はできません。</li></ul>
+      <h3>3. 整列・表示・やり直し</h3>
+      <ul><li>左の整列ボタンで配線がなるべく直線になるよう並べます。部品移動中は中心・等間隔・配線が直線になる位置に吸着します。<strong>Alt（Option）で一時解除</strong>します。</li><li>入力の箱や真理値表の行を選ぶと入力値を切り替えられます。上部の「0/1」で値・信号色の表示を切り替えます。実際の値は変わりません。</li><li>右端のタブで真理値表・テンプレート・書き出しを開閉できます。右下の倍率で拡大縮小し、「全体表示」で回路全体を表示します。空白をドラッグすると画面を移動できます。</li><li><strong>⌘Z：Undo、⌘Shift Z：Redo</strong>（WindowsはCtrl）。ドラッグ中のEscapeでキャンセルします。</li></ul>
+      <h3>4. 保存・読み込み・書き出し</h3>
+      <ul><li>上部の保存アイコンで、名前を付けて<strong>ブラウザ（最大30件）</strong>または<strong>ローカルファイル（.logic.json）</strong>へ保存します。作りかけの回路も保存できます。</li><li>読み込みアイコンで保存済み回路・ローカルファイル・テンプレートを選びます。全消去や別回路の読み込み前は、未保存の変更の保存を確認します。ファイル保存はダウンロードを確認してから続けてください。</li><li>ブラウザ保存は端末間で同期されず、閲覧データを削除すると失われます。旧lc02と<strong>同じサイト・同じブラウザ</strong>なら、保存済みの回路を引き続き読み込めます。</li><li>右の書き出しパネルでSVG・PNGを選びます。0/1の有無は上部の表示に従います。出力は白背景、入出力は枠なしの点です。画像から回路の再編集はできないので、続きの編集には.logic.jsonを使います。</li></ul>
+    </div>
+  </dialog>
+</body>
+</html>

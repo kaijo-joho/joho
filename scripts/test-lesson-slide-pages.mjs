@@ -22,7 +22,7 @@ async function source(file) {
 
 const pageSpecs = [
   { id: 'cp21', slides: 6 },
-  { id: 'lc02', slides: 3 },
+  { id: 'lc02', redirect: './tools/logic/' },
   { id: 'cp22', slides: 3 },
   { id: 'dr31', slides: 6 },
   { id: 'dr32', slides: 6 },
@@ -54,7 +54,12 @@ const [deck, css, logicCss, networkCss, networkJs, applications, ...pages] = awa
 ]);
 
 pages.forEach((html, index) => {
-  const { id, slides } = pageSpecs[index];
+  const { id, slides, redirect } = pageSpecs[index];
+  if (redirect) {
+    ok(html.includes(`content="0; url=${redirect}"`), `${id}は独立ツールへ転送`);
+    ok(!html.includes('data-lesson-slide-deck'), `${id}に旧スライドを残さない`);
+    return;
+  }
   ok(/<body\b[^>]*\bdata-lesson-slide-deck(?:\s|>)/.test(html), `${id}が共通スライド基盤を使用`);
   ok(html.includes('./css/lesson-slide-deck.css'), `${id}が共通スライドCSSを読み込む`);
   ok(html.includes('./js/lesson-slide-deck.js'), `${id}が共通スライドJavaScriptを読み込む`);
@@ -123,10 +128,10 @@ ok(logicCss.includes('--lesson-theme-panel: var(--logic-panel-strong)'), '論理
 
 equal((pages[0].match(/data-lesson-view-panel=/g) || []).length, 9, 'cp21は6ゲートと3種類の問題を共通基盤で表示切替');
 ok(pages[0].includes('data-lesson-view-panel="xor"'), 'cp21にXORの表示パネル');
-ok(pages[1].includes('data-lesson-supplement-open="lc02-operation-dialog"'), 'lc02に操作方法の補足dialog入口');
-ok(pages[1].includes('data-lesson-supplement-dialog'), 'lc02に操作方法の補足dialog');
-ok(pages[1].includes('data-lesson-default-slide="headline_2"'), 'lc02は回路エディタを初期表示');
-ok(pages[1].includes('class="logic-workspace-grid" data-lesson-slide-navigation-lock'), 'lc02はエディタ操作領域だけページ送りを抑止');
+const tool = await source('tools/logic/index.html');
+ok(tool.includes('id="lc02-operation-dialog"'), '独立ツールに操作方法のdialog');
+ok(tool.includes('id="logic-editor"'), '独立ツールはエディタを直接表示');
+ok(!tool.includes('lesson-slide-deck.js'), '独立ツールはスライドのキー操作を導入しない');
 ok(pages[0].includes('class="logic-quiz-stage" data-lesson-slide-navigation-lock'), 'cp21は問題操作領域だけページ送りを抑止');
 equal((pages[0].match(/role="tabpanel"/g) || []).length, 3, 'cp21は3種類の問題タブを維持');
 ok(pages[2].includes('id="logic-application-challenge" data-lesson-slide-navigation-lock'), 'cp22は演習領域だけページ送りを抑止');

@@ -1,6 +1,6 @@
 # 座学ページ共通スライド基盤
 
-`css/lesson-slide-deck.css`と`js/lesson-slide-deck.js`は、座学ページをHTML内のスライドとして表示する共通基盤である。2026年9月時点では`cp21.html`〜`cp22.html`、`lc02.html`（回路エディタ）、`dr31.html`〜`dr32.html`、`nw11.html`〜`nw13.html`などへ適用している。共通基盤を変更するタスクは、この文書へ動作、設定、検証方法も記録する。
+`css/lesson-slide-deck.css`と`js/lesson-slide-deck.js`は、座学ページをHTML内のスライドとして表示する共通基盤である。2026年9月時点では`cp21.html`〜`cp22.html`、`dr31.html`〜`dr32.html`、`nw11.html`〜`nw13.html`などへ適用している。回路エディタは`tools/logic/index.html`へ独立し、スライド基盤を使用しない。共通基盤を変更するタスクは、この文書へ動作、設定、検証方法も記録する。
 
 旧DR専用の`js/dr-slide-deck.js`は廃止し、この共通基盤へ統合している。DRページへ旧ファイルを再度読み込まない。
 
