@@ -81,6 +81,18 @@ const analogVisualStyle = css.match(/\.dr-analog-digital-slide__visual\s*\{([^}]
 ok(analogVisualStyle.includes('grid-template-columns: minmax(0, 1fr)'), '音源の図の配置幅が横スクロールする波形グラフに引っ張られない');
 equal((dr31.match(/class="dr-sound-capture__wave"/g) || []).length, 4, '強弱を持つ4本の弧で伝わり方を演出');
 equal((dr31.match(/class="dr-sound-capture__arrival"/g) || []).length, 4, '4本それぞれに対応するマイクの到達反応');
+const arrivalBars = [...dr31.matchAll(/<rect class="dr-sound-capture__arrival"([^>]+)>/g)]
+  .map(match => Object.fromEntries([...match[1].matchAll(/([\w-]+)="([^"]*)"/g)].map(attribute => [attribute[1], attribute[2]])));
+ok(arrivalBars.every(bar => !bar.rx && !bar.ry), 'マイクの反応は楕円でなく角のある棒で表示');
+ok(arrivalBars.every(bar => Number(bar.x) === 429 && Number(bar.width) === 28 && Number(bar.y) === 37 && Number(bar.height) === 65), '棒はマイク内部に収まり、同じ位置で強弱を示す');
+ok(dr31.indexOf('class="dr-sound-capture__reception"') < dr31.indexOf('class="dr-sound-capture__microphone"'), '棒より手前にマイクの輪郭と横線を描く');
+const receptionStyle = css.match(/\.dr-sound-capture__reception\s*\{\s*fill:([^}]+)\}/)?.[1] || '';
+ok(receptionStyle.includes('var(--dr-analog)') && receptionStyle.includes('stroke: none'), '棒はテーマ対応の赤い塗りで描き、輪郭を着色しない');
+const arrivalStyle = css.match(/\.dr-sound-capture\.is-animated \.dr-sound-capture__arrival\s*\{([^}]+)\}/)?.[1] || '';
+ok(arrivalStyle.includes('transform-box: view-box') && arrivalStyle.includes('transform-origin: 443px 102px'), '棒は底辺を固定して上下に伸縮');
+const arrivalAnimation = css.slice(css.indexOf('@keyframes dr-sound-wave-arrival'), css.indexOf('.dr-sound-capture figcaption'));
+ok(arrivalAnimation.includes('transform: scaleY(0)') && arrivalAnimation.includes('transform: scaleY(var(--dr-sound-height))'), '音が届くと弧の強弱に合わせて棒の高さが変わる');
+ok(dr31.includes('音が届くとマイク内の棒が下から伸び') && dr31.includes('マイク内の棒の高さ：音の強弱'), '棒の意味をSVGの説明とHTMLの両方で確認可能');
 for (const requirement of ['dr-sound-wave-travel', 'dr-sound-wave-arrival', 'animation-delay: var(--dr-sound-delay)', 'animation-play-state: paused', 'animation-play-state: running']) {
   ok(css.includes(requirement), `音の伝わり方のアニメーションに「${requirement}」`);
 }
@@ -177,7 +189,11 @@ for (const label of ['0. アナログ波形', '1. 標本化', '2. 量子化', '3
   ok(widgets.includes(label), `固定条件グラフに工程「${label}」`);
 }
 const walkthroughSource = widgets.slice(widgets.indexOf('class PcmWalkthrough'), widgets.indexOf('class PcmExplorer'));
-ok(walkthroughSource.includes('パルス符号変調（PCM）方式') && walkthroughSource.includes('標本化・量子化・符号化'), 'スライド2でPCM方式を3工程と結び付けて説明');
+ok(!walkthroughSource.includes('パルス符号変調（PCM）方式'), 'PCM方式の説明を工程別の表示から分離');
+const pcmDefinition = dr31.match(/<p class="dr-note dr-pcm-definition">([\s\S]*?)<\/p>/)?.[1] || '';
+ok(pcmDefinition.includes('標本化・量子化・符号化') && pcmDefinition.includes('<strong>パルス符号変調（PCM）方式</strong>'), 'PCM方式を3工程と結び付け、語句を太字で常時表示');
+ok(dr31.indexOf('data-sound-pcm-guide') < dr31.indexOf('dr-pcm-definition') && dr31.indexOf('dr-pcm-definition') < dr31.indexOf('id="headline_3"'), 'PCM方式の常設説明はスライド2のグラフ直後');
+ok(walkthroughSource.includes('3つの枠に、0または1を1つずつ入れます'), '符号化の工程では1枠に1ビットを表示することを説明');
 ok(widgets.includes('this.stageLabels = stages.map((name, index) => `${index}. ${name}`)'), '可変グラフも0〜3の工程番号を使用');
 ok(/const bitDepth = createRangeControl\(\{[\s\S]*?id: `dr-pcm-bit-depth-[\s\S]*?min: 2,[\s\S]*?max: 4,[\s\S]*?step: 1,/.test(widgets), '量子化ビット数は2〜4bitの整数スライダー');
 ok(!widgets.includes('dr-pcm-phase-') && !widgets.includes('phaseDegrees'), '可変PCMグラフには位相操作を置かない');
@@ -195,6 +211,10 @@ for (const control of ['sampleRate', 'bitDepth']) {
   ok(widgets.includes(describedBy), `${control}の説明・操作可能な工程・式をaria-describedbyで関連付け`);
 }
 ok(css.includes('.dr-control.is-disabled > :not(.dr-control__description)'), '工程前でも用語の説明は薄くしない');
+ok(widgets.includes('analogControls.append(waveform.wrapper, frequency.wrapper, amplitude.wrapper)'), '元のアナログ波形を設定する3操作をグループ化');
+ok(widgets.includes('this.controls.append(analogControls, sampleRate.wrapper, bitDepth.wrapper)'), 'アナログ波形・標本化周波数・量子化ビット数の順に3列配置');
+ok(/\.dr-control-panel--pcm\s*\{\s*grid-template-columns: repeat\(3, minmax\(0, 1fr\)\)/.test(css), 'PCではPCMの設定を3列にする');
+ok(/@media \(max-width: 820px\)\s*\{\s*\.dr-control-panel--pcm\s*\{\s*grid-template-columns: 1fr/.test(css), '820px以下ではPCMの設定を1列にする');
 ok(!widgets.includes("this.metrics = element('dl', 'dr-metrics')"), '可変PCMグラフには独立した計算カードを置かない');
 ok(widgets.includes('end: 1.2'), '可変PCMグラフの表示範囲は0〜1.2秒');
 ok(!widgets.includes('表示範囲の標本数'), '可変PCMグラフに標本数を重複表示しない');
@@ -234,6 +254,69 @@ ok(renderer.includes("'data-quantization-level': block + 1"), '量子化ブロ�
 ok(renderer.includes("class: 'dr-svg__level-label'") && renderer.includes('}, String(sample.code))'), 'グラフ上の数字は量子化後の電圧でなく段階値を表示');
 ok(!renderer.includes('staircasePath') && !css.includes('.dr-svg__staircase'), '従来の階段線を量子化ブロックへ置き換える');
 ok(widgets.includes('ブロック数・数字＝段階値') && widgets.includes('量子化幅1段分のブロック'), '凡例と工程説明でブロックと段階値の関係を明示');
+
+// SVGの生成結果を検証する。字体・操作・実際の折り返しはブラウザで確認する。
+class SvgTestElement {
+  constructor(tagName) {
+    this.tagName = tagName;
+    this.attributes = {};
+    this.children = [];
+    this.textContent = '';
+  }
+  setAttribute(name, value) { this.attributes[name] = String(value); }
+  append(...nodes) { this.children.push(...nodes); }
+  appendChild(node) { this.append(node); return node; }
+  replaceChildren(...nodes) { this.children = nodes; }
+}
+const svgContext = {
+  Element: SvgTestElement,
+  document: { createElementNS: (_, name) => new SvgTestElement(name) }
+};
+vm.createContext(svgContext);
+vm.runInContext(core, svgContext, { timeout: 1000 });
+vm.runInContext(renderer, svgContext, { timeout: 1000 });
+const descendants = node => node.children.flatMap(child => [child, ...descendants(child)]);
+const hasClass = (node, name) => (node.attributes.class || '').split(' ').includes(name);
+function checkBitFrames(bitDepth, sampleRate, compact, stage = 4) {
+  const end = compact ? 0.5 : 1.2;
+  const range = { min: 0, max: 8 };
+  const samples = svgContext.SoundCore.quantizeSamples(
+    svgContext.SoundCore.sampleSignal(() => 2.5, { start: 0, end, sampleRate }), { bitDepth, range }
+  );
+  const target = new SvgTestElement('div');
+  const { svg, plot } = svgContext.SoundRenderer.renderPCM(target, {
+    samples, start: 0, end, range, stage, bitDepth, compact
+  });
+  const nodes = descendants(svg);
+  const words = nodes.filter(node => hasClass(node, 'dr-svg__binary-word'));
+  const label = `${compact ? '固定例' : '可変例'} ${bitDepth}bit・${sampleRate}Hz・工程${stage}`;
+  equal(words.length, stage === 4 ? samples.length : 0, `${label}：符号化でのみ標本ごとの枠を表示`);
+  if (stage < 4) return;
+  const boxes = [];
+  words.forEach((word, index) => {
+    const cells = word.children.filter(node => hasClass(node, 'dr-svg__bit-cell'));
+    const bits = word.children.filter(node => hasClass(node, 'dr-svg__binary-label'));
+    assert.equal(cells.length, bitDepth, `${label}：各標本にn個の枠`);
+    assert.equal(bits.map(node => node.textContent).join(''), samples[index].binary, `${label}：先頭の0も含む正しいビット列`);
+    assert.ok(bits.every(node => /^[01]$/.test(node.textContent)), `${label}：1枠に1桁だけ表示`);
+    assert.equal(word.attributes['data-sample-index'], String(index), `${label}：グラフと同じ標本ID`);
+    const { x, y, width, height } = cells[0].attributes;
+    boxes.push({ x: Number(x), y: Number(y), width: Number(width) * bitDepth, height: Number(height) });
+  });
+  ok(boxes.every(box => box.x >= 0 && box.x + box.width <= plot.width && box.y + box.height <= plot.height), `${label}：左右端・下端の枠が欠けない`);
+  ok(boxes.every((box, index) => boxes.slice(index + 1).every(other =>
+    box.x + box.width <= other.x || other.x + other.width <= box.x
+    || box.y + box.height <= other.y || other.y + other.height <= box.y
+  )), `${label}：隣の標本の枠と重ならない`);
+  ok(nodes.filter(node => node.tagName === 'rect' && hasClass(node, 'dr-svg__sample-target'))
+    .every(node => Number(node.attributes.y) + Number(node.attributes.height) <= plot.bottom), `${label}：グラフ側の当たり判定がビット枠を覆わない`);
+}
+for (const stage of [1, 2, 3, 4]) checkBitFrames(3, 10, true, stage);
+for (const bits of [2, 3, 4]) {
+  for (let sampleRate = 2; sampleRate <= 20; sampleRate += 1) checkBitFrames(bits, sampleRate, false);
+}
+ok(css.includes('.dr-svg__binary-word.is-active .dr-svg__bit-cell'), '標本選択にビット枠の強調も同期');
+ok(css.slice(css.indexOf('@media (prefers-reduced-motion: reduce)')).includes('.dr-svg__binary-word'), 'ビット枠の追加アニメーションも動きを減らす設定に従う');
 for (const stage of [2, 3, 4]) ok(css.includes(`.dr-svg--stage-enter-${stage}`), `SVG工程${stage}の追加アニメーション`);
 for (const term of ['アナログ', 'デジタル', '標本化', 'サンプリング', '標本化周波数', '標本化周期', '量子化', '量子化ビット数', '量子化段階数', '符号化', 'PCM', '標本化定理']) {
   ok(dr31.includes(term), `dr31に用語「${term}」`);
@@ -241,7 +324,7 @@ for (const term of ['アナログ', 'デジタル', '標本化', 'サンプリ�
 ok(dr31.includes('0以上8未満'), 'dr31に基本量子化範囲');
 ok(dr31.includes('ちょうど中間なら上側'), 'dr31に丸め規則');
 ok(dr31.includes('表示範囲を超えた値'), 'dr31に表示範囲外の規則');
-ok(dr31.includes('<summary>パルス符号変調（PCM）方式</summary>') && widgets.includes('PCMは「パルス符号変調」の略です'), 'PCM方式と略語を説明');
+ok(dr31.includes('<summary>パルス符号変調（PCM）方式</summary>') && dr31.includes('PCMは「パルス符号変調」の略です'), 'PCM方式と略語を説明');
 
 ok(dr31.includes('data-sound-superposition'), 'dr31に波の重ね合わせ教材を統合');
 ok(dr31.includes('data-sound-sampling-theorem'), 'dr31に標本化定理教材を統合');

@@ -306,8 +306,8 @@
       yMin: range.min,
       yMax: range.max,
       margin: compact
-        ? { top: 26, right: 28, bottom: 86, left: 68 }
-        : { top: 38, right: 28, bottom: 145, left: 68 }
+        ? { top: 26, right: 40, bottom: 86, left: 68 }
+        : { top: 38, right: 40, bottom: 145, left: 68 }
     });
     const svg = createSvg({
       width,
@@ -483,21 +483,51 @@
 
     const binaryLayer = layer('binary-codes');
     if (stage >= 4) {
+      const cellWidth = 18;
+      const cellHeight = 24;
+      const wordWidth = model.bitDepth * cellWidth;
+      // 2〜4ビット・最大20Hzでは2段で収まる。密な標本でも文字を縮めず、交互に段を変える。
+      const staggerCodes = samples.some((sample, index) => index > 0
+        && plot.x(sample.time) - plot.x(samples[index - 1].time) < wordWidth + 8);
       binaryLayer.appendChild(svgElement('text', {
         class: 'dr-svg__code-heading',
         x: plot.left,
-        y: plot.bottom + (compact ? 40 : 82),
+        y: plot.bottom + (compact ? 40 : 76),
         style: '--dr-sequence: 0'
       }, `${model.bitDepth}ビットの2進数`));
       samples.forEach(sample => {
-        binaryLayer.appendChild(svgElement('text', {
-          class: 'dr-svg__binary-label',
-          x: plot.x(sample.time),
-          y: plot.bottom + (compact ? 68 : 112),
-          'text-anchor': 'middle',
+        const left = plot.x(sample.time) - wordWidth / 2;
+        const top = plot.bottom + (compact ? 54 : 86) + (staggerCodes ? sample.index % 2 * 30 : 0);
+        const word = svgElement('g', {
+          class: 'dr-svg__binary-word dr-svg__sample-target',
           style: `--dr-sequence: ${sample.index}`,
-          'data-sample-index': sample.index
-        }, sample.binary));
+          'data-sample-index': sample.index,
+          role: 'button',
+          // Tabではグラフ側の標本を選ぶ。枠もポインタ・タップから同じ標本を選べる。
+          tabindex: -1,
+          'aria-label': `標本${sample.index + 1}、${model.bitDepth}ビットの2進数${sample.binary}`
+        });
+        Array.from(sample.binary).forEach((bit, bitIndex) => {
+          word.append(
+            svgElement('rect', {
+              class: 'dr-svg__bit-cell',
+              x: left + bitIndex * cellWidth,
+              y: top,
+              width: cellWidth,
+              height: cellHeight,
+              'aria-hidden': 'true'
+            }),
+            svgElement('text', {
+              class: 'dr-svg__binary-label',
+              x: left + (bitIndex + 0.5) * cellWidth,
+              y: top + cellHeight / 2,
+              'text-anchor': 'middle',
+              'dominant-baseline': 'central',
+              'aria-hidden': 'true'
+            }, bit)
+          );
+        });
+        binaryLayer.appendChild(word);
       });
     }
     svg.appendChild(binaryLayer);
@@ -513,7 +543,8 @@
         x: plot.x(sample.time) - Math.max(18, halfLeft),
         y: plot.top,
         width: Math.max(36, halfLeft + halfRight),
-        height: plot.bottom - plot.top + (stage >= 4 ? (compact ? 76 : 122) : 0),
+        // ビット枠を隣の標本の当たり判定で覆わない。枠自身が選択操作を受け持つ。
+        height: plot.bottom - plot.top,
         fill: 'transparent',
         tabindex: 0,
         role: 'button',

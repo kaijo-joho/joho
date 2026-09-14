@@ -323,8 +323,8 @@
         },
         4: {
           title: '3. 符号化',
-          text: '量子化した段階値を3桁の2進数で表します。この3工程で音をデジタルデータとして表す方法を、パルス符号変調（PCM）方式といいます。',
-          point: '値2は010、値3は011、値5は101になります。PCMは「パルス符号変調」の略です。'
+          text: '量子化した段階値を3桁の2進数で表します。3つの枠に、0または1を1つずつ入れます。',
+          point: '値2は010、値3は011、値5は101になります。先頭の0も含め、どの値も3ビットで表します。'
         }
       };
       const description = descriptions[this.state.stage];
@@ -356,7 +356,7 @@
         legendItems.push('<span class="dr-legend__item"><span class="dr-legend__blocks" aria-hidden="true"></span>ブロック数・数字＝段階値</span>');
       }
       if (this.state.stage >= 4) {
-        legendItems.push('<span class="dr-legend__item"><span class="dr-legend__code">010</span>3ビットの2進数</span>');
+        legendItems.push('<span class="dr-legend__item"><span class="dr-legend__code" aria-label="0、1、0の3ビット"><span>0</span><span>1</span><span>0</span></span>3ビットの2進数</span>');
       }
       this.legend.innerHTML = legendItems.join('');
       const animationStage = this.pendingAnimationStage;
@@ -476,7 +476,7 @@
       });
       this.stageHelp = element('p', 'dr-selected-readout');
 
-      this.controls = element('div', 'dr-control-panel');
+      this.controls = element('div', 'dr-control-panel dr-control-panel--pcm');
       const waveform = createSelectControl({
         id: `dr-pcm-waveform-${this.serial}`,
         label: '波形',
@@ -578,13 +578,11 @@
       );
       bitDepth.wrapper.append(bitDepthDescription, this.bitDepthAvailability, this.bitDepthMetrics);
 
-      this.controls.append(
-        waveform.wrapper,
-        frequency.wrapper,
-        amplitude.wrapper,
-        sampleRate.wrapper,
-        bitDepth.wrapper
-      );
+      const analogControls = element('div', 'dr-control-group--analog');
+      analogControls.setAttribute('role', 'group');
+      analogControls.setAttribute('aria-label', '元のアナログ波形の設定');
+      analogControls.append(waveform.wrapper, frequency.wrapper, amplitude.wrapper);
+      this.controls.append(analogControls, sampleRate.wrapper, bitDepth.wrapper);
 
       this.visual = element('figure', 'dr-visual');
       this.legend = element('figcaption', 'dr-legend');
