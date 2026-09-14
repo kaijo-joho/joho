@@ -1,4 +1,4 @@
-//2026-09-13 07:01:25;
+//2026-09-14 01:05:09;
 const pages = {
   "index": {
     "id": "index",
@@ -72,131 +72,95 @@ const pages = {
     "show": false,
     "backFile": "il00.html"
   },
-  "lc00": {
-    "id": "lc00",
+  "cp00": {
+    "id": "cp00",
     "release": false,
-    "fileName": "lc00.html",
-    "mainTitle": "論理回路教材",
-    "category": "論理回路",
-    "title": "論理回路教材の目次",
-    "detail": "論理回路の教材を単元ごとに選べます。",
+    "fileName": "cp00.html",
+    "mainTitle": "コンピュータのしくみ",
+    "category": "はじめに",
+    "title": "コンピュータのしくみの目次",
+    "detail": "コンピュータのしくみを単元ごとに学べます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
-    "back": "lc00",
+    "back": "index",
     "next": [
       {
-        "id": "lc01",
-        "title": "1. 論理回路の基本",
-        "text": "1. 論理回路の基本",
+        "id": "cp31",
+        "title": "3-1. 論理回路の基本と演習",
+        "text": "3-1. 論理回路の基本と演習",
         "release": false,
-        "url": "lc01.html",
-        "detail": "基本ゲート、回路図、真理値表の関係を操作しながら学びます。"
+        "url": "cp31.html",
+        "detail": "基本ゲート、回路図、真理値表を学び、出力・真理値表・回路構成の問題で理解を確かめます。"
       }
     ],
     "show": false,
-    "backFile": "lc00.html"
+    "backFile": "index.html"
   },
-  "lc01": {
-    "id": "lc01",
+  "cp31": {
+    "id": "cp31",
     "release": false,
-    "fileName": "lc01.html",
-    "mainTitle": "論理回路教材",
+    "fileName": "cp31.html",
+    "mainTitle": "コンピュータのしくみ",
     "category": "論理回路",
-    "title": "1. 論理回路の基本",
-    "detail": "基本ゲート、回路図、真理値表の関係を操作しながら学びます。",
+    "title": "3-1. 論理回路の基本と演習",
+    "detail": "基本ゲート、回路図、真理値表を学び、出力・真理値表・回路構成の問題で理解を確かめます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
-    "back": "lc00",
+    "back": "cp00",
     "next": [
       {
-        "id": "lc02",
-        "title": "2. 論理回路の自由接続",
-        "text": "2. 論理回路の自由接続",
+        "id": "cp32",
+        "title": "3-2. 論理回路の応用",
+        "text": "3-2. 論理回路の応用",
         "release": false,
-        "url": "lc02.html",
-        "detail": "ゲートを自由に配置・接続して、回路の働きと真理値表を確かめます。"
-      }
-    ],
-    "show": true,
-    "backFile": "lc00.html"
-  },
-  "lc02": {
-    "id": "lc02",
-    "release": false,
-    "fileName": "lc02.html",
-    "mainTitle": "論理回路教材",
-    "category": "論理回路",
-    "title": "2. 論理回路の自由接続",
-    "detail": "ゲートを自由に配置・接続して、回路の働きと真理値表を確かめます。",
-    "practiceFile": false,
-    "dlFile": false,
-    "exampleFile": false,
-    "questionFile": false,
-    "quizForm": false,
-    "back": "lc01",
-    "next": [
-      {
-        "id": "lc03",
-        "title": "3. 論理回路の問題",
-        "text": "3. 論理回路の問題",
-        "release": false,
-        "url": "lc03.html",
-        "detail": "入力値、真理値表、回路構成の問題を解いて理解を確認します。"
-      }
-    ],
-    "show": true,
-    "backFile": "lc01.html"
-  },
-  "lc03": {
-    "id": "lc03",
-    "release": false,
-    "fileName": "lc03.html",
-    "mainTitle": "論理回路教材",
-    "category": "論理回路",
-    "title": "3. 論理回路の問題",
-    "detail": "入力値、真理値表、回路構成の問題を解いて理解を確認します。",
-    "practiceFile": false,
-    "dlFile": false,
-    "exampleFile": false,
-    "questionFile": false,
-    "quizForm": false,
-    "back": "lc01",
-    "next": [
-      {
-        "id": "lc04",
-        "title": "4. 有名な組合せ回路",
-        "text": "4. 有名な組合せ回路",
-        "release": false,
-        "url": "lc04.html",
+        "url": "cp32.html",
         "detail": "回路図と真理値表から、多数決・比較・半加算・全加算回路の働きと名前を考えます。"
       }
     ],
     "show": true,
-    "backFile": "lc01.html"
+    "backFile": "cp00.html"
   },
-  "lc04": {
-    "id": "lc04",
+  "cp32": {
+    "id": "cp32",
     "release": false,
-    "fileName": "lc04.html",
-    "mainTitle": "論理回路教材",
+    "fileName": "cp32.html",
+    "mainTitle": "コンピュータのしくみ",
     "category": "論理回路",
-    "title": "4. 有名な組合せ回路",
+    "title": "3-2. 論理回路の応用",
     "detail": "回路図と真理値表から、多数決・比較・半加算・全加算回路の働きと名前を考えます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
-    "back": "lc01",
+    "back": "cp31",
     "next": false,
     "show": true,
-    "backFile": "lc01.html"
+    "backFile": "cp31.html"
+  },
+  "lc02": {
+    "id": "lc02",
+    "release": false,
+    "fileName": "lc02.html",
+    "mainTitle": "コンピュータのしくみ",
+    "category": "ツール",
+    "title": "回路エディタ",
+    "detail": "ゲートを自由に配置・接続して、回路の働きと真理値表を確かめます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "cp31",
+    "next": false,
+    "show": true,
+    "backFile": "cp31.html"
   },
   "dr00": {
     "id": "dr00",
