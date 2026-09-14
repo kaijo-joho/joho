@@ -14,6 +14,24 @@ async function fits(page) {
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth > innerWidth + 1), false, 'ページ全体は横にはみ出さない');
 }
 
+async function explanationChecks(dialog) {
+  // 共通基盤が開いた直後のフレームで閉じるボタンへ移すフォーカスを待つ。
+  await dialog.evaluate(() => new Promise(resolve => requestAnimationFrame(resolve)));
+  await expect(dialog.locator('h4')).toHaveText(['どのような機能？', 'どこで使う？', 'しくみと例']);
+  const body = dialog.locator('.lesson-supplement-dialog__body');
+  await expect(body).toHaveAttribute('tabindex', '0');
+  await body.focus();
+  await expect(body).toBeFocused();
+  await body.press('End');
+  await expect.poll(() => body.evaluate(el => el.scrollHeight - el.clientHeight - el.scrollTop)).toBeLessThanOrEqual(2);
+  assert.equal(await dialog.evaluate(el => {
+    const content = el.querySelector('.lesson-supplement-dialog__body').getBoundingClientRect();
+    const header = el.querySelector('.lesson-supplement-dialog__header').getBoundingClientRect();
+    const bounds = el.getBoundingClientRect();
+    return header.top >= bounds.top && content.bottom <= bounds.bottom + 1;
+  }), true, 'スクロール後も見出しを保ち、説明の末尾を枠内に収める');
+}
+
 async function ready(page, id) {
   await page.goto('about:blank');
   await page.goto(new URL(`cp22.html#extension-${id}`, baseURL).href);
@@ -28,6 +46,9 @@ async function circuitChecks(page, id, index, width) {
   const tabs = page.locator('#logic-extension-views [role="tab"]');
   await expect(tabs).toHaveCount(5);
   await expect(panel).toBeVisible();
+  await expect(panel.locator('.logic-extension-summary')).toContainText('機能：');
+  await expect(panel.locator('.logic-extension-use')).toBeVisible();
+  await expect(panel.locator('.logic-extension-use')).toContainText('用途：');
   await expect(page.locator(`#logic-extension-views [role="tabpanel"]:visible`)).toHaveCount(1);
   await expect(panel.locator('tr[data-row]')).toHaveCount(rowCounts[index]);
   await expect(panel.locator('svg[role="img"]')).toHaveCount(1);
@@ -64,6 +85,7 @@ async function circuitChecks(page, id, index, width) {
   assert.equal(new URL(page.url()).hash, `#extension-${id}`, '表の矢印キーがスライド移動を起こさない');
 
   const help = panel.locator('[data-lesson-supplement-open]');
+  await expect(help).toHaveText('しくみ・用途');
   const dialog = page.locator(`#extension-${id}-help`);
   await help.press('Enter');
   await expect(dialog).toBeVisible();
@@ -72,6 +94,7 @@ async function circuitChecks(page, id, index, width) {
   // ネイティブdialogではブラウザの操作部へTabが移るとactiveElementがbodyになる。
   assert.equal(await dialog.evaluate(el => document.activeElement === document.body || el.contains(document.activeElement)), true, 'ダイアログ外のページ部品へフォーカスを移さない');
   await page.keyboard.press('Shift+Tab');
+  await explanationChecks(dialog);
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
   await expect(help).toHaveAttribute('aria-expanded', 'false');
@@ -136,6 +159,7 @@ for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(','
           await expect(dialog).toBeVisible();
           const rect = await dialog.boundingBox();
           assert.ok(rect.x >= 0 && rect.x + rect.width <= width + 1, '説明は画面幅内');
+          await explanationChecks(dialog);
           await page.keyboard.press('Escape');
         }
       }

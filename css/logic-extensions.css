@@ -51,6 +51,36 @@ section article .logic-extension-summary {
   line-height: 1.5;
 }
 
+.logic-extension-use {
+  display: block;
+  margin-top: 3px;
+}
+
+.logic-extension-help[open] {
+  display: flex;
+  flex-direction: column;
+}
+
+.logic-extension-help .lesson-supplement-dialog__header { flex-shrink: 0; }
+
+.logic-extension-help .lesson-supplement-dialog__body {
+  min-height: 0;
+  max-height: none;
+}
+
+.logic-extension-help h4 {
+  margin: 1.2em 0 .4em;
+  font-size: 1em;
+  color: var(--logic-text);
+}
+
+.logic-extension-help h4:first-child { margin-top: 0; }
+
+.logic-extension-help .lesson-supplement-dialog__body:focus-visible {
+  outline: 3px solid var(--logic-focus);
+  outline-offset: -3px;
+}
+
 .logic-extension-workbench {
   display: grid;
   grid-template-columns: minmax(0, 2.3fr) minmax(280px, 1fr);
@@ -105,7 +135,7 @@ section article .logic-extension-summary {
 }
 
 .logic-extension-table .logic-table-scroll {
-  max-height: clamp(290px, calc(var(--lesson-slide-deck-height, 700px) - 250px), 490px);
+  max-height: clamp(290px, calc(var(--lesson-slide-deck-height, 700px) - 274px), 490px);
   overflow: auto;
   overscroll-behavior: contain;
 }
@@ -140,7 +170,7 @@ section article .logic-extension-table .logic-truth-table th {
 @media (min-width: 961px) {
   .logic-extension-diagram .logic-svg {
     min-width: 0;
-    height: clamp(190px, calc(var(--lesson-slide-deck-height, 730px) - 385px), 400px);
+    height: clamp(190px, calc(var(--lesson-slide-deck-height, 730px) - 409px), 400px);
   }
 }
 

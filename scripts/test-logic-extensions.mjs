@@ -13,6 +13,30 @@ const { CIRCUITS, evaluate, point } = context.LogicExtensions;
 assert.deepEqual(Array.from(CIRCUITS, item => item.id), ['parity-generator', 'parity-checker', 'multiplexer', 'decoder', 'two-bit-adder']);
 assert.equal(context.LogicApplications.CIRCUITS.length, 4, '既存の採点対象4回路は変更しない');
 
+const html = await readFile(path.join(root, 'cp22.html'), 'utf8');
+const usageKeywords = {
+  'parity-generator': /UART通信[\s\S]*送信側/,
+  'parity-checker': /UART通信[\s\S]*受信側/,
+  multiplexer: /CPU内[\s\S]*演算に使う数値/,
+  decoder: /メモリ[\s\S]*読み書きする場所/,
+  'two-bit-adder': /CPUの演算装置[\s\S]*アドレスの計算/
+};
+for (const { id } of CIRCUITS) {
+  const panel = html.split(`<div id="extension-${id}" `)[1]?.split('class="logic-extension-workbench"')[0];
+  assert.ok(panel, `${id}: 発展パネルがある`);
+  assert.match(panel, /<strong>機能：<\/strong>/, `${id}: 機能を常時表示`);
+  assert.match(panel, /class="logic-extension-use"><strong>用途：<\/strong>/, `${id}: 用途を常時表示`);
+  assert.match(panel, />しくみ・用途<\/button>/, `${id}: 詳しい説明への入口`);
+  const dialog = html.split(`<dialog id="extension-${id}-help" `)[1]?.split('</dialog>')[0];
+  assert.ok(dialog, `${id}: 詳しい説明がある`);
+  assert.deepEqual([...dialog.matchAll(/<h4>([^<]+)<\/h4>/g)].map(match => match[1]), ['どのような機能？', 'どこで使う？', 'しくみと例']);
+  assert.match(dialog, /class="lesson-supplement-dialog__body" tabindex="0" role="region" aria-label="[^"]+"/, `${id}: 長い説明をキーボードでスクロールできる`);
+  assert.match(dialog, usageKeywords[id], `${id}: 具体的な使用場面`);
+}
+assert.match(html, /パリティを使う設定/, '通信でのパリティは設定に依存する');
+assert.match(html, /この回路だけで、誤りを直したり再送したりすることはできません/, '検出と訂正・再送を区別する');
+assert.match(html, /データを保存する機能は別の回路が担当/, 'デコーダは記憶回路そのものではない');
+
 // 描画用の接続データから求めた値を、独立した算術の定義と全パターンで照合する。
 function expected(id, v) {
   if (id === 'parity-generator') return { P: (v.A + v.B + v.C) % 2 };
@@ -105,4 +129,4 @@ for (const circuit of CIRCUITS) {
   }
 }
 
-console.log(`logic-extensions: 5回路・全${rowCount}パターンの真理値、直交配線、分岐、非重複を検証`);
+console.log(`logic-extensions: 5回路の機能・用途、全${rowCount}パターンの真理値、直交配線、分岐、非重複を検証`);

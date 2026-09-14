@@ -64,9 +64,9 @@
         <div id="extension-parity-generator" data-lesson-view-panel="parity-generator" data-logic-extension="parity-generator">
           <div class="logic-extension-heading">
             <h3>パリティ生成回路（偶数パリティ）</h3>
-            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-parity-generator-help" data-lesson-supplement-preview="データとPを合わせた1の個数を偶数にします。">しくみ・例</button>
+            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-parity-generator-help" data-lesson-supplement-preview="通信の送信側で、受信側が誤りを検査するための目印を作ります。">しくみ・用途</button>
           </div>
-          <p class="logic-extension-summary">3ビットのデータA・B・Cに付ける検査用ビットPを作ります。データの1が奇数個ならP＝1、偶数個ならP＝0です。</p>
+          <p class="logic-extension-summary"><strong>機能：</strong>3ビットのデータA・B・Cに付ける検査用ビットPを作ります。データの1が奇数個ならP＝1、偶数個ならP＝0です。<span class="logic-extension-use"><strong>用途：</strong>機器どうしの通信で、送信するデータに誤り検出用の目印を添えます。</span></p>
           <div class="logic-extension-workbench" data-lesson-slide-navigation-lock>
             <div class="logic-extension-main">
               <div data-extension-inputs></div>
@@ -80,9 +80,9 @@
         <div id="extension-parity-checker" data-lesson-view-panel="parity-checker" data-logic-extension="parity-checker">
           <div class="logic-extension-heading">
             <h3>パリティ検査回路（偶数パリティ）</h3>
-            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-parity-checker-help" data-lesson-supplement-preview="E＝0でも、偶数個のビットの誤りは見逃します。">しくみ・例</button>
+            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-parity-checker-help" data-lesson-supplement-preview="通信の受信側で誤りを調べます。ただし、すべての誤りを見つけられるわけではありません。">しくみ・用途</button>
           </div>
-          <p class="logic-extension-summary">受信したデータA・B・CとPの、1の個数を調べます。奇数個ならE＝1として誤りを検出し、偶数個ならE＝0です。</p>
+          <p class="logic-extension-summary"><strong>機能：</strong>受信したデータA・B・CとPの、1の個数を調べます。奇数個ならE＝1として誤りを検出し、偶数個ならE＝0です。<span class="logic-extension-use"><strong>用途：</strong>機器どうしの通信で、受信したデータに誤りがないか検査する部分に使います。</span></p>
           <div class="logic-extension-workbench" data-lesson-slide-navigation-lock>
             <div class="logic-extension-main">
               <div data-extension-inputs></div>
@@ -96,9 +96,9 @@
         <div id="extension-multiplexer" data-lesson-view-panel="multiplexer" data-logic-extension="multiplexer">
           <div class="logic-extension-heading">
             <h3>セレクタ（マルチプレクサ）</h3>
-            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-multiplexer-help" data-lesson-supplement-preview="選択信号Sが0ならA、1ならBを通します。">しくみ・例</button>
+            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-multiplexer-help" data-lesson-supplement-preview="電子的な切替スイッチです。CPUの中で計算に使うデータを選ぶ場面などで働きます。">しくみ・用途</button>
           </div>
-          <p class="logic-extension-summary">2つのデータ入力A・Bから、選択信号Sで1つを選びます。S＝0ならF＝A、S＝1ならF＝Bになります。</p>
+          <p class="logic-extension-summary"><strong>機能：</strong>2つのデータ入力A・Bから、選択信号Sで1つを選びます。S＝0ならF＝A、S＝1ならF＝Bになります。<span class="logic-extension-use"><strong>用途：</strong>CPUの中で、計算に使うデータを切り替える部分などに使います。</span></p>
           <div class="logic-extension-workbench" data-lesson-slide-navigation-lock>
             <div class="logic-extension-main">
               <div data-extension-inputs></div>
@@ -112,9 +112,9 @@
         <div id="extension-decoder" data-lesson-view-panel="decoder" data-logic-extension="decoder">
           <div class="logic-extension-heading">
             <h3>デコーダ（2入力・4出力）</h3>
-            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-decoder-help" data-lesson-supplement-preview="A₁が2の位、A₀が1の位です。対応する出力だけを1にします。">しくみ・例</button>
+            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-decoder-help" data-lesson-supplement-preview="番号を、その番号の対象だけを選ぶ信号に変えます。メモリの場所を選ぶ部分などで働きます。">しくみ・用途</button>
           </div>
-          <p class="logic-extension-summary">2ビットの数A₁A₀に対応する、Y₀〜Y₃の1つだけを1にします。A₁は2の位、A₀は1の位です。</p>
+          <p class="logic-extension-summary"><strong>機能：</strong>2ビットの数A₁A₀に対応する、Y₀〜Y₃の1つだけを1にします。A₁は2の位、A₀は1の位です。<span class="logic-extension-use"><strong>用途：</strong>メモリの中で、アドレスに応じて読み書きする場所を選ぶ部分に使います。</span></p>
           <div class="logic-extension-workbench" data-lesson-slide-navigation-lock>
             <div class="logic-extension-main">
               <div data-extension-inputs></div>
@@ -128,9 +128,9 @@
         <div id="extension-two-bit-adder" data-lesson-view-panel="two-bit-adder" data-logic-extension="two-bit-adder">
           <div class="logic-extension-heading">
             <h3>2ビット加算回路</h3>
-            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-two-bit-adder-help" data-lesson-supplement-preview="1の位は半加算、2の位は下からの桁上がりC₁も加える全加算です。">しくみ・例</button>
+            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-two-bit-adder-help" data-lesson-supplement-preview="桁上がりを次の桁へ渡して足し算します。CPUの数値やアドレスの計算につながります。">しくみ・用途</button>
           </div>
-          <p class="logic-extension-summary">2桁の2進数A₁A₀とB₁B₀（それぞれ0〜3）を加えます。答えはC₂S₁S₀の3ビットで表し、C₂が4の位、S₁が2の位、S₀が1の位です。</p>
+          <p class="logic-extension-summary"><strong>機能：</strong>2桁の2進数A₁A₀とB₁B₀（それぞれ0〜3）を加えます。答えはC₂S₁S₀の3ビットで表し、C₂が4の位、S₁が2の位、S₀が1の位です。<span class="logic-extension-use"><strong>用途：</strong>CPUが行う数値の足し算や、メモリのアドレスを求める計算の基本になります。</span></p>
           <div class="logic-extension-workbench" data-lesson-slide-navigation-lock>
             <div class="logic-extension-main">
               <div data-extension-inputs></div>
@@ -145,44 +145,74 @@
     </article>
   </section>
 
-  <dialog id="extension-parity-generator-help" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="extension-parity-generator-help-title">
-    <div class="lesson-supplement-dialog__header"><h3 id="extension-parity-generator-help-title">パリティ生成回路のしくみ</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="パリティ生成の説明を閉じる">×</button></div>
-    <div class="lesson-supplement-dialog__body">
+  <dialog id="extension-parity-generator-help" class="lesson-supplement-dialog logic-extension-help" data-lesson-supplement-dialog aria-labelledby="extension-parity-generator-help-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="extension-parity-generator-help-title">パリティ生成回路の機能と用途</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="パリティ生成の説明を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body" tabindex="0" role="region" aria-label="パリティ生成の詳しい説明">
+      <h4>どのような機能？</h4>
+      <p>通信中のビットの変化に気づくため、データに添える1ビットの目印（パリティビット）を作ります。受信側が誤りを検査できるようにする、送信側の回路です。</p>
+      <h4>どこで使う？</h4>
+      <p>マイコンや周辺機器が1ビットずつデータを送るUART通信などで、パリティを使う設定のときに働きます。送信側がデータからPを決め、データと一緒に送ります。<a href="https://onlinedocs.microchip.com/oxy/GUID-9175774B-9B45-45D7-A62D-28F07E411073-en-US-4/GUID-0E513134-A72C-4F19-A8EA-7558C1FE7357.html" target="_blank" rel="noopener">Microchip：通信でのパリティの利用</a></p>
+      <p>この図は原理を学ぶための3ビット版です。データを順番に送り出す機能など、通信全体を構成するほかの回路は省いています。</p>
+      <h4>しくみと例</h4>
       <p>最初のまとまりでAとBが異なるときに1を作り、次のまとまりでCも含めた1の個数の偶奇を調べます。これはXORの働きをAND・OR・NOTで組み立てたものです。</p>
       <p>例えばABC＝101なら、1は2個なのでP＝0です。ABC＝111なら1は3個なのでP＝1にします。どちらも、Pを付けた4ビット全体の1は偶数個になります。</p>
       <p>ここでは偶数パリティを使います。全体の1を奇数個にそろえる方式は奇数パリティと呼びます。</p>
       <p class="logic-note">参考：<a href="https://www.ece.unb.ca/tervo/ece4253/ecc.shtml" target="_blank" rel="noopener">University of New Brunswick：誤り検出とパリティ</a></p>
     </div>
   </dialog>
-  <dialog id="extension-parity-checker-help" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="extension-parity-checker-help-title">
-    <div class="lesson-supplement-dialog__header"><h3 id="extension-parity-checker-help-title">パリティ検査で分かること</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="パリティ検査の説明を閉じる">×</button></div>
-    <div class="lesson-supplement-dialog__body">
+  <dialog id="extension-parity-checker-help" class="lesson-supplement-dialog logic-extension-help" data-lesson-supplement-dialog aria-labelledby="extension-parity-checker-help-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="extension-parity-checker-help-title">パリティ検査回路の機能と用途</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="パリティ検査の説明を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body" tabindex="0" role="region" aria-label="パリティ検査の詳しい説明">
+      <h4>どのような機能？</h4>
+      <p>受信したデータとパリティビットの組み合わせが、約束した規則に合うか調べます。合わなければ誤りを知らせます。</p>
+      <h4>どこで使う？</h4>
+      <p>UART通信などの受信側で、生成回路と対になって働きます。パリティを使う設定では、受信側がデータとPを検査し、不一致ならエラーを知らせます。<a href="https://onlinedocs.microchip.com/oxy/GUID-9175774B-9B45-45D7-A62D-28F07E411073-en-US-4/GUID-0E513134-A72C-4F19-A8EA-7558C1FE7357.html" target="_blank" rel="noopener">Microchip：受信時のパリティ検査</a></p>
+      <p>検出結果は、受信したデータをそのまま使わないと判断する手がかりになります。この回路だけで、誤りを直したり再送したりすることはできません。</p>
+      <h4>しくみと例</h4>
       <p>偶数パリティで送信したデータなら、受信したA・B・C・Pの1の個数も偶数のはずです。図ではAとB、CとPの偶奇を調べ、最後に全体の偶奇をまとめます。</p>
       <p>ABCP＝1010ではE＝0です。ここからAだけを反転して0010にすると、1が奇数個になりE＝1です。1ビットの誤りは、P自身の誤りも含めて検出できます。</p>
       <p>ただし、2ビットなど偶数個のビットが反転すると検出できません。E＝0は「誤りを検出しなかった」という意味で、「必ず正しい」ではありません。誤りの位置の特定や訂正もできません。</p>
       <p class="logic-note">参考：<a href="https://www.ece.unb.ca/tervo/ece4253/ecc.shtml" target="_blank" rel="noopener">University of New Brunswick：誤り検出とパリティ</a></p>
     </div>
   </dialog>
-  <dialog id="extension-multiplexer-help" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="extension-multiplexer-help-title">
-    <div class="lesson-supplement-dialog__header"><h3 id="extension-multiplexer-help-title">セレクタのしくみ</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="セレクタの説明を閉じる">×</button></div>
-    <div class="lesson-supplement-dialog__body">
+  <dialog id="extension-multiplexer-help" class="lesson-supplement-dialog logic-extension-help" data-lesson-supplement-dialog aria-labelledby="extension-multiplexer-help-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="extension-multiplexer-help-title">セレクタの機能と用途</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="セレクタの説明を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body" tabindex="0" role="region" aria-label="セレクタの詳しい説明">
+      <h4>どのような機能？</h4>
+      <p>複数のデータから使いたい1つを選んで出力する、電子的な切替スイッチです。入力データそのものを運び、選択信号Sで通す相手を決めます。</p>
+      <h4>どこで使う？</h4>
+      <p>CPU内で、演算に使う数値を選ぶ場面で用います。例えば、CPUが一時的に記憶している値と、命令に書かれた数値のどちらを足すかを切り替えます。<a href="https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/pages/c13/c13s1/" target="_blank" rel="noopener">MIT：CPU内部のデータ選択</a></p>
+      <p>この図が選ぶデータは1ビットです。複数ビットの数値を選ぶ場合は、同じ選択信号で各ビットのセレクタをまとめて切り替えます。</p>
+      <h4>しくみと例</h4>
       <p>S＝0のとき、NOTを通った信号は1になります。上のANDはAを通し、下のANDは0になるので、最後のORからAが出力されます。S＝1では逆になり、Bが出力されます。</p>
       <p>A＝0、B＝1にしてSだけを切り替えると、出力を選ぶ働きが分かります。Sは計算対象のデータではなく、どのデータを通すか決める制御信号です。</p>
       <p class="logic-note">参考：<a href="https://csg.csail.mit.edu/6.175/labs/lab1-multiplexers-adders.html" target="_blank" rel="noopener">MIT：Multiplexers and Adders</a></p>
     </div>
   </dialog>
-  <dialog id="extension-decoder-help" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="extension-decoder-help-title">
-    <div class="lesson-supplement-dialog__header"><h3 id="extension-decoder-help-title">デコーダのしくみ</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="デコーダの説明を閉じる">×</button></div>
-    <div class="lesson-supplement-dialog__body">
+  <dialog id="extension-decoder-help" class="lesson-supplement-dialog logic-extension-help" data-lesson-supplement-dialog aria-labelledby="extension-decoder-help-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="extension-decoder-help-title">デコーダの機能と用途</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="デコーダの説明を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body" tabindex="0" role="region" aria-label="デコーダの詳しい説明">
+      <h4>どのような機能？</h4>
+      <p>2進数で表された番号を、その番号の対象だけを選ぶ信号に変えます。この図では、入力の2ビットで4本の出力のどれを1にするかを決めます。</p>
+      <h4>どこで使う？</h4>
+      <p>メモリの中で、アドレス（場所を示す番号）に応じて読み書きする場所を選ぶ部分に使います。選んだ場所だけを有効にし、ほかの場所は選びません。<a href="https://computationstructures.org/lectures/caches/caches.html" target="_blank" rel="noopener">Computation Structures：メモリのアドレス選択</a></p>
+      <p>この図が作るのは、番号に対応する場所の選択信号だけです。データを保存する機能は別の回路が担当します。</p>
+      <h4>しくみと例</h4>
       <p>4つのANDが、上から00・01・10・11の各組み合わせを調べます。0であってほしい入力にはNOTを通し、条件に合ったANDの出力だけが1になります。</p>
       <p>例えばA₁A₀＝10₂は10進数の2なので、Y₂だけが1です。2本の入力で4つの行き先を区別でき、メモリのアドレス指定などにつながります。</p>
       <p>この図は対応する出力を1にする方式です。7セグメント表示器で数字を表示する場合は、さらに各線分を点灯させる組み合わせを作る回路が必要です。</p>
       <p class="logic-note">参考：<a href="https://cs315-f25.cs.usfca.edu/lectures/10-cs315-2025-10-23-instruction-rom-decoding/#5-the-decoder-one-input-value-one-hot-output" target="_blank" rel="noopener">University of San Francisco：2入力・4出力のデコーダ</a></p>
     </div>
   </dialog>
-  <dialog id="extension-two-bit-adder-help" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="extension-two-bit-adder-help-title">
-    <div class="lesson-supplement-dialog__header"><h3 id="extension-two-bit-adder-help-title">桁上がりをつなぐ</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="2ビット加算の説明を閉じる">×</button></div>
-    <div class="lesson-supplement-dialog__body">
+  <dialog id="extension-two-bit-adder-help" class="lesson-supplement-dialog logic-extension-help" data-lesson-supplement-dialog aria-labelledby="extension-two-bit-adder-help-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="extension-two-bit-adder-help-title">2ビット加算回路の機能と用途</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="2ビット加算の説明を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body" tabindex="0" role="region" aria-label="2ビット加算の詳しい説明">
+      <h4>どのような機能？</h4>
+      <p>2つの2進数を足し、各桁の和と桁上がりを求めます。下の桁からの桁上がりを次の桁へ渡すことで、複数桁の計算ができます。</p>
+      <h4>どこで使う？</h4>
+      <p>CPUの演算装置では、数値の足し算や、メモリ上の場所を示すアドレスの計算に加算回路を使います。<a href="https://ocw.mit.edu/courses/6-004-computation-structures-spring-2017/pages/c13/c13s1/" target="_blank" rel="noopener">MIT：CPUの演算とアドレス計算</a></p>
+      <p>ここにある2ビット版を出発点に桁数を増やすと、より大きな数を扱えます。実際のCPUの加算回路は、扱う桁数や求める計算速度に応じて構成が異なります。</p>
+      <h4>しくみと例</h4>
       <p>上の半加算回路は、1の位のA₀とB₀を加えてS₀と桁上がりC₁を作ります。下の全加算回路は、2の位のA₁・B₁とC₁を加えてS₁と桁上がりC₂を作ります。</p>
       <p>例えば11₂＋01₂では、1の位が1＋1＝10₂なのでS₀＝0、C₁＝1です。2の位は1＋0＋1＝10₂なのでS₁＝0、C₂＝1となり、答えは100₂です。</p>
       <p>2ビットどうしの最大値は11₂＋11₂＝110₂です。結果を3ビットで表すので、桁上がりを失いません。真理値表は4入力の全16通りを掲載しています。</p>
