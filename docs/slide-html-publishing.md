@@ -13,6 +13,8 @@ GoogleスライドをそのままHTMLへ変換するのではなく、次の役�
 
 発表者ノートの内容はすべて公開用として扱う。教員だけの進行メモは、公開部分と分離する変換仕様を実装するまで発表者ノートへ混在させない。
 
+インラインコード（バッククォートで囲んだ部分）の `$` は、そのまま記述する。表計算の絶対参照は `A$1`、`$A1`、`$A$1` のように書き、`\$` へエスケープしない。コード内は文字をそのまま表示するため、余分な `\` も画面やコピーした数式へ残る。修正は発表者ノートで行ってJSONを再生成し、Python・正規表現などで必要なバックスラッシュまで共通処理で削除しない。
+
 ## 使い分け
 
 ### 手順中心のページ
@@ -90,6 +92,7 @@ node scripts/generate-slide-pages.mjs
 ```console
 node scripts/generate-slide-pages.mjs --check
 node scripts/validate-slide-content.mjs
+node scripts/test-spreadsheet-slide-content.mjs
 ```
 
 検査対象:
