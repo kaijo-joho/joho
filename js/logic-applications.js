@@ -8,8 +8,10 @@
     .logic-svg { font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif; }
     .logic-svg__background { fill: var(--logic-svg-bg, #ffffff); }
     .logic-wire { fill: none; stroke: var(--logic-wire, #64748b); stroke-width: 3; stroke-linecap: round; stroke-linejoin: miter; }
+    .logic-wire.is-one { stroke: var(--logic-one, #d9483b); stroke-width: 4; }
     .logic-gate__body { fill: var(--logic-gate-fill, #f8fafc); stroke: var(--logic-gate-stroke, #23384d); stroke-width: 2.6; }
     .logic-terminal, .logic-junction { fill: var(--logic-gate-stroke, #23384d); }
+    .logic-terminal.is-one, .logic-junction.is-one { fill: var(--logic-one, #d9483b); }
     .logic-node-label { fill: var(--logic-text, #17212b); font-size: 18px; font-weight: 800; }
     .logic-stage-box { fill: color-mix(in oklab, var(--theme-color, #225386) 5%, transparent); stroke: var(--logic-border, #b9cad8); stroke-width: 1.5; stroke-dasharray: 7 6; }
     .logic-stage-label { fill: var(--logic-muted, #536577); font-size: 13px; font-weight: 700; }
@@ -286,7 +288,7 @@
     const node = spec.nodes[nodeId];
     if (!node) throw new Error(`回路図の接続先「${nodeId}」が見つかりません。`);
     if (node.kind === 'input') return { x: node.x, y: node.y };
-    if (node.kind === 'output') return { x: node.x - 30, y: node.y };
+    if (node.kind === 'output') return { x: node.x - (spec.pointOutputs ? 0 : 30), y: node.y };
     const geometry = root.LogicRenderer.gateGeometry(node.gate);
     if (port === 'out') return { x: node.x + geometry.outputX, y: node.y };
     const index = Number(port);
@@ -306,9 +308,9 @@
     return path;
   }
 
-  function renderApplicationDiagram(target, circuit) {
+  function renderApplicationDiagram(target, circuit, options = {}) {
     const Renderer = root.LogicRenderer;
-    const spec = DIAGRAMS[circuit.id];
+    const spec = circuit.diagram || DIAGRAMS[circuit.id];
     const svg = Renderer.svgElement('svg', {
       class: 'logic-svg logic-application-svg',
       viewBox: `0 0 ${spec.width} ${spec.height}`,
@@ -319,7 +321,7 @@
       preserveAspectRatio: 'xMidYMid meet'
     });
     svg.append(
-      Renderer.svgElement('title', { id: `logic-application-title-${circuit.id}` }, `回路${circuit.marker}の回路図`),
+      Renderer.svgElement('title', { id: `logic-application-title-${circuit.id}` }, `${circuit.marker ? `回路${circuit.marker}` : circuit.name}の回路図`),
       Renderer.svgElement('desc', { id: `logic-application-description-${circuit.id}` }, `入力${circuit.inputs.join('、')}から、AND・OR・NOTゲートだけを通り、出力${circuit.outputs.join('、')}へつながる組合せ回路です。`),
       Renderer.svgElement('style', {}, SVG_STYLE),
       Renderer.svgElement('rect', {
@@ -343,13 +345,15 @@
         const points = [[start.x, start.y], ...(branch.via || []), [end.x, end.y]];
         svg.appendChild(Renderer.svgElement('path', {
           class: 'logic-wire',
+          'data-signal-node': net.from.split(':')[0],
           d: orthogonalPath(points),
           'aria-hidden': 'true'
         }));
       });
       (net.junctions || []).forEach(([x, y]) => {
         svg.appendChild(Renderer.svgElement('circle', {
-          class: 'logic-junction', cx: x, cy: y, r: 4.2, 'aria-hidden': 'true'
+          class: 'logic-junction', 'data-signal-node': net.from.split(':')[0],
+          cx: x, cy: y, r: 4.2, 'aria-hidden': 'true'
         }));
       });
     });
@@ -358,16 +362,17 @@
       svg.appendChild(Renderer.createGateSymbol(node.gate, node.x, node.y));
     });
 
-    Object.values(spec.nodes).filter(node => node.kind === 'input').forEach(node => {
+    Object.entries(spec.nodes).filter(([, node]) => node.kind === 'input').forEach(([id, node]) => {
       svg.appendChild(Renderer.svgElement('circle', {
-        class: 'logic-terminal', cx: node.x, cy: node.y, r: 5
+        class: 'logic-terminal', 'data-signal-node': id, cx: node.x, cy: node.y, r: 5
       }));
       svg.appendChild(Renderer.svgElement('text', {
-        class: 'logic-node-label', x: node.x - 15, y: node.y + 6, 'text-anchor': 'end'
+        class: 'logic-node-label', x: node.x - 15, y: node.y + 6, 'text-anchor': 'end',
+        'data-signal-label': id, 'data-base-label': node.label
       }, node.label));
     });
 
-    Object.values(spec.nodes).filter(node => node.kind === 'gate').forEach(node => {
+    Object.values(spec.nodes).filter(node => node.kind === 'gate' && options.gateTerminals !== false).forEach(node => {
       const geometry = Renderer.gateGeometry(node.gate);
       geometry.inputYs.forEach(offset => {
         svg.appendChild(Renderer.svgElement('circle', {
@@ -381,7 +386,17 @@
       }
     });
 
-    Object.values(spec.nodes).filter(node => node.kind === 'output').forEach(node => {
+    Object.entries(spec.nodes).filter(([, node]) => node.kind === 'output').forEach(([id, node]) => {
+      if (spec.pointOutputs) {
+        svg.append(
+          Renderer.svgElement('circle', { class: 'logic-terminal', 'data-signal-node': id, cx: node.x, cy: node.y, r: 5 }),
+          Renderer.svgElement('text', {
+            class: 'logic-node-label', x: node.x + 14, y: node.y + 6,
+            'data-signal-label': id, 'data-base-label': node.label
+          }, node.label)
+        );
+        return;
+      }
       svg.appendChild(Renderer.svgElement('rect', {
         class: 'logic-output-box', x: node.x - 30, y: node.y - 27, width: 60, height: 54, rx: 10
       }));
@@ -390,10 +405,27 @@
       }, node.label));
     });
 
+    (spec.labels || []).forEach(label => svg.appendChild(Renderer.svgElement('text', {
+      class: 'logic-node-label', x: label.x, y: label.y,
+      'data-signal-label': label.node, 'data-base-label': label.text
+    }, label.text)));
+
     const hint = createElement('div', { className: 'logic-circuit__scroll-hint', text: '↔ 回路図は左右に動かせます' });
     hint.setAttribute('aria-hidden', 'true');
     target.replaceChildren(hint, svg);
+    if (options.signals) updateApplicationSignals(svg, options.signals);
     return svg;
+  }
+
+  // SVG内のstyleを挿し直すとWebKitでフォーカスを失うため、信号だけを更新する。
+  function updateApplicationSignals(svg, signals) {
+    svg.querySelectorAll('[data-signal-node]').forEach(element => {
+      element.classList.toggle('is-one', signals[element.dataset.signalNode] === 1);
+    });
+    svg.querySelectorAll('[data-signal-label]').forEach(element => {
+      const value = signals[element.dataset.signalLabel];
+      element.textContent = value == null ? element.dataset.baseLabel : `${element.dataset.baseLabel}＝${value}`;
+    });
   }
 
   function createInitialState(circuit) {
@@ -752,7 +784,7 @@
     renderChallenge();
   }
 
-  root.LogicApplications = Object.freeze({ CIRCUITS, makeRows, renderApplicationDiagram, initialize });
+  root.LogicApplications = Object.freeze({ CIRCUITS, makeRows, renderApplicationDiagram, updateApplicationSignals, initialize });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, { once: true });
   else initialize();
 })(typeof globalThis !== 'undefined' ? globalThis : window);

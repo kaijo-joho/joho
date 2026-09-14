@@ -1,0 +1,177 @@
+/* cp22の発展。表示切替・ダイアログの動作は座学共通基盤を使用する。 */
+.logic-extension-tabs {
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 8px 0;
+}
+
+.logic-extension-tabs button {
+  flex: 1 1 120px;
+  min-height: 44px;
+  padding: 7px 10px;
+  border: 1px solid var(--logic-border);
+  background: var(--logic-panel-strong);
+  color: var(--logic-text);
+  font: inherit;
+  font-size: .78em;
+  font-weight: 700;
+}
+
+.logic-extension-tabs button.is-current {
+  border-color: var(--logic-focus);
+  box-shadow: inset 0 -3px var(--logic-focus);
+  background: var(--logic-zero-soft);
+}
+
+.logic-extension-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+section article .logic-extension-heading h3 {
+  margin: 0;
+  font-size: 1em;
+}
+
+.logic-extension-heading button {
+  min-height: 44px;
+  margin: 0;
+  padding: 5px 12px;
+  font-size: .72em;
+}
+
+section article .logic-extension-intro,
+section article .logic-extension-summary {
+  margin: 6px 0 10px;
+  font-size: .82em;
+  line-height: 1.5;
+}
+
+.logic-extension-workbench {
+  display: grid;
+  grid-template-columns: minmax(0, 2.3fr) minmax(280px, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.logic-extension-main,
+.logic-extension-table {
+  min-width: 0;
+}
+
+.logic-extension-main {
+  display: grid;
+  gap: 10px;
+}
+
+.logic-extension-main .logic-input-controls {
+  padding: 3px 10px 7px;
+  gap: 8px 18px;
+  font-size: .8em;
+}
+
+.logic-extension-main .logic-bit-button {
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.logic-extension-diagram {
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+.logic-extension-diagram .logic-svg {
+  min-width: min(var(--logic-natural-width, 820px), 820px);
+  min-height: 0;
+  max-width: none;
+}
+
+.logic-extension-diagram .logic-node-label { font-size: 26px; }
+.logic-extension-diagram .logic-stage-label { font-size: 24px; }
+
+.logic-extension-result {
+  display: block;
+  padding: 8px 10px;
+  border-left: 3px solid var(--logic-focus);
+  background: var(--logic-panel);
+  color: var(--logic-text);
+  font-size: .78em;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.logic-extension-table .logic-table-scroll {
+  max-height: clamp(290px, calc(var(--lesson-slide-deck-height, 700px) - 250px), 490px);
+  overflow: auto;
+  overscroll-behavior: contain;
+}
+
+section article .logic-extension-table .logic-truth-table {
+  width: 100%;
+  min-width: 260px;
+  font-size: .82em;
+}
+
+section article .logic-extension-table .logic-truth-table td {
+  height: 44px;
+  padding: 0 4px;
+}
+
+section article .logic-extension-table .logic-truth-table th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 8px 4px;
+  background: var(--logic-zero-soft);
+}
+
+.logic-extension-diagram:focus-visible,
+.logic-extension-table .logic-table-scroll:focus-visible,
+.logic-extension-tabs button:focus-visible {
+  outline: 3px solid var(--logic-focus);
+  outline-offset: 2px;
+}
+
+/* 横長画面では図全体と説明を1画面に収める。表の16行は枠内で送る。 */
+@media (min-width: 961px) {
+  .logic-extension-diagram .logic-svg {
+    min-width: 0;
+    height: clamp(190px, calc(var(--lesson-slide-deck-height, 730px) - 385px), 400px);
+  }
+}
+
+@media (max-width: 960px) {
+  .logic-extension-workbench { grid-template-columns: minmax(0, 1fr); }
+  .logic-extension-diagram .logic-circuit__scroll-hint {
+    display: block;
+    position: sticky;
+    left: 0;
+    width: max-content;
+    max-width: 100%;
+    padding: 4px 8px;
+    color: var(--logic-muted);
+    background: var(--logic-svg-bg);
+    font-size: .72em;
+  }
+}
+
+@media (max-width: 560px) {
+  .logic-extension-tabs button { flex-basis: 100px; }
+  .logic-extension-workbench { gap: 10px; }
+  .logic-extension-diagram .logic-svg { min-width: 820px; }
+}
+
+@media print {
+  .logic-extension-tabs,
+  .logic-extension-heading button,
+  .logic-extension-main [data-extension-inputs],
+  .logic-extension-diagram .logic-circuit__scroll-hint { display: none; }
+  .logic-extension-workbench { display: block; }
+  .logic-extension-diagram .logic-svg { min-width: 0; width: 100%; height: auto; }
+  .logic-extension-table .logic-table-scroll { max-height: none; overflow: visible; }
+  .logic-extension-table .logic-truth-table th { position: static; }
+}

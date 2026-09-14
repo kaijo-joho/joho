@@ -13,11 +13,13 @@
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/logic-circuits.css">
+  <link rel="stylesheet" href="./css/logic-extensions.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/logic-core.js"></script>
   <script defer src="./js/logic-renderer.js"></script>
   <script defer src="./js/logic-widgets.js"></script>
   <script defer src="./js/logic-applications.js"></script>
+  <script defer src="./js/logic-extensions.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
 <body data-lesson-slide-deck>
@@ -46,34 +48,147 @@
     </article>
   </section>
 
-  <section data-lesson-slide data-lesson-slide-title="次に扱える組合せ回路">
-    <article>
-      <h2 id="headline_3">(3) 発展：次に扱える組合せ回路</h2>
-      <p>循環する配線を持たず、同じように回路図と真理値表から考えられる回路には、次のようなものがあります。</p>
-      <div class="logic-extension-grid">
-        <section class="logic-extension-card">
-          <h3>パリティ生成・検査回路</h3>
-          <p>1の個数が偶数か奇数かを調べます。通信データの誤り検出につながる題材です。</p>
-          <span>おすすめ：3入力</span>
-        </section>
-        <section class="logic-extension-card">
-          <h3>セレクタ（マルチプレクサ）</h3>
-          <p>選択信号に応じて、複数の入力から1つを出力します。制御信号の役割を学べます。</p>
-          <span>おすすめ：2入力1選択</span>
-        </section>
-        <section class="logic-extension-card">
-          <h3>デコーダ</h3>
-          <p>2進数の入力に対応する出力だけを1にします。アドレス指定や7セグ表示へ発展できます。</p>
-          <span>おすすめ：2入力4出力</span>
-        </section>
-        <section class="logic-extension-card">
-          <h3>2ビット加算回路</h3>
-          <p>半加算回路と全加算回路をつないで、複数桁の2進数を加える考え方へ進みます。</p>
-          <span>おすすめ：桁上がりの追跡</span>
-        </section>
+  <section data-lesson-slide data-lesson-slide-title="発展の組合せ回路" data-lesson-slide-layout="exercise">
+    <article class="logic-extensions-slide">
+      <h2 id="headline_3">(3) 発展：組合せ回路を動かす</h2>
+      <p class="logic-extension-intro">入力や真理値表の行を選び、回路の働きを確かめましょう。配線に循環はなく、ゲートはAND・OR・NOTだけです。</p>
+      <div id="logic-extension-views" data-lesson-view-group data-lesson-default-view="parity-generator">
+        <div class="logic-tabs logic-extension-tabs" role="tablist" data-lesson-view-controls aria-label="発展の回路を選ぶ">
+          <button type="button" data-lesson-view="parity-generator">パリティ生成</button>
+          <button type="button" data-lesson-view="parity-checker">パリティ検査</button>
+          <button type="button" data-lesson-view="multiplexer">セレクタ</button>
+          <button type="button" data-lesson-view="decoder">デコーダ</button>
+          <button type="button" data-lesson-view="two-bit-adder">2ビット加算</button>
+        </div>
+
+        <div id="extension-parity-generator" data-lesson-view-panel="parity-generator" data-logic-extension="parity-generator">
+          <div class="logic-extension-heading">
+            <h3>パリティ生成回路（偶数パリティ）</h3>
+            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-parity-generator-help" data-lesson-supplement-preview="データとPを合わせた1の個数を偶数にします。">しくみ・例</button>
+          </div>
+          <p class="logic-extension-summary">3ビットのデータA・B・Cに付ける検査用ビットPを作ります。データの1が奇数個ならP＝1、偶数個ならP＝0です。</p>
+          <div class="logic-extension-workbench" data-lesson-slide-navigation-lock>
+            <div class="logic-extension-main">
+              <div data-extension-inputs></div>
+              <div class="logic-circuit logic-extension-diagram" data-extension-diagram></div>
+              <output class="logic-extension-result" data-extension-result aria-label="パリティ生成の結果"></output>
+            </div>
+            <div class="logic-extension-table" data-extension-table></div>
+          </div>
+        </div>
+
+        <div id="extension-parity-checker" data-lesson-view-panel="parity-checker" data-logic-extension="parity-checker">
+          <div class="logic-extension-heading">
+            <h3>パリティ検査回路（偶数パリティ）</h3>
+            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-parity-checker-help" data-lesson-supplement-preview="E＝0でも、偶数個のビットの誤りは見逃します。">しくみ・例</button>
+          </div>
+          <p class="logic-extension-summary">受信したデータA・B・CとPの、1の個数を調べます。奇数個ならE＝1として誤りを検出し、偶数個ならE＝0です。</p>
+          <div class="logic-extension-workbench" data-lesson-slide-navigation-lock>
+            <div class="logic-extension-main">
+              <div data-extension-inputs></div>
+              <div class="logic-circuit logic-extension-diagram" data-extension-diagram></div>
+              <output class="logic-extension-result" data-extension-result aria-label="パリティ検査の結果"></output>
+            </div>
+            <div class="logic-extension-table" data-extension-table></div>
+          </div>
+        </div>
+
+        <div id="extension-multiplexer" data-lesson-view-panel="multiplexer" data-logic-extension="multiplexer">
+          <div class="logic-extension-heading">
+            <h3>セレクタ（マルチプレクサ）</h3>
+            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-multiplexer-help" data-lesson-supplement-preview="選択信号Sが0ならA、1ならBを通します。">しくみ・例</button>
+          </div>
+          <p class="logic-extension-summary">2つのデータ入力A・Bから、選択信号Sで1つを選びます。S＝0ならF＝A、S＝1ならF＝Bになります。</p>
+          <div class="logic-extension-workbench" data-lesson-slide-navigation-lock>
+            <div class="logic-extension-main">
+              <div data-extension-inputs></div>
+              <div class="logic-circuit logic-extension-diagram" data-extension-diagram></div>
+              <output class="logic-extension-result" data-extension-result aria-label="セレクタの結果"></output>
+            </div>
+            <div class="logic-extension-table" data-extension-table></div>
+          </div>
+        </div>
+
+        <div id="extension-decoder" data-lesson-view-panel="decoder" data-logic-extension="decoder">
+          <div class="logic-extension-heading">
+            <h3>デコーダ（2入力・4出力）</h3>
+            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-decoder-help" data-lesson-supplement-preview="A₁が2の位、A₀が1の位です。対応する出力だけを1にします。">しくみ・例</button>
+          </div>
+          <p class="logic-extension-summary">2ビットの数A₁A₀に対応する、Y₀〜Y₃の1つだけを1にします。A₁は2の位、A₀は1の位です。</p>
+          <div class="logic-extension-workbench" data-lesson-slide-navigation-lock>
+            <div class="logic-extension-main">
+              <div data-extension-inputs></div>
+              <div class="logic-circuit logic-extension-diagram" data-extension-diagram></div>
+              <output class="logic-extension-result" data-extension-result aria-label="デコーダの結果"></output>
+            </div>
+            <div class="logic-extension-table" data-extension-table></div>
+          </div>
+        </div>
+
+        <div id="extension-two-bit-adder" data-lesson-view-panel="two-bit-adder" data-logic-extension="two-bit-adder">
+          <div class="logic-extension-heading">
+            <h3>2ビット加算回路</h3>
+            <button type="button" class="logic-secondary-button lesson-supplement-trigger" data-lesson-supplement-open="extension-two-bit-adder-help" data-lesson-supplement-preview="1の位は半加算、2の位は下からの桁上がりC₁も加える全加算です。">しくみ・例</button>
+          </div>
+          <p class="logic-extension-summary">2桁の2進数A₁A₀とB₁B₀（それぞれ0〜3）を加えます。答えはC₂S₁S₀の3ビットで表し、C₂が4の位、S₁が2の位、S₀が1の位です。</p>
+          <div class="logic-extension-workbench" data-lesson-slide-navigation-lock>
+            <div class="logic-extension-main">
+              <div data-extension-inputs></div>
+              <div class="logic-circuit logic-extension-diagram" data-extension-diagram></div>
+              <output class="logic-extension-result" data-extension-result aria-label="2ビット加算の結果"></output>
+            </div>
+            <div class="logic-extension-table" data-extension-table></div>
+          </div>
+        </div>
       </div>
+      <noscript><p>回路図と真理値表の表示・操作にはJavaScriptが必要です。</p></noscript>
     </article>
   </section>
+
+  <dialog id="extension-parity-generator-help" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="extension-parity-generator-help-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="extension-parity-generator-help-title">パリティ生成回路のしくみ</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="パリティ生成の説明を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body">
+      <p>最初のまとまりでAとBが異なるときに1を作り、次のまとまりでCも含めた1の個数の偶奇を調べます。これはXORの働きをAND・OR・NOTで組み立てたものです。</p>
+      <p>例えばABC＝101なら、1は2個なのでP＝0です。ABC＝111なら1は3個なのでP＝1にします。どちらも、Pを付けた4ビット全体の1は偶数個になります。</p>
+      <p>ここでは偶数パリティを使います。全体の1を奇数個にそろえる方式は奇数パリティと呼びます。</p>
+      <p class="logic-note">参考：<a href="https://www.ece.unb.ca/tervo/ece4253/ecc.shtml" target="_blank" rel="noopener">University of New Brunswick：誤り検出とパリティ</a></p>
+    </div>
+  </dialog>
+  <dialog id="extension-parity-checker-help" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="extension-parity-checker-help-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="extension-parity-checker-help-title">パリティ検査で分かること</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="パリティ検査の説明を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body">
+      <p>偶数パリティで送信したデータなら、受信したA・B・C・Pの1の個数も偶数のはずです。図ではAとB、CとPの偶奇を調べ、最後に全体の偶奇をまとめます。</p>
+      <p>ABCP＝1010ではE＝0です。ここからAだけを反転して0010にすると、1が奇数個になりE＝1です。1ビットの誤りは、P自身の誤りも含めて検出できます。</p>
+      <p>ただし、2ビットなど偶数個のビットが反転すると検出できません。E＝0は「誤りを検出しなかった」という意味で、「必ず正しい」ではありません。誤りの位置の特定や訂正もできません。</p>
+      <p class="logic-note">参考：<a href="https://www.ece.unb.ca/tervo/ece4253/ecc.shtml" target="_blank" rel="noopener">University of New Brunswick：誤り検出とパリティ</a></p>
+    </div>
+  </dialog>
+  <dialog id="extension-multiplexer-help" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="extension-multiplexer-help-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="extension-multiplexer-help-title">セレクタのしくみ</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="セレクタの説明を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body">
+      <p>S＝0のとき、NOTを通った信号は1になります。上のANDはAを通し、下のANDは0になるので、最後のORからAが出力されます。S＝1では逆になり、Bが出力されます。</p>
+      <p>A＝0、B＝1にしてSだけを切り替えると、出力を選ぶ働きが分かります。Sは計算対象のデータではなく、どのデータを通すか決める制御信号です。</p>
+      <p class="logic-note">参考：<a href="https://csg.csail.mit.edu/6.175/labs/lab1-multiplexers-adders.html" target="_blank" rel="noopener">MIT：Multiplexers and Adders</a></p>
+    </div>
+  </dialog>
+  <dialog id="extension-decoder-help" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="extension-decoder-help-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="extension-decoder-help-title">デコーダのしくみ</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="デコーダの説明を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body">
+      <p>4つのANDが、上から00・01・10・11の各組み合わせを調べます。0であってほしい入力にはNOTを通し、条件に合ったANDの出力だけが1になります。</p>
+      <p>例えばA₁A₀＝10₂は10進数の2なので、Y₂だけが1です。2本の入力で4つの行き先を区別でき、メモリのアドレス指定などにつながります。</p>
+      <p>この図は対応する出力を1にする方式です。7セグメント表示器で数字を表示する場合は、さらに各線分を点灯させる組み合わせを作る回路が必要です。</p>
+      <p class="logic-note">参考：<a href="https://cs315-f25.cs.usfca.edu/lectures/10-cs315-2025-10-23-instruction-rom-decoding/#5-the-decoder-one-input-value-one-hot-output" target="_blank" rel="noopener">University of San Francisco：2入力・4出力のデコーダ</a></p>
+    </div>
+  </dialog>
+  <dialog id="extension-two-bit-adder-help" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="extension-two-bit-adder-help-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="extension-two-bit-adder-help-title">桁上がりをつなぐ</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="2ビット加算の説明を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body">
+      <p>上の半加算回路は、1の位のA₀とB₀を加えてS₀と桁上がりC₁を作ります。下の全加算回路は、2の位のA₁・B₁とC₁を加えてS₁と桁上がりC₂を作ります。</p>
+      <p>例えば11₂＋01₂では、1の位が1＋1＝10₂なのでS₀＝0、C₁＝1です。2の位は1＋0＋1＝10₂なのでS₁＝0、C₂＝1となり、答えは100₂です。</p>
+      <p>2ビットどうしの最大値は11₂＋11₂＝110₂です。結果を3ビットで表すので、桁上がりを失いません。真理値表は4入力の全16通りを掲載しています。</p>
+      <p class="logic-note">参考：<a href="https://csg.csail.mit.edu/6.175/labs/lab1-multiplexers-adders.html" target="_blank" rel="noopener">MIT：Multiplexers and Adders</a></p>
+    </div>
+  </dialog>
 
   <section id="examples_and_questions"><!-- script_pages.js --></section>
 </body>
