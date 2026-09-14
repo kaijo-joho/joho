@@ -565,7 +565,7 @@
       const bitDepthDescription = element(
         'p',
         'dr-control__description',
-        '1つの標本を表すビット数 n です。大きいほど量子化の段階数が増え、波の高さを細かく表せます。'
+        '波の高さを表す段階値を、2進数で表すときの桁数 n です。ビット数が増えるほど段階数が増え、同じ範囲の波の高さを細かく表せます。'
       );
       bitDepthDescription.id = `dr-pcm-bit-depth-description-${this.serial}`;
       this.bitDepthAvailability = element('p', 'dr-control__availability');

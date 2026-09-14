@@ -203,7 +203,9 @@ ok(widgets.includes("control.input.disabled = disabled") && widgets.includes("cl
 ok(widgets.includes("this.sampleRateMetrics = element('dl', 'dr-control__metrics')"), '標本化の計算値を標本化周波数スライダー内に配置');
 ok(widgets.includes("this.bitDepthMetrics = element('dl', 'dr-control__metrics')"), '量子化の計算値を量子化ビット数スライダー内に配置');
 ok(widgets.includes('1秒間に標本化する回数です（Hz＝回/秒）。大きいほど標本の時間間隔が短くなります。'), '標本化周波数の定義・単位・操作による変化を説明');
-ok(widgets.includes('1つの標本を表すビット数 n です。大きいほど量子化の段階数が増え、波の高さを細かく表せます。'), '量子化ビット数の定義と操作による変化を説明');
+ok(widgets.includes('波の高さを表す段階値を、2進数で表すときの桁数 n です。ビット数が増えるほど段階数が増え、同じ範囲の波の高さを細かく表せます。'), '量子化ビット数を段階値の2進数の桁数として説明');
+ok(dr31.includes('波の高さを表す段階値を、2進数で表すときの桁数（ビット数）です。') && dr31.includes('「010」のような3桁の2進数') && dr31.includes('000〜111の8通り'), '用語まとめで桁数と段階数を3ビットの例に結び付ける');
+ok(!/1つの標本を(?:表すビット数|何bitで表すか)/.test(dr31 + widgets), '抽象的な旧定義を学習者向け説明へ戻さない');
 for (const control of ['sampleRate', 'bitDepth']) {
   ok(widgets.includes(`${control}.wrapper.append(${control}Description, this.${control}Availability, this.${control}Metrics)`), `${control}の説明を操作欄内の式と一緒に表示`);
   const describedBy = [`${control}Description.id`, `this.${control}Availability.id`, `this.${control}Metrics.id`]
