@@ -7,6 +7,7 @@
     fullscreen: '<path d="M8 3H3v5M16 3h5v5M3 16v5h5M21 16v5h-5"/>',
     fit: '<rect x="4" y="6" width="16" height="12" rx="1"/><path d="M8 10h8v4H8z"/>',
     table: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18M9 4v16M15 4v16"/>',
+    copy: '<rect x="8" y="8" width="12" height="13" rx="2"/><path d="M16 8V3H3v13h5"/>',
     templates: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
     export: '<path d="M12 15V3M8 7l4-4 4 4M5 12v8h14v-8"/>',
     open: '<path d="M3 7V4h7l2 3h9v13H3zM3 10h18"/>',
@@ -25,6 +26,7 @@
   const tabs = [...document.querySelectorAll('[data-pane-button]')];
   let files, editor, activePane = null, previewUrl = null;
   let zoomMode = 'fit', zoom = 1, pendingFit = false;
+  let copyingTable = false;
   const busy = () => Boolean(editor && (editor.drag || editor.paletteDrag || editor.connectionDrag || editor.bendDrag || editor.pan));
 
   function updateTable(state) {
@@ -126,6 +128,10 @@
     $('circuit-status').textContent = analysis.valid ? '接続完了' : '編集中';
     $('circuit-status').title = `${instance.graph.nodes.length}部品・${instance.graph.wires.length}配線${analysis.valid ? '' : `：${analysis.errors[0]}`}`;
     instance.status.title = instance.status.textContent;
+    $('truth-copy').disabled = !analysis.valid || copyingTable;
+    $('truth-copy').title = analysis.valid
+      ? '真理値表をコピー（スプレッドシートへ貼り付け）'
+      : '回路が完成すると真理値表をコピーできます。';
     refreshExport(analysis);
     document.querySelectorAll('button:not([tabindex])').forEach(button => { button.tabIndex = 0; });
     if (pendingFit && !busy()) { pendingFit = false; applyZoom(); }
@@ -194,6 +200,47 @@
   editor.helpButton.setAttribute('aria-haspopup', 'dialog'); editor.helpButton.setAttribute('aria-controls', 'lc02-operation-dialog');
   editor.helpButton.addEventListener('click', () => openDialog($('lc02-operation-dialog'), editor.helpButton));
   $('settings-button').addEventListener('click', () => openDialog($('settings-dialog'), $('settings-button')));
+
+  function selectTableText() {
+    $('truth-copy-text').focus();
+    $('truth-copy-text').select();
+  }
+  $('truth-copy-select').addEventListener('click', selectTableText);
+  $('truth-copy').addEventListener('click', async () => {
+    const analysis = editor.getAnalysis();
+    if (!analysis.valid || copyingTable || busy()) return;
+    // 表示中の表と同じ解析結果・列順を使う。強調行や0/1表示設定には依存しない。
+    const rows = [
+      [...analysis.inputs, ...analysis.outputs.map(output => output.name)],
+      ...analysis.truthTable.map(row => [
+        ...analysis.inputs.map(name => row.inputs[name]),
+        ...analysis.outputs.map(output => row.outputs[output.id])
+      ])
+    ];
+    const text = rows.map(row => row.join('\t')).join('\n');
+    const hadFocus = document.activeElement === $('truth-copy');
+    copyingTable = true;
+    $('truth-copy').disabled = true;
+    try {
+      // Safariでもユーザー操作の直後に呼び出す。クリップボードの読み取りは行わない。
+      await navigator.clipboard.writeText(text);
+      editor.notice = '真理値表をコピーしました。スプレッドシートへ貼り付けられます。';
+    } catch (_) {
+      editor.notice = '自動コピーできませんでした。真理値表のコピー画面から手動でコピーできます。';
+      // 権限確認中に別の操作へ移った場合は、そちらの画面を奪わない。
+      if (activePane === 'truth' && !busy() && !document.querySelector('dialog[open]')) {
+        $('truth-copy-text').value = text;
+        openDialog($('truth-copy-dialog'), $('truth-copy'));
+        selectTableText();
+      }
+    } finally {
+      copyingTable = false;
+      editor.render({ notify: false });
+      if (hadFocus && activePane === 'truth' && document.activeElement === document.body && !$('truth-copy').disabled) {
+        $('truth-copy').focus({ preventScroll: true });
+      }
+    }
+  });
 
   const preferencesKey = 'joho.logic.ui.v1';
   const colorQuery = matchMedia('(prefers-color-scheme: dark)');

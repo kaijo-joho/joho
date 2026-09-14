@@ -49,7 +49,7 @@
     <aside id="side-panel" class="side" aria-label="真理値表・テンプレート・書き出し">
       <div class="side-main">
         <section id="logic-workbench-table-panel" data-pane="truth" aria-labelledby="truth-title" hidden>
-          <header><h2 id="truth-title">真理値表</h2><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></header>
+          <header><h2 id="truth-title">真理値表</h2><div class="panel-actions"><button id="truth-copy" type="button" class="icon-button" aria-label="真理値表をコピー" title="真理値表をコピー（スプレッドシートへ貼り付け）" disabled><span data-icon="copy"></span></button><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></div></header>
           <div class="side-body"><div id="logic-workbench-table" class="logic-editor-truth-table"></div><p class="muted">行を選ぶと入力が切り替わります。現在の入力の行を強調しています。</p></div>
         </section>
         <section id="templates-panel" data-pane="templates" aria-labelledby="templates-title" hidden>
@@ -77,6 +77,14 @@
     </aside>
   </div>
   <noscript>論理回路エディタを使うには、JavaScriptを有効にしてください。</noscript>
+  <dialog id="truth-copy-dialog" aria-labelledby="truth-copy-title" aria-describedby="truth-copy-help">
+    <header><h2 id="truth-copy-title">真理値表をコピー</h2><button type="button" data-close-dialog aria-label="真理値表のコピーを閉じる">×</button></header>
+    <div class="dialog-body">
+      <p id="truth-copy-help" class="muted">自動コピーが許可されませんでした。下の内容を選択し、⌘C（WindowsはCtrl+C）、または端末の「コピー」でコピーしてください。スプレッドシートへ貼り付けると、行・列に分かれます。</p>
+      <label class="stack">見出し付きの真理値表<textarea id="truth-copy-text" rows="9" wrap="off" readonly spellcheck="false"></textarea></label>
+      <button id="truth-copy-select" type="button">すべて選択</button>
+    </div>
+  </dialog>
   <dialog id="settings-dialog" aria-labelledby="settings-title">
     <header><h2 id="settings-title">表示設定</h2><button type="button" data-close-dialog aria-label="表示設定を閉じる">×</button></header>
     <div class="dialog-body"><label class="stack">テーマ<select id="theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label class="stack">文字サイズ<select id="text-size"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label></div>
@@ -91,7 +99,7 @@
       <h3>3. 整列・表示・やり直し</h3>
       <ul><li>左の整列ボタンで配線がなるべく直線になるよう並べます。部品移動中は中心・等間隔・配線が直線になる位置に吸着します。<strong>Alt（Option）で一時解除</strong>します。</li><li>入力の箱や真理値表の行を選ぶと入力値を切り替えられます。上部の「0/1」で値・信号色の表示を切り替えます。実際の値は変わりません。</li><li>右端のタブで真理値表・テンプレート・書き出しを開閉できます。右下の倍率で拡大縮小し、「全体表示」で回路全体を表示します。空白をドラッグすると画面を移動できます。</li><li><strong>⌘Z：Undo、⌘Shift Z：Redo</strong>（WindowsはCtrl）。ドラッグ中のEscapeでキャンセルします。</li></ul>
       <h3>4. 保存・読み込み・書き出し</h3>
-      <ul><li>上部の保存アイコンで、名前を付けて<strong>ブラウザ（最大30件）</strong>または<strong>ローカルファイル（.logic.json）</strong>へ保存します。作りかけの回路も保存できます。</li><li>読み込みアイコンで保存済み回路・ローカルファイル・テンプレートを選びます。全消去や別回路の読み込み前は、未保存の変更の保存を確認します。ファイル保存はダウンロードを確認してから続けてください。</li><li>ブラウザ保存は端末間で同期されず、閲覧データを削除すると失われます。旧lc02と<strong>同じサイト・同じブラウザ</strong>なら、保存済みの回路を引き続き読み込めます。</li><li>右の書き出しパネルでSVG・PNGを選びます。0/1の有無は上部の表示に従います。出力は白背景、入出力は枠なしの点です。画像から回路の再編集はできないので、続きの編集には.logic.jsonを使います。</li></ul>
+      <ul><li>上部の保存アイコンで、名前を付けて<strong>ブラウザ（最大30件）</strong>または<strong>ローカルファイル（.logic.json）</strong>へ保存します。作りかけの回路も保存できます。</li><li>読み込みアイコンで保存済み回路・ローカルファイル・テンプレートを選びます。全消去や別回路の読み込み前は、未保存の変更の保存を確認します。ファイル保存はダウンロードを確認してから続けてください。</li><li>ブラウザ保存は端末間で同期されず、閲覧データを削除すると失われます。旧lc02と<strong>同じサイト・同じブラウザ</strong>なら、保存済みの回路を引き続き読み込めます。</li><li>右の書き出しパネルでSVG・PNGを選びます。0/1の有無は上部の表示に従います。出力は白背景、入出力は枠なしの点です。画像から回路の再編集はできないので、続きの編集には.logic.jsonを使います。</li><li>真理値表の見出し横の<strong>コピーアイコン</strong>で、全行・全出力を見出し付きでコピーできます。スプレッドシートへ貼り付けると行・列に分かれます。上部の0/1表示設定には影響されません。</li></ul>
     </div>
   </dialog>
 </body>
