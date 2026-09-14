@@ -1,0 +1,2124 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>分子模型エディタ</title>
+<link rel="icon" id="favicon" type="image/svg+xml">
+<style>
+:root{
+  --bg:#eef0f3; --panel:#ffffff; --line:#d9dde3; --text:#1f2933; --muted:#6b7480;
+  --accent:#2563eb; --accent-soft:#e3ecff; --danger:#d61f1f; --stereo:#ea7a00;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font:14px/1.4 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
+button,select,input{font:inherit;color:inherit}
+#app{display:grid;height:100vh;grid-template:"top top top" auto "tools canvas side" 1fr "tools info side" auto / 164px 1fr auto}
+/* ---- 上部バー ---- */
+.top{grid-area:top;display:flex;flex-direction:column;font-size:13px;background:var(--panel);border-bottom:1px solid var(--line)}
+.top .row{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:5px 10px}
+.tb button.ic{width:32px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);
+  background:#fff;border-radius:7px;cursor:pointer;font-size:11px;font-weight:600}
+.tb button.ic:hover{background:#f4f6f9}
+.tb button.ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.tb button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.tb button.ic.wide{width:auto;padding:0 8px;gap:4px;font-size:12.5px;font-weight:500}
+.tb button.ic.wide .caret{font-size:9px;color:var(--muted)}
+.top button:disabled{opacity:.4;cursor:default}
+.brand{display:flex;align-items:center;gap:7px;font-weight:700;font-size:15px;margin-right:8px;white-space:nowrap}
+.brand .app-icon{width:24px;height:24px;flex:none}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:5px 11px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--accent);color:#fff}
+.chk{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;cursor:pointer;color:var(--muted)}
+.sep{width:1px;height:22px;background:var(--line);margin:0 2px}
+.spacer{flex:1}
+.hmenu{position:relative;display:inline-flex}
+.hmenu > .menu{display:none;position:absolute;top:100%;left:0;margin-top:6px;z-index:25;background:#fff;border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 8px 24px rgba(20,30,50,.16);padding:10px 12px;min-width:250px;flex-direction:column;gap:9px;font-size:13px}
+.hmenu > .menu::before{content:'';position:absolute;left:0;right:0;top:-9px;height:9px}
+.hmenu:hover > .menu,.hmenu:focus-within > .menu{display:flex}
+.hmenu .mi{border:0;background:none;text-align:left;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:13px;white-space:nowrap}
+.hmenu .mi:hover{background:var(--accent-soft);color:var(--accent)}
+.hmenu > .menu.mlist{min-width:0;padding:6px;gap:2px}
+.hmenu .mrow{display:flex;align-items:center;gap:8px;color:var(--muted)}
+.hmenu select{border:1px solid var(--line);border-radius:7px;padding:3px 4px;background:#fff}
+.gl{font-size:11px;color:var(--muted);margin:4px 2px}
+.hmenu .gl{margin:0}
+/* ---- 左のパレット ---- */
+.tools{grid-area:tools;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:6px 8px 12px}
+.group{margin-top:6px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
+.tools button{height:34px;border:1px solid var(--line);background:#fff;border-radius:7px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;padding:0;font-size:12px;gap:3px}
+.tools button:hover{background:#f4f6f9}
+.tools button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.tools button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tools .grid2 button svg{width:18px;height:18px}
+.tools button.wide{grid-column:1 / -1}
+.tools button.libbtn{width:100%;height:36px;margin:2px 0;background:var(--accent);border-color:var(--accent);color:#fff;font-size:13px;font-weight:600;gap:6px}
+.tools button.libbtn:hover{background:#1d4fd0}
+.tools button.libbtn svg{width:18px;height:18px}
+/* ---- キャンバス ---- */
+#wrap{grid-area:canvas;position:relative;overflow:hidden;background:#fff}
+#gl,#ov{position:absolute;inset:0;width:100%;height:100%;display:block}
+#gl{touch-action:none;cursor:grab}
+#gl.dragging{cursor:grabbing}
+#gl.measure{cursor:crosshair}
+#ov{pointer-events:none}
+#hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.85);
+  padding:3px 8px;border-radius:6px;pointer-events:none;max-width:calc(100% - 140px)}
+#glError{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;text-align:center;color:var(--danger);background:#fff}
+.fmtbar{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:6px;
+  width:max-content;max-width:calc(100% - 16px);padding:5px 8px;background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 4px 16px rgba(20,30,50,.13);font-size:13px}
+.fmtbar b{font-weight:600}
+.fmtbar button{border:1px solid var(--line);background:#fff;border-radius:7px;padding:4px 9px;cursor:pointer}
+.fmtbar button:hover{background:#f4f6f9}
+/* ---- 下部 ---- */
+.info{grid-area:info;display:flex;align-items:center;gap:12px;padding:6px 10px;background:var(--panel);
+  border-top:1px solid var(--line);min-height:40px;flex-wrap:wrap}
+#formulas,#measList{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+#formulas{flex:1}
+.chip{background:#f3f5f8;border:1px solid var(--line);border-radius:14px;padding:2px 10px;font-family:Arial,Helvetica,sans-serif;font-size:14px;white-space:nowrap}
+.chip .mw{color:var(--muted);margin-left:6px;font-size:12px}
+.chip.meas{background:#fff7ed;border-color:#f3c89b;font-size:13px}
+.chip.meas button{border:0;background:none;cursor:pointer;color:var(--muted);padding:0 0 0 6px;font-size:14px}
+.chip.meas button:hover{color:var(--danger)}
+button.chip{cursor:pointer}
+button.chip:hover{border-color:var(--accent)}
+.muted{color:var(--muted);font-size:12px}
+.zoom{display:flex;align-items:center;gap:4px;margin-left:auto}
+.zoom button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:2px 8px;cursor:pointer}
+.zoom button:hover{background:#f4f6f9}
+.zoom .vb{height:26px;padding:0 8px;display:inline-flex;align-items:center;gap:4px;font-size:12px;white-space:nowrap}
+.zoom .vb svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.zoom .vb.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.zoom .sepv{width:1px;height:20px;background:var(--line);margin:0 3px}
+.brand .beta{font-size:10px;font-weight:700;color:#fff;background:#ea7a00;border-radius:4px;padding:1px 5px;letter-spacing:.5px}
+#zLabel{min-width:48px;text-align:center;font-size:12px;color:var(--muted)}
+/* ---- 右側のパネル ---- */
+.side{grid-area:side;display:flex;flex-direction:row;min-height:0;background:var(--panel);border-left:1px solid var(--line)}
+.side-main{display:none;flex-direction:column;min-height:0;width:var(--side-w, 300px)}
+.side.open > .side-main{display:flex}
+.side-pane{display:flex;flex-direction:column;min-height:0;flex:1}
+.side-resize{display:none;width:6px;margin-right:-6px;position:relative;z-index:2;cursor:col-resize;flex:none}
+.side-resize:hover,.side-resize.drag{background:var(--accent-soft)}
+.side.open > .side-resize{display:block}
+.side-tabs{width:26px;flex:none;display:flex;flex-direction:column;background:#f7f8fa;border-left:1px solid var(--line)}
+.side-tab{border:0;border-bottom:1px solid var(--line);background:none;cursor:pointer;color:var(--muted);display:flex;flex-direction:column;
+  align-items:center;gap:6px;padding:12px 0;font-size:12px}
+.side-tab:hover,.side-tab.on{background:var(--accent-soft);color:var(--accent)}
+.side-tab .vt{writing-mode:vertical-rl;letter-spacing:3px}
+.side header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);font-weight:700;font-size:13px}
+.side header button{border:0;background:none;font-size:18px;cursor:pointer;color:var(--muted)}
+.side-body{overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;font-size:13px}
+.side-sec{border-top:1px solid #eceef1;padding-top:8px;display:flex;flex-direction:column;gap:6px}
+.lib-search,.smi-in{border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:13px;width:100%}
+.smi-in{font-family:Menlo,monospace;font-size:12px}
+.lib-cat{font-weight:700;margin:8px 0 2px;font-size:12px;color:var(--muted)}
+.lib-list{display:flex;flex-direction:column;gap:3px}
+.lib-item{display:flex;align-items:baseline;justify-content:space-between;gap:8px;border:1px solid var(--line);border-radius:8px;background:#fff;
+  cursor:pointer;padding:5px 9px;text-align:left}
+.lib-item:hover{border-color:var(--accent);background:#f7faff}
+.lib-item .f{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:var(--muted);white-space:nowrap}
+.sbtn{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 10px;cursor:pointer}
+.sbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.frow{display:flex;align-items:center;gap:8px}
+.frow select{border:1px solid var(--line);border-radius:7px;padding:4px 6px}
+/* ---- モーダル・ツールチップ ---- */
+.modal{position:fixed;inset:0;background:rgba(20,25,35,.35);display:flex;align-items:center;justify-content:center;z-index:10}
+.dlg{background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.25);width:min(680px,94vw);max-height:88vh;display:flex;flex-direction:column}
+.dlg header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:700}
+.dlg header button{border:0;background:none;font-size:20px;cursor:pointer;color:var(--muted)}
+.dlg .body{overflow-y:auto;padding:10px 16px 16px}
+.help table{border-collapse:collapse;width:100%}
+.help td{padding:5px 8px;border-bottom:1px solid #eef0f3;vertical-align:top}
+.help td:first-child{white-space:nowrap;font-weight:600;width:30%}
+.help table.about{margin-top:16px;border-top:2px solid var(--line)}
+.credit{margin:18px 0 4px;text-align:center;font-size:12px;color:var(--muted);line-height:1.8}
+kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font:12px Menlo,monospace;background:#f8f9fb}
+#tip{position:fixed;z-index:30;left:0;top:0;background:#1f2933;color:#fff;font-size:12px;line-height:1.45;padding:4px 8px;border-radius:6px;
+  pointer-events:none;max-width:300px;opacity:0;transition:opacity .06s}
+#tip.show{opacity:.95}
+#toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:#1f2933;color:#fff;padding:8px 16px;border-radius:8px;
+  font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
+#toast.show{opacity:.92}
+</style>
+</head>
+<body>
+<div id="app">
+  <header class="top">
+   <div class="row tb">
+    <div class="brand"><!-- アプリのアイコン：紺の角丸四角に白い球棒模型。中心の原子に紺の校章（輪郭は構造式エディタのアイコンと同じデータ）。favicon にも使う -->
+      <svg id="appIcon" class="app-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="13" fill="#00548a"/><g stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M31 35L15 17.5M31 35L51.5 23.5M31 35L27 54.5"/></g><circle cx="15" cy="17.5" r="6" fill="#fff"/><circle cx="51.5" cy="23.5" r="6" fill="#fff"/><circle cx="27" cy="54.5" r="4.6" fill="#fff"/><circle cx="31" cy="35" r="15" fill="#fff"/><path fill="#00548a" transform="translate(21.50 25.00) scale(0.2)" d="M27.4 52.3C27.4 52.2 27.5 52.2 27.6 52.2C27.7 52.3 27.9 52.3 28.1 52.4C29.7 53.1 31.4 53.8 33.1 54.5C34.6 55.1 36.2 55.7 37.8 56.2C40 57 42.2 57.7 44.4 58.5C46.1 59 47.8 59.6 49.5 60.1C52.4 61 55.3 61.9 58.2 62.8C58.7 63 59.2 63.1 59.7 63.3C60 63.4 60.2 63.5 60.5 63.6C61.1 63.9 61.7 64.1 62.3 64.3C63.6 64.9 64.8 65.6 65.8 66.5C66.2 66.9 66.5 67.2 66.9 67.6C67.4 68.1 67.8 68.7 68.2 69.2C68.7 70 69.1 70.8 69.4 71.6C69.8 72.6 69.9 73.7 69.8 74.8C69.6 76.4 69.1 77.9 68.1 79.2C67.4 80 66.7 80.7 65.8 81.2C65.1 81.6 64.4 81.9 63.6 82.1C63.4 82.2 63.2 82.2 62.9 82.2C62.6 82.3 62.2 82.3 61.9 82.3C61.2 82.3 60.5 82.3 59.8 82.2C59.4 82.2 58.9 82.1 58.5 82C58.2 81.9 57.9 81.9 57.6 81.9C57.2 81.8 56.8 81.7 56.4 81.7C55.6 81.5 54.9 81.5 54.1 81.5C53.8 81.5 53.6 81.5 53.3 81.5C53 81.5 52.6 81.5 52.3 81.5C52 81.6 51.7 81.6 51.4 81.7C50.9 81.7 50.4 81.8 49.9 82C48.4 82.4 47.1 82.9 45.8 83.6C44.7 84.3 43.6 85 42.6 85.9C42 86.5 41.3 87.2 40.7 87.9C40.6 87.9 40.6 87.9 40.6 88C40.1 88.6 39.5 89.2 39.1 89.9C38.6 90.6 38.2 91.2 37.9 92C37.2 93.3 36.8 94.6 36.4 96C36.2 96.8 36.1 97.7 36.1 98.5C36.1 98.8 36 99.2 36 99.5C36 99.6 36 99.6 35.9 99.6C35.9 99.6 35.9 99.6 35.9 99.6C35.7 99.3 35.5 99 35.3 98.7C34.9 98.2 34.5 97.6 34.2 97C34 96.5 33.7 96.1 33.5 95.6C33.2 94.9 32.9 94.2 32.6 93.5C32.4 93 32.3 92.5 32.1 92C32 91.6 31.9 91.3 31.8 90.9C31.7 90.5 31.6 90.2 31.5 89.8C31.4 89.2 31.2 88.6 31.1 88C30.9 86.9 30.6 85.8 30.5 84.7C30.4 84.1 30.2 83.5 30.1 82.9C30 82.1 29.9 81.3 29.7 80.4C29.6 79.5 29.4 78.6 29.3 77.7C29.1 76.7 29 75.6 28.9 74.5C28.8 73.9 28.7 73.3 28.6 72.7C28.5 72 28.4 71.4 28.4 70.8C28.3 70.3 28.3 69.7 28.2 69.2C28.2 68.8 28.1 68.4 28.1 68C28.1 67.3 28 66.6 27.9 66C27.9 65.4 27.8 64.9 27.8 64.4C27.8 64.2 27.8 64.1 27.8 63.9C27.7 62.9 27.6 61.9 27.6 60.9C27.6 60.6 27.6 60.3 27.6 60C27.5 59.2 27.5 58.4 27.5 57.6L27.5 57.6C27.4 56.1 27.4 54.7 27.4 53.3C27.4 53 27.4 52.8 27.4 52.5C27.4 52.5 27.4 52.4 27.4 52.3M0.1 31.1C0.1 32.9 0.1 34.4 0.1 36C0.1 36.9 0.1 37.8 0.2 38.8C0.2 39.5 0.3 40.3 0.3 41.1C0.3 42.2 0.4 43.3 0.4 44.5C0.5 45.2 0.5 46 0.6 46.7C0.6 47.5 0.7 48.2 0.7 49C0.7 49 0.7 49 0.7 49C0.8 49.6 0.8 50.2 0.9 50.8C0.9 51.1 0.9 51.4 1 51.7C1 52.2 1 52.8 1.1 53.4C1.2 54.2 1.2 55 1.3 55.8C1.4 56.4 1.5 57.1 1.6 57.7C1.7 58.7 1.8 59.6 1.9 60.6C2.1 61.5 2.2 62.5 2.4 63.4C2.8 65.1 3.2 66.8 3.7 68.5C4.2 70 4.8 71.5 5.4 73C6 74.6 6.8 76.1 7.6 77.6C8.2 78.8 9 80 9.7 81.2C10.6 82.5 11.6 83.8 12.6 85.1C13.3 86 14.1 86.9 14.9 87.7C15.9 88.9 17 90 18.2 91C19.1 91.9 20 92.6 20.9 93.4C21.9 94.2 22.9 94.9 23.9 95.6C25 96.3 26 97 27.2 97.5C28.1 98 29.1 98.4 30.2 98.8C30.9 99 31.6 99.3 32.4 99.5C33 99.7 33.6 99.8 34.3 99.9C34.7 100 35.1 100 35.5 100C35.6 99.9 35.7 99.9 35.8 99.8C36.5 99.3 37.3 98.8 38.1 98.4C38.6 98.1 39.1 97.8 39.6 97.6C40.5 97.1 41.4 96.8 42.3 96.4C43.1 96.1 43.9 95.9 44.7 95.7C45.7 95.4 46.6 95.2 47.5 95.1C48 95 48.4 95 48.8 95C49 95 49.2 95 49.3 94.9C50.1 94.9 50.8 94.9 51.6 94.9C52.1 95 52.7 95 53.3 95C54.1 95.1 54.9 95.3 55.6 95.4C56.7 95.6 57.8 95.9 58.8 96.2C59.4 96.4 59.9 96.6 60.5 96.9C61 97.2 61.6 97.4 62.2 97.7C63.1 98 63.9 98.3 64.8 98.5C65.5 98.7 66.2 98.8 66.9 98.9C67.4 99 67.9 99 68.3 99C68.8 99.1 69.2 99.1 69.6 99.1C70.2 99.1 70.8 99 71.4 98.9C71.9 98.9 72.3 98.8 72.8 98.8C73.2 98.7 73.7 98.7 74.1 98.6C74.3 98.5 74.4 98.5 74.5 98.5C75.1 98.4 75.6 98.3 76.1 98.1C77.3 97.8 78.4 97.4 79.6 97C80.5 96.7 81.4 96.3 82.2 95.8C83.1 95.3 84 94.8 84.8 94.2C85.7 93.7 86.6 93 87.4 92.3C88.2 91.6 88.9 90.8 89.7 90C89.7 89.9 89.8 89.9 89.8 89.8C90.1 89.5 90.3 89.2 90.6 88.8C91.1 88.2 91.6 87.5 92 86.8C92.5 86.1 92.9 85.3 93.3 84.4C93.4 84.2 93.5 84 93.6 83.8C93.7 83.5 93.8 83.3 93.9 83C94 82.6 94.1 82.1 94.2 81.7C94.3 81.4 94.4 81 94.5 80.7C94.6 80.1 94.8 79.4 94.8 78.8C94.8 78.3 94.9 77.7 95 77.2C95 76.6 95 76 94.9 75.4C94.9 74.9 94.9 74.4 94.8 74C94.8 73.5 94.7 73 94.6 72.5C94.3 71.2 93.9 69.9 93.4 68.6C93.2 68.2 93 67.8 92.8 67.3C92.5 66.8 92.2 66.3 91.9 65.8C91.7 65.5 91.6 65.2 91.4 65C90.8 64.2 90.3 63.5 89.7 62.8C89.3 62.4 88.9 62 88.5 61.6C87.4 60.7 86.3 59.8 85 59C85 59 84.9 59 84.9 59C84.6 58.7 84.3 58.5 84 58.3C83.4 57.9 82.8 57.5 82.1 57.2C81.2 56.7 80.3 56.2 79.5 55.8C78.4 55.3 77.4 54.9 76.3 54.5C75 54 73.7 53.6 72.4 53.1C71.6 52.9 70.9 52.7 70.2 52.4C68.5 51.9 66.9 51.3 65.2 50.8C64.1 50.4 62.9 50 61.8 49.6C59.6 48.9 57.5 48.2 55.3 47.5C53.7 47 52.1 46.5 50.5 45.9C49.4 45.5 48.2 45 47.2 44.5C46.9 44.4 46.7 44.3 46.5 44.2C45.9 43.9 45.5 43.5 45 43.1C44 42.2 43.3 41.1 42.8 39.9C42.6 39.5 42.5 39.1 42.3 38.7C42.1 37.8 42 36.9 42.1 35.9C42.1 35.7 42.1 35.6 42.1 35.4C42.1 35 42.2 34.6 42.3 34.1C42.5 33.5 42.7 32.8 43.1 32.1C43.8 30.8 44.8 29.6 46 28.8C46.2 28.6 46.4 28.5 46.5 28.4C47.1 28 47.8 27.6 48.5 27.3C49 27.1 49.4 26.9 49.9 26.7C51 26.2 52.1 25.8 53.3 25.5C54 25.3 54.8 25.1 55.6 25C56.1 24.9 56.6 24.9 57.1 24.8C57.4 24.7 57.7 24.7 58 24.6C58.7 24.6 59.4 24.5 60.1 24.5C60.2 24.5 60.3 24.5 60.4 24.5C61.2 24.4 62 24.4 62.8 24.3C63 24.3 63.3 24.3 63.5 24.3C64.2 24.2 65 24.1 65.7 24C66 23.9 66.4 23.9 66.8 23.8C67 23.8 67.2 23.7 67.3 23.7C67.7 23.6 68 23.6 68.4 23.5C69.7 23.2 71 22.8 72.3 22.4C73.9 21.9 75.5 21.2 77.1 20.5C77.9 20.2 78.7 19.8 79.5 19.4C80.8 18.9 82 18.2 83.2 17.6C84.3 16.9 85.5 16.2 86.6 15.4C87.3 14.9 88.1 14.4 88.8 13.9C89.4 13.5 90 13 90.5 12.5C91.4 11.7 92.3 10.9 93.1 10C93.3 9.9 93.4 9.7 93.6 9.5C93.7 9.4 93.7 9.4 93.7 9.3C93.8 9.2 93.7 9.1 93.6 9.1C93.5 9.1 93.4 9.1 93.3 9.1C92.8 9.1 92.2 9.1 91.7 9.1C91 9.1 90.4 9.1 89.8 9.1C89 9.1 88.3 9 87.6 8.9C87.1 8.9 86.6 8.8 86.1 8.8C85.7 8.7 85.3 8.7 84.9 8.6C84.5 8.5 84 8.4 83.6 8.4C82.7 8.2 81.8 8 80.8 7.8C79.9 7.6 79 7.3 78 7C76.4 6.5 74.7 5.8 73.1 5.1C71.8 4.5 70.5 3.9 69.2 3.1C67.7 2.3 66.2 1.4 64.8 0.3C64.7 0.2 64.5 0.1 64.4 0.1C64.3 0 64.2 0 64.2 0.1C64 0.3 63.9 0.5 63.8 0.7C62.9 2.2 61.9 3.6 60.8 5C60.2 5.8 59.6 6.6 59 7.4C58 8.5 57.1 9.6 56 10.7C55.4 11.2 54.8 11.8 54.2 12.4C53.4 13.1 52.6 13.8 51.6 14.4C51.1 14.7 50.7 15.1 50.2 15.4C50.1 15.5 50 15.6 49.9 15.7C49.2 16.1 48.5 16.4 47.8 16.8C47 17.2 46.1 17.6 45.3 17.9C43.9 18.5 42.5 18.9 41 19.2C40.7 19.3 40.3 19.4 40 19.5C39.7 19.5 39.4 19.6 39.1 19.6C38.9 19.7 38.7 19.7 38.4 19.8C38.1 19.8 37.8 19.8 37.4 19.9C36.7 20 36 20.1 35.4 20.2C34.7 20.3 34 20.4 33.4 20.6C32.3 20.8 31.2 21 30.2 21.4C29.6 21.5 29.1 21.7 28.6 21.8C28.5 21.8 28.5 21.9 28.4 21.9C28.3 21.9 28.3 21.8 28.3 21.8C28.3 21.6 28.3 21.4 28.3 21.2C28.4 20.8 28.4 20.3 28.5 19.9C28.7 18.5 29 17.2 29.3 15.9C29.6 14.9 29.8 13.9 30.1 12.9C30.4 12.1 30.7 11.2 31 10.4C31.6 9.1 32.1 7.8 32.8 6.5C33 6.2 33.2 5.8 33.4 5.4C33.4 5.4 33.4 5.3 33.4 5.3C33.5 5.2 33.5 5.2 33.4 5.2C33.4 5.1 33.3 5.1 33.3 5.1C33.1 5.2 32.9 5.3 32.6 5.4C32.2 5.5 31.9 5.7 31.5 5.8C30.3 6.2 29 6.6 27.8 6.9C26.6 7.2 25.5 7.4 24.3 7.6C23.6 7.8 22.8 7.9 22 8C21.4 8.1 20.8 8.1 20.2 8.2C19.3 8.2 18.4 8.3 17.5 8.3C16.7 8.3 15.9 8.3 15.1 8.2C13.9 8.2 12.7 8.1 11.6 8C11.3 8 11.1 7.9 10.9 7.9C10.3 7.8 9.8 7.8 9.2 7.7C8.4 7.5 7.6 7.4 6.8 7.2C5.9 7 4.9 6.7 3.9 6.4C3.2 6.2 2.5 6 1.9 5.8C1.8 5.8 1.7 5.8 1.7 5.8C1.6 6 1.6 6.1 1.6 6.3C1.4 7.1 1.2 7.9 1.1 8.8C0.9 9.6 0.8 10.4 0.7 11.2C0.6 11.9 0.6 12.6 0.5 13.3C0.4 13.8 0.4 14.3 0.4 14.8C0.3 15.5 0.3 16.3 0.2 17C0.2 17.8 0.2 18.5 0.1 19.2C0.1 20 0.1 20.9 0.1 21.8C0.1 22.3 0 22.8 0 23.3C0 24.7 0 26.1 0 27.5C0 28.8 0.1 30.1 0.1 31.1"/></svg>分子模型エディタ<span class="beta" title="試作版（ベータ版）。バージョン 1.0 までは BETA">BETA</span></div>
+    <button class="ic" id="btnSave" title="保存（⌘/Ctrl+S）。あとで開いて続きから使えます"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><path d="M8 21v-7h8v7"/></svg></button>
+    <div class="hmenu" id="openMenu">
+      <button class="ic" id="btnOpen" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></svg></button>
+      <div class="menu mlist">
+        <button class="mi" id="miOpen">ファイルを開く…（⌘/Ctrl+O。.json・.mol・.sdf・.xyz）</button>
+        <button class="mi" id="btnNew">新規作成（すべて消去）</button>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <button class="ic" id="btnUndo" title="元に戻す (⌘Z)"><svg viewBox="0 0 24 24"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 010 12h-3"/></svg></button>
+    <button class="ic" id="btnRedo" title="やり直し (⇧⌘Z)"><svg viewBox="0 0 24 24"><path d="M15 14l5-5-5-5"/><path d="M20 9H10a6 6 0 000 12h3"/></svg></button>
+    <div class="sep"></div>
+    <div class="seg" id="modeSeg">
+      <button data-mode="ballstick" title="球棒モデル (1)：原子を小さな球、結合を棒で表す">球棒</button>
+      <button data-mode="stick" title="棒モデル (2)：結合だけを太い棒で表す">棒</button>
+      <button data-mode="spacefill" title="空間充填モデル (3)：原子を実際の大きさ（ファンデルワールス半径）の球で表す">空間充填</button>
+    </div>
+    <div class="hmenu" id="viewMenu">
+      <button class="ic wide" id="btnView" aria-haspopup="true">表示<span class="caret">▼</span></button>
+      <div class="menu">
+        <label class="chk"><input type="checkbox" id="chkLabels">原子の記号を表示</label>
+        <label class="chk"><input type="checkbox" id="chkHideH">H を隠す（C に結合した H）</label>
+        <label class="mrow">背景
+          <select id="bgSel"><option value="white">白</option><option value="gray">灰色</option><option value="black">黒</option></select>
+        </label>
+      </div>
+    </div>
+    <div class="sep"></div>
+    <button class="ic wide" id="tgStereo" title="不斉炭素を強調する（4 つの異なる原子・原子団が結合した炭素原子を、だいだい色の円で囲む）">不斉炭素</button>
+    <button class="ic wide" id="tgRS" title="不斉炭素の R・S を表示する（CIP 順位規則。高校の範囲外の発展的な内容）">R/S</button>
+    <div class="spacer"></div>
+    <button class="ic" id="btnHelp" title="操作方法（?）">?</button>
+   </div>
+  </header>
+
+  <aside class="tools" id="tools">
+    <button class="libbtn" id="btnLib" title="化合物ライブラリを開く"><svg viewBox="0 0 24 24"><path d="M4 5h6v14H4zM14 5h6v14h-6z"/></svg>化合物ライブラリ</button>
+    <div class="group"><div class="gl">操作</div>
+      <div class="grid2">
+        <button class="wide" data-tool="rotate" title="回転・選択 (V)：ドラッグで回転。分子をクリックで選択"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.4-5.7"/><path d="M20 4v4.5h-4.5"/></svg>回転・選択</button>
+      </div>
+    </div>
+    <div class="group"><div class="gl">計測（原子を順にクリック）</div>
+      <div class="grid3">
+        <button data-tool="dist" title="結合長・距離 (D)：原子を 2 つクリック"><svg viewBox="0 0 24 24"><circle cx="5" cy="17" r="2.2"/><circle cx="19" cy="7" r="2.2"/><path d="M7 15.6L17 8.4" stroke-dasharray="2.4 2.2"/></svg></button>
+        <button data-tool="angle" title="結合角 (A)：原子を 3 つクリック（2 つ目が角の頂点）"><svg viewBox="0 0 24 24"><path d="M4 19h16M4 19L15 6"/><path d="M11 19a7 7 0 00-2.2-5"/></svg></button>
+        <button data-tool="dihedral" title="二面角 (T)：原子を 4 つクリック（2 つ目と 3 つ目の間の結合のまわりのねじれ）"><svg viewBox="0 0 24 24"><path d="M4 7l5 5h6l5 5"/><path d="M15 12l4-6" stroke-dasharray="2 2"/></svg></button>
+        <button class="wide" id="btnClearMeas" title="計測をすべて消す">計測をすべて消す</button>
+      </div>
+    </div>
+    <div class="group"><div class="gl">立体異性体</div>
+      <div class="grid2">
+        <button class="wide" id="btnMirror" title="鏡像体を並べる：いまの分子の鏡像を、鏡をはさんで右に置く（もう一度押すと取り除く）"><svg viewBox="0 0 24 24"><path d="M12 3v18" stroke-dasharray="2 2"/><path d="M9 7L4 12l5 5M15 7l5 5-5 5"/></svg>鏡像体を並べる</button>
+      </div>
+    </div>
+  </aside>
+
+  <main id="wrap">
+    <canvas id="gl"></canvas>
+    <canvas id="ov"></canvas>
+    <div class="fmtbar" id="selBar" hidden>
+      <b id="selName"></b>
+      <button id="btnInvert" title="選んだ分子を、その鏡像（立体配置がすべて逆のもの）に置き換える">鏡像に変える</button>
+      <button id="btnDelMol" title="選んだ分子を削除 (Delete)">削除</button>
+    </div>
+    <div id="hint"></div>
+    <div id="glError" hidden>この環境では 3D 表示（WebGL2）が使えません。Google Chrome の最新版で開いてください。</div>
+  </main>
+
+  <footer class="info">
+    <div id="formulas"></div>
+    <div id="measList"></div>
+    <div class="zoom">
+      <button class="vb" id="btnFit" title="全体表示 (F)：分子全体が見える大きさにする"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/></svg>全体表示</button>
+      <button class="vb" id="btnResetView" title="はじめの向きに戻す (R)"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 102.4-5.7"/><path d="M4 4v4.5h4.5"/></svg>はじめの向き</button>
+      <button class="vb" id="tgAxes" title="軸の表示：x・y・z 軸の向きを画面の右下に表示する（x 赤・y 緑・z 青）"><svg viewBox="0 0 24 24"><path d="M7 17V4M7 17h13M7 17l-4 4"/></svg>軸</button>
+      <span class="sepv"></span>
+      <button id="zOut" title="縮小">−</button>
+      <span id="zLabel">100%</span>
+      <button id="zIn" title="拡大">＋</button>
+    </div>
+  </footer>
+
+  <aside class="side" id="sidePanel">
+    <div class="side-resize" id="sideResize" title="ドラッグでパネルの幅を変える"></div>
+    <div class="side-main">
+      <section class="side-pane" data-pane="lib" hidden>
+        <header><span>化合物ライブラリ</span><button class="side-close" title="パネルを閉じる">▶</button></header>
+        <div class="side-body">
+          <input type="text" id="libSearch" class="lib-search" placeholder="名前で絞り込み（例：酸、グルコース）" spellcheck="false" autocomplete="off">
+          <p class="muted">クリックで表示（いまの分子と入れ替え）。<kbd>Shift</kbd>+クリックで横に追加。</p>
+          <div id="libBody"></div>
+          <div class="side-sec">
+            <div class="gl">SMILES から作る（上級者向け）</div>
+            <input type="text" id="smiIn" class="smi-in" placeholder="例：CC(=O)O、c1ccccc1O" spellcheck="false" autocomplete="off">
+            <button class="sbtn" id="smiGo">作る</button>
+            <p class="muted">組み立てた形はおおよそです（標準の結合長・結合角から作っています）。</p>
+          </div>
+        </div>
+      </section>
+      <section class="side-pane" data-pane="exp" hidden>
+        <header><span>書き出し</span><button class="side-close" title="パネルを閉じる">▶</button></header>
+        <div class="side-body">
+          <label class="frow">解像度
+            <select id="expScale"><option value="1">1倍</option><option value="2" selected>2倍</option><option value="4">4倍（印刷向け）</option></select>
+          </label>
+          <label class="chk"><input type="checkbox" id="expTransparent">背景を透明にする</label>
+          <button class="sbtn primary" id="expPng">PNG で保存</button>
+          <button class="sbtn" id="expCopy">画像をコピー</button>
+          <p class="muted">いま画面に見えている向き・大きさで書き出します。コピーした画像は Word・PowerPoint に直接貼り付けできます。</p>
+          <div class="side-sec">
+            <div class="gl">座標のファイル（ほかのソフト用）</div>
+            <button class="sbtn" id="expMol">MOL 形式で保存</button>
+            <button class="sbtn" id="expXyz">XYZ 形式で保存</button>
+          </div>
+        </div>
+      </section>
+    </div>
+    <nav class="side-tabs">
+      <button class="side-tab" data-pane="lib" title="化合物ライブラリを開く／閉じる"><span class="arr">◀</span><span class="vt">化合物ライブラリ</span></button>
+      <button class="side-tab" data-pane="exp" title="書き出しパネルを開く／閉じる（PNG・コピー・MOL）"><span class="arr">◀</span><span class="vt">書き出し</span></button>
+    </nav>
+  </aside>
+</div>
+
+<div class="modal" id="helpModal" hidden>
+  <div class="dlg">
+    <header><span>分子模型エディタ　操作方法</span><button data-close>×</button></header>
+    <div class="body help" id="helpBody">
+      <table>
+        <tr><td>分子を表示する</td><td>左上の「化合物ライブラリ」（または画面右端のタブ）から化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
+        <tr><td>回す</td><td>ドラッグ、またはトラックパッドの 2 本指スクロール。矢印キーでも少しずつ回ります。<kbd>⌥/Alt</kbd>+ドラッグで、画面に垂直な軸（z 軸）のまわりに、画面の中で回します。</td></tr>
+        <tr><td>移動・拡大</td><td><kbd>Shift</kbd>+ドラッグ（または右ドラッグ）で移動。<kbd>⌘/Ctrl</kbd>+ホイール・ピンチで拡大縮小。画面右下の「全体表示」(<kbd>F</kbd>)・「はじめの向き」(<kbd>R</kbd>)・− ＋ でも変えられます。</td></tr>
+        <tr><td>軸の表示</td><td>画面右下の「軸」で、分子の座標の x・y・z 軸の向き（x 赤・y 緑・z 青）を右下に表示します（書き出す画像には入りません）。</td></tr>
+        <tr><td>分子ごとに動かす</td><td>分子をクリックして選択すると、その分子の近くからのドラッグで、その分子だけが回ります（<kbd>Shift</kbd>+ドラッグで移動、<kbd>⌥/Alt</kbd>+ドラッグで z 軸まわり）。分子から離れたところからドラッグすると全体が回ります。何もないところをクリックすると選択を解除します。</td></tr>
+        <tr><td>表示のしかた</td><td>上部の「球棒」「棒」「空間充填」(<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>)。二重結合は棒 2 本、三重結合は棒 3 本、ベンゼン環の結合は実線と点線（すべて同じ長さ 1.40 Å）で表します。空間充填モデルの球の大きさはファンデルワールス半径です。「表示 ▼」で原子の記号・H を隠す・背景を選べます。</td></tr>
+        <tr><td>原子の色</td><td>C 黒・H 白・O 赤・N 青・S 黄・Cl 緑・Br 茶・I 紫。</td></tr>
+        <tr><td>計測</td><td>左の計測のボタン（<kbd>D</kbd> 距離、<kbd>A</kbd> 結合角、<kbd>T</kbd> 二面角）を選び、原子を順にクリック。結果は図と画面下に出ます。画面下の × で消せます。</td></tr>
+        <tr><td>不斉炭素・R/S</td><td>上部の「不斉炭素」で、4 つの異なる原子・原子団が結合した炭素をだいだい色の円で囲みます。「R/S」で R・S を表示します（CIP 順位規則。高校の範囲外の発展的な内容です。原子番号だけで順位を決めるので、まれに判定できないものがあります）。</td></tr>
+        <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。分子をクリックして選び、上に出る「鏡像に変える」でその分子だけを鏡像にもできます。</td></tr>
+        <tr><td>選択・削除</td><td>分子をクリックで選択（何もないところをクリックで解除）。<kbd>Delete</kbd> で削除。</td></tr>
+        <tr><td>元に戻す</td><td><kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd>、やり直し <kbd>⇧</kbd>+<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd></td></tr>
+        <tr><td>保存・開く</td><td>上部左の保存ボタンで .json に保存し、開くボタンで開きます。ほかのソフトの .mol・.sdf・.xyz ファイルも開けます。表示している内容はブラウザに自動保存されます。</td></tr>
+        <tr><td>書き出し</td><td>画面右端の「◀ 書き出し」で、いま見えている向きの画像を PNG で保存・コピーできます（Word・PowerPoint に貼り付け可）。MOL・XYZ 形式の座標も保存できます。</td></tr>
+        <tr><td>形について</td><td>分子の形は、標準的な結合の長さ・結合角と環の形（いす形など）から組み立てています。水の結合角 104.5°、アンモニアの 107° などは実測値に近い値にしていますが、構造最適化はしていないので、形はおおよそです。</td></tr>
+      </table>
+      <table class="about">
+        <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
+        <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
+      </table>
+      <p class="credit">分子模型エディタ　バージョン 0.1 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileInput" accept=".json,.mol,.sdf,.xyz,application/json" hidden>
+<div id="toast"></div>
+<div id="tip"></div>
+
+<script>
+'use strict';
+// ===== 化学 ここから =====（DOM を使わない部分。dev/test.mjs が取り出して検査する）
+// ---- 元素のデータ ----
+// Z：原子番号、mass：原子量（高校の値。構造式エディタと同じ）、color：模型の色、vdw：ファンデルワールス半径（Å、Bondi）、cov：共有結合半径（Å）
+const ELEM = {
+  H: {Z:1,  mass:1.0,  color:[1.00, 1.00, 1.00], vdw:1.20, cov:0.31},
+  C: {Z:6,  mass:12,   color:[0.20, 0.20, 0.20], vdw:1.70, cov:0.76},
+  N: {Z:7,  mass:14,   color:[0.13, 0.32, 0.90], vdw:1.55, cov:0.71},
+  O: {Z:8,  mass:16,   color:[0.88, 0.12, 0.12], vdw:1.52, cov:0.66},
+  F: {Z:9,  mass:19,   color:[0.56, 0.88, 0.31], vdw:1.47, cov:0.57},
+  Na:{Z:11, mass:23,   color:[0.67, 0.36, 0.95], vdw:2.27, cov:1.66},
+  P: {Z:15, mass:31,   color:[1.00, 0.50, 0.00], vdw:1.80, cov:1.07},
+  S: {Z:16, mass:32,   color:[0.95, 0.82, 0.10], vdw:1.80, cov:1.05},
+  Cl:{Z:17, mass:35.5, color:[0.12, 0.72, 0.25], vdw:1.75, cov:1.02},
+  Br:{Z:35, mass:80,   color:[0.55, 0.16, 0.10], vdw:1.85, cov:1.20},
+  I: {Z:53, mass:127,  color:[0.48, 0.18, 0.63], vdw:1.98, cov:1.39}
+};
+const VALENCE = {C:[4], N:[3], O:[2], S:[2, 4, 6], P:[3, 5], F:[1], Cl:[1], Br:[1], I:[1], H:[1], Na:[1]};
+const TET = 109.4712;   // 正四面体角
+
+// ---- ベクトル ----
+const V = {
+  add:(a, b) => [a[0]+b[0], a[1]+b[1], a[2]+b[2]],
+  sub:(a, b) => [a[0]-b[0], a[1]-b[1], a[2]-b[2]],
+  mul:(a, k) => [a[0]*k, a[1]*k, a[2]*k],
+  dot:(a, b) => a[0]*b[0] + a[1]*b[1] + a[2]*b[2],
+  cross:(a, b) => [a[1]*b[2]-a[2]*b[1], a[2]*b[0]-a[0]*b[2], a[0]*b[1]-a[1]*b[0]],
+  len:a => Math.hypot(a[0], a[1], a[2]),
+  norm:a => { const l = Math.hypot(a[0], a[1], a[2]) || 1; return [a[0]/l, a[1]/l, a[2]/l]; },
+  dist:(a, b) => Math.hypot(a[0]-b[0], a[1]-b[1], a[2]-b[2]),
+  perp:a => {   // a に垂直な単位ベクトルを 1 つ
+    const t = Math.abs(a[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+    return V.norm(V.cross(a, t));
+  },
+  rot:(v, axis, th) => {   // axis（単位ベクトル）のまわりに th（ラジアン）回す（ロドリゲスの式）
+    const c = Math.cos(th), s = Math.sin(th), k = axis, d = V.dot(k, v), x = V.cross(k, v);
+    return [v[0]*c + x[0]*s + k[0]*d*(1-c), v[1]*c + x[1]*s + k[1]*d*(1-c), v[2]*c + x[2]*s + k[2]*d*(1-c)];
+  }
+};
+const deg = r => r*180/Math.PI, rad = d => d*Math.PI/180;
+function angleOf(a, b, c){ const u = V.norm(V.sub(a, b)), v = V.norm(V.sub(c, b)); return deg(Math.acos(Math.max(-1, Math.min(1, V.dot(u, v))))); }
+function dihedralOf(a, b, c, d){   // a-b-c-d の二面角（-180〜180°）
+  const b1 = V.sub(b, a), b2 = V.sub(c, b), b3 = V.sub(d, c);
+  const n1 = V.cross(b1, b2), n2 = V.cross(b2, b3), m = V.cross(n1, V.norm(b2));
+  return deg(Math.atan2(V.dot(m, n2), V.dot(n1, n2)));
+}
+// 3×3 行列（行の配列）
+const M3 = {
+  id:() => [[1,0,0],[0,1,0],[0,0,1]],
+  mul:(A, B) => A.map(r => [0, 1, 2].map(j => r[0]*B[0][j] + r[1]*B[1][j] + r[2]*B[2][j])),
+  apply:(A, v) => [V.dot(A[0], v), V.dot(A[1], v), V.dot(A[2], v)],
+  tr:A => [0, 1, 2].map(i => [A[0][i], A[1][i], A[2][i]]),
+  axis:(axis, th) => { const k = V.norm(axis); return M3.tr([V.rot([1,0,0], k, th), V.rot([0,1,0], k, th), V.rot([0,0,1], k, th)]); },
+  frame:(a, b) => {   // a を第 1 軸、b を第 2 軸の方向とする正規直交基底（列ベクトル → 行にして返す）
+    const e1 = V.norm(a), e3 = V.norm(V.cross(a, b)), e2 = V.cross(e3, e1);
+    return [e1, e2, e3];
+  }
+};
+// 方向の組 (a1, b1) を (a2, b2) に重ねる回転
+function alignPair(a1, b1, a2, b2){ return M3.mul(M3.tr(M3.frame(a2, b2)), M3.frame(a1, b1)); }
+
+// ---- SMILES 風の定義を読む ----
+// 対応：原子（B C N O P S F Cl Br I と芳香族の c n o s）、[ ] の原子（H の数・電荷・@ @@）、結合 - = # : / \、枝 ( )、環の番号（1〜9・%nn）、. で分子を分ける
+// 戻り値：{atoms:[{el, arom, charge, hExp（[ ] の H の数。なければ null）, chir, order（@ の順番。'H' は [ ] の H）}], bonds:[{a, b, order, dir}]}
+function parseSmiles(s){
+  const atoms = [], bonds = [], ring = {}, stack = [];
+  let prev = -1, bond = null, i = 0;
+  const err = m => { throw new Error(`SMILES を読めません（${i + 1} 文字目）：${m}`); };
+  const addBond = (a, b, sym, slotA) => {
+    const aromBoth = atoms[a].arom && atoms[b].arom;
+    const order = sym === '=' ? 2 : sym === '#' ? 3 : sym === ':' ? 1.5 : (sym === '-' || sym === '/' || sym === '\\') ? 1 : aromBoth ? 1.5 : 1;
+    bonds.push({a, b, order, dir:(sym === '/' || sym === '\\') ? sym : null});
+    if (slotA != null) atoms[a].order[slotA] = b; else atoms[a].order.push(b);
+    atoms[b].order.push(a);
+  };
+  while (i < s.length){
+    const c = s[i];
+    if (c === '(') { if (prev < 0) err('枝の前に原子がありません'); stack.push(prev); i++; continue; }
+    if (c === ')') { if (!stack.length) err('かっこが合いません'); prev = stack.pop(); i++; continue; }
+    if ('-=#:/\\'.includes(c)) { bond = c; i++; continue; }
+    if (c === '.') { prev = -1; bond = null; i++; continue; }
+    if (/[0-9%]/.test(c)) {   // 環の番号
+      let n; if (c === '%') { n = s.substr(i + 1, 2); i += 3; } else { n = c; i++; }
+      if (prev < 0) err('環の番号の前に原子がありません');
+      if (ring[n]) {
+        const r = ring[n]; delete ring[n];
+        addBond(r.atom, prev, bond || r.bond, r.slot);
+        const bb = bonds[bonds.length - 1];   // 閉じる側から見た結合（向きの記号は開いた側の書き方で読む）
+        if (bb.dir) { bb.a = r.atom; bb.b = prev; }
+      } else { ring[n] = {atom:prev, bond, slot:atoms[prev].order.length}; atoms[prev].order.push(null); }
+      bond = null; continue;
+    }
+    let a;
+    if (c === '[') {
+      const j = s.indexOf(']', i); if (j < 0) err('] がありません');
+      const m = /^(\d*)([A-Z][a-z]?|[cnops])(@@|@)?(H\d*)?([+-]+\d*)?$/.exec(s.slice(i + 1, j));
+      if (!m) err('[ ] の中を読めません');
+      const el = m[2], arom = /^[cnops]$/.test(el);
+      let charge = 0;
+      if (m[5]) { const sg = m[5][0] === '+' ? 1 : -1, d = m[5].replace(/[+-]/g, ''); charge = sg*(d ? +d : m[5].length); }
+      a = {el:arom ? el.toUpperCase() : el, arom, charge, hExp:m[4] ? (m[4].length > 1 ? +m[4].slice(1) : 1) : 0, chir:m[3] || null, order:[]};
+      i = j + 1;
+    } else {
+      const two = s.substr(i, 2);
+      let el;
+      if (two === 'Cl' || two === 'Br') { el = two; i += 2; }
+      else if (/[BCNOPSFI]/.test(c)) { el = c; i++; }
+      else if (/[cnops]/.test(c)) { el = c.toUpperCase(); i++; }
+      else err(`「${c}」は使えません`);
+      a = {el, arom:/[cnops]/.test(c), charge:0, hExp:null, chir:null, order:[]};
+    }
+    if (!ELEM[a.el]) err(`元素 ${a.el} には対応していません`);
+    atoms.push(a); const idx = atoms.length - 1;
+    if (prev >= 0) addBond(prev, idx, bond);
+    if (a.chir && a.hExp) a.order.push('H');   // [C@H] の H は、前の原子のすぐ後ろに数える
+    prev = idx; bond = null;
+  }
+  if (Object.keys(ring).length) err('閉じていない環があります');
+  if (stack.length) err('かっこが閉じていません');
+  return {atoms, bonds};
+}
+
+// ---- 分子のグラフ（H もすべて原子）を作る ----
+// mol = {atoms:[{el, charge, arom, hyb, type, nb:[原子の番号], chir}], bonds:[{a, b, order}], stereoDB:[{a, b, sa, sb, cis}]}
+function bondSum(mol, i){ return mol.atoms[i].nb.reduce((s, j) => s + bondOrder(mol, i, j), 0); }
+function bondOrder(mol, i, j){ const b = mol.bonds.find(b => (b.a === i && b.b === j) || (b.a === j && b.b === i)); return b ? b.order : 0; }
+function molFromSmiles(s){
+  const p = parseSmiles(s.trim());
+  const mol = {atoms:p.atoms.map(a => ({el:a.el, charge:a.charge, arom:a.arom, nb:[], chir:null})), bonds:[], stereoDB:[]};
+  for (const b of p.bonds) { mol.bonds.push({a:b.a, b:b.b, order:b.order}); mol.atoms[b.a].nb.push(b.b); mol.atoms[b.b].nb.push(b.a); }
+  // H を足す
+  const n0 = mol.atoms.length;
+  for (let i = 0; i < n0; i++){
+    const a = p.atoms[i]; let h;
+    if (a.hExp != null) h = a.hExp;
+    else {
+      const sum = bondSum(mol, i), vals = VALENCE[a.el] || [0];
+      const v = vals.find(v => v >= sum - 1e-6) ?? vals[vals.length - 1];
+      h = Math.max(0, Math.floor(v - sum + 1e-6));
+    }
+    const hs = [];
+    for (let k = 0; k < h; k++) hs.push(addAtom(mol, 'H', i, 1));
+    if (a.chir) {   // @・@@ の順番（'H' と環の番号の場所を実際の原子に）
+      const ord = a.order.map(x => x === 'H' ? hs[0] : x);
+      if (ord.length === 4 && ord.every(x => x != null)) mol.atoms[i].chir = {order:ord, cw:a.chir === '@'};
+      else if (ord.length === 3 && ord.every(x => x != null) && hs.length === 0 && mol.atoms[i].nb.length === 3) mol.atoms[i].chir = null;
+    }
+  }
+  // 二重結合のシス・トランス（/ \）
+  for (const db of p.bonds.filter(b => b.order === 2)){
+    const sideOf = (x) => {   // x（二重結合の原子）の置換基で / \ を持つもの → {atom, up}
+      for (const b of p.bonds){
+        if (!b.dir || b === db) continue;
+        if (b.b === x) return {atom:b.a, up:b.dir === '\\'};   // 置換基が前：X/C= なら X は下
+        if (b.a === x) return {atom:b.b, up:b.dir === '/'};    // 置換基が後：C=C/X なら X は上
+      }
+      return null;
+    };
+    const sa = sideOf(db.a), sb = sideOf(db.b);
+    if (sa && sb) mol.stereoDB.push({a:db.a, b:db.b, sa:sa.atom, sb:sb.atom, cis:sa.up === sb.up});
+  }
+  perceive(mol);
+  return mol;
+}
+function addAtom(mol, el, to, order){
+  const i = mol.atoms.length;
+  mol.atoms.push({el, charge:0, arom:false, nb:[], chir:null});
+  if (to != null) { mol.bonds.push({a:to, b:i, order}); mol.atoms[to].nb.push(i); mol.atoms[i].nb.push(to); }
+  return i;
+}
+// 混成と原子の種類（UFF 風の名前）を決める
+function perceive(mol){
+  const A = mol.atoms;
+  const orders = i => A[i].nb.map(j => bondOrder(mol, i, j));
+  for (let i = 0; i < A.length; i++){
+    const a = A[i], os = orders(i), n2 = os.filter(o => o === 2).length, n3 = os.filter(o => o === 3).length, ar = os.some(o => o === 1.5);
+    let hyb;
+    if (a.el === 'H' || a.el === 'Na' || !a.nb.length) hyb = a.el === 'H' || a.el === 'Na' ? 's' : 'sp3';
+    else if (n3 || n2 >= 2) hyb = 'sp';
+    else if (n2 || ar) hyb = 'sp2';
+    else hyb = 'sp3';
+    if (a.el === 'S' && a.nb.length >= 3) hyb = 'sp3';   // スルホ基などの S は四面体
+    if (a.el === 'P' && a.nb.length >= 4) hyb = 'sp3';
+    a.hyb = hyb;
+  }
+  // アミドの N（C=O の C に単結合だけでつながる N）は平面にする
+  for (let i = 0; i < A.length; i++){
+    const a = A[i];
+    if (a.el === 'N' && a.hyb === 'sp3' && a.charge === 0 && a.nb.some(j => A[j].el === 'C' && A[j].nb.some(k => A[k].el === 'O' && bondOrder(mol, j, k) === 2))) { a.hyb = 'sp2'; a.amide = true; }
+  }
+  for (const a of A){
+    const t = {sp3:'3', sp2:a.arom || a.amide ? 'R' : '2', sp:'1', s:''}[a.hyb];
+    a.type = a.el === 'H' ? 'H_' : a.el === 'C' || a.el === 'N' || a.el === 'O' ? `${a.el}_${t}` : a.el === 'S' ? (a.nb.length >= 4 ? 'S_3+6' : 'S_3+2') :
+      a.el === 'P' ? 'P_3+5' : a.el.length === 1 ? a.el + '_' : a.el;
+  }
+}
+
+// ---- 結合長（Å）：実測値に近い値の表 ----
+const BL1 = {CC:1.54, CN:1.47, CO:1.43, CS:1.82, CF:1.35, CCl:1.77, CBr:1.94, CI:2.14, CH:1.09, HN:0.99 + 0.02, HO:0.96, HS:1.34,
+  NN:1.45, NO:1.40, OO:1.48, OS:1.57, HH:0.74, FH:0.92, ClH:1.27, BrH:1.41, HI:1.61, SS:2.05, CP:1.84, OP:1.60, HP:1.42};
+const BL2 = {CC:1.34, CO:1.21, CN:1.28, NN:1.25, NO:1.21, OO:1.21, OS:1.43, CS:1.60, OP:1.48};
+const BL3 = {CC:1.20, CN:1.16, NN:1.10, CO:1.13};
+const pairKey = (x, y) => [x, y].sort().join('');
+function bondLength(mol, i, j, order){
+  const a = mol.atoms[i], b = mol.atoms[j], key = pairKey(a.el, b.el);
+  const flat = x => x.hyb === 'sp2' || x.hyb === 'sp';
+  if (order === 1.5) return key === 'CC' ? 1.40 : key === 'CN' ? 1.34 : 1.37;
+  if (order === 2) {
+    if (key === 'CO' && (a.hyb === 'sp' || b.hyb === 'sp')) return 1.16;   // CO2
+    return BL2[key] ?? (ELEM[a.el].cov + ELEM[b.el].cov - 0.2);
+  }
+  if (order === 3) return BL3[key] ?? (ELEM[a.el].cov + ELEM[b.el].cov - 0.34);
+  // 単結合：混成・共鳴で短くなるもの
+  const C = a.el === 'C' ? a : b.el === 'C' ? b : null, X = C === a ? b : a;
+  if (key === 'CC') { const adj = x => x.hyb === 'sp' ? 0.07 : flat(x) ? 0.03 : 0; return 1.54 - adj(a) - adj(b); }
+  if (key === 'CH') return C.hyb === 'sp' ? 1.06 : flat(C) ? 1.08 : 1.09;
+  if (key === 'CO' && flat(C)) return X.charge < 0 ? 1.25 : C.arom ? 1.36 : 1.34;   // カルボン酸・エステル・フェノール、カルボン酸イオン
+  if (key === 'CN' && flat(C)) return X.charge > 0 ? 1.47 : C.arom ? 1.40 : X.amide ? 1.34 : 1.40;
+  if (key === 'NO' && (a.charge < 0 || b.charge < 0) && (flat(a) || flat(b))) return 1.21;   // ニトロ基
+  if (key === 'HN') return 1.01;
+  return BL1[key] ?? (ELEM[a.el].cov + ELEM[b.el].cov);
+}
+// 中心の原子のまわりの結合角（実測値に近いもの：H2O 104.5°、NH3 107° など）
+function centerAngle(mol, c){
+  const a = mol.atoms[c], nb = a.nb, nH = nb.filter(j => mol.atoms[j].el === 'H').length;
+  if (a.hyb === 'sp') return 180;
+  if (a.hyb === 'sp2') return 120;
+  if (a.el === 'O' && nb.length === 2) return nH === 2 ? 104.5 : nH === 1 ? 108.5 : 111.7;
+  if (a.el === 'S' && nb.length === 2) return nH === 2 ? 92.1 : nH === 1 ? 96.5 : 99;
+  if (a.el === 'N' && nb.length === 3 && a.charge === 0) return nH >= 2 ? 107 : 108.5;
+  if (a.el === 'O' && nb.length === 3) return 112;
+  return TET;
+}
+
+// ---- 原子のまわりの結合の向き（ひな形）：t[0] は z 方向。total：結合の数、th：結合角 ----
+function dirTemplate(total, th, hyb){
+  const z = [0, 0, 1], pol = (t, az) => [Math.sin(rad(t))*Math.cos(rad(az)), Math.sin(rad(t))*Math.sin(rad(az)), Math.cos(rad(t))];
+  if (total <= 1) return [z];
+  if (total === 2) return [z, pol(hyb === 'sp' ? 180 : th, 0)];
+  if (total === 3) {
+    if (th >= 119.9) return [z, pol(120, 0), pol(120, 180)];
+    const c = Math.cos(rad(th)), phi = deg(Math.acos((c - c*c)/(1 - c*c)));   // 三角錐：どの 2 本も th になる開き
+    return [z, pol(th, phi/2), pol(th, -phi/2)];
+  }
+  if (total === 4) return [z, pol(TET, 0), pol(TET, 120), pol(TET, 240)];
+  const out = [];   // 5 本以上（高校の範囲では使わない）：球面上に均等に
+  for (let i = 0; i < total; i++){ const y = 1 - 2*(i + 0.5)/total, r = Math.sqrt(1 - y*y), t = i*2.39996; out.push([r*Math.cos(t), r*Math.sin(t), y]); }
+  return out;
+}
+// @・@@ の確認：order[0] を奥にして order[1]→[2]→[3] が時計回りなら '@'（cw = true）
+function chiralOK(chir, P, center){
+  return chir.cw ? chiralSign(chir.order.map(j => P[j])) < 0 : chiralSign(chir.order.map(j => P[j])) > 0;
+}
+// 4 点の符号付き体積：p[0] を奥にして p[1]→p[2]→p[3] が時計回りなら負
+function chiralSign(p){
+  const d = p[0];
+  return V.dot(V.sub(p[1], d), V.cross(V.sub(p[2], d), V.sub(p[3], d)));
+}
+
+// ---- 環を見つける（最小の環の組） ----
+function findRings(mol){
+  const A = mol.atoms, n = A.length, heavy = i => A[i].el !== 'H';
+  const bondIdx = new Map(); mol.bonds.forEach((b, k) => { bondIdx.set(b.a + ',' + b.b, k); bondIdx.set(b.b + ',' + b.a, k); });
+  const cands = [];
+  for (const b of mol.bonds){
+    if (!heavy(b.a) || !heavy(b.b)) continue;
+    // b を使わずに b.a から b.b への最短の道
+    const prev = new Array(n).fill(-1); prev[b.a] = b.a; const q = [b.a];
+    while (q.length && prev[b.b] < 0){
+      const x = q.shift();
+      for (const y of A[x].nb){
+        if (prev[y] >= 0 || !heavy(y) || (x === b.a && y === b.b)) continue;
+        prev[y] = x; q.push(y);
+      }
+    }
+    if (prev[b.b] < 0) continue;
+    const path = []; for (let x = b.b; x !== b.a; x = prev[x]) path.push(x); path.push(b.a);
+    if (path.length <= 8) cands.push(path);
+  }
+  cands.sort((p, q) => p.length - q.length);
+  // 独立な環だけ残す（結合の集合を GF(2) のベクトルとして掃き出し）
+  const need = mol.bonds.filter(b => heavy(b.a) && heavy(b.b)).length - A.filter((a, i) => heavy(i)).length + countComponents(mol, heavy);
+  const basis = [], rings = [], seen = new Set();
+  for (const r of cands){
+    const key = [...r].sort((x, y) => x - y).join(','); if (seen.has(key)) continue; seen.add(key);
+    let vec = 0n;
+    for (let k = 0; k < r.length; k++) vec ^= 1n << BigInt(bondIdx.get(r[k] + ',' + r[(k + 1) % r.length]));
+    for (const bv of basis) if ((vec ^ bv.v) < vec) vec ^= bv.v;
+    if (vec === 0n) continue;
+    basis.push({v:vec}); basis.sort((p, q) => (q.v > p.v ? 1 : -1));
+    rings.push(r);
+    if (rings.length >= need) break;
+  }
+  return rings;
+}
+function countComponents(mol, ok){
+  const seen = new Set(); let c = 0;
+  mol.atoms.forEach((a, i) => {
+    if (!ok(i) || seen.has(i)) return; c++;
+    const st = [i]; seen.add(i);
+    while (st.length){ const x = st.pop(); for (const y of mol.atoms[x].nb) if (ok(y) && !seen.has(y)) { seen.add(y); st.push(y); } }
+  });
+  return c;
+}
+// 環を、原子を共有するものどうしでまとめる（縮合環はひとまとまり）
+function ringSystems(rings){
+  const sys = [];
+  for (const r of rings){
+    const hit = sys.filter(s => r.some(a => s.atoms.has(a)));
+    const ns = {rings:[r], atoms:new Set(r)};
+    for (const s of hit){ s.rings.forEach(x => ns.rings.push(x)); s.atoms.forEach(x => ns.atoms.add(x)); sys.splice(sys.indexOf(s), 1); }
+    sys.push(ns);
+  }
+  return sys;
+}
+
+// ---- 環のまとまりを、それだけの座標（ローカル）で組み立てる ----
+// 戻り値：{pos:Map(原子 → 座標), exo:Map(原子 → Map(環の外の隣 → 向き)), approx}
+function buildRingSystem(mol, rs){
+  const A = mol.atoms, flat = i => A[i].hyb !== 'sp3';
+  const rings = rs.rings;
+  const ringLen = r => { let s = 0; for (let k = 0; k < r.length; k++) s += bondLength(mol, r[k], r[(k + 1) % r.length], bondOrder(mol, r[k], r[(k + 1) % r.length])); return s/r.length; };
+  const planarRing = r => r.length <= 4 || r.some(flat);
+  const polygon = (r, d) => { const R = d/(2*Math.sin(Math.PI/r.length)); return r.map((a, k) => [R*Math.cos(2*Math.PI*k/r.length), R*Math.sin(2*Math.PI*k/r.length), 0]); };
+  const options = [];   // 試す形の候補（いす形の 2 通り・封筒形の 10 通りなど）
+  let approx = false;
+  if (rings.length === 1){
+    const r = rings[0], d = ringLen(r);
+    if (planarRing(r)) options.push(polygon(r, d));
+    else if (r.length === 6){
+      const th = 111, R = Math.sqrt((1 - Math.cos(rad(th)))*d*d/1.5), h = Math.sqrt(Math.max(0, d*d - R*R))/2;
+      for (const sg of [1, -1]) options.push(r.map((a, k) => [R*Math.cos(Math.PI*k/3), R*Math.sin(Math.PI*k/3), sg*(k % 2 ? -h : h)]));
+    } else if (r.length === 5){
+      const base = polygon(r, d);
+      for (let f = 0; f < 5; f++) for (const sg of [1, -1]){   // 封筒形：1 つの原子を、両隣を結ぶ線のまわりに折り曲げる
+        const p = base.map(x => [...x]), a = p[(f + 4) % 5], b = p[(f + 1) % 5], ax = V.norm(V.sub(b, a));
+        p[f] = V.add(a, V.rot(V.sub(p[f], a), ax, sg*rad(38)));
+        options.push(p);
+      }
+    } else { const p = polygon(r, d); p.forEach((x, k) => { x[2] = (k % 2 ? -0.3 : 0.3); }); options.push(p); approx = true; }
+  } else {
+    // 縮合環：平面の正多角形を、共有する辺の反対側へ次々につなぐ
+    const pos = new Map(), done = new Set(), order = [...rings].sort((p, q) => q.length - p.length);
+    const first = order[0], d0 = ringLen(first);
+    polygon(first, d0).forEach((x, k) => pos.set(first[k], x)); done.add(first);
+    let guard = 0;
+    while (done.size < rings.length && guard++ < 50){
+      for (const r of rings){
+        if (done.has(r)) continue;
+        const k = r.findIndex((a, i) => pos.has(a) && pos.has(r[(i + 1) % r.length]));
+        if (k < 0) continue;
+        const n = r.length, d = ringLen(r), p = pos.get(r[k]), q = pos.get(r[(k + 1) % n]);
+        const cen0 = [...pos.values()].reduce((s, x) => V.add(s, x), [0, 0, 0]).map(v => v/pos.size);
+        const mid = V.mul(V.add(p, q), 0.5), e = V.norm(V.sub(q, p));
+        let out = [-e[1], e[0], 0];
+        if (V.dot(out, V.sub(mid, cen0)) < 0) out = V.mul(out, -1);
+        const R = d/(2*Math.sin(Math.PI/n)), cen = V.add(mid, V.mul(out, R*Math.cos(Math.PI/n)));
+        // 中心から見た p・q の角度から、残りの原子を回り順に置く
+        const ang = x => Math.atan2(x[1] - cen[1], x[0] - cen[0]);
+        const ap = ang(p), aq = ang(q); let step = 2*Math.PI/n;
+        const dd = ((aq - ap + 3*Math.PI) % (2*Math.PI)) - Math.PI; if (dd < 0) step = -step;
+        for (let m = 2; m < n; m++){ const a = r[(k + m) % n]; if (!pos.has(a)) pos.set(a, [cen[0] + R*Math.cos(ap + step*m), cen[1] + R*Math.sin(ap + step*m), 0]); }
+        done.add(r);
+      }
+    }
+    for (const a of rs.atoms) if (!pos.has(a)) { pos.set(a, [pos.size*0.5, 1, 0.3]); approx = true; }
+    if (!rings.every(planarRing)) { approx = true; for (const [a, x] of pos) x[2] = (a % 2 ? -0.25 : 0.25); }
+    options.push(rings[0].map(() => null));   // 目印（下で pos を使う）
+    options.fixed = pos;
+  }
+  // 各候補について、環の外の結合の向きを決め、評価する
+  let best = null;
+  for (const opt of options){
+    const pos = options.fixed ? new Map(options.fixed) : new Map(rings[0].map((a, k) => [a, opt[k]]));
+    const exo = new Map(); let score = 0;
+    const cen = [...pos.values()].reduce((s, x) => V.add(s, x), [0, 0, 0]).map(v => v/pos.size);
+    for (const a of rs.atoms){
+      const rn = A[a].nb.filter(j => pos.has(j)), en = A[a].nb.filter(j => !pos.has(j));
+      if (!en.length) continue;
+      const pa = pos.get(a), us = rn.map(j => V.norm(V.sub(pos.get(j), pa)));
+      let slots;
+      if (us.length >= 3) slots = [V.mul(V.norm(us.reduce(V.add)), -1)];
+      else if (us.length === 2){
+        const b = V.norm(V.add(us[0], us[1])), n = V.norm(V.cross(us[0], us[1]));
+        if (flat(a)) slots = [V.mul(b, -1)];
+        else { const be = rad(TET/2); slots = [V.add(V.mul(b, -Math.cos(be)), V.mul(n, Math.sin(be))), V.add(V.mul(b, -Math.cos(be)), V.mul(n, -Math.sin(be)))]; }
+      } else slots = [V.mul(us[0], -1)];
+      // 環の外の隣をどの向きに置くか：@・@@ に合うもの、なければ重い原子をエクアトリアル（環の面に近い向き）へ
+      const axial = s => Math.abs(V.dot(s, ringNormal(pos, a, cen)));
+      const cand = permutations(slots, en.length);
+      let pick = null, pickScore = Infinity;
+      for (const perm of cand){
+        const P = {}; rn.forEach(j => { P[j] = pos.get(j); }); en.forEach((j, k) => { P[j] = V.add(pa, perm[k]); });
+        if (A[a].chir && A[a].chir.order.every(j => P[j]) && !chiralOK(A[a].chir, P, pa)) continue;
+        const sc = en.reduce((s, j, k) => s + (A[j].el !== 'H' ? axial(perm[k]) : 0), 0);
+        if (sc < pickScore - 1e-9) { pickScore = sc; pick = perm; }
+      }
+      if (!pick) pick = cand[0];
+      const m = new Map(); en.forEach((j, k) => m.set(j, pick[k])); exo.set(a, m);
+      en.forEach((j, k) => { if (A[j].el !== 'H' && axial(pick[k]) > 0.8) score += 1; });
+      score += 0.01*pickScore;
+    }
+    // 環の外の重い原子どうしの近さ（封筒形などの評価）
+    const ex = [];
+    for (const [a, m] of exo) for (const [j, dir] of m) if (A[j].el !== 'H') ex.push({a, p:V.add(pos.get(a), V.mul(dir, 1.45))});
+    for (let i = 0; i < ex.length; i++) for (let k = i + 1; k < ex.length; k++) if (ex[i].a !== ex[k].a) score += 0.1*Math.max(0, 3 - V.dist(ex[i].p, ex[k].p));
+    if (!best || score < best.score - 1e-9) best = {pos, exo, score, approx};
+  }
+  return best;
+}
+function ringNormal(pos, a, cen){   // a を含む環のまとまりの面の法線（おおよそ）
+  const pts = [...pos.values()]; let n = [0, 0, 0];
+  for (let i = 0; i < pts.length; i++){ const p = V.sub(pts[i], cen), q = V.sub(pts[(i + 1) % pts.length], cen); n = V.add(n, V.cross(p, q)); }
+  return V.len(n) > 1e-6 ? V.norm(n) : [0, 0, 1];
+}
+function permutations(arr, k){   // arr から k 個を選んで並べる方法をすべて
+  if (k === 0) return [[]];
+  const out = [];
+  arr.forEach((x, i) => { for (const rest of permutations(arr.filter((_, j) => j !== i), k - 1)) out.push([x, ...rest]); });
+  return out;
+}
+function heavyBeyond(mol, from, start){   // from を通らずに start から行ける重い原子の数
+  const seen = new Set([from, start]), st = [start]; let c = 0;
+  while (st.length){ const x = st.pop(); if (mol.atoms[x].el !== 'H') c++; for (const y of mol.atoms[x].nb) if (!seen.has(y)) { seen.add(y); st.push(y); } }
+  return c;
+}
+
+// ---- 置いてある隣から、まだ置いていない隣 U の向きを決める ----
+// 二面角の決め方：sp3–sp3 は重い原子をアンチ（ジグザグ）、sp2 に付く sp3 は 1 本を二重結合に重ねる（重なり形）、共役した sp2 どうしは平面でアンチ
+function placeAround(mol, P, x, U){
+  const A = mol.atoms, a = A[x], px = P[x], placed = a.nb.filter(j => P[j]);
+  const T = dirTemplate(a.nb.length, centerAngle(mol, x), a.hyb);
+  const ds = placed.map(j => V.norm(V.sub(P[j], px)));
+  const size = new Map(U.map(u => [u, heavyBeyond(mol, x, u)]));
+  let Us = [...U].sort((p, q) => (A[q].el !== 'H') - (A[p].el !== 'H') || size.get(q) - size.get(p) || p - q);
+  const sets = [];
+  if (!placed.length) sets.push({slots:T, pref:0});
+  else if (placed.length === 1){
+    const R = alignPair([0, 0, 1], [1, 0, 0], ds[0], V.perp(ds[0]));
+    let S = T.slice(1).map(t => M3.apply(R, t));
+    const p = placed[0], pa = A[p], refs = pa.nb.filter(j => j !== x && P[j]);
+    const ref = pa.hyb !== 'sp3' ? (refs.find(j => bondOrder(mol, p, j) === 2) ?? refs.find(j => A[j].el !== 'H') ?? refs[0])
+                                 : (refs.find(j => A[j].el !== 'H') ?? refs[0]);
+    let dstar = null;
+    if (a.hyb === 'sp3') dstar = pa.hyb === 'sp3' ? 180 : 0;
+    else if (a.hyb === 'sp2'){
+      const dbl = U.find(j => bondOrder(mol, x, j) === 2);
+      if (a.amide) dstar = 0;
+      else if (pa.hyb === 'sp3') { dstar = 0; if (dbl != null) Us = [dbl, ...Us.filter(j => j !== dbl)]; }
+      else { dstar = 180; Us.sort((p, q) => (A[q].el !== 'H') - (A[p].el !== 'H') || (bondOrder(mol, x, p) === 2) - (bondOrder(mol, x, q) === 2) || size.get(q) - size.get(p)); }
+    }
+    if (ref != null && dstar != null && S.length){
+      const axis = V.norm(V.sub(px, P[p]));
+      const cur = dihedralOf(P[ref], P[p], px, V.add(px, S[0]));
+      let d = rad(dstar - cur); S = S.map(s => V.rot(s, axis, d));
+      if (Math.abs(((dihedralOf(P[ref], P[p], px, V.add(px, S[0])) - dstar + 540) % 360) - 180) > 1) S = S.map(s => V.rot(s, axis, -2*d));
+    }
+    sets.push({slots:S, pref:0});
+  } else if (placed.length === 2){
+    if (T.length === 3 && a.hyb !== 'sp3') sets.push({slots:[V.mul(V.norm(V.add(ds[0], ds[1])), -1)], pref:-1});
+    else for (const sw of [1, -1]){
+      const R = alignPair(V.norm(V.add(T[0], T[1])), V.mul(V.sub(T[0], T[1]), sw), V.norm(V.add(ds[0], ds[1])), V.sub(ds[0], ds[1]));
+      sets.push({slots:T.slice(2).map(t => M3.apply(R, t)), pref:-1});
+    }
+  } else sets.push({slots:[V.mul(V.norm(ds.reduce(V.add)), -1)], pref:-1});
+  // 置き方を選ぶ：@・@@ とシス・トランスに合うもの、そのうえで重い原子を決めた向き（アンチなど）へ
+  let best = null;
+  for (const st of sets){
+    if (st.slots.length < Us.length) continue;
+    for (const perm of permutations(st.slots, Us.length)){
+      const Q = (j) => { const k = Us.indexOf(j); return k >= 0 ? V.add(px, perm[k]) : P[j]; };
+      if (a.chir && a.chir.order.every(j => Q(j)) && !chiralOK(a.chir, Object.fromEntries(a.chir.order.map(j => [j, Q(j)])), px)) continue;
+      let ok = true;
+      for (const db of mol.stereoDB || []){
+        if (db.a !== x && db.b !== x) continue;
+        const o = db.a === x ? db.b : db.a, sx = db.a === x ? db.sa : db.sb, so = db.a === x ? db.sb : db.sa;
+        if (!P[o] || !Q(so) || !Q(sx) || !Us.includes(sx)) continue;
+        const dh = Math.abs(dihedralOf(Q(so), P[o], px, Q(sx)));
+        if ((dh < 90) !== db.cis) ok = false;
+      }
+      if (!ok) continue;
+      const pen = st.pref >= 0 && A[Us[0]].el !== 'H' && perm[0] !== st.slots[st.pref] ? 1 : 0;
+      if (!best || pen < best.pen) best = {pen, perm};
+    }
+  }
+  if (!best) best = {perm:permutations(sets[0].slots, Math.min(Us.length, sets[0].slots.length))[0]};
+  const out = new Map(); Us.forEach((u, k) => out.set(u, best.perm[k] || V.perp(ds[0] || [0, 0, 1])));
+  return out;
+}
+
+// ---- 分子全体を 3D に組み立てる ----
+function build3D(mol){
+  const A = mol.atoms, n = A.length, P = new Array(n).fill(null);
+  const rings = findRings(mol), systems = ringSystems(rings);
+  const rsOf = new Array(n).fill(-1); systems.forEach((s, k) => s.atoms.forEach(a => { rsOf[a] = k; }));
+  const info = systems.map(s => buildRingSystem(mol, s));
+  const placedRS = new Set(), queue = [];
+  const placeRS = (k, R, t) => {
+    for (const [a, p] of info[k].pos) P[a] = V.add(M3.apply(R, p), t);
+    info[k].R = R; placedRS.add(k); for (const a of systems[k].atoms) queue.push(a);
+  };
+  // 環のまとまりに入る：u（環の原子）の環の外の向きが x を指すように回し、残りの回転は衝突しにくい向きに
+  const enterRS = (k, u, x, d, L) => {
+    const loc = info[k].pos, pu = V.add(P[x], V.mul(d, L)), target = V.mul(d, -1);
+    let e = info[k].exo.get(u)?.get(x);
+    if (!e) e = V.mul(V.norm(A[u].nb.filter(j => loc.has(j)).map(j => V.sub(loc.get(j), loc.get(u))).reduce(V.add)), -1);
+    const R0 = alignPair(e, V.perp(e), target, V.perp(target));
+    const ref = A[x].nb.find(j => j !== u && P[j] && A[j].el !== 'H') ?? A[x].nb.find(j => j !== u && P[j]);
+    const rn = A[u].nb.find(j => loc.has(j));
+    const others = P.map((p, i) => p ? i : -1).filter(i => i >= 0);
+    let best = null;
+    for (let s = 0; s < 36; s++){
+      const R = M3.mul(M3.axis(target, rad(s*10)), R0), t = V.sub(pu, M3.apply(R, loc.get(u)));
+      let sc = 0;
+      for (const [a, p] of loc){ const w = V.add(M3.apply(R, p), t); for (const i of others) if (i !== x) sc += Math.max(0, 2.6 - V.dist(w, P[i]))**2; }
+      if (ref != null) sc += 0.01*(180 - Math.abs(dihedralOf(P[ref], P[x], pu, V.add(M3.apply(R, loc.get(rn)), t))))/180;
+      if (!best || sc < best.sc) best = {sc, R, t};
+    }
+    placeRS(k, best.R, best.t);
+  };
+  const expand = x => {
+    const U = A[x].nb.filter(j => !P[j]); if (!U.length) return;
+    const k = rsOf[x], ex = k >= 0 ? info[k].exo.get(x) : null;
+    const dirs = ex && U.every(j => ex.has(j)) ? new Map(U.map(j => [j, M3.apply(info[k].R, ex.get(j))])) : placeAround(mol, P, x, U);
+    for (const u of U){
+      const d = dirs.get(u), L = bondLength(mol, x, u, bondOrder(mol, x, u));
+      if (rsOf[u] >= 0 && !placedRS.has(rsOf[u])) enterRS(rsOf[u], u, x, d, L);
+      else if (!P[u]) { P[u] = V.add(P[x], V.mul(d, L)); queue.push(u); }
+    }
+  };
+  let maxX = null;
+  while (P.some(p => !p)){
+    // つながった 1 つの分子ごとに組み立てる（. で分けたもの・イオンは横に並べる）
+    const s0 = P.findIndex(p => !p), comp = [], seen = new Set([s0]), st = [s0];
+    while (st.length){ const y = st.pop(); comp.push(y); for (const z of A[y].nb) if (!seen.has(z)) { seen.add(z); st.push(z); } }
+    const ks = [...new Set(comp.map(i => rsOf[i]).filter(k => k >= 0))].sort((p, q) => systems[q].atoms.size - systems[p].atoms.size);
+    if (ks.length) placeRS(ks[0], M3.id(), [0, 0, 0]);
+    else {
+      const start = comp.reduce((b, i) => { const h = A[i].nb.filter(j => A[j].el !== 'H').length + (A[i].el !== 'H' ? 10 : 0); return h > b.h ? {i, h} : b; }, {i:comp[0], h:-1}).i;
+      P[start] = [0, 0, 0]; queue.push(start);
+    }
+    while (queue.length) expand(queue.shift());
+    if (maxX !== null){
+      const minX = Math.min(...comp.map(i => P[i][0] - ELEM[A[i].el].vdw)), dx = maxX + 1 - minX;
+      comp.forEach(i => { P[i] = V.add(P[i], [dx, 0, 0]); });
+    }
+    maxX = Math.max(...P.filter(p => p).map((p, i) => p[0])) + 2;
+  }
+  polish(mol, P, rings);
+  relieveClashes(mol, P, rings);
+  orient(mol, P);
+  return {P, approx:info.some(r => r.approx)};
+}
+
+// ---- 結合長・結合角を目標の値に近づける（形を整えるだけの簡単な処理。構造最適化ではない） ----
+function polish(mol, P, rings, iters = 160){
+  const A = mol.atoms, cons = [];
+  for (const b of mol.bonds) cons.push([b.a, b.b, bondLength(mol, b.a, b.b, b.order), 1]);
+  const ringOf = (i, j, c) => rings.find(r => {   // i・c・j が環の中で並んでいるか
+    const k = r.indexOf(c), L = r.length; if (k < 0) return false;
+    const p = r[(k + 1) % L], q = r[(k + L - 1) % L];
+    return (i === p && j === q) || (i === q && j === p);
+  });
+  for (let c = 0; c < A.length; c++){
+    const nb = A[c].nb; if (nb.length < 2) continue;
+    for (let i = 0; i < nb.length; i++) for (let j = i + 1; j < nb.length; j++){
+      let th = centerAngle(mol, c);
+      const r = ringOf(nb[i], nb[j], c);
+      if (r && A[c].hyb === 'sp3') th = r.length === 3 ? 60 : r.length === 4 ? 90 : r.length === 5 ? 105 : r.length === 6 ? 111 : th;
+      if (r && A[c].hyb !== 'sp3') th = 180 - 360/r.length;
+      const l1 = bondLength(mol, c, nb[i], bondOrder(mol, c, nb[i])), l2 = bondLength(mol, c, nb[j], bondOrder(mol, c, nb[j]));
+      cons.push([nb[i], nb[j], Math.sqrt(l1*l1 + l2*l2 - 2*l1*l2*Math.cos(rad(th))), 0.4]);
+    }
+  }
+  for (let it = 0; it < iters; it++){
+    for (const [i, j, d0, w] of cons){
+      const dv = V.sub(P[j], P[i]), d = V.len(dv) || 1e-6, f = w*0.5*(d - d0)/d;
+      P[i] = V.add(P[i], V.mul(dv, f)); P[j] = V.sub(P[j], V.mul(dv, f));
+    }
+  }
+}
+
+// ---- 原子どうしの重なりを、単結合のまわりの回転で減らす ----
+function relieveClashes(mol, P, rings){
+  const A = mol.atoms, n = A.length;
+  const ringBond = new Set();
+  rings.forEach(r => r.forEach((a, k) => { const b = r[(k + 1) % r.length]; ringBond.add(a + ',' + b); ringBond.add(b + ',' + a); }));
+  // 結合で 4 つ以上離れた原子の組
+  const far = [];
+  for (let i = 0; i < n; i++){
+    const dist = new Map([[i, 0]]), q = [i];
+    while (q.length){ const x = q.shift(); if (dist.get(x) >= 3) continue; for (const y of A[x].nb) if (!dist.has(y)) { dist.set(y, dist.get(x) + 1); q.push(y); } }
+    for (let j = i + 1; j < n; j++) if (!dist.has(j)) far.push([i, j, (ELEM[A[i].el].vdw + ELEM[A[j].el].vdw)*0.72, A[i].el === 'H' && A[j].el === 'H' ? 0.5 : 1]);
+  }
+  const score = () => far.reduce((s, [i, j, r0, w]) => { const d = V.dist(P[i], P[j]); return d < r0 ? s + w*(r0 - d)**2 : s; }, 0);
+  const isAmideCN = (i, j) => (A[i].amide && A[j].el === 'C') || (A[j].amide && A[i].el === 'C');
+  const rot = [];
+  for (const b of mol.bonds){
+    if (b.order !== 1 || ringBond.has(b.a + ',' + b.b)) continue;
+    if (A[b.a].nb.length < 2 || A[b.b].nb.length < 2 || A[b.a].hyb === 'sp' || A[b.b].hyb === 'sp' || isAmideCN(b.a, b.b)) continue;
+    const side = new Set([b.b]), st = [b.b];   // b.b の側（b.a を通らない）
+    while (st.length){ const x = st.pop(); for (const y of A[x].nb) if (y !== b.a && !side.has(y)) { side.add(y); st.push(y); } }
+    if (side.has(b.a)) continue;
+    const mv = side.size <= n/2 ? {piv:b.a, ax:b.b, set:[...side]} : {piv:b.b, ax:b.a, set:[...Array(n).keys()].filter(i => !side.has(i))};
+    const hA = heavyBeyond(mol, b.b, b.a), hB = heavyBeyond(mol, b.a, b.b);
+    const sp2a = A[b.a].hyb === 'sp2', sp2b = A[b.b].hyb === 'sp2';
+    const steps = sp2a && sp2b ? [0, 180] : (sp2a || sp2b) ? [0, 60, 120, 180, 240, 300] : (hA >= 4 && hB >= 4) ? [...Array(12).keys()].map(k => k*30) : [0, 120, 240];
+    rot.push({...mv, steps});
+  }
+  for (let pass = 0; pass < 3; pass++){
+    let changed = false;
+    for (const r of rot){
+      const axis = V.norm(V.sub(P[r.ax], P[r.piv])), o = P[r.ax], orig = r.set.map(i => P[i]);
+      let best = {s:score(), th:0};
+      for (const th of r.steps){
+        if (!th) continue;
+        r.set.forEach((i, k) => { P[i] = V.add(o, V.rot(V.sub(orig[k], o), axis, rad(th))); });
+        const s = score(); if (s < best.s - 1e-3) best = {s, th};
+      }
+      r.set.forEach((i, k) => { P[i] = V.add(o, V.rot(V.sub(orig[k], o), axis, rad(best.th))); });
+      if (best.th) changed = true;
+    }
+    if (!changed) break;
+  }
+}
+
+// ---- 見やすい向きにする（広がりの大きい方向を横・縦に。回転だけなので鏡像にはならない） ----
+function orient(mol, P){
+  const A = mol.atoms, n = A.length;
+  const cen = P.reduce((s, p) => V.add(s, p), [0, 0, 0]).map(v => v/n);
+  let x, y;
+  const c = A.findIndex(a => a.nb.length === n - 1 && n >= 3 && n <= 6);
+  if (c >= 0){   // 中心の原子が 1 つの小さな分子（H2O・NH3・CH4 など）：非共有電子対の側を上に
+    const bs = A[c].nb.map(j => V.norm(V.sub(P[j], P[c]))), s = bs.reduce(V.add);
+    if (V.len(s) > 0.3) { y = V.mul(V.norm(s), -1); x = V.norm(V.sub(bs[0], V.mul(y, V.dot(bs[0], y)))); }
+    else if (Math.abs(V.dot(bs[0], bs[1])) > 0.99) { x = bs[0]; y = V.perp(x); }
+    else { y = bs[0]; x = V.norm(V.sub(bs[1], V.mul(y, V.dot(bs[1], y)))); }
+  } else {
+    const idx = A.map((a, i) => i).filter(i => A[i].el !== 'H'), use = idx.length >= 3 ? idx : A.map((a, i) => i);
+    const C = [[0,0,0],[0,0,0],[0,0,0]];
+    for (const i of use){ const d = V.sub(P[i], cen); for (let r = 0; r < 3; r++) for (let q = 0; q < 3; q++) C[r][q] += d[r]*d[q]; }
+    const {vecs} = eigSym3(C);
+    x = vecs[0]; y = vecs[1];
+    if (V.len(x) < 0.5) x = [1, 0, 0];
+    if (V.len(y) < 0.5 || Math.abs(V.dot(x, y)) > 0.1) y = V.perp(x);
+  }
+  const z = V.cross(x, y);
+  let pts = P.map(p => { const d = V.sub(p, cen); return [V.dot(d, x), V.dot(d, y), V.dot(d, z)]; });
+  if (c >= 0 && A[c].nb.length >= 3){   // 立体感が出るように少し傾ける
+    const R = M3.mul(M3.axis([1, 0, 0], rad(18)), M3.axis([0, 1, 0], rad(-25)));
+    pts = pts.map(p => M3.apply(R, p));
+  } else if (findRings(mol).some(r => r.length >= 5 && r.filter(i => A[i].hyb === 'sp3').length >= 4)){
+    // いす形などの折れ曲がった環：環の面をほぼ横から見る向きにする（形が分かるように）
+    const R = M3.axis([1, 0, 0], rad(-70));
+    pts = pts.map(p => M3.apply(R, p));
+  }
+  pts.forEach((p, i) => { P[i] = p; });
+}
+function eigSym3(M){   // 対称行列の固有値・固有ベクトル（ヤコビ法）。固有値の大きい順
+  const a = M.map(r => [...r]), v = M3.id();
+  for (let sweep = 0; sweep < 30; sweep++){
+    for (const [p, q] of [[0, 1], [0, 2], [1, 2]]){
+      if (Math.abs(a[p][q]) < 1e-12) continue;
+      const th = 0.5*Math.atan2(2*a[p][q], a[q][q] - a[p][p]), c = Math.cos(th), s = Math.sin(th);
+      for (let k = 0; k < 3; k++){ const akp = a[k][p], akq = a[k][q]; a[k][p] = c*akp - s*akq; a[k][q] = s*akp + c*akq; }
+      for (let k = 0; k < 3; k++){ const apk = a[p][k], aqk = a[q][k]; a[p][k] = c*apk - s*aqk; a[q][k] = s*apk + c*aqk; }
+      for (let k = 0; k < 3; k++){ const vkp = v[k][p], vkq = v[k][q]; v[k][p] = c*vkp - s*vkq; v[k][q] = s*vkp + c*vkq; }
+    }
+  }
+  const order = [0, 1, 2].sort((i, j) => a[j][j] - a[i][i]);
+  return {vals:order.map(i => a[i][i]), vecs:order.map(i => [v[0][i], v[1][i], v[2][i]])};
+}
+
+// ---- ベンゼン環：単結合と二重結合が交互の六員環（C・N）を芳香族（結合次数 1.5）にする ----
+function aromatize(mol){
+  for (const r of findRings(mol)){
+    if (r.length !== 6 || !r.every(i => mol.atoms[i].el === 'C' || mol.atoms[i].el === 'N')) continue;
+    const os = r.map((a, k) => bondOrder(mol, a, r[(k + 1) % 6]));
+    const alt = os.every((o, k) => o === 1.5 || (o === 1 && os[(k + 1) % 6] === 2) || (o === 2 && os[(k + 1) % 6] === 1));
+    if (!alt || os.every(o => o === 1.5)) continue;
+    r.forEach((a, k) => { const b = mol.bonds.find(b => (b.a === a && b.b === r[(k + 1) % 6]) || (b.b === a && b.a === r[(k + 1) % 6])); b.order = 1.5; mol.atoms[a].arom = true; });
+  }
+}
+
+// ---- 化合物を作る：SMILES 風の定義 → 3D の原子と結合 ----
+function makeMolecule(smiles){
+  const mol = molFromSmiles(smiles);
+  aromatize(mol); perceive(mol);
+  const {P, approx} = build3D(mol);
+  return {atoms:mol.atoms.map((a, i) => ({el:a.el, charge:a.charge, hyb:a.hyb, type:a.type, x:P[i][0], y:P[i][1], z:P[i][2]})),
+          bonds:mol.bonds.map(b => ({a:b.a, b:b.b, order:b.order})), approx};
+}
+// 原子・結合の配列（座標付き）から、調べるためのグラフを作る
+function graphOf(atoms, bonds){
+  const mol = {atoms:atoms.map(a => ({el:a.el, charge:a.charge || 0, arom:false, nb:[], chir:null})), bonds:[], stereoDB:[]};
+  for (const b of bonds){ mol.bonds.push({a:b.a, b:b.b, order:b.order}); mol.atoms[b.a].nb.push(b.b); mol.atoms[b.b].nb.push(b.a); if (b.order === 1.5) mol.atoms[b.a].arom = mol.atoms[b.b].arom = true; }
+  perceive(mol);
+  return {mol, P:atoms.map(a => [a.x, a.y, a.z])};
+}
+
+// ---- 不斉炭素と R・S（CIP 順位規則の規則 1：原子番号だけで判定） ----
+function cipChildren(mol, node){
+  if (node.dup) return [];
+  const A = mol.atoms, out = [], a = node.atom;
+  for (const j of A[a].nb){
+    if (j === node.from) continue;
+    out.push(node.path.includes(j) ? {atom:j, dup:true, Z:ELEM[A[j].el].Z} : {atom:j, from:a, path:[...node.path, j], Z:ELEM[A[j].el].Z});
+  }
+  let aromDup = false;
+  for (const j of A[a].nb){   // 多重結合は相手の原子を重複して数える
+    const o = bondOrder(mol, a, j), k = o === 3 ? 2 : o === 2 ? 1 : 0;
+    for (let t = 0; t < k; t++) out.push({atom:j, dup:true, Z:ELEM[A[j].el].Z});
+    if (o === 1.5 && !aromDup) { aromDup = true; out.push({atom:j, dup:true, Z:ELEM[A[j].el].Z}); }
+  }
+  const key = nd => cipChildren(mol, nd).map(c => c.Z).sort((p, q) => q - p);
+  return out.sort((p, q) => q.Z - p.Z || cmpList(key(q), key(p)));
+}
+function cmpList(p, q){ const n = Math.max(p.length, q.length); for (let i = 0; i < n; i++){ const d = (p[i] || 0) - (q[i] || 0); if (d) return d; } return 0; }
+function cipCompare(mol, center, a, b){   // 正なら a の方が優先
+  let la = [{atom:a, from:center, path:[center, a], Z:ELEM[mol.atoms[a].el].Z}], lb = [{atom:b, from:center, path:[center, b], Z:ELEM[mol.atoms[b].el].Z}];
+  if (la[0].Z !== lb[0].Z) return la[0].Z - lb[0].Z;
+  for (let depth = 0; depth < 14; depth++){
+    const ca = la.map(nd => cipChildren(mol, nd)), cb = lb.map(nd => cipChildren(mol, nd));
+    const n = Math.max(ca.length, cb.length);
+    for (let k = 0; k < n; k++){ const d = cmpList((ca[k] || []).map(c => c.Z), (cb[k] || []).map(c => c.Z)); if (d) return d; }
+    la = ca.flat(); lb = cb.flat();
+    if (!la.length && !lb.length) return 0;
+  }
+  return 0;
+}
+// 戻り値：[{atom, rs:'R'|'S'}]（4 つの異なる原子・原子団が結合した sp3 の炭素）
+function stereoCenters(mol, P){
+  const out = [];
+  mol.atoms.forEach((a, c) => {
+    if (a.el !== 'C' || a.hyb !== 'sp3' || a.nb.length !== 4) return;
+    const r = [...a.nb].sort((p, q) => cipCompare(mol, c, q, p));
+    for (let k = 0; k < 3; k++) if (cipCompare(mol, c, r[k], r[k + 1]) === 0) return;
+    out.push({atom:c, rs:chiralSign([P[r[3]], P[r[0]], P[r[1]], P[r[2]]]) < 0 ? 'R' : 'S', rank:r});
+  });
+  return out;
+}
+
+// ---- 分子式・分子量 ----
+function formulaOf(atoms){
+  const cnt = {}; let mw = 0, charge = 0;
+  for (const a of atoms){ cnt[a.el] = (cnt[a.el] || 0) + 1; mw += ELEM[a.el].mass; charge += a.charge || 0; }
+  const keys = Object.keys(cnt).sort((p, q) => cnt.C ? (p === 'C' ? -1 : q === 'C' ? 1 : p === 'H' ? -1 : q === 'H' ? 1 : p < q ? -1 : 1) : (p < q ? -1 : 1));
+  const chg = charge ? (Math.abs(charge) > 1 ? Math.abs(charge) : '') + (charge > 0 ? '+' : '−') : '';
+  return {text:keys.map(k => k + (cnt[k] > 1 ? cnt[k] : '')).join('') + chg,
+    html:keys.map(k => k + (cnt[k] > 1 ? `<sub>${cnt[k]}</sub>` : '')).join('') + (chg ? `<sup>${chg}</sup>` : ''),
+    mw:Math.round(mw*10)/10, label:charge || cnt.Na ? '式量' : '分子量'};
+}
+
+// ---- ファイル：MOL（V2000）・XYZ ----
+function toMolText(atoms, bonds, name = ''){
+  const f = (v, w, d) => v.toFixed(d).padStart(w), n = (v, w) => String(v).padStart(w);
+  const L = [name.replace(/[\r\n]/g, ' '), '  bunshi   3D   分子模型エディタ', ''];
+  L.push(`${n(atoms.length, 3)}${n(bonds.length, 3)}  0  0  0  0  0  0  0  0999 V2000`);
+  for (const a of atoms) L.push(`${f(a.x, 10, 4)}${f(a.y, 10, 4)}${f(a.z, 10, 4)} ${a.el.padEnd(3)} 0  0  0  0  0  0  0  0  0  0  0  0`);
+  for (const b of bonds) L.push(`${n(b.a + 1, 3)}${n(b.b + 1, 3)}${n(b.order === 1.5 ? 4 : b.order, 3)}  0`);
+  const ch = atoms.map((a, i) => [i + 1, a.charge || 0]).filter(x => x[1]);
+  for (let i = 0; i < ch.length; i += 8){ const part = ch.slice(i, i + 8); L.push(`M  CHG${n(part.length, 3)}` + part.map(([k, c]) => n(k, 4) + n(c, 4)).join('')); }
+  L.push('M  END');
+  return L.join('\n') + '\n';
+}
+function fromMolText(text){
+  const lines = text.split(/\r?\n/), c = lines[3] || '';
+  if (/V3000/.test(c)) throw new Error('V3000 形式の MOL ファイルには対応していません');
+  const na = parseInt(c.slice(0, 3)), nb = parseInt(c.slice(3, 6));
+  if (!(na > 0) || !(nb >= 0)) throw new Error('MOL ファイルの形式が正しくありません');
+  const atoms = [], bonds = [], CC = {1:3, 2:2, 3:1, 5:-1, 6:-2, 7:-3};
+  for (let i = 0; i < na; i++){
+    const s = lines[4 + i], el = s.slice(31, 34).trim();
+    if (!ELEM[el]) throw new Error(`元素 ${el} には対応していません`);
+    atoms.push({el, charge:CC[parseInt(s.slice(36, 39))] || 0, x:+s.slice(0, 10), y:+s.slice(10, 20), z:+s.slice(20, 30)});
+  }
+  for (let i = 0; i < nb; i++){
+    const s = lines[4 + na + i], t = parseInt(s.slice(6, 9));
+    bonds.push({a:parseInt(s.slice(0, 3)) - 1, b:parseInt(s.slice(3, 6)) - 1, order:t === 4 ? 1.5 : (t >= 1 && t <= 3 ? t : 1)});
+  }
+  for (const s of lines.slice(4 + na + nb)){
+    if (/^M {2}END/.test(s)) break;
+    if (/^M {2}CHG/.test(s)){ const v = s.slice(9).trim().split(/\s+/).map(Number); for (let k = 0; k + 1 < v.length; k += 2) if (atoms[v[k] - 1]) atoms[v[k] - 1].charge = v[k + 1]; }
+  }
+  return finishImport(atoms, bonds);
+}
+function toXYZText(atoms, name = ''){
+  return `${atoms.length}\n${name.replace(/[\r\n]/g, ' ')}\n` + atoms.map(a => `${a.el.padEnd(2)} ${a.x.toFixed(5).padStart(11)} ${a.y.toFixed(5).padStart(11)} ${a.z.toFixed(5).padStart(11)}`).join('\n') + '\n';
+}
+function fromXYZText(text){
+  const lines = text.split(/\r?\n/), n = parseInt(lines[0]);
+  if (!(n > 0)) throw new Error('XYZ ファイルの形式が正しくありません');
+  const atoms = [];
+  for (let i = 0; i < n; i++){
+    const t = (lines[2 + i] || '').trim().split(/\s+/), el = t[0] && (t[0][0].toUpperCase() + t[0].slice(1).toLowerCase());
+    if (!ELEM[el]) throw new Error(`元素 ${t[0]} には対応していません`);
+    atoms.push({el, charge:0, x:+t[1], y:+t[2], z:+t[3]});
+  }
+  // 距離から結合を決め、価数が足りない原子どうしを短い結合から多重結合にする
+  const bonds = [];
+  for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++){
+    const d = Math.hypot(atoms[i].x - atoms[j].x, atoms[i].y - atoms[j].y, atoms[i].z - atoms[j].z);
+    if (d < (ELEM[atoms[i].el].cov + ELEM[atoms[j].el].cov)*1.15 && d > 0.4) bonds.push({a:i, b:j, order:1, d});
+  }
+  const lack = atoms.map((a, i) => (VALENCE[a.el] || [0])[0] - bonds.filter(b => b.a === i || b.b === i).length);
+  const byLen = [...bonds].sort((p, q) => p.d/(ELEM[atoms[p.a].el].cov + ELEM[atoms[p.b].el].cov) - q.d/(ELEM[atoms[q.a].el].cov + ELEM[atoms[q.b].el].cov));
+  for (let round = 0; round < 2; round++){
+    // 価数が足りない原子どうしの組を最大にする（交互の道で組み替える。ベンゼン環のケクレ構造など）
+    const cand = byLen.filter(b => lack[b.a] > 0 && lack[b.b] > 0), mate = new Map();
+    for (const b of cand) if (!mate.has(b.a) && !mate.has(b.b)) { mate.set(b.a, b); mate.set(b.b, b); }
+    const other = (b, x) => b.a === x ? b.b : b.a;
+    const augment = (x, seen) => {
+      for (const b of cand){
+        if (b.a !== x && b.b !== x) continue;
+        const y = other(b, x); if (seen.has(y)) continue; seen.add(y);
+        if (!mate.has(y) || augment(other(mate.get(y), y), seen)) { mate.set(x, b); mate.set(y, b); return true; }
+      }
+      return false;
+    };
+    for (const b of cand) for (const x of [b.a, b.b]) if (!mate.has(x)) augment(x, new Set([x]));
+    for (const b of new Set(mate.values())) if (mate.get(b.a) === b && mate.get(b.b) === b) { b.order++; lack[b.a]--; lack[b.b]--; }
+  }
+  return finishImport(atoms, bonds.map(({a, b, order}) => ({a, b, order})));
+}
+function finishImport(atoms, bonds){   // 読み込んだ分子：芳香族の判定、混成・原子の種類
+  const {mol} = graphOf(atoms, bonds);
+  aromatize(mol); perceive(mol);
+  return {atoms:atoms.map((a, i) => ({...a, hyb:mol.atoms[i].hyb, type:mol.atoms[i].type})), bonds:mol.bonds.map(b => ({a:b.a, b:b.b, order:b.order}))};
+}
+
+// ---- 化合物ライブラリ（座標はここの定義から組み立てる。外部のデータは使わない） ----
+// 糖の定義：D-グルコースのいす形でヒドロキシ基がすべてエクアトリアルになること（β）などを dev/test.mjs で確認している
+const GLC_A1 = '[C@@H]2[C@@H]([C@H]([C@@H]([C@H](O2)CO)O)O)O';    // α-グルコース（1 位で結合する側）
+const GLC_B1 = '[C@H]2[C@@H]([C@H]([C@@H]([C@H](O2)CO)O)O)O';     // β-グルコース（1 位で結合する側）
+const GAL_B1 = '[C@H]2[C@@H]([C@H]([C@H]([C@H](O2)CO)O)O)O';      // β-ガラクトース（1 位で結合する側）
+const GLC4 = x => `C([C@@H]1[C@H]([C@@H]([C@H]([C@@H](O1)O)O)O)O${x})O`;   // β-グルコース（4 位の O に x が付く）
+const LIB = [
+  ['分子の形（化学基礎）', [
+    ['水素', '[H][H]'], ['水', 'O'], ['アンモニア', 'N'], ['メタン', 'C'], ['二酸化炭素', 'O=C=O'], ['窒素', 'N#N'],
+    ['塩化水素', 'Cl'], ['硫化水素', 'S'], ['四塩化炭素', 'ClC(Cl)(Cl)Cl'], ['アンモニウムイオン', '[NH4+]'], ['オキソニウムイオン', '[OH3+]']]],
+  ['アルカン・シクロアルカン', [
+    ['エタン', 'CC'], ['プロパン', 'CCC'], ['ブタン', 'CCCC'], ['2-メチルプロパン', 'CC(C)C'], ['ペンタン', 'CCCCC'], ['シクロヘキサン', 'C1CCCCC1']]],
+  ['アルケン・アルキン', [
+    ['エチレン（エテン）', 'C=C'], ['プロペン', 'C=CC'], ['cis-2-ブテン', 'C/C=C\\C'], ['trans-2-ブテン', 'C/C=C/C'], ['1,3-ブタジエン', 'C=CC=C'],
+    ['アセチレン（エチン）', 'C#C']]],
+  ['ハロゲン化合物', [['クロロメタン', 'CCl'], ['クロロホルム', 'ClC(Cl)Cl'], ['1,2-ジクロロエタン', 'ClCCCl'], ['塩化ビニル', 'C=CCl']]],
+  ['アルコール・エーテル', [
+    ['メタノール', 'CO'], ['エタノール', 'CCO'], ['1-プロパノール', 'CCCO'], ['2-プロパノール', 'CC(O)C'], ['エチレングリコール', 'OCCO'],
+    ['グリセリン', 'OCC(O)CO'], ['ジメチルエーテル', 'COC'], ['ジエチルエーテル', 'CCOCC']]],
+  ['アルデヒド・ケトン', [['ホルムアルデヒド', 'C=O'], ['アセトアルデヒド', 'CC=O'], ['アセトン', 'CC(=O)C']]],
+  ['カルボン酸・エステル', [
+    ['ギ酸', 'OC=O'], ['酢酸', 'CC(=O)O'], ['シュウ酸', 'OC(=O)C(=O)O'], ['マレイン酸', 'OC(=O)/C=C\\C(=O)O'], ['フマル酸', 'OC(=O)/C=C/C(=O)O'],
+    ['酢酸エチル', 'CC(=O)OCC'], ['酢酸イオン', 'CC(=O)[O-]']]],
+  ['鏡像異性体', [
+    ['L-乳酸', 'C[C@@H](C(=O)O)O'], ['D-乳酸', 'C[C@H](C(=O)O)O'], ['L-アラニン', 'N[C@@H](C)C(=O)O'], ['D-アラニン', 'N[C@H](C)C(=O)O'],
+    ['L-酒石酸', '[C@@H]([C@H](C(=O)O)O)(C(=O)O)O'], ['D-グリセルアルデヒド', 'C([C@H](C=O)O)O']]],
+  ['芳香族化合物', [
+    ['ベンゼン', 'c1ccccc1'], ['トルエン', 'Cc1ccccc1'], ['o-キシレン', 'Cc1ccccc1C'], ['m-キシレン', 'Cc1cccc(C)c1'], ['p-キシレン', 'Cc1ccc(C)cc1'],
+    ['スチレン', 'C=Cc1ccccc1'], ['ナフタレン', 'c1ccc2ccccc2c1'], ['フェノール', 'Oc1ccccc1'], ['安息香酸', 'OC(=O)c1ccccc1'],
+    ['サリチル酸', 'OC(=O)c1ccccc1O'], ['アセチルサリチル酸', 'CC(=O)Oc1ccccc1C(=O)O'], ['サリチル酸メチル', 'COC(=O)c1ccccc1O'],
+    ['ニトロベンゼン', '[O-][N+](=O)c1ccccc1'], ['アニリン', 'Nc1ccccc1'], ['アセトアニリド', 'CC(=O)Nc1ccccc1'], ['クロロベンゼン', 'Clc1ccccc1']]],
+  ['窒素を含む化合物', [['メチルアミン', 'CN'], ['尿素', 'NC(=O)N'], ['グリシン', 'NCC(=O)O']]],
+  ['糖類', [
+    ['α-グルコース', 'C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O)O)O)O)O'], ['β-グルコース', 'C([C@@H]1[C@H]([C@@H]([C@H]([C@@H](O1)O)O)O)O)O'],
+    ['β-ガラクトース', 'C([C@@H]1[C@@H]([C@@H]([C@H]([C@@H](O1)O)O)O)O)O'], ['β-フルクトース（五員環）', 'C([C@@H]1[C@H]([C@@H]([C@](O1)(CO)O)O)O)O'],
+    ['マルトース', GLC4(GLC_A1)], ['セロビオース', GLC4(GLC_B1)], ['ラクトース', GLC4(GAL_B1)],
+    ['スクロース', `C([C@@H]1[C@H]([C@@H]([C@](O1)(CO)O${GLC_A1})O)O)O`]]]
+];
+// ===== 化学 ここまで =====
+
+const $ = id => document.getElementById(id);
+
+// ===== 画面の状態 =====
+// doc = {atoms:{id:原子}, bonds:{id:結合}, objs:{id:鏡など}, meas:[{id, atoms:[id]}], nid}
+function emptyDoc(){ return {atoms:{}, bonds:{}, objs:{}, meas:[], nid:1}; }
+let doc = emptyDoc();
+const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, tool:'rotate'};
+const view = {R:M3.id(), s:60, pan:[0, 0], center:[0, 0, 0]};   // s：1 Å あたりの画面の px
+let sel = null;          // 選択中の分子（原子 id の Set）
+let picking = [];        // 計測でクリックした原子
+let hoverAtom = null;
+
+// ===== 3D の描画（WebGL2。外部ライブラリなし） =====
+// 原子の球は「インポスター」（四角形に球を描き、奥行きも球の表面の値にする）、結合の棒は円筒のメッシュ。平行投影
+const glc = $('gl'), ovc = $('ov'), ctx = ovc.getContext('2d');
+const gl = glc.getContext('webgl2', {antialias:true, preserveDrawingBuffer:true, alpha:true, premultipliedAlpha:false});
+const SHADE = `
+uniform vec3 uOutCol;
+vec3 shade(vec3 n, vec3 col){
+  vec3 L = normalize(vec3(-0.45, 0.55, 0.9)), H = normalize(L + vec3(0.0, 0.0, 1.0));
+  float d = max(dot(n, L), 0.0), sp = pow(max(dot(n, H), 0.0), 60.0);
+  return col*(0.30 + 0.70*d) + vec3(0.42)*sp;
+}`;
+const SPHERE_VS = `#version 300 es
+layout(location=0) in vec2 corner;
+layout(location=1) in vec4 cr;      // 中心と半径
+layout(location=2) in vec4 colg;    // 色と強調
+uniform mat4 uView; uniform vec2 uScale; uniform vec2 uDepth; uniform float uPx;
+out vec2 vUV; out vec3 vC; out vec3 vCol; out float vR; out float vPix; out float vGlow;
+void main(){
+  vec4 c = uView*vec4(cr.xyz, 1.0);
+  vec2 q = corner*1.06;
+  vec3 p = c.xyz + vec3(q*cr.w, 0.0);
+  vUV = q; vC = c.xyz; vCol = colg.rgb; vR = cr.w; vPix = cr.w*uPx; vGlow = colg.a;
+  gl_Position = vec4(p.xy*uScale, ((uDepth.x - c.z - cr.w)*uDepth.y)*2.0 - 1.0, 1.0);
+}`;
+const SPHERE_FS = `#version 300 es
+precision highp float;
+in vec2 vUV; in vec3 vC; in vec3 vCol; in float vR; in float vPix; in float vGlow;
+uniform vec2 uDepth; uniform float uLine;
+out vec4 frag;
+${SHADE}
+void main(){
+  float r2 = dot(vUV, vUV);
+  if (r2 > 1.0) discard;
+  vec3 n = vec3(vUV, sqrt(1.0 - r2));
+  gl_FragDepth = clamp((uDepth.x - (vC.z + vR*n.z))*uDepth.y, 0.0, 1.0);
+  vec3 col = shade(n, mix(vCol, vec3(0.25, 0.5, 1.0), vGlow*0.45));
+  float r = sqrt(r2), w = uLine/max(vPix, 1.0);
+  col = mix(col, uOutCol, smoothstep(1.0 - w*1.6, 1.0 - w*0.4, r));
+  frag = vec4(col, 1.0);
+}`;
+const CYL_VS = `#version 300 es
+layout(location=0) in vec3 cyl;     // (cos, sin, 0 か 1)
+layout(location=1) in vec4 p0r;     // 始点と半径
+layout(location=2) in vec3 p1;
+layout(location=3) in vec3 col;
+uniform mat4 uView; uniform vec2 uScale; uniform vec2 uDepth; uniform float uPx;
+out vec3 vN; out vec3 vCol; out float vPix;
+void main(){
+  vec3 a0 = (uView*vec4(p0r.xyz, 1.0)).xyz, a1 = (uView*vec4(p1, 1.0)).xyz, ax = a1 - a0, d = normalize(ax);
+  vec3 u = normalize(cross(d, abs(d.z) < 0.9 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0))), w = cross(d, u);
+  vec3 n = u*cyl.x + w*cyl.y, p = a0 + ax*cyl.z + n*p0r.w;
+  vN = n; vCol = col; vPix = p0r.w*uPx;
+  gl_Position = vec4(p.xy*uScale, ((uDepth.x - p.z)*uDepth.y)*2.0 - 1.0, 1.0);
+}`;
+const CYL_FS = `#version 300 es
+precision highp float;
+in vec3 vN; in vec3 vCol; in float vPix;
+uniform float uLine;
+out vec4 frag;
+${SHADE}
+void main(){
+  vec3 n = normalize(vN);
+  vec3 col = shade(n, vCol);
+  float side = sqrt(max(0.0, 1.0 - n.z*n.z)), w = uLine/max(vPix, 1.0);
+  col = mix(col, uOutCol, smoothstep(1.0 - w*1.6, 1.0 - w*0.4, side));
+  frag = vec4(col, 1.0);
+}`;
+const PLANE_VS = `#version 300 es
+layout(location=0) in vec3 pos;
+uniform mat4 uView; uniform vec2 uScale; uniform vec2 uDepth;
+void main(){ vec3 p = (uView*vec4(pos, 1.0)).xyz; gl_Position = vec4(p.xy*uScale, ((uDepth.x - p.z)*uDepth.y)*2.0 - 1.0, 1.0); }`;
+const PLANE_FS = `#version 300 es
+precision highp float;
+uniform vec4 uColor; out vec4 frag;
+void main(){ frag = uColor; }`;
+function program(vs, fs){
+  const mk = (type, src) => { const s = gl.createShader(type); gl.shaderSource(s, src); gl.compileShader(s);
+    if (!gl.getShaderParameter(s, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(s)); return s; };
+  const p = gl.createProgram(); gl.attachShader(p, mk(gl.VERTEX_SHADER, vs)); gl.attachShader(p, mk(gl.FRAGMENT_SHADER, fs)); gl.linkProgram(p);
+  if (!gl.getProgramParameter(p, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(p));
+  const u = {}; for (let i = 0; i < gl.getProgramParameter(p, gl.ACTIVE_UNIFORMS); i++){ const n = gl.getActiveUniform(p, i).name; u[n] = gl.getUniformLocation(p, n); }
+  return {p, u};
+}
+let R3 = null;   // 描画に使う GPU の資源
+function initGL(){
+  if (!gl) { $('glError').hidden = false; return false; }
+  const sp = program(SPHERE_VS, SPHERE_FS), cp = program(CYL_VS, CYL_FS), pp = program(PLANE_VS, PLANE_FS);
+  const buf = (data, usage = gl.STATIC_DRAW) => { const b = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, b); gl.bufferData(gl.ARRAY_BUFFER, data, usage); return b; };
+  // 球：四角形 1 枚 × 原子の数
+  const sVao = gl.createVertexArray(); gl.bindVertexArray(sVao);
+  buf(new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1])); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+  const sInst = buf(new Float32Array(8), gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 32, 0); gl.vertexAttribDivisor(1, 1);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 4, gl.FLOAT, false, 32, 16); gl.vertexAttribDivisor(2, 1);
+  // 円筒：側面だけ（端は球に隠れる）
+  const N = 28, cv = [];
+  for (let k = 0; k < N; k++){
+    const a = 2*Math.PI*k/N, b = 2*Math.PI*(k + 1)/N, A = [Math.cos(a), Math.sin(a)], B = [Math.cos(b), Math.sin(b)];
+    cv.push(...A, 0, ...B, 0, ...A, 1, ...B, 0, ...B, 1, ...A, 1);
+  }
+  const cVao = gl.createVertexArray(); gl.bindVertexArray(cVao);
+  buf(new Float32Array(cv)); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+  const cInst = buf(new Float32Array(10), gl.DYNAMIC_DRAW);
+  gl.enableVertexAttribArray(1); gl.vertexAttribPointer(1, 4, gl.FLOAT, false, 40, 0); gl.vertexAttribDivisor(1, 1);
+  gl.enableVertexAttribArray(2); gl.vertexAttribPointer(2, 3, gl.FLOAT, false, 40, 16); gl.vertexAttribDivisor(2, 1);
+  gl.enableVertexAttribArray(3); gl.vertexAttribPointer(3, 3, gl.FLOAT, false, 40, 28); gl.vertexAttribDivisor(3, 1);
+  // 鏡の面
+  const pVao = gl.createVertexArray(); gl.bindVertexArray(pVao);
+  const pBuf = buf(new Float32Array(18), gl.DYNAMIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+  const eVao = gl.createVertexArray(); gl.bindVertexArray(eVao);   // 鏡の縁
+  const eBuf = buf(new Float32Array(24), gl.DYNAMIC_DRAW); gl.enableVertexAttribArray(0); gl.vertexAttribPointer(0, 3, gl.FLOAT, false, 0, 0);
+  gl.bindVertexArray(null);
+  R3 = {sp, cp, pp, sVao, sInst, cVao, cInst, cN:N*6, pVao, pBuf, eVao, eBuf, nS:0, nC:0, nP:0, nE:0};
+  return true;
+}
+
+// ---- 表示する球・棒を作る ----
+const BALL = 0.28, STICK_R = {ballstick:0.11, stick:0.16};
+function atomRadius(a){
+  if (state.mode === 'spacefill') return ELEM[a.el].vdw;
+  if (state.mode === 'stick') return STICK_R.stick;
+  return ELEM[a.el].vdw*BALL;
+}
+function atomVisible(a){
+  if (!state.hideH || a.el !== 'H') return true;
+  return !Object.values(doc.bonds).some(b => (b.a1 === a.id && doc.atoms[b.a2]?.el === 'C') || (b.a2 === a.id && doc.atoms[b.a1]?.el === 'C'));
+}
+let scene = null;   // {spheres, cyls, planes, visible:Set, bbox}
+function buildScene(){
+  const S = [], Cy = [], vis = new Set();
+  for (const a of Object.values(doc.atoms)) if (atomVisible(a)) vis.add(a.id);
+  for (const a of Object.values(doc.atoms)){
+    if (!vis.has(a.id)) continue;
+    const col = ELEM[a.el].color, g = sel && sel.has(a.id) ? 1 : 0;
+    S.push(a.x, a.y, a.z, atomRadius(a), col[0], col[1], col[2], g);
+  }
+  if (state.mode !== 'spacefill'){
+    const nbOf = id => Object.values(doc.bonds).filter(b => b.a1 === id || b.a2 === id).map(b => b.a1 === id ? b.a2 : b.a1);
+    const stick = STICK_R[state.mode];
+    const half = (p, q, r, cp, cq) => { const m = V.mul(V.add(p, q), 0.5); Cy.push(...p, r, ...m, ...cp); Cy.push(...m, r, ...q, ...cq); };
+    const capSphere = (p, r, c) => S.push(p[0], p[1], p[2], r, c[0], c[1], c[2], 0);
+    for (const b of Object.values(doc.bonds)){
+      if (!vis.has(b.a1) || !vis.has(b.a2)) continue;
+      const A = doc.atoms[b.a1], B = doc.atoms[b.a2], p = [A.x, A.y, A.z], q = [B.x, B.y, B.z];
+      const cp = ELEM[A.el].color, cq = ELEM[B.el].color, ax = V.norm(V.sub(q, p));
+      // 多重結合の棒をずらす向き：隣の原子を含む面の中で結合に垂直な向き
+      const ref = nbOf(A.id).find(j => j !== B.id) ?? nbOf(B.id).find(j => j !== A.id);
+      let off;
+      if (ref != null){ const r = doc.atoms[ref], rv = V.sub([r.x, r.y, r.z], nbOf(A.id).includes(ref) ? p : q); off = V.sub(rv, V.mul(ax, V.dot(rv, ax))); off = V.len(off) > 1e-3 ? V.norm(off) : V.perp(ax); }
+      else off = V.perp(ax);
+      if (b.order === 2 || b.order === 3){
+        const k = b.order === 2 ? [-1, 1] : [-1, 0, 1], d = b.order === 2 ? 0.12 : 0.15, r = stick*(b.order === 2 ? 0.66 : 0.58);
+        for (const s of k){
+          const o = V.mul(off, s*d), p2 = V.add(p, o), q2 = V.add(q, o);
+          half(p2, q2, r, cp, cq);
+          if (state.mode === 'stick' && s) { capSphere(p2, r, cp); capSphere(q2, r, cq); }
+        }
+      } else if (b.order === 1.5){
+        half(p, q, stick, cp, cq);
+        // 芳香族：環の内側に点線の棒
+        const inner = nbOf(A.id).find(j => j !== B.id && Object.values(doc.bonds).some(x => x.order === 1.5 && ((x.a1 === A.id && x.a2 === j) || (x.a2 === A.id && x.a1 === j))));
+        let o = off;
+        if (inner != null){ const r = doc.atoms[inner], rv = V.sub([r.x, r.y, r.z], p); o = V.norm(V.sub(rv, V.mul(ax, V.dot(rv, ax)))); }
+        const dd = state.mode === 'stick' ? 0.3 : 0.2, rr = stick*0.5, L = V.dist(p, q);
+        for (let t = 0.22; t < 0.78 - 1e-6; t += 0.14){
+          const s0 = V.add(V.add(p, V.mul(ax, L*t)), V.mul(o, dd)), s1 = V.add(V.add(p, V.mul(ax, L*Math.min(0.78, t + 0.08))), V.mul(o, dd));
+          const c = t + 0.04 < 0.5 ? cp : cq;
+          Cy.push(...s0, rr, ...s1, ...c); capSphere(s0, rr, c); capSphere(s1, rr, c);
+        }
+      } else half(p, q, stick, cp, cq);
+    }
+  }
+  const planes = Object.values(doc.objs).filter(o => o.type === 'mirror');
+  const pts = Object.values(doc.atoms).map(a => [a.x, a.y, a.z]);
+  let bbox = null;
+  if (pts.length){
+    const mn = [0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))), mx = [0, 1, 2].map(k => Math.max(...pts.map(p => p[k])));
+    bbox = {mn, mx, c:V.mul(V.add(mn, mx), 0.5), r:Math.max(...pts.map(p => V.dist(p, V.mul(V.add(mn, mx), 0.5)))) + 2.2};
+  }
+  scene = {spheres:new Float32Array(S), cyls:new Float32Array(Cy), planes, visible:vis, bbox};
+  if (R3){
+    gl.bindBuffer(gl.ARRAY_BUFFER, R3.sInst); gl.bufferData(gl.ARRAY_BUFFER, scene.spheres.length ? scene.spheres : new Float32Array(8), gl.DYNAMIC_DRAW); R3.nS = scene.spheres.length/8;
+    gl.bindBuffer(gl.ARRAY_BUFFER, R3.cInst); gl.bufferData(gl.ARRAY_BUFFER, scene.cyls.length ? scene.cyls : new Float32Array(10), gl.DYNAMIC_DRAW); R3.nC = scene.cyls.length/10;
+    const pv = [], ev = [];
+    for (const o of planes){   // 鏡：中心 c、面の中の 2 つの向き u・v、半分の大きさ hu・hv
+      const q = (s, t) => V.add(o.c, V.add(V.mul(o.u, s*o.hu), V.mul(o.v, t*o.hv)));
+      pv.push(...q(-1, -1), ...q(1, -1), ...q(1, 1), ...q(-1, -1), ...q(1, 1), ...q(-1, 1));
+      ev.push(...q(-1, -1), ...q(1, -1), ...q(1, -1), ...q(1, 1), ...q(1, 1), ...q(-1, 1), ...q(-1, 1), ...q(-1, -1));
+    }
+    gl.bindBuffer(gl.ARRAY_BUFFER, R3.pBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(pv.length ? pv : 18), gl.DYNAMIC_DRAW); R3.nP = pv.length/3;
+    gl.bindBuffer(gl.ARRAY_BUFFER, R3.eBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(ev.length ? ev : 24), gl.DYNAMIC_DRAW); R3.nE = ev.length/3;
+  }
+}
+
+// ---- 視点：v = R(p − center) + pan。画面の座標は中央が原点、y は上向き ----
+function toView(p){ const v = M3.apply(view.R, V.sub(p, view.center)); return [v[0] + view.pan[0], v[1] + view.pan[1], v[2]]; }
+function toScreen(p, W = glc.clientWidth, H = glc.clientHeight){ const v = toView(p); return {x:W/2 + v[0]*view.s, y:H/2 - v[1]*view.s, z:v[2]}; }
+function viewMatrix(){
+  const R = view.R, t = V.add(V.mul(M3.apply(R, view.center), -1), [view.pan[0], view.pan[1], 0]);
+  return new Float32Array([R[0][0], R[1][0], R[2][0], 0, R[0][1], R[1][1], R[2][1], 0, R[0][2], R[1][2], R[2][2], 0, t[0], t[1], t[2], 1]);
+}
+const BG = {white:[1, 1, 1], gray:[0.93, 0.94, 0.95], black:[0, 0, 0]};
+// 画面（または書き出し用に大きさを変えたキャンバス）に描く。W・H は CSS の px、dpr は倍率
+function drawGL(W, H, dpr, transparent = false){
+  if (!R3 || !scene) return;
+  gl.viewport(0, 0, Math.round(W*dpr), Math.round(H*dpr));
+  const bg = BG[state.bg];
+  gl.clearColor(bg[0], bg[1], bg[2], transparent ? 0 : 1);
+  gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+  gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.depthMask(true); gl.disable(gl.BLEND);
+  const zr = scene.bbox ? scene.bbox.r + V.dist(scene.bbox.c, view.center) + 1 : 10;
+  const common = (u) => {
+    gl.uniformMatrix4fv(u.uView, false, viewMatrix());
+    gl.uniform2f(u.uScale, 2*view.s/W, 2*view.s/H);
+    gl.uniform2f(u.uDepth, zr, 1/(2*zr));
+    if (u.uPx) gl.uniform1f(u.uPx, view.s*dpr);
+    if (u.uLine) gl.uniform1f(u.uLine, 1.25*dpr);
+    if (u.uOutCol) gl.uniform3f(u.uOutCol, 0.1, 0.1, 0.1);
+  };
+  if (R3.nS){ gl.useProgram(R3.sp.p); common(R3.sp.u); gl.bindVertexArray(R3.sVao); gl.drawArraysInstanced(gl.TRIANGLE_STRIP, 0, 4, R3.nS); }
+  if (R3.nC){ gl.useProgram(R3.cp.p); common(R3.cp.u); gl.bindVertexArray(R3.cVao); gl.drawArraysInstanced(gl.TRIANGLES, 0, R3.cN, R3.nC); }
+  if (R3.nP){
+    gl.useProgram(R3.pp.p); common(R3.pp.u); gl.uniform4f(R3.pp.u.uColor, 0.55, 0.75, 0.95, 0.28);
+    // 半透明の鏡。不透明度（アルファ）は重ねた分だけ増やす（書き出した PNG が透けないように）
+    gl.enable(gl.BLEND); gl.blendFuncSeparate(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA, gl.ONE, gl.ONE_MINUS_SRC_ALPHA); gl.depthMask(false);
+    gl.bindVertexArray(R3.pVao); gl.drawArrays(gl.TRIANGLES, 0, R3.nP);
+    gl.uniform4f(R3.pp.u.uColor, 0.25, 0.5, 0.8, 0.85);
+    gl.bindVertexArray(R3.eVao); gl.drawArrays(gl.LINES, 0, R3.nE);
+    gl.depthMask(true); gl.disable(gl.BLEND);
+  }
+  gl.bindVertexArray(null);
+}
+
+// ===== 分子の情報（分子式・不斉炭素） =====
+let info = {comps:[], stereo:new Map()};
+function docArrays(ids = Object.keys(doc.atoms).map(Number)){
+  const idx = new Map(ids.map((id, i) => [id, i]));
+  const atoms = ids.map(id => doc.atoms[id]);
+  const bonds = Object.values(doc.bonds).filter(b => idx.has(b.a1) && idx.has(b.a2)).map(b => ({a:idx.get(b.a1), b:idx.get(b.a2), order:b.order}));
+  return {ids, atoms, bonds};
+}
+function components(){
+  const seen = new Set(), comps = [], nb = new Map();
+  for (const b of Object.values(doc.bonds)){ (nb.get(b.a1) || nb.set(b.a1, []).get(b.a1)).push(b.a2); (nb.get(b.a2) || nb.set(b.a2, []).get(b.a2)).push(b.a1); }
+  for (const id of Object.keys(doc.atoms).map(Number)){
+    if (seen.has(id)) continue;
+    const c = [], st = [id]; seen.add(id);
+    while (st.length){ const x = st.pop(); c.push(x); for (const y of nb.get(x) || []) if (!seen.has(y)) { seen.add(y); st.push(y); } }
+    comps.push(c);
+  }
+  return comps;
+}
+function analyze(){
+  const comps = components().map(ids => ({ids, f:formulaOf(ids.map(id => doc.atoms[id]))}));
+  const {ids, atoms, bonds} = docArrays(), stereo = new Map();
+  if (atoms.length){
+    const g = graphOf(atoms, bonds);
+    for (const s of stereoCenters(g.mol, g.P)) stereo.set(ids[s.atom], s.rs);
+  }
+  info = {comps, stereo};
+}
+function measureValue(ids){
+  const P = ids.map(id => { const a = doc.atoms[id]; return [a.x, a.y, a.z]; });
+  if (ids.length === 2) return {v:V.dist(P[0], P[1]), unit:'Å', text:V.dist(P[0], P[1]).toFixed(2) + ' Å'};
+  if (ids.length === 3) { const v = angleOf(P[0], P[1], P[2]); return {v, unit:'°', text:v.toFixed(1) + '°'}; }
+  const v = dihedralOf(P[0], P[1], P[2], P[3]); return {v, unit:'°', text:v.toFixed(1) + '°'};
+}
+
+// ===== 重ねて描く文字・線（原子の記号・計測・不斉炭素） =====
+const DARK_EL = new Set(['C', 'N', 'Br', 'I', 'Na', 'Cl']);
+function occluded(id, W, H){   // 原子の中心の前に、ほかの原子の球があるか
+  const a = doc.atoms[id], s = toScreen([a.x, a.y, a.z], W, H), front = s.z + atomRadius(a);
+  for (const b of Object.values(doc.atoms)){
+    if (b.id === id || !scene.visible.has(b.id)) continue;
+    const t = toScreen([b.x, b.y, b.z], W, H), r = atomRadius(b)*view.s, d = Math.hypot(t.x - s.x, t.y - s.y);
+    if (d < r*0.9 && t.z + atomRadius(b)*Math.sqrt(Math.max(0, 1 - (d/r)**2)) > front) return true;
+  }
+  return false;
+}
+// 軸の表示：分子の座標の x・y・z 軸が画面でどちらを向いているか（奥を向く軸は薄く）
+function drawAxes(c, W, H){
+  const o = {x:W - 52, y:H - 52}, L = 30;
+  const ax = [['x', [1, 0, 0], '#d61f1f'], ['y', [0, 1, 0], '#15803d'], ['z', [0, 0, 1], '#1d4ed8']]
+    .map(([n, e, col]) => ({n, col, v:M3.apply(view.R, e)})).sort((p, q) => p.v[2] - q.v[2]);
+  c.save();
+  c.fillStyle = state.bg === 'black' ? 'rgba(255,255,255,.1)' : 'rgba(255,255,255,.8)';
+  c.strokeStyle = state.bg === 'black' ? 'rgba(255,255,255,.2)' : '#d9dde3'; c.lineWidth = 1;
+  c.beginPath(); c.arc(o.x, o.y, L + 15, 0, 2*Math.PI); c.fill(); c.stroke();
+  for (const a of ax){
+    const ex = o.x + a.v[0]*L, ey = o.y - a.v[1]*L, len = Math.hypot(ex - o.x, ey - o.y);
+    c.globalAlpha = a.v[2] < -0.05 ? 0.4 : 1;
+    c.strokeStyle = c.fillStyle = a.col; c.lineWidth = 2.4; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(o.x, o.y); c.lineTo(ex, ey); c.stroke();
+    if (len > 4){   // 矢じり
+      const ux = (ex - o.x)/len, uy = (ey - o.y)/len;
+      c.beginPath(); c.moveTo(ex + ux*3, ey + uy*3); c.lineTo(ex - ux*5 - uy*3.5, ey - uy*5 + ux*3.5); c.lineTo(ex - ux*5 + uy*3.5, ey - uy*5 - ux*3.5); c.closePath(); c.fill();
+    }
+    c.font = 'italic 700 14px "Times New Roman", Times, serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+    c.fillText(a.n, o.x + a.v[0]*(L + 9), o.y - a.v[1]*(L + 9));
+  }
+  c.restore();
+}
+function drawOverlay(c, W, H, forExport = false){
+  c.clearRect(0, 0, W, H);
+  if (state.axes && !forExport) drawAxes(c, W, H);
+  if (!scene) return;
+  const scr = id => { const a = doc.atoms[id]; return toScreen([a.x, a.y, a.z], W, H); };
+  const labelBox = (text, x, y, col, bg = 'rgba(255,255,255,.92)') => {
+    c.font = '600 13px Arial, Helvetica, sans-serif';
+    const w = c.measureText(text).width + 10, h = 19;
+    c.fillStyle = bg; c.strokeStyle = col; c.lineWidth = 1.2;
+    c.beginPath(); c.roundRect(x - w/2, y - h/2, w, h, 5); c.fill(); c.stroke();
+    c.fillStyle = col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, x, y + 0.5);
+  };
+  // 原子の記号
+  if (state.labels){
+    const ids = [...scene.visible].sort((p, q) => scr(p).z - scr(q).z);
+    c.textAlign = 'center'; c.textBaseline = 'middle';
+    for (const id of ids){
+      if (occluded(id, W, H)) continue;
+      const a = doc.atoms[id], s = scr(id), r = atomRadius(a)*view.s;
+      const fs = Math.max(9, Math.min(20, r*(state.mode === 'stick' ? 1.6 : 0.95)));
+      c.font = `700 ${fs}px Arial, Helvetica, sans-serif`;
+      const t = a.el + (a.charge ? (Math.abs(a.charge) > 1 ? Math.abs(a.charge) : '') + (a.charge > 0 ? '+' : '−') : '');
+      if (state.mode === 'stick') { c.lineWidth = 3; c.strokeStyle = 'rgba(255,255,255,.9)'; c.strokeText(t, s.x, s.y); c.fillStyle = '#1f2933'; }
+      else c.fillStyle = DARK_EL.has(a.el) ? '#fff' : '#1f2933';
+      c.fillText(t, s.x, s.y + 0.5);
+    }
+  }
+  // 不斉炭素（だいだい色の円）と R・S
+  if (state.showStereo || state.showRS){
+    for (const [id, rs] of info.stereo){
+      if (!scene.visible.has(id)) continue;
+      // 空間充填モデルでは球が大きいので、球棒モデルの球の大きさで囲む
+      const a = doc.atoms[id], s = scr(id), r = (state.mode === 'spacefill' ? ELEM[a.el].vdw*BALL : atomRadius(a))*view.s;
+      if (state.showStereo){ c.strokeStyle = '#ea7a00'; c.lineWidth = 2.6; c.beginPath(); c.arc(s.x, s.y, r + 5, 0, 2*Math.PI); c.stroke(); }
+      if (state.showRS){
+        const x = s.x + (r + 6)*0.75 + 8, y = s.y - (r + 6)*0.75 - 8;
+        c.font = 'italic 700 17px "Times New Roman", Times, serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
+        c.lineWidth = 4; c.strokeStyle = state.bg === 'black' ? '#000' : '#fff'; c.strokeText(rs, x, y); c.fillStyle = '#c2410c'; c.fillText(rs, x, y);
+      }
+    }
+  }
+  // 計測
+  const MC = '#c2410c';
+  for (const m of doc.meas){
+    const ps = m.atoms.map(scr);
+    c.strokeStyle = MC; c.lineWidth = 1.6; c.setLineDash([5, 4]);
+    c.beginPath(); ps.forEach((p, k) => k ? c.lineTo(p.x, p.y) : c.moveTo(p.x, p.y)); c.stroke(); c.setLineDash([]);
+    const val = measureValue(m.atoms).text;
+    let at;
+    if (ps.length === 2) at = {x:(ps[0].x + ps[1].x)/2, y:(ps[0].y + ps[1].y)/2 - 14};
+    else if (ps.length === 3){
+      const v = ps[1], u1 = V.norm([ps[0].x - v.x, ps[0].y - v.y, 0]), u2 = V.norm([ps[2].x - v.x, ps[2].y - v.y, 0]), bis = V.norm(V.add(u1, u2));
+      const a1 = Math.atan2(u1[1], u1[0]), a2 = Math.atan2(u2[1], u2[0]);
+      c.beginPath(); c.arc(v.x, v.y, 18, a1, a2, ((a2 - a1 + 3*Math.PI) % (2*Math.PI)) - Math.PI < 0); c.stroke();
+      at = {x:v.x + bis[0]*38, y:v.y + bis[1]*38};
+    } else at = {x:(ps[1].x + ps[2].x)/2, y:(ps[1].y + ps[2].y)/2 - 16};
+    labelBox(val, at.x, at.y, MC);
+  }
+  // 計測で選んでいる途中の原子・マウスが乗っている原子・選択中の分子
+  const ring = (id, col, dash) => { const a = doc.atoms[id]; if (!a) return; const s = scr(id); c.strokeStyle = col; c.lineWidth = 2.2; c.setLineDash(dash ? [4, 3] : []); c.beginPath(); c.arc(s.x, s.y, atomRadius(a)*view.s + 4, 0, 2*Math.PI); c.stroke(); c.setLineDash([]); };
+  picking.forEach((id, k) => { ring(id, '#2563eb'); const s = scr(id); labelBox(String(k + 1), s.x - atomRadius(doc.atoms[id])*view.s - 10, s.y - atomRadius(doc.atoms[id])*view.s - 8, '#2563eb'); });
+  if (hoverAtom != null && state.tool !== 'rotate') ring(hoverAtom, '#2563eb', true);
+}
+
+// ===== 画面を描き直す =====
+let needDraw = false, needScene = true;
+function requestDraw(sceneChanged = false){ if (sceneChanged) needScene = true; if (!needDraw) { needDraw = true; requestAnimationFrame(frame); } }
+function frame(){
+  needDraw = false;
+  const W = glc.clientWidth, H = glc.clientHeight, dpr = window.devicePixelRatio || 1;
+  for (const cv of [glc, ovc]) if (cv.width !== Math.round(W*dpr) || cv.height !== Math.round(H*dpr)) { cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr); }
+  if (needScene) { buildScene(); needScene = false; }
+  drawGL(W, H, dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  drawOverlay(ctx, W, H);
+  $('zLabel').textContent = Math.round(view.s/60*100) + '%';
+}
+// 拡大・移動をするまでは、画面の大きさが変わるたびに全体表示にする
+let autoFit = true;
+new ResizeObserver(() => { if (autoFit) fitView(); else requestDraw(); }).observe($('wrap'));
+
+// ===== 視点の操作 =====
+function fitView(keepRot = true){
+  const W = glc.clientWidth || 800, H = glc.clientHeight || 600, atoms = Object.values(doc.atoms);
+  if (!keepRot) view.R = M3.id();
+  view.pan = [0, 0]; autoFit = true;
+  if (!atoms.length) { view.center = [0, 0, 0]; view.s = 60; requestDraw(); return; }
+  const P = atoms.map(a => [a.x, a.y, a.z]), rad = atoms.map(atomRadius);
+  const vs = P.map(p => M3.apply(view.R, p));
+  const ext = k => [Math.min(...vs.map((v, i) => v[k] - rad[i])), Math.max(...vs.map((v, i) => v[k] + rad[i]))];
+  const ex = ext(0), ey = ext(1), ez = ext(2);
+  view.center = M3.apply(M3.tr(view.R), [(ex[0] + ex[1])/2, (ey[0] + ey[1])/2, (ez[0] + ez[1])/2]);
+  view.s = Math.max(6, Math.min(260, Math.min((W - 80)/(ex[1] - ex[0]), (H - 110)/(ey[1] - ey[0]))));
+  requestDraw();
+}
+function zoomAt(mx, my, f){
+  const W = glc.clientWidth, H = glc.clientHeight, ns = Math.max(4, Math.min(600, view.s*f));
+  autoFit = false;
+  view.pan[0] += (mx - W/2)*(1/ns - 1/view.s); view.pan[1] += (H/2 - my)*(1/ns - 1/view.s);
+  view.s = ns; requestDraw();
+}
+// 画面上のドラッグ量から回転（画面の横向きの軸・縦向きの軸のまわり）
+function dragRotation(dx, dy){
+  const L = Math.hypot(dx, dy); if (!L) return M3.id();
+  return M3.axis([dy/L, dx/L, 0], L*0.01);
+}
+function rotateView(dx, dy){ view.R = M3.mul(dragRotation(dx, dy), view.R); requestDraw(); }
+
+// ---- クリックした原子を探す（画面の点から奥へ向かう線と球の交わり） ----
+function ensureScene(){ if (needScene || !scene) { buildScene(); needScene = false; } }   // 変更の直後（次の描画の前）でも最新の表示で調べる
+function atomAt(mx, my){
+  ensureScene();
+  const W = glc.clientWidth, H = glc.clientHeight; let best = null;
+  for (const id of scene.visible){
+    const a = doc.atoms[id]; if (!a) continue;
+    const s = toScreen([a.x, a.y, a.z], W, H), r = Math.max(atomRadius(a)*view.s, 7), d = Math.hypot(mx - s.x, my - s.y);
+    if (d > r) continue;
+    const z = s.z + Math.sqrt(r*r - d*d)/view.s;
+    if (!best || z > best.z) best = {id, z};
+  }
+  return best && best.id;
+}
+
+// ===== 履歴・変更 =====
+const hist = {undo:[], redo:[]};
+function commit(){ hist.undo.push(JSON.stringify(doc)); if (hist.undo.length > 100) hist.undo.shift(); hist.redo = []; syncUndo(); }
+function undo(){ if (!hist.undo.length) return; hist.redo.push(JSON.stringify(doc)); doc = JSON.parse(hist.undo.pop()); picking = []; changed(); }
+function redo(){ if (!hist.redo.length) return; hist.undo.push(JSON.stringify(doc)); doc = JSON.parse(hist.redo.pop()); picking = []; changed(); }
+function syncUndo(){ $('btnUndo').disabled = !hist.undo.length; $('btnRedo').disabled = !hist.redo.length; }
+function changed(){
+  if (sel) { for (const id of sel) if (!doc.atoms[id]) sel.delete(id); if (!sel.size) sel = null; }
+  picking = picking.filter(id => doc.atoms[id]);
+  analyze(); renderInfo(); renderSel(); syncUndo(); requestDraw(true); autosave();
+}
+function compOf(id){ return info.comps.find(c => c.ids.includes(id))?.ids || [id]; }
+const screenX = () => M3.apply(M3.tr(view.R), [1, 0, 0]);   // 画面の右向き（分子の座標で）
+
+// ---- 分子を置く（replace：いまの分子と入れ替え） ----
+function addMolecule(m, replace = true){
+  commit();
+  if (replace) { doc = emptyDoc(); view.R = M3.id(); sel = null; }
+  // 組み立てた向き（画面に正対）のまま、いまの視点に合わせて置く。追加するときは右に並べる
+  const Rt = M3.tr(view.R);
+  let pts = m.atoms.map(a => M3.apply(Rt, [a.x, a.y, a.z]));
+  const olds = Object.values(doc.atoms);
+  if (olds.length){
+    const ex = screenX(), maxOld = Math.max(...olds.map(a => V.dot([a.x, a.y, a.z], ex) + ELEM[a.el].vdw)), minNew = Math.min(...pts.map((p, i) => V.dot(p, ex) - ELEM[m.atoms[i].el].vdw));
+    const cOld = olds.reduce((s, a) => V.add(s, [a.x, a.y, a.z]), [0, 0, 0]).map(v => v/olds.length), cNew = pts.reduce(V.add).map(v => v/pts.length);
+    const shift = V.add(V.mul(ex, maxOld - minNew + 1.2), V.sub(cOld, V.add(cNew, V.mul(ex, V.dot(V.sub(cOld, cNew), ex)))));
+    pts = pts.map(p => V.add(p, shift));
+  }
+  const map = m.atoms.map((a, i) => {
+    const id = doc.nid++;
+    doc.atoms[id] = {id, el:a.el, charge:a.charge || 0, hyb:a.hyb, type:a.type, x:pts[i][0], y:pts[i][1], z:pts[i][2]};
+    return id;
+  });
+  for (const b of m.bonds){ const id = doc.nid++; doc.bonds[id] = {id, a1:map[b.a], a2:map[b.b], order:b.order}; }
+  changed();
+  fitView();
+  if (m.approx) toast('この分子の形はおおよそです（テンプレートにない環を含むため）');
+}
+// 鏡像体を並べる：画面の右向きに垂直な鏡をはさんで、すべての分子の鏡像を置く
+function toggleMirror(){
+  const mirrors = Object.values(doc.objs).filter(o => o.type === 'mirror');
+  commit();
+  if (mirrors.length){
+    for (const a of Object.values(doc.atoms)) if (a.mir) deleteAtom(a.id);
+    mirrors.forEach(o => delete doc.objs[o.id]);
+  } else {
+    const src = Object.values(doc.atoms); if (!src.length) { hist.undo.pop(); syncUndo(); return; }
+    const n = screenX(), u = M3.apply(M3.tr(view.R), [0, 1, 0]), v = M3.apply(M3.tr(view.R), [0, 0, 1]);
+    const proj = (a, e) => V.dot([a.x, a.y, a.z], e);
+    const d = Math.max(...src.map(a => proj(a, n) + ELEM[a.el].vdw)) + 0.9;
+    const map = new Map();
+    for (const a of src){   // mirOf：鏡に映す元の原子（分子を回したとき、鏡像を合わせ直すのに使う）
+      const p = [a.x, a.y, a.z], q = V.sub(p, V.mul(n, 2*(V.dot(p, n) - d))), id = doc.nid++;
+      doc.atoms[id] = {...a, id, x:q[0], y:q[1], z:q[2], mir:true, mirOf:a.id}; map.set(a.id, id);
+    }
+    for (const b of Object.values(doc.bonds)) if (map.has(b.a1)) { const id = doc.nid++; doc.bonds[id] = {...b, id, a1:map.get(b.a1), a2:map.get(b.a2)}; }
+    const us = src.map(a => proj(a, u)), vs = src.map(a => proj(a, v));
+    const cu = (Math.min(...us) + Math.max(...us))/2, cv = (Math.min(...vs) + Math.max(...vs))/2;
+    const id = doc.nid++;
+    doc.objs[id] = {id, type:'mirror', c:V.add(V.add(V.mul(n, d), V.mul(u, cu)), V.mul(v, cv)), u, v,
+      hu:(Math.max(...us) - Math.min(...us))/2 + 1.8, hv:(Math.max(...vs) - Math.min(...vs))/2 + 1.8};
+    view.R = M3.mul(M3.axis([0, 1, 0], rad(28)), view.R);   // 鏡を真横から見ると線になるので、少し回して面が見えるようにする
+  }
+  changed(); fitView();
+}
+function mirrorObj(){ return Object.values(doc.objs).find(o => o.type === 'mirror'); }
+// 動かした分子（ids）の鏡像を、鏡に映した位置に合わせ直す（鏡像の側を動かしたときは元の分子を合わせる）
+function syncMirror(ids){
+  const o = mirrorObj(); if (!o) return;
+  const n = V.norm(V.cross(o.u, o.v)), S = p => V.sub(p, V.mul(n, 2*V.dot(V.sub(p, o.c), n))), set = new Set(ids);
+  for (const a of Object.values(doc.atoms)){
+    if (a.mirOf == null || !doc.atoms[a.mirOf]) continue;
+    const src = doc.atoms[a.mirOf];
+    if (set.has(src.id)) { const q = S([src.x, src.y, src.z]); a.x = q[0]; a.y = q[1]; a.z = q[2]; }
+    else if (set.has(a.id)) { const q = S([a.x, a.y, a.z]); src.x = q[0]; src.y = q[1]; src.z = q[2]; }
+  }
+}
+// ドラッグで動かす分子：鏡像体を並べているときはカーソルの近くの分子、分子を選択しているときはその分子（近くからドラッグしたとき）
+function compRegion(ids){
+  const pts = ids.map(id => { const a = doc.atoms[id]; return {s:toScreen([a.x, a.y, a.z]), r:atomRadius(a)*view.s}; });
+  const x = pts.reduce((t, p) => t + p.s.x, 0)/pts.length, y = pts.reduce((t, p) => t + p.s.y, 0)/pts.length;
+  return {x, y, r:Math.max(...pts.map(p => Math.hypot(p.s.x - x, p.s.y - y) + p.r))};
+}
+function dragTarget(mx, my){
+  const cands = mirrorObj() ? info.comps.map(c => c.ids) : sel ? [[...sel]] : [];
+  let best = null;
+  for (const ids of cands){
+    const g = compRegion(ids), d = Math.hypot(mx - g.x, my - g.y)/(g.r + 18);
+    if (d <= 1 && (!best || d < best.d)) best = {d, ids};
+  }
+  return best && best.ids;
+}
+const centroidOf = ids => ids.reduce((s, id) => V.add(s, [doc.atoms[id].x, doc.atoms[id].y, doc.atoms[id].z]), [0, 0, 0]).map(v => v/ids.length);
+function rotateAtoms(ids, c, Q){   // 画面の座標での回転 Q を、分子の中心 c のまわりにかける
+  const M = M3.mul(M3.tr(view.R), M3.mul(Q, view.R));
+  for (const id of ids){ const a = doc.atoms[id], q = V.add(c, M3.apply(M, V.sub([a.x, a.y, a.z], c))); a.x = q[0]; a.y = q[1]; a.z = q[2]; }
+  syncMirror(ids);
+}
+function deleteAtom(id){
+  delete doc.atoms[id];
+  for (const b of Object.values(doc.bonds)) if (b.a1 === id || b.a2 === id) delete doc.bonds[b.id];
+  doc.meas = doc.meas.filter(m => !m.atoms.includes(id));
+}
+function deleteSelection(){
+  if (!sel) return;
+  commit(); [...sel].forEach(deleteAtom); sel = null;
+  if (!Object.values(doc.atoms).some(a => a.mir)) for (const o of Object.values(doc.objs)) if (o.type === 'mirror') delete doc.objs[o.id];
+  changed();
+}
+function invertSelection(){   // 選んだ分子を、画面の左右に鏡に映した形に置き換える
+  if (!sel) return;
+  commit();
+  const ids = [...sel], n = screenX(), c = ids.reduce((s, id) => V.add(s, [doc.atoms[id].x, doc.atoms[id].y, doc.atoms[id].z]), [0, 0, 0]).map(v => v/ids.length);
+  for (const id of ids){ const a = doc.atoms[id], p = V.sub([a.x, a.y, a.z], c), q = V.add(c, V.sub(p, V.mul(n, 2*V.dot(p, n)))); a.x = q[0]; a.y = q[1]; a.z = q[2]; }
+  changed();
+}
+
+// ===== 画面下の情報・選択時のポップアップ =====
+function renderInfo(){
+  $('formulas').innerHTML = info.comps.length
+    ? info.comps.map((c, k) => `<button class="chip" data-ci="${k}" title="クリックでこの分子を選択">${c.f.html}<span class="mw">${c.f.label} ${c.f.mw}</span></button>`).join('')
+      + (state.showStereo || state.showRS ? `<span class="muted">不斉炭素 ${info.stereo.size} 個</span>` : '')
+    : '<span class="muted">化合物ライブラリから分子を選んでください</span>';
+  $('measList').innerHTML = doc.meas.map(m => {
+    const name = m.atoms.map(id => doc.atoms[id].el).join('–');
+    return `<span class="chip meas">${name}　${measureValue(m.atoms).text}<button data-mid="${m.id}" title="この計測を消す">×</button></span>`;
+  }).join('');
+}
+function renderSel(){
+  $('selBar').hidden = !sel;
+  updateHint();
+  if (sel) { const f = formulaOf([...sel].map(id => doc.atoms[id])); $('selName').innerHTML = f.html; }
+}
+$('formulas').addEventListener('click', e => {
+  const c = e.target.closest('.chip[data-ci]'); if (!c) return;
+  sel = new Set(info.comps[+c.dataset.ci].ids); renderSel(); requestDraw(true);
+});
+$('measList').addEventListener('click', e => {
+  const b = e.target.closest('[data-mid]'); if (!b) return;
+  commit(); doc.meas = doc.meas.filter(m => m.id !== +b.dataset.mid); changed();
+});
+
+// ===== ツール・表示の切り替え =====
+const HINTS = {
+  rotate:'ドラッグで回転　⇧+ドラッグで移動　⌥+ドラッグで z 軸まわりに回転　⌘+ホイール・ピンチで拡大　クリックで分子を選択',
+  rotateMirror:'分子の近くからドラッグで分子だけ回転（鏡像も一緒に）　鏡から離れたところからドラッグで全体を回転　⇧+ドラッグで移動',
+  rotateSel:'選んだ分子の近くからドラッグでその分子だけ回転（⇧で移動、⌥で z 軸まわり）　何もないところをクリックで選択を解除',
+  dist:'原子を 2 つクリックすると、原子の中心どうしの距離（結合長）を測ります',
+  angle:'原子を 3 つクリックすると、2 つ目の原子を頂点とする角度（結合角）を測ります',
+  dihedral:'原子を 4 つクリックすると、2 つ目と 3 つ目の原子を結ぶ結合のまわりのねじれの角度（二面角）を測ります'
+};
+function setTool(t){
+  state.tool = t; picking = [];
+  document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
+  glc.classList.toggle('measure', t !== 'rotate');
+  updateHint();
+  requestDraw();
+}
+function updateHint(){
+  const t = state.tool;
+  $('hint').textContent = t !== 'rotate' ? HINTS[t] : mirrorObj() ? HINTS.rotateMirror : sel ? HINTS.rotateSel : HINTS.rotate;
+}
+function setMode(m){
+  state.mode = m;
+  document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+  requestDraw(true); autosave();
+}
+function syncToggles(){
+  $('tgStereo').classList.toggle('on', state.showStereo); $('tgRS').classList.toggle('on', state.showRS); $('tgAxes').classList.toggle('on', state.axes);
+  $('chkLabels').checked = state.labels; $('chkHideH').checked = state.hideH; $('bgSel').value = state.bg;
+  $('wrap').style.background = state.bg === 'black' ? '#000' : state.bg === 'gray' ? '#edeff2' : '#fff';
+  $('hint').style.background = state.bg === 'black' ? 'rgba(0,0,0,.6)' : '';
+}
+document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
+document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
+$('tgStereo').onclick = () => { state.showStereo = !state.showStereo; syncToggles(); renderInfo(); requestDraw(); autosave(); };
+$('tgRS').onclick = () => { state.showRS = !state.showRS; syncToggles(); renderInfo(); requestDraw(); autosave(); };
+$('tgAxes').onclick = () => { state.axes = !state.axes; syncToggles(); requestDraw(); autosave(); };
+$('chkLabels').onchange = e => { state.labels = e.target.checked; requestDraw(); autosave(); };
+$('chkHideH').onchange = e => { state.hideH = e.target.checked; requestDraw(true); autosave(); };
+$('bgSel').onchange = e => { state.bg = e.target.value; syncToggles(); requestDraw(); autosave(); };
+$('btnClearMeas').onclick = () => { if (!doc.meas.length) return; commit(); doc.meas = []; changed(); };
+$('btnMirror').onclick = toggleMirror;
+$('btnFit').onclick = () => fitView();
+$('btnResetView').onclick = () => fitView(false);
+$('btnInvert').onclick = invertSelection;
+$('btnDelMol').onclick = deleteSelection;
+$('btnUndo').onclick = undo; $('btnRedo').onclick = redo;
+$('zIn').onclick = () => zoomAt(glc.clientWidth/2, glc.clientHeight/2, 1.25);
+$('zOut').onclick = () => zoomAt(glc.clientWidth/2, glc.clientHeight/2, 0.8);
+
+// ===== マウス・トラックパッドの操作 =====
+let drag = null, spaceDown = false;
+const localXY = e => { const r = glc.getBoundingClientRect(); return [e.clientX - r.left, e.clientY - r.top]; };
+glc.addEventListener('contextmenu', e => e.preventDefault());
+// ドラッグ：rot 回転、pan 移動、zrot 画面に垂直な軸（z 軸）のまわりの回転。ids があればその分子だけ（鏡像も合わせる）、なければ視点
+glc.addEventListener('pointerdown', e => {
+  if (e.button > 2) return;
+  try { glc.setPointerCapture(e.pointerId); } catch {}
+  const [mx, my] = localXY(e), hit = atomAt(mx, my);
+  const kind = e.altKey ? 'zrot' : (e.button === 2 || spaceDown || e.shiftKey) ? 'pan' : 'rot';
+  const ids = spaceDown ? null : dragTarget(mx, my);
+  drag = {x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY, mx, my, hit, moved:false, kind, ids};
+  if (ids) { commit(); drag.c = centroidOf(ids); }
+  glc.classList.add('dragging');
+});
+glc.addEventListener('pointermove', e => {
+  if (!drag){
+    if (state.tool !== 'rotate'){ const [mx, my] = localXY(e), h = atomAt(mx, my); if (h !== hoverAtom) { hoverAtom = h; requestDraw(); } }
+    return;
+  }
+  const dx = e.clientX - drag.x, dy = e.clientY - drag.y, [mx, my] = localXY(e);
+  drag.x = e.clientX; drag.y = e.clientY;
+  if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 3) drag.moved = true;
+  if (!drag.moved) { drag.mx = mx; drag.my = my; return; }
+  let Q = null;
+  if (drag.kind === 'rot') Q = dragRotation(dx, dy);
+  else if (drag.kind === 'zrot'){
+    const piv = toScreen(drag.ids ? drag.c : view.center);
+    if (Math.hypot(mx - piv.x, my - piv.y) > 8 && Math.hypot(drag.mx - piv.x, drag.my - piv.y) > 8){
+      let da = Math.atan2(my - piv.y, mx - piv.x) - Math.atan2(drag.my - piv.y, drag.mx - piv.x);
+      da = ((da + 3*Math.PI) % (2*Math.PI)) - Math.PI;
+      Q = M3.axis([0, 0, 1], -da);
+    }
+  }
+  drag.mx = mx; drag.my = my;
+  if (!drag.ids){
+    if (Q) view.R = M3.mul(Q, view.R);
+    else if (drag.kind === 'pan') { view.pan[0] += dx/view.s; view.pan[1] -= dy/view.s; autoFit = false; }
+    requestDraw();
+  } else {
+    if (Q) rotateAtoms(drag.ids, drag.c, Q);
+    else if (drag.kind === 'pan'){
+      const d = M3.apply(M3.tr(view.R), [dx/view.s, -dy/view.s, 0]);
+      for (const id of drag.ids){ const a = doc.atoms[id]; a.x += d[0]; a.y += d[1]; a.z += d[2]; }
+      drag.c = V.add(drag.c, d); syncMirror(drag.ids);
+    }
+    requestDraw(true);
+  }
+});
+const endDrag = e => {
+  if (!drag) return;
+  const d = drag; drag = null; glc.classList.remove('dragging');
+  if (d.ids) { if (d.moved) changed(); else { hist.undo.pop(); syncUndo(); } }
+  else if (d.moved) autosave();
+  if (!d.moved && e.type === 'pointerup' && e.button !== 2) clickAction(d.hit);
+};
+glc.addEventListener('pointerup', endDrag);
+glc.addEventListener('pointercancel', endDrag);
+glc.addEventListener('pointerleave', () => { if (hoverAtom != null) { hoverAtom = null; requestDraw(); } });
+function clickAction(hit){
+  if (state.tool === 'rotate'){ sel = hit != null ? new Set(compOf(hit)) : null; renderSel(); requestDraw(true); return; }
+  if (hit == null) { picking = []; requestDraw(); return; }
+  if (picking[picking.length - 1] === hit) return;
+  picking.push(hit);
+  if (picking.length === {dist:2, angle:3, dihedral:4}[state.tool]){
+    commit(); doc.meas.push({id:doc.nid++, atoms:[...picking]}); picking = []; changed();
+  } else requestDraw();
+}
+glc.addEventListener('wheel', e => {
+  e.preventDefault();
+  const [mx, my] = localXY(e);
+  if (e.ctrlKey || e.metaKey) { zoomAt(mx, my, Math.exp(-e.deltaY*0.01)); return; }
+  const k = e.deltaMode === 1 ? 16 : 1, c = v => Math.max(-40, Math.min(40, v*k*0.5)), Q = dragRotation(c(-e.deltaX), c(-e.deltaY));
+  const ids = dragTarget(mx, my);   // ドラッグと同じ：鏡像体・選択中の分子の近くならその分子だけ
+  if (!ids) { view.R = M3.mul(Q, view.R); requestDraw(); clearTimeout(wheelTimer); wheelTimer = setTimeout(autosave, 400); return; }
+  if (performance.now() - wheelAt > 500) commit();   // ひと続きのスクロールを 1 回の「元に戻す」に
+  wheelAt = performance.now();
+  rotateAtoms(ids, centroidOf(ids), Q); requestDraw(true);
+  clearTimeout(wheelTimer); wheelTimer = setTimeout(changed, 400);
+}, {passive:false});
+let wheelAt = 0, wheelTimer = null;
+let gestureS = null;   // Safari のピンチ
+glc.addEventListener('gesturestart', e => { e.preventDefault(); gestureS = view.s; });
+glc.addEventListener('gesturechange', e => { e.preventDefault(); if (gestureS) zoomAt(glc.clientWidth/2, glc.clientHeight/2, gestureS*e.scale/view.s); });
+glc.addEventListener('gestureend', e => { e.preventDefault(); gestureS = null; });
+
+// ===== キーボード =====
+window.addEventListener('keydown', e => {
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
+  const k = e.key, mod = e.metaKey || e.ctrlKey;
+  if (mod && k.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+  if (mod && k.toLowerCase() === 's') { e.preventDefault(); saveJSON(); return; }
+  if (mod && k.toLowerCase() === 'o') { e.preventDefault(); $('fileInput').click(); return; }
+  if (mod) return;
+  if (k === ' ') { spaceDown = true; e.preventDefault(); return; }
+  const map = {v:'rotate', d:'dist', a:'angle', t:'dihedral'};
+  if (map[k.toLowerCase()]) { setTool(map[k.toLowerCase()]); return; }
+  if (k === '1' || k === '2' || k === '3') { setMode(['ballstick', 'stick', 'spacefill'][+k - 1]); return; }
+  if (k.toLowerCase() === 'f') { fitView(); return; }
+  if (k.toLowerCase() === 'r') { fitView(false); return; }
+  if (k === '?') { openModal(); return; }
+  if (k === 'Escape') { picking = []; sel = null; closeModals(); renderSel(); requestDraw(true); return; }
+  if (k === 'Delete' || k === 'Backspace') { e.preventDefault(); deleteSelection(); return; }
+  const arrows = {ArrowLeft:[-1, 0], ArrowRight:[1, 0], ArrowUp:[0, -1], ArrowDown:[0, 1]};
+  if (arrows[k]) { e.preventDefault(); rotateView(arrows[k][0]*8.73, arrows[k][1]*8.73); }
+});
+window.addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; });
+
+// ===== 化合物ライブラリ =====
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'}[c]));
+const libFormula = new Map(), libBuilt = new Map();
+function renderLibrary(){
+  const q = $('libSearch').value.trim();
+  $('libBody').innerHTML = LIB.map(([cat, items]) => {
+    const its = items.filter(([n]) => !q || n.includes(q) || cat.includes(q));
+    if (!its.length) return '';
+    return `<div class="lib-cat">${cat}</div><div class="lib-list">` + its.map(([n, smi]) => {
+      if (!libFormula.has(smi)) { try { libFormula.set(smi, formulaOf(molFromSmiles(smi).atoms).html); } catch { libFormula.set(smi, ''); } }
+      return `<button class="lib-item" data-smi="${esc(smi)}"><span>${esc(n)}</span><span class="f">${libFormula.get(smi)}</span></button>`;
+    }).join('') + '</div>';
+  }).join('') || '<p class="muted">見つかりません</p>';
+}
+function buildCached(smi){
+  if (!libBuilt.has(smi)) libBuilt.set(smi, makeMolecule(smi));
+  return JSON.parse(JSON.stringify(libBuilt.get(smi)));
+}
+$('libBody').addEventListener('click', e => {
+  const b = e.target.closest('.lib-item'); if (!b) return;
+  try { addMolecule(buildCached(b.dataset.smi), !e.shiftKey); } catch (err) { toast('組み立てられませんでした：' + err.message); }
+});
+$('libSearch').addEventListener('input', renderLibrary);
+const fromSmilesInput = () => {
+  const s = $('smiIn').value.trim(); if (!s) return;
+  try { addMolecule(makeMolecule(s), true); } catch (err) { toast(err.message); }
+};
+$('smiGo').onclick = fromSmilesInput;
+$('smiIn').addEventListener('keydown', e => { if (e.key === 'Enter') fromSmilesInput(); });
+$('btnLib').onclick = () => openSide('lib');
+
+// ===== 右側のパネル =====
+const SIDE_KEY = 'bunshi-side', SIDEW_KEY = 'bunshi-sidew';
+let sidePane = '';
+function openSide(p){
+  sidePane = sidePane === p && p !== 'lib-force' ? '' : p;
+  $('sidePanel').classList.toggle('open', !!sidePane);
+  document.querySelectorAll('.side-pane').forEach(s => { s.hidden = s.dataset.pane !== sidePane; });
+  document.querySelectorAll('.side-tab').forEach(t => { t.classList.toggle('on', t.dataset.pane === sidePane); t.querySelector('.arr').textContent = t.dataset.pane === sidePane ? '▶' : '◀'; });
+  try { localStorage.setItem(SIDE_KEY, sidePane); } catch {}
+  requestDraw();
+}
+document.querySelectorAll('.side-tab').forEach(t => t.addEventListener('click', () => openSide(t.dataset.pane)));
+document.querySelectorAll('.side-close').forEach(b => b.addEventListener('click', () => openSide(sidePane)));
+function setSideW(w){ w = Math.max(220, Math.min(560, w)); $('sidePanel').style.setProperty('--side-w', w + 'px'); return w; }
+$('sideResize').addEventListener('pointerdown', ev => {
+  const x0 = ev.clientX, w0 = $('sidePanel').querySelector('.side-main').offsetWidth, el = $('sideResize');
+  el.classList.add('drag'); el.setPointerCapture(ev.pointerId);
+  const mv = e => { const w = setSideW(w0 + x0 - e.clientX); try { localStorage.setItem(SIDEW_KEY, String(w)); } catch {} };
+  const up = () => { el.classList.remove('drag'); el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); };
+  el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up);
+});
+
+// ===== 保存・開く =====
+const STORE_KEY = 'bunshi-v1';
+function download(blob, name){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
+function fileBase(){ return info.comps.length === 1 ? info.comps[0].f.text : '分子模型'; }
+function saveJSON(){
+  const data = {app:'bunshi', version:1, doc, view:{R:view.R, s:view.s, pan:view.pan, center:view.center},
+    state:uiState()};
+  download(new Blob([JSON.stringify(data)], {type:'application/json'}), fileBase() + '.json');
+}
+// 読み込むときの検査（知らない項目・不正な値を捨てる）
+function sanitize(d){
+  const out = emptyDoc(), num = v => typeof v === 'number' && isFinite(v), vec = v => Array.isArray(v) && v.length === 3 && v.every(num);
+  let max = 0;
+  for (const a of Object.values(d?.atoms || {})){
+    if (!a || !num(a.id) || !ELEM[a.el] || ![a.x, a.y, a.z].every(num)) continue;
+    out.atoms[a.id] = {id:a.id, el:a.el, charge:num(a.charge) ? a.charge : 0, hyb:String(a.hyb || ''), type:String(a.type || ''), x:a.x, y:a.y, z:a.z};
+    if (a.mir) { out.atoms[a.id].mir = true; if (num(a.mirOf)) out.atoms[a.id].mirOf = a.mirOf; }
+    max = Math.max(max, a.id);
+  }
+  for (const b of Object.values(d?.bonds || {})){
+    if (!b || !num(b.id) || !out.atoms[b.a1] || !out.atoms[b.a2] || b.a1 === b.a2 || ![1, 1.5, 2, 3].includes(b.order)) continue;
+    out.bonds[b.id] = {id:b.id, a1:b.a1, a2:b.a2, order:b.order}; max = Math.max(max, b.id);
+  }
+  for (const o of Object.values(d?.objs || {})){
+    if (o && num(o.id) && o.type === 'mirror' && vec(o.c) && vec(o.u) && vec(o.v) && num(o.hu) && num(o.hv)) { out.objs[o.id] = {id:o.id, type:'mirror', c:o.c, u:o.u, v:o.v, hu:o.hu, hv:o.hv}; max = Math.max(max, o.id); }
+  }
+  for (const m of Array.isArray(d?.meas) ? d.meas : []){
+    if (m && num(m.id) && Array.isArray(m.atoms) && m.atoms.length >= 2 && m.atoms.length <= 4 && m.atoms.every(id => out.atoms[id])) { out.meas.push({id:m.id, atoms:[...m.atoms]}); max = Math.max(max, m.id); }
+  }
+  out.nid = Math.max(max + 1, num(d?.nid) ? d.nid : 1);
+  // 混成・原子の種類がない（古い・ほかのソフトの）ときは求め直す
+  const {ids, atoms, bonds} = (() => { const ids = Object.keys(out.atoms).map(Number), idx = new Map(ids.map((id, i) => [id, i]));
+    return {ids, atoms:ids.map(id => out.atoms[id]), bonds:Object.values(out.bonds).map(b => ({a:idx.get(b.a1), b:idx.get(b.a2), order:b.order}))}; })();
+  if (atoms.some(a => !a.hyb || !a.type)){ const g = graphOf(atoms, bonds); ids.forEach((id, i) => { out.atoms[id].hyb = g.mol.atoms[i].hyb; out.atoms[id].type = g.mol.atoms[i].type; }); }
+  return out;
+}
+function applyViewState(v){
+  if (v && Array.isArray(v.R) && v.R.length === 3 && v.R.every(r => Array.isArray(r) && r.length === 3 && r.every(isFinite))) view.R = v.R;
+  if (v && isFinite(v.s)) view.s = v.s;
+  if (v && Array.isArray(v.pan) && v.pan.length === 2) view.pan = v.pan.map(Number);
+  if (v && Array.isArray(v.center) && v.center.length === 3) view.center = v.center.map(Number);
+}
+const UI_FLAGS = ['labels', 'hideH', 'showStereo', 'showRS', 'axes'];
+function uiState(){ const s = {mode:state.mode, bg:state.bg}; for (const k of UI_FLAGS) s[k] = state[k]; return s; }
+function applyUIState(s){
+  if (!s) return;
+  if (['ballstick', 'stick', 'spacefill'].includes(s.mode)) state.mode = s.mode;
+  for (const k of UI_FLAGS) if (typeof s[k] === 'boolean') state[k] = s[k];
+  if (BG[s.bg]) state.bg = s.bg;
+}
+$('btnSave').onclick = saveJSON;
+$('miOpen').onclick = () => $('fileInput').click();
+$('btnNew').onclick = () => { if (!Object.keys(doc.atoms).length) return; commit(); doc = emptyDoc(); sel = null; changed(); };
+$('fileInput').addEventListener('change', async e => {
+  const f = e.target.files[0]; e.target.value = ''; if (!f) return;
+  try {
+    const text = await f.text(), ext = f.name.split('.').pop().toLowerCase();
+    if (ext === 'json'){
+      const d = JSON.parse(text); if (d.app !== 'bunshi') throw new Error('分子模型エディタのファイルではありません');
+      commit(); doc = sanitize(d.doc); applyViewState(d.view); applyUIState(d.state); sel = null;
+      setMode(state.mode); syncToggles(); changed();
+    } else if (ext === 'mol' || ext === 'sdf') addMolecule(fromMolText(text.split('$$$$')[0]), true);
+    else if (ext === 'xyz') addMolecule(fromXYZText(text), true);
+    else throw new Error('対応していない形式です');
+  } catch (err) { toast('開けませんでした：' + err.message); }
+});
+function autosave(){
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({doc, view:{R:view.R, s:view.s, pan:view.pan, center:view.center},
+    state:uiState()})); } catch {}
+}
+function restore(){
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (!s) return false;
+    doc = sanitize(s.doc); applyViewState(s.view); applyUIState(s.state);
+    return Object.keys(doc.atoms).length > 0;
+  } catch { return false; }
+}
+
+// ===== 書き出し =====
+// いま見えている向きで、分子のあるところだけを切り出した画像（キャンバス）を作る
+function renderImage(scale, transparent){
+  const W = glc.clientWidth, H = glc.clientHeight;
+  if (needScene) { buildScene(); needScene = false; }
+  let x0 = W, y0 = H, x1 = 0, y1 = 0;
+  for (const id of scene.visible){ const a = doc.atoms[id], s = toScreen([a.x, a.y, a.z]), r = atomRadius(a)*view.s; x0 = Math.min(x0, s.x - r); y0 = Math.min(y0, s.y - r); x1 = Math.max(x1, s.x + r); y1 = Math.max(y1, s.y + r); }
+  for (const o of scene.planes) for (const [p, q] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]){ const s = toScreen(V.add(o.c, V.add(V.mul(o.u, p*o.hu), V.mul(o.v, q*o.hv)))); x0 = Math.min(x0, s.x); y0 = Math.min(y0, s.y); x1 = Math.max(x1, s.x); y1 = Math.max(y1, s.y); }
+  const m = 24; x0 = Math.max(0, Math.floor(x0 - m)); y0 = Math.max(0, Math.floor(y0 - m)); x1 = Math.min(W, Math.ceil(x1 + m)); y1 = Math.min(H, Math.ceil(y1 + m));
+  if (x1 <= x0 || y1 <= y0) { x0 = 0; y0 = 0; x1 = W; y1 = H; }
+  glc.width = Math.round(W*scale); glc.height = Math.round(H*scale);
+  drawGL(W, H, scale, transparent);
+  const oc = document.createElement('canvas'); oc.width = glc.width; oc.height = glc.height;
+  const o2 = oc.getContext('2d'); o2.setTransform(scale, 0, 0, scale, 0, 0); drawOverlay(o2, W, H, true);
+  const out = document.createElement('canvas'); out.width = Math.round((x1 - x0)*scale); out.height = Math.round((y1 - y0)*scale);
+  const c2 = out.getContext('2d');
+  c2.drawImage(glc, x0*scale, y0*scale, out.width, out.height, 0, 0, out.width, out.height);
+  c2.drawImage(oc, x0*scale, y0*scale, out.width, out.height, 0, 0, out.width, out.height);
+  requestDraw();   // 画面の大きさに戻して描き直す
+  return out;
+}
+const pngBlob = cv => new Promise(r => cv.toBlob(r, 'image/png'));
+$('expPng').onclick = async () => { if (!Object.keys(doc.atoms).length) return; download(await pngBlob(renderImage(+$('expScale').value, $('expTransparent').checked)), fileBase() + '.png'); };
+$('expCopy').onclick = async () => {
+  if (!Object.keys(doc.atoms).length) return;
+  try { await navigator.clipboard.write([new ClipboardItem({'image/png':pngBlob(renderImage(+$('expScale').value, $('expTransparent').checked))})]); toast('画像をコピーしました'); }
+  catch { toast('コピーできませんでした（ブラウザが対応していない可能性があります）'); }
+};
+$('expMol').onclick = () => { const {atoms, bonds} = docArrays(); if (atoms.length) download(new Blob([toMolText(atoms, bonds, fileBase())], {type:'chemical/x-mdl-molfile'}), fileBase() + '.mol'); };
+$('expXyz').onclick = () => { const {atoms} = docArrays(); if (atoms.length) download(new Blob([toXYZText(atoms, fileBase())], {type:'chemical/x-xyz'}), fileBase() + '.xyz'); };
+
+// ===== モーダル・トースト・ツールチップ =====
+function openModal(){ $('helpModal').hidden = false; }
+function closeModals(){ document.querySelectorAll('.modal').forEach(m => { m.hidden = true; }); }
+$('btnHelp').onclick = openModal;
+document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-close]')) closeModals(); }));
+let toastTimer = null;
+function toast(msg){ const t = $('toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2600); }
+const tipEl = $('tip');
+function showTip(el){
+  if (el.hasAttribute('title')){ el.dataset.tip = el.getAttribute('title'); el.removeAttribute('title'); }
+  const t = el.dataset.tip; if (!t) return;
+  tipEl.textContent = t; tipEl.classList.add('show');
+  const r = el.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
+  let y = r.bottom + 6; if (y + h > innerHeight - 4) y = r.top - h - 6;
+  tipEl.style.left = Math.max(4, Math.min(innerWidth - w - 4, r.left + r.width/2 - w/2)) + 'px'; tipEl.style.top = y + 'px';
+}
+document.addEventListener('mouseover', e => { const el = e.target.closest && e.target.closest('[title],[data-tip]'); if (el && el !== glc) showTip(el); else tipEl.classList.remove('show'); });
+document.addEventListener('mouseout', e => { const el = e.target.closest && e.target.closest('[data-tip]'); if (el && !el.contains(e.relatedTarget)) tipEl.classList.remove('show'); });
+document.addEventListener('pointerdown', () => tipEl.classList.remove('show'), true);
+try { $('favicon').href = 'data:image/svg+xml,' + encodeURIComponent(new XMLSerializer().serializeToString($('appIcon'))); } catch {}
+
+// ===== 初期化 =====
+initGL();
+const restored = restore();
+syncToggles(); setMode(state.mode); setTool('rotate'); renderLibrary();
+try { const w = +localStorage.getItem(SIDEW_KEY); if (w) setSideW(w); } catch {}
+let savedPane = 'lib'; try { const p = localStorage.getItem(SIDE_KEY); if (p !== null) savedPane = p; } catch {}
+if (['lib', 'exp'].includes(savedPane)) openSide(savedPane);
+analyze(); renderInfo(); renderSel(); syncUndo();
+if (!restored) { try { addMolecule(buildCached('CCO'), true); hist.undo = []; syncUndo(); } catch (e) { console.error(e); } }
+requestAnimationFrame(() => { if (!restored) fitView(); requestDraw(true); });
+
+// 検証用
+window.__bunshi = {get doc(){ return doc; }, state, view, makeMolecule, addMolecule, buildCached, fitView, setMode, toggleMirror, changed, renderImage, LIB, info:() => info};
+</script>
+</body>
+</html>
