@@ -1,4 +1,4 @@
-//2026-09-14 01:05:09;
+//2026-09-14 01:43:03;
 const pages = {
   "index": {
     "id": "index",
@@ -88,24 +88,24 @@ const pages = {
     "back": "index",
     "next": [
       {
-        "id": "cp31",
-        "title": "3-1. 論理回路の基本と演習",
-        "text": "3-1. 論理回路の基本と演習",
+        "id": "cp21",
+        "title": "2-1. 論理回路の基本と演習",
+        "text": "2-1. 論理回路の基本と演習",
         "release": false,
-        "url": "cp31.html",
+        "url": "cp21.html",
         "detail": "基本ゲート、回路図、真理値表を学び、出力・真理値表・回路構成の問題で理解を確かめます。"
       }
     ],
     "show": false,
     "backFile": "index.html"
   },
-  "cp31": {
-    "id": "cp31",
+  "cp21": {
+    "id": "cp21",
     "release": false,
-    "fileName": "cp31.html",
+    "fileName": "cp21.html",
     "mainTitle": "コンピュータのしくみ",
     "category": "論理回路",
-    "title": "3-1. 論理回路の基本と演習",
+    "title": "2-1. 論理回路の基本と演習",
     "detail": "基本ゲート、回路図、真理値表を学び、出力・真理値表・回路構成の問題で理解を確かめます。",
     "practiceFile": false,
     "dlFile": false,
@@ -115,34 +115,34 @@ const pages = {
     "back": "cp00",
     "next": [
       {
-        "id": "cp32",
-        "title": "3-2. 論理回路の応用",
-        "text": "3-2. 論理回路の応用",
+        "id": "cp22",
+        "title": "2-2. 論理回路の応用",
+        "text": "2-2. 論理回路の応用",
         "release": false,
-        "url": "cp32.html",
+        "url": "cp22.html",
         "detail": "回路図と真理値表から、多数決・比較・半加算・全加算回路の働きと名前を考えます。"
       }
     ],
     "show": true,
     "backFile": "cp00.html"
   },
-  "cp32": {
-    "id": "cp32",
+  "cp22": {
+    "id": "cp22",
     "release": false,
-    "fileName": "cp32.html",
+    "fileName": "cp22.html",
     "mainTitle": "コンピュータのしくみ",
     "category": "論理回路",
-    "title": "3-2. 論理回路の応用",
+    "title": "2-2. 論理回路の応用",
     "detail": "回路図と真理値表から、多数決・比較・半加算・全加算回路の働きと名前を考えます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
-    "back": "cp31",
+    "back": "cp21",
     "next": false,
     "show": true,
-    "backFile": "cp31.html"
+    "backFile": "cp21.html"
   },
   "lc02": {
     "id": "lc02",
@@ -157,10 +157,10 @@ const pages = {
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
-    "back": "cp31",
+    "back": "cp21",
     "next": false,
     "show": true,
-    "backFile": "cp31.html"
+    "backFile": "cp21.html"
   },
   "dr00": {
     "id": "dr00",
