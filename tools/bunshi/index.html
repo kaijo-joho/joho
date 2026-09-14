@@ -60,6 +60,11 @@ button,select,input{font:inherit;color:inherit}
 .tools button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
 .tools .grid2 button svg{width:18px;height:18px}
 .tools button.wide{grid-column:1 / -1}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.grid4 + .grid3,.grid3 + .grid4{margin-top:4px}
+.tools button.el{font-weight:600;font-family:Arial,Helvetica,sans-serif;font-size:14px}
+.tools button sub{font-size:9px}
+.tools .grid3 button[data-add]{font-family:Arial,Helvetica,sans-serif;font-size:12px}
 .tools button.libbtn{width:100%;height:36px;margin:2px 0;background:var(--accent);border-color:var(--accent);color:#fff;font-size:13px;font-weight:600;gap:6px}
 .tools button.libbtn:hover{background:#1d4fd0}
 .tools button.libbtn svg{width:18px;height:18px}
@@ -204,6 +209,16 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <button class="wide" data-tool="rotate" title="回転・選択 (V)：ドラッグで回転。分子をクリックで選択"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.4-5.7"/><path d="M20 4v4.5h-4.5"/></svg>回転・選択</button>
       </div>
     </div>
+    <div class="group"><div class="gl">組み立て（H をクリックで置き換え）</div>
+      <div class="grid4" id="addEls"></div>
+      <div class="grid3" id="addGroups"></div>
+      <div class="grid4">
+        <button data-tool="bond1" title="単結合：結合をクリックすると単結合に（H の数は自動で調整）"><svg viewBox="0 0 24 24"><path d="M5 19L19 5"/></svg></button>
+        <button data-tool="bond2" title="二重結合：結合をクリックすると二重結合に（H の数は自動で調整）"><svg viewBox="0 0 24 24"><path d="M3.5 17.5L17.5 3.5M6.5 20.5L20.5 6.5"/></svg></button>
+        <button data-tool="bond3" title="三重結合：結合をクリックすると三重結合に（H の数は自動で調整）"><svg viewBox="0 0 24 24"><path d="M3 16L16 3M5 19L19 5M8 21L21 8"/></svg></button>
+        <button data-tool="erase" title="消しゴム (E)：原子をクリックすると、その原子と付いている H を消し、あいた所に H を付ける"><svg viewBox="0 0 24 24"><path d="M4 16l9-9 6 6-7 7H8z"/><path d="M9 11l6 6"/><path d="M12 20h8"/></svg></button>
+      </div>
+    </div>
     <div class="group"><div class="gl">計測（原子を順にクリック）</div>
       <div class="grid3">
         <button data-tool="dist" title="結合長・距離 (D)：原子を 2 つクリック"><svg viewBox="0 0 24 24"><circle cx="5" cy="17" r="2.2"/><circle cx="19" cy="7" r="2.2"/><path d="M7 15.6L17 8.4" stroke-dasharray="2.4 2.2"/></svg></button>
@@ -232,9 +247,11 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     </div>
     <div class="fmtbar" id="measBar" hidden>
       <b id="measName"></b>
-      <input type="range" id="measRange" title="ドラッグで値を変える（小さい方の原子団がまとめて動きます）">
+      <input type="range" id="measRange" list="measTicks" title="ドラッグで値を変える（小さい方の原子団がまとめて動きます）。目盛りは元の値で、そこで一度止まります">
+      <datalist id="measTicks"><option id="measTick"></option></datalist>
       <input type="number" id="measNum" class="mnum" title="値を入力して Enter"><span id="measUnit"></span>
       <span class="muted" id="measNote"></span>
+      <button id="measReset" title="測ったときの値に戻す">元の値に戻す</button>
       <button id="measClose" title="値の編集を終える（Esc）">閉じる</button>
     </div>
     <div class="fmtbar" id="mirBar" hidden>
@@ -315,7 +332,8 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>表示のしかた</td><td>上部の「球棒」「棒」「空間充填」(<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>)。二重結合は棒 2 本、三重結合は棒 3 本、ベンゼン環の結合は実線と点線（すべて同じ長さ 1.40 Å）で表します。空間充填モデルの球の大きさはファンデルワールス半径です。「表示 ▼」で原子の記号・H を隠す・背景を選べます。</td></tr>
         <tr><td>原子の色</td><td>C 黒・H 白・O 赤・N 青・S 黄・Cl 緑・Br 茶・I 紫。</td></tr>
         <tr><td>計測</td><td>左の計測のボタン（<kbd>D</kbd> 距離、<kbd>A</kbd> 結合角、<kbd>T</kbd> 二面角）を選び、原子を順にクリック。結果は図と画面下に出ます。画面下の × で消せます。</td></tr>
-        <tr><td>形を変える</td><td>測ると、上にバーが出て、結合長・結合角・二面角の値をスライダーや数値の入力で変えられます（画面下の計測をクリックしても出ます）。結合で分けた小さい方の原子団がまとめて動くので、形は崩れず、立体配置（R・S）も変わりません。二面角でエタンのねじれ形・重なり形、ブタンのアンチ形・ゴーシュ形などを作れます。環の中の値は変えられません。<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> で元に戻せます。</td></tr>
+        <tr><td>形を変える</td><td>測ると、上にバーが出て、結合長・結合角・二面角の値をスライダーや数値の入力で変えられます（画面下の計測をクリックしても出ます）。結合で分けた小さい方の原子団がまとめて動くので、形は崩れず、立体配置（R・S）も変わりません。二面角でエタンのねじれ形・重なり形、ブタンのアンチ形・ゴーシュ形などを作れます。環の中の値は変えられません。スライダーの目盛りは測ったときの値で、そこで一度止まります。「元の値に戻す」で戻せます（<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> でも元に戻せます）。</td></tr>
+        <tr><td>組み立て</td><td>左の「組み立て」で元素（C・N・O・S・F・Cl・Br・I）や官能基（OH・NH₂・CHO・COOH・NO₂・CN・C₆H₅・OCH₃・COCH₃）を選び、H をクリックすると、その H が置き換わります（H は価数に合わせて自動で付きます）。H 以外の原子をクリックすると、その原子の元素が変わります。結合のボタン（単・二重・三重）で結合をクリックすると結合の種類が変わり、消しゴム (<kbd>E</kbd>) で原子をクリックすると、その原子を消してあいた所に H を付けます（分子が切れたときは大きい方だけが残るので、官能基の付け根の原子を消すと官能基ごと消えます）。変更のたびに、結合長・結合角・二重結合の平面・原子の重なりを簡単に整えます（構造最適化ではないので、形はおおよそです）。</td></tr>
         <tr><td>不斉炭素・R/S</td><td>上部の「不斉炭素」で、4 つの異なる原子・原子団が結合した炭素をだいだい色の円で囲みます。「R/S」で R・S を表示します（CIP 順位規則。高校の範囲外の発展的な内容です。原子番号だけで順位を決めるので、まれに判定できないものがあります）。</td></tr>
         <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。回転の中心は不斉炭素（青い十字の印）で、2 つ以上あるときは上に出るプルダウンで選べます。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。<br>分子をクリックして選ぶと、その分子だけを回したり（ドラッグ）、動かしたり（<kbd>Shift</kbd>+ドラッグ）できます。もう一方に近づけたり、鏡を通り越して重ねたりして、重ならないことを確かめられます。「鏡の位置に戻す」で元の鏡像の位置に戻ります。「鏡像に変える」でその分子だけを鏡像にもできます。</td></tr>
         <tr><td>選択・削除</td><td>分子をクリックで選択（何もないところをクリックで解除）。<kbd>Delete</kbd> で削除。</td></tr>
@@ -328,7 +346,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.3 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.4 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -893,8 +911,8 @@ function build3D(mol){
 }
 
 // ---- 結合長・結合角を目標の値に近づける（形を整えるだけの簡単な処理。構造最適化ではない） ----
-function polish(mol, P, rings, iters = 160){
-  const A = mol.atoms, cons = [];
+function polish(mol, P, rings, iters = 160, extra = []){   // extra：追加の [i, j, 距離, 重み]
+  const A = mol.atoms, cons = [...extra];
   for (const b of mol.bonds) cons.push([b.a, b.b, bondLength(mol, b.a, b.b, b.order), 1]);
   const ringOf = (i, j, c) => rings.find(r => {   // i・c・j が環の中で並んでいるか
     const k = r.indexOf(c), L = r.length; if (k < 0) return false;
@@ -918,6 +936,22 @@ function polish(mol, P, rings, iters = 160){
       P[i] = V.add(P[i], V.mul(dv, f)); P[j] = V.sub(P[j], V.mul(dv, f));
     }
   }
+}
+
+// 二重結合の両側の置換基を同じ平面に保つ距離（いまのシス・トランスのまま）。polish の extra に使う
+function doubleBondCons(mol, P){
+  const out = [], h = Math.sqrt(3)/2;
+  for (const b of mol.bonds){
+    if (b.order !== 2) continue;
+    const L = bondLength(mol, b.a, b.b, 2);
+    for (const i of mol.atoms[b.a].nb) for (const j of mol.atoms[b.b].nb){
+      if (i === b.b || j === b.a) continue;
+      const l1 = bondLength(mol, b.a, i, bondOrder(mol, b.a, i)), l2 = bondLength(mol, b.b, j, bondOrder(mol, b.b, j));
+      const cis = Math.abs(dihedralOf(P[i], P[b.a], P[b.b], P[j])) < 90;
+      out.push([i, j, V.dist([-l1/2, l1*h, 0], [L + l2/2, (cis ? 1 : -1)*l2*h, 0]), 0.3]);
+    }
+  }
+  return out;
 }
 
 // ---- 原子どうしの重なりを、単結合のまわりの回転で減らす ----
@@ -1214,11 +1248,11 @@ const $ = id => document.getElementById(id);
 // doc = {atoms:{id:原子}, bonds:{id:結合}, objs:{id:鏡など}, meas:[{id, atoms:[id]}], nid}
 function emptyDoc(){ return {atoms:{}, bonds:{}, objs:{}, meas:[], nid:1}; }
 let doc = emptyDoc();
-const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, tool:'rotate'};
+const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, tool:'rotate', addWhat:'C'};
 const view = {R:M3.id(), s:60, pan:[0, 0], center:[0, 0, 0]};   // s：1 Å あたりの画面の px
 let sel = null;          // 選択中の分子（原子 id の Set）
 let picking = [];        // 計測でクリックした原子
-let hoverAtom = null;
+let hoverAtom = null, hoverBond = null;
 
 // ===== 3D の描画（WebGL2。外部ライブラリなし） =====
 // 原子の球は「インポスター」（四角形に球を描き、奥行きも球の表面の値にする）、結合の棒は円筒のメッシュ。平行投影
@@ -1602,6 +1636,11 @@ function drawOverlay(c, W, H, forExport = false){
   const ring = (id, col, dash) => { const a = doc.atoms[id]; if (!a) return; const s = scr(id); c.strokeStyle = col; c.lineWidth = 2.2; c.setLineDash(dash ? [4, 3] : []); c.beginPath(); c.arc(s.x, s.y, atomRadius(a)*view.s + 4, 0, 2*Math.PI); c.stroke(); c.setLineDash([]); };
   picking.forEach((id, k) => { ring(id, '#2563eb'); const s = scr(id); labelBox(String(k + 1), s.x - atomRadius(doc.atoms[id])*view.s - 10, s.y - atomRadius(doc.atoms[id])*view.s - 8, '#2563eb'); });
   if (hoverAtom != null && state.tool !== 'rotate') ring(hoverAtom, '#2563eb', true);
+  if (hoverBond != null && doc.bonds[hoverBond]){   // 結合のツールで、マウスが乗っている結合
+    const b = doc.bonds[hoverBond], p = scr(b.a1), q = scr(b.a2);
+    c.strokeStyle = 'rgba(37,99,235,.5)'; c.lineWidth = 8; c.lineCap = 'round';
+    c.beginPath(); c.moveTo(p.x, p.y); c.lineTo(q.x, q.y); c.stroke();
+  }
 }
 
 // ===== 画面を描き直す =====
@@ -1868,6 +1907,11 @@ function renderMeasBar(){
   r.value = num.value = v.toFixed(n === 2 ? 2 : 1);
   $('measUnit').textContent = n === 2 ? 'Å' : '°';
   r.disabled = num.disabled = !!plan.why;
+  if (!isFinite(m.v0)) m.v0 = v;   // 古いファイルの計測は、いまの値を元の値にする
+  $('measTick').value = m.v0;
+  const v0t = m.v0.toFixed(n === 2 ? 2 : 1) + (n === 2 ? ' Å' : '°');
+  $('measReset').textContent = `元の値（${v0t}）に戻す`;
+  $('measReset').disabled = !!plan.why || Math.abs(measDiff(n, v, m.v0)) < (n === 2 ? 0.005 : 0.05);
   $('measNote').textContent = plan.why || plan.note || '';
   $('measBar').hidden = false; $('selBar').hidden = true; $('mirBar').hidden = true;
 }
@@ -1879,10 +1923,154 @@ function measInput(val, live){
   if (live) { $('measNum').value = measureValue(m.atoms).v.toFixed(m.atoms.length === 2 ? 2 : 1); renderInfo(); requestDraw(true); }
   else { measGesture = false; changed(); }
 }
-$('measRange').addEventListener('input', e => measInput(+e.target.value, true));
+const measDiff = (n, a, b) => n === 4 ? ((a - b + 540) % 360) - 180 : a - b;
+// 元の値の近くでは、スライダーを元の値で一度止める（引っかかり）
+$('measRange').addEventListener('input', e => {
+  const m = doc.meas.find(x => x.id === editMeas); if (!m) return;
+  const n = m.atoms.length, snap = n === 2 ? 0.04 : n === 3 ? 2.5 : 6;
+  let v = +e.target.value;
+  if (isFinite(m.v0) && Math.abs(measDiff(n, v, m.v0)) < snap) { v = m.v0; e.target.value = m.v0; }
+  measInput(v, true);
+});
+$('measReset').onclick = () => { const m = doc.meas.find(x => x.id === editMeas); if (m && isFinite(m.v0)) measInput(m.v0, false); };
 $('measRange').addEventListener('change', () => { if (measGesture) { measGesture = false; changed(); } });
 $('measNum').addEventListener('change', e => measInput(+e.target.value, false));
 $('measClose').onclick = () => { editMeas = null; renderInfo(); renderSel(); requestDraw(); };
+
+// ===== 組み立て（原子・官能基の追加、元素・結合次数の変更、消しゴム） =====
+// どの操作も、H の数を価数に合わせて付け直し、そのあと形を整える（結合長・結合角・二重結合の平面・重なり）
+const ADD_ELEMS = ['C', 'N', 'O', 'S', 'F', 'Cl', 'Br', 'I'];
+// [キー, 付ける部分の SMILES（1 つ目の原子の H を 1 つ外して付ける）, ボタンの表記, 名前]
+const ADD_GROUPS = [['OH', 'O', 'OH', 'ヒドロキシ基'], ['NH2', 'N', 'NH<sub>2</sub>', 'アミノ基'], ['CHO', 'C=O', 'CHO', 'ホルミル基'],
+  ['COOH', 'C(=O)O', 'COOH', 'カルボキシ基'], ['NO2', '[NH+](=O)[O-]', 'NO<sub>2</sub>', 'ニトロ基'], ['CN', 'C#N', 'CN', 'シアノ基'],
+  ['C6H5', 'c1ccccc1', 'C<sub>6</sub>H<sub>5</sub>', 'フェニル基'], ['OCH3', 'OC', 'OCH<sub>3</sub>', 'メトキシ基'], ['COCH3', 'C(=O)C', 'COCH<sub>3</sub>', 'アセチル基']];
+function nbrIds(x){ return Object.values(doc.bonds).filter(b => b.a1 === x || b.a2 === x).map(b => b.a1 === x ? b.a2 : b.a1); }
+const hsOf = x => nbrIds(x).filter(j => doc.atoms[j].el === 'H');
+function newAtom(el, p, charge = 0){ const id = doc.nid++; doc.atoms[id] = {id, el, charge, hyb:'', type:'', x:p[0], y:p[1], z:p[2]}; return id; }
+function newBond(a1, a2, order){ const id = doc.nid++; doc.bonds[id] = {id, a1, a2, order}; return id; }
+function hNeed(x){   // x に付ける H の数（重い原子との結合と電荷から）。価数が合わなければ -1
+  const a = doc.atoms[x];
+  let s = 0; for (const b of Object.values(doc.bonds)) if (b.a1 === x || b.a2 === x){ const o = b.a1 === x ? b.a2 : b.a1; if (doc.atoms[o].el !== 'H') s += b.order; }
+  const adj = ['N', 'O', 'S', 'P'].includes(a.el) ? a.charge : -Math.abs(a.charge);
+  const v = (VALENCE[a.el] || [0]).map(v => v + adj).find(v => v >= s - 1e-6);
+  return v == null ? -1 : Math.floor(v - s + 1e-6);
+}
+// xs の H を付け直す（数は価数に合わせ、向きは組み立てと同じ規則で重い原子の隣に合わせる）
+function rehydrogenate(xs){
+  for (const x of xs) for (const h of hsOf(x)) deleteAtom(h);
+  const add = new Map();
+  for (const x of xs){
+    const n = hNeed(x); if (n < 0) return false;
+    add.set(x, Array.from({length:n}, () => { const h = newAtom('H', posOf(x)); newBond(x, h, 1); return h; }));
+  }
+  const {ids, atoms, bonds} = docArrays(), g = graphOf(atoms, bonds), idx = new Map(ids.map((id, i) => [id, i]));
+  const fresh = new Set([...add.values()].flat()), P = atoms.map((a, i) => fresh.has(ids[i]) ? null : [a.x, a.y, a.z]);
+  for (const [x, hs] of add){
+    if (!hs.length) continue;
+    const xi = idx.get(x), U = hs.map(h => idx.get(h)), dirs = placeAround(g.mol, P, xi, U);
+    for (const u of U){ P[u] = V.add(P[xi], V.mul(dirs.get(u), bondLength(g.mol, xi, u, 1))); const a = doc.atoms[ids[u]]; [a.x, a.y, a.z] = P[u]; }
+  }
+  return true;
+}
+// 形を整える（seed を含む分子だけ書き戻す）。混成・原子の種類も求め直す
+function tidy(seed){
+  const {ids, atoms, bonds} = docArrays(), g = graphOf(atoms, bonds), P = atoms.map(a => [a.x, a.y, a.z]), rings = findRings(g.mol);
+  polish(g.mol, P, rings, 220, doubleBondCons(g.mol, P));
+  relieveClashes(g.mol, P, rings);
+  const comp = new Set(components().find(c => c.includes(seed)) || []);
+  ids.forEach((id, i) => { const a = doc.atoms[id]; a.hyb = g.mol.atoms[i].hyb; a.type = g.mol.atoms[i].type; if (comp.has(id)) [a.x, a.y, a.z] = P[i]; });
+}
+// H（hId）を官能基に置き換える：1 つ目の原子を C–H の向きに置き、衝突の少ない向きに回す
+function attachGroup(hId, smi){
+  const host = nbrIds(hId)[0]; if (host == null) return 'この H には付けられません';
+  const m = makeMolecule(smi);
+  const hi = m.bonds.filter(b => b.a === 0 || b.b === 0).map(b => b.a === 0 ? b.b : b.a).find(j => m.atoms[j].el === 'H');
+  if (hi == null) return 'この官能基は付けられません';
+  const loc = i => [m.atoms[i].x, m.atoms[i].y, m.atoms[i].z], e = V.norm(V.sub(loc(hi), loc(0)));
+  const pHost = posOf(host), u = V.norm(V.sub(posOf(hId), pHost));
+  deleteAtom(hId);
+  const map = new Map();
+  m.atoms.forEach((a, i) => { if (i !== hi) map.set(i, newAtom(a.el, pHost, a.charge || 0)); });
+  m.bonds.forEach(b => { if (b.a !== hi && b.b !== hi) newBond(map.get(b.a), map.get(b.b), b.order); });
+  const a0 = map.get(0); newBond(host, a0, 1);
+  const {ids, atoms, bonds} = docArrays(), g = graphOf(atoms, bonds), idx = new Map(ids.map((id, i) => [id, i]));
+  const target = V.add(pHost, V.mul(u, bondLength(g.mol, idx.get(host), idx.get(a0), 1)));
+  const R0 = alignPair(e, V.perp(e), V.mul(u, -1), V.perp(u)), group = new Set(map.values());
+  const others = Object.values(doc.atoms).filter(a => !group.has(a.id) && a.id !== host);
+  const place = R => { for (const [i, id] of map){ const q = V.add(target, M3.apply(R, V.sub(loc(i), loc(0)))), a = doc.atoms[id]; a.x = q[0]; a.y = q[1]; a.z = q[2]; } };
+  let best = null;
+  for (let s = 0; s < 12; s++){
+    const R = M3.mul(M3.axis(u, rad(s*30)), R0); place(R);
+    let sc = 0; for (const id of group) for (const o of others) sc += Math.max(0, 2.4 - V.dist(posOf(id), [o.x, o.y, o.z]))**2;
+    if (!best || sc < best.sc - 1e-6) best = {sc, R};
+  }
+  place(best.R);
+  tidy(host);
+}
+function changeElement(x, el){
+  const a = doc.atoms[x]; if (a.el === el) return '';
+  a.el = el; a.charge = 0;
+  if (!rehydrogenate([x])) return `この原子を ${el} にすると、価数が合いません`;
+  tidy(x);
+}
+function setBondOrder(bid, order){
+  const b = doc.bonds[bid];
+  if (b.order === 1.5) return 'ベンゼン環の結合は変えられません';
+  if (b.order === order) return '';
+  if (doc.atoms[b.a1].el === 'H' || doc.atoms[b.a2].el === 'H') return 'H との結合は単結合だけです';
+  b.order = order;
+  if (!rehydrogenate([b.a1, b.a2])) return `価数が合わないため、${['', '単', '二重', '三重'][order]}結合にできません`;
+  tidy(b.a1);
+}
+// 消しゴム：原子と付いている H を消す。分子が切れたら、いちばん大きい部分だけ残す（官能基の付け根を消すと官能基ごと消える）
+function eraseAtom(x){
+  let heavy = nbrIds(x).filter(j => doc.atoms[j].el !== 'H');
+  for (const h of hsOf(x)) deleteAtom(h);
+  deleteAtom(x);
+  if (heavy.length > 1){
+    const comps = components(), parts = [...new Set(heavy.map(j => comps.findIndex(c => c.includes(j))))].map(k => comps[k]);
+    if (parts.length > 1){
+      parts.sort((p, q) => q.length - p.length);
+      for (const part of parts.slice(1)) part.forEach(deleteAtom);
+      heavy = heavy.filter(j => doc.atoms[j]);
+    }
+  }
+  if (heavy.length && !rehydrogenate(heavy)) return '消せませんでした';
+  for (const j of heavy) tidy(j);
+}
+// 変更を 1 回の「元に戻す」にまとめる。関数が文字列を返したら失敗として元に戻す（空文字列は何もしなかったとき）
+function editStructure(fn){
+  commit();
+  let msg; try { msg = fn(); } catch (err) { msg = '変更できませんでした：' + err.message; }
+  if (typeof msg === 'string') { doc = JSON.parse(hist.undo.pop()); syncUndo(); if (msg) toast(msg); return; }
+  sel = null; hoverAtom = hoverBond = null; changed();
+}
+function bondAt(mx, my){   // 画面の点に近い結合（手前のもの）
+  ensureScene(); let best = null;
+  for (const b of Object.values(doc.bonds)){
+    if (!scene.visible.has(b.a1) || !scene.visible.has(b.a2)) continue;
+    const p = toScreen(posOf(b.a1)), q = toScreen(posOf(b.a2)), dx = q.x - p.x, dy = q.y - p.y, L2 = dx*dx + dy*dy; if (L2 < 1) continue;
+    const t = Math.max(0.1, Math.min(0.9, ((mx - p.x)*dx + (my - p.y)*dy)/L2)), d = Math.hypot(mx - p.x - t*dx, my - p.y - t*dy), z = p.z + (q.z - p.z)*t;
+    if (d < Math.max(7, STICK_R.ballstick*view.s*1.6) && (!best || z > best.z)) best = {id:b.id, z};
+  }
+  return best && best.id;
+}
+function buildClick(hit, mx, my){
+  if (state.tool.startsWith('bond')){ const b = bondAt(mx, my); if (b != null) editStructure(() => setBondOrder(b, +state.tool.slice(4))); return; }
+  if (hit == null) return;
+  const a = doc.atoms[hit];
+  if (state.tool === 'erase'){
+    if (a.el === 'H') { toast('H は消せません（ほかの原子に置き換えるときは、組み立てのボタンで H をクリック）'); return; }
+    editStructure(() => eraseAtom(hit)); return;
+  }
+  const what = state.addWhat, isEl = ADD_ELEMS.includes(what);
+  if (a.el === 'H') editStructure(() => attachGroup(hit, isEl ? what : ADD_GROUPS.find(g => g[0] === what)[1]));
+  else if (isEl) editStructure(() => changeElement(hit, what));
+  else toast('官能基は、H をクリックして付けます');
+}
+$('addEls').innerHTML = ADD_ELEMS.map(el => `<button class="el" data-add="${el}" title="${el}：H をクリックすると ${el} に置き換え（H は自動で付く）。ほかの原子をクリックすると ${el} に変える">${el}</button>`).join('');
+$('addGroups').innerHTML = ADD_GROUPS.map(([k, , label, name]) => `<button data-add="${k}" title="${name}：H をクリックすると置き換え">${label}</button>`).join('');
+document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => { state.addWhat = b.dataset.add; setTool('add'); }));
 
 // ===== 画面下の情報・選択時のポップアップ =====
 function renderInfo(){
@@ -1935,6 +2123,10 @@ const HINTS = {
   rotate:'ドラッグで回転　⇧+ドラッグで移動　⌥+ドラッグで z 軸まわりに回転　⌘+ホイール・ピンチで拡大　クリックで分子を選択',
   rotateMirror:'分子の近くからドラッグで鏡像と一緒に回転（中心は不斉炭素）　離れたところからドラッグで全体を回転　分子をクリックで選ぶとその分子だけ動かせる',
   rotateSel:'選んだ分子の近くからドラッグでその分子だけ回転（⇧で移動、⌥で z 軸まわり）　何もないところをクリックで選択を解除',
+  add:'H をクリックすると、選んだ原子・官能基に置き換えます（H は自動で付きます）。H 以外の原子をクリックすると、その原子の元素を変えます',
+  bond1:'結合をクリックすると単結合にします（H の数は自動で調整）', bond2:'結合をクリックすると二重結合にします（H の数は自動で調整）',
+  bond3:'結合をクリックすると三重結合にします（H の数は自動で調整）',
+  erase:'原子をクリックすると、その原子と付いている H を消し、あいた所に H を付けます（切り離された小さい方の部分も消えます）',
   dist:'原子を 2 つクリックすると、原子の中心どうしの距離（結合長）を測ります。測った値は上のバーで変えられます',
   angle:'原子を 3 つクリックすると、2 つ目の原子を頂点とする角度（結合角）を測ります。測った値は上のバーで変えられます',
   dihedral:'原子を 4 つクリックすると、2 つ目と 3 つ目の原子を結ぶ結合のまわりのねじれの角度（二面角）を測ります。測った値は上のバーで変えられます'
@@ -1942,6 +2134,8 @@ const HINTS = {
 function setTool(t){
   state.tool = t; picking = [];
   document.querySelectorAll('[data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool === t));
+  document.querySelectorAll('[data-add]').forEach(b => b.classList.toggle('on', t === 'add' && b.dataset.add === state.addWhat));
+  hoverAtom = hoverBond = null;
   glc.classList.toggle('measure', t !== 'rotate');
   updateHint();
   requestDraw();
@@ -1990,13 +2184,17 @@ glc.addEventListener('pointerdown', e => {
   const [mx, my] = localXY(e), hit = atomAt(mx, my);
   const kind = e.altKey ? 'zrot' : (e.button === 2 || spaceDown || e.shiftKey) ? 'pan' : 'rot';
   const t = spaceDown ? null : dragTarget(mx, my);
-  drag = {x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY, mx, my, hit, moved:false, kind, t};
+  drag = {x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY, mx, my, lx:mx, ly:my, hit, moved:false, kind, t};
   if (t) commit();
   glc.classList.add('dragging');
 });
 glc.addEventListener('pointermove', e => {
   if (!drag){
-    if (state.tool !== 'rotate'){ const [mx, my] = localXY(e), h = atomAt(mx, my); if (h !== hoverAtom) { hoverAtom = h; requestDraw(); } }
+    if (state.tool !== 'rotate'){
+      const [mx, my] = localXY(e), bt = state.tool.startsWith('bond');
+      const h = bt ? null : atomAt(mx, my), hb = bt ? bondAt(mx, my) : null;
+      if (h !== hoverAtom || hb !== hoverBond) { hoverAtom = h; hoverBond = hb; requestDraw(); }
+    }
     return;
   }
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y, [mx, my] = localXY(e);
@@ -2029,18 +2227,20 @@ const endDrag = e => {
   const d = drag; drag = null; glc.classList.remove('dragging');
   if (d.t) { if (d.moved) changed(); else { hist.undo.pop(); syncUndo(); } }
   else if (d.moved) autosave();
-  if (!d.moved && e.type === 'pointerup' && e.button !== 2) clickAction(d.hit);
+  if (!d.moved && e.type === 'pointerup' && e.button !== 2) clickAction(d.hit, d.lx, d.ly);
 };
 glc.addEventListener('pointerup', endDrag);
 glc.addEventListener('pointercancel', endDrag);
 glc.addEventListener('pointerleave', () => { if (hoverAtom != null) { hoverAtom = null; requestDraw(); } });
-function clickAction(hit){
+function clickAction(hit, mx, my){
   if (state.tool === 'rotate'){ sel = hit != null ? new Set(compOf(hit)) : null; editMeas = null; renderInfo(); renderSel(); requestDraw(true); return; }
+  if (state.tool === 'add' || state.tool === 'erase' || state.tool.startsWith('bond')) { buildClick(hit, mx, my); return; }
   if (hit == null) { picking = []; requestDraw(); return; }
   if (picking[picking.length - 1] === hit) return;
   picking.push(hit);
   if (picking.length === {dist:2, angle:3, dihedral:4}[state.tool]){
-    commit(); editMeas = doc.nid; doc.meas.push({id:doc.nid++, atoms:[...picking]}); picking = []; changed();   // 測ったらすぐ値を変えられるように
+    // 測ったらすぐ値を変えられるように。v0：測ったときの値（スライダーの目盛り・「元の値に戻す」）
+    commit(); editMeas = doc.nid; doc.meas.push({id:doc.nid++, atoms:[...picking], v0:measureValue(picking).v}); picking = []; changed();
   } else requestDraw();
 }
 glc.addEventListener('wheel', e => {
@@ -2071,7 +2271,7 @@ window.addEventListener('keydown', e => {
   if (mod && k.toLowerCase() === 'o') { e.preventDefault(); $('fileInput').click(); return; }
   if (mod) return;
   if (k === ' ') { spaceDown = true; e.preventDefault(); return; }
-  const map = {v:'rotate', d:'dist', a:'angle', t:'dihedral'};
+  const map = {v:'rotate', d:'dist', a:'angle', t:'dihedral', e:'erase'};
   if (map[k.toLowerCase()]) { setTool(map[k.toLowerCase()]); return; }
   if (k === '1' || k === '2' || k === '3') { setMode(['ballstick', 'stick', 'spacefill'][+k - 1]); return; }
   if (k.toLowerCase() === 'f') { fitView(); return; }
@@ -2165,7 +2365,7 @@ function sanitize(d){
     if (o && num(o.id) && o.type === 'mirror' && vec(o.c) && vec(o.u) && vec(o.v) && num(o.hu) && num(o.hv)) { out.objs[o.id] = {id:o.id, type:'mirror', c:o.c, u:o.u, v:o.v, hu:o.hu, hv:o.hv}; max = Math.max(max, o.id); }
   }
   for (const m of Array.isArray(d?.meas) ? d.meas : []){
-    if (m && num(m.id) && Array.isArray(m.atoms) && m.atoms.length >= 2 && m.atoms.length <= 4 && m.atoms.every(id => out.atoms[id])) { out.meas.push({id:m.id, atoms:[...m.atoms]}); max = Math.max(max, m.id); }
+    if (m && num(m.id) && Array.isArray(m.atoms) && m.atoms.length >= 2 && m.atoms.length <= 4 && m.atoms.every(id => out.atoms[id])) { out.meas.push({id:m.id, atoms:[...m.atoms], ...(num(m.v0) ? {v0:m.v0} : {})}); max = Math.max(max, m.id); }
   }
   out.nid = Math.max(max + 1, num(d?.nid) ? d.nid : 1);
   // 混成・原子の種類がない（古い・ほかのソフトの）ときは求め直す
