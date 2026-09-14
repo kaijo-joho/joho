@@ -247,11 +247,11 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     </div>
     <div class="fmtbar" id="measBar" hidden>
       <b id="measName"></b>
-      <input type="range" id="measRange" list="measTicks" title="ドラッグで値を変える（小さい方の原子団がまとめて動きます）。目盛りは元の値で、そこで一度止まります">
-      <datalist id="measTicks"><option id="measTick"></option></datalist>
+      <input type="range" id="measRange" list="measTicks" title="ドラッグで値を変える（小さい方の原子団がまとめて動きます）。目盛りは標準の値で、そこで一度止まります">
+      <datalist id="measTicks"></datalist>
       <input type="number" id="measNum" class="mnum" title="値を入力して Enter"><span id="measUnit"></span>
       <span class="muted" id="measNote"></span>
-      <button id="measReset" title="測ったときの値に戻す">元の値に戻す</button>
+      <button id="measReset" title="標準の値（いちばん近いもの）にする">標準の値に戻す</button>
       <button id="measClose" title="値の編集を終える（Esc）">閉じる</button>
     </div>
     <div class="fmtbar" id="mirBar" hidden>
@@ -332,7 +332,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>表示のしかた</td><td>上部の「球棒」「棒」「空間充填」(<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>)。二重結合は棒 2 本、三重結合は棒 3 本、ベンゼン環の結合は実線と点線（すべて同じ長さ 1.40 Å）で表します。空間充填モデルの球の大きさはファンデルワールス半径です。「表示 ▼」で原子の記号・H を隠す・背景を選べます。</td></tr>
         <tr><td>原子の色</td><td>C 黒・H 白・O 赤・N 青・S 黄・Cl 緑・Br 茶・I 紫。</td></tr>
         <tr><td>計測</td><td>左の計測のボタン（<kbd>D</kbd> 距離、<kbd>A</kbd> 結合角、<kbd>T</kbd> 二面角）を選び、原子を順にクリック。結果は図と画面下に出ます。画面下の × で消せます。</td></tr>
-        <tr><td>形を変える</td><td>測ると、上にバーが出て、結合長・結合角・二面角の値をスライダーや数値の入力で変えられます（画面下の計測をクリックしても出ます）。結合で分けた小さい方の原子団がまとめて動くので、形は崩れず、立体配置（R・S）も変わりません。二面角でエタンのねじれ形・重なり形、ブタンのアンチ形・ゴーシュ形などを作れます。環の中の値は変えられません。スライダーの目盛りは測ったときの値で、そこで一度止まります。「元の値に戻す」で戻せます（<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> でも元に戻せます）。</td></tr>
+        <tr><td>形を変える</td><td>測ると、上にバーが出て、結合長・結合角・二面角の値をスライダーや数値の入力で変えられます（画面下の計測をクリックしても出ます）。結合で分けた小さい方の原子団がまとめて動くので、形は崩れず、立体配置（R・S）も変わりません。二面角でエタンのねじれ形・重なり形、ブタンのアンチ形・ゴーシュ形などを作れます。環の中の値は変えられません。スライダーの目盛りは標準の値で、そこで一度止まります（結合長は結合の種類ごとの値、結合角は中心の原子の混成に応じた値（環の中は環の大きさから）、二面角はねじれ形 ±60°・180°、二重結合のまわりは 0°・180°）。「標準の長さに戻す」などのボタンで、いちばん近い標準の値にできます（<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> で元に戻せます）。</td></tr>
         <tr><td>組み立て</td><td>左の「組み立て」で元素（C・N・O・S・F・Cl・Br・I）や官能基（OH・NH₂・CHO・COOH・NO₂・CN・C₆H₅・OCH₃・COCH₃）を選び、H をクリックすると、その H が置き換わります（H は価数に合わせて自動で付きます）。H 以外の原子をクリックすると、その原子の元素が変わります。結合のボタン（単・二重・三重）で結合をクリックすると結合の種類が変わり、消しゴム (<kbd>E</kbd>) で原子をクリックすると、その原子を消してあいた所に H を付けます（分子が切れたときは大きい方だけが残るので、官能基の付け根の原子を消すと官能基ごと消えます）。変更のたびに、結合長・結合角・二重結合の平面・原子の重なりを簡単に整えます（構造最適化ではないので、形はおおよそです）。</td></tr>
         <tr><td>不斉炭素・R/S</td><td>上部の「不斉炭素」で、4 つの異なる原子・原子団が結合した炭素をだいだい色の円で囲みます。「R/S」で R・S を表示します（CIP 順位規則。高校の範囲外の発展的な内容です。原子番号だけで順位を決めるので、まれに判定できないものがあります）。</td></tr>
         <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。回転の中心は不斉炭素（青い十字の印）で、2 つ以上あるときは上に出るプルダウンで選べます。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。<br>分子をクリックして選ぶと、その分子だけを回したり（ドラッグ）、動かしたり（<kbd>Shift</kbd>+ドラッグ）できます。もう一方に近づけたり、鏡を通り越して重ねたりして、重ならないことを確かめられます。「鏡の位置に戻す」で元の鏡像の位置に戻ります。「鏡像に変える」でその分子だけを鏡像にもできます。</td></tr>
@@ -346,7 +346,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.4 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.4.1 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -914,18 +914,10 @@ function build3D(mol){
 function polish(mol, P, rings, iters = 160, extra = []){   // extra：追加の [i, j, 距離, 重み]
   const A = mol.atoms, cons = [...extra];
   for (const b of mol.bonds) cons.push([b.a, b.b, bondLength(mol, b.a, b.b, b.order), 1]);
-  const ringOf = (i, j, c) => rings.find(r => {   // i・c・j が環の中で並んでいるか
-    const k = r.indexOf(c), L = r.length; if (k < 0) return false;
-    const p = r[(k + 1) % L], q = r[(k + L - 1) % L];
-    return (i === p && j === q) || (i === q && j === p);
-  });
   for (let c = 0; c < A.length; c++){
     const nb = A[c].nb; if (nb.length < 2) continue;
     for (let i = 0; i < nb.length; i++) for (let j = i + 1; j < nb.length; j++){
-      let th = centerAngle(mol, c);
-      const r = ringOf(nb[i], nb[j], c);
-      if (r && A[c].hyb === 'sp3') th = r.length === 3 ? 60 : r.length === 4 ? 90 : r.length === 5 ? 105 : r.length === 6 ? 111 : th;
-      if (r && A[c].hyb !== 'sp3') th = 180 - 360/r.length;
+      const th = idealAngle(mol, rings, c, nb[i], nb[j]);
       const l1 = bondLength(mol, c, nb[i], bondOrder(mol, c, nb[i])), l2 = bondLength(mol, c, nb[j], bondOrder(mol, c, nb[j]));
       cons.push([nb[i], nb[j], Math.sqrt(l1*l1 + l2*l2 - 2*l1*l2*Math.cos(rad(th))), 0.4]);
     }
@@ -938,6 +930,17 @@ function polish(mol, P, rings, iters = 160, extra = []){   // extra：追加の 
   }
 }
 
+// 標準の結合角 i–c–j：中心の原子の混成から（H2O 104.5° など）。環の中で並んでいるときは環の大きさから
+function idealAngle(mol, rings, c, i, j){
+  const r = rings.find(r => {
+    const k = r.indexOf(c), L = r.length; if (k < 0) return false;
+    const p = r[(k + 1) % L], q = r[(k + L - 1) % L];
+    return (i === p && j === q) || (i === q && j === p);
+  });
+  if (!r) return centerAngle(mol, c);
+  if (mol.atoms[c].hyb !== 'sp3') return 180 - 360/r.length;
+  return {3:60, 4:90, 5:105, 6:111}[r.length] ?? centerAngle(mol, c);
+}
 // 二重結合の両側の置換基を同じ平面に保つ距離（いまのシス・トランスのまま）。polish の extra に使う
 function doubleBondCons(mol, P){
   const out = [], h = Math.sqrt(3)/2;
@@ -1907,11 +1910,15 @@ function renderMeasBar(){
   r.value = num.value = v.toFixed(n === 2 ? 2 : 1);
   $('measUnit').textContent = n === 2 ? 'Å' : '°';
   r.disabled = num.disabled = !!plan.why;
-  if (!isFinite(m.v0)) m.v0 = v;   // 古いファイルの計測は、いまの値を元の値にする
-  $('measTick').value = m.v0;
-  const v0t = m.v0.toFixed(n === 2 ? 2 : 1) + (n === 2 ? ' Å' : '°');
-  $('measReset').textContent = `元の値（${v0t}）に戻す`;
-  $('measReset').disabled = !!plan.why || Math.abs(measDiff(n, v, m.v0)) < (n === 2 ? 0.005 : 0.05);
+  // 標準の値：スライダーの目盛り・引っかかり・「標準の値に戻す」（いちばん近いもの）
+  measStd = standardValues(m);
+  $('measTicks').innerHTML = measStd.map(s => `<option value="${s}"></option>`).join('');
+  const near = nearestStd(n, v), fmt = s => s.toFixed(n === 2 ? 2 : 1) + (n === 2 ? ' Å' : '°');
+  $('measReset').hidden = near == null;
+  if (near != null){
+    $('measReset').textContent = n === 4 ? `近い標準の配置（${fmt(near)}）にする` : `標準の${n === 2 ? '長さ' : '角度'}（${fmt(near)}）に戻す`;
+    $('measReset').disabled = !!plan.why || Math.abs(measDiff(n, v, near)) < (n === 2 ? 0.005 : 0.05);
+  }
   $('measNote').textContent = plan.why || plan.note || '';
   $('measBar').hidden = false; $('selBar').hidden = true; $('mirBar').hidden = true;
 }
@@ -1924,15 +1931,36 @@ function measInput(val, live){
   else { measGesture = false; changed(); }
 }
 const measDiff = (n, a, b) => n === 4 ? ((a - b + 540) % 360) - 180 : a - b;
-// 元の値の近くでは、スライダーを元の値で一度止める（引っかかり）
+// 標準の値：結合長は結合の種類と混成から、結合角は中心の原子の混成（環の中なら環の大きさ）から、
+// 二面角は、sp3 どうしならねじれ形（±60°・180°）、二重結合・sp2 どうしなら平面（0°・180°）、sp2 と sp3 なら 60° ごと
+let measStd = [];
+function standardValues(m){
+  const {ids, atoms, bonds} = docArrays(), g = graphOf(atoms, bonds), idx = new Map(ids.map((id, i) => [id, i]));
+  const k = m.atoms.map(id => idx.get(id));
+  if (k.length === 2){ const o = bondOrder(g.mol, k[0], k[1]); return o ? [bondLength(g.mol, k[0], k[1], o)] : []; }
+  if (k.length === 3) return [idealAngle(g.mol, findRings(g.mol), k[1], k[0], k[2])];
+  const hb = g.mol.atoms[k[1]].hyb, hc = g.mol.atoms[k[2]].hyb;
+  if (hb === 'sp' || hc === 'sp') return [];
+  if (bondOrder(g.mol, k[1], k[2]) >= 1.5 || (hb === 'sp2' && hc === 'sp2')) return [-180, 0, 180];
+  if (hb === 'sp3' && hc === 'sp3') return [-180, -60, 60, 180];
+  return [-180, -120, -60, 0, 60, 120, 180];
+}
+function nearestStd(n, v){
+  let best = null; for (const s of measStd) if (best == null || Math.abs(measDiff(n, v, s)) < Math.abs(measDiff(n, v, best))) best = s;
+  return best;
+}
+// 標準の値の近くでは、スライダーを一度止める（引っかかり）
 $('measRange').addEventListener('input', e => {
   const m = doc.meas.find(x => x.id === editMeas); if (!m) return;
-  const n = m.atoms.length, snap = n === 2 ? 0.04 : n === 3 ? 2.5 : 6;
+  const n = m.atoms.length, snap = n === 2 ? 0.04 : n === 3 ? 2.5 : 6, near = nearestStd(n, +e.target.value);
   let v = +e.target.value;
-  if (isFinite(m.v0) && Math.abs(measDiff(n, v, m.v0)) < snap) { v = m.v0; e.target.value = m.v0; }
+  if (near != null && Math.abs(measDiff(n, v, near)) < snap) { v = near; e.target.value = near; }
   measInput(v, true);
 });
-$('measReset').onclick = () => { const m = doc.meas.find(x => x.id === editMeas); if (m && isFinite(m.v0)) measInput(m.v0, false); };
+$('measReset').onclick = () => {
+  const m = doc.meas.find(x => x.id === editMeas); if (!m) return;
+  const near = nearestStd(m.atoms.length, measureValue(m.atoms).v); if (near != null) measInput(near, false);
+};
 $('measRange').addEventListener('change', () => { if (measGesture) { measGesture = false; changed(); } });
 $('measNum').addEventListener('change', e => measInput(+e.target.value, false));
 $('measClose').onclick = () => { editMeas = null; renderInfo(); renderSel(); requestDraw(); };
@@ -2239,8 +2267,7 @@ function clickAction(hit, mx, my){
   if (picking[picking.length - 1] === hit) return;
   picking.push(hit);
   if (picking.length === {dist:2, angle:3, dihedral:4}[state.tool]){
-    // 測ったらすぐ値を変えられるように。v0：測ったときの値（スライダーの目盛り・「元の値に戻す」）
-    commit(); editMeas = doc.nid; doc.meas.push({id:doc.nid++, atoms:[...picking], v0:measureValue(picking).v}); picking = []; changed();
+    commit(); editMeas = doc.nid; doc.meas.push({id:doc.nid++, atoms:[...picking]}); picking = []; changed();   // 測ったらすぐ値を変えられるように
   } else requestDraw();
 }
 glc.addEventListener('wheel', e => {
@@ -2365,7 +2392,7 @@ function sanitize(d){
     if (o && num(o.id) && o.type === 'mirror' && vec(o.c) && vec(o.u) && vec(o.v) && num(o.hu) && num(o.hv)) { out.objs[o.id] = {id:o.id, type:'mirror', c:o.c, u:o.u, v:o.v, hu:o.hu, hv:o.hv}; max = Math.max(max, o.id); }
   }
   for (const m of Array.isArray(d?.meas) ? d.meas : []){
-    if (m && num(m.id) && Array.isArray(m.atoms) && m.atoms.length >= 2 && m.atoms.length <= 4 && m.atoms.every(id => out.atoms[id])) { out.meas.push({id:m.id, atoms:[...m.atoms], ...(num(m.v0) ? {v0:m.v0} : {})}); max = Math.max(max, m.id); }
+    if (m && num(m.id) && Array.isArray(m.atoms) && m.atoms.length >= 2 && m.atoms.length <= 4 && m.atoms.every(id => out.atoms[id])) { out.meas.push({id:m.id, atoms:[...m.atoms]}); max = Math.max(max, m.id); }
   }
   out.nid = Math.max(max + 1, num(d?.nid) ? d.nid : 1);
   // 混成・原子の種類がない（古い・ほかのソフトの）ときは求め直す
