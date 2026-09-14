@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>コンピュータの構成と動作 | コンピュータのしくみ</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/computer-lessons.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/computer-core.js"></script>
+  <script defer src="./js/computer-lessons.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body class="cp-lesson" data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="コンピュータの五大装置">
+    <article>
+      <h2 id="headline_1">(1) コンピュータの五大装置</h2>
+      <p class="cp-lead">コンピュータの働きは、<strong>入力・出力・記憶・制御・演算</strong>の5つに分けられます。</p>
+      <div data-lesson-view-group data-lesson-default-view="control" id="cp-devices">
+        <div class="cp-machine" role="tablist" data-lesson-view-controls aria-label="装置を選んで役割を調べる">
+          <button class="cp-device cp-device--input" type="button" data-lesson-view="input"><span class="cp-eyebrow">データを入れる</span><strong>入力装置</strong><span>キーボード・マウス</span></button>
+          <div class="cp-machine__cpu"><span class="cp-machine__label">CPU（中央処理装置）</span>
+            <button class="cp-device" type="button" data-lesson-view="control"><span class="cp-eyebrow">全体を動かす</span><strong>制御装置</strong></button>
+            <button class="cp-device" type="button" data-lesson-view="arithmetic"><span class="cp-eyebrow">計算・判断する</span><strong>演算装置</strong></button>
+          </div>
+          <button class="cp-device cp-device--output" type="button" data-lesson-view="output"><span class="cp-eyebrow">結果を取り出す</span><strong>出力装置</strong><span>ディスプレイ・プリンタ</span></button>
+          <div class="cp-machine__flow" aria-hidden="true">データのやり取り　↕</div>
+          <button class="cp-device cp-device--memory" type="button" data-lesson-view="memory"><span class="cp-eyebrow">命令やデータを覚える</span><strong>記憶装置</strong><span>主記憶装置・補助記憶装置</span></button>
+        </div>
+        <div class="cp-explanation" id="device-input" data-lesson-view-panel="input"><h3>入力装置</h3><p>文字や操作などをデータとして取り込みます。キーボードやマウスのほか、マイクやカメラも入力装置です。</p></div>
+        <div class="cp-explanation" id="device-control" data-lesson-view-panel="control"><h3>制御装置</h3><p>命令を読み出して解読し、各装置へ指示を出します。<strong>制御装置と演算装置を合わせてCPU</strong>と呼びます。</p></div>
+        <div class="cp-explanation" id="device-arithmetic" data-lesson-view-panel="arithmetic"><h3>演算装置</h3><p>足し算などの算術演算や、大小比較などの論理演算を行います。計算を支える論理回路は、後の単元で学びます。</p></div>
+        <div class="cp-explanation" id="device-output" data-lesson-view-panel="output"><h3>出力装置</h3><p>処理した結果を、画面・音・印刷物などとして取り出します。スピーカーも出力装置です。</p></div>
+        <div class="cp-explanation" id="device-memory" data-lesson-view-panel="memory"><h3>記憶装置</h3><p>プログラムの命令やデータを記憶します。作業に使う<strong>主記憶装置</strong>と、保存に使う<strong>補助記憶装置</strong>に分けられます。</p></div>
+      </div>
+      <p class="cp-note">図は役割の関係を示したものです。タッチパネルのように、1つの機器が入力と出力の両方を担う場合もあります。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="主記憶装置と補助記憶装置">
+    <article>
+      <h2 id="headline_2">(2) 主記憶装置と補助記憶装置</h2>
+      <p class="cp-lead"><strong>作業する場所</strong>と、電源を切っても<strong>保存しておく場所</strong>は別です。</p>
+      <div class="cp-two-column">
+        <div class="cp-card"><h3>主記憶装置（RAM）</h3><p>CPUが使う命令やデータを置く場所。高速に読み書きできますが、<strong>電源を切ると内容は失われます</strong>。</p></div>
+        <div class="cp-card"><h3>補助記憶装置（SSDなど）</h3><p>プログラムやファイルを保存する場所。主記憶装置より大容量・容量あたり低価格にしやすく、<strong>電源を切っても内容が残ります</strong>。</p></div>
+      </div>
+      <div class="cp-demo" data-cp-demo="memory" aria-label="文書を開いて保存する流れ">
+        <p>文書を開くとSSDからRAMへ読み込みます。編集後に保存するとSSDへ書き戻します。保存せずに電源を切ると、最後に保存した状態が残ります。</p>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="CPUは命令を順に実行する">
+    <article>
+      <h2 id="headline_3">(3) CPUは命令を順に実行する</h2>
+      <p class="cp-lead">主記憶装置の<strong>アドレス（番地）</strong>を指定して命令やデータを読み書きし、CPU内の<strong>レジスタ</strong>に値を一時的に置きます。</p>
+      <div class="cp-demo" data-cp-demo="cpu" aria-label="3たす5を計算するCPUの動作">
+        <p>命令の読み出し（フェッチ）→解読（デコード）→実行（エグゼキュート）を繰り返します。10番地の3をレジスタAへ読み、11番地の5を加え、結果8を12番地へ書き込みます。</p>
+      </div>
+      <div class="cp-inline-note"><p class="cp-note">学習用に単純化した動作です。主記憶装置への書き込みは、SSDへのファイル保存とは異なります。</p><button type="button" class="cp-button lesson-supplement-trigger" data-lesson-supplement-open="cp-cpu-detail" data-lesson-supplement-preview="次に実行する命令の場所を、どのように覚えているのでしょうか？">発展：CPUの内部</button></div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="CPUの性能を考える">
+    <article>
+      <h2 id="headline_4">(4) CPUの性能を考える</h2>
+      <div class="cp-two-column cp-performance">
+        <div class="cp-card"><h3>一度に扱うビット数</h3><p>32ビット・64ビットなどは、CPUが一度に扱うデータの幅の目安です。</p><div class="cp-bit-width" aria-label="32ビットと64ビットの幅の比較"><div><span>32 bit</span><i></i></div><div><span>64 bit</span><i></i><i></i></div></div><p class="cp-note">幅が2倍でも、すべての処理が2倍速くなるわけではありません。</p></div>
+        <div class="cp-card"><h3>クロック周波数</h3><p>CPUの動作のタイミングを合わせる信号が、1秒間に何回繰り返すかを表します。</p><p class="cp-equation">1 GHz ＝ 10⁹ Hz<br><span>＝ 1秒間に10億クロック</span></p><p class="cp-note">1クロックで1命令を実行できるとは限りません。</p></div>
+      </div>
+      <div class="cp-demo" data-cp-demo="clock" aria-label="クロック周波数の例題">
+        <p>例：1.6 GHz、1命令に4クロックなら、1秒間に1.6×10⁹÷4＝4×10⁸回（4億回）の命令を実行できます。ただし、命令を重ねて実行せず、待ち時間はないとします。</p>
+      </div>
+      <div class="cp-inline-note"><p class="cp-note">実際の性能はCPUの設計、コア数、メモリなどにも左右されます。</p><button type="button" class="cp-button lesson-supplement-trigger" data-lesson-supplement-open="cp-performance-detail" data-lesson-supplement-preview="クロック周波数だけでは、異なるCPUの速さを決められません。">性能を見るときの注意</button></div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="語句まとめ・ポイントまとめ">
+    <article>
+      <h2 id="headline_5">(5) 語句まとめ・ポイントまとめ</h2>
+      <p class="cp-note">語句を選ぶと説明が開きます。まず自分の言葉で説明してみましょう。</p>
+      <div class="cp-review">
+        <div class="cp-terms">
+          <details><summary>五大装置</summary><p>入力装置・出力装置・記憶装置・制御装置・演算装置。</p></details>
+          <details><summary>CPU（中央処理装置）</summary><p>制御装置と演算装置からなり、命令を実行する中心的な装置。</p></details>
+          <details><summary>主記憶装置・補助記憶装置</summary><p>主記憶装置は作業中の命令やデータを置く場所。補助記憶装置は電源を切ってもファイルなどを保持する場所。</p></details>
+          <details><summary>アドレス（番地）</summary><p>記憶装置の中の、命令やデータの場所を表す番号。</p></details>
+          <details><summary>レジスタ</summary><p>CPU内部にある高速で小容量の記憶場所。計算中の値などを一時的に置く。</p></details>
+          <details><summary>フェッチ・デコード・エグゼキュート</summary><p>命令の読み出し・解読・実行。必要に応じて結果を書き込む（ストア）。</p></details>
+          <details><summary>クロック周波数</summary><p>1秒間のクロックの回数。単位はHz。1 GHzは10⁹ Hz。</p></details>
+        </div>
+        <div class="cp-card cp-points"><h3>3つのポイント</h3><ol><li>装置名と、<strong>どんな役割か</strong>を結び付ける。</li><li>命令もデータも記憶し、CPUが<strong>順に読み出して実行</strong>する。</li><li>単位をHzへ直し、<strong>1命令に必要なクロック数で割る</strong>。</li></ol></div>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="問題演習">
+    <article>
+      <h2 id="headline_6">(6) 問題演習</h2>
+      <div data-lesson-view-group data-lesson-default-view="devices" id="cp11-practice">
+        <div class="cp-tabs" role="tablist" data-lesson-view-controls aria-label="問題の種類"><button type="button" data-lesson-view="devices">装置の役割</button><button type="button" data-lesson-view="execution">命令の実行</button><button type="button" data-lesson-view="clock">クロックの計算</button></div>
+        <div id="quiz-devices" data-lesson-view-panel="devices" data-cp-quiz="devices"><p>キーボード、ディスプレイ、CPU、SSDには、それぞれどのような役割があるでしょうか？</p></div>
+        <div id="quiz-execution" data-lesson-view-panel="execution" data-cp-quiz="execution"><p>命令の読み出し、解読、実行をどの順番で行うでしょうか？</p></div>
+        <div id="quiz-clock" data-lesson-view-panel="clock" data-cp-quiz="clock"><p>1.6 GHz、1命令に4クロック必要なCPUでは、1秒間に何回の命令を実行できるでしょうか？</p></div>
+      </div>
+      <noscript><p>操作と答え合わせにはJavaScriptを有効にしてください。解き方は前のスライドで確認できます。</p></noscript>
+    </article>
+  </section>
+
+  <dialog id="cp-cpu-detail" class="lesson-supplement-dialog cp-dialog" data-lesson-supplement-dialog aria-labelledby="cp-cpu-detail-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="cp-cpu-detail-title">発展：CPUは次の命令をどう覚える？</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="CPUの補足を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body" tabindex="0" role="region" aria-label="CPU内部の補足説明">
+      <p><strong>プログラムカウンタ（PC）</strong>は次に読み出す命令の番地を、<strong>命令レジスタ（IR）</strong>は読み出した命令を保持します。</p>
+      <div class="cp-demo" data-cp-demo="cpu" data-cp-detail aria-label="プログラムカウンタと命令レジスタの動作"><p>1番地からREAD、ADD、WRITE、STOPの順に実行します。計算用のレジスタAとは別に、命令やその場所を覚えます。</p></div>
+      <p class="cp-note">この図では、説明を区切るために命令の実行後にPCを進めます。実際にPCを更新するタイミングなどはCPUの設計によります。命令表記は学習用であり、特定の実機の命令セットではありません。1回の「次へ」が1クロックに相当するわけではありません。</p>
+    </div>
+  </dialog>
+  <dialog id="cp-performance-detail" class="lesson-supplement-dialog cp-dialog" data-lesson-supplement-dialog aria-labelledby="cp-performance-detail-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="cp-performance-detail-title">性能を見るときの注意</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="性能の補足を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body" tabindex="0" role="region" aria-label="CPU性能の補足説明">
+      <p>クロック周波数は動作のテンポです。同じ周波数でも、CPUの設計が異なれば、1クロックで進められる仕事も異なります。</p><p>実際には命令の処理を重ねたり、複数の<strong>コア</strong>（処理を行う中核部分）で分担したりします。アプリがその仕組みを活用できるかや、メモリ・ストレージの速度も影響します。</p><p>例題は「1命令に一定のクロック数がかかる」と単純化した計算です。GHzの値だけで異なるCPUの性能を順位付けしないようにしましょう。</p><p class="cp-note">参考：<a href="https://www.intel.com/content/www/us/en/gaming/resources/cpu-clock-speed.html" target="_blank" rel="noopener noreferrer">Intel：CPUのクロック速度について</a></p>
+    </div>
+  </dialog>
+</body>
+</html>

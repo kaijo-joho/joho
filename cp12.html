@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>ソフトウェアとファイル管理 | コンピュータのしくみ</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/computer-lessons.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/computer-core.js"></script>
+  <script defer src="./js/computer-lessons.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body class="cp-lesson" data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="ハードウェアとソフトウェア">
+    <article>
+      <h2 id="headline_1">(1) ハードウェアとソフトウェア</h2>
+      <p class="cp-lead">物理的な装置が<strong>ハードウェア</strong>、それを動かすプログラムが<strong>ソフトウェア</strong>です。</p>
+      <div class="cp-layer-view" data-lesson-view-group data-lesson-default-view="os" id="cp-layers">
+        <div class="cp-layers" role="tablist" data-lesson-view-controls aria-label="構成要素の役割を調べる">
+          <button type="button" data-lesson-view="application"><span class="cp-eyebrow">目的に合わせて使う</span><strong>応用ソフトウェア</strong><span>ブラウザ・文書作成・画像編集</span></button><span class="cp-layer-arrow" aria-hidden="true">↕</span>
+          <button type="button" data-lesson-view="os"><span class="cp-eyebrow">利用を支える</span><strong>基本ソフトウェア（OS）</strong><span>macOS・Windows・iOS・Android</span></button><span class="cp-layer-arrow" aria-hidden="true">↕</span>
+          <button type="button" data-lesson-view="hardware"><span class="cp-eyebrow">処理を実際に行う</span><strong>ハードウェア</strong><span>CPU・メモリ・SSD・周辺機器</span></button>
+        </div>
+        <div>
+          <div class="cp-explanation" id="layer-application" data-lesson-view-panel="application"><h3>応用ソフトウェア</h3><p>文書を書く、Webページを見るなど、特定の目的のために使います。<strong>アプリケーション（アプリ）</strong>とも呼びます。</p><p>例：Safari、Google Chrome、Word、Illustrator。</p></div>
+          <div class="cp-explanation" id="layer-os" data-lesson-view-panel="os"><h3>基本ソフトウェア（OS）</h3><p>コンピュータ全体を管理し、アプリがハードウェアを利用するための共通の仕組みを提供します。</p><p>例えば、アプリがファイルを保存するとき、OSの機能を利用してSSDへ書き込みます。</p></div>
+          <div class="cp-explanation" id="layer-hardware" data-lesson-view-panel="hardware"><h3>ハードウェア</h3><p>CPUやメモリなど、コンピュータを構成する物理的な装置です。</p><p>同じコンピュータでも、動かすソフトウェアによって、文書作成や音楽再生など異なることができます。</p></div>
+          <p class="cp-note">スマートフォンも、ハードウェア・OS・アプリの組み合わせで動いています。</p>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="OSの役割">
+    <article>
+      <h2 id="headline_2">(2) OSの役割</h2>
+      <p class="cp-lead">OSは、CPU・メモリ・周辺機器などの<strong>資源（リソース）を管理</strong>し、複数のアプリや利用者を支えます。</p>
+      <div data-lesson-view-group data-lesson-default-view="task" id="cp-os-roles">
+        <div class="cp-role-grid" role="tablist" data-lesson-view-controls aria-label="OSの仕事を選ぶ">
+          <button type="button" data-lesson-view="task"><strong>タスク管理</strong><span>処理を進める</span></button>
+          <button type="button" data-lesson-view="memory"><strong>メモリ管理</strong><span>作業場所を分ける</span></button>
+          <button type="button" data-lesson-view="io"><strong>入出力管理</strong><span>機器とやり取りする</span></button>
+          <button type="button" data-lesson-view="file"><strong>ファイル管理</strong><span>データを整理する</span></button>
+          <button type="button" data-lesson-view="user"><strong>ユーザー管理</strong><span>利用者を区別する</span></button>
+        </div>
+        <div class="cp-explanation" id="os-task" data-lesson-view-panel="task"><h3>タスク管理</h3><p>処理の実行順序やCPUを使う時間を割り当てます。音楽を聴きながら文書を書くなど、複数の処理を進められるようにします。</p><div class="cp-timeline" aria-label="CPU時間の割り当ての模式図"><span>文書</span><span>音楽</span><span>文書</span><span>音楽</span></div><p class="cp-note">図は1つのコアで時間を分ける例です。複数のコアで同時に処理する場合もあります。</p></div>
+        <div class="cp-explanation" id="os-memory" data-lesson-view-panel="memory"><h3>メモリ管理</h3><p>各アプリに主記憶装置の領域を割り当て、利用状況を管理します。</p><div class="cp-allocation" aria-label="メモリ領域の割り当て例"><span>OS</span><span>文書アプリ</span><span>ブラウザ</span><span>空き</span></div><p class="cp-note">模式図です。実際の領域の配置や容量の比率を示したものではありません。</p></div>
+        <div class="cp-explanation" id="os-io" data-lesson-view-panel="io"><h3>入出力管理</h3><p>キーボードの入力を受け取ったり、プリンタへ印刷データを送ったりして、周辺機器とのやり取りを管理します。</p><p class="cp-process-line">アプリ ↔ OS・ドライバ ↔ 周辺機器</p></div>
+        <div class="cp-explanation" id="os-file" data-lesson-view-panel="file"><h3>ファイル管理</h3><p>ファイルの作成・保存・読み込み・削除や、フォルダによる整理を管理します。</p><p class="cp-process-line">保存したいデータ → ファイル → 保存場所</p></div>
+        <div class="cp-explanation" id="os-user" data-lesson-view-panel="user"><h3>ユーザー管理</h3><p>ログインする利用者を区別し、ファイルや機能を使える範囲（権限）を管理します。</p><p class="cp-process-line">利用者の確認 → 許可された機能・ファイルを利用</p></div>
+      </div>
+      <div class="cp-inline-note"><p class="cp-note">これらは関連し合っています。CPU・メモリ・機器などの割り当てをまとめて「資源管理」と捉えられます。</p><button type="button" class="cp-button lesson-supplement-trigger" data-lesson-supplement-open="cp-os-detail" data-lesson-supplement-preview="周辺機器を動かすドライバと、人が操作するためのUIを確認します。">補足：ドライバとUI</button></div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="ファイルとフォルダ">
+    <article>
+      <h2 id="headline_3">(3) ファイルとフォルダ</h2>
+      <p class="cp-lead">データは<strong>ファイル</strong>として保存し、<strong>フォルダ</strong>で整理します。フォルダの中にフォルダを置くと、階層構造になります。</p>
+      <div class="cp-demo" data-cp-files aria-label="教材用フォルダを調べる">
+        <p>例：授業 → 情報 → レポート → 原稿.docx。授業 → 英語 → レポート → 原稿.docxとは、名前が同じでも保存場所が異なります。</p>
+      </div>
+      <p class="cp-note">これは教材内だけの模型です。実際のファイルを開いたり、書き換えたりはしません。情報と英語の「原稿.docx」を探してみましょう。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="拡張子とファイルの種類">
+    <article>
+      <h2 id="headline_4">(4) 拡張子とファイルの種類</h2>
+      <div class="cp-filename" aria-label="レポート.docxのファイル名と拡張子"><span>レポート<small>ファイル名の本体</small></span><span class="cp-filename__suffix">.docx<small>拡張子は docx</small></span></div>
+      <p class="cp-lead"><strong>拡張子</strong>は、ファイルの形式を表す目印です。末尾のドットの後に付きます。</p>
+      <div data-lesson-view-group data-lesson-default-view="document" id="cp-file-kinds">
+        <div class="cp-tabs" role="tablist" data-lesson-view-controls aria-label="ファイルの種類を選ぶ"><button type="button" data-lesson-view="document">文書・表</button><button type="button" data-lesson-view="image">画像</button><button type="button" data-lesson-view="media">音・動画</button><button type="button" data-lesson-view="other">Web・圧縮</button></div>
+        <div class="cp-explanation" id="kind-document" data-lesson-view-panel="document"><h3>文書・表・発表資料</h3><dl class="cp-extension-list"><div><dt>txt / pdf</dt><dd>文字中心のデータ / レイアウトを保って配る文書</dd></div><div><dt>docx / xlsx / pptx</dt><dd>Word文書 / Excelブック / PowerPoint資料</dd></div><div><dt>csv</dt><dd>項目をカンマなどで区切ったテキストデータ</dd></div></dl></div>
+        <div class="cp-explanation" id="kind-image" data-lesson-view-panel="image"><h3>画像</h3><dl class="cp-extension-list"><div><dt>jpg / png / gif</dt><dd>写真やイラストなどの画像で使う形式</dd></div><div><dt>bmp</dt><dd>ビットマップ画像の形式の1つ</dd></div><div><dt>ai</dt><dd>Illustratorで編集する図形やイラストのデータ</dd></div></dl></div>
+        <div class="cp-explanation" id="kind-media" data-lesson-view-panel="media"><h3>音・動画</h3><dl class="cp-extension-list"><div><dt>mp3 / wav / aif</dt><dd>音声データで使う形式</dd></div><div><dt>mid</dt><dd>音の高さや長さなど、演奏の情報を記録する形式</dd></div><div><dt>mp4 / mov / avi</dt><dd>動画などを格納する形式</dd></div></dl></div>
+        <div class="cp-explanation" id="kind-other" data-lesson-view-panel="other"><h3>Webページ・圧縮ファイル</h3><dl class="cp-extension-list"><div><dt>html</dt><dd>Webページの構造や内容を記述したファイル</dd></div><div><dt>zip</dt><dd>複数のファイルなどをまとめて圧縮できる形式</dd></div></dl><p class="cp-note">拡張子は形式の目印であり、中身が安全であることを保証するものではありません。</p></div>
+      </div>
+      <div class="cp-inline-note"><p class="cp-note"><strong>名前の末尾を書き換えるだけでは形式は変換されません。</strong>変換には対応するアプリでの書き出しなどが必要です。</p><button type="button" class="cp-button lesson-supplement-trigger" data-lesson-supplement-open="cp-extension-detail" data-lesson-supplement-preview="Finderの設定で、隠れている拡張子を表示できます。">Macで拡張子を表示</button></div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="語句まとめ・ポイントまとめ">
+    <article>
+      <h2 id="headline_5">(5) 語句まとめ・ポイントまとめ</h2>
+      <p class="cp-note">語句を選ぶと説明が開きます。身近な例を1つずつ挙げてみましょう。</p>
+      <div class="cp-review"><div class="cp-terms">
+        <details><summary>ハードウェア・ソフトウェア</summary><p>ハードウェアは物理的な装置。ソフトウェアは、それを動かすプログラム。</p></details>
+        <details><summary>基本ソフトウェア（OS）</summary><p>コンピュータ全体を管理し、アプリの実行やハードウェアの利用を支える。</p></details>
+        <details><summary>応用ソフトウェア（アプリ）</summary><p>文書作成、Web閲覧など、特定の目的のために使うソフトウェア。</p></details>
+        <details><summary>タスク・メモリ・入出力の管理</summary><p>処理へのCPUの割り当て、主記憶装置の領域の割り当て、周辺機器とのやり取りを管理する。</p></details>
+        <details><summary>ファイル・ユーザーの管理</summary><p>ファイルの保存や整理、利用者や権限を管理する。</p></details>
+        <details><summary>ファイル・フォルダ・階層構造</summary><p>ファイルはデータを保存する単位。フォルダでまとめ、入れ子にして階層的に整理する。</p></details>
+        <details><summary>拡張子</summary><p>ファイル名の末尾で形式を示す目印。書き換えるだけでは中身の形式は変わらない。</p></details>
+      </div><div class="cp-card cp-points"><h3>3つのポイント</h3><ol><li><strong>ハードウェア・OS・アプリ</strong>を区別する。</li><li>OSの働きを、<strong>普段の操作</strong>と結び付ける。</li><li>ファイルは<strong>名前・保存場所・形式</strong>を意識して扱う。</li></ol></div></div>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="問題演習">
+    <article>
+      <h2 id="headline_6">(6) 問題演習</h2>
+      <div data-lesson-view-group data-lesson-default-view="software" id="cp12-practice">
+        <div class="cp-tabs" role="tablist" data-lesson-view-controls aria-label="問題の種類"><button type="button" data-lesson-view="software">ソフトウェアの分類</button><button type="button" data-lesson-view="os">OSの働き</button><button type="button" data-lesson-view="files">ファイルの管理</button></div>
+        <div id="quiz-software" data-lesson-view-panel="software" data-cp-quiz="software"><p>macOS、Webブラウザ、SSDは、それぞれどれに分類されるでしょうか？</p></div>
+        <div id="quiz-os" data-lesson-view-panel="os" data-cp-quiz="os"><p>複数のアプリにCPUやメモリを割り当てるのは、OSのどのような仕事でしょうか？</p></div>
+        <div id="quiz-files" data-lesson-view-panel="files" data-cp-quiz="files"><p>同じ名前で、別のフォルダに保存されたファイルは、どう区別できるでしょうか？</p></div>
+      </div>
+      <noscript><p>操作と答え合わせにはJavaScriptを有効にしてください。解き方は前のスライドで確認できます。</p></noscript>
+    </article>
+  </section>
+
+  <dialog id="cp-os-detail" class="lesson-supplement-dialog cp-dialog" data-lesson-supplement-dialog aria-labelledby="cp-os-detail-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="cp-os-detail-title">デバイスドライバとユーザーインタフェース</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="OSの補足を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body" tabindex="0" role="region" aria-label="ドライバとUIの説明"><h4>デバイスドライバ</h4><p>プリンタなどの周辺機器を動かすためのプログラムです。OSなどと、その機器に合った方法でやり取りする部分を支えます。OSに標準で含まれるものもあります。</p><h4>ユーザーインタフェース（UI）</h4><p>人がコンピュータへ指示し、結果を受け取るための接点です。アイコン・メニュー・ウインドウなどを使うGUIや、文字でコマンドを入力する操作方法があります。UIはOSにもアプリにもあります。</p></div>
+  </dialog>
+  <dialog id="cp-extension-detail" class="lesson-supplement-dialog cp-dialog" data-lesson-supplement-dialog aria-labelledby="cp-extension-detail-title">
+    <div class="lesson-supplement-dialog__header"><h3 id="cp-extension-detail-title">Macで拡張子を表示する</h3><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="拡張子の補足を閉じる">×</button></div>
+    <div class="lesson-supplement-dialog__body" tabindex="0" role="region" aria-label="Finderの設定手順"><ol><li>Finderを開きます。</li><li>メニューバーの「Finder」→「設定」を選びます。</li><li>「詳細」で「すべてのファイル名拡張子を表示」を選びます。</li></ol><p>拡張子を表示・非表示にする設定は、ファイルの形式を変えません。</p><p class="cp-note">参考：<a href="https://support.apple.com/ja-jp/guide/mac-help/mchlp2304/mac" target="_blank" rel="noopener noreferrer">Apple：Macでファイル名拡張子を表示する／非表示にする</a></p></div>
+  </dialog>
+</body>
+</html>

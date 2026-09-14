@@ -49,7 +49,10 @@ for (const [id, title] of [['cp21', '2-1. 論理回路の基本と演習'], ['cp
 for (const id of ['cp31', 'cp32']) {
   assert.equal(Object.hasOwn(pages, id), false, `改番前の${id}を台帳へ残さない`);
 }
-assert.equal(pages.cp00.next[0].id, 'cp21');
+assert.equal(pages.cp00.next[0].id, 'cp11');
+assert.equal(pages.cp11.next[0].id, 'cp12');
+assert.equal(pages.cp12.next[0].id, 'cp21');
+assert.equal(pages.cp21.back, 'cp12');
 assert.equal(pages.cp21.next[0].id, 'cp22');
 assert.equal(pages.cp22.back, 'cp21');
 assert.equal(pages.lc02.back, 'cp21');
@@ -212,7 +215,7 @@ assert.equal(soundResults.some(result => result.document.id === 'dr32'), true);
 assert.equal(soundResults.some(result => result.document.id === 'dr33'), false);
 assert.equal(soundResults.every(result => result.document.course === 'dr'), true);
 
-for (const id of ['dr00', 'dr31', 'dr32', 'cp00', 'cp21', 'cp22', 'lc02', 'nw00', 'nw11', 'nw12', 'nw13']) {
+for (const id of ['dr00', 'dr31', 'dr32', 'cp00', 'cp11', 'cp12', 'cp21', 'cp22', 'lc02', 'nw00', 'nw11', 'nw12', 'nw13']) {
   const document = index.documents.find(document => document.id === id);
   assert.ok(pages[id], `座学ページの掲載設定が存在する: ${id}`);
   assert.equal(Boolean(document), pages[id].release === true, `座学ページの掲載設定に従う: ${id}`);
