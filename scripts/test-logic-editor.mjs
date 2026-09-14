@@ -381,7 +381,7 @@ assert.deepEqual([snapping.findNode('moving').x, snapping.findNode('moving').y],
 snapping.undo();
 assert.deepEqual(snapping.snapshot(), beforeDrag);
 snapping.options.enableAlignment = false;
-assert.deepEqual(plain(snapping.snapPosition(snapping.findNode('moving'), { x: 505, y: 354 }, {})), { x: 505, y: 354 }, 'cp31の組み立て問題は従来どおり');
+assert.deepEqual(plain(snapping.snapPosition(snapping.findNode('moving'), { x: 505, y: 354 }, {})), { x: 505, y: 354 }, 'cp21の組み立て問題は従来どおり');
 
 // 接続中の端子位置を使い、ゲート中心の14px上・下へ配線をそろえる。
 const straightSnap = editorFixture({ enableAlignment: true });

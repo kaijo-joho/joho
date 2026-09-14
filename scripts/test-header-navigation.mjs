@@ -214,7 +214,7 @@ for (const name of selectedBrowsers) {
           ...searchIndex.documents,
           {
             id: '__unreleased-cp-test',
-            url: 'cp31.html',
+            url: 'cp21.html',
             title: '未公開論理回路検証語',
             course: 'cp',
             courseLabel: '論理回路',
@@ -367,7 +367,7 @@ for (const name of selectedBrowsers) {
     await page.keyboard.press('Escape');
     await expect(page.locator('#headerbar__course')).toHaveCount(1);
 
-    for (const path of ['dr41.html#headline_1','dr31.html#headline_2','dr32.html#headline_1','cp31.html','lc02.html','cp32.html','nw11.html','nw12.html','nw13.html']) {
+    for (const path of ['dr41.html#headline_1','dr31.html#headline_2','dr32.html#headline_1','cp21.html','lc02.html','cp22.html','nw11.html','nw12.html','nw13.html']) {
       await ready(page, path);
       for (const width of [1440,390]) {
         await page.setViewportSize({width,height:900});

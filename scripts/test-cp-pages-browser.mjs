@@ -20,8 +20,9 @@ async function fits(page, label) {
   assert.equal(overflow, false, `${label}: 横はみ出しなし`);
 }
 
-async function cp31Checks(page, width) {
-  await load(page, 'cp31.html');
+async function cp21Checks(page, width) {
+  await load(page, 'cp21.html');
+  await expect(page.locator('#page_header')).toContainText('2-1. 論理回路の基本と演習');
   await expect(page.locator('[data-logic-venn]')).toHaveCount(6);
   await expect(page.locator('[data-logic-explorer]')).toHaveCount(7);
   await expect(page.locator('[data-logic-explorer] .logic-circuit')).toHaveCount(7);
@@ -39,7 +40,7 @@ async function cp31Checks(page, width) {
   await terms.first().locator('summary').press('Enter');
   await expect(terms.first()).toHaveAttribute('open', '');
 
-  await page.goto(new URL('cp31.html#panel-build', baseURL).href);
+  await page.goto(new URL('cp21.html#panel-build', baseURL).href);
   await page.locator('body.lesson-slide-ready').waitFor();
   await expect(page.locator('#panel-build')).toBeVisible();
   await expect(page.locator('#build-editor .logic-editor__canvas')).toBeVisible();
@@ -66,7 +67,7 @@ async function cp31Checks(page, width) {
   assert.equal(await page.evaluate(() => window.logicQuizBuildEditor.graph.wires.length), 2, '配線をUndoできる');
 
   for (const [hash, panel] of [['#panel-single', '#panel-single'], ['#panel-table', '#panel-table'], ['#panel-build', '#panel-build']]) {
-    await page.goto(new URL(`cp31.html${hash}`, baseURL).href);
+    await page.goto(new URL(`cp21.html${hash}`, baseURL).href);
     await page.locator('body.lesson-slide-ready').waitFor();
     await expect(page.locator(panel)).toBeVisible();
     assert.equal(new URL(page.url()).hash, hash, `${hash}直リンクのハッシュ`);
@@ -101,25 +102,26 @@ async function cp31Checks(page, width) {
   await page.locator('#tab-build').click();
   await expect(page.locator('#build-editor .logic-editor__canvas')).toBeVisible();
 
-  const helper = page.locator('[data-lesson-supplement-open="cp31-quiz-guide-dialog"]');
+  const helper = page.locator('[data-lesson-supplement-open="cp21-quiz-guide-dialog"]');
   await helper.click();
-  const dialog = page.locator('#cp31-quiz-guide-dialog');
+  const dialog = page.locator('#cp21-quiz-guide-dialog');
   await expect(dialog).toBeVisible();
   await page.keyboard.press('Escape');
   await expect(dialog).toBeHidden();
   await expect(helper).toBeFocused();
-  await fits(page, `cp31 ${width}px`);
+  await fits(page, `cp21 ${width}px`);
 }
 
-async function cp32Checks(page, width) {
-  await load(page, 'cp32.html#headline_2');
+async function cp22Checks(page, width) {
+  await load(page, 'cp22.html#headline_2');
+  await expect(page.locator('#page_header')).toContainText('2-2. 論理回路の応用');
   await expect(page.locator('#logic-circuit-selector .logic-circuit-selector__button')).toHaveCount(4);
   for (const button of await page.locator('#logic-circuit-selector .logic-circuit-selector__button').all()) {
     await button.click();
     await expect(page.locator('#logic-application-challenge .logic-circuit')).toBeVisible();
     await expect(page.locator('#logic-application-challenge table')).toBeVisible();
   }
-  await fits(page, `cp32 ${width}px`);
+  await fits(page, `cp22 ${width}px`);
 }
 
 async function run(name, engine) {
@@ -134,14 +136,14 @@ async function run(name, engine) {
   try {
     for (const width of [1440, 390]) {
       await page.setViewportSize({ width, height: 900 });
-      await cp31Checks(page, width);
-      await cp32Checks(page, width);
+      await cp21Checks(page, width);
+      await cp22Checks(page, width);
     }
     await page.goto(new URL('cp00.html', baseURL).href);
     await expect(page.locator('#html_index')).toBeVisible();
     await fits(page, 'cp00');
     assert.deepEqual(errors, []);
-    console.log(`${name}: cp00/cp31/cp32 consolidated lecture checks passed`);
+    console.log(`${name}: cp00/cp21/cp22 consolidated lecture checks passed`);
   } finally {
     await context.close();
     await browser.close();

@@ -42,6 +42,18 @@ vm.runInNewContext(await readFile(path.join(projectRoot, 'js', 'pages.js'), 'utf
 });
 const pages = pagesContext.window.pages;
 
+for (const [id, title] of [['cp21', '2-1. 論理回路の基本と演習'], ['cp22', '2-2. 論理回路の応用']]) {
+  assert.equal(pages[id]?.fileName, `${id}.html`, `${id}のファイル名が台帳と一致する`);
+  assert.equal(pages[id]?.title, title, `${id}の章番号が台帳と一致する`);
+}
+for (const id of ['cp31', 'cp32']) {
+  assert.equal(Object.hasOwn(pages, id), false, `改番前の${id}を台帳へ残さない`);
+}
+assert.equal(pages.cp00.next[0].id, 'cp21');
+assert.equal(pages.cp21.next[0].id, 'cp22');
+assert.equal(pages.cp22.back, 'cp21');
+assert.equal(pages.lc02.back, 'cp21');
+
 assert.equal(Object.hasOwn(globalThis, '__siteSearchCore'), false);
 assert.deepEqual(Array.from(siteFaq.COURSE_KEYS), ['il', 'html', 'ss', 'py']);
 assert.equal(siteFaq.normalizeForSearch('  ＰＬＴ．ＰＬＯＴ\n'), 'plt.plot');
@@ -200,7 +212,7 @@ assert.equal(soundResults.some(result => result.document.id === 'dr32'), true);
 assert.equal(soundResults.some(result => result.document.id === 'dr33'), false);
 assert.equal(soundResults.every(result => result.document.course === 'dr'), true);
 
-for (const id of ['dr00', 'dr31', 'dr32', 'cp00', 'cp31', 'cp32', 'lc02', 'nw00', 'nw11', 'nw12', 'nw13']) {
+for (const id of ['dr00', 'dr31', 'dr32', 'cp00', 'cp21', 'cp22', 'lc02', 'nw00', 'nw11', 'nw12', 'nw13']) {
   const document = index.documents.find(document => document.id === id);
   assert.ok(pages[id], `座学ページの掲載設定が存在する: ${id}`);
   assert.equal(Boolean(document), pages[id].release === true, `座学ページの掲載設定に従う: ${id}`);
@@ -209,7 +221,7 @@ for (const id of ['dr00', 'dr31', 'dr32', 'cp00', 'cp31', 'cp32', 'lc02', 'nw00'
     assert.equal(document.course, course, `座学シリーズで絞り込める: ${id}`);
   }
 }
-for (const [course, query, id] of [['cp', '回路', 'cp31'], ['nw', 'プロトコル', 'nw11']]) {
+for (const [course, query, id] of [['cp', '回路', 'cp21'], ['nw', 'プロトコル', 'nw11']]) {
   const results = core.searchDocuments(index.documents, query, { course });
   assert.equal(results.some(result => result.document.id === id), pages[id].release === true, `公開した${course}の教材が見つかる`);
   assert.ok(results.every(result => result.document.course === course), `${course}以外を含めない`);

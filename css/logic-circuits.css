@@ -1748,7 +1748,7 @@ section article .logic-editor__scroll-hint {
   font-family: var(--font-code, monospace);
 }
 
-/* cp32：有名な組合せ回路 */
+/* cp22：有名な組合せ回路 */
 .logic-learning-path {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
