@@ -16,3 +16,4 @@ dialog{color:var(--text);background:var(--panel);border:1px solid var(--line);bo
 @media print{.top,#objects,#selection-toolbar,#side-panel,.side-tabs,.status-bar,#operation-help{display:none!important}#app{height:90vh;display:block}#stage{height:100%}}
 
 .curve-choices{margin-top:8px}.curve-choices>summary{font-size:.85rem}.curve-choices .full-button{font-size:.85rem;text-align:left}.plot-notes{flex:none;max-height:84px;overflow:auto;padding:8px 16px;background:var(--bg);color:var(--muted);border-top:1px solid var(--line);overflow-wrap:anywhere}.plot-notes p{margin:0 0 4px}.plot-notes p:last-child{margin:0}
+#plot .annotation-text{cursor:grab}#plot.is-dragging,#plot.is-dragging *{cursor:grabbing!important;user-select:none}#plot{touch-action:none}.axis-fields .field-grid{align-items:end}

@@ -63,10 +63,10 @@
     }));
 
     const gas = documentBase('理想気体 PV モデル', '2d');
-    gas.axes.x = { label: 'V', unit: 'L', min: 1, max: 10, scale: 'linear' };
-    gas.axes.y = { label: 'P', unit: 'kPa', min: 0, max: 2600, scale: 'linear' };
+    gas.axes.x = { label: 'V', symbol: 'V', unit: 'L', min: 1, max: 10, scale: 'linear' };
+    gas.axes.y = { label: 'P', symbol: 'P', unit: 'kPa', min: 0, max: 2600, scale: 'linear' };
     gas.parameters = [{ name: 'n', value: 1, min: 0.1, max: 2, step: 0.1 }, { name: 'T', value: 300, min: 200, max: 500, step: 10 }];
-    gas.series.push(functionSeries('ideal-gas-pv', 'P = nRT / V', 'n*8.314*T/x', { kind: 'model', title: '理想気体の状態方程式', url: '', notes: '横軸 x は体積 V (L) として表示。R=8.314 kPa·L/(mol·K)。理想化したモデルで、実測値ではありません。' }, [1, 10]));
+    gas.series.push(functionSeries('ideal-gas-pv', 'P = nRT / V', 'n*8.314*T/x', { kind: 'model', title: '理想気体の状態方程式', url: '', notes: '横軸は体積 V (L)、縦軸は圧力 P (kPa)。R=8.314 kPa·L/(mol·K)。理想化したモデルで、実測値ではありません。' }, [1, 10]));
 
     const complexity = documentBase('計算量の比較', '2d');
     complexity.axes.x = { label: 'n', unit: '', min: 1, max: 100, scale: 'linear' };
@@ -116,6 +116,8 @@
     tangent.series[1].style.color = '#16a34a';
     tangent.annotations.push({ id: 'tangent-at-a', kind: 'tangent', name: '接線', visible: true, seriesId: 'tangent-parabola', at: 'a', style: { color: '#dc2626', width: 2, dash: 'dash', opacity: 1 } }, { id: 'two-intersections', kind: 'intersection', name: '交点', visible: true, seriesIds: ['tangent-parabola', 'intersection-line'], interval: [-3, 3], style: { color: '#9333ea', width: 1.5, dash: 'dash', opacity: 1 } });
 
+    sine.axes.x.ticks = { step: Math.PI / 2, format: 'pi' };
+    complexity.axes.x.symbol = 'n';
     return [
       { id: 'math-quadratic-a', name: '2次関数と係数 a', category: '数学', description: '係数 a を変えて放物線の開き方と向きを比べます。', document: quadratic },
       { id: 'math-sine-comparison', name: 'sin の比較', category: '数学', description: 'sin(x) と sin(2x) の周期を比べます。', document: sine },
@@ -128,7 +130,12 @@
       { id: 'information-complexity', name: '計算量の比較', category: '情報', description: 'n、log₂n、n log₂n、n² の増え方を比べます。', document: complexity },
       { id: 'surface-bowl', name: '3D 曲面 z = x² + y²', category: '数学', description: '上に開く放物面を表示します。', document: bowl },
       { id: 'surface-saddle', name: '鞍型曲面 z = x² − y²', category: '数学', description: '鞍型曲面を表示します。', document: saddle }
-    ];
+    ].map(item => {
+      const doc = item.document;doc.version = 3;
+      for(const key of ['x','y','z'])doc.axes[key] = {symbol:key,ticks:{step:null,format:'auto'},...doc.axes[key]};
+      for(const a of doc.annotations)a.label = {visible:true,dx:12,dy:-12,size:13};
+      return item;
+    });
   }
   const templates = makeTemplates();
   function clone(value) { return JSON.parse(JSON.stringify(value)); }

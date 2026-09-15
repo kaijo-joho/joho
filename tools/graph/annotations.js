@@ -24,11 +24,16 @@
   const parameterNames = doc => (doc && doc.parameters || []).map(p => p.name);
   const curves = () => root.GraphCurves || requiredCurves;
   const seriesById = (doc, id) => (doc && doc.series || []).find(series => series && series.id === id);
+  const annotationById = (doc, id) => (doc && doc.annotations || []).find(annotation => annotation && annotation.id === id);
   const axisRange = (doc, key) => range(doc && doc.axes && doc.axes[key], [-10, 10]);
   const axisIsLog = (doc, key) => !!(doc && doc.axes && doc.axes[key] && doc.axes[key].scale === 'log');
   const inRange = (value, limits) => finite(value) && value >= limits[0] - 1e-10 * Math.max(1, Math.abs(limits[0]), Math.abs(limits[1])) && value <= limits[1] + 1e-10 * Math.max(1, Math.abs(limits[0]), Math.abs(limits[1]));
   const drawablePoint = (doc, point) => Array.isArray(point) && finite(point[0]) && finite(point[1]) && (!axisIsLog(doc, 'x') || point[0] > 0) && (!axisIsLog(doc, 'y') || point[1] > 0);
   const numericTolerance = (...values) => Math.max(1e-12, Number.EPSILON * 64 * Math.max(1, ...values.map(value => Math.abs(value))));
+  const literalNumber = value => typeof value === 'number' || typeof value === 'string' && /^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(value.trim());
+  const numberText = value => Object.is(value, -0) || value === 0 ? '0' : Number(value).toPrecision(15);
+  const escapeRegExp = value => String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const usesParameter = (text, doc) => parameterNames(doc).some(name => new RegExp('(^|[^A-Za-z0-9_])' + escapeRegExp(name) + '(?![A-Za-z0-9_])').test(String(text || '')));
 
   function evaluateExpression(text, doc) {
     if (!Expression || typeof Expression.compile !== 'function') throw new Error('数式エンジンを読み込めません。');
@@ -79,8 +84,7 @@
     }
     return farthest > 1e-20 ? pair : null;
   }
-  function pointResult(annotation, doc) {
-    const anchor = annotation && annotation.anchor || {};
+  function pointForAnchor(anchor, doc) {
     let point = null;
     if (anchor.type === 'free') {
       const x = scalar(anchor.x, doc), y = scalar(anchor.y, doc);
@@ -91,6 +95,10 @@
         try { point = api.pointAt(series, doc, at); } catch (_) { point = null; }
       }
     }
+    return Array.isArray(point) && finite(point[0]) && finite(point[1]) ? point : null;
+  }
+  function pointResult(annotation, doc) {
+    const point = pointForAnchor(annotation && annotation.anchor || {}, doc);
     if (!drawablePoint(doc, point)) return empty('点の座標が定義されていないか、対数軸で表示できません。');
     const segments = [];
     if (annotation.projections) {
@@ -108,27 +116,33 @@
     const segment = axis === 'x' ? [[value, other[0]], [value, other[1]]] : [[other[0], value], [other[1], value]];
     return { points: [], segments: [segment], warning: '' };
   }
-  function tangentResult(annotation, doc) {
+  function tangentLine(annotation, doc) {
     const series = seriesById(doc, annotation && annotation.seriesId), at = scalar(annotation && annotation.at, doc);
-    if (!series || series.kind !== 'function' || at === null) return empty('接線の対象または接点が不正です。');
+    const unavailable = warning => ({ point: null, slope: null, warning });
+    if (!series || series.kind !== 'function' || at === null) return unavailable('接線の対象または接点が不正です。');
     const fn = functionFor(series, doc), domain = functionDomain(series);
-    if (!fn || !inRange(at, domain)) return empty('接点で関数を評価できません。');
+    if (!fn || !inRange(at, domain)) return unavailable('接点で関数を評価できません。');
     const y = fn(at), point = [at, y];
-    if (!drawablePoint(doc, point)) return empty('接点が定義されていないか、対数軸で表示できません。');
+    if (!finite(y)) return unavailable('接点が定義されていません。');
     const span = domain[1] - domain[0], h = Math.min(span / 4096, Math.max(span * 1e-6, 1e-7 * Math.max(1, Math.abs(at))));
-    if (!(h > 0) || at - h * 2 < domain[0] || at + h * 2 > domain[1]) return empty('接点の左右で微分を確認できません。');
+    if (!(h > 0) || at - h * 2 < domain[0] || at + h * 2 > domain[1]) return unavailable('接点の左右で微分を確認できません。');
     const left = fn(at - h), right = fn(at + h), leftHalf = fn(at - h / 2), rightHalf = fn(at + h / 2);
-    if ([left, right, leftHalf, rightHalf].some(value => value === null)) return empty('接点の左右で微分を確認できません。');
+    if ([left, right, leftHalf, rightHalf].some(value => value === null)) return unavailable('接点の左右で微分を確認できません。');
     const dl = (y - left) / h, dr = (right - y) / h, dl2 = (y - leftHalf) / (h / 2), dr2 = (rightHalf - y) / (h / 2);
     // 一次の刻み幅誤差を取り除く。x^2 のような滑らかな曲線では左右とも
     // 同じ極限へ近づき、abs(x) の折れ点では左右の極限が異なる。
     const leftLimit = 2 * dl2 - dl, rightLimit = 2 * dr2 - dr, slope = (leftLimit + rightLimit) / 2;
     const tolerance = Math.max(1e-8, 1e-5 * Math.max(Math.abs(leftLimit), Math.abs(rightLimit)));
-    if (![dl, dr, dl2, dr2, leftLimit, rightLimit, slope].every(finite) || Math.abs(leftLimit - rightLimit) > tolerance || Math.abs(slope) > 1e10) return empty('接点の左右で傾きが一致しないため、接線を表示しません。');
+    if (![dl, dr, dl2, dr2, leftLimit, rightLimit, slope].every(finite) || Math.abs(leftLimit - rightLimit) > tolerance || Math.abs(slope) > 1e10) return unavailable('接点の左右で傾きが一致しないため、接線を表示しません。');
+    return { point, slope, warning: '' };
+  }
+  function tangentResult(annotation, doc) {
+    const line = tangentLine(annotation, doc);
+    if (!line.point || !drawablePoint(doc, line.point)) return empty(line.warning || '接点が定義されていないか、対数軸で表示できません。');
     const xr = axisRange(doc, 'x'), yr = axisRange(doc, 'y');
-    const segment = clippedLine(point, slope, xr, yr);
-    if (!segment) return { points: [point], segments: [], warning: '接線が表示範囲にありません。' };
-    return { points: [point], segments: [segment], warning: '' };
+    const segment = clippedLine(line.point, line.slope, xr, yr);
+    if (!segment) return { points: [line.point], segments: [], warning: '接線が表示範囲にありません。' };
+    return { points: [line.point], segments: [segment], warning: '' };
   }
   function rootFromBracket(fn, a, b, fa, fb) {
     if (fa === 0) return a;
@@ -211,6 +225,113 @@
     }
     return { points, segments: [], warning: points.length ? '' : '指定範囲に有限の交点は見つかりませんでした。' };
   }
+  function tangentIntersectionPoint(annotation, doc) {
+    const ids = annotation && annotation.tangentIds;
+    if (!Array.isArray(ids) || ids.length !== 2 || ids[0] === ids[1]) return { point: null, warning: '接線の交点の対象が不正です。' };
+    const first = annotationById(doc, ids[0]), second = annotationById(doc, ids[1]);
+    if (!first || !second || first.kind !== 'tangent' || second.kind !== 'tangent') return { point: null, warning: '接線の交点には接線を2つ選んでください。' };
+    const one = tangentLine(first, doc), two = tangentLine(second, doc);
+    if (!one.point || !two.point) return { point: null, warning: one.warning || two.warning || '接線を評価できません。' };
+    const difference = one.slope - two.slope, tolerance = Math.max(1e-10, 1e-10 * Math.max(Math.abs(one.slope), Math.abs(two.slope)));
+    if (!finite(difference) || Math.abs(difference) <= tolerance) return { point: null, warning: '2つの接線は平行か、数値的に区別できません。' };
+    const x = (two.point[1] - one.point[1] + one.slope * one.point[0] - two.slope * two.point[0]) / difference;
+    const y = one.point[1] + one.slope * (x - one.point[0]);
+    return finite(x) && finite(y) ? { point: [x, y], warning: '' } : { point: null, warning: '接線の交点を計算できません。' };
+  }
+  function tangentIntersectionResult(annotation, doc) {
+    const result = tangentIntersectionPoint(annotation, doc);
+    if (!drawablePoint(doc, result.point)) return empty(result.warning || '接線の交点が対数軸で表示できません。');
+    return { points: [result.point], segments: [], warning: '' };
+  }
+  function referencePoint(annotation, doc, seen) {
+    if (!annotation || !annotation.id || seen && seen.has(annotation.id)) return null;
+    const next = new Set(seen || []); next.add(annotation.id);
+    if (annotation.kind === 'point') return pointForAnchor(annotation.anchor || {}, doc);
+    if (annotation.kind === 'tangentIntersection') return tangentIntersectionPoint(annotation, doc).point;
+    return null;
+  }
+  function segmentResult(annotation, doc) {
+    const from = annotationById(doc, annotation && annotation.from), to = annotationById(doc, annotation && annotation.to);
+    if (!from || !to || from.id === to.id) return empty('線分の端点が不正です。');
+    const first = referencePoint(from, doc), second = referencePoint(to, doc);
+    if (!first || !second) return empty('線分の端点を評価できません。');
+    if (!drawablePoint(doc, first) || !drawablePoint(doc, second)) return empty('線分の端点が対数軸で表示できません。');
+    return { points: [], segments: [[first, second]], warning: '' };
+  }
+  function textResult(annotation, doc) {
+    const point = pointForAnchor(annotation && annotation.anchor || {}, doc);
+    if (!drawablePoint(doc, point)) return empty('文字の位置が定義されていないか、対数軸で表示できません。');
+    return { points: [point], segments: [], warning: '' };
+  }
+  function curveEvaluator(series, doc) {
+    if (!series || !Expression) return null;
+    const base = parameters(doc), names = parameterNames(doc), angle = doc && doc.angle || 'rad';
+    const evaluate = (compiled, scope) => { try { const value = compiled.evaluate(scope); return finite(value) ? value : null; } catch (_) { return null; } };
+    try {
+      if (series.kind === 'function') {
+        const compiled = Expression.compile(series.expression || '', { variables: ['x'].concat(names), angle, target: 'y' }), domain = functionDomain(series);
+        return at => { if (!inRange(at, domain)) return null; const y = evaluate(compiled, Object.assign({}, base, { x: at })); return y === null ? null : [at, y]; };
+      }
+      if (series.kind === 'parametric') {
+        const x = Expression.compile(series.components && series.components.x || '', { variables: ['t'].concat(names), angle, target: false }), y = Expression.compile(series.components && series.components.y || '', { variables: ['t'].concat(names), angle, target: false }), interval = curveInterval(series);
+        return at => { if (!interval || !inRange(at, interval)) return null; const px = evaluate(x, Object.assign({}, base, { t: at })), py = evaluate(y, Object.assign({}, base, { t: at })); return px === null || py === null ? null : [px, py]; };
+      }
+      if (series.kind === 'polar') {
+        const compiled = Expression.compile(series.expression || '', { variables: ['theta'].concat(names), angle, target: false }), interval = curveInterval(series);
+        return at => { if (!interval || !inRange(at, interval)) return null; const radius = evaluate(compiled, Object.assign({}, base, { theta: at })); if (radius === null) return null; const radians = angle === 'deg' ? at * Math.PI / 180 : at; return [radius * Math.cos(radians), radius * Math.sin(radians)]; };
+      }
+    } catch (_) { return null; }
+    return null;
+  }
+  function curveInterval(series) {
+    if (!series) return null;
+    if (series.kind === 'function') return functionDomain(series);
+    const values = series.interval;
+    return Array.isArray(values) && values.length === 2 && finite(Number(values[0])) && finite(Number(values[1])) && Number(values[0]) < Number(values[1]) ? [Number(values[0]), Number(values[1])] : null;
+  }
+  function closestCurveAnchor(series, doc, target, initial) {
+    const interval = curveInterval(series);
+    if (!interval || !['function', 'parametric', 'polar'].includes(series.kind)) return null;
+    const pointAt = curveEvaluator(series, doc);
+    if (!pointAt) return null;
+    const count = 320, span = interval[1] - interval[0], samples = [];
+    const add = at => { if (!finite(at) || at < interval[0] || at > interval[1]) return; const point = pointAt(at); if (Array.isArray(point) && finite(point[0]) && finite(point[1])) samples.push({ at, point, distance: (point[0] - target[0]) ** 2 + (point[1] - target[1]) ** 2 }); };
+    for (let i = 0; i <= count; i++) add(interval[0] + span * i / count);
+    add(initial); add(initial - span / count); add(initial + span / count);
+    if (!samples.length) return null;
+    samples.sort((a, b) => a.at - b.at);
+    let best = samples.reduce((chosen, item) => item.distance < chosen.distance ? item : chosen);
+    const refine = center => {
+      let left = Math.max(interval[0], center - span / count), right = Math.min(interval[1], center + span / count);
+      const distanceAt = at => { const point = pointAt(at); return point && finite(point[0]) && finite(point[1]) ? (point[0] - target[0]) ** 2 + (point[1] - target[1]) ** 2 : Infinity; };
+      for (let i = 0; i < 48; i++) {
+        const one = left + (right - left) / 3, two = right - (right - left) / 3, first = distanceAt(one), second = distanceAt(two);
+        if (first <= second) right = two; else left = one;
+      }
+      const at = (left + right) / 2, point = pointAt(at), distance = distanceAt(at);
+      if (point && distance < best.distance) best = { at, point, distance };
+    };
+    samples.forEach((sample, index) => { if ((!index || sample.distance <= samples[index - 1].distance) && (index === samples.length - 1 || sample.distance <= samples[index + 1].distance)) refine(sample.at); });
+    return finite(best.at) ? best.at : null;
+  }
+  function anchorForDrag(annotation, doc, coordinate) {
+    if (!annotation || !Array.isArray(coordinate) || !finite(coordinate[0]) || !finite(coordinate[1]) || !drawablePoint(doc, coordinate)) return null;
+    const anchor = annotation.anchor || {};
+    if (annotation.kind === 'text' || annotation.kind === 'point' && anchor.type === 'free') {
+      if (anchor.type !== 'free' || !literalNumber(anchor.x) || !literalNumber(anchor.y) || usesParameter(anchor.x, doc) || usesParameter(anchor.y, doc)) return null;
+      return { type: 'free', x: numberText(coordinate[0]), y: numberText(coordinate[1]) };
+    }
+    if (annotation.kind !== 'point' || anchor.type !== 'curve' || !literalNumber(anchor.at) || usesParameter(anchor.at, doc)) return null;
+    const series = seriesById(doc, anchor.seriesId);
+    if (!series || !['function', 'parametric', 'polar'].includes(series.kind)) return null;
+    if (series.kind === 'function') {
+      const domain = functionDomain(series), at = Math.max(domain[0], Math.min(domain[1], coordinate[0])), evaluate = curveEvaluator(series, doc);
+      if (!evaluate || !drawablePoint(doc, evaluate(at))) return null;
+      return { type: 'curve', seriesId: series.id, at: numberText(at) };
+    }
+    const initial = scalar(anchor.at, doc), at = initial === null ? null : closestCurveAnchor(series, doc, coordinate, initial);
+    return at === null ? null : { type: 'curve', seriesId: series.id, at: numberText(at) };
+  }
   function evaluate(annotation, doc) {
     try {
       if (!annotation || !doc || doc.mode === '3d') return empty('この注釈は2Dグラフで使います。');
@@ -219,8 +340,11 @@
       if (annotation.kind === 'guide') return guideResult(annotation, doc);
       if (annotation.kind === 'tangent') return tangentResult(annotation, doc);
       if (annotation.kind === 'intersection') return intersectionResult(annotation, doc);
+      if (annotation.kind === 'tangentIntersection') return tangentIntersectionResult(annotation, doc);
+      if (annotation.kind === 'segment') return segmentResult(annotation, doc);
+      if (annotation.kind === 'text') return textResult(annotation, doc);
       return empty('注釈の種類が不正です。');
     } catch (_) { return empty('注釈を評価できません。'); }
   }
-  return { evaluate };
+  return { evaluate, tangentLine, anchorForDrag };
 }));

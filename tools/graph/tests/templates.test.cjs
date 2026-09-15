@@ -30,6 +30,8 @@ assert.match(vapor.source.notes, /実測値の転載ではありません/);
 assert.match(vapor.source.url, /^https:\/\//);
 const gas = templates.find(t => t.id === 'science-ideal-gas-pv').document;
 assert.strictEqual(gas.series[0].expression, 'n*8.314*T/x');
+assert.strictEqual(require('../symbols.js').toDisplay(gas.series[0].expression,gas,'function'),'n*8.314*T/V');
+assert.strictEqual(gas.axes.y.symbol,'P');
 assert.ok(gas.axes.y.max >= 2494);
 const first = GraphTemplates.list();
 first[0].document.name = '変更';

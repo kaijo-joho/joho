@@ -21,12 +21,12 @@ const server = http.createServer((req, res) => {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
-    await page.setContent(`<div id="graph" style="width:700px;height:500px"></div><script src="http://127.0.0.1:${port}/vendor/plotly.min.js"></script><script src="http://127.0.0.1:${port}/expression.js"></script><script src="http://127.0.0.1:${port}/plot.js"></script>`);
+    await page.setContent(`<div id="graph" style="width:700px;height:500px"></div><script src="http://127.0.0.1:${port}/vendor/plotly.min.js"></script><script src="http://127.0.0.1:${port}/expression.js"></script><script src="http://127.0.0.1:${port}/symbols.js"></script><script src="http://127.0.0.1:${port}/plot.js"></script>`);
     const checks = await page.evaluate(async () => {
       const graph = document.querySelector('#graph');
       let views = 0;
       await GraphPlot.render(document.querySelector('#graph'), {
-        mode: '3d', angle: 'rad', axes: { x: { min: -2, max: 2, label: '<x>', unit: '', scale: 'linear' }, y: { min: -2, max: 2, label: 'y', unit: '', scale: 'linear' }, z: { min: -4, max: 4, label: 'z', unit: '', scale: 'linear' } },
+        mode: '3d', angle: 'rad', axes: { x: { min: -2, max: 2, label: '<x>', symbol: 'x', unit: '', scale: 'linear', ticks:{step:null,format:'auto'} }, y: { min: -2, max: 2, label: 'y', symbol: 'y', unit: '', scale: 'linear', ticks:{step:null,format:'auto'} }, z: { min: -4, max: 4, label: 'z', symbol: 'z', unit: '', scale: 'linear', ticks:{step:null,format:'auto'} } },
         parameters: [], grid: true, legend: true, equalScale: true,
         series: [{ id: 's', kind: 'surface', name: '<surface>', expression: 'x^2-y^2', domain: { x: [-2, 2], y: [-2, 2] }, visible: true, style: { color: '#2563eb', width: 2, dash: 'solid', points: false, lines: true, opacity: .85 } }, { id: 'points', kind: 'data3d', name: '欠測', rows: [[1, null, 3], [1, 2, 3]], visible: true, style: { color: '#2563eb', width: 2, dash: 'solid', points: true, lines: true, opacity: .85 } }]
       }, { dark: true, onViewChange: () => { views++; } });
@@ -65,7 +65,7 @@ const server = http.createServer((req, res) => {
     assert.notDeepEqual(afterCamera, beforeCamera, '3D の実マウスドラッグで視点を回転する');
     const viewCheck = await page.evaluate(async () => {
       const graph = document.querySelector('#graph'); let xOnlyView;
-      const twoD = { mode: '2d', angle: 'rad', axes: { x: { min: -2, max: 2, label: 'x', unit: '', scale: 'linear' }, y: { min: 10, max: 20, label: 'y', unit: '', scale: 'linear' }, z: { min: -2, max: 2, label: 'z', unit: '', scale: 'linear' } }, parameters: [], grid: true, legend: true, equalScale: false, series: [{ id: 'line', kind: 'function', name: 'x', expression: 'x', domain: { x: [-10, 10], y: [-10, 10] }, visible: true, style: { color: '#2563eb', width: 2, dash: 'solid', points: false, lines: true, opacity: .85 } }] };
+      const twoD = { mode: '2d', angle: 'rad', axes: { x: { min: -2, max: 2, label: 'x', symbol:'x', unit: '', scale: 'linear',ticks:{step:null,format:'auto'} }, y: { min: 10, max: 20, label: 'y', symbol:'y', unit: '', scale: 'linear',ticks:{step:null,format:'auto'} }, z: { min: -2, max: 2, label: 'z', symbol:'z', unit: '', scale: 'linear',ticks:{step:null,format:'auto'} } }, parameters: [], grid: true, legend: true, equalScale: false, series: [{ id: 'line', kind: 'function', name: 'x', expression: 'x', domain: { x: [-10, 10], y: [-10, 10] }, visible: true, style: { color: '#2563eb', width: 2, dash: 'solid', points: false, lines: true, opacity: .85 } }] };
       await GraphPlot.render(graph, twoD, { onViewChange: (view) => { xOnlyView = view; } }); graph.emit('plotly_relayout', { 'xaxis.range': [0, 1] });
       const next = structuredClone(twoD); next.axes.x = xOnlyView.axes.x; await GraphPlot.render(graph, next, {});
       return { axes: Object.keys(xOnlyView.axes), y: graph.layout.yaxis.range, dragmode: graph.layout.dragmode };

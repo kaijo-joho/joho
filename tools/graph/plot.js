@@ -1,4 +1,4 @@
-/* global Plotly, GraphExpression, GraphCurves, GraphAnnotations */
+/* global Plotly, GraphExpression, GraphCurves, GraphAnnotations, GraphSymbols */
 (function (root, factory) {
   const api = factory(root);
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -15,6 +15,7 @@
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   const finite = (n) => typeof n === 'number' && Number.isFinite(n);
+  const rich = text => root.GraphSymbols ? root.GraphSymbols.richText(text) : esc(text);
   const range = (axis, fallback) => {
     const a = axis && Number(axis.min), b = axis && Number(axis.max);
     return finite(a) && finite(b) && a < b ? [a, b] : fallback;
@@ -35,10 +36,10 @@
     try { const v = compiled.evaluate(scope); return finite(v) ? v : null; } catch (_) { return null; }
   };
   const style = (s) => Object.assign({ color: '#2563eb', width: 2, dash: 'solid', points: false, lines: true, opacity: 0.85 }, s || {});
-  const axisTitle = (a, fallback) => esc((a && a.label) || fallback) + ((a && a.unit) ? ' (' + esc(a.unit) + ')' : '');
+  const axisTitle = (a, fallback) => rich((a && a.label) || (a && a.symbol) || fallback) + ((a && a.unit) ? ' (' + rich(a.unit) + ')' : '');
   const tick = (a) => {
     const dataRange = range(a, [-10, 10]), isLog = a && a.scale === 'log';
-    return { title: { text: axisTitle(a, '') }, range: isLog ? dataRange.map((v) => Math.log10(v)) : dataRange, type: isLog ? 'log' : 'linear', showgrid: true, zeroline: true };
+    return Object.assign({ title: { text: axisTitle(a, '') }, range: isLog ? dataRange.map((v) => Math.log10(v)) : dataRange, type: isLog ? 'log' : 'linear', showgrid: true, zeroline: true }, root.GraphSymbols ? root.GraphSymbols.ticksFor(a) : {});
   };
   const defaultCamera = (doc) => {
     if (doc.mode !== '3d' || !doc.equalScale) return undefined;
@@ -111,7 +112,7 @@
   }
 
   function traceFor(series, doc, warnings) {
-    const st = style(series.style), name = esc(series.name || series.expression || '系列');
+    const st = style(series.style), name = rich(series.name || (root.GraphSymbols ? root.GraphSymbols.toDisplay(series.expression,doc,series.kind) : series.expression) || '系列');
     const sampler = { implicit: 'sampleImplicit', parametric: 'sampleParametric', polar: 'samplePolar' }[series.kind];
     if (sampler) {
       const p = root.GraphCurves[sampler](series, doc);
@@ -126,17 +127,25 @@
     return is3 ? { type: 'scatter3d', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: vals(0), y: vals(1), z: vals(2), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color, size: 4 }, connectgaps: false } : { type: 'scatter', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: vals(0), y: vals(1), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color }, connectgaps: false };
   }
 
-  function annotationTraces(annotation, doc, warnings) {
+  function annotationTraces(annotation, doc, warnings, decorations) {
     const result = root.GraphAnnotations.evaluate(annotation, doc);
     if (result.warning) warnings.push((annotation.name || '点・補助線') + '：' + result.warning);
     const st = annotation.style, traces = [], meta = { objectType: 'annotation', objectId: annotation.id };
-    const common = { type: 'scatter', name: esc(annotation.name), opacity: st.opacity, meta, legendgroup: annotation.id, connectgaps: false };
+    const common = { type: 'scatter', name: rich(annotation.name), opacity: st.opacity, meta, legendgroup: annotation.id, connectgaps: false };
     if (result.segments.length) {
       const x = [], y = [];
       for (const segment of result.segments) { for (const p of segment) { x.push(p[0]); y.push(p[1]); } x.push(null); y.push(null); }
       traces.push(Object.assign({}, common, { x, y, mode: 'lines', showlegend: !result.points.length, line: { color: st.color, width: st.width, dash: st.dash } }));
     }
-    if (result.points.length) traces.push(Object.assign({}, common, { x: result.points.map(p => p[0]), y: result.points.map(p => p[1]), mode: 'markers+text', text: result.points.map((_, i) => esc(annotation.name + (result.points.length > 1 ? ' ' + (i + 1) : ''))), textposition: 'top right', marker: { color: st.color, size: 9, symbol: 'circle' }, hovertemplate: '%{x:.8g}, %{y:.8g}<extra>' + esc(annotation.name) + '</extra>' }));
+    if (result.points.length && annotation.kind !== 'text') traces.push(Object.assign({}, common, { x: result.points.map(p => p[0]), y: result.points.map(p => p[1]), mode: 'markers', marker: { color: st.color, size: 9, symbol: 'circle' }, hovertemplate: esc(doc.axes.x.symbol || 'x') + ' = %{x:.8g}<br>' + esc(doc.axes.y.symbol || 'y') + ' = %{y:.8g}<extra>' + esc(annotation.name) + '</extra>' }));
+    const label = annotation.label || {visible:true,dx:12,dy:-12,size:13};
+    const positions = result.points.length ? result.points : result.segments.length ? [result.segments[0][0].map((v,i)=>(v+result.segments[0][1][i])/2)] : [];
+    if (label.visible) positions.forEach((point,i) => decorations.push({name:annotation.id, x:point[0],y:point[1],xref:'x',yref:'y',text:rich(annotation.kind==='text'?annotation.text:annotation.name+(positions.length>1?' '+(i+1):'')),showarrow:false,xanchor:'left',yanchor:'bottom',xshift:label.dx,yshift:-label.dy,font:annotation.kind==='text'?{size:label.size,color:st.color}:{size:label.size},opacity:st.opacity,captureevents:true}));
+    if (annotation.kind === 'segment' && annotation.arrows !== 'none' && result.segments.length) {
+      const [a,b]=result.segments[0];
+      const head=(from,to)=>traces.push(Object.assign({},common,{x:[from[0],to[0]],y:[from[1],to[1]],mode:'markers',showlegend:false,hoverinfo:'skip',meta:{...meta,decoration:true},marker:{symbol:'arrow',angleref:'previous',size:[0,8+3*st.width],color:st.color}}));
+      head(a,b);if(annotation.arrows==='both')head(b,a);
+    }
     return traces;
   }
 
@@ -175,7 +184,7 @@
       const xa = layout.xaxis, ya = layout.yaxis, box = element.getBoundingClientRect();
       if (typeof xa.d2p === 'function' && typeof ya.d2p === 'function') {
         let nearest = 11;
-        for (const trace of traces) if (trace.meta.objectType === 'annotation' && (trace.mode || '').includes('markers')) {
+        for (const trace of traces) if (trace.meta.objectType === 'annotation' && !trace.meta.decoration && (trace.mode || '').includes('markers')) {
           for (let i = 0; i < trace.x.length; i++) {
             const x = xa.d2p(trace.x[i]), y = ya.d2p(trace.y[i]);
             if (!finite(x) || !finite(y) || x < 0 || y < 0 || x > xa._length || y > ya._length) continue;
@@ -191,24 +200,45 @@
   async function render(element, doc, options) {
     options = options || {};
     const P = plotly(); if (!P || !element) throw new Error('Plotly を読み込めません。');
-    const warnings = [], traces = [];
+    const warnings = [], traces = [], decorations=[];
     for (const s of doc.series || []) {
       if (s.visible === false || (doc.mode === '3d' ? !['surface', 'data3d'].includes(s.kind) : ['surface', 'data3d'].includes(s.kind))) continue;
       const trace = traceFor(s, doc, warnings); trace.meta = { objectType: 'series', objectId: s.id }; traces.push(trace);
     }
     if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false) {
-      try { traces.push(...annotationTraces(a, doc, warnings)); } catch (error) { warnings.push((a.name || '点・補助線') + '：' + error.message); }
+      try { traces.push(...annotationTraces(a, doc, warnings, decorations)); } catch (error) { warnings.push((a.name || '点・補助線') + '：' + error.message); }
     }
     const state = states.get(element) || {}; const camera = options.camera || state.camera;
-    if (typeof element.removeAllListeners === 'function') { element.removeAllListeners('plotly_click'); element.removeAllListeners('plotly_relayout'); }
-    const layout = Object.assign(layoutFor(doc, Object.assign({}, options, { camera })), { autosize: true, width: element.clientWidth || 640, height: element.clientHeight || 480 });
+    if (typeof element.removeAllListeners === 'function') { element.removeAllListeners('plotly_click'); element.removeAllListeners('plotly_relayout'); element.removeAllListeners('plotly_clickannotation'); }
+    const layout = Object.assign(layoutFor(doc, Object.assign({}, options, { camera })), { autosize: true, width: element.clientWidth || 640, height: element.clientHeight || 480, annotations:decorations });
     await P.react(element, traces, layout, { displayModeBar: false, responsive: true, scrollZoom: true });
     const live = { doc, camera: (element.layout && element.layout.scene && element.layout.scene.camera) || camera, options }; states.set(element, live);
     if (typeof element.on === 'function') {
       element.on('plotly_click', (event) => { const meta = selectionMeta(element, event, traces); if (!meta) return; const callback = meta.objectType === 'annotation' ? options.onAnnotationSelect : options.onSelect; if (typeof callback === 'function') callback(meta.objectId); });
+      element.on('plotly_clickannotation',event=>{const item=decorations[event.index];if(item&&typeof options.onAnnotationSelect==='function')options.onAnnotationSelect(item.name);});
       element.on('plotly_relayout', (event) => { const view = viewFrom(event || {}, doc); if (!view) return; if (view.camera) live.camera = view.camera; if (typeof options.onViewChange === 'function') options.onViewChange(view); });
     }
     return { warnings: [...new Set(warnings)] };
+  }
+  function screenPoint(element,point) {
+    const l=element._fullLayout;if(!l?.xaxis?.d2p||!l?.yaxis?.d2p)return null;
+    const x=l.xaxis.d2p(point[0]),y=l.yaxis.d2p(point[1]),b=element.getBoundingClientRect();
+    return finite(x)&&finite(y)?[b.left+l.xaxis._offset+x,b.top+l.yaxis._offset+y]:null;
+  }
+  function dataPoint(element,point) {
+    const l=element._fullLayout;if(!l?.xaxis?.p2d||!l?.yaxis?.p2d)return null;
+    const b=element.getBoundingClientRect(),x=l.xaxis.p2d(point[0]-b.left-l.xaxis._offset),y=l.yaxis.p2d(point[1]-b.top-l.yaxis._offset);
+    return finite(x)&&finite(y)?[x,y]:null;
+  }
+  function pickAnnotation(element,event,doc,selectedId) {
+    if(doc.mode!=='2d')return null;
+    const target=event.target?.closest?.('.annotation');
+    if(target){const i=Number(target.getAttribute('data-index')),item=element.layout?.annotations?.[i];if(item?.name&&doc.annotations.some(a=>a.id===item.name))return {id:item.name,part:'label'};}
+    const l=element._fullLayout,b=element.getBoundingClientRect();if(!l?.xaxis)return null;
+    if(event.clientX<b.left+l.xaxis._offset||event.clientX>b.left+l.xaxis._offset+l.xaxis._length||event.clientY<b.top+l.yaxis._offset||event.clientY>b.top+l.yaxis._offset+l.yaxis._length)return null;
+    let best=null,distance=event.pointerType==='touch'?22:11,priority=-1;
+    for(const a of doc.annotations)if(a.visible){const result=root.GraphAnnotations.evaluate(a,doc);for(const p of result.points){const screen=screenPoint(element,p);if(!screen)continue;const d=Math.hypot(screen[0]-event.clientX,screen[1]-event.clientY),rank=a.id===selectedId?2:['point','text'].includes(a.kind)?1:0;if(d<distance-1e-6||(Math.abs(d-distance)<1&&rank>priority)){distance=d;priority=rank;best={id:a.id,part:'point'};}}}
+    return best;
   }
   function resetView(element, doc) { const P = plotly(); if (!P || !element) return Promise.resolve(); const layout = layoutFor(doc, Object.assign({}, states.get(element) && states.get(element).options, { camera: undefined })); const state = states.get(element); if (state) state.camera = undefined; return P.relayout(element, layout); }
   function resize(element) { const P = plotly(); return P && P.Plots && element ? P.Plots.resize(element) : undefined; }
@@ -223,5 +253,5 @@
     if (layout.scene) { layout.scene.bgcolor = bg; layout.scene.camera = state.camera || layout.scene.camera; ['xaxis', 'yaxis', 'zaxis'].forEach((key) => { const axis = layout.scene[key]; if (axis) { axis.color = fg; axis.gridcolor = grid; axis.zerolinecolor = grid; axis.backgroundcolor = bg; axis.title = Object.assign({}, axis.title, { font: Object.assign({}, axis.title && axis.title.font, { color: fg }) }); } }); }
     try { await P.newPlot(host, data, layout, { displayModeBar: false }); return await P.toImage(host, { format: options.format || 'png', scale: options.scale || 2 }); } finally { P.purge(host); host.remove(); }
   }
-  return { sampleFunction, sampleSurface, render, resetView, resize, exportImage, escapeText: esc };
+  return { sampleFunction, sampleSurface, render, resetView, resize, exportImage, screenPoint, dataPoint, pickAnnotation, escapeText: esc };
 }));
