@@ -25,11 +25,11 @@
   const app = $('app'), side = $('side-panel');
   const panes = [...document.querySelectorAll('[data-pane]')];
   const tabs = [...document.querySelectorAll('[data-pane-button]')];
-  let files, editor, activePane = null, previewUrl = null;
+  let files, editor, helpPanel, activePane = null, previewUrl = null;
   let zoomMode = 'fit', zoom = 1, pendingFit = false;
   let copyingTable = false, exporting = false, preserveBeforeEdit = false;
   let resizing = false, panelResize, draftStore, draftReady = false, draftTimer, pendingDraft, draftFingerprint;
-  const busy = () => resizing || Boolean(editor && (editor.drag || editor.paletteDrag || editor.connectionDrag || editor.bendDrag || editor.pan || editor.marquee));
+  const busy = () => resizing || helpPanel?.interacting || Boolean(editor && (editor.drag || editor.paletteDrag || editor.connectionDrag || editor.bendDrag || editor.pan || editor.marquee));
   const preferencesKey = 'joho.logic.ui.v1';
   let preferences = {};
   try {
@@ -234,7 +234,7 @@
   document.querySelectorAll('[data-close-side]').forEach(button => button.addEventListener('click', () => setPane(null, true)));
   document.addEventListener('pointerdown', event => {
     if (matchMedia('(max-width: 850px)').matches && activePane && !side.contains(event.target)
-      && !event.target.closest('dialog') && !document.querySelector('dialog[open]')) setPane(null);
+      && !event.target.closest('dialog, .tool-help') && !document.querySelector('dialog[open]')) setPane(null);
   });
   document.addEventListener('keydown', event => {
     if (event.key === 'Escape' && activePane && side.contains(document.activeElement) && !document.querySelector('dialog[open]')) {
@@ -394,8 +394,20 @@
     dialog.querySelectorAll('[data-close-dialog]').forEach(button => button.addEventListener('click', () => closeDialog(dialog)));
   });
   document.addEventListener('joho:overlay-open', () => document.querySelectorAll('dialog:not(#logic-file-dialog)').forEach(dialog => closeDialog(dialog, false)));
-  editor.helpButton.setAttribute('aria-haspopup', 'dialog'); editor.helpButton.setAttribute('aria-controls', 'lc02-operation-dialog');
-  editor.helpButton.addEventListener('click', () => openDialog($('lc02-operation-dialog'), editor.helpButton));
+  editor.helpButton.removeAttribute('data-lesson-supplement-open');
+  try {
+    helpPanel = window.JohoToolHelp.create({
+      root: $('lc02-operation-dialog'), opener: editor.helpButton, title: '論理回路の使い方',
+      storageKey: 'joho.logic.help.v1', isBusy: busy,
+      bounds: () => ({ top: document.querySelector('.top').getBoundingClientRect().bottom + 8,
+        bottom: $('stage').getBoundingClientRect().bottom - 8 }),
+      initialRight: () => $('stage').getBoundingClientRect().right - 12,
+      returnToEditor: () => editor.canvasWrap.focus({ preventScroll: true })
+    });
+  } catch (_) {
+    $('lc02-operation-dialog').hidden = true; editor.helpButton.disabled = true;
+    editor.helpButton.title = 'ヘルプを読み込めませんでした。ページを再読み込みしてください。';
+  }
   $('settings-button').addEventListener('click', () => openDialog($('settings-dialog'), $('settings-button')));
   $('draft-status').addEventListener('click', () => files.openLoad({ opener: $('draft-status') }));
   $('circuit-status').addEventListener('click', () => {
@@ -456,6 +468,7 @@
   shortcuts.forEach(([button, text, keys]) => { button.dataset.shortcut = text; button.setAttribute('aria-keyshortcuts', keys); });
   document.addEventListener('keydown', event => {
     if (event.defaultPrevented || event.isComposing || event.altKey || document.querySelector('dialog[open]')) return;
+    if (helpPanel?.root.contains(event.target)) return;
     if (event.target.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
     const command = event.metaKey || event.ctrlKey, key = event.key.toLowerCase();
     const action = command && !event.shiftKey ? { s: editor.fileSaveButton, o: editor.loadButton }[key]
@@ -538,6 +551,7 @@
     if (!document.fullscreenElement) {
       files.close();
       document.querySelectorAll('dialog:not(#logic-file-dialog)').forEach(dialog => closeDialog(dialog));
+      helpPanel?.close(false);
     }
   });
   // Safariでも動的なダイアログのボタンを通常のTab順へ含める。

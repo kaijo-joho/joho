@@ -10,11 +10,16 @@
 - 空白の範囲ドラッグ、Shift＋クリック／Enter／Space、タッチの複数選択モードに対応。まとめて移動・複製・削除でき、選択時の「配置」で端・中央・等間隔を揃えます。複製は内部配線と手動の曲がり位置を保ち、選択外への配線は増やしません。入力A〜Dに空きがなければ部分的に複製せず中止します。Space＋空白ドラッグでパンします。
 - 未接続端子・出力につながらないゲートを「!」で示します。下部の接続状況を開き、一覧から該当箇所へ移動できます。未使用の入力は残したまま解析できます。
 - ツールチップは即時ホバー／Tab移動に対応。⌘/Ctrl+S・Oで保存／読み込み、?でヘルプを開きます。入力欄・ダイアログ・操作途中では回路用ショートカットを動かしません。
-- ヘルプ末尾に共通仕様に沿った推奨環境・利用上の注意・バージョン・学校名・Copyrightを掲載します。回路データはブラウザ内／ローカルファイルに保存し、外部送信しないことと、実際の電圧・遅延を再現しない学習用モデルであることを明示します。
+- ヘルプは開いたまま編集できる小窓です。移動・サイズ変更・最小化、目的別の項目、補足の折りたたみに対応します。狭い画面では下部パネルになり、見出しの上下ドラッグで高さを変えられます。位置・サイズ・項目・読んでいた位置は `joho.logic.help.v1` へ保存し、回路・下書き・Undoとは分離します。[共通ヘルプの仕様と組み込み方法](../shared/help-panel.md)を参照してください。
+- ヘルプの「このアプリについて」に、共通仕様に沿った推奨環境・利用上の注意・バージョン・学校名・Copyrightを掲載します。回路データはブラウザ内／ローカルファイルに保存し、外部送信しないことと、実際の電圧・遅延を再現しない学習用モデルであることを明示します。
 - ダークモードは作図領域にも適用。画像出力は編集テーマと独立し、白／透明背景・ファイル名・PNG 1/2/4倍・画像コピーを右パネルで選べます。0/1は上部表示に従います。編集用の選択・診断マーカーやゲート端子の●は書き出しに含めません（分岐は●）。画像コピー拒否時はPNGファイルの利用を案内します。
 - 旧lc02の未掲載状態を維持し、目次・検索への公開設定は変更しません。
 
-検証は `scripts/test-logic-tool-browser.mjs`、`scripts/test-logic-tool-usability-browser.mjs`、`scripts/test-logic-draft.mjs`、`scripts/test-logic-recovery-browser.mjs`、`scripts/test-logic-export-browser.mjs`、`scripts/test-logic-selection.mjs`、`scripts/test-logic-selection-browser.mjs` と既存の回路エンジン・保存・配線テストを使用します。
+検証は `scripts/test-tool-help-browser.mjs`、`scripts/test-logic-tool-browser.mjs`、`scripts/test-logic-tool-usability-browser.mjs`、`scripts/test-logic-draft.mjs`、`scripts/test-logic-recovery-browser.mjs`、`scripts/test-logic-export-browser.mjs`、`scripts/test-logic-selection.mjs`、`scripts/test-logic-selection-browser.mjs` と既存の回路エンジン・保存・配線テストを使用します。
+
+## ヘルプの共通化（0.4 BETA・2026-09-15）
+
+`tools/shared/help-panel.js`・`help-panel.css`を使用し、本文を8項目に整理しました。右パネルと同時表示でき、ヘルプ内のキーで回路を誤操作しません。保存などの確認はモーダルのままです。既存の作品ファイル・保存キー・編集処理は変更していません。他エディタ本体への適用は各担当の作業として残しています。Chrome・Playwright WebKitの検証と、Safariアプリ・実タッチ端末での確認は区別します。
 
 ## 課題提出への対応状況（2026-09-15）
 

@@ -23,6 +23,7 @@ async function helpAboutChecks(page, name) {
       await setToolPreferences(page, theme, size);
       await help.press('Enter');
       await expect(dialog).toBeVisible();
+      await dialog.getByRole('combobox', { name: 'ヘルプの項目' }).selectOption('about');
       await expect(dialog.locator('.help-about dt')).toHaveText(['推奨環境', 'ご利用にあたって']);
       await expect(dialog.locator('.help-about')).toContainText('macOS ＋ Google Chrome（最新版）');
       await expect(dialog.locator('.help-about')).toContainText('ローカルファイル');
@@ -31,7 +32,7 @@ async function helpAboutChecks(page, name) {
       await expect(dialog.locator('.help-about')).toContainText('改変・再配布はご遠慮ください');
       const credit = dialog.locator('.help-credit');
       await expect(credit).toHaveAttribute('aria-label', 'バージョン情報と著作権');
-      await expect(credit).toContainText('論理回路エディタ　バージョン 0.3 BETA（試作版。2026年9月）');
+      await expect(credit).toContainText('論理回路エディタ　バージョン 0.4 BETA（試作版。2026年9月）');
       await expect(credit).toContainText('海城中学高等学校 情報科');
       await expect(credit).toContainText('Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.');
       await credit.scrollIntoViewIfNeeded();

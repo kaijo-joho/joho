@@ -119,7 +119,8 @@ for (const [name, engine] of browserEngines.filter(([candidate]) => !process.env
 
     await page.keyboard.press('?'); await expect(page.locator('#lc02-operation-dialog')).toBeVisible();
     await page.locator('[aria-label="詳しい操作方法を閉じる"]').hover();
-    await expect(page.locator('#lc02-operation-dialog #logic-tooltip')).toBeVisible();
+    await expect(page.locator('#logic-tooltip')).toBeVisible();
+    await expect(page.locator('#logic-tooltip')).toContainText('詳しい操作方法を閉じる');
     await page.keyboard.press('Escape'); await expect(page.getByRole('button', { name: '回路エディタの操作方法', exact: true })).toBeFocused();
     await page.keyboard.press('ControlOrMeta+o'); await expect(dialog).toBeVisible();
     await page.keyboard.press('Escape'); await expect(load).toBeFocused();

@@ -7,6 +7,7 @@
   <link rel="icon" type="image/svg+xml" href="./icon.svg?v=20260915-a">
   <link rel="stylesheet" href="../../css/logic-circuits.css">
   <link rel="stylesheet" href="./editor.css">
+  <link rel="stylesheet" href="../shared/help-panel.css">
   <script defer src="../../js/logic-core.js"></script>
   <script defer src="../../js/logic-renderer.js"></script>
   <script defer src="../../js/logic-widgets.js"></script>
@@ -16,6 +17,7 @@
   <script defer src="../../js/logic-workbench-files.js"></script>
   <script defer src="./recovery.js"></script>
   <script defer src="./ui.js"></script>
+  <script defer src="../shared/help-panel.js"></script>
   <script defer src="./editor.js"></script>
 </head>
 <body>
@@ -117,26 +119,50 @@
     <header><h2 id="settings-title">表示設定</h2><button type="button" data-close-dialog aria-label="表示設定を閉じる">×</button></header>
     <div class="dialog-body"><label class="stack">テーマ<select id="theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label class="stack">文字サイズ<select id="text-size"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label></div>
   </dialog>
-  <dialog id="lc02-operation-dialog" aria-labelledby="help-title">
-    <header><h2 id="help-title">論理回路エディタの使い方</h2><button type="button" data-close-dialog aria-label="詳しい操作方法を閉じる">×</button></header>
-    <div class="dialog-body help-body">
-      <h3>1. 部品を置く・変更する</h3>
-      <ul><li>左のAND・OR・NOTを回路内へ<strong>ドラッグ</strong>して配置します。クリック・Enterでも追加できます。「＋ 入力」でC・Dを、「＋ 出力」でF₁・F₂…を増やせます。</li><li>部品をドラッグして移動します。選択時に出る操作バーで<strong>AND・ORの交換</strong>や削除ができます。近くの「×」やDeleteでも削除できます。最後の出力は残します。</li></ul>
-      <h3>2. つなぐ・付け替える</h3>
-      <p>配線を選び、操作バーの<strong>「NOTを挿入」</strong>を押すと、途中へNOTを追加して自動でつなぎ直します。分岐がある場合は選んだ1本だけが反転します。挿入位置は後からドラッグで調整でき、1回のUndoで元に戻せます。</p>
-      <ul><li>出力端子（●）から入力端子（●）へドラッグします。端子を順にクリック、またはTab・Enterで選んでも接続できます。</li><li>配線を選び、<strong>左端・右端を別の端子へドラッグ</strong>すると付け替えられます。接続先の古い配線は置き換えます。分岐があっても選んだ1本だけを変更します。</li><li>配線を選ぶと曲がり位置のハンドルが出ます。ドラッグ・矢印キーで移動し、Shiftで大きく動かせます。ハンドル上でDeleteを押すと自動経路に戻ります。</li><li>配線は水平・垂直です。同じ信号は途中で分岐し、分岐点だけに●を付けます。循環する回路や逆向き接続はできません。</li></ul>
-      <h3>3. 整列・表示・やり直し</h3>
-      <ul><li>上部の<strong>整列</strong>で回路全体を並べます。配線がなるべく直線になる位置を優先します。部品移動中は中心・等間隔・配線が直線になる位置に吸着します。<strong>Alt（Option）で一時解除</strong>します。</li><li>空白からの範囲ドラッグ、または<strong>Shift＋部品クリック</strong>で複数選択できます。キーボードは部品でShift＋Enter／Space。上部の<strong>複数選択</strong>をオンにするとタッチでも選択を追加できます。</li><li>選択した部品をまとめて移動・複製・削除できます。2個以上選ぶと操作バーの「配置」で端・中央を揃えられ、3個以上なら等間隔にもできます。複製は選択内の配線も引き継ぎます（選択外への配線は複製しません）。</li><li>入力の箱や真理値表の行を選ぶと入力値を切り替えられます。整列の右の<strong>0/1</strong>で値・信号色の表示を切り替えます。実際の値は変わりません。</li><li>右端のタブで真理値表・テンプレート・書き出しを開閉できます。右下で拡大縮小・全体表示。<strong>Space＋空白ドラッグ</strong>で画面を移動できます。タッチでは複数選択をオフにして空白をドラッグします。</li><li>未接続の端子や出力につながらない部品は「!」で示します。下部の<strong>接続状況</strong>から一覧を開き、項目を選ぶと該当箇所へ移動します。</li><li><strong>⌘Z：Undo、⌘Shift Z：Redo</strong>（WindowsはCtrl）。ドラッグ中のEscapeでキャンセルします。</li></ul>
-      <p>右パネルの左端をドラッグすると幅を変えられます。境界へTabで移動し、左右キーでも調整できます（Shiftで大きく、Homeで最小、Endで最大、Enterで標準幅）。開閉状態と幅は次回も引き継ぎます。</p>
-      <table class="shortcut-table"><caption>主なショートカット（Windowsは⌘をCtrlに読み替え）</caption><tbody><tr><th scope="row">⌘S</th><td>回路を保存</td></tr><tr><th scope="row">⌘O</th><td>回路を読み込む</td></tr><tr><th scope="row">⌘Z / ⌘Shift Z</th><td>元に戻す / やり直し</td></tr><tr><th scope="row">Delete</th><td>選択した部品・配線を削除</td></tr><tr><th scope="row">Escape</th><td>操作を取り消す・選択解除・メニューを閉じる</td></tr><tr><th scope="row">?</th><td>このヘルプを開く</td></tr></tbody></table>
-      <p class="muted">入力欄・ダイアログ内では回路用のショートカットは動作しません。ボタンの説明はマウスを乗せるか、Tabで移動すると表示されます。</p>
-      <h3 id="recovery-help" tabindex="-1">4. 作業途中の保存・復元</h3>
+  <aside id="lc02-operation-dialog" aria-label="論理回路エディタの使い方" hidden>
+    <section data-help-topic="parts" data-help-title="部品を置く・変更する">
+      <h3>部品を置く・変更する</h3>
+      <ol><li>左の<strong>AND・OR・NOT</strong>を、回路内へドラッグして置きます。クリック・Enterでも追加できます。</li><li>部品をドラッグして位置を調整します。</li><li>部品を選ぶと出る操作バーで、<strong>AND・ORの交換</strong>や削除ができます。</li></ol>
+      <details><summary>入力・出力の追加と削除</summary><p>「＋ 入力」でC・Dを、「＋ 出力」でF₁・F₂…を増やせます。部品・入力・出力は、選択時の削除ボタン、近くの「×」、Deleteで削除します。最後の出力は残します。</p></details>
+    </section>
+    <section data-help-topic="wires" data-help-title="配線・付け替え・NOTの挿入">
+      <h3>つなぐ・付け替える</h3>
+      <ol><li>出力端子（●）から入力端子（●）へドラッグします。端子を順にクリック、またはTab・Enterで選んでも接続できます。</li><li>付け替えは、配線を選び、<strong>左端・右端を別の端子へドラッグ</strong>します。接続先の古い配線は置き換えます。</li><li>曲がり位置は、配線を選ぶと出るハンドルをドラッグします。矢印キーでも動かせます。</li></ol>
+      <details><summary>配線の途中にNOTを挿入する</summary><p>配線を選び、操作バーの<strong>「NOTを挿入」</strong>を押すと、途中へNOTを追加して自動でつなぎ直します。分岐がある場合は選んだ1本だけが反転します。位置は後からドラッグで調整でき、1回のUndoで元に戻せます。</p></details>
+      <details><summary>分岐・曲がり位置の補足</summary><p>付け替えは、分岐があっても選んだ1本だけを変更します。ハンドル上ではShift＋矢印で大きく移動、Deleteで自動経路に戻せます。配線は水平・垂直で、同じ信号は途中で分岐し、分岐点だけに●を付けます。循環する回路や逆向き接続はできません。</p></details>
+    </section>
+    <section data-help-topic="align" data-help-title="整列・複数選択">
+      <h3>整列・複数選択</h3>
+      <ol><li>上部の<strong>整列</strong>で回路全体を並べます。配線がなるべく直線になる位置を優先します。</li><li>空白からの範囲ドラッグ、または<strong>Shift＋部品クリック</strong>で複数選択します。</li><li>選択時の操作バーからまとめて複製・削除できます。「配置」で端・中央・等間隔を揃えます。</li></ol>
+      <details><summary>吸着・キーボード・タッチの操作</summary><p>移動中は中心・等間隔・配線が直線になる位置に吸着します。<strong>Alt（Option）で一時解除</strong>します。キーボードの複数選択は部品でShift＋Enter／Space。タッチでは上部の<strong>複数選択</strong>をオンにします。</p><p>揃えるには2個以上、等間隔には3個以上を選びます。複製は選択内の配線も引き継ぎますが、選択外への配線は複製しません。</p></details>
+    </section>
+    <section data-help-topic="display" data-help-title="真理値表・表示・接続の確認">
+      <h3>真理値表・表示・接続の確認</h3>
+      <ol><li>右端の<strong>真理値表</strong>を開き、行を選ぶと入力値が切り替わります。入力の箱でも切り替えられます。</li><li>整列の右の<strong>0/1</strong>で値・信号色の表示を切り替えます。実際の値は変わりません。</li><li>未接続などの「!」が出たら、下部の<strong>接続状況</strong>を開きます。項目を選ぶと該当箇所へ移動します。</li></ol>
+      <details><summary>画面の移動・倍率・右パネル</summary><p>右下で拡大縮小・全体表示。<strong>Space＋空白ドラッグ</strong>で画面を移動します。タッチでは複数選択をオフにして空白をドラッグします。</p><p>右端のタブで真理値表・テンプレート・書き出しを開閉します。右パネルの境界はドラッグ・左右キーで幅を調整できます。Shiftで大きく、Homeで最小、Endで最大、Enterで標準幅。開閉状態と幅は次回も引き継ぎます。</p></details>
+      <details><summary>真理値表をコピーする</summary><p>見出し横の<strong>コピーアイコン</strong>で、全行・全出力を見出し付きでコピーします。スプレッドシートへ貼り付けると行・列に分かれます。上部の0/1表示設定には影響されません。</p></details>
+    </section>
+    <section data-help-topic="save" data-help-title="保存・読み込み・自動復元">
+      <h3>保存・読み込み</h3>
+      <ol><li>上部の保存アイコンで、名前を付けて<strong>ブラウザ（最大30件）</strong>または<strong>ローカルファイル（.logic.json）</strong>へ保存します。作りかけでも保存できます。</li><li>読み込みアイコンで、下書き・保存済み回路・ローカルファイル・テンプレートを選びます。</li><li>全消去や別回路へ切り替える前は、未保存の変更を保存するか確認します。ファイル保存はダウンロードを確認してから続けてください。</li></ol>
+      <details><summary id="recovery-help">自動保存と復元について</summary>
       <p>確定した編集を、このブラウザの下書きへ自動保存します。次に開いたときは、前回の下書き・名前付き保存・新規作成から選べます。ドラッグ途中の位置やUndoの履歴は復元しません。</p>
       <p><strong>名前付き保存とは別の一時的な下書きです。</strong>別回路への切り替え・全消去前の下書きは最大5件残します。読み込み画面で名前と日時を確認して選べます。長く残すには名前付き保存やファイル保存を使ってください。閲覧データを消すと下書きも消え、別端末とは同期されません。</p>
       <p id="draft-detail" class="muted"></p>
-      <h3>5. 保存・読み込み・書き出し</h3>
-      <ul><li>上部の保存アイコンで、名前を付けて<strong>ブラウザ（最大30件）</strong>または<strong>ローカルファイル（.logic.json）</strong>へ保存します。作りかけの回路も保存できます。</li><li>読み込みアイコンで下書き・保存済み回路・ローカルファイル・テンプレートを選びます。全消去や別回路の読み込み前は、未保存の変更の保存を確認します。ファイル保存はダウンロードを確認してから続けてください。</li><li>ブラウザ保存は端末間で同期されず、閲覧データを削除すると失われます。旧lc02と<strong>同じサイト・同じブラウザ</strong>なら、保存済みの回路を引き続き読み込めます。</li><li>右の書き出しパネルで<strong>SVG・PNG、ファイル名、白／透明背景</strong>を選びます。PNGは1・2・4倍を指定でき、画像コピーもできます。0/1は上部の表示に従います。入出力は枠なしの点、分岐だけに●を付けます。再編集には.logic.jsonを使います。</li><li>真理値表の見出し横の<strong>コピーアイコン</strong>で、全行・全出力を見出し付きでコピーできます。スプレッドシートへ貼り付けると行・列に分かれます。上部の0/1表示設定には影響されません。</li></ul>
-      <h3 id="about-title">6. このアプリについて</h3>
+      </details><details><summary>ブラウザ保存の注意</summary><p>ブラウザ保存は端末間で同期されず、閲覧データを削除すると失われます。旧lc02と<strong>同じサイト・同じブラウザ</strong>なら、保存済みの回路を引き続き読み込めます。</p></details>
+    </section>
+    <section data-help-topic="export" data-help-title="SVG・PNGの書き出し">
+      <h3>SVG・PNGの書き出し</h3>
+      <ol><li>右端の<strong>書き出し</strong>パネルを開きます。このヘルプは開いたまま操作できます。</li><li><strong>SVG・PNG、ファイル名、白／透明背景</strong>を選びます。PNGは1・2・4倍を指定できます。</li><li>「書き出す」で画像を保存、または「PNG画像をコピー」で文書へ貼り付けます。</li></ol>
+      <details><summary>画像に含めるもの・再編集</summary><p>0/1は上部の表示に従います。入出力は枠なしの点、分岐だけに●を付けます。画像からは再編集できません。編集を続ける場合は<strong>.logic.json</strong>も保存してください。</p></details>
+    </section>
+    <section data-help-topic="shortcuts" data-help-title="ショートカット・ヘルプの操作">
+      <h3>ショートカット・ヘルプの操作</h3>
+      <table class="shortcut-table"><caption>Windowsは⌘をCtrlに読み替え</caption><tbody><tr><th scope="row">⌘S / ⌘O</th><td>保存 / 読み込み</td></tr><tr><th scope="row">⌘Z / ⌘Shift Z</th><td>元に戻す / やり直し</td></tr><tr><th scope="row">Delete</th><td>選択した部品・配線を削除</td></tr><tr><th scope="row">Escape</th><td>ドラッグを取り消す・選択解除</td></tr><tr><th scope="row">?</th><td>ヘルプを開閉（最小化中は展開）</td></tr></tbody></table>
+      <details><summary>ヘルプを移動・縮小する</summary><p>見出しをドラッグ・矢印キーで移動します。右下の角、右端、下端でサイズを変更できます。Shiftで大きく変更、Enterで標準位置。「−」で最小化、「×」で閉じます。狭い画面では下部に表示され、見出しの上下ドラッグ・上下キーで高さを変更します。</p><p>「編集へ戻る」でヘルプを開いたまま回路へ移れます。ヘルプ内では回路用ショートカットを動かしません。Escapeは開いた補足を閉じ、補足外ならヘルプを閉じます。回路操作中のEscapeは操作の取消を優先します。ボタンの説明はホバー・Tabで表示されます。</p></details>
+    </section>
+    <section data-help-topic="about" data-help-title="このアプリについて">
+      <h3 id="about-title">このアプリについて</h3>
       <dl class="help-about" aria-labelledby="about-title">
         <div><dt>推奨環境</dt><dd>macOS ＋ Google Chrome（最新版）。Safariなどほかのブラウザでは、表示や一部の機能（画像のコピーなど）が異なる場合があります。</dd></div>
         <div><dt>ご利用にあたって</dt><dd>
@@ -146,9 +172,9 @@
         </dd></div>
       </dl>
       <footer class="help-credit" aria-label="バージョン情報と著作権">
-        <p>論理回路エディタ　バージョン 0.3 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+        <p>論理回路エディタ　バージョン 0.4 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
       </footer>
-    </div>
-  </dialog>
+    </section>
+  </aside>
 </body>
 </html>
