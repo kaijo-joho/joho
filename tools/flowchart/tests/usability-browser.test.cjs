@@ -93,6 +93,16 @@ async function printDialog(page) {
   await menu(page, 'file-menu'); await page.locator('#print-button').click(); await page.waitForFunction(() => document.getElementById('print-dialog').open);
   const dialog = page.locator('#print-dialog'), title = dialog.locator('h2').first(), submit = dialog.locator('.dialog-layout > .dialog-actions #print-submit');
   await visibleInViewport(title, 'Print title'); await visibleInViewport(submit, 'Print action');
+  const labels = await page.evaluate(() => {
+    const ids = [...document.querySelectorAll('[id]')].map(el => el.id);
+    const dialog = document.getElementById('print-dialog');
+    const heading = document.getElementById(dialog.getAttribute('aria-labelledby'));
+    const drawings = [...document.querySelectorAll('#print-sheet svg,#print-preview svg')];
+    return { duplicates:ids.filter((id,index) => ids.indexOf(id)!==index), dialog:heading?.textContent,
+      drawingNames:drawings.map(svg => { const title=document.getElementById(svg.getAttribute('aria-labelledby').split(' ')[0]); return svg.contains(title)?title.textContent:null; }) };
+  });
+  assert.deepEqual(labels.duplicates,[]); assert.equal(labels.dialog,'印刷プレビュー');
+  assert.ok(labels.drawingNames.length>=2); assert.ok(labels.drawingNames.every(name=>name==='操作性の確認'));
   await page.screenshot({path:path.join(os.tmpdir(), `joho-flowchart-print-polish-${page.viewportSize().width}.png`)});
   await tabsKeepChromeVisible(page, dialog, title, submit);
   await page.keyboard.press('Escape'); await page.waitForFunction(() => !document.getElementById('print-dialog').open && document.querySelector('#file-menu > summary') === document.activeElement);
