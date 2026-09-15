@@ -398,7 +398,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.9 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.10 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1679,9 +1679,15 @@ const LIB = [
   ['糖類', [
     ['α-グルコース', 'C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O)O)O)O)O'], ['β-グルコース', 'C([C@@H]1[C@H]([C@@H]([C@H]([C@@H](O1)O)O)O)O)O'],
     ['β-ガラクトース', 'C([C@@H]1[C@@H]([C@@H]([C@H]([C@@H](O1)O)O)O)O)O'], ['β-フルクトース（五員環）', 'C([C@@H]1[C@H]([C@@H]([C@](O1)(CO)O)O)O)O'],
+    ['α-ガラクトース', 'C([C@@H]1[C@@H]([C@@H]([C@H]([C@H](O1)O)O)O)O)O'], ['鎖状のグルコース', 'C([C@H]([C@H]([C@@H]([C@H](C=O)O)O)O)O)O'],
+    ['β-リボース（五員環）', 'C([C@@H]1[C@H]([C@H]([C@@H](O1)O)O)O)O'], ['β-デオキシリボース（五員環）', 'C1[C@@H]([C@H](O[C@H]1O)CO)O'],
     ['マルトース', GLC4(GLC_A1)], ['セロビオース', GLC4(GLC_B1)], ['ラクトース', GLC4(GAL_B1)],
-    ['スクロース', `C([C@@H]1[C@H]([C@@H]([C@](O1)(CO)O${GLC_A1})O)O)O`]]]
+    ['スクロース', `C([C@@H]1[C@H]([C@@H]([C@](O1)(CO)O${GLC_A1})O)O)O`],
+    ['トレハロース', `C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O${GLC_A1})O)O)O)O`],
+    ['アミロース（グルコース 3 個分）', GLC4(glc1(true, 2, glc1(true, 3)))], ['セルロース（グルコース 3 個分）', GLC4(glc1(false, 2, glc1(false, 3)))]]]
 ];
+// グルコース（1 位で結合する側）。alpha：α か β、r：環の番号、x：4 位の O に付けるもの（アミロース・セルロースの鎖をのばす）
+function glc1(alpha, r, x = ''){ return `[C@${alpha ? '@' : ''}H]${r}[C@@H]([C@H]([C@@H]([C@H](O${r})CO)O${x})O)O`; }
 // ===== 化学 ここまで =====
 
 const $ = id => document.getElementById(id);
