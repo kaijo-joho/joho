@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { toolLayoutChecks } from './logic-tool-browser-helpers.mjs';
+import { setToolPreferences, toolLayoutChecks } from './logic-tool-browser-helpers.mjs';
 const require = createRequire(import.meta.url);
 const { chromium, webkit } = require('playwright');
 const { expect } = require('playwright/test');
@@ -12,6 +12,49 @@ const base = process.env.JOHO_TEST_URL || 'http://127.0.0.1:8765/';
 const artifacts = await mkdtemp(join(tmpdir(), 'logic-tool-'));
 const errors = [];
 console.log(`Browser artifacts: ${artifacts}`);
+
+async function helpAboutChecks(page, name) {
+  const help = page.getByRole('button', { name: '回路エディタの操作方法', exact: true });
+  const dialog = page.locator('#lc02-operation-dialog');
+  const before = await page.evaluate(() => ({ snapshot: logicWorkbenchEditor.snapshot(), history: logicWorkbenchEditor.history.length }));
+  for (const width of [1440, 390]) {
+    await page.setViewportSize({ width, height: 900 });
+    for (const theme of ['light', 'dark', 'auto']) for (const size of ['standard', 'large', 'largest']) {
+      await setToolPreferences(page, theme, size);
+      await help.press('Enter');
+      await expect(dialog).toBeVisible();
+      await expect(dialog.locator('.help-about dt')).toHaveText(['推奨環境', 'ご利用にあたって']);
+      await expect(dialog.locator('.help-about')).toContainText('macOS ＋ Google Chrome（最新版）');
+      await expect(dialog.locator('.help-about')).toContainText('ローカルファイル');
+      await expect(dialog.locator('.help-about')).toContainText('外部には送信されません');
+      await expect(dialog.locator('.help-about')).toContainText('信号の遅延');
+      await expect(dialog.locator('.help-about')).toContainText('改変・再配布はご遠慮ください');
+      const credit = dialog.locator('.help-credit');
+      await expect(credit).toHaveAttribute('aria-label', 'バージョン情報と著作権');
+      await expect(credit).toContainText('論理回路エディタ　バージョン 0.3 BETA（試作版。2026年9月）');
+      await expect(credit).toContainText('海城中学高等学校 情報科');
+      await expect(credit).toContainText('Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.');
+      await credit.scrollIntoViewIfNeeded();
+      const layout = await dialog.evaluate(node => ({
+        left: node.getBoundingClientRect().left, right: node.getBoundingClientRect().right,
+        client: node.clientWidth, scroll: node.scrollWidth,
+        creditBottom: node.querySelector('.help-credit').getBoundingClientRect().bottom,
+        bottom: node.getBoundingClientRect().bottom
+      }));
+      assert.ok(layout.left >= 0 && layout.right <= width && layout.scroll <= layout.client + 1,
+        `${name} help ${width} ${theme} ${size}: no horizontal overflow`);
+      assert.ok(layout.creditBottom <= layout.bottom, 'last copyright line can be reached');
+      if (theme === 'dark' && size === 'largest') await page.screenshot({ path: join(artifacts, `${name}-help-${width}.png`) });
+      await page.keyboard.press('Escape');
+      await expect(dialog).toBeHidden();
+      await expect(help).toBeFocused();
+    }
+  }
+  assert.deepEqual(await page.evaluate(() => ({ snapshot: logicWorkbenchEditor.snapshot(), history: logicWorkbenchEditor.history.length })), before,
+    'reading help does not modify the circuit or history');
+  await setToolPreferences(page, 'light', 'standard');
+  await page.setViewportSize({ width: 1440, height: 900 });
+}
 
 for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
   const browser = await engine.launch(name === 'chrome' ? { channel: 'chrome' } : {});
@@ -86,6 +129,7 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     await page.locator('#theme').selectOption('dark');
     await page.keyboard.press('Escape');
     await expect(page.locator('#settings-button')).toBeFocused();
+    await helpAboutChecks(page, name);
     await toolLayoutChecks(page, name, artifacts);
 
     // 等倍・全体表示・画面パンは回路の保存内容を変えない。

@@ -162,6 +162,12 @@ dialog header button, .lesson-supplement-dialog__close { width: 44px; border: 0;
 .help-body h3:first-child { margin-top: 0; }
 .help-body ul { padding-left: 1.5em; }
 .help-body li { margin-block: 7px; }
+.help-about { margin: 16px 0 0; border-top: 1px solid var(--line); }
+.help-about > div { display: grid; grid-template-columns: 8em minmax(0, 1fr); gap: 12px; padding-block: 14px; border-bottom: 1px solid var(--line); }
+.help-about dt { font-weight: 600; }
+.help-about dd { margin: 0; }
+.help-about dd p + p { margin-top: 12px; }
+.help-credit { margin-top: 18px; color: var(--muted); font-size: .9rem; overflow-wrap: anywhere; }
 .shortcut-table { width: 100%; border-collapse: collapse; margin-block: 16px; text-align: left; }
 .shortcut-table caption { text-align: left; font-weight: 600; }
 .shortcut-table th, .shortcut-table td { padding: 7px; border-bottom: 1px solid var(--line); }
@@ -198,6 +204,7 @@ noscript { position: fixed; inset: 65px 15px auto; padding: 15px; background: va
   .statusbar { gap: 0; padding-inline: 2px; }
 }
 @media (max-width: 560px) {
+  .help-about > div { grid-template-columns: minmax(0, 1fr); gap: 5px; }
   #app { grid-template-columns: 64px minmax(0, 1fr) auto; }
   .brand { display: none; }
   .palette { padding: 8px 4px; }
