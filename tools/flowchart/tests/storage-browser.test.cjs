@@ -14,7 +14,7 @@ async function serve() {
 }
 async function run() {
   const hosting = await serve();
-  try { for (const engine of ['chromium','webkit']) { const browser = await pw[engine].launch(engine==='chromium'?{channel:'chrome',headless:true}:{headless:true}); try {
+  try { for (const engine of process.argv.includes('--chrome-only')?['chromium']:['chromium','webkit']) { const browser = await pw[engine].launch(engine==='chromium'?{channel:'chrome',headless:true}:{headless:true}); try {
     const context = await browser.newContext({viewport:{width:1280,height:736}}), page = await context.newPage(); page.setDefaultTimeout(12000); const errors=[]; page.on('pageerror',e=>errors.push(e.message)); await page.goto(hosting.url); await page.waitForFunction(()=>!!window.DiagramEditor);
     assert.equal(await page.locator('#storage-open-dialog').count(),1); assert.equal(await page.locator('#autosave-dialog').count(),1); assert.equal(await page.locator('#save-browser').count(),1);
     assert.equal(await page.locator('#storage-open-dialog').evaluate(d=>d.open),false,'A new empty start never opens a recovery dialog');

@@ -166,7 +166,7 @@ async function checkLatestBaseline(browser, url) {
 (async () => {
   const hosting = await serve();
   try {
-    for (const engine of ['chromium','webkit']) {
+    for (const engine of process.argv.includes('--chrome-only')?['chromium']:['chromium','webkit']) {
       const browser = await pw[engine].launch(engine === 'chromium' ? {channel:'chrome',headless:true} : {headless:true});
       try { await checkSnapshots(browser, hosting.url); await checkLocalWiring(browser, hosting.url); await checkLatestBaseline(browser, hosting.url); console.log(engine + ': snapshot preservation, failed save-and-open, file fallback and simulated local autosave passed'); }
       finally { await browser.close(); }

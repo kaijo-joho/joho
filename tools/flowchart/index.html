@@ -85,7 +85,10 @@
         <p id="trace-message" class="muted"></p><div id="trace-choices" class="trace-choices"></div>
       </section>
       <div id="stage">
-        <svg id="canvas" xmlns="http://www.w3.org/2000/svg" tabindex="0" aria-label="作図画面。部品を選んで配置。選択した図形は矢印キーで移動、Enterで文字を編集。" aria-describedby="canvas-help"><g id="world"><g id="scene"></g><g id="overlay"></g></g></svg>
+        <svg id="canvas" xmlns="http://www.w3.org/2000/svg" tabindex="0" aria-label="作図画面。部品を選んで配置。選択した図形は矢印キーで移動、Enterで文字を編集。" aria-describedby="canvas-help"><g id="world"><g id="scene"></g><g id="overlay"></g><g id="placement-preview" aria-hidden="true"></g></g></svg>
+        <div id="placement-bar" class="placement-bar" role="group" aria-label="部品セットの配置" hidden>
+          <strong id="placement-name"></strong><div><button type="button" id="place-part-center">中央に配置</button><button type="button" id="cancel-part-placement">中止</button></div>
+        </div>
         <div id="format-bar" class="format-bar" role="group" aria-label="選択した部品の操作" hidden>
           <span id="locked-selection" hidden>固定された部品を選択中</span>
           <details class="menu edit-more" id="edit-menu"><summary>編集 <span aria-hidden="true">▾</span></summary><div class="menu-panel">
@@ -228,21 +231,23 @@
     </aside>
   </div>
   <div id="notice" role="status" hidden></div>
-  <dialog id="parts-dialog" class="parts-dialog" aria-labelledby="parts-title">
+  <dialog id="parts-dialog" class="parts-dialog workspace-dialog" aria-labelledby="parts-title"><div class="dialog-layout">
     <h2 id="parts-title">マイ部品</h2>
+    <div class="dialog-body">
     <p id="parts-status" class="muted" role="status"></p>
     <div id="parts-candidates" class="storage-candidates" hidden></div>
     <p id="parts-error" class="storage-error" role="status" hidden></p>
     <div class="parts-workspace"><div id="parts-list" class="parts-list" role="group" aria-label="保存した部品セット"></div>
       <div class="parts-detail"><div id="part-preview" aria-label="選択した部品セットのプレビュー"></div><p id="part-description" class="muted"></p>
         <form id="part-name-form"><label class="stack">名前<input id="part-name" maxlength="80" required></label><button type="submit" id="rename-part">名前を変更</button></form>
-        <div class="parts-actions"><button type="button" id="place-part" class="primary">配置する</button><button type="button" id="export-part">このセットを保存</button><button type="button" id="delete-part">削除</button></div>
+        <div class="parts-actions"><button type="button" id="place-part" class="primary">配置する</button><button type="button" id="export-part">このセットをファイルに保存</button><button type="button" id="delete-part">削除</button></div>
         <div id="delete-part-confirm" hidden><p id="delete-part-message"></p><button type="button" id="cancel-delete-part">キャンセル</button><button type="button" id="confirm-delete-part">削除する</button></div>
       </div>
     </div>
     <p id="parts-empty">図形や矢印を選び、「編集」→「部品セットとして登録」から追加できます。</p>
+    </div>
     <div class="dialog-actions"><button type="button" id="parts-open-saved">保存内容を選ぶ…</button><button type="button" id="parts-import">ファイルを読み込む…</button><button type="button" id="parts-save-browser">ブラウザ内に保存</button><button type="button" id="parts-save-file">すべてファイルに保存</button><button type="button" data-close-dialog>閉じる</button></div>
-  </dialog>
+  </div></dialog>
   <dialog id="register-part-dialog" class="format-dialog" aria-labelledby="register-part-title"><form id="register-part-form">
     <h2 id="register-part-title">部品セットとして登録</h2><div id="register-part-preview" class="part-preview"></div>
     <label class="stack">名前<input id="register-part-name" maxlength="80" required autofocus></label><p id="register-part-error" class="storage-error" role="status" hidden></p>
@@ -263,8 +268,9 @@
     <p class="muted">文字の大きさ・太字・文字色と、線の色・太さ・破線をコピーします。塗りの色は図形どうしでコピーできます。</p>
     <div class="dialog-actions"><button type="button" data-close-dialog>キャンセル</button><button type="submit" id="style-copy" class="primary">コピーする</button></div>
   </form></dialog>
-  <dialog id="print-dialog" aria-labelledby="print-title"><form id="print-form">
+  <dialog id="print-dialog" class="workspace-dialog" aria-labelledby="print-title"><form id="print-form" class="dialog-layout">
     <h2 id="print-title">印刷プレビュー</h2>
+    <div class="dialog-body">
     <div class="print-controls">
       <label class="stack">用紙<select id="print-paper"><option value="A4">A4</option><option value="B5">B5（JIS）</option></select></label>
       <label class="stack">向き<select id="print-orientation"><option value="portrait">縦</option><option value="landscape">横</option></select></label>
@@ -279,6 +285,7 @@
     <p id="print-summary" class="muted"></p>
     <div id="print-preview" aria-label="印刷するページのプレビュー" tabindex="0"></div>
     <p id="print-pagination-note" class="muted" hidden>長い問題文はページを分け、図全体を最後のページに収めます。</p>
+    </div>
     <div class="dialog-actions"><button type="button" data-close-dialog>閉じる</button><button type="submit" id="print-submit" class="primary">印刷する…</button></div>
   </form></dialog>
   <dialog id="assignment-dialog" aria-labelledby="assignment-dialog-title"><div class="assignment-dialog-body"><h2 id="assignment-dialog-title">問題文</h2><p id="assignment-dialog-text" class="assignment-text"></p><div class="dialog-actions"><button type="button" class="primary" data-close-dialog>閉じる</button></div></div></dialog>
@@ -318,7 +325,7 @@
     <p><strong>まとめる・固定する：</strong>複数の部品を選び「グループ化」でまとめます。どの部品を選んでも全体を移動・複製できます。文字は部品をダブルクリックして個別に編集できます。形や配置を個別に変えるときは「グループ解除」を使います。「固定」で移動・文字・書式・削除を防ぎ、もう一度押すと解除します。固定した図形にも新しい矢印を接続できます。</p>
     <p data-lesson-help><strong>授業用ひな形：</strong>右の「授業」で問題文を入力し、固定する図形・線・担当領域を選びます。「生徒の画面で確認」で操作を試せます。確認中の変更は「確認を終了」で元に戻ります。「配付用ひな形を保存」で、生徒がそのまま開けるファイルを作れます。</p>
     <p><strong>手動トレース：</strong>右の「トレース」で開始する図形を選びます。画面上部の矢印の候補から進み、「1つ戻る」で分岐を選び直せます。並列開始では各枝に現在位置ができ、並列終了ではすべての枝が到着するまで待ちます。矢じりのない線は進行方向を示さないため、トレースの対象にしません。経路を選んで確認する機能で、条件やプログラムの自動実行・採点は行いません。</p>
-    <p><strong>部品セットを使う：</strong>図形や矢印を選び、「編集」→「部品セットとして登録…」で名前を付けます。左の「マイ部品」で選び、「配置する」の後に作図画面をクリックします。Enterなら画面中央、Escapeで中止します。マイ部品では名前変更・削除、ブラウザ内への保存、ファイルの保存・読み込みもできます。自動保存と明示保存は別々に残り、開く内容を選べます。</p>
+    <p><strong>部品セットを使う：</strong>図形や矢印を選び、「編集」→「部品セットとして登録…」で名前を付けます。左の「マイ部品」で選び、「配置する」の後に作図画面の半透明のプレビューを確認してクリックします。「中央に配置」またはEnterなら画面中央、「中止」またはEscapeで取り消します。マイ部品では名前変更・削除、ブラウザ内への保存、ファイルの保存・読み込みもできます。自動保存と明示保存は別々に残り、開く内容を選べます。</p>
     <p><strong>出力の大きさ：</strong>「書き出し」の「PNGの寸法」で倍率・幅・高さを指定します。幅・高さは余白を含む画素数で、縦横比を保ちます。「画像の余白」では四辺を1倍時のpxで指定し、SVGにも適用します。印刷は「図の大きさ」で幅をmm指定し、左右・上下の配置を選べます。用紙に入らない場合は収まる大きさへ縮小し、実際の寸法を表示します。</p>
     <p><strong>経路を整える：</strong>直角の矢印は図形を避けて引きます。中央の◇で手動調整した線を自動に戻すときは、線を選んで「経路を整える」を押します。接続先とラベルの内容は保持します。</p>
     <p><strong>図の点検：</strong>右の「点検」に、空欄・未接続の矢印・分岐ラベルなどの見直し候補を表示します。候補を押すと該当箇所を選びます。課題や図の意図に合わせて確認してください。</p>

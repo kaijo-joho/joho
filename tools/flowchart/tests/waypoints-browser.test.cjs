@@ -124,7 +124,7 @@ async function mobile(browser,url,artifacts,engine) {
 }
 async function run() {
   const host=await serve(),artifacts=path.join(os.tmpdir(),'joho-flowchart-waypoints-browser');await fs.mkdir(artifacts,{recursive:true});
-  try {for(const engine of ['chromium','webkit']) {
+  try {for(const engine of process.argv.includes('--chrome-only')?['chromium']:['chromium','webkit']) {
     const browser=await pw[engine].launch(engine==='chromium'?{channel:'chrome',headless:true}:{headless:true});
     try {
       const context=await browser.newContext({viewport:{width:1280,height:800},acceptDownloads:true}),page=await context.newPage(),errors=[];page.setDefaultTimeout(12000);page.on('pageerror',e=>errors.push(e.message));

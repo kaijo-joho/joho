@@ -12,6 +12,8 @@
 
 静的ファイルだけで動作する。外部ライブラリ、ビルド、ログイン、サーバーへのデータ保存は不要。
 
+利用・検証の基準はmacOSのGoogle Chromeとする。2026-09-15の作成者の指示により、Safariの実機確認は今後の完了条件に含めない。
+
 リポジトリのルートで以下を実行し、表示されたURLの `/tools/flowchart/` を開く。
 
 ```sh
@@ -78,6 +80,10 @@ python3 -m http.server 8000
 ### マイ部品・部品セットの再利用
 
 図形や矢印を選択して「編集」→「部品セットとして登録…」から、名前とプレビューを確認して登録する。左側の「マイ部品」から一覧・プレビューを開き、配置・名前変更・削除・ファイル保存ができる。「配置する」の後に作図面をクリックするとその位置へ、Enterでは画面中央へ配置する。Escapeで中止でき、配置全体を1回のUndoで戻せる。
+
+配置前には、作図面上に半透明の部品セットと点線の範囲を表示する。ポインターに追従して、吸着と表示倍率を反映した実際の配置位置を確認できる。上部の「中央に配置」「中止」はキーボードとタッチでも使える。配置中のTabは元の図形を飛ばして配置ボタンへ進み、矢印キーやDeleteで元の選択を変更しない。中止すると元の選択へ戻り、文書・Undo・保存内容を保持する。プレビューは保存・画像・印刷に含めない。
+
+マイ部品と印刷のダイアログは見出しと下部の操作を固定し、長い内容は内部でスクロールする。特大文字や狭い画面でも「閉じる」「印刷する…」へ移動できる。「このセットをファイルに保存」は選択した1セットのファイル書き出しを示す。
 
 セットには選んだ図形・線、内部の接続線とグループ、文字・色・書式・接続位置・手動の経路点を保持する。選択外の図形へ接続している線を含めた場合は、外形上の接続位置を未接続の端点として残す。担当領域と問題文は含めない。配置した部品は新しいIDを持つ編集可能なコピーとなり、配置先の担当領域へ割り当てる。セットや原図の編集内容と配置済みのコピーは独立する。
 
@@ -181,20 +187,22 @@ node --check tools/flowchart/local-autosave.js
 node tools/flowchart/tests/core.test.cjs
 node tools/flowchart/tests/render.test.cjs
 node tools/flowchart/tests/waypoints-render.test.cjs
-node tools/flowchart/tests/waypoints-browser.test.cjs
+node tools/flowchart/tests/waypoints-browser.test.cjs --chrome-only
 node tools/flowchart/tests/parts.test.cjs
-node tools/flowchart/tests/parts-browser.test.cjs
+node tools/flowchart/tests/parts-browser.test.cjs --chrome-only
+node tools/flowchart/tests/placement-browser.test.cjs
+node tools/flowchart/tests/usability-browser.test.cjs
 node tools/flowchart/tests/output.test.cjs
-node tools/flowchart/tests/output-browser.test.cjs
+node tools/flowchart/tests/output-browser.test.cjs --chrome-only
 node tools/flowchart/tests/storage.test.cjs
 node tools/flowchart/tests/local-autosave.test.cjs
-node tools/flowchart/tests/storage-browser.test.cjs
-node tools/flowchart/tests/storage-integrity-browser.test.cjs
-node tools/flowchart/tests/browser.test.cjs
+node tools/flowchart/tests/storage-browser.test.cjs --chrome-only
+node tools/flowchart/tests/storage-integrity-browser.test.cjs --chrome-only
+node tools/flowchart/tests/browser.test.cjs --chrome-only
 git diff --check
 ```
 
-ブラウザテストはPlaywright、Google Chrome、PlaywrightのWebKitを使用し、一時的なローカルサーバーを立てる。既存のローカルサーバーのURLを引数で渡してもよい。画面・ダウンロード・印刷の成果物はOSの一時ディレクトリへ出力する。WebKitでの検証とSafariアプリでの確認は区別して記録する。
+ブラウザテストはPlaywrightとGoogle Chromeを使用し、一時的なローカルサーバーを立てる。既存のテストには `--chrome-only` を付ける。必要な場合だけ、この引数を省いてPlaywrightのWebKitも実行できる。配置プレビューと操作性の専用テストはChromeのみで実行する。`browser.test.cjs` には既存のローカルサーバーのURLを引数で渡してもよい。画面・ダウンロード・印刷の成果物はOSの一時ディレクトリへ出力する。以下のSafariに関する記録は過去の確認履歴として残す。
 
 2026-09-14の確認結果:
 
@@ -215,6 +223,7 @@ git diff --check
 
 2026-09-15の追加確認:
 
+- 操作性の仕上げ: Chromeで配置プレビューの位置・拡大縮小・吸着・確定位置の一致、Tab・Enter・中止・Escape、元の選択と図・保存内容の保持、SVGへの非包含、1回のUndo/Redoを確認。1280px・736px・390px、ダーク・特大文字でマイ部品／印刷の見出しと下部操作が見え、内部スクロール・Tab／Shift+Tab・Escape復帰が動作することを確認。390pxで中央配置・中止をタップでき、部品のファイル保存も成功。Safari実機確認は作成者の指示で省略する。
 - マイ部品: Chrome / WebKitで登録・改名・削除確認・プレビュー・配置・Undo/Redo、新ID・固定解除・接続・グループ・経路点・書式の保持を確認。通常の図・履歴・保存への非干渉、自動／明示の分離、候補の閲覧とキャンセル、実際のファイル書き出し・再取り込み、衝突時の名前とID、不正ファイル・破損保存・保存失敗時の保持を確認した。390px・ダーク・特大文字・タップ・Escapeとフォーカス復帰も確認。
 - 出力寸法: Chrome / WebKitでPNGの実画素数・白／透明背景・選択外の部品の非包含、幅／高さと四辺余白、SVGのviewBox、寸法上限・不正入力・設定の再読込を確認。印刷は実DOMで幅mm・左右上下の配置・縮小・氏名欄と設定復元、390px・特大文字・タップを確認。ChromeのA4横・JIS B5縦PDFは実寸・1ページ・タイトル／氏名欄を検査し、Popplerで画像化して図の配置と収まりを確認。Safariアプリでの今回分の実機確認は未実施。
 - 部品セット・出力追加後: 単体125ケースとChrome / WebKitの全体回帰を通過。1280px・736px・390px、3テーマ、作図・接続・担当領域・形状・グループ・固定・色・保存と復元・SVG／PNG・印刷に実行エラーと必要ファイルの404はなし。
@@ -242,7 +251,7 @@ git diff --check
 
 ## 拡張の境界
 
-作図機能は整列ガイド、画像のコピー・選択範囲の書き出し、大きさをそろえる・書式のコピーに加え、選択時ポップアップ・上部1行の共通UI、色パレット、自動／明示保存とブラウザ／ローカルを選べる保存・読み込み、直角の矢印の複数の折れ曲がり点、部品セットの保存・再利用、画像の寸法・四辺余白と印刷時の寸法・配置まで実装した。次は実際の教材で作図から出力まで使い、操作性の仕上げとSafari実機確認を進める。授業支援機能の追加は保留する。
+作図機能は整列ガイド、画像のコピー・選択範囲の書き出し、大きさをそろえる・書式のコピーに加え、選択時ポップアップ・上部1行の共通UI、色パレット、自動／明示保存とブラウザ／ローカルを選べる保存・読み込み、直角の矢印の複数の折れ曲がり点、部品セットの保存・再利用、画像の寸法・四辺余白と印刷時の寸法・配置まで実装した。操作性の仕上げとして、部品セットの配置プレビュー・中止と、スクロールしても見出し・主要操作が見えるダイアログを追加した。今後はChromeで実際の教材を作成する中で必要な改善を整理する。授業支援機能の追加は保留する。
 
 図形は見た目だけでなく、処理・判断・状態などの種類を持つ。接続先は図形ID、ラベルは矢印との関係、担当領域の所属は領域IDで保存する。自己ループ、逆方向・同方向の複数遷移、未接続の端点を保持できる。
 

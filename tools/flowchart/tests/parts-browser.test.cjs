@@ -222,7 +222,7 @@ async function mobile(browser, url, engine, artifacts) {
   const hosting = await serve();
   const artifacts = path.join(os.tmpdir(), 'joho-flowchart-parts-browser'); await fs.mkdir(artifacts, { recursive:true });
   try {
-    for (const engine of ['chromium', 'webkit']) {
+    for (const engine of process.argv.includes('--chrome-only') ? ['chromium'] : ['chromium', 'webkit']) {
       const browser = await pw[engine].launch(engine === 'chromium' ? {channel:'chrome',headless:true} : {headless:true});
       try { await desktop(browser, hosting.url, engine, artifacts); await registrationFromManualCandidate(browser, hosting.url); await corruptAndFailure(browser, hosting.url); await mobile(browser, hosting.url, engine, artifacts); console.log(`${engine}: reusable parts registration, storage, placement, import and touch passed`); }
       finally { await browser.close(); }

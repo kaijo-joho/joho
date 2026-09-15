@@ -38,7 +38,7 @@ async function run() {
   const artifacts = path.join(os.tmpdir(), 'joho-diagram-browser'); await fs.mkdir(artifacts, { recursive: true });
   const results = [];
   try {
-    for (const engine of ['chromium', 'webkit']) {
+    for (const engine of process.argv.includes('--chrome-only') ? ['chromium'] : ['chromium', 'webkit']) {
       const browser = await pw[engine].launch(engine === 'chromium' ? { channel: 'chrome', headless: true } : { headless: true });
       try {
         if (!anyExistingOnly || popupColorsOnly) {

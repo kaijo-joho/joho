@@ -42,7 +42,7 @@
   let styleClipboard = null, styleSourceLabel = '', sizeSelection = [];
   const PARTS_AUTO='kaijo.flowchart.parts.auto.v1',PARTS_SAVED='kaijo.flowchart.parts.saved.v1';
   let partsLibrary=B.emptyLibrary(),partsReady=false,partId=null,partRegistration=null,partsPendingAction=null,partsUnsaved=false;
-  let partsSaveStatus='',partsChoosing=false,pendingPart=null;
+  let partsSaveStatus='',partsChoosing=false,pendingPart=null,partPlacement=null;
   const paletteColors = [
     ['#ffffff','白'], ['#253140','標準の黒'], ['#000000','黒'], ['#6b7280','灰色'], ['#d61f1f','赤'], ['#1d4ed8','青'],
     ['#15803d','緑'], ['#ea7a00','橙'], ['#7c3aed','紫'], ['#facc15','黄'], ['#e5e7eb','薄い灰色'], ['#fce7f3','薄い桃色'],
@@ -294,6 +294,7 @@
     stage.style.backgroundSize = `${20 * view.scale}px ${20 * view.scale}px`;
     stage.style.backgroundPosition = `${view.x}px ${view.y}px`;
     renderOverlay();
+    renderPartPlacement();
   }
   function zoomTo(scale, clientPoint) {
     finishText();
@@ -476,6 +477,7 @@
     cancelGesture(); trace = null; traceStartId = null; tool = 'select'; render(); document.querySelector('[data-pane-button="trace"]').focus();
   }
   function renderOverlay() {
+    if (tool === 'part' && pendingPart) { $('overlay').replaceChildren(); return; }
     const s = view.scale, parts = [R.learningOverlay(doc, { selectedIds: [...selected], trace, scale: s })], blue = 'var(--accent)', placing = tool.startsWith('node:') || tool === 'branch';
     if (trace) { $('overlay').innerHTML = parts.join(''); return; }
     function circle(p, attrs, radius = 5) { parts.push(`<circle cx="${p.x}" cy="${p.y}" r="${radius / s}" fill="var(--panel)" stroke="${blue}" stroke-width="${1.5 / s}" ${attrs}/>`); }
@@ -581,7 +583,7 @@
   }
   function renderFormat() {
     const list = objects(), n = selectedNodes()[0], e = selectedEdges()[0], single = list.length === 1 ? list[0] : null;
-    $('format-bar').hidden = !!trace || layer !== 'diagram' || !list.length || !!routeTarget();
+    $('format-bar').hidden = !!trace || layer !== 'diagram' || !list.length || !!routeTarget() || tool === 'part';
     $('lane-bar').hidden = !!trace || layer !== 'lanes' || !lane();
     renderRouteControls();
     if ($('format-bar').hidden) {
@@ -629,7 +631,7 @@
     const active = document.activeElement?.closest?.('[data-node],[data-edge],[data-lane]');
     const focusId = active?.getAttribute('data-node') || active?.getAttribute('data-edge') || active?.getAttribute('data-lane');
     $('scene').innerHTML = R.sceneMarkup(doc, { interactive: true, idPrefix: 'canvas', theme: canvasTheme() });
-    if (layer === 'lanes' || trace) $$('[data-node],[data-edge]').forEach(el => el.setAttribute('tabindex', '-1'));
+    if (layer === 'lanes' || trace || tool === 'part') $$('[data-node],[data-edge]').forEach(el => el.setAttribute('tabindex', '-1'));
     if (layer === 'diagram' || trace) $$('[data-lane]').forEach(el => el.setAttribute('tabindex', '-1'));
     renderFormat(); updateView();
     setField('diagram-type', doc.diagramType); setField('document-title', doc.title);
@@ -677,7 +679,7 @@
       if (target) { restoringFocus = true; target.focus({ preventScroll: true }); restoringFocus = false; }
     }
   }
-  function setTool(next) { if (trace && !['select','pan'].includes(next)) return; finishText(); cancelGesture(); routeEditing=null; if(next!=='part')pendingPart=null; tool = next; layer = 'diagram'; laneId = null; render(); }
+  function setTool(next) { if (trace && !['select','pan'].includes(next)) return; finishText(); cancelGesture(); routeEditing=null; if(next!=='part'){pendingPart=null;partPlacement=null;} tool = next; layer = 'diagram'; laneId = null; render(); }
   function select(ids) { if (trace) return; selected = new Set(expand(ids)); laneId = null; render(); }
   function assignLane(n) { n.laneId = C.findLane(doc, n.x + n.w / 2, n.y + n.h / 2)?.id || null; }
   function addNode(kind, p) {
@@ -865,6 +867,11 @@
   });
   canvas.addEventListener('pointermove', event => {
     const p = point(event);
+    if (tool === 'part' && partPlacement && !drag) {
+      const rect = canvas.getBoundingClientRect();
+      partPlacement.client = { x: event.clientX - rect.left, y: event.clientY - rect.top };
+      renderPartPlacement();
+    }
     if (!drag && canInsert()) {
       const id = event.target.closest('[data-edge]')?.dataset.edge;
       insertionPreview = id ? { id,point:p } : null; renderOverlay();
@@ -900,7 +907,11 @@
     } else if (drag.type === 'boundary') { doc = C.clone(drag.before); resizeLane(doc.lanes.find(l => l.id === drag.id), p.x); render(); }
     else if (drag.type === 'marquee') { drag.current = p; renderOverlay(); }
   });
-  canvas.addEventListener('pointerleave', () => { insertionPreview = null; if (!drag) renderOverlay(); });
+  canvas.addEventListener('pointerleave', () => {
+    insertionPreview = null;
+    if (partPlacement) { partPlacement.client = null; renderPartPlacement(); }
+    if (!drag) renderOverlay();
+  });
   canvas.addEventListener('pointerup', event => {
     if (!drag || (drag.pointerId !== undefined && event.pointerId !== drag.pointerId)) return;
     const current = drag, p = point(event);
@@ -1422,7 +1433,38 @@
     try{if(file.size>2*1024*1024)throw new Error('部品セットファイルは2MB以内にしてください。');const incoming=B.parseLibrary(await file.text());const next=B.merge(partsLibrary,incoming);changeParts(next);partId=next.items.at(-1)?.id;renderParts();}
     catch(error){partsError(error.message);}
   };
-  $('place-part').onclick=()=>{const item=selectedPart();if(!item||trace)return;pendingPart=C.clone(item);$('parts-dialog').close();setTool('part');canvas.focus();};
+  function renderPartPlacement() {
+    const preview = $('placement-preview'), active = tool === 'part' && pendingPart && partPlacement && !trace;
+    $('placement-bar').hidden = !active;
+    if (!active) {
+      if (preview.childNodes.length) preview.replaceChildren();
+      if (tool !== 'part') { pendingPart = null; partPlacement = null; }
+      return;
+    }
+    const theme = canvasTheme(), bounds = partPlacement.bounds;
+    if (partPlacement.theme !== theme || !preview.childNodes.length) {
+      preview.innerHTML = R.sceneMarkup(partPlacement.document, { interactive: false, idPrefix: 'part-placement', theme })
+        + `<rect class="placement-bounds" x="${bounds.x}" y="${bounds.y}" width="${bounds.w}" height="${bounds.h}"/>`;
+      partPlacement.theme = theme;
+    }
+    const client = partPlacement.client;
+    const p = client ? { x: (client.x - view.x) / view.scale, y: (client.y - view.y) / view.scale } : center();
+    const x = snapped(p.x) - bounds.x - bounds.w / 2, y = snapped(p.y) - bounds.y - bounds.h / 2;
+    preview.setAttribute('transform', `translate(${x} ${y})`);
+    $('placement-name').textContent = `「${pendingPart.name}」を配置`;
+  }
+  $('place-part').onclick = () => {
+    const item = selectedPart(); if (!item || trace) return;
+    const previewDocument = B.documentFor(item);
+    pendingPart = C.clone(item); partPlacement = { document: previewDocument, bounds: R.documentBounds(previewDocument), client: null, theme: null };
+    clearTimeout(noticeTimer); $('notice').hidden = true;
+    $('parts-dialog').close(); setTool('part'); canvas.focus();
+  };
+  function cancelPartPlacement() {
+    setTool('select'); canvas.focus({ preventScroll: true }); notify('部品セットの配置を中止しました');
+  }
+  $('cancel-part-placement').onclick = cancelPartPlacement;
+  $('place-part-center').onclick = () => placePart(center());
   function placePart(position) {
     const item=pendingPart;if(!item)return;
     if(change(()=>{selected=new Set(B.place(doc,item,{x:snapped(position.x),y:snapped(position.y)}));tool='select';pendingPart=null;layer='diagram';laneId=null;})){canvas.focus();notify('部品セットを配置しました');}
@@ -1817,7 +1859,13 @@
       else if (key === 'g' && !trace) { event.preventDefault(); (event.shiftKey ? $('ungroup-button') : $('group-button')).click(); }
       return;
     }
-    if(tool==='part'&&pendingPart&&event.target.closest('#canvas')&&event.key==='Enter'){event.preventDefault();placePart({x:(stage.clientWidth/2-view.x)/view.scale,y:(stage.clientHeight/2-view.y)/view.scale});return;}
+    if (tool === 'part' && pendingPart) {
+      if (event.key === 'Escape') { event.preventDefault(); cancelPartPlacement(); return; }
+      if (event.target.closest('#canvas')) {
+        if (event.key === 'Enter') { event.preventDefault(); placePart(center()); return; }
+        if (['Delete','Backspace','ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key)) { event.preventDefault(); return; }
+      }
+    }
     if(routeTarget()) {
       const handle=event.target.closest('[data-handle="waypoint-add"]');
       if(handle&&(event.key==='Enter'||event.key===' ')){event.preventDefault();addWaypoint({x:Number(handle.dataset.x),y:Number(handle.dataset.y)});return;}
