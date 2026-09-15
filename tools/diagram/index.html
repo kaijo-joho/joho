@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>フローチャートエディタへ移動</title>
+  <link rel="icon" href="../flowchart/icon.svg" type="image/svg+xml">
+  <script src="../flowchart/core.js" defer></script>
+  <script src="../flowchart/storage.js" defer></script>
+  <style>
+    :root{color-scheme:light dark;font:16px/1.8 -apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif}
+    body{max-width:640px;margin:48px auto;padding:0 20px}h1{font-size:1.4rem}a{color:LinkText}
+    button{display:block;min-height:44px;margin:10px 0;padding:8px 14px;font:inherit;cursor:pointer;max-width:100%;overflow-wrap:anywhere}
+    :focus-visible{outline:3px solid #3684c1;outline-offset:3px}[hidden]{display:none}
+  </style>
+</head>
+<body>
+  <h1>フローチャートエディタへ移動しました</h1>
+  <p><a href="../flowchart/index.html" id="destination">フローチャートエディタを開く</a></p>
+  <section id="old-storage" hidden>
+    <h2>以前のURLで保存した図</h2>
+    <p>ファイルを直接開いて使っていた場合は、次の内容を保存してから、新しいエディタの「開く」で読み込めます。</p>
+    <div id="saved-files"></div>
+  </section>
+  <p id="message" role="status"></p>
+  <script>
+    window.addEventListener('DOMContentLoaded', () => {
+      if (location.protocol !== 'file:') {
+        location.replace('../flowchart/index.html' + location.search + location.hash);
+        return;
+      }
+      try {
+        const storage = window.DiagramStorage, values = storage.readBrowser(localStorage);
+        for (const record of [values.auto, values.manual].filter(Boolean)) {
+          const button = document.createElement('button'), method = record.method === 'auto' ? '自動保存' : '保存時の内容';
+          button.textContent = method + '：' + record.document.title + ' を保存';
+          button.onclick = () => {
+            const text = storage.serializeFile(record.document, { method: record.method });
+            const url = URL.createObjectURL(new Blob([text], { type: 'application/json' }));
+            const link = document.createElement('a'); link.href = url;
+            link.download = (record.document.title || '図').replace(/[<>:"/\\|?*\u0000-\u001f]/g, '_').slice(0, 100) + '_' + method + '.diagram.json';
+            document.body.append(link); link.click(); link.remove(); setTimeout(() => URL.revokeObjectURL(url), 5000);
+          };
+          document.getElementById('saved-files').append(button);
+          document.getElementById('old-storage').hidden = false;
+        }
+        if (values.errors.length) document.getElementById('message').textContent = '以前の保存内容を読み取れないものがあります。保存データは消していません。';
+      } catch { document.getElementById('message').textContent = '以前のブラウザ保存を確認できませんでした。手元の再編集ファイルは、新しいエディタで開けます。'; }
+    });
+  </script>
+</body>
+</html>

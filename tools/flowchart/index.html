@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="ja" data-theme="auto" data-text-size="standard">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="手順・分岐・状態の変化を図にするフローチャートエディタ。フローチャート、アクティビティ図、状態遷移図を作成・保存できます。">
+  <title>フローチャートエディタ — 海城 情報科</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="editor.css">
+  <style id="print-page-style">@page{size:210mm 297mm;margin:0}</style>
+  <script src="core.js" defer></script>
+  <script src="storage.js" defer></script>
+  <script src="local-autosave.js" defer></script>
+  <script src="render.js" defer></script>
+  <script src="editor.js" defer></script>
+</head>
+<body data-lesson-tools="off">
+  <noscript>このエディタを使うには、ブラウザのJavaScriptを有効にしてください。</noscript>
+  <div id="app">
+    <header class="top">
+      <div class="toolbar" aria-label="フローチャートエディタのツールバー">
+        <h1 class="brand"><img src="icon.svg" alt="" width="26" height="26"><span>フローチャートエディタ</span></h1>
+        <details class="menu toolbar-group" id="file-menu">
+          <summary>ファイル <span aria-hidden="true">▾</span></summary>
+          <div class="menu-panel">
+            <button type="button" id="new-file">新しい図</button>
+            <button type="button" id="open-file">開く… <kbd>⌘O</kbd></button>
+            <button type="button" id="save-browser">ブラウザ内に保存</button>
+            <button type="button" id="save-file">ファイルに保存…</button>
+            <button type="button" id="autosave-settings">自動保存…</button>
+            <p class="save-shortcut" id="save-shortcut">⌘S：ブラウザ内に保存</p>
+            <hr>
+            <label class="stack">図の名前<input id="document-title" value="無題の図" maxlength="120"></label>
+            <button type="button" id="print-button">印刷…</button>
+          </div>
+        </details>
+        <div class="toolset toolbar-group history-tools" role="group" aria-label="履歴">
+          <button class="icon-button" type="button" id="undo" aria-label="元に戻す (⌘Z)" title="元に戻す (⌘Z)" disabled><span data-icon="undo"></span></button>
+          <button class="icon-button" type="button" id="redo" aria-label="やり直す (⌘⇧Z)" title="やり直す (⌘⇧Z)" disabled><span data-icon="redo"></span></button>
+        </div>
+        <button type="button" id="toolbar-toggle" aria-expanded="false" aria-controls="toolbar-options" aria-label="ツール・設定を開閉"><span data-icon="settings"></span><span>ツール</span></button>
+        <div id="toolbar-options" class="toolbar-options" role="group" aria-label="ツールと設定">
+        <div class="toolset toolbar-group" role="group" aria-label="選択と配置">
+          <button class="icon-button" type="button" data-tool="select" aria-label="選択・移動 (V)" aria-pressed="true" title="選択・移動 (V)"><span data-icon="select"></span></button>
+          <button class="icon-button" type="button" data-tool="pan" aria-label="画面を移動 (H)" aria-pressed="false" title="画面を移動 (H)"><span data-icon="hand"></span></button>
+          <button class="icon-button" type="button" data-tool="node:text" aria-label="文字を追加 (T)" aria-pressed="false" title="文字を追加 (T)">T</button>
+        </div>
+        <label class="compact toolbar-group"><span class="sr-only">図の種類</span><select id="diagram-type"><option value="flowchart">フローチャート</option><option value="activity">アクティビティ図</option><option value="state">状態遷移図</option></select></label>
+        <button type="button" id="paste-button" aria-label="貼り付け (⌘V)" title="コピーした部品を貼り付け (⌘V)"><span data-icon="paste"></span><span>貼り付け</span></button>
+        <details class="menu" id="layer-menu" hidden><summary>編集対象 <span aria-hidden="true">▾</span></summary><div class="menu-panel" id="layer-toolbar">
+          <button type="button" data-layer="diagram" aria-pressed="true">図形・線</button><button type="button" data-layer="lanes" aria-pressed="false">担当領域</button>
+          <button type="button" id="create-lanes" hidden>2つの担当領域を作る</button>
+          <button type="button" id="add-lane">＋ 担当領域を追加</button>
+        </div></details>
+        <div class="toolbar-end">
+          <details class="menu toolbar-group" id="behavior-menu"><summary aria-label="操作の設定" title="吸着の設定"><span aria-hidden="true">操作</span></summary><div class="menu-panel right">
+            <label class="check snap" title="図形の位置をグリッドへ、接続点を辺の両端・中央・等分点へ吸着"><input id="snap" type="checkbox" checked>グリッド・接続点に吸着</label>
+            <label class="check" title="図形を移動するとき、ほかの図形の端や中央にそろえるためのガイドを表示"><input id="alignment-snap" type="checkbox" checked>整列ガイドに吸着</label>
+          </div></details>
+          <details class="menu" id="settings-menu"><summary aria-label="表示設定" title="表示設定"><span data-icon="settings"></span></summary><div class="menu-panel right">
+            <label class="stack">テーマ<select id="theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label>
+            <label class="stack">操作部の文字サイズ<select id="text-size"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label>
+          </div></details>
+          <button type="button" id="help-button" class="icon-button" aria-label="使い方">?</button>
+        </div>
+        </div>
+      </div>
+    </header>
+    <aside class="palette" aria-label="部品パレット">
+      <details class="palette-group" open><summary>図形</summary><div id="node-palette" class="palette-grid"></div></details>
+      <details class="palette-group" open><summary>線・矢印</summary><div class="palette-grid">
+        <button type="button" data-tool="edge:straight" aria-pressed="false"><span data-icon="arrow"></span><span>直線</span></button>
+        <button type="button" data-tool="edge:orthogonal" aria-pressed="false"><span data-icon="elbow"></span><span>直角</span></button>
+        <button type="button" data-tool="edge:curve" aria-pressed="false"><span data-icon="curve"></span><span>曲線</span></button>
+        <button type="button" id="connect-button"><span data-icon="connect"></span><span>接続先を選ぶ</span></button>
+      </div></details>
+    </aside>
+    <main class="workspace">
+      <div id="lesson-banner" class="mode-banner" hidden><span id="lesson-banner-text"></span><button type="button" id="show-assignment">問題文</button><button type="button" id="end-lesson-preview" hidden>確認を終了</button></div>
+      <section id="trace-bar" class="trace-bar" aria-label="手動トレース" hidden>
+        <div class="trace-heading"><strong id="trace-current" role="status"></strong><div class="trace-actions"><button type="button" id="trace-back">1つ戻る</button><button type="button" id="trace-restart">最初から</button><button type="button" id="trace-stop">トレースを終了</button></div></div>
+        <p id="trace-message" class="muted"></p><div id="trace-choices" class="trace-choices"></div>
+      </section>
+      <div id="stage">
+        <svg id="canvas" xmlns="http://www.w3.org/2000/svg" tabindex="0" aria-label="作図画面。部品を選んで配置。選択した図形は矢印キーで移動、Enterで文字を編集。" aria-describedby="canvas-help"><g id="world"><g id="scene"></g><g id="overlay"></g></g></svg>
+        <div id="format-bar" class="format-bar" role="group" aria-label="選択した部品の操作" hidden>
+          <span id="locked-selection" hidden>固定された部品を選択中</span>
+          <details class="menu edit-more" id="edit-menu"><summary>編集 <span aria-hidden="true">▾</span></summary><div class="menu-panel">
+            <button type="button" id="copy-button" aria-label="コピー (⌘C)"><span data-icon="copy"></span><span>コピー</span><kbd>⌘C</kbd></button>
+            <button type="button" id="duplicate-button" aria-label="複製 (⌘D)"><span data-icon="duplicate"></span><span>複製</span><kbd>⌘D</kbd></button>
+            <button type="button" id="delete-button" class="danger-button" aria-label="削除 (Delete)"><span data-icon="trash"></span><span>削除</span><kbd>Delete</kbd></button>
+            <hr>
+            <button type="button" id="match-size-button" title="図形を2つ以上選び、基準の幅・高さにそろえます"><span data-icon="matchSize"></span><span>大きさをそろえる…</span></button>
+            <button type="button" id="copy-style-button" title="選んだ図形・矢印の文字・色・線の書式をコピー"><span data-icon="copyStyle"></span><span>書式をコピー</span></button>
+            <button type="button" id="paste-style-button" aria-describedby="style-clipboard-status"><span data-icon="paste"></span><span>書式を貼り付け</span></button>
+            <p id="style-clipboard-status" class="menu-note muted">書式はまだコピーしていません</p>
+            <hr>
+            <button type="button" id="group-button" title="グループ化 (⌘G)"><span data-icon="group"></span><span>グループ化</span></button>
+            <button type="button" id="ungroup-button" title="グループを解除 (⌘⇧G)" aria-label="グループを解除"><span data-icon="ungroup"></span><span>グループを解除</span></button>
+            <button type="button" id="lock-button" aria-pressed="false"><span data-icon="lock"></span><span id="lock-label">固定</span></button>
+            <hr>
+            <button type="button" id="copy-image-button" title="選択した部分を画像としてコピー"><span data-icon="copy"></span><span>選択部分を画像コピー</span></button>
+          </div></details>
+          <details class="menu" id="shape-menu"><summary>形 <span aria-hidden="true">▾</span></summary><div class="menu-panel">
+          <label data-for="node">図形の形<select id="node-shape" aria-label="選択した図形の形状"></select></label>
+          <button type="button" id="insert-process" hidden title="選んだ線の途中に処理を挿入し、前後をつなぎ直す">処理を挿入</button>
+          <label data-for="edge">矢印の形<select id="edge-kind" aria-label="選択した矢印の形状"><option value="" disabled hidden>複数の形</option><option value="straight">直線</option><option value="orthogonal">直角</option><option value="curve">曲線</option></select></label>
+          <label data-for="edge">矢じり<select id="edge-head" aria-label="選択した矢印の矢じり"><option value="" disabled hidden>複数の設定</option><option value="end">終点</option><option value="both">両端</option><option value="none">なし</option></select></label>
+          <button type="button" data-for="edge" id="reverse-edge" aria-label="矢印の向きを反転"><span data-icon="reverse"></span></button>
+          <button type="button" data-for="edge" id="reset-route" title="手で調整した経路を自動に戻します。直角の矢印は図形を避けます。">経路を整える</button>
+          </div></details>
+          <details class="menu" id="more-format"><summary>書式 <span aria-hidden="true">▾</span></summary><div class="menu-panel">
+            <button type="button" id="edit-text">文字を編集</button>
+            <label data-for="text">文字サイズ<select id="font-size"><option>12</option><option>14</option><option selected>16</option><option>18</option><option>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>48</option></select></label>
+            <button type="button" id="bold" data-for="text" aria-pressed="false" aria-label="太字"><b>B</b><span>太字</span></button>
+            <label>線幅<select id="stroke-width"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
+            <label class="check"><input type="checkbox" id="dashed">破線</label>
+            <div data-for="size" class="size-inputs"><label>幅<input id="node-width" type="number" min="16" max="4000" step="10"></label><label>高さ<input id="node-height" type="number" min="10" max="4000" step="10"></label></div>
+            <button type="button" data-for="node" id="fit-text">文字に大きさを合わせる</button>
+          </div></details>
+          <details class="menu" id="color-menu"><summary><span id="current-color-chip" class="color-chip" aria-hidden="true"></span>色 <span aria-hidden="true">▾</span></summary><div class="menu-panel color-panel">
+            <label>変更する色<select id="color-target"><option value="fill">塗り</option><option value="stroke">線色</option><option value="color">文字色</option></select></label>
+            <div id="color-swatches" class="color-swatches" role="group" aria-label="色のパレット"></div>
+            <p id="color-value" class="muted"></p>
+            <label data-color-input="fill">その他の塗り色<input type="color" id="fill-color" value="#ffffff" aria-label="塗りの自由な色指定"></label>
+            <label data-color-input="stroke" hidden>その他の線色<input type="color" id="stroke-color" value="#253140" aria-label="線の自由な色指定"></label>
+            <label data-color-input="color" hidden>その他の文字色<input type="color" id="text-color" value="#253140" aria-label="文字の自由な色指定"></label>
+            <div class="rgb-inputs" role="group" aria-label="RGB値で色を指定">
+              <label>R<input id="rgb-red" type="number" min="0" max="255" step="1" required aria-label="赤 (R) 0から255"></label>
+              <label>G<input id="rgb-green" type="number" min="0" max="255" step="1" required aria-label="緑 (G) 0から255"></label>
+              <label>B<input id="rgb-blue" type="number" min="0" max="255" step="1" required aria-label="青 (B) 0から255"></label>
+            </div>
+            <button type="button" id="apply-rgb">RGB値を適用</button>
+          </div></details>
+          <details class="menu" id="align-menu" data-for="multi"><summary>整列 <span aria-hidden="true">▾</span></summary><div class="menu-panel"><div class="align-tools" aria-label="整列">
+            <button type="button" data-align="left" title="左端をそろえる" aria-label="左端をそろえる"><span data-icon="alignLeft"></span></button>
+            <button type="button" data-align="center" title="左右の中央をそろえる" aria-label="左右の中央をそろえる"><span data-icon="alignCenter"></span></button>
+            <button type="button" data-align="right" title="右端をそろえる" aria-label="右端をそろえる"><span data-icon="alignRight"></span></button>
+            <button type="button" data-align="top" title="上端をそろえる" aria-label="上端をそろえる"><span data-icon="alignTop"></span></button>
+            <button type="button" data-align="middle" title="上下の中央をそろえる" aria-label="上下の中央をそろえる"><span data-icon="alignMiddle"></span></button>
+            <button type="button" data-align="bottom" title="下端をそろえる" aria-label="下端をそろえる"><span data-icon="alignBottom"></span></button>
+            <button type="button" data-align="horizontal">横に等間隔</button><button type="button" data-align="vertical">縦に等間隔</button>
+          </div></div></details>
+        </div>
+        <div id="lane-bar" class="format-bar" hidden>
+          <div class="lane-fields"><label>担当<select id="lane-select" aria-label="編集する担当領域"></select></label><label>領域名<input id="lane-title" maxlength="160"></label></div>
+          <div class="lane-fields"><label>幅<input id="lane-width" type="number" min="140" max="6000" step="10"></label><label>全領域の高さ<input id="lane-height" type="number" min="180" max="10000" step="10"></label></div>
+          <div class="lane-actions" role="group" aria-label="担当領域の操作"><button type="button" id="lane-left" aria-label="担当領域を左へ移動">← 左へ</button><button type="button" id="lane-right" aria-label="担当領域を右へ移動">右へ →</button><button type="button" id="lock-lane" aria-pressed="false">領域を固定</button><button type="button" id="delete-lane" aria-describedby="lane-edit-note">領域を削除</button></div>
+          <p id="lane-edit-note">削除しても図形・矢印は残ります。</p>
+        </div>
+        <textarea id="inline-editor" aria-label="図形または矢印の文字を編集。改行はEnter、確定はControlまたはCommandとEnter、取り消しはEscape。" spellcheck="false" hidden></textarea>
+        <div id="empty-hint" hidden><span class="empty-mark" aria-hidden="true">＋</span><p>左の部品を選んで、ここに置く</p><button type="button" id="start-template">ひな形から始める</button></div>
+        <p id="canvas-help" class="canvas-hint">図形の端の○から、次の図形へつなげます。</p>
+      </div>
+      <footer class="info">
+        <span id="selection-status">部品を選んで配置</span><span id="save-status">新しい図</span>
+        <div class="zoom"><button type="button" id="zoom-out" aria-label="縮小">−</button><select id="zoom" aria-label="表示倍率"><option value="current" hidden>100%</option><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option><option value="3">300%</option><option value="4">400%</option><option value="fit">全体表示</option></select><button type="button" id="zoom-in" aria-label="拡大">＋</button></div>
+      </footer>
+    </main>
+    <aside class="side" id="side-panel" aria-label="ひな形・授業・トレース・点検・書き出し">
+      <div class="side-main">
+        <section data-pane="templates" hidden><header><h2>ひな形</h2><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></header><div class="side-body" id="templates"></div></section>
+        <section data-pane="lesson" hidden><header><h2>授業用ひな形</h2><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></header><div class="side-body">
+          <div id="lesson-author" class="panel-stack">
+            <p class="muted">図形や線を選んで「固定」すると、生徒が編集する部分を分けられます。</p>
+            <label class="stack">問題文<textarea id="lesson-instructions" rows="7" maxlength="10000" placeholder="生徒への指示や、図を完成させる条件を入力"></textarea></label>
+            <button type="button" id="apply-lesson">問題文を保存</button>
+            <p id="lesson-lock-summary" class="muted"></p>
+            <button type="button" id="preview-lesson">生徒の画面で確認</button>
+            <button type="button" id="download-lesson" class="primary">配付用ひな形を保存</button>
+            <p class="muted">生徒はこのファイルを開いて取り組み、再編集ファイルとして保存できます。</p>
+          </div>
+          <div id="lesson-student" class="panel-stack" hidden><h3 id="assignment-title"></h3><p id="assignment-instructions" class="assignment-text"></p><p class="muted">鍵の付いた部品は固定されています。完成した図は、ファイルメニューから再編集ファイルを保存してください。</p><button type="button" id="edit-lesson">ひな形を編集</button></div>
+        </div></section>
+        <section data-pane="trace" hidden><header><h2>手動トレース</h2><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></header><div class="side-body">
+          <div id="trace-start-panel" class="panel-stack"><p class="muted">処理や状態を1つずつたどります。分岐では進む矢印を選びます。</p><label class="stack">開始する図形<select id="trace-start-node"></select></label><button type="button" id="trace-start" class="primary">トレースを始める</button><p class="muted">条件の計算は自分で行います。並列開始では各枝へ進み、並列終了ではすべての枝の到着を待ちます。</p></div>
+          <div id="trace-history-panel" class="panel-stack" hidden><p id="trace-history-summary" class="muted"></p><ol id="trace-history" class="trace-history"></ol><p class="muted">トレース中は図を編集しません。履歴はトレースを終了すると消えます。</p></div>
+        </div></section>
+        <section data-pane="inspect" hidden><header><h2>図の点検</h2><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></header><div class="side-body">
+          <p class="muted">接続先・空欄・分岐などの見直し候補です。課題や図の意図に合わせて確認してください。</p><p id="inspection-summary"></p><ol id="inspection-list" class="inspection-list"></ol><p id="inspection-trace-note" class="muted" hidden>トレースを終了すると、候補から該当箇所を選べます。</p>
+        </div></section>
+        <section data-pane="export" hidden><header><h2>書き出し</h2><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></header><div class="side-body">
+          <label class="stack">書き出す範囲<select id="export-scope"><option value="all">図全体</option><option value="selection">選択部分</option></select></label>
+          <div id="export-preview" aria-label="書き出しプレビュー"></div>
+          <p id="export-name" class="muted">図全体</p>
+          <p id="export-empty" class="muted" hidden>書き出す図形・矢印を選択してください。</p>
+          <label class="stack">画像の解像度<select id="export-scale"><option value="1">1倍</option><option value="2">2倍</option><option value="4" selected>4倍（印刷向け）</option></select></label>
+          <label class="check"><input type="checkbox" id="transparent">背景を透明にする</label>
+          <button type="button" class="primary" id="export-copy-image">画像をコピー</button>
+          <button type="button" id="export-png">PNGを保存</button><button type="button" id="export-svg">SVGを保存</button>
+          <div id="image-copy-fallback" hidden><p id="image-copy-message"></p><button type="button" id="image-copy-download">作成したPNGを保存</button><button type="button" id="image-copy-dismiss">閉じる</button></div>
+          <p class="muted">画像コピーはPNG形式です。背景と解像度は上の設定を使います。</p>
+          <hr><button type="button" id="side-print">図全体を印刷…</button>
+          <p class="muted">続きの編集には、ファイルメニューから再編集ファイルを保存します。</p>
+        </div></section>
+      </div>
+      <nav class="side-tabs" aria-label="右パネルを切り替える"><button type="button" data-pane-button="templates" aria-pressed="false">ひな形</button><button type="button" data-pane-button="lesson" aria-pressed="false" hidden>授業</button><button type="button" data-pane-button="trace" aria-pressed="false">トレース</button><button type="button" data-pane-button="inspect" aria-pressed="false">点検</button><button type="button" data-pane-button="export" aria-pressed="false">書き出し</button></nav>
+    </aside>
+  </div>
+  <div id="notice" role="status" hidden></div>
+  <dialog id="size-dialog" class="format-dialog" aria-labelledby="size-title"><form id="size-form">
+    <h2 id="size-title">大きさをそろえる</h2>
+    <label class="stack">基準にする図形<select id="size-reference" required autofocus></select></label>
+    <label class="stack">そろえる寸法<select id="size-dimension"><option value="both">幅と高さ</option><option value="width">幅</option><option value="height">高さ</option></select></label>
+    <p class="muted">選んだ図形の中心を保って、基準の大きさにそろえます。グループ内の図形も個別にそろいます。</p>
+    <p id="size-note" role="status"></p>
+    <div class="dialog-actions"><button type="button" data-close-dialog>キャンセル</button><button type="submit" id="size-apply" class="primary" aria-describedby="size-note">そろえる</button></div>
+  </form></dialog>
+  <dialog id="style-dialog" class="format-dialog" aria-labelledby="style-title"><form id="style-form">
+    <h2 id="style-title">書式をコピー</h2>
+    <label class="stack">コピー元の図形・矢印<select id="style-reference" required autofocus></select></label>
+    <p class="muted">文字の大きさ・太字・文字色と、線の色・太さ・破線をコピーします。塗りの色は図形どうしでコピーできます。</p>
+    <div class="dialog-actions"><button type="button" data-close-dialog>キャンセル</button><button type="submit" id="style-copy" class="primary">コピーする</button></div>
+  </form></dialog>
+  <dialog id="print-dialog" aria-labelledby="print-title"><form id="print-form">
+    <h2 id="print-title">印刷プレビュー</h2>
+    <div class="print-controls">
+      <label class="stack">用紙<select id="print-paper"><option value="A4">A4（210 × 297 mm）</option><option value="B5">B5（JIS・182 × 257 mm）</option></select></label>
+      <label class="stack">向き<select id="print-orientation"><option value="portrait">縦</option><option value="landscape">横</option></select></label>
+      <label class="check"><input type="checkbox" id="print-instructions" checked>問題文を印刷</label>
+      <label class="check"><input type="checkbox" id="print-name">氏名欄を印刷</label>
+    </div>
+    <p id="print-summary" class="muted"></p>
+    <div id="print-preview" aria-label="印刷するページのプレビュー" tabindex="0"></div>
+    <p id="print-pagination-note" class="muted" hidden>長い問題文はページを分け、図全体を最後のページに収めます。</p>
+    <div class="dialog-actions"><button type="button" data-close-dialog>閉じる</button><button type="submit" id="print-submit" class="primary">印刷する…</button></div>
+  </form></dialog>
+  <dialog id="assignment-dialog" aria-labelledby="assignment-dialog-title"><div class="assignment-dialog-body"><h2 id="assignment-dialog-title">問題文</h2><p id="assignment-dialog-text" class="assignment-text"></p><div class="dialog-actions"><button type="button" class="primary" data-close-dialog>閉じる</button></div></div></dialog>
+  <input type="file" id="file-input" accept=".json,.diagram.json,application/json" hidden>
+  <dialog id="storage-open-dialog" class="storage-dialog" aria-labelledby="storage-open-title">
+    <h2 id="storage-open-title">保存した図を開く</h2>
+    <p id="storage-open-hint">開く内容を選んでください。自動保存と明示保存は別々に残っています。</p>
+    <p id="storage-open-error" class="storage-error" role="status" hidden></p>
+    <div id="open-candidates" class="storage-candidates"></div>
+    <p id="storage-empty">このブラウザには、まだ保存した図がありません。</p>
+    <div class="dialog-actions"><button type="button" id="choose-local-file">ローカルファイルを選ぶ…</button><button type="button" data-close-dialog>閉じる</button></div>
+  </dialog>
+  <dialog id="autosave-dialog" class="storage-dialog" aria-labelledby="autosave-title">
+    <h2 id="autosave-title">自動保存</h2>
+    <p>編集途中の図はブラウザ内へ自動保存します。「ブラウザ内に保存」で残した内容は上書きしません。</p>
+    <h3>ローカルファイルにも自動保存</h3>
+    <p>自動保存専用のファイルを選ぶと、編集内容を続けて保存します。別の図を開いたときやページを閉じたときに停止します。</p>
+    <p id="local-auto-unavailable" hidden>この環境では、ローカルファイルへの自動保存を利用できません。ブラウザ内の自動保存と「ファイルに保存」を使えます。</p>
+    <p id="local-auto-status" role="status">停止中</p>
+    <div class="dialog-actions"><button type="button" id="local-auto-start">保存先を選んで開始…</button><button type="button" id="local-auto-stop" disabled>停止</button><button type="button" data-close-dialog>閉じる</button></div>
+  </dialog>
+  <dialog id="confirm-dialog"><form method="dialog"><h2 id="confirm-title">作業中の図を置き換える</h2><p id="confirm-message"></p><div class="dialog-actions"><button value="cancel">キャンセル</button><button value="save" id="save-continue">保存して続ける</button><button value="continue" class="primary" id="confirm-continue">置き換える</button></div></form></dialog>
+  <dialog id="connect-dialog"><form id="connect-form"><h2>図形をつなぐ</h2><label class="stack">始点<select id="connect-from" required></select></label><label class="stack">終点<select id="connect-to" required></select></label><label class="stack">線の形<select id="connect-kind"><option value="orthogonal">直角</option><option value="straight">直線</option><option value="curve">曲線</option></select></label><label class="stack">ラベル<input id="connect-label" placeholder="例：はい、開始ボタン"></label><div class="dialog-actions"><button type="button" data-close-dialog>キャンセル</button><button type="submit" class="primary">つなぐ</button></div></form></dialog>
+  <dialog id="help-dialog"><div class="help"><h2>フローチャートエディタの使い方</h2>
+    <ol><li><strong>置く：</strong>左の部品を選び、作図画面をクリックします。部品ボタンでEnterを押すと、画面の中央に置けます。</li><li><strong>文字を書く：</strong>図形をダブルクリック、または選んでEnter。Enterで改行、⌘Enterで確定します。</li><li><strong>つなぐ：</strong>図形を選び、端の○から別の図形へドラッグします。○と接続先を順にクリックしてもつなげます。「接続先を選ぶ」からも指定できます。</li><li><strong>線を直す：</strong>線を選び、端の○でつなぎ直し、中央の◇で経路を調整します。ラベルはダブルクリックして入力し、ドラッグして位置を変えられます。</li><li><strong>担当を分ける：</strong>アクティビティ図では「担当領域」に切り替え、追加・並べ替え・名前や幅の編集ができます。領域を削除しても図形と矢印は元の位置に残ります。領域にTabで移動してEnterを押すと名前を編集できます。</li><li><strong>保存する：</strong>ファイルメニューで「ブラウザ内に保存」「ファイルに保存」を選べます。画像は右端の「書き出し」から保存します。</li></ol>
+    <p>「吸着」をオンにすると、接続位置が辺の両端・中央・等分点にそろいます。同じ辺につながる本数に応じて、2本なら1/3・2/3、3本なら1/4・3/4も候補になります。自由な位置につなぐときはオフにします。</p>
+      <p><strong>位置をそろえる：</strong>図形をドラッグすると、他の図形の端・中央にそろう位置へ吸着し、ガイドを表示します。グループもまとめて動かせます。「操作」でグリッド・接続点と整列ガイドの吸着を個別に切り替えられます。Option（Alt）を押しながらドラッグすると、吸着を一時的に解除します。</p>
+      <p><strong>画像を使う：</strong>右の「書き出し」で図全体・選択部分を切り替え、画像のコピーやPNG・SVGの保存ができます。選択した図形同士の矢印やグループも含めます。担当領域を選ぶと、所属する図形も含めます。選択時の「編集」にある「選択部分を画像コピー」からも、選んだ部分をコピーできます。通常のCommand/Ctrl＋Cは、エディタで再編集する部品のコピーです。</p>
+    <p><strong>途中に処理を入れる：</strong>「処理」を選んで線をクリックするか、線を選んで「処理を挿入」を押します。前後の線をつなぎ直し、短い直線では後続の図形を移動して間隔を確保します。元のラベルは手前の線に残ります。</p>
+    <p><strong>分岐をまとめて作る：</strong>フローチャートの「分岐セット」を選んで配置すると、条件・はい／いいえの処理・合流点がつながった状態で置けます。追加直後はまとめて選択され、移動や複製ができます。</p>
+    <p><strong>形を変える：</strong>部品を選び、ポップアップの「形」から「図形の形」「矢印の形」で変更します。複数選択してまとめて変えることもできます。図形の文字・色・接続先は保ち、大きさは形と文字に合わせて調整します。初期・終了の丸や並列の棒など、文字を表示しない記号に変えても、元の文字は保持します。矢印は直線・直角・曲線と、矢じりの終点・両端・なしを選べます。自己ループは直角・曲線に対応します。</p>
+    <p><strong>大きさをそろえる：</strong>図形を2つ以上選び、選択時の「編集」→「大きさをそろえる」で、基準の図形と幅・高さ・両方を選びます。各図形の中心と接続を保ち、1回のUndoで戻せます。円形の状態は縦横を同じに保ちます。固定した図形は基準として使えます。</p>
+    <p><strong>書式を使い回す：</strong>選択時の「編集」→「書式をコピー」でコピー元を選び、別の部品を選んで「書式を貼り付け」を押します。文字の大きさ・太字・色、線の色・太さ・破線をコピーし、図形どうしでは塗りの色もコピーします。複数選択やグループへまとめて適用でき、繰り返し使えます。文字の内容・形・寸法・矢印の経路は変わりません。文字が収まらない場合は「書式」→「文字に大きさを合わせる」で調整できます。コピーした書式は、このページを再読み込みするまで使えます。</p>
+    <p><strong>操作を選ぶ：</strong>上部にはファイル操作・元に戻す／やり直し・ツール・設定をまとめています。幅が狭いときは「ツール」で開閉します。選択した部品への操作は、作図画面のポップアップにある「編集」「形」「書式」「色」「整列」から使います。貼り付けは未選択でも上部のツールから使えます。アクティビティ図の担当領域は「編集対象」で切り替えます。</p>
+    <p><strong>色を選ぶ：</strong>ポップアップの「色」で塗り・線色・文字色を選び、18色のパレットから適用できます。「その他の色」のカラーピッカーや、R・G・Bそれぞれ0〜255の数値指定も使えます。複数の部品へまとめて適用でき、1回のUndoで戻せます。固定した部品が含まれる場合は色を変更しません。</p>
+    <p>表示設定のダークモードは作図画面にも反映されます。画像・印刷の色は表示テーマで変わらず、書き出しパネルで確認できます。</p>
+    <p><strong>まとめる・固定する：</strong>複数の部品を選び「グループ化」でまとめます。どの部品を選んでも全体を移動・複製できます。文字は部品をダブルクリックして個別に編集できます。形や配置を個別に変えるときは「グループ解除」を使います。「固定」で移動・文字・書式・削除を防ぎ、もう一度押すと解除します。固定した図形にも新しい矢印を接続できます。</p>
+    <p data-lesson-help><strong>授業用ひな形：</strong>右の「授業」で問題文を入力し、固定する図形・線・担当領域を選びます。「生徒の画面で確認」で操作を試せます。確認中の変更は「確認を終了」で元に戻ります。「配付用ひな形を保存」で、生徒がそのまま開けるファイルを作れます。</p>
+    <p><strong>手動トレース：</strong>右の「トレース」で開始する図形を選びます。画面上部の矢印の候補から進み、「1つ戻る」で分岐を選び直せます。並列開始では各枝に現在位置ができ、並列終了ではすべての枝が到着するまで待ちます。矢じりのない線は進行方向を示さないため、トレースの対象にしません。経路を選んで確認する機能で、条件やプログラムの自動実行・採点は行いません。</p>
+    <p><strong>経路を整える：</strong>直角の矢印は図形を避けて引きます。中央の◇で手動調整した線を自動に戻すときは、線を選んで「経路を整える」を押します。接続先とラベルの内容は保持します。</p>
+    <p><strong>図の点検：</strong>右の「点検」に、空欄・未接続の矢印・分岐ラベルなどの見直し候補を表示します。候補を押すと該当箇所を選びます。課題や図の意図に合わせて確認してください。</p>
+    <p><strong>保存内容を選ぶ：</strong>起動時や「開く」から、自動保存・明示保存を文書名と日時で選べます。読み込むだけでは、もう一方の内容は消えません。Command/Ctrl＋Sは直近の保存先、Command/Ctrl＋Oは「開く」です。「自動保存…」では、利用できる環境で専用のローカルファイルへの自動保存も開始できます。</p>
+    <p><strong>印刷：</strong>ファイルメニュー、または「書き出し」の「印刷…」から用紙と向きを選びます。A4・B5（JIS）、縦・横に対応し、問題文と氏名欄はそれぞれ印刷するか選べます。図全体を1ページに収め、長い問題文は別のページに分けます。設定はこのブラウザに保存します。</p>
+    <table><caption>主なキーボード操作</caption><tbody><tr><th scope="row">選択／画面移動／文字</th><td>V ／ H ／ T</td></tr><tr><th scope="row">取り消し／やり直し</th><td>⌘Z ／ ⌘⇧Z</td></tr><tr><th scope="row">複製／保存</th><td>⌘D ／ ⌘S</td></tr><tr><th scope="row">移動</th><td>矢印キー（Shiftで10倍）</td></tr><tr><th scope="row">複数選択</th><td>Shift＋クリック／空白をドラッグ</td></tr><tr><th scope="row">画面移動／拡大縮小</th><td>Space＋ドラッグ／⌘＋ホイール</td></tr><tr><th scope="row">中止／選択解除</th><td>Escape</td></tr></tbody></table>
+    <p>Windowsでは⌘の代わりにCtrlを使います。図の種類を切り替えても、描いた図はそのまま残ります。</p><div class="dialog-actions"><button type="button" class="primary" data-close-dialog>閉じる</button></div></div></dialog>
+  <div id="print-sheet" aria-hidden="true"></div>
+</body>
+</html>
