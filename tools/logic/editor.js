@@ -27,7 +27,77 @@
   let files, editor, activePane = null, previewUrl = null;
   let zoomMode = 'fit', zoom = 1, pendingFit = false;
   let copyingTable = false;
-  const busy = () => Boolean(editor && (editor.drag || editor.paletteDrag || editor.connectionDrag || editor.bendDrag || editor.pan));
+  let resizing = false, panelResize, draftStore, draftReady = false, draftTimer, pendingDraft, draftFingerprint;
+  const busy = () => resizing || Boolean(editor && (editor.drag || editor.paletteDrag || editor.connectionDrag || editor.bendDrag || editor.pan));
+  const preferencesKey = 'joho.logic.ui.v1';
+  let preferences = {};
+  try {
+    const saved = JSON.parse(localStorage.getItem(preferencesKey));
+    if (saved && typeof saved === 'object' && !Array.isArray(saved)) preferences = saved;
+  } catch (_) { /* 保存不可・破損時も編集は利用可能。 */ }
+  function savePreferences() {
+    try { localStorage.setItem(preferencesKey, JSON.stringify(preferences)); } catch (_) { /* 回路のファイル保存は利用可能。 */ }
+  }
+
+  function draftValue() {
+    return { snapshot: editor.snapshot(), file: { id: files.currentId, name: files.currentName,
+      savedSnapshot: files.savedFingerprint ? JSON.parse(files.savedFingerprint) : null } };
+  }
+  function draftStatus(state, detail) {
+    const control = $('draft-status');
+    control.dataset.state = state;
+    control.querySelector('.draft-status__text').textContent = { ready: '自動復元', waiting: '下書き保存待ち', saved: '下書き保存済み', restored: '下書き復元済み', error: '自動復元に注意' }[state];
+    control.querySelector('.draft-status__symbol').textContent = state === 'error' ? '!' : '↺';
+    control.title = detail;
+    control.setAttribute('aria-label', `自動復元について：${detail}`);
+    $('draft-detail').textContent = detail;
+  }
+  function draftError(error) {
+    draftStatus('error', /下書き|別のタブ/.test(error.message) ? error.message
+      : '下書きを自動保存できません。保存領域の空き容量や設定を確認し、ファイルに保存してください。');
+  }
+  function flushDraft() {
+    clearTimeout(draftTimer);
+    if (!pendingDraft || !draftStore) return;
+    const data = pendingDraft; pendingDraft = null;
+    try {
+      draftStore.save(data);
+      draftStatus('saved', '自動復元用の下書きを保存しました。複数の回路を残すには名前を付けて保存してください。');
+    } catch (error) { draftError(error); }
+  }
+  function queueDraft() {
+    if (!draftReady || !draftStore || draftStore.blocked || busy()) return;
+    const value = draftValue(), fingerprint = JSON.stringify(value);
+    if (fingerprint === draftFingerprint) return;
+    draftFingerprint = fingerprint; pendingDraft = value;
+    draftStatus('waiting', '確定した編集を下書きへ保存しています。ドラッグ途中の状態は保存しません。');
+    clearTimeout(draftTimer); draftTimer = setTimeout(flushDraft, 250);
+  }
+  function restoreDraft() {
+    try {
+      draftStore = new window.LogicDraft.Store(localStorage);
+      const draft = draftStore.load();
+      if (draft) {
+        files.currentId = draft.file.id; files.currentName = draft.file.name;
+        files.savedFingerprint = draft.file.savedSnapshot ? JSON.stringify(draft.file.savedSnapshot) : null;
+        editor.restore(draft.snapshot); editor.resetHistory();
+        editor.notice = '前回の下書きを自動復元しました。続きから編集できます。残したい回路は名前を付けて保存してください。';
+        draftStatus('restored', '前回の下書きを復元しました。名前付き保存の内容・未保存の判定とは別に管理しています。');
+      } else draftStatus('ready', '編集すると自動復元用の下書きを保存します。同じブラウザで次に開くと復元します。');
+    } catch (error) {
+      const detail = error.message.includes('下書き') ? error.message : 'このブラウザでは自動復元を利用できません。ファイルに保存してください。';
+      draftStatus('error', detail); editor.notice = detail;
+    }
+    draftFingerprint = JSON.stringify(draftValue()); draftReady = true;
+    editor.render({ notify: false });
+  }
+  window.addEventListener('pagehide', flushDraft);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) flushDraft(); });
+  window.addEventListener('storage', event => {
+    if (!draftReady || !draftStore || draftStore.blocked || (event.key !== null && event.key !== window.LogicDraft.KEY)) return;
+    try { draftStore.assertUnchanged(); }
+    catch (error) { clearTimeout(draftTimer); pendingDraft = null; draftError(error); }
+  });
 
   function updateTable(state) {
     if (!editor) return;
@@ -66,13 +136,16 @@
   // 互換APIは残し、画面上の画像出力入口は右端に集約する。
   editor.exportButton.hidden = true;
   files = new window.LogicWorkbenchFiles(editor, {
-    onStatusChange: ({ name, dirty }) => { $('save-status').textContent = `${name || '新しい回路'} · ${dirty ? '未保存' : '保存済み'}`; }
+    onStatusChange: ({ name, dirty }) => {
+      $('save-status').textContent = `${name || '新しい回路'} · ${dirty ? '未保存' : '保存済み'}`;
+      queueDraft();
+    }
   });
   $('template-list').appendChild(files.createTemplateList());
   $('open-saved').addEventListener('click', () => files.openLoad());
   window.logicWorkbenchEditor = editor;
 
-  function setPane(name, restoreFocus = false) {
+  function setPane(name, restoreFocus = false, remember = true) {
     if (busy()) return;
     const previous = tabs.find(tab => tab.dataset.paneButton === activePane);
     activePane = name;
@@ -81,6 +154,8 @@
     tabs.forEach(tab => tab.setAttribute('aria-expanded', String(tab.dataset.paneButton === name)));
     const truthTab = tabs.find(tab => tab.dataset.paneButton === 'truth');
     truthTab.setAttribute('aria-label', name === 'truth' ? '真理値表を折りたたむ' : '真理値表を表示');
+    if (remember) { preferences.pane = name; savePreferences(); }
+    panelResize?.refresh();
     if (restoreFocus) previous?.focus({ preventScroll: true });
     refresh();
   }
@@ -203,6 +278,31 @@
   editor.helpButton.setAttribute('aria-haspopup', 'dialog'); editor.helpButton.setAttribute('aria-controls', 'lc02-operation-dialog');
   editor.helpButton.addEventListener('click', () => openDialog($('lc02-operation-dialog'), editor.helpButton));
   $('settings-button').addEventListener('click', () => openDialog($('settings-dialog'), $('settings-button')));
+  $('draft-status').addEventListener('click', () => {
+    openDialog($('lc02-operation-dialog'), $('draft-status'));
+    if ($('lc02-operation-dialog').open) $('recovery-help').focus();
+  });
+
+  const shortcuts = [
+    [editor.fileSaveButton, '⌘/Ctrl+S', 'Meta+S Control+S'], [editor.loadButton, '⌘/Ctrl+O', 'Meta+O Control+O'],
+    [editor.undoButton, '⌘/Ctrl+Z', 'Meta+Z Control+Z'], [editor.redoButton, '⌘/Ctrl+Shift+Z', 'Meta+Shift+Z Control+Shift+Z'],
+    [editor.deleteButton, 'Delete', 'Delete'], [editor.helpButton, '?', '?']
+  ];
+  shortcuts.forEach(([button, text, keys]) => { button.dataset.shortcut = text; button.setAttribute('aria-keyshortcuts', keys); });
+  document.addEventListener('keydown', event => {
+    if (event.defaultPrevented || event.isComposing || event.altKey || document.querySelector('dialog[open]')) return;
+    if (event.target.closest?.('input, textarea, select, [contenteditable]:not([contenteditable="false"])')) return;
+    const command = event.metaKey || event.ctrlKey, key = event.key.toLowerCase();
+    const action = command && !event.shiftKey ? { s: editor.fileSaveButton, o: editor.loadButton }[key]
+      : !command && event.key === '?' ? editor.helpButton : null;
+    if (action) {
+      event.preventDefault();
+      if (!busy() && !event.repeat) action.click();
+    } else if (event.key === 'Escape' && !busy() && editor.selected) {
+      event.preventDefault(); editor.selected = null; editor.notice = '選択を解除しました。';
+      editor.canvasWrap.focus({ preventScroll: true }); editor.render({ notify: false });
+    }
+  });
 
   function selectTableText() {
     $('truth-copy-text').focus();
@@ -245,19 +345,15 @@
     }
   });
 
-  const preferencesKey = 'joho.logic.ui.v1';
   const colorQuery = matchMedia('(prefers-color-scheme: dark)');
   function applyPreferences() {
     document.documentElement.dataset.theme = $('theme').value;
     document.documentElement.dataset.resolvedTheme = $('theme').value === 'auto' ? (colorQuery.matches ? 'dark' : 'light') : $('theme').value;
     document.documentElement.dataset.textSize = $('text-size').value;
-    try { localStorage.setItem(preferencesKey, JSON.stringify({ theme: $('theme').value, textSize: $('text-size').value })); } catch (_) { /* 回路のファイル保存は利用可能。 */ }
+    preferences.theme = $('theme').value; preferences.textSize = $('text-size').value; savePreferences();
   }
-  try {
-    const saved = JSON.parse(localStorage.getItem(preferencesKey));
-    if (['auto', 'light', 'dark'].includes(saved?.theme)) $('theme').value = saved.theme;
-    if (['standard', 'large', 'largest'].includes(saved?.textSize)) $('text-size').value = saved.textSize;
-  } catch (_) { /* 保存不可・破損時は既定表示で開く。 */ }
+  if (['auto', 'light', 'dark'].includes(preferences.theme)) $('theme').value = preferences.theme;
+  if (['standard', 'large', 'largest'].includes(preferences.textSize)) $('text-size').value = preferences.textSize;
   $('theme').addEventListener('change', applyPreferences); $('text-size').addEventListener('change', applyPreferences);
   colorQuery.addEventListener('change', applyPreferences); applyPreferences();
 
@@ -282,10 +378,19 @@
   new MutationObserver(() => document.querySelectorAll('dialog button:not([tabindex])').forEach(button => { button.tabIndex = 0; }))
     .observe(document.body, { childList: true, subtree: true });
   editor.notice = '左の部品をドラッグして配置。端子（●）を順に選ぶか、端子間をドラッグしてつなぎます。';
+  panelResize = window.LogicToolUI.resizePanel({ handle: $('side-resizer'), panel: $('side-main'), busy,
+    width: Number.isFinite(preferences.panelWidth) ? preferences.panelWidth : 300,
+    onCommit: width => { preferences.panelWidth = width; savePreferences(); },
+    onDragging: value => { resizing = value; if (!value) refresh(); }
+  });
+  restoreDraft();
   updateTable(editor.getState());
-  setPane(matchMedia('(min-width: 1101px)').matches ? 'truth' : null);
+  const initialPane = [null, 'truth', 'templates', 'export'].includes(preferences.pane) ? preferences.pane
+    : matchMedia('(min-width: 1101px)').matches ? 'truth' : null;
+  setPane(initialPane, false, false);
   applyZoom(matchMedia('(max-width: 850px)').matches ? .85 : 'fit');
   editor.canvasWrap.scrollLeft = 0;
   editor.canvasWrap.scrollTop = 0;
+  window.LogicToolUI.tooltips({ busy });
   document.body.classList.add('logic-tool-ready');
 })();

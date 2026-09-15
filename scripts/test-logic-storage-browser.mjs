@@ -71,7 +71,7 @@ async function fileWorkflow(page, name) {
   const beforeSignalMode = await snapshot(page);
   await page.getByRole('button', { name: '0/1の表示を切り替える', exact: true }).click();
   assert.deepEqual(await snapshot(page), beforeSignalMode, '表示モードは保存対象・dirty判定の回路状態を変えない');
-  assert.match(await page.getByRole('button', { name: '回路を保存', exact: true }).getAttribute('title'), /保存済み/);
+  assert.match(await page.getByRole('button', { name: '回路を保存', exact: true }).getAttribute('data-tip'), /保存済み/);
   await page.getByRole('button', { name: '0/1の表示を切り替える', exact: true }).click();
 
   await clickSave(page);

@@ -62,6 +62,9 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     await dialog.getByRole('button', { name: '保存', exact: true }).click();
     await expect(dialog).toBeHidden();
     await page.reload(); await page.locator('body.logic-tool-ready').waitFor();
+    assert.deepEqual(await snapshot(page), changed, '保存後の下書きも自動復元する');
+    await expect(page.locator('#save-status')).toContainText('保存済み');
+    await page.evaluate(() => logicWorkbenchEditor.setInputValues({ A: 1, B: 1 }));
     await page.getByRole('button', { name: '回路を読み込む', exact: true }).click();
     await dialog.getByRole('button', { name: '保存した回路「NOT挿入の確認」を読み込む', exact: true }).click();
     await dialog.getByRole('button', { name: '保存せず続ける', exact: true }).click();

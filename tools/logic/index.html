@@ -14,6 +14,8 @@
   <script defer src="../../js/logic-editor.js"></script>
   <script defer src="../../js/logic-storage.js"></script>
   <script defer src="../../js/logic-workbench-files.js"></script>
+  <script defer src="./recovery.js"></script>
+  <script defer src="./ui.js"></script>
   <script defer src="./editor.js"></script>
 </head>
 <body>
@@ -38,6 +40,7 @@
       <div id="operation-hint" class="operation-hint"></div>
       <footer class="statusbar">
         <span id="circuit-status"></span><span id="save-status"></span>
+        <button id="draft-status" type="button" class="draft-status" aria-label="自動復元について" aria-haspopup="dialog" aria-controls="lc02-operation-dialog"><span class="draft-status__symbol" aria-hidden="true">↺</span><span class="draft-status__text">自動復元</span></button>
         <div class="zoom" role="group" aria-label="回路の表示倍率">
           <button id="zoom-out" type="button" aria-label="縮小" title="縮小">−</button>
           <select id="zoom" aria-label="表示倍率"><option value="current" hidden>100%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1">100%</option><option value="1.5">150%</option><option value="2">200%</option><option value="3">300%</option><option value="4">400%</option><option value="fit">全体表示</option></select>
@@ -47,7 +50,8 @@
       </footer>
     </main>
     <aside id="side-panel" class="side" aria-label="真理値表・テンプレート・書き出し">
-      <div class="side-main">
+      <div id="side-main" class="side-main">
+        <div id="side-resizer" role="separator" tabindex="0" aria-label="右パネルの幅" aria-orientation="vertical" aria-controls="side-main" data-tip="ドラッグ・左右キーで幅を調整。Shiftで大きく調整、Homeで最小、Endで最大、Enterで標準幅。ドラッグ中はEscapeで取り消し。"></div>
         <section id="logic-workbench-table-panel" data-pane="truth" aria-labelledby="truth-title" hidden>
           <header><h2 id="truth-title">真理値表</h2><div class="panel-actions"><button id="truth-copy" type="button" class="icon-button" aria-label="真理値表をコピー" title="真理値表をコピー（スプレッドシートへ貼り付け）" disabled><span data-icon="copy"></span></button><button type="button" data-close-side aria-label="右パネルを閉じる">›</button></div></header>
           <div class="side-body"><div id="logic-workbench-table" class="logic-editor-truth-table"></div><p class="muted">行を選ぶと入力が切り替わります。現在の入力の行を強調しています。</p></div>
@@ -99,7 +103,14 @@
       <ul><li>出力端子（●）から入力端子（●）へドラッグします。端子を順にクリック、またはTab・Enterで選んでも接続できます。</li><li>配線を選び、<strong>左端・右端を別の端子へドラッグ</strong>すると付け替えられます。接続先の古い配線は置き換えます。分岐があっても選んだ1本だけを変更します。</li><li>配線を選ぶと曲がり位置のハンドルが出ます。ドラッグ・矢印キーで移動し、Shiftで大きく動かせます。ハンドル上でDeleteを押すと自動経路に戻ります。</li><li>配線は水平・垂直です。同じ信号は途中で分岐し、分岐点だけに●を付けます。循環する回路や逆向き接続はできません。</li></ul>
       <h3>3. 整列・表示・やり直し</h3>
       <ul><li>左の整列ボタンで配線がなるべく直線になるよう並べます。部品移動中は中心・等間隔・配線が直線になる位置に吸着します。<strong>Alt（Option）で一時解除</strong>します。</li><li>入力の箱や真理値表の行を選ぶと入力値を切り替えられます。上部の「0/1」で値・信号色の表示を切り替えます。実際の値は変わりません。</li><li>右端のタブで真理値表・テンプレート・書き出しを開閉できます。右下の倍率で拡大縮小し、「全体表示」で回路全体を表示します。空白をドラッグすると画面を移動できます。</li><li><strong>⌘Z：Undo、⌘Shift Z：Redo</strong>（WindowsはCtrl）。ドラッグ中のEscapeでキャンセルします。</li></ul>
-      <h3>4. 保存・読み込み・書き出し</h3>
+      <p>右パネルの左端をドラッグすると幅を変えられます。境界へTabで移動し、左右キーでも調整できます（Shiftで大きく、Homeで最小、Endで最大、Enterで標準幅）。開閉状態と幅は次回も引き継ぎます。</p>
+      <table class="shortcut-table"><caption>主なショートカット（Windowsは⌘をCtrlに読み替え）</caption><tbody><tr><th scope="row">⌘S</th><td>回路を保存</td></tr><tr><th scope="row">⌘O</th><td>回路を読み込む</td></tr><tr><th scope="row">⌘Z / ⌘Shift Z</th><td>元に戻す / やり直し</td></tr><tr><th scope="row">Delete</th><td>選択した部品・配線を削除</td></tr><tr><th scope="row">Escape</th><td>操作を取り消す・選択解除・メニューを閉じる</td></tr><tr><th scope="row">?</th><td>このヘルプを開く</td></tr></tbody></table>
+      <p class="muted">入力欄・ダイアログ内では回路用のショートカットは動作しません。ボタンの説明はマウスを乗せるか、Tabで移動すると表示されます。</p>
+      <h3 id="recovery-help" tabindex="-1">4. 作業途中の自動復元</h3>
+      <p>確定した編集を、このブラウザの下書きへ自動保存します。次に開くと前回の部品・配線・入力値を復元します。ドラッグ途中の位置やUndoの履歴は復元しません。</p>
+      <p><strong>名前付き保存とは別の一時的な下書きです。</strong>複数の回路を残すには、保存アイコンから保存してください。全消去や読み込み後は、その状態が次の復元対象になります。閲覧データを消すと下書きも消え、別端末とは同期されません。</p>
+      <p id="draft-detail" class="muted"></p>
+      <h3>5. 保存・読み込み・書き出し</h3>
       <ul><li>上部の保存アイコンで、名前を付けて<strong>ブラウザ（最大30件）</strong>または<strong>ローカルファイル（.logic.json）</strong>へ保存します。作りかけの回路も保存できます。</li><li>読み込みアイコンで保存済み回路・ローカルファイル・テンプレートを選びます。全消去や別回路の読み込み前は、未保存の変更の保存を確認します。ファイル保存はダウンロードを確認してから続けてください。</li><li>ブラウザ保存は端末間で同期されず、閲覧データを削除すると失われます。旧lc02と<strong>同じサイト・同じブラウザ</strong>なら、保存済みの回路を引き続き読み込めます。</li><li>右の書き出しパネルでSVG・PNGを選びます。0/1の有無は上部の表示に従います。出力は白背景、入出力は枠なしの点です。画像から回路の再編集はできないので、続きの編集には.logic.jsonを使います。</li><li>真理値表の見出し横の<strong>コピーアイコン</strong>で、全行・全出力を見出し付きでコピーできます。スプレッドシートへ貼り付けると行・列に分かれます。上部の0/1表示設定には影響されません。</li></ul>
     </div>
   </dialog>

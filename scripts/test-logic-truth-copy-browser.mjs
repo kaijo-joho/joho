@@ -94,7 +94,7 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     await page.getByRole('button', { name: '出力を追加', exact: true }).click();
     await expect(copy).toBeDisabled();
     await expect(page.locator('#logic-workbench-table table')).toHaveCount(0);
-    await expect(copy).toHaveAttribute('title', /回路が完成すると/);
+    await expect(copy).toHaveAttribute('data-tip', /回路が完成すると/);
     await page.getByRole('button', { name: '元に戻す', exact: true }).click();
     await expect(copy).toBeEnabled();
 
