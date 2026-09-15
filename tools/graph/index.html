@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="ja" data-theme="auto" data-text-size="standard">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="数式や数表から2D・3Dグラフを描く、数学・理科・情報のためのグラフエディタ。">
+  <title>グラフエディタ — 海城 情報科</title>
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="editor.css">
+  <link rel="stylesheet" href="../shared/help-panel.css">
+  <script defer src="vendor/plotly.min.js"></script>
+  <script defer src="expression.js"></script>
+  <script defer src="core.js"></script>
+  <script defer src="templates.js"></script>
+  <script defer src="plot.js"></script>
+  <script defer src="../ilapo/local-autosave.js"></script>
+  <script defer src="../shared/help-panel.js"></script>
+  <script defer src="editor.js"></script>
+</head>
+<body>
+<div id="app">
+  <header class="top" aria-label="グラフの操作">
+    <a class="brand" href="../index.html" aria-label="グラフエディタ・ウェブアプリ一覧へ"><img src="icon.svg" width="30" height="30" alt=""><span>グラフエディタ</span><small>BETA</small></a>
+    <button id="list-toggle" class="icon-button compact-only" aria-label="数式・数表の一覧" aria-expanded="false" aria-controls="objects">☷</button>
+    <details class="menu" id="file-menu"><summary>ファイル</summary><div class="menu-panel">
+      <button id="save-browser">ブラウザに保存 <kbd>⌘S</kbd></button>
+      <button id="save-local">ファイルに保存…</button>
+      <button id="open-saved">保存したグラフを開く… <kbd>⌘O</kbd></button>
+      <button id="open-local">ファイルを開く…</button>
+      <hr><button id="start-local-auto">ローカル自動保存を開始…</button>
+      <button id="stop-local-auto" disabled>ローカル自動保存を停止</button>
+      <hr><button id="new-document">新しいグラフ</button>
+    </div></details>
+    <div class="mode-switch" aria-label="グラフの次元"><button id="mode-2d" aria-pressed="true">2D</button><button id="mode-3d" aria-pressed="false">3D</button></div>
+    <div class="history-buttons wide-only"><button id="undo" class="icon-button" aria-label="元に戻す（⌘Z）" disabled>↶</button><button id="redo" class="icon-button" aria-label="やり直し（⇧⌘Z）" disabled>↷</button></div>
+    <button id="axes-button" class="wide-only">座標・設定</button>
+    <details class="menu" id="view-menu"><summary aria-label="表示・その他の操作">…</summary><div class="menu-panel">
+      <button id="axes-menu">座標・グラフ名…</button>
+      <button id="undo-menu" disabled>元に戻す</button><button id="redo-menu" disabled>やり直し</button>
+      <hr><label>テーマ<select id="theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label>
+      <label>操作文字<select id="text-size"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label>
+      <button id="reset-view">表示範囲を合わせる</button>
+    </div></details>
+    <button id="help-button" class="icon-button" aria-label="使い方（?）">?</button>
+  </header>
+  <aside id="objects" aria-label="数式・数表の一覧">
+    <div class="panel-heading"><h1>数式・数表</h1><button id="list-close" class="compact-only icon-button" aria-label="一覧を閉じる">×</button></div>
+    <div class="add-grid"><button id="add-function">＋ 数式</button><button id="add-data">＋ 数表</button></div>
+    <button id="import-csv" class="full-button">CSV・表計算のデータを追加</button>
+    <p class="small muted">選択すると、数式や色を編集できます。</p>
+    <div id="series-list" class="object-list"></div>
+    <div class="panel-heading parameter-heading"><h2>係数</h2><button id="add-parameter" aria-label="係数を追加">＋</button></div>
+    <div id="parameter-list" class="object-list"></div>
+    <p class="small muted">例：a を追加し、y = a*x^2 に使います。</p>
+  </aside>
+  <main id="stage" tabindex="0" aria-label="グラフ。数式・数表の一覧から対象を選んで編集できます。">
+    <div class="stage-heading"><span id="document-name">無題のグラフ</span><span id="mode-label">2D</span></div>
+    <div id="plot" aria-label="グラフの描画領域"></div>
+    <div id="plot-error" class="plot-error" hidden role="alert"></div>
+    <div id="selection-toolbar" role="region" aria-label="選択した対象の操作" hidden></div>
+    <footer class="status-bar"><span id="save-status">数式を入力するか、テンプレートから始められます。</span><button id="fit-button" aria-label="グラフに表示範囲を合わせる">全体表示</button></footer>
+  </main>
+  <aside id="side-panel" hidden aria-label="テンプレート・書き出し">
+    <section id="templates-panel" hidden><div class="panel-heading"><h2>テンプレート</h2><button class="icon-button" data-close-side aria-label="パネルを閉じる">×</button></div><label class="small">検索<input id="template-search" type="search" placeholder="二次関数、蒸気圧、3D…"></label><div id="template-list"></div><p class="small muted">開くと図全体を置き換えます。「元に戻す」で前の図に戻れます。</p></section>
+    <section id="export-panel" hidden><div class="panel-heading"><h2>書き出し</h2><button class="icon-button" data-close-side aria-label="パネルを閉じる">×</button></div>
+      <label>形式<select id="export-format"><option value="png">PNG画像（2D・3D）</option><option value="svg">SVG画像（2D）</option></select></label>
+      <label>画像の大きさ<select id="export-scale"><option value="1">1倍</option><option value="2" selected>2倍</option><option value="4">4倍</option></select></label>
+      <label>背景<select id="export-background"><option value="white">白</option><option value="transparent">透明</option></select></label>
+      <button id="export-image" class="primary full-button">画像を保存</button>
+      <p class="small muted">現在の表示範囲を書き出します。3D画像は現在の視点を使います。</p>
+      <hr><p class="small">数式・元の数値・出典を残すには、上部「ファイル」から保存します。数値のCSVは数表を選択して書き出せます。</p>
+    </section>
+  </aside>
+  <nav class="side-tabs" aria-label="補助パネル"><button id="templates-tab" aria-expanded="false" aria-controls="templates-panel">テンプレート</button><button id="export-tab" aria-expanded="false" aria-controls="export-panel">書き出し</button></nav>
+</div>
+<input id="file-input" type="file" accept=".json,application/json" hidden>
+<input id="csv-input" type="file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" hidden>
+<dialog id="editor-dialog" aria-labelledby="dialog-title"><form id="dialog-form"><header class="dialog-heading"><h2 id="dialog-title"></h2><button type="button" id="dialog-close" class="icon-button" aria-label="閉じる">×</button></header><div id="dialog-content"></div><p id="dialog-error" class="error" role="alert" hidden></p><footer class="dialog-actions"><button type="button" id="dialog-cancel">キャンセル</button><button id="dialog-submit" class="primary" type="submit">適用</button></footer></form></dialog>
+<div id="toast" role="status" hidden></div>
+<aside id="operation-help" hidden>
+  <section data-help-topic="start" data-help-title="グラフを描く"><h3>グラフを描く</h3><ol><li>「＋ 数式」で式を入力し「描画」を押します。Enterでも確定できます。</li><li>2Dでは y = x^2、3Dでは z = sin(x)*cos(y) のように入力します。</li><li>複数の数式・数表を同じ座標に重ねられます。</li></ol><p>狭い画面は左上の「☷」で一覧を開きます。対象の編集は一覧やグラフを選択して、上に出る操作バーから行います。</p><details><summary>入力できる数式</summary><p>四則演算 + - * /、累乗 ^、括弧、pi、e、sin・cos・tan、asin・acos・atan、sqrt・abs・exp・ln・log、floor・ceil・round・min・max。lnは自然対数、logは常用対数です。2xや2(x+1)も入力できます。角度は「座標・設定」でラジアン／度を選びます。式の中のlog(0)やsqrt(-1)など、実数として定義されない箇所は描きません。</p><p>初版は y=f(x) と z=f(x,y) に対応します。陰関数、媒介変数、数式の展開・因数分解は後続の機能です。</p></details></section>
+  <section data-help-topic="table" data-help-title="数表と出典"><h3>数表と出典</h3><p>「＋ 数表」で x,y（3Dではx,y,z）の表を貼り付けます。CSVとタブ区切りの表計算データを利用でき、最初の見出し行は省略できます。列数を合わせ、欠測のセルは空欄にしてください。</p><p>数表を選択すると元の数値・出典を確認し、点・折れ線・両方を切り替えられます。点の間は直線で結びます。近似・回帰・滑らかな補間は自動では行いません。</p><p>資料の値、近似式からの計算値、自分のデータを出典欄に残します。単位の指定は軸の表示名で、数値の自動換算はしません。</p></section>
+  <section data-help-topic="parameters" data-help-title="係数を変える"><h3>係数を変える</h3><ol><li>一覧の「係数」の＋から a などを登録します。</li><li>数式に a*x^2 のように使います。</li><li>係数を選ぶと、操作バーのスライダーや数値入力で値を変更できます。</li></ol><p>係数の名前、最小値、最大値、刻み幅は「編集」で変更します。使用中の係数を削除するには、先にその係数を使っている数式を変更してください。</p></section>
+  <section data-help-topic="view" data-help-title="表示・3D・配色"><h3>表示・3D・配色</h3><p>2Dはドラッグで移動、ホイールやピンチで拡大縮小。3Dはドラッグで回転できます。「全体表示」で数式の指定範囲と数表が収まる範囲へ戻します。</p><p>「座標・設定」で表示範囲、軸名、単位、通常／対数目盛、角度を指定します。3Dでは曲面と3列の数表を表示します。2Dへ戻しても3Dの式や数表は保持されます。</p><p>対象を選んで「色・線」からパレット、RGB、自由な色を選べます。テーマと操作文字の大きさは上部の「…」で変更します。</p><details><summary>表示の精度</summary><p>グラフは有限個の点から数値計算で描きます。非常に細い振動、狭い穴、不連続な式では特徴を捉えきれない場合があります。必要な範囲へ拡大して確認してください。3D曲面も格子による近似表示です。</p></details></section>
+  <section data-help-topic="save" data-help-title="保存と書き出し"><h3>保存と書き出し</h3><p>編集内容はブラウザへ自動保存します。「ブラウザに保存」で残した内容は別に保持し、「保存したグラフを開く」から選択できます。起動時も保存候補を選べます。</p><p>ローカルファイルには再編集用のJSONを保存します。画像は右の「書き出し」からPNG、2DはSVGも使えます。画像には元の数式・数表の編集機能は含まれません。</p><details><summary>ローカル自動保存</summary><p>Chromeで書き込み先を選ぶと、明示保存とは別のファイルへ自動保存できます。この画面を閉じると終了します。保存先が外部で変更された場合は停止し、作品を保持します。ブラウザの保存とファイルのダウンロードも利用できます。</p></details><p>⌘S 保存／⌘O 開く／⌘Z 元に戻す／⇧⌘Z やり直し／Escape メニューを閉じる・選択解除／? ヘルプ。</p></section>
+  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>グラフエディタ 0.1 BETA（2026年9月）</p><p>数学・理科・情報のグラフを描く教育用ツールです。推奨環境：macOS＋Google Chrome。3D表示にはWebGLが必要です。入力データはブラウザ内または選択したローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの利用条件は各ライセンスに従います。</p><p><a href="docs/template-sources.md" target="_blank" rel="noopener">テンプレートの出典</a> · <a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a></p></section>
+</aside>
+<noscript><p class="noscript">このエディタを利用するにはJavaScriptを有効にしてください。</p></noscript>
+</body>
+</html>
