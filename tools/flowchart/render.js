@@ -1,8 +1,8 @@
 (function (root, factory) {
-  const api = factory();
+  const api = factory(typeof module === 'object' && module.exports ? require('./output.js') : root.DiagramOutput);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.DiagramRender = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (Output) {
   'use strict';
   const escapeXML = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&apos;' })[c]);
   const num = n => Number.isFinite(n) ? Math.round(n * 1000) / 1000 : 0;
@@ -550,7 +550,7 @@
     const gx=pick('x'),gy=pick('y'),sx=dx+(gx?.needed||0),sy=dy+(gy?.needed||0),guide=(axis,hit)=>{if(!hit)return null;const start=axis==='x'?box.y+sy:box.x+sx,end=axis==='x'?box.b+sy:box.r+sx,ts=axis==='x'?hit.target.y:hit.target.x,te=axis==='x'?hit.target.y+hit.target.h:hit.target.x+hit.target.w;return{axis,value:hit.value,start:Math.min(start,ts)-8/safeScale,end:Math.max(end,te)+8/safeScale,targetIds:[String(hit.target.id)]};};return{dx:sx,dy:sy,guides:[guide('x',gx),guide('y',gy)].filter(Boolean)};
   }
   function svgDocument(doc,{padding=32,transparent=false,idPrefix='diagram',selectedIds=null}={}) {
-    const b=documentBounds(doc,{selectedIds}),x=b.x-padding,y=b.y-padding,w=b.w+padding*2,h=b.h+padding*2;
+    const p=Output.padding(padding),b=documentBounds(doc,{selectedIds}),x=b.x-p.left,y=b.y-p.top,w=b.w+p.left+p.right,h=b.h+p.top+p.bottom;
     const selected=exportSelection(doc,selectedIds),description=`${selected.nodes.length}個の図形と${selected.edges.length}本の接続線。${selected.lanes.length?selected.lanes.map(l=>l.title).join('、')+'の担当領域。':''}`;
     return `<svg xmlns="http://www.w3.org/2000/svg" width="${num(w)}" height="${num(h)}" viewBox="${num(x)} ${num(y)} ${num(w)} ${num(h)}" role="img" aria-labelledby="${escapeXML(idPrefix)}-title ${escapeXML(idPrefix)}-description"><title id="${escapeXML(idPrefix)}-title">${escapeXML(doc.title||'図')}</title><desc id="${escapeXML(idPrefix)}-description">${escapeXML(description)}</desc>${transparent?'':`<rect x="${num(x)}" y="${num(y)}" width="${num(w)}" height="${num(h)}" fill="#ffffff"/>`}${sceneMarkup(doc,{interactive:false,idPrefix,selectedIds})}</svg>`;
   }

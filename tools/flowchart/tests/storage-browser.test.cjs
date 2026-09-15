@@ -7,7 +7,7 @@ const Core = require('../core.js');
 let pw; try { pw = require('playwright'); } catch { pw = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')); }
 
 async function serve() {
-  const root = path.resolve(__dirname, '..'), allowed = new Set(['index.html','core.js','render.js','editor.js','editor.css','storage.js','local-autosave.js','icon.svg']);
+  const root = path.resolve(__dirname, '..'), allowed = new Set(['index.html','output.js','parts.js','core.js','render.js','editor.js','editor.css','storage.js','local-autosave.js','icon.svg']);
   const types = { '.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml' };
   const server = http.createServer(async (req,res) => { const file = new URL(req.url,'http://localhost').pathname.slice(1)||'index.html'; if (!allowed.has(file)) return res.writeHead(404).end(); try { res.writeHead(200,{'Content-Type':types[path.extname(file)]||'application/octet-stream'}); res.end(await fs.readFile(path.join(root,file))); } catch { res.writeHead(404).end(); } });
   await new Promise(resolve => server.listen(0,'127.0.0.1',resolve)); return { url:`http://127.0.0.1:${server.address().port}/`, close:()=>new Promise(resolve=>server.close(resolve)) };

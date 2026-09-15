@@ -11,7 +11,7 @@ try { pw = require('playwright'); } catch { pw = require(path.join(os.homedir(),
 
 async function serve() {
   const root = path.resolve(__dirname, '..');
-  const allowed = new Set(['index.html','core.js','render.js','storage.js','local-autosave.js','editor.js','editor.css','icon.svg']);
+  const allowed = new Set(['index.html','output.js','parts.js','core.js','render.js','storage.js','local-autosave.js','editor.js','editor.css','icon.svg']);
   const types = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml' };
   const server = http.createServer(async (req, res) => {
     const name = new URL(req.url, 'http://localhost').pathname.slice(1) || 'index.html';

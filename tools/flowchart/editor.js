@@ -1,10 +1,10 @@
 /* Student diagram editor. No network services or external runtime dependencies. */
 (() => {
   'use strict';
-  const C = window.DiagramCore, R = window.DiagramRender, S = window.DiagramStorage, L = window.DiagramLocalAutosave;
+  const C = window.DiagramCore, R = window.DiagramRender, S = window.DiagramStorage, L = window.DiagramLocalAutosave, B = window.DiagramParts, O = window.DiagramOutput;
   const $ = id => document.getElementById(id);
   const $$ = selector => [...document.querySelectorAll(selector)];
-  if (!C || !R || !S || !L) {
+  if (!C || !R || !S || !L || !B || !O) {
     $('notice').hidden = false;
     $('notice').textContent = 'エディタを読み込めませんでした。ページを再読み込みしてください。';
     return;
@@ -40,6 +40,9 @@
   const localAutosave = L.create({ onState: state => { updateLocalSaveStatus(state); updateSaveStatus(); } });
   let imageOperation = null, imageCopyFallback = null;
   let styleClipboard = null, styleSourceLabel = '', sizeSelection = [];
+  const PARTS_AUTO='kaijo.flowchart.parts.auto.v1',PARTS_SAVED='kaijo.flowchart.parts.saved.v1';
+  let partsLibrary=B.emptyLibrary(),partsReady=false,partId=null,partRegistration=null,partsPendingAction=null,partsUnsaved=false;
+  let partsSaveStatus='',partsChoosing=false,pendingPart=null;
   const paletteColors = [
     ['#ffffff','白'], ['#253140','標準の黒'], ['#000000','黒'], ['#6b7280','灰色'], ['#d61f1f','赤'], ['#1d4ed8','青'],
     ['#15803d','緑'], ['#ea7a00','橙'], ['#7c3aed','紫'], ['#facc15','黄'], ['#e5e7eb','薄い灰色'], ['#fce7f3','薄い桃色'],
@@ -635,7 +638,7 @@
     $('add-lane').disabled = !!trace || doc.lanes.length >= 50; $('add-lane').title = doc.lanes.length >= 50 ? '担当領域は50個までです' : '右端に空の担当領域を追加します';
     $('create-lanes').disabled = !!trace || doc.lanes.length > 0;
     $('diagram-type').disabled = !!trace || studentMode(); $('document-title').disabled = !!trace;
-    stage.dataset.layer = layer; canvas.dataset.tool = tool; canvas.dataset.placing = String(tool.startsWith('node:') || tool.startsWith('edge:') || tool === 'branch' || !!connection);
+    stage.dataset.layer = layer; canvas.dataset.tool = tool; canvas.dataset.placing = String(tool.startsWith('node:') || tool.startsWith('edge:') || tool === 'branch' || tool === 'part' || !!connection);
     stage.dataset.tracing = String(!!trace);
     stage.dataset.routeEditing=String(!!routeTarget());
     $('app').dataset.tracing = String(!!trace);
@@ -644,6 +647,7 @@
     $$('button[data-layer]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.layer === layer)));
     $('undo').disabled = !!trace || !history.canUndo; $('redo').disabled = !!trace || !history.canRedo;
     ['copy-button', 'duplicate-button'].forEach(id => { $(id).disabled = !!trace || !selected.size; });
+    $('register-part').disabled=!!trace||!selected.size;$('my-parts').disabled=!!trace;
     $('delete-button').disabled = layer === 'lanes' ? !!trace || !lane() || !!lane()?.locked || doc.nodes.some(n => n.laneId === laneId && n.locked) : !selectionEditable(); $('paste-button').disabled = !!trace || !clipboard; $('connect-button').disabled = !!trace;
     const groups = doc.groups.filter(g => g.memberIds.some(id => selected.has(id))), allLocked = objects().length > 0 && objects().every(o => o.locked);
     $('group-button').disabled = !selectionEditable() || selected.size < 2 || groups.length === 1 && groups[0].memberIds.length === selected.size;
@@ -656,6 +660,7 @@
     $('selection-status').textContent = trace ? '手動トレース中' : layer === 'lanes' ? lane() ? `${lane().title}を編集中` : '担当領域を選択' : connection ? '接続先をクリック（Escで中止）' : canInsert() ? '空白に配置・線をクリックして途中に挿入' : tool === 'branch' ? '作図画面をクリックして分岐セットを配置' : tool.startsWith('node:') ? '作図画面をクリックして配置' : selected.size ? `${groups.length ? `${groups.length}グループ・` : ''}${selectedNodes().length}図形・${selectedEdges().length}線を選択${allLocked ? '（固定）' : ''}` : '部品を選んで配置';
     $('canvas-help').textContent = routeTarget() ? routeEditing.adding ? '線上をクリックして追加・Enterで次の区間に追加・Escで中止' : '＋で点を追加・点をドラッグ／矢印キーで移動・Deleteで点を削除・Escで完了' : canInsert() ? '処理を置く位置、または挿入する線をクリック・Escで中止' : tool === 'branch' ? '条件・はい／いいえの処理・合流点をまとめて配置・Escで中止' : 'Space＋ドラッグで画面移動・⌘＋ホイールで拡大縮小';
     if(routeTarget())$('selection-status').textContent=`折れ曲がり点を編集・${R.waypointGeometry(doc,routeTarget()).waypoints.length}/32点`;
+    if(tool==='part'&&pendingPart){$('selection-status').textContent=`「${pendingPart.name}」を配置`;$('canvas-help').textContent='配置する位置をクリック・Enterで画面中央・Escapeで中止';}
     updateSaveStatus();
     $('side-panel').classList.toggle('open', !!pane);
     $$('[data-pane]').forEach(el => { el.hidden = el.dataset.pane !== pane; });
@@ -672,7 +677,7 @@
       if (target) { restoringFocus = true; target.focus({ preventScroll: true }); restoringFocus = false; }
     }
   }
-  function setTool(next) { if (trace && !['select','pan'].includes(next)) return; finishText(); cancelGesture(); routeEditing=null; tool = next; layer = 'diagram'; laneId = null; render(); }
+  function setTool(next) { if (trace && !['select','pan'].includes(next)) return; finishText(); cancelGesture(); routeEditing=null; if(next!=='part')pendingPart=null; tool = next; layer = 'diagram'; laneId = null; render(); }
   function select(ids) { if (trace) return; selected = new Set(expand(ids)); laneId = null; render(); }
   function assignLane(n) { n.laneId = C.findLane(doc, n.x + n.w / 2, n.y + n.h / 2)?.id || null; }
   function addNode(kind, p) {
@@ -804,6 +809,7 @@
     canvas.focus({ preventScroll: true });
     if (event.button === 1 || space || tool === 'pan') beginDrag('pan', p, { screen: { x: event.clientX, y: event.clientY }, view: { ...view } });
     else if (trace) { event.preventDefault(); return; }
+    else if(tool==='part'&&pendingPart){placePart(p);event.preventDefault();return;}
     else if (layer === 'lanes') {
       const boundary = target.closest('[data-boundary]')?.dataset.boundary;
       if (boundary) { laneId = boundary; beginDrag('boundary', p, { id: boundary }); }
@@ -1087,13 +1093,14 @@
     const panel = menu.querySelector(':scope > .menu-panel'), bounds = menu.querySelector('summary').getBoundingClientRect();
     if (!panel || !bounds.width) return;
     const width = document.documentElement.clientWidth, height = window.innerHeight;
+    const topLimit=menu.closest('.format-bar')?Math.max(8,Math.min(height-96,toolbar.getBoundingClientRect().bottom+8)):8;
     // Read the full content height without expanding the panel and resetting its scroll position.
-    const naturalHeight = Math.min(panel.scrollHeight + 2, height - 16), below = height - bounds.bottom - 13, above = bounds.top - 13;
+    const naturalHeight = Math.min(panel.scrollHeight + 2, height - topLimit - 8), below = height - bounds.bottom - 13, above = bounds.top - topLimit - 5;
     const downward = below >= Math.min(naturalHeight, 240) || below >= above;
     const maxHeight = Math.min(naturalHeight, Math.max(80, downward ? below : above));
     panel.style.left = `${clamp(bounds.left, 8, Math.max(8, width - panel.offsetWidth - 8))}px`;
     panel.style.right = 'auto';
-    panel.style.top = `${clamp(downward ? bounds.bottom + 5 : bounds.top - maxHeight - 5, 8, Math.max(8, height - maxHeight - 8))}px`;
+    panel.style.top = `${clamp(downward ? bounds.bottom + 5 : bounds.top - maxHeight - 5, topLimit, Math.max(topLimit, height - maxHeight - 8))}px`;
     panel.style.maxHeight = `${maxHeight}px`;
   }
   function positionMenus() {
@@ -1311,6 +1318,115 @@
     }, { once: true });
     dialog.showModal();
   }
+  function partsError(message='') {
+    $('parts-error').textContent=message;$('parts-error').hidden=!message;
+  }
+  function selectedPart(){return partsLibrary.items.find(item=>item.id===partId)||null;}
+  function renderParts() {
+    const items=partsReady?partsLibrary.items:[],list=$('parts-list');
+    if(!items.some(item=>item.id===partId))partId=items[0]?.id||null;
+    const focus=list.contains(document.activeElement)?document.activeElement.closest('[data-part-id]')?.dataset.partId:null;
+    list.replaceChildren();
+    for(const item of items) {
+      const button=document.createElement('button');button.type='button';button.dataset.partId=item.id;button.setAttribute('aria-pressed',String(item.id===partId));
+      const thumb=document.createElement('span');thumb.className='parts-thumb';thumb.setAttribute('aria-hidden','true');thumb.innerHTML=R.svgDocument(B.documentFor(item),{padding:16,idPrefix:`part-${item.id}`});
+      const title=document.createElement('strong');title.textContent=item.name;
+      const detail=document.createElement('small');detail.textContent=`${item.selection.nodes.length}図形・${item.selection.edges.length}線`;
+      button.append(thumb,title,detail);button.onclick=()=>{partId=item.id;$('delete-part-confirm').hidden=true;renderParts();};list.append(button);
+    }
+    const item=selectedPart();$('parts-empty').hidden=!!items.length||partsChoosing;
+    $('parts-dialog').querySelector('.parts-workspace').hidden=!items.length||partsChoosing;
+    $('parts-status').textContent=partsChoosing?'自動保存と明示保存のどちらを開くか選んでください。':`${items.length} / 100セット${partsSaveStatus?'・'+partsSaveStatus:''}`;
+    for(const id of ['parts-import','parts-save-browser','parts-save-file'])$(id).disabled=!partsReady||partsChoosing;
+    for(const id of ['place-part','rename-part','delete-part','export-part','part-name'])$(id).disabled=!item||partsChoosing;
+    if(item){$('part-preview').innerHTML=R.svgDocument(B.documentFor(item),{padding:24,idPrefix:'part-preview'});setField('part-name',item.name);$('part-description').textContent=`${item.selection.nodes.length}図形・${item.selection.edges.length}線。配置後は図形や線として編集できます。`;}
+    else {$('part-preview').replaceChildren();$('part-name').value='';$('part-description').textContent='';}
+    if(focus)list.querySelector(`[data-part-id="${focus}"]`)?.focus({preventScroll:true});
+  }
+  function writeParts(key) {
+    localStorage.setItem(key,JSON.stringify({savedAt:new Date().toISOString(),library:B.parseLibrary(partsLibrary)}));
+  }
+  function changeParts(next) {
+    const clean=B.parseLibrary(next);if(B.serializeLibrary(clean)===B.serializeLibrary(partsLibrary))return false;
+    partsLibrary=clean;partsUnsaved=true;partsError();
+    try{writeParts(PARTS_AUTO);partsUnsaved=false;partsSaveStatus='ブラウザ自動保存済み';}
+    catch{partsSaveStatus='自動保存に失敗';partsError('部品セットをブラウザへ保存できませんでした。内容はこの画面に保持しています。「すべてファイルに保存」で残せます。');notify('部品セットの自動保存に失敗しました。マイ部品からファイルへ保存できます。',true);}
+    renderParts();return true;
+  }
+  function chooseParts(library,label) {
+    if(partsUnsaved){partsError('まだ保存できていない部品セットがあります。先にブラウザかファイルへ保存してください。');return;}
+    partsLibrary=B.parseLibrary(library);partsReady=true;partsChoosing=false;partId=null;partsSaveStatus=label;$('parts-candidates').hidden=true;partsError();renderParts();
+    const action=partsPendingAction;partsPendingAction=null;
+    if(action){$('parts-dialog').close();action();}
+  }
+  function showPartsCandidates() {
+    const host=$('parts-candidates');host.replaceChildren();partsChoosing=true;const errors=[];let count=0;
+    for(const [key,label] of [[PARTS_AUTO,'自動保存'],[PARTS_SAVED,'明示保存']]) {
+      try {
+        const raw=localStorage.getItem(key);if(!raw)continue;
+        if(raw.length>3*1024*1024)throw new Error('size');
+        const value=JSON.parse(raw),library=B.parseLibrary(value.library);if(!Number.isFinite(Date.parse(value.savedAt)))throw new Error('date');
+        const button=document.createElement('button');button.type='button';button.className='storage-candidate';button.dataset.partsSource=key===PARTS_AUTO?'auto':'manual';
+        const title=document.createElement('strong');title.textContent=`ブラウザ内・${label}`;const detail=document.createElement('span');detail.textContent=`${library.items.length}セット・${new Date(value.savedAt).toLocaleString('ja-JP')}`;
+        button.append(title,detail);button.onclick=()=>chooseParts(library,`${label}の内容`);host.append(button);count++;
+      }catch{errors.push(`${label}を読み込めませんでした。保存データは保持しています。`);}
+    }
+    if(!count&&!errors.length&&!partsReady){chooseParts(B.emptyLibrary(),'');return;}
+    const empty=document.createElement('button');empty.type='button';empty.textContent='空の一覧から始める';empty.dataset.partsSource='empty';empty.onclick=()=>chooseParts(B.emptyLibrary(),'');host.append(empty);
+    if(partsReady){const back=document.createElement('button');back.type='button';back.textContent='現在の一覧に戻る';back.onclick=()=>{partsChoosing=false;host.hidden=true;partsError();renderParts();};host.append(back);}
+    host.hidden=false;partsError(errors.join(' '));renderParts();
+  }
+  function openParts(action=null) {
+    finishText();cancelGesture();partsPendingAction=action;partsError();
+    if(partsReady&&action){partsPendingAction=null;action();return;}
+    if(!partsReady)showPartsCandidates();else renderParts();
+    if(action&&partsReady)return;
+    if(!$('parts-dialog').open)openDialog($('parts-dialog'),$('my-parts'));
+  }
+  function openPartRegistration() {
+    $('register-part-name').value=partRegistration.name;$('register-part-error').hidden=true;
+    $('register-part-preview').innerHTML=R.svgDocument(B.documentFor(partRegistration),{padding:24,idPrefix:'register-part'});
+    openDialog($('register-part-dialog'),$('edit-menu').querySelector('summary'));
+  }
+  $('my-parts').onclick=()=>openParts();
+  $('parts-open-saved').onclick=()=>{partsPendingAction=null;showPartsCandidates();};
+  $('parts-dialog').addEventListener('close',()=>{partsPendingAction=null;$('delete-part-confirm').hidden=true;});
+  $('register-part').onclick=()=>{
+    try{finishText();partRegistration=B.capture(doc,[...selected],selectedNodes()[0]?.text.trim().slice(0,80)||'部品セット');openParts(openPartRegistration);}
+    catch(error){notify(error.message,true);}
+  };
+  $('register-part-form').onsubmit=event=>{
+    event.preventDefault();if(!partRegistration)return;
+    try{const item={...partRegistration,name:$('register-part-name').value};changeParts(B.add(partsLibrary,item));partId=item.id;$('register-part-dialog').close();if(!partsUnsaved)notify('部品セットを登録しました');}
+    catch(error){$('register-part-error').textContent=error.message;$('register-part-error').hidden=false;}
+  };
+  $('part-name-form').onsubmit=event=>{
+    event.preventDefault();const item=selectedPart();if(!item||$('part-name').value.trim()===item.name)return;
+    try{changeParts(B.rename(partsLibrary,item.id,$('part-name').value));}catch(error){partsError(error.message);}
+  };
+  $('delete-part').onclick=()=>{const item=selectedPart();if(!item)return;$('delete-part-message').textContent=`「${item.name}」をマイ部品から削除します。`;$('delete-part-confirm').hidden=false;$('cancel-delete-part').focus();};
+  $('cancel-delete-part').onclick=()=>{$('delete-part-confirm').hidden=true;$('delete-part').focus();};
+  $('confirm-delete-part').onclick=()=>{try{changeParts(B.remove(partsLibrary,partId));$('delete-part-confirm').hidden=true;$('parts-list').querySelector('button')?.focus();}catch(error){partsError(error.message);}};
+  $('parts-save-browser').onclick=()=>{
+    try{writeParts(PARTS_SAVED);partsUnsaved=false;partsSaveStatus='ブラウザに明示保存済み';partsError();renderParts();}
+    catch{partsError('ブラウザへ保存できませんでした。ファイルへの保存を利用できます。');}
+  };
+  function exportParts(all) {
+    try{const item=selectedPart(),library=all?partsLibrary:{...B.emptyLibrary(),items:item?[item]:[]};download(new Blob([B.serializeLibrary(library)],{type:'application/json'}),`${all?'マイ部品':safeName(item.name)}.flowparts.json`);if(all)partsUnsaved=false;notify('部品セットのファイルを書き出しました');}
+    catch(error){partsError(error.message);}
+  }
+  $('parts-save-file').onclick=()=>exportParts(true);$('export-part').onclick=()=>exportParts(false);
+  $('parts-import').onclick=()=>{$('parts-file-input').value='';$('parts-file-input').click();};
+  $('parts-file-input').onchange=async event=>{
+    const file=event.target.files[0];if(!file||!partsReady||partsChoosing)return;
+    try{if(file.size>2*1024*1024)throw new Error('部品セットファイルは2MB以内にしてください。');const incoming=B.parseLibrary(await file.text());const next=B.merge(partsLibrary,incoming);changeParts(next);partId=next.items.at(-1)?.id;renderParts();}
+    catch(error){partsError(error.message);}
+  };
+  $('place-part').onclick=()=>{const item=selectedPart();if(!item||trace)return;pendingPart=C.clone(item);$('parts-dialog').close();setTool('part');canvas.focus();};
+  function placePart(position) {
+    const item=pendingPart;if(!item)return;
+    if(change(()=>{selected=new Set(B.place(doc,item,{x:snapped(position.x),y:snapped(position.y)}));tool='select';pendingPart=null;layer='diagram';laneId=null;})){canvas.focus();notify('部品セットを配置しました');}
+  }
   function confirmReplace(message) {
     if (!dirty()) return Promise.resolve(true);
     return new Promise(resolve => {
@@ -1480,18 +1596,22 @@
   $('local-auto-stop').onclick = () => { localPickerEpoch++; localAutosave.stop(); };
   function exportIds(scope) { return scope === 'selection' ? layer === 'lanes' ? laneId ? [laneId] : [] : [...selected] : null; }
   function hasExportObjects(parts) { return parts.nodes.length + parts.edges.length + parts.lanes.length > 0; }
-  function pngDimensions(output, selectedIds) {
-    const b = R.documentBounds(output, { selectedIds }), w = Math.max(1, b.w + 64), h = Math.max(1, b.h + 64);
-    const requested = [1, 2, 4].includes(Number($('export-scale').value)) ? Number($('export-scale').value) : 1;
-    const scale = Math.min(requested, 8192 / w, 8192 / h, Math.sqrt(32000000 / (w * h)));
-    return { width: Math.max(1, Math.floor(w * scale + 1e-8)), height: Math.max(1, Math.floor(h * scale + 1e-8)), adjusted: scale < requested - 1e-8 };
+  function imageOptions() {
+    return {mode:$('export-size-mode').value,scale:Number($('export-scale').value),width:$('export-width').valueAsNumber,height:$('export-height').valueAsNumber,
+      padding:Object.fromEntries(['top','right','bottom','left'].map(side=>[side,$('export-'+side).valueAsNumber]))};
+  }
+  function pngDimensions(output, selectedIds, options=imageOptions()) {
+    return O.imageLayout(R.documentBounds(output,{selectedIds}),options);
   }
   function renderExport() {
     $('copy-image-button').disabled = !!imageOperation || !!trace || !selected.size;
     $('copy-image-button').setAttribute('aria-busy', String(imageOperation === 'copy'));
     if (pane !== 'export') return;
-    const scope = $('export-scope').value, ids = exportIds(scope), parts = R.exportSelection(doc, ids), empty = !hasExportObjects(parts);
-    ['export-copy-image','export-png','export-svg'].forEach(id => { $(id).disabled = !!imageOperation || empty; });
+    const scope = $('export-scope').value, ids = exportIds(scope), parts = R.exportSelection(doc, ids), empty = !hasExportObjects(parts), mode=$('export-size-mode').value;
+    $('export-scale-field').hidden=mode!=='scale';$('export-width-field').hidden=mode!=='width';$('export-height-field').hidden=mode!=='height';
+    let size=null,error='';try{size=pngDimensions(doc,ids);}catch(problem){error=problem.message;}
+    $('export-error').textContent=error;$('export-error').hidden=!error;
+    ['export-copy-image','export-png','export-svg'].forEach(id => { $(id).disabled = !!imageOperation || empty || !!error; });
     $('export-copy-image').textContent = imageOperation === 'copy' ? 'コピー中…' : '画像をコピー';
     $('export-png').textContent = imageOperation === 'download' ? '作成中…' : 'PNGを保存';
     $('export-empty').hidden = !empty;
@@ -1499,16 +1619,16 @@
     const preview = $('export-preview'), label = scope === 'selection' ? '選択部分' : '図全体';
     preview.dataset.transparent = String($('transparent').checked); preview.setAttribute('aria-label', `${label}の書き出しプレビュー`);
     if (empty) { preview.replaceChildren(); $('export-name').textContent = label; return; }
-    preview.innerHTML = R.svgDocument(doc, { selectedIds: ids, padding: 32, transparent: $('transparent').checked, idPrefix: 'export-preview' });
-    const size = pngDimensions(doc, ids);
+    if(error)return;
+    preview.innerHTML = R.svgDocument(doc, { selectedIds: ids, padding: size.padding, transparent: $('transparent').checked, idPrefix: 'export-preview' });
     $('export-name').textContent = `${label}：${parts.nodes.length}図形・${parts.edges.length}線${parts.lanes.length ? `・${parts.lanes.length}担当領域` : ''} / PNG ${size.width} × ${size.height} px${size.adjusted ? '（大きな図のため解像度を調整）' : ''}`;
   }
   function imageSnapshot(scope) {
     finishText();
     const output = C.clone(doc), selectedIds = exportIds(scope);
     if (!hasExportObjects(R.exportSelection(output, selectedIds))) throw new Error(scope === 'selection' ? '書き出す部分を選択してください。' : '先に図形や矢印を配置してください。');
-    const transparent = $('transparent').checked;
-    return { svg: R.svgDocument(output, { selectedIds, padding: 32, transparent }), transparent, ...pngDimensions(output, selectedIds), name: `${safeName(output.title)}${scope === 'selection' ? '_選択部分' : ''}`, label: `${output.title || '図'}${scope === 'selection' ? '（選択部分）' : '（図全体）'}` };
+    const transparent = $('transparent').checked, size=pngDimensions(output,selectedIds);
+    return { svg: R.svgDocument(output, { selectedIds, padding:size.padding, transparent }), transparent, ...size, name: `${safeName(output.title)}${scope === 'selection' ? '_選択部分' : ''}`, label: `${output.title || '図'}${scope === 'selection' ? '（選択部分）' : '（図全体）'}` };
   }
   async function pngBlob(snapshot) {
     const url = URL.createObjectURL(new Blob([snapshot.svg], { type: 'image/svg+xml' }));
@@ -1566,26 +1686,33 @@
   };
   $('export-copy-image').onclick = () => copyImage($('export-scope').value, $('export-copy-image'));
   $('copy-image-button').onclick = () => copyImage('selection', $('copy-image-button'));
-  ['export-scope','export-scale','transparent'].forEach(id => { $(id).onchange = renderExport; });
+  const imageSettingIds=['export-size-mode','export-scale','export-width','export-height','export-top','export-right','export-bottom','export-left','transparent'];
+  $('export-scope').onchange=renderExport;
+  imageSettingIds.forEach(id=>{$(id).onchange=()=>{renderExport();try{pngDimensions(doc,exportIds($('export-scope').value));savePreferences();}catch{/* 不正な入力は保存せず、修正を待つ。 */}};});
   $('image-copy-download').onclick = () => { if (imageCopyFallback) { download(imageCopyFallback.blob, `${imageCopyFallback.snapshot.name}.png`); notify('PNGを書き出しました'); } };
   function dismissImageFallback() { const invoker = imageCopyFallback?.invoker; clearImageFallback(); invoker?.focus(); }
   $('image-copy-dismiss').onclick = dismissImageFallback;
   $('image-copy-fallback').addEventListener('keydown', event => { if (event.key === 'Escape') { event.preventDefault(); event.stopPropagation(); dismissImageFallback(); } });
   function printSettings() {
-    return { paper: $('print-paper').value === 'B5' ? 'B5' : 'A4', orientation: $('print-orientation').value === 'landscape' ? 'landscape' : 'portrait', name: $('print-name').checked, instructions: $('print-instructions').checked };
+    return { paper: $('print-paper').value === 'B5' ? 'B5' : 'A4', orientation: $('print-orientation').value === 'landscape' ? 'landscape' : 'portrait', name: $('print-name').checked, instructions: $('print-instructions').checked,
+      mode:$('print-size-mode').value,width:$('print-width').valueAsNumber,align:$('print-align').value,valign:$('print-valign').value };
   }
   function paperDimensions(settings) {
     const sizes = settings.paper === 'B5' ? [182, 257] : [210, 297];
     return settings.orientation === 'landscape' ? sizes.reverse() : sizes;
   }
-  let printPagePixels = { w: 794, h: 1122 }, printResizeFrame = null;
-  function preparePrint() {
+  let printPagePixels = { w: 794, h: 1122 }, printResizeFrame = null, validPrintSettings=null;
+  function preparePrint(usePrevious=false) {
     finishText();
-    const settings = printSettings(), [width, height] = paperDimensions(settings), sheet = $('print-sheet');
+    const settings = usePrevious&&validPrintSettings?validPrintSettings:printSettings(), [width, height] = paperDimensions(settings), sheet = $('print-sheet');
+    $('print-width-field').hidden=settings.mode!=='width';$('print-width').disabled=settings.mode!=='width';
+    try{O.printLayout({x:0,y:0,w:1,h:1},{...settings,availableWidth:width,availableHeight:height});}
+    catch(error){$('print-error').textContent=error.message;$('print-error').hidden=false;$('print-submit').disabled=true;return false;}
+    $('print-error').hidden=true;$('print-submit').disabled=false;
     const instructions = settings.instructions ? doc.lesson?.instructions || '' : '';
     $('print-page-style').textContent = `@page{size:${width}mm ${height}mm;margin:0}`;
     sheet.replaceChildren(); sheet.classList.add('is-measuring');
-    const pages = [];
+    const pages = [];let drawingSize=null;
     const makePage = () => {
       const article = document.createElement('article'); article.className = 'print-page';
       article.style.setProperty('--paper-width', `${width}mm`); article.style.setProperty('--paper-height', `${height}mm`);
@@ -1606,6 +1733,9 @@
     const addDiagram = body => {
       const drawing = document.createElement('div'); drawing.className = 'print-diagram';
       drawing.innerHTML = R.svgDocument(doc, { padding: 24, transparent: false, idPrefix: 'print' }); body.append(drawing);
+      const rect=drawing.getBoundingClientRect(),b=R.documentBounds(doc);
+      drawingSize=O.printLayout({x:0,y:0,w:b.w+48,h:b.h+48},{...settings,availableWidth:rect.width*25.4/96,availableHeight:rect.height*25.4/96});
+      const svg=drawing.querySelector('svg');Object.assign(svg.style,{width:`${drawingSize.width}mm`,height:`${drawingSize.height}mm`,left:`${drawingSize.x}mm`,top:`${drawingSize.y}mm`,right:'auto',bottom:'auto'});
     };
     try {
       let remaining = Array.from(instructions), body = makePage();
@@ -1629,9 +1759,10 @@
       addDiagram(body);
       pages.forEach((article, index) => { article.querySelector('.print-page-number').textContent = pages.length > 1 ? `${index + 1} / ${pages.length}` : ''; });
       const rect = pages[0].getBoundingClientRect(); printPagePixels = { w: rect.width, h: rect.height };
-      $('print-summary').textContent = `${settings.paper === 'B5' ? 'B5（JIS）' : 'A4'}・${settings.orientation === 'landscape' ? '横' : '縦'} / ${pages.length}ページ / 氏名欄${settings.name ? 'あり' : 'なし'}`;
+      $('print-summary').textContent = `${settings.paper === 'B5' ? 'B5（JIS）' : 'A4'}・${settings.orientation === 'landscape' ? '横' : '縦'}（${width} × ${height} mm） / ${pages.length}ページ / 氏名欄${settings.name ? 'あり' : 'なし'} / 図 ${drawingSize.width.toFixed(1)} × ${drawingSize.height.toFixed(1)} mm${drawingSize.adjusted?'（用紙に収まる幅へ縮小）':''}`;
       $('print-pagination-note').hidden = pages.length === 1;
     } finally { sheet.classList.remove('is-measuring'); }
+    validPrintSettings={...settings};return true;
   }
   function updatePrintPreview() {
     if (!$('print-dialog').open) return;
@@ -1642,7 +1773,9 @@
       wrapper.style.width = `${printPagePixels.w * scale}px`; wrapper.style.height = `${printPagePixels.h * scale}px`;
       const copy = page.cloneNode(true); copy.style.transform = `scale(${scale})`; copy.setAttribute('aria-label', `${index + 1}ページ`);
       const drawing = copy.querySelector('.print-diagram');
-      if (drawing) drawing.innerHTML = R.svgDocument(doc, { padding: 24, transparent: false, idPrefix: 'print-preview' });
+      if (drawing) {
+        const style=drawing.querySelector('svg').getAttribute('style');drawing.innerHTML = R.svgDocument(doc, { padding: 24, transparent: false, idPrefix: 'print-preview' });drawing.querySelector('svg').setAttribute('style',style);
+      }
       wrapper.append(copy); preview.append(wrapper);
     });
   }
@@ -1651,15 +1784,15 @@
     openDialog($('print-dialog'), invoker); preparePrint(); updatePrintPreview();
     $('print-paper').focus();
   }
-  window.addEventListener('beforeprint', preparePrint);
+  window.addEventListener('beforeprint', ()=>{if(!preparePrint())preparePrint(true);});
   $('print-button').onclick = () => openPrint($('file-menu').querySelector('summary'));
   $('side-print').onclick = () => openPrint($('side-print'));
-  $('print-form').onsubmit = event => { event.preventDefault(); preparePrint(); window.print(); };
-  for (const id of ['print-paper','print-orientation','print-name','print-instructions']) $(id).onchange = () => { savePreferences(); preparePrint(); updatePrintPreview(); };
+  $('print-form').onsubmit = event => { event.preventDefault(); if(preparePrint())window.print(); };
+  for (const id of ['print-paper','print-orientation','print-name','print-instructions','print-size-mode','print-width','print-align','print-valign']) $(id).onchange = () => { if(preparePrint()){savePreferences();updatePrintPreview();} };
   new ResizeObserver(() => {
     cancelAnimationFrame(printResizeFrame); printResizeFrame = requestAnimationFrame(updatePrintPreview);
   }).observe($('print-preview'));
-  function savePreferences() { try { localStorage.setItem(PREFS, JSON.stringify({ theme: $('theme').value, textSize: $('text-size').value, snap: $('snap').checked, alignmentSnap: $('alignment-snap').checked, print: printSettings(), saveLocation: lastSaveLocation })); } catch { /* Editing remains available when browser storage is disabled. */ } }
+  function savePreferences() { try { localStorage.setItem(PREFS, JSON.stringify({ theme: $('theme').value, textSize: $('text-size').value, snap: $('snap').checked, alignmentSnap: $('alignment-snap').checked, print: printSettings(), image:{...imageOptions(),transparent:$('transparent').checked}, saveLocation: lastSaveLocation })); } catch { /* Editing remains available when browser storage is disabled. */ } }
   $('theme').onchange = e => { document.documentElement.dataset.theme = e.target.value; savePreferences(); render(); };
   systemTheme.addEventListener('change', () => { if ($('theme').value === 'auto') render(); });
   $('text-size').onchange = e => { document.documentElement.dataset.textSize = e.target.value; savePreferences(); layoutToolbar(); positionMenus(); };
@@ -1684,6 +1817,7 @@
       else if (key === 'g' && !trace) { event.preventDefault(); (event.shiftKey ? $('ungroup-button') : $('group-button')).click(); }
       return;
     }
+    if(tool==='part'&&pendingPart&&event.target.closest('#canvas')&&event.key==='Enter'){event.preventDefault();placePart({x:(stage.clientWidth/2-view.x)/view.scale,y:(stage.clientHeight/2-view.y)/view.scale});return;}
     if(routeTarget()) {
       const handle=event.target.closest('[data-handle="waypoint-add"]');
       if(handle&&(event.key==='Enter'||event.key===' ')){event.preventDefault();addWaypoint({x:Number(handle.dataset.x),y:Number(handle.dataset.y)});return;}
@@ -1728,7 +1862,7 @@
   window.addEventListener('pagehide', () => { finishText(); writeRecovery(); localPickerEpoch++; localAutosave.stop(); });
   window.addEventListener('beforeunload', event => {
     const pending = lessonPreview?.doc || doc, lastSaved = lessonPreview?.saved ?? saved;
-    if (localAutosave.getState().status === 'saving' || JSON.stringify(pending, null, 2) !== lastSaved || editing && $('inline-editor').value !== editing.original) { event.preventDefault(); event.returnValue = ''; }
+    if (partsUnsaved || localAutosave.getState().status === 'saving' || JSON.stringify(pending, null, 2) !== lastSaved || editing && $('inline-editor').value !== editing.original) { event.preventDefault(); event.returnValue = ''; }
   });
   let previousStageWidth = stage.clientWidth, previousStageHeight = stage.clientHeight, resizeFrame = null;
   new ResizeObserver(() => {
@@ -1749,6 +1883,18 @@
     if (['portrait','landscape'].includes(preferences.print?.orientation)) $('print-orientation').value = preferences.print.orientation;
     if (typeof preferences.print?.name === 'boolean') $('print-name').checked = preferences.print.name;
     if (typeof preferences.print?.instructions === 'boolean') $('print-instructions').checked = preferences.print.instructions;
+    if(['fit','width'].includes(preferences.print?.mode))$('print-size-mode').value=preferences.print.mode;
+    if(Number.isFinite(preferences.print?.width)&&preferences.print.width>=1&&preferences.print.width<=1000)$('print-width').value=preferences.print.width;
+    if(['left','center','right'].includes(preferences.print?.align))$('print-align').value=preferences.print.align;
+    if(['top','middle','bottom'].includes(preferences.print?.valign))$('print-valign').value=preferences.print.valign;
+    if(preferences.image)try {
+      O.imageLayout({x:0,y:0,w:1,h:1},preferences.image);
+      if(['scale','width','height'].includes(preferences.image.mode))$('export-size-mode').value=preferences.image.mode;
+      if([1,2,4].includes(preferences.image.scale))$('export-scale').value=preferences.image.scale;
+      for(const side of ['width','height'])if(Number.isInteger(preferences.image[side])&&preferences.image[side]>=1&&preferences.image[side]<=100000)$('export-'+side).value=preferences.image[side];
+      if(preferences.image.padding)for(const side of ['top','right','bottom','left'])$('export-'+side).value=preferences.image.padding[side];
+      if(typeof preferences.image.transparent==='boolean')$('transparent').checked=preferences.image.transparent;
+    }catch{/* 古い・不正な画像設定は既定値で開く。 */}
     if (['browser','local'].includes(preferences.saveLocation)) lastSaveLocation = preferences.saveLocation;
   } catch { /* 表示設定の失敗でも、保存した図は別に読み込める。 */ }
   updateSaveShortcut(); updateLocalSaveStatus();
