@@ -44,7 +44,7 @@
   editor = new window.LogicEditor($('logic-editor'), {
     inputNames: ['A', 'B'], availableInputNames: ['A', 'B', 'C', 'D'],
     allowInputDeletion: true, allowMultipleOutputs: true, enableAlignment: true,
-    allowSignalToggle: true, enableWireEditing: true, allowMousePan: true,
+    allowSignalToggle: true, enableWireEditing: true, allowMousePan: true, allowWireInsertion: true,
     initialExpression: 'A-B', helpDialogId: 'lc02-operation-dialog', keyboardRoot: app,
     onSave: () => files.openSave(), onLoad: () => files.openLoad(), onClearRequest: () => files.requestClear(),
     onExport: () => setPane('export'), onChange: updateTable
@@ -61,6 +61,7 @@
   $('layout-tools').appendChild(editor.alignButton);
   editor.alignButton.appendChild(document.createTextNode('整列'));
   $('selection-tools').append(editor.swapButton, editor.deleteButton);
+  $('insert-not').addEventListener('click', () => editor.insertNotInWire());
   $('operation-hint').appendChild(editor.status);
   // 互換APIは残し、画面上の画像出力入口は右端に集約する。
   editor.exportButton.hidden = true;
@@ -119,12 +120,14 @@
     files?.refresh();
     const node = instance.selected?.kind === 'node' ? instance.findNode(instance.selected.id) : null;
     const selection = $('selection-tools');
-    const hadFocus = selection.contains(document.activeElement);
+    const focusedAction = document.activeElement;
+    const hadFocus = selection.contains(focusedAction);
     selection.hidden = !instance.selected;
+    $('insert-not').hidden = instance.selected?.kind !== 'wire';
     instance.swapButton.hidden = !node || !['AND', 'OR'].includes(node.type);
     instance.deleteButton.hidden = instance.deleteButton.disabled;
     $('selection-name').textContent = node ? node.name || node.type : '配線';
-    if (hadFocus && (selection.hidden || document.activeElement.hidden)) instance.canvasWrap.focus({ preventScroll: true });
+    if (hadFocus && (selection.hidden || focusedAction.hidden)) instance.canvasWrap.focus({ preventScroll: true });
     $('circuit-status').textContent = analysis.valid ? '接続完了' : '編集中';
     $('circuit-status').title = `${instance.graph.nodes.length}部品・${instance.graph.wires.length}配線${analysis.valid ? '' : `：${analysis.errors[0]}`}`;
     instance.status.title = instance.status.textContent;

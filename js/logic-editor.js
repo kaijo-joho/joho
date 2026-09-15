@@ -573,6 +573,91 @@
       this.commit(`${gate}ゲートを追加しました。ドラッグで位置を調整できます。`);
     }
 
+    notInsertionPosition(wire) {
+      const routing = this.computeWireRouting();
+      const route = routing.routes.get(wire.id);
+      const segments = route?.fullSegments || route?.segments || [];
+      const geometry = Renderer.gateGeometry('NOT');
+      const from = this.outputPoint(this.findNode(wire.from));
+      const to = this.inputPoint(this.findNode(wire.to), Number(wire.port));
+      const obstacles = this.routingObstacles().map(rect => {
+        const node = this.findNode(rect.id);
+        if (!node) return rect;
+        const terminal = node.type === 'input' || node.type === 'output';
+        // 経路探索用の大きな横余白ではなく、記号・端子の幅＋余白で置けるか調べる。
+        return { ...rect, left: node.x - (terminal ? 38 : 35),
+          right: node.x + (terminal ? 38 : Renderer.gateGeometry(node.type).outputX + 4) };
+      });
+      // 共有区間も他の配線として扱い、分岐前の幹へ誤って挿入したように見せない。
+      const otherSegments = [...routing.routes.entries()].filter(([id]) => id !== wire.id)
+        .flatMap(([, other]) => other.fullSegments || other.segments);
+      const available = point => {
+        if (point.x < 45 || point.x > WIDTH - 45 || point.y < 42 || point.y > HEIGHT - 45) return false;
+        // 入出力を逆向きに折り返して記号の中を通らないよう、左右の接続余白を確保する。
+        if (point.x + geometry.inputX < from.x + 8 || point.x + geometry.outputX > to.x - 8) return false;
+        const bounds = { left: point.x + geometry.inputX - 4, right: point.x + geometry.outputX + 4,
+          top: point.y - 30, bottom: point.y + 45 };
+        return !obstacles.some(rect => bounds.left < rect.right && bounds.right > rect.left
+          && bounds.top < rect.bottom && bounds.bottom > rect.top)
+          && !routeObstaclePenalty(otherSegments, [bounds]);
+      };
+      const longestFirst = [...segments].sort((a, b) => segmentLength(b) - segmentLength(a));
+      // まず右向きの水平線内を探す。直線をそのままNOTの前後へ分けられる位置を優先。
+      for (const segment of longestFirst) {
+        if (segment.axis !== 'h' || segment.to.x <= segment.from.x || segmentLength(segment) < geometry.outputX - geometry.inputX + 12) continue;
+        const middle = (segment.start + segment.end - geometry.inputX - geometry.outputX) / 2;
+        for (let offset = 0; offset <= segmentLength(segment) / 2; offset += 18) {
+          for (const x of [middle + offset, middle - offset]) {
+            if (x + geometry.inputX < segment.start + 6 || x + geometry.outputX > segment.end - 6) continue;
+            const point = routePoint(x, segment.fixed);
+            if (available(point)) return point;
+          }
+        }
+      }
+      // 短い配線・縦線・折れ線では近くの空きを使い、前後だけを自動で引き直す。
+      const anchors = longestFirst.flatMap(segment => [.5, .25, .75].map(ratio => ({
+        x: segment.from.x + (segment.to.x - segment.from.x) * ratio,
+        y: segment.from.y + (segment.to.y - segment.from.y) * ratio
+      })));
+      for (const distance of [0, 24, 48, 72, 96, 120]) {
+        for (const anchor of anchors) {
+          for (const [dx, dy] of [[0, 0], [0, -1], [0, 1], [-1, 0], [1, 0], [-1, -1], [1, -1], [-1, 1], [1, 1]]) {
+            const point = routePoint(anchor.x + dx * distance, anchor.y + dy * distance);
+            if (available(point)) return point;
+          }
+        }
+      }
+      return null;
+    }
+
+    insertNotInWire(wireId = this.selected?.kind === 'wire' ? this.selected.id : null) {
+      if (!this.options.allowWireInsertion || this.drag || this.paletteDrag || this.connectionDrag || this.bendDrag || this.pan) return null;
+      const wire = this.graph.wires.find(candidate => candidate.id === wireId);
+      if (!wire || !this.findNode(wire.from) || !this.findNode(wire.to)) return null;
+      const position = this.notInsertionPosition(wire);
+      if (!position) {
+        this.notice = 'NOTを置くスペースがありません。配線の両端の部品を左右に離すなどして、もう一度挿入してください。';
+        this.render({ notify: false });
+        return null;
+      }
+      let nodeId, wireInId;
+      do { nodeId = `gate-${Date.now().toString(36)}-${++this.nodeSerial}`; } while (this.findNode(nodeId));
+      do { wireInId = `wire-${Date.now().toString(36)}-${++this.wireSerial}`; } while (this.graph.wires.some(candidate => candidate.id === wireInId));
+      const node = { id: nodeId, type: 'NOT', ...position };
+      const wireIn = { id: wireInId, from: wire.from, to: node.id, port: 0 };
+      const wireOut = { ...wire, from: node.id };
+      delete wireOut.bends;
+      // 接続先・端子番号・元の配線IDを保つ。分岐した他の配線と部品は変更しない。
+      this.checkpoint();
+      this.graph.nodes.push(node);
+      this.graph.wires.splice(this.graph.wires.indexOf(wire), 1, wireIn, wireOut);
+      this.pendingFrom = null;
+      this.pendingRewire = null;
+      this.selected = { kind: 'node', id: node.id };
+      this.commit('配線の途中にNOTを挿入しました。Undoで元の配線に戻せます。');
+      return node;
+    }
+
     beginPaletteDrag(event, gate, button) {
       if (event.button !== 0 || this.paletteDrag || this.drag || this.connectionDrag) return;
       event.preventDefault();

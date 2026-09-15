@@ -25,6 +25,92 @@ function editorFixture(options = { allowInputDeletion: true }) {
   return editor;
 }
 
+// 配線へのNOT挿入は、単一の編集として元の接続先・分岐・値・履歴を扱う。
+const insertion = editorFixture({ allowWireInsertion: true });
+insertion.inputValues = { A: 1, B: 1 };
+const outputWire = insertion.graph.wires.find(wire => wire.to === 'output-F');
+const beforeInsert = insertion.snapshot();
+const beforeRoute = insertion.computeWireRouting().routes.get(outputWire.id).segments;
+const inserted = insertion.insertNotInWire(outputWire.id);
+assert.equal(inserted.type, 'NOT');
+assert.equal(insertion.graph.nodes.length, beforeInsert.graph.nodes.length + 1);
+assert.equal(insertion.graph.wires.length, beforeInsert.graph.wires.length + 1);
+assert.deepEqual(plain(insertion.graph.nodes.slice(0, -1)), plain(beforeInsert.graph.nodes), '既存部品の位置を動かさない');
+assert.deepEqual(plain(insertion.graph.wires.filter(wire => wire.to !== inserted.id && wire.from !== inserted.id)),
+  plain(beforeInsert.graph.wires.filter(wire => wire.id !== outputWire.id)), '対象外の配線を保持');
+assert.deepEqual(plain(insertion.graph.wires.find(wire => wire.id === outputWire.id)), { ...plain(outputWire), from: inserted.id });
+assert.equal(insertion.getAnalysis().truthCode, '1110', 'ANDの出力に挿入するとNAND');
+assert.ok(beforeRoute.some(segment => segment.axis === 'h' && segment.fixed === inserted.y
+  && segment.start < inserted.x - 30 && segment.end > inserted.x + 30), '空きのある水平線上へ挿入');
+assert.deepEqual(plain(insertion.inputValues), { A: 1, B: 1 });
+assert.deepEqual(insertion.history.at(-2), beforeInsert, '直前の入力変更を保ち、中間の未接続状態を履歴へ入れない');
+const afterInsert = insertion.snapshot();
+insertion.undo(); assert.deepEqual(insertion.snapshot(), beforeInsert, '1回のUndoで入力値も含め元に戻る');
+insertion.redo(); assert.deepEqual(insertion.snapshot(), afterInsert);
+
+const branched = editorFixture({ allowWireInsertion: true });
+const branches = branched.graph.wires.filter(wire => wire.to !== 'output-F');
+branches[1].from = 'input-A';
+branched.resetHistory();
+const otherBranch = plain(branches[1]);
+const insertedBranch = branched.insertNotInWire(branches[0].id);
+assert.ok(insertedBranch);
+assert.deepEqual(plain(branched.graph.wires.find(wire => wire.id === otherBranch.id)), otherBranch, '他の分岐は反転させない');
+assert.equal(branched.getAnalysis().truthCode, '00', 'NOT A と A のANDは常に0');
+assert.equal(branched.graph.wires.find(wire => wire.id === branches[0].id).port, 0);
+branched.undo();
+assert.equal(branched.getAnalysis().truthCode, '01');
+
+const bent = editorFixture({ allowWireInsertion: true });
+const bentWire = bent.graph.wires.find(wire => wire.from === 'input-B');
+const start = bent.outputPoint(bent.findNode(bentWire.from));
+const end = bent.inputPoint(bent.findNode(bentWire.to), bentWire.port);
+bentWire.bends = [{ x: (start.x + end.x) / 2, y: start.y }, { x: (start.x + end.x) / 2, y: end.y }];
+bent.resetHistory();
+const beforeBent = bent.snapshot();
+const bentGate = bent.insertNotInWire(bentWire.id);
+assert.ok(bentGate);
+assert.equal(bent.graph.wires.find(wire => wire.id === bentWire.id).port, 1, '入力端子番号を保持');
+assert.equal(bent.graph.wires.find(wire => wire.id === bentWire.id).bends, undefined, '分割後は自動経路へ戻す');
+bent.undo(); assert.deepEqual(bent.snapshot(), beforeBent, '手動経路もUndoで復元');
+const nextGate = bent.insertNotInWire(bentWire.id);
+assert.notEqual(nextGate.id, bentGate.id, 'Undo後の再挿入でもIDを使い回さない');
+
+const shortWire = editorFixture({ allowWireInsertion: true });
+shortWire.graph = { nodes: [
+  { id: 'a', type: 'input', name: 'A', x: 200, y: 260 },
+  { id: 'f', type: 'output', name: 'F', x: 285, y: 260 }
+], wires: [{ id: 'short', from: 'a', to: 'f', port: 0 }] };
+shortWire.resetHistory();
+const beforeShort = shortWire.snapshot();
+assert.equal(shortWire.insertNotInWire('short'), null, '横幅が足りない場合は記号を貫く逆向き配線を作らない');
+assert.deepEqual(shortWire.snapshot(), beforeShort);
+shortWire.findNode('f').x = 420;
+const nearbyGate = shortWire.insertNotInWire('short');
+assert.ok(nearbyGate, '両端を離すと同じ配線に挿入できる');
+assert.equal(shortWire.getAnalysis().truthCode, '10');
+
+const unavailable = editorFixture({ allowWireInsertion: true });
+const beforeUnavailable = unavailable.snapshot();
+unavailable.routingObstacles = () => [{ left: 0, right: 900, top: 0, bottom: 520 }];
+assert.equal(unavailable.insertNotInWire(unavailable.graph.wires[0].id), null);
+assert.deepEqual(unavailable.snapshot(), beforeUnavailable, '置けない場合は原子性を保ち配線を失わない');
+assert.equal(unavailable.history.length, 1);
+assert.match(unavailable.notice, /スペースがありません/);
+
+const disabledInsertion = editorFixture();
+const beforeDisabled = disabledInsertion.snapshot();
+assert.equal(disabledInsertion.insertNotInWire(disabledInsertion.graph.wires[0].id), null, '演習等では未設定なら挿入不可');
+assert.deepEqual(disabledInsertion.snapshot(), beforeDisabled);
+disabledInsertion.options.allowWireInsertion = true;
+assert.equal(disabledInsertion.insertNotInWire('missing'), null);
+for (const gesture of ['drag', 'paletteDrag', 'connectionDrag', 'bendDrag', 'pan']) {
+  disabledInsertion[gesture] = {};
+  assert.equal(disabledInsertion.insertNotInWire(disabledInsertion.graph.wires[0].id), null, `${gesture}中は変更しない`);
+  disabledInsertion[gesture] = null;
+}
+assert.deepEqual(disabledInsertion.snapshot(), beforeDisabled);
+
 function dragSource(editor, wire, targetNode, targetKind = 'output') {
   editor.selectWire(wire.id);
   editor.beginPortGesture({

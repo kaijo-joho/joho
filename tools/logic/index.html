@@ -33,7 +33,7 @@
     <main class="workspace" aria-label="論理回路の編集">
       <div id="stage">
         <div id="logic-editor"></div>
-        <div id="selection-tools" class="selection-tools" role="group" aria-label="選択したオブジェクトの操作" hidden><span id="selection-name"></span></div>
+        <div id="selection-tools" class="selection-tools" role="group" aria-label="選択したオブジェクトの操作" hidden><span id="selection-name"></span><button id="insert-not" type="button" title="選択した配線の途中にNOTを挿入" hidden>NOTを挿入</button></div>
       </div>
       <div id="operation-hint" class="operation-hint"></div>
       <footer class="statusbar">
@@ -95,6 +95,7 @@
       <h3>1. 部品を置く・変更する</h3>
       <ul><li>左のAND・OR・NOTを回路内へ<strong>ドラッグ</strong>して配置します。クリック・Enterでも追加できます。「＋ 入力」でC・Dを、「＋ 出力」でF₁・F₂…を増やせます。</li><li>部品をドラッグして移動します。選択時に出る操作バーで<strong>AND・ORの交換</strong>や削除ができます。近くの「×」やDeleteでも削除できます。最後の出力は残します。</li></ul>
       <h3>2. つなぐ・付け替える</h3>
+      <p>配線を選び、操作バーの<strong>「NOTを挿入」</strong>を押すと、途中へNOTを追加して自動でつなぎ直します。分岐がある場合は選んだ1本だけが反転します。挿入位置は後からドラッグで調整でき、1回のUndoで元に戻せます。</p>
       <ul><li>出力端子（●）から入力端子（●）へドラッグします。端子を順にクリック、またはTab・Enterで選んでも接続できます。</li><li>配線を選び、<strong>左端・右端を別の端子へドラッグ</strong>すると付け替えられます。接続先の古い配線は置き換えます。分岐があっても選んだ1本だけを変更します。</li><li>配線を選ぶと曲がり位置のハンドルが出ます。ドラッグ・矢印キーで移動し、Shiftで大きく動かせます。ハンドル上でDeleteを押すと自動経路に戻ります。</li><li>配線は水平・垂直です。同じ信号は途中で分岐し、分岐点だけに●を付けます。循環する回路や逆向き接続はできません。</li></ul>
       <h3>3. 整列・表示・やり直し</h3>
       <ul><li>左の整列ボタンで配線がなるべく直線になるよう並べます。部品移動中は中心・等間隔・配線が直線になる位置に吸着します。<strong>Alt（Option）で一時解除</strong>します。</li><li>入力の箱や真理値表の行を選ぶと入力値を切り替えられます。上部の「0/1」で値・信号色の表示を切り替えます。実際の値は変わりません。</li><li>右端のタブで真理値表・テンプレート・書き出しを開閉できます。右下の倍率で拡大縮小し、「全体表示」で回路全体を表示します。空白をドラッグすると画面を移動できます。</li><li><strong>⌘Z：Undo、⌘Shift Z：Redo</strong>（WindowsはCtrl）。ドラッグ中のEscapeでキャンセルします。</li></ul>
