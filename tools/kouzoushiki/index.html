@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>構造式エディタ</title>
-<link rel="icon" id="favicon" type="image/svg+xml">
+<link rel="icon" id="favicon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='13' fill='%2300548a'/%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#eef0f3; --panel:#ffffff; --line:#d9dde3; --text:#1f2933; --muted:#6b7480;
@@ -500,9 +500,9 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
       </table>
       <table class="about">
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</td></tr>
-        <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
+        <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">構造式エディタ　バージョン 1.0（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">構造式エディタ　バージョン 1.0.1（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1074,6 +1074,7 @@ const SIDES = {t:[0, -1], b:[0, 1], l:[-1, 0], r:[1, 0]};
 const SHAPE_W = 120, SHAPE_H = 40, DIAMOND_H = 64;   // クリックだけで置いたときの図形の大きさ（ひし形は高め）
 // つなぐ矢印・線のツール（data-kind）→ [種類（直線・カギ型）, 矢じり（なし＝終点）]
 const CONN_TOOLS = {line:['line'], elbow:['elbow'], plainLine:['line', 'none'], plainElbow:['elbow', 'none']};
+const connTool = () => CONN_TOOLS[state.cnKind] || CONN_TOOLS.line;   // いま選んでいるツールの [種類, 矢じり]
 const shapeBox = o => ({x1:Math.min(o.x1, o.x2), y1:Math.min(o.y1, o.y2), x2:Math.max(o.x1, o.x2), y2:Math.max(o.y1, o.y2)});
 const shapeR = (o, b = shapeBox(o)) => o.kind === 'round' ? Math.min(10, (b.x2 - b.x1)/3, (b.y2 - b.y1)/3) : 0;   // 角の丸みの半径
 function sidePt(o, side){
@@ -1102,12 +1103,18 @@ function shapePath(o, b = shapeBox(o)){   // 図形の輪郭（四角・角丸�
   const cx = r2((b.x1 + b.x2)/2), cy = r2((b.y1 + b.y2)/2);
   return `M${cx} ${r2(b.y1)}L${r2(b.x2)} ${cy}L${cx} ${r2(b.y2)}L${r2(b.x1)} ${cy}Z`;
 }
-// 文字が図形からはみ出すときは、中心はそのままで図形を広げる（縮めはしない）。
+// 中の文字が収まる図形の最小の大きさ（文字がなければ 16px）。
 // ひし形は、文字の枠がひし形の内側に収まるように（幅・高さとも文字の約 2 倍）
+function shapeMin(o){
+  if (!o.text) return {w:16, h:16};
+  const tw0 = textWidth(o), th0 = textLines(o).length*lineH(o), dia = o.kind === 'diamond';
+  return {w: dia ? 2*(tw0 + 8) : tw0 + 24, h: dia ? 2*(th0 + 2) : th0 + 14};
+}
+// 文字が図形からはみ出すときは、中心はそのままで図形を広げる（縮めはしない）
 function fitShape(o){
   if (!o.text) return;
-  const b = shapeBox(o), cx = (b.x1 + b.x2)/2, cy = (b.y1 + b.y2)/2, tw0 = textWidth(o), th0 = textLines(o).length*lineH(o), dia = o.kind === 'diamond';
-  const w = Math.max(b.x2 - b.x1, dia ? 2*(tw0 + 8) : tw0 + 24), h = Math.max(b.y2 - b.y1, dia ? 2*(th0 + 2) : th0 + 14);
+  const b = shapeBox(o), cx = (b.x1 + b.x2)/2, cy = (b.y1 + b.y2)/2, m = shapeMin(o);
+  const w = Math.max(b.x2 - b.x1, m.w), h = Math.max(b.y2 - b.y1, m.h);
   Object.assign(o, {x1:cx - w/2, y1:cy - h/2, x2:cx + w/2, y2:cy + h/2});
 }
 // つなぐ矢印の両端：図形につながっていればその辺の中点（dir：外向きの向き、box：図形の枠）、なければ x1,y1・x2,y2
@@ -1167,8 +1174,10 @@ function elbowRoute(A, B){
 // o.head：なし＝終点だけ、'both'＝両端、'none'＝矢じりなし（ただの線）
 function connGeom(d, o){
   const [A, B] = connEnds(d, o), pts = o.kind === 'elbow' ? elbowRoute(A, B) : [A.pt, B.pt], line = pts.slice(), heads = [];
-  const put = (i, j) => {   // pts[i] に、pts[j] から来る向きの矢じり
-    const e = pts[i], s = pts[j], L = Math.hypot(e.x - s.x, e.y - s.y) || 1, h = arrowHead(e.x, e.y, (e.x - s.x)/L, (e.y - s.y)/L);
+  const put = (i, j) => {   // pts[i] に、pts[j] から来る向きの矢じり（両端が同じ点なら向きが決まらないので描かない）
+    const e = pts[i], s = pts[j]; if (!e || !s) return;
+    const L = Math.hypot(e.x - s.x, e.y - s.y); if (L < 0.01) return;
+    const h = arrowHead(e.x, e.y, (e.x - s.x)/L, (e.y - s.y)/L);
     heads.push(h.poly); line[i] = h.base;
   };
   if (o.head !== 'none') put(pts.length - 1, pts.length - 2);
@@ -1947,9 +1956,24 @@ function selectAll(){
   Object.values(doc.objs).forEach(o => sel.objs.add(o.id));
   setTool('select');
 }
+// つなぐ矢印を反転・回転したとき、図形につながる辺（上下左右）も新しい向きに合わせる
+function turnConnSides(o, src, T){
+  const z = T({x:0, y:0});
+  for (const k of ['s1', 's2']){
+    const s0 = src[k], s = o[k];
+    if (!s || !s0 || !SIDES[s0.side]) continue;
+    const q = T({x:SIDES[s0.side][0], y:SIDES[s0.side][1]}), dx = q.x - z.x, dy = q.y - z.y;
+    let best = s0.side, bs = -Infinity;
+    for (const [side, v] of Object.entries(SIDES)){ const d = dx*v[0] + dy*v[1]; if (d > bs + 1e-9){ bs = d; best = side; } }
+    s.side = best;
+  }
+}
 // オブジェクトの座標変換（T：{x,y} → {x,y}）。src は変換前の値（π軌道は原子の元の位置 ax, ay を持つ）
 function transformObj(o, T, src = o){
-  if (isSeg(o)){ const a = T({x:src.x1, y:src.y1}), b = T({x:src.x2, y:src.y2}); o.x1 = a.x; o.y1 = a.y; o.x2 = b.x; o.y2 = b.y; }
+  if (isSeg(o)){
+    const a = T({x:src.x1, y:src.y1}), b = T({x:src.x2, y:src.y2}); o.x1 = a.x; o.y1 = a.y; o.x2 = b.x; o.y2 = b.y;
+    if (o.type === 'conn') turnConnSides(o, src, T);
+  }
   else if (o.type === 'shape'){   // 図形は中心だけ動かす（大きさはそのまま。回しても文字が横書きのままになるように）
     const b = shapeBox(src), w = b.x2 - b.x1, h = b.y2 - b.y1, c = T({x:(b.x1 + b.x2)/2, y:(b.y1 + b.y2)/2});
     o.x1 = c.x - w/2; o.y1 = c.y - h/2; o.x2 = c.x + w/2; o.y2 = c.y + h/2;
@@ -2294,7 +2318,7 @@ function connFromDrag(d, free){
   const a = d.a && doc.objs[d.a.id] ? d.a : null, from = a && doc.objs[a.id];
   const to = shapeNear(d.cur, a && a.id), toSide = to && sideToward(to, d.cur), Q0 = to ? sidePt(to, toSide) : d.cur;
   const side = a && (a.side || sideToward(from, Q0)), P = a ? sidePt(from, side) : d.start;
-  const [kind, head] = CONN_TOOLS[state.cnKind] || ['line'];
+  const [kind, head] = connTool();
   const Q = to || kind !== 'line' || free ? Q0 : dirPt(P, snapAng(angOf(P, d.cur), 15), Math.hypot(d.cur.x - P.x, d.cur.y - P.y));
   const o = {type:'conn', kind, ...(head ? {head} : {}), x1:P.x, y1:P.y, x2:Q.x, y2:Q.y};
   if (a) o.s1 = {id:a.id, side};
@@ -2512,10 +2536,12 @@ svg.addEventListener('pointermove', e => {
     }
     renderDoc();
   }
-  else if (drag.kind === 'shapeSize'){   // 反対側の角は動かさない（16px より小さくはしない）
-    const o = doc.objs[drag.id], f = drag.fixed, MIN = 16, lim = (v, c) => Math.abs(v - c) < MIN ? c + (v < c ? -MIN : MIN) : v;
-    const x = lim(p.x, f.x), y = lim(p.y, f.y);
-    if (o){ Object.assign(o, {x1:Math.min(f.x, x), y1:Math.min(f.y, y), x2:Math.max(f.x, x), y2:Math.max(f.y, y)}); renderDoc(); }
+  else if (drag.kind === 'shapeSize'){   // 反対側の角は動かさない（中の文字より小さくはしない）
+    const o = doc.objs[drag.id], f = drag.fixed, lim = (v, c, min) => Math.abs(v - c) < min ? c + (v < c ? -min : min) : v;
+    if (o){
+      const m = shapeMin(o), x = lim(p.x, f.x, m.w), y = lim(p.y, f.y, m.h);
+      Object.assign(o, {x1:Math.min(f.x, x), y1:Math.min(f.y, y), x2:Math.max(f.x, x), y2:Math.max(f.y, y)}); renderDoc();
+    }
   }
   else if (drag.kind === 'connEnd'){ const o = doc.objs[drag.id]; if (o){ moveConnEnd(o, drag.end, p, e.shiftKey); renderDoc(); } }
   else if (drag.kind === 'conn'){ drag.shift = e.shiftKey; drag.preview = connFromDrag(drag, e.shiftKey); }
@@ -2537,15 +2563,15 @@ svg.addEventListener('pointerup', () => {
     const big = d.moved && Math.abs(p.x - d.start.x) >= 16 && Math.abs(p.y - d.start.y) >= 12, SH = state.shKind === 'diamond' ? DIAMOND_H : SHAPE_H;
     const box = big ? {x1:Math.min(d.start.x, p.x), y1:Math.min(d.start.y, p.y), x2:Math.max(d.start.x, p.x), y2:Math.max(d.start.y, p.y)}
                     : {x1:d.start.x - SHAPE_W/2, y1:d.start.y - SH/2, x2:d.start.x + SHAPE_W/2, y2:d.start.y + SH/2};
-    commit(); const id = newId();
+    const snap = JSON.stringify(doc), id = newId();   // 置く操作と文字の入力で 1 回の履歴（文字を確定したときに追加する）
     doc.objs[id] = {id, type:'shape', kind:state.shKind, ...box, ...TEXT_DEFAULT};
-    clearSel(); sel.objs.add(id); changed(); startText(doc.objs[id]); return;
+    clearSel(); sel.objs.add(id); changed(); startText(doc.objs[id], null, 'text', {fresh:true, snap}); return;
   }
   if (d.kind === 'conn'){
     let c = d.moved ? connFromDrag(d, d.shift) : null;
     if (c && (Math.hypot(c.x2 - c.x1, c.y2 - c.y1) < 12 || (c.s1 && !c.s2 && inBox(p, shapeBox(doc.objs[c.s1.id]))))) c = null;   // 短すぎる・図形から出ていない
     if (!d.moved && !d.a){   // クリックだけなら下向きの矢印（線）
-      const [kind, head] = CONN_TOOLS[state.cnKind] || ['line'];
+      const [kind, head] = connTool();
       c = {type:'conn', kind, ...(head ? {head} : {}), x1:d.start.x, y1:d.start.y, x2:d.start.x, y2:d.start.y + 50};
     }
     if (c){ commit(); const id = newId(); doc.objs[id] = {id, ...c}; changed(); } else renderOverlay();
@@ -2703,7 +2729,7 @@ function clickAction(t, p, hit){
     if (H.kind === state.shKind){ startText(H); return; }
     commit(); H.kind = state.shKind; fitShape(H);   // ひし形にしたときなど、文字が収まるように広げる
   } else if (t === 'conn'){   // つなぐ矢印・線をクリック：そのツールの種類（直線・カギ型、矢じりの有無）に変える
-    const [kind, head] = CONN_TOOLS[state.cnKind] || ['line'];
+    const [kind, head] = connTool();
     if (!(H && hit.type === 'obj' && H.type === 'conn') || (H.kind === kind && (H.head || '') === (head || ''))) return;
     commit(); H.kind = kind; if (head) H.head = head; else delete H.head;
   } else if (t === 'text'){
@@ -2773,13 +2799,13 @@ function editorRuns(ed){   // 入力欄の中身 → 書式ごとの小片（基
   if (merged.length){ merged[0].t = merged[0].t.replace(/^\s+/, ''); const l = merged[merged.length-1]; l.t = l.t.replace(/\s+$/, ''); }
   return merged;
 }
-function startText(obj, p, field = 'text'){
+function startText(obj, p, field = 'text', extra = null){
   if (textEditing) finishText();
   let pos;
   if (field === 'label'){ const g = bracketGeom(obj); pos = {x:g.lx, y:g.ly}; }
   else if (obj && obj.type === 'shape'){ const b = shapeBox(obj); pos = {x:(b.x1 + b.x2)/2, y:(b.y1 + b.y2)/2}; }   // 図形の中央
   else pos = obj ? {x:obj.x, y:obj.y} : p;
-  textEditing = {obj, p:pos, field, style: field === 'text' && !obj ? {...TEXT_DEFAULT} : null};
+  textEditing = {obj, p:pos, field, style: field === 'text' && !obj ? {...TEXT_DEFAULT} : null, ...(extra || {})};
   edRange = null;
   if (field === 'text' && obj) te.innerHTML = runsToHTML(obj);
   else te.textContent = !obj ? '' : field === 'label' ? obj.label || '' : field === 'grp' ? grpValue(obj) : '';
@@ -2808,7 +2834,10 @@ function finishText(cancel){
   const runs = field === 'text' && !cancel ? editorRuns(ed) : null;
   const v = te.textContent.replace(/\u00a0/g, ' ').trim();
   textEditing = null; edRange = null; te.style.display = 'none'; te.innerHTML = ''; syncFmt();
-  if (cancel) return;
+  if (cancel){   // 置いたばかりの図形は、Esc で取りやめたら残さない
+    if (ed.fresh && obj && doc.objs[obj.id]){ delete doc.objs[obj.id]; clearSel(); changed(); }
+    return;
+  }
   if (field === 'label'){ if (v !== (obj.label || '')){ commit(); obj.label = v; changed(); } return; }
   if (field === 'grp'){   // 原子の置換基・元素記号
     const a = doc.atoms[obj.id]; if (!a || v === grpValue(a)) return;
@@ -2819,9 +2848,9 @@ function finishText(cancel){
   }
   // 文字：一部だけの書式があれば runs に、なければ text だけ
   const rich = runs.some(r => Object.keys(r).length > 1), plain = runs.map(r => r.t).join('');
-  if (obj && obj.type === 'shape'){   // 図形の中の文字（空にすると文字なしの図形）
-    if (plain === (obj.text || '') && JSON.stringify(rich ? runs : null) === JSON.stringify(obj.runs || null)) return;
-    commit();
+  if (obj && obj.type === 'shape'){   // 図形の中の文字（空のまま確定すると文字なしの図形）
+    if (!ed.fresh && plain === (obj.text || '') && JSON.stringify(rich ? runs : null) === JSON.stringify(obj.runs || null)) return;
+    if (ed.fresh) pushSnap(ed.snap); else commit();   // 置いたばかりなら、置く前まで 1 回で戻せるように
     if (plain){ obj.text = plain; if (rich) obj.runs = runs; else delete obj.runs; fitShape(obj); } else { delete obj.text; delete obj.runs; }
     clearSel(); sel.objs.add(obj.id); changed(); return;
   }
