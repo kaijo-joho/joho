@@ -398,7 +398,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.10 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.10.1 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1778,11 +1778,12 @@ out vec4 frag;
 ${SHADE}
 void main(){
   vec3 n = normalize(vN);
-  bool plain = vCol.r > 5.0;   // 色に 10 を足したものは輪郭線なし・切らない（軸・単位格子の枠）
-  if (!plain) for (int i = 0; i < 10; i++){ if (i >= uNPl) break; if (dot(uPl[i].xyz, vP) - uPl[i].w > 0.0) discard; }
-  vec3 col = shade(n, plain ? vCol - vec3(10.0) : vCol);
+  // 色に 10 を足したものは輪郭線なし（水素結合・配位の線）、20 を足したものは輪郭線なしで切る面でも消さない（軸・単位格子の枠）
+  bool noOut = vCol.r > 5.0, noClip = vCol.r > 15.0;
+  if (!noClip) for (int i = 0; i < 10; i++){ if (i >= uNPl) break; if (dot(uPl[i].xyz, vP) - uPl[i].w > 0.0) discard; }
+  vec3 col = shade(n, noClip ? vCol - vec3(20.0) : noOut ? vCol - vec3(10.0) : vCol);
   float side = sqrt(max(0.0, 1.0 - n.z*n.z)), w = uLine/max(vPix, 1.0);
-  if (!plain) col = mix(col, uOutCol, smoothstep(1.0 - w*1.6, 1.0 - w*0.4, side));
+  if (!noOut) col = mix(col, uOutCol, smoothstep(1.0 - w*1.6, 1.0 - w*0.4, side));
   frag = vec4(col, 1.0);
 }`;
 const PLANE_VS = `#version 300 es
@@ -1899,7 +1900,7 @@ function buildScene(opt = {}){
     axisL = axisLength();
     const cols = [[0.84, 0.12, 0.12], [0.08, 0.5, 0.24], [0.11, 0.3, 0.85]];
     for (let k = 0; k < 3; k++){
-      const e = [0, 0, 0]; e[k] = 1; const c = cols[k].map(v => v + 10);
+      const e = [0, 0, 0]; e[k] = 1; const c = cols[k].map(v => v + 20);
       Cy.push(...V.mul(e, -axisL), 0.035, ...V.mul(e, axisL - 0.32), ...c);
       Cy.push(...V.mul(e, axisL - 0.32), -0.11, ...V.mul(e, axisL + 0.06), ...c);
     }
@@ -1946,8 +1947,10 @@ function xtPlaneAdd(i){
   if (xtPlanePick.includes(i)) return;
   xtPlanePick.push(i);
   if (xtPlanePick.length < 3) { syncXtal(); updateHint(); requestDraw(true); return; }
-  const {x, cr} = xtCache(), [p, q, r] = xtPlanePick.map(k => cr.atoms[k].p);
+  const {x, cr} = xtCache(), ps = xtPlanePick.map(k => cr.atoms[k]?.p);
   xtPlaneMode = false; xtPlanePick = [];
+  if (ps.some(p => !p)) { toast('結晶が変わったので、原子を選び直してください'); syncXtal(); updateHint(); requestDraw(true); return; }
+  const [p, q, r] = ps;
   let n = V.cross(V.sub(q, p), V.sub(r, p));
   if (V.len(n) < 1e-3) { toast('3 つの原子が一直線に並んでいるので、面が決まりません'); syncXtal(); updateHint(); requestDraw(true); return; }
   n = V.norm(n); if (M3.apply(view.R, n)[2] < 0) n = V.mul(n, -1);
@@ -1983,13 +1986,13 @@ function buildXtalScene(opt = {}){
     for (const [i, j] of cr.hbonds) Cy.push(...cr.atoms[i].p, 0.035, ...cr.atoms[j].p, ...hc);   // 水素結合（細い水色の線）
   }
   if (co){ const oc = [0.92, 0.48, 0].map(v => v + 10), c0 = cr.atoms[co.center].p; for (const k of co.centers) Cy.push(...c0, 0.045, ...cr.atoms[k].p, ...oc); }   // 配位（だいだい色の線）
-  const fc = [0.35, 0.38, 0.45].map(v => v + 10);
+  const fc = [0.35, 0.38, 0.45].map(v => v + 20);   // 枠は切る面でも消さない
   for (const [p, q] of cr.edges) Cy.push(...p, 0.022, ...q, ...fc);
   const R = Math.max(...cr.atoms.map(a => V.len(a.p))) + 1;
   let axisL = 0;
   if (opt.axes ?? state.axes){
     axisL = R; const cols = [[0.84, 0.12, 0.12], [0.08, 0.5, 0.24], [0.11, 0.3, 0.85]];
-    for (let k = 0; k < 3; k++){ const e = [0, 0, 0]; e[k] = 1; const c = cols[k].map(v => v + 10);
+    for (let k = 0; k < 3; k++){ const e = [0, 0, 0]; e[k] = 1; const c = cols[k].map(v => v + 20);
       Cy.push(...V.mul(e, -axisL), 0.035, ...V.mul(e, axisL - 0.32), ...c, ...V.mul(e, axisL - 0.32), -0.11, ...V.mul(e, axisL + 0.06), ...c); }
   }
   const clip = state.xt.cellCut ? cr.faces.map(f => [...f]) : [];   // 単位格子（並べた全体・六角柱）の面で切る
@@ -2642,9 +2645,16 @@ function eraseAtom(x){
 }
 // 変更を 1 回の「元に戻す」にまとめる。関数が文字列を返したら失敗として元に戻す（空文字列は何もしなかったとき）
 function editStructure(fn){
+  const redo0 = hist.redo.slice();   // 失敗して元に戻すときは「やり直し」も元どおりにする
   commit();
   let msg; try { msg = fn(); } catch (err) { msg = '変更できませんでした：' + err.message; }
-  if (typeof msg === 'string') { doc = JSON.parse(hist.undo.pop()); syncUndo(); if (msg) toast(msg); return; }
+  if (typeof msg === 'string') { doc = JSON.parse(hist.undo.pop()); hist.redo = redo0; syncUndo(); if (msg) toast(msg); return; }
+  const mir = mirrorObj();   // 鏡像の相手は古い形のままなので、鏡像どうしの対応を解除する（分子は両方とも残す）
+  if (mir){
+    delete doc.objs[mir.id];
+    for (const a of Object.values(doc.atoms)) { delete a.mir; delete a.mirOf; }
+    toast('組み立てたので、鏡像どうしの対応を解除しました（分子は両方とも残ります）');
+  }
   sel = null; hoverAtom = hoverBond = null; changed();
 }
 function bondAt(mx, my){   // 画面の点に近い結合（手前のもの）
@@ -2704,7 +2714,8 @@ function syncXtal(){
 }
 $('xtSel').innerHTML = [...new Set(XTALS.map(x => x.cat))].map(c => `<optgroup label="${c}">` + XTALS.filter(x => x.cat === c).map(x => `<option value="${x.key}">${x.name}</option>`).join('') + '</optgroup>').join('');
 document.querySelectorAll('#worldSeg button').forEach(b => b.addEventListener('click', () => { if (state.world !== b.dataset.world) setWorld(b.dataset.world); }));
-const xtChanged = (refit = false) => { if (refit) xtPick = null; syncXtal(); renderInfo(); requestDraw(true); if (refit) fitView(); autosave(); };
+// 結晶の種類・並べる数・六角柱を変えると原子の番号が変わるので、選んでいた原子は取り消す
+const xtChanged = (refit = false) => { if (refit) { xtPick = null; xtPlaneMode = false; xtPlanePick = []; } syncXtal(); renderInfo(); requestDraw(true); if (refit) fitView(); autosave(); };
 $('xtSel').onchange = e => { state.xt.key = e.target.value; state.xt.pn = null; xtPlaneMode = false; xtChanged(true); };
 $('xtPick3').onclick = () => { xtPlaneMode = !xtPlaneMode; xtPlanePick = []; syncXtal(); updateHint(); requestDraw(true); };
 $('xtN').onchange = e => { state.xt.n = +e.target.value; xtChanged(true); };
@@ -2868,7 +2879,7 @@ function setMode(m){
 }
 function syncToggles(){
   $('tgStereo').classList.toggle('on', state.showStereo); $('tgRS').classList.toggle('on', state.showRS); $('tgAxes').classList.toggle('on', state.axes);
-  $('chkLabels').checked = state.labels; $('chkHideH').checked = state.hideH; $('bgSel').value = state.bg;
+  $('chkLabels').checked = state.labels; $('chkHideH').checked = state.hideH; $('bgSel').value = state.bg; $('expAxes').checked = state.axes;
   $('wrap').style.background = state.bg === 'black' ? '#000' : state.bg === 'gray' ? '#edeff2' : '#fff';
   $('hint').style.background = state.bg === 'black' ? 'rgba(0,0,0,.6)' : '';
 }
@@ -2903,7 +2914,6 @@ glc.addEventListener('pointerdown', e => {
   const kind = e.altKey ? 'zrot' : (e.button === 2 || spaceDown || e.shiftKey) ? 'pan' : 'rot';
   const t = spaceDown ? null : dragTarget(mx, my);
   drag = {x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY, mx, my, lx:mx, ly:my, hit, moved:false, kind, t};
-  if (t) commit();
   glc.classList.add('dragging');
 });
 glc.addEventListener('pointermove', e => {
@@ -2917,7 +2927,10 @@ glc.addEventListener('pointermove', e => {
   }
   const dx = e.clientX - drag.x, dy = e.clientY - drag.y, [mx, my] = localXY(e);
   drag.x = e.clientX; drag.y = e.clientY;
-  if (Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 3) drag.moved = true;
+  if (!drag.moved && Math.hypot(e.clientX - drag.x0, e.clientY - drag.y0) > 3){
+    if (drag.t) commit();   // 実際に動かしたときだけ履歴に積む（クリックしただけで「やり直し」が消えないように）
+    drag.moved = true;
+  }
   if (!drag.moved) { drag.mx = mx; drag.my = my; return; }
   let Q = null;
   if (drag.kind === 'rot') Q = dragRotation(dx, dy);
@@ -2943,7 +2956,7 @@ glc.addEventListener('pointermove', e => {
 const endDrag = e => {
   if (!drag) return;
   const d = drag; drag = null; glc.classList.remove('dragging');
-  if (d.t) { if (d.moved) changed(); else { hist.undo.pop(); syncUndo(); } }
+  if (d.t && d.moved) changed();
   else if (d.moved) autosave();
   if (!d.moved && e.type === 'pointerup' && e.button !== 2) clickAction(d.hit, d.lx, d.ly);
 };
@@ -2990,7 +3003,7 @@ window.addEventListener('keydown', e => {
   if (mod) return;
   if (k === ' ') { spaceDown = true; e.preventDefault(); return; }
   const map = {v:'rotate', d:'dist', a:'angle', t:'dihedral', e:'erase'};
-  if (map[k.toLowerCase()]) { setTool(map[k.toLowerCase()]); return; }
+  if (map[k.toLowerCase()]) { if (state.world === 'mol') setTool(map[k.toLowerCase()]); return; }   // 結晶モードにツールはない
   if (k === '1' || k === '2' || k === '3') { setMode(['ballstick', 'stick', 'spacefill'][+k - 1]); return; }
   if (k.toLowerCase() === 'f') { fitView(); return; }
   if (k.toLowerCase() === 'r') { fitView(false); return; }
@@ -3112,11 +3125,13 @@ function sanitize(d){
   if (atoms.some(a => !a.hyb || !a.type)){ const g = graphOf(atoms, bonds); ids.forEach((id, i) => { out.atoms[id].hyb = g.mol.atoms[i].hyb; out.atoms[id].type = g.mol.atoms[i].type; }); }
   return out;
 }
-function applyViewState(v){
-  if (v && Array.isArray(v.R) && v.R.length === 3 && v.R.every(r => Array.isArray(r) && r.length === 3 && r.every(isFinite))) view.R = v.R;
-  if (v && isFinite(v.s)) view.s = v.s;
-  if (v && Array.isArray(v.pan) && v.pan.length === 2) view.pan = v.pan.map(Number);
-  if (v && Array.isArray(v.center) && v.center.length === 3) view.center = v.center.map(Number);
+function applyViewState(v){   // 壊れた値で画面が消えないよう、数として正しいものだけ使う
+  if (!v) return;
+  const fin = (a, n) => Array.isArray(a) && a.length === n && a.every(x => typeof x === 'number' && isFinite(x));
+  if (Array.isArray(v.R) && v.R.length === 3 && v.R.every(r => fin(r, 3))) view.R = v.R.map(r => [...r]);
+  if (isFinite(v.s) && +v.s >= 4 && +v.s <= 600) view.s = +v.s;
+  if (fin(v.pan, 2)) view.pan = [...v.pan];
+  if (fin(v.center, 3)) view.center = [...v.center];
 }
 const UI_FLAGS = ['labels', 'hideH', 'showStereo', 'showRS', 'axes'];
 function uiState(){ const s = {mode:state.mode, bg:state.bg, world:state.world, xt:{...state.xt}}; for (const k of UI_FLAGS) s[k] = state[k]; return s; }
