@@ -19,7 +19,7 @@ test('Parallel edges, cycles, free endpoints and labels retain independent ident
 });
 test('Invalid files reject atomically, including future versions and missing references', () => {
   const original = C.createTemplate('flow-branch'), snapshot = JSON.stringify(original);
-  const broken = [null,[],{},'{', {...original,version:3}, {...original,format:'other'}, {...original,nodes:[{...original.nodes[0],x:NaN}]}, {...original,nodes:[{...original.nodes[0],kind:'__proto__'}]}, {...original,edges:[{...original.edges[0],to:{nodeId:'missing'}}]}, {...original,nodes:[original.nodes[0],original.nodes[0]]}];
+  const broken = [null,[],{},'{', {...original,version:4}, {...original,format:'other'}, {...original,nodes:[{...original.nodes[0],x:NaN}]}, {...original,nodes:[{...original.nodes[0],kind:'__proto__'}]}, {...original,edges:[{...original.edges[0],to:{nodeId:'missing'}}]}, {...original,nodes:[original.nodes[0],original.nodes[0]]}];
   for(const value of broken)assert.throws(()=>C.parseDocument(value));
   assert.equal(JSON.stringify(original),snapshot);
 });
@@ -164,7 +164,7 @@ test('Invalid shape changes and impossible straight self loops reject atomically
 test('Version 1 migrates and version 2 rejects malformed groups and lessons', () => {
   const current=C.createTemplate('flow-sequence'), old=C.clone(current);old.version=1;delete old.groups;delete old.lesson;
   for(const item of [...old.nodes,...old.edges,...old.lanes])delete item.locked;
-  const migrated=C.parseDocument(old);assert.equal(migrated.version,2);assert.deepEqual(migrated.groups,[]);assert.equal(migrated.lesson,null);assert.ok([...migrated.nodes,...migrated.edges,...migrated.lanes].every(item=>item.locked===false));
+  const migrated=C.parseDocument(old);assert.equal(migrated.version,3);assert.deepEqual(migrated.groups,[]);assert.equal(migrated.lesson,null);assert.ok([...migrated.nodes,...migrated.edges,...migrated.lanes].every(item=>item.locked===false));
   const omitted=C.clone(current);for(const item of [...omitted.nodes,...omitted.edges,...omitted.lanes])delete item.locked;assert.ok([...C.parseDocument(omitted).nodes,...C.parseDocument(omitted).edges].every(item=>item.locked===false));
   assert.throws(()=>C.parseDocument({...current,groups:[{id:'group_bad',memberIds:[current.nodes[0].id]}]}));
   assert.throws(()=>C.parseDocument({...current,lesson:{instructions:1,studentMode:false}}));
@@ -353,5 +353,47 @@ test('Style paste validates payloads and locked batches atomically', () => {
   b.locked=false;const editableBefore=C.clone(d), h=new C.History(d);
   assert.deepEqual(C.pasteStyle(d,[a.id,b.id],payload).sort(),[a.id,b.id].sort());assert.equal(h.commit(d),true);
   assert.deepEqual(h.undo(),editableBefore);assert.deepEqual(h.redo(),d);assert.deepEqual(C.parseDocument(C.serializeDocument(d)),d);
+});
+test('Waypoints migrate from v1 and v2, round trip as v3, and reject malformed paths', () => {
+  const current=C.createDocument(), a=C.createNode('process',0,0,{id:'a'}), b=C.createNode('process',300,0,{id:'b'}), edge=C.createEdge({nodeId:'a'},{nodeId:'b'},{id:'route',waypoints:[{x:100,y:80},{x:220,y:80}]});
+  current.nodes=[a,b];current.edges=[edge];
+  const v2=C.clone(current);v2.version=2;delete v2.edges[0].waypoints;
+  const v1=C.clone(v2);v1.version=1;delete v1.groups;delete v1.lesson;for(const item of [...v1.nodes,...v1.edges,...v1.lanes])delete item.locked;
+  for(const legacy of [v1,v2]) { const parsed=C.parseDocument(legacy);assert.equal(parsed.version,3);assert.deepEqual(parsed.edges[0].waypoints,[]); }
+  const parsed=C.parseDocument(C.serializeDocument(current));assert.equal(parsed.version,3);assert.deepEqual(parsed,current);
+  const before=C.clone(current);
+  const invalid=[undefined,null,{},[{x:1}],Array.from({length:33},()=>({x:0,y:0})),[{x:Infinity,y:0}], [{x:100001,y:0}]];
+  for(const points of invalid) assert.throws(()=>C.setEdgeWaypoints(current,'route',points));
+  assert.throws(()=>C.parseDocument({...before,edges:[{...before.edges[0],kind:'curve'}]}));
+  assert.throws(()=>C.parseDocument({...before,edges:[{...before.edges[0],bend:{x:1,y:2}}]}));
+  assert.deepEqual(current,before);
+});
+test('Waypoint updates are atomic, clear legacy bends, and respect locks', () => {
+  const d=C.createDocument(), a=C.createNode('process',0,0,{id:'a'}), b=C.createNode('process',300,0,{id:'b'}), edge=C.createEdge({nodeId:'a'},{nodeId:'b'},{id:'edge',bend:{x:120,y:80}});d.nodes=[a,b];d.edges=[edge];
+  assert.equal(C.setEdgeWaypoints(d,'edge',[{x:120,y:80},{x:220,y:80}]),true);assert.equal(d.edges[0].bend,null);assert.deepEqual(d.edges[0].waypoints,[{x:120,y:80},{x:220,y:80}]);
+  assert.equal(C.setEdgeWaypoints(d,'edge',C.clone(d.edges[0].waypoints)),false);
+  d.edges[0].locked=true;const before=C.clone(d);assert.throws(()=>C.setEdgeWaypoints(d,'edge',[]),/固定/);assert.deepEqual(d,before);
+  d.edges[0].locked=false;d.edges[0].kind='curve';const curved=C.clone(d);assert.throws(()=>C.setEdgeWaypoints(d,'edge',[]),/直角/);assert.deepEqual(d,curved);
+});
+test('Waypoint routes follow copied and lane-reordered geometry exactly once', () => {
+  const d=C.createDocument('activity'), [left,right]=d.lanes;left.w=220;right.x=280;right.w=340;
+  const a=C.createNode('action',60,80,{id:'a',laneId:left.id}), b=C.createNode('action',120,220,{id:'b',laneId:left.id}), c=C.createNode('action',350,80,{id:'c',laneId:right.id});
+  const internal=C.createEdge({nodeId:'a'},{nodeId:'b'},{id:'internal',waypoints:[{x:200,y:120},{x:200,y:190}]}), cross=C.createEdge({nodeId:'b'},{nodeId:'c'},{id:'cross',waypoints:[{x:250,y:290}]}), free=C.createEdge({nodeId:'a'},{x:180,y:420},{id:'free',waypoints:[{x:160,y:350}]});
+  d.nodes=[a,b,c];d.edges=[internal,cross,free];d.groups=[{id:'g',memberIds:['a','free']}];C.parseDocument(d);
+  const payload=C.copySelection(d,['free']);C.pasteSelection(d,payload,30,40);const copied=d.edges.at(-1);assert.deepEqual(copied.to,{x:210,y:460});assert.deepEqual(copied.waypoints,[{x:190,y:390}]);
+  C.moveLane(d,left.id,1);assert.deepEqual(d.edges.find(e=>e.id==='internal').waypoints,[{x:560,y:120},{x:560,y:190}]);assert.deepEqual(d.edges.find(e=>e.id==='cross').waypoints,[{x:250,y:290}]);assert.deepEqual(d.edges.find(e=>e.id==='free').waypoints,[{x:520,y:350}]);
+  const grouped=C.createDocument('activity'), [groupLeft,groupRight]=grouped.lanes;groupLeft.w=220;groupRight.x=280;groupRight.w=340;
+  const ga=C.createNode('action',60,80,{id:'ga',laneId:groupLeft.id}), gb=C.createNode('action',120,220,{id:'gb',laneId:groupLeft.id}), ge=C.createEdge({nodeId:'ga'},{nodeId:'gb'},{id:'ge',waypoints:[{x:200,y:120}]});grouped.nodes=[ga,gb];grouped.edges=[ge];grouped.groups=[{id:'internal_group',memberIds:['ga','gb','ge']}];C.moveLane(grouped,groupLeft.id,1);assert.deepEqual(grouped.edges[0].waypoints,[{x:560,y:120}]);
+});
+test('Changing an edge kind clears routes, while head-only and same-kind changes retain them', () => {
+  const d=C.createDocument(), a=C.createNode('process',0,0,{id:'a'}), b=C.createNode('process',300,0,{id:'b'}), edge=C.createEdge({nodeId:'a'},{nodeId:'b'},{id:'edge',waypoints:[{x:100,y:80}]});d.nodes=[a,b];d.edges=[edge];
+  C.changeEdgeShape(d,['edge'],{head:'both'});assert.deepEqual(d.edges[0].waypoints,[{x:100,y:80}]);C.changeEdgeShape(d,['edge'],{kind:'orthogonal'});assert.deepEqual(d.edges[0].waypoints,[{x:100,y:80}]);C.changeEdgeShape(d,['edge'],{kind:'curve'});assert.deepEqual(d.edges[0].waypoints,[]);assert.equal(d.edges[0].bend,null);
+});
+test('Manual-route insertion requires supplied splits and moves routes attached to shifted nodes', () => {
+  const d=C.createDocument(), source=C.createNode('process',0,0,{id:'source'}), target=C.createNode('process',0,140,{id:'target'}), after=C.createNode('process',0,280,{id:'after'});
+  const manual=C.createEdge({nodeId:'source'},{nodeId:'target'},{id:'manual',waypoints:[{x:220,y:60},{x:220,y:120}]}), continuation=C.createEdge({nodeId:'target'},{nodeId:'after'},{id:'continuation',waypoints:[{x:140,y:210},{x:140,y:260}]});d.nodes=[source,target,after];d.edges=[manual,continuation];d.groups=[{id:'moved_chain',memberIds:['target','after','continuation']}];
+  const before=C.clone(d);assert.throws(()=>C.insertNodeOnEdge(d,'manual',C.createNode('process',0,60)),/分割後/);assert.deepEqual(d,before);
+  const inserted=C.createNode('process',0,60,{id:'inserted'}), result=C.insertNodeOnEdge(d,'manual',inserted,{entrySide:'bottom',exitSide:'top',direction:'down',incomingWaypoints:[{x:120,y:32}],outgoingWaypoints:[{x:180,y:110}]});
+  assert.deepEqual(d.edges.find(e=>e.id===result.edgeIds[0]).waypoints,[{x:120,y:32}]);assert.deepEqual(d.edges.find(e=>e.id===result.edgeIds[1]).waypoints,[{x:180,y:110}]);const delta=C.getNode(d,'target').y-target.y;assert.ok(delta>0);assert.deepEqual(d.edges.find(e=>e.id==='continuation').waypoints,[{x:140,y:210+delta},{x:140,y:260+delta}]);
 });
 console.log(JSON.stringify({ok:true,cases},null,2));

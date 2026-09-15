@@ -107,6 +107,7 @@
           <label data-for="edge">矢印の形<select id="edge-kind" aria-label="選択した矢印の形状"><option value="" disabled hidden>複数の形</option><option value="straight">直線</option><option value="orthogonal">直角</option><option value="curve">曲線</option></select></label>
           <label data-for="edge">矢じり<select id="edge-head" aria-label="選択した矢印の矢じり"><option value="" disabled hidden>複数の設定</option><option value="end">終点</option><option value="both">両端</option><option value="none">なし</option></select></label>
           <button type="button" data-for="edge" id="reverse-edge" aria-label="矢印の向きを反転"><span data-icon="reverse"></span></button>
+          <button type="button" id="edit-waypoints" hidden>折れ曲がり点を編集…</button>
           <button type="button" data-for="edge" id="reset-route" title="手で調整した経路を自動に戻します。直角の矢印は図形を避けます。">経路を整える</button>
           </div></details>
           <details class="menu" id="more-format"><summary>書式 <span aria-hidden="true">▾</span></summary><div class="menu-panel">
@@ -141,6 +142,20 @@
             <button type="button" data-align="bottom" title="下端をそろえる" aria-label="下端をそろえる"><span data-icon="alignBottom"></span></button>
             <button type="button" data-align="horizontal">横に等間隔</button><button type="button" data-align="vertical">縦に等間隔</button>
           </div></div></details>
+        </div>
+        <div id="route-bar" class="format-bar" role="group" aria-label="折れ曲がり点の編集" hidden>
+          <label>点<select id="waypoint-index" aria-label="編集する折れ曲がり点"></select></label>
+          <button type="button" id="add-waypoint" aria-pressed="false" title="線上の追加位置を選ぶ">追加</button>
+          <button type="button" id="remove-waypoint" title="選んだ点だけを削除（Delete）">削除</button>
+          <details class="menu" id="waypoint-position"><summary>位置 <span aria-hidden="true">▾</span></summary><div class="menu-panel">
+            <form id="waypoint-form">
+              <label>X座標<input id="waypoint-x" type="number" min="-100000" max="100000" step="any" required></label>
+              <label>Y座標<input id="waypoint-y" type="number" min="-100000" max="100000" step="any" required></label>
+              <button type="submit" id="apply-waypoint">位置を適用</button>
+            </form>
+            <button type="button" id="auto-route">すべて解除して自動へ</button>
+          </div></details>
+          <button type="button" id="finish-waypoints">完了</button>
         </div>
         <div id="lane-bar" class="format-bar" hidden>
           <div class="lane-fields"><label>担当<select id="lane-select" aria-label="編集する担当領域"></select></label><label>領域名<input id="lane-title" maxlength="160"></label></div>
@@ -247,7 +262,7 @@
   <dialog id="confirm-dialog"><form method="dialog"><h2 id="confirm-title">作業中の図を置き換える</h2><p id="confirm-message"></p><div class="dialog-actions"><button value="cancel">キャンセル</button><button value="save" id="save-continue">保存して続ける</button><button value="continue" class="primary" id="confirm-continue">置き換える</button></div></form></dialog>
   <dialog id="connect-dialog"><form id="connect-form"><h2>図形をつなぐ</h2><label class="stack">始点<select id="connect-from" required></select></label><label class="stack">終点<select id="connect-to" required></select></label><label class="stack">線の形<select id="connect-kind"><option value="orthogonal">直角</option><option value="straight">直線</option><option value="curve">曲線</option></select></label><label class="stack">ラベル<input id="connect-label" placeholder="例：はい、開始ボタン"></label><div class="dialog-actions"><button type="button" data-close-dialog>キャンセル</button><button type="submit" class="primary">つなぐ</button></div></form></dialog>
   <dialog id="help-dialog"><div class="help"><h2>フローチャートエディタの使い方</h2>
-    <ol><li><strong>置く：</strong>左の部品を選び、作図画面をクリックします。部品ボタンでEnterを押すと、画面の中央に置けます。</li><li><strong>文字を書く：</strong>図形をダブルクリック、または選んでEnter。Enterで改行、⌘Enterで確定します。</li><li><strong>つなぐ：</strong>図形を選び、端の○から別の図形へドラッグします。○と接続先を順にクリックしてもつなげます。「接続先を選ぶ」からも指定できます。</li><li><strong>線を直す：</strong>線を選び、端の○でつなぎ直し、中央の◇で経路を調整します。ラベルはダブルクリックして入力し、ドラッグして位置を変えられます。</li><li><strong>担当を分ける：</strong>アクティビティ図では「担当領域」に切り替え、追加・並べ替え・名前や幅の編集ができます。領域を削除しても図形と矢印は元の位置に残ります。領域にTabで移動してEnterを押すと名前を編集できます。</li><li><strong>保存する：</strong>ファイルメニューで「ブラウザ内に保存」「ファイルに保存」を選べます。画像は右端の「書き出し」から保存します。</li></ol>
+    <ol><li><strong>置く：</strong>左の部品を選び、作図画面をクリックします。部品ボタンでEnterを押すと、画面の中央に置けます。</li><li><strong>文字を書く：</strong>図形をダブルクリック、または選んでEnter。Enterで改行、⌘Enterで確定します。</li><li><strong>つなぐ：</strong>図形を選び、端の○から別の図形へドラッグします。○と接続先を順にクリックしてもつなげます。「接続先を選ぶ」からも指定できます。</li><li><strong>線を直す：</strong>線を選び、端の○でつなぎ直し、中央の◇で経路を調整します。直角の矢印は「形」→「折れ曲がり点を編集…」で、線上の＋から点を追加できます。番号付きの点をドラッグし、「位置」から座標も指定できます。Deleteで点を削除、Escapeで完了します。ラベルはダブルクリックして入力し、ドラッグして位置を変えられます。</li><li><strong>担当を分ける：</strong>アクティビティ図では「担当領域」に切り替え、追加・並べ替え・名前や幅の編集ができます。領域を削除しても図形と矢印は元の位置に残ります。領域にTabで移動してEnterを押すと名前を編集できます。</li><li><strong>保存する：</strong>ファイルメニューで「ブラウザ内に保存」「ファイルに保存」を選べます。画像は右端の「書き出し」から保存します。</li></ol>
     <p>「吸着」をオンにすると、接続位置が辺の両端・中央・等分点にそろいます。同じ辺につながる本数に応じて、2本なら1/3・2/3、3本なら1/4・3/4も候補になります。自由な位置につなぐときはオフにします。</p>
       <p><strong>位置をそろえる：</strong>図形をドラッグすると、他の図形の端・中央にそろう位置へ吸着し、ガイドを表示します。グループもまとめて動かせます。「操作」でグリッド・接続点と整列ガイドの吸着を個別に切り替えられます。Option（Alt）を押しながらドラッグすると、吸着を一時的に解除します。</p>
       <p><strong>画像を使う：</strong>右の「書き出し」で図全体・選択部分を切り替え、画像のコピーやPNG・SVGの保存ができます。選択した図形同士の矢印やグループも含めます。担当領域を選ぶと、所属する図形も含めます。選択時の「編集」にある「選択部分を画像コピー」からも、選んだ部分をコピーできます。通常のCommand/Ctrl＋Cは、エディタで再編集する部品のコピーです。</p>

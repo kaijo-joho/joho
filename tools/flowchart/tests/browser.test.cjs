@@ -737,7 +737,7 @@ async function checkLearningTools(browser, url, artifacts) {
     const lessonDownload = await waitingDownload, lessonPath = path.join(artifacts, `${browser.browserType().name()}-lesson.diagram.json`);
     await lessonDownload.saveAs(lessonPath);
     const distributed = JSON.parse(await fs.readFile(lessonPath, 'utf8'));
-    assert.equal(distributed.version, 2); assert.equal(distributed.lesson.studentMode, true);
+    assert.equal(distributed.version, 3); assert.equal(distributed.lesson.studentMode, true);
     assert.deepEqual(distributed.groups, author.groups); assert.ok(distributed.nodes.some(node => node.locked));
     assert.deepEqual(await getDoc(), author, 'Downloading must not turn the author document into a student document');
     await page.locator('#preview-lesson').click(); await page.waitForFunction(() => DiagramEditor.getDocument().lesson?.studentMode === true);
@@ -786,7 +786,7 @@ async function checkLearningTools(browser, url, artifacts) {
     // File loading migrates v1 and keeps the lesson data round-trippable.
     const v1 = { format: 'kaijo-diagram', version: 1, id: 'legacy_learning', title: '旧形式', diagramType: 'flowchart', nodes: [Core.createNode('process', 100, 100, { id: 'legacy_node', text: '旧部品' })], edges: [], lanes: [] };
     await loadRawFixture(page, v1); current = await getDoc();
-    assert.equal(current.version, 2); assert.deepEqual(current.groups, []); assert.equal(current.lesson, null);
+    assert.equal(current.version, 3); assert.deepEqual(current.groups, []); assert.equal(current.lesson, null);
 
     // Branch choices, forks, join waiting, loops and unavailable paths are exercised through the visible trace bar.
     const traceDoc = Core.createDocument('activity'); traceDoc.lanes = [];

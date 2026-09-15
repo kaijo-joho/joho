@@ -32,6 +32,7 @@
   let paletteType = null, restoringFocus = false, lastCopied = '', pastedCount = 0;
   let lastTap = null;
   let insertionPreview = null;
+  let routeEditing = null;
   let trace = null, traceStartId = null, lessonPreview = null;
   let recoveryState = 'idle';
   let storageArmed = false, lastSaveLocation = 'browser', localFileCandidate = null, localManualSnapshot = null;
@@ -124,6 +125,73 @@
   function prune() {
     selected = new Set(expand([...selected].filter(id => node(id) || edge(id))));
     if (!lane()) laneId = null;
+    if(routeEditing&&!routeTarget()) { routeEditing=null; $('waypoint-position').open=false; }
+  }
+  function routeTarget() {
+    const e=routeEditing&&edge(routeEditing.id);
+    return e&&e.kind==='orthogonal'&&!e.locked&&selected.size===1&&selected.has(e.id)&&layer==='diagram'&&!trace?e:null;
+  }
+  function startWaypointEdit() {
+    finishText();cancelGesture();
+    const e=selected.size===1&&selectedEdges()[0];
+    if(!e||e.kind!=='orthogonal'||!selectionEditable())return;
+    const geometry=R.waypointGeometry(doc,e);
+    if(geometry.waypoints.length>32){notify('この経路には点が多すぎます。経路を整えてから編集してください。',true);return;}
+    routeEditing={id:e.id,index:geometry.waypoints.length?0:-1,adding:false};
+    $$('details.menu').forEach(menu=>{menu.open=false;});render();canvas.focus({preventScroll:true});
+  }
+  function finishWaypointEdit() {
+    cancelGesture();routeEditing=null;$('waypoint-position').open=false;render();
+    if(!$('format-bar').hidden)$('shape-menu').querySelector('summary').focus({preventScroll:true});
+    else canvas.focus({preventScroll:true});
+  }
+  function updateWaypoints(points,index) {
+    const e=routeTarget();if(!e)return false;
+    return change(()=>{C.setEdgeWaypoints(doc,e.id,points);routeEditing.index=index;routeEditing.adding=false;});
+  }
+  function deleteWaypoint() {
+    const e=routeTarget();if(!e||routeEditing.index<0)return;
+    const points=R.waypointGeometry(doc,e).waypoints,index=routeEditing.index;
+    points.splice(index,1);updateWaypoints(points,Math.min(index,points.length-1));
+    if(!points.length){finishWaypointEdit();notify('手動の折れ曲がり点を解除し、自動経路に戻しました。');}
+    else canvas.focus({preventScroll:true});
+  }
+  function addWaypoint(position) {
+    const e=routeTarget();if(!e)return;
+    try {const result=R.insertWaypoint(doc,e,position);updateWaypoints(result.waypoints,result.index);canvas.focus({preventScroll:true});}
+    catch(error){notify(error.message,true);}
+  }
+  function defaultWaypointPosition() {
+    const e=routeTarget();if(!e)return null;
+    const g=R.waypointGeometry(doc,e),segments=g.points.slice(1).map((p,i)=>({a:g.points[i],b:p,index:g.segmentSlots[i],length:Math.hypot(p.x-g.points[i].x,p.y-g.points[i].y)}));
+    const choices=segments.filter(s=>s.index===routeEditing.index+1),best=(choices.length?choices:segments).sort((a,b)=>b.length-a.length)[0];
+    return best?{x:(best.a.x+best.b.x)/2,y:(best.a.y+best.b.y)/2}:null;
+  }
+  function beginWaypointDrag(p,index,add=false) {
+    const e=selected.size===1&&selectedEdges()[0];if(!e||e.kind!=='orthogonal'||!selectionEditable())return;
+    try {
+      const data=add?R.insertWaypoint(doc,e,p):{waypoints:R.waypointGeometry(doc,e).waypoints,index};
+      if(data.waypoints.length>32)throw new Error('折れ曲がり点は1本の矢印につき32個までです。');
+      if(!data.waypoints[data.index])return;
+      routeEditing={id:e.id,index:data.index,adding:false};
+      beginDrag('waypoint',p,{id:e.id,index:data.index,origin:{...data.waypoints[data.index]},waypoints:data.waypoints});
+      if(add&&drag){e.waypoints=C.clone(data.waypoints);e.bend=null;}
+      render();
+    } catch(error){notify(error.message,true);}
+  }
+  function renderRouteControls() {
+    const e=routeTarget();$('route-bar').hidden=!e;
+    if(!e){$('waypoint-position').open=false;return;}
+    const points=R.waypointGeometry(doc,e).waypoints,picker=$('waypoint-index');
+    routeEditing.index=clamp(routeEditing.index,points.length?0:-1,points.length-1);
+    if(picker.dataset.count!==String(points.length)||picker.dataset.edge!==e.id) {
+      picker.replaceChildren();(points.length?points:[null]).forEach((p,i)=>picker.add(new Option(p?String(i+1):'—',p?String(i):'-1')));picker.dataset.edge=e.id;picker.dataset.count=String(points.length);
+    }
+    picker.value=String(routeEditing.index);picker.disabled=!points.length;
+    const p=points[routeEditing.index];
+    for(const [id,value] of [['waypoint-x',p?.x],['waypoint-y',p?.y]]) {setField(id,value==null?'':Math.round(value*1e6)/1e6);$(id).disabled=!p;}
+    $('remove-waypoint').disabled=!p;$('apply-waypoint').disabled=!p;
+    $('add-waypoint').disabled=points.length>=32;$('add-waypoint').setAttribute('aria-pressed',String(!!routeEditing.adding));
   }
   function point(event) {
     const rect = canvas.getBoundingClientRect();
@@ -235,7 +303,7 @@
   function fit() {
     finishText();
     if (!content() && !doc.lanes.length) { view = { x: 40, y: 70, scale: 1 }; updateView(); return; }
-    const b = R.documentBounds(doc), top = laneId && layer === 'lanes' ? Math.max(70, $('lane-bar').offsetHeight + 22) : selected.size ? Math.max(70, $('format-bar').offsetHeight + 22) : 45;
+    const b = R.documentBounds(doc), top = laneId && layer === 'lanes' ? Math.max(70, $('lane-bar').offsetHeight + 22) : selected.size ? Math.max(70, (routeEditing?$('route-bar'):$('format-bar')).offsetHeight + 22) : 45;
     const width = Math.max(160, stage.clientWidth - 60), height = Math.max(layer === 'lanes' ? 60 : 170, stage.clientHeight - top - 55);
     view.scale = clamp(Math.min(width / Math.max(b.w, 100), height / Math.max(b.h, 100)), layer === 'lanes' ? .02 : .15, 1.5);
     view.x = (stage.clientWidth - b.w * view.scale) / 2 - b.x * view.scale;
@@ -431,9 +499,23 @@
         const g = R.edgeGeometry(doc, e);
         parts.push(`<path d="${g.path}" fill="none" stroke="${blue}" stroke-width="${1 / s}" stroke-dasharray="${4 / s} ${3 / s}"/>`);
         if (selected.size === 1 && !e.locked) {
+          if(e.kind==='orthogonal'&&(routeEditing?.id===e.id||e.waypoints?.length)) {
+            const layout=R.waypointGeometry(doc,e),active=routeEditing?.id===e.id;
+            if(active&&layout.waypoints.length<32)layout.points.slice(1).forEach((b,i)=>{
+              const a=layout.points[i];if(Math.hypot(b.x-a.x,b.y-a.y)*s<48)return;
+              const p={x:(a.x+b.x)/2,y:(a.y+b.y)/2};
+              if(layout.waypoints.some(q=>Math.hypot(q.x-p.x,q.y-p.y)*s<23))return;
+              parts.push(`<g data-handle="waypoint-add" data-id="${esc(e.id)}" data-segment="${i}" data-x="${p.x}" data-y="${p.y}" tabindex="0" role="button" aria-label="この位置に折れ曲がり点を追加"><circle cx="${p.x}" cy="${p.y}" r="${22/s}" fill="transparent"/><circle cx="${p.x}" cy="${p.y}" r="${8/s}" fill="var(--panel)" stroke="${blue}" stroke-width="${1/s}"/><path d="M${p.x-4/s} ${p.y}h${8/s}M${p.x} ${p.y-4/s}v${8/s}" fill="none" stroke="${blue}" stroke-width="${1.5/s}"/></g>`);
+            });
+            layout.waypoints.forEach((p,i)=>{
+              const chosen=active&&routeEditing.index===i;
+              parts.push(`<g data-handle="waypoint" data-id="${esc(e.id)}" data-index="${i}" tabindex="${chosen||!active&&i===0?'0':'-1'}" role="button" aria-label="折れ曲がり点${i+1}、矢印キーで移動、Deleteで削除"><circle cx="${p.x}" cy="${p.y}" r="${22/s}" fill="transparent"/><circle class="waypoint-dot" cx="${p.x}" cy="${p.y}" r="${(active?10:6)/s}" fill="${chosen?blue:'var(--panel)'}" stroke="${blue}" stroke-width="${1.5/s}"/>${active?`<text x="${p.x}" y="${p.y}" text-anchor="middle" dominant-baseline="central" font-size="${11/s}" font-family="Arial,sans-serif" fill="${chosen?'var(--panel)':blue}" pointer-events="none">${i+1}</text>`:''}</g>`);
+            });
+          } else {
+            const r = 7 / s, p = g.handle;
+            parts.push(`<path d="M${p.x} ${p.y-r}l${r} ${r}-${r} ${r}-${r}-${r}Z" fill="var(--panel)" stroke="${blue}" stroke-width="${1.5/s}" data-handle="bend" data-id="${esc(e.id)}"/>`);
+          }
           ['from', 'to'].forEach(end => circle(g[end], `data-handle="endpoint" data-endpoint="${end}" data-id="${esc(e.id)}"`, 6));
-          const r = 7 / s, p = g.handle;
-          parts.push(`<path d="M${p.x} ${p.y-r}l${r} ${r}-${r} ${r}-${r}-${r}Z" fill="var(--panel)" stroke="${blue}" stroke-width="${1.5/s}" data-handle="bend" data-id="${esc(e.id)}"/>`);
         }
       });
     } else if (layer === 'lanes') {
@@ -496,8 +578,9 @@
   }
   function renderFormat() {
     const list = objects(), n = selectedNodes()[0], e = selectedEdges()[0], single = list.length === 1 ? list[0] : null;
-    $('format-bar').hidden = !!trace || layer !== 'diagram' || !list.length;
+    $('format-bar').hidden = !!trace || layer !== 'diagram' || !list.length || !!routeTarget();
     $('lane-bar').hidden = !!trace || layer !== 'lanes' || !lane();
+    renderRouteControls();
     if ($('format-bar').hidden) {
       if ($('format-bar').contains(document.activeElement)) canvas.focus({ preventScroll: true });
       $$('#format-bar details.menu').forEach(menu => { menu.open = false; });
@@ -524,6 +607,7 @@
       el.hidden = type === 'node' ? !n : type === 'edge' ? !e : type === 'multi' ? selectedNodes().length < 2 : type === 'size' ? !n || list.length !== 1 : !textAllowed;
     });
     $('insert-process').hidden = !single || !e || doc.diagramType === 'state';
+    $('edit-waypoints').hidden = !single || !e || e.kind!=='orthogonal';
     if ($('align-menu').hidden) $('align-menu').open = false;
     if (!list.length) return;
     const o = single || list[0], style = o.style || {};
@@ -537,6 +621,8 @@
     if (pane === 'lesson' && !lessonToolsEnabled()) pane = '';
     if (doc.diagramType !== 'activity' && layer === 'lanes') { layer = 'diagram'; laneId = null; }
     prune(); renderPalette();
+    const activeWaypoint=document.activeElement?.closest?.('[data-handle="waypoint"],[data-handle="waypoint-add"]');
+    const waypointFocus=activeWaypoint?{type:activeWaypoint.dataset.handle,index:activeWaypoint.dataset.index,segment:activeWaypoint.dataset.segment}:null;
     const active = document.activeElement?.closest?.('[data-node],[data-edge],[data-lane]');
     const focusId = active?.getAttribute('data-node') || active?.getAttribute('data-edge') || active?.getAttribute('data-lane');
     $('scene').innerHTML = R.sceneMarkup(doc, { interactive: true, idPrefix: 'canvas', theme: canvasTheme() });
@@ -551,6 +637,7 @@
     $('diagram-type').disabled = !!trace || studentMode(); $('document-title').disabled = !!trace;
     stage.dataset.layer = layer; canvas.dataset.tool = tool; canvas.dataset.placing = String(tool.startsWith('node:') || tool.startsWith('edge:') || tool === 'branch' || !!connection);
     stage.dataset.tracing = String(!!trace);
+    stage.dataset.routeEditing=String(!!routeTarget());
     $('app').dataset.tracing = String(!!trace);
     $$('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === tool)));
     $$('[data-tool]').forEach(b => { b.disabled = !!trace && !['select','pan'].includes(b.dataset.tool); });
@@ -567,7 +654,8 @@
     $$('[data-template]').forEach(button => { button.disabled = !!trace || !!lessonPreview; });
     $('empty-hint').hidden = !!content() || !!doc.lanes.length || tool !== 'select';
     $('selection-status').textContent = trace ? '手動トレース中' : layer === 'lanes' ? lane() ? `${lane().title}を編集中` : '担当領域を選択' : connection ? '接続先をクリック（Escで中止）' : canInsert() ? '空白に配置・線をクリックして途中に挿入' : tool === 'branch' ? '作図画面をクリックして分岐セットを配置' : tool.startsWith('node:') ? '作図画面をクリックして配置' : selected.size ? `${groups.length ? `${groups.length}グループ・` : ''}${selectedNodes().length}図形・${selectedEdges().length}線を選択${allLocked ? '（固定）' : ''}` : '部品を選んで配置';
-    $('canvas-help').textContent = canInsert() ? '処理を置く位置、または挿入する線をクリック・Escで中止' : tool === 'branch' ? '条件・はい／いいえの処理・合流点をまとめて配置・Escで中止' : 'Space＋ドラッグで画面移動・⌘＋ホイールで拡大縮小';
+    $('canvas-help').textContent = routeTarget() ? routeEditing.adding ? '線上をクリックして追加・Enterで次の区間に追加・Escで中止' : '＋で点を追加・点をドラッグ／矢印キーで移動・Deleteで点を削除・Escで完了' : canInsert() ? '処理を置く位置、または挿入する線をクリック・Escで中止' : tool === 'branch' ? '条件・はい／いいえの処理・合流点をまとめて配置・Escで中止' : 'Space＋ドラッグで画面移動・⌘＋ホイールで拡大縮小';
+    if(routeTarget())$('selection-status').textContent=`折れ曲がり点を編集・${R.waypointGeometry(doc,routeTarget()).waypoints.length}/32点`;
     updateSaveStatus();
     $('side-panel').classList.toggle('open', !!pane);
     $$('[data-pane]').forEach(el => { el.hidden = el.dataset.pane !== pane; });
@@ -575,12 +663,16 @@
     renderExport();
     renderLesson(); renderTrace(); renderInspection();
     layoutToolbar(); positionMenus();
+    if(waypointFocus&&routeTarget()&&!restoringFocus) {
+      const target=[...$('overlay').querySelectorAll('[data-handle]')].find(el=>el.dataset.handle===waypointFocus.type&&(waypointFocus.type==='waypoint'?el.dataset.index===waypointFocus.index:el.dataset.segment===waypointFocus.segment));
+      if(target){restoringFocus=true;target.focus({preventScroll:true});restoringFocus=false;}
+    }
     if (focusId && !restoringFocus) {
       const target = [...$('scene').querySelectorAll('[data-node],[data-edge],[data-lane]')].find(el => el.getAttribute('data-node') === focusId || el.getAttribute('data-edge') === focusId || el.getAttribute('data-lane') === focusId);
       if (target) { restoringFocus = true; target.focus({ preventScroll: true }); restoringFocus = false; }
     }
   }
-  function setTool(next) { if (trace && !['select','pan'].includes(next)) return; finishText(); cancelGesture(); tool = next; layer = 'diagram'; laneId = null; render(); }
+  function setTool(next) { if (trace && !['select','pan'].includes(next)) return; finishText(); cancelGesture(); routeEditing=null; tool = next; layer = 'diagram'; laneId = null; render(); }
   function select(ids) { if (trace) return; selected = new Set(expand(ids)); laneId = null; render(); }
   function assignLane(n) { n.laneId = C.findLane(doc, n.x + n.w / 2, n.y + n.h / 2)?.id || null; }
   function addNode(kind, p) {
@@ -608,7 +700,7 @@
         for (let i=0;i<lengths.length;i++) { if (remain<=lengths[i]) { const r=lengths[i]?remain/lengths[i]:0; return {x:g.points[i].x+(g.points[i+1].x-g.points[i].x)*r,y:g.points[i].y+(g.points[i+1].y-g.points[i].y)*r}; } remain-=lengths[i]; }
         return g.to;
       }
-      result = C.insertNodeOnEdge(doc,id,n,{ entrySide:e.kind==='orthogonal'?entrySide:'auto', exitSide:e.kind==='orthogonal'?exitSide:'auto', direction:p.direction,
+      result = C.insertNodeOnEdge(doc,id,n,{ ...(e.waypoints?.length?R.splitWaypoints(doc,e,n):{}),entrySide:e.kind==='orthogonal'?entrySide:'auto', exitSide:e.kind==='orthogonal'?exitSide:'auto', direction:p.direction,
         incomingBend:e.kind==='curve'?curveBend(p.t/2):null, outgoingBend:e.kind==='curve'?curveBend((p.t+1)/2):null });
       clearInsertedLabel(edge(result.edgeIds[0]));
       selected = new Set([result.nodeId]); tool = 'select'; insertionPreview = null; laneId = null;
@@ -678,6 +770,7 @@
       const internal = e.from.nodeId && e.to.nodeId && ids.has(e.from.nodeId) && ids.has(e.to.nodeId);
       if (!e.locked && (internal || ids.has(e.id))) {
         if (old.bend) e.bend = { x: old.bend.x + dx, y: old.bend.y + dy };
+        if (old.waypoints?.length) e.waypoints=old.waypoints.map(p=>({x:p.x+dx,y:p.y+dy}));
         for (const end of ['from', 'to']) if (!old[end].nodeId) e[end] = { x: old[end].x + dx, y: old[end].y + dy };
       }
     });
@@ -726,7 +819,13 @@
       const hitLabel = target.closest('[data-edge-label]')?.dataset.edgeLabel;
       const hitEdge = hitLabel || target.closest('[data-edge]')?.dataset.edge;
       if (connection && !handle) { finishConnection(endpointAt(p)); event.preventDefault(); return; }
-      if (handle) {
+      if(handle?.dataset.handle==='waypoint') {
+        beginWaypointDrag(p,Number(handle.dataset.index));
+      } else if(handle?.dataset.handle==='waypoint-add') {
+        beginWaypointDrag({x:Number(handle.dataset.x),y:Number(handle.dataset.y)},-1,true);
+      } else if(routeTarget()&&routeEditing.adding&&!handle) {
+        beginWaypointDrag(p,-1,true);
+      } else if (handle) {
         beginDrag(handle.dataset.handle, p, { id: handle.dataset.id, endpoint: handle.dataset.endpoint });
         if (drag?.type === 'bend') drag.origin = R.edgeGeometry(doc, edge(drag.id)).handle;
       } else if (port || tool.startsWith('edge:')) {
@@ -737,7 +836,7 @@
       else if (tool.startsWith('node:')) { if (hitEdge && canInsert()) insertProcess(hitEdge,p); else addNode(tool.slice(5), p); event.preventDefault(); return; }
       else if (hitNode || hitEdge) {
         const id = hitNode || hitEdge;
-        if (!event.shiftKey && lastTap?.id === id && event.timeStamp - lastTap.time < 400 && Math.hypot(p.x-lastTap.p.x,p.y-lastTap.p.y)<8/view.scale) {
+        if (!routeTarget() && !event.shiftKey && lastTap?.id === id && event.timeStamp - lastTap.time < 400 && Math.hypot(p.x-lastTap.p.x,p.y-lastTap.p.y)<8/view.scale) {
           lastTap = null; selected = new Set(expand([id])); render(); startText(id, hitNode ? 'node' : 'edge'); event.preventDefault(); return;
         }
         const members = expand([id]);
@@ -747,6 +846,7 @@
         if (members.length > 1) beginDrag('move', p, { hitId: id });
         else if (hitLabel) beginDrag('label', p, { id, hitId: id });
         else if (hitNode) beginDrag('move', p, { hitId: id });
+        else if(edge(id).waypoints?.length)beginDrag('route-move',p,{id,hitId:id});
         else beginDrag('bend', p, { id, hitId: id, origin: R.edgeGeometry(doc, edge(id)).handle });
         render();
       } else {
@@ -780,6 +880,13 @@
       if ($('snap').checked && e[drag.endpoint].nodeId && e[drag.endpoint].side === 'auto') e[drag.endpoint] = R.snapEndpoint(doc, e, drag.endpoint);
       render();
     }
+    else if(drag.type==='waypoint'&&drag.moved) {
+      const e=edge(drag.id);e.waypoints=C.clone(drag.waypoints);e.bend=null;
+      e.waypoints[drag.index]={x:clamp(event.altKey?drag.origin.x+dx:snapped(drag.origin.x+dx),-100000,100000),y:clamp(event.altKey?drag.origin.y+dy:snapped(drag.origin.y+dy),-100000,100000)};render();
+    } else if(drag.type==='route-move'&&drag.moved) {
+      const e=edge(drag.id),old=drag.before.edges.find(e=>e.id===drag.id),moveX=event.altKey?dx:snapped(dx),moveY=event.altKey?dy:snapped(dy);
+      e.waypoints=old.waypoints.map(p=>({x:p.x+moveX,y:p.y+moveY}));render();
+    }
     else if (drag.type === 'bend' && drag.moved) { const e = edge(drag.id); if (e.kind === 'straight') e.kind = 'curve'; e.bend = { x: snapped(drag.origin.x + dx), y: snapped(drag.origin.y + dy) }; render(); }
     else if (drag.type === 'label' && drag.moved) {
       const e = edge(drag.id), old = drag.before.edges.find(e => e.id === drag.id);
@@ -809,6 +916,7 @@
   canvas.addEventListener('pointercancel', () => { cancelGesture(); render(); });
   canvas.addEventListener('lostpointercapture', () => { if (drag) { cancelGesture(); render(); } });
   canvas.addEventListener('dblclick', event => {
+    if(routeTarget()||event.target.closest('[data-handle^="waypoint"]'))return;
     const n = event.target.closest('[data-node]')?.dataset.node;
     const e = event.target.closest('[data-edge-label]')?.dataset.edgeLabel || event.target.closest('[data-edge]')?.dataset.edge;
     if (layer === 'lanes') { const l = C.findLane(doc, point(event).x, point(event).y); if (l) startText(l.id, 'lane'); }
@@ -816,6 +924,8 @@
   });
   canvas.addEventListener('focusin', event => {
     if (restoringFocus || trace) return;
+    const waypoint=event.target.closest('[data-handle="waypoint"]');
+    if(waypoint){routeEditing={id:waypoint.dataset.id,index:Number(waypoint.dataset.index),adding:false};render();return;}
     if (layer === 'lanes') {
       const id = event.target.closest('[data-lane]')?.dataset.lane;
       if (id && laneId !== id) { finishText(); laneId = id; selected.clear(); render(); }
@@ -1100,8 +1210,25 @@
   $('stroke-width').onchange = e => setStyle('strokeWidth', +e.target.value); $('dashed').onchange = e => setStyle('dashed', e.target.checked);
   $('edge-kind').onchange = e => change(() => C.changeEdgeShape(doc,selectedEdges().map(o => o.id),{kind:e.target.value}));
   $('edge-head').onchange = e => change(() => C.changeEdgeShape(doc,selectedEdges().map(o => o.id),{head:e.target.value}));
-  $('reverse-edge').onclick = () => change(() => selectedEdges().forEach(o => { [o.from, o.to] = [o.to, o.from]; o.label.t = 1 - (o.label.t ?? .5); }));
-  $('reset-route').onclick = () => change(() => selectedEdges().forEach(o => { o.bend = null; }));
+  $('reverse-edge').onclick = () => change(() => selectedEdges().forEach(o => {
+    if(o.waypoints?.length&&o.from.nodeId&&o.from.nodeId===o.to.nodeId) {
+      // 自己ループの自動接続は始点・終点で位置が異なるため、反転前の位置を保つ。
+      [o.from,o.to]=['from','to'].map(end=>o[end].side==='auto'?{...o[end],side:R.endpointSide(doc,o,end),offset:end==='from'?.32:.72}:o[end]);
+    }
+    [o.from,o.to]=[o.to,o.from];o.waypoints?.reverse();o.label.t=1-(o.label.t??.5);
+  }));
+  $('reset-route').onclick = () => change(() => selectedEdges().forEach(o => { o.bend = null; o.waypoints=[]; }));
+  $('edit-waypoints').onclick=startWaypointEdit;
+  $('finish-waypoints').onclick=finishWaypointEdit;
+  $('waypoint-index').onchange=()=>{if(routeTarget()){routeEditing.index=Number($('waypoint-index').value);routeEditing.adding=false;render();canvas.focus({preventScroll:true});}};
+  $('add-waypoint').onclick=()=>{if(routeTarget()){routeEditing.adding=!routeEditing.adding;render();canvas.focus({preventScroll:true});}};
+  $('remove-waypoint').onclick=deleteWaypoint;
+  $('waypoint-form').onsubmit=event=>{
+    event.preventDefault();const e=routeTarget();if(!e||!$('waypoint-form').reportValidity())return;
+    const points=R.waypointGeometry(doc,e).waypoints,index=routeEditing.index;if(!points[index])return;
+    points[index]={x:$('waypoint-x').valueAsNumber,y:$('waypoint-y').valueAsNumber};updateWaypoints(points,index);
+  };
+  $('auto-route').onclick=()=>{const e=routeTarget();if(!e)return;change(()=>C.setEdgeWaypoints(doc,e.id,[]));finishWaypointEdit();};
   ['node-width','node-height'].forEach(id => { $(id).onchange = event => { const value = Number(event.target.value); if (!Number.isFinite(value) || value <= 0) { renderFormat(); return; } change(() => selectedNodes().forEach(n => { n[id === 'node-width' ? 'w' : 'h'] = clamp(value, 16, 4000); if (n.kind === 'state' && n.variant !== 'round') n.w = n.h = clamp(value,16,4000); })); }; });
   $('fit-text').onclick = () => change(() => selectedNodes().forEach(fitTextNode));
   $('lane-title').onchange = e => change(() => { if (lane()) lane().title = e.target.value; });
@@ -1556,6 +1683,31 @@
       else if (key === 'd') { event.preventDefault(); duplicate(); }
       else if (key === 'g' && !trace) { event.preventDefault(); (event.shiftKey ? $('ungroup-button') : $('group-button')).click(); }
       return;
+    }
+    if(routeTarget()) {
+      const handle=event.target.closest('[data-handle="waypoint-add"]');
+      if(handle&&(event.key==='Enter'||event.key===' ')){event.preventDefault();addWaypoint({x:Number(handle.dataset.x),y:Number(handle.dataset.y)});return;}
+      if(event.key==='Escape') {
+        event.preventDefault();
+        if(drag){cancelGesture();render();}
+        else if(routeEditing.adding){routeEditing.adding=false;render();}
+        else finishWaypointEdit();
+        return;
+      }
+      if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();deleteWaypoint();return;}
+      if(event.target.closest('#canvas')) {
+        if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key)) {
+          event.preventDefault();const points=R.waypointGeometry(doc,routeTarget()).waypoints,index=routeEditing.index,p=points[index],step=event.shiftKey?10:1;
+          if(p){p.x+=event.key==='ArrowLeft'?-step:event.key==='ArrowRight'?step:0;p.y+=event.key==='ArrowUp'?-step:event.key==='ArrowDown'?step:0;updateWaypoints(points,index);}
+          return;
+        }
+        if(event.key==='Enter'||event.key==='F2') {
+          event.preventDefault();
+          if(routeEditing.adding){const p=defaultWaypointPosition();if(p)addWaypoint(p);}
+          else if(routeEditing.index>=0){$('waypoint-position').open=true;positionMenus();$('waypoint-x').focus();}
+          return;
+        }
+      }
     }
     if (event.key === 'Escape') { event.preventDefault(); if (drag || connection) cancelGesture(); else { selected.clear(); laneId = null; } tool = 'select'; insertionPreview = null; $$('details.menu').forEach(el => { el.open = false; }); render(); }
     else if (event.key === 'Delete' || event.key === 'Backspace') { event.preventDefault(); remove(); }

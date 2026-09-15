@@ -57,4 +57,12 @@ test('File byte limits and broken saveInfo are handled safely', () => {
   const doc = sample(), broken = { ...doc, saveInfo: { method: 'other', savedAt: 'nope' } }; const loaded = Storage.parseFile(JSON.stringify(broken));
   assert.equal(loaded.method, 'manual'); assert.equal(loaded.legacy, true); assert.throws(() => Storage.parseFile('x'.repeat(2 * 1024 * 1024 + 1))); assert.throws(() => Storage.serializeFile({ ...doc, title: 'x'.repeat(1000) }));
 });
+test('Version 2 files and recovery baselines migrate without changing the stored bytes', () => {
+  const old=sample();old.version=2;old.edges.forEach(edge=>{delete edge.waypoints;});
+  const bytes=JSON.stringify(old,null,2),automatic=JSON.stringify({document:old,saved:bytes,view:{x:1,y:2,scale:1}});
+  const store=memory({[Storage.AUTO_KEY]:automatic}),loaded=Storage.readBrowser(store),expected=Core.parseDocument(old);
+  assert.equal(expected.version,3);assert.deepEqual(loaded.auto.document,expected);assert.deepEqual(loaded.manual.document,expected);
+  assert.equal(loaded.auto.saved,Core.serializeDocument(expected));assert.equal(store.getItem(Storage.AUTO_KEY),automatic);
+  assert.deepEqual(Storage.parseFile(bytes).document,expected);
+});
 console.log(`storage tests passed: ${cases.length}`);

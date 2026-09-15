@@ -190,7 +190,7 @@
     return result;
   }
   function orthogonalRoute(doc,e,from,to,sideA,sideB,existing) {
-    if(e.kind!=='orthogonal'||e.bend)return null;
+    if(e.kind!=='orthogonal'||e.bend||e.waypoints?.length)return null;
     const normalA=normals[sideA]||normals.right,normalB=normals[sideB]||normals.left;
     const sameAnchor=e.from.nodeId&&e.from.nodeId===e.to.nodeId&&Math.hypot(from.x-to.x,from.y-to.y)<1e-7;
     const routeCost=points=>points.slice(1).reduce((sum,p,i)=>sum+Math.abs(p.x-points[i].x)+Math.abs(p.y-points[i].y),0)+Math.max(0,points.length-2)*18;
@@ -316,10 +316,50 @@
     // Overlapping shapes or an endpoint inside another shape can make avoidance impossible.
     return null;
   }
+  // 手動の経路点を順番に通り、点の間を水平・垂直の線でつなぐ。
+  // 補助の角は文書へ保存せず、反転しても同じ経路になるように決める。
+  function manualOrthogonal(doc,e,context) {
+    const {na,nb,ca,cb}=context,loop=na&&nb&&na.id===nb.id;
+    function endpoint(end,n,other) {
+      const value=e[end];
+      if(!n)return {point:{...value},side:null};
+      const side=loop?(value.side==='auto'?(e.from.side==='auto'?'right':e.from.side):value.side):endpointSide(doc,e,end);
+      let offset=value.offset??.5;
+      if(value.side==='auto') {
+        if(loop)offset=end==='from'?.32:.72;
+        else {const peers=connectionsOnSide(doc,n.id,side),index=Math.max(0,peers.findIndex(p=>p.edgeId===e.id&&p.end===end));offset=(index+1)/(peers.length+1);}
+      }
+      return {point:anchor(n,{...value,side,offset},other,true),side};
+    }
+    const a=endpoint('from',na,cb),b=endpoint('to',nb,ca),controls=e.waypoints;
+    const elbow=(p,q)=>p.x<q.x?{x:q.x,y:p.y}:{x:p.x,y:q.y};
+    const leg=(endpoint,target)=>{
+      const p=endpoint.point,n=normals[endpoint.side];
+      if(!n)return [p,elbow(p,target),target];
+      const dx=target.x-p.x,dy=target.y-p.y;
+      if(Math.abs(dx*n.y-dy*n.x)<1e-7&&dx*n.x+dy*n.y>=0)return [p,target];
+      const stub=add(p,n,22),corner=n.x?{x:stub.x,y:target.y}:{x:target.x,y:stub.y};
+      return [p,stub,corner,target];
+    };
+    const points=[],segmentSlots=[];
+    const append=(p,slot)=>{if(points.length&&Math.hypot(p.x-points.at(-1).x,p.y-points.at(-1).y)<1e-7)return;if(points.length)segmentSlots.push(slot);points.push({...p});};
+    leg(a,controls[0]).forEach(p=>append(p,0));
+    for(let i=1;i<controls.length;i++) {
+      const p=controls[i-1],q=controls[i];
+      if(Math.abs(p.x-q.x)>1e-7&&Math.abs(p.y-q.y)>1e-7)append(elbow(p,q),i);
+      append(q,i);
+    }
+    leg(b,controls.at(-1)).reverse().forEach(p=>append(p,controls.length));
+    if(points.length===1)points.push({...points[0]});
+    return {points,segmentSlots,from:a.point,to:b.point};
+  }
   function edgeGeometry(doc,e) {
     const {na,nb,ca,cb,pair,index,slot}=edgeContext(doc,e);
-    let from,to,handle,path,points;
-    if(na&&nb&&na.id===nb.id&&e.kind==='orthogonal') {
+    let from,to,handle,path,points,segmentSlots;
+    if(e.kind==='orthogonal'&&e.waypoints?.length) {
+      ({from,to,points,segmentSlots}=manualOrthogonal(doc,e,{na,nb,ca,cb}));
+      handle=atLength(points,.5);path=points.map((p,i)=>(i?'L':'M')+pstr(p)).join('');
+    } else if(na&&nb&&na.id===nb.id&&e.kind==='orthogonal') {
       const sideA=e.from.side!=='auto'?e.from.side:'right',sideB=e.to.side==='auto'?sideA:e.to.side;
       const normalA=normals[sideA]||normals.right,normalB=normals[sideB]||normals.right;
       const first={...e.from,side:sideA,offset:e.from.side==='auto'?.32:e.from.offset??.32};
@@ -402,7 +442,7 @@
     }
     const labelBase=atLength(points,e.label?.t??.5);let label={x:labelBase.x+(e.label?.dx||0),y:labelBase.y+(e.label?.dy||0)};
     const s=getStyle(e),lines=wrapText(e.label?.text||'',240,s.fontSize),lw=Math.max(0,...lines.map(t=>textWidth(t,s.fontSize)))+12,lh=lines.length*s.fontSize*1.35+8;
-    if(e.kind==='orthogonal'&&!e.bend&&e.label?.text&&(e.label.t??.5)===.5&&(e.label.dx??0)===0&&(e.label.dy??-12)===-12) {
+    if(e.kind==='orthogonal'&&!e.bend&&!e.waypoints?.length&&e.label?.text&&(e.label.t??.5)===.5&&(e.label.dx??0)===0&&(e.label.dy??-12)===-12) {
       const overlaps=(p,n)=>p.x+lw/2>n.x-4&&p.x-lw/2<n.x+n.w+4&&p.y+lh/2>n.y-4&&p.y-lh/2<n.y+n.h+4;
       const hits=doc.nodes.filter(n=>overlaps(label,n));
       if(hits.length) {
@@ -416,7 +456,46 @@
       }
     }
     const bounds=boundsOf([...points,handle,...(e.label?.text?[{x:label.x-lw/2,y:label.y-lh/2},{x:label.x+lw/2,y:label.y+lh/2}]:[])],Math.max(10,s.strokeWidth*4));
-    return {path,points,from,to,label,labelOffset:{x:label.x-labelBase.x,y:label.y-labelBase.y},handle,bounds,labelBounds:e.label?.text?{x:label.x-lw/2,y:label.y-lh/2,w:lw,h:lh}:null};
+    return {path,points,from,to,label,labelOffset:{x:label.x-labelBase.x,y:label.y-labelBase.y},handle,bounds,segmentSlots,labelBounds:e.label?.text?{x:label.x-lw/2,y:label.y-lh/2,w:lw,h:lh}:null};
+  }
+  function waypointGeometry(doc,e) {
+    const geometry=edgeGeometry(doc,e),manual=!!e.waypoints?.length;
+    const points=manual?geometry.points:simplifyRoute(geometry.points);
+    const waypoints=(manual?e.waypoints:points.slice(1,-1)).map(p=>({...p}));
+    return {...geometry,points,waypoints,segmentSlots:manual?geometry.segmentSlots:points.slice(1).map((_,i)=>i)};
+  }
+  function insertWaypoint(doc,e,position) {
+    const geometry=waypointGeometry(doc,e);
+    if(geometry.waypoints.length>=32)throw new Error('折れ曲がり点は1本の矢印につき32個までです。');
+    let best=null;
+    for(let i=1;i<geometry.points.length;i++) {
+      const a=geometry.points[i-1],b=geometry.points[i],dx=b.x-a.x,dy=b.y-a.y,length=dx*dx+dy*dy;
+      if(length<1e-10)continue;
+      const t=Math.max(0,Math.min(1,((position.x-a.x)*dx+(position.y-a.y)*dy)/length)),p={x:a.x+dx*t,y:a.y+dy*t},distance=Math.hypot(position.x-p.x,position.y-p.y);
+      if(!best||distance<best.distance)best={point:p,index:geometry.segmentSlots[i-1],distance};
+    }
+    if(!best)throw new Error('点を追加できる長さの線がありません。');
+    if([geometry.from,...geometry.waypoints,geometry.to].some(p=>Math.hypot(p.x-best.point.x,p.y-best.point.y)<.01))throw new Error('既存の点から少し離れた位置を選んでください。');
+    const waypoints=geometry.waypoints;waypoints.splice(best.index,0,best.point);
+    return {waypoints,index:best.index};
+  }
+  function splitWaypoints(doc,e,n) {
+    const points=edgeGeometry(doc,e).points,hits=[],distances=[0];
+    for(let i=1;i<points.length;i++) {
+      const a=points[i-1],b=points[i],dx=b.x-a.x,dy=b.y-a.y,length=Math.hypot(dx,dy);
+      for(const [axis,boundary] of [['x',n.x],['x',n.x+n.w],['y',n.y],['y',n.y+n.h]]) {
+        const delta=axis==='x'?dx:dy;if(Math.abs(delta)<1e-7)continue;
+        const t=(boundary-a[axis])/delta,other=axis==='x'?a.y+dy*t:a.x+dx*t,lo=axis==='x'?n.y:n.x,hi=lo+(axis==='x'?n.h:n.w);
+        if(t>=0&&t<=1&&other>=lo-1e-7&&other<=hi+1e-7)hits.push(distances.at(-1)+length*t);
+      }
+      distances.push(distances.at(-1)+length);
+    }
+    const unique=[...new Set(hits.map(d=>Math.round(d*1e5)/1e5))].sort((a,b)=>a-b);
+    if(unique.length!==2)throw new Error('経路が処理の枠を1回だけ通る位置を選んでください。');
+    return {
+      incomingWaypoints:simplifyRoute(points.filter((_,i)=>i>0&&distances[i]<unique[0]-1e-5)).map(p=>({...p})),
+      outgoingWaypoints:simplifyRoute(points.filter((_,i)=>i<points.length-1&&distances[i]>unique[1]+1e-5)).map(p=>({...p}))
+    };
   }
   function edgeMarkup(doc,e,interactive,idPrefix,theme='light') {
     const g=edgeGeometry(doc,e),s=displayStyle(e,theme),label=e.label?.text||'',marker=`${idPrefix}-arrow-${e.id}`;
@@ -498,5 +577,5 @@
     (Array.isArray(doc?.groups)?doc.groups:[]).forEach(group=>{const members=Array.isArray(group?.memberIds)?group.memberIds:[],isSelected=members.some(id=>selected.has(String(id)));if(!isSelected)return;const box=union(members.map(memberBox),8);if(!box)return;const label='グループ',labelH=16/safeScale;parts.push(`<g class="diagram-learning-group" data-group="${escapeXML(group?.id??'')}" ${vars}><rect x="${num(box.x)}" y="${num(box.y)}" width="${num(box.w)}" height="${num(box.h)}" fill="none" stroke="var(--learning-accent)" stroke-width="2" stroke-dasharray="${num(7/safeScale)} ${num(5/safeScale)}" rx="4" vector-effect="non-scaling-stroke"/><rect x="${num(box.x+4/safeScale)}" y="${num(box.y+2/safeScale)}" width="${num(Math.max(24,textWidth(label,fontSize)+8/safeScale))}" height="${num(labelH)}" fill="var(--learning-panel)" fill-opacity=".94"/><text x="${num(box.x+8/safeScale)}" y="${num(box.y+labelH-2/safeScale)}" fill="var(--learning-text)" font-size="${fontSize}" font-family="Arial, 'Hiragino Sans', 'Yu Gothic', sans-serif">${escapeXML(label)}</text></g>`);});
     parts.push('</g>');return parts.join('');
   }
-  return Object.freeze({escapeXML,wrapText,fitNode,nodeMarkup,sceneMarkup,edgeGeometry,documentBounds,svgDocument,learningOverlay,alignmentSnap,exportSelection,sidePoint,endpointSide,connectionsOnSide,connectionOffsets,nearestOffset,snapEndpoint});
+  return Object.freeze({escapeXML,wrapText,fitNode,nodeMarkup,sceneMarkup,edgeGeometry,waypointGeometry,insertWaypoint,splitWaypoints,documentBounds,svgDocument,learningOverlay,alignmentSnap,exportSelection,sidePoint,endpointSide,connectionsOnSide,connectionOffsets,nearestOffset,snapEndpoint});
 });

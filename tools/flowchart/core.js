@@ -55,9 +55,18 @@
     if (value.x === undefined || value.y === undefined) fail('線の端点がありません。');
     return { x: number(value.x), y: number(value.y) };
   }
+  function waypoints(value, kind) {
+    if (value === undefined) return [];
+    if (!Array.isArray(value) || value.length > 32) fail('線の経路点が不正です。');
+    if (value.length && kind !== 'orthogonal') fail('経路点は直角の線だけに設定できます。');
+    return value.map(point => {
+      if (!record(point) || point.x === undefined || point.y === undefined) fail('線の経路点が不正です。');
+      return { x: number(point.x), y: number(point.y) };
+    });
+  }
   function createDocument(type = 'flowchart') {
     enumValue(type, TYPES, 'flowchart');
-    const doc = { format: 'kaijo-diagram', version: 2, id: uid('doc'), title: '無題の図', diagramType: type, nodes: [], edges: [], lanes: [], groups: [], lesson: null };
+    const doc = { format: 'kaijo-diagram', version: 3, id: uid('doc'), title: '無題の図', diagramType: type, nodes: [], edges: [], lanes: [], groups: [], lesson: null };
     if (type === 'activity') doc.lanes = [{ id: uid('lane'), title: '担当1', x: 40, y: 40, w: 300, h: 600, locked: false }, { id: uid('lane'), title: '担当2', x: 340, y: 40, w: 300, h: 600, locked: false }];
     return doc;
   }
@@ -68,20 +77,22 @@
   }
   function createEdge(from, to, options = {}) {
     const label = options.label || {};
-    return { id: options.id || uid('edge'), from: endpoint(from), to: endpoint(to), kind: options.kind || 'orthogonal', head: options.head || 'end', label: { text: label.text || '', t: label.t ?? .5, dx: label.dx ?? 0, dy: label.dy ?? -12 }, bend: options.bend ? clone(options.bend) : null, style: style(options.style), locked: options.locked === true };
+    const kind = enumValue(options.kind, ['orthogonal','straight','curve'], 'orthogonal'), points = waypoints(options.waypoints, kind);
+    if (points.length && options.bend != null) fail('経路点と従来の経路調整は同時に設定できません。');
+    return { id: options.id || uid('edge'), from: endpoint(from), to: endpoint(to), kind, head: options.head || 'end', label: { text: label.text || '', t: label.t ?? .5, dx: label.dx ?? 0, dy: label.dy ?? -12 }, bend: options.bend ? clone(options.bend) : null, waypoints: points, style: style(options.style), locked: options.locked === true };
   }
   function parseDocument(input) {
     let value = input;
     if (typeof value === 'string') { if (byteLength(value) > 2 * 1024 * 1024) fail('ファイルが大きすぎます。'); try { value = JSON.parse(value); } catch { fail('JSONファイルを読み取れません。'); } }
     if (!record(value) || value.format !== 'kaijo-diagram') fail('フローチャートエディタの再編集ファイルを選んでください。');
-    if (value.version !== 1 && value.version !== 2) fail('このバージョンのファイルには対応していません。');
+    if (value.version !== 1 && value.version !== 2 && value.version !== 3) fail('このバージョンのファイルには対応していません。');
     if (![value.nodes, value.edges, value.lanes].every(Array.isArray)) fail('図形・線・領域の一覧がありません。');
     if (value.nodes.length + value.edges.length > 1000 || value.lanes.length > 50) fail('部品が多すぎます（図形と線は合わせて1000個まで）。');
     const seen = new Set();
     const unique = value => { const v = id(value); if (seen.has(v)) fail('部品のIDが重複しています。'); seen.add(v); return v; };
     const oldVersion = value.version === 1;
     const locked = value => { if (value === undefined) return false; if (typeof value !== 'boolean') fail('固定設定が不正です。'); return value; };
-    const out = { format: 'kaijo-diagram', version: 2, id: id(value.id), title: text(value.title, '無題の図', 160), diagramType: enumValue(value.diagramType, TYPES, 'flowchart'), nodes: [], edges: [], lanes: [], groups: [], lesson: null };
+    const out = { format: 'kaijo-diagram', version: 3, id: id(value.id), title: text(value.title, '無題の図', 160), diagramType: enumValue(value.diagramType, TYPES, 'flowchart'), nodes: [], edges: [], lanes: [], groups: [], lesson: null };
     out.lanes = value.lanes.map(l => {
       if (!record(l)) fail('担当領域が不正です。');
       if (['x','y','w','h'].some(key => l[key] === undefined)) fail('担当領域の座標や大きさがありません。');
@@ -98,11 +109,12 @@
     const nodeIds = new Set(out.nodes.map(n => n.id));
     out.edges = value.edges.map(e => {
       if (!record(e)) fail('線のデータが不正です。');
-      const from = endpoint(e.from), to = endpoint(e.to), label = e.label ?? {};
+      const from = endpoint(e.from), to = endpoint(e.to), label = e.label ?? {}, kind = enumValue(e.kind, ['orthogonal','straight','curve'], 'orthogonal'), points = waypoints(e.waypoints, kind);
       if (!record(label)) fail('線のラベルが不正です。');
       for (const p of [from, to]) if (p.nodeId && !nodeIds.has(p.nodeId)) fail('線の接続先が見つかりません。');
       if (e.bend != null && !record(e.bend)) fail('線の経路が不正です。');
-      return { id: unique(e.id), from, to, kind: enumValue(e.kind, ['orthogonal','straight','curve'], 'orthogonal'), head: enumValue(e.head, ['end','both','none'], 'end'), label: { text: text(label.text), t: number(label.t, .5, 0, 1), dx: number(label.dx, 0), dy: number(label.dy, -12) }, bend: e.bend ? { x: number(e.bend.x, 0), y: number(e.bend.y, 0) } : null, style: style(e.style), locked: locked(e.locked) };
+      if (points.length && e.bend != null) fail('経路点と従来の経路調整は同時に設定できません。');
+      return { id: unique(e.id), from, to, kind, head: enumValue(e.head, ['end','both','none'], 'end'), label: { text: text(label.text), t: number(label.t, .5, 0, 1), dx: number(label.dx, 0), dy: number(label.dy, -12) }, bend: e.bend ? { x: number(e.bend.x, 0), y: number(e.bend.y, 0) } : null, waypoints: points, style: style(e.style), locked: locked(e.locked) };
     });
     const componentIds = new Set([...out.nodes, ...out.edges].map(item => item.id));
     const grouped = new Set();
@@ -199,7 +211,16 @@
       if (dx) groupEdges.forEach(edge => groupEdgeDeltas.set(edge.id, dx));
     }
     const leftX = left.x, rightX = right.x; next.lanes.forEach(l => { if (l.id === left.id) l.x = rightX + right.w - left.w; else if (l.id === right.id) l.x = leftX; }); next.nodes.forEach(n => { const dx = movingNodes.get(n.id); if (dx) n.x += dx; });
-    next.edges.forEach(e => { const a = movingNodes.get(e.from.nodeId), b = movingNodes.get(e.to.nodeId), groupDx = groupEdgeDeltas.get(e.id); if (a && a === b && e.bend) e.bend.x += a; if (groupDx) { if (!e.from.nodeId) e.from.x += groupDx; if (!e.to.nodeId) e.to.x += groupDx; if (e.bend && !(a && a === b)) e.bend.x += groupDx; } });
+    next.edges.forEach(e => {
+      const a = movingNodes.get(e.from.nodeId), b = movingNodes.get(e.to.nodeId), groupDx = groupEdgeDeltas.get(e.id), internalDx = a && a === b ? a : 0;
+      const translatePath = dx => { if (e.bend) e.bend.x += dx; (e.waypoints || []).forEach(point => { point.x += dx; }); };
+      if (internalDx) translatePath(internalDx);
+      if (groupDx) {
+        if (!e.from.nodeId) e.from.x += groupDx;
+        if (!e.to.nodeId) e.to.x += groupDx;
+        if (!internalDx) translatePath(groupDx);
+      }
+    });
     next.lanes.sort((a,b) => a.x - b.x); applyDocumentChange(doc, next); return true;
   }
   function changeNodeShape(doc, ids, kind, options = {}) {
@@ -232,7 +253,7 @@
       if (kind === 'straight' && e.from.nodeId && e.from.nodeId === e.to.nodeId) fail('自己ループは直角または曲線に変更できます。');
       if ((kind === undefined || e.kind === kind) && (head === undefined || e.head === head)) return e;
       const next = clone(e);
-      if (kind !== undefined && kind !== e.kind) { next.kind = kind; next.bend = null; }
+      if (kind !== undefined && kind !== e.kind) { next.kind = kind; next.bend = null; next.waypoints = []; }
       if (head !== undefined) next.head = head;
       changed.push(e.id); return next;
     });
@@ -268,6 +289,17 @@
     if (!changed.length) return [];
     applyDocumentChange(doc, next);
     return changed;
+  }
+  function setEdgeWaypoints(doc, edgeId, points) {
+    const source = parseDocument(doc), next = clone(source), edge = next.edges.find(item => item.id === edgeId);
+    if (!edge) fail('線が見つかりません。');
+    if (edge.kind !== 'orthogonal') fail('経路点は直角の線だけに設定できます。');
+    if (!Array.isArray(points)) fail('線の経路点が不正です。');
+    const replacement = waypoints(points, edge.kind);
+    if (JSON.stringify(edge.waypoints) === JSON.stringify(replacement) && edge.bend === null) return false;
+    edge.waypoints = replacement; edge.bend = null;
+    applyDocumentChange(doc, next);
+    return true;
   }
   function copyStyle(doc, sourceId) {
     const clean = parseDocument(doc), node = clean.nodes.find(item => item.id === sourceId), edge = clean.edges.find(item => item.id === sourceId);
@@ -324,17 +356,18 @@
     });
     const copied = new Set([...nodes, ...edges].map(item => item.id));
     const groups = (doc.groups || []).filter(group => group.memberIds.every(member => copied.has(member))).map(clone);
-    return { format: 'kaijo-diagram-selection', version: 2, nodes, edges, groups };
+    return { format: 'kaijo-diagram-selection', version: 3, nodes, edges, groups };
   }
   function pasteSelection(doc, payload, dx = 24, dy = 24) {
-    if (!record(payload) || payload.format !== 'kaijo-diagram-selection' || ![1,2].includes(payload.version)) fail('フローチャートエディタでコピーした部品を貼り付けてください。');
-    const clean = parseDocument({ format: 'kaijo-diagram', version: 2, id: 'clipboard', title: '', diagramType: doc.diagramType, nodes: payload.nodes, edges: payload.edges, lanes: [], groups: payload.groups || [], lesson: null });
+    if (!record(payload) || payload.format !== 'kaijo-diagram-selection' || ![1,2,3].includes(payload.version)) fail('フローチャートエディタでコピーした部品を貼り付けてください。');
+    const clean = parseDocument({ format: 'kaijo-diagram', version: 3, id: 'clipboard', title: '', diagramType: doc.diagramType, nodes: payload.nodes, edges: payload.edges, lanes: [], groups: payload.groups || [], lesson: null });
     const map = new Map(clean.nodes.map(n => [n.id, uid('node')])), ids = [];
     clean.nodes.forEach(n => { n.id = map.get(n.id); n.x += dx; n.y += dy; n.laneId = findLane(doc, n.x + n.w / 2, n.y + n.h / 2)?.id || null; n.locked = false; ids.push(n.id); });
     clean.edges.forEach(e => {
       const oldId = e.id; e.id = uid('edge'); map.set(oldId, e.id); e.locked = false; ids.push(e.id);
       for (const side of ['from','to']) { if (e[side].nodeId) e[side].nodeId = map.get(e[side].nodeId); else { e[side].x += dx; e[side].y += dy; } }
       if (e.bend) { e.bend.x += dx; e.bend.y += dy; }
+      e.waypoints.forEach(point => { point.x += dx; point.y += dy; });
     });
     const groups = clean.groups.map(group => ({ id: uid('group'), memberIds: group.memberIds.map(member => map.get(member)) }));
     const combined = { ...doc, nodes: [...doc.nodes, ...clean.nodes], edges: [...doc.edges, ...clean.edges], groups: [...(doc.groups || []), ...groups] };
@@ -342,9 +375,10 @@
     doc.nodes = combined.nodes; doc.edges = combined.edges; doc.groups = combined.groups;
     return ids;
   }
-  function insertNodeOnEdge(doc, edgeId, item, { entrySide = 'auto', exitSide = 'auto', direction = null, incomingBend = null, outgoingBend = null } = {}) {
-    const next = clone(doc), original = next.edges.find(e => e.id === edgeId), inserted = clone(item);
+  function insertNodeOnEdge(doc, edgeId, item, { entrySide = 'auto', exitSide = 'auto', direction = null, incomingBend = null, outgoingBend = null, incomingWaypoints, outgoingWaypoints } = {}) {
+    const next = clone(parseDocument(doc)), original = next.edges.find(e => e.id === edgeId), inserted = clone(item);
     if (!original) fail('挿入先の線が見つかりません。');
+    if (original.waypoints.length && (!Array.isArray(incomingWaypoints) || !Array.isArray(outgoingWaypoints))) fail('手動経路の線へ挿入するには、分割後の経路点が必要です。');
     const source = getNode(next, original.from.nodeId), target = getNode(next, original.to.nodeId);
     // Open a gap along a straight run. A cycle stops at the source, and unrelated nodes stay put.
     if (direction && source && target && source !== target) {
@@ -372,20 +406,22 @@
         }
         next.nodes.forEach(n => { if (moved.has(n.id)) n[axis] += delta; });
         next.edges.forEach(e => {
-          if (moved.has(e.from.nodeId) && (moved.has(e.to.nodeId) || !e.to.nodeId)) {
+          const followsMovedNodes = moved.has(e.from.nodeId) && (moved.has(e.to.nodeId) || !e.to.nodeId);
+          const followsGroup = movedGroupEdges.has(e.id);
+          // 内部線がグループにも属する場合でも、経路と自由端は1回だけ動かす。
+          if (followsMovedNodes || followsGroup) {
             if (e.bend) e.bend[axis] += delta;
-            if (!e.to.nodeId) e.to[axis] += delta;
-          }
-          if (movedGroupEdges.has(e.id)) {
-            if (e.bend) e.bend[axis] += delta;
-            for (const endpoint of [e.from, e.to]) if (!endpoint.nodeId) endpoint[axis] += delta;
+            e.waypoints.forEach(point => { point[axis] += delta; });
+            if (followsGroup) {
+              for (const endpoint of [e.from, e.to]) if (!endpoint.nodeId) endpoint[axis] += delta;
+            } else if (!e.to.nodeId) e.to[axis] += delta;
           }
         });
       }
     }
     inserted.laneId = findLane(next, inserted.x + inserted.w / 2, inserted.y + inserted.h / 2)?.id || source?.laneId || null;
-    const after = createEdge({ nodeId: inserted.id, side: exitSide, offset: .5 }, original.to, { kind: original.kind, head: original.head, style: original.style, bend: outgoingBend });
-    original.to = { nodeId: inserted.id, side: entrySide, offset: .5 }; original.bend = incomingBend ? clone(incomingBend) : null;
+    const after = createEdge({ nodeId: inserted.id, side: exitSide, offset: .5 }, original.to, { kind: original.kind, head: original.head, style: original.style, bend: outgoingBend, waypoints: outgoingWaypoints });
+    original.to = { nodeId: inserted.id, side: entrySide, offset: .5 }; original.bend = incomingBend ? clone(incomingBend) : null; original.waypoints = incomingWaypoints === undefined ? [] : clone(incomingWaypoints);
     next.nodes.push(inserted); next.edges.push(after);
     next.lanes.forEach(l => { l.h = Math.max(l.h, ...next.nodes.filter(n => n.laneId === l.id).map(n => n.y + n.h + 24 - l.y)); });
     const clean = parseDocument(next); assertEditable(doc, clean);
@@ -569,5 +605,5 @@
     }
     return parseDocument(doc);
   }
-  return Object.freeze({ NODE_DEFS, DEFAULT_STYLE, uid, clone, createDocument, createNode, createEdge, parseDocument, serializeDocument, getNode, findLane, expandSelection, groupSelection, ungroupSelection, setLocked, assertEditable, addLane, removeLane, moveLane, changeNodeShape, changeEdgeShape, matchNodeSize, copyStyle, pasteStyle, removeSelection, copySelection, pasteSelection, insertNodeOnEdge, addBranch, traceStarts, inspectDocument, createTrace, traceOptions, stepTrace, backTrace, History, TEMPLATES, createTemplate });
+  return Object.freeze({ NODE_DEFS, DEFAULT_STYLE, uid, clone, createDocument, createNode, createEdge, parseDocument, serializeDocument, getNode, findLane, expandSelection, groupSelection, ungroupSelection, setLocked, assertEditable, addLane, removeLane, moveLane, changeNodeShape, changeEdgeShape, matchNodeSize, setEdgeWaypoints, copyStyle, pasteStyle, removeSelection, copySelection, pasteSelection, insertNodeOnEdge, addBranch, traceStarts, inspectDocument, createTrace, traceOptions, stepTrace, backTrace, History, TEMPLATES, createTemplate });
 });
