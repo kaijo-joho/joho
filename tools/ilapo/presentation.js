@@ -67,6 +67,7 @@
     viewport.setAttribute('role', 'presentation');
     var paper = doc.createElement('div');
     paper.className = 'ilapo-present-paper';
+    paper.tabIndex=-1;
     paper.setAttribute('role', 'img');
     paper.setAttribute('aria-label', '現在のページ');
     viewport.append(paper);
@@ -120,7 +121,8 @@
       }
       heading.textContent = documentValue.name || '無題';
       status.textContent = (index + 1) + ' / ' + pages.length + '　' + (page.name || 'ページ');
-      paper.setAttribute('aria-label', page.name || '現在のページ');
+      var description=page.objects.filter(function(o){return !(o.type==='image'&&o.reference);}).map(function(o){return o.type==='text'?o.runs.map(function(r){return r.text;}).join(''):o.type==='connector'?o.label:o.name;}).filter(Boolean).join('。');
+      paper.setAttribute('aria-label', (page.name || '現在のページ')+(description?'。'+description:''));
       previousButton.disabled = index === 0;
       nextButton.disabled = index === pages.length - 1;
       previousButton.setAttribute('aria-label', index === 0 ? '前のページはありません' : '前のページ');
@@ -193,8 +195,7 @@
       if (event.key === 'Tab') {
         var list = focusables(); if (!list.length) return;
         var current = list.indexOf(doc.activeElement);
-        if (current < 0) current = 0;
-        var nextFocus = event.shiftKey ? current - 1 : current + 1;
+        var nextFocus=current<0?(event.shiftKey?list.length-1:0):(event.shiftKey?current-1:current+1);
         if (nextFocus < 0) nextFocus = list.length - 1;
         if (nextFocus >= list.length) nextFocus = 0;
         event.preventDefault(); list[nextFocus].focus(); return;
@@ -242,8 +243,7 @@
     else { dialog.setAttribute('open', ''); dialog.classList.add('ilapo-present-open'); }
     sizePaper();
     active = { _dialog: dialog, next: next, previous: previous, close: close, getState: state };
-    var initialFocus = closeButton;
-    root.setTimeout(function () { if (!closed && initialFocus.isConnected) initialFocus.focus(); }, 0);
+    paper.focus({preventScroll:true});
     return active;
   }
 

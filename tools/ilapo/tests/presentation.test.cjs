@@ -38,6 +38,8 @@ test('presentation viewer keeps document isolated and navigates without wrapping
   assert.equal(await page.locator('.ilapo-present-next').isDisabled(), true);
   await page.keyboard.press('ArrowLeft');
   assert.equal(await page.evaluate(() => viewer.getState().currentPage), 1);
+  await page.keyboard.press('Space');assert.equal(await page.evaluate(()=>viewer.getState().currentPage),2,'Space advances from the initially focused slide');
+  await page.keyboard.press('ArrowLeft');await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>viewer.getState().currentPage),2,'Enter advances without closing the viewer');
   await page.keyboard.press('Home');
   assert.equal(await page.evaluate(() => viewer.getState().currentPage), 1);
   await page.keyboard.press('End');
