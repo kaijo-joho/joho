@@ -655,7 +655,7 @@
     $('group-button').disabled = !selectionEditable() || selected.size < 2 || groups.length === 1 && groups[0].memberIds.length === selected.size;
     $('ungroup-button').disabled = !selectionEditable() || !groups.length;
     $('lock-button').disabled = !!trace || studentMode() || !selected.size; $('lock-button').setAttribute('aria-pressed', String(allLocked)); $('lock-label').textContent = allLocked ? '固定を解除' : '固定';
-    renderSizeStyleTools();
+    renderSizeStyleTools(); renderOrderTools();
     ['new-file','open-file','autosave-settings'].forEach(id => { $(id).disabled = !!trace || !!lessonPreview; });
     $$('[data-template]').forEach(button => { button.disabled = !!trace || !!lessonPreview; });
     $('empty-hint').hidden = !!content() || !!doc.lanes.length || tool !== 'select';
@@ -681,6 +681,49 @@
   }
   function setTool(next) { if (trace && !['select','pan'].includes(next)) return; finishText(); cancelGesture(); routeEditing=null; if(next!=='part'){pendingPart=null;partPlacement=null;} tool = next; layer = 'diagram'; laneId = null; render(); }
   function select(ids) { if (trace) return; selected = new Set(expand(ids)); laneId = null; render(); }
+  function renderOrderTools() {
+    const actions = C.nodeOrderActions(doc, [...selected]);
+    $$('[data-node-order]').forEach(button => { button.disabled = !selectionEditable() || !actions[button.dataset.nodeOrder]; });
+    $('choose-overlap').disabled = !!trace || layer !== 'diagram' || !selected.size || tool === 'part';
+  }
+  function openOverlapPicker() {
+    if (trace || layer !== 'diagram' || !selected.size || tool === 'part') return;
+    finishText(); cancelGesture();
+    // Use each selected object's drawn bounds, rather than the large empty box
+    // between separate members of a group. getBBox also includes long labels.
+    const drawn = [...$('scene').querySelectorAll('[data-node],[data-edge]')].map(element => {
+      const id = element.dataset.node || element.dataset.edge, bounds = element.getBBox();
+      return { id, element, item: node(id) || edge(id), bounds };
+    }).reverse();
+    const areas = drawn.filter(entry => selected.has(entry.id)).map(entry => entry.bounds);
+    const overlaps = (a, b) => a.x <= b.x + b.width + 2 && a.x + a.width + 2 >= b.x && a.y <= b.y + b.height + 2 && a.y + a.height + 2 >= b.y;
+    const candidates = drawn.filter(entry => selected.has(entry.id) || areas.some(area => overlaps(entry.bounds, area)));
+    const list = $('overlap-list'); list.replaceChildren(); $('overlap-add').checked = false;
+    candidates.forEach(({ id, element, item, bounds }, index) => {
+      const row = document.createElement('li'), button = document.createElement('button');
+      button.type = 'button'; button.dataset.overlapId = id;
+      const preview = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+      preview.setAttribute('class', 'overlap-thumb'); preview.setAttribute('aria-hidden', 'true'); preview.setAttribute('focusable', 'false');
+      preview.setAttribute('viewBox', `${bounds.x - 8} ${bounds.y - 8} ${Math.max(1, bounds.width) + 16} ${Math.max(1, bounds.height) + 16}`);
+      const drawing = element.cloneNode(true);
+      for (const child of [drawing, ...drawing.querySelectorAll('*')]) {
+        for (const attribute of [...child.attributes]) if (attribute.name === 'id' || attribute.name === 'tabindex' || attribute.name === 'role' || attribute.name.startsWith('data-')) child.removeAttribute(attribute.name);
+      }
+      preview.append(drawing);
+      const copy = document.createElement('span'), name = document.createElement('span'), meta = document.createElement('span');
+      copy.className = 'overlap-copy'; name.className = 'overlap-name'; meta.className = 'overlap-meta';
+      const kind = C.NODE_DEFS[item.kind]?.label || '矢印・線', group = doc.groups.find(g => g.memberIds.includes(id));
+      name.textContent = item.text || item.label?.text || kind;
+      meta.textContent = [`${index + 1}. ${kind}`, group ? `グループ（${group.memberIds.length}部品）` : '', item.locked ? '固定' : '', selected.has(id) ? '選択中' : ''].filter(Boolean).join('・');
+      copy.append(name, meta); button.append(preview, copy); row.append(button); list.append(row);
+      button.onclick = () => {
+        const ids = $('overlap-add').checked ? [...selected, id] : [id];
+        tool = 'select'; routeEditing = null; lastTap = null; select(ids); $('overlap-dialog').close();
+      };
+    });
+    openDialog($('overlap-dialog'), $('choose-overlap'));
+    list.querySelector('button')?.focus();
+  }
   function assignLane(n) { n.laneId = C.findLane(doc, n.x + n.w / 2, n.y + n.h / 2)?.id || null; }
   function addNode(kind, p) {
     if (trace) return;
@@ -1149,6 +1192,12 @@
   $('undo').onclick = undo; $('redo').onclick = redo; $('delete-button').onclick = remove; $('duplicate-button').onclick = duplicate;
   $('copy-button').onclick = () => { const value = copy(); if (value) { navigator.clipboard?.writeText(value).catch(() => {}); notify('コピーしました'); } };
   $('paste-button').onclick = () => { paste(); setToolbarOpen(false); };
+  $('choose-overlap').onclick = openOverlapPicker;
+  $$('[data-node-order]').forEach(button => { button.onclick = () => {
+    if (!selectionEditable() || layer !== 'diagram') return;
+    if (change(() => C.reorderNodes(doc, [...selected], button.dataset.nodeOrder))) notify(`図形を${button.textContent}移しました`);
+    if (button.disabled) $('order-menu').querySelector('summary').focus({ preventScroll: true });
+  }; });
   $('match-size-button').onclick = () => {
     if (trace || layer !== 'diagram' || selectedNodes().length < 2) return;
     finishText(); cancelGesture(); sizeSelection = [...selected];

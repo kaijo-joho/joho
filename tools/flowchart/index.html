@@ -149,6 +149,17 @@
             <button type="button" data-align="bottom" title="下端をそろえる" aria-label="下端をそろえる"><span data-icon="alignBottom"></span></button>
             <button type="button" data-align="horizontal">横に等間隔</button><button type="button" data-align="vertical">縦に等間隔</button>
           </div></div></details>
+          <details class="menu" id="order-menu"><summary>重なり <span aria-hidden="true">▾</span></summary><div class="menu-panel">
+            <button type="button" id="choose-overlap">重なった部品を選ぶ…</button>
+            <hr>
+            <div class="order-actions" role="group" aria-label="図形・文字の重なり順">
+              <button type="button" data-node-order="front">最前面へ</button>
+              <button type="button" data-node-order="forward">1つ前面へ</button>
+              <button type="button" data-node-order="backward">1つ背面へ</button>
+              <button type="button" data-node-order="back">最背面へ</button>
+            </div>
+            <p class="menu-note muted">図形・文字どうしの重なり順を変更します。</p>
+          </div></details>
         </div>
         <div id="route-bar" class="format-bar" role="group" aria-label="折れ曲がり点の編集" hidden>
           <label>点<select id="waypoint-index" aria-label="編集する折れ曲がり点"></select></label>
@@ -309,6 +320,14 @@
   </dialog>
   <dialog id="confirm-dialog"><form method="dialog"><h2 id="confirm-title">作業中の図を置き換える</h2><p id="confirm-message"></p><div class="dialog-actions"><button value="cancel">キャンセル</button><button value="save" id="save-continue">保存して続ける</button><button value="continue" class="primary" id="confirm-continue">置き換える</button></div></form></dialog>
   <dialog id="connect-dialog"><form id="connect-form"><h2>図形をつなぐ</h2><label class="stack">始点<select id="connect-from" required></select></label><label class="stack">終点<select id="connect-to" required></select></label><label class="stack">線の形<select id="connect-kind"><option value="orthogonal">直角</option><option value="straight">直線</option><option value="curve">曲線</option></select></label><label class="stack">ラベル<input id="connect-label" placeholder="例：はい、開始ボタン"></label><div class="dialog-actions"><button type="button" data-close-dialog>キャンセル</button><button type="submit" class="primary">つなぐ</button></div></form></dialog>
+  <dialog id="overlap-dialog" class="workspace-dialog" aria-labelledby="overlap-title" aria-describedby="overlap-description"><div class="dialog-layout">
+    <h2 id="overlap-title">重なった部品を選択</h2>
+    <div class="dialog-body">
+      <p id="overlap-description" class="muted">選択した部品の範囲と重なる候補を、前面から表示します。グループの部品はまとめて選択します。</p>
+      <ol id="overlap-list" class="overlap-list" aria-label="前面から順に並んだ部品"></ol>
+    </div>
+    <div class="dialog-actions"><label class="check"><input type="checkbox" id="overlap-add">今の選択に追加</label><button type="button" data-close-dialog>閉じる</button></div>
+  </div></dialog>
   <dialog id="help-dialog"><div class="help"><h2>フローチャートエディタの使い方</h2>
     <ol><li><strong>置く：</strong>左の部品を選び、作図画面をクリックします。部品ボタンでEnterを押すと、画面の中央に置けます。</li><li><strong>文字を書く：</strong>図形をダブルクリック、または選んでEnter。Enterで改行、⌘Enterで確定します。</li><li><strong>つなぐ：</strong>図形を選び、端の○から別の図形へドラッグします。○と接続先を順にクリックしてもつなげます。「接続先を選ぶ」からも指定できます。</li><li><strong>線を直す：</strong>線を選び、端の○でつなぎ直し、中央の◇で経路を調整します。直角の矢印は「形」→「折れ曲がり点を編集…」で、線上の＋から点を追加できます。番号付きの点をドラッグし、「位置」から座標も指定できます。Deleteで点を削除、Escapeで完了します。ラベルはダブルクリックして入力し、ドラッグして位置を変えられます。</li><li><strong>担当を分ける：</strong>アクティビティ図では「担当領域」に切り替え、追加・並べ替え・名前や幅の編集ができます。領域を削除しても図形と矢印は元の位置に残ります。領域にTabで移動してEnterを押すと名前を編集できます。</li><li><strong>保存する：</strong>ファイルメニューで「ブラウザ内に保存」「ファイルに保存」を選べます。画像は右端の「書き出し」から保存します。</li></ol>
     <p>「吸着」をオンにすると、接続位置が辺の両端・中央・等分点にそろいます。同じ辺につながる本数に応じて、2本なら1/3・2/3、3本なら1/4・3/4も候補になります。自由な位置につなぐときはオフにします。</p>
@@ -322,6 +341,7 @@
     <p><strong>操作を選ぶ：</strong>上部にはファイル操作・元に戻す／やり直し・ツール・設定をまとめています。幅が狭いときは「ツール」で開閉します。選択した部品への操作は、作図画面のポップアップにある「編集」「形」「書式」「色」「整列」から使います。貼り付けは未選択でも上部のツールから使えます。アクティビティ図の担当領域は「編集対象」で切り替えます。</p>
     <p><strong>色を選ぶ：</strong>ポップアップの「色」で塗り・線色・文字色を選び、18色のパレットから適用できます。「その他の色」のカラーピッカーや、R・G・Bそれぞれ0〜255の数値指定も使えます。複数の部品へまとめて適用でき、1回のUndoで戻せます。固定した部品が含まれる場合は色を変更しません。</p>
     <p>表示設定のダークモードは作図画面にも反映されます。画像・印刷の色は表示テーマで変わらず、書き出しパネルで確認できます。</p>
+    <p><strong>重なりを編集する：</strong>選択時の「重なり」で、図形・文字を最前面・1つ前面・1つ背面・最背面へ移します。複数選択やグループ内の図形の順序は保ちます。「重なった部品を選ぶ」では、背後の図形や線も候補から選べます。「今の選択に追加」で複数選択もできます。選択後はポップアップで編集するか、矢印キーで移動できます。固定した部品は選択できますが、重なり順は変更できません。担当領域の上に矢印、その上に図形を描く基本の順序は保ちます。</p>
     <p><strong>まとめる・固定する：</strong>複数の部品を選び「グループ化」でまとめます。どの部品を選んでも全体を移動・複製できます。文字は部品をダブルクリックして個別に編集できます。形や配置を個別に変えるときは「グループ解除」を使います。「固定」で移動・文字・書式・削除を防ぎ、もう一度押すと解除します。固定した図形にも新しい矢印を接続できます。</p>
     <p data-lesson-help><strong>授業用ひな形：</strong>右の「授業」で問題文を入力し、固定する図形・線・担当領域を選びます。「生徒の画面で確認」で操作を試せます。確認中の変更は「確認を終了」で元に戻ります。「配付用ひな形を保存」で、生徒がそのまま開けるファイルを作れます。</p>
     <p><strong>手動トレース：</strong>右の「トレース」で開始する図形を選びます。画面上部の矢印の候補から進み、「1つ戻る」で分岐を選び直せます。並列開始では各枝に現在位置ができ、並列終了ではすべての枝が到着するまで待ちます。矢じりのない線は進行方向を示さないため、トレースの対象にしません。経路を選んで確認する機能で、条件やプログラムの自動実行・採点は行いません。</p>

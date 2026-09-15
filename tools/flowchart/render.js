@@ -10,6 +10,7 @@
   const midpoint = (a,b) => ({ x:(a.x+b.x)/2, y:(a.y+b.y)/2 });
   const add = (a,b,f=1) => ({x:a.x+b.x*f,y:a.y+b.y*f});
   const center = n => ({ x:n.x+n.w/2, y:n.y+n.h/2 });
+  const byPosition = (a,b) => a.x-b.x || a.y-b.y || a.w-b.w || a.h-b.h || String(a.id).localeCompare(String(b.id));
   const normals = {top:{x:0,y:-1},right:{x:1,y:0},bottom:{x:0,y:1},left:{x:-1,y:0}};
   const DEFAULT_STYLE = Object.freeze({ fontSize:16,stroke:'#253140',fill:'#ffffff',color:'#253140',strokeWidth:2,dashed:false,bold:false });
   const DARK_DEFAULT_STYLE = Object.freeze({ stroke:'#e8eef7',fill:'#273442',color:'#eef4fb' });
@@ -194,9 +195,12 @@
     const normalA=normals[sideA]||normals.right,normalB=normals[sideB]||normals.left;
     const sameAnchor=e.from.nodeId&&e.from.nodeId===e.to.nodeId&&Math.hypot(from.x-to.x,from.y-to.y)<1e-7;
     const routeCost=points=>points.slice(1).reduce((sum,p,i)=>sum+Math.abs(p.x-points[i].x)+Math.abs(p.y-points[i].y),0)+Math.max(0,points.length-2)*18;
+    // Node array order controls painting only. Keep bounded obstacle searches
+    // and equally short route choices independent of front/back operations.
+    const routingNodes=doc.nodes.slice().sort(byPosition);
     // Reduce clearance only when the expanded boxes leave no route through a narrow gap.
     for(const clearance of [12,4,0]) {
-      const obstacles=doc.nodes.map(n=>({id:n.id,x:n.x-clearance,y:n.y-clearance,r:n.x+n.w+clearance,b:n.y+n.h+clearance}));
+      const obstacles=routingNodes.map(n=>({id:n.id,x:n.x-clearance,y:n.y-clearance,r:n.x+n.w+clearance,b:n.y+n.h+clearance}));
       const clearRoute=points=>points.length>1&&points.every((p,i)=>!i||!obstacles.some(o=>
         !(i===1&&o.id===e.from.nodeId)&&!(i===points.length-1&&o.id===e.to.nodeId)&&segmentHits(points[i-1],p,o)));
       if(clearRoute(existing))return null;
@@ -444,7 +448,7 @@
     const s=getStyle(e),lines=wrapText(e.label?.text||'',240,s.fontSize),lw=Math.max(0,...lines.map(t=>textWidth(t,s.fontSize)))+12,lh=lines.length*s.fontSize*1.35+8;
     if(e.kind==='orthogonal'&&!e.bend&&!e.waypoints?.length&&e.label?.text&&(e.label.t??.5)===.5&&(e.label.dx??0)===0&&(e.label.dy??-12)===-12) {
       const overlaps=(p,n)=>p.x+lw/2>n.x-4&&p.x-lw/2<n.x+n.w+4&&p.y+lh/2>n.y-4&&p.y-lh/2<n.y+n.h+4;
-      const hits=doc.nodes.filter(n=>overlaps(label,n));
+      const hits=doc.nodes.filter(n=>overlaps(label,n)).sort(byPosition);
       if(hits.length) {
         const candidates=hits.flatMap(n=>[{x:label.x,y:n.y-lh/2-6},{x:label.x,y:n.y+n.h+lh/2+6},{x:n.x-lw/2-6,y:label.y},{x:n.x+n.w+lw/2+6,y:label.y}]);
         for(let i=1;i<points.length;i++) {

@@ -162,6 +162,53 @@
     for (const group of doc.groups || []) if ((ids || []).includes(group.id)) group.memberIds.forEach(member => selected.add(member));
     const changed = []; components(doc).forEach(item => { if (selected.has(item.id) && item.locked !== locked) { item.locked = locked; changed.push(item.id); } }); return changed;
   }
+  function nodeOrderSelection(doc, ids) {
+    if (!Array.isArray(ids)) fail('選択が不正です。');
+    const selected = new Set(expandSelection(doc, ids));
+    return { selected, nodes: doc.nodes.filter(node => selected.has(node.id)) };
+  }
+  function nodeOrderActions(doc, ids) {
+    const { selected, nodes } = nodeOrderSelection(doc, ids), unavailable = { front: false, forward: false, backward: false, back: false };
+    if (!nodes.length || components(doc).some(item => selected.has(item.id) && item.locked)) return unavailable;
+    const chosen = new Set(nodes.map(node => node.id)), order = doc.nodes;
+    const canMoveForward = order.some((node, index) => chosen.has(node.id) && index + 1 < order.length && !chosen.has(order[index + 1].id));
+    const canMoveBackward = order.some((node, index) => !chosen.has(node.id) && index + 1 < order.length && chosen.has(order[index + 1].id));
+    return {
+      front: canMoveForward,
+      forward: canMoveForward,
+      backward: canMoveBackward,
+      back: canMoveBackward
+    };
+  }
+  function reorderNodes(doc, ids, action) {
+    if (!['front','forward','backward','back'].includes(action)) fail('重なり順の操作が不正です。');
+    const source = parseDocument(doc), { selected, nodes } = nodeOrderSelection(source, ids);
+    if (components(source).some(item => selected.has(item.id) && item.locked)) fail('固定された部品は変更できません。');
+    if (!nodes.length) return false;
+    if (!nodeOrderActions(source, ids)[action]) return false;
+    const chosen = new Set(nodes.map(node => node.id)), order = source.nodes;
+    let reordered;
+    if (action === 'front') reordered = [...order.filter(node => !chosen.has(node.id)), ...order.filter(node => chosen.has(node.id))];
+    else if (action === 'back') reordered = [...order.filter(node => chosen.has(node.id)), ...order.filter(node => !chosen.has(node.id))];
+    else if (action === 'forward') {
+      reordered = [];
+      for (let index = 0; index < order.length;) {
+        if (!chosen.has(order[index].id)) { reordered.push(order[index++]); continue; }
+        let end = index; while (end < order.length && chosen.has(order[end].id)) end++;
+        if (end < order.length) reordered.push(order[end]);
+        reordered.push(...order.slice(index, end)); index = end + (end < order.length ? 1 : 0);
+      }
+    } else {
+      reordered = [];
+      for (let index = 0; index < order.length;) {
+        if (chosen.has(order[index].id) || index + 1 >= order.length || !chosen.has(order[index + 1].id)) { reordered.push(order[index++]); continue; }
+        let end = index + 1; while (end < order.length && chosen.has(order[end].id)) end++;
+        reordered.push(...order.slice(index + 1, end), order[index]); index = end;
+      }
+    }
+    applyDocumentChange(doc, { ...source, nodes: reordered });
+    return true;
+  }
   function memberships(doc, componentId) { return (doc.groups || []).filter(group => group.memberIds.includes(componentId)).map(group => group.id).sort(); }
   function assertEditable(before, after, { allowLockChange = false, allowLessonChange = false } = {}) {
     const a = parseDocument(before), b = parseDocument(after);
@@ -605,5 +652,5 @@
     }
     return parseDocument(doc);
   }
-  return Object.freeze({ NODE_DEFS, DEFAULT_STYLE, uid, clone, createDocument, createNode, createEdge, parseDocument, serializeDocument, getNode, findLane, expandSelection, groupSelection, ungroupSelection, setLocked, assertEditable, addLane, removeLane, moveLane, changeNodeShape, changeEdgeShape, matchNodeSize, setEdgeWaypoints, copyStyle, pasteStyle, removeSelection, copySelection, pasteSelection, insertNodeOnEdge, addBranch, traceStarts, inspectDocument, createTrace, traceOptions, stepTrace, backTrace, History, TEMPLATES, createTemplate });
+  return Object.freeze({ NODE_DEFS, DEFAULT_STYLE, uid, clone, createDocument, createNode, createEdge, parseDocument, serializeDocument, getNode, findLane, expandSelection, groupSelection, ungroupSelection, setLocked, nodeOrderActions, reorderNodes, assertEditable, addLane, removeLane, moveLane, changeNodeShape, changeEdgeShape, matchNodeSize, setEdgeWaypoints, copyStyle, pasteStyle, removeSelection, copySelection, pasteSelection, insertNodeOnEdge, addBranch, traceStarts, inspectDocument, createTrace, traceOptions, stepTrace, backTrace, History, TEMPLATES, createTemplate });
 });
