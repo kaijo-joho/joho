@@ -1,6 +1,6 @@
 // Chrome/WebKit UI checks for lc02 editor, cp21 quiz and smart snapping.
 import assert from 'node:assert/strict';
-import { setToolPreferences } from './logic-tool-browser-helpers.mjs';
+import { revealToolButton, setToolPreferences } from './logic-tool-browser-helpers.mjs';
 import { createRequire } from 'node:module';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -23,7 +23,7 @@ async function ready(browser, viewport, options = {}) {
   });
   await page.goto(new URL('lc02.html', baseURL).href);
   await page.locator('body.logic-tool-ready').waitFor();
-  await page.locator('#basic-toolbar').waitFor();
+  await page.locator('#basic-toolbar').waitFor({ state: 'attached' });
   await page.waitForFunction(() => window.logicWorkbenchEditor?.options?.enableAlignment === true);
   await page.evaluate(() => document.fonts.ready);
   return { context, page };
@@ -46,6 +46,10 @@ async function drag(page, from, to, steps = 12) {
   await page.mouse.up();
 }
 
+async function toolbarButton(page, name) {
+  return revealToolButton(page, page.getByRole('button', { name, exact: true }));
+}
+
 async function toolbarAndAlignment(page, name, viewportWidth) {
   await expect.poll(() => page.evaluate(() => document.documentElement.scrollWidth)).toBeLessThanOrEqual(viewportWidth + 1);
   const layout = await page.evaluate(() => {
@@ -54,9 +58,10 @@ async function toolbarAndAlignment(page, name, viewportWidth) {
   });
   assert.ok(layout.top.bottom <= layout.palette.top + 1, 'single toolbar row above editor');
   assert.ok(layout.palette.right <= layout.stage.left + 1, 'component tools are on the left');
-  await expect(page.locator('#layout-tools').getByRole('button', { name: '回路全体を自動整列', exact: true })).toBeVisible();
+  await expect(await toolbarButton(page, '回路全体を自動整列')).toBeVisible();
   await expect(page.locator('.logic-editor__palette').getByRole('button', { name: 'ANDゲートを追加', exact: true })).toBeVisible();
   await page.screenshot({ path: join(artifacts, name + '-' + viewportWidth + '.png') });
+  if (await page.locator('.top.is-compact').count()) await page.locator('#toolbar-menu > summary').press('Escape');
 }
 
 async function alignmentChecks(page, name) {
@@ -66,7 +71,7 @@ async function alignmentChecks(page, name) {
   });
   const before = await state(page);
   const beforeTruth = await page.evaluate(() => window.logicWorkbenchEditor.getAnalysis().truthCode);
-  const align = page.getByRole('button', { name: '回路全体を自動整列', exact: true });
+  const align = await toolbarButton(page, '回路全体を自動整列');
   await align.click();
   const arranged = await state(page);
   assert.deepEqual(arranged.graph.wires, before.graph.wires, `${name}: alignment preserves wires`);
@@ -82,7 +87,7 @@ async function alignmentChecks(page, name) {
   const arrangedAgain = await state(page);
   await align.click();
   assert.deepEqual(await state(page), arrangedAgain, `${name}: alignment is idempotent`);
-  await page.getByRole('button', { name: '元に戻す', exact: true }).click();
+  await (await toolbarButton(page, '元に戻す')).click();
   assert.deepEqual(await state(page), before, `${name}: one Undo restores pre-alignment snapshot`);
 
   // Two gates can snap to one another on y while remaining far enough apart on x.
@@ -163,12 +168,12 @@ async function snapThresholdChecks(page, name) {
     assert.equal(await page.locator('.logic-editor-alignment-guide[data-axis="x"]').count(), snapped ? 1 : 0);
   }
   await page.mouse.up();
-  await page.getByRole('button', { name: '元に戻す', exact: true }).click();
+  await (await toolbarButton(page, '元に戻す')).click();
   assert.deepEqual(await state(page), before, 'snapped drag has one Undo entry');
   const palette = page.getByRole('button', { name: 'NOTゲートを追加', exact: true });
   await drag(page, await center(palette), await canvasPoint(page, 303, 430));
   assert.equal((await state(page)).graph.nodes.at(-1).x, 300, 'palette drop also snaps to a column');
-  await page.getByRole('button', { name: '元に戻す', exact: true }).click();
+  await (await toolbarButton(page, '元に戻す')).click();
   assert.deepEqual(await state(page), before, 'palette alignment is undoable');
   await page.evaluate(() => window.logicWorkbenchEditor.loadExpression('A-B'));
 }
@@ -223,7 +228,7 @@ async function smartSnapChecks(page, name) {
     const moved = (await state(page)).graph.nodes.find(node => node.id === id);
     assert.deepEqual({ x: moved.x, y: moved.y }, expected, `${name}: ${kind} ${axis} snapping`);
     assert.equal(await page.locator('.logic-editor-alignment-guide').count(), 0);
-    await page.getByRole('button', { name: '元に戻す', exact: true }).click();
+    await (await toolbarButton(page, '元に戻す')).click();
     assert.deepEqual(await state(page), before, `${name}: ${kind} drag undoes as one edit`);
   };
   const wireFixture = { nodes: [
@@ -268,8 +273,8 @@ async function smartSnapChecks(page, name) {
 }
 
 async function saveReloadExportChecks(page, name) {
-  await page.getByRole('button', { name: '回路全体を自動整列', exact: true }).press('Enter');
-  await page.getByRole('button', { name: '回路を保存', exact: true }).click();
+  await (await toolbarButton(page, '回路全体を自動整列')).press('Enter');
+  await (await toolbarButton(page, '回路を保存')).click();
   const dialog = page.locator('#logic-file-dialog');
   await dialog.getByLabel('回路の名前').fill(`${name}-aligned`);
   await dialog.locator('form button[type="submit"]').click();
@@ -277,7 +282,13 @@ async function saveReloadExportChecks(page, name) {
   const saved = await state(page);
   await page.reload();
   await page.locator('body.logic-tool-ready').waitFor();
-  await page.getByRole('button', { name: '回路を読み込む', exact: true }).click();
+  // リロード時の選択ダイアログを閉じてから通常の読み込み入口を確認する。
+  const initialChooser = page.locator('#logic-file-dialog');
+  if (await initialChooser.isVisible()) {
+    await initialChooser.getByRole('button', { name: '回路のメニューを閉じる', exact: true }).click();
+    await expect(initialChooser).toBeHidden();
+  }
+  await (await toolbarButton(page, '回路を読み込む')).click();
   const load = page.locator('#logic-file-dialog');
   await load.getByRole('button', { name: `保存した回路「${name}-aligned」を読み込む`, exact: true }).click();
   if (await load.getByRole('heading', { name: '変更を保存しますか？', exact: true }).count()) await load.getByRole('button', { name: '保存せず続ける', exact: true }).click();
@@ -346,7 +357,7 @@ async function touchSnapChecks(browser) {
   await page.screenshot({ path: join(artifacts, 'chrome-touch-guide.png') });
   await touch('touchEnd');
   await expect(page.locator('.logic-editor-alignment-guide')).toHaveCount(0);
-  await page.getByRole('button', { name: '元に戻す', exact: true }).tap();
+  await (await toolbarButton(page, '元に戻す')).tap();
   assert.deepEqual(await state(page), before, 'touch drag restores with one Undo');
 
   // 接続端子の高さへ、実際のタッチ操作で吸着する。
@@ -367,7 +378,7 @@ async function touchSnapChecks(browser) {
   await expect(page.locator('.logic-editor-alignment-guide[data-kind="wire"]')).toHaveCount(1);
   await page.screenshot({ path: join(artifacts, 'chrome-touch-straight-guide.png') });
   await touch('touchEnd');
-  await page.getByRole('button', { name: '元に戻す', exact: true }).tap();
+  await (await toolbarButton(page, '元に戻す')).tap();
   assert.deepEqual(await state(page), beforeWire, 'touch wire snap restores with one Undo');
 
   const equalFixture = await page.evaluate(wrap => {
@@ -393,7 +404,7 @@ async function touchSnapChecks(browser) {
   await expect(page.locator('.logic-editor-alignment-guide[data-kind="spacing"]')).toHaveCount(1);
   await page.screenshot({ path: join(artifacts, 'chrome-touch-equal-spacing-guide.png') });
   await touch('touchEnd');
-  await page.getByRole('button', { name: '元に戻す', exact: true }).tap();
+  await (await toolbarButton(page, '元に戻す')).tap();
   assert.deepEqual(await state(page), equalBefore, 'touch equal spacing restores with one Undo');
   await context.close();
   console.log('chrome: touch table toggle, center/wire/spacing snaps, guides and Undo at 390px passed');

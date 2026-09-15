@@ -269,6 +269,11 @@
       this.pendingFrom = null;
       this.pendingRewire = null;
       this.selected = null;
+      // selected は既存の単一選択API。独立ツールだけが複数選択を追加する。
+      this.selectedNodeIds = new Set();
+      this.selectionMode = false;
+      this.marquee = null;
+      this.spacePan = false;
       this.drag = null;
       this.pan = null;
       this.connectionDrag = null;
@@ -292,10 +297,12 @@
       this.boundPointerUp = event => this.handlePointerUp(event);
       this.boundPointerCancel = event => this.cancelPointerGesture(event);
       this.boundKeyDown = event => this.handleDocumentKeyDown(event);
+      this.boundKeyUp = event => this.handleDocumentKeyUp(event);
       document.addEventListener('pointermove', this.boundPointerMove);
       document.addEventListener('pointerup', this.boundPointerUp);
       document.addEventListener('pointercancel', this.boundPointerCancel);
       document.addEventListener('keydown', this.boundKeyDown);
+      document.addEventListener('keyup', this.boundKeyUp);
       this.render();
       if (this.options.enableWireEditing && root.ResizeObserver) {
         this.bendResizeObserver = new root.ResizeObserver(() => {
@@ -426,6 +433,22 @@
       this.canvasWrap = htmlElement('div', 'logic-editor__canvas-wrap');
       this.canvasWrap.tabIndex = 0;
       this.canvasWrap.setAttribute('aria-label', '横にスクロールできる論理回路編集エリア');
+      // WebKitではSpaceのkeydownがdocumentまで届く前にスクロール処理へ使われる場合がある。
+      this.canvasWrap.addEventListener('keydown', event => {
+        if (this.options.allowMousePan === true && (event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar')) {
+          this.spacePan = true;
+          event.preventDefault();
+        }
+      });
+      this.canvasWrap.addEventListener('keyup', event => {
+        if (this.options.allowMousePan === true && (event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar')) this.spacePan = false;
+      });
+      // WebKitでSVG背景のpointerdownが届かない場合も、Space＋空白ドラッグでパンできるよう補う。
+      this.canvasWrap.addEventListener('pointerdown', event => {
+        if (!this.spacePan || event.button !== 0 || this.pan || this.drag || this.connectionDrag || this.bendDrag) return;
+        if (event.target.closest?.('.logic-editor-node, .logic-editor-port, .logic-editor-wire-hit, .logic-editor-bend, .logic-editor-delete-control')) return;
+        this.beginPan(event);
+      });
       this.svg = Renderer.svgElement('svg', {
         class: 'logic-editor__canvas',
         viewBox: `0 0 ${WIDTH} ${HEIGHT}`,
@@ -465,6 +488,7 @@
       this.pendingFrom = null;
       this.pendingRewire = null;
       this.selected = null;
+      (this.selectedNodeIds || (this.selectedNodeIds = new Set())).clear();
       this.connectionDrag = null;
       this.bendDrag = null;
       this.currentWireRoutes = new Map();
@@ -474,6 +498,73 @@
       this.history = [this.snapshot()];
       this.historyIndex = 0;
       this.updateToolbar();
+    }
+
+    allowsMultipleSelection() {
+      return this.options.allowMultipleSelection === true;
+    }
+
+    maxNodeCount() {
+      // logic-storage.js の保存可能な上限（200）を既定にし、複製後に保存だけ失敗する状態を作らない。
+      return Number.isFinite(this.options.maxNodes) ? Math.max(1, Math.floor(this.options.maxNodes)) : 200;
+    }
+
+    maxOutputCount() {
+      const configured = Number.isFinite(this.options.maxOutputs) ? this.options.maxOutputs
+        : Number.isFinite(this.options.maximumOutputs) ? this.options.maximumOutputs : this.maxNodeCount();
+      return Math.max(1, Math.floor(configured));
+    }
+
+    selectedNodeIdSet() {
+      // selected を直接更新する既存の配線・端子操作でも、古い複数選択を残さない。
+      if (this.selected?.kind !== 'node') return new Set();
+      const ids = new Set(this.selectedNodeIds || []);
+      // テンプレートや既存コードが selected を直接設定しても互換を保つ。
+      ids.add(this.selected.id);
+      for (const id of ids) if (!this.findNode(id)) ids.delete(id);
+      return ids;
+    }
+
+    getSelectedNodes() {
+      const ids = this.selectedNodeIdSet();
+      return this.graph.nodes.filter(node => ids.has(node.id)).map(node => deepCopy(node));
+    }
+
+    setNodeSelection(ids, primaryId = null) {
+      const selected = new Set(Array.from(ids || []).filter(id => this.findNode(id)));
+      if (!this.allowsMultipleSelection() && selected.size > 1) {
+        selected.clear();
+        if (primaryId && this.findNode(primaryId)) selected.add(primaryId);
+      }
+      this.selectedNodeIds = selected;
+      const primary = primaryId && selected.has(primaryId) ? primaryId : selected.values().next().value;
+      this.selected = primary ? { kind: 'node', id: primary } : null;
+    }
+
+    selectNode(nodeId, { additive = false, toggle = false } = {}) {
+      if (!this.findNode(nodeId)) return false;
+      const ids = this.allowsMultipleSelection() && additive ? this.selectedNodeIdSet() : new Set();
+      if (toggle && ids.has(nodeId)) ids.delete(nodeId);
+      else ids.add(nodeId);
+      this.setNodeSelection(ids, ids.has(nodeId) ? nodeId : ids.values().next().value || null);
+      return true;
+    }
+
+    clearSelection() {
+      this.pendingFrom = null;
+      this.pendingRewire = null;
+      this.connectionDrag = null;
+      this.setNodeSelection([]);
+      this.notice = '選択を解除しました。';
+      this.render();
+    }
+
+    setSelectionMode(enabled) {
+      if (!this.allowsMultipleSelection()) return false;
+      this.selectionMode = Boolean(enabled);
+      this.notice = this.selectionMode ? '複数選択モードです。部品をタップ、または範囲をドラッグして選択できます。' : '複数選択モードを終了しました。';
+      this.render({ notify: false });
+      return this.selectionMode;
     }
 
     snapshot() {
@@ -489,6 +580,7 @@
       this.pendingFrom = null;
       this.pendingRewire = null;
       this.selected = null;
+      (this.selectedNodeIds || (this.selectedNodeIds = new Set())).clear();
       this.connectionDrag = null;
       this.render();
     }
@@ -569,7 +661,7 @@
         y: position ? clamp(position.y, 42, HEIGHT - 42) : 82 + lane * 86
       };
       this.graph.nodes.push(node);
-      this.selected = { kind: 'node', id: node.id };
+      this.setNodeSelection([node.id], node.id);
       this.commit(`${gate}ゲートを追加しました。ドラッグで位置を調整できます。`);
     }
 
@@ -653,7 +745,7 @@
       this.graph.wires.splice(this.graph.wires.indexOf(wire), 1, wireIn, wireOut);
       this.pendingFrom = null;
       this.pendingRewire = null;
-      this.selected = { kind: 'node', id: node.id };
+      this.setNodeSelection([node.id], node.id);
       this.commit('配線の途中にNOTを挿入しました。Undoで元の配線に戻せます。');
       return node;
     }
@@ -729,7 +821,7 @@
       this.graph.nodes.push(node);
       this.pendingFrom = null;
       this.pendingRewire = null;
-      this.selected = { kind: 'node', id: node.id };
+      this.setNodeSelection([node.id], node.id);
       this.commit(`入力${name}を追加しました。`);
     }
 
@@ -751,6 +843,11 @@
     addOutput() {
       if (!this.options.allowMultipleOutputs) return;
       const outputs = this.graph.nodes.filter(node => node.type === 'output');
+      if (this.graph.nodes.length >= this.maxNodeCount() || outputs.length >= this.maxOutputCount()) {
+        this.notice = '出力の上限に達しているため、追加できません。';
+        this.render({ notify: false });
+        return;
+      }
       const preferredY = outputs.at(-1).y + 98;
       const ys = [preferredY, ...Array.from({ length: 7 }, (_, index) => 50 + index * 68)]
         .filter(y => y >= 42 && y <= HEIGHT - 42);
@@ -765,8 +862,151 @@
       this.updateOutputNames();
       this.pendingFrom = null;
       this.pendingRewire = null;
-      this.selected = { kind: 'node', id };
+      this.setNodeSelection([id], id);
       this.commit(`出力${node.name}を追加しました。配線をつなぐと真理値表にも反映されます。`);
+    }
+
+    duplicateSelection() {
+      if (!this.allowsMultipleSelection() || this.drag || this.paletteDrag || this.connectionDrag || this.bendDrag || this.marquee) return null;
+      const selected = this.getSelectedNodes();
+      if (!selected.length) {
+        this.notice = '複製する部品を選択してください。';
+        this.render({ notify: false });
+        return null;
+      }
+      const selectedInputs = selected.filter(node => node.type === 'input');
+      const freeInputs = this.availableInputNames.filter(name => !this.inputNames.includes(name));
+      if (selectedInputs.length > freeInputs.length) {
+        this.notice = '入力A〜Dに空きが足りないため、選択した部品は複製されませんでした。';
+        this.render({ notify: false });
+        return null;
+      }
+      const selectedOutputs = selected.filter(node => node.type === 'output');
+      const currentOutputs = this.graph.nodes.filter(node => node.type === 'output').length;
+      if (this.graph.nodes.length + selected.length > this.maxNodeCount()) {
+        this.notice = '部品数の上限に達するため、選択した部品は複製されませんでした。';
+        this.render({ notify: false });
+        return null;
+      }
+      if (selectedOutputs.length && (!this.options.allowMultipleOutputs || currentOutputs + selectedOutputs.length > this.maxOutputCount())) {
+        this.notice = '出力の上限に達しているため、選択した部品は複製されませんでした。';
+        this.render({ notify: false });
+        return null;
+      }
+      const existingIds = new Set(this.graph.nodes.map(node => node.id));
+      const newId = (prefix, serialName) => {
+        let id;
+        do { id = `${prefix}-${Date.now().toString(36)}-${++this[serialName]}`; } while (existingIds.has(id));
+        existingIds.add(id);
+        return id;
+      };
+      const idMap = new Map();
+      const selectedIds = new Set(selected.map(node => node.id));
+      const internalBends = this.graph.wires.filter(wire => selectedIds.has(wire.from) && selectedIds.has(wire.to))
+        .flatMap(wire => Array.isArray(wire.bends) ? wire.bends : []);
+      const deltaFor = (axis, nodeMinimum, nodeMaximum, bendMinimum, bendMaximum) => {
+        let lower = nodeMinimum - Math.min(...selected.map(node => node[axis]));
+        let upper = nodeMaximum - Math.max(...selected.map(node => node[axis]));
+        if (internalBends.length) {
+          lower = Math.max(lower, bendMinimum - Math.min(...internalBends.map(point => point[axis])));
+          upper = Math.min(upper, bendMaximum - Math.max(...internalBends.map(point => point[axis])));
+        }
+        if (36 >= lower && 36 <= upper) return 36;
+        if (-36 >= lower && -36 <= upper) return -36;
+        return clamp(36, lower, upper);
+      };
+      // 端へ寄った選択でも、全員を同じ量だけ動かして相対位置と手動配線を保つ。
+      const offset = {
+        x: deltaFor('x', 45, WIDTH - 45, 20, WIDTH - 20),
+        y: deltaFor('y', 42, HEIGHT - 42, 20, HEIGHT - 20)
+      };
+      const cloned = selected.map(node => {
+        let id;
+        if (node.type === 'input') id = `input-${freeInputs.shift()}`;
+        else if (node.type === 'output') id = newId('output-added', 'outputSerial');
+        else id = newId('gate', 'nodeSerial');
+        idMap.set(node.id, id);
+        const copy = deepCopy(node);
+        copy.id = id;
+        copy.x += offset.x;
+        copy.y += offset.y;
+        if (copy.type === 'input') copy.name = id.slice('input-'.length);
+        delete copy.label;
+        return copy;
+      });
+      const clonedWires = this.graph.wires.filter(wire => selectedIds.has(wire.from) && selectedIds.has(wire.to)).map(wire => {
+        const copy = deepCopy(wire);
+        copy.id = newId('wire', 'wireSerial');
+        copy.from = idMap.get(wire.from);
+        copy.to = idMap.get(wire.to);
+        if (Array.isArray(copy.bends)) copy.bends = copy.bends.map(point => routePoint(point.x + offset.x, point.y + offset.y));
+        return copy;
+      });
+      // すべての検証を終えてから一度だけ変更する。境界をまたぐ配線は複製しない。
+      this.checkpoint();
+      this.graph.nodes.push(...cloned);
+      this.graph.wires.push(...clonedWires);
+      selected.filter(node => node.type === 'input').forEach(source => {
+        const node = this.findNode(idMap.get(source.id));
+        this.inputNames.push(node.name);
+        this.inputValues[node.name] = this.inputValues[source.name];
+      });
+      this.inputNames.sort((left, right) => this.availableInputNames.indexOf(left) - this.availableInputNames.indexOf(right));
+      this.updateOutputNames();
+      this.pendingFrom = null;
+      this.pendingRewire = null;
+      const cloneIds = cloned.map(node => node.id);
+      this.setNodeSelection(cloneIds, cloneIds[0]);
+      this.commit(`${cloned.length}個の部品を複製しました。内部の配線も複製されています。Undoで戻せます。`);
+      return this.getSelectedNodes();
+    }
+
+    alignSelection(mode) {
+      if (!this.allowsMultipleSelection() || this.drag || this.paletteDrag || this.connectionDrag || this.bendDrag || this.marquee) return false;
+      const nodes = this.getSelectedNodes().map(node => this.findNode(node.id)).filter(Boolean);
+      if (nodes.length < 2) {
+        this.notice = '2個以上の部品を選択してください。';
+        this.render({ notify: false });
+        return false;
+      }
+      const command = String(mode || '');
+      const bounds = new Map(nodes.map(node => [node.id, this.nodeBodyBounds(node)]));
+      const minimumX = Math.min(...[...bounds.values()].map(bound => bound.left));
+      const maximumX = Math.max(...[...bounds.values()].map(bound => bound.right));
+      const minimumY = Math.min(...[...bounds.values()].map(bound => bound.top));
+      const maximumY = Math.max(...[...bounds.values()].map(bound => bound.bottom));
+      const next = new Map(nodes.map(node => [node.id, { x: node.x, y: node.y }]));
+      if (['left', 'centerX', 'right'].includes(command)) {
+        const value = command === 'left' ? minimumX : command === 'right' ? maximumX : (minimumX + maximumX) / 2;
+        nodes.forEach(node => {
+          const bound = bounds.get(node.id);
+          const offset = command === 'left' ? bound.left - node.x
+            : command === 'right' ? bound.right - node.x : (bound.left + bound.right) / 2 - node.x;
+          next.get(node.id).x = clamp(value - offset, 45, WIDTH - 45);
+        });
+      } else if (['top', 'centerY', 'bottom'].includes(command)) {
+        const value = command === 'top' ? minimumY : command === 'bottom' ? maximumY : (minimumY + maximumY) / 2;
+        nodes.forEach(node => {
+          const bound = bounds.get(node.id);
+          const offset = command === 'top' ? bound.top - node.y
+            : command === 'bottom' ? bound.bottom - node.y : (bound.top + bound.bottom) / 2 - node.y;
+          next.get(node.id).y = clamp(value - offset, 42, HEIGHT - 42);
+        });
+      } else if (command === 'distributeX' || command === 'distributeY') {
+        const axis = command === 'distributeX' ? 'x' : 'y';
+        const sorted = [...nodes].sort((left, right) => left[axis] - right[axis]);
+        const first = sorted[0][axis], last = sorted.at(-1)[axis];
+        const step = (last - first) / (sorted.length - 1);
+        sorted.forEach((node, index) => { next.get(node.id)[axis] = first + step * index; });
+      } else {
+        return false;
+      }
+      const changed = nodes.some(node => node.x !== next.get(node.id).x || node.y !== next.get(node.id).y);
+      if (!changed) return false;
+      this.checkpoint();
+      nodes.forEach(node => Object.assign(node, next.get(node.id)));
+      this.commit('選択した部品を配置しました。Undoで元に戻せます。');
+      return true;
     }
 
     findNode(id) {
@@ -786,7 +1026,7 @@
       const targetPort = Number(port);
       this.pendingFrom = null;
       this.pendingRewire = null;
-      this.selected = null;
+      this.setNodeSelection([]);
       if (!wire || !from || !to || from.type === 'output' || to.type === 'input'
         || !Number.isInteger(targetPort) || targetPort < 0 || targetPort >= this.inputCount(to)) {
         this.notice = 'その端子へ配線を付け替えることはできません。';
@@ -833,6 +1073,15 @@
       if (node.type === 'output') return { x: node.x - 35, y: node.y };
       const geometry = Renderer.gateGeometry(node.type);
       return { x: node.x + geometry.inputX, y: node.y + geometry.inputYs[port] };
+    }
+
+    // 配置メニューでは接続端子ではなく、画面に見える部品本体の端を基準にする。
+    nodeBodyBounds(node) {
+      if (node.type === 'input') return { left: node.x - 34, right: node.x + 34, top: node.y - 29, bottom: node.y + 29 };
+      if (node.type === 'output') return { left: node.x - 31, right: node.x + 31, top: node.y - 29, bottom: node.y + 29 };
+      if (node.type === 'NOT') return { left: node.x - 30, right: node.x + 36, top: node.y - 24, bottom: node.y + 24 };
+      if (node.type === 'OR') return { left: node.x - 31, right: node.x + 30, top: node.y - 26, bottom: node.y + 26 };
+      return { left: node.x - 30, right: node.x + 30, top: node.y - 26, bottom: node.y + 26 };
     }
 
     connectionPath(from, to) {
@@ -1183,7 +1432,7 @@
         this.notice = '接続をキャンセルしました。';
       } else {
         this.pendingFrom = nodeId;
-        this.selected = { kind: 'node', id: nodeId };
+        this.setNodeSelection([nodeId], nodeId);
         this.notice = '接続先の黒い入力端子を選んでください。Escでキャンセルできます。';
       }
       this.render();
@@ -1227,7 +1476,7 @@
         port: targetPort
       });
       this.pendingFrom = null;
-      this.selected = null;
+      this.setNodeSelection([]);
       this.commit(`${from.name || from.type}から${to.name || to.type}へ接続しました。${displaced ? 'この端子の古い配線を置き換えました。Undoで戻せます。' : ''}`);
     }
 
@@ -1235,6 +1484,7 @@
       this.pendingFrom = null;
       this.pendingRewire = null;
       this.connectionDrag = null;
+      this.selectedNodeIds.clear();
       this.selected = { kind: 'wire', id };
       this.notice = '配線を選択しました。強調された両端をドラッグして付け替え、×またはDeleteで削除できます。';
       this.render();
@@ -1257,12 +1507,33 @@
       if (this.selected.kind === 'wire') {
         const before = this.graph.wires.length;
         this.graph.wires = this.graph.wires.filter(wire => wire.id !== this.selected.id);
-        this.selected = null;
+        this.setNodeSelection([]);
         if (this.graph.wires.length !== before) this.commit('配線を削除しました。Undoで戻せます。');
         return;
       }
       const node = this.findNode(this.selected.id);
       if (!node) return;
+      const selectedIds = this.selectedNodeIdSet();
+      if (this.allowsMultipleSelection() && selectedIds.size > 1 && selectedIds.has(node.id)) {
+        const nodes = this.graph.nodes.filter(candidate => selectedIds.has(candidate.id));
+        const outputCount = this.graph.nodes.filter(candidate => candidate.type === 'output').length;
+        const deletedOutputs = nodes.filter(candidate => candidate.type === 'output').length;
+        if (nodes.some(candidate => !this.canDeleteNode(candidate)) || outputCount - deletedOutputs < 1) {
+          this.notice = '固定されている部品を含むため、まとめて削除できません。';
+          this.render();
+          return;
+        }
+        this.graph.nodes = this.graph.nodes.filter(candidate => !selectedIds.has(candidate.id));
+        this.graph.wires = this.graph.wires.filter(wire => !selectedIds.has(wire.from) && !selectedIds.has(wire.to));
+        nodes.filter(candidate => candidate.type === 'input').forEach(candidate => {
+          this.inputNames = this.inputNames.filter(name => name !== candidate.name);
+          delete this.inputValues[candidate.name];
+        });
+        this.updateOutputNames();
+        this.setNodeSelection([]);
+        this.commit(`${nodes.length}個の部品と接続配線を削除しました。Undoで戻せます。`);
+        return;
+      }
       if (!this.canDeleteNode(node)) {
         this.notice = 'この部品は固定されているため削除できません。';
         this.render();
@@ -1275,7 +1546,7 @@
         delete this.inputValues[node.name];
       }
       this.updateOutputNames();
-      this.selected = null;
+      this.setNodeSelection([]);
       const label = node.type === 'input' ? `入力${node.name}` : node.type === 'output' ? `出力${node.name}` : `${node.type}ゲート`;
       this.commit(`${label}と接続配線を削除しました。Undoで戻せます。`);
     }
@@ -1429,13 +1700,14 @@
       };
       if (connectedWire) {
         this.pendingFrom = null;
+        this.selectedNodeIds.clear();
         this.selected = { kind: 'wire', id: connectedWire.id };
         this.notice = kind === 'output'
           ? '選択した配線の左端を、別の出力端子までドラッグしてください。'
           : '配線の末端を、付け替え先の入力端子または出力端子までドラッグしてください。';
       } else if (kind === 'output') {
         this.pendingFrom = node.id;
-        this.selected = { kind: 'node', id: node.id };
+        this.setNodeSelection([node.id], node.id);
         this.notice = '入力端子までドラッグするか、接続先の端子を選んでください。';
       } else {
         this.notice = previousPendingFrom
@@ -1562,28 +1834,132 @@
       this.svg.appendChild(control);
     }
 
+    startMarquee(event) {
+      if (!this.allowsMultipleSelection() || event.button !== 0 || this.drag || this.connectionDrag || this.bendDrag) return;
+      event.preventDefault();
+      this.canvasWrap.focus({ preventScroll: true });
+      this.svg.setPointerCapture?.(event.pointerId);
+      const start = this.toSvgPoint(event.clientX, event.clientY);
+      this.marquee = { pointerId: event.pointerId, start, current: start, moved: false,
+        originalIds: event.shiftKey ? this.selectedNodeIdSet() : new Set(), additive: Boolean(event.shiftKey) };
+      this.pendingFrom = null;
+      this.pendingRewire = null;
+      this.connectionDrag = null;
+      this.notice = '範囲をドラッグして部品を選択します。Escapeでキャンセルできます。';
+      this.render({ notify: false });
+    }
+
+    updateMarquee(point) {
+      const marquee = this.marquee;
+      if (!marquee) return;
+      marquee.current = { x: clamp(point.x, 0, WIDTH), y: clamp(point.y, 0, HEIGHT) };
+      marquee.moved ||= Math.hypot(marquee.current.x - marquee.start.x, marquee.current.y - marquee.start.y) > 3;
+      if (!marquee.moved) return;
+      const left = Math.min(marquee.start.x, marquee.current.x), right = Math.max(marquee.start.x, marquee.current.x);
+      const top = Math.min(marquee.start.y, marquee.current.y), bottom = Math.max(marquee.start.y, marquee.current.y);
+      const ids = new Set(marquee.originalIds);
+      this.graph.nodes.forEach(node => {
+        if (node.x >= left && node.x <= right && node.y >= top && node.y <= bottom) ids.add(node.id);
+      });
+      this.setNodeSelection(ids, ids.values().next().value || null);
+    }
+
     startDrag(event, node) {
       if (event.button !== 0) return;
       event.preventDefault();
       this.canvasWrap.focus({ preventScroll: true });
       this.svg.setPointerCapture?.(event.pointerId);
-      this.selected = { kind: 'node', id: node.id };
+      const touchPicking = this.allowsMultipleSelection() && this.selectionMode && (event.pointerType === 'touch' || event.pointerType === 'pen');
+      if (this.allowsMultipleSelection() && (event.shiftKey || touchPicking)) {
+        this.selectNode(node.id, { additive: true, toggle: true });
+        this.pendingFrom = null;
+        this.pendingRewire = null;
+        this.notice = `${node.name || node.type}を${this.selectedNodeIdSet().has(node.id) ? '選択' : '選択解除'}しました。`;
+        this.render();
+        return;
+      }
+      const wasSelected = this.selectedNodeIdSet().has(node.id);
+      if (!wasSelected || this.selectedNodeIdSet().size < 2) this.setNodeSelection([node.id], node.id);
       this.pendingFrom = null;
       this.pendingRewire = null;
       this.connectionDrag = null;
+      const ids = this.selectedNodeIdSet();
+      const movingIds = this.allowsMultipleSelection() && ids.size > 1 && ids.has(node.id) ? ids : new Set([node.id]);
+      const originalPositions = new Map(Array.from(movingIds, id => {
+        const item = this.findNode(id);
+        return [id, { x: item.x, y: item.y }];
+      }));
+      const originalBends = new Map(this.graph.wires.filter(wire => movingIds.has(wire.from) && movingIds.has(wire.to) && Array.isArray(wire.bends))
+        .map(wire => [wire.id, deepCopy(wire.bends)]));
       this.drag = {
         nodeId: node.id,
         pointerId: event.pointerId,
         start: this.toSvgPoint(event.clientX, event.clientY),
         originalX: node.x,
         originalY: node.y,
+        nodeIds: movingIds,
+        originalPositions,
+        originalBends,
         moved: false,
-        inputClick: node.type === 'input'
+        inputClick: node.type === 'input' && movingIds.size === 1
       };
       this.notice = node.type === 'input'
         ? `入力${node.name}をクリックすると0/1、ドラッグすると移動します。`
         : `${node.name || node.type}を選択しました。ドラッグで移動できます。`;
       this.render();
+    }
+
+    moveDraggedNodes(drag, point, bypassSnap = false) {
+      const dx = point.x - drag.start.x;
+      const dy = point.y - drag.start.y;
+      const originals = [...drag.originalPositions.values()];
+      const lowerX = Math.min(...originals.map(position => position.x));
+      const upperX = Math.max(...originals.map(position => position.x));
+      const lowerY = Math.min(...originals.map(position => position.y));
+      const upperY = Math.max(...originals.map(position => position.y));
+      let moveX = clamp(dx, 45 - lowerX, WIDTH - 45 - upperX);
+      let moveY = clamp(dy, 42 - lowerY, HEIGHT - 42 - upperY);
+      // 内部の手動折れ点も選択グループの一部として扱い、保存形式の範囲外へ出さない。
+      const bends = [...drag.originalBends.values()].flat();
+      if (bends.length) {
+        moveX = clamp(moveX, -Math.min(...bends.map(bend => bend.x)), WIDTH - Math.max(...bends.map(bend => bend.x)));
+        moveY = clamp(moveY, -Math.min(...bends.map(bend => bend.y)), HEIGHT - Math.max(...bends.map(bend => bend.y)));
+      }
+      if (drag.nodeIds.size === 1) {
+        const node = this.findNode(drag.nodeId);
+        const snapped = this.snapPosition(node, { x: drag.originalX + dx, y: drag.originalY + dy }, drag, bypassSnap);
+        moveX = snapped.x - drag.originalX;
+        moveY = snapped.y - drag.originalY;
+      } else {
+        drag.guides = [];
+      }
+      drag.originalPositions.forEach((position, id) => {
+        const node = this.findNode(id);
+        if (node) Object.assign(node, { x: position.x + moveX, y: position.y + moveY });
+      });
+      drag.originalBends.forEach((bends, wireId) => {
+        const wire = this.graph.wires.find(item => item.id === wireId);
+        if (wire) wire.bends = bends.map(bend => routePoint(bend.x + moveX, bend.y + moveY));
+      });
+    }
+
+    panCanvas(pan, clientX, clientY) {
+      this.canvasWrap.scrollLeft = pan.scrollLeft - (clientX - pan.x);
+      const desiredTop = pan.scrollTop - (clientY - pan.y);
+      const maximumTop = this.canvasWrap.scrollHeight - this.canvasWrap.clientHeight;
+      this.canvasWrap.scrollTop = clamp(desiredTop, 0, maximumTop);
+      // 回路内を端までスクロールしたら、残りは外側のスライドへ渡す。
+      if (pan.slide) pan.slide.scrollTop = pan.slideTop + desiredTop - this.canvasWrap.scrollTop;
+    }
+
+    beginPan(event) {
+      const slide = this.container.closest('.lesson-slide');
+      this.pan = {
+        pointerId: event.pointerId, x: event.clientX, y: event.clientY,
+        scrollLeft: this.canvasWrap.scrollLeft, scrollTop: this.canvasWrap.scrollTop,
+        slide, slideTop: slide?.scrollTop || 0
+      };
+      this.svg.setPointerCapture?.(event.pointerId);
     }
 
     toSvgPoint(clientX, clientY) {
@@ -1737,6 +2113,12 @@
     }
 
     handlePointerMove(event) {
+      if (this.marquee?.pointerId === event.pointerId) {
+        event.preventDefault();
+        this.updateMarquee(this.toSvgPoint(event.clientX, event.clientY));
+        this.render({ notify: false });
+        return;
+      }
       if (this.bendDrag?.pointerId === event.pointerId) {
         event.preventDefault();
         const gesture = this.bendDrag;
@@ -1769,12 +2151,7 @@
       if (this.pan?.pointerId === event.pointerId) {
         event.preventDefault();
         const pan = this.pan;
-        this.canvasWrap.scrollLeft = pan.scrollLeft - (event.clientX - pan.x);
-        const desiredTop = pan.scrollTop - (event.clientY - pan.y);
-        const maximumTop = this.canvasWrap.scrollHeight - this.canvasWrap.clientHeight;
-        this.canvasWrap.scrollTop = clamp(desiredTop, 0, maximumTop);
-        // 回路内を端までスクロールしたら、残りは外側のスライドへ渡す。
-        if (pan.slide) pan.slide.scrollTop = pan.slideTop + desiredTop - this.canvasWrap.scrollTop;
+        this.panCanvas(pan, event.clientX, event.clientY);
         return;
       }
       if (this.connectionDrag && event.pointerId === this.connectionDrag.pointerId) {
@@ -1793,8 +2170,6 @@
         return;
       }
       if (!this.drag || event.pointerId !== this.drag.pointerId) return;
-      const node = this.findNode(this.drag.nodeId);
-      if (!node) return;
       const point = this.toSvgPoint(event.clientX, event.clientY);
       const dx = point.x - this.drag.start.x;
       const dy = point.y - this.drag.start.y;
@@ -1802,12 +2177,20 @@
         if (Math.hypot(dx, dy) <= 3) return;
         this.drag.moved = true;
       }
-      const position = this.snapPosition(node, { x: this.drag.originalX + dx, y: this.drag.originalY + dy }, this.drag, event.altKey);
-      Object.assign(node, position);
+      this.moveDraggedNodes(this.drag, point, event.altKey);
       this.render({ notify: false });
     }
 
     handlePointerUp(event) {
+      if (this.marquee?.pointerId === event.pointerId) {
+        if (Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) this.updateMarquee(this.toSvgPoint(event.clientX, event.clientY));
+        const marquee = this.marquee;
+        this.marquee = null;
+        if (!marquee.moved) this.setNodeSelection([]);
+        this.notice = this.selectedNodeIdSet().size ? `${this.selectedNodeIdSet().size}個の部品を選択しました。` : '選択を解除しました。';
+        this.render();
+        return;
+      }
       if (this.bendDrag?.pointerId === event.pointerId) {
         if (Number.isFinite(event.clientX) && Number.isFinite(event.clientY)) this.handlePointerMove(event);
         const gesture = this.bendDrag;
@@ -1828,6 +2211,7 @@
         return;
       }
       if (this.pan?.pointerId === event.pointerId) {
+        this.panCanvas(this.pan, event.clientX, event.clientY);
         this.pan = null;
         return;
       }
@@ -1897,14 +2281,23 @@
       const drag = this.drag;
       this.drag = null;
       if (drag.moved) {
-        const node = this.findNode(drag.nodeId);
-        if (node && (node.x !== drag.originalX || node.y !== drag.originalY)) {
+        const moved = [...drag.originalPositions].some(([id, position]) => {
+          const node = this.findNode(id);
+          return node && (node.x !== position.x || node.y !== position.y);
+        });
+        if (moved) {
           // 確定するまで履歴に触れず、キャンセル時はRedoもそのまま残す。
-          const position = { x: node.x, y: node.y };
-          Object.assign(node, { x: drag.originalX, y: drag.originalY });
+          const positions = new Map([...drag.originalPositions.keys()].map(id => {
+            const node = this.findNode(id);
+            return [id, { x: node.x, y: node.y }];
+          }));
+          const bends = new Map([...drag.originalBends.keys()].map(id => [id, deepCopy(this.graph.wires.find(wire => wire.id === id)?.bends || [])]));
+          drag.originalPositions.forEach((position, id) => Object.assign(this.findNode(id), position));
+          drag.originalBends.forEach((original, id) => { this.graph.wires.find(wire => wire.id === id).bends = original; });
           this.checkpoint();
-          Object.assign(node, position);
-          this.commit('部品を移動しました。');
+          positions.forEach((position, id) => Object.assign(this.findNode(id), position));
+          bends.forEach((points, id) => { this.graph.wires.find(wire => wire.id === id).bends = points; });
+          this.commit(drag.nodeIds.size > 1 ? '選択した部品を移動しました。' : '部品を移動しました。');
         } else this.render({ notify: false });
       } else if (drag.inputClick) {
         this.toggleInput(drag.nodeId);
@@ -1916,6 +2309,15 @@
     handleDocumentKeyDown(event) {
       if (this.destroyed) return;
       if (document.activeElement?.closest?.('dialog[open]')) return;
+      const keyboardRoot = this.options.keyboardRoot || this.container;
+      const withinEditor = Boolean(keyboardRoot?.contains?.(document.activeElement)) || this.drag || this.connectionDrag || this.marquee;
+      const spaceKey = event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar';
+      const panFocus = document.activeElement === this.canvasWrap || document.activeElement === this.svg;
+      if (this.options.allowMousePan === true && spaceKey && withinEditor && panFocus) {
+        this.spacePan = true;
+        // Safari/WebKitがSpaceをスクロールへ使うと、ドラッグ開始までにフォーカスや位置が変わる。
+        event.preventDefault();
+      }
       if (this.bendDrag) {
         if (event.key === 'Escape') {
           event.preventDefault(); this.cancelPointerGesture({ pointerId: this.bendDrag.pointerId });
@@ -1936,8 +2338,12 @@
         }
         return;
       }
-      const keyboardRoot = this.options.keyboardRoot || this.container;
-      const withinEditor = keyboardRoot.contains(document.activeElement) || this.drag || this.connectionDrag;
+      if (this.marquee) {
+        if (event.key === 'Escape') {
+          event.preventDefault(); this.cancelPointerGesture({ pointerId: this.marquee.pointerId });
+        }
+        return;
+      }
       if (event.key === 'Escape' && this.help?.open && withinEditor) {
         this.help.open = false;
         this.help.querySelector('summary').focus();
@@ -1949,6 +2355,11 @@
         this.connectionDrag = null;
         this.notice = '接続をキャンセルしました。';
         this.render();
+        return;
+      }
+      if (event.key === 'Escape' && withinEditor && this.allowsMultipleSelection() && this.selectedNodeIdSet().size) {
+        event.preventDefault();
+        this.clearSelection();
         return;
       }
       if (!withinEditor) return;
@@ -1964,7 +2375,19 @@
       }
     }
 
+    handleDocumentKeyUp(event) {
+      if (this.options.allowMousePan === true && (event.code === 'Space' || event.key === ' ' || event.key === 'Spacebar')) this.spacePan = false;
+    }
+
     cancelPointerGesture(event) {
+      if (this.marquee?.pointerId === event.pointerId) {
+        const marquee = this.marquee;
+        this.marquee = null;
+        this.setNodeSelection(marquee.originalIds, marquee.originalIds.values().next().value || null);
+        this.notice = '範囲選択をキャンセルしました。';
+        this.render({ notify: false });
+        return;
+      }
       if (this.bendDrag?.pointerId === event.pointerId) {
         const gesture = this.bendDrag;
         const wire = this.graph.wires.find(item => item.id === gesture.wireId);
@@ -1985,8 +2408,8 @@
         return;
       }
       if (this.drag?.pointerId === event.pointerId) {
-        const node = this.findNode(this.drag.nodeId);
-        if (node) Object.assign(node, { x: this.drag.originalX, y: this.drag.originalY });
+        this.drag.originalPositions.forEach((position, id) => Object.assign(this.findNode(id), position));
+        this.drag.originalBends.forEach((bends, id) => { this.graph.wires.find(wire => wire.id === id).bends = bends; });
         this.drag = null;
       } else if (this.connectionDrag?.pointerId === event.pointerId) {
         this.connectionDrag = null;
@@ -2099,9 +2522,11 @@
     }
 
     drawNode(node, signals) {
-      const selected = this.selected?.kind === 'node' && this.selected.id === node.id;
+      const selectedIds = this.selectedNodeIdSet();
+      const selected = selectedIds.has(node.id);
+      const multiple = selected && selectedIds.size > 1;
       const group = Renderer.svgElement('g', {
-        class: `logic-editor-node logic-editor-node--${node.type.toLowerCase()}${selected ? ' is-selected' : ''}`,
+        class: `logic-editor-node logic-editor-node--${node.type.toLowerCase()}${selected ? ' is-selected' : ''}${multiple ? ' is-multi-selected' : ''}`,
         'data-node-id': node.id,
         'data-focus-key': `node-${node.id}`,
         transform: `translate(${node.x} ${node.y})`,
@@ -2113,20 +2538,25 @@
       });
       group.addEventListener('pointerdown', event => this.startDrag(event, node));
       group.addEventListener('keydown', event => {
-        if (node.type === 'input' && (event.key === 'Enter' || event.key === ' ')) {
+        if (this.allowsMultipleSelection() && event.shiftKey && (event.key === 'Enter' || event.key === ' ')) {
           event.preventDefault();
-          this.selected = { kind: 'node', id: node.id };
+          this.selectNode(node.id, { additive: true, toggle: true });
+          this.notice = `${node.name || node.type}を${this.selectedNodeIdSet().has(node.id) ? '選択' : '選択解除'}しました。`;
+          this.render();
+        } else if (node.type === 'input' && (event.key === 'Enter' || event.key === ' ')) {
+          event.preventDefault();
+          this.setNodeSelection([node.id], node.id);
           this.toggleInput(node.id);
         } else if (event.key === 'Enter' || event.key === ' ') {
           event.preventDefault();
-          this.selected = { kind: 'node', id: node.id };
+          this.setNodeSelection([node.id], node.id);
           this.pendingFrom = null;
           this.pendingRewire = null;
           this.render();
         } else if ((event.key === 'Delete' || event.key === 'Backspace') && this.canDeleteNode(node)) {
           event.preventDefault();
           event.stopPropagation();
-          this.selected = { kind: 'node', id: node.id };
+          if (!this.selectedNodeIdSet().has(node.id)) this.setNodeSelection([node.id], node.id);
           this.deleteSelected();
         }
       });
@@ -2185,6 +2615,41 @@
       if (node.type !== 'output') this.svg.appendChild(this.makePort(node, 'output', 0));
     }
 
+    drawSelectionMarquee() {
+      if (!this.marquee?.current) return;
+      const { start, current } = this.marquee;
+      this.svg.appendChild(Renderer.svgElement('rect', {
+        class: 'logic-editor-selection-marquee',
+        x: Math.min(start.x, current.x), y: Math.min(start.y, current.y),
+        width: Math.abs(current.x - start.x), height: Math.abs(current.y - start.y),
+        'aria-hidden': 'true', 'pointer-events': 'none'
+      }));
+    }
+
+    drawDiagnosticMarkers(issues) {
+      if (!this.options.enableDiagnostics || !issues.length) return;
+      const marked = new Set();
+      issues.forEach(issue => {
+        const key = `${issue.nodeId}:${issue.port ?? ''}`;
+        if (marked.has(key)) return;
+        marked.add(key);
+        const node = this.findNode(issue.nodeId);
+        if (!node) return;
+        const point = Number.isInteger(issue.port) ? this.inputPoint(node, issue.port)
+          : issue.kind === 'input-unconnected' ? this.outputPoint(node) : { x: node.x + 34, y: node.y - 30 };
+        const focused = this.diagnosticFocusId === issue.id;
+        const marker = Renderer.svgElement('g', {
+          class: `logic-editor-diagnostic logic-editor-diagnostic--${issue.kind}${focused ? ' is-focused' : ''}`,
+          transform: `translate(${point.x} ${point.y})`, 'aria-hidden': 'true', 'pointer-events': 'none'
+        });
+        marker.append(
+          Renderer.svgElement('circle', { class: 'logic-editor-diagnostic__ring', cx: 0, cy: 0, r: 15 }),
+          Renderer.svgElement('text', { class: 'logic-editor-diagnostic__mark', x: 0, y: 5, 'text-anchor': 'middle' }, '!')
+        );
+        this.svg.appendChild(marker);
+      });
+    }
+
     render(options = {}) {
       const focusedKey = this.svg.contains(document.activeElement)
         ? document.activeElement.getAttribute('data-focus-key') : null;
@@ -2199,27 +2664,23 @@
         rx: 12
       });
       background.addEventListener('pointerdown', event => {
-        if (event.pointerType === 'touch' || event.pointerType === 'pen'
-          || (this.options.allowMousePan && event.button === 0)) {
-          const slide = this.container.closest('.lesson-slide');
-          this.pan = {
-            pointerId: event.pointerId, x: event.clientX, y: event.clientY,
-            scrollLeft: this.canvasWrap.scrollLeft, scrollTop: this.canvasWrap.scrollTop,
-            slide, slideTop: slide?.scrollTop || 0
-          };
-          this.svg.setPointerCapture?.(event.pointerId);
+        const touchSelect = (event.pointerType === 'touch' || event.pointerType === 'pen') && this.selectionMode;
+        const mouseSelect = event.pointerType !== 'touch' && event.pointerType !== 'pen' && !this.spacePan;
+        if (this.allowsMultipleSelection() && event.button === 0 && (touchSelect || mouseSelect)) {
+          this.startMarquee(event);
+          return;
         }
-        this.pendingFrom = null;
-        this.pendingRewire = null;
-        this.connectionDrag = null;
-        this.selected = null;
-        this.notice = '選択を解除しました。';
-        this.render();
+        if (event.pointerType === 'touch' || event.pointerType === 'pen'
+          || this.spacePan || (this.options.allowMousePan && event.button === 0)) {
+          this.beginPan(event);
+        }
+        this.clearSelection();
       });
       const title = Renderer.svgElement('title', {}, '自由に編集できる論理回路');
       const desc = Renderer.svgElement('desc', {}, '左に入力、右に出力があります。端子を順に選ぶか端子間をドラッグして接続します。接続済み入力端子のドラッグで配線を付け替えられます。配線は重なりを避け、同じ出力からは途中で分岐します。');
       this.svg.replaceChildren(title, desc, background);
       this.drawAlignmentGuides();
+      this.drawSelectionMarquee();
       const rewiringWireId = this.connectionDrag?.moved ? this.connectionDrag.rewireWireId : null;
       const routing = this.computeWireRouting(rewiringWireId);
       this.currentWireRoutes = routing.routes;
@@ -2231,6 +2692,7 @@
       this.drawConnectionPreview();
       this.drawBendControls();
       this.graph.nodes.forEach(node => this.drawNode(node, signals));
+      this.drawDiagnosticMarkers(this.getDiagnostics());
       this.drawDeleteControl();
       this.drawPalettePreview();
 
@@ -2285,6 +2747,67 @@
 
     getAnalysis(inputNames) {
       return Core.graphAnalysis(this.graph, inputNames, { allowMultipleOutputs: Boolean(this.options.allowMultipleOutputs) });
+    }
+
+    getDiagnostics() {
+      if (this.options.enableDiagnostics !== true) return [];
+      const analysis = this.getAnalysis();
+      const issues = [];
+      const outputs = this.graph.nodes.filter(node => node.type === 'output');
+      const outputNames = new Map(outputs.map((node, index) => [node.id, Core.outputName(index, outputs.length)]));
+      // graphToAst と同じ向き・端子番号を満たす配線だけを「接続済み」と数える。
+      const validWire = wire => {
+        const from = this.findNode(wire.from);
+        const to = this.findNode(wire.to);
+        const port = Number(wire.port);
+        return from && to && from.type !== 'output' && to.type !== 'input'
+          && Number.isInteger(port) && port >= 0 && port < this.inputCount(to);
+      };
+      this.graph.nodes.forEach(node => {
+        if (node.type === 'input') {
+          const connected = this.graph.wires.some(wire => wire.from === node.id && validWire(wire));
+          if (!connected) issues.push({ id: `input:${node.id}`, kind: 'input-unconnected', nodeId: node.id,
+            message: `入力${node.name}の出力端子が接続されていません。` });
+          return;
+        }
+        const count = this.inputCount(node);
+        for (let port = 0; port < count; port += 1) {
+          if (this.graph.wires.some(wire => validWire(wire) && wire.to === node.id && Number(wire.port) === port)) continue;
+          const label = node.type === 'output' ? `出力${outputNames.get(node.id) || node.name}` : `${node.type}ゲート`;
+          issues.push({ id: `port:${node.id}:${port}`, kind: 'port-unconnected', nodeId: node.id, port,
+            message: `${label}の入力端子${count > 1 ? port + 1 : ''}が接続されていません。` });
+        }
+        if (node.type !== 'output' && !analysis.reachable.has(node.id)) {
+          issues.push({ id: `gate:${node.id}`, kind: 'gate-unreachable', nodeId: node.id,
+            message: `${node.type}ゲートがFへつながっていません。` });
+        }
+      });
+      return issues;
+    }
+
+    focusDiagnostic(issueId) {
+      const issue = this.getDiagnostics().find(item => item.id === issueId);
+      if (!issue || !this.findNode(issue.nodeId)) return false;
+      this.setNodeSelection([issue.nodeId], issue.nodeId);
+      this.diagnosticFocusId = issue.id;
+      this.notice = issue.message;
+      this.render({ notify: false });
+      const node = this.findNode(issue.nodeId);
+      const point = Number.isInteger(issue.port) ? this.inputPoint(node, issue.port) : { x: node.x, y: node.y };
+      // focus() だけではスクロールコンテナ内の遠い部品が見えないため、キャンバス中央へ寄せる。
+      const svgRect = this.svg.getBoundingClientRect?.();
+      const wrapRect = this.canvasWrap.getBoundingClientRect?.();
+      if (svgRect && wrapRect && svgRect.width && svgRect.height) {
+        const targetX = svgRect.left + point.x / WIDTH * svgRect.width;
+        const targetY = svgRect.top + point.y / HEIGHT * svgRect.height;
+        this.canvasWrap.scrollLeft = clamp(this.canvasWrap.scrollLeft + targetX - (wrapRect.left + wrapRect.width / 2),
+          0, Math.max(0, this.canvasWrap.scrollWidth - this.canvasWrap.clientWidth));
+        this.canvasWrap.scrollTop = clamp(this.canvasWrap.scrollTop + targetY - (wrapRect.top + wrapRect.height / 2),
+          0, Math.max(0, this.canvasWrap.scrollHeight - this.canvasWrap.clientHeight));
+      }
+      const target = this.svg.querySelector?.(`[data-focus-key="node-${issue.nodeId}"]`);
+      target?.focus?.({ preventScroll: true });
+      return true;
     }
 
     getState() {
@@ -2447,6 +2970,7 @@
       document.removeEventListener('pointercancel', this.boundPointerCancel);
       document.removeEventListener('pointerdown', this.boundOutsideHelp, true);
       document.removeEventListener('keydown', this.boundKeyDown);
+      document.removeEventListener('keyup', this.boundKeyUp);
       clearTimeout(this.helpCloseTimer);
     }
   }

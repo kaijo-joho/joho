@@ -1,6 +1,18 @@
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 
+export async function revealToolButton(page, control) {
+  // Viewport changes dispatch resize asynchronously; let the responsive menu settle
+  // before deciding whether its controls need to be revealed.
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  if (!await control.isVisible()) {
+    const summary = page.locator('#toolbar-menu > summary');
+    if (await summary.isVisible() && !await summary.evaluate(node => node.parentElement.open)) await summary.click();
+  }
+  await control.waitFor({ state: 'visible' });
+  return control;
+}
+
 export async function setToolPreferences(page, theme, size) {
   await page.evaluate(({ theme, size }) => {
     const themeSelect = document.getElementById('theme');
@@ -23,7 +35,7 @@ export async function toolLayoutChecks(page, name, artifacts) {
         return { width: document.documentElement.scrollWidth, top: box('.top'), stage: box('#stage'),
           palette: box('.palette'), hint: box('#operation-hint'), status: box('.statusbar'),
           bg: getComputedStyle(document.querySelector('.logic-editor__background')).fill,
-          topRows: [...document.querySelectorAll('.top button')].filter(b => !b.hidden).map(b => b.getBoundingClientRect().top) };
+          topRows: [...document.querySelectorAll('.top button, .top summary')].filter(b => b.getBoundingClientRect().width > 0).map(b => b.getBoundingClientRect().top) };
       });
       assert.ok(layout.width <= width + 1 && layout.stage.height > 150, `${name} ${width} ${theme} ${size}: usable canvas`);
       assert.ok(Math.max(...layout.topRows) - Math.min(...layout.topRows) <= 1, 'one toolbar row');
@@ -31,6 +43,19 @@ export async function toolLayoutChecks(page, name, artifacts) {
       assert.ok(layout.status.bottom <= 901 && layout.status.bottom >= 898, 'status at bottom');
       if (theme === 'dark') assert.equal(layout.bg, 'rgb(15, 23, 30)', 'editing canvas is dark');
       if (theme === 'light') assert.equal(layout.bg, 'rgb(237, 243, 248)', 'explicit light overrides dark OS');
+    }
+    if (await page.locator('.top.is-compact').count()) {
+      const summary = page.locator('#toolbar-menu > summary');
+      await summary.press('Enter');
+      const menu = await page.locator('#basic-toolbar').boundingBox();
+      assert.ok(menu && menu.x >= 0 && menu.x + menu.width <= width, 'compact toolbar menu stays inside viewport');
+      assert.equal(await page.locator('#basic-toolbar button:visible').count(), 8, 'every basic action is available in the menu');
+      await page.locator('#basic-toolbar button').first().focus();
+      await page.keyboard.press('Escape');
+      assert.equal(await summary.evaluate(node => document.activeElement === node), true, 'Escape returns focus to toolbar menu');
+    }
+    if (await page.locator('#export-preview').isVisible()) {
+      assert.ok((await page.locator('#export-preview').boundingBox()).height >= 100, 'preview is not compressed by export controls');
     }
     if (artifacts) await page.screenshot({ path: join(artifacts, `${name}-tool-${width}.png`) });
   }

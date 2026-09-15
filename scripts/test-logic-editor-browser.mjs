@@ -1,6 +1,6 @@
 // Requires Playwright and a local HTTP server; see docs/page-specific-editing-notes.md.
 import assert from 'node:assert/strict';
-import { toolLayoutChecks } from './logic-tool-browser-helpers.mjs';
+import { toolLayoutChecks, revealToolButton } from './logic-tool-browser-helpers.mjs';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -27,13 +27,13 @@ async function ready(page, path = 'lc02.html') {
 
 const state = page => page.evaluate(() => window.logicWorkbenchEditor.snapshot());
 const reset = page => page.evaluate(() => window.logicWorkbenchEditor.loadExpression('A-B'));
-const undo = page => page.getByRole('button', { name: '元に戻す', exact: true }).click();
+const undo = async page => (await revealToolButton(page, page.getByRole('button', { name: '元に戻す', exact: true }))).click();
 const port = (page, node, kind, index = 0) => page.locator(`.logic-editor-port[data-node-id="${node}"][data-kind="${kind}"]${kind === 'input' ? `[data-port="${index}"]` : ''}`);
 const exportButton = page => page.getByRole('button', { name: '回路図を出力', exact: true });
 
 async function prepareExport(page, format, showSignals) {
   const toggle = page.getByRole('button', { name: '0/1の表示を切り替える', exact: true });
-  if (await toggle.getAttribute('aria-pressed') !== String(showSignals)) await toggle.click();
+  if (await toggle.getAttribute('aria-pressed') !== String(showSignals)) await (await revealToolButton(page, toggle)).click();
   if (await exportButton(page).getAttribute('aria-expanded') !== 'true') await exportButton(page).click();
   const dialog = page.locator('#export-panel');
   const radio = dialog.getByRole('radio', { name: format === 'svg' ? 'SVG（拡大・編集用）' : 'PNG（画像用）', exact: true });

@@ -437,14 +437,78 @@
     return { svg };
   }
 
-  function serializeSvg(svg, title) {
+  const EXPORT_BACKGROUND_VALUES = new Set(['white', 'transparent']);
+  const PNG_SCALES = new Set([1, 2, 4]);
+  const PNG_MAX_DIMENSION = 8192;
+  const PNG_MAX_PIXELS = 64 * 1024 * 1024;
+  const LEGACY_PNG_MAX_DIMENSION = 4096;
+  const MAX_FILENAME_LENGTH = 120;
+
+  function normalizedBackground(options) {
+    const background = options?.background === undefined ? 'white' : options.background;
+    if (!EXPORT_BACKGROUND_VALUES.has(background)) {
+      throw new TypeError('背景はwhiteまたはtransparentを指定してください。');
+    }
+    return background;
+  }
+
+  function normalizedOptions(options) {
+    if (options == null) return {};
+    if (typeof options !== 'object' || Array.isArray(options)) {
+      throw new TypeError('書き出しオプションが不正です。');
+    }
+    return options;
+  }
+
+  function exportFilename(filename, extension) {
+    const fallback = 'logic-circuit';
+    let value = typeof filename === 'string' && filename.trim() ? filename : fallback;
+    // ダウンロード先を指定するための区切り文字・制御文字をファイル名へ残さない。
+    value = value
+      .replace(/[\u0000-\u001f\u007f-\u009f\u2028\u2029]/g, '_')
+      .replace(/[\\/:*?"<>|]/g, '_')
+      .trim();
+    const lastDot = value.lastIndexOf('.');
+    let base = lastDot > 0 ? value.slice(0, lastDot) : value;
+    base = base.replace(/^\.+/g, '').replace(/[.\s]+$/g, '').trim();
+    if (!base || base === '.' || base === '..') base = fallback;
+    const suffix = `.${extension}`;
+    // Array.fromで切り、UTF-16のサロゲートペアを途中で切断しない。
+    const limit = Math.max(1, MAX_FILENAME_LENGTH - suffix.length);
+    base = Array.from(base).slice(0, limit).join('');
+    return `${base}${suffix}`;
+  }
+
+  function svgDimensions(svg) {
+    let width = Number(svg.viewBox?.baseVal?.width);
+    let height = Number(svg.viewBox?.baseVal?.height);
+    if (!(width > 0) || !(height > 0)) {
+      const parts = String(svg.getAttribute('viewBox') || '').trim().split(/[\s,]+/).map(Number);
+      if (parts.length === 4 && parts[2] > 0 && parts[3] > 0) {
+        width = parts[2];
+        height = parts[3];
+      }
+    }
+    if (!(width > 0) || !(height > 0)) {
+      width = Number.parseFloat(svg.getAttribute('width'));
+      height = Number.parseFloat(svg.getAttribute('height'));
+    }
+    return {
+      width: Number.isFinite(width) && width > 0 ? width : 900,
+      height: Number.isFinite(height) && height > 0 ? height : 520
+    };
+  }
+
+  function serializeSvg(svg, title, options = {}) {
     if (!(svg instanceof SVGElement)) throw new TypeError('保存するSVG要素が見つかりません。');
+    const background = normalizedBackground(normalizedOptions(options));
     const clone = svg.cloneNode(true);
     // 名前空間はXMLSerializerに任せる。通常のxmlns属性との二重出力を防ぐ。
     clone.removeAttribute('xmlns');
     clone.removeAttribute('style'); // 画面用の自然幅のCSS変数は保存しない。
-    clone.setAttribute('width', clone.viewBox.baseVal.width || 900);
-    clone.setAttribute('height', clone.viewBox.baseVal.height || 520);
+    const dimensions = svgDimensions(clone);
+    clone.setAttribute('width', dimensions.width);
+    clone.setAttribute('height', dimensions.height);
     if (title) {
       let titleNode = clone.querySelector('title');
       if (!titleNode) {
@@ -467,31 +531,46 @@
       }
     }
     clone.querySelectorAll('style').forEach(style => style.remove());
+    // 背景だけを透明にする。ゲート本体のfillを透明にすると配線が透けるため、
+    // .logic-gate__body の塗りは常に既存の描画規則を維持する。
+    clone.querySelectorAll('.logic-svg__background').forEach(backgroundNode => {
+      backgroundNode.setAttribute('fill', background === 'transparent' ? 'transparent' : '#ffffff');
+    });
     return `<?xml version="1.0" encoding="UTF-8"?>\n${new XMLSerializer().serializeToString(clone)}`;
   }
 
   function downloadBlob(blob, filename) {
     const url = URL.createObjectURL(blob);
-    const anchor = document.createElement('a');
-    anchor.href = url;
-    anchor.download = filename;
+    let anchor = null;
     try {
+      anchor = document.createElement('a');
+      anchor.href = url;
+      anchor.download = filename;
       document.body.appendChild(anchor);
       anchor.click();
     } finally {
-      anchor.remove();
+      anchor?.remove();
       setTimeout(() => URL.revokeObjectURL(url), 1000);
     }
     return filename;
   }
 
-  function downloadSvg(svg, title = '論理回路') {
-    const blob = new Blob([serializeSvg(svg, title)], { type: 'image/svg+xml;charset=utf-8' });
-    return downloadBlob(blob, Core.createSvgFilename());
+  function downloadSvg(svg, title = '論理回路', options = {}) {
+    const normalized = normalizedOptions(options);
+    const background = normalizedBackground(normalized);
+    const blob = new Blob([serializeSvg(svg, title, { background })], { type: 'image/svg+xml;charset=utf-8' });
+    return downloadBlob(blob, exportFilename(normalized.filename || Core.createSvgFilename(), 'svg'));
   }
 
-  async function downloadPng(svg, title = '論理回路') {
-    const source = new Blob([serializeSvg(svg, title)], { type: 'image/svg+xml;charset=utf-8' });
+  async function createPngBlob(svg, title = '論理回路', options = {}) {
+    const normalized = normalizedOptions(options);
+    const background = normalizedBackground(normalized);
+    const hasExplicitScale = Object.prototype.hasOwnProperty.call(normalized, 'scale');
+    const requestedScale = hasExplicitScale ? normalized.scale : 2;
+    if (!PNG_SCALES.has(requestedScale)) {
+      throw new TypeError('PNGの解像度は1、2、4のいずれかを指定してください。');
+    }
+    const source = new Blob([serializeSvg(svg, title, { background })], { type: 'image/svg+xml;charset=utf-8' });
     const url = URL.createObjectURL(source);
     try {
       const image = new Image();
@@ -500,23 +579,46 @@
         image.onerror = () => reject(new Error('回路図を画像に変換できませんでした。'));
         image.src = url;
       });
-      // 通常は2倍解像度。大きな回路は長辺4096px以内に収める。
-      const scale = Math.min(2, 4096 / image.naturalWidth, 4096 / image.naturalHeight);
+      const naturalWidth = Number(image.naturalWidth || image.width);
+      const naturalHeight = Number(image.naturalHeight || image.height);
+      if (!(naturalWidth > 0) || !(naturalHeight > 0)
+        || !Number.isFinite(naturalWidth) || !Number.isFinite(naturalHeight)) {
+        throw new Error('回路図の画像サイズを取得できませんでした。');
+      }
+      // options未指定時だけ、従来の2倍・長辺4096pxへの自動縮小を維持する。
+      const scale = hasExplicitScale
+        ? requestedScale
+        : Math.min(requestedScale, LEGACY_PNG_MAX_DIMENSION / naturalWidth, LEGACY_PNG_MAX_DIMENSION / naturalHeight);
       const canvas = document.createElement('canvas');
-      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
-      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const width = Math.max(1, Math.round(naturalWidth * scale));
+      const height = Math.max(1, Math.round(naturalHeight * scale));
+      if (width > PNG_MAX_DIMENSION || height > PNG_MAX_DIMENSION || width * height > PNG_MAX_PIXELS) {
+        throw new Error('PNG画像が大きすぎます。解像度を下げてください。');
+      }
+      canvas.width = width;
+      canvas.height = height;
       const context = canvas.getContext('2d');
       if (!context) throw new Error('このブラウザではPNG画像を作成できません。');
-      context.fillStyle = '#ffffff';
-      context.fillRect(0, 0, canvas.width, canvas.height);
+      if (background === 'white') {
+        context.fillStyle = '#ffffff';
+        context.fillRect(0, 0, canvas.width, canvas.height);
+      }
       context.drawImage(image, 0, 0, canvas.width, canvas.height);
-      const blob = await new Promise((resolve, reject) => {
+      return await new Promise((resolve, reject) => {
         canvas.toBlob(result => result ? resolve(result) : reject(new Error('PNG画像を作成できませんでした。')), 'image/png');
       });
-      return downloadBlob(blob, Core.createSvgFilename().replace(/\.svg$/i, '.png'));
     } finally {
       URL.revokeObjectURL(url);
     }
+  }
+
+  async function downloadPng(svg, title = '論理回路', options = {}) {
+    const normalized = normalizedOptions(options);
+    const background = normalizedBackground(normalized);
+    const pngOptions = { background };
+    if (Object.prototype.hasOwnProperty.call(normalized, 'scale')) pngOptions.scale = normalized.scale;
+    const blob = await createPngBlob(svg, title, pngOptions);
+    return downloadBlob(blob, exportFilename(normalized.filename || Core.createSvgFilename(), 'png'));
   }
 
   root.LogicRenderer = Object.freeze({
@@ -530,6 +632,7 @@
     renderGraphCircuit,
     renderMessage,
     serializeSvg,
+    createPngBlob,
     downloadSvg,
     downloadPng
   });

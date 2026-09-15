@@ -127,7 +127,10 @@
       this.opener = null;
       opener?.setAttribute('aria-expanded', 'false');
       this.dialog.close();
-      if (restoreFocus && opener?.isConnected) opener.focus({ preventScroll: true });
+      if (restoreFocus && opener?.isConnected) {
+        if (this.options.restoreFocus) this.options.restoreFocus(opener);
+        else opener.focus({ preventScroll: true });
+      }
     }
 
     announce(message) {
@@ -144,21 +147,30 @@
       link.href = url;
       link.download = `${name.replace(/[\\/:*?"<>|]/g, '_')}.logic.json`;
       link.hidden = true;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      try { document.body.appendChild(link); link.click(); }
+      finally { link.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000); }
     }
 
-    requestReplace(action, label, opener) {
-      if (!this.isDirty()) { this.close(); action(); return; }
+    requestReplace(action, label, opener, { initial = false } = {}) {
+      const replace = () => {
+        try {
+          // 独立エディタでは下書きの退避が成功してから回路を置き換える。
+          if (this.options.replace) this.options.replace(action, { initial });
+          else action();
+          this.close();
+        } catch (error) {
+          if (!this.dialog.open) this.show('回路を切り替えられませんでした', opener);
+          this.showError(error);
+        }
+      };
+      if (initial || !this.isDirty()) { replace(); return; }
       this.show('変更を保存しますか？', opener);
       this.body.appendChild(element('p', '', `${label}の前に、現在の回路の未保存の変更を保存できます。`));
       const actions = element('div', 'logic-file-actions');
       const cancel = button('キャンセル', () => this.close());
       actions.append(
-        button('保存して続ける', () => this.openSave({ afterSave: action, opener })),
-        button('保存せず続ける', () => { this.close(); action(); }, 'logic-secondary-button logic-editor__action-button--danger'),
+        button('保存して続ける', () => this.openSave({ afterSave: replace, opener })),
+        button('保存せず続ける', replace, 'logic-secondary-button logic-editor__action-button--danger'),
         cancel
       );
       this.body.appendChild(actions);
@@ -192,7 +204,15 @@
       const save = (asCopy = false) => {
         if (!form.reportValidity()) return;
         try {
-          const record = this.store().save({
+          const store = this.store();
+          if (!asCopy && existing) {
+            const current = store.get(existing.id);
+            if (!current || JSON.stringify(current) !== JSON.stringify(existing)
+              || (this.savedFingerprint && this.fingerprint(current.snapshot) !== this.savedFingerprint)) {
+              throw new Error('別のタブで保存した回路が変更または削除されました。上書きせず、「別の回路として保存」か「ファイルに保存」を選んでください。');
+            }
+          }
+          const record = store.save({
             id: !asCopy && existing ? existing.id : undefined,
             name: name.value, snapshot: this.editor.snapshot()
           });
@@ -240,8 +260,43 @@
       name.select();
     }
 
-    openLoad() {
-      this.show('回路を読み込む', this.editor.loadButton);
+    openLoad({ initial = false, opener = this.editor.loadButton } = {}) {
+      this.show(initial ? 'どの回路から始めますか？' : '回路を読み込む', opener);
+      if (this.options.createNew) {
+        const fresh = button('新しい回路から始める', () => this.requestReplace(
+          this.options.createNew, '新規作成', opener, { initial }
+        ));
+        fresh.dataset.newCircuit = '';
+        this.body.appendChild(fresh);
+      }
+      if (this.options.drafts) {
+        this.body.appendChild(element('h4', '', '自動保存の下書き'));
+        try {
+          const drafts = this.options.drafts.list();
+          const list = element('ul', 'logic-file-list');
+          drafts.forEach(draft => {
+            const row = element('li', 'logic-file-row');
+            const name = draft.file.name || '名前のない回路';
+            const load = button('', () => {
+              try {
+                // 一覧を開いてからの別タブ更新を確認し、古い候補を黙って適用しない。
+                const current = this.options.drafts.list().find(item => item.id === draft.id);
+                if (!current) throw new Error('下書きが更新されました。読み込み一覧を開き直してください。');
+                this.requestReplace(() => this.options.drafts.load(current, { initial }),
+                  `下書き「${name}」の読み込み`, opener, { initial });
+              } catch (error) { this.showError(error); }
+            }, 'logic-secondary-button logic-file-load');
+            load.dataset.draftId = draft.id;
+            load.append(element('span', '', name), element('small', 'logic-file-meta',
+              `${draft.archived ? '切り替え前の下書き' : '前回の下書き'} · ${new Date(draft.updatedAt).toLocaleString('ja-JP')}`));
+            load.setAttribute('aria-label', `${draft.archived ? '切り替え前' : '前回'}の下書き「${name}」を読み込む`);
+            row.appendChild(load); list.appendChild(row);
+          });
+          this.body.appendChild(drafts.length ? list : element('p', 'logic-file-note', '自動保存の下書きはありません。'));
+          if (drafts.archiveError) this.body.appendChild(element('p', 'logic-file-error', drafts.archiveError));
+        } catch (error) { this.body.appendChild(element('p', 'logic-file-error', error.message)); }
+        this.body.appendChild(element('p', 'logic-file-note', 'このブラウザ内の下書きです。切り替え前の下書きは最大5件残します。長く残す回路は名前付き保存・ファイル保存をご利用ください。'));
+      }
       const fileLabel = element('label', 'logic-file-field', 'ローカルJSONファイルを選択');
       const fileInput = element('input');
       fileInput.type = 'file';
@@ -265,7 +320,7 @@
             this.currentName = imported.name;
             this.savedFingerprint = null;
             this.refresh();
-          }, `ファイル「${imported.name}」の読み込み`, this.editor.loadButton);
+          }, `ファイル「${imported.name}」の読み込み`, opener, { initial });
         } catch (error) {
           if (this.dialog.open && this.body.contains(fileInput)) this.showError(error);
         }
@@ -273,7 +328,7 @@
       });
       fileLabel.appendChild(fileInput);
       this.body.append(fileLabel, element('p', 'logic-file-note', 'この端末から選んだ .logic.json ファイルを読み込みます。'));
-      this.body.appendChild(element('h4', '', '保存した回路'));
+      this.body.appendChild(element('h4', '', '名前付き保存（ブラウザ内）'));
       try {
         const records = this.store().list();
         const list = element('ul', 'logic-file-list');
@@ -289,7 +344,7 @@
                 this.currentName = current.name;
                 this.savedFingerprint = this.fingerprint(current.snapshot);
                 this.refresh();
-              }, `「${current.name}」の読み込み`, this.editor.loadButton);
+              }, `「${current.name}」の読み込み`, opener, { initial });
             } catch (error) { this.showError(error); }
           }, 'logic-secondary-button logic-file-load');
           load.append(element('span', '', record.name), element('small', 'logic-file-meta', new Date(record.updatedAt).toLocaleString('ja-JP')));
@@ -302,12 +357,12 @@
         this.body.appendChild(records.length ? list : element('p', 'logic-file-note', '保存した回路はまだありません。'));
       } catch (error) { this.showError(error); }
       this.body.appendChild(element('h4', '', 'テンプレート'));
-      this.body.append(this.createTemplateList(this.editor.loadButton), element('p', 'logic-file-note', STORAGE_NOTE));
-      this.body.querySelector('button')?.focus({ preventScroll: true });
+      this.body.append(this.createTemplateList(opener, { initial }), element('p', 'logic-file-note', STORAGE_NOTE));
+      (this.body.querySelector('[data-draft-id="draft-current"]') || this.body.querySelector('button'))?.focus({ preventScroll: true });
     }
 
     // 読み込みダイアログと独立ツールの右パネルで、置換・保存確認を共用する。
-    createTemplateList(opener) {
+    createTemplateList(opener, { initial = false } = {}) {
       const templates = element('ul', 'logic-file-list');
       TEMPLATES.forEach(template => {
         const row = element('li', 'logic-file-row');
@@ -319,7 +374,7 @@
             this.currentName = '';
             this.savedFingerprint = null;
             this.refresh();
-          }, `「${template.name}」の読み込み`, opener || load);
+          }, `「${template.name}」の読み込み`, opener || load, { initial });
         }, 'logic-secondary-button logic-file-load');
         load.setAttribute('aria-label', `テンプレート「${template.name}」を読み込む`);
         row.appendChild(load);

@@ -11,7 +11,8 @@
     templates: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>',
     export: '<path d="M12 15V3M8 7l4-4 4 4M5 12v8h14v-8"/>',
     open: '<path d="M3 7V4h7l2 3h9v13H3zM3 10h18"/>',
-    clear: '<path d="M8 3h8M4 6h16M6 6l1 15h10l1-15M10 10v7M14 10v7"/>'
+    clear: '<path d="M8 3h8M4 6h16M6 6l1 15h10l1-15M10 10v7M14 10v7"/>',
+    select: '<path d="M4 9V4h5M15 4h5v5M20 15v5h-5M9 20H4v-5"/><rect x="8" y="8" width="8" height="8" rx="1"/>'
   };
   function icon(name) {
     const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
@@ -26,9 +27,9 @@
   const tabs = [...document.querySelectorAll('[data-pane-button]')];
   let files, editor, activePane = null, previewUrl = null;
   let zoomMode = 'fit', zoom = 1, pendingFit = false;
-  let copyingTable = false;
+  let copyingTable = false, exporting = false, preserveBeforeEdit = false;
   let resizing = false, panelResize, draftStore, draftReady = false, draftTimer, pendingDraft, draftFingerprint;
-  const busy = () => resizing || Boolean(editor && (editor.drag || editor.paletteDrag || editor.connectionDrag || editor.bendDrag || editor.pan));
+  const busy = () => resizing || Boolean(editor && (editor.drag || editor.paletteDrag || editor.connectionDrag || editor.bendDrag || editor.pan || editor.marquee));
   const preferencesKey = 'joho.logic.ui.v1';
   let preferences = {};
   try {
@@ -46,49 +47,93 @@
   function draftStatus(state, detail) {
     const control = $('draft-status');
     control.dataset.state = state;
-    control.querySelector('.draft-status__text').textContent = { ready: '自動復元', waiting: '下書き保存待ち', saved: '下書き保存済み', restored: '下書き復元済み', error: '自動復元に注意' }[state];
+    control.querySelector('.draft-status__text').textContent = { ready: '自動保存', waiting: '下書き保存待ち', saved: '下書き保存済み', restored: '下書き復元済み', error: '自動保存に注意' }[state];
     control.querySelector('.draft-status__symbol').textContent = state === 'error' ? '!' : '↺';
     control.title = detail;
-    control.setAttribute('aria-label', `自動復元について：${detail}`);
+    control.setAttribute('aria-label', `自動保存の下書きを選ぶ：${detail}`);
     $('draft-detail').textContent = detail;
   }
-  function draftError(error) {
-    draftStatus('error', /下書き|別のタブ/.test(error.message) ? error.message
-      : '下書きを自動保存できません。保存領域の空き容量や設定を確認し、ファイルに保存してください。');
+  function draftErrorMessage(error) {
+    return /下書き|別のタブ/.test(error.message) ? error.message
+      : '下書きを自動保存できません。保存領域の空き容量や設定を確認し、ファイルに保存してください。';
   }
-  function flushDraft() {
+  function draftError(error) {
+    draftStatus('error', draftErrorMessage(error));
+  }
+  function flushDraft(strict = false) {
     clearTimeout(draftTimer);
     if (!pendingDraft || !draftStore) return;
-    const data = pendingDraft; pendingDraft = null;
+    const data = pendingDraft;
     try {
       draftStore.save(data);
+      pendingDraft = null;
       draftStatus('saved', '自動復元用の下書きを保存しました。複数の回路を残すには名前を付けて保存してください。');
-    } catch (error) { draftError(error); }
+    } catch (error) { draftError(error); if (strict === true) throw error; }
   }
   function queueDraft() {
     if (!draftReady || !draftStore || draftStore.blocked || busy()) return;
     const value = draftValue(), fingerprint = JSON.stringify(value);
     if (fingerprint === draftFingerprint) return;
+    // 開始時の選択を閉じて新規編集を始めても、前回の下書きを失わない。
+    if (preserveBeforeEdit) {
+      try { draftStore.preserve(); preserveBeforeEdit = false; }
+      catch (error) { draftError(error); return; }
+    }
     draftFingerprint = fingerprint; pendingDraft = value;
     draftStatus('waiting', '確定した編集を下書きへ保存しています。ドラッグ途中の状態は保存しません。');
     clearTimeout(draftTimer); draftTimer = setTimeout(flushDraft, 250);
   }
-  function restoreDraft() {
+  function initializeDrafts() {
+    let hasDrafts = false;
     try {
       draftStore = new window.LogicDraft.Store(localStorage);
-      const draft = draftStore.load();
-      if (draft) {
-        files.currentId = draft.file.id; files.currentName = draft.file.name;
-        files.savedFingerprint = draft.file.savedSnapshot ? JSON.stringify(draft.file.savedSnapshot) : null;
-        editor.restore(draft.snapshot); editor.resetHistory();
-        editor.notice = '前回の下書きを自動復元しました。続きから編集できます。残したい回路は名前を付けて保存してください。';
-        draftStatus('restored', '前回の下書きを復元しました。名前付き保存の内容・未保存の判定とは別に管理しています。');
-      } else draftStatus('ready', '編集すると自動復元用の下書きを保存します。同じブラウザで次に開くと復元します。');
+      const current = draftStore.load();
+      const drafts = draftStore.list();
+      hasDrafts = drafts.length > 0;
+      preserveBeforeEdit = Boolean(current);
+      draftStatus('ready', hasDrafts ? '読み込み画面で、前回の下書き・保存済み回路・新規作成から選んでください。'
+        : '確定した編集を下書きへ自動保存します。次に開いたときに復元する回路を選べます。');
+      if (drafts.archiveError) draftError(new Error(drafts.archiveError));
     } catch (error) {
       const detail = error.message.includes('下書き') ? error.message : 'このブラウザでは自動復元を利用できません。ファイルに保存してください。';
       draftStatus('error', detail); editor.notice = detail;
     }
     draftFingerprint = JSON.stringify(draftValue()); draftReady = true;
+    editor.render({ notify: false });
+    return hasDrafts;
+  }
+  function replaceCircuit(action, { initial = false } = {}) {
+    if (busy()) throw new Error('ドラッグ中の操作を終了してから、回路を切り替えてください。');
+    if (draftStore && !draftStore.blocked) {
+      // 通常の編集の保存を完了してから、切り替え前の回路を退避する。
+      try {
+        flushDraft(true);
+        draftStore.preserve();
+        preserveBeforeEdit = false;
+      } catch (error) {
+        if (error.name !== 'SecurityError') throw new Error(draftErrorMessage(error));
+        // 保存領域そのものが禁止された場合も、手動のファイル読み込みは使える。
+        // 自動保存を停止し、読めないブラウザ内データには一切書き込まない。
+        draftStore.blocked = true; pendingDraft = null; clearTimeout(draftTimer); draftError(error);
+      }
+    }
+    draftReady = false;
+    try { action(); if (initial) editor.resetHistory(); }
+    finally { draftReady = true; }
+    draftFingerprint = null;
+    queueDraft();
+  }
+  function listDrafts() {
+    if (!draftStore) throw new Error('自動保存を利用できません。名前付き保存やファイル保存をご利用ください。');
+    try { flushDraft(true); return draftStore.list(); }
+    catch (error) { throw new Error(draftErrorMessage(error)); }
+  }
+  function loadDraft(draft) {
+    editor.loadSnapshot(draft.snapshot);
+    files.currentId = draft.file.id; files.currentName = draft.file.name;
+    files.savedFingerprint = draft.file.savedSnapshot ? JSON.stringify(draft.file.savedSnapshot) : null;
+    editor.notice = '選んだ下書きを復元しました。続きから編集できます。';
+    draftStatus('restored', '選んだ下書きを復元しました。残したい回路は名前付き保存・ファイル保存をご利用ください。');
     editor.render({ notify: false });
   }
   window.addEventListener('pagehide', flushDraft);
@@ -115,27 +160,50 @@
     inputNames: ['A', 'B'], availableInputNames: ['A', 'B', 'C', 'D'],
     allowInputDeletion: true, allowMultipleOutputs: true, enableAlignment: true,
     allowSignalToggle: true, enableWireEditing: true, allowMousePan: true, allowWireInsertion: true,
+    allowMultipleSelection: true, enableDiagnostics: true,
     initialExpression: 'A-B', helpDialogId: 'lc02-operation-dialog', keyboardRoot: app,
     onSave: () => files.openSave(), onLoad: () => files.openLoad(), onClearRequest: () => files.requestClear(),
     onExport: () => setPane('export'), onChange: updateTable
   });
+  const initialSnapshot = editor.snapshot();
+  const selectionModeButton = document.createElement('button');
+  selectionModeButton.type = 'button'; selectionModeButton.id = 'selection-mode'; selectionModeButton.className = 'icon-button';
+  selectionModeButton.setAttribute('aria-label', '複数選択モード'); selectionModeButton.setAttribute('aria-pressed', 'false');
+  selectionModeButton.title = '複数選択モード（部品をタップして選択を追加）'; selectionModeButton.appendChild(icon('select'));
+  selectionModeButton.addEventListener('click', () => editor.setSelectionMode(!editor.selectionMode));
+  function separator() {
+    const node = document.createElement('span'); node.className = 'toolbar-separator';
+    node.setAttribute('role', 'separator'); node.setAttribute('aria-orientation', 'vertical'); return node;
+  }
   // 同じ部品を移設し、ドラッグ・タッチ・キー操作のハンドラーを保つ。
   $('component-tools').appendChild(editor.editor.querySelector('.logic-editor__palette'));
-  $('basic-toolbar').append(editor.fileSaveButton, editor.loadButton, editor.clearButton, editor.undoButton, editor.redoButton);
+  $('basic-toolbar').append(editor.fileSaveButton, editor.loadButton, editor.clearButton, selectionModeButton,
+    editor.undoButton, editor.redoButton, separator(), editor.alignButton, separator(), editor.signalButton);
   editor.clearButton.replaceChildren(icon('clear'));
   editor.clearButton.classList.add('icon-button');
   editor.clearButton.setAttribute('aria-label', '全消去');
   editor.clearButton.title = '全消去（未保存の変更は保存を確認します）';
-  $('display-toolbar').prepend(editor.signalButton);
   $('display-toolbar').appendChild(editor.helpButton);
-  $('layout-tools').appendChild(editor.alignButton);
+  editor.alignButton.classList.add('logic-editor__align-button');
   editor.alignButton.appendChild(document.createTextNode('整列'));
   $('selection-tools').append(editor.swapButton, editor.deleteButton);
   $('insert-not').addEventListener('click', () => editor.insertNotInWire());
+  $('duplicate-selection').addEventListener('click', () => editor.duplicateSelection());
+  document.querySelectorAll('[data-align]').forEach(button => button.addEventListener('click', () => {
+    editor.alignSelection(button.dataset.align); $('selection-layout').open = false;
+    $('selection-layout').querySelector('summary').focus({ preventScroll: true });
+  }));
   $('operation-hint').appendChild(editor.status);
   // 互換APIは残し、画面上の画像出力入口は右端に集約する。
   editor.exportButton.hidden = true;
   files = new window.LogicWorkbenchFiles(editor, {
+    replace: replaceCircuit,
+    restoreFocus: restoreControlFocus,
+    drafts: { list: listDrafts, load: loadDraft },
+    createNew: () => {
+      editor.loadSnapshot(initialSnapshot); files.currentId = null; files.currentName = ''; files.savedFingerprint = null;
+      editor.notice = '新しい回路から始めました。'; editor.render({ notify: false });
+    },
     onStatusChange: ({ name, dirty }) => {
       $('save-status').textContent = `${name || '新しい回路'} · ${dirty ? '未保存' : '保存済み'}`;
       queueDraft();
@@ -174,37 +242,67 @@
     }
   });
 
+  let previewFingerprint = null;
+  $('export-filename').value = window.LogicCore.createSvgFilename().replace(/\.svg$/i, '');
+  function exportOptions() {
+    return { filename: $('export-filename').value.trim(), background: $('export-background').value,
+      scale: Number($('export-scale').value) };
+  }
+  function exportError(error) {
+    $('export-error').textContent = error.message || '画像を書き出せませんでした。';
+    $('export-error').hidden = false;
+  }
   function refreshExport(analysis) {
-    $('export-submit').disabled = !analysis.valid || editor.savingPng;
+    $('export-submit').disabled = !analysis.valid || exporting;
+    $('export-copy').disabled = !analysis.valid || exporting;
     $('export-note').textContent = analysis.valid
       ? `0/1は上部の設定に従います（現在${editor.showSignals ? '表示' : '非表示'}）。`
       : `回路が完成すると書き出せます。${analysis.errors[0] || ''}`;
-    $('export-submit').title = window.LogicCore.createSvgFilename().replace(/\.svg$/i, `.${$('export-form').elements.format.value}`);
+    $('export-submit').title = `${$('export-filename').value || 'logic-circuit'}.${$('export-form').elements.format.value}`;
     if (activePane !== 'export' || busy()) return;
+    const background = $('export-background').value;
+    const fingerprint = JSON.stringify([editor.snapshot(), editor.showSignals, background, analysis.valid]);
+    if (fingerprint === previewFingerprint) return;
+    previewFingerprint = fingerprint;
     if (previewUrl) { URL.revokeObjectURL(previewUrl); previewUrl = null; }
     $('export-preview').replaceChildren();
+    $('export-preview').dataset.background = background;
+    $('export-preview').hidden = !analysis.valid;
     if (!analysis.valid) return;
-    const { svg, title } = editor.createExportDiagram();
-    previewUrl = URL.createObjectURL(new Blob([window.LogicRenderer.serializeSvg(svg, title)], { type: 'image/svg+xml' }));
-    const image = document.createElement('img');
-    image.src = previewUrl; image.alt = '現在の回路の画像出力プレビュー';
-    image.style.width = '100%'; image.style.display = 'block';
-    $('export-preview').appendChild(image);
+    try {
+      const { svg, title } = editor.createExportDiagram();
+      previewUrl = URL.createObjectURL(new Blob([window.LogicRenderer.serializeSvg(svg, title, { background })], { type: 'image/svg+xml' }));
+      const image = document.createElement('img');
+      image.src = previewUrl; image.alt = `現在の回路の画像出力プレビュー（${background === 'white' ? '白' : '透明'}背景）`;
+      image.style.width = '100%'; image.style.display = 'block';
+      $('export-preview').appendChild(image);
+    } catch (error) { exportError(error); }
   }
   function refresh(instance = editor, analysis = editor.getAnalysis()) {
     files?.refresh();
-    const node = instance.selected?.kind === 'node' ? instance.findNode(instance.selected.id) : null;
+    const nodes = instance.getSelectedNodes();
+    const node = nodes.length === 1 ? nodes[0] : null;
     const selection = $('selection-tools');
     const focusedAction = document.activeElement;
     const hadFocus = selection.contains(focusedAction);
     selection.hidden = !instance.selected;
     $('insert-not').hidden = instance.selected?.kind !== 'wire';
+    $('duplicate-selection').hidden = nodes.length === 0;
+    $('selection-layout').hidden = nodes.length < 2;
+    if (nodes.length < 2) $('selection-layout').open = false;
+    selectionModeButton.setAttribute('aria-pressed', String(instance.selectionMode));
+    document.querySelectorAll('[data-align]').forEach(button => { button.disabled = nodes.length < (button.dataset.align.startsWith('distribute') ? 3 : 2); });
     instance.swapButton.hidden = !node || !['AND', 'OR'].includes(node.type);
     instance.deleteButton.hidden = instance.deleteButton.disabled;
-    $('selection-name').textContent = node ? node.name || node.type : '配線';
+    $('selection-name').textContent = nodes.length > 1 ? `${nodes.length}部品` : node ? node.name || node.type : '配線';
     if (hadFocus && (selection.hidden || focusedAction.hidden)) instance.canvasWrap.focus({ preventScroll: true });
-    $('circuit-status').textContent = analysis.valid ? '接続完了' : '編集中';
-    $('circuit-status').title = `${instance.graph.nodes.length}部品・${instance.graph.wires.length}配線${analysis.valid ? '' : `：${analysis.errors[0]}`}`;
+    const issues = instance.getDiagnostics();
+    const hasIssues = issues.length > 0 || !analysis.valid;
+    const status = hasIssues ? `接続状況 (${issues.length || '!'})` : '接続完了';
+    $('circuit-status').textContent = matchMedia('(max-width: 560px)').matches ? (hasIssues ? `! ${issues.length || ''}` : '✓') : status;
+    $('circuit-status').classList.toggle('has-issues', hasIssues);
+    $('circuit-status').title = `${status}：${instance.graph.nodes.length}部品・${instance.graph.wires.length}配線${analysis.valid ? '' : `。${analysis.errors[0]}`}`;
+    $('circuit-status').setAttribute('aria-label', `${status}を確認`);
     instance.status.title = instance.status.textContent;
     $('truth-copy').disabled = !analysis.valid || copyingTable;
     $('truth-copy').title = analysis.valid
@@ -215,15 +313,32 @@
     if (pendingFit && !busy()) { pendingFit = false; applyZoom(); }
   }
   editor.options.onRender = refresh;
-  $('export-form').addEventListener('change', () => refreshExport(editor.getAnalysis()));
-  $('export-form').addEventListener('submit', async event => {
-    event.preventDefault();
-    if ($('export-submit').disabled) return;
-    $('export-error').hidden = true; $('export-submit').disabled = true;
-    const success = $('export-form').elements.format.value === 'png' ? await editor.savePng() : editor.saveSvg();
-    if (!success) { $('export-error').textContent = editor.notice; $('export-error').hidden = false; }
-    refresh();
-  });
+  $('export-form').addEventListener('input', () => refreshExport(editor.getAnalysis()));
+  async function performExport(copy = false) {
+    if (!editor.getAnalysis().valid || exporting || busy() || !$('export-form').reportValidity()) return;
+    $('export-error').hidden = true; exporting = true;
+    refreshExport(editor.getAnalysis());
+    try {
+      const { svg, title } = editor.createExportDiagram(), options = exportOptions();
+      if (copy) {
+        if (!navigator.clipboard?.write || typeof ClipboardItem === 'undefined') throw new Error('このブラウザでは画像コピーを利用できません。PNGを書き出して貼り付けてください。');
+        // PNG変換を待たずにクリップボードを呼び、Safariのユーザー操作条件を維持する。
+        const blob = window.LogicRenderer.createPngBlob(svg, title, options);
+        blob.catch(() => {}); // クリップボード拒否が先に返っても未処理の拒否を残さない。
+        try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })]); }
+        catch (_) { throw new Error('画像をコピーできませんでした。ブラウザの許可を確認するか、PNGを書き出して貼り付けてください。'); }
+        editor.notice = 'PNG画像をコピーしました。スライドや文書へ貼り付けられます。';
+      } else {
+        const format = $('export-form').elements.format.value;
+        const filename = format === 'png' ? await window.LogicRenderer.downloadPng(svg, title, options)
+          : window.LogicRenderer.downloadSvg(svg, title, options);
+        editor.notice = `「${filename}」の保存を開始しました。ダウンロードを確認してください。`;
+      }
+    } catch (error) { exportError(error); editor.notice = error.message; }
+    finally { exporting = false; editor.render({ notify: false }); }
+  }
+  $('export-form').addEventListener('submit', event => { event.preventDefault(); performExport(); });
+  $('export-copy').addEventListener('click', () => performExport(true));
 
   function applyZoom(value) {
     if (busy()) { pendingFit = true; return; }
@@ -251,11 +366,15 @@
   new ResizeObserver(() => { if (zoomMode === 'fit') applyZoom(); }).observe(editor.canvasWrap);
 
   const dialogOpeners = new Map();
+  function restoreControlFocus(opener) {
+    const target = opener?.getClientRects().length ? opener : $('toolbar-menu').querySelector('summary');
+    target?.focus({ preventScroll: true });
+  }
   function closeDialog(dialog, restore = true) {
     if (!dialog.open) return;
     dialog.close();
     const opener = dialogOpeners.get(dialog); opener?.setAttribute('aria-expanded', 'false');
-    if (restore && opener?.isConnected) opener.focus({ preventScroll: true });
+    if (restore && opener?.isConnected) restoreControlFocus(opener);
   }
   function openDialog(dialog, opener) {
     if (busy()) return;
@@ -278,10 +397,56 @@
   editor.helpButton.setAttribute('aria-haspopup', 'dialog'); editor.helpButton.setAttribute('aria-controls', 'lc02-operation-dialog');
   editor.helpButton.addEventListener('click', () => openDialog($('lc02-operation-dialog'), editor.helpButton));
   $('settings-button').addEventListener('click', () => openDialog($('settings-dialog'), $('settings-button')));
-  $('draft-status').addEventListener('click', () => {
-    openDialog($('lc02-operation-dialog'), $('draft-status'));
-    if ($('lc02-operation-dialog').open) $('recovery-help').focus();
+  $('draft-status').addEventListener('click', () => files.openLoad({ opener: $('draft-status') }));
+  $('circuit-status').addEventListener('click', () => {
+    const list = $('diagnostics-list'); list.replaceChildren();
+    const issues = editor.getDiagnostics();
+    issues.forEach(issue => {
+      const row = document.createElement('li'); row.className = 'logic-file-row';
+      const button = document.createElement('button'); button.type = 'button'; button.className = 'logic-file-load';
+      button.textContent = issue.message; button.dataset.diagnosticId = issue.id;
+      button.addEventListener('click', () => {
+        closeDialog($('diagnostics-dialog'), false); editor.focusDiagnostic(issue.id);
+      });
+      row.appendChild(button); list.appendChild(row);
+    });
+    if (!issues.length) {
+      const row = document.createElement('li'); row.textContent = editor.getAnalysis().valid ? 'すべて接続されています。真理値表で動作を確認できます。'
+        : editor.getAnalysis().errors.join(' ');
+      list.appendChild(row);
+    }
+    openDialog($('diagnostics-dialog'), $('circuit-status'));
+    list.querySelector('button')?.focus();
   });
+
+  const toolbarMenu = $('toolbar-menu'), top = document.querySelector('.top');
+  let compactToolbar = false;
+  function fitToolbar() {
+    const wasOpen = toolbarMenu.open;
+    top.classList.remove('is-compact'); toolbarMenu.open = true;
+    const occupied = [...top.children].reduce((total, child) => total + child.getBoundingClientRect().width, 0) + 36;
+    const compact = occupied > top.clientWidth;
+    top.classList.toggle('is-compact', compact);
+    toolbarMenu.open = compact ? (compactToolbar && wasOpen) : true;
+    compactToolbar = compact;
+  }
+  [toolbarMenu, $('selection-layout')].forEach(menu => {
+    menu.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && menu.open && (menu !== toolbarMenu || compactToolbar)) {
+        event.preventDefault(); event.stopPropagation(); menu.open = false; menu.querySelector('summary').focus();
+      }
+    });
+    menu.addEventListener('click', event => {
+      if (event.target.closest('button') && menu === toolbarMenu && compactToolbar) {
+        menu.open = false;
+        if (!document.querySelector('dialog[open]')) menu.querySelector('summary').focus({ preventScroll: true });
+      }
+    });
+    document.addEventListener('pointerdown', event => {
+      if (!menu.contains(event.target) && (menu !== toolbarMenu || compactToolbar)) menu.open = false;
+    });
+  });
+  window.addEventListener('resize', () => { fitToolbar(); refresh(); });
 
   const shortcuts = [
     [editor.fileSaveButton, '⌘/Ctrl+S', 'Meta+S Control+S'], [editor.loadButton, '⌘/Ctrl+O', 'Meta+O Control+O'],
@@ -299,7 +464,7 @@
       event.preventDefault();
       if (!busy() && !event.repeat) action.click();
     } else if (event.key === 'Escape' && !busy() && editor.selected) {
-      event.preventDefault(); editor.selected = null; editor.notice = '選択を解除しました。';
+      event.preventDefault(); editor.clearSelection(); editor.notice = '選択を解除しました。';
       editor.canvasWrap.focus({ preventScroll: true }); editor.render({ notify: false });
     }
   });
@@ -351,6 +516,7 @@
     document.documentElement.dataset.resolvedTheme = $('theme').value === 'auto' ? (colorQuery.matches ? 'dark' : 'light') : $('theme').value;
     document.documentElement.dataset.textSize = $('text-size').value;
     preferences.theme = $('theme').value; preferences.textSize = $('text-size').value; savePreferences();
+    fitToolbar();
   }
   if (['auto', 'light', 'dark'].includes(preferences.theme)) $('theme').value = preferences.theme;
   if (['standard', 'large', 'largest'].includes(preferences.textSize)) $('text-size').value = preferences.textSize;
@@ -383,7 +549,7 @@
     onCommit: width => { preferences.panelWidth = width; savePreferences(); },
     onDragging: value => { resizing = value; if (!value) refresh(); }
   });
-  restoreDraft();
+  const chooseDraft = initializeDrafts();
   updateTable(editor.getState());
   const initialPane = [null, 'truth', 'templates', 'export'].includes(preferences.pane) ? preferences.pane
     : matchMedia('(min-width: 1101px)').matches ? 'truth' : null;
@@ -393,4 +559,5 @@
   editor.canvasWrap.scrollTop = 0;
   window.LogicToolUI.tooltips({ busy });
   document.body.classList.add('logic-tool-ready');
+  if (chooseDraft) files.openLoad({ initial: true });
 })();

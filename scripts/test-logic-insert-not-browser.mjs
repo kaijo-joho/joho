@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { revealToolButton } from './logic-tool-browser-helpers.mjs';
 const require = createRequire(import.meta.url);
 const { chromium, webkit } = require('playwright');
 const { expect } = require('playwright/test');
@@ -62,7 +63,8 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     await dialog.getByRole('button', { name: '保存', exact: true }).click();
     await expect(dialog).toBeHidden();
     await page.reload(); await page.locator('body.logic-tool-ready').waitFor();
-    assert.deepEqual(await snapshot(page), changed, '保存後の下書きも自動復元する');
+    await page.locator('[data-draft-id="draft-current"]').click();
+    assert.deepEqual(await snapshot(page), changed, '保存後の下書きを選んで復元する');
     await expect(page.locator('#save-status')).toContainText('保存済み');
     await page.evaluate(() => logicWorkbenchEditor.setInputValues({ A: 1, B: 1 }));
     await page.getByRole('button', { name: '回路を読み込む', exact: true }).click();
@@ -116,7 +118,7 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
         assert.ok(box.height >= 44 && box.x >= stage.x && box.x + box.width <= stage.x + stage.width + 1, '390pxで選択時の操作が収まる');
         await insert.press('Enter');
         assert.equal(await page.evaluate(() => logicWorkbenchEditor.getAnalysis().outputs[0].truthCode), '10');
-        await page.getByRole('button', { name: '元に戻す', exact: true }).click();
+        await (await revealToolButton(page, page.getByRole('button', { name: '元に戻す', exact: true }))).click();
       }
     }
     if (name === 'chrome') {

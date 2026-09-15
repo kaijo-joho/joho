@@ -49,8 +49,18 @@ h1, h2, h3, p { margin: 0; }
 .top { grid-area: top; display: flex; gap: 8px; align-items: center; padding: 6px 9px; border-bottom: 1px solid var(--line); background: var(--panel); min-width: 0; z-index: 10; }
 .brand { display: flex; align-items: center; gap: 7px; font-size: 1.07rem; font-weight: 650; flex: none; white-space: nowrap; }
 .toolbar, .toolbar-end { display: flex; flex-flow: row nowrap; align-items: center; gap: 4px; }
-.toolbar { min-width: 0; overflow-x: auto; scrollbar-width: thin; }
+.toolbar { min-width: 0; }
 .toolbar > button { flex: none; }
+.toolbar-menu { position: relative; min-width: 0; }
+.toolbar-menu > summary { display: none; }
+.toolbar-separator { flex: none; height: 25px; border-left: 1px solid var(--line); margin-inline: 5px; }
+summary { min-height: 44px; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 5px 9px; cursor: pointer; list-style: none; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); white-space: nowrap; }
+summary::-webkit-details-marker { display: none; }
+summary:hover { background: var(--hover); }
+.top.is-compact .toolbar-menu > summary { display: flex; }
+.top.is-compact .toolbar-menu:not([open]) > .toolbar { display: none; }
+.top.is-compact .toolbar { position: absolute; top: calc(100% + 8px); left: 0; z-index: 15; width: max-content; max-width: calc(100vw - 20px); flex-wrap: wrap; padding: 8px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); box-shadow: var(--shadow); }
+.top:not(.is-compact) .toolbar-menu > .toolbar { display: flex; }
 .toolbar-end { margin-left: auto; flex: none; }
 #app .logic-editor__action-button, #app .logic-editor__help-button { min-height: 44px; height: 44px; min-width: 44px; margin: 0; box-shadow: none; font-size: 1rem; }
 #app .logic-editor__signal-button { font-size: .92rem; padding-inline: 7px; }
@@ -63,22 +73,34 @@ h1, h2, h3, p { margin: 0; }
 #app .logic-editor__gate-button svg { width: 48px; height: 34px; }
 #app .logic-editor__gate-plus { font-size: .9rem; }
 #app .logic-editor__add-input-button, #app .logic-editor__add-output-button { width: 100%; height: auto; font-size: .9rem; }
-#layout-tools button { width: 100%; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: .9rem; }
+#basic-toolbar .logic-editor__align-button { display: flex; align-items: center; gap: 5px; width: auto; padding-inline: 9px; white-space: nowrap; }
 .workspace { grid-area: workspace; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
 #stage { position: relative; flex: 1; min-height: 0; overflow: hidden; background: var(--logic-canvas-bg); }
 #logic-editor, #logic-editor .logic-editor { width: 100%; height: 100%; min-width: 0; border: 0; border-radius: 0; background: var(--logic-canvas-bg); }
 #logic-editor .logic-editor__toolbar, #logic-editor .logic-editor__scroll-hint { display: none; }
 #logic-editor .logic-editor__canvas-wrap { width: 100%; height: 100%; max-height: none; display: flex; overflow: auto; overscroll-behavior: contain; }
 #logic-editor .logic-editor__canvas { flex: none; margin: 0 auto; min-width: 0; max-width: none; max-height: none; touch-action: none; }
-#logic-editor .logic-editor__background { cursor: grab; }
-.selection-tools { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; align-items: center; gap: 7px; max-width: calc(100% - 16px); width: max-content; padding: 4px 7px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); box-shadow: var(--shadow); }
-#selection-name { font-size: .9rem; white-space: nowrap; }
+#logic-editor .logic-editor__background { cursor: crosshair; }
+.selection-tools { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); z-index: 5; display: flex; flex-wrap: wrap; justify-content: center; align-items: center; gap: 4px; max-width: calc(100% - 16px); width: max-content; padding: 4px 7px; border: 1px solid var(--line); border-radius: 9px; background: var(--panel); box-shadow: var(--shadow); }
+#selection-name { font-size: .9rem; white-space: nowrap; max-width: 7em; overflow: hidden; text-overflow: ellipsis; }
+.selection-layout { position: relative; }
+.selection-layout__menu { position: absolute; top: calc(100% + 6px); left: 50%; transform: translateX(-50%); width: min(220px, calc(100vw - 140px)); padding: 5px; display: flex; flex-direction: column; gap: 3px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); box-shadow: var(--shadow); max-height: calc(100dvh - 240px); overflow: auto; }
+.selection-layout:not([open]) .selection-layout__menu { display: none; }
+.selection-layout__menu button { text-align: left; font-size: .88rem; }
+.logic-editor-selection-marquee { fill: var(--accent-soft); fill-opacity: .4; stroke: var(--accent); stroke-width: 1.5; stroke-dasharray: 5 3; pointer-events: none; }
+.logic-editor-node.is-multi-selected .logic-editor-node__box,
+.logic-editor-node.is-multi-selected .logic-gate__body { stroke-dasharray: 5 2; }
+.logic-editor-diagnostic { pointer-events: none; }
+.logic-editor-diagnostic__ring { fill: none; stroke: var(--logic-error); stroke-width: 2; stroke-dasharray: 3 2; }
+.logic-editor-diagnostic__mark { fill: var(--logic-error); font: bold 16px sans-serif; transform: translate(-19px, -14px); stroke: var(--logic-canvas-bg); stroke-width: 4px; paint-order: stroke; }
+.logic-editor-diagnostic.is-focused .logic-editor-diagnostic__ring { stroke-width: 4; stroke-dasharray: none; }
 #insert-not { white-space: nowrap; flex: none; }
 .operation-hint { flex: none; min-width: 0; height: calc(2.436rem + 14px); padding: 7px 12px; border-top: 1px solid var(--line); background: var(--panel); }
 #app .logic-editor__status, #app .logic-editor__status.is-complete { position: static; transform: none; width: auto; max-width: none; min-height: 0; max-height: 2.9em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; padding: 0; margin: 0; border: 0; border-radius: 0; background: none; box-shadow: none; color: var(--muted); text-align: left; font-size: .84rem; font-weight: 400; pointer-events: auto; }
 .statusbar { flex: none; min-width: 0; min-height: 45px; display: flex; align-items: center; gap: 12px; padding: 0 8px; border-top: 1px solid var(--line); background: var(--panel); color: var(--muted); font-size: .8rem; }
 #save-status { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
-#circuit-status { flex: none; }
+#circuit-status { flex: none; border: 0; padding-inline: 4px; font-size: .8rem; color: var(--muted); }
+#circuit-status.has-issues { color: var(--logic-error); font-weight: 600; }
 .draft-status { display: flex; align-items: center; justify-content: center; gap: 5px; min-width: 44px; padding: 0 5px; border: 0; color: var(--muted); white-space: nowrap; font-size: .8rem; flex: none; }
 .draft-status__symbol { font-size: 1.1rem; }
 .draft-status[data-state="error"] { color: var(--logic-error); }
@@ -115,9 +137,14 @@ h1, h2, h3, p { margin: 0; }
 .logic-editor-truth-table .logic-truth-table th, .logic-editor-truth-table .logic-truth-table td { padding: 12px 6px; border-top: 1px solid var(--line); }
 .logic-editor-truth-table .logic-truth-table th { background: var(--hover); }
 .logic-editor-truth-table .logic-truth-table tr[tabindex] { min-height: 44px; }
-#export-preview { background: #fff; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+#export-preview { flex: none; min-height: 100px; display: grid; place-items: center; background: #fff; border: 1px solid var(--line); border-radius: 7px; overflow: hidden; }
+#export-preview img { max-height: 220px; object-fit: contain; }
+#export-preview[data-background="transparent"] { background-color: #fff; background-image: conic-gradient(#e4e7ec 25%, transparent 0 50%, #e4e7ec 0 75%, transparent 0); background-size: 16px 16px; }
 #export-preview svg { width: 100%; height: auto; display: block; }
 #export-form { display: flex; flex-direction: column; gap: 14px; }
+#export-form .stack { margin: 0; }
+#export-filename { width: 100%; min-width: 0; min-height: 44px; padding: 8px; border: 1px solid var(--line); border-radius: 7px; background: var(--panel); }
+#export-filename-note { margin-top: -10px; }
 .export-formats { border: 0; padding: 0; margin: 0; }
 .export-formats legend { font-weight: 600; margin-bottom: 7px; }
 .export-formats label { display: flex; align-items: center; gap: 7px; min-height: 44px; }
@@ -146,6 +173,7 @@ dialog input[type="text"], dialog input[type="file"] { max-width: 100%; min-widt
 dialog .logic-secondary-button { box-shadow: none; font-size: 1rem; }
 .logic-file-note { color: var(--muted); font-size: .9rem; line-height: 1.6; }
 .logic-file-list { padding: 0; list-style: none; }
+.logic-file-dialog__body h4 { margin: 20px 0 8px; }
 .logic-file-row { display: flex; gap: 8px; margin-block: 8px; }
 .logic-file-load { flex: 1; min-width: 0; overflow-wrap: anywhere; }
 .logic-file-load span, .logic-file-meta { display: block; }
@@ -177,9 +205,11 @@ noscript { position: fixed; inset: 65px 15px auto; padding: 15px; background: va
   #app .logic-editor__gate-button { flex-direction: column; gap: 0; font-size: .76rem; min-height: 60px; }
   #app .logic-editor__gate-button svg { height: 29px; }
   #app .logic-editor__add-input-button, #app .logic-editor__add-output-button { font-size: .75rem; padding: 5px 1px; }
-  #layout-tools button { flex-direction: column; font-size: .75rem; height: auto !important; }
   .operation-hint { height: calc(2.436rem + 10px); padding: 5px 7px; }
-  #circuit-status { display: none; }
+  #circuit-status { display: block; flex: none; width: 44px; font-size: .85rem; }
+  .draft-status { display: none; } /* 下書き一覧には上部の読み込みからもアクセス可能。 */
+  .draft-status[data-state="error"] { display: flex; }
+  .statusbar:has(.draft-status[data-state="error"]) #circuit-status { display: none; }
   .zoom { margin-inline: auto; }
   .zoom button { width: 40px; }
   .zoom select { width: 94px; }

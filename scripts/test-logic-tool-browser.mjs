@@ -24,7 +24,9 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     assert.match(page.url(), /\/tools\/logic\/$/, 'old URL redirects to standalone editor');
     await expect(page.locator('.lesson-slide-deck')).toHaveCount(0);
     await expect(page.locator('#selection-tools')).toBeHidden();
-    assert.equal(await page.locator('#basic-toolbar button').count(), 5);
+    assert.equal(await page.locator('#basic-toolbar button').count(), 8);
+    const toolbarOrder = await page.locator('#basic-toolbar').evaluate(node => [...node.children].map(child => child.getAttribute('aria-label') || child.getAttribute('role')));
+    assert.deepEqual(toolbarOrder.slice(-4), ['separator', '回路全体を自動整列', 'separator', '0/1の表示を切り替える']);
     assert.deepEqual(await page.locator('#logic-workbench-table th').allTextContents(), ['A', 'B', 'F']);
     await page.locator('#logic-workbench-table tbody tr').last().press('Enter');
     assert.deepEqual(await page.evaluate(() => logicWorkbenchEditor.inputValues), { A: 1, B: 1 });
@@ -37,10 +39,10 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     });
     await page.goto(new URL('lc02.html', base).href);
     await page.locator('body.logic-tool-ready').waitFor();
-    await page.getByRole('button', { name: '回路を読み込む', exact: true }).click();
+    if (!await page.locator('#logic-file-dialog').isVisible()) await page.getByRole('button', { name: '回路を読み込む', exact: true }).click();
     const dialog = page.locator('#logic-file-dialog');
     await dialog.getByRole('button', { name: '保存した回路「移行前に保存した回路」を読み込む', exact: true }).click();
-    await dialog.getByRole('button', { name: '保存せず続ける', exact: true }).click();
+    if (await dialog.getByRole('button', { name: '保存せず続ける', exact: true }).isVisible()) await dialog.getByRole('button', { name: '保存せず続ける', exact: true }).click();
     await expect(dialog).toBeHidden();
     assert.deepEqual(await page.evaluate(() => logicWorkbenchEditor.snapshot()), legacy);
 
@@ -95,7 +97,10 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     const startScroll = await canvas.evaluate(node => ({ x: node.scrollLeft, y: node.scrollTop }));
     const box = await canvas.boundingBox();
     await page.mouse.move(box.x + box.width / 2, box.y + box.height - 30);
-    await page.mouse.down(); await page.mouse.move(box.x + box.width / 2 - 70, box.y + box.height - 100, { steps: 8 }); await page.mouse.up();
+    await canvas.focus(); await page.keyboard.down('Space');
+    // 下端から回路内側へ引く。端の外へ引いても動かないのは正常。
+    await page.mouse.down(); await page.mouse.move(box.x + box.width / 2 + 50, box.y + box.height + 30, { steps: 8 }); await page.mouse.up();
+    await page.keyboard.up('Space');
     assert.notDeepEqual(await canvas.evaluate(node => ({ x: node.scrollLeft, y: node.scrollTop })), startScroll);
     await page.locator('#zoom-fit').click();
     assert.deepEqual(await page.evaluate(() => logicWorkbenchEditor.snapshot()), beforeZoom);

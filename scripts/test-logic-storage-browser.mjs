@@ -1,6 +1,6 @@
 // Chrome/WebKit UI test for the lc02 browser circuit file workflow.
 import assert from 'node:assert/strict';
-import { toolLayoutChecks, setToolPreferences } from './logic-tool-browser-helpers.mjs';
+import { toolLayoutChecks, setToolPreferences, revealToolButton } from './logic-tool-browser-helpers.mjs';
 import { createRequire } from 'node:module';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -30,8 +30,8 @@ async function openPage(browser, viewport = { width: 1440, height: 1000 }) {
 }
 
 const snapshot = page => page.evaluate(() => window.logicWorkbenchEditor.snapshot());
-const clickSave = page => page.getByRole('button', { name: '回路を保存', exact: true }).click();
-const clickLoad = page => page.getByRole('button', { name: '回路を読み込む', exact: true }).click();
+const clickSave = async page => (await revealToolButton(page, page.getByRole('button', { name: '回路を保存', exact: true }))).click();
+const clickLoad = async page => (await revealToolButton(page, page.getByRole('button', { name: '回路を読み込む', exact: true }))).click();
 const fileDialog = page => page.locator('#logic-file-dialog');
 
 async function saveNew(page, name) {
@@ -152,6 +152,7 @@ async function fileWorkflow(page, name) {
 
   await page.reload();
   await page.locator('#basic-toolbar').waitFor();
+  if (await fileDialog(page).isVisible()) await page.keyboard.press('Escape');
   await clickLoad(page);
   const dialog = fileDialog(page);
   await expectText(dialog, '回路を読み込む');
@@ -322,12 +323,12 @@ async function exportAndLayoutChecks(page, name) {
       await setToolPreferences(page, theme, size);
       for (const label of ['回路を保存', '回路を読み込む']) {
         const opener = page.getByRole('button', { name: label, exact: true });
-        await opener.click();
+        await (await revealToolButton(page, opener)).click();
         const box = await fileDialog(page).boundingBox();
         assert.ok(box.width <= width && box.height <= 844, 'file dialog stays in viewport');
         assert.equal(await fileDialog(page).evaluate(d => d.scrollWidth > d.clientWidth + 1), false);
         await page.keyboard.press('Escape');
-        await expect(opener).toBeFocused();
+        await expect(await opener.isVisible() ? opener : page.locator('#toolbar-menu > summary')).toBeFocused();
       }
     }
   }
@@ -338,11 +339,11 @@ async function touchChecks(browser) {
   await page.goto(new URL('lc02.html', baseURL).href);
   await page.waitForFunction(() => window.logicWorkbenchEditor);
   const before = await snapshot(page);
-  await page.getByRole('button', { name: '回路を保存', exact: true }).tap();
+  await (await revealToolButton(page, page.getByRole('button', { name: '回路を保存', exact: true }))).tap();
   await fileDialog(page).getByLabel('回路の名前').fill('タッチで保存');
   await fileDialog(page).getByRole('button', { name: '保存', exact: true }).tap();
-  await page.getByRole('button', { name: '全消去', exact: true }).tap();
-  await page.getByRole('button', { name: '回路を読み込む', exact: true }).tap();
+  await (await revealToolButton(page, page.getByRole('button', { name: '全消去', exact: true }))).tap();
+  await (await revealToolButton(page, page.getByRole('button', { name: '回路を読み込む', exact: true }))).tap();
   await fileDialog(page).getByRole('button', { name: '保存した回路「タッチで保存」を読み込む', exact: true }).tap();
   await expect(fileDialog(page)).toBeHidden();
   assert.deepEqual(await snapshot(page), before);

@@ -1,5 +1,6 @@
 // Selected-wire bend handles, persistence and cancellation in Chrome/WebKit.
 import assert from 'node:assert/strict';
+import { revealToolButton } from './logic-tool-browser-helpers.mjs';
 import { createRequire } from 'node:module';
 import { mkdtemp, readFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
@@ -16,6 +17,7 @@ const state = page => page.evaluate(() => logicWorkbenchEditor.snapshot());
 const handles = page => page.locator('.logic-editor-bend');
 const handle = (page, index) => page.locator(`.logic-editor-bend[data-segment="${index}"]`);
 const menu = page => page.locator('#logic-file-dialog');
+const toolbarButton = (page, name) => revealToolButton(page, page.getByRole('button', { name, exact: true }));
 
 async function fixture(page, shaped = false, branched = false) {
   await page.evaluate(({ shaped, branched }) => {
@@ -140,7 +142,7 @@ async function checks(page, name) {
   const actualPaths = await page.locator('.logic-editor-wire').evaluateAll(nodes => nodes.map(node => node.getAttribute('d')));
   actualPaths.forEach(path => assert.ok(rendered.paths.includes(path), 'SVG preserves the edited wire geometry'));
   assert.deepEqual(await state(page), saved, 'export and display settings leave saved circuit unchanged');
-  await page.getByRole('button', { name: '回路全体を自動整列', exact: true }).click();
+  await (await toolbarButton(page, '回路全体を自動整列')).click();
   assert.ok((await state(page)).graph.wires.every(wire => !wire.bends));
   await page.getByRole('button', { name: '元に戻す', exact: true }).click();
   assert.deepEqual(await state(page), saved, 'Undo alignment restores manual geometry');

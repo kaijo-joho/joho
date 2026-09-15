@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { mkdtemp } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { revealToolButton } from './logic-tool-browser-helpers.mjs';
 const require = createRequire(import.meta.url);
 const { chromium, webkit } = require('playwright');
 const { expect } = require('playwright/test');
@@ -17,13 +18,21 @@ const state = page => page.evaluate(() => ({ snapshot: logicWorkbenchEditor.snap
 const draftRaw = page => page.evaluate(() => localStorage.getItem('joho.logic-draft.v1'));
 const namedRaw = page => page.evaluate(() => localStorage.getItem('joho.logic-circuits.v1'));
 const width = page => page.locator('#side-resizer').getAttribute('aria-valuenow').then(Number);
+// 起動時は自動適用せず候補を選ぶ。既存の操作回帰は前回下書きを選んだ後に続ける。
+const chooseCurrentDraft = async page => {
+  const dialog = page.locator('#logic-file-dialog');
+  if (!await dialog.isVisible()) return;
+  await dialog.locator('[data-draft-id="draft-current"]').click();
+  await expect(dialog).toBeHidden();
+};
 const connectErrors = page => {
   page.on('pageerror', error => errors.push(error.message));
   page.on('response', response => { if (response.url().startsWith(base) && response.status() >= 400) errors.push(response.url()); });
 };
 console.log(`Browser artifacts: ${artifacts}`);
 
-for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
+const browserEngines = [['chrome', chromium], ['webkit', webkit]];
+for (const [name, engine] of browserEngines.filter(([candidate]) => !process.env.LOGIC_TEST_ENGINE || candidate === process.env.LOGIC_TEST_ENGINE)) {
   const browser = await engine.launch(name === 'chrome' ? { channel: 'chrome' } : {});
   try {
     const context = await browser.newContext({ viewport: { width: 1440, height: 900 } });
@@ -78,16 +87,17 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     assert.deepEqual(await state(page), draftState, 'パネル操作で回路・Undoを変更しない');
     await page.locator('[data-pane-button="export"]').click();
     await page.locator('#settings-button').click(); await page.locator('#theme').selectOption('dark');
-    await page.keyboard.press('Escape'); await page.reload(); await ready(page);
+    await page.keyboard.press('Escape'); await page.reload(); await ready(page); await chooseCurrentDraft(page);
     assert.deepEqual((await state(page)).snapshot, draftState.snapshot);
     assert.equal((await state(page)).history.length, 1, '再開時は復元状態から新しいUndo履歴を始める');
-    await expect(page.locator('#draft-status')).toHaveAttribute('data-state', 'restored');
+    // 選択後は同じ内容を下書きへ確認保存するため、表示は「下書き保存済み」になる。
+    await saved(page);
     await expect(page.locator('#save-status')).toContainText('自動復元の検証 · 未保存');
     await expect(page.locator('#export-panel')).toBeVisible(); assert.equal(await width(page), 380);
     await expect(page.locator('html')).toHaveAttribute('data-theme', 'dark');
     assert.equal(await namedRaw(page), originalNamed);
     await page.locator('[data-pane-button="export"]').click();
-    await page.reload(); await ready(page); await expect(page.locator('.side-main')).toBeHidden();
+    await page.reload(); await ready(page); await chooseCurrentDraft(page); await expect(page.locator('.side-main')).toBeHidden();
 
     // ドラッグ途中は保存しない。取り消しも保存済みの下書きに影響しない。
     const beforeDrag = await draftRaw(page), beforeSnapshot = (await state(page)).snapshot;
@@ -105,7 +115,7 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     const movedSnapshot = (await state(page)).snapshot;
     assert.notDeepEqual(movedSnapshot, beforeSnapshot);
     // デバウンス待ち中でもpagehideで最後の確定済み状態を保存する。
-    await page.reload(); await ready(page); assert.deepEqual((await state(page)).snapshot, movedSnapshot);
+    await page.reload(); await ready(page); await chooseCurrentDraft(page); assert.deepEqual((await state(page)).snapshot, movedSnapshot);
 
     await page.keyboard.press('?'); await expect(page.locator('#lc02-operation-dialog')).toBeVisible();
     await page.locator('[aria-label="詳しい操作方法を閉じる"]').hover();
@@ -118,13 +128,13 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     await page.getByRole('button', { name: '全消去', exact: true }).click();
     await expect(dialog.getByRole('heading', { name: '変更を保存しますか？', exact: true })).toBeVisible();
     await dialog.getByRole('button', { name: '保存せず続ける', exact: true }).click();
-    await saved(page); await page.reload(); await ready(page);
+    await saved(page); await page.reload(); await ready(page); await chooseCurrentDraft(page);
     assert.equal((await state(page)).snapshot.graph.wires.length, 0);
     assert.equal(await namedRaw(page), originalNamed);
     console.log(`${name}: shortcuts, tooltips, panel persistence, draft recovery, gestures and named-save isolation passed`);
 
     // 同じブラウザの別タブは自動で同期・上書きしない。
-    const other = await context.newPage(); connectErrors(other); await other.goto(url); await ready(other);
+    const other = await context.newPage(); connectErrors(other); await other.goto(url); await ready(other); await chooseCurrentDraft(other);
     await other.getByRole('button', { name: 'NOTゲートを追加', exact: true }).click(); await saved(other);
     const otherRaw = await draftRaw(other);
     await expect(page.locator('#draft-status')).toHaveAttribute('data-state', 'error');
@@ -136,7 +146,8 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
     await context.close();
 
     for (const mode of ['corrupt', 'quota', 'denied']) {
-      const failed = await browser.newPage({ viewport: { width: 390, height: 844 } }); connectErrors(failed);
+      const failedContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+      const failed = await failedContext.newPage(); connectErrors(failed);
       await failed.addInitScript(mode => {
         if (mode === 'corrupt') localStorage.setItem('joho.logic-draft.v1', '{broken');
         if (mode === 'denied') Object.defineProperty(window, 'localStorage', { get() { throw new Error('blocked'); } });
@@ -152,15 +163,18 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
       await failed.getByRole('button', { name: 'ORゲートを追加', exact: true }).click();
       await expect(failed.locator('#draft-status')).toHaveAttribute('data-state', 'error');
       if (mode === 'corrupt') assert.equal(await draftRaw(failed), '{broken');
-      await failed.locator('#draft-status').click(); await expect(failed.locator('#lc02-operation-dialog')).toBeVisible();
+      await expect(failed.locator('#draft-status')).toBeVisible();
+      await expect(failed.locator('#circuit-status')).toBeHidden();
+      await failed.locator('#draft-status').click(); await expect(failed.locator('#logic-file-dialog')).toBeVisible();
+      assert.match((await failed.locator('#logic-file-dialog .logic-file-error:not([hidden])').allTextContents()).join(' '), /復元できません|保存できません|利用できません/);
       await expect(failed.locator('#draft-detail')).toContainText(/復元できません|保存できません|利用できません/);
       await failed.keyboard.press('Escape');
       // 自動復元が使えなくても、ローカルファイル保存はできる。
-      await failed.getByRole('button', { name: '回路を保存', exact: true }).click();
+      await (await revealToolButton(failed, failed.getByRole('button', { name: '回路を保存', exact: true }))).click();
       const download = failed.waitForEvent('download');
       await failed.locator('#logic-file-dialog').getByRole('button', { name: 'ファイルに保存', exact: true }).click();
       assert.match((await download).suggestedFilename(), /\.logic\.json$/);
-      await failed.close();
+      await failedContext.close();
     }
 
     const mobile = await browser.newContext({ hasTouch: true, viewport: { width: 390, height: 844 }, colorScheme: 'dark' });
@@ -184,10 +198,10 @@ for (const [name, engine] of [['chrome', chromium], ['webkit', webkit]]) {
       const layout = await touch.evaluate(() => ({ width: document.documentElement.scrollWidth,
         pane: document.querySelector('#side-main').getBoundingClientRect().toJSON(),
         zoom: document.querySelector('.zoom').getBoundingClientRect().toJSON(),
-        draft: document.querySelector('#draft-status').getBoundingClientRect().toJSON() }));
+        status: document.querySelector('#circuit-status').getBoundingClientRect().toJSON() }));
       assert.equal(layout.width, 390); assert.ok(layout.pane.x >= 20 && layout.pane.right <= 347);
-      assert.ok(layout.draft.width >= 44 && layout.draft.height >= 44);
-      assert.ok(layout.zoom.right <= 346 && layout.zoom.left >= layout.draft.right - 1, '下部ボタンが重ならない');
+      assert.ok(layout.status.width >= 44 && layout.status.height >= 44);
+      assert.ok(layout.zoom.right <= 346 && layout.zoom.left >= layout.status.right - 1, '下部ボタンが重ならない');
     }
     await touch.screenshot({ path: join(artifacts, `${name}-mobile.png`) });
     await touch.setViewportSize({ width: 1440, height: 900 });
