@@ -1,10 +1,10 @@
-# イラポの内部契約（0.3）
+# イラポの内部契約（0.4）
 
-開発担当 Codex。現在は計画③まで実装。既存アプリは変更しない。
+開発担当 Codex。現在は計画④まで実装。既存アプリは変更しない。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
 
-文書: `{format:'kaijo-ilapo',version:1|2,id,name,pages:[page]}`。version1を読み込める。image/connectorを含む文書を検証するとversion2へ上げ、引数は変更しない。
-ページ: `{id,name,board:{width,height,unit,infinite},objects:[object]}`。
+文書: `{format:'kaijo-ilapo',version:1|2|3,id,name,pages:[page]}`。version1/2を読み込める。image/connectorで最低version2、非空animationsでversion3へ上げる。上がったversionを下げず、引数は変更しない。
+ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation]}`。
 幅・高さ・座標はCSS pxの小数。unitは表示単位px/mm/pt。無限ページにも書き出し用の初期width/heightを保持。
 オブジェクト: `{id,type:'path'|'text'|'image'|'connector',name,group:null|string,locked:false,matrix:[a,b,c,d,e,f],style}`。
 pathは標準SVGの`d`、textは`x,y,runs:[{text,script:'normal'|'super'|'sub'}]`を追加する。
@@ -86,3 +86,32 @@ libraryのlist/save/remove/instantiate/exportJSON/importJSONは原子的に保�
 
 `buildPrintHTML(pages,{title?,padding?})`は安全に生成したSVGを各sectionに置き、ページごとの@pageで寸法を指定する。pagesはPage配列（または{page}の配列）で、外部の生SVG文字列は受理しない。
 `print(pages,options)`はiframeのフォントとレイアウトを待ってChrome印刷を開き、afterprintで片付ける。ユーザーは印刷画面でPDFに保存を選ぶ。画面UI・アンカー・グリッドは出力しない。
+
+
+## アニメーション（version3）
+
+page.animationsは省略可。効果は共通で `{id,targets:[objectId],effect,trigger,duration,delay}`。
+effect=fade/wipe/color/move、trigger=click/with/after、duration/delayは0〜10000ミリ秒。
+追加フィールドはfade:`{mode:'in'|'out'}`、wipe:`{mode,direction:'left'|'right'|'up'|'down'}`、
+color:`{channel:'fill'|'stroke',color:'#RRGGBB'}`、move:`{dx,dy}`（CSS px）。
+効果に無関係なキー、重複ID、空対象、他ページや存在しない対象を拒否する。下絵への効果と画像の色変更、connectorのfill色変更は禁止する。
+ページ1000件・文書5000件・効果対象5000個まで。limitsは実用的なフレームレートの保証ではない。
+
+Core.validateAnimation(value,page)は検証済み複製。pruneAnimations(page)は削除・下絵化された対象と空効果を除去する。History.changeのfn後もpruneし、通常のvalidateDocumentと読み込みは不正参照を拒否する。
+図形の部分複製は対象の交差だけを新IDへ写し、効果IDも新しくする。ページ複製は全対象を写す。
+ZIPのページmetadata.animationsへ保存し、未設定と空配列を区別して往復する。SVGにはアニメーションを含めない。
+
+IlapoAnimation.compile(page) -> `{groups:[{index,duration,items:[{animation,start,end,fromColors?}]}],steps}`。
+group0は最初のclick前の自動効果。clickで次のgroup、withは直前のstart、afterは直前のendにdelayを加える。durationは各群の最大end。
+frame(page,step,time=Infinity,{plan?}) -> `{page,visuals}` は非破壊。過去の群を完了・現在の群だけ時刻評価・未来は未適用。最初の表示効果がinの対象だけ初期非表示。
+visualsはnull-prototype辞書、値は `{opacity,reveal:null|{fraction,direction,animationId}}`。opacityは元style.opacityへの倍率。wipeはopacity1でclipだけを縮め、animationIdで複数対象のworld境界を共有する。
+moveはworld移動量の累積。colorは開始時の色からRGB線形補間。同じ表示／色の項目では一覧の後を優先する。色なし→色は開始後に即時切替。
+planは同じpageから作ったものだけを使う。再生は時間関数から毎回求め、DOMの前回状態を計算の入力にしない。
+
+IlapoAnimationPlayer.create(paper,page,{onChange?}) -> next/previous/reset/seek(step,time?)/finish/getState/destroy/svg。
+getStateはstep/steps/playing/time/duration。next/previousは群を操作できたかbooleanを返す。次へを再生途中に押すと完了。前へは前群の完了時点、resetはgroup0から再生する。
+RAFを所有し、close/reset/seekで取り消す。reduced-motionは群を即完了する。frameの複製だけをK.syncして移動中の接続を描き直す。下絵・編集枠・ハンドルを表示しない。
+
+Presentationの返却APIにreset/seekを追加し、getState.animationにPlayer状態を入れる。群の前後が尽きたらページを切り替える。前ページは全効果後、次ページは初期状態。Homeは先頭の初期状態、Endは最終の全効果後。
+IlapoAnimationUI.create(ctx)のlist/edit(id?)は共通dialogを利用する。プレビューは未確定pageだけの検証済み複製をPresentationへ渡す。
+IlapoPlaybackExport.buildHTML(doc)はPromise<string>。アプリと同じ配信元の固定されたruntimeファイルだけを読み込み、JSONのHTML終了タグとUnicode行区切りをエスケープして埋め込む。下絵を除いた文書・埋め込み画像・CSS・Paper.jsのライセンスを同梱し、生成HTMLは外部通信を必要としない。

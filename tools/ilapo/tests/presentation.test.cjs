@@ -71,7 +71,7 @@ test('presentation traps focus, supports swipe, fullscreen fallback, and narrow 
     document.exitFullscreen = () => { Object.defineProperty(document, 'fullscreenElement', { configurable: true, value: null }); document.dispatchEvent(new Event('fullscreenchange')); return Promise.resolve(); };
   }, fixture());
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
-  const heights = await page.locator('.ilapo-present-dialog button').evaluateAll(buttons => buttons.map(button => button.getBoundingClientRect().height));
+  const heights = await page.locator('.ilapo-present-dialog button').evaluateAll(buttons => buttons.filter(button => !button.hidden).map(button => button.getBoundingClientRect().height));
   assert(heights.every(height => height >= 44), 'touch controls retain a 44px target');
   await page.locator('.ilapo-present-fullscreen').click();
   assert.equal(await page.evaluate(() => viewer.getState().fullscreen), true);

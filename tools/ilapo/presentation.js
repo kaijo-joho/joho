@@ -79,13 +79,16 @@
     previousButton.type = 'button'; previousButton.className = 'ilapo-present-previous'; previousButton.textContent = '‹ 前へ';
     var nextButton = doc.createElement('button');
     nextButton.type = 'button'; nextButton.className = 'ilapo-present-next'; nextButton.textContent = '次へ ›';
+    var resetButton = doc.createElement('button');
+    resetButton.type = 'button'; resetButton.className = 'ilapo-present-reset'; resetButton.textContent = 'やり直す';
+    resetButton.setAttribute('aria-label', 'このページのアニメーションをリセット');
     var fullscreenButton = doc.createElement('button');
     fullscreenButton.type = 'button'; fullscreenButton.className = 'ilapo-present-fullscreen'; fullscreenButton.textContent = '全画面';
-    controls.append(previousButton, nextButton, fullscreenButton);
+    controls.append(previousButton, nextButton, resetButton, fullscreenButton);
 
     dialog.append(header, viewport, controls);
     doc.body.appendChild(dialog);
-    var index = initial;
+    var index = initial, player = null;
     var pointerStart = null;
     var closed = false;
     var fullscreen = false;
@@ -107,9 +110,23 @@
       paper.style.height = Math.max(1, height) + 'px';
     }
 
-    function render() {
+    function updateControls() {
+      var page=pages[index], animation=player?.getState(), hasSteps=!!page.animations?.length;
+      heading.textContent = documentValue.name || '無題';
+      status.textContent = (index + 1) + ' / ' + pages.length + (hasSteps?'　動き '+(animation?.step||0)+' / '+(animation?.steps||0)+(animation?.playing?'（再生中）':''):'') + '　' + (page.name || 'ページ');
+      previousButton.disabled = index === 0 && !(animation?.step > 0);
+      nextButton.disabled = index === pages.length - 1 && !(animation?.step < animation?.steps || animation?.playing);
+      previousButton.setAttribute('aria-label', previousButton.disabled ? '前の表示はありません' : animation?.step > 0 ? 'ひとつ前の動きへ戻る' : '前のページ');
+      nextButton.setAttribute('aria-label', nextButton.disabled ? '次の表示はありません' : animation?.playing ? '再生中の動きを完了' : animation?.step < animation?.steps ? '次の動きを再生' : '次のページ');
+      resetButton.hidden = !hasSteps;
+      fullscreenButton.textContent = fullscreen ? '全画面を終了' : '全画面';
+    }
+
+    function render(atEnd) {
       var page = pages[index];
-      paper.innerHTML = exportMarkup(page);
+      player?.destroy(); player = null;
+      if (root.IlapoAnimationPlayer) player = root.IlapoAnimationPlayer.create(paper, page, {onChange:updateControls});
+      else paper.innerHTML = exportMarkup(page);
       var svg = paper.querySelector('svg');
       if (svg) {
         var viewBox=svg.viewBox.baseVal;pageRatio=viewBox.width/viewBox.height;
@@ -119,25 +136,21 @@
         svg.style.width = '100%'; svg.style.height = '100%';
         svg.setAttribute('focusable', 'false');
       }
-      heading.textContent = documentValue.name || '無題';
-      status.textContent = (index + 1) + ' / ' + pages.length + '　' + (page.name || 'ページ');
       var description=page.objects.filter(function(o){return !(o.type==='image'&&o.reference);}).map(function(o){return o.type==='text'?o.runs.map(function(r){return r.text;}).join(''):o.type==='connector'?o.label:o.name;}).filter(Boolean).join('。');
       paper.setAttribute('aria-label', (page.name || '現在のページ')+(description?'。'+description:''));
-      previousButton.disabled = index === 0;
-      nextButton.disabled = index === pages.length - 1;
-      previousButton.setAttribute('aria-label', index === 0 ? '前のページはありません' : '前のページ');
-      nextButton.setAttribute('aria-label', index === pages.length - 1 ? '次のページはありません' : '次のページ');
-      fullscreenButton.textContent = fullscreen ? '全画面を終了' : '全画面';
+      if (player) { if (atEnd) player.seek(player.getState().steps); else player.reset(); }
+      updateControls();
       sizePaper();
     }
 
     function state() {
       return { open: !closed, pageId: pages[index].id, currentPage: index + 1, index: index, total: pages.length,
-        documentId: documentValue.id, documentName: documentValue.name, pageName: pages[index].name, fullscreen: fullscreen };
+        documentId: documentValue.id, documentName: documentValue.name, pageName: pages[index].name, fullscreen: fullscreen, animation: player?.getState() || null };
     }
 
-    function next() { if (index < pages.length - 1) { index += 1; render(); } return state(); }
-    function previous() { if (index > 0) { index -= 1; render(); } return state(); }
+    function next() { if (!player?.next() && index < pages.length - 1) { index += 1; render(); } return state(); }
+    function previous() { if (!player?.previous() && index > 0) { index -= 1; render(true); } return state(); }
+    function reset() { player?.reset(); return state(); }
 
     function restore() {
       if (previousActive && previousActive.isConnected && typeof previousActive.focus === 'function') {
@@ -156,6 +169,7 @@
     function cleanup() {
       if (closed) return;
       closed = true; fullscreen = false;
+      player?.destroy();
       root.removeEventListener('resize', sizePaper);
       if (root.ResizeObserver && observer) observer.disconnect();
       doc.removeEventListener('fullscreenchange', onFullscreenChange);
@@ -203,8 +217,9 @@
       if ([' ','Enter'].includes(event.key)&&event.target?.closest('button')) return;
       if (event.key === 'ArrowRight' || event.key === ' ' || event.key === 'Enter' || event.key === 'PageDown') { event.preventDefault(); next(); }
       else if (event.key === 'ArrowLeft' || event.key === 'PageUp') { event.preventDefault(); previous(); }
-      else if (event.key === 'Home') { event.preventDefault(); if (index !== 0) { index = 0; render(); } }
-      else if (event.key === 'End') { event.preventDefault(); if (index !== pages.length - 1) { index = pages.length - 1; render(); } }
+      else if (event.key === 'Home') { event.preventDefault(); index = 0; render(); }
+      else if (event.key === 'End') { event.preventDefault(); index = pages.length - 1; render(true); }
+      else if (event.key.toLowerCase() === 'r') { event.preventDefault(); reset(); }
     }
 
     function onClick(event) {
@@ -225,6 +240,7 @@
     closeButton.addEventListener('click', close);
     previousButton.addEventListener('click', previous);
     nextButton.addEventListener('click', next);
+    resetButton.addEventListener('click', reset);
     fullscreenButton.addEventListener('click', requestFullscreen);
     dialog.addEventListener('keydown', onKeydown);
     dialog.addEventListener('click', onClick);
@@ -242,7 +258,8 @@
     if (typeof dialog.showModal === 'function') dialog.showModal();
     else { dialog.setAttribute('open', ''); dialog.classList.add('ilapo-present-open'); }
     sizePaper();
-    active = { _dialog: dialog, next: next, previous: previous, close: close, getState: state };
+    active = { _dialog: dialog, next: next, previous: previous, reset:reset, close: close, getState: state,
+      seek:function(step,time){player?.seek(step,time);return state();} };
     paper.focus({preventScroll:true});
     return active;
   }

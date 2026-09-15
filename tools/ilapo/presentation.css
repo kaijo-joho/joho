@@ -110,7 +110,7 @@
 
 @media (max-width: 520px) {
   .ilapo-present-header { gap: 7px; padding: 7px 8px; }
-  .ilapo-present-document { font-size: 1rem; }
+  .ilapo-present-document { font-size: 1rem; max-width: 30%; }
   .ilapo-present-status { font-size: .82em; }
   .ilapo-present-viewport { padding: 6px; }
   .ilapo-present-controls { gap: 5px; padding: 7px 7px 10px; }

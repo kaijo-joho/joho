@@ -187,6 +187,7 @@
     var doc=root.IlapoCore.validateDocument(input), manifest={format:'kaijo-ilapo',version:doc.version,id:doc.id,name:doc.name,pages:[]}, files=Object.create(null);
     doc.pages.forEach(function(page,index){
       var file='pages/'+encodeURIComponent(page.id)+'.svg',meta={id:page.id,name:page.name,board:page.board,file:file,objects:Object.create(null)};
+      if(page.animations!==undefined)meta.animations=page.animations;
       page.objects.forEach(function(o){
         var m={name:o.name,group:o.group,locked:o.locked};
         if(o.type==='connector')m.connector=o;
@@ -208,13 +209,14 @@
     }}),raw=files['manifest.json'];
     if(!raw)throw new Error('Project manifest is missing');
     var manifest=JSON.parse(root.fflate.strFromU8(raw));
-    if(manifest.format!=='kaijo-ilapo'||![1,2].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
+    if(manifest.format!=='kaijo-ilapo'||![1,2,3].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
     var seenPages=new Set(),doc={format:'kaijo-ilapo',version:manifest.version,id:manifest.id,name:manifest.name,pages:[]};
     manifest.pages.forEach(function(meta){
       if(!meta||typeof meta.id!=='string'||typeof meta.name!=='string'||typeof meta.file!=='string'||!meta.board||typeof meta.board!=='object'||!meta.objects||typeof meta.objects!=='object'||Array.isArray(meta.objects)||seenPages.has(meta.id)||!Object.hasOwn(files,meta.file))throw new Error('Invalid project page metadata');
       seenPages.add(meta.id);
-      var page=importSVG(root.fflate.strFromU8(files[meta.file]),{preserveCoordinates:true,nativeObjects:manifest.version===2?meta.objects:null}).page,seenObjects=new Set();
-      page.id=meta.id;page.name=meta.name;page.board=meta.board;
+      if(meta.animations!==undefined&&(!Array.isArray(meta.animations)||meta.animations.length>1000))throw new Error('Invalid animation metadata');
+      var page=importSVG(root.fflate.strFromU8(files[meta.file]),{preserveCoordinates:true,nativeObjects:manifest.version>=2?meta.objects:null}).page,seenObjects=new Set();
+      page.id=meta.id;page.name=meta.name;page.board=meta.board;if(meta.animations!==undefined)page.animations=meta.animations;
       page.objects.forEach(function(o){
         if(seenObjects.has(o.id))throw new Error('Duplicate SVG object ID');
         seenObjects.add(o.id);var m=Object.hasOwn(meta.objects,o.id)?meta.objects[o.id]:null;
