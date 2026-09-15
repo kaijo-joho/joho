@@ -1,0 +1,108 @@
+/* Geometry invariants which node counts alone cannot verify. */
+'use strict';
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const fs = require('node:fs/promises');
+const os = require('node:os');
+let chromium;
+try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'))); }
+(async () => {
+  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  try {
+    const page = await browser.newPage();
+    for (const file of ['vendor/paper-core-0.12.18.min.js', 'vendor/fflate-0.8.2.umd.js', 'core.js', 'geometry.js', 'svg.js', 'path-edit.js']) await page.addScriptTag({ path: path.resolve(__dirname, '..', file) });
+    const results = await page.evaluate(() => {
+      const C = IlapoCore, P = IlapoPathEdit;
+      const make = (d, id = 'a', matrix = [1, 0, 0, 1, 0, 0]) => ({ ...C.makeShape('rect', 0, 0, 1, 1), d, id, matrix });
+      const info = object => P.inspect(object);
+      const metrics = object => { const item = new paper.CompoundPath(object.d); item.transform(new paper.Matrix(...object.matrix)); const value = { length: item.length, area: item.area, bounds: { x: item.bounds.x, y: item.bounds.y, width: item.bounds.width, height: item.bounds.height } }; item.remove(); return value; };
+      const rect = make('M0 0L100 0L100 100L0 100Z');
+      const round = P.roundCorners(rect, [0, 1, 2, 3].map(index => ({ path: 0, index })), 80);
+      const obtuse = P.roundCorners(make('M0 0L100 0L150 86.6025403784'), [{ path: 0, index: 1 }], 10);
+      const scaled = make('M0 0L100 100', 'scaled', [2, 0, 0, 1, 0, 0]);
+      const near = P.nearest(scaled, { x: 100, y: 20 }), added = P.addAnchor(scaled, { x: 100, y: 20 });
+      const curved = make('M0 0C60 -30 90 50 100 100L0 100Z');
+      const open = P.openPath(curved, { path: 0, index: 1 }), reclosed = P.closePaths(open, [0]);
+      const split = P.openPath(make('M0 0C30 0 70 100 100 100L150 130'), { path: 0, index: 1 });
+      const multi = make('M0 0L100 0L100 100L0 100Z M20 20L20 80L80 80L80 20Z');
+      const cut = P.deleteAnchors(multi, [{ path: 0, index: 0 }]);
+      const left = make('M0 0C25 0 25 30 50 30', 'left', [1, .2, .1, 1.5, 30, 20]);
+      const right = make('M0 0C20 0 40 50 70 50', 'right', [2, .3, 0, 1, 200, 30]);
+      const joins = {};
+      for (const mode of ['line', 'merge', 'smooth']) joins[mode] = info(P.joinEndpoints(left, { path: 0, index: 1 }, right, { path: 0, index: 0 }, mode))[0];
+      const reverse = info(P.joinEndpoints(left, { path: 0, index: 0 }, right, { path: 0, index: 1 }, 'line'))[0];
+      const same = make('M0 0L100 0L100 100');
+      const closes = {};
+      for (const mode of ['line', 'merge', 'smooth']) closes[mode] = info(P.joinEndpoints(same, { path: 0, index: 2 }, same, { path: 0, index: 0 }, mode))[0];
+      let identicalError = false; try { P.joinEndpoints(same, { path: 0, index: 0 }, same, { path: 0, index: 0 }, 'line'); } catch { identicalError = true; }
+      const twoInOne = make('M0 0L30 0 M60 0L90 0');
+      const joinedSubpaths = info(P.joinEndpoints(twoInOne, { path: 0, index: 1 }, twoInOne, { path: 1, index: 0 }, 'smooth'));
+      const outer = make('M0 0L100 0L100 100L0 100Z', 'outer', [2, 0, 0, 1, 50, 30]);
+      const inner = make('M0 0L40 0L40 40L0 40Z', 'inner', [1, 0, 0, 1, 100, 50]);
+      const hole = P.boolean([outer, inner], 'subtract'), editedHole = P.moveAnchors(hole, [{ path: 0, index: 0 }], .25, -.5);
+      const doc = C.createDocument(); doc.pages[0].objects = [editedHole];
+      const restored = IlapoSVG.decodeProject(IlapoSVG.encodeProject(doc));
+      const small = make('M0 0L0 18L18 18', 'small');
+      const smoothed = info(P.setAnchorType(small, [{ path: 0, index: 0 }], 'smooth'))[0];
+
+      // Exercise source workflows and retain an original, independently generated visual QA sheet.
+      const practice = C.createPage('形をつくる', { width: 720, height: 260, unit: 'px', infinite: false });
+      let knife = make('M55 50L55 210', 'knife'); knife.style = { ...knife.style, strokeWidth: 8, fill: 'none', stroke: '#172B4D', linecap: 'round', linejoin: 'round' };
+      knife = P.addAnchor(knife, { x: 55, y: 120 }).object;
+      knife = P.moveAnchors(knife, [{ path: 0, index: 0 }], 42, 0);
+      knife = P.roundCorners(knife, [{ path: 0, index: 1 }], 15);
+      let fork = make('M155 50L155 125', 'fork'); fork.style = { ...knife.style };
+      const fork2 = make('M205 50L205 125', 'fork2'); fork2.style = { ...knife.style };
+      fork = P.joinEndpoints(fork, { path: 0, index: 1 }, fork2, { path: 0, index: 1 }, 'line');
+      fork = P.roundCorners(fork, [{ path: 0, index: 1 }, { path: 0, index: 2 }], 15);
+      const forkStem = make('M180 50L180 210', 'fork-stem'); forkStem.style = { ...knife.style };
+      let drop = make('M350 40L412 155L350 220L288 155Z', 'drop'); drop.style = { ...drop.style, fill: '#2563EB', stroke: 'none' };
+      drop = P.roundCorners(drop, [1, 2, 3].map(index => ({ path: 0, index })), 42);
+      const circleA = C.makeShape('ellipse', 480, 60, 100, 100, { fill: '#EC4899', stroke: 'none' });
+      const circleB = C.makeShape('ellipse', 550, 60, 100, 100, { fill: '#EC4899', stroke: 'none' });
+      let heart = P.boolean([circleA, circleB], 'union'), segments = info(heart)[0].segments;
+      heart = P.deleteAnchors(heart, segments.map((seg, index) => ({ seg, index })).filter(v => v.seg.point.y > 145).map(v => ({ path: 0, index: v.index })));
+      let hs = info(heart)[0].segments;
+      heart = P.joinEndpoints(heart, { path: 0, index: 0 }, heart, { path: 0, index: hs.length - 1 }, 'line');
+      hs = info(heart)[0].segments;
+      const midpoint = { x: (hs[0].point.x + hs.at(-1).point.x) / 2, y: (hs[0].point.y + hs.at(-1).point.y) / 2 };
+      const shoulderPoints = [hs[0].point, hs.at(-1).point];
+      const newPoint = P.addAnchor(heart, midpoint); heart = P.moveAnchors(newPoint.object, [newPoint.ref], 0, 100);
+      const shoulders = info(heart)[0].segments.map((seg, index) => ({ seg, index })).filter(v => shoulderPoints.some(p => Math.hypot(v.seg.point.x - p.x, v.seg.point.y - p.y) < .01));
+      heart = P.setAnchorType(heart, shoulders.map(v => ({ path: 0, index: v.index })), 'smooth');
+      practice.objects = [knife, fork, forkStem, drop, heart];
+      return { round: info(round), obtuse: info(obtuse), near, added: info(added.object), originalCurve: metrics(curved), opened: metrics(open), reclosed: metrics(reclosed), split: info(split), splitMetrics: metrics(split), cut: info(cut), left: info(left)[0], right: info(right)[0], joins, reverse, closes, identicalError, joinedSubpaths, hole: metrics(hole), holePaths: info(hole), doc, restored, smoothed, practiceSvg: IlapoSVG.exportPage(practice) };
+    });
+    const near = (a, b, tolerance = .002) => assert(Math.abs(a - b) < tolerance, `${a} ≈ ${b}`);
+    const point = (a, b) => { near(a.x, b.x); near(a.y, b.y); };
+    const length = v => Math.hypot(v.x, v.y);
+    const parallel = (a, b) => { near(a.x * b.y - a.y * b.x, 0, .02); assert(a.x * b.x + a.y * b.y <= 0, 'handles point in opposite directions'); };
+    const expectedRound = [[0, 50], [50, 0], [50, 0], [100, 50], [100, 50], [50, 100], [50, 100], [0, 50]];
+    results.round[0].segments.forEach((seg, i) => point(seg.point, { x: expectedRound[i][0], y: expectedRound[i][1] }));
+    near(results.obtuse[0].segments[1].point.x, 100 - 10 / Math.sqrt(3));
+    near(results.obtuse[0].segments[2].point.y, 5);
+    near(results.obtuse[0].segments[1].handleOut.x, 40 / 3 * Math.tan(Math.PI / 12));
+    point(results.near.point, { x: 88, y: 44 }); point(results.added[0].segments[1].point, results.near.point);
+    near(results.opened.length, results.originalCurve.length); near(results.reclosed.length, results.originalCurve.length); near(results.reclosed.area, results.originalCurve.area);
+    assert.equal(results.split.length, 2); point(results.split[0].segments.at(-1).point, results.split[1].segments[0].point);
+    assert.equal(results.cut[0].closed, false); assert.equal(results.cut[1].closed, true);
+    const a = results.left.segments.at(-1), b = results.right.segments[0];
+    assert.equal(results.joins.line.segments.length, 4); point(results.joins.line.segments[1].point, a.point); point(results.joins.line.segments[2].point, b.point);
+    near(length(results.joins.line.segments[1].handleOut), 0); near(length(results.joins.line.segments[2].handleIn), 0);
+    assert.equal(results.joins.merge.segments.length, 3); point(results.joins.merge.segments[1].point, { x: (a.point.x + b.point.x) / 2, y: (a.point.y + b.point.y) / 2 });
+    point(results.joins.merge.segments[1].handleIn, a.handleIn); point(results.joins.merge.segments[1].handleOut, b.handleOut);
+    assert.equal(results.joins.smooth.segments.length, 4); point(results.joins.smooth.segments[1].point, a.point); point(results.joins.smooth.segments[2].point, b.point);
+    parallel(results.joins.smooth.segments[1].handleOut, a.handleIn); parallel(results.joins.smooth.segments[2].handleIn, b.handleOut);
+    point(results.reverse.segments[0].point, a.point); point(results.reverse.segments[0].handleOut, a.handleIn);
+    point(results.reverse.segments.at(-1).point, b.point); point(results.reverse.segments.at(-1).handleIn, b.handleOut);
+    assert(results.closes.line.closed && results.closes.merge.closed && results.closes.smooth.closed);
+    assert.equal(results.closes.line.segments.length, 3); assert.equal(results.closes.merge.segments.length, 2);
+    assert(length(results.closes.smooth.segments.at(-1).handleOut) > 0); assert(results.identicalError);
+    assert.equal(results.joinedSubpaths.length, 1); assert.equal(results.joinedSubpaths[0].segments.length, 4);
+    near(Math.abs(results.hole.area), 20000 - 1600); assert.equal(results.holePaths.length, 2); assert.deepEqual(results.restored, results.doc);
+    near(results.smoothed.segments[0].handleOut.x, 0); near(results.smoothed.segments[0].handleOut.y, 6);
+    await fs.writeFile('/private/tmp/ilapo-practices.svg', results.practiceSvg);
+    await page.setContent(results.practiceSvg); await page.setViewportSize({ width: 740, height: 280 }); await page.screenshot({ path: '/private/tmp/ilapo-practices.png' });
+    console.log('Ilapo path semantic invariants passed');
+  } finally { await browser.close(); }
+})().catch(error => { console.error(error); process.exitCode = 1; });

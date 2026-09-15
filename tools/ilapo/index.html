@@ -12,7 +12,10 @@
   <script defer src="vendor/fflate-0.8.2.umd.js"></script>
   <script defer src="core.js"></script>
   <script defer src="geometry.js"></script>
+  <script defer src="path-edit.js"></script>
   <script defer src="svg.js"></script>
+  <script defer src="export.js"></script>
+  <script defer src="path-ui.js"></script>
   <script defer src="local-autosave.js"></script>
   <script defer src="../shared/help-panel.js"></script>
   <script defer src="editor.js"></script>
@@ -25,7 +28,8 @@
     <button data-menu="save" aria-label="保存" data-tip="保存 ⌘S" data-icon="save"></button>
     <button data-menu="open" aria-label="開く" data-tip="開く ⌘O" data-icon="open"></button>
     <span class="sep wide"></span>
-    <button class="wide" data-tool="select" aria-label="選択ツール" data-tip="選択 V" data-icon="select"></button>
+    <button class="wide" data-tool="direct" aria-label="直接選択ツール" data-tip="直接選択 A" data-icon="direct"></button>
+    <button class="wide" data-tool="select" aria-label="全体選択ツール" data-tip="全体を選択 V" data-icon="select"></button>
     <button class="wide" data-action="undo" aria-label="元に戻す" data-tip="元に戻す ⌘Z" data-icon="undo"></button>
     <button class="wide" data-action="redo" aria-label="やり直し" data-tip="やり直し ⇧⌘Z" data-icon="redo"></button>
     <button class="wide label-button" data-action="pages" data-icon="pages">ページ</button>
@@ -49,14 +53,14 @@
     </svg>
     <div id="selection-bar" class="selection-bar" hidden aria-label="選択した図形の編集">
       <span id="selection-count"></span>
-      <button data-menu="edit">編集</button><button data-action="transform">変形</button><button data-action="style">書式・色</button><button data-menu="arrange">整列</button><button data-menu="order">重なり</button>
+      <button id="whole-mode" data-action="path-whole">全体を選択</button><button id="direct-mode" data-action="path-direct" hidden>点を選択</button><button id="path-menu-button" data-menu="path">パス</button><button data-menu="edit">編集</button><button data-action="transform">変形</button><button data-action="style">書式・色</button><button data-menu="arrange">整列</button><button data-menu="order">重なり</button>
     </div>
     <div id="welcome" class="welcome" aria-hidden="true"><div class="welcome-mark">＋</div><strong>図形をひとつ、置いてみよう。</strong><span>左の図形を選んで、ここにクリック。</span></div>
     <p id="hint" class="hint">図形を選んで追加できます。</p>
   </main>
-  <aside id="export-panel" class="export-panel" hidden aria-label="SVGの書き出し">
+  <aside id="export-panel" class="export-panel" hidden aria-label="画像・PDFの書き出し">
     <header><h2>書き出し</h2><button data-action="export-toggle" aria-label="書き出しを閉じる">×</button></header>
-    <div class="panel-content"><p>図形・文字を編集できるSVGとして保存します。</p><label>範囲<select id="export-range"><option value="page">現在のページ</option><option value="selection">選択部分</option></select></label><label>余白（px）<input id="export-padding" type="number" min="0" max="1000" value="8"></label><p class="muted">固定サイズのページ全体は、設定した用紙の寸法で出力します。</p><button class="primary" data-action="export-svg">SVGを保存</button><p class="muted">複数ページをまとめて編集用に保存するときは、上部の「保存」を使います。</p></div>
+    <div class="panel-content"><p>SVGは編集用、PNGは画像用に使えます。</p><label>範囲<select id="export-range"><option value="page">現在のページ</option><option value="selection">選択部分</option></select></label><label>余白（px）<input id="export-padding" type="number" min="0" max="1000" value="8"></label><p class="muted">固定サイズのページ全体は、設定した用紙の寸法で出力します。</p><button class="primary" data-action="export-svg">SVGを保存</button><hr><label>PNGの倍率<input id="export-scale" type="number" min="0.01" max="1000" step="any" value="1"></label><label>PNGの背景<select id="export-background"><option value="transparent">透明</option><option value="white">白</option></select></label><button class="primary" data-action="export-png">PNGを保存</button><hr><label>PDF・印刷の範囲<select id="print-range"><option value="page">現在のページ</option><option value="all">すべてのページ</option></select></label><button class="primary" data-action="export-pdf">PDF・印刷…</button><p class="muted">Chromeの印刷画面で「PDFに保存」を選びます。倍率100%・余白なし・ヘッダーとフッターなしで出力してください。</p><p class="muted">複数ページをまとめて編集用に保存するときは、上部の「保存」を使います。</p></div>
   </aside>
   <div class="side-tab"><button data-action="export-toggle" aria-label="書き出しパネルを開閉" aria-expanded="false">書き出し</button></div>
   <footer class="statusbar"><button id="page-status" data-action="pages">ページ 1 / 1</button><span id="save-status">新しい作品</span><span class="spacer"></span><button data-action="fit" data-tip="全体を表示" aria-label="全体を表示" data-icon="fit"></button><button data-action="zoom-out" aria-label="縮小">−</button><button id="zoom-value" data-action="zoom-reset" aria-label="表示倍率を100%にする">100%</button><button data-action="zoom-in" aria-label="拡大">＋</button></footer>
@@ -66,12 +70,14 @@
 <input id="file-input" type="file" accept=".svg,.zip,.json" hidden>
 <div id="toast" role="status" hidden></div><div id="tooltip" role="tooltip" hidden></div>
 <aside id="operation-help" hidden>
-  <section data-help-topic="draw" data-help-title="図形を置く"><h3>図形を置く</h3><ol><li>左から図形を選びます。狭い画面では上部の「…」から選びます。</li><li>用紙をクリックすると標準サイズで置けます。ドラッグすると大きさを指定できます。</li><li>選択ツールで図形を選び、移動します。</li></ol><details><summary>変形・複数選択</summary><p>Shiftを押して追加選択、空白をドラッグして範囲選択。選択枠の丸で拡大縮小、上の丸で回転できます。「変形」では数値を指定できます。Shiftを押して拡大縮小すると比率を保ちます。グループはまとめて選択します。</p></details></section>
+  <section data-help-topic="draw" data-help-title="図形を置く"><h3>図形を置く</h3><ol><li>左から図形を選びます。狭い画面では上部の「…」から選びます。</li><li>用紙をクリックすると標準サイズで置けます。ドラッグすると大きさを指定できます。</li><li>点を直接編集できます。図形全体を移動するときは「全体を選択」を使います。</li></ol><details><summary>変形・複数選択</summary><p>Shiftを押して追加選択、空白をドラッグして範囲選択。選択枠の丸で拡大縮小、上の丸で回転できます。「変形」では数値を指定できます。Shiftを押して拡大縮小すると比率を保ちます。グループはまとめて選択します。</p></details></section>
+  <section data-help-topic="path" data-help-title="アンカーとパスを編集"><h3>アンカーとパスを編集</h3><p>通常は「直接選択」です。図形をクリックして点を表示し、点や区間を選んでドラッグします。Shiftで点を追加、空白のドラッグで点を範囲選択。「全体を選択」またはVで図形全体の移動・変形に切り替えます。Aで直接選択へ戻ります。</p><p>選択時の「パス」でアンカーの追加・削除・数値編集、角と滑らかな点の切り替え、角丸、開閉・連結、合体・型抜きができます。区間のダブルクリックでも点を追加できます。点は「アンカーを選択…」からキーボードでも選べます。</p><details><summary>ハンドル・連結・吸着</summary><p>選んだ点のハンドルを引くと曲線を調整できます。通常は反対側の方向もそろい、Optionを押すと片側だけ変えられます。選んだ角を丸める操作は、直線同士の角を曲線に置き換えます。</p><p>開いたパスの端点を2つ選び、「2つの端点をつなぐ」で直線・1点にまとめる・滑らかな曲線を選びます。Deleteは選んだ点の部分でパスを切り開きます。点だけを減らすときは「削除して前後をつなぐ」を使います。</p><p>「表示設定」でピクセル・グリッド・他の点・他のパスへの吸着を選べます。Optionで一時解除します。パスの途中に別の端点を重ねても、枝分かれした1本のパスにはならず、2本のままです。</p></details></section>
   <section data-help-topic="text" data-help-title="文字・色を変える"><h3>文字・色を変える</h3><p>文字ツールで配置し、文章を入力します。文字の一部分を選んで上付き・下付きを指定できます。配置後の文字はダブルクリック、または選択時の「編集」から直せます。</p><p>「書式・色」ではパレット・RGB・自由な色指定を利用できます。書式コピーは選択時の「編集」にあります。</p></section>
   <section data-help-topic="pages" data-help-title="用紙とページ"><h3>用紙とページ</h3><p>「用紙」では18pxの正方形からA4・16:9まで選べます。「自由キャンバス」なら用紙の外にも広げられます。用紙の変更で図形の大きさは変わりません。</p><p>「ページ」で追加・複製・並べ替え・名前変更。コピーした図形は別のページにも貼り付けられます。</p></section>
   <section data-help-topic="save" data-help-title="保存・読み込み"><h3>保存・読み込み</h3><p>ブラウザへ編集途中を自動保存します。「保存」で残した内容は別に保持し、「開く」でどちらを使うか選べます。</p><p>ローカル保存は、各ページのSVGと作品情報をまとめたZIPです。ZIPを展開すればページごとのSVGを他のアプリへ渡せます。対応するSVGの範囲は基本図形・パス・文字・グループです。</p><details><summary>ローカルへの自動保存</summary><p>Chromeで保存先を選んだ場合に使えます。明示保存とは別のファイルへ保存し、この画面を閉じると終了します。保存先が使えない場合も作品を保持し、ブラウザ保存とファイルのダウンロードを利用できます。</p></details></section>
   <section data-help-topic="keys" data-help-title="表示・ショートカット"><h3>表示・ショートカット</h3><p>Space＋ドラッグ、または2本指スクロールで移動。ピンチや⌘＋ホイールで拡大縮小。「表示」でグリッド・テーマ・操作文字の大きさを変えられます。</p><p>⌘S 保存／⌘O 開く／⌘Z 元に戻す／⇧⌘Z やり直し／⌘C コピー／⌘V 貼り付け／⌘A すべて選択／Delete 削除／矢印キー 移動／Escape 操作の取消。</p></section>
-  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>イラポ 0.1 BETA（2026年9月）</p><p>基本編集・複数ページ・保存・SVG入出力の初期版です。アンカー編集、図形の合体・型抜き、接続矢印、アニメーションは今後追加する機能です。</p><p>推奨環境：macOS＋Google Chrome。教育用ツールです。制作物の寸法や表示は出力後にも確認してください。作品はブラウザ内または利用者が選んだローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの権利と利用条件は各ライセンスに従います。</p><p><a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a> · <a href="../index.html">ウェブアプリ一覧</a></p></section>
+  <section data-help-topic="export" data-help-title="画像・PDFを書き出す"><h3>画像・PDFを書き出す</h3><p>右の「書き出し」からSVG・PNG・PDFを出力します。PNGは倍率と透明・白背景を選べます。SVGとPNGでは選択部分だけを切り出すこともできます。</p><p>PDFは「現在のページ」「すべてのページ」を選び、Chromeの印刷画面からPDFに保存します。固定用紙はその寸法、自由キャンバスは作品を収める寸法です。印刷の倍率・余白・ヘッダーとフッターも確認してください。</p></section>
+  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>イラポ 0.2 BETA（2026年9月）</p><p>基本編集・アンカーとハンドル・図形の合体や型抜き・複数ページ・保存・SVGとPNGの出力・PDF印刷に対応しています。接続矢印やアニメーションは今後追加する機能です。</p><p>推奨環境：macOS＋Google Chrome。教育用ツールです。制作物の寸法や表示は出力後にも確認してください。作品はブラウザ内または利用者が選んだローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの権利と利用条件は各ライセンスに従います。</p><p><a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a> · <a href="../index.html">ウェブアプリ一覧</a></p></section>
 </aside>
 <noscript>イラポを使うにはJavaScriptを有効にしてください。</noscript>
 </body>

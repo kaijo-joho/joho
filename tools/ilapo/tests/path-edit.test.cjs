@@ -1,0 +1,59 @@
+#!/usr/bin/env node
+'use strict';
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const { chromium } = require(path.join(process.env.HOME, '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'));
+const root = path.resolve(__dirname, '..');
+
+(async () => {
+  const browser = await chromium.launch({ channel: 'chrome', headless: true });
+  const page = await browser.newPage();
+  for (const file of ['vendor/paper-core-0.12.18.min.js', 'path-edit.js']) await page.addScriptTag({ path: path.join(root, file) });
+  const report = await page.evaluate(() => {
+    const style = { fill: '#ffffff', stroke: '#000000', strokeWidth: 4, opacity: 1, dash: '', linecap: 'round', linejoin: 'round', fontSize: 16, fontFamily: 'sans-serif', bold: false, italic: false };
+    const box = { id: 'box', type: 'path', name: '箱', group: 'g', locked: false, matrix: [2, .25, .5, 1.5, 30, -10], style, d: 'M0 0 L50 0 L50 40 L0 40 Z' };
+    const before = IlapoPathEdit.inspect(box);
+    const moved = IlapoPathEdit.moveAnchors(box, [{ id: 'box', path: 0, index: 1 }], 20, -8);
+    const after = IlapoPathEdit.inspect(moved);
+    const handle = IlapoPathEdit.moveHandle({ ...box, d: 'M0 0 C20 0 30 20 50 20' }, { id: 'box', path: 0, index: 1 }, 'in', { x: 110, y: 50 });
+    const added = IlapoPathEdit.addAnchor(box, { x: 80, y: -3 });
+    const addedPoint = IlapoPathEdit.inspect(added.object)[added.ref.path].segments[added.ref.index].point;
+    const near = IlapoPathEdit.nearest(added.object, addedPoint);
+    const round = IlapoPathEdit.roundCorners(box, [{ id: 'box', path: 0, index: 1 }], 99);
+    let curvedError = ''; try { IlapoPathEdit.roundCorners({ ...box, d: 'M0 0 C10 0 20 10 30 10 L30 30 Z' }, [{ id: 'box', path: 0, index: 1 }], 5); } catch (e) { curvedError = e.message; }
+    const cut = IlapoPathEdit.deleteAnchors(box, [{ id: 'box', path: 0, index: 1 }]);
+    const connect = IlapoPathEdit.deleteAnchors(box, [{ id: 'box', path: 0, index: 1 }], { open: false });
+    const opened = IlapoPathEdit.openPath(box, { id: 'box', path: 0, index: 2 });
+    const closed = IlapoPathEdit.closePaths(opened, [0]);
+    const interiorOpen = IlapoPathEdit.openPath({ ...box, d: 'M0 0 C20 0 30 20 50 20 L50 40 L0 40 Z' }, { id: 'box', path: 0, index: 0, t: .5 });
+    const a = { ...box, id: 'a', matrix: [1, 0, 0, 1, 0, 0], d: 'M0 0 L20 0' };
+    const b = { ...box, id: 'b', matrix: [1, 0, 0, 1, 20, 0], d: 'M0 0 L0 20' };
+    const joined = IlapoPathEdit.joinEndpoints(a, { id: 'a', path: 0, index: 1 }, b, { id: 'b', path: 0, index: 0 }, 'smooth');
+    const circle1 = { ...box, id: 'c1', matrix: [1, 0, 0, 1, 0, 0], d: 'M20 0 A20 20 0 1 0 -20 0 A20 20 0 1 0 20 0 Z' };
+    const circle2 = { ...circle1, id: 'c2', matrix: [1, 0, 0, 1, 25, 0] };
+    const union = IlapoPathEdit.boolean([circle1, circle2], 'union');
+    const hole = IlapoPathEdit.boolean([{ ...circle1, d: 'M30 0 A30 30 0 1 0 -30 0 A30 30 0 1 0 30 0 Z' }, circle1], 'subtract');
+    const empty = IlapoPathEdit.boolean([circle1, { ...circle1, id: 'far', matrix: [1, 0, 0, 1, 200, 0] }], 'intersect');
+    const heart = { ...box, id: 'heart', matrix: [1, 0, 0, 1, 0, 0], d: 'M0 30 C-40 -5 -35 -45 -15 -25 L-25 -45 L25 -45 L15 -25 C35 -45 40 -5 0 30 Z' };
+    const heartCut = IlapoPathEdit.deleteAnchors(heart, [{ id: 'heart', path: 0, index: 0 }]);
+    const heartEnd = IlapoPathEdit.inspect(heartCut)[0].segments.length - 1;
+    const heartJoin = IlapoPathEdit.joinEndpoints(heartCut, { id: 'heart', path: 0, index: 0 }, heartCut, { id: 'heart', path: 0, index: heartEnd }, 'merge');
+    return { before, after, moved, handle: IlapoPathEdit.inspect(handle), added, near, round: IlapoPathEdit.inspect(round), curvedError, cut: IlapoPathEdit.inspect(cut), connect: IlapoPathEdit.inspect(connect), opened: IlapoPathEdit.inspect(opened), closed: IlapoPathEdit.inspect(closed), interiorOpen: IlapoPathEdit.inspect(interiorOpen), joined: IlapoPathEdit.inspect(joined), union, unionInfo: IlapoPathEdit.inspect(union), holeInfo: IlapoPathEdit.inspect(hole), empty, heartJoin: IlapoPathEdit.inspect(heartJoin) };
+  });
+  assert.equal(report.moved.id, 'box'); assert.deepEqual(report.moved.matrix, [2, .25, .5, 1.5, 30, -10]);
+  assert.ok(Math.abs(report.after[0].segments[1].point.x - report.before[0].segments[1].point.x - 20) < 1e-4);
+  assert.ok(Math.abs(report.after[0].segments[1].point.y - report.before[0].segments[1].point.y + 8) < 1e-4);
+  assert.equal(report.added.object.id, 'box'); assert.equal(report.added.ref.path, 0); assert.equal(report.near.distance < 1e-4, true);
+  assert.equal(report.round[0].segments.length, 5); assert.ok(report.round[0].segments[1].point.x < report.before[0].segments[1].point.x);
+  assert.match(report.curvedError, /曲線/);
+  assert.equal(report.cut.length, 1); assert.equal(report.cut[0].closed, false); assert.equal(report.connect[0].closed, true);
+  assert.equal(report.opened[0].closed, false); assert.equal(report.closed[0].closed, true);
+  assert.equal(report.interiorOpen[0].closed, false); assert.equal(report.interiorOpen[0].segments.length, 6);
+  assert.equal(report.joined.length, 1); assert.equal(report.joined[0].segments.length, 3);
+  assert.equal(report.union.id, 'c1'); assert.deepEqual(report.union.matrix, [1, 0, 0, 1, 0, 0]); assert.ok(report.unionInfo[0].segments.length < 20);
+  assert.equal(report.holeInfo.length, 2);
+  assert.equal(report.empty, null);
+  assert.equal(report.heartJoin[0].closed, true);
+  console.log('path-edit.test.cjs: passed');
+  await browser.close();
+})().catch(error => { console.error(error); process.exitCode = 1; });

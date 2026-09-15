@@ -37,6 +37,11 @@ async function addShape(page, kind, x, y, drag) {
   if (drag) await canvas.dragTo(canvas, { sourcePosition: { x, y }, targetPosition: { x: x + drag[0], y: y + drag[1] } });
   else await canvas.click({ position: { x, y } });
   await page.waitForFunction(() => window.IlapoEditor.getDocument().pages[0].objects.length > 0);
+  await page.keyboard.press('v'); // Whole-object operations are explicit in the direct-selection default.
+  await page.waitForFunction(() => {
+    const id = IlapoEditor.getSelection()[0];
+    return IlapoEditor.getState().tool === 'select' && [...document.querySelectorAll('[data-object]')].some(el => el.dataset.object === id) && document.querySelector('[data-handle="se"]');
+  });
 }
 async function selectObject(page, id, additive) {
   await page.locator(`[data-object="${id}"]`).click({ modifiers: additive ? ['Shift'] : [] });
@@ -63,7 +68,7 @@ async function run() {
     let doc = await documentOf(page), rect = doc.pages[0].objects[0], rectId = rect.id;
     const beforeMove = structuredClone(rect);
     const target = page.locator(`[data-object="${rectId}"]`);
-    const box = await target.boundingBox();
+    await target.waitFor({ state: 'visible' }); const box = await target.boundingBox();
     await page.mouse.move(box.x + box.width / 2, box.y + box.height / 2); await page.mouse.down(); await page.mouse.move(box.x + box.width / 2 + 40, box.y + box.height / 2 + 25, { steps: 5 }); await page.mouse.up();
     doc = await documentOf(page); assert.notDeepEqual(doc.pages[0].objects[0].matrix, beforeMove.matrix, 'pointer move changes the object matrix'); const moved = structuredClone(doc);
     const resize = page.locator('[data-handle="se"]'); const resizeBox = await resize.boundingBox();
