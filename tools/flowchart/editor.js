@@ -1,10 +1,10 @@
 /* Student diagram editor. No network services or external runtime dependencies. */
 (() => {
   'use strict';
-  const C = window.DiagramCore, R = window.DiagramRender, S = window.DiagramStorage, L = window.DiagramLocalAutosave, B = window.DiagramParts, O = window.DiagramOutput, Q = window.DiagramLayout;
+  const C = window.DiagramCore, R = window.DiagramRender, S = window.DiagramStorage, L = window.DiagramLocalAutosave, B = window.DiagramParts, O = window.DiagramOutput, Q = window.DiagramLayout, T = window.DiagramTransitions;
   const $ = id => document.getElementById(id);
   const $$ = selector => [...document.querySelectorAll(selector)];
-  if (!C || !R || !S || !L || !B || !O || !Q) {
+  if (!C || !R || !S || !L || !B || !O || !Q || !T) {
     $('notice').hidden = false;
     $('notice').textContent = 'エディタを読み込めませんでした。ページを再読み込みしてください。';
     return;
@@ -43,7 +43,7 @@
   const PARTS_AUTO='kaijo.flowchart.parts.auto.v1',PARTS_SAVED='kaijo.flowchart.parts.saved.v1';
   let partsLibrary=B.emptyLibrary(),partsReady=false,partId=null,partRegistration=null,partsPendingAction=null,partsUnsaved=false;
   let partsSaveStatus='',partsChoosing=false,pendingPart=null,partPlacement=null;
-  let renderedPartId=null,layoutSession=null;
+  let renderedPartId=null,layoutSession=null,transitionSession=null,activitySetSession=null;
   const partDrafts=new Map(),partThumbnails=new Map();
   const paletteColors = [
     ['#ffffff','白'], ['#253140','標準の黒'], ['#000000','黒'], ['#6b7280','灰色'], ['#d61f1f','赤'], ['#1d4ed8','青'],
@@ -341,6 +341,11 @@
       button.innerHTML = `<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${icons.branch}"/></svg><span>分岐セット</span>`;
       container.append(button);
     }
+    if(doc.diagramType==='activity')for(const [kind,label] of [['branch','分岐セット'],['parallel','並列セット']]) {
+      const button=document.createElement('button');button.type='button';button.dataset.activitySet=kind;button.title=`${label}：担当と配置を選んでまとめて追加`;
+      button.innerHTML=`<svg class="ui-icon" viewBox="0 0 24 24" aria-hidden="true"><path d="${kind==='branch'?icons.branch:icons.group}"/></svg><span>${label}</span>`;
+      button.onclick=()=>openActivitySet(kind,button);container.append(button);
+    }
     renderTemplates();
   }
   function renderTemplates() {
@@ -616,6 +621,7 @@
     });
     $('insert-process').hidden = !single || !e || doc.diagramType === 'state';
     $('edit-waypoints').hidden = !single || !e || e.kind!=='orthogonal';
+    $('adjust-transitions').hidden=doc.diagramType!=='state'||!selectedEdges().some(e=>node(e.from.nodeId)?.kind==='state'&&node(e.to.nodeId)?.kind==='state');
     const textNodes=selectedTextNodes();
     $('text-layout-controls').hidden=!textNodes.length;
     for(const [id,key] of [['text-align','textAlign'],['text-vertical','textVertical'],['text-padding-x','textPaddingX'],['text-padding-y','textPaddingY']]) {
@@ -655,6 +661,7 @@
     $('app').dataset.tracing = String(!!trace);
     $$('[data-tool]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.tool === tool)));
     $$('[data-tool]').forEach(b => { b.disabled = !!trace && !['select','pan'].includes(b.dataset.tool); });
+    $$('[data-activity-set]').forEach(b=>{b.disabled=!!trace||!doc.lanes.length;});
     $$('button[data-layer]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.layer === layer)));
     $('undo').disabled = !!trace || !history.canUndo; $('redo').disabled = !!trace || !history.canRedo;
     ['copy-button', 'duplicate-button'].forEach(id => { $(id).disabled = !!trace || !selected.size; });
@@ -1406,13 +1413,18 @@
   function renderLayoutPreview() {
     if(!layoutSession)return;
     layoutSession.plan=null;$('layout-apply').disabled=true;
+    const mode=$('layout-mode').value,inLanes=mode==='lanes';
+    $('layout-direction').disabled=inLanes;$('layout-branch-options').hidden=inLanes;
+    for(const id of ['layout-branch-gap','layout-flip'])$(id).disabled=inLanes;
     try {
       if(!$('layout-gap').validity.valid)throw new Error('間隔は0〜400で入力してください。');
-      const result=Q.plan(layoutSession.before,layoutSession.ids,{direction:$('layout-direction').value,gap:$('layout-gap').valueAsNumber,route:$('layout-route').checked});
+      if(!inLanes&&!$('layout-branch-gap').validity.valid)throw new Error('枝どうしの間隔は20〜400で入力してください。');
+      const result=Q.plan(layoutSession.before,layoutSession.ids,{mode,direction:inLanes?'vertical':$('layout-direction').value,gap:$('layout-gap').valueAsNumber,route:$('layout-route').checked,...(!inLanes?{branchGap:$('layout-branch-gap').valueAsNumber,flipBranches:$('layout-flip').checked}:{})});
       const changed=C.serializeDocument(result.document)!==C.serializeDocument(layoutSession.before);
       $('layout-preview').innerHTML=R.svgDocument(result.document,{padding:24,idPrefix:'layout-after'});
       $('layout-message').classList.remove('storage-error');
-      $('layout-message').textContent=[changed?`${result.unitCount}部品を並べます。適用するまでは図は変わりません。`:'すでにこの配置になっています。',...result.warnings].join(' ');
+      const label={sequence:'順次',branch:'分岐と合流',loop:'反復',lanes:'担当領域ごとの整列'}[result.structure]||'順次';
+      $('layout-message').textContent=[changed?`${label}：${result.unitCount}部品を並べます。適用するまでは図は変わりません。`:'すでにこの配置になっています。',...result.warnings].join(' ');
       layoutSession.plan=result;$('layout-apply').disabled=!changed;
     } catch(error) {
       $('layout-preview').replaceChildren();$('layout-message').classList.add('storage-error');$('layout-message').textContent=error.message;
@@ -1421,10 +1433,12 @@
   $('auto-layout-button').onclick=()=>{
     finishText();cancelGesture();if(!selectionEditable()||selectedNodes().length<2)return;
     layoutSession={before:C.clone(doc),ids:[...selected],plan:null};
+    $('layout-mode-field').hidden=doc.diagramType!=='activity';if(doc.diagramType!=='activity')$('layout-mode').value='connected';
     $('layout-before').innerHTML=R.svgDocument(doc,{padding:24,idPrefix:'layout-before'});
     renderLayoutPreview();openDialog($('layout-dialog'),$('align-menu').querySelector('summary'));
   };
   $('layout-direction').onchange=renderLayoutPreview;$('layout-gap').oninput=renderLayoutPreview;$('layout-route').onchange=renderLayoutPreview;
+  $('layout-mode').onchange=renderLayoutPreview;$('layout-branch-gap').oninput=renderLayoutPreview;$('layout-flip').onchange=renderLayoutPreview;
   $('layout-dialog').addEventListener('close',()=>{layoutSession=null;});
   $('layout-form').onsubmit=event=>{
     event.preventDefault();if(!layoutSession?.plan||$('layout-apply').disabled)return;
@@ -1433,6 +1447,67 @@
     }
     const next=layoutSession.plan.document;
     if(change(()=>{doc=C.clone(next);})){$('layout-dialog').close();notify('選択した部品をつながり順に配置しました');}
+  };
+  function renderTransitionPreview() {
+    if(!transitionSession)return;
+    const mode=$('transition-mode').value;
+    for(const [id,show] of [['transition-spacing-fields',mode==='spacing'||mode==='loop'],['transition-loop-fields',mode==='loop'],['transition-label-fields',mode==='label']]) {
+      $(id).hidden=!show;$(id).querySelectorAll('input,select').forEach(el=>{el.disabled=!show;});
+    }
+    $('transition-note').textContent=mode==='spacing'?'対象の矢印を曲線にそろえ、中央付近の間隔を調整します。文字・矢じり・色は保ちます。':mode==='loop'?'同じ状態へ戻る線の向きと大きさを調整します。直角・曲線の形は保ちます。':'ラベルの文字は変えず、線に沿った位置と上下左右のずれを調整します。';
+    transitionSession.plan=null;$('transition-apply').disabled=true;
+    try {
+      if([...$('transition-form').querySelectorAll('input')].some(el=>!el.disabled&&!el.validity.valid))throw new Error('調整値を表示された範囲内で入力してください。');
+      const options={mode,related:$('transition-related').checked};
+      if(mode==='spacing'||mode==='loop')options.spacing=$('transition-spacing').valueAsNumber;
+      if(mode==='loop'){options.side=$('transition-side').value;options.distance=$('transition-distance').valueAsNumber;}
+      if(mode==='label'){options.t=Number($('transition-label-t').value);options.dx=$('transition-label-x').valueAsNumber;options.dy=$('transition-label-y').valueAsNumber;}
+      const result=T.plan(transitionSession.before,transitionSession.ids,options),changed=C.serializeDocument(result.document)!==C.serializeDocument(transitionSession.before);
+      $('transition-preview').innerHTML=R.svgDocument(result.document,{padding:24,idPrefix:'transition-after'});
+      $('transition-message').classList.remove('storage-error');$('transition-message').textContent=[changed?`${result.edgeIds.length}本の矢印を調整します。`:'すでにこの設定になっています。',...result.warnings].join(' ');
+      transitionSession.plan=result;$('transition-apply').disabled=!changed;
+    }catch(error){$('transition-preview').replaceChildren();$('transition-message').textContent=error.message;$('transition-message').classList.add('storage-error');}
+  }
+  $('adjust-transitions').onclick=()=>{
+    finishText();cancelGesture();if(!selectionEditable()||doc.diagramType!=='state')return;
+    transitionSession={before:C.clone(doc),ids:[...selected],plan:null};
+    $('transition-mode').value=selectedEdges().every(e=>e.from.nodeId===e.to.nodeId)?'loop':'spacing';
+    $('transition-before').innerHTML=R.svgDocument(doc,{padding:24,idPrefix:'transition-before'});renderTransitionPreview();openDialog($('transition-dialog'),$('shape-menu').querySelector('summary'));
+  };
+  $('transition-form').addEventListener('input',renderTransitionPreview);$('transition-form').addEventListener('change',renderTransitionPreview);
+  $('transition-dialog').addEventListener('close',()=>{transitionSession=null;});
+  $('transition-form').onsubmit=event=>{
+    event.preventDefault();if(!transitionSession?.plan||$('transition-apply').disabled)return;
+    if(C.serializeDocument(doc)!==C.serializeDocument(transitionSession.before)){$('transition-message').textContent='図が変更されました。閉じて確認し直してください。';$('transition-apply').disabled=true;return;}
+    const next=transitionSession.plan.document;if(change(()=>{doc=C.clone(next);})){$('transition-dialog').close();notify('遷移を調整しました');}
+  };
+  function renderActivitySetPreview() {
+    if(!activitySetSession)return;activitySetSession.plan=null;$('activity-set-apply').disabled=true;
+    try {
+      if(!$('activity-set-y').validity.valid)throw new Error('上端の位置を数値で指定してください。');
+      const next=C.clone(activitySetSession.before),result=C.addActivitySet(next,$('activity-set-kind').value,{laneId:$('activity-set-lane').value,firstLaneId:$('activity-set-first').value,secondLaneId:$('activity-set-second').value,y:$('activity-set-y').valueAsNumber});
+      $('activity-set-preview').innerHTML=R.svgDocument(next,{padding:24,idPrefix:'activity-set'});
+      const added=next.nodes.filter(n=>result.ids.includes(n.id));
+      const overlaps=added.some(n=>activitySetSession.before.nodes.some(o=>n.x<o.x+o.w&&n.x+n.w>o.x&&n.y<o.y+o.h&&n.y+n.h>o.y));
+      $('activity-set-message').classList.remove('storage-error');$('activity-set-message').textContent=overlaps?'配置済みの図形と重なります。上端の位置か担当を調整できます。':'4つの記号と4本の矢印を1グループとして追加します。';
+      activitySetSession.plan={document:next,...result};$('activity-set-apply').disabled=false;
+    }catch(error){$('activity-set-preview').replaceChildren();$('activity-set-message').textContent=error.message;$('activity-set-message').classList.add('storage-error');}
+  }
+  function openActivitySet(kind,invoker) {
+    finishText();cancelGesture();if(trace||doc.diagramType!=='activity')return;
+    activitySetSession={before:C.clone(doc),plan:null};const lanes=orderedLanes();
+    for(const id of ['activity-set-lane','activity-set-first','activity-set-second']){$(id).replaceChildren();lanes.forEach(l=>$(id).add(new Option(l.title||'担当領域',l.id)));}
+    $('activity-set-kind').value=kind;$('activity-set-second').value=lanes[1]?.id||lanes[0]?.id||'';
+    $('activity-set-y').value=Math.round(Math.max(...lanes.map(l=>l.y+60),...doc.nodes.map(n=>n.y+n.h+60))||100);
+    renderActivitySetPreview();openDialog($('activity-set-dialog'),invoker);
+  }
+  $('activity-set-form').addEventListener('input',renderActivitySetPreview);$('activity-set-form').addEventListener('change',renderActivitySetPreview);
+  $('activity-set-dialog').addEventListener('close',()=>{activitySetSession=null;});
+  $('activity-set-form').onsubmit=event=>{
+    event.preventDefault();if(!activitySetSession?.plan||$('activity-set-apply').disabled)return;
+    if(C.serializeDocument(doc)!==C.serializeDocument(activitySetSession.before)){$('activity-set-message').textContent='図が変更されました。閉じて確認し直してください。';$('activity-set-apply').disabled=true;return;}
+    const proposal=activitySetSession.plan;
+    if(change(()=>{doc=C.clone(proposal.document);selected=new Set(proposal.ids);tool='select';layer='diagram';laneId=null;})){$('activity-set-dialog').close();fit();canvas.focus({preventScroll:true});notify('セットを追加しました。文字や位置を編集できます');}
   };
   function selectedPart(){return partsLibrary.items.find(item=>item.id===partId)||null;}
   function renderParts() {

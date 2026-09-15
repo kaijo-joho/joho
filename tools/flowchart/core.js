@@ -508,6 +508,29 @@
     const ids = [...nodes, ...edges].map(o => o.id), groupId = groupSelection(doc, ids);
     return { nodeId: decision.id, ids, groupId };
   }
+  function addActivitySet(doc, kind, options = {}) {
+    const source=parseDocument(doc);
+    if(source.diagramType!=='activity')fail('アクティビティ図で使えるセットです。');
+    if(!['branch','parallel'].includes(kind)||!record(options))fail('セットの種類・設定が不正です。');
+    const getLane=id=>source.lanes.find(l=>l.id===id);
+    const common=getLane(options.laneId??source.lanes[0]?.id),first=getLane(options.firstLaneId??common?.id),second=getLane(options.secondLaneId??source.lanes[1]?.id??common?.id);
+    if(!common||!first||!second)fail('開始・合流と各処理の担当領域を選択してください。');
+    const y=number(options.y,Math.max(common.y,first.y,second.y)+60),cx=l=>l.x+l.w/2;
+    const start=createNode(kind==='branch'?'decision':'fork',cx(common)-84,y,{text:kind==='branch'?'条件':'',laneId:common.id});start.x=cx(common)-start.w/2;
+    const spread=first.id===second.id?102:0;
+    const a=createNode('action',cx(first)-spread-84,y+start.h+80,{text:kind==='branch'?'条件Aの処理':'並行する処理A',laneId:first.id});
+    const b=createNode('action',cx(second)+spread-84,a.y,{text:kind==='branch'?'条件Bの処理':'並行する処理B',laneId:second.id});
+    const end=createNode(kind==='branch'?'merge':'join',cx(common)-84,a.y+a.h+80,{laneId:common.id});end.x=cx(common)-end.w/2;
+    const nodes=[start,a,b,end],ep=(n,side,offset=.5)=>({nodeId:n.id,side,offset});
+    for(const n of nodes){const l=getLane(n.laneId);if(n.x<l.x+16||n.x+n.w>l.x+l.w-16||n.y<l.y+48||n.y+n.h>l.y+l.h-16)fail('セットを置く余白が足りません。担当領域の幅・高さ、または上端の位置を調整してください。');}
+    const edges=kind==='branch'?[
+      createEdge(ep(start,'left'),ep(a,'top'),{label:{text:'条件A',t:.2,dy:-16}}),createEdge(ep(start,'right'),ep(b,'top'),{label:{text:'条件B',t:.2,dy:-16}}),
+      createEdge(ep(a,'bottom'),ep(end,'left')),createEdge(ep(b,'bottom'),ep(end,'right'))
+    ]:[createEdge(ep(start,'bottom',.25),ep(a,'top')),createEdge(ep(start,'bottom',.75),ep(b,'top')),createEdge(ep(a,'bottom'),ep(end,'top',.25)),createEdge(ep(b,'bottom'),ep(end,'top',.75))];
+    const next=parseDocument({...source,nodes:[...source.nodes,...nodes],edges:[...source.edges,...edges]}),ids=[...nodes,...edges].map(n=>n.id),groupId=groupSelection(next,ids);
+    assertEditable(source,next);doc.nodes=next.nodes;doc.edges=next.edges;doc.groups=next.groups;
+    return{nodeId:start.id,ids,groupId};
+  }
   function traceStarts(doc) {
     const usable = doc.nodes.filter(node => node.kind !== 'text');
     const initial = usable.filter(node => node.kind === 'initial'); if (initial.length) return initial.map(node => node.id);
@@ -640,8 +663,15 @@
   const TEMPLATES = Object.freeze([
     { id: 'flow-branch', title: '分岐と反復', description: '内容を確認し、必要なら修正して、もう一度確認する。', diagramType: 'flowchart' },
     { id: 'flow-sequence', title: '順番に進める', description: '入力、処理、出力を順に並べる。', diagramType: 'flowchart' },
+    { id: 'flow-choice', title: '条件で2つに分ける', description: '2つの処理からどちらかを選び、合流して先へ進む。', diagramType: 'flowchart' },
+    { id: 'flow-while', title: '先に条件を調べて反復', description: '条件を満たす間、処理を繰り返す。', diagramType: 'flowchart' },
+    { id: 'flow-repeat', title: '処理の後で条件を調べる', description: '少なくとも1回処理を行い、条件を満たしたら終了する。', diagramType: 'flowchart' },
     { id: 'activity-parallel', title: '担当を分けて並行作業', description: '資料集めと図の作成を分担し、終わってからまとめる。', diagramType: 'activity' },
-    { id: 'state-device', title: '操作による状態の変化', description: '開始・停止・一時停止。自己ループと複数の遷移を含む。', diagramType: 'state' }
+    { id: 'activity-handoff', title: '担当を引き継ぐ', description: '依頼・確認・受け取りを2つの担当で分担する。', diagramType: 'activity' },
+    { id: 'activity-choice', title: '条件で担当を分ける', description: '条件に応じて処理を分け、統合して終了する。', diagramType: 'activity' },
+    { id: 'state-device', title: '操作による状態の変化', description: '開始・停止・一時停止。自己ループと複数の遷移を含む。', diagramType: 'state' },
+    { id: 'state-toggle', title: '2つの状態を切り替える', description: '開始と停止で、2つの状態を行き来する。', diagramType: 'state' },
+    { id: 'state-progress', title: '作業の進み方を表す', description: '未着手・作業中・完了と、やり直す操作を表す。', diagramType: 'state' }
   ]);
   function createTemplate(templateId) {
     const meta = TEMPLATES.find(t => t.id === templateId); if (!meta) fail('ひな形が見つかりません。');
@@ -656,15 +686,36 @@
     } else if (templateId === 'flow-sequence') {
       const a = n('terminal',190,30,'開始'), b = n('inputOutput',184,130,'数値を入力'), c = n('process',186,260,'合計を求める'), d = n('display',184,390,'結果を表示'), z = n('terminal',190,510,'終了');
       e(a,b); e(b,c); e(c,d); e(d,z);
+    } else if (templateId === 'flow-choice') {
+      const start=n('terminal',230,30,'開始'),condition=n('decision',224,145,'条件を\n満たす？'),yes=n('process',414,345,'はいの処理'),no=n('process',34,345,'いいえの処理'),merge=n('junction',304,520,''),end=n('terminal',230,600,'終了');
+      e(start,condition);e(condition,yes,'はい').from={nodeId:condition.id,side:'right',offset:.5};e(condition,no,'いいえ').from={nodeId:condition.id,side:'left',offset:.5};e(yes,merge).to={nodeId:merge.id,side:'right',offset:.5};e(no,merge).to={nodeId:merge.id,side:'left',offset:.5};e(merge,end);
+    } else if (templateId === 'flow-while') {
+      const start=n('terminal',250,25,'開始'),condition=n('decision',244,150,'続ける条件？'),body=n('process',246,335,'繰り返す処理'),end=n('terminal',10,480,'終了');
+      e(start,condition);e(condition,body,'はい').from={nodeId:condition.id,side:'bottom',offset:.5};e(condition,end,'いいえ',{bend:{x:90,y:250}}).from={nodeId:condition.id,side:'left',offset:.5};
+      const back=e(body,condition,'次の回',{waypoints:[{x:330,y:440},{x:530,y:440},{x:530,y:200}]});back.from={nodeId:body.id,side:'bottom',offset:.5};back.to={nodeId:condition.id,side:'right',offset:.5};
+    } else if (templateId === 'flow-repeat') {
+      const start=n('terminal',250,25,'開始'),body=n('process',246,155,'まず処理を行う'),condition=n('decision',244,315,'終了する\n条件？'),end=n('terminal',250,520,'終了');
+      e(start,body);e(body,condition);e(condition,end,'はい').from={nodeId:condition.id,side:'bottom',offset:.5};const back=e(condition,body,'いいえ',{waypoints:[{x:90,y:365},{x:90,y:187}]});back.from={nodeId:condition.id,side:'left',offset:.5};back.to={nodeId:body.id,side:'left',offset:.5};
     } else if (templateId === 'activity-parallel') {
       doc.lanes[0].title = '班員A'; doc.lanes[1].title = '班員B'; doc.lanes.forEach(l=>{l.h=610;});
       const a=n('initial',178,80,''), b=n('action',106,150,'課題を確認'), f=n('fork',106,265,''), p=n('action',106,320,'資料を集める'), q=n('action',406,320,'図を作る'), j=n('join',106,445,''), z=n('action',106,495,'内容をまとめる'), end=n('final',176,590,'');
       e(a,b);e(b,f);e(f,p);e(f,q);e(p,j);e(q,j);e(j,z);e(z,end);
+    } else if(templateId==='activity-handoff') {
+      doc.lanes[0].title='依頼する人';doc.lanes[1].title='確認する人';
+      const start=n('initial',178,85,''),request=n('action',106,160,'内容を送る'),check=n('action',406,290,'内容を確認する'),receive=n('action',106,420,'結果を受け取る'),end=n('final',176,550,'');e(start,request);e(request,check);e(check,receive);e(receive,end);
+    } else if(templateId==='activity-choice') {
+      doc.lanes[0].title='担当A';doc.lanes[1].title='担当B';doc.lanes.forEach(l=>{l.h=760;});
+      const start=n('initial',178,80,''),result=addActivitySet(doc,'branch',{y:155});doc.groups=[];
+      const decision=doc.nodes.find(n=>n.id===result.nodeId),merge=doc.nodes.find(n=>result.ids.includes(n.id)&&n.kind==='merge'),end=n('final',176,650,'');e(start,decision);e(merge,end);
+    } else if(templateId==='state-toggle') {
+      const a=n('state',80,190,'停止中'),b=n('state',440,190,'動作中');e(a,b,'開始',{kind:'curve',bend:{x:320,y:175}});e(b,a,'停止',{kind:'curve',bend:{x:320,y:325}});
+    } else if(templateId==='state-progress') {
+      const a=n('state',50,190,'未着手'),b=n('state',330,190,'作業中'),c=n('state',610,190,'完了');e(a,b,'着手',{kind:'curve',bend:{x:250,y:205}});e(b,c,'完了する',{kind:'curve',bend:{x:530,y:205}});e(c,b,'やり直す',{kind:'curve',bend:{x:530,y:335}});
     } else {
       const a=n('state',75,185,'待機'), b=n('state',385,185,'動作中'), c=n('state',235,465,'一時停止',{w:170,h:72,variant:'round'});
       e(a,b,'開始',{kind:'curve'});e(b,a,'停止',{kind:'curve'});e(a,b,'再開',{kind:'curve'});e(b,b,'更新',{kind:'curve'});e(b,c,'一時停止',{kind:'curve'});e(c,b,'再開',{kind:'curve'});
     }
     return parseDocument(doc);
   }
-  return Object.freeze({ NODE_DEFS, DEFAULT_STYLE, TEXT_LAYOUT_DEFAULTS, uid, clone, createDocument, createNode, createEdge, parseDocument, serializeDocument, getNode, findLane, expandSelection, groupSelection, ungroupSelection, setLocked, nodeOrderActions, reorderNodes, assertEditable, addLane, removeLane, moveLane, changeNodeShape, changeEdgeShape, matchNodeSize, setEdgeWaypoints, copyStyle, pasteStyle, removeSelection, copySelection, pasteSelection, insertNodeOnEdge, addBranch, traceStarts, inspectDocument, createTrace, traceOptions, stepTrace, backTrace, History, TEMPLATES, createTemplate });
+  return Object.freeze({ NODE_DEFS, DEFAULT_STYLE, TEXT_LAYOUT_DEFAULTS, uid, clone, createDocument, createNode, createEdge, parseDocument, serializeDocument, getNode, findLane, expandSelection, groupSelection, ungroupSelection, setLocked, nodeOrderActions, reorderNodes, assertEditable, addLane, removeLane, moveLane, changeNodeShape, changeEdgeShape, matchNodeSize, setEdgeWaypoints, copyStyle, pasteStyle, removeSelection, copySelection, pasteSelection, insertNodeOnEdge, addBranch, addActivitySet, traceStarts, inspectDocument, createTrace, traceOptions, stepTrace, backTrace, History, TEMPLATES, createTemplate });
 });

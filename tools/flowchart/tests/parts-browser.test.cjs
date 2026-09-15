@@ -15,7 +15,7 @@ const clone = value => JSON.parse(JSON.stringify(value));
 
 async function serve() {
   const root = path.resolve(__dirname, '..');
-  const allowed = new Set(['index.html', 'core.js', 'output.js', 'render.js', 'parts.js','layout.js', 'editor.js', 'editor.css', 'storage.js', 'local-autosave.js', 'icon.svg']);
+  const allowed = new Set(['index.html', 'core.js', 'output.js', 'render.js', 'parts.js','layout.js','transitions.js', 'editor.js', 'editor.css', 'storage.js', 'local-autosave.js', 'icon.svg']);
   const types = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml' };
   const server = http.createServer(async (request, response) => {
     const file = new URL(request.url, 'http://localhost').pathname.slice(1) || 'index.html';

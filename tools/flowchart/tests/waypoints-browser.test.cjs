@@ -4,7 +4,7 @@ const Core = require('../core.js');
 const Render = require('../render.js');
 let pw; try { pw = require('playwright'); } catch { pw = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')); }
 async function serve() {
-  const root=path.resolve(__dirname,'..'),allowed=new Set(['index.html','output.js','parts.js','layout.js','core.js','render.js','editor.js','editor.css','storage.js','local-autosave.js','icon.svg']);
+  const root=path.resolve(__dirname,'..'),allowed=new Set(['index.html','output.js','parts.js','layout.js','transitions.js','core.js','render.js','editor.js','editor.css','storage.js','local-autosave.js','icon.svg']);
   const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'};
   const server=http.createServer(async(req,res)=>{
     const file=new URL(req.url,'http://localhost').pathname.slice(1)||'index.html';

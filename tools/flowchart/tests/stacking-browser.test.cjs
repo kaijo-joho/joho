@@ -9,7 +9,7 @@ let playwright;
 try { playwright = require('playwright'); }
 catch { playwright = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')); }
 
-const ALLOWED = new Set(['index.html', 'core.js', 'render.js', 'output.js', 'parts.js','layout.js', 'editor.js', 'editor.css', 'storage.js', 'local-autosave.js', 'icon.svg']);
+const ALLOWED = new Set(['index.html', 'core.js', 'render.js', 'output.js', 'parts.js','layout.js','transitions.js', 'editor.js', 'editor.css', 'storage.js', 'local-autosave.js', 'icon.svg']);
 const TYPES = { '.html':'text/html', '.js':'text/javascript', '.css':'text/css', '.svg':'image/svg+xml' };
 
 async function serve() {

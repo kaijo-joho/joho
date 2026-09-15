@@ -15,6 +15,7 @@
   <script src="render.js" defer></script>
   <script src="parts.js" defer></script>
   <script src="layout.js" defer></script>
+  <script src="transitions.js" defer></script>
   <script src="editor.js" defer></script>
 </head>
 <body data-lesson-tools="off">
@@ -116,6 +117,7 @@
           <label data-for="edge">矢じり<select id="edge-head" aria-label="選択した矢印の矢じり"><option value="" disabled hidden>複数の設定</option><option value="end">終点</option><option value="both">両端</option><option value="none">なし</option></select></label>
           <button type="button" data-for="edge" id="reverse-edge" aria-label="矢印の向きを反転"><span data-icon="reverse"></span></button>
           <button type="button" id="edit-waypoints" hidden>折れ曲がり点を編集…</button>
+          <button type="button" id="adjust-transitions" hidden>遷移の矢印・ラベルを調整…</button>
           <button type="button" data-for="edge" id="reset-route" title="手で調整した経路を自動に戻します。直角の矢印は図形を避けます。">経路を整える</button>
           </div></details>
           <details class="menu" id="more-format"><summary>書式 <span aria-hidden="true">▾</span></summary><div class="menu-panel">
@@ -283,14 +285,38 @@
   <dialog id="layout-dialog" class="workspace-dialog layout-dialog" aria-labelledby="layout-title"><form id="layout-form" class="dialog-layout">
     <h2 id="layout-title">つながり順に自動配置</h2>
     <div class="dialog-body">
-      <p class="muted">選択した図形を矢印の順に並べます。先頭の位置とグループ内の配置は保ちます。分岐・合流・循環を含む順路は対象外です。</p>
+      <p class="muted">順次・単純な2分岐と合流・1つの反復を整えます。グループ内の配置は保ちます。入れ子や複雑な接続には対応していません。</p>
+      <label class="stack" id="layout-mode-field">配置の種類<select id="layout-mode"><option value="connected">つながり順に配置</option><option value="lanes">担当領域ごとに縦に整列</option></select></label>
       <div class="layout-options"><label class="stack">方向<select id="layout-direction"><option value="vertical">上から下へ</option><option value="horizontal">左から右へ</option></select></label><label class="stack">図形間の間隔<input id="layout-gap" type="number" min="0" max="400" step="1" value="60" required></label></div>
+      <div class="layout-options" id="layout-branch-options"><label class="stack">枝どうしの間隔<input id="layout-branch-gap" type="number" min="20" max="400" step="1" value="80" required></label><label class="check"><input type="checkbox" id="layout-flip">枝・戻り道の側を入れ替える</label></div>
       <label class="check"><input id="layout-route" type="checkbox" checked>選択内の矢印も整える</label>
-      <p class="muted">矢印を整えると、部品どうしを結ぶ線の接続位置と折れ曲がり点を自動に戻します。</p>
+      <p class="muted">直角の矢印の接続位置と経路を配置に合わせて調整します。担当別の整列では、同じ担当内の自動経路が対象です。</p>
       <p id="layout-message" role="status"></p>
       <div class="layout-previews"><figure><figcaption>現在</figcaption><div id="layout-before" class="layout-preview"></div></figure><figure><figcaption>適用後</figcaption><div id="layout-preview" class="layout-preview"></div></figure></div>
     </div>
     <div class="dialog-actions"><button type="button" data-close-dialog>キャンセル</button><button type="submit" id="layout-apply" class="primary">適用する</button></div>
+  </form></dialog>
+  <dialog id="transition-dialog" class="workspace-dialog layout-dialog" aria-labelledby="transition-title"><form id="transition-form" class="dialog-layout">
+    <h2 id="transition-title">遷移の矢印・ラベルを調整</h2>
+    <div class="dialog-body">
+      <label class="stack">調整するもの<select id="transition-mode"><option value="spacing">複数の矢印の間隔（曲線にそろえる）</option><option value="loop">自己ループの向き・大きさ</option><option value="label">ラベルの位置</option><option value="reset-label">ラベル位置を標準に戻す</option></select></label>
+      <label class="check"><input type="checkbox" id="transition-related" checked>同じ状態間の矢印も含める</label>
+      <p id="transition-note" class="muted"></p>
+      <div class="layout-options" id="transition-spacing-fields"><label class="stack">中央付近での間隔<input type="number" id="transition-spacing" min="20" max="240" value="48" step="1" required></label></div>
+      <div class="layout-options" id="transition-loop-fields" hidden><label class="stack">ループを置く側<select id="transition-side"><option value="right">右</option><option value="bottom">下</option><option value="left">左</option><option value="top">上</option></select></label><label class="stack">状態からの距離<input type="number" id="transition-distance" min="28" max="600" value="80" step="1" required></label></div>
+      <div id="transition-label-fields" hidden><label class="stack">線に沿った位置<select id="transition-label-t"><option value="0.2">始点寄り</option><option value="0.5">中央</option><option value="0.8">終点寄り</option></select></label><div class="layout-options"><label class="stack">左右の調整（右が＋）<input type="number" id="transition-label-x" min="-1000" max="1000" value="0" step="1" required></label><label class="stack">上下の調整（下が＋）<input type="number" id="transition-label-y" min="-1000" max="1000" value="-12" step="1" required></label></div></div>
+      <p id="transition-message" role="status"></p><div class="layout-previews"><figure><figcaption>現在</figcaption><div id="transition-before" class="layout-preview"></div></figure><figure><figcaption>適用後</figcaption><div id="transition-preview" class="layout-preview"></div></figure></div>
+    </div><div class="dialog-actions"><button type="button" data-close-dialog>キャンセル</button><button type="submit" id="transition-apply" class="primary">適用する</button></div>
+  </form></dialog>
+  <dialog id="activity-set-dialog" class="workspace-dialog layout-dialog" aria-labelledby="activity-set-title"><form id="activity-set-form" class="dialog-layout">
+    <h2 id="activity-set-title">アクティビティ図のセットを追加</h2>
+    <div class="dialog-body">
+      <label class="stack">セット<select id="activity-set-kind"><option value="branch">分岐と統合</option><option value="parallel">並列開始と並列終了</option></select></label>
+      <div class="layout-options"><label class="stack">開始・合流の担当<select id="activity-set-lane"></select></label><label class="stack">上端の位置<input id="activity-set-y" type="number" min="-100000" max="100000" step="1" required></label></div>
+      <div class="layout-options"><label class="stack">処理Aの担当<select id="activity-set-first"></select></label><label class="stack">処理Bの担当<select id="activity-set-second"></select></label></div>
+      <p class="muted">担当領域内へ4つの記号と矢印をまとめて置きます。追加後に文字を編集できます。領域を広げるときは「担当領域」に切り替えます。</p>
+      <p id="activity-set-message" role="status"></p><div id="activity-set-preview" class="layout-preview"></div>
+    </div><div class="dialog-actions"><button type="button" data-close-dialog>キャンセル</button><button type="submit" id="activity-set-apply" class="primary">追加する</button></div>
   </form></dialog>
   <input type="file" id="parts-file-input" accept=".json,.flowparts.json,application/json" hidden>
   <dialog id="size-dialog" class="format-dialog" aria-labelledby="size-title"><form id="size-form">
@@ -358,7 +384,9 @@
   </div></dialog>
   <dialog id="help-dialog"><div class="help"><h2>フローチャートエディタの使い方</h2>
     <p><strong>文字の位置を調整する：</strong>文字のある図形を選び、「書式」で左右・上下の配置と余白を指定します。複数選択してまとめて設定でき、「文字配置を標準に戻す」で中央・標準の余白へ戻せます。図形どうしの書式コピーでは文字配置と余白もコピーします。</p>
-    <p><strong>つながり順に並べる：</strong>つながった図形を2つ以上選び、「整列」→「つながり順に自動配置」で方向・間隔を選びます。現在と適用後の図を確認してから適用します。先頭とグループ内の配置を保ち、1回のUndoで戻せます。分岐・合流・循環は対象外です。</p>
+    <p><strong>つながり順に並べる：</strong>つながった図形を2つ以上選び、「整列」→「つながり順に自動配置」で方向・間隔を選びます。順次・単純な2分岐と合流・前判定／後判定の反復に対応し、枝の間隔や左右の入れ替えも選べます。現在と適用後を確認して適用し、1回のUndoで戻せます。入れ子や複雑な接続には対応していません。</p>
+    <p><strong>状態遷移を整える：</strong>状態どうしを結ぶ矢印を選び、「形」→「遷移の矢印・ラベルを調整」で、複数の矢印の間隔、自己ループの向き・大きさ、ラベルの位置を調整できます。「同じ状態間の矢印も含める」でまとめて調整できます。間隔調整では対象を曲線にそろえます。プレビューを確認してから適用します。</p>
+    <p><strong>担当ごとに作図する：</strong>アクティビティ図の「分岐セット」「並列セット」では、開始・合流と2つの処理の担当を選んで追加できます。余白が足りない場合は「担当領域」で幅・高さを調整します。「整列」→「つながり順に自動配置」の「担当領域ごとに縦に整列」で、担当別に位置を整えられます。担当をまたぐグループは先に解除します。</p>
     <p><strong>マイ部品を整理する：</strong>名前・カテゴリで検索でき、カテゴリ別の絞り込みと名前順・更新順の表示に対応します。「手動の順」で絞り込みを解除すると、セットを1つ上・下へ移動できます。名前と任意のカテゴリはプレビューの下で変更できます。</p>
     <ol><li><strong>置く：</strong>左の部品を選び、作図画面をクリックします。部品ボタンでEnterを押すと、画面の中央に置けます。</li><li><strong>文字を書く：</strong>図形をダブルクリック、または選んでEnter。Enterで改行、⌘Enterで確定します。</li><li><strong>つなぐ：</strong>図形を選び、端の○から別の図形へドラッグします。○と接続先を順にクリックしてもつなげます。「接続先を選ぶ」からも指定できます。</li><li><strong>線を直す：</strong>線を選び、端の○でつなぎ直し、中央の◇で経路を調整します。直角の矢印は「形」→「折れ曲がり点を編集…」で、線上の＋から点を追加できます。番号付きの点をドラッグし、「位置」から座標も指定できます。Deleteで点を削除、Escapeで完了します。ラベルはダブルクリックして入力し、ドラッグして位置を変えられます。</li><li><strong>担当を分ける：</strong>アクティビティ図では「担当領域」に切り替え、追加・並べ替え・名前や幅の編集ができます。領域を削除しても図形と矢印は元の位置に残ります。領域にTabで移動してEnterを押すと名前を編集できます。</li><li><strong>保存する：</strong>ファイルメニューで「ブラウザ内に保存」「ファイルに保存」を選べます。画像は右端の「書き出し」から保存します。</li></ol>
     <p>「吸着」をオンにすると、接続位置が辺の両端・中央・等分点にそろいます。同じ辺につながる本数に応じて、2本なら1/3・2/3、3本なら1/4・3/4も候補になります。自由な位置につなぐときはオフにします。</p>

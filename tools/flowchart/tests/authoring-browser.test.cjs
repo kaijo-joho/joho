@@ -5,7 +5,7 @@ const C=require('../core.js'),B=require('../parts.js');
 let pw;try{pw=require('playwright');}catch{pw=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'));}
 const AUTO='kaijo.flowchart.parts.auto.v1',SAVED='kaijo.flowchart.parts.saved.v1';
 async function serve(){
-  const allowed=new Set(['index.html','core.js','render.js','layout.js','parts.js','output.js','storage.js','local-autosave.js','editor.js','editor.css','icon.svg']);
+  const allowed=new Set(['index.html','core.js','render.js','layout.js','transitions.js','parts.js','output.js','storage.js','local-autosave.js','editor.js','editor.css','icon.svg']);
   const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'};
   const server=http.createServer(async(req,res)=>{const file=new URL(req.url,'http://localhost').pathname.slice(1)||'index.html';if(!allowed.has(file))return res.writeHead(404).end();try{res.writeHead(200,{'Content-Type':`${types[path.extname(file)]}; charset=utf-8`});res.end(await fs.readFile(path.join(__dirname,'..',file)));}catch{res.writeHead(404).end();}});
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));return{url:`http://127.0.0.1:${server.address().port}/`,close:()=>new Promise(resolve=>server.close(resolve))};

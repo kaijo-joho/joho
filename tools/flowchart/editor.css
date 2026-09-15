@@ -136,5 +136,6 @@ dialog.layout-dialog{padding:0;width:min(920px,calc(100vw - 24px));max-height:ca
 
 .parts-dialog #part-name-form{flex-wrap:wrap}.parts-dialog #part-name-form label{flex-basis:100%}.parts-order-note{font-size:.85em}
 dialog.layout-dialog{max-width:calc(100vw - 24px)}
+.layout-dialog .check{min-height:44px;gap:8px}.layout-dialog .check input[type=checkbox]{width:18px;height:18px;min-height:18px;flex:0 0 18px}
 #part-draft-note{flex-basis:100%;margin:0;font-size:.9em}
 @media(max-width:680px){.parts-list{grid-auto-rows:max-content}.parts-thumb{flex:none}.layout-previews figure:last-child{order:-1}}
