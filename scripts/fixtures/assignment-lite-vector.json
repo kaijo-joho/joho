@@ -1,0 +1,11 @@
+{
+  "description": "PUBLIC SYNTHETIC TEST VECTOR from fm2; never a production key",
+  "keyMaterial": "ERERERERERERERERERERERERERERERERERERERERERE",
+  "input": {
+    "purpose": "start", "bookId": "synthetic_book", "pid": "logic_test", "itemId": "work", "sessionId": "",
+    "browserKeyId": "AtRJox-7JnyPNS6ZaKeePl_JXBu-qlAv1kVOveWkvtw", "requestId": "vector_start_1", "revision": 0,
+    "payloadHash": "47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU", "challenge": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+  },
+  "transcript": "fm2.editor-lite.v1\n{\"bookId\":\"synthetic_book\",\"browserKeyId\":\"AtRJox-7JnyPNS6ZaKeePl_JXBu-qlAv1kVOveWkvtw\",\"challenge\":\"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa\",\"itemId\":\"work\",\"payloadHash\":\"47DEQpj8HBSa-_TImW-5JCeuQeRkm5NMpJWZG3hSuFU\",\"pid\":\"logic_test\",\"purpose\":\"start\",\"requestId\":\"vector_start_1\",\"revision\":0,\"sessionId\":\"\"}",
+  "mac": "HuCT2wfO_ulpszlisYq6wnUPCGTr9g8iFdGfU295EuA"
+}

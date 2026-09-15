@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../../css/logic-circuits.css">
   <link rel="stylesheet" href="./editor.css">
   <link rel="stylesheet" href="../shared/help-panel.css">
+  <link rel="stylesheet" href="./assignment.css">
   <script defer src="../../js/logic-core.js"></script>
   <script defer src="../../js/logic-renderer.js"></script>
   <script defer src="../../js/logic-widgets.js"></script>
@@ -18,6 +19,12 @@
   <script defer src="./recovery.js"></script>
   <script defer src="./ui.js"></script>
   <script defer src="../shared/help-panel.js"></script>
+  <script defer src="../shared/assignment-lite.js"></script>
+  <script defer src="../shared/assignment-lite-store.js"></script>
+  <script defer src="../shared/assignment-lite-bridge.js"></script>
+  <script defer src="../shared/assignment-lite-client.js"></script>
+  <script defer src="./assignment-config.js"></script>
+  <script defer src="./assignment.js"></script>
   <script defer src="./editor.js"></script>
 </head>
 <body>
@@ -150,6 +157,7 @@
       <p><strong>名前付き保存とは別の一時的な下書きです。</strong>別回路への切り替え・全消去前の下書きは最大5件残します。読み込み画面で名前と日時を確認して選べます。長く残すには名前付き保存やファイル保存を使ってください。閲覧データを消すと下書きも消え、別端末とは同期されません。</p>
       <p id="draft-detail" class="muted"></p>
       </details><details><summary>ブラウザ保存の注意</summary><p>ブラウザ保存は端末間で同期されず、閲覧データを削除すると失われます。旧lc02と<strong>同じサイト・同じブラウザ</strong>なら、保存済みの回路を引き続き読み込めます。</p></details>
+      <details><summary>課題モードの保存と提出（連携準備中）</summary><p>課題モードは現在、本番では有効になっていません。有効化後は、提出フォームから開いて開始を確認すると、作品と確定した編集・Undo/Redo・持込みの履歴を通常保存と分けて暗号保存します。選択・倍率・ドラッグ途中・キー入力は記録しません。</p><p>「提出フォームへ途中保存」「提出へ進む」で作品・履歴・課題ID・登録鍵IDを提出フォームへ送信します。途中保存は正式提出ではなく、最後は提出フォームで確認・確定します。送信先と保管方針は開始画面で確認してください。端末内だけの未送信変更は、鍵を失うと復旧できません。教員に相談すると、最後に提出フォームへ保存した作品から復旧します。</p><p>履歴は不正検知の参考情報であり、本人制作の証明ではありません。Macの製造番号や他サイトの閲覧履歴は取得しません。通常の作品を課題へ持ち込めるかは、課題ごとの設定に従います。画像出力はできますが、課題の提出は専用の手順を使ってください。</p></details>
     </section>
     <section data-help-topic="export" data-help-title="SVG・PNGの書き出し">
       <h3>SVG・PNGの書き出し</h3>
@@ -167,12 +175,12 @@
         <div><dt>推奨環境</dt><dd>macOS ＋ Google Chrome（最新版）。Safariなどほかのブラウザでは、表示や一部の機能（画像のコピーなど）が異なる場合があります。</dd></div>
         <div><dt>ご利用にあたって</dt><dd>
           <p>このアプリは情報科の学習・教材作成のための教育用ツールです。0と1による論理回路の動作を扱い、実際の回路の電圧や信号の遅延などは再現しません。表示や計算の正確さを保証するものではありません。</p>
-          <p>作成した回路は、お使いのブラウザ内、または利用者が選んだローカルファイルに保存され、外部には送信されません。ブラウザの閲覧データを削除すると保存内容も失われるため、大切な回路はローカルファイルにも保存してください。</p>
+          <p>通常モードで作成した回路は、お使いのブラウザ内、または利用者が選んだローカルファイルに保存され、外部には送信されません。ブラウザの閲覧データを削除すると保存内容も失われるため、大切な回路はローカルファイルにも保存してください。</p>
           <p>このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
         </dd></div>
       </dl>
       <footer class="help-credit" aria-label="バージョン情報と著作権">
-        <p>論理回路エディタ　バージョン 0.4 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+        <p>論理回路エディタ　バージョン 0.5 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
       </footer>
     </section>
   </aside>

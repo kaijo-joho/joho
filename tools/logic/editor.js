@@ -28,7 +28,7 @@
   let files, editor, helpPanel, activePane = null, previewUrl = null;
   let zoomMode = 'fit', zoom = 1, pendingFit = false;
   let copyingTable = false, exporting = false, preserveBeforeEdit = false;
-  let resizing = false, panelResize, draftStore, draftReady = false, draftTimer, pendingDraft, draftFingerprint;
+  let resizing = false, panelResize, draftStore, draftReady = false, draftTimer, pendingDraft, draftFingerprint, normalSuspended = false;
   const busy = () => resizing || helpPanel?.interacting || Boolean(editor && (editor.drag || editor.paletteDrag || editor.connectionDrag || editor.bendDrag || editor.pan || editor.marquee));
   const preferencesKey = 'joho.logic.ui.v1';
   let preferences = {};
@@ -62,6 +62,7 @@
   }
   function flushDraft(strict = false) {
     clearTimeout(draftTimer);
+    if (normalSuspended) return;
     if (!pendingDraft || !draftStore) return;
     const data = pendingDraft;
     try {
@@ -71,7 +72,7 @@
     } catch (error) { draftError(error); if (strict === true) throw error; }
   }
   function queueDraft() {
-    if (!draftReady || !draftStore || draftStore.blocked || busy()) return;
+    if (normalSuspended || !draftReady || !draftStore || draftStore.blocked || busy()) return;
     const value = draftValue(), fingerprint = JSON.stringify(value);
     if (fingerprint === draftFingerprint) return;
     // 開始時の選択を閉じて新規編集を始めても、前回の下書きを失わない。
@@ -103,6 +104,7 @@
     return hasDrafts;
   }
   function replaceCircuit(action, { initial = false } = {}) {
+    if (normalSuspended) throw new Error('課題の読み込み画面から操作してください。');
     if (busy()) throw new Error('ドラッグ中の操作を終了してから、回路を切り替えてください。');
     if (draftStore && !draftStore.blocked) {
       // 通常の編集の保存を完了してから、切り替え前の回路を退避する。
@@ -574,4 +576,10 @@
   window.LogicToolUI.tooltips({ busy });
   document.body.classList.add('logic-tool-ready');
   if (chooseDraft) files.openLoad({ initial: true });
+  if (window.JohoLogicAssignment && window.JohoAssignmentLite && window.JohoAssignmentLiteClient && window.JohoAssignmentLiteBridge && window.JohoAssignmentLiteStore) {
+    window.logicAssignment = window.JohoLogicAssignment.mount({ editor, files, busy,
+      suspendNormal: () => { flushDraft(true); clearTimeout(draftTimer); normalSuspended = true; },
+      resumeNormal: () => { normalSuspended = false; draftFingerprint = JSON.stringify(draftValue()); }
+    });
+  }
 })();

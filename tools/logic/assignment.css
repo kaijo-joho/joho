@@ -1,0 +1,9 @@
+/* 課題の入口は本番未有効。通常モードの配置は変えない。 */
+#assignment-dialog { width: min(40rem, calc(100vw - 24px)); max-height: calc(100dvh - 24px); }
+#assignment-dialog .dialog-body { display: flex; flex-wrap: wrap; gap: .65rem; }
+#assignment-dialog p, #assignment-dialog details, #assignment-dialog label { flex-basis: 100%; margin: 0; overflow-wrap: anywhere; }
+#assignment-dialog button { min-height: 44px; }
+#assignment-dialog .assignment-states { white-space: pre-line; font-weight: 600; line-height: 1.7; }
+#assignment-dialog details p { margin-top: .6rem; }
+#assignment-status { max-width: min(18rem, 48vw); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.assignment-mode #logic-editor[inert] { opacity: .7; }
