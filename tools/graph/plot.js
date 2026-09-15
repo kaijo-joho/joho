@@ -1,4 +1,4 @@
-/* global Plotly, GraphExpression */
+/* global Plotly, GraphExpression, GraphCurves, GraphAnnotations */
 (function (root, factory) {
   const api = factory(root);
   if (typeof module === 'object' && module.exports) module.exports = api;
@@ -21,7 +21,7 @@
   };
   const intersect = (a, b) => {
     const out = [Math.max(a[0], b[0]), Math.min(a[1], b[1])];
-    return out[0] < out[1] ? out : a;
+    return out[0] < out[1] ? out : null;
   };
   const plotly = () => root.Plotly;
   const params = (doc) => Object.fromEntries((doc.parameters || []).map((p) => [p.name, Number(p.value)]));
@@ -51,6 +51,7 @@
   function sampleFunction(series, doc) {
     const domainX = range(series.domain && { min: series.domain.x && series.domain.x[0], max: series.domain.x && series.domain.x[1] }, [-10, 10]);
     const xRange = intersect(domainX, range(doc.axes && doc.axes.x, domainX));
+    if (!xRange) return { x: [], y: [] };
     const yRange = range(doc.axes && doc.axes.y, [-10, 10]);
     const compiled = expression(series.expression, ['x'], doc);
     const base = params(doc), xs = [], ys = [];
@@ -88,6 +89,7 @@
     const domainY = range(series.domain && { min: series.domain.y && series.domain.y[0], max: series.domain.y && series.domain.y[1] }, [-10, 10]);
     const xr = intersect(domainX, range(doc.axes && doc.axes.x, domainX));
     const yr = intersect(domainY, range(doc.axes && doc.axes.y, domainY));
+    if (!xr || !yr) return { x: [], y: [], z: [] };
     const compiled = expression(series.expression, ['x', 'y'], doc), base = params(doc);
     const n = MAX_SURFACE_CELLS, x = [], y = [], z = [];
     for (let i = 0; i <= n; i++) x.push(xr[0] + (xr[1] - xr[0]) * i / n);
@@ -108,14 +110,34 @@
     return { x, y, z };
   }
 
-  function traceFor(series, doc) {
+  function traceFor(series, doc, warnings) {
     const st = style(series.style), name = esc(series.name || series.expression || '系列');
+    const sampler = { implicit: 'sampleImplicit', parametric: 'sampleParametric', polar: 'samplePolar' }[series.kind];
+    if (sampler) {
+      const p = root.GraphCurves[sampler](series, doc);
+      for (const warning of p.warnings || []) warnings.push((series.name || '曲線') + '：' + warning);
+      return { type: 'scatter', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: p.x, y: p.y, name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color }, connectgaps: false };
+    }
     if (series.kind === 'function') { const p = sampleFunction(series, doc); return { type: 'scatter', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: p.x, y: p.y, name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color }, connectgaps: false }; }
     if (series.kind === 'surface') { const p = sampleSurface(series, doc); return { type: 'surface', x: p.x, y: p.y, z: p.z, name, showlegend: doc.legend !== false, showscale: false, opacity: st.opacity, colorscale: [[0, st.color], [1, st.color]] }; }
     const rows = (series.rows || []).filter((r) => Array.isArray(r));
     const is3 = series.kind === 'data3d';
     const vals = (n) => rows.map((r) => r.every(finite) ? r[n] : null);
     return is3 ? { type: 'scatter3d', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: vals(0), y: vals(1), z: vals(2), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color, size: 4 }, connectgaps: false } : { type: 'scatter', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: vals(0), y: vals(1), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color }, connectgaps: false };
+  }
+
+  function annotationTraces(annotation, doc, warnings) {
+    const result = root.GraphAnnotations.evaluate(annotation, doc);
+    if (result.warning) warnings.push((annotation.name || '点・補助線') + '：' + result.warning);
+    const st = annotation.style, traces = [], meta = { objectType: 'annotation', objectId: annotation.id };
+    const common = { type: 'scatter', name: esc(annotation.name), opacity: st.opacity, meta, legendgroup: annotation.id, connectgaps: false };
+    if (result.segments.length) {
+      const x = [], y = [];
+      for (const segment of result.segments) { for (const p of segment) { x.push(p[0]); y.push(p[1]); } x.push(null); y.push(null); }
+      traces.push(Object.assign({}, common, { x, y, mode: 'lines', showlegend: !result.points.length, line: { color: st.color, width: st.width, dash: st.dash } }));
+    }
+    if (result.points.length) traces.push(Object.assign({}, common, { x: result.points.map(p => p[0]), y: result.points.map(p => p[1]), mode: 'markers+text', text: result.points.map((_, i) => esc(annotation.name + (result.points.length > 1 ? ' ' + (i + 1) : ''))), textposition: 'top right', marker: { color: st.color, size: 9, symbol: 'circle' }, hovertemplate: '%{x:.8g}, %{y:.8g}<extra>' + esc(annotation.name) + '</extra>' }));
+    return traces;
   }
 
   function layoutFor(doc, options) {
@@ -143,18 +165,50 @@
     return changed ? { axes, camera } : null;
   }
 
+  function selectionMeta(element, event, traces) {
+    const point = event && event.points && event.points[0];
+    let meta = point && traces[point.curveNumber] && traces[point.curveNumber].meta;
+    // Plotly's nearest-curve hit can win over a marker directly on that curve.
+    // Use the fixed bundled Plotly axis converters to prioritize visible annotation markers.
+    const mouse = event && event.event, layout = element._fullLayout;
+    if (mouse && finite(mouse.clientX) && finite(mouse.clientY) && layout && layout.xaxis && layout.yaxis) {
+      const xa = layout.xaxis, ya = layout.yaxis, box = element.getBoundingClientRect();
+      if (typeof xa.d2p === 'function' && typeof ya.d2p === 'function') {
+        let nearest = 11;
+        for (const trace of traces) if (trace.meta.objectType === 'annotation' && (trace.mode || '').includes('markers')) {
+          for (let i = 0; i < trace.x.length; i++) {
+            const x = xa.d2p(trace.x[i]), y = ya.d2p(trace.y[i]);
+            if (!finite(x) || !finite(y) || x < 0 || y < 0 || x > xa._length || y > ya._length) continue;
+            const distance = Math.hypot(box.left + xa._offset + x - mouse.clientX, box.top + ya._offset + y - mouse.clientY);
+            if (distance < nearest) { nearest = distance; meta = trace.meta; }
+          }
+        }
+      }
+    }
+    return meta;
+  }
+
   async function render(element, doc, options) {
     options = options || {};
     const P = plotly(); if (!P || !element) throw new Error('Plotly を読み込めません。');
-    const traces = (doc.series || []).filter((s) => s.visible !== false && (doc.mode === '3d' ? s.kind === 'surface' || s.kind === 'data3d' : s.kind === 'function' || s.kind === 'data2d')).map((s) => traceFor(s, doc));
+    const warnings = [], traces = [];
+    for (const s of doc.series || []) {
+      if (s.visible === false || (doc.mode === '3d' ? !['surface', 'data3d'].includes(s.kind) : ['surface', 'data3d'].includes(s.kind))) continue;
+      const trace = traceFor(s, doc, warnings); trace.meta = { objectType: 'series', objectId: s.id }; traces.push(trace);
+    }
+    if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false) {
+      try { traces.push(...annotationTraces(a, doc, warnings)); } catch (error) { warnings.push((a.name || '点・補助線') + '：' + error.message); }
+    }
     const state = states.get(element) || {}; const camera = options.camera || state.camera;
     if (typeof element.removeAllListeners === 'function') { element.removeAllListeners('plotly_click'); element.removeAllListeners('plotly_relayout'); }
-    await P.react(element, traces, layoutFor(doc, Object.assign({}, options, { camera })), { displayModeBar: false, responsive: true, scrollZoom: true });
+    const layout = Object.assign(layoutFor(doc, Object.assign({}, options, { camera })), { autosize: true, width: element.clientWidth || 640, height: element.clientHeight || 480 });
+    await P.react(element, traces, layout, { displayModeBar: false, responsive: true, scrollZoom: true });
     const live = { doc, camera: (element.layout && element.layout.scene && element.layout.scene.camera) || camera, options }; states.set(element, live);
     if (typeof element.on === 'function') {
-      element.on('plotly_click', (event) => { const point = event && event.points && event.points[0]; const s = point && doc.series && doc.series.filter((x) => x.visible !== false && (doc.mode === '3d' ? x.kind === 'surface' || x.kind === 'data3d' : x.kind === 'function' || x.kind === 'data2d'))[point.curveNumber]; if (s && typeof options.onSelect === 'function') options.onSelect(s.id); });
+      element.on('plotly_click', (event) => { const meta = selectionMeta(element, event, traces); if (!meta) return; const callback = meta.objectType === 'annotation' ? options.onAnnotationSelect : options.onSelect; if (typeof callback === 'function') callback(meta.objectId); });
       element.on('plotly_relayout', (event) => { const view = viewFrom(event || {}, doc); if (!view) return; if (view.camera) live.camera = view.camera; if (typeof options.onViewChange === 'function') options.onViewChange(view); });
     }
+    return { warnings: [...new Set(warnings)] };
   }
   function resetView(element, doc) { const P = plotly(); if (!P || !element) return Promise.resolve(); const layout = layoutFor(doc, Object.assign({}, states.get(element) && states.get(element).options, { camera: undefined })); const state = states.get(element); if (state) state.camera = undefined; return P.relayout(element, layout); }
   function resize(element) { const P = plotly(); return P && P.Plots && element ? P.Plots.resize(element) : undefined; }

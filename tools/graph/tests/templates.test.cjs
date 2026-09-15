@@ -3,7 +3,7 @@ const GraphTemplates = require('../templates.js');
 const GraphCore = require('../core.js');
 
 const templates = GraphTemplates.list();
-assert.strictEqual(templates.length, 7);
+assert.strictEqual(templates.length, 11);
 assert.strictEqual(new Set(templates.map(t => t.id)).size, templates.length);
 for (const template of templates) {
   assert.ok(template.name && template.category && template.description);
@@ -14,7 +14,7 @@ for (const template of templates) {
   const validation = GraphCore.validateDocument(doc);
   assert.ok(validation && validation.format === 'kaijo-graph', `${template.id}: invalid template`);
   for (const series of doc.series) {
-    assert.ok(['function', 'surface', 'data2d', 'data3d'].includes(series.kind));
+    assert.ok(['function', 'surface', 'data2d', 'data3d', 'implicit', 'parametric', 'polar'].includes(series.kind));
     assert.ok(series.source && ['user', 'reference', 'model'].includes(series.source.kind));
   }
 }

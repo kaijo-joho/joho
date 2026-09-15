@@ -15,11 +15,12 @@
     let text = source.trim();
     const left = text.match(/^([A-Za-z_][A-Za-z_0-9]*)\s*=\s*/);
     if (left) {
+      if (target === false) error('この数式には等号を使えません。');
       if (!['y','z'].includes(left[1])) error('数式の左辺は y または z にしてください。');
       if (target && left[1] !== target) error(target === 'y' ? '2D 関数の左辺は y にしてください。' : '3D 曲面の左辺は z にしてください。');
       text = text.slice(left[0].length);
     }
-    if (/[=;\[\]{}]/.test(text)) error('数式に使えない記号があります。');
+    if (/[=;\[\]{}]/.test(text)) error(target === false && text.includes('=') ? 'この数式には等号を使えません。' : '数式に使えない記号があります。');
     const out = []; let pos = 0;
     while (pos < text.length) {
       if (/\s/.test(text[pos])) { pos++; continue; }
@@ -35,7 +36,7 @@
   function compile(expression, options = {}) {
     const vars = new Set(Array.isArray(options.variables) ? options.variables : []);
     const target = options.target;
-    if (target !== undefined && target !== 'y' && target !== 'z') error('数式の種類が不正です。');
+    if (target !== undefined && target !== false && target !== 'y' && target !== 'z') error('数式の種類が不正です。');
     const angle = options.angle === 'deg' ? 'deg' : options.angle === 'rad' || options.angle === undefined ? 'rad' : error('角度の設定が不正です。');
     for (const name of vars) if (typeof name !== 'string' || !/^[A-Za-z][A-Za-z0-9_]*$/.test(name) || FUNCTIONS.has(name) || Object.hasOwn(CONSTANTS, name) || RESERVED.has(name)) error('変数名が不正です。');
     const tokens = tokenize(expression, target); let index = 0, nodes = 0;
@@ -79,5 +80,15 @@
     }
     return { evaluate(scope = {}) { if (!scope || typeof scope !== 'object') return NaN; for (const key of vars) if (!Number.isFinite(scope[key])) return NaN; return evaluateNode(tree, scope); } };
   }
-  return { compile };
+  function compileEquation(expression, options = {}) {
+    if (typeof expression !== 'string' || !expression.trim()) error('数式を入力してください。');
+    const count = (expression.match(/=/g) || []).length;
+    if (count > 1) error('方程式の等号は1つまでです。');
+    const parts = count ? expression.split('=') : [expression, '0'];
+    if (!parts[0].trim() || !parts[1].trim()) error('方程式の左右を入力してください。');
+    const common = { variables: options.variables, angle: options.angle, target: false };
+    const left = compile(parts[0], common), right = compile(parts[1], common);
+    return { evaluate(scope = {}) { const value = left.evaluate(scope) - right.evaluate(scope); return Number.isFinite(value) ? value : NaN; } };
+  }
+  return { compile, compileEquation };
 });

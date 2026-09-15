@@ -19,9 +19,9 @@
     };
   }
   function documentBase(name, mode) {
-    return { format: 'kaijo-graph', version: 1, name, mode, angle: 'rad',
+    return { format: 'kaijo-graph', version: 2, name, mode, angle: 'rad',
       axes: axes(mode), equalScale: false, grid: true, legend: true,
-      parameters: [], series: [] };
+      parameters: [], series: [], annotations: [] };
   }
   function functionSeries(id, name, expression, source, domain) {
     return { id, kind: 'function', name, expression,
@@ -91,9 +91,38 @@
     saddle.equalScale = true;
     saddle.series.push(surfaceSeries('surface-saddle', 'z = x² − y²', 'x^2-y^2'));
 
+    const circle = documentBase('円を方程式で描く', '2d');
+    circle.equalScale = true; circle.axes.x.min = circle.axes.y.min = -4; circle.axes.x.max = circle.axes.y.max = 4;
+    const circleSeries = functionSeries('implicit-circle', 'x² + y² = 9', 'x^2+y^2=9', undefined, [-4, 4]);
+    circleSeries.kind = 'implicit'; circleSeries.domain.y = [-4, 4]; circle.series.push(circleSeries);
+
+    const ellipse = documentBase('楕円と曲線上の点', '2d');
+    ellipse.equalScale = true; ellipse.axes.x.min = -4; ellipse.axes.x.max = 4; ellipse.axes.y.min = -3; ellipse.axes.y.max = 3;
+    ellipse.parameters.push({ name: 'a', value: 0.8, min: 0, max: 6.28, step: 0.02 });
+    const ellipseSeries = functionSeries('parametric-ellipse', 'x = 3cos(t), y = 2sin(t)', '', undefined, [-4, 4]);
+    Object.assign(ellipseSeries, { kind: 'parametric', components: { x: '3*cos(t)', y: '2*sin(t)' }, interval: [0, 2 * Math.PI] });
+    ellipse.series.push(ellipseSeries);
+    ellipse.annotations.push({ id: 'ellipse-point', kind: 'point', name: 'P', visible: true, anchor: { type: 'curve', seriesId: ellipseSeries.id, at: 'a' }, projections: true, style: { color: '#dc2626', width: 1.5, dash: 'dash', opacity: 1 } });
+
+    const rose = documentBase('極座標の花形曲線', '2d');
+    rose.equalScale = true; rose.axes.x.min = rose.axes.y.min = -2.5; rose.axes.x.max = rose.axes.y.max = 2.5;
+    const roseSeries = functionSeries('polar-rose', 'r = 2cos(3θ)', '2*cos(3*theta)');
+    Object.assign(roseSeries, { kind: 'polar', interval: [0, 2 * Math.PI] }); rose.series.push(roseSeries);
+
+    const tangent = documentBase('放物線の接線と交点', '2d');
+    tangent.axes.x.min = -3; tangent.axes.x.max = 3; tangent.axes.y.min = -2; tangent.axes.y.max = 6;
+    tangent.parameters.push({ name: 'a', value: 1, min: -2, max: 2, step: 0.1 });
+    tangent.series.push(functionSeries('tangent-parabola', 'y = x²', 'x^2', undefined, [-3, 3]), functionSeries('intersection-line', 'y = x + 2', 'x+2', undefined, [-3, 3]));
+    tangent.series[1].style.color = '#16a34a';
+    tangent.annotations.push({ id: 'tangent-at-a', kind: 'tangent', name: '接線', visible: true, seriesId: 'tangent-parabola', at: 'a', style: { color: '#dc2626', width: 2, dash: 'dash', opacity: 1 } }, { id: 'two-intersections', kind: 'intersection', name: '交点', visible: true, seriesIds: ['tangent-parabola', 'intersection-line'], interval: [-3, 3], style: { color: '#9333ea', width: 1.5, dash: 'dash', opacity: 1 } });
+
     return [
       { id: 'math-quadratic-a', name: '2次関数と係数 a', category: '数学', description: '係数 a を変えて放物線の開き方と向きを比べます。', document: quadratic },
       { id: 'math-sine-comparison', name: 'sin の比較', category: '数学', description: 'sin(x) と sin(2x) の周期を比べます。', document: sine },
+      { id: 'math-implicit-circle', name: '円を方程式で描く', category: '数学', description: 'x² + y² = 9 を陰関数として描きます。', document: circle },
+      { id: 'math-parametric-ellipse', name: '楕円と曲線上の点', category: '数学', description: '媒介変数で楕円を描き、係数 a で点 P を動かします。', document: ellipse },
+      { id: 'math-polar-rose', name: '極座標の花形曲線', category: '数学', description: '半径 r と角度 θ で花形の軌跡を描きます。角度はラジアン。', document: rose },
+      { id: 'math-tangent-intersections', name: '放物線の接線と交点', category: '数学', description: '係数 a で接点を動かし、放物線と直線の交点を確認します。', document: tangent },
       { id: 'science-water-vapor-pressure', name: '水の飽和蒸気圧（計算値）', category: '理科', description: 'IAPWS の式から計算した温度と水の飽和蒸気圧の数表です。', document: vapor },
       { id: 'science-ideal-gas-pv', name: '理想気体 PV モデル', category: '理科', description: '温度と物質量を変え、P と V の関係を見ます。', document: gas },
       { id: 'information-complexity', name: '計算量の比較', category: '情報', description: 'n、log₂n、n log₂n、n² の増え方を比べます。', document: complexity },

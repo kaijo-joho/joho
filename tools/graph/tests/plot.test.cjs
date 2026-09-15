@@ -39,4 +39,6 @@ for (const expression of ['x^2', 'exp(x)', 'sin(x)', '100000*x']) {
   assert(p.z.flat().includes(null), '漸近面は null の帯で切る');
 }
 assert.equal(Plot.escapeText('<img src=x>'), '&lt;img src=x&gt;');
+assert.deepEqual(Plot.sampleFunction({ expression: 'x^2', domain: { x: [20, 30] } }, doc()), { x: [], y: [] }, 'outside domains do not draw into the current view');
+assert.deepEqual(Plot.sampleSurface({ expression: 'x+y', domain: { x: [20, 30], y: [0, 1] } }, doc()), { x: [], y: [], z: [] });
 console.log('plot.test.cjs: ok');
