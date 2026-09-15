@@ -1,0 +1,14 @@
+'use strict';
+const assert=require('node:assert/strict'),C=require('../core.js'),K=require('../connectors.js');
+const document=C.createDocument(),page=document.pages[0],a=C.makeShape('rect',0,0,30,20),b=C.makeShape('diamond',90,0,30,20);
+const arrow=K.make({x:30,y:10,objectId:a.id},{x:90,y:10,objectId:b.id},{waypoints:[{x:60,y:40}]});page.objects=[arrow,a,b];
+const checked=C.validateDocument(document);assert.equal(checked.version,2);assert.equal(document.version,1,'validation does not mutate the old document');
+const history=new C.History(checked);history.change(d=>{const p=d.pages[0];C.removeObjects(p,[a.id]);});assert.equal(history.document.pages[0].objects[0].from.objectId,null);assert.equal(history.document.pages[0].objects[0].from.x,30);history.undo();assert.deepEqual(history.document,checked);
+const duplicated=C.clone(checked),ids=C.duplicateObjects(duplicated.pages[0],[arrow.id,a.id,b.id],7,9),copy=duplicated.pages[0].objects.find(o=>o.id===ids[0]);assert(ids.includes(copy.from.objectId)&&ids.includes(copy.to.objectId));assert.deepEqual(copy.waypoints,[{x:67,y:49}]);assert.deepEqual(copy.matrix,[1,0,0,1,0,0]);
+const lone=C.clone(checked),one=C.duplicateObjects(lone.pages[0],[arrow.id],7,9),line=lone.pages[0].objects.find(o=>o.id===one[0]);assert.equal(line.from.objectId,null);assert.equal(line.to.objectId,null);assert.equal(line.from.x,37);
+const dupPage=C.duplicatePage(duplicated,duplicated.pages[0].id),second=duplicated.pages.find(p=>p.id===dupPage),known=new Set(second.objects.map(o=>o.id));for(const c of second.objects.filter(o=>o.type==='connector'))assert(known.has(c.from.objectId)&&known.has(c.to.objectId));
+const invalid=C.clone(checked);invalid.pages[0].objects[0].from.objectId=arrow.id;assert.throws(()=>C.validateDocument(invalid));
+for(const patch of [{matrix:[2,0,0,2,0,0]},{route:'<script>'},{waypoints:Array.from({length:101},()=>({x:0,y:0}))},{endArrow:'javascript:alert(1)'}])assert.throws(()=>C.validateObject({...arrow,...patch}));
+for(const shape of ['diamond','parallelogram','arrow','callout'])assert.doesNotThrow(()=>C.validateObject(C.makeShape(shape,0,0,18,18)));
+const S=require('../svg.js'),markup=S.objectMarkup({id:'image',type:'image',matrix:[1,0,0,1,0,0],x:'1" onload="alert(1)',y:0,width:1,height:1,src:'data:image/png;base64,iVBORw0KGgo=',style:{...C.DEFAULT_STYLE,fontFamily:'sans-serif" onclick="alert(1)'}});assert(!/onload|onclick/.test(markup),'SVG image markup does not interpolate raw numeric/style attributes');
+console.log('stage3-core.test.cjs: passed');

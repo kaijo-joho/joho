@@ -1,0 +1,126 @@
+:root {
+  --ilapo-present-bg: #05070b;
+  --ilapo-present-text: #f5f7fb;
+  --ilapo-present-muted: #c7cfdb;
+  --ilapo-present-accent: #8db7ff;
+}
+
+:root[data-theme="light"] {
+  --ilapo-present-bg: #27303c;
+  --ilapo-present-text: #fff;
+  --ilapo-present-muted: #e4e9f1;
+  --ilapo-present-accent: #b9d1ff;
+}
+
+.ilapo-present-dialog {
+  color-scheme: dark;
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  overflow: hidden;
+  background: var(--ilapo-present-bg);
+  color: var(--ilapo-present-text);
+}
+
+.ilapo-present-dialog::backdrop { background: var(--ilapo-present-bg); }
+.ilapo-present-dialog[open] { display: grid; grid-template-rows: auto minmax(0, 1fr) auto; }
+.ilapo-present-dialog button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 7px 13px;
+  border: 1px solid #8998ad;
+  border-radius: 7px;
+  background: #182230;
+  color: var(--ilapo-present-text);
+  font: inherit;
+  cursor: pointer;
+}
+.ilapo-present-dialog button:hover { background: #26364c; }
+.ilapo-present-dialog button:disabled { opacity: .48; cursor: default; }
+.ilapo-present-dialog button:focus-visible { outline: 3px solid var(--ilapo-present-accent); outline-offset: 3px; }
+
+.ilapo-present-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-width: 0;
+  padding: 10px 14px;
+  background: #0c1119e8;
+}
+.ilapo-present-document {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  color: var(--ilapo-present-text);
+  font-size: clamp(1rem, 2vw, 1.25rem);
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ilapo-present-status {
+  min-width: 0;
+  margin-right: auto;
+  overflow: hidden;
+  color: var(--ilapo-present-muted);
+  font-size: .92em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.ilapo-present-close { flex: 0 0 auto; }
+
+.ilapo-present-viewport {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  min-height: 0;
+  padding: 10px;
+  overflow: hidden;
+  background: var(--ilapo-present-bg);
+  touch-action: pan-y;
+}
+.ilapo-present-paper {
+  flex: 0 0 auto;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 8px 30px #0009;
+}
+.ilapo-present-paper > svg {
+  display: block;
+  background: #fff;
+}
+
+.ilapo-present-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 14px 14px;
+  background: #0c1119e8;
+}
+.ilapo-present-controls button { min-width: 86px; }
+
+@media (max-width: 520px) {
+  .ilapo-present-header { gap: 7px; padding: 7px 8px; }
+  .ilapo-present-document { font-size: 1rem; }
+  .ilapo-present-status { font-size: .82em; }
+  .ilapo-present-viewport { padding: 6px; }
+  .ilapo-present-controls { gap: 5px; padding: 7px 7px 10px; }
+  .ilapo-present-controls button { min-width: 0; flex: 1 1 0; padding-inline: 6px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ilapo-present-dialog *, .ilapo-present-dialog *::before, .ilapo-present-dialog *::after {
+    scroll-behavior: auto !important;
+    animation: none !important;
+    transition: none !important;
+  }
+}

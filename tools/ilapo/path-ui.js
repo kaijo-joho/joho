@@ -131,7 +131,7 @@
         }
       }
       const object = objectOf(id, base);
-      if (object?.type === 'text') {
+      if (object?.type === 'text' || object?.type === 'image') {
         refs = []; edge = null;
         ctx.select(event.shiftKey ? [...ctx.selected(), id] : [id]);
         if (ctx.editable()) begin('move', event, point, base);
