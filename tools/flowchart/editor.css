@@ -85,6 +85,10 @@ body[data-lesson-tools="off"] [data-lesson-help]{display:none!important}
 #format-bar .align-tools button{min-width:44px}.align-tools button[data-align=horizontal],.align-tools button[data-align=vertical]{grid-column:1/-1}
 #edit-menu .menu-panel>button{justify-content:flex-start}#edit-menu kbd{margin-left:auto}
 #more-format .size-inputs{min-width:0}#more-format .size-inputs label{flex:1;min-width:0;flex-direction:column;align-items:stretch}
+.text-layout-controls{display:flex;flex-direction:column;gap:7px;padding-block:8px;border-block:1px solid var(--line)}.text-layout-controls .size-inputs input{width:100%;max-width:100%}
+.parts-filters{display:grid;grid-template-columns:minmax(0,1.5fr) repeat(2,minmax(0,1fr));gap:10px;margin-block:12px}.parts-filters label{margin:0}.parts-filters input,.parts-filters select{width:100%;min-width:0}
+dialog.layout-dialog{padding:0;width:min(920px,calc(100vw - 24px));max-height:calc(100dvh - 24px);overflow:hidden}.layout-dialog button,.layout-dialog input,.layout-dialog select{min-height:44px}.layout-options{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.layout-options label{min-width:0}.layout-options input,.layout-options select{width:100%;min-width:0}.layout-previews{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.layout-previews figure{margin:0;min-width:0}.layout-previews figcaption{font-weight:650;margin-bottom:6px}.layout-preview{height:280px;border:1px solid var(--line);border-radius:7px;background:#fff;overflow:hidden}.layout-preview svg{width:100%;height:100%}.layout-dialog .check{align-items:center}.layout-dialog p{overflow-wrap:anywhere}
+@media(max-width:680px){.parts-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.parts-filters>label:first-child{grid-column:1/-1}.layout-previews{grid-template-columns:minmax(0,1fr)}.layout-preview{height:220px}}
 #format-bar #color-menu>.color-panel{width:310px}
 .color-chip{display:inline-block;width:17px;height:17px;border:1px solid var(--muted);border-radius:4px;background:var(--chosen-color,#fff);flex:none}
 .color-chip[data-mixed=true]{background:linear-gradient(135deg,#fff 49%,#253140 50%)}
@@ -129,3 +133,8 @@ body[data-lesson-tools="off"] [data-lesson-help]{display:none!important}
 .placement-bar{position:absolute;z-index:4;top:8px;left:8px;right:8px;margin-inline:auto;width:fit-content;max-width:calc(100% - 16px);display:flex;align-items:center;flex-wrap:wrap;justify-content:center;gap:8px;padding:8px;background:var(--panel);border:1px solid var(--accent);border-radius:10px;box-shadow:var(--shadow);font-size:.9em}
 .placement-bar strong{min-width:0;overflow-wrap:anywhere}.placement-bar>div{display:flex;gap:6px;flex:none}.placement-bar button{min-height:44px}
 @media(max-width:680px){.workspace-dialog .dialog-layout{padding:12px}.placement-bar strong{flex-basis:100%;text-align:center}}
+
+.parts-dialog #part-name-form{flex-wrap:wrap}.parts-dialog #part-name-form label{flex-basis:100%}.parts-order-note{font-size:.85em}
+dialog.layout-dialog{max-width:calc(100vw - 24px)}
+#part-draft-note{flex-basis:100%;margin:0;font-size:.9em}
+@media(max-width:680px){.parts-list{grid-auto-rows:max-content}.parts-thumb{flex:none}.layout-previews figure:last-child{order:-1}}

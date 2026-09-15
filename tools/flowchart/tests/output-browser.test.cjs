@@ -3,7 +3,7 @@ const C=require('../core.js');
 let pw;try{pw=require('playwright');}catch{pw=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'));}
 const getDoc=page=>page.evaluate(()=>DiagramEditor.getDocument());
 async function serve(){
-  const root=path.resolve(__dirname,'..'),allowed=new Set(['index.html','editor.css','icon.svg','core.js','render.js','output.js','parts.js','editor.js','storage.js','local-autosave.js']);
+  const root=path.resolve(__dirname,'..'),allowed=new Set(['index.html','editor.css','icon.svg','core.js','render.js','output.js','parts.js','layout.js','editor.js','storage.js','local-autosave.js']);
   const types={'.html':'text/html','.js':'text/javascript','.css':'text/css','.svg':'image/svg+xml'};
   const server=http.createServer(async(req,res)=>{const name=new URL(req.url,'http://localhost').pathname.slice(1)||'index.html';if(!allowed.has(name))return res.writeHead(404).end();try{res.writeHead(200,{'Content-Type':types[path.extname(name)]});res.end(await fs.readFile(path.join(root,name)));}catch{res.writeHead(404).end();}});
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));return {url:`http://127.0.0.1:${server.address().port}/`,close:()=>new Promise(resolve=>server.close(resolve))};

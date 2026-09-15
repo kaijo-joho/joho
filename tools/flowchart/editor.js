@@ -1,10 +1,10 @@
 /* Student diagram editor. No network services or external runtime dependencies. */
 (() => {
   'use strict';
-  const C = window.DiagramCore, R = window.DiagramRender, S = window.DiagramStorage, L = window.DiagramLocalAutosave, B = window.DiagramParts, O = window.DiagramOutput;
+  const C = window.DiagramCore, R = window.DiagramRender, S = window.DiagramStorage, L = window.DiagramLocalAutosave, B = window.DiagramParts, O = window.DiagramOutput, Q = window.DiagramLayout;
   const $ = id => document.getElementById(id);
   const $$ = selector => [...document.querySelectorAll(selector)];
-  if (!C || !R || !S || !L || !B || !O) {
+  if (!C || !R || !S || !L || !B || !O || !Q) {
     $('notice').hidden = false;
     $('notice').textContent = 'エディタを読み込めませんでした。ページを再読み込みしてください。';
     return;
@@ -43,6 +43,8 @@
   const PARTS_AUTO='kaijo.flowchart.parts.auto.v1',PARTS_SAVED='kaijo.flowchart.parts.saved.v1';
   let partsLibrary=B.emptyLibrary(),partsReady=false,partId=null,partRegistration=null,partsPendingAction=null,partsUnsaved=false;
   let partsSaveStatus='',partsChoosing=false,pendingPart=null,partPlacement=null;
+  let renderedPartId=null,layoutSession=null;
+  const partDrafts=new Map(),partThumbnails=new Map();
   const paletteColors = [
     ['#ffffff','白'], ['#253140','標準の黒'], ['#000000','黒'], ['#6b7280','灰色'], ['#d61f1f','赤'], ['#1d4ed8','青'],
     ['#15803d','緑'], ['#ea7a00','橙'], ['#7c3aed','紫'], ['#facc15','黄'], ['#e5e7eb','薄い灰色'], ['#fce7f3','薄い桃色'],
@@ -61,6 +63,7 @@
   const lane = () => doc.lanes.find(l => l.id === laneId);
   const orderedLanes = () => doc.lanes.slice().sort((a, b) => a.x - b.x);
   const selectedNodes = () => doc.nodes.filter(n => selected.has(n.id));
+  const selectedTextNodes = () => selectedNodes().filter(n => !['initial','final','junction','fork','join'].includes(n.kind));
   const selectedEdges = () => doc.edges.filter(e => selected.has(e.id));
   const objects = () => [...selectedNodes(), ...selectedEdges()];
   const content = () => doc.nodes.length || doc.edges.length;
@@ -613,6 +616,12 @@
     });
     $('insert-process').hidden = !single || !e || doc.diagramType === 'state';
     $('edit-waypoints').hidden = !single || !e || e.kind!=='orthogonal';
+    const textNodes=selectedTextNodes();
+    $('text-layout-controls').hidden=!textNodes.length;
+    for(const [id,key] of [['text-align','textAlign'],['text-vertical','textVertical'],['text-padding-x','textPaddingX'],['text-padding-y','textPaddingY']]) {
+      const values=new Set(textNodes.map(item=>item.style?.[key]??C.TEXT_LAYOUT_DEFAULTS[key]));
+      setField(id,values.size===1?[...values][0]:'');$(id).placeholder=values.size>1?'混在':'';
+    }
     if ($('align-menu').hidden) $('align-menu').open = false;
     if (!list.length) return;
     const o = single || list[0], style = o.style || {};
@@ -777,6 +786,7 @@
     input.style.left = `${clamp(p.x * view.scale + view.x - width / 2, 8, Math.max(8, stage.clientWidth - width - 8))}px`;
     input.style.top = `${clamp(p.y * view.scale + view.y - height / 2, 8, Math.max(8, stage.clientHeight - height - 8))}px`;
     input.style.fontSize = `${clamp((item.style?.fontSize || 16) * view.scale, 16, 32)}px`;
+    input.style.textAlign = type==='node' ? item.style?.textAlign||'center' : 'center';
     input.focus(); input.select();
   }
   function finishText(cancel = false) {
@@ -1254,6 +1264,18 @@
   };
   $('insert-process').onclick = () => { if (selected.size === 1 && selectedEdges()[0] && doc.diagramType !== 'state') insertProcess(selectedEdges()[0].id); };
   $('font-size').onchange = e => setStyle('fontSize', +e.target.value);
+  for(const [id,key] of [['text-align','textAlign'],['text-vertical','textVertical'],['text-padding-x','textPaddingX'],['text-padding-y','textPaddingY']]) {
+    $(id).onchange=event=>{
+      const input=event.target,isPadding=key.startsWith('textPadding');
+      if(!selectionEditable()||!input.value||!input.reportValidity())return;
+      const value=isPadding?input.valueAsNumber:input.value;
+      change(()=>selectedTextNodes().forEach(item=>{
+        item.style={...item.style,[key]:value};const text=R.nodeTextLayout(item);
+        if(isPadding||text.bounds.w>text.box.w||text.bounds.h>text.box.h)fitTextNode(item);
+      }));
+    };
+  }
+  $('reset-text-layout').onclick=()=>change(()=>selectedTextNodes().forEach(item=>{for(const key of Object.keys(C.TEXT_LAYOUT_DEFAULTS))delete item.style[key];}));
   $('bold').onclick = () => setStyle('bold', $('bold').getAttribute('aria-pressed') !== 'true');
   for (const [key, id] of Object.entries(colorFields)) $(id).onchange = event => applyColor(key, event.target.value);
   paletteColors.forEach(([value, name]) => {
@@ -1381,26 +1403,84 @@
   function partsError(message='') {
     $('parts-error').textContent=message;$('parts-error').hidden=!message;
   }
+  function renderLayoutPreview() {
+    if(!layoutSession)return;
+    layoutSession.plan=null;$('layout-apply').disabled=true;
+    try {
+      if(!$('layout-gap').validity.valid)throw new Error('間隔は0〜400で入力してください。');
+      const result=Q.plan(layoutSession.before,layoutSession.ids,{direction:$('layout-direction').value,gap:$('layout-gap').valueAsNumber,route:$('layout-route').checked});
+      const changed=C.serializeDocument(result.document)!==C.serializeDocument(layoutSession.before);
+      $('layout-preview').innerHTML=R.svgDocument(result.document,{padding:24,idPrefix:'layout-after'});
+      $('layout-message').classList.remove('storage-error');
+      $('layout-message').textContent=[changed?`${result.unitCount}部品を並べます。適用するまでは図は変わりません。`:'すでにこの配置になっています。',...result.warnings].join(' ');
+      layoutSession.plan=result;$('layout-apply').disabled=!changed;
+    } catch(error) {
+      $('layout-preview').replaceChildren();$('layout-message').classList.add('storage-error');$('layout-message').textContent=error.message;
+    }
+  }
+  $('auto-layout-button').onclick=()=>{
+    finishText();cancelGesture();if(!selectionEditable()||selectedNodes().length<2)return;
+    layoutSession={before:C.clone(doc),ids:[...selected],plan:null};
+    $('layout-before').innerHTML=R.svgDocument(doc,{padding:24,idPrefix:'layout-before'});
+    renderLayoutPreview();openDialog($('layout-dialog'),$('align-menu').querySelector('summary'));
+  };
+  $('layout-direction').onchange=renderLayoutPreview;$('layout-gap').oninput=renderLayoutPreview;$('layout-route').onchange=renderLayoutPreview;
+  $('layout-dialog').addEventListener('close',()=>{layoutSession=null;});
+  $('layout-form').onsubmit=event=>{
+    event.preventDefault();if(!layoutSession?.plan||$('layout-apply').disabled)return;
+    if(C.serializeDocument(doc)!==C.serializeDocument(layoutSession.before)) {
+      $('layout-message').textContent='図が変更されました。いったん閉じて、配置を確認し直してください。';$('layout-apply').disabled=true;return;
+    }
+    const next=layoutSession.plan.document;
+    if(change(()=>{doc=C.clone(next);})){$('layout-dialog').close();notify('選択した部品をつながり順に配置しました');}
+  };
   function selectedPart(){return partsLibrary.items.find(item=>item.id===partId)||null;}
   function renderParts() {
-    const items=partsReady?partsLibrary.items:[],list=$('parts-list');
+    const all=partsReady?partsLibrary.items:[],list=$('parts-list'),categoryFilter=$('parts-category-filter'),categoryValue=categoryFilter.value;
+    const categories=partsReady?B.categories(partsLibrary):[];
+    const categorySignature=JSON.stringify(categories);
+    if(categoryFilter.dataset.choices!==categorySignature) {
+      categoryFilter.replaceChildren();$('part-categories').replaceChildren();
+      for(const [value,label] of [['all','すべて'],['none','未分類'],...categories.map(value=>['cat:'+value,value])]) {
+        const option=document.createElement('option');option.value=value;option.textContent=label;categoryFilter.append(option);
+      }
+      for(const category of categories){const option=document.createElement('option');option.value=category;$('part-categories').append(option);}
+      categoryFilter.dataset.choices=categorySignature;
+    }
+    categoryFilter.value=[...categoryFilter.options].some(option=>option.value===categoryValue)?categoryValue:'all';
+    const query=$('parts-search').value,filter=categoryFilter.value==='all'?null:categoryFilter.value==='none'?'':categoryFilter.value.slice(4),sort=$('parts-sort').value;
+    const items=partsReady?B.list(partsLibrary,{query,category:filter,sort}):[];
     if(!items.some(item=>item.id===partId))partId=items[0]?.id||null;
+    const changedSelection=renderedPartId!==partId;
+    if(changedSelection)$('delete-part-confirm').hidden=true;
     const focus=list.contains(document.activeElement)?document.activeElement.closest('[data-part-id]')?.dataset.partId:null;
     list.replaceChildren();
     for(const item of items) {
       const button=document.createElement('button');button.type='button';button.dataset.partId=item.id;button.setAttribute('aria-pressed',String(item.id===partId));
-      const thumb=document.createElement('span');thumb.className='parts-thumb';thumb.setAttribute('aria-hidden','true');thumb.innerHTML=R.svgDocument(B.documentFor(item),{padding:16,idPrefix:`part-${item.id}`});
+      const signature=JSON.stringify(item),cached=partThumbnails.get(item.id);
+      if(cached?.signature!==signature)partThumbnails.set(item.id,{signature,svg:R.svgDocument(B.documentFor(item),{padding:16,idPrefix:`part-${item.id}`})});
+      const thumb=document.createElement('span');thumb.className='parts-thumb';thumb.setAttribute('aria-hidden','true');thumb.innerHTML=partThumbnails.get(item.id).svg;
       const title=document.createElement('strong');title.textContent=item.name;
-      const detail=document.createElement('small');detail.textContent=`${item.selection.nodes.length}図形・${item.selection.edges.length}線`;
+      const detail=document.createElement('small');detail.textContent=`${item.category||'未分類'}・${item.selection.nodes.length}図形・${item.selection.edges.length}線`;
       button.append(thumb,title,detail);button.onclick=()=>{partId=item.id;$('delete-part-confirm').hidden=true;renderParts();};list.append(button);
     }
-    const item=selectedPart();$('parts-empty').hidden=!!items.length||partsChoosing;
+    const item=selectedPart();$('parts-empty').hidden=!!all.length||partsChoosing;
+    $('parts-filters').hidden=!all.length||partsChoosing;$('parts-no-results').hidden=!all.length||!!items.length||partsChoosing;
     $('parts-dialog').querySelector('.parts-workspace').hidden=!items.length||partsChoosing;
-    $('parts-status').textContent=partsChoosing?'自動保存と明示保存のどちらを開くか選んでください。':`${items.length} / 100セット${partsSaveStatus?'・'+partsSaveStatus:''}`;
+    $('parts-status').textContent=partsChoosing?'自動保存と明示保存のどちらを開くか選んでください。':`${all.length} / 100セット${items.length!==all.length?`・${items.length}件表示`:''}${partsSaveStatus?'・'+partsSaveStatus:''}`;
     for(const id of ['parts-import','parts-save-browser','parts-save-file'])$(id).disabled=!partsReady||partsChoosing;
-    for(const id of ['place-part','rename-part','delete-part','export-part','part-name'])$(id).disabled=!item||partsChoosing;
-    if(item){$('part-preview').innerHTML=R.svgDocument(B.documentFor(item),{padding:24,idPrefix:'part-preview'});setField('part-name',item.name);$('part-description').textContent=`${item.selection.nodes.length}図形・${item.selection.edges.length}線。配置後は図形や線として編集できます。`;}
-    else {$('part-preview').replaceChildren();$('part-name').value='';$('part-description').textContent='';}
+    for(const id of ['place-part','rename-part','delete-part','export-part','part-name','part-category'])$(id).disabled=!item||partsChoosing;
+    const index=all.findIndex(value=>value.id===partId),canMove=!!item&&!partsChoosing&&sort==='manual'&&!query.trim()&&filter===null;
+    $('part-up').disabled=!canMove||index===0;$('part-down').disabled=!canMove||index===all.length-1;
+    if(item){
+      $('part-preview').innerHTML=R.svgDocument(B.documentFor(item),{padding:24,idPrefix:'part-preview'});
+      const draft=partDrafts.get(item.id)||{name:item.name,category:item.category||''};
+      for(const [id,value] of [['part-name',draft.name],['part-category',draft.category]]){if(changedSelection)$(id).value=value;else setField(id,value);}
+      $('part-description').textContent=`${item.selection.nodes.length}図形・${item.selection.edges.length}線。配置後は図形や線として編集できます。`;
+    }
+    else {$('part-preview').replaceChildren();$('part-name').value='';$('part-category').value='';$('part-description').textContent='';}
+    renderedPartId=partId;
+    $('part-draft-note').hidden=!partDrafts.has(partId);
     if(focus)list.querySelector(`[data-part-id="${focus}"]`)?.focus({preventScroll:true});
   }
   function writeParts(key) {
@@ -1415,7 +1495,7 @@
   }
   function chooseParts(library,label) {
     if(partsUnsaved){partsError('まだ保存できていない部品セットがあります。先にブラウザかファイルへ保存してください。');return;}
-    partsLibrary=B.parseLibrary(library);partsReady=true;partsChoosing=false;partId=null;partsSaveStatus=label;$('parts-candidates').hidden=true;partsError();renderParts();
+    partsLibrary=B.parseLibrary(library);partDrafts.clear();partThumbnails.clear();partsReady=true;partsChoosing=false;partId=null;partsSaveStatus=label;$('parts-candidates').hidden=true;partsError();renderParts();
     const action=partsPendingAction;partsPendingAction=null;
     if(action){$('parts-dialog').close();action();}
   }
@@ -1445,6 +1525,7 @@
   }
   function openPartRegistration() {
     $('register-part-name').value=partRegistration.name;$('register-part-error').hidden=true;
+    $('register-part-category').value=partRegistration.category||'';
     $('register-part-preview').innerHTML=R.svgDocument(B.documentFor(partRegistration),{padding:24,idPrefix:'register-part'});
     openDialog($('register-part-dialog'),$('edit-menu').querySelector('summary'));
   }
@@ -1457,16 +1538,28 @@
   };
   $('register-part-form').onsubmit=event=>{
     event.preventDefault();if(!partRegistration)return;
-    try{const item={...partRegistration,name:$('register-part-name').value};changeParts(B.add(partsLibrary,item));partId=item.id;$('register-part-dialog').close();if(!partsUnsaved)notify('部品セットを登録しました');}
+    try{const item={...partRegistration,name:$('register-part-name').value,category:$('register-part-category').value};clearPartsFilter();changeParts(B.add(partsLibrary,item));partId=item.id;$('register-part-dialog').close();if(!partsUnsaved)notify('部品セットを登録しました');}
     catch(error){$('register-part-error').textContent=error.message;$('register-part-error').hidden=false;}
   };
   $('part-name-form').onsubmit=event=>{
-    event.preventDefault();const item=selectedPart();if(!item||$('part-name').value.trim()===item.name)return;
-    try{changeParts(B.rename(partsLibrary,item.id,$('part-name').value));}catch(error){partsError(error.message);}
+    event.preventDefault();const item=selectedPart();if(!item)return;
+    try{const next=B.update(partsLibrary,item.id,{name:$('part-name').value,category:$('part-category').value});partDrafts.delete(item.id);changeParts(next);renderParts();}catch(error){partsError(error.message);}
+  };
+  for(const id of ['part-name','part-category'])$(id).oninput=()=>{
+    const item=selectedPart();if(!item)return;
+    const draft={name:$('part-name').value,category:$('part-category').value};
+    if(draft.name===item.name&&draft.category===(item.category||''))partDrafts.delete(item.id);else partDrafts.set(item.id,draft);
+    $('part-draft-note').hidden=!partDrafts.has(item.id);
+  };
+  function clearPartsFilter() {$('parts-search').value='';$('parts-category-filter').value='all';$('delete-part-confirm').hidden=true;}
+  for(const id of ['parts-search','parts-category-filter','parts-sort'])$(id).addEventListener(id==='parts-search'?'input':'change',()=>{$('delete-part-confirm').hidden=true;renderParts();});
+  $('parts-clear-filter').onclick=()=>{clearPartsFilter();renderParts();$('parts-search').focus();};
+  for(const [id,direction] of [['part-up',-1],['part-down',1]])$(id).onclick=()=>{
+    if($(id).disabled)return;try{changeParts(B.move(partsLibrary,partId,direction));}catch(error){partsError(error.message);}
   };
   $('delete-part').onclick=()=>{const item=selectedPart();if(!item)return;$('delete-part-message').textContent=`「${item.name}」をマイ部品から削除します。`;$('delete-part-confirm').hidden=false;$('cancel-delete-part').focus();};
   $('cancel-delete-part').onclick=()=>{$('delete-part-confirm').hidden=true;$('delete-part').focus();};
-  $('confirm-delete-part').onclick=()=>{try{changeParts(B.remove(partsLibrary,partId));$('delete-part-confirm').hidden=true;$('parts-list').querySelector('button')?.focus();}catch(error){partsError(error.message);}};
+  $('confirm-delete-part').onclick=()=>{try{const id=partId;changeParts(B.remove(partsLibrary,id));partDrafts.delete(id);partThumbnails.delete(id);$('delete-part-confirm').hidden=true;$('parts-list').querySelector('button')?.focus();}catch(error){partsError(error.message);}};
   $('parts-save-browser').onclick=()=>{
     try{writeParts(PARTS_SAVED);partsUnsaved=false;partsSaveStatus='ブラウザに明示保存済み';partsError();renderParts();}
     catch{partsError('ブラウザへ保存できませんでした。ファイルへの保存を利用できます。');}
@@ -1479,7 +1572,7 @@
   $('parts-import').onclick=()=>{$('parts-file-input').value='';$('parts-file-input').click();};
   $('parts-file-input').onchange=async event=>{
     const file=event.target.files[0];if(!file||!partsReady||partsChoosing)return;
-    try{if(file.size>2*1024*1024)throw new Error('部品セットファイルは2MB以内にしてください。');const incoming=B.parseLibrary(await file.text());const next=B.merge(partsLibrary,incoming);changeParts(next);partId=next.items.at(-1)?.id;renderParts();}
+    try{if(file.size>2*1024*1024)throw new Error('部品セットファイルは2MB以内にしてください。');const incoming=B.parseLibrary(await file.text());const next=B.merge(partsLibrary,incoming);clearPartsFilter();changeParts(next);partId=next.items.at(-1)?.id;renderParts();}
     catch(error){partsError(error.message);}
   };
   function renderPartPlacement() {

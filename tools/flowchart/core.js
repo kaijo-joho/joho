@@ -6,6 +6,7 @@
   'use strict';
   const TYPES = ['flowchart', 'activity', 'state'];
   const DEFAULT_STYLE = Object.freeze({ fontSize: 16, stroke: '#253140', fill: '#ffffff', color: '#253140', strokeWidth: 2, dashed: false, bold: false });
+  const TEXT_LAYOUT_DEFAULTS = Object.freeze({ textAlign: 'center', textVertical: 'middle', textPaddingX: 12, textPaddingY: 13 });
   const def = (label, w, h, modes) => Object.freeze({ label, w, h, modes });
   const NODE_DEFS = Object.freeze({
     terminal: def('開始・終了', 160, 52, ['flowchart']), process: def('処理', 168, 64, ['flowchart']),
@@ -47,6 +48,14 @@
     }
     out.fontSize = number(value.fontSize, 16, 8, 96); out.strokeWidth = number(value.strokeWidth, 2, .5, 12);
     for (const key of ['dashed','bold']) { if (value[key] !== undefined && typeof value[key] !== 'boolean') fail('書式データが不正です。'); out[key] = value[key] || false; }
+    for (const [key, choices] of [['textAlign',['left','center','right']], ['textVertical',['top','middle','bottom']]]) {
+      const next = enumValue(value[key], choices, TEXT_LAYOUT_DEFAULTS[key]);
+      if (next !== TEXT_LAYOUT_DEFAULTS[key]) out[key] = next;
+    }
+    for (const key of ['textPaddingX','textPaddingY']) {
+      const next = number(value[key], TEXT_LAYOUT_DEFAULTS[key], 0, 160);
+      if (next !== TEXT_LAYOUT_DEFAULTS[key]) out[key] = next;
+    }
     return out;
   }
   function endpoint(value) {
@@ -368,7 +377,12 @@
       if (!selected.has(item.id)) continue;
       const previous = item.style, replacement = { ...previous };
       for (const key of ['fontSize','stroke','color','strokeWidth','dashed','bold']) replacement[key] = copied.style[key];
-      if (copied.sourceType === 'node' && next.nodes.includes(item)) replacement.fill = copied.style.fill;
+      if (copied.sourceType === 'node' && next.nodes.includes(item)) {
+        replacement.fill = copied.style.fill;
+        for (const key of Object.keys(TEXT_LAYOUT_DEFAULTS)) {
+          if (copied.style[key] === undefined) delete replacement[key]; else replacement[key] = copied.style[key];
+        }
+      }
       if (JSON.stringify(previous) === JSON.stringify(replacement)) continue;
       item.style = replacement; changed.push(item.id);
     }
@@ -652,5 +666,5 @@
     }
     return parseDocument(doc);
   }
-  return Object.freeze({ NODE_DEFS, DEFAULT_STYLE, uid, clone, createDocument, createNode, createEdge, parseDocument, serializeDocument, getNode, findLane, expandSelection, groupSelection, ungroupSelection, setLocked, nodeOrderActions, reorderNodes, assertEditable, addLane, removeLane, moveLane, changeNodeShape, changeEdgeShape, matchNodeSize, setEdgeWaypoints, copyStyle, pasteStyle, removeSelection, copySelection, pasteSelection, insertNodeOnEdge, addBranch, traceStarts, inspectDocument, createTrace, traceOptions, stepTrace, backTrace, History, TEMPLATES, createTemplate });
+  return Object.freeze({ NODE_DEFS, DEFAULT_STYLE, TEXT_LAYOUT_DEFAULTS, uid, clone, createDocument, createNode, createEdge, parseDocument, serializeDocument, getNode, findLane, expandSelection, groupSelection, ungroupSelection, setLocked, nodeOrderActions, reorderNodes, assertEditable, addLane, removeLane, moveLane, changeNodeShape, changeEdgeShape, matchNodeSize, setEdgeWaypoints, copyStyle, pasteStyle, removeSelection, copySelection, pasteSelection, insertNodeOnEdge, addBranch, traceStarts, inspectDocument, createTrace, traceOptions, stepTrace, backTrace, History, TEMPLATES, createTemplate });
 });

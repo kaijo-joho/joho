@@ -14,6 +14,7 @@
   <script src="output.js" defer></script>
   <script src="render.js" defer></script>
   <script src="parts.js" defer></script>
+  <script src="layout.js" defer></script>
   <script src="editor.js" defer></script>
 </head>
 <body data-lesson-tools="off">
@@ -121,6 +122,12 @@
             <button type="button" id="edit-text">文字を編集</button>
             <label data-for="text">文字サイズ<select id="font-size"><option>12</option><option>14</option><option selected>16</option><option>18</option><option>20</option><option>24</option><option>28</option><option>32</option><option>40</option><option>48</option></select></label>
             <button type="button" id="bold" data-for="text" aria-pressed="false" aria-label="太字"><b>B</b><span>太字</span></button>
+            <div id="text-layout-controls" class="text-layout-controls">
+              <label>左右の文字配置<select id="text-align"><option value="" hidden>混在</option><option value="left">左</option><option value="center">中央</option><option value="right">右</option></select></label>
+              <label>上下の文字配置<select id="text-vertical"><option value="" hidden>混在</option><option value="top">上</option><option value="middle">中央</option><option value="bottom">下</option></select></label>
+              <div class="size-inputs"><label>左右の余白<input id="text-padding-x" type="number" min="0" max="160" step="1" required></label><label>上下の余白<input id="text-padding-y" type="number" min="0" max="160" step="1" required></label></div>
+              <button type="button" id="reset-text-layout">文字配置を標準に戻す</button>
+            </div>
             <label>線幅<select id="stroke-width"><option>1</option><option selected>2</option><option>3</option><option>4</option></select></label>
             <label class="check"><input type="checkbox" id="dashed">破線</label>
             <div data-for="size" class="size-inputs"><label>幅<input id="node-width" type="number" min="16" max="4000" step="10"></label><label>高さ<input id="node-height" type="number" min="10" max="4000" step="10"></label></div>
@@ -148,7 +155,7 @@
             <button type="button" data-align="middle" title="上下の中央をそろえる" aria-label="上下の中央をそろえる"><span data-icon="alignMiddle"></span></button>
             <button type="button" data-align="bottom" title="下端をそろえる" aria-label="下端をそろえる"><span data-icon="alignBottom"></span></button>
             <button type="button" data-align="horizontal">横に等間隔</button><button type="button" data-align="vertical">縦に等間隔</button>
-          </div></div></details>
+          </div><hr><button type="button" id="auto-layout-button">つながり順に自動配置…</button></div></details>
           <details class="menu" id="order-menu"><summary>重なり <span aria-hidden="true">▾</span></summary><div class="menu-panel">
             <button type="button" id="choose-overlap">重なった部品を選ぶ…</button>
             <hr>
@@ -248,9 +255,17 @@
     <p id="parts-status" class="muted" role="status"></p>
     <div id="parts-candidates" class="storage-candidates" hidden></div>
     <p id="parts-error" class="storage-error" role="status" hidden></p>
+    <div id="parts-filters" class="parts-filters">
+      <label class="stack">検索<input id="parts-search" type="search" placeholder="名前・カテゴリ" maxlength="200"></label>
+      <label class="stack">カテゴリ<select id="parts-category-filter"><option value="all">すべて</option><option value="none">未分類</option></select></label>
+      <label class="stack">並び順<select id="parts-sort"><option value="manual">手動の順</option><option value="name">名前順</option><option value="updated">更新が新しい順</option></select></label>
+    </div>
+    <div id="parts-no-results" hidden><p>条件に合う部品セットがありません。</p><button type="button" id="parts-clear-filter">絞り込みを解除</button></div>
     <div class="parts-workspace"><div id="parts-list" class="parts-list" role="group" aria-label="保存した部品セット"></div>
       <div class="parts-detail"><div id="part-preview" aria-label="選択した部品セットのプレビュー"></div><p id="part-description" class="muted"></p>
-        <form id="part-name-form"><label class="stack">名前<input id="part-name" maxlength="80" required></label><button type="submit" id="rename-part">名前を変更</button></form>
+        <form id="part-name-form"><label class="stack">名前<input id="part-name" maxlength="80" required></label><label class="stack">カテゴリ（任意）<input id="part-category" maxlength="40" list="part-categories" placeholder="例：入出力・くり返し"></label><p id="part-draft-note" class="muted" hidden>入力中の名前・カテゴリは、下のボタンで保存します。</p><button type="submit" id="rename-part">名前・カテゴリを保存</button></form>
+        <div class="parts-actions"><button type="button" id="part-up">一覧で1つ上へ</button><button type="button" id="part-down">一覧で1つ下へ</button></div>
+        <p class="muted parts-order-note">手動の順・絞り込みなしのとき、一覧の順序を変更できます。</p>
         <div class="parts-actions"><button type="button" id="place-part" class="primary">配置する</button><button type="button" id="export-part">このセットをファイルに保存</button><button type="button" id="delete-part">削除</button></div>
         <div id="delete-part-confirm" hidden><p id="delete-part-message"></p><button type="button" id="cancel-delete-part">キャンセル</button><button type="button" id="confirm-delete-part">削除する</button></div>
       </div>
@@ -261,8 +276,21 @@
   </div></dialog>
   <dialog id="register-part-dialog" class="format-dialog" aria-labelledby="register-part-title"><form id="register-part-form">
     <h2 id="register-part-title">部品セットとして登録</h2><div id="register-part-preview" class="part-preview"></div>
-    <label class="stack">名前<input id="register-part-name" maxlength="80" required autofocus></label><p id="register-part-error" class="storage-error" role="status" hidden></p>
+    <label class="stack">名前<input id="register-part-name" maxlength="80" required autofocus></label><label class="stack">カテゴリ（任意）<input id="register-part-category" maxlength="40" list="part-categories" placeholder="空欄なら未分類"></label><p id="register-part-error" class="storage-error" role="status" hidden></p>
     <div class="dialog-actions"><button type="button" data-close-dialog>キャンセル</button><button type="submit" class="primary">登録する</button></div>
+  </form></dialog>
+  <datalist id="part-categories"></datalist>
+  <dialog id="layout-dialog" class="workspace-dialog layout-dialog" aria-labelledby="layout-title"><form id="layout-form" class="dialog-layout">
+    <h2 id="layout-title">つながり順に自動配置</h2>
+    <div class="dialog-body">
+      <p class="muted">選択した図形を矢印の順に並べます。先頭の位置とグループ内の配置は保ちます。分岐・合流・循環を含む順路は対象外です。</p>
+      <div class="layout-options"><label class="stack">方向<select id="layout-direction"><option value="vertical">上から下へ</option><option value="horizontal">左から右へ</option></select></label><label class="stack">図形間の間隔<input id="layout-gap" type="number" min="0" max="400" step="1" value="60" required></label></div>
+      <label class="check"><input id="layout-route" type="checkbox" checked>選択内の矢印も整える</label>
+      <p class="muted">矢印を整えると、部品どうしを結ぶ線の接続位置と折れ曲がり点を自動に戻します。</p>
+      <p id="layout-message" role="status"></p>
+      <div class="layout-previews"><figure><figcaption>現在</figcaption><div id="layout-before" class="layout-preview"></div></figure><figure><figcaption>適用後</figcaption><div id="layout-preview" class="layout-preview"></div></figure></div>
+    </div>
+    <div class="dialog-actions"><button type="button" data-close-dialog>キャンセル</button><button type="submit" id="layout-apply" class="primary">適用する</button></div>
   </form></dialog>
   <input type="file" id="parts-file-input" accept=".json,.flowparts.json,application/json" hidden>
   <dialog id="size-dialog" class="format-dialog" aria-labelledby="size-title"><form id="size-form">
@@ -329,6 +357,9 @@
     <div class="dialog-actions"><label class="check"><input type="checkbox" id="overlap-add">今の選択に追加</label><button type="button" data-close-dialog>閉じる</button></div>
   </div></dialog>
   <dialog id="help-dialog"><div class="help"><h2>フローチャートエディタの使い方</h2>
+    <p><strong>文字の位置を調整する：</strong>文字のある図形を選び、「書式」で左右・上下の配置と余白を指定します。複数選択してまとめて設定でき、「文字配置を標準に戻す」で中央・標準の余白へ戻せます。図形どうしの書式コピーでは文字配置と余白もコピーします。</p>
+    <p><strong>つながり順に並べる：</strong>つながった図形を2つ以上選び、「整列」→「つながり順に自動配置」で方向・間隔を選びます。現在と適用後の図を確認してから適用します。先頭とグループ内の配置を保ち、1回のUndoで戻せます。分岐・合流・循環は対象外です。</p>
+    <p><strong>マイ部品を整理する：</strong>名前・カテゴリで検索でき、カテゴリ別の絞り込みと名前順・更新順の表示に対応します。「手動の順」で絞り込みを解除すると、セットを1つ上・下へ移動できます。名前と任意のカテゴリはプレビューの下で変更できます。</p>
     <ol><li><strong>置く：</strong>左の部品を選び、作図画面をクリックします。部品ボタンでEnterを押すと、画面の中央に置けます。</li><li><strong>文字を書く：</strong>図形をダブルクリック、または選んでEnter。Enterで改行、⌘Enterで確定します。</li><li><strong>つなぐ：</strong>図形を選び、端の○から別の図形へドラッグします。○と接続先を順にクリックしてもつなげます。「接続先を選ぶ」からも指定できます。</li><li><strong>線を直す：</strong>線を選び、端の○でつなぎ直し、中央の◇で経路を調整します。直角の矢印は「形」→「折れ曲がり点を編集…」で、線上の＋から点を追加できます。番号付きの点をドラッグし、「位置」から座標も指定できます。Deleteで点を削除、Escapeで完了します。ラベルはダブルクリックして入力し、ドラッグして位置を変えられます。</li><li><strong>担当を分ける：</strong>アクティビティ図では「担当領域」に切り替え、追加・並べ替え・名前や幅の編集ができます。領域を削除しても図形と矢印は元の位置に残ります。領域にTabで移動してEnterを押すと名前を編集できます。</li><li><strong>保存する：</strong>ファイルメニューで「ブラウザ内に保存」「ファイルに保存」を選べます。画像は右端の「書き出し」から保存します。</li></ol>
     <p>「吸着」をオンにすると、接続位置が辺の両端・中央・等分点にそろいます。同じ辺につながる本数に応じて、2本なら1/3・2/3、3本なら1/4・3/4も候補になります。自由な位置につなぐときはオフにします。</p>
       <p><strong>位置をそろえる：</strong>図形をドラッグすると、他の図形の端・中央にそろう位置へ吸着し、ガイドを表示します。グループもまとめて動かせます。「操作」でグリッド・接続点と整列ガイドの吸着を個別に切り替えられます。Option（Alt）を押しながらドラッグすると、吸着を一時的に解除します。</p>

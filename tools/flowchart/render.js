@@ -1,8 +1,9 @@
 (function (root, factory) {
-  const api = factory(typeof module === 'object' && module.exports ? require('./output.js') : root.DiagramOutput);
+  const api = factory(typeof module === 'object' && module.exports ? require('./output.js') : root.DiagramOutput,
+    typeof module === 'object' && module.exports ? require('./core.js') : root.DiagramCore);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.DiagramRender = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (Output) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (Output, Core) {
   'use strict';
   const escapeXML = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&apos;' })[c]);
   const num = n => Number.isFinite(n) ? Math.round(n * 1000) / 1000 : 0;
@@ -34,9 +35,43 @@
     });
     return lines;
   }
-  function textMarkup(text, x, y, width, style) {
+  function textMarkup(text, x, y, width, style, anchor = 'middle') {
     const lines=wrapText(text,Math.max(10,width),style.fontSize), step=style.fontSize*1.35;
-    return `<text x="${num(x)}" y="${num(y-(lines.length-1)*step/2)}" text-anchor="middle" dominant-baseline="central" font-family="Arial, 'Hiragino Sans', 'Yu Gothic', sans-serif" font-size="${style.fontSize}" font-weight="${style.bold?700:400}" fill="${escapeXML(style.color)}">${lines.map((line,i)=>`<tspan x="${num(x)}" dy="${i?num(step):0}">${escapeXML(line)}</tspan>`).join('')}</text>`;
+    return `<text x="${num(x)}" y="${num(y-(lines.length-1)*step/2)}" text-anchor="${anchor}" dominant-baseline="central" font-family="Arial, 'Hiragino Sans', 'Yu Gothic', sans-serif" font-size="${style.fontSize}" font-weight="${style.bold?700:400}" fill="${escapeXML(style.color)}">${lines.map((line,i)=>`<tspan x="${num(x)}" dy="${i?num(step):0}">${escapeXML(line)}</tspan>`).join('')}</text>`;
+  }
+  function nonCentralTextBox(n,s) {
+    const rootHalf=(1-Math.SQRT1_2),cut=Math.min(20,n.w*.17),safe=1;
+    let left=0,right=0,top=0,bottom=0;
+    if(isDiamond(n)) left=right=n.w*.25+safe,top=bottom=n.h*.25+safe;
+    else if(isEllipse(n)) left=right=n.w*rootHalf/2+safe,top=bottom=n.h*rootHalf/2+safe;
+    else if(['terminal','action'].includes(n.kind)||n.kind==='state'&&n.variant==='round') {
+      const rx=n.kind==='terminal'?Math.min(n.w,n.h)/2:Math.min(10,n.w/2),ry=n.kind==='terminal'?n.h/2:Math.min(10,n.h/2);
+      left=right=rx*rootHalf+safe;top=bottom=ry*rootHalf+safe;
+    } else if(n.kind==='manualInput') { left=right=safe;top=n.h*.22+safe;bottom=safe; }
+    else if(['inputOutput','display','loopStart','loopEnd'].includes(n.kind)) { left=right=cut+safe;top=bottom=safe; }
+    const x=n.x+left+s.textPaddingX,y=n.y+top+s.textPaddingY;
+    return {x,y,w:Math.max(10,n.w-left-right-2*s.textPaddingX),h:Math.max(1,n.h-top-bottom-2*s.textPaddingY)};
+  }
+  function nodeTextLayout(n) {
+    const s={...Core.TEXT_LAYOUT_DEFAULTS,...getStyle(n)}, diamond=isDiamond(n), circle=isEllipse(n), nonCentral=s.textAlign!=='center'||s.textVertical!=='middle';
+    if(nonCentral) {
+      const box=nonCentralTextBox(n,s),width=box.w,lines=wrapText(n.text,width,s.fontSize),step=s.fontSize*1.35,height=lines.length*step;
+      const anchor=s.textAlign==='left'?'start':s.textAlign==='right'?'end':'middle';
+      const x=anchor==='start'?box.x:anchor==='end'?box.x+box.w:box.x+box.w/2;
+      const y=s.textVertical==='top'?box.y+height/2:s.textVertical==='bottom'?box.y+box.h-height/2:box.y+box.h/2;
+      const inkWidth=Math.max(0,...lines.map(line=>textWidth(line,s.fontSize)));
+      return {x,y,width,anchor,lines,step,box,bounds:{x:x-(anchor==='start'?0:anchor==='end'?inkWidth:inkWidth/2),y:y-height/2,w:inkWidth,h:height}};
+    }
+    // Preserve the legacy wrapping and centering for existing documents.
+    const insetX=diamond?n.w*.19+s.textPaddingX-12:s.textPaddingX;
+    const insetY=diamond?n.h*.31+s.textPaddingY-13:circle?n.h*(1-Math.SQRT1_2)/2+s.textPaddingY-13:s.textPaddingY;
+    const px=Math.max(0,Math.min(insetX,Math.max(0,(n.w-10)/2))),py=Math.max(0,Math.min(insetY,Math.max(0,(n.h-1)/2)));
+    const width=Math.max(10,n.w-2*px),lines=wrapText(n.text,width,s.fontSize),step=s.fontSize*1.35,height=lines.length*step;
+    const anchor=s.textAlign==='left'?'start':s.textAlign==='right'?'end':'middle';
+    const x=anchor==='start'?n.x+px:anchor==='end'?n.x+n.w-px:n.x+n.w/2;
+    const y=s.textVertical==='top'?n.y+py+height/2:s.textVertical==='bottom'?n.y+n.h-py-height/2:n.y+n.h/2;
+    const inkWidth=Math.max(0,...lines.map(line=>textWidth(line,s.fontSize)));
+    return {x,y,width,anchor,lines,step,box:{x:n.x+px,y:n.y+py,w:width,h:n.h-2*py},bounds:{x:x-(anchor==='start'?0:anchor==='end'?inkWidth:inkWidth/2),y:y-height/2,w:inkWidth,h:height}};
   }
   function laneTitleMarkup(title,x,y,width,color) {
     const full=String(title??''),available=Math.max(0,width-16);
@@ -54,9 +89,36 @@
   }
   function fitNode(n) {
     const s=getStyle(n), diamond=isDiamond(n), longest=Math.max(0,...String(n.text||'').split('\n').map(t=>textWidth(t,s.fontSize)));
-    const w=Math.max(n.w,Math.min(360,longest+36)*(diamond?1.35:1));
-    const lines=wrapText(n.text,diamond?w*.6:w-26,s.fontSize);
-    const h=Math.max(n.h,(lines.length*s.fontSize*1.35+26)*(diamond?1.5:1));
+    const layout={...Core.TEXT_LAYOUT_DEFAULTS,...s}, custom=Object.keys(Core.TEXT_LAYOUT_DEFAULTS).some(key=>s[key]!==undefined);
+    const nonCentral=layout.textAlign!=='center'||layout.textVertical!=='middle';
+    if(nonCentral) {
+      const roundUp=value=>Math.ceil(value*1000)/1000;
+      const limit=4000,targetWidth=Math.min(360,longest),grow=(initial,valid)=>{
+        if(valid(initial)||initial>=limit)return initial;
+        let low=initial,high=initial;
+        while(high<limit&&!valid(high)){low=high;high=Math.min(limit,Math.max(high+1,Math.ceil(high*1.5)));}
+        if(!valid(high))return high;
+        for(let i=0;i<24;i++){const middle=(low+high)/2;if(valid(middle))high=middle;else low=middle;}
+        return high;
+      };
+      if(n.kind==='state'&&n.variant!=='round') {
+        const size=grow(Math.max(n.w,n.h),candidate=>{
+          const box=nonCentralTextBox({...n,w:candidate,h:candidate},layout),lines=wrapText(n.text,box.w,s.fontSize);
+          return box.w>=targetWidth&&box.h>=lines.length*s.fontSize*1.35;
+        });
+        return {w:roundUp(size),h:roundUp(size)};
+      }
+      let w=n.w,h=n.h;
+      for(let i=0;i<2;i++) {
+        w=grow(w,candidate=>nonCentralTextBox({...n,w:candidate,h},layout).w>=targetWidth);
+        const lines=wrapText(n.text,nonCentralTextBox({...n,w,h},layout).w,s.fontSize),needed=lines.length*s.fontSize*1.35;
+        h=grow(h,candidate=>nonCentralTextBox({...n,w,h:candidate},layout).h>=needed);
+      }
+      return {w:roundUp(w),h:roundUp(h)};
+    }
+    const w=Math.max(n.w,Math.min(360,longest+36)*(diamond?1.35:1),custom?(Math.min(360,longest)+2*layout.textPaddingX)/(diamond ? .62 : 1):0);
+    const lines=wrapText(n.text,custom?nodeTextLayout({...n,w}).width:diamond?w*.6:w-26,s.fontSize);
+    const h=Math.max(n.h,(lines.length*s.fontSize*1.35+26)*(diamond?1.5:1),custom?(lines.length*s.fontSize*1.35+2*layout.textPaddingY)/(diamond ? .38 : isEllipse(n) ? Math.SQRT1_2 : 1):0);
     return n.kind==='state'&&n.variant!=='round'?{w:num(Math.max(w,h)),h:num(Math.max(w,h))}:{w:num(w),h:num(h)};
   }
   function polygon(n) {
@@ -82,8 +144,9 @@
   }
   function nodeMarkup(n,{interactive=true,theme='light'}={}) {
     const s=displayStyle(n,theme,true), noText=['initial','final','junction','fork','join'].includes(n.kind);
+    const text=nodeTextLayout(n);
     const attrs=interactive?` data-node="${escapeXML(n.id)}" tabindex="0" role="button" aria-label="${escapeXML(n.text||n.kind)}${n.locked?'、固定':''}"`:'';
-    return `<g${attrs}>${shape(n,theme)}${noText?'':textMarkup(n.text,n.x+n.w/2,n.y+n.h/2,isDiamond(n)?n.w*.62:n.w-24,s)}</g>`;
+    return `<g${attrs}>${shape(n,theme)}${noText?'':textMarkup(n.text,text.x,text.y,text.width,s,text.anchor)}</g>`;
   }
   function automaticSide(n,t) {const c=center(n),dx=t.x-c.x,dy=t.y-c.y;return Math.abs(dx/Math.max(1,n.w))>Math.abs(dy/Math.max(1,n.h))?(dx>=0?'right':'left'):(dy>=0?'bottom':'top');}
   function orthogonalSide(doc,n,other) {
@@ -535,7 +598,7 @@
   function documentBounds(doc,{selectedIds=null}={}) {
     const draw=exportSelection(doc,selectedIds);
     const boxes=[];
-    for(const n of draw.nodes){const s=getStyle(n),lines=wrapText(n.text,isDiamond(n)?n.w*.62:n.w-24,s.fontSize),height=lines.length*s.fontSize*1.35;boxes.push({x:n.x-3,y:Math.min(n.y-3,n.y+n.h/2-height/2),w:n.w+6,h:Math.max(n.h+6,height)});}
+    for(const n of draw.nodes){boxes.push({x:n.x-3,y:n.y-3,w:n.w+6,h:n.h+6});if(!['initial','final','junction','fork','join'].includes(n.kind)){const b=nodeTextLayout(n).bounds;boxes.push({x:b.x-3,y:b.y-3,w:b.w+6,h:b.h+6});}}
     draw.lanes.forEach(l=>boxes.push({x:l.x-2,y:l.y-2,w:l.w+4,h:l.h+4}));
     draw.edges.forEach(e=>boxes.push(edgeGeometry(doc,e).bounds));
     if(!boxes.length)return{x:0,y:0,w:480,h:320};
@@ -581,5 +644,5 @@
     (Array.isArray(doc?.groups)?doc.groups:[]).forEach(group=>{const members=Array.isArray(group?.memberIds)?group.memberIds:[],isSelected=members.some(id=>selected.has(String(id)));if(!isSelected)return;const box=union(members.map(memberBox),8);if(!box)return;const label='グループ',labelH=16/safeScale;parts.push(`<g class="diagram-learning-group" data-group="${escapeXML(group?.id??'')}" ${vars}><rect x="${num(box.x)}" y="${num(box.y)}" width="${num(box.w)}" height="${num(box.h)}" fill="none" stroke="var(--learning-accent)" stroke-width="2" stroke-dasharray="${num(7/safeScale)} ${num(5/safeScale)}" rx="4" vector-effect="non-scaling-stroke"/><rect x="${num(box.x+4/safeScale)}" y="${num(box.y+2/safeScale)}" width="${num(Math.max(24,textWidth(label,fontSize)+8/safeScale))}" height="${num(labelH)}" fill="var(--learning-panel)" fill-opacity=".94"/><text x="${num(box.x+8/safeScale)}" y="${num(box.y+labelH-2/safeScale)}" fill="var(--learning-text)" font-size="${fontSize}" font-family="Arial, 'Hiragino Sans', 'Yu Gothic', sans-serif">${escapeXML(label)}</text></g>`);});
     parts.push('</g>');return parts.join('');
   }
-  return Object.freeze({escapeXML,wrapText,fitNode,nodeMarkup,sceneMarkup,edgeGeometry,waypointGeometry,insertWaypoint,splitWaypoints,documentBounds,svgDocument,learningOverlay,alignmentSnap,exportSelection,sidePoint,endpointSide,connectionsOnSide,connectionOffsets,nearestOffset,snapEndpoint});
+  return Object.freeze({escapeXML,wrapText,fitNode,nodeTextLayout,nodeMarkup,sceneMarkup,edgeGeometry,waypointGeometry,insertWaypoint,splitWaypoints,documentBounds,svgDocument,learningOverlay,alignmentSnap,exportSelection,sidePoint,endpointSide,connectionsOnSide,connectionOffsets,nearestOffset,snapEndpoint});
 });

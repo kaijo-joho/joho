@@ -28,6 +28,14 @@
     return name;
   }
 
+  function category(value) {
+    if (value === undefined) return '';
+    if (typeof value !== 'string') fail('カテゴリが不正です。');
+    const result = value.trim();
+    if ([...result].length > 40) fail('カテゴリは40文字以内で入力してください。');
+    return result;
+  }
+
   function updatedAt(value) {
     if (typeof value !== 'string' || value.length > 40) fail('部品セットの更新日時が不正です。');
     const date = new Date(value);
@@ -51,12 +59,14 @@
   function normalizeItem(value) {
     if (!isRecord(value) || !isId(value.id)) fail('部品セットのIDが不正です。');
     if (!TYPES.has(value.diagramType)) fail('部品セットの図の種類が不正です。');
+    const valueCategory = category(value.category);
     return {
       id: value.id,
       name: itemName(value.name),
       diagramType: value.diagramType,
       updatedAt: updatedAt(value.updatedAt),
-      selection: selectionFor(value.selection, value.diagramType)
+      selection: selectionFor(value.selection, value.diagramType),
+      ...(valueCategory ? { category: valueCategory } : {})
     };
   }
 
@@ -93,7 +103,7 @@
     return canonical(parseLibrary(library));
   }
 
-  function capture(doc, ids, name) {
+  function capture(doc, ids, name, itemCategory = '') {
     const source = Core.parseDocument(doc);
     const selection = Core.copySelection(source, ids);
     if (!selection.nodes.length && !selection.edges.length) fail('保存する図形または線を選択してください。');
@@ -108,7 +118,7 @@
       }
     }
     return normalizeItem({
-      id: Core.uid('part'), name, diagramType: source.diagramType, updatedAt: new Date().toISOString(), selection
+      id: Core.uid('part'), name, category: itemCategory, diagramType: source.diagramType, updatedAt: new Date().toISOString(), selection
     });
   }
 
@@ -140,13 +150,42 @@
     return normalizeLibrary({ ...clean, items: [...clean.items, nextItem] });
   }
 
-  function rename(library, id, name) {
+  function update(library, id, changes) {
     const clean = parseLibrary(library);
     if (!isId(id)) fail('部品セットのIDが不正です。');
-    if (!clean.items.some(item => item.id === id)) fail('部品セットが見つかりません。');
-    const nextName = itemName(name), now = new Date().toISOString();
-    return normalizeLibrary({ ...clean, items: clean.items.map(item => item.id === id ? { ...item, name: nextName, updatedAt: now } : item) });
+    if (!isRecord(changes) || Object.keys(changes).some(key => key !== 'name' && key !== 'category') || !Object.keys(changes).length) fail('変更内容が不正です。');
+    const index = clean.items.findIndex(item => item.id === id); if (index < 0) fail('部品セットが見つかりません。');
+    const item = clean.items[index], name = Object.hasOwn(changes, 'name') ? itemName(changes.name) : item.name, nextCategory = Object.hasOwn(changes, 'category') ? category(changes.category) : item.category || '';
+    if (name === item.name && nextCategory === (item.category || '')) return clean;
+    const next = { ...item, name, updatedAt:new Date().toISOString() }; if (nextCategory) next.category = nextCategory; else delete next.category;
+    return normalizeLibrary({ ...clean, items: clean.items.map((item, itemIndex) => itemIndex === index ? next : item) });
   }
+
+  function rename(library, id, name) { return update(library, id, { name }); }
+
+  function move(library, id, direction = -1) {
+    const clean = parseLibrary(library); if (!isId(id)) fail('部品セットのIDが不正です。'); if (direction !== -1 && direction !== 1) fail('移動方向が不正です。');
+    const index = clean.items.findIndex(item => item.id === id); if (index < 0) fail('部品セットが見つかりません。'); const target = index + direction;
+    if (target < 0 || target >= clean.items.length) return clean;
+    const items = [...clean.items]; [items[index], items[target]] = [items[target], items[index]];
+    return normalizeLibrary({ ...clean, items });
+  }
+
+  function normalizedQuery(value) {
+    if (typeof value !== 'string') fail('検索語が不正です。');
+    return value.normalize('NFKC').toLocaleLowerCase('ja').trim().split(/\s+/).filter(Boolean);
+  }
+  const compareName = (a, b) => a.localeCompare(b, 'ja', { numeric:true, sensitivity:'base' });
+  function list(library, options = {}) {
+    const clean = parseLibrary(library); if (!isRecord(options)) fail('一覧の設定が不正です。');
+    const query = normalizedQuery(options.query === undefined ? '' : options.query), filter = options.category === undefined ? null : options.category, sort = options.sort === undefined ? 'manual' : options.sort;
+    if (filter !== null && typeof filter !== 'string') fail('カテゴリが不正です。'); if (!['manual','name','updated'].includes(sort)) fail('並べ替えが不正です。');
+    const wanted = filter === null ? null : category(filter), items = clean.items.map((item, index) => ({ item, index })).filter(({ item }) => (wanted === null || (item.category || '') === wanted) && query.every(term => `${item.name} ${item.category || ''}`.normalize('NFKC').toLocaleLowerCase('ja').includes(term)));
+    if (sort === 'name') items.sort((a, b) => compareName(a.item.name, b.item.name) || a.index - b.index);
+    if (sort === 'updated') items.sort((a, b) => b.item.updatedAt.localeCompare(a.item.updatedAt) || a.index - b.index);
+    return items.map(({ item }) => clone(item));
+  }
+  function categories(library) { return [...new Set(parseLibrary(library).items.map(item => item.category).filter(Boolean))].sort(compareName); }
 
   function remove(library, id) {
     const clean = parseLibrary(library);
@@ -187,5 +226,5 @@
     return normalizeLibrary({ format: FORMAT, version: VERSION, items });
   }
 
-  return Object.freeze({ emptyLibrary, parseLibrary, serializeLibrary, capture, documentFor, place, add, rename, remove, merge });
+  return Object.freeze({ emptyLibrary, parseLibrary, serializeLibrary, capture, documentFor, place, add, update, rename, move, list, categories, remove, merge });
 });
