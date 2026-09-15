@@ -15,3 +15,7 @@
 - 旧lc02の未掲載状態を維持し、目次・検索への公開設定は変更しません。
 
 検証は `scripts/test-logic-tool-browser.mjs`、`scripts/test-logic-tool-usability-browser.mjs`、`scripts/test-logic-draft.mjs`、`scripts/test-logic-recovery-browser.mjs`、`scripts/test-logic-export-browser.mjs`、`scripts/test-logic-selection.mjs`、`scripts/test-logic-selection-browser.mjs` と既存の回路エンジン・保存・配線テストを使用します。
+
+## 課題提出への対応状況（2026-09-15）
+
+[課題モードの共通基盤](../shared/README.md)に、署名付き課題情報・変更履歴・ブラウザ鍵と教員復旧鍵による暗号化保存を用意しました。現時点でこのエディタは読み込んでおらず、通常の保存・自動復元は変更していません。fm2での署名発行・提出検証・教員の閲覧／復旧、および本エディタの課題用保存アダプターは、担当作業との調整後に実装・有効化します。
