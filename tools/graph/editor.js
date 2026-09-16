@@ -100,7 +100,8 @@
     $('series-list').replaceChildren();
     if(!current().series.length) $('series-list').append(node('p','数式や数表を追加してください。',{class:'small muted'}));
     for (const s of current().series) {
-      const item=button('',()=>select({type:'series',id:s.id}),{class:'object-item','data-object-type':'series','data-object-id':s.id,'aria-pressed':String(selected?.type==='series'&&selected.id===s.id),'aria-label':(s.name||s.expression||kindNames[s.kind])+'を選択','data-tip':'選択して編集。ダブルクリックで数式・範囲を開く'});
+      const state=!s.visible?'非表示':!matchesMode(s)?'別の表示モード':'',description=kindNames[s.kind]+(state?'・'+state:'');
+      const item=button('',()=>select({type:'series',id:s.id}),{class:'object-item','data-object-type':'series','data-object-id':s.id,'aria-pressed':String(selected?.type==='series'&&selected.id===s.id),'aria-label':(s.name||s.expression||kindNames[s.kind])+'（'+description+'）を選択','data-tip':description+'。選択して編集。ダブルクリックで数式・範囲を開く'});
       const dot=node('span',null,{class:'swatch'}); dot.style.backgroundColor=s.style.color;
       const copy=node('span',null,{class:'object-copy'});
       if(s.kind.startsWith('data'))copy.append(node('strong',s.name||kindNames[s.kind]),node('small',s.rows.length+' 行'));
@@ -111,14 +112,16 @@
         if(s.kind==='parametric')equation=symbol('x')+' = '+display(s.components.x,s.kind)+'\n'+symbol('y')+' = '+display(s.components.y,s.kind);
         copy.append(node('span',equation,{class:'series-equation'}),node('span',s.name,{class:'series-name'}));
       }
-      copy.append(node('span',kindNames[s.kind]+(!s.visible?'・非表示':!matchesMode(s)?'・別の表示モード':''),{class:'dim-badge'}));
+      if(state)copy.append(node('span',state,{class:'dim-badge'}));
       item.append(dot,copy); item.addEventListener('dblclick',()=>run(()=>editSeries(s.id))); appendObjectRow($('series-list'),item,'series',s.id,s.name||kindNames[s.kind],s.kind.startsWith('data')?'数表・出典':'数式・範囲');
     }
     $('annotation-list').replaceChildren();
     for(const a of current().annotations) {
-      const item=button('',()=>select({type:'annotation',id:a.id}),{class:'object-item','data-object-type':'annotation','data-object-id':a.id,'aria-pressed':String(selected?.type==='annotation'&&selected.id===a.id),'aria-label':(a.name||annotationNames[a.kind])+'を選択','data-tip':'選択して編集。ダブルクリックで位置・設定を開く'});
+      const state=!a.visible?'非表示':current().mode==='3d'?'2Dで表示':'',description=annotationNames[a.kind]+(state?'・'+state:'');
+      const item=button('',()=>select({type:'annotation',id:a.id}),{class:'object-item','data-object-type':'annotation','data-object-id':a.id,'aria-pressed':String(selected?.type==='annotation'&&selected.id===a.id),'aria-label':(a.name||annotationNames[a.kind])+'（'+description+'）を選択','data-tip':description+'。選択して編集。ダブルクリックで位置・設定を開く'});
       const dot=node('span',null,{class:'swatch'});dot.style.backgroundColor=a.style.color;
-      const copy=node('span',null,{class:'object-copy'});copy.append(node('strong',a.name||annotationNames[a.kind]),node('span',annotationNames[a.kind]+(!a.visible?'・非表示':current().mode==='3d'?'・2Dで表示':''),{class:'dim-badge'}));
+      const copy=node('span',null,{class:'object-copy'});copy.append(node('strong',a.name||annotationNames[a.kind]));
+      if(state)copy.append(node('span',state,{class:'dim-badge'}));
       if(a.kind==='tangent')copy.append(node('small','',{'data-tangent-equation':a.id,class:'tangent-equation'}));
       item.append(dot,copy);item.addEventListener('dblclick',()=>run(()=>editAnnotation(a.id)));appendObjectRow($('annotation-list'),item,'annotation',a.id,a.name||annotationNames[a.kind],'位置・設定');
     }
