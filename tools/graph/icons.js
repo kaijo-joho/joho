@@ -27,6 +27,8 @@
     region: [['path', { d: 'm4 18 4-13 12 4-3 11-13-2Z', fill: 'currentColor', 'fill-opacity': .2 }], ['path', { d: 'm7 16 5-8m-1 10 5-8' }]],
     regression: [['path', { d: 'M4 4v16h16M7 16 20 6' }], ['circle', { cx: 8, cy: 12, r: 1 }], ['circle', { cx: 12, cy: 14, r: 1 }], ['circle', { cx: 17, cy: 7, r: 1 }]],
     statistics: [['path', { d: 'M4 20h16M6 17V11M12 17V4M18 17V8' }], ['path', { d: 'M4 8h4M10 2h4M16 5h4' }]],
+    comparison: [['rect', { x: 3, y: 4, width: 8, height: 16, rx: 1 }], ['rect', { x: 14, y: 4, width: 7, height: 7, rx: 1 }], ['rect', { x: 14, y: 14, width: 7, height: 6, rx: 1 }]],
+    residual: [['path', { d: 'M3 12h18M6 12V6m6 6v6m6-6V8' }], ['circle', { cx: 6, cy: 6, r: 1 }], ['circle', { cx: 12, cy: 18, r: 1 }], ['circle', { cx: 18, cy: 8, r: 1 }]],
     text: [['path', { d: 'M5 5h14M12 5v14M8 19h8' }]],
     guide: [['path', { d: 'M4 12h16M12 4v16' }], ['path', { d: 'M6 6h3M15 18h3' }]],
     continue: [['path', { d: 'M4 12h13' }], ['path', { d: 'm13 7 5 5-5 5' }], ['circle', { cx: 5, cy: 12, r: 1 }]],

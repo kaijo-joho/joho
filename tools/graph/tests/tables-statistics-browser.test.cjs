@@ -39,7 +39,7 @@ let browser, page;
   assert.equal(await dialog.getByText('基本統計量', { exact: true }).count(), 1); assert.equal(await dialog.getByText('相関行列（Pearson r）', { exact: true }).count(), 1);
   assert.match(await dialog.locator('[data-correlation="3,3"]').innerText(), /未定義/); assert.match(await dialog.locator('[data-correlation="0,4"]').innerText(), /n = 36|n = 37/);
   const summaryCSV=T.fields(await downloadText(()=>dialog.getByRole('button',{name:'統計量をCSVで保存',exact:true}).click()));
-  assert.equal(Number(summaryCSV[1][1]),55);assert.equal(Number(summaryCSV[1][4]),27);assert(Math.abs(Number(summaryCSV[1][8])-252)<1e-10);
+  assert.equal(Number(summaryCSV[1][1]),55);assert.equal(Number(summaryCSV[1][4]),27);assert(Math.abs(Number(summaryCSV[1][summaryCSV[0].indexOf('分散（nで割る）')])-252)<1e-10);
   const matrixCSV=T.fields(await downloadText(()=>dialog.getByRole('button',{name:'相関行列をCSVで保存',exact:true}).click()));assert(Math.abs(Number(matrixCSV[1][5])-1)<1e-12);assert.equal(matrixCSV[4][4],'');
   const countsCSV=T.fields(await downloadText(()=>dialog.getByRole('button',{name:'相関の使用数をCSVで保存',exact:true}).click()));assert.equal(Number(countsCSV[1][5]),36);
 

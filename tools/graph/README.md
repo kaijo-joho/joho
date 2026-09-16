@@ -1,6 +1,6 @@
-# グラフエディタ 0.7.0 BETA
+# グラフエディタ 0.8.0 BETA
 
-0.7.0では、回帰曲線を点・接線・交点・領域から参照できる作図連携、セル編集型の数表、統計量・相関行列、教材向けの軸表示と画像・印刷設定を追加した。詳細は [数表・統計・教材出力契約](docs/tables-publication-contract.md) を参照。
+0.8.0では、残差グラフ、相関行列からの散布図、ヒストグラム・箱ひげ図、自作テンプレート、複数グラフの比較配置と画像・印刷を追加した。詳細は [分析グラフ・テンプレート・比較](docs/statistical-charts-contract.md) を参照。0.7.0の作図連携・数表・統計・教材出力は維持する。
 
 数学・理科・情報で使うグラフを、数式または数表から作成する独立ウェブアプリ。初期の名称は「グラフエディタ」、開発担当はCodex。既存のフローチャート・イラポ・構造式・分子模型エディタと操作方針をそろえる。
 
@@ -19,6 +19,9 @@
 - 選択パネルから点・接線・交点の追加と選択解除ボタンを外し、追加操作は左パネルにまとめる。グラフの空白クリック／タップまたはEscapeで選択解除し、ドラッグ・拡大縮小中は選択を保つ。
 - 数表から直線、原点を通る直線、2次、指数、べき乗の5種類の回帰を作成できる。回帰曲線は点・接線・交点・領域の参照元にできる。回帰式、R²、Pearsonの相関係数r、RMSE、残差一覧と残差CSVを確認し、元の数表を変更すると再計算する。
 - 選択列の統計量（n、欠測数、合計、平均、中央値、最小、最大、nで割る分散・標準偏差、n−1で割る不偏分散・標準偏差）と、ペアごとの有効数付きPearson相関行列を表示・CSV出力できる。
+- 残差グラフ（横軸の値／予測値）、相関行列セルからの散布図と回帰、ヒストグラム、複数列の箱ひげ図。元の数表に連動し、四分位数の計算方法・最小最大のひげを明記する。分析グラフは12枚まで保存できる。
+- 作図と分析グラフを最大6枚、1〜3列で比較。順序を変え、単独表示と切り替え、まとめてPNG・SVG・印刷へ出力する。狭い画面は1列。
+- 自作テンプレートを20件まで登録し、名前・説明の変更、ファイルへの保存・取り込み・削除ができる。数表の値も含める例示用と、列・設定だけ残す再利用用を選べる。
 - テンプレート：2次関数、正弦関数の比較、水の飽和蒸気圧、理想気体PVモデル、計算量比較、放物面・鞍型曲面、円の方程式、媒介変数の楕円と点、極座標の花形、接線と交点。
 - 元の式・数値・出典を保存するJSON。自動保存と明示保存をブラウザ内で独立保持し、再開時に選択。ローカルファイルの明示保存・自動保存。
 - 現在のグラフをPNG、2DをSVGで書き出す。幅・高さ・余白・文字サイズ、白／透明背景、A4／JIS B5の縦横と印刷用タイトルを設定できる。数表・統計量はCSVへ出力する。
@@ -42,7 +45,7 @@
 
 ## 保存と互換性
 
-形式は `kaijo-graph` version 8。version 1〜7を読み込んで移行し、多列数表・回帰参照・表示・出力の新フィールドはversion 8で保存する。旧形式へ新フィールドや回帰注釈を混在させた文書は受け付けない。保存するのは元の数値・式・設定で、補間点や回帰計算結果は保存しない。ファイル名は `名前.graph.json`。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。
+形式は `kaijo-graph` version 9。version 1〜8を読み込んで移行し、多列数表・回帰参照・表示・出力に加えて分析グラフと比較配置を保存する。旧形式へ新フィールドや回帰注釈を混在させた文書は受け付けない。保存するのは元の数値・式・設定で、補間点や回帰計算結果は保存しない。ファイル名は `名前.graph.json`。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。
 
 ブラウザの保存キーは `kaijo-graph:auto` / `kaijo-graph:saved`、表示設定は `kaijo-graph:settings`、ヘルプは `kaijo-graph:help`。他アプリの保存領域と共用しない。保存済みの片方が壊れても他方を選べる。読込時は検証が成功するまで現在の文書を置き換えない。
 
@@ -65,7 +68,9 @@
 | `analysis.js` | 正規化した座標による5種類の最小二乗回帰・統計量・残差 |
 | `data-curves.js` | 元の行順と欠測を保持するPCHIP補間 |
 | `tables.js` / `table-editor.js` | 数表のセル編集・列割当・CSV/TSV |
-| `statistics.js` | 統計量・Pearson相関行列 |
+| `statistics.js` | 四分位数を含む統計量・Pearson相関行列 |
+| `charts.js` / `workspace.js` | 残差・散布・分布図、比較配置と画像合成 |
+| `template-library.js` | 自作テンプレートの検証・ブラウザ保存・ファイル形式 |
 | `plot.js` | 2D/3D描画・関数と曲面のサンプリング・画像出力 |
 | `templates.js` | 式・数表・条件を持つ初期テンプレート |
 | `editor.js` / `editor.css` / `index.html` | 操作画面 |
@@ -77,9 +82,7 @@
 
 ## 続く実装
 
-1. 残差の可視化、資料・実験の数表テンプレートの拡充。
-2. カスタムテンプレート。
-3. 複数グラフの比較配置。
+残差・分布・相関の可視化、自作テンプレート、複数グラフの比較配置は実装済み。次の候補は、資料・実験の数表テンプレートの拡充と、実際の授業での操作性確認。
 
 3Dの空間曲線・等高線・断面の拡張は保留。
 
@@ -102,6 +105,12 @@ node tools/graph/tests/analysis-core.test.cjs
 node tools/graph/tests/analysis-plot.test.cjs
 node tools/graph/tests/tables-core.test.cjs
 node tools/graph/tests/statistics.test.cjs
+node tools/graph/tests/charts.test.cjs
+node tools/graph/tests/charts-core.test.cjs
+node tools/graph/tests/template-library.test.cjs
+node tools/graph/tests/workspace.test.cjs
+node tools/graph/tests/charts-browser.test.cjs
+node tools/graph/tests/template-library-browser.test.cjs
 node tools/graph/tests/regression-links.test.cjs
 node tools/graph/tests/publication-plot.test.cjs
 node tools/graph/tests/data-curves.test.cjs

@@ -241,8 +241,10 @@
   function layoutFor(doc, options) {
     const dark = !!options.dark, fg = dark ? '#e5e7eb' : '#172033', bg = dark ? '#111827' : '#ffffff';
     const p = presentation(doc), common = { paper_bgcolor: bg, plot_bgcolor: bg, font: { color: fg }, showlegend: doc.legend !== false, legend: { itemclick: false, itemdoubleclick: false }, margin: { l: 64, r: 24, t: 28, b: 56 }, hovermode: 'closest' };
+    if(options.compactLegend){Object.assign(common.legend,{orientation:'h',x:0,y:0,yref:'container',yanchor:'bottom'});common.margin.b=100;}
     const configure = (axis, name) => Object.assign(tick(axis), {
       title: { text: axisTitle(axis, name) },
+      ...(options.compactLegend && doc.mode!=='3d' ? {automargin:true} : {}),
       showgrid: doc.grid !== false,
       zerolinecolor: p.axisArrows ? fg : undefined, zerolinewidth: p.axisArrows ? 1.5 : 1,
       linecolor:fg, linewidth:1.5,
@@ -461,6 +463,7 @@
   }
   function resetView(element, doc) { const P = plotly(); if (!P || !element) return Promise.resolve(); const layout = layoutFor(doc, Object.assign({}, states.get(element) && states.get(element).options, { camera: undefined })); const state = states.get(element); if (state) state.camera = undefined; return P.relayout(element, layout); }
   function resize(element) { const P = plotly(); return P && P.Plots && element ? P.Plots.resize(element) : undefined; }
+  function dispose(element) {if(!element)return;states.get(element)?.blankCleanup?.dispose();states.delete(element);const P=plotly();if(P&&typeof P.purge==='function')P.purge(element);}
   async function exportImage(element, options) {
     options = options || {}; const P = plotly(), state = states.get(element); if (!P || !state) throw new Error('グラフを描画してから書き出してください。');
     if (options.format === 'svg' && state.doc.mode === '3d') throw new Error('3D グラフは SVG で書き出せません。PNG を選んでください。');
@@ -474,6 +477,7 @@
     const data = (element.data || []).map((x) => JSON.parse(JSON.stringify(x))); const layout = JSON.parse(JSON.stringify(element.layout || layoutFor(state.doc, state.options)));
     const transparent = output.background === 'transparent', bg = transparent ? 'rgba(0,0,0,0)' : '#ffffff', fg = '#172033', grid = '#cbd5e1';
     layout.width = output.width; layout.height = output.height; layout.autosize = false; layout.margin = { l: output.margin, r: output.margin, t: output.margin, b: output.margin };
+    if(layout.legend?.orientation==='h'&&layout.legend.yref==='container')layout.margin.b=Math.max(output.margin,output.fontSize*6.5);
     layout.font = Object.assign({}, layout.font, { size: output.fontSize });
     if (output.title && state.doc.name) layout.title = Object.assign({}, layout.title, { text: rich(state.doc.name), font: Object.assign({}, layout.title && layout.title.font, { size: output.fontSize }) });
     else if (!output.title) delete layout.title;
@@ -483,5 +487,5 @@
     if (layout.scene) { layout.scene.bgcolor = bg; layout.scene.camera = state.camera || layout.scene.camera; ['xaxis', 'yaxis', 'zaxis'].forEach((key) => { const axis = layout.scene[key]; if (axis) { axis.color = fg; axis.gridcolor = grid; axis.zerolinecolor = grid; axis.backgroundcolor = bg; axis.title = Object.assign({}, axis.title, { font: Object.assign({}, axis.title && axis.title.font, { color: fg }) }); } }); }
     try { await P.newPlot(host, data, layout, { displayModeBar: false }); return await P.toImage(host, { format: output.format, width: output.width, height: output.height, scale: output.scale }); } finally { if (typeof P.purge === 'function') P.purge(host); host.remove(); }
   }
-  return { sampleFunction, sampleSurface, render, resetView, resize, exportImage, screenPoint, dataPoint, pickAnnotation, escapeText: esc };
+  return { sampleFunction, sampleSurface, render, resetView, resize, exportImage, screenPoint, dataPoint, pickAnnotation, dispose, escapeText: esc };
 }));

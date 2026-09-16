@@ -109,7 +109,7 @@ let browser, page;
   // Save/reopen the current format, and keep the equation in the exported SVG.
   await page.locator('#file-menu summary').click(); await page.locator('#save-browser').click();
   const saved = await doc(); await page.reload(); await page.locator('#editor-dialog[open]').waitFor(); await page.getByRole('button', { name: /^明示保存：/ }).click(); await settle();
-  assert.deepEqual(await doc(), saved); assert.equal((await doc()).version, 8);
+  assert.deepEqual(await doc(), saved); assert.equal((await doc()).version, 9);
   const svg = await page.evaluate(async () => { const url = await GraphPlot.exportImage(document.querySelector('#plot'), { format: 'svg', scale: 1, background: 'white' }); return fetch(url).then(r => r.text()); });
   assert(svg.includes('≈') && svg.includes('4x'));
   // Touch, large text and the single-line header at a narrow viewport.
@@ -124,14 +124,14 @@ let browser, page;
   await page.locator('#list-close').tap(); await page.locator('#stage').focus(); await page.keyboard.press('Escape');
   await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.locator('#operation-help:visible').waitFor(); await page.keyboard.press('Escape');
   // Existing v3 tangents keep their old diagram appearance and all endpoint references.
-  const legacy = structuredClone(saved); legacy.version = 3; delete legacy.presentation; delete legacy.output; legacy.name = '旧形式の読み込み確認';
+  const legacy = structuredClone(saved); legacy.version = 3;delete legacy.charts;delete legacy.comparison; delete legacy.presentation; delete legacy.output; legacy.name = '旧形式の読み込み確認';
   const remainingIntersection = legacy.annotations.find(a => a.kind === 'intersection' && a.id !== mixed);
   assert.equal(remainingIntersection, undefined, 'v3 fixture must not retain a second typed intersection');
   legacy.annotations = legacy.annotations.filter(a => a.id !== mixed);
   for (const a of legacy.annotations) delete a.showEquation;
   await page.setInputFiles('#file-input', { name: 'old-v3.graph.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy)) });
   await page.waitForFunction(name => GraphEditor.getDocument().name === name, legacy.name); await settle();
-  assert.equal((await doc()).version, 8); assert((await doc()).annotations.filter(a => a.kind === 'tangent').every(a => a.showEquation === false));
+  assert.equal((await doc()).version, 9); assert((await doc()).annotations.filter(a => a.kind === 'tangent').every(a => a.showEquation === false));
   assert.deepEqual((await doc()).annotations.filter(a => a.kind === 'segment'), legacy.annotations.filter(a => a.kind === 'segment'));
   await page.locator('#file-menu summary').click(); await page.locator('#new-document').click(); await settle();
   assert.equal(await page.locator('#parameter-list .parameter-row').count(), 0, 'loading an empty document removes every old coefficient control');

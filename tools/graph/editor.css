@@ -62,6 +62,37 @@ dialog{color:var(--text);background:var(--panel);border:1px solid var(--line);bo
 .correlation-table td strong{white-space:nowrap}
 [data-statistics-results] .data-table td{white-space:nowrap}
 .correlation-wrap{max-height:420px}
+.correlation-cell-button{width:100%;border:0;background:transparent;white-space:normal;padding:4px;font-variant-numeric:tabular-nums}
+.correlation-cell-button:hover{background:var(--accent-soft)}
+.statistics-chart-actions{padding:10px 12px;background:var(--bg);border-radius:8px;margin-block:10px}
+.statistics-chart-actions label{margin:0;max-width:320px}
+.stage-heading{height:52px;padding:4px 12px;gap:6px;min-width:0}
+#workspace-view{width:auto;min-width:90px;max-width:min(40%,240px);margin-left:auto;font-size:.85rem;padding:6px}
+.stage-heading .icon-button{font-size:1rem}
+#document-name{min-width:0;flex:1}
+#mode-label{flex:none}
+#selection-toolbar{top:57px}
+#analysis-stage{display:flex;flex:1;flex-direction:column;min-width:0;min-height:0;overflow:hidden}
+#analysis-plot{flex:1;min-height:0;min-width:0;touch-action:none;overflow:hidden}
+#analysis-summary{flex:none;max-height:100px;overflow:auto;white-space:pre-line;overflow-wrap:anywhere;padding:8px 16px;margin:0;background:var(--bg)}
+#analysis-summary:empty{display:none}
+#comparison-stage{flex:1;min-width:0;min-height:0;overflow:auto;padding:12px;align-content:start;overscroll-behavior:contain}
+.comparison-grid{display:grid;gap:12px;grid-auto-rows:max-content;align-items:start}
+.comparison-card{min-width:0;border:1px solid var(--line);border-radius:9px;background:var(--panel);overflow:hidden;display:flex;flex-direction:column}
+.comparison-title{border:0;border-bottom:1px solid var(--line);border-radius:0;width:100%;text-align:left;white-space:normal;overflow-wrap:anywhere;font-weight:600;padding:8px 12px}
+.comparison-plot{height:300px;min-width:0;width:100%;overflow:hidden;flex:none;touch-action:none}
+.comparison-summary{flex:none;font-size:.8rem;line-height:1.45;max-height:90px;overflow:auto;overflow-wrap:anywhere;padding:8px 10px;margin:0;border-top:1px solid var(--line)}
+.comparison-summary:empty{display:none}
+.comparison-order-row{display:flex;align-items:center;gap:6px;margin:6px 0;padding:5px 8px;border:1px solid var(--line);border-radius:7px}
+.comparison-order-row span{flex:1;min-width:0;overflow-wrap:anywhere}
+.comparison-order-row button{flex:none;width:44px;padding:6px}
+.comparison-choices{margin-block:12px;max-height:260px;overflow:auto}
+.comparison-choices label{min-height:44px;margin:0;overflow-wrap:anywhere}
+.template-actions{display:flex;gap:6px;flex-wrap:wrap}
+.template-actions button{flex:1;white-space:normal;padding:6px;font-size:.85rem}
+.custom-template-row{display:grid;grid-template-columns:minmax(0,1fr) 44px;gap:4px;align-items:center}
+.custom-template-row .template-card{min-width:0;overflow-wrap:anywhere;margin:4px 0}
+@media(max-width:700px){#comparison-stage{grid-template-columns:minmax(0,1fr)!important;padding:8px}.comparison-plot{height:300px}.stage-heading{padding-inline:6px}#workspace-view{max-width:48%}#selection-toolbar{top:56px}}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .print-preview-page{background:white;color:#111827;padding:16px;border:1px solid var(--line);margin:12px 0;text-align:center}
 .print-preview-page img{display:block;width:100%;height:auto}

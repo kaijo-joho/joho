@@ -44,16 +44,38 @@
     if(hasSpread&&variance===0){warnings.push(underflowMessage);return null;}
     return finiteOrNull(variance,warnings,overflowMessage);
   }
+  // Japanese secondary-school convention: for an odd-sized data set, leave the
+  // overall median out before taking the medians of the lower and upper halves.
+  // This is also Plotly's "exclusive" quartile convention, but is calculated
+  // here so every output (including precomputed box traces) agrees exactly.
+  function medianOfSorted(values){
+    const middle=Math.floor(values.length/2);
+    if(values.length%2)return values[middle];
+    const lower=values[middle-1],upper=values[middle],difference=upper-lower;
+    return finite(difference)?lower+difference/2:lower/2+upper/2;
+  }
+  function quartiles(sorted){
+    const n=sorted.length;
+    if(!n)return {q1:null,q3:null,iqr:null};
+    if(n===1)return {q1:sorted[0],q3:sorted[0],iqr:0};
+    const middle=Math.floor(n/2);
+    const lower=sorted.slice(0,middle),upper=sorted.slice(n%2?middle+1:middle);
+    const q1=medianOfSorted(lower),q3=medianOfSorted(upper),iqr=q3-q1;
+    return {q1,q3,iqr:finite(iqr)?iqr:null};
+  }
   function describe(values){
     const {numeric,missing}=checkedValues(values,'値');
     const n=numeric.length;
-    const result={n,missing,sum:null,mean:null,median:null,min:null,max:null,variance:null,standardDeviation:null,sampleVariance:null,sampleStandardDeviation:null,warning:''};
+    const result={n,missing,sum:null,mean:null,median:null,min:null,max:null,q1:null,q3:null,iqr:null,variance:null,standardDeviation:null,sampleVariance:null,sampleStandardDeviation:null,warning:''};
     if(n===0){result.warning='数値がありません。';return result;}
     const warnings=[];
     const sorted=numeric.slice().sort((a,b)=>a-b);
     result.min=sorted[0];result.max=sorted[n-1];
-    const lower=sorted[Math.floor((n-1)/2)],upper=sorted[Math.floor(n/2)],difference=upper-lower;
-    result.median=n%2?lower:finiteOrNull(finite(difference)?lower+difference/2:lower/2+upper/2,warnings,'中央値を計算できる範囲を超えています。');
+    result.median=finiteOrNull(medianOfSorted(sorted),warnings,'中央値を計算できる範囲を超えています。');
+    const spread=quartiles(sorted);
+    result.q1=finiteOrNull(spread.q1,warnings,'第1四分位数を計算できる範囲を超えています。');
+    result.q3=finiteOrNull(spread.q3,warnings,'第3四分位数を計算できる範囲を超えています。');
+    result.iqr=spread.iqr===null?null:finiteOrNull(spread.iqr,warnings,'四分位範囲を計算できる範囲を超えています。');
     result.sum=finiteOrNull(scaledSum(numeric),warnings,'合計を計算できる範囲を超えています。');
     // Work in coordinates relative to the first value.  Adding a small mean
     // correction to a large offset can round it away, but the normalized
