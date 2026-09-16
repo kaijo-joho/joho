@@ -1,0 +1,24 @@
+/* tools/ のウェブアプリ共通：ダークの配色・文字サイズ・ツールチップ・知らせ
+   ライトの色は各アプリの :root に置く（共通仕様 2.7 の表）。このファイルはその上に重ねる。 */
+:root{
+  --hover:#f4f6f9; --shadow:0 6px 22px #14233724;
+  --ui-size:14px; --ui-k:1;              /* 操作部の文字サイズ（標準・大・特大） */
+}
+:root[data-theme="dark"], :root[data-resolved-theme="dark"]{
+  color-scheme:dark;
+  --bg:#19212b; --panel:#252e3b; --line:#4c596c; --text:#eef2f7; --muted:#bac4d1;
+  --accent:#9cbfff; --accent-soft:#2c4469; --danger:#ff8f8f;
+  --hover:#354154; --shadow:0 6px 22px #0005;
+  --paper:#151c25; --grid:#39485c;        /* 作図面の紙と方眼の点（使うアプリだけ） */
+}
+:root[data-text-size="large"]{--ui-size:16px; --ui-k:1.15}
+:root[data-text-size="largest"]{--ui-size:18px; --ui-k:1.3}
+
+/* すぐ出るツールチップ（ブラウザ標準の遅い title は使わない） */
+.joho-tip{position:fixed;z-index:45;left:0;top:0;background:#1f2933;color:#fff;font-size:calc(12px*var(--ui-k));line-height:1.45;
+  padding:4px 8px;border-radius:6px;pointer-events:none;max-width:300px;opacity:0;transition:opacity .06s}
+.joho-tip.show{opacity:.95}
+/* 画面下の知らせ */
+.joho-toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:#1f2933;color:#fff;padding:8px 16px;border-radius:8px;
+  font-size:calc(13px*var(--ui-k));opacity:0;transition:opacity .2s;pointer-events:none;z-index:40;max-width:min(90vw,560px);text-align:center}
+.joho-toast.show{opacity:.92}

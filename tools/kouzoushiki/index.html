@@ -4,18 +4,28 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>構造式エディタ</title>
+<link rel="stylesheet" href="../shared/ui-kit.css">
+<link rel="stylesheet" href="../shared/help-panel.css">
+<script src="../shared/ui-kit.js"></script>
+<script src="../shared/help-panel.js"></script>
 <link rel="icon" id="favicon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect x='2' y='2' width='60' height='60' rx='13' fill='%2300548a'/%3E%3C/svg%3E">
 <style>
 :root{
   --bg:#eef0f3; --panel:#ffffff; --line:#d9dde3; --text:#1f2933; --muted:#6b7480;
   --accent:#2563eb; --accent-soft:#e3ecff; --danger:#d61f1f;
+  --hover:#f4f6f9; --shadow:0 6px 22px #14233724;
+  --paper:#ffffff; --grid:#dfe3e8;            /* キャンバスの紙と方眼の点 */
 }
+/* ダークの色・文字サイズ（--ui-size / --ui-k）・ツールチップ・知らせは ../shared/ui-kit.css */
+/* 操作部だけを拡大する（キャンバスの図は倍率で変える） */
+.top,.tools,.side,.info,.fmtbar,#hint{zoom:var(--ui-k, 1)}
+.tool-help{font-size:var(--ui-size, 14px)}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
   font:14px/1.4 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
 button,select{font:inherit;color:inherit}
-#app{display:grid;height:100vh;grid-template:"top top top" auto "tools canvas side" 1fr "tools info side" auto / 164px 1fr auto}
+#app{display:grid;height:100vh;grid-template:"top top top" auto "tools canvas side" 1fr "tools info side" auto / calc(164px*var(--ui-k, 1)) 1fr auto}
 /* ---- 開閉式のパレット ---- */
 details.fold > summary{list-style:none;cursor:pointer;display:flex;align-items:center;gap:4px;user-select:none}
 details.fold > summary::-webkit-details-marker{display:none}
@@ -24,16 +34,16 @@ details.fold[open] > summary::before{transform:rotate(90deg)}
 details.fold > summary:hover{color:var(--text)}
 /* ---- 選択中だけ出る書式バー（キャンバスの上に浮かせる） ---- */
 .fmtbar{position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:5;display:flex;flex-wrap:wrap;align-items:center;gap:5px;
-  width:max-content;max-width:calc(100% - 16px);padding:5px 8px;background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:10px;
+  width:max-content;max-width:calc(100% - 16px);padding:5px 8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;
   box-shadow:0 4px 16px rgba(20,30,50,.13);font-size:13px}
 .fmtbar[hidden]{display:none}
-.fmtbar select{border:1px solid var(--line);border-radius:7px;padding:4px 4px;background:#fff}
+.fmtbar select{border:1px solid var(--line);border-radius:7px;padding:4px 4px;background:var(--panel);color:var(--text)}
 .fmtbar .fg{display:inline-flex;align-items:center;gap:5px}
 .fmtbar .fg[hidden]{display:none}
 .fmtbar .fg:not([hidden]) ~ .fg:not([hidden]){border-left:1px solid var(--line);padding-left:7px;margin-left:2px}
 /* ---- 上部の「表記」メニュー（ホバーで開く） ---- */
 .hmenu{position:relative;display:inline-flex}
-.hmenu > .menu{display:none;position:absolute;top:100%;left:0;margin-top:6px;z-index:25;background:#fff;border:1px solid var(--line);border-radius:10px;
+.hmenu > .menu{display:none;position:absolute;top:100%;left:0;margin-top:6px;z-index:25;background:var(--panel);border:1px solid var(--line);border-radius:10px;
   box-shadow:0 8px 24px rgba(20,30,50,.16);padding:10px 12px;min-width:270px;flex-direction:column;gap:9px;font-size:13px}
 .hmenu > .menu::before{content:'';position:absolute;left:0;right:0;top:-9px;height:9px}
 .hmenu:hover > .menu,.hmenu:focus-within > .menu{display:flex}
@@ -50,38 +60,38 @@ details.fold > summary:hover{color:var(--text)}
 .side-resize{display:none;width:6px;margin-right:-6px;position:relative;z-index:2;cursor:col-resize;flex:none}
 .side-resize:hover,.side-resize.drag{background:var(--accent-soft)}
 .side.open > .side-resize{display:block}
-.side-tabs{width:26px;flex:none;display:flex;flex-direction:column;background:#f7f8fa;border-left:1px solid var(--line)}
+.side-tabs{width:26px;flex:none;display:flex;flex-direction:column;background:var(--bg);border-left:1px solid var(--line)}
 .side-tab{border:0;border-bottom:1px solid var(--line);background:none;cursor:pointer;color:var(--muted);display:flex;flex-direction:column;
   align-items:center;gap:6px;padding:12px 0;font-size:12px}
 .side-tab:hover,.side-tab.on{background:var(--accent-soft);color:var(--accent)}
 .side-tab .vt{writing-mode:vertical-rl;letter-spacing:3px}
-.lib-search{border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:13px;width:100%}
+.lib-search{border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:13px;width:100%;background:var(--panel);color:var(--text)}
 .side header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);font-weight:700;font-size:13px}
 .side header button{border:0;background:none;font-size:18px;cursor:pointer;color:var(--muted)}
 .side-body{overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;font-size:13px}
-.sbtn{border:1px solid var(--line);background:#fff;border-radius:7px;padding:6px 10px;cursor:pointer}
+.sbtn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:7px;padding:6px 10px;cursor:pointer}
 .sbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .sbtn:disabled{opacity:.45;cursor:default}
 #expList{display:flex;flex-direction:column;gap:6px}
-.exp-item{display:flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:8px;padding:4px 5px;background:#fff}
-.exp-thumb{width:60px;height:44px;flex:none;border:1px solid #eceef1;border-radius:5px;background:#fff;padding:1px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.exp-item{display:flex;align-items:center;gap:5px;border:1px solid var(--line);border-radius:8px;padding:4px 5px;background:var(--panel)}
+.exp-thumb{width:60px;height:44px;flex:none;border:1px solid var(--line);border-radius:5px;background:#fff;padding:1px;cursor:pointer;display:flex;align-items:center;justify-content:center}
 .exp-thumb:hover{border-color:var(--accent)}
 .exp-thumb svg{width:100%;height:100%}
-.exp-name{flex:1;min-width:0;border:1px solid var(--line);border-radius:5px;padding:3px 5px;font-size:12px}
+.exp-name{flex:1;min-width:0;border:1px solid var(--line);border-radius:5px;padding:3px 5px;font-size:12px;background:var(--panel);color:var(--text)}
 .exp-copy,.exp-del{border:0;background:none;cursor:pointer;color:var(--muted);padding:2px;display:flex;font-size:16px;line-height:1}
 .exp-copy svg{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .exp-copy:hover,.exp-del:hover{color:var(--accent)}
-.side-sec{border-top:1px solid #eceef1;padding-top:8px;display:flex;flex-direction:column;gap:6px}
+.side-sec{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}
 .side-sec .row2{display:flex;gap:14px}
 .side .frow{margin:0}
 
 /* ---- 上部バー ---- */
 .top{grid-area:top;display:flex;flex-direction:column;font-size:13px;background:var(--panel);border-bottom:1px solid var(--line)}
 .top .row{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:5px 10px}
-.top .row + .row{border-top:1px solid #eceef1;padding:4px 10px;background:#fafbfc}
+.top .row + .row{border-top:1px solid var(--line);padding:4px 10px;background:var(--bg)}
 .tb button.ic{width:32px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);
-  background:#fff;border-radius:7px;cursor:pointer;font-size:11px;font-weight:600}
-.tb button.ic:hover{background:#f4f6f9}
+  background:var(--panel);border-radius:7px;cursor:pointer;font-size:11px;font-weight:600}
+.tb button.ic:hover{background:var(--hover)}
 .tb button.ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .tb button.on,.top .btn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .lbl{color:var(--muted);font-size:12px;margin-left:4px;white-space:nowrap}
@@ -92,30 +102,27 @@ details.fold > summary:hover{color:var(--text)}
 .tools button.txt{font-size:19px;font-weight:600;font-family:Arial,Helvetica,sans-serif}
 button.chip{cursor:pointer;color:inherit;font-family:Arial,Helvetica,sans-serif}
 button.chip:hover{border-color:var(--accent)}
-button.chip.on{background:var(--accent-soft);border-color:var(--accent);color:#1d3f99}
-#tip{position:fixed;z-index:30;left:0;top:0;background:#1f2933;color:#fff;font-size:12px;line-height:1.45;padding:4px 8px;border-radius:6px;
-  pointer-events:none;max-width:300px;opacity:0;transition:opacity .06s}
-#tip.show{opacity:.95}
+button.chip.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .frow{display:flex;align-items:center;gap:8px;margin:12px 0}
-.frow select{border:1px solid var(--line);border-radius:7px;padding:4px 6px}
+.frow select{border:1px solid var(--line);border-radius:7px;padding:4px 6px;background:var(--panel);color:var(--text)}
 .swatches{display:inline-flex;gap:3px}
 .swatches button{width:18px;height:18px;border-radius:4px;border:1px solid rgba(0,0,0,.2);cursor:pointer;padding:0}
 .swatches button:hover{outline:2px solid var(--accent);outline-offset:1px}
-#fColor{width:26px;height:24px;padding:0;border:1px solid var(--line);border-radius:5px;background:#fff;cursor:pointer}
+#fColor{width:26px;height:24px;padding:0;border:1px solid var(--line);border-radius:5px;background:var(--panel);cursor:pointer}
 #fmtRow .ic sup,#fmtRow .ic sub{font-size:8px}
 .tools button.br{font-size:15px;font-weight:500}
 .tools button.br sub,.tools button.br sup{font-size:9px}
 .brand{display:flex;align-items:center;gap:7px;font-weight:700;font-size:15px;margin-right:8px;white-space:nowrap}
 .brand .app-icon{width:24px;height:24px;flex:none}
 .seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
-.seg button{border:0;background:#fff;padding:5px 11px;cursor:pointer;border-right:1px solid var(--line)}
+.seg button{border:0;background:var(--panel);color:var(--text);padding:5px 11px;cursor:pointer;border-right:1px solid var(--line)}
 .seg button:last-child{border-right:0}
 .seg button.on{background:var(--accent);color:#fff}
-.top .btn{border:1px solid var(--line);background:#fff;border-radius:7px;padding:5px 10px;cursor:pointer;white-space:nowrap}
-.top .btn:hover{background:#f4f6f9}
+.top .btn{border:1px solid var(--line);background:var(--panel);border-radius:7px;padding:5px 10px;cursor:pointer;white-space:nowrap}
+.top .btn:hover{background:var(--hover)}
 .top .btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
 .top .btn.primary:hover{background:#1d4fd0}
-.top select{border:1px solid var(--line);border-radius:7px;padding:4px 4px;background:#fff}
+.top select{border:1px solid var(--line);border-radius:7px;padding:4px 4px;background:var(--panel);color:var(--text)}
 .chk{display:inline-flex;align-items:center;gap:4px;white-space:nowrap;cursor:pointer;color:var(--muted)}
 .sep{width:1px;height:22px;background:var(--line);margin:0 2px}
 .spacer{flex:1}
@@ -128,9 +135,9 @@ button.chip.on{background:var(--accent-soft);border-color:var(--accent);color:#1
 .grid2{display:grid;grid-template-columns:repeat(2,1fr);gap:4px}
 .grid2 button{font-size:11.5px;white-space:nowrap}
 .tools .grid2 button svg{width:18px;height:18px;margin-right:2px}
-.tools button{height:34px;border:1px solid var(--line);background:#fff;border-radius:7px;cursor:pointer;
+.tools button{height:34px;border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:7px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;padding:0;font-size:14px}
-.tools button:hover{background:#f4f6f9}
+.tools button:hover{background:var(--hover)}
 .tools button.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
 .tools button svg{width:22px;height:22px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .tools button.el{font-weight:600;font-family:Arial,Helvetica,sans-serif}
@@ -141,55 +148,53 @@ button.chip.on{background:var(--accent-soft);border-color:var(--accent);color:#1
 .tools button.w2{grid-column:span 2;font-size:12px}
 
 /* ---- キャンバス ---- */
-#wrap{grid-area:canvas;position:relative;overflow:hidden;background:#fff;
-  background-image:radial-gradient(#dfe3e8 1px,transparent 1px);background-size:20px 20px}
+#wrap{grid-area:canvas;position:relative;overflow:hidden;outline:none;background:var(--paper);
+  background-image:radial-gradient(var(--grid) 1px,transparent 1px);background-size:20px 20px}
 #canvas{position:absolute;inset:0;width:100%;height:100%;touch-action:none;display:block;cursor:crosshair}
 #canvas.select{cursor:default}
 #canvas.pan{cursor:grab}
-#hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted);background:rgba(255,255,255,.85);
+#hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted);background:var(--panel);opacity:.9;
   padding:3px 8px;border-radius:6px;pointer-events:none}
 #textEditor{position:absolute;display:none;font:16px Arial,"Hiragino Sans",sans-serif;padding:2px 4px;
-  border:1px solid var(--accent);border-radius:4px;outline:none;min-width:120px;background:#fff;white-space:pre;line-height:1.3;cursor:text;z-index:6}
+  border:1px solid var(--accent);border-radius:4px;outline:none;min-width:120px;background:var(--panel);color:var(--text);white-space:pre;line-height:1.3;cursor:text;z-index:6}
 #textEditor sub,#textEditor sup{line-height:0}
 
 /* ---- 下部情報 ---- */
 .info{grid-area:info;display:flex;align-items:center;gap:12px;padding:6px 10px;background:var(--panel);
   border-top:1px solid var(--line);min-height:40px;flex-wrap:wrap}
 #formulas{display:flex;flex-wrap:wrap;gap:6px;flex:1;align-items:center}
-.chip{background:#f3f5f8;border:1px solid var(--line);border-radius:14px;padding:2px 10px;font-family:Arial,Helvetica,sans-serif;font-size:14px;white-space:nowrap}
+.chip{background:var(--bg);border:1px solid var(--line);border-radius:14px;padding:2px 10px;font-family:Arial,Helvetica,sans-serif;font-size:14px;white-space:nowrap}
 .chip b{font-weight:600}
 .chip .mw{color:var(--muted);margin-left:6px;font-size:12px}
 .muted{color:var(--muted);font-size:12px}
+#saveStatus{border:0;background:none;padding:2px 4px;cursor:pointer;font-size:12px;color:var(--muted);white-space:nowrap}
+#saveStatus:hover{text-decoration:underline}
+#saveStatus.warn{color:var(--danger)}
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);padding:16px 18px;max-width:min(520px,92vw);box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(20,25,35,.35)}
+dialog h2{margin:0 0 6px;font-size:15px}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.cand{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;background:var(--panel)}
+.cand div{flex:1;min-width:0}
+.cand b{font-size:13px}
+.cand span{display:block;font-size:12px;color:var(--muted)}
 #warnings{color:var(--danger);font-size:12px}
 .zoom{display:flex;align-items:center;gap:4px}
-.zoom button{border:1px solid var(--line);background:#fff;border-radius:6px;padding:2px 8px;cursor:pointer}
-#zSel{border:1px solid var(--line);border-radius:6px;padding:2px 4px;font-size:12px;background:#fff;min-width:88px}
+.zoom button{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:6px;padding:2px 8px;cursor:pointer}
+#zSel{border:1px solid var(--line);border-radius:6px;padding:2px 4px;font-size:12px;background:var(--panel);color:var(--text);min-width:88px}
 .hmenu .mi{border:0;background:none;text-align:left;padding:6px 8px;border-radius:6px;cursor:pointer;font-size:13px;white-space:nowrap}
 .hmenu .mi:hover{background:var(--accent-soft);color:var(--accent)}
 .hmenu > .menu.mlist{min-width:0;padding:6px;gap:2px}
-.help table.about{margin-top:16px;border-top:2px solid var(--line)}
 .credit{margin:18px 0 4px;text-align:center;font-size:12px;color:var(--muted);line-height:1.8}
 
-/* ---- モーダル ---- */
-.modal{position:fixed;inset:0;background:rgba(20,25,35,.35);display:flex;align-items:center;justify-content:center;z-index:10}
-.modal[hidden]{display:none}
-.dlg{background:#fff;border-radius:12px;box-shadow:0 12px 40px rgba(0,0,0,.25);width:min(920px,94vw);max-height:88vh;display:flex;flex-direction:column}
-.dlg header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--line);font-weight:700}
-.dlg header button{border:0;background:none;font-size:20px;cursor:pointer;color:var(--muted)}
-.dlg .body{overflow-y:auto;padding:10px 16px 16px}
+/* ---- 右側パネルの化合物ライブラリ ---- */
 .lib-cat{font-weight:700;margin:12px 0 6px;font-size:13px;color:var(--muted)}
 .lib-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
-.lib-item{border:1px solid var(--line);border-radius:9px;background:#fff;cursor:pointer;padding:6px 4px 4px;display:flex;flex-direction:column;align-items:center}
+.lib-item{border:1px solid var(--line);border-radius:9px;background:#fff;color:#1f2933;cursor:pointer;padding:6px 4px 4px;display:flex;flex-direction:column;align-items:center}   /* 縮小画像は白い紙に黒 */
 .lib-item:hover{border-color:var(--accent);background:#f7faff}
 .lib-item svg{width:100%;height:78px}
 .lib-item span{font-size:12px;margin-top:2px;text-align:center}
-.help table{border-collapse:collapse;width:100%}
-.help td{padding:5px 8px;border-bottom:1px solid #eef0f3;vertical-align:top}
-.help td:first-child{white-space:nowrap;font-weight:600;width:34%}
-kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font:12px Menlo,monospace;background:#f8f9fb}
-#toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:#1f2933;color:#fff;padding:8px 16px;border-radius:8px;
-  font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
-#toast.show{opacity:.92}
+kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font:12px Menlo,monospace;background:var(--bg)}
 </style>
 </head>
 <body>
@@ -198,11 +203,19 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
    <div class="row tb">
     <div class="brand"><!-- アプリのアイコン：紺の角丸四角・白いベンゼン環・白抜きの校章（校章の輪郭は Illustrator のデータから）。favicon にも使う -->
       <svg id="appIcon" class="app-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="13" fill="#00548a"/><polygon points="32,8 53.65,20.5 53.65,45.5 32,58 10.35,45.5 10.35,20.5" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path fill="#fff" transform="translate(19 19.32) scale(.27368)" d="M27.4 52.3C27.4 52.2 27.5 52.2 27.6 52.2C27.7 52.3 27.9 52.3 28.1 52.4C29.7 53.1 31.4 53.8 33.1 54.5C34.6 55.1 36.2 55.7 37.8 56.2C40 57 42.2 57.7 44.4 58.5C46.1 59 47.8 59.6 49.5 60.1C52.4 61 55.3 61.9 58.2 62.8C58.7 63 59.2 63.1 59.7 63.3C60 63.4 60.2 63.5 60.5 63.6C61.1 63.9 61.7 64.1 62.3 64.3C63.6 64.9 64.8 65.6 65.8 66.5C66.2 66.9 66.5 67.2 66.9 67.6C67.4 68.1 67.8 68.7 68.2 69.2C68.7 70 69.1 70.8 69.4 71.6C69.8 72.6 69.9 73.7 69.8 74.8C69.6 76.4 69.1 77.9 68.1 79.2C67.4 80 66.7 80.7 65.8 81.2C65.1 81.6 64.4 81.9 63.6 82.1C63.4 82.2 63.2 82.2 62.9 82.2C62.6 82.3 62.2 82.3 61.9 82.3C61.2 82.3 60.5 82.3 59.8 82.2C59.4 82.2 58.9 82.1 58.5 82C58.2 81.9 57.9 81.9 57.6 81.9C57.2 81.8 56.8 81.7 56.4 81.7C55.6 81.5 54.9 81.5 54.1 81.5C53.8 81.5 53.6 81.5 53.3 81.5C53 81.5 52.6 81.5 52.3 81.5C52 81.6 51.7 81.6 51.4 81.7C50.9 81.7 50.4 81.8 49.9 82C48.4 82.4 47.1 82.9 45.8 83.6C44.7 84.3 43.6 85 42.6 85.9C42 86.5 41.3 87.2 40.7 87.9C40.6 87.9 40.6 87.9 40.6 88C40.1 88.6 39.5 89.2 39.1 89.9C38.6 90.6 38.2 91.2 37.9 92C37.2 93.3 36.8 94.6 36.4 96C36.2 96.8 36.1 97.7 36.1 98.5C36.1 98.8 36 99.2 36 99.5C36 99.6 36 99.6 35.9 99.6C35.9 99.6 35.9 99.6 35.9 99.6C35.7 99.3 35.5 99 35.3 98.7C34.9 98.2 34.5 97.6 34.2 97C34 96.5 33.7 96.1 33.5 95.6C33.2 94.9 32.9 94.2 32.6 93.5C32.4 93 32.3 92.5 32.1 92C32 91.6 31.9 91.3 31.8 90.9C31.7 90.5 31.6 90.2 31.5 89.8C31.4 89.2 31.2 88.6 31.1 88C30.9 86.9 30.6 85.8 30.5 84.7C30.4 84.1 30.2 83.5 30.1 82.9C30 82.1 29.9 81.3 29.7 80.4C29.6 79.5 29.4 78.6 29.3 77.7C29.1 76.7 29 75.6 28.9 74.5C28.8 73.9 28.7 73.3 28.6 72.7C28.5 72 28.4 71.4 28.4 70.8C28.3 70.3 28.3 69.7 28.2 69.2C28.2 68.8 28.1 68.4 28.1 68C28.1 67.3 28 66.6 27.9 66C27.9 65.4 27.8 64.9 27.8 64.4C27.8 64.2 27.8 64.1 27.8 63.9C27.7 62.9 27.6 61.9 27.6 60.9C27.6 60.6 27.6 60.3 27.6 60C27.5 59.2 27.5 58.4 27.5 57.6L27.5 57.6C27.4 56.1 27.4 54.7 27.4 53.3C27.4 53 27.4 52.8 27.4 52.5C27.4 52.5 27.4 52.4 27.4 52.3M0.1 31.1C0.1 32.9 0.1 34.4 0.1 36C0.1 36.9 0.1 37.8 0.2 38.8C0.2 39.5 0.3 40.3 0.3 41.1C0.3 42.2 0.4 43.3 0.4 44.5C0.5 45.2 0.5 46 0.6 46.7C0.6 47.5 0.7 48.2 0.7 49C0.7 49 0.7 49 0.7 49C0.8 49.6 0.8 50.2 0.9 50.8C0.9 51.1 0.9 51.4 1 51.7C1 52.2 1 52.8 1.1 53.4C1.2 54.2 1.2 55 1.3 55.8C1.4 56.4 1.5 57.1 1.6 57.7C1.7 58.7 1.8 59.6 1.9 60.6C2.1 61.5 2.2 62.5 2.4 63.4C2.8 65.1 3.2 66.8 3.7 68.5C4.2 70 4.8 71.5 5.4 73C6 74.6 6.8 76.1 7.6 77.6C8.2 78.8 9 80 9.7 81.2C10.6 82.5 11.6 83.8 12.6 85.1C13.3 86 14.1 86.9 14.9 87.7C15.9 88.9 17 90 18.2 91C19.1 91.9 20 92.6 20.9 93.4C21.9 94.2 22.9 94.9 23.9 95.6C25 96.3 26 97 27.2 97.5C28.1 98 29.1 98.4 30.2 98.8C30.9 99 31.6 99.3 32.4 99.5C33 99.7 33.6 99.8 34.3 99.9C34.7 100 35.1 100 35.5 100C35.6 99.9 35.7 99.9 35.8 99.8C36.5 99.3 37.3 98.8 38.1 98.4C38.6 98.1 39.1 97.8 39.6 97.6C40.5 97.1 41.4 96.8 42.3 96.4C43.1 96.1 43.9 95.9 44.7 95.7C45.7 95.4 46.6 95.2 47.5 95.1C48 95 48.4 95 48.8 95C49 95 49.2 95 49.3 94.9C50.1 94.9 50.8 94.9 51.6 94.9C52.1 95 52.7 95 53.3 95C54.1 95.1 54.9 95.3 55.6 95.4C56.7 95.6 57.8 95.9 58.8 96.2C59.4 96.4 59.9 96.6 60.5 96.9C61 97.2 61.6 97.4 62.2 97.7C63.1 98 63.9 98.3 64.8 98.5C65.5 98.7 66.2 98.8 66.9 98.9C67.4 99 67.9 99 68.3 99C68.8 99.1 69.2 99.1 69.6 99.1C70.2 99.1 70.8 99 71.4 98.9C71.9 98.9 72.3 98.8 72.8 98.8C73.2 98.7 73.7 98.7 74.1 98.6C74.3 98.5 74.4 98.5 74.5 98.5C75.1 98.4 75.6 98.3 76.1 98.1C77.3 97.8 78.4 97.4 79.6 97C80.5 96.7 81.4 96.3 82.2 95.8C83.1 95.3 84 94.8 84.8 94.2C85.7 93.7 86.6 93 87.4 92.3C88.2 91.6 88.9 90.8 89.7 90C89.7 89.9 89.8 89.9 89.8 89.8C90.1 89.5 90.3 89.2 90.6 88.8C91.1 88.2 91.6 87.5 92 86.8C92.5 86.1 92.9 85.3 93.3 84.4C93.4 84.2 93.5 84 93.6 83.8C93.7 83.5 93.8 83.3 93.9 83C94 82.6 94.1 82.1 94.2 81.7C94.3 81.4 94.4 81 94.5 80.7C94.6 80.1 94.8 79.4 94.8 78.8C94.8 78.3 94.9 77.7 95 77.2C95 76.6 95 76 94.9 75.4C94.9 74.9 94.9 74.4 94.8 74C94.8 73.5 94.7 73 94.6 72.5C94.3 71.2 93.9 69.9 93.4 68.6C93.2 68.2 93 67.8 92.8 67.3C92.5 66.8 92.2 66.3 91.9 65.8C91.7 65.5 91.6 65.2 91.4 65C90.8 64.2 90.3 63.5 89.7 62.8C89.3 62.4 88.9 62 88.5 61.6C87.4 60.7 86.3 59.8 85 59C85 59 84.9 59 84.9 59C84.6 58.7 84.3 58.5 84 58.3C83.4 57.9 82.8 57.5 82.1 57.2C81.2 56.7 80.3 56.2 79.5 55.8C78.4 55.3 77.4 54.9 76.3 54.5C75 54 73.7 53.6 72.4 53.1C71.6 52.9 70.9 52.7 70.2 52.4C68.5 51.9 66.9 51.3 65.2 50.8C64.1 50.4 62.9 50 61.8 49.6C59.6 48.9 57.5 48.2 55.3 47.5C53.7 47 52.1 46.5 50.5 45.9C49.4 45.5 48.2 45 47.2 44.5C46.9 44.4 46.7 44.3 46.5 44.2C45.9 43.9 45.5 43.5 45 43.1C44 42.2 43.3 41.1 42.8 39.9C42.6 39.5 42.5 39.1 42.3 38.7C42.1 37.8 42 36.9 42.1 35.9C42.1 35.7 42.1 35.6 42.1 35.4C42.1 35 42.2 34.6 42.3 34.1C42.5 33.5 42.7 32.8 43.1 32.1C43.8 30.8 44.8 29.6 46 28.8C46.2 28.6 46.4 28.5 46.5 28.4C47.1 28 47.8 27.6 48.5 27.3C49 27.1 49.4 26.9 49.9 26.7C51 26.2 52.1 25.8 53.3 25.5C54 25.3 54.8 25.1 55.6 25C56.1 24.9 56.6 24.9 57.1 24.8C57.4 24.7 57.7 24.7 58 24.6C58.7 24.6 59.4 24.5 60.1 24.5C60.2 24.5 60.3 24.5 60.4 24.5C61.2 24.4 62 24.4 62.8 24.3C63 24.3 63.3 24.3 63.5 24.3C64.2 24.2 65 24.1 65.7 24C66 23.9 66.4 23.9 66.8 23.8C67 23.8 67.2 23.7 67.3 23.7C67.7 23.6 68 23.6 68.4 23.5C69.7 23.2 71 22.8 72.3 22.4C73.9 21.9 75.5 21.2 77.1 20.5C77.9 20.2 78.7 19.8 79.5 19.4C80.8 18.9 82 18.2 83.2 17.6C84.3 16.9 85.5 16.2 86.6 15.4C87.3 14.9 88.1 14.4 88.8 13.9C89.4 13.5 90 13 90.5 12.5C91.4 11.7 92.3 10.9 93.1 10C93.3 9.9 93.4 9.7 93.6 9.5C93.7 9.4 93.7 9.4 93.7 9.3C93.8 9.2 93.7 9.1 93.6 9.1C93.5 9.1 93.4 9.1 93.3 9.1C92.8 9.1 92.2 9.1 91.7 9.1C91 9.1 90.4 9.1 89.8 9.1C89 9.1 88.3 9 87.6 8.9C87.1 8.9 86.6 8.8 86.1 8.8C85.7 8.7 85.3 8.7 84.9 8.6C84.5 8.5 84 8.4 83.6 8.4C82.7 8.2 81.8 8 80.8 7.8C79.9 7.6 79 7.3 78 7C76.4 6.5 74.7 5.8 73.1 5.1C71.8 4.5 70.5 3.9 69.2 3.1C67.7 2.3 66.2 1.4 64.8 0.3C64.7 0.2 64.5 0.1 64.4 0.1C64.3 0 64.2 0 64.2 0.1C64 0.3 63.9 0.5 63.8 0.7C62.9 2.2 61.9 3.6 60.8 5C60.2 5.8 59.6 6.6 59 7.4C58 8.5 57.1 9.6 56 10.7C55.4 11.2 54.8 11.8 54.2 12.4C53.4 13.1 52.6 13.8 51.6 14.4C51.1 14.7 50.7 15.1 50.2 15.4C50.1 15.5 50 15.6 49.9 15.7C49.2 16.1 48.5 16.4 47.8 16.8C47 17.2 46.1 17.6 45.3 17.9C43.9 18.5 42.5 18.9 41 19.2C40.7 19.3 40.3 19.4 40 19.5C39.7 19.5 39.4 19.6 39.1 19.6C38.9 19.7 38.7 19.7 38.4 19.8C38.1 19.8 37.8 19.8 37.4 19.9C36.7 20 36 20.1 35.4 20.2C34.7 20.3 34 20.4 33.4 20.6C32.3 20.8 31.2 21 30.2 21.4C29.6 21.5 29.1 21.7 28.6 21.8C28.5 21.8 28.5 21.9 28.4 21.9C28.3 21.9 28.3 21.8 28.3 21.8C28.3 21.6 28.3 21.4 28.3 21.2C28.4 20.8 28.4 20.3 28.5 19.9C28.7 18.5 29 17.2 29.3 15.9C29.6 14.9 29.8 13.9 30.1 12.9C30.4 12.1 30.7 11.2 31 10.4C31.6 9.1 32.1 7.8 32.8 6.5C33 6.2 33.2 5.8 33.4 5.4C33.4 5.4 33.4 5.3 33.4 5.3C33.5 5.2 33.5 5.2 33.4 5.2C33.4 5.1 33.3 5.1 33.3 5.1C33.1 5.2 32.9 5.3 32.6 5.4C32.2 5.5 31.9 5.7 31.5 5.8C30.3 6.2 29 6.6 27.8 6.9C26.6 7.2 25.5 7.4 24.3 7.6C23.6 7.8 22.8 7.9 22 8C21.4 8.1 20.8 8.1 20.2 8.2C19.3 8.2 18.4 8.3 17.5 8.3C16.7 8.3 15.9 8.3 15.1 8.2C13.9 8.2 12.7 8.1 11.6 8C11.3 8 11.1 7.9 10.9 7.9C10.3 7.8 9.8 7.8 9.2 7.7C8.4 7.5 7.6 7.4 6.8 7.2C5.9 7 4.9 6.7 3.9 6.4C3.2 6.2 2.5 6 1.9 5.8C1.8 5.8 1.7 5.8 1.7 5.8C1.6 6 1.6 6.1 1.6 6.3C1.4 7.1 1.2 7.9 1.1 8.8C0.9 9.6 0.8 10.4 0.7 11.2C0.6 11.9 0.6 12.6 0.5 13.3C0.4 13.8 0.4 14.3 0.4 14.8C0.3 15.5 0.3 16.3 0.2 17C0.2 17.8 0.2 18.5 0.1 19.2C0.1 20 0.1 20.9 0.1 21.8C0.1 22.3 0 22.8 0 23.3C0 24.7 0 26.1 0 27.5C0 28.8 0.1 30.1 0.1 31.1"/></svg>構造式エディタ</div>
-    <button class="ic" id="btnSave" title="保存（⌘/Ctrl+S）。あとで開いて編集を再開できます"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><path d="M8 21v-7h8v7"/></svg></button>
+    <div class="hmenu" id="saveMenu">
+      <button class="ic" id="btnSave" aria-haspopup="true" title="保存（⌘/Ctrl+S でファイルに保存）。描いた内容はブラウザにも自動で保存されます"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><path d="M8 21v-7h8v7"/></svg></button>
+      <div class="menu mlist">
+        <button class="mi" id="miSaveFile">ファイルに保存…（⌘/Ctrl+S）</button>
+        <button class="mi" id="miSaveBrowser">ブラウザに保存（この端末に残す）</button>
+        <button class="mi" id="miSaveAuto">ファイルを決めて自動保存…</button>
+      </div>
+    </div>
     <div class="hmenu" id="openMenu">
       <button class="ic" id="btnOpen" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></svg></button>
       <div class="menu mlist">
         <button class="mi" id="miOpen">ファイルを開く…（⌘/Ctrl+O）</button>
+        <button class="mi" id="miOpenSaved">保存した内容から開く…</button>
         <button class="mi" id="btnNew">新規作成（描画をすべて消去）</button>
       </div>
     </div>
@@ -224,6 +237,12 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
           <button data-mode="skeletal" title="炭素と水素を省略した骨格構造式">骨格構造式</button>
         </div>
         <label class="chk" title="構造式・簡略構造式で、環の炭素原子も書く"><input type="checkbox" id="showRingC">環の炭素も表示</label>
+        <label class="mrow">テーマ
+          <select id="themeSel" title="画面の配色（自動はパソコンの設定に合わせます）"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select>
+        </label>
+        <label class="mrow">文字サイズ
+          <select id="textSizeSel" title="ツールバーやパネルの文字の大きさ（キャンバスの図は右下の倍率で変えます）"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select>
+        </label>
         <label class="mrow">二重結合の間隔
           <select id="dbGap" title="二重結合・三重結合の線の間隔（図全体。個別の結合は選択して変更）"><option value="0.7">狭い</option><option value="1" selected>標準</option><option value="1.3">広い</option><option value="1.6">とても広い</option></select>
         </label>
@@ -342,7 +361,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     </details>
   </aside>
 
-  <main id="wrap">
+  <main id="wrap" tabindex="-1">
     <svg id="canvas" xmlns="http://www.w3.org/2000/svg">
       <g id="world"><g id="chem"></g><g id="overlay"></g></g>
     </svg>
@@ -376,6 +395,9 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <span class="fg" id="fgOrb"><span class="lbl">π軌道の幅</span>
     <select id="orbW" title="選択したπ軌道のローブの幅（先端の横の □ をドラッグしても変えられます）"><option value="0.3">細い</option><option value="0.42">標準</option><option value="0.55">太い</option><option value="0.7">とても太い</option><option value="mixed" disabled hidden>（任意）</option></select>
     </span>
+    <span class="fg" id="fgShape"><span class="lbl">図形</span>
+    <label class="chk" title="図形の幅に合わせて文字を折り返す。図形を小さくすると、文字が折り返されて収まります"><input type="checkbox" id="shWrap">文字を折り返す</label>
+    </span>
     <span class="fg" id="fgHead"><span class="lbl">矢じり</span>
     <select id="headSel" title="選択した矢印・線の矢じり"><option value="end">終点</option><option value="both">両端</option><option value="none">なし</option><option value="mixed" disabled hidden>（混在）</option></select>
     <button class="ic" id="btnConnRev" title="矢印の向きを反転（始点と終点を入れ替える）"><svg viewBox="0 0 24 24"><path d="M4 8h14M14 4l4 4-4 4M20 16H6M10 12l-4 4 4 4"/></svg></button>
@@ -402,6 +424,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
   <footer class="info">
     <div id="formulas"></div>
     <div id="warnings"></div>
+    <button id="saveStatus" class="muted" title="保存の状態です。クリックすると、保存した内容から開けます"></button>
     <div class="zoom">
       <button id="zOut" title="縮小">−</button>
       <select id="zSel" title="表示倍率（全体表示もここから）"><option value="cur" hidden>100%</option><option value="0.25">25%</option><option value="0.5">50%</option><option value="0.75">75%</option><option value="1">100%</option><option value="1.25">125%</option><option value="1.5">150%</option><option value="2">200%</option><option value="3">300%</option><option value="4">400%</option><option value="fit">全体表示</option></select>
@@ -448,69 +471,135 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
   </aside>
 </div>
 
-<div class="modal" id="helpModal" hidden>
-  <div class="dlg" style="width:min(680px,94vw)">
-    <header><span>構造式エディタ　操作方法</span><button data-close>×</button></header>
-    <div class="body help">
-      <table>
-        <tr><td>結合を描く</td><td>結合ツールで原子からドラッグ（30°刻み）。原子をクリックすると自動の方向に伸びます。空白をクリックすると C–C を作成。</td></tr>
-        <tr><td>結合の種類を変える</td><td>結合ツールで既存の結合をクリック（単結合ツールは 単→二重→三重 と切替、二重結合ツールで二重結合をクリックすると線の側を反転）。結合の上で <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>。</td></tr>
-        <tr><td>原子を変える</td><td>原子ツールで原子をクリック。または原子にマウスを乗せて <kbd>C</kbd><kbd>H</kbd><kbd>O</kbd><kbd>N</kbd><kbd>S</kbd>、<kbd>L</kbd>=Cl、<kbd>B</kbd>=Br、<kbd>I</kbd>=I、<kbd>+</kbd><kbd>-</kbd>=電荷。</td></tr>
-        <tr><td>環</td><td>空白をクリックで配置、空白からドラッグすると向きを15°刻みで回転して配置。環の原子から隣の原子へドラッグすると、その結合を共有する環（ナフタレンなど）。原子からドラッグ／クリックで置換基として結合。結合をクリックしても縮合します。</td></tr>
-        <tr><td>選択・移動</td><td>選択ツールでクリック／ドラッグで範囲選択、<kbd>Shift</kbd>で追加選択。選択したものをドラッグで移動。重なった原子は自動で結合されます。</td></tr>
-        <tr><td>削除</td><td>消しゴムでクリック、または対象にマウスを乗せて <kbd>Delete</kbd>。選択中は <kbd>Delete</kbd> で選択を削除。</td></tr>
-        <tr><td>コピー・貼り付け</td><td><kbd>⌘/Ctrl</kbd>+<kbd>C</kbd> / <kbd>V</kbd> / <kbd>X</kbd>、全選択 <kbd>⌘/Ctrl</kbd>+<kbd>A</kbd></td></tr>
-        <tr><td>元に戻す</td><td><kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd>、やり直し <kbd>⇧</kbd>+<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd></td></tr>
-        <tr><td>表示の移動・拡大</td><td><kbd>Space</kbd>+ドラッグまたはホイール／2本指スクロールで移動、<kbd>⌘/Ctrl</kbd>+ホイール／ピンチで拡大縮小。右下の − ＋ とプルダウンでも倍率を変えられます（「全体表示」もプルダウンの中）。</td></tr>
-        <tr><td>ツールの切替</td><td><kbd>V</kbd>選択 <kbd>E</kbd>消しゴム <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>結合 <kbd>B</kbd>ベンゼン <kbd>T</kbd>テキスト <kbd>A</kbd>矢印 <kbd>Esc</kbd>選択解除（何も乗せていないとき）</td></tr>
-        <tr><td>水素の置換</td><td>構造式で表示されている H にマウスを乗せて <kbd>O</kbd><kbd>N</kbd><kbd>C</kbd><kbd>L</kbd> などを押すと、その H が別の原子に置き換わります。原子ツール・結合ツールで H をクリックしても置き換えられます。</td></tr>
-        <tr><td>水素の移動・書式</td><td>構造式で表示されている H も、選択ツールでドラッグして動かせます（上部の「結合角固定」「結合長固定」も有効）。クリックするとその H だけを選択でき（<kbd>Shift</kbd> で追加）、ポップアップで色を変えられます。</td></tr>
-        <tr><td>反転・回転</td><td>選択すると上に出るポップアップの 左右反転・上下反転・回転（15°・90°）ボタン、または選択の上に出る ○ の取っ手をドラッグ（15°刻み、<kbd>Shift</kbd> で自由）。</td></tr>
-        <tr><td>結合角固定・結合長固定</td><td>上部の 2 つのボタン。オンにして選択部分（置換基や端の原子）をドラッグすると、つながっている原子を中心に、結合の角度を15°刻みに・長さを一定に保って動きます。</td></tr>
-        <tr><td>全体の表記</td><td>上部の「構造式 ▼」にマウスを乗せると、全体の表記（構造式・簡略構造式・骨格構造式）、環の炭素の表示、二重結合の間隔（図全体）を選べます。</td></tr>
-        <tr><td>部分ごとの表記</td><td>一部を選択して、ポップアップの「表記」のプルダウンで 構造式／簡略構造式／骨格構造式 を指定できます。「全体に合わせる」で解除。</td></tr>
-        <tr><td>置換基（簡略構造式）</td><td>端の原子（メチル基など）を選択し、ポップアップの「置換基」から C₂H₅・COOH・NO₂ などを選ぶと、その簡略構造式のラベルに置き換わります（結合が右から来るときは HOOC– のように向きが反転）。テキストツールで原子をクリックして COOH などと入力しても変えられます（COO- のように最後に + − を付けると電荷）。「CH₃（メチル基に戻す）」で元に戻ります。分子式・分子量にも反映されます。選択ツールで原子をダブルクリック、または原子にマウスを乗せて <kbd>Enter</kbd> でも入力できます。</td></tr>
-        <tr><td>略記号・一般の記号</td><td>置換基の入力で R・R'・R1・X・Ar（一般の記号）、Me・Et・Pr・iPr・Bu・tBu・Ph・Ac・Bn（略記号）が使えます。OMe・COOEt のように組み合わせることもできます。原子にマウスを乗せて <kbd>X</kbd><kbd>R</kbd> で X・R、<kbd>P</kbd> で Ph、<kbd>M</kbd> で Me。R・X を含むと分子量は「—」になります。</td></tr>
-        <tr><td>配位結合の入力</td><td>配位結合ツールで原子からドラッグ（またはクリック）すると、矢印の先が入力待ちの空欄（点線の枠）になり、そのまま Cu・NH3 などを入力できます。空欄はあとからダブルクリックでも入力できます。</td></tr>
-        <tr><td>糖類（ハース式）</td><td>環のテンプレートの「ハースの投影式」を置き、環の炭素を結合ツールでクリックすると置換基が上下に伸びます。ライブラリにグルコース・フルクトースもあります。</td></tr>
-        <tr><td>くさび形の結合</td><td>くさび・破線くさびのツールで原子からドラッグ（細い側が始点）。同じツールで結合をクリックすると向きが反転します。</td></tr>
-        <tr><td>矢印</td><td>→ と、可逆反応の矢印6種類（片側の矢じり／通常の矢じり × 同じ長さ・上が短い・下が短い）。短い方の矢じりは端にそろいます。描いた矢印を矢印ツールでクリックすると、そのツールの種類に変わります。</td></tr>
-        <tr><td>電荷</td><td>+ − と、丸囲みの ⊕ ⊖ があります。電荷ツールで原子をクリック（同じものをもう一度で外す）。</td></tr>
-        <tr><td>非共有電子対・不対電子</td><td>「電子・軌道」のツールで原子をクリックすると空いている向きに、原子からドラッグすると 15°刻み（<kbd>Shift</kbd> で自由）の向きに付きます（2 つの点は、その向きの仮想の価標に垂直に並びます）。何もないところをクリックするとその場所に置け（ドラッグで向き）、電子式などに使えます。選択ツールで電子をドラッグして動かし、消しゴムか <kbd>Delete</kbd> で消せます。不対電子を付けると、その分 H が減ります（CH₃• など）。</td></tr>
-        <tr><td>電子の移動の矢印</td><td>両羽（電子対）・片羽（電子 1 個）の曲がった矢印を、原子・結合・非共有電子対・電荷（−）からドラッグで描きます（何もないところからでも可、<kbd>Shift</kbd> で反対側に曲げる）。選択ツールで選ぶと両端と ◇（曲がり具合）の取っ手が出て変形できます。分子を動かすと一緒に動きます。</td></tr>
-        <tr><td>π軌道</td><td>π軌道のツールで原子をクリック（重ねてクリックすると別の向きに追加）、原子からドラッグで向き・大きさ（「結合長固定」がオンなら結合 0.3 本分ずつの段階）。π軌道をクリックすると色の付いた側が入れ替わります。選択すると先端の ○ で大きさ・向き、横の □ で幅を変えられます（ポップアップの「π軌道の幅」でも可）。</td></tr>
-        <tr><td>分子量の表示</td><td>画面下の分子式をクリックすると、その構造全体が選択されます。選択中の構造の分子式は色が付きます。</td></tr>
-        <tr><td>テキスト</td><td>「H2SO4」のように入力すると元素記号の後ろの数字は自動で下付きになります（書式バーの「数字を下付き」で切替）。上付きは <kbd>^{…}</kbd>、下付きは <kbd>_{…}</kbd>。文字の編集中に一部を選んで X² / X₂ ボタンを押しても入力できます。<kbd>Shift</kbd>+<kbd>Enter</kbd> で改行できます（2 行以上の文字。図形の中の文字も同じ）。</td></tr>
-        <tr><td>文字の書式</td><td>文字（またはかっこ）を選択するか文字の編集中に、ポップアップで書体（Arial・Times New Roman・ゴシック体・明朝体）、大きさ、太字、斜体を変えられます。文字の編集中に一部を選んでから押すと、その部分だけが変わります（色・上付き・下付きも同じ）。新しく書く文字はゴシック体・斜体なしで始まります。</td></tr>
-        <tr><td>色</td><td>原子・結合・矢印・文字・図形を選択して、ポップアップの色を押します（黒で元に戻る）。</td></tr>
-        <tr><td>整列</td><td>分子・矢印・文字・図形を 2 つ以上選択して、ポップアップの整列ボタン（左・中央・右・上・中央・下、等間隔は 3 つ以上）。</td></tr>
-        <tr><td>二重結合の間隔</td><td>図全体は上部の「構造式 ▼」のメニューで、一部の結合だけなら二重結合・三重結合を選択してポップアップの「二重結合の間隔」で変えます（「全体に合わせる」で解除）。</td></tr>
-        <tr><td>矢印の長さ</td><td>「結合長固定」がオンのとき、矢印の長さは結合 0.5 本分ずつの段階で変わります。選択ツールで矢印の端をドラッグすると長さと向きを変えられます。</td></tr>
-        <tr><td>いす形・舟形</td><td>「立体配座」のいす形・舟形を置くと、構造式・簡略構造式では H がアキシアル（環に垂直：真上・真下）・エクアトリアル（1 つ隔てた環の結合に平行）の向きに付きます。環の炭素を結合ツールでクリックすると、その向きに置換基が伸びます。</td></tr>
-        <tr><td>ニューマン投影式</td><td>ねじれ形・重なり形を置き、H にマウスを乗せて <kbd>C</kbd> などで置換。奥の円をクリックすると奥側がまとめて選ばれ、ドラッグで 15°刻みに回せます。</td></tr>
-        <tr><td>錯体</td><td>錯体のテンプレートを置き、中心の金属を「金属」の元素でクリックして置換、配位子も原子ツールで置換できます。配位結合は価標の数に数えません。錯イオンの電荷は「[ ]²⁺」のかっこで付けます。</td></tr>
-        <tr><td>かっこ</td><td>[ ]n・( )n・[ ]²⁺・文字なしの [ ]・( ) のツールでドラッグして囲みます。n は Times New Roman の斜体で、かっこを選択するとポップアップで書体・大きさ・斜体などを変えられます。テキストツールでかっこの右下（右上）をクリックすると文字を書き換え・追加できます。</td></tr>
-        <tr><td>フローチャートの図形</td><td>左の「フローチャート」の四角・角丸四角・ひし形のツールで空白をクリックすると図形が置かれ、そのまま文字を入力できます（<kbd>Enter</kbd> で確定、<kbd>Shift</kbd>+<kbd>Enter</kbd> で改行。ドラッグで大きさを決めて置くこともできます）。文字は図形の中央にそろい、長いと図形が広がります。図形のツールでほかの形の図形をクリックすると形が変わります。文字の編集は、選択ツールで図形をダブルクリック、テキストツールで図形をクリック、または図形にマウスを乗せて <kbd>Enter</kbd>。選択すると角の □ をドラッグして大きさを変えられ、ポップアップで文字の書式・色を変えられます。</td></tr>
-        <tr><td>図形をつなぐ矢印・線</td><td>直線矢印・カギ型矢印・直線（矢じりなし）・カギ型の線（矢じりなし）のツールで、図形から別の図形へドラッグします。矢印は図形の辺の中点（○）につながり、図形を動かすと矢印もついてきます。始点の辺は、最初につかんだ ○、または図形の中からドラッグした向きで決まり、終点はマウスを離した位置に近い辺になります。カギ型矢印は縦・横の線で自動で折れ曲がります。選択ツールで矢印を選ぶと両端の ○ をドラッグしてつなぎ直せ、図形から離すと切り離せます。矢印・線のツールで既存の矢印・線をクリックすると、そのツールの種類に変わります。選択するとポップアップの「矢じり」で 終点・両端・なし を選べ、⇄ のボタンで向きを反転できます。</td></tr>
-        <tr><td>画像の利用</td><td>書き出しパネルの各項目のコピーボタンで Word / PowerPoint に直接貼り付けできます。SVG はベクター形式で拡大しても鮮明です。</td></tr>
-        <tr><td>書き出しパネル</td><td>画面右端の「◀ 書き出し」で開きます（▶ で閉じる）。構造などを選択して「＋ 選択したものを追加」（何も選択していなければ図全体）→ 形式（PNG / SVG）・解像度を決めて「書き出す」。チェックした項目がそれぞれ別のファイルになります。</td></tr>
-        <tr><td>ポップアップ・パレット</td><td>何かを選択しているとき（または文字の編集中）、キャンバスの上に反転・回転・表記・文字・色・整列などのポップアップが出ます（選んだものに合う項目だけ）。化合物ライブラリ・書き出しは画面右端のタブ（◀ 化合物ライブラリ／◀ 書き出し）で右側のパネルに開きます。パネルの左端をドラッグすると幅を変えられます。「金属」「ハースの投影式」「立体配座」「錯体」「フローチャート」は見出しをクリックで開閉できます。</td></tr>
-        <tr><td>表示モード</td><td>同じ構造を「構造式（すべての原子）」「簡略構造式」「骨格構造式」で描き分けます。描画内容は自動保存されます。</td></tr>
-        <tr><td>新規・開く・保存</td><td>上部左の保存ボタンで .json ファイルに保存。開くボタンでファイルを開き、マウスを乗せると出るメニューから「新規作成」もできます。</td></tr>
-      </table>
-      <table class="about">
-        <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</td></tr>
-        <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
-      </table>
-      <p class="credit">構造式エディタ　バージョン 1.0.1（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
-    </div>
-  </div>
-</div>
+<aside id="operation-help" aria-label="構造式エディタの使い方" hidden>
+  <section data-help-topic="draw" data-help-title="構造式を描く">
+    <h3>構造式を描く</h3>
+    <ol>
+      <li>左の「結合」から線の種類を選び、何もないところを<strong>クリック</strong>すると C–C ができます。</li>
+      <li>原子から<strong>ドラッグ</strong>すると 30°刻みで結合が伸びます（原子をクリックすると自動の向きに伸びます）。</li>
+      <li>左の「原子」で元素を選び、原子をクリックするとその元素に変わります。</li>
+    </ol>
+    <details><summary>結合の種類を変える</summary><p>結合ツールで既存の結合をクリックします（単結合ツールは 単→二重→三重 と切り替え、二重結合ツールで二重結合をクリックすると線の側が反転）。結合にマウスを乗せて <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> でも変えられます。</p></details>
+    <details><summary>環を置く・つなげる</summary><p>環のツールで、何もないところをクリックすると置けます。ドラッグすると向きを 15°刻みで回して置けます。環の原子から隣の原子へドラッグすると、その結合を共有する環（ナフタレンなど）になります。原子からドラッグ・クリックで置換基としてつながり、結合をクリックしても縮合します。</p></details>
+    <details><summary>水素を置き換える・動かす</summary><p>構造式で見えている H にマウスを乗せて <kbd>O</kbd><kbd>N</kbd><kbd>C</kbd><kbd>L</kbd> などを押すと、その H が別の原子に変わります。原子ツール・結合ツールで H をクリックしても同じです。H は選択ツールでドラッグして動かせ（「結合角固定」「結合長固定」も効きます）、クリックで選ぶとポップアップで色を変えられます。</p></details>
+    <details><summary>マウスを乗せて使うキー</summary><p>原子に乗せて <kbd>C</kbd><kbd>H</kbd><kbd>O</kbd><kbd>N</kbd><kbd>S</kbd>、<kbd>L</kbd>=Cl、<kbd>B</kbd>=Br、<kbd>I</kbd>、<kbd>X</kbd><kbd>R</kbd>、<kbd>P</kbd>=Ph、<kbd>M</kbd>=Me、<kbd>+</kbd><kbd>-</kbd>（電荷）、<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>（結合を伸ばす）、<kbd>Enter</kbd>（置換基・元素記号の入力）、<kbd>Delete</kbd>。結合に乗せて <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>・<kbd>Delete</kbd>。</p></details>
+  </section>
+  <section data-help-topic="edit" data-help-title="選ぶ・動かす・消す">
+    <h3>選ぶ・動かす・消す</h3>
+    <ol>
+      <li>選択ツール（<kbd>V</kbd>）でクリックすると選べます。ドラッグで範囲選択、<kbd>Shift</kbd> で追加できます。</li>
+      <li>選んだものをドラッグすると動きます。重なった原子は自動でつながります。</li>
+      <li>消すときは消しゴム（<kbd>E</kbd>）でクリック、または選んで <kbd>Delete</kbd>。</li>
+    </ol>
+    <details><summary>反転・回転</summary><p>選ぶとキャンバスの上に出るポップアップで、左右反転・上下反転・回転（15°・90°）ができます。選択の上に出る ○ の取っ手をドラッグしても回せます（15°刻み、<kbd>Shift</kbd> で自由）。</p></details>
+    <details><summary>結合角固定・結合長固定</summary><p>上部の 2 つのボタンです。オンにして置換基や端の原子をドラッグすると、つながっている原子を中心に、結合の角度を 15°刻みに・長さを一定に保って動きます。</p></details>
+    <details><summary>整列・色</summary><p>分子・矢印・文字・図形を 2 つ以上選ぶと、ポップアップに整列のボタン（左・中央・右・上・中央・下。等間隔は 3 つ以上）が出ます。色は選んでポップアップの色を押します（黒で元に戻ります）。</p></details>
+    <details><summary>コピー・元に戻す</summary><p><kbd>⌘/Ctrl</kbd>+<kbd>C</kbd>／<kbd>V</kbd>／<kbd>X</kbd>、全選択は <kbd>⌘/Ctrl</kbd>+<kbd>A</kbd>。元に戻すは <kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd>、やり直しは <kbd>⇧</kbd>+<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd>。</p></details>
+  </section>
+  <section data-help-topic="notation" data-help-title="表記と置換基">
+    <h3>表記と置換基</h3>
+    <ol>
+      <li>上部の「構造式 ▼」で、全体の表記（構造式・簡略構造式・骨格構造式）を選べます。環の炭素の表示、二重結合の間隔もここです。</li>
+      <li>一部だけ変えるときは、その部分を選んでポップアップの「表記」で指定します（「全体に合わせる」で解除）。</li>
+    </ol>
+    <details><summary>置換基（CH₃ を COOH などに）</summary><p>端の原子を選び、ポップアップの「置換基」から C₂H₅・COOH・NO₂ などを選ぶと、簡略構造式のラベルに変わります（結合が右から来るときは HOOC– のように向きが反転）。原子をダブルクリック、原子に乗せて <kbd>Enter</kbd>、テキストツールで原子をクリックしても入力できます（COO- のように最後に + − を付けると電荷）。「CH₃（メチル基に戻す）」で元に戻り、分子式・分子量にも反映されます。</p></details>
+    <details><summary>略記号・一般の記号</summary><p>R・R'・R1・X・Ar（一般の記号）、Me・Et・Pr・iPr・Bu・tBu・Ph・Ac・Bn（略記号）が使えます。OMe・COOEt のように組み合わせることもできます。R・X を含むと分子量は「—」になります。</p></details>
+    <details><summary>分子式・分子量</summary><p>画面の下に、つながりごとの分子式と分子量（金属・電荷を含むときは式量）が出ます。クリックするとその構造全体が選ばれ、選んでいる構造の分子式には色が付きます。</p></details>
+  </section>
+  <section data-help-topic="stereo" data-help-title="立体・テンプレート">
+    <h3>立体・テンプレート</h3>
+    <ol>
+      <li>くさび・破線くさびのツールで、原子からドラッグします（始点が細い側）。同じツールで結合をクリックすると向きが反転します。</li>
+      <li>「ハースの投影式」「立体配座」「錯体」は、置きたいところをクリックするとテンプレートが入ります。</li>
+    </ol>
+    <details><summary>糖類（ハースの投影式）</summary><p>環を置き、環の炭素を結合ツールでクリックすると置換基が上下に伸びます。化合物ライブラリにグルコース・フルクトースもあります。</p></details>
+    <details><summary>いす形・舟形</summary><p>構造式・簡略構造式では、H がアキシアル（環に垂直：真上・真下）とエクアトリアル（1 つ隔てた環の結合に平行）の向きに付きます。環の炭素を結合ツールでクリックすると、その向きに置換基が伸びます。</p></details>
+    <details><summary>ニューマン投影式</summary><p>ねじれ形・重なり形を置き、H にマウスを乗せて <kbd>C</kbd> などで置き換えます。奥の円をクリックすると奥側がまとめて選ばれ、ドラッグで 15°刻みに回せます。</p></details>
+    <details><summary>錯体・配位結合</summary><p>テンプレートを置き、中心の金属を「金属」の元素でクリックして置き換えます。配位結合ツールで原子からドラッグすると、矢印の先が入力待ちの空欄（点線の枠）になり、Cu・NH3 などを入力できます。配位結合は価標の数に数えません。錯イオンの電荷は「[ ]²⁺」のかっこで付けます。</p></details>
+  </section>
+  <section data-help-topic="electron" data-help-title="電子・反応式">
+    <h3>電子・反応式</h3>
+    <ol>
+      <li>電荷は「電荷」のツールで原子をクリックします（+ − と丸囲みの ⊕ ⊖。もう一度で外れます）。</li>
+      <li>非共有電子対・不対電子は「電子・軌道」のツールで原子をクリック、原子からドラッグで向きを 15°刻み（<kbd>Shift</kbd> で自由）。</li>
+      <li>反応の矢印は「反応式」のツールでドラッグします。</li>
+    </ol>
+    <details><summary>電子の置き方</summary><p>2 つの点は、その向きの仮想の価標に垂直に並びます。何もないところをクリックすると、その場所に電子を置けます（電子式などに使えます）。選択ツールでドラッグして動かし、消しゴムか <kbd>Delete</kbd> で消せます。不対電子を付けると、その分 H が減ります（CH₃• など）。</p></details>
+    <details><summary>電子の移動の矢印</summary><p>両羽（電子対）・片羽（電子 1 個）の曲がった矢印を、原子・結合・非共有電子対・電荷（−）からドラッグして描きます（何もないところからでも描けます。<kbd>Shift</kbd> で反対側に曲がります）。選ぶと両端と ◇（曲がり具合）の取っ手が出ます。分子を動かすと一緒に動きます。</p></details>
+    <details><summary>π軌道</summary><p>π軌道のツールで原子をクリックします（重ねてクリックすると別の向きに増えます）。原子からドラッグで向きと大きさ（「結合長固定」がオンなら結合 0.3 本分ずつ）。クリックすると色の付いた側が入れ替わります。選ぶと先端の ○ で大きさ・向き、横の □ で幅を変えられます。</p></details>
+    <details><summary>反応の矢印・かっこ</summary><p>→ と、可逆反応の矢印 6 種類（片側の矢じり／通常の矢じり × 同じ長さ・上が短い・下が短い）があります。描いた矢印を矢印ツールでクリックすると、そのツールの種類に変わります。「結合長固定」がオンのとき、長さは結合 0.5 本分ずつ変わります。かっこは [ ]n・( )n・[ ]²⁺・文字なしの [ ]・( ) をドラッグして囲みます。</p></details>
+  </section>
+  <section data-help-topic="flow" data-help-title="フローチャート">
+    <h3>フローチャート</h3>
+    <ol>
+      <li>左の「フローチャート」で四角・角丸四角・ひし形を選び、何もないところをクリックすると図形が置かれ、そのまま文字を入力できます（<kbd>Enter</kbd> で確定、<kbd>Shift</kbd>+<kbd>Enter</kbd> で改行、<kbd>Esc</kbd> で取りやめ）。</li>
+      <li>矢印・線のツールで、図形から別の図形へドラッグしてつなぎます。矢印は辺の中点（○）につながり、図形を動かすとついてきます。</li>
+    </ol>
+    <details><summary>図形の文字・大きさ・形</summary><p>文字は図形の中央にそろい、長いと図形が広がります。ポップアップの「文字を折り返す」を入れると、図形の幅で折り返し、小さくしても収まります（高さが行数に合わせて広がります）。文字の編集は、ダブルクリック・テキストツールでクリック・図形に乗せて <kbd>Enter</kbd>。選ぶと角の □ で大きさを変えられます。別の形のツールで図形をクリックすると形が変わります。</p></details>
+    <details><summary>矢印の種類とつなぎ直し</summary><p>直線矢印・カギ型矢印・矢じりなしの直線・矢じりなしのカギ型の線があります。始点の辺は、最初につかんだ ○ か、図形の中からドラッグした向きで決まり、終点は離した位置に近い辺になります。カギ型は縦・横の線で自動で折れ曲がります。選ぶと両端の ○ をドラッグしてつなぎ直せ、図形から離すと切り離せます。ポップアップで矢じり（終点・両端・なし）と向きの反転（⇄）を変えられます。矢印・線のツールで既存の矢印をクリックすると、そのツールの種類に変わります。</p></details>
+  </section>
+  <section data-help-topic="text" data-help-title="文字">
+    <h3>文字</h3>
+    <ol>
+      <li>テキストツール（<kbd>T</kbd>）でクリックして入力します。「H2SO4」のように書くと、元素記号の後ろの数字は自動で下付きになります。</li>
+      <li>上付きは <kbd>^{…}</kbd>、下付きは <kbd>_{…}</kbd>。編集中に一部を選んで X² / X₂ のボタンでも付けられます。</li>
+      <li><kbd>Shift</kbd>+<kbd>Enter</kbd> で改行できます（図形の中の文字も同じ）。</li>
+    </ol>
+    <details><summary>書式を変える</summary><p>文字（またはかっこ）を選ぶか編集中に、ポップアップで書体（Arial・Times New Roman・ゴシック体・明朝体）・大きさ・太字・斜体を変えられます。編集中に一部を選んでから押すと、その部分だけ変わります（色・上付き・下付きも同じ）。新しく書く文字はゴシック体・斜体なしで始まります。</p></details>
+    <details><summary>かっこの文字</summary><p>かっこの n は Times New Roman の斜体です。テキストツールでかっこの右下（右上）をクリックすると、文字を書き換え・追加できます。</p></details>
+  </section>
+  <section data-help-topic="export" data-help-title="ライブラリ・画像の書き出し">
+    <h3>ライブラリ・画像の書き出し</h3>
+    <ol>
+      <li>画面右端の「◀ 化合物ライブラリ」で、よく使う化合物を選んで入れられます。</li>
+      <li>「◀ 書き出し」を開き、構造などを選んで「＋ 選択したものを追加」（何も選んでいなければ図全体）。</li>
+      <li>形式（PNG・SVG）と解像度を決めて「書き出す」。チェックした項目がそれぞれ別のファイルになります。</li>
+    </ol>
+    <details><summary>Word・PowerPoint に貼る</summary><p>各項目のコピーのボタンで、画像をそのまま貼り付けられます。SVG はベクター形式なので、拡大しても鮮明です。</p></details>
+    <details><summary>表示の移動・拡大</summary><p><kbd>Space</kbd>+ドラッグ、ホイール・2 本指スクロールで移動します。<kbd>⌘/Ctrl</kbd>+ホイール、ピンチで拡大縮小。右下の − ＋ とプルダウンでも変えられます（「全体表示」もプルダウンの中）。</p></details>
+    <details><summary>右側のパネル・ポップアップ</summary><p>パネルの左端をドラッグすると幅を変えられます。何かを選んでいるとき（または文字の編集中）、キャンバスの上に、選んだものに合うポップアップが出ます。左のパレットの「金属」「ハースの投影式」「立体配座」「錯体」「フローチャート」は、見出しをクリックで開閉できます。</p></details>
+  </section>
+  <section data-help-topic="save" data-help-title="保存・読み込み">
+    <h3>保存・読み込み</h3>
+    <ol>
+      <li>描いた内容は、このブラウザに<strong>自動で保存</strong>されます（画面の下に「自動保存 時刻」と出ます）。</li>
+      <li>残したいときは保存ボタンのメニューから、<strong>ファイルに保存</strong>（.json）か<strong>ブラウザに保存</strong>を選びます。<kbd>⌘/Ctrl</kbd>+<kbd>S</kbd> はファイルに保存です。</li>
+      <li>開くときは、開くボタンから「ファイルを開く…」か「保存した内容から開く…」。画面の下の保存の状態をクリックしても開けます。</li>
+    </ol>
+    <details><summary>自動保存と保存のちがい</summary><p>自動保存は編集のたびに上書きされる「作業中の控え」です。「ブラウザに保存」を押した内容は別に残るので、自動保存が進んでも消えません。開くときは、自動保存と保存した内容のどちらかを選べます。開く前に、いまの内容を保存するか・破棄するかも選べます。</p></details>
+    <details><summary>ファイルへ自動保存する</summary><p>保存ボタンのメニューの「ファイルを決めて自動保存…」で保存先のファイルを選ぶと、以後は編集するたびにそのファイルへ書き込みます（対応しているブラウザのみ。Chrome は対応しています）。画面の下に「ファイルへ自動保存」と出ます。ページを開き直したときは、もう一度ファイルを選んでください。</p></details>
+    <details><summary>ファイルの持ち運び・画像</summary><p>ブラウザへの保存は、ブラウザごと・ファイルの場所ごとに別です。別のパソコンで続きを描くときは、.json ファイルにして持っていきます。画像（PNG・SVG）は書き出しパネルから保存します。</p></details>
+  </section>
+  <section data-help-topic="shortcuts" data-help-title="ショートカット">
+    <h3>ショートカット</h3>
+    <ul>
+      <li>ツール：<kbd>V</kbd> 選択、<kbd>E</kbd> 消しゴム、<kbd>T</kbd> テキスト、<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 結合、<kbd>B</kbd> ベンゼン、<kbd>A</kbd> 矢印</li>
+      <li>編集：<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> 元に戻す、<kbd>⇧</kbd>+<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> やり直し、<kbd>⌘/Ctrl</kbd>+<kbd>A</kbd> 全選択、<kbd>⌘/Ctrl</kbd>+<kbd>C</kbd>／<kbd>X</kbd>／<kbd>V</kbd>、<kbd>Delete</kbd> 削除</li>
+      <li>ファイル：<kbd>⌘/Ctrl</kbd>+<kbd>S</kbd> 保存、<kbd>⌘/Ctrl</kbd>+<kbd>O</kbd> 開く</li>
+      <li>そのほか：<kbd>Esc</kbd> 選択解除、<kbd>?</kbd> この使い方、<kbd>Space</kbd>+ドラッグ 表示の移動</li>
+    </ul>
+    <details><summary>この小窓の操作</summary><p>見出しをドラッグすると動かせ、右端・下端・右下の角で大きさを変えられます。「−」で小さくたたみ、「位置を戻す」で元の場所に戻ります。「編集へ戻る」を押すと、小窓を開いたままキャンバスの操作に戻れます。開いたままでも、構造式の編集は続けられます。</p></details>
+  </section>
+  <section data-help-topic="about" data-help-title="このアプリについて">
+    <h3>このアプリについて</h3>
+    <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
+    <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
+    <p class="credit">構造式エディタ　バージョン 1.1（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+  </section>
+</aside>
 
-
+<dialog id="openDlg" aria-labelledby="openDlgTitle">
+  <h2 id="openDlgTitle">保存した内容から開く</h2>
+  <p class="muted" id="openDlgNote"></p>
+  <div id="openList"></div>
+  <div class="row"><button class="sbtn" id="miOpenFile2">ファイルを開く…</button><button class="sbtn" id="openDlgClose">閉じる</button></div>
+</dialog>
+<dialog id="askDlg" aria-labelledby="askDlgTitle">
+  <h2 id="askDlgTitle">保存していない変更があります</h2>
+  <p class="muted" id="askDlgNote">開く前に、いまの内容をどうしますか。</p>
+  <div class="row"><button class="sbtn primary" data-ask="save">保存してから開く</button><button class="sbtn" data-ask="discard">破棄して開く</button><button class="sbtn" data-ask="cancel">キャンセル</button></div>
+</dialog>
 <input type="file" id="fileInput" accept=".json,application/json" hidden>
-<div id="toast"></div>
-<div id="tip"></div>
 
 <script>
 'use strict';
@@ -972,10 +1061,47 @@ function textTokens(o){
   }
   return out;
 }
-// 文字を行に分ける（Shift+Enter で入れた改行 \n）。各行は textTokens の小片の配列
+// 行の先頭・末尾に置かない文字（簡単な禁則）
+const NO_START = '、。，．）〕］｝〉》」』】・：；？！ー…‥,.:;?!)]}';
+// 図形の中で文字を折り返す幅（0 なら折り返さない）。ひし形は内側の四角に収める
+const wrapW = o => o.type === 'shape' && o.wrap ? Math.max(24, (shapeBox(o).x2 - shapeBox(o).x1)*(o.kind === 'diamond' ? 0.5 : 1) - 16) : 0;
+// 折り返しの単位：英数字と記号のまとまり（下付き・上付きも続きとして含める）、和文は 1 文字ずつ、空白は 1 つずつ
+function wrapUnits(chars){
+  const word = ch => /[0-9A-Za-z.,+\-_'"()\[\]{}=%^]/.test(ch), out = [];
+  for (const c of chars){
+    const u = out[out.length-1], prev = u && u[u.length-1];
+    const sp = c.ch === '\n' || c.ch === ' ', psp = prev && (prev.ch === '\n' || prev.ch === ' ');
+    // H2O・Cu2+ のように下付き・上付きが続くときは切らない
+    const join = prev && !sp && !psp && ((c.t.v || prev.t.v) ? (word(c.ch) || !!c.t.v) : (word(c.ch) && word(prev.ch)));
+    if (join) u.push(c); else out.push([c]);
+  }
+  return out;
+}
+// 文字を行に分ける（Shift+Enter で入れた改行 \n と、図形の「文字を折り返す」）。各行は textTokens の小片の配列
 function textLines(o){
-  const lines = [[]];
-  for (const t of textTokens(o)) t.t.split('\n').forEach((s, k) => { if (k) lines.push([]); if (s) lines[lines.length-1].push({...t, t:s}); });
+  const maxW = wrapW(o), lines = [[]];
+  let w = 0, lastTok = null;
+  const cur = () => lines[lines.length-1];
+  const nl = () => { lines.push([]); w = 0; lastTok = null; };
+  const cw = c => tw(c.ch, c.t.v ? c.t.fs*0.7 : c.t.fs)*(c.t.b ? 1.06 : 1);
+  const put = c => {   // 1 文字ずつ書き足す（同じ書式が続くときは 1 つの小片にまとめる）
+    const last = cur()[cur().length-1];
+    if (last && lastTok === c.t) last.t += c.ch; else cur().push({...c.t, t:c.ch});
+    lastTok = c.t; w += cw(c);
+  };
+  const chars = [];
+  for (const t of textTokens(o)) for (const ch of t.t) chars.push({ch, t});
+  for (const u of wrapUnits(chars)){
+    if (u[0].ch === '\n'){ nl(); continue; }
+    if (!maxW){ u.forEach(put); continue; }
+    const uw = u.reduce((s, c) => s + cw(c), 0);
+    if (w > 0 && w + uw > maxW && !NO_START.includes(u[0].ch)){   // 行頭に置けない文字はぶら下げる
+      nl();
+      if (u[0].ch === ' ') continue;   // 行の変わり目の空白は捨てる
+    }
+    if (uw > maxW){ for (const c of u){ if (w > 0 && w + cw(c) > maxW) nl(); put(c); } continue; }   // 1 つで幅を超えるときは文字で切る
+    u.forEach(put);
+  }
   return lines;
 }
 const lineH = o => textStyleOf(o).fs*1.3;   // 行の間隔（入力欄の行の高さと同じ）
@@ -986,7 +1112,7 @@ function textMarkup(o, mid = false){   // mid：x を文字の左右の中央に
   textLines(o).forEach((line, k) => {
     if (!line.length) return;
     let shift = 0;
-    s += `<text x="${r2(o.x)}" y="${r2(o.y + k*lh)}" font-size="${st.fs}" font-family="${st.ff}" fill="${o.color || '#000'}"`
+    s += `<text x="${r2(o.x)}" y="${r2(o.y + k*lh)}" font-size="${st.fs}" font-family="${st.ff}" fill="${o.color || INK}"`
       + `${st.b ? ' font-weight="bold"' : ''}${st.i ? ' font-style="italic"' : ''}${mid ? ' text-anchor="middle"' : ''} xml:space="preserve">`;
     for (const t of line){
       const y = t.v === 'sub' ? t.fs*0.28 : t.v === 'sup' ? -t.fs*0.38 : 0;
@@ -1107,14 +1233,16 @@ function shapePath(o, b = shapeBox(o)){   // 図形の輪郭（四角・角丸�
 // ひし形は、文字の枠がひし形の内側に収まるように（幅・高さとも文字の約 2 倍）
 function shapeMin(o){
   if (!o.text) return {w:16, h:16};
-  const tw0 = textWidth(o), th0 = textLines(o).length*lineH(o), dia = o.kind === 'diamond';
+  const th0 = textLines(o).length*lineH(o), dia = o.kind === 'diamond';
+  if (o.wrap) return {w: dia ? 80 : 40, h: dia ? 2*(th0 + 2) : th0 + 14};   // 折り返すので幅は自由。高さは折り返した行数に合わせる
+  const tw0 = textWidth(o);
   return {w: dia ? 2*(tw0 + 8) : tw0 + 24, h: dia ? 2*(th0 + 2) : th0 + 14};
 }
 // 文字が図形からはみ出すときは、中心はそのままで図形を広げる（縮めはしない）
 function fitShape(o){
   if (!o.text) return;
   const b = shapeBox(o), cx = (b.x1 + b.x2)/2, cy = (b.y1 + b.y2)/2, m = shapeMin(o);
-  const w = Math.max(b.x2 - b.x1, m.w), h = Math.max(b.y2 - b.y1, m.h);
+  const w = o.wrap ? b.x2 - b.x1 : Math.max(b.x2 - b.x1, m.w), h = Math.max(b.y2 - b.y1, m.h);   // 折り返すときは幅そのまま
   Object.assign(o, {x1:cx - w/2, y1:cy - h/2, x2:cx + w/2, y2:cy + h/2});
 }
 // つなぐ矢印の両端：図形につながっていればその辺の中点（dir：外向きの向き、box：図形の枠）、なければ x1,y1・x2,y2
@@ -1185,7 +1313,10 @@ function connGeom(d, o){
   return {pts, d:'M' + line.map(q => `${r2(q.x)} ${r2(q.y)}`).join('L'), heads};
 }
 
+// 画面の配色に合わせた線・文字の色（書き出しと縮小画像は白い紙に黒のまま）
+let INK = '#000', PAPER = '#fff';
 function buildScene(d, opt){
+  INK = opt.ink || '#000'; PAPER = opt.paper || '#fff';
   const adj = buildAdj(d), modeOf = a => a.disp || opt.mode;   // 原子ごとの表記（部分指定があればそれを優先）
   const {bondRing, atomInRing} = computeRings(d, adj);
   const atoms = Object.values(d.atoms);
@@ -1218,7 +1349,7 @@ function buildScene(d, opt){
                                                     : dirs.map(ang => dirPt(a, ang, len));
     pts.forEach((hp, i) => {
       const hl = layoutLabel(hp, 'H', 0, [], 'right');
-      addTexts(hl, (a.hcol && a.hcol[i]) || a.color || '#000'); hLines.push({p:a, q:hp, bp:box, bq:hl.box, col:a.color});   // H ごとの色（a.hcol）
+      addTexts(hl, (a.hcol && a.hcol[i]) || a.color || INK); hLines.push({p:a, q:hp, bp:box, bq:hl.box, col:a.color});   // H ごとの色（a.hcol）
       hs.push({parent:a.id, i, ang:angOf(a, hp), x:hp.x, y:hp.y});
     });
   };
@@ -1264,7 +1395,7 @@ function buildScene(d, opt){
       addDots(a, null);
       continue;
     }
-    const fill = err ? '#d61f1f' : (a.color || '#000');
+    const fill = err ? '#d61f1f' : (a.color || INK);
     let lab;
     if (a.grp){   // 置換基：簡略構造式のラベル（結合が右から来るときは HOOC のように向きを反転）
       const nbs = l.map(x => d.atoms[x.nb]), left = nbs.length > 0 && nbs.every(n => n.x - a.x > 0.3*Math.hypot(n.x - a.x, n.y - a.y));
@@ -1416,24 +1547,24 @@ function buildScene(d, opt){
   }
 
   // π軌道は結合より下に描く（色の付いた側と白い側）
-  let m = orbMarks.map(ob => `<path d="${ob.d}" fill="${ob.shade ? (ob.col || '#aab6c6') : '#fff'}"${ob.shade && ob.col ? ' fill-opacity=".45"' : ''}`
-    + ` stroke="${ob.col || '#000'}" stroke-width="1.1"/>`).join('');
-  m += `<g stroke="#000" stroke-width="${LW}" stroke-linecap="round" fill="none">`;
+  let m = orbMarks.map(ob => `<path d="${ob.d}" fill="${ob.shade ? (ob.col || '#aab6c6') : PAPER}"${ob.shade && ob.col ? ' fill-opacity=".45"' : ''}`
+    + ` stroke="${ob.col || INK}" stroke-width="1.1"/>`).join('');
+  m += `<g stroke="${INK}" stroke-width="${LW}" stroke-linecap="round" fill="none">`;
   for (const [s, e, w, c, dash] of lines)
     m += `<line x1="${r2(s.x)}" y1="${r2(s.y)}" x2="${r2(e.x)}" y2="${r2(e.y)}"${w ? ` stroke-width="${w}"` : ''}${c ? ` stroke="${c}"` : ''}`
       + `${dash ? ' stroke-dasharray="4 3" stroke-linecap="butt"' : ''}/>`;
   for (const p of paths) m += `<path d="${p.d}"${p.col ? ` stroke="${p.col}"` : ''}/>`;
   m += '</g>';
-  for (const c of circles) m += `<circle cx="${r2(c.cx)}" cy="${r2(c.cy)}" r="${r2(c.r)}" fill="none" stroke="${c.col || '#000'}" stroke-width="${c.w || 1.1}"/>`;
-  for (const p of polys) m += `<polygon points="${p.map(q => r2(q.x)+','+r2(q.y)).join(' ')}" fill="${p.col || '#000'}"/>`;
-  for (const q of dots) m += `<circle cx="${r2(q.x)}" cy="${r2(q.y)}" r="1.8" fill="${q.col || '#000'}"/>`;
+  for (const c of circles) m += `<circle cx="${r2(c.cx)}" cy="${r2(c.cy)}" r="${r2(c.r)}" fill="none" stroke="${c.col || INK}" stroke-width="${c.w || 1.1}"/>`;
+  for (const p of polys) m += `<polygon points="${p.map(q => r2(q.x)+','+r2(q.y)).join(' ')}" fill="${p.col || INK}"/>`;
+  for (const q of dots) m += `<circle cx="${r2(q.x)}" cy="${r2(q.y)}" r="1.8" fill="${q.col || INK}"/>`;
   m += `<g font-family="${FONT}">`;
   for (const t of texts) m += `<text x="${r2(t.x)}" y="${r2(t.y)}" font-size="${t.fs}" fill="${t.fill}"${t.it ? ' font-style="italic"' : ''}>${esc(t.t)}</text>`;
   m += '</g>';
   for (const {o, g} of brLabels){
     const st = brStyle(o);
     m += `<text x="${r2(g.lx)}" y="${r2(g.ly)}" font-size="${st.fs}" font-family="${st.ff}"${st.i ? ' font-style="italic"' : ''}${st.b ? ' font-weight="bold"' : ''}`
-      + ` fill="${o.color || '#000'}">${esc(g.lab)}</text>`;
+      + ` fill="${o.color || INK}">${esc(g.lab)}</text>`;
   }
   for (const o of Object.values(d.objs)){
     if (!objBoxes.has(o.id)) continue;
@@ -1471,8 +1602,9 @@ function pruneSel(){
       : !(hover.type === 'atom' ? doc.atoms : hover.type === 'bond' ? doc.bonds : doc.objs)[hover.id])) hover = null;
 }
 
+const darkNow = () => document.documentElement.dataset.resolvedTheme === 'dark';   // いまダークで表示しているか
 function renderDoc(){
-  scene = buildScene(doc, {mode:state.mode, showRingC:state.showRingC});
+  scene = buildScene(doc, {mode:state.mode, showRingC:state.showRingC, ...(darkNow() ? {ink:'#e8edf4', paper:'#151c25'} : {})});
   chemLayer.innerHTML = scene.markup;
   updateInfo();
 }
@@ -1504,7 +1636,7 @@ function renderOverlay(){
   const rect = (b, attrs) => `<rect x="${b.x1}" y="${b.y1}" width="${b.x2-b.x1}" height="${b.y2-b.y1}" ${attrs}/>`;
   let m = '';
   for (const a of Object.values(doc.atoms)) if (a.blank)   // 入力待ちの空欄（画面だけに描く。書き出しには出ない）
-    m += `<rect x="${a.x-7}" y="${a.y-8}" width="14" height="16" rx="2" fill="#fff" fill-opacity=".6" stroke="#8a94a3" stroke-width="${sw}" stroke-dasharray="${3*sw} ${2*sw}"/>`;
+    m += `<rect x="${a.x-7}" y="${a.y-8}" width="14" height="16" rx="2" fill="${PAPER}" fill-opacity=".6" stroke="#8a94a3" stroke-width="${sw}" stroke-dasharray="${3*sw} ${2*sw}"/>`;
   for (const id of sel.bonds){ const b = doc.bonds[id]; if (b) m += ln(A(b.a1), A(b.a2), `stroke="${C}" stroke-opacity=".3" stroke-width="10"`); }
   const NRr = BOND*NM_R;
   for (const id of sel.atoms){
@@ -2174,7 +2306,7 @@ const HINTS = {
   rad:'原子をクリックで不対電子を追加（その分 H が減ります）／原子からドラッグで向きを 15°刻み（Shift で自由）／何もないところにも置けます',
   curve:'原子・結合・非共有電子対・電荷（−）からドラッグして曲がった矢印（Shift で反対側に曲げる）。選択ツールで選ぶと両端と曲がり具合（◇）をドラッグで変形',
   orb:'原子をクリックで π軌道（重ねてクリックすると別の向きに追加）／原子からドラッグで向き・大きさ（結合長固定なら段階的）／π軌道をクリックで色の付いた側を入れ替え',
-  shape:'クリックで図形を置いて、そのまま文字を入力（Shift+Enter で改行。ドラッグで大きさを決めて置く）／図形をクリックで文字を編集（違う形のツールなら形を変更）',
+  shape:'クリックで図形を置いて、そのまま文字を入力（Shift+Enter で改行。ドラッグで大きさを決めて置く）／選択して「文字を折り返す」で幅に合わせて折り返し／図形をクリックで文字を編集（違う形のツールなら形を変更）',
   conn:'図形から別の図形へドラッグして矢印でつなぐ（辺の中点 ○ につながり、図形を動かすとついてくる）／矢印・線をクリックするとこのツールの種類に変更（矢じりは選択してポップアップで変更）'
 };
 function setTool(t, extra = {}){
@@ -2539,8 +2671,11 @@ svg.addEventListener('pointermove', e => {
   else if (drag.kind === 'shapeSize'){   // 反対側の角は動かさない（中の文字より小さくはしない）
     const o = doc.objs[drag.id], f = drag.fixed, lim = (v, c, min) => Math.abs(v - c) < min ? c + (v < c ? -min : min) : v;
     if (o){
-      const m = shapeMin(o), x = lim(p.x, f.x, m.w), y = lim(p.y, f.y, m.h);
-      Object.assign(o, {x1:Math.min(f.x, x), y1:Math.min(f.y, y), x2:Math.max(f.x, x), y2:Math.max(f.y, y)}); renderDoc();
+      const x = lim(p.x, f.x, shapeMin(o).w);
+      o.x1 = Math.min(f.x, x); o.x2 = Math.max(f.x, x);   // 先に幅（折り返すと行数が変わるので、高さの下限はそのあとで）
+      const y = lim(p.y, f.y, shapeMin(o).h);
+      o.y1 = Math.min(f.y, y); o.y2 = Math.max(f.y, y);
+      renderDoc();
     }
   }
   else if (drag.kind === 'connEnd'){ const o = doc.objs[drag.id]; if (o){ moveConnEnd(o, drag.end, p, e.shiftKey); renderDoc(); } }
@@ -2824,6 +2959,8 @@ function styleEditor(){   // 入力欄の見た目を文字の基本の書式に
   te.style.fontWeight = st.b ? 'bold' : 'normal'; te.style.fontStyle = st.i ? 'italic' : 'normal';
   te.style.color = field === 'text' ? (edBase(textEditing).color || '#000') : '#000';
   const mid = !!(obj && obj.type === 'shape');   // 図形の中の文字：入力欄を図形の中央に置き（行が増えても上下の中央）、中央そろえ
+  const ww = mid ? wrapW(obj)*state.zoom : 0;   // 折り返す図形は、同じ幅で入力欄も折り返す
+  te.style.whiteSpace = ww ? 'pre-wrap' : ''; te.style.width = ww ? ww + 'px' : ''; te.style.minWidth = ww ? '0' : '';
   te.style.transform = mid ? 'translate(-50%, -50%)' : ''; te.style.textAlign = mid ? 'center' : '';
   te.style.left = (p.x*state.zoom + state.pan.x - (mid ? 0 : 5)) + 'px';
   te.style.top = (p.y*state.zoom + state.pan.y - (mid ? 0 : fs*1.3 + 3)) + 'px';
@@ -2945,6 +3082,12 @@ function syncFmt(){
   $('fgText').hidden = !(styled.length || editTxt);
   $('fgBond').hidden = !bonds.length;
   $('fgOrb').hidden = !orbs.length;
+  const shs = selObjsOf('shape');   // 図形：文字の折り返し
+  $('fgShape').hidden = !shs.length;
+  if (shs.length){
+    $('shWrap').checked = shs.every(s => s.wrap);
+    $('shWrap').indeterminate = !shs.every(s => !!s.wrap === !!shs[0].wrap);
+  }
   const cs = selObjsOf('conn');   // つなぐ矢印・線：矢じり・向きの反転
   $('fgHead').hidden = !cs.length;
   if (cs.length) $('headSel').value = sameOr(cs.map(c => c.head || 'end'));
@@ -3100,12 +3243,11 @@ function fitView(){
 function viewCenter(){ const r = svg.getBoundingClientRect(); return {x:(r.width/2 - state.pan.x)/state.zoom, y:(r.height/2 - state.pan.y)/state.zoom}; }
 
 // ---- キーボード ----
-const anyModalOpen = () => [...document.querySelectorAll('.modal')].some(m => !m.hidden);
 window.addEventListener('keydown', e => {
   const tg = e.target;
   if (tg === te || tg.tagName === 'TEXTAREA' || (tg.tagName === 'INPUT' && tg.type === 'text')) return;
+  if (help && help.root.contains(tg)) return;   // ヘルプの小窓の中では編集のキーを使わない
   const k = e.key, lk = k.toLowerCase(), mod = e.metaKey || e.ctrlKey;
-  if (anyModalOpen()){ if (k === 'Escape') closeModals(); return; }
   if (mod){
     if (lk === 'z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); }
     else if (lk === 'y'){ e.preventDefault(); redo(); }
@@ -3114,7 +3256,7 @@ window.addEventListener('keydown', e => {
     else if (lk === 'x'){ if (copySel()){ e.preventDefault(); deleteSelection(); } }
     else if (lk === 'v'){ if (clip){ e.preventDefault(); paste(); } }
     else if (lk === 's'){ e.preventDefault(); saveJSON(); }
-    else if (lk === 'o'){ e.preventDefault(); $('fileInput').click(); }
+    else if (lk === 'o'){ e.preventDefault(); openWithGuard(() => $('fileInput').click()); }
     return;
   }
   if (e.altKey) return;
@@ -3153,7 +3295,7 @@ window.addEventListener('keydown', e => {
   if (h && h.type === 'obj' && doc.objs[h.id] && isDel){ e.preventDefault(); commit(); delete doc.objs[h.id]; changed(); return; }
   if (isDel){ e.preventDefault(); deleteSelection(); return; }
   if (k === 'Escape'){ clearSel(); drag = null; renderOverlay(); return; }
-  if (k === '?'){ openModal('helpModal'); return; }
+  if (k === '?'){ help && help.open(); return; }
   const tk = {v:'select', e:'erase', t:'text', '1':'bond1', '2':'bond2', '3':'bond3', a:'arrow'}[lk];
   if (tk) setTool(tk);
   else if (lk === 'b') setTool('ring', {ringN:6, ringArom:true});
@@ -3356,20 +3498,16 @@ function insertLib(i){
   else { tx = cur.x2 + 50 - b.x1; ty = (cur.y1+cur.y2)/2 - (b.y1+b.y2)/2; }
   commit();
   insertFragment({atoms:Object.values(d.atoms), bonds:Object.values(d.bonds)}, tx, ty);
-  closeModals(); setTool('select'); changed();
+  setTool('select'); changed();
   const r = svg.getBoundingClientRect(), nb = scene.bbox;
   const sx1 = nb.x1*state.zoom + state.pan.x, sx2 = nb.x2*state.zoom + state.pan.x, sy1 = nb.y1*state.zoom + state.pan.y, sy2 = nb.y2*state.zoom + state.pan.y;
   if (sx1 < 0 || sy1 < 0 || sx2 > r.width || sy2 > r.height) fitView();
 }
 
 // ================= 入出力 =================
-let toastTimer;
-function toast(msg){
-  const t = $('toast'); t.textContent = msg; t.classList.add('show');
-  clearTimeout(toastTimer); toastTimer = setTimeout(() => t.classList.remove('show'), 2400);
-}
-function openModal(id){ $(id).hidden = false; }
-function closeModals(){ document.querySelectorAll('.modal').forEach(m => { m.hidden = true; }); }
+// 知らせ・ツールチップ・テーマは共通部品（../shared/ui-kit.js）
+const hasUI = typeof window.JohoUI === 'object';
+const toast = (msg, ms) => { if (hasUI) JohoUI.toast(msg, ms); else console.log(msg); };
 const isEmpty = () => !Object.keys(doc.atoms).length && !Object.keys(doc.objs).length;
 function stamp(){ const d = new Date(), p = n => String(n).padStart(2, '0'); return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}-${p(d.getHours())}${p(d.getMinutes())}`; }
 
@@ -3603,6 +3741,7 @@ function sanitize(d){
     else if (o.type === 'shape' && [o.x1, o.y1, o.x2, o.y2].every(isFinite)){   // フローチャートの図形
       n = {id:+o.id, type:'shape', kind:['round', 'diamond'].includes(o.kind) ? o.kind : 'rect', ...shapeBox({x1:+o.x1, y1:+o.y1, x2:+o.x2, y2:+o.y2})};
       if (typeof o.text === 'string' && o.text) n.text = o.text.slice(0, 200);
+      if (o.wrap) n.wrap = true;   // 文字を折り返す
       textProps(o, n);
     }
     else if (o.type === 'conn' && [o.x1, o.y1, o.x2, o.y2].every(isFinite)){   // 図形をつなぐ矢印
@@ -3625,25 +3764,32 @@ function sanitize(d){
   out.nid = Math.max(max + 1, +d.nid || 0);
   return out;
 }
-function saveJSON(){
+function saveJSON(){   // 明示保存：ファイルに保存（ダウンロード）
   if (isEmpty()){ toast('保存するものがありません'); return; }
-  const name = prompt('ファイル名を入力してください', '構造式');
+  const name = prompt('ファイル名を入力してください', save.name);
   if (name === null) return;
-  const data = JSON.stringify({app:'kouzoushiki', version:1, mode:state.mode, doc});
-  download(new Blob([data], {type:'application/json'}), (name.trim() || '構造式').replace(/\.json$/i, '') + '.json');
+  save.name = (name.trim() || '構造式').replace(/\.json$/i, '');
+  download(new Blob([fileData()], {type:'application/json'}), save.name + '.json');
+  save.savedAt = Date.now(); save.savedWhere = 'download'; save.mark = JSON.stringify(doc); save.dirty = false;
+  syncSaveStatus();
 }
-$('btnSave').onclick = saveJSON;
-$('btnOpen').onclick = () => { $('btnOpen').blur(); $('fileInput').click(); };
-$('miOpen').onclick = () => { $('miOpen').blur(); $('fileInput').click(); };
+$('miSaveFile').onclick = () => { $('miSaveFile').blur(); saveJSON(); };
+$('miSaveBrowser').onclick = () => { $('miSaveBrowser').blur(); saveToBrowser(); };
+$('miSaveAuto').onclick = () => { $('miSaveAuto').blur(); pickAutoSaveFile(); };
+$('miOpen').onclick = () => { $('miOpen').blur(); openWithGuard(() => $('fileInput').click()); };
+$('miOpenFile2').onclick = () => { $('openDlg').close(); openWithGuard(() => $('fileInput').click()); };
+$('miOpenSaved').onclick = () => { $('miOpenSaved').blur(); showOpenDialog(); };
+$('openDlgClose').onclick = () => $('openDlg').close();
+$('saveStatus').onclick = () => showOpenDialog();
+$('btnOpen').onclick = () => { $('btnOpen').blur(); openWithGuard(() => $('fileInput').click()); };
 $('fileInput').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = '';
   if (!f) return;
   try {
-    const data = JSON.parse(await f.text()), d = data.doc || data;
-    if (!d.atoms || !d.bonds) throw 0;
-    commit(); doc = sanitize(d); clearSel();
-    if (MODE_NAMES[data.mode]) setMode(data.mode);
-    changed(); fitView(); toast(`「${f.name}」を開きました`);
+    const data = JSON.parse(await f.text());
+    if (!openData(data, 'file')) throw 0;
+    save.name = f.name.replace(/\.json$/i, '');
+    toast(`「${f.name}」を開きました`); syncSaveStatus();
   } catch { alert('このファイルは読み込めませんでした。構造式エディタで保存した .json ファイルを選んでください。'); }
 });
 $('btnNew').onclick = () => {
@@ -3653,12 +3799,126 @@ $('btnNew').onclick = () => {
   commit(); doc = emptyDoc(); clearSel(); changed();
 };
 
-const STORE_KEY = 'kouzoushiki-v1';
+// 表示の設定（テーマ・文字サイズ）は文書と分けて覚える（共通部品が持つ）
+const VIEW_KEY = 'kouzoushiki-view';
+let view = null;
+
+// 保存方法（自動・明示）と保存先（ブラウザ内・ローカルファイル）は別のもの（共通仕様 4 章）
+const STORE_KEY = 'kouzoushiki-v1';      // 自動保存（ブラウザ内）
+const SAVED_KEY = 'kouzoushiki-saved';   // 明示保存（ブラウザ内）
+const save = {name:'構造式', at:0, savedAt:0, savedWhere:'', dirty:false, err:'', mark:'{}'};   // mark：最後に保存した内容
+let fileHandle = null, fileTimer = 0;    // ローカルファイルへの自動保存（対応ブラウザで、利用者が選んだとき）
+const canPick = typeof window.showSaveFilePicker === 'function';
+const fileData = () => JSON.stringify({app:'kouzoushiki', version:1, mode:state.mode, showRingC:state.showRingC, name:save.name, savedAt:Date.now(), doc});
+const hhmm = t => { const d = new Date(t); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
+const ymdhm = t => { const d = new Date(t); return `${d.getMonth()+1}/${d.getDate()} ${hhmm(t)}`; };
 function autosave(){
+  save.at = Date.now(); save.dirty = JSON.stringify(doc) !== save.mark;   // 最後に保存したときから変わったか
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify({doc, mode:state.mode, showRingC:state.showRingC,
-      moveSnap:state.moveSnap, moveFix:state.moveFix}));
-  } catch {}
+      moveSnap:state.moveSnap, moveFix:state.moveFix, name:save.name, at:save.at}));
+    if (save.err.startsWith('ブラウザ')) save.err = '';
+  } catch { save.err = 'ブラウザに自動保存できませんでした（保存できる量を超えているかもしれません）'; }
+  fileAutoSave();
+  syncSaveStatus();
+}
+// 選んだファイルへの自動保存（少し待ってからまとめて書く）
+function fileAutoSave(){
+  if (!fileHandle) return;
+  clearTimeout(fileTimer);
+  fileTimer = setTimeout(async () => {
+    try {
+      const w = await fileHandle.createWritable();
+      await w.write(fileData()); await w.close();
+      save.savedAt = Date.now(); save.savedWhere = 'file'; save.mark = JSON.stringify(doc); save.dirty = false; save.err = '';
+    } catch { save.err = 'ファイルに自動保存できませんでした。保存先を選び直してください'; }
+    syncSaveStatus();
+  }, 1200);
+}
+function syncSaveStatus(){
+  const el = $('saveStatus'); if (!el) return;
+  el.classList.toggle('warn', !!save.err);
+  el.textContent = save.err ? '⚠ ' + save.err
+    : fileHandle ? `ファイルへ自動保存 ${hhmm(save.savedAt || save.at)}（${save.name}）`
+    : save.savedAt && !save.dirty ? `保存しました ${hhmm(save.savedAt)}`
+    : save.savedAt ? `保存後に変更あり（自動保存 ${hhmm(save.at)}）`
+    : save.at ? `自動保存 ${hhmm(save.at)}（このブラウザ）` : '';
+}
+// 明示保存：ブラウザ内
+function saveToBrowser(){
+  if (isEmpty()){ toast('保存するものがありません'); return; }
+  try {
+    localStorage.setItem(SAVED_KEY, JSON.stringify({doc, mode:state.mode, showRingC:state.showRingC, name:save.name, at:Date.now()}));
+    save.savedAt = Date.now(); save.savedWhere = 'browser'; save.mark = JSON.stringify(doc); save.dirty = false; save.err = '';
+    toast('ブラウザに保存しました（「開く」→「保存した内容から開く」で戻せます）');
+  } catch { save.err = 'ブラウザに保存できませんでした'; toast(save.err); }
+  syncSaveStatus();
+}
+// 明示保存：ファイルを決めて、以後そのファイルへ自動保存
+async function pickAutoSaveFile(){
+  if (!canPick){ toast('このブラウザはファイルへの自動保存に対応していません。「ファイルに保存…」をお使いください'); return; }
+  try {
+    const name = (prompt('ファイル名を入力してください', save.name) || '').trim();
+    if (!name) return;
+    save.name = name.replace(/\.json$/i, '');
+    fileHandle = await window.showSaveFilePicker({suggestedName: save.name + '.json',
+      types:[{description:'構造式エディタのファイル', accept:{'application/json':['.json']}}]});
+    const w = await fileHandle.createWritable(); await w.write(fileData()); await w.close();
+    save.savedAt = Date.now(); save.savedWhere = 'file'; save.mark = JSON.stringify(doc); save.dirty = false; save.err = '';
+    toast(`「${save.name}.json」に保存しました。これからは自動で書き込みます`);
+  } catch (e) { if (e && e.name !== 'AbortError'){ save.err = 'ファイルに保存できませんでした'; toast(save.err); } }
+  syncSaveStatus();
+}
+// 読み込む（検査してから反映する）
+function openData(data, how){
+  const d = data && (data.doc || data);
+  if (!d || !d.atoms || !d.bonds) return false;
+  commit(); doc = sanitize(d); clearSel();
+  if (MODE_NAMES[data.mode]) setMode(data.mode);
+  if (typeof data.name === 'string' && data.name) save.name = data.name.slice(0, 40);
+  save.savedAt = data.at || data.savedAt || 0; save.savedWhere = how || '';
+  changed(); fitView();
+  save.mark = JSON.stringify(doc); save.dirty = false; syncSaveStatus();   // 開いた直後は「変更なし」
+  return true;
+}
+const readStore = k => { try { const s = JSON.parse(localStorage.getItem(k) || 'null'); return s && s.doc ? s : null; } catch { return null; } };
+// 保存していない変更があるとき：保存してから開く・破棄して開く・キャンセル
+function askBeforeOpen(){
+  return new Promise(res => {
+    if (!save.dirty || isEmpty()) return res('discard');
+    const dlg = $('askDlg');
+    const on = e => { const b = e.target.closest('[data-ask]'); if (!b) return; dlg.close(); dlg.removeEventListener('click', on); res(b.dataset.ask); };
+    dlg.addEventListener('click', on);
+    dlg.showModal();
+  });
+}
+async function openWithGuard(fn){
+  const a = await askBeforeOpen();
+  if (a === 'cancel') return;
+  if (a === 'save'){ if (fileHandle){ clearTimeout(fileTimer); await fileHandle.createWritable().then(async w => { await w.write(fileData()); await w.close(); }).catch(() => {}); } else saveToBrowser(); }
+  fn();
+}
+// 保存した内容の候補（自動保存・明示保存）
+function showOpenDialog(note){
+  const list = $('openList'), cands = [];
+  const a = readStore(STORE_KEY), b = readStore(SAVED_KEY);
+  if (a) cands.push({key:STORE_KEY, kind:'自動保存（このブラウザ）', data:a});
+  if (b) cands.push({key:SAVED_KEY, kind:'保存（このブラウザ）', data:b});
+  list.innerHTML = cands.length ? cands.map((c, i) =>
+    `<div class="cand"><div><b>${esc(c.data.name || '構造式')}</b><span>${c.kind}　${c.data.at ? ymdhm(c.data.at) : '日時なし'}</span></div>`
+    + `<button class="sbtn" data-cand="${i}">開く</button></div>`).join('')
+    : '<p class="muted">このブラウザに保存された内容はありません。</p>';
+  list.onclick = e => {
+    const btn = e.target.closest('[data-cand]'); if (!btn) return;
+    const c = cands[+btn.dataset.cand];
+    openWithGuard(() => {
+      $('openDlg').close();
+      if (openData(c.data, c.key === SAVED_KEY ? 'browser' : '')) toast(`${c.kind}を開きました`);
+      else toast('この内容は読み込めませんでした');
+    });
+  };
+  $('openDlgNote').textContent = note || '開きたい内容を選んでください。いまの内容は、開く前に保存できます。';
+  $('openDlg').showModal();
 }
 function restore(){
   try {
@@ -3668,6 +3928,8 @@ function restore(){
     if (MODE_NAMES[s.mode]) state.mode = s.mode;
     state.showRingC = !!s.showRingC;
     state.moveSnap = !!s.moveSnap; state.moveFix = !!s.moveFix;   // 文字の書式は引き継がない（毎回ゴシック体・斜体なしから）
+    if (typeof s.name === 'string' && s.name) save.name = s.name;
+    save.at = s.at || 0; save.mark = JSON.stringify(doc); save.dirty = false;   // 復元した内容は「変更なし」から始める
   } catch {}
 }
 
@@ -3722,6 +3984,12 @@ $('orbW').addEventListener('change', e => {
   const os = selObjsOf('orb'); if (!os.length) return;
   commit(); os.forEach(o => { if (+e.target.value === 0.42) delete o.w; else o.w = +e.target.value; }); changed();
 });
+$('shWrap').addEventListener('change', e => {   // 図形の中の文字を折り返すか
+  const shs = selObjsOf('shape'); if (!shs.length) return;
+  commit();
+  shs.forEach(s => { if (e.target.checked) s.wrap = true; else delete s.wrap; fitShape(s); });
+  changed();
+});
 $('headSel').addEventListener('change', e => {   // 選択した矢印・線の矢じり（終点・両端・なし）
   const cs = selObjsOf('conn'), v = e.target.value; if (!cs.length || v === 'mixed') return;
   commit(); cs.forEach(c => { if (v === 'end') delete c.head; else c.head = v; }); changed();
@@ -3774,7 +4042,6 @@ $('btnRotL').onclick = () => rotateSel(-15);
 $('btnRotR').onclick = () => rotateSel(15);
 $('btnRot90').onclick = () => rotateSel(90);
 $('libSearch').addEventListener('input', filterLib);
-$('btnHelp').onclick = () => openModal('helpModal');
 // ---- 左のパレットの開閉（開いた状態を覚える） ----
 const FOLD_KEY = 'kouzoushiki-folds';
 try {
@@ -3800,40 +4067,48 @@ $('formulas').addEventListener('click', e => {
   setTool('select');
 });
 
-// ---- ツールチップ（ホバーですぐ表示） ----
-const tipEl = $('tip');
-function showTip(el){
-  if (el.hasAttribute('title')){ el.dataset.tip = el.getAttribute('title'); el.removeAttribute('title'); }
-  const t = el.dataset.tip; if (!t) return;
-  tipEl.textContent = t; tipEl.classList.add('show');
-  const r = el.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
-  let y = r.bottom + 6;
-  if (y + h > innerHeight - 4) y = r.top - h - 6;
-  tipEl.style.left = Math.max(4, Math.min(innerWidth - w - 4, r.left + r.width/2 - w/2)) + 'px';
-  tipEl.style.top = y + 'px';
-}
-document.addEventListener('mouseover', e => {
-  const el = e.target.closest && e.target.closest('[title],[data-tip]');
-  if (el) showTip(el); else tipEl.classList.remove('show');
-});
-document.addEventListener('mouseout', e => {
-  const el = e.target.closest && e.target.closest('[data-tip]');
-  if (el && !el.contains(e.relatedTarget)) tipEl.classList.remove('show');
-});
-document.addEventListener('pointerdown', () => tipEl.classList.remove('show'), true);
-document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => {
-  if (e.target === m || e.target.closest('[data-close]')) closeModals();
-}));
+// ---- ツールチップ（マウスを乗せるとすぐ出る。共通部品） ----
+if (hasUI) JohoUI.tooltip({skip: el => el.closest('.tool-help')});   // ヘルプの小窓は共通部品側の説明に任せる
 $('libBody').addEventListener('click', e => { const b = e.target.closest('.lib-item'); if (b) insertLib(+b.dataset.i); });
 // favicon：画面左上のアプリのアイコン（#appIcon）と同じ SVG をデータ URL にして使う（校章の輪郭を 2 か所に書かないように）
 try { $('favicon').href = 'data:image/svg+xml,' + encodeURIComponent(new XMLSerializer().serializeToString($('appIcon'))); } catch {}
 
+// ---- ヘルプ：共通部品（tools/shared/help-panel.js）の非モーダル小窓。開いたまま編集できる ----
+let help = null;
+try {
+  help = JohoToolHelp.create({
+    root: $('operation-help'), opener: $('btnHelp'), title: '構造式エディタの使い方',
+    storageKey: 'joho.kouzoushiki.help.v1',
+    isBusy: () => !!drag || !!textEditing,
+    bounds: () => ({top: document.querySelector('.top').getBoundingClientRect().bottom + 8, bottom: $('wrap').getBoundingClientRect().bottom - 8}),
+    initialRight: () => $('wrap').getBoundingClientRect().right - 12,
+    returnToEditor: () => $('wrap').focus({preventScroll:true})
+  });
+} catch {   // ヘルプが読めなくても、描く・保存はできるようにする
+  $('operation-help').hidden = true;
+  $('btnHelp').onclick = () => toast('ヘルプを読み込めませんでした（../shared/help-panel.js が必要です）。ページを再読み込みしてください');
+}
+
+if (!hasUI) setTimeout(() => alert('共通部品（../shared/ui-kit.js）を読み込めませんでした。テーマ・ツールチップ・知らせが使えません。ページを再読み込みしてください。'), 200);
+
 restore();
+if (save.mark === '{}') save.mark = JSON.stringify(doc);   // 何も保存がないときは、いまの内容を基準にする
 try { const w = +localStorage.getItem(SIDEW_KEY); if (w) setSideW(w); } catch {}
 let savedPane = ''; try { savedPane = localStorage.getItem(SIDE_KEY) || ''; } catch {}
 openSide(['lib', 'exp'].includes(savedPane) ? savedPane : '');
 $('showRingC').checked = state.showRingC;
 syncToggles();
+try {   // テーマ・文字サイズ（共通部品）。線の色が変わるので描き直す
+  view = JohoUI.theme({storageKey:VIEW_KEY, themeSelect:$('themeSel'), sizeSelect:$('textSizeSel'),
+    onChange: () => { if (scene){ renderDoc(); renderOverlay(); } }});
+} catch { $('themeSel').closest('.mrow').hidden = true; $('textSizeSel').closest('.mrow').hidden = true; }
+syncSaveStatus();
+// 自動保存と明示保存の両方があり、内容が違うときは、どちらを開くか選べるようにする（共通仕様 4.2）
+{
+  const a = readStore(STORE_KEY), b = readStore(SAVED_KEY);
+  if (a && b && JSON.stringify(a.doc) !== JSON.stringify(b.doc))
+    setTimeout(() => showOpenDialog('前回の続き（自動保存）を開いています。ブラウザに保存した内容もあります。開きたい方を選んでください。'), 300);
+}
 setMode(state.mode);
 setTool('bond1');
 applyView();
