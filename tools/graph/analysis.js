@@ -22,13 +22,17 @@
     return out;
   }
   function fit(series,model){
-    const data=[];let skipped=0;
-    const bad=warning=>({warning,model,n:data.length,skipped,coefficients:null,domain:null,predict:null,r:null,r2:null,rmse:null,residuals:[]});
+    const data=[];let skipped=0,excluded=0;
+    const bad=warning=>({warning,model,n:data.length,skipped,excluded,coefficients:null,domain:null,predict:null,r:null,r2:null,rmse:null,residuals:[]});
     if(!models.includes(model)||!series||!Array.isArray(series.rows)||series.rows.length>10000)return bad('分析対象またはモデルが不正です。');
+    const excludedRows=series.excludedRows===undefined?[]:series.excludedRows;
+    if(!Array.isArray(excludedRows)||excludedRows.some(value=>!Number.isInteger(value)||value<0||value>=series.rows.length)||new Set(excludedRows).size!==excludedRows.length)return bad('除外する行が不正です。');
+    const excludedSet=new Set(excludedRows);
     for(let i=0;i<series.rows.length;i++){
       const row=series.rows[i];if(!Array.isArray(row)||row.length!==2)return bad('数表の行が不正です。');
-      const [x,y]=row;if(x===null||y===null){skipped++;continue;}
-      if(!finite(x)||!finite(y))return bad('数表に有限でない値があります。');data.push({i:i+1,x,y});
+      const [x,y]=row;if(x!==null&&!finite(x)||y!==null&&!finite(y))return bad('数表に有限でない値があります。');
+      if(excludedSet.has(i)){excluded++;continue;}if(x===null||y===null){skipped++;continue;}
+      data.push({i:i+1,x,y});
     }
     const required=model==='quadratic'?3:2;
     if(data.length<required)return bad('分析できる点が不足しています。'+required+'点以上を指定してください。');
@@ -60,7 +64,7 @@
     const xn=dx.map(v=>v/(xScale||1)),yn=dy.map(v=>v/(yScale||1)),en=errors.map(v=>v/(eScale||1)),sxx=dot(xn,xn),sst=dot(yn,yn),sse=dot(en,en);
     const r=xScale&&yScale?Math.max(-1,Math.min(1,dot(xn,yn)/Math.sqrt(sxx)/Math.sqrt(sst))):null,r2=yScale?1-(eScale/yScale)**2*(sse/sst):null,rmse=eScale*Math.sqrt(sse/data.length);
     if(!finite(rmse)||(r!==null&&!finite(r))||(r2!==null&&!finite(r2)))return bad('分析結果が計算できる範囲を超えています。');
-    return {warning:'',model,n:data.length,skipped,coefficients,centered,domain:[Math.min(...rawX),Math.max(...rawX)],predict,r,r2,rmse,residuals};
+    return {warning:'',model,n:data.length,skipped,excluded,coefficients,centered,domain:[Math.min(...rawX),Math.max(...rawX)],predict,r,r2,rmse,residuals};
   }
   function equation(result,x='x',y='y'){
     if(!result||result.warning||!Array.isArray(result.coefficients))return '';

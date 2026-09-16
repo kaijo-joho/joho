@@ -16,3 +16,7 @@ r=A.fit({rows:[[0,1],[1,3],[2,4]]},'proportional');near(r.coefficients[1],11/5);
 r=A.fit({rows:[[0,1],[1,-2],[null,4]]},'exponential');assert(r.warning);assert.equal(r.n,2);assert.equal(r.skipped,1);assert.equal(r.predict,null);
 r=A.fit({rows:[[1,1e-15],[2,2e-15],[3,3e-15]]},'linear');assert(Math.abs(r.coefficients[1]-1e-15)<1e-28);assert.match(A.equation(r),/e-15/);
 assert(!/\+\s*-/.test(A.equation(A.fit({rows:[[0,-2],[1,1],[2,4]]},'linear'))));
+// Excluded observations retain their original row number and do not count as missing.
+r=A.fit({rows:[[0,1],[1,99],[2,5],[null,3]],excludedRows:[1]},'linear');assert.equal(r.warning,'');assert.equal(r.excluded,1);assert.equal(r.skipped,1);assert.deepStrictEqual(r.residuals.map(p=>p[0]),[1,3]);near(r.coefficients[0],1);near(r.coefficients[1],2);
+assert.match(A.fit({rows:[[0,1],[Infinity,2]],excludedRows:[1]},'linear').warning,/有限/);
+assert.match(A.fit({rows:[[0,1],[1,3]],excludedRows:[1,1]},'linear').warning,/除外/);

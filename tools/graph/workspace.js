@@ -13,6 +13,7 @@
   const unique = values => [...new Set(values)];
   const chartById = (doc, id) => (doc && doc.charts || []).find(chart => chart && chart.id === id) || null;
   const titleFor = (item, doc) => item === 'main' ? (doc && doc.name || 'メインのグラフ') : (chartById(doc, item) || {}).name || 'グラフ';
+  const rowFromClick = (element, event) => { const point = event?.points?.[0], meta = point?.data?.meta || point?.fullData?.meta, layout = element?._fullLayout, mouse = event?.event, box = element?.getBoundingClientRect?.(); if (!point || !meta?.dataRows || meta.observationHighlight || !Array.isArray(point.customdata) || !Number.isInteger(point.customdata[0])) return null; if (layout?.xaxis?.d2p && layout?.yaxis?.d2p && mouse && box) { const x = layout.xaxis.d2p(point.x), y = layout.yaxis.d2p(point.y); if (!Number.isFinite(x) || !Number.isFinite(y) || Math.hypot(box.left + layout.xaxis._offset + x - mouse.clientX, box.top + layout.yaxis._offset + y - mouse.clientY) > 14) return null; } return { seriesId: meta.seriesId || meta.objectId, rowIndex: point.customdata[0] - 1 }; };
 
   function comparison(doc) {
     const source = doc && doc.comparison || {};
@@ -51,7 +52,8 @@
     if (clone.title) clone.title.font = Object.assign({}, clone.title.font, { color: '#172033', size: options.fontSize + 2 });
     if(options.title===false)delete clone.title;
     clone.paper_bgcolor = bg; clone.plot_bgcolor = bg;
-    ['xaxis', 'yaxis'].forEach(key => { if (clone[key]) { clone[key].color = '#172033'; clone[key].linecolor = '#172033'; clone[key].gridcolor = '#cbd5e1'; clone[key].zerolinecolor = '#374151'; if (clone[key].title) clone[key].title.font = Object.assign({}, clone[key].title.font, { color: '#172033' }); } });
+    ['xaxis', 'yaxis'].forEach(key => { if (clone[key]) { clone[key].color = '#172033'; clone[key].linecolor = '#172033'; clone[key].gridcolor = '#cbd5e1'; clone[key].zerolinecolor = '#374151'; clone[key].tickfont = Object.assign({}, clone[key].tickfont, { color: '#172033' }); if (clone[key].title) clone[key].title.font = Object.assign({}, clone[key].title.font, { color: '#172033' }); } });
+    for (const annotation of clone.annotations || []) { annotation.font = Object.assign({}, annotation.font, { color: '#172033' }); if (annotation.bgcolor) annotation.bgcolor = 'rgba(255,255,255,.88)'; if (annotation.bordercolor) annotation.bordercolor = '#6b7280'; }
     return clone;
   }
   function hostFor(element, width, height) {
@@ -59,16 +61,28 @@
     host.style.cssText = 'position:fixed;left:-10000px;top:0;width:' + width + 'px;height:' + height + 'px;visibility:hidden;';
     element.ownerDocument.body.appendChild(host); return host;
   }
+  function installChartBlankClick(element, callback) {
+    let latest = callback, down = null, hit = false;
+    const eligible = event => event.pointerType === 'touch' || event.button === 0;
+    const start = event => { if (!eligible(event)) return; down = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false, inside: !!event.target?.closest?.('.trace,.legend,.annotation') }; hit = false; };
+    const move = event => { if (down && event.pointerId === down.id && Math.hypot(event.clientX - down.x, event.clientY - down.y) > 4) down.moved = true; };
+    const end = event => { if (!down || event.pointerId !== down.id) return; const click = down; down = null; setTimeout(() => { if (!click.moved && !click.inside && !hit && typeof latest === 'function') latest(); }, 0); };
+    element.addEventListener('pointerdown', start, true); element.ownerDocument.addEventListener('pointermove', move, true); element.ownerDocument.addEventListener('pointerup', end, true);
+    return { hit: () => { hit = true; }, update: next => { latest = next; }, dispose: () => { element.removeEventListener('pointerdown', start, true); element.ownerDocument.removeEventListener('pointermove', move, true); element.ownerDocument.removeEventListener('pointerup', end, true); } };
+  }
   async function renderChart(element, chart, doc, options) {
     options = options || {};
     if (!root.Plotly || !element) throw new Error('Plotly を読み込めません。');
     if (!root.GraphCharts || typeof root.GraphCharts.build !== 'function') throw new Error('比較グラフの機能を読み込めません。');
-    const built = root.GraphCharts.build(chart, doc, { dark: !!options.dark, fontSize: options.fontSize });
+    const previous = states.get(element), built = root.GraphCharts.build(chart, doc, { dark: !!options.dark, fontSize: options.fontSize, selectedRow: options.selectedRow });
     const layout = Object.assign({}, built.layout || {}, { autosize: true, width: element.clientWidth || 640, height: element.clientHeight || 320, uirevision: 'chart:' + text(chart && chart.id) + ':' + text(chart && chart.kind) });
-    layout.uirevision += ':' + JSON.stringify([chart.seriesId,chart.regressionId,chart.horizontal,chart.xColumn,chart.yColumn,chart.column,chart.columns]);
+    layout.uirevision += ':' + JSON.stringify([chart.seriesId,chart.regressionId,chart.horizontal,chart.xColumn,chart.yColumn,chart.column,chart.columns,chart.axes]);
     if(options.title===false){delete layout.title;layout.margin={...layout.margin,t:24};}
     await root.Plotly.react(element, built.data || [], layout, { displayModeBar: false, responsive: true, scrollZoom: true });
-    states.set(element, { chart, doc, options, summary: text(built.summary), warnings: built.warnings || [] });
+    const blank = previous?.blankCleanup || installChartBlankClick(element, options.onBlankClick); blank.update(options.onBlankClick);
+    if (typeof element.removeAllListeners === 'function') element.removeAllListeners('plotly_click');
+    if (typeof element.on === 'function') element.on('plotly_click', event => { blank.hit(); const row = rowFromClick(element, event); if (row && typeof options.onRowSelect === 'function') options.onRowSelect(row); });
+    states.set(element, { chart, doc, options, summary: text(built.summary), warnings: built.warnings || [], blankCleanup: blank });
     return { warnings: unique(built.warnings || []), summary: text(built.summary) };
   }
   function resize(element) {
@@ -79,7 +93,7 @@
   }
   function purge(element) {
     if (!element) return;
-    if (states.has(element)) { if (root.Plotly && typeof root.Plotly.purge === 'function') root.Plotly.purge(element); states.delete(element); return; }
+    if (states.has(element)) { states.get(element).blankCleanup?.dispose(); if (root.Plotly && typeof root.Plotly.purge === 'function') root.Plotly.purge(element); states.delete(element); return; }
     const comparisonState = comparisonStates.get(element);
     if (comparisonState) {
       for (const panel of comparisonState.panels) purgePanel(panel);
@@ -101,7 +115,7 @@
     if (!state || !root.Plotly) throw new Error('グラフを描画してから書き出してください。');
     const out = output(options, { width: element.clientWidth || 640, height: element.clientHeight || 400 });
     const host = hostFor(element, out.width, out.height);
-    const data = JSON.parse(JSON.stringify(element.data || []));
+    const data = JSON.parse(JSON.stringify((element.data || []).filter(trace => !trace?.meta?.observationHighlight)));
     const layout = graphLayout(element.layout, out);
     try { await root.Plotly.newPlot(host, data, layout, { displayModeBar: false, responsive: false }); return await root.Plotly.toImage(host, { format: out.format, width: out.width, height: out.height, scale: out.scale }); }
     finally { if (root.Plotly && typeof root.Plotly.purge === 'function') root.Plotly.purge(host); host.remove(); }
@@ -126,7 +140,7 @@
       container.appendChild(card);
       try {
         const view = item === 'main' && panel.mode === doc.mode && doc.mode !== '3d' && plot.layout && JSON.stringify(previous?.doc.axes)===JSON.stringify(doc.axes) ? { x: plot.layout.xaxis && plot.layout.xaxis.range, y: plot.layout.yaxis && plot.layout.yaxis.range } : null;
-        const result = item === 'main' ? await root.GraphPlot.render(plot, doc, { dark: !!options.dark, fontSize: options.fontSize, compactLegend:true, camera:panel.mode===doc.mode?undefined:options.camera }) : await renderChart(plot, chartById(doc, item), doc, {...options,title:false});
+        const result = item === 'main' ? await root.GraphPlot.render(plot, doc, { dark: !!options.dark, fontSize: options.fontSize, compactLegend:true, camera:panel.mode===doc.mode?undefined:options.camera, selectedRow: options.selectedRow, onRowSelect: options.onRowSelect, onBlankClick: options.onBlankClick }) : await renderChart(plot, chartById(doc, item), doc, {...options,title:false});
         if (view && root.Plotly && typeof root.Plotly.relayout === 'function') { const changes = {}; if (Array.isArray(view.x)) changes['xaxis.range'] = view.x; if (Array.isArray(view.y)) changes['yaxis.range'] = view.y; if (Object.keys(changes).length) await root.Plotly.relayout(plot, changes); }
         summary.textContent = result.summary || '';
         warnings.push(...(result.warnings || [])); panel.mode = item === 'main' ? doc.mode : null; panels.push(panel);
@@ -138,7 +152,12 @@
   }
   async function resetView(element) {
     if (!element) return;
-    if (states.has(element)) return root.Plotly && typeof root.Plotly.relayout === 'function' ? root.Plotly.relayout(element, { 'xaxis.autorange': true, 'yaxis.autorange': true }) : undefined;
+    if (states.has(element)) {
+      if (!root.Plotly || typeof root.Plotly.relayout !== 'function') return;
+      const axes = states.get(element).chart?.axes || {}, changes = {};
+      for (const key of ['x', 'y']) { const axis = axes[key] || {}; if (Number.isFinite(axis.min) && Number.isFinite(axis.max) && axis.min < axis.max) { changes[key + 'axis.range'] = [axis.min, axis.max]; changes[key + 'axis.autorange'] = false; } else changes[key + 'axis.autorange'] = true; }
+      return root.Plotly.relayout(element, changes);
+    }
     const state = comparisonStates.get(element); if (!state) return;
     return Promise.all(state.panels.map(panel => panel.item === 'main' ? root.GraphPlot && typeof root.GraphPlot.resetView === 'function' ? root.GraphPlot.resetView(panel.plot, state.doc) : undefined : resetView(panel.plot)));
   }

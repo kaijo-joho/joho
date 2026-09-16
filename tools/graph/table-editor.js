@@ -17,6 +17,8 @@
     if(!series||!['data2d','data3d'].includes(series.kind))throw new Error('数表系列だけを編集できます。');
     const symbols={x:'x',y:'y',z:'z',...(options.symbols||{})},kind=series.kind;
     let table=cloneTable(GraphTables.fromSeries(series,symbols)),page=0,focusCell=null;
+    let excludedRows=new Set(Array.isArray(series.excludedRows)?series.excludedRows.filter(index=>Number.isInteger(index)&&index>=0&&index<table.rows.length):[]);
+    let focusedRow=Number.isInteger(options.selectedRow)&&options.selectedRow>=0&&options.selectedRow<table.rows.length?options.selectedRow:null;
     const selected=new Set();
     const root=make('section','graph-table-editor'),status=make('p','graph-table-editor__status');
     status.setAttribute('role','status');root.appendChild(status);parent.appendChild(root);
@@ -36,7 +38,7 @@
       }catch(error){report(error);throw error;}
     }
     function replace(next){
-      table=cloneTable(GraphTables.validate(next,kind));selected.clear();page=0;clearReport();render();
+      table=cloneTable(GraphTables.validate(next,kind));excludedRows.clear();selected.clear();focusedRow=null;page=0;clearReport();render();
     }
     function addColumns(required){
       if(table.columns.length+required>MAX_COLUMNS)throw new Error('数表は20列以内にしてください。');
@@ -82,7 +84,11 @@
       root.replaceChildren();ensurePage();
       const tools=make('div','graph-table-editor__tools');
       tools.append(button('行を追加',()=>{try{const rowIndex=table.rows.length;addRows(1);page=pageCount()-1;focusCell={row:rowIndex+1,column:0};clearReport();render();}catch(error){report(error);}}));
-      tools.append(button('選択行を削除',()=>{if(!selected.size)return;table.rows=table.rows.filter((_,index)=>!selected.has(index));selected.clear();clearReport();render();}));
+      tools.append(button('選択行を削除',()=>{if(!selected.size)return;const removed=new Set(selected),nextRows=[],remap=new Map();table.rows.forEach((row,index)=>{if(removed.has(index))return;remap.set(index,nextRows.length);nextRows.push(row);});table.rows=nextRows;excludedRows=new Set([...excludedRows].filter(index=>remap.has(index)).map(index=>remap.get(index)));if(focusedRow!==null)focusedRow=remap.has(focusedRow)?remap.get(focusedRow):null;selected.clear();clearReport();render();}));
+      const useSelected=button('選択行を回帰に使用',()=>{selected.forEach(index=>excludedRows.delete(index));render();});
+      const excludeSelected=button('選択行を回帰から除外',()=>{selected.forEach(index=>excludedRows.add(index));render();});
+      const useAll=button('全行を回帰に使用',()=>{excludedRows.clear();render();});
+      const regressionTools=make('details','graph-table-editor__regression-tools'),regressionSummary=make('summary','', '回帰に使う行の設定'); regressionTools.append(regressionSummary,useSelected,excludeSelected,useAll);tools.append(regressionTools);
       tools.append(button('列を追加',()=>{try{addColumns(1);clearReport();render();}catch(error){report(error);}}));
       tools.append(button('最後の列を削除',()=>{
         const index=table.columns.length-1,minimum=kind==='data3d'?3:2;
@@ -105,15 +111,18 @@
       table.columns.forEach((name,index)=>{const th=make('th',''),input=make('input','');th.scope='col';input.type='text';input.maxLength=80;input.value=name;input.setAttribute('aria-label',(index+1)+'列目の名前');input.addEventListener('input',()=>updateColumnName(index,input.value));th.appendChild(input);header.appendChild(th);});
       head.appendChild(header);grid.appendChild(head);
       const body=make('tbody');
-      shown.forEach((row,offset)=>{const rowIndex=start+offset,tr=make('tr',''),th=make('th',''),check=make('input','');th.scope='row';check.type='checkbox';check.checked=selected.has(rowIndex);check.setAttribute('aria-label',(rowIndex+1)+'行目を選択');check.addEventListener('change',()=>{check.checked?selected.add(rowIndex):selected.delete(rowIndex);});th.appendChild(check);th.appendChild(document.createTextNode((rowIndex+1)+'行'));tr.appendChild(th);
-        row.forEach((value,columnIndex)=>{const td=make('td',''),input=make('input','');input.type='text';input.inputMode='decimal';input.value=value;input.setAttribute('aria-label',(rowIndex+1)+'行'+(columnIndex+1)+'列');input.addEventListener('input',()=>{table.rows[rowIndex][columnIndex]=input.value;});input.addEventListener('paste',event=>paste(event,rowIndex,columnIndex));input.addEventListener('keydown',event=>{if(event.key!=='Enter')return;event.preventDefault();const nextRow=rowIndex+1;if(nextRow>=table.rows.length)return;if(nextRow>=start+PAGE_SIZE){page=Math.floor(nextRow/PAGE_SIZE);render();}const next=root.querySelector('[data-cell="'+(nextRow+1)+','+columnIndex+'"]');if(next)next.focus();});input.dataset.cell=(rowIndex+1)+','+columnIndex;td.appendChild(input);tr.appendChild(td);});body.appendChild(tr);});
+      shown.forEach((row,offset)=>{const rowIndex=start+offset,tr=make('tr',focusedRow===rowIndex?'graph-table-editor__focused-row':''),th=make('th',''),check=make('input',''),exclude=make('input','');th.scope='row';check.type='checkbox';check.checked=selected.has(rowIndex);check.setAttribute('aria-label',(rowIndex+1)+'行目を選択');check.addEventListener('change',()=>{check.checked?selected.add(rowIndex):selected.delete(rowIndex);});exclude.type='checkbox';exclude.checked=!excludedRows.has(rowIndex);exclude.className='graph-table-editor__regression-checkbox';exclude.setAttribute('aria-label',(rowIndex+1)+'行目を回帰に使用');exclude.addEventListener('change',()=>{exclude.checked?excludedRows.delete(rowIndex):excludedRows.add(rowIndex);});th.appendChild(check);th.appendChild(document.createTextNode((rowIndex+1)+'行'));th.appendChild(exclude);th.appendChild(document.createTextNode(' 回帰'));tr.appendChild(th);
+        row.forEach((value,columnIndex)=>{const td=make('td',''),input=make('input','');input.type='text';input.inputMode='decimal';input.value=value;input.setAttribute('aria-label',(rowIndex+1)+'行'+(columnIndex+1)+'列');input.addEventListener('focus',()=>{focusedRow=rowIndex;if(typeof options.onRowSelect==='function')options.onRowSelect(rowIndex);});input.addEventListener('input',()=>{table.rows[rowIndex][columnIndex]=input.value;});input.addEventListener('paste',event=>paste(event,rowIndex,columnIndex));input.addEventListener('keydown',event=>{if(event.key!=='Enter')return;event.preventDefault();const nextRow=rowIndex+1;if(nextRow>=table.rows.length)return;if(nextRow>=start+PAGE_SIZE){page=Math.floor(nextRow/PAGE_SIZE);render();}const next=root.querySelector('[data-cell="'+(nextRow+1)+','+columnIndex+'"]');if(next)next.focus();});input.dataset.cell=(rowIndex+1)+','+columnIndex;td.appendChild(input);tr.appendChild(td);});body.appendChild(tr);});
       grid.appendChild(body);wrap.appendChild(grid);root.appendChild(wrap);
       const pager=make('div','graph-table-editor__pager');pager.append(button('前の50行',()=>{page--;render();}));pager.append(make('span','', (table.rows.length?start+1:0)+'〜'+end+'行 / '+table.rows.length+'行'));pager.append(button('次の50行',()=>{page++;render();}));pager.children[0].disabled=page===0;pager.children[2].disabled=page>=pageCount()-1;root.appendChild(pager);
       const details=make('details','graph-table-editor__import'),summary=make('summary','','CSV・TSVを貼り付け');details.appendChild(summary);const textarea=make('textarea','');textarea.setAttribute('aria-label','CSV・TSVを貼り付け');details.appendChild(textarea);details.append(button('表に取り込む',()=>{try{if(!textarea.value.trim())throw new Error('CSV・TSVを入力してから表に取り込んでください。');replace(GraphTables.parse(textarea.value,kind));}catch(error){report(error);}}));root.appendChild(details);
       root.appendChild(status);
       if(focusCell){const target=root.querySelector('[data-cell="'+focusCell.row+','+focusCell.column+'"]');if(target)target.focus();focusCell=null;}
     }
-    render();return {read,replace,element:root};
+    function getExcludedRows(){return [...excludedRows].sort((a,b)=>a-b);}
+    function getSelectedRow(){return focusedRow;}
+    function focusRow(index){if(!Number.isInteger(index)||index<0||index>=table.rows.length)return false;focusedRow=index;page=Math.floor(index/PAGE_SIZE);render();const target=root.querySelector('[data-cell="'+(index+1)+',0"]');if(target)target.focus();if(typeof options.onRowSelect==='function')options.onRowSelect(index);return true;}
+    render();if(focusedRow!==null)focusRow(focusedRow);return {read,replace,element:root,getExcludedRows,getSelectedRow,focusRow};
   }
   return {mount};
 });

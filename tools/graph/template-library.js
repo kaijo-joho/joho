@@ -65,11 +65,14 @@
     if (settings.includeData !== undefined && typeof settings.includeData !== 'boolean') fail('データの設定が不正です。');
     const source = typeof document === 'string' ? parseJSON(document, 'グラフ文書') : document;
     if (!isObject(source)) fail('グラフ文書が不正です。');
-    const draft = clone(source);
+    // Normalize/migrate first.  Clearing data on a legacy document would
+    // otherwise add v10 fields to a v7/v8 payload before Core sees it.
+    const draft = clone(cleanDocument(source));
     if (settings.includeData === false) {
       for (const series of draft.series || []) {
         if (!isObject(series) || !['data2d', 'data3d'].includes(series.kind)) continue;
         series.rows = [];
+        series.excludedRows = [];
         if (isObject(series.dataTable)) series.dataTable.rows = [];
         if (series.kind === 'data2d' && isObject(series.errorBars)) series.errorBars = { x: [], y: [] };
       }

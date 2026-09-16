@@ -166,18 +166,19 @@
     }
     if (series.kind === 'function') { const p = sampleFunction(series, doc); return { type: 'scatter', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: p.x, y: p.y, name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color }, connectgaps: false }; }
     if (series.kind === 'surface') { const p = sampleSurface(series, doc); return { type: 'surface', x: p.x, y: p.y, z: p.z, name, showlegend: doc.legend !== false, showscale: false, opacity: st.opacity, colorscale: [[0, st.color], [1, st.color]] }; }
-    const rows = (series.rows || []).filter((r) => Array.isArray(r));
+    const rows = (series.rows || []).map(r => Array.isArray(r) ? r : []);
     const is3 = series.kind === 'data3d';
     const vals = (n) => rows.map((r) => r.every(finite) ? r[n] : null);
     if (is3) return { type: 'scatter3d', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: vals(0), y: vals(1), z: vals(2), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color, size: 4 }, connectgaps: false };
+    const excluded = new Set((series.excludedRows || []).filter(index => Number.isInteger(index) && index >= 0));
     const wantsInterpolation = series.interpolation === 'monotone' && st.lines && root.GraphDataCurves && typeof root.GraphDataCurves.interpolate === 'function';
     const points = wantsInterpolation ? root.GraphDataCurves.interpolate(rows, 'monotone') : { rows };
     if (points.warning) warnings.push((series.name || '数表') + '：' + points.warning);
     const valid = row => Array.isArray(row) && finite(row[0]) && finite(row[1]);
-    const observedMode = points.warning ? 'markers' : wantsInterpolation ? (st.points ? 'markers' : 'none') : st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : st.lines ? 'lines' : 'none';
-    const observed = { type: 'scatter', mode: observedMode, x: vals(0), y: vals(1), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color }, legendgroup: series.id, connectgaps: false, showlegend: !wantsInterpolation || !!points.warning };
+    const observedMode = points.warning ? 'markers' : wantsInterpolation ? (st.points || excluded.size ? 'markers' : 'none') : st.lines && (st.points || excluded.size) ? 'lines+markers' : st.points ? 'markers' : st.lines ? 'lines' : 'none';
+    const observed = { type: 'scatter', mode: observedMode, x: vals(0), y: vals(1), customdata: rows.map((_, index) => [index + 1]), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color, symbol: rows.map((_, index) => excluded.has(index) ? 'circle-open' : 'circle') }, legendgroup: series.id, connectgaps: false, showlegend: !wantsInterpolation || !!points.warning, meta: { objectType: 'series', objectId: series.id, dataRows: true, seriesId: series.id } };
     const renderedRows = points.rows || rows;
-    const trace = { type: 'scatter', mode: 'lines', x: renderedRows.map(r => valid(r) ? r[0] : null), y: renderedRows.map(r => valid(r) ? r[1] : null), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, legendgroup: series.id, connectgaps: false, showlegend: true };
+    const trace = { type: 'scatter', mode: 'lines', x: renderedRows.map(r => valid(r) ? r[0] : null), y: renderedRows.map(r => valid(r) ? r[1] : null), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, legendgroup: series.id, connectgaps: false, showlegend: true, meta: { objectType: 'series', objectId: series.id } };
     const bars = series.errorBars || {}, addBars = (key, axisKey) => {
       const values = Array.isArray(bars[key]) && bars[key].length === rows.length ? bars[key] : null;
       if (!values) return;
@@ -407,6 +408,19 @@
     const x = layout.xaxis.d2p(point.x), y = layout.yaxis.d2p(point.y);
     return finite(x) && finite(y) && Math.hypot(box.left + layout.xaxis._offset + x - mouse.clientX, box.top + layout.yaxis._offset + y - mouse.clientY) <= 24;
   }
+  function rowFromClick(element, event) {
+    const point = event?.points?.[0], meta = point?.data?.meta || point?.fullData?.meta;
+    if (!point || !meta?.dataRows || meta.observationHighlight || !Array.isArray(point.customdata) || !Number.isInteger(point.customdata[0])) return null;
+    const layout = element?._fullLayout, mouse = event?.event, box = element?.getBoundingClientRect?.();
+    if (layout?.xaxis?.d2p && layout?.yaxis?.d2p && mouse && box) { const x = layout.xaxis.d2p(point.x), y = layout.yaxis.d2p(point.y); if (!finite(x) || !finite(y) || Math.hypot(box.left + layout.xaxis._offset + x - mouse.clientX, box.top + layout.yaxis._offset + y - mouse.clientY) > 14) return null; }
+    return { seriesId: meta.seriesId || meta.objectId, rowIndex: point.customdata[0] - 1 };
+  }
+  function observationHighlight(series, selectedRow) {
+    if (!selectedRow || selectedRow.seriesId !== series.id || !Number.isInteger(selectedRow.rowIndex)) return null;
+    const row = (series.rows || [])[selectedRow.rowIndex];
+    if (!Array.isArray(row) || !finite(row[0]) || !finite(row[1])) return null;
+    return { type: 'scatter', mode: 'markers', x: [row[0]], y: [row[1]], hoverinfo: 'skip', showlegend: false, marker: { symbol: 'circle-open', size: 16, color: '#172033', line: { color: '#ffffff', width: 1 } }, meta: { observationHighlight: true, objectType: 'series', objectId: series.id } };
+  }
 
   async function render(element, doc, options) {
     options = options || {};
@@ -419,7 +433,8 @@
     for (const s of doc.series || []) {
       if (s.visible === false || (doc.mode === '3d' ? !['surface', 'data3d'].includes(s.kind) : ['surface', 'data3d'].includes(s.kind))) continue;
       const produced = traceFor(s, doc, warnings);
-      for (const trace of Array.isArray(produced) ? produced : [produced]) { trace.meta = { objectType: 'series', objectId: s.id }; traces.push(trace); }
+      for (const trace of Array.isArray(produced) ? produced : [produced]) { trace.meta = Object.assign({ objectType: 'series', objectId: s.id }, trace.meta || {}); traces.push(trace); }
+      const highlight = doc.mode === '2d' && s.kind === 'data2d' ? observationHighlight(s, options.selectedRow) : null; if (highlight) traces.push(highlight);
     }
     if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false && a.kind !== 'region' && a.kind !== 'curveRegion') {
       try { traces.push(...annotationTraces(a, doc, warnings, decorations)); } catch (error) { warnings.push((a.name || '点・補助線') + '：' + error.message); }
@@ -433,7 +448,7 @@
     const blank = state.blankCleanup || installBlankClick(element, options.onBlankClick, traces); blank?.update(options.onBlankClick, traces, options, doc.mode);
     const live = { doc, camera: (element.layout && element.layout.scene && element.layout.scene.camera) || camera, options, blankCleanup: blank }; states.set(element, live);
     if (typeof element.on === 'function') {
-      element.on('plotly_click', (event) => { const hit = actualPlotHit(element, event) || traceHit(element, traces, event.event || {}); if (typeof options.onBlankClick === 'function' && !hit) return; blank?.hit(); const meta = selectionMeta(element, event, traces); if (!meta) return; const callback = meta.objectType === 'annotation' ? options.onAnnotationSelect : options.onSelect; if (typeof callback === 'function') callback(meta.objectId); });
+      element.on('plotly_click', (event) => { const hit = actualPlotHit(element, event) || traceHit(element, traces, event.event || {}); if (typeof options.onBlankClick === 'function' && !hit) return; blank?.hit(); const row = actualPlotHit(element, event) ? rowFromClick(element, event) : null; if (row && typeof options.onRowSelect === 'function') { options.onRowSelect(row); return; } const meta = selectionMeta(element, event, traces); if (!meta) return; const callback = meta.objectType === 'annotation' ? options.onAnnotationSelect : options.onSelect; if (typeof callback === 'function') callback(meta.objectId); });
       element.on('plotly_clickannotation',event=>{blank?.hit();const item=element.layout?.annotations?.[event.index];if(item&&doc.annotations?.some(a=>a.id===item.name)&&typeof options.onAnnotationSelect==='function')options.onAnnotationSelect(item.name);});
       element.on('plotly_hover', event => blank?.hover(selectionMeta(element, event, traces)));
       element.on('plotly_unhover', () => blank?.hover(null));
@@ -474,7 +489,7 @@
     if (requested.background !== 'white' && requested.background !== 'transparent') throw new Error('背景は白または透明を指定してください。');
     const output = validateOutput(requested);
     const host = element.ownerDocument.createElement('div'); host.style.cssText = 'position:fixed;left:-10000px;top:0;width:' + output.width + 'px;height:' + output.height + 'px;'; element.ownerDocument.body.appendChild(host);
-    const data = (element.data || []).map((x) => JSON.parse(JSON.stringify(x))); const layout = JSON.parse(JSON.stringify(element.layout || layoutFor(state.doc, state.options)));
+    const data = (element.data || []).filter(x => !x?.meta?.observationHighlight).map((x) => JSON.parse(JSON.stringify(x))); const layout = JSON.parse(JSON.stringify(element.layout || layoutFor(state.doc, state.options)));
     const transparent = output.background === 'transparent', bg = transparent ? 'rgba(0,0,0,0)' : '#ffffff', fg = '#172033', grid = '#cbd5e1';
     layout.width = output.width; layout.height = output.height; layout.autosize = false; layout.margin = { l: output.margin, r: output.margin, t: output.margin, b: output.margin };
     if(layout.legend?.orientation==='h'&&layout.legend.yref==='container')layout.margin.b=Math.max(output.margin,output.fontSize*6.5);

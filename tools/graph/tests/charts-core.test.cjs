@@ -28,14 +28,14 @@ function valid(doc) { return Core.validateDocument(doc); }
 
 {
   const clean = valid(documentWithCharts());
-  assert.equal(clean.version, 9);
+  assert.equal(clean.version, 10);
   assert.deepEqual(clean.charts.map(chart => chart.kind), ['residual', 'scatter', 'histogram', 'box']);
   assert.deepEqual(clean.comparison.items, ['main', 'residual-1', 'scatter-1', 'histogram-1', 'box-1']);
   assert.deepEqual(valid(JSON.parse(JSON.stringify(clean))), clean, '全chart種別を保存形式から復元できる');
 }
 {
   const old = Core.createDocument(); old.version = 8; delete old.charts; delete old.comparison;
-  const migrated = valid(old); assert.equal(migrated.version, 9); assert.deepEqual(migrated.charts, []); assert.deepEqual(migrated.comparison, { columns: 2, items: ['main'] });
+  const migrated = valid(old); assert.equal(migrated.version, 10); assert.deepEqual(migrated.charts, []); assert.deepEqual(migrated.comparison, { columns: 2, items: ['main'] });
   assert.throws(() => valid({ ...old, charts: [] }), /版/);
 }
 {
@@ -84,7 +84,7 @@ function valid(doc) { return Core.validateDocument(doc); }
 }
 {
   const source = Templates.list().find(item => item.id === 'science-spring-regression').document;
-  const withChart = Core.clone(source); withChart.version = 9; withChart.presentation = Core.createDocument().presentation; withChart.output = Core.createDocument().output; withChart.charts = [{ ...Charts.create('residual', { regressionId: 'spring-linear-fit', horizontal: 'x' }), id: 'residual' }]; withChart.comparison = { columns: 1, items: ['main', 'residual'] };
+  const withChart = Core.clone(source); withChart.version = 10; withChart.presentation = Core.createDocument().presentation; withChart.output = Core.createDocument().output; withChart.charts = [{ ...Charts.create('residual', { regressionId: 'spring-linear-fit', horizontal: 'x' }), id: 'residual' }]; withChart.comparison = { columns: 1, items: ['main', 'residual'] };
   const template = TemplateLibrary.create(withChart, { name: '列保持', includeData: false });
   assert.equal(template.document.charts[0].regressionId, 'spring-linear-fit');
   assert.deepEqual(template.document.comparison.items, ['main', 'residual']);

@@ -42,7 +42,7 @@ function annotate(d, kind, id) { const a = C.createAnnotation(kind); a.id = id; 
     const old = C.createDocument(); old.version = version; delete old.presentation; delete old.output; delete old.charts; delete old.comparison;
     if (version === 1) delete old.annotations;
     if (version <= 2) for (const axis of Object.values(old.axes)) { delete axis.symbol; delete axis.ticks; }
-    const clean = C.validateDocument(old); assert.equal(clean.version, 9, 'v' + version + ' migrates to v9');
+    const clean = C.validateDocument(old); assert.equal(clean.version, 10, 'v' + version + ' migrates to v10');
   }
   for (let version = 1; version <= 7; version++) {
     const old = C.createDocument(); old.version = version;
@@ -73,7 +73,7 @@ function annotate(d, kind, id) { const a = C.createAnnotation(kind); a.id = id; 
   assert.deepStrictEqual(history.document.annotations.map(a => a.id).sort(), ['q', 'r', 's2'], 'series → regression and all linked annotations cascade');
   history.undo(); assert.equal(history.document.annotations.length, d.annotations.length, 'Undo restores every dependent annotation');
   const memory = new Map(), store = new C.Store({ getItem: key => memory.get(key) || null, setItem: (key, value) => memory.set(key, value) });
-  store.save('auto', d); const loaded = store.load('auto').document; assert.equal(loaded.version, 9); assert.deepStrictEqual(loaded.series[0].dataTable, source.dataTable); assert.equal(loaded.annotations.find(a => a.id === 'point').anchor.regressionId, 'fit');
+  store.save('auto', d); const loaded = store.load('auto').document; assert.equal(loaded.version, 10); assert.deepStrictEqual(loaded.series[0].dataTable, source.dataTable); assert.equal(loaded.annotations.find(a => a.id === 'point').anchor.regressionId, 'fit');
 }
 console.log('graph tables core tests passed');
 

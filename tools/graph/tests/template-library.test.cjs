@@ -46,6 +46,20 @@ assert.deepEqual(JSON.parse(library.export(imported.id)).document, entry.documen
 assert.equal(library.remove(imported.id), true);
 assert.equal(library.remove(imported.id), false);
 
+// Legacy documents are migrated before data removal, so clearing data never
+// creates a mixed-version payload.
+const legacy = Core.createDocument(); legacy.version = 7; delete legacy.charts; delete legacy.comparison; delete legacy.presentation; delete legacy.output;
+const legacySeries = Core.createSeries('data2d'); legacySeries.id = 'legacy-data'; delete legacySeries.excludedRows; delete legacySeries.dataTable; legacySeries.rows = [[1, 2], [2, 4]]; legacySeries.errorBars = { x: [], y: [] }; legacySeries.interpolation = 'linear'; legacy.series = [legacySeries];
+// Legacy fixture intentionally excludes v8+ fields.
+assert(!Object.hasOwn(legacySeries, 'dataTable') && !Object.hasOwn(legacySeries, 'excludedRows'));
+Core.validateDocument(legacy);
+const legacyBefore = Core.clone(legacy), legacyTemplate = LibraryAPI.create(legacy, { name: '旧版データなし', includeData: false });
+assert.equal(legacyTemplate.document.version, Core.createDocument().version); assert.deepEqual(legacyTemplate.document.series[0].rows, []); assert.deepEqual(legacy, legacyBefore);
+
+const v10 = Core.clone(withData); v10.version = 10; v10.presentation = Core.createDocument().presentation; v10.output = Core.createDocument().output; v10.charts = []; v10.comparison = { columns: 2, items: ['main'] }; v10.series[0].excludedRows = [1]; const v10Before = Core.clone(v10);
+const v10Template = LibraryAPI.create(v10, { name: 'v10データなし', includeData: false });
+assert.deepEqual(v10Template.document.series[0].excludedRows, []); assert.deepEqual(v10, v10Before);
+
 storage.value = '{broken';
 assert.throws(() => library.list(), /JSON/);
 assert.equal(storage.value, '{broken');

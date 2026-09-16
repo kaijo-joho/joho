@@ -113,7 +113,7 @@ let browser, page;
   const preserved = await doc(), half = await screen([.5, .25]); await page.mouse.move(...half); await page.mouse.down(); await page.mouse.move(half[0] + 30, half[1] + 30); await page.mouse.up(); await settle(); assert.deepEqual(await doc(), preserved);
   // Save/load and actual SVG export retain the new content.
   const downloadPromise = page.waitForEvent('download'); await page.locator('#file-menu summary').click(); await page.locator('#save-local').click(); const file = await downloadPromise;
-  const saved = JSON.parse(fs.readFileSync(await file.path(), 'utf8')); assert.equal(saved.version, 9); assert(saved.annotations.some(a => a.kind === 'segment'));
+  const saved = JSON.parse(fs.readFileSync(await file.path(), 'utf8')); assert.equal(saved.version, 10); assert(saved.annotations.some(a => a.kind === 'segment'));
   await page.setInputFiles('#file-input', await file.path()); await settle(); assert.deepEqual(await doc(), saved);
   await page.locator('#export-tab').click(); await page.locator('#export-format').selectOption('svg'); const svgPromise = page.waitForEvent('download'); await page.locator('#export-image').click(); const svg = fs.readFileSync(await (await svgPromise).path(), 'utf8');
   fs.writeFileSync('/private/tmp/graph-03-export.svg',svg);
@@ -142,7 +142,7 @@ let browser, page;
   assert.equal(await page.evaluate(()=>document.querySelector('#plot').layout.scene.zaxis.title.text),'γ');
   const legacy=await page.evaluate(()=>{const d=GraphCore.createDocument();d.version=2;delete d.charts;delete d.comparison;delete d.presentation;delete d.output;d.series.push(GraphCore.createSeries());const p=GraphCore.createAnnotation('point');delete p.label;d.annotations.push(p);for(const a of Object.values(d.axes)){delete a.symbol;delete a.ticks;}return d;});
   await page.setInputFiles('#file-input',{name:'version2.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(legacy))});await settle();
-  assert.equal((await doc()).version,9);assert.equal((await doc()).axes.x.symbol,'x');assert.equal((await doc()).annotations[0].label.visible,true);
+  assert.equal((await doc()).version,10);assert.equal((await doc()).axes.x.symbol,'x');assert.equal((await doc()).annotations[0].label.visible,true);
   assert.deepEqual(errors, []); await browser.close(); await new Promise(resolve => server.close(resolve));
   console.log('graph phase3-browser.test.cjs: ok');
 })().catch(async error => { if (page) await page.screenshot({ path: '/private/tmp/graph-03-failure.png' }).catch(() => {}); if (browser) await browser.close(); server.close(); console.error(error); process.exitCode = 1; });

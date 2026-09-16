@@ -1,4 +1,6 @@
-# グラフエディタ 0.8.0 BETA
+# グラフエディタ 0.9.0 BETA
+
+0.9.0では、分析グラフごとの軸・書式・回帰式表示と複製、数表の行と点の連動、元データを残した回帰の使用・除外を追加した。詳細は [グラフ編集・行選択の契約](docs/chart-editing-row-link-contract.md) を参照。オープンデータの取り込みは [次期拡張案](docs/open-data-import-plan.md) に整理しており、URL取得は未実装。
 
 0.8.0では、残差グラフ、相関行列からの散布図、ヒストグラム・箱ひげ図、自作テンプレート、複数グラフの比較配置と画像・印刷を追加した。詳細は [分析グラフ・テンプレート・比較](docs/statistical-charts-contract.md) を参照。0.7.0の作図連携・数表・統計・教材出力は維持する。
 
@@ -45,7 +47,7 @@
 
 ## 保存と互換性
 
-形式は `kaijo-graph` version 9。version 1〜8を読み込んで移行し、多列数表・回帰参照・表示・出力に加えて分析グラフと比較配置を保存する。旧形式へ新フィールドや回帰注釈を混在させた文書は受け付けない。保存するのは元の数値・式・設定で、補間点や回帰計算結果は保存しない。ファイル名は `名前.graph.json`。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。
+形式は `kaijo-graph` version 10。version 1〜9を読み込んで移行し、多列数表・回帰参照・表示・出力に加えて分析グラフの軸・書式、比較配置、数表の回帰除外行を保存する。旧形式へ新フィールドや回帰注釈を混在させた文書は受け付けない。保存するのは元の数値・式・設定で、補間点や回帰計算結果は保存しない。ファイル名は `名前.graph.json`。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。
 
 ブラウザの保存キーは `kaijo-graph:auto` / `kaijo-graph:saved`、表示設定は `kaijo-graph:settings`、ヘルプは `kaijo-graph:help`。他アプリの保存領域と共用しない。保存済みの片方が壊れても他方を選べる。読込時は検証が成功するまで現在の文書を置き換えない。
 
@@ -128,6 +130,10 @@ node tools/graph/tests/regions-browser.test.cjs
 node tools/graph/tests/curve-regions-browser.test.cjs
 node tools/graph/tests/analysis-browser.test.cjs
 node tools/graph/tests/local-autosave-browser.test.cjs
+node tools/graph/tests/chart-presentation.test.cjs
+node tools/graph/tests/chart-editing-link-browser.test.cjs
+node tools/graph/tests/row-selection-browser.test.cjs
+node tools/graph/tests/table-editor-excluded-browser.test.cjs
 node --check tools/graph/editor.js
 git diff --check
 ```
