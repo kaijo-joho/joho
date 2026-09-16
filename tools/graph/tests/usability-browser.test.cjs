@@ -1,0 +1,140 @@
+/* Chrome: unified intersections, live tangent equations and persistent coefficient controls. */
+const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const http = require('node:http');
+const path = require('node:path');
+const os = require('node:os');
+let chromium;
+try { ({ chromium } = require('playwright')); }
+catch { ({ chromium } = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'))); }
+const root = path.resolve(__dirname, '../../..');
+const server = http.createServer((req, res) => {
+  const file = path.resolve(root, '.' + decodeURIComponent(req.url.split('?')[0]));
+  if (!file.startsWith(root + path.sep)) { res.writeHead(403); return res.end(); }
+  fs.readFile(file, (error, data) => { res.writeHead(error ? 404 : 200, { 'Content-Type': file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : file.endsWith('.svg') ? 'image/svg+xml' : 'text/html' }); res.end(error ? 'not found' : data); });
+});
+let browser, page;
+(async () => {
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  browser = await chromium.launch({ channel: 'chrome', headless: true });
+  const context = await browser.newContext({ viewport: { width: 1440, height: 1080 }, hasTouch: true, acceptDownloads: true });
+  await context.addInitScript(() => Object.defineProperty(window, 'showSaveFilePicker', { value: undefined, configurable: true }));
+  page = await context.newPage(); const errors = [];
+  page.on('pageerror', error => errors.push(error.message));
+  const settle = () => page.waitForFunction(() => window.GraphEditor && !GraphEditor.getState().drawing && !document.querySelector('#editor-dialog').open);
+  const doc = () => page.evaluate(() => GraphEditor.getDocument());
+  const fill = (label, value) => page.getByLabel(label, { exact: true }).fill(String(value));
+  const submit = async () => { await page.locator('#dialog-submit').click(); await settle(); };
+  const action = label => page.locator('#selection-toolbar').getByRole('button', { name: label, exact: true });
+  const item = id => page.locator('[data-object-id="' + id + '"]');
+  const equation = id => page.locator('[data-tangent-equation="' + id + '"]');
+  const results = id => page.evaluate(id => { const d = GraphEditor.getDocument(); return GraphAnnotations.evaluate(d.annotations.find(a => a.id === id), d); }, id);
+  const labels = () => page.evaluate(() => document.querySelector('#plot').layout.annotations.map(a => a.text));
+  const undo = async () => { await page.locator('#undo').click(); await settle(); };
+  await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
+  assert.equal(await page.locator('#annotation-tools button').count(), 6);
+  assert.equal(await page.getByRole('button', { name: '接線どうしの交点を追加', exact: true }).count(), 0);
+  await page.locator('#add-parameter').click(); await fill('最小値', 0.5); await fill('最大値', 4); await fill('刻み幅', 0.5); await submit();
+  await page.locator('#add-parameter').click(); await fill('名前（半角英字。例：a）', 'b'); await submit();
+  await action('選択を解除').click();
+  const slider = page.locator('#parameter-list input[aria-label="a の値"]'), number = page.getByLabel('a の数値', { exact: true });
+  assert(await slider.isVisible()); assert(await page.getByLabel('b の値', { exact: true }).isVisible());
+  assert.equal(await page.locator('#selection-toolbar input').count(), 0);
+  const seriesId = (await doc()).series[0].id;
+  await item(seriesId).dblclick(); await page.locator('#editor-dialog[open]').waitFor();
+  await fill('名前', '放物線'); await fill('数式（例：y = a*x^2）', 'a*x^2'); await submit();
+  await page.locator('#stage').focus(); await page.keyboard.press('Enter'); await page.locator('#editor-dialog[open]').waitFor(); await page.locator('#dialog-cancel').click();
+  for (const [name, at] of [['T＋', 1], ['T−', -1]]) {
+    await page.locator('#add-tangent').click();
+    assert.equal(await page.locator('#dialog-title').innerText(), '追加：接線', 'one click opens the tangent form');
+    await fill('名前', name); await fill('接点の x 座標', at);
+    assert((await page.getByLabel('接線の方程式', { exact: true }).innerText()).includes('≈'));
+    assert(await page.getByLabel('接線の方程式を図に表示', { exact: true }).isChecked()); await submit();
+  }
+  let document = await doc(); const [plus, minus] = document.annotations.filter(a => a.kind === 'tangent').map(a => a.id);
+  assert((await equation(plus).innerText()).includes('2x'));
+  assert((await labels()).some(t => t.includes('T＋') && t.includes('≈')));
+  await page.locator('#add-intersection').click();
+  await fill('名前', '接線の交点');
+  await page.getByLabel('1つ目の対象', { exact: true }).selectOption('tangent:' + plus);
+  await page.getByLabel('2つ目の対象', { exact: true }).selectOption('tangent:' + minus);
+  assert(!await page.getByLabel('探索する x の最小値', { exact: true }).isVisible()); await submit();
+  const tangentIntersection = (await doc()).annotations.at(-1).id;
+  assert.equal((await doc()).annotations.at(-1).kind, 'tangentIntersection');
+  assert(Math.abs((await results(tangentIntersection)).points[0][1] + 1) < 1e-7);
+  await page.locator('#add-function').click(); await fill('名前', '水平線'); await fill('数式（例：y = a*x^2）', '1'); await submit();
+  const horizontal = (await doc()).series.at(-1).id;
+  await item(plus).click(); await action('この接線との交点').click();
+  assert.equal(await page.getByLabel('1つ目の対象', { exact: true }).inputValue(), 'tangent:' + plus);
+  await fill('名前', '数式と接線'); await page.getByLabel('2つ目の対象', { exact: true }).selectOption('series:' + horizontal);
+  assert(await page.getByLabel('探索する x の最小値', { exact: true }).isVisible()); await submit();
+  const mixed = (await doc()).annotations.at(-1).id;
+  assert.deepEqual((await doc()).annotations.at(-1).targets, [{ type: 'tangent', id: plus }, { type: 'series', id: horizontal }]);
+  assert(Math.abs((await results(mixed)).points[0][0] - 1) < 1e-7);
+  // Controls remain visible with a curve selected. Preview does not save or mutate history.
+  await item(seriesId).click(); await slider.scrollIntoViewIfNeeded(); await slider.focus();
+  await page.waitForTimeout(350);
+  const savedBefore = await page.evaluate(() => localStorage.getItem('kaijo-graph:auto'));
+  await slider.evaluate(el => { window.sliderUnderTest = el; el.value = '2'; el.dispatchEvent(new Event('input', { bubbles: true })); }); await settle();
+  assert.equal((await doc()).parameters[0].value, 1);
+  assert((await equation(plus).innerText()).includes('4x'));
+  assert((await labels()).some(t => t.includes('4x')));
+  await page.waitForTimeout(350); assert.equal(await page.evaluate(() => localStorage.getItem('kaijo-graph:auto')), savedBefore);
+  assert(await slider.evaluate(el => el === window.sliderUnderTest && el === document.activeElement));
+  await page.keyboard.press('Escape'); await settle(); assert.equal(await slider.inputValue(), '1'); assert((await equation(plus).innerText()).includes('2x'));
+  await slider.evaluate(el => { el.value = '2'; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true })); }); await settle(); assert.equal(await slider.inputValue(), '1');
+  const bounds = await slider.boundingBox(), x = ratio => bounds.x + 8 + (bounds.width - 16) * ratio, y = bounds.y + bounds.height / 2;
+  await page.mouse.move(x(1 / 7), y); await page.mouse.down(); await page.mouse.move(x(5 / 7), y, { steps: 8 }); await page.mouse.up(); await settle();
+  assert.equal((await doc()).parameters[0].value, 3); assert.equal((await doc()).parameters[1].value, 1);
+  assert(await slider.evaluate(el => el === window.sliderUnderTest && el === document.activeElement));
+  assert.equal((await page.evaluate(() => GraphEditor.getState())).selected.id, seriesId);
+  assert(Math.abs((await results(mixed)).points[0][0] - 2 / 3) < 1e-7);
+  await undo(); assert.equal((await doc()).parameters[0].value, 1, 'one undo restores the whole slider gesture');
+  await page.locator('#redo').click(); await settle(); assert.equal((await doc()).parameters[0].value, 3);
+  await number.fill('20'); await number.press('Tab'); await settle(); assert.equal((await doc()).parameters[0].value, 3); assert.equal(await number.inputValue(), '3');
+  await number.fill(''); await number.press('Tab'); assert.equal(await number.inputValue(), '3');
+  await number.fill('2'); await number.press('Tab'); await settle(); assert.equal((await doc()).parameters[0].value, 2);
+  // Visibility of the source does not disable registered tangents/intersections.
+  await item(plus).click(); await action('非表示にする').click(); await settle(); assert(Math.abs((await results(mixed)).points[0][0] - 0.75) < 1e-7);
+  await action('表示する').click(); await settle();
+  await action('文字・配置').click(); await page.getByLabel('接線の方程式を図に表示', { exact: true }).uncheck(); await submit();
+  assert((await equation(plus).innerText()).includes('4x')); assert(!(await labels()).some(t => t.includes('T＋') && t.includes('≈')));
+  await action('文字・配置').click(); await page.getByLabel('接線の方程式を図に表示', { exact: true }).check(); await submit();
+  await action('色・線').hover(); await page.waitForFunction(() => document.querySelector('.joho-tip.show')?.textContent === '色・線');
+  assert.equal(await page.locator('#selection-toolbar button:not([aria-label])').count(), 0);
+  assert.equal(await action('色・線').locator('svg[aria-hidden="true"]').count(), 1);
+  await action('削除').click(); await settle(); assert(!(await doc()).annotations.some(a => [plus, mixed, tangentIntersection].includes(a.id))); await undo();
+  // The same intersection keeps its ID when edited; dependent segments remain valid.
+  await item(tangentIntersection).click(); await action('この点から線分').click(); await fill('名前', '交点からの線分'); await submit();
+  const beforeBadChange = await doc(); await item(tangentIntersection).dblclick();
+  await page.getByLabel('2つ目の対象', { exact: true }).selectOption('series:' + horizontal); await page.locator('#dialog-submit').click();
+  assert((await page.locator('#dialog-error').innerText()).includes('線分の端点')); assert.deepEqual(await doc(), beforeBadChange); await page.locator('#dialog-cancel').click();
+  // Save/reopen v4, and keep the equation in the exported SVG.
+  await page.locator('#file-menu summary').click(); await page.locator('#save-browser').click();
+  const saved = await doc(); await page.reload(); await page.locator('#editor-dialog[open]').waitFor(); await page.getByRole('button', { name: /^明示保存：/ }).click(); await settle();
+  assert.deepEqual(await doc(), saved); assert.equal((await doc()).version, 4);
+  const svg = await page.evaluate(async () => { const url = await GraphPlot.exportImage(document.querySelector('#plot'), { format: 'svg', scale: 1, background: 'white' }); return fetch(url).then(r => r.text()); });
+  assert(svg.includes('≈') && svg.includes('4x'));
+  // Touch, large text and the single-line header at a narrow viewport.
+  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape'); await settle();
+  await item(plus).click(); await page.screenshot({ path: '/private/tmp/graph-usability-desktop.png' });
+  await page.setViewportSize({ width: 390, height: 850 }); await page.waitForTimeout(200); await settle();
+  assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth));
+  assert(await page.locator('.top').evaluate(el => [...el.children].filter(c => c.getBoundingClientRect().width).every(c => c.getBoundingClientRect().bottom <= el.getBoundingClientRect().bottom)));
+  await page.locator('#list-toggle').tap(); await slider.scrollIntoViewIfNeeded(); await slider.tap(); await settle();
+  assert(await slider.isVisible()); assert.equal(await slider.evaluate(el => el === window.sliderUnderTest), false, 'reload creates fresh DOM, subsequent edits preserve it');
+  await page.screenshot({ path: '/private/tmp/graph-usability-mobile.png' });
+  await page.locator('#list-close').tap(); await page.locator('#stage').focus(); await page.keyboard.press('Escape');
+  await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.locator('#operation-help:visible').waitFor(); await page.keyboard.press('Escape');
+  // Existing v3 tangents keep their old diagram appearance and all endpoint references.
+  const legacy = structuredClone(saved); legacy.version = 3;
+  legacy.annotations = legacy.annotations.filter(a => a.id !== mixed);
+  for (const a of legacy.annotations) delete a.showEquation;
+  await page.setInputFiles('#file-input', { name: 'old-v3.graph.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy)) }); await settle();
+  assert.equal((await doc()).version, 4); assert((await doc()).annotations.filter(a => a.kind === 'tangent').every(a => a.showEquation === false));
+  assert.deepEqual((await doc()).annotations.filter(a => a.kind === 'segment'), legacy.annotations.filter(a => a.kind === 'segment'));
+  await page.locator('#file-menu summary').click(); await page.locator('#new-document').click(); await settle();
+  assert.equal(await page.locator('#parameter-list .parameter-row').count(), 0, 'loading an empty document removes every old coefficient control');
+  assert.deepEqual(errors, []); await browser.close(); await new Promise(resolve => server.close(resolve));
+  console.log('graph usability-browser.test.cjs: ok');
+})().catch(async error => { if (page) await page.screenshot({ path: '/private/tmp/graph-usability-failure.png' }).catch(() => {}); if (browser) await browser.close(); server.close(); console.error(error); process.exitCode = 1; });

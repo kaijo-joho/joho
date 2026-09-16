@@ -140,7 +140,11 @@
     if (result.points.length && annotation.kind !== 'text') traces.push(Object.assign({}, common, { x: result.points.map(p => p[0]), y: result.points.map(p => p[1]), mode: 'markers', marker: { color: st.color, size: 9, symbol: 'circle' }, hovertemplate: esc(doc.axes.x.symbol || 'x') + ' = %{x:.8g}<br>' + esc(doc.axes.y.symbol || 'y') + ' = %{y:.8g}<extra>' + esc(annotation.name) + '</extra>' }));
     const label = annotation.label || {visible:true,dx:12,dy:-12,size:13};
     const positions = result.points.length ? result.points : result.segments.length ? [result.segments[0][0].map((v,i)=>(v+result.segments[0][1][i])/2)] : [];
-    if (label.visible) positions.forEach((point,i) => decorations.push({name:annotation.id, x:point[0],y:point[1],xref:'x',yref:'y',text:rich(annotation.kind==='text'?annotation.text:annotation.name+(positions.length>1?' '+(i+1):'')),showarrow:false,xanchor:'left',yanchor:'bottom',xshift:label.dx,yshift:-label.dy,font:annotation.kind==='text'?{size:label.size,color:st.color}:{size:label.size},opacity:st.opacity,captureevents:true}));
+    const equation = annotation.kind==='tangent'&&annotation.showEquation ? root.GraphAnnotations.tangentEquation(annotation,doc).text : '';
+    if (label.visible || equation) positions.forEach((point,i) => {
+      const title=label.visible?rich(annotation.kind==='text'?annotation.text:annotation.name+(positions.length>1?' '+(i+1):'')):'';
+      decorations.push({name:annotation.id,x:point[0],y:point[1],xref:'x',yref:'y',text:[title,equation?rich(equation):''].filter(Boolean).join('<br>'),showarrow:false,xanchor:'left',yanchor:'bottom',xshift:label.dx,yshift:-label.dy,font:annotation.kind==='text'?{size:label.size,color:st.color}:{size:label.size},opacity:st.opacity,captureevents:true});
+    });
     if (annotation.kind === 'segment' && annotation.arrows !== 'none' && result.segments.length) {
       const [a,b]=result.segments[0];
       const head=(from,to)=>traces.push(Object.assign({},common,{x:[from[0],to[0]],y:[from[1],to[1]],mode:'markers',showlegend:false,hoverinfo:'skip',meta:{...meta,decoration:true},marker:{symbol:'arrow',angleref:'previous',size:[0,8+3*st.width],color:st.color}}));

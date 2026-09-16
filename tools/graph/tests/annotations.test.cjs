@@ -35,6 +35,8 @@ const doc = () => ({
     { id: 'curve', kind: 'parametric', components: { x: 't', y: 't^2' }, interval: [0, 2], domain: { x: [-4, 4] } },
     { id: 'polar', kind: 'polar', expression: '2', interval: [0, Math.PI * 2], domain: { x: [-4, 4] } },
     { id: 'parameterCurve', kind: 'function', expression: 'y=a*x', domain: { x: [-4, 4] } },
+    { id: 'tinySlope', kind: 'function', expression: 'y=1e-8*x+2', domain: { x: [-4, 4] } },
+    { id: 'hugeIntercept', kind: 'function', expression: 'y=x+1000000000.5', domain: { x: [-4, 4] } },
     { id: 'coefficientCurve', kind: 'parametric', components: { x: 'a*t', y: 't' }, interval: [0, 2], domain: { x: [-4, 4] } }
   ]
 });
@@ -161,6 +163,31 @@ const near = (actual, expected, tolerance = 1e-5) => assert(Math.abs(actual - ex
   near(line.point[0], 1); near(line.point[1], 1); near(line.slope, 2, 1e-4);
   const result = Annotations.evaluate(document.annotations[0], document);
   assert.equal(result.warning, ''); assert.equal(result.points.length, 1); near(result.points[0][0], 1.5); near(result.points[0][1], 2);
+}
+{
+  const document = doc(); document.axes.x.symbol = 'u'; document.axes.y.symbol = 'v'; document.annotations = [{ id: 't', kind: 'tangent', seriesId: 'square', at: '1' }];
+  const equation = Annotations.tangentEquation(document.annotations[0], document);
+  assert.equal(equation.warning, ''); assert.match(equation.text, /^v ≈ 2u − 1$/);
+  const horizontal = Annotations.tangentEquation({ id: 'horizontal', kind: 'tangent', seriesId: 'square', at: '0' }, document);
+  assert.equal(horizontal.text, 'v ≈ 0');
+  const tiny = Annotations.tangentEquation({ id: 'small', kind: 'tangent', seriesId: 'tinySlope', at: '0' }, document);
+  assert.match(tiny.text, /e-8|e-9|0\.0000000/); assert.match(tiny.text, / × u/); assert.doesNotMatch(tiny.text, /≈ 0u/);
+  const huge = Annotations.tangentEquation({ id: 'huge', kind: 'tangent', seriesId: 'hugeIntercept', at: '0' }, document);
+  assert.match(huge.text, /1000000000\.5/);
+}
+{
+  const document = doc(); document.annotations = [{ id: 'tLine', kind: 'tangent', seriesId: 'line', at: '0', visible: false }];
+  const mixed = { kind: 'intersection', targets: [{ type: 'series', id: 'square' }, { type: 'tangent', id: 'tLine' }], interval: [-3, 3] };
+  const result = Annotations.evaluate(mixed, document);
+  assert.equal(result.points.length, 2); near(result.points[0][0], 0); near(result.points[1][0], 2);
+  const missing = Annotations.evaluate({ kind: 'intersection', targets: [{ type: 'series', id: 'square' }, { type: 'tangent', id: 'removed' }], interval: [-3, 3] }, document);
+  assert.equal(missing.points.length, 0); assert.match(missing.warning, /評価/);
+}
+{
+  const document = doc(); const tangent = { id: 'tA', kind: 'tangent', seriesId: 'parameterCurve', at: '1' }; document.annotations = [tangent];
+  const mixed = { kind: 'intersection', targets: [{ type: 'series', id: 'square' }, { type: 'tangent', id: 'tA' }], interval: [-3, 3] };
+  let result = Annotations.evaluate(mixed, document); assert.equal(result.points.length, 2); near(result.points[1][0], 2);
+  document.parameters[0].value = 3; result = Annotations.evaluate(mixed, document); assert.equal(result.points.length, 2); near(result.points[1][0], 3);
 }
 {
   const document = doc(); document.annotations = [

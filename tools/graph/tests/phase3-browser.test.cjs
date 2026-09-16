@@ -26,8 +26,9 @@ let browser, page;
   const fill = (label, value) => page.getByLabel(label, { exact: true }).fill(String(value));
   const submit = async () => { await page.locator('#dialog-submit').click(); await settle(); };
   const ann = name => page.locator('#annotation-list button').getByText(name, { exact: true });
-  const add = async name => { await page.locator('#add-annotation').click(); await page.getByRole('button', { name: name + 'を追加', exact: true }).click(); };
-  const more = async name => { await page.locator('#selection-toolbar summary').click(); await page.locator('#selection-toolbar').getByRole('button', { name, exact: true }).click(); };
+  const annotationButton = { '点':'#add-point', '補助線':'#add-guide', '接線':'#add-tangent', '交点':'#add-intersection', '線分・矢印':'#add-segment', '文字':'#add-text' };
+  const add = async name => { await page.locator(annotationButton[name]).click(); };
+  const more = async name => { await page.getByRole('button', { name, exact: true }).click(); };
   const axes = key => page.locator('[data-axis="' + key + '"]');
   const screen = point => page.evaluate(point => GraphPlot.screenPoint(document.querySelector('#plot'), point), point);
   async function drag(from, to, cancel = false) {
@@ -96,7 +97,7 @@ let browser, page;
   assert.notEqual((await doc()).annotations.find(a => a.id === textId).anchor.x, '-3');
   // Tangents are treated as infinite straight lines, independent of visible clipping.
   for (const [name, at] of [['接線A', -1], ['接線B', 1]]) { await add('接線'); await fill('名前', name); await fill('接点の x 座標', at); await submit(); }
-  await add('接線どうしの交点'); await fill('名前', 'T'); await submit();
+  await add('交点'); await fill('名前', 'T'); const tangentIds=(await doc()).annotations.filter(a=>a.kind==='tangent').slice(-2).map(a=>a.id); await page.getByLabel('1つ目の対象', { exact:true }).selectOption('tangent:'+tangentIds[0]); await page.getByLabel('2つ目の対象', { exact:true }).selectOption('tangent:'+tangentIds[1]); await submit();
   const tId = (await doc()).annotations.at(-1).id;
   const xy = await page.evaluate(id => GraphAnnotations.evaluate(GraphEditor.getDocument().annotations.find(a => a.id === id), GraphEditor.getDocument()).points[0], tId);
   assert(Math.abs(xy[0]) < 1e-8 && Math.abs(xy[1] + 1) < 1e-7);
@@ -109,7 +110,7 @@ let browser, page;
   const preserved = await doc(), half = await screen([.5, .25]); await page.mouse.move(...half); await page.mouse.down(); await page.mouse.move(half[0] + 30, half[1] + 30); await page.mouse.up(); await settle(); assert.deepEqual(await doc(), preserved);
   // Save/load and actual SVG export retain the new content.
   const downloadPromise = page.waitForEvent('download'); await page.locator('#file-menu summary').click(); await page.locator('#save-local').click(); const file = await downloadPromise;
-  const saved = JSON.parse(fs.readFileSync(await file.path(), 'utf8')); assert.equal(saved.version, 3); assert(saved.annotations.some(a => a.kind === 'segment'));
+  const saved = JSON.parse(fs.readFileSync(await file.path(), 'utf8')); assert.equal(saved.version, 4); assert(saved.annotations.some(a => a.kind === 'segment'));
   await page.setInputFiles('#file-input', await file.path()); await settle(); assert.deepEqual(await doc(), saved);
   await page.locator('#export-tab').click(); await page.locator('#export-format').selectOption('svg'); const svgPromise = page.waitForEvent('download'); await page.locator('#export-image').click(); const svg = fs.readFileSync(await (await svgPromise).path(), 'utf8');
   fs.writeFileSync('/private/tmp/graph-03-export.svg',svg);
@@ -138,7 +139,7 @@ let browser, page;
   assert.equal(await page.evaluate(()=>document.querySelector('#plot').layout.scene.zaxis.title.text),'γ');
   const legacy=await page.evaluate(()=>{const d=GraphCore.createDocument();d.version=2;d.series.push(GraphCore.createSeries());const p=GraphCore.createAnnotation('point');delete p.label;d.annotations.push(p);for(const a of Object.values(d.axes)){delete a.symbol;delete a.ticks;}return d;});
   await page.setInputFiles('#file-input',{name:'version2.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(legacy))});await settle();
-  assert.equal((await doc()).version,3);assert.equal((await doc()).axes.x.symbol,'x');assert.equal((await doc()).annotations[0].label.visible,true);
+  assert.equal((await doc()).version,4);assert.equal((await doc()).axes.x.symbol,'x');assert.equal((await doc()).annotations[0].label.visible,true);
   assert.deepEqual(errors, []); await browser.close(); await new Promise(resolve => server.close(resolve));
   console.log('graph phase3-browser.test.cjs: ok');
 })().catch(async error => { if (page) await page.screenshot({ path: '/private/tmp/graph-03-failure.png' }).catch(() => {}); if (browser) await browser.close(); server.close(); console.error(error); process.exitCode = 1; });

@@ -34,6 +34,7 @@ let browser;
   }
   await open();
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).mode, '2d');
+  assert.equal((await page.evaluate(() => GraphEditor.getDocument())).version, 4);
   assert(await page.locator('#plot .main-svg').count(), '2D graph is drawn');
 
   await page.locator('#add-function').click(); await setField('数式', 'y = sin(x)'); await submit();
@@ -59,7 +60,7 @@ let browser;
 
   await page.locator('#mode-2d').click(); await page.locator('#add-parameter').click(); await setField('名前', 'a'); await submit();
   await page.locator('#add-function').click(); await setField('数式', 'y = a*x^2'); await submit();
-  await page.getByRole('button', { name: /a =/ }).click(); const slider = page.locator('#selection-toolbar input[type=range]'); await slider.fill('2');
+  const slider = page.locator('#parameter-list input[type=range]').first(); await slider.fill('2');
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).parameters.find(p => p.name === 'a').value, 2);
   await page.locator('#undo').waitFor({ state: 'visible' }); await page.locator('#undo').click(); await page.waitForTimeout(80); assert.equal((await page.evaluate(() => GraphEditor.getDocument())).parameters.find(p => p.name === 'a').value, 1);
 

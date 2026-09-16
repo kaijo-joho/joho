@@ -6,8 +6,10 @@
   'use strict';
 
   const Expression = typeof module === 'object' && module.exports ? require('./expression.js') : root.GraphExpression;
+  let requiredSymbols = null;
   let requiredCurves = null;
   if (typeof module === 'object' && module.exports) {
+    try { requiredSymbols = require('./symbols.js'); } catch (_) { /* symbols.js may load after this independent module. */ }
     try { requiredCurves = require('./curves.js'); } catch (_) { /* curves.js may load after this independent module. */ }
   }
   const finite = value => typeof value === 'number' && Number.isFinite(value);
@@ -23,6 +25,7 @@
   const parameters = doc => Object.fromEntries((doc && doc.parameters || []).filter(p => p && typeof p.name === 'string').map(p => [p.name, Number(p.value)]));
   const parameterNames = doc => (doc && doc.parameters || []).map(p => p.name);
   const curves = () => root.GraphCurves || requiredCurves;
+  const symbols = () => root.GraphSymbols || requiredSymbols;
   const seriesById = (doc, id) => (doc && doc.series || []).find(series => series && series.id === id);
   const annotationById = (doc, id) => (doc && doc.annotations || []).find(annotation => annotation && annotation.id === id);
   const axisRange = (doc, key) => range(doc && doc.axes && doc.axes[key], [-10, 10]);
@@ -144,6 +147,32 @@
     if (!segment) return { points: [line.point], segments: [], warning: '接線が表示範囲にありません。' };
     return { points: [line.point], segments: [segment], warning: '' };
   }
+  function equationNumber(value) {
+    if (!finite(value)) return '';
+    if (value === 0) return '0';
+    const integer = Math.round(value);
+    // 数値微分で生じた 0.99999999998 のような表示ノイズだけを整える。
+    // 小さい係数そのものは0へ寄せない。
+    const integerNoise = Math.max(1e-10, Number.EPSILON * 128 * Math.abs(value));
+    if (Math.abs(value) >= 1e-6 && Math.abs(value - integer) <= integerNoise) return String(integer);
+    const rounded = Number(value.toPrecision(14));
+    return rounded === 0 ? value.toExponential(13) : String(rounded);
+  }
+  function tangentEquation(annotation, doc) {
+    const line = tangentLine(annotation, doc);
+    if (!line.point) return { text: '', warning: line.warning || '接線を評価できません。' };
+    const api = symbols(), x = api && typeof api.toDisplay === 'function' ? api.toDisplay('x', doc, 'function') : doc && doc.axes && doc.axes.x && doc.axes.x.symbol || 'x', y = api && typeof api.toDisplay === 'function' ? api.toDisplay('y', doc, 'function') : doc && doc.axes && doc.axes.y && doc.axes.y.symbol || 'y';
+    const intercept = line.point[1] - line.slope * line.point[0], slope = equationNumber(line.slope), offset = equationNumber(Math.abs(intercept));
+    if (!slope || !offset) return { text: '', warning: '接線の式を表示できません。' };
+    if (line.slope === 0) return { text: y + ' ≈ ' + equationNumber(line.point[1]), warning: '' };
+    let right;
+    if (slope === '1') right = x;
+    else if (slope === '-1') right = '-' + x;
+    else right = slope + (/e[+-]/i.test(slope) ? ' × ' : '') + x;
+    if (intercept > 0) right += ' + ' + offset;
+    else if (intercept < 0) right += ' − ' + offset;
+    return { text: y + ' ≈ ' + right, warning: '' };
+  }
   function rootFromBracket(fn, a, b, fa, fb) {
     if (fa === 0) return a;
     if (fb === 0) return b;
@@ -173,16 +202,27 @@
     const middle = (left + right) / 2, value = fn(middle);
     return value === null ? null : middle;
   }
+  function intersectionTarget(target, doc) {
+    if (!target || typeof target.id !== 'string') return null;
+    if (target.type === 'series') {
+      const series = seriesById(doc, target.id), value = functionFor(series, doc);
+      return series && series.kind === 'function' && value ? { value, domain: functionDomain(series) } : null;
+    }
+    if (target.type === 'tangent') {
+      const annotation = annotationById(doc, target.id), line = annotation && annotation.kind === 'tangent' ? tangentLine(annotation, doc) : null;
+      return line && line.point ? { value: x => line.point[1] + line.slope * (x - line.point[0]), domain: null } : null;
+    }
+    return null;
+  }
   function intersectionResult(annotation, doc) {
-    const ids = annotation && annotation.seriesIds;
-    if (!Array.isArray(ids) || ids.length !== 2 || ids[0] === ids[1]) return empty('交点の対象が不正です。');
-    const first = seriesById(doc, ids[0]), second = seriesById(doc, ids[1]);
-    if (!first || !second || first.kind !== 'function' || second.kind !== 'function') return empty('交点は異なる2D関数を2つ選んでください。');
+    const configured = Array.isArray(annotation && annotation.targets) ? annotation.targets : Array.isArray(annotation && annotation.seriesIds) ? annotation.seriesIds.map(id => ({ type: 'series', id })) : null;
+    if (!Array.isArray(configured) || configured.length !== 2 || configured[0].type === configured[1].type && configured[0].id === configured[1].id) return empty('交点の対象が不正です。');
+    const first = intersectionTarget(configured[0], doc), second = intersectionTarget(configured[1], doc);
+    if (!first || !second) return empty('交点の対象となる関数または接線を評価できません。');
     const requested = Array.isArray(annotation.interval) && annotation.interval.length === 2 && finite(Number(annotation.interval[0])) && finite(Number(annotation.interval[1])) && Number(annotation.interval[0]) < Number(annotation.interval[1]) ? [Number(annotation.interval[0]), Number(annotation.interval[1])] : null;
-    const limits = requested && overlap(requested, functionDomain(first), functionDomain(second));
+    const limits = requested && overlap(requested, ...( [first, second].filter(target => target.domain).map(target => target.domain) ));
     if (!limits) return empty('指定区間と関数の定義域が重なっていません。');
-    const f = functionFor(first, doc), g = functionFor(second, doc);
-    if (!f || !g) return empty('交点の対象となる関数を評価できません。');
+    const f = first.value, g = second.value;
     const difference = x => { const a = f(x), b = g(x); return a === null || b === null ? null : a - b; };
     const count = 768, samples = [], same = [];
     for (let i = 0; i <= count; i++) {
@@ -216,8 +256,8 @@
       const delta = Math.max((limits[1] - limits[0]) * 1e-6, 1e-8 * Math.max(1, Math.abs(x)));
       const neighbours = [];
       for (const probe of [x - delta, x + delta]) {
-        if (inRange(probe, limits) && inRange(probe, functionDomain(first))) { const value = f(probe); if (value !== null) neighbours.push(value); }
-        if (inRange(probe, limits) && inRange(probe, functionDomain(second))) { const value = g(probe); if (value !== null) neighbours.push(value); }
+        if (inRange(probe, limits) && (!first.domain || inRange(probe, first.domain))) { const value = f(probe); if (value !== null) neighbours.push(value); }
+        if (inRange(probe, limits) && (!second.domain || inRange(probe, second.domain))) { const value = g(probe); if (value !== null) neighbours.push(value); }
       }
       // 端点や sqrt(x) の定義域端では、存在しない側を評価失敗として扱わない。
       // 残差そのものを必ず確認するので、漸近線を交点として採用しない。
@@ -346,5 +386,5 @@
       return empty('注釈の種類が不正です。');
     } catch (_) { return empty('注釈を評価できません。'); }
   }
-  return { evaluate, tangentLine, anchorForDrag };
+  return { evaluate, tangentLine, tangentEquation, anchorForDrag };
 }));
