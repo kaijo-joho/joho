@@ -29,8 +29,27 @@
   }
   function matrixOf(matrix) { matrix = matrix || [1, 0, 0, 1, 0, 0]; if (!Array.isArray(matrix) || matrix.length !== 6 || matrix.some(function (v) { return !Number.isFinite(Number(v)); })) throw new Error('Invalid SVG matrix'); return matrix.map(Number); }
   function matrixAttr(matrix) { matrix = matrixOf(matrix); return matrix[0] === 1 && matrix[1] === 0 && matrix[2] === 0 && matrix[3] === 1 && matrix[4] === 0 && matrix[5] === 0 ? '' : ' transform="matrix(' + matrix.join(' ') + ')"'; }
-  function attrs(object) { var s = styleOf(object.style); return ' data-ilapo-id="' + esc(object.id || '') + '"' + matrixAttr(object.matrix) + ' fill="' + s.fill + '" stroke="' + s.stroke + '" stroke-width="' + s.strokeWidth + '" opacity="' + s.opacity + '" stroke-dasharray="' + esc(s.dash) + '" stroke-linecap="' + s.linecap + '" stroke-linejoin="' + s.linejoin + '"' + (['path','image'].includes(object.type)?' font-size="'+s.fontSize+'" font-family="'+s.fontFamily+'" font-weight="'+(s.bold?'bold':'normal')+'" font-style="'+(s.italic?'italic':'normal')+'"':''); }
+  function attrs(object, options) { options=options||{};var s = styleOf(object.style), idAttr=options.omitId?'':' data-ilapo-id="' + esc(object.id || '') + '"'; return idAttr + matrixAttr(object.matrix) + ' fill="' + s.fill + '" stroke="' + s.stroke + '" stroke-width="' + s.strokeWidth + '" opacity="' + s.opacity + '" stroke-dasharray="' + esc(s.dash) + '" stroke-linecap="' + s.linecap + '" stroke-linejoin="' + s.linejoin + '"' + (['path','image'].includes(object.type)?' font-size="'+s.fontSize+'" font-family="'+s.fontFamily+'" font-weight="'+(s.bold?'bold':'normal')+'" font-style="'+(s.italic?'italic':'normal')+'"':''); }
   function validPath(d) { return typeof d === 'string' && /^[\s,\.\-+0-9a-zA-Z]+$/.test(d) && !/[a-z]/.test(d.replace(/[MmZzLlHhVvCcSsQqTtAaEe]/g, '')); }
+  function runsMarkup(runs) {
+    return (runs || []).map(function(run) { var shift=run.script==='super'?'super':run.script==='sub'?'sub':'';return shift?'<tspan baseline-shift="'+shift+'" font-size="70%">'+esc(run.text==null?'':run.text)+'</tspan>':esc(run.text==null?'':run.text); }).join('');
+  }
+  function textMarkup(object, options) {
+    options=options||{};
+    var style=styleOf(object.style),x=number(object.x,0),y=number(object.y,0),runs=Array.isArray(object.runs)?object.runs:[{text:'',script:'normal'}],extra=options.labelOwner?' data-ilapo-shape-label-text="'+esc(options.labelOwner)+'"':'';
+    // Older documents keep their byte-for-byte compatible SVG form.  New
+    // wrapped text delegates all line positions to the shared layout runtime.
+    if(object.layout!=null) {
+      if(!root.IlapoTextLayout||typeof root.IlapoTextLayout.layout!=='function')throw new Error('IlapoTextLayout is required for wrapped SVG text');
+      var shaped=root.IlapoTextLayout.layout(object);
+      if(!shaped||!Array.isArray(shaped.lines)||!shaped.lines.length)throw new Error('Invalid text layout result');
+      var laidOut=shaped.lines.map(function(line){var lx=Number(line.x),ly=Number(line.y);if(!Number.isFinite(lx)||!Number.isFinite(ly)||!Array.isArray(line.runs))throw new Error('Invalid text layout line');return '<tspan x="'+lx+'" y="'+ly+'">'+runsMarkup(line.runs)+'</tspan>';}).join('');
+      return '<text xml:space="preserve"'+attrs(object,{omitId:!!options.omitId})+extra+' x="'+x+'" y="'+y+'" font-size="'+style.fontSize+'" font-family="'+style.fontFamily+'" font-weight="'+(style.bold?'bold':'normal')+'" font-style="'+(style.italic?'italic':'normal')+'">'+laidOut+'</text>';
+    }
+    var body='';
+    runs.forEach(function(run){String(run.text==null?'':run.text).split('\n').forEach(function(part,index){if(index)body+='<tspan x="'+x+'" dy="'+(style.fontSize*1.2)+'">';else body+='<tspan>';body+=runsMarkup([{text:part,script:run.script}]);body+='</tspan>';});});
+    return '<text xml:space="preserve"'+attrs(object,{omitId:!!options.omitId})+extra+' x="'+x+'" y="'+y+'" font-size="'+style.fontSize+'" font-family="'+style.fontFamily+'" font-weight="'+(style.bold?'bold':'normal')+'" font-style="'+(style.italic?'italic':'normal')+'">'+body+'</text>';
+  }
   function objectMarkup(object, options) {
     options=options||{};
     if(object?.type==='connector')return '<g data-ilapo-connector="'+esc(object.id)+'">'+root.IlapoConnectors.renderedParts(object).map(function(part){return objectMarkup(part,options);}).join('')+'</g>';
@@ -41,16 +60,29 @@
     if (!object || !/^(path|text)$/.test(object.type)) throw new Error('Unsupported Ilapo object');
     if (object.type === 'path') {
       if (!validPath(object.d)) throw new Error('Invalid SVG path data');
+      // Derive labels from the editable source path.  The ordinary-SVG path
+      // below may be flattened to protect its document-space stroke width;
+      // applying that flattening to shapeText would discard rotations,
+      // reflection and shear needed by the derived label's own matrix.
+      var label=null;
+      if(object.label!=null){
+        if(!root.IlapoTextLayout||typeof root.IlapoTextLayout.shapeText!=='function')throw new Error('IlapoTextLayout is required for shape labels');
+        label=root.IlapoTextLayout.shapeText(object);
+        if(!label||label.type!=='text')throw new Error('Invalid shape label layout result');
+      }
       // The stroke width is a document-space value. Bake an object transform for
       // display and ordinary exports so non-uniform scaling cannot distort it.
       // Native ZIP pages request rawTransforms to preserve editable matrix/d data.
       if (!options.rawTransforms && root.IlapoGeometry?.flattenedPath) object=root.IlapoGeometry.flattenedPath(object);
-      return '<path' + attrs(object) + ' d="' + esc(object.d) + '"/>';
+      var path='<path' + attrs(object) + ' d="' + esc(object.d) + '"/>';
+      if(label){
+        // A derived label is never a document object.  In particular it must
+        // not reuse the conventional "<path id>-label" ID in an SVG export.
+        return '<g data-ilapo-shape-label="'+esc(object.id||'')+'">'+path+textMarkup(label,{omitId:true,labelOwner:object.id||''})+'</g>';
+      }
+      return path;
     }
-    var style = styleOf(object.style), runs = Array.isArray(object.runs) ? object.runs : [{ text: '' }], x = number(object.x, 0), y = number(object.y, 0);
-    var body = '', line = 0;
-    runs.forEach(function (run) { var parts = String(run.text == null ? '' : run.text).split('\n'); parts.forEach(function (part, index) { if (index) body += '<tspan x="' + x + '" dy="' + (style.fontSize * 1.2) + '">'; else body += '<tspan>'; var shift = run.script === 'super' ? 'super' : run.script === 'sub' ? 'sub' : ''; if (shift) body += '<tspan baseline-shift="' + shift + '" font-size="70%">' + esc(part) + '</tspan>'; else body += esc(part); body += '</tspan>'; line += 1; }); });
-    return '<text xml:space="preserve"' + attrs(object) + ' x="' + x + '" y="' + y + '" font-size="' + style.fontSize + '" font-family="' + style.fontFamily + '" font-weight="' + (style.bold ? 'bold' : 'normal') + '" font-style="' + (style.italic ? 'italic' : 'normal') + '">' + body + '</text>';
+    return textMarkup(object,options);
   }
   function bounds(objects) { var g = root.IlapoGeometry, result = null; (objects || []).forEach(function (o) { if (!g || !g.bounds) return; var b = (g.visualBounds || g.bounds)(o); if (!result) result = { x: b.x, y: b.y, right: b.x + b.width, bottom: b.y + b.height }; else { result.x = Math.min(result.x, b.x); result.y = Math.min(result.y, b.y); result.right = Math.max(result.right, b.x + b.width); result.bottom = Math.max(result.bottom, b.y + b.height); } }); return result;
   }
@@ -64,6 +96,7 @@
   function scaleDash(dash, scale) { return dash ? dash.trim().split(/\s+/).map(function(n){return Number(n)*scale;}).join(' ') : ''; }
   function uniformStrokeScale(matrix) { var sx=Math.hypot(matrix[0],matrix[1]),sy=Math.hypot(matrix[2],matrix[3]),dot=matrix[0]*matrix[2]+matrix[1]*matrix[3],tolerance=1e-9*Math.max(1,sx,sy);if(Math.abs(sx-sy)>tolerance||Math.abs(dot)>tolerance*Math.max(1,sx,sy))throw new Error('SVGの線には縦横で異なる倍率が使われています。線をアウトライン化するか、縦横比を保って拡大縮小してください。');return sx; }
   function attr(el, name, fallback) { return el.hasAttribute(name) ? el.getAttribute(name) : fallback; }
+  function coordinate(value) { var text=String(value).trim();if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(text))throw new Error('Invalid SVG coordinate');var n=Number(text),limit=root.IlapoCore&&root.IlapoCore.LIMITS?root.IlapoCore.LIMITS.coordinate:1000000;if(!Number.isFinite(n)||Math.abs(n)>limit)throw new Error('Invalid SVG coordinate');return n; }
   function elementStyle(el, inherited) {
     var base=styleOf(inherited),s={};
     ['fill','stroke','stroke-width','opacity','stroke-dasharray','stroke-linecap','stroke-linejoin','font-size','font-family','font-weight','font-style'].forEach(function(k){if(el.hasAttribute(k))s[k]=el.getAttribute(k);});
@@ -82,11 +115,12 @@
       italic:s['font-style']==null?base.italic:s['font-style']==='italic'
     });
   }
-  function auditTree(el,parentText,inheritedStyle) {
+  function auditTree(el,parentText,inheritedStyle,textDepth) {
+    textDepth=textDepth||0;
     var tag=el.localName.toLowerCase();
     if(blocked[tag]||!supported[tag]||(el.namespaceURI&&el.namespaceURI!==SVG_NS))throw new Error('Unsupported SVG element: '+tag);
     var presentation=['fill','stroke','stroke-width','opacity','stroke-dasharray','stroke-linecap','stroke-linejoin','font-size','font-family','font-weight','font-style','fill-rule','stroke-miterlimit'];
-    var geometry={svg:['width','height','viewbox','preserveaspectratio','version'],g:[],path:['d'],rect:['x','y','width','height','rx','ry'],circle:['cx','cy','r'],ellipse:['cx','cy','rx','ry'],line:['x1','y1','x2','y2'],polygon:['points'],polyline:['points'],text:['x','y'],tspan:['x','dy','font-size','baseline-shift'],title:[],desc:[],image:['x','y','width','height','preserveaspectratio']};
+    var geometry={svg:['width','height','viewbox','preserveaspectratio','version'],g:[],path:['d'],rect:['x','y','width','height','rx','ry'],circle:['cx','cy','r'],ellipse:['cx','cy','rx','ry'],line:['x1','y1','x2','y2'],polygon:['points'],polyline:['points'],text:['x','y'],tspan:['x','y','dy','font-size','baseline-shift'],title:[],desc:[],image:['x','y','width','height','preserveaspectratio']};
     function valueCheck(key,value) {
       if((key==='fill'||key==='stroke')&&cleanColor(value,null)==null)throw new Error('Unsupported SVG color');
       if(key==='font-family'&&!['sans-serif','serif','monospace'].includes(value))throw new Error('Unsupported SVG font family');
@@ -114,15 +148,20 @@
       if(tag!=='tspan'&&presentation.includes(key)){valueCheck(key,value);return;}
       if(!(geometry[tag]||[]).includes(key))throw new Error('Unsupported SVG attribute: '+a.name);
       if(tag==='image'&&key==='preserveaspectratio'&&value!=='none')throw new Error('Unsupported SVG image aspect ratio');
+      if((tag==='text'&&(key==='x'||key==='y'))||(tag==='tspan'&&(key==='x'||key==='y'||key==='dy')))coordinate(value);
       if(tag==='tspan'){
-        if((key==='x'||key==='dy')&&(!parentText||!el.hasAttribute('x')||!el.hasAttribute('dy')))throw new Error('Unsupported SVG tspan position');
-        if(key==='x'&&Number(value)!==parentText.x)throw new Error('Unsupported SVG tspan x');
-        if(key==='dy'&&(!Number.isFinite(Number(value))||Math.abs(Number(value)-parentText.fontSize*1.2)>1e-6))throw new Error('Unsupported SVG tspan dy');
+        var hasX=el.hasAttribute('x'),hasY=el.hasAttribute('y'),hasDy=el.hasAttribute('dy');
+        if((hasX||hasY||hasDy)&&!parentText)throw new Error('Unsupported SVG tspan position');
+        if((hasX||hasY||hasDy)&&textDepth!==0)throw new Error('Unsupported nested SVG tspan position');
+        // Accepted tspan positions are deliberately finite: either the legacy
+        // x/dy line break, or one explicit x/y baseline produced by v4.
+        if(hasY){if(!hasX||hasDy)throw new Error('Unsupported SVG tspan position');}
+        else if(hasX||hasDy){if(!hasX||!hasDy||coordinate(attr(el,'x',''))!==parentText.x||Math.abs(coordinate(attr(el,'dy',''))-parentText.fontSize*1.2)>1e-6)throw new Error('Unsupported SVG tspan position');}
         if((key==='font-size'||key==='baseline-shift')&&(!['super','sub'].includes(attr(el,'baseline-shift',''))||attr(el,'font-size','')!=='70%'))throw new Error('Unsupported SVG tspan font-size');
       }
     });
-    var style=tag==='tspan'?inheritedStyle:elementStyle(el,inheritedStyle),context=tag==='text'?{x:Number(attr(el,'x',0)),fontSize:style.fontSize}:parentText;
-    Array.from(el.children).forEach(function(child){auditTree(child,context,style);});
+    var style=tag==='tspan'?inheritedStyle:elementStyle(el,inheritedStyle),context=tag==='text'?{x:coordinate(attr(el,'x',0)),fontSize:style.fontSize}:parentText,nextTextDepth=tag==='text'?0:tag==='tspan'?textDepth+1:textDepth;
+    Array.from(el.children).forEach(function(child){auditTree(child,context,style,nextTextDepth);});
   }
   function shapePath(el) { var tag=el.localName.toLowerCase(), n=function(k){var v=Number(attr(el,k,0));if(!Number.isFinite(v))throw new Error('Invalid SVG number');return v;}; if(tag==='path') {var d=attr(el,'d','');if(!validPath(d))throw new Error('Invalid SVG path data');return d;} if(tag==='rect'){var x=n('x'),y=n('y'),w=n('width'),h=n('height'),rx=n('rx'),ry=n('ry'); if(w<0||h<0)throw new Error('Invalid rect'); if(!rx&&!ry)return 'M'+x+' '+y+'H'+(x+w)+'V'+(y+h)+'H'+x+'Z'; rx=Math.min(rx||ry,w/2);ry=Math.min(ry||rx,h/2);return 'M'+(x+rx)+' '+y+'H'+(x+w-rx)+'A'+rx+' '+ry+' 0 0 1 '+(x+w)+' '+(y+ry)+'V'+(y+h-ry)+'A'+rx+' '+ry+' 0 0 1 '+(x+w-rx)+' '+(y+h)+'H'+(x+rx)+'A'+rx+' '+ry+' 0 0 1 '+x+' '+(y+h-ry)+'V'+(y+ry)+'A'+rx+' '+ry+' 0 0 1 '+(x+rx)+' '+y+'Z';} if(tag==='circle'||tag==='ellipse'){var cx=n('cx'),cy=n('cy'),rx=tag==='circle'?n('r'):n('rx'),ry=tag==='circle'?rx:n('ry');if(rx<0||ry<0)throw new Error('Invalid ellipse');return 'M'+(cx-rx)+' '+cy+'A'+rx+' '+ry+' 0 1 0 '+(cx+rx)+' '+cy+'A'+rx+' '+ry+' 0 1 0 '+(cx-rx)+' '+cy+'Z';} if(tag==='line')return 'M'+n('x1')+' '+n('y1')+'L'+n('x2')+' '+n('y2'); var points=(attr(el,'points','')||'').trim();if(!/^[\d\s,\.\-+]+$/.test(points))throw new Error('Invalid SVG points');var vals=points.split(/[\s,]+/).filter(Boolean).map(Number);if(vals.length<4||vals.length%2||vals.some(function(v){return !Number.isFinite(v)}))throw new Error('Invalid SVG points');var d='M'+vals[0]+' '+vals[1];for(var i=2;i<vals.length;i+=2)d+='L'+vals[i]+' '+vals[i+1];return tag==='polygon'?d+'Z':d; }
   function svgLength(value, fallback) {
@@ -141,8 +180,36 @@
     if(xml.querySelector('parsererror')||svg.localName.toLowerCase()!=='svg')throw new Error('Invalid SVG XML');
     if(xml.doctype || Array.from(xml.childNodes).some(function(n){return n.nodeType===7;}))throw new Error('Unsupported SVG external declaration');
     auditTree(svg);
-    var objects=[];
-    function walk(el,inherited,group,inheritedStyle) {
+    var objects=[],nativeLabels=[],nativeLabelGroups=[];
+    function nativeText(object, meta) {
+      if(!meta||meta.text===undefined)return null;
+      if(!meta.text||typeof meta.text!=='object'||Array.isArray(meta.text)||Object.keys(meta.text).some(function(k){return !['x','y','runs','layout'].includes(k);})||!Object.hasOwn(meta.text,'x')||!Object.hasOwn(meta.text,'y')||!Object.hasOwn(meta.text,'runs')||!Object.hasOwn(meta.text,'layout'))throw new Error('Invalid text metadata');
+      var candidate=Object.assign({},object,{x:meta.text.x,y:meta.text.y,runs:meta.text.runs,layout:meta.text.layout}),checked=root.IlapoCore.validateObject(candidate);
+      if(checked.type!=='text'||checked.layout==null)throw new Error('Invalid text metadata');
+      return checked;
+    }
+    function textRuns(node, script) {
+      var runs=[];Array.from(node.childNodes).forEach(function(c){
+        if(c.nodeType===3){if(c.nodeValue)runs.push({text:c.nodeValue,script:script==='super'||script==='sub'?script:'normal'});}
+        else if(c.nodeType===1&&c.localName.toLowerCase()==='tspan')runs.push.apply(runs,textRuns(c,attr(c,'baseline-shift',script)));
+      });return runs.length?runs:[{text:'',script:'normal'}];
+    }
+    function textObjects(child, object) {
+      var meta=options.nativeObjects&&Object.hasOwn(options.nativeObjects,object.id)?options.nativeObjects[object.id]:null,restored=nativeText(object,meta);
+      if(restored)return [restored];
+      var direct=Array.from(child.childNodes),lines=direct.filter(function(n){return n.nodeType===1&&n.localName.toLowerCase()==='tspan'&&n.hasAttribute('x')&&n.hasAttribute('y');});
+      if(lines.length){
+        if(direct.some(function(n){return (n.nodeType===3&&n.nodeValue.trim())||(n.nodeType===1&&n.localName.toLowerCase()==='tspan'&&(!n.hasAttribute('x')||!n.hasAttribute('y')));}))throw new Error('Unsupported mixed SVG text positioning');
+        return lines.map(function(line,index){var copy=Object.assign({},object,{id:index?uid('object'):object.id,x:coordinate(attr(line,'x','')),y:coordinate(attr(line,'y','')),runs:textRuns(line,'normal')});return copy;});
+      }
+      var runs=[],pendingLine=false;
+      function read(n,script) { Array.from(n.childNodes).forEach(function(c){
+        if(c.nodeType===3) { var value=(pendingLine?'\n':'')+c.nodeValue;pendingLine=false;if(value)runs.push({text:value,script:script==='super'||script==='sub'?script:'normal'}); }
+        else if(c.nodeType===1&&c.localName.toLowerCase()==='tspan') { if(c.hasAttribute('x')&&runs.length)pendingLine=true;read(c,attr(c,'baseline-shift',script)); }
+      }); }
+      read(child,'normal');object.x=coordinate(attr(child,'x',0));object.y=coordinate(attr(child,'y',0));object.runs=runs.length?runs:[{text:'',script:'normal'}];return [object];
+    }
+    function walk(el,inherited,group,inheritedStyle,labelOwner) {
       Array.from(el.children).forEach(function(child){
         var tag=child.localName.toLowerCase();
         if(tag==='title'||tag==='desc')return;
@@ -158,16 +225,15 @@
             objects.push(root.IlapoCore.validateObject(meta.connector));return;
           }
           if(currentStyle.opacity!==inheritedStyle.opacity && child.querySelectorAll('path,rect,circle,ellipse,line,polygon,polyline,text,image').length>1)throw new Error('Unsupported SVG group opacity');
-          walk(child,transform,nextGroup,currentStyle);return;
+          var marked=options.nativeObjects?attr(child,'data-ilapo-shape-label',null):null;
+          if(marked!==null){if(labelOwner!==undefined)throw new Error('Invalid nested shape label');nativeLabelGroups.push(marked);}
+          walk(child,transform,nextGroup,currentStyle,marked!==null?marked:labelOwner);return;
         }
+        if(tag==='text'&&options.nativeObjects&&attr(child,'data-ilapo-shape-label-text',null)!==null){var marker=attr(child,'data-ilapo-shape-label-text','');if(labelOwner!==marker)throw new Error('Invalid shape label marker');nativeLabels.push(marker);return;}
         var object={id:attr(child,'data-ilapo-id',uid('object')),type:tag==='text'?'text':tag==='image'?'image':'path',name:tag==='text'?'文字':tag==='image'?'画像':'図形',group:nextGroup||null,locked:false,matrix:transform,style:currentStyle};
+        if(labelOwner!==undefined&&object.id!==labelOwner)throw new Error('Invalid shape label owner');
         if(tag==='text') {
-          var runs=[],pendingLine=false;
-          function read(n,script) { Array.from(n.childNodes).forEach(function(c){
-            if(c.nodeType===3) { var value=(pendingLine?'\n':'')+c.nodeValue;pendingLine=false;if(value)runs.push({text:value,script:script==='super'||script==='sub'?script:'normal'}); }
-            else if(c.nodeType===1&&c.localName.toLowerCase()==='tspan') { if(c.hasAttribute('x')&&runs.length)pendingLine=true;read(c,attr(c,'baseline-shift',script)); }
-          }); }
-          read(child,'normal');object.x=Number(attr(child,'x',0));object.y=Number(attr(child,'y',0));object.runs=runs.length?runs:[{text:'',script:'normal'}];
+          objects.push.apply(objects,textObjects(child,object));return;
         } else if(tag==='image'){
           object.x=Number(attr(child,'x',0));object.y=Number(attr(child,'y',0));object.width=Number(attr(child,'width',0));object.height=Number(attr(child,'height',0));object.src=attr(child,'href',attr(child,'xlink:href',''));object.reference=false;
           if(!child.hasAttribute('preserveAspectRatio'))throw new Error('Unsupported SVG image aspect ratio');
@@ -175,7 +241,7 @@
         objects.push(object);
       });
     }
-    walk(svg,parseTransform(attr(svg,'transform','')),null,elementStyle(svg));
+    walk(svg,parseTransform(attr(svg,'transform','')),null,elementStyle(svg),undefined);
     var vbText=attr(svg,'viewBox','').trim(),vb=vbText?vbText.split(/[ ,]+/).map(Number):[];
     if(vb.length&&(vb.length!==4||vb.some(function(v){return !Number.isFinite(v);})||vb[2]<=0||vb[3]<=0))throw new Error('Invalid SVG viewBox');
     var width=svgLength(attr(svg,'width',null),vb[2]||300),height=svgLength(attr(svg,'height',null),vb[3]||150);
@@ -198,7 +264,7 @@
     if(!options.preserveCoordinates&&!ilapoSVG)objects.forEach(function(o){if(o.type==='path'&&o.style.stroke!=='none'&&o.style.strokeWidth>0){var scale=uniformStrokeScale(o.matrix);o.style.strokeWidth*=scale;o.style.dash=scaleDash(o.style.dash,scale);}});
     var page={id:attr(svg,'data-ilapo-page-id',uid('page')),name:'読み込んだSVG',board:{width:width,height:height,unit:'px',infinite:false},objects:objects};
     if(root.IlapoCore)page=root.IlapoCore.validateDocument({format:'kaijo-ilapo',version:1,id:'import',name:'SVG',pages:[page]}).pages[0];
-    return {page:page,warnings:[]};
+    return {page:page,warnings:[],nativeLabels:nativeLabels,nativeLabelGroups:nativeLabelGroups};
   }
   function assertZip() { if (!root.fflate || !root.fflate.zipSync || !root.fflate.unzipSync) throw new Error('fflate is required before IlapoSVG'); }
   function encodeProject(input) {
@@ -211,6 +277,10 @@
         var m={name:o.name,group:o.group,locked:o.locked};
         if(o.type==='connector')m.connector=o;
         if(o.type==='image')m.reference=o.reference;
+        // The SVG remains the source for visible matrix and style.  These
+        // fields preserve only the author's reflowable input for v4 text.
+        if(o.type==='text'&&o.layout!=null)m.text={x:o.x,y:o.y,runs:o.runs,layout:o.layout};
+        if(o.type==='path'&&o.label!=null)m.label=o.label;
         meta.objects[o.id]=m;
       });
       manifest.pages.push(meta);files[file]=root.fflate.strToU8(exportPage(page,{includeReferences:true,rawTransforms:true}));
@@ -228,25 +298,34 @@
     }}),raw=files['manifest.json'];
     if(!raw)throw new Error('Project manifest is missing');
     var manifest=JSON.parse(root.fflate.strFromU8(raw));
-    if(manifest.format!=='kaijo-ilapo'||![1,2,3].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
+    if(manifest.format!=='kaijo-ilapo'||![1,2,3,4].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
     var seenPages=new Set(),doc={format:'kaijo-ilapo',version:manifest.version,id:manifest.id,name:manifest.name,pages:[]};
     manifest.pages.forEach(function(meta){
       if(!meta||typeof meta.id!=='string'||typeof meta.name!=='string'||typeof meta.file!=='string'||!meta.board||typeof meta.board!=='object'||!meta.objects||typeof meta.objects!=='object'||Array.isArray(meta.objects)||seenPages.has(meta.id)||!Object.hasOwn(files,meta.file))throw new Error('Invalid project page metadata');
       seenPages.add(meta.id);
       if(meta.animations!==undefined&&(!Array.isArray(meta.animations)||meta.animations.length>1000))throw new Error('Invalid animation metadata');
-      var page=importSVG(root.fflate.strFromU8(files[meta.file]),{preserveCoordinates:true,nativeObjects:manifest.version>=2?meta.objects:null}).page,seenObjects=new Set();
+      var imported=importSVG(root.fflate.strFromU8(files[meta.file]),{preserveCoordinates:true,nativeObjects:manifest.version>=2?meta.objects:null}),page=imported.page,seenObjects=new Set(),labelCounts=new Map(),labelGroups=new Map();
+      imported.nativeLabels.forEach(function(owner){labelCounts.set(owner,(labelCounts.get(owner)||0)+1);});
+      imported.nativeLabelGroups.forEach(function(owner){labelGroups.set(owner,(labelGroups.get(owner)||0)+1);});
       page.id=meta.id;page.name=meta.name;page.board=meta.board;if(meta.animations!==undefined)page.animations=meta.animations;
       page.objects.forEach(function(o){
         if(seenObjects.has(o.id))throw new Error('Duplicate SVG object ID');
         seenObjects.add(o.id);var m=Object.hasOwn(meta.objects,o.id)?meta.objects[o.id]:null;
         if(m){
-          if(typeof m!=='object'||Array.isArray(m)||(m.name!=null&&typeof m.name!=='string')||(m.group!=null&&typeof m.group!=='string')||(m.locked!=null&&typeof m.locked!=='boolean')||Object.keys(m).some(function(k){return !['name','group','locked','connector','reference'].includes(k);}))throw new Error('Invalid object metadata');
+          if(typeof m!=='object'||Array.isArray(m)||(m.name!=null&&typeof m.name!=='string')||(m.group!=null&&typeof m.group!=='string')||(m.locked!=null&&typeof m.locked!=='boolean')||Object.keys(m).some(function(k){return !['name','group','locked','connector','reference','text','label'].includes(k);}))throw new Error('Invalid object metadata');
           if(m.connector&&o.type!=='connector')throw new Error('Invalid connector metadata');
           if(m.reference!==undefined){if(o.type!=='image'||typeof m.reference!=='boolean')throw new Error('Invalid image metadata');o.reference=m.reference;}
+          if(m.text!==undefined){if(manifest.version<4||o.type!=='text')throw new Error('Invalid text metadata');/* text was type-checked while parsing its SVG counterpart. */}
+          if(m.label!==undefined){
+            if(manifest.version<4||o.type!=='path'||labelCounts.get(o.id)!==1||labelGroups.get(o.id)!==1)throw new Error('Invalid shape label metadata');
+            var checked=root.IlapoCore.validateObject(Object.assign({},o,{label:m.label}));o.label=checked.label;
+          }
           o.name=typeof m.name==='string'?m.name:o.name;o.group=typeof m.group==='string'?m.group:null;o.locked=!!m.locked;
         }
       });
       Object.keys(meta.objects).forEach(function(id){if(!seenObjects.has(id))throw new Error('Manifest metadata refers to missing SVG object');});
+      labelCounts.forEach(function(count,owner){if(count!==1||labelGroups.get(owner)!==1||!Object.hasOwn(meta.objects,owner)||meta.objects[owner].label===undefined)throw new Error('Invalid shape label metadata');});
+      labelGroups.forEach(function(count,owner){if(count!==1||labelCounts.get(owner)!==1||!Object.hasOwn(meta.objects,owner)||meta.objects[owner].label===undefined)throw new Error('Invalid shape label metadata');});
       doc.pages.push(page);
     });
     return root.IlapoCore.validateDocument(doc);

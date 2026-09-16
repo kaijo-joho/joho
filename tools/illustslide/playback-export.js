@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   const runtimeURL = new URL(document.currentScript.src), base = new URL('.', runtimeURL);
-  const scripts = ['vendor/paper-core-0.12.18.min.js', 'core.js', 'geometry.js', 'connectors.js', 'svg.js', 'animation.js', 'animation-player.js', 'presentation.js'];
+  const scripts = ['vendor/paper-core-0.12.18.min.js', 'core.js', 'geometry.js', 'text-layout.js', 'connectors.js', 'svg.js', 'animation.js', 'animation-player.js', 'presentation.js'];
   let bundlePromise;
   function bundle() {
     if (!bundlePromise) bundlePromise = Promise.all([...scripts, 'presentation.css', 'vendor/PAPER-LICENSE.txt'].map(async file => {

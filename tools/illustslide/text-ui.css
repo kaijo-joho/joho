@@ -1,0 +1,14 @@
+/* 文字設定は入力とキャンバスを同時に確認する。 */
+#text-input{min-height:112px;max-height:35dvh;resize:vertical;white-space:pre-wrap;line-height:1.5}
+#text-preview{min-height:1.8em;max-height:90px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--line);border-radius:7px;padding:8px;margin:8px 0;background:var(--bg);color:var(--text);line-height:1.6}
+#text-preview .text-script-super{vertical-align:super;font-size:.7em}
+#text-preview .text-script-sub{vertical-align:sub;font-size:.7em}
+.text-tools,.text-align-buttons{display:flex;gap:6px;align-items:center;margin:8px 0}
+.text-tools button,.text-align-buttons button{min-height:40px;flex:1;min-width:0}
+.text-align-buttons button[aria-pressed=true]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
+.text-color-row{flex-wrap:wrap}
+#text-color-picker{width:46px;min-width:46px;min-height:40px;padding:2px}
+#text-color-hex{width:100px;flex:1;min-width:70px}
+.text-font-fields{grid-template-columns:repeat(auto-fit,minmax(105px,1fr))}
+.text-remove-label{white-space:normal;width:100%;min-height:44px}
+@media(pointer:coarse),(max-width:560px){.text-tools button,.text-align-buttons button{min-height:44px}}

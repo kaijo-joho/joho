@@ -17,4 +17,9 @@ const bad=JSON.parse(backup);bad.components[0].objects[0].onclick='alert(1)';ass
 const broken=new Memory();broken.setItem('kaijo-ilapo:components','{broken');const brokenLib=A.createLibrary(broken);assert.throws(()=>brokenLib.list());assert.throws(()=>brokenLib.save('保存',icon));assert.equal(broken.getItem('kaijo-ilapo:components'),'{broken','corrupt data is not silently overwritten');
 const full=new Memory();full.setItem('kaijo-ilapo:components',backup);full.setItem=()=>{throw new Error('quota');};const fullLib=A.createLibrary(full);assert.throws(()=>fullLib.save('新規',icon),/quota/);assert.equal(fullLib.exportJSON(),backup);
 const nonzero=JSON.parse(backup);nonzero.components[0].objects[0].matrix[4]=35;nonzero.components[0].objects[0].matrix[5]=40;lib.importJSON(JSON.stringify(nonzero));const repositioned=lib.instantiate(nonzero.components[0].id,{x:100,y:200,size:20});assert.equal(repositioned[0].matrix[4],100);assert.equal(repositioned[0].matrix[5],200);
+const labelShape=IlapoCore.makeShape('rect',0,0,10,10);labelShape.label={runs:[{text:'説明',script:'normal'}],style:{...IlapoCore.DEFAULT_STYLE,fontSize:12,strokeWidth:2,dash:'2 1'},align:'center',padding:3};
+const labelComponent=lib.save('文字付き', [labelShape]),labelPlaced=lib.instantiate(labelComponent.id,{size:20})[0];
+assert.equal(labelPlaced.label.style.fontSize,24,'component placement scales label type once');
+assert.equal(labelPlaced.label.padding,6);assert.equal(labelPlaced.label.style.strokeWidth,4);assert.equal(labelPlaced.label.style.dash,'4 2');
+assert.deepEqual(labelShape.label,labelComponent.objects[0].label,'placing a component does not change its source label');
 console.log('assets.test.cjs: passed');

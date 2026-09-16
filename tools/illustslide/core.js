@@ -80,21 +80,43 @@
     }
     return true;
   }
+  function validateRuns(value) {
+    array(value, 'text.runs');
+    if (!value.length || value.length > LIMITS.runs) fail('text.runs has an invalid length');
+    let total = 0;
+    return value.map((run, i) => {
+      const label = 'text.runs[' + i + ']';
+      plainObject(run, label); keysOnly(run, ['text', 'script'], label);
+      const text = string(run.text, label + '.text', true); total += text.length;
+      if (total > LIMITS.textLength) fail('text.runs is too long');
+      if (!['normal', 'super', 'sub'].includes(run.script)) fail(label + '.script is invalid');
+      return { text, script: run.script };
+    });
+  }
+  function textAlign(value) { if (!['left', 'center', 'right'].includes(value)) fail('text.align is invalid'); return value; }
+  function validateTextLayout(value) {
+    plainObject(value, 'text.layout'); keysOnly(value, ['width', 'align'], 'text.layout');
+    return { width: value.width === null ? null : finite(value.width, 'text.layout.width', true), align: textAlign(value.align) };
+  }
+  function validateShapeLabel(value) {
+    plainObject(value, 'path.label'); keysOnly(value, ['runs', 'style', 'align', 'padding'], 'path.label');
+    const padding = finite(value.padding, 'path.label.padding');
+    if (padding < 0) fail('path.label.padding must not be negative');
+    return { runs: validateRuns(value.runs), style: normalizeStyle(value.style, false), align: textAlign(value.align), padding };
+  }
   function validateObject(value) {
     plainObject(value, 'object');
     const base = ['id', 'type', 'name', 'group', 'locked', 'matrix', 'style'];
-    if (value.type === 'path') keysOnly(value, base.concat('d'), 'object');
-    else if (value.type === 'text') keysOnly(value, base.concat('x', 'y', 'runs'), 'object');
+    if (value.type === 'path') keysOnly(value, base.concat('d', 'label'), 'object');
+    else if (value.type === 'text') keysOnly(value, base.concat('x', 'y', 'runs', 'layout'), 'object');
     else if (value.type === 'connector') keysOnly(value, base.concat('from','to','waypoints','route','startArrow','endArrow','label','labelOffset'), 'object');
     else if (value.type === 'image') keysOnly(value, base.concat('x','y','width','height','src','reference'), 'object');
     else fail('object.type is invalid');
     const out = { id: id(value.id, 'object.id'), type: value.type, name: string(value.name, 'object.name', true), group: value.group === null ? null : id(value.group, 'object.group'), locked: bool(value.locked, 'object.locked'), matrix: matrix(value.matrix, 'object.matrix'), style: normalizeStyle(value.style, false) };
-    if (out.type === 'path') { if (!validPath(value.d)) fail('object.d is not a supported SVG path'); out.d = value.d; }
+    if (out.type === 'path') { if (!validPath(value.d)) fail('object.d is not a supported SVG path'); out.d = value.d; if (value.label !== undefined) out.label = validateShapeLabel(value.label); }
     else if(out.type === 'text') {
-      out.x = finite(value.x, 'object.x'); out.y = finite(value.y, 'object.y'); array(value.runs, 'object.runs');
-      if (!value.runs.length || value.runs.length > LIMITS.runs) fail('object.runs has an invalid length');
-      let total = 0;
-      out.runs = value.runs.map((run, i) => { plainObject(run, 'object.runs[' + i + ']'); keysOnly(run, ['text', 'script'], 'object.runs[' + i + ']'); const text = string(run.text, 'object.runs[' + i + '].text', true); total += text.length; if (total > LIMITS.textLength) fail('object.runs is too long'); if (!['normal', 'super', 'sub'].includes(run.script)) fail('object.runs[' + i + '].script is invalid'); return { text, script: run.script }; });
+      out.x = finite(value.x, 'object.x'); out.y = finite(value.y, 'object.y'); out.runs = validateRuns(value.runs);
+      if (value.layout !== undefined) out.layout = validateTextLayout(value.layout);
     } else if(out.type === 'image') {
       ['x','y','width','height'].forEach(key=>out[key]=finite(value[key],'image.'+key,['width','height'].includes(key)));
       if(!validImageSource(value.src))fail('image.src must be an embedded PNG, JPEG or WebP within 5 MiB');
@@ -154,13 +176,13 @@
   }
   function validateDocument(input) {
     plainObject(input, 'document'); keysOnly(input, ['format', 'version', 'id', 'name', 'pages'], 'document');
-    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3].includes(input.version)) fail('version is invalid');
+    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3,4].includes(input.version)) fail('version is invalid');
     const pages = array(input.pages, 'document.pages'); if (!pages.length || pages.length > LIMITS.pages) fail('document.pages has an invalid length');
     const ids = new Set(); let count = 0;
     const out = { format: 'kaijo-ilapo', version: input.version, id: id(input.id, 'document.id'), name: string(input.name, 'document.name', true), pages: pages.map(validatePage) };
     for (const page of out.pages) { if (ids.has(page.id)) fail('duplicate page id: ' + page.id); ids.add(page.id); count += page.objects.length; }
     if (count > LIMITS.objects) fail('document exceeds the object limit');
-    let imageBytes=0,effects=0;for(const page of out.pages){effects+=(page.animations||[]).length;for(const o of page.objects){if(['image','connector'].includes(o.type))out.version=Math.max(out.version,2);if(o.type==='image')imageBytes+=o.src.length;}if((page.animations||[]).length)out.version=3;}
+    let imageBytes=0,effects=0;for(const page of out.pages){effects+=(page.animations||[]).length;for(const o of page.objects){if(['image','connector'].includes(o.type))out.version=Math.max(out.version,2);if(o.type==='image')imageBytes+=o.src.length;if(o.type==='text'&&o.layout||o.type==='path'&&o.label)out.version=Math.max(out.version,4);}if((page.animations||[]).length)out.version=Math.max(out.version,3);}
     if(effects>5000)fail('document animations exceeds limit');
     if(imageBytes>12*1024*1024)fail('document images exceed size limit');return out;
   }

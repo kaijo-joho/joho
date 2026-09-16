@@ -83,9 +83,9 @@ async function run() {
     await page.locator('[data-tool="text"]').click(); await page.locator('#canvas').click({ position: { x: 520, y: 240 } });
     await page.locator('#text-input').fill('日本語\nH2O');
     await page.locator('#text-input').evaluate(el => { el.setSelectionRange(4, 5); }); await page.locator('[data-script="sub"]').click();
-    await page.locator('#text-input').evaluate(el => { el.setSelectionRange(5, 6); }); await page.locator('[data-script="super"]').click(); await dialogSubmit(page);
+    await page.locator('#text-input').evaluate(el => { el.setSelectionRange(5, 6); }); await page.locator('[data-script="super"]').click(); await inspectorSubmit(page); await inspectorClose(page);
     doc = await documentOf(page); const text = doc.pages[0].objects.find(object => object.type === 'text'); assert.match(text.runs.map(run => run.text).join(''), /日本語\nH2O/); assert(text.runs.some(run => run.script === 'sub') && text.runs.some(run => run.script === 'super'));
-    await selectObject(page, text.id); await page.locator('[data-menu="edit"]').click(); await page.locator('#command-menu').getByRole('button', { name: '文字を編集…', exact: true }).click(); assert.equal(await page.locator('#text-input').inputValue(), '日本語\nH2O'); await dialogSubmit(page);
+    await selectObject(page, text.id); await page.locator('[data-menu="edit"]').click(); await page.locator('#command-menu').getByRole('button', { name: '文字を編集…', exact: true }).click(); assert.equal(await page.locator('#text-input').inputValue(), '日本語\nH2O'); await inspectorSubmit(page); await inspectorClose(page);
 
     await selectObject(page, rectId); await page.locator('[data-action="style"]').click();
     assert(await page.locator('#inspector-panel').isVisible(), 'style settings use the non-modal inspector'); assert(await page.locator('#canvas').isVisible(), 'canvas remains visible while style settings are open');

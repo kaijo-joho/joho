@@ -21,17 +21,18 @@
     lock:'M7 10V7a5 5 0 0 1 10 0v3M5 10h14v12H5zM12 14v4',brush:'m14 3 7 7-8 8-7-7zM8 13l-3 3M3 16h5v5H3z',
     plus:'M12 4v16M4 12h16',up:'m5 14 7-7 7 7',down:'m5 10 7 7 7-7',right:'m9 5 7 7-7 7',unlock:'M7 10V7a5 5 0 0 1 9-3M5 10h14v12H5zM12 14v4',
     assets:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM17.5 14v7M14 17.5h7',
+    'text-left':'M3 4h18M3 9h11M3 14h18M3 19h11','text-center':'M3 4h18M6 9h12M3 14h18M6 19h12','text-right':'M3 4h18M10 9h11M3 14h18M10 19h11',
     canvas:'M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5m7-5 7 4-4 1-1 4z'
   });
   const names = {rect:'長方形',roundrect:'角丸',ellipse:'楕円',triangle:'三角形',pentagon:'五角形',diamond:'菱形',parallelogram:'平行四辺形',arrow:'太い矢印',callout:'吹き出し',line:'線',connector:'接続矢印','connector-orthogonal':'カギ型矢印',text:'文字',direct:'直接選択',select:'全体を選択',pan:'移動'};
   document.querySelectorAll('[data-icon]').forEach(el => el.insertAdjacentHTML('afterbegin',icon(el.dataset.icon)));
   $('shape-tools').innerHTML = Object.keys(names).filter(k=>!['direct','select','pan'].includes(k)).map(k=>`<button data-tool="${k}" aria-label="${names[k]}を追加" data-tip="${names[k]}を追加">${icon(k)}<span>${names[k]}</span></button>`).join('');
-  if (!C || !S || !G || !E || !K || !A || !Guides || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector || !window.IlapoPagesUI || !window.IlapoObjectsUI || !window.IlapoObjectsModel || !window.IlapoAssetsUI) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
+  if (!C || !S || !G || !E || !K || !A || !Guides || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector || !window.IlapoPagesUI || !window.IlapoObjectsUI || !window.IlapoObjectsModel || !window.IlapoAssetsUI || !window.IlapoTextUI || !window.IlapoTextLayout) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
   const initial=C.createDocument(); initial.name='無題の作品'; initial.pages[0].board=C.boardPreset('16:9');
   const history=new C.History(initial);
   let pageId=initial.pages[0].id, selected=[], tool='direct', drag=null, preview=null, clipboard=null, copiedStyle=null;
   let camera={x:0,y:0,width:1280,height:720}, saveTimer, saveFingerprint=JSON.stringify(initial), edited=false, store, localAuto, help, space=false, renderPending=false, writeInProgress=false;
-  let pathUI,connectionUI,animationUI,pagesUI,objectsUI,assetsUI,library,inspector,inspectorPreview=null,revision=0;
+  let pathUI,connectionUI,animationUI,pagesUI,objectsUI,assetsUI,textUI,library,inspector,inspectorPreview=null,revision=0;
   let settings={theme:'auto',size:'standard',grid:true,snap:false,gridStep:20,snapPixel:false,snapAnchor:true,snapPath:true,smartGuides:true};
   try { Object.assign(settings,JSON.parse(localStorage.getItem('kaijo-ilapo:settings')||'{}')); } catch (_) {}
   if(typeof settings.smartGuides!=='boolean')settings.smartGuides=true;
@@ -114,6 +115,9 @@
     $('connection-options').hidden=selected.length!==1||!p.objects.some(o=>o.id===selected[0]&&o.type==='connector');
     $('image-options').hidden=selected.length!==1||!p.objects.some(o=>o.id===selected[0]&&o.type==='image');
     $('style-button').hidden=!$('image-options').hidden;
+    const textTarget=selected.length===1?p.objects.find(o=>o.id===selected[0]):null;
+    $('text-options').hidden=!textTarget||!(textTarget.type==='text'||textTarget.type==='path'&&(textTarget.label||/[zZ]/.test(textTarget.d)));
+    $('text-options').disabled=!allUnlocked();
     $('selection-bar').querySelector('[data-menu=arrange]').hidden=selected.length<2;
     for(const action of ['style','transform'])$('selection-bar').querySelector('[data-action='+action+']').disabled=!allUnlocked();
     renderInspectorTabs();
@@ -160,7 +164,7 @@
     if(tool==='pan'||space||event.button===1)drag={kind:'pan',start:p,client:{x:event.clientX,y:event.clientY},camera:{...camera}};
     else if(connectionUI.pointerDown(event,p,base)){}
     else if(handle&&selected.length&&editable())drag={kind:'transform',handle,start:p,box:bounds(selected),base,originalSelection};
-    else if(tool==='text'){textDialog(null,point);tool='direct';pathUI.reset();render();return;}
+    else if(tool==='text'){selected=[];tool='direct';pathUI.reset();textUI.add(point);render();return;}
     else if(tool==='direct')pathUI.pointerDown(event,p,base);
     else if(tool!=='select')drag={kind:'draw',start:point,end:point,base,originalSelection};
     else if(hit){
@@ -219,7 +223,15 @@
     render();
   });
   $('canvas').addEventListener('pointercancel',cancelDrag);
-  $('canvas').addEventListener('dblclick',event=>{if(connectionUI.doubleClick(event,world(event)))return;if(tool==='direct')pathUI.doubleClick(event,world(event));const id=event.target.closest('[data-object]')?.dataset.object;const o=page().objects.find(o=>o.id===id);if(o?.type==='text'&&!o.locked)textDialog(o);});
+  $('canvas').addEventListener('dblclick',event=>{
+    const point=world(event);if(connectionUI.doubleClick(event,point))return;
+    // Pointer capture and redraw can retarget dblclick to the canvas itself.
+    const target=event.target.closest('[data-object],[data-node],[data-bezier]')?event.target:document.elementFromPoint(event.clientX,event.clientY)||event.target;
+    const id=target.closest('[data-object]')?.dataset.object,o=page().objects.find(o=>o.id===id);
+    const shape=o?.type==='path'&&(o.label||/[zZ]/.test(o.d)),edge=shape&&tool==='direct'?window.IlapoPathEdit.nearest(o,point):null;
+    if(o&&!o.locked&&(o.type==='text'||shape&&!target.closest('[data-node],[data-bezier]')&&(!edge||edge.distance>9/zoom()))){selection([id]);if(selected.length===1)openInspectorSection('text');return;}
+    if(tool==='direct')pathUI.doubleClick({target},point);
+  });
   function rotation(a){return [Math.cos(a),Math.sin(a),-Math.sin(a),Math.cos(a),0,0];}
   function around(m,x,y){return C.multiply([1,0,0,1,x,y],C.multiply(m,[1,0,0,1,-x,-y]));}
   function zoomAt(factor,p){const old=zoom(),next=Math.max(.005,Math.min(100,old*factor)),ratio=old/next;const anchor=p||{x:camera.x+camera.width/2,y:camera.y+camera.height/2};camera={x:anchor.x-(anchor.x-camera.x)*ratio,y:anchor.y-(anchor.y-camera.y)*ratio,width:camera.width*ratio,height:camera.height*ratio};render();}
@@ -276,7 +288,7 @@
       present:()=>menuButton('先頭から発表','present-start')+menuButton('このページから発表','present-current'),
       path:()=>pathUI.menu(menuButton),
       'selection-more':()=>menuButton('位置・大きさ・回転…','transform')+'<hr>'+menuButton('整列・大きさをそろえる','selection-arrange',selected.length<2)+menuButton('重なり順','selection-order')+menuButton('動きと再生順序…','animations')+'<hr>'+menuButton('複製','duplicate')+menuButton('削除','delete'),
-      edit:()=>menuButton('文字を編集…','text-edit',selected.length!==1||page().objects.find(o=>o.id===selected[0])?.type!=='text')+menuButton('コピー','copy',selectedNone)+menuButton('貼り付け','paste',!clipboard)+menuButton('複製','duplicate',selectedNone)+menuButton('削除','delete',selectedNone)+'<hr>'+menuButton('グループ化','group',selected.length<2)+menuButton('グループ解除','ungroup',selectedNone)+menuButton('固定／固定解除','lock',selectedNone)+'<hr>'+menuButton('書式をコピー','style-copy',selectedNone)+menuButton('書式を適用','style-paste',selectedNone||!copiedStyle),
+      edit:()=>menuButton('文字を編集…','text-edit',selected.length!==1||!page().objects.some(o=>o.id===selected[0]&&(o.type==='text'||o.type==='path'&&(o.label||/[zZ]/.test(o.d)))))+menuButton('コピー','copy',selectedNone)+menuButton('貼り付け','paste',!clipboard)+menuButton('複製','duplicate',selectedNone)+menuButton('削除','delete',selectedNone)+'<hr>'+menuButton('グループ化','group',selected.length<2)+menuButton('グループ解除','ungroup',selectedNone)+menuButton('固定／固定解除','lock',selectedNone)+'<hr>'+menuButton('書式をコピー','style-copy',selectedNone)+menuButton('書式を適用','style-paste',selectedNone||!copiedStyle),
       arrange:()=>['left:左にそろえる','center:左右中央にそろえる','right:右にそろえる','top:上にそろえる','middle:上下中央にそろえる','bottom:下にそろえる','distribute-x:左右に等間隔','distribute-y:上下に等間隔','width:幅をそろえる','height:高さをそろえる','size:幅と高さをそろえる'].map(s=>{const [key,label]=s.split(':');return menuButton(label,'align-'+key,selected.length<2);}).join(''),
       order:()=>menuButton('最前面へ','order-front')+menuButton('1つ前へ','order-forward')+menuButton('1つ後ろへ','order-backward')+menuButton('最背面へ','order-back')
     };
@@ -315,7 +327,7 @@
   $('dialog-close').onclick=$('dialog-cancel').onclick=closeDialog;
   $('dialog').addEventListener('cancel',()=>{setTimeout(()=>dialogOpener?.focus(),0);});
   $('dialog-form').onsubmit=async event=>{event.preventDefault();if(!dialogCallback){closeDialog();return;}const cb=dialogCallback;try{const result=cb();if(result?.then)await result;if(dialogCallback===cb)closeDialog();}catch(error){$('dialog-error').textContent=error.message;$('dialog-error').hidden=false;}};
-  const inspectorSections={style:['書式・色','style'],transform:['位置・大きさ','transform'],anchor:['アンカーの座標','path'],connection:['接続・経路','connector'],image:['画像の設定','image'],animation:['動きと再生順序','animation'],board:['用紙サイズ','board'],view:['表示・吸着','view'],pages:['ページ一覧','pages'],objects:['図形の一覧','layers'],assets:['アイコン・部品','assets']};
+  const inspectorSections={text:['文字・配置','text'],style:['書式・色','style'],transform:['位置・大きさ','transform'],anchor:['アンカーの座標','path'],connection:['接続・経路','connector'],image:['画像の設定','image'],animation:['動きと再生順序','animation'],board:['用紙サイズ','board'],view:['表示・吸着','view'],pages:['ページ一覧','pages'],objects:['図形の一覧','layers'],assets:['アイコン・部品','assets']};
   let inspectorTabsKey='';
   function inspectorScope(section){return JSON.stringify([revision,doc().id,pageId,section==='pages'?null:selected,section==='anchor'?pathUI.getRefs():null,section==='view'?settings:null]);}
   function clearInspectorPreview(){if(inspectorPreview){inspectorPreview=null;render();}}
@@ -326,30 +338,31 @@
   function renderInspectorTabs(){
     if(!inspector)return;
     const one=selected.length===1?page().objects.find(o=>o.id===selected[0]):null;
-    const sections=['pages','objects','assets',...(selected.length?[one?.type==='image'?'image':'style','transform',...(one?.type==='connector'?['connection']:pathUI.count()?['anchor']:[]),'animation','board','view']:['board','view','animation'])];
+    const sections=['pages','objects','assets',...(selected.length?[one?.type==='image'?'image':'style','transform',...(one&&(one.type==='text'||one.type==='path'&&(one.label||/[zZ]/.test(one.d)))?['text']:[]),...(one?.type==='connector'?['connection']:pathUI.count()?['anchor']:[]),'animation','board','view']:[...(textUI?.hasDraft?['text']:[]),'board','view','animation'])];
     const key=sections.join(',');
     if(inspectorTabsKey!==key){inspectorTabsKey=key;$('inspector-tabs').innerHTML=sections.map(section=>`<button type="button" data-inspector-section="${section}" aria-label="${inspectorSections[section][0]}" data-tip="${inspectorSections[section][0]}">${icon(inspectorSections[section][1])}</button>`).join('');}
     $('inspector-tabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.inspectorSection===inspector.section)));
-    $('selection-bar').querySelectorAll('[data-action]').forEach(b=>{const section=({'connection-options':'connection','image-options':'image',animations:'animation'})[b.dataset.action]||b.dataset.action;if(inspectorSections[section])b.setAttribute('aria-pressed',String(inspector.isOpen&&inspector.section===section));});
+    $('selection-bar').querySelectorAll('[data-action]').forEach(b=>{const section=({'connection-options':'connection','image-options':'image',animations:'animation','text-edit':'text'})[b.dataset.action]||b.dataset.action;if(inspectorSections[section])b.setAttribute('aria-pressed',String(inspector.isOpen&&inspector.section===section));});
   }
   function showInspector(section,title,html,label,apply,options={}){
     const focused=document.activeElement,opener=$('command-menu').contains(focused)?menuOpener:focused;hideMenu();
-    const target=section==='pages'?doc().pages.length+'ページ':['objects','assets','board','view','animation'].includes(section)?page().name:page().objects.filter(o=>selected.includes(o.id)).map(o=>o.name).join('、');
+    const target=options.target||(section==='pages'?doc().pages.length+'ページ':['objects','assets','board','view','animation'].includes(section)?page().name:page().objects.filter(o=>selected.includes(o.id)).map(o=>o.name).join('、'));
     inspector.show({section,title,html:`<p class="inspector-target">${esc(target||'選択した図形')}</p>`+html,label,apply,preview:options.preview,scope:()=>inspectorScope(section),refresh:()=>openInspectorSection(section),opener});
     renderInspectorTabs();
   }
   function openInspectorSection(section){
     objectsUI?.cancelDrag();
+    if(section!=='text')textUI?.cancelDraft();
     clearInspectorPreview();
     const one=selected.length===1?page().objects.find(o=>o.id===selected[0]):null;
     if(section==='style'&&one?.type==='image')section='image';
-    const needsSelection=['style','transform','anchor','connection','image'].includes(section);
-    const compatible=!needsSelection||selected.length&&(section!=='image'||one?.type==='image')&&(section!=='connection'||one?.type==='connector')&&(section!=='anchor'||pathUI.count());
+    const needsSelection=['style','transform','anchor','connection','image','text'].includes(section)&&!(section==='text'&&textUI?.hasDraft);
+    const compatible=!needsSelection||selected.length&&(section!=='image'||one?.type==='image')&&(section!=='connection'||one?.type==='connector')&&(section!=='anchor'||pathUI.count())&&(section!=='text'||one&&(one.type==='text'||one.type==='path'&&(one.label||/[zZ]/.test(one.d))));
     if(!compatible||needsSelection&&section!=='image'&&!allUnlocked()){
       const message=!compatible?'対象の図形'+(section==='anchor'?'とアンカー':'')+'を選ぶと、ここで調整できます。':'固定された図形を含みます。編集から固定を解除すると調整できます。';
       showInspector(section,inspectorSections[section][0],`<p class="muted">${message}</p>`,null);return;
     }
-    ({style:styleDialog,transform:transformDialog,board:boardDialog,view:viewDialog,image:imageDialog,connection:()=>connectionUI.dialog(),anchor:()=>pathUI.commands['anchor-position'](),animation:()=>animationUI.list(),pages:()=>pagesUI.open(),objects:()=>objectsUI.open(),assets:()=>assetsUI.open()})[section]?.();
+    ({text:()=>textUI.open(one),style:styleDialog,transform:transformDialog,board:boardDialog,view:viewDialog,image:imageDialog,connection:()=>connectionUI.dialog(),anchor:()=>pathUI.commands['anchor-position'](),animation:()=>animationUI.list(),pages:()=>pagesUI.open(),objects:()=>objectsUI.open(),assets:()=>assetsUI.open()})[section]?.();
   }
   function renameDialog(){showDialog('作品名',`<label>名前<input id="name-input" value="${esc(doc().name)}" maxlength="120" required></label>`,'変更',()=>{const name=$('name-input').value.trim();if(!name)throw Error('名前を入力してください。');change(d=>d.name=name);});}
   function checkReplace(next){
@@ -357,7 +370,7 @@
     showDialog('作業中の変更を保存', '<p>今の作品には明示保存していない変更があります。</p><div class="list-actions"><button type="button" id="replace-save" class="primary">保存して開く</button><button type="button" id="replace-discard">保存せず開く</button></div>',null);
     $('replace-save').onclick=()=>{if(saveBrowser()){closeDialog();next();}};$('replace-discard').onclick=()=>{closeDialog();next();};
   }
-  function replaceDocument(value){objectsUI?.cancelDrag();clearInspectorPreview();revision++;pathUI.reset();connectionUI.reset();const checked=C.validateDocument(value);checked.pages.forEach(p=>K.sync(p));history.replace(checked);pageId=doc().pages[0].id;selected=[];edited=false;saveFingerprint=snapshot();clearTimeout(saveTimer);clearTimeout(toast.timer);$('toast').hidden=true;localAuto?.stop();$('save-status').textContent='読み込みました';fit();}
+  function replaceDocument(value){objectsUI?.cancelDrag();textUI?.cancelDraft();clearInspectorPreview();revision++;pathUI.reset();connectionUI.reset();const checked=C.validateDocument(value);checked.pages.forEach(p=>K.sync(p));history.replace(checked);pageId=doc().pages[0].id;selected=[];edited=false;saveFingerprint=snapshot();clearTimeout(saveTimer);clearTimeout(toast.timer);$('toast').hidden=true;localAuto?.stop();$('save-status').textContent='読み込みました';fit();}
   function recoveryDialog(){
     const entries=store?.list()||[];
     showDialog('保存した内容を選ぶ',entries.length?'<p>開かなかった保存内容も保持されます。</p>'+entries.map((e,i)=>`<button type="button" class="recovery" data-recovery="${i}"><strong>${esc(e.document.name)}</strong> — ${e.kind==='auto'?'自動保存':'明示保存'}<small>ブラウザ内 · ${esc(new Date(e.at).toLocaleString('ja-JP'))} · ${e.document.pages.length}ページ</small></button>`).join(''):'<p>ブラウザ内に保存候補がありません。ローカルの作品は「ファイルを開く」から選べます。</p>',null);
@@ -415,17 +428,6 @@
     }
     showInspector('transform','選択した図形を変形',`<div class="fields"><label>左の位置（px）<input id="transform-x" type="number" step="any" value="${round(b.x)}" required></label><label>上の位置（px）<input id="transform-y" type="number" step="any" value="${round(b.y)}" required></label><label>幅（px）<input id="transform-width" type="number" min="0" step="any" value="${round(b.width)}" required></label><label>高さ（px）<input id="transform-height" type="number" min="0" step="any" value="${round(b.height)}" required></label></div><label>現在の向きから回転（°）<input id="transform-angle" type="number" step="any" value="0" required></label><label class="check"><input id="transform-ratio" type="checkbox">縦横比を保つ</label><div class="row"><label class="check"><input id="flip-x" type="checkbox">左右反転</label><label class="check"><input id="flip-y" type="checkbox">上下反転</label></div><label class="check"><input id="scale-stroke" type="checkbox">線幅も拡大縮小する</label>`,'適用',()=>changePage(read()),{preview:()=>previewInspectorChange(read())});
     for(const axis of ['width','height'])$('transform-'+axis).oninput=()=>{if(!$('transform-ratio').checked||!b.width||!b.height)return;const target=axis==='width'?'height':'width';$('transform-'+target).value=round(Number($('transform-'+axis).value)*b[target]/b[axis]);};
-  }
-  function textDialog(existing,point){
-    const size=Math.max(.2,standardSize()*.16),o=existing?C.clone(existing):C.makeText(point.x,point.y,'',{fill:'#172B4D',stroke:'none',fontSize:size});
-    let chars=o.runs.flatMap(run=>run.text.split('').map(text=>({text,script:run.script}))),previous=chars.map(c=>c.text).join('');
-    showDialog(existing?'文字を編集':'文字を追加',`<p class="muted">一部分を選択して、上付き・下付きを指定できます。</p><div class="text-tools"><button type="button" data-script="normal">通常</button><button type="button" data-script="super">上付き x²</button><button type="button" data-script="sub">下付き x₂</button></div><label>文章<textarea id="text-input" maxlength="10000" spellcheck="false">${esc(previous)}</textarea></label><div id="text-preview" aria-label="文字のプレビュー"></div>`,existing?'変更':'追加',()=>{
-      if(!chars.length)throw Error('文章を入力してください。');const runs=[];chars.forEach(c=>{const last=runs[runs.length-1];if(last&&last.script===c.script)last.text+=c.text;else runs.push({...c});});o.runs=runs;
-      if(existing)changePage(p=>p.objects[p.objects.findIndex(v=>v.id===o.id)]=o);else {changePage(p=>p.objects.push(o));selected=[o.id];}render();
-    });
-    function previewText(){let html='',last='';chars.forEach(c=>{if(c.script!==last){if(last)html+='</span>';html+=`<span style="${c.script==='super'?'vertical-align:super;font-size:.7em':c.script==='sub'?'vertical-align:sub;font-size:.7em':''}">`;last=c.script;}html+=esc(c.text);});$('text-preview').innerHTML=html+(last?'</span>':'');}
-    $('text-input').oninput=()=>{const next=$('text-input').value;let prefix=0,suffix=0;while(prefix<Math.min(previous.length,next.length)&&previous[prefix]===next[prefix])prefix++;while(suffix<Math.min(previous.length-prefix,next.length-prefix)&&previous[previous.length-1-suffix]===next[next.length-1-suffix])suffix++;const inherited=chars[Math.max(0,prefix-1)]?.script||'normal';chars=[...chars.slice(0,prefix),...next.slice(prefix,next.length-suffix).split('').map(text=>({text,script:inherited})),...chars.slice(previous.length-suffix)];previous=next;previewText();};
-    $('dialog-body').querySelectorAll('[data-script]').forEach(b=>{b.onmousedown=e=>e.preventDefault();b.onclick=()=>{const input=$('text-input'),start=input.selectionStart,end=input.selectionEnd;if(start===end){toast('上付き・下付きにする文字を範囲選択してください。');return;}for(let i=start;i<end;i++)chars[i].script=b.dataset.script;previewText();input.focus();input.setSelectionRange(start,end);};});previewText();$('text-input').focus();
   }
   const palette=['#FFFFFF','#E2E8F0','#94A3B8','#475569','#172B4D','#000000','#FCA5A5','#EF4444','#F59E0B','#FDE047','#BEF264','#22C55E','#5EEAD4','#06B6D4','#93C5FD','#2563EB','#A78BFA','#EC4899'];
   function styleDialog(){
@@ -500,7 +502,7 @@
     'select-all':()=>selection(page().objects.map(o=>o.id)),copy,paste,duplicate:()=>{if(!selected.length)return;let ids;if(changePage(p=>ids=C.duplicateObjects(p,selected,standardSize()*.12,standardSize()*.12)))selected=ids;render();},
     delete:()=>{if(editable())changePage(p=>C.removeObjects(p,selected));},group:()=>{if(editable())changePage(p=>C.groupObjects(p,selected));},ungroup:()=>{if(editable())changePage(p=>C.ungroupObjects(p,selected));},
     lock:()=>{const lock=allUnlocked();changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.locked=lock));},
-    'text-edit':()=>{const o=page().objects.find(o=>o.id===selected[0]);if(selected.length===1&&o?.type==='text'&&editable())textDialog(o);},
+    'text-edit':()=>openInspectorSection('text'),
     'style-copy':()=>{if(selected.length){copiedStyle=C.clone(page().objects.find(o=>o.id===selected[0]).style);toast('書式をコピーしました。');}},'style-paste':()=>{if(copiedStyle&&editable())changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.style=C.clone(copiedStyle)));},
     fit,'zoom-in':()=>zoomAt(1.25),'zoom-out':()=>zoomAt(.8),'zoom-reset':()=>zoomAt(1/zoom()),
     'inspector-toggle':()=>inspector.isOpen&&!['pages','objects','assets'].includes(inspector.section)?inspector.close():openInspectorSection(selected.length?'style':'board'),
@@ -541,6 +543,7 @@
   pathUI=window.IlapoPathUI.create({page,selected:()=>selected,tool:()=>tool,settings:()=>settings,zoom,select:selection,render,setTool,setDrag:value=>drag=value,setPreview:value=>preview=value,editable,changePage,toast,errorMessage,showDialog,showInspector,esc,round,standardSize});
   connectionUI=window.IlapoConnectorUI.create({page,selected:()=>selected,tool:()=>tool,zoom,snap,select:selection,render,setTool,setDrag:value=>drag=value,setPreview:value=>preview=value,editable,changePage,toast,clearToast:()=>{clearTimeout(toast.timer);$('toast').hidden=true;},showInspector,previewChange:previewInspectorChange,esc,round,standardSize});
   animationUI=window.IlapoAnimationUI.create({document:doc,page,selected:()=>selected,changePage,toast,showInspector,esc,standardSize,palette});
+  textUI=window.IlapoTextUI.create({document:doc,page,selected:()=>selected,select:selection,showInspector,changePage,previewChange:previewInspectorChange,clearPreview:clearInspectorPreview,isOpen:()=>!!inspector?.isOpen&&inspector.section==='text',esc,icon,palette,standardSize,toast});
   objectsUI=window.IlapoObjectsUI.create({document:doc,page,selected:()=>selected,select:selection,showInspector,changePage,showDialog,execute,isBusy:()=>!!drag,esc,icon});
   pagesUI=window.IlapoPagesUI.create({document:doc,page,selectPage,change,showInspector,showDialog,esc,icon});
   assetsUI=window.IlapoAssetsUI.create({document:doc,page,selected:()=>selected,library,insertionPoint,insertObjects,showInspector,showDialog,isOpen:()=>inspector?.isOpen&&inspector.section==='assets',esc,icon,toast,download});

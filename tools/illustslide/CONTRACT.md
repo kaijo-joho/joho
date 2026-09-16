@@ -1,15 +1,16 @@
-# イラストスライド illustSlideの内部契約（0.4.8）
+# イラストスライド illustSlideの内部契約（0.4.9）
 
 開発担当 Codex。現在は計画④まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
 
 0.4.2から配置先は `tools/illustslide/`、保存名は `.illustslide.zip`。旧URLは案内ページを残し、旧 `.ilapo.zip`・保存キー・内部API・文書形式・SVG識別子は互換性を保つ。直接ファイル利用時のブラウザ保存は、旧ページでJSONとして取り出せる。
 
-文書: `{format:'kaijo-ilapo',version:1|2|3,id,name,pages:[page]}`。version1/2を読み込める。image/connectorで最低version2、非空animationsでversion3へ上げる。上がったversionを下げず、引数は変更しない。
+文書: `{format:'kaijo-ilapo',version:1|2|3|4,id,name,pages:[page]}`。version1〜3を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4へ上げる。上がったversionを下げず、引数は変更しない。
 ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation]}`。
 幅・高さ・座標はCSS pxの小数。unitは表示単位px/mm/pt。無限ページにも書き出し用の初期width/heightを保持。
 オブジェクト: `{id,type:'path'|'text'|'image'|'connector',name,group:null|string,locked:false,matrix:[a,b,c,d,e,f],style}`。
 pathは標準SVGの`d`、textは`x,y,runs:[{text,script:'normal'|'super'|'sub'}]`を追加する。
+textの任意フィールド`layout:{width:null|正数,align:'left'|'center'|'right'}`は折り返し幅と揃え。pathの任意フィールド`label:{runs,style,align,padding}`は図形内の文章。paddingは0以上のCSS px。省略した既存文書に既定値を追加しない。runsは最大1000区間・合計100000 UTF-16コード単位。余分なキー、不正な書式・数値・揃えは拒否する。
 style: `{fill,stroke,strokeWidth,opacity,dash,linecap,linejoin,fontSize,fontFamily,bold,italic}`。
 fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。fontFamilyはsans-serif/serif/monospace。
 グループは初期版では同じgroup値を持つ平坦な集合。選択・変形は原則グループ全体へ適用。
@@ -36,9 +37,11 @@ version1ではgeometry正本は各SVG。manifestは文書/ページ情報、オ�
 
 version2ではimageのreferenceフラグもmetadataに保存。connectorは接続モデル全体をmetadataに持ち、SVG内には`data-ilapo-connector`グループで通常のpath/textへ展開する。native ZIPは検証したモデルを復元し、通常SVGはグループ化された線・文字として取り込む。XMLの全要素の安全性検査はnativeでも省かない。
 
+version4はmetadataの`text:{x,y,runs,layout}`で入力時の文章・揃え・幅を、`label`で図形内の文章・書式・余白を保持する。textのmatrix/style、pathのd/matrix/styleは従来どおりSVGを正本とする。通常SVGは行ごとに明示したtspanのx/yで表示し、再取り込みでは配置済みの行ごとのtextになる。native ZIPは著者のrunsとlayoutを復元する。図形ラベルは元pathから派生させ、表示用のpath本体だけをflattenする。派生文字には図形IDを付けず、groupとlabel textの所有者markerを検証して重複取り込みを防ぐ。markerやmetadataが欠損・重複・不一致なら拒否し、nativeでもXML監査を省略しない。
+
 `exportPage`の`includeReferences:true`はnative ZIP用。既定falseは参照画像を省く。imageのsrcはPNG/JPEG/WebPのbase64データURLだけを許し、外部URL・埋め込みSVGを拒否する。ZIPのページファイル名はpage.idをencodeURIComponentしたものとする。
 
-native ZIPでは`rawTransforms:true`も指定し、元のd・matrix・styleを各SVGへそのまま保持する。表示・通常SVG・PNG・PDF・発表はこの指定を使わない。外部アプリで線幅まで一致する持ち出しには通常のSVGを書き出す。文書のversionとmetadata構造は変更しない。
+native ZIPでは`rawTransforms:true`も指定し、元のd・matrix・styleを各SVGへそのまま保持する。表示・通常SVG・PNG・PDF・発表はこの指定を使わない。外部アプリで線幅まで一致する持ち出しには通常のSVGを書き出す。
 
 外部SVGのパスはviewBoxを含む全変形から一様倍率を求め、線幅・破線長を作品座標へ正規化する。線がある非等方変形・せん断は明示的に拒否し、元の作品を置き換えない。`preserveCoordinates`のnative読込と`data-ilapo-page-id`を持つ旧版を含む自アプリSVGは保存済みの線幅をそのまま復元する。XML安全性検査はすべての場合で維持する。
 
@@ -51,6 +54,16 @@ Paper.jsは同梱版を使用し、geometryは小さな独立scopeで図形計�
 `anchors(object)` -> パスの区間ごとの配列（検証用）。`moveAnchor(object,pathIndex,anchorIndex,dx,dy)` ->新object。
 
 UIはeditor.jsとeditor.css/index.html。DOMの作品表示はSVG、選択枠等は別SVGグループ。保存前のプレビューはHistoryを変更しない。
+
+## IlapoTextLayout / IlapoTextUI（0.4.9）
+
+`layout(text,options?)`は行ごとの`x,y,width,runs`と`bounds,inkBounds`を返す。DOMを変更しない。Canvasの文字計測を使い、テストでは`options.measure`を注入できる。書式の境界をまたぐ書記素も分割せず、日本語・空行・上付き下付きの位置を同じ計算で画面とSVGへ渡す。width:nullは最長行を基準に整列する。x/yは最初の行の基準位置。
+
+`shapeText(path)`は保存しない派生textを返す。元のローカル外接範囲に軸方向の実倍率を適用して文字幅を求め、行列からその倍率を除いて文字の太さ・サイズを維持する。回転・反転は引き継ぐ。図形の高さ中央へ配置するが、輪郭に沿う流し込みはしない。過大な余白は表示時に軸ごとに制限し、著者の指定値は保存したままにする。pathの`bounds`は図形本体を返し、`visualBounds`ははみ出たラベルの描画範囲も含める。
+
+文字UIは右のtextセクション。新規文字も確定までHistoryへ追加せず、Inspectorのスコープ検査と複製文書のpreviewを共用する。部分書式はtextareaのUTF-16選択範囲を書記素単位へ広げて適用する。IME中は入力の書式・キャンバスpreviewを更新せず、compositionendで反映する。Enterは改行、入力中のDeleteは文章編集。適用は1履歴、取消・閉じる・対象切替は未確定入力を破棄する。
+
+部品の初回配置では、path.labelの文字サイズ・線・破線・余白を配置倍率に合わせる。通常の図形変形ではラベルの保存値を拡大しない。
 
 ## IlapoGuides（guides.js）
 
