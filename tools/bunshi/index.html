@@ -372,8 +372,15 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
               <option value="6-31g">ハートリー・フォック法／6-31G（遅い）</option>
             </select>
           </label>
+          <label class="frow">やり方
+            <select id="moMode" title="剛体：形を変えずに角度だけ変える（速い）。各点で最適化：二面角を固定したまま形を整える（正確だが、とても時間がかかる）">
+              <option value="rigid" selected>剛体（速い・山が大きめに出る）</option>
+              <option value="relax">各点で最適化（正確・とても遅い）</option>
+            </select>
+          </label>
           <label class="frow">刻み
             <select id="moStep" title="何度ずつ変えて計算するか">
+              <option value="60">60°（7 点・いちばん速い）</option>
               <option value="30">30°（13 点・速い）</option>
               <option value="15" selected>15°（25 点）</option>
               <option value="10">10°（37 点・遅い）</option>
@@ -381,6 +388,11 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
           </label>
           <button class="sbtn primary" id="moGo">いま測っている二面角で計算する</button>
           <button class="sbtn" id="moStop" hidden>やめる</button>
+          <div class="side-sec">
+            <div class="gl">構造最適化</div>
+            <button class="sbtn" id="moOpt" title="選んでいる分子の形を、分子軌道法で力がつり合う形にする">この分子の形を最適化する</button>
+            <p class="muted">分子をクリックして選んでから押します。結合長・結合角が分子軌道法で求めた形になります（原子 10 個くらいまでが目安）。</p>
+          </div>
           <p class="muted" id="moStatus">二面角を測ると使えます。</p>
           <canvas id="moChart" style="width:100%;height:180px;display:block;border:1px solid var(--line);border-radius:8px;background:#fff"></canvas>
           <div class="side-sec">
@@ -415,7 +427,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>計測</td><td>左の計測のボタン（<kbd>D</kbd> 距離、<kbd>A</kbd> 結合角、<kbd>T</kbd> 二面角）を選び、原子を順にクリック。結果は図と画面下に出ます。画面下の × で消せます。</td></tr>
         <tr><td>形を変える</td><td>測ると、上にバーが出て、結合長・結合角・二面角の値をスライダーや数値の入力で変えられます（画面下の計測をクリックしても出ます）。結合で分けた小さい方の原子団がまとめて動くので、形は崩れず、立体配置（R・S）も変わりません。二面角でエタンのねじれ形・重なり形、ブタンのアンチ形・ゴーシュ形などを作れます。環の中の値は変えられません。スライダーの目盛りは標準の値で、そこで一度止まります（結合長は結合の種類ごとの値、結合角は中心の原子の混成に応じた値（環の中は環の大きさから）、二面角はねじれ形 ±60°・180°、二重結合のまわりは 0°・180°）。「標準の長さに戻す」などのボタンで、いちばん近い標準の値にできます（<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> で元に戻せます）。</td></tr>
         <tr><td>形を整える</td><td>左の「形を整える」で、結合長・結合角・二重結合の平面・ねじれ（単結合はねじれ形、共役した結合は平面）・原子の重なりを考えた簡単な力場で、形を少しずつ整えます（簡易的な構造最適化。実際の分子の形とは少し違うことがあります）。分子を選んでいればその分子だけ、選んでいなければ全体が対象です。計測があるときは、先に値を保つ計測を選べます（標準の値から変えたものは最初からチェックされています）。途中でキャンバスをクリックすると止まります。R・S は変わりません。</td></tr>
-        <tr><td>エネルギー計算<br>（回転障壁）</td><td>二面角（<kbd>T</kbd>）を測ると、上のバーに「エネルギー曲線」が出ます。押すと、右の「エネルギー計算」パネルで、その二面角を少しずつ変えながら分子軌道法（ハートリー・フォック法）でエネルギーを計算し、横軸が角度・縦軸がエネルギー（kJ/mol）の曲線を描きます。いちばん高い形と低い形の差が、回転のしにくさ（回転障壁）の目安です。エタンのねじれ形と重なり形、ブタンのアンチ形とゴーシュ形、ブタジエンの s-トランスなどを調べられます。<br>分子の形は変えずに角度だけを変える簡単な方法（剛体スキャン）なので、実際の値より大きめに出ます。電子の数が偶数（閉殻）の中性分子だけが対象です。原子の数が多い分子や 6-31G では時間がかかります（1 点あたり数秒かかることがあり、途中で「やめる」を押せます）。計算はすべてこのブラウザの中で行われ、外部には送信されません。</td></tr>
+        <tr><td>エネルギー計算<br>（回転障壁）</td><td>二面角（<kbd>T</kbd>）を測ると、上のバーに「エネルギー曲線」が出ます。押すと、右の「エネルギー計算」パネルで、その二面角を少しずつ変えながら分子軌道法（ハートリー・フォック法）でエネルギーを計算し、横軸が角度・縦軸がエネルギー（kJ/mol）の曲線を描きます。いちばん高い形と低い形の差が、回転のしにくさ（回転障壁）の目安です。エタンのねじれ形と重なり形、ブタンのアンチ形とゴーシュ形、ブタジエンの s-トランスなどを調べられます。<br>分子の形は変えずに角度だけを変える簡単な方法（剛体スキャン）なので、実際の値より大きめに出ます。電子の数が偶数（閉殻）の中性分子だけが対象です。原子の数が多い分子や 6-31G では時間がかかります（1 点あたり数秒かかることがあり、途中で「やめる」を押せます）。計算はすべてこのブラウザの中で行われ、外部には送信されません。<br>曲線は「形を変えずに角度だけを変える」方法（剛体スキャン）で求めているため、重なり形の山は実際よりかなり大きく出ます。たとえばブタンの 0°（メチル基どうしが重なる形）は約 60 kJ/mol になりますが、実際は 20〜25 kJ/mol です。実際の分子は、ぶつかったときに結合角を広げて逃がすためです。山と谷の位置・形の比較には使えますが、値そのものは目安として見てください。<br>「やり方」を「各点で最適化」にすると、角度ごとに二面角だけを固定して分子軌道法で形を整えてから計算します（緩和スキャン）。ぶつかったときに結合角が広がる分まで入るので、実際に近い値になります。そのかわり 1 点あたり 30 秒〜数分かかるので、原子の少ない分子と粗い刻み（30°・60°）で使ってください。途中経過は「やめる」で止められます。<br>「この分子の形を最適化する」は、分子をクリックして選んでから押すと、分子軌道法で力がつり合う形（結合長・結合角）にします。水なら O–H 0.99 Å・H–O–H 100° 付近になります（HF/STO-3G での値で、実測の 0.96 Å・104.5° とは差があります）。</td></tr>
         <tr><td>組み立て</td><td>左の「組み立て」で元素（C・N・O・S・F・Cl・Br・I）や官能基（OH・NH₂・CHO・COOH・NO₂・CN・C₆H₅・OCH₃・COCH₃）を選び、H をクリックすると、その H が置き換わります（H は価数に合わせて自動で付きます）。H 以外の原子をクリックすると、その原子の元素が変わります。結合のボタン（単・二重・三重）で結合をクリックすると結合の種類が変わり、消しゴム (<kbd>E</kbd>) で原子をクリックすると、その原子を消してあいた所に H を付けます（分子が切れたときは大きい方だけが残るので、官能基の付け根の原子を消すと官能基ごと消えます）。変更のたびに、結合長・結合角・二重結合の平面・原子の重なりを簡単に整えます（構造最適化ではないので、形はおおよそです）。</td></tr>
         <tr><td>不斉炭素・R/S</td><td>上部の「不斉炭素」で、4 つの異なる原子・原子団が結合した炭素をだいだい色の円で囲みます。「R/S」で R・S を表示します（CIP 順位規則。高校の範囲外の発展的な内容です。原子番号だけで順位を決めるので、まれに判定できないものがあります）。</td></tr>
         <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。回転の中心は不斉炭素（青い十字の印）で、2 つ以上あるときは上に出るプルダウンで選べます。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。<br>分子をクリックして選ぶと、その分子だけを回したり（ドラッグ）、動かしたり（<kbd>Shift</kbd>+ドラッグ）できます。もう一方に近づけたり、鏡を通り越して重ねたりして、重ならないことを確かめられます。「鏡の位置に戻す」で元の鏡像の位置に戻ります。「鏡像に変える」でその分子だけを鏡像にもできます。<br>鏡像体を並べているときに片方の分子を組み立てると（原子や官能基の置き換え・結合の変更・消しゴム）、もう一方も鏡像のまま同じように組み立てられます。</td></tr>
@@ -430,7 +442,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.12 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.13 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -3171,7 +3183,7 @@ const moServed = location.protocol === 'http:' || location.protocol === 'https:'
 let moWorker = null, moRun = null, moSeq = 0;
 function moStatus(text, busy = false){
   $('moStatus').textContent = text;
-  $('moStop').hidden = !busy; $('moGo').disabled = busy;
+  $('moStop').hidden = !busy; $('moGo').disabled = busy; $('moOpt').disabled = busy;
 }
 function moEnsure(){
   if (!moWorker){
@@ -3195,10 +3207,26 @@ function moMessage(d){
       const w = (Math.max(...es) - Math.min(...es))*HARTREE_KJ;
       moStatus(`${d.type === 'stopped' ? '途中で止めました' : '計算できました'}：いちばん高い形と低い形の差は ${w.toFixed(1)} kJ/mol（${es.length} 点）`);
     } else moStatus(d.type === 'stopped' ? '途中で止めました' : '計算できました');
+  } else if (d.type === 'rprog'){   // 緩和スキャン：1 点を最適化している途中
+    moStatus(`${d.i + 1}/${moRun.angles.length} 点目を最適化しています… ${d.iter + 1} 回目（最大の力 ${d.maxForce.toExponential(1)}）`, true);
+  } else if (d.type === 'ostep'){   // 構造最適化：1 歩ごとに形を書き戻して見せる
+    moWriteCoords(d.coords);
+    moStatus(`形を最適化しています… ${d.iter + 1} 回目（E = ${d.energy.toFixed(6)} ハートリー、最大の力 ${d.maxForce.toExponential(1)}）`, true);
+  } else if (d.type === 'odone'){
+    moRun.running = false;
+    moWriteCoords(d.coords); changed();
+    moStatus(d.stopped ? '途中で止めました' : d.converged
+      ? `最適化できました（E = ${d.energy.toFixed(6)} ハートリー）`
+      : `回数の上限まで動かしましたが、まだ力が残っています（E = ${d.energy.toFixed(6)} ハートリー）`);
   } else if (d.type === 'error'){
     moRun.running = false;
     moStatus('計算できませんでした：' + d.message);
   }
+}
+function moWriteCoords(a){   // 係から返る座標は Å（ボーアからの換算は係の側で済ませてある）
+  if (!a || !moRun || !moRun.ids) return;
+  moRun.ids.forEach((id, i) => { const at = doc.atoms[id]; if (at) { at.x = a[3*i]; at.y = a[3*i + 1]; at.z = a[3*i + 2]; } });
+  requestDraw(true);
 }
 // 曲線：横軸は二面角、縦軸はいちばん低い形からのエネルギーの差（kJ/mol）
 function moDraw(){
@@ -3230,10 +3258,15 @@ function moDraw(){
   for (const p of pts){ c.beginPath(); c.arc(px(p[0]), py((p[1] - lo)*HARTREE_KJ), 2.5, 0, 7); c.fill(); }
 }
 // 角度を変えた形を先に全部作る（doc は最後に元へ戻す）。送るのはその分子の原子だけ
+// 角度を変えた形を先に全部作る（doc は最後に元へ戻す）。送るのはその分子の原子だけ
+// ※ 力場で各点を緩めることも試したが、この力場は結合角を 109.5° などに強く固定するため、
+//    重なり形で本当に必要な「角を広げる」緩和ができず、かえって値が悪くなった（2026-09-16 実測）。
+//    正しく緩めるには、二面角を固定したままの QM の構造最適化が要る。
 function moGeoms(m, step){
+  const st = Math.min(90, Math.max(1, +step || 15));   // 0 や NaN だと終わらない繰り返しになるので、必ず正の刻みにする
   const snap = JSON.stringify(doc), ids = compOf(m.atoms[1]), xyzs = [], angles = [];
   try {
-    for (let a = -180; a <= 180 + 1e-9; a += step){
+    for (let a = -180; a <= 180 + 1e-9; a += st){
       applyMeasure(m, a);
       angles.push(measureValue(m.atoms).v);
       xyzs.push(toXYZText(ids.map(id => doc.atoms[id]), ''));
@@ -3251,11 +3284,32 @@ function moStart(){
   const ids = compOf(m.atoms[1]);
   if (ids.length > 24) { moStatus(`原子が ${ids.length} 個あり、計算にとても時間がかかるため取りやめました（目安は 20 個くらいまで）`); return; }
   const {xyzs, angles} = moGeoms(m, +$('moStep').value);
-  moRun = {id: ++moSeq, angles, energies: new Array(angles.length), running: true};
-  moStatus(`計算中… 0/${angles.length} 点`, true);
+  const relax = $('moMode').value === 'relax';
+  let fix = null;
+  if (relax){   // 二面角を固定したまま最適化するので、固定する 4 原子と「回る側の原子」を係に渡す
+    const idx = new Map(ids.map((id, i) => [id, i]));
+    const mv = plan.move.map(id => idx.get(id)).filter(i => i != null);
+    if (!mv.length) { moStatus('この二面角では、動かす原子団を決められませんでした'); return; }
+    fix = {atoms: m.atoms.map(id => idx.get(id)), move: mv};
+  }
+  moRun = {id: ++moSeq, angles, energies: new Array(angles.length), running: true, relax};
+  moStatus(relax ? `${angles.length} 点を最適化します（1 点に 30 秒〜数分かかります）…` : `計算中… 0/${angles.length} 点`, true);
   moDraw();
-  moEnsure().postMessage({id: moRun.id, type: 'scan', xyzs, basis: $('moBasis').value});
+  moEnsure().postMessage({id: moRun.id, type: relax ? 'rscan' : 'scan', xyzs, angles, fix, basis: $('moBasis').value});
 }
+// 構造最適化：選んでいる分子（1 つだけのときはその分子）を、分子軌道法で力がつり合う形にする
+function moOptimize(){
+  if (!moServed) { moStatus('この機能は、サーバーから開いたときだけ使えます（ファイルを直接開いた状態では計算できません）'); return; }
+  if (moRun && moRun.running) return;
+  const ids = sel ? compOf([...sel][0]) : (info.comps.length === 1 ? info.comps[0].ids : null);
+  if (!ids) { moStatus('形を最適化する分子をクリックして選んでください'); return; }
+  if (ids.length > 12) { moStatus(`原子が ${ids.length} 個あり、時間がかかりすぎるため取りやめました（目安は 10 個くらいまで）`); return; }
+  commit();
+  moRun = {id: ++moSeq, ids: [...ids], running: true, angles: [], energies: []};
+  moStatus('形を最適化しています…', true);
+  moEnsure().postMessage({id: moRun.id, type: 'optimize', xyz: toXYZText(ids.map(id => doc.atoms[id]), ''), basis: $('moBasis').value});
+}
+$('moOpt').onclick = () => { if (sidePane !== 'mo') openSide('mo'); moOptimize(); };
 $('moGo').onclick = moStart;
 $('moScan').onclick = () => { if (sidePane !== 'mo') openSide('mo');   // すでに開いているときに閉じてしまわないように
   moStart(); };
