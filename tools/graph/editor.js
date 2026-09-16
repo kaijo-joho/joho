@@ -1,4 +1,4 @@
-/* global GraphCore, GraphExpression, GraphCurves, GraphAnnotations, GraphSymbols, GraphIcons, GraphPlot, GraphTemplates, IlapoLocalAutosave, JohoToolHelp, JohoUI */
+/* global GraphCore, GraphExpression, GraphCurves, GraphAnnotations, GraphRegions, GraphSymbols, GraphIcons, GraphPlot, GraphTemplates, IlapoLocalAutosave, JohoToolHelp, JohoUI */
 (function () {
   'use strict';
   const C = window.GraphCore, P = window.GraphPlot, S = window.GraphSymbols;
@@ -7,7 +7,7 @@
   const quickColors = [palette[0],palette[1],palette[2],palette[3],palette[4],palette[12]];
   const colorNames = ['青','赤','緑','紫','オレンジ','青緑','ピンク','藍','黄緑','黄土','深緑','すみれ','黒','灰色','白','茶色','濃いピンク','水色'];
   const kindNames = {function:'2D 数式',implicit:'陰関数',parametric:'媒介変数',polar:'極座標',surface:'3D 曲面',data2d:'2D 数表',data3d:'3D 数表'};
-  const annotationNames = {point:'点',guide:'補助線',tangent:'接線',intersection:'交点',tangentIntersection:'交点',segment:'線分・矢印',text:'文字'};
+  const annotationNames = {point:'点',guide:'補助線',tangent:'接線',intersection:'交点',tangentIntersection:'交点',segment:'線分・矢印',text:'文字',region:'領域'};
   const curveKinds = ['function','parametric','polar'];
   let history, store, localAuto, help, tooltip, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey, dialogListDetail;
   let drawPending = false, drawing = false, drawTask = Promise.resolve(), exportBusy = false, fileBusy = false, toastTimer, saveTimer;
@@ -123,9 +123,10 @@
       const copy=node('span',null,{class:'object-copy'});copy.append(node('strong',a.name||annotationNames[a.kind]));
       if(state)copy.append(node('span',state,{class:'dim-badge'}));
       if(a.kind==='tangent')copy.append(node('small','',{'data-tangent-equation':a.id,class:'tangent-equation'}));
+      if(a.kind==='region')copy.append(node('small','',{'data-region-area':a.id,class:'region-area'}));
       item.append(dot,copy);item.addEventListener('dblclick',()=>run(()=>editAnnotation(a.id)));appendObjectRow($('annotation-list'),item,'annotation',a.id,a.name||annotationNames[a.kind],'位置・設定');
     }
-    updateParameters();updateTangentEquations(current());
+    updateParameters();updateTangentEquations(current());updateRegionAreas(current());
   }
   function appendObjectRow(list,item,type,id,name,details) {
     const row=node('div',null,{class:'object-row'}),label=name+'：'+details+'を編集';
@@ -133,6 +134,7 @@
     row.append(item,more);list.append(row);
   }
   function updateTangentEquations(doc) { for(const el of document.querySelectorAll('[data-tangent-equation]')){const a=doc.annotations.find(a=>a.id===el.dataset.tangentEquation);if(!a)continue;const value=GraphAnnotations.tangentEquation(a,doc);el.textContent=value.text||value.warning;el.dataset.tip=value.text?value.text+'（数値微分による近似）':value.warning;} }
+  function updateRegionAreas(doc) { for(const el of document.querySelectorAll('[data-region-area]')){const a=doc.annotations.find(a=>a.id===el.dataset.regionArea);if(!a)continue;const result=GraphAnnotations.evaluate(a,doc);el.textContent=result.warning||GraphRegions.areaText(result.area,doc);el.dataset.tip=el.textContent;} }
   function updateParameters() {
     const list=$('parameter-list'),names=new Set(current().parameters.map(p=>p.name));
     for(const row of [...list.children])if(!names.has(row.dataset.parameter))row.remove();
@@ -170,7 +172,7 @@
       if(!matchesMode(s)) more.append(button(kindNames[s.kind].startsWith('3D')?'3Dで表示':'2Dで表示',()=>switchMode(kindNames[s.kind].startsWith('3D')?'3d':'2d')));
       if(more.children.length){const details=node('details',null,{class:'popup-details'}),summary=node('summary',null,{'aria-label':'その他',class:'icon-button','data-tip':'その他'});summary.append(GraphIcons.create('more',document));details.append(summary,more);bar.append(details);}
     } else if(a) {
-      bar.append(node('span',a.name||annotationNames[a.kind],{class:'selection-name'}),iconButton('edit','位置・設定',()=>editAnnotation(a.id)),selectionPanelButton('label','label','文字・配置'),selectionPanelButton('style','palette','色・線'));
+      bar.append(node('span',a.name||annotationNames[a.kind],{class:'selection-name'}),iconButton('edit','位置・設定',()=>editAnnotation(a.id)),selectionPanelButton('label','label','文字・配置'),selectionPanelButton('style','palette',a.kind==='region'?'塗りつぶし':'色・線'));
       if(a.kind==='segment')bar.append(iconButton('continue','終点から続ける',()=>addAnnotation('segment',a.to)));
       if(['point','tangentIntersection'].includes(a.kind))bar.append(iconButton('segment','この点から線分',()=>addAnnotation('segment',a.id)));
       bar.append(iconButton(a.visible?'hide':'show',a.visible?'非表示にする':'表示する',()=>changed(d=>{d.annotations.find(x=>x.id===a.id).visible=!a.visible;})),iconButton('copy','複製',()=>{const next=C.clone(current().annotations.find(x=>x.id===a.id));next.id=C.uid();next.name=(next.name||annotationNames[next.kind])+' のコピー';changed(d=>d.annotations.push(next));select({type:'annotation',id:next.id});}),iconButton('trash','削除',()=>removeAnnotation(a.id)));
@@ -248,7 +250,7 @@
     const target=activeSeries()||activeAnnotation();if(!target)return;
     const swatch=document.querySelector('[data-object-id="'+target.id+'"] .swatch');if(swatch)swatch.style.backgroundColor=target.style.color;
     for(const b of $('selection-toolbar').querySelectorAll('.quick-color'))b.setAttribute('aria-pressed',String(b.dataset.quickControl==='color-'+target.style.color.toLowerCase().slice(1)));
-    const values={width:target.style.width,dash:target.style.dash,'label-size':target.label?.size,'label-visible':target.label?.visible,'equation-visible':target.showEquation};
+    const values={width:target.style.width,dash:target.style.dash,opacity:target.style.opacity,'label-size':target.label?.size,'label-visible':target.label?.visible,'equation-visible':target.showEquation,'area-visible':target.showArea};
     for(const [key,value]of Object.entries(values)){const el=$('selection-toolbar').querySelector('[data-quick-control="'+key+'"]');if(!el)continue;if(el.type==='checkbox')el.checked=value;else{el.value=value;if(el.type==='number')el.defaultValue=String(value);}}
   }
   function colorButtons(target,type,colors,label) {
@@ -264,9 +266,15 @@
   function appendQuickStyle(bar,target,type) {
     const panel=node('div',null,{id:'selection-style',class:'selection-details'});bar.append(panel);
     panel.append(colorButtons(target,type,palette.filter(c=>!quickColors.includes(c)),'その他の色'));
-    panel.append(button('色・線の詳細…',()=>editStyle(target.id,type),{'aria-label':'色・線の詳細…',class:'full-button','data-quick-control':'style-detail','data-tip':'自由な色・RGB・不透明度などを設定'}));
+    const label=target.kind==='region'?'塗りつぶしの詳細…':'色・線の詳細…';
+    panel.append(button(label,()=>editStyle(target.id,type),{'aria-label':label,class:'full-button','data-quick-control':'style-detail','data-tip':'自由な色・RGB・不透明度などを設定'}));
   }
   function appendQuickLine(bar,target,type) {
+    if(target.kind==='region'){
+      const group=node('div',null,{class:'quick-line-controls field-grid',role:'group','aria-label':'領域の表示'});bar.append(group);
+      quickNumber(group,'不透明度（0〜1）',target.style.opacity,0,1,.05,'opacity',value=>quickChange(type,target.id,o=>{o.style.opacity=value;}));
+      const visible=check(group,'面積を図に表示',target.showArea);visible.dataset.quickControl='area-visible';visible.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.showArea=visible.checked;})));return;
+    }
     if(target.kind==='surface'||target.kind==='text')return;
     const group=node('div',null,{class:'quick-line-controls field-grid',role:'group','aria-label':'線の設定'});bar.append(group);
     quickNumber(group,'線の太さ',target.style.width,.5,20,.5,'width',value=>quickChange(type,target.id,o=>{o.style.width=value;}));
@@ -280,7 +288,7 @@
     panel.append(button('文字・配置の詳細…',()=>editLabel(target.id),{'aria-label':'文字・配置の詳細…',class:'full-button','data-quick-control':'label-detail','data-tip':'文字サイズと上下左右のずれを設定'}));
   }
   function removeSeries(id) { changed(d=>C.removeSeries(d,id),'曲線と、それを参照する点・補助線を削除しました。元に戻せます。');select(null); }
-  function removeAnnotation(id) { changed(d=>C.removeAnnotation(d,id),'参照する線分・交点も一緒に削除しました。元に戻せます。');select(null); }
+  function removeAnnotation(id) { changed(d=>C.removeAnnotation(d,id),'参照する線分・交点・領域も一緒に削除しました。元に戻せます。');select(null); }
   function setParameter(name,value) { try{changed(d=>{d.parameters.find(p=>p.name===name).value=value;});}catch(error){parameterPreview=null;updateParameters();updateTangentEquations(current());requestDraw();throw error;} }
   function requestDraw() {
     if(!history)return Promise.resolve();drawPending=true;if(exportBusy||drawing)return drawTask;drawing=true;drawTask=drawPlot();return drawTask;
@@ -288,7 +296,7 @@
   async function drawPlot() {
     try { while(drawPending) { drawPending=false; const doc=C.clone(gesture?.preview||current()); if(parameterPreview){const p=doc.parameters.find(x=>x.name===parameterPreview.name);if(p)p.value=parameterPreview.value;}
       if(tangentDraft?.valid){const preview=C.clone(tangentDraft.annotation);preview.name='接線（プレビュー）';preview.style.opacity=.65;doc.annotations.push(preview);}
-      updateTangentEquations(doc);
+      updateTangentEquations(doc);updateRegionAreas(doc);
       try { const result=await P.render($('plot'),doc,{dark:isDark(),camera,onSelect:id=>select({type:'series',id}),onAnnotationSelect:id=>{if(current().annotations.some(a=>a.id===id))select({type:'annotation',id});},onBlankClick:()=>{if(selected)select(null);},onViewChange:view=>{
         if(drawing||parameterPreview||gesture)return; if(view.camera)camera=view.camera;
         if(view.axes){const next=C.clone(current());let modified=false;for(const key of ['x','y','z'])if(view.axes[key]&&Number.isFinite(view.axes[key].min)&&Number.isFinite(view.axes[key].max)){for(const part of ['min','max'])if(next.axes[key][part]!==view.axes[key][part]){next.axes[key][part]=view.axes[key][part];modified=true;}}
@@ -417,6 +425,7 @@
   }
   function addAnnotation(kind,seriesId) {
     const a=C.createAnnotation(kind);a.name=annotationNames[kind]+' '+(current().annotations.length+1);
+    if(kind==='region'){a.segmentIds=defaultRegionSegments();editRegion(null,a);return;}
     if(!seriesId){const source=activeSeries(),annotation=activeAnnotation();if(kind==='point'&&source&&curveKinds.includes(source.kind))seriesId=source.id;if(kind==='intersection'){if(source?.kind==='function')seriesId='series:'+source.id;else if(annotation?.kind==='tangent')seriesId='tangent:'+annotation.id;}}
     if(kind==='point'&&seriesId){const s=current().series.find(s=>s.id===seriesId);a.anchor={type:'curve',seriesId,at:String(s.kind==='function'?Math.max(s.domain.x[0],Math.min(0,s.domain.x[1])):s.interval[0])};}
     if(kind==='intersection'){const sources=intersectionSources();if(sources.length<2)throw new Error('交点には、先に数式・接線を合わせて2つ以上登録してください。');const first=sources.find(s=>s[0]===seriesId)?.[0]||sources[0][0],type=first.split(':')[0],second=sources.find(s=>s[0]!==first&&s[0].startsWith(type+':'))||sources.find(s=>s[0]!==first);configureIntersection(a,[first,second[0]],[current().axes.x.min,current().axes.x.max]);}
@@ -426,6 +435,7 @@
   }
   function editAnnotation(id,supplied) {
     const existing=current().annotations.find(a=>a.id===id),a=C.clone(supplied||existing);if(!a)return;
+    if(a.kind==='region'){editRegion(id,a);return;}
     let name,pointType,curve,at,x,y,projections,axis,value,first,second,min,max,text,arrows,from,to,showEquation;
     const curves=current().series.filter(s=>curveKinds.includes(s.kind)), functions=current().series.filter(s=>s.kind==='function');
     const options=items=>items.map(s=>[s.id,s.name||kindNames[s.kind]||annotationNames[s.kind]]),exprAttrs={maxlength:1000,spellcheck:'false',autocapitalize:'none',autocomplete:'off'};
@@ -479,21 +489,55 @@
       changed(d=>{d.annotations.push(...extra);if(existing)d.annotations[d.annotations.findIndex(x=>x.id===id)]=a;else d.annotations.push(a);});select({type:'annotation',id:a.id});
     },'描画');
   }
+  function defaultRegionSegments() {
+    const edges=current().annotations.filter(a=>a.kind==='segment'),remaining=new Set(edges.map(a=>a.id)),groups=[];
+    while(remaining.size){
+      const first=edges.find(a=>remaining.has(a.id)),ids=[first.id],points=new Set([first.from,first.to]);remaining.delete(first.id);
+      let extended=true;while(extended){extended=false;for(const edge of edges)if(remaining.has(edge.id)&&(points.has(edge.from)||points.has(edge.to))){remaining.delete(edge.id);ids.push(edge.id);points.add(edge.from);points.add(edge.to);extended=true;}}
+      if(!GraphRegions.traceBoundary({segmentIds:ids},current()).warning)groups.push(ids);
+    }
+    const chosen=activeAnnotation();return groups.find(ids=>chosen?.kind==='segment'&&ids.includes(chosen.id))||(groups.length===1?groups[0]:[]);
+  }
+  function editRegion(id,supplied) {
+    const existing=current().annotations.find(a=>a.id===id),a=C.clone(supplied||existing);if(!a)return;
+    let name,showArea;const selectedEdges=new Set(a.segmentIds),inputs=[];
+    const edges=current().annotations.filter(a=>a.kind==='segment'),pointName=id=>current().annotations.find(p=>p.id===id)?.name||'点';
+    openDialog(existing?'編集：領域':'領域を作成',parent=>{
+      name=field(parent,'名前',a.name,'text',{maxlength:160});
+      const box=node('fieldset',null,{class:'axis-fields'});box.append(node('legend','境界に使う線分'));parent.append(box);
+      box.append(node('p','端点に同じ点を使ってつないだ線分を選びます。',{class:'small muted'}));
+      const list=node('div',null,{class:'region-boundaries'});box.append(list);
+      for(const edge of edges){const input=check(list,(edge.name||'線分')+'（'+pointName(edge.from)+' → '+pointName(edge.to)+'）',selectedEdges.has(edge.id));input.dataset.regionSegment=edge.id;input.addEventListener('change',()=>{if(input.checked)selectedEdges.add(edge.id);else selectedEdges.delete(edge.id);refresh();});inputs.push(input);}
+      if(!edges.length)list.append(node('p','先に点と線分を追加して、閉じた輪郭を作ってください。',{class:'small muted'}));
+      const actions=node('div',null,{class:'region-boundary-actions'});box.append(actions);
+      actions.append(button('すべて選択',()=>{for(const input of inputs){input.checked=true;selectedEdges.add(input.dataset.regionSegment);}refresh();}),button('クリア',()=>{for(const input of inputs)input.checked=false;selectedEdges.clear();refresh();}));
+      const preview=node('output',null,{class:'equation-preview','aria-label':'領域の確認'});parent.append(preview);
+      showArea=check(parent,'面積を図に表示',a.showArea);
+      parent.append(node('p','面積は軸の座標値から計算します。単位の換算は行いません。',{class:'small muted'}));
+      function refresh(){const result=GraphAnnotations.evaluate({...a,segmentIds:[...selectedEdges]},current());preview.textContent=result.warning||GraphRegions.areaText(result.area,current());preview.classList.toggle('region-invalid',!!result.warning);}
+      refresh();
+    },()=>{
+      const segmentIds=[...selectedEdges],boundaryChanged=!existing||JSON.stringify([...existing.segmentIds].sort())!==JSON.stringify([...segmentIds].sort());
+      a.name=name.value.trim();a.segmentIds=segmentIds;a.showArea=showArea.checked;
+      if(boundaryChanged){const result=GraphAnnotations.evaluate(a,current());if(result.warning)throw new Error(result.warning);}
+      changed(d=>{if(existing)d.annotations[d.annotations.findIndex(item=>item.id===id)]=a;else d.annotations.push(a);});select({type:'annotation',id:a.id});
+    },existing?'適用':'領域を作成');
+  }
   function editLabel(id) {
     const a=current().annotations.find(a=>a.id===id);let visible,dx,dy,size,equation;
     openDialog('文字・配置',parent=>{visible=check(parent,a.kind==='text'?'文字を表示':'名前を表示',a.label.visible);if(a.kind==='tangent')equation=check(parent,'接線の方程式を図に表示',a.showEquation);const g=grid(parent);size=field(g,'文字サイズ（px）',a.label.size,'number',{min:8,max:48,step:1});dx=field(g,'横のずれ（右へ px）',a.label.dx,'number',{min:-500,max:500,step:1});dy=field(g,'縦のずれ（下へ px）',a.label.dy,'number',{min:-500,max:500,step:1});parent.append(node('p','名前はドラッグでも位置を調整できます。上付きは m^2、下付きは v_0、複数文字は v_{max} と入力します。',{class:'small muted'}));},()=>changed(d=>{const target=d.annotations.find(a=>a.id===id);target.label={visible:visible.checked,dx:requiredNumber(dx),dy:requiredNumber(dy),size:requiredNumber(size)};if(equation)target.showEquation=equation.checked;}));
   }
   function editStyle(id,type='series') {
     const key=type==='annotation'?'annotations':'series',s=current()[key].find(x=>x.id===id);let color,width,dash,opacity,points,lines;let rgb=[];
-    openDialog('色・線',parent=>{
+    openDialog(s.kind==='region'?'塗りつぶし':'色・線',parent=>{
       const pal=node('div',null,{class:'palette','aria-label':'色のパレット'});parent.append(pal);
       const refresh=value=>{color.value=value;for(const b of pal.children)b.setAttribute('aria-pressed',String(b.dataset.color===value.toLowerCase()));[0,1,2].forEach((i)=>rgb[i].value=parseInt(value.slice(1+i*2,3+i*2),16));};
       for(const value of palette){const b=button('',()=>refresh(value),{'aria-label':'色 '+value,'data-color':value,'aria-pressed':String(value===s.style.color)});b.style.backgroundColor=value;pal.append(b);}
       color=field(parent,'自由な色',s.style.color,'color');const colors=grid(parent,true);rgb=['R','G','B'].map((label,i)=>field(colors,label,parseInt(s.style.color.slice(1+i*2,3+i*2),16),'number',{min:0,max:255,step:1}));
       color.addEventListener('input',()=>refresh(color.value));for(const input of rgb)input.addEventListener('change',()=>run(()=>{const values=rgb.map(requiredNumber);if(values.some(v=>!Number.isInteger(v)||v<0||v>255))throw new Error('RGBは0〜255の整数です。');refresh('#'+values.map(v=>v.toString(16).padStart(2,'0')).join(''));}));
-      const g=grid(parent);width=field(g,'線の太さ',s.style.width,'number',{min:.5,max:20,step:.5});dash=choice(g,'線種',s.style.dash,[['solid','実線'],['dash','破線'],['dot','点線']]);opacity=field(g,'不透明度（0〜1）',s.style.opacity,'number',{min:0,max:1,step:.05});
+      const g=grid(parent);if(s.kind!=='region'){width=field(g,'線の太さ',s.style.width,'number',{min:.5,max:20,step:.5});dash=choice(g,'線種',s.style.dash,[['solid','実線'],['dash','破線'],['dot','点線']]);}opacity=field(g,'不透明度（0〜1）',s.style.opacity,'number',{min:0,max:1,step:.05});
       if(s.kind==='surface'){width.disabled=true;dash.disabled=true;}else if(type==='series'){points=check(parent,'点を表示',s.style.points);lines=check(parent,'線を表示',s.style.lines);}
-    },()=>{const values=rgb.map(requiredNumber);if(values.some(v=>!Number.isInteger(v)||v<0||v>255))throw new Error('RGBは0〜255の整数です。');if(points&&!points.checked&&!lines.checked)throw new Error('点または線のいずれかを表示してください。');changed(d=>{const st=d[key].find(x=>x.id===id).style;st.color='#'+values.map(v=>v.toString(16).padStart(2,'0')).join('');st.width=requiredNumber(width);st.dash=dash.value;st.opacity=requiredNumber(opacity);if(points){st.points=points.checked;st.lines=lines.checked;}});});
+    },()=>{const values=rgb.map(requiredNumber);if(values.some(v=>!Number.isInteger(v)||v<0||v>255))throw new Error('RGBは0〜255の整数です。');if(points&&!points.checked&&!lines.checked)throw new Error('点または線のいずれかを表示してください。');changed(d=>{const st=d[key].find(x=>x.id===id).style;st.color='#'+values.map(v=>v.toString(16).padStart(2,'0')).join('');if(width){st.width=requiredNumber(width);st.dash=dash.value;}st.opacity=requiredNumber(opacity);if(points){st.points=points.checked;st.lines=lines.checked;}});});
   }
   function editParameter(name) {
     const existing=current().parameters.find(p=>p.name===name);let paramName,value,min,max,step;
@@ -522,7 +566,7 @@
       else if(['implicit','parametric','polar'].includes(s.kind)){const samplingDoc=C.clone(doc);if(s.kind==='implicit'){for(const key of ['x','y']){samplingDoc.axes[key].min=s.domain[key][0];samplingDoc.axes[key].max=s.domain[key][1];}}const sampler={implicit:'sampleImplicit',parametric:'sampleParametric',polar:'samplePolar'}[s.kind],sampled=GraphCurves[sampler](s,samplingDoc);sampled.x.forEach((x,i)=>{if(Number.isFinite(x)&&Number.isFinite(sampled.y[i])){add('x',x);add('y',sampled.y[i]);}});}
       else{const f=GraphExpression.compile(s.expression,{variables:['x',...doc.parameters.map(p=>p.name)],angle:doc.angle});for(let i=0;i<=500;i++){const x=s.domain.x[0]+(s.domain.x[1]-s.domain.x[0])*i/500;const y=f.evaluate({...base,x});if(Number.isFinite(y)){add('x',x);add('y',y);}}}
     }
-    if(doc.mode==='2d')for(const a of doc.annotations.filter(a=>a.visible)){const result=GraphAnnotations.evaluate(a,doc);for(const p of result.points){add('x',p[0]);add('y',p[1]);}if(a.kind==='guide'&&result.segments.length)add(a.axis,result.segments[0][0][a.axis==='x'?0:1]);if(a.kind==='segment')for(const segment of result.segments)for(const p of segment){add('x',p[0]);add('y',p[1]);}}
+    if(doc.mode==='2d')for(const a of doc.annotations.filter(a=>a.visible)){const result=GraphAnnotations.evaluate(a,doc);for(const p of result.points){add('x',p[0]);add('y',p[1]);}if(a.kind==='guide'&&result.segments.length)add(a.axis,result.segments[0][0][a.axis==='x'?0:1]);if(a.kind==='segment')for(const segment of result.segments)for(const p of segment){add('x',p[0]);add('y',p[1]);}if(a.kind==='region')for(const p of result.polygon||[]){add('x',p[0]);add('y',p[1]);}}
     changed(d=>{for(const key of d.mode==='3d'?['x','y','z']:['x','y']){const nums=values[key];if(!nums.length)continue;let min=Infinity,max=-Infinity;for(const v of nums){min=Math.min(min,v);max=Math.max(max,v);}if(d.axes[key].scale==='log'){if(min===max){min/=2;max*=2;}const pad=(Math.log10(max)-Math.log10(min))*.05;min=10**(Math.log10(min)-pad);max=10**(Math.log10(max)+pad);}else{const pad=(max-min||Math.max(Math.abs(min),1))*.07;min-=pad;max+=pad;}d.axes[key].min=Math.max(-1e9,min);d.axes[key].max=Math.min(1e9,max);}});
   }
   function setSide(which) {side=side===which?'':which;$('side-panel').hidden=!side;for(const value of ['templates','export']){$(value+'-panel').hidden=side!==value;$(value+'-tab').setAttribute('aria-expanded',String(side===value));}requestAnimationFrame(requestDraw);}
@@ -572,7 +616,7 @@
     $('plot').addEventListener('lostpointercapture',cancelGesture);
     listen('add-function','click',()=>addSeries());listen('add-data','click',()=>addSeries(true));listen('add-parameter','click',()=>editParameter());
     for(const kind of ['implicit','parametric','polar'])listen('add-'+kind,'click',()=>addCurve(kind));
-    for(const kind of ['point','segment','intersection','text','guide'])listen('add-'+kind,'click',()=>addAnnotation(kind));bindTangentTrigger($('add-tangent'));
+    for(const kind of ['point','segment','intersection','text','guide','region'])listen('add-'+kind,'click',()=>addAnnotation(kind));bindTangentTrigger($('add-tangent'));
     for(const el of document.querySelectorAll('[data-icon]'))el.prepend(GraphIcons.create(el.dataset.icon,document));
     try{tooltip=JohoUI.tooltip();}catch(_){}
     listen('mode-2d','click',()=>switchMode('2d'));listen('mode-3d','click',()=>switchMode('3d'));

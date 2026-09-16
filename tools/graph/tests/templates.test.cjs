@@ -3,7 +3,7 @@ const GraphTemplates = require('../templates.js');
 const GraphCore = require('../core.js');
 
 const templates = GraphTemplates.list();
-assert.strictEqual(templates.length, 11);
+assert.strictEqual(templates.length, 12);
 assert.strictEqual(new Set(templates.map(t => t.id)).size, templates.length);
 for (const template of templates) {
   assert.ok(template.name && template.category && template.description);
@@ -34,6 +34,11 @@ assert.strictEqual(require('../symbols.js').toDisplay(gas.series[0].expression,g
 assert.strictEqual(gas.axes.y.symbol,'P');
 assert.ok(gas.axes.y.max >= 2494);
 const first = GraphTemplates.list();
+const triangle = GraphCore.validateDocument(templates.find(t => t.id === 'math-triangle-region').document);
+const region = triangle.annotations.find(a => a.kind === 'region');
+assert.strictEqual(require('../annotations.js').evaluate(region, triangle).area, 6);
+triangle.parameters[0].value = 5;
+assert.strictEqual(require('../annotations.js').evaluate(region, triangle).area, 10);
 first[0].document.name = '変更';
 assert.notStrictEqual(GraphTemplates.list()[0].document.name, '変更');
 console.log('templates tests passed');

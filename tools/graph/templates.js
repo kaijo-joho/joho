@@ -118,6 +118,19 @@
 
     sine.axes.x.ticks = { step: Math.PI / 2, format: 'pi' };
     complexity.axes.x.symbol = 'n';
+    const triangle = documentBase('三角形の領域と面積', '2d');
+    triangle.version = 5; triangle.equalScale = true;
+    triangle.axes.x.min = triangle.axes.y.min = -1;
+    triangle.axes.x.max = triangle.axes.y.max = 6;
+    triangle.parameters.push({ name: 'h', value: 3, min: 1, max: 5, step: .1 });
+    const regionStyle = { color: '#2563eb', width: 2, dash: 'solid', opacity: 1 };
+    for (const [id, name, x, y] of [['triangle-a', 'A', '0', '0'], ['triangle-b', 'B', '4', '0'], ['triangle-c', 'C', '1', 'h']]) {
+      triangle.annotations.push({ id, kind: 'point', name, visible: true, anchor: { type: 'free', x, y }, projections: false, style: { ...regionStyle } });
+    }
+    for (const [id, name, from, to] of [['triangle-ab', 'AB', 'triangle-a', 'triangle-b'], ['triangle-bc', 'BC', 'triangle-b', 'triangle-c'], ['triangle-ca', 'CA', 'triangle-c', 'triangle-a']]) {
+      triangle.annotations.push({ id, kind: 'segment', name, visible: true, from, to, arrows: 'none', style: { ...regionStyle }, label: { visible: false } });
+    }
+    triangle.annotations.push({ id: 'triangle-region', kind: 'region', name: '三角形 ABC', visible: true, segmentIds: ['triangle-ab', 'triangle-bc', 'triangle-ca'], showArea: true, style: { ...regionStyle, opacity: .25 }, label: { dx: 0, dy: 0 } });
     return [
       { id: 'math-quadratic-a', name: '2次関数と係数 a', category: '数学', description: '係数 a を変えて放物線の開き方と向きを比べます。', document: quadratic },
       { id: 'math-sine-comparison', name: 'sin の比較', category: '数学', description: 'sin(x) と sin(2x) の周期を比べます。', document: sine },
@@ -125,15 +138,16 @@
       { id: 'math-parametric-ellipse', name: '楕円と曲線上の点', category: '数学', description: '媒介変数で楕円を描き、係数 a で点 P を動かします。', document: ellipse },
       { id: 'math-polar-rose', name: '極座標の花形曲線', category: '数学', description: '半径 r と角度 θ で花形の軌跡を描きます。角度はラジアン。', document: rose },
       { id: 'math-tangent-intersections', name: '放物線の接線と交点', category: '数学', description: '係数 a で接点を動かし、放物線と直線の交点を確認します。', document: tangent },
+      { id: 'math-triangle-region', name: '三角形の領域と面積', category: '数学', description: '共有点でつないだ3本の線分を塗りつぶし、係数 h で高さと面積を変えます。', document: triangle },
       { id: 'science-water-vapor-pressure', name: '水の飽和蒸気圧（計算値）', category: '理科', description: 'IAPWS の式から計算した温度と水の飽和蒸気圧の数表です。', document: vapor },
       { id: 'science-ideal-gas-pv', name: '理想気体 PV モデル', category: '理科', description: '温度と物質量を変え、P と V の関係を見ます。', document: gas },
       { id: 'information-complexity', name: '計算量の比較', category: '情報', description: 'n、log₂n、n log₂n、n² の増え方を比べます。', document: complexity },
       { id: 'surface-bowl', name: '3D 曲面 z = x² + y²', category: '数学', description: '上に開く放物面を表示します。', document: bowl },
       { id: 'surface-saddle', name: '鞍型曲面 z = x² − y²', category: '数学', description: '鞍型曲面を表示します。', document: saddle }
     ].map(item => {
-      const doc = item.document;doc.version = 3;
+      const doc = item.document;if(doc.version !== 5)doc.version = 3;
       for(const key of ['x','y','z'])doc.axes[key] = {symbol:key,ticks:{step:null,format:'auto'},...doc.axes[key]};
-      for(const a of doc.annotations)a.label = {visible:true,dx:12,dy:-12,size:13};
+      for(const a of doc.annotations)a.label = {visible:true,dx:12,dy:-12,size:13,...a.label};
       return item;
     });
   }

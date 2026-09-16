@@ -35,7 +35,7 @@ let browser, page;
   const annotationAdd = async () => { if (await page.locator('#annotation-add-panel').isHidden()) await page.locator('#annotation-add-toggle').click(); };
   const addQuickTangent = async (name,at) => { await annotationAdd(); await page.locator('#add-tangent').click(); const panel=page.locator('#tangent-quick-panel'); await panel.getByLabel(/^接点の .+ 座標$/).fill(String(at)); assert((await panel.getByLabel('接線の方程式',{exact:true}).innerText()).includes('≈')); await panel.getByRole('button',{name:'接線を追加',exact:true}).click(); await settle(); assert.equal((await doc()).annotations.at(-1).showEquation,true); await action('位置・設定').click(); await fill('名前',name); await submit(); };
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
-  assert.equal(await page.locator('#annotation-tools button').count(), 6);
+  assert.equal(await page.locator('#annotation-tools button').count(), 7);
   assert.equal(await page.getByRole('button', { name: '接線どうしの交点を追加', exact: true }).count(), 0);
   await page.locator('#add-parameter').click(); await fill('最小値', 0.5); await fill('最大値', 4); await fill('刻み幅', 0.5); await submit();
   await page.locator('#add-parameter').click(); await fill('名前（半角英字。例：a）', 'b'); await submit();
@@ -106,10 +106,10 @@ let browser, page;
   const beforeBadChange = await doc(); await item(tangentIntersection).dblclick();
   await page.getByLabel('2つ目の対象', { exact: true }).selectOption('series:' + horizontal); await page.locator('#dialog-submit').click();
   assert((await page.locator('#dialog-error').innerText()).includes('線分の端点')); assert.deepEqual(await doc(), beforeBadChange); await page.locator('#dialog-cancel').click();
-  // Save/reopen v4, and keep the equation in the exported SVG.
+  // Save/reopen the current format, and keep the equation in the exported SVG.
   await page.locator('#file-menu summary').click(); await page.locator('#save-browser').click();
   const saved = await doc(); await page.reload(); await page.locator('#editor-dialog[open]').waitFor(); await page.getByRole('button', { name: /^明示保存：/ }).click(); await settle();
-  assert.deepEqual(await doc(), saved); assert.equal((await doc()).version, 4);
+  assert.deepEqual(await doc(), saved); assert.equal((await doc()).version, 5);
   const svg = await page.evaluate(async () => { const url = await GraphPlot.exportImage(document.querySelector('#plot'), { format: 'svg', scale: 1, background: 'white' }); return fetch(url).then(r => r.text()); });
   assert(svg.includes('≈') && svg.includes('4x'));
   // Touch, large text and the single-line header at a narrow viewport.
@@ -124,13 +124,14 @@ let browser, page;
   await page.locator('#list-close').tap(); await page.locator('#stage').focus(); await page.keyboard.press('Escape');
   await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.locator('#operation-help:visible').waitFor(); await page.keyboard.press('Escape');
   // Existing v3 tangents keep their old diagram appearance and all endpoint references.
-  const legacy = structuredClone(saved); legacy.version = 3;
+  const legacy = structuredClone(saved); legacy.version = 3; legacy.name = '旧形式の読み込み確認';
   const remainingIntersection = legacy.annotations.find(a => a.kind === 'intersection' && a.id !== mixed);
   assert.equal(remainingIntersection, undefined, 'v3 fixture must not retain a second typed intersection');
   legacy.annotations = legacy.annotations.filter(a => a.id !== mixed);
   for (const a of legacy.annotations) delete a.showEquation;
-  await page.setInputFiles('#file-input', { name: 'old-v3.graph.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy)) }); await settle();
-  assert.equal((await doc()).version, 4); assert((await doc()).annotations.filter(a => a.kind === 'tangent').every(a => a.showEquation === false));
+  await page.setInputFiles('#file-input', { name: 'old-v3.graph.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy)) });
+  await page.waitForFunction(name => GraphEditor.getDocument().name === name, legacy.name); await settle();
+  assert.equal((await doc()).version, 5); assert((await doc()).annotations.filter(a => a.kind === 'tangent').every(a => a.showEquation === false));
   assert.deepEqual((await doc()).annotations.filter(a => a.kind === 'segment'), legacy.annotations.filter(a => a.kind === 'segment'));
   await page.locator('#file-menu summary').click(); await page.locator('#new-document').click(); await settle();
   assert.equal(await page.locator('#parameter-list .parameter-row').count(), 0, 'loading an empty document removes every old coefficient control');

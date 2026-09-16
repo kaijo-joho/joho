@@ -1,4 +1,4 @@
-# グラフエディタ 0.3.7 BETA
+# グラフエディタ 0.4.0 BETA
 
 数学・理科・情報で使うグラフを、数式または数表から作成する独立ウェブアプリ。初期の名称は「グラフエディタ」、開発担当はCodex。既存のフローチャート・イラポ・構造式・分子模型エディタと操作方針をそろえる。
 
@@ -22,6 +22,8 @@
 
 表の元データ、近似式による計算値、資料から採った数値を出典欄で区別する。水の数表はIAPWSの式による**計算値**であり、実測値とは表示しない。出典と条件は [テンプレートの出典](docs/template-sources.md) を参照。
 
+接続した線分で囲まれた領域の塗りつぶし・不透明度・面積表示にも対応する。頂点・係数の変更に追従し、境界の削除もUndoで復元できる。単純な凹多角形に対応し、自己交差・零面積・未定義時は領域だけを非描画にして理由を表示する。テンプレート「三角形の領域と面積」で試せる。
+
 ## 数値処理と表示
 
 数式は許可した構文木を解釈し、JavaScriptとして実行しない。実数として定義されない点や非有限値は描画しない。2Dはサンプル数に上限を持つ適応分割、3Dは格子による数値表示。典型的な漸近線・未定義領域で線や面を切る。任意の数式のすべての不連続や非常に細かい振動を検出する保証はなく、厳密な数式処理・数学的証明には使わない。
@@ -32,7 +34,7 @@
 
 ## 保存と互換性
 
-形式は `kaijo-graph` version 4。version 1〜3を読み込むと、注釈、軸記号、目盛設定、注釈ラベル、接線式の図中表示設定を補って移行する。保存はversion 4で、旧アプリでは開けないため更新版を使用する。ファイル名は `名前.graph.json`。数式、数表、係数、軸記号・単位、描画範囲、配色、出典を保持し、生成した座標列や画像を正本にしない。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。初版のJSONはカメラの向きを保存しない。
+形式は `kaijo-graph` version 5。version 1〜4を読み込むと、注釈、軸記号、目盛設定、注釈ラベル、接線式の図中表示設定を補って移行する。保存はversion 5で、旧アプリでは開けないため更新版を使用する。ファイル名は `名前.graph.json`。数式、数表、係数、軸記号・単位、描画範囲、配色、出典を保持し、生成した座標列や画像を正本にしない。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。初版のJSONはカメラの向きを保存しない。
 
 ブラウザの保存キーは `kaijo-graph:auto` / `kaijo-graph:saved`、表示設定は `kaijo-graph:settings`、ヘルプは `kaijo-graph:help`。他アプリの保存領域と共用しない。保存済みの片方が壊れても他方を選べる。読込時は検証が成功するまで現在の文書を置き換えない。
 
@@ -49,7 +51,8 @@
 | `icons.js` | 操作に共用する安全な線画SVGアイコン |
 | `core.js` | 文書検証・履歴・ブラウザ保存・CSV/TSV |
 | `curves.js` | 陰関数・媒介変数・極座標のサンプリングと曲線上の点 |
-| `annotations.js` | 点・補助線・接線・交点の数値計算 |
+| `annotations.js` | 点・補助線・接線・交点・領域の数値計算 |
+| `regions.js` | 線分の閉路追跡・単純多角形の検査・面積・包含判定 |
 | `plot.js` | 2D/3D描画・関数と曲面のサンプリング・画像出力 |
 | `templates.js` | 式・数表・条件を持つ初期テンプレート |
 | `editor.js` / `editor.css` / `index.html` | 操作画面 |
@@ -61,7 +64,7 @@
 
 ## 続く実装
 
-1. 閉じた共有線分による領域・塗りつぶし、資料・実験の数表テンプレート、誤差棒・回帰・明示的な補間方法。
+1. 関数と軸・2関数の間の領域と面積・定積分、資料・実験の数表テンプレート、誤差棒・回帰・明示的な補間方法。
 2. 3Dの空間曲線・等高線・断面、パラメーター変化の再生。
 3. 複数グラフの比較配置、印刷の用紙設定、イラポへ持ち出す際の互換性検証。
 
@@ -75,6 +78,8 @@ node tools/graph/tests/templates.test.cjs
 node tools/graph/tests/plot.test.cjs
 node tools/graph/tests/curves.test.cjs
 node tools/graph/tests/annotations.test.cjs
+node tools/graph/tests/regions.test.cjs
+node tools/graph/tests/region-plot.test.cjs
 node tools/graph/tests/symbols.test.cjs
 node tools/graph/tests/plot-browser.test.cjs
 node tools/graph/tests/browser.test.cjs
@@ -85,6 +90,7 @@ node tools/graph/tests/quick-style-browser.test.cjs
 node tools/graph/tests/quick-tangent-browser.test.cjs
 node tools/graph/tests/selection-browser.test.cjs
 node tools/graph/tests/sidebar-browser.test.cjs
+node tools/graph/tests/regions-browser.test.cjs
 node tools/graph/tests/local-autosave-browser.test.cjs
 node --check tools/graph/editor.js
 git diff --check
@@ -96,4 +102,4 @@ Chromeを使い、2D・3D描画、式の演算順位、係数、CSVと欠測、�
 
 `https://joho.kaijo.ed.jp/tools/graph/`。独立ツールとして `tools/index.html` に掲載し、教材の「ページ一覧」GSSや生成物 `js/pages.js` には登録しない。
 
-文書・モジュールの詳細は [0.2実装契約](docs/phase2-contract.md)、[0.3実装契約](docs/phase3-contract.md)、[交点と操作性の調整](docs/usability-contract.md) を参照。
+文書・モジュールの詳細は [0.2実装契約](docs/phase2-contract.md)、[0.3実装契約](docs/phase3-contract.md)、[交点と操作性の調整](docs/usability-contract.md)、[線分による領域](docs/regions-contract.md) を参照。

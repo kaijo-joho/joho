@@ -131,6 +131,19 @@
     const result = root.GraphAnnotations.evaluate(annotation, doc);
     if (result.warning) warnings.push((annotation.name || '点・補助線') + '：' + result.warning);
     const st = annotation.style, traces = [], meta = { objectType: 'annotation', objectId: annotation.id };
+    if (annotation.kind === 'region') {
+      // 領域の輪郭は参照した線分の描画に任せ、ここでは面だけを描く。
+      if (Array.isArray(result.polygon) && result.polygon.length >= 3 && !result.warning) {
+        const trace = { type: 'scatter', mode: 'lines', x: result.polygon.map(p => p[0]), y: result.polygon.map(p => p[1]), fill: 'toself', fillcolor: st.color, line: { color: 'rgba(0,0,0,0)', width: 0 }, opacity: st.opacity, name: rich(annotation.name), meta, legendgroup: annotation.id, showlegend: false, hoveron: 'fills', connectgaps: false };
+        traces.push(trace);
+        const label = annotation.label || { visible: true, dx: 12, dy: -12, size: 13 };
+        const lines = [];
+        if (label.visible) lines.push(annotation.name);
+        if (annotation.showArea && finite(result.area) && root.GraphRegions && typeof root.GraphRegions.areaText === 'function') lines.push(root.GraphRegions.areaText(result.area, doc));
+        if (lines.length && Array.isArray(result.labelPoint)) decorations.push({ name: annotation.id, x: result.labelPoint[0], y: result.labelPoint[1], xref: 'x', yref: 'y', text: lines.map(rich).join('<br>'), showarrow: false, xanchor: 'left', yanchor: 'bottom', xshift: label.dx, yshift: -label.dy, font: { size: label.size }, opacity: 1, captureevents: true });
+      }
+      return traces;
+    }
     const common = { type: 'scatter', name: rich(annotation.name), opacity: st.opacity, meta, legendgroup: annotation.id, connectgaps: false };
     if (result.segments.length) {
       const x = [], y = [];
@@ -181,6 +194,13 @@
   function selectionMeta(element, event, traces) {
     const point = event && event.points && event.points[0];
     let meta = point && traces[point.curveNumber] && traces[point.curveNumber].meta;
+    // Plotly may report the filled region before a line or marker at the same
+    // location. Re-run the geometric hit test so visible boundaries retain
+    // their selection priority.
+    if (meta && meta.kind === 'region' && event && event.event) {
+      const precise = traceMetaAt(element, traces, event.event);
+      if (precise && precise !== meta) meta = precise;
+    }
     // Plotly's nearest-curve hit can win over a marker directly on that curve.
     // Use the fixed bundled Plotly axis converters to prioritize visible annotation markers.
     const mouse = event && event.event, layout = element._fullLayout;
@@ -211,8 +231,14 @@
       const t = length ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / length)) : 0;
       return Math.hypot(x - (ax + t * dx), y - (ay + t * dy));
     };
+    let regionMeta = null;
     for (const trace of traces) {
       if (!trace.meta || !Array.isArray(trace.x) || !Array.isArray(trace.y)) continue;
+      if (trace.meta.objectType === 'annotation' && trace.meta.kind === 'region' && trace.fill === 'toself') {
+        const polygon = trace.x.map((value, i) => [layout.xaxis.d2p(value), layout.yaxis.d2p(trace.y[i])]).filter(p => finite(p[0]) && finite(p[1]));
+        if (root.GraphRegions && typeof root.GraphRegions.containsPoint === 'function' && root.GraphRegions.containsPoint(polygon, [px, py])) regionMeta = trace.meta;
+        continue;
+      }
       let previous = null;
       for (let i = 0; i < trace.x.length; i++) {
         if (!finite(trace.x[i]) || !finite(trace.y[i])) { previous = null; continue; }
@@ -223,7 +249,7 @@
         previous = [x, y];
       }
     }
-    return null;
+    return regionMeta;
   }
   const traceHit = (element, traces, event) => !!traceMetaAt(element, traces, event);
 
@@ -303,11 +329,15 @@
     options = options || {};
     const P = plotly(); if (!P || !element) throw new Error('Plotly を読み込めません。');
     const warnings = [], traces = [], decorations=[];
+    // 領域面はすべての系列・線分より背面へ置く。
+    if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false && a.kind === 'region') {
+      try { const region = annotationTraces(a, doc, warnings, decorations); for (const trace of region) { trace.meta = Object.assign({}, trace.meta, { kind: 'region' }); traces.push(trace); } } catch (error) { warnings.push((a.name || '領域') + '：' + error.message); }
+    }
     for (const s of doc.series || []) {
       if (s.visible === false || (doc.mode === '3d' ? !['surface', 'data3d'].includes(s.kind) : ['surface', 'data3d'].includes(s.kind))) continue;
       const trace = traceFor(s, doc, warnings); trace.meta = { objectType: 'series', objectId: s.id }; traces.push(trace);
     }
-    if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false) {
+    if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false && a.kind !== 'region') {
       try { traces.push(...annotationTraces(a, doc, warnings, decorations)); } catch (error) { warnings.push((a.name || '点・補助線') + '：' + error.message); }
     }
     const state = states.get(element) || {}; const camera = options.camera || state.camera;

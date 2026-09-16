@@ -8,9 +8,11 @@
   const Expression = typeof module === 'object' && module.exports ? require('./expression.js') : root.GraphExpression;
   let requiredSymbols = null;
   let requiredCurves = null;
+  let requiredRegions = null;
   if (typeof module === 'object' && module.exports) {
     try { requiredSymbols = require('./symbols.js'); } catch (_) { /* symbols.js may load after this independent module. */ }
     try { requiredCurves = require('./curves.js'); } catch (_) { /* curves.js may load after this independent module. */ }
+    try { requiredRegions = require('./regions.js'); } catch (_) { /* regions.js may load after this independent module. */ }
   }
   const finite = value => typeof value === 'number' && Number.isFinite(value);
   const empty = warning => ({ points: [], segments: [], warning: warning || '' });
@@ -300,6 +302,21 @@
     if (!drawablePoint(doc, first) || !drawablePoint(doc, second)) return empty('線分の端点が対数軸で表示できません。');
     return { points: [], segments: [[first, second]], warning: '' };
   }
+  function regionResult(annotation, doc) {
+    const Regions = root.GraphRegions || requiredRegions;
+    const result = { points: [], segments: [], polygon: [], area: null, labelPoint: null, warning: '' };
+    if (!Regions || typeof Regions.traceBoundary !== 'function' || typeof Regions.measurePolygon !== 'function') return Object.assign(result, { warning: '領域の処理を読み込めません。' });
+    const boundary = Regions.traceBoundary(annotation, doc);
+    if (boundary.warning) return Object.assign(result, { warning: boundary.warning });
+    const points = [];
+    for (const id of boundary.pointIds) {
+      const point = referencePoint(annotationById(doc, id), doc);
+      if (!point || !drawablePoint(doc, point)) return Object.assign(result, { warning: '領域の端点が定義されていないか、対数軸で表示できません。' });
+      points.push(point);
+    }
+    const measured = Regions.measurePolygon(points);
+    return Object.assign(result, measured);
+  }
   function textResult(annotation, doc) {
     const point = pointForAnchor(annotation && annotation.anchor || {}, doc);
     if (!drawablePoint(doc, point)) return empty('文字の位置が定義されていないか、対数軸で表示できません。');
@@ -384,6 +401,7 @@
       if (annotation.kind === 'intersection') return intersectionResult(annotation, doc);
       if (annotation.kind === 'tangentIntersection') return tangentIntersectionResult(annotation, doc);
       if (annotation.kind === 'segment') return segmentResult(annotation, doc);
+      if (annotation.kind === 'region') return regionResult(annotation, doc);
       if (annotation.kind === 'text') return textResult(annotation, doc);
       return empty('注釈の種類が不正です。');
     } catch (_) { return empty('注釈を評価できません。'); }
