@@ -9,7 +9,7 @@
   const kindNames = {function:'2D 数式',implicit:'陰関数',parametric:'媒介変数',polar:'極座標',surface:'3D 曲面',data2d:'2D 数表',data3d:'3D 数表'};
   const annotationNames = {point:'点',guide:'補助線',tangent:'接線',intersection:'交点',tangentIntersection:'交点',segment:'線分・矢印',text:'文字'};
   const curveKinds = ['function','parametric','polar'];
-  let history, store, localAuto, help, tooltip, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey;
+  let history, store, localAuto, help, tooltip, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey, dialogListDetail;
   let drawPending = false, drawing = false, drawTask = Promise.resolve(), exportBusy = false, fileBusy = false, toastTimer, saveTimer;
   let parameterPreview = null, gesture = null, selectionPanel = null, tangentDraft = null, tangentHoverTimer;
   const templates = typeof GraphTemplates.list === 'function' ? GraphTemplates.list() : C.clone(GraphTemplates.list);
@@ -66,7 +66,7 @@
       const dot=node('span',null,{class:'swatch'}); dot.style.backgroundColor=s.style.color;
       const copy=node('span',null,{class:'object-copy'}); copy.append(node('strong',s.name||kindNames[s.kind]),node('small',s.kind.startsWith('data')?s.rows.length+' 行':curveLabel(s)));
       copy.append(node('span',kindNames[s.kind]+(!s.visible?'・非表示':!matchesMode(s)?'・別の表示モード':''),{class:'dim-badge'}));
-      item.append(dot,copy); item.addEventListener('dblclick',()=>run(()=>editSeries(s.id))); $('series-list').append(item);
+      item.append(dot,copy); item.addEventListener('dblclick',()=>run(()=>editSeries(s.id))); appendObjectRow($('series-list'),item,'series',s.id,s.name||kindNames[s.kind],s.kind.startsWith('data')?'数表・出典':'数式・範囲');
     }
     $('annotation-list').replaceChildren();
     for(const a of current().annotations) {
@@ -74,9 +74,14 @@
       const dot=node('span',null,{class:'swatch'});dot.style.backgroundColor=a.style.color;
       const copy=node('span',null,{class:'object-copy'});copy.append(node('strong',a.name||annotationNames[a.kind]),node('span',annotationNames[a.kind]+(!a.visible?'・非表示':current().mode==='3d'?'・2Dで表示':''),{class:'dim-badge'}));
       if(a.kind==='tangent')copy.append(node('small','',{'data-tangent-equation':a.id,class:'tangent-equation'}));
-      item.append(dot,copy);item.addEventListener('dblclick',()=>run(()=>editAnnotation(a.id)));$('annotation-list').append(item);
+      item.append(dot,copy);item.addEventListener('dblclick',()=>run(()=>editAnnotation(a.id)));appendObjectRow($('annotation-list'),item,'annotation',a.id,a.name||annotationNames[a.kind],'位置・設定');
     }
     updateParameters();updateTangentEquations(current());
+  }
+  function appendObjectRow(list,item,type,id,name,details) {
+    const row=node('div',null,{class:'object-row'}),label=name+'：'+details+'を編集';
+    const more=iconButton('moreVertical',label,()=>{select({type,id},{keepListOpen:true});if(type==='series')editSeries(id);else editAnnotation(id);},{class:'icon-button object-details','data-object-details':type+':'+id,'aria-haspopup':'dialog'});
+    row.append(item,more);list.append(row);
   }
   function updateTangentEquations(doc) { for(const el of document.querySelectorAll('[data-tangent-equation]')){const a=doc.annotations.find(a=>a.id===el.dataset.tangentEquation);if(!a)continue;const value=GraphAnnotations.tangentEquation(a,doc);el.textContent=value.text||value.warning;el.dataset.tip=value.text?value.text+'（数値微分による近似）':value.warning;} }
   function updateParameters() {
@@ -102,7 +107,7 @@
   }
   function cancelParameterPreview() { if(!parameterPreview)return;parameterPreview=null;updateParameters();updateTangentEquations(current());requestDraw(); }
   function setListOpen(open) { $('objects').classList.toggle('is-open',open); $('list-toggle').setAttribute('aria-expanded',String(open)); }
-  function select(value) { cancelTangentDraft();cancelParameterPreview();selected=value;for(const item of document.querySelectorAll('[data-object-id]'))item.setAttribute('aria-pressed',String(item.dataset.objectType===selected?.type&&item.dataset.objectId===selected?.id));for(const row of $('parameter-list').children)row.querySelector('.parameter-name').setAttribute('aria-pressed',String(selected?.type==='parameter'&&row.dataset.parameter===selected.name));updateToolbar();if(matchMedia('(max-width:850px)').matches) setListOpen(false); }
+  function select(value,{keepListOpen=false}={}) { cancelTangentDraft();cancelParameterPreview();selected=value;for(const item of document.querySelectorAll('[data-object-id]'))item.setAttribute('aria-pressed',String(item.dataset.objectType===selected?.type&&item.dataset.objectId===selected?.id));for(const row of $('parameter-list').children)row.querySelector('.parameter-name').setAttribute('aria-pressed',String(selected?.type==='parameter'&&row.dataset.parameter===selected.name));updateToolbar();if(!keepListOpen&&matchMedia('(max-width:850px)').matches) setListOpen(false); }
   function updateToolbar() {
     cancelTangentDraft();
     const bar=$('selection-toolbar'),focused=bar.contains(document.activeElement)?document.activeElement.dataset.quickControl:null,scroll=bar.scrollTop;
@@ -110,8 +115,6 @@
     if(bar.dataset.selectionKey!==key)selectionPanel=null;bar.dataset.selectionKey=key;bar.replaceChildren();bar.hidden=!s&&!p&&!a;bar.classList.toggle('has-colors',!!(s||a));
     if(s) {
       bar.append(node('span',s.name||kindNames[s.kind],{class:'selection-name'}),iconButton('edit',s.kind.startsWith('data')?'数表・出典':'数式・範囲',()=>editSeries(s.id)),selectionPanelButton('style','palette','色・線'));
-      if(current().mode==='2d'&&curveKinds.includes(s.kind))bar.append(iconButton('point','この曲線上に点',()=>addAnnotation('point',s.id)));
-      if(current().mode==='2d'&&s.kind==='function'){const tangent=iconButton('tangent','この曲線の接線',()=>{},{'data-quick-control':'add-tangent'});bindTangentTrigger(tangent,s.id);bar.append(tangent,iconButton('intersection','この曲線との交点',()=>addAnnotation('intersection','series:'+s.id)));}
       bar.append(iconButton(s.visible?'hide':'show',s.visible?'非表示にする':'表示する',()=>changed(d=>{d.series.find(x=>x.id===s.id).visible=!s.visible;})),iconButton('copy','複製',()=>{const next=C.clone(current().series.find(x=>x.id===s.id));next.id=C.uid();next.name=(next.name||kindNames[next.kind])+' のコピー';changed(d=>d.series.push(next));select({type:'series',id:next.id});}),iconButton('trash','削除',()=>removeSeries(s.id)));
       const more=node('div');
       if(s.kind.startsWith('data')) more.append(button('数値をCSVで保存',()=>download(C.tableCSV(s.rows,(s.kind==='data3d'?['x','y','z']:['x','y']).map(symbol)),filename(s.name||'数表')+'.csv','text/csv;charset=utf-8')));
@@ -121,14 +124,12 @@
       bar.append(node('span',a.name||annotationNames[a.kind],{class:'selection-name'}),iconButton('edit','位置・設定',()=>editAnnotation(a.id)),selectionPanelButton('label','label','文字・配置'),selectionPanelButton('style','palette','色・線'));
       if(a.kind==='segment')bar.append(iconButton('continue','終点から続ける',()=>addAnnotation('segment',a.to)));
       if(['point','tangentIntersection'].includes(a.kind))bar.append(iconButton('segment','この点から線分',()=>addAnnotation('segment',a.id)));
-      if(a.kind==='tangent')bar.append(iconButton('intersection','この接線との交点',()=>addAnnotation('intersection','tangent:'+a.id)));
       bar.append(iconButton(a.visible?'hide':'show',a.visible?'非表示にする':'表示する',()=>changed(d=>{d.annotations.find(x=>x.id===a.id).visible=!a.visible;})),iconButton('copy','複製',()=>{const next=C.clone(current().annotations.find(x=>x.id===a.id));next.id=C.uid();next.name=(next.name||annotationNames[next.kind])+' のコピー';changed(d=>d.annotations.push(next));select({type:'annotation',id:next.id});}),iconButton('trash','削除',()=>removeAnnotation(a.id)));
       if(current().mode==='3d')bar.append(button('2Dで表示',()=>switchMode('2d')));
     } else if(p) {
       bar.append(node('span',p.name,{class:'selection-name'}),iconButton('settings','編集',()=>editParameter(p.name)),iconButton('trash','削除',()=>{changed(d=>{d.parameters=d.parameters.filter(x=>x.name!==p.name);});select(null);}));
     }
-    if(s||p||a)bar.append(iconButton('close','選択を解除',()=>select(null)));
-    if(s||a){const target=s||a,type=s?'series':'annotation';bar.append(colorButtons(target,type,quickColors,'基本色'));
+    if(s||a){const target=s||a,type=s?'series':'annotation';bar.append(colorButtons(target,type,quickColors,'基本色'));appendQuickLine(bar,target,type);
       if(selectionPanel==='style')appendQuickStyle(bar,target,type);else if(selectionPanel==='label'&&a)appendQuickLabel(bar,a);
     }
     if(focused)bar.querySelector('[data-quick-control="'+CSS.escape(focused)+'"]')?.focus({preventScroll:true});bar.scrollTop=scroll;
@@ -213,12 +214,13 @@
   function appendQuickStyle(bar,target,type) {
     const panel=node('div',null,{id:'selection-style',class:'selection-details'});bar.append(panel);
     panel.append(colorButtons(target,type,palette.filter(c=>!quickColors.includes(c)),'その他の色'));
-    const g=grid(panel);
-    if(target.kind!=='surface'&&target.kind!=='text'){
-      quickNumber(g,'線の太さ',target.style.width,.5,20,.5,'width',value=>quickChange(type,target.id,o=>{o.style.width=value;}));
-      const dash=choice(g,'線種',target.style.dash,[['solid','実線'],['dash','破線'],['dot','点線']]);dash.dataset.quickControl='dash';dash.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.style.dash=dash.value;})));
-    }
     panel.append(button('色・線の詳細…',()=>editStyle(target.id,type),{'aria-label':'色・線の詳細…',class:'full-button','data-quick-control':'style-detail','data-tip':'自由な色・RGB・不透明度などを設定'}));
+  }
+  function appendQuickLine(bar,target,type) {
+    if(target.kind==='surface'||target.kind==='text')return;
+    const group=node('div',null,{class:'quick-line-controls field-grid',role:'group','aria-label':'線の設定'});bar.append(group);
+    quickNumber(group,'線の太さ',target.style.width,.5,20,.5,'width',value=>quickChange(type,target.id,o=>{o.style.width=value;}));
+    const dash=choice(group,'線種',target.style.dash,[['solid','実線'],['dash','破線'],['dot','点線']]);dash.dataset.quickControl='dash';dash.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.style.dash=dash.value;})));
   }
   function appendQuickLabel(bar,target) {
     const panel=node('div',null,{id:'selection-label',class:'selection-details'});bar.append(panel);
@@ -237,7 +239,7 @@
     try { while(drawPending) { drawPending=false; const doc=C.clone(gesture?.preview||current()); if(parameterPreview){const p=doc.parameters.find(x=>x.name===parameterPreview.name);if(p)p.value=parameterPreview.value;}
       if(tangentDraft?.valid){const preview=C.clone(tangentDraft.annotation);preview.name='接線（プレビュー）';preview.style.opacity=.65;doc.annotations.push(preview);}
       updateTangentEquations(doc);
-      try { const result=await P.render($('plot'),doc,{dark:isDark(),camera,onSelect:id=>select({type:'series',id}),onAnnotationSelect:id=>{if(current().annotations.some(a=>a.id===id))select({type:'annotation',id});},onViewChange:view=>{
+      try { const result=await P.render($('plot'),doc,{dark:isDark(),camera,onSelect:id=>select({type:'series',id}),onAnnotationSelect:id=>{if(current().annotations.some(a=>a.id===id))select({type:'annotation',id});},onBlankClick:()=>{if(selected)select(null);},onViewChange:view=>{
         if(drawing||parameterPreview||gesture)return; if(view.camera)camera=view.camera;
         if(view.axes){const next=C.clone(current());let modified=false;for(const key of ['x','y','z'])if(view.axes[key]&&Number.isFinite(view.axes[key].min)&&Number.isFinite(view.axes[key].max)){for(const part of ['min','max'])if(next.axes[key][part]!==view.axes[key][part]){next.axes[key][part]=view.axes[key][part];modified=true;}}
           if(modified)run(()=>{history.replace(next);updateHeader();persistSoon();requestDraw();});}
@@ -291,12 +293,17 @@
   function switchMode(mode) { changed(d=>{d.mode=mode;}); select(null); camera=undefined; }
   function undo(redo=false) { cancelTangentDraft();cancelGesture();parameterPreview=null; if(redo)history.redo();else history.undo(); selected=null;camera=undefined;updateHeader();updateList();updateToolbar();persistSoon();requestDraw(); }
   function openDialog(title, build, onApply, submit='適用') {
-    cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=document.activeElement;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
+    cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=document.activeElement;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogListDetail=dialogOpener?.dataset.objectDetails;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
     $('dialog-title').textContent=title;$('dialog-content').replaceChildren();$('dialog-error').hidden=true;$('dialog-submit').hidden=!onApply;$('dialog-submit').textContent=submit;
     $('dialog-cancel').textContent=onApply?'キャンセル':'閉じる';build($('dialog-content'));$('editor-dialog').showModal();
     const focus=$('dialog-content').querySelector('input,textarea,select,button');if(focus)focus.focus();
   }
-  function closeDialog() { $('editor-dialog').close();const replacement=dialogOpenerKey&&dialogSelectionKey===$('selection-toolbar').dataset.selectionKey?$('selection-toolbar').querySelector('[data-quick-control="'+CSS.escape(dialogOpenerKey)+'"]'):null,opener=dialogOpener?.isConnected?dialogOpener:replacement;if(opener?.getBoundingClientRect().width)opener.focus();else $('stage').focus(); }
+  function closeDialog() {
+    $('editor-dialog').close();
+    const replacement=dialogListDetail?document.querySelector('[data-object-details="'+CSS.escape(dialogListDetail)+'"]'):dialogOpenerKey&&dialogSelectionKey===$('selection-toolbar').dataset.selectionKey?$('selection-toolbar').querySelector('[data-quick-control="'+CSS.escape(dialogOpenerKey)+'"]'):null,opener=dialogOpener?.isConnected?dialogOpener:replacement;
+    if(dialogListDetail&&opener&&matchMedia('(max-width:850px)').matches)setListOpen(true);
+    if(opener?.getBoundingClientRect().width)opener.focus();else $('stage').focus();
+  }
   function field(parent,label,value,type='text',attrs={}) { const wrap=node('label',label);const input=node('input',null,Object.assign({type},attrs)); input.value=value;wrap.append(input);parent.append(wrap);return input; }
   function area(parent,label,value) {const wrap=node('label',label);const input=node('textarea');input.value=value;wrap.append(input);parent.append(wrap);return input;}
   function choice(parent,label,value,options) {const wrap=node('label',label),select=node('select',null,{'aria-label':label});for(const [v,t]of options)select.append(node('option',t,{value:v}));select.value=value;wrap.append(select);parent.append(wrap);return select;}
@@ -359,6 +366,7 @@
   }
   function addAnnotation(kind,seriesId) {
     const a=C.createAnnotation(kind);a.name=annotationNames[kind]+' '+(current().annotations.length+1);
+    if(!seriesId){const source=activeSeries(),annotation=activeAnnotation();if(kind==='point'&&source&&curveKinds.includes(source.kind))seriesId=source.id;if(kind==='intersection'){if(source?.kind==='function')seriesId='series:'+source.id;else if(annotation?.kind==='tangent')seriesId='tangent:'+annotation.id;}}
     if(kind==='point'&&seriesId){const s=current().series.find(s=>s.id===seriesId);a.anchor={type:'curve',seriesId,at:String(s.kind==='function'?Math.max(s.domain.x[0],Math.min(0,s.domain.x[1])):s.interval[0])};}
     if(kind==='intersection'){const sources=intersectionSources();if(sources.length<2)throw new Error('交点には、先に数式・接線を合わせて2つ以上登録してください。');const first=sources.find(s=>s[0]===seriesId)?.[0]||sources[0][0],type=first.split(':')[0],second=sources.find(s=>s[0]!==first&&s[0].startsWith(type+':'))||sources.find(s=>s[0]!==first);configureIntersection(a,[first,second[0]],[current().axes.x.min,current().axes.x.max]);}
     if(kind==='segment'){a.from=seriesId||'';a.style.dash='solid';}

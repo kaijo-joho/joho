@@ -15,6 +15,7 @@
     trash: [['path', { d: 'M5 7h14M9 7V4h6v3M7 7l1 13h8l1-13M10 11v5M14 11v5' }]],
     close: [['path', { d: 'm6 6 12 12M18 6 6 18' }]],
     more: [['circle', { cx: 5, cy: 12, r: .8 }], ['circle', { cx: 12, cy: 12, r: .8 }], ['circle', { cx: 19, cy: 12, r: .8 }]],
+    moreVertical: [['circle', { cx: 12, cy: 5, r: .8 }], ['circle', { cx: 12, cy: 12, r: .8 }], ['circle', { cx: 12, cy: 19, r: .8 }]],
     point: [['path', { d: 'M12 3v3M12 18v3M3 12h3M18 12h3' }], ['circle', { cx: 12, cy: 12, r: 2.4, fill: 'currentColor' }]],
     tangent: [['path', { d: 'M3 12h18M4 20Q12 4 20 20' }], ['circle', { cx: 12, cy: 12, r: 1.5 }]],
     intersection: [['path', { d: 'M4 5 20 19M20 5 4 19' }], ['circle', { cx: 12, cy: 12, r: 1.7 }]],

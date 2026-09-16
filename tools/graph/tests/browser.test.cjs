@@ -64,7 +64,7 @@ let browser;
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).parameters.find(p => p.name === 'a').value, 2);
   await page.locator('#undo').waitFor({ state: 'visible' }); await page.locator('#undo').click(); await page.waitForTimeout(80); assert.equal((await page.evaluate(() => GraphEditor.getDocument())).parameters.find(p => p.name === 'a').value, 1);
 
-  const functionButton = page.locator('#series-list button').filter({ hasText: 'y = a*x^2' }); await functionButton.click(); await page.getByRole('button', { name: '色・線' }).click(); await page.getByRole('button', { name: '色・線の詳細…', exact: true }).click();
+  const functionButton = page.locator('#series-list .object-item').filter({ hasText: 'y = a*x^2' }); await functionButton.click(); await page.getByRole('button', { name: '色・線' }).click(); await page.getByRole('button', { name: '色・線の詳細…', exact: true }).click();
   const rgb = page.locator('#dialog-content input[type=number]'); await rgb.nth(0).fill('255'); await rgb.nth(1).fill('0'); await rgb.nth(2).fill('0'); await submit();
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).series.find(s => s.expression === 'y = a*x^2').style.color, '#ff0000');
 
@@ -85,7 +85,7 @@ let browser;
 
   for (const width of [736,390]) { await page.setViewportSize({ width, height: 820 }); await page.waitForTimeout(100); assert((await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth)),'no horizontal overflow at '+width); assert.equal(await page.locator('.top').evaluate(el => getComputedStyle(el).flexWrap), 'nowrap'); }
   await page.locator('#export-panel:not([hidden]) [data-close-side]').click(); await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.locator('#operation-help:visible').waitFor(); assert(await page.locator('#operation-help:visible select').isEditable(), 'keyboard opens visible non-modal help'); await page.locator('#operation-help:visible').getByRole('button', { name: 'ヘルプを開いたまま編集へ戻る' }).click(); await page.locator('#list-toggle').click(); await page.locator('#add-function').click(); await page.locator('#dialog-cancel').click(); await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.keyboard.press('Escape');
-  await page.locator('#list-toggle').tap(); await page.locator('#series-list button').first().tap();
+  await page.locator('#list-toggle').tap(); await page.locator('#series-list .object-item').first().tap();
   assert.equal(errors.length, 0, errors.join('\n'));
   await browser.close(); await new Promise(resolve => server.close(resolve));
   console.log('graph browser.test.cjs: ok');

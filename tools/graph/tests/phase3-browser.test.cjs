@@ -25,7 +25,7 @@ let browser, page;
   const doc = () => page.evaluate(() => GraphEditor.getDocument());
   const fill = (label, value) => page.locator('#editor-dialog').getByLabel(label, { exact: true }).fill(String(value));
   const submit = async () => { await page.locator('#dialog-submit').click(); await settle(); };
-  const ann = name => page.locator('#annotation-list button').getByText(name, { exact: true });
+  const ann = name => page.locator('#annotation-list .object-item').getByText(name, { exact: true });
   const annotationButton = { '点':'#add-point', '補助線':'#add-guide', '接線':'#add-tangent', '交点':'#add-intersection', '線分・矢印':'#add-segment', '文字':'#add-text' };
   const add = async name => { await page.locator(annotationButton[name]).click(); };
   const more = async name => { await page.getByRole('button', { name, exact: true }).click(); };
@@ -60,7 +60,7 @@ let browser, page;
   assert(await page.locator('#dialog-error').isVisible()); assert.deepEqual(await doc(), beforeInvalid); await page.locator('#dialog-cancel').click();
   await page.locator('#axes-button').click();
   await axes('x').getByLabel('数式で使う記号', { exact: true }).fill('時間'); await axes('y').getByLabel('数式で使う記号', { exact: true }).fill('距離'); await submit();
-  await page.locator('#series-list button').last().click(); await page.getByRole('button', { name: '数式・範囲', exact: true }).click();
+  await page.locator('#series-list .object-item').last().click(); await page.getByRole('button', { name: '数式・範囲', exact: true }).click();
   assert.equal(await page.getByLabel('数式（例：距離 = a*時間^2）', { exact: true }).inputValue(), '距離 = 2*時間'); await page.locator('#dialog-cancel').click();
   // Restore simple axis names and a square range for the direct manipulation checks.
   await page.locator('#axes-button').click();
@@ -104,7 +104,7 @@ let browser, page;
   assert(Math.abs(xy[0]) < 1e-8 && Math.abs(xy[1] + 1) < 1e-7);
   const beforeDelete = await doc(); await ann('接線A').click(); await more('削除'); await settle(); assert(!(await doc()).annotations.some(a => a.id === tId)); await page.locator('#undo').click(); await settle(); assert.deepEqual(await doc(), beforeDelete);
   // Curve points retain their curve reference; literal position changes, formula position does not.
-  await page.locator('#series-list button').first().click(); await more('この曲線上に点'); await fill('名前', 'P'); await fill('位置（x / t / theta の値）', '1'); await submit();
+  await page.locator('#series-list .object-item').first().click(); await page.locator('#add-point').click(); await fill('名前', 'P'); await fill('位置（x / t / theta の値）', '1'); await submit();
   await page.locator('#stage').focus(); await page.keyboard.press('Escape'); await drag(await screen([1, 1]), await screen([1.5, 1.6]));
   const p = (await doc()).annotations.at(-1); assert.equal(p.anchor.type, 'curve'); assert(Math.abs(Number(p.anchor.at) - 1.5) < .03);
   await page.getByRole('button', { name: '位置・設定', exact: true }).click(); await fill('位置（x / t / theta の値）', '1/2'); await submit();

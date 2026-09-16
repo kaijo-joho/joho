@@ -201,6 +201,104 @@
     return meta;
   }
 
+  function traceMetaAt(element, traces, event) {
+    const layout = element._fullLayout, box = element.getBoundingClientRect();
+    if (!layout?.xaxis?.d2p || !layout?.yaxis?.d2p) return null;
+    const px = event.clientX - box.left - layout.xaxis._offset, py = event.clientY - box.top - layout.yaxis._offset;
+    if (px < 0 || py < 0 || px > layout.xaxis._length || py > layout.yaxis._length) return null;
+    const distanceToSegment = (x, y, ax, ay, bx, by) => {
+      const dx = bx - ax, dy = by - ay, length = dx * dx + dy * dy;
+      const t = length ? Math.max(0, Math.min(1, ((x - ax) * dx + (y - ay) * dy) / length)) : 0;
+      return Math.hypot(x - (ax + t * dx), y - (ay + t * dy));
+    };
+    for (const trace of traces) {
+      if (!trace.meta || !Array.isArray(trace.x) || !Array.isArray(trace.y)) continue;
+      let previous = null;
+      for (let i = 0; i < trace.x.length; i++) {
+        if (!finite(trace.x[i]) || !finite(trace.y[i])) { previous = null; continue; }
+        const x = layout.xaxis.d2p(trace.x[i]), y = layout.yaxis.d2p(trace.y[i]);
+        if (!finite(x) || !finite(y)) { previous = null; continue; }
+        if ((trace.mode || '').includes('markers') && Math.hypot(px - x, py - y) <= 12) return trace.meta;
+        if ((trace.mode || '').includes('lines') && previous && distanceToSegment(px, py, previous[0], previous[1], x, y) <= Math.max(7, (trace.line?.width || 1) / 2 + 5)) return trace.meta;
+        previous = [x, y];
+      }
+    }
+    return null;
+  }
+  const traceHit = (element, traces, event) => !!traceMetaAt(element, traces, event);
+
+  function installBlankClick(element, callback, traces) {
+    if (typeof callback !== 'function') return null;
+    let pending = null, awaiting = null, timer = null, hoverMeta = null, hoverPoint = null, lastPointer = null, latestMode, latestCallback = callback, latestTraces = traces, latestOptions = null;
+    const active = new Set();
+    const interactive = target => !!target?.closest?.('.trace,.legend,.annotation,.xaxislayer-above,.yaxislayer-above,.xaxislayer-below,.yaxislayer-below,.g-gtitle,.hoverlayer,.modebar');
+    const clearTimer = () => { if (timer !== null) { clearTimeout(timer); timer = null; } };
+    const eligible = event => event.pointerType === 'touch' || event.button === 0;
+    const down = event => {
+      if (typeof latestCallback !== 'function' || !eligible(event)) return;
+      if (pending) { if (event.pointerId !== pending.id) { active.add(event.pointerId); pending.multiple = true; } return; }
+      active.add(event.pointerId);
+      const meta = traceMetaAt(element, latestTraces, event) || (hoverPoint && Math.hypot(event.clientX-hoverPoint[0],event.clientY-hoverPoint[1])<=4 ? hoverMeta : null);
+      pending = { id: event.pointerId, x: event.clientX, y: event.clientY, moved: false, cancelled: false, multiple: active.size > 1, hit: interactive(event.target) || !!meta, meta, plotHit:false };
+    };
+    const move = event => {
+      lastPointer = [event.clientX,event.clientY];
+      if (hoverPoint && Math.hypot(event.clientX-hoverPoint[0],event.clientY-hoverPoint[1])>4) { hoverMeta = null;hoverPoint = null; }
+      if (!pending || event.pointerId !== pending.id) return;
+      if (Math.hypot(event.clientX - pending.x, event.clientY - pending.y) > 4) pending.moved = true;
+    };
+    const cancel = event => {
+      active.delete(event.pointerId);
+      if (pending && event.pointerId === pending.id) { pending.cancelled = true; pending = null; }
+    };
+    const up = event => {
+      active.delete(event.pointerId);
+      if (!pending || event.pointerId !== pending.id) return;
+      const click = pending;
+      if (Math.hypot(event.clientX - click.x, event.clientY - click.y) > 4) click.moved = true;
+      click.meta = click.meta || traceMetaAt(element, latestTraces, event); click.hit = click.hit || !!click.meta;
+      pending = null; awaiting = click;
+      if (active.size) click.multiple = true;
+      clearTimer();
+      timer = setTimeout(() => {
+        timer = null;
+        if (awaiting === click && !click.moved && !click.multiple && !click.cancelled) {
+          if (click.meta && !click.plotHit) { const select = click.meta.objectType === 'annotation' ? latestOptions?.onAnnotationSelect : latestOptions?.onSelect; if (typeof select === 'function') select(click.meta.objectId); }
+          else if (!click.hit && typeof latestCallback === 'function') latestCallback();
+        }
+        if (awaiting === click) awaiting = null;
+      }, 0);
+    };
+    const hit = () => { const click = pending || awaiting; if (click) { click.hit = true; click.plotHit = true; } };
+    const hover = meta => { hoverMeta = latestMode==='3d' ? meta || null : null; hoverPoint = hoverMeta ? lastPointer : null; };
+    const leave = () => hover(null);
+    element.addEventListener('pointerdown', down, true);
+    element.addEventListener('pointerleave', leave);
+    const owner = element.ownerDocument;
+    const outsideDown = event => { if (pending && eligible(event) && event.pointerId !== pending.id) { active.add(event.pointerId); pending.multiple = true; } };
+    owner.addEventListener('pointerdown', outsideDown, true);
+    owner.addEventListener('pointermove', move, true);
+    owner.addEventListener('pointerup', up, true);
+    owner.addEventListener('pointercancel', cancel, true);
+    return { hit, hover, update: (nextCallback, nextTraces, nextOptions, nextMode) => { latestCallback = nextCallback; latestTraces = nextTraces; latestOptions = nextOptions; latestMode = nextMode; hoverMeta = null; hoverPoint = null;if(typeof nextCallback!=='function'){clearTimer();active.clear();pending=null;awaiting=null;} }, dispose: () => {
+      clearTimer(); active.clear(); pending = null; awaiting = null;
+      element.removeEventListener('pointerdown', down, true);
+      element.removeEventListener('pointerleave', leave);
+      owner.removeEventListener('pointerdown', outsideDown, true);
+      owner.removeEventListener('pointermove', move, true);
+      owner.removeEventListener('pointerup', up, true);
+      owner.removeEventListener('pointercancel', cancel, true);
+    } };
+  }
+
+  function actualPlotHit(element, event) {
+    const point = event?.points?.[0], layout = element._fullLayout, mouse = event?.event;
+    if (!point || !mouse || !layout?.xaxis?.d2p || !layout?.yaxis?.d2p) return !!point && !!layout?.scene;
+    const box = element.getBoundingClientRect();
+    const x = layout.xaxis.d2p(point.x), y = layout.yaxis.d2p(point.y);
+    return finite(x) && finite(y) && Math.hypot(box.left + layout.xaxis._offset + x - mouse.clientX, box.top + layout.yaxis._offset + y - mouse.clientY) <= 24;
+  }
+
   async function render(element, doc, options) {
     options = options || {};
     const P = plotly(); if (!P || !element) throw new Error('Plotly を読み込めません。');
@@ -213,13 +311,16 @@
       try { traces.push(...annotationTraces(a, doc, warnings, decorations)); } catch (error) { warnings.push((a.name || '点・補助線') + '：' + error.message); }
     }
     const state = states.get(element) || {}; const camera = options.camera || state.camera;
-    if (typeof element.removeAllListeners === 'function') { element.removeAllListeners('plotly_click'); element.removeAllListeners('plotly_relayout'); element.removeAllListeners('plotly_clickannotation'); }
+    if (typeof element.removeAllListeners === 'function') { element.removeAllListeners('plotly_click'); element.removeAllListeners('plotly_relayout'); element.removeAllListeners('plotly_clickannotation'); element.removeAllListeners('plotly_hover'); element.removeAllListeners('plotly_unhover'); }
     const layout = Object.assign(layoutFor(doc, Object.assign({}, options, { camera })), { autosize: true, width: element.clientWidth || 640, height: element.clientHeight || 480, annotations:decorations });
     await P.react(element, traces, layout, { displayModeBar: false, responsive: true, scrollZoom: true });
-    const live = { doc, camera: (element.layout && element.layout.scene && element.layout.scene.camera) || camera, options }; states.set(element, live);
+    const blank = state.blankCleanup || installBlankClick(element, options.onBlankClick, traces); blank?.update(options.onBlankClick, traces, options, doc.mode);
+    const live = { doc, camera: (element.layout && element.layout.scene && element.layout.scene.camera) || camera, options, blankCleanup: blank }; states.set(element, live);
     if (typeof element.on === 'function') {
-      element.on('plotly_click', (event) => { const meta = selectionMeta(element, event, traces); if (!meta) return; const callback = meta.objectType === 'annotation' ? options.onAnnotationSelect : options.onSelect; if (typeof callback === 'function') callback(meta.objectId); });
-      element.on('plotly_clickannotation',event=>{const item=decorations[event.index];if(item&&typeof options.onAnnotationSelect==='function')options.onAnnotationSelect(item.name);});
+      element.on('plotly_click', (event) => { const hit = actualPlotHit(element, event) || traceHit(element, traces, event.event || {}); if (typeof options.onBlankClick === 'function' && !hit) return; blank?.hit(); const meta = selectionMeta(element, event, traces); if (!meta) return; const callback = meta.objectType === 'annotation' ? options.onAnnotationSelect : options.onSelect; if (typeof callback === 'function') callback(meta.objectId); });
+      element.on('plotly_clickannotation',event=>{blank?.hit();const item=decorations[event.index];if(item&&typeof options.onAnnotationSelect==='function')options.onAnnotationSelect(item.name);});
+      element.on('plotly_hover', event => blank?.hover(selectionMeta(element, event, traces)));
+      element.on('plotly_unhover', () => blank?.hover(null));
       element.on('plotly_relayout', (event) => { const view = viewFrom(event || {}, doc); if (!view) return; if (view.camera) live.camera = view.camera; if (typeof options.onViewChange === 'function') options.onViewChange(view); });
     }
     return { warnings: [...new Set(warnings)] };

@@ -25,8 +25,8 @@ let browser;
   const doc = () => page.evaluate(() => GraphEditor.getDocument());
   const field = (label, value) => page.getByLabel(label, { exact: true }).fill(String(value));
   const submit = async () => { await page.locator('#dialog-submit').click(); await settle(); };
-  const curves = () => page.locator('#series-list button');
-  const annotations = () => page.locator('#annotation-list button');
+  const curves = () => page.locator('#series-list .object-item');
+  const annotations = () => page.locator('#annotation-list .object-item');
   async function addCurve(kind, name) { await page.locator('#other-curves summary').click(); await page.locator('#add-' + kind).click(); await field('名前', name); }
   const annotationButton = { '点':'#add-point', '補助線':'#add-guide', '接線':'#add-tangent', '交点':'#add-intersection', '線分・矢印':'#add-segment', '文字':'#add-text' };
   async function addAnnotation(name) { await page.locator(annotationButton[name]).click(); }
@@ -44,7 +44,7 @@ let browser;
   assert.equal((await doc()).version, 4);
 
   await page.locator('#add-parameter').click(); await field('名前（半角英字。例：a）', 'a'); await submit();
-  await curves().filter({ hasText: '楕円' }).click(); await more('この曲線上に点'); await field('名前', 'P'); await field('位置（x / t / theta の値）', 'a'); await submit();
+  await curves().filter({ hasText: '楕円' }).click(); await page.locator('#add-point').click(); await field('名前', 'P'); await field('位置（x / t / theta の値）', 'a'); await submit();
   const pId = (await doc()).annotations[0].id;
   const pointXY = id => page.evaluate(id => { const t = document.querySelector('#plot').data.find(t => t.meta.objectId === id && t.mode.includes('markers')); return [t.x[0], t.y[0]]; }, id);
   let xy = await pointXY(pId); assert(Math.abs(xy[0] - 3 * Math.cos(1)) < 1e-8);
