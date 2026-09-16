@@ -64,7 +64,7 @@ let browser;
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).parameters.find(p => p.name === 'a').value, 2);
   await page.locator('#undo').waitFor({ state: 'visible' }); await page.locator('#undo').click(); await page.waitForTimeout(80); assert.equal((await page.evaluate(() => GraphEditor.getDocument())).parameters.find(p => p.name === 'a').value, 1);
 
-  const functionButton = page.locator('#series-list button').filter({ hasText: 'y = a*x^2' }); await functionButton.click(); await page.getByRole('button', { name: '色・線' }).click();
+  const functionButton = page.locator('#series-list button').filter({ hasText: 'y = a*x^2' }); await functionButton.click(); await page.getByRole('button', { name: '色・線' }).click(); await page.getByRole('button', { name: '色・線の詳細…', exact: true }).click();
   const rgb = page.locator('#dialog-content input[type=number]'); await rgb.nth(0).fill('255'); await rgb.nth(1).fill('0'); await rgb.nth(2).fill('0'); await submit();
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).series.find(s => s.expression === 'y = a*x^2').style.color, '#ff0000');
 

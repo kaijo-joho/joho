@@ -37,6 +37,10 @@ const doc = () => ({
     { id: 'parameterCurve', kind: 'function', expression: 'y=a*x', domain: { x: [-4, 4] } },
     { id: 'tinySlope', kind: 'function', expression: 'y=1e-8*x+2', domain: { x: [-4, 4] } },
     { id: 'hugeIntercept', kind: 'function', expression: 'y=x+1000000000.5', domain: { x: [-4, 4] } },
+    { id: 'decimalSlope', kind: 'function', expression: 'y=3.6*x-4.8', domain: { x: [-4, 4] } },
+    { id: 'decimalOne', kind: 'function', expression: 'y=.9*x+.6', domain: { x: [-4, 4] } },
+    { id: 'tinyIntercept', kind: 'function', expression: 'y=1e-10*x+1e-10', domain: { x: [-4, 4] } },
+    { id: 'ultraTinyIntercept', kind: 'function', expression: 'y=1e-10*x+1e-20', domain: { x: [-4, 4] } },
     { id: 'coefficientCurve', kind: 'parametric', components: { x: 'a*t', y: 't' }, interval: [0, 2], domain: { x: [-4, 4] } }
   ]
 });
@@ -172,8 +176,18 @@ const near = (actual, expected, tolerance = 1e-5) => assert(Math.abs(actual - ex
   assert.equal(horizontal.text, 'v ≈ 0');
   const tiny = Annotations.tangentEquation({ id: 'small', kind: 'tangent', seriesId: 'tinySlope', at: '0' }, document);
   assert.match(tiny.text, /e-8|e-9|0\.0000000/); assert.match(tiny.text, / × u/); assert.doesNotMatch(tiny.text, /≈ 0u/);
+  const decimal = Annotations.tangentEquation({ id: 'decimal', kind: 'tangent', seriesId: 'decimalSlope', at: '1.2345' }, document);
+  assert.equal(decimal.text, 'v ≈ 3.6u − 4.8');
+  const decimalOne = Annotations.tangentEquation({ id: 'decimalOne', kind: 'tangent', seriesId: 'decimalOne', at: '-.75' }, document);
+  assert.equal(decimalOne.text, 'v ≈ 0.9u + 0.6');
+  const hugeLine = Annotations.tangentLine({ id: 'huge', kind: 'tangent', seriesId: 'hugeIntercept', at: '0' }, document);
+  near(hugeLine.point[1], 1000000000.5, 1e-6);
   const huge = Annotations.tangentEquation({ id: 'huge', kind: 'tangent', seriesId: 'hugeIntercept', at: '0' }, document);
-  assert.match(huge.text, /1000000000\.5/);
+  assert.match(huge.text, /1000000000/); assert.doesNotMatch(huge.text, /\.5/);
+  const microscopic = Annotations.tangentEquation({ id: 'micro', kind: 'tangent', seriesId: 'tinyIntercept', at: '0' }, document);
+  assert.match(microscopic.text, /e-10/); assert.doesNotMatch(microscopic.text, /≈ 0$/);
+  const ultraTiny = Annotations.tangentEquation({ id: 'ultra', kind: 'tangent', seriesId: 'ultraTinyIntercept', at: '0' }, document);
+  assert.match(ultraTiny.text, /1e-20/);
 }
 {
   const document = doc(); document.annotations = [{ id: 'tLine', kind: 'tangent', seriesId: 'line', at: '0', visible: false }];

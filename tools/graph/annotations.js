@@ -150,19 +150,21 @@
   function equationNumber(value) {
     if (!finite(value)) return '';
     if (value === 0) return '0';
-    const integer = Math.round(value);
-    // 数値微分で生じた 0.99999999998 のような表示ノイズだけを整える。
-    // 小さい係数そのものは0へ寄せない。
-    const integerNoise = Math.max(1e-10, Number.EPSILON * 128 * Math.abs(value));
-    if (Math.abs(value) >= 1e-6 && Math.abs(value - integer) <= integerNoise) return String(integer);
-    const rounded = Number(value.toPrecision(14));
-    return rounded === 0 ? value.toExponential(13) : String(rounded);
+    // 画面だけを基本8桁の有効数字に整える。Number化で不要な末尾0を除き、
+    // 小さい非ゼロ値は科学表記のまま残す。
+    const rounded = Number(value.toPrecision(8));
+    return rounded === 0 ? value.toExponential(7) : String(rounded);
   }
   function tangentEquation(annotation, doc) {
     const line = tangentLine(annotation, doc);
     if (!line.point) return { text: '', warning: line.warning || '接線を評価できません。' };
     const api = symbols(), x = api && typeof api.toDisplay === 'function' ? api.toDisplay('x', doc, 'function') : doc && doc.axes && doc.axes.x && doc.axes.x.symbol || 'x', y = api && typeof api.toDisplay === 'function' ? api.toDisplay('y', doc, 'function') : doc && doc.axes && doc.axes.y && doc.axes.y.symbol || 'y';
-    const intercept = line.point[1] - line.slope * line.point[0], slope = equationNumber(line.slope), offset = equationNumber(Math.abs(intercept));
+    let intercept = line.point[1] - line.slope * line.point[0];
+    // 大きい2項の差では、機械精度より小さい切片は観測できない丸め誤差である。
+    // 小さいスケールの実際の微小切片はこの閾値に掛からない。
+    const cancellationScale = Math.max(Math.abs(line.point[1]), Math.abs(line.slope * line.point[0]));
+    if (Math.abs(intercept) <= Number.EPSILON * 64 * cancellationScale) intercept = 0;
+    const slope = equationNumber(line.slope), offset = equationNumber(Math.abs(intercept));
     if (!slope || !offset) return { text: '', warning: '接線の式を表示できません。' };
     if (line.slope === 0) return { text: y + ' ≈ ' + equationNumber(line.point[1]), warning: '' };
     let right;

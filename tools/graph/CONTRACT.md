@@ -1,6 +1,6 @@
 # グラフエディタ 0.1 実装契約（初版の記録）
 
-現行0.3.1の追加仕様・version 4への移行は [0.2実装契約](docs/phase2-contract.md)、[0.3実装契約](docs/phase3-contract.md)、[交点と操作性の調整](docs/usability-contract.md) を優先する。
+現行0.3.2の追加仕様・version 4への移行は [0.2実装契約](docs/phase2-contract.md)、[0.3実装契約](docs/phase3-contract.md)、[交点と操作性の調整](docs/usability-contract.md) を優先する。
 
 新規の独立ツール。既存アプリは参照のみ。通常のブラウザ内処理で完結し、授業管理機能は対象外。
 

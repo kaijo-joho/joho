@@ -49,7 +49,8 @@ let browser, page;
     assert.equal(await page.locator('#dialog-title').innerText(), '追加：接線', 'one click opens the tangent form');
     await fill('名前', name); await fill('接点の x 座標', at);
     assert((await page.getByLabel('接線の方程式', { exact: true }).innerText()).includes('≈'));
-    assert(await page.getByLabel('接線の方程式を図に表示', { exact: true }).isChecked()); await submit();
+    assert(await page.getByLabel('接線の方程式を図に表示', { exact: true }).isChecked());
+    await submit();
   }
   let document = await doc(); const [plus, minus] = document.annotations.filter(a => a.kind === 'tangent').map(a => a.id);
   assert((await equation(plus).innerText()).includes('2x'));
@@ -97,9 +98,9 @@ let browser, page;
   // Visibility of the source does not disable registered tangents/intersections.
   await item(plus).click(); await action('非表示にする').click(); await settle(); assert(Math.abs((await results(mixed)).points[0][0] - 0.75) < 1e-7);
   await action('表示する').click(); await settle();
-  await action('文字・配置').click(); await page.getByLabel('接線の方程式を図に表示', { exact: true }).uncheck(); await submit();
+  await action('文字・配置').click(); await page.getByRole('button', { name: '文字・配置の詳細…', exact: true }).click(); await page.locator('#editor-dialog').getByLabel('接線の方程式を図に表示', { exact: true }).uncheck(); await submit();
   assert((await equation(plus).innerText()).includes('4x')); assert(!(await labels()).some(t => t.includes('T＋') && t.includes('≈')));
-  await action('文字・配置').click(); await page.getByLabel('接線の方程式を図に表示', { exact: true }).check(); await submit();
+  await page.getByRole('button', { name: '文字・配置の詳細…', exact: true }).click(); await page.locator('#editor-dialog').getByLabel('接線の方程式を図に表示', { exact: true }).check(); await submit();
   await action('色・線').hover(); await page.waitForFunction(() => document.querySelector('.joho-tip.show')?.textContent === '色・線');
   assert.equal(await page.locator('#selection-toolbar button:not([aria-label])').count(), 0);
   assert.equal(await action('色・線').locator('svg[aria-hidden="true"]').count(), 1);

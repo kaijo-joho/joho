@@ -4,12 +4,14 @@
   const C = window.GraphCore, P = window.GraphPlot, S = window.GraphSymbols;
   const $ = id => document.getElementById(id);
   const palette = ['#2563eb','#dc2626','#16a34a','#9333ea','#ea580c','#0891b2','#db2777','#4f46e5','#65a30d','#ca8a04','#0f766e','#7c3aed','#111827','#64748b','#ffffff','#a16207','#e11d48','#0284c7'];
+  const quickColors = [palette[0],palette[1],palette[2],palette[3],palette[4],palette[12]];
+  const colorNames = ['青','赤','緑','紫','オレンジ','青緑','ピンク','藍','黄緑','黄土','深緑','すみれ','黒','灰色','白','茶色','濃いピンク','水色'];
   const kindNames = {function:'2D 数式',implicit:'陰関数',parametric:'媒介変数',polar:'極座標',surface:'3D 曲面',data2d:'2D 数表',data3d:'3D 数表'};
   const annotationNames = {point:'点',guide:'補助線',tangent:'接線',intersection:'交点',tangentIntersection:'交点',segment:'線分・矢印',text:'文字'};
   const curveKinds = ['function','parametric','polar'];
-  let history, store, localAuto, help, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener;
+  let history, store, localAuto, help, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey;
   let drawPending = false, drawing = false, exportBusy = false, fileBusy = false, toastTimer, saveTimer;
-  let parameterPreview = null, gesture = null;
+  let parameterPreview = null, gesture = null, selectionPanel = null;
   const templates = typeof GraphTemplates.list === 'function' ? GraphTemplates.list() : C.clone(GraphTemplates.list);
   function node(tag, text, attrs) { const el = document.createElement(tag); if (text != null) el.textContent = text; for (const [k,v] of Object.entries(attrs || {})) el.setAttribute(k,v); return el; }
   function button(text, action, attrs) { const el = node('button',text,Object.assign({type:'button'},attrs)); el.addEventListener('click',event=>run(()=>action(event))); return el; }
@@ -38,8 +40,8 @@
     try { if (!store) throw new Error('ブラウザ保存を利用できません。ファイルに保存してください。'); store.save('auto',current()); status('ブラウザへ自動保存済み'); } catch(error) { status(error.message); }
     if (localAuto?.active) localAuto.schedule(current());
   }
-  function changed(mutator, message, draw=true) {
-    cancelGesture(); parameterPreview=null; history.change(mutator); updateList(); updateToolbar(); updateHeader(); persistSoon(); if(draw) requestDraw(); if(message) notify(message);
+  function changed(mutator, message, draw=true, rebuildToolbar=true) {
+    cancelGesture(); parameterPreview=null; history.change(mutator);if(rebuildToolbar){updateList();updateToolbar();}updateHeader(); persistSoon(); if(draw) requestDraw(); if(message) notify(message);
   }
   function updateHeader() {
     $('document-name').textContent=current().name || '無題のグラフ';
@@ -102,27 +104,69 @@
   function setListOpen(open) { $('objects').classList.toggle('is-open',open); $('list-toggle').setAttribute('aria-expanded',String(open)); }
   function select(value) { cancelParameterPreview();selected=value;for(const item of document.querySelectorAll('[data-object-id]'))item.setAttribute('aria-pressed',String(item.dataset.objectType===selected?.type&&item.dataset.objectId===selected?.id));for(const row of $('parameter-list').children)row.querySelector('.parameter-name').setAttribute('aria-pressed',String(selected?.type==='parameter'&&row.dataset.parameter===selected.name));updateToolbar();if(matchMedia('(max-width:850px)').matches) setListOpen(false); }
   function updateToolbar() {
-    const bar=$('selection-toolbar'); bar.replaceChildren(); const s=activeSeries(), p=activeParameter(), a=activeAnnotation(); bar.hidden=!s&&!p&&!a;
+    const bar=$('selection-toolbar'),focused=bar.contains(document.activeElement)?document.activeElement.dataset.quickControl:null,scroll=bar.scrollTop;
+    const s=activeSeries(), p=activeParameter(), a=activeAnnotation(),key=s?'series:'+s.id:a?'annotation:'+a.id:p?'parameter:'+p.name:'';
+    if(bar.dataset.selectionKey!==key)selectionPanel=null;bar.dataset.selectionKey=key;bar.replaceChildren();bar.hidden=!s&&!p&&!a;bar.classList.toggle('has-colors',!!(s||a));
     if(s) {
-      bar.append(node('span',s.name||kindNames[s.kind],{class:'selection-name'}),iconButton('edit',s.kind.startsWith('data')?'数表・出典':'数式・範囲',()=>editSeries(s.id)),iconButton('palette','色・線',()=>editStyle(s.id)));
+      bar.append(node('span',s.name||kindNames[s.kind],{class:'selection-name'}),iconButton('edit',s.kind.startsWith('data')?'数表・出典':'数式・範囲',()=>editSeries(s.id)),selectionPanelButton('style','palette','色・線'));
       if(current().mode==='2d'&&curveKinds.includes(s.kind))bar.append(iconButton('point','この曲線上に点',()=>addAnnotation('point',s.id)));
       if(current().mode==='2d'&&s.kind==='function')bar.append(iconButton('tangent','この曲線の接線',()=>addAnnotation('tangent',s.id)),iconButton('intersection','この曲線との交点',()=>addAnnotation('intersection','series:'+s.id)));
-      bar.append(iconButton(s.visible?'hide':'show',s.visible?'非表示にする':'表示する',()=>changed(d=>{d.series.find(x=>x.id===s.id).visible=!s.visible;})),iconButton('copy','複製',()=>{const next=C.clone(s);next.id=C.uid();next.name=(next.name||kindNames[next.kind])+' のコピー';changed(d=>d.series.push(next));select({type:'series',id:next.id});}),iconButton('trash','削除',()=>removeSeries(s.id)));
+      bar.append(iconButton(s.visible?'hide':'show',s.visible?'非表示にする':'表示する',()=>changed(d=>{d.series.find(x=>x.id===s.id).visible=!s.visible;})),iconButton('copy','複製',()=>{const next=C.clone(current().series.find(x=>x.id===s.id));next.id=C.uid();next.name=(next.name||kindNames[next.kind])+' のコピー';changed(d=>d.series.push(next));select({type:'series',id:next.id});}),iconButton('trash','削除',()=>removeSeries(s.id)));
       const more=node('div');
       if(s.kind.startsWith('data')) more.append(button('数値をCSVで保存',()=>download(C.tableCSV(s.rows,(s.kind==='data3d'?['x','y','z']:['x','y']).map(symbol)),filename(s.name||'数表')+'.csv','text/csv;charset=utf-8')));
       if(!matchesMode(s)) more.append(button(kindNames[s.kind].startsWith('3D')?'3Dで表示':'2Dで表示',()=>switchMode(kindNames[s.kind].startsWith('3D')?'3d':'2d')));
       if(more.children.length){const details=node('details',null,{class:'popup-details'}),summary=node('summary',null,{'aria-label':'その他',class:'icon-button','data-tip':'その他'});summary.append(GraphIcons.create('more',document));details.append(summary,more);bar.append(details);}
     } else if(a) {
-      bar.append(node('span',a.name||annotationNames[a.kind],{class:'selection-name'}),iconButton('edit','位置・設定',()=>editAnnotation(a.id)),iconButton('label','文字・配置',()=>editLabel(a.id)),iconButton('palette','色・線',()=>editStyle(a.id,'annotation')));
+      bar.append(node('span',a.name||annotationNames[a.kind],{class:'selection-name'}),iconButton('edit','位置・設定',()=>editAnnotation(a.id)),selectionPanelButton('label','label','文字・配置'),selectionPanelButton('style','palette','色・線'));
       if(a.kind==='segment')bar.append(iconButton('continue','終点から続ける',()=>addAnnotation('segment',a.to)));
       if(['point','tangentIntersection'].includes(a.kind))bar.append(iconButton('segment','この点から線分',()=>addAnnotation('segment',a.id)));
       if(a.kind==='tangent')bar.append(iconButton('intersection','この接線との交点',()=>addAnnotation('intersection','tangent:'+a.id)));
-      bar.append(iconButton(a.visible?'hide':'show',a.visible?'非表示にする':'表示する',()=>changed(d=>{d.annotations.find(x=>x.id===a.id).visible=!a.visible;})),iconButton('copy','複製',()=>{const next=C.clone(a);next.id=C.uid();next.name=(next.name||annotationNames[next.kind])+' のコピー';changed(d=>d.annotations.push(next));select({type:'annotation',id:next.id});}),iconButton('trash','削除',()=>removeAnnotation(a.id)));
+      bar.append(iconButton(a.visible?'hide':'show',a.visible?'非表示にする':'表示する',()=>changed(d=>{d.annotations.find(x=>x.id===a.id).visible=!a.visible;})),iconButton('copy','複製',()=>{const next=C.clone(current().annotations.find(x=>x.id===a.id));next.id=C.uid();next.name=(next.name||annotationNames[next.kind])+' のコピー';changed(d=>d.annotations.push(next));select({type:'annotation',id:next.id});}),iconButton('trash','削除',()=>removeAnnotation(a.id)));
       if(current().mode==='3d')bar.append(button('2Dで表示',()=>switchMode('2d')));
     } else if(p) {
       bar.append(node('span',p.name,{class:'selection-name'}),iconButton('settings','編集',()=>editParameter(p.name)),iconButton('trash','削除',()=>{changed(d=>{d.parameters=d.parameters.filter(x=>x.name!==p.name);});select(null);}));
     }
     if(s||p||a)bar.append(iconButton('close','選択を解除',()=>select(null)));
+    if(s||a){const target=s||a,type=s?'series':'annotation';bar.append(colorButtons(target,type,quickColors,'基本色'));
+      if(selectionPanel==='style')appendQuickStyle(bar,target,type);else if(selectionPanel==='label'&&a)appendQuickLabel(bar,a);
+    }
+    if(focused)bar.querySelector('[data-quick-control="'+CSS.escape(focused)+'"]')?.focus({preventScroll:true});bar.scrollTop=scroll;
+  }
+  function selectionPanelButton(panel,icon,label) { return iconButton(icon,label,()=>{selectionPanel=selectionPanel===panel?null:panel;updateToolbar();},{'aria-expanded':String(selectionPanel===panel),...(selectionPanel===panel?{'aria-controls':'selection-'+panel}:{}),'data-quick-control':'toggle-'+panel}); }
+  function quickChange(type,id,mutator) { try{changed(d=>{const object=d[type==='series'?'series':'annotations'].find(x=>x.id===id);if(!object)throw new Error('対象が見つかりません。');mutator(object);},null,true,false);}finally{refreshQuickControls();} }
+  function refreshQuickControls() {
+    const target=activeSeries()||activeAnnotation();if(!target)return;
+    const swatch=document.querySelector('[data-object-id="'+target.id+'"] .swatch');if(swatch)swatch.style.backgroundColor=target.style.color;
+    for(const b of $('selection-toolbar').querySelectorAll('.quick-color'))b.setAttribute('aria-pressed',String(b.dataset.quickControl==='color-'+target.style.color.toLowerCase().slice(1)));
+    const values={width:target.style.width,dash:target.style.dash,'label-size':target.label?.size,'label-visible':target.label?.visible,'equation-visible':target.showEquation};
+    for(const [key,value]of Object.entries(values)){const el=$('selection-toolbar').querySelector('[data-quick-control="'+key+'"]');if(!el)continue;if(el.type==='checkbox')el.checked=value;else{el.value=value;if(el.type==='number')el.defaultValue=String(value);}}
+  }
+  function colorButtons(target,type,colors,label) {
+    const group=node('div',null,{class:'quick-palette',role:'group','aria-label':label});
+    for(const color of colors){const label='色を変更：'+colorNames[palette.indexOf(color)]+'（'+color+'）';const b=button(null,()=>quickChange(type,target.id,o=>{o.style.color=color;}),{class:'quick-color','aria-label':label,'data-tip':label,'data-quick-control':'color-'+color.slice(1),'aria-pressed':String(target.style.color.toLowerCase()===color)});b.style.setProperty('--swatch-color',color);b.append(node('span',null,{'aria-hidden':'true'}));group.append(b);}
+    return group;
+  }
+  function quickNumber(parent,label,value,min,max,step,key,onChange) {
+    const input=field(parent,label,value,'number',{min,max,step,'data-quick-control':key});input.defaultValue=String(value);
+    input.addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.isComposing)input.value=input.defaultValue;});
+    input.addEventListener('change',()=>run(()=>{try{onChange(requiredNumber(input));}catch(error){refreshQuickControls();throw error;}}));return input;
+  }
+  function appendQuickStyle(bar,target,type) {
+    const panel=node('div',null,{id:'selection-style',class:'selection-details'});bar.append(panel);
+    panel.append(colorButtons(target,type,palette.filter(c=>!quickColors.includes(c)),'その他の色'));
+    const g=grid(panel);
+    if(target.kind!=='surface'&&target.kind!=='text'){
+      quickNumber(g,'線の太さ',target.style.width,.5,20,.5,'width',value=>quickChange(type,target.id,o=>{o.style.width=value;}));
+      const dash=choice(g,'線種',target.style.dash,[['solid','実線'],['dash','破線'],['dot','点線']]);dash.dataset.quickControl='dash';dash.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.style.dash=dash.value;})));
+    }
+    panel.append(button('色・線の詳細…',()=>editStyle(target.id,type),{'aria-label':'色・線の詳細…',class:'full-button','data-quick-control':'style-detail','data-tip':'自由な色・RGB・不透明度などを設定'}));
+  }
+  function appendQuickLabel(bar,target) {
+    const panel=node('div',null,{id:'selection-label',class:'selection-details'});bar.append(panel);
+    const visible=check(panel,target.kind==='text'?'文字を表示':'名前を表示',target.label.visible);visible.dataset.quickControl='label-visible';visible.addEventListener('change',()=>run(()=>quickChange('annotation',target.id,o=>{o.label.visible=visible.checked;})));
+    if(target.kind==='tangent'){const equation=check(panel,'接線の方程式を図に表示',target.showEquation);equation.dataset.quickControl='equation-visible';equation.addEventListener('change',()=>run(()=>quickChange('annotation',target.id,o=>{o.showEquation=equation.checked;})));}
+    quickNumber(panel,'文字サイズ（px）',target.label.size,8,48,1,'label-size',value=>quickChange('annotation',target.id,o=>{o.label.size=value;}));
+    panel.append(button('文字・配置の詳細…',()=>editLabel(target.id),{'aria-label':'文字・配置の詳細…',class:'full-button','data-quick-control':'label-detail','data-tip':'文字サイズと上下左右のずれを設定'}));
   }
   function removeSeries(id) { changed(d=>C.removeSeries(d,id),'曲線と、それを参照する点・補助線を削除しました。元に戻せます。');select(null); }
   function removeAnnotation(id) { changed(d=>C.removeAnnotation(d,id),'参照する線分・交点も一緒に削除しました。元に戻せます。');select(null); }
@@ -185,12 +229,12 @@
   function switchMode(mode) { changed(d=>{d.mode=mode;}); select(null); camera=undefined; }
   function undo(redo=false) { cancelGesture();parameterPreview=null; if(redo)history.redo();else history.undo(); selected=null;camera=undefined;updateHeader();updateList();updateToolbar();persistSoon();requestDraw(); }
   function openDialog(title, build, onApply, submit='適用') {
-    cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=document.activeElement;dialogApply=onApply;
+    cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=document.activeElement;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
     $('dialog-title').textContent=title;$('dialog-content').replaceChildren();$('dialog-error').hidden=true;$('dialog-submit').hidden=!onApply;$('dialog-submit').textContent=submit;
     $('dialog-cancel').textContent=onApply?'キャンセル':'閉じる';build($('dialog-content'));$('editor-dialog').showModal();
     const focus=$('dialog-content').querySelector('input,textarea,select,button');if(focus)focus.focus();
   }
-  function closeDialog() { $('editor-dialog').close(); if(dialogOpener?.isConnected&&dialogOpener.getBoundingClientRect().width)dialogOpener.focus();else $('stage').focus(); }
+  function closeDialog() { $('editor-dialog').close();const replacement=dialogOpenerKey&&dialogSelectionKey===$('selection-toolbar').dataset.selectionKey?$('selection-toolbar').querySelector('[data-quick-control="'+CSS.escape(dialogOpenerKey)+'"]'):null,opener=dialogOpener?.isConnected?dialogOpener:replacement;if(opener?.getBoundingClientRect().width)opener.focus();else $('stage').focus(); }
   function field(parent,label,value,type='text',attrs={}) { const wrap=node('label',label);const input=node('input',null,Object.assign({type},attrs)); input.value=value;wrap.append(input);parent.append(wrap);return input; }
   function area(parent,label,value) {const wrap=node('label',label);const input=node('textarea');input.value=value;wrap.append(input);parent.append(wrap);return input;}
   function choice(parent,label,value,options) {const wrap=node('label',label),select=node('select',null,{'aria-label':label});for(const [v,t]of options)select.append(node('option',t,{value:v}));select.value=value;wrap.append(select);parent.append(wrap);return select;}
@@ -431,9 +475,10 @@
       const input=event.target.closest('input,textarea,select,[contenteditable="true"]');if($('editor-dialog').open)return;
       if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'){event.preventDefault();run(saveBrowser);return;}if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='o'){event.preventDefault();showSaved();return;}
       if(event.key==='Escape'&&parameterPreview){cancelParameterPreview();event.preventDefault();return;}
+      if(event.key==='Escape'&&selectionPanel&&$('selection-toolbar').contains(event.target)){const panel=selectionPanel;selectionPanel=null;updateToolbar();$('selection-toolbar').querySelector('[data-quick-control="toggle-'+panel+'"]')?.focus();event.preventDefault();return;}
       if(input)return;
       if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='z'){event.preventDefault();undo(event.shiftKey);return;}
-      if(event.key==='Escape'){const menu=document.querySelector('.top details[open]');if(gesture)cancelGesture();else if(menu){menu.open=false;menu.querySelector('summary').focus();}else{select(null);setListOpen(false);}event.preventDefault();}
+      if(event.key==='Escape'){const menu=document.querySelector('.top details[open]');if(gesture)cancelGesture();else if(menu){menu.open=false;menu.querySelector('summary').focus();}else if(selectionPanel){const panel=selectionPanel;selectionPanel=null;updateToolbar();$('selection-toolbar').querySelector('[data-quick-control="toggle-'+panel+'"]')?.focus();}else{select(null);setListOpen(false);}event.preventDefault();}
       if(event.key==='Enter'&&!event.metaKey&&!event.ctrlKey&&!event.altKey&&(event.target===$('stage')||event.target.closest('[data-object-id][aria-pressed="true"]'))){const s=activeSeries(),a=activeAnnotation();if(s||a){event.preventDefault();run(()=>s?editSeries(s.id):editAnnotation(a.id));}}
       if(event.key==='?'){event.preventDefault();help?.open();}
       if(event.key==='Delete'||event.key==='Backspace'){const s=activeSeries(),a=activeAnnotation();if(s||a){event.preventDefault();run(()=>s?removeSeries(s.id):removeAnnotation(a.id));}}
