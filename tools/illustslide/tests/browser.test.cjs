@@ -1,5 +1,6 @@
 /* Run: node tools/illustslide/tests/browser.test.cjs [http://127.0.0.1:port/illustslide/] */
 'use strict';
+const {openView,revealObject,startPresentation}=require('./ui-helpers.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
@@ -124,12 +125,12 @@ async function run() {
     if (await page.locator('#replace-discard').isVisible()) await page.locator('#replace-discard').click();
     await page.waitForFunction(() => IlapoEditor.getDocument().pages.length >= 3);
 
-    for (const width of [1280, 736, 390]) { await page.setViewportSize({ width, height: 736 }); if (width > 800) await page.locator('[data-menu="view"]').click(); else await page.locator('[data-menu="more"]').click(); await page.locator('#command-menu').getByRole('button', { name: '表示設定…', exact: true }).click(); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await inspectorSubmit(page); assert(await page.locator('#inspector-panel').isVisible(), `${width}px keeps the view inspector available`); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `${width}px has no document horizontal overflow`); await inspectorClose(page); }
+    for (const width of [1280, 736, 390]) { await page.setViewportSize({ width, height: 736 }); await openView(page); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await inspectorSubmit(page); assert(await page.locator('#inspector-panel').isVisible(), `${width}px keeps the view inspector available`); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `${width}px has no document horizontal overflow`); await inspectorClose(page); }
     await page.screenshot({ path: path.join(artifacts, 'illustslide-dark-mobile.png'), fullPage: true });
     await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.waitForFunction(() => !document.getElementById('operation-help').hidden); await page.keyboard.press('Escape'); assert.equal(await page.locator('#help-button').evaluate(el => document.activeElement === el), true, 'Escape returns focus to help opener');
     await page.setViewportSize({ width: 390, height: 736 }); await page.locator('#canvas').focus(); await page.keyboard.press('Tab');
     const touchContext = await browser.newContext({ viewport: { width: 390, height: 736 }, hasTouch: true, isMobile: true }); const touch = await touchContext.newPage();
-    await touch.goto(hosting.url); await touch.waitForFunction(() => !!window.IlapoEditor); await touch.locator('[data-menu="more"]').tap(); await touch.locator('#command-menu [data-tool="rect"]').tap(); await touch.locator('#canvas').tap({ position: { x: 185, y: 250 } });
+    await touch.goto(hosting.url); await touch.waitForFunction(() => !!window.IlapoEditor); await touch.locator('#palette-toggle').tap(); await touch.locator('#shape-tools [data-tool="rect"]').tap(); await touch.locator('#canvas').tap({ position: { x: 185, y: 250 } });
     await touch.waitForFunction(() => IlapoEditor.getDocument().pages[0].objects.length === 1); assert.equal(await touch.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, 'touch viewport has no horizontal overflow'); await touchContext.close();
     assert.equal(errors.length, 0, errors.join('\n')); assert.equal(failed.length, 0, failed.join('\n'));
     console.log('Ilapo browser UI regression tests passed');

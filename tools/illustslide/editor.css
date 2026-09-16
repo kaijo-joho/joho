@@ -38,3 +38,25 @@ dialog{padding:0;border:1px solid var(--line);border-radius:14px;box-shadow:var(
 #alignment-guides path{stroke:var(--guide);fill:none}
 #alignment-guides rect{fill:var(--panel);stroke:none}
 #alignment-guides text{fill:var(--guide);font-family:sans-serif;stroke:none}
+
+/* 追加は左、設定は右。狭い画面も同じ追加パレットを開いて使う。 */
+#app{position:relative}
+.top>.brand{flex:0 1 auto;min-width:0}
+.brand>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.brand img{flex:none}
+.palette-header{display:flex;align-items:center;justify-content:space-between;gap:4px}
+#palette-close,#palette-toggle{display:none}
+.palette-bottom button{min-width:0;width:100%;padding:7px 3px;font-size:11px;white-space:normal}
+.palette-bottom button span{min-width:0}
+@media(max-width:850px){.palette-bottom button{flex-direction:column}}
+@media(max-width:560px){
+  #palette-toggle{display:flex;position:absolute;left:0;top:64px;z-index:4;flex-direction:column;gap:0;width:44px;min-height:64px;padding:5px 2px;border-radius:0 9px 9px 0;box-shadow:var(--shadow)}
+  #palette-toggle span{font-size:11px}
+  #app.palette-open .palette{display:flex;position:absolute;grid-area:auto;left:0;top:var(--toolbar-height,54px);bottom:44px;width:min(220px,calc(100% - 64px));z-index:8;box-shadow:var(--shadow);padding:10px;overscroll-behavior:contain}
+  #app.palette-open .palette-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #app.palette-open .palette-grid button{flex-direction:column;min-height:60px;font-size:11px}
+  #app.palette-open .palette-grid button span{font-size:11px}
+  #app.palette-open .palette-bottom button{flex-direction:row;min-height:44px}
+  #palette-close{display:inline-flex;min-width:44px;min-height:44px;border:0;font-size:20px;padding:4px}
+  #app.palette-open #palette-toggle{visibility:hidden}
+}

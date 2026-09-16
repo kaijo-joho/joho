@@ -137,7 +137,7 @@
 
     function focusKey(element) {
       if (!element || !body.contains(element)) return null;
-      if (element.id) return '#' + element.id;
+      if (element.id) return '#' + CSS.escape(element.id);
       if (element.name) return '[name="' + CSS.escape(element.name) + '"]';
       const keyed = element.closest('[data-inspector-focus]');
       return keyed ? '[data-inspector-focus="' + CSS.escape(keyed.dataset.inspectorFocus) + '"]' : null;

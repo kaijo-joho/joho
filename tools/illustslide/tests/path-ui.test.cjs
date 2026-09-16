@@ -1,5 +1,6 @@
 /* Exercise direct selection through the same file input and controls used by students. */
 'use strict';
+const {openView,revealObject,startPresentation}=require('./ui-helpers.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
@@ -35,7 +36,7 @@ async function run() {
   const inspectorSubmit = async () => { await page.locator('#inspector-submit').click(); await page.waitForFunction(() => { const panel = document.getElementById('inspector-panel'); return panel && !panel.hidden && !document.getElementById('dialog').open; }); };
   const inspectorClose = async () => { await page.locator('#inspector-close').click(); await page.waitForFunction(() => document.getElementById('inspector-panel').hidden); await sleep(50); };
   const menu = async action => { await page.locator('#path-menu-button').click(); await page.locator(`#command-menu [data-action="${action}"]`).click(); await sleep(40); };
-  const pick = async id => { await page.locator('#objects-toggle').click(); await page.locator(`[data-pick-object="${id}"]`).click(); await page.locator("#inspector-close").click(); await sleep(35); };
+  const pick = async id => { await page.locator('#objects-toggle').click(); await (await revealObject(page,id)).click(); await page.locator("#inspector-close").click(); await sleep(35); };
   async function load(objects) {
     const document = fixture(objects);
     await page.locator('#file-input').setInputFiles({ name: 'practice.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(document)) });
@@ -120,10 +121,10 @@ async function run() {
     points = (await info('source'))[0].segments; near(points[1].point.x, 300); near(points[1].point.y, 213.25); assert.equal((await documentOf()).pages[0].objects.length, 2);
     await moveNode('source', 1, { x: 301.5, y: 218.25 }, { alt: true }); points = (await info('source'))[0].segments; near(points[1].point.x, 301.5);
 
-    await page.locator('[data-menu="view"]').click(); await page.locator('#command-menu [data-action="view-dialog"]').click();
+    await openView(page);
     assert(await page.locator('#inspector-panel').isVisible(), 'view settings use the non-modal inspector'); await page.locator('#view-anchor').uncheck(); await page.locator('#view-path').uncheck(); await page.locator('#view-snap').check(); await page.locator('#view-step').fill('20'); await inspectorSubmit(); await inspectorClose();
     await moveNode('source', 1, { x: 305.3, y: 227.8 }); points = (await info('source'))[0].segments; near(points[1].point.x, 300); near(points[1].point.y, 220);
-    await page.locator('[data-menu="view"]').click(); await page.locator('#command-menu [data-action="view-dialog"]').click();
+    await openView(page);
     await page.locator('#view-snap').uncheck(); await page.locator('#view-pixel').check(); await inspectorSubmit(); await inspectorClose();
     await moveNode('source', 1, { x: 307.3, y: 225.8 }); points = (await info('source'))[0].segments; near(points[1].point.x, 307); near(points[1].point.y, 226);
 
@@ -139,7 +140,7 @@ async function run() {
     const png = await pngEvent; assert.match(png.suggestedFilename(), /\.png$/);
     await page.locator('.side-tab [data-action="export-toggle"]').click();
     await page.screenshot({ path: '/private/tmp/illustslide-path-desktop.png' });
-    await page.setViewportSize({ width: 390, height: 736 }); await page.locator('[data-menu="more"]').click(); await page.locator('#command-menu [data-action="view-dialog"]').click(); assert(await page.locator('#inspector-panel').isVisible()); assert(await page.locator('#canvas').isVisible()); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await inspectorSubmit();
+    await page.setViewportSize({ width: 390, height: 736 }); await openView(page); assert(await page.locator('#inspector-panel').isVisible()); assert(await page.locator('#canvas').isVisible()); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await inspectorSubmit();
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); assert(await page.evaluate(() => document.getElementById('inspector-panel').scrollWidth <= innerWidth)); await inspectorClose();
     await menu('anchor-list'); await page.screenshot({ path: '/private/tmp/illustslide-path-mobile.png' });
     await page.keyboard.press('Escape'); assert.equal(await page.locator('#dialog').evaluate(el => el.open), false);
@@ -150,7 +151,7 @@ async function run() {
       const doc = fixture([shape('M150 100L350 100L350 300L150 300Z', 'touch-shape')]);
       await touch.locator('#file-input').setInputFiles({ name: 'touch.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
       await touch.waitForFunction(id => IlapoEditor.getDocument().id === id, doc.id);
-      await touch.locator('[data-menu="more"]').tap(); await touch.locator('#command-menu [data-action="objects"]').tap(); await touch.locator('[data-pick-object="touch-shape"]').tap(); await touch.locator('#inspector-close').tap();
+      await touch.locator('#objects-toggle').tap(); await touch.locator('[data-pick-object="touch-shape"]').tap(); await touch.locator('#inspector-close').tap();
       const rect = await touch.locator('[data-node]').first().boundingBox(), x = rect.x + rect.width / 2, y = rect.y + rect.height / 2;
       const cdp = await touchContext.newCDPSession(touch);
       await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });

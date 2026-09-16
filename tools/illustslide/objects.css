@@ -1,0 +1,32 @@
+/* illustSlide: 狭いパネルでも名前と操作を分けて表示する図形一覧。 */
+.object-list,.object-children{list-style:none;padding:0;margin:8px 0}
+.object-unit{position:relative;border:1px solid var(--line);border-radius:8px;margin:8px 0;background:var(--panel);min-width:0;overflow-wrap:anywhere}
+.object-row{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr);gap:2px;min-width:0;padding:3px}
+.object-pick,.object-group-pick{display:flex;align-items:center;gap:6px;min-width:0;min-height:42px;text-align:left;background:transparent;border:0;padding:5px}
+.object-pick>svg{width:20px;height:20px}
+.object-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0;flex:1}
+.object-row small,.object-group-actions small{font-size:11px;color:var(--muted);flex:none}
+.object-actions,.object-unit-moves,.object-group-actions{display:flex;gap:3px;flex-wrap:wrap;justify-content:flex-end;align-items:center;min-width:0}
+.object-actions{grid-column:1/-1}
+.object-actions .object-unit-moves{display:contents}
+.object-action{min-width:34px;min-height:34px;width:34px;padding:4px;flex:none}
+.object-group-head{display:grid;grid-template-columns:30px 30px minmax(0,1fr);gap:2px;min-width:0;padding:3px}
+.object-group-toggle{border:0;background:transparent;min-width:30px;min-height:42px;padding:3px}
+.object-group-actions{grid-column:2/-1}
+.object-group-actions .object-unit-moves{display:contents}
+.object-children{margin:0 4px 4px 12px}
+.object-children .object-row{border-top:1px solid var(--line)}
+.object-row.selected,.object-group.selected>.object-group-head{background:var(--accent-soft);border-radius:6px}
+.object-pick[aria-pressed=true],.object-group-pick[aria-pressed=true]{background:transparent;border-color:transparent}
+.object-drag-handle{border:0;background:transparent;cursor:grab;user-select:none;min-width:28px;width:28px;min-height:42px;padding:4px;color:var(--muted);touch-action:none}
+.object-drag-handle:active{cursor:grabbing}
+.object-row.dragging,.object-unit.dragging{opacity:.45}
+.object-row.drop-before,.object-unit.drop-before{box-shadow:0 -3px 0 var(--accent)}
+.object-row.drop-after,.object-unit.drop-after{box-shadow:0 3px 0 var(--accent)}
+@media(pointer:coarse),(max-width:560px){
+  .object-action,.object-drag-handle,.object-group-toggle{min-width:44px;min-height:44px;width:44px}
+  .object-pick,.object-group-pick{min-height:44px}
+  .object-row{grid-template-columns:44px minmax(0,1fr)}
+  .object-group-head{grid-template-columns:44px 44px minmax(0,1fr)}
+  .object-group-actions{grid-column:1/-1}
+}

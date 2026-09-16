@@ -1,5 +1,6 @@
 /* Actual editing, reversible playback, and an offline copy of the same runtime. */
 'use strict';
+const {openView,revealObject,startPresentation}=require('./ui-helpers.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),http=require('node:http');
 let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
 const root=path.resolve(__dirname,'../..');
@@ -11,8 +12,8 @@ async function run(){
   const context=await browser.newContext({viewport:{width:1280,height:900},acceptDownloads:true}),page=await context.newPage(),errors=[];
   page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.message));
   const read=()=>page.evaluate(()=>IlapoEditor.getDocument());
-  const pick=async id=>{await page.locator('[data-menu=more]').click();await page.locator('#command-menu [data-action=objects]').click();await page.locator(`[data-pick-object="${id}"]`).click();await page.locator("#inspector-close").click();};
-  const openList=async()=>{if(await page.evaluate(()=>innerWidth<=850)){await page.locator('#selection-more').click();}else{await page.locator('[data-menu=more]').click();}await page.locator('#command-menu [data-action=animations]').click();await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden;});};
+  const pick=async id=>{await page.locator('#objects-toggle').click();await (await revealObject(page,id)).click();await page.locator("#inspector-close").click();};
+  const openList=async()=>{if(await page.locator('#selection-bar [data-action=animations]').isVisible()){await page.locator('#selection-bar [data-action=animations]').click();}else{await page.locator('#selection-more').click();await page.locator('#command-menu [data-action=animations]').click();}await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden;});};
   const inspectorSubmit=async()=>{await page.locator('#inspector-submit').click();await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden&&!document.getElementById('dialog').open;});};
   const inspectorClose=async()=>{await page.locator('#inspector-close').click();await page.waitForFunction(()=>document.getElementById('inspector-panel').hidden);};
   async function add(effect,fields={}){
@@ -53,9 +54,10 @@ async function run(){
     await page.evaluate(()=>viewer.seek(1,800));
     const moved=await page.evaluate(()=>{
       const wrapper=document.querySelector('[data-animation-object=pc]'),shape=wrapper.querySelector('path'),line=document.querySelector('[data-animation-object=arrow] path');
-      return {matrix:shape.transform.baseVal.consolidate().matrix.toString(),fill:shape.getAttribute('fill'),x:shape.transform.baseVal.consolidate().matrix.e,y:shape.transform.baseVal.consolidate().matrix.f,line:line.getAttribute('d')};
+      const bounds=shape.getBBox();
+      return {fill:shape.getAttribute('fill'),x:bounds.x,y:bounds.y,line:line.getAttribute('d')};
     });
-    const pc=animated.pages[0].objects.find(o=>o.id==='pc');near(moved.x,pc.matrix[4]+80);near(moved.y,pc.matrix[5]+40);assert(moved.fill!=='#FFFFFF'&&moved.fill!=='#EF4464');
+    const pcBounds=await page.evaluate(()=>IlapoGeometry.bounds(IlapoEditor.getDocument().pages[0].objects.find(o=>o.id==='pc')));near(moved.x,pcBounds.x+80);near(moved.y,pcBounds.y+40);assert(moved.fill!=='#FFFFFF'&&moved.fill!=='#EF4464');
     const expected=await page.evaluate(()=>{const p=IlapoAnimation.frame(IlapoEditor.getDocument().pages[0],1,800).page;IlapoConnectors.sync(p);return IlapoConnectors.renderedParts(p.objects.find(o=>o.id==='arrow'))[0].d;});assert.equal(moved.line,expected,'the attached arrow follows the moving shape');
     await page.evaluate(()=>viewer.seek(2,250));
     const wipe=await page.evaluate(()=>{const g=document.querySelector('[data-animation-object=arrow]'),clip=document.querySelector(g.getAttribute('clip-path').slice(4,-1)+' rect'),b=IlapoGeometry.visualBounds(IlapoAnimation.frame(IlapoEditor.getDocument().pages[0],2,250).page.objects.find(o=>o.id==='arrow'));return{opacity:g.getAttribute('opacity'),width:Number(clip.getAttribute('width')),b};});
@@ -76,7 +78,7 @@ async function run(){
     await page.locator('[data-action=pages]').first().click();await page.locator('[data-page-pick="0"]').click();
     // Narrow, dark and touch operation; large fonts must not break the one-row toolbar.
     for(const width of [736,390]){
-      await page.setViewportSize({width,height:844});await page.locator('[data-menu=more]').click();await page.locator('#command-menu [data-action=view-dialog]').click();await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await inspectorSubmit();await inspectorClose();await pick('pc');
+      await page.setViewportSize({width,height:844});await openView(page);await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await inspectorSubmit();await inspectorClose();await pick('pc');
       await openList();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.getElementById('inspector-panel').scrollWidth<=innerWidth));assert(await page.locator('#canvas').isVisible());
       await page.locator('[data-animation-edit="1"]').click();assert(await page.evaluate(()=>document.getElementById('inspector-panel').scrollWidth<=innerWidth));
       await page.screenshot({path:`/private/tmp/illustslide-stage4-editor-${width}.png`});await inspectorClose();
@@ -97,7 +99,7 @@ async function run(){
     assert.equal(await offline.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');await offline.keyboard.press('Space');await offline.waitForFunction(()=>!ilapoPlayback.getState().animation.playing);assert.equal((await offline.evaluate(()=>ilapoPlayback.getState())).animation.step,1);
     await offline.keyboard.press('Space');await offline.waitForFunction(()=>!ilapoPlayback.getState().animation.playing);assert.equal((await offline.evaluate(()=>ilapoPlayback.getState())).animation.step,2);
     await offline.keyboard.press('r');assert.equal(await offline.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');await offline.keyboard.press('Escape');await offline.locator('#restart').click();await offline.waitForSelector('#ilapo-presentation[open]');assert.deepEqual(requests,[]);await offline.screenshot({path:'/private/tmp/illustslide-stage4-offline.png'});await offlineContext.close();
-    await page.locator('[data-menu=more]').click();const downloaded=page.waitForEvent('download');await page.locator('#command-menu [data-action=export-playback]').click();const download=await downloaded;assert(download.suggestedFilename().endsWith('.play.html'));
+    await page.locator('.side-tab [data-action=export-toggle]').click();const downloaded=page.waitForEvent('download');await page.locator('#export-panel [data-action=export-playback]').click();const download=await downloaded;assert(download.suggestedFilename().endsWith('.play.html'));
     assert.deepEqual(errors,[]);console.log('stage4-browser.test.cjs: passed');
   }finally{await context.close();await browser.close();server.close();}
 }

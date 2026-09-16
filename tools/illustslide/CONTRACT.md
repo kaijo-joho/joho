@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.7）
+# イラストスライド illustSlideの内部契約（0.4.8）
 
 開発担当 Codex。現在は計画④まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -80,7 +80,24 @@ pagesのscopeは文書ID・ページID・編集リビジョン。図形の選択
 
 選択バーのdata-menuボタンはマウスpointerenterで開く。ドラッグ・タッチ・モーダル表示中にはホバー起動しない。開くだけではフォーカスを動かさず、ポップアップへの移動を妨げないため閉鎖だけ240ms待つ。クリックやキーボードで開いたメニューは外側クリック・実行・Escapeまで保持する。高さは起点の上／下にある空間から計算し、ボタンへ重ねない。ホバーメニュー表示中のEscapeはパネルやキャンバスへ伝えない。
 
-`IlapoObjectsUI.create({document,page,selected,select,showInspector,esc,icon})` は `open()` を返す。objectsのscopeは文書ID・ページID・編集リビジョン・選択ID。前面から並べ、固定とグループを表示する。選択はeditorのselectionを通してグループ展開を保ち、文書や履歴を変更しない。クリック／Shift追加／上下・Home/End／Enter・Spaceを使用し、再描画後もIDでフォーカスを復元する。
+## 図形一覧（objects-model.js / objects-ui.js / objects.css、0.4.8）
+
+`IlapoObjectsModel.units(objects)` は前面からの一覧単位を返す。`keyOf(object)` はグループの`g:`と単体の`o:`を分け、グループIDと図形IDの衝突を避ける。グループの表示位置は最前面の構成員で決める。読み出しでは元配列を変更しない。
+
+`reorder(page,sourceKey,targetKey,front)` は対象単位だけを抜いて、指定先の前面／背面へ挿入する。対象内の順序と、対象以外の全図形の相対順を保持する。`reorderChild(page,sourceId,targetId,front)` は同一グループ内に限定し、そのグループの元の配列位置だけを入れ替える。無効な対象・同一対象は何もしない。呼出側のchangePageで確定し、モデル自身はHistoryを持たない。
+
+`IlapoObjectsUI.create({document,page,selected,select,showInspector,changePage,showDialog,execute,isBusy,esc,icon})` は `open()`・`cancelDrag()`・読み取り専用`isDragging`を返す。objectsのscopeは文書ID・ページID・編集リビジョン・選択ID。選択はeditorのselectionを通して従来のグループ選択を保つ。
+
+- 折り畳みは文書／ページごとのUI状態で、保存・履歴に入れない。クリック／Shift追加／上下・Home/End／Enter・Spaceで選択し、左右でグループを開閉する。折り畳まれた子はキーボード移動の対象外。フォーカス復元では任意IDをCSS用にエスケープする。
+- 名前は既存nameへ保存する。名前・個別固定・グループ固定・前後ボタンの変更は1回のchangePage。グループの一部固定は混在表示し、押すと全体固定になる。一覧内の⌘Z／Ctrl+ZとShift併用はexecuteのUndo/Redoへ渡し、その他のキーはキャンバスへ伝えない。
+- 並べ替えは専用ハンドルのPointer Eventsを使い、タッチではそのハンドルだけtouch-action:none。挿入表示と端での自動スクロールはUIのみ。pointerupで一度確定する。Escape・pointercancel・lostpointercapture・blurは確定せず終了する。
+- 開いたDOMのイベントはAbortControllerで再構築時に破棄する。ドラッグ中はInspectorのsyncを保留し、ページ参照・文書／ページID・DOM接続状態が変わったら取消。ページ／作品／設定切替でもcancelDragを呼ぶ。選択・開閉だけで非連続グループを再配列しない。
+
+## 上部と追加ツール（0.4.8）
+
+上部は1行。insert/viewメニューは置かず、図形・文字・接続・画像は左の追加ツール、用紙・表示は右の設定、倍率は下部から扱う。560px以下は同一の左パレットを非モーダルで開閉し、Escape・外側操作・ツール選択で閉じる。外側のキャンバスを押して閉じた1回目のpointerdownで図形を置かない。Tabを閉じ込めず、隠れるパネルへフォーカスを残さない。
+
+moreはすべて選択／貼り付けに加え、実際に非表示の上部操作だけを補う。発表の先頭／現在ページは通常幅ではpresentメニュー、狭い幅ではmoreに置く。選択中の編集は選択ポップアップ、部品は右パネルを維持する。
 
 ## IlapoAssetsUI（assets-ui.js）
 
