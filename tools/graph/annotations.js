@@ -9,10 +9,12 @@
   let requiredSymbols = null;
   let requiredCurves = null;
   let requiredRegions = null;
+  let requiredIntegrals = null;
   if (typeof module === 'object' && module.exports) {
     try { requiredSymbols = require('./symbols.js'); } catch (_) { /* symbols.js may load after this independent module. */ }
     try { requiredCurves = require('./curves.js'); } catch (_) { /* curves.js may load after this independent module. */ }
     try { requiredRegions = require('./regions.js'); } catch (_) { /* regions.js may load after this independent module. */ }
+    try { requiredIntegrals = require('./integrals.js'); } catch (_) { /* integrals.js may load after this independent module. */ }
   }
   const finite = value => typeof value === 'number' && Number.isFinite(value);
   const empty = warning => ({ points: [], segments: [], warning: warning || '' });
@@ -317,6 +319,26 @@
     const measured = Regions.measurePolygon(points);
     return Object.assign(result, measured);
   }
+  function curveRegionResult(annotation, doc) {
+    const emptyRegion = warning => ({ points: [], segments: [], polygons: [], area: null, integral: null, labelPoint: null, warning });
+    const Integrals = root.GraphIntegrals || requiredIntegrals;
+    if (!Integrals || typeof Integrals.compute !== 'function' || !Array.isArray(annotation.targets) || annotation.targets.length !== 2) return emptyRegion('曲線領域を評価できません。');
+    const first = intersectionTarget(annotation.targets[0], doc), secondTarget = annotation.targets[1];
+    const second = secondTarget && secondTarget.type === 'axis' && secondTarget.axis === 'x' ? { value: () => 0, domain: null } : intersectionTarget(secondTarget, doc);
+    const a = scalar(annotation.interval && annotation.interval[0], doc), b = scalar(annotation.interval && annotation.interval[1], doc);
+    if (!first || !second) return emptyRegion('境界となる関数または接線を評価できません。');
+    if (annotation.targets[0].type === secondTarget.type && annotation.targets[0].id === secondTarget.id) return emptyRegion('異なる2つの境界を選んでください。');
+    if (a === null || b === null || a >= b) return emptyRegion('区間の始点・終点を有限な値で指定し、始点 < 終点にしてください。');
+    if ([first, second].some(target => target.domain && (a < target.domain[0] || b > target.domain[1]))) return emptyRegion('指定区間の全体を、境界となる関数の範囲内にしてください。');
+    if (axisIsLog(doc, 'x') && a <= 0) return emptyRegion('対数軸では領域の座標を正の値にしてください。');
+    let invalidLog = false;
+    const boundary = target => x => { const value = target.value(x); if (axisIsLog(doc, 'y') && finite(value) && value <= 0) { invalidLog = true; return null; } return value; };
+    const result = Integrals.compute(boundary(first), boundary(second), [a, b]);
+    if (invalidLog) return emptyRegion('対数軸では領域の座標を正の値にしてください。');
+    if (result.warning) return Object.assign(emptyRegion(result.warning), result);
+    if (result.polygons.some(polygon => polygon.some(point => !drawablePoint(doc, point)))) return emptyRegion('曲線領域は対数軸の表示範囲にありません。');
+    return Object.assign({ points: [], segments: [] }, result);
+  }
   function textResult(annotation, doc) {
     const point = pointForAnchor(annotation && annotation.anchor || {}, doc);
     if (!drawablePoint(doc, point)) return empty('文字の位置が定義されていないか、対数軸で表示できません。');
@@ -402,6 +424,7 @@
       if (annotation.kind === 'tangentIntersection') return tangentIntersectionResult(annotation, doc);
       if (annotation.kind === 'segment') return segmentResult(annotation, doc);
       if (annotation.kind === 'region') return regionResult(annotation, doc);
+      if (annotation.kind === 'curveRegion') return curveRegionResult(annotation, doc);
       if (annotation.kind === 'text') return textResult(annotation, doc);
       return empty('注釈の種類が不正です。');
     } catch (_) { return empty('注釈を評価できません。'); }

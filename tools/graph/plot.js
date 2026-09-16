@@ -131,15 +131,19 @@
     const result = root.GraphAnnotations.evaluate(annotation, doc);
     if (result.warning) warnings.push((annotation.name || '点・補助線') + '：' + result.warning);
     const st = annotation.style, traces = [], meta = { objectType: 'annotation', objectId: annotation.id };
-    if (annotation.kind === 'region') {
+    if (annotation.kind === 'region' || annotation.kind === 'curveRegion') {
       // 領域の輪郭は参照した線分の描画に任せ、ここでは面だけを描く。
-      if (Array.isArray(result.polygon) && result.polygon.length >= 3 && !result.warning) {
-        const trace = { type: 'scatter', mode: 'lines', x: result.polygon.map(p => p[0]), y: result.polygon.map(p => p[1]), fill: 'toself', fillcolor: st.color, line: { color: 'rgba(0,0,0,0)', width: 0 }, opacity: st.opacity, name: rich(annotation.name), meta, legendgroup: annotation.id, showlegend: false, hoveron: 'fills', connectgaps: false };
-        traces.push(trace);
+      const polygons = annotation.kind === 'curveRegion' ? result.polygons : [result.polygon];
+      const drawable = Array.isArray(polygons) && polygons.some(polygon => Array.isArray(polygon) && polygon.length >= 3) && !result.warning;
+      if (drawable) {
+        for (const polygon of polygons) if (Array.isArray(polygon) && polygon.length >= 3) traces.push({ type: 'scatter', mode: 'lines', x: polygon.map(p => p[0]), y: polygon.map(p => p[1]), fill: 'toself', fillcolor: st.color, line: { color: 'rgba(0,0,0,0)', width: 0 }, opacity: st.opacity, name: rich(annotation.name), meta, legendgroup: annotation.id, showlegend: false, hoveron: 'fills', connectgaps: false });
+      }
+      if (!result.warning) {
         const label = annotation.label || { visible: true, dx: 12, dy: -12, size: 13 };
         const lines = [];
         if (label.visible) lines.push(annotation.name);
         if (annotation.showArea && finite(result.area) && root.GraphRegions && typeof root.GraphRegions.areaText === 'function') lines.push(root.GraphRegions.areaText(result.area, doc));
+        if (annotation.kind === 'curveRegion' && annotation.showIntegral && finite(result.integral) && root.GraphRegions && typeof root.GraphRegions.integralText === 'function') lines.push(root.GraphRegions.integralText(result.integral, doc));
         if (lines.length && Array.isArray(result.labelPoint)) decorations.push({ name: annotation.id, x: result.labelPoint[0], y: result.labelPoint[1], xref: 'x', yref: 'y', text: lines.map(rich).join('<br>'), showarrow: false, xanchor: 'left', yanchor: 'bottom', xshift: label.dx, yshift: -label.dy, font: { size: label.size }, opacity: 1, captureevents: true });
       }
       return traces;
@@ -197,7 +201,7 @@
     // Plotly may report the filled region before a line or marker at the same
     // location. Re-run the geometric hit test so visible boundaries retain
     // their selection priority.
-    if (meta && meta.kind === 'region' && event && event.event) {
+    if (meta && (meta.kind === 'region' || meta.kind === 'curveRegion') && event && event.event) {
       const precise = traceMetaAt(element, traces, event.event);
       if (precise && precise !== meta) meta = precise;
     }
@@ -234,7 +238,7 @@
     let regionMeta = null;
     for (const trace of traces) {
       if (!trace.meta || !Array.isArray(trace.x) || !Array.isArray(trace.y)) continue;
-      if (trace.meta.objectType === 'annotation' && trace.meta.kind === 'region' && trace.fill === 'toself') {
+      if (trace.meta.objectType === 'annotation' && (trace.meta.kind === 'region' || trace.meta.kind === 'curveRegion') && trace.fill === 'toself') {
         const polygon = trace.x.map((value, i) => [layout.xaxis.d2p(value), layout.yaxis.d2p(trace.y[i])]).filter(p => finite(p[0]) && finite(p[1]));
         if (root.GraphRegions && typeof root.GraphRegions.containsPoint === 'function' && root.GraphRegions.containsPoint(polygon, [px, py])) regionMeta = trace.meta;
         continue;
@@ -330,14 +334,14 @@
     const P = plotly(); if (!P || !element) throw new Error('Plotly を読み込めません。');
     const warnings = [], traces = [], decorations=[];
     // 領域面はすべての系列・線分より背面へ置く。
-    if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false && a.kind === 'region') {
-      try { const region = annotationTraces(a, doc, warnings, decorations); for (const trace of region) { trace.meta = Object.assign({}, trace.meta, { kind: 'region' }); traces.push(trace); } } catch (error) { warnings.push((a.name || '領域') + '：' + error.message); }
+    if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false && (a.kind === 'region' || a.kind === 'curveRegion')) {
+      try { const region = annotationTraces(a, doc, warnings, decorations); for (const trace of region) { trace.meta = Object.assign({}, trace.meta, { kind: a.kind }); traces.push(trace); } } catch (error) { warnings.push((a.name || '領域') + '：' + error.message); }
     }
     for (const s of doc.series || []) {
       if (s.visible === false || (doc.mode === '3d' ? !['surface', 'data3d'].includes(s.kind) : ['surface', 'data3d'].includes(s.kind))) continue;
       const trace = traceFor(s, doc, warnings); trace.meta = { objectType: 'series', objectId: s.id }; traces.push(trace);
     }
-    if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false && a.kind !== 'region') {
+    if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false && a.kind !== 'region' && a.kind !== 'curveRegion') {
       try { traces.push(...annotationTraces(a, doc, warnings, decorations)); } catch (error) { warnings.push((a.name || '点・補助線') + '：' + error.message); }
     }
     const state = states.get(element) || {}; const camera = options.camera || state.camera;

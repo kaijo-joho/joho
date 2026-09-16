@@ -81,6 +81,12 @@
     const unit = xUnit && yUnit ? ' [' + xUnit + ' × ' + yUnit + ']' : '';
     return '面積 ≈ ' + Number(area.toPrecision(8)) + unit;
   }
+  function integralText(integral, doc) {
+    if (!finite(integral)) return '';
+    const x = doc && doc.axes && doc.axes.x && doc.axes.x.unit, y = doc && doc.axes && doc.axes.y && doc.axes.y.unit;
+    const xUnit = typeof x === 'string' ? x.trim() : '', yUnit = typeof y === 'string' ? y.trim() : '';
+    return '定積分 ≈ ' + Number(integral.toPrecision(8)) + (xUnit && yUnit ? ' [' + xUnit + ' × ' + yUnit + ']' : '');
+  }
   function validPoint(p) { return Array.isArray(p) && p.length >= 2 && finite(p[0]) && finite(p[1]); }
   function extent(points) { let value = 0; for (const p of points) value = Math.max(value, Math.abs(p[0]), Math.abs(p[1])); return value; }
   function tolerance(points) { const span = extent(points.map(p => [p[0] - points[0][0], p[1] - points[0][1]])); return span ? span * 1e-12 : 0; }
@@ -92,5 +98,5 @@
   function segmentsIntersect(a, b, c, d, eps) { const abC = orientation(a, b, c, eps), abD = orientation(a, b, d, eps), cdA = orientation(c, d, a, eps), cdB = orientation(c, d, b, eps); return (abC === 0 && onSegment(a, b, c, eps)) || (abD === 0 && onSegment(a, b, d, eps)) || (cdA === 0 && onSegment(c, d, a, eps)) || (cdB === 0 && onSegment(c, d, b, eps)) || abC !== abD && cdA !== cdB; }
   function earPoint(polygon, twice, eps) { const direction = Math.sign(twice); for (let i = 0; i < polygon.length; i++) { const a = polygon[(i + polygon.length - 1) % polygon.length], b = polygon[i], c = polygon[(i + 1) % polygon.length]; if (direction * orientation(a, b, c, eps) <= 0) continue; if (polygon.some((p, j) => j !== i && j !== (i + 1) % polygon.length && j !== (i + polygon.length - 1) % polygon.length && containsTriangle(a, b, c, p, eps))) continue; return [(a[0] + b[0] + c[0]) / 3, (a[1] + b[1] + c[1]) / 3]; } return null; }
   function containsTriangle(a, b, c, p, eps) { const x = orientation(a, b, p, eps), y = orientation(b, c, p, eps), z = orientation(c, a, p, eps); return (x >= 0 && y >= 0 && z >= 0) || (x <= 0 && y <= 0 && z <= 0); }
-  return { traceBoundary, measurePolygon, containsPoint, areaText };
+  return { traceBoundary, measurePolygon, containsPoint, areaText, integralText };
 }));

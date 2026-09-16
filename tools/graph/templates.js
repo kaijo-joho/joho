@@ -131,6 +131,19 @@
       triangle.annotations.push({ id, kind: 'segment', name, visible: true, from, to, arrows: 'none', style: { ...regionStyle }, label: { visible: false } });
     }
     triangle.annotations.push({ id: 'triangle-region', kind: 'region', name: '三角形 ABC', visible: true, segmentIds: ['triangle-ab', 'triangle-bc', 'triangle-ca'], showArea: true, style: { ...regionStyle, opacity: .25 }, label: { dx: 0, dy: 0 } });
+    const between = documentBase('曲線の間の面積', '2d'); between.version = 6;
+    between.axes.x.min = -.5; between.axes.x.max = 3.5; between.axes.y.min = -1; between.axes.y.max = 10;
+    between.parameters.push({ name: 'h', value: 2, min: .5, max: 3, step: .1 });
+    between.series.push(functionSeries('area-parabola', 'y = x²', 'x^2', { kind: 'model', title: '数式による面積の例', url: '', notes: '' }, [-.5, 3.5]));
+    between.series.push(functionSeries('area-line', 'y = h x', 'h*x', { kind: 'model', title: '数式による面積の例', url: '', notes: '' }, [-.5, 3.5]));
+    between.series[1].style.color = '#dc2626';
+    const curved = { id: 'curved-region', kind: 'curveRegion', name: '曲線の間', visible: true, targets: [{ type: 'series', id: 'area-parabola' }, { type: 'series', id: 'area-line' }], interval: ['0', 'h'], showArea: true, showIntegral: true, style: { ...regionStyle, opacity: .25 }, label: { dx: 0, dy: 0 } };
+    between.annotations.push(curved);
+    const signed = documentBase('面積と定積分の違い', '2d'); signed.version = 6;
+    signed.axes.x = { ...signed.axes.x, min: -.5, max: 7, ticks: { step: Math.PI / 2, format: 'pi' } };
+    signed.axes.y.min = -1.6; signed.axes.y.max = 1.6;
+    signed.series.push(functionSeries('area-sine', 'y = sin(x)', 'sin(x)', { kind: 'model', title: '面積と符号付き積分の例', url: '', notes: '' }, [-.5, 7]));
+    signed.annotations.push({ ...curved, id: 'sine-region', name: '0 ≤ x ≤ 2π', targets: [{ type: 'series', id: 'area-sine' }, { type: 'axis', axis: 'x' }], interval: ['0', '2*pi'], style: { ...curved.style }, label: { ...curved.label } });
     return [
       { id: 'math-quadratic-a', name: '2次関数と係数 a', category: '数学', description: '係数 a を変えて放物線の開き方と向きを比べます。', document: quadratic },
       { id: 'math-sine-comparison', name: 'sin の比較', category: '数学', description: 'sin(x) と sin(2x) の周期を比べます。', document: sine },
@@ -139,13 +152,15 @@
       { id: 'math-polar-rose', name: '極座標の花形曲線', category: '数学', description: '半径 r と角度 θ で花形の軌跡を描きます。角度はラジアン。', document: rose },
       { id: 'math-tangent-intersections', name: '放物線の接線と交点', category: '数学', description: '係数 a で接点を動かし、放物線と直線の交点を確認します。', document: tangent },
       { id: 'math-triangle-region', name: '三角形の領域と面積', category: '数学', description: '共有点でつないだ3本の線分を塗りつぶし、係数 h で高さと面積を変えます。', document: triangle },
+      { id: 'math-curve-region', name: '曲線の間の面積', category: '数学', description: 'y = x² と y = h x の間を塗りつぶし、係数 h と区間・面積の関係を見ます。', document: between },
+      { id: 'math-signed-integral', name: '面積と定積分の違い', category: '数学', description: 'sin(x) と横軸の間で、面積4と符号付きの定積分0を比べます。', document: signed },
       { id: 'science-water-vapor-pressure', name: '水の飽和蒸気圧（計算値）', category: '理科', description: 'IAPWS の式から計算した温度と水の飽和蒸気圧の数表です。', document: vapor },
       { id: 'science-ideal-gas-pv', name: '理想気体 PV モデル', category: '理科', description: '温度と物質量を変え、P と V の関係を見ます。', document: gas },
       { id: 'information-complexity', name: '計算量の比較', category: '情報', description: 'n、log₂n、n log₂n、n² の増え方を比べます。', document: complexity },
       { id: 'surface-bowl', name: '3D 曲面 z = x² + y²', category: '数学', description: '上に開く放物面を表示します。', document: bowl },
       { id: 'surface-saddle', name: '鞍型曲面 z = x² − y²', category: '数学', description: '鞍型曲面を表示します。', document: saddle }
     ].map(item => {
-      const doc = item.document;if(doc.version !== 5)doc.version = 3;
+      const doc = item.document;if(doc.version < 5)doc.version = 3;
       for(const key of ['x','y','z'])doc.axes[key] = {symbol:key,ticks:{step:null,format:'auto'},...doc.axes[key]};
       for(const a of doc.annotations)a.label = {visible:true,dx:12,dy:-12,size:13,...a.label};
       return item;

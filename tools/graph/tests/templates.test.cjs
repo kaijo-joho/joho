@@ -3,7 +3,7 @@ const GraphTemplates = require('../templates.js');
 const GraphCore = require('../core.js');
 
 const templates = GraphTemplates.list();
-assert.strictEqual(templates.length, 12);
+assert.strictEqual(templates.length, 14);
 assert.strictEqual(new Set(templates.map(t => t.id)).size, templates.length);
 for (const template of templates) {
   assert.ok(template.name && template.category && template.description);
@@ -40,5 +40,10 @@ assert.strictEqual(require('../annotations.js').evaluate(region, triangle).area,
 triangle.parameters[0].value = 5;
 assert.strictEqual(require('../annotations.js').evaluate(region, triangle).area, 10);
 first[0].document.name = '変更';
+for (const [id, expectedArea, expectedIntegral] of [['math-curve-region', 4/3, -4/3], ['math-signed-integral', 4, 0]]) {
+  const doc = GraphCore.validateDocument(templates.find(t => t.id === id).document);
+  const result = require('../annotations.js').evaluate(doc.annotations[0], doc);
+  assert.equal(result.warning, ''); assert(Math.abs(result.area - expectedArea) < 1e-8); assert(Math.abs(result.integral - expectedIntegral) < 1e-8);
+}
 assert.notStrictEqual(GraphTemplates.list()[0].document.name, '変更');
 console.log('templates tests passed');

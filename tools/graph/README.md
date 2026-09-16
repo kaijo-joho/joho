@@ -1,4 +1,4 @@
-# グラフエディタ 0.4.0 BETA
+# グラフエディタ 0.5.0 BETA
 
 数学・理科・情報で使うグラフを、数式または数表から作成する独立ウェブアプリ。初期の名称は「グラフエディタ」、開発担当はCodex。既存のフローチャート・イラポ・構造式・分子模型エディタと操作方針をそろえる。
 
@@ -24,6 +24,8 @@
 
 接続した線分で囲まれた領域の塗りつぶし・不透明度・面積表示にも対応する。頂点・係数の変更に追従し、境界の削除もUndoで復元できる。単純な凹多角形に対応し、自己交差・零面積・未定義時は領域だけを非描画にして理由を表示する。テンプレート「三角形の領域と面積」で試せる。
 
+関数・登録済みの接線と横軸、または2つの関数・接線の間も塗りつぶせる。「領域」で「曲線と軸・曲線の間」を選び、境界2つと区間を指定する。区間にpiや係数の式を使え、係数の変更に追従する。面積は非負、定積分は「第1 − 第2」の符号付き積分として区別し、交差した複数部分を含めて計算する。色・不透明度・数値表示は選択ポップアップで変更できる。テンプレート「曲線の間の面積」「面積と定積分の違い」を追加した。詳細は [曲線による領域](docs/curve-regions-contract.md)。
+
 ## 数値処理と表示
 
 数式は許可した構文木を解釈し、JavaScriptとして実行しない。実数として定義されない点や非有限値は描画しない。2Dはサンプル数に上限を持つ適応分割、3Dは格子による数値表示。典型的な漸近線・未定義領域で線や面を切る。任意の数式のすべての不連続や非常に細かい振動を検出する保証はなく、厳密な数式処理・数学的証明には使わない。
@@ -32,9 +34,11 @@
 
 ブラウザ表示と画像出力はPlotly.jsの固定版をローカル同梱して使用する。実行時のCDN・外部サーバーへの接続はない。外部の出典ページは利用者がリンクを開いたときに遷移する。3DにはWebGLが必要で、初版の3D出力はPNG。白または透明な背景を選べ、編集画面のテーマを変更しない。
 
+曲線領域の面積・定積分は適応Simpson法による数値近似。各境界の指定範囲に区間全体が入ることを確認し、交差点で塗り分ける。非有限値・対数軸で描けない部分・未収束・計算上限では数値と塗りを出さず理由を表示する。1領域につき32768座標での境界評価を上限とし、広義積分や陰関数・媒介変数の閉曲線は対象外。細かい振動や尖った形状の完全な検出は保証しない。
+
 ## 保存と互換性
 
-形式は `kaijo-graph` version 5。version 1〜4を読み込むと、注釈、軸記号、目盛設定、注釈ラベル、接線式の図中表示設定を補って移行する。保存はversion 5で、旧アプリでは開けないため更新版を使用する。ファイル名は `名前.graph.json`。数式、数表、係数、軸記号・単位、描画範囲、配色、出典を保持し、生成した座標列や画像を正本にしない。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。初版のJSONはカメラの向きを保存しない。
+形式は `kaijo-graph` version 6。version 1〜5を読み込むと、注釈、軸記号、目盛設定、注釈ラベル、接線式の図中表示設定を補って移行する。線分の領域も保持する。保存はversion 6で、旧アプリでは開けないため更新版を使用する。ファイル名は `名前.graph.json`。数式、数表、係数、軸記号・単位、描画範囲、配色、出典、領域の境界参照・区間を保持し、生成した座標列や画像を正本にしない。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。初版のJSONはカメラの向きを保存しない。
 
 ブラウザの保存キーは `kaijo-graph:auto` / `kaijo-graph:saved`、表示設定は `kaijo-graph:settings`、ヘルプは `kaijo-graph:help`。他アプリの保存領域と共用しない。保存済みの片方が壊れても他方を選べる。読込時は検証が成功するまで現在の文書を置き換えない。
 
@@ -53,6 +57,7 @@
 | `curves.js` | 陰関数・媒介変数・極座標のサンプリングと曲線上の点 |
 | `annotations.js` | 点・補助線・接線・交点・領域の数値計算 |
 | `regions.js` | 線分の閉路追跡・単純多角形の検査・面積・包含判定 |
+| `integrals.js` | 曲線間の適応数値積分・面積・交差による塗り分割 |
 | `plot.js` | 2D/3D描画・関数と曲面のサンプリング・画像出力 |
 | `templates.js` | 式・数表・条件を持つ初期テンプレート |
 | `editor.js` / `editor.css` / `index.html` | 操作画面 |
@@ -64,7 +69,7 @@
 
 ## 続く実装
 
-1. 関数と軸・2関数の間の領域と面積・定積分、資料・実験の数表テンプレート、誤差棒・回帰・明示的な補間方法。
+1. 資料・実験の数表テンプレート、誤差棒・回帰・明示的な補間方法。
 2. 3Dの空間曲線・等高線・断面、パラメーター変化の再生。
 3. 複数グラフの比較配置、印刷の用紙設定、イラポへ持ち出す際の互換性検証。
 
@@ -79,6 +84,8 @@ node tools/graph/tests/plot.test.cjs
 node tools/graph/tests/curves.test.cjs
 node tools/graph/tests/annotations.test.cjs
 node tools/graph/tests/regions.test.cjs
+node tools/graph/tests/integrals.test.cjs
+node tools/graph/tests/curve-regions.test.cjs
 node tools/graph/tests/region-plot.test.cjs
 node tools/graph/tests/symbols.test.cjs
 node tools/graph/tests/plot-browser.test.cjs
@@ -91,6 +98,7 @@ node tools/graph/tests/quick-tangent-browser.test.cjs
 node tools/graph/tests/selection-browser.test.cjs
 node tools/graph/tests/sidebar-browser.test.cjs
 node tools/graph/tests/regions-browser.test.cjs
+node tools/graph/tests/curve-regions-browser.test.cjs
 node tools/graph/tests/local-autosave-browser.test.cjs
 node --check tools/graph/editor.js
 git diff --check
