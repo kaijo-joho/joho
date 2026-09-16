@@ -192,7 +192,7 @@
   function expandSelection(page, ids) { const selected = idsSet(page, ids); const groups = new Set(page.objects.filter(o => selected.has(o.id) && o.group !== null).map(o => o.group)); page.objects.forEach(o => { if (groups.has(o.group)) selected.add(o.id); }); return page.objects.filter(o => selected.has(o.id)).map(o => o.id); }
   function transformObject(o,m) {
     if(o.type!=='connector'){o.matrix=multiply(m,o.matrix);return;}
-    for(const p of [o.from,o.to,...o.waypoints]){const x=p.x,y=p.y;p.x=m[0]*x+m[2]*y+m[4];p.y=m[1]*x+m[3]*y+m[5];if(p.normal){const {x,y}=p.normal;p.normal={x:m[0]*x+m[2]*y,y:m[1]*x+m[3]*y};}}
+    for(const p of [o.from,o.to,...o.waypoints]){const x=p.x,y=p.y;p.x=m[0]*x+m[2]*y+m[4];p.y=m[1]*x+m[3]*y+m[5];delete p.normal;}
     const {x,y}=o.labelOffset;o.labelOffset={x:m[0]*x+m[2]*y,y:m[1]*x+m[3]*y};
   }
   function transformObjects(page, ids, transform) { const selected = new Set(expandSelection(page, ids)); const m = matrix(transform, 'matrix'); page.objects.forEach(o => { if (selected.has(o.id) && !o.locked) transformObject(o,m); }); return Array.from(selected); }

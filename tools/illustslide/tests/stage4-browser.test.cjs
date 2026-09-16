@@ -11,7 +11,7 @@ async function run(){
   const context=await browser.newContext({viewport:{width:1280,height:900},acceptDownloads:true}),page=await context.newPage(),errors=[];
   page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.message));
   const read=()=>page.evaluate(()=>IlapoEditor.getDocument());
-  const pick=async id=>{await page.locator('[data-menu=more]').click();await page.locator('#command-menu [data-action=objects]').click();await page.locator(`[data-pick-object="${id}"]`).click();};
+  const pick=async id=>{await page.locator('[data-menu=more]').click();await page.locator('#command-menu [data-action=objects]').click();await page.locator(`[data-pick-object="${id}"]`).click();await page.locator("#inspector-close").click();};
   const openList=async()=>{if(await page.evaluate(()=>innerWidth<=850)){await page.locator('#selection-more').click();}else{await page.locator('[data-menu=more]').click();}await page.locator('#command-menu [data-action=animations]').click();await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden;});};
   const inspectorSubmit=async()=>{await page.locator('#inspector-submit').click();await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden&&!document.getElementById('dialog').open;});};
   const inspectorClose=async()=>{await page.locator('#inspector-close').click();await page.waitForFunction(()=>document.getElementById('inspector-panel').hidden);};

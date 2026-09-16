@@ -116,7 +116,8 @@
     }
 
     function updateTabs() {
-      toggle.setAttribute('aria-expanded', String(Boolean(current && current.section !== 'pages')));
+      toggle.setAttribute('aria-expanded', String(Boolean(current && !['pages', 'objects'].includes(current.section))));
+      byId('objects-toggle')?.setAttribute('aria-expanded', String(Boolean(current && current.section === 'objects')));
       byId('pages-toggle')?.setAttribute('aria-expanded', String(Boolean(current && current.section === 'pages')));
       tabs.querySelectorAll('button').forEach(button => {
         const selected = Boolean(current && button.dataset.inspectorSection === current.section);

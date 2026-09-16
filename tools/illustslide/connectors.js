@@ -102,23 +102,57 @@
     return { from: a, to: b, source: source, target: target };
   }
   function orthogonal(points, firstPort, lastPort, stub) {
-    if (points.length < 2) return points;
-    var start = points[0], end = points[points.length - 1], lead = { top: { x: 0, y: -stub }, right: { x: stub, y: 0 }, bottom: { x: 0, y: stub }, left: { x: -stub, y: 0 } }, working = [start];
-    /* A small port stub makes the direction true even if the next waypoint shares
-       the endpoint's row or column.  Explicit waypoints remain untouched. */
-    if (lead[firstPort]) working.push(add(start, lead[firstPort]));
-    for (var wi = 1; wi < points.length - 1; wi++) working.push(points[wi]);
-    if (lead[lastPort]) working.push(add(end, lead[lastPort]));
-    working.push(end);
-    var out = [working[0]];
-    for (var i = 1; i < working.length; i++) {
-      var a = out[out.length - 1], b = working[i];
-      if (a.x !== b.x && a.y !== b.y) {
-        out.push({ x: b.x, y: a.y });
-      }
-      out.push(b);
+    var directions = { top: { x: 0, y: -1 }, right: { x: 1, y: 0 }, bottom: { x: 0, y: 1 }, left: { x: -1, y: 0 } };
+    function leg(a, b, startPort, endPort) {
+      var first = directions[startPort], last = directions[endPort], candidates = [[a,b],[a,{x:b.x,y:a.y},b],[a,{x:a.x,y:b.y},b]];
+      var xs = [(a.x+b.x)/2,Math.min(a.x,b.x)-stub,Math.max(a.x,b.x)+stub], ys = [(a.y+b.y)/2,Math.min(a.y,b.y)-stub,Math.max(a.y,b.y)+stub];
+      xs.forEach(function(x){candidates.push([a,{x:x,y:a.y},{x:x,y:b.y},b]);});
+      ys.forEach(function(y){candidates.push([a,{x:a.x,y:y},{x:b.x,y:y},b]);});
+      var s = first ? add(a,{x:first.x*stub,y:first.y*stub}) : a, t = last ? add(b,{x:last.x*stub,y:last.y*stub}) : b;
+      xs.forEach(function(x){candidates.push([a,s,{x:x,y:s.y},{x:x,y:t.y},t,b]);});
+      ys.forEach(function(y){candidates.push([a,s,{x:s.x,y:y},{x:t.x,y:y},t,b]);});
+      var best = null, score = Infinity;
+      candidates.forEach(function(candidate){
+        var list = compact(candidate), vectors = list.slice(1).map(function(p,i){return sub(p,list[i]);});
+        if(!vectors.length || vectors.some(function(v){return v.x!==0&&v.y!==0;}))return;
+        if(first && vectors[0].x*first.x+vectors[0].y*first.y<=0)return;
+        var tail=vectors[vectors.length-1];if(last && tail.x*last.x+tail.y*last.y>=0)return;
+        if(vectors.some(function(v,i){return i&&v.x*vectors[i-1].x+v.y*vectors[i-1].y<0;}))return;
+        var cost=vectors.reduce(function(sum,v){return sum+length(v);},0)+vectors.length*stub*.05;
+        if(cost<score-1e-7){score=cost;best=list;}
+      });
+      return best || compact([a,s,{x:t.x,y:s.y},t,b]);
     }
-    return out.filter(function (p, i, all) { return !i || p.x !== all[i - 1].x || p.y !== all[i - 1].y; });
+    var out = points.length ? [points[0]] : [];
+    for(var i=1;i<points.length;i++)out=out.concat(leg(points[i-1],points[i],i===1?firstPort:null,i===points.length-1?lastPort:null).slice(1));
+    return out.filter(function(p,i){return !i||p.x!==out[i-1].x||p.y!==out[i-1].y;});
+  }
+  function compact(list) {
+    var out=[];
+    list.forEach(function(p){
+      if(out.length&&p.x===out[out.length-1].x&&p.y===out[out.length-1].y)return;
+      while(out.length>1){var a=out[out.length-2],b=out[out.length-1],u=sub(b,a),v=sub(p,b);if(u.x*v.y!==u.y*v.x||u.x*v.x+u.y*v.y<0)break;out.pop();}
+      out.push(point(p));
+    });return out;
+  }
+  /* 接続した両端を保ち、表示中の直角線を垂直方向へずらす。 */
+  function moveSegment(connector,index,position) {
+    var c=clone(connector),list=points(c),a=list[index],b=list[index+1];
+    if(c.route!=='orthogonal'||!a||!b)return c;
+    var axis=a.x===b.x?'x':'y',movedA=point(a),movedB=point(b);if(Math.abs(a[axis]-position[axis])<1e-9)return c;movedA[axis]=position[axis];movedB[axis]=position[axis];
+    var route=list.slice(0,index).concat([movedA,movedB],list.slice(index+2));
+    if(index===0)route.unshift(a);if(index===list.length-2)route.push(b);
+    c.waypoints=compact(route).slice(1,-1);
+    if(c.waypoints.length>100)throw new RangeError('折れ曲がり点は100個までです。点を減らしてから調整してください。');
+    return c;
+  }
+  function portPoint(object,port,ratio) { return edge(object,{port:port,ratio:ratio},worldCenter(object)); }
+  function attachmentAt(object,p) {
+    var b=localBox(object),m=object.matrix||IDENTITY,det=m[0]*m[3]-m[1]*m[2];if(Math.abs(det)<1e-12)return endpoint(p, p);
+    var dx=p.x-m[4],dy=p.y-m[5],x=(m[3]*dx-m[2]*dy)/det-b.x-b.width/2,y=(-m[1]*dx+m[0]*dy)/det-b.y-b.height/2;
+    var nx=x/Math.max(b.width/2,1e-9),ny=y/Math.max(b.height/2,1e-9),horizontal=Math.abs(nx)>=Math.abs(ny),port=horizontal?(nx<0?'left':'right'):(ny<0?'top':'bottom');
+    var ratio=.5+(horizontal?ny: nx)/(2*Math.max(Math.abs(horizontal?nx:ny),1e-9));ratio=Math.max(0,Math.min(1,ratio));
+    return Object.assign(portPoint(object,port,ratio),{objectId:object.id,port:port,ratio:ratio});
   }
   function points(connector, page) {
     var r = resolvedEndpoints(connector, page), middle = Array.isArray(connector && connector.waypoints) ? connector.waypoints.map(function (p) { return point(p); }) : [];
@@ -162,6 +196,18 @@
   function sync(page) {
     if(!page||!Array.isArray(page.objects))return page;
     page.objects.filter(function(o){return o.type==='connector';}).forEach(function(c){
+      /* 旧normalと同じ方向の輪郭点から移動量を求める。
+         更新後の経路を基準にせず、繰り返し計算で点が動くのを防ぐ。 */
+      var delta={};
+      ['from','to'].forEach(function(key){var e=c[key],object=find(page,e.objectId),next=e;
+        if(object&&e.normal){var center=worldCenter(object);next=edge(object,e,add(center,e.normal));}
+        delta[key]={x:Math.abs(next.x-e.x)>1e-7?next.x-e.x:0,y:Math.abs(next.y-e.y)>1e-7?next.y-e.y:0};
+      });
+      c.waypoints.forEach(function(p){['x','y'].forEach(function(axis){
+        var a=delta.from[axis],b=delta.to[axis];if(!a&&!b)return;
+        var extent=c.to[axis]-c.from[axis],ratio=Math.abs(extent)>1e-7?Math.max(0,Math.min(1,(p[axis]-c.from[axis])/extent)):.5;
+        p[axis]+=a===b?a:a*(1-ratio)+b*ratio;
+      });});
       var r=resolvedEndpoints(c,page);c.matrix=IDENTITY.slice();
       [['from',r.source],['to',r.target]].forEach(function(pair){var key=pair[0],object=pair[1],e=c[key];if(!object){e.objectId=null;delete e.normal;return;}e.x=r[key].x;e.y=r[key].y;
         var local={top:{x:0,y:-1},right:{x:1,y:0},bottom:{x:0,y:1},left:{x:-1,y:0}}[e.port];
@@ -169,6 +215,6 @@
       });
     });return page;
   }
-  function transform(connector, m) { var c = clone(connector), a = Array.isArray(m) && m.length === 6 ? m.map(Number) : IDENTITY; ['from', 'to'].forEach(function (key) { if (c[key]) { var q = matrixPoint(a, c[key]); c[key].x = q.x; c[key].y = q.y; } }); c.waypoints = (c.waypoints || []).map(function (p) { return matrixPoint(a, p); }); c.labelOffset = vector(a, point(c.labelOffset)); c.matrix = IDENTITY.slice(); return c; }
-  return { make: make, sync: sync, resolve: resolvedEndpoints, points: points, renderedParts: renderedParts, bounds: bounds, transform: transform, refresh: sync };
+  function transform(connector, m) { var c = clone(connector), a = Array.isArray(m) && m.length === 6 ? m.map(Number) : IDENTITY; ['from', 'to'].forEach(function (key) { if (c[key]) { var q = matrixPoint(a, c[key]); c[key].x = q.x; c[key].y = q.y; delete c[key].normal; } }); c.waypoints = (c.waypoints || []).map(function (p) { return matrixPoint(a, p); }); c.labelOffset = vector(a, point(c.labelOffset)); c.matrix = IDENTITY.slice(); return c; }
+  return { make: make, sync: sync, resolve: resolvedEndpoints, points: points, renderedParts: renderedParts, bounds: bounds, transform: transform, refresh: sync, moveSegment:moveSegment, portPoint:portPoint, attachmentAt:attachmentAt };
 }));

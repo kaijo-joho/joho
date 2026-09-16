@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.4）
+# イラストスライド illustSlideの内部契約（0.4.5）
 
 開発担当 Codex。現在は計画④まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -52,7 +52,7 @@ UIはeditor.jsとeditor.css/index.html。DOMの作品表示はSVG、選択枠等
 `create({onLayout,clearPreview,isBusy})` は `show(request)`、`close({focus?:boolean})`、`reset()`、`sync()` と読み取り専用の `section`・`isOpen`・`root` を返す。
 requestは `{section,title,html,label,apply,preview?,scope,refresh,opener}`。labelがnullなら適用・取消フッターを表示しない。htmlはeditor側でエスケープしたフォーム断片だけを渡す。
 
-- showModal・暗幕・inert・Tabの閉じ込めを使わない。通常は右側、850px以下は下部へ配置し、キャンバスと別の領域を確保する。ページ一覧はpagesセクションを使い、設定と同じパネルの内容を切り替える。書き出しとは排他的、共通ヘルプとは独立して開く。
+- showModal・暗幕・inert・Tabの閉じ込めを使わない。通常は右側、850px以下は下部へ配置し、キャンバスと別の領域を確保する。ページ一覧はpages、図形一覧はobjectsセクションを使い、設定と同じパネルの内容を切り替える。書き出しとは排他的、共通ヘルプとは独立して開く。
 - scopeは文書ID・ページID・選択ID・編集リビジョンを含み、アンカー座標では選択点、表示設定では設定値も含む。syncと適用直前に比較し、古い対象への入力を別の対象へ適用しない。ドラッグ中の更新は終了まで待ち、閉じた後の非同期再構築で再度開かない。
 - 色・変形・接続・画像のpreviewは検証済みの文書複製から表示用ページを作り、editorのinspectorPreviewだけを更新する。History・文書本体・保存・dirtyを変更しない。不正入力では前回のプレビューも取り消す。適用時だけ通常のchangePageで1履歴にまとめる。
 - 適用・取消・対象切替ではフォームを現在の値から作り直す。変形の基準座標や回転・反転の入力を持ち越さない。再構築後は可能な範囲で入力フォーカス・本文スクロール・detailsの開閉を保つ。閉じたパネルの本文は空にし、重複IDを残さない。
@@ -63,9 +63,11 @@ requestは `{section,title,html,label,apply,preview?,scope,refresh,opener}`。la
 
 `IlapoPagesUI.create({document,page,selectPage,change,showInspector,showDialog,esc,icon})` は `open()` を返す。ページIDを対象に操作し、DOMの一覧番号を文書参照の正本にしない。切替は選択・編集中のプレビューを解除して表示範囲を合わせ、Historyを変えない。変更は既存のCore/Historyを通す。サムネイルは検証済みページのSVG出力で、下絵を除外する。
 
-pagesのscopeは文書ID・ページID・編集リビジョン。図形の選択だけでは一覧を作り直さず、編集確定時に更新する。右端「ページ」はpagesだけ、「設定」は他の設定セクションの開閉状態をaria-expandedで示す。文書の入れ替え後に古い一覧のイベントで別の文書を編集しない。
+pagesのscopeは文書ID・ページID・編集リビジョン。図形の選択だけでは一覧を作り直さず、編集確定時に更新する。右端「ページ」はpagesだけ、「図形」はobjects、「設定」は残りの設定セクションの開閉状態をaria-expandedで示す。文書の入れ替え後に古い一覧のイベントで別の文書を編集しない。
 
 選択バーのdata-menuボタンはマウスpointerenterで開く。ドラッグ・タッチ・モーダル表示中にはホバー起動しない。開くだけではフォーカスを動かさず、ポップアップへの移動を妨げないため閉鎖だけ240ms待つ。クリックやキーボードで開いたメニューは外側クリック・実行・Escapeまで保持する。高さは起点の上／下にある空間から計算し、ボタンへ重ねない。ホバーメニュー表示中のEscapeはパネルやキャンバスへ伝えない。
+
+`IlapoObjectsUI.create({document,page,selected,select,showInspector,esc,icon})` は `open()` を返す。objectsのscopeは文書ID・ページID・編集リビジョン・選択ID。前面から並べ、固定とグループを表示する。選択はeditorのselectionを通してグループ展開を保ち、文書や履歴を変更しない。クリック／Shift追加／上下・Home/End／Enter・Spaceを使用し、再描画後もIDでフォーカスを復元する。
 
 ## 接続矢印・画像・部品・発表
 
@@ -74,6 +76,14 @@ connectorのmatrixは常に単位行列。追加フィールドは`from,to,waypo
 waypointsはworld座標`{x,y}`の配列（最大100）。routeはstraight/orthogonal、矢じりはnone/triangle/open、labelは2000文字以下、labelOffsetはworldの相対座標。normalは回転した図形の直角線の出入り方向にも使う。
 
 `IlapoConnectors.make(from,to,options)`, `sync(page)`（キャッシュ更新・切れた参照解除）, `points(connector,page?)`, `renderedParts(connector,page?)`, `bounds(connector,visual?,page?)`, `transform(connector,matrix)`（非破壊）。transformは端点・点・ラベルずれを変換し、matrixは単位行列を保つ。Coreの移動・複製にも同じ座標モデルを使い、編集確定後とプレビュー時にsyncする。
+
+0.4.5のsyncは旧端点とnormalから現在の図形上で同じ方向の輪郭点を求め、その差分でwaypointsを移動してから端点を再解決する。軸ごとに旧from→to内の位置を0〜1へclampして差分を補間し、端点間の幅がほぼ0なら1/2。自由端・消えた参照先の差分は0。normalのない初回は経路を移動せず端点だけ更新する。小数誤差の1e-7以内は差分0とし、同じ形状での再計算による移動を防ぐ。データの追加項目・versionの変更はない。
+
+Core.transformObjectとConnectors.transformは端点・点を変換したらnormalを破棄する。これにより、選択した矢印を含む移動・複製でsyncが点を二重に動かさない。図形の辺・接続先を変更するUIも旧normalを引き継がず、変更後にsyncする。
+
+直角経路は各waypointの間を水平・垂直線で結び、端点の出入り方向を満たす候補から短い経路を選ぶ。向かい合うポートの中間の折れ曲がりを優先する。明示waypointを通り、一般の障害物回避は行わない。
+`moveSegment(connector,index,position)`は描画経路のindex番目の線を垂直方向へずらし、両端を保ってwaypointsへ反映した複製を返す。移動量0は変更なし、100点超過はthrow。
+`portPoint(object,port,ratio)`は輪郭上のworld点、`attachmentAt(object,worldPoint)`はローカルの辺・比率から求めた端点を返す。UIの吸着候補と接続先ハイライトは文書・SVG出力へ保存しない。左パレットのconnectorは直線、connector-orthogonalは直角で作成する。
 
 imageは`x,y,width,height,src,reference`を追加する。reference=trueは下絵で通常の出力から除外するが、編集用ファイルには保存する。lockedは普通のオブジェクトと同じ意味。元画像の画素と表示寸法を分ける。
 

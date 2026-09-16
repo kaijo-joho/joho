@@ -35,7 +35,7 @@ async function run() {
   const inspectorSubmit = async () => { await page.locator('#inspector-submit').click(); await page.waitForFunction(() => { const panel = document.getElementById('inspector-panel'); return panel && !panel.hidden && !document.getElementById('dialog').open; }); };
   const inspectorClose = async () => { await page.locator('#inspector-close').click(); await page.waitForFunction(() => document.getElementById('inspector-panel').hidden); await sleep(50); };
   const menu = async action => { await page.locator('#path-menu-button').click(); await page.locator(`#command-menu [data-action="${action}"]`).click(); await sleep(40); };
-  const pick = async id => { await page.locator('[data-action="objects"]').first().click(); await page.locator(`[data-pick-object="${id}"]`).click(); await sleep(35); };
+  const pick = async id => { await page.locator('#objects-toggle').click(); await page.locator(`[data-pick-object="${id}"]`).click(); await page.locator("#inspector-close").click(); await sleep(35); };
   async function load(objects) {
     const document = fixture(objects);
     await page.locator('#file-input').setInputFiles({ name: 'practice.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(document)) });
@@ -150,7 +150,7 @@ async function run() {
       const doc = fixture([shape('M150 100L350 100L350 300L150 300Z', 'touch-shape')]);
       await touch.locator('#file-input').setInputFiles({ name: 'touch.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
       await touch.waitForFunction(id => IlapoEditor.getDocument().id === id, doc.id);
-      await touch.locator('[data-menu="more"]').tap(); await touch.locator('#command-menu [data-action="objects"]').tap(); await touch.locator('[data-pick-object="touch-shape"]').tap();
+      await touch.locator('[data-menu="more"]').tap(); await touch.locator('#command-menu [data-action="objects"]').tap(); await touch.locator('[data-pick-object="touch-shape"]').tap(); await touch.locator('#inspector-close').tap();
       const rect = await touch.locator('[data-node]').first().boundingBox(), x = rect.x + rect.width / 2, y = rect.y + rect.height / 2;
       const cdp = await touchContext.newCDPSession(touch);
       await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
