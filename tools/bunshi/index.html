@@ -1,15 +1,46 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="auto" data-text-size="standard">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>分子模型エディタ</title>
 <link rel="icon" id="favicon" type="image/svg+xml">
+<link rel="stylesheet" href="../shared/ui-kit.css">
+<script src="../shared/ui-kit.js"></script>
 <style>
 :root{
   --bg:#eef0f3; --panel:#ffffff; --line:#d9dde3; --text:#1f2933; --muted:#6b7480;
   --accent:#2563eb; --accent-soft:#e3ecff; --danger:#d61f1f; --stereo:#ea7a00;
 }
+/* ダークの色・文字サイズ（--ui-size / --ui-k）は ../shared/ui-kit.css。ライトの色は上の :root に置く（共通部品が読めなくても崩れないように）*/
+/* 操作部だけを拡大する（キャンバスの分子は右下の倍率で変える。位置を JS で決める要素に zoom を掛けると座標がずれるので当てない）*/
+.top,.tools,.side,.info{zoom:var(--ui-k, 1)}
+/* ダークのとき、白で直書きしている部分を差し替える */
+:root[data-theme="dark"] .tb button.ic,:root[data-resolved-theme="dark"] .tb button.ic,
+:root[data-theme="dark"] .seg button,:root[data-resolved-theme="dark"] .seg button,
+:root[data-theme="dark"] .hmenu > .menu,:root[data-resolved-theme="dark"] .hmenu > .menu,
+:root[data-theme="dark"] .hmenu select,:root[data-resolved-theme="dark"] .hmenu select,
+:root[data-theme="dark"] .tools button,:root[data-resolved-theme="dark"] .tools button,
+:root[data-theme="dark"] .xt-sel,:root[data-resolved-theme="dark"] .xt-sel,
+:root[data-theme="dark"] .fmtbar button,:root[data-resolved-theme="dark"] .fmtbar button,
+:root[data-theme="dark"] .fmtbar select,:root[data-resolved-theme="dark"] .fmtbar select,
+:root[data-theme="dark"] .zoom button,:root[data-resolved-theme="dark"] .zoom button,
+:root[data-theme="dark"] .lib-item,:root[data-resolved-theme="dark"] .lib-item,
+:root[data-theme="dark"] .sbtn,:root[data-resolved-theme="dark"] .sbtn,
+:root[data-theme="dark"] .dlg,:root[data-resolved-theme="dark"] .dlg{background:var(--panel);color:var(--text)}
+:root[data-theme="dark"] .tb button.ic:hover,:root[data-resolved-theme="dark"] .tb button.ic:hover,
+:root[data-theme="dark"] .tools button:hover,:root[data-resolved-theme="dark"] .tools button:hover,
+:root[data-theme="dark"] .fmtbar button:hover,:root[data-resolved-theme="dark"] .fmtbar button:hover,
+:root[data-theme="dark"] .zoom button:hover,:root[data-resolved-theme="dark"] .zoom button:hover,
+:root[data-theme="dark"] .lib-item:hover,:root[data-resolved-theme="dark"] .lib-item:hover{background:var(--hover)}
+:root[data-theme="dark"] .side-tabs,:root[data-resolved-theme="dark"] .side-tabs,
+:root[data-theme="dark"] .chip,:root[data-resolved-theme="dark"] .chip,
+:root[data-theme="dark"] kbd,:root[data-resolved-theme="dark"] kbd{background:var(--hover);color:var(--text)}
+:root[data-theme="dark"] .chip.meas,:root[data-resolved-theme="dark"] .chip.meas{background:#3a2c1c;border-color:#7a5a33}
+:root[data-theme="dark"] .fmtbar,:root[data-resolved-theme="dark"] .fmtbar{background:var(--panel)}
+:root[data-theme="dark"] #glError,:root[data-resolved-theme="dark"] #glError{background:var(--panel)}
+/* メニューは Esc で閉じる（ホバー・フォーカスで開く仕組みの上に、閉じた印を付ける）*/
+.hmenu[data-closed] > .menu{display:none!important}   /* 後ろにある :focus-within の規則に勝たせる */
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
@@ -18,7 +49,9 @@ button,select,input{font:inherit;color:inherit}
 #app{display:grid;height:100vh;grid-template:"top top top" auto "tools canvas side" 1fr "tools info side" auto / 164px 1fr auto}
 /* ---- 上部バー ---- */
 .top{grid-area:top;display:flex;flex-direction:column;font-size:13px;background:var(--panel);border-bottom:1px solid var(--line)}
-.top .row{display:flex;flex-wrap:wrap;align-items:center;gap:5px;padding:5px 10px}
+/* 上部ツールバーは狭い幅でも 1 行（共通仕様 2.1）。入りきらないときは横にスクロールする */
+.top .row{display:flex;flex-wrap:nowrap;align-items:center;gap:5px;padding:5px 10px;overflow-x:auto;scrollbar-width:thin}
+.top .row > *{flex:none}
 .tb button.ic{width:32px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);
   background:#fff;border-radius:7px;cursor:pointer;font-size:11px;font-weight:600}
 .tb button.ic:hover{background:#f4f6f9}
@@ -169,6 +202,27 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
 #toast{position:fixed;left:50%;bottom:64px;transform:translateX(-50%);background:#1f2933;color:#fff;padding:8px 16px;border-radius:8px;
   font-size:13px;opacity:0;transition:opacity .2s;pointer-events:none;z-index:20}
 #toast.show{opacity:.92}
+
+/* ここから下は「あとの規則が勝つ」ことを使って基本の規則を上書きする。
+   ※ 同じ詳細度どうしでは後に書いた方が勝つ。前方に置いたら基本の #app・#hint に負けていた（2026-09-16） */
+#hint{font-size:calc(12px*var(--ui-k, 1))}   /* 操作のヒントも文字サイズの設定に合わせる */
+/* 狭い画面（共通仕様 2.9）：左パレットは「☰」で開閉、右パネルはキャンバスに重ねる。
+   こうしないと 164px＋パネルの分でページ全体が横にはみ出す（390px で 891px になっていた）*/
+#btnPalette{display:none}
+@media (max-width:760px){
+  /* 1fr は minmax(auto,1fr) なので、下部の状態表示（分子式・倍率）の最小幅に押し広げられる。minmax(0,1fr) にする */
+  #app{grid-template:"top top top" auto "tools canvas side" 1fr "tools info side" auto / 0 minmax(0,1fr) auto}
+  .tools{position:absolute;left:0;top:0;bottom:0;width:164px;z-index:20;box-shadow:var(--shadow,0 6px 22px #14233724);
+    transform:translateX(-100%);transition:transform .15s}
+  #app.palette-open .tools{transform:none}
+  .side{position:relative}   /* 重ねる右パネルの基準（付け忘れると画面全体が基準になる）*/
+  #sidePanel.open .side-main{position:absolute;right:26px;top:0;bottom:0;width:min(300px,78vw);z-index:20;
+    box-shadow:var(--shadow,0 6px 22px #14233724)}
+  #wrap{min-width:0}
+  #hint{right:8px;font-size:11px}   /* 狭い列に押し込まれないよう、横幅いっぱいに使う */
+  .info{overflow-x:auto;scrollbar-width:thin}
+  #btnPalette{display:inline-flex}
+}
 </style>
 </head>
 <body>
@@ -177,6 +231,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
    <div class="row tb">
     <div class="brand"><!-- アプリのアイコン：紺の角丸四角に白い球棒模型。中心の原子に紺の校章（輪郭は構造式エディタのアイコンと同じデータ）。favicon にも使う -->
       <svg id="appIcon" class="app-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="13" fill="#00548a"/><g stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M31 35L15 17.5M31 35L51.5 23.5M31 35L27 54.5"/></g><circle cx="15" cy="17.5" r="6" fill="#fff"/><circle cx="51.5" cy="23.5" r="6" fill="#fff"/><circle cx="27" cy="54.5" r="4.6" fill="#fff"/><circle cx="31" cy="35" r="15" fill="#fff"/><path fill="#00548a" transform="translate(21.50 25.00) scale(0.2)" d="M27.4 52.3C27.4 52.2 27.5 52.2 27.6 52.2C27.7 52.3 27.9 52.3 28.1 52.4C29.7 53.1 31.4 53.8 33.1 54.5C34.6 55.1 36.2 55.7 37.8 56.2C40 57 42.2 57.7 44.4 58.5C46.1 59 47.8 59.6 49.5 60.1C52.4 61 55.3 61.9 58.2 62.8C58.7 63 59.2 63.1 59.7 63.3C60 63.4 60.2 63.5 60.5 63.6C61.1 63.9 61.7 64.1 62.3 64.3C63.6 64.9 64.8 65.6 65.8 66.5C66.2 66.9 66.5 67.2 66.9 67.6C67.4 68.1 67.8 68.7 68.2 69.2C68.7 70 69.1 70.8 69.4 71.6C69.8 72.6 69.9 73.7 69.8 74.8C69.6 76.4 69.1 77.9 68.1 79.2C67.4 80 66.7 80.7 65.8 81.2C65.1 81.6 64.4 81.9 63.6 82.1C63.4 82.2 63.2 82.2 62.9 82.2C62.6 82.3 62.2 82.3 61.9 82.3C61.2 82.3 60.5 82.3 59.8 82.2C59.4 82.2 58.9 82.1 58.5 82C58.2 81.9 57.9 81.9 57.6 81.9C57.2 81.8 56.8 81.7 56.4 81.7C55.6 81.5 54.9 81.5 54.1 81.5C53.8 81.5 53.6 81.5 53.3 81.5C53 81.5 52.6 81.5 52.3 81.5C52 81.6 51.7 81.6 51.4 81.7C50.9 81.7 50.4 81.8 49.9 82C48.4 82.4 47.1 82.9 45.8 83.6C44.7 84.3 43.6 85 42.6 85.9C42 86.5 41.3 87.2 40.7 87.9C40.6 87.9 40.6 87.9 40.6 88C40.1 88.6 39.5 89.2 39.1 89.9C38.6 90.6 38.2 91.2 37.9 92C37.2 93.3 36.8 94.6 36.4 96C36.2 96.8 36.1 97.7 36.1 98.5C36.1 98.8 36 99.2 36 99.5C36 99.6 36 99.6 35.9 99.6C35.9 99.6 35.9 99.6 35.9 99.6C35.7 99.3 35.5 99 35.3 98.7C34.9 98.2 34.5 97.6 34.2 97C34 96.5 33.7 96.1 33.5 95.6C33.2 94.9 32.9 94.2 32.6 93.5C32.4 93 32.3 92.5 32.1 92C32 91.6 31.9 91.3 31.8 90.9C31.7 90.5 31.6 90.2 31.5 89.8C31.4 89.2 31.2 88.6 31.1 88C30.9 86.9 30.6 85.8 30.5 84.7C30.4 84.1 30.2 83.5 30.1 82.9C30 82.1 29.9 81.3 29.7 80.4C29.6 79.5 29.4 78.6 29.3 77.7C29.1 76.7 29 75.6 28.9 74.5C28.8 73.9 28.7 73.3 28.6 72.7C28.5 72 28.4 71.4 28.4 70.8C28.3 70.3 28.3 69.7 28.2 69.2C28.2 68.8 28.1 68.4 28.1 68C28.1 67.3 28 66.6 27.9 66C27.9 65.4 27.8 64.9 27.8 64.4C27.8 64.2 27.8 64.1 27.8 63.9C27.7 62.9 27.6 61.9 27.6 60.9C27.6 60.6 27.6 60.3 27.6 60C27.5 59.2 27.5 58.4 27.5 57.6L27.5 57.6C27.4 56.1 27.4 54.7 27.4 53.3C27.4 53 27.4 52.8 27.4 52.5C27.4 52.5 27.4 52.4 27.4 52.3M0.1 31.1C0.1 32.9 0.1 34.4 0.1 36C0.1 36.9 0.1 37.8 0.2 38.8C0.2 39.5 0.3 40.3 0.3 41.1C0.3 42.2 0.4 43.3 0.4 44.5C0.5 45.2 0.5 46 0.6 46.7C0.6 47.5 0.7 48.2 0.7 49C0.7 49 0.7 49 0.7 49C0.8 49.6 0.8 50.2 0.9 50.8C0.9 51.1 0.9 51.4 1 51.7C1 52.2 1 52.8 1.1 53.4C1.2 54.2 1.2 55 1.3 55.8C1.4 56.4 1.5 57.1 1.6 57.7C1.7 58.7 1.8 59.6 1.9 60.6C2.1 61.5 2.2 62.5 2.4 63.4C2.8 65.1 3.2 66.8 3.7 68.5C4.2 70 4.8 71.5 5.4 73C6 74.6 6.8 76.1 7.6 77.6C8.2 78.8 9 80 9.7 81.2C10.6 82.5 11.6 83.8 12.6 85.1C13.3 86 14.1 86.9 14.9 87.7C15.9 88.9 17 90 18.2 91C19.1 91.9 20 92.6 20.9 93.4C21.9 94.2 22.9 94.9 23.9 95.6C25 96.3 26 97 27.2 97.5C28.1 98 29.1 98.4 30.2 98.8C30.9 99 31.6 99.3 32.4 99.5C33 99.7 33.6 99.8 34.3 99.9C34.7 100 35.1 100 35.5 100C35.6 99.9 35.7 99.9 35.8 99.8C36.5 99.3 37.3 98.8 38.1 98.4C38.6 98.1 39.1 97.8 39.6 97.6C40.5 97.1 41.4 96.8 42.3 96.4C43.1 96.1 43.9 95.9 44.7 95.7C45.7 95.4 46.6 95.2 47.5 95.1C48 95 48.4 95 48.8 95C49 95 49.2 95 49.3 94.9C50.1 94.9 50.8 94.9 51.6 94.9C52.1 95 52.7 95 53.3 95C54.1 95.1 54.9 95.3 55.6 95.4C56.7 95.6 57.8 95.9 58.8 96.2C59.4 96.4 59.9 96.6 60.5 96.9C61 97.2 61.6 97.4 62.2 97.7C63.1 98 63.9 98.3 64.8 98.5C65.5 98.7 66.2 98.8 66.9 98.9C67.4 99 67.9 99 68.3 99C68.8 99.1 69.2 99.1 69.6 99.1C70.2 99.1 70.8 99 71.4 98.9C71.9 98.9 72.3 98.8 72.8 98.8C73.2 98.7 73.7 98.7 74.1 98.6C74.3 98.5 74.4 98.5 74.5 98.5C75.1 98.4 75.6 98.3 76.1 98.1C77.3 97.8 78.4 97.4 79.6 97C80.5 96.7 81.4 96.3 82.2 95.8C83.1 95.3 84 94.8 84.8 94.2C85.7 93.7 86.6 93 87.4 92.3C88.2 91.6 88.9 90.8 89.7 90C89.7 89.9 89.8 89.9 89.8 89.8C90.1 89.5 90.3 89.2 90.6 88.8C91.1 88.2 91.6 87.5 92 86.8C92.5 86.1 92.9 85.3 93.3 84.4C93.4 84.2 93.5 84 93.6 83.8C93.7 83.5 93.8 83.3 93.9 83C94 82.6 94.1 82.1 94.2 81.7C94.3 81.4 94.4 81 94.5 80.7C94.6 80.1 94.8 79.4 94.8 78.8C94.8 78.3 94.9 77.7 95 77.2C95 76.6 95 76 94.9 75.4C94.9 74.9 94.9 74.4 94.8 74C94.8 73.5 94.7 73 94.6 72.5C94.3 71.2 93.9 69.9 93.4 68.6C93.2 68.2 93 67.8 92.8 67.3C92.5 66.8 92.2 66.3 91.9 65.8C91.7 65.5 91.6 65.2 91.4 65C90.8 64.2 90.3 63.5 89.7 62.8C89.3 62.4 88.9 62 88.5 61.6C87.4 60.7 86.3 59.8 85 59C85 59 84.9 59 84.9 59C84.6 58.7 84.3 58.5 84 58.3C83.4 57.9 82.8 57.5 82.1 57.2C81.2 56.7 80.3 56.2 79.5 55.8C78.4 55.3 77.4 54.9 76.3 54.5C75 54 73.7 53.6 72.4 53.1C71.6 52.9 70.9 52.7 70.2 52.4C68.5 51.9 66.9 51.3 65.2 50.8C64.1 50.4 62.9 50 61.8 49.6C59.6 48.9 57.5 48.2 55.3 47.5C53.7 47 52.1 46.5 50.5 45.9C49.4 45.5 48.2 45 47.2 44.5C46.9 44.4 46.7 44.3 46.5 44.2C45.9 43.9 45.5 43.5 45 43.1C44 42.2 43.3 41.1 42.8 39.9C42.6 39.5 42.5 39.1 42.3 38.7C42.1 37.8 42 36.9 42.1 35.9C42.1 35.7 42.1 35.6 42.1 35.4C42.1 35 42.2 34.6 42.3 34.1C42.5 33.5 42.7 32.8 43.1 32.1C43.8 30.8 44.8 29.6 46 28.8C46.2 28.6 46.4 28.5 46.5 28.4C47.1 28 47.8 27.6 48.5 27.3C49 27.1 49.4 26.9 49.9 26.7C51 26.2 52.1 25.8 53.3 25.5C54 25.3 54.8 25.1 55.6 25C56.1 24.9 56.6 24.9 57.1 24.8C57.4 24.7 57.7 24.7 58 24.6C58.7 24.6 59.4 24.5 60.1 24.5C60.2 24.5 60.3 24.5 60.4 24.5C61.2 24.4 62 24.4 62.8 24.3C63 24.3 63.3 24.3 63.5 24.3C64.2 24.2 65 24.1 65.7 24C66 23.9 66.4 23.9 66.8 23.8C67 23.8 67.2 23.7 67.3 23.7C67.7 23.6 68 23.6 68.4 23.5C69.7 23.2 71 22.8 72.3 22.4C73.9 21.9 75.5 21.2 77.1 20.5C77.9 20.2 78.7 19.8 79.5 19.4C80.8 18.9 82 18.2 83.2 17.6C84.3 16.9 85.5 16.2 86.6 15.4C87.3 14.9 88.1 14.4 88.8 13.9C89.4 13.5 90 13 90.5 12.5C91.4 11.7 92.3 10.9 93.1 10C93.3 9.9 93.4 9.7 93.6 9.5C93.7 9.4 93.7 9.4 93.7 9.3C93.8 9.2 93.7 9.1 93.6 9.1C93.5 9.1 93.4 9.1 93.3 9.1C92.8 9.1 92.2 9.1 91.7 9.1C91 9.1 90.4 9.1 89.8 9.1C89 9.1 88.3 9 87.6 8.9C87.1 8.9 86.6 8.8 86.1 8.8C85.7 8.7 85.3 8.7 84.9 8.6C84.5 8.5 84 8.4 83.6 8.4C82.7 8.2 81.8 8 80.8 7.8C79.9 7.6 79 7.3 78 7C76.4 6.5 74.7 5.8 73.1 5.1C71.8 4.5 70.5 3.9 69.2 3.1C67.7 2.3 66.2 1.4 64.8 0.3C64.7 0.2 64.5 0.1 64.4 0.1C64.3 0 64.2 0 64.2 0.1C64 0.3 63.9 0.5 63.8 0.7C62.9 2.2 61.9 3.6 60.8 5C60.2 5.8 59.6 6.6 59 7.4C58 8.5 57.1 9.6 56 10.7C55.4 11.2 54.8 11.8 54.2 12.4C53.4 13.1 52.6 13.8 51.6 14.4C51.1 14.7 50.7 15.1 50.2 15.4C50.1 15.5 50 15.6 49.9 15.7C49.2 16.1 48.5 16.4 47.8 16.8C47 17.2 46.1 17.6 45.3 17.9C43.9 18.5 42.5 18.9 41 19.2C40.7 19.3 40.3 19.4 40 19.5C39.7 19.5 39.4 19.6 39.1 19.6C38.9 19.7 38.7 19.7 38.4 19.8C38.1 19.8 37.8 19.8 37.4 19.9C36.7 20 36 20.1 35.4 20.2C34.7 20.3 34 20.4 33.4 20.6C32.3 20.8 31.2 21 30.2 21.4C29.6 21.5 29.1 21.7 28.6 21.8C28.5 21.8 28.5 21.9 28.4 21.9C28.3 21.9 28.3 21.8 28.3 21.8C28.3 21.6 28.3 21.4 28.3 21.2C28.4 20.8 28.4 20.3 28.5 19.9C28.7 18.5 29 17.2 29.3 15.9C29.6 14.9 29.8 13.9 30.1 12.9C30.4 12.1 30.7 11.2 31 10.4C31.6 9.1 32.1 7.8 32.8 6.5C33 6.2 33.2 5.8 33.4 5.4C33.4 5.4 33.4 5.3 33.4 5.3C33.5 5.2 33.5 5.2 33.4 5.2C33.4 5.1 33.3 5.1 33.3 5.1C33.1 5.2 32.9 5.3 32.6 5.4C32.2 5.5 31.9 5.7 31.5 5.8C30.3 6.2 29 6.6 27.8 6.9C26.6 7.2 25.5 7.4 24.3 7.6C23.6 7.8 22.8 7.9 22 8C21.4 8.1 20.8 8.1 20.2 8.2C19.3 8.2 18.4 8.3 17.5 8.3C16.7 8.3 15.9 8.3 15.1 8.2C13.9 8.2 12.7 8.1 11.6 8C11.3 8 11.1 7.9 10.9 7.9C10.3 7.8 9.8 7.8 9.2 7.7C8.4 7.5 7.6 7.4 6.8 7.2C5.9 7 4.9 6.7 3.9 6.4C3.2 6.2 2.5 6 1.9 5.8C1.8 5.8 1.7 5.8 1.7 5.8C1.6 6 1.6 6.1 1.6 6.3C1.4 7.1 1.2 7.9 1.1 8.8C0.9 9.6 0.8 10.4 0.7 11.2C0.6 11.9 0.6 12.6 0.5 13.3C0.4 13.8 0.4 14.3 0.4 14.8C0.3 15.5 0.3 16.3 0.2 17C0.2 17.8 0.2 18.5 0.1 19.2C0.1 20 0.1 20.9 0.1 21.8C0.1 22.3 0 22.8 0 23.3C0 24.7 0 26.1 0 27.5C0 28.8 0.1 30.1 0.1 31.1"/></svg>分子模型エディタ<span class="beta" title="試作版（ベータ版）。バージョン 1.0 までは BETA">BETA</span></div>
+    <button class="ic" id="btnPalette" title="ツールのパレットを開く／閉じる（画面が狭いときに出ます）" aria-label="ツールのパレット">☰</button>
     <button class="ic" id="btnSave" title="保存（⌘/Ctrl+S）。あとで開いて続きから使えます"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><path d="M8 21v-7h8v7"/></svg></button>
     <div class="hmenu" id="openMenu">
       <button class="ic" id="btnOpen" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></svg></button>
@@ -208,8 +263,17 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <label class="mrow" title="π 軌道の雲の濃さ（切る高さ）。右にするほど雲が小さく引き締まり、分子が見やすくなる">π 雲の濃さ
           <input type="range" id="piIso" min="0.25" max="0.8" step="0.05">
         </label>
+        <label class="mrow" title="球棒モデルの球の大きさ（結晶の球も同時に変わります）">球の大きさ
+          <input type="range" id="ballSize" min="0.15" max="0.5" step="0.01">
+        </label>
         <label class="mrow">背景
-          <select id="bgSel"><option value="white">白</option><option value="gray">灰色</option><option value="black">黒</option></select>
+          <select id="bgSel" title="キャンバス（分子を表示する場所）の背景。画面全体の配色は下の「テーマ」で変えます"><option value="white">白</option><option value="gray">灰色</option><option value="black">黒</option></select>
+        </label>
+        <label class="mrow">テーマ
+          <select id="themeSel" title="画面の配色（自動はパソコンの設定に合わせます）"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select>
+        </label>
+        <label class="mrow">文字サイズ
+          <select id="textSizeSel" title="ツールバーやパネルの文字の大きさ（キャンバスの分子は右下の倍率で変えます）"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select>
         </label>
       </div>
     </div>
@@ -445,11 +509,12 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>形について</td><td>分子の形は、標準的な結合の長さ・結合角と環の形（いす形など）から組み立てています。水の結合角 104.5°、アンモニアの 107° などは実測値に近い値にしていますが、構造最適化はしていないので、形はおおよそです。</td></tr>
       </table>
       <table class="about">
+        <tr><td>画面の設定</td><td>「表示 ▼」で、<b>テーマ</b>（自動・ライト・ダーク。自動はパソコンの設定に合わせます）、<b>文字サイズ</b>（標準・大・特大。ツールバーやパネルの文字が大きくなります）、<b>背景</b>（キャンバスの色）、<b>球の大きさ</b>（球棒モデルの球。結晶の球も一緒に変わります）を変えられます。テーマと文字サイズは、ほかの情報科のウェブアプリ（構造式エディタ・論理回路エディタなど）と共通の仕組みです。</td></tr>
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.16 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.17 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1970,7 +2035,7 @@ const $ = id => document.getElementById(id);
 // doc = {atoms:{id:原子}, bonds:{id:結合}, objs:{id:鏡など}, meas:[{id, atoms:[id]}], nid}
 function emptyDoc(){ return {atoms:{}, bonds:{}, objs:{}, meas:[], nid:1}; }
 let doc = emptyDoc();
-const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, charges:false, piOrb:false, piIso:0.5, tool:'rotate', addWhat:'C',
+const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, charges:false, piOrb:false, piIso:0.5, ball:0.28, tool:'rotate', addWhat:'C',   // ball：球の大きさ（既定は下の BALL と同じ値。BALL の定義はここより後ろなので数で書く）
   world:'mol',   // 'mol' 分子、'xtal' 結晶格子
   xt:{key:'fcc', n:2, cellCut:false, cut:false, h:1, k:1, l:1, t:0.5, flip:false, hex:false, plate:true, pn:null}};   // pn：3 つの原子で決めた面の法線
 const view = {R:M3.id(), s:60, pan:[0, 0], center:[0, 0, 0]};   // s：1 Å あたりの画面の px
@@ -2112,11 +2177,11 @@ function initGL(){
 }
 
 // ---- 表示する球・棒を作る ----
-const BALL = 0.28, STICK_R = {ballstick:0.11, stick:0.16};
+const BALL = 0.28, STICK_R = {ballstick:0.11, stick:0.16};   // BALL は球の大きさの既定値（state.ball で変えられる）
 function atomRadius(a){
   if (state.mode === 'spacefill') return ELEM[a.el].vdw;
   if (state.mode === 'stick') return STICK_R.stick;
-  return ELEM[a.el].vdw*BALL;
+  return ELEM[a.el].vdw*state.ball;
 }
 function atomVisible(a){
   if (!state.hideH || a.el !== 'H') return true;
@@ -2219,7 +2284,7 @@ function xtCache(){
   if (!xtCacheMap.has(k)) xtCacheMap.set(k, buildCrystal(x, state.xt.n, xtPrism(x)));
   return {x, cr:xtCacheMap.get(k)};
 }
-const xtRadius = (x, sp) => state.mode === 'spacefill' ? x.sp[sp].r : state.mode === 'stick' ? 0.16 : x.sp[sp].r*0.35;
+const xtRadius = (x, sp) => state.mode === 'spacefill' ? x.sp[sp].r : state.mode === 'stick' ? 0.16 : x.sp[sp].r*state.ball*1.25;   // 分子の球の大きさに合わせる（既定 0.28 → 0.35）
 let xtPick = null;   // 結晶格子でクリックした原子（まわりの配位を示す）
 let xtPlaneMode = false, xtPlanePick = [];   // 「原子を 3 つクリックして面を決める」の途中
 function xtAtomAt(mx, my){
@@ -2463,7 +2528,8 @@ function drawOverlay(c, W, H, forExport = false){
   if (state.world === 'xtal') return;
   if (!scene) return;
   const scr = id => { const a = doc.atoms[id]; return toScreen([a.x, a.y, a.z], W, H); };
-  const labelBox = (text, x, y, col, bg = 'rgba(255,255,255,.92)') => {
+  const dark = state.bg === 'black';   // 文字や縁の色は「キャンバスの背景」に合わせる（画面のテーマとは別）
+  const labelBox = (text, x, y, col, bg = dark ? 'rgba(25,33,43,.92)' : 'rgba(255,255,255,.92)') => {
     c.font = '600 13px Arial, Helvetica, sans-serif';
     const w = c.measureText(text).width + 10, h = 19;
     c.fillStyle = bg; c.strokeStyle = col; c.lineWidth = 1.2;
@@ -2479,8 +2545,8 @@ function drawOverlay(c, W, H, forExport = false){
       const q = info.charges.get(id);
       if (q == null || occluded(id, W, H)) continue;
       const s = scr(id), r = atomRadius(doc.atoms[id])*view.s, t = (q < 0 ? '−' : '+') + Math.abs(q).toFixed(2);
-      c.lineWidth = 3; c.strokeStyle = 'rgba(255,255,255,.9)'; c.strokeText(t, s.x, s.y + r + 2);
-      c.fillStyle = q < 0 ? '#b3261e' : '#1a52c4';
+      c.lineWidth = 3; c.strokeStyle = dark ? 'rgba(0,0,0,.85)' : 'rgba(255,255,255,.9)'; c.strokeText(t, s.x, s.y + r + 2);
+      c.fillStyle = q < 0 ? (dark ? '#ff9a92' : '#b3261e') : (dark ? '#8ab4ff' : '#1a52c4');
       c.fillText(t, s.x, s.y + r + 2);
     }
   }
@@ -2494,7 +2560,7 @@ function drawOverlay(c, W, H, forExport = false){
       const fs = Math.max(9, Math.min(20, r*(state.mode === 'stick' ? 1.6 : 0.95)));
       c.font = `700 ${fs}px Arial, Helvetica, sans-serif`;
       const t = a.el + (a.charge ? (Math.abs(a.charge) > 1 ? Math.abs(a.charge) : '') + (a.charge > 0 ? '+' : '−') : '');
-      if (state.mode === 'stick') { c.lineWidth = 3; c.strokeStyle = 'rgba(255,255,255,.9)'; c.strokeText(t, s.x, s.y); c.fillStyle = '#1f2933'; }
+      if (state.mode === 'stick') { c.lineWidth = 3; c.strokeStyle = dark ? 'rgba(0,0,0,.85)' : 'rgba(255,255,255,.9)'; c.strokeText(t, s.x, s.y); c.fillStyle = dark ? '#eef2f7' : '#1f2933'; }
       else c.fillStyle = DARK_EL.has(a.el) ? '#fff' : '#1f2933';
       c.fillText(t, s.x, s.y + 0.5);
     }
@@ -2883,7 +2949,7 @@ $('measClose').onclick = () => { editMeas = null; renderInfo(); renderSel(); req
 
 // ===== 組み立て（原子・官能基の追加、元素・結合次数の変更、消しゴム） =====
 // どの操作も、H の数を価数に合わせて付け直し、そのあと形を整える（結合長・結合角・二重結合の平面・重なり）
-const ADD_ELEMS = ['C', 'N', 'O', 'S', 'F', 'Cl', 'Br', 'I'];
+const ADD_ELEMS = ['C', 'N', 'O', 'S', 'F', 'Cl', 'Br', 'I', 'H'];   // H は「その原子を消して H にする」（消しゴムと同じ扱い）
 // [キー, 付ける部分の SMILES（1 つ目の原子の H を 1 つ外して付ける）, ボタンの表記, 名前]
 const ADD_GROUPS = [['OH', 'O', 'OH', 'ヒドロキシ基'], ['NH2', 'N', 'NH<sub>2</sub>', 'アミノ基'], ['CHO', 'C=O', 'CHO', 'ホルミル基'],
   ['COOH', 'C(=O)O', 'COOH', 'カルボキシ基'], ['NO2', '[NH+](=O)[O-]', 'NO<sub>2</sub>', 'ニトロ基'], ['CN', 'C#N', 'CN', 'シアノ基'],
@@ -3039,11 +3105,15 @@ function buildClick(hit, mx, my){
     editStructure(() => eraseAtom(hit), hit); return;
   }
   const what = state.addWhat, isEl = ADD_ELEMS.includes(what);
+  if (what === 'H'){   // H に置き換え：その原子を消してあいた所に H を付ける（消しゴムと同じ）
+    if (a.el === 'H') { toast('この原子はすでに H です'); return; }
+    editStructure(() => eraseAtom(hit), hit); return;
+  }
   if (a.el === 'H') editStructure(() => attachGroup(hit, isEl ? what : ADD_GROUPS.find(g => g[0] === what)[1]), hit);
   else if (isEl) editStructure(() => changeElement(hit, what), hit);
   else toast('官能基は、H をクリックして付けます');
 }
-$('addEls').innerHTML = ADD_ELEMS.map(el => `<button class="el" data-add="${el}" title="${el}：H をクリックすると ${el} に置き換え（H は自動で付く）。ほかの原子をクリックすると ${el} に変える">${el}</button>`).join('');
+$('addEls').innerHTML = ADD_ELEMS.map(el => `<button class="el" data-add="${el}" title="${el === 'H' ? 'H：原子をクリックすると、その原子を消してあいた所に H を付ける（消しゴムと同じ。切り離された小さい方は消える）' : `${el}：H をクリックすると ${el} に置き換え（H は自動で付く）。ほかの原子をクリックすると ${el} に変える`}">${el}</button>`).join('');
 $('addGroups').innerHTML = ADD_GROUPS.map(([k, , label, name]) => `<button data-add="${k}" title="${name}：H をクリックすると置き換え">${label}</button>`).join('');
 document.querySelectorAll('[data-add]').forEach(b => b.addEventListener('click', () => { state.addWhat = b.dataset.add; setTool('add'); }));
 
@@ -3249,9 +3319,11 @@ function setMode(m){
 function syncToggles(){
   $('tgStereo').classList.toggle('on', state.showStereo); $('tgRS').classList.toggle('on', state.showRS); $('tgAxes').classList.toggle('on', state.axes);
   $('chkLabels').checked = state.labels; $('chkHideH').checked = state.hideH; $('bgSel').value = state.bg; $('expAxes').checked = state.axes;
-  $('chkCharges').checked = state.charges; $('tgPi').classList.toggle('on', state.piOrb); $('piIso').value = state.piIso;
+  $('chkCharges').checked = state.charges; $('tgPi').classList.toggle('on', state.piOrb); $('piIso').value = state.piIso; $('ballSize').value = state.ball;
   $('wrap').style.background = state.bg === 'black' ? '#000' : state.bg === 'gray' ? '#edeff2' : '#fff';
-  $('hint').style.background = state.bg === 'black' ? 'rgba(0,0,0,.6)' : '';
+  // 操作のヒントはキャンバスの上に乗るので、画面のテーマではなく「キャンバスの背景」に合わせる
+  $('hint').style.background = state.bg === 'black' ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.85)';
+  $('hint').style.color = state.bg === 'black' ? '#c9d2dd' : '#6b7480';
 }
 document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
 document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
@@ -3260,6 +3332,7 @@ $('tgRS').onclick = () => { state.showRS = !state.showRS; syncToggles(); renderI
 $('tgPi').onclick = () => { state.piOrb = !state.piOrb; syncToggles(); changed(); };
 $('chkCharges').onchange = e => { state.charges = e.target.checked; changed(); };
 $('piIso').oninput = e => { state.piIso = +e.target.value; if (state.piOrb) changed(); };   // π 軌道を出していないときは作り直さない
+$('ballSize').oninput = e => { state.ball = +e.target.value; requestDraw(true); autosave(); };
 $('tgAxes').onclick = () => { state.axes = !state.axes; $('expAxes').checked = state.axes; syncToggles(); requestDraw(true); autosave(); };
 $('chkLabels').onchange = e => { state.labels = e.target.checked; requestDraw(); autosave(); };
 $('chkHideH').onchange = e => { state.hideH = e.target.checked; requestDraw(true); autosave(); };
@@ -3650,11 +3723,12 @@ function applyViewState(v){   // 壊れた値で画面が消えないよう、�
   if (fin(v.center, 3)) view.center = [...v.center];
 }
 const UI_FLAGS = ['labels', 'hideH', 'showStereo', 'showRS', 'axes', 'charges', 'piOrb'];
-function uiState(){ const s = {mode:state.mode, bg:state.bg, world:state.world, piIso:state.piIso, xt:{...state.xt}}; for (const k of UI_FLAGS) s[k] = state[k]; return s; }
+function uiState(){ const s = {mode:state.mode, bg:state.bg, world:state.world, piIso:state.piIso, ball:state.ball, xt:{...state.xt}}; for (const k of UI_FLAGS) s[k] = state[k]; return s; }
 function applyUIState(s){
   if (!s) return;
   if (s.world === 'mol' || s.world === 'xtal') state.world = s.world;
   if (isFinite(s.piIso) && +s.piIso >= 0.2 && +s.piIso <= 0.9) state.piIso = +s.piIso;   // π 雲の濃さ（数なので UI_FLAGS ではなく個別に）
+  if (isFinite(s.ball) && +s.ball >= 0.15 && +s.ball <= 0.5) state.ball = +s.ball;       // 球の大きさ
   if (s.xt && typeof s.xt === 'object'){
     const t = s.xt, X = state.xt;
     if (XTALS.some(x => x.key === t.key)) X.key = t.key;
@@ -3740,6 +3814,20 @@ $('expXyz').onclick = () => { const {atoms} = docArrays(); if (atoms.length) dow
 // ===== モーダル・トースト・ツールチップ =====
 function openModal(){ $('helpModal').hidden = false; }
 function closeModals(){ document.querySelectorAll('.modal').forEach(m => { m.hidden = true; }); }
+$('btnPalette').onclick = () => $('app').classList.toggle('palette-open');   // 狭い画面で左パレットを開閉
+// メニューは Esc で閉じて、開いたボタンへフォーカスを戻す（共通仕様 2.9）。
+// ※ 本体の keydown は入力欄・select にフォーカスがあると早期 return するので、メニューごとに受ける
+document.querySelectorAll('.hmenu').forEach(m => {
+  const btn = m.querySelector('button');
+  m.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    e.stopPropagation();
+    m.dataset.closed = '1';
+    if (btn) btn.focus();
+  });
+  m.addEventListener('pointerenter', () => { delete m.dataset.closed; });
+  m.addEventListener('focusout', e => { if (!m.contains(e.relatedTarget)) delete m.dataset.closed; });
+});
 $('btnHelp').onclick = openModal;
 document.querySelectorAll('.modal').forEach(m => m.addEventListener('click', e => { if (e.target === m || e.target.closest('[data-close]')) closeModals(); }));
 let toastTimer = null;
@@ -3768,6 +3856,11 @@ try { $('favicon').href = 'data:image/svg+xml,' + encodeURIComponent(new XMLSeri
 // ===== 初期化 =====
 initGL();
 const restored = restore();
+// テーマ（自動・ライト・ダーク）と文字サイズは共通部品（../shared/ui-kit.js）。読めなくても本体は動く
+try {
+  if (window.JohoUI && JohoUI.theme) JohoUI.theme({storageKey:'bunshi-view', themeSelect:$('themeSel'), sizeSelect:$('textSizeSel'), onChange:() => requestDraw()});
+  else { $('themeSel').disabled = $('textSizeSel').disabled = true; $('themeSel').title = $('textSizeSel').title = '共通部品（../shared/ui-kit.js）を読み込めませんでした'; }
+} catch (e) { console.error(e); }
 syncToggles(); setMode(state.mode); setTool('rotate'); renderLibrary(); setWorld(state.world, true);
 try { const w = +localStorage.getItem(SIDEW_KEY); if (w) setSideW(w); } catch {}
 let savedPane = 'lib'; try { const p = localStorage.getItem(SIDE_KEY); if (p !== null) savedPane = p; } catch {}
