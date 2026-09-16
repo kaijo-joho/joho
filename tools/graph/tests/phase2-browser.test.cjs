@@ -31,6 +31,7 @@ let browser;
   const annotationButton = { '点':'#add-point', '補助線':'#add-guide', '接線':'#add-tangent', '交点':'#add-intersection', '線分・矢印':'#add-segment', '文字':'#add-text' };
   async function addAnnotation(name) { await page.locator(annotationButton[name]).click(); }
   async function more(action) { await page.getByRole('button', { name: action, exact: true }).click(); }
+  async function addQuickTangent(at) { await page.locator('#add-tangent').click(); const panel=page.locator('#tangent-quick-panel'); await panel.getByLabel(/^接点の .+ 座標$/).fill(String(at)); await panel.getByRole('button',{name:'接線を追加',exact:true}).click(); await settle(); }
   async function openTemplate(name) { if (!await page.locator('#templates-panel').isVisible()) await page.locator('#templates-tab').click(); await page.locator('#template-list').getByRole('button', { name: new RegExp('^' + name) }).click(); await settle(); }
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
   await addCurve('implicit', '円'); await field('方程式（例：x^2 + y^2 = 9）', 'x^2+y^2=9');
@@ -62,7 +63,7 @@ let browser;
   xy = await pointXY((await doc()).annotations.at(-1).id); assert(Math.abs(xy[0] - .5) < 1e-10 && Math.abs(xy[1] - Math.sqrt(2)) < 1e-10);
   await addAnnotation('補助線'); await field('名前', '縦線'); await field('座標の値', 'a'); await submit();
   assert.equal((await doc()).annotations.at(-1).value, 'a');
-  await curves().first().click(); await more('この曲線の接線'); await field('名前', '接線A'); await field('接点の x 座標', '1'); await submit();
+  await curves().first().click(); await addQuickTangent(1);
   await page.locator('#add-function').click(); await field('名前', '直線'); await field('数式（例：y = a*x^2）', 'x+2'); await submit();
   await addAnnotation('交点'); await field('名前', '交点A'); const functionIds=(await doc()).series.filter(s=>s.kind==='function').map(s=>s.id); await page.getByLabel('1つ目の対象', { exact:true }).selectOption('series:'+functionIds[0]); await page.getByLabel('2つ目の対象', { exact:true }).selectOption('series:'+functionIds.at(-1)); await submit();
   const intersectionId = (await doc()).annotations.at(-1).id;

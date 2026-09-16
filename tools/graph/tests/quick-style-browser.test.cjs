@@ -29,6 +29,7 @@ let browser, page;
   const submit = async () => { await page.locator('#dialog-submit').click(); await settle(); };
   const fill = (label, value) => dialog.getByLabel(label, { exact: true }).fill(String(value));
   const annotation = id => page.evaluate(id => GraphEditor.getDocument().annotations.find(a => a.id === id), id);
+  const addQuickTangent = async (at) => { await action('この曲線の接線').click(); const panel=page.locator('#tangent-quick-panel'); await panel.getByLabel(/^接点の .+ 座標$/).fill(String(at)); await panel.getByRole('button',{name:'接線を追加',exact:true}).click(); await settle(); };
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
   const series = (await doc()).series[0].id;
   await item(series).click(); assert.equal(await bar.locator('.quick-color').count(), 6);
@@ -62,8 +63,7 @@ let browser, page;
   await action('削除').click(); await settle();
   // Reproduce decimal derivatives from the supplied screenshots with actual formulas.
   await item(series).dblclick(); await fill('名前', '放物線'); await fill('数式（例：y = a*x^2）', '0.9*x^2-1.2'); await submit();
-  await action('この曲線の接線').click(); await fill('名前', '接線 1'); await fill('接点の x 座標', '2');
-  assert.equal(await dialog.getByLabel('接線の方程式', { exact: true }).innerText(), 'y ≈ 3.6x − 4.8'); await submit();
+  await addQuickTangent(2);
   const tangent = (await doc()).annotations.at(-1).id;
   assert.equal(await page.locator('[data-tangent-equation="' + tangent + '"]').innerText(), 'y ≈ 3.6x − 4.8');
   await action('文字・配置').click(); assert(!await dialog.isVisible());
@@ -77,7 +77,7 @@ let browser, page;
   // Changing the selected object cannot send old controls to the previous object.
   await item(series).click(); assert.equal(await page.locator('#selection-label').count(), 0); await color('#2563eb').click(); await settle(); assert.equal((await annotation(tangent)).style.color, '#dc2626');
   await page.locator('#add-function').click(); await fill('名前', '一次関数'); await fill('数式（例：y = a*x^2）', '0.9*x+0.6'); await submit();
-  await action('この曲線の接線').click(); await fill('名前', '接線 2'); await fill('接点の x 座標', '-0.75'); await submit();
+  await addQuickTangent(-0.75);
   const tangent2 = (await doc()).annotations.at(-1).id;
   assert.equal(await page.locator('[data-tangent-equation="' + tangent2 + '"]').innerText(), 'y ≈ 0.9x + 0.6');
   const beforeDisplay = await doc();

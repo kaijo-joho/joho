@@ -31,6 +31,7 @@ let browser, page;
   const results = id => page.evaluate(id => { const d = GraphEditor.getDocument(); return GraphAnnotations.evaluate(d.annotations.find(a => a.id === id), d); }, id);
   const labels = () => page.evaluate(() => document.querySelector('#plot').layout.annotations.map(a => a.text));
   const undo = async () => { await page.locator('#undo').click(); await settle(); };
+  const addQuickTangent = async (name,at) => { await page.locator('#add-tangent').click(); const panel=page.locator('#tangent-quick-panel'); await panel.getByLabel(/^接点の .+ 座標$/).fill(String(at)); assert((await panel.getByLabel('接線の方程式',{exact:true}).innerText()).includes('≈')); await panel.getByRole('button',{name:'接線を追加',exact:true}).click(); await settle(); assert.equal((await doc()).annotations.at(-1).showEquation,true); await action('位置・設定').click(); await fill('名前',name); await submit(); };
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
   assert.equal(await page.locator('#annotation-tools button').count(), 6);
   assert.equal(await page.getByRole('button', { name: '接線どうしの交点を追加', exact: true }).count(), 0);
@@ -44,14 +45,7 @@ let browser, page;
   await item(seriesId).dblclick(); await page.locator('#editor-dialog[open]').waitFor();
   await fill('名前', '放物線'); await fill('数式（例：y = a*x^2）', 'a*x^2'); await submit();
   await page.locator('#stage').focus(); await page.keyboard.press('Enter'); await page.locator('#editor-dialog[open]').waitFor(); await page.locator('#dialog-cancel').click();
-  for (const [name, at] of [['T＋', 1], ['T−', -1]]) {
-    await page.locator('#add-tangent').click();
-    assert.equal(await page.locator('#dialog-title').innerText(), '追加：接線', 'one click opens the tangent form');
-    await fill('名前', name); await fill('接点の x 座標', at);
-    assert((await page.getByLabel('接線の方程式', { exact: true }).innerText()).includes('≈'));
-    assert(await page.getByLabel('接線の方程式を図に表示', { exact: true }).isChecked());
-    await submit();
-  }
+  for (const [name, at] of [['T＋', 1], ['T−', -1]]) await addQuickTangent(name,at);
   let document = await doc(); const [plus, minus] = document.annotations.filter(a => a.kind === 'tangent').map(a => a.id);
   assert((await equation(plus).innerText()).includes('2x'));
   assert((await labels()).some(t => t.includes('T＋') && t.includes('≈')));
@@ -129,6 +123,8 @@ let browser, page;
   await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.locator('#operation-help:visible').waitFor(); await page.keyboard.press('Escape');
   // Existing v3 tangents keep their old diagram appearance and all endpoint references.
   const legacy = structuredClone(saved); legacy.version = 3;
+  const remainingIntersection = legacy.annotations.find(a => a.kind === 'intersection' && a.id !== mixed);
+  assert.equal(remainingIntersection, undefined, 'v3 fixture must not retain a second typed intersection');
   legacy.annotations = legacy.annotations.filter(a => a.id !== mixed);
   for (const a of legacy.annotations) delete a.showEquation;
   await page.setInputFiles('#file-input', { name: 'old-v3.graph.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy)) }); await settle();

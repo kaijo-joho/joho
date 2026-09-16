@@ -9,9 +9,9 @@
   const kindNames = {function:'2D 数式',implicit:'陰関数',parametric:'媒介変数',polar:'極座標',surface:'3D 曲面',data2d:'2D 数表',data3d:'3D 数表'};
   const annotationNames = {point:'点',guide:'補助線',tangent:'接線',intersection:'交点',tangentIntersection:'交点',segment:'線分・矢印',text:'文字'};
   const curveKinds = ['function','parametric','polar'];
-  let history, store, localAuto, help, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey;
-  let drawPending = false, drawing = false, exportBusy = false, fileBusy = false, toastTimer, saveTimer;
-  let parameterPreview = null, gesture = null, selectionPanel = null;
+  let history, store, localAuto, help, tooltip, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey;
+  let drawPending = false, drawing = false, drawTask = Promise.resolve(), exportBusy = false, fileBusy = false, toastTimer, saveTimer;
+  let parameterPreview = null, gesture = null, selectionPanel = null, tangentDraft = null, tangentHoverTimer;
   const templates = typeof GraphTemplates.list === 'function' ? GraphTemplates.list() : C.clone(GraphTemplates.list);
   function node(tag, text, attrs) { const el = document.createElement(tag); if (text != null) el.textContent = text; for (const [k,v] of Object.entries(attrs || {})) el.setAttribute(k,v); return el; }
   function button(text, action, attrs) { const el = node('button',text,Object.assign({type:'button'},attrs)); el.addEventListener('click',event=>run(()=>action(event))); return el; }
@@ -41,7 +41,7 @@
     if (localAuto?.active) localAuto.schedule(current());
   }
   function changed(mutator, message, draw=true, rebuildToolbar=true) {
-    cancelGesture(); parameterPreview=null; history.change(mutator);if(rebuildToolbar){updateList();updateToolbar();}updateHeader(); persistSoon(); if(draw) requestDraw(); if(message) notify(message);
+    cancelTangentDraft();cancelGesture(); parameterPreview=null; history.change(mutator);if(rebuildToolbar){updateList();updateToolbar();}updateHeader(); persistSoon(); if(draw) requestDraw(); if(message) notify(message);
   }
   function updateHeader() {
     $('document-name').textContent=current().name || '無題のグラフ';
@@ -102,15 +102,16 @@
   }
   function cancelParameterPreview() { if(!parameterPreview)return;parameterPreview=null;updateParameters();updateTangentEquations(current());requestDraw(); }
   function setListOpen(open) { $('objects').classList.toggle('is-open',open); $('list-toggle').setAttribute('aria-expanded',String(open)); }
-  function select(value) { cancelParameterPreview();selected=value;for(const item of document.querySelectorAll('[data-object-id]'))item.setAttribute('aria-pressed',String(item.dataset.objectType===selected?.type&&item.dataset.objectId===selected?.id));for(const row of $('parameter-list').children)row.querySelector('.parameter-name').setAttribute('aria-pressed',String(selected?.type==='parameter'&&row.dataset.parameter===selected.name));updateToolbar();if(matchMedia('(max-width:850px)').matches) setListOpen(false); }
+  function select(value) { cancelTangentDraft();cancelParameterPreview();selected=value;for(const item of document.querySelectorAll('[data-object-id]'))item.setAttribute('aria-pressed',String(item.dataset.objectType===selected?.type&&item.dataset.objectId===selected?.id));for(const row of $('parameter-list').children)row.querySelector('.parameter-name').setAttribute('aria-pressed',String(selected?.type==='parameter'&&row.dataset.parameter===selected.name));updateToolbar();if(matchMedia('(max-width:850px)').matches) setListOpen(false); }
   function updateToolbar() {
+    cancelTangentDraft();
     const bar=$('selection-toolbar'),focused=bar.contains(document.activeElement)?document.activeElement.dataset.quickControl:null,scroll=bar.scrollTop;
     const s=activeSeries(), p=activeParameter(), a=activeAnnotation(),key=s?'series:'+s.id:a?'annotation:'+a.id:p?'parameter:'+p.name:'';
     if(bar.dataset.selectionKey!==key)selectionPanel=null;bar.dataset.selectionKey=key;bar.replaceChildren();bar.hidden=!s&&!p&&!a;bar.classList.toggle('has-colors',!!(s||a));
     if(s) {
       bar.append(node('span',s.name||kindNames[s.kind],{class:'selection-name'}),iconButton('edit',s.kind.startsWith('data')?'数表・出典':'数式・範囲',()=>editSeries(s.id)),selectionPanelButton('style','palette','色・線'));
       if(current().mode==='2d'&&curveKinds.includes(s.kind))bar.append(iconButton('point','この曲線上に点',()=>addAnnotation('point',s.id)));
-      if(current().mode==='2d'&&s.kind==='function')bar.append(iconButton('tangent','この曲線の接線',()=>addAnnotation('tangent',s.id)),iconButton('intersection','この曲線との交点',()=>addAnnotation('intersection','series:'+s.id)));
+      if(current().mode==='2d'&&s.kind==='function'){const tangent=iconButton('tangent','この曲線の接線',()=>{},{'data-quick-control':'add-tangent'});bindTangentTrigger(tangent,s.id);bar.append(tangent,iconButton('intersection','この曲線との交点',()=>addAnnotation('intersection','series:'+s.id)));}
       bar.append(iconButton(s.visible?'hide':'show',s.visible?'非表示にする':'表示する',()=>changed(d=>{d.series.find(x=>x.id===s.id).visible=!s.visible;})),iconButton('copy','複製',()=>{const next=C.clone(current().series.find(x=>x.id===s.id));next.id=C.uid();next.name=(next.name||kindNames[next.kind])+' のコピー';changed(d=>d.series.push(next));select({type:'series',id:next.id});}),iconButton('trash','削除',()=>removeSeries(s.id)));
       const more=node('div');
       if(s.kind.startsWith('data')) more.append(button('数値をCSVで保存',()=>download(C.tableCSV(s.rows,(s.kind==='data3d'?['x','y','z']:['x','y']).map(symbol)),filename(s.name||'数表')+'.csv','text/csv;charset=utf-8')));
@@ -133,6 +134,64 @@
     if(focused)bar.querySelector('[data-quick-control="'+CSS.escape(focused)+'"]')?.focus({preventScroll:true});bar.scrollTop=scroll;
   }
   function selectionPanelButton(panel,icon,label) { return iconButton(icon,label,()=>{selectionPanel=selectionPanel===panel?null:panel;updateToolbar();},{'aria-expanded':String(selectionPanel===panel),...(selectionPanel===panel?{'aria-controls':'selection-'+panel}:{}),'data-quick-control':'toggle-'+panel}); }
+  function bindTangentTrigger(trigger,seriesId) {
+    trigger.setAttribute('aria-controls','tangent-quick-panel');trigger.setAttribute('aria-expanded','false');
+    trigger.addEventListener('click',()=>run(()=>openQuickTangent(trigger,seriesId,true)));
+    trigger.addEventListener('pointerenter',event=>{
+      if(event.pointerType!=='mouse'||trigger.disabled)return;clearTimeout(tangentHoverTimer);
+      tangentHoverTimer=setTimeout(()=>{if(trigger.isConnected&&!$('editor-dialog').open&&!$('tangent-quick-panel').contains(document.activeElement)&&current().series.some(s=>s.kind==='function'))run(()=>openQuickTangent(trigger,seriesId,false));},180);
+    });
+    trigger.addEventListener('pointerleave',()=>clearTimeout(tangentHoverTimer));
+  }
+  function cancelTangentDraft(restoreFocus=false) {
+    clearTimeout(tangentHoverTimer);const previous=tangentDraft;if(!previous)return;
+    tangentDraft=null;$('tangent-quick-panel').hidden=true;previous.opener.setAttribute('aria-expanded','false');requestDraw();
+    if(restoreFocus){if(previous.opener.isConnected&&previous.opener.getBoundingClientRect().width)previous.opener.focus({preventScroll:true});else $('stage').focus({preventScroll:true});}
+  }
+  function positionQuickTangent() {
+    if(!tangentDraft)return;const panel=$('tangent-quick-panel'),openerBounds=tangentDraft.opener.getBoundingClientRect(),anchor=openerBounds.width?openerBounds:document.querySelector('.stage-heading').getBoundingClientRect(),viewport=window.visualViewport;
+    const left=viewport?.offsetLeft||0,top=viewport?.offsetTop||0,width=viewport?.width||innerWidth,height=viewport?.height||innerHeight;
+    panel.style.maxHeight=Math.max(120,height-16)+'px';const bounds=panel.getBoundingClientRect();
+    panel.style.left=Math.max(left+8,Math.min(anchor.left,left+width-bounds.width-8))+'px';
+    const below=anchor.bottom+6,above=anchor.top-bounds.height-6;
+    panel.style.top=Math.max(top+8,Math.min(below+bounds.height<=top+height-8?below:above,top+height-bounds.height-8))+'px';
+  }
+  function openQuickTangent(opener,seriesId,focus) {
+    clearTimeout(tangentHoverTimer);if(current().mode!=='2d'||$('editor-dialog').open||exportBusy)return;
+    if(tangentDraft?.opener===opener){if(focus){const input=$('tangent-quick-at');input.focus();input.select();}return;}
+    const functions=current().series.filter(s=>s.kind==='function'),source=functions.find(s=>s.id===(seriesId||activeSeries()?.id))||functions[0];
+    if(!source)throw new Error('接線を追加するには、先に2Dの数式 y = f(x) を追加してください。');
+    cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus();tooltip?.hide();if(matchMedia('(max-width:850px)').matches)setListOpen(false);
+    const annotation=C.createAnnotation('tangent');annotation.name='接線 '+(current().annotations.length+1);annotation.seriesId=source.id;
+    annotation.at=String(source.domain.x[0]<0&&source.domain.x[1]>0?0:(source.domain.x[0]+source.domain.x[1])/2);
+    const panel=$('tangent-quick-panel');panel.replaceChildren();panel.hidden=false;tangentDraft={annotation,opener,valid:false};opener.setAttribute('aria-expanded','true');
+    const heading=node('div',null,{class:'quick-tangent-heading'});heading.append(node('strong','接線を追加'),iconButton('close','接線の追加を閉じる',()=>cancelTangentDraft(true)));panel.append(heading);
+    let sourceInput;if(functions.length>1){sourceInput=choice(panel,'対象の数式',source.id,functions.map(s=>[s.id,s.name||display(s.expression,'function')]));sourceInput.addEventListener('change',refresh);}
+    else panel.append(node('p',source.name||display(source.expression,'function'),{class:'small muted quick-tangent-source'}));
+    const at=field(panel,'接点の '+symbol('x')+' 座標',display(annotation.at),'text',{id:'tangent-quick-at',maxlength:1000,spellcheck:'false',autocapitalize:'none',autocomplete:'off','aria-describedby':'tangent-quick-hint tangent-quick-equation'});
+    const equation=node('output',null,{id:'tangent-quick-equation',class:'equation-preview','aria-label':'接線の方程式'});
+    const hint=node('p','プレビュー中 · Enterで追加、Escで取り消し',{id:'tangent-quick-hint',class:'small muted'});
+    const add=button('接線を追加',commit,{class:'primary full-button'});panel.append(equation,hint,add);
+    function refresh() {
+      if(!tangentDraft||tangentDraft.annotation!==annotation)return;
+      tangentDraft.valid=false;
+      try{
+        if(!at.value.trim())throw new Error('接点の座標を入力してください。');
+        annotation.seriesId=sourceInput?.value||source.id;annotation.at=canonical(at.value);
+        const result=GraphAnnotations.tangentEquation(annotation,current());if(!result.text)throw new Error(result.warning);
+        if(current().annotations.length>=100)throw new Error('注釈は100個まで追加できます。');
+        equation.textContent=result.text;tangentDraft.valid=true;
+      }catch(error){equation.textContent=error.message;}
+      add.disabled=!tangentDraft.valid;at.setAttribute('aria-invalid',String(!tangentDraft.valid));equation.classList.toggle('error',!tangentDraft.valid);positionQuickTangent();requestDraw();
+    }
+    function commit() {
+      refresh();if(!tangentDraft?.valid)return;const added=C.clone(annotation),next=C.clone(current());next.annotations.push(added);
+      C.validateDocument(next);changed(d=>d.annotations.push(added));select({type:'annotation',id:added.id});
+      $('selection-toolbar').querySelector('[aria-label="位置・設定"]')?.focus({preventScroll:true});
+    }
+    at.addEventListener('input',refresh);at.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229&&!event.metaKey&&!event.ctrlKey&&!event.altKey){event.preventDefault();run(commit);}});
+    refresh();if(focus){at.focus({preventScroll:true});at.select();}
+  }
   function quickChange(type,id,mutator) { try{changed(d=>{const object=d[type==='series'?'series':'annotations'].find(x=>x.id===id);if(!object)throw new Error('対象が見つかりません。');mutator(object);},null,true,false);}finally{refreshQuickControls();} }
   function refreshQuickControls() {
     const target=activeSeries()||activeAnnotation();if(!target)return;
@@ -171,11 +230,14 @@
   function removeSeries(id) { changed(d=>C.removeSeries(d,id),'曲線と、それを参照する点・補助線を削除しました。元に戻せます。');select(null); }
   function removeAnnotation(id) { changed(d=>C.removeAnnotation(d,id),'参照する線分・交点も一緒に削除しました。元に戻せます。');select(null); }
   function setParameter(name,value) { try{changed(d=>{d.parameters.find(p=>p.name===name).value=value;});}catch(error){parameterPreview=null;updateParameters();updateTangentEquations(current());requestDraw();throw error;} }
-  async function requestDraw() {
-    if(!history)return;drawPending=true;if(exportBusy||drawing)return;drawing=true;
+  function requestDraw() {
+    if(!history)return Promise.resolve();drawPending=true;if(exportBusy||drawing)return drawTask;drawing=true;drawTask=drawPlot();return drawTask;
+  }
+  async function drawPlot() {
     try { while(drawPending) { drawPending=false; const doc=C.clone(gesture?.preview||current()); if(parameterPreview){const p=doc.parameters.find(x=>x.name===parameterPreview.name);if(p)p.value=parameterPreview.value;}
+      if(tangentDraft?.valid){const preview=C.clone(tangentDraft.annotation);preview.name='接線（プレビュー）';preview.style.opacity=.65;doc.annotations.push(preview);}
       updateTangentEquations(doc);
-      try { const result=await P.render($('plot'),doc,{dark:isDark(),camera,onSelect:id=>select({type:'series',id}),onAnnotationSelect:id=>select({type:'annotation',id}),onViewChange:view=>{
+      try { const result=await P.render($('plot'),doc,{dark:isDark(),camera,onSelect:id=>select({type:'series',id}),onAnnotationSelect:id=>{if(current().annotations.some(a=>a.id===id))select({type:'annotation',id});},onViewChange:view=>{
         if(drawing||parameterPreview||gesture)return; if(view.camera)camera=view.camera;
         if(view.axes){const next=C.clone(current());let modified=false;for(const key of ['x','y','z'])if(view.axes[key]&&Number.isFinite(view.axes[key].min)&&Number.isFinite(view.axes[key].max)){for(const part of ['min','max'])if(next.axes[key][part]!==view.axes[key][part]){next.axes[key][part]=view.axes[key][part];modified=true;}}
           if(modified)run(()=>{history.replace(next);updateHeader();persistSoon();requestDraw();});}
@@ -227,9 +289,9 @@
     if(finished.moved)run(()=>changed(d=>Object.assign(d,finished.preview)));
   }
   function switchMode(mode) { changed(d=>{d.mode=mode;}); select(null); camera=undefined; }
-  function undo(redo=false) { cancelGesture();parameterPreview=null; if(redo)history.redo();else history.undo(); selected=null;camera=undefined;updateHeader();updateList();updateToolbar();persistSoon();requestDraw(); }
+  function undo(redo=false) { cancelTangentDraft();cancelGesture();parameterPreview=null; if(redo)history.redo();else history.undo(); selected=null;camera=undefined;updateHeader();updateList();updateToolbar();persistSoon();requestDraw(); }
   function openDialog(title, build, onApply, submit='適用') {
-    cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=document.activeElement;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
+    cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=document.activeElement;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
     $('dialog-title').textContent=title;$('dialog-content').replaceChildren();$('dialog-error').hidden=true;$('dialog-submit').hidden=!onApply;$('dialog-submit').textContent=submit;
     $('dialog-cancel').textContent=onApply?'キャンセル':'閉じる';build($('dialog-content'));$('editor-dialog').showModal();
     const focus=$('dialog-content').querySelector('input,textarea,select,button');if(focus)focus.focus();
@@ -297,9 +359,7 @@
   }
   function addAnnotation(kind,seriesId) {
     const a=C.createAnnotation(kind);a.name=annotationNames[kind]+' '+(current().annotations.length+1);
-    const functions=current().series.filter(s=>s.kind==='function');
     if(kind==='point'&&seriesId){const s=current().series.find(s=>s.id===seriesId);a.anchor={type:'curve',seriesId,at:String(s.kind==='function'?Math.max(s.domain.x[0],Math.min(0,s.domain.x[1])):s.interval[0])};}
-    if(kind==='tangent'){const s=functions.find(s=>s.id===seriesId)||functions[0];if(!s)throw new Error('接線を追加するには、先に2Dの数式 y = f(x) を追加してください。');a.seriesId=s.id;a.at=String(Math.max(s.domain.x[0],Math.min(0,s.domain.x[1])));}
     if(kind==='intersection'){const sources=intersectionSources();if(sources.length<2)throw new Error('交点には、先に数式・接線を合わせて2つ以上登録してください。');const first=sources.find(s=>s[0]===seriesId)?.[0]||sources[0][0],type=first.split(':')[0],second=sources.find(s=>s[0]!==first&&s[0].startsWith(type+':'))||sources.find(s=>s[0]!==first);configureIntersection(a,[first,second[0]],[current().axes.x.min,current().axes.x.max]);}
     if(kind==='segment'){a.from=seriesId||'';a.style.dash='solid';}
     if(kind==='text'){a.text='説明';a.label.dx=0;a.label.dy=0;}
@@ -411,7 +471,7 @@
   function filename(name) {return (name||'グラフ').replace(/[\x00-\x1f<>:"/\\|?*]/g,'_').slice(0,100);}
   function download(content,name,type) {const blob=content instanceof Blob?content:new Blob([content],{type:type||'application/json'}),url=URL.createObjectURL(blob),a=node('a',null,{href:url,download:name});document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),30000);}
   function encode(doc) {return JSON.stringify(C.validateDocument(doc),null,2);}
-  function saveBrowser() {if(!store)throw new Error('ブラウザ保存を利用できません。ファイルに保存してください。');store.save('saved',current());closeMenus();status('ブラウザに明示保存済み');notify('明示保存しました。自動保存とは別に残ります。');}
+  function saveBrowser() {cancelTangentDraft();if(!store)throw new Error('ブラウザ保存を利用できません。ファイルに保存してください。');store.save('saved',current());closeMenus();status('ブラウザに明示保存済み');notify('明示保存しました。自動保存とは別に残ります。');}
   async function saveLocal() {
     if(fileBusy)return;fileBusy=true;closeMenus();const doc=C.clone(current());
     try{if(!window.showSaveFilePicker){download(encode(doc),filename(doc.name)+'.graph.json');notify('再編集用ファイルをダウンロードしました。');return;}
@@ -434,7 +494,7 @@
     },null);
   }
   async function exportImage() {
-    if(exportBusy||drawing)throw new Error('描画が完了してから書き出してください。');exportBusy=true;$('export-image').disabled=true;
+    if(exportBusy)return;cancelTangentDraft();await requestDraw();if(exportBusy)return;exportBusy=true;$('export-image').disabled=true;
     try{const format=$('export-format').value,url=await P.exportImage($('plot'),{format,scale:Number($('export-scale').value),background:$('export-background').value});const a=node('a',null,{href:url,download:filename(current().name)+'.'+format});document.body.append(a);a.click();a.remove();notify('画像を書き出しました。');}
     finally{exportBusy=false;$('export-image').disabled=false;if(drawPending)requestDraw();}
   }
@@ -452,9 +512,9 @@
     $('plot').addEventListener('lostpointercapture',cancelGesture);
     listen('add-function','click',()=>addSeries());listen('add-data','click',()=>addSeries(true));listen('add-parameter','click',()=>editParameter());
     for(const kind of ['implicit','parametric','polar'])listen('add-'+kind,'click',()=>addCurve(kind));
-    for(const kind of ['point','segment','tangent','intersection','text','guide'])listen('add-'+kind,'click',()=>addAnnotation(kind));
+    for(const kind of ['point','segment','intersection','text','guide'])listen('add-'+kind,'click',()=>addAnnotation(kind));bindTangentTrigger($('add-tangent'));
     for(const el of document.querySelectorAll('[data-icon]'))el.prepend(GraphIcons.create(el.dataset.icon,document));
-    try{JohoUI.tooltip();}catch(_){}
+    try{tooltip=JohoUI.tooltip();}catch(_){}
     listen('mode-2d','click',()=>switchMode('2d'));listen('mode-3d','click',()=>switchMode('3d'));
     for(const id of ['undo','undo-menu'])listen(id,'click',()=>{closeMenus();undo();});for(const id of ['redo','redo-menu'])listen(id,'click',()=>{closeMenus();undo(true);});
     for(const id of ['axes-button','axes-menu'])listen(id,'click',editAxes);for(const id of ['reset-view','fit-button'])listen(id,'click',()=>{closeMenus();fitView();});
@@ -469,10 +529,13 @@
     $('editor-dialog').addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
     $('dialog-form').addEventListener('submit',event=>{event.preventDefault();$('dialog-error').hidden=true;try{if(dialogApply){dialogApply();closeDialog();}}catch(error){report(error);}});
     for(const menu of document.querySelectorAll('.top details'))menu.addEventListener('toggle',()=>{if(menu.open)for(const other of document.querySelectorAll('.top details'))if(other!==menu)other.open=false;});
-    document.addEventListener('pointerdown',event=>{if(!event.target.closest('.top .menu'))closeMenus();});
+    document.addEventListener('pointerdown',event=>{if(!event.target.closest('.top .menu'))closeMenus();if(tangentDraft&&!$('tangent-quick-panel').contains(event.target)&&!tangentDraft.opener.contains(event.target))cancelTangentDraft();},true);
+    document.addEventListener('focusin',event=>{if(tangentDraft&&!$('tangent-quick-panel').contains(event.target)&&!tangentDraft.opener.contains(event.target))cancelTangentDraft();});
+    addEventListener('resize',positionQuickTangent);addEventListener('scroll',positionQuickTangent,true);window.visualViewport?.addEventListener('resize',positionQuickTangent);window.visualViewport?.addEventListener('scroll',positionQuickTangent);
     document.addEventListener('keydown',event=>{
       if(event.isComposing||event.keyCode===229)return;if(help?.root?.contains(event.target)||$('operation-help').contains(event.target))return;
       const input=event.target.closest('input,textarea,select,[contenteditable="true"]');if($('editor-dialog').open)return;
+      if(event.key==='Escape'&&tangentDraft){cancelTangentDraft(true);event.preventDefault();return;}
       if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'){event.preventDefault();run(saveBrowser);return;}if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='o'){event.preventDefault();showSaved();return;}
       if(event.key==='Escape'&&parameterPreview){cancelParameterPreview();event.preventDefault();return;}
       if(event.key==='Escape'&&selectionPanel&&$('selection-toolbar').contains(event.target)){const panel=selectionPanel;selectionPanel=null;updateToolbar();$('selection-toolbar').querySelector('[data-quick-control="toggle-'+panel+'"]')?.focus();event.preventDefault();return;}

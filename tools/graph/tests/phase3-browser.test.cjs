@@ -29,6 +29,7 @@ let browser, page;
   const annotationButton = { '点':'#add-point', '補助線':'#add-guide', '接線':'#add-tangent', '交点':'#add-intersection', '線分・矢印':'#add-segment', '文字':'#add-text' };
   const add = async name => { await page.locator(annotationButton[name]).click(); };
   const more = async name => { await page.getByRole('button', { name, exact: true }).click(); };
+  const addQuickTangent = async (name,at) => { await page.locator('#add-tangent').click(); const panel=page.locator('#tangent-quick-panel'); await panel.getByLabel(/^接点の .+ 座標$/).fill(String(at)); await panel.getByRole('button',{name:'接線を追加',exact:true}).click(); await settle(); await page.getByRole('button',{name:'位置・設定',exact:true}).click(); await fill('名前',name); await submit(); };
   const axes = key => page.locator('[data-axis="' + key + '"]');
   const screen = point => page.evaluate(point => GraphPlot.screenPoint(document.querySelector('#plot'), point), point);
   async function drag(from, to, cancel = false) {
@@ -96,7 +97,7 @@ let browser, page;
   await drag([textBox.x + 20, textBox.y + 10], [textBox.x + 45, textBox.y + 30]);
   assert.notEqual((await doc()).annotations.find(a => a.id === textId).anchor.x, '-3');
   // Tangents are treated as infinite straight lines, independent of visible clipping.
-  for (const [name, at] of [['接線A', -1], ['接線B', 1]]) { await add('接線'); await fill('名前', name); await fill('接点の x 座標', at); await submit(); }
+  for (const [name, at] of [['接線A', -1], ['接線B', 1]]) await addQuickTangent(name,at);
   await add('交点'); await fill('名前', 'T'); const tangentIds=(await doc()).annotations.filter(a=>a.kind==='tangent').slice(-2).map(a=>a.id); await page.getByLabel('1つ目の対象', { exact:true }).selectOption('tangent:'+tangentIds[0]); await page.getByLabel('2つ目の対象', { exact:true }).selectOption('tangent:'+tangentIds[1]); await submit();
   const tId = (await doc()).annotations.at(-1).id;
   const xy = await page.evaluate(id => GraphAnnotations.evaluate(GraphEditor.getDocument().annotations.find(a => a.id === id), GraphEditor.getDocument()).points[0], tId);
