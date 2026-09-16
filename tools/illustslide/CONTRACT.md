@@ -1,6 +1,6 @@
-# イラストスライド illustSlideの内部契約（0.4.9）
+# イラストスライド illustSlideの内部契約（0.4.10）
 
-開発担当 Codex。現在は計画④まで実装。
+開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
 
 0.4.2から配置先は `tools/illustslide/`、保存名は `.illustslide.zip`。旧URLは案内ページを残し、旧 `.ilapo.zip`・保存キー・内部API・文書形式・SVG識別子は互換性を保つ。直接ファイル利用時のブラウザ保存は、旧ページでJSONとして取り出せる。
@@ -44,6 +44,20 @@ version4はmetadataの`text:{x,y,runs,layout}`で入力時の文章・揃え・�
 native ZIPでは`rawTransforms:true`も指定し、元のd・matrix・styleを各SVGへそのまま保持する。表示・通常SVG・PNG・PDF・発表はこの指定を使わない。外部アプリで線幅まで一致する持ち出しには通常のSVGを書き出す。
 
 外部SVGのパスはviewBoxを含む全変形から一様倍率を求め、線幅・破線長を作品座標へ正規化する。線がある非等方変形・せん断は明示的に拒否し、元の作品を置き換えない。`preserveCoordinates`のnative読込と`data-ilapo-page-id`を持つ旧版を含む自アプリSVGは保存済みの線幅をそのまま復元する。XML安全性検査はすべての場合で維持する。
+
+## アウトライン化（0.4.10）
+
+`IlapoStrokeOutline.path(path,options?)` は元オブジェクトを変更せず、作品座標の線を塗る通常の非ゼロ規則の複合パス文字列を返す。可視の輪郭がない場合はnull。Paper.jsの専用scopeを再利用する。曲線を線幅に応じて分割し、線端・角・破線を展開してBoolean unionで内部境界を除く。MAX_CURVES=2048、MAX_POINTS=4096、破線走査2048、結合部品2048、最終pathLength100000の制限を持つ。異常値・過大な分割は処理前または生成中にthrowする。
+
+`IlapoTextOutline.fonts()` は `{id,label}` の候補、`prepare('sans'|'serif')` は書体の読み込みPromise、`convert(text,{fontId})` は準備済み書体を使う同期処理で `{objects:[path],fontId,fontLabel,sourceKind,ownerId}` を返す。文字全体を1つの複合パスにまとめ、ローカル座標のdと元matrix/styleを返す。図形ラベルと接続ラベルも派生textとして受け取れる。未準備・欠字・空白のみ・上限超過はthrow。prepare失敗のPromiseをキャッシュに残さず再試行可能にする。
+
+opentype.js 1.3.4を同梱し、フォントは同じ配信元のWOFF1を必要時だけ取得する。フォントの固定版・ハッシュ・OFLはfonts/README.md。任意フォントのアップロードやOSフォントの取得は行わない。TextLayoutへ同梱書体のadvance幅を渡して揃え・折返しを計算し、通常の編集文字のgeneric fontFamilyは変更しない。変換用書体の差異をUIで明示する。字形は最大2000・d文字列は90000。斜体は基線周りのshear 0.2。
+
+`IlapoOutline.inspect(page,ids)` は変換可能な線・文字の数と固定・画像の有無を返す。`convertPage(page,ids,{lines,text,fontId})` はページを複製・検証してから選択グループ全体を処理し、`{page,ids,converted,warnings}` を返す。入力は変更しない。固定を含む選択、100オブジェクト超過、1件でも変換不能なら一括でthrow。新しい文書形式は追加しない。最初の生成物が元IDを継ぎ、他の部分に新ID、必要に応じて共通groupを付ける。半透明の塗りと線を分ける際は重なりを引き算して二重の不透明度を避ける。文字の線はローカルで輪郭化してから元matrixを適用し、パスの固定線幅とは区別する。
+
+接続矢印はrenderedPartsを通常の図形にする。移動・フェード・ワイプは生成物の全IDへ引き継ぐ。色の効果は元fill/strokeから生成物のfill/strokeへ対応付け、同じ動きが2つのchannelへ分かれる場合は後半をtrigger=with,delay=0として元の時刻を維持する。対象がなくなった色の動きは警告して解除する。分割した図形のフェードは重なり部分の合成が変わり得るため警告する。元IDへ接続する未変換矢印は接続先を保持し、座標系が変わった手動接続を再計算する。
+
+`IlapoOutlineUI.create(ctx).open()` は選択ポップアップから右インスペクタへ表示する。元ページ・選択ID・revision scopeとDOMアンカーを保持し、読み込み世代と選択書体の一致を確認してからプレビューする。閉じる・再度開く・対象/ページ/作品変更・リセット後に古いPromiseの結果を適用しない。プレビュー中は文書・履歴・保存を変えず、キャッシュ済みの変換結果を1回のchangePageで確定する。適用後は結果を選択しパネルを閉じる。
 
 ## IlapoGeometry (geometry.js)
 
