@@ -248,6 +248,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <label class="chk xt-row"><input type="checkbox" id="xtPlate">断面の面を表示</label>
         <button class="wide" id="xtFace" title="切り口が正面に見える向きにする">断面を正面に</button>
       </div>
+      <button class="wide" id="xtUncut" title="断面と「単位格子の面で原子を切る」をやめて、切る前の結晶に戻す">切る前の結晶に戻す</button>
     </div>
     <div class="group molOnly"><div class="gl">組み立て（H をクリックで置き換え）</div>
       <div class="grid4" id="addEls"></div>
@@ -374,7 +375,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <div class="body help" id="helpBody">
       <table>
         <tr><td>分子を表示する</td><td>左上の「化合物ライブラリ」（または画面右端のタブ）から化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
-        <tr><td>結晶格子</td><td>上部の「結晶」に切り替えると、結晶格子を表示します（体心立方格子・面心立方格子・六方最密構造・NaCl 型・CsCl 型・ZnS 型・CaF<sub>2</sub> 型・ダイヤモンド・二酸化ケイ素・黒鉛・ドライアイス・氷・フラーレン C<sub>60</sub> の結晶・カーボンナノチューブ）。フラーレン C<sub>60</sub> の分子は化合物ライブラリの「炭素の同素体」にあります。原子をクリックすると、まわりの最も近い粒子（分子結晶では分子）を強調して線で結び、画面下に数と距離を出します（並べた全体の端の原子は、外側がないので少なく見えます）。六方晶は「六角柱で表示」で六角柱の単位格子にできます。氷の水素結合は細い水色の線で表します（H の向きは氷の規則に合う一例）。左のパネルで種類と並べる単位格子の数を選び、「単位格子の面で原子を切る」で面からはみ出した部分を切ります（頂点の原子の 1/8 などが見えます）。「断面」では、3 つの整数 (h k l) で指定した面で切り、位置のスライダー（原子の中心が並ぶ面で一度止まります）と「断面を正面に」で切り口を見られます。「断面の面を表示」で切る面を半透明の板で示します。「原子を 3 つクリックして面を決める」を押して結晶の原子を 3 つクリックすると、その 3 つを通る面で切ることもできます（(h k l) を知らなくても断面を選べます）。たとえば面心立方格子を (1 1 1) で切ると最密の層が現れ、立方最密構造と同じであることが分かります。画面下に格子定数・単位格子中の原子の数・配位数・充填率が出ます。「分子」で分子の表示に戻ります。</td></tr>
+        <tr><td>結晶格子</td><td>上部の「結晶」に切り替えると、結晶格子を表示します（体心立方格子・面心立方格子・六方最密構造・NaCl 型・CsCl 型・ZnS 型・CaF<sub>2</sub> 型・ダイヤモンド・二酸化ケイ素・黒鉛・ドライアイス・氷・フラーレン C<sub>60</sub> の結晶・カーボンナノチューブ）。フラーレン C<sub>60</sub> の分子は化合物ライブラリの「炭素の同素体」にあります。原子をクリックすると、まわりの最も近い粒子（分子結晶では分子）を強調して線で結び、画面下に数と距離を出します（並べた全体の端の原子は、外側がないので少なく見えます）。六方晶は「六角柱で表示」で六角柱の単位格子にできます。氷の水素結合は細い水色の線で表します（H の向きは氷の規則に合う一例）。左のパネルで種類と並べる単位格子の数を選び、「単位格子の面で原子を切る」で面からはみ出した部分を切ります（頂点の原子の 1/8 などが見えます）。「断面」では、3 つの整数 (h k l) で指定した面で切り、位置のスライダー（原子の中心が並ぶ面で一度止まります）と「断面を正面に」で切り口を見られます。「断面の面を表示」で切る面を半透明の板で示します。「切る前の結晶に戻す」を押すと、断面も単位格子の面での切り取りもやめて、切る前の結晶に戻ります。「原子を 3 つクリックして面を決める」を押して結晶の原子を 3 つクリックすると、その 3 つを通る面で切ることもできます（(h k l) を知らなくても断面を選べます）。たとえば面心立方格子を (1 1 1) で切ると最密の層が現れ、立方最密構造と同じであることが分かります。画面下に格子定数・単位格子中の原子の数・配位数・充填率が出ます。「分子」で分子の表示に戻ります。</td></tr>
         <tr><td>構造式エディタから</td><td>構造式エディタで描いた分子を 3D にできます。化合物ライブラリの「構造式エディタの図を取り込む」を押すと、同じブラウザで開いている構造式エディタの図（自動保存されたもの）を取り込みます。構造式エディタで保存した .json ファイルは「開く」から取り込めます。くさび形・破線くさびの結合、ハースの投影式の上下、二重結合のシス・トランスは立体配置として取り込み、置換基のラベル（COOH・C<sub>2</sub>H<sub>5</sub>・Ph など）は原子に直します。R・X などの一般の記号や金属を含む構造は取り込めません。</td></tr>
         <tr><td>回す</td><td>ドラッグ、またはトラックパッドの 2 本指スクロール。矢印キーでも少しずつ回ります。<kbd>⌥/Alt</kbd>+ドラッグで、画面に垂直な軸（z 軸）のまわりに、画面の中で回します。</td></tr>
         <tr><td>移動・拡大</td><td><kbd>Shift</kbd>+ドラッグ（または右ドラッグ）で移動。<kbd>⌘/Ctrl</kbd>+ホイール・ピンチで拡大縮小。画面右下の「全体表示」(<kbd>F</kbd>)・「はじめの向き」(<kbd>R</kbd>)・− ＋ でも変えられます。</td></tr>
@@ -387,7 +388,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>形を整える</td><td>左の「形を整える」で、結合長・結合角・二重結合の平面・ねじれ（単結合はねじれ形、共役した結合は平面）・原子の重なりを考えた簡単な力場で、形を少しずつ整えます（簡易的な構造最適化。実際の分子の形とは少し違うことがあります）。分子を選んでいればその分子だけ、選んでいなければ全体が対象です。計測があるときは、先に値を保つ計測を選べます（標準の値から変えたものは最初からチェックされています）。途中でキャンバスをクリックすると止まります。R・S は変わりません。</td></tr>
         <tr><td>組み立て</td><td>左の「組み立て」で元素（C・N・O・S・F・Cl・Br・I）や官能基（OH・NH₂・CHO・COOH・NO₂・CN・C₆H₅・OCH₃・COCH₃）を選び、H をクリックすると、その H が置き換わります（H は価数に合わせて自動で付きます）。H 以外の原子をクリックすると、その原子の元素が変わります。結合のボタン（単・二重・三重）で結合をクリックすると結合の種類が変わり、消しゴム (<kbd>E</kbd>) で原子をクリックすると、その原子を消してあいた所に H を付けます（分子が切れたときは大きい方だけが残るので、官能基の付け根の原子を消すと官能基ごと消えます）。変更のたびに、結合長・結合角・二重結合の平面・原子の重なりを簡単に整えます（構造最適化ではないので、形はおおよそです）。</td></tr>
         <tr><td>不斉炭素・R/S</td><td>上部の「不斉炭素」で、4 つの異なる原子・原子団が結合した炭素をだいだい色の円で囲みます。「R/S」で R・S を表示します（CIP 順位規則。高校の範囲外の発展的な内容です。原子番号だけで順位を決めるので、まれに判定できないものがあります）。</td></tr>
-        <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。回転の中心は不斉炭素（青い十字の印）で、2 つ以上あるときは上に出るプルダウンで選べます。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。<br>分子をクリックして選ぶと、その分子だけを回したり（ドラッグ）、動かしたり（<kbd>Shift</kbd>+ドラッグ）できます。もう一方に近づけたり、鏡を通り越して重ねたりして、重ならないことを確かめられます。「鏡の位置に戻す」で元の鏡像の位置に戻ります。「鏡像に変える」でその分子だけを鏡像にもできます。</td></tr>
+        <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。回転の中心は不斉炭素（青い十字の印）で、2 つ以上あるときは上に出るプルダウンで選べます。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。<br>分子をクリックして選ぶと、その分子だけを回したり（ドラッグ）、動かしたり（<kbd>Shift</kbd>+ドラッグ）できます。もう一方に近づけたり、鏡を通り越して重ねたりして、重ならないことを確かめられます。「鏡の位置に戻す」で元の鏡像の位置に戻ります。「鏡像に変える」でその分子だけを鏡像にもできます。<br>鏡像体を並べているときに片方の分子を組み立てると（原子や官能基の置き換え・結合の変更・消しゴム）、もう一方も鏡像のまま同じように組み立てられます。</td></tr>
         <tr><td>選択・削除</td><td>分子をクリックで選択（何もないところをクリックで解除）。<kbd>Delete</kbd> で削除。</td></tr>
         <tr><td>元に戻す</td><td><kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd>、やり直し <kbd>⇧</kbd>+<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd></td></tr>
         <tr><td>保存・開く</td><td>上部左の保存ボタンで .json に保存し、開くボタンで開きます。ほかのソフトの .mol・.sdf・.xyz ファイルも開けます。表示している内容はブラウザに自動保存されます。</td></tr>
@@ -398,7 +399,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.10.1 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.11 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1859,7 +1860,13 @@ function buildScene(opt = {}){
     S.push(a.x, a.y, a.z, atomRadius(a), col[0], col[1], col[2], g);
   }
   if (state.mode !== 'spacefill'){
-    const nbOf = id => Object.values(doc.bonds).filter(b => b.a1 === id || b.a2 === id).map(b => b.a1 === id ? b.a2 : b.a1);
+    // 隣の原子と芳香族の結合を先に表にしておく（結合ごとに全部の結合を見ると、大きな分子で遅くなるため）
+    const adj = new Map(), aro = new Set();
+    for (const b of Object.values(doc.bonds)) for (const [p, q] of [[b.a1, b.a2], [b.a2, b.a1]]){
+      if (!adj.has(p)) adj.set(p, []);
+      adj.get(p).push(q); if (b.order === 1.5) aro.add(p + ':' + q);
+    }
+    const nbOf = id => adj.get(id) || [];
     const stick = STICK_R[state.mode];
     const half = (p, q, r, cp, cq) => { const m = V.mul(V.add(p, q), 0.5); Cy.push(...p, r, ...m, ...cp); Cy.push(...m, r, ...q, ...cq); };
     const capSphere = (p, r, c) => S.push(p[0], p[1], p[2], r, c[0], c[1], c[2], 0);
@@ -1882,7 +1889,7 @@ function buildScene(opt = {}){
       } else if (b.order === 1.5){
         half(p, q, stick, cp, cq);
         // 芳香族：環の内側に点線の棒
-        const inner = nbOf(A.id).find(j => j !== B.id && Object.values(doc.bonds).some(x => x.order === 1.5 && ((x.a1 === A.id && x.a2 === j) || (x.a2 === A.id && x.a1 === j))));
+        const inner = nbOf(A.id).find(j => j !== B.id && aro.has(A.id + ':' + j));
         let o = off;
         if (inner != null){ const r = doc.atoms[inner], rv = V.sub([r.x, r.y, r.z], p); o = V.norm(V.sub(rv, V.mul(ax, V.dot(rv, ax)))); }
         const dd = state.mode === 'stick' ? 0.3 : 0.2, rr = stick*0.5, L = V.dist(p, q);
@@ -1907,6 +1914,8 @@ function buildScene(opt = {}){
   }
   const planes = Object.values(doc.objs).filter(o => o.type === 'mirror');
   const pts = Object.values(doc.atoms).map(a => [a.x, a.y, a.z]);
+  // 鏡の四隅も入れる（全体表示と奥行きの範囲から鏡がはみ出さないように）
+  for (const o of planes) for (const [s, t] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) pts.push(V.add(o.c, V.add(V.mul(o.u, s*o.hu), V.mul(o.v, t*o.hv))));
   let bbox = null;
   if (pts.length){
     const mn = [0, 1, 2].map(k => Math.min(...pts.map(p => p[k]))), mx = [0, 1, 2].map(k => Math.max(...pts.map(p => p[k])));
@@ -2143,7 +2152,9 @@ function drawOverlay(c, W, H, forExport = false){
     c.font = '600 13px Arial, Helvetica, sans-serif';
     const w = c.measureText(text).width + 10, h = 19;
     c.fillStyle = bg; c.strokeStyle = col; c.lineWidth = 1.2;
-    c.beginPath(); c.roundRect(x - w/2, y - h/2, w, h, 5); c.fill(); c.stroke();
+    c.beginPath();
+    if (c.roundRect) c.roundRect(x - w/2, y - h/2, w, h, 5); else c.rect(x - w/2, y - h/2, w, h);   // roundRect のない古いブラウザでは角を丸めない
+    c.fill(); c.stroke();
     c.fillStyle = col; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(text, x, y + 0.5);
   };
   // 原子の記号
@@ -2297,9 +2308,9 @@ function compOf(id){ return info.comps.find(c => c.ids.includes(id))?.ids || [id
 const screenX = () => M3.apply(M3.tr(view.R), [1, 0, 0]);   // 画面の右向き（分子の座標で）
 
 // ---- 分子を置く（replace：いまの分子と入れ替え） ----
-function addMolecule(m, replace = true){
+function addMolecule(m, replace = true, record = true){
   if (state.world !== 'mol') setWorld('mol');
-  commit();
+  if (record) commit();   // record が false のときは、呼ぶ側でまとめて 1 回の「元に戻す」にする
   if (replace) { doc = emptyDoc(); view.R = M3.id(); sel = null; }
   // 組み立てた向き（画面に正対）のまま、いまの視点に合わせて置く。追加するときは右に並べる
   const Rt = M3.tr(view.R);
@@ -2643,18 +2654,42 @@ function eraseAtom(x){
   if (heavy.length && !rehydrogenate(heavy)) return '消せませんでした';
   for (const j of heavy) tidy(j);
 }
+// 鏡像体を並べているときの組み立て：組み立てる前に、組み立てる分子と鏡像の相手の分子を覚えておく
+function mirrorPairBefore(seed){
+  if (!mirrorObj() || seed == null || !doc.atoms[seed]) return null;
+  const p = partnerOf(seed); if (p == null) return null;
+  return {src:compOf(seed), dst:compOf(p), mir:!!doc.atoms[seed].mir};
+}
+// 組み立てたあと、相手の分子を鏡に映して作り直す（相手も鏡像のまま、同じように組み立てた形になる）
+function syncMirrorPair(pair){
+  if (!mirrorObj()) return false;
+  const m = mirrorH();
+  for (const id of pair.dst) if (doc.atoms[id]) deleteAtom(id);
+  const live = pair.src.filter(id => doc.atoms[id]);
+  const src = live.length ? (components().find(c => c.includes(live[0])) || live) : [];
+  const map = new Map();
+  for (const id of src){
+    const a = doc.atoms[id], q = m.S([a.x, a.y, a.z]), nid = doc.nid++;
+    doc.atoms[nid] = {...a, id:nid, x:q[0], y:q[1], z:q[2]}; map.set(id, nid);
+  }
+  for (const b of Object.values(doc.bonds)) if (map.has(b.a1) && map.has(b.a2)){ const id = doc.nid++; doc.bonds[id] = {...b, id, a1:map.get(b.a1), a2:map.get(b.a2)}; }
+  for (const [id, nid] of map){   // どちらが「鏡に映した方」かを付け直す（組み立てたのが鏡像側なら、映してできた方が元の分子）
+    const a = doc.atoms[id], n = doc.atoms[nid];
+    if (pair.mir) { a.mir = true; a.mirOf = nid; delete n.mir; delete n.mirOf; }
+    else { delete a.mir; delete a.mirOf; n.mir = true; n.mirOf = id; }
+  }
+  if (!Object.values(doc.atoms).some(a => a.mir)) for (const o of Object.values(doc.objs)) if (o.type === 'mirror') delete doc.objs[o.id];   // 鏡像がなくなったら鏡も消す
+  return map.size > 0;
+}
 // 変更を 1 回の「元に戻す」にまとめる。関数が文字列を返したら失敗として元に戻す（空文字列は何もしなかったとき）
-function editStructure(fn){
+// seed は組み立てる原子（鏡像の相手を作り直すのに使う。消しゴムで消えることもあるので、変更の前に覚えておく）
+function editStructure(fn, seed){
   const redo0 = hist.redo.slice();   // 失敗して元に戻すときは「やり直し」も元どおりにする
+  const pair = mirrorPairBefore(seed);
   commit();
   let msg; try { msg = fn(); } catch (err) { msg = '変更できませんでした：' + err.message; }
   if (typeof msg === 'string') { doc = JSON.parse(hist.undo.pop()); hist.redo = redo0; syncUndo(); if (msg) toast(msg); return; }
-  const mir = mirrorObj();   // 鏡像の相手は古い形のままなので、鏡像どうしの対応を解除する（分子は両方とも残す）
-  if (mir){
-    delete doc.objs[mir.id];
-    for (const a of Object.values(doc.atoms)) { delete a.mir; delete a.mirOf; }
-    toast('組み立てたので、鏡像どうしの対応を解除しました（分子は両方とも残ります）');
-  }
+  if (pair && syncMirrorPair(pair)) toast('鏡像の分子も同じように組み立てました');
   sel = null; hoverAtom = hoverBond = null; changed();
 }
 function bondAt(mx, my){   // 画面の点に近い結合（手前のもの）
@@ -2668,16 +2703,16 @@ function bondAt(mx, my){   // 画面の点に近い結合（手前のもの）
   return best && best.id;
 }
 function buildClick(hit, mx, my){
-  if (state.tool.startsWith('bond')){ const b = bondAt(mx, my); if (b != null) editStructure(() => setBondOrder(b, +state.tool.slice(4))); return; }
+  if (state.tool.startsWith('bond')){ const b = bondAt(mx, my); if (b != null) editStructure(() => setBondOrder(b, +state.tool.slice(4)), doc.bonds[b].a1); return; }
   if (hit == null) return;
   const a = doc.atoms[hit];
   if (state.tool === 'erase'){
     if (a.el === 'H') { toast('H は消せません（ほかの原子に置き換えるときは、組み立てのボタンで H をクリック）'); return; }
-    editStructure(() => eraseAtom(hit)); return;
+    editStructure(() => eraseAtom(hit), hit); return;
   }
   const what = state.addWhat, isEl = ADD_ELEMS.includes(what);
-  if (a.el === 'H') editStructure(() => attachGroup(hit, isEl ? what : ADD_GROUPS.find(g => g[0] === what)[1]));
-  else if (isEl) editStructure(() => changeElement(hit, what));
+  if (a.el === 'H') editStructure(() => attachGroup(hit, isEl ? what : ADD_GROUPS.find(g => g[0] === what)[1]), hit);
+  else if (isEl) editStructure(() => changeElement(hit, what), hit);
   else toast('官能基は、H をクリックして付けます');
 }
 $('addEls').innerHTML = ADD_ELEMS.map(el => `<button class="el" data-add="${el}" title="${el}：H をクリックすると ${el} に置き換え（H は自動で付く）。ほかの原子をクリックすると ${el} に変える">${el}</button>`).join('');
@@ -2711,6 +2746,7 @@ function syncXtal(){
   $('xtPick3').classList.toggle('on', xtPlaneMode);
   $('xtPick3').textContent = xtPlaneMode ? `原子を選んでいます（${xtPlanePick.length}/3）　押すとやめる` : '原子を 3 つクリックして面を決める';
   document.querySelectorAll('.xt-sec').forEach(e => { e.style.opacity = X.cut ? 1 : 0.45; });
+  $('xtUncut').disabled = !(X.cut || X.cellCut);   // 何も切っていなければ押せない
 }
 $('xtSel').innerHTML = [...new Set(XTALS.map(x => x.cat))].map(c => `<optgroup label="${c}">` + XTALS.filter(x => x.cat === c).map(x => `<option value="${x.key}">${x.name}</option>`).join('') + '</optgroup>').join('');
 document.querySelectorAll('#worldSeg button').forEach(b => b.addEventListener('click', () => { if (state.world !== b.dataset.world) setWorld(b.dataset.world); }));
@@ -2724,6 +2760,11 @@ $('xtCut').onchange = e => { state.xt.cut = e.target.checked; xtChanged(); };
 $('xtFlip').onchange = e => { state.xt.flip = e.target.checked; xtChanged(); };
 $('xtHex').onchange = e => { state.xt.hex = e.target.checked; xtChanged(true); };
 $('xtPlate').onchange = e => { state.xt.plate = e.target.checked; xtChanged(); };
+$('xtUncut').onclick = () => {   // 切る前の結晶に戻す（断面も、単位格子の面での切り取りもやめる）
+  Object.assign(state.xt, {cut:false, cellCut:false, flip:false, pn:null, t:0.5});
+  xtPlaneMode = false; xtPlanePick = [];
+  xtChanged(); updateHint(); toast('切る前の結晶に戻しました');
+};
 for (const k of ['h', 'k', 'l']) $('xt' + k.toUpperCase()).onchange = e => {
   if (state.xt.pn) { for (const q of ['h', 'k', 'l']) state.xt[q] = Math.round(+$('xt' + q.toUpperCase()).value) || 0; state.xt.pn = null; }   // (h k l) の指定に戻す
   state.xt[k] = Math.max(-4, Math.min(4, Math.round(+e.target.value) || 0)); state.xt.cut = true; xtChanged();
@@ -2962,7 +3003,8 @@ const endDrag = e => {
 };
 glc.addEventListener('pointerup', endDrag);
 glc.addEventListener('pointercancel', endDrag);
-glc.addEventListener('pointerleave', () => { if (hoverAtom != null) { hoverAtom = null; requestDraw(); } });
+glc.addEventListener('pointerleave', () => { if (hoverAtom != null || hoverBond != null) { hoverAtom = hoverBond = null; requestDraw(); } });
+window.addEventListener('blur', () => { spaceDown = false; });   // Space を押したままウィンドウの外に出ても、押しっぱなしにならないように
 function clickAction(hit, mx, my){
   if (state.world === 'xtal') { xtPickAt(mx, my); return; }
   if (state.tool === 'rotate'){ sel = hit != null ? new Set(compOf(hit)) : null; editMeas = null; renderInfo(); renderSel(); requestDraw(true); return; }
@@ -3052,7 +3094,8 @@ function importKouzoushiki(kd){
   const r = molsFromKouzoushiki(kd), built = [];
   for (const mol of r.mols){ try { built.push(moleculeFromGraph(mol)); } catch (e) { r.skipped.push('組み立てられませんでした：' + e.message); } }
   if (!built.length) { toast(r.skipped[0] || '取り込める分子がありません'); return; }
-  built.forEach((m, k) => addMolecule(m, k === 0));
+  commit();   // 何個取り込んでも「元に戻す」1 回で取り込む前に戻せるように
+  built.forEach((m, k) => addMolecule(m, k === 0, false));
   const msg = [`構造式エディタの図から ${built.length} 個の分子を取り込みました`];
   if (r.skipped.length) msg.push(`${r.skipped.length} 個は取り込めませんでした（${r.skipped[0]}）`);
   toast([...msg, ...r.notes].join('。'));
@@ -3070,7 +3113,7 @@ $('kzImport').onclick = () => {
 const SIDE_KEY = 'bunshi-side', SIDEW_KEY = 'bunshi-sidew';
 let sidePane = '';
 function openSide(p){
-  sidePane = sidePane === p && p !== 'lib-force' ? '' : p;
+  sidePane = sidePane === p ? '' : p;
   $('sidePanel').classList.toggle('open', !!sidePane);
   document.querySelectorAll('.side-pane').forEach(s => { s.hidden = s.dataset.pane !== sidePane; });
   document.querySelectorAll('.side-tab').forEach(t => { t.classList.toggle('on', t.dataset.pane === sidePane); t.querySelector('.arr').textContent = t.dataset.pane === sidePane ? '▶' : '◀'; });
@@ -3177,7 +3220,7 @@ function restore(){
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (!s) return false;
     doc = sanitize(s.doc); applyViewState(s.view); applyUIState(s.state);
-    return Object.keys(doc.atoms).length > 0;
+    return Object.keys(doc.atoms).length > 0 || state.world === 'xtal';   // 結晶モードのまま閉じたときは、分子がなくても結晶モードで開く
   } catch { return false; }
 }
 
@@ -3188,10 +3231,14 @@ function renderImage(scale, transparent, axes = state.axes){
   if (!W || !H) return null;   // 画面が表示されていないとき
   buildScene({axes}); needScene = true;   // 軸を入れるかは書き出しの設定で（画面は次の描画で元に戻る）
   let x0 = W, y0 = H, x1 = 0, y1 = 0;
-  const Sp = scene.spheres;   // 球（原子）の範囲
-  for (let i = 0; i < Sp.length; i += 8){ const s = toScreen([Sp[i], Sp[i + 1], Sp[i + 2]]), r = Sp[i + 3]*view.s; x0 = Math.min(x0, s.x - r); y0 = Math.min(y0, s.y - r); x1 = Math.max(x1, s.x + r); y1 = Math.max(y1, s.y + r); }
-  for (const o of scene.planes) for (const [p, q] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]){ const s = toScreen(V.add(o.c, V.add(V.mul(o.u, p*o.hu), V.mul(o.v, q*o.hv)))); x0 = Math.min(x0, s.x); y0 = Math.min(y0, s.y); x1 = Math.max(x1, s.x); y1 = Math.max(y1, s.y); }
-  if (scene.axisL) for (let k = 0; k < 3; k++) for (const sg of [-1, 1]){ const e = [0, 0, 0]; e[k] = sg*(scene.axisL + 0.7); const s = toScreen(e); x0 = Math.min(x0, s.x); y0 = Math.min(y0, s.y); x1 = Math.max(x1, s.x); y1 = Math.max(y1, s.y); }
+  const grow = (p, r = 0) => { const s = toScreen(p); x0 = Math.min(x0, s.x - r); y0 = Math.min(y0, s.y - r); x1 = Math.max(x1, s.x + r); y1 = Math.max(y1, s.y + r); };
+  const Sp = scene.spheres;   // 球（原子）
+  for (let i = 0; i < Sp.length; i += 8) grow([Sp[i], Sp[i + 1], Sp[i + 2]], Sp[i + 3]*view.s);
+  const Cy = scene.cyls;   // 棒（結合・単位格子の枠・軸）の両端
+  for (let i = 0; i < Cy.length; i += 10){ grow([Cy[i], Cy[i + 1], Cy[i + 2]]); grow([Cy[i + 4], Cy[i + 5], Cy[i + 6]]); }
+  for (const o of scene.planes) for (const [p, q] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) grow(V.add(o.c, V.add(V.mul(o.u, p*o.hu), V.mul(o.v, q*o.hv))));   // 鏡
+  for (const poly of scene.polys || []) for (const p of poly) grow(p);   // 結晶の断面の板
+  if (scene.axisL) for (let k = 0; k < 3; k++) for (const sg of [-1, 1]){ const e = [0, 0, 0]; e[k] = sg*(scene.axisL + 0.7); grow(e); }   // 軸の名前の分だけ外へ
   const m = 24; x0 = Math.max(0, Math.floor(x0 - m)); y0 = Math.max(0, Math.floor(y0 - m)); x1 = Math.min(W, Math.ceil(x1 + m)); y1 = Math.min(H, Math.ceil(y1 + m));
   if (x1 <= x0 || y1 <= y0) { x0 = 0; y0 = 0; x1 = W; y1 = H; }
   glc.width = Math.round(W*scale); glc.height = Math.round(H*scale);
@@ -3228,7 +3275,11 @@ function toast(msg){   // 長い文は長めに出す
 }
 const tipEl = $('tip');
 function showTip(el){
-  if (el.hasAttribute('title')){ el.dataset.tip = el.getAttribute('title'); el.removeAttribute('title'); }
+  if (el.hasAttribute('title')){   // title は自前のツールチップに移す。絵だけのボタンには読み上げ用の名前（aria-label）を残す
+    const t = el.getAttribute('title'); el.dataset.tip = t;
+    if (!el.hasAttribute('aria-label') && !el.textContent.trim()) el.setAttribute('aria-label', t.split(/[：(（]/)[0].trim());
+    el.removeAttribute('title');
+  }
   const t = el.dataset.tip; if (!t) return;
   tipEl.textContent = t; tipEl.classList.add('show');
   const r = el.getBoundingClientRect(), w = tipEl.offsetWidth, h = tipEl.offsetHeight;
