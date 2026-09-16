@@ -92,7 +92,9 @@
     var pointerStart = null;
     var closed = false;
     var fullscreen = false;
-    var ownsFullscreen=false,fullscreenTarget=doc.documentElement,suppressClick=false,pageRatio=1,exitingFullscreen=false;
+    // dialog自体は全画面化できないため、アートボードの表示領域だけを対象にする。
+    // ヘッダー・操作ボタン・編集画面は全画面の表示領域へ含めない。
+    var ownsFullscreen=false,fullscreenTarget=viewport,suppressClick=false,pageRatio=1,exitingFullscreen=false;
     var previousActive = opener;
 
     function focusables() {
@@ -104,7 +106,9 @@
       if (closed) return;
       var computed=root.getComputedStyle(viewport),availableWidth=viewport.clientWidth-parseFloat(computed.paddingLeft)-parseFloat(computed.paddingRight),availableHeight=viewport.clientHeight-parseFloat(computed.paddingTop)-parseFloat(computed.paddingBottom);
       var ratio = pageRatio;
-      var width = Math.min(availableWidth * 0.94, availableHeight * 0.84 * ratio);
+      var fill = fullscreen ? 1 : 0.94;
+      var heightFill = fullscreen ? 1 : 0.84;
+      var width = Math.min(availableWidth * fill, availableHeight * heightFill * ratio);
       var height = width / ratio;
       paper.style.width = Math.max(1, width) + 'px';
       paper.style.height = Math.max(1, height) + 'px';
@@ -192,6 +196,8 @@
       if(!doc.fullscreenElement)ownsFullscreen=false;
       exitingFullscreen=false;
       fullscreenButton.textContent = fullscreen ? '全画面を終了' : '全画面';
+      sizePaper();
+      if (fullscreen) paper.focus({ preventScroll: true });
       if(nativeExit&&!closed)close();
     }
 
@@ -207,6 +213,7 @@
       event.stopPropagation();
       if (event.key === 'Escape') { event.preventDefault(); close(); return; }
       if (event.key === 'Tab') {
+        if (fullscreen) { event.preventDefault(); paper.focus({ preventScroll: true }); return; }
         var list = focusables(); if (!list.length) return;
         var current = list.indexOf(doc.activeElement);
         var nextFocus=current<0?(event.shiftKey?list.length-1:0):(event.shiftKey?current-1:current+1);

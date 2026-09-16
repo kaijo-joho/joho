@@ -87,6 +87,15 @@
   background: var(--ilapo-present-bg);
   touch-action: pan-y;
 }
+.ilapo-present-viewport:fullscreen {
+  box-sizing: border-box;
+  width: 100vw;
+  height: 100vh;
+  padding: 0;
+  background: var(--ilapo-present-bg);
+}
+.ilapo-present-viewport:fullscreen::backdrop { background: var(--ilapo-present-bg); }
+.ilapo-present-viewport:fullscreen .ilapo-present-paper { box-shadow: none; }
 .ilapo-present-paper {
   flex: 0 0 auto;
   overflow: hidden;

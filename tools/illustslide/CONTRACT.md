@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.3）
+# イラストスライド illustSlideの内部契約（0.4.4）
 
 開発担当 Codex。現在は計画④まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -52,12 +52,20 @@ UIはeditor.jsとeditor.css/index.html。DOMの作品表示はSVG、選択枠等
 `create({onLayout,clearPreview,isBusy})` は `show(request)`、`close({focus?:boolean})`、`reset()`、`sync()` と読み取り専用の `section`・`isOpen`・`root` を返す。
 requestは `{section,title,html,label,apply,preview?,scope,refresh,opener}`。labelがnullなら適用・取消フッターを表示しない。htmlはeditor側でエスケープしたフォーム断片だけを渡す。
 
-- showModal・暗幕・inert・Tabの閉じ込めを使わない。通常は右側、850px以下は下部へ配置し、キャンバスと別の領域を確保する。書き出しとは排他的、共通ヘルプとは独立して開く。
+- showModal・暗幕・inert・Tabの閉じ込めを使わない。通常は右側、850px以下は下部へ配置し、キャンバスと別の領域を確保する。ページ一覧はpagesセクションを使い、設定と同じパネルの内容を切り替える。書き出しとは排他的、共通ヘルプとは独立して開く。
 - scopeは文書ID・ページID・選択ID・編集リビジョンを含み、アンカー座標では選択点、表示設定では設定値も含む。syncと適用直前に比較し、古い対象への入力を別の対象へ適用しない。ドラッグ中の更新は終了まで待ち、閉じた後の非同期再構築で再度開かない。
 - 色・変形・接続・画像のpreviewは検証済みの文書複製から表示用ページを作り、editorのinspectorPreviewだけを更新する。History・文書本体・保存・dirtyを変更しない。不正入力では前回のプレビューも取り消す。適用時だけ通常のchangePageで1履歴にまとめる。
 - 適用・取消・対象切替ではフォームを現在の値から作り直す。変形の基準座標や回転・反転の入力を持ち越さない。再構築後は可能な範囲で入力フォーカス・本文スクロール・detailsの開閉を保つ。閉じたパネルの本文は空にし、重複IDを残さない。
 - 幅は `kaijo-ilapo:inspector` にCSS pxの数値文字列で保存し、作品データや既存設定形式と分ける。既定320px、220〜520pxかつキャンバス幅を確保できる範囲。モバイル表示だけを理由に保存幅を縮めない。
 - パネル内のキーをキャンバス操作へ伝えない。Escapeはリサイズ取消を先に扱い、通常はパネルを閉じる。閉じたらパネル外の起点へ戻し、「キャンバスへ戻る」は開いたまま編集面へフォーカスを移す。
+
+## ページ一覧・選択サブメニュー（0.4.4）
+
+`IlapoPagesUI.create({document,page,selectPage,change,showInspector,showDialog,esc,icon})` は `open()` を返す。ページIDを対象に操作し、DOMの一覧番号を文書参照の正本にしない。切替は選択・編集中のプレビューを解除して表示範囲を合わせ、Historyを変えない。変更は既存のCore/Historyを通す。サムネイルは検証済みページのSVG出力で、下絵を除外する。
+
+pagesのscopeは文書ID・ページID・編集リビジョン。図形の選択だけでは一覧を作り直さず、編集確定時に更新する。右端「ページ」はpagesだけ、「設定」は他の設定セクションの開閉状態をaria-expandedで示す。文書の入れ替え後に古い一覧のイベントで別の文書を編集しない。
+
+選択バーのdata-menuボタンはマウスpointerenterで開く。ドラッグ・タッチ・モーダル表示中にはホバー起動しない。開くだけではフォーカスを動かさず、ポップアップへの移動を妨げないため閉鎖だけ240ms待つ。クリックやキーボードで開いたメニューは外側クリック・実行・Escapeまで保持する。高さは起点の上／下にある空間から計算し、ボタンへ重ねない。ホバーメニュー表示中のEscapeはパネルやキャンバスへ伝えない。
 
 ## 接続矢印・画像・部品・発表
 
@@ -73,6 +81,8 @@ imageは`x,y,width,height,src,reference`を追加する。reference=trueは下�
 libraryのlist/save/remove/instantiate/exportJSON/importJSONは原子的に保存する。sizeは挿入時の最長辺px。UIの「部品集を追加」は既存の部品を保持し、新しい部品IDで追加する。ライブラリ形式は`{format:'kaijo-ilapo-components',version:1,components:[{id,name,objects}]}`。配置後は元の部品に依存しない。
 
 `IlapoPresentation.open(doc,{pageId?,opener?})`は検証・複製した文書を表示し、next/previous/close/getStateを返す。図形編集と独立し、発表のキー操作を編集画面へ伝えない。自由キャンバスの表示比率は書き出したSVGのviewBoxから取る。自分で開始した全画面だけを終了し、モーダルを閉じたら元のフォーカスとbody overflowへ戻す。
+
+全画面の対象は `.ilapo-present-viewport`。dialog自体やdocumentElementは対象にせず、ヘッダー・操作列・編集画面を含めない。fullscreenchange時に余白なしの最大サイズへ再計算し、paperへフォーカスを移す。全画面中のTabはpaperに留める。通常表示では操作列と従来の余白を保つ。同じpresentation.js/CSSを再生用HTMLへ同梱する。
 
 
 ## IlapoPathEdit (path-edit.js)

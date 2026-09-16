@@ -66,8 +66,8 @@ test('presentation traps focus, supports swipe, fullscreen fallback, and narrow 
     doc.pages.push({...structuredClone(doc.pages[1]),id:'page-c',name:'3ページ'});
     const dialog = IlapoPresentation.open(doc, { opener: document.getElementById('opener') });
     window.viewer = dialog;
-    const element = document.getElementById('ilapo-presentation');
-    document.documentElement.requestFullscreen = () => { Object.defineProperty(document, 'fullscreenElement', { configurable: true, value: document.documentElement }); document.dispatchEvent(new Event('fullscreenchange')); return Promise.resolve(); };
+    const element = document.querySelector('.ilapo-present-viewport');
+    element.requestFullscreen = () => { Object.defineProperty(document, 'fullscreenElement', { configurable: true, value: element }); document.dispatchEvent(new Event('fullscreenchange')); return Promise.resolve(); };
     document.exitFullscreen = () => { Object.defineProperty(document, 'fullscreenElement', { configurable: true, value: null }); document.dispatchEvent(new Event('fullscreenchange')); return Promise.resolve(); };
   }, fixture());
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);

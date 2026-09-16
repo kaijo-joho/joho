@@ -20,6 +20,7 @@ dialog{padding:0;border:1px solid var(--line);border-radius:14px;box-shadow:var(
 
 /* 選択時はアイコンで操作をまとめ、残りは「その他」から開く。 */
 #stage{container-type:inline-size}
+.side-tab{overflow:auto}
 .selection-bar{flex-wrap:nowrap;gap:3px;padding:5px}
 .selection-bar button{width:36px;min-width:36px;padding:5px;flex:none}
 #selection-more{display:none}

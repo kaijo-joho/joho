@@ -103,7 +103,7 @@ async function run() {
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-command="add"]').click(); assert.equal((await documentOf(page)).pages.length, 2);
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-command="duplicate"]').click(); assert.equal((await documentOf(page)).pages.length, 3);
     await page.locator('[data-page-move="2,-1"]').click(); assert.equal((await documentOf(page)).pages.length, 3, 'pages can be reordered');
-    await page.locator('#dialog-cancel').click();
+    await inspectorClose(page);
 
     await page.locator('[data-action="artboard"]').click(); await page.locator('#board-preset').selectOption('18'); await inspectorSubmit(page); doc = await documentOf(page); let currentId = await page.evaluate(() => IlapoEditor.getState().pageId); let current = doc.pages.find(p => p.id === currentId); assert.equal(current.board.width, 18); await inspectorClose(page);
     await page.locator('[data-action="artboard"]').click(); await page.locator('#board-preset').selectOption('a4'); await inspectorSubmit(page); doc = await documentOf(page); currentId = await page.evaluate(() => IlapoEditor.getState().pageId); current = doc.pages.find(p => p.id === currentId); assert(Math.abs(current.board.width - 210 * 96 / 25.4) < 1e-6, 'A4 preset uses CSS-pixel width'); await inspectorClose(page);
