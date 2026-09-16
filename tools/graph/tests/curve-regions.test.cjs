@@ -12,15 +12,15 @@ function region(d,targets=[{type:'series',id:'f'},{type:'series',id:'g'}]){const
  const d=base();d.axes.y.scale='log';const r=region(d);assert(A.evaluate(r,d).warning,'対数軸の非正値を拒否する');
 }
 {
- const d=base(),r=region(d);const clean=C.validateDocument(d);assert.equal(clean.version,7);assert.deepStrictEqual(clean.annotations[0].targets,r.targets);const extra=C.clone(d);extra.annotations[0].targets[0].extra='drop';assert.equal(C.validateDocument(extra).annotations[0].targets[0].extra,undefined);
+ const d=base(),r=region(d);const clean=C.validateDocument(d);assert.equal(clean.version,8);assert.deepStrictEqual(clean.annotations[0].targets,r.targets);const extra=C.clone(d);extra.annotations[0].targets[0].extra='drop';assert.equal(C.validateDocument(extra).annotations[0].targets[0].extra,undefined);
  for(const mutate of [x=>x.annotations[0].targets=[{type:'axis',axis:'x'},{type:'series',id:'f'}],x=>x.annotations[0].targets=[{type:'series',id:'f'},{type:'series',id:'f'}],x=>x.annotations[0].targets=[{type:'series',id:'missing'},{type:'axis',axis:'x'}],x=>x.annotations[0].interval=['0'],x=>x.annotations[0].kind='unknown']){const bad=C.clone(d);mutate(bad);assert.throws(()=>C.validateDocument(bad));}
 }
 {
  const d=base(),t=C.createAnnotation('tangent');t.id='t';t.seriesId='f';t.at='0';d.annotations.push(t);const r=region(d,[{type:'tangent',id:'t'},{type:'axis',axis:'x'}]);r.interval=['0','1'];assert.equal(A.evaluate(r,d).warning,'');C.removeSeries(d,'f');assert.equal(d.annotations.length,0,'function→tangent→regionを削除');
 }
 {
- const d=base(),r=region(d),h=new C.History(d);h.change(x=>x.annotations=[]);h.undo();assert.equal(h.document.annotations.length,1);const mem=new Map(),s=new C.Store({getItem:k=>mem.get(k)||null,setItem:(k,v)=>mem.set(k,v)});s.save('auto',d);assert.equal(s.load('auto').document.annotations[0].kind,'curveRegion');const v5=C.clone(d);v5.version=5;assert.throws(()=>C.validateDocument(v5),/版/);
- for(const v of [1,2,3,4,5]){const old=C.clone(d);old.version=v;assert.throws(()=>C.validateDocument(old),/版/);}
+ const d=base(),r=region(d),h=new C.History(d);h.change(x=>x.annotations=[]);h.undo();assert.equal(h.document.annotations.length,1);const mem=new Map(),s=new C.Store({getItem:k=>mem.get(k)||null,setItem:(k,v)=>mem.set(k,v)});s.save('auto',d);assert.equal(s.load('auto').document.annotations[0].kind,'curveRegion');const v5=C.clone(d);v5.version=5;delete v5.presentation;delete v5.output;assert.throws(()=>C.validateDocument(v5),/版/);
+ for(const v of [1,2,3,4,5]){const old=C.clone(d);old.version=v;delete old.presentation;delete old.output;assert.throws(()=>C.validateDocument(old),/版/);}
 }
 {
  const d=base();d.parameters=[{name:'h',value:1,min:0,max:3,step:.1}];d.series[0].expression='h*x';const r=region(d,[{type:'series',id:'f'},{type:'axis',axis:'x'}]);r.interval=['0','h'];
@@ -34,7 +34,7 @@ function region(d,targets=[{type:'series',id:'f'},{type:'series',id:'g'}]){const
  const history=new C.History(d);history.change(x=>C.removeAnnotation(x,'tan'));assert.equal(history.document.annotations.length,0);history.undo();assert.deepStrictEqual(history.document,C.validateDocument(d));
 }
 {
- const old=C.clone(require('../templates.js').list().find(t=>t.id==='math-triangle-region').document);assert.equal(old.version,5);const migrated=C.validateDocument(old);assert.equal(migrated.version,7);assert.deepStrictEqual(migrated.annotations.find(a=>a.kind==='region').segmentIds,old.annotations.find(a=>a.kind==='region').segmentIds);
+ const old=C.clone(require('../templates.js').list().find(t=>t.id==='math-triangle-region').document);assert.equal(old.version,5);delete old.presentation;delete old.output;const migrated=C.validateDocument(old);assert.equal(migrated.version,8);assert.deepStrictEqual(migrated.annotations.find(a=>a.kind==='region').segmentIds,old.annotations.find(a=>a.kind==='region').segmentIds);
  for(const mutate of [d=>{const a=d.annotations.find(a=>a.kind==='segment');a.to=a.from;},d=>d.annotations.find(a=>a.kind==='segment').arrows='invalid']){const invalid=C.clone(migrated);mutate(invalid);assert.throws(()=>C.validateDocument(invalid),/線分/);}
  const d=base(),cross=C.createAnnotation('intersection');cross.seriesIds=['f','missing'];d.annotations=[cross];assert.throws(()=>C.validateDocument(d),/交点/);
  const legacyCross=C.createAnnotation('tangentIntersection');legacyCross.tangentIds=['missing','missing2'];d.annotations=[legacyCross];assert.throws(()=>C.validateDocument(d),/接線交点/);

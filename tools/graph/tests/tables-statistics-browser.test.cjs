@@ -1,0 +1,62 @@
+/* Chrome UI regression: editable tables, statistics, and regression dependencies. */
+const assert = require('node:assert/strict'), fs = require('node:fs'), http = require('node:http'), path = require('node:path'), os = require('node:os');
+const C = require('../core.js'), T = require('../tables.js');
+let chromium; try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'))); }
+const root = path.resolve(__dirname, '../../..');
+const server = http.createServer((req, res) => { const file = path.resolve(root, '.' + decodeURIComponent(req.url.split('?')[0])); if (!file.startsWith(root + path.sep)) { res.writeHead(403); return res.end(); } fs.readFile(file, (error, data) => { res.writeHead(error ? 404 : 200, { 'Content-Type': file.endsWith('.js') ? 'text/javascript' : file.endsWith('.css') ? 'text/css' : file.endsWith('.svg') ? 'image/svg+xml' : 'text/html' }); res.end(error ? 'not found' : data); }); });
+let browser, page;
+(async () => {
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  browser = await chromium.launch({ channel: 'chrome', headless: true });
+  const context = await browser.newContext({ viewport: { width: 1280, height: 900 }, hasTouch: true, acceptDownloads: true });
+  await context.addInitScript(() => Object.defineProperty(window, 'showSaveFilePicker', { value: undefined, configurable: true }));
+  page = await context.newPage(); const errors = []; page.on('pageerror', error => errors.push(error.message));
+  const dialog = page.locator('#editor-dialog'), settle = () => page.waitForFunction(() => window.GraphEditor && !GraphEditor.getState().drawing && !document.querySelector('#editor-dialog').open);
+  const documentValue = () => page.evaluate(() => GraphEditor.getDocument());
+  const submit = async () => { await page.locator('#dialog-submit').click(); await settle(); };
+  const importDoc = async value => { await page.locator('#file-input').setInputFiles({ name: 'table.graph.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(value)) }); await page.waitForFunction(name => GraphEditor.getDocument().name === name, value.name); await settle(); };
+  const detail = async (type, id) => { await page.locator('[data-object-details="' + type + ':' + id + '"]').click(); await dialog.waitFor({ state: 'visible' }); };
+  const traceFor = id => page.evaluate(id => document.querySelector('#plot').data.filter(trace => trace.meta?.objectId === id), id);
+  const downloadText = async action => { const waiting = page.waitForEvent('download'); await action(); return fs.readFileSync(await (await waiting).path(), 'utf8'); };
+  await page.goto(process.env.GRAPH_TEST_URL || 'http://127.0.0.1:' + server.address().port + '/tools/graph/index.html'); await settle();
+
+  const initial = C.createDocument(); initial.name = '表と統計のUI'; initial.axes.x.min = -1; initial.axes.x.max = 120; initial.axes.y.min = -1; initial.axes.y.max = 130;
+  const series = C.createSeries('data2d'); series.id = 'measurements'; series.name = '多列の測定値';
+  const rows = Array.from({ length: 55 }, (_, i) => [i, 2 * i + 1, i / 10, 7, i % 3 === 0 ? null : 3 * i]);
+  T.assign(series, { columns: ['時間', '温度', 'Δ時間', '一定値', '比較値'], rows, mapping: { x: 0, y: 1, z: null, errorX: 2, errorY: 4 } }); initial.series = [series]; await importDoc(initial);
+  await detail('series', series.id);
+  const editor = dialog.locator('.graph-table-editor'); assert.equal(await editor.locator('input[aria-label="1行1列"]').count(), 1);
+  assert.equal(await editor.getByText('1〜50行 / 55行', { exact: true }).count(), 1); await editor.getByRole('button', { name: '次の50行', exact: true }).click(); assert.equal(await editor.locator('input[aria-label="51行1列"]').count(), 1); await editor.getByRole('button', { name: '前の50行', exact: true }).click();
+  await editor.locator('input[aria-label="1列目の名前"]').fill('温度（入替後）'); await editor.getByLabel('横軸の列').selectOption('1'); await editor.getByLabel('縦軸の列').selectOption('0');
+  await editor.getByRole('button', { name: '列を追加', exact: true }).click();
+  await page.evaluate(() => { const input = document.querySelector('.graph-table-editor input[data-cell="1,5"]'), data = new DataTransfer(); data.setData('text/plain', '8\n9'); input.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, clipboardData: data })); });
+  await editor.getByRole('button', { name: '行を追加', exact: true }).click(); await editor.getByLabel('56行目を選択').check(); await editor.getByRole('button', { name: '選択行を削除', exact: true }).click();
+  await submit(); let current = await documentValue(), saved = C.clone(current); const stored = current.series[0].dataTable;
+  assert.equal(stored.columns.length, 6); assert.equal(stored.rows[0][5], 8); assert.equal(stored.rows[1][5], 9); assert.equal(stored.mapping.x, 1); assert.equal(stored.mapping.y, 0);
+  let traces = await traceFor(series.id); assert.deepEqual(traces[0].x.slice(0, 3), current.series[0].rows.slice(0, 3).map(row => row[0])); assert.deepEqual(traces[0].y.slice(0, 3), current.series[0].rows.slice(0, 3).map(row => row[1])); assert.deepEqual(traces[0].error_x.array.slice(0, 3), current.series[0].errorBars.x.slice(0, 3));
+  await detail('series', series.id); const beforeInvalid = await documentValue(); await editor.locator('input[aria-label="1行1列"]').fill('invalid'); await page.locator('#dialog-submit').click(); assert(await page.locator('#dialog-error').isVisible()); assert.deepEqual(await documentValue(), beforeInvalid); await page.keyboard.press('Escape');
+  await page.locator('#series-add-toggle').click(); await page.locator('#show-statistics').click(); await dialog.waitFor({ state: 'visible' });
+  assert.equal(await dialog.getByText('基本統計量', { exact: true }).count(), 1); assert.equal(await dialog.getByText('相関行列（Pearson r）', { exact: true }).count(), 1);
+  assert.match(await dialog.locator('[data-correlation="3,3"]').innerText(), /未定義/); assert.match(await dialog.locator('[data-correlation="0,4"]').innerText(), /n = 36|n = 37/);
+  const summaryCSV=T.fields(await downloadText(()=>dialog.getByRole('button',{name:'統計量をCSVで保存',exact:true}).click()));
+  assert.equal(Number(summaryCSV[1][1]),55);assert.equal(Number(summaryCSV[1][4]),27);assert(Math.abs(Number(summaryCSV[1][8])-252)<1e-10);
+  const matrixCSV=T.fields(await downloadText(()=>dialog.getByRole('button',{name:'相関行列をCSVで保存',exact:true}).click()));assert(Math.abs(Number(matrixCSV[1][5])-1)<1e-12);assert.equal(matrixCSV[4][4],'');
+  const countsCSV=T.fields(await downloadText(()=>dialog.getByRole('button',{name:'相関の使用数をCSVで保存',exact:true}).click()));assert.equal(Number(countsCSV[1][5]),36);
+
+  await page.keyboard.press('Escape');
+  await page.locator('#file-menu summary').click(); const json = JSON.parse(await downloadText(() => page.locator('#save-local').click())); await importDoc({ ...C.createDocument(), name: 'empty restore target' }); await importDoc(json); assert.deepEqual(await documentValue(), json);
+
+  const geometry=C.createDocument();geometry.name='回帰の作図連携';geometry.axes.x.min=-1;geometry.axes.x.max=5;geometry.axes.y.min=-4;geometry.axes.y.max=20;
+  const parabola=C.createSeries('data2d');parabola.id=series.id;parabola.name='回帰用の数表';T.assign(parabola,{columns:['時間','高さ','誤差','一定値'],rows:Array.from({length:5},(_,x)=>[x,x*x+1,.1,7]),mapping:{x:0,y:1,z:null,errorX:null,errorY:2}});geometry.series=[parabola];await importDoc(geometry);
+  await page.locator('[data-object-id="' + series.id + '"]').click(); await page.locator('#selection-toolbar').getByRole('button', { name: '回帰分析', exact: true }).click(); await dialog.getByLabel('回帰モデル').selectOption('quadratic'); await submit(); current = await documentValue(); const regression = current.annotations.find(a => a.kind === 'regression'); assert(regression);
+  await page.locator('#annotation-add-toggle').click(); await page.locator('#add-point').click(); await dialog.getByLabel('点の指定方法').selectOption('curve'); await dialog.getByLabel('対象の曲線').selectOption('regression:' + regression.id); await dialog.getByLabel(/位置（/).fill('2'); await submit(); assert.equal((await documentValue()).annotations.find(a => a.kind === 'point').anchor.regressionId, regression.id);
+  await page.locator('#annotation-add-toggle').click(); await page.locator('#add-tangent').click(); await page.locator('#tangent-quick-at').fill('2'); await page.locator('#tangent-quick-at').press('Enter'); await settle(); current = await documentValue(); const tangent = current.annotations.find(a => a.kind === 'tangent'); assert.equal(tangent.target.id, regression.id);
+  await page.locator('#annotation-add-toggle').click(); await page.locator('#add-intersection').click(); await dialog.getByLabel('1つ目の対象').selectOption('regression:' + regression.id); await dialog.getByLabel('2つ目の対象').selectOption('tangent:' + tangent.id); await submit();
+  await page.locator('#annotation-add-toggle').click(); await page.locator('#add-region').click(); await dialog.getByLabel('領域の作り方').selectOption('curveRegion'); await dialog.getByLabel('第1の境界').selectOption('regression:' + regression.id); await dialog.getByLabel('第2の境界').selectOption('axis:x'); await dialog.getByLabel(/x の始点/).fill('1'); await dialog.getByLabel(/x の終点/).fill('3'); await submit(); current = await documentValue(); assert(current.annotations.some(a => a.kind === 'intersection' && a.targets.some(t => t.type === 'regression'))); assert(current.annotations.some(a => a.kind === 'curveRegion' && a.targets[0].type === 'regression'));
+  const pointId = current.annotations.find(a => a.kind === 'point').id, pointBefore = await traceFor(pointId);assert(Math.abs(pointBefore.find(t=>t.mode==='markers').y[0]-5)<1e-9);assert(await page.evaluate(()=>GraphEditor.getDocument().annotations.every(a=>!GraphAnnotations.evaluate(a,GraphEditor.getDocument()).warning))); await detail('series', series.id); await dialog.locator('.graph-table-editor input[aria-label="1行2列"]').fill('2'); await submit(); current = await documentValue(); assert.notDeepEqual(await traceFor(pointId), pointBefore, 'source cell edit updates linked regression evaluation');assert((await traceFor(pointId)).length>0);assert(await page.evaluate(()=>GraphEditor.getDocument().annotations.every(a=>!GraphAnnotations.evaluate(a,GraphEditor.getDocument()).warning)));
+  await page.screenshot({ path: '/private/tmp/graph-tables-statistics-desktop.png' });
+  await page.locator('[data-object-id="' + series.id + '"]').click(); await page.locator('#selection-toolbar').getByRole('button', { name: '削除', exact: true }).click(); await settle(); assert.equal((await documentValue()).annotations.length, 0); await page.locator('#undo').click(); await settle(); assert((await documentValue()).annotations.some(a => a.id === regression.id));
+
+  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape'); await page.setViewportSize({ width: 390, height: 850 }); await page.locator('#list-toggle').tap(); await page.locator('#series-add-toggle').tap(); await page.locator('#show-statistics').tap(); await dialog.waitFor({ state: 'visible' }); await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab'); const mobileMetrics = await dialog.evaluate(el => ({ scrollWidth: el.scrollWidth, clientWidth: el.clientWidth, tables: [...el.querySelectorAll('.table-wrap')].map(table => ({ scrollWidth: table.scrollWidth, clientWidth: table.clientWidth })) })); assert(mobileMetrics.scrollWidth <= mobileMetrics.clientWidth, JSON.stringify(mobileMetrics)); assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth)); await page.screenshot({ path: '/private/tmp/graph-tables-statistics-mobile.png' }); await page.keyboard.press('Escape'); assert.deepEqual(errors, []);
+  console.log('tables-statistics-browser.test.cjs: ok');
+})().catch(async error => { if (page) await page.screenshot({ path: '/private/tmp/graph-tables-statistics-failure.png' }).catch(() => {}); console.error(error); process.exitCode = 1; }).finally(async () => { if (browser) await browser.close(); await new Promise(resolve => server.close(resolve)); });

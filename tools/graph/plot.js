@@ -41,6 +41,51 @@
     const dataRange = range(a, [-10, 10]), isLog = a && a.scale === 'log';
     return Object.assign({ title: { text: axisTitle(a, '') }, range: isLog ? dataRange.map((v) => Math.log10(v)) : dataRange, type: isLog ? 'log' : 'linear', showgrid: true, zeroline: true }, root.GraphSymbols ? root.GraphSymbols.ticksFor(a) : {});
   };
+  const presentation = (doc) => Object.assign({ axisArrows: false, originLabel: false, tickMarks: true, tickLabels: true }, doc && doc.presentation || {});
+  const outputDefaults = (doc, element) => {
+    const configured = doc && doc.output && typeof doc.output === 'object' ? doc.output : null;
+    return Object.assign({
+      width: element && element.clientWidth || 640,
+      height: element && element.clientHeight || 480,
+      margin: 64,
+      fontSize: 16,
+      scale: 2,
+      background: 'white',
+      title: true
+    }, configured || {});
+  };
+  const validateOutput = (value) => {
+    const out = Object.assign({}, value);
+    const integer = (n) => Number.isInteger(n);
+    if (!integer(out.width) || out.width < 320 || out.width > 4096) throw new Error('書き出し幅は320〜4096pxで指定してください。');
+    if (!integer(out.height) || out.height < 320 || out.height > 4096) throw new Error('書き出し高さは320〜4096pxで指定してください。');
+    if (out.width * out.height > 16777216) throw new Error('書き出し面積が上限を超えています。');
+    if (!integer(out.margin) || out.margin < 16 || out.margin > 200 || out.width - out.margin * 2 < 100 || out.height - out.margin * 2 < 100) throw new Error('書き出し余白が不正です。');
+    if (!integer(out.fontSize) || out.fontSize < 8 || out.fontSize > 36) throw new Error('書き出し文字サイズは8〜36pxで指定してください。');
+    if (!integer(out.scale) || out.scale < 1 || out.scale > 4) throw new Error('書き出し倍率は1〜4で指定してください。');
+    if (out.width * out.scale > 8192 || out.height * out.scale > 8192 || out.width * out.height * out.scale * out.scale > 33554432) throw new Error('書き出し画像のサイズが上限を超えています。');
+    return out;
+  };
+  const axisDecoration = (doc, key, axis, color) => {
+    if (!presentation(doc).axisArrows || doc.mode === '3d') return null;
+    const other = doc.axes[key === 'x' ? 'y' : 'x'], bounds = range(other, [-10,10]);
+    const fraction = other.scale !== 'log' && bounds[0] <= 0 && bounds[1] >= 0 ? -bounds[0]/(bounds[1]-bounds[0]) : 0;
+    // Paper coordinates keep arrows on the viewport edge on both linear and log axes.
+    return {name:'__graph_axis_'+key,text:'',xref:'paper',yref:'paper',axref:'pixel',ayref:'pixel',
+      x:key==='x'?1:fraction,y:key==='x'?fraction:1,ax:key==='x'?-20:0,ay:key==='x'?0:20,
+      showarrow:true,arrowhead:2,arrowsize:1,arrowwidth:1.5,arrowcolor:color,captureevents:false};
+  };
+  const axisDecorations = (doc, fg) => {
+    if (doc.mode === '3d') return [];
+    const p = presentation(doc), out = [];
+    const x = doc.axes && doc.axes.x, y = doc.axes && doc.axes.y;
+    const xa = axisDecoration(doc, 'x', x, fg), ya = axisDecoration(doc, 'y', y, fg);
+    if (xa) out.push(xa); if (ya) out.push(ya);
+    if (p.originLabel && x && y && x.scale !== 'log' && y.scale !== 'log' && x.min <= 0 && x.max >= 0 && y.min <= 0 && y.max >= 0) {
+      out.push({ name: '__graph_origin_label', x: 0, y: 0, xref: 'x', yref: 'y', text: 'O', showarrow: false, xshift: 7, yshift: -7, xanchor: 'left', yanchor: 'top', font: { size: 13, color: fg }, captureevents: false, meta: { decoration: true, origin: true } });
+    }
+    return out;
+  };
   const defaultCamera = (doc) => {
     if (doc.mode !== '3d' || !doc.equalScale) return undefined;
     const spans = ['x', 'y', 'z'].map((key) => { const r = range(doc.axes && doc.axes[key], [-10, 10]); return r[1] - r[0]; });
@@ -195,11 +240,20 @@
 
   function layoutFor(doc, options) {
     const dark = !!options.dark, fg = dark ? '#e5e7eb' : '#172033', bg = dark ? '#111827' : '#ffffff';
-    const common = { paper_bgcolor: bg, plot_bgcolor: bg, font: { color: fg }, showlegend: doc.legend !== false, legend: { itemclick: false, itemdoubleclick: false }, margin: { l: 64, r: 24, t: 28, b: 56 }, hovermode: 'closest' };
-    if (doc.mode === '3d') return Object.assign(common, { dragmode: 'orbit', scene: { xaxis: Object.assign(tick(doc.axes && doc.axes.x), { title: { text: axisTitle(doc.axes && doc.axes.x, 'x') }, showgrid: doc.grid !== false }), yaxis: Object.assign(tick(doc.axes && doc.axes.y), { title: { text: axisTitle(doc.axes && doc.axes.y, 'y') }, showgrid: doc.grid !== false }), zaxis: Object.assign(tick(doc.axes && doc.axes.z), { title: { text: axisTitle(doc.axes && doc.axes.z, 'z') }, showgrid: doc.grid !== false }), aspectmode: doc.equalScale ? 'data' : 'auto', camera: options.camera || defaultCamera(doc) } });
+    const p = presentation(doc), common = { paper_bgcolor: bg, plot_bgcolor: bg, font: { color: fg }, showlegend: doc.legend !== false, legend: { itemclick: false, itemdoubleclick: false }, margin: { l: 64, r: 24, t: 28, b: 56 }, hovermode: 'closest' };
+    const configure = (axis, name) => Object.assign(tick(axis), {
+      title: { text: axisTitle(axis, name) },
+      showgrid: doc.grid !== false,
+      zerolinecolor: p.axisArrows ? fg : undefined, zerolinewidth: p.axisArrows ? 1.5 : 1,
+      linecolor:fg, linewidth:1.5,
+      ticks: p.tickMarks ? 'outside' : '',
+      showticklabels: p.tickLabels,
+      showline: doc.mode!=='3d'&&p.axisArrows&&(doc.axes[name==='x'?'y':'x'].scale==='log'||doc.axes[name==='x'?'y':'x'].min>0||doc.axes[name==='x'?'y':'x'].max<0)
+    });
+    if (doc.mode === '3d') return Object.assign(common, { dragmode: 'orbit', scene: { xaxis: configure(doc.axes && doc.axes.x, 'x'), yaxis: configure(doc.axes && doc.axes.y, 'y'), zaxis: configure(doc.axes && doc.axes.z, 'z'), aspectmode: doc.equalScale ? 'data' : 'auto', camera: options.camera || defaultCamera(doc) } });
     return Object.assign(common, { dragmode: 'pan',
-      xaxis: Object.assign(tick(doc.axes && doc.axes.x), { title: { text: axisTitle(doc.axes && doc.axes.x, 'x') }, showgrid: doc.grid !== false }),
-      yaxis: Object.assign(tick(doc.axes && doc.axes.y), { title: { text: axisTitle(doc.axes && doc.axes.y, 'y') }, showgrid: doc.grid !== false, scaleanchor: doc.equalScale ? 'x' : undefined, scaleratio: doc.equalScale ? 1 : undefined })
+      xaxis: configure(doc.axes && doc.axes.x, 'x'),
+      yaxis: Object.assign(configure(doc.axes && doc.axes.y, 'y'), { scaleanchor: doc.equalScale ? 'x' : undefined, scaleratio: doc.equalScale ? 1 : undefined })
     });
   }
 
@@ -370,13 +424,15 @@
     }
     const state = states.get(element) || {}; const camera = options.camera || state.camera;
     if (typeof element.removeAllListeners === 'function') { element.removeAllListeners('plotly_click'); element.removeAllListeners('plotly_relayout'); element.removeAllListeners('plotly_clickannotation'); element.removeAllListeners('plotly_hover'); element.removeAllListeners('plotly_unhover'); }
-    const layout = Object.assign(layoutFor(doc, Object.assign({}, options, { camera })), { autosize: true, width: element.clientWidth || 640, height: element.clientHeight || 480, annotations:decorations });
+    const baseLayout = layoutFor(doc, Object.assign({}, options, { camera }));
+    const decorationColor = options.dark ? '#e5e7eb' : '#172033';
+    const layout = Object.assign(baseLayout, { autosize: true, width: element.clientWidth || 640, height: element.clientHeight || 480, annotations: decorations.concat(axisDecorations(doc, decorationColor)) });
     await P.react(element, traces, layout, { displayModeBar: false, responsive: true, scrollZoom: true });
     const blank = state.blankCleanup || installBlankClick(element, options.onBlankClick, traces); blank?.update(options.onBlankClick, traces, options, doc.mode);
     const live = { doc, camera: (element.layout && element.layout.scene && element.layout.scene.camera) || camera, options, blankCleanup: blank }; states.set(element, live);
     if (typeof element.on === 'function') {
       element.on('plotly_click', (event) => { const hit = actualPlotHit(element, event) || traceHit(element, traces, event.event || {}); if (typeof options.onBlankClick === 'function' && !hit) return; blank?.hit(); const meta = selectionMeta(element, event, traces); if (!meta) return; const callback = meta.objectType === 'annotation' ? options.onAnnotationSelect : options.onSelect; if (typeof callback === 'function') callback(meta.objectId); });
-      element.on('plotly_clickannotation',event=>{blank?.hit();const item=decorations[event.index];if(item&&typeof options.onAnnotationSelect==='function')options.onAnnotationSelect(item.name);});
+      element.on('plotly_clickannotation',event=>{blank?.hit();const item=element.layout?.annotations?.[event.index];if(item&&doc.annotations?.some(a=>a.id===item.name)&&typeof options.onAnnotationSelect==='function')options.onAnnotationSelect(item.name);});
       element.on('plotly_hover', event => blank?.hover(selectionMeta(element, event, traces)));
       element.on('plotly_unhover', () => blank?.hover(null));
       element.on('plotly_relayout', (event) => { const view = viewFrom(event || {}, doc); if (!view) return; if (view.camera) live.camera = view.camera; if (typeof options.onViewChange === 'function') options.onViewChange(view); });
@@ -408,13 +464,24 @@
   async function exportImage(element, options) {
     options = options || {}; const P = plotly(), state = states.get(element); if (!P || !state) throw new Error('グラフを描画してから書き出してください。');
     if (options.format === 'svg' && state.doc.mode === '3d') throw new Error('3D グラフは SVG で書き出せません。PNG を選んでください。');
-    const host = element.ownerDocument.createElement('div'); host.style.cssText = 'position:fixed;left:-10000px;top:0;width:' + Math.max(element.clientWidth || 640, 320) + 'px;height:' + Math.max(element.clientHeight || 480, 240) + 'px;'; element.ownerDocument.body.appendChild(host);
+    const configured = outputDefaults(state.doc, element);
+    const requested = Object.assign({}, configured, options, {title:options.title===true});
+    if (options.format === undefined) requested.format = 'png';
+    if (!['png', 'svg'].includes(requested.format)) throw new Error('書き出し形式はPNGまたはSVGを指定してください。');
+    if (requested.background !== 'white' && requested.background !== 'transparent') throw new Error('背景は白または透明を指定してください。');
+    const output = validateOutput(requested);
+    const host = element.ownerDocument.createElement('div'); host.style.cssText = 'position:fixed;left:-10000px;top:0;width:' + output.width + 'px;height:' + output.height + 'px;'; element.ownerDocument.body.appendChild(host);
     const data = (element.data || []).map((x) => JSON.parse(JSON.stringify(x))); const layout = JSON.parse(JSON.stringify(element.layout || layoutFor(state.doc, state.options)));
-    const transparent = options.background === 'transparent', bg = transparent ? 'rgba(0,0,0,0)' : '#ffffff', fg = '#172033', grid = '#cbd5e1';
+    const transparent = output.background === 'transparent', bg = transparent ? 'rgba(0,0,0,0)' : '#ffffff', fg = '#172033', grid = '#cbd5e1';
+    layout.width = output.width; layout.height = output.height; layout.autosize = false; layout.margin = { l: output.margin, r: output.margin, t: output.margin, b: output.margin };
+    layout.font = Object.assign({}, layout.font, { size: output.fontSize });
+    if (output.title && state.doc.name) layout.title = Object.assign({}, layout.title, { text: rich(state.doc.name), font: Object.assign({}, layout.title && layout.title.font, { size: output.fontSize }) });
+    else if (!output.title) delete layout.title;
+    for(const annotation of layout.annotations||[])if(['__graph_axis_x','__graph_axis_y','__graph_origin_label'].includes(annotation.name)){annotation.arrowcolor=fg;if(annotation.font)annotation.font={...annotation.font,color:fg,size:output.fontSize};}
     layout.paper_bgcolor = bg; layout.plot_bgcolor = bg; layout.font = Object.assign({}, layout.font, { color: fg });
-    ['xaxis', 'yaxis'].forEach((key) => { if (layout[key]) { layout[key].color = fg; layout[key].gridcolor = grid; layout[key].zerolinecolor = grid; layout[key].title = Object.assign({}, layout[key].title, { font: Object.assign({}, layout[key].title && layout[key].title.font, { color: fg }) }); } });
+    ['xaxis', 'yaxis'].forEach((key) => { if (layout[key]) { layout[key].color = fg; layout[key].gridcolor = grid; layout[key].zerolinecolor = presentation(state.doc).axisArrows ? fg : grid; layout[key].linecolor=fg; layout[key].title = Object.assign({}, layout[key].title, { font: Object.assign({}, layout[key].title && layout[key].title.font, { color: fg }) }); } });
     if (layout.scene) { layout.scene.bgcolor = bg; layout.scene.camera = state.camera || layout.scene.camera; ['xaxis', 'yaxis', 'zaxis'].forEach((key) => { const axis = layout.scene[key]; if (axis) { axis.color = fg; axis.gridcolor = grid; axis.zerolinecolor = grid; axis.backgroundcolor = bg; axis.title = Object.assign({}, axis.title, { font: Object.assign({}, axis.title && axis.title.font, { color: fg }) }); } }); }
-    try { await P.newPlot(host, data, layout, { displayModeBar: false }); return await P.toImage(host, { format: options.format || 'png', scale: options.scale || 2 }); } finally { P.purge(host); host.remove(); }
+    try { await P.newPlot(host, data, layout, { displayModeBar: false }); return await P.toImage(host, { format: output.format, width: output.width, height: output.height, scale: output.scale }); } finally { if (typeof P.purge === 'function') P.purge(host); host.remove(); }
   }
   return { sampleFunction, sampleSurface, render, resetView, resize, exportImage, screenPoint, dataPoint, pickAnnotation, escapeText: esc };
 }));

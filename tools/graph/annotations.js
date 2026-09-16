@@ -67,6 +67,24 @@
       };
     } catch (_) { return null; }
   }
+  function analysis() { return root.GraphAnalysis || requiredAnalysis; }
+  function regressionFit(annotation, doc) {
+    const api = analysis();
+    if (!api || typeof api.fit !== 'function' || !annotation || annotation.kind !== 'regression') return null;
+    const fit = api.fit(seriesById(doc, annotation.seriesId), annotation.model);
+    return fit && !fit.warning && Array.isArray(fit.domain) && typeof fit.predict === 'function' ? fit : null;
+  }
+  function regressionTarget(id, doc) {
+    const annotation = annotationById(doc, id), fit = regressionFit(annotation, doc);
+    if (!fit) return null;
+    const api = analysis();
+    return {
+      value: x => inRange(x, fit.domain) ? fit.predict(x) : null,
+      derivative: x => api && typeof api.derivative === 'function' ? api.derivative(fit, x) : null,
+      domain: fit.domain,
+      fit
+    };
+  }
   function functionDomain(series) {
     const values = series && series.domain && series.domain.x;
     return Array.isArray(values) && values.length === 2 && finite(Number(values[0])) && finite(Number(values[1])) && Number(values[0]) < Number(values[1]) ? [Number(values[0]), Number(values[1])] : [-10, 10];
@@ -103,6 +121,12 @@
       if (series && at !== null && api && typeof api.pointAt === 'function') {
         try { point = api.pointAt(series, doc, at); } catch (_) { point = null; }
       }
+    } else if (anchor.type === 'regression') {
+      const target = regressionTarget(anchor.regressionId, doc), at = scalar(anchor.at, doc);
+      if (target && at !== null && inRange(at, target.domain)) {
+        const y = target.value(at);
+        point = finite(y) ? [at, y] : null;
+      }
     }
     return Array.isArray(point) && finite(point[0]) && finite(point[1]) ? point : null;
   }
@@ -126,13 +150,19 @@
     return { points: [], segments: [segment], warning: '' };
   }
   function tangentLine(annotation, doc) {
-    const series = seriesById(doc, annotation && annotation.seriesId), at = scalar(annotation && annotation.at, doc);
     const unavailable = warning => ({ point: null, slope: null, warning });
-    if (!series || series.kind !== 'function' || at === null) return unavailable('接線の対象または接点が不正です。');
-    const fn = functionFor(series, doc), domain = functionDomain(series);
-    if (!fn || !inRange(at, domain)) return unavailable('接点で関数を評価できません。');
+    const at = scalar(annotation && annotation.at, doc);
+    if (at === null) return unavailable('接線の対象または接点が不正です。');
+    const target = annotation && annotation.target && annotation.target.type === 'regression' ? regressionTarget(annotation.target.id, doc) : null;
+    if (annotation && annotation.target && !target) return unavailable('接線の対象となる回帰曲線を評価できません。');
+    const series = target ? null : seriesById(doc, annotation && annotation.seriesId), fn = target ? target.value : functionFor(series, doc), domain = target ? target.domain : functionDomain(series);
+    if ((!target && (!series || series.kind !== 'function')) || !fn || !domain || !inRange(at, domain)) return unavailable('接点で関数を評価できません。');
     const y = fn(at), point = [at, y];
     if (!finite(y)) return unavailable('接点が定義されていません。');
+    if (target) {
+      const slope = target.derivative(at);
+      return finite(slope) && Math.abs(slope) <= 1e10 ? { point, slope, warning: '' } : unavailable('接点の傾きを計算できません。');
+    }
     const span = domain[1] - domain[0], h = Math.min(span / 4096, Math.max(span * 1e-6, 1e-7 * Math.max(1, Math.abs(at))));
     if (!(h > 0) || at - h * 2 < domain[0] || at + h * 2 > domain[1]) return unavailable('接点の左右で微分を確認できません。');
     const left = fn(at - h), right = fn(at + h), leftHalf = fn(at - h / 2), rightHalf = fn(at + h / 2);
@@ -220,6 +250,7 @@
       const annotation = annotationById(doc, target.id), line = annotation && annotation.kind === 'tangent' ? tangentLine(annotation, doc) : null;
       return line && line.point ? { value: x => line.point[1] + line.slope * (x - line.point[0]), domain: null } : null;
     }
+    if (target.type === 'regression') return regressionTarget(target.id, doc);
     return null;
   }
   function intersectionResult(annotation, doc) {
@@ -404,7 +435,14 @@
       if (anchor.type !== 'free' || !literalNumber(anchor.x) || !literalNumber(anchor.y) || usesParameter(anchor.x, doc) || usesParameter(anchor.y, doc)) return null;
       return { type: 'free', x: numberText(coordinate[0]), y: numberText(coordinate[1]) };
     }
-    if (annotation.kind !== 'point' || anchor.type !== 'curve' || !literalNumber(anchor.at) || usesParameter(anchor.at, doc)) return null;
+    if (annotation.kind !== 'point' || !literalNumber(anchor.at) || usesParameter(anchor.at, doc)) return null;
+    if (anchor.type === 'regression') {
+      const target = regressionTarget(anchor.regressionId, doc);
+      if (!target) return null;
+      const at = Math.max(target.domain[0], Math.min(target.domain[1], coordinate[0])), y = target.value(at);
+      return finite(y) && drawablePoint(doc, [at, y]) ? { type: 'regression', regressionId: anchor.regressionId, at: numberText(at) } : null;
+    }
+    if (anchor.type !== 'curve') return null;
     const series = seriesById(doc, anchor.seriesId);
     if (!series || !['function', 'parametric', 'polar'].includes(series.kind)) return null;
     if (series.kind === 'function') {
@@ -416,7 +454,7 @@
     return at === null ? null : { type: 'curve', seriesId: series.id, at: numberText(at) };
   }
   function regressionResult(annotation, doc) {
-    const api=root.GraphAnalysis||requiredAnalysis;
+    const api=analysis();
     if(!api)return empty('回帰分析を読み込めません。');
     const fit=api.fit(seriesById(doc,annotation.seriesId),annotation.model);
     if(fit.warning)return {...empty(fit.warning),fit};

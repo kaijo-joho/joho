@@ -74,5 +74,27 @@
     if(result.model==='quadratic')term(values[2],variable+'²');term(values[1],variable);term(values[0]);
     return y+' ≈ '+(terms.join('')||'0');
   }
-  return {fit,equation};
+  // Keep this alongside predict: expanding displayed coefficients loses precision for
+  // data with a large offset on x.  Dependent annotations therefore use the same
+  // normalized basis as the fit itself.
+  function derivative(result,x){
+    if(!result||result.warning||!finite(x))return null;
+    if(result.model==='proportional')return finite(result.coefficients?.[1])?result.coefficients[1]:null;
+    if(!result.centered)return null;
+    const center=result.centered,scale=center.scale,local=center.coefficients;
+    if(!finite(scale)||scale===0||!Array.isArray(local))return null;
+    let value;
+    if(result.model==='linear'||result.model==='quadratic'){
+      value=local[1]+(result.model==='quadratic'?2*(x-center.center)*local[2]:0);
+    }else if(result.model==='exponential'){
+      const predicted=result.predict(x);
+      value=finite(predicted)?predicted*local[1]:null;
+    }else if(result.model==='power'){
+      if(!(x>0))return null;
+      const predicted=result.predict(x);
+      value=finite(predicted)?predicted*local[1]/x:null;
+    }
+    return finite(value)?value:null;
+  }
+  return {fit,equation,derivative};
 });

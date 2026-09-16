@@ -31,6 +31,16 @@
   function display(text,kind='scalar') { return S.toDisplay(text,current(),kind); }
   function canonical(text,kind='scalar') { return S.toCanonical(text.trim(),current(),kind); }
   function curveLabel(s) { return s.kind==='parametric' ? symbol('x')+' = '+display(s.components.x,s.kind)+' / '+symbol('y')+' = '+display(s.components.y,s.kind) : (s.kind==='polar'?'r = ':'')+display(s.expression,s.kind); }
+  function regressionSources() {
+    return current().annotations.filter(a=>a.kind==='regression').map(a=>{
+      const fit=GraphAnalysis.fit(current().series.find(s=>s.id===a.seriesId),a.model);
+      return {id:'regression:'+a.id,kind:'regression',name:'回帰：'+(a.name||'回帰曲線'),domain:{x:fit.domain||[current().axes.x.min,current().axes.x.max]}};
+    });
+  }
+  function functionSources() {return [...current().series.filter(s=>s.kind==='function'),...regressionSources()];}
+  function tangentSource(a) {return a.target?'regression:'+a.target.id:a.seriesId;}
+  function setTangentSource(a,value) {delete a.seriesId;delete a.target;if(value.startsWith('regression:'))a.target={type:'regression',id:value.slice(11)};else a.seriesId=value;return a;}
+  function curveAnchor(value,at) {return value.startsWith('regression:')?{type:'regression',regressionId:value.slice(11),at}:{type:'curve',seriesId:value,at};}
   function activeParameter() { return selected?.type==='parameter' ? current().parameters.find(p=>p.name===selected.name) : null; }
   function closeTopMenus() { for (const el of document.querySelectorAll('.top details[open]')) el.open=false; }
   function closeMenus() { closeTopMenus();closeAddMenu(); }
@@ -83,6 +93,7 @@
     cancelTangentDraft();cancelGesture(); parameterPreview=null; history.change(mutator);if(rebuildToolbar){updateList();updateToolbar();}updateHeader(); persistSoon(); if(draw) requestDraw(); if(message) notify(message);
   }
   function updateHeader() {
+    updateOutputControls();
     $('document-name').textContent=current().name || '無題のグラフ';
     $('mode-label').textContent=current().mode.toUpperCase();
     for (const mode of ['2d','3d']) $('mode-'+mode).setAttribute('aria-pressed',String(current().mode===mode));
@@ -169,9 +180,10 @@
     if(s) {
       bar.append(node('span',s.name||kindNames[s.kind],{class:'selection-name'}),iconButton('edit',s.kind.startsWith('data')?'数表・出典':'数式・範囲',()=>editSeries(s.id)),selectionPanelButton('style','palette','色・線'));
       if(s.kind==='data2d')bar.append(iconButton('regression','回帰分析',()=>addAnnotation('regression',s.id),{'aria-haspopup':'dialog'}));
+      if(s.kind.startsWith('data'))bar.append(iconButton('statistics','統計量・相関行列',()=>showStatistics(s.id),{'aria-haspopup':'dialog'}));
       bar.append(iconButton(s.visible?'hide':'show',s.visible?'非表示にする':'表示する',()=>changed(d=>{d.series.find(x=>x.id===s.id).visible=!s.visible;})),iconButton('copy','複製',()=>{const next=C.clone(current().series.find(x=>x.id===s.id));next.id=C.uid();next.name=(next.name||kindNames[next.kind])+' のコピー';changed(d=>d.series.push(next));select({type:'series',id:next.id});}),iconButton('trash','削除',()=>removeSeries(s.id)));
       const more=node('div');
-      if(s.kind.startsWith('data')) more.append(button('数値をCSVで保存',()=>download(C.tableCSV(s.kind==='data2d'?C.measurementRows(s):s.rows,measurementHeaders(s)),filename(s.name||'数表')+'.csv','text/csv;charset=utf-8')));
+      if(s.kind.startsWith('data')) more.append(button('数値をCSVで保存',()=>{const table=GraphTables.fromSeries(s,{x:symbol('x'),y:symbol('y'),z:symbol('z')});download(C.tableCSV(table.rows,table.columns),filename(s.name||'数表')+'.csv','text/csv;charset=utf-8');}));
       if(!matchesMode(s)) more.append(button(kindNames[s.kind].startsWith('3D')?'3Dで表示':'2Dで表示',()=>switchMode(kindNames[s.kind].startsWith('3D')?'3d':'2d')));
       if(more.children.length){const details=node('details',null,{class:'popup-details'}),summary=node('summary',null,{'aria-label':'その他',class:'icon-button','data-tip':'その他'});summary.append(GraphIcons.create('more',document));details.append(summary,more);bar.append(details);}
     } else if(a) {
@@ -194,7 +206,7 @@
     trigger.addEventListener('click',()=>run(()=>openQuickTangent(trigger,seriesId,true)));
     trigger.addEventListener('pointerenter',event=>{
       if(event.pointerType!=='mouse'||trigger.disabled)return;clearTimeout(tangentHoverTimer);
-      tangentHoverTimer=setTimeout(()=>{if(trigger.getBoundingClientRect().width&&!$('editor-dialog').open&&!$('tangent-quick-panel').contains(document.activeElement)&&current().series.some(s=>s.kind==='function'))run(()=>openQuickTangent(trigger,seriesId,false));},180);
+      tangentHoverTimer=setTimeout(()=>{if(trigger.getBoundingClientRect().width&&!$('editor-dialog').open&&!$('tangent-quick-panel').contains(document.activeElement)&&functionSources().length)run(()=>openQuickTangent(trigger,seriesId,false));},180);
     });
     trigger.addEventListener('pointerleave',()=>clearTimeout(tangentHoverTimer));
   }
@@ -214,11 +226,11 @@
   function openQuickTangent(opener,seriesId,focus) {
     clearTimeout(tangentHoverTimer);if(current().mode!=='2d'||$('editor-dialog').open||exportBusy)return;
     if(tangentDraft?.opener===opener){if(focus){const input=$('tangent-quick-at');input.focus();input.select();}return;}
-    const functions=current().series.filter(s=>s.kind==='function'),source=functions.find(s=>s.id===(seriesId||activeSeries()?.id))||functions[0];
-    if(!source)throw new Error('接線を追加するには、先に2Dの数式 y = f(x) を追加してください。');
+    const functions=functionSources(),source=functions.find(s=>s.id===(seriesId||activeSeries()?.id||(activeAnnotation()?.kind==='regression'?'regression:'+activeAnnotation().id:'')))||functions[0];
+    if(!source)throw new Error('接線を追加するには、先に2Dの数式または回帰曲線を追加してください。');
     const returnTarget=opener.closest('.add-menu')?.querySelector('.add-menu-toggle')||opener,anchor=returnTarget.getBoundingClientRect();
     cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus();tooltip?.hide();if(matchMedia('(max-width:850px)').matches)setListOpen(false);
-    const annotation=C.createAnnotation('tangent');annotation.name='接線 '+(current().annotations.length+1);annotation.seriesId=source.id;
+    const annotation=C.createAnnotation('tangent');annotation.name='接線 '+(current().annotations.length+1);setTangentSource(annotation,source.id);
     annotation.at=String(source.domain.x[0]<0&&source.domain.x[1]>0?0:(source.domain.x[0]+source.domain.x[1])/2);
     const panel=$('tangent-quick-panel');panel.replaceChildren();panel.hidden=false;tangentDraft={annotation,opener,returnTarget,anchor,valid:false};opener.setAttribute('aria-expanded','true');
     const heading=node('div',null,{class:'quick-tangent-heading'});heading.append(node('strong','接線を追加'),iconButton('close','接線の追加を閉じる',()=>cancelTangentDraft(true)));panel.append(heading);
@@ -233,7 +245,7 @@
       tangentDraft.valid=false;
       try{
         if(!at.value.trim())throw new Error('接点の座標を入力してください。');
-        annotation.seriesId=sourceInput?.value||source.id;annotation.at=canonical(at.value);
+        setTangentSource(annotation,sourceInput?.value||source.id);annotation.at=canonical(at.value);
         const result=GraphAnnotations.tangentEquation(annotation,current());if(!result.text)throw new Error(result.warning);
         if(current().annotations.length>=100)throw new Error('注釈は100個まで追加できます。');
         equation.textContent=result.text;tangentDraft.valid=true;
@@ -359,12 +371,12 @@
   function openDialog(title, build, onApply, submit='適用') {
     const focused=document.activeElement,addTrigger=focused?.closest('.add-menu')?.querySelector('.add-menu-toggle');
     cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=addTrigger||focused;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogListDetail=dialogOpener?.dataset.objectDetails;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
-    $('dialog-title').textContent=title;$('dialog-content').replaceChildren();$('dialog-error').hidden=true;$('dialog-submit').hidden=!onApply;$('dialog-submit').textContent=submit;
+    $('editor-dialog').classList.remove('wide-dialog');$('dialog-title').textContent=title;$('dialog-content').replaceChildren();$('dialog-error').hidden=true;$('dialog-submit').hidden=!onApply;$('dialog-submit').textContent=submit;
     $('dialog-cancel').textContent=onApply?'キャンセル':'閉じる';build($('dialog-content'));$('editor-dialog').showModal();
     const focus=$('dialog-content').querySelector('input,textarea,select,button');if(focus)focus.focus();
   }
   function closeDialog() {
-    $('editor-dialog').close();
+    document.body.classList.remove('print-ready');$('print-sheet').replaceChildren();$('editor-dialog').close();
     const replacement=dialogListDetail?document.querySelector('[data-object-details="'+CSS.escape(dialogListDetail)+'"]'):dialogOpenerKey&&dialogSelectionKey===$('selection-toolbar').dataset.selectionKey?$('selection-toolbar').querySelector('[data-quick-control="'+CSS.escape(dialogOpenerKey)+'"]'):null,opener=dialogOpener?.isConnected?dialogOpener:replacement;
     if((dialogListDetail||opener?.classList.contains('add-menu-toggle'))&&opener&&matchMedia('(max-width:850px)').matches)setListOpen(true);
     if(opener?.getBoundingClientRect().width)opener.focus();else $('stage').focus();
@@ -380,19 +392,16 @@
     const box=node('div',null,{class:'source-info small'});box.append(node('strong',({user:'自分のデータ',reference:'資料の数値',model:'式・モデルからの値'})[source.kind]));if(source.title)box.append(node('p',source.title));if(source.notes)box.append(node('p',source.notes));if(source.url)box.append(node('a','出典を開く',{href:source.url,target:'_blank',rel:'noopener noreferrer'}));parent.append(box);
   }
   function editSeries(id, supplied) {
-    const existing=current().series.find(s=>s.id===id), s=C.clone(supplied||existing);if(!s)return;let name,expression,xmin,xmax,ymin,ymax,componentX,componentY,intervalMin,intervalMax,table,errorMode,interpolation,dataPoints,sourceKind,sourceTitle,sourceURL,sourceNotes;
+    const existing=current().series.find(s=>s.id===id), s=C.clone(supplied||existing);if(!s)return;let name,expression,xmin,xmax,ymin,ymax,componentX,componentY,intervalMin,intervalMax,table,interpolation,dataPoints,sourceKind,sourceTitle,sourceURL,sourceNotes;
     const isData=s.kind.startsWith('data'),is3=s.kind==='surface'||s.kind==='data3d',isParam=s.kind==='parametric',isPolar=s.kind==='polar',isImplicit=s.kind==='implicit';
     const formulaAttrs={maxlength:1000,spellcheck:'false',autocapitalize:'none',autocomplete:'off'};
     openDialog((existing?'編集：':'追加：')+kindNames[s.kind],parent=>{
       name=field(parent,'名前',s.name,'text',{maxlength:160});
       if(isData){
-        if(!is3)errorMode=choice(parent,'誤差棒の列',C.measurementMode(s),[['none','なし（2列）'],['y','縦の幅 Δ'+symbol('y')+'（3列）'],['x','横の幅 Δ'+symbol('x')+'（3列）'],['xy','横・縦の幅 Δ'+symbol('x')+', Δ'+symbol('y')+'（4列）']]);
-        table=area(parent,'数表',C.tableCSV(is3?s.rows:C.measurementRows(s)));
-        const columnsNote=node('p','',{class:'small muted'});parent.append(columnsNote);
-        const refreshColumns=()=>{const columns=measurementHeaders(s,errorMode?.value);table.parentElement.firstChild.textContent='数表（'+columns.join(', ')+' の'+columns.length+'列）';table.placeholder=columns.join(',')+'\n'+(is3?'0,0,0\n1,2,3':columns.length===4?'0,0,0.1,0.2\n1,2,0.1,0.2':columns.length===3?'0,0,0.2\n1,2,0.2':'0,0\n1,2');columnsNote.textContent='CSVまたはタブ区切り。欠測は空欄。'+(!is3&&errorMode.value!=='none'?'誤差棒は0以上の±幅を末尾の列に入力します。列の選択だけでは数表の内容は変わりません。':'');};
-        errorMode?.addEventListener('change',refreshColumns);refreshColumns();
-        if(!is3){const g=grid(parent);interpolation=choice(g,'点の結び方',s.style.lines?s.interpolation:'none',[['none','結ばない（散布図）'],['linear','入力順に直線で結ぶ'],['monotone','滑らかに補間（PCHIP）']]);dataPoints=check(g,'元の点を表示',s.style.points);parent.append(node('p','補間は点を通る線です。回帰分析は描画後に数表を選択して追加できます。滑らかな補間は各区間の横軸の値が昇順または降順のときに使えます。',{class:'small muted'}));}
-        if(s.rows.length){const details=node('details');details.append(node('summary','現在の数値を確認'));appendDataTable(details,measurementHeaders(s),is3?s.rows:C.measurementRows(s));parent.append(details);}
+        $('editor-dialog').classList.add('wide-dialog');
+        table=GraphTableEditor.mount(parent,s,{symbols:{x:symbol('x'),y:symbol('y'),z:symbol('z')},onError:report});
+        parent.append(node('p','空欄は欠測として扱います。表計算の複数セルをそのまま貼り付けられます。描画に使わない列も保存し、統計量・相関行列で利用できます。',{class:'small muted'}));
+        if(!is3){const g=grid(parent);interpolation=choice(g,'点の結び方',s.style.lines?s.interpolation:'none',[['none','結ばない（散布図）'],['linear','入力順に直線で結ぶ'],['monotone','滑らかに補間（PCHIP）']]);dataPoints=check(g,'元の点を表示',s.style.points);parent.append(node('p','誤差列は0以上の±幅。滑らかな補間には各連続区間の横軸の値が昇順または降順である必要があります。',{class:'small muted'}));}
       }else{
         if(isParam){componentX=field(parent,symbol('x')+'(t) の式',display(s.components.x,s.kind),'text',formulaAttrs);componentY=field(parent,symbol('y')+'(t) の式',display(s.components.y,s.kind),'text',formulaAttrs);}
         else expression=field(parent,is3?'数式（例：'+display('z = x^2 + y^2',s.kind)+'）':isImplicit?'方程式（例：'+display('x^2 + y^2 = 9',s.kind)+'）':isPolar?'r の式（例：2*cos(3*theta)）':'数式（例：'+display('y = a*x^2',s.kind)+'）',display(s.expression,s.kind),'text',formulaAttrs);
@@ -406,19 +415,20 @@
       const details=node('details');details.append(node('summary','出典・条件を記録する'));parent.append(details);
       sourceKind=choice(details,'データの由来',s.source.kind,[['user','自分のデータ'],['reference','資料の数値'],['model','式・モデルからの値']]);sourceTitle=field(details,'資料名',s.source.title,'text',{maxlength:300});sourceURL=field(details,'出典URL（https）',s.source.url,'url',{maxlength:2000});sourceNotes=area(details,'条件・単位・適用範囲など',s.source.notes);sourceNotes.maxLength=3000;
     },()=>{
-      s.name=name.value.trim();if(isData){if(is3)s.rows=C.parseTable(table.value,3);else{Object.assign(s,C.parseMeasurementTable(table.value,errorMode.value));s.style.lines=interpolation.value!=='none';s.style.points=dataPoints.checked||!s.style.lines;s.interpolation=interpolation.value==='monotone'?'monotone':'linear';}if(!s.rows.length)throw new Error('1行以上の数値を入力してください。');}
+      s.name=name.value.trim();if(isData){GraphTables.assign(s,table.read());if(!is3){s.style.lines=interpolation.value!=='none';s.style.points=dataPoints.checked||!s.style.lines;s.interpolation=interpolation.value==='monotone'?'monotone':'linear';}if(!s.rows.length)throw new Error('1行以上の数値を入力してください。');}
       else{if(isParam)s.components={x:canonical(componentX.value,s.kind),y:canonical(componentY.value,s.kind)};else s.expression=canonical(expression.value,s.kind);if(isParam||isPolar)s.interval=[requiredNumber(intervalMin),requiredNumber(intervalMax)];else{s.domain.x=[requiredNumber(xmin),requiredNumber(xmax)];if(is3||isImplicit)s.domain.y=[requiredNumber(ymin),requiredNumber(ymax)];}}
       s.source={kind:sourceKind.value,title:sourceTitle.value,url:sourceURL.value,notes:sourceNotes.value};
       changed(d=>{if(existing)d.series[d.series.findIndex(x=>x.id===id)]=s;else d.series.push(s);});select({type:'series',id:s.id});
     },'描画');
   }
-  function addSeries(data=false,rows,errorBars) {
+  function addSeries(data=false,rows,errorBars,dataTable) {
     const s=C.createSeries(data?(current().mode==='3d'?'data3d':'data2d'):(current().mode==='3d'?'surface':'function'));
     s.style.color=palette[current().series.length%12];s.name=kindNames[s.kind]+' '+(current().series.length+1);
     s.domain={x:[current().axes.x.min,current().axes.x.max],y:[current().axes.y.min,current().axes.y.max]};
     if(data){s.expression='';s.rows=rows||[[0,0],[1,1],[2,4]].map(r=>current().mode==='3d'?[...r,r[1]]:r);s.style.points=true;}
     if(errorBars)s.errorBars=errorBars;
     else s.expression=current().mode==='3d'?'z = sin(x)*cos(y)':'y = x^2';
+    if(dataTable)GraphTables.assign(s,dataTable);
     editSeries(null,s);
   }
   function addCurve(kind) {
@@ -427,7 +437,7 @@
     if((kind==='polar'||kind==='parametric')&&current().angle==='deg')s.interval=[0,360];
     $('other-curves').open=false;editSeries(null,s);
   }
-  function intersectionSources() { return [...current().series.filter(s=>s.kind==='function').map(s=>['series:'+s.id,'数式：'+(s.name||curveLabel(s))]),...current().annotations.filter(a=>a.kind==='tangent').map(a=>['tangent:'+a.id,'接線：'+(a.name||GraphAnnotations.tangentEquation(a,current()).text)])]; }
+  function intersectionSources() { return [...current().series.filter(s=>s.kind==='function').map(s=>['series:'+s.id,'数式：'+(s.name||curveLabel(s))]),...current().annotations.filter(a=>a.kind==='tangent').map(a=>['tangent:'+a.id,'接線：'+(a.name||GraphAnnotations.tangentEquation(a,current()).text)]),...regressionSources().map(s=>[s.id,s.name])]; }
   function configureIntersection(a,values,interval) {
     const targets=values.map(value=>{const split=value.indexOf(':');return {type:value.slice(0,split),id:value.slice(split+1)};});
     const bothTangents=targets.every(t=>t.type==='tangent');
@@ -440,9 +450,9 @@
     const a=C.createAnnotation(kind);a.name=annotationNames[kind]+' '+(current().annotations.length+1);
     if(kind==='regression'){a.seriesId=seriesId||activeSeries()?.id||'';editRegression(null,a);return;}
     if(kind==='region'){a.segmentIds=defaultRegionSegments();editRegion(null,a);return;}
-    if(!seriesId){const source=activeSeries(),annotation=activeAnnotation();if(kind==='point'&&source&&curveKinds.includes(source.kind))seriesId=source.id;if(kind==='intersection'){if(source?.kind==='function')seriesId='series:'+source.id;else if(annotation?.kind==='tangent')seriesId='tangent:'+annotation.id;}}
-    if(kind==='point'&&seriesId){const s=current().series.find(s=>s.id===seriesId);a.anchor={type:'curve',seriesId,at:String(s.kind==='function'?Math.max(s.domain.x[0],Math.min(0,s.domain.x[1])):s.interval[0])};}
-    if(kind==='intersection'){const sources=intersectionSources();if(sources.length<2)throw new Error('交点には、先に数式・接線を合わせて2つ以上登録してください。');const first=sources.find(s=>s[0]===seriesId)?.[0]||sources[0][0],type=first.split(':')[0],second=sources.find(s=>s[0]!==first&&s[0].startsWith(type+':'))||sources.find(s=>s[0]!==first);configureIntersection(a,[first,second[0]],[current().axes.x.min,current().axes.x.max]);}
+    if(!seriesId){const source=activeSeries(),annotation=activeAnnotation();if(kind==='point'&&source&&curveKinds.includes(source.kind))seriesId=source.id;else if(kind==='point'&&annotation?.kind==='regression')seriesId='regression:'+annotation.id;if(kind==='intersection'){if(source?.kind==='function')seriesId='series:'+source.id;else if(['tangent','regression'].includes(annotation?.kind))seriesId=annotation.kind+':'+annotation.id;}}
+    if(kind==='point'&&seriesId){const s=[...current().series,...regressionSources()].find(s=>s.id===seriesId);a.anchor=curveAnchor(seriesId,String(['function','regression'].includes(s.kind)?Math.max(s.domain.x[0],Math.min(0,s.domain.x[1])):s.interval[0]));}
+    if(kind==='intersection'){const sources=intersectionSources();if(sources.length<2)throw new Error('交点には、先に数式・接線・回帰曲線を合わせて2つ以上登録してください。');const first=sources.find(s=>s[0]===seriesId)?.[0]||sources[0][0],type=first.split(':')[0],second=sources.find(s=>s[0]!==first&&s[0].startsWith(type+':'))||sources.find(s=>s[0]!==first);configureIntersection(a,[first,second[0]],[current().axes.x.min,current().axes.x.max]);}
     if(kind==='segment'){a.from=seriesId||'';a.style.dash='solid';}
     if(kind==='text'){a.text='説明';a.label.dx=0;a.label.dy=0;}
     editAnnotation(null,a);
@@ -452,7 +462,7 @@
     const existing=current().annotations.find(a=>a.id===id),a=C.clone(supplied||existing);if(!a)return;
     if(isRegion(a)){editRegion(id,a);return;}
     let name,pointType,curve,at,x,y,projections,axis,value,first,second,min,max,text,arrows,from,to,showEquation;
-    const curves=current().series.filter(s=>curveKinds.includes(s.kind)), functions=current().series.filter(s=>s.kind==='function');
+    const curves=[...current().series.filter(s=>curveKinds.includes(s.kind)),...regressionSources()], functions=functionSources();
     const options=items=>items.map(s=>[s.id,s.name||kindNames[s.kind]||annotationNames[s.kind]]),exprAttrs={maxlength:1000,spellcheck:'false',autocapitalize:'none',autocomplete:'off'};
     function endpoint(parent,label,id,defaultX) {
       const box=node('fieldset',null,{class:'axis-fields'});box.append(node('legend',label));parent.append(box);
@@ -465,26 +475,26 @@
     openDialog((existing?'編集：':'追加：')+annotationNames[a.kind],parent=>{
       name=field(parent,'名前',a.name,'text',{maxlength:160});
       if(a.kind==='point'){
-        pointType=choice(parent,'点の指定方法',a.anchor.type,[['free','座標を入力'],['curve','曲線上の点']]);
+        pointType=choice(parent,'点の指定方法',a.anchor.type==='regression'?'curve':a.anchor.type,[['free','座標を入力'],['curve','曲線上の点']]);
         if(!curves.length){pointType.querySelector('[value="curve"]').disabled=true;pointType.value='free';}
         const freeBox=grid(parent),curveBox=node('div');parent.append(curveBox);
         x=field(freeBox,symbol('x')+' 座標',display(a.anchor.x||'0'),'text',exprAttrs);y=field(freeBox,symbol('y')+' 座標',display(a.anchor.y||'0'),'text',exprAttrs);
-        curve=choice(curveBox,'対象の曲線',a.anchor.seriesId||curves[0]?.id,options(curves));at=field(curveBox,'位置（'+symbol('x')+' / t / theta の値）',display(a.anchor.at||'0'),'text',exprAttrs);
+        curve=choice(curveBox,'対象の曲線',(a.anchor.regressionId?'regression:'+a.anchor.regressionId:a.anchor.seriesId)||curves[0]?.id,options(curves));at=field(curveBox,'位置（'+symbol('x')+' / t / theta の値）',display(a.anchor.at||'0'),'text',exprAttrs);
         const hint=node('p','',{class:'small muted'});curveBox.append(hint);
-        const refresh=()=>{freeBox.hidden=pointType.value!=='free';curveBox.hidden=pointType.value!=='curve';const s=curves.find(s=>s.id===curve.value);hint.textContent=s?(s.kind==='function'?symbol('x'):s.kind==='parametric'?'t':'theta')+' の値を指定します。対象の定義範囲内で入力してください。':'';};pointType.addEventListener('change',refresh);curve.addEventListener('change',refresh);refresh();
+        const refresh=()=>{freeBox.hidden=pointType.value!=='free';curveBox.hidden=pointType.value!=='curve';const s=curves.find(s=>s.id===curve.value);hint.textContent=s?(['function','regression'].includes(s.kind)?symbol('x'):s.kind==='parametric'?'t':'theta')+' の値を指定します。対象の定義範囲内で入力してください。':'';};pointType.addEventListener('change',refresh);curve.addEventListener('change',refresh);refresh();
         projections=check(parent,'軸への読取線を表示',a.projections);
       }else if(a.kind==='guide'){axis=choice(parent,'方向',a.axis,[['x','縦の線（'+symbol('x')+' = 一定）'],['y','横の線（'+symbol('y')+' = 一定）']]);value=field(parent,'座標の値',display(a.value),'text',exprAttrs);}
       else if(a.kind==='tangent'){
-        curve=choice(parent,'対象の数式',a.seriesId,options(functions));at=field(parent,'接点の '+symbol('x')+' 座標',display(a.at),'text',exprAttrs);
+        curve=choice(parent,'対象の数式',tangentSource(a),options(functions));at=field(parent,'接点の '+symbol('x')+' 座標',display(a.at),'text',exprAttrs);
         const equation=node('output',null,{class:'equation-preview','aria-label':'接線の方程式'});parent.append(equation);showEquation=check(parent,'接線の方程式を図に表示',a.showEquation);
-        const refresh=()=>{try{const result=GraphAnnotations.tangentEquation({...a,seriesId:curve.value,at:canonical(at.value)},current());equation.textContent=result.text||result.warning;}catch(error){equation.textContent=error.message;}};curve.addEventListener('change',refresh);at.addEventListener('input',refresh);refresh();
+        const refresh=()=>{try{const result=GraphAnnotations.tangentEquation(setTangentSource({...a,at:canonical(at.value)},curve.value),current());equation.textContent=result.text||result.warning;}catch(error){equation.textContent=error.message;}};curve.addEventListener('change',refresh);at.addEventListener('input',refresh);refresh();
         parent.append(node('p','接点と接線は数値計算による近似です。角や未定義の点では接線を表示しません。方程式は左の一覧でも確認できます。',{class:'small muted'}));
       }
       else if(['intersection','tangentIntersection'].includes(a.kind)){
         const sources=intersectionSources(),values=a.tangentIds?.map(id=>'tangent:'+id)||a.seriesIds?.map(id=>'series:'+id)||a.targets.map(t=>t.type+':'+t.id);
         first=choice(parent,'1つ目の対象',values[0],sources);second=choice(parent,'2つ目の対象',values[1],sources);
         const g=grid(parent),interval=a.interval||[current().axes.x.min,current().axes.x.max];min=field(g,'探索する '+symbol('x')+' の最小値',interval[0],'number',{step:'any'});max=field(g,'探索する '+symbol('x')+' の最大値',interval[1],'number',{step:'any'});const hint=node('p','',{class:'small muted'});parent.append(hint);
-        const refresh=()=>{const both=[first.value,second.value].every(v=>v.startsWith('tangent:'));g.hidden=both;hint.textContent=both?'2本の接線を延長した交点です。平行・一致・微分できない場合は理由を表示します。':'数式と接線から2つ選びます。指定区間と数式の定義範囲が重なる部分を数値探索します。非常に近い交点や細かい振動は捉えきれないことがあります。';};first.addEventListener('change',refresh);second.addEventListener('change',refresh);refresh();
+        const refresh=()=>{const both=[first.value,second.value].every(v=>v.startsWith('tangent:'));g.hidden=both;hint.textContent=both?'2本の接線を延長した交点です。平行・一致・微分できない場合は理由を表示します。':'数式・接線・回帰曲線から2つ選びます。指定区間と数式の定義範囲が重なる部分を数値探索します。非常に近い交点や細かい振動は捉えきれないことがあります。';};first.addEventListener('change',refresh);second.addEventListener('change',refresh);refresh();
       }
       else if(a.kind==='segment'){from=endpoint(parent,'始点',a.from,'0');to=endpoint(parent,'終点',a.to,'2');arrows=choice(parent,'矢印',a.arrows,[['none','なし'],['end','終点に矢印'],['both','両端に矢印']]);parent.append(node('p','既存の点を選ぶと、そこにつながる線分が同じ端点を共有します。点を移動するとすべて追従します。続きの線分は操作バーの「終点から続ける」で追加できます。',{class:'small muted'}));}
       else if(a.kind==='text'){text=area(parent,'表示する文字',a.text);text.maxLength=2000;const g=grid(parent);x=field(g,symbol('x')+' 座標',display(a.anchor.x),'text',exprAttrs);y=field(g,symbol('y')+' 座標',display(a.anchor.y),'text',exprAttrs);parent.append(node('p','改行、v_0・v_{max} の下付き、m^2・m^{2} の上付きに対応します。文字の大きさは「文字・配置」で設定します。',{class:'small muted'}));}
@@ -492,9 +502,9 @@
     },()=>{
       a.name=name.value.trim();
       const extra=[];
-      if(a.kind==='point'){a.anchor=pointType.value==='free'?{type:'free',x:canonical(x.value),y:canonical(y.value)}:{type:'curve',seriesId:curve.value,at:canonical(at.value)};a.projections=projections.checked;}
+      if(a.kind==='point'){a.anchor=pointType.value==='free'?{type:'free',x:canonical(x.value),y:canonical(y.value)}:curveAnchor(curve.value,canonical(at.value));a.projections=projections.checked;}
       else if(a.kind==='guide'){a.axis=axis.value;a.value=canonical(value.value);}
-      else if(a.kind==='tangent'){a.seriesId=curve.value;a.at=canonical(at.value);a.showEquation=showEquation.checked;}
+      else if(a.kind==='tangent'){setTangentSource(a,curve.value);a.at=canonical(at.value);a.showEquation=showEquation.checked;}
       else if(['intersection','tangentIntersection'].includes(a.kind)){const both=[first.value,second.value].every(v=>v.startsWith('tangent:'));configureIntersection(a,[first.value,second.value],both?null:[requiredNumber(min),requiredNumber(max)]);}
       else if(a.kind==='text'){a.text=text.value;a.anchor={type:'free',x:canonical(x.value),y:canonical(y.value)};}
       else if(a.kind==='segment'){
@@ -517,9 +527,9 @@
     const existing=current().annotations.find(a=>a.id===id),a=C.clone(supplied||existing);if(!a)return;
     let name,showArea,showIntegral,method,first,second,min,max;const selectedEdges=new Set(a.segmentIds||[]),inputs=[];
     const edges=current().annotations.filter(a=>a.kind==='segment'),sources=intersectionSources(),pointName=id=>current().annotations.find(p=>p.id===id)?.name||'点';
-    const source=activeSeries(),tangent=activeAnnotation(),activeTarget=source?.kind==='function'?'series:'+source.id:tangent?.kind==='tangent'?'tangent:'+tangent.id:'';
+    const source=activeSeries(),tangent=activeAnnotation(),activeTarget=source?.kind==='function'?'series:'+source.id:['tangent','regression'].includes(tangent?.kind)?tangent.kind+':'+tangent.id:'';
     const initialKind=existing?a.kind:sources.length&&(activeTarget||selectedEdges.size<3)?'curveRegion':'region';
-    const firstDefault=activeTarget||sources[0]?.[0]||'',firstSeries=current().series.find(s=>'series:'+s.id===firstDefault);
+    const firstDefault=activeTarget||sources[0]?.[0]||'',firstSeries=functionSources().find(s=>(s.kind==='regression'?s.id:'series:'+s.id)===firstDefault);
     const start=Math.max(current().axes.x.min,firstSeries?.domain.x[0]??-1e9),end=Math.min(current().axes.x.max,firstSeries?.domain.x[1]??1e9);
     const initialInterval=start<=0&&end>=1?['0','1']:start<end?[String(start),String(end)]:['0','1'];
     const targetKey=t=>t.type==='axis'?'axis:x':t.type+':'+t.id;
@@ -542,7 +552,7 @@
       const actions=node('div',null,{class:'region-boundary-actions'});box.append(actions);
       actions.append(button('すべて選択',()=>{for(const input of inputs){input.checked=true;selectedEdges.add(input.dataset.regionSegment);}refresh();}),button('クリア',()=>{for(const input of inputs)input.checked=false;selectedEdges.clear();refresh();}));
       const curveBox=node('fieldset',null,{class:'axis-fields'});curveBox.append(node('legend','境界と区間'));parent.append(curveBox);
-      first=choice(curveBox,'第1の境界',a.targets?targetKey(a.targets[0]):firstDefault,sources.length?sources:[['','先に数式または接線を追加してください']]);
+      first=choice(curveBox,'第1の境界',a.targets?targetKey(a.targets[0]):firstDefault,sources.length?sources:[['','先に数式・接線・回帰曲線を追加してください']]);
       second=choice(curveBox,'第2の境界',a.targets?targetKey(a.targets[1]):'axis:x',[['axis:x',symbol('x')+' 軸（'+symbol('y')+' = 0）'],...sources]);
       const interval=grid(curveBox),values=a.interval||initialInterval;
       min=field(interval,symbol('x')+' の始点',display(values[0]),'text',formulaAttrs);max=field(interval,symbol('x')+' の終点',display(values[1]),'text',formulaAttrs);
@@ -576,6 +586,45 @@
     for(const values of rows.slice(0,limit)){const row=node('tr');for(const value of values)row.append(node('td',value===null?'欠測':String(value)));body.append(row);}
     wrap.append(table);parent.append(wrap);
     if(rows.length>limit)parent.append(node('p','先頭'+limit+'行を表示しています。CSVには全行を出力します。',{class:'small muted'}));
+  }
+  function showStatistics(id) {
+    const sources=current().series.filter(s=>s.kind.startsWith('data'));
+    if(!sources.length)throw new Error('統計量を確認するには、先に数表を追加してください。');
+    let source,columnBox,results,selectedColumns,table;
+    const definitions=[['n','有効数 n'],['missing','欠測数'],['sum','合計'],['mean','平均'],['median','中央値'],['min','最小値'],['max','最大値'],['variance','分散（nで割る）'],['standardDeviation','標準偏差（nで割る）'],['sampleVariance','不偏分散（n−1で割る）'],['sampleStandardDeviation','標準偏差（n−1で割る）']];
+    const number=value=>value===null?'未定義':String(Number(value.toPrecision(8)));
+    openDialog('統計量・相関行列',parent=>{
+      $('editor-dialog').classList.add('wide-dialog');
+      source=choice(parent,'集計する数表',sources.some(s=>s.id===id)?id:sources[0].id,sources.map(s=>[s.id,s.name||'数表']));
+      const details=node('details');details.append(node('summary','集計する列を選ぶ'));columnBox=node('div',null,{class:'statistics-columns'});details.append(columnBox);parent.append(details);
+      results=node('div',null,{'data-statistics-results':''});parent.append(results);
+      parent.append(node('p','空欄を除いて計算します。相関係数は同じ行の両方に値がある組だけを使うため、列の組によって n が変わります。一定の列や2組未満の相関は未定義です。相関は因果関係を示しません。',{class:'small muted'}));
+      parent.append(node('p','「n−1で割る標準偏差」は不偏分散の平方根です。標準偏差そのものの不偏推定量ではありません。表示は8有効桁、CSVには計算した精度で保存します。',{class:'small muted'}));
+      const load=()=>{
+        table=GraphTables.fromSeries(sources.find(s=>s.id===source.value),{x:symbol('x'),y:symbol('y'),z:symbol('z')});
+        selectedColumns=new Set(table.columns.map((_,i)=>i));columnBox.replaceChildren();
+        table.columns.forEach((label,i)=>{const input=check(columnBox,(i+1)+': '+label,true);input.dataset.statisticsColumn=i;input.addEventListener('change',()=>{if(input.checked)selectedColumns.add(i);else selectedColumns.delete(i);refresh();});});refresh();
+      };
+      function refresh(){
+        results.replaceChildren();const indices=[...selectedColumns].sort((a,b)=>a-b);
+        if(!indices.length){results.append(node('p','集計する列を選んでください。'));return;}
+        const summary=GraphStatistics.summarize(table,indices),matrix=GraphStatistics.matrix(table,indices),labels=summary.map(s=>(s.index+1)+': '+s.name);
+        const actions=node('div',null,{class:'statistics-actions'});results.append(actions);
+        actions.append(button('統計量をCSVで保存',()=>download(C.tableCSV(summary.map(s=>[s.name,...definitions.map(([key])=>s[key]),s.warning]),['列',...definitions.map(([,label])=>label),'注意']),filename(sources.find(s=>s.id===source.value).name)+'-統計量.csv','text/csv;charset=utf-8')));
+        actions.append(button('相関行列をCSVで保存',()=>download(C.tableCSV(matrix.values.map((r,i)=>[labels[i],...r]),['Pearson r',...labels]),filename(sources.find(s=>s.id===source.value).name)+'-相関行列.csv','text/csv;charset=utf-8')));
+        actions.append(button('相関の使用数をCSVで保存',()=>download(C.tableCSV(matrix.counts.map((r,i)=>[labels[i],...r]),['使用数 n',...labels]),filename(sources.find(s=>s.id===source.value).name)+'-相関の使用数.csv','text/csv;charset=utf-8')));
+        results.append(node('h3','基本統計量'));appendDataTable(results,['統計量',...labels],definitions.map(([key,label])=>[label,...summary.map(s=>number(s[key]))]));
+        summary.filter(s=>s.warning).forEach(s=>results.append(node('p',s.name+'：'+s.warning,{class:'small muted'})));
+        results.append(node('h3','相関行列（Pearson r）'));
+        const wrap=node('div',null,{class:'table-wrap correlation-wrap',tabindex:'0','aria-label':'相関行列。横にスクロールできます。'}),el=node('table',null,{class:'data-table correlation-table'}),thead=node('thead'),head=node('tr'),body=node('tbody');
+        head.append(node('th','変数',{scope:'col'}));labels.forEach(label=>head.append(node('th',label,{scope:'col'})));thead.append(head);el.append(thead,body);
+        labels.forEach((label,i)=>{const row=node('tr');row.append(node('th',label,{scope:'row'}));labels.forEach((other,j)=>{
+          const value=matrix.values[i][j],n=matrix.counts[i][j],reason=matrix.warnings[i][j],cell=node('td',null,{'data-correlation':i+','+j,title:reason||label+' × '+other});
+          cell.append(node('strong',number(value)),node('small','n = '+n));cell.setAttribute('aria-label',label+' × '+other+'：'+number(value)+'、使用数 '+n+(reason?'。'+reason:''));row.append(cell);
+        });body.append(row);});wrap.append(el);results.append(wrap);
+      }
+      source.addEventListener('change',load);load();
+    });
   }
   function editRegression(id,supplied) {
     const existing=current().annotations.find(a=>a.id===id),a=C.clone(supplied||existing),sources=current().series.filter(s=>s.kind==='data2d');
@@ -634,14 +683,16 @@
     },()=>{const p={name:paramName.value.trim(),value:requiredNumber(value),min:requiredNumber(min),max:requiredNumber(max),step:requiredNumber(step)};changed(d=>{if(existing)d.parameters[d.parameters.findIndex(x=>x.name===name)]=p;else d.parameters.push(p);});select({type:'parameter',name:p.name});});
   }
   function editAxes() {
-    let name,angle,equal,gridOn,legend;const fields={};
+    let name,angle,equal,gridOn,legend;const fields={},presentation={};
     openDialog('座標・グラフの設定',parent=>{
       name=field(parent,'グラフ名',current().name,'text',{maxlength:160});angle=choice(parent,'三角関数の角度',current().angle,[['rad','ラジアン'],['deg','度']]);
       for(const key of current().mode==='3d'?['x','y','z']:['x','y']){const a=current().axes[key],box=node('fieldset',null,{class:'axis-fields','data-axis':key});box.append(node('legend',({x:'横軸',y:'縦軸',z:'高さの軸'})[key]+'（'+a.symbol+'）'));parent.append(box);const g=grid(box);fields[key]={symbol:field(g,'数式で使う記号',a.symbol,'text',{maxlength:32,spellcheck:'false',autocapitalize:'none'}),label:field(g,'軸名（表示）',a.label,'text',{maxlength:80}),unit:field(g,'単位（表示）',a.unit,'text',{maxlength:80}),min:field(g,'最小値',a.min,'number',{step:'any'}),max:field(g,'最大値',a.max,'number',{step:'any'}),scale:choice(box,'目盛',a.scale,[['linear','通常'],['log','対数（正の値）']]),step:field(g,'目盛の間隔（空欄で自動）',a.ticks.step===null?'':String(a.ticks.step),'text',{placeholder:'例：1、1/2、π/2',maxlength:100}),format:choice(g,'目盛の表記',a.ticks.format,[['auto','自動'],['decimal','小数'],['fraction','分数'],['pi','π の倍数']])};const refresh=()=>{fields[key].step.disabled=fields[key].format.disabled=fields[key].scale.value==='log';};fields[key].scale.addEventListener('change',refresh);refresh();}
       parent.append(node('p','記号は t、V、温度、θ などを使えます。軸間・係数・関数・定数と重複しない名前にしてください。軸名や単位は表示用で、v_0 や m^2 の添字も使えます。記号を変えてもグラフの数値は変わりません。',{class:'small muted'}));
       parent.append(node('p','媒介変数の t と極座標の θ は各式の独立変数です。角度を変更しても入力済みの範囲は自動換算しません。',{class:'small muted'}));
       equal=check(parent,'各軸の1単位を同じ長さで表示',current().equalScale);gridOn=check(parent,'グリッドを表示',current().grid);legend=check(parent,'凡例を表示',current().legend);
-    },()=>changed(d=>{d.name=name.value.trim();d.angle=angle.value;d.equalScale=equal.checked;d.grid=gridOn.checked;d.legend=legend.checked;for(const[key,f]of Object.entries(fields)){const step=f.step.value.trim()?GraphExpression.compile(canonical(f.step.value),{variables:[],target:false,angle:d.angle}).evaluate({}):null;const nextSymbol=f.symbol.value.trim();d.axes[key]={symbol:nextSymbol,label:f.label.value===current().axes[key].symbol?nextSymbol:f.label.value,unit:f.unit.value,min:requiredNumber(f.min),max:requiredNumber(f.max),scale:f.scale.value,ticks:{step,format:f.format.value}};}}));
+      const appearance=node('fieldset',null,{class:'axis-fields'});appearance.append(node('legend','軸の表示'));parent.append(appearance);
+      for(const [key,label]of [['axisArrows','軸の正方向に矢印を表示（2D）'],['originLabel','原点に O を表示（2D）'],['tickMarks','目盛の線を表示'],['tickLabels','目盛の数値を表示']]){presentation[key]=check(appearance,label,current().presentation[key]);if(current().mode==='3d'&&['axisArrows','originLabel'].includes(key))presentation[key].disabled=true;}
+    },()=>changed(d=>{d.name=name.value.trim();d.angle=angle.value;d.equalScale=equal.checked;d.grid=gridOn.checked;d.legend=legend.checked;for(const[key,input]of Object.entries(presentation))d.presentation[key]=input.checked;for(const[key,f]of Object.entries(fields)){const step=f.step.value.trim()?GraphExpression.compile(canonical(f.step.value),{variables:[],target:false,angle:d.angle}).evaluate({}):null;const nextSymbol=f.symbol.value.trim();d.axes[key]={symbol:nextSymbol,label:f.label.value===current().axes[key].symbol?nextSymbol:f.label.value,unit:f.unit.value,min:requiredNumber(f.min),max:requiredNumber(f.max),scale:f.scale.value,ticks:{step,format:f.format.value}};}}));
   }
   function fitView() {
     const doc=current(), values={x:[],y:[],z:[]},base=Object.fromEntries(doc.parameters.map(p=>[p.name,p.value]));
@@ -682,8 +733,39 @@
       else parent.append(node('p','開いたあとも「元に戻す」で直前の図へ戻れます。',{class:'small muted'}));
     },null);
   }
+  function updateOutputControls() {
+    if(!history)return;
+    for(const [key,value]of Object.entries(current().output)){const input=$('output-'+key);if(!input)continue;if(typeof value==='boolean')input.checked=value;else input.value=value;}
+  }
+  function saveOutputControls() {
+    const out=C.clone(current().output);
+    for(const key of Object.keys(out)){const input=$('output-'+key);out[key]=typeof out[key]==='boolean'?input.checked:typeof out[key]==='number'?requiredNumber(input):input.value;}
+    if(JSON.stringify(out)!==JSON.stringify(current().output))changed(d=>{d.output=out;},undefined,false,false);
+  }
+  async function printPreview() {
+    if(exportBusy)return;saveOutputControls();cancelTangentDraft();await requestDraw();if(exportBusy)return;
+    exportBusy=true;$('print-preview').disabled=true;
+    try{
+      const doc=C.clone(current()),out=doc.output,is3=doc.mode==='3d';
+      const url=await P.exportImage($('plot'),{format:is3?'png':'svg',scale:1,background:'white'});
+      const dimensions=out.paper==='b5'?[182,257]:[210,297];if(out.orientation==='landscape')dimensions.reverse();
+      const sheet=$('print-sheet');sheet.replaceChildren();
+      if(out.title)sheet.append(node('h1',doc.name));sheet.append(node('img',null,{src:url,alt:doc.name+'のグラフ'}));
+      sheet.style.setProperty('--print-page-height',(dimensions[1]-24)+'mm');
+      $('print-page-style').textContent='@page { size: '+dimensions[0]+'mm '+dimensions[1]+'mm; margin: 12mm; }';
+      document.body.classList.add('print-ready');
+      openDialog('印刷プレビュー',parent=>{
+        $('editor-dialog').classList.add('wide-dialog');
+        parent.append(node('p',(out.paper==='b5'?'JIS B5':'A4')+'・'+(out.orientation==='landscape'?'横':'縦')+' ／ 余白12mm',{class:'small muted'}));
+        const preview=node('div',null,{class:'print-preview-page'});if(out.title)preview.append(node('h3',doc.name));preview.append(node('img',null,{src:url,alt:'印刷するグラフ'}));parent.append(preview);
+        parent.append(button('印刷する',()=>window.print(),{class:'primary full-button',id:'print-confirm'}));
+        parent.append(node('p','印刷画面では倍率100%・ヘッダーとフッターをオフにすると、この配置で印刷できます。PDFとして保存することもできます。',{class:'small muted'}));
+      });
+      await Promise.all([...sheet.querySelectorAll('img')].map(img=>img.decode()));
+    }finally{exportBusy=false;$('print-preview').disabled=false;if(drawPending)requestDraw();}
+  }
   async function exportImage() {
-    if(exportBusy)return;cancelTangentDraft();await requestDraw();if(exportBusy)return;exportBusy=true;$('export-image').disabled=true;
+    if(exportBusy)return;saveOutputControls();cancelTangentDraft();await requestDraw();if(exportBusy)return;exportBusy=true;$('export-image').disabled=true;
     try{const format=$('export-format').value,url=await P.exportImage($('plot'),{format,scale:Number($('export-scale').value),background:$('export-background').value});const a=node('a',null,{href:url,download:filename(current().name)+'.'+format});document.body.append(a);a.click();a.remove();notify('画像を書き出しました。');}
     finally{exportBusy=false;$('export-image').disabled=false;if(drawPending)requestDraw();}
   }
@@ -700,6 +782,7 @@
     $('plot').addEventListener('pointerup',finishGesture,{capture:true});
     $('plot').addEventListener('pointercancel',cancelGesture,{capture:true});
     $('plot').addEventListener('lostpointercapture',cancelGesture);
+    listen('show-statistics','click',()=>showStatistics(activeSeries()?.id));
     listen('add-function','click',()=>addSeries());listen('add-data','click',()=>addSeries(true));listen('add-parameter','click',()=>editParameter());
     for(const kind of ['implicit','parametric','polar'])listen('add-'+kind,'click',()=>addCurve(kind));
     for(const kind of ['point','segment','intersection','text','guide','region','regression'])listen('add-'+kind,'click',()=>addAnnotation(kind));bindTangentTrigger($('add-tangent'));
@@ -714,8 +797,9 @@
     listen('start-local-auto','click',startLocalAutosave);listen('stop-local-auto','click',()=>{localAuto.stop();$('stop-local-auto').disabled=true;closeMenus();});
     listen('new-document','click',()=>{closeMenus();loadDocument(C.createDocument());notify('新しいグラフを開きました。元に戻すこともできます。');});
     listen('file-input','change',async()=>{const file=$('file-input').files[0];$('file-input').value='';if(!file)return;if(file.size>2*1024*1024)throw new Error('再編集ファイルは2MB以内にしてください。');loadDocument(C.validateDocument(await file.text()));notify('グラフを読み込みました。');});
-    listen('import-csv','click',()=>$('csv-input').click());listen('csv-input','change',async()=>{const file=$('csv-input').files[0];$('csv-input').value='';if(!file)return;if(file.size>1024*1024)throw new Error('CSVは1MB以内にしてください。');const text=await file.text();if(current().mode==='3d'){addSeries(true,C.parseTable(text,3));return;}let parsed;for(const mode of ['none','y','xy']){try{parsed=C.parseMeasurementTable(text,mode);break;}catch(_){}}if(!parsed)throw new Error('2〜4列の数表を読み込んでください。末尾の誤差棒の幅は0以上で指定します。');addSeries(true,parsed.rows,parsed.errorBars);});
-    listen('export-image','click',exportImage);listen('dialog-close','click',closeDialog);listen('dialog-cancel','click',closeDialog);
+    listen('import-csv','click',()=>$('csv-input').click());listen('csv-input','change',async()=>{const file=$('csv-input').files[0];$('csv-input').value='';if(!file)return;if(file.size>1024*1024)throw new Error('CSVは1MB以内にしてください。');const table=GraphTables.parse(await file.text(),current().mode==='3d'?'data3d':'data2d');addSeries(true,undefined,undefined,table);});
+    for(const key of Object.keys(current().output))listen('output-'+key,'change',saveOutputControls);
+    listen('print-preview','click',printPreview);listen('export-image','click',exportImage);listen('dialog-close','click',closeDialog);listen('dialog-cancel','click',closeDialog);
     $('editor-dialog').addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
     $('dialog-form').addEventListener('submit',event=>{event.preventDefault();$('dialog-error').hidden=true;try{if(dialogApply){dialogApply();closeDialog();}}catch(error){report(error);}});
     for(const menu of document.querySelectorAll('.top details'))menu.addEventListener('toggle',()=>{if(menu.open){closeAddMenu();for(const other of document.querySelectorAll('.top details'))if(other!==menu)other.open=false;}});
@@ -728,6 +812,7 @@
       const input=event.target.closest('input,textarea,select,[contenteditable="true"]');if($('editor-dialog').open)return;
       if(event.key==='Escape'&&tangentDraft){cancelTangentDraft(true);event.preventDefault();return;}
       if(event.key==='Escape'&&addMenu){closeAddMenu(true);event.preventDefault();return;}
+      if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='p'){event.preventDefault();run(printPreview);return;}
       if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'){event.preventDefault();run(saveBrowser);return;}if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='o'){event.preventDefault();showSaved();return;}
       if(event.key==='Escape'&&parameterPreview){cancelParameterPreview();event.preventDefault();return;}
       if(event.key==='Escape'&&selectionPanel&&$('selection-toolbar').contains(event.target)){const panel=selectionPanel;selectionPanel=null;updateToolbar();$('selection-toolbar').querySelector('[data-quick-control="toggle-'+panel+'"]')?.focus();event.preventDefault();return;}

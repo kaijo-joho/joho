@@ -48,7 +48,7 @@ let browser, page;
   await seriesDetails.click(); await dialog.waitFor({ state: 'visible' }); await fill('名前', '放物線'); await submit();
   assert(await seriesDetails.evaluate(el => el === document.activeElement), 'applying series edits restores focus to its details button after the list rerenders');
 
-  await seriesAdd(); await page.locator('#add-data').click(); await fill('名前', '観測値'); await dialog.getByLabel(/^数表（/).fill('x,y\n0,1\n1,2'); await submit();
+  await seriesAdd(); await page.locator('#add-data').click(); await fill('名前', '観測値'); await dialog.locator('summary').filter({hasText:'CSV・TSVを貼り付け'}).click(); await dialog.getByLabel('CSV・TSVを貼り付け',{exact:true}).fill('x,y\n0,1\n1,2'); await dialog.getByRole('button',{name:'表に取り込む',exact:true}).click(); await submit();
   const data = (await doc()).series.at(-1).id;
   await details('series', data).click(); await dialog.waitFor({ state: 'visible' }); assert(await dialog.getByText('数表', { exact: false }).count()); await page.locator('#dialog-cancel').click();
   assert(await details('series', data).evaluate(el => el === document.activeElement), 'data details returns focus to dots button');

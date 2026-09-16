@@ -35,13 +35,13 @@ let browser;
   async function seriesAdd() { if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); }
   await open();
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).mode, '2d');
-  assert.equal((await page.evaluate(() => GraphEditor.getDocument())).version, 7);
+  assert.equal((await page.evaluate(() => GraphEditor.getDocument())).version, 8);
   assert(await page.locator('#plot .main-svg').count(), '2D graph is drawn');
 
   await seriesAdd(); await page.locator('#add-function').click(); await setField('数式', 'y = sin(x)'); await submit();
   assert((await page.evaluate(() => GraphEditor.getDocument())).series.some(s => s.expression === 'y = sin(x)'));
 
-  await seriesAdd(); await page.locator('#add-data').click(); await setField('数表', 'x,y\n0,1\n1,\n2,4'); await submit();
+  await seriesAdd(); await page.locator('#add-data').click(); await page.locator('#dialog-content summary').filter({ hasText: 'CSV・TSVを貼り付け' }).click(); await page.getByLabel('CSV・TSVを貼り付け', { exact: true }).fill('x,y\n0,1\n1,\n2,4'); await page.getByRole('button', { name: '表に取り込む', exact: true }).click(); await submit();
   assert.deepStrictEqual((await page.evaluate(() => GraphEditor.getDocument())).series.at(-1).rows, [[0,1],[1,null],[2,4]]);
   const beforeInvalid = await page.evaluate(() => GraphEditor.getDocument());
   await seriesAdd(); await page.locator('#add-function').click(); await setField('数式', 'y = nope(x)'); await page.locator('#dialog-submit').click();

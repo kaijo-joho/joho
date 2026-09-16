@@ -48,7 +48,7 @@ let browser, page;
   const chooseCSV = page.waitForEvent('filechooser'); await page.locator('#import-csv').click();
   await (await chooseCSV).setFiles({ name: 'observations.csv', mimeType: 'text/csv', buffer: Buffer.from('x,y\n0,1\n1,2') });
   await page.locator('#editor-dialog').waitFor({ state: 'visible' });
-  assert(await page.locator('#dialog-content').getByLabel(/^数表（/).isVisible());
+  await page.locator('#dialog-content summary').filter({hasText:'CSV・TSVを貼り付け'}).click(); assert(await page.locator('#dialog-content').getByLabel('CSV・TSVを貼り付け',{exact:true}).isVisible());
   await page.locator('#dialog-cancel').click(); assert(await focused(series), 'CSV import returns to the heading icon');
 
   await page.locator('#mode-3d').click(); await settle(); await series.click();

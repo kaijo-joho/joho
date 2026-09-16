@@ -12,7 +12,10 @@
   <script defer src="vendor/plotly.min.js"></script>
   <script defer src="expression.js"></script>
   <script defer src="symbols.js"></script>
+  <script defer src="tables.js"></script>
   <script defer src="core.js"></script>
+  <script defer src="statistics.js"></script>
+  <script defer src="table-editor.js"></script>
   <script defer src="templates.js"></script>
   <script defer src="curves.js"></script>
   <script defer src="regions.js"></script>
@@ -62,6 +65,7 @@
           <div class="add-grid"><button id="add-function">＋ 数式</button><button id="add-data">＋ 数表</button></div>
           <details id="other-curves" class="curve-choices"><summary>ほかの数式</summary><button id="add-implicit" class="full-button">＋ 陰関数 F(x, y) = 0</button><button id="add-parametric" class="full-button">＋ 媒介変数 x(t), y(t)</button><button id="add-polar" class="full-button">＋ 極座標 r(θ)</button></details>
           <button id="import-csv" class="full-button">CSV・表計算のデータを追加</button>
+          <button id="show-statistics" class="full-button">統計量・相関行列…</button>
         </div>
       </div>
       <button id="list-close" class="compact-only icon-button" aria-label="一覧を閉じる">×</button>
@@ -100,10 +104,17 @@
     <section id="templates-panel" hidden><div class="panel-heading"><h2>テンプレート</h2><button class="icon-button" data-close-side aria-label="パネルを閉じる">×</button></div><label class="small">検索<input id="template-search" type="search" placeholder="二次関数、蒸気圧、3D…"></label><div id="template-list"></div><p class="small muted">開くと図全体を置き換えます。「元に戻す」で前の図に戻れます。</p></section>
     <section id="export-panel" hidden><div class="panel-heading"><h2>書き出し</h2><button class="icon-button" data-close-side aria-label="パネルを閉じる">×</button></div>
       <label>形式<select id="export-format"><option value="png">PNG画像（2D・3D）</option><option value="svg">SVG画像（2D）</option></select></label>
-      <label>画像の大きさ<select id="export-scale"><option value="1">1倍</option><option value="2" selected>2倍</option><option value="4">4倍</option></select></label>
+      <div class="field-grid"><label>幅（px）<input id="output-width" type="number" min="320" max="4096" step="1" value="1200"></label><label>高さ（px）<input id="output-height" type="number" min="320" max="4096" step="1" value="800"></label></div>
+      <div class="field-grid"><label>余白（px）<input id="output-margin" type="number" min="16" max="200" step="1" value="64"></label><label>文字（px）<input id="output-fontSize" type="number" min="8" max="36" step="1" value="16"></label></div>
+      <label>画像の倍率<select id="export-scale"><option value="1" selected>1倍</option><option value="2">2倍</option><option value="4">4倍</option></select></label>
       <label>背景<select id="export-background"><option value="white">白</option><option value="transparent">透明</option></select></label>
       <button id="export-image" class="primary full-button">画像を保存</button>
       <p class="small muted">現在の表示範囲を書き出します。3D画像は現在の視点を使います。</p>
+      <hr><h3>印刷</h3>
+      <div class="field-grid"><label>用紙<select id="output-paper"><option value="a4">A4</option><option value="b5">B5（JIS）</option></select></label><label>用紙の向き<select id="output-orientation"><option value="landscape">横</option><option value="portrait">縦</option></select></label></div>
+      <label class="check"><input id="output-title" type="checkbox" checked>グラフ名を印刷</label>
+      <button id="print-preview" class="full-button">印刷プレビュー…</button>
+      <p class="small muted">グラフ全体を用紙に収めます。PNG・SVGの寸法と余白は上の設定を使います。</p>
       <hr><p class="small">数式・元の数値・出典を残すには、上部「ファイル」から保存します。数値のCSVは数表を選択して書き出せます。</p>
     </section>
   </aside>
@@ -112,6 +123,8 @@
 <input id="file-input" type="file" accept=".json,application/json" hidden>
 <input id="csv-input" type="file" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" hidden>
 <section id="tangent-quick-panel" role="region" aria-label="接線を追加" hidden></section>
+<section id="print-sheet" aria-label="印刷するグラフ"></section>
+<style id="print-page-style"></style>
 <dialog id="editor-dialog" aria-labelledby="dialog-title"><form id="dialog-form"><header class="dialog-heading"><h2 id="dialog-title"></h2><button type="button" id="dialog-close" class="icon-button" aria-label="閉じる">×</button></header><div id="dialog-content"></div><p id="dialog-error" class="error" role="alert" hidden></p><footer class="dialog-actions"><button type="button" id="dialog-cancel">キャンセル</button><button id="dialog-submit" class="primary" type="submit">適用</button></footer></form></dialog>
 <div id="toast" role="status" hidden></div>
 <aside id="operation-help" hidden>
@@ -121,14 +134,14 @@
   <section data-help-topic="segments" data-help-title="線分・接続・接線の交点"><h3>線分をつなぐ</h3><p>「線分・矢印を追加」で始点と終点の座標を入力します。すでにある点を選んで端点として使うこともできます。同じ点を端点にすると、点を動かしたときにつながった線分が一緒に動きます。座標が同じだけでは接続されません。</p><p>線分を選んで操作バーの「終点から続ける」アイコンで次の線分を追加できます。最後に最初の点を選べば閉じた輪郭になります。閉じた輪郭は「領域」で塗りつぶし・面積を表示できます。</p><p>「交点」で追加済みの接線2本を選ぶと、延長した直線の交点を求めます。平行・一致・微分できない場合は理由を表示します。この交点も線分の端点として利用できます。</p></section>
   <section data-help-topic="labels" data-help-title="文字・配置・ドラッグ"><h3>文字と点の配置</h3><p>「文字を追加」で説明と配置する座標を入力します。改行、v_0 や v_{max} の下付き、m^2 や m^{2} の上付きに対応します。「文字・配置」アイコンで名前の表示や文字サイズを直接変更できます。上下左右のずれは「文字・配置の詳細…」で指定します。</p><p>数値で指定した自由点と文字はドラッグで移動できます。曲線上の点は曲線に沿って移動します。点や線の名前はドラッグで配置だけを変えられます。Escapeで移動を取り消し、確定後は「元に戻す」で一度に戻せます。</p><p>1/2 や係数などの式で指定した座標・位置は、式を保持するためドラッグできません。「位置・設定」か係数から変更してください。キーボードでも一覧を選び、設定画面から同じ編集ができます。</p></section>
   <section data-help-topic="axes" data-help-title="軸の記号・単位・目盛"><h3>任意の軸で描く</h3><p>「座標・設定」で数式に使う記号、表示する軸名、単位を分けて指定します。横軸を t、縦軸を s にすると s = 2*t と入力できます。温度やθなどの記号も使えます。記号を変えても既存の式の意味や数値は変わりません。係数名や関数名、定数名との重複はできません。</p><p>目盛の間隔は 1/2 や π/2 のように指定でき、小数・分数・πの倍数で表示できます。空欄なら自動です。表示範囲に対して目盛が多すぎる場合は間引きます。対数軸の目盛は自動です。</p><p>媒介変数の t と極座標の θ は、その式をたどるための独立変数として維持されます。軸名や単位には上付き・下付きも使えます。単位を変えても数値の自動換算はしません。</p></section>
-  <section data-help-topic="table" data-help-title="数表・誤差棒・補間"><h3>数表と出典</h3><p>「数式・数表」の＋から「数表」を選び、x,y（3Dではx,y,z）の表を貼り付けます。CSVとタブ区切りを利用でき、見出し行は省略できます。欠測は空欄にしてください。</p><p>2Dの「誤差棒の列」で、横・縦・両方を選べます。値は0以上の±幅で、空欄はその棒だけ省略します。両方の場合は x,y,Δx,Δy の4列。CSV読み込みの3列は縦の誤差として開くので、横の場合は設定を変更してから描画します。誤差棒が対数軸の非正の範囲に届く場合、その棒だけ表示しません。</p><p>新しい数表は散布図で表示します。「点の結び方」で入力順の直線または滑らかな補間（PCHIP）を選べます。欠測をまたがず、範囲外へ延長しません。滑らかな補間には各連続区間の横軸の値が昇順または降順である必要があります。不適合時は元の点と理由を表示します。回帰分析とは別の機能です。</p><p>元の数表と誤差棒は、選択ポップアップの「その他」からCSVに保存できます。資料・計算値・自分のデータの区別は出典欄に記録します。単位の指定で数値は自動換算されません。</p></section>
-  <section data-help-topic="analysis" data-help-title="実験データの回帰分析"><h3>実験データを分析する</h3><ol><li>2D数表を追加し、選択ポップアップの「回帰分析」を開きます。左の「点・線分・文字」の＋からも追加できます。</li><li>直線・原点を通る直線・2次式・指数・べき乗を選び、式・R²・相関係数r・RMSEを確認します。</li><li>「回帰曲線を追加」で観測範囲内に描画します。元の数表を直すと分析結果も更新されます。</li></ol><p>「残差を確認・保存」で各行の近似値と残差（元の値 − 近似値）を確認し、全行をCSVで保存できます。表示は8有効桁、保存する数値は丸めません。図の名前・式・R²は「文字・配置」で切り替え、まとめてドラッグできます。</p><details><summary>計算方法と範囲</summary><p>各点を等しい重みで最小二乗分析し、欠測行だけを除外します。誤差棒は回帰の重みにはしません。指数はy&gt;0、べき乗はx&gt;0かつy&gt;0が必要で、対数変換後に直線回帰します。R²=1−SSE/SST、RMSE=√(SSE/n)と残差は元のyで計算します。yが一定のR²とrは未定義。R²が負になる場合もあります。rは元のxとyのPearson相関係数で、因果関係を示すものではありません。</p><p>3D数表の分析・重み付き回帰・信頼区間・外れ値の自動除外・外挿には対応していません。回帰曲線を接線・交点・領域の境界として選ぶ機能は今後の拡張です。練習テンプレートのばね・指数減衰は合成データです。</p></details></section>
+  <section data-help-topic="table" data-help-title="数表・誤差棒・補間"><h3>数表と出典</h3><p>「数式・数表」の＋から「数表」を選び、セルを直接編集します。2〜20列、1万行まで対応し、CSV・TSVを貼り付けても全列を保持します。x・y（3Dではx・y・z）と横・縦誤差の列は画面で明示的に割り当てます。未使用列は削除されず、3/4列CSVの誤差列も自動推定しません。</p><p>誤差の値は0以上の±幅で、空欄はその棒だけ省略します。誤差棒が対数軸の非正の範囲に届く場合、その棒だけ表示しません。新しい数表は散布図で表示し、「点の結び方」で入力順の直線またはPCHIP補間を選べます。</p><p>選択列のn、欠測数、合計、平均、中央値、最小、最大、nで割る分散・標準偏差、n−1で割る不偏分散・標準偏差と、ペアごとの有効数付きPearson相関行列を確認できます。統計量・相関行列・数表はCSVへ保存できます。出典欄では資料・計算値・自分のデータを区別します。</p></section>
+  <section data-help-topic="analysis" data-help-title="実験データの回帰分析"><h3>実験データを分析する</h3><ol><li>2D数表を追加し、選択ポップアップの「回帰分析」を開きます。左の「点・線分・文字」の＋からも追加できます。</li><li>直線・原点を通る直線・2次式・指数・べき乗を選び、式・R²・相関係数r・RMSEを確認します。</li><li>「回帰曲線を追加」で観測範囲内に描画します。元の数表を直すと分析結果も更新されます。</li></ol><p>「残差を確認・保存」で各行の近似値と残差（元の値 − 近似値）を確認し、全行をCSVで保存できます。表示は8有効桁、保存する数値は丸めません。図の名前・式・R²は「文字・配置」で切り替え、まとめてドラッグできます。</p><details><summary>計算方法と範囲</summary><p>各点を等しい重みで最小二乗分析し、欠測行だけを除外します。誤差棒は回帰の重みにはしません。指数はy&gt;0、べき乗はx&gt;0かつy&gt;0が必要で、対数変換後に直線回帰します。R²=1−SSE/SST、RMSE=√(SSE/n)と残差は元のyで計算します。yが一定のR²とrは未定義。R²が負になる場合もあります。rは元のxとyのPearson相関係数で、因果関係を示すものではありません。</p><p>回帰曲線は点・接線・交点・領域の対象として選べます。内部の計算精度で連動し、観測した横軸の範囲内だけを扱います。3Dの回帰・重み付き回帰・信頼区間・外れ値の自動除外・外挿には対応していません。練習テンプレートのばね・指数減衰は合成データです。</p></details></section>
   <section data-help-topic="regions" data-help-title="領域・塗りつぶし・面積"><h3>線分から領域を作る</h3><ol><li>同じ点を端点として共有し、線分で閉じた輪郭を作ります。</li><li>左の「点・線分・文字」の＋から「領域」を開きます。閉じた輪郭が1つなら境界が選択されます。</li><li>境界に使う線分と面積を確認して「領域を作成」を押します。</li></ol><p>領域を選ぶと、色・不透明度・面積の表示を直接変更できます。輪郭の線は元の線分を選んで編集します。名前と面積のラベルはまとめてドラッグできます。点や係数を変えると領域と面積も追従します。</p><p>面積は軸の座標値から求めます。単位の換算はしません。自己交差・零面積・未定義になったときは理由を表示し、領域だけを隠します。値を戻すと復元します。</p><p>境界の線分や点を削除すると、依存する領域も一緒に削除します。「元に戻す」で復元できます。領域だけを削除しても元の線分は残ります。テンプレート「三角形の領域と面積」でも試せます。</p></section>
   <section data-help-topic="curve-regions" data-help-title="曲線の間を塗りつぶす"><h3>曲線の間を塗りつぶす</h3><p>「点・線分・文字」の＋ →「領域」→「曲線と軸・曲線の間」を選びます。第1・第2の境界と区間の始点・終点を指定して作成します。関数や登録済みの接線を使え、第2の境界には横軸も選べます。pi や係数を区間に指定できます。</p><p>面積は上下の順序に関係なく0以上の値、定積分は「第1 − 第2」を積分した符号付きの値です。交差する場合も領域全体の面積を表示し、係数に追従します。色・不透明度・数値の表示は選択ポップアップ、境界と区間は「︙」で編集します。</p><details><summary>計算できる範囲</summary><p>関数の指定範囲内にある有限な区間を数値計算します。数式の厳密な積分ではありません。定義できない値・対数軸に描けない部分・計算が収束しない場合は、塗りつぶしと数値を表示せず理由を示します。非常に細かい振動や細い形状を捉えきれないことがあります。広義積分、陰関数や媒介変数の閉曲線は対象外です。テンプレート「曲線の間の面積」「面積と定積分の違い」で試せます。</p></details></section>
   <section data-help-topic="parameters" data-help-title="係数を変える"><h3>係数を変える</h3><ol><li>一覧の「係数」の＋から a などを登録します。</li><li>数式に a*x^2 のように使います。</li><li>左パネルに常設したスライダーや数値入力で、すぐに値を変更できます。</li></ol><p>最小値、最大値、刻み幅は係数の横にある設定アイコンで変更します。スライダーを動かしている間はプレビューし、離した時点で保存します。Escapeで取り消せます。使用中の係数を削除するには、先にその係数を使っている数式を変更してください。</p></section>
   <section data-help-topic="view" data-help-title="表示・3D・配色"><h3>表示・3D・配色</h3><p>2Dはドラッグで移動、ホイールやピンチで拡大縮小。3Dはドラッグで回転できます。「全体表示」で数式の指定範囲と数表が収まる範囲へ戻します。</p><p>「座標・設定」で表示範囲、軸名、単位、通常／対数目盛、角度を指定します。3Dでは曲面と3列の数表を表示します。2Dへ戻しても3Dの式や数表は保持されます。</p><p>対象を選ぶと基本6色が表示され、1クリックで変更できます。線の太さ・線種も同じポップアップに常時表示します。「色・線」アイコンを押すと、残りの色がメニュー内に開きます。RGB、自由な色、不透明度は「色・線の詳細…」で設定します。変更はすぐに反映され、「元に戻す」で取り消せます。テーマと操作文字の大きさは上部の「…」で変更します。</p><details><summary>表示の精度</summary><p>グラフは有限個の点から数値計算で描きます。非常に細い振動、狭い穴、不連続な式では特徴を捉えきれない場合があります。必要な範囲へ拡大して確認してください。3D曲面も格子による近似表示です。</p></details></section>
-  <section data-help-topic="save" data-help-title="保存と書き出し"><h3>保存と書き出し</h3><p>編集内容はブラウザへ自動保存します。「ブラウザに保存」で残した内容は別に保持し、「保存したグラフを開く」から選択できます。起動時も保存候補を選べます。</p><p>ローカルファイルには再編集用のJSONを保存します。画像は右の「書き出し」からPNG、2DはSVGも使えます。画像には元の数式・数表の編集機能は含まれません。</p><details><summary>ローカル自動保存</summary><p>Chromeで書き込み先を選ぶと、明示保存とは別のファイルへ自動保存できます。この画面を閉じると終了します。保存先が外部で変更された場合は停止し、作品を保持します。ブラウザの保存とファイルのダウンロードも利用できます。</p></details><p>⌘S 保存／⌘O 開く／⌘Z 元に戻す／⇧⌘Z やり直し／Escape メニューを閉じる・選択解除／? ヘルプ。</p></section>
-  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>グラフエディタ 0.6.0 BETA（2026年9月）</p><p>数学・理科・情報のグラフを描く教育用ツールです。推奨環境：macOS＋Google Chrome。3D表示にはWebGLが必要です。入力データはブラウザ内または選択したローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの利用条件は各ライセンスに従います。</p><p><a href="docs/template-sources.md" target="_blank" rel="noopener">テンプレートの出典</a> · <a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a></p></section>
+  <section data-help-topic="save" data-help-title="保存と書き出し"><h3>保存と書き出し</h3><p>編集内容はブラウザへ自動保存します。「ブラウザに保存」で残した内容は別に保持し、「保存したグラフを開く」から選択できます。起動時も保存候補を選べます。</p><p>ローカルファイルには再編集用のJSONを保存します。画像は右の「書き出し」からPNG、2DはSVGも使えます。画像には元の数式・数表の編集機能は含まれず、タイトル設定は印刷時だけに適用されます。</p><details><summary>ローカル自動保存</summary><p>Chromeで書き込み先を選ぶと、明示保存とは別のファイルへ自動保存できます。この画面を閉じると終了します。保存先が外部で変更された場合は停止し、作品を保持します。ブラウザの保存とファイルのダウンロードも利用できます。</p></details><p>⌘S 保存／⌘O 開く／⌘Z 元に戻す／⇧⌘Z やり直し／Escape メニューを閉じる・選択解除／? ヘルプ。</p></section>
+  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>グラフエディタ 0.7.0 BETA（2026年9月）</p><p>数学・理科・情報のグラフを描く教育用ツールです。推奨環境：macOS＋Google Chrome。3D表示にはWebGLが必要です。入力データはブラウザ内または選択したローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの利用条件は各ライセンスに従います。</p><p><a href="docs/template-sources.md" target="_blank" rel="noopener">テンプレートの出典</a> · <a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a></p></section>
 </aside>
 <noscript><p class="noscript">このエディタを利用するにはJavaScriptを有効にしてください。</p></noscript>
 </body>
