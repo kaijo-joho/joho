@@ -1,6 +1,6 @@
 # グラフエディタ 0.1 実装契約（初版の記録）
 
-現行0.7.0（文書version 8）の数表・統計・回帰連携・教材出力は [数表・統計・教材出力契約](docs/tables-publication-contract.md) を参照する。この文書は旧版の履歴として保持する。
+現行0.8.0（文書version 9）の分析グラフ・自作テンプレート・比較配置は [分析グラフ・テンプレート・比較の契約](docs/statistical-charts-contract.md) を、0.7.0から継続する数表・統計・回帰連携・教材出力は [数表・統計・教材出力契約](docs/tables-publication-contract.md) を参照する。この文書は旧版の履歴として保持する。
 
 0.5.0までの追加仕様・version 6への移行の記録は [0.2実装契約](docs/phase2-contract.md)、[0.3実装契約](docs/phase3-contract.md)、[交点と操作性の調整](docs/usability-contract.md)、[線分による領域](docs/regions-contract.md)、[曲線による領域](docs/curve-regions-contract.md) に残す。
 
