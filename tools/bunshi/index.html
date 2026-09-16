@@ -223,6 +223,18 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
   .info{overflow-x:auto;scrollbar-width:thin}
   #btnPalette{display:inline-flex}
 }
+/* 保存・読み込みのダイアログ（構造式エディタと同じ作り）*/
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);padding:16px 18px;
+  max-width:min(520px,92vw);box-shadow:var(--shadow,0 12px 40px rgba(0,0,0,.25))}
+dialog::backdrop{background:rgba(20,25,35,.35)}
+dialog h2{margin:0 0 6px;font-size:15px}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+.cand{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px;background:var(--panel)}
+.cand div{flex:1;min-width:0}
+.cand b{font-size:13px}
+.cand span{display:block;font-size:12px;color:var(--muted)}
+#saveStatus{border:0;background:none;cursor:pointer;font-size:12px;padding:0;text-align:left;max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#saveStatus.warn{color:var(--danger)}
 </style>
 </head>
 <body>
@@ -232,11 +244,19 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <div class="brand"><!-- アプリのアイコン：紺の角丸四角に白い球棒模型。中心の原子に紺の校章（輪郭は構造式エディタのアイコンと同じデータ）。favicon にも使う -->
       <svg id="appIcon" class="app-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="13" fill="#00548a"/><g stroke="#fff" stroke-width="4" stroke-linecap="round"><path d="M31 35L15 17.5M31 35L51.5 23.5M31 35L27 54.5"/></g><circle cx="15" cy="17.5" r="6" fill="#fff"/><circle cx="51.5" cy="23.5" r="6" fill="#fff"/><circle cx="27" cy="54.5" r="4.6" fill="#fff"/><circle cx="31" cy="35" r="15" fill="#fff"/><path fill="#00548a" transform="translate(21.50 25.00) scale(0.2)" d="M27.4 52.3C27.4 52.2 27.5 52.2 27.6 52.2C27.7 52.3 27.9 52.3 28.1 52.4C29.7 53.1 31.4 53.8 33.1 54.5C34.6 55.1 36.2 55.7 37.8 56.2C40 57 42.2 57.7 44.4 58.5C46.1 59 47.8 59.6 49.5 60.1C52.4 61 55.3 61.9 58.2 62.8C58.7 63 59.2 63.1 59.7 63.3C60 63.4 60.2 63.5 60.5 63.6C61.1 63.9 61.7 64.1 62.3 64.3C63.6 64.9 64.8 65.6 65.8 66.5C66.2 66.9 66.5 67.2 66.9 67.6C67.4 68.1 67.8 68.7 68.2 69.2C68.7 70 69.1 70.8 69.4 71.6C69.8 72.6 69.9 73.7 69.8 74.8C69.6 76.4 69.1 77.9 68.1 79.2C67.4 80 66.7 80.7 65.8 81.2C65.1 81.6 64.4 81.9 63.6 82.1C63.4 82.2 63.2 82.2 62.9 82.2C62.6 82.3 62.2 82.3 61.9 82.3C61.2 82.3 60.5 82.3 59.8 82.2C59.4 82.2 58.9 82.1 58.5 82C58.2 81.9 57.9 81.9 57.6 81.9C57.2 81.8 56.8 81.7 56.4 81.7C55.6 81.5 54.9 81.5 54.1 81.5C53.8 81.5 53.6 81.5 53.3 81.5C53 81.5 52.6 81.5 52.3 81.5C52 81.6 51.7 81.6 51.4 81.7C50.9 81.7 50.4 81.8 49.9 82C48.4 82.4 47.1 82.9 45.8 83.6C44.7 84.3 43.6 85 42.6 85.9C42 86.5 41.3 87.2 40.7 87.9C40.6 87.9 40.6 87.9 40.6 88C40.1 88.6 39.5 89.2 39.1 89.9C38.6 90.6 38.2 91.2 37.9 92C37.2 93.3 36.8 94.6 36.4 96C36.2 96.8 36.1 97.7 36.1 98.5C36.1 98.8 36 99.2 36 99.5C36 99.6 36 99.6 35.9 99.6C35.9 99.6 35.9 99.6 35.9 99.6C35.7 99.3 35.5 99 35.3 98.7C34.9 98.2 34.5 97.6 34.2 97C34 96.5 33.7 96.1 33.5 95.6C33.2 94.9 32.9 94.2 32.6 93.5C32.4 93 32.3 92.5 32.1 92C32 91.6 31.9 91.3 31.8 90.9C31.7 90.5 31.6 90.2 31.5 89.8C31.4 89.2 31.2 88.6 31.1 88C30.9 86.9 30.6 85.8 30.5 84.7C30.4 84.1 30.2 83.5 30.1 82.9C30 82.1 29.9 81.3 29.7 80.4C29.6 79.5 29.4 78.6 29.3 77.7C29.1 76.7 29 75.6 28.9 74.5C28.8 73.9 28.7 73.3 28.6 72.7C28.5 72 28.4 71.4 28.4 70.8C28.3 70.3 28.3 69.7 28.2 69.2C28.2 68.8 28.1 68.4 28.1 68C28.1 67.3 28 66.6 27.9 66C27.9 65.4 27.8 64.9 27.8 64.4C27.8 64.2 27.8 64.1 27.8 63.9C27.7 62.9 27.6 61.9 27.6 60.9C27.6 60.6 27.6 60.3 27.6 60C27.5 59.2 27.5 58.4 27.5 57.6L27.5 57.6C27.4 56.1 27.4 54.7 27.4 53.3C27.4 53 27.4 52.8 27.4 52.5C27.4 52.5 27.4 52.4 27.4 52.3M0.1 31.1C0.1 32.9 0.1 34.4 0.1 36C0.1 36.9 0.1 37.8 0.2 38.8C0.2 39.5 0.3 40.3 0.3 41.1C0.3 42.2 0.4 43.3 0.4 44.5C0.5 45.2 0.5 46 0.6 46.7C0.6 47.5 0.7 48.2 0.7 49C0.7 49 0.7 49 0.7 49C0.8 49.6 0.8 50.2 0.9 50.8C0.9 51.1 0.9 51.4 1 51.7C1 52.2 1 52.8 1.1 53.4C1.2 54.2 1.2 55 1.3 55.8C1.4 56.4 1.5 57.1 1.6 57.7C1.7 58.7 1.8 59.6 1.9 60.6C2.1 61.5 2.2 62.5 2.4 63.4C2.8 65.1 3.2 66.8 3.7 68.5C4.2 70 4.8 71.5 5.4 73C6 74.6 6.8 76.1 7.6 77.6C8.2 78.8 9 80 9.7 81.2C10.6 82.5 11.6 83.8 12.6 85.1C13.3 86 14.1 86.9 14.9 87.7C15.9 88.9 17 90 18.2 91C19.1 91.9 20 92.6 20.9 93.4C21.9 94.2 22.9 94.9 23.9 95.6C25 96.3 26 97 27.2 97.5C28.1 98 29.1 98.4 30.2 98.8C30.9 99 31.6 99.3 32.4 99.5C33 99.7 33.6 99.8 34.3 99.9C34.7 100 35.1 100 35.5 100C35.6 99.9 35.7 99.9 35.8 99.8C36.5 99.3 37.3 98.8 38.1 98.4C38.6 98.1 39.1 97.8 39.6 97.6C40.5 97.1 41.4 96.8 42.3 96.4C43.1 96.1 43.9 95.9 44.7 95.7C45.7 95.4 46.6 95.2 47.5 95.1C48 95 48.4 95 48.8 95C49 95 49.2 95 49.3 94.9C50.1 94.9 50.8 94.9 51.6 94.9C52.1 95 52.7 95 53.3 95C54.1 95.1 54.9 95.3 55.6 95.4C56.7 95.6 57.8 95.9 58.8 96.2C59.4 96.4 59.9 96.6 60.5 96.9C61 97.2 61.6 97.4 62.2 97.7C63.1 98 63.9 98.3 64.8 98.5C65.5 98.7 66.2 98.8 66.9 98.9C67.4 99 67.9 99 68.3 99C68.8 99.1 69.2 99.1 69.6 99.1C70.2 99.1 70.8 99 71.4 98.9C71.9 98.9 72.3 98.8 72.8 98.8C73.2 98.7 73.7 98.7 74.1 98.6C74.3 98.5 74.4 98.5 74.5 98.5C75.1 98.4 75.6 98.3 76.1 98.1C77.3 97.8 78.4 97.4 79.6 97C80.5 96.7 81.4 96.3 82.2 95.8C83.1 95.3 84 94.8 84.8 94.2C85.7 93.7 86.6 93 87.4 92.3C88.2 91.6 88.9 90.8 89.7 90C89.7 89.9 89.8 89.9 89.8 89.8C90.1 89.5 90.3 89.2 90.6 88.8C91.1 88.2 91.6 87.5 92 86.8C92.5 86.1 92.9 85.3 93.3 84.4C93.4 84.2 93.5 84 93.6 83.8C93.7 83.5 93.8 83.3 93.9 83C94 82.6 94.1 82.1 94.2 81.7C94.3 81.4 94.4 81 94.5 80.7C94.6 80.1 94.8 79.4 94.8 78.8C94.8 78.3 94.9 77.7 95 77.2C95 76.6 95 76 94.9 75.4C94.9 74.9 94.9 74.4 94.8 74C94.8 73.5 94.7 73 94.6 72.5C94.3 71.2 93.9 69.9 93.4 68.6C93.2 68.2 93 67.8 92.8 67.3C92.5 66.8 92.2 66.3 91.9 65.8C91.7 65.5 91.6 65.2 91.4 65C90.8 64.2 90.3 63.5 89.7 62.8C89.3 62.4 88.9 62 88.5 61.6C87.4 60.7 86.3 59.8 85 59C85 59 84.9 59 84.9 59C84.6 58.7 84.3 58.5 84 58.3C83.4 57.9 82.8 57.5 82.1 57.2C81.2 56.7 80.3 56.2 79.5 55.8C78.4 55.3 77.4 54.9 76.3 54.5C75 54 73.7 53.6 72.4 53.1C71.6 52.9 70.9 52.7 70.2 52.4C68.5 51.9 66.9 51.3 65.2 50.8C64.1 50.4 62.9 50 61.8 49.6C59.6 48.9 57.5 48.2 55.3 47.5C53.7 47 52.1 46.5 50.5 45.9C49.4 45.5 48.2 45 47.2 44.5C46.9 44.4 46.7 44.3 46.5 44.2C45.9 43.9 45.5 43.5 45 43.1C44 42.2 43.3 41.1 42.8 39.9C42.6 39.5 42.5 39.1 42.3 38.7C42.1 37.8 42 36.9 42.1 35.9C42.1 35.7 42.1 35.6 42.1 35.4C42.1 35 42.2 34.6 42.3 34.1C42.5 33.5 42.7 32.8 43.1 32.1C43.8 30.8 44.8 29.6 46 28.8C46.2 28.6 46.4 28.5 46.5 28.4C47.1 28 47.8 27.6 48.5 27.3C49 27.1 49.4 26.9 49.9 26.7C51 26.2 52.1 25.8 53.3 25.5C54 25.3 54.8 25.1 55.6 25C56.1 24.9 56.6 24.9 57.1 24.8C57.4 24.7 57.7 24.7 58 24.6C58.7 24.6 59.4 24.5 60.1 24.5C60.2 24.5 60.3 24.5 60.4 24.5C61.2 24.4 62 24.4 62.8 24.3C63 24.3 63.3 24.3 63.5 24.3C64.2 24.2 65 24.1 65.7 24C66 23.9 66.4 23.9 66.8 23.8C67 23.8 67.2 23.7 67.3 23.7C67.7 23.6 68 23.6 68.4 23.5C69.7 23.2 71 22.8 72.3 22.4C73.9 21.9 75.5 21.2 77.1 20.5C77.9 20.2 78.7 19.8 79.5 19.4C80.8 18.9 82 18.2 83.2 17.6C84.3 16.9 85.5 16.2 86.6 15.4C87.3 14.9 88.1 14.4 88.8 13.9C89.4 13.5 90 13 90.5 12.5C91.4 11.7 92.3 10.9 93.1 10C93.3 9.9 93.4 9.7 93.6 9.5C93.7 9.4 93.7 9.4 93.7 9.3C93.8 9.2 93.7 9.1 93.6 9.1C93.5 9.1 93.4 9.1 93.3 9.1C92.8 9.1 92.2 9.1 91.7 9.1C91 9.1 90.4 9.1 89.8 9.1C89 9.1 88.3 9 87.6 8.9C87.1 8.9 86.6 8.8 86.1 8.8C85.7 8.7 85.3 8.7 84.9 8.6C84.5 8.5 84 8.4 83.6 8.4C82.7 8.2 81.8 8 80.8 7.8C79.9 7.6 79 7.3 78 7C76.4 6.5 74.7 5.8 73.1 5.1C71.8 4.5 70.5 3.9 69.2 3.1C67.7 2.3 66.2 1.4 64.8 0.3C64.7 0.2 64.5 0.1 64.4 0.1C64.3 0 64.2 0 64.2 0.1C64 0.3 63.9 0.5 63.8 0.7C62.9 2.2 61.9 3.6 60.8 5C60.2 5.8 59.6 6.6 59 7.4C58 8.5 57.1 9.6 56 10.7C55.4 11.2 54.8 11.8 54.2 12.4C53.4 13.1 52.6 13.8 51.6 14.4C51.1 14.7 50.7 15.1 50.2 15.4C50.1 15.5 50 15.6 49.9 15.7C49.2 16.1 48.5 16.4 47.8 16.8C47 17.2 46.1 17.6 45.3 17.9C43.9 18.5 42.5 18.9 41 19.2C40.7 19.3 40.3 19.4 40 19.5C39.7 19.5 39.4 19.6 39.1 19.6C38.9 19.7 38.7 19.7 38.4 19.8C38.1 19.8 37.8 19.8 37.4 19.9C36.7 20 36 20.1 35.4 20.2C34.7 20.3 34 20.4 33.4 20.6C32.3 20.8 31.2 21 30.2 21.4C29.6 21.5 29.1 21.7 28.6 21.8C28.5 21.8 28.5 21.9 28.4 21.9C28.3 21.9 28.3 21.8 28.3 21.8C28.3 21.6 28.3 21.4 28.3 21.2C28.4 20.8 28.4 20.3 28.5 19.9C28.7 18.5 29 17.2 29.3 15.9C29.6 14.9 29.8 13.9 30.1 12.9C30.4 12.1 30.7 11.2 31 10.4C31.6 9.1 32.1 7.8 32.8 6.5C33 6.2 33.2 5.8 33.4 5.4C33.4 5.4 33.4 5.3 33.4 5.3C33.5 5.2 33.5 5.2 33.4 5.2C33.4 5.1 33.3 5.1 33.3 5.1C33.1 5.2 32.9 5.3 32.6 5.4C32.2 5.5 31.9 5.7 31.5 5.8C30.3 6.2 29 6.6 27.8 6.9C26.6 7.2 25.5 7.4 24.3 7.6C23.6 7.8 22.8 7.9 22 8C21.4 8.1 20.8 8.1 20.2 8.2C19.3 8.2 18.4 8.3 17.5 8.3C16.7 8.3 15.9 8.3 15.1 8.2C13.9 8.2 12.7 8.1 11.6 8C11.3 8 11.1 7.9 10.9 7.9C10.3 7.8 9.8 7.8 9.2 7.7C8.4 7.5 7.6 7.4 6.8 7.2C5.9 7 4.9 6.7 3.9 6.4C3.2 6.2 2.5 6 1.9 5.8C1.8 5.8 1.7 5.8 1.7 5.8C1.6 6 1.6 6.1 1.6 6.3C1.4 7.1 1.2 7.9 1.1 8.8C0.9 9.6 0.8 10.4 0.7 11.2C0.6 11.9 0.6 12.6 0.5 13.3C0.4 13.8 0.4 14.3 0.4 14.8C0.3 15.5 0.3 16.3 0.2 17C0.2 17.8 0.2 18.5 0.1 19.2C0.1 20 0.1 20.9 0.1 21.8C0.1 22.3 0 22.8 0 23.3C0 24.7 0 26.1 0 27.5C0 28.8 0.1 30.1 0.1 31.1"/></svg>分子模型エディタ<span class="beta" title="試作版（ベータ版）。バージョン 1.0 までは BETA">BETA</span></div>
     <button class="ic" id="btnPalette" title="ツールのパレットを開く／閉じる（画面が狭いときに出ます）" aria-label="ツールのパレット">☰</button>
-    <button class="ic" id="btnSave" title="保存（⌘/Ctrl+S）。あとで開いて続きから使えます"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><path d="M8 21v-7h8v7"/></svg></button>
+    <div class="hmenu" id="saveMenu">
+      <button class="ic" id="btnSave" aria-haspopup="true" title="保存（⌘/Ctrl+S でファイルに保存）。編集中の内容はブラウザにも自動で保存されます"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><path d="M8 21v-7h8v7"/></svg></button>
+      <div class="menu mlist">
+        <button class="mi" id="miSaveFile">ファイルに保存…（⌘/Ctrl+S）</button>
+        <button class="mi" id="miSaveBrowser">ブラウザに保存（この端末に残す）</button>
+        <button class="mi" id="miSaveAuto">ファイルを決めて自動保存…</button>
+      </div>
+    </div>
     <div class="hmenu" id="openMenu">
       <button class="ic" id="btnOpen" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></svg></button>
       <div class="menu mlist">
         <button class="mi" id="miOpen">ファイルを開く…（⌘/Ctrl+O。.json・.mol・.sdf・.xyz）</button>
+        <button class="mi" id="miOpenSaved">保存した内容から開く…</button>
         <button class="mi" id="btnNew">新規作成（すべて消去）</button>
       </div>
     </div>
@@ -382,6 +402,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
   </main>
 
   <footer class="info">
+    <button id="saveStatus" class="muted" title="保存の状態です。クリックすると、保存した内容から開けます"></button>
     <div id="formulas"></div>
     <div id="measList"></div>
     <div class="zoom">
@@ -504,7 +525,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。回転の中心は不斉炭素（青い十字の印）で、2 つ以上あるときは上に出るプルダウンで選べます。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。<br>分子をクリックして選ぶと、その分子だけを回したり（ドラッグ）、動かしたり（<kbd>Shift</kbd>+ドラッグ）できます。もう一方に近づけたり、鏡を通り越して重ねたりして、重ならないことを確かめられます。「鏡の位置に戻す」で元の鏡像の位置に戻ります。「鏡像に変える」でその分子だけを鏡像にもできます。<br>鏡像体を並べているときに片方の分子を組み立てると（原子や官能基の置き換え・結合の変更・消しゴム）、もう一方も鏡像のまま同じように組み立てられます。</td></tr>
         <tr><td>選択・削除</td><td>分子をクリックで選択（何もないところをクリックで解除）。<kbd>Delete</kbd> で削除。</td></tr>
         <tr><td>元に戻す</td><td><kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd>、やり直し <kbd>⇧</kbd>+<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd></td></tr>
-        <tr><td>保存・開く</td><td>上部左の保存ボタンで .json に保存し、開くボタンで開きます。ほかのソフトの .mol・.sdf・.xyz ファイルも開けます。表示している内容はブラウザに自動保存されます。</td></tr>
+        <tr><td>保存・開く</td><td>編集中の内容は、このブラウザにいつも自動保存されます（次に開くと続きから使えます）。残しておきたいときは保存ボタンから「ファイルに保存…（⌘/Ctrl+S）」で .json に保存するか、「ブラウザに保存」でこの端末に残します。「ファイルを決めて自動保存…」を選ぶと、決めたファイルへ自動で書き込み続けます（Chrome など対応したブラウザのみ）。<br>開くボタンからは「ファイルを開く…（⌘/Ctrl+O）」のほか、「保存した内容から開く…」で自動保存・保存した内容を選んで開けます。保存していない変更があるときは、開く前に保存するか確認します。ほかのソフトの .mol・.sdf・.xyz ファイルも開けます。</td></tr>
         <tr><td>書き出し</td><td>画面右端の「◀ 書き出し」で、いま見えている向きの画像を PNG で保存・コピーできます（Word・PowerPoint に貼り付け可）。MOL・XYZ 形式の座標も保存できます。</td></tr>
         <tr><td>形について</td><td>分子の形は、標準的な結合の長さ・結合角と環の形（いす形など）から組み立てています。水の結合角 104.5°、アンモニアの 107° などは実測値に近い値にしていますが、構造最適化はしていないので、形はおおよそです。</td></tr>
       </table>
@@ -514,11 +535,22 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.17 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.18 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
 
+<dialog id="openDlg" aria-labelledby="openDlgTitle">
+  <h2 id="openDlgTitle">保存した内容から開く</h2>
+  <p class="muted" id="openDlgNote"></p>
+  <div id="openList"></div>
+  <div class="row"><button class="sbtn" id="miOpenFile2">ファイルを開く…</button><button class="sbtn" id="openDlgClose">閉じる</button></div>
+</dialog>
+<dialog id="askDlg" aria-labelledby="askDlgTitle">
+  <h2 id="askDlgTitle">保存していない変更があります</h2>
+  <p class="muted" id="askDlgNote">開く前に、いまの内容をどうしますか。</p>
+  <div class="row"><button class="sbtn primary" data-ask="save">保存してから開く</button><button class="sbtn" data-ask="discard">破棄して開く</button><button class="sbtn" data-ask="cancel">キャンセル</button></div>
+</dialog>
 <input type="file" id="fileInput" accept=".json,.mol,.sdf,.xyz,application/json" hidden>
 <div id="toast"></div>
 <div id="tip"></div>
@@ -3446,7 +3478,7 @@ window.addEventListener('keydown', e => {
   const k = e.key, mod = e.metaKey || e.ctrlKey;
   if (mod && k.toLowerCase() === 'z') { e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
   if (mod && k.toLowerCase() === 's') { e.preventDefault(); saveJSON(); return; }
-  if (mod && k.toLowerCase() === 'o') { e.preventDefault(); $('fileInput').click(); return; }
+  if (mod && k.toLowerCase() === 'o') { e.preventDefault(); openWithGuard(() => $('fileInput').click()); return; }
   if (mod) return;
   if (k === ' ') { spaceDown = true; e.preventDefault(); return; }
   const map = {v:'rotate', d:'dist', a:'angle', t:'dihedral', e:'erase'};
@@ -3681,10 +3713,9 @@ addEventListener('resize', () => { if (moRun) moDraw(); });
 const STORE_KEY = 'bunshi-v1';
 function download(blob, name){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
 function fileBase(){ return info.comps.length === 1 ? info.comps[0].f.text : '分子模型'; }
-function saveJSON(){
-  const data = {app:'bunshi', version:1, doc, view:{R:view.R, s:view.s, pan:view.pan, center:view.center},
-    state:uiState()};
-  download(new Blob([JSON.stringify(data)], {type:'application/json'}), fileBase() + '.json');
+function saveJSON(){   // 明示保存：ファイルに保存（ダウンロード）
+  download(new Blob([fileData()], {type:'application/json'}), (save.name || fileBase()) + '.json');
+  markSaved('download'); syncSaveStatus();
 }
 // 読み込むときの検査（知らない項目・不正な値を捨てる）
 function sanitize(d){
@@ -3742,9 +3773,15 @@ function applyUIState(s){
   for (const k of UI_FLAGS) if (typeof s[k] === 'boolean') state[k] = s[k];
   if (BG[s.bg]) state.bg = s.bg;
 }
-$('btnSave').onclick = saveJSON;
-$('miOpen').onclick = () => $('fileInput').click();
-$('btnNew').onclick = () => { if (!Object.keys(doc.atoms).length) return; commit(); doc = emptyDoc(); sel = null; changed(); };
+$('miSaveFile').onclick = saveJSON;
+$('miSaveBrowser').onclick = saveToBrowser;
+$('miSaveAuto').onclick = pickAutoSaveFile;
+$('miOpen').onclick = () => openWithGuard(() => $('fileInput').click());
+$('miOpenSaved').onclick = () => showOpenDialog();
+$('miOpenFile2').onclick = () => { $('openDlg').close(); openWithGuard(() => $('fileInput').click()); };
+$('openDlgClose').onclick = () => $('openDlg').close();
+$('saveStatus').onclick = () => showOpenDialog();
+$('btnNew').onclick = () => { if (isEmpty()) return; openWithGuard(() => { commit(); doc = emptyDoc(); sel = null; changed(); }); };
 $('fileInput').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = ''; if (!f) return;
   try {
@@ -3753,21 +3790,146 @@ $('fileInput').addEventListener('change', async e => {
       const d = JSON.parse(text);
       if (d.app === 'kouzoushiki') { importKouzoushiki(d.doc); return; }   // 構造式エディタで保存したファイル
       if (d.app !== 'bunshi') throw new Error('分子模型エディタ・構造式エディタのファイルではありません');
-      commit(); doc = sanitize(d.doc); applyViewState(d.view); applyUIState(d.state); sel = null;
-      setMode(state.mode); syncToggles(); changed();
+      if (!d.name) save.name = f.name.replace(/\.json$/i, '');   // ファイル名を名前として引き継ぐ
+      if (!openData(d, 'file')) throw new Error('中身を読み取れませんでした');
     } else if (ext === 'mol' || ext === 'sdf') addMolecule(fromMolText(text.split('$$$$')[0]), true);
     else if (ext === 'xyz') addMolecule(fromXYZText(text), true);
     else throw new Error('対応していない形式です');
   } catch (err) { toast('開けませんでした：' + err.message); }
 });
+// ---- 保存（共通仕様 4 章）：自動／明示、ブラウザ内／ローカルファイルを分けて持つ ----
+const SAVED_KEY = 'bunshi-saved';   // 明示保存（ブラウザ内）。STORE_KEY は自動保存
+const save = {name:'分子模型', at:0, savedAt:0, savedWhere:'', dirty:false, err:'', mark:'{}'};   // mark：最後に保存した内容
+let fileHandle = null, fileTimer = 0;   // 利用者が選んだローカルファイルへの自動保存
+const canPick = typeof window.showSaveFilePicker === 'function';
+const isEmpty = () => !Object.keys(doc.atoms).length;
+const hhmm = t => { const d = new Date(t); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
+const ymdhm = t => { const d = new Date(t); return `${d.getMonth() + 1}/${d.getDate()} ${hhmm(t)}`; };
+const viewState = () => ({R:view.R, s:view.s, pan:view.pan, center:view.center});
+const fileData = () => JSON.stringify({app:'bunshi', version:1, name:save.name, savedAt:Date.now(),
+  doc, view:viewState(), state:uiState()});
 function autosave(){
-  try { localStorage.setItem(STORE_KEY, JSON.stringify({doc, view:{R:view.R, s:view.s, pan:view.pan, center:view.center},
-    state:uiState()})); } catch {}
+  save.at = Date.now(); save.dirty = JSON.stringify(doc) !== save.mark;
+  try {
+    localStorage.setItem(STORE_KEY, JSON.stringify({doc, view:viewState(), state:uiState(), name:save.name, at:save.at}));
+    if (save.err.startsWith('ブラウザ')) save.err = '';
+  } catch { save.err = 'ブラウザに自動保存できませんでした（保存できる量を超えているかもしれません）'; }
+  fileAutoSave();
+  syncSaveStatus();
+}
+// 選んだファイルへの自動保存（少し待ってからまとめて書く）
+function fileAutoSave(){
+  if (!fileHandle) return;
+  clearTimeout(fileTimer);
+  fileTimer = setTimeout(async () => {
+    try {
+      const w = await fileHandle.createWritable();
+      await w.write(fileData()); await w.close();
+      markSaved('file');
+    } catch { save.err = 'ファイルに自動保存できませんでした。保存先を選び直してください'; }
+    syncSaveStatus();
+  }, 1200);
+}
+function markSaved(where){   // 保存できたときの印（ここから変更があれば「保存後に変更あり」になる）
+  save.savedAt = Date.now(); save.savedWhere = where; save.mark = JSON.stringify(doc); save.dirty = false; save.err = '';
+}
+function syncSaveStatus(){
+  const el = $('saveStatus'); if (!el) return;
+  el.classList.toggle('warn', !!save.err);
+  el.textContent = save.err ? '⚠ ' + save.err
+    : fileHandle ? `ファイルへ自動保存 ${hhmm(save.savedAt || save.at)}（${save.name}）`
+    : save.savedAt && !save.dirty ? `保存しました ${hhmm(save.savedAt)}`
+    : save.savedAt ? `保存後に変更あり（自動保存 ${hhmm(save.at)}）`
+    : save.at ? `自動保存 ${hhmm(save.at)}（このブラウザ）` : '';
+}
+// 明示保存：ブラウザ内（自動保存とは別に持つ）
+function saveToBrowser(){
+  if (isEmpty()){ toast('保存するものがありません'); return; }
+  try {
+    localStorage.setItem(SAVED_KEY, JSON.stringify({doc, view:viewState(), state:uiState(), name:save.name, at:Date.now()}));
+    markSaved('browser');
+    toast('ブラウザに保存しました（「開く」→「保存した内容から開く」で戻せます）');
+  } catch { save.err = 'ブラウザに保存できませんでした'; toast(save.err); }
+  syncSaveStatus();
+}
+// 明示保存：ファイルを決めて、以後そのファイルへ自動保存（対応ブラウザのみ）
+async function pickAutoSaveFile(){
+  if (!canPick){ toast('このブラウザはファイルへの自動保存に対応していません。「ファイルに保存…」をお使いください'); return; }
+  try {
+    const name = (prompt('ファイル名を入力してください', save.name) || '').trim();
+    if (!name) return;
+    save.name = name.replace(/\.json$/i, '');
+    fileHandle = await window.showSaveFilePicker({suggestedName: save.name + '.json',
+      types:[{description:'分子模型エディタのファイル', accept:{'application/json':['.json']}}]});
+    const w = await fileHandle.createWritable(); await w.write(fileData()); await w.close();
+    markSaved('file');
+    toast(`「${save.name}.json」に保存しました。これからは自動で書き込みます`);
+  } catch (e) { if (e && e.name !== 'AbortError'){ save.err = 'ファイルに保存できませんでした'; toast(save.err); } }
+  syncSaveStatus();
+}
+// 保存した内容を読み込む（検査してから反映する）
+function openData(data, how){
+  const d = data && (data.doc || data);
+  if (!d || !d.atoms) return false;
+  commit();
+  doc = sanitize(d);
+  applyViewState(data.view); applyUIState(data.state);
+  sel = null; editMeas = null; picking = [];
+  if (typeof data.name === 'string' && data.name) save.name = data.name.slice(0, 40);
+  setMode(state.mode); syncToggles(); setWorld(state.world, true); changed(); fitView();
+  save.savedAt = data.at || data.savedAt || 0; save.savedWhere = how || '';
+  save.mark = JSON.stringify(doc); save.dirty = false; syncSaveStatus();   // 開いた直後は「変更なし」
+  return true;
+}
+const readStore = k => { try { const s = JSON.parse(localStorage.getItem(k) || 'null'); return s && s.doc ? s : null; } catch { return null; } };
+// 保存していない変更があるとき：保存してから開く・破棄して開く・キャンセル
+function askBeforeOpen(){
+  return new Promise(res => {
+    if (!save.dirty || isEmpty()) return res('discard');
+    const dlg = $('askDlg');
+    const on = e => { const b = e.target.closest('[data-ask]'); if (!b) return; dlg.close(); dlg.removeEventListener('click', on); res(b.dataset.ask); };
+    dlg.addEventListener('click', on);
+    dlg.showModal();
+  });
+}
+async function openWithGuard(fn){
+  const a = await askBeforeOpen();
+  if (a === 'cancel') return;
+  if (a === 'save'){
+    if (fileHandle){ clearTimeout(fileTimer); await fileHandle.createWritable().then(async w => { await w.write(fileData()); await w.close(); }).catch(() => {}); markSaved('file'); }
+    else saveToBrowser();
+  }
+  fn();
+}
+// 保存した内容の候補（自動保存・明示保存）から選んで開く
+function showOpenDialog(note){
+  const list = $('openList'), cands = [];
+  const a = readStore(STORE_KEY), b = readStore(SAVED_KEY);
+  if (a) cands.push({key:STORE_KEY, kind:'自動保存（このブラウザ）', data:a});
+  if (b) cands.push({key:SAVED_KEY, kind:'保存（このブラウザ）', data:b});
+  list.innerHTML = cands.length ? cands.map((c, i) => {
+    const f = c.data.doc && c.data.doc.atoms ? Object.keys(c.data.doc.atoms).length : 0;
+    return `<div class="cand"><div><b>${esc(c.data.name || '分子模型')}</b><span>${c.kind}　${c.data.at ? ymdhm(c.data.at) : '日時なし'}　原子 ${f} 個</span></div>`
+      + `<button class="sbtn" data-cand="${i}">開く</button></div>`;
+  }).join('') : '<p class="muted">このブラウザに保存された内容はありません。</p>';
+  list.onclick = e => {
+    const btn = e.target.closest('[data-cand]'); if (!btn) return;
+    const c = cands[+btn.dataset.cand];
+    openWithGuard(() => {
+      $('openDlg').close();
+      if (openData(c.data, c.key === SAVED_KEY ? 'browser' : '')) toast(`${c.kind}を開きました`);
+      else toast('この内容は読み込めませんでした');
+    });
+  };
+  $('openDlgNote').textContent = note || '開きたい内容を選んでください。いまの内容は、開く前に保存できます。';
+  $('openDlg').showModal();
 }
 function restore(){
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (!s) return false;
     doc = sanitize(s.doc); applyViewState(s.view); applyUIState(s.state);
+    if (typeof s.name === 'string' && s.name) save.name = s.name.slice(0, 40);
+    save.at = s.at || 0; save.mark = JSON.stringify(doc); save.dirty = false;   // 続きから開いた直後は「変更なし」
     return Object.keys(doc.atoms).length > 0 || state.world === 'xtal';   // 結晶モードのまま閉じたときは、分子がなくても結晶モードで開く
   } catch { return false; }
 }
@@ -3865,7 +4027,7 @@ syncToggles(); setMode(state.mode); setTool('rotate'); renderLibrary(); setWorld
 try { const w = +localStorage.getItem(SIDEW_KEY); if (w) setSideW(w); } catch {}
 let savedPane = 'lib'; try { const p = localStorage.getItem(SIDE_KEY); if (p !== null) savedPane = p; } catch {}
 if (['lib', 'exp', 'mo'].includes(savedPane)) openSide(savedPane);
-analyze(); renderInfo(); renderSel(); syncUndo();
+analyze(); renderInfo(); renderSel(); syncUndo(); syncSaveStatus();
 if (!restored) { try { addMolecule(buildCached('CCO'), true); hist.undo = []; syncUndo(); } catch (e) { console.error(e); } }
 requestAnimationFrame(() => { if (!restored) fitView(); requestDraw(true); });
 
