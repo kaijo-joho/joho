@@ -1,4 +1,4 @@
-/* Run: node tools/ilapo/tests/browser.test.cjs [http://127.0.0.1:port/ilapo/] */
+/* Run: node tools/illustslide/tests/browser.test.cjs [http://127.0.0.1:port/illustslide/] */
 'use strict';
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
@@ -13,7 +13,7 @@ async function serve() {
   const types = { '.css': 'text/css', '.html': 'text/html', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.md': 'text/plain' };
   const server = http.createServer(async (req, res) => {
     const requestPath = decodeURIComponent(new URL(req.url, 'http://127.0.0.1').pathname);
-    let relative = requestPath.replace(/^\/+/, '') || 'ilapo/index.html';
+    let relative = requestPath.replace(/^\/+/, '') || 'illustslide/index.html';
     if (relative.endsWith('/')) relative += 'index.html';
     const file = path.resolve(root, relative);
     if (!file.startsWith(root + path.sep)) { res.writeHead(403); res.end(); return; }
@@ -21,7 +21,7 @@ async function serve() {
     catch { res.writeHead(404); res.end(); }
   });
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  return { url: `http://127.0.0.1:${server.address().port}/ilapo/`, close: () => new Promise(resolve => server.close(resolve)) };
+  return { url: `http://127.0.0.1:${server.address().port}/illustslide/`, close: () => new Promise(resolve => server.close(resolve)) };
 }
 const sleep = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -52,7 +52,7 @@ async function selectTwo(page, ids) { await selectObject(page, ids[0]); await se
 async function run() {
   const supplied = process.argv.find(value => /^https?:/.test(value));
   const hosting = supplied ? { url: supplied, close: async () => {} } : await serve();
-  const artifacts = '/private/tmp/ilapo-browser'; await fs.mkdir(artifacts, { recursive: true });
+  const artifacts = '/private/tmp/illustslide-browser'; await fs.mkdir(artifacts, { recursive: true });
   const browser = await playwright.chromium.launch({ channel: 'chrome', headless: true });
   const context = await browser.newContext({ viewport: { width: 1280, height: 736 }, acceptDownloads: true });
   const page = await context.newPage();
@@ -110,18 +110,19 @@ async function run() {
     await sleep(520); const slots = await page.evaluate(() => [localStorage.getItem('kaijo-ilapo:auto'), localStorage.getItem('kaijo-ilapo:saved')]); assert(slots[0] && slots[1], 'browser auto and explicit saves are independent');
 
     await page.locator('.side-tab [data-action="export-toggle"]').click(); const svgDownloadPromise = page.waitForEvent('download'); await page.locator('[data-action="export-svg"]').click(); const svgDownload = await svgDownloadPromise;
-    const svgPath = path.join(artifacts, 'ilapo-export.svg'); await svgDownload.saveAs(svgPath); const svg = await fs.readFile(svgPath, 'utf8'); assert.match(svg, /<svg[\s>]/); assert.match(svg, /<path|<text/);
+    const svgPath = path.join(artifacts, 'illustslide-export.svg'); await svgDownload.saveAs(svgPath); const svg = await fs.readFile(svgPath, 'utf8'); assert.match(svg, /<svg[\s>]/); assert.match(svg, /<path|<text/);
     const beforeImport = (await documentOf(page)).pages.length; await page.locator('#file-input').setInputFiles({ name: 'roundtrip.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(svg) }); await page.waitForFunction(count => IlapoEditor.getDocument().pages.length === count + 1, beforeImport);
 
     await page.evaluate(() => Object.defineProperty(window, 'showSaveFilePicker', { value: undefined, configurable: true }));
     await page.locator('[data-menu="save"]').click(); const zipDownloadPromise = page.waitForEvent('download'); await page.locator('#command-menu').getByRole('button', { name: 'ローカルファイルに保存…', exact: true }).click(); const zipDownload = await zipDownloadPromise;
-    const zipPath = path.join(artifacts, 'ilapo-roundtrip.ilapo.zip'); await zipDownload.saveAs(zipPath); const zip = await fs.readFile(zipPath); assert(zip.length > 100, 'ZIP export has contents');
+    assert.match(zipDownload.suggestedFilename(), /\.illustslide\.zip$/, 'project download uses the official filename');
+    const zipPath = path.join(artifacts, 'illustslide-roundtrip.illustslide.zip'); await zipDownload.saveAs(zipPath); const zip = await fs.readFile(zipPath); assert(zip.length > 100, 'ZIP export has contents');
     await page.locator('#file-input').setInputFiles({ name: 'roundtrip.ilapo.zip', mimeType: 'application/zip', buffer: zip });
     if (await page.locator('#replace-discard').isVisible()) await page.locator('#replace-discard').click();
     await page.waitForFunction(() => IlapoEditor.getDocument().pages.length >= 3);
 
     for (const width of [1280, 736, 390]) { await page.setViewportSize({ width, height: 736 }); if (width > 800) await page.locator('[data-menu="view"]').click(); else await page.locator('[data-menu="more"]').click(); await page.locator('#command-menu').getByRole('button', { name: '表示設定…', exact: true }).click(); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await dialogSubmit(page); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `${width}px has no document horizontal overflow`); }
-    await page.screenshot({ path: path.join(artifacts, 'ilapo-dark-mobile.png'), fullPage: true });
+    await page.screenshot({ path: path.join(artifacts, 'illustslide-dark-mobile.png'), fullPage: true });
     await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.waitForFunction(() => !document.getElementById('operation-help').hidden); await page.keyboard.press('Escape'); assert.equal(await page.locator('#help-button').evaluate(el => document.activeElement === el), true, 'Escape returns focus to help opener');
     await page.setViewportSize({ width: 390, height: 736 }); await page.locator('#canvas').focus(); await page.keyboard.press('Tab');
     const touchContext = await browser.newContext({ viewport: { width: 390, height: 736 }, hasTouch: true, isMobile: true }); const touch = await touchContext.newPage();

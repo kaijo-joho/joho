@@ -22,7 +22,7 @@ const shape = (d, id = 'shape') => ({ ...C.makeShape('rect', 0, 0, 1, 1), id, na
 async function run() {
   const supplied = process.argv.find(value => /^https?:/.test(value));
   if (!supplied) await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
-  const url = supplied || `http://127.0.0.1:${server.address().port}/ilapo/`;
+  const url = supplied || `http://127.0.0.1:${server.address().port}/illustslide/`;
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   const context = await browser.newContext({ viewport: { width: 1280, height: 800 }, acceptDownloads: true });
   const page = await context.newPage(), errors = [];
@@ -106,7 +106,7 @@ async function run() {
     assert.equal((await info('c1'))[0].closed, true);
     await page.evaluate(() => Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: undefined }));
     await page.locator('[data-menu="save"]').click(); const zipEvent = page.waitForEvent('download'); await page.locator('#command-menu [data-action="save-local"]').click();
-    const zip = await zipEvent, zipPath = '/private/tmp/ilapo-path-roundtrip.zip'; await zip.saveAs(zipPath); const beforeZip = await documentOf();
+    const zip = await zipEvent, zipPath = '/private/tmp/illustslide-path-roundtrip.zip'; await zip.saveAs(zipPath); const beforeZip = await documentOf();
     await page.locator('#file-input').setInputFiles(zipPath); await sleep(100); assert.deepEqual(await documentOf(), beforeZip, 'curves and IDs survive actual local ZIP round trip');
     await pick('c1'); await choose([0]); await page.locator('#canvas').focus(); await page.keyboard.press('ArrowRight'); await sleep(40);
     assert.notEqual((await documentOf()).pages[0].objects[0].d, beforeZip.pages[0].objects[0].d);
@@ -136,10 +136,10 @@ async function run() {
     await page.locator('.side-tab [data-action="export-toggle"]').click(); const pngEvent = page.waitForEvent('download'); await page.locator('[data-action="export-png"]').click();
     const png = await pngEvent; assert.match(png.suggestedFilename(), /\.png$/);
     await page.locator('.side-tab [data-action="export-toggle"]').click();
-    await page.screenshot({ path: '/private/tmp/ilapo-path-desktop.png' });
+    await page.screenshot({ path: '/private/tmp/illustslide-path-desktop.png' });
     await page.setViewportSize({ width: 390, height: 736 }); await page.locator('[data-menu="more"]').click(); await page.locator('#command-menu [data-action="view-dialog"]').click(); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await submit();
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
-    await menu('anchor-list'); await page.screenshot({ path: '/private/tmp/ilapo-path-mobile.png' });
+    await menu('anchor-list'); await page.screenshot({ path: '/private/tmp/illustslide-path-mobile.png' });
     await page.keyboard.press('Escape'); assert.equal(await page.locator('#dialog').evaluate(el => el.open), false);
     const touchContext = await browser.newContext({ viewport: { width: 390, height: 736 }, hasTouch: true, isMobile: true });
     const touch = await touchContext.newPage();

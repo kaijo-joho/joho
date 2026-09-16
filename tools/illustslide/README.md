@@ -1,4 +1,4 @@
-# イラストスライド illustSlide 0.4.1 BETA
+# イラストスライド illustSlide 0.4.2 BETA
 
 正式名称は「イラストスライド illustSlide」（開発ネーム：イラポ）。海城中学高等学校 情報科の、ピクトグラム・ロゴ・説明図・スライド制作を目指すブラウザ用ベクターエディタ。
 
@@ -6,9 +6,11 @@
 
 0.4.1で正式名称と、作成者が採用したiSロゴを画面・favicon・ツール一覧へ反映した。校章の輪郭をもとに、丸いiの点を上げ、棒の上端をSの上側の曲線付近まで延ばす。右下の曲線には頂点と長いハンドルを添える。上部は短い英字名を使い、ヘルプ・一覧では日本語名も併記する。
 
-ロゴの正本は `logo.svg`。紺 `#00548a`、編集記号 `#2e80e8`。`icon.svg` は紺の角丸背景に白抜きのロゴと水色 `#9ad8ff` の編集記号を置いた生成物で、上部・favicon・一覧から共用する。変更時は `node tools/ilapo/scripts/generate-icon.mjs` で再生成し、`--check` で一致を確認する。校章のAI原本は公開しない。
+ロゴの正本は `logo.svg`。紺 `#00548a`、編集記号 `#2e80e8`。`icon.svg` は紺の角丸背景に白抜きのロゴと水色 `#9ad8ff` の編集記号を置いた生成物で、上部・favicon・一覧から共用する。変更時は `node tools/illustslide/scripts/generate-icon.mjs` で再生成し、`--check` で一致を確認する。校章のAI原本は公開しない。
 
-改称後もURL `tools/ilapo/`、内部API名、形式名、保存キー、再編集用の拡張子 `.ilapo.zip` を維持し、従来の保存内容を引き続き読み込める。
+0.4.2でフォルダ・公開URLを `tools/illustslide/`、保存ファイル名を `作品名.illustslide.zip` に変更した。旧 `tools/ilapo/` はクエリ・ハッシュを保って新URLへ移動する。同じ配信元のブラウザ保存・設定・部品集はそのまま使える。ファイルを直接開いていた場合は旧ページから自動保存・明示保存をJSONで取り出し、新しいエディタで読み込める。旧ページは保存内容を削除しない。
+
+内部API名、形式名、保存キー、SVG内の識別子は互換性のため維持する。従来の `.ilapo.zip` も引き続き読み込める。
 
 ## 今回の範囲
 
@@ -84,7 +86,7 @@ SVG・PNG・PDFとページのサムネイルは、編集時の元の色・配�
 
 ## 保存形式と互換性
 
-再編集用ファイルは `作品名.ilapo.zip`。中に `manifest.json` と `pages/<page-id>.svg` がある。
+再編集用ファイルは `作品名.illustslide.zip`。中に `manifest.json` と `pages/<page-id>.svg` がある。
 
 - 通常のパス・文字・埋め込み画像の正本は各SVG。manifestは文書・ページ情報と名前・グループ・固定・下絵フラグを補足し、パスデータや画像データを二重保存しない。
 - 接続矢印はmanifestに接続先・端点・経路点・書式・ラベルを持ち、SVGには他アプリでも表示できる線・矢じり・文字へ展開した見た目を記録する。再編集用ZIPはmanifestの接続モデルを復元し、通常のSVG取り込みでは線と文字として取り込む。
@@ -119,39 +121,41 @@ Codexが担当。担当外アプリは閲覧・レビューのみ。共通仕様
 | `export.js` | PNGとベクター印刷用ページ |
 | `svg.js` | 安全なSVG表示・入出力、ZIPの保存・復元 |
 | `local-autosave.js` | ローカル保存先・権限・外部変更・書き込み順序 |
+| `legacy-redirect.js` / `../ilapo/index.html` | 旧URLからの移動、直接ファイル利用時の保存内容の取り出し |
 | `editor.js` / `editor.css` / `index.html` | 操作・画面・表示設定 |
 | `vendor/` | 固定版Paper.jsとfflate、ライセンスと入手元 |
 | `../shared/help-panel.*` | 共通の非モーダルヘルプ（利用のみ） |
 
-ランタイムにCDN・外部サービスへ接続しない。ビルド工程は不要。リポジトリをローカルHTTPサーバーで配信して `tools/ilapo/` を開く。
+ランタイムにCDN・外部サービスへ接続しない。ビルド工程は不要。リポジトリをローカルHTTPサーバーで配信して `tools/illustslide/` を開く。
 
 ## 検証
 
 NodeとPlaywrightのGoogle Chromeで実行する。依存が通常のnode_modulesになければ、テストはユーザーのCodexランタイムを探す。
 
 ```sh
-node tools/ilapo/tests/core.test.cjs
-node tools/ilapo/tests/local-autosave.test.cjs
-node tools/ilapo/tests/geometry-svg.test.cjs
-node tools/ilapo/tests/svg-compat.test.cjs
-node tools/ilapo/tests/browser.test.cjs
-node tools/ilapo/tests/path-edit.test.cjs
-node tools/ilapo/tests/path-semantics.test.cjs
-node tools/ilapo/tests/path-ui.test.cjs
-node tools/ilapo/tests/export.test.cjs
-node tools/ilapo/tests/export-browser.test.cjs
-node tools/ilapo/tests/connectors.test.cjs
-node tools/ilapo/tests/connectors-browser.test.cjs
-node tools/ilapo/tests/assets.test.cjs
-node tools/ilapo/tests/presentation.test.cjs
-node tools/ilapo/tests/stage3-core.test.cjs
-node tools/ilapo/tests/stage3-browser.test.cjs
-node tools/ilapo/tests/animation-core.test.cjs
-node tools/ilapo/tests/animation.test.cjs
-node tools/ilapo/tests/animation-zip.test.cjs
-node tools/ilapo/tests/animation-player.test.cjs
-node tools/ilapo/tests/stage4-browser.test.cjs
-node --check tools/ilapo/editor.js
+node tools/illustslide/tests/core.test.cjs
+node tools/illustslide/tests/local-autosave.test.cjs
+node tools/illustslide/tests/geometry-svg.test.cjs
+node tools/illustslide/tests/svg-compat.test.cjs
+node tools/illustslide/tests/browser.test.cjs
+node tools/illustslide/tests/migration-browser.test.cjs
+node tools/illustslide/tests/path-edit.test.cjs
+node tools/illustslide/tests/path-semantics.test.cjs
+node tools/illustslide/tests/path-ui.test.cjs
+node tools/illustslide/tests/export.test.cjs
+node tools/illustslide/tests/export-browser.test.cjs
+node tools/illustslide/tests/connectors.test.cjs
+node tools/illustslide/tests/connectors-browser.test.cjs
+node tools/illustslide/tests/assets.test.cjs
+node tools/illustslide/tests/presentation.test.cjs
+node tools/illustslide/tests/stage3-core.test.cjs
+node tools/illustslide/tests/stage3-browser.test.cjs
+node tools/illustslide/tests/animation-core.test.cjs
+node tools/illustslide/tests/animation.test.cjs
+node tools/illustslide/tests/animation-zip.test.cjs
+node tools/illustslide/tests/animation-player.test.cjs
+node tools/illustslide/tests/stage4-browser.test.cjs
+node --check tools/illustslide/editor.js
 git diff --check
 ```
 
@@ -169,9 +173,11 @@ PNGの18px・倍率・透明／白背景・日本語上付き下付き、負座�
 
 0.4.1の改称時には、従来の編集・保存・ZIP読み込みとアニメーション・再生用HTMLのChrome回帰、保存と印刷の単体検証を実行した。上部の1行表示は3テーマ・3文字サイズ・320/390/736/850/851/1024/1280pxの63条件で確認。正式ロゴの輪郭が採用案と一致すること、生成アイコン、ヘルプの正式名、ツール一覧も確認した。
 
+0.4.2では、新しいパスで編集・パス操作・接続・再生・保存のChrome回帰を実行した。旧URLのクエリ・ハッシュと保存候補の保持、新旧ZIP名の読み込み、直接ファイル利用時の2種類の保存の取り出し・読み込み、片方が壊れた場合のもう一方の保持を確認した。ダウンロード名は実際の出力で確認し、ファイル選択画面に渡す明示・自動保存名は模擬ハンドルで確認した。グラフアプリの保存部品への参照も新パスへ変更し、その自動保存回帰を実行した。
+
 ## 公開
 
-公開先は `https://joho.kaijo.ed.jp/tools/ilapo/`。ウェブアプリ一覧 `tools/index.html` に掲載し、既存の独立ツールと同様に「ページ一覧」GSS・`js/pages.js`へは登録しない。
+公開先は `https://joho.kaijo.ed.jp/tools/illustslide/`。ウェブアプリ一覧 `tools/index.html` に掲載し、既存の独立ツールと同様に「ページ一覧」GSS・`js/pages.js`へは登録しない。
 
 0.4のChrome回帰では、実UIからの4効果の追加・変更・並べ替え・削除とUndo、適用前のプレビューで編集状態を保持すること、色のパレット・RGB、動きの途中と完了時点、接続矢印の追従、前後・Home/End・リセットを確認した。ワイプは4方向の表示／消去と複数対象の共通境界、自由キャンバスは移動中に表示範囲が変わらないことを確認する。390pxのCDPタッチで1回のスワイプが1段階だけ進むこと、リセットのタップ、途中でreduced-motionを切り替えた場合も対象に含む。
 

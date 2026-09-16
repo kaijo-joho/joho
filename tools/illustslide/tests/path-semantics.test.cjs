@@ -101,8 +101,8 @@ try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require(
     assert.equal(results.joinedSubpaths.length, 1); assert.equal(results.joinedSubpaths[0].segments.length, 4);
     near(Math.abs(results.hole.area), 20000 - 1600); assert.equal(results.holePaths.length, 2); assert.deepEqual(results.restored, results.doc);
     near(results.smoothed.segments[0].handleOut.x, 0); near(results.smoothed.segments[0].handleOut.y, 6);
-    await fs.writeFile('/private/tmp/ilapo-practices.svg', results.practiceSvg);
-    await page.setContent(results.practiceSvg); await page.setViewportSize({ width: 740, height: 280 }); await page.screenshot({ path: '/private/tmp/ilapo-practices.png' });
+    await fs.writeFile('/private/tmp/illustslide-practices.svg', results.practiceSvg);
+    await page.setContent(results.practiceSvg); await page.setViewportSize({ width: 740, height: 280 }); await page.screenshot({ path: '/private/tmp/illustslide-practices.png' });
     console.log('Ilapo path semantic invariants passed');
   } finally { await browser.close(); }
 })().catch(error => { console.error(error); process.exitCode = 1; });

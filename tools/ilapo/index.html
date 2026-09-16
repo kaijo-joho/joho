@@ -2,102 +2,29 @@
 <html lang="ja">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="図形・文字・接続矢印で、ピクトグラム・ロゴ・説明図・スライドをつくるイラストスライド illustSlide。ブラウザで編集し、SVG・PNG・PDFとして持ち出せます。">
-  <title>イラストスライド illustSlide | 海城中学高等学校 情報科</title>
-  <link rel="icon" href="icon.svg?v=0.4.1" type="image/svg+xml">
-  <link rel="stylesheet" href="editor.css?v=0.4.1">
-  <link rel="stylesheet" href="presentation.css?v=0.4.1">
-  <link rel="stylesheet" href="../shared/help-panel.css">
-  <script defer src="vendor/paper-core-0.12.18.min.js"></script>
-  <script defer src="vendor/fflate-0.8.2.umd.js"></script>
-  <script defer src="core.js?v=0.4.1"></script>
-  <script defer src="geometry.js?v=0.4.1"></script>
-  <script defer src="connectors.js?v=0.4.1"></script>
-  <script defer src="assets.js?v=0.4.1"></script>
-  <script defer src="path-edit.js?v=0.4.1"></script>
-  <script defer src="svg.js?v=0.4.1"></script>
-  <script defer src="export.js?v=0.4.1"></script>
-  <script defer src="path-ui.js?v=0.4.1"></script>
-  <script defer src="connector-ui.js?v=0.4.1"></script>
-  <script defer src="animation.js?v=0.4.1"></script>
-  <script defer src="animation-player.js?v=0.4.1"></script>
-  <script defer src="presentation.js?v=0.4.1"></script>
-  <script defer src="animation-ui.js?v=0.4.1"></script>
-  <script defer src="playback-export.js?v=0.4.1"></script>
-  <script defer src="local-autosave.js?v=0.4.1"></script>
-  <script defer src="../shared/help-panel.js"></script>
-  <script defer src="editor.js?v=0.4.1"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>イラストスライド illustSlideへ移動</title>
+  <link rel="icon" href="../illustslide/icon.svg" type="image/svg+xml">
+  <script src="../illustslide/core.js" defer></script>
+  <script src="../illustslide/legacy-redirect.js" defer></script>
+  <style>
+    :root{color-scheme:light dark;font:16px/1.8 -apple-system,BlinkMacSystemFont,"Hiragino Sans",sans-serif}
+    :root[data-theme="light"]{color-scheme:light}:root[data-theme="dark"]{color-scheme:dark}
+    body{max-width:640px;margin:48px auto;padding:0 20px}h1{font-size:1.4rem}h2{font-size:1.15rem}a{color:LinkText}
+    a,button{max-width:100%;overflow-wrap:anywhere}#destination{display:inline-block;min-height:44px}
+    button{display:block;min-height:44px;margin:10px 0;padding:8px 14px;font:inherit;cursor:pointer}
+    :focus-visible{outline:3px solid #3684c1;outline-offset:3px}[hidden]{display:none}
+  </style>
 </head>
 <body>
-<div id="app">
-  <header class="top" aria-label="メインツールバー">
-    <button class="brand" data-action="rename" aria-label="作品名を変更"><img src="icon.svg?v=0.4.1" alt="" width="27" height="27"><span>illustSlide</span><small>BETA</small></button>
-    <span class="sep"></span>
-    <button data-menu="save" aria-label="保存" data-tip="保存 ⌘S" data-icon="save"></button>
-    <button data-menu="open" aria-label="開く" data-tip="開く ⌘O" data-icon="open"></button>
-    <span class="sep wide"></span>
-    <button class="wide" data-tool="direct" aria-label="直接選択ツール" data-tip="直接選択 A" data-icon="direct"></button>
-    <button class="wide" data-tool="select" aria-label="全体選択ツール" data-tip="全体を選択 V" data-icon="select"></button>
-    <button class="wide" data-action="undo" aria-label="元に戻す" data-tip="元に戻す ⌘Z" data-icon="undo"></button>
-    <button class="wide" data-action="redo" aria-label="やり直し" data-tip="やり直し ⇧⌘Z" data-icon="redo"></button>
-    <button class="wide label-button" data-action="pages" data-icon="pages">ページ</button>
-    <button class="wide label-button" data-menu="insert">＋ 挿入</button>
-    <button class="wide label-button" id="present-button" data-action="present-start">▷ 発表</button>
-    <button class="wide label-button" data-menu="view" data-icon="view">表示</button>
-    <button data-menu="more" aria-label="ツールとその他の操作" data-tip="ツールとその他の操作" data-icon="more"></button>
-    <span id="document-title" class="document-title">無題の作品</span>
-    <button id="help-button" aria-label="使い方" data-tip="使い方 ?">?</button>
-  </header>
-  <aside class="palette" aria-label="図形を追加">
-    <p class="eyebrow">追加する</p>
-    <div class="palette-grid" id="shape-tools"></div>
-    <button data-action="assets">アイコン・部品</button>
-    <div class="palette-bottom"><button data-action="artboard" data-icon="board">用紙</button><button data-action="objects" data-icon="layers">一覧</button></div>
-    <p class="palette-note">図形を選んで<br>クリックかドラッグ</p>
-  </aside>
-  <main id="stage" aria-label="作図領域">
-    <svg id="canvas" xmlns="http://www.w3.org/2000/svg" tabindex="0" role="application" aria-label="作図キャンバス。図形を選択し矢印キーで移動。使い方は疑問符キー。">
-      <defs><pattern id="grid-pattern" patternUnits="userSpaceOnUse" width="20" height="20"><circle cx="0" cy="0" r="1" fill="#94a3b8"/></pattern></defs>
-      <rect id="paper" fill="white"/>
-      <rect id="grid" fill="url(#grid-pattern)" pointer-events="none"/>
-      <g id="artwork"></g><g id="selection" aria-hidden="true"></g>
-    </svg>
-    <div id="selection-bar" class="selection-bar" hidden aria-label="選択した図形の編集">
-      <span id="selection-count"></span>
-      <button id="whole-mode" data-action="path-whole">全体を選択</button><button id="direct-mode" data-action="path-direct" hidden>点を選択</button><button id="path-menu-button" data-menu="path">パス</button><button data-menu="edit">編集</button><button data-action="transform">変形</button><button data-action="style">書式・色</button><button data-menu="arrange">整列</button><button data-menu="order">重なり</button>
-      <button id="connection-options" data-action="connection-options" hidden>接続・経路</button><button id="image-options" data-action="image-options" hidden>画像の設定</button>
-      <button data-action="animations">動き</button>
-    </div>
-    <div id="welcome" class="welcome" aria-hidden="true"><div class="welcome-mark">＋</div><strong>図形をひとつ、置いてみよう。</strong><span>左の図形を選んで、ここにクリック。</span></div>
-    <p id="hint" class="hint">図形を選んで追加できます。</p>
-  </main>
-  <aside id="export-panel" class="export-panel" hidden aria-label="画像・PDFの書き出し">
-    <header><h2>書き出し</h2><button data-action="export-toggle" aria-label="書き出しを閉じる">×</button></header>
-    <div class="panel-content"><p>SVGは編集用、PNGは画像用に使えます。</p><label>範囲<select id="export-range"><option value="page">現在のページ</option><option value="selection">選択部分</option></select></label><label>余白（px）<input id="export-padding" type="number" min="0" max="1000" value="8"></label><p class="muted">固定サイズのページ全体は、設定した用紙の寸法で出力します。</p><button class="primary" data-action="export-svg">SVGを保存</button><hr><label>PNGの倍率<input id="export-scale" type="number" min="0.01" max="1000" step="any" value="1"></label><label>PNGの背景<select id="export-background"><option value="transparent">透明</option><option value="white">白</option></select></label><button class="primary" data-action="export-png">PNGを保存</button><hr><label>PDF・印刷の範囲<select id="print-range"><option value="page">現在のページ</option><option value="all">すべてのページ</option></select></label><button class="primary" data-action="export-pdf">PDF・印刷…</button><p class="muted">Chromeの印刷画面で「PDFに保存」を選びます。倍率100%・余白なし・ヘッダーとフッターなしで出力してください。</p><p class="muted">複数ページをまとめて編集用に保存するときは、上部の「保存」を使います。</p><hr><button class="primary" data-action="export-playback">再生用HTMLを保存</button><p class="muted">全ページと動きを、オフラインでも開ける1つのHTMLにまとめます。SVG・PNG・PDFは編集画面の静止状態を出力します。</p></div>
-  </aside>
-  <div class="side-tab"><button data-action="export-toggle" aria-label="書き出しパネルを開閉" aria-expanded="false">書き出し</button></div>
-  <footer class="statusbar"><button id="page-status" data-action="pages">ページ 1 / 1</button><span id="save-status">新しい作品</span><span class="spacer"></span><button data-action="fit" data-tip="全体を表示" aria-label="全体を表示" data-icon="fit"></button><button data-action="zoom-out" aria-label="縮小">−</button><button id="zoom-value" data-action="zoom-reset" aria-label="表示倍率を100%にする">100%</button><button data-action="zoom-in" aria-label="拡大">＋</button></footer>
-</div>
-<div id="command-menu" popover="auto" aria-label="操作メニュー"></div>
-<dialog id="dialog" aria-labelledby="dialog-title"><form id="dialog-form"><header><h2 id="dialog-title"></h2><button type="button" id="dialog-close" aria-label="閉じる">×</button></header><div id="dialog-body"></div><p id="dialog-error" role="alert" hidden></p><footer><button type="button" id="dialog-cancel">キャンセル</button><button id="dialog-submit" type="submit" class="primary">適用</button></footer></form></dialog>
-<input id="file-input" type="file" accept=".svg,.zip,.json" hidden>
-<input id="image-input" type="file" accept="image/png,image/jpeg,image/webp" hidden>
-<input id="components-input" type="file" accept=".json,application/json" hidden>
-<div id="toast" role="status" hidden></div><div id="tooltip" role="tooltip" hidden></div>
-<aside id="operation-help" hidden>
-  <section data-help-topic="draw" data-help-title="図形を置く"><h3>図形を置く</h3><ol><li>左から図形を選びます。狭い画面では上部の「…」から選びます。</li><li>用紙をクリックすると標準サイズで置けます。ドラッグすると大きさを指定できます。</li><li>点を直接編集できます。図形全体を移動するときは「全体を選択」を使います。</li></ol><details><summary>変形・複数選択</summary><p>Shiftを押して追加選択、空白をドラッグして範囲選択。選択枠の丸で拡大縮小、上の丸で回転できます。「変形」では数値を指定できます。Shiftを押して拡大縮小すると比率を保ちます。グループはまとめて選択します。</p></details></section>
-  <section data-help-topic="path" data-help-title="アンカーとパスを編集"><h3>アンカーとパスを編集</h3><p>通常は「直接選択」です。図形をクリックして点を表示し、点や区間を選んでドラッグします。Shiftで点を追加、空白のドラッグで点を範囲選択。「全体を選択」またはVで図形全体の移動・変形に切り替えます。Aで直接選択へ戻ります。</p><p>選択時の「パス」でアンカーの追加・削除・数値編集、角と滑らかな点の切り替え、角丸、開閉・連結、合体・型抜きができます。区間のダブルクリックでも点を追加できます。点は「アンカーを選択…」からキーボードでも選べます。</p><details><summary>ハンドル・連結・吸着</summary><p>選んだ点のハンドルを引くと曲線を調整できます。通常は反対側の方向もそろい、Optionを押すと片側だけ変えられます。選んだ角を丸める操作は、直線同士の角を曲線に置き換えます。</p><p>開いたパスの端点を2つ選び、「2つの端点をつなぐ」で直線・1点にまとめる・滑らかな曲線を選びます。Deleteは選んだ点の部分でパスを切り開きます。点だけを減らすときは「削除して前後をつなぐ」を使います。</p><p>「表示設定」でピクセル・グリッド・他の点・他のパスへの吸着を選べます。Optionで一時解除します。パスの途中に別の端点を重ねても、枝分かれした1本のパスにはならず、2本のままです。</p></details></section>
-  <section data-help-topic="text" data-help-title="文字・色を変える"><h3>文字・色を変える</h3><p>文字ツールで配置し、文章を入力します。文字の一部分を選んで上付き・下付きを指定できます。配置後の文字はダブルクリック、または選択時の「編集」から直せます。</p><p>「書式・色」ではパレット・RGB・自由な色指定を利用できます。書式コピーは選択時の「編集」にあります。</p></section>
-  <section data-help-topic="pages" data-help-title="用紙とページ"><h3>用紙とページ</h3><p>「用紙」では18pxの正方形からA4・16:9まで選べます。「自由キャンバス」なら用紙の外にも広げられます。用紙の変更で図形の大きさは変わりません。</p><p>「ページ」で追加・複製・並べ替え・名前変更。コピーした図形は別のページにも貼り付けられます。</p></section>
-  <section data-help-topic="save" data-help-title="保存・読み込み"><h3>保存・読み込み</h3><p>ブラウザへ編集途中を自動保存します。「保存」で残した内容は別に保持し、「開く」でどちらを使うか選べます。</p><p>ローカル保存は、各ページのSVGと作品情報をまとめたZIPです。ZIPを展開すればページごとのSVGを他のアプリへ渡せます。対応するSVGの範囲は基本図形・パス・文字・グループです。</p><details><summary>ローカルへの自動保存</summary><p>Chromeで保存先を選んだ場合に使えます。明示保存とは別のファイルへ保存し、この画面を閉じると終了します。保存先が使えない場合も作品を保持し、ブラウザ保存とファイルのダウンロードを利用できます。</p></details></section>
-  <section data-help-topic="keys" data-help-title="表示・ショートカット"><h3>表示・ショートカット</h3><p>Space＋ドラッグ、または2本指スクロールで移動。ピンチや⌘＋ホイールで拡大縮小。「表示」でグリッド・テーマ・操作文字の大きさを変えられます。</p><p>⌘S 保存／⌘O 開く／⌘Z 元に戻す／⇧⌘Z やり直し／⌘C コピー／⌘V 貼り付け／⌘A すべて選択／Delete 削除／矢印キー 移動／Escape 操作の取消。</p></section>
-  <section data-help-topic="export" data-help-title="画像・PDFを書き出す"><h3>画像・PDFを書き出す</h3><p>右の「書き出し」からSVG・PNG・PDFを出力します。PNGは倍率と透明・白背景を選べます。SVGとPNGでは選択部分だけを切り出すこともできます。</p><p>PDFは「現在のページ」「すべてのページ」を選び、Chromeの印刷画面からPDFに保存します。固定用紙はその寸法、自由キャンバスは作品を収める寸法です。印刷の倍率・余白・ヘッダーとフッターも確認してください。</p></section>
-  <section data-help-topic="connections" data-help-title="図形を矢印でつなぐ"><h3>図形を矢印でつなぐ</h3><p>「接続矢印」で接続元から接続先へドラッグ、または順にクリックします。空白にも端点を置けます。図形に接続すると、その移動・回転・変形に端点が追従します。Optionを押して端点を置くと接続を解除します。</p><p>直接選択で矢印を選ぶと端点と折れ曲がり点が現れます。点をドラッグして調整し、線のダブルクリックで点を追加。「接続・経路」またはEnterでは、直線・直角、接続する辺・辺の位置、複数点の座標・削除、矢じり・ラベルを指定できます。ラベル横の紫色の点で位置を動かせます。</p><p>通常のアンカー編集や型抜きをするときは「編集」から通常のパスへ変換します。変換後は図形への追従を終了します。</p></section>
-  <section data-help-topic="assets" data-help-title="アイコン・部品・下絵"><h3>アイコン・部品・下絵</h3><p>「挿入」または「…」からアイコン・自作部品を開き、人・鍵・PCなどを配置できます。図形を選び「編集 → 自作部品に登録」で再利用できます。部品集のJSONは別のブラウザへ持ち出せます。</p><p>「下絵・画像を追加」でPNG・JPEG・WebPを読み込みます。最初は薄く表示し、位置を固定します。「画像の設定」で固定・不透明度・出力に含めるかを選べます。下絵は編集用ZIPに保存し、書き出し・印刷・発表からは省きます。</p></section>
-  <section data-help-topic="present" data-help-title="スライドとして発表"><h3>スライドとして発表</h3><p>上部の「発表」で先頭から表示します。「…」から現在のページでも開始できます。←→・PageUp/PageDown・Spaceで前後へ、Home/Endで最初・最後へ、Escapeで編集へ戻ります。画面クリックや左右のスワイプでも進められます。全画面ボタンも利用できます。</p><p>図形を選び「動き」からフェード・ワイプ・色変更・移動を追加します。一覧で順序を変更し、クリック時・前と同時・前の後、時間・遅延を指定できます。最初の「同時」「後」はページを開くと自動再生します。複数図形を選ぶとまとめて動かせます。</p><p>発表中は動きごとに進み、再生中に次へ進めるとその動きを完了します。前へ戻ると、ひとつ前の動きが完了した状態になります。「やり直す」またはRで現在のページをリセットします。Homeは先頭、Endは最終ページの全動作後へ移動します。OSで動きを減らす設定をすると、クリック順序を保ったまま即時に切り替えます。</p><p>「書き出し」または「…」の再生用HTMLには、全ページと再生機能をまとめます。下絵を含めず、ファイル単体で再生できます。再編集用ZIPにも動きを保存します。SVG・PNG・PDFは元の色と配置による静止画です。</p></section>
-  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>イラストスライド illustSlide 0.4.1 BETA（2026年9月）</p><p>パス編集・合体・型抜き、接続矢印、アイコンと自作部品、下絵、複数ページの発表、SVG・PNG・PDFに対応しています。</p><p>推奨環境：macOS＋Google Chrome。教育用ツールです。制作物の寸法や表示は出力後にも確認してください。作品はブラウザ内または利用者が選んだローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの権利と利用条件は各ライセンスに従います。</p><p><a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a> · <a href="../index.html">ウェブアプリ一覧</a></p></section>
-</aside>
-<noscript>イラストスライドを使うにはJavaScriptを有効にしてください。</noscript>
+  <h1>イラストスライド illustSlideへ移動しました</h1>
+  <p><a href="../illustslide/index.html" id="destination">イラストスライド illustSlideを開く</a></p>
+  <section id="old-storage" hidden>
+    <h2>以前の場所で保存した作品</h2>
+    <p>ファイルを直接開いて使っていた場合は、次の内容を保存してから、新しいエディタの「開く → ファイルを開く」で読み込めます。</p>
+    <div id="saved-files"></div>
+  </section>
+  <p id="message" role="status"></p>
 </body>
 </html>

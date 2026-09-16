@@ -1,7 +1,9 @@
-# イラストスライド illustSlideの内部契約（0.4.1）
+# イラストスライド illustSlideの内部契約（0.4.2）
 
-開発担当 Codex。現在は計画④まで実装。既存アプリは変更しない。
+開発担当 Codex。現在は計画④まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
+
+0.4.2から配置先は `tools/illustslide/`、保存名は `.illustslide.zip`。旧URLは案内ページを残し、旧 `.ilapo.zip`・保存キー・内部API・文書形式・SVG識別子は互換性を保つ。直接ファイル利用時のブラウザ保存は、旧ページでJSONとして取り出せる。
 
 文書: `{format:'kaijo-ilapo',version:1|2|3,id,name,pages:[page]}`。version1/2を読み込める。image/connectorで最低version2、非空animationsでversion3へ上げる。上がったversionを下げず、引数は変更しない。
 ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation]}`。

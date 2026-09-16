@@ -1,4 +1,4 @@
-/* Run with the bundled Chrome runtime: node tools/ilapo/tests/export-browser.test.cjs */
+/* Run with the bundled Chrome runtime: node tools/illustslide/tests/export-browser.test.cjs */
 'use strict';
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
@@ -8,7 +8,7 @@ let playwright;
 try { playwright = require('playwright'); } catch { playwright = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')); }
 
 const root = path.resolve(__dirname, '..');
-const artifacts = '/private/tmp/ilapo-export-qa';
+const artifacts = '/private/tmp/illustslide-export-qa';
 
 async function main() {
   await fs.mkdir(artifacts, { recursive: true });

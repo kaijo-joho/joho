@@ -7,7 +7,7 @@ const server=http.createServer(async(req,res)=>{const rel=decodeURIComponent(new
 const near=(a,b)=>assert(Math.abs(a-b)<.06,`${a} ~= ${b}`);
 async function run(){
   const supplied=process.argv.find(s=>/^https?:/.test(s));if(!supplied)await new Promise(r=>server.listen(0,'127.0.0.1',r));
-  const url=supplied||`http://127.0.0.1:${server.address().port}/ilapo/`,browser=await chromium.launch({channel:'chrome',headless:true});
+  const url=supplied||`http://127.0.0.1:${server.address().port}/illustslide/`,browser=await chromium.launch({channel:'chrome',headless:true});
   const context=await browser.newContext({viewport:{width:1280,height:900},acceptDownloads:true}),page=await context.newPage(),errors=[];
   page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.message));
   const read=()=>page.evaluate(()=>IlapoEditor.getDocument());
@@ -44,7 +44,7 @@ async function run(){
     let animated=await read();assert.equal(animated.version,3);assert.equal(animated.pages[0].animations.length,4);
     assert.equal(animated.pages[0].animations[1].color,'#EF4464');
     // Reorder then restore; delete then Undo restores precisely the effect, not artwork.
-    await openList();await page.screenshot({path:'/private/tmp/ilapo-stage4-order.png'});await page.locator('[data-animation-move="3,-1"]').click();assert.equal((await read()).pages[0].animations[2].effect,'wipe');await page.locator('[data-animation-move="2,1"]').click();
+    await openList();await page.screenshot({path:'/private/tmp/illustslide-stage4-order.png'});await page.locator('[data-animation-move="3,-1"]').click();assert.equal((await read()).pages[0].animations[2].effect,'wipe');await page.locator('[data-animation-move="2,1"]').click();
     await page.locator('[data-animation-delete="3"]').click();await close();await page.locator('#canvas').focus();await page.keyboard.press('Meta+z');await page.waitForFunction(()=>IlapoEditor.getDocument().pages[0].animations.length===4);animated=await read();
     await page.evaluate(()=>window.viewer=IlapoPresentation.open(IlapoEditor.getDocument(),{opener:document.getElementById('present-button')}));
     assert.equal(await page.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');assert.equal(await page.locator('[data-animation-object=arrow]').getAttribute('opacity'),'0');
@@ -58,7 +58,7 @@ async function run(){
     const expected=await page.evaluate(()=>{const p=IlapoAnimation.frame(IlapoEditor.getDocument().pages[0],1,800).page;IlapoConnectors.sync(p);return IlapoConnectors.renderedParts(p.objects.find(o=>o.id==='arrow'))[0].d;});assert.equal(moved.line,expected,'the attached arrow follows the moving shape');
     await page.evaluate(()=>viewer.seek(2,250));
     const wipe=await page.evaluate(()=>{const g=document.querySelector('[data-animation-object=arrow]'),clip=document.querySelector(g.getAttribute('clip-path').slice(4,-1)+' rect'),b=IlapoGeometry.visualBounds(IlapoAnimation.frame(IlapoEditor.getDocument().pages[0],2,250).page.objects.find(o=>o.id==='arrow'));return{opacity:g.getAttribute('opacity'),width:Number(clip.getAttribute('width')),b};});
-    assert.equal(wipe.opacity,'1');assert(wipe.width>0);await page.screenshot({path:'/private/tmp/ilapo-stage4-wipe.png'});
+    assert.equal(wipe.opacity,'1');assert(wipe.width>0);await page.screenshot({path:'/private/tmp/illustslide-stage4-wipe.png'});
     await page.evaluate(()=>viewer.previous());let state=await page.evaluate(()=>viewer.getState());assert.equal(state.animation.step,1);assert.equal(state.animation.playing,false);
     await page.evaluate(()=>viewer.reset());assert.equal(await page.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');
     await page.keyboard.press('Space');state=await page.evaluate(()=>viewer.getState());assert.equal(state.animation.step,1);assert.equal(state.animation.playing,true);
@@ -78,10 +78,10 @@ async function run(){
       await page.setViewportSize({width,height:844});await page.locator('[data-menu=more]').click();await page.locator('#command-menu [data-action=view-dialog]').click();await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await page.locator('#dialog-submit').click();
       await openList();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.getElementById('dialog').scrollWidth<=innerWidth));
       await page.locator('[data-animation-edit="1"]').click();assert(await page.evaluate(()=>document.getElementById('dialog').scrollWidth<=innerWidth));
-      await page.screenshot({path:`/private/tmp/ilapo-stage4-editor-${width}.png`});await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');await page.keyboard.press('Escape');
+      await page.screenshot({path:`/private/tmp/illustslide-stage4-editor-${width}.png`});await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');await page.keyboard.press('Escape');
     }
     await page.evaluate(()=>window.viewer=IlapoPresentation.open(IlapoEditor.getDocument()));await page.emulateMedia({reducedMotion:'reduce'});await page.keyboard.press('Space');state=await page.evaluate(()=>viewer.getState());assert.equal(state.animation.step,1);assert.equal(state.animation.playing,false);assert.equal(await page.locator('[data-animation-object=pc]').getAttribute('opacity'),'1');
-    await page.screenshot({path:'/private/tmp/ilapo-stage4-mobile.png'});await page.keyboard.press('Escape');await page.emulateMedia({reducedMotion:'no-preference'});
+    await page.screenshot({path:'/private/tmp/illustslide-stage4-mobile.png'});await page.keyboard.press('Escape');await page.emulateMedia({reducedMotion:'no-preference'});
     // The downloaded artifact loads with all network disabled, excludes guides and escapes text.
     await page.setViewportSize({width:1280,height:900});
     const exportDoc=await page.evaluate(()=>{
@@ -90,12 +90,12 @@ async function run(){
       d.pages[0].objects.push({id:'hidden-guide',type:'image',name:'秘密の下絵',group:null,locked:true,matrix:[1,0,0,1,0,0],style:IlapoCore.clone(IlapoCore.DEFAULT_STYLE),x:0,y:0,width:10,height:10,src:c.toDataURL(),reference:true});return d;
     });
     const html=await page.evaluate(d=>IlapoPlaybackExport.buildHTML(d),exportDoc);assert(!html.includes('秘密の下絵'));assert(!html.includes('hidden-guide'));
-    const output='/private/tmp/ilapo-stage4-offline.html';await fs.writeFile(output,html);
+    const output='/private/tmp/illustslide-stage4-offline.html';await fs.writeFile(output,html);
     const offlineContext=await browser.newContext({viewport:{width:1100,height:800},offline:true}),offline=await offlineContext.newPage(),requests=[];offline.on('request',r=>{if(/^https?:/.test(r.url()))requests.push(r.url());});offline.on('pageerror',e=>errors.push(e.message));
     await offline.goto('file://'+output);await offline.waitForSelector('#ilapo-presentation[open]');assert.equal(await offline.evaluate(()=>window.INJECTED),undefined);
     assert.equal(await offline.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');await offline.keyboard.press('Space');await offline.waitForFunction(()=>!ilapoPlayback.getState().animation.playing);assert.equal((await offline.evaluate(()=>ilapoPlayback.getState())).animation.step,1);
     await offline.keyboard.press('Space');await offline.waitForFunction(()=>!ilapoPlayback.getState().animation.playing);assert.equal((await offline.evaluate(()=>ilapoPlayback.getState())).animation.step,2);
-    await offline.keyboard.press('r');assert.equal(await offline.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');await offline.keyboard.press('Escape');await offline.locator('#restart').click();await offline.waitForSelector('#ilapo-presentation[open]');assert.deepEqual(requests,[]);await offline.screenshot({path:'/private/tmp/ilapo-stage4-offline.png'});await offlineContext.close();
+    await offline.keyboard.press('r');assert.equal(await offline.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');await offline.keyboard.press('Escape');await offline.locator('#restart').click();await offline.waitForSelector('#ilapo-presentation[open]');assert.deepEqual(requests,[]);await offline.screenshot({path:'/private/tmp/illustslide-stage4-offline.png'});await offlineContext.close();
     await page.locator('[data-menu=more]').click();const downloaded=page.waitForEvent('download');await page.locator('#command-menu [data-action=export-playback]').click();const download=await downloaded;assert(download.suggestedFilename().endsWith('.play.html'));
     assert.deepEqual(errors,[]);console.log('stage4-browser.test.cjs: passed');
   }finally{await context.close();await browser.close();server.close();}
