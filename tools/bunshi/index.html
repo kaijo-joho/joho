@@ -235,6 +235,9 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
 .cand span{display:block;font-size:12px;color:var(--muted)}
 #saveStatus{border:0;background:none;cursor:pointer;font-size:12px;padding:0;text-align:left;max-width:40vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #saveStatus.warn{color:var(--danger)}
+.mrow .sbtn{padding:1px 7px;line-height:1.4}
+.mrow .sbtn:disabled{opacity:.4;cursor:default}
+#piWhichLab{font-size:12px;color:var(--muted);min-width:11em}
 </style>
 </head>
 <body>
@@ -280,6 +283,11 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <label class="chk"><input type="checkbox" id="chkLabels">原子の記号を表示</label>
         <label class="chk"><input type="checkbox" id="chkHideH">H を隠す（C に結合した H）</label>
         <label class="chk" title="原子の電気陰性度から部分電荷を求めて色分けする（赤＝負・青＝正）"><input type="checkbox" id="chkCharges">電荷で色分け（赤＝負・青＝正）</label>
+        <div class="mrow" title="見る軌道を選びます。HOMO＝電子が入っているいちばん上の軌道、LUMO＝その 1 つ上の空の軌道">見る軌道
+          <button class="sbtn" id="piPrev" aria-label="1 つ下の軌道へ">◀</button>
+          <span id="piWhichLab"></span>
+          <button class="sbtn" id="piNext" aria-label="1 つ上の軌道へ">▶</button>
+        </div>
         <label class="mrow" title="π 軌道の雲の濃さ（切る高さ）。右にするほど雲が小さく引き締まり、分子が見やすくなる">π 雲の濃さ
           <input type="range" id="piIso" min="0.25" max="0.8" step="0.05">
         </label>
@@ -520,7 +528,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>エネルギー計算<br>（回転障壁）</td><td>二面角（<kbd>T</kbd>）を測ると、上のバーに「エネルギー曲線」が出ます。押すと、右の「エネルギー計算」パネルで、その二面角を少しずつ変えながら分子軌道法（ハートリー・フォック法）でエネルギーを計算し、横軸が角度・縦軸がエネルギー（kJ/mol）の曲線を描きます。いちばん高い形と低い形の差が、回転のしにくさ（回転障壁）の目安です。エタンのねじれ形と重なり形、ブタンのアンチ形とゴーシュ形、ブタジエンの s-トランスなどを調べられます。<br>分子の形は変えずに角度だけを変える簡単な方法（剛体スキャン）なので、実際の値より大きめに出ます。電子の数が偶数（閉殻）の中性分子だけが対象です。原子の数が多い分子や 6-31G では時間がかかります（1 点あたり数秒かかることがあり、途中で「やめる」を押せます）。計算はすべてこのブラウザの中で行われ、外部には送信されません。<br>曲線は「形を変えずに角度だけを変える」方法（剛体スキャン）で求めているため、重なり形の山は実際よりかなり大きく出ます。たとえばブタンの 0°（メチル基どうしが重なる形）は約 60 kJ/mol になりますが、実際は 20〜25 kJ/mol です。実際の分子は、ぶつかったときに結合角を広げて逃がすためです。山と谷の位置・形の比較には使えますが、値そのものは目安として見てください。<br>「やり方」を「各点で最適化」にすると、角度ごとに二面角だけを固定して分子軌道法で形を整えてから計算します（緩和スキャン）。ぶつかったときに結合角が広がる分まで入るので、実際に近い値になります。そのかわり 1 点あたり 30 秒〜数分かかるので、原子の少ない分子と粗い刻み（30°・60°）で使ってください。途中経過は「やめる」で止められます。<br>「この分子の形を最適化する」は、分子をクリックして選んでから押すと、分子軌道法で力がつり合う形（結合長・結合角）にします。水なら O–H 0.99 Å・H–O–H 100° 付近になります（HF/STO-3G での値で、実測の 0.96 Å・104.5° とは差があります）。</td></tr>
         <tr><td>組み立て</td><td>左の「組み立て」で元素（C・N・O・S・F・Cl・Br・I）や官能基（OH・NH₂・CHO・COOH・NO₂・CN・C₆H₅・OCH₃・COCH₃）を選び、H をクリックすると、その H が置き換わります（H は価数に合わせて自動で付きます）。H 以外の原子をクリックすると、その原子の元素が変わります。結合のボタン（単・二重・三重）で結合をクリックすると結合の種類が変わり、消しゴム (<kbd>E</kbd>) で原子をクリックすると、その原子を消してあいた所に H を付けます（分子が切れたときは大きい方だけが残るので、官能基の付け根の原子を消すと官能基ごと消えます）。変更のたびに、結合長・結合角・二重結合の平面・原子の重なりを簡単に整えます（構造最適化ではないので、形はおおよそです）。</td></tr>
         <tr><td>電荷で色分け</td><td>「表示 ▼」の「電荷で色分け」で、原子の電気陰性度から求めた部分電荷で原子を色分けします（<b>赤＝負・青＝正</b>、白に近いほど 0）。水の O は赤く H は青く、C=O では C が青く O が赤くなります。酢酸では、O に結合した H がいちばん青い（正が大きい）ことから、その H が酸として外れることが見て取れます。色だけでなく、<b>具体的な値も原子の下に数字で出ます</b>（例：+0.11、−0.31。書き出す画像にも入ります）。求め方は電気陰性度がつり合うまで結合を通して電荷を少しずつ移す簡便な方法（Gasteiger 法）で、実測ではなく目安です。</td></tr>
-        <tr><td>π 軌道</td><td>上部の「π 軌道」で、二重結合や芳香環の π 電子の軌道（いちばん上の occupied 軌道＝HOMO）を表示します。軌道は<b>半透明の電子雲</b>として描かれ、原子ごとの p 軌道ではなく<b>結合をまたいでつながった形</b>で見えます。<b>金と紫は波の符号</b>です（電荷の色分けの赤・青と混ざらないよう、別の色にしてあります）。分子を回して<b>横から見る</b>と、面の上下に広がる様子がよく分かります。雲の大きさは「表示 ▼」の<b>「π 雲の濃さ」</b>で変えられます（右にするほど小さく引き締まり、分子が見やすくなります）。C=C では左右が同じ大きさ、ベンゼンでは環全体に広がる様子、C=O では O 側が大きくなる様子（C が δ+、O が δ− になる理由）が見られます。ヒュッケル法という π 電子だけを扱う簡単な方法で求めており、高校化学の範囲外の発展的な内容です。</td></tr>
+        <tr><td>π 軌道</td><td>上部の「π 軌道」で、二重結合や芳香環の π 電子の軌道（いちばん上の occupied 軌道＝HOMO）を表示します。軌道は<b>半透明の電子雲</b>として描かれ、原子ごとの p 軌道ではなく<b>結合をまたいでつながった形</b>で見えます。<b>金と紫は波の符号</b>です（電荷の色分けの赤・青と混ざらないよう、別の色にしてあります）。分子を回して<b>横から見る</b>と、面の上下に広がる様子がよく分かります。雲の大きさは「表示 ▼」の<b>「π 雲の濃さ」</b>で変えられます（右にするほど小さく引き締まり、分子が見やすくなります）。<b>見る軌道</b>は「表示 ▼」の「見る軌道」の ◀ ▶ で選べます（<b>HOMO</b>＝電子が入っているいちばん上の軌道、<b>LUMO</b>＝その 1 つ上の空の軌道。ψ1 がいちばん低い軌道です）。C=O の LUMO が C 側に大きいこと、共役が長いほど HOMO と LUMO の間が狭くなること（色がつく理由）などが見られます。ベンゼンのように<b>同じエネルギーの軌道が 2 つある</b>ときは札にその旨を出します。どちらが表示されるかは計算の都合で決まるので、◀ ▶ で両方を見てください。C=C では左右が同じ大きさ、ベンゼンでは環全体に広がる様子、C=O では O 側が大きくなる様子（C が δ+、O が δ− になる理由）が見られます。ヒュッケル法という π 電子だけを扱う簡単な方法で求めており、高校化学の範囲外の発展的な内容です。</td></tr>
         <tr><td>不斉炭素・R/S</td><td>上部の「不斉炭素」で、4 つの異なる原子・原子団が結合した炭素をだいだい色の円で囲みます。「R/S」で R・S を表示します（CIP 順位規則。高校の範囲外の発展的な内容です。原子番号だけで順位を決めるので、まれに判定できないものがあります）。</td></tr>
         <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。回転の中心は不斉炭素（青い十字の印）で、2 つ以上あるときは上に出るプルダウンで選べます。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。<br>分子をクリックして選ぶと、その分子だけを回したり（ドラッグ）、動かしたり（<kbd>Shift</kbd>+ドラッグ）できます。もう一方に近づけたり、鏡を通り越して重ねたりして、重ならないことを確かめられます。「鏡の位置に戻す」で元の鏡像の位置に戻ります。「鏡像に変える」でその分子だけを鏡像にもできます。<br>鏡像体を並べているときに片方の分子を組み立てると（原子や官能基の置き換え・結合の変更・消しゴム）、もう一方も鏡像のまま同じように組み立てられます。</td></tr>
         <tr><td>選択・削除</td><td>分子をクリックで選択（何もないところをクリックで解除）。<kbd>Delete</kbd> で削除。</td></tr>
@@ -535,7 +543,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.18 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.19 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1474,8 +1482,14 @@ function gasteigerCharges(mol){
 const ORB_Z = 1.55;   // 減衰（1/Å）。大きいほど軌道が小さくまとまる
 const CUBE_OFF = [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]];
 const TET_IDX = [[0, 5, 1, 6], [0, 1, 2, 6], [0, 2, 3, 6], [0, 3, 7, 6], [0, 7, 4, 6], [0, 4, 5, 6]];
-function orbitalField(sys, P, step, margin){
-  const ids = sys.atoms, c = sys.C[sys.homo >= 0 ? sys.homo : 0];
+// 見る軌道の番号。which は HOMO を 0 とした相対の指定（＋1 が LUMO、−1 が HOMO の 1 つ下）。
+// 分子の中に π 系が複数あっても、系ごとに「その系の HOMO から数えて」選べるように相対で持つ
+function orbitalIndex(sys, which = 0){
+  const n = sys.C.length, base = sys.homo >= 0 ? sys.homo : 0;
+  return Math.max(0, Math.min(n - 1, base + Math.round(+which || 0)));
+}
+function orbitalField(sys, P, step, margin, which = 0){
+  const ids = sys.atoms, c = sys.C[orbitalIndex(sys, which)];
   const mn = [0, 1, 2].map(k => Math.min(...ids.map(i => P[i][k])) - margin);
   const mx = [0, 1, 2].map(k => Math.max(...ids.map(i => P[i][k])) + margin);
   const cnt = s => [0, 1, 2].reduce((t, q) => t*Math.max(2, Math.ceil((mx[q] - mn[q])/s) + 1), 1);
@@ -1523,8 +1537,8 @@ function marchTets(F, iso, out){
 }
 // 戻り値：{plus, minus}（三角形の頂点を並べた配列。波の符号ごとに分ける）
 // frac：ピークに対する等値の高さ。低すぎると雲が広がりすぎて分子を覆い、計算範囲の縁で切られてしまう
-function orbitalMesh(sys, P, frac = 0.5, step = 0.22){
-  const F = orbitalField(sys, P, step, 2.4);
+function orbitalMesh(sys, P, frac = 0.5, which = 0, step = 0.22){
+  const F = orbitalField(sys, P, step, 2.4, which);
   if (!(F.peak > 0)) return {plus:new Float32Array(0), minus:new Float32Array(0)};
   const iso = F.peak*frac, plus = [], minus = [];
   marchTets(F, iso, plus);
@@ -2067,7 +2081,7 @@ const $ = id => document.getElementById(id);
 // doc = {atoms:{id:原子}, bonds:{id:結合}, objs:{id:鏡など}, meas:[{id, atoms:[id]}], nid}
 function emptyDoc(){ return {atoms:{}, bonds:{}, objs:{}, meas:[], nid:1}; }
 let doc = emptyDoc();
-const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, charges:false, piOrb:false, piIso:0.5, ball:0.28, tool:'rotate', addWhat:'C',   // ball：球の大きさ（既定は下の BALL と同じ値。BALL の定義はここより後ろなので数で書く）
+const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, charges:false, piOrb:false, piIso:0.5, piWhich:0, ball:0.28, tool:'rotate', addWhat:'C',   // ball：球の大きさ（既定は下の BALL と同じ値。BALL の定義はここより後ろなので数で書く）
   world:'mol',   // 'mol' 分子、'xtal' 結晶格子
   xt:{key:'fcc', n:2, cellCut:false, cut:false, h:1, k:1, l:1, t:0.5, flip:false, hex:false, plate:true, pn:null}};   // pn：3 つの原子で決めた面の法線
 const view = {R:M3.id(), s:60, pan:[0, 0], center:[0, 0, 0]};   // s：1 Å あたりの画面の px
@@ -2513,10 +2527,11 @@ function analyze(){
     }
     if (state.piOrb){     // π 軌道（ヒュッケル法）。表示するときだけ計算する
       // 等値面もここで作る（形が変わったときだけ。視点を動かしただけでは作り直さない）
-      pi = huckelSystems(g.mol, g.P).map(s => ({...s, ids:s.atoms.map(i => ids[i]), mesh:orbitalMesh(s, g.P, state.piIso)}));
+      pi = huckelSystems(g.mol, g.P).map(s => ({...s, ids:s.atoms.map(i => ids[i]), mesh:orbitalMesh(s, g.P, state.piIso, state.piWhich)}));
     }
   }
   info = {comps, stereo, charges, pi};
+  syncPiWhich();   // 分子が変わると軌道の数も HOMO の番号も変わるので、札を出し直す
 }
 // 部分電荷の色：負は赤、正は青、0 に近いほど白（±0.4 でいちばん濃い）
 function chargeColor(id){
@@ -3364,6 +3379,28 @@ $('tgRS').onclick = () => { state.showRS = !state.showRS; syncToggles(); renderI
 $('tgPi').onclick = () => { state.piOrb = !state.piOrb; syncToggles(); changed(); };
 $('chkCharges').onchange = e => { state.charges = e.target.checked; changed(); };
 $('piIso').oninput = e => { state.piIso = +e.target.value; if (state.piOrb) changed(); };   // π 軌道を出していないときは作り直さない
+// 見る軌道（HOMO を 0 とした相対の指定）。◀ ▶ で送る
+// ※ select は使わない：候補にない値を入れると値が '' になり、数として扱うと壊れる（0.13 で画面が固まった）
+const piSys = () => info.pi && info.pi.length ? info.pi[0] : null;   // 複数の π 系があるときは最初の系で札を出す
+function syncPiWhich(){
+  const lab = $('piWhichLab'); if (!lab) return;
+  const s = piSys();
+  if (!s){ lab.textContent = 'π 軌道を表示すると選べます'; $('piPrev').disabled = $('piNext').disabled = true; return; }
+  const n = s.C.length, k = orbitalIndex(s, state.piWhich), base = s.homo >= 0 ? s.homo : 0, d = k - base;
+  const name = d === 0 ? 'HOMO' : d === 1 ? 'LUMO' : d < 0 ? `HOMO−${-d}` : `LUMO+${d - 1}`;
+  // 縮退：同じエネルギーの軌道がとなりにあるとき。どちらが出るかは計算の都合で決まるので、その旨を添える
+  const deg = [k - 1, k + 1].some(j => j >= 0 && j < n && Math.abs(s.x[j] - s.x[k]) < 1e-3);
+  lab.textContent = `${name}（ψ${k + 1}/${n}）` + (deg ? '・同じエネルギーがもう 1 つ' : '');
+  $('piPrev').disabled = k <= 0; $('piNext').disabled = k >= n - 1;
+}
+function stepPi(d){
+  const s = piSys(); if (!s) return;
+  const n = s.C.length, base = s.homo >= 0 ? s.homo : 0;
+  state.piWhich = Math.max(0, Math.min(n - 1, orbitalIndex(s, state.piWhich) + d)) - base;
+  changed();
+}
+$('piPrev').onclick = () => stepPi(-1);
+$('piNext').onclick = () => stepPi(1);
 $('ballSize').oninput = e => { state.ball = +e.target.value; requestDraw(true); autosave(); };
 $('tgAxes').onclick = () => { state.axes = !state.axes; $('expAxes').checked = state.axes; syncToggles(); requestDraw(true); autosave(); };
 $('chkLabels').onchange = e => { state.labels = e.target.checked; requestDraw(); autosave(); };
@@ -3754,11 +3791,12 @@ function applyViewState(v){   // 壊れた値で画面が消えないよう、�
   if (fin(v.center, 3)) view.center = [...v.center];
 }
 const UI_FLAGS = ['labels', 'hideH', 'showStereo', 'showRS', 'axes', 'charges', 'piOrb'];
-function uiState(){ const s = {mode:state.mode, bg:state.bg, world:state.world, piIso:state.piIso, ball:state.ball, xt:{...state.xt}}; for (const k of UI_FLAGS) s[k] = state[k]; return s; }
+function uiState(){ const s = {mode:state.mode, bg:state.bg, world:state.world, piIso:state.piIso, piWhich:state.piWhich, ball:state.ball, xt:{...state.xt}}; for (const k of UI_FLAGS) s[k] = state[k]; return s; }
 function applyUIState(s){
   if (!s) return;
   if (s.world === 'mol' || s.world === 'xtal') state.world = s.world;
   if (isFinite(s.piIso) && +s.piIso >= 0.2 && +s.piIso <= 0.9) state.piIso = +s.piIso;   // π 雲の濃さ（数なので UI_FLAGS ではなく個別に）
+  if (isFinite(s.piWhich) && Math.abs(+s.piWhich) <= 20) state.piWhich = Math.round(+s.piWhich);   // 見る軌道（HOMO を 0 とした相対）
   if (isFinite(s.ball) && +s.ball >= 0.15 && +s.ball <= 0.5) state.ball = +s.ball;       // 球の大きさ
   if (s.xt && typeof s.xt === 'object'){
     const t = s.xt, X = state.xt;
