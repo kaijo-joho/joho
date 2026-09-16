@@ -17,3 +17,16 @@ dialog{padding:0;border:1px solid var(--line);border-radius:14px;box-shadow:var(
 
 /* Animation editing stays in the shared popup and follows the selected theme. */
 .animation-list{display:grid;gap:8px}.animation-row{border:1px solid var(--line);border-radius:9px;padding:6px;min-width:0}.animation-row.selected{border-color:var(--accent);background:var(--accent-soft)}.animation-title{display:flex;align-items:flex-start;flex-direction:column;width:100%;text-align:left;white-space:normal;min-width:0;border:0;background:transparent;gap:3px}.animation-title span,.animation-title small,.animation-targets{overflow-wrap:anywhere}.animation-title small{color:var(--muted)}.animation-row-actions{display:flex;justify-content:flex-end;gap:6px}.animation-row-actions button{min-width:44px;min-height:44px}#animation-colors{display:grid;gap:10px}#animation-colors .row>*{min-width:0;flex:1}#animation-preview,#animation-try{min-height:44px}
+
+/* 選択時はアイコンで操作をまとめ、残りは「その他」から開く。 */
+#stage{container-type:inline-size}
+.selection-bar{flex-wrap:nowrap;gap:3px;padding:5px}
+.selection-bar button{width:36px;min-width:36px;padding:5px;flex:none}
+#selection-more{display:none}
+#command-menu button span{white-space:normal;text-align:left;min-width:0}
+#command-menu button svg{width:19px;height:19px;flex:none}
+.inspector-target{font-size:.85em;color:var(--muted);overflow-wrap:anywhere;margin:8px 0 14px}
+@container(max-width:520px){.selection-bar .selection-extra{display:none}#selection-more{display:inline-flex}.selection-bar>span{display:none}}
+@container(max-width:330px){.selection-bar [data-action=transform]{display:none}}
+@media(max-width:850px){.selection-bar .selection-extra{display:none}#selection-more{display:inline-flex}}
+@media(max-width:560px),(pointer:coarse){.selection-bar{gap:2px;padding:4px}.selection-bar button{width:44px;min-width:44px;min-height:44px}}

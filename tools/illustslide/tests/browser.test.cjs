@@ -30,6 +30,8 @@ async function menu(page, selector, label) {
   await page.locator('#command-menu').getByRole('button', { name: label, exact: true }).click();
 }
 async function dialogSubmit(page) { await page.locator('#dialog-submit').click(); await page.waitForFunction(() => !document.getElementById('dialog').open); }
+async function inspectorSubmit(page) { await page.locator('#inspector-submit').click(); await page.waitForFunction(() => { const panel = document.getElementById('inspector-panel'); return panel && !panel.hidden && !document.getElementById('dialog').open; }); }
+async function inspectorClose(page) { await page.locator('#inspector-close').click(); await page.waitForFunction(() => document.getElementById('inspector-panel').hidden); }
 async function documentOf(page) { return page.evaluate(() => window.IlapoEditor.getDocument()); }
 async function addShape(page, kind, x, y, drag) {
   await page.locator(`[data-tool="${kind}"]`).click();
@@ -85,8 +87,9 @@ async function run() {
     await selectObject(page, text.id); await page.locator('[data-menu="edit"]').click(); await page.locator('#command-menu').getByRole('button', { name: '文字を編集…', exact: true }).click(); assert.equal(await page.locator('#text-input').inputValue(), '日本語\nH2O'); await dialogSubmit(page);
 
     await selectObject(page, rectId); await page.locator('[data-action="style"]').click();
+    assert(await page.locator('#inspector-panel').isVisible(), 'style settings use the non-modal inspector'); assert(await page.locator('#canvas').isVisible(), 'canvas remains visible while style settings are open');
     for (const [id, value] of [['color-R', '17'], ['color-G', '34'], ['color-B', '51']]) { await page.locator('#' + id).fill(value); await page.locator('#' + id).dispatchEvent('input'); }
-    await dialogSubmit(page); doc = await documentOf(page); assert.equal(doc.pages[0].objects.find(object => object.id === rectId).style.fill, '#112233', 'RGB palette controls use the selected color');
+    await inspectorSubmit(page); doc = await documentOf(page); assert.equal(doc.pages[0].objects.find(object => object.id === rectId).style.fill, '#112233', 'RGB palette controls use the selected color'); await inspectorClose(page);
     await page.locator('[data-menu="edit"]').click(); await page.locator('#command-menu').getByRole('button', { name: '書式をコピー', exact: true }).click();
     await addShape(page, 'ellipse', 700, 330, [80, 55]); doc = await documentOf(page); const ellipse = doc.pages[0].objects.at(-1);
     await selectObject(page, ellipse.id); await page.locator('[data-menu="edit"]').click(); await page.locator('#command-menu').getByRole('button', { name: '書式を適用', exact: true }).click();
@@ -102,8 +105,8 @@ async function run() {
     await page.locator('[data-page-move="2,-1"]').click(); assert.equal((await documentOf(page)).pages.length, 3, 'pages can be reordered');
     await page.locator('#dialog-cancel').click();
 
-    await page.locator('[data-action="artboard"]').click(); await page.locator('#board-preset').selectOption('18'); await dialogSubmit(page); doc = await documentOf(page); let currentId = await page.evaluate(() => IlapoEditor.getState().pageId); let current = doc.pages.find(p => p.id === currentId); assert.equal(current.board.width, 18);
-    await page.locator('[data-action="artboard"]').click(); await page.locator('#board-preset').selectOption('a4'); await dialogSubmit(page); doc = await documentOf(page); currentId = await page.evaluate(() => IlapoEditor.getState().pageId); current = doc.pages.find(p => p.id === currentId); assert(Math.abs(current.board.width - 210 * 96 / 25.4) < 1e-6, 'A4 preset uses CSS-pixel width');
+    await page.locator('[data-action="artboard"]').click(); await page.locator('#board-preset').selectOption('18'); await inspectorSubmit(page); doc = await documentOf(page); let currentId = await page.evaluate(() => IlapoEditor.getState().pageId); let current = doc.pages.find(p => p.id === currentId); assert.equal(current.board.width, 18); await inspectorClose(page);
+    await page.locator('[data-action="artboard"]').click(); await page.locator('#board-preset').selectOption('a4'); await inspectorSubmit(page); doc = await documentOf(page); currentId = await page.evaluate(() => IlapoEditor.getState().pageId); current = doc.pages.find(p => p.id === currentId); assert(Math.abs(current.board.width - 210 * 96 / 25.4) < 1e-6, 'A4 preset uses CSS-pixel width'); await inspectorClose(page);
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-pick="0"]').click();
 
     await menu(page, '[data-menu="save"]', 'ブラウザに保存');
@@ -121,7 +124,7 @@ async function run() {
     if (await page.locator('#replace-discard').isVisible()) await page.locator('#replace-discard').click();
     await page.waitForFunction(() => IlapoEditor.getDocument().pages.length >= 3);
 
-    for (const width of [1280, 736, 390]) { await page.setViewportSize({ width, height: 736 }); if (width > 800) await page.locator('[data-menu="view"]').click(); else await page.locator('[data-menu="more"]').click(); await page.locator('#command-menu').getByRole('button', { name: '表示設定…', exact: true }).click(); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await dialogSubmit(page); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `${width}px has no document horizontal overflow`); }
+    for (const width of [1280, 736, 390]) { await page.setViewportSize({ width, height: 736 }); if (width > 800) await page.locator('[data-menu="view"]').click(); else await page.locator('[data-menu="more"]').click(); await page.locator('#command-menu').getByRole('button', { name: '表示設定…', exact: true }).click(); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await inspectorSubmit(page); assert(await page.locator('#inspector-panel').isVisible(), `${width}px keeps the view inspector available`); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `${width}px has no document horizontal overflow`); await inspectorClose(page); }
     await page.screenshot({ path: path.join(artifacts, 'illustslide-dark-mobile.png'), fullPage: true });
     await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.waitForFunction(() => !document.getElementById('operation-help').hidden); await page.keyboard.press('Escape'); assert.equal(await page.locator('#help-button').evaluate(el => document.activeElement === el), true, 'Escape returns focus to help opener');
     await page.setViewportSize({ width: 390, height: 736 }); await page.locator('#canvas').focus(); await page.keyboard.press('Tab');

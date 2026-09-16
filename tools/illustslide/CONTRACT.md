@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.2）
+# イラストスライド illustSlideの内部契約（0.4.3）
 
 開発担当 Codex。現在は計画④まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -46,6 +46,18 @@ Paper.jsは同梱版を使用し、geometryは小さな独立scopeで図形計�
 `anchors(object)` -> パスの区間ごとの配列（検証用）。`moveAnchor(object,pathIndex,anchorIndex,dx,dy)` ->新object。
 
 UIはeditor.jsとeditor.css/index.html。DOMの作品表示はSVG、選択枠等は別SVGグループ。保存前のプレビューはHistoryを変更しない。
+
+## IlapoInspector（inspector.js / inspector.css）
+
+`create({onLayout,clearPreview,isBusy})` は `show(request)`、`close({focus?:boolean})`、`reset()`、`sync()` と読み取り専用の `section`・`isOpen`・`root` を返す。
+requestは `{section,title,html,label,apply,preview?,scope,refresh,opener}`。labelがnullなら適用・取消フッターを表示しない。htmlはeditor側でエスケープしたフォーム断片だけを渡す。
+
+- showModal・暗幕・inert・Tabの閉じ込めを使わない。通常は右側、850px以下は下部へ配置し、キャンバスと別の領域を確保する。書き出しとは排他的、共通ヘルプとは独立して開く。
+- scopeは文書ID・ページID・選択ID・編集リビジョンを含み、アンカー座標では選択点、表示設定では設定値も含む。syncと適用直前に比較し、古い対象への入力を別の対象へ適用しない。ドラッグ中の更新は終了まで待ち、閉じた後の非同期再構築で再度開かない。
+- 色・変形・接続・画像のpreviewは検証済みの文書複製から表示用ページを作り、editorのinspectorPreviewだけを更新する。History・文書本体・保存・dirtyを変更しない。不正入力では前回のプレビューも取り消す。適用時だけ通常のchangePageで1履歴にまとめる。
+- 適用・取消・対象切替ではフォームを現在の値から作り直す。変形の基準座標や回転・反転の入力を持ち越さない。再構築後は可能な範囲で入力フォーカス・本文スクロール・detailsの開閉を保つ。閉じたパネルの本文は空にし、重複IDを残さない。
+- 幅は `kaijo-ilapo:inspector` にCSS pxの数値文字列で保存し、作品データや既存設定形式と分ける。既定320px、220〜520pxかつキャンバス幅を確保できる範囲。モバイル表示だけを理由に保存幅を縮めない。
+- パネル内のキーをキャンバス操作へ伝えない。Escapeはリサイズ取消を先に扱い、通常はパネルを閉じる。閉じたらパネル外の起点へ戻し、「キャンバスへ戻る」は開いたまま編集面へフォーカスを移す。
 
 ## 接続矢印・画像・部品・発表
 
@@ -115,5 +127,5 @@ getStateはstep/steps/playing/time/duration。next/previousは群を操作でき
 RAFを所有し、close/reset/seekで取り消す。reduced-motionは群を即完了する。frameの複製だけをK.syncして移動中の接続を描き直す。下絵・編集枠・ハンドルを表示しない。
 
 Presentationの返却APIにreset/seekを追加し、getState.animationにPlayer状態を入れる。群の前後が尽きたらページを切り替える。前ページは全効果後、次ページは初期状態。Homeは先頭の初期状態、Endは最終の全効果後。
-IlapoAnimationUI.create(ctx)のlist/edit(id?)は共通dialogを利用する。プレビューは未確定pageだけの検証済み複製をPresentationへ渡す。
+IlapoAnimationUI.create(ctx)のlist/edit(id?)は設定パネルのanimationセクションを利用する。プレビューは未確定pageだけの検証済み複製をPresentationへ渡す。
 IlapoPlaybackExport.buildHTML(doc)はPromise<string>。アプリと同じ配信元の固定されたruntimeファイルだけを読み込み、JSONのHTML終了タグとUnicode行区切りをエスケープして埋め込む。下絵を除いた文書・埋め込み画像・CSS・Paper.jsのライセンスを同梱し、生成HTMLは外部通信を必要としない。

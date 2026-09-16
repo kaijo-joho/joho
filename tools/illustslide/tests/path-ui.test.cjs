@@ -32,6 +32,8 @@ async function run() {
   const screen = point => page.evaluate(p => { const c = IlapoEditor.getCamera(), r = document.getElementById('canvas').getBoundingClientRect(); return { x: r.left + (p.x - c.x) / c.width * r.width, y: r.top + (p.y - c.y) / c.height * r.height }; }, point);
   const clickPoint = async (p, shift = false) => { const q = await screen(p); if (shift) await page.keyboard.down('Shift'); await page.mouse.click(q.x, q.y); if (shift) await page.keyboard.up('Shift'); await sleep(35); };
   const submit = async () => { await page.locator('#dialog-submit').click(); await page.waitForFunction(() => !document.getElementById('dialog').open); };
+  const inspectorSubmit = async () => { await page.locator('#inspector-submit').click(); await page.waitForFunction(() => { const panel = document.getElementById('inspector-panel'); return panel && !panel.hidden && !document.getElementById('dialog').open; }); };
+  const inspectorClose = async () => { await page.locator('#inspector-close').click(); await page.waitForFunction(() => document.getElementById('inspector-panel').hidden); await sleep(50); };
   const menu = async action => { await page.locator('#path-menu-button').click(); await page.locator(`#command-menu [data-action="${action}"]`).click(); await sleep(40); };
   const pick = async id => { await page.locator('[data-action="objects"]').first().click(); await page.locator(`[data-pick-object="${id}"]`).click(); await sleep(35); };
   async function load(objects) {
@@ -85,7 +87,7 @@ async function run() {
     const fromHandle = await screen({ x: origin.x + handle.x, y: origin.y + handle.y }), toHandle = await screen({ x: origin.x + 35, y: origin.y - 30 });
     await page.keyboard.down('Alt'); await page.mouse.move(fromHandle.x, fromHandle.y); await page.mouse.down(); await page.mouse.move(toHandle.x, toHandle.y, { steps: 4 }); await page.mouse.up(); await page.keyboard.up('Alt'); await sleep(40);
     points = (await info('shape'))[0].segments; near(points[1].handleIn.x, oldIn.x); near(points[1].handleIn.y, oldIn.y); near(points[1].handleOut.y, -30);
-    await menu('anchor-position'); await page.locator('#anchor-x').fill('230.25'); await page.locator('#anchor-y').fill('160.75'); await submit();
+    await menu('anchor-position'); assert(await page.locator('#inspector-panel').isVisible(), 'anchor coordinates use the non-modal inspector'); assert(await page.locator('#canvas').isVisible(), 'canvas remains visible while anchor coordinates are open'); await page.locator('#anchor-x').fill('230.25'); await page.locator('#anchor-y').fill('160.75'); await inspectorSubmit(); await inspectorClose();
     points = (await info('shape'))[0].segments; near(points[1].point.x, 230.25); near(points[1].point.y, 160.75);
 
     // Water drop: a kite, only the three lower corners rounded.
@@ -119,10 +121,10 @@ async function run() {
     await moveNode('source', 1, { x: 301.5, y: 218.25 }, { alt: true }); points = (await info('source'))[0].segments; near(points[1].point.x, 301.5);
 
     await page.locator('[data-menu="view"]').click(); await page.locator('#command-menu [data-action="view-dialog"]').click();
-    await page.locator('#view-anchor').uncheck(); await page.locator('#view-path').uncheck(); await page.locator('#view-snap').check(); await page.locator('#view-step').fill('20'); await submit();
+    assert(await page.locator('#inspector-panel').isVisible(), 'view settings use the non-modal inspector'); await page.locator('#view-anchor').uncheck(); await page.locator('#view-path').uncheck(); await page.locator('#view-snap').check(); await page.locator('#view-step').fill('20'); await inspectorSubmit(); await inspectorClose();
     await moveNode('source', 1, { x: 305.3, y: 227.8 }); points = (await info('source'))[0].segments; near(points[1].point.x, 300); near(points[1].point.y, 220);
     await page.locator('[data-menu="view"]').click(); await page.locator('#command-menu [data-action="view-dialog"]').click();
-    await page.locator('#view-snap').uncheck(); await page.locator('#view-pixel').check(); await submit();
+    await page.locator('#view-snap').uncheck(); await page.locator('#view-pixel').check(); await inspectorSubmit(); await inspectorClose();
     await moveNode('source', 1, { x: 307.3, y: 225.8 }); points = (await info('source'))[0].segments; near(points[1].point.x, 307); near(points[1].point.y, 226);
 
     // Escape closes only the popover, retaining selection; dialog focus returns to its visible opener.
@@ -137,8 +139,8 @@ async function run() {
     const png = await pngEvent; assert.match(png.suggestedFilename(), /\.png$/);
     await page.locator('.side-tab [data-action="export-toggle"]').click();
     await page.screenshot({ path: '/private/tmp/illustslide-path-desktop.png' });
-    await page.setViewportSize({ width: 390, height: 736 }); await page.locator('[data-menu="more"]').click(); await page.locator('#command-menu [data-action="view-dialog"]').click(); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await submit();
-    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
+    await page.setViewportSize({ width: 390, height: 736 }); await page.locator('[data-menu="more"]').click(); await page.locator('#command-menu [data-action="view-dialog"]').click(); assert(await page.locator('#inspector-panel').isVisible()); assert(await page.locator('#canvas').isVisible()); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await inspectorSubmit();
+    assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); assert(await page.evaluate(() => document.getElementById('inspector-panel').scrollWidth <= innerWidth)); await inspectorClose();
     await menu('anchor-list'); await page.screenshot({ path: '/private/tmp/illustslide-path-mobile.png' });
     await page.keyboard.press('Escape'); assert.equal(await page.locator('#dialog').evaluate(el => el.open), false);
     const touchContext = await browser.newContext({ viewport: { width: 390, height: 736 }, hasTouch: true, isMobile: true });

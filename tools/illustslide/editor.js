@@ -9,15 +9,27 @@
   };
   const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${icons[name] || icons.rect}"/></svg>`;
   Object.assign(icons,{diamond:'m12 2 10 10-10 10L2 12z',parallelogram:'M7 5h15l-5 14H2z',arrow:'M2 9h12V3l8 9-8 9v-6H2z',callout:'M2 3h20v14H11l-5 5v-5H2z',connector:'M3 4h8v16h10m-5-5 5 5-5 3'});
+  Object.assign(icons,{
+    style:'M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 0-4h-1a2 2 0 0 1 0-4h5a4 4 0 0 0 4-4c0-3-4-6-9-6zM7 9h.01M11 6h.01M16 7h.01M5 13h.01',
+    transform:'M3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM17 17h4v4h-4zM7 5h10M5 7v10M19 7v10M7 19h10m-8-3 8-8m-5 0h5v5',
+    path:'M3 17C7 17 7 7 13 7s6 4 8 4M1 15h4v4H1zM11 5h4v4h-4zM13 7l5-4m-1-1h2v2h-2z',
+    edit:'m4 16 12-12 4 4L8 20l-5 1zM14 6l4 4',image:'M3 3h18v18H3zM3 16l5-6 4 5 3-3 6 7M15 7h.01',
+    arrange:'M4 2v20M8 5h12v5H8zM8 14h8v5H8z',animation:'m10 6 9 6-9 6zM3 7h3M1 12h5M3 17h3',
+    copy:'M8 8h13v13H8zM4 16H3V3h13v1',duplicate:'M8 8h13v13H8zM4 16H3V3h13v1M11 14h7M14.5 11v7',
+    paste:'M8 4H4v17h16V4h-4M8 2h8v5H8zM8 11h8M8 15h6',delete:'M3 6h18M9 6V3h6v3M6 6l1 15h10l1-15M10 10v7M14 10v7',
+    group:'M2 2h20v20H2zM6 6h8v8H6zM10 10h8v8h-8z',ungroup:'M2 8V2h6M16 2h6v6M22 16v6h-6M8 22H2v-6M6 6h8v8H6zM10 10h8v8h-8z',
+    lock:'M7 10V7a5 5 0 0 1 10 0v3M5 10h14v12H5zM12 14v4',brush:'m14 3 7 7-8 8-7-7zM8 13l-3 3M3 16h5v5H3z',
+    canvas:'M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5m7-5 7 4-4 1-1 4z'
+  });
   const names = {rect:'長方形',roundrect:'角丸',ellipse:'楕円',triangle:'三角形',pentagon:'五角形',diamond:'菱形',parallelogram:'平行四辺形',arrow:'太い矢印',callout:'吹き出し',line:'線',connector:'接続矢印',text:'文字',direct:'直接選択',select:'全体を選択',pan:'移動'};
   document.querySelectorAll('[data-icon]').forEach(el => el.insertAdjacentHTML('afterbegin',icon(el.dataset.icon)));
   $('shape-tools').innerHTML = Object.keys(names).filter(k=>!['direct','select','pan'].includes(k)).map(k=>`<button data-tool="${k}" aria-label="${names[k]}を追加" data-tip="${names[k]}を追加">${icon(k)}<span>${names[k]}</span></button>`).join('');
-  if (!C || !S || !G || !E || !K || !A || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoAnimationUI || !window.IlapoPlaybackExport) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
+  if (!C || !S || !G || !E || !K || !A || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
   const initial=C.createDocument(); initial.name='無題の作品'; initial.pages[0].board=C.boardPreset('16:9');
   const history=new C.History(initial);
   let pageId=initial.pages[0].id, selected=[], tool='direct', drag=null, preview=null, clipboard=null, copiedStyle=null;
   let camera={x:0,y:0,width:1280,height:720}, saveTimer, saveFingerprint=JSON.stringify(initial), edited=false, store, localAuto, help, space=false, renderPending=false, writeInProgress=false;
-  let pathUI,connectionUI,animationUI,library;
+  let pathUI,connectionUI,animationUI,library,inspector,inspectorPreview=null,revision=0;
   let settings={theme:'auto',size:'standard',grid:true,snap:false,gridStep:20,snapPixel:false,snapAnchor:true,snapPath:true};
   try { Object.assign(settings,JSON.parse(localStorage.getItem('kaijo-ilapo:settings')||'{}')); } catch (_) {}
   if(!['auto','light','dark'].includes(settings.theme))settings.theme='auto';
@@ -27,7 +39,7 @@
   try { library=A.createLibrary(localStorage); } catch (_) { library=null; }
   const doc=()=>history.document;
   const page=()=>doc().pages.find(p=>p.id===pageId)||doc().pages[0];
-  const drawPage=()=>preview||page();
+  const drawPage=()=>preview||inspectorPreview||page();
   const snapshot=()=>JSON.stringify(doc());
   const dirty=()=>edited&&snapshot()!==saveFingerprint;
   function toast(message) { $('toast').textContent=message; $('toast').hidden=false; clearTimeout(toast.timer); toast.timer=setTimeout(()=>$('toast').hidden=true,6000); }
@@ -63,7 +75,7 @@
   function editable() { if(!selected.length)return false; if(!allUnlocked()){toast('固定された図形を含むため、先に固定を解除してください。');return false;} return true; }
   function change(fn) {
     const before=snapshot();
-    try { history.change(d=>{fn(d);d.pages.forEach(p=>K.sync(p));}); pageId=page().id; selected=selected.filter(id=>page().objects.some(o=>o.id===id)); if(before!==snapshot()){edited=true;queueSave();} render(); return before!==snapshot(); }
+    try { history.change(d=>{fn(d);d.pages.forEach(p=>K.sync(p));}); pageId=page().id; selected=selected.filter(id=>page().objects.some(o=>o.id===id)); if(before!==snapshot()){revision++;edited=true;queueSave();} render(); return before!==snapshot(); }
     catch(error){toast(errorMessage(error));render();return false;}
   }
   const changePage=fn=>change(d=>fn(d.pages.find(p=>p.id===pageId)));
@@ -83,6 +95,7 @@
     if(renderPending)return; renderPending=true;requestAnimationFrame(()=>{renderPending=false;renderNow();});
   }
   function renderNow() {
+    inspector?.sync();
     if(preview)K.sync(preview);
     const p=drawPage(); $('canvas').setAttribute('viewBox',`${camera.x} ${camera.y} ${camera.width} ${camera.height}`);
     $('canvas').dataset.tool=tool==='pan'||space?'pan':['select','direct'].includes(tool)?'select':'draw';
@@ -97,6 +110,10 @@
     $('path-menu-button').hidden=!p.objects.some(o=>selected.includes(o.id)&&o.type==='path'); $('document-title').textContent=doc().name; document.title=doc().name+' — イラストスライド illustSlide';
     $('connection-options').hidden=selected.length!==1||!p.objects.some(o=>o.id===selected[0]&&o.type==='connector');
     $('image-options').hidden=selected.length!==1||!p.objects.some(o=>o.id===selected[0]&&o.type==='image');
+    $('style-button').hidden=!$('image-options').hidden;
+    $('selection-bar').querySelector('[data-menu=arrange]').hidden=selected.length<2;
+    for(const action of ['style','transform'])$('selection-bar').querySelector('[data-action='+action+']').disabled=!allUnlocked();
+    renderInspectorTabs();
     $('page-status').textContent=`${doc().pages.indexOf(page())+1} / ${doc().pages.length} · ${page().name}`;
     $('zoom-value').textContent=(zoom()*100<10?(zoom()*100).toFixed(1):Math.round(zoom()*100))+'%';
     document.querySelectorAll('[data-action=undo]').forEach(b=>b.disabled=!history.canUndo);document.querySelectorAll('[data-action=redo]').forEach(b=>b.disabled=!history.canRedo);
@@ -132,6 +149,7 @@
     return o;
   }
   $('canvas').addEventListener('pointerdown',event=>{
+    if(inspectorPreview)inspector.reset();
     if(event.button!==0&&event.button!==1)return;if(drag)return;hideMenu();$('canvas').focus();
     const p=world(event),point=snap(p,event),base=C.clone(page()),originalSelection=selected.slice();
     const handle=event.target.closest('[data-handle]')?.dataset.handle,hit=event.target.closest('[data-object]')?.dataset.object;
@@ -183,7 +201,8 @@
 
   let menuOpener;
   function hideMenu(){if($('command-menu').matches(':popover-open'))$('command-menu').hidePopover();if(menuOpener)menuOpener.setAttribute('aria-expanded','false');}
-  function menuButton(label,action,disabled=false){return `<button data-action="${action}" ${disabled?'disabled':''}>${label}</button>`;}
+  const actionIcons={copy:'copy',paste:'paste',duplicate:'duplicate',delete:'delete',group:'group',ungroup:'ungroup',lock:'lock','style-copy':'brush','style-paste':'paste','text-edit':'text','component-save':'group','connection-between':'connector','connection-convert':'path','selection-arrange':'arrange','selection-order':'layers',animations:'animation'};
+  function menuButton(label,action,disabled=false){const name=actionIcons[action]||(action.startsWith('align-')?'arrange':action.startsWith('order-')?'layers':null);return `<button data-action="${action}" ${disabled?'disabled':''}>${name?icon(name):''}<span>${label}</span></button>`;}
   function openMenu(kind,opener){
     const was=$('command-menu').matches(':popover-open')&&menuOpener===opener;hideMenu();if(was)return;menuOpener=opener;
     const selectedNone=!selected.length;
@@ -194,6 +213,7 @@
       view:()=>menuButton('全体を表示','fit')+menuButton('100%で表示','zoom-reset')+menuButton('用紙サイズ…','artboard')+menuButton('図形の一覧…','objects')+menuButton('表示設定…','view-dialog'),
       insert:()=>menuButton('アイコン・自作部品…','assets')+menuButton('下絵・画像を追加…','import-image')+menuButton('接続矢印を描く','connection-tool')+menuButton('選択した2図形を接続','connection-between',selected.length!==2),
       path:()=>pathUI.menu(menuButton),
+      'selection-more':()=>menuButton('位置・大きさ・回転…','transform')+'<hr>'+menuButton('整列・大きさをそろえる','selection-arrange',selected.length<2)+menuButton('重なり順','selection-order')+menuButton('動きと再生順序…','animations')+'<hr>'+menuButton('複製','duplicate')+menuButton('削除','delete'),
       edit:()=>menuButton('文字を編集…','text-edit',selected.length!==1||page().objects.find(o=>o.id===selected[0])?.type!=='text')+menuButton('コピー','copy',selectedNone)+menuButton('貼り付け','paste',!clipboard)+menuButton('複製','duplicate',selectedNone)+menuButton('削除','delete',selectedNone)+'<hr>'+menuButton('グループ化','group',selected.length<2)+menuButton('グループ解除','ungroup',selectedNone)+menuButton('固定／固定解除','lock',selectedNone)+'<hr>'+menuButton('書式をコピー','style-copy',selectedNone)+menuButton('書式を適用','style-paste',selectedNone||!copiedStyle),
       arrange:()=>['left:左にそろえる','center:左右中央にそろえる','right:右にそろえる','top:上にそろえる','middle:上下中央にそろえる','bottom:下にそろえる','distribute-x:左右に等間隔','distribute-y:上下に等間隔','width:幅をそろえる','height:高さをそろえる','size:幅と高さをそろえる'].map(s=>{const [key,label]=s.split(':');return menuButton(label,'align-'+key,selected.length<2);}).join(''),
       order:()=>menuButton('最前面へ','order-front')+menuButton('1つ前へ','order-forward')+menuButton('1つ後ろへ','order-backward')+menuButton('最背面へ','order-back')
@@ -207,17 +227,52 @@
   $('command-menu').addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();hideMenu();menuOpener?.focus();}});
   let dialogOpener,dialogCallback;
   function closeDialog(){if($('dialog').open)$('dialog').close();if(dialogOpener?.isConnected)dialogOpener.focus();else $('canvas').focus();}
-  function showDialog(title,html,label,callback){const focused=document.activeElement,opener=$('dialog').contains(focused)?dialogOpener:$('command-menu').contains(focused)?menuOpener:focused;hideMenu();if($('dialog').open)$('dialog').close();dialogOpener=opener;$('dialog-title').textContent=title;$('dialog-body').innerHTML=html;$('dialog-error').hidden=true;$('dialog-submit').textContent=label||'適用';$('dialog-submit').hidden=!label;dialogCallback=callback;$('dialog').showModal();}
+  function showDialog(title,html,label,callback){if(inspectorPreview)inspector.reset();const focused=document.activeElement,opener=$('dialog').contains(focused)?dialogOpener:$('command-menu').contains(focused)?menuOpener:focused;hideMenu();if($('dialog').open)$('dialog').close();dialogOpener=opener;$('dialog-title').textContent=title;$('dialog-body').innerHTML=html;$('dialog-error').hidden=true;$('dialog-submit').textContent=label||'適用';$('dialog-submit').hidden=!label;dialogCallback=callback;$('dialog').showModal();}
   $('dialog-close').onclick=$('dialog-cancel').onclick=closeDialog;
   $('dialog').addEventListener('cancel',()=>{setTimeout(()=>dialogOpener?.focus(),0);});
   $('dialog-form').onsubmit=async event=>{event.preventDefault();if(!dialogCallback){closeDialog();return;}const cb=dialogCallback;try{const result=cb();if(result?.then)await result;if(dialogCallback===cb)closeDialog();}catch(error){$('dialog-error').textContent=error.message;$('dialog-error').hidden=false;}};
+  const inspectorSections={style:['書式・色','style'],transform:['位置・大きさ','transform'],anchor:['アンカーの座標','path'],connection:['接続・経路','connector'],image:['画像の設定','image'],animation:['動きと再生順序','animation'],board:['用紙サイズ','board'],view:['表示・吸着','view']};
+  let inspectorTabsKey='';
+  function inspectorScope(section){return JSON.stringify([revision,doc().id,pageId,selected,section==='anchor'?pathUI.getRefs():null,section==='view'?settings:null]);}
+  function clearInspectorPreview(){if(inspectorPreview){inspectorPreview=null;render();}}
+  function previewInspectorChange(fn){
+    const next=C.clone(doc()),p=next.pages.find(v=>v.id===pageId);fn(p);K.sync(p);C.pruneAnimations(p);
+    inspectorPreview=C.validateDocument(next).pages.find(v=>v.id===pageId);render();
+  }
+  function renderInspectorTabs(){
+    if(!inspector)return;
+    const one=selected.length===1?page().objects.find(o=>o.id===selected[0]):null;
+    const sections=selected.length?[one?.type==='image'?'image':'style','transform',...(one?.type==='connector'?['connection']:pathUI.count()?['anchor']:[]),'animation','board','view']:['board','view','animation'];
+    const key=sections.join(',');
+    if(inspectorTabsKey!==key){inspectorTabsKey=key;$('inspector-tabs').innerHTML=sections.map(section=>`<button type="button" data-inspector-section="${section}" aria-label="${inspectorSections[section][0]}" data-tip="${inspectorSections[section][0]}">${icon(inspectorSections[section][1])}</button>`).join('');}
+    $('inspector-tabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.inspectorSection===inspector.section)));
+    $('selection-bar').querySelectorAll('[data-action]').forEach(b=>{const section=({'connection-options':'connection','image-options':'image',animations:'animation'})[b.dataset.action]||b.dataset.action;if(inspectorSections[section])b.setAttribute('aria-pressed',String(inspector.isOpen&&inspector.section===section));});
+  }
+  function showInspector(section,title,html,label,apply,options={}){
+    const focused=document.activeElement,opener=$('command-menu').contains(focused)?menuOpener:focused;hideMenu();
+    const target=['board','view','animation'].includes(section)?page().name:page().objects.filter(o=>selected.includes(o.id)).map(o=>o.name).join('、');
+    inspector.show({section,title,html:`<p class="inspector-target">${esc(target||'選択した図形')}</p>`+html,label,apply,preview:options.preview,scope:()=>inspectorScope(section),refresh:()=>openInspectorSection(section),opener});
+    renderInspectorTabs();
+  }
+  function openInspectorSection(section){
+    clearInspectorPreview();
+    const one=selected.length===1?page().objects.find(o=>o.id===selected[0]):null;
+    if(section==='style'&&one?.type==='image')section='image';
+    const needsSelection=['style','transform','anchor','connection','image'].includes(section);
+    const compatible=!needsSelection||selected.length&&(section!=='image'||one?.type==='image')&&(section!=='connection'||one?.type==='connector')&&(section!=='anchor'||pathUI.count());
+    if(!compatible||needsSelection&&section!=='image'&&!allUnlocked()){
+      const message=!compatible?'対象の図形'+(section==='anchor'?'とアンカー':'')+'を選ぶと、ここで調整できます。':'固定された図形を含みます。編集から固定を解除すると調整できます。';
+      showInspector(section,inspectorSections[section][0],`<p class="muted">${message}</p>`,null);return;
+    }
+    ({style:styleDialog,transform:transformDialog,board:boardDialog,view:viewDialog,image:imageDialog,connection:()=>connectionUI.dialog(),anchor:()=>pathUI.commands['anchor-position'](),animation:()=>animationUI.list()})[section]?.();
+  }
   function renameDialog(){showDialog('作品名',`<label>名前<input id="name-input" value="${esc(doc().name)}" maxlength="120" required></label>`,'変更',()=>{const name=$('name-input').value.trim();if(!name)throw Error('名前を入力してください。');change(d=>d.name=name);});}
   function checkReplace(next){
     if(!dirty()){next();return;}
     showDialog('作業中の変更を保存', '<p>今の作品には明示保存していない変更があります。</p><div class="list-actions"><button type="button" id="replace-save" class="primary">保存して開く</button><button type="button" id="replace-discard">保存せず開く</button></div>',null);
     $('replace-save').onclick=()=>{if(saveBrowser()){closeDialog();next();}};$('replace-discard').onclick=()=>{closeDialog();next();};
   }
-  function replaceDocument(value){pathUI.reset();connectionUI.reset();const checked=C.validateDocument(value);checked.pages.forEach(p=>K.sync(p));history.replace(checked);pageId=doc().pages[0].id;selected=[];edited=false;saveFingerprint=snapshot();clearTimeout(saveTimer);clearTimeout(toast.timer);$('toast').hidden=true;localAuto?.stop();$('save-status').textContent='読み込みました';fit();}
+  function replaceDocument(value){clearInspectorPreview();revision++;pathUI.reset();connectionUI.reset();const checked=C.validateDocument(value);checked.pages.forEach(p=>K.sync(p));history.replace(checked);pageId=doc().pages[0].id;selected=[];edited=false;saveFingerprint=snapshot();clearTimeout(saveTimer);clearTimeout(toast.timer);$('toast').hidden=true;localAuto?.stop();$('save-status').textContent='読み込みました';fit();}
   function recoveryDialog(){
     const entries=store?.list()||[];
     showDialog('保存した内容を選ぶ',entries.length?'<p>開かなかった保存内容も保持されます。</p>'+entries.map((e,i)=>`<button type="button" class="recovery" data-recovery="${i}"><strong>${esc(e.document.name)}</strong> — ${e.kind==='auto'?'自動保存':'明示保存'}<small>ブラウザ内 · ${esc(new Date(e.at).toLocaleString('ja-JP'))} · ${e.document.pages.length}ページ</small></button>`).join(''):'<p>ブラウザ内に保存候補がありません。ローカルの作品は「ファイルを開く」から選べます。</p>',null);
@@ -251,7 +306,7 @@
   const presetLabels={'18':'18 × 18 px','36':'36 × 36 px','72':'72 × 72 px',businessCard:'名刺（55 × 91 mm）',b5:'JIS B5（182 × 257 mm）',a4:'A4（210 × 297 mm）','16:9':'16:9（1280 × 720 px）',free:'自由キャンバス'};
   function boardDialog(){
     const b=page().board;let unit=b.unit;
-    showDialog('用紙サイズ',`<label>サイズ<select id="board-preset"><option value="custom">任意のサイズ</option>${Object.entries(presetLabels).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><div class="fields"><label>幅<input id="board-width" type="number" min="0.01" step="any" required value="${round(b.width/unitScale(unit))}"></label><label>高さ<input id="board-height" type="number" min="0.01" step="any" required value="${round(b.height/unitScale(unit))}"></label></div><div class="fields"><label>単位<select id="board-unit">${['px','mm','pt'].map(u=>`<option ${u===unit?'selected':''}>${u}</option>`).join('')}</select></label><label>向き<button type="button" id="board-swap">タテ・ヨコを入れ替え</button></label></div><label class="check"><input id="board-infinite" type="checkbox" ${b.infinite?'checked':''}>自由に広がるキャンバス</label><p class="muted">用紙の変更で作品は拡大縮小されません。自由キャンバスの書き出し範囲は作品全体です。</p>`,'変更',()=>{
+    showInspector('board','用紙サイズ',`<label>サイズ<select id="board-preset"><option value="custom">任意のサイズ</option>${Object.entries(presetLabels).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><div class="fields"><label>幅<input id="board-width" type="number" min="0.01" step="any" required value="${round(b.width/unitScale(unit))}"></label><label>高さ<input id="board-height" type="number" min="0.01" step="any" required value="${round(b.height/unitScale(unit))}"></label></div><div class="fields"><label>単位<select id="board-unit">${['px','mm','pt'].map(u=>`<option ${u===unit?'selected':''}>${u}</option>`).join('')}</select></label><label>向き<button type="button" id="board-swap">タテ・ヨコを入れ替え</button></label></div><label class="check"><input id="board-infinite" type="checkbox" ${b.infinite?'checked':''}>自由に広がるキャンバス</label><p class="muted">用紙の変更で作品は拡大縮小されません。自由キャンバスの書き出し範囲は作品全体です。</p>`,'変更',()=>{
       const width=Number($('board-width').value)*unitScale(unit),height=Number($('board-height').value)*unitScale(unit);
       if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0||width>1e6||height>1e6)throw Error('幅と高さは0より大きく、1,000,000px以下にしてください。');
       changePage(p=>p.board={width,height,unit,infinite:$('board-infinite').checked});if(Math.min(width,height)<=72){settings.gridStep=1;applySettings();}fit();
@@ -281,13 +336,14 @@
     $('dialog-body').querySelectorAll('[data-pick-object]').forEach(b=>b.onclick=()=>{const id=b.dataset.pickObject;closeDialog();selection([id]);});
   }
   function transformDialog(){
-    if(!editable())return;const b=bounds(selected);
-    showDialog('選択した図形を変形',`<div class="fields"><label>左の位置（px）<input id="transform-x" type="number" step="any" value="${round(b.x)}" required></label><label>上の位置（px）<input id="transform-y" type="number" step="any" value="${round(b.y)}" required></label><label>幅（px）<input id="transform-width" type="number" min="0" step="any" value="${round(b.width)}" required></label><label>高さ（px）<input id="transform-height" type="number" min="0" step="any" value="${round(b.height)}" required></label></div><label>現在の向きから回転（°）<input id="transform-angle" type="number" step="any" value="0" required></label><label class="check"><input id="transform-ratio" type="checkbox">縦横比を保つ</label><div class="row"><label class="check"><input id="flip-x" type="checkbox">左右反転</label><label class="check"><input id="flip-y" type="checkbox">上下反転</label></div><label class="check"><input id="scale-stroke" type="checkbox">線幅も拡大縮小する</label>`,'適用',()=>{
+    if(!editable())return;const b=bounds(selected,page());
+    function read(){
       const [x,y,w,h,a]=['x','y','width','height','angle'].map(k=>Number($('transform-'+k).value));if([x,y,w,h,a].some(v=>!Number.isFinite(v))||w<0||h<0||(b.width>0&&w===0)||(b.height>0&&h===0))throw Error('位置と大きさを確認してください。');
       const sx=b.width?w/b.width:1,sy=b.height?h/b.height:1;let m=C.multiply([sx,0,0,sy,x,y],[1,0,0,1,-b.x,-b.y]);
       const flip=[$('flip-x').checked?-1:1,0,0,$('flip-y').checked?-1:1,0,0];m=C.multiply(around(C.multiply(rotation(a*Math.PI/180),flip),x+w/2,y+h/2),m);
-      changePage(p=>{C.transformObjects(p,selected,m);if($('scale-stroke').checked)p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.style.strokeWidth*=Math.sqrt(Math.abs(sx*sy)));});
-    });
+      const scaleStroke=$('scale-stroke').checked;return p=>{C.transformObjects(p,selected,m);if(scaleStroke)p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.style.strokeWidth*=Math.sqrt(Math.abs(sx*sy)));};
+    }
+    showInspector('transform','選択した図形を変形',`<div class="fields"><label>左の位置（px）<input id="transform-x" type="number" step="any" value="${round(b.x)}" required></label><label>上の位置（px）<input id="transform-y" type="number" step="any" value="${round(b.y)}" required></label><label>幅（px）<input id="transform-width" type="number" min="0" step="any" value="${round(b.width)}" required></label><label>高さ（px）<input id="transform-height" type="number" min="0" step="any" value="${round(b.height)}" required></label></div><label>現在の向きから回転（°）<input id="transform-angle" type="number" step="any" value="0" required></label><label class="check"><input id="transform-ratio" type="checkbox">縦横比を保つ</label><div class="row"><label class="check"><input id="flip-x" type="checkbox">左右反転</label><label class="check"><input id="flip-y" type="checkbox">上下反転</label></div><label class="check"><input id="scale-stroke" type="checkbox">線幅も拡大縮小する</label>`,'適用',()=>changePage(read()),{preview:()=>previewInspectorChange(read())});
     for(const axis of ['width','height'])$('transform-'+axis).oninput=()=>{if(!$('transform-ratio').checked||!b.width||!b.height)return;const target=axis==='width'?'height':'width';$('transform-'+target).value=round(Number($('transform-'+axis).value)*b[target]/b[axis]);};
   }
   function textDialog(existing,point){
@@ -305,18 +361,19 @@
   function styleDialog(){
     if(selected.length===1&&page().objects.find(o=>o.id===selected[0])?.type==='image'){imageDialog();return;}
     if(!editable())return;const objects=page().objects.filter(o=>selected.includes(o.id)),first=objects[0].style,patch={};let channel=objects.every(o=>o.type==='connector')?'stroke':'fill';
-    showDialog('書式・色',`<div class="color-tabs"><button type="button" data-color-channel="fill" class="on">塗り・文字</button><button type="button" data-color-channel="stroke">線</button></div><p id="mixed-color" class="muted"></p><div class="swatches">${palette.map(v=>`<button type="button" data-color="${v}" style="--swatch:${v}" aria-label="色 ${v}"></button>`).join('')}</div><div class="row"><button type="button" id="color-none">色なし</button><input id="color-picker" type="color" aria-label="自由な色を選択" style="flex:1"><input id="color-hex" aria-label="色の16進数" maxlength="7" style="flex:1"></div><div class="fields three">${['R','G','B'].map(k=>`<label>${k}<input id="color-${k}" type="number" min="0" max="255" step="1"></label>`).join('')}</div><div class="fields"><label>線幅（px）<input data-style="strokeWidth" type="number" min="0" step="any" value="${first.strokeWidth}"></label><label>不透明度（%）<input data-style="opacity" type="number" min="0" max="100" step="1" value="${first.opacity*100}"></label><label>線の種類<select data-style="dash"><option value="">実線</option><option value="6 4">破線</option><option value="1 3">点線</option><option value="10 3 2 3">一点鎖線</option></select></label><label>線の端<select data-style="linecap"><option value="butt">平ら</option><option value="round">丸い</option><option value="square">四角い</option></select></label><label>線の角<select data-style="linejoin"><option value="miter">角</option><option value="round">丸い</option><option value="bevel">面取り</option></select></label><label>文字サイズ（px）<input data-style="fontSize" type="number" min="0.01" step="any" value="${first.fontSize}"></label><label>書体<select data-style="fontFamily"><option value="sans-serif">ゴシック</option><option value="serif">明朝</option><option value="monospace">等幅</option></select></label></div><div class="row"><label class="check"><input data-style="bold" type="checkbox" ${first.bold?'checked':''}>太字</label><label class="check"><input data-style="italic" type="checkbox" ${first.italic?'checked':''}>斜体</label></div><p class="muted">変更した項目だけを選択中の図形へ適用します。</p>`,'適用',()=>{
+    function read(){
       if($('color-hex').value!=='none'&&!/^#[0-9a-f]{6}$/i.test($('color-hex').value))throw Error('色は # と6桁の16進数で入力してください。');
-      changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>Object.assign(o.style,patch)));
-    });
+      return p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>Object.assign(o.style,patch));
+    }
+    showInspector('style','書式・色',`<div class="color-tabs"><button type="button" data-color-channel="fill" class="on">塗り・文字</button><button type="button" data-color-channel="stroke">線</button></div><p id="mixed-color" class="muted"></p><div class="swatches">${palette.map(v=>`<button type="button" data-color="${v}" style="--swatch:${v}" aria-label="色 ${v}"></button>`).join('')}</div><div class="row"><button type="button" id="color-none">色なし</button><input id="color-picker" type="color" aria-label="自由な色を選択" style="flex:1"><input id="color-hex" aria-label="色の16進数" maxlength="7" style="flex:1"></div><div class="fields three">${['R','G','B'].map(k=>`<label>${k}<input id="color-${k}" type="number" min="0" max="255" step="1"></label>`).join('')}</div><div class="fields"><label>線幅（px）<input data-style="strokeWidth" type="number" required min="0" step="any" value="${first.strokeWidth}"></label><label>不透明度（%）<input data-style="opacity" type="number" required min="0" max="100" step="1" value="${first.opacity*100}"></label><label>線の種類<select data-style="dash"><option value="">実線</option><option value="6 4">破線</option><option value="1 3">点線</option><option value="10 3 2 3">一点鎖線</option></select></label><label>線の端<select data-style="linecap"><option value="butt">平ら</option><option value="round">丸い</option><option value="square">四角い</option></select></label><label>線の角<select data-style="linejoin"><option value="miter">角</option><option value="round">丸い</option><option value="bevel">面取り</option></select></label><label>文字サイズ（px）<input data-style="fontSize" type="number" required min="0.01" step="any" value="${first.fontSize}"></label><label>書体<select data-style="fontFamily"><option value="sans-serif">ゴシック</option><option value="serif">明朝</option><option value="monospace">等幅</option></select></label></div><div class="row"><label class="check"><input data-style="bold" type="checkbox" ${first.bold?'checked':''}>太字</label><label class="check"><input data-style="italic" type="checkbox" ${first.italic?'checked':''}>斜体</label></div><p class="muted">入力中は図形で確認できます。「適用」で確定します。</p>`,'適用',()=>changePage(read()),{preview:()=>previewInspectorChange(read())});
     function updateColor(){const color=patch[channel]??first[channel],value=color==='none'?'#000000':color;$('color-picker').value=value;$('color-hex').value=color;['R','G','B'].forEach((k,i)=>$('color-'+k).value=parseInt(value.slice(1+i*2,3+i*2),16));$('mixed-color').textContent=!(channel in patch)&&objects.some(o=>o.style[channel]!==first[channel])?'複数の色が混在しています。色を選ぶとそろえます。':color==='none'?'色なし':color;document.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===color.toUpperCase())));}
-    $('dialog-body').querySelectorAll('[data-color-channel]').forEach(b=>b.onclick=()=>{channel=b.dataset.colorChannel;$('dialog-body').querySelectorAll('[data-color-channel]').forEach(v=>v.classList.toggle('on',v===b));updateColor();});
-    $('dialog-body').querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{patch[channel]=b.dataset.color;updateColor();});
+    $('inspector-body').querySelectorAll('[data-color-channel]').forEach(b=>b.onclick=()=>{channel=b.dataset.colorChannel;$('inspector-body').querySelectorAll('[data-color-channel]').forEach(v=>v.classList.toggle('on',v===b));updateColor();});
+    $('inspector-body').querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{patch[channel]=b.dataset.color;updateColor();});
     $('color-none').onclick=()=>{patch[channel]='none';updateColor();};$('color-picker').oninput=()=>{patch[channel]=$('color-picker').value.toUpperCase();updateColor();};$('color-hex').oninput=()=>{if(/^#[0-9a-f]{6}$/i.test($('color-hex').value)){patch[channel]=$('color-hex').value.toUpperCase();updateColor();}};
     ['R','G','B'].forEach(k=>$('color-'+k).oninput=()=>{const rgb=['R','G','B'].map(c=>Number($('color-'+c).value));if(rgb.every((v,i)=>$('color-'+['R','G','B'][i]).value!==''&&Number.isInteger(v)&&v>=0&&v<=255)){patch[channel]='#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();updateColor();}});
-    $('dialog-body').querySelectorAll('[data-style]').forEach(el=>{if(el.tagName==='SELECT')el.value=first[el.dataset.style];el.onchange=()=>{const key=el.dataset.style;patch[key]=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value)/(key==='opacity'?100:1):el.value;};});$('dialog-body').querySelectorAll('[data-color-channel]').forEach(b=>b.classList.toggle('on',b.dataset.colorChannel===channel));updateColor();
+    $('inspector-body').querySelectorAll('[data-style]').forEach(el=>{if(el.tagName==='SELECT')el.value=first[el.dataset.style];el.oninput=el.onchange=()=>{const key=el.dataset.style;patch[key]=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value)/(key==='opacity'?100:1):el.value;};});$('inspector-body').querySelectorAll('[data-color-channel]').forEach(b=>b.classList.toggle('on',b.dataset.colorChannel===channel));updateColor();
   }
-  function viewDialog(){showDialog('表示設定',`<label>テーマ<select id="view-theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>操作部の文字サイズ<select id="view-size"><option value="standard">標準</option><option value="large">大</option><option value="xlarge">特大</option></select></label><label class="check"><input id="view-grid" type="checkbox" ${settings.grid?'checked':''}>グリッドを表示</label><label class="check"><input id="view-snap" type="checkbox" ${settings.snap?'checked':''}>移動・配置をグリッドに吸着</label><label class="check"><input id="view-pixel" type="checkbox" ${settings.snapPixel?'checked':''}>アンカーをピクセルに吸着</label><label class="check"><input id="view-anchor" type="checkbox" ${settings.snapAnchor?'checked':''}>他のアンカーに吸着</label><label class="check"><input id="view-path" type="checkbox" ${settings.snapPath?'checked':''}>他のパスの上に吸着</label><label>グリッドの間隔（px）<input id="view-step" type="number" min="0.01" max="10000" step="any" required value="${Number(settings.gridStep)||20}"></label><p class="muted">Optionを押している間は吸着を解除します。アンカー・パスを優先し、グリッドとピクセルが両方オンのときはグリッドを使います。パスへの吸着は位置合わせで、その後の移動には追従しません。テーマを変えても作品の色は変わりません。</p>`,'適用',()=>{settings={...settings,theme:$('view-theme').value,size:$('view-size').value,grid:$('view-grid').checked,snap:$('view-snap').checked,snapPixel:$('view-pixel').checked,snapAnchor:$('view-anchor').checked,snapPath:$('view-path').checked,gridStep:Number($('view-step').value)};applySettings();});$('view-theme').value=settings.theme;$('view-size').value=settings.size;}
+  function viewDialog(){showInspector('view','表示設定',`<label>テーマ<select id="view-theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>操作部の文字サイズ<select id="view-size"><option value="standard">標準</option><option value="large">大</option><option value="xlarge">特大</option></select></label><label class="check"><input id="view-grid" type="checkbox" ${settings.grid?'checked':''}>グリッドを表示</label><label class="check"><input id="view-snap" type="checkbox" ${settings.snap?'checked':''}>移動・配置をグリッドに吸着</label><label class="check"><input id="view-pixel" type="checkbox" ${settings.snapPixel?'checked':''}>アンカーをピクセルに吸着</label><label class="check"><input id="view-anchor" type="checkbox" ${settings.snapAnchor?'checked':''}>他のアンカーに吸着</label><label class="check"><input id="view-path" type="checkbox" ${settings.snapPath?'checked':''}>他のパスの上に吸着</label><label>グリッドの間隔（px）<input id="view-step" type="number" min="0.01" max="10000" step="any" required value="${Number(settings.gridStep)||20}"></label><p class="muted">Optionを押している間は吸着を解除します。アンカー・パスを優先し、グリッドとピクセルが両方オンのときはグリッドを使います。パスへの吸着は位置合わせで、その後の移動には追従しません。テーマを変えても作品の色は変わりません。</p>`,'適用',()=>{settings={...settings,theme:$('view-theme').value,size:$('view-size').value,grid:$('view-grid').checked,snap:$('view-snap').checked,snapPixel:$('view-pixel').checked,snapAnchor:$('view-anchor').checked,snapPath:$('view-path').checked,gridStep:Number($('view-step').value)};applySettings();});$('view-theme').value=settings.theme;$('view-size').value=settings.size;}
   function selectionUnits(){const units=[],seen=new Set();for(const id of selected){const object=page().objects.find(o=>o.id===id);if(!object)continue;const key=object.group||id;if(seen.has(key))continue;seen.add(key);const ids=object.group?page().objects.filter(o=>o.group===key).map(o=>o.id):[id];units.push({ids,b:bounds(ids)});}return units;}
   function align(mode){
     if(!editable())return;let units=selectionUnits();if(units.length<2){toast('2つ以上の図形またはグループを選んでください。');return;}const reference=units[0].b,transforms=[];
@@ -364,7 +421,8 @@
   };
   function imageDialog(){
     const o=page().objects.find(o=>o.id===selected[0]&&o.type==='image');if(!o||selected.length!==1)return;
-    showDialog('画像の設定',`<label>名前<input id="image-name" maxlength="120" value="${esc(o.name)}"></label><label>不透明度（%）<input id="image-opacity" type="number" min="0" max="100" value="${o.style.opacity*100}"></label><label class="check"><input id="image-locked" type="checkbox" ${o.locked?'checked':''}>位置と大きさを固定する</label><label class="check"><input id="image-output" type="checkbox" ${!o.reference?'checked':''}>画像として書き出し・印刷・発表にも含める</label><p class="muted">下絵は編集用ファイルに保存されます。固定を解除すると移動・拡大縮小できます。画像自体の輪郭はパスにはなりません。</p>`,'適用',()=>{const opacity=Number($('image-opacity').value)/100;if(!Number.isFinite(opacity)||opacity<0||opacity>1)throw Error('不透明度は0〜100%で指定してください。');changePage(p=>{const image=p.objects.find(v=>v.id===o.id);image.name=$('image-name').value;image.locked=$('image-locked').checked;image.reference=!$('image-output').checked;image.style.opacity=opacity;});});
+    function read(){const opacity=Number($('image-opacity').value)/100;if(!Number.isFinite(opacity)||opacity<0||opacity>1)throw Error('不透明度は0〜100%で指定してください。');return p=>{const image=p.objects.find(v=>v.id===o.id);image.name=$('image-name').value;image.locked=$('image-locked').checked;image.reference=!$('image-output').checked;image.style.opacity=opacity;};}
+    showInspector('image','画像の設定',`<label>名前<input id="image-name" maxlength="120" value="${esc(o.name)}"></label><label>不透明度（%）<input id="image-opacity" type="number" required min="0" max="100" value="${o.style.opacity*100}"></label><label class="check"><input id="image-locked" type="checkbox" ${o.locked?'checked':''}>位置と大きさを固定する</label><label class="check"><input id="image-output" type="checkbox" ${!o.reference?'checked':''}>画像として書き出し・印刷・発表にも含める</label><p class="muted">下絵は編集用ファイルに保存されます。固定を解除すると移動・拡大縮小できます。画像自体の輪郭はパスにはなりません。</p>`,'適用',()=>changePage(read()),{preview:()=>previewInspectorChange(read())});
   }
   function present(fromStart){const focused=document.activeElement,opener=$('command-menu').contains(focused)?menuOpener:focused;hideMenu();cancelDrag();connectionUI.reset();window.IlapoPresentation.open(doc(),{pageId:fromStart?doc().pages[0].id:pageId,opener});}
   let playbackBusy=false;
@@ -375,30 +433,32 @@
     finally{playbackBusy=false;document.querySelectorAll('[data-action=export-playback]').forEach(b=>b.disabled=false);}
   }
   const commands={
-    animations:()=>animationUI.list(),'animation-add':()=>animationUI.edit(),'export-playback':exportPlayback,
-    assets:assetsDialog,'component-save':saveComponent,'import-image':()=>$('image-input').click(),'image-options':imageDialog,
-    'connection-tool':()=>setTool('connector'),'connection-options':()=>connectionUI.dialog(),'connection-between':()=>connectionUI.addBetween(),'connection-convert':()=>connectionUI.convert(),
+    animations:()=>openInspectorSection('animation'),'animation-add':()=>animationUI.edit(),'export-playback':exportPlayback,
+    assets:assetsDialog,'component-save':saveComponent,'import-image':()=>$('image-input').click(),'image-options':()=>openInspectorSection('image'),
+    'connection-tool':()=>setTool('connector'),'connection-options':()=>openInspectorSection('connection'),'connection-between':()=>connectionUI.addBetween(),'connection-convert':()=>connectionUI.convert(),
     'present-start':()=>present(true),'present-current':()=>present(false),
-    rename:renameDialog,artboard:boardDialog,pages:pagesDialog,objects:objectsDialog,transform:transformDialog,style:styleDialog,'view-dialog':viewDialog,
+    rename:renameDialog,artboard:()=>openInspectorSection('board'),pages:pagesDialog,objects:objectsDialog,transform:()=>openInspectorSection('transform'),style:()=>openInspectorSection('style'),'view-dialog':()=>openInspectorSection('view'),
     'save-browser':saveBrowser,'save-local':saveLocal,recovery:recoveryDialog,'open-file':()=>{$('file-input').accept='.zip,.json,.svg';$('file-input').click();},'import-svg':()=>{$('file-input').accept='.svg';$('file-input').click();},
     new:()=>checkReplace(()=>{const d=C.createDocument();d.name='無題の作品';d.pages[0].board=C.boardPreset('16:9');replaceDocument(d);$('save-status').textContent='新しい作品';}),
     'auto-start':async()=>{if(!localAuto){toast('ローカル自動保存を利用できません。');return;}try{await localAuto.start(doc());}catch(error){if(error.name!=='AbortError')toast(errorMessage(error));}},'auto-stop':()=>localAuto?.stop(),
-    undo:()=>{if(history.canUndo){history.undo();pageId=page().id;selected=[];edited=true;queueSave();render();}},redo:()=>{if(history.canRedo){history.redo();pageId=page().id;selected=[];edited=true;queueSave();render();}},
+    undo:()=>{if(history.canUndo){clearInspectorPreview();revision++;history.undo();pageId=page().id;selected=[];edited=true;queueSave();render();}},redo:()=>{if(history.canRedo){clearInspectorPreview();revision++;history.redo();pageId=page().id;selected=[];edited=true;queueSave();render();}},
     'select-all':()=>selection(page().objects.map(o=>o.id)),copy,paste,duplicate:()=>{if(!selected.length)return;let ids;if(changePage(p=>ids=C.duplicateObjects(p,selected,standardSize()*.12,standardSize()*.12)))selected=ids;render();},
     delete:()=>{if(editable())changePage(p=>C.removeObjects(p,selected));},group:()=>{if(editable())changePage(p=>C.groupObjects(p,selected));},ungroup:()=>{if(editable())changePage(p=>C.ungroupObjects(p,selected));},
     lock:()=>{const lock=allUnlocked();changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.locked=lock));},
     'text-edit':()=>{const o=page().objects.find(o=>o.id===selected[0]);if(selected.length===1&&o?.type==='text'&&editable())textDialog(o);},
     'style-copy':()=>{if(selected.length){copiedStyle=C.clone(page().objects.find(o=>o.id===selected[0]).style);toast('書式をコピーしました。');}},'style-paste':()=>{if(copiedStyle&&editable())changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.style=C.clone(copiedStyle)));},
     fit,'zoom-in':()=>zoomAt(1.25),'zoom-out':()=>zoomAt(.8),'zoom-reset':()=>zoomAt(1/zoom()),
-    'export-toggle':()=>{$('export-panel').hidden=!$('export-panel').hidden;document.querySelector('.side-tab button').setAttribute('aria-expanded',String(!$('export-panel').hidden));render();help?.refresh();},
+    'inspector-toggle':()=>inspector.isOpen?inspector.close():openInspectorSection(selected.length?'style':'board'),
+    'selection-arrange':()=>openMenu('arrange',$('selection-more')),'selection-order':()=>openMenu('order',$('selection-more')),
+    'export-toggle':()=>{const opening=$('export-panel').hidden;if(opening)inspector.close({focus:false});$('export-panel').hidden=!opening;document.querySelector('.side-tab [data-action=export-toggle]').setAttribute('aria-expanded',String(opening));render();help?.refresh();},
     'export-svg':()=>{download(S.exportPage(page(),exportOptions()),fileName(doc().name+'_'+page().name,'.svg'),'image/svg+xml');toast('SVGを書き出しました。');},
     'export-png':exportBitmap,
     'export-pdf':async()=>{const pages=C.clone($('print-range').value==='all'?doc().pages:[page()]);await E.print(pages,{title:doc().name});}
   };
-  function execute(action){hideMenu();cancelDrag();try{if(action.startsWith('align-'))align(action.slice(6));else if(action.startsWith('order-')){if(editable())changePage(p=>C.reorderObjects(p,selected,action.slice(6)));}else if(pathUI.commands[action])pathUI.commands[action]();else {const result=commands[action]?.();if(result?.catch)result.catch(error=>toast(errorMessage(error)));}}catch(error){toast(errorMessage(error));}}
-  document.addEventListener('click',event=>{const button=event.target.closest('button');if(!button||button.disabled)return;if(button.dataset.tool)setTool(button.dataset.tool);else if(button.dataset.menu)openMenu(button.dataset.menu,button);else if(button.dataset.action)execute(button.dataset.action);});
+  function execute(action){hideMenu();if(inspectorPreview)inspector.reset();cancelDrag();try{if(action.startsWith('align-'))align(action.slice(6));else if(action.startsWith('order-')){if(editable())changePage(p=>C.reorderObjects(p,selected,action.slice(6)));}else if(pathUI.commands[action])pathUI.commands[action]();else {const result=commands[action]?.();if(result?.catch)result.catch(error=>toast(errorMessage(error)));}}catch(error){toast(errorMessage(error));}}
+  document.addEventListener('click',event=>{const button=event.target.closest('button');if(!button||button.disabled)return;if(button.dataset.inspectorSection)openInspectorSection(button.dataset.inspectorSection);else if(button.dataset.tool)setTool(button.dataset.tool);else if(button.dataset.menu)openMenu(button.dataset.menu,button);else if(button.dataset.action)execute(button.dataset.action);});
   document.addEventListener('keydown',event=>{
-    if(help?.root.contains(event.target)||event.isComposing||event.target.closest('input,textarea,select,[contenteditable=true],.ilapo-present-dialog')||$('dialog').open)return;
+    if(inspector?.root.contains(event.target)||help?.root.contains(event.target)||event.isComposing||event.target.closest('input,textarea,select,[contenteditable=true],.ilapo-present-dialog')||$('dialog').open)return;
     if(event.key==='Escape'){if(drag)cancelDrag();else if($('command-menu').matches(':popover-open')){hideMenu();menuOpener?.focus();}else if(!connectionUI.keyboard(event)){selected=[];pathUI.reset();connectionUI.reset();}space=false;render();return;}
     const mod=event.metaKey||event.ctrlKey,key=event.key.toLowerCase();
     if(mod){const map={s:'save-browser',o:'recovery',z:event.shiftKey?'redo':'undo',a:'select-all',c:'copy',v:'paste',d:'duplicate'};if(map[key]){event.preventDefault();execute(map[key]);}return;}
@@ -414,10 +474,15 @@
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(settings.theme==='auto')applySettings();});
   if(window.IlapoLocalAutosave)localAuto=new IlapoLocalAutosave({encode:S.encodeProject,onStatus:status=>{if(status.state==='error')toast('ローカル自動保存を停止しました。'+status.message);else if(status.state==='saved')$('save-status').textContent='ローカルへ自動保存済み';}});
   try{help=window.JohoToolHelp?.create({root:$('operation-help'),opener:$('help-button'),title:'イラストスライドの使い方',storageKey:'kaijo-ilapo:help',bounds:()=>({top:document.querySelector('.top').getBoundingClientRect().bottom+8,bottom:$('stage').getBoundingClientRect().bottom-8}),isBusy:()=>!!drag,returnToEditor:()=>$('canvas').focus()});}catch(error){console.warn('Help unavailable',error);}
-  document.addEventListener('pointerover',event=>{const target=event.target.closest('[data-tip]');if(!target||event.pointerType==='touch')return;const r=target.getBoundingClientRect();$('tooltip').textContent=target.dataset.tip;$('tooltip').hidden=false;$('tooltip').style.left=Math.max(8,Math.min(r.left,innerWidth-$('tooltip').offsetWidth-8))+'px';$('tooltip').style.top=Math.min(r.bottom+7,innerHeight-$('tooltip').offsetHeight-8)+'px';});document.addEventListener('pointerout',()=>$('tooltip').hidden=true);document.addEventListener('pointerdown',()=>$('tooltip').hidden=true);
-  pathUI=window.IlapoPathUI.create({page,selected:()=>selected,tool:()=>tool,settings:()=>settings,zoom,select:selection,render,setTool,setDrag:value=>drag=value,setPreview:value=>preview=value,editable,changePage,toast,errorMessage,showDialog,esc,round,standardSize});
-  connectionUI=window.IlapoConnectorUI.create({page,selected:()=>selected,tool:()=>tool,zoom,snap,select:selection,render,setTool,setDrag:value=>drag=value,setPreview:value=>preview=value,editable,changePage,toast,showDialog,esc,round,standardSize});
-  animationUI=window.IlapoAnimationUI.create({document:doc,page,selected:()=>selected,changePage,toast,showDialog,esc,standardSize,palette});
+  function showTooltip(target){if(!target)return;const r=target.getBoundingClientRect();$('tooltip').textContent=target.dataset.tip;$('tooltip').hidden=false;$('tooltip').style.left=Math.max(8,Math.min(r.left,innerWidth-$('tooltip').offsetWidth-8))+'px';$('tooltip').style.top=Math.min(r.bottom+7,innerHeight-$('tooltip').offsetHeight-8)+'px';}
+  const hideTooltip=()=>$('tooltip').hidden=true;
+  document.addEventListener('pointerover',event=>{if(event.pointerType!=='touch')showTooltip(event.target.closest('[data-tip]'));});
+  document.addEventListener('focusin',event=>{hideTooltip();if(event.target.matches(':focus-visible'))showTooltip(event.target.closest('[data-tip]'));});
+  document.addEventListener('focusout',hideTooltip);document.addEventListener('pointerout',hideTooltip);document.addEventListener('pointerdown',hideTooltip,true);
+  pathUI=window.IlapoPathUI.create({page,selected:()=>selected,tool:()=>tool,settings:()=>settings,zoom,select:selection,render,setTool,setDrag:value=>drag=value,setPreview:value=>preview=value,editable,changePage,toast,errorMessage,showDialog,showInspector,esc,round,standardSize});
+  connectionUI=window.IlapoConnectorUI.create({page,selected:()=>selected,tool:()=>tool,zoom,snap,select:selection,render,setTool,setDrag:value=>drag=value,setPreview:value=>preview=value,editable,changePage,toast,showInspector,previewChange:previewInspectorChange,esc,round,standardSize});
+  animationUI=window.IlapoAnimationUI.create({document:doc,page,selected:()=>selected,changePage,toast,showInspector,esc,standardSize,palette});
+  inspector=window.IlapoInspector.create({onLayout:()=>{render();help?.refresh();},clearPreview:clearInspectorPreview,isBusy:()=>!!drag});
   window.IlapoEditor=Object.freeze({getAnchors:()=>pathUI.getRefs(),getDocument:()=>C.clone(doc()),getSelection:()=>selected.slice(),getCamera:()=>({...camera}),getState:()=>({tool,dirty:dirty(),pageId})});
   applySettings();requestAnimationFrame(()=>{fit();if(store?.list().length)recoveryDialog();});
 }());

@@ -261,7 +261,7 @@
       const points = refs.map(ref => node(ref).point), x = Math.min(...points.map(p => p.x)), y = Math.min(...points.map(p => p.y));
       const single = refs.length === 1 ? node(refs[0]) : null;
       const field = (id, label, value) => `<label>${label}<input id="${id}" type="number" step="any" required value="${ctx.round(value)}"></label>`;
-      ctx.showDialog('アンカーの座標', `<p class="muted">${single ? '用紙上の座標をpxで指定します。ハンドルはアンカーからの距離です。' : '選んだアンカー全体の左上の座標です。相対位置を保って移動します。'}</p><div class="fields">${field('anchor-x', 'x', x)}${field('anchor-y', 'y', y)}</div>${single ? `<details><summary>ハンドルの位置</summary><div class="fields">${field('anchor-in-x', '入る側 Δx', single.handleIn.x)}${field('anchor-in-y', '入る側 Δy', single.handleIn.y)}${field('anchor-out-x', '出る側 Δx', single.handleOut.x)}${field('anchor-out-y', '出る側 Δy', single.handleOut.y)}</div><p class="muted">数値入力では両側を独立して指定します。</p></details>` : ''}`, '適用', () => {
+      ctx.showInspector('anchor','アンカーの座標', `<p class="muted">${single ? '用紙上の座標をpxで指定します。ハンドルはアンカーからの距離です。' : '選んだアンカー全体の左上の座標です。相対位置を保って移動します。'}</p><div class="fields">${field('anchor-x', 'x', x)}${field('anchor-y', 'y', y)}</div>${single ? `<details><summary>ハンドルの位置</summary><div class="fields">${field('anchor-in-x', '入る側 Δx', single.handleIn.x)}${field('anchor-in-y', '入る側 Δy', single.handleIn.y)}${field('anchor-out-x', '出る側 Δx', single.handleOut.x)}${field('anchor-out-y', '出る側 Δy', single.handleOut.y)}</div><p class="muted">数値入力では両側を独立して指定します。</p></details>` : ''}`, '適用', () => {
         const nx = Number($('anchor-x').value), ny = Number($('anchor-y').value);
         if (![nx, ny].every(Number.isFinite)) throw Error('座標を確認してください。');
         mutate(page => {

@@ -12,12 +12,13 @@ async function run(){
   page.setDefaultTimeout(10000);page.on('pageerror',e=>errors.push(e.message));
   const read=()=>page.evaluate(()=>IlapoEditor.getDocument());
   const pick=async id=>{await page.locator('[data-menu=more]').click();await page.locator('#command-menu [data-action=objects]').click();await page.locator(`[data-pick-object="${id}"]`).click();};
-  const openList=async()=>{await page.locator('[data-menu=more]').click();await page.locator('#command-menu [data-action=animations]').click();};
-  const close=()=>page.locator('#dialog-cancel').click();
+  const openList=async()=>{if(await page.evaluate(()=>innerWidth<=850)){await page.locator('#selection-more').click();}else{await page.locator('[data-menu=more]').click();}await page.locator('#command-menu [data-action=animations]').click();await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden;});};
+  const inspectorSubmit=async()=>{await page.locator('#inspector-submit').click();await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden&&!document.getElementById('dialog').open;});};
+  const inspectorClose=async()=>{await page.locator('#inspector-close').click();await page.waitForFunction(()=>document.getElementById('inspector-panel').hidden);};
   async function add(effect,fields={}){
     await page.locator('#selection-bar [data-action=animations]').click();await page.locator('#animation-add').click();await page.locator('#animation-effect').selectOption(effect);
     for(const [key,value]of Object.entries(fields)){const el=page.locator('#animation-'+key);if(await el.evaluate(e=>e.tagName==='SELECT'))await el.selectOption(String(value));else await el.fill(String(value));}
-    await page.locator('#dialog-submit').click();await page.waitForFunction(()=>document.getElementById('dialog-title').textContent==='動きと再生順序');await close();
+    await inspectorSubmit();await page.waitForFunction(()=>document.getElementById('inspector-title').textContent==='動きと再生順序');await page.locator('#inspector-body .animation-list').waitFor();await inspectorClose();
   }
   try{
     await page.goto(url);await page.waitForFunction(()=>!!window.IlapoEditor);
@@ -30,22 +31,22 @@ async function run(){
     });
     await page.locator('#file-input').setInputFiles({name:'animation.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});await page.waitForFunction(id=>IlapoEditor.getDocument().id===id,fixture.id);
     await pick('pc');await page.locator('#selection-bar [data-action=animations]').click();await page.locator('#animation-add').click();
-    await page.locator('#animation-duration').fill('-1');await page.locator('#dialog-submit').click();assert.deepEqual(await read(),fixture,'invalid input does not apply');await page.locator('#animation-duration').fill('.6');
+    await page.locator('#animation-duration').fill('-1');await page.locator('#inspector-submit').click();assert.deepEqual(await read(),fixture,'invalid input does not apply');await page.locator('#animation-duration').fill('.6');
     // Preview the draft, then cancel it without writing a history or a save.
     await page.locator('#animation-try').click();await page.waitForSelector('#ilapo-presentation[open]');assert.equal(await page.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');
     await page.keyboard.press('Space');await page.waitForFunction(()=>document.querySelector('[data-animation-object=pc]').getAttribute('opacity')==='1');await page.keyboard.press('Escape');assert.deepEqual(await read(),fixture);assert.equal(await page.evaluate(()=>document.activeElement.id),'animation-try');
-    await close();assert.deepEqual(await read(),fixture);
+    await inspectorClose();assert.deepEqual(await read(),fixture);
     await add('fade',{duration:.6});
     await add('color',{trigger:'after',duration:.4});
     await openList();await page.locator('[data-animation-edit="1"]').click();await page.locator('[data-animation-color="#EF4444"]').click();
-    assert.equal(await page.locator('#animation-color-R').inputValue(),'239');await page.locator('#animation-color-B').fill('100');assert.equal(await page.locator('#animation-color-hex').inputValue(),'#EF4464');await page.locator('#dialog-submit').click();await close();
+    assert.equal(await page.locator('#animation-color-R').inputValue(),'239');await page.locator('#animation-color-B').fill('100');assert.equal(await page.locator('#animation-color-hex').inputValue(),'#EF4464');await inspectorSubmit();await inspectorClose();
     await add('move',{trigger:'with',duration:.4,dx:160,dy:80});
     await pick('arrow');await add('wipe',{duration:.5,direction:'right'});
     let animated=await read();assert.equal(animated.version,3);assert.equal(animated.pages[0].animations.length,4);
     assert.equal(animated.pages[0].animations[1].color,'#EF4464');
     // Reorder then restore; delete then Undo restores precisely the effect, not artwork.
     await openList();await page.screenshot({path:'/private/tmp/illustslide-stage4-order.png'});await page.locator('[data-animation-move="3,-1"]').click();assert.equal((await read()).pages[0].animations[2].effect,'wipe');await page.locator('[data-animation-move="2,1"]').click();
-    await page.locator('[data-animation-delete="3"]').click();await close();await page.locator('#canvas').focus();await page.keyboard.press('Meta+z');await page.waitForFunction(()=>IlapoEditor.getDocument().pages[0].animations.length===4);animated=await read();
+    await page.locator('[data-animation-delete="3"]').click();await inspectorClose();await page.locator('#canvas').focus();await page.keyboard.press('Meta+z');await page.waitForFunction(()=>IlapoEditor.getDocument().pages[0].animations.length===4);animated=await read();
     await page.evaluate(()=>window.viewer=IlapoPresentation.open(IlapoEditor.getDocument(),{opener:document.getElementById('present-button')}));
     assert.equal(await page.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');assert.equal(await page.locator('[data-animation-object=arrow]').getAttribute('opacity'),'0');
     await page.evaluate(()=>viewer.seek(1,300));near(Number(await page.locator('[data-animation-object=pc]').getAttribute('opacity')),.5);
@@ -75,10 +76,10 @@ async function run(){
     await page.locator('[data-action=pages]').first().click();await page.locator('[data-page-pick="0"]').click();
     // Narrow, dark and touch operation; large fonts must not break the one-row toolbar.
     for(const width of [736,390]){
-      await page.setViewportSize({width,height:844});await page.locator('[data-menu=more]').click();await page.locator('#command-menu [data-action=view-dialog]').click();await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await page.locator('#dialog-submit').click();
-      await openList();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.getElementById('dialog').scrollWidth<=innerWidth));
-      await page.locator('[data-animation-edit="1"]').click();assert(await page.evaluate(()=>document.getElementById('dialog').scrollWidth<=innerWidth));
-      await page.screenshot({path:`/private/tmp/illustslide-stage4-editor-${width}.png`});await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');await page.keyboard.press('Escape');
+      await page.setViewportSize({width,height:844});await page.locator('[data-menu=more]').click();await page.locator('#command-menu [data-action=view-dialog]').click();await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await inspectorSubmit();await inspectorClose();await pick('pc');
+      await openList();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.getElementById('inspector-panel').scrollWidth<=innerWidth));assert(await page.locator('#canvas').isVisible());
+      await page.locator('[data-animation-edit="1"]').click();assert(await page.evaluate(()=>document.getElementById('inspector-panel').scrollWidth<=innerWidth));
+      await page.screenshot({path:`/private/tmp/illustslide-stage4-editor-${width}.png`});await inspectorClose();
     }
     await page.evaluate(()=>window.viewer=IlapoPresentation.open(IlapoEditor.getDocument()));await page.emulateMedia({reducedMotion:'reduce'});await page.keyboard.press('Space');state=await page.evaluate(()=>viewer.getState());assert.equal(state.animation.step,1);assert.equal(state.animation.playing,false);assert.equal(await page.locator('[data-animation-object=pc]').getAttribute('opacity'),'1');
     await page.screenshot({path:'/private/tmp/illustslide-stage4-mobile.png'});await page.keyboard.press('Escape');await page.emulateMedia({reducedMotion:'no-preference'});
