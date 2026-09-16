@@ -296,6 +296,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
       <input type="number" id="measNum" class="mnum" title="値を入力して Enter"><span id="measUnit"></span>
       <span class="muted" id="measNote"></span>
       <button id="measReset" title="標準の値（いちばん近いもの）にする">標準の値に戻す</button>
+      <button id="moScan" hidden title="この二面角を少しずつ変えながら、分子軌道法でエネルギーを計算して曲線にする">エネルギー曲線</button>
       <button id="measClose" title="値の編集を終える（Esc）">閉じる</button>
     </div>
     <div class="fmtbar" id="optBar" hidden>
@@ -361,10 +362,38 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
           </div>
         </div>
       </section>
+      <section class="side-pane" data-pane="mo" hidden>
+        <header><span>エネルギー計算</span><button class="side-close" title="パネルを閉じる">▶</button></header>
+        <div class="side-body">
+          <p class="muted">二面角（<kbd>T</kbd>）を測ってから「エネルギー曲線」を押すと、角度を少しずつ変えながら分子軌道法でエネルギーを計算し、回転のしにくさ（回転障壁）を曲線にします。</p>
+          <label class="frow">方法
+            <select id="moBasis" title="基底関数（計算に使う軌道の細かさ）。細かいほど正確だが遅い">
+              <option value="sto-3g">ハートリー・フォック法／STO-3G</option>
+              <option value="6-31g">ハートリー・フォック法／6-31G（遅い）</option>
+            </select>
+          </label>
+          <label class="frow">刻み
+            <select id="moStep" title="何度ずつ変えて計算するか">
+              <option value="30">30°（13 点・速い）</option>
+              <option value="15" selected>15°（25 点）</option>
+              <option value="10">10°（37 点・遅い）</option>
+            </select>
+          </label>
+          <button class="sbtn primary" id="moGo">いま測っている二面角で計算する</button>
+          <button class="sbtn" id="moStop" hidden>やめる</button>
+          <p class="muted" id="moStatus">二面角を測ると使えます。</p>
+          <canvas id="moChart" style="width:100%;height:180px;display:block;border:1px solid var(--line);border-radius:8px;background:#fff"></canvas>
+          <div class="side-sec">
+            <div class="gl">この計算について</div>
+            <p class="muted">ハートリー・フォック法で、分子の形は変えずに角度だけを変えて計算します（剛体スキャン）。各点で形を整え直してはいないので、実際の回転障壁より大きめに出ます。電子の数が偶数（閉殻）の中性分子だけ計算できます。計算はこのブラウザの中だけで行われ、外部には送信されません。</p>
+          </div>
+        </div>
+      </section>
     </div>
     <nav class="side-tabs">
       <button class="side-tab" data-pane="lib" title="化合物ライブラリを開く／閉じる"><span class="arr">◀</span><span class="vt">化合物ライブラリ</span></button>
       <button class="side-tab" data-pane="exp" title="書き出しパネルを開く／閉じる（PNG・コピー・MOL）"><span class="arr">◀</span><span class="vt">書き出し</span></button>
+      <button class="side-tab" data-pane="mo" title="エネルギー計算のパネルを開く／閉じる（二面角の回転障壁）"><span class="arr">◀</span><span class="vt">エネルギー計算</span></button>
     </nav>
   </aside>
 </div>
@@ -386,6 +415,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <tr><td>計測</td><td>左の計測のボタン（<kbd>D</kbd> 距離、<kbd>A</kbd> 結合角、<kbd>T</kbd> 二面角）を選び、原子を順にクリック。結果は図と画面下に出ます。画面下の × で消せます。</td></tr>
         <tr><td>形を変える</td><td>測ると、上にバーが出て、結合長・結合角・二面角の値をスライダーや数値の入力で変えられます（画面下の計測をクリックしても出ます）。結合で分けた小さい方の原子団がまとめて動くので、形は崩れず、立体配置（R・S）も変わりません。二面角でエタンのねじれ形・重なり形、ブタンのアンチ形・ゴーシュ形などを作れます。環の中の値は変えられません。スライダーの目盛りは標準の値で、そこで一度止まります（結合長は結合の種類ごとの値、結合角は中心の原子の混成に応じた値（環の中は環の大きさから）、二面角はねじれ形 ±60°・180°、二重結合のまわりは 0°・180°）。「標準の長さに戻す」などのボタンで、いちばん近い標準の値にできます（<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> で元に戻せます）。</td></tr>
         <tr><td>形を整える</td><td>左の「形を整える」で、結合長・結合角・二重結合の平面・ねじれ（単結合はねじれ形、共役した結合は平面）・原子の重なりを考えた簡単な力場で、形を少しずつ整えます（簡易的な構造最適化。実際の分子の形とは少し違うことがあります）。分子を選んでいればその分子だけ、選んでいなければ全体が対象です。計測があるときは、先に値を保つ計測を選べます（標準の値から変えたものは最初からチェックされています）。途中でキャンバスをクリックすると止まります。R・S は変わりません。</td></tr>
+        <tr><td>エネルギー計算<br>（回転障壁）</td><td>二面角（<kbd>T</kbd>）を測ると、上のバーに「エネルギー曲線」が出ます。押すと、右の「エネルギー計算」パネルで、その二面角を少しずつ変えながら分子軌道法（ハートリー・フォック法）でエネルギーを計算し、横軸が角度・縦軸がエネルギー（kJ/mol）の曲線を描きます。いちばん高い形と低い形の差が、回転のしにくさ（回転障壁）の目安です。エタンのねじれ形と重なり形、ブタンのアンチ形とゴーシュ形、ブタジエンの s-トランスなどを調べられます。<br>分子の形は変えずに角度だけを変える簡単な方法（剛体スキャン）なので、実際の値より大きめに出ます。電子の数が偶数（閉殻）の中性分子だけが対象です。原子の数が多い分子や 6-31G では時間がかかります（1 点あたり数秒かかることがあり、途中で「やめる」を押せます）。計算はすべてこのブラウザの中で行われ、外部には送信されません。</td></tr>
         <tr><td>組み立て</td><td>左の「組み立て」で元素（C・N・O・S・F・Cl・Br・I）や官能基（OH・NH₂・CHO・COOH・NO₂・CN・C₆H₅・OCH₃・COCH₃）を選び、H をクリックすると、その H が置き換わります（H は価数に合わせて自動で付きます）。H 以外の原子をクリックすると、その原子の元素が変わります。結合のボタン（単・二重・三重）で結合をクリックすると結合の種類が変わり、消しゴム (<kbd>E</kbd>) で原子をクリックすると、その原子を消してあいた所に H を付けます（分子が切れたときは大きい方だけが残るので、官能基の付け根の原子を消すと官能基ごと消えます）。変更のたびに、結合長・結合角・二重結合の平面・原子の重なりを簡単に整えます（構造最適化ではないので、形はおおよそです）。</td></tr>
         <tr><td>不斉炭素・R/S</td><td>上部の「不斉炭素」で、4 つの異なる原子・原子団が結合した炭素をだいだい色の円で囲みます。「R/S」で R・S を表示します（CIP 順位規則。高校の範囲外の発展的な内容です。原子番号だけで順位を決めるので、まれに判定できないものがあります）。</td></tr>
         <tr><td>鏡像体</td><td>「鏡像体を並べる」で、いまの分子の鏡像を鏡をはさんで右に置きます（もう一度押すと取り除く）。このとき分子の近くからドラッグすると、鏡はそのままで分子だけが回り、鏡に映った分子も鏡像の動きで同時に回ります（<kbd>Shift</kbd>+ドラッグで移動）。回転の中心は不斉炭素（青い十字の印）で、2 つ以上あるときは上に出るプルダウンで選べます。鏡から離れたところからドラッグすると、鏡を含めて全体が回ります。<br>分子をクリックして選ぶと、その分子だけを回したり（ドラッグ）、動かしたり（<kbd>Shift</kbd>+ドラッグ）できます。もう一方に近づけたり、鏡を通り越して重ねたりして、重ならないことを確かめられます。「鏡の位置に戻す」で元の鏡像の位置に戻ります。「鏡像に変える」でその分子だけを鏡像にもできます。<br>鏡像体を並べているときに片方の分子を組み立てると（原子や官能基の置き換え・結合の変更・消しゴム）、もう一方も鏡像のまま同じように組み立てられます。</td></tr>
@@ -397,9 +427,10 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
       </table>
       <table class="about">
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
+        <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.11 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.12 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -2508,6 +2539,7 @@ function renderMeasBar(){
     $('measReset').disabled = !!plan.why || Math.abs(measDiff(n, v, near)) < (n === 2 ? 0.005 : 0.05);
   }
   $('measNote').textContent = plan.why || plan.note || '';
+  $('moScan').hidden = !(n === 4 && !plan.why);   // 二面角のときだけ「エネルギー曲線」を出す
   $('measBar').hidden = false; $('selBar').hidden = true; $('mirBar').hidden = true;
 }
 let measGesture = false;
@@ -3131,6 +3163,105 @@ $('sideResize').addEventListener('pointerdown', ev => {
   el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up);
 });
 
+// ===== 分子軌道法によるエネルギー（剛体の二面角スキャン） =====
+// 計算は mo-worker.js（別のスレッド）→ mo-engine.js（GANSU-Lite）。
+// .wasm と基底関数のファイルを読むので、サーバーから開いたとき（http・https）だけ使える
+const HARTREE_KJ = 2625.4996;
+const moServed = location.protocol === 'http:' || location.protocol === 'https:';
+let moWorker = null, moRun = null, moSeq = 0;
+function moStatus(text, busy = false){
+  $('moStatus').textContent = text;
+  $('moStop').hidden = !busy; $('moGo').disabled = busy;
+}
+function moEnsure(){
+  if (!moWorker){
+    moWorker = new Worker(new URL('mo-worker.js', location.href), {type:'module'});
+    moWorker.onmessage = e => moMessage(e.data);
+    moWorker.onerror = () => { moStatus('計算の係（mo-worker.js）を読み込めませんでした'); if (moRun) moRun.running = false; };
+  }
+  return moWorker;
+}
+function moMessage(d){
+  if (!moRun || d.id !== moRun.id) return;
+  if (d.type === 'point'){
+    moRun.energies[d.i] = d.energy;
+    const done = d.i + 1, all = moRun.angles.length, rest = Math.round((all - done)*d.ms/1000);
+    moStatus(`計算中… ${done}/${all} 点（基底関数 ${d.numBasis} 個。残り およそ ${rest} 秒）`, true);
+    moDraw();
+  } else if (d.type === 'done' || d.type === 'stopped'){
+    moRun.running = false; moDraw();
+    const es = moRun.energies.filter(v => typeof v === 'number');
+    if (es.length >= 2){
+      const w = (Math.max(...es) - Math.min(...es))*HARTREE_KJ;
+      moStatus(`${d.type === 'stopped' ? '途中で止めました' : '計算できました'}：いちばん高い形と低い形の差は ${w.toFixed(1)} kJ/mol（${es.length} 点）`);
+    } else moStatus(d.type === 'stopped' ? '途中で止めました' : '計算できました');
+  } else if (d.type === 'error'){
+    moRun.running = false;
+    moStatus('計算できませんでした：' + d.message);
+  }
+}
+// 曲線：横軸は二面角、縦軸はいちばん低い形からのエネルギーの差（kJ/mol）
+function moDraw(){
+  const cv = $('moChart'); if (!cv) return;
+  const W = cv.clientWidth, H = cv.clientHeight; if (!W || !H) return;
+  const dpr = devicePixelRatio || 1;
+  cv.width = Math.round(W*dpr); cv.height = Math.round(H*dpr);
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0); c.clearRect(0, 0, W, H);
+  if (!moRun) return;
+  const L = 38, R = 8, T = 10, B = 24;
+  const pts = moRun.angles.map((a, i) => [a, moRun.energies[i]]).filter(p => typeof p[1] === 'number');
+  const x0 = moRun.angles[0], x1 = moRun.angles[moRun.angles.length - 1];
+  const px = a => L + (W - L - R)*(a - x0)/((x1 - x0) || 1);
+  const lo = pts.length ? Math.min(...pts.map(p => p[1])) : 0;
+  const ys = pts.map(p => (p[1] - lo)*HARTREE_KJ), top = Math.max(10, ...ys);
+  const py = v => (H - B) - (H - B - T)*(v/top);
+  c.strokeStyle = '#c9ced6'; c.lineWidth = 1; c.font = '10px system-ui'; c.fillStyle = '#6b7280';
+  c.beginPath(); c.moveTo(L, T); c.lineTo(L, H - B); c.lineTo(W - R, H - B); c.stroke();
+  c.textAlign = 'right'; c.textBaseline = 'middle';
+  for (const v of [0, top/2, top]) { c.fillText(v.toFixed(0), L - 4, py(v)); }
+  c.textAlign = 'center'; c.textBaseline = 'top';
+  for (const a of [x0, (x0 + x1)/2, x1]) c.fillText(a.toFixed(0) + '°', px(a), H - B + 3);
+  c.fillText('kJ/mol', L - 20, T);
+  if (!pts.length) return;
+  c.strokeStyle = '#2563eb'; c.lineWidth = 2; c.beginPath();
+  pts.forEach((p, k) => { const X = px(p[0]), Y = py((p[1] - lo)*HARTREE_KJ); k ? c.lineTo(X, Y) : c.moveTo(X, Y); });
+  c.stroke();
+  c.fillStyle = '#2563eb';
+  for (const p of pts){ c.beginPath(); c.arc(px(p[0]), py((p[1] - lo)*HARTREE_KJ), 2.5, 0, 7); c.fill(); }
+}
+// 角度を変えた形を先に全部作る（doc は最後に元へ戻す）。送るのはその分子の原子だけ
+function moGeoms(m, step){
+  const snap = JSON.stringify(doc), ids = compOf(m.atoms[1]), xyzs = [], angles = [];
+  try {
+    for (let a = -180; a <= 180 + 1e-9; a += step){
+      applyMeasure(m, a);
+      angles.push(measureValue(m.atoms).v);
+      xyzs.push(toXYZText(ids.map(id => doc.atoms[id]), ''));
+    }
+  } finally { doc = JSON.parse(snap); }
+  return {xyzs, angles};
+}
+function moStart(){
+  const m = doc.meas.find(x => x.id === editMeas);
+  if (!m || m.atoms.length !== 4) { moStatus('二面角（左の計測の T）を 4 つの原子で測ってから押してください'); return; }
+  if (!moServed) { moStatus('この機能は、サーバーから開いたときだけ使えます（ファイルを直接開いた状態では計算できません）'); return; }
+  if (moRun && moRun.running) return;
+  const plan = editPlan(m.atoms);
+  if (plan.why) { moStatus('この二面角は変えられないので、計算できません：' + plan.why); return; }
+  const ids = compOf(m.atoms[1]);
+  if (ids.length > 24) { moStatus(`原子が ${ids.length} 個あり、計算にとても時間がかかるため取りやめました（目安は 20 個くらいまで）`); return; }
+  const {xyzs, angles} = moGeoms(m, +$('moStep').value);
+  moRun = {id: ++moSeq, angles, energies: new Array(angles.length), running: true};
+  moStatus(`計算中… 0/${angles.length} 点`, true);
+  moDraw();
+  moEnsure().postMessage({id: moRun.id, type: 'scan', xyzs, basis: $('moBasis').value});
+}
+$('moGo').onclick = moStart;
+$('moScan').onclick = () => { if (sidePane !== 'mo') openSide('mo');   // すでに開いているときに閉じてしまわないように
+  moStart(); };
+$('moStop').onclick = () => { if (moRun && moRun.running) { moEnsure().postMessage({id: moRun.id, type: 'stop'}); moStatus('止めています…'); } };
+addEventListener('resize', () => { if (moRun) moDraw(); });
+
 // ===== 保存・開く =====
 const STORE_KEY = 'bunshi-v1';
 function download(blob, name){ const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 2000); }
@@ -3297,7 +3428,7 @@ const restored = restore();
 syncToggles(); setMode(state.mode); setTool('rotate'); renderLibrary(); setWorld(state.world, true);
 try { const w = +localStorage.getItem(SIDEW_KEY); if (w) setSideW(w); } catch {}
 let savedPane = 'lib'; try { const p = localStorage.getItem(SIDE_KEY); if (p !== null) savedPane = p; } catch {}
-if (['lib', 'exp'].includes(savedPane)) openSide(savedPane);
+if (['lib', 'exp', 'mo'].includes(savedPane)) openSide(savedPane);
 analyze(); renderInfo(); renderSel(); syncUndo();
 if (!restored) { try { addMolecule(buildCached('CCO'), true); hist.undo = []; syncUndo(); } catch (e) { console.error(e); } }
 requestAnimationFrame(() => { if (!restored) fitView(); requestDraw(true); });
