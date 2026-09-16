@@ -1,6 +1,8 @@
-# グラフエディタ 0.9.0 BETA
+# グラフエディタ 0.10.0 BETA
 
-0.9.0では、分析グラフごとの軸・書式・回帰式表示と複製、数表の行と点の連動、元データを残した回帰の使用・除外を追加した。詳細は [グラフ編集・行選択の契約](docs/chart-editing-row-link-contract.md) を参照。オープンデータの取り込みは [次期拡張案](docs/open-data-import-plan.md) に整理しており、URL取得は未実装。
+0.10.0では、同梱オープンデータ、公開CSVのURL、ローカルCSV・TSVをまとめた取込画面を追加した。文字コード・見出し・列を推測し、プレビュー、列選択、欠測の確認、地域などの抽出、日付の数値変換、出典の保存ができる。直接取得できない公開元はダウンロードして選択する手順を示す。詳細は [オープンデータ取込仕様](docs/open-data-import-plan.md) と [同梱データの出典・利用条件](docs/open-data-sources.md) を参照。保存形式はversion 10を維持する。
+
+0.9.0では、分析グラフごとの軸・書式・回帰式表示と複製、数表の行と点の連動、元データを残した回帰の使用・除外を追加した。詳細は [グラフ編集・行選択の契約](docs/chart-editing-row-link-contract.md) を参照。
 
 0.8.0では、残差グラフ、相関行列からの散布図、ヒストグラム・箱ひげ図、自作テンプレート、複数グラフの比較配置と画像・印刷を追加した。詳細は [分析グラフ・テンプレート・比較](docs/statistical-charts-contract.md) を参照。0.7.0の作図連携・数表・統計・教材出力は維持する。
 
@@ -41,7 +43,7 @@
 
 陰関数は表示範囲と定義範囲の共通部を格子化し、辺の残差を確認して線を描く。重根・孤立点・格子より細かい曲線は検出できない場合がある。媒介変数・極座標も有限分割し、明らかな不連続をつながない。接線は左右の数値微分を比較し、交点は指定区間と両式の定義範囲を数値探索する。数値的に区別できない式は理由を表示し、解を数学的に証明するものではない。曲線のサンプリングは1系列あたり30,000回の式評価・12,000描画点を上限とし、上限到達は表示する。
 
-ブラウザ表示と画像出力はPlotly.jsの固定版をローカル同梱して使用する。実行時のCDN・外部サーバーへの接続はない。外部の出典ページは利用者がリンクを開いたときに遷移する。3DにはWebGLが必要で、初版の3D出力はPNG。白または透明な背景を選べ、編集画面のテーマを変更しない。
+ブラウザ表示と画像出力はPlotly.jsの固定版をローカル同梱して使用する。ライブラリ・同梱データの表示にCDNや外部サーバーへの接続は不要。公開CSVのURL取り込みを利用者が実行したときだけ公開元へ取得要求を送り、Cookie・認証情報・編集中の数表は送信しない。サーバー代理取得は行わない。出典ページのリンクは利用者が開いたときに遷移する。3DにはWebGLが必要で、初版の3D出力はPNG。白または透明な背景を選べ、編集画面のテーマを変更しない。
 
 曲線領域の面積・定積分は適応Simpson法による数値近似。各境界の指定範囲に区間全体が入ることを確認し、交差点で塗り分ける。非有限値・対数軸で描けない部分・未収束・計算上限では数値と塗りを出さず理由を表示する。1領域につき32768座標での境界評価を上限とし、広義積分や陰関数・媒介変数の閉曲線は対象外。細かい振動や尖った形状の完全な検出は保証しない。
 
@@ -130,6 +132,10 @@ node tools/graph/tests/regions-browser.test.cjs
 node tools/graph/tests/curve-regions-browser.test.cjs
 node tools/graph/tests/analysis-browser.test.cjs
 node tools/graph/tests/local-autosave-browser.test.cjs
+node tools/graph/tests/data-import.test.cjs
+node tools/graph/tests/data-fetch.test.cjs
+node tools/graph/tests/data-fetch-browser.test.cjs
+node tools/graph/tests/open-data-browser.test.cjs
 node tools/graph/tests/chart-presentation.test.cjs
 node tools/graph/tests/chart-editing-link-browser.test.cjs
 node tools/graph/tests/row-selection-browser.test.cjs

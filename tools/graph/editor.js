@@ -16,7 +16,7 @@
   let history, store, localAuto, help, tooltip, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey, dialogListDetail;
   let drawPending = false, drawing = false, drawTask = Promise.resolve(), exportBusy = false, fileBusy = false, toastTimer, saveTimer;
   let parameterPreview = null, gesture = null, selectionPanel = null, tangentDraft = null, tangentHoverTimer;
-  let addMenu = null, addMenuTimer;
+  let addMenu = null, addMenuTimer, dialogCleanup;
   const templates = typeof GraphTemplates.list === 'function' ? GraphTemplates.list() : C.clone(GraphTemplates.list);
   function node(tag, text, attrs) { const el = document.createElement(tag); if (text != null) el.textContent = text; for (const [k,v] of Object.entries(attrs || {})) el.setAttribute(k,v); return el; }
   function button(text, action, attrs) { const el = node('button',text,Object.assign({type:'button'},attrs)); el.addEventListener('click',event=>run(()=>action(event))); return el; }
@@ -405,12 +405,14 @@
   function undo(redo=false) { cancelTangentDraft();cancelGesture();parameterPreview=null; if(redo)history.redo();else history.undo(); selected=null;observedSelection=null;camera=undefined;updateHeader();updateList();updateToolbar();persistSoon();requestDraw(); }
   function openDialog(title, build, onApply, submit='適用') {
     const focused=document.activeElement,addTrigger=focused?.closest('.add-menu')?.querySelector('.add-menu-toggle');
+    if(dialogCleanup){const cleanup=dialogCleanup;dialogCleanup=null;cleanup();}
     cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=addTrigger||focused;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogListDetail=dialogOpener?.dataset.objectDetails;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
-    $('editor-dialog').classList.remove('wide-dialog');$('dialog-title').textContent=title;$('dialog-content').replaceChildren();$('dialog-error').hidden=true;$('dialog-submit').hidden=!onApply;$('dialog-submit').textContent=submit;
+    $('editor-dialog').classList.remove('wide-dialog','data-import-dialog');$('dialog-title').textContent=title;$('dialog-content').replaceChildren();$('dialog-error').hidden=true;$('dialog-submit').hidden=!onApply;$('dialog-submit').disabled=false;$('dialog-submit').textContent=submit;
     $('dialog-cancel').textContent=onApply?'キャンセル':'閉じる';build($('dialog-content'));$('editor-dialog').showModal();
     const focus=$('dialog-content').querySelector('input,textarea,select,button');if(focus)focus.focus();
   }
   function closeDialog() {
+    if(dialogCleanup){const cleanup=dialogCleanup;dialogCleanup=null;cleanup();}
     document.body.classList.remove('print-ready');$('print-sheet').replaceChildren();$('editor-dialog').close();
     const replacement=dialogListDetail?document.querySelector('[data-object-details="'+CSS.escape(dialogListDetail)+'"]'):dialogOpenerKey&&dialogSelectionKey===$('selection-toolbar').dataset.selectionKey?$('selection-toolbar').querySelector('[data-quick-control="'+CSS.escape(dialogOpenerKey)+'"]'):null,opener=dialogOpener?.isConnected?dialogOpener:replacement;
     if((dialogListDetail||opener?.classList.contains('add-menu-toggle'))&&opener&&matchMedia('(max-width:850px)').matches)setListOpen(true);
@@ -468,6 +470,34 @@
     else s.expression=current().mode==='3d'?'z = sin(x)*cos(y)':'y = x^2';
     if(dataTable)GraphTables.assign(s,dataTable);
     editSeries(null,s);
+  }
+  function importData(file) {
+    let importer;
+    const kind=current().mode==='3d'?'data3d':'data2d';
+    openDialog('データを取り込む',parent=>{
+      $('editor-dialog').classList.add('wide-dialog','data-import-dialog');
+      const defaultLabels=Object.values(current().axes).every(axis=>axis.label===axis.symbol&&!axis.unit);
+      importer=GraphDataImportUI.mount(parent,{kind,file,empty:!current().series.some(matchesMode)||defaultLabels,onReady:ready=>{$('dialog-submit').disabled=!ready;}});
+    },()=>{
+      const imported=importer.read(),series=C.createSeries(kind);
+      series.name=imported.name;series.expression='';series.style.color=palette[current().series.length%12];
+      series.style.points=true;series.style.lines=imported.lines;series.source=imported.source;
+      GraphTables.assign(series,imported.table);
+      changed(doc=>{
+        doc.series.push(series);
+        for(const key of kind==='data3d'?['x','y','z']:['x','y']){
+          if(imported.axes)Object.assign(doc.axes[key],imported.axes[key]);
+          if(!imported.fit)continue;
+          const index={x:0,y:1,z:2}[key];let min=Infinity,max=-Infinity;
+          for(const row of series.rows)if(row.every(Number.isFinite)){min=Math.min(min,row[index]);max=Math.max(max,row[index]);}
+          if(!Number.isFinite(min)||!Number.isFinite(max))continue;
+          const pad=(max-min||Math.max(Math.abs(min),1))*.07;
+          Object.assign(doc.axes[key],{min:Math.max(-1e9,min-pad),max:Math.min(1e9,max+pad),scale:'linear',ticks:{step:null,format:'auto'}});
+        }
+      },'データを追加しました。');
+      showWorkspace('main');observedSelection=null;select({type:'series',id:series.id});
+    },'描画');
+    dialogCleanup=()=>importer.destroy();
   }
   function addCurve(kind) {
     const s=C.createSeries(kind);s.name=kindNames[kind]+' '+(current().series.length+1);s.style.color=palette[current().series.length%12];
@@ -1040,7 +1070,7 @@
     listen('start-local-auto','click',startLocalAutosave);listen('stop-local-auto','click',()=>{localAuto.stop();$('stop-local-auto').disabled=true;closeMenus();});
     listen('new-document','click',()=>{closeMenus();loadDocument(C.createDocument());notify('新しいグラフを開きました。元に戻すこともできます。');});
     listen('file-input','change',async()=>{const file=$('file-input').files[0];$('file-input').value='';if(!file)return;if(file.size>2*1024*1024)throw new Error('再編集ファイルは2MB以内にしてください。');loadDocument(C.validateDocument(await file.text()));notify('グラフを読み込みました。');});
-    listen('import-csv','click',()=>$('csv-input').click());listen('csv-input','change',async()=>{const file=$('csv-input').files[0];$('csv-input').value='';if(!file)return;if(file.size>1024*1024)throw new Error('CSVは1MB以内にしてください。');const table=GraphTables.parse(await file.text(),current().mode==='3d'?'data3d':'data2d');addSeries(true,undefined,undefined,table);});
+    listen('import-csv','click',()=>importData());listen('csv-input','change',()=>{const file=$('csv-input').files[0];$('csv-input').value='';if(file)importData(file);});
     for(const key of Object.keys(current().output))listen('output-'+key,'change',saveOutputControls);
     listen('print-preview','click',printPreview);listen('export-image','click',exportImage);listen('fit-comparison-output','click',fitComparisonOutput);listen('dialog-close','click',closeDialog);listen('dialog-cancel','click',closeDialog);
     $('editor-dialog').addEventListener('cancel',event=>{event.preventDefault();closeDialog();});

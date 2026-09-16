@@ -45,10 +45,11 @@ let browser, page;
   await page.keyboard.press('Enter'); await page.locator('#editor-dialog').waitFor({ state: 'visible' });
   assert(await sp.isHidden()); await page.keyboard.press('Escape'); assert(await focused(series), 'dialog returns to the visible heading icon');
   await series.click();
-  const chooseCSV = page.waitForEvent('filechooser'); await page.locator('#import-csv').click();
+  await page.locator('#import-csv').click(); await page.getByRole('button',{name:'ファイル',exact:true}).click();
+  const chooseCSV = page.waitForEvent('filechooser'); await page.getByRole('button',{name:'CSV・TSVファイルを選ぶ',exact:true}).click();
   await (await chooseCSV).setFiles({ name: 'observations.csv', mimeType: 'text/csv', buffer: Buffer.from('x,y\n0,1\n1,2') });
   await page.locator('#editor-dialog').waitFor({ state: 'visible' });
-  await page.locator('#dialog-content summary').filter({hasText:'CSV・TSVを貼り付け'}).click(); assert(await page.locator('#dialog-content').getByLabel('CSV・TSVを貼り付け',{exact:true}).isVisible());
+  await page.locator('.data-import-preview').waitFor({state:'visible'}); assert.equal(await page.getByLabel('横軸の列',{exact:true}).inputValue(),'0');
   await page.locator('#dialog-cancel').click(); assert(await focused(series), 'CSV import returns to the heading icon');
 
   await page.locator('#mode-3d').click(); await settle(); await series.click();

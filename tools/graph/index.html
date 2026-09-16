@@ -8,11 +8,16 @@
   <link rel="icon" href="icon.svg" type="image/svg+xml">
   <link rel="stylesheet" href="../shared/ui-kit.css">
   <link rel="stylesheet" href="editor.css">
+  <link rel="stylesheet" href="data-import.css">
   <link rel="stylesheet" href="../shared/help-panel.css">
   <script defer src="vendor/plotly.min.js"></script>
   <script defer src="expression.js"></script>
   <script defer src="symbols.js"></script>
   <script defer src="tables.js"></script>
+  <script defer src="data-import.js"></script>
+  <script defer src="data-fetch.js"></script>
+  <script defer src="open-data-catalog.js"></script>
+  <script defer src="data-import-ui.js"></script>
   <script defer src="statistics.js"></script>
   <script defer src="analysis.js"></script>
   <script defer src="charts.js"></script>
@@ -67,7 +72,7 @@
           <h3>数式・数表を追加</h3>
           <div class="add-grid"><button id="add-function">＋ 数式</button><button id="add-data">＋ 数表</button></div>
           <details id="other-curves" class="curve-choices"><summary>ほかの数式</summary><button id="add-implicit" class="full-button">＋ 陰関数 F(x, y) = 0</button><button id="add-parametric" class="full-button">＋ 媒介変数 x(t), y(t)</button><button id="add-polar" class="full-button">＋ 極座標 r(θ)</button></details>
-          <button id="import-csv" class="full-button">CSV・表計算のデータを追加</button>
+          <button id="import-csv" class="full-button">CSV・オープンデータを追加</button>
           <button id="show-statistics" class="full-button">統計量・相関行列…</button>
         </div>
       </div>
@@ -159,7 +164,8 @@
   <section data-help-topic="view" data-help-title="表示・3D・配色"><h3>表示・3D・配色</h3><p>2Dはドラッグで移動、ホイールやピンチで拡大縮小。3Dはドラッグで回転できます。「全体表示」で数式の指定範囲と数表が収まる範囲へ戻します。</p><p>「座標・設定」で表示範囲、軸名、単位、通常／対数目盛、角度を指定します。3Dでは曲面と3列の数表を表示します。2Dへ戻しても3Dの式や数表は保持されます。</p><p>対象を選ぶと基本6色が表示され、1クリックで変更できます。線の太さ・線種も同じポップアップに常時表示します。「色・線」アイコンを押すと、残りの色がメニュー内に開きます。RGB、自由な色、不透明度は「色・線の詳細…」で設定します。変更はすぐに反映され、「元に戻す」で取り消せます。テーマと操作文字の大きさは上部の「…」で変更します。</p><details><summary>表示の精度</summary><p>グラフは有限個の点から数値計算で描きます。非常に細い振動、狭い穴、不連続な式では特徴を捉えきれない場合があります。必要な範囲へ拡大して確認してください。3D曲面も格子による近似表示です。</p></details></section>
   <section data-help-topic="save" data-help-title="保存と書き出し"><h3>保存と書き出し</h3><p>編集内容はブラウザへ自動保存します。「ブラウザに保存」で残した内容は別に保持し、「保存したグラフを開く」から選択できます。起動時も保存候補を選べます。</p><p>ローカルファイルには再編集用のJSONを保存します。画像は右の「書き出し」からPNG、2DはSVGも使えます。画像には元の数式・数表の編集機能は含まれず、タイトル設定は印刷時だけに適用されます。</p><details><summary>ローカル自動保存</summary><p>Chromeで書き込み先を選ぶと、明示保存とは別のファイルへ自動保存できます。この画面を閉じると終了します。保存先が外部で変更された場合は停止し、作品を保持します。ブラウザの保存とファイルのダウンロードも利用できます。</p></details><p>⌘S 保存／⌘O 開く／⌘Z 元に戻す／⇧⌘Z やり直し／Escape メニューを閉じる・選択解除／? ヘルプ。</p></section>
   <section data-help-topic="chart-editing" data-help-title="分析グラフの書式・行の選択"><h3>分析グラフの書式・行の選択</h3><p>分析グラフを選ぶと、色・点の大きさ・線の太さ・線種・凡例をポップアップで変更できます。「︙」または設定アイコンで、グラフごとの軸名・単位・最小値・最大値・目盛りを設定します。最小値と最大値を両方空欄にすると自動範囲です。散布図の回帰式と統計指標は図中にも表示でき、画像にも含まれます。複製したグラフは同じ数表を参照し、書式を個別に変えられます。</p><p>2D数表の点・散布図・残差図の点をクリックすると、元の行番号と各列の値を確認できます。編集アイコンから、その行が見える数表を開きます。同じ数表を使う図に切り替えたり比較に並べたりすると、対応する点を強調します。強調は編集時だけで、画像・保存ファイルには含まれません。空白部分をクリック、またはEscapeで解除します。</p><p>「回帰から除外」は元のデータを削除せず、この数表を使うすべての回帰に反映します。除外した点は白抜きで残し、残差図には使用した点だけを描きます。「回帰に戻す」で復元できます。数表の各行にある「回帰」チェックや、一括使用・除外も使えます。変更は「描画」で確定し、キャンセルなら保持されません。統計量・相関行列・ヒストグラム・箱ひげ図は除外指定にかかわらず元の全データを使い、欠測の扱いも従来どおりです。</p><p>数表で行を削除すると除外指定も対応する行へ移り、CSVで表全体を置き換えると指定を解除します。数値なしの自作テンプレートにも除外指定は残しません。</p></section>
-  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>グラフエディタ 0.9.0 BETA（2026年9月）</p><p>数学・理科・情報のグラフを描く教育用ツールです。推奨環境：macOS＋Google Chrome。3D表示にはWebGLが必要です。入力データはブラウザ内または選択したローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの利用条件は各ライセンスに従います。</p><p><a href="docs/template-sources.md" target="_blank" rel="noopener">テンプレートの出典</a> · <a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a></p></section>
+  <section data-help-topic="open-data" data-help-title="CSV・オープンデータ"><h3>データを取り込む</h3><ol><li>「数式・数表」の＋から「CSV・オープンデータを追加」を開きます。</li><li>「用意済み」のデータを選ぶか、「URL」で公開CSVを読み込むか、「ファイル」でCSV・TSVを選びます。</li><li>プレビューと軸の列を確認して「描画」を押します。取り込んだ数表は回帰・統計量・相関行列にも使えます。</li></ol><p>直接読み込めない場合は、同じ画面から公開元を開いてCSVをダウンロードし、「ダウンロードしたファイルを選ぶ」を押します。選んだファイルはブラウザ内で処理し、サーバーへアップロードしません。気象庁・e-Statの案内も「URL」にあります。</p><details><summary>列・日付・欠測の扱い</summary><p>UTF-8・Shift_JIS、区切り文字、見出し行・データ開始行を推測します。「列・読み取りの詳細」で変更でき、地域名や品質情報などの値で完全一致の絞り込みができます。取り込む数値列は軸を含め20列、1万行、ファイルは1MBまでです。</p><p>空欄・NA・---などは欠測のまま保持します。注記付きの値はエラーを示し、明示的に指定した場合だけ欠測に変換します。品質情報のコードに応じた自動除外はしません。公開元の説明に従って確認・抽出してください。</p><p>日付は横軸に指定し、最初の有効な日付からの経過日数、年、月へ変換できます。月を選ぶと年を区別しなくなる点に注意してください。文字列の列や元の表記は作品に保存しません。「元のCSVを保存」などで元ファイルも残してください。説明行が多いCSVや縦横の向きが異なる表は、表計算アプリで必要な部分を整えてから読み込めます。</p></details><details><summary>出典・保存・再配布</summary><p>資料名・出典URL・取り込み日時・変換や抽出の内容を数表の出典欄に記録します。保存した作品は読み込んだ数値を含み、公開元が更新されても自動では変わりません。画像に出典は自動挿入されないため、教材などに掲載する際は出典欄を参照して併記してください。</p><p>「用意済み」には、出典・利用条件を確認した気象庁の東京の月別平年値を収録しています。公開値を選択・転記した固定データです。利用・再配布の条件は各公開元に従い、別のデータも条件を確認してから追加します。認証が必要なAPIやExcel・JSONの直接取込、公開元の更新との自動同期は、この版では扱いません。</p></details></section>
+  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>グラフエディタ 0.10.0 BETA（2026年9月）</p><p>数学・理科・情報のグラフを描く教育用ツールです。推奨環境：macOS＋Google Chrome。3D表示にはWebGLが必要です。入力データはブラウザ内または選択したローカルファイルに保存します。公開CSVのURLを読み込むときは公開元へ取得要求を送りますが、編集中のデータや認証情報は送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱のオープンデータとライブラリには、それぞれ公開元の利用条件・ライセンスが適用されます。</p><p><a href="docs/open-data-sources.md" target="_blank" rel="noopener">同梱オープンデータの出典</a> · <a href="docs/template-sources.md" target="_blank" rel="noopener">テンプレートの出典</a> · <a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a></p></section>
 </aside>
 <noscript><p class="noscript">このエディタを利用するにはJavaScriptを有効にしてください。</p></noscript>
 </body>
