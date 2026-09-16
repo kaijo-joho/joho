@@ -31,14 +31,22 @@
   function matrixAttr(matrix) { matrix = matrixOf(matrix); return matrix[0] === 1 && matrix[1] === 0 && matrix[2] === 0 && matrix[3] === 1 && matrix[4] === 0 && matrix[5] === 0 ? '' : ' transform="matrix(' + matrix.join(' ') + ')"'; }
   function attrs(object) { var s = styleOf(object.style); return ' data-ilapo-id="' + esc(object.id || '') + '"' + matrixAttr(object.matrix) + ' fill="' + s.fill + '" stroke="' + s.stroke + '" stroke-width="' + s.strokeWidth + '" opacity="' + s.opacity + '" stroke-dasharray="' + esc(s.dash) + '" stroke-linecap="' + s.linecap + '" stroke-linejoin="' + s.linejoin + '"' + (['path','image'].includes(object.type)?' font-size="'+s.fontSize+'" font-family="'+s.fontFamily+'" font-weight="'+(s.bold?'bold':'normal')+'" font-style="'+(s.italic?'italic':'normal')+'"':''); }
   function validPath(d) { return typeof d === 'string' && /^[\s,\.\-+0-9a-zA-Z]+$/.test(d) && !/[a-z]/.test(d.replace(/[MmZzLlHhVvCcSsQqTtAaEe]/g, '')); }
-  function objectMarkup(object) {
-    if(object?.type==='connector')return '<g data-ilapo-connector="'+esc(object.id)+'">'+root.IlapoConnectors.renderedParts(object).map(objectMarkup).join('')+'</g>';
+  function objectMarkup(object, options) {
+    options=options||{};
+    if(object?.type==='connector')return '<g data-ilapo-connector="'+esc(object.id)+'">'+root.IlapoConnectors.renderedParts(object).map(function(part){return objectMarkup(part,options);}).join('')+'</g>';
     if(object?.type==='image'){
       if(!root.IlapoCore.validImageSource(object.src))throw new Error('Unsafe SVG image source');
       return '<image'+attrs(object)+' x="'+number(object.x,0)+'" y="'+number(object.y,0)+'" width="'+number(object.width,1)+'" height="'+number(object.height,1)+'" href="'+esc(object.src)+'" preserveAspectRatio="none"/>';
     }
     if (!object || !/^(path|text)$/.test(object.type)) throw new Error('Unsupported Ilapo object');
-    if (object.type === 'path') { if (!validPath(object.d)) throw new Error('Invalid SVG path data'); return '<path' + attrs(object) + ' d="' + esc(object.d) + '"/>'; }
+    if (object.type === 'path') {
+      if (!validPath(object.d)) throw new Error('Invalid SVG path data');
+      // The stroke width is a document-space value. Bake an object transform for
+      // display and ordinary exports so non-uniform scaling cannot distort it.
+      // Native ZIP pages request rawTransforms to preserve editable matrix/d data.
+      if (!options.rawTransforms && root.IlapoGeometry?.flattenedPath) object=root.IlapoGeometry.flattenedPath(object);
+      return '<path' + attrs(object) + ' d="' + esc(object.d) + '"/>';
+    }
     var style = styleOf(object.style), runs = Array.isArray(object.runs) ? object.runs : [{ text: '' }], x = number(object.x, 0), y = number(object.y, 0);
     var body = '', line = 0;
     runs.forEach(function (run) { var parts = String(run.text == null ? '' : run.text).split('\n'); parts.forEach(function (part, index) { if (index) body += '<tspan x="' + x + '" dy="' + (style.fontSize * 1.2) + '">'; else body += '<tspan>'; var shift = run.script === 'super' ? 'super' : run.script === 'sub' ? 'sub' : ''; if (shift) body += '<tspan baseline-shift="' + shift + '" font-size="70%">' + esc(part) + '</tspan>'; else body += esc(part); body += '</tspan>'; line += 1; }); });
@@ -48,11 +56,13 @@
   }
   function exportPage(page, options) { options = options || {};page=root.IlapoCore.clone(page);root.IlapoConnectors?.sync(page); var objects = (page.objects || []).filter(function (o) { return (options.includeReferences||!(o.type==='image'&&o.reference))&&(!options.selectionIds || options.selectionIds.indexOf(o.id) >= 0); }); var pad = number(options.padding, 20), board = page.board || {}, w = number(board.width, 800), h = number(board.height, 600), x = 0, y = 0;
     if (board.infinite || options.selectionIds) { var b = bounds(objects); if (b) { x = b.x - pad; y = b.y - pad; w = Math.max(1, b.right - b.x + 2 * pad); h = Math.max(1, b.bottom - b.y + 2 * pad); } }
-    var body = '', openGroup = null; objects.forEach(function (o) { if (o.group !== openGroup) { if (openGroup) body += '</g>'; openGroup=o.group||null; if(openGroup) body += '<g data-ilapo-group="' + esc(openGroup) + '">'; } body += objectMarkup(o); }); if(openGroup) body += '</g>';
+    var body = '', openGroup = null; objects.forEach(function (o) { if (o.group !== openGroup) { if (openGroup) body += '</g>'; openGroup=o.group||null; if(openGroup) body += '<g data-ilapo-group="' + esc(openGroup) + '">'; } body += objectMarkup(o,options); }); if(openGroup) body += '</g>';
     return '<?xml version="1.0" encoding="UTF-8"?><svg xmlns="' + SVG_NS + '" width="' + w + '" height="' + h + '" viewBox="' + x + ' ' + y + ' ' + w + ' ' + h + '" data-ilapo-page-id="' + esc(page.id || '') + '">' + body + '</svg>';
   }
   function parseTransform(text) { text=String(text||''); var out = [1, 0, 0, 1, 0, 0], re = /([a-zA-Z]+)\s*\(([^)]*)\)/g, match; if(text.replace(re,'').trim())throw new Error('Invalid SVG transform'); while ((match = re.exec(text))) { var n = match[2].trim().split(/[ ,]+/).filter(Boolean).map(Number), m; if (n.some(function(v){return !Number.isFinite(v);} )) throw new Error('Invalid SVG transform'); if (match[1] === 'matrix' && n.length === 6) m = n; else if (match[1] === 'translate' && (n.length === 1 || n.length === 2)) m = [1,0,0,1,n[0],n[1] || 0]; else if (match[1] === 'scale' && (n.length === 1 || n.length === 2)) m = [n[0],0,0,n[1] == null ? n[0] : n[1],0,0]; else if (match[1] === 'rotate' && (n.length === 1 || n.length === 3)) { var r=n[0]*Math.PI/180,c=Math.cos(r),s=Math.sin(r),cx=n[1]||0,cy=n[2]||0; m=[c,s,-s,c,cx-c*cx+s*cy,cy-s*cx-c*cy]; } else throw new Error('Unsupported SVG transform'); out = combine(out, m); } return out; }
   function combine(a,b) { return [a[0]*b[0]+a[2]*b[1],a[1]*b[0]+a[3]*b[1],a[0]*b[2]+a[2]*b[3],a[1]*b[2]+a[3]*b[3],a[0]*b[4]+a[2]*b[5]+a[4],a[1]*b[4]+a[3]*b[5]+a[5]]; }
+  function scaleDash(dash, scale) { return dash ? dash.trim().split(/\s+/).map(function(n){return Number(n)*scale;}).join(' ') : ''; }
+  function uniformStrokeScale(matrix) { var sx=Math.hypot(matrix[0],matrix[1]),sy=Math.hypot(matrix[2],matrix[3]),dot=matrix[0]*matrix[2]+matrix[1]*matrix[3],tolerance=1e-9*Math.max(1,sx,sy);if(Math.abs(sx-sy)>tolerance||Math.abs(dot)>tolerance*Math.max(1,sx,sy))throw new Error('SVGの線には縦横で異なる倍率が使われています。線をアウトライン化するか、縦横比を保って拡大縮小してください。');return sx; }
   function attr(el, name, fallback) { return el.hasAttribute(name) ? el.getAttribute(name) : fallback; }
   function elementStyle(el, inherited) {
     var base=styleOf(inherited),s={};
@@ -177,6 +187,15 @@
       var viewport=[sx,0,0,sy,tx-vb[0]*sx,ty-vb[1]*sy];
       objects.forEach(function(o){o.matrix=combine(viewport,o.matrix);});
     }
+    // SVG transforms scale a path stroke. The editor stores path strokes in
+    // document coordinates, so normal imports fold a uniform source scale
+    // into strokeWidth. A non-uniform source stroke has no equivalent scalar
+    // width, so reject it instead of silently averaging. Native ZIP import
+    // keeps its raw matrix/d/style representation without this conversion.
+    var ilapoSVG=attr(svg,'data-ilapo-page-id',null)!==null;
+    // 旧版を含む当アプリのSVGは、保存した線幅を既に作品座標の値として復元する。
+    // 外部SVGだけは一様倍率を数値へ正規化し、非等方の線を拒否する。
+    if(!options.preserveCoordinates&&!ilapoSVG)objects.forEach(function(o){if(o.type==='path'&&o.style.stroke!=='none'&&o.style.strokeWidth>0){var scale=uniformStrokeScale(o.matrix);o.style.strokeWidth*=scale;o.style.dash=scaleDash(o.style.dash,scale);}});
     var page={id:attr(svg,'data-ilapo-page-id',uid('page')),name:'読み込んだSVG',board:{width:width,height:height,unit:'px',infinite:false},objects:objects};
     if(root.IlapoCore)page=root.IlapoCore.validateDocument({format:'kaijo-ilapo',version:1,id:'import',name:'SVG',pages:[page]}).pages[0];
     return {page:page,warnings:[]};
@@ -194,7 +213,7 @@
         if(o.type==='image')m.reference=o.reference;
         meta.objects[o.id]=m;
       });
-      manifest.pages.push(meta);files[file]=root.fflate.strToU8(exportPage(page,{includeReferences:true}));
+      manifest.pages.push(meta);files[file]=root.fflate.strToU8(exportPage(page,{includeReferences:true,rawTransforms:true}));
     });
     files['manifest.json']=root.fflate.strToU8(JSON.stringify(manifest));
     if(Object.values(files).reduce(function(n,b){return n+b.length;},0)>20*1024*1024)throw new Error('Project ZIP exceeds size limit');

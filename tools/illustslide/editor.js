@@ -1,7 +1,7 @@
 /* illustSlide: 編集画面。作品、表示、選択、保存候補はそれぞれ独立して管理する。 */
 (function () {
   'use strict';
-  const C = window.IlapoCore, S = window.IlapoSVG, G = window.IlapoGeometry, E = window.IlapoExport, K=window.IlapoConnectors, A=window.IlapoAssets;
+  const C = window.IlapoCore, S = window.IlapoSVG, G = window.IlapoGeometry, E = window.IlapoExport, K=window.IlapoConnectors, A=window.IlapoAssets, Guides=window.IlapoGuides;
   const $ = id => document.getElementById(id);
   const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const icons = {
@@ -26,14 +26,15 @@
   const names = {rect:'長方形',roundrect:'角丸',ellipse:'楕円',triangle:'三角形',pentagon:'五角形',diamond:'菱形',parallelogram:'平行四辺形',arrow:'太い矢印',callout:'吹き出し',line:'線',connector:'接続矢印','connector-orthogonal':'カギ型矢印',text:'文字',direct:'直接選択',select:'全体を選択',pan:'移動'};
   document.querySelectorAll('[data-icon]').forEach(el => el.insertAdjacentHTML('afterbegin',icon(el.dataset.icon)));
   $('shape-tools').innerHTML = Object.keys(names).filter(k=>!['direct','select','pan'].includes(k)).map(k=>`<button data-tool="${k}" aria-label="${names[k]}を追加" data-tip="${names[k]}を追加">${icon(k)}<span>${names[k]}</span></button>`).join('');
-  if (!C || !S || !G || !E || !K || !A || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector || !window.IlapoPagesUI || !window.IlapoObjectsUI || !window.IlapoAssetsUI) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
+  if (!C || !S || !G || !E || !K || !A || !Guides || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector || !window.IlapoPagesUI || !window.IlapoObjectsUI || !window.IlapoAssetsUI) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
   const initial=C.createDocument(); initial.name='無題の作品'; initial.pages[0].board=C.boardPreset('16:9');
   const history=new C.History(initial);
   let pageId=initial.pages[0].id, selected=[], tool='direct', drag=null, preview=null, clipboard=null, copiedStyle=null;
   let camera={x:0,y:0,width:1280,height:720}, saveTimer, saveFingerprint=JSON.stringify(initial), edited=false, store, localAuto, help, space=false, renderPending=false, writeInProgress=false;
   let pathUI,connectionUI,animationUI,pagesUI,objectsUI,assetsUI,library,inspector,inspectorPreview=null,revision=0;
-  let settings={theme:'auto',size:'standard',grid:true,snap:false,gridStep:20,snapPixel:false,snapAnchor:true,snapPath:true};
+  let settings={theme:'auto',size:'standard',grid:true,snap:false,gridStep:20,snapPixel:false,snapAnchor:true,snapPath:true,smartGuides:true};
   try { Object.assign(settings,JSON.parse(localStorage.getItem('kaijo-ilapo:settings')||'{}')); } catch (_) {}
+  if(typeof settings.smartGuides!=='boolean')settings.smartGuides=true;
   if(!['auto','light','dark'].includes(settings.theme))settings.theme='auto';
   if(!['standard','large','xlarge'].includes(settings.size))settings.size='standard';
   if(!Number.isFinite(Number(settings.gridStep))||Number(settings.gridStep)<.01||Number(settings.gridStep)>10000)settings.gridStep=20;
@@ -122,6 +123,7 @@
     document.querySelectorAll('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===tool)));
     $('hint').textContent=['connector','connector-orthogonal'].includes(tool)?connectionUI.hint():!$('connection-options').hidden?'丸い端点で接続位置 · 四角で折れ曲がり位置 · ダブルクリックで点を追加 · Enterで詳細':tool==='direct'?pathUI.hint():tool==='select'?(selected.length>1?'整列・サイズの基準は最初に選んだ図形 · Space＋ドラッグで移動':'Shiftで追加選択 · Space＋ドラッグで移動'):tool==='pan'?'ドラッグして表示を移動':`${names[tool]}：クリックで配置 · ドラッグで大きさを指定`;
     renderSelection();
+    $('alignment-guides').innerHTML=Guides.markup(drag?.alignment,zoom(),p.board.unit);
   }
   function renderSelection() {
     const z=zoom(), stroke=1/z;
@@ -167,23 +169,46 @@
       else if(!selected.includes(hit))selection(expanded);
       if(selected.includes(hit)&&allUnlocked())drag={kind:'move',start:point,base,originalSelection:selected.slice()};
     }else {if(!event.shiftKey)selected=[];drag={kind:'marquee',start:p,box:{x:p.x,y:p.y,width:0,height:0},originalSelection,add:event.shiftKey};}
-    if(drag){event.preventDefault();$('canvas').setPointerCapture(event.pointerId);drag.pointerId=event.pointerId;}render();
+    if(drag){drag.rawStart={...p};event.preventDefault();$('canvas').setPointerCapture(event.pointerId);drag.pointerId=event.pointerId;}render();
   });
   $('canvas').addEventListener('pointermove',event=>{
-    if(!drag||drag.pointerId!==event.pointerId)return;const p=world(event),sp=snap(p,event);drag.moved=drag.moved||Math.hypot(p.x-drag.start.x,p.y-drag.start.y)*zoom()>3;
+    if(!drag||drag.pointerId!==event.pointerId)return;const p=world(event),sp=snap(p,event);drag.moved=drag.moved||Math.hypot(p.x-drag.rawStart.x,p.y-drag.rawStart.y)*zoom()>3;drag.lastPoint={...p};
     if(connectionUI.pointerMove(event,p,drag)||pathUI.pointerMove(event,p,drag)){render();return;}
     if(drag.kind==='pan'){camera.x=drag.camera.x-(event.clientX-drag.client.x)/zoom();camera.y=drag.camera.y-(event.clientY-drag.client.y)/zoom();}
     if(drag.kind==='draw'){drag.end=sp;preview=C.clone(drag.base);if(drag.moved){try{preview.objects.push(createShape(tool,drag.start,sp));}catch(_){}}}
-    if(drag.kind==='move'){preview=C.clone(drag.base);C.transformObjects(preview,selected,[1,0,0,1,sp.x-drag.start.x,sp.y-drag.start.y]);}
     if(drag.kind==='marquee'){drag.box={x:Math.min(p.x,drag.start.x),y:Math.min(p.y,drag.start.y),width:Math.abs(p.x-drag.start.x),height:Math.abs(p.y-drag.start.y)};}
-    if(drag.kind==='transform'){
-      preview=C.clone(drag.base);const b=drag.box,cx=b.x+b.width/2,cy=b.y+b.height/2;let m;
-      if(drag.handle==='rotate'){let angle=Math.atan2(p.y-cy,p.x-cx)-Math.atan2(drag.start.y-cy,drag.start.x-cx);if(event.shiftKey)angle=Math.round(angle/(Math.PI/12))*Math.PI/12;m=around(rotation(angle),cx,cy);}
-      else {const key=drag.handle,ax=key.includes('w')?b.x+b.width:key.includes('e')?b.x:cx,ay=key.includes('n')?b.y+b.height:key.includes('s')?b.y:cy;let sx=key==='n'||key==='s'?1:(p.x-ax)/(drag.start.x-ax||1),sy=key==='e'||key==='w'?1:(p.y-ay)/(drag.start.y-ay||1);sx=Math.max(.01,sx);sy=Math.max(.01,sy);if(event.shiftKey){if(key==='n'||key==='s')sx=sy;else sy=sx;}m=around([sx,0,0,sy,0,0],ax,ay);}
-      C.transformObjects(preview,selected,m);
-    }
+    updateSelectionDrag(p,event);
     render();
   });
+  function updateSelectionDrag(point,event){
+    if(!drag||!['move','transform'].includes(drag.kind)||!drag.moved)return;
+    drag.guideSession||=Guides.prepare(drag.base,selected,G.bounds,camera);
+    const options={zoom:zoom(),enabled:settings.smartGuides,alt:event.altKey};
+    preview=C.clone(drag.base);
+    if(drag.kind==='move'){
+      const snapped=snap(point,event),delta={x:point.x-drag.rawStart.x,y:point.y-drag.rawStart.y};
+      drag.alignment=Guides.move(drag.guideSession,delta,{...options,fallback:{x:snapped.x-drag.start.x,y:snapped.y-drag.start.y}});
+      C.transformObjects(preview,selected,[1,0,0,1,drag.alignment.delta.x,drag.alignment.delta.y]);return;
+    }
+    const b=drag.box,cx=b.x+b.width/2,cy=b.y+b.height/2,key=drag.handle;let m;
+    drag.alignment=null;
+    if(key==='rotate'){
+      let angle=Math.atan2(point.y-cy,point.x-cx)-Math.atan2(drag.start.y-cy,drag.start.x-cx);
+      if(event.shiftKey)angle=Math.round(angle/(Math.PI/12))*Math.PI/12;
+      m=around(rotation(angle),cx,cy);
+    }else{
+      const x=key.includes('w')?'start':key.includes('e')?'end':null,y=key.includes('n')?'start':key.includes('s')?'end':null;
+      const ax=x==='start'?b.x+b.width:x==='end'?b.x:cx,ay=y==='start'?b.y+b.height:y==='end'?b.y:cy;
+      let sx=x?(point.x-ax)/(drag.start.x-ax||1):1,sy=y?(point.y-ay)/(drag.start.y-ay||1):1;
+      sx=Math.max(.01,sx);sy=Math.max(.01,sy);
+      if(event.shiftKey){if(!x)sx=sy;else sy=sx;}
+      const proposed={x:ax+(b.x-ax)*sx,y:ay+(b.y-ay)*sy,width:b.width*sx,height:b.height*sy};
+      drag.alignment=Guides.resize(drag.guideSession,proposed,{...options,x,y,uniform:event.shiftKey});
+      if(b.width)sx=drag.alignment.box.width/b.width;if(b.height)sy=drag.alignment.box.height/b.height;
+      m=around([sx,0,0,sy,0,0],ax,ay);
+    }
+    C.transformObjects(preview,selected,m);
+  }
   $('canvas').addEventListener('pointerup',event=>{
     if(!drag||drag.pointerId!==event.pointerId)return;const action=drag, result=preview;drag=null;preview=null;
     if(connectionUI.finishDrag(action,result)||pathUI.finishDrag(action,result)){render();return;}
@@ -390,7 +415,7 @@
     ['R','G','B'].forEach(k=>$('color-'+k).oninput=()=>{const rgb=['R','G','B'].map(c=>Number($('color-'+c).value));if(rgb.every((v,i)=>$('color-'+['R','G','B'][i]).value!==''&&Number.isInteger(v)&&v>=0&&v<=255)){patch[channel]='#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();updateColor();}});
     $('inspector-body').querySelectorAll('[data-style]').forEach(el=>{if(el.tagName==='SELECT')el.value=first[el.dataset.style];el.oninput=el.onchange=()=>{const key=el.dataset.style;patch[key]=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value)/(key==='opacity'?100:1):el.value;};});$('inspector-body').querySelectorAll('[data-color-channel]').forEach(b=>b.classList.toggle('on',b.dataset.colorChannel===channel));updateColor();
   }
-  function viewDialog(){showInspector('view','表示設定',`<label>テーマ<select id="view-theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>操作部の文字サイズ<select id="view-size"><option value="standard">標準</option><option value="large">大</option><option value="xlarge">特大</option></select></label><label class="check"><input id="view-grid" type="checkbox" ${settings.grid?'checked':''}>グリッドを表示</label><label class="check"><input id="view-snap" type="checkbox" ${settings.snap?'checked':''}>移動・配置をグリッドに吸着</label><label class="check"><input id="view-pixel" type="checkbox" ${settings.snapPixel?'checked':''}>アンカーをピクセルに吸着</label><label class="check"><input id="view-anchor" type="checkbox" ${settings.snapAnchor?'checked':''}>他のアンカーに吸着</label><label class="check"><input id="view-path" type="checkbox" ${settings.snapPath?'checked':''}>他のパスの上に吸着</label><label>グリッドの間隔（px）<input id="view-step" type="number" min="0.01" max="10000" step="any" required value="${Number(settings.gridStep)||20}"></label><p class="muted">Optionを押している間は吸着を解除します。アンカー・パスを優先し、グリッドとピクセルが両方オンのときはグリッドを使います。パスへの吸着は位置合わせで、その後の移動には追従しません。テーマを変えても作品の色は変わりません。</p>`,'適用',()=>{settings={...settings,theme:$('view-theme').value,size:$('view-size').value,grid:$('view-grid').checked,snap:$('view-snap').checked,snapPixel:$('view-pixel').checked,snapAnchor:$('view-anchor').checked,snapPath:$('view-path').checked,gridStep:Number($('view-step').value)};applySettings();});$('view-theme').value=settings.theme;$('view-size').value=settings.size;}
+  function viewDialog(){showInspector('view','表示設定',`<label>テーマ<select id="view-theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>操作部の文字サイズ<select id="view-size"><option value="standard">標準</option><option value="large">大</option><option value="xlarge">特大</option></select></label><label class="check"><input id="view-guides" type="checkbox" ${settings.smartGuides?'checked':''}>図形・用紙への位置合わせガイドと吸着</label><label class="check"><input id="view-grid" type="checkbox" ${settings.grid?'checked':''}>グリッドを表示</label><label class="check"><input id="view-snap" type="checkbox" ${settings.snap?'checked':''}>移動・配置をグリッドに吸着</label><label class="check"><input id="view-pixel" type="checkbox" ${settings.snapPixel?'checked':''}>アンカーをピクセルに吸着</label><label class="check"><input id="view-anchor" type="checkbox" ${settings.snapAnchor?'checked':''}>他のアンカーに吸着</label><label class="check"><input id="view-path" type="checkbox" ${settings.snapPath?'checked':''}>他のパスの上に吸着</label><label>グリッドの間隔（px）<input id="view-step" type="number" min="0.01" max="10000" step="any" required value="${Number(settings.gridStep)||20}"></label><p class="muted">図形全体の移動・サイズ変更では、端・中央のガイドと図形間の間隔を表示します。全体の移動は位置合わせをグリッドより優先します。Optionを押している間はガイドと吸着を解除します。点の編集はアンカー・パスを優先し、グリッドとピクセルが両方オンのときはグリッドを使います。パスへの吸着は位置合わせで、その後の移動には追従しません。テーマを変えても作品の色は変わりません。</p>`,'適用',()=>{settings={...settings,theme:$('view-theme').value,size:$('view-size').value,grid:$('view-grid').checked,snap:$('view-snap').checked,snapPixel:$('view-pixel').checked,snapAnchor:$('view-anchor').checked,snapPath:$('view-path').checked,smartGuides:$('view-guides').checked,gridStep:Number($('view-step').value)};applySettings();});$('view-theme').value=settings.theme;$('view-size').value=settings.size;}
   function selectionUnits(){const units=[],seen=new Set();for(const id of selected){const object=page().objects.find(o=>o.id===id);if(!object)continue;const key=object.group||id;if(seen.has(key))continue;seen.add(key);const ids=object.group?page().objects.filter(o=>o.group===key).map(o=>o.id):[id];units.push({ids,b:bounds(ids)});}return units;}
   function align(mode){
     if(!editable())return;let units=selectionUnits();if(units.length<2){toast('2つ以上の図形またはグループを選んでください。');return;}const reference=units[0].b,transforms=[];
@@ -464,6 +489,7 @@
   document.addEventListener('click',event=>{const button=event.target.closest('button');if(!button||button.disabled)return;if(button.dataset.inspectorSection)openInspectorSection(button.dataset.inspectorSection);else if(button.dataset.tool)setTool(button.dataset.tool);else if(button.dataset.menu)openMenu(button.dataset.menu,button);else if(button.dataset.action)execute(button.dataset.action);});
   document.addEventListener('keydown',event=>{
     if(inspector?.root.contains(event.target)||help?.root.contains(event.target)||event.isComposing||event.target.closest('input,textarea,select,[contenteditable=true],.ilapo-present-dialog')||$('dialog').open)return;
+    if(['Alt','Shift'].includes(event.key)&&drag?.lastPoint){updateSelectionDrag(drag.lastPoint,event);render();}
     if(event.key==='Escape'){if(drag)cancelDrag();else if($('command-menu').matches(':popover-open')){hideMenu();menuOpener?.focus();}else if(!connectionUI.keyboard(event)){selected=[];pathUI.reset();connectionUI.reset();}space=false;render();return;}
     const mod=event.metaKey||event.ctrlKey,key=event.key.toLowerCase();
     if(mod){const map={s:'save-browser',o:'recovery',z:event.shiftKey?'redo':'undo',a:'select-all',c:'copy',v:'paste',d:'duplicate'};if(map[key]){event.preventDefault();execute(map[key]);}return;}
@@ -474,7 +500,7 @@
     else if(event.key.startsWith('Arrow')&&selected.length&&!event.target.closest('button')){event.preventDefault();if(editable()){const n=(event.shiftKey?10:1)*(page().board.width<100?.1:1);const dx=event.key==='ArrowLeft'?-n:event.key==='ArrowRight'?n:0,dy=event.key==='ArrowUp'?-n:event.key==='ArrowDown'?n:0;if(tool==='direct'&&page().objects.some(o=>selected.includes(o.id)&&o.type==='path')){if(!pathUI.nudge(dx,dy))toast('動かす点を選ぶか「全体を選択」に切り替えてください。');}else changePage(p=>C.transformObjects(p,selected,[1,0,0,1,dx,dy]));}}
     else if(event.key==='?')help?.open();else if(key==='a')setTool('direct');else if(key==='v')setTool('select');else if(key==='h')setTool('pan');else if(key==='t')setTool('text');else if(key==='r')setTool('rect');else if(key==='e')setTool('ellipse');
   });
-  document.addEventListener('keyup',event=>{if(event.key===' '){space=false;render();}});window.addEventListener('blur',()=>{space=false;cancelDrag();});
+  document.addEventListener('keyup',event=>{if(['Alt','Shift'].includes(event.key)&&drag?.lastPoint){updateSelectionDrag(drag.lastPoint,event);render();}if(event.key===' '){space=false;render();}});window.addEventListener('blur',()=>{space=false;cancelDrag();});
   window.addEventListener('beforeunload',event=>{if(dirty()||writeInProgress||localAuto?.pending){event.preventDefault();event.returnValue='';}});
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(settings.theme==='auto')applySettings();});
   if(window.IlapoLocalAutosave)localAuto=new IlapoLocalAutosave({encode:S.encodeProject,onStatus:status=>{if(status.state==='error')toast('ローカル自動保存を停止しました。'+status.message);else if(status.state==='saved')$('save-status').textContent='ローカルへ自動保存済み';}});

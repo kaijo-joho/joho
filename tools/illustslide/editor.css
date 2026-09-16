@@ -31,3 +31,10 @@ dialog{padding:0;border:1px solid var(--line);border-radius:14px;box-shadow:var(
 @container(max-width:330px){.selection-bar [data-action=transform]{display:none}}
 @media(max-width:850px){.selection-bar .selection-extra{display:none}#selection-more{display:inline-flex}}
 @media(max-width:560px),(pointer:coarse){.selection-bar{gap:2px;padding:4px}.selection-bar button{width:44px;min-width:44px;min-height:44px}}
+
+/* ガイドは作品の座標で配置し、線とラベルの見かけの大きさを保つ。 */
+#alignment-guides{--guide:#a21caf;pointer-events:none}
+:root[data-theme=dark] #alignment-guides{--guide:#e879f9}
+#alignment-guides path{stroke:var(--guide);fill:none}
+#alignment-guides rect{fill:var(--panel);stroke:none}
+#alignment-guides text{fill:var(--guide);font-family:sans-serif;stroke:none}

@@ -15,6 +15,9 @@ try { ({chromium}=require('playwright')); } catch { ({chromium}=require(path.joi
       const doubled=input('width="48" height="48" viewBox="0 0 24 24"','<rect width="24" height="24"/>');
       const a4=input('width="210mm" height="297mm" viewBox="0 0 210 297"','<rect width="210" height="297"/>');
       const small=input('width="18px" height="18px"');
+      const transformedStroke=input('width="48" height="48" viewBox="0 0 24 24"','<path d="M2 2H22" fill="none" stroke="#123456" stroke-width="3" stroke-dasharray="3 1"/>').objects[0];
+      let nonuniformStrokeRefused=false;try{input('','<path transform="scale(2 1)" d="M0 0H10" fill="none" stroke="#123456" stroke-width="3"/>');}catch(_){nonuniformStrokeRefused=true;}
+      const legacyIlapo=input('data-ilapo-page-id="legacy-046"','<path data-ilapo-id="old-path" transform="matrix(3 0 0 .5 7 11)" d="M0 0H10V10H0Z" fill="none" stroke="#123456" stroke-width="8"/>').objects[0];
       const none=input('width="60" height="30" viewBox="0 0 10 10" preserveAspectRatio="none"');
       const meet=input('width="60" height="30" viewBox="0 0 10 10"');
       const refused=[];
@@ -24,18 +27,28 @@ try { ({chromium}=require('playwright')); } catch { ({chromium}=require(path.joi
       const thick=IlapoCore.makeShape('rect',0,0,10,10,{stroke:'#000000',strokeWidth:20,linejoin:'round'});thick.matrix=[2,0,0,2,0,0];
       const p=IlapoCore.createPage('太い線',{width:100,height:100,unit:'px',infinite:false});p.objects=[thick];
       const svg=IlapoSVG.exportPage(p,{selectionIds:[thick.id],padding:0});
+      const stretched=IlapoCore.makeShape('rect',0,0,10,10,{fill:'none',stroke:'#123456',strokeWidth:8});stretched.id='stretched';stretched.matrix=[3,0,0,.5,7,11];
+      const stretchedPage=IlapoCore.createPage('横長',{width:100,height:100,unit:'px',infinite:false});stretchedPage.objects=[stretched];
+      const stretchedSvg=IlapoSVG.exportPage(stretchedPage),stretchedImported=IlapoSVG.importSVG(stretchedSvg).page.objects[0],stretchedZip=IlapoSVG.decodeProject(IlapoSVG.encodeProject({format:'kaijo-ilapo',version:1,id:'stretched-doc',name:'横長',pages:[stretchedPage]})),stretchedBounds=IlapoGeometry.visualBounds(stretched);
       const doc=IlapoCore.createDocument();doc.pages[0].board.infinite=true;
       const t=IlapoCore.makeText(-80,-20,'x  2\n日本語',{fontSize:.8,fill:'#112233',stroke:'none'});t.runs=[{text:'x  ',script:'normal'},{text:'2',script:'super'},{text:'\n日本語',script:'normal'}];
       doc.pages[0].objects=[thick,t];
       const resumed=IlapoSVG.decodeProject(IlapoSVG.encodeProject(doc));
-      return {doubleBox:IlapoGeometry.bounds(doubled.objects[0]),defaultStyle:doubled.objects[0].style,a4box:IlapoGeometry.bounds(a4.objects[0]),a4board:a4.board,small:small.board,none:none.objects[0].matrix,meet:meet.objects[0].matrix,refused,thickView:svg.match(/viewBox="([^"]+)"/)[1].split(' ').map(Number),doc,resumed};
+      return {doubleBox:IlapoGeometry.bounds(doubled.objects[0]),defaultStyle:doubled.objects[0].style,a4box:IlapoGeometry.bounds(a4.objects[0]),a4board:a4.board,small:small.board,transformedStroke,nonuniformStrokeRefused,none:none.objects[0].matrix,meet:meet.objects[0].matrix,refused,thickView:svg.match(/viewBox="([^"]+)"/)[1].split(' ').map(Number),stretchedSvg,stretchedImported,stretchedZip,stretched,stretchedBounds,legacyIlapo,doc,resumed};
     });
     assert.equal(result.doubleBox.width,48);assert.equal(result.doubleBox.height,48);
     assert.equal(result.defaultStyle.fill,'#000000');assert.equal(result.defaultStyle.stroke,'none');
     assert.ok(Math.abs(result.a4box.width-210*96/25.4)<1e-8);assert.ok(Math.abs(result.a4board.height-297*96/25.4)<1e-8);
     assert.equal(result.small.width,18);assert.deepEqual(result.none,[6,0,0,3,0,0]);assert.deepEqual(result.meet,[3,0,0,3,15,0]);
+    assert.deepEqual(result.transformedStroke.matrix,[2,0,0,2,0,0]);assert.equal(result.transformedStroke.style.strokeWidth,6,'viewBox scale preserves an imported path stroke in document coordinates');assert.equal(result.transformedStroke.style.dash,'6 2','viewBox scale preserves imported dash intervals');
+    assert.equal(result.nonuniformStrokeRefused,true,'a non-uniform external SVG stroke is rejected instead of being silently averaged');
+    assert.deepEqual(result.legacyIlapo.matrix,[3,0,0,.5,7,11]);assert.equal(result.legacyIlapo.style.strokeWidth,8,'0.4.6以前の当アプリSVGは非等方行列を回収できる');
     assert.ok(result.refused.every(Boolean),'unsupported SVG must be rejected without silently changing artwork');
-    assert.ok(result.thickView[0]<=-20&&result.thickView[1]<=-20&&result.thickView[2]>=60&&result.thickView[3]>=60,'include transformed stroke extent');
+    assert.ok(result.thickView[0]<=-10&&result.thickView[1]<=-10&&result.thickView[2]>=40&&result.thickView[3]>=40,'include document-space stroke extent');
+    assert.match(result.stretchedSvg,/stroke-width="8"/);assert.doesNotMatch(result.stretchedSvg,/transform="matrix\(3 0 0 0\.5 7 11\)"/,'ordinary SVG bakes path transforms before stroking');
+    assert.deepEqual(result.stretchedImported.matrix,[1,0,0,1,0,0]);assert.equal(result.stretchedImported.style.strokeWidth,8);
+    assert.deepEqual(result.stretchedZip.pages[0].objects[0],result.stretched,'native ZIP preserves the editable path matrix');
+    assert.ok(Math.abs(result.stretchedBounds.x-3)<1e-8&&Math.abs(result.stretchedBounds.y-7)<1e-8&&Math.abs(result.stretchedBounds.width-38)<1e-8&&Math.abs(result.stretchedBounds.height-13)<1e-8,'visual bounds use the unscaled document stroke width');
     assert.deepEqual(result.resumed,result.doc,'native project must preserve geometry, typography and metadata');
     console.log('Ilapo SVG compatibility tests passed');
   } finally {await browser.close();}

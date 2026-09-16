@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.6）
+# イラストスライド illustSlideの内部契約（0.4.7）
 
 開発担当 Codex。現在は計画④まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -28,7 +28,7 @@ fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。f
 
 ## IlapoSVG (svg.js)
 
-`objectMarkup(object)` は表示用安全SVG文字列。
+`objectMarkup(object,options?)` は表示用安全SVG文字列。通常はpathの変形を表示用の座標へ反映し、作品座標の`strokeWidth`・`dash`を使う。カメラ・出力倍率には追従するが、図形の変形行列では線を再拡大しない。文字・画像の変形方法は従来どおり。
 `exportPage(page,{selectionIds?,padding?}={})` 標準SVG文字列。無限ページはGeometry.boundsから全作品+余白。
 `importSVG(text)` -> `{page,warnings:[]}`。外部通信/スクリプトは禁止、未対応要素は明示的にthrowかwarningsで呼び出し側が表示。通常SVG基本形状/path/text/g/transform対応。
 `encodeProject(doc)` -> Uint8Array ZIP (fflate) 各ページSVG + manifest.json。`decodeProject(bytes)` ->検証済doc。
@@ -38,14 +38,27 @@ version2ではimageのreferenceフラグもmetadataに保存。connectorは接�
 
 `exportPage`の`includeReferences:true`はnative ZIP用。既定falseは参照画像を省く。imageのsrcはPNG/JPEG/WebPのbase64データURLだけを許し、外部URL・埋め込みSVGを拒否する。ZIPのページファイル名はpage.idをencodeURIComponentしたものとする。
 
+native ZIPでは`rawTransforms:true`も指定し、元のd・matrix・styleを各SVGへそのまま保持する。表示・通常SVG・PNG・PDF・発表はこの指定を使わない。外部アプリで線幅まで一致する持ち出しには通常のSVGを書き出す。文書のversionとmetadata構造は変更しない。
+
+外部SVGのパスはviewBoxを含む全変形から一様倍率を求め、線幅・破線長を作品座標へ正規化する。線がある非等方変形・せん断は明示的に拒否し、元の作品を置き換えない。`preserveCoordinates`のnative読込と`data-ilapo-page-id`を持つ旧版を含む自アプリSVGは保存済みの線幅をそのまま復元する。XML安全性検査はすべての場合で維持する。
+
 ## IlapoGeometry (geometry.js)
 
 Paper.jsは同梱版を使用し、geometryは小さな独立scopeで図形計算だけを行う。
 `bounds(object)` -> `{x,y,width,height}` 変形後。textは概算でよくDOM実測をUI側で優先。
+`visualBounds(object)`は描画と同じ作品座標の線幅を含む境界を返す。`flattenedPath(object)`は元モデルを変更せず、変形後のdと単位行列を持つ表示用pathを返す。線を拡大しない平行移動だけなら元objectを利用する。
 `boolean(a,b,operation)` -> 新しいpath object。operation=unite/subtract/intersect。
 `anchors(object)` -> パスの区間ごとの配列（検証用）。`moveAnchor(object,pathIndex,anchorIndex,dx,dy)` ->新object。
 
 UIはeditor.jsとeditor.css/index.html。DOMの作品表示はSVG、選択枠等は別SVGグループ。保存前のプレビューはHistoryを変更しない。
+
+## IlapoGuides（guides.js）
+
+`prepare(page,selectedIds,getBounds,viewport)`で選択全体の外接範囲と画面内の参照図形を記録し、`move(session,delta,{zoom,enabled,alt,fallback})`・`resize(session,proposedBox,{zoom,enabled,alt,x,y,uniform})`で補正座標とガイドを返す。元文書・履歴は変更しない。`x/y`は動く辺のstart/end、指定なしの軸は変えない。uniformでは1軸の吸着を採用して縦横比と反対側の固定点を維持する。
+
+選択・下絵・接続矢印は参照から除き、通常の固定図形は参照できる。グループは1外接範囲。有限用紙の端・中央を追加し、無限用紙に原点を追加しない。吸着範囲は7画面px。最も近い端・中央・等間隔候補を採用し、位置合わせ候補がない軸には既存グリッドの移動量を使う。等間隔候補は直交方向で重なる近隣の図形から求める。
+
+`markup(result,zoom,unit)`の出力は専用の`#alignment-guides`へだけ配置する。線・ラベルのサイズは表示倍率で補正し、距離は用紙単位で表示する。ドラッグ中のsession/表示だけに保持し、キャンセル・完了・ツール切替で除去する。Alt/Shiftキーだけの変化も最後のポインタ座標から再計算する。表示設定`smartGuides`は既定true、作品とは別の既存設定キーへ保存する。
 
 ## IlapoInspector（inspector.js / inspector.css）
 
