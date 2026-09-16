@@ -116,7 +116,8 @@
     }
 
     function updateTabs() {
-      toggle.setAttribute('aria-expanded', String(Boolean(current && !['pages', 'objects'].includes(current.section))));
+      toggle.setAttribute('aria-expanded', String(Boolean(current && !['pages', 'objects', 'assets'].includes(current.section))));
+      byId('assets-toggle')?.setAttribute('aria-expanded', String(Boolean(current && current.section === 'assets')));
       byId('objects-toggle')?.setAttribute('aria-expanded', String(Boolean(current && current.section === 'objects')));
       byId('pages-toggle')?.setAttribute('aria-expanded', String(Boolean(current && current.section === 'pages')));
       tabs.querySelectorAll('button').forEach(button => {

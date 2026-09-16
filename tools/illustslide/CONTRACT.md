@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.5）
+# イラストスライド illustSlideの内部契約（0.4.6）
 
 開発担当 Codex。現在は計画④まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -52,7 +52,7 @@ UIはeditor.jsとeditor.css/index.html。DOMの作品表示はSVG、選択枠等
 `create({onLayout,clearPreview,isBusy})` は `show(request)`、`close({focus?:boolean})`、`reset()`、`sync()` と読み取り専用の `section`・`isOpen`・`root` を返す。
 requestは `{section,title,html,label,apply,preview?,scope,refresh,opener}`。labelがnullなら適用・取消フッターを表示しない。htmlはeditor側でエスケープしたフォーム断片だけを渡す。
 
-- showModal・暗幕・inert・Tabの閉じ込めを使わない。通常は右側、850px以下は下部へ配置し、キャンバスと別の領域を確保する。ページ一覧はpages、図形一覧はobjectsセクションを使い、設定と同じパネルの内容を切り替える。書き出しとは排他的、共通ヘルプとは独立して開く。
+- showModal・暗幕・inert・Tabの閉じ込めを使わない。通常は右側、850px以下は下部へ配置し、キャンバスと別の領域を確保する。ページ一覧はpages、図形一覧はobjects、アイコン・部品はassetsセクションを使い、設定と同じパネルの内容を切り替える。書き出しとは排他的、共通ヘルプとは独立して開く。
 - scopeは文書ID・ページID・選択ID・編集リビジョンを含み、アンカー座標では選択点、表示設定では設定値も含む。syncと適用直前に比較し、古い対象への入力を別の対象へ適用しない。ドラッグ中の更新は終了まで待ち、閉じた後の非同期再構築で再度開かない。
 - 色・変形・接続・画像のpreviewは検証済みの文書複製から表示用ページを作り、editorのinspectorPreviewだけを更新する。History・文書本体・保存・dirtyを変更しない。不正入力では前回のプレビューも取り消す。適用時だけ通常のchangePageで1履歴にまとめる。
 - 適用・取消・対象切替ではフォームを現在の値から作り直す。変形の基準座標や回転・反転の入力を持ち越さない。再構築後は可能な範囲で入力フォーカス・本文スクロール・detailsの開閉を保つ。閉じたパネルの本文は空にし、重複IDを残さない。
@@ -68,6 +68,14 @@ pagesのscopeは文書ID・ページID・編集リビジョン。図形の選択
 選択バーのdata-menuボタンはマウスpointerenterで開く。ドラッグ・タッチ・モーダル表示中にはホバー起動しない。開くだけではフォーカスを動かさず、ポップアップへの移動を妨げないため閉鎖だけ240ms待つ。クリックやキーボードで開いたメニューは外側クリック・実行・Escapeまで保持する。高さは起点の上／下にある空間から計算し、ボタンへ重ねない。ホバーメニュー表示中のEscapeはパネルやキャンバスへ伝えない。
 
 `IlapoObjectsUI.create({document,page,selected,select,showInspector,esc,icon})` は `open()` を返す。objectsのscopeは文書ID・ページID・編集リビジョン・選択ID。前面から並べ、固定とグループを表示する。選択はeditorのselectionを通してグループ展開を保ち、文書や履歴を変更しない。クリック／Shift追加／上下・Home/End／Enter・Spaceを使用し、再描画後もIDでフォーカスを復元する。
+
+## IlapoAssetsUI（assets-ui.js）
+
+`create(ctx)` -> `{open,focusRegistration}`。`assets`インスペクタで組み込みアイコン、自作部品、登録、JSON保存・追加を扱う。`ctx`はdocument/page/selected/library/insertionPoint/insertObjects/showInspector/showDialog/isOpen/esc/icon/toast/downloadを渡す。配置は既存の文書変更経路を使い、登録・削除・JSON追加はlibraryだけを更新する。
+
+登録対象は呼出し時点の選択全体。文書ID・ページID・選択IDの組で入力名を保持し、同じ選択の編集ではプレビューだけを更新する。選択変更とパネルの再開では入力名を空にする。EnterはIME変換中を除いて登録し、未選択・下絵を含む・200図形超・100部品・保存不能時は無効。登録前に対象の一致を再確認し、失敗時は入力と保存済みデータを保持する。登録データにアニメーションは含めない。
+
+JSON追加は一時libraryで検証し、読み込み完了後に取得した既存データへ新しい部品IDで追加して原子的に保存する。完了時の再描画はassetsパネルが開いている場合だけ。削除確認が閉じた後に一覧を更新し、次の部品または追加ボタンへフォーカスを移す。サムネイルはIDごとに保持し、削除時に破棄する。既存の保存キー・JSONのversionは変更しない。
 
 ## 接続矢印・画像・部品・発表
 
