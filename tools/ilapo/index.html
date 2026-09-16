@@ -3,36 +3,36 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <meta name="description" content="図形・文字・接続矢印で、ピクトグラム・ロゴ・説明図・スライドをつくるイラポ。ブラウザで編集し、SVG・PNG・PDFとして持ち出せます。">
-  <title>イラポ | 海城中学高等学校 情報科</title>
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
-  <link rel="stylesheet" href="editor.css?v=0.4">
-  <link rel="stylesheet" href="presentation.css?v=0.4">
+  <meta name="description" content="図形・文字・接続矢印で、ピクトグラム・ロゴ・説明図・スライドをつくるイラストスライド illustSlide。ブラウザで編集し、SVG・PNG・PDFとして持ち出せます。">
+  <title>イラストスライド illustSlide | 海城中学高等学校 情報科</title>
+  <link rel="icon" href="icon.svg?v=0.4.1" type="image/svg+xml">
+  <link rel="stylesheet" href="editor.css?v=0.4.1">
+  <link rel="stylesheet" href="presentation.css?v=0.4.1">
   <link rel="stylesheet" href="../shared/help-panel.css">
   <script defer src="vendor/paper-core-0.12.18.min.js"></script>
   <script defer src="vendor/fflate-0.8.2.umd.js"></script>
-  <script defer src="core.js?v=0.4"></script>
-  <script defer src="geometry.js?v=0.4"></script>
-  <script defer src="connectors.js?v=0.4"></script>
-  <script defer src="assets.js?v=0.4"></script>
-  <script defer src="path-edit.js?v=0.4"></script>
-  <script defer src="svg.js?v=0.4"></script>
-  <script defer src="export.js?v=0.4"></script>
-  <script defer src="path-ui.js?v=0.4"></script>
-  <script defer src="connector-ui.js?v=0.4"></script>
-  <script defer src="animation.js?v=0.4"></script>
-  <script defer src="animation-player.js?v=0.4"></script>
-  <script defer src="presentation.js?v=0.4"></script>
-  <script defer src="animation-ui.js?v=0.4"></script>
-  <script defer src="playback-export.js?v=0.4"></script>
-  <script defer src="local-autosave.js?v=0.4"></script>
+  <script defer src="core.js?v=0.4.1"></script>
+  <script defer src="geometry.js?v=0.4.1"></script>
+  <script defer src="connectors.js?v=0.4.1"></script>
+  <script defer src="assets.js?v=0.4.1"></script>
+  <script defer src="path-edit.js?v=0.4.1"></script>
+  <script defer src="svg.js?v=0.4.1"></script>
+  <script defer src="export.js?v=0.4.1"></script>
+  <script defer src="path-ui.js?v=0.4.1"></script>
+  <script defer src="connector-ui.js?v=0.4.1"></script>
+  <script defer src="animation.js?v=0.4.1"></script>
+  <script defer src="animation-player.js?v=0.4.1"></script>
+  <script defer src="presentation.js?v=0.4.1"></script>
+  <script defer src="animation-ui.js?v=0.4.1"></script>
+  <script defer src="playback-export.js?v=0.4.1"></script>
+  <script defer src="local-autosave.js?v=0.4.1"></script>
   <script defer src="../shared/help-panel.js"></script>
-  <script defer src="editor.js?v=0.4"></script>
+  <script defer src="editor.js?v=0.4.1"></script>
 </head>
 <body>
 <div id="app">
   <header class="top" aria-label="メインツールバー">
-    <button class="brand" data-action="rename" aria-label="作品名を変更"><img src="icon.svg" alt="" width="27" height="27"><span>イラポ</span><small>BETA</small></button>
+    <button class="brand" data-action="rename" aria-label="作品名を変更"><img src="icon.svg?v=0.4.1" alt="" width="27" height="27"><span>illustSlide</span><small>BETA</small></button>
     <span class="sep"></span>
     <button data-menu="save" aria-label="保存" data-tip="保存 ⌘S" data-icon="save"></button>
     <button data-menu="open" aria-label="開く" data-tip="開く ⌘O" data-icon="open"></button>
@@ -96,8 +96,8 @@
   <section data-help-topic="connections" data-help-title="図形を矢印でつなぐ"><h3>図形を矢印でつなぐ</h3><p>「接続矢印」で接続元から接続先へドラッグ、または順にクリックします。空白にも端点を置けます。図形に接続すると、その移動・回転・変形に端点が追従します。Optionを押して端点を置くと接続を解除します。</p><p>直接選択で矢印を選ぶと端点と折れ曲がり点が現れます。点をドラッグして調整し、線のダブルクリックで点を追加。「接続・経路」またはEnterでは、直線・直角、接続する辺・辺の位置、複数点の座標・削除、矢じり・ラベルを指定できます。ラベル横の紫色の点で位置を動かせます。</p><p>通常のアンカー編集や型抜きをするときは「編集」から通常のパスへ変換します。変換後は図形への追従を終了します。</p></section>
   <section data-help-topic="assets" data-help-title="アイコン・部品・下絵"><h3>アイコン・部品・下絵</h3><p>「挿入」または「…」からアイコン・自作部品を開き、人・鍵・PCなどを配置できます。図形を選び「編集 → 自作部品に登録」で再利用できます。部品集のJSONは別のブラウザへ持ち出せます。</p><p>「下絵・画像を追加」でPNG・JPEG・WebPを読み込みます。最初は薄く表示し、位置を固定します。「画像の設定」で固定・不透明度・出力に含めるかを選べます。下絵は編集用ZIPに保存し、書き出し・印刷・発表からは省きます。</p></section>
   <section data-help-topic="present" data-help-title="スライドとして発表"><h3>スライドとして発表</h3><p>上部の「発表」で先頭から表示します。「…」から現在のページでも開始できます。←→・PageUp/PageDown・Spaceで前後へ、Home/Endで最初・最後へ、Escapeで編集へ戻ります。画面クリックや左右のスワイプでも進められます。全画面ボタンも利用できます。</p><p>図形を選び「動き」からフェード・ワイプ・色変更・移動を追加します。一覧で順序を変更し、クリック時・前と同時・前の後、時間・遅延を指定できます。最初の「同時」「後」はページを開くと自動再生します。複数図形を選ぶとまとめて動かせます。</p><p>発表中は動きごとに進み、再生中に次へ進めるとその動きを完了します。前へ戻ると、ひとつ前の動きが完了した状態になります。「やり直す」またはRで現在のページをリセットします。Homeは先頭、Endは最終ページの全動作後へ移動します。OSで動きを減らす設定をすると、クリック順序を保ったまま即時に切り替えます。</p><p>「書き出し」または「…」の再生用HTMLには、全ページと再生機能をまとめます。下絵を含めず、ファイル単体で再生できます。再編集用ZIPにも動きを保存します。SVG・PNG・PDFは元の色と配置による静止画です。</p></section>
-  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>イラポ 0.4 BETA（2026年9月）</p><p>パス編集・合体・型抜き、接続矢印、アイコンと自作部品、下絵、複数ページの発表、SVG・PNG・PDFに対応しています。</p><p>推奨環境：macOS＋Google Chrome。教育用ツールです。制作物の寸法や表示は出力後にも確認してください。作品はブラウザ内または利用者が選んだローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの権利と利用条件は各ライセンスに従います。</p><p><a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a> · <a href="../index.html">ウェブアプリ一覧</a></p></section>
+  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>イラストスライド illustSlide 0.4.1 BETA（2026年9月）</p><p>パス編集・合体・型抜き、接続矢印、アイコンと自作部品、下絵、複数ページの発表、SVG・PNG・PDFに対応しています。</p><p>推奨環境：macOS＋Google Chrome。教育用ツールです。制作物の寸法や表示は出力後にも確認してください。作品はブラウザ内または利用者が選んだローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの権利と利用条件は各ライセンスに従います。</p><p><a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a> · <a href="../index.html">ウェブアプリ一覧</a></p></section>
 </aside>
-<noscript>イラポを使うにはJavaScriptを有効にしてください。</noscript>
+<noscript>イラストスライドを使うにはJavaScriptを有効にしてください。</noscript>
 </body>
 </html>

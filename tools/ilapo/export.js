@@ -10,7 +10,7 @@
   var MAX_PIXELS = 32 * 1024 * 1024;
   var PX_PER_MM = 96 / 25.4;
 
-  function error(message) { return new Error('イラポ書き出し: ' + message); }
+  function error(message) { return new Error('イラストスライド書き出し: ' + message); }
   function finite(value, fallback) {
     value = Number(value);
     return Number.isFinite(value) ? value : fallback;
@@ -93,7 +93,7 @@
     var entries = pages.map(function (entry) { var out = exportEntry(entry, padding); var size = svgSize(out.svg); return { svg: out.svg, paper: paperSize(size) }; });
     var rules = entries.map(function (entry, index) { return '@page ilapo-' + index + '{size:' + entry.paper[0] + 'mm ' + entry.paper[1] + 'mm;margin:0;}'; }).join('');
     var body = entries.map(function (entry, index) { return '<section class="ilapo-print-page" style="page:ilapo-' + index + ';width:' + entry.paper[0] + 'mm;height:' + entry.paper[1] + 'mm">' + entry.svg + '</section>'; }).join('');
-    var title = htmlEscape(options.title === undefined ? 'イラポ印刷' : options.title);
+    var title = htmlEscape(options.title === undefined ? 'イラストスライド印刷' : options.title);
     return '<!doctype html><html lang="ja"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>' + title + '</title><style>' + rules + 'html,body{margin:0;padding:0;background:#fff;}body{font-size:18px;color:#000;-webkit-print-color-adjust:exact;print-color-adjust:exact;}.ilapo-print-page{margin:0;padding:0;background:#fff;break-after:page;page-break-after:always;overflow:hidden;}.ilapo-print-page+.ilapo-print-page{break-before:page;page-break-before:always;}.ilapo-print-page:last-child{break-after:auto;page-break-after:auto;}.ilapo-print-page>svg{display:block;width:100%;height:100%;background:#fff;}</style></head><body>' + body + '</body></html>';
   }
   function waitForFrame(frame) {

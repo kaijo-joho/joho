@@ -1,4 +1,4 @@
-/* イラポ: 編集画面。作品、表示、選択、保存候補はそれぞれ独立して管理する。 */
+/* illustSlide: 編集画面。作品、表示、選択、保存候補はそれぞれ独立して管理する。 */
 (function () {
   'use strict';
   const C = window.IlapoCore, S = window.IlapoSVG, G = window.IlapoGeometry, E = window.IlapoExport, K=window.IlapoConnectors, A=window.IlapoAssets;
@@ -94,7 +94,7 @@
     $('welcome').hidden=!!p.objects.length||!!drag; $('selection-bar').hidden=!selected.length||!!drag;
     $('selection-count').textContent=pathUI?.count()?pathUI.count()+'点':selected.length+'個';
     $('whole-mode').hidden=tool!=='direct';$('direct-mode').hidden=tool==='direct';
-    $('path-menu-button').hidden=!p.objects.some(o=>selected.includes(o.id)&&o.type==='path'); $('document-title').textContent=doc().name; document.title=doc().name+' — イラポ';
+    $('path-menu-button').hidden=!p.objects.some(o=>selected.includes(o.id)&&o.type==='path'); $('document-title').textContent=doc().name; document.title=doc().name+' — イラストスライド illustSlide';
     $('connection-options').hidden=selected.length!==1||!p.objects.some(o=>o.id===selected[0]&&o.type==='connector');
     $('image-options').hidden=selected.length!==1||!p.objects.some(o=>o.id===selected[0]&&o.type==='image');
     $('page-status').textContent=`${doc().pages.indexOf(page())+1} / ${doc().pages.length} · ${page().name}`;
@@ -228,7 +228,7 @@
   async function saveLocal(){
     const frozen=C.clone(doc()),fingerprint=JSON.stringify(frozen);writeInProgress=true;
     try{
-      if(window.showSaveFilePicker){const handle=await showSaveFilePicker({suggestedName:fileName(frozen.name,'.ilapo.zip'),types:[{description:'イラポの作品',accept:{'application/zip':['.zip']}}]});await localAuto?.protect(handle);const bytes=await S.encodeProject(frozen);const writer=await handle.createWritable();try{await writer.write(bytes);await writer.close();}catch(error){await writer.abort().catch(()=>{});throw error;}await localAuto?.rememberExplicit(handle);}
+      if(window.showSaveFilePicker){const handle=await showSaveFilePicker({suggestedName:fileName(frozen.name,'.ilapo.zip'),types:[{description:'イラストスライドの作品',accept:{'application/zip':['.zip']}}]});await localAuto?.protect(handle);const bytes=await S.encodeProject(frozen);const writer=await handle.createWritable();try{await writer.write(bytes);await writer.close();}catch(error){await writer.abort().catch(()=>{});throw error;}await localAuto?.rememberExplicit(handle);}
       else download(await S.encodeProject(frozen),fileName(frozen.name,'.ilapo.zip'),'application/zip');
       saveFingerprint=fingerprint;$('save-status').textContent='ローカルに明示保存済み';toast('編集用ファイルを保存しました。');
     }catch(error){if(error.name!=='AbortError')toast(errorMessage(error));}finally{writeInProgress=false;}
@@ -350,7 +350,7 @@
     $('dialog-body').querySelectorAll('[data-insert-icon]').forEach(b=>b.onclick=()=>{closeDialog();insertObjects(A.instantiateIcon(b.dataset.insertIcon,insertionPoint()));});
     $('dialog-body').querySelectorAll('[data-insert-component]').forEach(b=>b.onclick=()=>{try{const objects=library.instantiate(b.dataset.insertComponent,insertionPoint());closeDialog();insertObjects(objects);}catch(error){toast(errorMessage(error));}});
     $('dialog-body').querySelectorAll('[data-remove-component]').forEach(b=>b.onclick=()=>{const id=b.dataset.removeComponent,name=components.find(c=>c.id===id).name;showDialog('部品集から削除',`<p>「${esc(name)}」を部品集から削除します。作品に配置済みの図形は残ります。</p>`,'削除',()=>{library.remove(id);toast('部品集から削除しました。');});});
-    $('components-export').onclick=()=>download(library.exportJSON(),'イラポ部品集.json','application/json');
+    $('components-export').onclick=()=>download(library.exportJSON(),'illustSlide部品集.json','application/json');
     $('components-import').onclick=()=>$('components-input').click();
   }
   function saveComponent(){if(!selected.length)return;if(!library){toast('このブラウザでは部品集を保存できません。');return;}const objects=C.clone(page().objects.filter(o=>selected.includes(o.id)));showDialog('自作部品に登録','<label>部品名<input id="component-name" maxlength="120" required placeholder="例：データを送るPC"></label><p class="muted">今の形・書式・部品内の接続を登録します。配置後の変更は部品集へ自動反映しません。</p>','登録',()=>{library.save($('component-name').value,objects);toast('自作部品に登録しました。');});}
@@ -413,7 +413,7 @@
   window.addEventListener('beforeunload',event=>{if(dirty()||writeInProgress||localAuto?.pending){event.preventDefault();event.returnValue='';}});
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(settings.theme==='auto')applySettings();});
   if(window.IlapoLocalAutosave)localAuto=new IlapoLocalAutosave({encode:S.encodeProject,onStatus:status=>{if(status.state==='error')toast('ローカル自動保存を停止しました。'+status.message);else if(status.state==='saved')$('save-status').textContent='ローカルへ自動保存済み';}});
-  try{help=window.JohoToolHelp?.create({root:$('operation-help'),opener:$('help-button'),title:'イラポの使い方',storageKey:'kaijo-ilapo:help',bounds:()=>({top:document.querySelector('.top').getBoundingClientRect().bottom+8,bottom:$('stage').getBoundingClientRect().bottom-8}),isBusy:()=>!!drag,returnToEditor:()=>$('canvas').focus()});}catch(error){console.warn('Help unavailable',error);}
+  try{help=window.JohoToolHelp?.create({root:$('operation-help'),opener:$('help-button'),title:'イラストスライドの使い方',storageKey:'kaijo-ilapo:help',bounds:()=>({top:document.querySelector('.top').getBoundingClientRect().bottom+8,bottom:$('stage').getBoundingClientRect().bottom-8}),isBusy:()=>!!drag,returnToEditor:()=>$('canvas').focus()});}catch(error){console.warn('Help unavailable',error);}
   document.addEventListener('pointerover',event=>{const target=event.target.closest('[data-tip]');if(!target||event.pointerType==='touch')return;const r=target.getBoundingClientRect();$('tooltip').textContent=target.dataset.tip;$('tooltip').hidden=false;$('tooltip').style.left=Math.max(8,Math.min(r.left,innerWidth-$('tooltip').offsetWidth-8))+'px';$('tooltip').style.top=Math.min(r.bottom+7,innerHeight-$('tooltip').offsetHeight-8)+'px';});document.addEventListener('pointerout',()=>$('tooltip').hidden=true);document.addEventListener('pointerdown',()=>$('tooltip').hidden=true);
   pathUI=window.IlapoPathUI.create({page,selected:()=>selected,tool:()=>tool,settings:()=>settings,zoom,select:selection,render,setTool,setDrag:value=>drag=value,setPreview:value=>preview=value,editable,changePage,toast,errorMessage,showDialog,esc,round,standardSize});
   connectionUI=window.IlapoConnectorUI.create({page,selected:()=>selected,tool:()=>tool,zoom,snap,select:selection,render,setTool,setDrag:value=>drag=value,setPreview:value=>preview=value,editable,changePage,toast,showDialog,esc,round,standardSize});

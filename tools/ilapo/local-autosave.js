@@ -59,7 +59,7 @@
       if (!handle) {
         if (typeof root.showSaveFilePicker !== 'function') throw new Error('このブラウザはローカル自動保存に対応していません。');
         // This call is deliberately before the first await: callers must invoke start from a user gesture.
-        handle = await root.showSaveFilePicker({ suggestedName: 'イラポ.autosave.ilapo.zip', types: [{ description: 'イラポ自動保存', accept: { 'application/zip': ['.zip'] } }] });
+        handle = await root.showSaveFilePicker({ suggestedName: 'illustSlide.autosave.ilapo.zip', types: [{ description: 'イラストスライド自動保存', accept: { 'application/zip': ['.zip'] } }] });
       }
       if (!handle || typeof handle.createWritable !== 'function') throw new TypeError('自動保存先がファイルではありません。');
       if (await this._isKnownExplicit(handle)) throw new Error('明示保存先と同じファイルは自動保存先にできません。');
