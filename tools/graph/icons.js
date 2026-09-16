@@ -6,6 +6,10 @@
   'use strict';
   const NS = 'http://www.w3.org/2000/svg';
   const ICONS = {
+    plus: [['path', { d: 'M12 4v16M4 12h16' }]],
+    file: [['path', { d: 'M3 7V4h7l2 3h9v3M3 7v14h17l2-11H7L3 21' }]],
+    undo: [['path', { d: 'M8 4 3 9l5 5M3 9h11a7 7 0 0 1 0 14' }]],
+    redo: [['path', { d: 'm16 4 5 5-5 5m5-5H10a7 7 0 0 0 0 14' }]],
     edit: [['path', { d: 'M4 17.5V20h2.5L18 8.5 15.5 6 4 17.5Z' }], ['path', { d: 'm14.5 7 2.5 2.5' }]],
     palette: [['path', { d: 'M12 4a8 8 0 1 0 0 16h1.2a1.8 1.8 0 0 0 .4-3.6 1.8 1.8 0 0 1 1.4-2.9H17A3 3 0 0 0 20 10c0-3.3-3.6-6-8-6Z' }], ['circle', { cx: 7.5, cy: 11, r: .7 }], ['circle', { cx: 10, cy: 7.5, r: .7 }], ['circle', { cx: 14, cy: 7.5, r: .7 }]],
     label: [['path', { d: 'M4 6h11l5 6-5 6H4V6Z' }], ['circle', { cx: 8, cy: 12, r: 1 }]],

@@ -12,6 +12,7 @@
   let history, store, localAuto, help, tooltip, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey, dialogListDetail;
   let drawPending = false, drawing = false, drawTask = Promise.resolve(), exportBusy = false, fileBusy = false, toastTimer, saveTimer;
   let parameterPreview = null, gesture = null, selectionPanel = null, tangentDraft = null, tangentHoverTimer;
+  let addMenu = null, addMenuTimer;
   const templates = typeof GraphTemplates.list === 'function' ? GraphTemplates.list() : C.clone(GraphTemplates.list);
   function node(tag, text, attrs) { const el = document.createElement(tag); if (text != null) el.textContent = text; for (const [k,v] of Object.entries(attrs || {})) el.setAttribute(k,v); return el; }
   function button(text, action, attrs) { const el = node('button',text,Object.assign({type:'button'},attrs)); el.addEventListener('click',event=>run(()=>action(event))); return el; }
@@ -30,10 +31,47 @@
   function canonical(text,kind='scalar') { return S.toCanonical(text.trim(),current(),kind); }
   function curveLabel(s) { return s.kind==='parametric' ? symbol('x')+' = '+display(s.components.x,s.kind)+' / '+symbol('y')+' = '+display(s.components.y,s.kind) : (s.kind==='polar'?'r = ':'')+display(s.expression,s.kind); }
   function activeParameter() { return selected?.type==='parameter' ? current().parameters.find(p=>p.name===selected.name) : null; }
-  function closeMenus() { for (const el of document.querySelectorAll('.top details[open]')) el.open=false; }
+  function closeTopMenus() { for (const el of document.querySelectorAll('.top details[open]')) el.open=false; }
+  function closeMenus() { closeTopMenus();closeAddMenu(); }
+  function closeAddMenu(restoreFocus=false) {
+    clearTimeout(addMenuTimer);if(!addMenu)return;
+    const previous=addMenu;addMenu=null;previous.panel.hidden=true;previous.trigger.setAttribute('aria-expanded','false');
+    if(restoreFocus)previous.trigger.focus({preventScroll:true});
+  }
+  function positionAddMenu() {
+    if(!addMenu)return;
+    const {trigger,panel}=addMenu,anchor=trigger.getBoundingClientRect(),viewport=window.visualViewport;
+    const left=viewport?.offsetLeft||0,top=Math.max(viewport?.offsetTop||0,document.querySelector('.top').getBoundingClientRect().bottom)+8;
+    const right=left+(viewport?.width||innerWidth)-8,bottom=(viewport?.offsetTop||0)+(viewport?.height||innerHeight)-8;
+    if(!anchor.width||anchor.bottom<top||anchor.top>bottom){closeAddMenu();return;}
+    panel.style.maxHeight=Math.max(80,bottom-top)+'px';
+    const bounds=panel.getBoundingClientRect();
+    if(anchor.right+4+bounds.width<=right){panel.style.left=anchor.right+4+'px';panel.style.top=Math.max(top,Math.min(anchor.top,bottom-bounds.height))+'px';return;}
+    const below=Math.max(0,bottom-anchor.bottom-4),above=Math.max(0,anchor.top-top-4),down=below>=bounds.height||below>=above;
+    panel.style.maxHeight=Math.max(80,down?below:above)+'px';
+    panel.style.left=Math.max(left+8,Math.min(anchor.left,right-bounds.width))+'px';
+    panel.style.top=Math.max(top,down?anchor.bottom+4:anchor.top-panel.getBoundingClientRect().height-4)+'px';
+  }
+  function openAddMenu(trigger,panel,pinned=false) {
+    clearTimeout(addMenuTimer);if($('editor-dialog').open)return;
+    if(addMenu?.trigger===trigger){addMenu.pinned ||= pinned;return;}
+    closeMenus();cancelTangentDraft();tooltip?.hide();
+    addMenu={trigger,panel,pinned};panel.hidden=false;trigger.setAttribute('aria-expanded','true');positionAddMenu();
+  }
+  function bindAddMenu(prefix) {
+    const trigger=$(prefix+'-add-toggle'),panel=$(prefix+'-add-panel');
+    const open=pinned=>openAddMenu(trigger,panel,pinned);
+    trigger.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse')open(false);});
+    trigger.addEventListener('click',()=>{if(addMenu?.trigger===trigger&&addMenu.pinned)closeAddMenu();else open(true);});
+    trigger.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();open(true);panel.querySelector('button:not(:disabled)')?.focus();}});
+    const leave=()=>{clearTimeout(addMenuTimer);addMenuTimer=setTimeout(()=>{if(addMenu?.trigger===trigger&&!addMenu.pinned&&!panel.contains(document.activeElement)&&!trigger.matches(':hover')&&!panel.matches(':hover'))closeAddMenu();},180);};
+    trigger.addEventListener('pointerleave',leave);panel.addEventListener('pointerleave',leave);
+    panel.addEventListener('pointerenter',()=>clearTimeout(addMenuTimer));
+    panel.addEventListener('toggle',positionAddMenu,true);
+  }
   function savePreferences() { try { localStorage.setItem('kaijo-graph:settings',JSON.stringify(settings)); } catch (_) {} }
   function isDark() { return settings.theme==='dark' || (settings.theme!=='light' && matchMedia('(prefers-color-scheme:dark)').matches); }
-  function applySettings() { document.documentElement.dataset.theme=settings.theme||'auto'; document.documentElement.dataset.textSize=settings.textSize||'standard'; $('theme').value=settings.theme||'auto'; $('text-size').value=settings.textSize||'standard'; savePreferences(); requestDraw(); }
+  function applySettings() { document.documentElement.dataset.theme=settings.theme||'auto'; document.documentElement.dataset.textSize=settings.textSize||'standard'; $('theme').value=settings.theme||'auto'; $('text-size').value=settings.textSize||'standard'; savePreferences(); requestDraw();positionAddMenu(); }
   function persistSoon() { clearTimeout(saveTimer); saveTimer=setTimeout(persist,250); }
   function persist() {
     clearTimeout(saveTimer);
@@ -64,7 +102,15 @@
     for (const s of current().series) {
       const item=button('',()=>select({type:'series',id:s.id}),{class:'object-item','data-object-type':'series','data-object-id':s.id,'aria-pressed':String(selected?.type==='series'&&selected.id===s.id),'aria-label':(s.name||s.expression||kindNames[s.kind])+'を選択','data-tip':'選択して編集。ダブルクリックで数式・範囲を開く'});
       const dot=node('span',null,{class:'swatch'}); dot.style.backgroundColor=s.style.color;
-      const copy=node('span',null,{class:'object-copy'}); copy.append(node('strong',s.name||kindNames[s.kind]),node('small',s.kind.startsWith('data')?s.rows.length+' 行':curveLabel(s)));
+      const copy=node('span',null,{class:'object-copy'});
+      if(s.kind.startsWith('data'))copy.append(node('strong',s.name||kindNames[s.kind]),node('small',s.rows.length+' 行'));
+      else {
+        let equation=curveLabel(s);
+        if(['function','surface'].includes(s.kind)&&!equation.includes('='))equation=symbol(s.kind==='surface'?'z':'y')+' = '+equation;
+        if(s.kind==='implicit'&&!equation.includes('='))equation+=' = 0';
+        if(s.kind==='parametric')equation=symbol('x')+' = '+display(s.components.x,s.kind)+'\n'+symbol('y')+' = '+display(s.components.y,s.kind);
+        copy.append(node('span',equation,{class:'series-equation'}),node('span',s.name,{class:'series-name'}));
+      }
       copy.append(node('span',kindNames[s.kind]+(!s.visible?'・非表示':!matchesMode(s)?'・別の表示モード':''),{class:'dim-badge'}));
       item.append(dot,copy); item.addEventListener('dblclick',()=>run(()=>editSeries(s.id))); appendObjectRow($('series-list'),item,'series',s.id,s.name||kindNames[s.kind],s.kind.startsWith('data')?'数表・出典':'数式・範囲');
     }
@@ -106,7 +152,7 @@
     }
   }
   function cancelParameterPreview() { if(!parameterPreview)return;parameterPreview=null;updateParameters();updateTangentEquations(current());requestDraw(); }
-  function setListOpen(open) { $('objects').classList.toggle('is-open',open); $('list-toggle').setAttribute('aria-expanded',String(open)); }
+  function setListOpen(open) { if(!open)closeAddMenu();$('objects').classList.toggle('is-open',open); $('list-toggle').setAttribute('aria-expanded',String(open)); }
   function select(value,{keepListOpen=false}={}) { cancelTangentDraft();cancelParameterPreview();selected=value;for(const item of document.querySelectorAll('[data-object-id]'))item.setAttribute('aria-pressed',String(item.dataset.objectType===selected?.type&&item.dataset.objectId===selected?.id));for(const row of $('parameter-list').children)row.querySelector('.parameter-name').setAttribute('aria-pressed',String(selected?.type==='parameter'&&row.dataset.parameter===selected.name));updateToolbar();if(!keepListOpen&&matchMedia('(max-width:850px)').matches) setListOpen(false); }
   function updateToolbar() {
     cancelTangentDraft();
@@ -140,17 +186,17 @@
     trigger.addEventListener('click',()=>run(()=>openQuickTangent(trigger,seriesId,true)));
     trigger.addEventListener('pointerenter',event=>{
       if(event.pointerType!=='mouse'||trigger.disabled)return;clearTimeout(tangentHoverTimer);
-      tangentHoverTimer=setTimeout(()=>{if(trigger.isConnected&&!$('editor-dialog').open&&!$('tangent-quick-panel').contains(document.activeElement)&&current().series.some(s=>s.kind==='function'))run(()=>openQuickTangent(trigger,seriesId,false));},180);
+      tangentHoverTimer=setTimeout(()=>{if(trigger.getBoundingClientRect().width&&!$('editor-dialog').open&&!$('tangent-quick-panel').contains(document.activeElement)&&current().series.some(s=>s.kind==='function'))run(()=>openQuickTangent(trigger,seriesId,false));},180);
     });
     trigger.addEventListener('pointerleave',()=>clearTimeout(tangentHoverTimer));
   }
   function cancelTangentDraft(restoreFocus=false) {
     clearTimeout(tangentHoverTimer);const previous=tangentDraft;if(!previous)return;
     tangentDraft=null;$('tangent-quick-panel').hidden=true;previous.opener.setAttribute('aria-expanded','false');requestDraw();
-    if(restoreFocus){if(previous.opener.isConnected&&previous.opener.getBoundingClientRect().width)previous.opener.focus({preventScroll:true});else $('stage').focus({preventScroll:true});}
+    if(restoreFocus){const target=previous.returnTarget||previous.opener;if(target.closest('#objects')&&matchMedia('(max-width:850px)').matches)setListOpen(true);if(target.isConnected&&target.getBoundingClientRect().width)target.focus({preventScroll:true});else $('stage').focus({preventScroll:true});}
   }
   function positionQuickTangent() {
-    if(!tangentDraft)return;const panel=$('tangent-quick-panel'),openerBounds=tangentDraft.opener.getBoundingClientRect(),anchor=openerBounds.width?openerBounds:document.querySelector('.stage-heading').getBoundingClientRect(),viewport=window.visualViewport;
+    if(!tangentDraft)return;const panel=$('tangent-quick-panel'),openerBounds=(tangentDraft.returnTarget||tangentDraft.opener).getBoundingClientRect(),anchor=openerBounds.width?openerBounds:tangentDraft.anchor||document.querySelector('.stage-heading').getBoundingClientRect(),viewport=window.visualViewport;
     const left=viewport?.offsetLeft||0,top=viewport?.offsetTop||0,width=viewport?.width||innerWidth,height=viewport?.height||innerHeight;
     panel.style.maxHeight=Math.max(120,height-16)+'px';const bounds=panel.getBoundingClientRect();
     panel.style.left=Math.max(left+8,Math.min(anchor.left,left+width-bounds.width-8))+'px';
@@ -162,10 +208,11 @@
     if(tangentDraft?.opener===opener){if(focus){const input=$('tangent-quick-at');input.focus();input.select();}return;}
     const functions=current().series.filter(s=>s.kind==='function'),source=functions.find(s=>s.id===(seriesId||activeSeries()?.id))||functions[0];
     if(!source)throw new Error('接線を追加するには、先に2Dの数式 y = f(x) を追加してください。');
+    const returnTarget=opener.closest('.add-menu')?.querySelector('.add-menu-toggle')||opener,anchor=returnTarget.getBoundingClientRect();
     cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus();tooltip?.hide();if(matchMedia('(max-width:850px)').matches)setListOpen(false);
     const annotation=C.createAnnotation('tangent');annotation.name='接線 '+(current().annotations.length+1);annotation.seriesId=source.id;
     annotation.at=String(source.domain.x[0]<0&&source.domain.x[1]>0?0:(source.domain.x[0]+source.domain.x[1])/2);
-    const panel=$('tangent-quick-panel');panel.replaceChildren();panel.hidden=false;tangentDraft={annotation,opener,valid:false};opener.setAttribute('aria-expanded','true');
+    const panel=$('tangent-quick-panel');panel.replaceChildren();panel.hidden=false;tangentDraft={annotation,opener,returnTarget,anchor,valid:false};opener.setAttribute('aria-expanded','true');
     const heading=node('div',null,{class:'quick-tangent-heading'});heading.append(node('strong','接線を追加'),iconButton('close','接線の追加を閉じる',()=>cancelTangentDraft(true)));panel.append(heading);
     let sourceInput;if(functions.length>1){sourceInput=choice(panel,'対象の数式',source.id,functions.map(s=>[s.id,s.name||display(s.expression,'function')]));sourceInput.addEventListener('change',refresh);}
     else panel.append(node('p',source.name||display(source.expression,'function'),{class:'small muted quick-tangent-source'}));
@@ -293,7 +340,8 @@
   function switchMode(mode) { changed(d=>{d.mode=mode;}); select(null); camera=undefined; }
   function undo(redo=false) { cancelTangentDraft();cancelGesture();parameterPreview=null; if(redo)history.redo();else history.undo(); selected=null;camera=undefined;updateHeader();updateList();updateToolbar();persistSoon();requestDraw(); }
   function openDialog(title, build, onApply, submit='適用') {
-    cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=document.activeElement;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogListDetail=dialogOpener?.dataset.objectDetails;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
+    const focused=document.activeElement,addTrigger=focused?.closest('.add-menu')?.querySelector('.add-menu-toggle');
+    cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=addTrigger||focused;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogListDetail=dialogOpener?.dataset.objectDetails;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
     $('dialog-title').textContent=title;$('dialog-content').replaceChildren();$('dialog-error').hidden=true;$('dialog-submit').hidden=!onApply;$('dialog-submit').textContent=submit;
     $('dialog-cancel').textContent=onApply?'キャンセル':'閉じる';build($('dialog-content'));$('editor-dialog').showModal();
     const focus=$('dialog-content').querySelector('input,textarea,select,button');if(focus)focus.focus();
@@ -301,7 +349,7 @@
   function closeDialog() {
     $('editor-dialog').close();
     const replacement=dialogListDetail?document.querySelector('[data-object-details="'+CSS.escape(dialogListDetail)+'"]'):dialogOpenerKey&&dialogSelectionKey===$('selection-toolbar').dataset.selectionKey?$('selection-toolbar').querySelector('[data-quick-control="'+CSS.escape(dialogOpenerKey)+'"]'):null,opener=dialogOpener?.isConnected?dialogOpener:replacement;
-    if(dialogListDetail&&opener&&matchMedia('(max-width:850px)').matches)setListOpen(true);
+    if((dialogListDetail||opener?.classList.contains('add-menu-toggle'))&&opener&&matchMedia('(max-width:850px)').matches)setListOpen(true);
     if(opener?.getBoundingClientRect().width)opener.focus();else $('stage').focus();
   }
   function field(parent,label,value,type='text',attrs={}) { const wrap=node('label',label);const input=node('input',null,Object.assign({type},attrs)); input.value=value;wrap.append(input);parent.append(wrap);return input; }
@@ -513,6 +561,7 @@
     const initial=C.createDocument();initial.name='はじめてのグラフ';Object.assign(initial.axes.x,{min:-5,max:5});Object.assign(initial.axes.y,{min:-2,max:10});const f=C.createSeries('function');f.expression='x^2';f.name='y = x²';f.domain.x=[-5,5];initial.series.push(f);history=new C.History(initial);
     try{localAuto=new IlapoLocalAutosave({encode:doc=>new Blob([encode(doc)],{type:'application/json'}),onStatus:result=>{status(result.message);$('stop-local-auto').disabled=!localAuto.active;if(result.state==='error')notify(result.message);}});}catch(_){$('start-local-auto').disabled=true;}
     listen('list-toggle','click',()=>setListOpen(!$('objects').classList.contains('is-open')));listen('list-close','click',()=>setListOpen(false));
+    bindAddMenu('series');bindAddMenu('annotation');
     $('plot').addEventListener('pointerdown',startGesture,{capture:true});
     $('plot').addEventListener('pointermove',moveGesture,{capture:true});
     $('plot').addEventListener('pointerup',finishGesture,{capture:true});
@@ -536,14 +585,16 @@
     listen('export-image','click',exportImage);listen('dialog-close','click',closeDialog);listen('dialog-cancel','click',closeDialog);
     $('editor-dialog').addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
     $('dialog-form').addEventListener('submit',event=>{event.preventDefault();$('dialog-error').hidden=true;try{if(dialogApply){dialogApply();closeDialog();}}catch(error){report(error);}});
-    for(const menu of document.querySelectorAll('.top details'))menu.addEventListener('toggle',()=>{if(menu.open)for(const other of document.querySelectorAll('.top details'))if(other!==menu)other.open=false;});
-    document.addEventListener('pointerdown',event=>{if(!event.target.closest('.top .menu'))closeMenus();if(tangentDraft&&!$('tangent-quick-panel').contains(event.target)&&!tangentDraft.opener.contains(event.target))cancelTangentDraft();},true);
-    document.addEventListener('focusin',event=>{if(tangentDraft&&!$('tangent-quick-panel').contains(event.target)&&!tangentDraft.opener.contains(event.target))cancelTangentDraft();});
+    for(const menu of document.querySelectorAll('.top details'))menu.addEventListener('toggle',()=>{if(menu.open){closeAddMenu();for(const other of document.querySelectorAll('.top details'))if(other!==menu)other.open=false;}});
+    document.addEventListener('pointerdown',event=>{if(!event.target.closest('.top .menu'))closeTopMenus();if(addMenu&&!addMenu.trigger.contains(event.target)&&!addMenu.panel.contains(event.target))closeAddMenu();if(tangentDraft&&!$('tangent-quick-panel').contains(event.target)&&!tangentDraft.opener.contains(event.target))cancelTangentDraft();},true);
+    document.addEventListener('focusin',event=>{if(addMenu&&!addMenu.trigger.contains(event.target)&&!addMenu.panel.contains(event.target))closeAddMenu();if(tangentDraft&&!$('tangent-quick-panel').contains(event.target)&&!tangentDraft.opener.contains(event.target))cancelTangentDraft();});
+    addEventListener('resize',positionAddMenu);addEventListener('scroll',positionAddMenu,true);window.visualViewport?.addEventListener('resize',positionAddMenu);window.visualViewport?.addEventListener('scroll',positionAddMenu);
     addEventListener('resize',positionQuickTangent);addEventListener('scroll',positionQuickTangent,true);window.visualViewport?.addEventListener('resize',positionQuickTangent);window.visualViewport?.addEventListener('scroll',positionQuickTangent);
     document.addEventListener('keydown',event=>{
       if(event.isComposing||event.keyCode===229)return;if(help?.root?.contains(event.target)||$('operation-help').contains(event.target))return;
       const input=event.target.closest('input,textarea,select,[contenteditable="true"]');if($('editor-dialog').open)return;
       if(event.key==='Escape'&&tangentDraft){cancelTangentDraft(true);event.preventDefault();return;}
+      if(event.key==='Escape'&&addMenu){closeAddMenu(true);event.preventDefault();return;}
       if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'){event.preventDefault();run(saveBrowser);return;}if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='o'){event.preventDefault();showSaved();return;}
       if(event.key==='Escape'&&parameterPreview){cancelParameterPreview();event.preventDefault();return;}
       if(event.key==='Escape'&&selectionPanel&&$('selection-toolbar').contains(event.target)){const panel=selectionPanel;selectionPanel=null;updateToolbar();$('selection-toolbar').querySelector('[data-quick-control="toggle-'+panel+'"]')?.focus();event.preventDefault();return;}

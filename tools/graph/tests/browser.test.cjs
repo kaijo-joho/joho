@@ -32,24 +32,25 @@ let browser;
     const field = page.locator('#dialog-content label').filter({ hasText: label }).locator('input, textarea').first();
     await field.fill(String(value));
   }
+  async function seriesAdd() { if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); }
   await open();
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).mode, '2d');
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).version, 4);
   assert(await page.locator('#plot .main-svg').count(), '2D graph is drawn');
 
-  await page.locator('#add-function').click(); await setField('数式', 'y = sin(x)'); await submit();
+  await seriesAdd(); await page.locator('#add-function').click(); await setField('数式', 'y = sin(x)'); await submit();
   assert((await page.evaluate(() => GraphEditor.getDocument())).series.some(s => s.expression === 'y = sin(x)'));
 
-  await page.locator('#add-data').click(); await setField('数表', 'x,y\n0,1\n1,\n2,4'); await submit();
+  await seriesAdd(); await page.locator('#add-data').click(); await setField('数表', 'x,y\n0,1\n1,\n2,4'); await submit();
   assert.deepStrictEqual((await page.evaluate(() => GraphEditor.getDocument())).series.at(-1).rows, [[0,1],[1,null],[2,4]]);
   const beforeInvalid = await page.evaluate(() => GraphEditor.getDocument());
-  await page.locator('#add-function').click(); await setField('数式', 'y = nope(x)'); await page.locator('#dialog-submit').click();
+  await seriesAdd(); await page.locator('#add-function').click(); await setField('数式', 'y = nope(x)'); await page.locator('#dialog-submit').click();
   await page.waitForSelector('#dialog-error:not([hidden])');
   assert.deepStrictEqual(await page.evaluate(() => GraphEditor.getDocument()), beforeInvalid, 'bad formula keeps the document');
   await page.locator('#dialog-cancel').click();
 
   await page.locator('#mode-3d').click(); await page.waitForFunction(() => GraphEditor.getDocument().mode === '3d');
-  await page.locator('#add-function').click(); await setField('数式', 'z = sin(x)*cos(y)'); await submit();
+  await seriesAdd(); await page.locator('#add-function').click(); await setField('数式', 'z = sin(x)*cos(y)'); await submit();
   await page.waitForSelector('#plot canvas');
   assert((await page.locator('#plot canvas').count()) > 0, '3D uses WebGL canvas');
 
@@ -59,7 +60,7 @@ let browser;
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).mode, '3d');
 
   await page.locator('#mode-2d').click(); await page.locator('#add-parameter').click(); await setField('名前', 'a'); await submit();
-  await page.locator('#add-function').click(); await setField('数式', 'y = a*x^2'); await submit();
+  await seriesAdd(); await page.locator('#add-function').click(); await setField('数式', 'y = a*x^2'); await submit();
   const slider = page.locator('#parameter-list input[type=range]').first(); await slider.fill('2');
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).parameters.find(p => p.name === 'a').value, 2);
   await page.locator('#undo').waitFor({ state: 'visible' }); await page.locator('#undo').click(); await page.waitForTimeout(80); assert.equal((await page.evaluate(() => GraphEditor.getDocument())).parameters.find(p => p.name === 'a').value, 1);
@@ -74,7 +75,7 @@ let browser;
   const downloadPromise = page.waitForEvent('download'); await page.locator('#file-menu summary').click(); await page.locator('#save-local').click(); const json = await downloadPromise; assert(/\.graph\.json$/.test(json.suggestedFilename()));
   const jsonPath=await json.path();assert.deepStrictEqual(JSON.parse(fs.readFileSync(jsonPath,'utf8')),savedDocument,'ダウンロードしたJSONは元の数式・表を保持する');
   await page.setInputFiles('#file-input',jsonPath);await page.waitForFunction(()=>!GraphEditor.getState().drawing);
-  await page.locator('#add-function').click();await setField('数式','y = x^3');await submit();
+  await seriesAdd(); await page.locator('#add-function').click();await setField('数式','y = x^3');await submit();
   await page.waitForFunction(()=>JSON.parse(localStorage.getItem('kaijo-graph:auto')).document.series.some(s=>s.expression==='y = x^3'));
   assert.deepStrictEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('kaijo-graph:saved')).document),savedDocument,'後の自動保存は明示保存を変更しない');
   await page.reload(); await page.waitForFunction(() => window.GraphEditor && document.querySelector('#editor-dialog').open); await page.locator('.saved-option').filter({ hasText: '明示保存' }).click(); await page.waitForFunction(()=>!GraphEditor.getState().drawing); assert.deepStrictEqual(await page.evaluate(() => GraphEditor.getDocument()), savedDocument, 'reload restores the explicitly saved document independently');
@@ -84,7 +85,7 @@ let browser;
   await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark'); await page.keyboard.press('Escape'); await page.waitForFunction(() => !document.querySelector('#view-menu').open);
 
   for (const width of [736,390]) { await page.setViewportSize({ width, height: 820 }); await page.waitForTimeout(100); assert((await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth)),'no horizontal overflow at '+width); assert.equal(await page.locator('.top').evaluate(el => getComputedStyle(el).flexWrap), 'nowrap'); }
-  await page.locator('#export-panel:not([hidden]) [data-close-side]').click(); await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.locator('#operation-help:visible').waitFor(); assert(await page.locator('#operation-help:visible select').isEditable(), 'keyboard opens visible non-modal help'); await page.locator('#operation-help:visible').getByRole('button', { name: 'ヘルプを開いたまま編集へ戻る' }).click(); await page.locator('#list-toggle').click(); await page.locator('#add-function').click(); await page.locator('#dialog-cancel').click(); await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.keyboard.press('Escape');
+  await page.locator('#export-panel:not([hidden]) [data-close-side]').click(); await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.locator('#operation-help:visible').waitFor(); assert(await page.locator('#operation-help:visible select').isEditable(), 'keyboard opens visible non-modal help'); await page.locator('#operation-help:visible').getByRole('button', { name: 'ヘルプを開いたまま編集へ戻る' }).click(); await page.locator('#list-toggle').click(); await seriesAdd(); await page.locator('#add-function').click(); await page.locator('#dialog-cancel').click(); await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.keyboard.press('Escape');
   await page.locator('#list-toggle').tap(); await page.locator('#series-list .object-item').first().tap();
   assert.equal(errors.length, 0, errors.join('\n'));
   await browser.close(); await new Promise(resolve => server.close(resolve));

@@ -27,11 +27,13 @@ let browser;
   const submit = async () => { await page.locator('#dialog-submit').click(); await settle(); };
   const curves = () => page.locator('#series-list .object-item');
   const annotations = () => page.locator('#annotation-list .object-item');
-  async function addCurve(kind, name) { await page.locator('#other-curves summary').click(); await page.locator('#add-' + kind).click(); await field('名前', name); }
+  async function seriesAdd() { if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); }
+  async function annotationAdd() { if (await page.locator('#annotation-add-panel').isHidden()) await page.locator('#annotation-add-toggle').click(); }
+  async function addCurve(kind, name) { await seriesAdd(); if (!await page.locator('#other-curves').evaluate(el => el.open)) await page.locator('#other-curves summary').click(); await page.locator('#add-' + kind).click(); await field('名前', name); }
   const annotationButton = { '点':'#add-point', '補助線':'#add-guide', '接線':'#add-tangent', '交点':'#add-intersection', '線分・矢印':'#add-segment', '文字':'#add-text' };
-  async function addAnnotation(name) { await page.locator(annotationButton[name]).click(); }
+  async function addAnnotation(name) { await annotationAdd(); await page.locator(annotationButton[name]).click(); }
   async function more(action) { await page.getByRole('button', { name: action, exact: true }).click(); }
-  async function addQuickTangent(at) { await page.locator('#add-tangent').click(); const panel=page.locator('#tangent-quick-panel'); await panel.getByLabel(/^接点の .+ 座標$/).fill(String(at)); await panel.getByRole('button',{name:'接線を追加',exact:true}).click(); await settle(); }
+  async function addQuickTangent(at) { await annotationAdd(); await page.locator('#add-tangent').click(); const panel=page.locator('#tangent-quick-panel'); await panel.getByLabel(/^接点の .+ 座標$/).fill(String(at)); await panel.getByRole('button',{name:'接線を追加',exact:true}).click(); await settle(); }
   async function openTemplate(name) { if (!await page.locator('#templates-panel').isVisible()) await page.locator('#templates-tab').click(); await page.locator('#template-list').getByRole('button', { name: new RegExp('^' + name) }).click(); await settle(); }
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
   await addCurve('implicit', '円'); await field('方程式（例：x^2 + y^2 = 9）', 'x^2+y^2=9');
@@ -44,7 +46,7 @@ let browser;
   assert.equal((await doc()).version, 4);
 
   await page.locator('#add-parameter').click(); await field('名前（半角英字。例：a）', 'a'); await submit();
-  await curves().filter({ hasText: '楕円' }).click(); await page.locator('#add-point').click(); await field('名前', 'P'); await field('位置（x / t / theta の値）', 'a'); await submit();
+  await curves().filter({ hasText: '楕円' }).click(); await annotationAdd(); await page.locator('#add-point').click(); await field('名前', 'P'); await field('位置（x / t / theta の値）', 'a'); await submit();
   const pId = (await doc()).annotations[0].id;
   const pointXY = id => page.evaluate(id => { const t = document.querySelector('#plot').data.find(t => t.meta.objectId === id && t.mode.includes('markers')); return [t.x[0], t.y[0]]; }, id);
   let xy = await pointXY(pId); assert(Math.abs(xy[0] - 3 * Math.cos(1)) < 1e-8);
@@ -64,7 +66,7 @@ let browser;
   await addAnnotation('補助線'); await field('名前', '縦線'); await field('座標の値', 'a'); await submit();
   assert.equal((await doc()).annotations.at(-1).value, 'a');
   await curves().first().click(); await addQuickTangent(1);
-  await page.locator('#add-function').click(); await field('名前', '直線'); await field('数式（例：y = a*x^2）', 'x+2'); await submit();
+  await seriesAdd(); await page.locator('#add-function').click(); await field('名前', '直線'); await field('数式（例：y = a*x^2）', 'x+2'); await submit();
   await addAnnotation('交点'); await field('名前', '交点A'); const functionIds=(await doc()).series.filter(s=>s.kind==='function').map(s=>s.id); await page.getByLabel('1つ目の対象', { exact:true }).selectOption('series:'+functionIds[0]); await page.getByLabel('2つ目の対象', { exact:true }).selectOption('series:'+functionIds.at(-1)); await submit();
   const intersectionId = (await doc()).annotations.at(-1).id;
   assert.deepEqual(await page.evaluate(id => document.querySelector('#plot').data.find(t => t.meta.objectId === id).x.map(v => Math.round(v * 1e5) / 1e5), intersectionId), [-1, 2]);

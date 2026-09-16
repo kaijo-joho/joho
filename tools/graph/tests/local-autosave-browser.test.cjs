@@ -37,6 +37,7 @@ let browser;
     window.showSaveFilePicker = async () => handles[queue.shift() || 'explicit'];
   });
   const page = await context.newPage();
+  const seriesAdd = async () => { if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); };
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   const url = `http://127.0.0.1:${server.address().port}/tools/graph/index.html`;
   await page.goto(url); await page.waitForFunction(() => window.GraphEditor && !GraphEditor.getState().drawing);
@@ -46,7 +47,7 @@ let browser;
   const initial = await page.evaluate(() => JSON.parse(__graphFakeFS.state.auto.text));
   assert.equal(initial.format, 'kaijo-graph'); assert.deepStrictEqual(initial, documentBefore, 'initial auto-save writes the current graph JSON');
 
-  await page.locator('#add-function').click();
+  await seriesAdd(); await page.locator('#add-function').click();
   const expression = page.locator('#dialog-content label').filter({ hasText: '数式' }).locator('input').first(); await expression.fill('y = sin(x)');
   await page.locator('#dialog-submit').click(); await page.waitForFunction(() => !document.querySelector('#editor-dialog').open);
   await page.waitForFunction(() => window.__graphFakeFS.state.auto.text.includes('sin(x)'));
@@ -57,7 +58,7 @@ let browser;
   assert.equal(await page.evaluate(() => __graphFakeFS.state.auto.text.includes('sin(x)')), true, 'rejected explicit save does not overwrite the auto-save file');
 
   await page.evaluate(() => __graphFakeFS.externalChange());
-  await page.locator('#add-function').click(); await expression.fill('y = cos(x)'); await page.locator('#dialog-submit').click();
+  await seriesAdd(); await page.locator('#add-function').click(); await expression.fill('y = cos(x)'); await page.locator('#dialog-submit').click();
   await page.waitForFunction(() => document.querySelector('#stop-local-auto').disabled && document.querySelector('#save-status').textContent.includes('外部で変更'));
   const afterExternal = await page.evaluate(() => GraphEditor.getDocument());
   assert(afterExternal.series.some(s => s.expression === 'y = cos(x)'), 'external change stops only local saving, not editing');

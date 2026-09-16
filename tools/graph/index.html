@@ -28,7 +28,7 @@
   <header class="top" aria-label="グラフの操作">
     <a class="brand" href="../index.html" aria-label="グラフエディタ・ウェブアプリ一覧へ"><img src="icon.svg" width="30" height="30" alt=""><span>グラフエディタ</span><small>BETA</small></a>
     <button id="list-toggle" class="icon-button compact-only" aria-label="数式・数表の一覧" aria-expanded="false" aria-controls="objects">☷</button>
-    <details class="menu" id="file-menu"><summary>ファイル</summary><div class="menu-panel">
+    <details class="menu" id="file-menu"><summary class="icon-button" data-icon="file" aria-label="ファイル" data-tip="ファイル・保存と読み込み"></summary><div class="menu-panel">
       <button id="save-browser">ブラウザに保存 <kbd>⌘S</kbd></button>
       <button id="save-local">ファイルに保存…</button>
       <button id="open-saved">保存したグラフを開く… <kbd>⌘O</kbd></button>
@@ -38,7 +38,7 @@
       <hr><button id="new-document">新しいグラフ</button>
     </div></details>
     <div class="mode-switch" aria-label="グラフの次元"><button id="mode-2d" aria-pressed="true">2D</button><button id="mode-3d" aria-pressed="false">3D</button></div>
-    <div class="history-buttons wide-only"><button id="undo" class="icon-button" aria-label="元に戻す（⌘Z）" disabled>↶</button><button id="redo" class="icon-button" aria-label="やり直し（⇧⌘Z）" disabled>↷</button></div>
+    <div class="history-buttons wide-only"><button id="undo" class="icon-button" data-icon="undo" aria-label="元に戻す（⌘Z）" data-tip="元に戻す ⌘Z" disabled></button><button id="redo" class="icon-button" data-icon="redo" aria-label="やり直し（⇧⌘Z）" data-tip="やり直し ⇧⌘Z" disabled></button></div>
     <button id="axes-button" class="wide-only icon-button" data-icon="settings" aria-label="座標・設定" data-tip="座標・設定"></button>
     <details class="menu" id="view-menu"><summary aria-label="表示・その他の操作">…</summary><div class="menu-panel">
       <button id="axes-menu">座標・グラフ名…</button>
@@ -50,22 +50,34 @@
     <button id="help-button" class="icon-button" aria-label="使い方（?）">?</button>
   </header>
   <aside id="objects" aria-label="数式・数表の一覧">
-    <div class="panel-heading"><h1>数式・数表</h1><button id="list-close" class="compact-only icon-button" aria-label="一覧を閉じる">×</button></div>
-    <div class="add-grid"><button id="add-function">＋ 数式</button><button id="add-data">＋ 数表</button></div>
-    <details id="other-curves" class="curve-choices"><summary>ほかの数式</summary><button id="add-implicit" class="full-button">＋ 陰関数 F(x, y) = 0</button><button id="add-parametric" class="full-button">＋ 媒介変数 x(t), y(t)</button><button id="add-polar" class="full-button">＋ 極座標 r(θ)</button></details>
-    <button id="import-csv" class="full-button">CSV・表計算のデータを追加</button>
-    <p class="small muted">選択して書式を編集。「︙」で詳細設定を開きます。</p>
+    <div class="panel-heading"><h1>数式・数表</h1><div class="heading-actions">
+      <div class="add-menu">
+        <button id="series-add-toggle" class="icon-button add-menu-toggle" data-icon="plus" aria-label="数式・数表を追加" aria-expanded="false" aria-controls="series-add-panel"></button>
+        <div id="series-add-panel" class="add-menu-panel" role="group" aria-label="数式・数表の追加" hidden>
+          <h3>数式・数表を追加</h3>
+          <div class="add-grid"><button id="add-function">＋ 数式</button><button id="add-data">＋ 数表</button></div>
+          <details id="other-curves" class="curve-choices"><summary>ほかの数式</summary><button id="add-implicit" class="full-button">＋ 陰関数 F(x, y) = 0</button><button id="add-parametric" class="full-button">＋ 媒介変数 x(t), y(t)</button><button id="add-polar" class="full-button">＋ 極座標 r(θ)</button></details>
+          <button id="import-csv" class="full-button">CSV・表計算のデータを追加</button>
+        </div>
+      </div>
+      <button id="list-close" class="compact-only icon-button" aria-label="一覧を閉じる">×</button>
+    </div></div>
     <div id="series-list" class="object-list"></div>
-    <div class="panel-heading parameter-heading"><h2>点・線分・文字</h2></div>
-    <div id="annotation-tools" aria-label="点・線分・文字の追加">
+    <div class="panel-heading parameter-heading"><h2>点・線分・文字</h2><div class="add-menu">
+      <button id="annotation-add-toggle" class="icon-button add-menu-toggle" data-icon="plus" aria-label="点・線分・文字を追加" aria-expanded="false" aria-controls="annotation-add-panel"></button>
+      <div id="annotation-add-panel" class="add-menu-panel" role="group" aria-label="点・線分・文字の追加" hidden>
+        <h3>点・線分・文字を追加</h3>
+        <div id="annotation-tools" aria-label="追加する種類">
       <button id="add-point" data-icon="point" aria-label="点を追加" data-tip="点を追加">点</button>
       <button id="add-segment" data-icon="segment" aria-label="線分・矢印を追加" data-tip="線分・矢印を追加">線分</button>
       <button id="add-tangent" data-icon="tangent" aria-label="接線を追加" data-tip="接線を追加">接線</button>
       <button id="add-intersection" data-icon="intersection" aria-label="交点を追加" data-tip="数式・接線の交点を追加">交点</button>
       <button id="add-text" data-icon="text" aria-label="文字を追加" data-tip="文字を追加">文字</button>
       <button id="add-guide" data-icon="guide" aria-label="補助線を追加" data-tip="補助線を追加">補助線</button>
-    </div>
-    <p id="annotation-mode-note" class="small muted" hidden>点・線分・文字は2Dで追加・表示します。</p>
+        </div>
+        <p id="annotation-mode-note" class="small muted" hidden>点・線分・文字は2Dで追加・表示します。</p>
+      </div>
+    </div></div>
     <div id="annotation-list" class="object-list"></div>
     <div class="panel-heading parameter-heading"><h2>係数</h2><button id="add-parameter" aria-label="係数を追加">＋</button></div>
     <div id="parameter-list" class="object-list"></div>
@@ -98,17 +110,17 @@
 <dialog id="editor-dialog" aria-labelledby="dialog-title"><form id="dialog-form"><header class="dialog-heading"><h2 id="dialog-title"></h2><button type="button" id="dialog-close" class="icon-button" aria-label="閉じる">×</button></header><div id="dialog-content"></div><p id="dialog-error" class="error" role="alert" hidden></p><footer class="dialog-actions"><button type="button" id="dialog-cancel">キャンセル</button><button id="dialog-submit" class="primary" type="submit">適用</button></footer></form></dialog>
 <div id="toast" role="status" hidden></div>
 <aside id="operation-help" hidden>
-  <section data-help-topic="start" data-help-title="グラフを描く"><h3>グラフを描く</h3><ol><li>「＋ 数式」で式を入力し「描画」を押します。Enterでも確定できます。</li><li>2Dでは y = x^2、3Dでは z = sin(x)*cos(y) のように入力します。</li><li>複数の数式・数表を同じ座標に重ねられます。</li></ol><p>狭い画面は左上の「☷」で一覧を開きます。対象の編集は一覧やグラフを選択して、上に出るアイコンから行います。左の項目の「︙」から、数式・範囲・数表や位置の設定を直接開けます。一覧のダブルクリックや選択後のEnterも使えます。グラフの何もないところをクリック・タップすると選択を解除します。移動や拡大縮小の操作中は選択を保ちます。</p><details><summary>入力できる数式</summary><p>四則演算 + - * /、累乗 ^、括弧、pi、e、sin・cos・tan、asin・acos・atan、sqrt・abs・exp・ln・log、floor・ceil・round・min・max。lnは自然対数、logは常用対数です。2xや2(x+1)も入力できます。角度は「座標・設定」でラジアン／度を選びます。式の中のlog(0)やsqrt(-1)など、実数として定義されない箇所は描きません。</p><p>「ほかの数式」から陰関数・媒介変数・極座標も追加できます。式の展開・因数分解などのCAS機能はありません。</p></details></section>
-  <section data-help-topic="curves" data-help-title="陰関数・媒介変数・極座標"><h3>陰関数・媒介変数・極座標（2D）</h3><p>左の「ほかの数式」から追加します。陰関数は x^2+y^2=9 のような方程式、媒介変数は x(t)、y(t) の各右辺、極座標は r の右辺と theta（θ）の範囲を入力します。</p><p>三角関数と極座標の角度は「座標・設定」のラジアン／度に従います。1周はラジアンで2π（約6.283185307）、度で360。角度を切り替えても入力済みの範囲は自動換算されません。媒介変数を含む図の t、極座標を含む図の theta は独立変数のため、同名の係数を登録できません。</p><p>陰関数は格子による近似表示です。小さな輪郭、重根や孤立点は捉えられない場合があります。範囲を絞って確認してください。</p></section>
-  <section data-help-topic="annotations" data-help-title="点・補助線・接線・交点"><h3>点・補助線・接線・交点（2D）</h3><p>一覧の「点・線分・文字」にある各ボタンから直接追加します。点は座標の入力か、曲線と位置の指定で作成できます。位置には 1/2 や sqrt(2)、登録した係数も使えます。読取線は軸まで引き、軸が画面外なら表示範囲の端まで引きます。</p><p>左パネルの接線アイコンにマウスを乗せるか、クリック・タップすると、接点の座標を入力する小さな欄が開きます。入力中は接線と方程式をプレビューし、Enterまたは「接線を追加」で登録します。Escや欄の外を押すと取り消します。名前・座標などの詳細は、登録後の「位置・設定」で編集できます。未登録のプレビューは保存・書き出しに含みません。</p><p>曲線上の点は y=f(x)・媒介変数・極座標に対応します。接線は y=f(x) が対象で、指定した x の前後から傾きを調べます。追加した接線は登録され、「交点」で数式や接線から2つを選べます。数式を含む交点は指定した区間で数値探索します。接線の方程式は左の一覧に表示され、図中への表示も選べます。方程式の ≈ は数値微分による近似を示します。表示は基本8桁の有効数字に丸め、元の計算値と保存した数式は保持します。角や未定義の位置、一致する2曲線は理由を表示します。細かい振動やごく近い交点をすべて見つける保証はありません。</p><p>一覧や描画された点・線を選択すると、ポップアップから編集・配色・複製・削除できます。元の式や係数を変えると、参照する点・接線・交点も更新されます。曲線を非表示にしても注釈は個別に表示できます。曲線を削除すると参照する注釈も削除され、「元に戻す」でまとめて復元できます。</p></section>
+  <section data-help-topic="start" data-help-title="グラフを描く"><h3>グラフを描く</h3><ol><li>「数式・数表」の＋から「数式」を選び、式を入力し「描画」を押します。Enterでも確定できます。</li><li>2Dでは y = x^2、3Dでは z = sin(x)*cos(y) のように入力します。</li><li>複数の数式・数表を同じ座標に重ねられます。</li></ol><p>左の見出し横の＋にマウスを乗せるか、クリック・タップすると追加メニューを開けます。キーボードはTabで＋を選び、Enterで開きます。Escapeで閉じます。狭い画面は左上の「☷」で一覧を開きます。対象の編集は一覧やグラフを選択して、上に出るアイコンから行います。左の項目の「︙」から、数式・範囲・数表や位置の設定を直接開けます。一覧のダブルクリックや選択後のEnterも使えます。グラフの何もないところをクリック・タップすると選択を解除します。移動や拡大縮小の操作中は選択を保ちます。</p><details><summary>入力できる数式</summary><p>四則演算 + - * /、累乗 ^、括弧、pi、e、sin・cos・tan、asin・acos・atan、sqrt・abs・exp・ln・log、floor・ceil・round・min・max。lnは自然対数、logは常用対数です。2xや2(x+1)も入力できます。角度は「座標・設定」でラジアン／度を選びます。式の中のlog(0)やsqrt(-1)など、実数として定義されない箇所は描きません。</p><p>「ほかの数式」から陰関数・媒介変数・極座標も追加できます。式の展開・因数分解などのCAS機能はありません。</p></details></section>
+  <section data-help-topic="curves" data-help-title="陰関数・媒介変数・極座標"><h3>陰関数・媒介変数・極座標（2D）</h3><p>左の「数式・数表」の＋を開き、「ほかの数式」から追加します。陰関数は x^2+y^2=9 のような方程式、媒介変数は x(t)、y(t) の各右辺、極座標は r の右辺と theta（θ）の範囲を入力します。</p><p>三角関数と極座標の角度は「座標・設定」のラジアン／度に従います。1周はラジアンで2π（約6.283185307）、度で360。角度を切り替えても入力済みの範囲は自動換算されません。媒介変数を含む図の t、極座標を含む図の theta は独立変数のため、同名の係数を登録できません。</p><p>陰関数は格子による近似表示です。小さな輪郭、重根や孤立点は捉えられない場合があります。範囲を絞って確認してください。</p></section>
+  <section data-help-topic="annotations" data-help-title="点・補助線・接線・交点"><h3>点・補助線・接線・交点（2D）</h3><p>一覧の「点・線分・文字」の＋を開き、各ボタンから追加します。点は座標の入力か、曲線と位置の指定で作成できます。位置には 1/2 や sqrt(2)、登録した係数も使えます。読取線は軸まで引き、軸が画面外なら表示範囲の端まで引きます。</p><p>追加メニューの接線アイコンにマウスを乗せるか、クリック・タップすると、接点の座標を入力する小さな欄が開きます。入力中は接線と方程式をプレビューし、Enterまたは「接線を追加」で登録します。Escや欄の外を押すと取り消します。名前・座標などの詳細は、登録後の「位置・設定」で編集できます。未登録のプレビューは保存・書き出しに含みません。</p><p>曲線上の点は y=f(x)・媒介変数・極座標に対応します。接線は y=f(x) が対象で、指定した x の前後から傾きを調べます。追加した接線は登録され、「交点」で数式や接線から2つを選べます。数式を含む交点は指定した区間で数値探索します。接線の方程式は左の一覧に表示され、図中への表示も選べます。方程式の ≈ は数値微分による近似を示します。表示は基本8桁の有効数字に丸め、元の計算値と保存した数式は保持します。角や未定義の位置、一致する2曲線は理由を表示します。細かい振動やごく近い交点をすべて見つける保証はありません。</p><p>一覧や描画された点・線を選択すると、ポップアップから編集・配色・複製・削除できます。元の式や係数を変えると、参照する点・接線・交点も更新されます。曲線を非表示にしても注釈は個別に表示できます。曲線を削除すると参照する注釈も削除され、「元に戻す」でまとめて復元できます。</p></section>
   <section data-help-topic="segments" data-help-title="線分・接続・接線の交点"><h3>線分をつなぐ</h3><p>「線分・矢印を追加」で始点と終点の座標を入力します。すでにある点を選んで端点として使うこともできます。同じ点を端点にすると、点を動かしたときにつながった線分が一緒に動きます。座標が同じだけでは接続されません。</p><p>線分を選んで操作バーの「終点から続ける」アイコンで次の線分を追加できます。最後に最初の点を選べば閉じた輪郭になります。領域の塗りつぶし・面積は今後対応する予定です。</p><p>「交点」で追加済みの接線2本を選ぶと、延長した直線の交点を求めます。平行・一致・微分できない場合は理由を表示します。この交点も線分の端点として利用できます。</p></section>
   <section data-help-topic="labels" data-help-title="文字・配置・ドラッグ"><h3>文字と点の配置</h3><p>「文字を追加」で説明と配置する座標を入力します。改行、v_0 や v_{max} の下付き、m^2 や m^{2} の上付きに対応します。「文字・配置」アイコンで名前の表示や文字サイズを直接変更できます。上下左右のずれは「文字・配置の詳細…」で指定します。</p><p>数値で指定した自由点と文字はドラッグで移動できます。曲線上の点は曲線に沿って移動します。点や線の名前はドラッグで配置だけを変えられます。Escapeで移動を取り消し、確定後は「元に戻す」で一度に戻せます。</p><p>1/2 や係数などの式で指定した座標・位置は、式を保持するためドラッグできません。「位置・設定」か係数から変更してください。キーボードでも一覧を選び、設定画面から同じ編集ができます。</p></section>
   <section data-help-topic="axes" data-help-title="軸の記号・単位・目盛"><h3>任意の軸で描く</h3><p>「座標・設定」で数式に使う記号、表示する軸名、単位を分けて指定します。横軸を t、縦軸を s にすると s = 2*t と入力できます。温度やθなどの記号も使えます。記号を変えても既存の式の意味や数値は変わりません。係数名や関数名、定数名との重複はできません。</p><p>目盛の間隔は 1/2 や π/2 のように指定でき、小数・分数・πの倍数で表示できます。空欄なら自動です。表示範囲に対して目盛が多すぎる場合は間引きます。対数軸の目盛は自動です。</p><p>媒介変数の t と極座標の θ は、その式をたどるための独立変数として維持されます。軸名や単位には上付き・下付きも使えます。単位を変えても数値の自動換算はしません。</p></section>
-  <section data-help-topic="table" data-help-title="数表と出典"><h3>数表と出典</h3><p>「＋ 数表」で x,y（3Dではx,y,z）の表を貼り付けます。CSVとタブ区切りの表計算データを利用でき、最初の見出し行は省略できます。列数を合わせ、欠測のセルは空欄にしてください。</p><p>数表を選択すると元の数値・出典を確認し、点・折れ線・両方を切り替えられます。点の間は直線で結びます。近似・回帰・滑らかな補間は自動では行いません。</p><p>資料の値、近似式からの計算値、自分のデータを出典欄に残します。単位の指定は軸の表示名で、数値の自動換算はしません。</p></section>
+  <section data-help-topic="table" data-help-title="数表と出典"><h3>数表と出典</h3><p>「数式・数表」の＋から「数表」を選び、x,y（3Dではx,y,z）の表を貼り付けます。CSVとタブ区切りの表計算データを利用でき、最初の見出し行は省略できます。列数を合わせ、欠測のセルは空欄にしてください。</p><p>数表を選択すると元の数値・出典を確認し、点・折れ線・両方を切り替えられます。点の間は直線で結びます。近似・回帰・滑らかな補間は自動では行いません。</p><p>資料の値、近似式からの計算値、自分のデータを出典欄に残します。単位の指定は軸の表示名で、数値の自動換算はしません。</p></section>
   <section data-help-topic="parameters" data-help-title="係数を変える"><h3>係数を変える</h3><ol><li>一覧の「係数」の＋から a などを登録します。</li><li>数式に a*x^2 のように使います。</li><li>左パネルに常設したスライダーや数値入力で、すぐに値を変更できます。</li></ol><p>最小値、最大値、刻み幅は係数の横にある設定アイコンで変更します。スライダーを動かしている間はプレビューし、離した時点で保存します。Escapeで取り消せます。使用中の係数を削除するには、先にその係数を使っている数式を変更してください。</p></section>
   <section data-help-topic="view" data-help-title="表示・3D・配色"><h3>表示・3D・配色</h3><p>2Dはドラッグで移動、ホイールやピンチで拡大縮小。3Dはドラッグで回転できます。「全体表示」で数式の指定範囲と数表が収まる範囲へ戻します。</p><p>「座標・設定」で表示範囲、軸名、単位、通常／対数目盛、角度を指定します。3Dでは曲面と3列の数表を表示します。2Dへ戻しても3Dの式や数表は保持されます。</p><p>対象を選ぶと基本6色が表示され、1クリックで変更できます。線の太さ・線種も同じポップアップに常時表示します。「色・線」アイコンを押すと、残りの色がメニュー内に開きます。RGB、自由な色、不透明度は「色・線の詳細…」で設定します。変更はすぐに反映され、「元に戻す」で取り消せます。テーマと操作文字の大きさは上部の「…」で変更します。</p><details><summary>表示の精度</summary><p>グラフは有限個の点から数値計算で描きます。非常に細い振動、狭い穴、不連続な式では特徴を捉えきれない場合があります。必要な範囲へ拡大して確認してください。3D曲面も格子による近似表示です。</p></details></section>
   <section data-help-topic="save" data-help-title="保存と書き出し"><h3>保存と書き出し</h3><p>編集内容はブラウザへ自動保存します。「ブラウザに保存」で残した内容は別に保持し、「保存したグラフを開く」から選択できます。起動時も保存候補を選べます。</p><p>ローカルファイルには再編集用のJSONを保存します。画像は右の「書き出し」からPNG、2DはSVGも使えます。画像には元の数式・数表の編集機能は含まれません。</p><details><summary>ローカル自動保存</summary><p>Chromeで書き込み先を選ぶと、明示保存とは別のファイルへ自動保存できます。この画面を閉じると終了します。保存先が外部で変更された場合は停止し、作品を保持します。ブラウザの保存とファイルのダウンロードも利用できます。</p></details><p>⌘S 保存／⌘O 開く／⌘Z 元に戻す／⇧⌘Z やり直し／Escape メニューを閉じる・選択解除／? ヘルプ。</p></section>
-  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>グラフエディタ 0.3.4 BETA（2026年9月）</p><p>数学・理科・情報のグラフを描く教育用ツールです。推奨環境：macOS＋Google Chrome。3D表示にはWebGLが必要です。入力データはブラウザ内または選択したローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの利用条件は各ライセンスに従います。</p><p><a href="docs/template-sources.md" target="_blank" rel="noopener">テンプレートの出典</a> · <a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a></p></section>
+  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>グラフエディタ 0.3.5 BETA（2026年9月）</p><p>数学・理科・情報のグラフを描く教育用ツールです。推奨環境：macOS＋Google Chrome。3D表示にはWebGLが必要です。入力データはブラウザ内または選択したローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの利用条件は各ライセンスに従います。</p><p><a href="docs/template-sources.md" target="_blank" rel="noopener">テンプレートの出典</a> · <a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a></p></section>
 </aside>
 <noscript><p class="noscript">このエディタを利用するにはJavaScriptを有効にしてください。</p></noscript>
 </body>

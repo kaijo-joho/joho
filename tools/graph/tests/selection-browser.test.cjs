@@ -29,6 +29,8 @@ let browser, page;
   const submit = async () => { await page.locator('#dialog-submit').click(); await settle(); };
   const selected = () => page.evaluate(() => GraphEditor.getState().selected);
   const bar = page.locator('#selection-toolbar');
+  const seriesAdd = async () => { if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); };
+  const annotationAdd = async () => { if (await page.locator('#annotation-add-panel').isHidden()) await page.locator('#annotation-add-toggle').click(); };
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
 
   const series = (await doc()).series[0].id;
@@ -46,12 +48,12 @@ let browser, page;
   await seriesDetails.click(); await dialog.waitFor({ state: 'visible' }); await fill('名前', '放物線'); await submit();
   assert(await seriesDetails.evaluate(el => el === document.activeElement), 'applying series edits restores focus to its details button after the list rerenders');
 
-  await page.locator('#add-data').click(); await fill('名前', '観測値'); await dialog.getByLabel(/^数表（/).fill('x,y\n0,1\n1,2'); await submit();
+  await seriesAdd(); await page.locator('#add-data').click(); await fill('名前', '観測値'); await dialog.getByLabel(/^数表（/).fill('x,y\n0,1\n1,2'); await submit();
   const data = (await doc()).series.at(-1).id;
   await details('series', data).click(); await dialog.waitFor({ state: 'visible' }); assert(await dialog.getByText('数表', { exact: false }).count()); await page.locator('#dialog-cancel').click();
   assert(await details('series', data).evaluate(el => el === document.activeElement), 'data details returns focus to dots button');
 
-  await item(series).click(); await page.locator('#add-point').click(); await fill('名前', 'P'); await fill('位置（x / t / theta の値）', '1'); await submit();
+  await item(series).click(); await annotationAdd(); await page.locator('#add-point').click(); await fill('名前', 'P'); await fill('位置（x / t / theta の値）', '1'); await submit();
   const point = (await doc()).annotations.at(-1).id;
   await details('annotation', point).click(); await dialog.waitFor({ state: 'visible' }); assert(await dialog.getByLabel('位置（x / t / theta の値）', { exact: true }).isVisible()); await page.locator('#dialog-cancel').click();
   assert(await details('annotation', point).evaluate(el => el === document.activeElement), 'annotation editor restores focus to dots button');
