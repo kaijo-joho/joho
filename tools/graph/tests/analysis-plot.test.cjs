@@ -1,0 +1,25 @@
+const assert = require('node:assert/strict');
+global.GraphSymbols = { richText: value => String(value).replace(/</g, '&lt;'), ticksFor: () => ({}) };
+global.GraphDataCurves = require('../data-curves.js');
+global.GraphAnalysis = { equation: () => 'y ≈ 2x + 1' };
+global.GraphAnnotations = { evaluate(a) { return a.kind === 'regression' ? { points: [], segments: [[[0, 1], [2, 5]]], labelPoint: [1, 3], fit: { r: .9, r2: .81, rmse: .2 }, warning: '' } : { points: [], segments: [], warning: '' }; } };
+let last;
+global.Plotly = { react: async (element, data, layout) => { element.data = data; element.layout = layout; element._fullLayout = { xaxis: { d2p: x => x * 100, _offset: 0, _length: 400 }, yaxis: { d2p: y => y * 100, _offset: 0, _length: 300 } }; last = { data, layout }; }, newPlot: async () => {}, purge: () => {}, toImage: async () => '' };
+const Plot = require('../plot.js');
+const axis = () => ({ min: -1, max: 3, label: 'axis', symbol: 'x', unit: '', scale: 'linear', ticks: { step: null, format: 'auto' } });
+const element = { clientWidth: 640, clientHeight: 480, removeAllListeners() {}, ownerDocument: { addEventListener() {}, removeEventListener() {} } };
+(async () => {
+  const doc = { mode: '2d', axes: { x: axis(), y: axis(), z: axis() }, parameters: [], series: [{ id: 'd', kind: 'data2d', name: '測定値', rows: [[0, 1], [1, 3], [2, 5]], interpolation: 'monotone', errorBars: { x: [0, .1, null], y: [.2, .3, .4] }, style: { color: '#2563eb', width: 2, dash: 'solid', points: true, lines: true, opacity: 1 } }], annotations: [{ id: 'fit', kind: 'regression', name: '回帰', visible: true, seriesId: 'd', showEquation: true, showMetrics: true, style: { color: '#dc2626', width: 2, dash: 'solid', opacity: 1 }, label: { visible: true, dx: 4, dy: -4, size: 13 } }] };
+  await Plot.render(element, doc, {});
+  assert.equal(last.data.filter(t => t.meta.objectId === 'd').length, 2, '補間線と元点を分ける');
+  const observed = last.data.find(t => t.meta.objectId === 'd' && t.mode === 'markers'); assert.deepEqual(observed.error_x.array, [0, .1, null]); assert.deepEqual(observed.error_y.array, [.2, .3, .4]);
+  const fit = last.layout.annotations.find(a => a.name === 'fit'); assert.match(fit.text, /回帰/); assert.match(fit.text, /2x/); assert.match(fit.text, /R²/); assert.equal(last.data.filter(t => t.meta.objectId === 'fit').length, 1);
+  doc.series[0].interpolation = 'linear'; doc.series[0].style.points = false; doc.series[0].style.lines = true; await Plot.render(element, doc, {}); assert.equal(last.data.filter(t => t.meta.objectId === 'd').length, 1, 'linearは単一trace'); assert.deepEqual(last.data[0].error_x.array, [0, .1, null]); assert.equal(last.data[0].mode, 'lines');
+  doc.series[0].interpolation = 'monotone'; doc.series[0].style.lines = false; await Plot.render(element, doc, {}); assert.equal(last.data.filter(t => t.meta.objectId === 'd').length, 1, 'lines無効時は補間しない'); assert.equal(last.data[0].mode, 'none', 'points無効時はmarkerを出さない');
+  assert.equal(fit.x,1);assert.equal(fit.y,3);assert(!fit.text.includes('RMSE'));assert(!fit.text.includes('r ≈'));
+  doc.series[0].style.lines=true;doc.series[0].style.dash='dot';doc.series[0].interpolation='linear';await Plot.render(element,doc,{});assert.equal(last.data[0].line.dash,'dot');assert.equal(last.data[0].error_x.color,'#2563eb');
+  doc.series[0].interpolation='monotone';await Plot.render(element,doc,{});assert.equal(last.data[0].mode,'none');assert(last.data[1].mode==='lines'&&!last.data[1].marker&&!last.data[1].error_y);
+  doc.series[0].rows=[[0,1],[0,2],[2,5]];await Plot.render(element,doc,{});assert.equal(last.data.filter(t=>t.meta.objectId==='d').length,1);assert.equal(last.data[0].mode,'markers');
+  doc.series[0].rows=[[0,1],[1,3],[2,5]];doc.axes.y.scale='log';doc.axes.y.min=.1;doc.series[0].errorBars.y=[2,.3,null];await Plot.render(element,doc,{});assert.deepEqual(last.data[0].error_y.array,[null,.3,null]);
+  console.log('analysis-plot.test.cjs: ok');
+})().catch(error => { console.error(error); process.exitCode = 1; });

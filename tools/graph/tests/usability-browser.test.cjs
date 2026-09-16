@@ -35,7 +35,7 @@ let browser, page;
   const annotationAdd = async () => { if (await page.locator('#annotation-add-panel').isHidden()) await page.locator('#annotation-add-toggle').click(); };
   const addQuickTangent = async (name,at) => { await annotationAdd(); await page.locator('#add-tangent').click(); const panel=page.locator('#tangent-quick-panel'); await panel.getByLabel(/^接点の .+ 座標$/).fill(String(at)); assert((await panel.getByLabel('接線の方程式',{exact:true}).innerText()).includes('≈')); await panel.getByRole('button',{name:'接線を追加',exact:true}).click(); await settle(); assert.equal((await doc()).annotations.at(-1).showEquation,true); await action('位置・設定').click(); await fill('名前',name); await submit(); };
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
-  assert.equal(await page.locator('#annotation-tools button').count(), 7);
+  assert.equal(await page.locator('#annotation-tools button').count(), 8);
   assert.equal(await page.getByRole('button', { name: '接線どうしの交点を追加', exact: true }).count(), 0);
   await page.locator('#add-parameter').click(); await fill('最小値', 0.5); await fill('最大値', 4); await fill('刻み幅', 0.5); await submit();
   await page.locator('#add-parameter').click(); await fill('名前（半角英字。例：a）', 'b'); await submit();
@@ -109,7 +109,7 @@ let browser, page;
   // Save/reopen the current format, and keep the equation in the exported SVG.
   await page.locator('#file-menu summary').click(); await page.locator('#save-browser').click();
   const saved = await doc(); await page.reload(); await page.locator('#editor-dialog[open]').waitFor(); await page.getByRole('button', { name: /^明示保存：/ }).click(); await settle();
-  assert.deepEqual(await doc(), saved); assert.equal((await doc()).version, 6);
+  assert.deepEqual(await doc(), saved); assert.equal((await doc()).version, 7);
   const svg = await page.evaluate(async () => { const url = await GraphPlot.exportImage(document.querySelector('#plot'), { format: 'svg', scale: 1, background: 'white' }); return fetch(url).then(r => r.text()); });
   assert(svg.includes('≈') && svg.includes('4x'));
   // Touch, large text and the single-line header at a narrow viewport.
@@ -131,7 +131,7 @@ let browser, page;
   for (const a of legacy.annotations) delete a.showEquation;
   await page.setInputFiles('#file-input', { name: 'old-v3.graph.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(legacy)) });
   await page.waitForFunction(name => GraphEditor.getDocument().name === name, legacy.name); await settle();
-  assert.equal((await doc()).version, 6); assert((await doc()).annotations.filter(a => a.kind === 'tangent').every(a => a.showEquation === false));
+  assert.equal((await doc()).version, 7); assert((await doc()).annotations.filter(a => a.kind === 'tangent').every(a => a.showEquation === false));
   assert.deepEqual((await doc()).annotations.filter(a => a.kind === 'segment'), legacy.annotations.filter(a => a.kind === 'segment'));
   await page.locator('#file-menu summary').click(); await page.locator('#new-document').click(); await settle();
   assert.equal(await page.locator('#parameter-list .parameter-row').count(), 0, 'loading an empty document removes every old coefficient control');

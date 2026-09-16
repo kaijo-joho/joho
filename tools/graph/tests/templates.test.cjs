@@ -3,7 +3,7 @@ const GraphTemplates = require('../templates.js');
 const GraphCore = require('../core.js');
 
 const templates = GraphTemplates.list();
-assert.strictEqual(templates.length, 14);
+assert.strictEqual(templates.length, 16);
 assert.strictEqual(new Set(templates.map(t => t.id)).size, templates.length);
 for (const template of templates) {
   assert.ok(template.name && template.category && template.description);
@@ -28,6 +28,11 @@ assert.ok(Math.abs(vapor.rows[10][1] - 101.325) < 0.2);
 assert.strictEqual(vapor.source.kind, 'model');
 assert.match(vapor.source.notes, /実測値の転載ではありません/);
 assert.match(vapor.source.url, /^https:\/\//);
+for (const [id, model, xSymbol, ySymbol] of [['science-spring-regression', 'linear', 'F', 'l'], ['science-decay-regression', 'exponential', 't', 'c']]) {
+  const doc = templates.find(template => template.id === id).document, series = doc.series[0], regression = doc.annotations[0];
+  assert.equal(doc.version, 7); assert.equal(series.kind, 'data2d'); assert.equal(series.style.points, true); assert.equal(series.style.lines, false); assert.deepStrictEqual(series.errorBars.x, []); assert.equal(series.errorBars.y.length, series.rows.length); assert.equal(series.interpolation, 'linear');
+  assert.equal(series.source.kind, 'model'); assert.match(series.source.title + series.source.notes, /合成データ|実測値ではありません/); assert.equal(regression.model, model); assert.equal(regression.seriesId, series.id); assert.equal(doc.axes.x.symbol, xSymbol); assert.equal(doc.axes.y.symbol, ySymbol);
+}
 const gas = templates.find(t => t.id === 'science-ideal-gas-pv').document;
 assert.strictEqual(gas.series[0].expression, 'n*8.314*T/x');
 assert.strictEqual(require('../symbols.js').toDisplay(gas.series[0].expression,gas,'function'),'n*8.314*T/V');

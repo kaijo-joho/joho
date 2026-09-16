@@ -1,0 +1,14 @@
+const assert = require('node:assert/strict');
+const Curves = require('../data-curves.js');
+let result = Curves.interpolate([[0, 0], [1, 1], [2, 0]], 'monotone');
+assert.equal(result.warning, ''); assert(result.rows.length > 3); assert.deepEqual(result.rows[0], [0, 0]); assert.deepEqual(result.rows.at(-1), [2, 0]);
+for (let i = 1; i < result.rows.length; i++) assert(result.rows[i][0] > result.rows[i - 1][0]);
+result = Curves.interpolate([[2, 0], [1, 1], [0, 0]], 'monotone'); assert.equal(result.warning, ''); assert(result.rows[1][0] < result.rows[0][0]);
+result = Curves.interpolate([[0, 0], [1, 1], [null, null], [0, 2], [1, 3]], 'monotone'); assert.equal(result.rows[0][0], 0); assert.equal(result.rows.findIndex(row => row[0] === null), 129); assert.equal(result.rows.at(-1)[1], 3);
+result = Curves.interpolate([[0, 0], [1, 1], [1, 2]], 'monotone'); assert.match(result.warning, /単調/); assert.deepEqual(result.rows, [[0, 0], [1, 1], [1, 2]]);
+result = Curves.interpolate([[0, 0], [1, 1]], 'monotone'); assert(result.rows.length <= 20000);
+const many = []; for (let i = 0; i < 10000; i++) many.push([i, i]); many.splice(5000, 0, [null, null]); result = Curves.interpolate(many, 'monotone'); assert(result.rows.length <= 20000, '複数blockでも総描画点数を超えない');
+console.log('data-curves.test.cjs: ok');
+const input=[[0,0],[1,1],[3,2],[4,2]],copy=JSON.stringify(input);result=Curves.interpolate(input);assert.equal(JSON.stringify(input),copy);assert(result.rows.every(r=>r[1]>=0&&r[1]<=2));for(let i=1;i<result.rows.length;i++)assert(result.rows[i][1]>=result.rows[i-1][1]-1e-14);
+result=Curves.interpolate([[0,0],[1,1],[2,0]]);assert(Math.abs(result.rows.find(r=>r[0]===.5)[1]-.75)<1e-14);
+assert(Curves.interpolate([[0,0],[1e-310,1],[2e-310,2]]).warning);

@@ -43,7 +43,7 @@ let browser;
   await addCurve('polar', '花形'); await submit();
   const traces = await page.evaluate(() => document.querySelector('#plot').data.map(t => ({ id: t.meta.objectId, x: t.x.filter(Number.isFinite).length })));
   assert(traces.every(t => t.x > 50), 'each default curve actually draws a substantial path');
-  assert.equal((await doc()).version, 6);
+  assert.equal((await doc()).version, 7);
 
   await page.locator('#add-parameter').click(); await field('名前（半角英字。例：a）', 'a'); await submit();
   await curves().filter({ hasText: '楕円' }).click(); await annotationAdd(); await page.locator('#add-point').click(); await field('名前', 'P'); await field('位置（x / t / theta の値）', 'a'); await submit();
@@ -79,7 +79,7 @@ let browser;
   await page.locator('#mode-2d').click(); await settle();
 
   const downloadPromise = page.waitForEvent('download'); await page.locator('#file-menu summary').click(); await page.locator('#save-local').click(); const file = await downloadPromise;
-  const serialized = JSON.parse(fs.readFileSync(await file.path(), 'utf8')); assert.equal(serialized.version, 6); assert.equal(serialized.annotations.length, 5);
+  const serialized = JSON.parse(fs.readFileSync(await file.path(), 'utf8')); assert.equal(serialized.version, 7); assert.equal(serialized.annotations.length, 5);
   await page.setInputFiles('#file-input', await file.path()); await settle(); assert.deepEqual(await doc(), serialized, 'new types and dependencies survive JSON download/import');
   const invalid = structuredClone(serialized); invalid.annotations[0].anchor.seriesId = 'missing';
   await page.setInputFiles('#file-input', { name: 'broken.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(invalid)) }); await settle(); assert.deepEqual(await doc(), serialized, 'broken references keep the current document');
@@ -87,7 +87,7 @@ let browser;
 
   const legacy = structuredClone(serialized);legacy.version=1;delete legacy.annotations;legacy.series=legacy.series.filter(s=>s.kind==='function');for(const axis of Object.values(legacy.axes)){delete axis.symbol;delete axis.ticks;}
   await page.setInputFiles('#file-input',{name:'old-v1.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(legacy))});
-  await page.waitForFunction(()=>GraphEditor.getDocument().annotations.length===0);await settle();assert.equal((await doc()).version,6);assert.deepEqual((await doc()).series,legacy.series);
+  await page.waitForFunction(()=>GraphEditor.getDocument().annotations.length===0);await settle();assert.equal((await doc()).version,7);assert.deepEqual((await doc()).series,legacy.series);
 
   await openTemplate('楕円と曲線上の点');
   assert((await doc()).annotations.some(a => a.kind === 'point'));

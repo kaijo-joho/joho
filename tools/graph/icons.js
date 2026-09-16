@@ -25,6 +25,7 @@
     intersection: [['path', { d: 'M4 5 20 19M20 5 4 19' }], ['circle', { cx: 12, cy: 12, r: 1.7 }]],
     segment: [['path', { d: 'M5 17 19 7' }], ['circle', { cx: 5, cy: 17, r: 1.7 }], ['circle', { cx: 19, cy: 7, r: 1.7 }]],
     region: [['path', { d: 'm4 18 4-13 12 4-3 11-13-2Z', fill: 'currentColor', 'fill-opacity': .2 }], ['path', { d: 'm7 16 5-8m-1 10 5-8' }]],
+    regression: [['path', { d: 'M4 4v16h16M7 16 20 6' }], ['circle', { cx: 8, cy: 12, r: 1 }], ['circle', { cx: 12, cy: 14, r: 1 }], ['circle', { cx: 17, cy: 7, r: 1 }]],
     text: [['path', { d: 'M5 5h14M12 5v14M8 19h8' }]],
     guide: [['path', { d: 'M4 12h16M12 4v16' }], ['path', { d: 'M6 6h3M15 18h3' }]],
     continue: [['path', { d: 'M4 12h13' }], ['path', { d: 'm13 7 5 5-5 5' }], ['circle', { cx: 5, cy: 12, r: 1 }]],

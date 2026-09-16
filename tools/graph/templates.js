@@ -144,6 +144,17 @@
     signed.axes.y.min = -1.6; signed.axes.y.max = 1.6;
     signed.series.push(functionSeries('area-sine', 'y = sin(x)', 'sin(x)', { kind: 'model', title: '面積と符号付き積分の例', url: '', notes: '' }, [-.5, 7]));
     signed.annotations.push({ ...curved, id: 'sine-region', name: '0 ≤ x ≤ 2π', targets: [{ type: 'series', id: 'area-sine' }, { type: 'axis', axis: 'x' }], interval: ['0', '2*pi'], style: { ...curved.style }, label: { ...curved.label } });
+    const spring = documentBase('ばねの伸びと力（合成データ）', '2d'); spring.version = 7;
+    spring.axes.x = { label: '力', symbol: 'F', unit: 'N', min: 0, max: 8, scale: 'linear' };
+    spring.axes.y = { label: '伸び', symbol: 'l', unit: 'cm', min: 0, max: 18, scale: 'linear' };
+    const springSeries = tableSeries('spring-data', 'ばねの伸び（合成データ）', [[0,0],[1,2.05],[2,3.92],[3,6.08],[4,7.95],[5,10.12],[6,11.9],[7,14.06]], { kind: 'model', title: '回帰練習用の合成データ', url: '', notes: '実測値ではありません。ばねの伸びと力を模した小さなばらつき入りの合成データです。' });
+    springSeries.domain = { x: [0, 7], y: [0, 15] }; springSeries.style.lines = false; springSeries.interpolation = 'linear'; springSeries.errorBars = { x: [], y: [0.12,0.12,0.15,0.12,0.14,0.13,0.15,0.12] }; spring.series.push(springSeries);
+    spring.annotations.push({ id: 'spring-linear-fit', kind: 'regression', name: '直線回帰', visible: true, seriesId: springSeries.id, model: 'linear', showEquation: true, showMetrics: true, style: { color: '#dc2626', width: 2, dash: 'solid', opacity: 1 }, label: { visible: true, dx: 12, dy: -12, size: 13 } });
+    const decay = documentBase('時間と濃度（合成データ）', '2d'); decay.version = 7;
+    decay.axes.x = { label: '時間', symbol: 't', unit: 'min', min: 0, max: 7, scale: 'linear' }; decay.axes.y = { label: '濃度', symbol: 'c', unit: 'mg/L', min: 0, max: 12, scale: 'linear' };
+    const decaySeries = tableSeries('decay-data', '濃度（合成データ）', [[0,10.1],[1,7.48],[2,5.51],[3,4.12],[4,3.02],[5,2.23],[6,1.63]], { kind: 'model', title: '指数回帰練習用の合成データ', url: '', notes: '実測値ではありません。時間と濃度の指数減衰を模した小さなばらつき入りの合成データです。' });
+    decaySeries.domain = { x: [0, 6], y: [0, 11] }; decaySeries.style.lines = false; decaySeries.interpolation = 'linear'; decaySeries.errorBars = { x: [], y: [0.2,0.18,0.16,0.14,0.12,0.1,0.1] }; decay.series.push(decaySeries);
+    decay.annotations.push({ id: 'decay-exponential-fit', kind: 'regression', name: '指数回帰', visible: true, seriesId: decaySeries.id, model: 'exponential', showEquation: true, showMetrics: true, style: { color: '#dc2626', width: 2, dash: 'solid', opacity: 1 }, label: { visible: true, dx: 12, dy: -12, size: 13 } });
     return [
       { id: 'math-quadratic-a', name: '2次関数と係数 a', category: '数学', description: '係数 a を変えて放物線の開き方と向きを比べます。', document: quadratic },
       { id: 'math-sine-comparison', name: 'sin の比較', category: '数学', description: 'sin(x) と sin(2x) の周期を比べます。', document: sine },
@@ -154,6 +165,8 @@
       { id: 'math-triangle-region', name: '三角形の領域と面積', category: '数学', description: '共有点でつないだ3本の線分を塗りつぶし、係数 h で高さと面積を変えます。', document: triangle },
       { id: 'math-curve-region', name: '曲線の間の面積', category: '数学', description: 'y = x² と y = h x の間を塗りつぶし、係数 h と区間・面積の関係を見ます。', document: between },
       { id: 'math-signed-integral', name: '面積と定積分の違い', category: '数学', description: 'sin(x) と横軸の間で、面積4と符号付きの定積分0を比べます。', document: signed },
+      { id: 'science-spring-regression', name: 'ばねの伸びと力（合成データ）', category: '理科', description: '合成データの散布図に直線回帰を当て、力と伸びの関係を調べます。', document: spring },
+      { id: 'science-decay-regression', name: '時間と濃度（合成データ）', category: '理科', description: '合成データの散布図に指数回帰を当て、濃度の減衰を調べます。', document: decay },
       { id: 'science-water-vapor-pressure', name: '水の飽和蒸気圧（計算値）', category: '理科', description: 'IAPWS の式から計算した温度と水の飽和蒸気圧の数表です。', document: vapor },
       { id: 'science-ideal-gas-pv', name: '理想気体 PV モデル', category: '理科', description: '温度と物質量を変え、P と V の関係を見ます。', document: gas },
       { id: 'information-complexity', name: '計算量の比較', category: '情報', description: 'n、log₂n、n log₂n、n² の増え方を比べます。', document: complexity },

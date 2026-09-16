@@ -124,7 +124,29 @@
     const rows = (series.rows || []).filter((r) => Array.isArray(r));
     const is3 = series.kind === 'data3d';
     const vals = (n) => rows.map((r) => r.every(finite) ? r[n] : null);
-    return is3 ? { type: 'scatter3d', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: vals(0), y: vals(1), z: vals(2), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color, size: 4 }, connectgaps: false } : { type: 'scatter', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: vals(0), y: vals(1), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color }, connectgaps: false };
+    if (is3) return { type: 'scatter3d', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: vals(0), y: vals(1), z: vals(2), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color, size: 4 }, connectgaps: false };
+    const wantsInterpolation = series.interpolation === 'monotone' && st.lines && root.GraphDataCurves && typeof root.GraphDataCurves.interpolate === 'function';
+    const points = wantsInterpolation ? root.GraphDataCurves.interpolate(rows, 'monotone') : { rows };
+    if (points.warning) warnings.push((series.name || '数表') + '：' + points.warning);
+    const valid = row => Array.isArray(row) && finite(row[0]) && finite(row[1]);
+    const observedMode = points.warning ? 'markers' : wantsInterpolation ? (st.points ? 'markers' : 'none') : st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : st.lines ? 'lines' : 'none';
+    const observed = { type: 'scatter', mode: observedMode, x: vals(0), y: vals(1), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color }, legendgroup: series.id, connectgaps: false, showlegend: !wantsInterpolation || !!points.warning };
+    const renderedRows = points.rows || rows;
+    const trace = { type: 'scatter', mode: 'lines', x: renderedRows.map(r => valid(r) ? r[0] : null), y: renderedRows.map(r => valid(r) ? r[1] : null), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, legendgroup: series.id, connectgaps: false, showlegend: true };
+    const bars = series.errorBars || {}, addBars = (key, axisKey) => {
+      const values = Array.isArray(bars[key]) && bars[key].length === rows.length ? bars[key] : null;
+      if (!values) return;
+      const axis = doc.axes && doc.axes[axisKey], log = axis && axis.scale === 'log', array = rows.map((row, i) => {
+        const width = values[i], coordinate = row && row[axisKey === 'x' ? 0 : 1];
+        if (!finite(width) || width < 0 || !finite(coordinate) || log && coordinate - width <= 0) { if (log && finite(width) && finite(coordinate) && coordinate - width <= 0) warnings.push((series.name || '数表') + '：対数軸の非正値に届く誤差棒を省略しました。'); return null; }
+        return width;
+      });
+      observed['error_' + key] = { type: 'data', array, visible: true, symmetric: true, thickness: 1.2, width: 4, color: st.color };
+    };
+    addBars('x', 'x'); addBars('y', 'y');
+    if (wantsInterpolation && !points.warning && points.rows && points.rows.length >= 2) return [observed, trace];
+    observed.showlegend=true;
+    return observedMode === 'none' && !st.lines ? Object.assign(observed, { showlegend: true }) : observed;
   }
 
   function annotationTraces(annotation, doc, warnings, decorations) {
@@ -156,11 +178,12 @@
     }
     if (result.points.length && annotation.kind !== 'text') traces.push(Object.assign({}, common, { x: result.points.map(p => p[0]), y: result.points.map(p => p[1]), mode: 'markers', marker: { color: st.color, size: 9, symbol: 'circle' }, hovertemplate: esc(doc.axes.x.symbol || 'x') + ' = %{x:.8g}<br>' + esc(doc.axes.y.symbol || 'y') + ' = %{y:.8g}<extra>' + esc(annotation.name) + '</extra>' }));
     const label = annotation.label || {visible:true,dx:12,dy:-12,size:13};
-    const positions = result.points.length ? result.points : result.segments.length ? [result.segments[0][0].map((v,i)=>(v+result.segments[0][1][i])/2)] : [];
-    const equation = annotation.kind==='tangent'&&annotation.showEquation ? root.GraphAnnotations.tangentEquation(annotation,doc).text : '';
-    if (label.visible || equation) positions.forEach((point,i) => {
+    const positions = Array.isArray(result.labelPoint) ? [result.labelPoint] : result.points.length ? result.points : result.segments.length ? [result.segments[0][0].map((v,i)=>(v+result.segments[0][1][i])/2)] : [];
+    const equation = annotation.kind==='tangent'&&annotation.showEquation ? root.GraphAnnotations.tangentEquation(annotation,doc).text : annotation.kind==='regression'&&annotation.showEquation&&result.fit&&root.GraphAnalysis&&typeof root.GraphAnalysis.equation==='function' ? root.GraphAnalysis.equation(result.fit, doc.axes?.x?.symbol || 'x', doc.axes?.y?.symbol || 'y') : '';
+    const metrics = annotation.kind==='regression'&&annotation.showMetrics&&result.fit&&finite(result.fit.r2) ? 'R² ≈ ' + Number(result.fit.r2.toPrecision(8)) : '';
+    if (label.visible || equation || metrics) positions.forEach((point,i) => {
       const title=label.visible?rich(annotation.kind==='text'?annotation.text:annotation.name+(positions.length>1?' '+(i+1):'')):'';
-      decorations.push({name:annotation.id,x:point[0],y:point[1],xref:'x',yref:'y',text:[title,equation?rich(equation):''].filter(Boolean).join('<br>'),showarrow:false,xanchor:'left',yanchor:'bottom',xshift:label.dx,yshift:-label.dy,font:annotation.kind==='text'?{size:label.size,color:st.color}:{size:label.size},opacity:st.opacity,captureevents:true});
+      decorations.push({name:annotation.id,x:point[0],y:point[1],xref:'x',yref:'y',text:[title,equation?rich(equation):'',metrics?rich(metrics):''].filter(Boolean).join('<br>'),showarrow:false,xanchor:'left',yanchor:'bottom',xshift:label.dx,yshift:-label.dy,font:annotation.kind==='text'?{size:label.size,color:st.color}:{size:label.size},opacity:st.opacity,captureevents:true});
     });
     if (annotation.kind === 'segment' && annotation.arrows !== 'none' && result.segments.length) {
       const [a,b]=result.segments[0];
@@ -339,7 +362,8 @@
     }
     for (const s of doc.series || []) {
       if (s.visible === false || (doc.mode === '3d' ? !['surface', 'data3d'].includes(s.kind) : ['surface', 'data3d'].includes(s.kind))) continue;
-      const trace = traceFor(s, doc, warnings); trace.meta = { objectType: 'series', objectId: s.id }; traces.push(trace);
+      const produced = traceFor(s, doc, warnings);
+      for (const trace of Array.isArray(produced) ? produced : [produced]) { trace.meta = { objectType: 'series', objectId: s.id }; traces.push(trace); }
     }
     if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false && a.kind !== 'region' && a.kind !== 'curveRegion') {
       try { traces.push(...annotationTraces(a, doc, warnings, decorations)); } catch (error) { warnings.push((a.name || '点・補助線') + '：' + error.message); }

@@ -31,3 +31,9 @@ dialog{color:var(--text);background:var(--panel);border:1px solid var(--line);bo
 
 .region-boundaries{max-height:min(270px,32dvh);overflow:auto}.region-boundaries label{min-height:44px;margin:0;padding:5px 2px;overflow-wrap:anywhere}.region-boundaries input{flex:none}.region-boundary-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}.region-invalid{color:var(--danger)}.object-copy .region-area{font-size:.8rem;color:var(--text)}
 .region-preview{white-space:pre-line}.region-display-options .check{margin:0;min-height:44px}
+.analysis-preview { margin-block: 12px; }
+.analysis-statistics { display: grid; grid-template-columns: repeat(auto-fit,minmax(100px,1fr)); gap: 8px; margin: 10px 0; }
+.analysis-statistics > div { padding: 8px; border: 1px solid var(--line); border-radius: 8px; min-width: 0; }
+.analysis-statistics dt { font-size: .8em; }
+.analysis-statistics dd { margin: 4px 0 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+.analysis-preview .equation-preview { overflow-wrap: anywhere; }

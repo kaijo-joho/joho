@@ -10,11 +10,13 @@
   let requiredCurves = null;
   let requiredRegions = null;
   let requiredIntegrals = null;
+  let requiredAnalysis = null;
   if (typeof module === 'object' && module.exports) {
     try { requiredSymbols = require('./symbols.js'); } catch (_) { /* symbols.js may load after this independent module. */ }
     try { requiredCurves = require('./curves.js'); } catch (_) { /* curves.js may load after this independent module. */ }
     try { requiredRegions = require('./regions.js'); } catch (_) { /* regions.js may load after this independent module. */ }
     try { requiredIntegrals = require('./integrals.js'); } catch (_) { /* integrals.js may load after this independent module. */ }
+    try { requiredAnalysis = require('./analysis.js'); } catch (_) { /* analysis.js may load after this independent module. */ }
   }
   const finite = value => typeof value === 'number' && Number.isFinite(value);
   const empty = warning => ({ points: [], segments: [], warning: warning || '' });
@@ -413,6 +415,23 @@
     const initial = scalar(anchor.at, doc), at = initial === null ? null : closestCurveAnchor(series, doc, coordinate, initial);
     return at === null ? null : { type: 'curve', seriesId: series.id, at: numberText(at) };
   }
+  function regressionResult(annotation, doc) {
+    const api=root.GraphAnalysis||requiredAnalysis;
+    if(!api)return empty('回帰分析を読み込めません。');
+    const fit=api.fit(seriesById(doc,annotation.seriesId),annotation.model);
+    if(fit.warning)return {...empty(fit.warning),fit};
+    const segments=[];let part=[],omitted=false;
+    const [low,high]=fit.domain;
+    for(let i=0;i<=256;i++){
+      const x=i===256?high:low+(high-low)*i/256,point=[x,fit.predict(x)];
+      if(drawablePoint(doc,point))part.push(point);
+      else{omitted=true;if(part.length>1)segments.push(part);part=[];}
+    }
+    if(part.length>1)segments.push(part);
+    const longest=segments.reduce((a,b)=>a.length>=b.length?a:b,[]);
+    return {points:[],segments,labelPoint:longest[Math.floor(longest.length/2)]||null,fit,
+      warning:omitted?'回帰曲線のうち、有限の値でない部分・対数軸の非正の部分は表示しません。':''};
+  }
   function evaluate(annotation, doc) {
     try {
       if (!annotation || !doc || doc.mode === '3d') return empty('この注釈は2Dグラフで使います。');
@@ -425,6 +444,7 @@
       if (annotation.kind === 'segment') return segmentResult(annotation, doc);
       if (annotation.kind === 'region') return regionResult(annotation, doc);
       if (annotation.kind === 'curveRegion') return curveRegionResult(annotation, doc);
+      if (annotation.kind === 'regression') return regressionResult(annotation, doc);
       if (annotation.kind === 'text') return textResult(annotation, doc);
       return empty('注釈の種類が不正です。');
     } catch (_) { return empty('注釈を評価できません。'); }

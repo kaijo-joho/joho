@@ -1,4 +1,4 @@
-# グラフエディタ 0.5.0 BETA
+# グラフエディタ 0.6.0 BETA
 
 数学・理科・情報で使うグラフを、数式または数表から作成する独立ウェブアプリ。初期の名称は「グラフエディタ」、開発担当はCodex。既存のフローチャート・イラポ・構造式・分子模型エディタと操作方針をそろえる。
 
@@ -8,13 +8,14 @@
 - 2D陰関数 `F(x,y)=0` / `左辺=右辺`、媒介変数 `x(t),y(t)`、極座標 `r(theta)`。計算範囲と媒介変数の区間を指定。
 - 自由点・曲線上の点、軸への読取線、縦横の補助線、`y=f(x)` の接線、関数・接線から任意の2対象を選ぶ統一した交点、2点を共有IDで結ぶ線分、文字注釈。線分は終点から続け、既存点へ接続できる。参照元の式や係数を変えると連動し、元の系列・注釈を削除すると依存する注釈もまとめて削除・Undo復元。2Dで表示し、3Dへの切替中も保持。
 - 数式の四則・累乗・括弧・暗黙乗算、三角関数、逆三角関数、平方根、指数・対数、絶対値、丸め、min/max。定数pi/e、係数、ラジアン／度。lnは自然対数、logは常用対数。
-- 2列/3列の数表、CSV・TSV・表計算からの貼り付け。散布図・折れ線・両方の表示、欠測値による線の切断。点間は直線補間。
+- 2〜4列の2D数表、3列の3D数表、CSV・TSV・表計算からの貼り付け。散布図・折れ線・両方の表示、欠測値による線の切断。補間は直線またはPCHIP（単調な区間のみ）を選べる。誤差棒はxのみ、yのみ、両方、未使用の4モードで、幅0と欠測を扱う。
 - 係数の追加・数値入力・スライダー、設定した最小値・最大値・刻み幅。値のスライダーと数値欄は左パネルに常設し、操作中は描画と接線式をプレビュー、確定時だけ1回の履歴・保存へ反映する。
 - 軸の数式用記号・表示名・単位・範囲・通常／対数目盛・目盛間隔と表記（自動・小数・分数・π）・等縮尺・凡例・グリッド。記号はUnicode識別子を使え、数式入力と連動する。表示名と単位は表示用で、値を換算しない。
 - 注釈ラベルの表示・位置・文字サイズ、点・文字のドラッグ。接線式は左一覧で常に確認でき、図中の表示は設定で切り替える。表示は基本8桁の有効数字で丸め、計算と保存の精度は保つ。旧文書の図中接線式は非表示で移行する。数値だけの自由点・文字位置はドラッグで更新できるが、`1/2` や係数を含む式は失わず、ダイアログで編集する。
 - 接線は左の「点・線分・文字」の＋を開き、接線アイコンのホバー／クリック／タップで座標欄を開く。入力中に線と方程式をプレビューし、Enterまたは追加ボタンで登録する。名前などの詳細は登録後に編集する。Esc・外側クリックで取り消し、未確定の接線は履歴・保存・書き出しに含めない。
 - 数式・数表・CSVの追加は「数式・数表」の＋、点・線分・接線・交点・文字・補助線の追加は「点・線分・文字」の＋へまとめる。ホバー・クリック・タップ・キーボードで既存の追加ボタンを表示する。選択時のポップアップでは編集・色・表示・複製・削除・出典を線画アイコンと説明で操作し、左の各項目の「︙」から詳細設定を1回で開ける。一覧のダブルクリックまたは選択後のEnterも使える。基本6色と線幅・線種はポップアップへ常設し、残りの12色、注釈文字の表示・サイズは開閉して直接変更する。RGB・自由な色・不透明度・細かな文字位置は「詳細」のダイアログを使う。
 - 選択パネルから点・接線・交点の追加と選択解除ボタンを外し、追加操作は左パネルにまとめる。グラフの空白クリック／タップまたはEscapeで選択解除し、ドラッグ・拡大縮小中は選択を保つ。
+- 数表から直線、原点を通る直線、2次、指数、べき乗の5種類の回帰を作成できる。回帰式、R²、Pearsonの相関係数r、RMSE、残差一覧と残差CSVを確認し、元の数表を変更すると再計算する。回帰の式とR²は図中ラベルへ表示できる。
 - テンプレート：2次関数、正弦関数の比較、水の飽和蒸気圧、理想気体PVモデル、計算量比較、放物面・鞍型曲面、円の方程式、媒介変数の楕円と点、極座標の花形、接線と交点。
 - 元の式・数値・出典を保存するJSON。自動保存と明示保存をブラウザ内で独立保持し、再開時に選択。ローカルファイルの明示保存・自動保存。
 - 現在のグラフをPNG、2DをSVGで書き出す。数表はCSVへ出力。PNG/SVGは表示結果であり、数式を再編集するファイルとは別。
@@ -38,7 +39,7 @@
 
 ## 保存と互換性
 
-形式は `kaijo-graph` version 6。version 1〜5を読み込むと、注釈、軸記号、目盛設定、注釈ラベル、接線式の図中表示設定を補って移行する。線分の領域も保持する。保存はversion 6で、旧アプリでは開けないため更新版を使用する。ファイル名は `名前.graph.json`。数式、数表、係数、軸記号・単位、描画範囲、配色、出典、領域の境界参照・区間を保持し、生成した座標列や画像を正本にしない。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。初版のJSONはカメラの向きを保存しない。
+形式は `kaijo-graph` version 7。version 1〜6を読み込んで移行し、誤差棒・補間・回帰の新フィールドはversion 7で保存する。旧形式へ新フィールドや回帰注釈を混在させた文書は受け付けない。保存するのは元の数値・式・設定で、補間点や回帰計算結果は保存しない。ファイル名は `名前.graph.json`。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。
 
 ブラウザの保存キーは `kaijo-graph:auto` / `kaijo-graph:saved`、表示設定は `kaijo-graph:settings`、ヘルプは `kaijo-graph:help`。他アプリの保存領域と共用しない。保存済みの片方が壊れても他方を選べる。読込時は検証が成功するまで現在の文書を置き換えない。
 
@@ -58,6 +59,8 @@
 | `annotations.js` | 点・補助線・接線・交点・領域の数値計算 |
 | `regions.js` | 線分の閉路追跡・単純多角形の検査・面積・包含判定 |
 | `integrals.js` | 曲線間の適応数値積分・面積・交差による塗り分割 |
+| `analysis.js` | 正規化した座標による5種類の最小二乗回帰・統計量・残差 |
+| `data-curves.js` | 元の行順と欠測を保持するPCHIP補間 |
 | `plot.js` | 2D/3D描画・関数と曲面のサンプリング・画像出力 |
 | `templates.js` | 式・数表・条件を持つ初期テンプレート |
 | `editor.js` / `editor.css` / `index.html` | 操作画面 |
@@ -69,11 +72,11 @@
 
 ## 続く実装
 
-1. 資料・実験の数表テンプレート、誤差棒・回帰・明示的な補間方法。
+1. 残差の可視化、資料・実験の数表テンプレートの拡充。
 2. 3Dの空間曲線・等高線・断面、パラメーター変化の再生。
 3. 複数グラフの比較配置、印刷の用紙設定、イラポへ持ち出す際の互換性検証。
 
-以上は今後の計画。一般の3D陰曲面・CAS・回帰・授業管理・課題提出連携は未実装。
+以上は今後の計画。一般の3D陰曲面・CAS・重み付き回帰・授業管理・課題提出連携は未実装。
 
 ## 検証
 
@@ -87,6 +90,10 @@ node tools/graph/tests/regions.test.cjs
 node tools/graph/tests/integrals.test.cjs
 node tools/graph/tests/curve-regions.test.cjs
 node tools/graph/tests/region-plot.test.cjs
+node tools/graph/tests/analysis.test.cjs
+node tools/graph/tests/analysis-core.test.cjs
+node tools/graph/tests/analysis-plot.test.cjs
+node tools/graph/tests/data-curves.test.cjs
 node tools/graph/tests/symbols.test.cjs
 node tools/graph/tests/plot-browser.test.cjs
 node tools/graph/tests/browser.test.cjs
@@ -99,6 +106,7 @@ node tools/graph/tests/selection-browser.test.cjs
 node tools/graph/tests/sidebar-browser.test.cjs
 node tools/graph/tests/regions-browser.test.cjs
 node tools/graph/tests/curve-regions-browser.test.cjs
+node tools/graph/tests/analysis-browser.test.cjs
 node tools/graph/tests/local-autosave-browser.test.cjs
 node --check tools/graph/editor.js
 git diff --check
@@ -110,4 +118,4 @@ Chromeを使い、2D・3D描画、式の演算順位、係数、CSVと欠測、�
 
 `https://joho.kaijo.ed.jp/tools/graph/`。独立ツールとして `tools/index.html` に掲載し、教材の「ページ一覧」GSSや生成物 `js/pages.js` には登録しない。
 
-文書・モジュールの詳細は [0.2実装契約](docs/phase2-contract.md)、[0.3実装契約](docs/phase3-contract.md)、[交点と操作性の調整](docs/usability-contract.md)、[線分による領域](docs/regions-contract.md) を参照。
+文書・モジュールの詳細は [0.2実装契約](docs/phase2-contract.md)、[0.3実装契約](docs/phase3-contract.md)、[交点と操作性の調整](docs/usability-contract.md)、[線分による領域](docs/regions-contract.md)、[実験データの分析](docs/data-analysis-contract.md) を参照。
