@@ -22,15 +22,17 @@
   function cleanDash(value) { return /^\s*(?:\d+(?:\.\d+)?\s*)*$/.test(value || '') ? String(value || '').trim() : ''; }
   function styleOf(style) {
     style = style || {};
-    return {
+    var result = {
       fill: cleanColor(style.fill, '#000000'), stroke: cleanColor(style.stroke, 'none'), strokeWidth: Math.max(0, number(style.strokeWidth, 1)), opacity: Math.max(0, Math.min(1, number(style.opacity, 1))),
       dash: cleanDash(style.dash), linecap: /^(butt|round|square)$/.test(style.linecap) ? style.linecap : 'butt', linejoin: /^(miter|round|bevel)$/.test(style.linejoin) ? style.linejoin : 'miter',
       fontSize: Math.max(Number.EPSILON, number(style.fontSize, 16)), fontFamily: /^(sans-serif|serif|monospace)$/.test(style.fontFamily) ? style.fontFamily : 'sans-serif', bold: !!style.bold, italic: !!style.italic
     };
+    ['fillOpacity','strokeOpacity'].forEach(function(key){if(style[key]!==undefined)result[key]=Math.max(0,Math.min(1,number(style[key],1)));});
+    return result;
   }
   function matrixOf(matrix) { matrix = matrix || [1, 0, 0, 1, 0, 0]; if (!Array.isArray(matrix) || matrix.length !== 6 || matrix.some(function (v) { return !Number.isFinite(Number(v)); })) throw new Error('Invalid SVG matrix'); return matrix.map(Number); }
   function matrixAttr(matrix) { matrix = matrixOf(matrix); return matrix[0] === 1 && matrix[1] === 0 && matrix[2] === 0 && matrix[3] === 1 && matrix[4] === 0 && matrix[5] === 0 ? '' : ' transform="matrix(' + matrix.join(' ') + ')"'; }
-  function attrs(object, options) { options=options||{};var s = styleOf(object.style), idAttr=options.omitId?'':' data-ilapo-id="' + esc(object.id || '') + '"'; return idAttr + matrixAttr(object.matrix) + ' fill="' + s.fill + '" stroke="' + s.stroke + '" stroke-width="' + s.strokeWidth + '" opacity="' + s.opacity + '" stroke-dasharray="' + esc(s.dash) + '" stroke-linecap="' + s.linecap + '" stroke-linejoin="' + s.linejoin + '"' + (['path','image'].includes(object.type)?' font-size="'+s.fontSize+'" font-family="'+s.fontFamily+'" font-weight="'+(s.bold?'bold':'normal')+'" font-style="'+(s.italic?'italic':'normal')+'"':''); }
+  function attrs(object, options) { options=options||{};var s = styleOf(object.style), idAttr=options.omitId?'':' data-ilapo-id="' + esc(object.id || '') + '"', channelAttrs=(s.fillOpacity===undefined?'':' fill-opacity="'+s.fillOpacity+'"')+(s.strokeOpacity===undefined?'':' stroke-opacity="'+s.strokeOpacity+'"'); return idAttr + matrixAttr(object.matrix) + ' fill="' + s.fill + '" stroke="' + s.stroke + '" stroke-width="' + s.strokeWidth + '" opacity="' + s.opacity + '"' + channelAttrs + ' stroke-dasharray="' + esc(s.dash) + '" stroke-linecap="' + s.linecap + '" stroke-linejoin="' + s.linejoin + '"' + (['path','image'].includes(object.type)?' font-size="'+s.fontSize+'" font-family="'+s.fontFamily+'" font-weight="'+(s.bold?'bold':'normal')+'" font-style="'+(s.italic?'italic':'normal')+'"':''); }
   function validPath(d) { return typeof d === 'string' && /^[\s,\.\-+0-9a-zA-Z]+$/.test(d) && !/[a-z]/.test(d.replace(/[MmZzLlHhVvCcSsQqTtAaEe]/g, '')); }
   function runsMarkup(runs) {
     return (runs || []).map(function(run) { var shift=run.script==='super'?'super':run.script==='sub'?'sub':'',style='';if(run.bold!==undefined)style+=' font-weight="'+(run.bold?'bold':'normal')+'"';if(run.italic!==undefined)style+=' font-style="'+(run.italic?'italic':'normal')+'"';if(run.fill!==undefined)style+=' fill="'+esc(cleanColor(run.fill,'none'))+'"';return shift||style?'<tspan'+(shift?' baseline-shift="'+shift+'" font-size="70%"':'')+style+'>'+esc(run.text==null?'':run.text)+'</tspan>':esc(run.text==null?'':run.text); }).join('');
@@ -100,13 +102,15 @@
   function coordinate(value) { var text=String(value).trim();if(!/^[+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:e[+-]?\d+)?$/i.test(text))throw new Error('Invalid SVG coordinate');var n=Number(text),limit=root.IlapoCore&&root.IlapoCore.LIMITS?root.IlapoCore.LIMITS.coordinate:1000000;if(!Number.isFinite(n)||Math.abs(n)>limit)throw new Error('Invalid SVG coordinate');return n; }
   function elementStyle(el, inherited) {
     var base=styleOf(inherited),s={};
-    ['fill','stroke','stroke-width','opacity','stroke-dasharray','stroke-linecap','stroke-linejoin','font-size','font-family','font-weight','font-style'].forEach(function(k){if(el.hasAttribute(k))s[k]=el.getAttribute(k);});
+    ['fill','stroke','stroke-width','opacity','fill-opacity','stroke-opacity','stroke-dasharray','stroke-linecap','stroke-linejoin','font-size','font-family','font-weight','font-style'].forEach(function(k){if(el.hasAttribute(k))s[k]=el.getAttribute(k);});
     attr(el,'style','').split(';').forEach(function(p){if(!p.trim())return;var q=p.indexOf(':');if(q<=0)throw new Error('Invalid SVG style');s[p.slice(0,q).trim()]=p.slice(q+1).trim();});
     return styleOf({
       fill:s.fill==null?base.fill:cleanColor(s.fill,null),
       stroke:s.stroke==null?base.stroke:cleanColor(s.stroke,null),
       strokeWidth:s['stroke-width']==null?base.strokeWidth:Number(s['stroke-width']),
       opacity:s.opacity==null?base.opacity:base.opacity*Number(s.opacity),
+      ...(s['fill-opacity']==null?(base.fillOpacity===undefined?{}:{fillOpacity:base.fillOpacity}):{fillOpacity:Number(s['fill-opacity'])}),
+      ...(s['stroke-opacity']==null?(base.strokeOpacity===undefined?{}:{strokeOpacity:base.strokeOpacity}):{strokeOpacity:Number(s['stroke-opacity'])}),
       dash:s['stroke-dasharray']==null?base.dash:s['stroke-dasharray'].trim().split(/[ ,]+/).filter(Boolean).map(Number).join(' '),
       linecap:s['stroke-linecap']==null?base.linecap:s['stroke-linecap'],
       linejoin:s['stroke-linejoin']==null?base.linejoin:s['stroke-linejoin'],
@@ -120,7 +124,7 @@
     textDepth=textDepth||0;
     var tag=el.localName.toLowerCase();
     if(blocked[tag]||!supported[tag]||(el.namespaceURI&&el.namespaceURI!==SVG_NS))throw new Error('Unsupported SVG element: '+tag);
-    var presentation=['fill','stroke','stroke-width','opacity','stroke-dasharray','stroke-linecap','stroke-linejoin','font-size','font-family','font-weight','font-style','fill-rule','stroke-miterlimit'];
+    var presentation=['fill','stroke','stroke-width','opacity','fill-opacity','stroke-opacity','stroke-dasharray','stroke-linecap','stroke-linejoin','font-size','font-family','font-weight','font-style','fill-rule','stroke-miterlimit'];
     var geometry={svg:['width','height','viewbox','preserveaspectratio','version'],g:[],path:['d'],rect:['x','y','width','height','rx','ry'],circle:['cx','cy','r'],ellipse:['cx','cy','rx','ry'],line:['x1','y1','x2','y2'],polygon:['points'],polyline:['points'],text:['x','y'],tspan:['x','y','dy','font-size','baseline-shift'],title:[],desc:[],image:['x','y','width','height','preserveaspectratio']};
     function valueCheck(key,value) {
       if((key==='fill'||key==='stroke')&&cleanColor(value,null)==null)throw new Error('Unsupported SVG color');
@@ -129,7 +133,7 @@
       if(key==='font-style'&&!['normal','italic'].includes(value))throw new Error('Unsupported SVG font style');
       if(key==='font-size')svgLength(value,16);
       if(key==='stroke-width'&&(!Number.isFinite(Number(value))||Number(value)<0))throw new Error('Unsupported SVG stroke width');
-      if(key==='opacity'&&(!Number.isFinite(Number(value))||Number(value)<0||Number(value)>1))throw new Error('Unsupported SVG opacity');
+      if(['opacity','fill-opacity','stroke-opacity'].includes(key)&&(!Number.isFinite(Number(value))||Number(value)<0||Number(value)>1))throw new Error('Unsupported SVG opacity');
       if(key==='stroke-dasharray'&&value.trim()&&!value.trim().split(/[ ,]+/).every(function(n){return n!==''&&Number.isFinite(Number(n))&&Number(n)>=0;}))throw new Error('Unsupported SVG dash');
       if(key==='stroke-linecap'&&!['butt','round','square'].includes(value))throw new Error('Unsupported SVG linecap');
       if(key==='stroke-linejoin'&&!['miter','round','bevel'].includes(value))throw new Error('Unsupported SVG linejoin');
@@ -308,7 +312,7 @@
     }}),raw=files['manifest.json'];
     if(!raw)throw new Error('Project manifest is missing');
     var manifest=JSON.parse(root.fflate.strFromU8(raw));
-    if(manifest.format!=='kaijo-ilapo'||![1,2,3,4,5,6].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
+    if(manifest.format!=='kaijo-ilapo'||![1,2,3,4,5,6,7].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
     var seenPages=new Set(),doc={format:'kaijo-ilapo',version:manifest.version,id:manifest.id,name:manifest.name,pages:[]};
     manifest.pages.forEach(function(meta){
       if(!meta||typeof meta.id!=='string'||typeof meta.name!=='string'||typeof meta.file!=='string'||!meta.board||typeof meta.board!=='object'||!meta.objects||typeof meta.objects!=='object'||Array.isArray(meta.objects)||seenPages.has(meta.id)||!Object.hasOwn(files,meta.file))throw new Error('Invalid project page metadata');

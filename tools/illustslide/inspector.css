@@ -9,6 +9,11 @@
 #inspector-tabs{display:flex;gap:4px;overflow:auto;padding:7px 12px;border-bottom:1px solid var(--line);scrollbar-width:thin}
 #inspector-tabs button{flex:none;min-height:36px;padding:5px 9px;font-size:.9em}
 #inspector-body{min-height:0;overflow:auto;padding:4px 16px 18px;overscroll-behavior:contain}
+.paint-fields{border:0;min-width:0;padding:0;margin:0}
+.style-extra{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
+.style-extra summary{cursor:pointer;color:var(--muted);padding:6px 0}
+.style-text-link{margin-top:16px}
+.style-text-link button{width:100%;min-height:44px}
 #inspector-error{color:var(--danger);padding:0 16px;margin:6px 0;max-height:96px;overflow:auto}
 #inspector-panel footer{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding:10px 14px;border-top:1px solid var(--line);background:var(--panel)}
 #inspector-panel footer button{min-height:38px}

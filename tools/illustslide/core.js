@@ -19,6 +19,8 @@
     '16:9': Object.freeze({ width: 1280, height: 720, unit: 'px', infinite: false }),
     free: Object.freeze({ width: 1280, height: 720, unit: 'px', infinite: true })
   });
+  // fillOpacity/strokeOpacity intentionally remain optional.  Old documents
+  // must retain their compact style objects, while SVG's implicit value is 1.
   const DEFAULT_STYLE = Object.freeze({ fill: '#FFFFFF', stroke: '#000000', strokeWidth: 1, opacity: 1, dash: '', linecap: 'butt', linejoin: 'miter', fontSize: 18 * PX_PER_PT, fontFamily: 'sans-serif', bold: false, italic: false });
   const PATH_COMMANDS = /^[Mm][0-9eE+\-.,\s]*[MmZzLlHhVvCcSsQqTtAa0-9eE+\-.,\s]*$/;
   let sequence = 0;
@@ -47,12 +49,17 @@
   function normalizeStyle(value, partial) {
     if (value === undefined && partial) return clone(DEFAULT_STYLE);
     plainObject(value, 'style');
-    keysOnly(value, Object.keys(DEFAULT_STYLE), 'style');
+    keysOnly(value, Object.keys(DEFAULT_STYLE).concat(['fillOpacity', 'strokeOpacity']), 'style');
     const out = partial ? Object.assign(clone(DEFAULT_STYLE), value) : value;
     for (const key of Object.keys(DEFAULT_STYLE)) if (!(key in out)) fail('style.' + key + ' is required');
     color(out.fill, 'style.fill'); color(out.stroke, 'style.stroke');
     finite(out.strokeWidth, 'style.strokeWidth'); if (out.strokeWidth < 0) fail('style.strokeWidth must not be negative');
     finite(out.opacity, 'style.opacity'); if (out.opacity < 0 || out.opacity > 1) fail('style.opacity must be between 0 and 1');
+    ['fillOpacity', 'strokeOpacity'].forEach(key => {
+      if (out[key] === undefined) return;
+      finite(out[key], 'style.' + key);
+      if (out[key] < 0 || out[key] > 1) fail('style.' + key + ' must be between 0 and 1');
+    });
     string(out.dash, 'style.dash', true);
     if (out.dash && !/^\s*(?:\d+(?:\.\d+)?\s*)+$/.test(out.dash)) fail('style.dash must contain non-negative numbers separated by spaces');
     if (!['butt', 'round', 'square'].includes(out.linecap)) fail('style.linecap is invalid');
@@ -196,13 +203,13 @@
   }
   function validateDocument(input) {
     plainObject(input, 'document'); keysOnly(input, ['format', 'version', 'id', 'name', 'pages'], 'document');
-    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3,4,5,6].includes(input.version)) fail('version is invalid');
+    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3,4,5,6,7].includes(input.version)) fail('version is invalid');
     const pages = array(input.pages, 'document.pages'); if (!pages.length || pages.length > LIMITS.pages) fail('document.pages has an invalid length');
     const ids = new Set(); let count = 0;
     const out = { format: 'kaijo-ilapo', version: input.version, id: id(input.id, 'document.id'), name: string(input.name, 'document.name', true), pages: pages.map(validatePage) };
     for (const page of out.pages) { if (ids.has(page.id)) fail('duplicate page id: ' + page.id); ids.add(page.id); count += page.objects.length; }
     if (count > LIMITS.objects) fail('document exceeds the object limit');
-    let imageBytes=0,effects=0;for(const page of out.pages){effects+=(page.animations||[]).length;for(const o of page.objects){if(['image','connector'].includes(o.type))out.version=Math.max(out.version,2);if(o.type==='image')imageBytes+=o.src.length;if(o.type==='text'&&o.layout||o.type==='path'&&o.label)out.version=Math.max(out.version,4);var textRuns=o.type==='text'?o.runs:o.type==='path'&&o.label?o.label.runs:null;if(textRuns&&textRuns.some(run=>run.bold!==undefined||run.italic!==undefined||run.fill!==undefined))out.version=Math.max(out.version,5);}if((page.animations||[]).length)out.version=Math.max(out.version,3);if(page.layers)out.version=Math.max(out.version,6);}
+    let imageBytes=0,effects=0;for(const page of out.pages){effects+=(page.animations||[]).length;for(const o of page.objects){if(['image','connector'].includes(o.type))out.version=Math.max(out.version,2);if(o.type==='image')imageBytes+=o.src.length;if(o.type==='text'&&o.layout||o.type==='path'&&o.label)out.version=Math.max(out.version,4);var textRuns=o.type==='text'?o.runs:o.type==='path'&&o.label?o.label.runs:null;if(textRuns&&textRuns.some(run=>run.bold!==undefined||run.italic!==undefined||run.fill!==undefined))out.version=Math.max(out.version,5);var styles=[o.style];if(o.type==='path'&&o.label)styles.push(o.label.style);if(styles.some(style=>Object.prototype.hasOwnProperty.call(style,'fillOpacity')||Object.prototype.hasOwnProperty.call(style,'strokeOpacity')))out.version=Math.max(out.version,7);}if((page.animations||[]).length)out.version=Math.max(out.version,3);if(page.layers)out.version=Math.max(out.version,6);}
     if(effects>5000)fail('document animations exceeds limit');
     if(imageBytes>12*1024*1024)fail('document images exceed size limit');return out;
   }

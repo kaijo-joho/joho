@@ -1,17 +1,18 @@
-# イラストスライド illustSlideの内部契約（0.4.17）
+# イラストスライド illustSlideの内部契約（0.4.18）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
 
 0.4.2から配置先は `tools/illustslide/`、保存名は `.illustslide.zip`。旧URLは案内ページを残し、旧 `.ilapo.zip`・保存キー・内部API・文書形式・SVG識別子は互換性を保つ。直接ファイル利用時のブラウザ保存は、旧ページでJSONとして取り出せる。
 
-文書: `{format:'kaijo-ilapo',version:1|2|3|4|5|6,id,name,pages:[page]}`。version1〜5を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5、page.layersがあればversion6へ上げる。上がったversionを下げず、引数は変更しない。
+文書: `{format:'kaijo-ilapo',version:1|2|3|4|5|6|7,id,name,pages:[page]}`。version1〜6を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5、page.layersがあればversion6、object.styleまたはpath.label.styleにfillOpacity/strokeOpacityがあればversion7へ上げる。上がったversionを下げず、引数は変更しない。
 ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation],layers?:[layer]}`。
 幅・高さ・座標はCSS pxの小数。unitは表示単位px/mm/pt。無限ページにも書き出し用の初期width/heightを保持。
 オブジェクト: `{id,type:'path'|'text'|'image'|'connector',name,group:null|string,locked:false,matrix:[a,b,c,d,e,f],style}`。
 pathは標準SVGの`d`、textは`x,y,runs:[{text,script:'normal'|'super'|'sub',bold?:boolean,italic?:boolean,fill?:色}]`を追加する。部分書式は省略時に親styleを継承し、falseも明示値として保持する。fillは#RRGGBBまたはnone。
 textの任意フィールド`layout:{width:null|正数,align:'left'|'center'|'right'}`は折り返し幅と揃え。pathの任意フィールド`label:{runs,style,align,padding}`は図形内の文章。paddingは0以上のCSS px。省略した既存文書に既定値を追加しない。runsは最大1000区間・合計100000 UTF-16コード単位。余分なキー、不正な書式・数値・揃えは拒否する。
-style: `{fill,stroke,strokeWidth,opacity,dash,linecap,linejoin,fontSize,fontFamily,bold,italic}`。
+style: `{fill,stroke,strokeWidth,opacity,fillOpacity?,strokeOpacity?,dash,linecap,linejoin,fontSize,fontFamily,bold,italic}`。
+fillOpacity/strokeOpacityは0〜1の有限数値、省略時は1。DEFAULT_STYLEや旧文書へ自動補完しない。opacityは塗りと線を合成した後の全体不透明度として既存の意味を保持する。図形内文字はlabel.styleを使い、図形本体のチャンネル値を継承しない。
 fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。fontFamilyはsans-serif/serif/monospace。
 グループは初期版では同じgroup値を持つ平坦な集合。選択・変形は原則グループ全体へ適用。
 
@@ -62,6 +63,8 @@ version5は部分書式の任意キーをrunsへ追加する。折り返し付�
 
 version6はmanifestの各ページにlayersを記録する。非表示の図形もnative SVGに保持し、復元後に所属・順序を含めて検証する。通常のSVGでは非表示図形を省く。
 
+version7は塗りと線の不透明度をSVGのfill-opacity/stroke-opacityへ保存する。属性がない旧SVGは任意キーを補完せず、継承値と子の上書きをSVGの規則で扱う。全体opacityとの乗算を各属性へ焼き込まない。path.label.styleとconnectorは既存のmetadataにも保持する。connectorの矢じりの塗り・輪郭およびラベルにはstrokeOpacityを対応付ける。通常のSVGでtspanごとに不透明度が異なる入力は、未対応として拒否する。
+
 `exportPage`の`includeReferences:true`と`includeHidden:true`はnative ZIP用。既定falseは参照画像を省く。imageのsrcはPNG/JPEG/WebPのbase64データURLだけを許し、外部URL・埋め込みSVGを拒否する。ZIPのページファイル名はpage.idをencodeURIComponentしたものとする。
 
 native ZIPでは`rawTransforms:true`も指定し、元のd・matrix・styleを各SVGへそのまま保持する。表示・通常SVG・PNG・PDF・発表はこの指定を使わない。外部アプリで線幅まで一致する持ち出しには通常のSVGを書き出す。
@@ -76,7 +79,7 @@ native ZIPでは`rawTransforms:true`も指定し、元のd・matrix・styleを�
 
 opentype.js 1.3.4を同梱し、フォントは同じ配信元のWOFF1を必要時だけ取得する。フォントの固定版・ハッシュ・OFLはfonts/README.md。任意フォントのアップロードやOSフォントの取得は行わない。TextLayoutへ同梱書体のadvance幅を渡して揃え・折返しを計算し、通常の編集文字のgeneric fontFamilyは変更しない。変換用書体の差異をUIで明示する。字形は最大2000・d文字列は90000。斜体は基線周りのshear 0.2。
 
-`IlapoOutline.inspect(page,ids)` は変換可能な線・文字の数と固定・画像の有無を返す。`convertPage(page,ids,{lines,text,fontId})` はページを複製・検証してから選択グループ全体を処理し、`{page,ids,converted,warnings}` を返す。入力は変更しない。固定を含む選択、100オブジェクト超過、1件でも変換不能なら一括でthrow。新しい文書形式は追加しない。最初の生成物が元IDを継ぎ、他の部分に新ID、必要に応じて共通groupを付ける。半透明の塗りと線を分ける際は重なりを引き算して二重の不透明度を避ける。文字の線はローカルで輪郭化してから元matrixを適用し、パスの固定線幅とは区別する。
+`IlapoOutline.inspect(page,ids)` は変換可能な線・文字の数と固定・画像の有無を返す。`convertPage(page,ids,{lines,text,fontId})` はページを複製・検証してから選択グループ全体を処理し、`{page,ids,converted,warnings}` を返す。入力は変更しない。固定を含む選択、100オブジェクト超過、1件でも変換不能なら一括でthrow。最初の生成物が元IDを継ぎ、他の部分に新ID、必要に応じて共通groupを付ける。線の生成物はstrokeOpacityをfillOpacityへ写す。全体opacity<1かつstrokeOpacity=1では塗りから重なりを引き算して二重合成を避ける。半透明の線は下の塗りを透かすため切り抜かず、全体opacityも1未満なら濃さが変わり得る旨をwarningsへ返す。文字の線はローカルで輪郭化してから元matrixを適用し、パスの固定線幅とは区別する。
 
 接続矢印はrenderedPartsを通常の図形にする。移動・フェード・ワイプは生成物の全IDへ引き継ぐ。色の効果は元fill/strokeから生成物のfill/strokeへ対応付け、同じ動きが2つのchannelへ分かれる場合は後半をtrigger=with,delay=0として元の時刻を維持する。対象がなくなった色の動きは警告して解除する。分割した図形のフェードは重なり部分の合成が変わり得るため警告する。元IDへ接続する未変換矢印は接続先を保持し、座標系が変わった手動接続を再計算する。
 

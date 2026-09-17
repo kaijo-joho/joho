@@ -16,19 +16,32 @@
     if(known.size>100)throw Error('一度に変換できるのは100個までです。選択を分けてください。');
     root.IlapoConnectors.sync(page);
     const mapping=new Map(),changed=new Set(),warnings=new Set();
-    function makePath(source,d,fill,matrix=I){return {id:C.uid('object'),type:'path',name:source.name,group:null,locked:false,matrix:matrix.slice(),style:{...source.style,fill,stroke:'none',strokeWidth:0,dash:''},d};}
+    function makePath(source,d,fill,matrix=I){
+      const style={...source.style,fill,stroke:'none',strokeWidth:0,dash:''};
+      // This path is the former stroke.  Once it is painted as a fill, carry
+      // the stroke channel's alpha across and discard irrelevant channels.
+      if(source.style.strokeOpacity!==undefined)style.fillOpacity=source.style.strokeOpacity;
+      else delete style.fillOpacity;
+      delete style.strokeOpacity;
+      return {id:C.uid('object'),type:'path',name:source.name,group:null,locked:false,matrix:matrix.slice(),style,d};
+    }
     function expandStroke(source,local=false,keepFill=false){
       if(!hasStroke(source))return [{object:C.clone(source),channels:{fill:'fill',stroke:'stroke'}}];
       const work=local?{...source,matrix:I}:source,d=root.IlapoStrokeOutline.path(work);
       if(!d)throw Error('描画できる線の輪郭がありません。長さや線端を調整してください。');
       const edge=makePath(source,d,source.style.stroke,local?source.matrix:I),out=[];
       if(source.style.fill!=='none'||keepFill){
-        let body={...C.clone(source),style:{...source.style,stroke:'none'}};delete body.label;
+        let body={...C.clone(source),style:{...source.style,stroke:'none'}};delete body.style.strokeOpacity;delete body.label;
         // SVG applies opacity after painting fill and stroke. With separate
-        // objects, cut their overlap so the same area is not composited twice.
-        if(source.style.opacity<1&&source.style.fill!=='none'){
+        // objects, cut their overlap only when the opaque former stroke hides
+        // the fill.  A translucent stroke must retain the fill below it.
+        const fillOpacity=source.style.fillOpacity===undefined?1:source.style.fillOpacity;
+        const strokeOpacity=source.style.strokeOpacity===undefined?1:source.style.strokeOpacity;
+        if(source.style.opacity<1&&strokeOpacity===1&&fillOpacity>0&&source.style.fill!=='none'){
           const cut=root.IlapoGeometry.boolean({...body,matrix:local?I:body.matrix},{...edge,matrix:local?I:edge.matrix},'subtract');
           body={...body,d:cut.d,matrix:local?source.matrix.slice():I.slice()};
+        }else if(source.style.opacity<1&&strokeOpacity>0&&strokeOpacity<1&&fillOpacity>0&&source.style.fill!=='none'){
+          warnings.add('全体不透明度と半透明の線を分けるため、重なる部分の濃さが変わる場合があります。');
         }
         if(body.d.trim())out.push({object:body,channels:{fill:'fill'}});
       }

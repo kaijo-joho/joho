@@ -603,20 +603,100 @@
     for(const axis of ['width','height'])$('transform-'+axis).oninput=()=>{if(!$('transform-ratio').checked||!b.width||!b.height)return;const target=axis==='width'?'height':'width';$('transform-'+target).value=round(Number($('transform-'+axis).value)*b[target]/b[axis]);};
   }
   const palette=['#FFFFFF','#E2E8F0','#94A3B8','#475569','#172B4D','#000000','#FCA5A5','#EF4444','#F59E0B','#FDE047','#BEF264','#22C55E','#5EEAD4','#06B6D4','#93C5FD','#2563EB','#A78BFA','#EC4899'];
+  let styleChannelScope='',styleChannel='fill';
   function styleDialog(){
     if(selected.length===1&&page().objects.find(o=>o.id===selected[0])?.type==='image'){imageDialog();return;}
-    if(!editable())return;const objects=page().objects.filter(o=>selected.includes(o.id)),first=objects[0].style,patch={};let channel=objects.every(o=>o.type==='connector')?'stroke':'fill';
+    if(!editable())return;
+    const objects=page().objects.filter(o=>selected.includes(o.id)),ids=objects.map(o=>o.id),patch={};
+    const supports=(o,key)=>{
+      if(key==='opacity')return true;
+      if(['fill','fillOpacity'].includes(key))return ['path','text'].includes(o.type);
+      if(['fontSize','fontFamily','bold','italic'].includes(key))return ['text','connector'].includes(o.type);
+      return o.type!=='image';
+    };
+    const targets=key=>objects.filter(o=>supports(o,key));
+    const valueOf=(o,key)=>o.style[key]??(['fillOpacity','strokeOpacity'].includes(key)?1:undefined);
+    const first=key=>valueOf(targets(key)[0],key);
+    const mixed=key=>!(key in patch)&&targets(key).some(o=>valueOf(o,key)!==first(key));
+    const value=key=>patch[key]??first(key),percent=key=>Math.round(value(key)*1000000)/10000;
+    const channels=['fill','stroke'].filter(key=>targets(key).length);
+    const channelNames={fill:objects.every(o=>o.type==='text')?'文字の塗り':'塗り',stroke:'線'};
+    const channelScope=JSON.stringify([doc().id,pageId,ids]);
+    let channel=styleChannelScope===channelScope&&channels.includes(styleChannel)?styleChannel:channels[0];
+    styleChannelScope=channelScope;styleChannel=channel;
+    const numeric=(key,label,min=0,max='')=>`<label>${label}<input id="style-${key}" data-style="${key}" type="number" min="${min}" ${max!==''?`max="${max}"`:''} step="any" ${mixed(key)?'placeholder="混在"':`required value="${key.endsWith('Opacity')||key==='opacity'?percent(key):value(key)}"`}></label>`;
+    const choice=(key,label,choices)=>{
+      if(!mixed(key)&&!choices.some(([v])=>v===value(key)))choices=[...choices,[value(key),'カスタム（'+value(key)+'）']];
+      return `<label>${label}<select id="style-${key}" data-style="${key}">${mixed(key)?'<option value="__mixed" disabled selected>混在</option>':''}${choices.map(([v,name])=>`<option value="${esc(v)}" ${!mixed(key)&&v===value(key)?'selected':''}>${esc(name)}</option>`).join('')}</select></label>`;
+    };
+    const textObjects=targets('fontSize'),bulkText=textObjects.length>0&&objects.length>1,one=objects.length===1?objects[0]:null;
+    const textLink=one&&(one.type==='text'||one.type==='path'&&(one.label||/[zZ]/.test(one.d)))?'<button type="button" data-inspector-section="text">文字・配置を編集</button>':one?.type==='connector'?'<button type="button" data-inspector-section="connection">ラベル・接続を編集</button>':'';
     function read(){
-      if($('color-hex').value!=='none'&&!/^#[0-9a-f]{6}$/i.test($('color-hex').value))throw Error('色は # と6桁の16進数で入力してください。');
-      return p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>Object.assign(o.style,patch));
+      if($('color-hex')&&$('color-hex').value!=='none'&&!/^#[0-9a-f]{6}$/i.test($('color-hex').value))throw Error('色は # と6桁の16進数で入力してください。');
+      return p=>p.objects.filter(o=>ids.includes(o.id)).forEach(o=>{
+        for(const [key,next] of Object.entries(patch))if(supports(o,key)&&valueOf(o,key)!==next)o.style[key]=next;
+      });
     }
-    showInspector('style','書式・色',`<div class="color-tabs"><button type="button" data-color-channel="fill" class="on">塗り・文字</button><button type="button" data-color-channel="stroke">線</button></div><p id="mixed-color" class="muted"></p><div class="swatches">${palette.map(v=>`<button type="button" data-color="${v}" style="--swatch:${v}" aria-label="色 ${v}"></button>`).join('')}</div><div class="row"><button type="button" id="color-none">色なし</button><input id="color-picker" type="color" aria-label="自由な色を選択" style="flex:1"><input id="color-hex" aria-label="色の16進数" maxlength="7" style="flex:1"></div><div class="fields three">${['R','G','B'].map(k=>`<label>${k}<input id="color-${k}" type="number" min="0" max="255" step="1"></label>`).join('')}</div><div class="fields"><label>線幅（px）<input data-style="strokeWidth" type="number" required min="0" step="any" value="${first.strokeWidth}"></label><label>不透明度（%）<input data-style="opacity" type="number" required min="0" max="100" step="1" value="${first.opacity*100}"></label><label>線の種類<select data-style="dash"><option value="">実線</option><option value="6 4">破線</option><option value="1 3">点線</option><option value="10 3 2 3">一点鎖線</option></select></label><label>線の端<select data-style="linecap"><option value="butt">平ら</option><option value="round">丸い</option><option value="square">四角い</option></select></label><label>線の角<select data-style="linejoin"><option value="miter">角</option><option value="round">丸い</option><option value="bevel">面取り</option></select></label><label>文字サイズ（px）<input data-style="fontSize" type="number" required min="0.01" step="any" value="${first.fontSize}"></label><label>書体<select data-style="fontFamily"><option value="sans-serif">ゴシック</option><option value="serif">明朝</option><option value="monospace">等幅</option></select></label></div><div class="row"><label class="check"><input data-style="bold" type="checkbox" ${first.bold?'checked':''}>太字</label><label class="check"><input data-style="italic" type="checkbox" ${first.italic?'checked':''}>斜体</label></div><p class="muted">変更はすぐに図形へ反映します。元に戻すには⌘Zを使います。</p>`,'適用',()=>changePage(read()),{preview:()=>previewInspectorChange(read())});
-    function updateColor(){const color=patch[channel]??first[channel],value=color==='none'?'#000000':color;$('color-picker').value=value;$('color-hex').value=color;['R','G','B'].forEach((k,i)=>$('color-'+k).value=parseInt(value.slice(1+i*2,3+i*2),16));$('mixed-color').textContent=!(channel in patch)&&objects.some(o=>o.style[channel]!==first[channel])?'複数の色が混在しています。色を選ぶとそろえます。':color==='none'?'色なし':color;document.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===color.toUpperCase())));}
-    $('inspector-body').querySelectorAll('[data-color-channel]').forEach(b=>b.onclick=()=>{channel=b.dataset.colorChannel;$('inspector-body').querySelectorAll('[data-color-channel]').forEach(v=>v.classList.toggle('on',v===b));updateColor();});
-    $('inspector-body').querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{patch[channel]=b.dataset.color;updateColor();});
-    $('color-none').onclick=()=>{patch[channel]='none';updateColor();};$('color-picker').oninput=()=>{patch[channel]=$('color-picker').value.toUpperCase();updateColor();};$('color-hex').oninput=()=>{if(/^#[0-9a-f]{6}$/i.test($('color-hex').value)){patch[channel]=$('color-hex').value.toUpperCase();updateColor();}};
+    if(!channels.length){
+      showInspector('style','書式・色',numeric('opacity','画像全体の不透明度（%）',0,100),'適用',()=>changePage(read()));
+      $('style-opacity').oninput=()=>{const input=$('style-opacity');if(input.value!==''&&input.checkValidity())patch.opacity=Number(input.value)/100;};return;
+    }
+    showInspector('style','書式・色',`
+      <div class="color-tabs" role="group" aria-label="書式の対象">${channels.map(key=>`<button type="button" data-color-channel="${key}" aria-controls="style-paint" aria-pressed="${key===channel}">${channelNames[key]}</button>`).join('')}</div>
+      <section id="style-paint" aria-label="${channelNames[channel]}の設定">
+        <p id="mixed-color" class="muted"></p>
+        <div class="swatches">${palette.map(v=>`<button type="button" data-color="${v}" style="--swatch:${v}" aria-label="色 ${v}"></button>`).join('')}</div>
+        <div class="row"><button type="button" id="color-none">色なし</button><input id="color-picker" type="color" aria-label="自由な色を選択" style="flex:1"><input id="color-hex" aria-label="色の16進数" maxlength="7" pattern="#[0-9a-fA-F]{6}|none" required style="flex:1"></div>
+        <div class="fields three">${['R','G','B'].map(k=>`<label>${k}<input id="color-${k}" type="number" required min="0" max="255" step="1"></label>`).join('')}</div>
+        ${channels.includes('fill')?`<fieldset class="paint-fields" data-paint-fields="fill">${numeric('fillOpacity','塗りの不透明度（%）',0,100)}</fieldset>`:''}
+        <fieldset class="paint-fields" data-paint-fields="stroke"><div class="fields">
+          ${numeric('strokeOpacity','線の不透明度（%）',0,100)}${numeric('strokeWidth','線幅（px）')}
+          ${choice('dash','線の種類',[['','実線'],['6 4','破線'],['1 3','点線'],['10 3 2 3','一点鎖線']])}
+          ${choice('linecap','線の端',[['butt','平ら'],['round','丸い'],['square','四角い']])}
+          ${choice('linejoin','線の角',[['miter','角'],['round','丸い'],['bevel','面取り']])}
+        </div><p id="style-line-note" class="muted"></p></fieldset>
+      </section>
+      <details id="style-overall" class="style-extra" ${mixed('opacity')||value('opacity')!==1?'open':''}><summary id="style-overall-summary"></summary>
+        ${numeric('opacity','全体の不透明度（%）',0,100)}<p class="muted">塗りと線をまとめて薄くします。${objects.some(o=>o.label&&o.type==='path')?'図形内の文字は別の書式です。':''}</p>
+      </details>
+      ${bulkText?`<details class="style-extra"><summary>文字の基本書式（${textObjects.length}個）</summary><div class="fields">${numeric('fontSize','文字サイズ（px）',.01)}${choice('fontFamily','書体',[['sans-serif','ゴシック'],['serif','明朝'],['monospace','等幅']])}</div><div class="row">${['bold','italic'].map(key=>`<label class="check"><input type="checkbox" id="style-${key}" data-style="${key}" ${value(key)?'checked':''}>${key==='bold'?'太字':'斜体'}</label>`).join('')}</div><p class="muted">選択中の文字・接続ラベルの基本書式に反映します。部分書式は、文字を1つ選んで「文字・配置」で編集します。</p></details>`:''}
+      ${textLink?`<div class="style-text-link">${textLink}${one?.type==='text'?'<p class="muted">部分ごとの文字色・太字・斜体は「文字・配置」で編集します。</p>':''}</div>`:''}
+      ${objects.some(o=>o.type==='image')?'<p class="muted">画像には全体の不透明度だけを反映します。</p>':''}
+    `,'適用',()=>changePage(read()),{preview:()=>previewInspectorChange(read())});
+    const body=$('inspector-body');
+    function updateOverall(){$('style-overall-summary').textContent='全体の不透明度 · '+(mixed('opacity')?'混在':percent('opacity')+'%');}
+    function updateColor(){
+      const color=value(channel),hex=color==='none'?'#000000':color;
+      $('color-picker').value=hex;$('color-hex').value=color;
+      ['R','G','B'].forEach((k,i)=>$('color-'+k).value=parseInt(hex.slice(1+i*2,3+i*2),16));
+      $('mixed-color').textContent=mixed(channel)?'複数の色が混在しています。色を選ぶとそろえます。':color==='none'?'色なし':color;
+      body.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-pressed',String(!mixed(channel)&&b.dataset.color===color.toUpperCase())));
+      $('style-line-note').textContent=channel==='stroke'?(value('stroke')==='none'?'線の色が「色なし」のため、線は表示されません。':value('strokeWidth')===0?'線幅が0のため、線は表示されません。':objects.some(o=>o.type==='connector')?'接続矢印では、矢じりとラベルにも線の色・不透明度を使います。':'線の端は開いたパスの両端、線の角は折れ曲がる部分に反映します。'):'';
+    }
+    function updateChannel(){
+      body.querySelectorAll('[data-color-channel]').forEach(b=>{const on=b.dataset.colorChannel===channel;b.classList.toggle('on',on);b.setAttribute('aria-pressed',String(on));});
+      body.querySelectorAll('[data-paint-fields]').forEach(el=>{el.hidden=el.dataset.paintFields!==channel;el.disabled=el.hidden;});
+      $('style-paint').setAttribute('aria-label',channelNames[channel]+'の設定');updateColor();
+    }
+    body.querySelectorAll('[data-color-channel]').forEach(b=>b.onclick=()=>{
+      body.querySelectorAll('[data-paint-fields] input[type=number]').forEach(el=>{if(el.value===''||!el.checkValidity()){const key=el.dataset.style;el.value=mixed(key)?'':key.endsWith('Opacity')?percent(key):value(key);}});
+      channel=b.dataset.colorChannel;styleChannel=channel;updateChannel();
+    });
+    body.querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{patch[channel]=b.dataset.color;updateColor();});
+    $('color-none').onclick=()=>{patch[channel]='none';updateColor();};
+    $('color-picker').oninput=()=>{patch[channel]=$('color-picker').value.toUpperCase();updateColor();};
+    $('color-hex').oninput=()=>{if(/^#[0-9a-f]{6}$/i.test($('color-hex').value)){patch[channel]=$('color-hex').value.toUpperCase();updateColor();}};
     ['R','G','B'].forEach(k=>$('color-'+k).oninput=()=>{const rgb=['R','G','B'].map(c=>Number($('color-'+c).value));if(rgb.every((v,i)=>$('color-'+['R','G','B'][i]).value!==''&&Number.isInteger(v)&&v>=0&&v<=255)){patch[channel]='#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();updateColor();}});
-    $('inspector-body').querySelectorAll('[data-style]').forEach(el=>{if(el.tagName==='SELECT')el.value=first[el.dataset.style];el.oninput=el.onchange=()=>{const key=el.dataset.style;patch[key]=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value)/(key==='opacity'?100:1):el.value;};});$('inspector-body').querySelectorAll('[data-color-channel]').forEach(b=>b.classList.toggle('on',b.dataset.colorChannel===channel));updateColor();
+    body.querySelectorAll('[data-style]').forEach(el=>{
+      const key=el.dataset.style;if(el.type==='checkbox')el.indeterminate=mixed(key);
+      el.oninput=el.onchange=()=>{
+        if(el.type==='number'&&(el.value===''||!el.checkValidity()))return;
+        patch[key]=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value)/(key.endsWith('Opacity')||key==='opacity'?100:1):el.value;
+        if(el.type==='checkbox')el.indeterminate=false;
+        updateOverall();if(key==='strokeWidth')updateColor();
+      };
+    });
+    updateChannel();updateOverall();
   }
   function viewDialog(){showInspector('view','表示設定',`<label>テーマ<select id="view-theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>操作部の文字サイズ<select id="view-size"><option value="standard">標準</option><option value="large">大</option><option value="xlarge">特大</option></select></label><label class="check"><input id="view-guides" type="checkbox" ${settings.smartGuides?'checked':''}>図形・用紙への位置合わせガイドと吸着</label><label class="check"><input id="view-grid" type="checkbox" ${settings.grid?'checked':''}>作図用グリッド（点）を表示</label><label class="check"><input id="view-pixel-grid" type="checkbox" ${settings.pixelGrid?'checked':''}>ピクセルの方眼を表示（拡大時・1px）</label><label class="check"><input id="view-snap" type="checkbox" ${settings.snap?'checked':''}>指定間隔のグリッドに吸着</label><label class="check"><input id="view-pixel" type="checkbox" ${settings.snapPixel?'checked':''}>図形・アンカー・ハンドルをピクセルに吸着</label><label class="check"><input id="view-anchor" type="checkbox" ${settings.snapAnchor?'checked':''}>他のアンカーに吸着</label><label class="check"><input id="view-path" type="checkbox" ${settings.snapPath?'checked':''}>他のパスの上に吸着</label><label>グリッドの間隔（px）<input id="view-step" type="number" min="0.01" max="10000" step="any" required value="${Number(settings.gridStep)||20}"></label><p class="muted">拡大すると1pxの方眼を表示します。画像や印刷には入りません。両方の吸着を選ぶと指定間隔を優先し、目盛りに合う位置へそろえます。曲線のハンドルも同じ間隔に吸着します。Optionで吸着を一時解除、Shift＋矢印キーで10倍移動。数値入力では指定値、Shiftでの拡大縮小では縦横比、図形への接続では輪郭の位置を保ちます。</p>`,'適用',()=>{settings={...settings,theme:$('view-theme').value,size:$('view-size').value,grid:$('view-grid').checked,pixelGrid:$('view-pixel-grid').checked,snap:$('view-snap').checked,snapPixel:$('view-pixel').checked,snapAnchor:$('view-anchor').checked,snapPath:$('view-path').checked,smartGuides:$('view-guides').checked,gridStep:Number($('view-step').value)};applySettings();});$('view-theme').value=settings.theme;$('view-size').value=settings.size;}
   function align(mode){
@@ -679,7 +759,7 @@
     delete:()=>{if(editable())changePage(p=>C.removeObjects(p,selected));},group:()=>{if(editable())changePage(p=>C.groupObjects(p,selected));},ungroup:()=>{if(editable())changePage(p=>C.ungroupObjects(p,selected));},
     lock:()=>{if(selected.some(id=>L.layerOf(page(),id)?.locked)){toast('「図形」でレイヤーの固定を解除してください。');return;}const lock=allUnlocked();changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.locked=lock));},
     'text-edit':()=>openInspectorSection('text'),outline:()=>openInspectorSection('outline'),
-    'style-copy':()=>{if(selected.length){copiedStyle=C.clone(page().objects.find(o=>o.id===selected[0]).style);toast('書式をコピーしました。');}},'style-paste':()=>{if(copiedStyle&&editable())changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.style=C.clone(copiedStyle)));},
+    'style-copy':()=>{if(selected.length){copiedStyle=C.clone(page().objects.find(o=>o.id===selected[0]).style);toast('書式をコピーしました。');}},'style-paste':()=>{if(copiedStyle&&editable())changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>{if(o.type==='image')o.style.opacity=copiedStyle.opacity;else o.style=C.clone(copiedStyle);}));},
     fit,'zoom-in':()=>zoomAt(1.25),'zoom-out':()=>zoomAt(.8),'zoom-reset':()=>zoomAt(1/zoom()),
     'board-toggle':()=>toggleInspector('board'),
     'view-toggle':()=>toggleInspector('view'),

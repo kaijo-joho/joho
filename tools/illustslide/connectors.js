@@ -172,6 +172,15 @@
     if (kind === 'none' || !at || !adjacent) return null;
     var d = unit(sub(at, adjacent)), side = { x: -d.y, y: d.x }, size = Math.max(.01,finite(base.fontSize,18)*.3,finite(base.strokeWidth,1)*3), back = { x: at.x - d.x * size, y: at.y - d.y * size }, l = { x: back.x + side.x * size * .55, y: back.y + side.y * size * .55 }, r = { x: back.x - side.x * size * .55, y: back.y - side.y * size * .55 };
     var s = Object.assign({}, base, { dash: '', fill: kind === 'triangle' ? base.stroke : 'none' });
+    // Arrow heads are painted with the connector's stroke color.  Their fill
+    // therefore follows the stroke channel, not a possibly different fill.
+    if (kind === 'triangle') {
+      if (base.strokeOpacity !== undefined) s.fillOpacity = base.strokeOpacity;
+      else delete s.fillOpacity;
+    } else {
+      // Open arrows are still stroked paths.
+      delete s.fillOpacity;
+    }
     return { id: id, type: 'path', name: '矢印', group: null, locked: true, matrix: IDENTITY.slice(), style: s, d: kind === 'triangle' ? pathD([at, l, r], true) : pathD([l, at, r]) };
   }
   function renderedParts(connector, page) {
@@ -180,7 +189,11 @@
     var start = arrowPart(prefix + ':start', list[0], list[1], connector && connector.startArrow, base), end = arrowPart(prefix + ':end', list[list.length - 1], list[list.length - 2], connector && connector.endArrow, base);
     if (start) parts.push(start); if (end) parts.push(end);
     if (connector && connector.label) {
-      var p = labelPosition(list, point(connector.labelOffset)), probe = { type: 'text', matrix: IDENTITY, style: Object.assign({}, base, { fill:base.stroke,stroke: 'none', dash: '' }), x: 0, y: 0, runs: [{ text: String(connector.label), script: 'normal' }] }, g = root.IlapoGeometry, measured = g && g.bounds ? g.bounds(probe) : { x: 0, y: -base.fontSize, width: String(connector.label).length * base.fontSize * .6, height: base.fontSize * 1.2 }, gap = Math.max(.01,base.strokeWidth,base.fontSize * .12);
+      var labelStyle = Object.assign({}, base, { fill:base.stroke,stroke: 'none', dash: '' });
+      if (base.strokeOpacity !== undefined) labelStyle.fillOpacity = base.strokeOpacity;
+      else delete labelStyle.fillOpacity;
+      delete labelStyle.strokeOpacity;
+      var p = labelPosition(list, point(connector.labelOffset)), probe = { type: 'text', matrix: IDENTITY, style: labelStyle, x: 0, y: 0, runs: [{ text: String(connector.label), script: 'normal' }] }, g = root.IlapoGeometry, measured = g && g.bounds ? g.bounds(probe) : { x: 0, y: -base.fontSize, width: String(connector.label).length * base.fontSize * .6, height: base.fontSize * 1.2 }, gap = Math.max(.01,base.strokeWidth,base.fontSize * .12);
       parts.push({ id: prefix + ':label', type: 'text', name: '接続線ラベル', group: null, locked: true, matrix: IDENTITY.slice(), style: probe.style, x: p.x - measured.x - measured.width / 2, y: p.y - measured.y - measured.height - gap, runs: probe.runs });
     }
     return parts;

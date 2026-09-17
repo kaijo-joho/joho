@@ -14,7 +14,7 @@ const page = { objects: [
   { id: 'left', type: 'path', box: { x: 10, y: 20, width: 40, height: 30 }, matrix: [1, 0, 0, 1, 0, 0] },
   { id: 'right', type: 'path', box: { x: 150, y: 30, width: 60, height: 40 }, matrix: [1, 0, 0, 1, 0, 0] }
 ] };
-const c = C.make({ x: 0, y: 0, objectId: 'left', port: 'right', ratio: .25 }, { x: 0, y: 0, objectId: 'right', port: 'left', ratio: .75 }, { route: 'orthogonal', label: '関連', labelOffset: { x: 3, y: -4 }, startArrow: 'open', endArrow: 'triangle', style: { stroke: '#123456', dash: '5 2' } });
+const c = C.make({ x: 0, y: 0, objectId: 'left', port: 'right', ratio: .25 }, { x: 0, y: 0, objectId: 'right', port: 'left', ratio: .75 }, { route: 'orthogonal', label: '関連', labelOffset: { x: 3, y: -4 }, startArrow: 'open', endArrow: 'triangle', style: { stroke: '#123456', dash: '5 2', fillOpacity: .2, strokeOpacity: .6 } });
 page.objects.push(c);
 const p = C.points(c, page);
 assert.deepEqual(p[0], { x: 50, y: 27.5 });
@@ -26,6 +26,11 @@ assert.equal(parts[0].style.dash, '5 2');
 assert.equal(parts[1].style.dash, '');
 assert.equal(parts[2].style.fill, '#123456');
 assert.equal(parts[3].style.stroke, 'none');
+assert.equal(parts[0].style.strokeOpacity, .6, 'line keeps the stroke channel');
+assert.equal(parts[1].style.strokeOpacity, .6, 'open arrow keeps the stroke channel');
+assert.equal(parts[2].style.fillOpacity, .6, 'filled arrow maps stroke alpha to fill alpha');
+assert.equal(parts[2].style.strokeOpacity, .6, 'filled arrow outline keeps the stroke channel');
+assert.equal(parts[3].style.fillOpacity, .6, 'label maps stroke alpha to fill alpha');
 assert(parts.every(o => o.matrix.join(',') === '1,0,0,1,0,0'));
 C.sync(page);
 assert.deepEqual({ x: c.from.x, y: c.from.y }, { x: 50, y: 27.5 });

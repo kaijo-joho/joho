@@ -15,6 +15,14 @@ assert.equal(Core.boardPreset(72).height, 72);
 
 const page = doc.pages[0];
 const rect = Core.makeShape('rect', 1.5, 2.5, 30, 40, { fill: '#12Abef', opacity: .5 });
+assert.equal(Object.hasOwn(rect.style, 'fillOpacity'), false, 'new optional channels do not bloat existing-style objects');
+const translucent = Core.makeShape('rect', 0, 0, 10, 10, { fillOpacity: .4, strokeOpacity: .7 });
+assert.equal(Core.validateDocument({ format: 'kaijo-ilapo', version: 1, id: 'opacity', name: '', pages: [{ ...Core.createPage(), objects: [translucent] }] }).version, 7, 'channel opacity upgrades the document format');
+const labelOpacity = Core.makeShape('rect', 0, 0, 10, 10);
+labelOpacity.label = { runs: [{ text: '注記', script: 'normal' }], style: { ...Core.DEFAULT_STYLE, fillOpacity: .4 }, align: 'center', padding: 0 };
+assert.equal(Core.validateDocument({ format: 'kaijo-ilapo', version: 1, id: 'label-opacity', name: '', pages: [{ ...Core.createPage(), objects: [labelOpacity] }] }).version, 7, 'shape-label channel opacity upgrades the document format');
+assert.throws(() => Core.validateObject({ ...translucent, style: { ...translucent.style, fillOpacity: 1.1 } }), /fillOpacity/);
+assert.throws(() => Core.validateObject({ ...translucent, style: { ...translucent.style, strokeOpacity: '0.5' } }), /strokeOpacity/);
 const text = Core.makeText(4, 5, 'x²');
 page.objects.push(rect, text);
 assert.equal(Core.validateDocument(doc).pages[0].objects.length, 2);
