@@ -114,7 +114,7 @@ async function run() {
     await selectTwo(page, [rectId, ellipse.id]); await page.locator('[data-menu="edit"]').click(); await page.locator('#command-menu').getByRole('button', { name: 'グループ化', exact: true }).click();
     doc = await documentOf(page); assert.equal(new Set(doc.pages[0].objects.filter(object => [rectId, ellipse.id].includes(object.id)).map(object => object.group)).size, 1, 'two selected shapes form a flat group');
     await page.locator('[data-menu="edit"]').click(); await page.locator('#command-menu').getByRole('button', { name: 'グループ解除', exact: true }).click();
-    await page.locator('#selection-more').click(); await page.locator('#command-menu [data-action="selection-arrange"]').click(); await page.locator('#command-menu').getByRole('button', { name: '幅をそろえる', exact: true }).click();
+    await page.locator('#selection-arrange').click(); await page.locator('#command-menu').getByRole('button', { name: '幅をそろえる', exact: true }).click();
 
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-command="add"]').click(); assert.equal((await documentOf(page)).pages.length, 2);
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-command="duplicate"]').click(); assert.equal((await documentOf(page)).pages.length, 3);
