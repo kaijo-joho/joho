@@ -71,16 +71,17 @@ let browser, page;
   assert.deepEqual(after.x,before.x);assert(Math.abs((after.y.max-after.y.min)/(before.y.max-before.y.min)-1.25)<1e-10);
   await page.keyboard.press('Escape');assert.equal(await page.evaluate(()=>document.activeElement.id),'zoom-toggle');
   await openAxes();
-  const x=dialog.locator('[data-axis=x]'),y=dialog.locator('[data-axis=y]');
+  const x=dialog.locator('[data-dialog-panel=range] [data-axis=x]'),y=dialog.locator('[data-dialog-panel=range] [data-axis=y]');
   const xb=await x.boundingBox(),yb=await y.boundingBox();assert(Math.abs(xb.y-yb.y)<2&&xb.x+xb.width<yb.x,'axis fields have two columns');
   assert(await dialog.evaluate(el=>el.querySelector('#dialog-submit').getBoundingClientRect().bottom<=el.getBoundingClientRect().bottom-4),'axis dialog submit is not clipped');
   await page.screenshot({path:'/private/tmp/graph-inspector-axes-desktop.png'});
-  for(const axis of [x,y]){await axis.getByLabel('最小値',{exact:true}).fill('-5');await axis.getByLabel('最大値',{exact:true}).fill('5');await axis.getByLabel('目盛の間隔（空欄で自動）',{exact:true}).fill('1');await axis.getByLabel('目盛の数値の位置',{exact:true}).selectOption('axis');}
+  for(const axis of [x,y]){await axis.getByLabel('最小値',{exact:true}).fill('-5');await axis.getByLabel('最大値',{exact:true}).fill('5');}
+  await dialog.getByRole('tab',{name:'目盛・表示',exact:true}).click();for(const key of ['x','y']){const axis=dialog.locator('[data-dialog-panel=ticks] [data-axis='+key+']');await axis.getByLabel('目盛の間隔（空欄で自動）',{exact:true}).fill('1');await axis.getByLabel('目盛の数値の位置',{exact:true}).selectOption('axis');}
   await submit();
   let ticks=await page.evaluate(()=>document.querySelector('#plot').layout.annotations.filter(a=>a.name?.startsWith('__graph_axis_tick_')));
   assert(ticks.some(a=>a.name.includes('_x_'))&&ticks.some(a=>a.name.includes('_y_')));
   assert.equal((await doc()).axes.x.labelPosition,'axis');
-  await openAxes();await y.getByLabel('目盛の数値の位置',{exact:true}).selectOption('edge');await submit();
+  await openAxes();await dialog.getByRole('tab',{name:'目盛・表示',exact:true}).click();await dialog.locator('[data-dialog-panel=ticks] [data-axis=y]').getByLabel('目盛の数値の位置',{exact:true}).selectOption('edge');await submit();
   assert.equal(await page.evaluate(()=>document.querySelector('#plot').layout.yaxis.showticklabels),true);
   assert.equal(await page.evaluate(()=>document.querySelector('#plot').layout.xaxis.showticklabels),false);
 

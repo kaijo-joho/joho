@@ -1,0 +1,18 @@
+/* Table editor controls kept separate from the dialog shell. */
+.graph-table-editor__tools{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));align-items:stretch;gap:8px;margin:.6rem 0}
+.graph-table-editor__tool-group{min-width:0;border:1px solid var(--line);border-radius:8px;padding:8px;background:var(--panel)}
+.graph-table-editor__tool-group h3{font-size:.82rem;margin:0 0 6px;color:var(--muted)}
+.graph-table-editor__tool-actions{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.graph-table-editor__button{display:inline-flex;align-items:center;justify-content:center;gap:5px;min-height:44px;min-width:0}
+.graph-table-editor__button svg{width:20px;height:20px;flex:0 0 auto}
+.graph-table-editor__tool-actions .graph-table-editor__icon-button{flex:0 0 44px;width:44px;height:44px;padding:10px}
+.graph-table-editor__mapping-details{border:1px solid var(--line);border-radius:8px;background:var(--panel)}
+.graph-table-editor__mapping-details summary{cursor:pointer;min-height:40px;align-content:center;font-size:.9rem}
+.graph-table-editor__mapping-details summary>svg{width:20px;height:20px;margin-right:6px;vertical-align:middle}
+.graph-table-editor__mapping-description{display:block;color:var(--muted);font-size:.8rem;margin:3px 0 4px;overflow-wrap:anywhere}
+.graph-table-editor__mapping-details{margin:.7rem 0;padding:0 9px}
+.graph-table-editor__mapping-details[open]{padding-bottom:9px}
+.graph-table-editor__mapping-details .graph-table-editor__mappings{margin:.2rem 0 0}
+.graph-table-editor__calculation-lead{margin:0 0 8px;font-size:.85rem;color:var(--muted)}
+@media(max-width:720px){.graph-table-editor__tools{grid-template-columns:1fr}.graph-table-editor__tool-group{display:grid;grid-template-columns:3rem minmax(0,1fr);gap:6px;align-items:start}.graph-table-editor__tool-group h3{margin:8px 0 0}.graph-table-editor__tool-actions{min-width:0}.graph-table-editor__button{flex:1 1 7rem;padding:6px}}
+@media(max-width:430px){.graph-table-editor__tool-group{grid-template-columns:1fr}.graph-table-editor__tool-group h3{margin:0}.graph-table-editor__button{flex-basis:7rem}}

@@ -2,6 +2,7 @@
 (function () {
   'use strict';
   const D = window.GraphDataImport;
+  const DialogUI = window.GraphDialogUI;
   const make = (tag, text, attrs = {}) => {
     const el = document.createElement(tag);
     if (text != null) el.textContent = text;
@@ -32,19 +33,28 @@
     const el = make('a', text, {href: url, target: '_blank', rel: 'noopener noreferrer'});
     parent.append(el); return el;
   }
+  function decorate(element, icon) {
+    if (DialogUI?.decorate) return DialogUI.decorate(element, icon);
+    if (window.GraphIcons?.create) {
+      element.classList.add('with-icon');
+      element.prepend(window.GraphIcons.create(icon, element.ownerDocument));
+    }
+    return element;
+  }
   function mount(parent, options = {}) {
     const kind = options.kind || 'data2d', is3 = kind === 'data3d';
     let disposed = false, ticket = 0, controller, bytes, text = '', inspection, result;
     let source = {kind: 'user', title: '', url: '', notes: ''}, acquired = '', loadedName = '', loadedCatalog;
     let encodingName = '', mode = 'catalog', originURL = '', parsed;
     const root = make('div', null, {class: 'data-import'}); parent.append(root);
-    const sourceChooser = make('details', null, {class: 'data-import-source'}), chooserLabel = make('summary', '読み込み元を選ぶ');
+    const sourceChooser = make('details', null, {class: 'data-import-source'}), chooserLabel = decorate(make('summary', '読み込み元を選ぶ'), 'open');
     sourceChooser.open = true; sourceChooser.append(chooserLabel); root.append(sourceChooser);
     const tabs = make('div', null, {class: 'data-import-tabs', role: 'group', 'aria-label': '取り込み方法'});
     sourceChooser.append(tabs);
     const panels = {}, tabButtons = {};
     for (const [id, label] of [['catalog', '用意済み'], ['url', 'URL'], ['file', 'ファイル']]) {
       tabButtons[id] = button(tabs, label, () => switchMode(id), {'aria-pressed': id === mode ? 'true' : 'false', 'aria-controls': 'data-import-' + id});
+      decorate(tabButtons[id], id === 'catalog' ? 'table' : id === 'url' ? 'link' : 'file');
       panels[id] = make('section', null, {id: 'data-import-' + id, 'aria-label': label});
       panels[id].hidden = id !== mode; sourceChooser.append(panels[id]);
     }
@@ -65,11 +75,11 @@
     catalogSearch.addEventListener('input', renderCatalog); renderCatalog();
     const urlRow = make('div', null, {class: 'data-import-url'}); panels.url.append(urlRow);
     const urlInput = input(urlRow, '公開CSVのURL', '', 'url', {placeholder: 'https://…/data.csv', maxlength: 2000, autocomplete: 'off', spellcheck: 'false'});
-    const fetchButton = button(urlRow, '読み込む', fetchURL, {class: 'primary'});
+    const fetchButton = button(urlRow, '読み込む', fetchURL, {class: 'primary'}); decorate(fetchButton, 'upload');
     urlInput.addEventListener('keydown', event => { if (event.key === 'Enter') { event.preventDefault(); fetchURL(); } });
     panels.url.append(make('p', 'ログイン不要のCSV・TSVを指定します。公開元が直接読み込みに対応していない場合は、ファイルを選んで取り込めます。', {class: 'small muted'}));
     const providers = make('details', null, {class: 'data-import-providers'});
-    providers.append(make('summary', '気象庁・e-Statからダウンロードする'));
+    providers.append(decorate(make('summary', '気象庁・e-Statからダウンロードする'), 'download'));
     const jma = make('p'); link(jma, '気象庁：過去の気象データ・ダウンロード', 'https://www.data.jma.go.jp/risk/obsdl/');
     jma.append(document.createTextNode('で地点・項目・期間を選び、CSVを保存します。年月日や品質情報がある場合は、読み込み後に列を確認してください。'));
     const estat = make('p'); link(estat, 'e-Stat：政府統計の総合窓口', 'https://www.e-stat.go.jp/');
@@ -78,7 +88,7 @@
     panels.url.append(providers);
     const fileInput = make('input', null, {type: 'file', accept: '.csv,.tsv,.txt,text/csv,text/tab-separated-values', 'data-import-file': ''});
     fileInput.hidden = true; root.append(fileInput);
-    button(panels.file, 'CSV・TSVファイルを選ぶ', () => fileInput.click(), {class: 'primary full-button'});
+    const chooseFile = button(panels.file, 'CSV・TSVファイルを選ぶ', () => fileInput.click(), {class: 'primary full-button'}); decorate(chooseFile, 'file');
     panels.file.append(make('p', 'CSV・TSV／1MB以内。UTF-8・Shift_JISを自動判別します。表計算や公開元から保存したファイルを使えます。', {class: 'small muted'}));
     fileInput.addEventListener('change', () => { const file = fileInput.files[0]; fileInput.value = ''; if (file) loadFile(file); });
 
@@ -103,25 +113,27 @@
       const url = URL.createObjectURL(blob), anchor = make('a', '', {href: url, download: loadedName.replace(/[\x00-\x1f\\/:*?"<>|]/g, '_').replace(/\.(?:csv|tsv|txt)$/i, '') + '.csv'});
       root.append(anchor); anchor.click(); anchor.remove(); setTimeout(() => URL.revokeObjectURL(url), 1000);
     });
+    decorate(rawSave, 'download');
     const tableWrap = make('div', null, {class: 'data-import-table', tabindex: '0', role: 'region', 'aria-label': '元データの先頭8行'}); preview.append(tableWrap);
 
-    const details = make('details', null, {class: 'data-import-settings'}); details.append(make('summary', '列・読み取りの詳細')); preview.append(details);
+    const details = make('details', null, {class: 'data-import-settings'}); details.append(decorate(make('summary', '読み取り設定'), 'settings')); preview.append(details);
     const parseFields = make('div', null, {class: 'field-grid'}); details.append(parseFields);
     const encoding = select(parseFields, '文字コード', [['auto', '自動'], ['utf-8', 'UTF-8'], ['shift_jis', 'Shift_JIS'], ['utf-16le', 'UTF-16 LE'], ['utf-16be', 'UTF-16 BE']], 'auto');
     const delimiter = select(parseFields, '区切り文字', [['auto', '自動'], [',', 'カンマ'], ['\t', 'タブ'], [';', 'セミコロン']], 'auto');
     const header = input(parseFields, '見出し行（0ならなし）', '', 'number', {min: 0, max: 10050, step: 1});
     const start = input(parseFields, 'データ開始行', '', 'number', {min: 1, max: 10050, step: 1});
     details.append(make('p', '行番号はCSVのレコード単位です。複数行の表題や単位行があるときは、開始行を調整します。', {class: 'small muted'}));
-    const filterFields = make('div', null, {class: 'field-grid'}); details.append(filterFields);
+    const columnsDetails = make('details', null, {class: 'data-import-column-settings'}); columnsDetails.append(decorate(make('summary', '列・欠測の設定'), 'selectMultiple')); preview.append(columnsDetails);
+    const filterFields = make('div', null, {class: 'field-grid'}); columnsDetails.append(filterFields);
     const filterColumn = select(filterFields, '地域などで絞り込む列', [['', '絞り込まない']], '');
     const filterValue = select(filterFields, '残す値（完全一致）', []); filterValue.disabled = true;
-    const extra = make('fieldset', null, {class: 'data-import-columns'}); extra.append(make('legend', '表へ取り込む列（軸を含め20列まで）')); details.append(extra);
+    const extra = make('fieldset', null, {class: 'data-import-columns'}); extra.append(decorate(make('legend', '表へ取り込む列（軸を含め20列まで）'), 'table')); columnsDetails.append(extra);
     const extraFields = make('div', null, {class: 'data-import-column-choices'}); extra.append(extraFields);
-    const errors = make('div', null, {class: 'field-grid'}); details.append(errors);
+    const errors = make('div', null, {class: 'field-grid'}); columnsDetails.append(errors);
     const errorX = select(errors, '横誤差の列', [['', 'なし']], ''), errorY = select(errors, '縦誤差の列', [['', 'なし']], ''); errors.hidden = is3;
-    const invalid = checkbox(details, '数値にできない値を欠測として取り込む', false);
-    details.append(make('p', '空欄・NA・---などの欠測は0にしません。日付とカテゴリは元の値を保存します。注記付きの数値を欠測にする場合は上のチェックを使います。', {class: 'small muted'}));
-    const sourceDetails = make('details'); sourceDetails.append(make('summary', '出典・利用条件')); preview.append(sourceDetails);
+    const invalid = checkbox(columnsDetails, '数値にできない値を欠測として取り込む', false);
+    columnsDetails.append(make('p', '空欄・NA・---などの欠測は0にしません。日付とカテゴリは元の値を保存します。注記付きの数値を欠測にする場合は上のチェックを使います。', {class: 'small muted'}));
+    const sourceDetails = make('details'); sourceDetails.append(decorate(make('summary', '出典・利用条件'), 'info')); preview.append(sourceDetails);
     const sourceTitle = input(sourceDetails, '資料名', '', 'text', {maxlength: 300});
     const sourceURL = input(sourceDetails, '出典URL（https）', '', 'url', {maxlength: 2000});
     const licenseURL = input(sourceDetails, '利用条件URL（任意）', '', 'url', {maxlength: 2000});

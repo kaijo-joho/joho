@@ -50,7 +50,7 @@ let browser,page;
   await editor.getByRole('button',{name:'行を追加',exact:true}).click();assert.equal(await formula.inputValue(),'[@不明な列]','other table actions preserve the draft formula');
   await page.locator('#dialog-submit').click();assert.match(await page.locator('#dialog-error').innerText(),/未適用/);assert.equal((await doc()).series[0].dataTable.formulas,undefined);
   await editor.getByRole('button',{name:'取消',exact:true}).click();
-  await editor.getByLabel('縦軸の列',{exact:true}).selectOption('2');
+  await editor.locator('.graph-table-editor__mapping-details > summary').click();await editor.getByLabel('縦軸の列',{exact:true}).selectOption('2');
   await editor.getByLabel('1行目を回帰に使用',{exact:true}).uncheck();
   assert(Math.abs(Number(await cell(1,3).inputValue())-(-28/3))<1e-6,'aggregate includes regression-excluded rows');
   await submit();const saved=await doc();assert.equal(saved.version,14);assert.equal(saved.series[0].dataTable.formulas[2],'[@気温] - AVERAGE([気温])');

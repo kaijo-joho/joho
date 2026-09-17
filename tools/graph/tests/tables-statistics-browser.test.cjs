@@ -27,7 +27,7 @@ let browser, page;
   await detail('series', series.id);
   const editor = dialog.locator('.graph-table-editor'); assert.equal(await editor.locator('input[aria-label="1行1列"]').count(), 1);
   assert.equal(await editor.getByText('1〜50行 / 55行', { exact: true }).count(), 1); await editor.getByRole('button', { name: '次の50行', exact: true }).click(); assert.equal(await editor.locator('input[aria-label="51行1列"]').count(), 1); await editor.getByRole('button', { name: '前の50行', exact: true }).click();
-  await editor.locator('input[aria-label="1列目の名前"]').fill('温度（入替後）'); await editor.getByLabel('横軸の列').selectOption('1'); await editor.getByLabel('縦軸の列').selectOption('0');
+  await editor.locator('input[aria-label="1列目の名前"]').fill('温度（入替後）'); await editor.locator('.graph-table-editor__mapping-details > summary').click();await editor.getByLabel('横軸の列').selectOption('1'); await editor.getByLabel('縦軸の列').selectOption('0');
   await editor.getByRole('button', { name: '列を追加', exact: true }).click();
   await page.evaluate(() => { const input = document.querySelector('.graph-table-editor input[data-cell="1,5"]'), data = new DataTransfer(); data.setData('text/plain', '8\n9'); input.dispatchEvent(new ClipboardEvent('paste', { bubbles: true, clipboardData: data })); });
   await editor.getByRole('button', { name: '行を追加', exact: true }).click(); await editor.getByLabel('56行目を選択').check(); await editor.getByRole('button', { name: '選択行を削除', exact: true }).click();

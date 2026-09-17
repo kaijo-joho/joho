@@ -21,6 +21,7 @@ let browser, page;
   await context.addInitScript(() => Object.defineProperty(window, 'showSaveFilePicker', { value: undefined, configurable: true }));
   page = await context.newPage(); const errors = [];
   page.on('pageerror', error => errors.push(error.message));
+  const dialog = page.locator('#editor-dialog');
   const settle = () => page.waitForFunction(() => window.GraphEditor && !GraphEditor.getState().drawing && !document.querySelector('#editor-dialog').open);
   const doc = () => page.evaluate(() => GraphEditor.getDocument());
   const fill = (label, value) => page.locator('#editor-dialog').getByLabel(label, { exact: true }).fill(String(value));
@@ -32,7 +33,7 @@ let browser, page;
   const add = async name => { await annotationAdd(); await page.locator(annotationButton[name]).click(); };
   const more = async name => { if(name!=='削除') return page.locator('#selection-toolbar').getByRole('button', { name, exact: true }).click(); const selected=await page.evaluate(()=>GraphEditor.getState().selected); await page.locator('[data-object-details="'+selected.type+':'+selected.id+'"]').click(); await page.getByRole('menuitem', { name, exact: true }).click(); };
   const addQuickTangent = async (name,at) => { await annotationAdd(); await page.locator('#add-tangent').click(); const panel=page.locator('#tangent-quick-panel'); await panel.getByLabel(/^接点の .+ 座標$/).fill(String(at)); await panel.getByRole('button',{name:'接線を追加',exact:true}).click(); await settle(); await page.getByRole('button',{name:'位置・設定',exact:true}).click(); await fill('名前',name); await submit(); };
-  const axes = key => page.locator('[data-axis="' + key + '"]');
+  const axes = (panel,key) => page.locator('[data-dialog-panel='+panel+'] [data-axis="' + key + '"]');
   const screen = point => page.evaluate(point => GraphPlot.screenPoint(document.querySelector('#plot'), point), point);
   async function drag(from, to, cancel = false) {
     await page.mouse.move(...from); await page.mouse.down();
@@ -43,12 +44,12 @@ let browser, page;
   }
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
   await page.locator('#axes-button').click();
-  await axes('x').getByLabel('数式で使う記号', { exact: true }).fill('t');
-  await axes('y').getByLabel('数式で使う記号', { exact: true }).fill('s');
-  await axes('y').getByLabel('軸名（表示）', { exact: true }).fill('距離 s_0');
-  await axes('y').getByLabel('単位（表示）', { exact: true }).fill('m^2');
-  await axes('x').getByLabel('目盛の間隔（空欄で自動）', { exact: true }).fill('π/2');
-  await axes('x').getByLabel('目盛の表記', { exact: true }).selectOption('pi');
+  await dialog.getByRole('tab',{name:'軸名',exact:true}).click();await axes('names','x').getByLabel('数式で使う記号', { exact: true }).fill('t');
+  await axes('names','y').getByLabel('数式で使う記号', { exact: true }).fill('s');
+  await axes('names','y').getByLabel('軸名（表示）', { exact: true }).fill('距離 s_0');
+  await axes('names','y').getByLabel('単位（表示）', { exact: true }).fill('m^2');
+  await dialog.getByRole('tab',{name:'目盛・表示',exact:true}).click();await axes('ticks','x').getByLabel('目盛の間隔（空欄で自動）', { exact: true }).fill('π/2');
+  await axes('ticks','x').getByLabel('目盛の表記', { exact: true }).selectOption('pi');
   await submit();
   assert.equal((await doc()).axes.x.symbol, 't'); assert.equal((await doc()).series[0].expression, 'x^2');
   assert((await page.locator('#series-list').innerText()).includes('t^2'));
@@ -58,15 +59,16 @@ let browser, page;
   await seriesAdd(); await page.locator('#add-function').click(); await fill('名前', '移動'); await fill('数式（例：s = a*t^2）', 's = 2*t'); await submit();
   assert.equal((await doc()).series.at(-1).expression, 'y = 2*x');
   const beforeInvalid = await doc(); await page.locator('#axes-button').click();
-  await axes('y').getByLabel('数式で使う記号', { exact: true }).fill('t'); await page.locator('#dialog-submit').click();
+  await dialog.getByRole('tab',{name:'軸名',exact:true}).click();await axes('names','y').getByLabel('数式で使う記号', { exact: true }).fill('t'); await page.locator('#dialog-submit').click();
   assert(await page.locator('#dialog-error').isVisible()); assert.deepEqual(await doc(), beforeInvalid); await page.locator('#dialog-cancel').click();
   await page.locator('#axes-button').click();
-  await axes('x').getByLabel('数式で使う記号', { exact: true }).fill('時間'); await axes('y').getByLabel('数式で使う記号', { exact: true }).fill('距離'); await submit();
+  await dialog.getByRole('tab',{name:'軸名',exact:true}).click();await axes('names','x').getByLabel('数式で使う記号', { exact: true }).fill('時間'); await axes('names','y').getByLabel('数式で使う記号', { exact: true }).fill('距離'); await submit();
   await page.locator('#series-list .object-item').last().click(); await page.getByRole('button', { name: '数式・範囲', exact: true }).click();
   assert.equal(await page.getByLabel('数式（例：距離 = a*時間^2）', { exact: true }).inputValue(), '距離 = 2*時間'); await page.locator('#dialog-cancel').click();
   // Restore simple axis names and a square range for the direct manipulation checks.
   await page.locator('#axes-button').click();
-  for (const key of ['x', 'y']) { await axes(key).getByLabel('数式で使う記号', { exact: true }).fill(key); await axes(key).getByLabel('軸名（表示）', { exact: true }).fill(key); await axes(key).getByLabel('単位（表示）', { exact: true }).fill(''); await axes(key).getByLabel('最小値', { exact: true }).fill('-5'); await axes(key).getByLabel('最大値', { exact: true }).fill('5'); }
+  await dialog.getByRole('tab',{name:'軸名',exact:true}).click();for (const key of ['x', 'y']) { await axes('names',key).getByLabel('数式で使う記号', { exact: true }).fill(key); await axes('names',key).getByLabel('軸名（表示）', { exact: true }).fill(key); await axes('names',key).getByLabel('単位（表示）', { exact: true }).fill(''); }
+  await dialog.getByRole('tab',{name:'範囲',exact:true}).click();for (const key of ['x', 'y']) { await axes('range',key).getByLabel('最小値', { exact: true }).fill('-5'); await axes('range',key).getByLabel('最大値', { exact: true }).fill('5'); }
   await submit();
   const beforeSegment = await doc();
   await add('線分・矢印'); await fill('名前', 'AB'); await fill('始点の x 座標', '-2'); await fill('始点の y 座標', '-2'); await fill('終点の x 座標', '2'); await fill('終点の y 座標', '-2'); await submit();
@@ -135,7 +137,7 @@ let browser, page;
   await page.setViewportSize({width:1360,height:900});await page.waitForTimeout(200);await settle();
   await page.locator('#mode-3d').click();await settle();assert.equal((await doc()).annotations.length,saved.annotations.length);
   await page.locator('#axes-button').click();
-  for(const [key,value] of [['x','α'],['y','β'],['z','γ']])await axes(key).getByLabel('数式で使う記号',{exact:true}).fill(value);
+  await dialog.getByRole('tab',{name:'軸名',exact:true}).click();for(const [key,value] of [['x','α'],['y','β'],['z','γ']])await axes('names',key).getByLabel('数式で使う記号',{exact:true}).fill(value);
   await submit();await seriesAdd();await page.locator('#add-function').click();await fill('数式（例：γ = α^2 + β^2）','γ = α^2 + β^2');await submit();
   assert.equal((await doc()).series.at(-1).expression,'z = x^2 + y^2');
   assert.equal(await page.evaluate(()=>document.querySelector('#plot').layout.scene.zaxis.title.text),'γ');

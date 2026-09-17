@@ -26,7 +26,7 @@ let browser,page;
   await page.locator('#undo').click();await settle();assert.deepEqual((await doc()).axes,original.axes,'both sliders commit one undo step');
   await page.locator('#redo').click();await settle();assert.deepEqual((await doc()).axes,saved.axes);await reloadSaved();assert.deepEqual((await doc()).axes,saved.axes,'applied ranges are autosaved');
   await axes();await zoom('x',2);await reloadSaved();assert.deepEqual((await doc()).axes,saved.axes,'an unconfirmed preview is not autosaved');
-  await axes();const x=dialog.locator('[data-axis=x]'),y=dialog.locator('[data-axis=y]');
+  await axes();const x=dialog.locator('[data-dialog-panel=range] [data-axis=x]'),y=dialog.locator('[data-dialog-panel=range] [data-axis=y]');
   await x.getByLabel('最小値',{exact:true}).fill('2');await x.getByLabel('最大値',{exact:true}).fill('18');await zoom('x',1);assert.deepEqual(await range('x'),[6,14]);
   await dialog.getByRole('button',{name:'横軸の拡大率を100%へ戻す',exact:true}).click();await settle();assert.deepEqual(await range('x'),[2,18]);
   await x.getByLabel('最小値',{exact:true}).fill('1');await x.getByLabel('最大値',{exact:true}).fill('100');await x.getByLabel('目盛',{exact:true}).selectOption('log');await zoom('x',1);await apply();saved=await doc();

@@ -1,7 +1,7 @@
 /* global GraphCore, GraphExpression, GraphCurves, GraphAnnotations, GraphAnalysis, GraphRegions, GraphSymbols, GraphIcons, GraphPlot, GraphTemplates, IlapoLocalAutosave, JohoToolHelp, JohoUI */
 (function () {
   'use strict';
-  const C = window.GraphCore, P = window.GraphPlot, S = window.GraphSymbols, W = window.GraphWorkspace, Selection = window.GraphSelection;
+  const C = window.GraphCore, P = window.GraphPlot, S = window.GraphSymbols, W = window.GraphWorkspace, Selection = window.GraphSelection, D = window.GraphDialogUI;
   const $ = id => document.getElementById(id);
   const palette = ['#2563eb','#dc2626','#16a34a','#9333ea','#ea580c','#0891b2','#db2777','#4f46e5','#65a30d','#ca8a04','#0f766e','#7c3aed','#111827','#64748b','#ffffff','#a16207','#e11d48','#0284c7'];
   const quickColors = [palette[0],palette[1],palette[2],palette[3],palette[12]];
@@ -22,6 +22,8 @@
   function node(tag, text, attrs) { const el = document.createElement(tag); if (text != null) el.textContent = text; for (const [k,v] of Object.entries(attrs || {})) el.setAttribute(k,v); return el; }
   function button(text, action, attrs) { const el = node('button',text,Object.assign({type:'button'},attrs)); el.addEventListener('click',event=>run(()=>action(event))); return el; }
   function iconButton(icon,label,action,attrs={}) { const el=button(null,action,{'aria-label':label,'data-tip':label,class:'icon-button',...attrs});el.append(GraphIcons.create(icon,document));return el; }
+  function labeledButton(icon,label,action,attrs={}) {return D.decorate(button(label,action,attrs),icon);}
+  function notes(parent,label,text) {const box=node('details',null,{class:'dialog-notes'});box.append(D.decorate(node('summary',label),'info'),node('p',text));parent.append(box);return box;}
   function run(action) { try { const result = action(); if (result && result.catch) result.catch(report); return result; } catch (error) { report(error); } }
   function listen(id,event,action) { $(id).addEventListener(event,e=>run(()=>action(e))); }
   function report(error) { const message = error?.message || String(error); if ($('editor-dialog').open) { $('dialog-error').textContent=message; $('dialog-error').hidden=false; } else notify(message); }
@@ -575,7 +577,8 @@
     cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=addTrigger||focused;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogListDetail=dialogOpener?.dataset.objectDetails;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
     $('editor-dialog').classList.remove('wide-dialog','data-import-dialog','axes-dialog');$('dialog-title').textContent=title;$('dialog-content').replaceChildren();$('dialog-error').hidden=true;$('dialog-submit').hidden=!onApply;$('dialog-submit').disabled=false;$('dialog-submit').textContent=submit;
     $('dialog-cancel').textContent=onApply?'キャンセル':'閉じる';build($('dialog-content'));$('editor-dialog').showModal();
-    const focus=$('dialog-content').querySelector('input,textarea,select,button');if(focus)focus.focus();
+    D.decorate($('dialog-title'),/数表|データ/.test(title)?'table':/数式|関数|曲面|極座標|媒介/.test(title)?'function':/統計|分析|散布|ヒスト|箱ひげ|残差/.test(title)?'statistics':'settings');D.decorate($('dialog-submit'),'check');D.decorate($('dialog-cancel'),'close');
+    const focus=[...$('dialog-content').querySelectorAll('input,textarea,select,button')].find(el=>!el.disabled&&el.getClientRects().length);if(focus)focus.focus();
   }
   function closeDialog() {
     if(dialogCleanup){const cleanup=dialogCleanup;dialogCleanup=null;cleanup();}
@@ -589,7 +592,7 @@
   function choice(parent,label,value,options) {const wrap=node('label',label),select=node('select',null,{'aria-label':label});for(const [v,t]of options)select.append(node('option',t,{value:v}));select.value=value;wrap.append(select);parent.append(wrap);return select;}
   function check(parent,label,value) {const wrap=node('label',null,{class:'check'}),input=node('input',null,{type:'checkbox'});input.checked=value;wrap.append(input,document.createTextNode(label));parent.append(wrap);return input;}
   function grid(parent,three=false) {const el=node('div',null,{class:three?'field-grid three':'field-grid'});parent.append(el);return el;}
-  function requiredNumber(input) { if(input.value.trim()==='')throw new Error('数値を入力してください。');const value=Number(input.value);if(!Number.isFinite(value))throw new Error('有限の数値を入力してください。');return value; }
+  function requiredNumber(input) {if(input.value.trim()===''||!Number.isFinite(Number(input.value))){D.reveal(input);input.focus();throw new Error(input.value.trim()===''?'数値を入力してください。':'有限の数値を入力してください。');}return Number(input.value);}
   function appendSource(parent,source) {
     if(!source.title&&!source.notes&&!source.url)return;
     const box=node('div',null,{class:'source-info small'});box.append(node('strong',({user:'自分のデータ',reference:'資料の数値',model:'式・モデルからの値'})[source.kind]));if(source.title)box.append(node('p',source.title));if(source.notes)box.append(node('p',source.notes));if(source.url)box.append(node('a','出典を開く',{href:source.url,target:'_blank',rel:'noopener noreferrer'}));parent.append(box);
@@ -598,31 +601,33 @@
     const existing=current().series.find(s=>s.id===id), s=C.clone(supplied||existing);if(!s)return;let name,expression,xmin,xmax,ymin,ymax,componentX,componentY,intervalMin,intervalMax,table,interpolation,dataPoints,sourceKind,sourceTitle,sourceURL,sourceNotes;
     const isData=s.kind.startsWith('data'),is3=s.kind==='surface'||s.kind==='data3d',isParam=s.kind==='parametric',isPolar=s.kind==='polar',isImplicit=s.kind==='implicit';
     const formulaAttrs={maxlength:1000,spellcheck:'false',autocapitalize:'none',autocomplete:'off'};
+    function readTable(){try{return table.read();}catch(error){D.reveal(table.element);table.element.querySelector('[aria-label="計算式"]')?.focus();throw error;}}
     openDialog((existing?'編集：':'追加：')+kindNames[s.kind],parent=>{
       name=field(parent,'名前',s.name,'text',{maxlength:160});
+      const sections=D.tabs(parent,[{key:'content',label:isData?'数表':'数式',icon:isData?'table':'function'},...(isData&&!is3?[{key:'drawing',label:'描画',icon:'point'}]:[]),{key:'source',label:'出典',icon:'link'}]);
+      const content=sections.panels.content,source=sections.panels.source;
       if(isData){
         $('editor-dialog').classList.add('wide-dialog');
-        table=GraphTableEditor.mount(parent,s,{symbols:{x:symbol('x'),y:symbol('y'),z:symbol('z')},selectedRow:options.selectedRow??(observedSelection?.seriesId===s.id?observedSelection.rowIndex:undefined),onError:report});
+        table=GraphTableEditor.mount(content,s,{symbols:{x:symbol('x'),y:symbol('y'),z:symbol('z')},selectedRow:options.selectedRow??(observedSelection?.seriesId===s.id?observedSelection.rowIndex:undefined),onError:report});
         const actions=node('div',null,{class:'table-export-actions'});
-        actions.append(button('数値をCSVで保存',()=>{
-          const draft=table.read();download(C.tableCSV(draft.rows,draft.columns),filename(name.value.trim()||s.name||'数表')+'.csv','text/csv;charset=utf-8');notify('編集中の数表をCSVで保存しました。');
-        }));parent.insertBefore(actions,table.element);
-        parent.append(node('p','空欄は欠測として扱います。表計算の複数セルをそのまま貼り付けられます。「回帰」のチェックを外した行も、元の数表・統計量・分布図には残ります。使用・除外はこの数表を使うすべての回帰に反映します。',{class:'small muted'}));
-        if(!is3){const g=grid(parent);interpolation=choice(g,'点の結び方',s.style.lines?s.interpolation:'none',[['none','結ばない（散布図）'],['linear','入力順に直線で結ぶ'],['monotone','滑らかに補間（PCHIP）']]);dataPoints=check(g,'元の点を表示',s.style.points);parent.append(node('p','誤差列は0以上の±幅。滑らかな補間には各連続区間の横軸の値が昇順または降順である必要があります。',{class:'small muted'}));}
+        actions.append(labeledButton('download','CSV保存',()=>{
+          const draft=readTable();download(C.tableCSV(draft.rows,draft.columns),filename(name.value.trim()||s.name||'数表')+'.csv','text/csv;charset=utf-8');notify('編集中の数表をCSVで保存しました。');
+        },{'aria-label':'数値をCSVで保存'}));content.insertBefore(actions,table.element);
+        notes(content,'入力・欠測・回帰について','空欄は欠測として扱います。表計算の複数セルをそのまま貼り付けられます。「回帰」のチェックを外した行も、元の数表・統計量・分布図には残ります。使用・除外はこの数表を使うすべての回帰に反映します。');
+        if(!is3){const g=grid(sections.panels.drawing);interpolation=choice(g,'点の結び方',s.style.lines?s.interpolation:'none',[['none','結ばない（散布図）'],['linear','入力順に直線で結ぶ'],['monotone','滑らかに補間（PCHIP）']]);dataPoints=check(g,'元の点を表示',s.style.points);notes(sections.panels.drawing,'誤差・補間について','誤差列は0以上の±幅。滑らかな補間には各連続区間の横軸の値が昇順または降順である必要があります。');}
       }else{
-        if(isParam){componentX=field(parent,symbol('x')+'(t) の式',display(s.components.x,s.kind),'text',formulaAttrs);componentY=field(parent,symbol('y')+'(t) の式',display(s.components.y,s.kind),'text',formulaAttrs);}
-        else expression=field(parent,is3?'数式（例：'+display('z = x^2 + y^2',s.kind)+'）':isImplicit?'方程式（例：'+display('x^2 + y^2 = 9',s.kind)+'）':isPolar?'r の式（例：2*cos(3*theta)）':'数式（例：'+display('y = a*x^2',s.kind)+'）',display(s.expression,s.kind),'text',formulaAttrs);
-        parent.append(node('p','^ は累乗、sqrt(x) は平方根、ln(x) は自然対数、log(x) は常用対数。角度：'+(current().angle==='deg'?'度':'ラジアン')+'。',{class:'small muted'}));
-        const g=grid(parent);
-        if(isParam||isPolar){const v=isParam?'t':'theta';intervalMin=field(g,v+' の最小値',s.interval[0],'number',{step:'any'});intervalMax=field(g,v+' の最大値',s.interval[1],'number',{step:'any'});parent.append(node('p',isPolar?'theta（θ）が角度です。1周はラジアンで約6.283185307、度で360。r = を付けず、右辺を入力します。':'t を動かして点 (x(t), y(t)) の軌跡を描きます。各欄には右辺を入力します。',{class:'small muted'}));}
+        if(isParam){componentX=field(content,symbol('x')+'(t) の式',display(s.components.x,s.kind),'text',formulaAttrs);componentY=field(content,symbol('y')+'(t) の式',display(s.components.y,s.kind),'text',formulaAttrs);}
+        else expression=field(content,is3?'数式（例：'+display('z = x^2 + y^2',s.kind)+'）':isImplicit?'方程式（例：'+display('x^2 + y^2 = 9',s.kind)+'）':isPolar?'r の式（例：2*cos(3*theta)）':'数式（例：'+display('y = a*x^2',s.kind)+'）',display(s.expression,s.kind),'text',formulaAttrs);
+        const g=grid(D.section(content,'描画する範囲','range'));
+        if(isParam||isPolar){const v=isParam?'t':'theta';intervalMin=field(g,v+' の最小値',s.interval[0],'number',{step:'any'});intervalMax=field(g,v+' の最大値',s.interval[1],'number',{step:'any'});content.append(node('p',isPolar?'theta（θ）が角度です。1周はラジアンで約6.283185307、度で360。r = を付けず、右辺を入力します。':'t を動かして点 (x(t), y(t)) の軌跡を描きます。各欄には右辺を入力します。',{class:'small muted'}));}
         else{xmin=field(g,symbol('x')+' の最小値',s.domain.x[0],'number',{step:'any'});xmax=field(g,symbol('x')+' の最大値',s.domain.x[1],'number',{step:'any'});if(is3||isImplicit){ymin=field(g,symbol('y')+' の最小値',s.domain.y[0],'number',{step:'any'});ymax=field(g,symbol('y')+' の最大値',s.domain.y[1],'number',{step:'any'});}}
-        if(isImplicit)parent.append(node('p','等号なしなら「式 = 0」として扱います。指定範囲を格子で調べるため、小さな輪郭・重根・孤立点は捉えられないことがあります。',{class:'small muted'}));
+        notes(content,'数式の書き方','^ は累乗、sqrt(x) は平方根、ln(x) は自然対数、log(x) は常用対数。角度：'+(current().angle==='deg'?'度':'ラジアン')+'。');
+        if(isImplicit)notes(content,'陰関数の描画について','等号なしなら「式 = 0」として扱います。指定範囲を格子で調べるため、小さな輪郭・重根・孤立点は捉えられないことがあります。');
       }
-      appendSource(parent,s.source);
-      const details=node('details');details.append(node('summary','出典・条件を記録する'));parent.append(details);
-      sourceKind=choice(details,'データの由来',s.source.kind,[['user','自分のデータ'],['reference','資料の数値'],['model','式・モデルからの値']]);sourceTitle=field(details,'資料名',s.source.title,'text',{maxlength:300});sourceURL=field(details,'出典URL（https）',s.source.url,'url',{maxlength:2000});sourceNotes=area(details,'条件・単位・適用範囲など',s.source.notes);sourceNotes.maxLength=3000;
+      sourceKind=choice(source,'データの由来',s.source.kind,[['user','自分のデータ'],['reference','資料の数値'],['model','式・モデルからの値']]);sourceTitle=field(source,'資料名',s.source.title,'text',{maxlength:300});sourceURL=field(source,'出典URL（https）',s.source.url,'url',{maxlength:2000});sourceNotes=area(source,'条件・単位・適用範囲など',s.source.notes);sourceNotes.maxLength=3000;
+      if(s.source.url)source.append(node('a','出典を開く',{href:s.source.url,target:'_blank',rel:'noopener noreferrer'}));
     },()=>{
-      s.name=name.value.trim();if(isData){GraphTables.assign(s,table.read());s.excludedRows=table.getExcludedRows();if(!is3){s.style.lines=interpolation.value!=='none';s.style.points=dataPoints.checked||!s.style.lines;s.interpolation=interpolation.value==='monotone'?'monotone':'linear';}if(!s.rows.length)throw new Error('1行以上の数値を入力してください。');}
+      s.name=name.value.trim();if(isData){GraphTables.assign(s,readTable());s.excludedRows=table.getExcludedRows();if(!is3){s.style.lines=interpolation.value!=='none';s.style.points=dataPoints.checked||!s.style.lines;s.interpolation=interpolation.value==='monotone'?'monotone':'linear';}if(!s.rows.length)throw new Error('1行以上の数値を入力してください。');}
       else{if(isParam)s.components={x:canonical(componentX.value,s.kind),y:canonical(componentY.value,s.kind)};else s.expression=canonical(expression.value,s.kind);if(isParam||isPolar)s.interval=[requiredNumber(intervalMin),requiredNumber(intervalMax)];else{s.domain.x=[requiredNumber(xmin),requiredNumber(xmax)];if(is3||isImplicit)s.domain.y=[requiredNumber(ymin),requiredNumber(ymax)];}}
       s.source={kind:sourceKind.value,title:sourceTitle.value,url:sourceURL.value,notes:sourceNotes.value};
       changed(d=>{if(existing)d.series[d.series.findIndex(x=>x.id===id)]=s;else d.series.push(s);if(isData)alignTableAxes(d,s);});
@@ -914,8 +919,9 @@
     }
     openDialog((existing?'編集：':'追加：')+chartNames[kind],parent=>{
       name=field(parent,'グラフ名',chart.name||chartNames[kind],'text',{maxlength:160});
-      source=choice(parent,kind==='residual'?'参照する回帰':'参照する数表',chart[reference],sources.map(s=>[s.id,s.name||'数表']));
-      controls=node('div');parent.append(controls);
+      const entries=[{key:'data',label:'データ',icon:'table'},...(kind==='matrix'?[]:[{key:'axes',label:'軸',icon:'axes'}]),{key:'style',label:'書式',icon:'palette'}],sections=D.tabs(parent,entries);
+      source=choice(sections.panels.data,kind==='residual'?'参照する回帰':'参照する数表',chart[reference],sources.map(s=>[s.id,s.name||'数表']));
+      controls=node('div');sections.panels.data.append(controls);
       function refresh(){
         controls.replaceChildren();
         if(kind==='residual'){horizontal=choice(controls,'残差グラフの横軸',chart.horizontal,[['x','元の横軸の値'],['predicted','回帰の予測値']]);horizontal.addEventListener('change',()=>viewFields?.refreshTypes());return;}
@@ -939,11 +945,16 @@
         }
       }
       source.addEventListener('change',()=>{refresh();viewFields?.refreshTypes();});refresh();
-      viewFields=chartViewFields(parent,chart,chartAxisTypes);
-      color=field(parent,'色',chart.color,'color');
-      const rgbGroup=grid(parent,true);rgb=['R','G','B'].map((label,index)=>field(rgbGroup,label,parseInt(chart.color.slice(1+index*2,3+index*2),16),'number',{min:0,max:255,step:1}));
-      color.addEventListener('input',()=>rgb.forEach((input,index)=>{input.value=parseInt(color.value.slice(1+index*2,3+index*2),16);}));
-      for(const input of rgb)input.addEventListener('change',()=>run(()=>{const values=rgb.map(requiredNumber);if(values.some(value=>!Number.isInteger(value)||value<0||value>255))throw new Error('RGBは0〜255の整数にしてください。');color.value='#'+values.map(value=>value.toString(16).padStart(2,'0')).join('');}));
+      const colors=D.section(sections.panels.style,'色','palette'),swatches=node('div',null,{class:'dialog-color-palette',role:'group','aria-label':'グラフの色'});colors.append(swatches);
+      color=field(colors,'色',chart.color,'color');
+      const rgbDetails=node('details',null,{class:'dialog-notes'});rgbDetails.append(D.decorate(node('summary','RGBで指定'),'palette'));colors.append(rgbDetails);
+      const rgbGroup=grid(rgbDetails,true);rgb=['R','G','B'].map((label,index)=>field(rgbGroup,label,parseInt(chart.color.slice(1+index*2,3+index*2),16),'number',{min:0,max:255,step:1}));
+      function refreshColor(){for(const control of swatches.children)control.setAttribute('aria-pressed',String(control.dataset.color===color.value));}
+      function colorToRgb(){rgb.forEach((input,index)=>{input.value=parseInt(color.value.slice(1+index*2,3+index*2),16);});refreshColor();}
+      for(const value of quickColors){const control=button(null,()=>{color.value=value;colorToRgb();},{'aria-label':'色を変更：'+colorNames[palette.indexOf(value)],'data-color':value,'aria-pressed':String(value===chart.color)});control.style.setProperty('--swatch',value);control.append(node('span',null,{'aria-hidden':'true'}));swatches.append(control);}
+      color.addEventListener('input',colorToRgb);
+      for(const input of rgb)input.addEventListener('change',()=>run(()=>{const values=rgb.map(requiredNumber);if(values.some(value=>!Number.isInteger(value)||value<0||value>255))throw new Error('RGBは0〜255の整数にしてください。');color.value='#'+values.map(value=>value.toString(16).padStart(2,'0')).join('');refreshColor();}));
+      viewFields=chartViewFields(sections.panels.style,chart,chartAxisTypes,sections.panels.axes||sections.panels.data);
     },()=>{
       const rgbValues=rgb.map(requiredNumber);if(rgbValues.some(value=>!Number.isInteger(value)||value<0||value>255))throw new Error('RGBは0〜255の整数にしてください。');
       chart.name=name.value.trim();chart.color='#'+rgbValues.map(value=>value.toString(16).padStart(2,'0')).join('');chart[reference]=source.value;
@@ -955,15 +966,15 @@
       commitChart(chart);
     },existing?'適用':'グラフを作成');
   }
-  function chartViewFields(parent,chart,getTypes=()=>({x:'number',y:'number'})) {
+  function chartViewFields(parent,chart,getTypes=()=>({x:'number',y:'number'}),axisParent=parent) {
     if(chart.kind==='matrix'){
-      parent.append(node('p','列名を軸名に使い、同じ列の表示範囲をそろえます。数表の全行を使い、回帰から除外した行も表示します。',{class:'small muted'}));
+      notes(axisParent,'軸・使用する行について','列名を軸名に使い、同じ列の表示範囲をそろえます。数表の全行を使い、回帰から除外した行も表示します。');
       const style=grid(parent),pointSize=field(style,'点の大きさ',chart.style.pointSize,'number',{min:2,max:30,step:'any'}),width=field(style,'線の太さ',chart.style.width,'number',{min:.5,max:20,step:'any'});
       const read=()=>({axes:C.clone(chart.axes),style:{...chart.style,pointSize:requiredNumber(pointSize),width:requiredNumber(width)},legend:false,labels:{equation:false,metrics:true}});read.refreshTypes=()=>{};return read;
     }
-    const axes={},details=node('details',null,{class:'chart-axis-settings'});details.append(node('summary','軸名・単位・範囲・目盛り'));parent.append(details);
+    const axes={},details=node('div',null,{class:'chart-axis-settings'});axisParent.append(details);
     for(const key of ['x','y']){
-      const axis=chart.axes[key],title=key==='x'?'横軸':'縦軸',section=node('fieldset');section.append(node('legend',title));details.append(section);const fields=grid(section);
+      const axis=chart.axes[key],title=key==='x'?'横軸':'縦軸',section=D.section(details,title,'axes'),fields=grid(section);
       const inputs={label:field(fields,title+'の名前',axis.label,'text',{maxlength:160,placeholder:'元の列名を使う'}),unit:field(fields,title+'の単位',axis.unit,'text',{maxlength:80})};
       if(key!=='x'||chart.kind!=='box'){
         inputs.min=field(fields,title+'の最小値',axis.min??'','number',{step:'any',placeholder:'自動'});inputs.max=field(fields,title+'の最大値',axis.max??'','number',{step:'any',placeholder:'自動'});
@@ -1145,9 +1156,13 @@
       dialogCleanup=()=>{if(axesPreview){axesPreview=null;requestDraw();}};
       $('editor-dialog').classList.add('axes-dialog');const general=grid(parent);
       name=field(general,'グラフ名',current().name,'text',{maxlength:160});angle=choice(general,'三角関数の角度',current().angle,[['rad','ラジアン'],['deg','度']]);
-      const columns=node('div',null,{class:'axes-columns'});parent.append(columns);
+      const sections=D.tabs(parent,[{key:'range',label:'範囲',icon:'range'},{key:'ticks',label:'目盛・表示',icon:'axes'},{key:'names',label:'軸名',icon:'label'}]);
+      const columns=node('div',null,{class:'axes-columns'}),tickColumns=node('div',null,{class:'axes-columns'}),nameColumns=node('div',null,{class:'axes-columns'});
+      sections.panels.range.append(columns);sections.panels.ticks.append(tickColumns);sections.panels.names.append(nameColumns);
       for(const key of current().mode==='3d'?['x','y','z']:['x','y']){
-        const a=current().axes[key],box=node('fieldset',null,{class:'axis-fields','data-axis':key});box.append(node('legend',axisNames[key]+'（'+a.symbol+'）'));columns.append(box);
+        const a=current().axes[key],box=node('fieldset',null,{class:'axis-fields','data-axis':key}),tickBox=node('fieldset',null,{class:'axis-fields','data-axis':key}),nameBox=node('fieldset',null,{class:'axis-fields','data-axis':key});
+        for(const target of [box,tickBox,nameBox])target.append(D.decorate(node('legend',axisNames[key]+'（'+a.symbol+'）'),'axes'));
+        columns.append(box);tickColumns.append(tickBox);nameColumns.append(nameBox);
         const names=grid(box),f=fields[key]={symbol:field(names,'数式で使う記号',a.symbol,'text',{maxlength:32,spellcheck:'false',autocapitalize:'none'}),label:field(names,'軸名（表示）',a.label,'text',{maxlength:80}),unit:field(box,'単位（表示）',a.unit,'text',{maxlength:80})};
         f.type=choice(box,'軸の種類',a.type||'number',[['number','数値'],['date','日付'],['category','カテゴリ']]);f.type.disabled=current().mode==='3d';
         const range=grid(box);f.min=field(range,'最小値',a.min,'number',{step:'any'});f.max=field(range,'最大値',a.max,'number',{step:'any'});f.range=range;
@@ -1195,14 +1210,15 @@
         };
         f.scale.addEventListener('change',()=>{refresh();resetZoom();});f.type.addEventListener('change',()=>{setRange();resetZoom();if(equal&&['x','y'].some(axis=>fields[axis]?.type.value!=='number')){equal.checked=false;equal.disabled=true;}else if(equal)equal.disabled=false;});setRange();resetZoom();
         for(const input of [f.min,f.max])input.addEventListener('input',resetZoom);
+        nameBox.append(names,f.unit.parentElement);tickBox.append(ticks);if(f.labelPosition)tickBox.append(f.labelPosition.parentElement);box.insertBefore(f.scale.parentElement,range);
       }
-      if(current().mode==='2d')parent.append(node('p','日付は実際の日数間隔、カテゴリは等間隔で並びます。数表の列の種類と軸の種類をそろえてください。カテゴリの未登録項目は数表から追加します。',{class:'small muted'}));
-      if(current().mode==='2d')parent.append(node('p','「軸の近く」は0を通る軸のそばに表示します。0が画面外の場合や、もう一方が対数軸の場合は全体の下・左に表示します。',{class:'small muted'}));
-      parent.append(node('p','記号は t、V、温度、θ などを使えます。軸間・係数・関数・定数と重複しない名前にしてください。軸名や単位は表示用で、v_0 や m^2 の添字も使えます。記号を変えてもグラフの数値は変わりません。',{class:'small muted'}));
-      parent.append(node('p','媒介変数の t と極座標の θ は各式の独立変数です。角度を変更しても入力済みの範囲は自動換算しません。',{class:'small muted'}));
-      equal=check(parent,'各軸の1単位を同じ長さで表示',current().equalScale);equal.disabled=Object.values(fields).some(f=>f.type.value!=='number');if(equal.disabled)equal.checked=false;gridOn=check(parent,'グリッドを表示',current().grid);legend=check(parent,'凡例を表示',current().legend);
-      parent.append(node('p','拡大率は入力した範囲を100%として、中心を保って調整します。軸を個別に拡大すると同じ縮尺の設定を解除します。「適用」で確定し、キャンセルで元に戻ります。',{class:'small muted'}));
-      const appearance=node('fieldset',null,{class:'axis-fields'});appearance.append(node('legend','軸の表示'));parent.append(appearance);
+      if(current().mode==='2d')notes(sections.panels.range,'日付・カテゴリの軸について','日付は実際の日数間隔、カテゴリは等間隔で並びます。数表の列の種類と軸の種類をそろえてください。カテゴリの未登録項目は数表から追加します。');
+      if(current().mode==='2d')notes(sections.panels.ticks,'目盛の位置について','「軸の近く」は0を通る軸のそばに表示します。0が画面外の場合や、もう一方が対数軸の場合は全体の下・左に表示します。');
+      notes(sections.panels.names,'記号・軸名の書き方','記号は t、V、温度、θ などを使えます。軸間・係数・関数・定数と重複しない名前にしてください。軸名や単位は表示用で、v_0 や m^2 の添字も使えます。記号を変えてもグラフの数値は変わりません。');
+      notes(sections.panels.range,'媒介変数・角度について','媒介変数の t と極座標の θ は各式の独立変数です。角度を変更しても入力済みの範囲は自動換算しません。');
+      equal=check(sections.panels.range,'各軸の1単位を同じ長さで表示',current().equalScale);equal.disabled=Object.values(fields).some(f=>f.type.value!=='number');if(equal.disabled)equal.checked=false;gridOn=check(sections.panels.ticks,'グリッドを表示',current().grid);legend=check(sections.panels.ticks,'凡例を表示',current().legend);
+      notes(sections.panels.range,'拡大率の使い方','拡大率は入力した範囲を100%として、中心を保って調整します。軸を個別に拡大すると同じ縮尺の設定を解除します。「適用」で確定し、キャンセルで元に戻ります。');
+      const appearance=D.section(sections.panels.ticks,'軸の表示','axes');
       for(const [key,label]of [['axisArrows','軸の正方向に矢印を表示（2D）'],['originLabel','原点に O を表示（2D）'],['tickMarks','目盛の線を表示'],['tickLabels','目盛の数値を表示']]){presentation[key]=check(appearance,label,current().presentation[key]);if(current().mode==='3d'&&['axisArrows','originLabel'].includes(key))presentation[key].disabled=true;}
     },()=>changed(d=>{
       d.name=name.value.trim();d.angle=angle.value;d.equalScale=equal.checked;d.grid=gridOn.checked;d.legend=legend.checked;
@@ -1465,6 +1481,11 @@
     listen('copy-image','click',copyImage);listen('image-preview','click',imagePreview);listen('export-sources','click',showOutputSources);
     listen('print-preview','click',printPreview);listen('export-image','click',exportImage);listen('fit-comparison-output','click',fitComparisonOutput);listen('dialog-close','click',closeDialog);listen('dialog-cancel','click',closeDialog);
     $('editor-dialog').addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
+    let validationPending=false;
+    $('dialog-form').addEventListener('invalid',event=>{
+      event.preventDefault();if(validationPending)return;validationPending=true;setTimeout(()=>{validationPending=false;},0);
+      D.reveal(event.target);event.target.focus();report(event.target.validationMessage||'入力内容を確認してください。');
+    },true);
     $('dialog-form').addEventListener('submit',event=>{event.preventDefault();$('dialog-error').hidden=true;try{if(dialogApply){dialogApply();closeDialog();}}catch(error){report(error);}});
     for(const menu of document.querySelectorAll('.top details'))menu.addEventListener('toggle',()=>{if(menu.open){closeAddMenu();closeObjectMenu();closeZoom();for(const other of document.querySelectorAll('.top details'))if(other!==menu)other.open=false;}});
     document.addEventListener('pointerdown',event=>{if(objectMenuTarget&&!$('object-menu').contains(event.target)&&!objectMenuTarget.trigger.contains(event.target))closeObjectMenu();if(!$('zoom-panel').contains(event.target)&&!$('zoom-toggle').contains(event.target))closeZoom();},true);

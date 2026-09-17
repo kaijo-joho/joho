@@ -7,6 +7,12 @@
   const NS = 'http://www.w3.org/2000/svg';
   const ICONS = {
     plus: [['path', { d: 'M12 4v16M4 12h16' }]],
+    check: [['path', { d: 'm4 12 5 5L20 6' }]],
+    link: [['path', { d: 'm9 15 6-6M8 16l-1 1a4 4 0 0 1-6-6l4-4a4 4 0 0 1 6 0m2 10a4 4 0 0 0 6 0l4-4a4 4 0 0 0-6-6l-1 1', transform:'translate(1 -1) scale(.92)' }]],
+    range: [['path', { d: 'M4 6v12M20 6v12M4 12h16m-4-4 4 4-4 4M8 8l-4 4 4 4' }]],
+    axes: [['path', { d: 'M5 3v16h16M2 6l3-3 3 3m10 10 3 3-3 3M9 17v4M14 17v4M3 9h4M3 14h4' }]],
+    info: [['circle', { cx: 12, cy: 12, r: 9 }], ['path', { d: 'M12 11v6M12 7h.01' }]],
+    download: [['path', { d: 'M12 3v12m-4-4 4 4 4-4M4 16v5h16v-5' }]],
     selectMultiple: [['rect', { x: 3, y: 3, width: 11, height: 11, rx: 1 }], ['rect', { x: 10, y: 10, width: 11, height: 11, rx: 1 }], ['path', { d: 'm12.5 15.5 2 2 4-4' }]],
     copyStyle: [['path', { d: 'M4 4h16v7H4zM7 11v4h5v6M8 4v4M12 4v4M16 4v4' }]],
     pasteStyle: [['path', { d: 'M8 5H5v16h14V5h-3M8 3h8v4H8zM8 13l3 3 5-6' }]],

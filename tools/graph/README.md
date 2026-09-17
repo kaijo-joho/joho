@@ -1,4 +1,6 @@
-# グラフエディタ 0.18.0 BETA
+# グラフエディタ 0.19.0 BETA
+
+0.19.0では、数表・数式、座標設定、分析グラフの編集画面を目的別のタブへ整理した。入力途中の値は切り替えても保持し、入力エラーの欄は該当タブ・折りたたみを開いて表示する。数表の行・列・計算操作とデータ取り込みにアイコンを加え、列割り当てと詳しい説明は必要なときに開く。保存形式はversion 14を維持する。詳細は [編集画面の整理](docs/dialog-usability.md) を参照。
 
 0.18.0では、座標設定に軸別の拡大率スライダーと、散布図行列を追加した。数値2〜4列の組み合わせ、対角のヒストグラム、相関係数と使用数、元のデータ行との連動に対応する。相関比較・振り子・東京の月別平年値の3テンプレートを加え、標準テンプレートは33件になった。保存形式はversion 14で、version 1〜13を移行できる。詳細は [軸スライダー・散布図行列](docs/axis-zoom-matrix.md) と [テンプレートの出典と条件](docs/matrix-template-sources.md) を参照。
 
@@ -80,6 +82,7 @@
 | `expression.js` | 制限付き数式解析と実数評価 |
 | `symbols.js` | 軸記号の変換・検証、目盛表記、注釈の安全な文字表示 |
 | `icons.js` | 操作に共用する安全な線画SVGアイコン |
+| `dialog-ui.js` / `dialog-ui.css` | 入力を保持するタブ・見出し・入力エラー箇所の表示 |
 | `selection.js` | 複数選択の参照と書式コピー・一括適用 |
 | `list-reorder.js` | 一覧のドラッグ・タッチ・キーボード並べ替え |
 | `view-controls.js` | 線形・対数軸の方向別拡大縮小と範囲検証 |
@@ -90,7 +93,7 @@
 | `integrals.js` | 曲線間の適応数値積分・面積・交差による塗り分割 |
 | `analysis.js` | 正規化した座標による5種類の最小二乗回帰・統計量・残差 |
 | `data-curves.js` | 元の行順と欠測を保持するPCHIP補間 |
-| `tables.js` / `table-editor.js` | 数表のセル編集・列割当・CSV/TSV |
+| `tables.js` / `table-editor.js` / `table-editor.css` | 数表のセル編集・列割当・CSV/TSV |
 | `calculations.js` | 計算列の参照・依存順検査・制限付きの式評価 |
 | `statistics.js` | 四分位数を含む統計量・Pearson相関行列 |
 | `charts.js` / `workspace.js` | 残差・散布・分布図、比較配置と画像合成 |
@@ -120,6 +123,9 @@
 ## 検証
 
 ```sh
+node tools/graph/tests/dialog-usability-browser.test.cjs
+node tools/graph/tests/table-usability-browser.test.cjs
+node tools/graph/tests/import-usability-browser.test.cjs
 node tools/graph/tests/publication.test.cjs
 node tools/graph/tests/publication-library-browser.test.cjs
 node tools/graph/tests/calculation-templates.test.cjs

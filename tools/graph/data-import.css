@@ -3,6 +3,9 @@
 .data-import-dialog .dialog-heading, .data-import-dialog .dialog-actions, .data-import-dialog #dialog-error { flex: none; }
 .data-import-dialog #dialog-content { overflow: auto; min-height: 0; padding-right: 4px; }
 .data-import-dialog .dialog-actions { position: static; padding-bottom: 0; }
+.data-import .with-icon { display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+.data-import summary.with-icon { justify-content: flex-start; }
+.data-import .with-icon svg { width: 20px; height: 20px; flex: none; }
 .data-import { min-width: 0; }
 .data-import-source { margin-bottom: 12px; }
 .data-import-source[open] > summary { margin-bottom: 12px; }
@@ -33,6 +36,8 @@
 .data-import-column-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px 12px; }
 .data-import-column-choices label { margin: 0; min-height: 44px; overflow-wrap: anywhere; }
 .data-import-citation { margin-top: 12px; }
+.data-import-column-settings { margin-block: 12px; }
+.data-import-column-settings > summary { margin-bottom: 8px; }
 @media (max-width: 520px) {
   .data-import-url { display: block; }
   .data-import-url button { margin-top: 8px; width: 100%; }

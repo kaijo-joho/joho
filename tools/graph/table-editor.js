@@ -11,7 +11,16 @@
   const AGGREGATE_MENU=[['SUM','合計'],['AVERAGE','平均'],['MIN','最小'],['MAX','最大'],['COUNT','数値の個数'],['STDEV.P','母標準偏差（n）'],['STDEV.S','標本標準偏差（n−1）']];
   if(!GraphTables)throw new Error('GraphTables を先に読み込んでください。');
   const make=(tag,className,text)=>{const element=document.createElement(tag);if(className)element.className=className;if(text!==undefined)element.textContent=text;return element;};
-  const button=(text,handler)=>{const element=make('button','graph-table-editor__button',text);element.type='button';element.addEventListener('click',handler);return element;};
+  const button=(text,handler,icon)=>{const element=make('button','graph-table-editor__button');element.type='button';
+    // GraphIcons is loaded after this module, so resolve it only when a control is made.
+    const icons=typeof globalThis!=='undefined'&&globalThis.GraphIcons;
+    if(icon&&icons&&typeof icons.create==='function'){
+      element.append(icons.create(icon,document));
+      if(icon==='trash'){element.classList.add('graph-table-editor__icon-button');element.setAttribute('aria-label',text);element.title=text;}
+      else element.append(make('span','',text));
+    }
+    else element.textContent=text;
+    element.addEventListener('click',handler);return element;};
   const label=(text,control)=>{const element=make('label','graph-table-editor__label',text);element.appendChild(control);return element;};
   const cloneTable=table=>({columns:table.columns.slice(),columnTypes:(table.columnTypes||table.columns.map(()=> 'number')).slice(),formulas:Array.isArray(table.formulas)?table.formulas.slice():table.columns.map(()=>null),mapping:{...table.mapping},rows:table.rows.map(row=>row.map(value=>value===null?'':String(value)))});
   function mount(parent,series,options={}){
@@ -65,6 +74,7 @@
     let excludedRows=new Set(Array.isArray(series.excludedRows)?series.excludedRows.filter(index=>Number.isInteger(index)&&index>=0&&index<table.rows.length):[]);
     let focusedRow=Number.isInteger(options.selectedRow)&&options.selectedRow>=0&&options.selectedRow<table.rows.length?options.selectedRow:null;
     const selected=new Set();
+    let mappingOpen=false;
     const root=make('section','graph-table-editor'),status=make('p','graph-table-editor__status');
     status.setAttribute('role','status');root.appendChild(status);parent.appendChild(root);
     const report=error=>{const message=error instanceof Error?error.message:String(error);status.textContent=message;if(typeof options.onError==='function')options.onError(error);};
@@ -120,6 +130,7 @@
       select.addEventListener('change',()=>{table.mapping[key]=select.value===''?null:Number(select.value);});
       return label(text,select);
     }
+    function mappingDescription(){return [['x','横'],['y','縦'],...(kind==='data3d'?[['z','奥行き']]:[])].map(([key,label])=>label+'：'+(table.columns[table.mapping[key]]||'未選択')).join(' / ');}
     function updateColumnName(index,value){
       const oldName=table.columns[index],name=value.trim(),candidate=cloneTable(table);
       candidate.columns[index]=name;
@@ -133,6 +144,7 @@
         const input=root.querySelector('[aria-label="計算式"]');if(input)input.value=calculationDraft.formula;
       }
       root.querySelectorAll('.graph-table-editor__mapping option[value="'+index+'"]').forEach(option=>{option.textContent=name;});
+      const description=root.querySelector('.graph-table-editor__mapping-description');if(description)description.textContent=mappingDescription();
       root.querySelectorAll('[data-reference-column="'+index+'"]').forEach(option=>{option.textContent=name+(REFERENCE_LABELS[option.dataset.referenceMode]||'');});
       root.querySelector('[aria-label="前後参照の列"]')?.dispatchEvent(new Event('input'));
       refreshCalculations();updateComputedCells();if(refreshCalculationPreview)refreshCalculationPreview();clearReport();
@@ -162,6 +174,7 @@
     function calculationPanel(){
       const draft=calculationDraft,panel=make('div','graph-table-editor__calculation-panel');
       panel.appendChild(make('h3','',draft.index===null?'計算列を追加':'計算列を編集'));
+      panel.appendChild(make('p','graph-table-editor__calculation-lead','式を確認してから適用します。取消すれば、この編集内容は表へ反映されません。'));
       const nameInput=make('input','');nameInput.type='text';nameInput.maxLength=80;nameInput.value=draft.name;nameInput.setAttribute('aria-label','計算列の名前');
       const formula=make('textarea','');formula.rows=2;formula.maxLength=1000;formula.value=draft.formula;formula.setAttribute('aria-label','計算式');
       panel.append(label('名前',nameInput),label('式',formula));
@@ -221,7 +234,7 @@
           draft.name=nameInput.value;draft.formula=formula.value;
           const result=calculationCandidate();table=cloneTable(result.table);calculationDraft=null;clearReport();render();
         }catch(error){report(error);}
-      }),button('取消',()=>{calculationDraft=null;clearReport();render();}));
+      },'save'),button('取消',()=>{calculationDraft=null;clearReport();render();},'close'));
       panel.appendChild(actions);return panel;
     }
     function relativeReferencePanel(draft,formula){
@@ -282,15 +295,19 @@
     function render(){
       refreshCalculationPreview=null;root.replaceChildren();ensurePage();
       const tools=make('div','graph-table-editor__tools');
-      tools.append(button('行を追加',()=>{try{const rowIndex=table.rows.length;addRows(1);page=pageCount()-1;focusCell={row:rowIndex+1,column:0};clearReport();render();}catch(error){report(error);}}));
-      tools.append(button('選択行を削除',()=>{if(!selected.size)return;const removed=new Set(selected),nextRows=[],remap=new Map();table.rows.forEach((row,index)=>{if(removed.has(index))return;remap.set(index,nextRows.length);nextRows.push(row);});table.rows=nextRows;excludedRows=new Set([...excludedRows].filter(index=>remap.has(index)).map(index=>remap.get(index)));if(focusedRow!==null)focusedRow=remap.has(focusedRow)?remap.get(focusedRow):null;selected.clear();clearReport();render();}));
+      const toolGroup=(title)=>{const group=make('section','graph-table-editor__tool-group'),heading=make('h3','',title),controls=make('div','graph-table-editor__tool-actions');group.append(heading,controls);tools.appendChild(group);return controls;};
+      const rows=toolGroup('行');
+      rows.append(button('行を追加',()=>{try{const rowIndex=table.rows.length;addRows(1);page=pageCount()-1;focusCell={row:rowIndex+1,column:0};clearReport();render();}catch(error){report(error);}},'plus'));
+      rows.append(button('選択行を削除',()=>{if(!selected.size)return;const removed=new Set(selected),nextRows=[],remap=new Map();table.rows.forEach((row,index)=>{if(removed.has(index))return;remap.set(index,nextRows.length);nextRows.push(row);});table.rows=nextRows;excludedRows=new Set([...excludedRows].filter(index=>remap.has(index)).map(index=>remap.get(index)));if(focusedRow!==null)focusedRow=remap.has(focusedRow)?remap.get(focusedRow):null;selected.clear();clearReport();render();},'trash'));
       const useSelected=button('選択行を回帰に使用',()=>{selected.forEach(index=>excludedRows.delete(index));render();});
       const excludeSelected=button('選択行を回帰から除外',()=>{selected.forEach(index=>excludedRows.add(index));render();});
       const useAll=button('全行を回帰に使用',()=>{excludedRows.clear();render();});
-      const regressionTools=make('details','graph-table-editor__regression-tools'),regressionSummary=make('summary','', '回帰に使う行の設定'); regressionTools.append(regressionSummary,useSelected,excludeSelected,useAll);tools.append(regressionTools);
-      tools.append(button('列を追加',()=>{try{addColumns(1);clearReport();render();}catch(error){report(error);}}));
-      tools.append(button('計算列を追加',()=>beginCalculation(null)));
-      tools.append(button('最後の列を削除',()=>{
+      const regressionTools=make('details','graph-table-editor__regression-tools'),regressionSummary=make('summary','', '回帰に使う行の設定'); regressionTools.append(regressionSummary,useSelected,excludeSelected,useAll);
+      const columns=toolGroup('列');
+      columns.append(button('列を追加',()=>{try{addColumns(1);clearReport();render();}catch(error){report(error);}},'plus'));
+      const calculationsGroup=toolGroup('計算');
+      calculationsGroup.append(button('計算列を追加',()=>beginCalculation(null),'function'));
+      columns.append(button('最後の列を削除',()=>{
         const index=table.columns.length-1,minimum=kind==='data3d'?3:2;
         if(table.columns.length<=minimum){report(new Error('座標列を削除できません。'));return;}
         if(['x','y','z'].some(key=>table.mapping[key]===index)){report(new Error('座標に割り当てた列は削除できません。'));return;}
@@ -301,13 +318,19 @@
           candidate.columns.pop();candidate.columnTypes.pop();candidate.formulas.pop();candidate.rows.forEach(row=>row.pop());
           checkedCandidate(candidate);table=candidate;clearReport();render();
         }catch(error){report(error);}
-      }));root.appendChild(tools);
+      },'trash'));root.appendChild(tools);
       if(calculationDraft){root.appendChild(calculationPanel());}
+      const mappingDetails=make('details','graph-table-editor__mapping-details'),mappingSummary=make('summary','','列の割り当て（軸・誤差）');
+      if(globalThis.GraphIcons)mappingSummary.prepend(globalThis.GraphIcons.create('axes',document));
+      const description=make('span','graph-table-editor__mapping-description');mappingSummary.appendChild(description);
+      mappingDetails.open=mappingOpen;mappingDetails.addEventListener('toggle',()=>{mappingOpen=mappingDetails.open;});mappingDetails.appendChild(mappingSummary);
       const mappings=make('div','graph-table-editor__mappings');
       mappings.append(mappingControl('x','横軸'),mappingControl('y','縦軸'));
       if(kind==='data3d')mappings.append(mappingControl('z','奥行き'));
       else mappings.append(mappingControl('errorX','横誤差'),mappingControl('errorY','縦誤差'));
-      root.appendChild(mappings);
+      const describeMapping=()=>{description.textContent=mappingDescription();};
+      mappings.addEventListener('change',describeMapping);describeMapping();
+      mappingDetails.appendChild(mappings);root.appendChild(mappingDetails);
       const wrap=make('div','graph-table-editor__table-wrap'),grid=make('table','graph-table-editor__table'),head=make('thead'),header=make('tr');
       refreshCalculations();
       const all=make('input','');all.type='checkbox';all.setAttribute('aria-label','このページの行をすべて選択');
@@ -322,7 +345,8 @@
         row.forEach((value,columnIndex)=>{const td=make('td',''),input=make('input','');input.type='text';input.inputMode=table.columnTypes[columnIndex]==='number'?'decimal':'text';input.dataset.column=columnIndex;input.value=computed(columnIndex)?displayValue(value):value;input.readOnly=computed(columnIndex);input.setAttribute('aria-label',(rowIndex+1)+'行'+(columnIndex+1)+'列');if(computed(columnIndex)){input.classList.add('graph-table-editor__computed-cell');showComputedCell(input,rowIndex,columnIndex);}input.addEventListener('focus',()=>{if(computed(columnIndex))updateComputedCells();focusedRow=rowIndex;if(typeof options.onRowSelect==='function')options.onRowSelect(rowIndex);});input.addEventListener('input',()=>{if(!computed(columnIndex))table.rows[rowIndex][columnIndex]=input.value;});input.addEventListener('change',()=>{if(!computed(columnIndex)){refreshCalculations();updateComputedCells();if(refreshCalculationPreview)refreshCalculationPreview();}});input.addEventListener('paste',event=>paste(event,rowIndex,columnIndex));input.addEventListener('keydown',event=>{if(event.key!=='Enter')return;event.preventDefault();const nextRow=rowIndex+1;if(nextRow>=table.rows.length)return;if(nextRow>=start+PAGE_SIZE){page=Math.floor(nextRow/PAGE_SIZE);render();}const next=root.querySelector('[data-cell="'+(nextRow+1)+','+columnIndex+'"]');if(next)next.focus();});input.dataset.cell=(rowIndex+1)+','+columnIndex;td.appendChild(input);tr.appendChild(td);});body.appendChild(tr);});
       grid.appendChild(body);wrap.appendChild(grid);root.appendChild(wrap);
       const pager=make('div','graph-table-editor__pager');pager.append(button('前の50行',()=>{page--;render();}));pager.append(make('span','', (table.rows.length?start+1:0)+'〜'+end+'行 / '+table.rows.length+'行'));pager.append(button('次の50行',()=>{page++;render();}));pager.children[0].disabled=page===0;pager.children[2].disabled=page>=pageCount()-1;root.appendChild(pager);
-      const details=make('details','graph-table-editor__import'),summary=make('summary','','CSV・TSVを貼り付け');details.appendChild(summary);const textarea=make('textarea','');textarea.setAttribute('aria-label','CSV・TSVを貼り付け');details.appendChild(textarea);details.append(button('表に取り込む',()=>{try{if(!textarea.value.trim())throw new Error('CSV・TSVを入力してから表に取り込んでください。');replace(GraphTables.parse(textarea.value,kind));}catch(error){report(error);}}));root.appendChild(details);
+      root.appendChild(regressionTools);
+      const details=make('details','graph-table-editor__import'),summary=make('summary','','CSV・TSVを貼り付け');details.appendChild(summary);const textarea=make('textarea','');textarea.setAttribute('aria-label','CSV・TSVを貼り付け');details.appendChild(textarea);details.append(button('表に取り込む',()=>{try{if(!textarea.value.trim())throw new Error('CSV・TSVを入力してから表に取り込んでください。');replace(GraphTables.parse(textarea.value,kind));}catch(error){report(error);}},'upload'));root.appendChild(details);
       const calculationStatus=make('p','graph-table-editor__calculation-status');root.append(calculationStatus,status);updateComputedCells();
       if(focusCell){const target=root.querySelector('[data-cell="'+focusCell.row+','+focusCell.column+'"]');if(target)target.focus();focusCell=null;}
     }

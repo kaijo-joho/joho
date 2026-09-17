@@ -13,7 +13,7 @@ let browser,page;
   await page.goto(process.env.GRAPH_TEST_URL||'http://127.0.0.1:'+server.address().port+'/tools/graph/index.html');await settle();
   const fixture=C.createDocument(),series=C.createSeries('function');fixture.name='教材用の出力';fixture.axes.x.min=-2;fixture.axes.x.max=3;fixture.axes.y.min=-2;fixture.axes.y.max=5;series.expression='x^2';fixture.series=[series];
   await page.locator('#file-input').setInputFiles({name:'output.graph.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});await page.waitForFunction(()=>GraphEditor.getDocument().name==='教材用の出力');await settle();
-  await page.locator('#axes-button').click();await dialog.getByLabel('軸の正方向に矢印を表示（2D）',{exact:true}).check();await dialog.getByLabel('原点に O を表示（2D）',{exact:true}).check();await dialog.getByLabel('目盛の線を表示',{exact:true}).uncheck();await dialog.getByLabel('目盛の数値を表示',{exact:true}).uncheck();await page.locator('#dialog-submit').click();await settle();
+  await page.locator('#axes-button').click();await dialog.getByRole('tab',{name:'目盛・表示',exact:true}).click();await dialog.getByLabel('軸の正方向に矢印を表示（2D）',{exact:true}).check();await dialog.getByLabel('原点に O を表示（2D）',{exact:true}).check();await dialog.getByLabel('目盛の線を表示',{exact:true}).uncheck();await dialog.getByLabel('目盛の数値を表示',{exact:true}).uncheck();await page.locator('#dialog-submit').click();await settle();
   const layout=await page.evaluate(()=>document.querySelector('#plot').layout);
   assert.equal(layout.xaxis.ticks,'');assert.equal(layout.yaxis.showticklabels,false);assert.equal(layout.annotations.filter(a=>a.name?.startsWith('__graph_')).length,3);
   const arrow=await page.locator('#plot .annotation-arrow-g path').count();assert(arrow>=2,'axis arrows render in Chrome');
