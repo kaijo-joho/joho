@@ -1,8 +1,9 @@
 (function (root, factory) {
-  const api = factory();
+  const calculations = typeof module === 'object' && module.exports ? require('./calculations.js') : root.GraphCalculations;
+  const api = factory(calculations);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.GraphTables = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (Calculations) {
   'use strict';
   const fail = message => { throw new Error(message); };
   const own = (value, key) => Object.prototype.hasOwnProperty.call(value, key);
@@ -68,7 +69,7 @@
     if (!Number.isFinite(number) || Math.abs(number) > 1e9) fail(position + '：数値は絶対値10億以内で入力してください。欠測は空欄にします。');
     return number;
   }
-  function validate(table, kind = 'data2d') {
+  function validatedTable(table, kind = 'data2d') {
     if (!['data2d', 'data3d'].includes(kind) || !isObject(table) || !Array.isArray(table.columns) || table.columns.length < (kind === 'data3d' ? 3 : 2) || table.columns.length > 20 || !Array.isArray(table.rows) || table.rows.length > 10000 || !isObject(table.mapping)) fail('数表は2〜20列・10000行以内にしてください。');
     const columns = table.columns.map((name, index) => {
       if (typeof name !== 'string' || !name.trim() || name.length > 80 || /[\r\n\x00-\x1f]/.test(name)) fail((index + 1) + '列目の名前を80文字以内で入力してください。');
@@ -76,6 +77,9 @@
     });
     const types = own(table, 'columnTypes') ? table.columnTypes : columns.map(() => 'number');
     if (!Array.isArray(types) || types.length !== columns.length || types.some(type => !TYPES.includes(type))) fail('列の種類が不正です。');
+    const formulas = own(table, 'formulas') ? table.formulas : columns.map(() => null);
+    if (!Array.isArray(formulas) || formulas.length !== columns.length || formulas.some((value,index) => value !== null && (typeof value !== 'string' || !value.trim() || value.length > 1000 || types[index] !== 'number'))) fail('計算列は数値列に1000文字以内の式を指定してください。');
+    const hasFormulas = formulas.some(value => value !== null);
     const mapping = {};
     for (const key of ['x', 'y', 'z', 'errorX', 'errorY']) {
       const index = table.mapping[key];
@@ -88,6 +92,7 @@
     const rows = table.rows.map((row, r) => {
       if (!Array.isArray(row) || row.length !== columns.length) fail((r + 1) + '行目の列数が一致しません。');
       return row.map((value, c) => {
+        if (formulas[c] !== null) return null; // Formula results are derived from the source values.
         if (types[c] === 'number' && value !== null && typeof value !== 'number') fail((r + 1) + '行' + (c + 1) + '列目の値が不正です。');
         const clean = cell(value, (r + 1) + '行' + (c + 1) + '列目', types[c]);
         if ([mapping.errorX, mapping.errorY].includes(c) && clean !== null && clean < 0) fail((r + 1) + '行目：誤差棒は0以上の幅を指定してください。');
@@ -96,7 +101,27 @@
     });
     const out = {columns, rows, mapping};
     if (types.some(type => type !== 'number')) out.columnTypes = types.slice();
-    return out;
+    let errors = [];
+    if (hasFormulas) {
+      if (!Calculations) fail('計算列の処理を読み込めません。ページを再読み込みしてください。');
+      out.formulas = formulas.slice();
+      const result = Calculations.evaluate(out);
+      out.rows = result.rows;
+      errors = result.errors;
+      for (const [index,row] of out.rows.entries()) for (const key of ['errorX','errorY']) if (mapping[key] !== null && row[mapping[key]] !== null && row[mapping[key]] < 0) fail((index + 1) + '行目：誤差棒は0以上の幅を指定してください。');
+    }
+    return {table:out, errors};
+  }
+  function validate(table, kind = 'data2d') {
+    return validatedTable(table, kind).table;
+  }
+  function calculationErrors(table) {
+    if (!table || !own(table, 'formulas')) return [];
+    return validatedTable(table, table.mapping?.z === null ? 'data2d' : 'data3d').errors;
+  }
+  function calculationWarning(table) {
+    const errors = calculationErrors(table);
+    return errors.length ? '計算列に' + errors.length + '件のエラーがあります。該当値は描画・集計から除外しています。数表で理由を確認してください。' : '';
   }
   function project(table, kind = 'data2d', axes) {
     const clean = validate(table, kind), types = clean.columnTypes || clean.columns.map(() => 'number'), mapping = clean.mapping;
@@ -176,5 +201,5 @@
     const rows = raw.map((row,r) => row.map((value,c) => cell(value, (r + 1) + '行' + (c + 1) + '列目', types[c])));
     return validate({columns, columnTypes:types, rows, mapping:{x:0,y:1,z:minimum === 3 ? 2 : null,errorX:null,errorY:null}}, kind);
   }
-  return {cell, dateString, dateNumber, dateFromNumber, dateTicks, categoryString, validate, project, assign, fromSeries, numericColumnIndices, fields, parse};
+  return {cell, recalculate:validatedTable, calculationErrors, calculationWarning, dateString, dateNumber, dateFromNumber, dateTicks, categoryString, validate, project, assign, fromSeries, numericColumnIndices, fields, parse};
 });

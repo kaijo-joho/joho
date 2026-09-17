@@ -555,6 +555,10 @@
     }
     for (const s of doc.series || []) {
       if (s.visible === false || (doc.mode === '3d' ? !['surface', 'data3d'].includes(s.kind) : ['surface', 'data3d'].includes(s.kind))) continue;
+      if (s.dataTable?.formulas) {
+        const warning = Tables.calculationWarning(s.dataTable);
+        if (warning) warnings.push((s.name || '数表') + '：' + warning);
+      }
       const produced = traceFor(s, doc, warnings);
       for (const trace of Array.isArray(produced) ? produced : [produced]) { if (!trace) continue; trace.meta = Object.assign({ objectType: 'series', objectId: s.id }, trace.meta || {}); traces.push(trace); }
       const highlight = doc.mode === '2d' && s.kind === 'data2d' && seriesAxisCompatible(s,doc) ? observationHighlight(s, options.selectedRow) : null; if (highlight) traces.push(highlight);

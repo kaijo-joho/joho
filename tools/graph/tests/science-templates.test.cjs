@@ -8,7 +8,7 @@ const templates = Science.list();
 assert.equal(templates.length, 4);
 for (const { document: original } of templates) {
   const doc = Core.validateDocument(original);
-  assert.equal(doc.version, 11);
+  assert.equal(doc.version, 12);
   for (const series of doc.series) {
     assert.equal(series.kind, 'data2d'); assert.equal(series.source.kind, 'model');
     assert.match(series.source.url, /^https:\/\//);

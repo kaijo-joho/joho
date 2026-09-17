@@ -718,10 +718,12 @@
       return empty(fallback, error.message, dark, fontSize);
     }
     if (!clean.visible) return empty(clean, 'この分析グラフは非表示です。', dark, fontSize);
-    if (clean.kind === 'scatter') return buildScatter(clean, doc, dark, fontSize, selectedRow);
-    if (clean.kind === 'residual') return buildResidual(clean, doc, dark, fontSize, selectedRow);
-    if (clean.kind === 'histogram') return buildHistogram(clean, doc, dark, fontSize);
-    return buildBox(clean, doc, dark, fontSize);
+    const result = clean.kind === 'scatter' ? buildScatter(clean, doc, dark, fontSize, selectedRow) : clean.kind === 'residual' ? buildResidual(clean, doc, dark, fontSize, selectedRow) : clean.kind === 'histogram' ? buildHistogram(clean, doc, dark, fontSize) : buildBox(clean, doc, dark, fontSize);
+    const sourceId = clean.kind === 'residual' ? doc.annotations.find(a => a.id === clean.regressionId)?.seriesId : clean.seriesId;
+    const source = doc.series.find(s => s.id === sourceId);
+    const warning = source?.dataTable ? Tables.calculationWarning(source.dataTable) : '';
+    if (warning) result.warnings.push(warning);
+    return result;
   }
   return {
     create,

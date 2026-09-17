@@ -281,7 +281,8 @@
     bar.replaceChildren();bar.hidden=false;bar.dataset.selectionKey='row:'+series.id+':'+index;bar.classList.remove('has-colors');
     bar.append(node('span',(series.name||'数表')+' · '+(index+1)+'行目',{class:'selection-name'}),iconButton('edit','この行を数表で編集',editObservedRow));
     bar.append(button(excluded?'回帰に戻す':'回帰から除外',()=>changed(d=>{const target=d.series.find(s=>s.id===series.id),rows=new Set(target.excludedRows||[]);if(excluded)rows.delete(index);else rows.add(index);target.excludedRows=[...rows].sort((a,b)=>a-b);}),{'data-quick-control':'row-regression','aria-pressed':String(excluded)}));
-    const values=node('dl',null,{class:'observation-values','aria-label':'元の数表の値'});table.columns.forEach((name,column)=>{const group=node('div'),value=table.rows[index][column];group.append(node('dt',name),node('dd',value===null?'欠測':typeof value==='number'?String(Number(value.toPrecision(8))):String(value)));values.append(group);});bar.append(values,node('p','回帰の使用・除外は、この数表を使うすべての回帰に反映します。',{class:'small muted observation-note'}));
+    const calculationErrors=new Map(GraphTables.calculationErrors(table).filter(error=>error.row===index).map(error=>[error.column,error.message]));
+    const values=node('dl',null,{class:'observation-values','aria-label':'元の数表の値'});table.columns.forEach((name,column)=>{const group=node('div'),value=table.rows[index][column],error=calculationErrors.get(column);group.append(node('dt',name),node('dd',error?'計算エラー：'+error:value===null?'欠測':typeof value==='number'?String(Number(value.toPrecision(8))):String(value)));values.append(group);});bar.append(values,node('p','回帰の使用・除外は、この数表を使うすべての回帰に反映します。',{class:'small muted observation-note'}));
   }
   function updateToolbar() {
     cancelTangentDraft();tooltip?.hide();
@@ -1024,6 +1025,7 @@
       function refresh(){
         results.replaceChildren();const indices=[...selectedColumns].sort((a,b)=>a-b);
         if(!indices.length){results.append(node('p','集計する数値列を選んでください。日付・カテゴリは統計量の対象にしません。'));return;}
+        const calculationWarning=GraphTables.calculationWarning(table);if(calculationWarning)results.append(node('p',calculationWarning,{class:'small muted'}));
         const summary=GraphStatistics.summarize(table,indices),matrix=GraphStatistics.matrix(table,indices),labels=summary.map(s=>(s.index+1)+': '+s.name);
         const chartActions=node('div',null,{class:'statistics-chart-actions'});results.append(chartActions);
         const column=choice(chartActions,'分布を描く列',String(indices[0]),indices.map(i=>[String(i),table.columns[i]])),chartButtons=node('div',null,{class:'statistics-actions'});chartActions.append(chartButtons);
@@ -1070,6 +1072,7 @@
       const refresh=()=>{
         result=GraphAnalysis.fit(sources.find(s=>s.id===source.value),model.value);preview.replaceChildren();residualBody.replaceChildren();
         note.textContent='各点を等しい重みで分析します。誤差棒は重みとして使いません。'+(['exponential','power'].includes(model.value)?'指数・べき乗は対数変換後の最小二乗です。':'')+'R²とRMSEは元の縦軸の値から計算します。rは元の横軸と縦軸のPearson相関係数で、因果関係を示すものではありません。';
+        const sourceTable=sources.find(s=>s.id===source.value).dataTable,calculationWarning=sourceTable?GraphTables.calculationWarning(sourceTable):'';if(calculationWarning)preview.append(node('p',calculationWarning,{class:'small muted'}));
         if(result.warning){preview.append(node('p',result.warning,{class:'error','data-analysis-warning':''}));return;}
         preview.append(node('output',GraphAnalysis.equation(result,symbol('x'),symbol('y')),{class:'equation-preview','aria-label':'回帰式'}));
         const stats=node('dl',null,{class:'analysis-statistics'});

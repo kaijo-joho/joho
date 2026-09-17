@@ -12,7 +12,7 @@ function region(d,targets=[{type:'series',id:'f'},{type:'series',id:'g'}]){const
  const d=base();d.axes.y.scale='log';const r=region(d);assert(A.evaluate(r,d).warning,'対数軸の非正値を拒否する');
 }
 {
- const d=base(),r=region(d);const clean=C.validateDocument(d);assert.equal(clean.version,11);assert.deepStrictEqual(clean.annotations[0].targets,r.targets);const extra=C.clone(d);extra.annotations[0].targets[0].extra='drop';assert.equal(C.validateDocument(extra).annotations[0].targets[0].extra,undefined);
+ const d=base(),r=region(d);const clean=C.validateDocument(d);assert.equal(clean.version,12);assert.deepStrictEqual(clean.annotations[0].targets,r.targets);const extra=C.clone(d);extra.annotations[0].targets[0].extra='drop';assert.equal(C.validateDocument(extra).annotations[0].targets[0].extra,undefined);
  for(const mutate of [x=>x.annotations[0].targets=[{type:'axis',axis:'x'},{type:'series',id:'f'}],x=>x.annotations[0].targets=[{type:'series',id:'f'},{type:'series',id:'f'}],x=>x.annotations[0].targets=[{type:'series',id:'missing'},{type:'axis',axis:'x'}],x=>x.annotations[0].interval=['0'],x=>x.annotations[0].kind='unknown']){const bad=C.clone(d);mutate(bad);assert.throws(()=>C.validateDocument(bad));}
 }
 {
@@ -34,7 +34,7 @@ function region(d,targets=[{type:'series',id:'f'},{type:'series',id:'g'}]){const
  const history=new C.History(d);history.change(x=>C.removeAnnotation(x,'tan'));assert.equal(history.document.annotations.length,0);history.undo();assert.deepStrictEqual(history.document,C.validateDocument(d));
 }
 {
- const old=C.clone(require('../templates.js').list().find(t=>t.id==='math-triangle-region').document);assert.equal(old.version,5);delete old.presentation;delete old.output;delete old.charts;delete old.comparison;const migrated=C.validateDocument(old);assert.equal(migrated.version,11);assert.deepStrictEqual(migrated.annotations.find(a=>a.kind==='region').segmentIds,old.annotations.find(a=>a.kind==='region').segmentIds);
+ const old=C.clone(require('../templates.js').list().find(t=>t.id==='math-triangle-region').document);assert.equal(old.version,5);delete old.presentation;delete old.output;delete old.charts;delete old.comparison;const migrated=C.validateDocument(old);assert.equal(migrated.version,12);assert.deepStrictEqual(migrated.annotations.find(a=>a.kind==='region').segmentIds,old.annotations.find(a=>a.kind==='region').segmentIds);
  for(const mutate of [d=>{const a=d.annotations.find(a=>a.kind==='segment');a.to=a.from;},d=>d.annotations.find(a=>a.kind==='segment').arrows='invalid']){const invalid=C.clone(migrated);mutate(invalid);assert.throws(()=>C.validateDocument(invalid),/線分/);}
  const d=base(),cross=C.createAnnotation('intersection');cross.seriesIds=['f','missing'];d.annotations=[cross];assert.throws(()=>C.validateDocument(d),/交点/);
  const legacyCross=C.createAnnotation('tangentIntersection');legacyCross.tangentIds=['missing','missing2'];d.annotations=[legacyCross];assert.throws(()=>C.validateDocument(d),/接線交点/);

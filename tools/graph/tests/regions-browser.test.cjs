@@ -42,7 +42,7 @@ let browser, page;
   await addRegion(); assert.equal(await dialog.locator('[data-region-segment]:checked').count(), 3);
   assert.match(await dialog.getByLabel('領域の確認').innerText(), /面積 ≈ 6/);
   await fill('名前', '三角形'); await submit();
-  let d = await doc(); const region = d.annotations.find(a => a.kind === 'region'); assert(region); assert.equal(d.version, 11);
+  let d = await doc(); const region = d.annotations.find(a => a.kind === 'region'); assert(region); assert.equal(d.version, 12);
   const area = page.locator('[data-region-area="' + region.id + '"]'); assert.equal(await area.innerText(), '面積 ≈ 6');
   assert.equal((await regionTrace(region.id)).fill, 'toself');
   assert.equal(await page.evaluate(() => document.querySelector('#plot').data[0].meta.kind), 'region');
@@ -86,7 +86,7 @@ let browser, page;
   await page.locator('#mode-2d').click(); await settle();
   // JSON and browser saves preserve references, settings and area after reload.
   await page.locator('#file-menu summary').click(); const downloading = page.waitForEvent('download'); await page.locator('#save-local').click();
-  const saved = JSON.parse(fs.readFileSync(await (await downloading).path(), 'utf8')); assert.equal(saved.version, 11);
+  const saved = JSON.parse(fs.readFileSync(await (await downloading).path(), 'utf8')); assert.equal(saved.version, 12);
   await importDoc(C.createDocument()); await importDoc(saved); assert.deepEqual(await doc(), saved); assert.equal(await area.innerText(), '面積 ≈ 6');
   await page.locator('#file-menu summary').click(); await page.locator('#save-browser').click();
   assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('kaijo-graph:saved')).document), saved);

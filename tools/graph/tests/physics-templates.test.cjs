@@ -16,7 +16,7 @@ for (const template of templates) {
   assert.strictEqual(template.category, '物理');
   assert.ok(template.name && template.description);
   const document = Core.validateDocument(template.document);
-  assert.strictEqual(document.version, 11, template.id);
+  assert.strictEqual(document.version, 12, template.id);
   assert.strictEqual(document.format, 'kaijo-graph');
   for (const item of document.series) {
     assert.strictEqual(item.source.kind, 'model');

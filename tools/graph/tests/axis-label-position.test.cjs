@@ -2,7 +2,7 @@ const assert = require('assert');
 const Core = require('../core.js');
 
 const current = Core.createDocument();
-assert.equal(current.version, 11);
+assert.equal(current.version, 12);
 assert.equal(current.axes.x.labelPosition, 'edge');
 assert.equal(current.axes.y.labelPosition, 'edge');
 
@@ -10,7 +10,7 @@ const v10 = Core.createDocument();
 v10.version = 10;
 for (const key of ['x', 'y', 'z']) delete v10.axes[key].labelPosition;
 const migrated = Core.validateDocument(v10);
-assert.equal(migrated.version, 11);
+assert.equal(migrated.version, 12);
 assert.equal(migrated.axes.x.labelPosition, 'edge');
 assert.equal(migrated.axes.y.labelPosition, 'edge');
 

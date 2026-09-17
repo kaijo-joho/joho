@@ -27,11 +27,31 @@
     }
     return {numeric,missing};
   }
-  function scaledSum(values){
-    let scale=0;
-    for(const value of values)scale=Math.max(scale,Math.abs(value));
-    if(scale===0)return 0;
-    return scale*compensated(values.map(value=>value/scale));
+  // This helper is shared by calculated columns. Neumaier summation retains a
+  // small residual when a large positive and negative value cancel.
+  function aggregateValues(values){
+    const {numeric}=checkedValues(values,'値');
+    let sum=0,correction=0;
+    for(const value of numeric){
+      const next=sum+value;
+      correction+=Math.abs(sum)>=Math.abs(value)?sum-next+value:value-next+sum;
+      sum=next;
+    }
+    const total=sum+correction;
+    let populationStandardDeviation=null,sampleStandardDeviation=null;
+    if(numeric.length){
+      const base=numeric[0];let scale=0;
+      for(const value of numeric)scale=Math.max(scale,Math.abs(value-base));
+      if(scale===0){populationStandardDeviation=0;sampleStandardDeviation=numeric.length>1?0:null;}
+      else{
+        const normalized=numeric.map(value=>(value-base)/scale);
+        const mean=compensated(normalized)/normalized.length;
+        const squares=compensated(normalized.map(value=>(value-mean)**2));
+        populationStandardDeviation=scale*Math.sqrt(squares/normalized.length);
+        if(numeric.length>1)sampleStandardDeviation=scale*Math.sqrt(squares/(normalized.length-1));
+      }
+    }
+    return {count:numeric.length,sum:total,mean:numeric.length?total/numeric.length:null,min:numeric.length?Math.min(...numeric):null,max:numeric.length?Math.max(...numeric):null,populationStandardDeviation,sampleStandardDeviation};
   }
   function finiteOrNull(value,warnings,message){
     if(finite(value))return value;
@@ -69,6 +89,7 @@
     const result={n,missing,sum:null,mean:null,median:null,min:null,max:null,q1:null,q3:null,iqr:null,variance:null,standardDeviation:null,sampleVariance:null,sampleStandardDeviation:null,warning:''};
     if(n===0){result.warning='数値がありません。';return result;}
     const warnings=[];
+    const aggregates=aggregateValues(numeric);
     const sorted=numeric.slice().sort((a,b)=>a-b);
     result.min=sorted[0];result.max=sorted[n-1];
     result.median=finiteOrNull(medianOfSorted(sorted),warnings,'中央値を計算できる範囲を超えています。');
@@ -76,25 +97,16 @@
     result.q1=finiteOrNull(spread.q1,warnings,'第1四分位数を計算できる範囲を超えています。');
     result.q3=finiteOrNull(spread.q3,warnings,'第3四分位数を計算できる範囲を超えています。');
     result.iqr=spread.iqr===null?null:finiteOrNull(spread.iqr,warnings,'四分位範囲を計算できる範囲を超えています。');
-    result.sum=finiteOrNull(scaledSum(numeric),warnings,'合計を計算できる範囲を超えています。');
-    // Work in coordinates relative to the first value.  Adding a small mean
-    // correction to a large offset can round it away, but the normalized
-    // coordinates still retain the spread needed for variance.
-    const base=numeric[0];
-    let scale=0;
-    for(const value of numeric)scale=Math.max(scale,Math.abs(value-base));
-    const normalized=scale===0?numeric.map(()=>0):numeric.map(value=>(value-base)/scale);
-    const normalizedMean=compensated(normalized)/n;
-    const mean=base+scale*normalizedMean;
-    result.mean=finiteOrNull(mean,warnings,'平均を計算できる範囲を超えています。');
+    result.sum=finiteOrNull(aggregates.sum,warnings,'合計を計算できる範囲を超えています。');
+    const hasSpread=aggregates.min!==aggregates.max;
+    result.mean=finiteOrNull(aggregates.mean,warnings,'平均を計算できる範囲を超えています。');
     if(result.mean!==null){
-      const centeredSquares=compensated(normalized.map(value=>(value-normalizedMean)**2));
-      const populationDeviation=scale*Math.sqrt(centeredSquares/n);
-      result.variance=varianceFromDeviation(populationDeviation,centeredSquares>0,warnings,'分散を計算できる範囲を超えています。','分散が小さすぎて表現できません。');
+      const populationDeviation=aggregates.populationStandardDeviation;
+      result.variance=varianceFromDeviation(populationDeviation,hasSpread,warnings,'分散を計算できる範囲を超えています。','分散が小さすぎて表現できません。');
       result.standardDeviation=finiteOrNull(populationDeviation,warnings,'標準偏差を計算できる範囲を超えています。');
       if(n>1){
-        const sampleDeviation=scale*Math.sqrt(centeredSquares/(n-1));
-        result.sampleVariance=varianceFromDeviation(sampleDeviation,centeredSquares>0,warnings,'標本分散を計算できる範囲を超えています。','標本分散が小さすぎて表現できません。');
+        const sampleDeviation=aggregates.sampleStandardDeviation;
+        result.sampleVariance=varianceFromDeviation(sampleDeviation,hasSpread,warnings,'標本分散を計算できる範囲を超えています。','標本分散が小さすぎて表現できません。');
         result.sampleStandardDeviation=finiteOrNull(sampleDeviation,warnings,'標本標準偏差を計算できる範囲を超えています。');
       }else warnings.push('標本分散と標本標準偏差には2個以上の数値が必要です。');
     }
@@ -176,5 +188,5 @@
     validateTable(table);
     return selectedIndices(table,indices).map(index=>Object.assign({index,name:table.columns[index]},describe(table.rows.map(row=>row[index]))));
   }
-  return {describe,pearson,matrix,summarize};
+  return {describe,pearson,matrix,summarize,aggregateValues};
 });

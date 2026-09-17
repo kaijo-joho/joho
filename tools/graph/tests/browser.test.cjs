@@ -35,7 +35,7 @@ let browser;
   async function seriesAdd() { if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); }
   await open();
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).mode, '2d');
-  assert.equal((await page.evaluate(() => GraphEditor.getDocument())).version, 11);
+  assert.equal((await page.evaluate(() => GraphEditor.getDocument())).version, 12);
   assert(await page.locator('#plot .main-svg').count(), '2D graph is drawn');
 
   await seriesAdd(); await page.locator('#add-function').click(); await setField('数式', 'y = sin(x)'); await submit();

@@ -27,4 +27,5 @@ const summary=S.summarize(table,[1,0]);assert.deepStrictEqual(summary.map(item=>
 assert.throws(()=>S.matrix({columns:Array(21).fill('x'),rows:[]}),RangeError);
 assert.throws(()=>S.summarize({columns:['x'],rows:[[undefined]]}),TypeError);
 assert.equal(S.describe([Number.MIN_VALUE,Number.MIN_VALUE]).median,Number.MIN_VALUE);
+const aggregates=S.aggregateValues([1e9,1e-8,-1e9,null]);near(aggregates.sum,1e-8,1e-20);assert.equal(aggregates.count,3);near(aggregates.populationStandardDeviation,Math.sqrt((1e18+1e18)/3),1e3);
 console.log('graph statistics tests passed');

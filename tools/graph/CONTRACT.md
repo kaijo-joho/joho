@@ -1,10 +1,12 @@
 # グラフエディタ 0.1 実装契約（初版の記録）
 
-現行0.14.0の複数選択・書式コピー、日付・カテゴリ列とversion 11への移行は [追加仕様](docs/selection-typed-tables.md) を参照する。
+現行0.15.0の計算列とversion 12への移行は [計算列の仕様](docs/calculated-columns.md) を参照する。
+
+0.14.0の複数選択・書式コピー、日付・カテゴリ列とversion 11への移行は [追加仕様](docs/selection-typed-tables.md) を参照する。
 
 0.13.0の右インスペクター・一覧操作・追加メニュー・ズーム操作は [右インスペクターの配置契約](docs/inspector-layout.md) を参照する。
 
-現行0.10.0のオープンデータ取込は [取込仕様](docs/open-data-import-plan.md) を参照。文書version 10を維持し、出典は既存の `source` に保存する。0.9.0の分析グラフ編集・行選択・回帰除外は [グラフ編集・行選択の契約](docs/chart-editing-row-link-contract.md) を参照。0.8.0から継続する分析グラフ・自作テンプレート・比較配置は [分析グラフ・テンプレート・比較の契約](docs/statistical-charts-contract.md) を、0.7.0から継続する数表・統計・回帰連携・教材出力は [数表・統計・教材出力契約](docs/tables-publication-contract.md) を参照する。この文書は旧版の履歴として保持する。
+0.10.0のオープンデータ取込は [取込仕様](docs/open-data-import-plan.md) を参照。文書version 10を維持し、出典は既存の `source` に保存する。0.9.0の分析グラフ編集・行選択・回帰除外は [グラフ編集・行選択の契約](docs/chart-editing-row-link-contract.md) を参照。0.8.0から継続する分析グラフ・自作テンプレート・比較配置は [分析グラフ・テンプレート・比較の契約](docs/statistical-charts-contract.md) を、0.7.0から継続する数表・統計・回帰連携・教材出力は [数表・統計・教材出力契約](docs/tables-publication-contract.md) を参照する。この文書は旧版の履歴として保持する。
 
 0.5.0までの追加仕様・version 6への移行の記録は [0.2実装契約](docs/phase2-contract.md)、[0.3実装契約](docs/phase3-contract.md)、[交点と操作性の調整](docs/usability-contract.md)、[線分による領域](docs/regions-contract.md)、[曲線による領域](docs/curve-regions-contract.md) に残す。
 
