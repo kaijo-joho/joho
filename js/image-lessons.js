@@ -112,7 +112,12 @@
         const brightness = samples[row * resolution + col][channel];
         const code = Core.quantize(brightness, bits);
         const label = stage === 1 ? brightness.toFixed(1) : stage === 2 ? String(code) : Core.binary(code, bits);
-        tr.append(node('td', '', label));
+        const value = stage === 1 ? Math.round(brightness) : Core.tone(code, bits);
+        const rgb = [0, 0, 0].map((_, c) => c === channel ? value : 0);
+        const cell = node('td', '', label);
+        cell.style.backgroundColor = `rgb(${rgb.join(',')})`;
+        cell.style.color = textColor(rgb);
+        tr.append(cell);
       }
       body.append(tr);
     }
@@ -120,46 +125,186 @@
     return table;
   }
 
+  function initializeGuideZoom(host, renderContent) {
+    const popup = host.querySelector('[data-image-guide-zoom]');
+    const triggers = [...host.querySelectorAll('[data-image-guide-zoom-trigger]')];
+    // スライドの背景効果がfixed要素の基準位置になるため、拡大表をbody直下へ置く。
+    popup.setAttribute('data-lesson-slide-navigation-lock', '');
+    document.body.append(popup);
+    let active = null;
+    let pinned = false;
+    let closeTimer;
+    let restoringFocus = false;
+
+    function close(restoreFocus = false) {
+      clearTimeout(closeTimer);
+      const opener = active;
+      const hadFocus = popup.contains(document.activeElement);
+      active = null; pinned = false; popup.hidden = true;
+      opener?.setAttribute('aria-expanded', 'false');
+      if (opener && (restoreFocus || hadFocus)) {
+        restoringFocus = true;
+        opener.focus({ preventScroll: true });
+        restoringFocus = false;
+      }
+    }
+    function position() {
+      if (!active) return;
+      const style = getComputedStyle(host);
+      popup.style.fontSize = style.fontSize;
+      popup.style.fontFamily = style.fontFamily;
+      popup.style.lineHeight = style.lineHeight;
+      const rect = active.getBoundingClientRect();
+      const slide = host.closest('[data-lesson-slide]').getBoundingClientRect();
+      const topEdge = Math.max(8, slide.top + 8);
+      const bottomEdge = Math.min(window.innerHeight, slide.bottom) - 8;
+      if (rect.bottom < topEdge || rect.top > bottomEdge) { close(); return; }
+      popup.style.maxHeight = `${Math.max(120, bottomEdge - topEdge)}px`;
+      const size = popup.getBoundingClientRect();
+      const below = rect.bottom + 8;
+      const top = below + size.height <= bottomEdge ? below : rect.top - size.height - 8;
+      popup.style.top = `${Math.max(topEdge, Math.min(top, bottomEdge - size.height))}px`;
+      popup.style.left = `${Math.max(8, Math.min(rect.left + (rect.width - size.width) / 2, document.documentElement.clientWidth - size.width - 8))}px`;
+    }
+    function open(trigger, pin = false) {
+      clearTimeout(closeTimer);
+      if (active !== trigger) {
+        close();
+        document.dispatchEvent(new CustomEvent('joho:overlay-open', { detail: { source: 'image-guide-zoom' } }));
+        active = trigger;
+        renderContent(trigger, popup);
+      }
+      pinned = pin || pinned;
+      popup.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
+      position();
+    }
+    function scheduleClose() {
+      clearTimeout(closeTimer);
+      closeTimer = setTimeout(() => {
+        if (!pinned && active && !active.matches(':hover, :focus-visible') && !popup.matches(':hover, :focus-within')) close();
+      }, 180);
+    }
+    triggers.forEach(trigger => {
+      trigger.setAttribute('aria-controls', popup.id);
+      trigger.setAttribute('aria-expanded', 'false');
+      trigger.addEventListener('pointerenter', event => {
+        if (event.pointerType !== 'touch' && !pinned) open(trigger);
+      });
+      trigger.addEventListener('pointerleave', scheduleClose);
+      trigger.addEventListener('focus', () => {
+        if (!restoringFocus && trigger.matches(':focus-visible')) open(trigger);
+      });
+      trigger.addEventListener('click', event => {
+        if (active === trigger && pinned) close();
+        else {
+          open(trigger, true);
+          if (event.detail === 0) popup.focus({ preventScroll: true });
+        }
+      });
+    });
+    popup.addEventListener('pointerenter', () => clearTimeout(closeTimer));
+    popup.addEventListener('pointerleave', scheduleClose);
+    popup.querySelector('[data-image-guide-zoom-close]').addEventListener('click', () => close(true));
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && active) {
+        event.preventDefault(); event.stopPropagation(); close();
+      }
+    }, true);
+    document.addEventListener('pointerdown', event => {
+      if (active && !active.contains(event.target) && !popup.contains(event.target)) close();
+    });
+    document.addEventListener('focusin', event => {
+      if (active && !active.contains(event.target) && !popup.contains(event.target)) close();
+    });
+    document.addEventListener('scroll', event => {
+      if (!popup.contains(event.target)) position();
+    }, true);
+    window.addEventListener('resize', position);
+    document.addEventListener('joho:lesson-slide-change', () => close());
+    document.addEventListener('joho:overlay-open', event => {
+      if (event.detail?.source !== 'image-guide-zoom') close();
+    });
+    return { close };
+  }
+
   async function initializeGuide(host) {
     const source = await sourceImage();
-    const channelControl = host.querySelector('[data-image-channel]');
     const resolutionControl = host.querySelector('[data-image-guide-resolution]');
     const bitsControl = host.querySelector('[data-image-guide-bits]');
-    const canvases = Object.fromEntries([...host.querySelectorAll('[data-image-guide-canvas]')].map(canvas => [canvas.dataset.imageGuideCanvas, canvas]));
     const captions = Object.fromEntries([...host.querySelectorAll('[data-image-guide-caption]')].map(caption => [caption.dataset.imageGuideCaption, caption]));
-    const figures = [...host.querySelectorAll('[data-image-guide-step]')];
+    const rows = [...host.querySelectorAll('[data-image-guide-step]')];
     const previous = host.querySelector('[data-image-guide-prev]');
     const next = host.querySelector('[data-image-guide-next]');
-    const scroller = host.querySelector('.im-pipeline-scroll');
+    const showAll = host.querySelector('[data-image-guide-show-all]');
     const stepText = host.querySelector('[data-image-stage-text]');
-    const zoom = host.querySelector('[data-image-guide-zoom]');
-    const channelImages = new Map();
-    const sampledImages = new Map();
     const stageNames = ['元画像', '光の成分に分解', '標本化', '量子化', '符号化'];
+    const processNames = ['component', 'sample', 'quantize', 'encode'];
+    const canvases = [];
+    const sampledImages = new Map();
     let stage = 0;
-    function update() {
-      const channel = Number(channelControl.value);
-      const resolution = Number(resolutionControl.value);
-      const bits = Number(bitsControl.value);
-      if (!sampledImages.has(resolution)) sampledImages.set(resolution, Core.sampleRgb(source.data, 800, 800, resolution, resolution));
-      const samples = sampledImages.get(resolution);
-      if (!channelImages.has(channel)) {
-        const part = node('canvas'); part.width = 800; part.height = 800;
-        const ctx = part.getContext('2d'); const pixels = ctx.createImageData(800, 800);
-        for (let i = 0; i < source.data.length; i += 4) { pixels.data[i + channel] = source.data[i + channel]; pixels.data[i + 3] = 255; }
-        ctx.putImageData(pixels, 0, 0); channelImages.set(channel, part);
-      }
-      canvases.component.getContext('2d').drawImage(channelImages.get(channel), 0, 0);
+    let resolution = 0;
+    let bits = 0;
+    let samples;
+
+    // 列ごとに同じ元画像を置き、その下のRGB成分と位置をそろえる。
+    const original = rows[0].querySelector('figure');
+    rows[0].append(original.cloneNode(true), original.cloneNode(true));
+    rows.slice(1).forEach((row, process) => {
+      channels.forEach((channelName, channel) => {
+        const figure = node('figure');
+        const canvas = node('canvas', 'im-picture');
+        canvas.width = canvas.height = process === 3 ? 1600 : 800;
+        canvas.dataset.imageGuideCanvas = processNames[process];
+        canvas.dataset.imageChannel = String(channel);
+        canvas.setAttribute('role', 'img');
+        if (process > 0) {
+          const button = node('button', 'im-guide-image-button');
+          button.type = 'button'; button.tabIndex = 0;
+          button.dataset.imageGuideZoomTrigger = String(process);
+          button.dataset.imageChannel = String(channel);
+          button.setAttribute('aria-label', `${channelName}（${channelNames[channel]}）の${stageNames[process + 1]}：枠内の4×4画素を拡大`);
+          button.append(canvas); figure.append(button);
+        } else {
+          figure.append(canvas);
+          const ctx = canvas.getContext('2d');
+          const pixels = ctx.createImageData(800, 800);
+          for (let i = 0; i < source.data.length; i += 4) {
+            pixels.data[i + channel] = source.data[i + channel]; pixels.data[i + 3] = 255;
+          }
+          ctx.putImageData(pixels, 0, 0);
+          canvas.setAttribute('aria-label', `${channelName}（${channelNames[channel]}）成分のなめらかな明るさ`);
+        }
+        canvases.push({ canvas, channel, process }); row.append(figure);
+      });
+    });
+    const zoom = initializeGuideZoom(host, (trigger, popup) => {
+      const channel = Number(trigger.dataset.imageChannel);
+      const process = Number(trigger.dataset.imageGuideZoomTrigger);
       const start = resolution / 2 - 2;
-      for (const [name, process] of [['sample', 1], ['quantize', 2], ['encode', 3]]) {
-        const canvas = canvases[name];
-        drawSamples(canvas, samples, resolution, bits, channel, process);
-        const ctx = canvas.getContext('2d'); const cell = canvas.width / resolution;
-        // 同じ4×4画素の範囲を示す。表の拡大表示でも行・列を変えない。
-        ctx.strokeStyle = '#000'; ctx.lineWidth = canvas.width / 140;
-        ctx.strokeRect(start * cell, start * cell, 4 * cell, 4 * cell);
-        ctx.strokeStyle = '#fff'; ctx.lineWidth = canvas.width / 280;
-        ctx.strokeRect(start * cell, start * cell, 4 * cell, 4 * cell);
+      popup.querySelector('[data-image-guide-zoom-title]').textContent = `${channels[channel]}（${channelNames[channel]}）・${stageNames[process + 1]}`;
+      popup.querySelector('[data-image-guide-zoom-caption]').textContent = `${start + 1}〜${start + 4}行・${start + 1}〜${start + 4}列の4×4画素です。${process === 1 ? '平均値は小数第1位まで表示しています。' : ''}`;
+      popup.querySelector('[data-image-guide-zoom-table]').replaceChildren(zoomTable(samples, resolution, start, channel, bits, process));
+    });
+
+    function update() {
+      zoom.close();
+      const nextResolution = Number(resolutionControl.value);
+      const nextBits = Number(bitsControl.value);
+      if (resolution !== nextResolution || bits !== nextBits) {
+        resolution = nextResolution; bits = nextBits;
+        if (!sampledImages.has(resolution)) sampledImages.set(resolution, Core.sampleRgb(source.data, 800, 800, resolution, resolution));
+        samples = sampledImages.get(resolution);
+        const start = resolution / 2 - 2;
+        canvases.filter(item => item.process > 0).forEach(({ canvas, channel, process }) => {
+          drawSamples(canvas, samples, resolution, bits, channel, process);
+          const ctx = canvas.getContext('2d'); const cell = canvas.width / resolution;
+          // RGB全列・全工程で中央の同じ4×4画素を示す。
+          ctx.strokeStyle = '#000'; ctx.lineWidth = canvas.width / 140;
+          ctx.strokeRect(start * cell, start * cell, 4 * cell, 4 * cell);
+          ctx.strokeStyle = '#fff'; ctx.lineWidth = canvas.width / 280;
+          ctx.strokeRect(start * cell, start * cell, 4 * cell, 4 * cell);
+        });
       }
       const resolutionText = `幅の1/${resolution}（${resolution}×${resolution}画素）`;
       const bitsText = `${Core.levels(bits)}階調（${bits}bit）`;
@@ -167,50 +312,44 @@
       host.querySelector('[data-image-guide-bits-output]').textContent = bitsText;
       resolutionControl.setAttribute('aria-valuetext', resolutionText);
       bitsControl.setAttribute('aria-valuetext', bitsText);
-      captions.component.textContent = `${channels[channel]}（${channelNames[channel]}）成分`;
       captions.sample.textContent = `${resolution}×${resolution}画素`;
       captions.quantize.textContent = `明るさを${Core.levels(bits)}段階に`;
       captions.encode.textContent = `各画素を${bits}桁の2進数に`;
-      for (const [name, canvas] of Object.entries(canvases)) canvas.setAttribute('aria-label', `${channels[channel]}成分の気球。${captions[name].textContent}`);
+      canvases.filter(item => item.process > 0).forEach(({ canvas, channel, process }) => {
+        canvas.setAttribute('aria-label', `${channels[channel]}成分の気球の${stageNames[process + 1]}。${captions[processNames[process]].textContent}`);
+      });
       const descriptions = [
         '元画像の輪郭と濃淡を見てから、「次へ」で光の成分に分けましょう。',
-        `${channels[channel]}（${channelNames[channel]}）成分の明るさを取り出しました。画像の形はそのままです。`,
+        '同じ元画像からR（赤）・G（緑）・B（青）の明るさを取り出しました。3つの成分を横に比べましょう。',
         `縦横を${resolution}つずつに区切り、各画素内の平均の明るさを取り出しました。スライダーで標本化の間隔を変えられます。`,
         `各画素の明るさを0〜${Core.levels(bits) - 1}の${Core.levels(bits)}段階に分けました。標本化した図と比べ、階調数も変えてみましょう。`,
-        `段階値を${bits}桁の2進数にしました。左上から右へ1行ずつ並べます。細かい符号は、下の「枠内の4×4画素を拡大して確認」で読めます。`
+        `段階値を${bits}桁の2進数にしました。左上から右へ1行ずつ並べます。画像にマウスを重ねると、枠内の符号を拡大して読めます。`
       ];
       stepText.textContent = descriptions[stage];
-      figures.forEach((figure, index) => {
-        figure.classList.toggle('is-pending', index > stage);
-        figure.setAttribute('aria-hidden', String(index > stage));
+      rows.forEach((row, index) => {
+        row.hidden = index > stage || (!showAll.checked && index < stage - 1);
+        row.classList.toggle('is-current-step', index === stage);
+        if (index === stage) row.setAttribute('aria-current', 'step');
+        else row.removeAttribute('aria-current');
       });
       previous.disabled = stage === 0; next.disabled = stage === 4;
       previous.setAttribute('aria-label', stage ? `前の工程：${stageNames[stage - 1]}` : '最初の工程です');
-      next.setAttribute('aria-label', stage < 4 ? `次の工程：${stageNames[stage + 1]}` : 'すべての工程を表示しました');
-      host.querySelector('[data-image-guide-progress]').textContent = `${stage + 1} / 5`;
-      zoom.hidden = stage < 2;
-      host.querySelector('[data-image-guide-zoom-caption]').textContent = `${channels[channel]}成分の${start + 1}〜${start + 4}行・${start + 1}〜${start + 4}列です。平均値は小数第1位まで表示しています。`;
-      const tables = host.querySelector('[data-image-guide-zoom-tables]');
-      tables.replaceChildren();
-      for (let process = 1; process <= stage - 1; process += 1) {
-        const scroll = node('div', 'im-table-scroll'); scroll.tabIndex = 0;
-        scroll.setAttribute('role', 'region'); scroll.setAttribute('aria-label', `${stageNames[process + 1]}の4×4画素の表`);
-        scroll.append(zoomTable(samples, resolution, start, channel, bits, process)); tables.append(scroll);
-      }
+      next.setAttribute('aria-label', stage < 4 ? `次の工程：${stageNames[stage + 1]}` : '最後の工程です');
+      host.querySelector('[data-image-guide-progress]').textContent = `${stage + 1} / 5　${stageNames[stage]}`;
+      host.querySelector('[data-image-guide-zoom-hint]').hidden = stage < 2;
       resized();
     }
     function move(amount) {
+      const focused = document.activeElement;
       stage = Math.max(0, Math.min(4, stage + amount)); update();
-      const target = figures[stage].getBoundingClientRect(); const visible = scroller.getBoundingClientRect();
-      if (target.right > visible.right) scroller.scrollLeft += target.right - visible.right + 4;
-      else if (target.left < visible.left) scroller.scrollLeft -= visible.left - target.left + 4;
+      if (focused === next && next.disabled) previous.focus({ preventScroll: true });
+      if (focused === previous && previous.disabled) next.focus({ preventScroll: true });
     }
     let frame;
     function scheduleUpdate() { cancelAnimationFrame(frame); frame = requestAnimationFrame(update); }
     resolutionControl.addEventListener('input', scheduleUpdate); bitsControl.addEventListener('input', scheduleUpdate);
-    channelControl.addEventListener('change', () => update());
+    showAll.addEventListener('change', update);
     previous.addEventListener('click', () => move(-1)); next.addEventListener('click', () => move(1));
-    zoom.addEventListener('toggle', resized);
     host.classList.add('im-guide-ready');
     reveal(host); update();
   }
