@@ -1,0 +1,54 @@
+/* Relative calculated columns across history, typed tables, exports and v12 migration. */
+const assert=require('node:assert/strict');
+const C=require('../core.js'),T=require('../tables.js'),A=require('../analysis.js'),Templates=require('../template-library.js');
+const mapping={x:0,y:3,z:null,errorX:null,errorY:null};
+const table={columns:['時刻','気温','差分','移動平均','変化率'],rows:[[0,10,null,null,null],[1,20,null,null,null],[2,null,null,null,null],[4,40,null,null,null],[7,70,null,null,null]],mapping,formulas:[null,null,'[@気温]-[@気温,-1]','AVERAGE([@気温,-2:0])','([@気温,+1]-[@気温,-1])/([@時刻,+1]-[@時刻,-1])']};
+const series=C.createSeries('data2d');series.id='relative';T.assign(series,table);series.excludedRows=[1];
+const document=C.createDocument();document.series=[series];
+const clean=C.validateDocument(document);
+assert.equal(clean.version,13);
+assert.deepEqual(clean.series[0].dataTable.rows.map(row=>row[2]),[null,10,null,null,30]);
+assert.deepEqual(clean.series[0].rows.map(row=>row[1]),[null,null,15,30,55]);
+assert.equal(clean.series[0].dataTable.rows[2][4],20/3,'relative rows follow physical order and unequal time intervals');
+assert.deepEqual(T.calculationErrors(clean.series[0].dataTable),[]);
+const history=new C.History(clean);
+history.change(doc=>{doc.series[0].dataTable.rows[2][1]=30;});
+assert.deepEqual(history.document.series[0].dataTable.rows.map(row=>row[2]),[null,10,10,10,30]);
+assert.deepEqual(history.document.series[0].rows.map(row=>row[1]),[null,null,20,30,140/3]);
+assert.equal(A.fit(history.document.series[0],'linear').n,3,'regression uses recalculated non-missing observations');
+history.undo();assert.deepEqual(history.document,clean);history.redo();
+assert.deepEqual(C.validateDocument(JSON.stringify(history.document)),history.document);
+const cached=C.clone(history.document);cached.series[0].dataTable.rows.forEach(row=>{row[3]=999;});cached.series[0].rows.forEach(row=>{row[1]=999;});
+assert.deepEqual(C.validateDocument(cached),history.document,'relative values are rebuilt on import');
+const reordered={...table,rows:table.rows.slice().reverse()};
+assert.deepEqual(T.validate(reordered).rows.map(row=>row[2]),[null,-30,null,null,-10],'new row order determines the previous row');
+const removed={...table,rows:table.rows.filter((_,i)=>i!==2)};
+assert.deepEqual(T.validate(removed).rows.map(row=>row[3]),[null,null,70/3,130/3]);
+const extended={...table,rows:[...table.rows,[8,80,null,null,null]]};
+assert.equal(T.validate(extended).rows.at(-1)[3],190/3);
+const empty=Templates.create(clean,{name:'前後参照',includeData:false});
+assert.deepEqual(empty.document.series[0].dataTable.rows,[]);
+assert.deepEqual(empty.document.series[0].dataTable.formulas,table.formulas);
+const again=C.clone(empty.document);again.series[0].dataTable.rows=table.rows;again.series[0].rows=table.rows.map(row=>[row[0],null]);
+assert.deepEqual(C.validateDocument(again).series[0].rows,clean.series[0].rows);
+
+// Version 12 treated commas/colons as literal column names, even when a similarly
+// named base column existed. Import must never silently turn these into offsets.
+const legacy=C.createDocument();legacy.version=12;
+const legacySeries=C.createSeries('data2d');legacySeries.id='legacy';legacySeries.rows=[[1,999],[2,999]];
+legacySeries.dataTable={columns:['x','x,-1','x,-2:0','@x','result'],rows:[[1,8,3,4,999],[2,9,5,6,999]],mapping:{...mapping,y:4},formulas:[null,null,null,null,'[@x,-1]+SUM([x,-2:0])+[@"@x"]']};legacy.series=[legacySeries];
+const raw=JSON.stringify(legacy),migrated=C.validateDocument(legacy);
+assert.equal(JSON.stringify(legacy),raw,'migration never mutates the source document');
+assert.equal(migrated.version,13);
+assert.equal(migrated.series[0].dataTable.formulas[4],'[@"x,-1"]+SUM(["x,-2:0"])+[@"@x"]');
+assert.deepEqual(migrated.series[0].rows,[[1,20],[2,23]]);
+assert.deepEqual(C.validateDocument(JSON.stringify(migrated)),migrated,'subsequent imports keep quoted references');
+const notRelative=C.clone(legacy);notRelative.series[0].dataTable.formulas[4]='[@x,+1]';
+assert.throws(()=>C.validateDocument(notRelative),/不明/,'a v12 document does not opt into new syntax by accident');
+notRelative.version=13;
+assert.deepEqual(C.validateDocument(notRelative).series[0].rows,[[1,2],[2,null]]);
+const invalid=C.clone(legacy);invalid.series[0].dataTable.formulas[4]='[@"x",-1]';
+assert.throws(()=>C.validateDocument(invalid),/旧式/,'invalid old quoted references fail closed');
+const oldPlain=C.createDocument();oldPlain.version=12;assert.equal(C.validateDocument(oldPlain).version,13);
+const future=C.createDocument();future.version=14;assert.throws(()=>C.validateDocument(future),/ファイル/);
+console.log('relative-calculation-core.test.cjs: ok');

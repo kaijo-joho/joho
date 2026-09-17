@@ -3,10 +3,11 @@
   const symbols = typeof module === 'object' && module.exports ? require('./symbols.js') : root.GraphSymbols;
   const tables = typeof module === 'object' && module.exports ? require('./tables.js') : root.GraphTables;
   const charts = typeof module === 'object' && module.exports ? require('./charts.js') : root.GraphCharts;
-  const api = factory(expression, symbols, tables, charts);
+  const calculations = typeof module === 'object' && module.exports ? require('./calculations.js') : root.GraphCalculations;
+  const api = factory(expression, symbols, tables, charts, calculations);
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.GraphCore = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function (Expression, Symbols, Tables, Charts) {
+})(typeof globalThis !== 'undefined' ? globalThis : this, function (Expression, Symbols, Tables, Charts, Calculations) {
   'use strict';
   const fail = m => { throw new Error(m); }, object = v => v && typeof v === 'object' && !Array.isArray(v), hasOwn = (v,key) => Object.prototype.hasOwnProperty.call(v,key);
   const clone = value => JSON.parse(JSON.stringify(value)); let serial = 0;
@@ -16,7 +17,7 @@
   const ANNOTATION_STYLE = { color:'#dc2626', width:1.5, dash:'dash', opacity:1 };
   const labelDefault=()=>({visible:true,dx:12,dy:-12,size:13});
   function axis(name,min=-10,max=10){return{label:name,symbol:name,unit:'',min,max,scale:'linear',ticks:{step:null,format:'auto'},labelPosition:'edge'};}
-  function createDocument() { return { format:'kaijo-graph', version:12, presentation:{axisArrows:false,originLabel:false,tickMarks:true,tickLabels:true}, output:{width:1200,height:800,margin:64,fontSize:16,paper:'a4',orientation:'landscape',title:true}, name:'無題のグラフ', mode:'2d', angle:'rad', axes:{ x:axis('x'), y:axis('y'), z:axis('z') }, equalScale:false, grid:true, legend:true, parameters:[], series:[], annotations:[], charts:[], comparison:{columns:2,items:['main']} }; }
+  function createDocument() { return { format:'kaijo-graph', version:13, presentation:{axisArrows:false,originLabel:false,tickMarks:true,tickLabels:true}, output:{width:1200,height:800,margin:64,fontSize:16,paper:'a4',orientation:'landscape',title:true}, name:'無題のグラフ', mode:'2d', angle:'rad', axes:{ x:axis('x'), y:axis('y'), z:axis('z') }, equalScale:false, grid:true, legend:true, parameters:[], series:[], annotations:[], charts:[], comparison:{columns:2,items:['main']} }; }
   function createSeries(kind = 'function') { if (!KINDS.includes(kind)) fail('グラフの種類が不正です。'); const base={ id:uid(), kind, name:'', expression:kind === 'surface' ? 'z=x^2+y^2' : kind === 'implicit' ? 'x^2+y^2=9' : kind === 'polar' ? '2*cos(3*theta)' : 'y=x', domain:{x:[-10,10],y:[-10,10]}, rows:[], visible:true, style:clone(STYLE), source:{kind:'user',title:'',url:'',notes:''} }; if(kind==='data2d'||kind==='data3d')base.excludedRows=[]; if(kind==='parametric'){base.expression='';base.components={x:'3*cos(t)',y:'2*sin(t)'};base.interval=[0,2*Math.PI];} if(kind==='polar')base.interval=[0,2*Math.PI]; if(kind==='data2d'){base.errorBars={x:[],y:[]};base.interpolation='linear';base.style.points=true;base.style.lines=false;} return base; }
   function createAnnotation(kind = 'point') { if(!['point','guide','tangent','intersection','segment','text','tangentIntersection','region','curveRegion','regression'].includes(kind))fail('注釈の種類が不正です。'); const base={id:uid(),kind,name:'',visible:true,style:clone(ANNOTATION_STYLE),label:labelDefault()}; if(kind==='regression'){base.seriesId='';base.model='linear';base.showEquation=true;base.showMetrics=true;} else if(kind==='point')base.anchor={type:'free',x:'0',y:'0'},base.projections=true; else if(kind==='guide')base.axis='x',base.value='0'; else if(kind==='tangent')base.seriesId='',base.at='0',base.showEquation=true; else if(kind==='intersection')base.seriesIds=['',''],base.interval=[-5,5]; else if(kind==='segment')base.from='',base.to='',base.arrows='none'; else if(kind==='text')base.anchor={type:'free',x:'0',y:'0'},base.text=''; else if(kind==='curveRegion'){base.targets=[{type:'series',id:''},{type:'axis',axis:'x'}];base.interval=['0','1'];base.showArea=true;base.showIntegral=false;base.style={color:'#2563eb',width:1.5,dash:'solid',opacity:.25};base.label={visible:true,dx:0,dy:0,size:13};} else if(kind==='region'){base.segmentIds=[];base.showArea=true;base.style={color:'#2563eb',width:1.5,dash:'solid',opacity:.25};base.label={visible:true,dx:0,dy:0,size:13};} else base.tangentIds=['','']; return base; }
   function finite(n, message, min=-1e9, max=1e9) { if (typeof n !== 'number' || !Number.isFinite(n) || n < min || n > max) fail(message); return n; }
@@ -57,7 +58,7 @@
   }
   function validateDocument(input) {
     let raw=input; if(typeof raw==='string'){if(raw.length>2*1024*1024)fail('ファイルが大きすぎます。');try{raw=JSON.parse(raw);}catch{fail('JSONファイルを読み取れません。');}}
-    if(!object(raw)||raw.format!=='kaijo-graph'||![1,2,3,4,5,6,7,8,9,10,11,12].includes(raw.version))fail('グラフエディタの再編集ファイルを選んでください。');
+    if(!object(raw)||raw.format!=='kaijo-graph'||![1,2,3,4,5,6,7,8,9,10,11,12,13].includes(raw.version))fail('グラフエディタの再編集ファイルを選んでください。');
     if(raw.version<12&&Array.isArray(raw.series)&&raw.series.some(s=>object(s)&&object(s.dataTable)&&hasOwn(s.dataTable,'formulas')))fail('ファイルの版と計算列の設定が一致していません。');
     if(raw.version<11&&((object(raw.axes)&&Object.values(raw.axes).some(a=>object(a)&&(hasOwn(a,'type')||hasOwn(a,'categories'))))||(Array.isArray(raw.series)&&raw.series.some(s=>object(s)&&object(s.dataTable)&&hasOwn(s.dataTable,'columnTypes')))))fail('ファイルの版と型付き数表の設定が一致していません。');
     if(raw.version<10&&((Array.isArray(raw.series)&&raw.series.some(s=>object(s)&&hasOwn(s,'excludedRows')))||(Array.isArray(raw.charts)&&raw.charts.some(c=>object(c)&&['axes','style','legend','labels'].some(key=>hasOwn(c,key))))))fail('ファイルの版と分析グラフの設定が一致していません。');
@@ -76,6 +77,15 @@
     if(raw.version===9)raw={...raw,version:10};
     if(raw.version===10)raw={...raw,version:11,axes:Object.fromEntries(['x','y','z'].map(key=>[key,{...(raw.axes?.[key]||{}),type:'number',categories:[]}]))};
     if(raw.version===11)raw={...raw,version:12};
+    if(raw.version===12){
+      // In v12 a comma or colon inside a reference was part of the column name.
+      // Quote legacy names before enabling relative-row syntax, without mutating input.
+      raw={...raw,version:13,series:Array.isArray(raw.series)?raw.series.map(s=>{
+        if(!object(s)||!object(s.dataTable)||!Array.isArray(s.dataTable.formulas))return s;
+        if(!Calculations||typeof Calculations.migrateLegacyReferences!=='function')fail('計算列の移行処理を読み込めません。');
+        return {...s,dataTable:{...s.dataTable,formulas:s.dataTable.formulas.map(formula=>typeof formula==='string'?Calculations.migrateLegacyReferences(formula):formula)}};
+      }):raw.series};
+    }
     if(!Array.isArray(raw.parameters)||!Array.isArray(raw.series)||!Array.isArray(raw.annotations)||raw.series.length>100||raw.annotations.length>100||raw.parameters.length>20||!object(raw.axes))fail('文書の一覧または設定が不正です。');
     const out=createDocument();out.name=text(raw.name,'グラフ名が不正です。',160);if(!['2d','3d'].includes(raw.mode)||!['rad','deg'].includes(raw.angle))fail('表示設定が不正です。');out.mode=raw.mode;out.angle=raw.angle;for(const key of ['equalScale','grid','legend']){if(typeof raw[key]!=='boolean')fail('表示設定が不正です。');out[key]=raw[key];}out.axes={x:validAxis(raw.axes.x,'x'),y:validAxis(raw.axes.y,'y'),z:validAxis(raw.axes.z,'z')};out.presentation=validPresentation(raw.presentation);out.output=validOutput(raw.output);
     const reserved=new Set(['x','y','z','e','pi','sin','cos','tan','asin','acos','atan','sqrt','abs','exp','ln','log','floor','ceil','round','min','max','constructor','prototype','__proto__']),names=new Set();

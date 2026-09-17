@@ -1,6 +1,6 @@
 # グラフエディタ 0.1 実装契約（初版の記録）
 
-現行0.15.0の計算列とversion 12への移行は [計算列の仕様](docs/calculated-columns.md) を参照する。
+現行0.16.0の計算列・前後の行参照とversion 13への移行は [計算列の仕様](docs/calculated-columns.md) を参照する。
 
 0.14.0の複数選択・書式コピー、日付・カテゴリ列とversion 11への移行は [追加仕様](docs/selection-typed-tables.md) を参照する。
 

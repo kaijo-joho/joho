@@ -1,0 +1,88 @@
+/* Previous/next rows and moving aggregates through the actual editor controls. */
+const assert=require('node:assert/strict'),fs=require('node:fs'),http=require('node:http'),path=require('node:path'),os=require('node:os');
+const C=require('../core.js'),T=require('../tables.js');
+let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
+const root=path.resolve(__dirname,'../../..');
+const server=http.createServer((req,res)=>{
+  const file=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));
+  if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end();}
+  fs.readFile(file,(error,data)=>{res.writeHead(error?404:200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.svg')?'image/svg+xml':file.endsWith('.png')?'image/png':'text/html'});res.end(error?'not found':data);});
+});
+let browser,page;
+(async()=>{
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  browser=await chromium.launch({channel:'chrome',headless:true});
+  page=await browser.newPage({viewport:{width:1280,height:950},hasTouch:true});page.setDefaultTimeout(10000);
+  // Use the app's download fallback instead of an OS file picker in headless Chrome.
+  await page.addInitScript(()=>Object.defineProperty(window,'showSaveFilePicker',{value:undefined,configurable:true}));
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  await page.goto(process.env.GRAPH_TEST_URL||'http://127.0.0.1:'+server.address().port+'/tools/graph/index.html');
+  const settle=()=>page.waitForFunction(()=>window.GraphEditor&&!GraphEditor.getState().drawing);
+  const doc=()=>page.evaluate(()=>GraphEditor.getDocument());
+  const load=async value=>{await page.locator('#file-input').setInputFiles({name:'relative.graph.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(value))});await page.waitForFunction(name=>GraphEditor.getDocument().name===name,value.name);await settle();};
+  const editor=page.locator('.graph-table-editor'),formula=editor.getByLabel('計算式',{exact:true});
+  const cell=(r,c)=>editor.locator('[data-cell="'+r+','+(c-1)+'"]');
+  const apply=()=>editor.getByRole('button',{name:'適用',exact:true}).click();
+  const submit=async()=>{await page.locator('#dialog-submit').click();await page.waitForFunction(()=>!document.querySelector('#editor-dialog').open&&!GraphEditor.getState().drawing);};
+  const item=()=>page.locator('[data-object-type="series"][data-object-id="relative"]');
+  const open=async()=>{await item().dblclick();await editor.waitFor();};
+  const add=async name=>{await editor.getByRole('button',{name:'計算列を追加',exact:true}).click();await editor.getByLabel('計算列の名前',{exact:true}).fill(name);};
+  await settle();
+  const initial=C.createDocument();initial.name='前後参照の動作確認';initial.axes.y.min=0;initial.axes.y.max=70;
+  const series=C.createSeries('data2d');series.id='relative';series.name='気温';
+  T.assign(series,{columns:['時刻','気温'],rows:[[0,10],[1,20],[2,30],[3,40],[4,50]],mapping:{x:0,y:1,z:null,errorX:null,errorY:null}});initial.series=[series];
+  await load(initial);await open();await add('差分');
+  await editor.getByLabel('列を式へ挿入',{exact:true}).selectOption('row:1');await formula.press('End');await formula.press('Minus');
+  await editor.getByLabel('列を式へ挿入',{exact:true}).selectOption('prev:1');
+  assert.equal(await formula.inputValue(),'[@気温]-[@気温,-1]');await apply();
+  assert.equal(await cell(1,3).inputValue(),'');assert.equal(await cell(2,3).inputValue(),'10');
+  await add('次の値');await editor.getByLabel('列を式へ挿入',{exact:true}).selectOption('next:1');
+  assert.equal(await formula.inputValue(),'[@気温,+1]');await apply();
+  assert.equal(await cell(1,4).inputValue(),'20');assert.equal(await cell(5,4).inputValue(),'');
+  await add('移動平均');await editor.locator('.graph-table-editor__relative summary').click();
+  await editor.getByLabel('前後参照の列',{exact:true}).selectOption('1');
+  await editor.getByLabel('参照する行',{exact:true}).selectOption('window');
+  assert.equal(await editor.locator('.graph-table-editor__reference-example').innerText(),'AVERAGE([@気温,-2:0])');
+  await editor.getByLabel('範囲の先頭（前・後）',{exact:true}).fill('1');assert(await editor.getByRole('button',{name:'式へ挿入',exact:true}).isDisabled());
+  await editor.getByLabel('範囲の先頭（前・後）',{exact:true}).fill('-2');
+  await editor.getByRole('button',{name:'式へ挿入',exact:true}).click();
+  assert.equal(await formula.inputValue(),'AVERAGE([@気温,-2:0])');
+  assert.match(await editor.locator('.graph-table-editor__calculation-preview').innerText(),/1行目: —[\s\S]*2行目: —[\s\S]*3行目: 20/);
+  await page.screenshot({path:'/private/tmp/graph-relative-desktop.png'});await apply();
+  await editor.getByLabel('2行目を回帰に使用',{exact:true}).uncheck();assert.equal(await cell(3,5).inputValue(),'20');
+  await cell(1,2).fill('16');await cell(1,2).press('Tab');assert.equal(await cell(3,5).inputValue(),'22');assert.equal(await cell(2,3).inputValue(),'4');
+  await editor.getByLabel('2列目の名前',{exact:true}).fill('気温,補正');await editor.getByLabel('2列目の名前',{exact:true}).press('Tab');
+  await editor.getByRole('button',{name:'移動平均の式を編集',exact:true}).click();assert.equal(await formula.inputValue(),'AVERAGE([@"気温,補正",-2:0])');await editor.getByRole('button',{name:'取消',exact:true}).click();
+  await editor.getByLabel('2行目を選択',{exact:true}).check();await editor.getByRole('button',{name:'選択行を削除',exact:true}).click();
+  assert.equal(await cell(2,3).inputValue(),'14');assert(Math.abs(Number(await cell(3,5).inputValue())-86/3)<1e-6);
+  await editor.getByRole('button',{name:'行を追加',exact:true}).click();await cell(5,1).fill('5');await cell(5,2).fill('60');await cell(5,2).press('Tab');
+  assert.equal(await cell(4,4).inputValue(),'60');assert.equal(await cell(5,5).inputValue(),'50');
+  await editor.getByLabel('縦軸の列',{exact:true}).selectOption('4');await submit();
+  const saved=await doc();assert.equal(saved.version,13);assert.deepEqual(saved.series[0].rows.map(row=>row[1]),[null,null,86/3,40,50]);
+  assert.equal(saved.series[0].dataTable.formulas[2],'[@"気温,補正"]-[@"気温,補正",-1]');
+  assert(await page.locator('#plot').evaluate(plot=>plot.data.some(trace=>Array.from(trace.y||[]).includes(50))),'recalculated values are plotted');
+  await page.locator('#undo').click();await settle();assert.equal((await doc()).series[0].dataTable.formulas,undefined);
+  await page.locator('#redo').click();await settle();assert.deepEqual(await doc(),saved);
+  await page.locator('#file-menu summary').click();const download=page.waitForEvent('download');await page.locator('#save-local').click();
+  const file=JSON.parse(fs.readFileSync(await (await download).path(),'utf8'));assert.deepEqual(file,saved);
+  await load({...C.createDocument(),name:'空の図'});await load(file);assert.deepEqual(await doc(),saved);
+  // Custom offsets, draft retention, keyboard operation and narrow dark layouts.
+  await page.locator('#view-menu summary').click();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');
+  await page.setViewportSize({width:390,height:850});await page.locator('#list-toggle').tap();await item().tap();
+  await page.locator('#selection-toolbar').getByRole('button',{name:'数表・出典',exact:true}).tap();await editor.waitFor();await add('2行前');
+  await editor.locator('.graph-table-editor__relative summary').focus();await page.keyboard.press('Enter');
+  await editor.getByLabel('前後参照の列',{exact:true}).selectOption('1');await editor.getByLabel('何行前・後',{exact:true}).fill('-2');
+  await editor.getByRole('button',{name:'行を追加',exact:true}).click();
+  assert(await editor.locator('.graph-table-editor__relative').getAttribute('open')!==null);
+  assert.equal(await editor.getByLabel('何行前・後',{exact:true}).inputValue(),'-2');
+  await editor.getByRole('button',{name:'式へ挿入',exact:true}).tap();assert.equal(await formula.inputValue(),'[@"気温,補正",-2]');
+  await editor.getByLabel('参照する行',{exact:true}).selectOption('window');
+  await editor.getByLabel('範囲の集計方法',{exact:true}).selectOption('STDEV.S');
+  assert.equal(await editor.locator('.graph-table-editor__reference-example').innerText(),'STDEV.S([@"気温,補正",-2:0])');
+  assert(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth));assert(await page.locator('#editor-dialog').evaluate(el=>el.scrollWidth<=el.clientWidth+1));
+  await editor.getByRole('button',{name:'式へ挿入',exact:true}).scrollIntoViewIfNeeded();
+  assert(await page.locator('#dialog-submit').evaluate(el=>{const r=el.getBoundingClientRect();return r.bottom<=innerHeight&&el.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2));}));
+  await page.screenshot({path:'/private/tmp/graph-relative-mobile.png'});
+  await editor.getByRole('button',{name:'取消',exact:true}).click();await page.locator('#dialog-cancel').click();assert.deepEqual(await doc(),saved,'cancel preserves the saved table');
+  assert.deepEqual(errors,[]);console.log('relative-calculation-browser.test.cjs: ok');
+})().catch(async error=>{if(page)await page.screenshot({path:'/private/tmp/graph-relative-failure.png'}).catch(()=>{});console.error(error);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));});

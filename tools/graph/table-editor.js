@@ -7,6 +7,8 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(GraphTables){
   'use strict';
   const PAGE_SIZE=50,MAX_COLUMNS=20,MAX_ROWS=10000;
+  const REFERENCE_LABELS={row:'（同じ行）',prev:'（1行前）',next:'（1行後）',all:'（列全体）'};
+  const AGGREGATE_MENU=[['SUM','合計'],['AVERAGE','平均'],['MIN','最小'],['MAX','最大'],['COUNT','数値の個数'],['STDEV.P','母標準偏差（n）'],['STDEV.S','標本標準偏差（n−1）']];
   if(!GraphTables)throw new Error('GraphTables を先に読み込んでください。');
   const make=(tag,className,text)=>{const element=document.createElement(tag);if(className)element.className=className;if(text!==undefined)element.textContent=text;return element;};
   const button=(text,handler)=>{const element=make('button','graph-table-editor__button',text);element.type='button';element.addEventListener('click',handler);return element;};
@@ -131,7 +133,8 @@
         const input=root.querySelector('[aria-label="計算式"]');if(input)input.value=calculationDraft.formula;
       }
       root.querySelectorAll('.graph-table-editor__mapping option[value="'+index+'"]').forEach(option=>{option.textContent=name;});
-      root.querySelectorAll('[data-reference-column="'+index+'"]').forEach(option=>{option.textContent=name+(option.dataset.referenceMode==='row'?'（同じ行）':'（列全体）');});
+      root.querySelectorAll('[data-reference-column="'+index+'"]').forEach(option=>{option.textContent=name+(REFERENCE_LABELS[option.dataset.referenceMode]||'');});
+      root.querySelector('[aria-label="前後参照の列"]')?.dispatchEvent(new Event('input'));
       refreshCalculations();updateComputedCells();if(refreshCalculationPreview)refreshCalculationPreview();clearReport();
     }
     function beginCalculation(index){
@@ -162,25 +165,25 @@
       const nameInput=make('input','');nameInput.type='text';nameInput.maxLength=80;nameInput.value=draft.name;nameInput.setAttribute('aria-label','計算列の名前');
       const formula=make('textarea','');formula.rows=2;formula.maxLength=1000;formula.value=draft.formula;formula.setAttribute('aria-label','計算式');
       panel.append(label('名前',nameInput),label('式',formula));
-      panel.appendChild(make('p','graph-table-editor__calculation-help','[@列名] は同じ行、[列名] は列全体。集計は空欄を除く全行を使い、回帰の除外設定には左右されません。'));
+      panel.appendChild(make('p','graph-table-editor__calculation-help','[@列名] は同じ行、[@列名,-1] は1行前、[列名] は列全体。行の範囲も集計できます。'));
       const menus=make('div','graph-table-editor__calculation-menus'),colSelect=make('select',''),fnSelect=make('select','');
       function placeholder(select,text){const option=make('option','',text);option.value='';select.appendChild(option);}
       colSelect.setAttribute('aria-label','列を式へ挿入');placeholder(colSelect,'列を挿入…');
       table.columns.forEach((name,i)=>{
         if(table.columnTypes[i]!=='number')return;
-        for(const mode of ['row','all']){
-          const option=make('option','',name+(mode==='row'?'（同じ行）':'（列全体）'));
+        for(const mode of ['row','prev','next','all']){
+          const option=make('option','',name+REFERENCE_LABELS[mode]);
           option.value=mode+':'+i;option.dataset.referenceColumn=i;option.dataset.referenceMode=mode;colSelect.appendChild(option);
         }
       });
       colSelect.addEventListener('change',()=>{
         if(!colSelect.value)return;
         const [mode,rawIndex]=colSelect.value.split(':'),i=Number(rawIndex);
-        formula.setRangeText(calculations().reference(table.columns[i],mode==='row'),formula.selectionStart,formula.selectionEnd,'end');
+        formula.setRangeText(calculations().reference(table.columns[i],mode!=='all',mode==='prev'?-1:mode==='next'?1:0),formula.selectionStart,formula.selectionEnd,'end');
         formula.dispatchEvent(new Event('input'));colSelect.value='';formula.focus();
       });
       fnSelect.setAttribute('aria-label','関数を式へ挿入');placeholder(fnSelect,'関数を挿入…');
-      for(const [value,text] of [['SUM','合計'],['AVERAGE','平均'],['MIN','最小'],['MAX','最大'],['COUNT','数値の個数'],['STDEV.P','母標準偏差（n）'],['STDEV.S','標本標準偏差（n−1）'],['sqrt','平方根'],['ln','自然対数'],['log','常用対数'],['abs','絶対値']]){
+      for(const [value,text] of [...AGGREGATE_MENU,['sqrt','平方根'],['ln','自然対数'],['log','常用対数'],['abs','絶対値']]){
         const option=make('option','',text);option.value=value;fnSelect.appendChild(option);
       }
       fnSelect.addEventListener('change',()=>{
@@ -191,6 +194,7 @@
         formula.dispatchEvent(new Event('input'));fnSelect.value='';formula.focus();
       });
       menus.append(colSelect,fnSelect);panel.appendChild(menus);
+      panel.appendChild(relativeReferencePanel(draft,formula));
       const preview=make('div','graph-table-editor__calculation-preview');panel.appendChild(preview);
       function updatePreview(){
         draft.name=nameInput.value;draft.formula=formula.value;
@@ -219,6 +223,61 @@
         }catch(error){report(error);}
       }),button('取消',()=>{calculationDraft=null;clearReport();render();}));
       panel.appendChild(actions);return panel;
+    }
+    function relativeReferencePanel(draft,formula){
+      const settings=draft.relative||(draft.relative={column:table.columnTypes.findIndex((type,i)=>type==='number'&&i!==draft.index),mode:'single',offset:'-1',start:'-2',end:'0',aggregate:'AVERAGE',open:false});
+      const details=make('details','graph-table-editor__relative'),summary=make('summary','','行・範囲を指定…');
+      details.open=settings.open;details.appendChild(summary);
+      details.addEventListener('toggle',()=>{settings.open=details.open;});
+      const fields=make('div','graph-table-editor__relative-fields'),column=make('select',''),mode=make('select',''),aggregate=make('select','');
+      column.setAttribute('aria-label','前後参照の列');
+      table.columns.forEach((name,i)=>{
+        if(table.columnTypes[i]!=='number'||i===draft.index)return;
+        const option=make('option','',name);option.value=String(i);option.dataset.referenceColumn=i;column.appendChild(option);
+      });
+      column.value=String(settings.column);
+      mode.setAttribute('aria-label','参照する行');
+      for(const [value,text] of [['single','1行を参照'],['window','範囲を集計']]){const option=make('option','',text);option.value=value;mode.appendChild(option);}
+      mode.value=settings.mode;
+      aggregate.setAttribute('aria-label','範囲の集計方法');
+      for(const [value,text] of AGGREGATE_MENU){const option=make('option','',text);option.value=value;aggregate.appendChild(option);}
+      aggregate.value=settings.aggregate;
+      function offsetInput(key,text){
+        const input=make('input','');input.type='number';input.min='-10000';input.max='10000';input.step='1';input.required=true;input.value=settings[key];input.setAttribute('aria-label',text);return input;
+      }
+      const offset=offsetInput('offset','何行前・後'),start=offsetInput('start','範囲の先頭（前・後）'),end=offsetInput('end','範囲の末尾（前・後）');
+      const oneField=label('何行前・後',offset),startField=label('範囲の先頭',start),endField=label('範囲の末尾',end),aggregateField=label('集計方法',aggregate);
+      fields.append(label('列',column),label('参照する行',mode),oneField,startField,endField,aggregateField);
+      const example=make('code','graph-table-editor__reference-example'),message=make('p','graph-table-editor__calculation-help');
+      const insert=button('式へ挿入',()=>{
+        try{
+          const text=snippet();formula.setRangeText(text,formula.selectionStart,formula.selectionEnd,'end');
+          formula.dispatchEvent(new Event('input'));formula.focus();
+        }catch(error){message.textContent=error.message;}
+      });
+      function readOffset(input){
+        const value=Number(input.value);
+        if(!input.value.trim()||!Number.isInteger(value)||Math.abs(value)>10000)throw new Error('前後の行数は−10000〜10000の整数で指定してください。');
+        return value;
+      }
+      function snippet(){
+        if(column.value===''||!table.columns[Number(column.value)])throw new Error('参照する数値列を選んでください。');
+        const name=table.columns[Number(column.value)];
+        if(mode.value==='single')return calculations().reference(name,true,readOffset(offset));
+        const first=readOffset(start),last=readOffset(end);
+        if(first>last)throw new Error('範囲の先頭は末尾以下にしてください。');
+        return aggregate.value+'('+calculations().reference(name,true,first,last)+')';
+      }
+      function update(){
+        Object.assign(settings,{column:column.value===''?-1:Number(column.value),mode:mode.value,offset:offset.value,start:start.value,end:end.value,aggregate:aggregate.value});
+        const window=mode.value==='window';oneField.hidden=window;offset.disabled=window;
+        for(const [field,input] of [[startField,start],[endField,end],[aggregateField,aggregate]]){field.hidden=!window;input.disabled=!window;}
+        try{example.textContent=snippet();message.textContent='表の外を参照する行や、範囲が表からはみ出す行の結果は空欄になります。';insert.disabled=false;}
+        catch(error){example.textContent='';message.textContent=error.message;insert.disabled=true;}
+      }
+      for(const input of [column,mode,aggregate,offset,start,end])input.addEventListener('input',update);
+      details.append(fields,make('p','graph-table-editor__calculation-help','−1 は1行前、0 は同じ行、+1 は1行後。範囲は両端を含み、空欄や回帰から除外した行も数えます。'),example,message,insert);
+      update();return details;
     }
     function render(){
       refreshCalculationPreview=null;root.replaceChildren();ensurePage();
