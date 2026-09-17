@@ -3,7 +3,7 @@ const Catalog = require('../open-data-catalog.js');
 const Data = require('../data-import.js');
 
 const items = Catalog.list();
-assert.equal(items.length, 4);
+assert.equal(items.length, 7);
 const ids = new Set(items.map(item => item.id));
 assert.equal(ids.size, items.length);
 for (const item of items) {
@@ -13,8 +13,9 @@ for (const item of items) {
   assert.equal(item.checkedAt, '2026-09-17');
   const parsed = Data.parse(item.csv);
   const inspection = Data.inspect(parsed);
-  assert.ok([8, 12].includes(inspection.rows.length), item.id);
+  assert.ok([8, 12, 20, 25].includes(inspection.rows.length), item.id);
   assert.ok(inspection.columns.length >= 2 && inspection.columns.length <= 20, item.id);
+  assert.ok(inspection.columns.every(column => column.type === 'number'), item.id);
   const projected = Data.project(inspection, {kind: 'data2d', x: item.x, y: item.y, columns: [item.x, item.y]});
   assert.equal(projected.table.mapping.x, 0, item.id);
   assert.equal(projected.table.mapping.y, 1, item.id);

@@ -38,7 +38,7 @@ let browser;
     if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click();
     await page.locator('#import-csv').click(); await page.locator('#editor-dialog[open]').waitFor();
   };
-  assert.equal((await page.evaluate(() => GraphEditor.getTemplates().length)), 26, '標準テンプレート26件');
+  assert.equal((await page.evaluate(() => GraphEditor.getTemplates().length)), 30, '標準テンプレート30件');
 
   await openTemplate('水の状態図');
   let current = await doc();

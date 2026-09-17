@@ -3,7 +3,7 @@ const GraphTemplates = require('../templates.js');
 const GraphCore = require('../core.js');
 
 const templates = GraphTemplates.list();
-assert.strictEqual(templates.length, 26);
+assert.strictEqual(templates.length, 30);
 assert.strictEqual(new Set(templates.map(t => t.id)).size, templates.length);
 for (const template of templates) {
   assert.ok(template.name && template.category && template.description);

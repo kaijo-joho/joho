@@ -297,10 +297,7 @@
     bar.dataset.selectionKey=key;bar.replaceChildren();bar.hidden=!s&&!p&&!a;bar.classList.toggle('has-colors',!!(s||a));
     if(s) {
       bar.append(node('span',s.name||kindNames[s.kind],{class:'selection-name'}),iconButton('edit',s.kind.startsWith('data')?'数表・出典':'数式・範囲',()=>editSeries(s.id),{'data-quick-control':'edit-detail','aria-haspopup':'dialog'}));
-      const more=node('div');
-      if(s.kind.startsWith('data')) more.append(button('数値をCSVで保存',()=>{const table=GraphTables.fromSeries(s,{x:symbol('x'),y:symbol('y'),z:symbol('z')});download(C.tableCSV(table.rows,table.columns),filename(s.name||'数表')+'.csv','text/csv;charset=utf-8');}));
-      if(!matchesMode(s)) more.append(button(kindNames[s.kind].startsWith('3D')?'3Dで表示':'2Dで表示',()=>switchMode(kindNames[s.kind].startsWith('3D')?'3d':'2d')));
-      if(more.children.length){const details=node('details',null,{class:'popup-details'}),summary=node('summary',null,{'aria-label':'その他',class:'icon-button','data-tip':'その他'});summary.append(GraphIcons.create('more',document));details.append(summary,more);bar.append(details);}
+      if(!matchesMode(s))bar.append(button(kindNames[s.kind].startsWith('3D')?'3Dで表示':'2Dで表示',()=>switchMode(kindNames[s.kind].startsWith('3D')?'3d':'2d')));
     } else if(a) {
       bar.append(node('span',a.name||annotationNames[a.kind],{class:'selection-name'}),iconButton('edit','位置・設定',()=>editAnnotation(a.id),{'data-quick-control':'edit-detail','aria-haspopup':'dialog'}));
       if(current().mode==='3d')bar.append(button('2Dで表示',()=>switchMode('2d')));
@@ -606,6 +603,10 @@
       if(isData){
         $('editor-dialog').classList.add('wide-dialog');
         table=GraphTableEditor.mount(parent,s,{symbols:{x:symbol('x'),y:symbol('y'),z:symbol('z')},selectedRow:options.selectedRow??(observedSelection?.seriesId===s.id?observedSelection.rowIndex:undefined),onError:report});
+        const actions=node('div',null,{class:'table-export-actions'});
+        actions.append(button('数値をCSVで保存',()=>{
+          const draft=table.read();download(C.tableCSV(draft.rows,draft.columns),filename(name.value.trim()||s.name||'数表')+'.csv','text/csv;charset=utf-8');notify('編集中の数表をCSVで保存しました。');
+        }));parent.insertBefore(actions,table.element);
         parent.append(node('p','空欄は欠測として扱います。表計算の複数セルをそのまま貼り付けられます。「回帰」のチェックを外した行も、元の数表・統計量・分布図には残ります。使用・除外はこの数表を使うすべての回帰に反映します。',{class:'small muted'}));
         if(!is3){const g=grid(parent);interpolation=choice(g,'点の結び方',s.style.lines?s.interpolation:'none',[['none','結ばない（散布図）'],['linear','入力順に直線で結ぶ'],['monotone','滑らかに補間（PCHIP）']]);dataPoints=check(g,'元の点を表示',s.style.points);parent.append(node('p','誤差列は0以上の±幅。滑らかな補間には各連続区間の横軸の値が昇順または降順である必要があります。',{class:'small muted'}));}
       }else{
@@ -1256,6 +1257,16 @@
   function updateOutputControls() {
     if(!history)return;
     for(const [key,value]of Object.entries(current().output)){const input=$('output-'+key);if(!input)continue;if(typeof value==='boolean')input.checked=value;else input.value=value;}
+    $('output-preset').value=GraphPublication.presetId(current().output);updateOutputSize();
+  }
+  function updateOutputSize() {
+    const note=$('export-size-note');
+    try{const size=GraphPublication.rasterSize({width:requiredNumber($('output-width')),height:requiredNumber($('output-height'))},Number($('export-scale').value));note.textContent='PNG出力：'+size.width+' × '+size.height+' px';note.classList.remove('error');}
+    catch(error){note.textContent=error.message;note.classList.add('error');}
+  }
+  function chooseOutputPreset() {
+    const id=$('output-preset').value;if(id==='custom')return;
+    changed(doc=>{doc.output=GraphPublication.applyPreset(doc.output,id);},'画像の寸法・余白・文字サイズを設定しました。',false,false);
   }
   function saveOutputControls() {
     const out=C.clone(current().output);
@@ -1268,13 +1279,69 @@
     if(workspaceView!=='main')return W.exportChart($('analysis-plot'),out);
     return P.exportImage($('plot'),options);
   }
+  function outputStatus(message,error=false) {$('export-status').textContent=message;$('export-status').classList.toggle('error',error);}
+  function setOutputBusy(value) {
+    exportBusy=value;for(const id of ['copy-image','export-image','image-preview','print-preview'])$(id).disabled=value;
+    if(!value&&drawPending)requestDraw();
+  }
+  function prepareImage(options) {
+    if(exportBusy)return null;
+    saveOutputControls();cancelTangentDraft();cancelParameterPreview();
+    const view=workspaceView,ready=requestDraw();setOutputBusy(true);outputStatus('画像を作成しています…');
+    return ready.then(async()=>{
+      if(view!==workspaceView)throw new Error('表示するグラフが変わりました。もう一度書き出してください。');
+      const doc=C.clone(current()),out={...doc.output,...options};
+      if(view==='main')out.title=false;
+      if(out.format==='png')GraphPublication.rasterSize(out,out.scale);
+      const url=await exportWorkspace(out);
+      return {url,format:out.format,name:doc.name,output:out,filename:filename(doc.name)+(view==='main'?'':view==='comparison'?'-比較':'-分析')+'.'+out.format};
+    });
+  }
+  function savePreparedImage(result) {
+    const a=node('a',null,{href:result.url,download:result.filename});document.body.append(a);a.click();a.remove();
+  }
+  async function copyImage() {
+    if(exportBusy)return;
+    if(!navigator.clipboard?.write||!window.ClipboardItem){const error=new Error('この環境では画像をコピーできません。「画像を保存」でPNGを保存して貼り付けてください。');outputStatus(error.message,true);throw error;}
+    const pending=prepareImage({format:'png',scale:Number($('export-scale').value),background:$('export-background').value});if(!pending)return;
+    try{await GraphPublication.copyPNG(pending.then(result=>result.url));outputStatus('PNGをコピーしました。貼り付け先で ⌘V / Ctrl+V を押してください。');notify('PNGをコピーしました。');}
+    catch(error){outputStatus(error.message,true);throw error;}
+    finally{await pending.catch(()=>{});setOutputBusy(false);}
+  }
+  async function imagePreview() {
+    const pending=prepareImage({format:$('export-format').value,scale:Number($('export-scale').value),background:$('export-background').value});if(!pending)return;
+    try{
+      const result=await pending;
+      openDialog('画像の確認',parent=>{
+        $('editor-dialog').classList.add('wide-dialog');
+        const preview=node('div',null,{class:'image-export-preview','data-background':result.output.background});
+        preview.append(node('img',null,{src:result.url,alt:result.name+'の出力画像'}));parent.append(preview);
+        parent.append(button('この画像を保存',()=>{savePreparedImage(result);notify('確認した画像を保存しました。');},{class:'primary full-button'}));
+      });outputStatus('画像を確認しています。');
+    }catch(error){outputStatus(error.message,true);throw error;}
+    finally{setOutputBusy(false);}
+  }
+  function showOutputSources() {
+    const text=GraphPublication.sourceText(current());
+    openDialog('作品の出典・条件',parent=>{
+      if(!text){parent.append(node('p','出典・条件はまだ登録されていません。数式・数表の詳細画面で記録できます。'));return;}
+      $('editor-dialog').classList.add('wide-dialog');
+      parent.append(node('p','非表示の系列も含めた作品全体の出典です。貼り付ける図に必要な出典を確認して、教材へ添えてください。',{class:'small muted'}));
+      const input=area(parent,'出典・条件のテキスト',text);input.readOnly=true;input.className='publication-sources';
+      const status=node('p',null,{class:'small',role:'status'});
+      parent.append(button('出典・条件をコピー',async()=>{
+        try{if(!navigator.clipboard?.writeText)throw new Error();await navigator.clipboard.writeText(text);status.textContent='出典・条件をコピーしました。';}
+        catch{input.focus();input.select();status.textContent='テキストを選択しました。⌘C / Ctrl+C でコピーできます。';}
+      }),status);
+    });
+  }
   function fitComparisonOutput() {
     saveOutputControls();
     changed(d=>{const columns=Math.min(d.comparison.columns,d.comparison.items.length),rows=Math.ceil(d.comparison.items.length/columns),out=d.output,title=Math.max(24,out.fontSize+10);out.width=Math.max(out.width,columns*400+(columns+1)*out.margin);out.height=Math.max(out.height,rows*(300+title)+(rows+1)*out.margin);},'比較用の画像サイズを調整しました。',false);
   }
   async function printPreview() {
     if(exportBusy)return;saveOutputControls();cancelTangentDraft();await requestDraw();if(exportBusy)return;
-    exportBusy=true;$('print-preview').disabled=true;
+    setOutputBusy(true);
     try{
       const doc=C.clone(current()),out=doc.output,is3=workspaceHas3D();
       const url=await exportWorkspace({format:is3?'png':'svg',scale:1,background:'white'});
@@ -1292,12 +1359,13 @@
         parent.append(node('p','印刷画面では倍率100%・ヘッダーとフッターをオフにすると、この配置で印刷できます。PDFとして保存することもできます。',{class:'small muted'}));
       });
       await Promise.all([...sheet.querySelectorAll('img')].map(img=>img.decode()));
-    }finally{exportBusy=false;$('print-preview').disabled=false;if(drawPending)requestDraw();}
+    }finally{setOutputBusy(false);}
   }
   async function exportImage() {
-    if(exportBusy)return;saveOutputControls();cancelTangentDraft();await requestDraw();if(exportBusy)return;exportBusy=true;$('export-image').disabled=true;
-    try{const format=$('export-format').value,url=await exportWorkspace({format,scale:Number($('export-scale').value),background:$('export-background').value});const a=node('a',null,{href:url,download:filename(current().name)+(workspaceView==='main'?'':workspaceView==='comparison'?'-比較':'-分析')+'.'+format});document.body.append(a);a.click();a.remove();notify('画像を書き出しました。');}
-    finally{exportBusy=false;$('export-image').disabled=false;if(drawPending)requestDraw();}
+    const pending=prepareImage({format:$('export-format').value,scale:Number($('export-scale').value),background:$('export-background').value});if(!pending)return;
+    try{savePreparedImage(await pending);outputStatus('画像を保存しました。');notify('画像を書き出しました。');}
+    catch(error){outputStatus(error.message,true);throw error;}
+    finally{setOutputBusy(false);}
   }
   function startup() {
     if(!C||!P||!S)throw new Error('アプリの読み込みに失敗しました。ページを再読み込みしてください。');
@@ -1340,7 +1408,11 @@
     listen('new-document','click',()=>{closeMenus();loadDocument(C.createDocument());notify('新しいグラフを開きました。元に戻すこともできます。');});
     listen('file-input','change',async()=>{const file=$('file-input').files[0];$('file-input').value='';if(!file)return;if(file.size>2*1024*1024)throw new Error('再編集ファイルは2MB以内にしてください。');loadDocument(C.validateDocument(await file.text()));notify('グラフを読み込みました。');});
     listen('import-csv','click',()=>importData());listen('csv-input','change',()=>{const file=$('csv-input').files[0];$('csv-input').value='';if(file)importData(file);});
+    for(const preset of GraphPublication.presets())$('output-preset').append(node('option',preset.name,{value:preset.id}));
+    listen('output-preset','change',chooseOutputPreset);listen('export-scale','change',updateOutputSize);
+    for(const key of ['width','height'])listen('output-'+key,'input',updateOutputSize);
     for(const key of Object.keys(current().output))listen('output-'+key,'change',saveOutputControls);
+    listen('copy-image','click',copyImage);listen('image-preview','click',imagePreview);listen('export-sources','click',showOutputSources);
     listen('print-preview','click',printPreview);listen('export-image','click',exportImage);listen('fit-comparison-output','click',fitComparisonOutput);listen('dialog-close','click',closeDialog);listen('dialog-cancel','click',closeDialog);
     $('editor-dialog').addEventListener('cancel',event=>{event.preventDefault();closeDialog();});
     $('dialog-form').addEventListener('submit',event=>{event.preventDefault();$('dialog-error').hidden=true;try{if(dialogApply){dialogApply();closeDialog();}}catch(error){report(error);}});
