@@ -283,6 +283,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <label class="chk"><input type="checkbox" id="chkLabels">原子の記号を表示</label>
         <label class="chk"><input type="checkbox" id="chkHideH">H を隠す（C に結合した H）</label>
         <label class="chk" title="原子の電気陰性度から部分電荷を求めて色分けする（赤＝負・青＝正）"><input type="checkbox" id="chkCharges">電荷で色分け（赤＝負・青＝正）</label>
+        <label class="chk" title="水素結合（O–H···O、N–H···O など）を細い水色の線で表す"><input type="checkbox" id="chkHB">水素結合を表示</label>
         <div class="mrow" title="見る軌道を選びます。HOMO＝電子が入っているいちばん上の軌道、LUMO＝その 1 つ上の空の軌道">見る軌道
           <button class="sbtn" id="piPrev" aria-label="1 つ下の軌道へ">◀</button>
           <span id="piWhichLab"></span>
@@ -514,6 +515,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
     <div class="body help" id="helpBody">
       <table>
         <tr><td>分子を表示する</td><td>左上の「化合物ライブラリ」（または画面右端のタブ）から化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
+        <tr><td>水素結合</td><td>「表示 ▼」の<b>「水素結合を表示」</b>で、O–H···O や N–H···O などの水素結合を<b>細い水色の線</b>で表します（結晶モードの氷と同じ色）。水分子どうし、酢酸の二量体、デンプンのらせんを保つ 2 位・3 位の OH のはしご、DNA の相補塩基対のような場面で使えます。判定は <b>H から相手までが 2.6 Å 以内で、O–H···O の角度が 130° 以上</b>。<b>H の向きで判断している</b>ので、同じ組に 2 本引かれることはありません（水素結合には向きがあり、結びついているのは片方だけです）。<b>注意</b>：この模型の OH の H の向きは組み立てたときのままで、いちばん落ち着く向きに直していません。そのため本当は水素結合があるのに出ないことがあります（サリチル酸の分子内の水素結合など）。分子を並べて見せるときは、H の向きも確かめてください。</td></tr>
         <tr><td>デンプンとセルロース</td><td>「糖類」に<b>デンプン（アミロースのらせん・グルコース 10 個分）</b>があります。グリコシド結合のねじれを与えて<b>左巻きのらせん</b>にしてあり、横から見るとらせんの巻きが、軸の方向から見ると中心付近のすきまが分かります。同じグルコースからできていても、<b>セルロース</b>（「セルロース（グルコース 3 個分）」）は<b>まっすぐな帯</b>になります（β-1,4 結合では単位が交互に裏返るため。グルコース 1 個あたり 5.2 Å ずつまっすぐ伸びます）。デンプンは糊やヨウ素デンプン反応、セルロースは束ねて丈夫な繊維になること——同じ単位からできた高分子で性質が違う理由を、形から見られます。<b>注意</b>：らせんは実際のデンプンより伸びています。1 回転あたり約 6.8 個は実際の約 6 個に近いのですが、1 回転の高さは約 15 Å で実際の約 8 Å より大きくなります。この模型には水素結合で引き寄せる力がないためで、形の傾向をつかむためのものと考えてください。</td></tr>
         <tr><td>結晶格子</td><td>上部の「結晶」に切り替えると、結晶格子を表示します（体心立方格子・面心立方格子・六方最密構造・NaCl 型・CsCl 型・ZnS 型・CaF<sub>2</sub> 型・ダイヤモンド・二酸化ケイ素・黒鉛・ドライアイス・氷・フラーレン C<sub>60</sub> の結晶・カーボンナノチューブ）。フラーレン C<sub>60</sub> の分子は化合物ライブラリの「炭素の同素体」にあります。原子をクリックすると、まわりの最も近い粒子（分子結晶では分子）を強調して線で結び、画面下に数と距離を出します（並べた全体の端の原子は、外側がないので少なく見えます）。六方晶は「六角柱で表示」で六角柱の単位格子にできます。氷の水素結合は細い水色の線で表します（H の向きは氷の規則に合う一例）。左のパネルで種類と並べる単位格子の数を選び、「単位格子の面で原子を切る」で面からはみ出した部分を切ります（頂点の原子の 1/8 などが見えます）。「断面」では、3 つの整数 (h k l) で指定した面で切り、位置のスライダー（原子の中心が並ぶ面で一度止まります）と「断面を正面に」で切り口を見られます。「断面の面を表示」で切る面を半透明の板で示します。「切る前の結晶に戻す」を押すと、断面も単位格子の面での切り取りもやめて、切る前の結晶に戻ります。「原子を 3 つクリックして面を決める」を押して結晶の原子を 3 つクリックすると、その 3 つを通る面で切ることもできます（(h k l) を知らなくても断面を選べます）。たとえば面心立方格子を (1 1 1) で切ると最密の層が現れ、立方最密構造と同じであることが分かります。画面下に格子定数・単位格子中の原子の数・配位数・充填率が出ます。「分子」で分子の表示に戻ります。</td></tr>
         <tr><td>構造式エディタから</td><td>構造式エディタで描いた分子を 3D にできます。化合物ライブラリの「構造式エディタの図を取り込む」を押すと、同じブラウザで開いている構造式エディタの図（自動保存されたもの）を取り込みます。構造式エディタで保存した .json ファイルは「開く」から取り込めます。くさび形・破線くさびの結合、ハースの投影式の上下、二重結合のシス・トランスは立体配置として取り込み、置換基のラベル（COOH・C<sub>2</sub>H<sub>5</sub>・Ph など）は原子に直します。R・X などの一般の記号や金属を含む構造は取り込めません。</td></tr>
@@ -544,7 +546,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.20 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.21 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -2125,6 +2127,49 @@ const LIB = [
 ];
 // グルコース（1 位で結合する側）。alpha：α か β、r：環の番号、x：4 位の O に付けるもの（アミロース・セルロースの鎖をのばす）
 function glc1(alpha, r, x = ''){ return `[C@${alpha ? '@' : ''}H]${r}[C@@H]([C@H]([C@@H]([C@H](O${r})CO)O${x})O)O`; }
+
+// ===== 水素結合（O–H···O、N–H···O など）=====
+// H の向きで判定する。重原子どうしの距離だけで決めると、**同じ O···O の組を両方向から二重に数えてしまう**
+// （水素結合には向きがあり、実際に結合しているのは片方だけ。アミロースで 17 組と 8 本の差として確かめた）。
+// D（H を持つ N・O・F）→ H ··· A（電子対を持つ N・O・F）。H···A ≤ 2.6 Å かつ D–H···A ≥ 130°。
+// 結合をたどって 3 つ以内しか離れていない組は、同じ官能基のまわりなので除く（となり合う OH どうしなど）。
+// H 1 つにつき 1 本だけ（いちばん近い相手）。
+const HB_EL = {N:1, O:1, F:1};
+function hydrogenBonds(mol, P, maxHA = 2.6, minAng = 130){
+  const A = mol.atoms, out = [];
+  const farEnough = (d, a) => {   // d から 3 結合以内に a があれば、水素結合とはみなさない
+    const seen = new Set([d]);
+    let front = [d];
+    for (let k = 1; k <= 3; k++){
+      const next = [];
+      for (const x of front) for (const y of A[x].nb){
+        if (y === a) return false;
+        if (!seen.has(y)){ seen.add(y); next.push(y); }
+      }
+      front = next;
+    }
+    return true;
+  };
+  for (let d = 0; d < A.length; d++){
+    if (!HB_EL[A[d].el]) continue;
+    for (const h of A[d].nb){
+      if (A[h].el !== 'H') continue;
+      let best = null;
+      for (let a = 0; a < A.length; a++){
+        if (a === d || !HB_EL[A[a].el]) continue;
+        if (A[a].el === 'N' && A[a].nb.length >= 4) continue;   // 電子対のない N（アンモニウムなど）
+        const dHA = V.dist(P[h], P[a]);
+        if (dHA > maxHA || (best && dHA >= best.dHA)) continue;
+        const u = V.norm(V.sub(P[d], P[h])), v = V.norm(V.sub(P[a], P[h]));
+        const ang = Math.acos(Math.max(-1, Math.min(1, V.dot(u, v))))*180/Math.PI;
+        if (ang < minAng || !farEnough(d, a)) continue;
+        best = {don:d, h, acc:a, dHA, ang, dDA:V.dist(P[d], P[a])};
+      }
+      if (best) out.push(best);
+    }
+  }
+  return out;
+}
 // ===== 化学 ここまで =====
 
 const $ = id => document.getElementById(id);
@@ -2133,7 +2178,7 @@ const $ = id => document.getElementById(id);
 // doc = {atoms:{id:原子}, bonds:{id:結合}, objs:{id:鏡など}, meas:[{id, atoms:[id]}], nid}
 function emptyDoc(){ return {atoms:{}, bonds:{}, objs:{}, meas:[], nid:1}; }
 let doc = emptyDoc();
-const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, charges:false, piOrb:false, piIso:0.5, piWhich:0, ball:0.28, tool:'rotate', addWhat:'C',   // ball：球の大きさ（既定は下の BALL と同じ値。BALL の定義はここより後ろなので数で書く）
+const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, charges:false, piOrb:false, piIso:0.5, piWhich:0, hbonds:false, ball:0.28, tool:'rotate', addWhat:'C',   // ball：球の大きさ（既定は下の BALL と同じ値。BALL の定義はここより後ろなので数で書く）
   world:'mol',   // 'mol' 分子、'xtal' 結晶格子
   xt:{key:'fcc', n:2, cellCut:false, cut:false, h:1, k:1, l:1, t:0.5, flip:false, hex:false, plate:true, pn:null}};   // pn：3 つの原子で決めた面の法線
 const view = {R:M3.id(), s:60, pan:[0, 0], center:[0, 0, 0]};   // s：1 Å あたりの画面の px
@@ -2337,6 +2382,15 @@ function buildScene(opt = {}){
           Cy.push(...s0, rr, ...s1, ...c); capSphere(s0, rr, c); capSphere(s1, rr, c);
         }
       } else half(p, q, stick, cp, cq);
+    }
+  }
+  // 水素結合：細い水色の線（結晶モードの氷と同じ色・太さ）。色に 10 を足したものは輪郭線なし
+  if (state.hbonds && info.hb){
+    const hcol = [0.45, 0.7, 0.95].map(v => v + 10);
+    for (const b of info.hb){
+      const H = doc.atoms[b.h], Ac = doc.atoms[b.acc];
+      if (!H || !Ac || !vis.has(b.h) || !vis.has(b.acc)) continue;
+      Cy.push(H.x, H.y, H.z, 0.035, Ac.x, Ac.y, Ac.z, ...hcol);
     }
   }
   // π 軌道の等値面（analyze で作ってある）：結合をまたいでつながった雲として、符号ごとにまとめる
@@ -2569,7 +2623,7 @@ function components(){
 function analyze(){
   const comps = components().map(ids => ({ids, f:formulaOf(ids.map(id => doc.atoms[id]))}));
   const {ids, atoms, bonds} = docArrays(), stereo = new Map();
-  let charges = null, pi = null;
+  let charges = null, pi = null, hb = null;
   if (atoms.length){
     const g = graphOf(atoms, bonds);
     for (const s of stereoCenters(g.mol, g.P)) stereo.set(ids[s.atom], s.rs);
@@ -2581,8 +2635,10 @@ function analyze(){
       // 等値面もここで作る（形が変わったときだけ。視点を動かしただけでは作り直さない）
       pi = huckelSystems(g.mol, g.P).map(s => ({...s, ids:s.atoms.map(i => ids[i]), mesh:orbitalMesh(s, g.P, state.piIso, state.piWhich)}));
     }
+    // 水素結合（表示するときだけ探す）。番号を doc の id に直しておく
+    if (state.hbonds) hb = hydrogenBonds(g.mol, g.P).map(x => ({h:ids[x.h], acc:ids[x.acc], don:ids[x.don], dDA:x.dDA}));
   }
-  info = {comps, stereo, charges, pi};
+  info = {comps, stereo, charges, pi, hb};
   syncPiWhich();   // 分子が変わると軌道の数も HOMO の番号も変わるので、札を出し直す
 }
 // 部分電荷の色：負は赤、正は青、0 に近いほど白（±0.4 でいちばん濃い）
@@ -3418,7 +3474,7 @@ function setMode(m){
 function syncToggles(){
   $('tgStereo').classList.toggle('on', state.showStereo); $('tgRS').classList.toggle('on', state.showRS); $('tgAxes').classList.toggle('on', state.axes);
   $('chkLabels').checked = state.labels; $('chkHideH').checked = state.hideH; $('bgSel').value = state.bg; $('expAxes').checked = state.axes;
-  $('chkCharges').checked = state.charges; $('tgPi').classList.toggle('on', state.piOrb); $('piIso').value = state.piIso; $('ballSize').value = state.ball;
+  $('chkCharges').checked = state.charges; $('chkHB').checked = state.hbonds; $('tgPi').classList.toggle('on', state.piOrb); $('piIso').value = state.piIso; $('ballSize').value = state.ball;
   $('wrap').style.background = state.bg === 'black' ? '#000' : state.bg === 'gray' ? '#edeff2' : '#fff';
   // 操作のヒントはキャンバスの上に乗るので、画面のテーマではなく「キャンバスの背景」に合わせる
   $('hint').style.background = state.bg === 'black' ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.85)';
@@ -3430,6 +3486,7 @@ $('tgStereo').onclick = () => { state.showStereo = !state.showStereo; syncToggle
 $('tgRS').onclick = () => { state.showRS = !state.showRS; syncToggles(); renderInfo(); requestDraw(); autosave(); };
 $('tgPi').onclick = () => { state.piOrb = !state.piOrb; syncToggles(); changed(); };
 $('chkCharges').onchange = e => { state.charges = e.target.checked; changed(); };
+$('chkHB').onchange = e => { state.hbonds = e.target.checked; changed(); };   // 探し直しが要るので changed()
 $('piIso').oninput = e => { state.piIso = +e.target.value; if (state.piOrb) changed(); };   // π 軌道を出していないときは作り直さない
 // 見る軌道（HOMO を 0 とした相対の指定）。◀ ▶ で送る
 // ※ select は使わない：候補にない値を入れると値が '' になり、数として扱うと壊れる（0.13 で画面が固まった）
@@ -3846,7 +3903,7 @@ function applyViewState(v){   // 壊れた値で画面が消えないよう、�
   if (fin(v.pan, 2)) view.pan = [...v.pan];
   if (fin(v.center, 3)) view.center = [...v.center];
 }
-const UI_FLAGS = ['labels', 'hideH', 'showStereo', 'showRS', 'axes', 'charges', 'piOrb'];
+const UI_FLAGS = ['labels', 'hideH', 'showStereo', 'showRS', 'axes', 'charges', 'piOrb', 'hbonds'];
 function uiState(){ const s = {mode:state.mode, bg:state.bg, world:state.world, piIso:state.piIso, piWhich:state.piWhich, ball:state.ball, xt:{...state.xt}}; for (const k of UI_FLAGS) s[k] = state[k]; return s; }
 function applyUIState(s){
   if (!s) return;
