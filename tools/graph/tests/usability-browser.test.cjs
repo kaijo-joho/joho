@@ -92,14 +92,13 @@ let browser, page;
   await number.fill(''); await number.press('Tab'); assert.equal(await number.inputValue(), '3');
   await number.fill('2'); await number.press('Tab'); await settle(); assert.equal((await doc()).parameters[0].value, 2);
   // Visibility of the source does not disable registered tangents/intersections.
-  await item(plus).click(); await action('非表示にする').click(); await settle(); assert(Math.abs((await results(mixed)).points[0][0] - 0.75) < 1e-7);
-  await action('表示する').click(); await settle();
-  await action('文字・配置').click(); await page.getByRole('button', { name: '文字・配置の詳細…', exact: true }).click(); await page.locator('#editor-dialog').getByLabel('接線の方程式を図に表示', { exact: true }).uncheck(); await submit();
+  await item(plus).click(); await page.locator('[data-object-details="annotation:'+plus+'"]').click(); await page.locator('#object-menu').getByRole('menuitem',{name:'非表示',exact:true}).click(); await settle(); assert(Math.abs((await results(mixed)).points[0][0] - 0.75) < 1e-7);
+  await page.locator('[data-object-details="annotation:'+plus+'"]').click(); await page.locator('#object-menu').getByRole('menuitem',{name:'表示',exact:true}).click(); await settle();
+  await page.locator('#selection-toolbar').getByLabel('接線の方程式を図に表示',{exact:true}).uncheck(); await settle();
   assert((await equation(plus).innerText()).includes('4x')); assert(!(await labels()).some(t => t.includes('T＋') && t.includes('≈')));
-  await page.getByRole('button', { name: '文字・配置の詳細…', exact: true }).click(); await page.locator('#editor-dialog').getByLabel('接線の方程式を図に表示', { exact: true }).check(); await submit();
-  await action('色・線').hover(); await page.waitForFunction(() => document.querySelector('.joho-tip.show')?.textContent === '色・線');
+  await page.locator('#selection-toolbar').getByLabel('接線の方程式を図に表示',{exact:true}).check(); await settle();
+  await page.locator('#selection-toolbar [data-quick-control="color-dc2626"]').hover(); await page.waitForFunction(() => document.querySelector('.joho-tip.show')?.textContent.includes('色を変更'));
   assert.equal(await page.locator('#selection-toolbar button:not([aria-label])').count(), 0);
-  assert.equal(await action('色・線').locator('svg[aria-hidden="true"]').count(), 1);
   await page.locator('[data-object-details="annotation:'+plus+'"]').click(); await page.locator('#object-menu').getByRole('menuitem',{name:'削除',exact:true}).click(); await settle(); assert(!(await doc()).annotations.some(a => [plus, mixed, tangentIntersection].includes(a.id))); await undo();
   // The same intersection keeps its ID when edited; dependent segments remain valid.
   await item(tangentIntersection).click(); await action('この点から線分').click(); await fill('名前', '交点からの線分'); await submit();

@@ -87,8 +87,7 @@ let browser, page;
   await page.locator('#undo').click(); await settle(); assert.deepEqual(await doc(), beforeDrag, 'drag has a single undo record');
   await drag(await screen([2, -2]), await screen([3, -1]), true); assert.deepEqual(await doc(), beforeDrag, 'Escape cancels drag without committing');
   // Label placement and text use Plotly SVG text, including superscripts and escaping.
-  await ann('AB').click(); await page.getByRole('button', { name: '文字・配置', exact: true }).click(); await page.getByRole('button', { name: '文字・配置の詳細…', exact: true }).click();
-  await fill('文字サイズ（px）', 20); await fill('横のずれ（右へ px）', 0); await fill('縦のずれ（下へ px）', 25); await submit();
+  await ann('AB').click(); await page.getByLabel('文字サイズ（px）', { exact: true }).fill('20'); await page.getByLabel('文字サイズ（px）', { exact: true }).press('Tab'); await page.getByLabel('横のずれ（右へ px）', { exact: true }).fill('0'); await page.getByLabel('横のずれ（右へ px）', { exact: true }).press('Tab'); await page.getByLabel('縦のずれ（下へ px）', { exact: true }).fill('25'); await page.getByLabel('縦のずれ（下へ px）', { exact: true }).press('Tab'); await settle();
   const label = page.locator('#plot .annotation').filter({ hasText: /^AB$/ }); const box = await label.boundingBox();
   await drag([box.x + box.width / 2, box.y + box.height / 2], [box.x + box.width / 2 + 30, box.y + box.height / 2 + 20]);
   ab = (await doc()).annotations.find(a => a.id === ab.id); assert(Math.abs(ab.label.dx - 30) < 2); assert(Math.abs(ab.label.dy - 45) < 2);
@@ -122,7 +121,7 @@ let browser, page;
   await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.keyboard.press('Escape'); await settle();
   await page.screenshot({ path: '/private/tmp/graph-03-desktop.png' });
   await page.setViewportSize({ width: 390, height: 850 }); await page.waitForTimeout(250); await settle(); assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth));
-  await page.locator('#list-toggle').tap(); await ann('AB').tap(); await page.getByRole('button', { name: '文字・配置', exact: true }).tap(); await page.getByRole('button', { name: '文字・配置の詳細…', exact: true }).tap(); await fill('文字サイズ（px）', 16); await submit();
+  await page.locator('#list-toggle').tap(); await ann('AB').tap(); await page.getByLabel('文字サイズ（px）', { exact: true }).fill('16'); await page.getByLabel('文字サイズ（px）', { exact: true }).press('Tab'); await settle();
   await page.screenshot({ path: '/private/tmp/graph-03-mobile.png' });
   await page.locator('#stage').focus(); await page.keyboard.press('Escape'); await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.locator('#operation-help:visible').waitFor(); await page.keyboard.press('Escape');
   const cdp=await context.newCDPSession(page), touch=await screen([2,-2]), beforeTouch=await doc();

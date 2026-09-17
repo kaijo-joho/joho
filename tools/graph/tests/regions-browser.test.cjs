@@ -53,7 +53,7 @@ let browser, page;
   await bar.locator('[data-quick-control="color-16a34a"]').click(); await settle(); assert.equal((await regionTrace(region.id)).fillcolor, '#16a34a');
   await bar.getByLabel('面積を図に表示', { exact: true }).uncheck(); await settle(); assert.equal((await labels())[0].text, '三角形');
   await bar.getByLabel('面積を図に表示', { exact: true }).check(); await settle();
-  await bar.getByRole('button', { name: '文字・配置', exact: true }).click(); await bar.getByLabel('名前を表示', { exact: true }).uncheck(); await settle();
+  await bar.getByLabel('名前を表示', { exact: true }).uncheck(); await settle();
   assert.match((await labels())[0].text, /^面積/); await bar.getByLabel('名前を表示', { exact: true }).check(); await settle();
   await page.keyboard.press('Escape'); await page.keyboard.press('Escape');
   const labelBox = await page.locator('#plot .annotation').filter({ hasText: '三角形' }).boundingBox(), beforeLabelDrag = await doc();

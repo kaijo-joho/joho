@@ -1,6 +1,7 @@
 const assert = require('assert');
 const Core = require('../core.js');
 const Charts = require('../charts.js');
+const Workspace = require('../workspace.js');
 const Templates = require('../templates.js');
 const TemplateLibrary = require('../template-library.js');
 
@@ -30,8 +31,19 @@ function valid(doc) { return Core.validateDocument(doc); }
   const clean = valid(documentWithCharts());
   assert.equal(clean.version, 10);
   assert.deepEqual(clean.charts.map(chart => chart.kind), ['residual', 'scatter', 'histogram', 'box']);
+  assert(clean.charts.every(chart => chart.visible === true), 'visible省略時はtrueとして保存する');
   assert.deepEqual(clean.comparison.items, ['main', 'residual-1', 'scatter-1', 'histogram-1', 'box-1']);
   assert.deepEqual(valid(JSON.parse(JSON.stringify(clean))), clean, '全chart種別を保存形式から復元できる');
+}
+{
+  const doc = documentWithCharts(), hidden = doc.charts.find(chart => chart.id === 'scatter-1');
+  delete hidden.visible;
+  const migrated = valid(doc);
+  assert.equal(migrated.version, 10);
+  assert.equal(migrated.charts.find(chart => chart.id === 'scatter-1').visible, true, 'v10のvisible省略値は互換的にtrue');
+  migrated.charts.find(chart => chart.id === 'scatter-1').visible = false;
+  assert.deepEqual(migrated.comparison.items, ['main', 'residual-1', 'scatter-1', 'histogram-1', 'box-1'], '非表示でも比較の所属は保存する');
+  assert.deepEqual(Workspace.comparison(migrated).items, ['main', 'residual-1', 'histogram-1', 'box-1'], '非表示の分析グラフは比較表示・出力から除外する');
 }
 {
   const old = Core.createDocument(); old.version = 8; delete old.charts; delete old.comparison;

@@ -33,7 +33,7 @@ let browser,page;
   const residualCSV=await downloadText(()=>dialog.getByRole('button',{name:'残差をCSVで保存',exact:true}).click());const residualRows=C.parseTable(residualCSV.split('\n').slice(1).map(line=>line.split(',').slice(3).join(',')).join('\n'),2);
   assert.equal(residualRows.length,3);assert(Math.abs(residualRows[0][0]-7/6)<1e-12);assert(Math.abs(residualRows[0][1]+1/6)<1e-12);
   await submit();d=await doc();const a=d.annotations[0];assert.equal(a.kind,'regression');assert.equal(a.seriesId,s.id);assert.equal((await labels(a.id)).length,1);assert.match((await labels(a.id))[0].text,/R²/);
-  await bar.getByRole('button',{name:'文字・配置',exact:true}).click();await bar.getByLabel('回帰式を図に表示',{exact:true}).uncheck();await bar.getByLabel('R²を図に表示',{exact:true}).uncheck();await settle();assert.equal((await labels(a.id))[0].text,'実験の回帰');
+  await bar.getByLabel('回帰式を図に表示',{exact:true}).uncheck();await bar.getByLabel('R²を図に表示',{exact:true}).uncheck();await settle();assert.equal((await labels(a.id))[0].text,'実験の回帰');
   await page.locator('#undo').click();await page.locator('#undo').click();await settle();assert.match((await labels(a.id))[0].text,/R²/);
   const labelBox=await page.locator('#plot .annotation').filter({hasText:'実験の回帰'}).boundingBox(),beforeDrag=await doc();
   await page.mouse.move(labelBox.x+labelBox.width/2,labelBox.y+labelBox.height/2);await page.mouse.down();await page.waitForFunction(()=>GraphEditor.getState().dragging);await page.mouse.move(labelBox.x+labelBox.width/2+30,labelBox.y+labelBox.height/2+20,{steps:5});await page.mouse.up();await settle();assert(Math.abs((await doc()).annotations[0].label.dx-a.label.dx-30)<2);await page.locator('#undo').click();await settle();assert.deepEqual(await doc(),beforeDrag);

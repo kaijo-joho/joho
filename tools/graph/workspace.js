@@ -12,6 +12,7 @@
   const text = value => value == null ? '' : String(value);
   const unique = values => [...new Set(values)];
   const chartById = (doc, id) => (doc && doc.charts || []).find(chart => chart && chart.id === id) || null;
+  const chartVisible = chart => !chart || chart.visible !== false;
   const titleFor = (item, doc) => item === 'main' ? (doc && doc.name || 'メインのグラフ') : (chartById(doc, item) || {}).name || 'グラフ';
   const rowFromClick = (element, event) => { const point = event?.points?.[0], meta = point?.data?.meta || point?.fullData?.meta, layout = element?._fullLayout, mouse = event?.event, box = element?.getBoundingClientRect?.(); if (!point || !meta?.dataRows || meta.observationHighlight || !Array.isArray(point.customdata) || !Number.isInteger(point.customdata[0])) return null; if (layout?.xaxis?.d2p && layout?.yaxis?.d2p && mouse && box) { const x = layout.xaxis.d2p(point.x), y = layout.yaxis.d2p(point.y); if (!Number.isFinite(x) || !Number.isFinite(y) || Math.hypot(box.left + layout.xaxis._offset + x - mouse.clientX, box.top + layout.yaxis._offset + y - mouse.clientY) > 14) return null; } return { seriesId: meta.seriesId || meta.objectId, rowIndex: point.customdata[0] - 1 }; };
 
@@ -22,7 +23,9 @@
     const items = [];
     const warnings = [];
     for (const id of Array.isArray(source.items) ? source.items : []) {
+      const chart = id === 'main' ? null : chartById(doc, id);
       if (!allowed.has(id)) warnings.push('比較対象「' + text(id) + '」は見つかりません。');
+      else if (!chartVisible(chart)) continue;
       else if (items.includes(id)) warnings.push('比較対象「' + text(id) + '」が重複しています。');
       else if (items.length < 6) items.push(id);
       else warnings.push('比較できるグラフは6件までです。');

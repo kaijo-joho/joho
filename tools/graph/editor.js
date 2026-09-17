@@ -4,7 +4,7 @@
   const C = window.GraphCore, P = window.GraphPlot, S = window.GraphSymbols, W = window.GraphWorkspace;
   const $ = id => document.getElementById(id);
   const palette = ['#2563eb','#dc2626','#16a34a','#9333ea','#ea580c','#0891b2','#db2777','#4f46e5','#65a30d','#ca8a04','#0f766e','#7c3aed','#111827','#64748b','#ffffff','#a16207','#e11d48','#0284c7'];
-  const quickColors = [palette[0],palette[1],palette[2],palette[3],palette[4],palette[12]];
+  const quickColors = [palette[0],palette[1],palette[2],palette[3],palette[12]];
   const colorNames = ['青','赤','緑','紫','オレンジ','青緑','ピンク','藍','黄緑','黄土','深緑','すみれ','黒','灰色','白','茶色','濃いピンク','水色'];
   const kindNames = {function:'2D 数式',implicit:'陰関数',parametric:'媒介変数',polar:'極座標',surface:'3D 曲面',data2d:'2D 数表',data3d:'3D 数表'};
   const annotationNames = {point:'点',guide:'補助線',tangent:'接線',intersection:'交点',tangentIntersection:'交点',segment:'線分・矢印',text:'文字',region:'領域',curveRegion:'曲線の領域',regression:'回帰曲線'};
@@ -15,8 +15,8 @@
   let workspaceView = 'main', templateLibrary, observedSelection = null;
   let history, store, localAuto, help, tooltip, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey, dialogListDetail;
   let drawPending = false, drawing = false, drawTask = Promise.resolve(), exportBusy = false, fileBusy = false, toastTimer, saveTimer;
-  let parameterPreview = null, gesture = null, selectionPanel = null, tangentDraft = null, tangentHoverTimer;
-  let addMenu = null, addMenuTimer, dialogCleanup, objectMenuTarget = null;
+  let parameterPreview = null, gesture = null, tangentDraft = null, tangentHoverTimer;
+  let addMenu = null, addMenuTimer, dialogCleanup, objectMenuTarget = null, objectMenuTimer, listReorder;
   const templates = typeof GraphTemplates.list === 'function' ? GraphTemplates.list() : C.clone(GraphTemplates.list);
   function node(tag, text, attrs) { const el = document.createElement(tag); if (text != null) el.textContent = text; for (const [k,v] of Object.entries(attrs || {})) el.setAttribute(k,v); return el; }
   function button(text, action, attrs) { const el = node('button',text,Object.assign({type:'button'},attrs)); el.addEventListener('click',event=>run(()=>action(event))); return el; }
@@ -114,6 +114,9 @@
     if(workspaceHas3D() && $('export-format').value==='svg') $('export-format').value='png';
   }
   function updateList() {
+    listReorder?.cancel();closeObjectMenu();
+    $('annotations-section').hidden=!current().annotations.length;
+    $('parameters-section').hidden=!current().parameters.length;
     $('series-list').replaceChildren();
     if(!current().series.length) $('series-list').append(node('p','数式や数表を追加してください。',{class:'small muted'}));
     for (const s of current().series) {
@@ -147,16 +150,21 @@
     updateChartList();updateParameters();updateTangentEquations(current());updateRegionAreas(current());
   }
   function appendObjectRow(list,item,type,id,name) {
-    const row=node('div',null,{class:'object-row'}),more=objectMenuButton(type,id,name);
+    const row=node('div',null,{class:'object-row','data-reorder-type':type,'data-reorder-id':id}),more=objectMenuButton(type,id,name);
+    const dot=item.querySelector('.swatch');if(dot){const grip=node('span',null,{class:'object-grip','data-reorder-handle':'','aria-hidden':'true'});dot.replaceWith(grip);grip.append(dot);}
+    item.dataset.tip+='。ドラッグで並べ替え（キーボードはOption/Alt＋↑↓）';
     row.append(item,more);list.append(row);
   }
   function objectMenuButton(type,id,name) {
-    const more=iconButton('moreVertical',name+'：並べ替え・削除',()=>openObjectMenu(type,id,more),{class:'icon-button object-details','data-object-details':type+':'+id,'aria-haspopup':'menu','aria-expanded':'false','aria-controls':'object-menu'});
-    more.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();openObjectMenu(type,id,more);}});return more;
+    const more=iconButton('moreVertical',name+'：表示・複製・削除',()=>{if(objectMenuTarget?.trigger===more&&objectMenuTarget.pinned)closeObjectMenu(true);else openObjectMenu(type,id,more,true);},{class:'icon-button object-details','data-object-details':type+':'+id,'aria-haspopup':'menu','aria-expanded':'false','aria-controls':'object-menu'});
+    more.addEventListener('pointerenter',event=>{if(event.pointerType==='mouse'&&!listReorder?.active)openObjectMenu(type,id,more);});
+    more.addEventListener('pointerleave',scheduleObjectMenuClose);
+    more.addEventListener('keydown',event=>{if(event.key==='ArrowDown'){event.preventDefault();openObjectMenu(type,id,more,true);}});return more;
   }
   function objectCollection(type) { return ({series:'series',annotation:'annotations',chart:'charts',parameter:'parameters'})[type]; }
   function objectIndex(items,type,id) { return items.findIndex(item=>(type==='parameter'?item.name:item.id)===id); }
   function closeObjectMenu(restore=false) {
+    clearTimeout(objectMenuTimer);
     if(!objectMenuTarget)return;const {trigger}=objectMenuTarget;objectMenuTarget=null;$('object-menu').hidden=true;trigger.setAttribute('aria-expanded','false');if(restore&&trigger.isConnected)trigger.focus({preventScroll:true});
   }
   function positionObjectMenu() {
@@ -165,15 +173,39 @@
     panel.style.maxHeight=Math.max(80,innerHeight-80)+'px';const bounds=panel.getBoundingClientRect();
     panel.style.left=Math.max(8,Math.min(anchor.right+4,innerWidth-bounds.width-8))+'px';panel.style.top=Math.max(69,Math.min(anchor.top,innerHeight-bounds.height-8))+'px';
   }
-  function openObjectMenu(type,id,trigger) {
-    if(objectMenuTarget?.trigger===trigger){closeObjectMenu(true);return;}
+  function scheduleObjectMenuClose() {
+    clearTimeout(objectMenuTimer);objectMenuTimer=setTimeout(()=>{if(objectMenuTarget&&!objectMenuTarget.pinned&&!$('object-menu').contains(document.activeElement)&&!objectMenuTarget.trigger.matches(':hover')&&!$('object-menu').matches(':hover'))closeObjectMenu();},180);
+  }
+  function focusObject(type,id,details=false) {
+    const row=[...$('objects').querySelectorAll('[data-reorder-type]')].find(row=>row.dataset.reorderType===type&&row.dataset.reorderId===id);
+    (row?.querySelector(details?'.object-details':'.object-item,.parameter-name')||$('series-add-toggle')).focus({preventScroll:true});
+  }
+  function moveObject(type,id,destination) {
+    const items=current()[objectCollection(type)],from=objectIndex(items,type,id);
+    if(from<0||destination===from||destination<0||destination>=items.length)return;
+    changed(doc=>{const list=doc[objectCollection(type)];list.splice(destination,0,...list.splice(from,1));});focusObject(type,id);
+  }
+  function duplicateObject(type,id) {
+    const items=current()[objectCollection(type)],index=objectIndex(items,type,id);if(index<0)return;
+    const copy=C.clone(items[index]);copy.visible=true;
+    if(type==='parameter'){
+      const names=new Set([...current().parameters.map(p=>p.name),...Object.values(current().axes).map(axis=>axis.symbol)]);let suffix=2;
+      do{const end='_'+suffix++;copy.name=id.slice(0,32-end.length)+end;}while(names.has(copy.name));
+    }else{copy.id=C.uid();copy.name=((copy.name||kindNames[copy.kind]||annotationNames[copy.kind]||chartNames[copy.kind])+' のコピー').slice(0,160);}
+    changed(doc=>{doc[objectCollection(type)].splice(index+1,0,copy);if(type==='chart'&&doc.comparison.items.length<6)doc.comparison.items.push(copy.id);});
+    select(type==='parameter'?{type,name:copy.name}:{type,id:copy.id},{keepListOpen:true,reveal:false});focusObject(type,type==='parameter'?copy.name:copy.id);
+  }
+  function openObjectMenu(type,id,trigger,pinned=false) {
+    clearTimeout(objectMenuTimer);if($('editor-dialog').open||listReorder?.active)return;
+    if(objectMenuTarget?.trigger===trigger){objectMenuTarget.pinned ||= pinned;if(pinned)$('object-menu').querySelector('button')?.focus({preventScroll:true});return;}
     closeMenus();cancelTangentDraft();tooltip?.hide();const items=current()[objectCollection(type)],index=objectIndex(items,type,id);if(index<0)return;
-    objectMenuTarget={type,id,trigger};trigger.setAttribute('aria-expanded','true');const menu=$('object-menu');menu.replaceChildren();menu.hidden=false;
-    const focusRow=target=>{const next=document.querySelector('[data-object-details="'+CSS.escape(type+':'+target)+'"]');(next||$('series-add-toggle')).focus({preventScroll:true});};
-    const move=(label,destination)=>{const control=button(label,()=>{closeObjectMenu();changed(doc=>{const list=doc[objectCollection(type)],from=objectIndex(list,type,id);list.splice(destination,0,...list.splice(from,1));});focusRow(id);},{role:'menuitem'});control.disabled=destination===index;menu.append(control);};
-    move('先頭へ',0);move('1つ上へ',Math.max(0,index-1));move('1つ下へ',Math.min(items.length-1,index+1));move('末尾へ',items.length-1);
-    menu.append(node('hr',null,{role:'separator'}),button('削除',()=>{const next=items[index+1]||items[index-1];closeObjectMenu();try{if(type==='series')removeSeries(id);else if(type==='annotation')removeAnnotation(id);else if(type==='chart')removeChart(id);else{changed(doc=>{doc.parameters=doc.parameters.filter(p=>p.name!==id);});select(null);}}finally{focusRow(next?(type==='parameter'?next.name:next.id):id);}},{role:'menuitem',class:'danger'}));
-    positionObjectMenu();menu.querySelector('button:not(:disabled)')?.focus({preventScroll:true});
+    objectMenuTarget={type,id,trigger,pinned};trigger.setAttribute('aria-expanded','true');const menu=$('object-menu');menu.replaceChildren();menu.hidden=false;
+    const visible=items[index].visible!==false;
+    const action=(icon,label,callback,attrs={})=>{const control=button(null,callback,{role:'menuitem',...attrs});control.append(GraphIcons.create(icon,document),node('span',label));menu.append(control);};
+    action(visible?'hide':'show',visible?'非表示':'表示',()=>{closeObjectMenu();changed(doc=>{const list=doc[objectCollection(type)];list[objectIndex(list,type,id)].visible=!visible;});focusObject(type,id,true);},type==='parameter'?{'data-tip':'スライダーと数値欄の表示を切り替えます。係数の値は数式で引き続き使います。'}:{});
+    action('copy','複製',()=>{closeObjectMenu();duplicateObject(type,id);});
+    action('trash','削除',()=>{const next=items[index+1]||items[index-1];closeObjectMenu();try{if(type==='series')removeSeries(id);else if(type==='annotation')removeAnnotation(id);else if(type==='chart')removeChart(id);else{changed(doc=>{doc.parameters=doc.parameters.filter(p=>p.name!==id);});select(null);}}finally{focusObject(type,next?(type==='parameter'?next.name:next.id):id,true);}},{class:'danger'});
+    positionObjectMenu();if(pinned)menu.querySelector('button')?.focus({preventScroll:true});
   }
   function updateTangentEquations(doc) { for(const el of document.querySelectorAll('[data-tangent-equation]')){const a=doc.annotations.find(a=>a.id===el.dataset.tangentEquation);if(!a)continue;const value=GraphAnnotations.tangentEquation(a,doc);el.textContent=value.text||value.warning;el.dataset.tip=value.text?value.text+'（数値微分による近似）':value.warning;} }
   function updateRegionAreas(doc) { for(const el of document.querySelectorAll('[data-region-area]')){const a=doc.annotations.find(a=>a.id===el.dataset.regionArea);if(!a)continue;const result=GraphAnnotations.evaluate(a,doc);el.textContent=result.warning||GraphRegions.areaText(result.area,doc);el.dataset.tip=result.warning||[el.textContent,a.kind==='curveRegion'?GraphRegions.integralText(result.integral,doc)+'（第1の境界 − 第2の境界）':''].filter(Boolean).join(' / ');} }
@@ -183,8 +215,8 @@
     for(const [index,p] of current().parameters.entries()){
       let row=[...list.children].find(r=>r.dataset.parameter===p.name);
       if(!row){
-        row=node('div',null,{class:'parameter-row','data-parameter':p.name});const header=node('div',null,{class:'parameter-heading-row'});
-        const name=button(p.name,()=>select({type:'parameter',name:p.name}),{class:'parameter-name','aria-label':'係数 '+p.name+' を選択'});
+        row=node('div',null,{class:'parameter-row','data-parameter':p.name,'data-reorder-type':'parameter','data-reorder-id':p.name});const header=node('div',null,{class:'parameter-heading-row'});
+        const name=button(p.name,()=>select({type:'parameter',name:p.name}),{class:'parameter-name','aria-label':'係数 '+p.name+' を選択','data-reorder-handle':'','data-tip':'ドラッグで並べ替え（Option/Alt＋↑↓）'});
         const number=node('input',null,{type:'number',step:'any','aria-label':p.name+' の数値'});
         const slider=node('input',null,{type:'range','aria-label':p.name+' の値'});
         header.append(name,number,objectMenuButton('parameter',p.name,p.name));row.append(header,slider);list.append(row);
@@ -196,11 +228,13 @@
       if(list.children[index]!==row)list.insertBefore(row,list.children[index]||null);
       const slider=row.querySelector('[type=range]'),number=row.querySelector('[type=number]');
       for(const el of [slider,number]){el.min=p.min;el.max=p.max;el.value=p.value;}slider.step=p.step;
+      slider.hidden=number.hidden=p.visible===false;row.classList.toggle('controls-hidden',p.visible===false);
+      row.querySelector('.parameter-name').setAttribute('aria-label','係数 '+p.name+(p.visible===false?'（値の操作は非表示）':'')+' を選択');
       row.querySelector('.parameter-name').setAttribute('aria-pressed',String(selected?.type==='parameter'&&selected.name===p.name));
     }
   }
   function cancelParameterPreview() { if(!parameterPreview)return;parameterPreview=null;updateParameters();updateTangentEquations(current());requestDraw(); }
-  function setListOpen(open) { if(!open)closeAddMenu();else if(side&&matchMedia('(max-width:850px)').matches)setSide('',true);$('objects').classList.toggle('is-open',open); $('list-toggle').setAttribute('aria-expanded',String(open)); }
+  function setListOpen(open) { if(!open){closeAddMenu();closeObjectMenu();listReorder?.cancel();}else if(side&&matchMedia('(max-width:850px)').matches)setSide('',true);$('objects').classList.toggle('is-open',open); $('list-toggle').setAttribute('aria-expanded',String(open)); }
   function select(value,{keepListOpen=false,preserveObservation=false,reveal=true}={}) { closeObjectMenu();cancelTangentDraft();cancelParameterPreview();selected=value;if(!preserveObservation)observedSelection=null;if(value?.type==='chart')workspaceView=value.id;else if(value?.type==='series'||value?.type==='annotation')workspaceView='main';updateWorkspaceControls();for(const item of document.querySelectorAll('[data-object-id]'))item.setAttribute('aria-pressed',String(item.dataset.objectType===selected?.type&&item.dataset.objectId===selected?.id));for(const row of $('parameter-list').children)row.querySelector('.parameter-name').setAttribute('aria-pressed',String(selected?.type==='parameter'&&row.dataset.parameter===selected.name));updateToolbar();if(value&&reveal)setSide('format',true);requestDraw();if(!keepListOpen&&matchMedia('(max-width:850px)').matches) setListOpen(false); }
   function selectDataRow(row) {
     const series=current().series.find(s=>s.id===row?.seriesId&&s.kind.startsWith('data'));
@@ -212,7 +246,7 @@
   function updateRowToolbar(bar) {
     const series=current().series.find(s=>s.id===observedSelection?.seriesId);if(!series){bar.hidden=true;return;}
     const index=observedSelection.rowIndex,table=GraphTables.fromSeries(series),excluded=(series.excludedRows||[]).includes(index);
-    bar.replaceChildren();bar.hidden=false;bar.dataset.selectionKey='row:'+series.id+':'+index;bar.classList.remove('has-colors');selectionPanel=null;
+    bar.replaceChildren();bar.hidden=false;bar.dataset.selectionKey='row:'+series.id+':'+index;bar.classList.remove('has-colors');
     bar.append(node('span',(series.name||'数表')+' · '+(index+1)+'行目',{class:'selection-name'}),iconButton('edit','この行を数表で編集',editObservedRow));
     bar.append(button(excluded?'回帰に戻す':'回帰から除外',()=>changed(d=>{const target=d.series.find(s=>s.id===series.id),rows=new Set(target.excludedRows||[]);if(excluded)rows.delete(index);else rows.add(index);target.excludedRows=[...rows].sort((a,b)=>a-b);}),{'data-quick-control':'row-regression','aria-pressed':String(excluded)}));
     const values=node('dl',null,{class:'observation-values','aria-label':'元の数表の値'});table.columns.forEach((name,column)=>{const group=node('div'),value=table.rows[index][column];group.append(node('dt',name),node('dd',value===null?'欠測':String(Number(value.toPrecision(8)))));values.append(group);});bar.append(values,node('p','回帰の使用・除外は、この数表を使うすべての回帰に反映します。',{class:'small muted observation-note'}));
@@ -226,23 +260,21 @@
     const chart=activeChart();
     if(chart){updateChartToolbar(bar,chart);return;}
     const s=activeSeries(), p=activeParameter(), a=activeAnnotation(),key=s?'series:'+s.id:a?'annotation:'+a.id:p?'parameter:'+p.name:'';
-    if(bar.dataset.selectionKey!==key)selectionPanel=null;bar.dataset.selectionKey=key;bar.replaceChildren();bar.hidden=!s&&!p&&!a;bar.classList.toggle('has-colors',!!(s||a));
+    bar.dataset.selectionKey=key;bar.replaceChildren();bar.hidden=!s&&!p&&!a;bar.classList.toggle('has-colors',!!(s||a));
     if(s) {
-      bar.append(node('span',s.name||kindNames[s.kind],{class:'selection-name'}),iconButton('edit',s.kind.startsWith('data')?'数表・出典':'数式・範囲',()=>editSeries(s.id),{'data-quick-control':'edit-detail','aria-haspopup':'dialog'}),selectionPanelButton('style','palette','色・線'));
-      bar.append(iconButton(s.visible?'hide':'show',s.visible?'非表示にする':'表示する',()=>changed(d=>{d.series.find(x=>x.id===s.id).visible=!s.visible;}),{'data-quick-control':'visibility'}),iconButton('copy','複製',()=>{const next=C.clone(current().series.find(x=>x.id===s.id));next.id=C.uid();next.name=(next.name||kindNames[next.kind])+' のコピー';changed(d=>d.series.push(next));select({type:'series',id:next.id});},{'data-quick-control':'duplicate'}));
+      bar.append(node('span',s.name||kindNames[s.kind],{class:'selection-name'}),iconButton('edit',s.kind.startsWith('data')?'数表・出典':'数式・範囲',()=>editSeries(s.id),{'data-quick-control':'edit-detail','aria-haspopup':'dialog'}));
       const more=node('div');
       if(s.kind.startsWith('data')) more.append(button('数値をCSVで保存',()=>{const table=GraphTables.fromSeries(s,{x:symbol('x'),y:symbol('y'),z:symbol('z')});download(C.tableCSV(table.rows,table.columns),filename(s.name||'数表')+'.csv','text/csv;charset=utf-8');}));
       if(!matchesMode(s)) more.append(button(kindNames[s.kind].startsWith('3D')?'3Dで表示':'2Dで表示',()=>switchMode(kindNames[s.kind].startsWith('3D')?'3d':'2d')));
       if(more.children.length){const details=node('details',null,{class:'popup-details'}),summary=node('summary',null,{'aria-label':'その他',class:'icon-button','data-tip':'その他'});summary.append(GraphIcons.create('more',document));details.append(summary,more);bar.append(details);}
     } else if(a) {
-      bar.append(node('span',a.name||annotationNames[a.kind],{class:'selection-name'}),iconButton('edit','位置・設定',()=>editAnnotation(a.id),{'data-quick-control':'edit-detail','aria-haspopup':'dialog'}),selectionPanelButton('label','label','文字・配置'),selectionPanelButton('style','palette',isRegion(a)?'塗りつぶし':'色・線'));
-      bar.append(iconButton(a.visible?'hide':'show',a.visible?'非表示にする':'表示する',()=>changed(d=>{d.annotations.find(x=>x.id===a.id).visible=!a.visible;}),{'data-quick-control':'visibility'}),iconButton('copy','複製',()=>{const next=C.clone(current().annotations.find(x=>x.id===a.id));next.id=C.uid();next.name=(next.name||annotationNames[next.kind])+' のコピー';changed(d=>d.annotations.push(next));select({type:'annotation',id:next.id});},{'data-quick-control':'duplicate'}));
+      bar.append(node('span',a.name||annotationNames[a.kind],{class:'selection-name'}),iconButton('edit','位置・設定',()=>editAnnotation(a.id),{'data-quick-control':'edit-detail','aria-haspopup':'dialog'}));
       if(current().mode==='3d')bar.append(button('2Dで表示',()=>switchMode('2d')));
     } else if(p) {
       bar.append(node('span',p.name,{class:'selection-name'}),button('値・範囲・刻みを編集…',()=>editParameter(p.name),{'aria-label':'編集','aria-haspopup':'dialog','data-quick-control':'edit-detail'}));
     }
-    if(s||a){const target=s||a,type=s?'series':'annotation';bar.append(colorButtons(target,type,quickColors,'基本色'));appendQuickLine(bar,target,type);
-      if(selectionPanel==='style')appendQuickStyle(bar,target,type);else if(selectionPanel==='label'&&a)appendQuickLabel(bar,a);
+    if(s||a){const target=s||a,type=s?'series':'annotation',colors=colorButtons(target,type,quickColors,'基本色');colors.append(customColorButton(target,type));bar.append(colors);appendQuickLine(bar,target,type);
+      if(a)appendQuickLabel(bar,a);
       appendRelatedActions(bar,s,a);
     }
     if(focused)bar.querySelector('[data-quick-control="'+CSS.escape(focused)+'"]')?.focus({preventScroll:true});bar.scrollTop=scroll;
@@ -262,7 +294,6 @@
     if(!actions.length)return;box.append(node('h3','関連するグラフ'));
     for(const [icon,label,action]of actions){const control=button(null,action,{'aria-label':label,'aria-haspopup':'dialog','data-quick-control':'related-'+label,class:'related-action'});control.append(GraphIcons.create(icon,document),node('span',label));if(current().mode==='3d'&&!s?.kind.startsWith('data'))control.disabled=true;box.append(control);}bar.append(box);
   }
-  function selectionPanelButton(panel,icon,label) { return iconButton(icon,label,()=>{selectionPanel=selectionPanel===panel?null:panel;updateToolbar();},{'aria-expanded':String(selectionPanel===panel),...(selectionPanel===panel?{'aria-controls':'selection-'+panel}:{}),'data-quick-control':'toggle-'+panel}); }
   function bindTangentTrigger(trigger,seriesId) {
     trigger.setAttribute('aria-controls','tangent-quick-panel');trigger.setAttribute('aria-expanded','false');
     trigger.addEventListener('click',()=>run(()=>openQuickTangent(trigger,seriesId,true)));
@@ -327,8 +358,9 @@
     const target=activeSeries()||activeAnnotation();if(!target)return;
     const swatch=document.querySelector('[data-object-id="'+target.id+'"] .swatch');if(swatch)swatch.style.backgroundColor=target.style.color;
     for(const b of $('selection-toolbar').querySelectorAll('.quick-color'))b.setAttribute('aria-pressed',String(b.dataset.quickControl==='color-'+target.style.color.toLowerCase().slice(1)));
-    const values={width:target.style.width,dash:target.style.dash,opacity:target.style.opacity,'label-size':target.label?.size,'label-visible':target.label?.visible,'equation-visible':target.showEquation,'metrics-visible':target.showMetrics,'area-visible':target.showArea,'integral-visible':target.showIntegral};
+    const values={width:target.style.width,dash:target.style.dash,opacity:target.style.opacity,points:target.style.points,lines:target.style.lines,'label-size':target.label?.size,'label-dx':target.label?.dx,'label-dy':target.label?.dy,'label-visible':target.label?.visible,'equation-visible':target.showEquation,'metrics-visible':target.showMetrics,'area-visible':target.showArea,'integral-visible':target.showIntegral};
     for(const [key,value]of Object.entries(values)){const el=$('selection-toolbar').querySelector('[data-quick-control="'+key+'"]');if(!el)continue;if(el.type==='checkbox')el.checked=value;else{el.value=value;if(el.type==='number')el.defaultValue=String(value);}}
+    const custom=$('selection-toolbar').querySelector('[data-quick-control="custom-color"]');if(custom)custom.style.setProperty('--swatch-color',target.style.color);
   }
   function colorButtons(target,type,colors,label) {
     const group=node('div',null,{class:'quick-palette',role:'group','aria-label':label});
@@ -340,11 +372,9 @@
     input.addEventListener('keydown',event=>{if(event.key==='Escape'&&!event.isComposing)input.value=input.defaultValue;});
     input.addEventListener('change',()=>run(()=>{try{onChange(requiredNumber(input));}catch(error){refreshQuickControls();throw error;}}));return input;
   }
-  function appendQuickStyle(bar,target,type) {
-    const panel=node('div',null,{id:'selection-style',class:'selection-details'});bar.append(panel);
-    panel.append(colorButtons(target,type,palette.filter(c=>!quickColors.includes(c)),'その他の色'));
-    const label=isRegion(target)?'塗りつぶしの詳細…':'色・線の詳細…';
-    panel.append(button(label,()=>editStyle(target.id,type),{'aria-label':label,class:'full-button','data-quick-control':'style-detail','data-tip':'自由な色・RGB・不透明度などを設定'}));
+  function customColorButton(target,type) {
+    const control=button(null,()=>editColor(target.id,type),{class:'quick-color custom-color','aria-label':'自由な色（RGB）','data-tip':'自由な色・RGBで指定','data-quick-control':'custom-color','aria-haspopup':'dialog'});
+    control.style.setProperty('--swatch-color',type==='chart'?target.color:target.style.color);control.append(node('span',null,{'aria-hidden':'true'}));return control;
   }
   function appendQuickLine(bar,target,type) {
     if(isRegion(target)){
@@ -354,18 +384,26 @@
       const visible=check(checks,'面積を図に表示',target.showArea);visible.dataset.quickControl='area-visible';visible.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.showArea=visible.checked;})));
       if(target.kind==='curveRegion'){const integral=check(checks,'定積分を図に表示',target.showIntegral);integral.dataset.quickControl='integral-visible';integral.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.showIntegral=integral.checked;})));}return;
     }
-    if(target.kind==='surface'||target.kind==='text')return;
-    const group=node('div',null,{class:'quick-line-controls field-grid',role:'group','aria-label':'線の設定'});bar.append(group);
-    quickNumber(group,'線の太さ',target.style.width,.5,20,.5,'width',value=>quickChange(type,target.id,o=>{o.style.width=value;}));
-    const dash=choice(group,'線種',target.style.dash,[['solid','実線'],['dash','破線'],['dot','点線']]);dash.dataset.quickControl='dash';dash.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.style.dash=dash.value;})));
+    const group=node('div',null,{class:'quick-line-controls field-grid',role:'group','aria-label':'線と色の設定'});bar.append(group);
+    if(!['surface','text'].includes(target.kind)){
+      quickNumber(group,'線の太さ',target.style.width,.5,20,.5,'width',value=>quickChange(type,target.id,o=>{o.style.width=value;}));
+      const dash=choice(group,'線種',target.style.dash,[['solid','実線'],['dash','破線'],['dot','点線']]);dash.dataset.quickControl='dash';dash.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.style.dash=dash.value;})));
+    }
+    quickNumber(group,'不透明度（0〜1）',target.style.opacity,0,1,.05,'opacity',value=>quickChange(type,target.id,o=>{o.style.opacity=value;}));
+    if(type==='series'&&target.kind!=='surface'){
+      const checks=node('div',null,{class:'inspector-checks'});bar.append(checks);
+      for(const [key,label]of [['points','点を表示'],['lines','線を表示']]){const input=check(checks,label,target.style[key]);input.dataset.quickControl=key;input.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.style[key]=input.checked;if(!o.style.points&&!o.style.lines)throw new Error('点または線のいずれかを表示してください。');})));}
+    }
   }
   function appendQuickLabel(bar,target) {
     const panel=node('div',null,{id:'selection-label',class:'selection-details'});bar.append(panel);
     const visible=check(panel,target.kind==='text'?'文字を表示':'名前を表示',target.label.visible);visible.dataset.quickControl='label-visible';visible.addEventListener('change',()=>run(()=>quickChange('annotation',target.id,o=>{o.label.visible=visible.checked;})));
     if(target.kind==='tangent'){const equation=check(panel,'接線の方程式を図に表示',target.showEquation);equation.dataset.quickControl='equation-visible';equation.addEventListener('change',()=>run(()=>quickChange('annotation',target.id,o=>{o.showEquation=equation.checked;})));}
     if(target.kind==='regression')for(const [key,label,control]of [['showEquation','回帰式を図に表示','equation-visible'],['showMetrics','R²を図に表示','metrics-visible']]){const input=check(panel,label,target[key]);input.dataset.quickControl=control;input.addEventListener('change',()=>run(()=>quickChange('annotation',target.id,o=>{o[key]=input.checked;})));}
-    quickNumber(panel,'文字サイズ（px）',target.label.size,8,48,1,'label-size',value=>quickChange('annotation',target.id,o=>{o.label.size=value;}));
-    panel.append(button('文字・配置の詳細…',()=>editLabel(target.id),{'aria-label':'文字・配置の詳細…',class:'full-button','data-quick-control':'label-detail','data-tip':'文字サイズと上下左右のずれを設定'}));
+    const fields=grid(panel);
+    quickNumber(fields,'文字サイズ（px）',target.label.size,8,48,1,'label-size',value=>quickChange('annotation',target.id,o=>{o.label.size=value;}));
+    quickNumber(fields,'横のずれ（右へ px）',target.label.dx,-500,500,1,'label-dx',value=>quickChange('annotation',target.id,o=>{o.label.dx=value;}));
+    quickNumber(fields,'縦のずれ（下へ px）',target.label.dy,-500,500,1,'label-dy',value=>quickChange('annotation',target.id,o=>{o.label.dy=value;}));
   }
   function removeSeries(id) { changed(d=>C.removeSeries(d,id),'曲線と、それを参照する点・補助線を削除しました。元に戻せます。');select(null); }
   function removeAnnotation(id) { changed(d=>C.removeAnnotation(d,id),'参照する線分・交点・領域も一緒に削除しました。元に戻せます。');select(null); }
@@ -689,7 +727,7 @@
     if(!['main','comparison'].includes(workspaceView)&&!current().charts.some(chart=>chart.id===workspaceView))workspaceView='main';
     if(selected?.type==='chart'&&!current().charts.some(chart=>chart.id===selected.id))selected=null;
     const input=$('workspace-view');input.replaceChildren(node('option','作図',{value:'main'}));
-    for(const chart of current().charts)input.append(node('option',chart.name||chartNames[chart.kind],{value:chart.id}));
+    for(const chart of current().charts)input.append(node('option',(chart.name||chartNames[chart.kind])+(chart.visible===false?'（非表示）':''),{value:chart.id}));
     input.append(node('option','比較',{value:'comparison'}));input.value=workspaceView;
     $('plot').hidden=workspaceView!=='main';$('analysis-stage').hidden=['main','comparison'].includes(workspaceView);$('comparison-stage').hidden=workspaceView!=='comparison';
     $('fit-comparison-output').hidden=workspaceView!=='comparison';
@@ -705,23 +743,23 @@
   }
   function updateChartList() {
     const charts=current().charts,list=$('chart-list');list.replaceChildren();
-    $('charts-section').hidden=!charts.length&&!current().series.some(s=>s.kind.startsWith('data'));
+    $('charts-section').hidden=!charts.length;
     for(const chart of charts){
       const name=chart.name||chartNames[chart.kind],item=button('',()=>select({type:'chart',id:chart.id}),{class:'object-item','data-object-type':'chart','data-object-id':chart.id,'aria-pressed':String(selected?.type==='chart'&&selected.id===chart.id),'aria-label':name+'を表示','data-tip':chartNames[chart.kind]});
       const dot=node('span',null,{class:'swatch'});dot.style.backgroundColor=chart.color;item.append(dot,node('strong',name,{class:'object-copy'}));
+      if(chart.visible===false)item.querySelector('.object-copy').append(node('span','非表示',{class:'dim-badge'}));
       item.addEventListener('dblclick',()=>run(()=>editChart(chart.id)));appendObjectRow(list,item,'chart',chart.id,name,'分析グラフの設定');
     }
   }
   function updateChartToolbar(bar,chart) {
     const focused=bar.contains(document.activeElement)?document.activeElement.dataset.quickControl:null,scroll=bar.scrollTop;
-    if(bar.dataset.selectionKey!=='chart:'+chart.id)selectionPanel=null;
     bar.replaceChildren();bar.hidden=false;bar.dataset.selectionKey='chart:'+chart.id;bar.classList.add('has-colors');
-    bar.append(node('span',chart.name||chartNames[chart.kind],{class:'selection-name'}),iconButton('edit','分析グラフの設定',()=>editChart(chart.id),{'data-quick-control':'edit-detail','aria-haspopup':'dialog'}),selectionPanelButton('style','palette','その他の色'),iconButton('copy','分析グラフを複製',()=>{const next=C.clone(chart);next.id=C.uid();next.name=((chart.name||chartNames[chart.kind])+' のコピー').slice(0,160);commitChart(next);}),iconButton('comparison','比較に追加して表示',()=>{
+    bar.append(node('span',chart.name||chartNames[chart.kind],{class:'selection-name'}),iconButton('edit','分析グラフの設定',()=>editChart(chart.id),{'data-quick-control':'edit-detail','aria-haspopup':'dialog'}),iconButton('comparison','比較に追加して表示',()=>{
       if(!current().comparison.items.includes(chart.id))changed(d=>{if(d.comparison.items.length>=6)throw new Error('比較は6枚までです。「比較の配置」で入れ替えてください。');d.comparison.items.push(chart.id);});showWorkspace('comparison');
     }));
     function change(mutator){try{changed(d=>mutator(d.charts.find(item=>item.id===chart.id)));}catch(error){updateToolbar();throw error;}}
     function colors(values,label){const group=node('div',null,{class:'quick-palette',role:'group','aria-label':label});for(const color of values){const control=button(null,()=>change(item=>{item.color=color;}),{class:'quick-color','aria-label':'色を変更：'+colorNames[palette.indexOf(color)],'aria-pressed':String(color===chart.color),'data-quick-control':'chart-color-'+color.slice(1)});control.style.setProperty('--swatch-color',color);control.append(node('span',null,{'aria-hidden':'true'}));group.append(control);}return group;}
-    bar.append(colors(quickColors,'分析グラフの色'));
+    const paletteGroup=colors(quickColors,'分析グラフの色');paletteGroup.append(customColorButton(chart,'chart'));bar.append(paletteGroup);
     const style=node('div',null,{class:'quick-line-controls field-grid chart-quick-style'});bar.append(style);
     if(['scatter','residual'].includes(chart.kind))quickNumber(style,'点の大きさ',chart.style.pointSize,2,30,1,'chart-point-size',value=>change(item=>{item.style.pointSize=value;}));
     if(chart.kind!=='residual')quickNumber(style,'線の太さ',chart.style.width,.5,20,.5,'chart-width',value=>change(item=>{item.style.width=value;}));
@@ -730,7 +768,6 @@
     for(const [key,label,value]of [['legend','凡例',chart.legend],...((chart.kind==='scatter'&&chart.model)?[['equation','回帰式',chart.labels.equation],['metrics','統計指標',chart.labels.metrics]]:[])]){const input=check(labels,label,value);input.dataset.quickControl='chart-'+key;input.addEventListener('change',()=>run(()=>change(item=>{if(key==='legend')item.legend=input.checked;else item.labels[key]=input.checked;})));}
     const sourceId=chart.kind==='residual'?current().annotations.find(a=>a.id===chart.regressionId)?.seriesId:chart.seriesId;
     labels.append(button('元の数表を編集',()=>editSeries(sourceId,undefined,{returnView:workspaceView}),{'data-quick-control':'chart-source'}));
-    if(selectionPanel==='style'){const panel=node('div',null,{id:'selection-style',class:'selection-details'});panel.append(colors(palette.filter(color=>!quickColors.includes(color)),'その他の色'),button('色・軸の詳細…',()=>editChart(chart.id),{class:'full-button','data-quick-control':'chart-detail'}));bar.append(panel);}
     if(focused)bar.querySelector('[data-quick-control="'+CSS.escape(focused)+'"]')?.focus({preventScroll:true});
     bar.scrollTop=scroll;
   }
@@ -920,21 +957,19 @@
       select(residualChart.checked?{type:'chart',id:chart.id}:{type:'annotation',id:a.id});
     },existing?'適用':'回帰曲線を追加');
   }
-  function editLabel(id) {
-    const a=current().annotations.find(a=>a.id===id);let visible,dx,dy,size,equation,metrics;
-    openDialog('文字・配置',parent=>{visible=check(parent,a.kind==='text'?'文字を表示':'名前を表示',a.label.visible);if(a.kind==='tangent')equation=check(parent,'接線の方程式を図に表示',a.showEquation);if(a.kind==='regression'){equation=check(parent,'回帰式を図に表示',a.showEquation);metrics=check(parent,'R²を図に表示',a.showMetrics);}const g=grid(parent);size=field(g,'文字サイズ（px）',a.label.size,'number',{min:8,max:48,step:1});dx=field(g,'横のずれ（右へ px）',a.label.dx,'number',{min:-500,max:500,step:1});dy=field(g,'縦のずれ（下へ px）',a.label.dy,'number',{min:-500,max:500,step:1});parent.append(node('p','名前はドラッグでも位置を調整できます。上付きは m^2、下付きは v_0、複数文字は v_{max} と入力します。',{class:'small muted'}));},()=>changed(d=>{const target=d.annotations.find(a=>a.id===id);target.label={visible:visible.checked,dx:requiredNumber(dx),dy:requiredNumber(dy),size:requiredNumber(size)};if(equation)target.showEquation=equation.checked;if(metrics)target.showMetrics=metrics.checked;}));
-  }
-  function editStyle(id,type='series') {
-    const key=type==='annotation'?'annotations':'series',s=current()[key].find(x=>x.id===id);let color,width,dash,opacity,points,lines;let rgb=[];
-    openDialog(isRegion(s)?'塗りつぶし':'色・線',parent=>{
-      const pal=node('div',null,{class:'palette','aria-label':'色のパレット'});parent.append(pal);
-      const refresh=value=>{color.value=value;for(const b of pal.children)b.setAttribute('aria-pressed',String(b.dataset.color===value.toLowerCase()));[0,1,2].forEach((i)=>rgb[i].value=parseInt(value.slice(1+i*2,3+i*2),16));};
-      for(const value of palette){const b=button('',()=>refresh(value),{'aria-label':'色 '+value,'data-color':value,'aria-pressed':String(value===s.style.color)});b.style.backgroundColor=value;pal.append(b);}
-      color=field(parent,'自由な色',s.style.color,'color');const colors=grid(parent,true);rgb=['R','G','B'].map((label,i)=>field(colors,label,parseInt(s.style.color.slice(1+i*2,3+i*2),16),'number',{min:0,max:255,step:1}));
-      color.addEventListener('input',()=>refresh(color.value));for(const input of rgb)input.addEventListener('change',()=>run(()=>{const values=rgb.map(requiredNumber);if(values.some(v=>!Number.isInteger(v)||v<0||v>255))throw new Error('RGBは0〜255の整数です。');refresh('#'+values.map(v=>v.toString(16).padStart(2,'0')).join(''));}));
-      const g=grid(parent);if(!isRegion(s)){width=field(g,'線の太さ',s.style.width,'number',{min:.5,max:20,step:.5});dash=choice(g,'線種',s.style.dash,[['solid','実線'],['dash','破線'],['dot','点線']]);}opacity=field(g,'不透明度（0〜1）',s.style.opacity,'number',{min:0,max:1,step:.05});
-      if(s.kind==='surface'){width.disabled=true;dash.disabled=true;}else if(type==='series'){points=check(parent,'点を表示',s.style.points);lines=check(parent,'線を表示',s.style.lines);}
-    },()=>{const values=rgb.map(requiredNumber);if(values.some(v=>!Number.isInteger(v)||v<0||v>255))throw new Error('RGBは0〜255の整数です。');if(points&&!points.checked&&!lines.checked)throw new Error('点または線のいずれかを表示してください。');changed(d=>{const st=d[key].find(x=>x.id===id).style;st.color='#'+values.map(v=>v.toString(16).padStart(2,'0')).join('');if(width){st.width=requiredNumber(width);st.dash=dash.value;}st.opacity=requiredNumber(opacity);if(points){st.points=points.checked;st.lines=lines.checked;}});});
+  function editColor(id,type) {
+    const object=current()[objectCollection(type)].find(item=>item.id===id);if(!object)return;
+    const initial=type==='chart'?object.color:object.style.color;let color,rgb;
+    openDialog('自由な色（RGB）',parent=>{
+      color=field(parent,'自由な色',initial,'color');const fields=grid(parent,true);
+      rgb=['R','G','B'].map((label,i)=>field(fields,label,parseInt(initial.slice(1+i*2,3+i*2),16),'number',{min:0,max:255,step:1}));
+      color.addEventListener('input',()=>rgb.forEach((input,i)=>{input.value=parseInt(color.value.slice(1+i*2,3+i*2),16);}));
+      for(const input of rgb)input.addEventListener('change',()=>run(()=>{color.value=read();}));
+      parent.append(node('p','R・G・Bを0〜255の整数で指定します。',{class:'small muted'}));
+    },()=>{
+      const value=read();changed(doc=>{const target=doc[objectCollection(type)].find(item=>item.id===id);if(type==='chart')target.color=value;else target.style.color=value;});
+    });
+    function read(){const values=rgb.map(requiredNumber);if(values.some(value=>!Number.isInteger(value)||value<0||value>255))throw new Error('RGBは0〜255の整数です。');return '#'+values.map(value=>value.toString(16).padStart(2,'0')).join('');}
   }
   function editParameter(name) {
     const existing=current().parameters.find(p=>p.name===name);let paramName,value,min,max,step;
@@ -942,7 +977,7 @@
       paramName=field(parent,'名前（半角英字。例：a）',existing?.name||'a','text',{maxlength:32});if(existing)paramName.readOnly=true;
       const g=grid(parent);value=field(g,'値',existing?.value??1,'number',{step:'any'});step=field(g,'刻み幅',existing?.step??.1,'number',{step:'any',min:.000001});min=field(g,'最小値',existing?.min??-5,'number',{step:'any'});max=field(g,'最大値',existing?.max??5,'number',{step:'any'});
       parent.append(node('p','x, y, z, pi, e と関数名は使えません。媒介変数のある図では t、極座標のある図では theta も予約されています。登録した係数は数式や点の位置に使えます。',{class:'small muted'}));
-    },()=>{const p={name:paramName.value.trim(),value:requiredNumber(value),min:requiredNumber(min),max:requiredNumber(max),step:requiredNumber(step)};changed(d=>{if(existing)d.parameters[d.parameters.findIndex(x=>x.name===name)]=p;else d.parameters.push(p);});select({type:'parameter',name:p.name});});
+    },()=>{const p={...(existing?.visible===false?{visible:false}:{}),name:paramName.value.trim(),value:requiredNumber(value),min:requiredNumber(min),max:requiredNumber(max),step:requiredNumber(step)};changed(d=>{if(existing)d.parameters[d.parameters.findIndex(x=>x.name===name)]=p;else d.parameters.push(p);});select({type:'parameter',name:p.name});});
   }
   function editAxes() {
     let name,angle,equal,gridOn,legend;const fields={},presentation={};
@@ -1108,6 +1143,7 @@
     try{localAuto=new IlapoLocalAutosave({encode:doc=>new Blob([encode(doc)],{type:'application/json'}),onStatus:result=>{status(result.message);$('stop-local-auto').disabled=!localAuto.active;if(result.state==='error')notify(result.message);}});}catch(_){$('start-local-auto').disabled=true;}
     listen('list-toggle','click',()=>setListOpen(!$('objects').classList.contains('is-open')));listen('list-close','click',()=>setListOpen(false));
     bindAddMenu('series');
+    listReorder=GraphListReorder.bind($('objects'),{onStart:()=>{closeMenus();cancelTangentDraft();cancelParameterPreview();tooltip?.hide();},onMove:(type,id,index)=>run(()=>moveObject(type,id,index))});
     listen('workspace-view','change',()=>showWorkspace($('workspace-view').value));listen('comparison-settings','click',editComparison);
     for(const kind of Object.keys(chartNames))listen('add-'+kind+'-chart','click',()=>editChart(null,kind));
     $('plot').addEventListener('pointerdown',startGesture,{capture:true});
@@ -1128,6 +1164,8 @@
     for(const panel of ['format','templates','export'])listen(panel+'-tab','click',()=>setSide(panel));for(const el of document.querySelectorAll('[data-close-side]'))el.addEventListener('click',()=>{const previous=side;setSide(side);$(previous+'-tab')?.focus();});listen('template-search','input',templateList);
     listen('zoom-toggle','click',()=>{if(!$('zoom-panel').hidden){closeZoom();return;}closeMenus();$('zoom-panel').hidden=false;$('zoom-toggle').setAttribute('aria-expanded','true');positionZoom();});
     for(const control of document.querySelectorAll('[data-zoom-axis]'))control.addEventListener('click',()=>run(()=>zoomView(control.dataset.zoomAxis,Number(control.dataset.zoomFactor))));
+    $('object-menu').addEventListener('pointerenter',()=>clearTimeout(objectMenuTimer));
+    $('object-menu').addEventListener('pointerleave',scheduleObjectMenuClose);
     $('object-menu').addEventListener('keydown',event=>{if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;event.preventDefault();const controls=[...$('object-menu').querySelectorAll('button:not(:disabled)')],index=controls.indexOf(document.activeElement);const next=event.key==='Home'?0:event.key==='End'?controls.length-1:(index+(event.key==='ArrowDown'?1:-1)+controls.length)%controls.length;controls[next]?.focus();});
     listen('save-template','click',saveTemplate);listen('import-template','click',()=>$('template-input').click());
     listen('template-input','change',async()=>{const file=$('template-input').files[0];$('template-input').value='';if(!file)return;if(file.size>2*1024*1024+8192)throw new Error('テンプレートのファイルが大きすぎます。');if(!templateLibrary)throw new Error('ブラウザ保存を利用できません。');const item=templateLibrary.import(await file.text());templateList();notify('「'+item.name+'」を自作テンプレートへ追加しました。');});
@@ -1149,20 +1187,19 @@
     addEventListener('resize',positionQuickTangent);addEventListener('scroll',positionQuickTangent,true);window.visualViewport?.addEventListener('resize',positionQuickTangent);window.visualViewport?.addEventListener('scroll',positionQuickTangent);
     addEventListener('resize',positionObjectMenu);addEventListener('scroll',positionObjectMenu,true);addEventListener('resize',positionZoom);
     document.addEventListener('keydown',event=>{
-      if(event.isComposing||event.keyCode===229)return;if(help?.root?.contains(event.target)||$('operation-help').contains(event.target))return;
+      if(event.defaultPrevented||event.isComposing||event.keyCode===229)return;if(help?.root?.contains(event.target)||$('operation-help').contains(event.target))return;
       const input=event.target.closest('input,textarea,select,[contenteditable="true"]');if($('editor-dialog').open)return;
       if(event.key==='Escape'&&objectMenuTarget){closeObjectMenu(true);event.preventDefault();return;}
-      if(objectMenuTarget&&['Delete','Backspace'].includes(event.key)){event.preventDefault();$('object-menu button:last-child').click();return;}
+      if(objectMenuTarget&&($('object-menu').contains(event.target)||objectMenuTarget.trigger.contains(event.target))&&['Delete','Backspace'].includes(event.key)){event.preventDefault();$('object-menu').querySelector('button:last-child').click();return;}
       if(event.key==='Escape'&&!$('zoom-panel').hidden){closeZoom(true);event.preventDefault();return;}
       if(event.key==='Escape'&&tangentDraft){cancelTangentDraft(true);event.preventDefault();return;}
       if(event.key==='Escape'&&addMenu){closeAddMenu(true);event.preventDefault();return;}
       if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='p'){event.preventDefault();run(printPreview);return;}
       if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'){event.preventDefault();run(saveBrowser);return;}if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='o'){event.preventDefault();showSaved();return;}
       if(event.key==='Escape'&&parameterPreview){cancelParameterPreview();event.preventDefault();return;}
-      if(event.key==='Escape'&&selectionPanel&&$('selection-toolbar').contains(event.target)){const panel=selectionPanel;selectionPanel=null;updateToolbar();$('selection-toolbar').querySelector('[data-quick-control="toggle-'+panel+'"]')?.focus();event.preventDefault();return;}
       if(input)return;
       if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='z'){event.preventDefault();undo(event.shiftKey);return;}
-      if(event.key==='Escape'){const menu=document.querySelector('.top details[open]');if(gesture)cancelGesture();else if(menu){menu.open=false;menu.querySelector('summary').focus();}else if(selectionPanel){const panel=selectionPanel;selectionPanel=null;updateToolbar();$('selection-toolbar').querySelector('[data-quick-control="toggle-'+panel+'"]')?.focus();}else{select(null);setListOpen(false);}event.preventDefault();}
+      if(event.key==='Escape'){const menu=document.querySelector('.top details[open]');if(gesture)cancelGesture();else if(menu){menu.open=false;menu.querySelector('summary').focus();}else{select(null);setListOpen(false);}event.preventDefault();}
       if(event.key==='Enter'&&!event.metaKey&&!event.ctrlKey&&!event.altKey&&(event.target===$('stage')||event.target.closest('[data-object-id][aria-pressed="true"]'))){if(selected?.type==='row'){event.preventDefault();run(editObservedRow);return;}const s=activeSeries(),a=activeAnnotation(),chart=activeChart();if(s||a||chart){event.preventDefault();run(()=>s?editSeries(s.id):a?editAnnotation(a.id):editChart(chart.id));}}
       if(event.key==='?'){event.preventDefault();help?.open();}
       if(event.key==='Delete'||event.key==='Backspace'){const s=activeSeries(),a=activeAnnotation(),chart=activeChart();if(s||a||chart){event.preventDefault();run(()=>s?removeSeries(s.id):a?removeAnnotation(a.id):removeChart(chart.id));}}

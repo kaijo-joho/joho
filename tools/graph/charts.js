@@ -91,6 +91,7 @@
         id: generated,
         kind,
         name: '',
+        visible: true,
         color: '#2563eb',
         ...defaultView()
       };
@@ -118,7 +119,8 @@
       ...clone(options),
       ...mergeView(options),
       id: generated,
-      kind
+      kind,
+      visible: options.visible === undefined ? true : options.visible
     };
   }
   function series(doc, id) {
@@ -192,9 +194,12 @@
       id: chartId(raw.id, used, reserved),
       kind: raw.kind,
       name: text(raw.name ?? '', 'グラフ名'),
+      // version 10の任意項目。省略された旧作品は従来どおり表示する。
+      visible: raw.visible === undefined ? true : raw.visible,
       color: raw.color,
       ...validateView(raw, raw.kind)
     };
+    if (typeof out.visible !== 'boolean') fail('グラフの表示設定が不正です。');
     if (raw.kind === 'residual') {
       out.regressionId = text(raw.regressionId, '回帰参照', 100);
       if (!annotation(doc, out.regressionId) || annotation(doc, out.regressionId).kind !== 'regression') fail('残差グラフの回帰参照が見つかりません。');
@@ -685,6 +690,7 @@
       };
       return empty(fallback, error.message, dark, fontSize);
     }
+    if (!clean.visible) return empty(clean, 'この分析グラフは非表示です。', dark, fontSize);
     if (clean.kind === 'scatter') return buildScatter(clean, doc, dark, fontSize, selectedRow);
     if (clean.kind === 'residual') return buildResidual(clean, doc, dark, fontSize, selectedRow);
     if (clean.kind === 'histogram') return buildHistogram(clean, doc, dark, fontSize);

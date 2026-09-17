@@ -1,6 +1,6 @@
 # グラフエディタ 0.1 実装契約（初版の記録）
 
-現行0.12.0の右インスペクター・追加メニュー・ズーム操作は [右インスペクターの配置契約](docs/inspector-layout.md) を参照する。
+現行0.13.0の右インスペクター・一覧操作・追加メニュー・ズーム操作は [右インスペクターの配置契約](docs/inspector-layout.md) を参照する。
 
 現行0.10.0のオープンデータ取込は [取込仕様](docs/open-data-import-plan.md) を参照。文書version 10を維持し、出典は既存の `source` に保存する。0.9.0の分析グラフ編集・行選択・回帰除外は [グラフ編集・行選択の契約](docs/chart-editing-row-link-contract.md) を参照。0.8.0から継続する分析グラフ・自作テンプレート・比較配置は [分析グラフ・テンプレート・比較の契約](docs/statistical-charts-contract.md) を、0.7.0から継続する数表・統計・回帰連携・教材出力は [数表・統計・教材出力契約](docs/tables-publication-contract.md) を参照する。この文書は旧版の履歴として保持する。
 
