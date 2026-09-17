@@ -119,12 +119,8 @@
     return Number.isFinite(n) && Math.abs(n) <= 1e9 ? n : undefined;
   }
   function dateValue(value) {
-    const v = String(value).trim();
-    const match = /^(\d{4})[/-](\d{1,2})[/-](\d{1,2})$/.exec(v);
-    if (!match) return undefined;
-    const year = Number(match[1]), month = Number(match[2]), day = Number(match[3]);
-    const date = new Date(Date.UTC(year, month - 1, day));
-    return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day ? date : undefined;
+    try { return new Date(GraphTables.dateNumber(String(value).trim()) * 86400000); }
+    catch (_) { return undefined; }
   }
   function suggest(records) {
     let startRow = 1;
@@ -189,7 +185,7 @@
       const type = values === 0 ? 'empty' : numeric > 0 && dates === 0 ? 'number' : dates > 0 && numeric === 0 ? 'date' : 'text';
       return {index, name, type, numeric, missing:missingCount, invalid, quality:qualityName.test(name)};
     });
-    const usable = columns.filter(column => !column.quality && (column.type === 'number' || column.type === 'date'));
+    const usable = columns.filter(column => !column.quality && (column.type === 'number' || column.type === 'date' || column.type === 'text'));
     const x = (usable.find(column => column.type === 'date') || usable[0] || columns[0] || {index:0}).index;
     const y = (usable.find(column => column.type === 'number' && column.index !== x) || usable.find(column => column.index !== x) || columns[1] || {index:1}).index;
     const z = (usable.find(column => column.type === 'number' && ![x,y].includes(column.index)) || {}).index;
@@ -202,11 +198,11 @@
     const axes = {x: options.x === undefined ? inspection.suggested.x : options.x, y: options.y === undefined ? inspection.suggested.y : options.y, z: kind === 'data3d' ? (options.z === undefined ? inspection.suggested.z : options.z) : null};
     const axisList = kind === 'data3d' ? [axes.x,axes.y,axes.z] : [axes.x,axes.y];
     if (axisList.some(i => !Number.isInteger(i)) || new Set(axisList).size !== axisList.length) fail('x・y・zには異なる列を指定してください。');
-    axisList.forEach(i => { const column=inspection.columns[i]; if (!column || !['number','date'].includes(column.type) || (i !== axes.x && column.type !== 'number')) fail('軸には数値列を指定してください。'); });
+    axisList.forEach(i => { const column=inspection.columns[i]; if (!column || !['number','date','text'].includes(column.type) || (kind === 'data3d' && column.type !== 'number')) fail('軸には数値・日付・カテゴリ列を指定してください。'); });
     let selected;
     if (options.columns === undefined) {
       selected = axisList.slice();
-      inspection.columns.filter(c => c.type === 'number' && !c.quality && !selected.includes(c.index)).slice(0, 20 - selected.length).forEach(c => selected.push(c.index));
+      inspection.columns.filter(c => c.type !== 'empty' && !c.quality && !selected.includes(c.index)).slice(0, 20 - selected.length).forEach(c => selected.push(c.index));
     } else {
       if (!Array.isArray(options.columns)) fail('取り込む列の指定が不正です。');
       selected = options.columns.slice();
@@ -214,7 +210,7 @@
     if (selected.some(i => !Number.isInteger(i) || !inspection.columns[i]) || new Set(selected).size !== selected.length) fail('取り込む列の指定が不正です。');
     axisList.forEach(i => { if (!selected.includes(i)) selected.unshift(i); });
     if (selected.length > 20) fail('取り込む列は20列以内にしてください。');
-    if (selected.some(i => !['number','date'].includes(inspection.columns[i].type))) fail('文字列または空の列は数表に取り込めません。');
+    if (selected.some(i => !['number','date','text'].includes(inspection.columns[i].type))) fail('空の列は数表に取り込めません。');
     const notes = [], xColumn = inspection.columns[axes.x];
     if (selected.some(i => inspection.columns[i].quality)) notes.push('品質情報の列を明示して数表へ含めます。');
     const omitted = inspection.columns.filter(c => !selected.includes(c.index)).map(c => c.name);
@@ -222,7 +218,7 @@
     if (textNames.length) notes.push('文字列の列は数表へ含めません：' + textNames.join('、'));
     if (omitted.length) notes.push('取り込まなかった列：' + omitted.join('、'));
     const dateMode = options.dateMode || 'days';
-    if (!['days','year','month'].includes(dateMode)) fail('日付の変換方法が不正です。');
+    if (!['retain','days','year','month'].includes(dateMode)) fail('日付の変換方法が不正です。');
     const filter = options.filter;
     if (filter && (!Number.isInteger(filter.column) || !inspection.columns[filter.column] || typeof filter.value !== 'string')) fail('抽出条件が不正です。');
     let filteredRows=0, blankRows=0, missingCount=0, invalidCount=0;
@@ -248,7 +244,11 @@
       const row = item.row;
       const raw = row[index];
       if (missing(raw)) { missingCount++; return null; }
-      const value = index === axes.x && xColumn.type === 'date' ? dateNumber(raw) : numberValue(raw);
+      const columnType=inspection.columns[index].type;
+      let value;
+      if (columnType === 'date' && dateMode === 'retain') {
+        value = dateValue(raw) ? raw : undefined;
+      } else value = columnType === 'date' && index !== axes.x ? raw : index === axes.x && xColumn.type === 'date' ? dateNumber(raw) : columnType === 'text' ? raw : numberValue(raw);
       if (value === undefined) {
         invalidCount++;
         if (options.invalidAsMissing === true) return null;
@@ -257,13 +257,14 @@
       return value;
     }));
     const columns = selected.map(index => {
-      if (index !== axes.x || xColumn.type !== 'date') return inspection.columns[index].name;
+      if (index !== axes.x || xColumn.type !== 'date' || dateMode === 'retain') return inspection.columns[index].name;
       if (dateMode === 'days') return xColumn.name + '（' + dateOrigin.toISOString().slice(0,10) + 'からの経過日）';
       return xColumn.name + (dateMode === 'year' ? '（年）' : '（月）');
     });
     const mapping = {x:selected.indexOf(axes.x), y:selected.indexOf(axes.y), z:kind === 'data3d' ? selected.indexOf(axes.z) : null, errorX:null, errorY:null};
-    const table = GraphTables.validate({columns, rows, mapping}, kind);
-    if (xColumn.type === 'date') {
+    const columnTypes=selected.map(index=>inspection.columns[index].type === 'text' ? 'category' : inspection.columns[index].type === 'date' && index === axes.x && dateMode !== 'retain' ? 'number' : inspection.columns[index].type);
+    const table = GraphTables.validate({columns, columnTypes, rows, mapping}, kind);
+    if (xColumn.type === 'date' && dateMode !== 'retain') {
       if (dateMode === 'days') notes.push('日付の横軸は' + dateOrigin.toISOString().slice(0,10) + 'を起点とする経過日数（日）です。');
       else if (dateMode === 'year') notes.push('日付の横軸は年（西暦）に変換しました。');
       else notes.push('日付の横軸は月（1〜12）に変換しました。年は値に含めません。');

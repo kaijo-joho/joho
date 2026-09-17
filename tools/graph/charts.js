@@ -35,6 +35,31 @@
     step: null,
     format: 'auto'
   });
+  const columnType = (table, column) => ['date', 'category'].includes(table?.columnTypes?.[column]) ? table.columnTypes[column] : 'number';
+  const categoriesFor = (table, column) => [...new Set((table?.rows || []).map(row => row?.[column]).filter(value => typeof value === 'string' && value !== ''))];
+  const dateText = value => {
+    const d = new Date(Math.round(value) * 86400000);
+    return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+  };
+  function typedAxis(type, categories) { return { type, categories: type === 'category' ? categories : [] }; }
+  function projectColumns(table, xColumn, yColumn) {
+    const x = typedAxis(columnType(table, xColumn), categoriesFor(table, xColumn)), y = typedAxis(columnType(table, yColumn), categoriesFor(table, yColumn));
+    const mapped = { ...table, mapping: { x: xColumn, y: yColumn, z: null, errorX: null, errorY: null } };
+    return { axes: { x, y }, rows: Tables.project(mapped, 'data2d', { x, y }).rows };
+  }
+  function typedAxisLayout(target, typed, extent) {
+    if (!typed || typed.type === 'number') return;
+    target.zeroline = false;
+    if (typed.type === 'category') {
+      const values = typed.categories.map((_, index) => index);
+      target.tickmode = 'array'; target.tickvals = values; target.ticktext = typed.categories;
+      return;
+    }
+    const values = (extent || []).filter(finite), lo = Math.min(...values), hi = Math.max(...values), span = hi - lo;
+    if (!finite(lo) || !finite(hi)) return;
+    const tickvals = Tables.dateTicks(lo,hi);
+    target.tickmode = 'array'; target.tickvals = tickvals; target.ticktext = tickvals.map(dateText);
+  }
   function defaultView() {
     return {
       axes: {
@@ -221,12 +246,13 @@
     } else if (raw.kind === 'histogram') {
       out.column = index(raw.column, 'ヒストグラムの列');
       if (!has(out.column)) fail('ヒストグラムの列が数表にありません。');
+      if (columnType(table, out.column) !== 'number') fail('ヒストグラムには数値列を指定してください。');
       if (raw.bins !== null && (!Number.isInteger(raw.bins) || raw.bins < 1 || raw.bins > 100)) fail('階級数は1〜100または自動にしてください。');
       out.bins = raw.bins;
     } else {
       if (!Array.isArray(raw.columns) || raw.columns.length < 1 || raw.columns.length > 20) fail('箱ひげ図の列が不正です。');
       out.columns = raw.columns.map(v => index(v, '箱ひげ図の列'));
-      if (out.columns.some(v => !has(v)) || new Set(out.columns).size !== out.columns.length) fail('箱ひげ図の列が不正です。');
+      if (out.columns.some(v => !has(v)) || new Set(out.columns).size !== out.columns.length || out.columns.some(v => columnType(table, v) !== 'number')) fail('箱ひげ図には数値列を指定してください。');
     }
     return out;
   }
@@ -304,7 +330,7 @@
     }
     return finite(min) && finite(max) ? [min, max] : null;
   }
-  function axes(layout, chart, fallback, box, extent = {}) {
+  function axes(layout, chart, fallback, box, extent = {}, typed = {}) {
     for (const key of ['x', 'y']) {
       const axis = chart.axes[key],
         target = layout[key + 'axis'];
@@ -330,6 +356,7 @@
           Object.assign(target, ticks);
         }
       }
+      typedAxisLayout(target, typed[key], target.range || extent[key]);
     }
   }
   function empty(chart, msg, dark, fontSize, f = {
@@ -426,16 +453,16 @@
       return empty(chart, '数表参照が見つかりません。', dark, fontSize);
     }
     if (!table.columns[chart.xColumn] || !table.columns[chart.yColumn]) return empty(chart, '指定した列が数表にありません。', dark, fontSize);
-    const excluded = new Set(source.excludedRows || []),
-      rows = table.rows.map(r => [r[chart.xColumn], r[chart.yColumn]]),
+    const excluded = new Set(source.excludedRows || []), projected = projectColumns(table, chart.xColumn, chart.yColumn), typed = projected.axes,
+      rows = projected.rows,
       pairs = [],
-      hover = pointHover(table.columns[chart.xColumn], table.columns[chart.yColumn]);
+      hover = typed.x.type === 'number' && typed.y.type === 'number' ? pointHover(table.columns[chart.xColumn], table.columns[chart.yColumn]) : '元の行 %{customdata[0]}<br>' + escape(table.columns[chart.xColumn]) + '=%{customdata[1]}<br>' + escape(table.columns[chart.yColumn]) + '=%{customdata[2]}<extra></extra>';
     rows.forEach(([x, y], i) => {
       if (x !== null && y !== null) pairs.push({
         row: i + 1,
         x,
         y,
-        excluded: excluded.has(i)
+        excluded: excluded.has(i), rawX: table.rows[i][chart.xColumn], rawY: table.rows[i][chart.yColumn]
       });
     });
     if (!pairs.length) return empty(chart, '同じ行にそろった数値の組がありません。', dark, fontSize);
@@ -447,7 +474,7 @@
         name,
         x: ps.map(p => p.x),
         y: ps.map(p => p.y),
-        customdata: ps.map(p => [p.row]),
+        customdata: ps.map(p => [p.row, p.rawX, p.rawY]),
         meta: {
           dataRows: true,
           seriesId: source.id
@@ -467,7 +494,7 @@
     let fit = null,
       warnings = [],
       summary = '有効な ' + pairs.length + ' 組を表示しています。';
-    if (chart.model) {
+    if (chart.model && typed.x.type !== 'category' && typed.y.type === 'number') {
       fit = Analysis.fit({
         rows,
         excludedRows: [...excluded]
@@ -492,7 +519,7 @@
         if (fit.rmse !== null) m.push('RMSE=' + num(fit.rmse));
         summary += ' ' + Analysis.equation(fit, table.columns[chart.xColumn], table.columns[chart.yColumn]) + (m.length ? '（' + m.join('、') + '）' : '') + (fit.excluded ? ' 回帰から ' + fit.excluded + ' 行を除外しています。' : '');
       }
-    }
+    } else if (chart.model) warnings.push('回帰分析は横軸が数値または日付、縦軸が数値の散布図で表示できます。');
     if (selectedRow && selectedRow.seriesId === source.id) {
       const p = pairs.find(x => x.row === selectedRow.rowIndex + 1);
       if (p) data.push(highlight(chart, source, p));
@@ -504,7 +531,7 @@
     }, false, {
       x: pairs.map(p => p.x),
       y: pairs.map(p => p.y)
-    });
+    }, typed);
     layout.annotations = labelAnnotations(chart, fit, table.columns[chart.xColumn], table.columns[chart.yColumn], dark);
     return {
       data,
@@ -524,7 +551,7 @@
     if (!source) return empty(chart, '参照する回帰が見つかりません。', dark, fontSize);
     const fit = Analysis.fit(source, regression.model);
     if (fit.warning) return empty(chart, fit.warning, dark, fontSize);
-    const xName = original('x'),
+    const xName = original('x'), dateX = chart.horizontal === 'x' && source.dataTable?.columnTypes?.[source.dataTable.mapping.x] === 'date',
       yName = original('y'),
       points = fit.residuals.map(r => ({
         row: r[0],
@@ -538,13 +565,13 @@
         name: escape(chart.name || '残差'),
         x: points.map(p => p.x),
         y: points.map(p => p.y),
-        customdata: points.map(p => p.raw),
+        customdata: points.map(p => [p.raw[0], dateX ? dateText(p.raw[1]) : p.raw[1], p.raw[2], p.raw[3], p.raw[4]]),
         meta: {
           dataRows: true,
           seriesId: source.id
         },
         marker: marker(chart),
-        hovertemplate: '元の行 %{customdata[0]}<br>x=%{customdata[1]:.8g}<br>y=%{customdata[2]:.8g}<br>予測値=%{customdata[3]:.8g}<br>残差=%{y:.8g}<extra></extra>'
+        hovertemplate: '元の行 %{customdata[0]}<br>x=' + (dateX ? '%{customdata[1]}' : '%{customdata[1]:.8g}') + '<br>y=%{customdata[2]:.8g}<br>予測値=%{customdata[3]:.8g}<br>残差=%{y:.8g}<extra></extra>'
       },
       data = [trace];
     if (selectedRow && selectedRow.seriesId === source.id) {
@@ -558,7 +585,7 @@
     }, false, {
       x: points.map(p => p.x),
       y: [0, ...points.map(p => p.y)]
-    });
+    }, dateX ? { x: typedAxis('date'), y: typedAxis('number') } : {});
     layout.yaxis.zeroline = true;
     layout.yaxis.rangemode = 'tozero';
     layout.annotations = labelAnnotations(chart, fit, xName, yName, dark);

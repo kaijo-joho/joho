@@ -91,7 +91,7 @@
     const axes = make('div', null, {class: is3 ? 'field-grid three' : 'field-grid'}); preview.append(axes);
     const x = select(axes, '横軸の列', []), y = select(axes, '縦軸の列', []);
     const z = is3 ? select(axes, '高さの列', []) : null;
-    const dateMode = select(preview, '日付の変換', [['days', '最初の日付からの経過日数'], ['year', '年'], ['month', '月']], 'days');
+    const dateMode = select(preview, '日付の扱い', [['retain', '日付として保持'], ['days', '最初の日付からの経過日数'], ['year', '年'], ['month', '月']], 'retain');
     dateMode.parentElement.hidden = true;
     const plotOptions = make('div', null, {class: 'field-grid'}); preview.append(plotOptions);
     const lines = checkbox(plotOptions, '入力順に点を結ぶ', false);
@@ -115,12 +115,12 @@
     const filterFields = make('div', null, {class: 'field-grid'}); details.append(filterFields);
     const filterColumn = select(filterFields, '地域などで絞り込む列', [['', '絞り込まない']], '');
     const filterValue = select(filterFields, '残す値（完全一致）', []); filterValue.disabled = true;
-    const extra = make('fieldset', null, {class: 'data-import-columns'}); extra.append(make('legend', '統計にも使う数値列（軸を含め20列まで）')); details.append(extra);
+    const extra = make('fieldset', null, {class: 'data-import-columns'}); extra.append(make('legend', '表へ取り込む列（軸を含め20列まで）')); details.append(extra);
     const extraFields = make('div', null, {class: 'data-import-column-choices'}); extra.append(extraFields);
     const errors = make('div', null, {class: 'field-grid'}); details.append(errors);
     const errorX = select(errors, '横誤差の列', [['', 'なし']], ''), errorY = select(errors, '縦誤差の列', [['', 'なし']], ''); errors.hidden = is3;
     const invalid = checkbox(details, '数値にできない値を欠測として取り込む', false);
-    details.append(make('p', '空欄・NA・---などの欠測は0にしません。注記付きの値を欠測にする場合は上のチェックを使います。品質情報の列は値を確認してから選んでください。文字列は数表へ保存されないため、元のCSVも残してください。', {class: 'small muted'}));
+    details.append(make('p', '空欄・NA・---などの欠測は0にしません。日付とカテゴリは元の値を保存します。注記付きの数値を欠測にする場合は上のチェックを使います。', {class: 'small muted'}));
     const sourceDetails = make('details'); sourceDetails.append(make('summary', '出典・利用条件')); preview.append(sourceDetails);
     const sourceTitle = input(sourceDetails, '資料名', '', 'text', {maxlength: 300});
     const sourceURL = input(sourceDetails, '出典URL（https）', '', 'url', {maxlength: 2000});
@@ -201,9 +201,9 @@
         name.value = loadedName.replace(/\.(?:csv|tsv|txt)$/i, '').slice(0, 160);
         sourceTitle.value = source.title || name.value; sourceURL.value = source.url;
         licenseURL.value = loadedCatalog?.license.url || ''; sourceNote.value = '';
-        lines.checked = !!loadedCatalog?.lines; dateMode.value = 'days';
+        lines.checked = !!loadedCatalog?.lines; dateMode.value = 'retain';
       }
-      const axisOptions = inspection.columns.map(c => [c.index, c.name + (c.type === 'date' ? '（日付）' : c.quality ? '（品質情報）' : '')]);
+      const axisOptions = inspection.columns.map(c => [c.index, c.name + (c.type === 'date' ? '（日付）' : c.type === 'text' ? '（カテゴリ）' : c.quality ? '（品質情報）' : '')]);
       const suggested = inspection.suggested;
       setOptions(x, axisOptions, initial && loadedCatalog ? loadedCatalog.x : suggested.x);
       setOptions(y, axisOptions, initial && loadedCatalog ? loadedCatalog.y : suggested.y);
@@ -212,9 +212,9 @@
       setOptions(filterColumn, [['', '絞り込まない'], ...filterOptions], ''); updateFilterValues();
       extraFields.replaceChildren();
       const defaults = new Set([x.value, y.value, z?.value].filter(value => value !== undefined && value !== '').map(Number));
-      for (const c of inspection.columns) if (defaults.size < 20 && c.type === 'number' && !c.quality) defaults.add(c.index);
+      for (const c of inspection.columns) if (defaults.size < 20 && c.type !== 'empty' && !c.quality) defaults.add(c.index);
       for (const c of inspection.columns) {
-        if (c.type === 'empty' || c.type === 'date' || c.type === 'text' && c.numeric === 0) continue;
+        if (c.type === 'empty') continue;
         const box = checkbox(extraFields, c.name + (c.quality ? '（品質情報）' : ''), defaults.has(c.index));
         box.dataset.importColumn = c.index; box.addEventListener('change', refresh);
       }

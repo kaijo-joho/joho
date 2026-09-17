@@ -25,6 +25,12 @@
     const data=[];let skipped=0,excluded=0;
     const bad=warning=>({warning,model,n:data.length,skipped,excluded,coefficients:null,domain:null,predict:null,r:null,r2:null,rmse:null,residuals:[]});
     if(!models.includes(model)||!series||!Array.isArray(series.rows)||series.rows.length>10000)return bad('分析対象またはモデルが不正です。');
+    if(series.dataTable){
+      const table=series.dataTable, types=Array.isArray(table.columnTypes)?table.columnTypes:table.columns?.map(()=> 'number');
+      const mapping=table.mapping;
+      if(!Array.isArray(types)||!mapping||types[mapping.x]==='category'||types[mapping.y]==='category')return bad('カテゴリ軸のデータには回帰分析を使えません。');
+      if(types[mapping.y]!=='number')return bad('回帰分析の縦軸には数値列を指定してください。');
+    }
     const excludedRows=series.excludedRows===undefined?[]:series.excludedRows;
     if(!Array.isArray(excludedRows)||excludedRows.some(value=>!Number.isInteger(value)||value<0||value>=series.rows.length)||new Set(excludedRows).size!==excludedRows.length)return bad('除外する行が不正です。');
     const excludedSet=new Set(excludedRows);

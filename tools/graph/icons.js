@@ -7,6 +7,9 @@
   const NS = 'http://www.w3.org/2000/svg';
   const ICONS = {
     plus: [['path', { d: 'M12 4v16M4 12h16' }]],
+    selectMultiple: [['rect', { x: 3, y: 3, width: 11, height: 11, rx: 1 }], ['rect', { x: 10, y: 10, width: 11, height: 11, rx: 1 }], ['path', { d: 'm12.5 15.5 2 2 4-4' }]],
+    copyStyle: [['path', { d: 'M4 4h16v7H4zM7 11v4h5v6M8 4v4M12 4v4M16 4v4' }]],
+    pasteStyle: [['path', { d: 'M8 5H5v16h14V5h-3M8 3h8v4H8zM8 13l3 3 5-6' }]],
     zoom: [['circle', { cx: 10, cy: 10, r: 6 }], ['path', { d: 'm15 15 6 6M7 10h6M10 7v6' }]],
     file: [['path', { d: 'M3 7V4h7l2 3h9v3M3 7v14h17l2-11H7L3 21' }]],
     undo: [['path', { d: 'M8 4 3 9l5 5M3 9h11a7 7 0 0 1 0 14' }]],

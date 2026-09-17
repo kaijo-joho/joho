@@ -1,0 +1,98 @@
+/* Date/category data through file import, editing, selection and persistence. */
+const assert = require('node:assert/strict');
+const fs = require('node:fs'), http = require('node:http'), path = require('node:path'), os = require('node:os');
+const C = require('../core.js');
+let chromium;
+try { ({chromium} = require('playwright')); }
+catch { ({chromium} = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'))); }
+const root = path.resolve(__dirname, '../../..');
+const server = http.createServer((req,res) => {
+  const file = path.resolve(root, '.' + decodeURIComponent(req.url.split('?')[0]));
+  if (!file.startsWith(root + path.sep)) { res.writeHead(403); return res.end(); }
+  fs.readFile(file, (error,data) => { res.writeHead(error ? 404 : 200, {'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.svg')?'image/svg+xml':'text/html'}); res.end(error?'not found':data); });
+});
+let browser, page;
+(async () => {
+  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  browser = await chromium.launch({channel:'chrome', headless:true});
+  page = await browser.newPage({viewport:{width:1280,height:900},hasTouch:true});
+  page.setDefaultTimeout(10000);
+  const errors = []; page.on('pageerror', error => errors.push(error.message));
+  await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`);
+  const settle = () => page.waitForFunction(() => window.GraphEditor && !GraphEditor.getState().drawing);
+  const doc = () => page.evaluate(() => GraphEditor.getDocument());
+  const submit = async () => { await page.locator('#dialog-submit').click(); await page.waitForFunction(() => !document.querySelector('#editor-dialog').open && !GraphEditor.getState().drawing); };
+  const load = async value => { await page.locator('#file-input').setInputFiles({name:'typed.graph.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(value))}); await settle(); };
+  const item = id => page.locator('[data-object-type="series"][data-object-id="'+id+'"]');
+  async function importCSV(name,text) {
+    await page.locator('#series-add-toggle').click(); await page.locator('#import-csv').click();
+    await page.locator('[data-import-file]').setInputFiles({name,mimeType:'text/csv',buffer:Buffer.from(text)});
+    await page.locator('[data-import-summary]').waitFor();
+    await page.getByLabel('横軸の列',{exact:true}).selectOption('0');
+    await page.getByLabel('縦軸の列',{exact:true}).selectOption('1');
+    await submit(); return (await doc()).series.at(-1);
+  }
+  await settle(); await load(C.createDocument());
+  const dates = await importCSV('日別観測.csv','日付,気温,観測地\n2024/1/31,10,東京\n2024/2/29,12,大阪\n2024/3/1,14,東京');
+  let value = await doc();
+  assert.equal(value.axes.x.type,'date');
+  assert.deepEqual(dates.dataTable.columnTypes,['date','number','category']);
+  assert.equal(dates.dataTable.rows[0][0],'2024/1/31','original date notation survives import');
+  assert.equal(dates.rows[1][0]-dates.rows[0][0],29,'leap February preserves real spacing');
+  assert.equal(dates.rows[2][0]-dates.rows[1][0],1);
+  assert(await page.locator('#plot .xtick').count());
+  await page.locator('#axes-button').click();
+  const xaxis=page.locator('[data-axis="x"]');
+  assert.equal(await xaxis.getByLabel('軸の種類',{exact:true}).inputValue(),'date');
+  assert.equal(await xaxis.getByLabel('最小値',{exact:true}).getAttribute('type'),'date');
+  await xaxis.getByLabel('最小値',{exact:true}).fill('2024-01-30');
+  await xaxis.getByLabel('最大値',{exact:true}).fill('2024-03-03');await submit();
+  assert.equal((await doc()).axes.x.min,Date.UTC(2024,0,30)/86400000);
+  const beforeZoom=(await doc()).axes.y;
+  await page.locator('#zoom-toggle').click();await page.getByRole('button',{name:'横方向のみ拡大',exact:true}).click();await page.keyboard.press('Escape');await settle();
+  assert.deepEqual((await doc()).axes.y,beforeZoom,'date zoom preserves the other axis');
+  await item(dates.id).click();await page.getByRole('button',{name:'散布図を追加',exact:true}).click();
+  const dialog=page.locator('#editor-dialog');
+  await dialog.locator('.chart-axis-settings summary').click();
+  assert.equal(await dialog.getByLabel('横軸の最小値',{exact:true}).getAttribute('type'),'date');
+  await dialog.getByLabel('横軸の最小値',{exact:true}).fill('2024-01-30');
+  await dialog.getByLabel('横軸の最大値',{exact:true}).fill('2024-03-03');await submit();
+  let chart=(await doc()).charts.at(-1);
+  assert.equal(chart.axes.x.min,Date.UTC(2024,0,30)/86400000);
+  assert.equal(chart.axes.x.max,Date.UTC(2024,2,3)/86400000);
+  assert.deepEqual(await page.locator('#analysis-plot').evaluate(plot=>plot._fullLayout.xaxis.range),[chart.axes.x.min,chart.axes.x.max]);
+  await page.locator('#selection-toolbar').getByRole('button',{name:'分析グラフの設定',exact:true}).click();
+  await dialog.locator('.chart-axis-settings summary').click();
+  assert.equal(await dialog.getByLabel('横軸の最小値',{exact:true}).inputValue(),'2024-01-30');
+  await page.locator('#dialog-cancel').click();await page.locator('#workspace-view').selectOption('main');await settle();
+  await item(dates.id).click();await page.getByRole('button',{name:'統計量・相関行列',exact:true}).click();
+  assert(await page.locator('[data-statistics-column="0"]').isDisabled());
+  assert(await page.locator('[data-statistics-column="2"]').isDisabled());
+  assert(!(await page.locator('[data-statistics-column="1"]').isDisabled()));
+  await page.locator('#dialog-cancel').click();
+  await item(dates.id).dblclick();
+  const firstDate=page.getByRole('textbox',{name:'1行1列',exact:true});
+  assert.equal(await firstDate.inputValue(),'2024/1/31');
+  await firstDate.fill('2024-02-30');const beforeBad=await doc();
+  await page.locator('#dialog-submit').click();assert(await page.locator('#dialog-error').isVisible());assert.deepEqual(await doc(),beforeBad);
+  await firstDate.fill('2024/1/31');await submit();
+  const first=await importCSV('地域A.csv','地域,人数\n東京,10\n大阪,20');
+  const second=await importCSV('地域B.csv','地域,人数\n大阪,30\n京都,40\n東京,50');
+  value=await doc();assert.deepEqual(value.axes.x.categories,['東京','大阪','京都']);
+  assert.deepEqual(value.series.find(s=>s.id===first.id).rows,[[0,10],[1,20]]);
+  assert.deepEqual(value.series.find(s=>s.id===second.id).rows,[[1,30],[2,40],[0,50]]);
+  assert.equal(value.series.find(s=>s.id===dates.id).dataTable.rows[0][0],'2024/1/31','another axis type preserves earlier data');
+  await page.locator('#axes-button').click();await xaxis.getByLabel('カテゴリの順序（1行に1項目）',{exact:true}).fill('大阪\n東京\n京都');await submit();
+  value=await doc();assert.deepEqual(value.series.find(s=>s.id===first.id).rows,[[1,10],[0,20]]);
+  assert.deepEqual(value.series.find(s=>s.id===second.id).rows,[[0,30],[2,40],[1,50]]);
+  await page.locator('#undo').click();await settle();assert.deepEqual((await doc()).axes.x.categories,['東京','大阪','京都']);
+  const saved=await doc();await load(C.createDocument());await load(saved);assert.deepEqual(await doc(),saved,'typed data and order round trip');
+  await item(second.id).dblclick();
+  assert.equal(await page.locator('.graph-table-editor__table thead th').last().evaluate(el=>getComputedStyle(el).position),'sticky');
+  await page.screenshot({path:'/private/tmp/graph-typed-table-desktop.png'});
+  await page.locator('#dialog-cancel').click();await page.locator('#view-menu summary').click();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');
+  await page.setViewportSize({width:390,height:850});await page.locator('#list-toggle').tap();await item(second.id).tap();await page.locator('#selection-toolbar').getByRole('button',{name:'数表・出典',exact:true}).tap();await page.locator('#editor-dialog[open]').waitFor();
+  assert(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth));
+  await page.screenshot({path:'/private/tmp/graph-typed-table-mobile.png'});
+  assert.deepEqual(errors,[]);console.log('typed-tables-browser.test.cjs: ok');
+})().catch(async error=>{if(page)await page.screenshot({path:'/private/tmp/graph-typed-tables-failure.png'}).catch(()=>{});console.error(error);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));});

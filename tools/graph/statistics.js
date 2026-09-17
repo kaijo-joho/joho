@@ -142,16 +142,20 @@
     if(table.columns.length>20)throw new RangeError('列数は20以下にしてください。');
     if(table.rows.length>10000)throw new RangeError('行数は10000以下にしてください。');
     for(const name of table.columns)if(typeof name!=='string')throw new TypeError('列名は文字列にしてください。');
+    const types=table.columnTypes===undefined?table.columns.map(()=> 'number'):table.columnTypes;
+    if(!Array.isArray(types)||types.length!==table.columns.length||types.some(type=>!['number','date','category'].includes(type)))throw new TypeError('数表の列の種類が不正です。');
     for(const row of table.rows){
       if(!Array.isArray(row)||row.length!==table.columns.length)throw new TypeError('数表の各行は列数と同じ長さにしてください。');
-      checkedValues(row,'数表');
+      row.forEach((value,index)=>{if(types[index]==='number')checkedValues([value],'数表');else if(value!==null&&typeof value!=='string')throw new TypeError('日付・カテゴリ列は文字列またはnullにしてください。');});
     }
   }
   function selectedIndices(table,indices){
     if(indices===undefined)indices=table.columns.map((_,index)=>index);
     if(!Array.isArray(indices))throw new TypeError('列番号は配列にしてください。');
     const out=indices.map(index=>columnIndex(index));
+    const types=table.columnTypes||table.columns.map(()=> 'number');
     if(out.some(index=>index>=table.columns.length)||new Set(out).size!==out.length)throw new RangeError('列番号が不正または重複しています。');
+    if(out.some(index=>types[index]!=='number'))throw new TypeError('統計量には数値列だけを指定してください。');
     return out;
   }
   function matrix(table,indices){

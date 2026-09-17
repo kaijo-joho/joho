@@ -1,0 +1,28 @@
+const assert = require('assert');
+const Tables = require('../tables.js');
+const Charts = require('../charts.js');
+const day = text => Tables.dateNumber(text);
+const table = { columns: ['日付', '区分', '値'], columnTypes: ['date', 'category', 'number'], rows: [['2024-01-31', 'B', 2], ['2024-02-29', 'A', 4], ['2024-03-31', 'B', 6]], mapping: { x: 0, y: 2, z: null, errorX: null, errorY: null } };
+const projected = Tables.project(table, 'data2d', { x: { type: 'date' }, y: { type: 'number' } });
+const source = { id: 'typed', kind: 'data2d', rows: projected.rows, errorBars: projected.errorBars, dataTable: Tables.validate(table), excludedRows: [] };
+const doc = { series: [source], annotations: [{ id: 'fit', kind: 'regression', seriesId: 'typed', model: 'linear', showEquation: true, showMetrics: true }], axes: { x: { type: 'date', label: '日付', symbol: '日', unit: '' }, y: { type: 'number', label: '値', symbol: '値', unit: '' } } };
+const scatter = Charts.build(Charts.create('scatter', { seriesId: 'typed', xColumn: 0, yColumn: 2, model: 'linear' }), doc);
+assert.equal(scatter.warnings.length, 0);
+assert.deepEqual(scatter.data[0].x, [day('2024-01-31'), day('2024-02-29'), day('2024-03-31')]);
+assert.deepEqual(scatter.data[0].customdata[1], [2, '2024-02-29', 4]);
+assert(scatter.layout.xaxis.ticktext.includes('2024-02-01'), '日付目盛は実在する暦日を用いる');
+assert(scatter.data.some(trace => trace.name === '回帰曲線'), '日付はUTC日数として回帰できる');
+const residual = Charts.build(Charts.create('residual', { regressionId: 'fit', horizontal: 'x' }), doc);
+assert.equal(residual.warnings.length, 0);
+assert.deepEqual(residual.data[0].x, projected.rows.map(row => row[0]));
+assert.match(residual.data[0].hovertemplate, /customdata\[1\]}/);
+assert(residual.layout.xaxis.ticktext.includes('2024-02-01'));
+assert.throws(() => Charts.validate([Charts.create('histogram', { seriesId: 'typed', column: 0 })], doc), /数値列/);
+assert.throws(() => Charts.validate([Charts.create('box', { seriesId: 'typed', columns: [1] })], doc), /数値列/);
+const category = Charts.build(Charts.create('scatter', { seriesId: 'typed', xColumn: 1, yColumn: 2, model: 'linear' }), doc);
+assert.match(category.warnings.join(''), /横軸が数値または日付/);
+assert.deepEqual(category.layout.xaxis.ticktext, ['B', 'A']);
+console.log('typed chart tests passed');
+
+const ranged=Charts.create('scatter',{seriesId:'typed',xColumn:0,yColumn:2});ranged.axes.x.min=day('2024-04-01');ranged.axes.x.max=day('2024-04-05');
+const outside=Charts.build(ranged,doc);assert.deepEqual(outside.layout.xaxis.ticktext,['2024-04-01','2024-04-02','2024-04-03','2024-04-04','2024-04-05'],'日付目盛は表示範囲に合わせる');

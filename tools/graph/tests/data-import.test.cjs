@@ -25,7 +25,7 @@ assert.throws(() => Import.parse('<html>no</html>'), /HTML/);
 assert.throws(() => Import.project(Import.inspect(Import.parse('x,y\n1,2\n3,注記'))), /数値として/);
 assert.throws(() => Import.project(Import.inspect(Import.parse('x,y\n1,2\n3'))), /列数/);
 const filtered = Import.project(Import.inspect(Import.parse('x,y,地域\n1,2,A\n3,4,B')), {x:0,y:1,filter:{column:2,value:'B'}});
-assert.deepEqual(filtered.table.rows, [[3,4]]);
+assert.deepEqual(filtered.table.rows, [[3,4,'B']]);
 assert.equal(filtered.summary.filteredRows, 1);
 
 assert.equal(Import.decode(new TextEncoder().encode('x,y\n1,2')).encoding, 'utf-8');

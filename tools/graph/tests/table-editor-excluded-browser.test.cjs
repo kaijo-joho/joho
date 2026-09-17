@@ -51,7 +51,7 @@ let browser;
 
   await page.evaluate(() => { __tableTest.focusRow(0); });
   assert.equal(await page.evaluate(() => __tableTest.getSelectedRow()), 0, '空欄を含む先頭行でも0をnullと混同しない');
-  assert.equal(await page.evaluate(() => window.__selectedRow), 0); assert.match(await page.locator('.graph-table-editor__focused-row th').innerText(), /^1行/);
+  assert.equal(await page.evaluate(() => window.__selectedRow), 0); assert.equal(await page.locator('.graph-table-editor__focused-row th').innerText(), '1');
   const sourceBeforeDraftCommit = await page.evaluate(() => ({ rows: window.__sourceSeries.rows, excludedRows: window.__sourceSeries.excludedRows }));
   const threeD = await page.evaluate(() => {
     const series = GraphCore.createSeries('data3d'); series.rows = [[1, 2, 3]]; const host = document.createElement('div'); document.body.append(host); const editor = GraphTableEditor.mount(host, series); return { excluded: editor.getExcludedRows(), checkbox: !!host.querySelector('[aria-label="1行目を回帰に使用"]') };

@@ -1,4 +1,6 @@
-# グラフエディタ 0.13.0 BETA
+# グラフエディタ 0.14.0 BETA
+
+0.14.0では、複数選択・書式のコピーと、日付・カテゴリ軸を追加した。数表は数値・日付・カテゴリの列を保持し、実際の日数間隔と系列をまたぐカテゴリ順で描画する。表の列型選択、見出し・行番号の固定も追加した。保存形式はversion 11で、旧version 1〜10を読み込める。詳しくは [複数選択・日付とカテゴリの仕様](docs/selection-typed-tables.md) を参照。
 
 0.13.0では、空の区分見出しを隠し、一覧のドラッグ並べ替えを追加した。「︙」のホバー・クリック・タップで表示切替・複製・削除を行い、右パネルは書式を常時表示する。代表色5色とRGB指定1つを置き、線・不透明度・文字の配置を直接調整できる。分析グラフの非表示は比較と画像出力にも反映し、係数の非表示は左の値操作だけを隠して計算値を保つ。保存形式はversion 10の任意項目を追加し、旧作品を維持する。
 
@@ -55,7 +57,7 @@
 
 ## 保存と互換性
 
-形式は `kaijo-graph` version 10。0.13.0の `charts[].visible` と `parameters[].visible` は省略時に表示する任意項目。係数を非表示にしても定義は有効で、分析グラフの比較所属IDも保持する。version 1〜9を読み込んで移行し、多列数表・回帰参照・表示・出力に加えて分析グラフの軸・書式、比較配置、数表の回帰除外行を保存する。旧形式へ新フィールドや回帰注釈を混在させた文書は受け付けない。保存するのは元の数値・式・設定で、補間点や回帰計算結果は保存しない。ファイル名は `名前.graph.json`。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。
+形式は `kaijo-graph` version 11。0.13.0の `charts[].visible` と `parameters[].visible` は省略時に表示する任意項目。係数を非表示にしても定義は有効で、分析グラフの比較所属IDも保持する。version 1〜10を読み込んで移行し、多列数表・回帰参照・表示・出力に加えて分析グラフの軸・書式、比較配置、数表の回帰除外行を保存する。旧形式へ新フィールドや回帰注釈を混在させた文書は受け付けない。保存するのは元の数値・式・設定で、補間点や回帰計算結果は保存しない。ファイル名は `名前.graph.json`。3Dカメラの向き、選択状態、テーマは作品の数値データとは分ける。
 
 ブラウザの保存キーは `kaijo-graph:auto` / `kaijo-graph:saved`、表示設定は `kaijo-graph:settings`、ヘルプは `kaijo-graph:help`。他アプリの保存領域と共用しない。保存済みの片方が壊れても他方を選べる。読込時は検証が成功するまで現在の文書を置き換えない。
 
@@ -70,6 +72,7 @@
 | `expression.js` | 制限付き数式解析と実数評価 |
 | `symbols.js` | 軸記号の変換・検証、目盛表記、注釈の安全な文字表示 |
 | `icons.js` | 操作に共用する安全な線画SVGアイコン |
+| `selection.js` | 複数選択の参照と書式コピー・一括適用 |
 | `list-reorder.js` | 一覧のドラッグ・タッチ・キーボード並べ替え |
 | `view-controls.js` | 線形・対数軸の方向別拡大縮小と範囲検証 |
 | `core.js` | 文書検証・履歴・ブラウザ保存・CSV/TSV |
@@ -97,7 +100,7 @@
 
 ## 続く実装
 
-残差・分布・相関の可視化、自作テンプレート、複数グラフの比較配置は実装済み。次の候補は、資料・実験の数表テンプレートの拡充と、実際の授業での操作性確認。
+残差・分布・相関の可視化、自作テンプレート、複数グラフの比較配置は実装済み。次の候補は、数表編集の見やすさを確認したうえでの「列全体の計算」、資料・実験の数表テンプレートの拡充。複数選択・書式コピー、日付・カテゴリ軸は実装済み。計算列は未実装。
 
 3Dの空間曲線・等高線・断面の拡張は保留。
 
@@ -106,6 +109,12 @@
 ## 検証
 
 ```sh
+node tools/graph/tests/selection.test.cjs
+node tools/graph/tests/multiselect-browser.test.cjs
+node tools/graph/tests/typed-tables.test.cjs
+node tools/graph/tests/typed-tables-browser.test.cjs
+node tools/graph/tests/typed-charts.test.cjs
+node tools/graph/tests/typed-axis-plot-browser.test.cjs
 node tools/graph/tests/view-controls.test.cjs
 node tools/graph/tests/axis-label-position.test.cjs
 node tools/graph/tests/axis-label-browser.test.cjs

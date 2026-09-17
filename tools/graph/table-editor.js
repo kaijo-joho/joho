@@ -11,7 +11,7 @@
   const make=(tag,className,text)=>{const element=document.createElement(tag);if(className)element.className=className;if(text!==undefined)element.textContent=text;return element;};
   const button=(text,handler)=>{const element=make('button','graph-table-editor__button',text);element.type='button';element.addEventListener('click',handler);return element;};
   const label=(text,control)=>{const element=make('label','graph-table-editor__label',text);element.appendChild(control);return element;};
-  const cloneTable=table=>({columns:table.columns.slice(),mapping:{...table.mapping},rows:table.rows.map(row=>row.map(value=>value===null?'':String(value)))});
+  const cloneTable=table=>({columns:table.columns.slice(),columnTypes:(table.columnTypes||table.columns.map(()=> 'number')).slice(),mapping:{...table.mapping},rows:table.rows.map(row=>row.map(value=>value===null?'':String(value)))});
   function mount(parent,series,options={}){
     if(!parent||typeof parent.appendChild!=='function')throw new TypeError('表編集を置く要素が必要です。');
     if(!series||!['data2d','data3d'].includes(series.kind))throw new Error('数表系列だけを編集できます。');
@@ -29,7 +29,7 @@
     const blankRow=()=>Array(table.columns.length).fill('');
     function read(){
       try{
-        const raw={columns:table.columns.slice(),mapping:{...table.mapping},rows:table.rows.map((row,rowIndex)=>row.map((value,columnIndex)=>GraphTables.cell(value,(rowIndex+1)+'行'+(columnIndex+1)+'列目')))};
+        const raw={columns:table.columns.slice(),columnTypes:table.columnTypes.slice(),mapping:{...table.mapping},rows:table.rows.map((row,rowIndex)=>row.map((value,columnIndex)=>GraphTables.cell(value,(rowIndex+1)+'行'+(columnIndex+1)+'列目',table.columnTypes[columnIndex])))};
         const valid=GraphTables.validate(raw,kind);
         // Keep this adapter's editable representation independent from the
         // renderer, while still exercising GraphTables' projection contract.
@@ -42,7 +42,7 @@
     }
     function addColumns(required){
       if(table.columns.length+required>MAX_COLUMNS)throw new Error('数表は20列以内にしてください。');
-      for(let count=0;count<required;count++){table.columns.push('列'+(table.columns.length+1));for(const row of table.rows)row.push('');}
+      for(let count=0;count<required;count++){table.columns.push('列'+(table.columns.length+1));table.columnTypes.push('number');for(const row of table.rows)row.push('');}
     }
     function addRows(required){
       if(table.rows.length+required>MAX_ROWS)throw new Error('数表は10000行以内にしてください。');
@@ -95,7 +95,7 @@
         if(table.columns.length<=minimum){report(new Error('座標列を削除できません。'));return;}
         if(['x','y','z'].some(key=>table.mapping[key]===index)){report(new Error('座標に割り当てた列は削除できません。'));return;}
         for(const key of ['errorX','errorY'])if(table.mapping[key]===index)table.mapping[key]=null;
-        table.columns.pop();table.rows.forEach(row=>row.pop());clearReport();render();
+        table.columns.pop();table.columnTypes.pop();table.rows.forEach(row=>row.pop());clearReport();render();
       }));root.appendChild(tools);
       const mappings=make('div','graph-table-editor__mappings');
       mappings.append(mappingControl('x','横軸'),mappingControl('y','縦軸'));
@@ -108,11 +108,11 @@
       all.checked=shown.length>0&&shown.every((_,offset)=>selected.has(start+offset));
       all.addEventListener('change',()=>{shown.forEach((_,offset)=>all.checked?selected.add(start+offset):selected.delete(start+offset));render();});
       const selector=make('th','');selector.scope='col';selector.appendChild(all);header.appendChild(selector);
-      table.columns.forEach((name,index)=>{const th=make('th',''),input=make('input','');th.scope='col';input.type='text';input.maxLength=80;input.value=name;input.setAttribute('aria-label',(index+1)+'列目の名前');input.addEventListener('input',()=>updateColumnName(index,input.value));th.appendChild(input);header.appendChild(th);});
+      table.columns.forEach((name,index)=>{const th=make('th',''),input=make('input',''),type=make('select','graph-table-editor__column-type');th.scope='col';input.type='text';input.maxLength=80;input.value=name;input.setAttribute('aria-label',(index+1)+'列目の名前');input.addEventListener('input',()=>updateColumnName(index,input.value));for(const pair of [['number','数値'],['date','日付'],['category','カテゴリ']]){const option=make('option','',pair[1]);option.value=pair[0];type.appendChild(option);}type.value=table.columnTypes[index];type.setAttribute('aria-label',(index+1)+'列目の種類');type.addEventListener('change',()=>{table.columnTypes[index]=type.value;root.querySelectorAll('[data-column="'+index+'"]').forEach(input=>{input.inputMode=type.value==='number'?'decimal':'text';});});th.append(input,type);header.appendChild(th);});
       head.appendChild(header);grid.appendChild(head);
       const body=make('tbody');
-      shown.forEach((row,offset)=>{const rowIndex=start+offset,tr=make('tr',focusedRow===rowIndex?'graph-table-editor__focused-row':''),th=make('th',''),check=make('input',''),exclude=make('input','');th.scope='row';check.type='checkbox';check.checked=selected.has(rowIndex);check.setAttribute('aria-label',(rowIndex+1)+'行目を選択');check.addEventListener('change',()=>{check.checked?selected.add(rowIndex):selected.delete(rowIndex);});exclude.type='checkbox';exclude.checked=!excludedRows.has(rowIndex);exclude.className='graph-table-editor__regression-checkbox';exclude.setAttribute('aria-label',(rowIndex+1)+'行目を回帰に使用');exclude.addEventListener('change',()=>{exclude.checked?excludedRows.delete(rowIndex):excludedRows.add(rowIndex);});th.appendChild(check);th.appendChild(document.createTextNode((rowIndex+1)+'行'));th.appendChild(exclude);th.appendChild(document.createTextNode(' 回帰'));tr.appendChild(th);
-        row.forEach((value,columnIndex)=>{const td=make('td',''),input=make('input','');input.type='text';input.inputMode='decimal';input.value=value;input.setAttribute('aria-label',(rowIndex+1)+'行'+(columnIndex+1)+'列');input.addEventListener('focus',()=>{focusedRow=rowIndex;if(typeof options.onRowSelect==='function')options.onRowSelect(rowIndex);});input.addEventListener('input',()=>{table.rows[rowIndex][columnIndex]=input.value;});input.addEventListener('paste',event=>paste(event,rowIndex,columnIndex));input.addEventListener('keydown',event=>{if(event.key!=='Enter')return;event.preventDefault();const nextRow=rowIndex+1;if(nextRow>=table.rows.length)return;if(nextRow>=start+PAGE_SIZE){page=Math.floor(nextRow/PAGE_SIZE);render();}const next=root.querySelector('[data-cell="'+(nextRow+1)+','+columnIndex+'"]');if(next)next.focus();});input.dataset.cell=(rowIndex+1)+','+columnIndex;td.appendChild(input);tr.appendChild(td);});body.appendChild(tr);});
+      shown.forEach((row,offset)=>{const rowIndex=start+offset,tr=make('tr',focusedRow===rowIndex?'graph-table-editor__focused-row':''),th=make('th',''),check=make('input',''),exclude=make('input','');th.scope='row';check.type='checkbox';check.checked=selected.has(rowIndex);check.setAttribute('aria-label',(rowIndex+1)+'行目を選択');check.addEventListener('change',()=>{check.checked?selected.add(rowIndex):selected.delete(rowIndex);});exclude.type='checkbox';exclude.checked=!excludedRows.has(rowIndex);exclude.className='graph-table-editor__regression-checkbox';exclude.setAttribute('aria-label',(rowIndex+1)+'行目を回帰に使用');exclude.title='回帰に使用';exclude.addEventListener('change',()=>{exclude.checked?excludedRows.delete(rowIndex):excludedRows.add(rowIndex);});th.appendChild(check);th.appendChild(document.createTextNode(String(rowIndex+1)));th.appendChild(exclude);tr.appendChild(th);
+        row.forEach((value,columnIndex)=>{const td=make('td',''),input=make('input','');input.type='text';input.inputMode=table.columnTypes[columnIndex]==='number'?'decimal':'text';input.dataset.column=columnIndex;input.value=value;input.setAttribute('aria-label',(rowIndex+1)+'行'+(columnIndex+1)+'列');input.addEventListener('focus',()=>{focusedRow=rowIndex;if(typeof options.onRowSelect==='function')options.onRowSelect(rowIndex);});input.addEventListener('input',()=>{table.rows[rowIndex][columnIndex]=input.value;});input.addEventListener('paste',event=>paste(event,rowIndex,columnIndex));input.addEventListener('keydown',event=>{if(event.key!=='Enter')return;event.preventDefault();const nextRow=rowIndex+1;if(nextRow>=table.rows.length)return;if(nextRow>=start+PAGE_SIZE){page=Math.floor(nextRow/PAGE_SIZE);render();}const next=root.querySelector('[data-cell="'+(nextRow+1)+','+columnIndex+'"]');if(next)next.focus();});input.dataset.cell=(rowIndex+1)+','+columnIndex;td.appendChild(input);tr.appendChild(td);});body.appendChild(tr);});
       grid.appendChild(body);wrap.appendChild(grid);root.appendChild(wrap);
       const pager=make('div','graph-table-editor__pager');pager.append(button('前の50行',()=>{page--;render();}));pager.append(make('span','', (table.rows.length?start+1:0)+'〜'+end+'行 / '+table.rows.length+'行'));pager.append(button('次の50行',()=>{page++;render();}));pager.children[0].disabled=page===0;pager.children[2].disabled=page>=pageCount()-1;root.appendChild(pager);
       const details=make('details','graph-table-editor__import'),summary=make('summary','','CSV・TSVを貼り付け');details.appendChild(summary);const textarea=make('textarea','');textarea.setAttribute('aria-label','CSV・TSVを貼り付け');details.appendChild(textarea);details.append(button('表に取り込む',()=>{try{if(!textarea.value.trim())throw new Error('CSV・TSVを入力してから表に取り込んでください。');replace(GraphTables.parse(textarea.value,kind));}catch(error){report(error);}}));root.appendChild(details);

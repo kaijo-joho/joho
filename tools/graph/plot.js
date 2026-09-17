@@ -6,6 +6,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
   'use strict';
 
+  const Tables = typeof module === 'object' && module.exports ? require('./tables.js') : root.GraphTables;
   const states = new WeakMap();
   const MAX_FUNCTION_SAMPLES = 1600;
   const BASE_FUNCTION_SEGMENTS = 128;
@@ -15,6 +16,45 @@
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   const finite = (n) => typeof n === 'number' && Number.isFinite(n);
+  // Coordinates remain numbers even when their source column is a date or a
+  // category.  This keeps pan/zoom, annotations and exports on one stable
+  // coordinate system; only the axis and hover text are specialised.
+  const axisType = (doc, key) => ['date', 'category'].includes(doc?.axes?.[key]?.type) ? doc.axes[key].type : 'number';
+  const typed2d = doc => doc?.mode === '2d' && (axisType(doc, 'x') !== 'number' || axisType(doc, 'y') !== 'number');
+  const typedRegressionAllowed = doc => axisType(doc, 'x') === 'date' && axisType(doc, 'y') === 'number';
+  const seriesAxisWarning = (series, doc) => {
+    if (doc?.mode !== '2d') return '';
+    if (series?.kind !== 'data2d') return typed2d(doc) ? '日付・カテゴリ軸では数式を表示できません。' : '';
+    const table = series.dataTable, mapping = table?.mapping, types = table?.columnTypes || [];
+    for (const key of ['x', 'y']) {
+      const expected = axisType(doc, key), actual = types[mapping?.[key]] || 'number';
+      if (actual !== expected) return key + '軸の型と割り当てた列の型が一致しません。';
+    }
+    return '';
+  };
+  const seriesAxisCompatible = (series, doc) => !seriesAxisWarning(series, doc);
+  const utcDayText = value => {
+    if (!finite(value)) return '';
+    const d = new Date(Math.round(value) * 86400000);
+    return Number.isNaN(d.getTime()) ? '' : d.toISOString().slice(0, 10);
+  };
+  const displayCoordinate = (doc, key, value) => {
+    const type = axisType(doc, key), axis = doc?.axes?.[key] || {};
+    if (type === 'date') return utcDayText(value);
+    if (type === 'category') return Array.isArray(axis.categories) && typeof axis.categories[Math.round(value)] === 'string' ? axis.categories[Math.round(value)] : '';
+    return root.GraphSymbols?.formatTick?.(value, axis.ticks?.format || 'auto') || String(value);
+  };
+  const typedTicks = (axis) => {
+    const type = axis?.type;
+    if (type === 'category') {
+      const categories = Array.isArray(axis.categories) ? axis.categories : [], bounds = range(axis, [0, Math.max(1, categories.length - 1)]);
+      const shown = categories.map((_, i) => i).filter(i => i >= Math.ceil(bounds[0]) && i <= Math.floor(bounds[1])),stride=Math.max(1,Math.ceil(shown.length/30)),vals=shown.filter((_,i)=>i%stride===0);
+      return { tickmode: 'array', tickvals: vals, ticktext: vals.map(i => categories[i]) };
+    }
+    if (type !== 'date') return null;
+    const bounds = range(axis, [-10, 10]), vals = Tables.dateTicks(bounds[0],bounds[1]);
+    return { tickmode: 'array', tickvals: vals, ticktext: vals.map(utcDayText) };
+  };
   const rich = text => root.GraphSymbols ? root.GraphSymbols.richText(text) : esc(text);
   const range = (axis, fallback) => {
     const a = axis && Number(axis.min), b = axis && Number(axis.max);
@@ -39,11 +79,12 @@
   const axisTitle = (a, fallback) => rich((a && a.label) || (a && a.symbol) || fallback) + ((a && a.unit) ? ' (' + rich(a.unit) + ')' : '');
   const tick = (a) => {
     const dataRange = range(a, [-10, 10]), isLog = a && a.scale === 'log';
-    return Object.assign({ title: { text: axisTitle(a, '') }, range: isLog ? dataRange.map((v) => Math.log10(v)) : dataRange, type: isLog ? 'log' : 'linear', showgrid: true, zeroline: true }, isLog ? { exponentformat: 'power', showexponent: 'all' } : {}, root.GraphSymbols ? root.GraphSymbols.ticksFor(a) : {});
+    const specialised = typedTicks(a);
+    return Object.assign({ title: { text: axisTitle(a, '') }, range: isLog ? dataRange.map((v) => Math.log10(v)) : dataRange, type: isLog ? 'log' : 'linear', showgrid: true, zeroline: a?.type === 'number' || !a?.type }, isLog ? { exponentformat: 'power', showexponent: 'all' } : {}, specialised || (root.GraphSymbols ? root.GraphSymbols.ticksFor(a) : {}));
   };
   const presentation = (doc) => Object.assign({ axisArrows: false, originLabel: false, tickMarks: true, tickLabels: true }, doc && doc.presentation || {});
   const axisUsesInternalLabels = (doc, key) => {
-    if (!doc || doc.mode === '3d' || doc.axes?.[key]?.labelPosition !== 'axis') return false;
+    if (!doc || doc.mode === '3d' || axisType(doc, key) !== 'number' || doc.axes?.[key]?.labelPosition !== 'axis') return false;
     const other = doc.axes[key === 'x' ? 'y' : 'x'];
     const bounds = range(other, [-10, 10]);
     return other?.scale !== 'log' && bounds[0] <= 0 && bounds[1] >= 0;
@@ -131,7 +172,7 @@
     return out;
   };
   const axisDecoration = (doc, key, axis, color) => {
-    if (!presentation(doc).axisArrows || doc.mode === '3d') return null;
+    if (!presentation(doc).axisArrows || doc.mode === '3d' || axisType(doc, key) !== 'number') return null;
     const other = doc.axes[key === 'x' ? 'y' : 'x'], bounds = range(other, [-10,10]);
     const fraction = other.scale !== 'log' && bounds[0] <= 0 && bounds[1] >= 0 ? -bounds[0]/(bounds[1]-bounds[0]) : 0;
     // Paper coordinates keep arrows on the viewport edge on both linear and log axes.
@@ -145,7 +186,7 @@
     const x = doc.axes && doc.axes.x, y = doc.axes && doc.axes.y;
     const xa = axisDecoration(doc, 'x', x, fg), ya = axisDecoration(doc, 'y', y, fg);
     if (xa) out.push(xa); if (ya) out.push(ya);
-    if (p.originLabel && x && y && x.scale !== 'log' && y.scale !== 'log' && x.min <= 0 && x.max >= 0 && y.min <= 0 && y.max >= 0) {
+    if (p.originLabel && x && y && axisType(doc, 'x') === 'number' && axisType(doc, 'y') === 'number' && x.scale !== 'log' && y.scale !== 'log' && x.min <= 0 && x.max >= 0 && y.min <= 0 && y.max >= 0) {
       out.push({ name: '__graph_origin_label', x: 0, y: 0, xref: 'x', yref: 'y', text: 'O', showarrow: false, xshift: 7, yshift: -7, xanchor: 'left', yanchor: 'top', font: { size: 13, color: fg }, captureevents: false, meta: { decoration: true, origin: true } });
     }
     return out;
@@ -228,6 +269,11 @@
   }
 
   function traceFor(series, doc, warnings) {
+    const compatibilityWarning = seriesAxisWarning(series, doc);
+    if (compatibilityWarning) {
+      warnings.push((series.name || '系列') + '：' + compatibilityWarning);
+      return null;
+    }
     const st = style(series.style), name = rich(series.name || (root.GraphSymbols ? root.GraphSymbols.toDisplay(series.expression,doc,series.kind) : series.expression) || '系列');
     const sampler = { implicit: 'sampleImplicit', parametric: 'sampleParametric', polar: 'samplePolar' }[series.kind];
     if (sampler) {
@@ -242,12 +288,14 @@
     const vals = (n) => rows.map((r) => r.every(finite) ? r[n] : null);
     if (is3) return { type: 'scatter3d', mode: st.lines && st.points ? 'lines+markers' : st.points ? 'markers' : 'lines', x: vals(0), y: vals(1), z: vals(2), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color, size: 4 }, connectgaps: false };
     const excluded = new Set((series.excludedRows || []).filter(index => Number.isInteger(index) && index >= 0));
-    const wantsInterpolation = series.interpolation === 'monotone' && st.lines && root.GraphDataCurves && typeof root.GraphDataCurves.interpolate === 'function';
+    const wantsInterpolation = axisType(doc, 'x') !== 'category' && axisType(doc, 'y') !== 'category' && series.interpolation === 'monotone' && st.lines && root.GraphDataCurves && typeof root.GraphDataCurves.interpolate === 'function';
     const points = wantsInterpolation ? root.GraphDataCurves.interpolate(rows, 'monotone') : { rows };
     if (points.warning) warnings.push((series.name || '数表') + '：' + points.warning);
     const valid = row => Array.isArray(row) && finite(row[0]) && finite(row[1]);
     const observedMode = points.warning ? 'markers' : wantsInterpolation ? (st.points || excluded.size ? 'markers' : 'none') : st.lines && (st.points || excluded.size) ? 'lines+markers' : st.points ? 'markers' : st.lines ? 'lines' : 'none';
-    const observed = { type: 'scatter', mode: observedMode, x: vals(0), y: vals(1), customdata: rows.map((_, index) => [index + 1]), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color, symbol: rows.map((_, index) => excluded.has(index) ? 'circle-open' : 'circle') }, legendgroup: series.id, connectgaps: false, showlegend: !wantsInterpolation || !!points.warning, meta: { objectType: 'series', objectId: series.id, dataRows: true, seriesId: series.id } };
+    const labels = (series.dataTable && Array.isArray(series.dataTable.rows) && series.dataTable.mapping) ? series.dataTable.rows.map((row, index) => [index + 1, row?.[series.dataTable.mapping.x], row?.[series.dataTable.mapping.y]]) : rows.map((row, index) => [index + 1, displayCoordinate(doc, 'x', row[0]), displayCoordinate(doc, 'y', row[1])]);
+    const hover = typed2d(doc) ? '元の行 %{customdata[0]}<br>' + esc(doc.axes.x.label || doc.axes.x.symbol || 'x') + '=%{customdata[1]}<br>' + esc(doc.axes.y.label || doc.axes.y.symbol || 'y') + '=%{customdata[2]}<extra>' + esc(series.name || '数表') + '</extra>' : undefined;
+    const observed = { type: 'scatter', mode: observedMode, x: vals(0), y: vals(1), customdata: labels, name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, marker: { color: st.color, symbol: rows.map((_, index) => excluded.has(index) ? 'circle-open' : 'circle') }, legendgroup: series.id, connectgaps: false, showlegend: !wantsInterpolation || !!points.warning, meta: { objectType: 'series', objectId: series.id, dataRows: true, seriesId: series.id }, ...(hover ? { hovertemplate: hover } : {}) };
     const renderedRows = points.rows || rows;
     const trace = { type: 'scatter', mode: 'lines', x: renderedRows.map(r => valid(r) ? r[0] : null), y: renderedRows.map(r => valid(r) ? r[1] : null), name, opacity: st.opacity, line: { color: st.color, width: st.width, dash: st.dash }, legendgroup: series.id, connectgaps: false, showlegend: true, meta: { objectType: 'series', objectId: series.id } };
     const bars = series.errorBars || {}, addBars = (key, axisKey) => {
@@ -260,7 +308,8 @@
       });
       observed['error_' + key] = { type: 'data', array, visible: true, symmetric: true, thickness: 1.2, width: 4, color: st.color };
     };
-    addBars('x', 'x'); addBars('y', 'y');
+    if (axisType(doc, 'x') !== 'category') addBars('x', 'x');
+    if (axisType(doc, 'y') !== 'category') addBars('y', 'y');
     if (wantsInterpolation && !points.warning && points.rows && points.rows.length >= 2) return [observed, trace];
     observed.showlegend=true;
     return observedMode === 'none' && !st.lines ? Object.assign(observed, { showlegend: true }) : observed;
@@ -298,11 +347,12 @@
     const positions = Array.isArray(result.labelPoint) ? [result.labelPoint] : result.points.length ? result.points : result.segments.length ? [result.segments[0][0].map((v,i)=>(v+result.segments[0][1][i])/2)] : [];
     const equation = annotation.kind==='tangent'&&annotation.showEquation ? root.GraphAnnotations.tangentEquation(annotation,doc).text : annotation.kind==='regression'&&annotation.showEquation&&result.fit&&root.GraphAnalysis&&typeof root.GraphAnalysis.equation==='function' ? root.GraphAnalysis.equation(result.fit, doc.axes?.x?.symbol || 'x', doc.axes?.y?.symbol || 'y') : '';
     const metrics = annotation.kind==='regression'&&annotation.showMetrics&&result.fit&&finite(result.fit.r2) ? 'R² ≈ ' + Number(result.fit.r2.toPrecision(8)) : '';
+    const typedRegressionNote = annotation.kind === 'regression' && typedRegressionAllowed(doc) ? '日付はUTC日数として回帰' : '';
     if (label.visible || equation || metrics) positions.forEach((point,i) => {
       const title=label.visible?rich(annotation.kind==='text'?annotation.text:annotation.name+(positions.length>1?' '+(i+1):'')):'';
       const position = annotationPosition(point, doc);
       if (!position) return;
-      decorations.push({name:annotation.id,x:position[0],y:position[1],xref:'x',yref:'y',text:[title,equation?rich(equation):'',metrics?rich(metrics):''].filter(Boolean).join('<br>'),showarrow:false,xanchor:'left',yanchor:'bottom',xshift:label.dx,yshift:-label.dy,font:annotation.kind==='text'?{size:label.size,color:st.color}:{size:label.size},opacity:st.opacity,captureevents:true});
+      decorations.push({name:annotation.id,x:position[0],y:position[1],xref:'x',yref:'y',text:[title,equation?rich(equation):'',metrics?rich(metrics):'',typedRegressionNote].filter(Boolean).join('<br>'),showarrow:false,xanchor:'left',yanchor:'bottom',xshift:label.dx,yshift:-label.dy,font:annotation.kind==='text'?{size:label.size,color:st.color}:{size:label.size},opacity:st.opacity,captureevents:true});
     });
     if (annotation.kind === 'segment' && annotation.arrows !== 'none' && result.segments.length) {
       const [a,b]=result.segments[0];
@@ -324,12 +374,12 @@
       linecolor:fg, linewidth:1.5,
       ticks: p.tickMarks ? 'outside' : '',
       showticklabels: p.tickLabels && !axisUsesInternalLabels(doc, name),
-      showline: doc.mode!=='3d'&&p.axisArrows&&(doc.axes[name==='x'?'y':'x'].scale==='log'||doc.axes[name==='x'?'y':'x'].min>0||doc.axes[name==='x'?'y':'x'].max<0)
+      showline: doc.mode!=='3d'&&axisType(doc, name)==='number'&&p.axisArrows&&(doc.axes[name==='x'?'y':'x'].scale==='log'||doc.axes[name==='x'?'y':'x'].min>0||doc.axes[name==='x'?'y':'x'].max<0)
     });
     if (doc.mode === '3d') return Object.assign(common, { dragmode: 'orbit', scene: { xaxis: configure(doc.axes && doc.axes.x, 'x'), yaxis: configure(doc.axes && doc.axes.y, 'y'), zaxis: configure(doc.axes && doc.axes.z, 'z'), aspectmode: doc.equalScale ? 'data' : 'auto', camera: options.camera || defaultCamera(doc) } });
     return Object.assign(common, { dragmode: 'pan',
       xaxis: configure(doc.axes && doc.axes.x, 'x'),
-      yaxis: Object.assign(configure(doc.axes && doc.axes.y, 'y'), { scaleanchor: doc.equalScale ? 'x' : undefined, scaleratio: doc.equalScale ? 1 : undefined })
+      yaxis: Object.assign(configure(doc.axes && doc.axes.y, 'y'), { scaleanchor: doc.equalScale && !typed2d(doc) ? 'x' : undefined, scaleratio: doc.equalScale && !typed2d(doc) ? 1 : undefined })
     });
   }
 
@@ -500,16 +550,18 @@
     const P = plotly(); if (!P || !element) throw new Error('Plotly を読み込めません。');
     const warnings = [], traces = [], decorations=[];
     // 領域面はすべての系列・線分より背面へ置く。
-    if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false && (a.kind === 'region' || a.kind === 'curveRegion')) {
+    if (doc.mode !== '3d' && !typed2d(doc)) for (const a of doc.annotations || []) if (a.visible !== false && (a.kind === 'region' || a.kind === 'curveRegion')) {
       try { const region = annotationTraces(a, doc, warnings, decorations); for (const trace of region) { trace.meta = Object.assign({}, trace.meta, { kind: a.kind }); traces.push(trace); } } catch (error) { warnings.push((a.name || '領域') + '：' + error.message); }
     }
     for (const s of doc.series || []) {
       if (s.visible === false || (doc.mode === '3d' ? !['surface', 'data3d'].includes(s.kind) : ['surface', 'data3d'].includes(s.kind))) continue;
       const produced = traceFor(s, doc, warnings);
-      for (const trace of Array.isArray(produced) ? produced : [produced]) { trace.meta = Object.assign({ objectType: 'series', objectId: s.id }, trace.meta || {}); traces.push(trace); }
-      const highlight = doc.mode === '2d' && s.kind === 'data2d' ? observationHighlight(s, options.selectedRow) : null; if (highlight) traces.push(highlight);
+      for (const trace of Array.isArray(produced) ? produced : [produced]) { if (!trace) continue; trace.meta = Object.assign({ objectType: 'series', objectId: s.id }, trace.meta || {}); traces.push(trace); }
+      const highlight = doc.mode === '2d' && s.kind === 'data2d' && seriesAxisCompatible(s,doc) ? observationHighlight(s, options.selectedRow) : null; if (highlight) traces.push(highlight);
     }
     if (doc.mode !== '3d') for (const a of doc.annotations || []) if (a.visible !== false && a.kind !== 'region' && a.kind !== 'curveRegion') {
+      if (a.kind === 'regression' && !seriesAxisCompatible(doc.series.find(s=>s.id===a.seriesId),doc)) { warnings.push((a.name || '回帰曲線') + '：回帰元の数表と軸の種類が一致しません。'); continue; }
+      if (typed2d(doc) && !(a.kind === 'regression' && typedRegressionAllowed(doc))) { warnings.push((a.name || '点・補助線') + '：日付・カテゴリ軸ではこの注釈を表示できません。'); continue; }
       try { traces.push(...annotationTraces(a, doc, warnings, decorations)); } catch (error) { warnings.push((a.name || '点・補助線') + '：' + error.message); }
     }
     const state = states.get(element) || {}; const camera = options.camera || state.camera;
@@ -580,5 +632,5 @@
     if (layout.scene) { layout.scene.bgcolor = bg; layout.scene.camera = state.camera || layout.scene.camera; ['xaxis', 'yaxis', 'zaxis'].forEach((key) => { const axis = layout.scene[key]; if (axis) { axis.color = fg; axis.gridcolor = grid; axis.zerolinecolor = grid; axis.backgroundcolor = bg; axis.title = Object.assign({}, axis.title, { font: Object.assign({}, axis.title && axis.title.font, { color: fg }) }); } }); }
     try { await P.newPlot(host, data, layout, { displayModeBar: false }); return await P.toImage(host, { format: output.format, width: output.width, height: output.height, scale: output.scale }); } finally { if (typeof P.purge === 'function') P.purge(host); host.remove(); }
   }
-  return { sampleFunction, sampleSurface, render, resetView, resize, exportImage, screenPoint, dataPoint, viewRanges, pickAnnotation, dispose, escapeText: esc };
+  return { sampleFunction, sampleSurface, render, resetView, resize, exportImage, screenPoint, dataPoint, viewRanges, pickAnnotation, dispose, escapeText: esc, seriesAxisCompatible, seriesAxisWarning };
 }));
