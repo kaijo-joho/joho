@@ -66,6 +66,26 @@
       ctx.setDrag({ kind, pointerId: event.pointerId, start: point, base,
         originalSelection: ctx.selected().slice(), originalNodes: C.clone(refs), ...extra });
     }
+    // 選択前の頂点・細線も画面上の同じ距離で拾う。実際に押した前面の図形を優先する。
+    function pick(point, event, base = ctx.page()) {
+      const id = event.target.closest('[data-object]')?.dataset.object;
+      const objects = id ? base.objects.filter(o => o.id === id) : base.objects.slice().reverse();
+      const tolerance = (event.pointerType === 'touch' ? 14 : 9) / ctx.zoom();
+      for (const object of objects) {
+        if (object.type !== 'path') continue;
+        const b = G.bounds(object);
+        if (point.x < b.x - tolerance || point.x > b.x + b.width + tolerance || point.y < b.y - tolerance || point.y > b.y + b.height + tolerance) continue;
+        let anchor = null;
+        P.inspect(object).forEach((path, pi) => path.segments.forEach((segment, index) => {
+          const distance = Math.hypot(point.x - segment.point.x, point.y - segment.point.y);
+          if (distance <= tolerance && (!anchor || distance < anchor.distance)) anchor = { distance, ref: { id: object.id, path: pi, index } };
+        }));
+        if (anchor) return { id: object.id, ref: anchor.ref };
+        const near = P.nearest(object, point);
+        if (near && near.distance <= tolerance) return { id: object.id, near };
+      }
+      return null;
+    }
     function inspectTargets(base) {
       return base.objects.filter(o => o.type === 'path').map(object => ({ object, paths: P.inspect(object), box: G.bounds(object) }));
     }
@@ -126,7 +146,7 @@
       ctx.render();
       return true;
     }
-    function pointerDown(event, point, base) {
+    function pointerDown(event, point, base, picked) {
       clean();
       if (addMode) {
         // 既存のアンカーやハンドルを押しても、そこへ重複追加しない。
@@ -143,8 +163,9 @@
         if (ctx.editable()) begin('bezier', event, point, base, { ref, which, nodes: [ref] });
         return;
       }
-      if (anchorElement) {
-        const [id, path, index] = JSON.parse(anchorElement.dataset.node), ref = { id, path, index };
+      picked ||= pick(point, event, base);
+      if (anchorElement || picked?.ref) {
+        const [id, path, index] = anchorElement ? JSON.parse(anchorElement.dataset.node) : [picked.ref.id, picked.ref.path, picked.ref.index], ref = { id, path, index };
         const already = refs.some(r => same(r, ref));
         if (event.shiftKey) selectRefs(already ? refs.filter(r => !same(r, ref)) : [...refs, ref], [...ctx.selected(), id]);
         else if (!already) selectRefs([ref], [id]);
@@ -154,34 +175,28 @@
         }
         return;
       }
-      let id = event.target.closest('[data-object]')?.dataset.object, near = null;
-      if (!id) {
-        // 塗りがない細い線も、見た目のすぐそばをクリックすれば選べる。
-        for (const o of [...base.objects].reverse()) {
-          if (o.type !== 'path') continue;
-          const b = G.bounds(o), t = 8 / ctx.zoom();
-          if (point.x < b.x - t || point.x > b.x + b.width + t || point.y < b.y - t || point.y > b.y + b.height + t) continue;
-          const candidate = P.nearest(o, point);
-          if (candidate && candidate.distance <= t) { id = o.id; near = candidate; break; }
-        }
-      }
+      const id = picked?.id || event.target.closest('[data-object]')?.dataset.object, near = picked?.near;
       const object = objectOf(id, base);
       if (object?.type === 'text' || object?.type === 'image') {
         refs = []; edge = null;
         ctx.select(event.shiftKey ? [...ctx.selected(), id] : [id]);
         if (ctx.editable()) begin('move', event, point, base);
       } else if (object) {
-        near ||= P.nearest(object, point);
-        if (near && near.distance <= 9 / ctx.zoom()) {
+        if (near) {
           const path = P.inspect(object)[near.path], next = (near.index + 1) % path.segments.length;
           const pair = [{ id, path: near.path, index: near.index }, { id, path: near.path, index: next }];
           selectRefs(event.shiftKey ? [...refs, ...pair] : pair, event.shiftKey ? [...ctx.selected(), id] : [id]);
           edge = { ...near, id };
           if (ctx.editable()) begin('nodes', event, point, base, { nodes: C.clone(refs), primary: pair[0], origin: node(pair[0]).point });
         } else {
-          refs = []; edge = null;
+          edge = null;
           const ids = ctx.selected();
-          ctx.select(event.shiftKey ? (ids.includes(id) ? ids.filter(v => v !== id) : [...ids, id]) : [id]);
+          if (event.shiftKey) {
+            const group = C.expandSelection(base, [id]), remove = group.every(key => ids.includes(key));
+            ctx.select(remove ? ids.filter(key => !group.includes(key)) : [...ids, ...group]);
+          } else if (!ids.includes(id)) { refs = []; ctx.select([id]); }
+          clean();
+          if (ctx.selected().includes(id) && ctx.editable()) begin('move', event, point, base);
         }
       } else {
         const before = C.clone(refs), selectedBefore = ctx.selected().slice();
@@ -398,11 +413,11 @@
       if (event.key === 'Enter' && !event.target.closest('button') && selectedPaths().length) { anchorList(); return true; }
       return false;
     }
-    return { reset, clean, cancel, pointerDown, pointerMove, finishDrag, doubleClick, render, menu, commands, nudge, keyboard,
+    return { reset, clean, cancel, pick, pointerDown, pointerMove, finishDrag, doubleClick, render, menu, commands, nudge, keyboard,
       count: () => { clean(); return refs.length; },
       getRefs: () => C.clone(refs),
       context: () => { clean(); return { adding: addMode, edgeSelected: Boolean(edge) }; },
-      hint: () => addMode ? '追加するパスの輪郭をクリック · 1点追加後に終了 · Escapeで取消' : snapTarget ? `${snapTarget.kind}に吸着 · Optionで解除` : refs.length ? '選んだアンカーをドラッグ · Optionでハンドルを独立・吸着解除' : '点・区間をクリック · 空白をドラッグして点を範囲選択 · 全体の操作は V' };
+      hint: () => addMode ? '追加するパスの輪郭をクリック · 1点追加後に終了 · Escapeで取消' : snapTarget ? `${snapTarget.kind}に吸着 · Optionで解除` : refs.length ? '点を編集中 · 内側ドラッグで全体移動 · Optionで吸着解除 · Escで選択解除' : '点・辺をクリック · 内側ドラッグで全体移動 · 空白をドラッグして点を範囲選択' };
   }
   root.IlapoPathUI = { create };
 }(typeof globalThis !== 'undefined' ? globalThis : this));

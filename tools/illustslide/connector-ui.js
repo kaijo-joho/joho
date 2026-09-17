@@ -108,7 +108,7 @@
       points.splice(nearest.index,0,{x:p.x,y:p.y});
       if(ctx.changePage(page=>page.objects.find(v=>v.id===o.id).waypoints=points)){active=String(nearest.index);activeOwner=o.id;}
     }
-    function doubleClick(event,p){if(ctx.tool()!=='direct')return false;const hit=event.target.closest('[data-object]')?.dataset.object;if(current()?.id!==hit)return false;addWaypoint(ctx.snap(p,event));return true;}
+    function doubleClick(event,p,target=event.target){if(ctx.tool()!=='direct')return false;const o=current(),hit=target.closest('[data-object]')?.dataset.object;if(!o||o.id!==hit)return false;addWaypoint(ctx.snap(p,event));return true;}
     function dialog(){
       const source=current();if(!source||!ctx.editable())return;const o=C.clone(source),targets=ctx.page().objects.filter(v=>v.type!=='connector');
       const choices=(values,value)=>values.map(([key,label])=>`<option value="${esc(key)}" ${key===value?'selected':''}>${esc(label)}</option>`).join('');

@@ -48,7 +48,7 @@ async function addShape(page, kind, x, y, drag) {
   if (drag) await canvas.dragTo(canvas, { sourcePosition: { x, y }, targetPosition: { x: x + drag[0], y: y + drag[1] } });
   else await canvas.click({ position: { x, y } });
   await page.waitForFunction(() => window.IlapoEditor.getDocument().pages[0].objects.length > 0);
-  await page.keyboard.press('v'); // Whole-object operations are explicit in the direct-selection default.
+  await page.keyboard.press('v'); // V は統合選択内で全体操作を明示する。
   await page.waitForFunction(() => {
     const id = IlapoEditor.getSelection()[0];
     return IlapoEditor.getState().tool === 'select' && [...document.querySelectorAll('[data-object]')].some(el => el.dataset.object === id) && document.querySelector('[data-handle="se"]');

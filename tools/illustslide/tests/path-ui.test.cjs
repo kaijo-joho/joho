@@ -70,7 +70,7 @@ async function run() {
   }
   try {
     await page.goto(url); await page.waitForFunction(() => !!window.IlapoEditor);
-    assert.equal(await page.evaluate(() => IlapoEditor.getState().tool), 'direct', 'direct selection is the default');
+    assert.equal(await page.evaluate(() => IlapoEditor.getState().tool), 'select', '統合した選択ツールが初期状態になる');
     const rect = shape('M100 100L250 100L250 240L100 240Z');
     rect.matrix = [1.1, .1, .15, .9, 5, 10];
     await load([rect]); await pick('shape');

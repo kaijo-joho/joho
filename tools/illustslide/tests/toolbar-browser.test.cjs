@@ -88,7 +88,7 @@ function fixture() {
         assert.equal(await page.locator('#palette-toggle').isVisible(), width<=560);
         await page.locator('.top [data-menu="more"]').click();
         const tools=await page.locator('#command-menu [data-tool]').evaluateAll(nodes=>nodes.map(n=>n.dataset.tool));
-        assert.deepEqual(tools, width<=850 ? ['direct','select','pan'] : []);
+        assert.deepEqual(tools, width<=850 ? ['select','pan'] : []);
         assert.equal(await page.locator('#command-menu [data-action="view-dialog"],#command-menu [data-action="import-image"],#command-menu [data-action="export-playback"]').count(),0);
         await page.keyboard.press('Escape');
       }

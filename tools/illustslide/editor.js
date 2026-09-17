@@ -27,13 +27,13 @@
     'anchor-add':'M2 19C7 19 7 6 13 6s5 5 9 5M8 13h5v5H8zM17 2v6M14 5h6','anchor-corner':'M3 19 11 5l10 14M9 3h4v4H9z','anchor-smooth':'M2 18C7 18 7 6 12 6s5 12 10 12M10 4h4v4h-4zM4 6h16','anchor-position':'M12 2v20M2 12h20M9 9h6v6H9z',
     canvas:'M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5m7-5 7 4-4 1-1 4z'
   });
-  const names = {rect:'長方形',roundrect:'角丸',ellipse:'楕円',triangle:'三角形',pentagon:'五角形',diamond:'菱形',parallelogram:'平行四辺形',arrow:'太い矢印',callout:'吹き出し',line:'線',connector:'接続矢印','connector-orthogonal':'カギ型矢印',text:'文字',direct:'直接選択',select:'全体を選択',pan:'移動'};
+  const names = {rect:'長方形',roundrect:'角丸',ellipse:'楕円',triangle:'三角形',pentagon:'五角形',diamond:'菱形',parallelogram:'平行四辺形',arrow:'太い矢印',callout:'吹き出し',line:'線',connector:'接続矢印','connector-orthogonal':'カギ型矢印',text:'文字',direct:'点を編集',select:'選択',pan:'移動'};
   document.querySelectorAll('[data-icon]').forEach(el => el.insertAdjacentHTML('afterbegin',icon(el.dataset.icon)));
   $('shape-tools').innerHTML = Object.keys(names).filter(k=>!['direct','select','pan'].includes(k)).map(k=>`<button data-tool="${k}" aria-label="${names[k]}を追加" data-tip="${names[k]}を追加">${icon(k)}<span>${names[k]}</span></button>`).join('');
   if (!C || !S || !G || !E || !K || !A || !Guides || !Grid || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector || !window.IlapoPagesUI || !window.IlapoObjectsUI || !window.IlapoObjectsModel || !window.IlapoAssetsUI || !window.IlapoTextUI || !window.IlapoTextLayout || !window.IlapoOutline || !window.IlapoOutlineUI || !window.IlapoStrokeOutline || !window.IlapoTextOutline) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
   const initial=C.createDocument(); initial.name='無題の作品'; initial.pages[0].board=C.boardPreset('16:9');
   const history=new C.History(initial);
-  let pageId=initial.pages[0].id, selected=[], tool='direct', drag=null, preview=null, clipboard=null, copiedStyle=null;
+  let pageId=initial.pages[0].id, selected=[], tool='select', drag=null, preview=null, clipboard=null, copiedStyle=null;
   let camera={x:0,y:0,width:1280,height:720}, saveTimer, saveFingerprint=JSON.stringify(initial), edited=false, store, localAuto, help, space=false, renderPending=false, writeInProgress=false;
   let pathUI,connectionUI,animationUI,pagesUI,objectsUI,assetsUI,textUI,outlineUI,library,inspector,inspectorPreview=null,revision=0;
   let settings={theme:'auto',size:'standard',grid:true,snap:false,gridStep:20,pixelGrid:true,snapPixel:true,snapAnchor:true,snapPath:true,smartGuides:true};
@@ -79,6 +79,8 @@
     return {x,y,width:Math.max(...boxes.map(b=>b.x+b.width))-x,height:Math.max(...boxes.map(b=>b.y+b.height))-y};
   }
   function selection(ids) { const known=[...new Set(ids.filter(id=>page().objects.some(o=>o.id===id)))];selected=[...new Set([...known,...C.expandSelection(page(),known)])]; render(); }
+  const selecting=()=>tool==='select'||tool==='direct';
+  function clearSelection(){selected=[];pathUI.reset();connectionUI.reset();if(selecting())tool='select';}
   function outlineAvailable(){const info=window.IlapoOutline.inspect(page(),selected);return !!(info.lines||info.text)&&!info.locked;}
   function allUnlocked() { return !page().objects.some(o=>selected.includes(o.id)&&o.locked); }
   function editable() { if(!selected.length)return false; if(!allUnlocked()){toast('固定された図形を含むため、先に固定を解除してください。');return false;} return true; }
@@ -122,8 +124,8 @@
     $('page-status').textContent=`${doc().pages.indexOf(page())+1} / ${doc().pages.length} · ${page().name}`;
     $('zoom-value').textContent=(zoom()*100<10?(zoom()*100).toFixed(1):Math.round(zoom()*100))+'%';
     document.querySelectorAll('[data-action=undo]').forEach(b=>b.disabled=!history.canUndo);document.querySelectorAll('[data-action=redo]').forEach(b=>b.disabled=!history.canRedo);
-    document.querySelectorAll('[data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool===tool)));
-    $('hint').textContent=['connector','connector-orthogonal'].includes(tool)?connectionUI.hint():!$('connection-options').hidden?'丸い端点で接続位置 · 四角で折れ曲がり位置 · ダブルクリックで点を追加 · Enterで詳細':tool==='direct'?pathUI.hint():tool==='select'?(selected.length>1?'整列・サイズの基準は最初に選んだ図形 · Space＋ドラッグで移動':'Shiftで追加選択 · Space＋ドラッグで移動'):tool==='pan'?'ドラッグして表示を移動':`${names[tool]}：クリックで配置 · ドラッグで大きさを指定`;
+    document.querySelectorAll('button[data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool==='select'?selecting():b.dataset.tool===tool)));
+    $('hint').textContent=['connector','connector-orthogonal'].includes(tool)?connectionUI.hint():!$('connection-options').hidden&&tool==='direct'?'丸い端点で接続位置 · 四角で折れ曲がり位置 · ダブルクリックで点を追加 · Enterで詳細':tool==='direct'?pathUI.hint():tool==='select'?(selected.length?'全体を選択中 · 枠の角・辺で拡大縮小 · 内側ダブルクリックで文字 · Escで解除':'頂点・辺で点を編集 · 内側で全体を選択 · 空白ドラッグで範囲選択'):tool==='pan'?'ドラッグして表示を移動':`${names[tool]}：クリックで配置 · ドラッグで大きさを指定`;
     renderSelection();
     $('alignment-guides').innerHTML=Guides.markup(drag?.alignment,zoom(),p.board.unit);
   }
@@ -131,7 +133,9 @@
     const objects=p.objects.filter(o=>selected.includes(o.id)),one=objects.length===1?objects[0]:null;
     const paths=objects.filter(o=>o.type==='path'),combine=paths.length>1&&paths.length===objects.length;
     const points=!combine&&tool==='direct'&&pathUI.count()>0,unlocked=allUnlocked();
-    $('whole-mode').hidden=!points;$('direct-mode').hidden=true;
+    const canDirect=paths.length>0||one?.type==='connector';
+    $('whole-mode').hidden=!canDirect||tool!=='direct';$('direct-mode').hidden=!canDirect||tool==='direct';
+    $('selection-bar').dataset.mode=tool==='direct'?'direct':'whole';
     for(const key of ['union','subtract','intersect']){$('quick-'+key).hidden=!combine;$('quick-'+key).disabled=!unlocked;}
     $('quick-add-anchor').hidden=!one||one.type!=='path';$('quick-add-anchor').disabled=!unlocked;
     $('quick-add-anchor').setAttribute('aria-pressed',String(!!pathUI.context?.().adding));
@@ -159,7 +163,8 @@
     if(allUnlocked()){
       const handles=[['nw',x,y],['n',cx,y],['ne',x+w,y],['e',x+w,cy],['se',x+w,y+h],['s',cx,y+h],['sw',x,y+h],['w',x,cy],['rotate',cx,y-28/z]];
       markup+=`<path d="M${cx} ${y}v${-28/z}" stroke="#2563eb" stroke-width="${stroke}"/>`;
-      markup+=handles.map(([key,hx,hy])=>`<g data-handle="${key}" style="cursor:${key==='rotate'?'crosshair':key+'-resize'}"><circle cx="${hx}" cy="${hy}" r="${(matchMedia('(pointer:coarse)').matches?15:8)/z}" fill="transparent"/><circle cx="${hx}" cy="${hy}" r="${4/z}" fill="white" stroke="#2563eb" stroke-width="${stroke}"/></g>`).join('');
+      const gap=18/z,sides={n:w>gap*2?`M${x+gap} ${y}H${x+w-gap}`:'',s:w>gap*2?`M${x+gap} ${y+h}H${x+w-gap}`:'',w:h>gap*2?`M${x} ${y+gap}V${y+h-gap}`:'',e:h>gap*2?`M${x+w} ${y+gap}V${y+h-gap}`:''};
+      markup+=handles.map(([key,hx,hy])=>`<g data-handle="${key}" style="cursor:${key==='rotate'?'crosshair':key+'-resize'}">${sides[key]?`<path d="${sides[key]}" fill="none" stroke="transparent" stroke-width="${(matchMedia('(pointer:coarse)').matches?22:12)/z}"/>`:''}<circle cx="${hx}" cy="${hy}" r="${(matchMedia('(pointer:coarse)').matches?15:8)/z}" fill="transparent"/><circle cx="${hx}" cy="${hy}" r="${4/z}" fill="white" stroke="#2563eb" stroke-width="${stroke}"/></g>`).join('');
     }
     $('selection').innerHTML=markup;
   }
@@ -179,12 +184,21 @@
     if(inspectorPreview)inspector.reset();
     if(event.button!==0&&event.button!==1)return;if(drag)return;hideMenu();$('canvas').focus();
     const p=world(event),point=snap(p,event),base=C.clone(page()),originalSelection=selected.slice();
-    const handle=event.target.closest('[data-handle]')?.dataset.handle,hit=event.target.closest('[data-object]')?.dataset.object;
+    const handle=event.target.closest('[data-handle]')?.dataset.handle;
+    let hit=event.target.closest('[data-object]')?.dataset.object,picked=null;
+    // 既に選択した図形と操作ハンドルは現在の状態を保つ。初回だけ触れた場所で決める。
+    if(selecting()&&!space&&event.button===0&&!handle&&!event.target.closest('[data-node],[data-bezier],[data-connection-handle]')&&!pathUI.context().adding){
+      picked=pathUI.pick(p,event,base);hit||=picked?.id;
+      if(hit&&!selected.includes(hit)){
+        const next=(picked||base.objects.find(o=>o.id===hit)?.type==='connector')?'direct':'select';
+        if(tool!==next){pathUI.reset();connectionUI.reset();tool=next;}
+      }
+    }
     if(tool==='pan'||space||event.button===1)drag={kind:'pan',start:p,client:{x:event.clientX,y:event.clientY},camera:{...camera}};
     else if(connectionUI.pointerDown(event,p,base)){}
     else if(handle&&selected.length&&editable())drag={kind:'transform',handle,start:p,box:bounds(selected),base,originalSelection};
     else if(tool==='text'){selected=[];tool='direct';pathUI.reset();textUI.add(point);render();return;}
-    else if(tool==='direct')pathUI.pointerDown(event,p,base);
+    else if(tool==='direct')pathUI.pointerDown(event,p,base,picked);
     else if(tool!=='select')drag={kind:'draw',start:point,end:point,base,originalSelection};
     else if(hit){
       const expanded=C.expandSelection(page(),[hit]);
@@ -192,7 +206,7 @@
       else if(!selected.includes(hit))selection(expanded);
       if(selected.includes(hit)&&allUnlocked())drag={kind:'move',start:point,base,originalSelection:selected.slice()};
     }else {if(!event.shiftKey)selected=[];drag={kind:'marquee',start:p,box:{x:p.x,y:p.y,width:0,height:0},originalSelection,add:event.shiftKey};}
-    if(drag){drag.rawStart={...p};event.preventDefault();$('canvas').setPointerCapture(event.pointerId);drag.pointerId=event.pointerId;}render();
+    if(drag){drag.rawStart={...p};drag.selectionIds=selected.slice();event.preventDefault();$('canvas').setPointerCapture(event.pointerId);drag.pointerId=event.pointerId;}render();
   });
   $('canvas').addEventListener('pointermove',event=>{
     if(!drag||drag.pointerId!==event.pointerId)return;const p=world(event),sp=snap(p,event);drag.moved=drag.moved||Math.hypot(p.x-drag.rawStart.x,p.y-drag.rawStart.y)*zoom()>3;drag.lastPoint={...p};
@@ -205,13 +219,14 @@
   });
   function updateSelectionDrag(point,event){
     if(!drag||!['move','transform'].includes(drag.kind)||!drag.moved)return;
-    drag.guideSession||=Guides.prepare(drag.base,selected,G.bounds,camera);
+    const ids=drag.selectionIds||drag.originalSelection;
+    drag.guideSession||=Guides.prepare(drag.base,ids,G.bounds,camera);
     const interval=Grid.step(settings,event),options={zoom:zoom(),enabled:settings.smartGuides,alt:event.altKey,accept:(_axis,value)=>Grid.matches(value,interval)};
     preview=C.clone(drag.base);
     if(drag.kind==='move'){
       const delta={x:point.x-drag.rawStart.x,y:point.y-drag.rawStart.y};
       drag.alignment=Guides.move(drag.guideSession,delta,{...options,fallback:Grid.moveDelta(drag.guideSession.box,delta,settings,event)});
-      C.transformObjects(preview,selected,[1,0,0,1,drag.alignment.delta.x,drag.alignment.delta.y]);return;
+      C.transformObjects(preview,ids,[1,0,0,1,drag.alignment.delta.x,drag.alignment.delta.y]);return;
     }
     const b=drag.box,cx=b.x+b.width/2,cy=b.y+b.height/2,key=drag.handle;let m;
     drag.alignment=null;
@@ -231,22 +246,24 @@
       if(b.width)sx=drag.alignment.box.width/b.width;if(b.height)sy=drag.alignment.box.height/b.height;
       m=around([sx,0,0,sy,0,0],ax,ay);
     }
-    C.transformObjects(preview,selected,m);
+    C.transformObjects(preview,ids,m);
   }
   $('canvas').addEventListener('pointerup',event=>{
     if(!drag||drag.pointerId!==event.pointerId)return;const action=drag, result=preview;drag=null;preview=null;
+    if(['marquee','node-marquee'].includes(action.kind)&&!action.moved&&!action.add){clearSelection();render();return;}
     if(connectionUI.finishDrag(action,result)||pathUI.finishDrag(action,result)){render();return;}
     if(action.kind==='draw'){
-      const object=createShape(tool,action.start,action.end,!action.moved,event);changePage(p=>p.objects.push(object));selected=[object.id];tool='direct';pathUI.reset();
+      const object=createShape(tool,action.start,action.end,!action.moved,event);changePage(p=>p.objects.push(object));selected=[object.id];tool='select';pathUI.reset();
     }else if(['move','transform'].includes(action.kind)&&action.moved&&result)changePage(p=>p.objects=result.objects);
     else if(action.kind==='marquee'&&action.moved){const b=action.box;const hits=page().objects.filter(o=>{const a=G.bounds(o);return a.x>=b.x&&a.y>=b.y&&a.x+a.width<=b.x+b.width&&a.y+a.height<=b.y+b.height;}).map(o=>o.id);selection(action.add?[...new Set([...action.originalSelection,...hits])]:hits);}
     render();
   });
   $('canvas').addEventListener('pointercancel',cancelDrag);
   $('canvas').addEventListener('dblclick',event=>{
-    const point=world(event);if(connectionUI.doubleClick(event,point))return;
-    // Pointer capture and redraw can retarget dblclick to the canvas itself.
+    const point=world(event);
+    // 再描画とポインター捕捉で対象がcanvasになる場合も、実際に触れた要素を使う。
     const target=event.target.closest('[data-object],[data-node],[data-bezier]')?event.target:document.elementFromPoint(event.clientX,event.clientY)||event.target;
+    if(connectionUI.doubleClick(event,point,target))return;
     const id=target.closest('[data-object]')?.dataset.object,o=page().objects.find(o=>o.id===id);
     const shape=o?.type==='path'&&(o.label||/[zZ]/.test(o.d)),edge=shape&&tool==='direct'?window.IlapoPathEdit.nearest(o,point):null;
     if(o&&!o.locked&&(o.type==='text'||shape&&!target.closest('[data-node],[data-bezier]')&&(!edge||edge.distance>9/zoom()))){selection([id]);if(selected.length===1)openInspectorSection('text');return;}
@@ -298,7 +315,7 @@
       open:()=>menuButton('保存した内容を選ぶ…','recovery')+menuButton('ファイルを開く…','open-file')+menuButton('SVGを追加する…','import-svg')+'<hr>'+menuButton('新しい作品…','new'),
       more:()=>{
         const hidden=selector=>!document.querySelector('.top '+selector)?.getClientRects().length;
-        const tools=['direct','select','pan'].filter(key=>hidden(`[data-tool="${key}"]`)).map(key=>`<button data-tool="${key}" aria-pressed="${tool===key}">${icon(key)}<span>${names[key]}</span></button>`).join('');
+        const tools=['select','pan'].filter(key=>hidden(`[data-tool="${key}"]`)).map(key=>`<button data-tool="${key}" aria-pressed="${key==='select'?selecting():tool===key}">${icon(key)}<span>${names[key]}</span></button>`).join('');
         const actions=menuButton('すべて選択','select-all',!page().objects.length)+menuButton('貼り付け','paste',!clipboard);
         const historyMenu=(hidden('[data-action="undo"]')?menuButton('元に戻す','undo',!history.canUndo):'')+(hidden('[data-action="redo"]')?menuButton('やり直し','redo',!history.canRedo):'');
         const pagesMenu=hidden('[data-action="pages"]')?menuButton('ページ一覧…','pages'):'';
@@ -390,7 +407,7 @@
     showDialog('作業中の変更を保存', '<p>今の作品には明示保存していない変更があります。</p><div class="list-actions"><button type="button" id="replace-save" class="primary">保存して開く</button><button type="button" id="replace-discard">保存せず開く</button></div>',null);
     $('replace-save').onclick=()=>{if(saveBrowser()){closeDialog();next();}};$('replace-discard').onclick=()=>{closeDialog();next();};
   }
-  function replaceDocument(value){objectsUI?.cancelDrag();textUI?.cancelDraft();clearInspectorPreview();revision++;pathUI.reset();connectionUI.reset();const checked=C.validateDocument(value);checked.pages.forEach(p=>K.sync(p));history.replace(checked);pageId=doc().pages[0].id;selected=[];edited=false;saveFingerprint=snapshot();clearTimeout(saveTimer);clearTimeout(toast.timer);$('toast').hidden=true;localAuto?.stop();$('save-status').textContent='読み込みました';fit();}
+  function replaceDocument(value){objectsUI?.cancelDrag();textUI?.cancelDraft();clearInspectorPreview();revision++;pathUI.reset();connectionUI.reset();const checked=C.validateDocument(value);checked.pages.forEach(p=>K.sync(p));history.replace(checked);pageId=doc().pages[0].id;selected=[];if(selecting())tool='select';edited=false;saveFingerprint=snapshot();clearTimeout(saveTimer);clearTimeout(toast.timer);$('toast').hidden=true;localAuto?.stop();$('save-status').textContent='読み込みました';fit();}
   function recoveryDialog(){
     const entries=store?.list()||[];
     showDialog('保存した内容を選ぶ',entries.length?'<p>開かなかった保存内容も保持されます。</p>'+entries.map((e,i)=>`<button type="button" class="recovery" data-recovery="${i}"><strong>${esc(e.document.name)}</strong> — ${e.kind==='auto'?'自動保存':'明示保存'}<small>ブラウザ内 · ${esc(new Date(e.at).toLocaleString('ja-JP'))} · ${e.document.pages.length}ページ</small></button>`).join(''):'<p>ブラウザ内に保存候補がありません。ローカルの作品は「ファイルを開く」から選べます。</p>',null);
@@ -436,7 +453,7 @@
   function selectPage(id){
     if(!doc().pages.some(p=>p.id===id)||pageId===id)return;
     clearInspectorPreview();cancelDrag();pathUI.reset();connectionUI.reset();
-    pageId=id;selected=[];fit();
+    pageId=id;clearSelection();fit();
   }
   function transformDialog(){
     if(!editable())return;const base=C.clone(page()),ids=selected.slice(),b=bounds(ids,base);
@@ -512,7 +529,7 @@
   function moveHistory(redo,keepSelection=false){
     if(!(redo?history.canRedo:history.canUndo))return;
     clearInspectorPreview();revision++;history[redo?'redo':'undo']();pageId=page().id;
-    selected=keepSelection?selected.filter(id=>page().objects.some(o=>o.id===id)):[];edited=true;queueSave();render();
+    selected=keepSelection?selected.filter(id=>page().objects.some(o=>o.id===id)):[];if(!selected.length)clearSelection();edited=true;queueSave();render();
   }
   const commands={
     animations:()=>openInspectorSection('animation'),'animation-add':()=>animationUI.edit(),'export-playback':exportPlayback,
@@ -545,7 +562,7 @@
   document.addEventListener('keydown',event=>{
     if(inspector?.root.contains(event.target)||help?.root.contains(event.target)||event.isComposing||event.target.closest('input,textarea,select,[contenteditable=true],.ilapo-present-dialog')||$('dialog').open)return;
     if(['Alt','Shift'].includes(event.key)&&drag?.lastPoint){updateSelectionDrag(drag.lastPoint,event);render();}
-    if(event.key==='Escape'){if(drag)cancelDrag();else if($('command-menu').matches(':popover-open')){hideMenu();menuOpener?.focus();}else if(!connectionUI.keyboard(event)&&!pathUI.keyboard(event)){selected=[];pathUI.reset();connectionUI.reset();}space=false;render();return;}
+    if(event.key==='Escape'){if(drag)cancelDrag();else if($('command-menu').matches(':popover-open')){hideMenu();menuOpener?.focus();}else if(!connectionUI.keyboard(event)&&!pathUI.keyboard(event)){clearSelection();}space=false;render();return;}
     const mod=event.metaKey||event.ctrlKey,key=event.key.toLowerCase();
     if(mod){const map={s:'save-browser',o:'recovery',z:event.shiftKey?'redo':'undo',a:'select-all',c:'copy',v:'paste',d:'duplicate'};if(map[key]){event.preventDefault();execute(map[key]);}return;}
     if(event.target.closest('button')&&[' ','Enter'].includes(event.key))return;
