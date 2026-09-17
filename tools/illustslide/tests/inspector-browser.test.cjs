@@ -1,4 +1,4 @@
-/* プレビュー、適用・取消、対象切替、非モーダル操作、狭い画面の回帰。 */
+/* 即時反映、Undo、対象切替、非モーダル操作、狭い画面の回帰。 */
 'use strict';
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
@@ -38,7 +38,6 @@ async function load(page, doc = fixture()) {
 }
 async function select(page, id) { await page.locator('#canvas').focus(); await page.keyboard.press('v'); await shape(page, id).click(); await settle(page); }
 async function style(page) { await page.locator('#style-button').click(); await page.locator('#color-hex').waitFor(); await settle(page); }
-async function apply(page) { await page.locator('#inspector-submit').click(); await settle(page); }
 async function color(page, value) { await page.locator(`[data-color="${value}"]`).click(); await settle(page); }
 async function painted(page, id) { return shape(page, id).locator('path').first().getAttribute('fill'); }
 async function close(page) { if (await page.locator('#inspector-panel').isVisible()) await page.locator('#inspector-close').click(); await settle(page); }
@@ -63,55 +62,51 @@ async function close(page) { if (await page.locator('#inspector-panel').isVisibl
     assert.equal(await page.locator('#dialog').evaluate(el => el.open), false);
     assert.equal(await page.locator('#canvas').evaluate(el => el.closest('[inert]')), null);
     assert.equal(Math.round((await page.locator('#inspector-panel').boundingBox()).width), 320, 'default panel width');
+    assert(await page.locator('#inspector-live-note').isVisible(), '即時反映の案内を表示する');
+    assert(await page.locator('#inspector-submit').isHidden() && await page.locator('#inspector-reset').isHidden(), '自動反映フォームには適用・変更を戻すを表示しない');
     await color(page, '#EF4444'); await color(page, '#F59E0B');
-    assert.equal(await painted(page, 'a'), '#F59E0B', 'canvas shows the uncommitted color');
-    assert.deepEqual(await read(page), before, 'preview does not modify the document');
+    assert.equal(await painted(page, 'a'), '#F59E0B', '色はすぐキャンバスへ反映する');
+    assert.equal((await read(page)).pages[0].objects[0].style.fill, '#F59E0B', '色はすぐ文書へ保存する');
     await page.waitForTimeout(520);
-    assert.equal(await page.evaluate(() => localStorage.getItem('kaijo-ilapo:auto')), null, 'preview is not autosaved');
-    assert.equal(await page.locator('.top [data-action=undo]').isDisabled(), true);
+    assert(await page.evaluate(() => localStorage.getItem('kaijo-ilapo:auto')), '即時変更は自動保存の対象になる');
+    assert.equal(await page.locator('.top [data-action=undo]').isDisabled(), false);
     await page.screenshot({ path: path.join(artifacts, 'style-desktop.png') });
     await page.locator('#inspector-close').click(); await settle(page);
-    assert.equal(await painted(page, 'a'), '#2563EB');
+    assert.equal(await painted(page, 'a'), '#F59E0B', 'Closeは即時変更を取り消さない');
     assert.equal(await page.locator('#style-button').evaluate(el => document.activeElement === el), true);
 
-    await style(page); await color(page, '#EF4444'); await color(page, '#F59E0B'); await apply(page);
-    assert.equal((await read(page)).pages[0].objects[0].style.fill, '#F59E0B');
-    assert(await page.locator('#inspector-panel').isVisible(), 'apply leaves the panel open');
-    await page.locator('#inspector-canvas').click();
-    assert(await page.locator('#inspector-panel').isVisible(), 'return to canvas keeps the panel open');
+    await style(page);
+    await page.locator('#color-hex').focus(); await page.locator('#color-hex').fill('#123456');
+    const focusBefore = await page.evaluate(() => ({ active:document.activeElement.id, start:document.activeElement.selectionStart, end:document.activeElement.selectionEnd }));
+    await settle(page);
+    const focusAfter = await page.evaluate(() => ({ active:document.activeElement.id, start:document.activeElement.selectionStart, end:document.activeElement.selectionEnd }));
+    assert.deepEqual(focusAfter, focusBefore, '即時反映でフォームを再生成せず入力フォーカスと選択範囲を保つ');
     await page.keyboard.press('Meta+z'); await settle(page);
-    assert.deepEqual(await read(page), before, 'one Undo removes all edits in the draft');
-    assert.equal(await page.locator('.top [data-action=undo]').isDisabled(), true);
-    assert.equal(await page.locator('#color-hex').count(), 0, 'deselection removes the old form');
+    assert.equal((await read(page)).pages[0].objects[0].style.fill, '#F59E0B', 'パネル内の⌘Zは直前の連続入力を1回で戻す');
+    await page.keyboard.press('Shift+Meta+z'); await settle(page);
+    assert.equal((await read(page)).pages[0].objects[0].style.fill, '#123456', 'パネル内の⇧⌘Zでやり直せる');
 
-    await select(page, 'a'); await style(page); await color(page, '#EC4899');
-    await shape(page, 'b').click(); await settle(page);
+    await page.locator('#color-hex').fill('#EC4899'); await shape(page, 'b').click(); await settle(page);
     assert.match(await page.locator('.inspector-target').textContent(), /図形B/);
     assert.equal(await page.locator('#color-hex').inputValue(), '#22C55E');
-    await apply(page); assert.deepEqual(await read(page), before, 'old color draft cannot affect a new selection');
+    assert.equal((await read(page)).pages[0].objects.find(o => o.id === 'a').style.fill, '#EC4899', '対象切替前の入力は元の対象へだけ反映する');
+    assert.equal((await read(page)).pages[0].objects.find(o => o.id === 'b').style.fill, '#22C55E', '古い入力が切替先へ漏れない');
 
-    await select(page, 'a'); await page.locator('#selection-bar [data-action=transform]').click(); await settle(page);
+    await select(page, 'a'); await page.locator('#selection-more').click(); await page.locator('#command-menu [data-action=transform]').click(); await settle(page);
     await page.locator('#transform-width').fill('240'); await settle(page);
-    assert.deepEqual(await read(page), before);
-    const previewWidth = await shape(page, 'a').boundingBox();
+    assert.equal((await read(page)).pages[0].objects.find(o => o.id === 'a').matrix[0], 1.5, '変形も入力と同時に保存する');
+    const changedWidth = await shape(page, 'a').boundingBox();
     await page.locator('#transform-width').fill('0'); await settle(page);
-    assert(await page.locator('#inspector-error').isVisible(), 'invalid geometry is explained');
-    const originalWidth = await shape(page, 'a').boundingBox();
-    assert(previewWidth.width > originalWidth.width * 1.4, 'invalid input clears the previous preview');
-    await apply(page); assert.deepEqual(await read(page), before);
+    assert.equal((await read(page)).pages[0].objects.find(o => o.id === 'a').matrix[0], 1.5, '未完・不正な数値は最後の有効値を保持する');
     await page.locator('#transform-width').fill('240'); await settle(page);
-    assert.equal(await page.locator('#inspector-error').isVisible(), false);
-    await page.locator('#inspector-reset').click(); await settle(page);
-    assert.equal(await page.locator('#transform-width').inputValue(), '160');
-    assert.deepEqual(await read(page), before);
-    await page.locator('#transform-width').fill('240'); await apply(page);
-    assert.equal((await read(page)).pages[0].objects[0].matrix[0], 1.5);
-    await page.locator('#inspector-canvas').click(); await page.keyboard.press('Meta+z'); await settle(page);
-    assert.deepEqual(await read(page), before);
+    assert.equal((await read(page)).pages[0].objects.find(o => o.id === 'a').matrix[0], 1.5, '同じ絶対変形値を再入力しても変形を二重適用しない');
+    assert((await shape(page, 'a').boundingBox()).width >= changedWidth.width - 1, '入力後も変形結果を表示する');
+    await page.locator('#transform-width').focus(); await page.keyboard.press('Meta+z'); await settle(page);
+    assert.equal((await read(page)).pages[0].objects.find(o => o.id === 'a').matrix[0], 1, '変形は1回のUndoで開始時の大きさへ戻る');
 
     await select(page, 'a'); await style(page); await color(page, '#EC4899');
     before = await load(page);
-    assert.equal(await page.locator('#color-hex').count(), 0, 'opening another document discards the old draft');
+    assert.equal(await page.locator('#color-hex').count(), 0, '別の作品を開くと古いフォームを閉じる');
     assert.deepEqual(await read(page), before);
     await select(page, 'b'); await style(page);
     await page.locator('#color-hex').focus(); await page.keyboard.press('Delete'); await page.keyboard.press('v');
@@ -133,31 +128,31 @@ async function close(page) { if (await page.locator('#inspector-panel').isVisibl
       for (const [theme, size] of [['light', 'standard'], ['dark', 'large'], ['auto', 'xlarge']]) {
         await page.setViewportSize({ width, height: 736 });
         await page.locator('[data-inspector-section=view]').click();
-        await page.locator('#view-theme').selectOption(theme); await page.locator('#view-size').selectOption(size); await apply(page);
+        await page.locator('#view-theme').selectOption(theme); await page.locator('#view-size').selectOption(size); await settle(page);
         await page.locator('[data-inspector-section=style]').click(); await settle(page);
         const dimensions = await page.evaluate(() => {
           const rect = id => { const r = document.getElementById(id).getBoundingClientRect(); return { x:r.x, y:r.y, right:r.right, bottom:r.bottom, width:r.width, height:r.height }; };
-          return { canvas:rect('canvas'), panel:rect('inspector-panel'), submit:rect('inspector-submit'), bar:rect('selection-bar'), overflow:document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight, icons:[...document.querySelectorAll('#selection-bar button')].filter(b => b.getBoundingClientRect().width).map(b => ({ label:b.getAttribute('aria-label'), svg:!!b.querySelector('svg'), right:b.getBoundingClientRect().right })) };
+          return { canvas:rect('canvas'), panel:rect('inspector-panel'), note:rect('inspector-live-note'), bar:rect('selection-bar'), overflow:document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight, icons:[...document.querySelectorAll('#selection-bar button')].filter(b => b.getBoundingClientRect().width).map(b => ({ label:b.getAttribute('aria-label'), svg:!!b.querySelector('svg'), right:b.getBoundingClientRect().right })) };
         });
         assert.equal(dimensions.overflow, false, JSON.stringify({ width, theme, size, dimensions }));
-        assert(dimensions.panel.right <= width + 1 && dimensions.submit.bottom <= dimensions.panel.bottom + 1);
+        assert(dimensions.panel.right <= width + 1 && dimensions.note.bottom <= dimensions.panel.bottom + 1);
         assert(dimensions.canvas.height >= 200 && dimensions.canvas.width >= 220);
-        assert(dimensions.bar.width <= dimensions.canvas.width && dimensions.icons.every(b => b.label && b.svg && b.right <= dimensions.canvas.right));
+        assert(dimensions.bar.width <= dimensions.canvas.width && dimensions.icons.every(b => b.label && b.svg && b.right <= dimensions.canvas.right + 1), JSON.stringify({ width, theme, size, dimensions }));
         if (width <= 850) assert(dimensions.panel.y >= dimensions.canvas.bottom - 1, 'mobile panel reserves its own space');
       }
       await page.screenshot({ path: path.join(artifacts, `style-${width}.png`) });
     }
     await page.setViewportSize({ width: 390, height: 320 }); await settle(page);
-    assert(await page.evaluate(() => document.getElementById('inspector-submit').getBoundingClientRect().bottom <= innerHeight && document.getElementById('canvas').getBoundingClientRect().height >= 70), 'short viewport keeps canvas and Apply reachable');
+    assert(await page.evaluate(() => document.getElementById('inspector-live-note').getBoundingClientRect().bottom <= innerHeight && document.getElementById('canvas').getBoundingClientRect().height >= 70), 'short viewport keeps canvas and即時反映の案内を表示する');
     const shortBefore = await read(page);
     for (const [channel, value] of [['R', '18'], ['G', '52'], ['B', '86']]) await page.locator('#color-' + channel).fill(value);
     await page.locator('#color-B').evaluate(el => el.scrollIntoView({ block:'center' })); await settle(page);
     assert.equal(await page.locator('#color-hex').inputValue(), '#123456');
     const shortField = await page.locator('#color-B').boundingBox(), shortFooter = await page.locator('#inspector-panel footer').boundingBox(), shortPanel = await page.locator('#inspector-panel').boundingBox();
     assert(shortField.y >= shortPanel.y && shortField.y + shortField.height <= shortFooter.y + 1, 'short viewport exposes the input above the fixed footer');
-    assert.deepEqual(await read(page), shortBefore, 'short viewport also preserves the draft');
+    assert.notDeepEqual(await read(page), shortBefore, 'short viewportでも入力をすぐ保存する');
     await page.screenshot({ path: path.join(artifacts, 'short-viewport.png') });
-    await apply(page); assert.equal((await read(page)).pages[0].objects[1].style.fill, '#123456');
+    assert.equal((await read(page)).pages[0].objects[1].style.fill, '#123456');
 
     await page.setViewportSize({ width:1280, height:736 }); await settle(page);
     const resize = page.locator('#inspector-resize'); await resize.focus();
@@ -180,8 +175,7 @@ async function close(page) { if (await page.locator('#inspector-panel').isVisibl
       await touch.goto(`http://127.0.0.1:${server.address().port}/illustslide/`); await touch.waitForFunction(() => !!window.IlapoEditor);
       const touchBefore = await load(touch); await shape(touch, 'a').tap(); await touch.locator('#style-button').tap();
       await touch.locator('[data-color="#EC4899"]').scrollIntoViewIfNeeded(); await touch.locator('[data-color="#EC4899"]').tap(); await settle(touch);
-      assert.deepEqual(await read(touch), touchBefore, 'touch palette previews without saving');
-      await touch.locator('#inspector-submit').tap(); await settle(touch);
+      assert.notDeepEqual(await read(touch), touchBefore, 'touch paletteもすぐ保存する');
       assert.equal((await read(touch)).pages[0].objects[0].style.fill, '#EC4899');
       assert(await touch.locator('#inspector-panel').isVisible());
       await touch.locator('#inspector-close').tap(); assert.equal(await touch.locator('#inspector-panel').isVisible(), false);

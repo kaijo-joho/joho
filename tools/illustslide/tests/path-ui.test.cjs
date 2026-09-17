@@ -33,9 +33,20 @@ async function run() {
   const screen = point => page.evaluate(p => { const c = IlapoEditor.getCamera(), r = document.getElementById('canvas').getBoundingClientRect(); return { x: r.left + (p.x - c.x) / c.width * r.width, y: r.top + (p.y - c.y) / c.height * r.height }; }, point);
   const clickPoint = async (p, shift = false) => { const q = await screen(p); if (shift) await page.keyboard.down('Shift'); await page.mouse.click(q.x, q.y); if (shift) await page.keyboard.up('Shift'); await sleep(35); };
   const submit = async () => { await page.locator('#dialog-submit').click(); await page.waitForFunction(() => !document.getElementById('dialog').open); };
-  const inspectorSubmit = async () => { await page.locator('#inspector-submit').click(); await page.waitForFunction(() => { const panel = document.getElementById('inspector-panel'); return panel && !panel.hidden && !document.getElementById('dialog').open; }); };
+  const inspectorSubmit = async () => {
+    const submitButton = page.locator('#inspector-submit');
+    if (await submitButton.isVisible()) {
+      await submitButton.click();
+      await page.waitForFunction(() => { const panel = document.getElementById('inspector-panel'); return panel && !panel.hidden && !document.getElementById('dialog').open; });
+    } else await page.evaluate(() => new Promise(resolve => queueMicrotask(() => requestAnimationFrame(() => requestAnimationFrame(resolve)))));
+  };
   const inspectorClose = async () => { await page.locator('#inspector-close').click(); await page.waitForFunction(() => document.getElementById('inspector-panel').hidden); await sleep(50); };
-  const menu = async action => { await page.locator('#path-menu-button').click(); await page.locator(`#command-menu [data-action="${action}"]`).click(); await sleep(40); };
+  const menu = async action => {
+    const pathButton = page.locator('#path-menu-button');
+    if (await pathButton.isVisible()) await pathButton.click();
+    else { await page.locator('#selection-more').click(); await page.locator('#command-menu [data-action="selection-path"]').click(); }
+    await page.locator(`#command-menu [data-action="${action}"]`).click(); await sleep(40);
+  };
   const pick = async id => { await page.locator('#objects-toggle').click(); await (await revealObject(page,id)).click(); await page.locator("#inspector-close").click(); await sleep(35); };
   async function load(objects) {
     const document = fixture(objects);

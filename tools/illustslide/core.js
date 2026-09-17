@@ -240,7 +240,39 @@
   function removePage(doc, pageId) { const page = docAndPage(doc, pageId); if (doc.pages.length <= 1) throw new RangeError('A document must contain at least one page'); doc.pages.splice(doc.pages.indexOf(page), 1); return pageId; }
   function movePage(doc, pageId, delta) { const page = docAndPage(doc, pageId); if (!Number.isInteger(delta)) throw new TypeError('delta must be an integer'); const from = doc.pages.indexOf(page); const to = Math.max(0, Math.min(doc.pages.length - 1, from + delta)); if (from !== to) { doc.pages.splice(from, 1); doc.pages.splice(to, 0, page); } return to; }
   function same(a, b) { return JSON.stringify(a) === JSON.stringify(b); }
-  class History { constructor(doc) { this.document = validateDocument(doc || createDocument()); this._undo = []; this._redo = []; } get canUndo() { return this._undo.length > 0; } get canRedo() { return this._redo.length > 0; } change(fn) { if (typeof fn !== 'function') throw new TypeError('change requires a function'); const before = clone(this.document); const next = clone(this.document); try { fn(next);next.pages.forEach(pruneAnimations); const checked = validateDocument(next); if (!same(before, checked)) { this._undo.push(before); if (this._undo.length > HISTORY_LIMIT) this._undo.shift(); this._redo = []; this.document = checked; } return this.document; } catch (error) { this.document = before; throw error; } } undo() { if (!this.canUndo) return this.document; this._redo.push(clone(this.document)); this.document = this._undo.pop(); return this.document; } redo() { if (!this.canRedo) return this.document; this._undo.push(clone(this.document)); this.document = this._redo.pop(); return this.document; } replace(doc) { this.document = validateDocument(doc); this._undo = []; this._redo = []; return this.document; } }
+  class History {
+    constructor(doc) { this.document = validateDocument(doc || createDocument()); this._undo = []; this._redo = []; this._group = null; }
+    get canUndo() { return this._undo.length > 0; }
+    get canRedo() { return this._redo.length > 0; }
+    change(fn, options = {}) {
+      if (typeof fn !== 'function') throw new TypeError('change requires a function');
+      const before = clone(this.document), next = clone(this.document), group = options?.group;
+      const grouped = group != null;
+      try {
+        fn(next); next.pages.forEach(pruneAnimations);
+        const checked = validateDocument(next);
+        if (same(before, checked)) { if (!grouped) this._group = null; return this.document; }
+        const continuing = grouped && this._group === group && this._undo.length;
+        const restored = continuing && same(this._undo.at(-1), checked);
+        if (restored) {
+          this._undo.pop();
+        } else if (!continuing) {
+          this._undo.push(before);
+          if (this._undo.length > HISTORY_LIMIT) this._undo.shift();
+        }
+        this._redo = [];
+        this.document = checked;
+        this._group = grouped && !restored ? group : null;
+        return this.document;
+      } catch (error) {
+        this.document = before;
+        throw error;
+      }
+    }
+    undo() { this._group = null; if (!this.canUndo) return this.document; this._redo.push(clone(this.document)); this.document = this._undo.pop(); return this.document; }
+    redo() { this._group = null; if (!this.canRedo) return this.document; this._undo.push(clone(this.document)); this.document = this._redo.pop(); return this.document; }
+    replace(doc) { this.document = validateDocument(doc); this._undo = []; this._redo = []; this._group = null; return this.document; }
+  }
   class Store { constructor(storage) { this.storage = storage || (typeof localStorage !== 'undefined' ? localStorage : null); if (!this.storage || typeof this.storage.getItem !== 'function' || typeof this.storage.setItem !== 'function') throw new TypeError('Store requires Storage'); } _key(kind) { if (!['auto', 'saved'].includes(kind)) throw new RangeError('Store kind must be auto or saved'); return 'kaijo-ilapo:' + kind; } save(doc, kind) { const entry = { kind, at: new Date().toISOString(), document: validateDocument(doc) }; this.storage.setItem(this._key(kind), JSON.stringify(entry)); return clone(entry); } list() { const found = []; ['auto', 'saved'].forEach(kind => { try { const raw = this.storage.getItem(this._key(kind)); if (!raw) return; const entry = JSON.parse(raw); if (!entry || entry.kind !== kind || typeof entry.at !== 'string') return; found.push({ kind, at: entry.at, document: validateDocument(entry.document) }); } catch (_) { /* A corrupt slot must not hide the other slot. */ } }); return found.sort((a, b) => b.at.localeCompare(a.at)); } }
   return { uid, clone, createDocument, createPage, boardPreset, presets, validateDocument, validateObject, validateAnimation, pruneAnimations, normalizeStyle, validImageSource, DEFAULT_STYLE, makeShape, makeText, multiply, transformObjects, expandSelection, duplicateObjects, groupObjects, ungroupObjects, removeObjects, reorderObjects, duplicatePage, removePage, movePage, History, Store, LIMITS, HISTORY_LIMIT };
 }));

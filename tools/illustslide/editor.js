@@ -23,6 +23,8 @@
     plus:'M12 4v16M4 12h16',up:'m5 14 7-7 7 7',down:'m5 10 7 7 7-7',right:'m9 5 7 7-7 7',unlock:'M7 10V7a5 5 0 0 1 9-3M5 10h14v12H5zM12 14v4',
     assets:'M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM17.5 14v7M14 17.5h7',
     'text-left':'M3 4h18M3 9h11M3 14h18M3 19h11','text-center':'M3 4h18M6 9h12M3 14h18M6 19h12','text-right':'M3 4h18M10 9h11M3 14h18M10 19h11',
+    union:'M3 3h11v6h7v12H9v-7H3z',subtract:'M3 3h12v6H9v6H3zM18 9h3v12H9v-3',intersect:'M9 9h6v6H9zM3 15V3h12M21 9v12H9',
+    'anchor-add':'M2 19C7 19 7 6 13 6s5 5 9 5M8 13h5v5H8zM17 2v6M14 5h6','anchor-corner':'M3 19 11 5l10 14M9 3h4v4H9z','anchor-smooth':'M2 18C7 18 7 6 12 6s5 12 10 12M10 4h4v4h-4zM4 6h16','anchor-position':'M12 2v20M2 12h20M9 9h6v6H9z',
     canvas:'M3 8V3h5M16 3h5v5M21 16v5h-5M8 21H3v-5m7-5 7 4-4 1-1 4z'
   });
   const names = {rect:'長方形',roundrect:'角丸',ellipse:'楕円',triangle:'三角形',pentagon:'五角形',diamond:'菱形',parallelogram:'平行四辺形',arrow:'太い矢印',callout:'吹き出し',line:'線',connector:'接続矢印','connector-orthogonal':'カギ型矢印',text:'文字',direct:'直接選択',select:'全体を選択',pan:'移動'};
@@ -82,7 +84,7 @@
   function editable() { if(!selected.length)return false; if(!allUnlocked()){toast('固定された図形を含むため、先に固定を解除してください。');return false;} return true; }
   function change(fn) {
     const before=snapshot();
-    try { history.change(d=>{fn(d);d.pages.forEach(p=>K.sync(p));}); pageId=page().id; selected=selected.filter(id=>page().objects.some(o=>o.id===id)); if(before!==snapshot()){revision++;edited=true;queueSave();} render(); return before!==snapshot(); }
+    try { history.change(d=>{fn(d);d.pages.forEach(p=>K.sync(p));},{group:inspector?.changeGroup}); pageId=page().id; selected=selected.filter(id=>page().objects.some(o=>o.id===id)); if(before!==snapshot()){revision++;edited=true;queueSave();} render(); return before!==snapshot(); }
     catch(error){toast(errorMessage(error));render();return false;}
   }
   const changePage=fn=>change(d=>fn(d.pages.find(p=>p.id===pageId)));
@@ -105,7 +107,7 @@
     inspector?.sync();
     if(preview)K.sync(preview);
     const p=drawPage(); $('canvas').setAttribute('viewBox',`${camera.x} ${camera.y} ${camera.width} ${camera.height}`);
-    $('canvas').dataset.tool=tool==='pan'||space?'pan':['select','direct'].includes(tool)?'select':'draw';
+    $('canvas').dataset.tool=tool==='pan'||space?'pan':pathUI?.context().adding?'draw':['select','direct'].includes(tool)?'select':'draw';
     const art=p.board.infinite?{x:camera.x,y:camera.y,width:camera.width,height:camera.height}:{x:0,y:0,width:p.board.width,height:p.board.height};
     for(const [key,value] of Object.entries(art)){$('paper').setAttribute(key,value);$('grid').setAttribute(key,value);$('pixel-grid').setAttribute(key,value);}
     const interval=Math.max(.01,Number(settings.gridStep)||20),visibleStep=interval*zoom()<7?interval*Math.ceil(7/(interval*zoom())):interval;
@@ -114,16 +116,8 @@
     $('artwork').innerHTML=p.objects.map(o=>`<g data-object="${esc(o.id)}" aria-label="${esc(o.name)}">${o.type==='connector'?`<path d="${K.renderedParts(o)[0].d}" fill="none" stroke="transparent" stroke-width="${16/zoom()}"/>`:''}${S.objectMarkup(o)}</g>`).join('');
     $('welcome').hidden=!!p.objects.length||!!drag; $('selection-bar').hidden=!selected.length||!!drag;
     $('selection-count').textContent=pathUI?.count()?pathUI.count()+'点':selected.length+'個';
-    $('whole-mode').hidden=tool!=='direct';$('direct-mode').hidden=tool==='direct';
-    $('path-menu-button').hidden=!p.objects.some(o=>selected.includes(o.id)&&o.type==='path'); $('document-title').textContent=doc().name; document.title=doc().name+' — イラストスライド illustSlide';
-    $('connection-options').hidden=selected.length!==1||!p.objects.some(o=>o.id===selected[0]&&o.type==='connector');
-    $('image-options').hidden=selected.length!==1||!p.objects.some(o=>o.id===selected[0]&&o.type==='image');
-    $('style-button').hidden=!$('image-options').hidden;
-    const textTarget=selected.length===1?p.objects.find(o=>o.id===selected[0]):null;
-    $('text-options').hidden=!textTarget||!(textTarget.type==='text'||textTarget.type==='path'&&(textTarget.label||/[zZ]/.test(textTarget.d)));
-    $('text-options').disabled=!allUnlocked();
-    $('selection-bar').querySelector('[data-menu=arrange]').hidden=selected.length<2;
-    for(const action of ['style','transform'])$('selection-bar').querySelector('[data-action='+action+']').disabled=!allUnlocked();
+    renderSelectionActions(p);
+    $('document-title').textContent=doc().name;document.title=doc().name+' — イラストスライド illustSlide';
     renderInspectorTabs();
     $('page-status').textContent=`${doc().pages.indexOf(page())+1} / ${doc().pages.length} · ${page().name}`;
     $('zoom-value').textContent=(zoom()*100<10?(zoom()*100).toFixed(1):Math.round(zoom()*100))+'%';
@@ -132,6 +126,25 @@
     $('hint').textContent=['connector','connector-orthogonal'].includes(tool)?connectionUI.hint():!$('connection-options').hidden?'丸い端点で接続位置 · 四角で折れ曲がり位置 · ダブルクリックで点を追加 · Enterで詳細':tool==='direct'?pathUI.hint():tool==='select'?(selected.length>1?'整列・サイズの基準は最初に選んだ図形 · Space＋ドラッグで移動':'Shiftで追加選択 · Space＋ドラッグで移動'):tool==='pan'?'ドラッグして表示を移動':`${names[tool]}：クリックで配置 · ドラッグで大きさを指定`;
     renderSelection();
     $('alignment-guides').innerHTML=Guides.markup(drag?.alignment,zoom(),p.board.unit);
+  }
+  function renderSelectionActions(p){
+    const objects=p.objects.filter(o=>selected.includes(o.id)),one=objects.length===1?objects[0]:null;
+    const paths=objects.filter(o=>o.type==='path'),combine=paths.length>1&&paths.length===objects.length;
+    const points=!combine&&tool==='direct'&&pathUI.count()>0,unlocked=allUnlocked();
+    $('whole-mode').hidden=!points;$('direct-mode').hidden=true;
+    for(const key of ['union','subtract','intersect']){$('quick-'+key).hidden=!combine;$('quick-'+key).disabled=!unlocked;}
+    $('quick-add-anchor').hidden=!one||one.type!=='path';$('quick-add-anchor').disabled=!unlocked;
+    $('quick-add-anchor').setAttribute('aria-pressed',String(!!pathUI.context?.().adding));
+    for(const key of ['corner','smooth']){$('quick-anchor-'+key).hidden=!points;$('quick-anchor-'+key).disabled=!unlocked;}
+    $('path-menu-button').hidden=!one||one.type!=='path';
+    $('connection-options').hidden=one?.type!=='connector';$('image-options').hidden=one?.type!=='image';
+    $('style-button').hidden=points||one?.type==='image';$('style-button').disabled=!unlocked;
+    $('text-options').hidden=points||!one||!(one.type==='text'||one.type==='path'&&(one.label||/[zZ]/.test(one.d)));
+    $('text-options').disabled=!unlocked;
+    const bar=$('selection-bar');
+    bar.querySelector('[data-menu=edit]').hidden=!!points;
+    bar.querySelector('[data-action=transform]').hidden=true;
+    bar.querySelectorAll('.selection-extra').forEach(button=>button.hidden=true);
   }
   function renderSelection() {
     const z=zoom(), stroke=1/z;
@@ -273,7 +286,7 @@
     $('command-menu').style.left=Math.max(8,Math.min(r.left,innerWidth-m.width-8))+'px';
     $('command-menu').style.top=Math.max(8,down?r.bottom+5:r.top-m.height-5)+'px';
   }
-  const actionIcons={copy:'copy',paste:'paste',duplicate:'duplicate',delete:'delete',group:'group',ungroup:'ungroup',lock:'lock','style-copy':'brush','style-paste':'paste','text-edit':'text','component-save':'group','connection-between':'connector','connection-convert':'path','selection-arrange':'arrange','selection-order':'layers',animations:'animation'};
+  const actionIcons={'path-union':'union','path-subtract':'subtract','path-intersect':'intersect','anchor-add':'anchor-add','anchor-position':'anchor-position','anchor-corner':'anchor-corner','anchor-smooth':'anchor-smooth','selection-path':'path',outline:'outline',transform:'transform',copy:'copy',paste:'paste',duplicate:'duplicate',delete:'delete',group:'group',ungroup:'ungroup',lock:'lock','style-copy':'brush','style-paste':'paste','text-edit':'text','component-save':'group','connection-between':'connector','connection-convert':'path','selection-arrange':'arrange','selection-order':'layers',animations:'animation'};
   function menuButton(label,action,disabled=false){const name=actionIcons[action]||(action.startsWith('align-')?'arrange':action.startsWith('order-')?'layers':null);return `<button data-action="${action}" ${disabled?'disabled':''}>${name?icon(name):''}<span>${label}</span></button>`;}
   function openMenu(kind,opener,options={}){
     const was=$('command-menu').matches(':popover-open')&&menuOpener===opener&&menuKind===kind;
@@ -294,7 +307,7 @@
       },
       present:()=>menuButton('先頭から発表','present-start')+menuButton('このページから発表','present-current'),
       path:()=>pathUI.menu(menuButton)+'<hr>'+menuButton('アウトライン化…','outline',!outlineAvailable()),
-      'selection-more':()=>menuButton('位置・大きさ・回転…','transform')+'<hr>'+menuButton('整列・大きさをそろえる','selection-arrange',selected.length<2)+menuButton('重なり順','selection-order')+menuButton('動きと再生順序…','animations')+'<hr>'+menuButton('複製','duplicate')+menuButton('削除','delete'),
+      'selection-more':()=>menuButton('位置・大きさ・回転…','transform')+(page().objects.some(o=>selected.includes(o.id)&&o.type==='path')?menuButton('アンカー・パスの操作…','selection-path'):'')+menuButton('アウトライン化…','outline',!outlineAvailable())+'<hr>'+menuButton('整列・大きさをそろえる','selection-arrange',selected.length<2)+menuButton('重なり順','selection-order')+menuButton('動きと再生順序…','animations')+'<hr>'+menuButton('複製','duplicate')+menuButton('削除','delete'),
       edit:()=>menuButton('文字を編集…','text-edit',selected.length!==1||!page().objects.some(o=>o.id===selected[0]&&(o.type==='text'||o.type==='path'&&(o.label||/[zZ]/.test(o.d)))))+menuButton('アウトライン化…','outline',!outlineAvailable())+'<hr>'+menuButton('コピー','copy',selectedNone)+menuButton('貼り付け','paste',!clipboard)+menuButton('複製','duplicate',selectedNone)+menuButton('削除','delete',selectedNone)+'<hr>'+menuButton('グループ化','group',selected.length<2)+menuButton('グループ解除','ungroup',selectedNone)+menuButton('固定／固定解除','lock',selectedNone)+'<hr>'+menuButton('書式をコピー','style-copy',selectedNone)+menuButton('書式を適用','style-paste',selectedNone||!copiedStyle),
       arrange:()=>['left:左にそろえる','center:左右中央にそろえる','right:右にそろえる','top:上にそろえる','middle:上下中央にそろえる','bottom:下にそろえる','distribute-x:左右に等間隔','distribute-y:上下に等間隔','width:幅をそろえる','height:高さをそろえる','size:幅と高さをそろえる'].map(s=>{const [key,label]=s.split(':');return menuButton(label,'align-'+key,selected.length<2);}).join(''),
       order:()=>menuButton('最前面へ','order-front')+menuButton('1つ前へ','order-forward')+menuButton('1つ後ろへ','order-backward')+menuButton('最背面へ','order-back')
@@ -354,7 +367,7 @@
   function showInspector(section,title,html,label,apply,options={}){
     const focused=document.activeElement,opener=$('command-menu').contains(focused)?menuOpener:focused;hideMenu();
     const target=options.target||(section==='pages'?doc().pages.length+'ページ':['objects','assets','board','view','animation'].includes(section)?page().name:page().objects.filter(o=>selected.includes(o.id)).map(o=>o.name).join('、'));
-    inspector.show({section,title,html:`<p class="inspector-target">${esc(target||'選択した図形')}</p>`+html,label,apply,preview:options.preview,scope:()=>inspectorScope(section),refresh:()=>openInspectorSection(section),opener});
+    inspector.show({section,title,html:`<p class="inspector-target">${esc(target||'選択した図形')}</p>`+html,label,apply,auto:options.auto??(['text','style','transform','anchor','connection','image','board','view'].includes(section)&&label!=null),preview:options.preview,scope:()=>inspectorScope(section),refresh:options.refresh||(()=>openInspectorSection(section)),opener});
     renderInspectorTabs();
   }
   function openInspectorSection(section){
@@ -411,10 +424,10 @@
   const presetLabels={'18':'18 × 18 px','36':'36 × 36 px','72':'72 × 72 px',businessCard:'名刺（55 × 91 mm）',b5:'JIS B5（182 × 257 mm）',a4:'A4（210 × 297 mm）','16:9':'16:9（1280 × 720 px）',free:'自由キャンバス'};
   function boardDialog(){
     const b=page().board;let unit=b.unit;
-    showInspector('board','用紙サイズ',`<label>サイズ<select id="board-preset"><option value="custom">任意のサイズ</option>${Object.entries(presetLabels).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><div class="fields"><label>幅<input id="board-width" type="number" min="0.01" step="any" required value="${round(b.width/unitScale(unit))}"></label><label>高さ<input id="board-height" type="number" min="0.01" step="any" required value="${round(b.height/unitScale(unit))}"></label></div><div class="fields"><label>単位<select id="board-unit">${['px','mm','pt'].map(u=>`<option ${u===unit?'selected':''}>${u}</option>`).join('')}</select></label><label>向き<button type="button" id="board-swap">タテ・ヨコを入れ替え</button></label></div><label class="check"><input id="board-infinite" type="checkbox" ${b.infinite?'checked':''}>自由に広がるキャンバス</label><p class="muted">用紙の変更で作品は拡大縮小されません。自由キャンバスの書き出し範囲は作品全体です。縦横とも72px以下の用紙では、1pxの方眼とピクセル吸着を有効にします。</p>`,'変更',()=>{
+    showInspector('board','用紙サイズ',`<label>サイズ<select id="board-preset"><option value="custom">任意のサイズ</option>${Object.entries(presetLabels).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><div class="fields"><label>幅<input id="board-width" type="number" min="0.01" step="any" required value="${round(b.width/unitScale(unit))}"></label><label>高さ<input id="board-height" type="number" min="0.01" step="any" required value="${round(b.height/unitScale(unit))}"></label></div><div class="fields"><label>単位<select id="board-unit">${['px','mm','pt'].map(u=>`<option ${u===unit?'selected':''}>${u}</option>`).join('')}</select></label><label>向き<button type="button" id="board-swap">タテ・ヨコを入れ替え</button></label></div><label class="check"><input id="board-infinite" type="checkbox" ${b.infinite?'checked':''}>自由に広がるキャンバス</label><p class="muted">用紙の変更で作品は拡大縮小されません。自由キャンバスの書き出し範囲は作品全体です。縦横とも72px以下の用紙では、1pxの方眼とピクセル吸着を有効にします。</p>`,'変更',event=>{
       const width=Number($('board-width').value)*unitScale(unit),height=Number($('board-height').value)*unitScale(unit);
       if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0||width>1e6||height>1e6)throw Error('幅と高さは0より大きく、1,000,000px以下にしてください。');
-      changePage(p=>p.board={width,height,unit,infinite:$('board-infinite').checked});if(unit==='px'&&!$('board-infinite').checked&&Math.max(width,height)<=72){Object.assign(settings,{gridStep:1,pixelGrid:true,snapPixel:true,snap:false});applySettings();}fit();
+      changePage(p=>p.board={width,height,unit,infinite:$('board-infinite').checked});if((!event||event.type==='change'||event.type==='click')&&unit==='px'&&!$('board-infinite').checked&&Math.max(width,height)<=72){Object.assign(settings,{gridStep:1,pixelGrid:true,snapPixel:true,snap:false});applySettings();}fit();
     });
     $('board-preset').onchange=()=>{const key=$('board-preset').value;if(key==='custom')return;const p=C.boardPreset(key);unit=p.unit;$('board-unit').value=unit;$('board-width').value=round(p.width/unitScale(unit));$('board-height').value=round(p.height/unitScale(unit));$('board-infinite').checked=p.infinite;};
     $('board-unit').onchange=()=>{const next=$('board-unit').value;for(const k of ['board-width','board-height'])$(k).value=round(Number($(k).value)*unitScale(unit)/unitScale(next));unit=next;};
@@ -426,12 +439,12 @@
     pageId=id;selected=[];fit();
   }
   function transformDialog(){
-    if(!editable())return;const b=bounds(selected,page());
+    if(!editable())return;const base=C.clone(page()),ids=selected.slice(),b=bounds(ids,base);
     function read(){
       const [x,y,w,h,a]=['x','y','width','height','angle'].map(k=>Number($('transform-'+k).value));if([x,y,w,h,a].some(v=>!Number.isFinite(v))||w<0||h<0||(b.width>0&&w===0)||(b.height>0&&h===0))throw Error('位置と大きさを確認してください。');
       const sx=b.width?w/b.width:1,sy=b.height?h/b.height:1;let m=C.multiply([sx,0,0,sy,x,y],[1,0,0,1,-b.x,-b.y]);
       const flip=[$('flip-x').checked?-1:1,0,0,$('flip-y').checked?-1:1,0,0];m=C.multiply(around(C.multiply(rotation(a*Math.PI/180),flip),x+w/2,y+h/2),m);
-      const scaleStroke=$('scale-stroke').checked;return p=>{C.transformObjects(p,selected,m);if(scaleStroke)p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.style.strokeWidth*=Math.sqrt(Math.abs(sx*sy)));};
+      const scaleStroke=$('scale-stroke').checked;return p=>{const next=C.clone(base);C.transformObjects(next,ids,m);if(scaleStroke)next.objects.filter(o=>ids.includes(o.id)).forEach(o=>o.style.strokeWidth*=Math.sqrt(Math.abs(sx*sy)));p.objects=C.clone(next.objects);};
     }
     showInspector('transform','選択した図形を変形',`<div class="fields"><label>左の位置（px）<input id="transform-x" type="number" step="any" value="${round(b.x)}" required></label><label>上の位置（px）<input id="transform-y" type="number" step="any" value="${round(b.y)}" required></label><label>幅（px）<input id="transform-width" type="number" min="0" step="any" value="${round(b.width)}" required></label><label>高さ（px）<input id="transform-height" type="number" min="0" step="any" value="${round(b.height)}" required></label></div><label>現在の向きから回転（°）<input id="transform-angle" type="number" step="any" value="0" required></label><label class="check"><input id="transform-ratio" type="checkbox">縦横比を保つ</label><div class="row"><label class="check"><input id="flip-x" type="checkbox">左右反転</label><label class="check"><input id="flip-y" type="checkbox">上下反転</label></div><label class="check"><input id="scale-stroke" type="checkbox">線幅も拡大縮小する</label>`,'適用',()=>changePage(read()),{preview:()=>previewInspectorChange(read())});
     for(const axis of ['width','height'])$('transform-'+axis).oninput=()=>{if(!$('transform-ratio').checked||!b.width||!b.height)return;const target=axis==='width'?'height':'width';$('transform-'+target).value=round(Number($('transform-'+axis).value)*b[target]/b[axis]);};
@@ -444,7 +457,7 @@
       if($('color-hex').value!=='none'&&!/^#[0-9a-f]{6}$/i.test($('color-hex').value))throw Error('色は # と6桁の16進数で入力してください。');
       return p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>Object.assign(o.style,patch));
     }
-    showInspector('style','書式・色',`<div class="color-tabs"><button type="button" data-color-channel="fill" class="on">塗り・文字</button><button type="button" data-color-channel="stroke">線</button></div><p id="mixed-color" class="muted"></p><div class="swatches">${palette.map(v=>`<button type="button" data-color="${v}" style="--swatch:${v}" aria-label="色 ${v}"></button>`).join('')}</div><div class="row"><button type="button" id="color-none">色なし</button><input id="color-picker" type="color" aria-label="自由な色を選択" style="flex:1"><input id="color-hex" aria-label="色の16進数" maxlength="7" style="flex:1"></div><div class="fields three">${['R','G','B'].map(k=>`<label>${k}<input id="color-${k}" type="number" min="0" max="255" step="1"></label>`).join('')}</div><div class="fields"><label>線幅（px）<input data-style="strokeWidth" type="number" required min="0" step="any" value="${first.strokeWidth}"></label><label>不透明度（%）<input data-style="opacity" type="number" required min="0" max="100" step="1" value="${first.opacity*100}"></label><label>線の種類<select data-style="dash"><option value="">実線</option><option value="6 4">破線</option><option value="1 3">点線</option><option value="10 3 2 3">一点鎖線</option></select></label><label>線の端<select data-style="linecap"><option value="butt">平ら</option><option value="round">丸い</option><option value="square">四角い</option></select></label><label>線の角<select data-style="linejoin"><option value="miter">角</option><option value="round">丸い</option><option value="bevel">面取り</option></select></label><label>文字サイズ（px）<input data-style="fontSize" type="number" required min="0.01" step="any" value="${first.fontSize}"></label><label>書体<select data-style="fontFamily"><option value="sans-serif">ゴシック</option><option value="serif">明朝</option><option value="monospace">等幅</option></select></label></div><div class="row"><label class="check"><input data-style="bold" type="checkbox" ${first.bold?'checked':''}>太字</label><label class="check"><input data-style="italic" type="checkbox" ${first.italic?'checked':''}>斜体</label></div><p class="muted">入力中は図形で確認できます。「適用」で確定します。</p>`,'適用',()=>changePage(read()),{preview:()=>previewInspectorChange(read())});
+    showInspector('style','書式・色',`<div class="color-tabs"><button type="button" data-color-channel="fill" class="on">塗り・文字</button><button type="button" data-color-channel="stroke">線</button></div><p id="mixed-color" class="muted"></p><div class="swatches">${palette.map(v=>`<button type="button" data-color="${v}" style="--swatch:${v}" aria-label="色 ${v}"></button>`).join('')}</div><div class="row"><button type="button" id="color-none">色なし</button><input id="color-picker" type="color" aria-label="自由な色を選択" style="flex:1"><input id="color-hex" aria-label="色の16進数" maxlength="7" style="flex:1"></div><div class="fields three">${['R','G','B'].map(k=>`<label>${k}<input id="color-${k}" type="number" min="0" max="255" step="1"></label>`).join('')}</div><div class="fields"><label>線幅（px）<input data-style="strokeWidth" type="number" required min="0" step="any" value="${first.strokeWidth}"></label><label>不透明度（%）<input data-style="opacity" type="number" required min="0" max="100" step="1" value="${first.opacity*100}"></label><label>線の種類<select data-style="dash"><option value="">実線</option><option value="6 4">破線</option><option value="1 3">点線</option><option value="10 3 2 3">一点鎖線</option></select></label><label>線の端<select data-style="linecap"><option value="butt">平ら</option><option value="round">丸い</option><option value="square">四角い</option></select></label><label>線の角<select data-style="linejoin"><option value="miter">角</option><option value="round">丸い</option><option value="bevel">面取り</option></select></label><label>文字サイズ（px）<input data-style="fontSize" type="number" required min="0.01" step="any" value="${first.fontSize}"></label><label>書体<select data-style="fontFamily"><option value="sans-serif">ゴシック</option><option value="serif">明朝</option><option value="monospace">等幅</option></select></label></div><div class="row"><label class="check"><input data-style="bold" type="checkbox" ${first.bold?'checked':''}>太字</label><label class="check"><input data-style="italic" type="checkbox" ${first.italic?'checked':''}>斜体</label></div><p class="muted">変更はすぐに図形へ反映します。元に戻すには⌘Zを使います。</p>`,'適用',()=>changePage(read()),{preview:()=>previewInspectorChange(read())});
     function updateColor(){const color=patch[channel]??first[channel],value=color==='none'?'#000000':color;$('color-picker').value=value;$('color-hex').value=color;['R','G','B'].forEach((k,i)=>$('color-'+k).value=parseInt(value.slice(1+i*2,3+i*2),16));$('mixed-color').textContent=!(channel in patch)&&objects.some(o=>o.style[channel]!==first[channel])?'複数の色が混在しています。色を選ぶとそろえます。':color==='none'?'色なし':color;document.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.color===color.toUpperCase())));}
     $('inspector-body').querySelectorAll('[data-color-channel]').forEach(b=>b.onclick=()=>{channel=b.dataset.colorChannel;$('inspector-body').querySelectorAll('[data-color-channel]').forEach(v=>v.classList.toggle('on',v===b));updateColor();});
     $('inspector-body').querySelectorAll('[data-color]').forEach(b=>b.onclick=()=>{patch[channel]=b.dataset.color;updateColor();});
@@ -452,7 +465,7 @@
     ['R','G','B'].forEach(k=>$('color-'+k).oninput=()=>{const rgb=['R','G','B'].map(c=>Number($('color-'+c).value));if(rgb.every((v,i)=>$('color-'+['R','G','B'][i]).value!==''&&Number.isInteger(v)&&v>=0&&v<=255)){patch[channel]='#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();updateColor();}});
     $('inspector-body').querySelectorAll('[data-style]').forEach(el=>{if(el.tagName==='SELECT')el.value=first[el.dataset.style];el.oninput=el.onchange=()=>{const key=el.dataset.style;patch[key]=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value)/(key==='opacity'?100:1):el.value;};});$('inspector-body').querySelectorAll('[data-color-channel]').forEach(b=>b.classList.toggle('on',b.dataset.colorChannel===channel));updateColor();
   }
-  function viewDialog(){showInspector('view','表示設定',`<label>テーマ<select id="view-theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>操作部の文字サイズ<select id="view-size"><option value="standard">標準</option><option value="large">大</option><option value="xlarge">特大</option></select></label><label class="check"><input id="view-guides" type="checkbox" ${settings.smartGuides?'checked':''}>図形・用紙への位置合わせガイドと吸着</label><label class="check"><input id="view-grid" type="checkbox" ${settings.grid?'checked':''}>作図用グリッド（点）を表示</label><label class="check"><input id="view-pixel-grid" type="checkbox" ${settings.pixelGrid?'checked':''}>ピクセルの方眼を表示（拡大時・1px）</label><label class="check"><input id="view-snap" type="checkbox" ${settings.snap?'checked':''}>指定間隔のグリッドに吸着</label><label class="check"><input id="view-pixel" type="checkbox" ${settings.snapPixel?'checked':''}>配置・移動・サイズ変更・アンカーをピクセルに吸着</label><label class="check"><input id="view-anchor" type="checkbox" ${settings.snapAnchor?'checked':''}>他のアンカーに吸着</label><label class="check"><input id="view-path" type="checkbox" ${settings.snapPath?'checked':''}>他のパスの上に吸着</label><label>グリッドの間隔（px）<input id="view-step" type="number" min="0.01" max="10000" step="any" required value="${Number(settings.gridStep)||20}"></label><p class="muted">拡大すると1pxの方眼を表示します。画像や印刷には入りません。両方の吸着を選ぶと指定間隔を優先し、目盛りに合う位置へそろえます。曲線のハンドルは自由に動かせます。Optionで吸着を一時解除、Shift＋矢印キーで10倍移動。数値入力では指定値、Shiftでの拡大縮小では縦横比、図形への接続では輪郭の位置を保ちます。</p>`,'適用',()=>{settings={...settings,theme:$('view-theme').value,size:$('view-size').value,grid:$('view-grid').checked,pixelGrid:$('view-pixel-grid').checked,snap:$('view-snap').checked,snapPixel:$('view-pixel').checked,snapAnchor:$('view-anchor').checked,snapPath:$('view-path').checked,smartGuides:$('view-guides').checked,gridStep:Number($('view-step').value)};applySettings();});$('view-theme').value=settings.theme;$('view-size').value=settings.size;}
+  function viewDialog(){showInspector('view','表示設定',`<label>テーマ<select id="view-theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>操作部の文字サイズ<select id="view-size"><option value="standard">標準</option><option value="large">大</option><option value="xlarge">特大</option></select></label><label class="check"><input id="view-guides" type="checkbox" ${settings.smartGuides?'checked':''}>図形・用紙への位置合わせガイドと吸着</label><label class="check"><input id="view-grid" type="checkbox" ${settings.grid?'checked':''}>作図用グリッド（点）を表示</label><label class="check"><input id="view-pixel-grid" type="checkbox" ${settings.pixelGrid?'checked':''}>ピクセルの方眼を表示（拡大時・1px）</label><label class="check"><input id="view-snap" type="checkbox" ${settings.snap?'checked':''}>指定間隔のグリッドに吸着</label><label class="check"><input id="view-pixel" type="checkbox" ${settings.snapPixel?'checked':''}>図形・アンカー・ハンドルをピクセルに吸着</label><label class="check"><input id="view-anchor" type="checkbox" ${settings.snapAnchor?'checked':''}>他のアンカーに吸着</label><label class="check"><input id="view-path" type="checkbox" ${settings.snapPath?'checked':''}>他のパスの上に吸着</label><label>グリッドの間隔（px）<input id="view-step" type="number" min="0.01" max="10000" step="any" required value="${Number(settings.gridStep)||20}"></label><p class="muted">拡大すると1pxの方眼を表示します。画像や印刷には入りません。両方の吸着を選ぶと指定間隔を優先し、目盛りに合う位置へそろえます。曲線のハンドルも同じ間隔に吸着します。Optionで吸着を一時解除、Shift＋矢印キーで10倍移動。数値入力では指定値、Shiftでの拡大縮小では縦横比、図形への接続では輪郭の位置を保ちます。</p>`,'適用',()=>{settings={...settings,theme:$('view-theme').value,size:$('view-size').value,grid:$('view-grid').checked,pixelGrid:$('view-pixel-grid').checked,snap:$('view-snap').checked,snapPixel:$('view-pixel').checked,snapAnchor:$('view-anchor').checked,snapPath:$('view-path').checked,smartGuides:$('view-guides').checked,gridStep:Number($('view-step').value)};applySettings();});$('view-theme').value=settings.theme;$('view-size').value=settings.size;}
   function selectionUnits(){const units=[],seen=new Set();for(const id of selected){const object=page().objects.find(o=>o.id===id);if(!object)continue;const key=object.group||id;if(seen.has(key))continue;seen.add(key);const ids=object.group?page().objects.filter(o=>o.group===key).map(o=>o.id):[id];units.push({ids,b:bounds(ids)});}return units;}
   function align(mode){
     if(!editable())return;let units=selectionUnits();if(units.length<2){toast('2つ以上の図形またはグループを選んでください。');return;}const reference=units[0].b,transforms=[];
@@ -496,6 +509,11 @@
     try{const html=await window.IlapoPlaybackExport.buildHTML(frozen);download(html,fileName(frozen.name,'.play.html'),'text/html');toast('すべてのページを再生用HTMLへ保存しました。ファイルだけで再生できます。');}
     finally{playbackBusy=false;document.querySelectorAll('[data-action=export-playback]').forEach(b=>b.disabled=false);}
   }
+  function moveHistory(redo,keepSelection=false){
+    if(!(redo?history.canRedo:history.canUndo))return;
+    clearInspectorPreview();revision++;history[redo?'redo':'undo']();pageId=page().id;
+    selected=keepSelection?selected.filter(id=>page().objects.some(o=>o.id===id)):[];edited=true;queueSave();render();
+  }
   const commands={
     animations:()=>openInspectorSection('animation'),'animation-add':()=>animationUI.edit(),'export-playback':exportPlayback,
     assets:()=>openInspectorSection('assets'),'component-save':()=>assetsUI.focusRegistration(),'import-image':()=>$('image-input').click(),'image-options':()=>openInspectorSection('image'),
@@ -505,7 +523,7 @@
     'save-browser':saveBrowser,'save-local':saveLocal,recovery:recoveryDialog,'open-file':()=>{$('file-input').accept='.zip,.json,.svg';$('file-input').click();},'import-svg':()=>{$('file-input').accept='.svg';$('file-input').click();},
     new:()=>checkReplace(()=>{const d=C.createDocument();d.name='無題の作品';d.pages[0].board=C.boardPreset('16:9');replaceDocument(d);$('save-status').textContent='新しい作品';}),
     'auto-start':async()=>{if(!localAuto){toast('ローカル自動保存を利用できません。');return;}try{await localAuto.start(doc());}catch(error){if(error.name!=='AbortError')toast(errorMessage(error));}},'auto-stop':()=>localAuto?.stop(),
-    undo:()=>{if(history.canUndo){clearInspectorPreview();revision++;history.undo();pageId=page().id;selected=[];edited=true;queueSave();render();}},redo:()=>{if(history.canRedo){clearInspectorPreview();revision++;history.redo();pageId=page().id;selected=[];edited=true;queueSave();render();}},
+    undo:()=>moveHistory(false),redo:()=>moveHistory(true),
     'select-all':()=>selection(page().objects.map(o=>o.id)),copy,paste,duplicate:()=>{if(!selected.length)return;let ids;if(changePage(p=>ids=C.duplicateObjects(p,selected,standardSize()*.12,standardSize()*.12)))selected=ids;render();},
     delete:()=>{if(editable())changePage(p=>C.removeObjects(p,selected));},group:()=>{if(editable())changePage(p=>C.groupObjects(p,selected));},ungroup:()=>{if(editable())changePage(p=>C.ungroupObjects(p,selected));},
     lock:()=>{const lock=allUnlocked();changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.locked=lock));},
@@ -516,7 +534,7 @@
     'assets-toggle':()=>inspector.isOpen&&inspector.section==='assets'?inspector.close():openInspectorSection('assets'),
     'objects-toggle':()=>inspector.isOpen&&inspector.section==='objects'?inspector.close():openInspectorSection('objects'),
     'pages-toggle':()=>inspector.isOpen&&inspector.section==='pages'?inspector.close():openInspectorSection('pages'),
-    'selection-arrange':()=>openMenu('arrange',$('selection-more')),'selection-order':()=>openMenu('order',$('selection-more')),
+    'selection-path':()=>openMenu('path',$('selection-more')),'selection-arrange':()=>openMenu('arrange',$('selection-more')),'selection-order':()=>openMenu('order',$('selection-more')),
     'export-toggle':()=>{const opening=$('export-panel').hidden;if(opening)inspector.close({focus:false});$('export-panel').hidden=!opening;document.querySelector('.side-tab [data-action=export-toggle]').setAttribute('aria-expanded',String(opening));render();help?.refresh();},
     'export-svg':()=>{download(S.exportPage(page(),exportOptions()),fileName(doc().name+'_'+page().name,'.svg'),'image/svg+xml');toast('SVGを書き出しました。');},
     'export-png':exportBitmap,
@@ -527,7 +545,7 @@
   document.addEventListener('keydown',event=>{
     if(inspector?.root.contains(event.target)||help?.root.contains(event.target)||event.isComposing||event.target.closest('input,textarea,select,[contenteditable=true],.ilapo-present-dialog')||$('dialog').open)return;
     if(['Alt','Shift'].includes(event.key)&&drag?.lastPoint){updateSelectionDrag(drag.lastPoint,event);render();}
-    if(event.key==='Escape'){if(drag)cancelDrag();else if($('command-menu').matches(':popover-open')){hideMenu();menuOpener?.focus();}else if(!connectionUI.keyboard(event)){selected=[];pathUI.reset();connectionUI.reset();}space=false;render();return;}
+    if(event.key==='Escape'){if(drag)cancelDrag();else if($('command-menu').matches(':popover-open')){hideMenu();menuOpener?.focus();}else if(!connectionUI.keyboard(event)&&!pathUI.keyboard(event)){selected=[];pathUI.reset();connectionUI.reset();}space=false;render();return;}
     const mod=event.metaKey||event.ctrlKey,key=event.key.toLowerCase();
     if(mod){const map={s:'save-browser',o:'recovery',z:event.shiftKey?'redo':'undo',a:'select-all',c:'copy',v:'paste',d:'duplicate'};if(map[key]){event.preventDefault();execute(map[key]);}return;}
     if(event.target.closest('button')&&[' ','Enter'].includes(event.key))return;
@@ -555,7 +573,7 @@
   objectsUI=window.IlapoObjectsUI.create({document:doc,page,selected:()=>selected,select:selection,showInspector,changePage,showDialog,execute,isBusy:()=>!!drag,esc,icon});
   pagesUI=window.IlapoPagesUI.create({document:doc,page,selectPage,change,showInspector,showDialog,esc,icon});
   assetsUI=window.IlapoAssetsUI.create({document:doc,page,selected:()=>selected,library,insertionPoint,insertObjects,showInspector,showDialog,isOpen:()=>inspector?.isOpen&&inspector.section==='assets',esc,icon,toast,download});
-  inspector=window.IlapoInspector.create({onLayout:()=>{render();help?.refresh();},clearPreview:clearInspectorPreview,isBusy:()=>!!drag||objectsUI?.isDragging});
+  inspector=window.IlapoInspector.create({onHistory:redo=>moveHistory(redo,true),onLayout:()=>{render();help?.refresh();},clearPreview:clearInspectorPreview,isBusy:()=>!!drag||objectsUI?.isDragging});
   window.IlapoEditor=Object.freeze({getAnchors:()=>pathUI.getRefs(),getDocument:()=>C.clone(doc()),getSelection:()=>selected.slice(),getCamera:()=>({...camera}),getState:()=>({tool,dirty:dirty(),pageId})});
   applySettings();requestAnimationFrame(()=>{fit();if(store?.list().length)recoveryDialog();});
 }());

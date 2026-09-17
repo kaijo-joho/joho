@@ -23,6 +23,11 @@ const server = http.createServer(async (request, response) => {
 
 const settle = page => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 const read = page => page.evaluate(() => IlapoEditor.getDocument());
+async function inspectorSubmit(page) {
+  const submit = page.locator('#inspector-submit');
+  if (await submit.isVisible()) await submit.click();
+  await settle(page);
+}
 
 function fixture() {
   const document = C.createDocument();
@@ -126,7 +131,7 @@ function fixture() {
     await page.locator('#inspector-toggle').click(); await settle(page);
     await page.locator('[data-inspector-section="view"]').click();
     assert(await page.locator('#view-guides').isChecked(), 'guides default to on');
-    await page.locator('#view-guides').uncheck(); await page.locator('#inspector-submit').click(); await settle(page);
+    await page.locator('#view-guides').uncheck(); await inspectorSubmit(page);
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('kaijo-ilapo:settings')).smartGuides), false);
     await select(page, 'moving');
     await drag({ x: 150, y: 140 }, { x: 247, y: 217 }, [], async () => assert.equal(await page.locator('#alignment-guides *').count(), 0));

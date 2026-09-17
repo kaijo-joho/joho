@@ -22,6 +22,11 @@ const server = http.createServer(async (request, response) => {
 });
 const settle = page => page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
 const read = page => page.evaluate(() => IlapoEditor.getDocument());
+async function inspectorSubmit(page) {
+  const submit = page.locator('#inspector-submit');
+  if (await submit.isVisible()) await submit.click();
+  await settle(page);
+}
 function fixture() {
   const doc = C.createDocument(); doc.id = 'toolbar-fixture';
   doc.pages[0].objects = [C.makeShape('rect', 40, 40, 80, 60)];
@@ -71,7 +76,7 @@ function fixture() {
 
     for (const [theme, size] of [['light','standard'], ['dark','xlarge'], ['auto','large']]) {
       await openView(page); await page.locator('#view-theme').selectOption(theme); await page.locator('#view-size').selectOption(size);
-      await page.locator('#inspector-submit').click(); await page.locator('#inspector-close').click();
+      await inspectorSubmit(page); await page.locator('#inspector-close').click();
       for (const width of [320,390,560,561,736,850,851,1024,1280]) {
         await page.setViewportSize({width, height:844}); await settle(page);
         const layout = await page.evaluate(() => {

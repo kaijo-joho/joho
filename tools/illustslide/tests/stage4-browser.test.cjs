@@ -14,10 +14,10 @@ async function run(){
   const read=()=>page.evaluate(()=>IlapoEditor.getDocument());
   const pick=async id=>{await page.locator('#objects-toggle').click();await (await revealObject(page,id)).click();await page.locator("#inspector-close").click();};
   const openList=async()=>{if(await page.locator('#selection-bar [data-action=animations]').isVisible()){await page.locator('#selection-bar [data-action=animations]').click();}else{await page.locator('#selection-more').click();await page.locator('#command-menu [data-action=animations]').click();}await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden;});};
-  const inspectorSubmit=async()=>{await page.locator('#inspector-submit').click();await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden&&!document.getElementById('dialog').open;});};
+  const inspectorSubmit=async()=>{if(await page.locator('#inspector-submit').isVisible())await page.locator('#inspector-submit').click();await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden&&!document.getElementById('dialog').open;});};
   const inspectorClose=async()=>{await page.locator('#inspector-close').click();await page.waitForFunction(()=>document.getElementById('inspector-panel').hidden);};
   async function add(effect,fields={}){
-    await page.locator('#selection-bar [data-action=animations]').click();await page.locator('#animation-add').click();await page.locator('#animation-effect').selectOption(effect);
+    await openList();await page.locator('#animation-add').click();await page.locator('#animation-effect').selectOption(effect);
     for(const [key,value]of Object.entries(fields)){const el=page.locator('#animation-'+key);if(await el.evaluate(e=>e.tagName==='SELECT'))await el.selectOption(String(value));else await el.fill(String(value));}
     await inspectorSubmit();await page.waitForFunction(()=>document.getElementById('inspector-title').textContent==='動きと再生順序');await page.locator('#inspector-body .animation-list').waitFor();await inspectorClose();
   }
@@ -31,7 +31,7 @@ async function run(){
       p.objects=[title,pc,server,arrow];K.sync(p);const second=C.createPage('まとめ',p.board);second.objects=[C.makeText(100,150,'要求と応答を図で説明しよう。',{fontSize:40,fill:'#172B4D',stroke:'none'})];d.pages.push(second);return C.validateDocument(d);
     });
     await page.locator('#file-input').setInputFiles({name:'animation.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});await page.waitForFunction(id=>IlapoEditor.getDocument().id===id,fixture.id);
-    await pick('pc');await page.locator('#selection-bar [data-action=animations]').click();await page.locator('#animation-add').click();
+    await pick('pc');await openList();await page.locator('#animation-add').click();
     await page.locator('#animation-duration').fill('-1');await page.locator('#inspector-submit').click();assert.deepEqual(await read(),fixture,'invalid input does not apply');await page.locator('#animation-duration').fill('.6');
     // Preview the draft, then cancel it without writing a history or a save.
     await page.locator('#animation-try').click();await page.waitForSelector('#ilapo-presentation[open]');assert.equal(await page.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');

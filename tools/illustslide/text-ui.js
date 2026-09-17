@@ -35,7 +35,7 @@
         <details><summary>文字の色</summary><div class="swatches">${ctx.palette.map(color=>`<button type="button" data-text-color="${color}" style="--swatch:${color}" aria-label="文字色 ${color}"></button>`).join('')}</div>
         <div class="row text-color-row"><input id="text-color-picker" type="color" aria-label="自由な文字色"><input id="text-color-hex" maxlength="7" aria-label="文字色の16進数"><button type="button" id="text-color-none">色なし</button></div>
         <div class="fields three">${['R','G','B'].map(key=>`<label>${key}<input data-text-rgb="${key}" type="number" required min="0" max="255" step="1"></label>`).join('')}</div></details>
-        <p id="text-fit-note" class="muted" hidden></p><p class="muted">入力中はキャンバスで確認できます。「適用」で確定します。</p>
+        <p id="text-fit-note" class="muted" hidden></p><p class="muted">入力した内容はすぐに反映します。日本語の変換中は確定を待ちます。</p>
         ${isLabel&&source.label?'<button type="button" id="text-remove-label" class="text-remove-label">図形内の文字を削除</button>':''}`;
       function runs() {
         if(!runsChanged)return C.clone(model.runs);
@@ -59,13 +59,18 @@
       function mutate(value) {
         return page=>{
           if(scope()!==initialScope)throw Error('編集中のページが変わりました。文字を選び直してください。');
-          if(isNew)page.objects.push(value);
-          else {const index=page.objects.findIndex(o=>o.id===id&&o.type===source.type);if(index<0)throw Error('編集中の図形が見つかりません。');page.objects[index]=value;}
+          const index=page.objects.findIndex(o=>o.id===id&&o.type===source.type);
+          if(index>=0)page.objects[index]=value;
+          else if(isNew)page.objects.push(value);
+          else throw Error('編集中の図形が見つかりません。');
         };
       }
       function preview() {
         if(!previous.trim()){ctx.clearPreview();return;}
         const value=read();ctx.previewChange(mutate(value));
+        fitNote(value);
+      }
+      function fitNote(value) {
         const note=$('text-fit-note');note.hidden=true;
         if(isLabel) {
           const label=T.shapeText(value),layout=label&&T.layout(label),base=G.bounds({...value,label:undefined,matrix:[1,0,0,1,0,0]}),height=base.height*Math.hypot(value.matrix[2],value.matrix[3]);
@@ -73,8 +78,8 @@
         }
       }
       ctx.showInspector('text',isLabel?'図形内の文字':isNew?'文字を追加':'文字を編集',markup,'適用',()=>{
-        if(!previous.trim())throw Error('文章を入力してください。');
-        const value=read();if(!ctx.changePage(mutate(value)))return;
+        if(!previous.trim()&&isNew&&!ctx.page().objects.some(o=>o.id===id))return;
+        const value=read();ctx.changePage(mutate(value));fitNote(value);
         if(isNew){draft=null;ctx.select([id]);}
       },{preview,target:isNew?'新しい文字':undefined});
       $('text-font-family').value=style.fontFamily;

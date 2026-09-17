@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.11）
+# イラストスライド illustSlideの内部契約（0.4.12）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -24,7 +24,7 @@ fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。f
 `multiply(a,b)`, `transformObjects(page,ids,matrix)`, `expandSelection(page,ids)`, `duplicateObjects(page,ids,dx?,dy?)` は新ID配列を返す。
 `groupObjects(page,ids)`, `ungroupObjects(page,ids)`, `removeObjects(page,ids)`, `reorderObjects(page,ids,mode)` mode=front/back/forward/backward。
 `duplicatePage(doc,id)`, `removePage(doc,id)`, `movePage(doc,id,delta)`。
-`History` new History(doc); `.document`, `.change(fn)` (cloneへfnして検証・1undo), `.undo()`, `.redo()`, `.replace(doc)`, `.canUndo`, `.canRedo`。無変更は履歴なし、例外時元文書保持。
+`History` new History(doc); `.document`, `.change(fn,{group}?)` (cloneへfnして検証、既定1undo・group指定時の連結は後述), `.undo()`, `.redo()`, `.replace(doc)`, `.canUndo`, `.canRedo`。無変更は履歴なし、例外時元文書保持。
 `Store` new Store(storage); `.save(doc,kind)` kind=auto/saved, `.list()` [{kind,at,document}], 壊れた一方があっても他方を返す。保存失敗throw。
 
 ## IlapoSVG (svg.js)
@@ -87,7 +87,7 @@ UIはeditor.jsとeditor.css/index.html。DOMの作品表示はSVG、選択枠等
 
 SVGのpixel-patternはuserSpaceOnUseの1×1、pixel-gridは用紙の範囲（無限用紙はviewport）へ描く。原点は固定しパンでずれない。zoom>=8かつpixelGridの時だけ表示し、strokeWidth=.8/zoomで画面上の太さを維持する。artworkの上、選択・ガイドの下に置きpointer-events=noneとする。通常の点グリッドは別設定だが、1px方眼と間隔が重なる場合は点の表示だけを省く。SVG/PNG/PDF/発表は文書から出力し補助表示を含めない。
 
-アンカーの吸着では有効間隔に合う他アンカー／パスだけを優先し、なければGrid.pointでそろえる。曲線ハンドルは吸着を適用せず小数を保持する。図形への接続端点は輪郭追従を優先する。数値入力と読み込みの座標は丸めない。
+アンカーの吸着では有効間隔に合う他アンカー／パスだけを優先し、なければGrid.pointでそろえる。曲線ハンドルも0.4.12以降はGrid.pointを使い、Option時は小数を保持する。図形への接続端点は輪郭追従を優先する。数値入力と読み込みの座標は丸めない。
 
 ## IlapoGuides（guides.js）
 
@@ -97,10 +97,22 @@ SVGのpixel-patternはuserSpaceOnUseの1×1、pixel-gridは用紙の範囲（無
 
 `markup(result,zoom,unit)`の出力は専用の`#alignment-guides`へだけ配置する。線・ラベルのサイズは表示倍率で補正し、距離は用紙単位で表示する。ドラッグ中のsession/表示だけに保持し、キャンセル・完了・ツール切替で除去する。Alt/Shiftキーだけの変化も最後のポインタ座標から再計算する。表示設定`smartGuides`は既定true、作品とは別の既存設定キーへ保存する。
 
+## 即時反映と履歴（0.4.12）
+
+選択ポップアップは選択内容ごとに主要操作を表示し、複数パスのBooleanと単一パスのアンカー追加を直接呼び出せる。区間未選択のanchor-addは1点追加モードへ入り、選択パスの輪郭だけを対象にする。成功・Escape・選択変更で終了し、モードは文書へ保存しない。狭い画面で省略するパスメニューはselection-moreからも開ける。
+
+通常の設定フォームはrequest.auto=trueとし、input/changeと書式ボタンのclickを同じターンのmicrotaskへまとめる。フォーム固有handlerの後に有効性・IME・request token・scopeを確認してapplyする。自己commit直後だけsignatureを更新し、入力のたびにDOMを再作成しない。外部の編集・選択・ページ変更・Undoではrevisionを含むscopeでフォームを更新する。閉じたrequestの保留処理は破棄する。
+
+Inspector.changeGroupは即時applyの実行中だけ有効。History.change(fn,{group})は連続する同一groupの変更を1履歴へまとめる。欄のfocusout・他欄・離散ボタン操作で新しいgroupにする。通常change/undo/redo/replaceで連結を解除し、不正な変更では履歴を保持する。自分のgroupの開始状態へ戻った場合は空の履歴を除去し、その前の別操作とは結合しない。
+
+変形とアンカー座標はフォーム開始時のbaseを複製して再計算する。新規文字はIDでupsertし、入力のたびに追加しない。空の新規文字・不正な数値・IME変換中は反映しない。反映後は通常の作品・自動保存・明示保存を使い、Escapeや閉じるでは取消さない。パネル内の⌘Z/⇧⌘Zは作品のUndo/Redoに渡す。
+
+用紙の寸法は即時反映し、小用紙のピクセル設定自動補正はchange/clickの確定操作時に行う。既存の動きの編集は即時、新規追加は「追加」を維持。アウトライン化・登録・出力などの実行操作はautoを使わず、プレビューと実行ボタンを維持する。従来のInspector仕様のうち通常設定のpreview/apply/resetに関する記載は、この節を優先する。
+
 ## IlapoInspector（inspector.js / inspector.css）
 
 `create({onLayout,clearPreview,isBusy})` は `show(request)`、`close({focus?:boolean})`、`reset()`、`sync()` と読み取り専用の `section`・`isOpen`・`root` を返す。
-requestは `{section,title,html,label,apply,preview?,scope,refresh,opener}`。labelがnullなら適用・取消フッターを表示しない。htmlはeditor側でエスケープしたフォーム断片だけを渡す。
+requestは `{section,title,html,label,apply,auto?,preview?,scope,refresh,opener}`。labelがnullなら適用・取消フッターを表示しない。htmlはeditor側でエスケープしたフォーム断片だけを渡す。
 
 - showModal・暗幕・inert・Tabの閉じ込めを使わない。通常は右側、850px以下は下部へ配置し、キャンバスと別の領域を確保する。ページ一覧はpages、図形一覧はobjects、アイコン・部品はassetsセクションを使い、設定と同じパネルの内容を切り替える。書き出しとは排他的、共通ヘルプとは独立して開く。
 - scopeは文書ID・ページID・選択ID・編集リビジョンを含み、アンカー座標では選択点、表示設定では設定値も含む。syncと適用直前に比較し、古い対象への入力を別の対象へ適用しない。ドラッグ中の更新は終了まで待ち、閉じた後の非同期再構築で再度開かない。

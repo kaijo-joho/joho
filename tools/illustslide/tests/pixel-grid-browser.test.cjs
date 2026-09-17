@@ -73,7 +73,8 @@ async function run() {
     await settle(page);
   };
   const submitInspector = async () => {
-    await page.locator('#inspector-submit').click();
+    const submit = page.locator('#inspector-submit');
+    if (await submit.isVisible()) await submit.click();
     await settle(page);
   };
   const load = async document => {
@@ -219,7 +220,7 @@ async function run() {
     const sourceAfter = await page.evaluate(() => IlapoPathEdit.inspect(IlapoEditor.getDocument().pages[0].objects.find(object => object.id === 'source'))[0].segments[1].point);
     nearInteger(sourceAfter.x, 'anchor x ignores non-integer target'); nearInteger(sourceAfter.y, 'anchor y ignores non-integer target');
 
-    // 直接選択の曲線ハンドルはOptionなしでも自由に動き、小数のワールド座標を保つ。
+    // 曲線ハンドルも通常はピクセルへ吸着し、Optionのときだけ小数を保つ。
     await selectPath('curve');
     await (await nodeLocator('curve', 0)).click(); await settle(page);
     const bezier = page.locator('[data-bezier]').first(), bezierBox = await bezier.boundingBox(); assert(bezierBox, 'curve handle exists');
@@ -229,8 +230,15 @@ async function run() {
     const handles = await page.evaluate(() => IlapoPathEdit.inspect(IlapoEditor.getDocument().pages[0].objects.find(object => object.id === 'curve'))[0].segments);
     const [, , handleIndex, handleSide] = JSON.parse(handleRef);
     const anchor = handles[handleIndex].point, vector = handles[handleIndex][handleSide === 'in' ? 'handleIn' : 'handleOut'];
-    assert(Math.abs(anchor.x + vector.x - 5.37) < 0.03, 'curve handle x remains at the fractional target');
-    assert(Math.abs(anchor.y + vector.y - 11.83) < 0.03, 'curve handle y remains at the fractional target');
+    nearInteger(anchor.x + vector.x, 'curve handle x snaps without Option');
+    nearInteger(anchor.y + vector.y, 'curve handle y snaps without Option');
+    const freeBezier = page.locator('[data-bezier]').first(), freeBox = await freeBezier.boundingBox(); assert(freeBox, 'curve handle remains available');
+    const freeTarget = await project({ x: 6.43, y: 12.71 });
+    await page.keyboard.down('Alt'); await page.mouse.move(freeBox.x + freeBox.width / 2, freeBox.y + freeBox.height / 2); await page.mouse.down(); await page.mouse.move(freeTarget.x, freeTarget.y, { steps: 8 }); await page.mouse.up(); await page.keyboard.up('Alt'); await settle(page);
+    const freeAfter = await page.evaluate(() => IlapoPathEdit.inspect(IlapoEditor.getDocument().pages[0].objects.find(object => object.id === 'curve'))[0].segments);
+    const freePoint = freeAfter[handleIndex].point, freeHandle = freeAfter[handleIndex][handleSide === 'in' ? 'handleIn' : 'handleOut'];
+    assert(Math.abs(freePoint.x + freeHandle.x - 6.43) < 0.03, 'Option keeps the curve handle x fractional');
+    assert(Math.abs(freePoint.y + freeHandle.y - 12.71) < 0.03, 'Option keeps the curve handle y fractional');
 
     // 矢印キーは通常1px、Shiftで10px。横移動では縦位置を変えない。
     await selectObject('arrow'); await page.locator('#canvas').focus();
@@ -266,7 +274,8 @@ async function run() {
     if (await touch.locator('#replace-discard').isVisible()) await touch.locator('#replace-discard').click();
     await touch.waitForFunction(id => IlapoEditor.getDocument().id === id, mobileDocument.id); await settle(touch);
     await touch.locator('#inspector-toggle').tap(); await touch.locator('#inspector-tabs [data-inspector-section="view"]').tap();
-    await touch.locator('#view-theme').selectOption('dark'); await touch.locator('#view-size').selectOption('xlarge'); await touch.locator('#inspector-submit').tap(); await settle(touch);
+    await touch.locator('#view-theme').selectOption('dark'); await touch.locator('#view-size').selectOption('xlarge');
+    const touchSubmit = touch.locator('#inspector-submit'); if (await touchSubmit.isVisible()) await touchSubmit.tap(); await settle(touch);
     assert.equal(await touch.evaluate(() => document.documentElement.dataset.theme), 'dark');
     assert(await touch.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));
     assert(await touch.locator('#canvas').isVisible());

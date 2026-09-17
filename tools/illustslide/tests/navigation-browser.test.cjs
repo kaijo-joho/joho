@@ -13,6 +13,7 @@ const server=http.createServer(async(req,res)=>{
 const settle=page=>page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
 const read=page=>page.evaluate(()=>IlapoEditor.getDocument());
 const state=page=>page.evaluate(()=>IlapoEditor.getState());
+async function inspectorSubmit(page){const submit=page.locator('#inspector-submit');if(await submit.isVisible())await submit.click();await settle(page);}
 function fixture(){
   const doc=C.createDocument();doc.id='navigation';doc.name='ページ一覧の確認';
   doc.pages=[0,1,2].map(i=>{
@@ -39,31 +40,36 @@ async function selectShape(page){await page.locator('#canvas').focus();await pag
   try{
     await page.goto(url);await page.waitForFunction(()=>!!window.IlapoEditor);let original=await load(page);
     await selectShape(page);
-    const order=page.locator('#selection-bar [data-menu=order]'),menu=page.locator('#command-menu');
-    await page.locator('#canvas').focus();await order.hover();
-    assert(await menu.evaluate(el=>el.matches(':popover-open')),'hover opens the submenu');
+    const more=page.locator('#selection-more'),menu=page.locator('#command-menu');
+    const openOrder=async()=>{await more.hover();if(await menu.locator('[data-action=selection-order]').isVisible())await menu.locator('[data-action=selection-order]').click();};
+    await page.locator('#canvas').focus();await more.hover();
+    assert(await menu.evaluate(el=>el.matches(':popover-open')),'hover opens the selection menu');
     assert.equal(await page.evaluate(()=>document.activeElement.id),'canvas','hover does not steal focus');
+    assert(await menu.locator('[data-action=selection-order]').isVisible(),'ordering is in the other-actions menu');
+    await menu.locator('[data-action=selection-order]').click();
     assert(await menu.locator('[data-action=order-front]').isVisible());
     const item=await menu.locator('[data-action=order-front]').boundingBox();
     await page.mouse.move(item.x+30,item.y+item.height/2,{steps:5});await page.waitForTimeout(300);
     assert(await menu.evaluate(el=>el.matches(':popover-open')),'the pointer can cross into the submenu');
     await page.keyboard.press('Escape');assert.equal(await menu.evaluate(el=>el.matches(':popover-open')),false);
-    await order.hover();assert(await menu.evaluate(el=>el.matches(':popover-open')),'hover works again after Escape from inside the menu');
+    await openOrder();assert(await menu.evaluate(el=>el.matches(':popover-open')),'hover works again after Escape from inside the menu');
     await menu.locator('[data-action=order-front]').click();await settle(page);
     assert.equal((await read(page)).pages[0].objects.at(-1).id,'shape-0');
     await page.locator('#canvas').focus();await page.keyboard.press('Meta+z');await settle(page);assert.deepEqual(await read(page),original);
-    await selectShape(page);await order.hover();await page.mouse.move(20,790);await page.waitForTimeout(320);
+    await selectShape(page);await more.hover();await page.mouse.move(20,790);await page.waitForTimeout(320);
     assert.equal(await menu.evaluate(el=>el.matches(':popover-open')),false,'a hover-only menu closes after leaving');
-    await order.hover();await page.keyboard.press('Escape');assert.equal(await menu.evaluate(el=>el.matches(':popover-open')),false);
+    await more.hover();await page.keyboard.press('Escape');assert.equal(await menu.evaluate(el=>el.matches(':popover-open')),false);
     assert.equal((await page.evaluate(()=>IlapoEditor.getSelection())).length,1,'Escape closes only the submenu');
-    await page.mouse.move(20,790);await order.focus();await page.keyboard.press('ArrowDown');
+    await page.mouse.move(20,790);await more.focus();await page.keyboard.press('ArrowDown');
+    assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'transform');
+    await menu.locator('[data-action=selection-order]').focus();await page.keyboard.press('Enter');
     assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'order-front');
     await page.keyboard.press('End');assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'order-back');
-    await page.keyboard.press('Escape');assert.equal(await order.evaluate(el=>document.activeElement===el),true);
-    await order.click();assert(await menu.locator('[data-action=order-front]').isVisible(),'click remains available');await page.keyboard.press('Escape');
+    await page.keyboard.press('Escape');assert.equal(await more.evaluate(el=>document.activeElement===el),true);
+    await more.click();await menu.locator('[data-action=selection-order]').click();assert(await menu.locator('[data-action=order-front]').isVisible(),'click remains available');await page.keyboard.press('Escape');
 
     // 入力中でもホバーはフォーカスを奪わず、Escapeはメニューだけを閉じる。
-    await page.locator('#style-button').click();await page.locator('#color-hex').focus();await order.hover();
+    await page.locator('#style-button').click();await page.locator('#color-hex').focus();await more.hover();
     assert.equal(await page.evaluate(()=>document.activeElement.id),'color-hex');
     await page.keyboard.press('Escape');assert(await page.locator('#inspector-panel').isVisible());
     await page.locator('#inspector-close').click();await settle(page);
@@ -107,7 +113,7 @@ async function selectShape(page){await page.locator('#canvas').focus();await pag
 
     for(const width of [1280,736,390,320]){
       await page.setViewportSize({width,height:736});
-      await page.locator('[data-inspector-section=view]').click();await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await page.locator('#inspector-submit').click();await settle(page);
+      await page.locator('[data-inspector-section=view]').click();await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await inspectorSubmit(page);
       await page.locator('#pages-toggle').click();await settle(page);
       assert.equal(await page.locator('.page-card').count(),4);
       const layout=await page.evaluate(()=>{const p=document.getElementById('inspector-panel').getBoundingClientRect(),c=document.getElementById('canvas').getBoundingClientRect();return{overflow:document.documentElement.scrollWidth>innerWidth,pr:p.right,pt:p.top,cb:c.bottom,ch:c.height};});

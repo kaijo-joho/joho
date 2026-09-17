@@ -1,4 +1,4 @@
-/* illustSlide: 右側インスペクタ。編集内容の確定と一時プレビューを分けて扱う。 */
+/* illustSlide: 右側インスペクタ。入力の即時反映と、実行操作のプレビューを扱う。 */
 (function () {
   'use strict';
 
@@ -28,6 +28,7 @@
     }
 
     let current = null;
+    let inputGroup = null, groupTarget = null, applyingGroup = null, pendingAuto = null, autoQueued = false;
     let opener = null;
     let composing = false;
     let refreshPromise = null;
@@ -165,7 +166,7 @@
       const target = snapshot.key && body.querySelector(snapshot.key);
       if (target && document.activeElement !== target) {
         target.focus({ preventScroll: true });
-        if (snapshot.start !== null && typeof target.setSelectionRange === 'function') target.setSelectionRange(snapshot.start, snapshot.end);
+        if (snapshot.start !== null && typeof target.setSelectionRange === 'function') { try { target.setSelectionRange(snapshot.start, snapshot.end); } catch (_) {} }
       } else if (focusTitle) {
         title.focus({ preventScroll: true });
       }
@@ -177,12 +178,17 @@
       title.textContent = request.title || '';
       body.innerHTML = request.html || '';
       clearError();
-      const hasApply = request.label != null;
+      const hasApply = request.label != null && !request.auto;
+      const liveNote = byId('inspector-live-note');
+      if (liveNote) {
+        liveNote.hidden = !request.auto;
+        liveNote.textContent = request.section === 'view' ? '変更はすぐに反映・保存されます' : '変更はすぐ反映 · ⌘Zで元に戻す';
+      }
       submit.hidden = !hasApply;
       resetButton.hidden = !hasApply;
       submit.textContent = hasApply ? request.label : '';
       const footer = formFooter();
-      if (footer) footer.hidden = !hasApply;
+      if (footer) footer.hidden = !hasApply && !request.auto;
       panel.hidden = false;
       app.classList.add('inspector-open');
       if (!window.matchMedia('(max-width: 850px)').matches && width > maxWidth()) setWidth(width, false);
@@ -202,6 +208,7 @@
         html: request.html || '',
         label: request.label,
         apply: request.apply,
+        auto: Boolean(request.auto && request.apply),
         preview: request.preview,
         scope: request.scope,
         refresh: request.refresh,
@@ -212,6 +219,8 @@
       const wasOpen = Boolean(current);
       const requestedOpener = request.opener instanceof HTMLElement ? request.opener : document.activeElement;
       if (requestedOpener instanceof HTMLElement && requestedOpener.isConnected && !panel.contains(requestedOpener)) opener = requestedOpener;
+      inputGroup = groupTarget = pendingAuto = null;
+      composing = false;
       render(normalized, wasOpen, !wasOpen);
     }
 
@@ -295,13 +304,35 @@
       }
     }
 
-    function queuePreview() {
-      queueMicrotask(() => preview());
+    function queuePreview(event) {
+      const request = current;
+      if (!request) return;
+      if (!request.auto) { queueMicrotask(() => { if (isSameRequest(request)) preview(); }); return; }
+      if (composing || event?.isComposing) return;
+      const target = event?.target || document.activeElement;
+      const discrete = event?.type === 'click' || target?.matches('select,input[type=checkbox],input[type=radio]');
+      if (!inputGroup || groupTarget !== target || discrete) { inputGroup = Symbol('inspector-input'); groupTarget = target; }
+      pendingAuto = { request, group: inputGroup, event };
+      if (autoQueued) return;
+      autoQueued = true;
+      queueMicrotask(() => {
+        autoQueued = false;
+        const pending = pendingAuto; pendingAuto = null;
+        if (!pending || !isSameRequest(pending.request) || composing || busy() || !valid() || !checkScope(pending.request)) return;
+        clearError(); clearPreview(); applyingGroup = pending.group;
+        try {
+          pending.request.apply(pending.event);
+          // 自分の変更によるrevision更新でフォームを作り直さない。入力位置とIMEを保つ。
+          if (isSameRequest(pending.request)) pending.request.signature = scopeOf(pending.request);
+        } catch (exception) { if (isSameRequest(pending.request)) setError(exception); }
+        finally { applyingGroup = null; }
+      });
     }
 
     async function apply(event) {
       event.preventDefault();
       const request = current;
+      if (request?.auto) { queuePreview(event); return; }
       if (!request || !request.apply || !valid(true) || !checkScope(request)) return;
       clearError();
       clearPreview();
@@ -319,6 +350,8 @@
       if (!current && panel.hidden) return;
       clearPreview();
       current = null;
+      inputGroup = groupTarget = pendingAuto = null;
+      composing = false;
       syncPending = false;
       if (syncFrame) cancelAnimationFrame(syncFrame);
       syncFrame = 0;
@@ -367,13 +400,17 @@
     form.addEventListener('input', queuePreview);
     form.addEventListener('change', queuePreview);
     body.addEventListener('click', event => {
-      if (event.target.closest('button:not(:disabled)')) queuePreview();
+      if (event.target.closest('button:not(:disabled)')) queuePreview(event);
     });
     form.addEventListener('compositionstart', () => { composing = true; });
-    form.addEventListener('compositionend', () => { composing = false; queuePreview(); });
+    form.addEventListener('compositionend', event => { composing = false; queuePreview(event); });
+    form.addEventListener('focusout', () => { inputGroup = groupTarget = null; });
     panel.addEventListener('pointerdown', event => event.stopPropagation());
     panel.addEventListener('keydown', event => {
       event.stopPropagation();
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z' && !composing && !event.isComposing && current?.auto) {
+        event.preventDefault(); inputGroup = groupTarget = pendingAuto = null; settings.onHistory?.(event.shiftKey); return;
+      }
       if (event.key === 'Escape') {
         if (composing || event.isComposing) return;
         if (resize) {
@@ -425,6 +462,7 @@
       close,
       sync,
       reset,
+      get changeGroup() { return applyingGroup; },
       get section() { return current?.section || null; },
       get isOpen() { return Boolean(current); },
       get root() { return panel; }

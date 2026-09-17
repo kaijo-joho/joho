@@ -4,7 +4,7 @@
   function create(ctx) {
     const C = root.IlapoCore, P = root.IlapoPathEdit, G = root.IlapoGeometry, Grid = root.IlapoGrid;
     const $ = id => document.getElementById(id);
-    let refs = [], edge = null, snapTarget = null;
+    let refs = [], edge = null, snapTarget = null, addMode = false, addModeSelection = [];
     const key = ref => JSON.stringify([ref.id, ref.path, ref.index]);
     const same = (a, b) => key(a) === key(b);
     const objectOf = (id, page = ctx.page()) => page.objects.find(o => o.id === id);
@@ -13,6 +13,7 @@
       const object = objectOf(ref.id, page);
       return object?.type === 'path' ? P.inspect(object)[ref.path]?.segments[ref.index] : null;
     };
+    function stopAddMode() { addMode = false; addModeSelection = []; }
     function clean() {
       const selected = ctx.selected(), inspected = new Map();
       refs = refs.filter(ref => {
@@ -24,8 +25,9 @@
         return !!inspected.get(ref.id)[ref.path]?.segments[ref.index];
       });
       if (edge && !selected.includes(edge.id)) edge = null;
+      if (addMode && JSON.stringify(ctx.selected().slice().sort()) !== JSON.stringify(addModeSelection)) stopAddMode();
     }
-    function reset() { refs = []; edge = null; snapTarget = null; }
+    function reset() { refs = []; edge = null; snapTarget = null; stopAddMode(); }
     function selectRefs(next, ids) {
       refs = [...new Map(next.map(ref => [key(ref), ref])).values()];
       ctx.select(ids || [...new Set(refs.map(ref => ref.id))]);
@@ -69,7 +71,8 @@
     }
     function snapped(point, event, drag) {
       snapTarget = null;
-      if (event.altKey || drag.kind === 'bezier') return point;
+      // Option中だけ吸着を解除し、ハンドルにもアンカーと同じ目盛りを使う。
+      if (event.altKey) return point;
       const settings = ctx.settings(), interval = Grid.step(settings, event), aligned = value => Grid.matches(value.x, interval) && Grid.matches(value.y, interval), tolerance = (event.pointerType === 'touch' ? 14 : 9) / ctx.zoom();
       const targets = drag.targets || (drag.targets = inspectTargets(drag.base));
       const moving = drag.nodes || refs;
@@ -99,8 +102,41 @@
       if (best) { snapTarget = best; return best.point; }
       return point;
     }
+    function nearestSelected(point, event) {
+      const tolerance = (event.pointerType === 'touch' ? 14 : 9) / ctx.zoom();
+      let best = null;
+      for (const object of selectedPaths()) {
+        const bounds = G.bounds(object);
+        if (point.x < bounds.x - tolerance || point.x > bounds.x + bounds.width + tolerance || point.y < bounds.y - tolerance || point.y > bounds.y + bounds.height + tolerance) continue;
+        const near = P.nearest(object, point);
+        if (near && near.distance <= tolerance && (!best || near.distance < best.distance)) best = { ...near, id: object.id };
+      }
+      return best;
+    }
+    function beginAddMode() {
+      clean();
+      const paths = selectedPaths();
+      if (!paths.length) return ctx.toast('アンカーを追加するパスを選択してください。');
+      if (!ctx.editable()) return false;
+      // 通常のツール切替を通し、全体選択に残ったパス編集状態も解除する。
+      ctx.setTool('direct');
+      addMode = true;
+      addModeSelection = ctx.selected().slice().sort();
+      edge = null;
+      ctx.render();
+      return true;
+    }
     function pointerDown(event, point, base) {
       clean();
+      if (addMode) {
+        // 既存のアンカーやハンドルを押しても、そこへ重複追加しない。
+        if (event.target.closest('[data-node],[data-bezier]')) return;
+        const near = nearestSelected(point, event);
+        if (!near) return;
+        edge = { ...near };
+        addAnchor();
+        return;
+      }
       const anchorElement = event.target.closest('[data-node]'), handleElement = event.target.closest('[data-bezier]');
       if (handleElement) {
         const [id, path, index, which] = JSON.parse(handleElement.dataset.bezier), ref = { id, path, index };
@@ -195,6 +231,7 @@
     }
     function cancel(drag) { if (drag?.originalNodes) refs = drag.originalNodes; snapTarget = null; }
     function doubleClick(event, point) {
+      if (addMode) return;
       if (event.target.closest('[data-node],[data-bezier]')) return;
       const id = event.target.closest('[data-object]')?.dataset.object, object = objectOf(id);
       if (object?.type !== 'path') return;
@@ -235,12 +272,16 @@
       return `<g id="snap-target" pointer-events="none"><circle cx="${p.x}" cy="${p.y}" r="${r}" fill="none" stroke="#d97706" stroke-width="${2 / z}"/><path d="M${p.x - r} ${p.y}h${2 * r}M${p.x} ${p.y - r}v${2 * r}" stroke="#d97706" stroke-width="${1 / z}"/><text x="${p.x + 14 / z}" y="${p.y - 14 / z}" font-size="${12 / z}" font-family="sans-serif" fill="#92400e" stroke="white" stroke-width="${3 / z}" paint-order="stroke">${snapTarget.kind}</text></g>`;
     }
     function addAnchor() {
-      if (!edge) return ctx.toast('アンカーを追加する区間をクリックしてください。');
+      if (!edge) return beginAddMode();
       let added;
-      if (mutate(page => {
-        added = P.addAnchor(objectOf(edge.id, page), edge.point);
-        replace(page, edge.id, added.object);
-      })) { selectRefs([{ id: edge.id, ...added.ref }], [edge.id]); edge = null; }
+      try {
+        if (mutate(page => {
+          added = P.addAnchor(objectOf(edge.id, page), edge.point);
+          replace(page, edge.id, added.object);
+        })) { selectRefs([{ id: edge.id, ...added.ref }], [edge.id]); edge = null; stopAddMode(); }
+      } catch (error) {
+        ctx.toast(ctx.errorMessage(error));
+      }
     }
     function anchorList() {
       const objects = selectedPaths();
@@ -257,19 +298,27 @@
     }
     function coordinateDialog() {
       if (!refs.length || !ctx.editable()) return;
-      const points = refs.map(ref => node(ref).point), x = Math.min(...points.map(p => p.x)), y = Math.min(...points.map(p => p.y));
-      const single = refs.length === 1 ? node(refs[0]) : null;
+      // 即時反映を繰り返しても移動量を重ねないよう、開始時の形から再計算する。
+      const formRefs = C.clone(refs), formObjects = new Map();
+      formRefs.forEach(ref => { if (!formObjects.has(ref.id)) formObjects.set(ref.id, C.clone(objectOf(ref.id))); });
+      const formNodes = formRefs.map(ref => {
+        const object = formObjects.get(ref.id), inspected = P.inspect(object);
+        return inspected[ref.path].segments[ref.index];
+      });
+      const points = formNodes.map(value => value.point), x = Math.min(...points.map(p => p.x)), y = Math.min(...points.map(p => p.y));
+      const single = formRefs.length === 1 ? formNodes[0] : null;
       const field = (id, label, value) => `<label>${label}<input id="${id}" type="number" step="any" required value="${ctx.round(value)}"></label>`;
       ctx.showInspector('anchor','アンカーの座標', `<p class="muted">${single ? '用紙上の座標をpxで指定します。ハンドルはアンカーからの距離です。' : '選んだアンカー全体の左上の座標です。相対位置を保って移動します。'}</p><div class="fields">${field('anchor-x', 'x', x)}${field('anchor-y', 'y', y)}</div>${single ? `<details><summary>ハンドルの位置</summary><div class="fields">${field('anchor-in-x', '入る側 Δx', single.handleIn.x)}${field('anchor-in-y', '入る側 Δy', single.handleIn.y)}${field('anchor-out-x', '出る側 Δx', single.handleOut.x)}${field('anchor-out-y', '出る側 Δy', single.handleOut.y)}</div><p class="muted">数値入力では両側を独立して指定します。</p></details>` : ''}`, '適用', () => {
         const nx = Number($('anchor-x').value), ny = Number($('anchor-y').value);
         if (![nx, ny].every(Number.isFinite)) throw Error('座標を確認してください。');
         mutate(page => {
-          for (const id of new Set(refs.map(r => r.id))) {
-            let next = P.moveAnchors(objectOf(id, page), refs.filter(r => r.id === id), nx - x, ny - y);
+          for (const id of new Set(formRefs.map(r => r.id))) {
+            const source = formObjects.get(id), objectRefs = formRefs.filter(r => r.id === id);
+            let next = P.moveAnchors(source, objectRefs, nx - x, ny - y);
             if (single) for (const which of ['in', 'out']) {
               const dx = Number($('anchor-' + which + '-x').value), dy = Number($('anchor-' + which + '-y').value);
               if (![dx, dy].every(Number.isFinite)) throw Error('ハンドルの座標を確認してください。');
-              next = P.moveHandle(next, refs[0], which, { x: nx + dx, y: ny + dy }, { independent: true });
+              next = P.moveHandle(next, formRefs[0], which, { x: nx + dx, y: ny + dy }, { independent: true });
             }
             replace(page, id, next);
           }
@@ -313,6 +362,7 @@
       'anchor-all': () => { ctx.setTool('direct'); selectRefs(allRefs(), ctx.selected()); },
       'anchor-position': coordinateDialog,
       'anchor-add': addAnchor,
+      'anchor-add-mode': beginAddMode,
       'anchor-delete': () => editRefs('deleteAnchors', { open: true }),
       'anchor-remove': () => editRefs('deleteAnchors', { open: false }),
       'anchor-corner': () => editRefs('setAnchorType', 'corner'),
@@ -334,7 +384,7 @@
       clean();
       const noRefs = !refs.length, paths = selectedPaths(), combineDisabled = paths.length < 2 || paths.length !== ctx.selected().length;
       return button('アンカーを選択…', 'anchor-list', !paths.length) + button('すべてのアンカーを選択', 'anchor-all', !paths.length) + button('アンカーの座標…', 'anchor-position', noRefs)
-        + '<hr>' + button('区間にアンカーを追加', 'anchor-add', !edge) + button('削除して切り開く', 'anchor-delete', noRefs) + button('削除して前後をつなぐ', 'anchor-remove', noRefs)
+        + '<hr>' + button('アンカーを追加', 'anchor-add', !paths.length) + button('削除して切り開く', 'anchor-delete', noRefs) + button('削除して前後をつなぐ', 'anchor-remove', noRefs)
         + '<hr>' + button('角にする', 'anchor-corner', noRefs) + button('滑らかにする', 'anchor-smooth', noRefs) + button('選んだ角を丸める…', 'anchor-round', noRefs)
         + '<hr>' + button('ここで切り開く', 'path-open', refs.length !== 1) + button('パスを閉じる', 'path-close', !paths.length) + button('2つの端点をつなぐ…', 'path-join', !endpoints())
         + '<hr>' + button('合体', 'path-union', combineDisabled) + button('型抜き（最初の図形から）', 'path-subtract', combineDisabled) + button('重なりを残す', 'path-intersect', combineDisabled);
@@ -342,6 +392,7 @@
     function nudge(dx, dy, event) { if (!refs.length) return false; const delta = Grid.nudgeDelta(node(refs[0]).point, { x: dx, y: dy }, ctx.settings(), event); editRefs('moveAnchors', delta.x, delta.y); return true; }
     function keyboard(event) {
       if (ctx.tool() !== 'direct') return false;
+      if (addMode && event.key === 'Escape') { stopAddMode(); edge = null; ctx.render(); return true; }
       if ((event.key === 'Delete' || event.key === 'Backspace') && refs.length) { commands['anchor-delete'](); return true; }
       // Enter はポップアップを開く。Tabで点を巡回する操作を強制しない。
       if (event.key === 'Enter' && !event.target.closest('button') && selectedPaths().length) { anchorList(); return true; }
@@ -350,7 +401,8 @@
     return { reset, clean, cancel, pointerDown, pointerMove, finishDrag, doubleClick, render, menu, commands, nudge, keyboard,
       count: () => { clean(); return refs.length; },
       getRefs: () => C.clone(refs),
-      hint: () => snapTarget ? `${snapTarget.kind}に吸着 · Optionで解除` : refs.length ? '選んだアンカーをドラッグ · Optionでハンドルを独立・吸着解除' : '点・区間をクリック · 空白をドラッグして点を範囲選択 · 全体の操作は V' };
+      context: () => { clean(); return { adding: addMode, edgeSelected: Boolean(edge) }; },
+      hint: () => addMode ? '追加するパスの輪郭をクリック · 1点追加後に終了 · Escapeで取消' : snapTarget ? `${snapTarget.kind}に吸着 · Optionで解除` : refs.length ? '選んだアンカーをドラッグ · Optionでハンドルを独立・吸着解除' : '点・区間をクリック · 空白をドラッグして点を範囲選択 · 全体の操作は V' };
   }
   root.IlapoPathUI = { create };
 }(typeof globalThis !== 'undefined' ? globalThis : this));

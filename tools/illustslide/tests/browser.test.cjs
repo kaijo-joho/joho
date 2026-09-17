@@ -31,7 +31,15 @@ async function menu(page, selector, label) {
   await page.locator('#command-menu').getByRole('button', { name: label, exact: true }).click();
 }
 async function dialogSubmit(page) { await page.locator('#dialog-submit').click(); await page.waitForFunction(() => !document.getElementById('dialog').open); }
-async function inspectorSubmit(page) { await page.locator('#inspector-submit').click(); await page.waitForFunction(() => { const panel = document.getElementById('inspector-panel'); return panel && !panel.hidden && !document.getElementById('dialog').open; }); }
+async function inspectorSubmit(page) {
+  const submit = page.locator('#inspector-submit');
+  if (await submit.isVisible()) {
+    await submit.click();
+    await page.waitForFunction(() => { const panel = document.getElementById('inspector-panel'); return panel && !panel.hidden && !document.getElementById('dialog').open; });
+  } else {
+    await page.evaluate(() => new Promise(resolve => queueMicrotask(() => requestAnimationFrame(() => requestAnimationFrame(resolve)))));
+  }
+}
 async function inspectorClose(page) { await page.locator('#inspector-close').click(); await page.waitForFunction(() => document.getElementById('inspector-panel').hidden); }
 async function documentOf(page) { return page.evaluate(() => window.IlapoEditor.getDocument()); }
 async function addShape(page, kind, x, y, drag) {
@@ -99,7 +107,7 @@ async function run() {
     await selectTwo(page, [rectId, ellipse.id]); await page.locator('[data-menu="edit"]').click(); await page.locator('#command-menu').getByRole('button', { name: 'グループ化', exact: true }).click();
     doc = await documentOf(page); assert.equal(new Set(doc.pages[0].objects.filter(object => [rectId, ellipse.id].includes(object.id)).map(object => object.group)).size, 1, 'two selected shapes form a flat group');
     await page.locator('[data-menu="edit"]').click(); await page.locator('#command-menu').getByRole('button', { name: 'グループ解除', exact: true }).click();
-    await page.locator('[data-menu="arrange"]').click(); await page.locator('#command-menu').getByRole('button', { name: '幅をそろえる', exact: true }).click();
+    await page.locator('#selection-more').click(); await page.locator('#command-menu [data-action="selection-arrange"]').click(); await page.locator('#command-menu').getByRole('button', { name: '幅をそろえる', exact: true }).click();
 
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-command="add"]').click(); assert.equal((await documentOf(page)).pages.length, 2);
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-command="duplicate"]').click(); assert.equal((await documentOf(page)).pages.length, 3);
