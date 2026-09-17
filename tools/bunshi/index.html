@@ -556,7 +556,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.23 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.24 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1738,6 +1738,20 @@ function orientHydroxyls(mol, P, passes = 2){
       if (seen.has(k)) continue;   // 同じ組を両向きで数えない（互いに向き合う形を選ばせないため）
       seen.add(k);
       s += (2.6 - Math.max(hb.dHA, 1.75)) + (hb.ang - 130)/400;
+      // 受け手側：H は**非共有電子対のある向き**から近づくのが素直。sp3 の O なら電子対は
+      // C–O–H 平面の外（±55° ほど）に張り出す。この項がないと、与え手の直線性と距離しか見ないため
+      // H が平面内に張り付き、O–H···:O の位置関係が不自然になる（作成者の指摘、2026-09-17）。
+      // ※ 重みは 0.3 と 0.8 で結果がほぼ同じ＝値を選んで答えを作っているのではなく、
+      //    これまで拘束されていなかった自由度が決まるだけ。保守的に小さい方を採る
+      {
+        const nbs = A[hb.acc].nb;
+        if (nbs.length >= 2){
+          const n = V.norm(V.cross(V.sub(P[nbs[0]], P[hb.acc]), V.sub(P[nbs[1]], P[hb.acc])));
+          const v = V.norm(V.sub(P[hb.h], P[hb.acc]));
+          const oop = Math.abs(90 - Math.acos(Math.max(-1, Math.min(1, V.dot(n, v))))*180/Math.PI);
+          s += 0.3 * Math.min(oop, 60)/60;
+        }
+      }
     }
     // ぶつかりの減点。**H どうしも必ず見る**（見落として水酸基の H が重なっていた）
     for (const {h} of list) for (let a = 0; a < A.length; a++){
@@ -3765,7 +3779,13 @@ function fromDb(d){
   const atoms = d.a.map(([el, x, y, z]) => ({el, charge:0, x, y, z}));
   const bonds = d.b.map(([a, b, order]) => ({a, b, order}));
   const g = graphOf(atoms, bonds);
-  return {atoms:atoms.map((a, i) => ({...a, hyb:g.mol.atoms[i].hyb, type:g.mol.atoms[i].type})), bonds, approx:false, src:d.src};
+  // 水酸基の向きだけをそろえる。**重原子は 1 つも動かない**ので、出典の座標はそのまま保たれる
+  // （理想化された座標では OH の H の向きは決まっていないことが多く、そのままだと
+  //   α-シクロデキストリンの環を保つ水素結合が 3 本しか出なかった。そろえると 7 本になる）
+  orientHydroxyls(g.mol, g.P);
+  // ※ orientHydroxyls は g.P を書き換える。返す原子にも書き戻さないと、呼んでも何も起きない
+  return {atoms:atoms.map((a, i) => ({...a, hyb:g.mol.atoms[i].hyb, type:g.mol.atoms[i].type,
+    x:g.P[i][0], y:g.P[i][1], z:g.P[i][2]})), bonds, approx:false, src:d.src};
 }
 function buildCached(smi){
   const d = dbCoords(smi);
