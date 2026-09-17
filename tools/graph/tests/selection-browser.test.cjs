@@ -23,14 +23,14 @@ let browser, page;
   const settle = () => page.waitForFunction(() => window.GraphEditor && !GraphEditor.getState().drawing && !document.querySelector('#editor-dialog').open);
   const doc = () => page.evaluate(() => GraphEditor.getDocument());
   const item = id => page.locator('[data-object-id="' + id + '"]');
-  const details = (type, id) => page.locator('[data-object-details="' + type + ':' + id + '"]');
   const dialog = page.locator('#editor-dialog');
   const fill = (label, value) => dialog.getByLabel(label, { exact: true }).fill(String(value));
   const submit = async () => { await page.locator('#dialog-submit').click(); await settle(); };
   const selected = () => page.evaluate(() => GraphEditor.getState().selected);
   const bar = page.locator('#selection-toolbar');
   const seriesAdd = async () => { if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); };
-  const annotationAdd = async () => { if (await page.locator('#annotation-add-panel').isHidden()) await page.locator('#annotation-add-toggle').click(); };
+  const annotationAdd = seriesAdd;
+  const openDetail = async (type, id) => { await item(id).click(); await (type === 'series' ? bar.locator('[aria-label="数式・範囲"],[aria-label="数表・出典"]').first() : bar.getByRole('button', { name: '位置・設定', exact: true })).click(); };
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
 
   const series = (await doc()).series[0].id;
@@ -42,21 +42,21 @@ let browser, page;
   await width.fill('4'); await width.press('Tab'); await settle();
   await dash.selectOption('dash'); await settle();
   assert.equal((await doc()).series[0].style.width, 4); assert.equal((await doc()).series[0].style.dash, 'dash');
-  for (const label of ['この曲線上に点', 'この曲線の接線', 'この曲線との交点', 'この接線との交点', '選択を解除']) assert.equal(await bar.getByRole('button', { name: label, exact: true }).count(), 0, label + ' is no longer in the selection bar');
+  for (const label of ['曲線上に点を追加','接線を追加','交点を追加']) assert.equal(await bar.getByRole('button', { name: label, exact: true }).count(), 1, label + ' is available in the inspector');
+  assert.equal(await bar.getByRole('button', { name:'選択を解除',exact:true }).count(),0);
 
-  const seriesDetails = details('series', series); assert.equal(await seriesDetails.count(), 1);
-  await seriesDetails.click(); await dialog.waitFor({ state: 'visible' }); await fill('名前', '放物線'); await submit();
-  assert(await seriesDetails.evaluate(el => el === document.activeElement), 'applying series edits restores focus to its details button after the list rerenders');
+  await openDetail('series', series); await dialog.waitFor({ state: 'visible' }); await fill('名前', '放物線'); await submit();
+  assert(await bar.getByRole('button', { name: '数式・範囲', exact: true }).evaluate(el => el === document.activeElement));
 
   await seriesAdd(); await page.locator('#add-data').click(); await fill('名前', '観測値'); await dialog.locator('summary').filter({hasText:'CSV・TSVを貼り付け'}).click(); await dialog.getByLabel('CSV・TSVを貼り付け',{exact:true}).fill('x,y\n0,1\n1,2'); await dialog.getByRole('button',{name:'表に取り込む',exact:true}).click(); await submit();
   const data = (await doc()).series.at(-1).id;
-  await details('series', data).click(); await dialog.waitFor({ state: 'visible' }); assert(await dialog.getByText('数表', { exact: false }).count()); await page.locator('#dialog-cancel').click();
-  assert(await details('series', data).evaluate(el => el === document.activeElement), 'data details returns focus to dots button');
+  await openDetail('series', data); await dialog.waitFor({ state: 'visible' }); assert(await dialog.getByText('数表', { exact: false }).count()); await page.locator('#dialog-cancel').click();
+  assert(await bar.getByRole('button',{name:'数表・出典',exact:true}).evaluate(el=>el===document.activeElement),'data editor restores inspector focus');
 
   await item(series).click(); await annotationAdd(); await page.locator('#add-point').click(); await fill('名前', 'P'); await fill('位置（x / t / theta の値）', '1'); await submit();
   const point = (await doc()).annotations.at(-1).id;
-  await details('annotation', point).click(); await dialog.waitFor({ state: 'visible' }); assert(await dialog.getByLabel('位置（x / t / theta の値）', { exact: true }).isVisible()); await page.locator('#dialog-cancel').click();
-  assert(await details('annotation', point).evaluate(el => el === document.activeElement), 'annotation editor restores focus to dots button');
+  await openDetail('annotation', point); await dialog.waitFor({ state: 'visible' }); assert(await dialog.getByLabel('位置（x / t / theta の値）', { exact: true }).isVisible()); await page.locator('#dialog-cancel').click();
+  assert(await bar.getByRole('button',{name:'位置・設定',exact:true}).evaluate(el=>el===document.activeElement),'annotation editor restores inspector focus');
 
   await item(series).click(); await width.fill('5');
   const plot = page.locator('#plot'); const box = await plot.boundingBox();
@@ -74,8 +74,8 @@ let browser, page;
   await page.waitForFunction(id => GraphEditor.getState().selected?.id === id, series);
 
   await page.setViewportSize({ width: 390, height: 850 }); await page.waitForTimeout(200); await page.locator('#list-toggle').tap();
-  await details('series', series).tap(); await dialog.waitFor({ state: 'visible' }); await page.locator('#dialog-cancel').click();
-  assert(await details('series', series).evaluate(el => el === document.activeElement));
+  await item(series).tap(); await bar.getByRole('button', { name: '数式・範囲', exact: true }).tap(); await dialog.waitFor({ state: 'visible' }); await page.locator('#dialog-cancel').click();
+  assert(await bar.getByRole('button',{name:'数式・範囲',exact:true}).evaluate(el=>el===document.activeElement),'narrow editor restores inspector focus');
   assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth));
   assert.deepEqual(errors, []);
   await browser.close(); await new Promise(resolve => server.close(resolve));

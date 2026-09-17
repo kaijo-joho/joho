@@ -59,7 +59,7 @@ let browser;
   await page.getByRole('button', { name: '3D 曲面 z = x² + y²' }).click();
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).mode, '3d');
 
-  await page.locator('#mode-2d').click(); await page.locator('#add-parameter').click(); await setField('名前', 'a'); await submit();
+  await page.locator('#mode-2d').click(); await seriesAdd(); await page.locator('#add-parameter').click(); await setField('名前', 'a'); await submit();
   await seriesAdd(); await page.locator('#add-function').click(); await setField('数式', 'y = a*x^2'); await submit();
   const slider = page.locator('#parameter-list input[type=range]').first(); await slider.fill('2');
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).parameters.find(p => p.name === 'a').value, 2);

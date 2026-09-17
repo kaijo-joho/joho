@@ -12,7 +12,7 @@ let browser,page;
   const dialog=page.locator('#editor-dialog'),settle=()=>page.waitForFunction(()=>window.GraphEditor&&!GraphEditor.getState().drawing),doc=()=>page.evaluate(()=>GraphEditor.getDocument());
   const importDoc=async value=>{await page.locator('#file-input').setInputFiles({name:'linked.graph.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(value))});await page.waitForFunction(name=>GraphEditor.getDocument().name===name,value.name);await settle();};
   const submit=async()=>{await page.locator('#dialog-submit').click();await dialog.waitFor({state:'hidden'});await settle();};
-  const detail=async(type,id)=>{await page.locator('[data-object-details="'+type+':'+id+'"]').click();await dialog.waitFor({state:'visible'});};
+  const detail=async(type,id)=>{await page.locator('[data-object-id="'+id+'"]').click();await page.locator('#selection-toolbar').getByRole('button',{name:type==='chart'?'分析グラフの設定':'数表・出典',exact:true}).click();await dialog.waitFor({state:'visible'});};
   const clickCoordinate=async(selector,xy)=>{const screen=await page.locator(selector).evaluate((plot,point)=>GraphPlot.screenPoint(plot,point),xy);assert(screen?.every(Number.isFinite));await page.mouse.click(...screen);await page.waitForTimeout(90);await settle();};
   const state=()=>page.evaluate(()=>GraphEditor.getState());
   await page.goto(process.env.GRAPH_TEST_URL||'http://127.0.0.1:'+server.address().port+'/tools/graph/index.html');await settle();

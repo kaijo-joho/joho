@@ -42,6 +42,70 @@
     return Object.assign({ title: { text: axisTitle(a, '') }, range: isLog ? dataRange.map((v) => Math.log10(v)) : dataRange, type: isLog ? 'log' : 'linear', showgrid: true, zeroline: true }, isLog ? { exponentformat: 'power', showexponent: 'all' } : {}, root.GraphSymbols ? root.GraphSymbols.ticksFor(a) : {});
   };
   const presentation = (doc) => Object.assign({ axisArrows: false, originLabel: false, tickMarks: true, tickLabels: true }, doc && doc.presentation || {});
+  const axisUsesInternalLabels = (doc, key) => {
+    if (!doc || doc.mode === '3d' || doc.axes?.[key]?.labelPosition !== 'axis') return false;
+    const other = doc.axes[key === 'x' ? 'y' : 'x'];
+    const bounds = range(other, [-10, 10]);
+    return other?.scale !== 'log' && bounds[0] <= 0 && bounds[1] >= 0;
+  };
+  const automaticTickStep = (span) => {
+    const exponent = Math.floor(Math.log10(span / 8)), fraction = span / 8 / Math.pow(10, exponent);
+    return (fraction <= 1 ? 1 : fraction <= 2 ? 2 : fraction <= 5 ? 5 : 10) * Math.pow(10, exponent);
+  };
+  const evenlySpaced = (values, maximum) => {
+    if (values.length <= maximum) return values;
+    return Array.from({ length: maximum }, (_, index) => values[Math.round(index * (values.length - 1) / (maximum - 1))]);
+  };
+  const logLabelTicks = (bounds, format) => {
+    const firstExponent = Math.floor(Math.log10(bounds[0])), lastExponent = Math.ceil(Math.log10(bounds[1]));
+    const powers = [], addPower = value => { if (value >= bounds[0] && value <= bounds[1] && !powers.includes(value)) powers.push(value); };
+    for (let exponent = firstExponent; exponent <= lastExponent; exponent++) addPower(Math.pow(10, exponent));
+    if (powers.length >= 3) return evenlySpaced(powers.sort((a, b) => a - b), 6).map(value => ({ value, text: root.GraphSymbols?.formatTick?.(value, format) || String(value) }));
+    const values = [], add = value => { if (value >= bounds[0] && value <= bounds[1] && !values.includes(value)) values.push(value); };
+    for (let exponent = firstExponent; exponent <= lastExponent; exponent++) for (const factor of [1, 2, 5]) add(factor * Math.pow(10, exponent));
+    // A range contained within a single decade (for example 2–8) needs more
+    // than its two conventional 2/5 ticks to remain readable on the axis.
+    if (values.length < 3) for (let exponent = firstExponent; exponent <= lastExponent; exponent++) for (let factor = 1; factor <= 9; factor++) add(factor * Math.pow(10, exponent));
+    if (values.length < 3) {
+      const step = automaticTickStep(bounds[1] - bounds[0]), first = Math.ceil(bounds[0] / step - 1e-12), last = Math.floor(bounds[1] / step + 1e-12), count = Math.max(0, Math.min(200, last - first + 1));
+      for (let offset = 0; offset < count; offset++) add(Number((step * (first + offset)).toPrecision(14)));
+      if (!values.length) for (let index = 0; index < 5; index++) add(Number(Math.pow(10, Math.log10(bounds[0]) + (Math.log10(bounds[1]) - Math.log10(bounds[0])) * index / 4).toPrecision(14)));
+    }
+    return evenlySpaced(values.sort((a, b) => a - b), 6).map(value => ({ value, text: root.GraphSymbols?.formatTick?.(value, format) || String(value) }));
+  };
+  const labelTicks = (axis) => {
+    const specified = root.GraphSymbols?.ticksFor?.(axis);
+    if (specified?.tickvals?.length) return specified.tickvals.map((value, index) => ({ value, text: specified.ticktext[index] }));
+    const bounds = range(axis, [-10, 10]), format = axis?.ticks?.format || 'auto';
+    if (axis?.scale === 'log') {
+      return logLabelTicks(bounds, format);
+    }
+    const step = automaticTickStep(bounds[1] - bounds[0]);
+    if (!finite(step) || step <= 0) return [];
+    const first = Math.ceil(bounds[0] / step - 1e-12), last = Math.floor(bounds[1] / step + 1e-12), stride = Math.max(1, Math.ceil((last - first + 1) / 200)), count = Math.max(0, Math.min(200, Math.floor((last - first) / stride) + 1)), out = [];
+    for (let offset = 0; offset < count; offset++) { const value = Number((step * (first + offset * stride)).toPrecision(14)); if (!out.length || out.at(-1).value !== value) out.push({ value, text: root.GraphSymbols?.formatTick?.(value, format) || String(value) }); }
+    return out;
+  };
+  const axisLabelTickLayout = (axis) => {
+    const values = labelTicks(axis);
+    return { tickmode: 'array', tickvals: values.map(item => item.value), ticktext: values.map(item => item.text) };
+  };
+  const axisTickDecorations = (doc, color) => {
+    if (doc.mode === '3d' || !presentation(doc).tickLabels) return [];
+    const xOnAxis = axisUsesInternalLabels(doc, 'x'), yOnAxis = axisUsesInternalLabels(doc, 'y'), originShown = presentation(doc).originLabel && xOnAxis && yOnAxis;
+    const out = [];
+    for (const key of ['x', 'y']) {
+      if (!axisUsesInternalLabels(doc, key)) continue;
+      const axis = doc.axes[key];
+      for (const tickValue of labelTicks(axis)) {
+        if (!finite(tickValue.value) || !tickValue.text || (tickValue.value === 0 && (originShown || (key === 'x' && yOnAxis)))) continue;
+        const point = key === 'x' ? annotationPosition([tickValue.value, 0], doc) : annotationPosition([0, tickValue.value], doc);
+        if (!point) continue;
+        out.push({ name: '__graph_axis_tick_' + key + '_' + out.length, x: point[0], y: point[1], xref: 'x', yref: 'y', text: esc(tickValue.text), showarrow: false, captureevents: false, font: { size: 12, color }, xanchor: key === 'x' ? 'center' : 'right', yanchor: key === 'x' ? 'top' : 'middle', xshift: key === 'x' ? 0 : -6, yshift: key === 'x' ? -6 : 0, meta: { decoration: true, axisTick: key } });
+      }
+    }
+    return out;
+  };
   const outputDefaults = (doc, element) => {
     const configured = doc && doc.output && typeof doc.output === 'object' ? doc.output : null;
     return Object.assign({
@@ -252,14 +316,14 @@
     const dark = !!options.dark, fg = dark ? '#e5e7eb' : '#172033', bg = dark ? '#111827' : '#ffffff';
     const p = presentation(doc), common = { paper_bgcolor: bg, plot_bgcolor: bg, font: { color: fg }, showlegend: doc.legend !== false, legend: { itemclick: false, itemdoubleclick: false }, margin: { l: 64, r: 24, t: 28, b: 56 }, hovermode: 'closest' };
     if(options.compactLegend){Object.assign(common.legend,{orientation:'h',x:0,y:0,yref:'container',yanchor:'bottom'});common.margin.b=100;}
-    const configure = (axis, name) => Object.assign(tick(axis), {
+    const configure = (axis, name) => Object.assign(tick(axis), axisUsesInternalLabels(doc, name) ? axisLabelTickLayout(axis) : {}, {
       title: { text: axisTitle(axis, name) },
       ...(options.compactLegend && doc.mode!=='3d' ? {automargin:true} : {}),
       showgrid: doc.grid !== false,
       zerolinecolor: p.axisArrows ? fg : undefined, zerolinewidth: p.axisArrows ? 1.5 : 1,
       linecolor:fg, linewidth:1.5,
       ticks: p.tickMarks ? 'outside' : '',
-      showticklabels: p.tickLabels,
+      showticklabels: p.tickLabels && !axisUsesInternalLabels(doc, name),
       showline: doc.mode!=='3d'&&p.axisArrows&&(doc.axes[name==='x'?'y':'x'].scale==='log'||doc.axes[name==='x'?'y':'x'].min>0||doc.axes[name==='x'?'y':'x'].max<0)
     });
     if (doc.mode === '3d') return Object.assign(common, { dragmode: 'orbit', scene: { xaxis: configure(doc.axes && doc.axes.x, 'x'), yaxis: configure(doc.axes && doc.axes.y, 'y'), zaxis: configure(doc.axes && doc.axes.z, 'z'), aspectmode: doc.equalScale ? 'data' : 'auto', camera: options.camera || defaultCamera(doc) } });
@@ -452,7 +516,7 @@
     if (typeof element.removeAllListeners === 'function') { element.removeAllListeners('plotly_click'); element.removeAllListeners('plotly_relayout'); element.removeAllListeners('plotly_clickannotation'); element.removeAllListeners('plotly_hover'); element.removeAllListeners('plotly_unhover'); }
     const baseLayout = layoutFor(doc, Object.assign({}, options, { camera }));
     const decorationColor = options.dark ? '#e5e7eb' : '#172033';
-    const layout = Object.assign(baseLayout, { autosize: true, width: element.clientWidth || 640, height: element.clientHeight || 480, annotations: decorations.concat(axisDecorations(doc, decorationColor)) });
+    const layout = Object.assign(baseLayout, { autosize: true, width: element.clientWidth || 640, height: element.clientHeight || 480, annotations: decorations.concat(axisDecorations(doc, decorationColor), axisTickDecorations(doc, decorationColor)) });
     await P.react(element, traces, layout, { displayModeBar: false, responsive: true, scrollZoom: true });
     const blank = state.blankCleanup || installBlankClick(element, options.onBlankClick, traces); blank?.update(options.onBlankClick, traces, options, doc.mode);
     const live = { doc, camera: (element.layout && element.layout.scene && element.layout.scene.camera) || camera, options, blankCleanup: blank }; states.set(element, live);
@@ -474,6 +538,11 @@
     const l=element._fullLayout;if(!l?.xaxis?.p2d||!l?.yaxis?.p2d)return null;
     const b=element.getBoundingClientRect(),x=l.xaxis.p2d(point[0]-b.left-l.xaxis._offset),y=l.yaxis.p2d(point[1]-b.top-l.yaxis._offset);
     return finite(x)&&finite(y)?[x,y]:null;
+  }
+  function viewRanges(element) {
+    const layout=element?._fullLayout,state=states.get(element);
+    if(!layout?.xaxis||!layout?.yaxis||!state||state.doc.mode==='3d')return null;
+    return viewFrom({'xaxis.range':layout.xaxis.range,'yaxis.range':layout.yaxis.range},state.doc)?.axes||null;
   }
   function pickAnnotation(element,event,doc,selectedId) {
     if(doc.mode!=='2d')return null;
@@ -505,11 +574,11 @@
     layout.font = Object.assign({}, layout.font, { size: output.fontSize });
     if (output.title && state.doc.name) layout.title = Object.assign({}, layout.title, { text: rich(state.doc.name), font: Object.assign({}, layout.title && layout.title.font, { size: output.fontSize }) });
     else if (!output.title) delete layout.title;
-    for(const annotation of layout.annotations||[])if(['__graph_axis_x','__graph_axis_y','__graph_origin_label'].includes(annotation.name)){annotation.arrowcolor=fg;if(annotation.font)annotation.font={...annotation.font,color:fg,size:output.fontSize};}
+    for(const annotation of layout.annotations||[])if(['__graph_axis_x','__graph_axis_y','__graph_origin_label'].includes(annotation.name)||annotation.name?.startsWith('__graph_axis_tick_')){annotation.arrowcolor=fg;if(annotation.font)annotation.font={...annotation.font,color:fg,size:output.fontSize};}
     layout.paper_bgcolor = bg; layout.plot_bgcolor = bg; layout.font = Object.assign({}, layout.font, { color: fg });
     ['xaxis', 'yaxis'].forEach((key) => { if (layout[key]) { layout[key].color = fg; layout[key].gridcolor = grid; layout[key].zerolinecolor = presentation(state.doc).axisArrows ? fg : grid; layout[key].linecolor=fg; layout[key].title = Object.assign({}, layout[key].title, { font: Object.assign({}, layout[key].title && layout[key].title.font, { color: fg }) }); } });
     if (layout.scene) { layout.scene.bgcolor = bg; layout.scene.camera = state.camera || layout.scene.camera; ['xaxis', 'yaxis', 'zaxis'].forEach((key) => { const axis = layout.scene[key]; if (axis) { axis.color = fg; axis.gridcolor = grid; axis.zerolinecolor = grid; axis.backgroundcolor = bg; axis.title = Object.assign({}, axis.title, { font: Object.assign({}, axis.title && axis.title.font, { color: fg }) }); } }); }
     try { await P.newPlot(host, data, layout, { displayModeBar: false }); return await P.toImage(host, { format: output.format, width: output.width, height: output.height, scale: output.scale }); } finally { if (typeof P.purge === 'function') P.purge(host); host.remove(); }
   }
-  return { sampleFunction, sampleSurface, render, resetView, resize, exportImage, screenPoint, dataPoint, pickAnnotation, dispose, escapeText: esc };
+  return { sampleFunction, sampleSurface, render, resetView, resize, exportImage, screenPoint, dataPoint, viewRanges, pickAnnotation, dispose, escapeText: esc };
 }));

@@ -30,7 +30,7 @@ let browser, page;
   const fill = (label, value) => dialog.getByLabel(label, { exact: true }).fill(String(value));
   const annotation = id => page.evaluate(id => GraphEditor.getDocument().annotations.find(a => a.id === id), id);
   const seriesAdd = async () => { if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); };
-  const annotationAdd = async () => { if (await page.locator('#annotation-add-panel').isHidden()) await page.locator('#annotation-add-toggle').click(); };
+  const annotationAdd = async () => { if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); };
   const addQuickTangent = async (at) => { await annotationAdd(); await page.locator('#add-tangent').click(); const panel=page.locator('#tangent-quick-panel'); await panel.getByLabel(/^接点の .+ 座標$/).fill(String(at)); await panel.getByRole('button',{name:'接線を追加',exact:true}).click(); await settle(); };
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
   const series = (await doc()).series[0].id;
@@ -62,7 +62,7 @@ let browser, page;
   assert.equal((await page.evaluate(() => GraphEditor.getState())).selected.id, series, 'changing a number does not swallow the next object-selection click');
   assert.equal((await doc()).series.find(s => s.id === copy.id).style.width, 5); assert.equal((await doc()).series[0].style.width, 4);
   await item(copy.id).click();
-  await action('削除').click(); await settle();
+  await page.locator('[data-object-details="series:'+copy.id+'"]').click();await page.locator('#object-menu').getByRole('menuitem',{name:'削除',exact:true}).click();await settle();
   // Reproduce decimal derivatives from the supplied screenshots with actual formulas.
   await item(series).dblclick(); await fill('名前', '放物線'); await fill('数式（例：y = a*x^2）', '0.9*x^2-1.2'); await submit();
   await addQuickTangent(2);

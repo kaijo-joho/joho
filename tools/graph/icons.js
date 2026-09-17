@@ -7,6 +7,7 @@
   const NS = 'http://www.w3.org/2000/svg';
   const ICONS = {
     plus: [['path', { d: 'M12 4v16M4 12h16' }]],
+    zoom: [['circle', { cx: 10, cy: 10, r: 6 }], ['path', { d: 'm15 15 6 6M7 10h6M10 7v6' }]],
     file: [['path', { d: 'M3 7V4h7l2 3h9v3M3 7v14h17l2-11H7L3 21' }]],
     undo: [['path', { d: 'M8 4 3 9l5 5M3 9h11a7 7 0 0 1 0 14' }]],
     redo: [['path', { d: 'm16 4 5 5-5 5m5-5H10a7 7 0 0 0 0 14' }]],

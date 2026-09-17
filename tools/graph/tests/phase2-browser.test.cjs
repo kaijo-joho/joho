@@ -28,11 +28,11 @@ let browser;
   const curves = () => page.locator('#series-list .object-item');
   const annotations = () => page.locator('#annotation-list .object-item');
   async function seriesAdd() { if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); }
-  async function annotationAdd() { if (await page.locator('#annotation-add-panel').isHidden()) await page.locator('#annotation-add-toggle').click(); }
+  async function annotationAdd() { if (await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); }
   async function addCurve(kind, name) { await seriesAdd(); if (!await page.locator('#other-curves').evaluate(el => el.open)) await page.locator('#other-curves summary').click(); await page.locator('#add-' + kind).click(); await field('名前', name); }
   const annotationButton = { '点':'#add-point', '補助線':'#add-guide', '接線':'#add-tangent', '交点':'#add-intersection', '線分・矢印':'#add-segment', '文字':'#add-text' };
   async function addAnnotation(name) { await annotationAdd(); await page.locator(annotationButton[name]).click(); }
-  async function more(action) { await page.getByRole('button', { name: action, exact: true }).click(); }
+  async function more(action) { const selected=await page.evaluate(()=>GraphEditor.getState().selected); await page.locator('[data-object-details="'+selected.type+':'+selected.id+'"]').click(); await page.getByRole('menuitem', { name: action, exact: true }).click(); }
   async function addQuickTangent(at) { await annotationAdd(); await page.locator('#add-tangent').click(); const panel=page.locator('#tangent-quick-panel'); await panel.getByLabel(/^接点の .+ 座標$/).fill(String(at)); await panel.getByRole('button',{name:'接線を追加',exact:true}).click(); await settle(); }
   async function openTemplate(name) { if (!await page.locator('#templates-panel').isVisible()) await page.locator('#templates-tab').click(); await page.locator('#template-list').getByRole('button', { name: new RegExp('^' + name) }).click(); await settle(); }
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
@@ -45,7 +45,7 @@ let browser;
   assert(traces.every(t => t.x > 50), 'each default curve actually draws a substantial path');
   assert.equal((await doc()).version, 10);
 
-  await page.locator('#add-parameter').click(); await field('名前（半角英字。例：a）', 'a'); await submit();
+  await seriesAdd(); await page.locator('#add-parameter').click(); await field('名前（半角英字。例：a）', 'a'); await submit();
   await curves().filter({ hasText: '楕円' }).click(); await annotationAdd(); await page.locator('#add-point').click(); await field('名前', 'P'); await field('位置（x / t / theta の値）', 'a'); await submit();
   const pId = (await doc()).annotations[0].id;
   const pointXY = id => page.evaluate(id => { const t = document.querySelector('#plot').data.find(t => t.meta.objectId === id && t.mode.includes('markers')); return [t.x[0], t.y[0]]; }, id);
