@@ -29,11 +29,11 @@
           <div class="im-guide-grid">
             <div class="im-guide-heading im-enhancement" hidden>
               <span>工程 →</span>
-              <div class="im-guide-stage-heading" data-image-guide-stage="0"><strong>元画像</strong><p class="im-frame-note">3行とも同じ画像</p></div>
-              <div class="im-guide-stage-heading" data-image-guide-stage="1"><strong>光の成分に分解</strong><p class="im-frame-note">各成分の明るさ</p></div>
-              <div class="im-guide-stage-heading" data-image-guide-stage="2"><strong>標本化</strong><p class="im-frame-note" data-image-guide-caption="sample">32×32画素</p></div>
-              <div class="im-guide-stage-heading" data-image-guide-stage="3"><strong>量子化</strong><p class="im-frame-note" data-image-guide-caption="quantize">明るさを4段階に</p></div>
-              <div class="im-guide-stage-heading" data-image-guide-stage="4"><strong>符号化</strong><p class="im-frame-note" data-image-guide-caption="encode">各画素を2桁の2進数に</p></div>
+              <button class="im-guide-stage-heading" type="button" tabindex="0" data-image-guide-stage="0" aria-describedby="im-guide-description-0"><strong>元画像</strong><span class="im-frame-note">3行とも同じ画像</span></button>
+              <button class="im-guide-stage-heading" type="button" tabindex="0" data-image-guide-stage="1" aria-describedby="im-guide-description-1"><strong>光の成分に分解</strong><span class="im-frame-note">各成分の明るさ</span></button>
+              <button class="im-guide-stage-heading" type="button" tabindex="0" data-image-guide-stage="2" aria-describedby="im-guide-description-2"><strong>標本化</strong><span class="im-frame-note" data-image-guide-caption="sample">32×32画素</span></button>
+              <button class="im-guide-stage-heading" type="button" tabindex="0" data-image-guide-stage="3" aria-describedby="im-guide-description-3"><strong>量子化</strong><span class="im-frame-note" data-image-guide-caption="quantize">明るさを4段階に</span></button>
+              <button class="im-guide-stage-heading" type="button" tabindex="0" data-image-guide-stage="4" aria-describedby="im-guide-description-4"><strong>符号化</strong><span class="im-frame-note" data-image-guide-caption="encode">各画素を2桁の2進数に</span></button>
             </div>
             <div class="im-guide-row" data-image-guide-row="0">
               <div class="im-guide-label im-enhancement" hidden><strong>R<span>（赤）</span></strong></div>
@@ -47,18 +47,18 @@
           <label class="im-slider">標本化の間隔 <output for="im-guide-resolution" data-image-guide-resolution-output>幅の1/32（32×32画素）</output><input id="im-guide-resolution" type="range" min="8" max="64" step="8" value="32" data-image-guide-resolution><span class="im-slider-scale"><span>粗い</span><span>細かい</span></span></label>
           <label class="im-slider">各色の階調 <output for="im-guide-bits" data-image-guide-bits-output>4階調（2bit）</output><input id="im-guide-bits" type="range" min="1" max="8" step="1" value="2" data-image-guide-bits><span class="im-slider-scale"><span>少ない</span><span>多い</span></span></label>
         </div>
-        <p class="im-step-text" data-image-stage-text>「次へ」で、元画像からデジタル化する流れを順に確認しましょう。</p>
-        <p class="im-hint im-enhancement" id="im-guide-zoom-help" data-image-guide-zoom-hint hidden>画像にマウスを重ねると、その付近の4×4画素を拡大します。クリック・タップで固定、矢印キーで画素を移動、Enterで表へ移れます。</p>
-        <div class="im-guide-zoom" id="im-guide-zoom" data-image-guide-zoom role="region" aria-labelledby="im-guide-zoom-title" tabindex="-1" hidden>
-          <div class="im-guide-zoom-header"><strong id="im-guide-zoom-title" data-image-guide-zoom-title></strong><button class="dr-button" type="button" tabindex="0" data-image-guide-zoom-close aria-label="拡大表を閉じる">閉じる</button></div>
-          <p class="im-hint" data-image-guide-zoom-caption></p>
+        <p class="im-sr-only" id="im-guide-zoom-help">画像にマウスを重ねると、その付近の4×4画素を拡大します。クリック・タップで固定、矢印キーで画素を移動、Enterで表へ移れます。Escape、同じ画素の再選択、または外側のクリックで閉じます。</p>
+        <div class="im-guide-popover im-guide-zoom" id="im-guide-zoom" data-image-guide-zoom role="region" aria-label="4×4画素の拡大表" tabindex="-1" hidden>
           <div class="im-table-scroll" data-image-guide-zoom-table tabindex="0" role="region" aria-label="4×4画素の拡大表"></div>
         </div>
-        <ol class="im-process-list im-process-summary">
-          <li><strong>標本化</strong>：等間隔のマス目に分け、各マス内の平均の明るさを取り出します。このマス目が<strong>画素（ピクセル）</strong>です。</li>
-          <li><strong>量子化</strong>：各画素の明るさを、決められた段階の値にします。</li>
-          <li><strong>符号化</strong>：段階値を2進数で表し、左上から順に並べます。</li>
-        </ol>
+        <div class="im-guide-popover im-guide-description" id="im-guide-description" data-image-guide-description-popup role="region" aria-label="工程の説明" tabindex="-1" hidden></div>
+        <div class="im-guide-descriptions">
+          <p id="im-guide-description-0" data-image-guide-description="0">元画像：3行とも同じカラー画像です。輪郭と濃淡を見てから、「次へ」で光の成分に分けましょう。</p>
+          <p id="im-guide-description-1" data-image-guide-description="1">光の成分に分解：同じ元画像からR（赤）・G（緑）・B（青）の明るさを取り出します。3つの成分を縦に比べましょう。</p>
+          <p id="im-guide-description-2" data-image-guide-description="2">標本化：等間隔のマス目に分け、各マス内の平均の明るさを取り出します。このマス目が画素（ピクセル）です。</p>
+          <p id="im-guide-description-3" data-image-guide-description="3">量子化：各画素の明るさを、決められた段階の値にします。</p>
+          <p id="im-guide-description-4" data-image-guide-description="4">符号化：段階値を2進数で表し、左上から右へ1行ずつ並べます。</p>
+        </div>
       </div>
     </article>
   </section>
