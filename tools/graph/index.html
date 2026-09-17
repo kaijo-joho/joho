@@ -30,6 +30,7 @@
   <script defer src="co2-properties.js"></script>
   <script defer src="science-templates.js"></script>
   <script defer src="calculation-templates.js"></script>
+  <script defer src="matrix-templates.js"></script>
   <script defer src="templates.js"></script>
   <script defer src="curves.js"></script>
   <script defer src="regions.js"></script>
@@ -97,7 +98,7 @@
         </div>
         <p id="annotation-mode-note" class="small muted" hidden>点・線分・領域・文字は2Dで追加・表示します。</p>
           <h3>分析グラフ</h3><div class="add-grid">
-          <button id="add-residual-chart">残差グラフ</button><button id="add-scatter-chart">散布図</button><button id="add-histogram-chart">ヒストグラム</button><button id="add-box-chart">箱ひげ図</button>
+          <button id="add-residual-chart">残差グラフ</button><button id="add-scatter-chart">散布図</button><button id="add-matrix-chart">散布図行列</button><button id="add-histogram-chart">ヒストグラム</button><button id="add-box-chart">箱ひげ図</button>
           </div>
           <button id="show-statistics" class="full-button">統計量・相関行列…</button>
           <h3>係数</h3><button id="add-parameter" class="full-button">係数を追加…</button>
@@ -123,7 +124,7 @@
   <main id="stage" tabindex="0" aria-label="グラフ。数式・数表の一覧から対象を選んで編集できます。">
     <div class="stage-heading"><span id="document-name">無題のグラフ</span><span id="mode-label">2D</span><select id="workspace-view" aria-label="表示するグラフ"><option value="main">作図</option><option value="comparison">比較</option></select><button id="comparison-settings" class="icon-button" data-icon="comparison" aria-label="比較の配置" data-tip="比較の配置"></button></div>
     <div id="plot" aria-label="グラフの描画領域"></div>
-    <section id="analysis-stage" hidden aria-label="分析グラフ"><div id="analysis-plot"></div><p id="analysis-summary" class="small muted"></p></section>
+    <section id="analysis-stage" hidden aria-label="分析グラフ"><div id="analysis-viewport" tabindex="0" aria-label="分析グラフ。大きな散布図行列は上下左右へスクロールできます。"><div id="analysis-plot"></div></div><p id="analysis-summary" class="small muted"></p></section>
     <section id="comparison-stage" hidden aria-label="グラフの比較"></section>
     <div id="plot-notes" class="plot-notes small" hidden></div>
     <div id="plot-error" class="plot-error" hidden role="alert"></div>
@@ -186,7 +187,9 @@
   <section data-help-topic="save" data-help-title="保存と書き出し"><h3>保存と書き出し</h3><p>編集内容はブラウザへ自動保存します。「ブラウザに保存」で残した内容は別に保持し、「保存したグラフを開く」から選択できます。起動時も保存候補を選べます。</p><p>ローカルファイルには再編集用のJSONを保存します。画像は右の「書き出し」からPNG、2DはSVGも使えます。画像には元の数式・数表の編集機能は含まれず、タイトル設定は印刷時だけに適用されます。</p><p>「用途に合わせたサイズ」でプリント・16:9スライド・正方形を選び、「PNGをコピー」で教材へ貼り付けられます。コピーを利用できない環境では「画像を保存」を使います。「画像を確認」で仕上がりを見て、同じ画像を保存できます。出典は「作品の出典・条件」からコピーして添えられます。</p><p>数値をCSVで保存するときは、数表を選び、右の「数表・出典」を開きます。編集中の値をCSVにできますが、作品の変更は「描画」で確定します。</p><details><summary>ローカル自動保存</summary><p>Chromeで書き込み先を選ぶと、明示保存とは別のファイルへ自動保存できます。この画面を閉じると終了します。保存先が外部で変更された場合は停止し、作品を保持します。ブラウザの保存とファイルのダウンロードも利用できます。</p></details><p>⌘S 保存／⌘O 開く／⌘Z 元に戻す／⇧⌘Z やり直し／Escape メニューを閉じる・選択解除／? ヘルプ。</p></section>
   <section data-help-topic="chart-editing" data-help-title="分析グラフの書式・行の選択"><h3>分析グラフの書式・行の選択</h3><p>分析グラフを選ぶと、色・点の大きさ・線の太さ・線種・凡例を右の書式パネルで変更できます。パネルの設定アイコンで、グラフごとの軸名・単位・最小値・最大値・目盛りを設定します。最小値と最大値を両方空欄にすると自動範囲です。散布図の回帰式と統計指標は図中にも表示でき、画像にも含まれます。複製したグラフは同じ数表を参照し、書式を個別に変えられます。</p><p>2D数表の点・散布図・残差図の点をクリックすると、元の行番号と各列の値を確認できます。編集アイコンから、その行が見える数表を開きます。同じ数表を使う図に切り替えたり比較に並べたりすると、対応する点を強調します。強調は編集時だけで、画像・保存ファイルには含まれません。空白部分をクリック、またはEscapeで解除します。</p><p>「回帰から除外」は元のデータを削除せず、この数表を使うすべての回帰に反映します。除外した点は白抜きで残し、残差図には使用した点だけを描きます。「回帰に戻す」で復元できます。数表の各行にある「回帰」チェックや、一括使用・除外も使えます。変更は「描画」で確定し、キャンセルなら保持されません。統計量・相関行列・ヒストグラム・箱ひげ図は除外指定にかかわらず元の全データを使い、欠測の扱いも従来どおりです。</p><p>数表で行を削除すると除外指定も対応する行へ移り、CSVで表全体を置き換えると指定を解除します。数値なしの自作テンプレートにも除外指定は残しません。</p></section>
   <section data-help-topic="open-data" data-help-title="CSV・オープンデータ"><h3>データを取り込む</h3><ol><li>左上の＋から「CSV・オープンデータを追加」を開きます。</li><li>「用意済み」のデータを選ぶか、「URL」で公開CSVを読み込むか、「ファイル」でCSV・TSVを選びます。</li><li>プレビューと軸の列を確認して「描画」を押します。取り込んだ数表は回帰・統計量・相関行列にも使えます。</li></ol><p>直接読み込めない場合は、同じ画面から公開元を開いてCSVをダウンロードし、「ダウンロードしたファイルを選ぶ」を押します。選んだファイルはブラウザ内で処理し、サーバーへアップロードしません。気象庁・e-Statの案内も「URL」にあります。</p><details><summary>列・日付・欠測の扱い</summary><p>UTF-8・Shift_JIS、区切り文字、見出し行・データ開始行を推測します。「列・読み取りの詳細」で変更でき、地域名や品質情報などの値で完全一致の絞り込みができます。取り込む列は軸を含め20列、1万行、ファイルは1MBまでです。</p><p>空欄・NA・---などは欠測のまま保持します。注記付きの値はエラーを示し、明示的に指定した場合だけ欠測に変換します。品質情報のコードに応じた自動除外はしません。公開元の説明に従って確認・抽出してください。</p><p>日付・カテゴリは元の値を保持できます。横軸の日付は、必要に応じて経過日数、年、月への変換も選べます。月への変換は年を区別しません。選ばなかった列や元のCSV本文は作品に含まれないため、「元のCSVを保存」も利用してください。説明行が多いCSVや縦横の向きが異なる表は、表計算アプリで必要な部分を整えてから読み込めます。</p></details><details><summary>出典・保存・再配布</summary><p>資料名・出典URL・取り込み日時・変換や抽出の内容を数表の出典欄に記録します。保存した作品は読み込んだ数値を含み、公開元が更新されても自動では変わりません。画像に出典は自動挿入されないため、教材などに掲載する際は出典欄を参照して併記してください。</p><p>「用意済み」には、出典・利用条件を確認した気象庁の東京・札幌・那覇の月別平年値と、NASAの太陽系8惑星の数表を収録しています。名前や分類で検索できます。公開値を選択・転記した固定データです。利用・再配布の条件は各公開元に従い、別のデータも条件を確認してから追加します。認証が必要なAPIやExcel・JSONの直接取込、公開元の更新との自動同期は、この版では扱いません。</p></details></section>
-  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>グラフエディタ 0.17.0 BETA（2026年9月）</p><p>数学・理科・情報のグラフを描く教育用ツールです。推奨環境：macOS＋Google Chrome。3D表示にはWebGLが必要です。入力データはブラウザ内または選択したローカルファイルに保存します。公開CSVのURLを読み込むときは公開元へ取得要求を送りますが、編集中のデータや認証情報は送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱のオープンデータとライブラリには、それぞれ公開元の利用条件・ライセンスが適用されます。</p><p><a href="docs/open-data-sources.md" target="_blank" rel="noopener">同梱オープンデータの出典</a> · <a href="docs/template-sources.md" target="_blank" rel="noopener">テンプレートの出典</a> · <a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a></p></section>
+  <section data-help-topic="axis-zoom" data-help-title="縦軸・横軸の拡大率"><h3>縦軸・横軸を別々に拡大する</h3><p>「座標・設定」で各軸のスライダーを動かすと、入力した範囲を100%として中心を保って拡大・縮小します。「100%へ戻す」で戻せます。「適用」で確定し、キャンセルすると元の範囲を保ちます。軸を個別に調整すると等縮尺を解除します。</p><p>対数軸は対数の幅、日付軸は日数で調整します。3Dには高さの軸のスライダーもあります。カテゴリ軸は対象外です。MacBookのトラックパッドではピンチの縦横方向を判別できないため、スライダーか作図面下の方向別ボタンを使ってください。</p></section>
+  <section data-help-topic="scatter-matrix" data-help-title="散布図行列"><h3>複数の列を散布図行列で比べる</h3><p>左の＋、数表の「関連するグラフ」、または「統計量・相関行列」から散布図行列を作成できます。同じ数表の数値列を2〜4列選び、組み合わせごとの散布図と、対角線上のヒストグラムを表示します。狭い画面では図の内側を上下左右へスクロールできます。</p><p>各マスの r はPearson相関係数、n は使用した行数です。欠測は列の組ごとに除き、計算列も使えます。一定の列などの相関係数は「—」と表示します。相関は因果関係を示しません。点を選ぶと元の行を確認・編集でき、数表を変更すると行列も更新します。回帰から除外した行も、相関・分布には含みます。</p><p>テンプレートには「相関の向きを比べる」「振り子の線形化」「東京の気象平年値を比べる」があります。前の2つは模擬・計算データです。東京は1991〜2020年の月別平年値で、12か月の季節関係を示し、年ごとの変化ではありません。<a href="docs/matrix-template-sources.md" target="_blank" rel="noopener">出典と計算条件</a></p></section>
+  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>グラフエディタ 0.18.0 BETA（2026年9月）</p><p>数学・理科・情報のグラフを描く教育用ツールです。推奨環境：macOS＋Google Chrome。3D表示にはWebGLが必要です。入力データはブラウザ内または選択したローカルファイルに保存します。公開CSVのURLを読み込むときは公開元へ取得要求を送りますが、編集中のデータや認証情報は送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱のオープンデータとライブラリには、それぞれ公開元の利用条件・ライセンスが適用されます。</p><p><a href="docs/open-data-sources.md" target="_blank" rel="noopener">同梱オープンデータの出典</a> · <a href="docs/template-sources.md" target="_blank" rel="noopener">テンプレートの出典</a> · <a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a></p></section>
 </aside>
 <noscript><p class="noscript">このエディタを利用するにはJavaScriptを有効にしてください。</p></noscript>
 </body>

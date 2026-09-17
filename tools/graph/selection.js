@@ -67,6 +67,7 @@
     }
     if (ref.type === 'chart') {
       if (item.kind === 'residual') allowed = ['color', 'opacity', 'pointSize', 'fontSize'];
+      else if (item.kind === 'matrix') allowed = ['color', 'width', 'opacity', 'pointSize', 'fontSize'];
       else if (item.kind === 'scatter') allowed = item.model ? ['color', 'width', 'dash', 'opacity', 'pointSize', 'fontSize'] : ['color', 'width', 'opacity', 'pointSize', 'fontSize'];
       else allowed = ['color', 'width', 'opacity', 'fontSize'];
     }

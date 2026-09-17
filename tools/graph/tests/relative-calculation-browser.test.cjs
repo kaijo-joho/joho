@@ -58,7 +58,7 @@ let browser,page;
   await editor.getByRole('button',{name:'行を追加',exact:true}).click();await cell(5,1).fill('5');await cell(5,2).fill('60');await cell(5,2).press('Tab');
   assert.equal(await cell(4,4).inputValue(),'60');assert.equal(await cell(5,5).inputValue(),'50');
   await editor.getByLabel('縦軸の列',{exact:true}).selectOption('4');await submit();
-  const saved=await doc();assert.equal(saved.version,13);assert.deepEqual(saved.series[0].rows.map(row=>row[1]),[null,null,86/3,40,50]);
+  const saved=await doc();assert.equal(saved.version,14);assert.deepEqual(saved.series[0].rows.map(row=>row[1]),[null,null,86/3,40,50]);
   assert.equal(saved.series[0].dataTable.formulas[2],'[@"気温,補正"]-[@"気温,補正",-1]');
   assert(await page.locator('#plot').evaluate(plot=>plot.data.some(trace=>Array.from(trace.y||[]).includes(50))),'recalculated values are plotted');
   await page.locator('#undo').click();await settle();assert.equal((await doc()).series[0].dataTable.formulas,undefined);

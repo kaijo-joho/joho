@@ -63,7 +63,7 @@ let browser;
   assert.equal(await page.locator('#dialog-submit').isDisabled(), false);
   await submit();
   let doc = await page.evaluate(() => GraphEditor.getDocument());
-  assert.equal(doc.version, 13); assert.equal(doc.series.length, initialSeries + 1); assert.equal(doc.series.at(-1).rows.length, 12); assert.equal(doc.series.at(-1).dataTable.columns.length, 5);
+  assert.equal(doc.version, 14); assert.equal(doc.series.length, initialSeries + 1); assert.equal(doc.series.at(-1).rows.length, 12); assert.equal(doc.series.at(-1).dataTable.columns.length, 5);
   assert.equal(doc.series.at(-1).source.kind, 'reference'); assert.match(doc.series.at(-1).source.url, /data\.jma\.go\.jp/);
   assert.equal(doc.axes.x.label, '月'); assert.equal(doc.axes.y.label, '平均気温');
   await page.locator('#undo').click(); await page.waitForFunction(count => GraphEditor.getDocument().series.length === count, initialSeries); assert.equal((await page.evaluate(() => GraphEditor.getDocument())).axes.x.label, initial.axes.x.label);

@@ -54,5 +54,11 @@
     };
   }
 
-  return { zoomAxes };
+  function zoomAxis(axis, factor) {
+    if (typeof factor !== 'number' || !Number.isFinite(factor) || factor <= 0) fail('拡大縮小倍率は正の有限値で指定してください。');
+    validAxis(axis, '表示');
+    return factor === 1 ? {min:axis.min,max:axis.max} : zoomRange(axis, '表示', factor);
+  }
+
+  return { zoomAxes, zoomAxis };
 });

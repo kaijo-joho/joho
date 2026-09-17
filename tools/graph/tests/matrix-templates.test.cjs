@@ -1,0 +1,30 @@
+const assert = require('assert');
+const Templates = require('../matrix-templates.js');
+const items = Templates.list();
+assert.strictEqual(items.length, 3);
+for (const item of items) {
+  const doc = item.document, series = doc.series[0], chart = doc.charts[0];
+  assert.strictEqual(doc.version, 14);
+  assert.strictEqual(chart.kind, 'matrix');
+  assert.strictEqual(chart.seriesId, series.id);
+  assert.ok(Array.isArray(chart.columns) && chart.columns.length >= 2 && chart.columns.length <= 4);
+  assert.deepStrictEqual([...new Set(chart.columns)], chart.columns);
+  assert.ok(chart.columns.every(index => Number.isInteger(index) && index >= 0 && index < series.dataTable.columns.length));
+  const types = series.dataTable.columnTypes || series.dataTable.columns.map(() => 'number');
+  assert.ok(chart.columns.every(index => types[index] === 'number'));
+  assert.strictEqual(series.source.kind, item.id.includes('tokyo') ? 'reference' : 'model');
+}
+const correlation = items[0].document.series[0];
+assert.ok(correlation.dataTable.rows.length >= 15 && correlation.dataTable.rows.length <= 25);
+const correlationOf = (x, y) => { const mx = x.reduce((a, v) => a + v, 0) / x.length, my = y.reduce((a, v) => a + v, 0) / y.length; const n = x.reduce((a, v, i) => a + (v - mx) * (y[i] - my), 0); return n / Math.sqrt(x.reduce((a, v) => a + (v - mx) ** 2, 0) * y.reduce((a, v) => a + (v - my) ** 2, 0)); };
+const values = correlation.dataTable.rows;
+assert.ok(correlationOf(values.map(row => row[0]), values.map(row => row[1])) > 0.9);
+assert.ok(correlationOf(values.map(row => row[0]), values.map(row => row[2])) < -0.9);
+assert.ok(Math.abs(correlationOf(values.map(row => row[0]), values.map(row => row[3]))) < 0.1);
+const pendulum = items[1].document.series[0];
+assert.match(pendulum.source.notes, /小角近似/);
+assert.match(pendulum.dataTable.formulas[1], /sqrt/);
+const weather = items[2].document.series[0];
+assert.strictEqual(weather.dataTable.rows.length, 12);
+assert.match(weather.source.notes, /抽出/);
+console.log('matrix-templates.test.cjs: ok');

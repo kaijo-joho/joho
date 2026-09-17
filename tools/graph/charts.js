@@ -9,7 +9,7 @@
     Statistics = typeof module === 'object' && module.exports ? require('./statistics.js') : root.GraphStatistics,
     Analysis = typeof module === 'object' && module.exports ? require('./analysis.js') : root.GraphAnalysis,
     Symbols = typeof module === 'object' && module.exports ? require('./symbols.js') : root.GraphSymbols;
-  const kinds = ['residual', 'scatter', 'histogram', 'box'],
+  const kinds = ['residual', 'scatter', 'histogram', 'box', 'matrix'],
     models = ['linear', 'proportional', 'quadratic', 'exponential', 'power'],
     dashes = ['solid', 'dot', 'dash'];
   let sequence = 0;
@@ -139,6 +139,10 @@
       seriesId: '',
       columns: [0]
     });
+    if (kind === 'matrix') Object.assign(base, {
+      seriesId: '',
+      columns: [0, 1]
+    });
     return {
       ...base,
       ...clone(options),
@@ -249,10 +253,14 @@
       if (columnType(table, out.column) !== 'number') fail('ヒストグラムには数値列を指定してください。');
       if (raw.bins !== null && (!Number.isInteger(raw.bins) || raw.bins < 1 || raw.bins > 100)) fail('階級数は1〜100または自動にしてください。');
       out.bins = raw.bins;
-    } else {
+    } else if (raw.kind === 'box') {
       if (!Array.isArray(raw.columns) || raw.columns.length < 1 || raw.columns.length > 20) fail('箱ひげ図の列が不正です。');
       out.columns = raw.columns.map(v => index(v, '箱ひげ図の列'));
       if (out.columns.some(v => !has(v)) || new Set(out.columns).size !== out.columns.length || out.columns.some(v => columnType(table, v) !== 'number')) fail('箱ひげ図には数値列を指定してください。');
+    } else {
+      if (!Array.isArray(raw.columns) || raw.columns.length < 2 || raw.columns.length > 4) fail('散布図行列の列は2〜4列にしてください。');
+      out.columns = raw.columns.map(v => index(v, '散布図行列の列'));
+      if (out.columns.some(v => !has(v)) || new Set(out.columns).size !== out.columns.length || out.columns.some(v => columnType(table, v) !== 'number')) fail('散布図行列には重複しない数値列を指定してください。');
     }
     return out;
   }
@@ -602,23 +610,7 @@
     if (!table || !table.columns[chart.column]) return empty(chart, '指定した列が数表にありません。', dark, fontSize);
     const values = table.rows.map(r => r[chart.column]).filter(v => v !== null);
     if (!values.length) return empty(chart, 'この列に数値がありません。', dark, fontSize);
-    const min = Math.min(...values),
-      max = Math.max(...values),
-      n = chart.bins || Math.max(1, Math.min(100, Math.ceil(Math.sqrt(values.length)))),
-      range = max - min,
-      edges = [min];
-    for (let i = 1; i < n && range > 0; i++) {
-      const e = min + range * i / n;
-      if (e > edges.at(-1) && e < max) edges.push(e);
-    }
-    if (max > edges.at(-1)) edges.push(max);
-    if (edges.length === 1) edges.push(max);
-    const counts = Array(edges.length - 1).fill(0);
-    for (const v of values) {
-      let p = 0;
-      while (p < counts.length - 1 && v >= edges[p + 1]) p++;
-      counts[p]++;
-    }
+    const { edges, counts } = histogramBins(values, chart.bins);
     const labels = counts.map((_, i) => '[' + num(edges[i]) + ', ' + num(edges[i + 1]) + (i === counts.length - 1 ? ']' : ')')),
       trace = {
         type: 'bar',
@@ -653,6 +645,58 @@
       summary: '数値 ' + values.length + ' 個。' + labels.map((x, i) => x + '：' + counts[i]).join('、'),
       warnings: []
     };
+  }
+  // The matrix diagonal deliberately uses exactly the same edges and endpoint
+  // rule as a standalone histogram.
+  function histogramBins(values, requestedBins) {
+    const min = Math.min(...values), max = Math.max(...values), n = requestedBins || Math.max(1, Math.min(100, Math.ceil(Math.sqrt(values.length)))), range = max - min, edges = [min];
+    for (let i = 1; i < n && range > 0; i++) { const edge = min + range * i / n; if (edge > edges.at(-1) && edge < max) edges.push(edge); }
+    if (max > edges.at(-1)) edges.push(max);
+    if (edges.length === 1) edges.push(max);
+    const counts = Array(edges.length - 1).fill(0);
+    for (const value of values) { let p = 0; while (p < counts.length - 1 && value >= edges[p + 1]) p++; counts[p]++; }
+    return { edges, counts };
+  }
+  function matrixAxisName(prefix, number) { return number === 1 ? prefix + 'axis' : prefix + 'axis' + number; }
+  function matrixTraceAxis(prefix, number) { return number === 1 ? prefix : prefix + number; }
+  function paddedExtent(values) {
+    const extent = finiteExtent(values);
+    if (!extent) return [0, 1];
+    if (extent[0] === extent[1]) { const pad = Math.max(1, Math.abs(extent[0]) * .05); return [extent[0] - pad, extent[1] + pad]; }
+    const pad = (extent[1] - extent[0]) * .05;
+    return [extent[0] - pad, extent[1] + pad];
+  }
+  const matrixNum = value => String(Number(value.toFixed(4)));
+  function buildMatrix(chart, doc, dark, fontSize, selectedRow) {
+    const source = series(doc, chart.seriesId); let table;
+    try { table = Tables.fromSeries(source); } catch { return empty(chart, '数表参照が見つかりません。', dark, fontSize); }
+    const columns = chart.columns, size = columns.length, grid = dark ? '#374151' : '#d1d5db', color = dark ? '#e5e7eb' : '#1f2937';
+    const numeric = columns.map(column => table.rows.map(row => row[column]));
+    if (numeric.some(values => !values.some(value => value !== null))) return empty(chart, '指定した列に数値がありません。', dark, fontSize);
+    const layout = base(chart, '散布図行列', dark, fontSize), data = [], domains = Array.from({ length:size }, (_, i) => [i / size + .035, (i + 1) / size - .018]);
+    delete layout.xaxis; delete layout.yaxis;
+    layout.showlegend = false; layout.margin = { l: 62, r: 24, t: 56, b: 62 }; layout.annotations = [];
+    for (let row = 0; row < size; row++) for (let column = 0; column < size; column++) {
+      const number = row * size + column + 1, xKey = matrixAxisName('x', number), yKey = matrixAxisName('y', number), xColumn = columns[column], yColumn = columns[row], xName = table.columns[xColumn], yName = table.columns[yColumn];
+      layout[xKey] = { domain: domains[column], anchor: matrixTraceAxis('y', number), range: paddedExtent(numeric[column]), gridcolor:grid, zerolinecolor:color, tickfont:{color, size:Math.max(8, fontSize - 3)}, showticklabels: row === size - 1, title: row === size - 1 ? { text:escape(xName), font:{size:Math.max(9,fontSize - 1),color} } : undefined };
+      layout[yKey] = { domain: domains[size - row - 1], anchor: matrixTraceAxis('x', number), gridcolor:grid, zerolinecolor:color, tickfont:{color, size:Math.max(8, fontSize - 3)}, showticklabels: column === 0, title: column === 0 ? { text:escape(yName), font:{size:Math.max(9,fontSize - 1),color} } : undefined };
+      if (row === column) {
+        const values = numeric[column].filter(value => value !== null), bins = histogramBins(values, null), labels = bins.counts.map((_, i) => '[' + num(bins.edges[i]) + ', ' + num(bins.edges[i + 1]) + (i === bins.counts.length - 1 ? ']' : ')'));
+        layout[yKey].rangemode = 'tozero'; layout[yKey].tick0 = 0;
+        if (column === 0) layout[yKey].title = { text:'度数', font:{size:Math.max(9,fontSize - 1),color} };
+        layout.annotations.push({xref:matrixTraceAxis('x',number)+' domain',yref:matrixTraceAxis('y',number)+' domain',x:.5,y:.96,xanchor:'center',yanchor:'top',text:escape(xName)+'<br>度数',showarrow:false,font:{size:Math.max(8,fontSize-4),color},bgcolor:dark?'rgba(17,24,39,.75)':'rgba(255,255,255,.75)'});
+        data.push({ type:'bar', xaxis:matrixTraceAxis('x',number), yaxis:matrixTraceAxis('y',number), x:bins.counts.map((_, i)=>(bins.edges[i]+bins.edges[i+1])/2), y:bins.counts, width:bins.counts.map((_, i)=>bins.edges[i+1]-bins.edges[i]||1), marker:{color:chart.color,line:{color:chart.color,width:Math.min(chart.style.width,2)}}, customdata:labels.map((label,i)=>[label,bins.counts[i]]), hovertemplate:'階級 %{customdata[0]}<br>度数 %{customdata[1]}<extra></extra>' });
+      } else {
+        const points=[];
+        for (let i=0;i<table.rows.length;i++) { const x=table.rows[i][xColumn], y=table.rows[i][yColumn]; if (x !== null && y !== null) points.push({x,y,row:i+1}); }
+        const correlation = Statistics.pearson(table.rows, xColumn, yColumn);
+        data.push({ type:'scatter', mode:'markers', xaxis:matrixTraceAxis('x',number), yaxis:matrixTraceAxis('y',number), x:points.map(point=>point.x), y:points.map(point=>point.y), customdata:points.map(point=>[point.row]), meta:{dataRows:true,seriesId:source.id}, marker:marker(chart), hovertemplate:pointHover(xName,yName) });
+        layout[yKey].range = paddedExtent(numeric[row]);
+        layout.annotations.push({xref:matrixTraceAxis('x',number)+' domain',yref:matrixTraceAxis('y',number)+' domain',x:.98,y:.98,xanchor:'right',yanchor:'top',text:'r='+(correlation.r===null?'—':matrixNum(correlation.r))+'　n='+correlation.n,showarrow:false,font:{size:Math.max(8,fontSize-4),color},bgcolor:dark?'rgba(17,24,39,.75)':'rgba(255,255,255,.75)'});
+        if (selectedRow && selectedRow.seriesId === source.id) { const selected=points.find(point=>point.row===selectedRow.rowIndex+1); if(selected) data.push({...highlight(chart,source,selected),xaxis:matrixTraceAxis('x',number),yaxis:matrixTraceAxis('y',number)}); }
+      }
+    }
+    return { data, layout, summary:'散布図行列：'+columns.map(column=>escape(table.columns[column])).join('、')+'。各散布図は同じ行にそろった数値だけを使います。', warnings:[] };
   }
   function buildBox(chart, doc, dark, fontSize) {
     const source = series(doc, chart.seriesId),
@@ -718,7 +762,7 @@
       return empty(fallback, error.message, dark, fontSize);
     }
     if (!clean.visible) return empty(clean, 'この分析グラフは非表示です。', dark, fontSize);
-    const result = clean.kind === 'scatter' ? buildScatter(clean, doc, dark, fontSize, selectedRow) : clean.kind === 'residual' ? buildResidual(clean, doc, dark, fontSize, selectedRow) : clean.kind === 'histogram' ? buildHistogram(clean, doc, dark, fontSize) : buildBox(clean, doc, dark, fontSize);
+    const result = clean.kind === 'scatter' ? buildScatter(clean, doc, dark, fontSize, selectedRow) : clean.kind === 'residual' ? buildResidual(clean, doc, dark, fontSize, selectedRow) : clean.kind === 'histogram' ? buildHistogram(clean, doc, dark, fontSize) : clean.kind === 'matrix' ? buildMatrix(clean, doc, dark, fontSize, selectedRow) : buildBox(clean, doc, dark, fontSize);
     const sourceId = clean.kind === 'residual' ? doc.annotations.find(a => a.id === clean.regressionId)?.seriesId : clean.seriesId;
     const source = doc.series.find(s => s.id === sourceId);
     const warning = source?.dataTable ? Tables.calculationWarning(source.dataTable) : '';

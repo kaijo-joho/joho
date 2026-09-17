@@ -46,4 +46,16 @@ for (const args of [
 assert.throws(() => ViewControls.zoomAxes(makeDoc([1, 2, 'log'], [-1, 1]), 'both', 1e20), /許容範囲/);
 assert.throws(() => ViewControls.zoomAxes(makeDoc([-1e9, 1], [-1, 1]), 'x', 2), /許容範囲/);
 assert.throws(() => ViewControls.zoomAxes(makeDoc([0, 1, 'log'], [-1, 1]), 'both', .5), /対数範囲/);
+{
+  const axis={min:12,max:20,scale:'linear'};
+  assert.deepEqual(ViewControls.zoomAxis(axis,.5),{min:14,max:18});
+  assert.deepEqual(axis,{min:12,max:20,scale:'linear'},'preview does not mutate the saved range');
+  const log={min:2.3,max:87.91,scale:'log'};
+  assert.deepEqual(ViewControls.zoomAxis(log,1),{min:2.3,max:87.91},'100% preserves exact input bounds');
+  const next=ViewControls.zoomAxis(log,.25);
+  assert(Math.abs(next.min*next.max-log.min*log.max)<1e-10);
+  for(const factor of [0,-1,NaN,Infinity,'2'])assert.throws(()=>ViewControls.zoomAxis(axis,factor),/倍率/);
+  assert.throws(()=>ViewControls.zoomAxis({min:1e9-1,max:1e9},2),/許容範囲/);
+  assert.throws(()=>ViewControls.zoomAxis({min:0,max:10,scale:'log'},1),/対数範囲/);
+}
 console.log('view-controls.test.cjs: ok');

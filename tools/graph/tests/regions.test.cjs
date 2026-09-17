@@ -51,7 +51,7 @@ function addTriangle(document) {
 {
   const document = Core.createDocument(), a = Core.createAnnotation('point'), b = Core.createAnnotation('point'), c = Core.createAnnotation('point'), ab = Core.createAnnotation('segment'), bc = Core.createAnnotation('segment'), ca = Core.createAnnotation('segment'), region = Core.createAnnotation('region');
   [a, b, c].forEach((point, i) => { point.id = ['a', 'b', 'c'][i]; }); ab.id = 'ab'; bc.id = 'bc'; ca.id = 'ca'; ab.from = 'a'; ab.to = 'b'; bc.from = 'b'; bc.to = 'c'; ca.from = 'c'; ca.to = 'a'; region.id = 'r'; region.segmentIds = ['ab', 'bc', 'ca']; document.annotations = [region, ca, b, ab, c, bc, a];
-  const clean = Core.validateDocument(document); assert.equal(clean.version, 13); Core.removeAnnotation(document, 'a'); assert.equal(document.annotations.length, 3, '点→線分→領域を再帰削除する'); assert(!document.annotations.some(annotation => annotation.id === 'r'));
+  const clean = Core.validateDocument(document); assert.equal(clean.version, 14); Core.removeAnnotation(document, 'a'); assert.equal(document.annotations.length, 3, '点→線分→領域を再帰削除する'); assert(!document.annotations.some(annotation => annotation.id === 'r'));
   const old = Core.clone(clean); old.version = 4; delete old.presentation; delete old.output; assert.throws(() => Core.validateDocument(old), /版と内容|版と数表|版と型付き数表|分析グラフ・比較設定/);
   const bad = Core.clone(clean); bad.annotations.find(a => a.id === 'r').segmentIds = ['missing', 'bc', 'ca']; assert.throws(() => Core.validateDocument(bad), /領域/);
 }

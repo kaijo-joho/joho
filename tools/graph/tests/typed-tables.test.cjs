@@ -26,7 +26,7 @@ for (const [id, labels] of [['first', ['B', 'A']], ['second', ['A', 'C', 'B']]])
   doc.series.push(series);
 }
 const clean = Core.validateDocument(doc);
-assert.equal(clean.version, 13);
+assert.equal(clean.version, 14);
 assert.deepStrictEqual(clean.axes.x.categories, ['B', 'A', 'C']);
 assert.deepStrictEqual(clean.series[1].rows.map(row => row[0]), [1, 2, 0]);
 

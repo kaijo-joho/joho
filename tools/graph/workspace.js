@@ -14,7 +14,7 @@
   const chartById = (doc, id) => (doc && doc.charts || []).find(chart => chart && chart.id === id) || null;
   const chartVisible = chart => !chart || chart.visible !== false;
   const titleFor = (item, doc) => item === 'main' ? (doc && doc.name || 'メインのグラフ') : (chartById(doc, item) || {}).name || 'グラフ';
-  const rowFromClick = (element, event) => { const point = event?.points?.[0], meta = point?.data?.meta || point?.fullData?.meta, layout = element?._fullLayout, mouse = event?.event, box = element?.getBoundingClientRect?.(); if (!point || !meta?.dataRows || meta.observationHighlight || !Array.isArray(point.customdata) || !Number.isInteger(point.customdata[0])) return null; if (layout?.xaxis?.d2p && layout?.yaxis?.d2p && mouse && box) { const x = layout.xaxis.d2p(point.x), y = layout.yaxis.d2p(point.y); if (!Number.isFinite(x) || !Number.isFinite(y) || Math.hypot(box.left + layout.xaxis._offset + x - mouse.clientX, box.top + layout.yaxis._offset + y - mouse.clientY) > 14) return null; } return { seriesId: meta.seriesId || meta.objectId, rowIndex: point.customdata[0] - 1 }; };
+  const rowFromClick = (element, event) => { const point = event?.points?.[0], trace = point?.data || point?.fullData, meta = trace?.meta, layout = element?._fullLayout, mouse = event?.event, box = element?.getBoundingClientRect?.(); if (!point || !meta?.dataRows || meta.observationHighlight || !Array.isArray(point.customdata) || !Number.isInteger(point.customdata[0])) return null; const axisKey = value => { value = String(value || 'x'); return value[0] + 'axis' + value.slice(1); }; const xaxis = layout?.[axisKey(trace?.xaxis || 'x')], yaxis = layout?.[axisKey(trace?.yaxis || 'y')]; if (xaxis?.d2p && yaxis?.d2p && mouse && box) { const x = xaxis.d2p(point.x), y = yaxis.d2p(point.y); if (!Number.isFinite(x) || !Number.isFinite(y) || Math.hypot(box.left + xaxis._offset + x - mouse.clientX, box.top + yaxis._offset + y - mouse.clientY) > 14) return null; } return { seriesId: meta.seriesId || meta.objectId, rowIndex: point.customdata[0] - 1 }; };
 
   function comparison(doc) {
     const source = doc && doc.comparison || {};
@@ -55,7 +55,7 @@
     if (clone.title) clone.title.font = Object.assign({}, clone.title.font, { color: '#172033', size: options.fontSize + 2 });
     if(options.title===false)delete clone.title;
     clone.paper_bgcolor = bg; clone.plot_bgcolor = bg;
-    ['xaxis', 'yaxis'].forEach(key => { if (clone[key]) { clone[key].color = '#172033'; clone[key].linecolor = '#172033'; clone[key].gridcolor = '#cbd5e1'; clone[key].zerolinecolor = '#374151'; clone[key].tickfont = Object.assign({}, clone[key].tickfont, { color: '#172033' }); if (clone[key].title) clone[key].title.font = Object.assign({}, clone[key].title.font, { color: '#172033' }); } });
+    Object.keys(clone).filter(key => /^xaxis\d*$|^yaxis\d*$/.test(key)).forEach(key => { const axis = clone[key]; axis.color = '#172033'; axis.linecolor = '#172033'; axis.gridcolor = '#cbd5e1'; axis.zerolinecolor = '#374151'; axis.tickfont = Object.assign({}, axis.tickfont, { color: '#172033' }); if (axis.title) axis.title.font = Object.assign({}, axis.title.font, { color: '#172033' }); });
     for (const annotation of clone.annotations || []) { annotation.font = Object.assign({}, annotation.font, { color: '#172033' }); if (annotation.bgcolor) annotation.bgcolor = 'rgba(255,255,255,.88)'; if (annotation.bordercolor) annotation.bordercolor = '#6b7280'; }
     return clone;
   }
@@ -81,7 +81,7 @@
     const layout = Object.assign({}, built.layout || {}, { autosize: true, width: element.clientWidth || 640, height: element.clientHeight || 320, uirevision: 'chart:' + text(chart && chart.id) + ':' + text(chart && chart.kind) });
     layout.uirevision += ':' + JSON.stringify([chart.seriesId,chart.regressionId,chart.horizontal,chart.xColumn,chart.yColumn,chart.column,chart.columns,chart.axes]);
     if(options.title===false){delete layout.title;layout.margin={...layout.margin,t:24};}
-    await root.Plotly.react(element, built.data || [], layout, { displayModeBar: false, responsive: true, scrollZoom: true });
+    await root.Plotly.react(element, built.data || [], layout, { displayModeBar: false, responsive: true, scrollZoom: chart?.kind !== 'matrix' });
     const blank = previous?.blankCleanup || installChartBlankClick(element, options.onBlankClick); blank.update(options.onBlankClick);
     if (typeof element.removeAllListeners === 'function') element.removeAllListeners('plotly_click');
     if (typeof element.on === 'function') element.on('plotly_click', event => { blank.hit(); const row = rowFromClick(element, event); if (row && typeof options.onRowSelect === 'function') options.onRowSelect(row); });
@@ -157,7 +157,15 @@
     if (!element) return;
     if (states.has(element)) {
       if (!root.Plotly || typeof root.Plotly.relayout !== 'function') return;
-      const axes = states.get(element).chart?.axes || {}, changes = {};
+      const state = states.get(element), chart = state.chart || {}, axes = chart.axes || {}, changes = {};
+      if (chart.kind === 'matrix' && root.GraphCharts && typeof root.GraphCharts.build === 'function') {
+        const built = root.GraphCharts.build(chart, state.doc, { dark: !!state.options?.dark, fontSize: state.options?.fontSize });
+        for (const [key, axis] of Object.entries(built.layout || {})) if (/^xaxis\d*$|^yaxis\d*$/.test(key)) {
+          if (Array.isArray(axis?.range)) { changes[key + '.range'] = axis.range; changes[key + '.autorange'] = false; }
+          else changes[key + '.autorange'] = true;
+        }
+        return root.Plotly.relayout(element, changes);
+      }
       for (const key of ['x', 'y']) { const axis = axes[key] || {}; if (Number.isFinite(axis.min) && Number.isFinite(axis.max) && axis.min < axis.max) { changes[key + 'axis.range'] = [axis.min, axis.max]; changes[key + 'axis.autorange'] = false; } else changes[key + 'axis.autorange'] = true; }
       return root.Plotly.relayout(element, changes);
     }

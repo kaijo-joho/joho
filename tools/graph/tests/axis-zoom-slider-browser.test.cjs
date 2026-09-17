@@ -1,0 +1,41 @@
+/* Chrome: axis previews never enter undo/autosave until Apply. */
+const assert=require('node:assert/strict'),fs=require('node:fs'),http=require('node:http'),path=require('node:path'),os=require('node:os');
+const C=require('../core.js');
+let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
+const root=path.resolve(__dirname,'../../..');
+const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end();}fs.readFile(file,(error,data)=>{res.writeHead(error?404:200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.svg')?'image/svg+xml':'text/html'});res.end(error?'not found':data);});});
+let browser,page;
+(async()=>{
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));browser=await chromium.launch({channel:'chrome',headless:true});page=await browser.newPage({viewport:{width:1280,height:950}});
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  const dialog=page.locator('#editor-dialog'),settle=()=>page.waitForFunction(()=>window.GraphEditor&&!GraphEditor.getState().drawing),doc=()=>page.evaluate(()=>GraphEditor.getDocument());
+  const importDoc=async value=>{await page.locator('#file-input').setInputFiles({name:'zoom.graph.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(value))});await page.waitForFunction(name=>GraphEditor.getDocument().name===name,value.name);await settle();};
+  const axes=async()=>{if(await page.locator('#axes-button').isVisible())await page.locator('#axes-button').click();else{await page.locator('#view-menu summary').click();await page.locator('#axes-menu').click();}await dialog.waitFor({state:'visible'});};
+  const zoom=async(key,value)=>{await dialog.locator('[data-axis-zoom='+key+']').evaluate((input,value)=>{input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));},String(value));await settle();};
+  const apply=async()=>{await page.locator('#dialog-submit').click();await dialog.waitFor({state:'hidden'});await settle();};
+  const reloadSaved=async()=>{await page.reload();await settle();await dialog.locator('.saved-option').filter({hasText:'自動保存：'}).click();await dialog.waitFor({state:'hidden'});await settle();};
+  const range=key=>page.locator('#plot').evaluate((plot,key)=>plot.layout[key+'axis'].range,key);
+  await page.goto(process.env.GRAPH_TEST_URL||'http://127.0.0.1:'+server.address().port+'/tools/graph/index.html');await settle();
+  const initial=C.createDocument();initial.name='軸スライダーの確認';initial.equalScale=false;initial.axes.x.min=-10;initial.axes.x.max=10;initial.axes.y.min=0;initial.axes.y.max=20;
+  await importDoc(initial);const original=await doc();await axes();await zoom('x',1);
+  assert.deepEqual(await range('x'),[-5,5]);assert.deepEqual(await range('y'),[0,20]);assert.deepEqual(await doc(),original,'preview must not mutate document');
+  await zoom('x',1);assert.deepEqual(await range('x'),[-5,5],'repeated input uses the fixed baseline');
+  await zoom('y',-1);assert.deepEqual(await range('y'),[-10,30]);await page.keyboard.press('Escape');await settle();
+  assert.deepEqual(await doc(),original);assert.deepEqual(await range('x'),[-10,10]);assert.deepEqual(await range('y'),[0,20]);
+  await axes();await zoom('x',1);await zoom('y',-1);await apply();let saved=await doc();assert.equal(saved.axes.x.min,-5);assert.equal(saved.axes.y.max,30);
+  await page.locator('#undo').click();await settle();assert.deepEqual((await doc()).axes,original.axes,'both sliders commit one undo step');
+  await page.locator('#redo').click();await settle();assert.deepEqual((await doc()).axes,saved.axes);await reloadSaved();assert.deepEqual((await doc()).axes,saved.axes,'applied ranges are autosaved');
+  await axes();await zoom('x',2);await reloadSaved();assert.deepEqual((await doc()).axes,saved.axes,'an unconfirmed preview is not autosaved');
+  await axes();const x=dialog.locator('[data-axis=x]'),y=dialog.locator('[data-axis=y]');
+  await x.getByLabel('最小値',{exact:true}).fill('2');await x.getByLabel('最大値',{exact:true}).fill('18');await zoom('x',1);assert.deepEqual(await range('x'),[6,14]);
+  await dialog.getByRole('button',{name:'横軸の拡大率を100%へ戻す',exact:true}).click();await settle();assert.deepEqual(await range('x'),[2,18]);
+  await x.getByLabel('最小値',{exact:true}).fill('1');await x.getByLabel('最大値',{exact:true}).fill('100');await x.getByLabel('目盛',{exact:true}).selectOption('log');await zoom('x',1);await apply();saved=await doc();
+  assert(Math.abs(saved.axes.x.min*saved.axes.x.max-100)<1e-10);assert(Math.abs(saved.axes.x.max/saved.axes.x.min-10)<1e-10);
+  await axes();await x.getByLabel('最小値',{exact:true}).fill('');assert(await x.locator('[data-axis-zoom]').isDisabled());
+  await x.getByLabel('最小値',{exact:true}).fill('999999999');await x.getByLabel('最大値',{exact:true}).fill('1000000000');await x.getByLabel('目盛',{exact:true}).selectOption('linear');await zoom('x',-1);assert.match(await x.locator('.axis-zoom').innerText(),/許容範囲/);assert.equal(await x.locator('[data-axis-zoom]').inputValue(),'0');await page.keyboard.press('Escape');
+  const date=C.createDocument();date.name='日付とカテゴリ';date.axes.x={...date.axes.x,type:'date',min:20000,max:20020};date.axes.y={...date.axes.y,type:'category',categories:['甲','乙']};await importDoc(date);await axes();assert(await y.locator('.axis-zoom').isHidden());await zoom('x',1);await apply();assert.equal((await doc()).axes.x.min,20005);assert.equal((await doc()).axes.x.max,20015);
+  const three=C.createDocument();three.name='三次元の高さ';three.mode='3d';three.equalScale=false;await importDoc(three);await axes();await zoom('z',1);await apply();assert.equal((await doc()).axes.z.min,-5);assert.equal((await doc()).axes.x.min,-10);
+  await importDoc({...original,name:'狭い画面'});await page.locator('#view-menu summary').click();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await page.setViewportSize({width:390,height:900});await settle();await axes();await x.locator('[data-axis-zoom]').scrollIntoViewIfNeeded();await x.locator('[data-axis-zoom]').focus();await page.keyboard.press('ArrowRight');assert.equal(await x.locator('[data-axis-zoom]').inputValue(),'0.05');
+  assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));assert(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth+2));await page.screenshot({path:'/private/tmp/graph-axis-slider-mobile.png'});await page.keyboard.press('Escape');
+  assert.deepEqual(errors,[]);console.log('axis-zoom-slider-browser.test.cjs: ok');
+})().catch(async error=>{console.error(error);if(page)await page.screenshot({path:'/private/tmp/graph-axis-slider-failure.png'}).catch(()=>{});process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));});

@@ -53,7 +53,7 @@ let browser,page;
   await editor.getByLabel('縦軸の列',{exact:true}).selectOption('2');
   await editor.getByLabel('1行目を回帰に使用',{exact:true}).uncheck();
   assert(Math.abs(Number(await cell(1,3).inputValue())-(-28/3))<1e-6,'aggregate includes regression-excluded rows');
-  await submit();const saved=await doc();assert.equal(saved.version,13);assert.equal(saved.series[0].dataTable.formulas[2],'[@気温] - AVERAGE([気温])');
+  await submit();const saved=await doc();assert.equal(saved.version,14);assert.equal(saved.series[0].dataTable.formulas[2],'[@気温] - AVERAGE([気温])');
   assert.equal(saved.series[0].dataTable.rows[0][1],11);assert.equal(saved.series[0].rows[0][1],11-61/3);assert.equal(saved.series[0].dataTable.rows[3][2],null);
   await page.locator('#undo').click();await settle();assert.equal((await doc()).series[0].dataTable.formulas,undefined);
   await page.locator('#redo').click();await settle();assert.deepEqual(await doc(),saved);

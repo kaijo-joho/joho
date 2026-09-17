@@ -29,7 +29,7 @@ function valid(doc) { return Core.validateDocument(doc); }
 
 {
   const clean = valid(documentWithCharts());
-  assert.equal(clean.version, 13);
+  assert.equal(clean.version, 14);
   assert.deepEqual(clean.charts.map(chart => chart.kind), ['residual', 'scatter', 'histogram', 'box']);
   assert(clean.charts.every(chart => chart.visible === true), 'visible省略時はtrueとして保存する');
   assert.deepEqual(clean.comparison.items, ['main', 'residual-1', 'scatter-1', 'histogram-1', 'box-1']);
@@ -39,7 +39,7 @@ function valid(doc) { return Core.validateDocument(doc); }
   const doc = documentWithCharts(), hidden = doc.charts.find(chart => chart.id === 'scatter-1');
   delete hidden.visible;
   const migrated = valid(doc);
-  assert.equal(migrated.version, 13);
+  assert.equal(migrated.version, 14);
   assert.equal(migrated.charts.find(chart => chart.id === 'scatter-1').visible, true, 'v10のvisible省略値は互換的にtrue');
   migrated.charts.find(chart => chart.id === 'scatter-1').visible = false;
   assert.deepEqual(migrated.comparison.items, ['main', 'residual-1', 'scatter-1', 'histogram-1', 'box-1'], '非表示でも比較の所属は保存する');
@@ -47,7 +47,7 @@ function valid(doc) { return Core.validateDocument(doc); }
 }
 {
   const old = Core.createDocument(); old.version = 8; delete old.charts; delete old.comparison;
-  const migrated = valid(old); assert.equal(migrated.version, 13); assert.deepEqual(migrated.charts, []); assert.deepEqual(migrated.comparison, { columns: 2, items: ['main'] });
+  const migrated = valid(old); assert.equal(migrated.version, 14); assert.deepEqual(migrated.charts, []); assert.deepEqual(migrated.comparison, { columns: 2, items: ['main'] });
   assert.throws(() => valid({ ...old, charts: [] }), /版/);
 }
 {
