@@ -7,6 +7,8 @@
 <link rel="icon" id="favicon" type="image/svg+xml">
 <link rel="stylesheet" href="../shared/ui-kit.css">
 <script src="../shared/ui-kit.js"></script>
+<!-- 外部データベースの座標（出どころとライセンスは coords.js の先頭に書いてある）。読めなくても本体は動く -->
+<script src="coords.js"></script>
 <style>
 :root{
   --bg:#eef0f3; --panel:#ffffff; --line:#d9dde3; --text:#1f2933; --muted:#6b7480;
@@ -287,6 +289,9 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <label class="chk"><input type="checkbox" id="chkHideH">H を隠す（C に結合した H）</label>
         <label class="chk" title="原子の電気陰性度から部分電荷を求めて色分けする（赤＝負・青＝正）"><input type="checkbox" id="chkCharges">電荷で色分け（赤＝負・青＝正）</label>
         <label class="chk" title="水素結合（O–H···O、N–H···O など）を細い水色の線で表す"><input type="checkbox" id="chkHB">水素結合を表示</label>
+        <label class="mrow" title="化合物ライブラリから作るときの原子の位置。データベースの座標がある分子だけ切り替わります">座標
+          <select id="coordSel"><option value="db">データベース</option><option value="built">組み立てた形</option></select>
+        </label>
         <div class="mrow" title="見る軌道を選びます。HOMO＝電子が入っているいちばん上の軌道、LUMO＝その 1 つ上の空の軌道">見る軌道
           <button class="sbtn" id="piPrev" aria-label="1 つ下の軌道へ">◀</button>
           <span id="piWhichLab"></span>
@@ -519,6 +524,8 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
       <table>
         <tr><td>分子を表示する</td><td>左上の「化合物ライブラリ」（または画面右端のタブ）から化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
         <tr><td>水素結合</td><td>「表示 ▼」の<b>「水素結合を表示」</b>で、O–H···O や N–H···O などの水素結合を<b>細い水色の線</b>で表します（結晶モードの氷と同じ色）。水分子どうし、酢酸の二量体、デンプンのらせんを保つ 2 位・3 位の OH のはしご、DNA の相補塩基対のような場面で使えます。判定は <b>H から相手までが 2.6 Å 以内で、O–H···O の角度が 130° 以上</b>。<b>H の向きで判断している</b>ので、同じ組に 2 本引かれることはありません（水素結合には向きがあり、結びついているのは片方だけです）。<b>注意</b>：この模型の OH の H の向きは組み立てたときのままで、いちばん落ち着く向きに直していません。そのため本当は水素結合があるのに出ないことがあります（サリチル酸の分子内の水素結合など）。分子を並べて見せるときは、H の向きも確かめてください。</td></tr>
+        <tr><td>座標の出どころ</td><td>「表示 ▼」の<b>「座標」</b>で、化合物ライブラリから作るときの原子の位置を切り替えられます。<b>データベース</b>は外部の公開データ（PubChem・RCSB PDB）から取った位置、<b>組み立てた形</b>はこのアプリが標準の結合長・結合角から組み立てた位置です。切り替わるのはデータベースの座標がある分子だけで、いまは 6 つ（フマル酸、エチレングリコール、1,2-ジクロロエタン、D-グリセルアルデヒド、β-リボース、α-シクロデキストリン）。たとえば<b>エチレングリコール</b>は、組み立てた形では真っすぐ伸びていますが、データベースの形では<b>ねじれて</b>おり、こちらが実際に近い姿です。<b>注意</b>：どちらの座標も<b>計算で求めたもので、実験で測った値ではありません</b>（PubChem は MMFF94、PDB の ideal は生成値）。ライブラリにない分子や、自分で編集した分子は、いつも「組み立てた形」になります。</td></tr>
+        <tr><td>α-シクロデキストリン</td><td>「糖類」にあります。グルコースが 6 個つながって<b>環</b>になった分子で、デンプンのらせん 1 巻き分に当たります。<b>軸の方向から見ると中央に穴</b>があり、内側は C–H ばかりで<b>水あぶら</b>（疎水性）、外側には OH が並んで<b>水になじむ</b>——デンプンのらせんと同じ作りが、短くて見やすい形で確かめられます。この穴に分子を取り込む性質があり、ヨウ素デンプン反応で青紫になる仕組みにつながります。</td></tr>
         <tr><td>デンプンとセルロース</td><td>「糖類」に<b>デンプン（アミロースのらせん・グルコース 10 個分）</b>があります。グリコシド結合のねじれを与えて<b>左巻きのらせん</b>にしてあり、横から見るとらせんの巻きが、軸の方向から見ると中心付近のすきまが分かります。同じグルコースからできていても、<b>セルロース</b>（「セルロース（グルコース 3 個分）」）は<b>まっすぐな帯</b>になります（β-1,4 結合では単位が交互に裏返るため。グルコース 1 個あたり 5.2 Å ずつまっすぐ伸びます）。デンプンは糊やヨウ素デンプン反応、セルロースは束ねて丈夫な繊維になること——同じ単位からできた高分子で性質が違う理由を、形から見られます。<b>注意</b>：らせんは実際のデンプンより伸びています。1 回転あたり約 6.8 個は実際の約 6 個に近いのですが、1 回転の高さは約 15 Å で実際の約 8 Å より大きくなります。この模型には水素結合で引き寄せる力がないためで、形の傾向をつかむためのものと考えてください。</td></tr>
         <tr><td>結晶格子</td><td>上部の「結晶」に切り替えると、結晶格子を表示します（体心立方格子・面心立方格子・六方最密構造・NaCl 型・CsCl 型・ZnS 型・CaF<sub>2</sub> 型・ダイヤモンド・二酸化ケイ素・黒鉛・ドライアイス・氷・フラーレン C<sub>60</sub> の結晶・カーボンナノチューブ）。フラーレン C<sub>60</sub> の分子は化合物ライブラリの「炭素の同素体」にあります。原子をクリックすると、まわりの最も近い粒子（分子結晶では分子）を強調して線で結び、画面下に数と距離を出します（並べた全体の端の原子は、外側がないので少なく見えます）。六方晶は「六角柱で表示」で六角柱の単位格子にできます。氷の水素結合は細い水色の線で表します（H の向きは氷の規則に合う一例）。左のパネルで種類と並べる単位格子の数を選び、「単位格子の面で原子を切る」で面からはみ出した部分を切ります（頂点の原子の 1/8 などが見えます）。「断面」では、3 つの整数 (h k l) で指定した面で切り、位置のスライダー（原子の中心が並ぶ面で一度止まります）と「断面を正面に」で切り口を見られます。「断面の面を表示」で切る面を半透明の板で示します。「切る前の結晶に戻す」を押すと、断面も単位格子の面での切り取りもやめて、切る前の結晶に戻ります。「原子を 3 つクリックして面を決める」を押して結晶の原子を 3 つクリックすると、その 3 つを通る面で切ることもできます（(h k l) を知らなくても断面を選べます）。たとえば面心立方格子を (1 1 1) で切ると最密の層が現れ、立方最密構造と同じであることが分かります。画面下に格子定数・単位格子中の原子の数・配位数・充填率が出ます。「分子」で分子の表示に戻ります。</td></tr>
         <tr><td>構造式エディタから</td><td>構造式エディタで描いた分子を 3D にできます。化合物ライブラリの「構造式エディタの図を取り込む」を押すと、同じブラウザで開いている構造式エディタの図（自動保存されたもの）を取り込みます。構造式エディタで保存した .json ファイルは「開く」から取り込めます。くさび形・破線くさびの結合、ハースの投影式の上下、二重結合のシス・トランスは立体配置として取り込み、置換基のラベル（COOH・C<sub>2</sub>H<sub>5</sub>・Ph など）は原子に直します。R・X などの一般の記号や金属を含む構造は取り込めません。</td></tr>
@@ -549,7 +556,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.21.1 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.22 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1650,7 +1657,7 @@ const LIB_FN = {
 function amyloseHelix(n, phi, psi){
   let tail = '';
   for (let k = n; k >= 2; k--) tail = glc1(true, 2 + ((k - 2) % 8), tail);   // 環の番号は 2〜9 を使い回す（ひと単位の中で開いて閉じるので再利用できる）
-  const m = moleculeFromGraph(molFromSmiles(GLC4(tail)));
+  const m = moleculeFromGraph(molFromSmiles(GLC4(tail)), false);   // 向きはらせんにしてから決める
   const g = graphOf(m.atoms, m.bonds), mol = g.mol, P = g.P;
   const rings = findRings(mol).filter(r => r.length === 6 && r.some(i => mol.atoms[i].el === 'O'));
   const inRing = new Set(), ringNo = new Map();
@@ -1672,6 +1679,7 @@ function amyloseHelix(n, phi, psi){
     fixed.push({atoms:[o5, c1, o, c4], value:phi}, {atoms:[c1, o, c4, c5], value:psi});
   }
   const Q = optimizeAll(mol, P, fixed);
+  orientHydroxyls(mol, Q);   // らせんが決まってから、水酸基の向きをそろえる
   return {atoms:m.atoms.map((a, i) => ({...a, x:Q[i][0], y:Q[i][1], z:Q[i][2]})), bonds:m.bonds, approx:false};
 }
 // 二面角 a–b–c–d を target にする（b–c の結合のまわりに、c 側の枝を回す）。環の中なら何もしない
@@ -1686,9 +1694,73 @@ function setDih(mol, P, a, b, c, d, target){
   turn(delta);
   if (Math.abs(wrap(dihedralOf(P[a], P[b], P[c], P[d]) - target)) > 0.5) turn(-2*delta);   // 回す向きが逆だったとき
 }
-function moleculeFromGraph(mol){
+// ---- 水酸基（O–H）の向きをそろえる ----
+// 組み立てたままの H の向きは、隣に受け手があっても、そちらを向いているとは限らない。
+// そのせいで、本当は分子内に水素結合があるのに出ないことがあった（サリチル酸は O···O が
+// 2.43 Å と近いのに角度 13°）。外部データベースの座標でも同じで、PubChem の配座でも出ない。
+// そこで C–O のまわりに H を回し、水素結合ができる向きがあればそこへ置く。
+// **水素結合が実際にできるときだけ動かす**（できないならそのまま）。理由は 2 つ：
+//   ・意味もなく形を変えると、見慣れた形が変わってしまう
+//   ・水素結合の相手がないのに「いちばんマシな向き」を選んでも、根拠がない
+function orientHydroxyls(mol, P, passes = 2){
+  const A = mol.atoms, EL = {N:1, O:1, F:1};
+  // 回せる水酸基：H を 1 つだけ持ち、重原子 1 つにつながる O（水の H2O は両方が対象）
+  const list = [];
+  for (let o = 0; o < A.length; o++){
+    if (!EL[A[o].el]) continue;
+    const hs = A[o].nb.filter(j => A[j].el === 'H');
+    const heavy = A[o].nb.filter(j => A[j].el !== 'H');
+    if (hs.length !== 1 || heavy.length !== 1) continue;
+    const c = heavy[0];
+    const ref = A[c].nb.find(j => j !== o);   // 回転角を測るための基準
+    if (ref == null) continue;
+    list.push({o, h:hs[0], c, ref});
+  }
+  if (!list.length) return P;
+  const score = () => {
+    let s = 0;
+    // できた水素結合の点数。**近いほど高い、にしてはいけない**：下限を置かないと、
+    // H が受容体にめり込むほど得点が上がり、原子が重なる（0.83 Å まで潰れた）
+    const seen = new Set();
+    for (const hb of hydrogenBonds(mol, P)){
+      const k = hb.don < hb.acc ? hb.don + ',' + hb.acc : hb.acc + ',' + hb.don;
+      if (seen.has(k)) continue;   // 同じ組を両向きで数えない（互いに向き合う形を選ばせないため）
+      seen.add(k);
+      s += (2.6 - Math.max(hb.dHA, 1.75)) + (hb.ang - 130)/400;
+    }
+    // ぶつかりの減点。**H どうしも必ず見る**（見落として水酸基の H が重なっていた）
+    for (const {h} of list) for (let a = 0; a < A.length; a++){
+      if (a === h || A[h].nb.includes(a)) continue;
+      const lim = A[a].el === 'H' ? 2.0 : 1.6;   // 重原子は 1.6（本物の水素結合 1.8〜2.0 を邪魔しない値）
+      const d = V.dist(P[h], P[a]);
+      if (d < lim) s -= (lim - d)*10;
+    }
+    return s;
+  };
+  for (let pass = 0; pass < passes; pass++){
+    let moved = false;
+    for (const g of list){
+      const cur = dihedralOf(P[g.ref], P[g.c], P[g.o], P[g.h]);
+      let best = cur, bestS = score();
+      const base = bestS;
+      for (let t = -180; t < 180; t += 15){
+        setDih(mol, P, g.ref, g.c, g.o, g.h, t);
+        const s = score();
+        if (s > bestS + 1e-9){ bestS = s; best = t; }
+      }
+      setDih(mol, P, g.ref, g.c, g.o, g.h, best);
+      if (bestS > base + 1e-9) moved = true;
+    }
+    if (!moved) break;
+  }
+  return P;
+}
+// orient：水酸基の向きをそろえるか。**あとで形を大きく変える場合は false** にして、
+// 最終的な形になってから呼ぶこと（先に向きを決めても、形が動けば意味がなくなる）
+function moleculeFromGraph(mol, orient = true){
   aromatize(mol); perceive(mol);
   const {P, approx} = build3D(mol);
+  if (orient) orientHydroxyls(mol, P);
   return {atoms:mol.atoms.map((a, i) => ({el:a.el, charge:a.charge, hyb:a.hyb, type:a.type, x:P[i][0], y:P[i][1], z:P[i][2]})),
           bonds:mol.bonds.map(b => ({a:b.a, b:b.b, order:b.order})), approx};
 }
@@ -2126,7 +2198,8 @@ const LIB = [
     ['スクロース', `C([C@@H]1[C@H]([C@@H]([C@](O1)(CO)O${GLC_A1})O)O)O`],
     ['トレハロース', `C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O${GLC_A1})O)O)O)O`],
     ['アミロース（グルコース 3 個分）', GLC4(glc1(true, 2, glc1(true, 3)))], ['セルロース（グルコース 3 個分）', GLC4(glc1(false, 2, glc1(false, 3)))],
-    ['デンプン（アミロースのらせん・グルコース 10 個分）', '@amylose10']]]
+    ['デンプン（アミロースのらせん・グルコース 10 個分）', '@amylose10'],
+    ['α-シクロデキストリン（グルコース 6 個の環）', '@acx']]]
 ];
 // グルコース（1 位で結合する側）。alpha：α か β、r：環の番号、x：4 位の O に付けるもの（アミロース・セルロースの鎖をのばす）
 function glc1(alpha, r, x = ''){ return `[C@${alpha ? '@' : ''}H]${r}[C@@H]([C@H]([C@@H]([C@H](O${r})CO)O${x})O)O`; }
@@ -2138,12 +2211,15 @@ function glc1(alpha, r, x = ''){ return `[C@${alpha ? '@' : ''}H]${r}[C@@H]([C@H
 // 結合をたどって 3 つ以内しか離れていない組は、同じ官能基のまわりなので除く（となり合う OH どうしなど）。
 // H 1 つにつき 1 本だけ（いちばん近い相手）。
 const HB_EL = {N:1, O:1, F:1};
-function hydrogenBonds(mol, P, maxHA = 2.6, minAng = 130){
+// minSep：与える側と受ける側が、結合をたどって何本以上離れていれば水素結合とみなすか。
+// 4 なら 1,2-ジオール（O–C–C–O。3 本しか離れていない）は対象外になる。実在する水素結合なので
+// 見せたくはあるが、糖類は隣り合う OH が多く線だらけになりうるため、まず測れるようにしてある
+function hydrogenBonds(mol, P, maxHA = 2.6, minAng = 130, minSep = 4){
   const A = mol.atoms, out = [];
-  const farEnough = (d, a) => {   // d から 3 結合以内に a があれば、水素結合とはみなさない
+  const farEnough = (d, a) => {   // d から minSep-1 本以内に a があれば、水素結合とはみなさない
     const seen = new Set([d]);
     let front = [d];
-    for (let k = 1; k <= 3; k++){
+    for (let k = 1; k <= minSep - 1; k++){
       const next = [];
       for (const x of front) for (const y of A[x].nb){
         if (y === a) return false;
@@ -2181,7 +2257,7 @@ const $ = id => document.getElementById(id);
 // doc = {atoms:{id:原子}, bonds:{id:結合}, objs:{id:鏡など}, meas:[{id, atoms:[id]}], nid}
 function emptyDoc(){ return {atoms:{}, bonds:{}, objs:{}, meas:[], nid:1}; }
 let doc = emptyDoc();
-const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, charges:false, piOrb:false, piIso:0.5, piWhich:0, hbonds:false, ball:0.28, tool:'rotate', addWhat:'C',   // ball：球の大きさ（既定は下の BALL と同じ値。BALL の定義はここより後ろなので数で書く）
+const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, charges:false, piOrb:false, piIso:0.5, piWhich:0, hbonds:false, ball:0.28, coordSrc:'db',   // coordSrc：'db'＝データベースの座標、'built'＝自分で組み立てた形 tool:'rotate', addWhat:'C',   // ball：球の大きさ（既定は下の BALL と同じ値。BALL の定義はここより後ろなので数で書く）
   world:'mol',   // 'mol' 分子、'xtal' 結晶格子
   xt:{key:'fcc', n:2, cellCut:false, cut:false, h:1, k:1, l:1, t:0.5, flip:false, hex:false, plate:true, pn:null}};   // pn：3 つの原子で決めた面の法線
 const view = {R:M3.id(), s:60, pan:[0, 0], center:[0, 0, 0]};   // s：1 Å あたりの画面の px
@@ -3477,7 +3553,8 @@ function setMode(m){
 function syncToggles(){
   $('tgStereo').classList.toggle('on', state.showStereo); $('tgRS').classList.toggle('on', state.showRS); $('tgAxes').classList.toggle('on', state.axes);
   $('chkLabels').checked = state.labels; $('chkHideH').checked = state.hideH; $('bgSel').value = state.bg; $('expAxes').checked = state.axes;
-  $('chkCharges').checked = state.charges; $('chkHB').checked = state.hbonds; $('tgPi').classList.toggle('on', state.piOrb); $('piIso').value = state.piIso; $('ballSize').value = state.ball;
+  $('chkCharges').checked = state.charges; $('chkHB').checked = state.hbonds; $('coordSel').value = state.coordSrc;
+  $('tgPi').classList.toggle('on', state.piOrb); $('piIso').value = state.piIso; $('ballSize').value = state.ball;
   $('wrap').style.background = state.bg === 'black' ? '#000' : state.bg === 'gray' ? '#edeff2' : '#fff';
   // 操作のヒントはキャンバスの上に乗るので、画面のテーマではなく「キャンバスの背景」に合わせる
   $('hint').style.background = state.bg === 'black' ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.85)';
@@ -3490,6 +3567,8 @@ $('tgRS').onclick = () => { state.showRS = !state.showRS; syncToggles(); renderI
 $('tgPi').onclick = () => { state.piOrb = !state.piOrb; syncToggles(); changed(); };
 $('chkCharges').onchange = e => { state.charges = e.target.checked; changed(); };
 $('chkHB').onchange = e => { state.hbonds = e.target.checked; changed(); };   // 探し直しが要るので changed()
+// 座標の出どころ。作り置きを捨てて、ライブラリの表示も作り直す（いま画面にある分子はそのまま）
+$('coordSel').onchange = e => { state.coordSrc = e.target.value; libBuilt.clear(); libFormula.clear(); renderLibrary(); autosave(); };
 $('piIso').oninput = e => { state.piIso = +e.target.value; if (state.piOrb) changed(); };   // π 軌道を出していないときは作り直さない
 // 見る軌道（HOMO を 0 とした相対の指定）。◀ ▶ で送る
 // ※ select は使わない：候補にない値を入れると値が '' になり、数として扱うと壊れる（0.13 で画面が固まった）
@@ -3649,7 +3728,7 @@ const libFormula = new Map(), libBuilt = new Map();
 // 組み立てに時間のかかるものは、分子式を直接書いておく。一覧は分子式を出すために中身を作るので、
 // 書いておかないとライブラリを出すたびに組み立ててしまう（デンプンのらせんは拘束付きの最適化をするため
 // 約 1.8 秒かかり、そのぶん起動時に画面が止まっていた）。ここに書いたものはクリックしたときだけ作る
-const LIB_FORMULA = {'@C60':'C<sub>60</sub>', '@amylose10':'C<sub>60</sub>H<sub>102</sub>O<sub>51</sub>'};
+const LIB_FORMULA = {'@C60':'C<sub>60</sub>', '@amylose10':'C<sub>60</sub>H<sub>102</sub>O<sub>51</sub>', '@acx':'C<sub>36</sub>H<sub>60</sub>O<sub>30</sub>'};
 function renderLibrary(){
   const q = $('libSearch').value.trim();
   $('libBody').innerHTML = LIB.map(([cat, items]) => {
@@ -3661,9 +3740,23 @@ function renderLibrary(){
     }).join('') + '</div>';
   }).join('') || '<p class="muted">見つかりません</p>';
 }
+// ---- 外部データベースの座標（coords.js）----
+// 読み込めなくても本体は動くようにする（共通部品と同じ考え方）
+const dbCoords = smi => (window.BUNSHI_COORDS || {})[smi] || null;
+// データベースの座標を、アプリの分子の形に直す（混成・原子の種類は graphOf が決める）
+function fromDb(d){
+  const atoms = d.a.map(([el, x, y, z]) => ({el, charge:0, x, y, z}));
+  const bonds = d.b.map(([a, b, order]) => ({a, b, order}));
+  const g = graphOf(atoms, bonds);
+  return {atoms:atoms.map((a, i) => ({...a, hyb:g.mol.atoms[i].hyb, type:g.mol.atoms[i].type})), bonds, approx:false, src:d.src};
+}
 function buildCached(smi){
-  if (!libBuilt.has(smi)) libBuilt.set(smi, makeMolecule(smi));
-  return JSON.parse(JSON.stringify(libBuilt.get(smi)));
+  const d = dbCoords(smi);
+  // 「@」で始まるものは座標しか持たないので、切り替えに関わらずデータベースを使う
+  const useDb = !!d && (state.coordSrc === 'db' || smi.startsWith('@'));
+  const key = (useDb ? 'db:' : '') + smi;
+  if (!libBuilt.has(key)) libBuilt.set(key, useDb ? fromDb(d) : makeMolecule(smi));
+  return JSON.parse(JSON.stringify(libBuilt.get(key)));
 }
 $('libBody').addEventListener('click', e => {
   const b = e.target.closest('.lib-item'); if (!b) return;
@@ -3907,12 +4000,13 @@ function applyViewState(v){   // 壊れた値で画面が消えないよう、�
   if (fin(v.center, 3)) view.center = [...v.center];
 }
 const UI_FLAGS = ['labels', 'hideH', 'showStereo', 'showRS', 'axes', 'charges', 'piOrb', 'hbonds'];
-function uiState(){ const s = {mode:state.mode, bg:state.bg, world:state.world, piIso:state.piIso, piWhich:state.piWhich, ball:state.ball, xt:{...state.xt}}; for (const k of UI_FLAGS) s[k] = state[k]; return s; }
+function uiState(){ const s = {mode:state.mode, bg:state.bg, world:state.world, piIso:state.piIso, piWhich:state.piWhich, coordSrc:state.coordSrc, ball:state.ball, xt:{...state.xt}}; for (const k of UI_FLAGS) s[k] = state[k]; return s; }
 function applyUIState(s){
   if (!s) return;
   if (s.world === 'mol' || s.world === 'xtal') state.world = s.world;
   if (isFinite(s.piIso) && +s.piIso >= 0.2 && +s.piIso <= 0.9) state.piIso = +s.piIso;   // π 雲の濃さ（数なので UI_FLAGS ではなく個別に）
   if (isFinite(s.piWhich) && Math.abs(+s.piWhich) <= 20) state.piWhich = Math.round(+s.piWhich);   // 見る軌道（HOMO を 0 とした相対）
+  if (s.coordSrc === 'db' || s.coordSrc === 'built') state.coordSrc = s.coordSrc;   // 座標の出どころ（決まった値だけ受け取る）
   if (isFinite(s.ball) && +s.ball >= 0.15 && +s.ball <= 0.5) state.ball = +s.ball;       // 球の大きさ
   if (s.xt && typeof s.xt === 'object'){
     const t = s.xt, X = state.xt;
