@@ -19,40 +19,36 @@
       <h2 id="headline_1">(1) 画像のデジタル化</h2>
       <p>画像も、音と同じように<strong>標本化 → 量子化 → 符号化</strong>の順にデジタル化します。カラー画像では、光の三原色である<strong>赤（R）・緑（G）・青（B）</strong>の成分ごとに明るさを調べます。</p>
       <div class="im-widget" data-image-guide data-lesson-slide-navigation-lock>
-        <div class="im-controls im-enhancement" hidden>
-          <label class="im-slider">標本化の間隔 <output for="im-guide-resolution" data-image-guide-resolution-output>幅の1/32（32×32画素）</output><input id="im-guide-resolution" type="range" min="8" max="64" step="8" value="32" data-image-guide-resolution><span class="im-slider-scale"><span>粗い</span><span>細かい</span></span></label>
-          <label class="im-slider">各色の階調 <output for="im-guide-bits" data-image-guide-bits-output>4階調（2bit）</output><input id="im-guide-bits" type="range" min="1" max="8" step="1" value="2" data-image-guide-bits><span class="im-slider-scale"><span>少ない</span><span>多い</span></span></label>
-        </div>
         <div class="im-controls im-step-controls im-enhancement" hidden>
           <button class="dr-button" type="button" data-image-guide-prev aria-label="前の工程へ">前へ</button>
           <span data-image-guide-progress>1 / 5　元画像</span>
           <button class="dr-button dr-button--primary" type="button" data-image-guide-next aria-label="次の工程：光の成分に分解">次へ</button>
+          <button class="dr-button" type="button" data-image-guide-all>すべて表示</button>
+        </div>
+        <div class="im-guide-scroll" role="region" aria-label="R・G・Bの3行と5工程の比較。横にスクロールできます。" tabindex="0">
+          <div class="im-guide-grid">
+            <div class="im-guide-heading im-enhancement" hidden>
+              <span>工程 →</span>
+              <div class="im-guide-stage-heading" data-image-guide-stage="0"><strong>元画像</strong><p class="im-frame-note">3行とも同じ画像</p></div>
+              <div class="im-guide-stage-heading" data-image-guide-stage="1"><strong>光の成分に分解</strong><p class="im-frame-note">各成分の明るさ</p></div>
+              <div class="im-guide-stage-heading" data-image-guide-stage="2"><strong>標本化</strong><p class="im-frame-note" data-image-guide-caption="sample">32×32画素</p></div>
+              <div class="im-guide-stage-heading" data-image-guide-stage="3"><strong>量子化</strong><p class="im-frame-note" data-image-guide-caption="quantize">明るさを4段階に</p></div>
+              <div class="im-guide-stage-heading" data-image-guide-stage="4"><strong>符号化</strong><p class="im-frame-note" data-image-guide-caption="encode">各画素を2桁の2進数に</p></div>
+            </div>
+            <div class="im-guide-row" data-image-guide-row="0">
+              <div class="im-guide-label im-enhancement" hidden><strong>R<span>（赤）</span></strong></div>
+              <figure data-image-guide-step="0"><img class="im-picture" src="./img/digital-representation/balloon.svg" width="800" height="800" alt="青空と緑の山の上に浮かぶ、赤・黄・青の気球。輪郭と濃淡を比べるための見本。" decoding="async"><figcaption class="im-sr-only">元のカラー画像</figcaption></figure>
+            </div>
+            <div class="im-guide-row im-enhancement" data-image-guide-row="1" hidden><div class="im-guide-label"><strong>G<span>（緑）</span></strong></div></div>
+            <div class="im-guide-row im-enhancement" data-image-guide-row="2" hidden><div class="im-guide-label"><strong>B<span>（青）</span></strong></div></div>
+          </div>
+        </div>
+        <div class="im-controls im-guide-sliders im-enhancement" hidden>
+          <label class="im-slider">標本化の間隔 <output for="im-guide-resolution" data-image-guide-resolution-output>幅の1/32（32×32画素）</output><input id="im-guide-resolution" type="range" min="8" max="64" step="8" value="32" data-image-guide-resolution><span class="im-slider-scale"><span>粗い</span><span>細かい</span></span></label>
+          <label class="im-slider">各色の階調 <output for="im-guide-bits" data-image-guide-bits-output>4階調（2bit）</output><input id="im-guide-bits" type="range" min="1" max="8" step="1" value="2" data-image-guide-bits><span class="im-slider-scale"><span>少ない</span><span>多い</span></span></label>
         </div>
         <p class="im-step-text" data-image-stage-text>「次へ」で、元画像からデジタル化する流れを順に確認しましょう。</p>
-        <div class="im-guide-grid" role="group" aria-label="横にR・G・B、縦に画像のデジタル化の工程を並べた比較">
-          <div class="im-guide-heading im-enhancement" hidden><span>工程 ↓</span><strong>R<span>（赤）</span></strong><strong>G<span>（緑）</span></strong><strong>B<span>（青）</span></strong></div>
-          <div class="im-guide-row" data-image-guide-step="0">
-            <div class="im-guide-label"><strong>元画像</strong><p class="im-frame-note">なめらかな輪郭と濃淡</p></div>
-            <figure><img class="im-picture" src="./img/digital-representation/balloon.svg" width="800" height="800" alt="青空と緑の山の上に浮かぶ、赤・黄・青の気球。輪郭と濃淡を比べるための見本。" decoding="async"><figcaption class="im-sr-only">3列とも同じ元画像</figcaption></figure>
-          </div>
-          <div class="im-guide-row im-enhancement" data-image-guide-step="1" hidden>
-            <div class="im-guide-label"><strong>光の成分に分解</strong><p class="im-frame-note">各成分の明るさを取り出す</p></div>
-          </div>
-          <div class="im-guide-row im-enhancement" data-image-guide-step="2" hidden>
-            <div class="im-guide-label"><strong>標本化</strong><p class="im-frame-note" data-image-guide-caption="sample">32×32画素</p></div>
-          </div>
-          <div class="im-guide-row im-enhancement" data-image-guide-step="3" hidden>
-            <div class="im-guide-label"><strong>量子化</strong><p class="im-frame-note" data-image-guide-caption="quantize">明るさを4段階に</p></div>
-          </div>
-          <div class="im-guide-row im-enhancement" data-image-guide-step="4" hidden>
-            <div class="im-guide-label"><strong>符号化</strong><p class="im-frame-note" data-image-guide-caption="encode">各画素を2桁の2進数に</p></div>
-          </div>
-        </div>
-        <div class="im-guide-options im-enhancement" hidden>
-          <label><input type="checkbox" data-image-guide-show-all>前の工程もすべて表示</label>
-          <span>通常は現在と直前の工程を表示します。</span>
-        </div>
-        <p class="im-hint im-enhancement" data-image-guide-zoom-hint hidden>枠のある画像にマウスを重ねると、中央の4×4画素を表で拡大します。タップ・Enterでも開けます。</p>
+        <p class="im-hint im-enhancement" id="im-guide-zoom-help" data-image-guide-zoom-hint hidden>画像にマウスを重ねると、その付近の4×4画素を拡大します。クリック・タップで固定、矢印キーで画素を移動、Enterで表へ移れます。</p>
         <div class="im-guide-zoom" id="im-guide-zoom" data-image-guide-zoom role="region" aria-labelledby="im-guide-zoom-title" tabindex="-1" hidden>
           <div class="im-guide-zoom-header"><strong id="im-guide-zoom-title" data-image-guide-zoom-title></strong><button class="dr-button" type="button" tabindex="0" data-image-guide-zoom-close aria-label="拡大表を閉じる">閉じる</button></div>
           <p class="im-hint" data-image-guide-zoom-caption></p>
