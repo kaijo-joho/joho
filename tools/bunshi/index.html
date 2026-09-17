@@ -50,7 +50,9 @@ button,select,input{font:inherit;color:inherit}
 /* ---- 上部バー ---- */
 .top{grid-area:top;display:flex;flex-direction:column;font-size:13px;background:var(--panel);border-bottom:1px solid var(--line)}
 /* 上部ツールバーは狭い幅でも 1 行（共通仕様 2.1）。入りきらないときは横にスクロールする */
-.top .row{display:flex;flex-wrap:nowrap;align-items:center;gap:5px;padding:5px 10px;overflow-x:auto;scrollbar-width:thin}
+/* 横スクロール（overflow-x）は狭い画面のときだけ。ここで指定すると、片方の軸が visible でなくなった
+   ぶん overflow-y も visible でなくなり、上から下りてくるメニューが高さ 40px の帯で切られてしまう */
+.top .row{display:flex;flex-wrap:nowrap;align-items:center;gap:5px;padding:5px 10px}
 .top .row > *{flex:none}
 .tb button.ic{width:32px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);
   background:#fff;border-radius:7px;cursor:pointer;font-size:11px;font-weight:600}
@@ -221,6 +223,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
   #wrap{min-width:0}
   #hint{right:8px;font-size:11px}   /* 狭い列に押し込まれないよう、横幅いっぱいに使う */
   .info{overflow-x:auto;scrollbar-width:thin}
+  .top .row{overflow-x:auto;scrollbar-width:thin}   /* 狭い画面だけ横スクロール（広い画面では入れない。メニューが切られるため）*/
   #btnPalette{display:inline-flex}
 }
 /* 保存・読み込みのダイアログ（構造式エディタと同じ作り）*/
@@ -546,7 +549,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.21 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.21.1 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
