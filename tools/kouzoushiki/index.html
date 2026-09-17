@@ -584,7 +584,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.1（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.1.1（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -1610,6 +1610,11 @@ function renderDoc(){
 }
 function applyView(){
   world.setAttribute('transform', `translate(${r2(state.pan.x)},${r2(state.pan.y)}) scale(${state.zoom})`);
+  // 背景の方眼の点も、図と一緒に動かし・拡大する（縮小して点が細かくなりすぎるときは間隔を 2 倍ずつ広げる）
+  let g = 20*state.zoom; while (g < 10) g *= 2;
+  const wr = $('wrap');
+  wr.style.backgroundSize = `${r2(g)}px ${r2(g)}px`;
+  wr.style.backgroundPosition = `${r2(state.pan.x)}px ${r2(state.pan.y)}px`;
   // 右下の倍率のプルダウン：一覧にある倍率ならそれを、なければ今の倍率を表示
   const pct = Math.round(state.zoom*100), zs = $('zSel');
   const hitOpt = [...zs.options].find(o => isFinite(+o.value) && Math.round(+o.value*100) === pct);
