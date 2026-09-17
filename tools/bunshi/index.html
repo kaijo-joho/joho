@@ -304,7 +304,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
           <input type="range" id="ballSize" min="0.15" max="0.5" step="0.01">
         </label>
         <label class="mrow">背景
-          <select id="bgSel" title="キャンバス（分子を表示する場所）の背景。画面全体の配色は下の「テーマ」で変えます"><option value="white">白</option><option value="gray">灰色</option><option value="black">黒</option></select>
+          <select id="bgSel" title="キャンバス（分子を表示する場所）の背景。画面全体の配色は下の「テーマ」で変えます"><option value="auto">自動（テーマに合わせる）</option><option value="white">白</option><option value="gray">灰色</option><option value="black">黒</option></select>
         </label>
         <label class="mrow">テーマ
           <select id="themeSel" title="画面の配色（自動はパソコンの設定に合わせます）"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select>
@@ -523,8 +523,8 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
     <div class="body help" id="helpBody">
       <table>
         <tr><td>分子を表示する</td><td>左上の「化合物ライブラリ」（または画面右端のタブ）から化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
-        <tr><td>水素結合</td><td>「表示 ▼」の<b>「水素結合を表示」</b>で、O–H···O や N–H···O などの水素結合を<b>細い水色の線</b>で表します（結晶モードの氷と同じ色）。水分子どうし、酢酸の二量体、デンプンのらせんを保つ 2 位・3 位の OH のはしご、DNA の相補塩基対のような場面で使えます。判定は <b>H から相手までが 2.6 Å 以内で、O–H···O の角度が 130° 以上</b>。<b>H の向きで判断している</b>ので、同じ組に 2 本引かれることはありません（水素結合には向きがあり、結びついているのは片方だけです）。<b>注意</b>：この模型の OH の H の向きは組み立てたときのままで、いちばん落ち着く向きに直していません。そのため本当は水素結合があるのに出ないことがあります（サリチル酸の分子内の水素結合など）。分子を並べて見せるときは、H の向きも確かめてください。</td></tr>
-        <tr><td>座標の出どころ</td><td>「表示 ▼」の<b>「座標」</b>で、化合物ライブラリから作るときの原子の位置を切り替えられます。<b>データベース</b>は外部の公開データ（PubChem・RCSB PDB）から取った位置、<b>組み立てた形</b>はこのアプリが標準の結合長・結合角から組み立てた位置です。切り替わるのはデータベースの座標がある分子だけで、いまは 6 つ（フマル酸、エチレングリコール、1,2-ジクロロエタン、D-グリセルアルデヒド、β-リボース、α-シクロデキストリン）。たとえば<b>エチレングリコール</b>は、組み立てた形では真っすぐ伸びていますが、データベースの形では<b>ねじれて</b>おり、こちらが実際に近い姿です。<b>注意</b>：どちらの座標も<b>計算で求めたもので、実験で測った値ではありません</b>（PubChem は MMFF94、PDB の ideal は生成値）。ライブラリにない分子や、自分で編集した分子は、いつも「組み立てた形」になります。</td></tr>
+        <tr><td>水素結合</td><td>「表示 ▼」の<b>「水素結合を表示」</b>で、O–H···O や N–H···O などの水素結合を<b>細い水色の線</b>で表します（結晶モードの氷と同じ色）。水分子どうし、酢酸の二量体、デンプンのらせんを保つ 2 位・3 位の OH のはしご、DNA の相補塩基対のような場面で使えます。判定は <b>H から相手までが 2.6 Å 以内で、O–H···O の角度が 130° 以上</b>。さらに、受け手が水酸基やエーテル・水の O のときは、<b>H がその O の非共有電子対のある向きから近づいていること</b>（O の 2 本の結合がつくる面から 20° 以上外れていること）も条件にしています。面の中から近づく配置は、実際の水素結合としては不自然だからです。<b>H の向きで判断している</b>ので、同じ組に 2 本引かれることはありません（水素結合には向きがあり、結びついているのは片方だけです）。OH の H は、水素結合ができる向きがあればそちらへ向けてあります（重い原子の位置は変えません）。<b>注意</b>：分子そのものの形（C–C のまわりのねじれなど）は変えないので、形によっては本当は水素結合があるのに出ないことがあります。たとえば<b>サリチル酸</b>は、「表示 ▼」の「座標」が<b>データベース</b>のときはフェノールの H から C=O の O への分子内水素結合が出ますが、<b>組み立てた形</b>では C=O が反対を向いているため出ません。ファイルから読み込んだ分子は H の向きもそのままです。</td></tr>
+        <tr><td>座標の出どころ</td><td>「表示 ▼」の<b>「座標」</b>で、化合物ライブラリから作るときの原子の位置を切り替えられます。<b>データベース</b>は外部の公開データ（PubChem・RCSB PDB）から取った位置、<b>組み立てた形</b>はこのアプリが標準の結合長・結合角から組み立てた位置です。切り替わるのはデータベースの座標がある分子だけで、いまは 8 つ（フマル酸、エチレングリコール、1,2-ジクロロエタン、D-グリセルアルデヒド、β-リボース、サリチル酸、サリチル酸メチル、α-シクロデキストリン）。たとえば<b>エチレングリコール</b>は、組み立てた形では真っすぐ伸びていますが、データベースの形では<b>ねじれて</b>おり、こちらが実際に近い姿です。<b>注意</b>：どちらの座標も<b>計算で求めたもので、実験で測った値ではありません</b>（PubChem は MMFF94、PDB の ideal は生成値）。ライブラリにない分子や、自分で編集した分子は、いつも「組み立てた形」になります。</td></tr>
         <tr><td>α-シクロデキストリン</td><td>「糖類」にあります。グルコースが 6 個つながって<b>環</b>になった分子で、デンプンのらせん 1 巻き分に当たります。<b>軸の方向から見ると中央に穴</b>があり、内側は C–H ばかりで<b>水あぶら</b>（疎水性）、外側には OH が並んで<b>水になじむ</b>——デンプンのらせんと同じ作りが、短くて見やすい形で確かめられます。この穴に分子を取り込む性質があり、ヨウ素デンプン反応で青紫になる仕組みにつながります。</td></tr>
         <tr><td>デンプンとセルロース</td><td>「糖類」に<b>デンプン（アミロースのらせん・グルコース 10 個分）</b>があります。グリコシド結合のねじれを与えて<b>左巻きのらせん</b>にしてあり、横から見るとらせんの巻きが、軸の方向から見ると中心付近のすきまが分かります。同じグルコースからできていても、<b>セルロース</b>（「セルロース（グルコース 3 個分）」）は<b>まっすぐな帯</b>になります（β-1,4 結合では単位が交互に裏返るため。グルコース 1 個あたり 5.2 Å ずつまっすぐ伸びます）。デンプンは糊やヨウ素デンプン反応、セルロースは束ねて丈夫な繊維になること——同じ単位からできた高分子で性質が違う理由を、形から見られます。<b>注意</b>：らせんは実際のデンプンより伸びています。1 回転あたり約 6.8 個は実際の約 6 個に近いのですが、1 回転の高さは約 15 Å で実際の約 8 Å より大きくなります。この模型には水素結合で引き寄せる力がないためで、形の傾向をつかむためのものと考えてください。</td></tr>
         <tr><td>結晶格子</td><td>上部の「結晶」に切り替えると、結晶格子を表示します（体心立方格子・面心立方格子・六方最密構造・NaCl 型・CsCl 型・ZnS 型・CaF<sub>2</sub> 型・ダイヤモンド・二酸化ケイ素・黒鉛・ドライアイス・氷・フラーレン C<sub>60</sub> の結晶・カーボンナノチューブ）。フラーレン C<sub>60</sub> の分子は化合物ライブラリの「炭素の同素体」にあります。原子をクリックすると、まわりの最も近い粒子（分子結晶では分子）を強調して線で結び、画面下に数と距離を出します（並べた全体の端の原子は、外側がないので少なく見えます）。六方晶は「六角柱で表示」で六角柱の単位格子にできます。氷の水素結合は細い水色の線で表します（H の向きは氷の規則に合う一例）。左のパネルで種類と並べる単位格子の数を選び、「単位格子の面で原子を切る」で面からはみ出した部分を切ります（頂点の原子の 1/8 などが見えます）。「断面」では、3 つの整数 (h k l) で指定した面で切り、位置のスライダー（原子の中心が並ぶ面で一度止まります）と「断面を正面に」で切り口を見られます。「断面の面を表示」で切る面を半透明の板で示します。「切る前の結晶に戻す」を押すと、断面も単位格子の面での切り取りもやめて、切る前の結晶に戻ります。「原子を 3 つクリックして面を決める」を押して結晶の原子を 3 つクリックすると、その 3 つを通る面で切ることもできます（(h k l) を知らなくても断面を選べます）。たとえば面心立方格子を (1 1 1) で切ると最密の層が現れ、立方最密構造と同じであることが分かります。画面下に格子定数・単位格子中の原子の数・配位数・充填率が出ます。「分子」で分子の表示に戻ります。</td></tr>
@@ -551,12 +551,12 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>形について</td><td>分子の形は、標準的な結合の長さ・結合角と環の形（いす形など）から組み立てています。水の結合角 104.5°、アンモニアの 107° などは実測値に近い値にしていますが、構造最適化はしていないので、形はおおよそです。</td></tr>
       </table>
       <table class="about">
-        <tr><td>画面の設定</td><td>「表示 ▼」で、<b>テーマ</b>（自動・ライト・ダーク。自動はパソコンの設定に合わせます）、<b>文字サイズ</b>（標準・大・特大。ツールバーやパネルの文字が大きくなります）、<b>背景</b>（キャンバスの色）、<b>球の大きさ</b>（球棒モデルの球。結晶の球も一緒に変わります）を変えられます。テーマと文字サイズは、ほかの情報科のウェブアプリ（構造式エディタ・論理回路エディタなど）と共通の仕組みです。</td></tr>
+        <tr><td>画面の設定</td><td>「表示 ▼」で、<b>テーマ</b>（自動・ライト・ダーク。自動はパソコンの設定に合わせます）、<b>文字サイズ</b>（標準・大・特大。ツールバーやパネルの文字が大きくなります）、<b>背景</b>（キャンバスの色。既定の「自動」はテーマに合わせ、ダークでは暗い色になります。<b>テーマを選び直すと背景も「自動」に戻る</b>ので、画面とキャンバスが一度に切り替わります。書き出す画像の背景を決めておきたいときは白・灰色・黒を選んでください）、<b>球の大きさ</b>（球棒モデルの球。結晶の球も一緒に変わります）を変えられます。テーマと文字サイズは、ほかの情報科のウェブアプリ（構造式エディタ・論理回路エディタなど）と共通の仕組みです。</td></tr>
         <tr><td>推奨環境</td><td>macOS ＋ Google Chrome（最新版）。3D 表示に WebGL2 を使います。</td></tr>
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.24 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.25 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -2239,7 +2239,18 @@ const HB_EL = {N:1, O:1, F:1};
 // minSep：与える側と受ける側が、結合をたどって何本以上離れていれば水素結合とみなすか。
 // 4 なら 1,2-ジオール（O–C–C–O。3 本しか離れていない）は対象外になる。実在する水素結合なので
 // 見せたくはあるが、糖類は隣り合う OH が多く線だらけになりうるため、まず測れるようにしてある
-function hydrogenBonds(mol, P, maxHA = 2.6, minAng = 130, minSep = 4){
+// minOop：受け手側の条件。受け手が sp3 の O で結合相手が 2 つ（水酸基・エーテル・水）のとき、
+// H がその 2 本の結合のつくる面から minOop 度以上外れていること＝**非共有電子対のある向きから近づく**こと
+// （sp3 の O の電子対は面の外 ±55° ほどに張り出す。面内から近づく配置は不自然。作成者の指摘、2026-09-17）。
+// C=O の O（電子対が面内にある）やアミンの N（2 本の結合で面が決まらない）には掛けない
+const acceptorOop = (mol, P, a, h) => {
+  const A = mol.atoms, nbs = A[a].nb;
+  if (A[a].el !== 'O' || A[a].hyb !== 'sp3' || nbs.length !== 2) return null;
+  const n = V.norm(V.cross(V.sub(P[nbs[0]], P[a]), V.sub(P[nbs[1]], P[a])));
+  const v = V.norm(V.sub(P[h], P[a]));
+  return Math.abs(90 - Math.acos(Math.max(-1, Math.min(1, V.dot(n, v))))*180/Math.PI);
+};
+function hydrogenBonds(mol, P, maxHA = 2.6, minAng = 130, minSep = 4, minOop = 20){
   const A = mol.atoms, out = [];
   const farEnough = (d, a) => {   // d から minSep-1 本以内に a があれば、水素結合とはみなさない
     const seen = new Set([d]);
@@ -2267,7 +2278,9 @@ function hydrogenBonds(mol, P, maxHA = 2.6, minAng = 130, minSep = 4){
         const u = V.norm(V.sub(P[d], P[h])), v = V.norm(V.sub(P[a], P[h]));
         const ang = Math.acos(Math.max(-1, Math.min(1, V.dot(u, v))))*180/Math.PI;
         if (ang < minAng || !farEnough(d, a)) continue;
-        best = {don:d, h, acc:a, dHA, ang, dDA:V.dist(P[d], P[a])};
+        const oop = acceptorOop(mol, P, a, h);
+        if (oop != null && oop < minOop) continue;
+        best = {don:d, h, acc:a, dHA, ang, oop, dDA:V.dist(P[d], P[a])};
       }
       if (best) out.push(best);
     }
@@ -2282,7 +2295,11 @@ const $ = id => document.getElementById(id);
 // doc = {atoms:{id:原子}, bonds:{id:結合}, objs:{id:鏡など}, meas:[{id, atoms:[id]}], nid}
 function emptyDoc(){ return {atoms:{}, bonds:{}, objs:{}, meas:[], nid:1}; }
 let doc = emptyDoc();
-const state = {mode:'ballstick', labels:false, hideH:false, bg:'white', showStereo:false, showRS:false, axes:false, charges:false, piOrb:false, piIso:0.5, piWhich:0, hbonds:false, ball:0.28, coordSrc:'db',   // coordSrc：'db'＝データベースの座標、'built'＝自分で組み立てた形 tool:'rotate', addWhat:'C',   // ball：球の大きさ（既定は下の BALL と同じ値。BALL の定義はここより後ろなので数で書く）
+// ※ 行の途中に // の説明を書かないこと。後ろの項目がコメントに飲まれる（0.22〜0.24 で tool・addWhat が消えていた）
+// bg：キャンバスの背景。'auto' はテーマに合わせる（ライトは白、ダークは暗い色）
+// ball：球の大きさ（既定は下の BALL と同じ値。BALL の定義はここより後ろなので数で書く）
+// coordSrc：'db'＝データベースの座標、'built'＝自分で組み立てた形
+const state = {mode:'ballstick', labels:false, hideH:false, bg:'auto', showStereo:false, showRS:false, axes:false, charges:false, piOrb:false, piIso:0.5, piWhich:0, hbonds:false, ball:0.28, coordSrc:'db', tool:'rotate', addWhat:'C',
   world:'mol',   // 'mol' 分子、'xtal' 結晶格子
   xt:{key:'fcc', n:2, cellCut:false, cut:false, h:1, k:1, l:1, t:0.5, flip:false, hex:false, plate:true, pn:null}};   // pn：3 つの原子で決めた面の法線
 const view = {R:M3.id(), s:60, pan:[0, 0], center:[0, 0, 0]};   // s：1 Å あたりの画面の px
@@ -2659,12 +2676,18 @@ function viewMatrix(){
   const R = view.R, t = V.add(V.mul(M3.apply(R, view.center), -1), [view.pan[0], view.pan[1], 0]);
   return new Float32Array([R[0][0], R[1][0], R[2][0], 0, R[0][1], R[1][1], R[2][1], 0, R[0][2], R[1][2], R[2][2], 0, t[0], t[1], t[2], 1]);
 }
-const BG = {white:[1, 1, 1], gray:[0.93, 0.94, 0.95], black:[0, 0, 0]};
+const BG = {white:[1, 1, 1], gray:[0.93, 0.94, 0.95], black:[0, 0, 0], dark:[0.11, 0.137, 0.176]};
+// いま描く背景。'auto' のときはテーマに合わせる（ダークなら暗い色）。共通部品が読めなければ OS の設定を見る
+const themeDark = () => document.documentElement.dataset.resolvedTheme
+  ? document.documentElement.dataset.resolvedTheme === 'dark'
+  : !!(window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
+const bgKey = () => state.bg === 'auto' ? (themeDark() ? 'dark' : 'white') : state.bg;
+const bgDark = () => bgKey() === 'black' || bgKey() === 'dark';   // 文字や縁を明るくする背景か
 // 画面（または書き出し用に大きさを変えたキャンバス）に描く。W・H は CSS の px、dpr は倍率
 function drawGL(W, H, dpr, transparent = false){
   if (!R3 || !scene) return;
   gl.viewport(0, 0, Math.round(W*dpr), Math.round(H*dpr));
-  const bg = BG[state.bg];
+  const bg = BG[bgKey()];
   gl.clearColor(bg[0], bg[1], bg[2], transparent ? 0 : 1);
   gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
   gl.enable(gl.DEPTH_TEST); gl.depthFunc(gl.LEQUAL); gl.depthMask(true); gl.disable(gl.BLEND);
@@ -2783,7 +2806,7 @@ function drawAxisLabels(c, W, H){
   c.save(); c.font = 'italic 700 17px "Times New Roman", Times, serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
   [['x', '#d61f1f'], ['y', '#15803d'], ['z', '#1d4ed8']].forEach(([n, col], k) => {
     const e = [0, 0, 0]; e[k] = L; const s = toScreen(e, W, H);
-    c.lineWidth = 4; c.strokeStyle = state.bg === 'black' ? '#000' : '#fff'; c.strokeText(n, s.x, s.y); c.fillStyle = col; c.fillText(n, s.x, s.y);
+    c.lineWidth = 4; c.strokeStyle = bgDark() ? '#000' : '#fff'; c.strokeText(n, s.x, s.y); c.fillStyle = col; c.fillText(n, s.x, s.y);
   });
   c.restore();
 }
@@ -2793,7 +2816,7 @@ function drawOverlay(c, W, H, forExport = false){
   if (state.world === 'xtal') return;
   if (!scene) return;
   const scr = id => { const a = doc.atoms[id]; return toScreen([a.x, a.y, a.z], W, H); };
-  const dark = state.bg === 'black';   // 文字や縁の色は「キャンバスの背景」に合わせる（画面のテーマとは別）
+  const dark = bgDark();   // 文字や縁の色は「キャンバスの背景」に合わせる（背景が「自動」ならテーマに従う）
   const labelBox = (text, x, y, col, bg = dark ? 'rgba(25,33,43,.92)' : 'rgba(255,255,255,.92)') => {
     c.font = '600 13px Arial, Helvetica, sans-serif';
     const w = c.measureText(text).width + 10, h = 19;
@@ -2840,7 +2863,7 @@ function drawOverlay(c, W, H, forExport = false){
       if (state.showRS){
         const x = s.x + (r + 6)*0.75 + 8, y = s.y - (r + 6)*0.75 - 8;
         c.font = 'italic 700 17px "Times New Roman", Times, serif'; c.textAlign = 'center'; c.textBaseline = 'middle';
-        c.lineWidth = 4; c.strokeStyle = state.bg === 'black' ? '#000' : '#fff'; c.strokeText(rs, x, y); c.fillStyle = '#c2410c'; c.fillText(rs, x, y);
+        c.lineWidth = 4; c.strokeStyle = bgDark() ? '#000' : '#fff'; c.strokeText(rs, x, y); c.fillStyle = '#c2410c'; c.fillText(rs, x, y);
       }
     }
   }
@@ -3586,10 +3609,10 @@ function syncToggles(){
   $('chkLabels').checked = state.labels; $('chkHideH').checked = state.hideH; $('bgSel').value = state.bg; $('expAxes').checked = state.axes;
   $('chkCharges').checked = state.charges; $('chkHB').checked = state.hbonds; $('coordSel').value = state.coordSrc;
   $('tgPi').classList.toggle('on', state.piOrb); $('piIso').value = state.piIso; $('ballSize').value = state.ball;
-  $('wrap').style.background = state.bg === 'black' ? '#000' : state.bg === 'gray' ? '#edeff2' : '#fff';
+  $('wrap').style.background = {black:'#000', gray:'#edeff2', dark:'#1c232d', white:'#fff'}[bgKey()];
   // 操作のヒントはキャンバスの上に乗るので、画面のテーマではなく「キャンバスの背景」に合わせる
-  $('hint').style.background = state.bg === 'black' ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.85)';
-  $('hint').style.color = state.bg === 'black' ? '#c9d2dd' : '#6b7480';
+  $('hint').style.background = bgDark() ? 'rgba(0,0,0,.6)' : 'rgba(255,255,255,.85)';
+  $('hint').style.color = bgDark() ? '#c9d2dd' : '#6b7480';
 }
 document.querySelectorAll('[data-tool]').forEach(b => b.addEventListener('click', () => setTool(b.dataset.tool)));
 document.querySelectorAll('#modeSeg button').forEach(b => b.addEventListener('click', () => setMode(b.dataset.mode)));
@@ -4056,7 +4079,7 @@ function applyUIState(s){
   }
   if (['ballstick', 'stick', 'spacefill'].includes(s.mode)) state.mode = s.mode;
   for (const k of UI_FLAGS) if (typeof s[k] === 'boolean') state[k] = s[k];
-  if (BG[s.bg]) state.bg = s.bg;
+  if (s.bg === 'auto' || (BG[s.bg] && s.bg !== 'dark')) state.bg = s.bg;
 }
 $('miSaveFile').onclick = saveJSON;
 $('miSaveBrowser').onclick = saveToBrowser;
@@ -4305,7 +4328,12 @@ initGL();
 const restored = restore();
 // テーマ（自動・ライト・ダーク）と文字サイズは共通部品（../shared/ui-kit.js）。読めなくても本体は動く
 try {
-  if (window.JohoUI && JohoUI.theme) JohoUI.theme({storageKey:'bunshi-view', themeSelect:$('themeSel'), sizeSelect:$('textSizeSel'), onChange:() => requestDraw()});
+  if (window.JohoUI && JohoUI.theme) {
+    JohoUI.theme({storageKey:'bunshi-view', themeSelect:$('themeSel'), sizeSelect:$('textSizeSel'), onChange:() => { syncToggles(); requestDraw(true); }});
+    // テーマを選び直したら、キャンバスの背景も「自動」に戻してテーマと一緒に変える（作成者の希望、2026-09-17）。
+    // 共通部品のリスナーが先に登録されているので、ここではテーマはもう切り替わっている
+    $('themeSel').addEventListener('change', () => { if (state.bg !== 'auto'){ state.bg = 'auto'; syncToggles(); requestDraw(true); autosave(); } });
+  }
   else { $('themeSel').disabled = $('textSizeSel').disabled = true; $('themeSel').title = $('textSizeSel').title = '共通部品（../shared/ui-kit.js）を読み込めませんでした'; }
 } catch (e) { console.error(e); }
 syncToggles(); setMode(state.mode); setTool('rotate'); renderLibrary(); setWorld(state.world, true);
