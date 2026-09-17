@@ -3,7 +3,7 @@
 const assert = require('node:assert/strict');
 const Guides = require('../guides.js');
 const object = (id, x, y, width, height, extra = {}) => ({ id, type: 'path', group: null, box: { x, y, width, height }, ...extra });
-const prepare = (objects, selected = ['moving'], board = { infinite: true }, viewport) => Guides.prepare({ id: 'page', board, objects }, selected, object => object.box, viewport);
+const prepare = (objects, selected = ['moving'], board = { infinite: true }, viewport, options) => Guides.prepare({ id: 'page', board, objects }, selected, object => object.box, viewport, options);
 const near = (actual, expected) => assert(Math.abs(actual - expected) < 1e-6, `${actual} should equal ${expected}`);
 
 const moving = object('moving', 0, 0, 60, 40), target = object('target', 100, 100, 60, 40);
@@ -48,6 +48,10 @@ const grouped = prepare([
 ], ['moving'], { infinite: true }, { x: -50, y: -50, width: 500, height: 400 });
 assert.equal(grouped.targets.length, 1, 'groups count once; guides omit the moving objects, reference images, connectors and offscreen targets');
 assert.deepEqual(grouped.targets[0].box, { x: 200, y: 80, width: 90, height: 40 });
+
+const hidden = prepare([moving, target, object('hidden', 98, 0, 60, 40)], ['moving'], { infinite: true }, undefined, { isVisible: object => object.id !== 'hidden' });
+assert.equal(hidden.targets.length, 1, 'hidden layer objects are excluded from guide targets');
+assert.equal(Guides.move(hidden, { x: 96, y: 0 }, { zoom: 1 }).box.x, 100, 'visible targets remain available to guides');
 
 const resizing = prepare([object('moving', 0, 0, 50, 20), object('target', 100, 100, 30, 40)]);
 result = Guides.resize(resizing, { x: 0, y: 0, width: 97, height: 20 }, { x: 'end', zoom: 1 });

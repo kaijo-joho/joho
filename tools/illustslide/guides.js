@@ -14,10 +14,13 @@
   };
   const intersects = (a, b) => end(a, 'x') >= b.x && a.x <= end(b, 'x') && end(a, 'y') >= b.y && a.y <= end(b, 'y');
 
-  function prepare(page, selected, getBounds, viewport) {
-    const ids = new Set(selected), groups = new Map();
-    const box = union(page.objects.filter(object => ids.has(object.id)).map(getBounds));
-    for (const object of page.objects) {
+  function prepare(page, selected, getBounds, viewport, options = {}) {
+    const isVisible = typeof options.isVisible === 'function' ? options.isVisible : () => true;
+    // page.objects stays raw.  Hidden objects are omitted only from this guide session.
+    const objects = page.objects.filter(object => isVisible(object, page));
+    const ids = new Set(selected.filter(id => objects.some(object => object.id === id))), groups = new Map();
+    const box = union(objects.filter(object => ids.has(object.id)).map(getBounds));
+    for (const object of objects) {
       if (ids.has(object.id) || object.type === 'connector' || object.type === 'image' && object.reference) continue;
       const key = object.group || object.id;
       if (!groups.has(key)) groups.set(key, []);

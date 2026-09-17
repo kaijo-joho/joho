@@ -128,8 +128,8 @@ function fixture() {
     assert.deepEqual(await read(page), original, 'canceled movement adds no extra undo entry');
 
     // View setting is persisted and disables drawing/snap for subsequent drags.
-    await page.locator('#inspector-toggle').click(); await settle(page);
-    await page.locator('[data-inspector-section="view"]').click();
+    await page.locator('#board-toggle').click(); await settle(page);
+    await page.locator('#view-toggle').click();
     assert(await page.locator('#view-guides').isChecked(), 'guides default to on');
     await page.locator('#view-guides').uncheck(); await inspectorSubmit(page);
     assert.equal(await page.evaluate(() => JSON.parse(localStorage.getItem('kaijo-ilapo:settings')).smartGuides), false);

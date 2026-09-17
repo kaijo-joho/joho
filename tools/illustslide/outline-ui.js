@@ -4,7 +4,11 @@
   function create(ctx){
     function open(){
       const O=window.IlapoOutline,T=window.IlapoTextOutline,C=window.IlapoCore,$=id=>document.getElementById(id);
-      const source=C.clone(ctx.page()),ids=ctx.selected().slice(),scope=ctx.scope(),info=O.inspect(source,ids);
+      const isVisible=(object,page=ctx.page())=>!!object&&(ctx.isVisible?ctx.isVisible(object,page):true);
+      const isLocked=(object,page=ctx.page())=>!!object&&(ctx.isLocked?ctx.isLocked(object,page):!!object.locked);
+      // Keep source as the complete raw page: filtering it would delete hidden objects on apply.
+      const source=C.clone(ctx.page()),ids=ctx.selected().filter(id=>{const object=source.objects.find(item=>item.id===id);return isVisible(object,source)&&!isLocked(object,source);}),scope=ctx.scope(),info=O.inspect(source,ids);
+      if(!ids.length){ctx.showInspector('outline','アウトライン化','<p class="muted">表示中で固定されていない線のある図形や文字を選ぶと、塗りのあるパスへ変換できます。</p>',null);return;}
       if(!info.lines&&!info.text){ctx.showInspector('outline','アウトライン化','<p class="muted">線のある図形や文字を選ぶと、塗りのあるパスへ変換できます。</p>',null);return;}
       let generation=0,cache=null;
       const fonts=T.fonts(),fontDefault=source.objects.some(o=>ids.includes(o.id)&&(o.label?.style.fontFamily||o.style.fontFamily)==='serif')?'serif':'sans';
@@ -20,7 +24,7 @@
         'アウトライン化',()=>{
           if(!active()||!cache||cache.key!==key())throw Error('プレビューの完了を待ってから適用してください。');
           const result=cache.result;
-          if(ctx.changePage(p=>{p.objects=C.clone(result.page.objects);if(result.page.animations)p.animations=C.clone(result.page.animations);})){ctx.finish(result.ids);}
+          if(ctx.changePage(p=>{p.objects=C.clone(result.page.objects);if(result.page.layers)p.layers=C.clone(result.page.layers);if(result.page.animations)p.animations=C.clone(result.page.animations);})){ctx.finish(result.ids);}
         },{preview:build});
       const body=$('inspector-body'),anchor=$('outline-lines'),submit=$('inspector-submit');
       function active(){return anchor.isConnected&&body.contains(anchor)&&anchor===$('outline-lines')&&ctx.isOpen()&&ctx.scope()===scope;}
@@ -38,7 +42,7 @@
           if(!active()||ticket!==generation||configKey!==key())return;
           const result=O.convertPage(source,ids,config);
           if(!active()||ticket!==generation)return;
-          ctx.previewChange(p=>{p.objects=C.clone(result.page.objects);if(result.page.animations)p.animations=C.clone(result.page.animations);});
+          ctx.previewChange(p=>{p.objects=C.clone(result.page.objects);if(result.page.layers)p.layers=C.clone(result.page.layers);if(result.page.animations)p.animations=C.clone(result.page.animations);});
           cache={key:configKey,result};submit.disabled=!result.converted;
           message.textContent=result.converted?`${result.converted}個の変換後の見た目を表示しています。`:'変換できる線・文字がありません。';
           for(const note of result.warnings){const item=document.createElement('li');item.textContent=note;notes.append(item);}

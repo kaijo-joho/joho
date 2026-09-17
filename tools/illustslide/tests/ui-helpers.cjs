@@ -1,8 +1,7 @@
 'use strict';
 
 async function openView(page) {
-  if (!await page.locator('#inspector-panel').isVisible()) await page.locator('#inspector-toggle').click();
-  await page.locator('#inspector-tabs [data-inspector-section="view"]').click();
+  if (await page.locator('#view-toggle').getAttribute('aria-expanded') !== 'true') await page.locator('#view-toggle').click();
 }
 
 async function revealObject(page, id) {

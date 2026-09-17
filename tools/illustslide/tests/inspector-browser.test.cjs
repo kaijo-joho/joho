@@ -120,16 +120,16 @@ async function close(page) { if (await page.locator('#inspector-panel').isVisibl
 
     await page.locator('.side-tab [data-action=export-toggle]').click(); await settle(page);
     assert(await page.locator('#export-panel').isVisible()); assert.equal(await page.locator('#inspector-panel').isVisible(), false);
-    await page.locator('#inspector-toggle').click(); await settle(page);
+    await page.locator('#board-toggle').click(); await settle(page);
     assert.equal(await page.locator('#export-panel').isVisible(), false);
 
     // Shared themes and text sizes, with an unobscured canvas and reachable actions.
     for (const width of [1280, 736, 390, 320]) {
       for (const [theme, size] of [['light', 'standard'], ['dark', 'large'], ['auto', 'xlarge']]) {
         await page.setViewportSize({ width, height: 736 });
-        await page.locator('[data-inspector-section=view]').click();
+        await page.locator('#view-toggle').click();
         await page.locator('#view-theme').selectOption(theme); await page.locator('#view-size').selectOption(size); await settle(page);
-        await page.locator('[data-inspector-section=style]').click(); await settle(page);
+        await page.locator('#style-button').click(); await settle(page);
         const dimensions = await page.evaluate(() => {
           const rect = id => { const r = document.getElementById(id).getBoundingClientRect(); return { x:r.x, y:r.y, right:r.right, bottom:r.bottom, width:r.width, height:r.height }; };
           return { canvas:rect('canvas'), panel:rect('inspector-panel'), note:rect('inspector-live-note'), bar:rect('selection-bar'), overflow:document.documentElement.scrollWidth > innerWidth || document.documentElement.scrollHeight > innerHeight, icons:[...document.querySelectorAll('#selection-bar button')].filter(b => b.getBoundingClientRect().width).map(b => ({ label:b.getAttribute('aria-label'), svg:!!b.querySelector('svg'), right:b.getBoundingClientRect().right })) };
@@ -165,7 +165,7 @@ async function close(page) { if (await page.locator('#inspector-panel').isVisibl
     await page.keyboard.press('Escape'); await settle(page);
     assert.equal(await page.locator('#inspector-panel').isVisible(), false);
     await page.setViewportSize({width:1024,height:736}); await page.setViewportSize({width:1280,height:736});
-    await page.locator('#inspector-toggle').click(); await settle(page);
+    await page.locator('#board-toggle').click(); await settle(page);
     assert.equal((await page.locator('#inspector-panel').boundingBox()).width, oldWidth, 'resizing the window while closed preserves the panel width');
     await close(page);
 

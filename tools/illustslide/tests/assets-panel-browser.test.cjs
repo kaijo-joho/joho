@@ -129,7 +129,7 @@ async function load(page, document) {
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('kaijo-ilapo:components')).components.length === 3);
     assert.equal(await page.locator('#inspector-panel').isVisible(), false, 'an import finishing after close does not reopen the panel');
 
-    await page.locator('#inspector-toggle').click(); await page.locator('[data-inspector-section="view"]').click();
+    await page.locator('#board-toggle').click(); await page.locator('#view-toggle').click();
     await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await settle(page);
     await page.setViewportSize({ width: 390, height: 736 }); await page.locator('#assets-toggle').click(); await settle(page);
     assert.equal(await page.locator('#component-name').inputValue(), '', 'reopening the panel resets the unfinished name');

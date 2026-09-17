@@ -79,7 +79,7 @@ async function selectShape(page){await page.locator('#canvas').focus();await pag
     assert.equal(await page.locator('.page-card').count(),3);
     assert.equal(await page.locator('[data-page-pick="0"]').getAttribute('aria-current'),'page');
     assert.equal(await page.locator('#pages-toggle').getAttribute('aria-expanded'),'true');
-    assert.equal(await page.locator('#inspector-toggle').getAttribute('aria-expanded'),'false');
+    assert.equal(await page.locator('#board-toggle').getAttribute('aria-expanded'),'false');
     await pick(page,1);assert.equal((await state(page)).pageId,'page-1');assert(await page.locator('#artwork [data-object="shape-1"]').isVisible());
     assert(await page.locator('#inspector-panel').isVisible());assert.deepEqual(await read(page),original,'navigation alone does not edit the project');
     assert(await page.locator('.top [data-action=undo]').isDisabled());
@@ -113,7 +113,7 @@ async function selectShape(page){await page.locator('#canvas').focus();await pag
 
     for(const width of [1280,736,390,320]){
       await page.setViewportSize({width,height:736});
-      await page.locator('[data-inspector-section=view]').click();await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await inspectorSubmit(page);
+      await page.locator('#view-toggle').click();await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await inspectorSubmit(page);
       await page.locator('#pages-toggle').click();await settle(page);
       assert.equal(await page.locator('.page-card').count(),4);
       const layout=await page.evaluate(()=>{const p=document.getElementById('inspector-panel').getBoundingClientRect(),c=document.getElementById('canvas').getBoundingClientRect();return{overflow:document.documentElement.scrollWidth>innerWidth,pr:p.right,pt:p.top,cb:c.bottom,ch:c.height};});

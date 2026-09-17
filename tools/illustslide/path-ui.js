@@ -8,7 +8,11 @@
     const key = ref => JSON.stringify([ref.id, ref.path, ref.index]);
     const same = (a, b) => key(a) === key(b);
     const objectOf = (id, page = ctx.page()) => page.objects.find(o => o.id === id);
-    const selectedPaths = () => ctx.selected().map(id => objectOf(id)).filter(o => o?.type === 'path');
+    // ctx.page() は常に文書全体。レイヤーの可視状態は候補と編集UIだけで判定する。
+    const isVisible = (object, page = ctx.page()) => !!object && (ctx.isVisible ? ctx.isVisible(object, page) : true);
+    const isLocked = (object, page = ctx.page()) => !!object && (ctx.isLocked ? ctx.isLocked(object, page) : !!object.locked);
+    const editableObject = (object, page = ctx.page()) => isVisible(object, page) && !isLocked(object, page);
+    const selectedPaths = () => ctx.selected().map(id => objectOf(id)).filter(o => o?.type === 'path' && isVisible(o));
     const node = (ref, page = ctx.page()) => {
       const object = objectOf(ref.id, page);
       return object?.type === 'path' ? P.inspect(object)[ref.path]?.segments[ref.index] : null;
@@ -20,7 +24,7 @@
         if (!selected.includes(ref.id)) return false;
         if (!inspected.has(ref.id)) {
           const object = objectOf(ref.id);
-          inspected.set(ref.id, object?.type === 'path' ? P.inspect(object) : []);
+          inspected.set(ref.id, object?.type === 'path' && isVisible(object) ? P.inspect(object) : []);
         }
         return !!inspected.get(ref.id)[ref.path]?.segments[ref.index];
       });
@@ -47,6 +51,11 @@
       if (next) page.objects[index] = next;
       else page.objects.splice(index, 1);
     }
+    function removeFromLayers(page, ids) {
+      if (!Array.isArray(page.layers)) return;
+      const removed = new Set(ids);
+      page.layers.forEach(layer => { layer.objectIds = layer.objectIds.filter(id => !removed.has(id)); });
+    }
     function mutate(fn, clear = false) {
       if (!ctx.editable()) return false;
       const changed = ctx.changePage(page => fn(page));
@@ -56,6 +65,7 @@
     }
     function editRefs(method, ...args) {
       if (!refs.length) return ctx.toast('編集するアンカーを選んでください。');
+      if (!refs.every(ref => editableObject(objectOf(ref.id)))) return ctx.toast('固定された図形は編集できません。');
       mutate(page => {
         for (const id of new Set(refs.map(r => r.id))) {
           replace(page, id, P[method](objectOf(id, page), refs.filter(r => r.id === id), ...args));
@@ -69,7 +79,7 @@
     // 選択前の頂点・細線も画面上の同じ距離で拾う。実際に押した前面の図形を優先する。
     function pick(point, event, base = ctx.page()) {
       const id = event.target.closest('[data-object]')?.dataset.object;
-      const objects = id ? base.objects.filter(o => o.id === id) : base.objects.slice().reverse();
+      const objects = (id ? base.objects.filter(o => o.id === id) : base.objects.slice().reverse()).filter(o => isVisible(o, base));
       const tolerance = (event.pointerType === 'touch' ? 14 : 9) / ctx.zoom();
       for (const object of objects) {
         if (object.type !== 'path') continue;
@@ -87,7 +97,7 @@
       return null;
     }
     function inspectTargets(base) {
-      return base.objects.filter(o => o.type === 'path').map(object => ({ object, paths: P.inspect(object), box: G.bounds(object) }));
+      return base.objects.filter(o => o.type === 'path' && isVisible(o, base)).map(object => ({ object, paths: P.inspect(object), box: G.bounds(object) }));
     }
     function snapped(point, event, drag) {
       snapTarget = null;
@@ -137,7 +147,7 @@
       clean();
       const paths = selectedPaths();
       if (!paths.length) return ctx.toast('アンカーを追加するパスを選択してください。');
-      if (!ctx.editable()) return false;
+      if (!ctx.editable() || paths.some(object => !editableObject(object))) return false;
       // 通常のツール切替を通し、全体選択に残ったパス編集状態も解除する。
       ctx.setTool('direct');
       addMode = true;
@@ -160,34 +170,37 @@
       const anchorElement = event.target.closest('[data-node]'), handleElement = event.target.closest('[data-bezier]');
       if (handleElement) {
         const [id, path, index, which] = JSON.parse(handleElement.dataset.bezier), ref = { id, path, index };
-        if (ctx.editable()) begin('bezier', event, point, base, { ref, which, nodes: [ref] });
+        if (editableObject(objectOf(id, base)) && ctx.editable()) begin('bezier', event, point, base, { ref, which, nodes: [ref] });
         return;
       }
       picked ||= pick(point, event, base);
       if (anchorElement || picked?.ref) {
         const [id, path, index] = anchorElement ? JSON.parse(anchorElement.dataset.node) : [picked.ref.id, picked.ref.path, picked.ref.index], ref = { id, path, index };
+        const object = objectOf(id, base);
+        if (!isVisible(object, base)) return;
         const already = refs.some(r => same(r, ref));
         if (event.shiftKey) selectRefs(already ? refs.filter(r => !same(r, ref)) : [...refs, ref], [...ctx.selected(), id]);
         else if (!already) selectRefs([ref], [id]);
         edge = null;
-        if (refs.some(r => same(r, ref)) && ctx.editable()) {
+        if (refs.some(r => same(r, ref)) && editableObject(object, base) && ctx.editable()) {
           begin('nodes', event, point, base, { nodes: C.clone(refs), primary: ref, origin: node(ref).point });
         }
         return;
       }
       const id = picked?.id || event.target.closest('[data-object]')?.dataset.object, near = picked?.near;
       const object = objectOf(id, base);
+      if (object && !isVisible(object, base)) return;
       if (object?.type === 'text' || object?.type === 'image') {
         refs = []; edge = null;
         ctx.select(event.shiftKey ? [...ctx.selected(), id] : [id]);
-        if (ctx.editable()) begin('move', event, point, base);
+        if (editableObject(object, base) && ctx.editable()) begin('move', event, point, base);
       } else if (object) {
         if (near) {
           const path = P.inspect(object)[near.path], next = (near.index + 1) % path.segments.length;
           const pair = [{ id, path: near.path, index: near.index }, { id, path: near.path, index: next }];
           selectRefs(event.shiftKey ? [...refs, ...pair] : pair, event.shiftKey ? [...ctx.selected(), id] : [id]);
           edge = { ...near, id };
-          if (ctx.editable()) begin('nodes', event, point, base, { nodes: C.clone(refs), primary: pair[0], origin: node(pair[0]).point });
+          if (editableObject(object, base) && ctx.editable()) begin('nodes', event, point, base, { nodes: C.clone(refs), primary: pair[0], origin: node(pair[0]).point });
         } else {
           edge = null;
           const ids = ctx.selected();
@@ -196,7 +209,7 @@
             ctx.select(remove ? ids.filter(key => !group.includes(key)) : [...ids, ...group]);
           } else if (!ids.includes(id)) { refs = []; ctx.select([id]); }
           clean();
-          if (ctx.selected().includes(id) && ctx.editable()) begin('move', event, point, base);
+          if (ctx.selected().includes(id) && editableObject(object, base) && ctx.editable()) begin('move', event, point, base);
         }
       } else {
         const before = C.clone(refs), selectedBefore = ctx.selected().slice();
@@ -234,7 +247,7 @@
       snapTarget = null;
       if (action.kind === 'node-marquee' && action.moved) {
         const b = action.box, hits = [];
-        for (const o of ctx.page().objects.filter(o => o.type === 'path')) {
+        for (const o of ctx.page().objects.filter(o => o.type === 'path' && isVisible(o))) {
           P.inspect(o).forEach((path, pi) => path.segments.forEach((segment, index) => {
             const point = segment.point;
             if (point.x >= b.x && point.x <= b.x + b.width && point.y >= b.y && point.y <= b.y + b.height) hits.push({ id: o.id, path: pi, index });
@@ -249,13 +262,13 @@
       if (addMode) return;
       if (event.target.closest('[data-node],[data-bezier]')) return;
       const id = event.target.closest('[data-object]')?.dataset.object, object = objectOf(id);
-      if (object?.type !== 'path') return;
+      if (object?.type !== 'path' || !editableObject(object)) return;
       const near = P.nearest(object, point);
       if (near && near.distance <= 9 / ctx.zoom()) { ctx.select([id]); edge = { id, ...near }; addAnchor(); }
     }
     function render(page, z) {
       clean();
-      const paths = page.objects.filter(o => ctx.selected().includes(o.id) && o.type === 'path');
+      const paths = page.objects.filter(o => ctx.selected().includes(o.id) && o.type === 'path' && isVisible(o, page));
       if (!paths.length) return null;
       const stroke = 1.2 / z, hit = (matchMedia('(pointer:coarse)').matches ? 15 : 8) / z;
       const chosen = new Set(refs.map(key));
@@ -276,7 +289,7 @@
         inspected.forEach((path, pi) => path.segments.forEach((segment, i) => {
           const active = chosen.has(key({ id: object.id, path: pi, index: i })), p = segment.point;
           const endpoint = !path.closed && (i === 0 || i === path.segments.length - 1), size = (endpoint ? 5 : 4) / z;
-          result += `<g data-node="${ctx.esc(JSON.stringify([object.id, pi, i]))}" style="cursor:${object.locked ? 'not-allowed' : 'move'}"><circle cx="${p.x}" cy="${p.y}" r="${hit}" fill="transparent"/><rect x="${p.x - size}" y="${p.y - size}" width="${size * 2}" height="${size * 2}" rx="${endpoint ? 3 / z : 0}" fill="${active ? '#2563eb' : '#fff'}" stroke="#2563eb" stroke-width="${stroke}"/></g>`;
+          result += `<g data-node="${ctx.esc(JSON.stringify([object.id, pi, i]))}" style="cursor:${isLocked(object, page) ? 'not-allowed' : 'move'}"><circle cx="${p.x}" cy="${p.y}" r="${hit}" fill="transparent"/><rect x="${p.x - size}" y="${p.y - size}" width="${size * 2}" height="${size * 2}" rx="${endpoint ? 3 / z : 0}" fill="${active ? '#2563eb' : '#fff'}" stroke="#2563eb" stroke-width="${stroke}"/></g>`;
         }));
       }
       return result + snapMarkup(z);
@@ -288,6 +301,7 @@
     }
     function addAnchor() {
       if (!edge) return beginAddMode();
+      if (!editableObject(objectOf(edge.id))) return ctx.toast('固定された図形は編集できません。');
       let added;
       try {
         if (mutate(page => {
@@ -312,7 +326,7 @@
       });
     }
     function coordinateDialog() {
-      if (!refs.length || !ctx.editable()) return;
+      if (!refs.length || !refs.every(ref => editableObject(objectOf(ref.id))) || !ctx.editable()) return;
       // 即時反映を繰り返しても移動量を重ねないよう、開始時の形から再計算する。
       const formRefs = C.clone(refs), formObjects = new Map();
       formRefs.forEach(ref => { if (!formObjects.has(ref.id)) formObjects.set(ref.id, C.clone(objectOf(ref.id))); });
@@ -341,7 +355,7 @@
       });
     }
     function roundingDialog() {
-      if (!refs.length || !ctx.editable()) return;
+      if (!refs.length || !refs.every(ref => editableObject(objectOf(ref.id))) || !ctx.editable()) return;
       ctx.showDialog('選んだ角を丸める', `<p>選んだアンカーの角を曲線に置き換えます。</p><label>半径（px）<input id="corner-radius" type="number" min="0.001" step="any" required value="${Math.max(.1, ctx.standardSize() / 8)}"></label><p class="muted">直線同士の角が対象です。隣の角と重ならない大きさに収めます。元に戻す操作で取り消せます。</p>`, '丸める', () => {
         const radius = Number($('corner-radius').value);
         if (!Number.isFinite(radius) || radius <= 0) throw Error('半径は0より大きい数にしてください。');
@@ -349,25 +363,26 @@
       });
     }
     function joinDialog() {
-      if (!endpoints() || !ctx.editable()) return;
+      if (!endpoints() || !refs.every(ref => editableObject(objectOf(ref.id))) || !ctx.editable()) return;
       ctx.showDialog('2つの端点をつなぐ', '<label>つなぎ方<select id="join-mode"><option value="line">直線でつなぐ</option><option value="merge">中間の1点にまとめる</option><option value="smooth">滑らかな曲線でつなぐ</option></select></label><p class="muted">最初に選んだパスの書式を使います。同じパスの両端をつなぐと閉じます。</p>', 'つなぐ', () => {
         const [a, b] = refs, mode = $('join-mode').value;
         if (mutate(page => {
           const result = P.joinEndpoints(objectOf(a.id, page), a, objectOf(b.id, page), b, mode);
           replace(page, a.id, result);
-          if (a.id !== b.id) page.objects = page.objects.filter(o => o.id !== b.id);
+          if (a.id !== b.id) { page.objects = page.objects.filter(o => o.id !== b.id); removeFromLayers(page, [b.id]); }
         }, true)) ctx.select([a.id]);
       });
     }
     function combine(operation) {
       const objects = selectedPaths();
-      if (objects.length < 2 || objects.length !== ctx.selected().length || !ctx.editable()) return;
+      if (objects.length < 2 || objects.length !== ctx.selected().length || objects.some(object => !editableObject(object)) || !ctx.editable()) return;
       const first = objects[0].id;
       if (mutate(page => {
         const result = P.boolean(objects, operation), ids = new Set(objects.map(o => o.id));
         const index = page.objects.findIndex(o => o.id === first);
         if (result) page.objects[index] = result;
         page.objects = page.objects.filter(o => (result && o.id === first) || !ids.has(o.id));
+        removeFromLayers(page, [...ids].filter(id => id !== first));
       }, true)) { ctx.select([first]); ctx.setTool('direct'); }
     }
     const commands = {
@@ -384,12 +399,14 @@
       'anchor-smooth': () => editRefs('setAnchorType', 'smooth'),
       'anchor-round': roundingDialog,
       'path-open': () => {
-        if (refs.length !== 1) return;
+        if (refs.length !== 1 || !editableObject(objectOf(refs[0].id))) return;
         mutate(page => replace(page, refs[0].id, P.openPath(objectOf(refs[0].id, page), refs[0])), true);
       },
-      'path-close': () => mutate(page => {
-        for (const object of selectedPaths()) replace(page, object.id, P.closePaths(object, P.inspect(object).flatMap((p, i) => p.closed ? [] : [i])));
-      }, true),
+      'path-close': () => {
+        const objects = selectedPaths();
+        if (objects.some(object => !editableObject(object))) return;
+        mutate(page => { for (const object of objects) replace(page, object.id, P.closePaths(object, P.inspect(object).flatMap((p, i) => p.closed ? [] : [i]))); }, true);
+      },
       'path-join': joinDialog,
       'path-union': () => combine('union'),
       'path-subtract': () => combine('subtract'),

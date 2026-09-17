@@ -1,6 +1,7 @@
 /* illustSlide: 設定を図形と並べて編集する右側インスペクタ。 */
 #app.inspector-open{grid-template-columns:146px minmax(220px,1fr) var(--inspector-width,320px) 38px}
 #inspector-panel{grid-area:export;position:relative;z-index:4;display:grid;grid-template-rows:auto auto minmax(0,1fr);min-width:220px;width:var(--inspector-width,320px);background:var(--panel);border-left:1px solid var(--line);box-shadow:-8px 0 20px #1e293b0d;overflow:hidden}
+#inspector-panel.global-settings{grid-template-rows:auto minmax(0,1fr)}
 #inspector-form{display:grid;grid-template-rows:minmax(0,1fr) auto auto;min-height:0}
 #inspector-panel header{display:flex;align-items:center;gap:8px;padding:12px 14px;border-bottom:1px solid var(--line);min-width:0}
 #inspector-title{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -16,7 +17,7 @@
 #inspector-resize{position:absolute;z-index:2;top:0;bottom:0;left:-8px;width:15px;min-width:15px;min-height:0;padding:0;border:0;border-radius:0;background:transparent;cursor:col-resize;touch-action:none}
 #inspector-resize:before{content:'';position:absolute;top:50%;left:5px;width:3px;height:42px;transform:translateY(-50%);border-radius:3px;background:var(--line);opacity:0}
 #inspector-resize:hover:before,#inspector-resize:focus-visible:before{opacity:1}
-#inspector-toggle[aria-expanded=true],#pages-toggle[aria-expanded=true],#objects-toggle[aria-expanded=true],#assets-toggle[aria-expanded=true]{background:var(--accent-soft);color:var(--accent)}
+.side-tab button[aria-expanded=true]{background:var(--accent-soft);color:var(--accent)}
 .page-toolbar{display:flex;gap:6px;position:sticky;top:-4px;padding:8px 0 10px;background:var(--panel);z-index:1}
 .page-toolbar button{flex:1;min-width:0;min-height:40px;padding:5px}
 .page-cards{display:grid;gap:10px;padding:2px 0 10px}

@@ -1,6 +1,7 @@
 /* Ilapo SVG and project interchange.  SVG is the artwork source of truth. */
 (function (root) {
   'use strict';
+  function layers() { return root.IlapoLayers || (typeof require === 'function' ? require('./layers.js') : null); }
   var SVG_NS = 'http://www.w3.org/2000/svg';
   var supported = { svg: 1, g: 1, path: 1, rect: 1, circle: 1, ellipse: 1, line: 1, polyline: 1, polygon: 1, text: 1, tspan: 1, title: 1, desc: 1, image:1 };
   var blocked = { script: 1, foreignobject: 1, use: 1, iframe: 1, object: 1, embed: 1, animate: 1, animatemotion: 1, set: 1, style: 1, link: 1, audio: 1, video: 1 };
@@ -86,7 +87,7 @@
   }
   function bounds(objects) { var g = root.IlapoGeometry, result = null; (objects || []).forEach(function (o) { if (!g || !g.bounds) return; var b = (g.visualBounds || g.bounds)(o); if (!result) result = { x: b.x, y: b.y, right: b.x + b.width, bottom: b.y + b.height }; else { result.x = Math.min(result.x, b.x); result.y = Math.min(result.y, b.y); result.right = Math.max(result.right, b.x + b.width); result.bottom = Math.max(result.bottom, b.y + b.height); } }); return result;
   }
-  function exportPage(page, options) { options = options || {};page=root.IlapoCore.clone(page);root.IlapoConnectors?.sync(page); var objects = (page.objects || []).filter(function (o) { return (options.includeReferences||!(o.type==='image'&&o.reference))&&(!options.selectionIds || options.selectionIds.indexOf(o.id) >= 0); }); var pad = number(options.padding, 20), board = page.board || {}, w = number(board.width, 800), h = number(board.height, 600), x = 0, y = 0;
+  function exportPage(page, options) { options = options || {};page=root.IlapoCore.clone(page);root.IlapoConnectors?.sync(page);if(page.layers&&!options.includeHidden){page=layers().forOutput(page);root.IlapoConnectors?.sync(page);} var objects = (page.objects || []).filter(function (o) { return (options.includeReferences||!(o.type==='image'&&o.reference))&&(!options.selectionIds || options.selectionIds.indexOf(o.id) >= 0); }); var pad = number(options.padding, 20), board = page.board || {}, w = number(board.width, 800), h = number(board.height, 600), x = 0, y = 0;
     if (board.infinite || options.selectionIds) { var b = bounds(objects); if (b) { x = b.x - pad; y = b.y - pad; w = Math.max(1, b.right - b.x + 2 * pad); h = Math.max(1, b.bottom - b.y + 2 * pad); } }
     var body = '', openGroup = null; objects.forEach(function (o) { if (o.group !== openGroup) { if (openGroup) body += '</g>'; openGroup=o.group||null; if(openGroup) body += '<g data-ilapo-group="' + esc(openGroup) + '">'; } body += objectMarkup(o,options); }); if(openGroup) body += '</g>';
     return '<?xml version="1.0" encoding="UTF-8"?><svg xmlns="' + SVG_NS + '" width="' + w + '" height="' + h + '" viewBox="' + x + ' ' + y + ' ' + w + ' ' + h + '" data-ilapo-page-id="' + esc(page.id || '') + '">' + body + '</svg>';
@@ -281,6 +282,7 @@
     doc.pages.forEach(function(page,index){
       var file='pages/'+encodeURIComponent(page.id)+'.svg',meta={id:page.id,name:page.name,board:page.board,file:file,objects:Object.create(null)};
       if(page.animations!==undefined)meta.animations=page.animations;
+      if(page.layers!==undefined)meta.layers=page.layers;
       page.objects.forEach(function(o){
         var m={name:o.name,group:o.group,locked:o.locked};
         if(o.type==='connector')m.connector=o;
@@ -291,7 +293,7 @@
         if(o.type==='path'&&o.label!=null)m.label=o.label;
         meta.objects[o.id]=m;
       });
-      manifest.pages.push(meta);files[file]=root.fflate.strToU8(exportPage(page,{includeReferences:true,rawTransforms:true}));
+      manifest.pages.push(meta);files[file]=root.fflate.strToU8(exportPage(page,{includeReferences:true,includeHidden:true,rawTransforms:true}));
     });
     files['manifest.json']=root.fflate.strToU8(JSON.stringify(manifest));
     if(Object.values(files).reduce(function(n,b){return n+b.length;},0)>20*1024*1024)throw new Error('Project ZIP exceeds size limit');
@@ -306,7 +308,7 @@
     }}),raw=files['manifest.json'];
     if(!raw)throw new Error('Project manifest is missing');
     var manifest=JSON.parse(root.fflate.strFromU8(raw));
-    if(manifest.format!=='kaijo-ilapo'||![1,2,3,4,5].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
+    if(manifest.format!=='kaijo-ilapo'||![1,2,3,4,5,6].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
     var seenPages=new Set(),doc={format:'kaijo-ilapo',version:manifest.version,id:manifest.id,name:manifest.name,pages:[]};
     manifest.pages.forEach(function(meta){
       if(!meta||typeof meta.id!=='string'||typeof meta.name!=='string'||typeof meta.file!=='string'||!meta.board||typeof meta.board!=='object'||!meta.objects||typeof meta.objects!=='object'||Array.isArray(meta.objects)||seenPages.has(meta.id)||!Object.hasOwn(files,meta.file))throw new Error('Invalid project page metadata');
@@ -316,6 +318,7 @@
       imported.nativeLabels.forEach(function(owner){labelCounts.set(owner,(labelCounts.get(owner)||0)+1);});
       imported.nativeLabelGroups.forEach(function(owner){labelGroups.set(owner,(labelGroups.get(owner)||0)+1);});
       page.id=meta.id;page.name=meta.name;page.board=meta.board;if(meta.animations!==undefined)page.animations=meta.animations;
+      if(meta.layers!==undefined){if(manifest.version<6)throw new Error('Invalid layer metadata version');page.layers=meta.layers;}
       page.objects.forEach(function(o){
         if(seenObjects.has(o.id))throw new Error('Duplicate SVG object ID');
         seenObjects.add(o.id);var m=Object.hasOwn(meta.objects,o.id)?meta.objects[o.id]:null;

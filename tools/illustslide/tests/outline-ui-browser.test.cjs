@@ -196,7 +196,7 @@ async function panelMetrics(page) {
 
     // 390px・dark・xlarge・タッチでも右パネル内のoverflowを起こさず、Escapeで閉じられる。
     await page.setViewportSize({ width: 390, height: 736 });
-    await page.locator('#inspector-toggle').click(); await page.locator('#inspector-tabs [data-inspector-section="view"]').click();
+    await page.locator('#board-toggle').click(); await page.locator('#view-toggle').click();
     await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await inspectorSubmit(page);
     await load(page, original); await selectObject(page, 'outline-label-shape', 450, 120); await openOutline(page, 'edit'); await waitPreview(page);
     const narrow = await panelMetrics(page); assert(narrow.documentScroll <= narrow.width + 1 && narrow.bodyScroll <= narrow.width + 1 && narrow.panelRight <= narrow.width + 1, `390px dark xlargeで横overflowしない: ${JSON.stringify(narrow)}`);

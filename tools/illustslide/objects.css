@@ -1,5 +1,7 @@
 /* illustSlide: 狭いパネルでも名前と操作を分けて表示する図形一覧。 */
-.object-list,.object-children{list-style:none;padding:0;margin:8px 0}
+.object-list,.object-children,.object-layers{list-style:none;padding:0;margin:8px 0}
+.layer-toolbar{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px}.object-layer-add,.object-layer-move-selection{display:flex;align-items:center;gap:5px;min-height:40px;padding:6px 9px;max-width:100%;white-space:normal;overflow-wrap:anywhere}.object-layer-add svg,.object-layer-move-selection svg{width:18px;height:18px;flex:none}
+.object-layer{border:1px solid var(--line);border-radius:9px;margin:10px 0;background:var(--panel);min-width:0;overflow:hidden}.object-layer.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent-soft)}.object-layer.hidden-layer{opacity:.7}.object-layer-head{display:grid;grid-template-columns:minmax(0,1fr);padding:4px;background:color-mix(in srgb,var(--panel) 88%,var(--accent-soft))}.object-layer-pick{display:flex;align-items:center;gap:7px;min-height:42px;border:0;background:transparent;text-align:left;min-width:0;padding:5px}.object-layer-pick svg{width:20px;height:20px;flex:none}.object-layer-actions{display:flex;gap:3px;justify-content:flex-end;flex-wrap:wrap}.object-layer-content{padding:0 5px 4px}.layer-objects-disabled{opacity:.62}.layer-objects-disabled .object-drag-handle{cursor:not-allowed}.object-empty{padding:4px 7px;margin:6px 0}
 .object-unit{position:relative;border:1px solid var(--line);border-radius:8px;margin:8px 0;background:var(--panel);min-width:0;overflow-wrap:anywhere}
 .object-row{position:relative;display:grid;grid-template-columns:30px minmax(0,1fr);gap:2px;min-width:0;padding:3px}
 .object-pick,.object-group-pick{display:flex;align-items:center;gap:6px;min-width:0;min-height:42px;text-align:left;background:transparent;border:0;padding:5px}
@@ -24,6 +26,7 @@
 .object-row.drop-before,.object-unit.drop-before{box-shadow:0 -3px 0 var(--accent)}
 .object-row.drop-after,.object-unit.drop-after{box-shadow:0 3px 0 var(--accent)}
 @media(pointer:coarse),(max-width:560px){
+  .object-layer-add,.object-layer-move-selection{min-height:44px}.object-layer-actions{justify-content:flex-start}
   .object-action,.object-drag-handle,.object-group-toggle{min-width:44px;min-height:44px;width:44px}
   .object-pick,.object-group-pick{min-height:44px}
   .object-row{grid-template-columns:44px minmax(0,1fr)}

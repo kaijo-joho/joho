@@ -101,8 +101,8 @@ async function setSelection(page, start, end) {
   }, [start, end]);
 }
 async function viewSettings(page) {
-  if (!await page.locator('#inspector-panel').isVisible()) await page.locator('#inspector-toggle').click();
-  await page.locator('#inspector-tabs [data-inspector-section="view"]').click(); await settle(page);
+  if (!await page.locator('#inspector-panel').isVisible()) await page.locator('#board-toggle').click();
+  await page.locator('#view-toggle').click(); await settle(page);
 }
 
 (async () => {

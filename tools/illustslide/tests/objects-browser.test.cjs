@@ -84,14 +84,15 @@ async function load(page, document) {
     await page.locator('[data-pick-object="front"]').focus(); await page.keyboard.press('ArrowDown'); await settle(page);
     assert.deepEqual(await page.evaluate(() => IlapoEditor.getSelection()), ['back']);
     await page.keyboard.press('Home'); await settle(page);
-    assert.equal(await page.evaluate(() => document.activeElement.dataset.objectGroupPick), 'group-1');
+    assert.equal(await page.evaluate(() => document.activeElement.dataset.layerPick), 'default');
+    await page.keyboard.press('ArrowDown');await settle(page);assert.equal(await page.evaluate(() => document.activeElement.dataset.objectGroupPick), 'group-1');
     await page.keyboard.press('Escape'); await settle(page);
     assert.equal(await page.locator('#inspector-panel').isVisible(), false);
     assert.equal(await page.locator('#objects-toggle').evaluate(element => document.activeElement === element), true);
 
     await page.locator('#objects-toggle').click(); await page.locator('[data-object-group-toggle]').click(); await settle(page);
     const dragHandle = page.locator('[data-object-row="back"] [data-object-drag]');
-    const groupHead = page.locator('.object-group-head'); const from = await dragHandle.boundingBox(), to = await groupHead.boundingBox();
+    const groupHead = page.locator('.object-group-head'); await dragHandle.scrollIntoViewIfNeeded();await groupHead.scrollIntoViewIfNeeded();const from = await dragHandle.boundingBox(), to = await groupHead.boundingBox();
     await page.mouse.move(from.x + from.width / 2, from.y + from.height / 2); await page.mouse.down(); assert.equal(await page.locator('.dragging').count(), 1, 'drag starts from its handle');
     await page.mouse.move(to.x + to.width / 2, to.y + 3, { steps: 5 }); assert.equal(await page.locator('.drop-before').count(), 1, 'drag previews the front insertion point'); await page.mouse.up(); await settle(page);
     assert.deepEqual((await read(page)).pages[0].objects.map(object => object.id), ['front', 'grouped', 'back'], 'dragging a unit in front commits one history change on drop');

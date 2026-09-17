@@ -164,7 +164,7 @@ async function run() {
       const doc = fixture([shape('M150 100L350 100L350 300L150 300Z', 'touch-shape')]);
       await touch.locator('#file-input').setInputFiles({ name: 'touch.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(doc)) });
       await touch.waitForFunction(id => IlapoEditor.getDocument().id === id, doc.id);
-      await touch.locator('#objects-toggle').tap(); await touch.locator('[data-pick-object="touch-shape"]').tap(); await touch.locator('#inspector-close').tap();
+      await touch.locator('#objects-toggle').tap(); await touch.locator('[data-pick-object="touch-shape"]').tap(); await touch.locator('#inspector-close').tap();await touch.locator('#direct-mode').tap();
       const rect = await touch.locator('[data-node]').first().boundingBox(), x = rect.x + rect.width / 2, y = rect.y + rect.height / 2;
       const cdp = await touchContext.newCDPSession(touch);
       await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });

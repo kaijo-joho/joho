@@ -11,14 +11,17 @@
     });
     return [...grouped.values()].sort((a,b) => b.front-a.front);
   }
-  function reorder(page, sourceKey, targetKey, front) {
+  function reorderItems(items, sourceKey, targetKey, front) {
     if(sourceKey===targetKey) return;
-    const source=page.objects.filter(object=>keyOf(object)===sourceKey);
-    const rest=page.objects.filter(object=>keyOf(object)!==sourceKey);
+    const source=items.filter(object=>keyOf(object)===sourceKey);
+    const rest=items.filter(object=>keyOf(object)!==sourceKey);
     const indexes=rest.flatMap((object,index)=>keyOf(object)===targetKey?[index]:[]);
     if(!source.length || !indexes.length) return;
     const at=front?Math.max(...indexes)+1:Math.min(...indexes);
-    rest.splice(at,0,...source); page.objects=rest;
+    rest.splice(at,0,...source); items.splice(0,items.length,...rest);
+  }
+  function reorder(page, sourceKey, targetKey, front) {
+    reorderItems(page.objects,sourceKey,targetKey,front);
   }
   function reorderChild(page, sourceId, targetId, front) {
     const group=page.objects.find(object=>object.id===sourceId)?.group;
@@ -29,7 +32,7 @@
     const at=items.findIndex(object=>object.id===targetId)+(front?1:0);
     items.splice(at,0,item); slots.forEach((index,i)=>page.objects[index]=items[i]);
   }
-  const api=Object.freeze({keyOf,units,reorder,reorderChild});
+  const api=Object.freeze({keyOf,units,reorderItems,reorder,reorderChild});
   root.IlapoObjectsModel=api;
   if(typeof module==='object' && module.exports) module.exports=api;
 }(typeof globalThis==='undefined'?this:globalThis));

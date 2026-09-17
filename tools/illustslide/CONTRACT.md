@@ -1,12 +1,12 @@
-# イラストスライド illustSlideの内部契約（0.4.14）
+# イラストスライド illustSlideの内部契約（0.4.15）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
 
 0.4.2から配置先は `tools/illustslide/`、保存名は `.illustslide.zip`。旧URLは案内ページを残し、旧 `.ilapo.zip`・保存キー・内部API・文書形式・SVG識別子は互換性を保つ。直接ファイル利用時のブラウザ保存は、旧ページでJSONとして取り出せる。
 
-文書: `{format:'kaijo-ilapo',version:1|2|3|4|5,id,name,pages:[page]}`。version1〜4を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5へ上げる。上がったversionを下げず、引数は変更しない。
-ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation]}`。
+文書: `{format:'kaijo-ilapo',version:1|2|3|4|5|6,id,name,pages:[page]}`。version1〜5を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5、page.layersがあればversion6へ上げる。上がったversionを下げず、引数は変更しない。
+ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation],layers?:[layer]}`。
 幅・高さ・座標はCSS pxの小数。unitは表示単位px/mm/pt。無限ページにも書き出し用の初期width/heightを保持。
 オブジェクト: `{id,type:'path'|'text'|'image'|'connector',name,group:null|string,locked:false,matrix:[a,b,c,d,e,f],style}`。
 pathは標準SVGの`d`、textは`x,y,runs:[{text,script:'normal'|'super'|'sub',bold?:boolean,italic?:boolean,fill?:色}]`を追加する。部分書式は省略時に親styleを継承し、falseも明示値として保持する。fillは#RRGGBBまたはnone。
@@ -27,6 +27,17 @@ fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。f
 `History` new History(doc); `.document`, `.change(fn,{group}?)` (cloneへfnして検証、既定1undo・group指定時の連結は後述), `.undo()`, `.redo()`, `.replace(doc)`, `.canUndo`, `.canRedo`。無変更は履歴なし、例外時元文書保持。
 `Store` new Store(storage); `.save(doc,kind)` kind=auto/saved, `.list()` [{kind,at,document}], 壊れた一方があっても他方を返す。保存失敗throw。
 
+## IlapoLayers（layers.js、0.4.15）
+
+`page.layers` は背面→前面順の `[{id,name,visible,locked,objectIds:[id]}]`。1〜100個。すべての図形がちょうど1つのレイヤーに属し、グループはレイヤーをまたがない。レイヤー内のobjectIdsは背面→前面順、全レイヤーを連結した順とpage.objectsを一致させる。不正なID・重複・所属漏れ・順序不一致は検証で拒否する。幾何情報は従来どおりobjectsに置く。
+
+`list(page)`、`layerOf(page,objectOrId)`、`visible(page,objectOrId)`、`locked(page,objectOrId)`、`orderedObjects(page)`。layersなしのページには非破壊の仮想defaultレイヤーを返す。可視性はレイヤーで、固定は個別固定との論理和で判定する。
+`create(page,name?)`、`rename(page,id,name)`、`setVisible(page,id,value)`、`setLocked(page,id,value)`、`move(page,id,delta)`（+1が前面）、`moveObjects(page,ids,targetId)`、`remove(page,id)`。削除は最後のレイヤーを拒否し、図形を隣へ移す。グループ移動は全構成員を扱う。これらの変更はeditorのHistoryを通す。
+`reconcile(page,beforePage?,activeId?)` は削除済みの所属を除き、新規図形を現在レイヤーへ割り当てて順序を揃える。既存グループの所属を優先し、非表示・固定の現在レイヤーへの追加は拒否する。layersなしのページには何も追加しない。通常の図形操作は所属と順序を保持する。合体・連結・矢印変換・アウトライン化では増減した図形IDと所属を同時に更新する。
+`forOutput(page)` は可視図形だけの複製を返し、動きの対象も絞る。元ページは変更しない。非表示だけを対象とする動きは取り除く。接続はフィルタ前の端点を保持し、出力用の複製で接続先不在を解消する。
+
+追加先レイヤーは文書ID・ページIDごとのUI状態で、作品JSONやUndoには保存しない。単一レイヤーの図形選択で追加先を合わせる。レイヤーを直接選ぶと図形選択を解除する。ページ全体のプレビューを可視図形だけのデータで置き換えない。PathUI・ConnectorUI・OutlineUIへ `isVisible(object,page?)` / `isLocked(object,page?)` を注入し、Guides.prepareの第5引数は `{isVisible}` とする。
+
 ## IlapoSVG (svg.js)
 
 `objectMarkup(object,options?)` は表示用安全SVG文字列。通常はpathの変形を表示用の座標へ反映し、作品座標の`strokeWidth`・`dash`を使う。カメラ・出力倍率には追従するが、図形の変形行列では線を再拡大しない。文字・画像の変形方法は従来どおり。
@@ -41,7 +52,9 @@ version4はmetadataの`text:{x,y,runs,layout}`で入力時の文章・揃え・�
 
 version5は部分書式の任意キーをrunsへ追加する。折り返し付き文字・図形ラベルは上記metadataで保持し、通常の文字はSVGのtspanを正本とする。部分書式がない古いrunへ不要な既定値を補わず、明示falseも保存する。
 
-`exportPage`の`includeReferences:true`はnative ZIP用。既定falseは参照画像を省く。imageのsrcはPNG/JPEG/WebPのbase64データURLだけを許し、外部URL・埋め込みSVGを拒否する。ZIPのページファイル名はpage.idをencodeURIComponentしたものとする。
+version6はmanifestの各ページにlayersを記録する。非表示の図形もnative SVGに保持し、復元後に所属・順序を含めて検証する。通常のSVGでは非表示図形を省く。
+
+`exportPage`の`includeReferences:true`と`includeHidden:true`はnative ZIP用。既定falseは参照画像を省く。imageのsrcはPNG/JPEG/WebPのbase64データURLだけを許し、外部URL・埋め込みSVGを拒否する。ZIPのページファイル名はpage.idをencodeURIComponentしたものとする。
 
 native ZIPでは`rawTransforms:true`も指定し、元のd・matrix・styleを各SVGへそのまま保持する。表示・通常SVG・PNG・PDF・発表はこの指定を使わない。外部アプリで線幅まで一致する持ち出しには通常のSVGを書き出す。
 
@@ -145,7 +158,7 @@ requestは `{section,title,html,label,apply,auto?,preview?,scope,refresh,opener}
 
 `IlapoPagesUI.create({document,page,selectPage,change,showInspector,showDialog,esc,icon})` は `open()` を返す。ページIDを対象に操作し、DOMの一覧番号を文書参照の正本にしない。切替は選択・編集中のプレビューを解除して表示範囲を合わせ、Historyを変えない。変更は既存のCore/Historyを通す。サムネイルは検証済みページのSVG出力で、下絵を除外する。
 
-pagesのscopeは文書ID・ページID・編集リビジョン。図形の選択だけでは一覧を作り直さず、編集確定時に更新する。右端「ページ」はpagesだけ、「図形」はobjects、「設定」は残りの設定セクションの開閉状態をaria-expandedで示す。文書の入れ替え後に古い一覧のイベントで別の文書を編集しない。
+pagesのscopeは文書ID・ページID・編集リビジョン。図形の選択だけでは一覧を作り直さず、編集確定時に更新する。右端のページ・図形・部品・用紙サイズ・表示と吸着・動きと再生順序は、それぞれpages・objects・assets・board・view・animationの開閉状態をaria-expandedで示す。書き出しも同じレールに置く。これら全体パネルではinspector-tabsを非表示にし、選択図形のパネルに全体設定のタブを混ぜない。文書の入れ替え後に古い一覧のイベントで別の文書を編集しない。
 
 選択バーのdata-menuボタンはマウスpointerenterで開く。ドラッグ・タッチ・モーダル表示中にはホバー起動しない。開くだけではフォーカスを動かさず、ポップアップへの移動を妨げないため閉鎖だけ240ms待つ。クリックやキーボードで開いたメニューは外側クリック・実行・Escapeまで保持する。高さは起点の上／下にある空間から計算し、ボタンへ重ねない。ホバーメニュー表示中のEscapeはパネルやキャンバスへ伝えない。
 

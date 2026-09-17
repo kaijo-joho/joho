@@ -18,12 +18,11 @@
     const canvasButton = byId('inspector-canvas');
     const resizeButton = byId('inspector-resize');
     const tabs = byId('inspector-tabs');
-    const toggle = byId('inspector-toggle');
     const app = byId('app');
     const canvas = byId('canvas');
     const exportPanel = byId('export-panel');
 
-    if (!panel || !form || !title || !body || !error || !submit || !resetButton || !closeButton || !canvasButton || !resizeButton || !tabs || !toggle || !app || !canvas) {
+    if (!panel || !form || !title || !body || !error || !submit || !resetButton || !closeButton || !canvasButton || !resizeButton || !tabs || !app || !canvas) {
       throw new Error('インスペクタの必要な要素が見つかりません。');
     }
 
@@ -117,10 +116,9 @@
     }
 
     function updateTabs() {
-      toggle.setAttribute('aria-expanded', String(Boolean(current && !['pages', 'objects', 'assets'].includes(current.section))));
-      byId('assets-toggle')?.setAttribute('aria-expanded', String(Boolean(current && current.section === 'assets')));
-      byId('objects-toggle')?.setAttribute('aria-expanded', String(Boolean(current && current.section === 'objects')));
-      byId('pages-toggle')?.setAttribute('aria-expanded', String(Boolean(current && current.section === 'pages')));
+      for (const section of ['pages', 'objects', 'assets', 'board', 'view', 'animation']) {
+        byId(section + '-toggle')?.setAttribute('aria-expanded', String(Boolean(current && current.section === section)));
+      }
       tabs.querySelectorAll('button').forEach(button => {
         const selected = Boolean(current && button.dataset.inspectorSection === current.section);
         button.classList.toggle('on', selected);

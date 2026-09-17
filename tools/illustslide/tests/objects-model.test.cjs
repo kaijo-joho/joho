@@ -16,5 +16,8 @@ assert.deepEqual(ids(page),['other','a','b','c','single','h-last']);
 assert.deepEqual(page.objects.filter(o=>o.group!=='g').map(o=>o.id),['other','single','h-last'],'対象以外の相対順を保つ');
 page=make();M.reorder(page,'o:single','g:g',true);
 assert.deepEqual(ids(page),['a','other','b','h-last','c','single']);
+const layerItems=[{id:'back',group:null},{id:'g1',group:'g'},{id:'g2',group:'g'},{id:'front',group:null}];
+M.reorderItems(layerItems,'o:back','g:g',true);
+assert.deepEqual(layerItems.map(object=>object.id),['g1','g2','back','front'],'レイヤー内だけの配列も同じ規則で並べ替えられる');
 assert.equal(M.units([{id:'g',group:null},{id:'child',group:'g'}]).length,2,'同名のgroup IDとobject IDは混同しない');
 console.log('illustSlide objects model tests passed');

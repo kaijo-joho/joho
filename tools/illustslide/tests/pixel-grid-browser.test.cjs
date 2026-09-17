@@ -68,8 +68,13 @@ async function run() {
   }, point);
   const boundsOf = (document, id) => page.evaluate(({ document, id }) => IlapoGeometry.bounds(document.pages[0].objects.find(object => object.id === id)), { document, id });
   const openSection = async section => {
-    if (!await page.locator('#inspector-panel').isVisible()) await page.locator('#inspector-toggle').click();
-    await page.locator(`#inspector-tabs [data-inspector-section="${section}"]`).click();
+    if (['board','view','animation'].includes(section)) {
+      const button = page.locator('#' + section + '-toggle');
+      if (await button.getAttribute('aria-expanded') !== 'true') await button.click();
+    } else {
+      if (!await page.locator('#inspector-panel').isVisible() || !await page.locator('#inspector-tabs').isVisible()) await page.locator('#style-button').click();
+      await page.locator(`#inspector-tabs [data-inspector-section="${section}"]`).click();
+    }
     await settle(page);
   };
   const submitInspector = async () => {
@@ -273,7 +278,7 @@ async function run() {
     await touch.locator('#file-input').setInputFiles({ name: 'mobile.json', mimeType: 'application/json', buffer: Buffer.from(JSON.stringify(mobileDocument)) });
     if (await touch.locator('#replace-discard').isVisible()) await touch.locator('#replace-discard').click();
     await touch.waitForFunction(id => IlapoEditor.getDocument().id === id, mobileDocument.id); await settle(touch);
-    await touch.locator('#inspector-toggle').tap(); await touch.locator('#inspector-tabs [data-inspector-section="view"]').tap();
+    await touch.locator('#board-toggle').tap(); await touch.locator('#view-toggle').tap();
     await touch.locator('#view-theme').selectOption('dark'); await touch.locator('#view-size').selectOption('xlarge');
     const touchSubmit = touch.locator('#inspector-submit'); if (await touchSubmit.isVisible()) await touchSubmit.tap(); await settle(touch);
     assert.equal(await touch.evaluate(() => document.documentElement.dataset.theme), 'dark');

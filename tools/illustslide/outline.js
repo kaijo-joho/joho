@@ -7,7 +7,7 @@
   const checkPage=p=>C.validateDocument({format:'kaijo-ilapo',version:4,id:'outline-check',name:'',pages:[p]}).pages[0];
   function inspect(page,ids){
     const objects=page.objects.filter(o=>ids.includes(o.id));
-    return {lines:objects.filter(o=>['path','connector'].includes(o.type)&&hasStroke(o)).length,text:objects.filter(hasText).length,locked:objects.some(o=>o.locked),images:objects.filter(o=>o.type==='image').length};
+    return {lines:objects.filter(o=>['path','connector'].includes(o.type)&&hasStroke(o)).length,text:objects.filter(hasText).length,locked:objects.some(o=>o.locked||page.layers?.some(l=>l.objectIds.includes(o.id)&&(!l.visible||l.locked))),images:objects.filter(o=>o.type==='image').length};
   }
   function convertPage(input,ids,options={}){
     const page=checkPage(input),known=new Set(C.expandSelection(page,ids)),info=inspect(page,[...known]);
@@ -72,6 +72,7 @@
       if(output.length>5000)throw Error('アウトライン化後の図形が多すぎます。選択を分けてください。');
     }
     page.objects=output;
+    if(page.layers)page.layers.forEach(layer=>{layer.objectIds=layer.objectIds.flatMap(id=>mapping.has(id)?mapping.get(id).parts.map(p=>p.object.id):[id]);});
     // Retain motion/visibility on every resulting piece. Stroke-color effects
     // become fill-color effects only for the pieces that used to be strokes.
     if(page.animations)page.animations=page.animations.flatMap(animation=>{

@@ -6,13 +6,18 @@
     const $=id=>document.getElementById(id),esc=ctx.esc;
     let pending=null,active=null,activeOwner=null,attachmentPreview=null;
     const drawing=()=>['connector','connector-orthogonal'].includes(ctx.tool());
+    // The editor supplies layer predicates.  Keep legacy embeddings working without them.
+    const isVisible=(object,page=ctx.page())=>!!object&&(ctx.isVisible?ctx.isVisible(object,page):true);
+    const isLocked=(object,page=ctx.page())=>!!object&&(ctx.isLocked?ctx.isLocked(object,page):!!object.locked);
+    const editableObject=(object,page=ctx.page())=>isVisible(object,page)&&!isLocked(object,page);
+    const canInsert=()=>ctx.canInsert?ctx.canInsert():true;
     function clearPending(){if(pending)ctx.clearToast?.();pending=null;}
-    const current=()=>ctx.page().objects.find(o=>ctx.selected().length===1&&o.id===ctx.selected()[0]&&o.type==='connector');
+    const current=()=>ctx.page().objects.find(o=>ctx.selected().length===1&&o.id===ctx.selected()[0]&&o.type==='connector'&&isVisible(o));
     const endpoint=(p,id=null)=>({x:p.x,y:p.y,objectId:id,port:'auto',ratio:.5});
     function targetAt(event,p,pin=false){
       attachmentPreview=null;
       if(event.altKey)return endpoint(ctx.snap(p,event));
-      const objects=ctx.page().objects;
+      const objects=ctx.page().objects.filter(object=>isVisible(object));
       let hit=document.elementsFromPoint(event.clientX,event.clientY).map(el=>el.closest('[data-object]')?.dataset.object).map(id=>objects.find(o=>o.id===id&&o.type!=='connector'&&!(o.type==='image'&&o.reference))).find(Boolean);
       const tolerance=12/ctx.zoom();
       if(!hit){
@@ -36,16 +41,17 @@
     function newConnector(a,b){const size=ctx.standardSize(),elbow=ctx.tool()==='connector-orthogonal';return K.make(a,b,{name:elbow?'カギ型矢印':'接続矢印',route:elbow?'orthogonal':'straight',style:{stroke:'#1E3A5F',fill:'none',strokeWidth:Math.max(.04,size/80),fontSize:Math.max(.2,size*.12),linecap:'round',linejoin:'round'}});}
     function pointerDown(event,p,base){
       if(drawing()){
+        if(!canInsert()){ctx.toast('現在のレイヤーが非表示または固定のため追加できません。');return true;}
         const a=pending||targetAt(event,p),b=targetAt(event,p),completing=!!pending;
         ctx.setDrag({kind:'connector-new',start:p,base,originalSelection:ctx.selected().slice(),connector:newConnector(a,b),completing});return true;
       }
       const handle=event.target.closest('[data-connection-handle]')?.dataset.connectionHandle,hit=event.target.closest('[data-object]')?.dataset.object;
       const o=current();
       if(ctx.tool()==='direct'&&o&&handle){
-        if(!ctx.editable())return true;active=handle;activeOwner=o.id;
+        if(!editableObject(o)||!ctx.editable())return true;active=handle;activeOwner=o.id;
         ctx.setDrag({kind:'connector-handle',start:p,base,originalSelection:ctx.selected().slice(),id:o.id,handle});return true;
       }
-      if(ctx.tool()==='direct'&&ctx.page().objects.some(o=>o.id===hit&&o.type==='connector')){
+      if(ctx.tool()==='direct'&&ctx.page().objects.some(o=>o.id===hit&&o.type==='connector'&&isVisible(o))){
         active=null;ctx.select(event.shiftKey?[...new Set([...ctx.selected(),hit])]:[hit]);return true;
       }
       return false;
@@ -71,7 +77,7 @@
         if(d.moved||d.completing){
           const o=result?.objects.find(o=>o.id===d.connector.id)||d.connector;
           if(Math.hypot(o.from.x-o.to.x,o.from.y-o.to.y)<1e-7&&!o.from.objectId&&!o.to.objectId){pending=null;ctx.toast('終点を別の位置に指定してください。');return true;}
-          if(ctx.changePage(p=>p.objects.push(o))){clearPending();ctx.setTool('direct');ctx.select([o.id]);}
+          if(canInsert()&&ctx.changePage(p=>p.objects.push(o))){clearPending();ctx.setTool('direct');ctx.select([o.id]);}
         }else{pending=C.clone(d.connector.from);ctx.toast('終点をクリックしてください。Escapeで取り消せます。');}
         return true;
       }
@@ -79,11 +85,11 @@
     }
     function render(page,z){
       let target='';
-      if(attachmentPreview){const {object,ports,at}=attachmentPreview,b=G.bounds(object);target=`<g class="connection-target" pointer-events="none"><rect x="${b.x}" y="${b.y}" width="${b.width}" height="${b.height}" fill="none" stroke="#16835d" stroke-width="${1/z}" stroke-dasharray="${4/z} ${3/z}"/>${ports.map(q=>`<circle cx="${q.x}" cy="${q.y}" r="${3/z}" fill="#fff" stroke="#16835d" stroke-width="${1/z}"/>`).join('')}<circle cx="${at.x}" cy="${at.y}" r="${7/z}" fill="#16835d" stroke="#fff" stroke-width="${2/z}"/></g>`;}
+      if(attachmentPreview&&isVisible(attachmentPreview.object,page)){const {object,ports,at}=attachmentPreview,b=G.bounds(object);target=`<g class="connection-target" pointer-events="none"><rect x="${b.x}" y="${b.y}" width="${b.width}" height="${b.height}" fill="none" stroke="#16835d" stroke-width="${1/z}" stroke-dasharray="${4/z} ${3/z}"/>${ports.map(q=>`<circle cx="${q.x}" cy="${q.y}" r="${3/z}" fill="#fff" stroke="#16835d" stroke-width="${1/z}"/>`).join('')}<circle cx="${at.x}" cy="${at.y}" r="${7/z}" fill="#16835d" stroke="#fff" stroke-width="${2/z}"/></g>`;}
       if(drawing())return target+(pending?`<circle cx="${pending.x}" cy="${pending.y}" r="${6/z}" fill="#fff" stroke="#2563eb" stroke-width="${2/z}"/>`:'');
       const id=current()?.id,o=page.objects.find(o=>o.id===id);
-      if(ctx.tool()!=='direct'||!o)return null;
-      if(o.locked)return '';
+      if(ctx.tool()!=='direct'||!o||!isVisible(o,page))return null;
+      if(isLocked(o,page))return '';
       let segments='';const hitRadius=matchMedia('(pointer:coarse)').matches?22:14;
       if(o.route==='orthogonal'){
         const list=K.points(o);
@@ -96,13 +102,14 @@
       return target+segments+handles.map(([key,p])=>`<g data-connection-handle="${key}" style="cursor:move"><title>${key==='from'?'始点の接続位置':key==='to'?'終点の接続位置':key==='label'?'ラベルの位置':'折れ曲がり点'}をドラッグ</title><circle cx="${p.x}" cy="${p.y}" r="${hitRadius/z}" fill="transparent"/><circle cx="${p.x}" cy="${p.y}" r="${(key==='label'?4:5)/z}" fill="${active===key?'#2563eb':p.objectId?'#dcfce7':'#fff'}" stroke="${key==='label'?'#9333ea':p.objectId?'#16835d':'#2563eb'}" stroke-width="${1.5/z}"/></g>`).join('');
     }
     function addBetween(){
-      const objects=ctx.page().objects.filter(o=>ctx.selected().includes(o.id)&&o.type!=='connector'&&!(o.type==='image'&&o.reference));
+      if(!canInsert()){ctx.toast('現在のレイヤーが非表示または固定のため追加できません。');return;}
+      const objects=ctx.page().objects.filter(o=>ctx.selected().includes(o.id)&&isVisible(o)&&o.type!=='connector'&&!(o.type==='image'&&o.reference));
       if(objects.length!==2){ctx.toast('接続する図形を2つ選んでください。');return;}
       const ends=objects.map(o=>{const b=G.bounds(o);return endpoint({x:b.x+b.width/2,y:b.y+b.height/2},o.id);}),o=newConnector(...ends);
       if(ctx.changePage(p=>p.objects.push(o))){ctx.setTool('direct');ctx.select([o.id]);}
     }
     function addWaypoint(p){
-      const o=current();if(!o||!ctx.editable())return;const list=o.route==='orthogonal'?K.points(o):[o.from,...o.waypoints,o.to];let nearest={distance:Infinity,index:0};
+      const o=current();if(!o||!editableObject(o)||!ctx.editable())return;const list=o.route==='orthogonal'?K.points(o):[o.from,...o.waypoints,o.to];let nearest={distance:Infinity,index:0};
       list.slice(1).forEach((b,i)=>{const a=list[i],dx=b.x-a.x,dy=b.y-a.y,t=Math.max(0,Math.min(1,((p.x-a.x)*dx+(p.y-a.y)*dy)/(dx*dx+dy*dy||1))),distance=Math.hypot(p.x-a.x-t*dx,p.y-a.y-t*dy);if(distance<nearest.distance)nearest={distance,index:i};});
       const points=list.slice(1,-1).map(q=>({x:q.x,y:q.y}));if(points.length>=100){ctx.toast('折れ曲がり点は100個までです。');return;}
       points.splice(nearest.index,0,{x:p.x,y:p.y});
@@ -110,7 +117,7 @@
     }
     function doubleClick(event,p,target=event.target){if(ctx.tool()!=='direct')return false;const o=current(),hit=target.closest('[data-object]')?.dataset.object;if(!o||o.id!==hit)return false;addWaypoint(ctx.snap(p,event));return true;}
     function dialog(){
-      const source=current();if(!source||!ctx.editable())return;const o=C.clone(source),targets=ctx.page().objects.filter(v=>v.type!=='connector');
+      const source=current();if(!source||!editableObject(source)||!ctx.editable())return;const o=C.clone(source),targets=ctx.page().objects.filter(v=>isVisible(v)&&v.type!=='connector'&&!(v.type==='image'&&v.reference));
       const choices=(values,value)=>values.map(([key,label])=>`<option value="${esc(key)}" ${key===value?'selected':''}>${esc(label)}</option>`).join('');
       const ports=[['auto','自動（輪郭へ接続）'],['top','上'],['right','右'],['bottom','下'],['left','左']];
       const ends=['from','to'].map((key,i)=>`<fieldset><legend>${i?'終点':'始点'}</legend><label>接続先<select id="connection-${key}-target">${choices([['','接続なし（座標指定）'],...targets.map(v=>[v.id,v.name||'図形'])],o[key].objectId||'')}</select></label><div class="fields"><label>接続位置<select id="connection-${key}-port">${choices(ports,o[key].port)}</select></label><label>辺の位置（0〜1）<input id="connection-${key}-ratio" type="number" min="0" max="1" step="any" value="${o[key].ratio}"></label><label>X（px）<input id="connection-${key}-x" type="number" step="any" required value="${ctx.round(o[key].x)}"></label><label>Y（px）<input id="connection-${key}-y" type="number" step="any" required value="${ctx.round(o[key].y)}"></label></div></fieldset>`).join('');
@@ -134,13 +141,13 @@
       }
       rows();
     }
-    function convert(){const o=current();if(!o||!ctx.editable())return;const parts=K.renderedParts(o),group=C.uid('group');parts.forEach(p=>{p.id=C.uid('object');p.group=group;p.locked=false;});if(ctx.changePage(page=>page.objects.splice(page.objects.findIndex(v=>v.id===o.id),1,...parts)))ctx.select(parts.map(p=>p.id));}
+    function convert(){const o=current();if(!o||!editableObject(o)||!ctx.editable())return;const parts=K.renderedParts(o),group=C.uid('group');parts.forEach(p=>{p.id=C.uid('object');p.group=group;p.locked=false;});if(ctx.changePage(page=>{const index=page.objects.findIndex(v=>v.id===o.id);page.objects.splice(index,1,...parts);if(Array.isArray(page.layers))for(const layer of page.layers){const at=layer.objectIds.indexOf(o.id);if(at>=0){layer.objectIds.splice(at,1,...parts.map(part=>part.id));break;}}}))ctx.select(parts.map(p=>p.id));}
     function keyboard(event){
       if(event.key==='Escape'&&pending){clearPending();ctx.render();return true;}
       const o=current();if(ctx.tool()!=='direct'||!o)return false;
       if(event.key==='Enter'){dialog();return true;}
       if(activeOwner===o.id&&active!==null&&/^\d+$/.test(active)&&Number(active)<o.waypoints.length&&['Delete','Backspace'].includes(event.key)){
-        if(ctx.editable())ctx.changePage(p=>p.objects.find(v=>v.id===o.id).waypoints.splice(Number(active),1));active=null;return true;
+        if(editableObject(o)&&ctx.editable())ctx.changePage(p=>p.objects.find(v=>v.id===o.id).waypoints.splice(Number(active),1));active=null;return true;
       }
       return false;
     }
