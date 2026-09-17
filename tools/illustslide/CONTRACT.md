@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.15）
+# イラストスライド illustSlideの内部契約（0.4.17）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -14,6 +14,14 @@ textの任意フィールド`layout:{width:null|正数,align:'left'|'center'|'ri
 style: `{fill,stroke,strokeWidth,opacity,dash,linecap,linejoin,fontSize,fontFamily,bold,italic}`。
 fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。fontFamilyはsans-serif/serif/monospace。
 グループは初期版では同じgroup値を持つ平坦な集合。選択・変形は原則グループ全体へ適用。
+
+## IlapoArrange（arrange.js、0.4.17）
+
+`collect(page,selectedIds,measure)` は選択順を保ち、平坦なグループを1単位とする `[{key,ids,label,b}]` を返す。`measure(ids,page)` で作品座標の外接範囲を求め、未知のIDは除く。`plan(units,mode,{reference,key,board})` は適用する `[{ids,matrix}]` だけを返す純粋計算で、入力を変更しない。
+
+`reference` はobject／selection／board。左右・上下・各中央への整列では、指定keyの外接範囲／選択全体の外接範囲／原点0,0の用紙範囲を使う。boardだけは1単位でも位置整列でき、自由キャンバスでは拒否する。グループ内部の配置を維持する。distribute-x/yは3単位以上で辺間を等間隔にし、board以外では選択範囲の両端を保つ。width／height／sizeは2単位以上で、referenceに関係なくkeyの寸法に合わせる。各単位の中心を保ち、幅・高さが0の軸は拡縮しない。恒等変換は返さない。
+
+editorで固定・非表示を判定し、計算結果を1回のchangePageへ渡す。接続の追従と履歴・自動保存は通常の編集経路を使う。基準の種類・基準図形はUI状態とし、作品形式を変更しない。選択IDの順序または文書・ページが変わったらkeyを選択の先頭へ戻す。メニュー内のselectは標準のキー操作を使い、方向アイコンはbuttonとaria-labelで操作する。紫の基準枠は編集専用SVG要素で、出力に含めない。
 
 ## IlapoCore (core.js)
 

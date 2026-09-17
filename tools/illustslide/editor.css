@@ -67,3 +67,19 @@ dialog{padding:0;border:1px solid var(--line);border-radius:14px;box-shadow:var(
 @container(max-width:330px){.selection-bar #path-menu-button{display:none}}
 
 #canvas[data-hover-kind=anchor]{cursor:crosshair}#canvas[data-hover-kind=whole]{cursor:pointer}
+
+/* 整列は基準と方向を同じポップアップから選ぶ。 */
+#command-menu[data-menu-kind=arrange]{width:min(320px,calc(100vw - 16px));padding:10px}
+.arrange-heading{font-size:.86em;font-weight:700;margin:4px 0 8px}
+.arrange-heading small{font-size:.88em;color:var(--muted);font-weight:400}
+.arrange-basis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:10px}
+#command-menu .arrange-basis button{font-size:.8em;justify-content:center;border:1px solid var(--line);padding:6px 3px;min-height:44px;white-space:normal}
+#command-menu .arrange-basis button[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
+.arrange-key{display:grid;gap:5px;margin:8px 0;font-size:.86em}.arrange-key select{width:100%;min-width:0;min-height:44px;text-overflow:ellipsis}
+.arrange-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.arrange-actions.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+#command-menu .arrange-actions button{flex-direction:column;justify-content:center;gap:4px;padding:7px 3px;min-height:58px;border:1px solid var(--line)}
+#command-menu .arrange-actions button svg{width:23px;height:23px}#command-menu .arrange-actions button span{font-size:.82em;text-align:center}
+.arrange-note{font-size:.78em;color:var(--muted);line-height:1.5;margin:7px 0;overflow-wrap:anywhere}
+#arrange-reference{--reference:#a21caf;stroke:var(--reference);pointer-events:none}
+:root[data-theme=dark] #arrange-reference{--reference:#e879f9}
+#arrange-reference .arrange-reference-label{fill:var(--panel);stroke:none}#arrange-reference text{fill:var(--reference);stroke:none;font-family:sans-serif;font-weight:700}
