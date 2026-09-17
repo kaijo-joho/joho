@@ -112,9 +112,6 @@ button,select,input{font:inherit;color:inherit}
 .tools button.el{font-weight:600;font-family:Arial,Helvetica,sans-serif;font-size:14px}
 .tools button sub{font-size:9px}
 .tools .grid3 button[data-add]{font-family:Arial,Helvetica,sans-serif;font-size:12px}
-.tools button.libbtn{width:100%;height:36px;margin:2px 0;background:var(--accent);border-color:var(--accent);color:#fff;font-size:13px;font-weight:600;gap:6px}
-.tools button.libbtn:hover{background:#1d4fd0}
-.tools button.libbtn svg{width:18px;height:18px}
 /* ---- キャンバス ---- */
 #wrap{grid-area:canvas;position:relative;overflow:hidden;background:#fff}
 #gl,#ov{position:absolute;inset:0;width:100%;height:100%;display:block}
@@ -324,7 +321,6 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
   </header>
 
   <aside class="tools" id="tools">
-    <button class="libbtn" id="btnLib" title="化合物ライブラリを開く"><svg viewBox="0 0 24 24"><path d="M4 5h6v14H4zM14 5h6v14h-6z"/></svg>化合物ライブラリ</button>
     <div class="group"><div class="gl">操作</div>
       <div class="grid2">
         <button class="wide" data-tool="rotate" title="回転・選択 (V)：ドラッグで回転。分子をクリックで選択"><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 11-2.4-5.7"/><path d="M20 4v4.5h-4.5"/></svg>回転・選択</button>
@@ -522,9 +518,9 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
     <header><span>分子模型エディタ　操作方法</span><button data-close>×</button></header>
     <div class="body help" id="helpBody">
       <table>
-        <tr><td>分子を表示する</td><td>左上の「化合物ライブラリ」（または画面右端のタブ）から化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
-        <tr><td>水素結合</td><td>「表示 ▼」の<b>「水素結合を表示」</b>で、O–H···O や N–H···O などの水素結合を<b>細い水色の線</b>で表します（結晶モードの氷と同じ色）。水分子どうし、酢酸の二量体、デンプンのらせんを保つ 2 位・3 位の OH のはしご、DNA の相補塩基対のような場面で使えます。判定は <b>H から相手までが 2.6 Å 以内で、O–H···O の角度が 130° 以上</b>。さらに、受け手が水酸基やエーテル・水の O のときは、<b>H がその O の非共有電子対のある向きから近づいていること</b>（O の 2 本の結合がつくる面から 20° 以上外れていること）も条件にしています。面の中から近づく配置は、実際の水素結合としては不自然だからです。<b>H の向きで判断している</b>ので、同じ組に 2 本引かれることはありません（水素結合には向きがあり、結びついているのは片方だけです）。OH の H は、水素結合ができる向きがあればそちらへ向けてあります（重い原子の位置は変えません）。<b>注意</b>：分子そのものの形（C–C のまわりのねじれなど）は変えないので、形によっては本当は水素結合があるのに出ないことがあります。たとえば<b>サリチル酸</b>は、「表示 ▼」の「座標」が<b>データベース</b>のときはフェノールの H から C=O の O への分子内水素結合が出ますが、<b>組み立てた形</b>では C=O が反対を向いているため出ません。ファイルから読み込んだ分子は H の向きもそのままです。</td></tr>
-        <tr><td>座標の出どころ</td><td>「表示 ▼」の<b>「座標」</b>で、化合物ライブラリから作るときの原子の位置を切り替えられます。<b>データベース</b>は外部の公開データ（PubChem・RCSB PDB）から取った位置、<b>組み立てた形</b>はこのアプリが標準の結合長・結合角から組み立てた位置です。切り替わるのはデータベースの座標がある分子だけで、いまは 8 つ（フマル酸、エチレングリコール、1,2-ジクロロエタン、D-グリセルアルデヒド、β-リボース、サリチル酸、サリチル酸メチル、α-シクロデキストリン）。たとえば<b>エチレングリコール</b>は、組み立てた形では真っすぐ伸びていますが、データベースの形では<b>ねじれて</b>おり、こちらが実際に近い姿です。<b>注意</b>：どちらの座標も<b>計算で求めたもので、実験で測った値ではありません</b>（PubChem は MMFF94、PDB の ideal は生成値）。ライブラリにない分子や、自分で編集した分子は、いつも「組み立てた形」になります。</td></tr>
+        <tr><td>分子を表示する</td><td>画面右端の「化合物ライブラリ」のタブを開いて、化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
+        <tr><td>水素結合</td><td>「表示 ▼」の<b>「水素結合を表示」</b>で、O–H···O や N–H···O などの水素結合を<b>細い水色の線</b>で表します（結晶モードの氷と同じ色）。水分子どうし、酢酸の二量体、デンプンのらせんを保つ 2 位・3 位の OH のはしご、DNA の相補塩基対のような場面で使えます。判定は <b>H から相手までが 2.6 Å 以内で、O–H···O の角度が 130° 以上</b>。さらに、受け手が水酸基やエーテル・水の O のときは、<b>H がその O の非共有電子対のある向きから近づいていること</b>（O の 2 本の結合がつくる面から 20° 以上外れていること）も条件にしています。面の中から近づく配置は、実際の水素結合としては不自然だからです。<b>H の向きで判断している</b>ので、同じ組に 2 本引かれることはありません（水素結合には向きがあり、結びついているのは片方だけです）。OH の H は、水素結合ができる向きがあればそちらへ向けてあります（重い原子の位置は変えません）。<b>注意</b>：分子そのものの形（C–C のまわりのねじれなど）は変えないので、形によっては本当は水素結合があるのに出ないことがあります。組み立てた形では、C=O と環のあいだの結合の向きも、水素結合ができるほうを選んでいます（たとえば<b>サリチル酸</b>では C=O がフェノールの OH の側を向き、分子内水素結合が出ます。実測の結晶構造と同じ向きです）。ファイルから読み込んだ分子は H の向きもそのままです。</td></tr>
+        <tr><td>座標の出どころ</td><td>「表示 ▼」の<b>「座標」</b>で、化合物ライブラリから作るときの原子の位置を切り替えられます。<b>データベース</b>は外部の公開データ（PubChem・RCSB PDB）から取った位置、<b>組み立てた形</b>はこのアプリが標準の結合長・結合角から組み立てた位置です。切り替わるのはデータベースの座標がある分子だけで、いまは 4 つ（エチレングリコール、D-グリセルアルデヒド、β-リボース、α-シクロデキストリン）。たとえば<b>エチレングリコール</b>は、組み立てた形では真っすぐ伸びていますが、データベースの形では<b>ねじれて</b>おり、こちらが実際に近い姿です。<b>注意</b>：どちらの座標も<b>計算で求めたもので、実験で測った値ではありません</b>（PubChem は MMFF94 系、PDB の ideal は生成値）。とくに PubChem の座標は、分子の中の電気的な引き合いを切って作られているため、<b>共役して平面になるはずの分子（フマル酸・サリチル酸など）がねじれていたり、最も安定な形でなかったりします</b>（1,2-ジクロロエタンがゴーシュ形になっていた）。そうした分子は、組み立てた形のほうを使っています。ライブラリにない分子や、自分で編集した分子は、いつも「組み立てた形」になります。</td></tr>
         <tr><td>α-シクロデキストリン</td><td>「糖類」にあります。グルコースが 6 個つながって<b>環</b>になった分子で、デンプンのらせん 1 巻き分に当たります。<b>軸の方向から見ると中央に穴</b>があり、内側は C–H ばかりで<b>水あぶら</b>（疎水性）、外側には OH が並んで<b>水になじむ</b>——デンプンのらせんと同じ作りが、短くて見やすい形で確かめられます。この穴に分子を取り込む性質があり、ヨウ素デンプン反応で青紫になる仕組みにつながります。</td></tr>
         <tr><td>デンプンとセルロース</td><td>「糖類」に<b>デンプン（アミロースのらせん・グルコース 10 個分）</b>があります。グリコシド結合のねじれを与えて<b>左巻きのらせん</b>にしてあり、横から見るとらせんの巻きが、軸の方向から見ると中心付近のすきまが分かります。同じグルコースからできていても、<b>セルロース</b>（「セルロース（グルコース 3 個分）」）は<b>まっすぐな帯</b>になります（β-1,4 結合では単位が交互に裏返るため。グルコース 1 個あたり 5.2 Å ずつまっすぐ伸びます）。デンプンは糊やヨウ素デンプン反応、セルロースは束ねて丈夫な繊維になること——同じ単位からできた高分子で性質が違う理由を、形から見られます。<b>注意</b>：らせんは実際のデンプンより伸びています。1 回転あたり約 6.8 個は実際の約 6 個に近いのですが、1 回転の高さは約 15 Å で実際の約 8 Å より大きくなります。この模型には水素結合で引き寄せる力がないためで、形の傾向をつかむためのものと考えてください。</td></tr>
         <tr><td>結晶格子</td><td>上部の「結晶」に切り替えると、結晶格子を表示します（体心立方格子・面心立方格子・六方最密構造・NaCl 型・CsCl 型・ZnS 型・CaF<sub>2</sub> 型・ダイヤモンド・二酸化ケイ素・黒鉛・ドライアイス・氷・フラーレン C<sub>60</sub> の結晶・カーボンナノチューブ）。フラーレン C<sub>60</sub> の分子は化合物ライブラリの「炭素の同素体」にあります。原子をクリックすると、まわりの最も近い粒子（分子結晶では分子）を強調して線で結び、画面下に数と距離を出します（並べた全体の端の原子は、外側がないので少なく見えます）。六方晶は「六角柱で表示」で六角柱の単位格子にできます。氷の水素結合は細い水色の線で表します（H の向きは氷の規則に合う一例）。左のパネルで種類と並べる単位格子の数を選び、「単位格子の面で原子を切る」で面からはみ出した部分を切ります（頂点の原子の 1/8 などが見えます）。「断面」では、3 つの整数 (h k l) で指定した面で切り、位置のスライダー（原子の中心が並ぶ面で一度止まります）と「断面を正面に」で切り口を見られます。「断面の面を表示」で切る面を半透明の板で示します。「切る前の結晶に戻す」を押すと、断面も単位格子の面での切り取りもやめて、切る前の結晶に戻ります。「原子を 3 つクリックして面を決める」を押して結晶の原子を 3 つクリックすると、その 3 つを通る面で切ることもできます（(h k l) を知らなくても断面を選べます）。たとえば面心立方格子を (1 1 1) で切ると最密の層が現れ、立方最密構造と同じであることが分かります。画面下に格子定数・単位格子中の原子の数・配位数・充填率が出ます。「分子」で分子の表示に戻ります。</td></tr>
@@ -556,7 +552,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.25 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.26 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1780,12 +1776,40 @@ function orientHydroxyls(mol, P, passes = 2){
   }
   return P;
 }
+// ---- 共役した C–C 単結合の向き（C=O の炭素と、環・二重結合の炭素のあいだ）----
+// 組み立てた形は平面になるが、C=O がどちらを向くかは組み立ての都合で決まる。サリチル酸では C=O が
+// フェノールの OH と反対を向き、本物の分子内水素結合（フェノールの H → C=O の O）が作れなかった
+// （結晶構造 COD 2100548 では C=O が OH 側で、ねじれ 0.4°、O…O 2.62 Å）。
+// そこで、この結合を 180° 回した形も作り、水素結合が多くできるほうを選ぶ。平面はそのまま保たれる。
+// ※ C–C に限る。アミドの C–N を回すと、トランス形のアミドがシス形に化けてしまう
+function flipConjugated(mol, P){
+  const A = mol.atoms, inRing = new Set();
+  findRings(mol).forEach(r => r.forEach(i => inRing.add(i)));
+  const isCarbonyl = i => A[i].el === 'C' && A[i].nb.some(j => A[j].el === 'O' && bondOrder(mol, i, j) === 2);
+  const score = () => hydrogenBonds(mol, P).reduce((s, b) => s + 1 + (2.6 - Math.max(b.dHA, 1.75)), 0);
+  for (const b of mol.bonds){
+    if (b.order !== 1 || A[b.a].el !== 'C' || A[b.b].el !== 'C' || A[b.a].hyb !== 'sp2' || A[b.b].hyb !== 'sp2') continue;
+    if (inRing.has(b.a) && inRing.has(b.b)) continue;
+    if (!isCarbonyl(b.a) && !isCarbonyl(b.b)) continue;
+    const [p, q] = inRing.has(b.b) ? [b.b, b.a] : [b.a, b.b];   // q の側を回す（環の側は動かさない）
+    const side = [], seen = new Set([p, q]), st = [q];
+    while (st.length){ const x = st.pop(); side.push(x); for (const y of A[x].nb) if (!seen.has(y)){ seen.add(y); st.push(y); } }
+    if (side.includes(p)) continue;
+    orientHydroxyls(mol, P);
+    const s0 = score(), keep = P.map(v => [...v]);
+    const ax = V.norm(V.sub(P[q], P[p]));
+    for (const i of side) if (i !== q) P[i] = V.add(P[q], V.rot(V.sub(P[i], P[q]), ax, Math.PI));
+    orientHydroxyls(mol, P);
+    if (score() <= s0 + 1e-6) keep.forEach((v, i) => { P[i] = v; });   // よくならなければ元に戻す
+  }
+  return P;
+}
 // orient：水酸基の向きをそろえるか。**あとで形を大きく変える場合は false** にして、
 // 最終的な形になってから呼ぶこと（先に向きを決めても、形が動けば意味がなくなる）
 function moleculeFromGraph(mol, orient = true){
   aromatize(mol); perceive(mol);
   const {P, approx} = build3D(mol);
-  if (orient) orientHydroxyls(mol, P);
+  if (orient){ flipConjugated(mol, P); orientHydroxyls(mol, P); }
   return {atoms:mol.atoms.map((a, i) => ({el:a.el, charge:a.charge, hyb:a.hyb, type:a.type, x:P[i][0], y:P[i][1], z:P[i][2]})),
           bonds:mol.bonds.map(b => ({a:b.a, b:b.b, order:b.order})), approx};
 }
@@ -2181,7 +2205,7 @@ function xtCoordination(x, cr, idx){
   return {center:idx, centers:near, atoms:near, cn:near.length, d};
 }
 
-// ---- 化合物ライブラリ（座標はここの定義から組み立てる。外部のデータは使わない） ----
+// ---- 化合物ライブラリ（座標はここの定義から組み立てる。一部は外部データベースの座標 coords.js を使う） ----
 // 糖の定義：D-グルコースのいす形でヒドロキシ基がすべてエクアトリアルになること（β）などを dev/test.mjs で確認している
 const GLC_A1 = '[C@@H]2[C@@H]([C@H]([C@@H]([C@H](O2)CO)O)O)O';    // α-グルコース（1 位で結合する側）
 const GLC_B1 = '[C@H]2[C@@H]([C@H]([C@@H]([C@H](O2)CO)O)O)O';     // β-グルコース（1 位で結合する側）
@@ -3829,7 +3853,6 @@ const fromSmilesInput = () => {
 };
 $('smiGo').onclick = fromSmilesInput;
 $('smiIn').addEventListener('keydown', e => { if (e.key === 'Enter') fromSmilesInput(); });
-$('btnLib').onclick = () => openSide('lib');
 
 // ===== 構造式エディタからの取り込み =====
 // 同じサイト（joho.kaijo.ed.jp）の構造式エディタは、描いた図をブラウザに自動保存している（kouzoushiki-v1）。保存した .json も「開く」から取り込める
