@@ -18,6 +18,12 @@
       return Math.round(a + (b - a) * amount).toString(16).padStart(2, '0');
     }).join('').toUpperCase();
   }
+  function objectColor(object, channel) {
+    if (channel === 'fill' && object.type === 'text' && Array.isArray(object.runs)) return object.runs.map(run => run.fill === undefined ? object.style.fill : run.fill);
+    return object.style[channel];
+  }
+  function targetColor(from, to) { return Array.isArray(from) ? from.map(() => to) : to; }
+  function mixColor(from, to, amount) { return Array.isArray(from) ? from.map(value => mix(value, to, amount)) : mix(from, to, amount); }
   function compile(page) {
     const groups = [{index: 0, duration: 0, items: []}];
     let group = groups[0], previousStart = 0, previousEnd = 0;
@@ -33,7 +39,7 @@
     }
     // Capture the color at each effect's start. On the same channel, later listed
     // effects take precedence; earlier effects cannot subsequently overwrite them.
-    const colors = new Map(page.objects.map(o => [o.id, {fill: o.style.fill, stroke: o.style.stroke}]));
+    const colors = new Map(page.objects.map(o => [o.id, {fill: objectColor(o, 'fill'), stroke: objectColor(o, 'stroke')} ]));
     for (const g of groups) {
       for (let i = 0; i < g.items.length; i++) {
         const item = g.items[i], a = item.animation;
@@ -44,13 +50,13 @@
           for (const prior of g.items.slice(0, i)) {
             const b = prior.animation;
             if (b.effect === 'color' && b.channel === a.channel && b.targets.includes(id) && prior.start <= item.start)
-              color = mix(prior.fromColors[id], b.color, progress(prior, item.start));
+              color = mixColor(prior.fromColors[id], b.color, progress(prior, item.start));
           }
           item.fromColors[id] = color;
         }
       }
-      for (const {animation: a} of g.items) if (a.effect === 'color')
-        for (const id of a.targets) if (colors.has(id)) colors.get(id)[a.channel] = a.color;
+      for (const item of g.items) if (item.animation.effect === 'color')
+        for (const id of item.animation.targets) if (colors.has(id)) colors.get(id)[item.animation.channel] = targetColor(item.fromColors[id], item.animation.color);
     }
     return {groups, steps: groups.length - 1};
   }
@@ -74,7 +80,12 @@
             const offset = moving.get(id) || {x: 0, y: 0, active: false};
             offset.x += a.dx * q; offset.y += a.dy * q;
             offset.active ||= q > 0 && !!(a.dx || a.dy); moving.set(id, offset);
-          } else if (a.effect === 'color') object.style[a.channel] = mix(item.fromColors[id], a.color, q);
+          } else if (a.effect === 'color') {
+            const color = mixColor(item.fromColors[id], a.color, q);
+            if (a.channel === 'fill' && object.type === 'text' && Array.isArray(color)) {
+              if (q > 0) object.runs.forEach((run, index) => { run.fill = color[index]; });
+            } else object.style[a.channel] = color;
+          }
           else {
             const fraction = a.mode === 'in' ? q : 1 - q;
             visuals[id] = a.effect === 'fade' ? {opacity: fraction, reveal: null}

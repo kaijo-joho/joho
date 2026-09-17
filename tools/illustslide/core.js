@@ -86,11 +86,15 @@
     let total = 0;
     return value.map((run, i) => {
       const label = 'text.runs[' + i + ']';
-      plainObject(run, label); keysOnly(run, ['text', 'script'], label);
+      plainObject(run, label); keysOnly(run, ['text', 'script', 'bold', 'italic', 'fill'], label);
       const text = string(run.text, label + '.text', true); total += text.length;
       if (total > LIMITS.textLength) fail('text.runs is too long');
       if (!['normal', 'super', 'sub'].includes(run.script)) fail(label + '.script is invalid');
-      return { text, script: run.script };
+      var result = { text, script: run.script };
+      if (run.bold !== undefined) result.bold = bool(run.bold, label + '.bold');
+      if (run.italic !== undefined) result.italic = bool(run.italic, label + '.italic');
+      if (run.fill !== undefined) result.fill = color(run.fill, label + '.fill');
+      return result;
     });
   }
   function textAlign(value) { if (!['left', 'center', 'right'].includes(value)) fail('text.align is invalid'); return value; }
@@ -176,13 +180,13 @@
   }
   function validateDocument(input) {
     plainObject(input, 'document'); keysOnly(input, ['format', 'version', 'id', 'name', 'pages'], 'document');
-    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3,4].includes(input.version)) fail('version is invalid');
+    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3,4,5].includes(input.version)) fail('version is invalid');
     const pages = array(input.pages, 'document.pages'); if (!pages.length || pages.length > LIMITS.pages) fail('document.pages has an invalid length');
     const ids = new Set(); let count = 0;
     const out = { format: 'kaijo-ilapo', version: input.version, id: id(input.id, 'document.id'), name: string(input.name, 'document.name', true), pages: pages.map(validatePage) };
     for (const page of out.pages) { if (ids.has(page.id)) fail('duplicate page id: ' + page.id); ids.add(page.id); count += page.objects.length; }
     if (count > LIMITS.objects) fail('document exceeds the object limit');
-    let imageBytes=0,effects=0;for(const page of out.pages){effects+=(page.animations||[]).length;for(const o of page.objects){if(['image','connector'].includes(o.type))out.version=Math.max(out.version,2);if(o.type==='image')imageBytes+=o.src.length;if(o.type==='text'&&o.layout||o.type==='path'&&o.label)out.version=Math.max(out.version,4);}if((page.animations||[]).length)out.version=Math.max(out.version,3);}
+    let imageBytes=0,effects=0;for(const page of out.pages){effects+=(page.animations||[]).length;for(const o of page.objects){if(['image','connector'].includes(o.type))out.version=Math.max(out.version,2);if(o.type==='image')imageBytes+=o.src.length;if(o.type==='text'&&o.layout||o.type==='path'&&o.label)out.version=Math.max(out.version,4);var textRuns=o.type==='text'?o.runs:o.type==='path'&&o.label?o.label.runs:null;if(textRuns&&textRuns.some(run=>run.bold!==undefined||run.italic!==undefined||run.fill!==undefined))out.version=Math.max(out.version,5);}if((page.animations||[]).length)out.version=Math.max(out.version,3);}
     if(effects>5000)fail('document animations exceeds limit');
     if(imageBytes>12*1024*1024)fail('document images exceed size limit');return out;
   }

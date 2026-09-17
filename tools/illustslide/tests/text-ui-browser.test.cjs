@@ -51,7 +51,8 @@ function box(page, selector) {
 async function load(page, value, name = 'text-ui.json') {
   const buffer = Buffer.isBuffer(value) ? value : Buffer.from(JSON.stringify(value));
   await page.locator('#file-input').setInputFiles({ name, mimeType: name.endsWith('.zip') ? 'application/zip' : 'application/json', buffer });
-  if (await page.locator('#replace-discard').isVisible()) await page.locator('#replace-discard').click();
+  const discard = page.locator('#replace-discard');
+  if (await discard.waitFor({ state: 'visible', timeout: 1000 }).then(() => true).catch(() => false)) await discard.click();
   await page.waitForFunction(id => IlapoEditor.getDocument().id === id, 'text-ui-fixture');
   await settle(page);
 }
@@ -85,7 +86,19 @@ async function labelBox(page, id) {
   });
 }
 async function setSelection(page, start, end) {
-  await page.locator('#text-input').evaluate((el, range) => { el.focus(); el.setSelectionRange(range[0], range[1]); }, [start, end]);
+  await page.locator('#text-input').evaluate((el, range) => {
+    const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+    let node, offset = 0, startNode, startOffset, endNode, endOffset;
+    while ((node = walker.nextNode())) {
+      const next = offset + node.data.length;
+      if (!startNode && range[0] >= offset && range[0] <= next) { startNode = node; startOffset = range[0] - offset; }
+      if (!endNode && range[1] >= offset && range[1] <= next) { endNode = node; endOffset = range[1] - offset; }
+      offset = next;
+    }
+    const selection = getSelection(), value = document.createRange();
+    value.setStart(startNode || el, startNode ? startOffset : 0); value.setEnd(endNode || el, endNode ? endOffset : 0);
+    el.focus(); selection.removeAllRanges(); selection.addRange(value);
+  }, [start, end]);
 }
 async function viewSettings(page) {
   if (!await page.locator('#inspector-panel').isVisible()) await page.locator('#inspector-toggle').click();
@@ -128,10 +141,10 @@ async function viewSettings(page) {
     await page.locator('#text-wrap').check(); await page.locator('#text-width').fill('120');
     await page.locator('[data-text-align="center"]').click();
     await page.locator('#text-font-size').fill('28'); await page.locator('#text-font-family').selectOption('serif');
-    await page.locator('#text-bold').check(); await page.locator('#text-italic').check();
-    await page.locator('#inspector-body details summary').click();
+    await page.locator('#text-select-all').click(); await page.locator('#text-bold').click(); await page.locator('#text-italic').click();
+    await page.locator('#text-colors summary').click();
     await page.locator('#text-color-hex').fill('#0F766E'); await settle(page);
-    const preview = await page.locator('#text-preview').textContent();
+    const preview = await page.locator('#text-input').textContent();
     assert(preview.includes('日本語😀') && preview.includes('H2O・x2'), '入力中プレビューがUnicodeと空行を保持する');
     const previewLines = await page.locator(`#artwork [data-object] text tspan`).count();
     assert(previewLines >= 2, 'width設定で折り返しをプレビューする');
@@ -140,31 +153,29 @@ async function viewSettings(page) {
     let doc = await documentOf(page); const created = doc.pages[0].objects.find(o => o.type === 'text' && o.id !== 'existing-text');
     assert(created, '最初の文字入力で同じIDの文字を文書へ追加する'); assert.deepEqual(created.runs.map(r => r.text).join(''), sample);
     assert(created.runs.some(r => r.script === 'sub') && created.runs.some(r => r.script === 'super'));
-    assert.deepEqual(created.layout, { width: 120, align: 'center' }); assert.equal(doc.version, 4, 'v4文字機能を保存する');
+    assert.deepEqual(created.layout, { width: 120, align: 'center' }); assert.equal(doc.version, 5, '部分書式を含む文字はv5で保存する');
 
     // IME中はプレビューを更新せず、Enterは改行、Deleteは図形削除にならない。
-    const composingPreview = await page.locator('#text-preview').textContent();
-    await page.locator('#text-input').evaluate(el => {
-      el.dispatchEvent(new CompositionEvent('compositionstart', { bubbles: true }));
-      const setter = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
-      setter.call(el, 'IME入力中'); el.dispatchEvent(new InputEvent('input', { bubbles: true, isComposing: true }));
-    });
-    await settle(page); assert.equal(await page.locator('#text-preview').textContent(), composingPreview, 'IME composition中はプレビューを更新しない');
-    await page.locator('#text-input').dispatchEvent('compositionend'); await page.locator('#text-input').dispatchEvent('input');
-    await settle(page); const imePreview = await page.locator('#text-preview').textContent(); assert(imePreview.includes('IME入力中'), `compositionendで確定した入力をプレビューする: ${imePreview}`);
+    const composingPreview = await page.locator('#text-input').textContent();
+    const cdp = await context.newCDPSession(page); await page.locator('#text-input').focus();
+    await cdp.send('Input.imeSetComposition', { text: 'へんかん', selectionStart: 4, selectionEnd: 4, replacementStart: 0, replacementEnd: 0 });
+    await settle(page); assert.equal((await documentOf(page)).pages[0].objects.find(o => o.id === created.id).runs.map(r => r.text).join(''), sample, 'IME変換中は作品を更新しない');
+    await cdp.send('Input.insertText', { text: '変換' }); await settle(page);
+    const imePreview = await page.locator('#text-input').textContent(); assert(imePreview.includes('変換'), `IME確定で入力欄を更新する: ${imePreview}`);
     await page.locator('#text-input').press('End'); await page.locator('#text-input').press('Enter');
-    assert((await page.locator('#text-input').inputValue()).includes('\n'), 'Enterは入力欄の改行に使える');
+    assert((await page.locator('#text-input').textContent()).includes('\n'), 'Enterは入力欄の改行に使える');
     const draftCount = (await documentOf(page)).pages[0].objects.length; await page.locator('#text-input').press('Delete');
     assert.equal((await documentOf(page)).pages[0].objects.length, draftCount, '文字入力中のDeleteは図形を削除しない');
     // 同じ欄でも、いったん別欄へ移動すると次の連続入力は別Undo単位になる。
     await page.locator('#text-font-size').focus(); await page.locator('#text-input').focus();
-    const textBeforeUndo = await page.locator('#text-input').inputValue();
-    await page.locator('#text-input').press('End'); await page.keyboard.insertText('AB'); await settle(page);
+    const textBeforeUndo = await page.locator('#text-input').textContent();
+    await setSelection(page, textBeforeUndo.length, textBeforeUndo.length); await page.keyboard.insertText('AB'); await settle(page);
     await page.keyboard.press('Meta+z'); await settle(page);
     doc = await documentOf(page);
     assert.equal(doc.pages[0].objects.find(o => o.id === created.id).runs.map(run => run.text).join(''), textBeforeUndo, '同じ文字欄の連続入力は⌘Z 1回で戻る');
     await page.keyboard.press('Shift+Meta+z'); await settle(page);
-    assert((await documentOf(page)).pages[0].objects.find(o => o.id === created.id).runs.map(run => run.text).join('').endsWith('AB'), '⇧⌘Zで文字入力をやり直せる');
+    const redone = (await documentOf(page)).pages[0].objects.find(o => o.id === created.id).runs.map(run => run.text).join('');
+    assert.equal(redone, textBeforeUndo + 'AB', `⇧⌘Zで文字入力をやり直せる: ${JSON.stringify(redone)}`);
 
     // 以降の既存オブジェクトの操作は、重なりを避けるため元の配置から確認する。
     await load(page, original); await closeInspector(page);
@@ -173,7 +184,7 @@ async function viewSettings(page) {
     await selectObject(page, 'existing-text');
     assert(await page.locator('#text-options').isVisible(), '既存文字に文字操作ポップアップを表示する');
     await textEditButton(page).click(); await openTextSection(page);
-    assert.equal(await page.locator('#text-input').inputValue(), '既存の文字'); await closeInspector(page);
+    assert.equal(await page.locator('#text-input').textContent(), '既存の文字'); await closeInspector(page);
     await selectObject(page, 'labelled-shape');
     const shapePoint = await page.evaluate(({ x, y }) => { const c = IlapoEditor.getCamera(), r = document.getElementById('canvas').getBoundingClientRect(); return { x: r.left + (x - c.x) / c.width * r.width, y: r.top + (y - c.y) / c.height * r.height }; }, { x: 100, y: 130 });
     await page.mouse.dblclick(shapePoint.x, shapePoint.y); await settle(page);
@@ -222,7 +233,7 @@ async function viewSettings(page) {
     await page.locator('#inspector-resize').focus(); await page.keyboard.press('Home');
     await page.locator('#text-input').focus(); await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab');
     assert.equal(await page.evaluate(()=>document.activeElement.id),'text-input');
-    await page.locator('#inspector-body details summary').click();
+    await page.locator('#text-colors summary').click();
     await page.locator('[data-text-rgb="R"]').scrollIntoViewIfNeeded();
     const smallest=await page.locator('#inspector-body').evaluate(el=>({client:el.clientWidth,scroll:el.scrollWidth}));
     assert(smallest.scroll<=smallest.client+1,'幅220pxの文字パネル内も横overflowなし');
@@ -239,7 +250,7 @@ async function viewSettings(page) {
     const touch = await touchContext.newPage(); touch.setDefaultTimeout(12000); touch.on('pageerror', error => errors.push(error.message));
     await touch.goto(url); await touch.waitForFunction(() => !!window.IlapoEditor); await load(touch, original);
     await touch.locator('#palette-toggle').tap(); await touch.locator('[data-tool="text"]').tap(); await touch.locator('#canvas').tap({ position: { x: 170, y: 260 } }); await touch.locator('#text-input').tap(); await touch.keyboard.insertText('タッチ入力');
-    assert((await touch.locator('#text-input').inputValue()).includes('タッチ入力'), 'タッチキーボード相当の文字入力ができる');
+    assert((await touch.locator('#text-input').textContent()).includes('タッチ入力'), 'タッチキーボード相当の文字入力ができる');
     assert(await touch.evaluate(() => document.documentElement.scrollWidth <= innerWidth)); await touchContext.close();
 
     // v4 ZIP往復と発表で、label・align・runsを保持する。
@@ -248,7 +259,7 @@ async function viewSettings(page) {
     await page.locator('[data-menu="save"]').click(); const downloadPromise = page.waitForEvent('download'); await page.locator('#command-menu').getByRole('button', { name: 'ローカルファイルに保存…', exact: true }).click();
     const download = await downloadPromise; const zipPath = '/private/tmp/illustslide-text-roundtrip.illustslide.zip'; await download.saveAs(zipPath); const zip = await fs.readFile(zipPath); assert(zip.length > 100);
     await load(page, zip, 'text-v4.illustslide.zip'); const resumed = await documentOf(page); const resumedShape = resumed.pages[0].objects.find(o => o.id === 'labelled-shape'); const resumedText = resumed.pages[0].objects.find(o => o.id === 'existing-text');
-    assert.equal(resumed.version, 4); assert.equal(resumedShape.label.align, 'left'); assert.equal(resumedShape.label.padding, 12); assert.equal(resumedShape.label.runs[0].text, '破棄される変更'); assert.equal(resumedText.layout.align, 'left'); assert.equal(resumedText.layout.width, 220);
+    assert.equal(resumed.version, 4, '最終のplain runだけの文書はv4を保つ'); assert.equal(resumedShape.label.align, 'left'); assert.equal(resumedShape.label.padding, 12); assert.equal(resumedShape.label.runs[0].text, '破棄される変更'); assert.equal(resumedText.layout.align, 'left'); assert.equal(resumedText.layout.width, 220);
     await page.screenshot({ path: '/private/tmp/illustslide-text-desktop.png' }); const presentationBefore = clone(resumed); await startPresentation(page, true); await page.locator('#ilapo-presentation').waitFor();
     assert(await page.locator('.ilapo-present-paper [data-ilapo-shape-label] text').count() >= 1, '発表表示でも図形ラベルを表示する');
     assert((await page.locator('.ilapo-present-paper').textContent()).includes('破棄される変更'), '発表表示でも即時編集したラベル文字を保持する');

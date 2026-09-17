@@ -13,6 +13,9 @@ history.change(d=>{
 });
 const authored=C.clone(history.document);
 assert.equal(authored.version,4);
+const rich=C.clone(authored);rich.pages[0].objects[1].runs=[{text:'A',script:'normal',bold:false,fill:'#ff0000'},{text:'B',script:'super',italic:true,fill:'none'}];
+const checkedRich=C.validateDocument(rich);assert.equal(checkedRich.version,5);assert.deepEqual(checkedRich.pages[0].objects[1].runs,rich.pages[0].objects[1].runs,'部分書式の省略と明示falseをそのまま保存する');
+assert.throws(()=>C.validateObject({...rich.pages[0].objects[1],runs:[{text:'x',script:'normal',fill:'red'}]}));
 history.change(()=>{});assert.equal(history._undo.length,1,'unchanged edits add no history');
 history.undo();assert.deepEqual(history.document,legacy,'one undo restores the entire previous model');
 history.redo();assert.deepEqual(history.document,authored);

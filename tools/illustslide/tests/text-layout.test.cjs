@@ -27,6 +27,13 @@ result = TextLayout.layout({ x: 5, y: 20, runs: [{ text: 'a', script: 'normal' }
 assert.deepEqual(result.lines[0].runs, [{ text: 'a', script: 'normal' }, { text: '2', script: 'super' }, { text: 'b', script: 'sub' }]);
 assert.equal(result.lines[0].x, 5);
 
+result = TextLayout.layout({ x: 0, y: 10, runs: [{ text: 'A', script: 'normal', bold: true, fill: '#ff0000' }, { text: 'B', script: 'normal', bold: false, italic: true, fill: 'none' }], style: { ...style, bold: false, italic: false }, layout: { width: null, align: 'left' } }, { measure: (text, effective) => effective.bold ? Array.from(text).length * 20 : Array.from(text).length * 10 });
+assert.equal(result.lines[0].width, 30,'部分太字の実効書式で幅を測る');
+assert.deepEqual(result.lines[0].runs,[{text:'A',script:'normal',bold:true,fill:'#ff0000'},{text:'B',script:'normal',bold:false,italic:true,fill:'none'}]);
+
+result = TextLayout.layout({ x: 0, y: 10, runs: [{ text: 'abcd', script: 'normal', bold: true }], style: { ...style, bold: false }, layout: { width: 25, align: 'left' } }, { measure: (text, effective) => Array.from(text).length * (effective.bold ? 20 : 10) });
+assert.deepEqual(words(result.lines),['a','b','c','d'],'長い語を文字単位へ分ける場合も部分書式の実効幅を使う');
+
 result = TextLayout.layout({ x: 0, y: 0, runs: [{ text: 'A👩‍💻e\u0301日本語', script: 'normal' }], style, layout: { width: 20, align: 'left' } }, { measure });
 assert.ok(words(result.lines).join('') === 'A👩‍💻e\u0301日本語');
 assert.ok(words(result.lines).every(line => !line.includes('\ud83d') || line.includes('👩‍💻')));

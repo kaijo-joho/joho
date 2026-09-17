@@ -1,10 +1,17 @@
 /* 文字設定は入力とキャンバスを同時に確認する。 */
-#text-input{min-height:112px;max-height:35dvh;resize:vertical;white-space:pre-wrap;line-height:1.5}
-#text-preview{min-height:1.8em;max-height:90px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--line);border-radius:7px;padding:8px;margin:8px 0;background:var(--bg);color:var(--text);line-height:1.6}
-#text-preview .text-script-super{vertical-align:super;font-size:.7em}
-#text-preview .text-script-sub{vertical-align:sub;font-size:.7em}
-.text-tools,.text-align-buttons{display:flex;gap:6px;align-items:center;margin:8px 0}
+#text-input{min-height:112px;max-height:35dvh;resize:vertical;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;line-height:1.6;border:1px solid var(--line);border-radius:7px;padding:9px;background:#fff;color:#172b4d;caret-color:#2563eb;font-size:max(16px,var(--ui-size));color-scheme:light}
+#text-input:empty:before{content:'ここに文章を入力';color:#64748b;pointer-events:none}
+.text-input-label{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--muted);margin:12px 0 6px}
+.text-input-label button{font-size:.86em;min-height:36px}
+#text-format-target{font-size:.82em;margin:6px 0}
+.rich-text-preview{min-height:2em;max-height:120px;overflow:auto;white-space:pre-wrap;overflow-wrap:anywhere;border:1px solid var(--line);border-radius:7px;padding:8px;margin:8px 0;background:#fff;color:#172b4d;line-height:1.6}
+#text-input .text-script-super,.rich-text-preview .text-script-super{vertical-align:super;font-size:.7em}
+#text-input .text-script-sub,.rich-text-preview .text-script-sub{vertical-align:sub;font-size:.7em}
+#text-markdown-input{min-height:80px;resize:vertical}
+#text-markdown-insert{white-space:normal;min-height:44px}
+.text-tools,.text-align-buttons{display:flex;gap:5px;align-items:center;margin:8px 0}
 .text-tools button,.text-align-buttons button{min-height:40px;flex:1;min-width:0}
+.text-tools button{padding:5px 3px}
 .text-align-buttons button[aria-pressed=true]{background:var(--accent-soft);color:var(--accent);border-color:var(--accent)}
 .text-color-row{flex-wrap:wrap}
 #text-color-picker{width:46px;min-width:46px;min-height:40px;padding:2px}

@@ -75,6 +75,19 @@ const chainedColors = { objects: [path('chain')], animations: [
 ] };
 assert.equal(object(A.frame(chainedColors, 0, 150), 'chain').style.fill, '#800080', 'later color interpolates from the completed earlier color');
 
+const richText = (id, runs, fill = '#111111') => ({ id, type: 'text', name: id, group: null, locked: false, matrix: [1, 0, 0, 1, 0, 0], x: 0, y: 0, runs, style: style(fill, 'none') });
+const richColors = { objects: [richText('rich', [{ text: '赤', script: 'normal', fill: '#FF0000' }, { text: '親', script: 'normal' }, { text: '無', script: 'normal', fill: 'none' }])], animations: [
+  animation('rich-red', ['rich'], 'color', { channel: 'fill', color: '#00FF00', duration: 100 }),
+  animation('rich-blue-same-start', ['rich'], 'color', { channel: 'fill', color: '#0000FF', duration: 100 }),
+  animation('rich-chain', ['rich'], 'color', { trigger: 'after', channel: 'fill', color: '#FFFFFF', duration: 100 })
+] };
+const richPlan = A.compile(richColors), richHalf = object(A.frame(richColors, 0, 50, { plan: richPlan }), 'rich');
+assert.deepEqual(richHalf.runs.map(run => run.fill), ['#800080', '#090988', '#0000FF'], '同時に重なる後続の文字色アニメーションは各runの元色から補間して優先する');
+assert.equal(richHalf.style.fill, '#111111', '文字の親スタイルは部分色アニメーションで書き換えない');
+const richChained = object(A.frame(richColors, 0, 150, { plan: richPlan }), 'rich');
+assert.deepEqual(richChained.runs.map(run => run.fill), ['#8080FF', '#8080FF', '#8080FF'], '連続する文字色アニメーションは前の終了色から補間する');
+assert.deepEqual(object(A.frame(richColors, 0, 0, { plan: richPlan }), 'rich').runs, richColors.objects[0].runs, '時刻を戻した評価では元のrun色と省略属性を保持する');
+
 const untouched = JSON.stringify(colors); A.frame(colors, 0, 50, { plan: colorPlan }); assert.equal(JSON.stringify(colors), untouched, 'plan/frame leave input unchanged');
 for (const args of [[timeline, -1, 0], [timeline, 2, 0], [timeline, 0, -1], [timeline, 0, NaN]]) assert.throws(() => A.frame(...args), /Invalid animation position/);
 console.log('animation.test.cjs: passed (26 assertion statements)');

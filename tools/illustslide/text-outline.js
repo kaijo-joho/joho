@@ -97,34 +97,36 @@
     layout.lines.forEach(function (line) {
       var cursor = finite(line.x, 0);
       (line.runs || []).forEach(function (run) {
-        var kind = run.script === 'super' || run.script === 'sub' ? run.script : 'normal', size = scriptSize(style, kind), baseline = finite(line.y, 0) + baselineShift(style, kind), selected = face(bundle, style), text = String(run.text == null ? '' : run.text);
+        var effective=Object.assign({},style);if(run.bold!==undefined)effective.bold=!!run.bold;if(run.italic!==undefined)effective.italic=!!run.italic;if(run.fill!==undefined)effective.fill=run.fill;
+        var kind = run.script === 'super' || run.script === 'sub' ? run.script : 'normal', size = scriptSize(effective, kind), baseline = finite(line.y, 0) + baselineShift(effective, kind), selected = face(bundle, effective), text = String(run.text == null ? '' : run.text), pieces=[];
         faceHasText(selected, text);
         var glyphs = selected.stringToGlyphs(text);
         glyphCount += glyphs.length;
         if (glyphCount > MAX_GLYPHS) fail('文字数が多すぎます（最大 ' + MAX_GLYPHS + ' 字形）。文章を分けてください。');
         selected.forEachGlyph(text, cursor, baseline, size, { kerning: true }, function (glyph, x, y, fontSize) {
           if (!glyph || glyph.index === 0) fail('選択した変換用フォントにない文字があります。');
-          var piece = pathData(glyph.getPath(x, y, fontSize), !!style.italic, baseline);
+          var piece = pathData(glyph.getPath(x, y, fontSize), !!effective.italic, baseline);
           length += piece.length;
           if (length > MAX_PATH_LENGTH) fail('輪郭データが大きすぎます（最大 ' + MAX_PATH_LENGTH + ' 文字）。文章を分けてください。');
-          if (piece) out.push(piece);
+          if (piece) pieces.push(piece);
         });
+        if(pieces.length){var key=[effective.fill,effective.bold,effective.italic].join('|'),last=out[out.length-1];if(last&&last.key===key)last.d+=pieces.join('');else out.push({d:pieces.join(''),style:effective,key:key});}
         cursor += selected.getAdvanceWidth(text, size, { kerning: true });
       });
     });
     if (!out.length) fail('可視の文字がありません。');
-    return out.join('');
+    return out;
   }
   function convert(object, options) {
     options = options || {};
     var fontId = options.fontId || 'sans', sourceInfo = textSource(object, options), bundle = prepared[fontId];
     fontInfo(fontId);
     if (!bundle) fail('変換用フォントを読み込んでから実行してください。');
-    var source = sourceInfo.source, d = makeD(source, bundle), base = clone(source.style || {}), result = {
-      id: String(source.id || 'text') + '-outline', type: 'path', name: String(source.name || '文字') + '（文字アウトライン）', group: source.group == null ? null : source.group,
-      locked: !!source.locked, matrix: Array.isArray(source.matrix) ? source.matrix.slice() : [1, 0, 0, 1, 0, 0], style: base, d: d
-    };
-    return { objects: [result], fontId: fontId, fontLabel: bundle.label, sourceKind: sourceInfo.kind, ownerId: sourceInfo.ownerId || null };
+    var source = sourceInfo.source, pieces = makeD(source, bundle), base = clone(source.style || {}), objects=pieces.map(function(piece,index){return {
+      id: String(source.id || 'text') + '-outline' + (index?'-'+index:''), type: 'path', name: String(source.name || '文字') + '（文字アウトライン）', group: source.group == null ? null : source.group,
+      locked: !!source.locked, matrix: Array.isArray(source.matrix) ? source.matrix.slice() : [1, 0, 0, 1, 0, 0], style: Object.assign({},base,piece.style), d: piece.d
+    };});
+    return { objects: objects, fontId: fontId, fontLabel: bundle.label, sourceKind: sourceInfo.kind, ownerId: sourceInfo.ownerId || null };
   }
   function fonts() { return Object.keys(FONTS).map(function (key) { return { id: FONTS[key].id, label: FONTS[key].label }; }); }
   return { fonts: fonts, prepare: prepare, convert: convert, limits: Object.freeze({ glyphs: MAX_GLYPHS, pathLength: MAX_PATH_LENGTH }) };

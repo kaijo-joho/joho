@@ -1,15 +1,15 @@
-# イラストスライド illustSlideの内部契約（0.4.13）
+# イラストスライド illustSlideの内部契約（0.4.14）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
 
 0.4.2から配置先は `tools/illustslide/`、保存名は `.illustslide.zip`。旧URLは案内ページを残し、旧 `.ilapo.zip`・保存キー・内部API・文書形式・SVG識別子は互換性を保つ。直接ファイル利用時のブラウザ保存は、旧ページでJSONとして取り出せる。
 
-文書: `{format:'kaijo-ilapo',version:1|2|3|4,id,name,pages:[page]}`。version1〜3を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4へ上げる。上がったversionを下げず、引数は変更しない。
+文書: `{format:'kaijo-ilapo',version:1|2|3|4|5,id,name,pages:[page]}`。version1〜4を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5へ上げる。上がったversionを下げず、引数は変更しない。
 ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation]}`。
 幅・高さ・座標はCSS pxの小数。unitは表示単位px/mm/pt。無限ページにも書き出し用の初期width/heightを保持。
 オブジェクト: `{id,type:'path'|'text'|'image'|'connector',name,group:null|string,locked:false,matrix:[a,b,c,d,e,f],style}`。
-pathは標準SVGの`d`、textは`x,y,runs:[{text,script:'normal'|'super'|'sub'}]`を追加する。
+pathは標準SVGの`d`、textは`x,y,runs:[{text,script:'normal'|'super'|'sub',bold?:boolean,italic?:boolean,fill?:色}]`を追加する。部分書式は省略時に親styleを継承し、falseも明示値として保持する。fillは#RRGGBBまたはnone。
 textの任意フィールド`layout:{width:null|正数,align:'left'|'center'|'right'}`は折り返し幅と揃え。pathの任意フィールド`label:{runs,style,align,padding}`は図形内の文章。paddingは0以上のCSS px。省略した既存文書に既定値を追加しない。runsは最大1000区間・合計100000 UTF-16コード単位。余分なキー、不正な書式・数値・揃えは拒否する。
 style: `{fill,stroke,strokeWidth,opacity,dash,linecap,linejoin,fontSize,fontFamily,bold,italic}`。
 fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。fontFamilyはsans-serif/serif/monospace。
@@ -39,6 +39,8 @@ version2ではimageのreferenceフラグもmetadataに保存。connectorは接�
 
 version4はmetadataの`text:{x,y,runs,layout}`で入力時の文章・揃え・幅を、`label`で図形内の文章・書式・余白を保持する。textのmatrix/style、pathのd/matrix/styleは従来どおりSVGを正本とする。通常SVGは行ごとに明示したtspanのx/yで表示し、再取り込みでは配置済みの行ごとのtextになる。native ZIPは著者のrunsとlayoutを復元する。図形ラベルは元pathから派生させ、表示用のpath本体だけをflattenする。派生文字には図形IDを付けず、groupとlabel textの所有者markerを検証して重複取り込みを防ぐ。markerやmetadataが欠損・重複・不一致なら拒否し、nativeでもXML監査を省略しない。
 
+version5は部分書式の任意キーをrunsへ追加する。折り返し付き文字・図形ラベルは上記metadataで保持し、通常の文字はSVGのtspanを正本とする。部分書式がない古いrunへ不要な既定値を補わず、明示falseも保存する。
+
 `exportPage`の`includeReferences:true`はnative ZIP用。既定falseは参照画像を省く。imageのsrcはPNG/JPEG/WebPのbase64データURLだけを許し、外部URL・埋め込みSVGを拒否する。ZIPのページファイル名はpage.idをencodeURIComponentしたものとする。
 
 native ZIPでは`rawTransforms:true`も指定し、元のd・matrix・styleを各SVGへそのまま保持する。表示・通常SVG・PNG・PDF・発表はこの指定を使わない。外部アプリで線幅まで一致する持ち出しには通常のSVGを書き出す。
@@ -49,7 +51,7 @@ native ZIPでは`rawTransforms:true`も指定し、元のd・matrix・styleを�
 
 `IlapoStrokeOutline.path(path,options?)` は元オブジェクトを変更せず、作品座標の線を塗る通常の非ゼロ規則の複合パス文字列を返す。可視の輪郭がない場合はnull。Paper.jsの専用scopeを再利用する。曲線を線幅に応じて分割し、線端・角・破線を展開してBoolean unionで内部境界を除く。MAX_CURVES=2048、MAX_POINTS=4096、破線走査2048、結合部品2048、最終pathLength100000の制限を持つ。異常値・過大な分割は処理前または生成中にthrowする。
 
-`IlapoTextOutline.fonts()` は `{id,label}` の候補、`prepare('sans'|'serif')` は書体の読み込みPromise、`convert(text,{fontId})` は準備済み書体を使う同期処理で `{objects:[path],fontId,fontLabel,sourceKind,ownerId}` を返す。文字全体を1つの複合パスにまとめ、ローカル座標のdと元matrix/styleを返す。図形ラベルと接続ラベルも派生textとして受け取れる。未準備・欠字・空白のみ・上限超過はthrow。prepare失敗のPromiseをキャッシュに残さず再試行可能にする。
+`IlapoTextOutline.fonts()` は `{id,label}` の候補、`prepare('sans'|'serif')` は書体の読み込みPromise、`convert(text,{fontId})` は準備済み書体を使う同期処理で `{objects:[path],fontId,fontLabel,sourceKind,ownerId}` を返す。同じ有効色・太字・斜体の連続区間を複合パスにまとめ、ローカル座標のdと元matrix/styleを返す。異なる部分書式は複数パスとなる。図形ラベルと接続ラベルも派生textとして受け取れる。未準備・欠字・空白のみ・上限超過はthrow。prepare失敗のPromiseをキャッシュに残さず再試行可能にする。
 
 opentype.js 1.3.4を同梱し、フォントは同じ配信元のWOFF1を必要時だけ取得する。フォントの固定版・ハッシュ・OFLはfonts/README.md。任意フォントのアップロードやOSフォントの取得は行わない。TextLayoutへ同梱書体のadvance幅を渡して揃え・折返しを計算し、通常の編集文字のgeneric fontFamilyは変更しない。変換用書体の差異をUIで明示する。字形は最大2000・d文字列は90000。斜体は基線周りのshear 0.2。
 
@@ -62,7 +64,7 @@ opentype.js 1.3.4を同梱し、フォントは同じ配信元のWOFF1を必要�
 ## IlapoGeometry (geometry.js)
 
 Paper.jsは同梱版を使用し、geometryは小さな独立scopeで図形計算だけを行う。
-`bounds(object)` -> `{x,y,width,height}` 変形後。textは概算でよくDOM実測をUI側で優先。
+`bounds(object)` -> `{x,y,width,height}` 変形後。折り返す文字はTextLayoutを使い、通常文字はブラウザ上でrunごとの太字・斜体も含めたSVGを計測する。DOMのない環境は概算。
 `visualBounds(object)`は描画と同じ作品座標の線幅を含む境界を返す。`flattenedPath(object)`は元モデルを変更せず、変形後のdと単位行列を持つ表示用pathを返す。線を拡大しない平行移動だけなら元objectを利用する。
 `boolean(a,b,operation)` -> 新しいpath object。operation=unite/subtract/intersect。
 `anchors(object)` -> パスの区間ごとの配列（検証用）。`moveAnchor(object,pathIndex,anchorIndex,dx,dy)` ->新object。
@@ -75,7 +77,13 @@ UIはeditor.jsとeditor.css/index.html。DOMの作品表示はSVG、選択枠等
 
 `shapeText(path)`は保存しない派生textを返す。元のローカル外接範囲に軸方向の実倍率を適用して文字幅を求め、行列からその倍率を除いて文字の太さ・サイズを維持する。回転・反転は引き継ぐ。図形の高さ中央へ配置するが、輪郭に沿う流し込みはしない。過大な余白は表示時に軸ごとに制限し、著者の指定値は保存したままにする。pathの`bounds`は図形本体を返し、`visualBounds`ははみ出たラベルの描画範囲も含める。
 
-文字UIは右のtextセクション。新規文字も確定までHistoryへ追加せず、Inspectorのスコープ検査と複製文書のpreviewを共用する。部分書式はtextareaのUTF-16選択範囲を書記素単位へ広げて適用する。IME中は入力の書式・キャンバスpreviewを更新せず、compositionendで反映する。Enterは改行、入力中のDeleteは文章編集。適用は1履歴、取消・閉じる・対象切替は未確定入力を破棄する。
+文字UIは右のtextセクション。0.4.14の`IlapoRichText.create(element,options)`がcontenteditableのDOM Rangeとrunsを対応付け、部分書式をUTF-16選択範囲から書記素単位へ広げて適用する。表示DOMには検証済みのspanとtextContentだけを使い、貼り付けはtext/plainを取得する。範囲なしの書式は次の入力へ適用し、全文変更は明示的な全文選択を使う。size/family/alignは親style/layoutへ適用する。
+
+compositionstartから最終inputまでDOMを再描画しない。compositionend後のタイマーで確定文字を読み、data-rich-composingを外してchangeを発火する。Inspectorはこのフラグ中の即時反映を待ち、追加のEnterなしで確定内容を保存する。Enterは改行。入力欄の破棄・ページや対象切替後に古いタイマーを適用しない。通常の即時反映・欄ごとのUndoに従い、新規文字は最初の有効入力で1個だけ追加する。閉じても反映済みの文字は保持する。
+
+`IlapoTextMarkdown.parse(source)`は`{runs,diagnostics}`を返す独立した変換器。GAS/cmn/markdown.jsのインライン記法（太字・斜体・上付き・下付き・#RRGGBBの色）に合わせるが、GASのHTML変換器を同梱・呼び出しはしない。未対応ブロック・リンク・HTML・style、未閉じの記号は原文と案内を残す。UIはMarkdown専用欄で解析・プレビューし、明示的な挿入を1つのUndoにする。通常入力へ自動変換を追加しない。HTML生成や外部通信は行わない。
+
+部分書式はTextLayoutの計測・改行・位置決定へ引き継ぎ、SVGのtspanへ明示する。再編集用ZIPでもrunの省略値とfalseを保持する。文字色アニメーションは各runの有効fillを起点として評価する。図形本体のfillアニメーションでlabelの文字色は変えない。
 
 部品の初回配置では、path.labelの文字サイズ・線・破線・余白を配置倍率に合わせる。通常の図形変形ではラベルの保存値を拡大しない。
 
@@ -108,6 +116,8 @@ PathUI.pickは実際のDOM対象を優先し、細線の空振り時だけ前面
 空白の非ドラッグpointerupで全解除、空白のdragは開始時のselect/directに従う範囲選択。Escはドラッグ取消・メニュー終了・専用操作の取消を優先し、それ以外では全解除する。内側dblclickは文字編集、direct輪郭dblclickは点追加に使う。dblclickの対象が再描画・pointer captureでcanvasへ移った場合はelementFromPointで補い、接続矢印の処理は選択中のconnectorと実際の対象IDが一致するときだけ受け取る。選択状態は作品・保存形式へ追加しない。
 
 ## 即時反映と履歴（0.4.12）
+
+0.4.14では候補表示用の`#hover-preview`を作品と選択枠から分離する。頂点は点と輪を、内側はグループを含む全体範囲を表示する。選択状態と実際のクリック判定を優先し、リサイズ・ベジェ・接続ハンドルには裏の頂点候補を重ねない。候補表示はpointer-events=noneで文書や履歴に含めず、操作開始・画面外への移動・再描画・ツール切替で無効にする。タッチではホバーを使わない。オブジェクト設定内のpages/objects/assetsタブは外し、右端の独立ボタンだけを入口にする。
 
 選択ポップアップは選択内容ごとに主要操作を表示し、複数パスのBooleanと単一パスのアンカー追加を直接呼び出せる。区間未選択のanchor-addは1点追加モードへ入り、選択パスの輪郭だけを対象にする。成功・Escape・選択変更で終了し、モードは文書へ保存しない。狭い画面で省略するパスメニューはselection-moreからも開ける。
 

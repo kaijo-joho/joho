@@ -308,7 +308,7 @@
       const request = current;
       if (!request) return;
       if (!request.auto) { queueMicrotask(() => { if (isSameRequest(request)) preview(); }); return; }
-      if (composing || event?.isComposing) return;
+      if (composing || body.querySelector('[data-rich-composing="true"]') || event?.isComposing) return;
       const target = event?.target || document.activeElement;
       const discrete = event?.type === 'click' || target?.matches('select,input[type=checkbox],input[type=radio]');
       if (!inputGroup || groupTarget !== target || discrete) { inputGroup = Symbol('inspector-input'); groupTarget = target; }
@@ -318,7 +318,7 @@
       queueMicrotask(() => {
         autoQueued = false;
         const pending = pendingAuto; pendingAuto = null;
-        if (!pending || !isSameRequest(pending.request) || composing || busy() || !valid() || !checkScope(pending.request)) return;
+        if (!pending || !isSameRequest(pending.request) || composing || body.querySelector('[data-rich-composing="true"]') || busy() || !valid() || !checkScope(pending.request)) return;
         clearError(); clearPreview(); applyingGroup = pending.group;
         try {
           pending.request.apply(pending.event);

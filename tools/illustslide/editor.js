@@ -36,6 +36,7 @@
   let pageId=initial.pages[0].id, selected=[], tool='select', drag=null, preview=null, clipboard=null, copiedStyle=null;
   let camera={x:0,y:0,width:1280,height:720}, saveTimer, saveFingerprint=JSON.stringify(initial), edited=false, store, localAuto, help, space=false, renderPending=false, writeInProgress=false;
   let pathUI,connectionUI,animationUI,pagesUI,objectsUI,assetsUI,textUI,outlineUI,library,inspector,inspectorPreview=null,revision=0;
+  let hoverPreview,hoverState=null,hoverInvalidated=false,hoverEpoch=0;
   let settings={theme:'auto',size:'standard',grid:true,snap:false,gridStep:20,pixelGrid:true,snapPixel:true,snapAnchor:true,snapPath:true,smartGuides:true};
   try { Object.assign(settings,JSON.parse(localStorage.getItem('kaijo-ilapo:settings')||'{}')); } catch (_) {}
   for(const key of ['pixelGrid','snapPixel'])if(typeof settings[key]!=='boolean')settings[key]=true;
@@ -103,9 +104,48 @@
     catch(error){toast(errorMessage(error));return false;}
   }
   function render() {
+    hoverInvalidated=true;
     if(renderPending)return; renderPending=true;requestAnimationFrame(()=>{renderPending=false;renderNow();});
   }
+  function clearHoverPreview(invalidate=true) {
+    if (invalidate) hoverEpoch++;
+    hoverState=null;
+    if (hoverPreview) hoverPreview.innerHTML='';
+    $('canvas').removeAttribute('data-hover-kind');
+  }
+  function updateHoverPreview(event, point) {
+    if (!hoverPreview || drag || space || !selecting() || event.pointerType==='touch') return;
+    if (event.target.closest('[data-handle],[data-bezier],[data-connection-handle]')) { clearHoverPreview(); return; }
+    const base=page(), picked=pathUI?.pick(point,event,base);
+    const targetId=event.target.closest('[data-object]')?.dataset.object;
+    let next=null;
+    // 全体選択中の図形内部は、PathUIの頂点判定より変形操作を優先する。
+    if (tool==='select' && targetId && selected.includes(targetId)) {
+      next={kind:'whole',id:targetId};
+    } else if (picked?.ref) {
+      const object=base.objects.find(o=>o.id===picked.ref.id), segment=object&&window.IlapoPathEdit.inspect(object)[picked.ref.path]?.segments[picked.ref.index];
+      if (segment) next={kind:'anchor',ref:picked.ref,point:{...segment.point}};
+    } else {
+      // 辺の近傍は押すと直接選択へ切り替わるため、全体候補を表示しない。
+      const id=picked?.near ? null : picked?.id||targetId;
+      if (id && base.objects.some(o=>o.id===id)) next={kind:'whole',id};
+    }
+    const key=next?.kind==='anchor'?`anchor:${next.ref.id}:${next.ref.path}:${next.ref.index}`:next?.kind==='whole'?`whole:${next.id}`:'';
+    if ((hoverState?.key||'')===key) return;
+    hoverState=next?{...next,key}:null;
+    if (!next) { clearHoverPreview(); return; }
+    $('canvas').dataset.hoverKind=next.kind;
+    if (next.kind==='anchor') {
+      const r=Math.max(5/zoom(),3/zoom());
+      hoverPreview.innerHTML=`<circle cx="${next.point.x}" cy="${next.point.y}" r="${r*2.1}" fill="var(--accent-soft)" stroke="var(--accent)" stroke-width="${1.5/zoom()}"/><circle cx="${next.point.x}" cy="${next.point.y}" r="${r*.7}" fill="var(--accent)"/>`;
+      return;
+    }
+    const ids=C.expandSelection(base,[next.id]),b=bounds(ids,base),stroke=1.2/zoom();
+    hoverPreview.innerHTML=`<rect x="${b.x}" y="${b.y}" width="${Math.max(b.width,.1/zoom())}" height="${Math.max(b.height,.1/zoom())}" fill="var(--accent-soft)" fill-opacity=".12" stroke="var(--accent)" stroke-opacity=".58" stroke-width="${stroke}" stroke-dasharray="${4/zoom()} ${3/zoom()}"/>`;
+  }
   function renderNow() {
+    // 作品・カメラ・選択状態を更新した候補は、次の座標で再判定する。
+    if (hoverInvalidated) { hoverInvalidated=false; if (hoverState) clearHoverPreview(false); }
     inspector?.sync();
     if(preview)K.sync(preview);
     const p=drawPage(); $('canvas').setAttribute('viewBox',`${camera.x} ${camera.y} ${camera.width} ${camera.height}`);
@@ -168,8 +208,8 @@
     }
     $('selection').innerHTML=markup;
   }
-  function setTool(value){closePalette(false);objectsUI?.cancelDrag();cancelDrag();if(tool!==value){pathUI?.reset();connectionUI?.reset();}tool=value;hideMenu();render();$('canvas').focus();}
-  function cancelDrag(){if(drag?.originalSelection)selected=drag.originalSelection;pathUI?.cancel(drag);connectionUI?.cancel();preview=null;drag=null;render();}
+  function setTool(value){closePalette(false);objectsUI?.cancelDrag();cancelDrag();clearHoverPreview();if(tool!==value){pathUI?.reset();connectionUI?.reset();}tool=value;hideMenu();render();$('canvas').focus();}
+  function cancelDrag(){if(drag?.originalSelection)selected=drag.originalSelection;pathUI?.cancel(drag);connectionUI?.cancel();preview=null;drag=null;clearHoverPreview();render();}
   function standardSize(){return Math.max(.5,Math.min(160,page().board.width*.2,page().board.height*.25));}
   function createShape(kind,start,end,defaultSize=false,event){
     const size=standardSize();let x=defaultSize?start.x-size/2:Math.min(start.x,end.x),y=defaultSize?start.y-size*.32:Math.min(start.y,end.y),w=defaultSize?size:Math.abs(end.x-start.x),h=defaultSize?size*.65:Math.abs(end.y-start.y);
@@ -180,9 +220,15 @@
     if(kind==='line'&&!defaultSize)o.d=`M${start.x} ${start.y}L${end.x} ${end.y}`;
     return o;
   }
+  hoverPreview=document.createElementNS('http://www.w3.org/2000/svg','g');
+  hoverPreview.id='hover-preview';
+  hoverPreview.setAttribute('pointer-events','none');
+  hoverPreview.setAttribute('aria-hidden','true');
+  $('canvas').insertBefore(hoverPreview,$('selection'));
   $('canvas').addEventListener('pointerdown',event=>{
     if(inspectorPreview)inspector.reset();
     if(event.button!==0&&event.button!==1)return;if(drag)return;hideMenu();$('canvas').focus();
+    clearHoverPreview();
     const p=world(event),point=snap(p,event),base=C.clone(page()),originalSelection=selected.slice();
     const handle=event.target.closest('[data-handle]')?.dataset.handle;
     let hit=event.target.closest('[data-object]')?.dataset.object,picked=null;
@@ -209,7 +255,15 @@
     if(drag){drag.rawStart={...p};drag.selectionIds=selected.slice();event.preventDefault();$('canvas').setPointerCapture(event.pointerId);drag.pointerId=event.pointerId;}render();
   });
   $('canvas').addEventListener('pointermove',event=>{
-    if(!drag||drag.pointerId!==event.pointerId)return;const p=world(event),sp=snap(p,event);drag.moved=drag.moved||Math.hypot(p.x-drag.rawStart.x,p.y-drag.rawStart.y)*zoom()>3;drag.lastPoint={...p};
+    if(!drag){
+      if(event.pointerType!=='touch'){
+        const epoch=hoverEpoch;
+        updateHoverPreview(event,world(event));
+        requestAnimationFrame(()=>{if(!drag&&epoch===hoverEpoch)updateHoverPreview(event,world(event));});
+      }
+      return;
+    }
+    if(drag.pointerId!==event.pointerId)return;clearHoverPreview();const p=world(event),sp=snap(p,event);drag.moved=drag.moved||Math.hypot(p.x-drag.rawStart.x,p.y-drag.rawStart.y)*zoom()>3;drag.lastPoint={...p};
     if(connectionUI.pointerMove(event,p,drag)||pathUI.pointerMove(event,p,drag)){render();return;}
     if(drag.kind==='pan'){camera.x=drag.camera.x-(event.clientX-drag.client.x)/zoom();camera.y=drag.camera.y-(event.clientY-drag.client.y)/zoom();}
     if(drag.kind==='draw'){drag.end=sp;preview=C.clone(drag.base);if(drag.moved){try{preview.objects.push(createShape(tool,drag.start,sp,false,event));}catch(_){}}}
@@ -258,6 +312,7 @@
     else if(action.kind==='marquee'&&action.moved){const b=action.box;const hits=page().objects.filter(o=>{const a=G.bounds(o);return a.x>=b.x&&a.y>=b.y&&a.x+a.width<=b.x+b.width&&a.y+a.height<=b.y+b.height;}).map(o=>o.id);selection(action.add?[...new Set([...action.originalSelection,...hits])]:hits);}
     render();
   });
+  $('canvas').addEventListener('pointerleave',()=>{if(!drag)clearHoverPreview();});
   $('canvas').addEventListener('pointercancel',cancelDrag);
   $('canvas').addEventListener('dblclick',event=>{
     const point=world(event);
@@ -375,7 +430,7 @@
   function renderInspectorTabs(){
     if(!inspector)return;
     const one=selected.length===1?page().objects.find(o=>o.id===selected[0]):null;
-    const sections=['pages','objects','assets',...(selected.length?[one?.type==='image'?'image':'style','transform',...(one&&(one.type==='text'||one.type==='path'&&(one.label||/[zZ]/.test(one.d)))?['text']:[]),...(one?.type==='connector'?['connection']:pathUI.count()?['anchor']:[]),...(outlineAvailable()?['outline']:[]),'animation','board','view']:[...(textUI?.hasDraft?['text']:[]),'board','view','animation'])];
+    const sections=[...(selected.length?[one?.type==='image'?'image':'style','transform',...(one&&(one.type==='text'||one.type==='path'&&(one.label||/[zZ]/.test(one.d)))?['text']:[]),...(one?.type==='connector'?['connection']:pathUI.count()?['anchor']:[]),...(outlineAvailable()?['outline']:[]),'animation','board','view']:[...(textUI?.hasDraft?['text']:[]),'board','view','animation'])];
     const key=sections.join(',');
     if(inspectorTabsKey!==key){inspectorTabsKey=key;$('inspector-tabs').innerHTML=sections.map(section=>`<button type="button" data-inspector-section="${section}" aria-label="${inspectorSections[section][0]}" data-tip="${inspectorSections[section][0]}">${icon(inspectorSections[section][1])}</button>`).join('');}
     $('inspector-tabs').querySelectorAll('button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.inspectorSection===inspector.section)));
