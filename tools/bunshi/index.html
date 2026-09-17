@@ -514,6 +514,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
     <div class="body help" id="helpBody">
       <table>
         <tr><td>分子を表示する</td><td>左上の「化合物ライブラリ」（または画面右端のタブ）から化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
+        <tr><td>デンプンとセルロース</td><td>「糖類」に<b>デンプン（アミロースのらせん・グルコース 10 個分）</b>があります。グリコシド結合のねじれを与えて<b>左巻きのらせん</b>にしてあり、横から見るとらせんの巻きが、軸の方向から見ると中心付近のすきまが分かります。同じグルコースからできていても、<b>セルロース</b>（「セルロース（グルコース 3 個分）」）は<b>まっすぐな帯</b>になります（β-1,4 結合では単位が交互に裏返るため。グルコース 1 個あたり 5.2 Å ずつまっすぐ伸びます）。デンプンは糊やヨウ素デンプン反応、セルロースは束ねて丈夫な繊維になること——同じ単位からできた高分子で性質が違う理由を、形から見られます。<b>注意</b>：らせんは実際のデンプンより伸びています。1 回転あたり約 6.8 個は実際の約 6 個に近いのですが、1 回転の高さは約 15 Å で実際の約 8 Å より大きくなります。この模型には水素結合で引き寄せる力がないためで、形の傾向をつかむためのものと考えてください。</td></tr>
         <tr><td>結晶格子</td><td>上部の「結晶」に切り替えると、結晶格子を表示します（体心立方格子・面心立方格子・六方最密構造・NaCl 型・CsCl 型・ZnS 型・CaF<sub>2</sub> 型・ダイヤモンド・二酸化ケイ素・黒鉛・ドライアイス・氷・フラーレン C<sub>60</sub> の結晶・カーボンナノチューブ）。フラーレン C<sub>60</sub> の分子は化合物ライブラリの「炭素の同素体」にあります。原子をクリックすると、まわりの最も近い粒子（分子結晶では分子）を強調して線で結び、画面下に数と距離を出します（並べた全体の端の原子は、外側がないので少なく見えます）。六方晶は「六角柱で表示」で六角柱の単位格子にできます。氷の水素結合は細い水色の線で表します（H の向きは氷の規則に合う一例）。左のパネルで種類と並べる単位格子の数を選び、「単位格子の面で原子を切る」で面からはみ出した部分を切ります（頂点の原子の 1/8 などが見えます）。「断面」では、3 つの整数 (h k l) で指定した面で切り、位置のスライダー（原子の中心が並ぶ面で一度止まります）と「断面を正面に」で切り口を見られます。「断面の面を表示」で切る面を半透明の板で示します。「切る前の結晶に戻す」を押すと、断面も単位格子の面での切り取りもやめて、切る前の結晶に戻ります。「原子を 3 つクリックして面を決める」を押して結晶の原子を 3 つクリックすると、その 3 つを通る面で切ることもできます（(h k l) を知らなくても断面を選べます）。たとえば面心立方格子を (1 1 1) で切ると最密の層が現れ、立方最密構造と同じであることが分かります。画面下に格子定数・単位格子中の原子の数・配位数・充填率が出ます。「分子」で分子の表示に戻ります。</td></tr>
         <tr><td>構造式エディタから</td><td>構造式エディタで描いた分子を 3D にできます。化合物ライブラリの「構造式エディタの図を取り込む」を押すと、同じブラウザで開いている構造式エディタの図（自動保存されたもの）を取り込みます。構造式エディタで保存した .json ファイルは「開く」から取り込めます。くさび形・破線くさびの結合、ハースの投影式の上下、二重結合のシス・トランスは立体配置として取り込み、置換基のラベル（COOH・C<sub>2</sub>H<sub>5</sub>・Ph など）は原子に直します。R・X などの一般の記号や金属を含む構造は取り込めません。</td></tr>
         <tr><td>回す</td><td>ドラッグ、またはトラックパッドの 2 本指スクロール。矢印キーでも少しずつ回ります。<kbd>⌥/Alt</kbd>+ドラッグで、画面に垂直な軸（z 軸）のまわりに、画面の中で回します。</td></tr>
@@ -543,7 +544,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.19 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.20 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1628,8 +1629,58 @@ const LIB_FN = {
     const {pts, bonds} = c60Model(), atoms = pts.map(p => ({el:'C', charge:0, x:p[0], y:p[1], z:p[2]})), g = graphOf(atoms, bonds), P = pts.map(p => [...p]);
     polish(g.mol, P, findRings(g.mol), 200);
     return {atoms:atoms.map((a, i) => ({...a, hyb:g.mol.atoms[i].hyb, type:g.mol.atoms[i].type, x:P[i][0], y:P[i][1], z:P[i][2]})), bonds, approx:false};
-  }
+  },
+  amylose10:() => amyloseHelix(10, -110, -100)
 };
+// デンプン（アミロース）のらせん：α-1,4 でつないだグルコースを、らせんの形にして返す。
+// SMILES から組み立てただけでは、ゆるく丸まるだけで規則的ならせんにならない。そこでグリコシド結合の
+// ねじれ（φ：O5–C1–O–C4、ψ：C1–O–C4–C5）を与え、それを拘束したまま形を整える。
+// φ・ψ は文献のねじれ角の引き写しではない（定義の流儀で符号が変わり、引き写しは誤りやすい）。
+// 「1 回転あたり約 6 個」という教科書の値に近く、かつ原子の詰まり具合がほかのライブラリの分子と
+// 同等（結合で 3 つ以上離れた原子どうしが 2.9 Å 以上）になる組み合わせを総当たりで探して決めた。
+// ※ この力場には水素結合の引力がないため、実際のデンプンよりらせんが伸びている
+//    （1 回転 6.8 個は近いが、ピッチは約 15 Å。実際の V-アミロースは約 8 Å）。
+//    締まった形（φ=-140°, ψ=-90°）はピッチ 8.4 Å と一致するものの、隣の単位の C···O が 2.66 Å と
+//    ほかの分子より窮屈になるため採らなかった（2026-09-17 作成者の判断）
+function amyloseHelix(n, phi, psi){
+  let tail = '';
+  for (let k = n; k >= 2; k--) tail = glc1(true, 2 + ((k - 2) % 8), tail);   // 環の番号は 2〜9 を使い回す（ひと単位の中で開いて閉じるので再利用できる）
+  const m = moleculeFromGraph(molFromSmiles(GLC4(tail)));
+  const g = graphOf(m.atoms, m.bonds), mol = g.mol, P = g.P;
+  const rings = findRings(mol).filter(r => r.length === 6 && r.some(i => mol.atoms[i].el === 'O'));
+  const inRing = new Set(), ringNo = new Map();
+  rings.forEach((r, k) => r.forEach(i => { inRing.add(i); ringNo.set(i, k); }));
+  const fixed = [];
+  for (let o = 0; o < mol.atoms.length; o++){   // 環と環をつなぐ酸素を探す
+    if (mol.atoms[o].el !== 'O' || inRing.has(o)) continue;
+    const nb = mol.atoms[o].nb;
+    if (nb.length !== 2 || !nb.every(j => mol.atoms[j].el === 'C' && inRing.has(j))) continue;
+    if (ringNo.get(nb[0]) === ringNo.get(nb[1])) continue;
+    const c1 = nb.find(j => mol.atoms[j].nb.filter(k => mol.atoms[k].el === 'O').length >= 2);   // 1 位の炭素（O が 2 つ付く）
+    const c4 = nb.find(j => j !== c1);
+    if (c1 == null || c4 == null) continue;
+    const o5 = mol.atoms[c1].nb.find(j => mol.atoms[j].el === 'O' && inRing.has(j));
+    const c5 = mol.atoms[c4].nb.find(j => mol.atoms[j].el === 'C' && inRing.has(j) && j !== c1);
+    if (o5 == null || c5 == null) continue;
+    setDih(mol, P, o5, c1, o, c4, phi);
+    setDih(mol, P, c1, o, c4, c5, psi);
+    fixed.push({atoms:[o5, c1, o, c4], value:phi}, {atoms:[c1, o, c4, c5], value:psi});
+  }
+  const Q = optimizeAll(mol, P, fixed);
+  return {atoms:m.atoms.map((a, i) => ({...a, x:Q[i][0], y:Q[i][1], z:Q[i][2]})), bonds:m.bonds, approx:false};
+}
+// 二面角 a–b–c–d を target にする（b–c の結合のまわりに、c 側の枝を回す）。環の中なら何もしない
+function setDih(mol, P, a, b, c, d, target){
+  const seen = new Set([b, c]), st = [c], move = [c];
+  while (st.length){ const x = st.pop(); for (const y of mol.atoms[x].nb) if (!seen.has(y)){ seen.add(y); st.push(y); move.push(y); } }
+  if (move.includes(a)) return;
+  const wrap = x => ((x + 540) % 360) - 180;
+  const delta = wrap(target - dihedralOf(P[a], P[b], P[c], P[d]));
+  const axis = V.norm(V.sub(P[c], P[b])), org = P[b];
+  const turn = th => { for (const i of move) P[i] = V.add(org, V.rot(V.sub(P[i], org), axis, rad(th))); };
+  turn(delta);
+  if (Math.abs(wrap(dihedralOf(P[a], P[b], P[c], P[d]) - target)) > 0.5) turn(-2*delta);   // 回す向きが逆だったとき
+}
 function moleculeFromGraph(mol){
   aromatize(mol); perceive(mol);
   const {P, approx} = build3D(mol);
@@ -2069,7 +2120,8 @@ const LIB = [
     ['マルトース', GLC4(GLC_A1)], ['セロビオース', GLC4(GLC_B1)], ['ラクトース', GLC4(GAL_B1)],
     ['スクロース', `C([C@@H]1[C@H]([C@@H]([C@](O1)(CO)O${GLC_A1})O)O)O`],
     ['トレハロース', `C([C@@H]1[C@H]([C@@H]([C@H]([C@H](O1)O${GLC_A1})O)O)O)O`],
-    ['アミロース（グルコース 3 個分）', GLC4(glc1(true, 2, glc1(true, 3)))], ['セルロース（グルコース 3 個分）', GLC4(glc1(false, 2, glc1(false, 3)))]]]
+    ['アミロース（グルコース 3 個分）', GLC4(glc1(true, 2, glc1(true, 3)))], ['セルロース（グルコース 3 個分）', GLC4(glc1(false, 2, glc1(false, 3)))],
+    ['デンプン（アミロースのらせん・グルコース 10 個分）', '@amylose10']]]
 ];
 // グルコース（1 位で結合する側）。alpha：α か β、r：環の番号、x：4 位の O に付けるもの（アミロース・セルロースの鎖をのばす）
 function glc1(alpha, r, x = ''){ return `[C@${alpha ? '@' : ''}H]${r}[C@@H]([C@H]([C@@H]([C@H](O${r})CO)O${x})O)O`; }
@@ -3534,13 +3586,17 @@ window.addEventListener('keyup', e => { if (e.key === ' ') spaceDown = false; })
 // ===== 化合物ライブラリ =====
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;'}[c]));
 const libFormula = new Map(), libBuilt = new Map();
+// 組み立てに時間のかかるものは、分子式を直接書いておく。一覧は分子式を出すために中身を作るので、
+// 書いておかないとライブラリを出すたびに組み立ててしまう（デンプンのらせんは拘束付きの最適化をするため
+// 約 1.8 秒かかり、そのぶん起動時に画面が止まっていた）。ここに書いたものはクリックしたときだけ作る
+const LIB_FORMULA = {'@C60':'C<sub>60</sub>', '@amylose10':'C<sub>60</sub>H<sub>102</sub>O<sub>51</sub>'};
 function renderLibrary(){
   const q = $('libSearch').value.trim();
   $('libBody').innerHTML = LIB.map(([cat, items]) => {
     const its = items.filter(([n]) => !q || n.includes(q) || cat.includes(q));
     if (!its.length) return '';
     return `<div class="lib-cat">${cat}</div><div class="lib-list">` + its.map(([n, smi]) => {
-      if (!libFormula.has(smi)) { try { libFormula.set(smi, formulaOf((smi.startsWith('@') ? buildCached(smi) : molFromSmiles(smi)).atoms).html); } catch { libFormula.set(smi, ''); } }
+      if (!libFormula.has(smi)) { try { libFormula.set(smi, LIB_FORMULA[smi] ?? formulaOf((smi.startsWith('@') ? buildCached(smi) : molFromSmiles(smi)).atoms).html); } catch { libFormula.set(smi, ''); } }
       return `<button class="lib-item" data-smi="${esc(smi)}"><span>${esc(n)}</span><span class="f">${libFormula.get(smi)}</span></button>`;
     }).join('') + '</div>';
   }).join('') || '<p class="muted">見つかりません</p>';
