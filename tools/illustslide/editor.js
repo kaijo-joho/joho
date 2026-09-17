@@ -1,7 +1,7 @@
 /* illustSlide: 編集画面。作品、表示、選択、保存候補はそれぞれ独立して管理する。 */
 (function () {
   'use strict';
-  const C = window.IlapoCore, S = window.IlapoSVG, G = window.IlapoGeometry, E = window.IlapoExport, K=window.IlapoConnectors, A=window.IlapoAssets, Guides=window.IlapoGuides;
+  const C = window.IlapoCore, S = window.IlapoSVG, G = window.IlapoGeometry, E = window.IlapoExport, K=window.IlapoConnectors, A=window.IlapoAssets, Guides=window.IlapoGuides, Grid=window.IlapoGrid;
   const $ = id => document.getElementById(id);
   const esc = value => String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const icons = {
@@ -28,14 +28,15 @@
   const names = {rect:'長方形',roundrect:'角丸',ellipse:'楕円',triangle:'三角形',pentagon:'五角形',diamond:'菱形',parallelogram:'平行四辺形',arrow:'太い矢印',callout:'吹き出し',line:'線',connector:'接続矢印','connector-orthogonal':'カギ型矢印',text:'文字',direct:'直接選択',select:'全体を選択',pan:'移動'};
   document.querySelectorAll('[data-icon]').forEach(el => el.insertAdjacentHTML('afterbegin',icon(el.dataset.icon)));
   $('shape-tools').innerHTML = Object.keys(names).filter(k=>!['direct','select','pan'].includes(k)).map(k=>`<button data-tool="${k}" aria-label="${names[k]}を追加" data-tip="${names[k]}を追加">${icon(k)}<span>${names[k]}</span></button>`).join('');
-  if (!C || !S || !G || !E || !K || !A || !Guides || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector || !window.IlapoPagesUI || !window.IlapoObjectsUI || !window.IlapoObjectsModel || !window.IlapoAssetsUI || !window.IlapoTextUI || !window.IlapoTextLayout || !window.IlapoOutline || !window.IlapoOutlineUI || !window.IlapoStrokeOutline || !window.IlapoTextOutline) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
+  if (!C || !S || !G || !E || !K || !A || !Guides || !Grid || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector || !window.IlapoPagesUI || !window.IlapoObjectsUI || !window.IlapoObjectsModel || !window.IlapoAssetsUI || !window.IlapoTextUI || !window.IlapoTextLayout || !window.IlapoOutline || !window.IlapoOutlineUI || !window.IlapoStrokeOutline || !window.IlapoTextOutline) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
   const initial=C.createDocument(); initial.name='無題の作品'; initial.pages[0].board=C.boardPreset('16:9');
   const history=new C.History(initial);
   let pageId=initial.pages[0].id, selected=[], tool='direct', drag=null, preview=null, clipboard=null, copiedStyle=null;
   let camera={x:0,y:0,width:1280,height:720}, saveTimer, saveFingerprint=JSON.stringify(initial), edited=false, store, localAuto, help, space=false, renderPending=false, writeInProgress=false;
   let pathUI,connectionUI,animationUI,pagesUI,objectsUI,assetsUI,textUI,outlineUI,library,inspector,inspectorPreview=null,revision=0;
-  let settings={theme:'auto',size:'standard',grid:true,snap:false,gridStep:20,snapPixel:false,snapAnchor:true,snapPath:true,smartGuides:true};
+  let settings={theme:'auto',size:'standard',grid:true,snap:false,gridStep:20,pixelGrid:true,snapPixel:true,snapAnchor:true,snapPath:true,smartGuides:true};
   try { Object.assign(settings,JSON.parse(localStorage.getItem('kaijo-ilapo:settings')||'{}')); } catch (_) {}
+  for(const key of ['pixelGrid','snapPixel'])if(typeof settings[key]!=='boolean')settings[key]=true;
   if(typeof settings.smartGuides!=='boolean')settings.smartGuides=true;
   if(!['auto','light','dark'].includes(settings.theme))settings.theme='auto';
   if(!['standard','large','xlarge'].includes(settings.size))settings.size='standard';
@@ -68,7 +69,7 @@
     camera={x:b.x+b.width/2-cw/scale/2,y:b.y+b.height/2-ch/scale/2,width:cw/scale,height:ch/scale}; render();
   }
   function world(event) { const r=$('canvas').getBoundingClientRect(); return {x:camera.x+(event.clientX-r.left)/r.width*camera.width,y:camera.y+(event.clientY-r.top)/r.height*camera.height}; }
-  function snap(p,event) { const interval=Number(settings.gridStep); return settings.snap&&!event?.altKey&&interval>0 ? {x:Math.round(p.x/interval)*interval,y:Math.round(p.y/interval)*interval}:p; }
+  function snap(p,event) { return Grid.point(p,settings,event); }
   function bounds(ids,p=drawPage()) {
     const boxes=p.objects.filter(o=>ids.includes(o.id)).map(o=>G.bounds(o));
     if(!boxes.length) return {x:0,y:0,width:1,height:1};
@@ -106,9 +107,10 @@
     const p=drawPage(); $('canvas').setAttribute('viewBox',`${camera.x} ${camera.y} ${camera.width} ${camera.height}`);
     $('canvas').dataset.tool=tool==='pan'||space?'pan':['select','direct'].includes(tool)?'select':'draw';
     const art=p.board.infinite?{x:camera.x,y:camera.y,width:camera.width,height:camera.height}:{x:0,y:0,width:p.board.width,height:p.board.height};
-    for(const [key,value] of Object.entries(art)){$('paper').setAttribute(key,value);$('grid').setAttribute(key,value);}
+    for(const [key,value] of Object.entries(art)){$('paper').setAttribute(key,value);$('grid').setAttribute(key,value);$('pixel-grid').setAttribute(key,value);}
     const interval=Math.max(.01,Number(settings.gridStep)||20),visibleStep=interval*zoom()<7?interval*Math.ceil(7/(interval*zoom())):interval;
-    $('grid-pattern').setAttribute('width',visibleStep);$('grid-pattern').setAttribute('height',visibleStep);$('grid-pattern').firstElementChild.setAttribute('r',.7/zoom());$('grid').style.display=settings.grid?'':'none';
+    $('grid-pattern').setAttribute('width',visibleStep);$('grid-pattern').setAttribute('height',visibleStep);$('grid-pattern').firstElementChild.setAttribute('r',.7/zoom());$('grid').style.display=settings.grid&&!(settings.pixelGrid&&zoom()>=8&&interval===1)?'':'none';
+    $('pixel-pattern').firstElementChild.setAttribute('stroke-width',.8/zoom());$('pixel-grid').style.display=settings.pixelGrid&&zoom()>=8?'':'none';
     $('artwork').innerHTML=p.objects.map(o=>`<g data-object="${esc(o.id)}" aria-label="${esc(o.name)}">${o.type==='connector'?`<path d="${K.renderedParts(o)[0].d}" fill="none" stroke="transparent" stroke-width="${16/zoom()}"/>`:''}${S.objectMarkup(o)}</g>`).join('');
     $('welcome').hidden=!!p.objects.length||!!drag; $('selection-bar').hidden=!selected.length||!!drag;
     $('selection-count').textContent=pathUI?.count()?pathUI.count()+'点':selected.length+'個';
@@ -151,10 +153,12 @@
   function setTool(value){closePalette(false);objectsUI?.cancelDrag();cancelDrag();if(tool!==value){pathUI?.reset();connectionUI?.reset();}tool=value;hideMenu();render();$('canvas').focus();}
   function cancelDrag(){if(drag?.originalSelection)selected=drag.originalSelection;pathUI?.cancel(drag);connectionUI?.cancel();preview=null;drag=null;render();}
   function standardSize(){return Math.max(.5,Math.min(160,page().board.width*.2,page().board.height*.25));}
-  function createShape(kind,start,end,defaultSize=false){
-    const size=standardSize(),x=defaultSize?start.x-size/2:Math.min(start.x,end.x),y=defaultSize?start.y-size*.32:Math.min(start.y,end.y),w=defaultSize?size:Math.abs(end.x-start.x),h=defaultSize?size*.65:Math.abs(end.y-start.y);
+  function createShape(kind,start,end,defaultSize=false,event){
+    const size=standardSize();let x=defaultSize?start.x-size/2:Math.min(start.x,end.x),y=defaultSize?start.y-size*.32:Math.min(start.y,end.y),w=defaultSize?size:Math.abs(end.x-start.x),h=defaultSize?size*.65:Math.abs(end.y-start.y);
+    if(defaultSize){const a=snap({x,y},event),b=snap({x:x+w,y:y+h},event),interval=Grid.step(settings,event);x=a.x;y=a.y;w=Math.max(interval||.001,b.x-x);h=Math.max(interval||.001,b.y-y);}
     const style={fill:kind==='line'?'none':'#93C5FD',stroke:'#1E3A5F',strokeWidth:Math.max(.04,size/90),linecap:'round',linejoin:'round'};
-    let o=C.makeShape(kind,x,y,Math.max(w,.001),kind==='line'?h:Math.max(h,.001),style);o.name=names[kind];
+    const minimum=Grid.step(settings,event)||.001;
+    let o=C.makeShape(kind,x,y,Math.max(w,minimum),kind==='line'?h:Math.max(h,minimum),style);o.name=names[kind];
     if(kind==='line'&&!defaultSize)o.d=`M${start.x} ${start.y}L${end.x} ${end.y}`;
     return o;
   }
@@ -181,7 +185,7 @@
     if(!drag||drag.pointerId!==event.pointerId)return;const p=world(event),sp=snap(p,event);drag.moved=drag.moved||Math.hypot(p.x-drag.rawStart.x,p.y-drag.rawStart.y)*zoom()>3;drag.lastPoint={...p};
     if(connectionUI.pointerMove(event,p,drag)||pathUI.pointerMove(event,p,drag)){render();return;}
     if(drag.kind==='pan'){camera.x=drag.camera.x-(event.clientX-drag.client.x)/zoom();camera.y=drag.camera.y-(event.clientY-drag.client.y)/zoom();}
-    if(drag.kind==='draw'){drag.end=sp;preview=C.clone(drag.base);if(drag.moved){try{preview.objects.push(createShape(tool,drag.start,sp));}catch(_){}}}
+    if(drag.kind==='draw'){drag.end=sp;preview=C.clone(drag.base);if(drag.moved){try{preview.objects.push(createShape(tool,drag.start,sp,false,event));}catch(_){}}}
     if(drag.kind==='marquee'){drag.box={x:Math.min(p.x,drag.start.x),y:Math.min(p.y,drag.start.y),width:Math.abs(p.x-drag.start.x),height:Math.abs(p.y-drag.start.y)};}
     updateSelectionDrag(p,event);
     render();
@@ -189,11 +193,11 @@
   function updateSelectionDrag(point,event){
     if(!drag||!['move','transform'].includes(drag.kind)||!drag.moved)return;
     drag.guideSession||=Guides.prepare(drag.base,selected,G.bounds,camera);
-    const options={zoom:zoom(),enabled:settings.smartGuides,alt:event.altKey};
+    const interval=Grid.step(settings,event),options={zoom:zoom(),enabled:settings.smartGuides,alt:event.altKey,accept:(_axis,value)=>Grid.matches(value,interval)};
     preview=C.clone(drag.base);
     if(drag.kind==='move'){
-      const snapped=snap(point,event),delta={x:point.x-drag.rawStart.x,y:point.y-drag.rawStart.y};
-      drag.alignment=Guides.move(drag.guideSession,delta,{...options,fallback:{x:snapped.x-drag.start.x,y:snapped.y-drag.start.y}});
+      const delta={x:point.x-drag.rawStart.x,y:point.y-drag.rawStart.y};
+      drag.alignment=Guides.move(drag.guideSession,delta,{...options,fallback:Grid.moveDelta(drag.guideSession.box,delta,settings,event)});
       C.transformObjects(preview,selected,[1,0,0,1,drag.alignment.delta.x,drag.alignment.delta.y]);return;
     }
     const b=drag.box,cx=b.x+b.width/2,cy=b.y+b.height/2,key=drag.handle;let m;
@@ -209,7 +213,8 @@
       sx=Math.max(.01,sx);sy=Math.max(.01,sy);
       if(event.shiftKey){if(!x)sx=sy;else sy=sx;}
       const proposed={x:ax+(b.x-ax)*sx,y:ay+(b.y-ay)*sy,width:b.width*sx,height:b.height*sy};
-      drag.alignment=Guides.resize(drag.guideSession,proposed,{...options,x,y,uniform:event.shiftKey});
+      const snapped=Grid.resize(b,proposed,{x,y,uniform:event.shiftKey},settings,event);
+      drag.alignment=Guides.resize(drag.guideSession,snapped,{...options,x,y,uniform:event.shiftKey});
       if(b.width)sx=drag.alignment.box.width/b.width;if(b.height)sy=drag.alignment.box.height/b.height;
       m=around([sx,0,0,sy,0,0],ax,ay);
     }
@@ -219,7 +224,7 @@
     if(!drag||drag.pointerId!==event.pointerId)return;const action=drag, result=preview;drag=null;preview=null;
     if(connectionUI.finishDrag(action,result)||pathUI.finishDrag(action,result)){render();return;}
     if(action.kind==='draw'){
-      const object=createShape(tool,action.start,action.end,!action.moved);changePage(p=>p.objects.push(object));selected=[object.id];tool='direct';pathUI.reset();
+      const object=createShape(tool,action.start,action.end,!action.moved,event);changePage(p=>p.objects.push(object));selected=[object.id];tool='direct';pathUI.reset();
     }else if(['move','transform'].includes(action.kind)&&action.moved&&result)changePage(p=>p.objects=result.objects);
     else if(action.kind==='marquee'&&action.moved){const b=action.box;const hits=page().objects.filter(o=>{const a=G.bounds(o);return a.x>=b.x&&a.y>=b.y&&a.x+a.width<=b.x+b.width&&a.y+a.height<=b.y+b.height;}).map(o=>o.id);selection(action.add?[...new Set([...action.originalSelection,...hits])]:hits);}
     render();
@@ -406,10 +411,10 @@
   const presetLabels={'18':'18 × 18 px','36':'36 × 36 px','72':'72 × 72 px',businessCard:'名刺（55 × 91 mm）',b5:'JIS B5（182 × 257 mm）',a4:'A4（210 × 297 mm）','16:9':'16:9（1280 × 720 px）',free:'自由キャンバス'};
   function boardDialog(){
     const b=page().board;let unit=b.unit;
-    showInspector('board','用紙サイズ',`<label>サイズ<select id="board-preset"><option value="custom">任意のサイズ</option>${Object.entries(presetLabels).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><div class="fields"><label>幅<input id="board-width" type="number" min="0.01" step="any" required value="${round(b.width/unitScale(unit))}"></label><label>高さ<input id="board-height" type="number" min="0.01" step="any" required value="${round(b.height/unitScale(unit))}"></label></div><div class="fields"><label>単位<select id="board-unit">${['px','mm','pt'].map(u=>`<option ${u===unit?'selected':''}>${u}</option>`).join('')}</select></label><label>向き<button type="button" id="board-swap">タテ・ヨコを入れ替え</button></label></div><label class="check"><input id="board-infinite" type="checkbox" ${b.infinite?'checked':''}>自由に広がるキャンバス</label><p class="muted">用紙の変更で作品は拡大縮小されません。自由キャンバスの書き出し範囲は作品全体です。</p>`,'変更',()=>{
+    showInspector('board','用紙サイズ',`<label>サイズ<select id="board-preset"><option value="custom">任意のサイズ</option>${Object.entries(presetLabels).map(([k,v])=>`<option value="${k}">${v}</option>`).join('')}</select></label><div class="fields"><label>幅<input id="board-width" type="number" min="0.01" step="any" required value="${round(b.width/unitScale(unit))}"></label><label>高さ<input id="board-height" type="number" min="0.01" step="any" required value="${round(b.height/unitScale(unit))}"></label></div><div class="fields"><label>単位<select id="board-unit">${['px','mm','pt'].map(u=>`<option ${u===unit?'selected':''}>${u}</option>`).join('')}</select></label><label>向き<button type="button" id="board-swap">タテ・ヨコを入れ替え</button></label></div><label class="check"><input id="board-infinite" type="checkbox" ${b.infinite?'checked':''}>自由に広がるキャンバス</label><p class="muted">用紙の変更で作品は拡大縮小されません。自由キャンバスの書き出し範囲は作品全体です。縦横とも72px以下の用紙では、1pxの方眼とピクセル吸着を有効にします。</p>`,'変更',()=>{
       const width=Number($('board-width').value)*unitScale(unit),height=Number($('board-height').value)*unitScale(unit);
       if(!Number.isFinite(width)||!Number.isFinite(height)||width<=0||height<=0||width>1e6||height>1e6)throw Error('幅と高さは0より大きく、1,000,000px以下にしてください。');
-      changePage(p=>p.board={width,height,unit,infinite:$('board-infinite').checked});if(Math.min(width,height)<=72){settings.gridStep=1;applySettings();}fit();
+      changePage(p=>p.board={width,height,unit,infinite:$('board-infinite').checked});if(unit==='px'&&!$('board-infinite').checked&&Math.max(width,height)<=72){Object.assign(settings,{gridStep:1,pixelGrid:true,snapPixel:true,snap:false});applySettings();}fit();
     });
     $('board-preset').onchange=()=>{const key=$('board-preset').value;if(key==='custom')return;const p=C.boardPreset(key);unit=p.unit;$('board-unit').value=unit;$('board-width').value=round(p.width/unitScale(unit));$('board-height').value=round(p.height/unitScale(unit));$('board-infinite').checked=p.infinite;};
     $('board-unit').onchange=()=>{const next=$('board-unit').value;for(const k of ['board-width','board-height'])$(k).value=round(Number($(k).value)*unitScale(unit)/unitScale(next));unit=next;};
@@ -447,7 +452,7 @@
     ['R','G','B'].forEach(k=>$('color-'+k).oninput=()=>{const rgb=['R','G','B'].map(c=>Number($('color-'+c).value));if(rgb.every((v,i)=>$('color-'+['R','G','B'][i]).value!==''&&Number.isInteger(v)&&v>=0&&v<=255)){patch[channel]='#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();updateColor();}});
     $('inspector-body').querySelectorAll('[data-style]').forEach(el=>{if(el.tagName==='SELECT')el.value=first[el.dataset.style];el.oninput=el.onchange=()=>{const key=el.dataset.style;patch[key]=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value)/(key==='opacity'?100:1):el.value;};});$('inspector-body').querySelectorAll('[data-color-channel]').forEach(b=>b.classList.toggle('on',b.dataset.colorChannel===channel));updateColor();
   }
-  function viewDialog(){showInspector('view','表示設定',`<label>テーマ<select id="view-theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>操作部の文字サイズ<select id="view-size"><option value="standard">標準</option><option value="large">大</option><option value="xlarge">特大</option></select></label><label class="check"><input id="view-guides" type="checkbox" ${settings.smartGuides?'checked':''}>図形・用紙への位置合わせガイドと吸着</label><label class="check"><input id="view-grid" type="checkbox" ${settings.grid?'checked':''}>グリッドを表示</label><label class="check"><input id="view-snap" type="checkbox" ${settings.snap?'checked':''}>移動・配置をグリッドに吸着</label><label class="check"><input id="view-pixel" type="checkbox" ${settings.snapPixel?'checked':''}>アンカーをピクセルに吸着</label><label class="check"><input id="view-anchor" type="checkbox" ${settings.snapAnchor?'checked':''}>他のアンカーに吸着</label><label class="check"><input id="view-path" type="checkbox" ${settings.snapPath?'checked':''}>他のパスの上に吸着</label><label>グリッドの間隔（px）<input id="view-step" type="number" min="0.01" max="10000" step="any" required value="${Number(settings.gridStep)||20}"></label><p class="muted">図形全体の移動・サイズ変更では、端・中央のガイドと図形間の間隔を表示します。全体の移動は位置合わせをグリッドより優先します。Optionを押している間はガイドと吸着を解除します。点の編集はアンカー・パスを優先し、グリッドとピクセルが両方オンのときはグリッドを使います。パスへの吸着は位置合わせで、その後の移動には追従しません。テーマを変えても作品の色は変わりません。</p>`,'適用',()=>{settings={...settings,theme:$('view-theme').value,size:$('view-size').value,grid:$('view-grid').checked,snap:$('view-snap').checked,snapPixel:$('view-pixel').checked,snapAnchor:$('view-anchor').checked,snapPath:$('view-path').checked,smartGuides:$('view-guides').checked,gridStep:Number($('view-step').value)};applySettings();});$('view-theme').value=settings.theme;$('view-size').value=settings.size;}
+  function viewDialog(){showInspector('view','表示設定',`<label>テーマ<select id="view-theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>操作部の文字サイズ<select id="view-size"><option value="standard">標準</option><option value="large">大</option><option value="xlarge">特大</option></select></label><label class="check"><input id="view-guides" type="checkbox" ${settings.smartGuides?'checked':''}>図形・用紙への位置合わせガイドと吸着</label><label class="check"><input id="view-grid" type="checkbox" ${settings.grid?'checked':''}>作図用グリッド（点）を表示</label><label class="check"><input id="view-pixel-grid" type="checkbox" ${settings.pixelGrid?'checked':''}>ピクセルの方眼を表示（拡大時・1px）</label><label class="check"><input id="view-snap" type="checkbox" ${settings.snap?'checked':''}>指定間隔のグリッドに吸着</label><label class="check"><input id="view-pixel" type="checkbox" ${settings.snapPixel?'checked':''}>配置・移動・サイズ変更・アンカーをピクセルに吸着</label><label class="check"><input id="view-anchor" type="checkbox" ${settings.snapAnchor?'checked':''}>他のアンカーに吸着</label><label class="check"><input id="view-path" type="checkbox" ${settings.snapPath?'checked':''}>他のパスの上に吸着</label><label>グリッドの間隔（px）<input id="view-step" type="number" min="0.01" max="10000" step="any" required value="${Number(settings.gridStep)||20}"></label><p class="muted">拡大すると1pxの方眼を表示します。画像や印刷には入りません。両方の吸着を選ぶと指定間隔を優先し、目盛りに合う位置へそろえます。曲線のハンドルは自由に動かせます。Optionで吸着を一時解除、Shift＋矢印キーで10倍移動。数値入力では指定値、Shiftでの拡大縮小では縦横比、図形への接続では輪郭の位置を保ちます。</p>`,'適用',()=>{settings={...settings,theme:$('view-theme').value,size:$('view-size').value,grid:$('view-grid').checked,pixelGrid:$('view-pixel-grid').checked,snap:$('view-snap').checked,snapPixel:$('view-pixel').checked,snapAnchor:$('view-anchor').checked,snapPath:$('view-path').checked,smartGuides:$('view-guides').checked,gridStep:Number($('view-step').value)};applySettings();});$('view-theme').value=settings.theme;$('view-size').value=settings.size;}
   function selectionUnits(){const units=[],seen=new Set();for(const id of selected){const object=page().objects.find(o=>o.id===id);if(!object)continue;const key=object.group||id;if(seen.has(key))continue;seen.add(key);const ids=object.group?page().objects.filter(o=>o.group===key).map(o=>o.id):[id];units.push({ids,b:bounds(ids)});}return units;}
   function align(mode){
     if(!editable())return;let units=selectionUnits();if(units.length<2){toast('2つ以上の図形またはグループを選んでください。');return;}const reference=units[0].b,transforms=[];
@@ -529,7 +534,7 @@
     if(event.key===' '){event.preventDefault();space=true;render();return;}
     if(connectionUI.keyboard(event)||pathUI.keyboard(event)){event.preventDefault();return;}
     if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();execute('delete');}
-    else if(event.key.startsWith('Arrow')&&selected.length&&!event.target.closest('button')){event.preventDefault();if(editable()){const n=(event.shiftKey?10:1)*(page().board.width<100?.1:1);const dx=event.key==='ArrowLeft'?-n:event.key==='ArrowRight'?n:0,dy=event.key==='ArrowUp'?-n:event.key==='ArrowDown'?n:0;if(tool==='direct'&&page().objects.some(o=>selected.includes(o.id)&&o.type==='path')){if(!pathUI.nudge(dx,dy))toast('動かす点を選ぶか「全体を選択」に切り替えてください。');}else changePage(p=>C.transformObjects(p,selected,[1,0,0,1,dx,dy]));}}
+    else if(event.key.startsWith('Arrow')&&selected.length&&!event.target.closest('button')){event.preventDefault();if(editable()){const n=(event.shiftKey?10:1)*(Grid.step(settings,event)||(page().board.width<100?.1:1));const dx=event.key==='ArrowLeft'?-n:event.key==='ArrowRight'?n:0,dy=event.key==='ArrowUp'?-n:event.key==='ArrowDown'?n:0;if(tool==='direct'&&page().objects.some(o=>selected.includes(o.id)&&o.type==='path')){if(!pathUI.nudge(dx,dy,event))toast('動かす点を選ぶか「全体を選択」に切り替えてください。');}else {const delta=Grid.nudgeDelta(bounds(selected),{x:dx,y:dy},settings,event);changePage(p=>C.transformObjects(p,selected,[1,0,0,1,delta.x,delta.y]));}}}
     else if(event.key==='?')help?.open();else if(key==='a')setTool('direct');else if(key==='v')setTool('select');else if(key==='h')setTool('pan');else if(key==='t')setTool('text');else if(key==='r')setTool('rect');else if(key==='e')setTool('ellipse');
   });
   document.addEventListener('keyup',event=>{if(['Alt','Shift'].includes(event.key)&&drag?.lastPoint){updateSelectionDrag(drag.lastPoint,event);render();}if(event.key===' '){space=false;render();}});window.addEventListener('blur',()=>{space=false;cancelDrag();});

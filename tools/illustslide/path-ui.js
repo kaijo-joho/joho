@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   function create(ctx) {
-    const C = root.IlapoCore, P = root.IlapoPathEdit, G = root.IlapoGeometry;
+    const C = root.IlapoCore, P = root.IlapoPathEdit, G = root.IlapoGeometry, Grid = root.IlapoGrid;
     const $ = id => document.getElementById(id);
     let refs = [], edge = null, snapTarget = null;
     const key = ref => JSON.stringify([ref.id, ref.path, ref.index]);
@@ -69,8 +69,8 @@
     }
     function snapped(point, event, drag) {
       snapTarget = null;
-      if (event.altKey) return point;
-      const settings = ctx.settings(), tolerance = (event.pointerType === 'touch' ? 14 : 9) / ctx.zoom();
+      if (event.altKey || drag.kind === 'bezier') return point;
+      const settings = ctx.settings(), interval = Grid.step(settings, event), aligned = value => Grid.matches(value.x, interval) && Grid.matches(value.y, interval), tolerance = (event.pointerType === 'touch' ? 14 : 9) / ctx.zoom();
       const targets = drag.targets || (drag.targets = inspectTargets(drag.base));
       const moving = drag.nodes || refs;
       let best;
@@ -78,7 +78,7 @@
         target.paths.forEach((path, pi) => path.segments.forEach((segment, i) => {
           if (moving.some(r => r.id === target.object.id && r.path === pi && r.index === i)) return;
           const distance = Math.hypot(point.x - segment.point.x, point.y - segment.point.y);
-          if (distance <= tolerance && (!best || distance < best.distance)) {
+          if (aligned(segment.point) && distance <= tolerance && (!best || distance < best.distance)) {
             best = { point: segment.point, distance, kind: 'アンカー', id: target.object.id };
           }
         }));
@@ -89,13 +89,12 @@
         const b = target.box;
         if (point.x < b.x - tolerance || point.x > b.x + b.width + tolerance || point.y < b.y - tolerance || point.y > b.y + b.height + tolerance) continue;
         const near = P.nearest(target.object, point);
-        if (near && near.distance <= tolerance && (!best || near.distance < best.distance)) {
+        if (near && aligned(near.point) && near.distance <= tolerance && (!best || near.distance < best.distance)) {
           best = { ...near, kind: 'パス', id: target.object.id };
         }
       }
       if (!best && (settings.snap || settings.snapPixel)) {
-        const interval = settings.snap ? Number(settings.gridStep) : 1;
-        best = { point: { x: Math.round(point.x / interval) * interval, y: Math.round(point.y / interval) * interval }, kind: settings.snap ? 'グリッド' : 'ピクセル' };
+        best = { point: Grid.point(point, settings, event), kind: settings.snap ? 'グリッド' : 'ピクセル' };
       }
       if (best) { snapTarget = best; return best.point; }
       return point;
@@ -340,7 +339,7 @@
         + '<hr>' + button('ここで切り開く', 'path-open', refs.length !== 1) + button('パスを閉じる', 'path-close', !paths.length) + button('2つの端点をつなぐ…', 'path-join', !endpoints())
         + '<hr>' + button('合体', 'path-union', combineDisabled) + button('型抜き（最初の図形から）', 'path-subtract', combineDisabled) + button('重なりを残す', 'path-intersect', combineDisabled);
     }
-    function nudge(dx, dy) { if (!refs.length) return false; editRefs('moveAnchors', dx, dy); return true; }
+    function nudge(dx, dy, event) { if (!refs.length) return false; const delta = Grid.nudgeDelta(node(refs[0]).point, { x: dx, y: dy }, ctx.settings(), event); editRefs('moveAnchors', delta.x, delta.y); return true; }
     function keyboard(event) {
       if (ctx.tool() !== 'direct') return false;
       if ((event.key === 'Delete' || event.key === 'Backspace') && refs.length) { commands['anchor-delete'](); return true; }

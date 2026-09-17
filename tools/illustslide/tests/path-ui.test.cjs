@@ -115,6 +115,8 @@ async function run() {
     assert.notEqual((await documentOf()).pages[0].objects[0].d, beforeZip.pages[0].objects[0].d);
 
     // Snap to another path at an arbitrary non-grid position; the paths stay separate.
+    // Disable the pixel/grid lattice explicitly to test free path-to-path placement.
+    await openView(page); await page.locator('#view-pixel').uncheck(); await page.locator('#view-snap').uncheck(); await inspectorSubmit(); await inspectorClose();
     const source = shape('M100 120L180 120', 'source'), target = shape('M300 100L300 320', 'target'); target.style.fill = 'none';
     await load([source, target]); await pick('source');
     await moveNode('source', 1, { x: 301.5, y: 213.25 }, { preview: async () => assert.equal(await page.locator('#snap-target').count(), 1) });

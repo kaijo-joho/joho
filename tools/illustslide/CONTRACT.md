@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.10）
+# イラストスライド illustSlideの内部契約（0.4.11）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -79,11 +79,21 @@ UIはeditor.jsとeditor.css/index.html。DOMの作品表示はSVG、選択枠等
 
 部品の初回配置では、path.labelの文字サイズ・線・破線・余白を配置倍率に合わせる。通常の図形変形ではラベルの保存値を拡大しない。
 
+## IlapoGrid（grid.js、0.4.11）
+
+`step(settings,event?)` は有効な吸着間隔（なし=0、pixel=1、grid=gridStep）を返す。Option中は0。`point(point,settings,event?)` は絶対座標、`moveDelta(box,delta,settings,event?)` は外接枠の左上、`nudgeDelta(origin,delta,settings,event?)` はキーで動かす軸だけをそろえる。すべて入力を変更しない。`resize(original,proposed,{x,y,uniform},settings,event?)` は動かす辺と反対側の固定位置を保ち、ゼロ寸法へ丸めない。uniformは縦横比を保ち、主軸を目盛りにそろえる。`matches(value,interval)` は浮動小数の誤差を許容して目盛りとの一致を判定する。
+
+設定キーは既存のsnap・snapPixel・gridStepを維持し、pixelGridを追加する。新規はpixelGrid/snapPixel=true。保存済みの明示falseは維持する。単位px・固定用紙・縦横とも72以下を適用したときはpixelGrid/snapPixel=true,snap=false,gridStep=1にする。既存作品の座標は設定変更だけで書き換えない。
+
+SVGのpixel-patternはuserSpaceOnUseの1×1、pixel-gridは用紙の範囲（無限用紙はviewport）へ描く。原点は固定しパンでずれない。zoom>=8かつpixelGridの時だけ表示し、strokeWidth=.8/zoomで画面上の太さを維持する。artworkの上、選択・ガイドの下に置きpointer-events=noneとする。通常の点グリッドは別設定だが、1px方眼と間隔が重なる場合は点の表示だけを省く。SVG/PNG/PDF/発表は文書から出力し補助表示を含めない。
+
+アンカーの吸着では有効間隔に合う他アンカー／パスだけを優先し、なければGrid.pointでそろえる。曲線ハンドルは吸着を適用せず小数を保持する。図形への接続端点は輪郭追従を優先する。数値入力と読み込みの座標は丸めない。
+
 ## IlapoGuides（guides.js）
 
-`prepare(page,selectedIds,getBounds,viewport)`で選択全体の外接範囲と画面内の参照図形を記録し、`move(session,delta,{zoom,enabled,alt,fallback})`・`resize(session,proposedBox,{zoom,enabled,alt,x,y,uniform})`で補正座標とガイドを返す。元文書・履歴は変更しない。`x/y`は動く辺のstart/end、指定なしの軸は変えない。uniformでは1軸の吸着を採用して縦横比と反対側の固定点を維持する。
+`prepare(page,selectedIds,getBounds,viewport)`で選択全体の外接範囲と画面内の参照図形を記録し、`move(session,delta,{zoom,enabled,alt,fallback,accept?})`・`resize(session,proposedBox,{zoom,enabled,alt,x,y,uniform,accept?})`で補正座標とガイドを返す。元文書・履歴は変更しない。`x/y`は動く辺のstart/end、指定なしの軸は変えない。uniformでは1軸の吸着を採用して縦横比と反対側の固定点を維持する。
 
-選択・下絵・接続矢印は参照から除き、通常の固定図形は参照できる。グループは1外接範囲。有限用紙の端・中央を追加し、無限用紙に原点を追加しない。吸着範囲は7画面px。最も近い端・中央・等間隔候補を採用し、位置合わせ候補がない軸には既存グリッドの移動量を使う。等間隔候補は直交方向で重なる近隣の図形から求める。
+選択・下絵・接続矢印は参照から除き、通常の固定図形は参照できる。グループは1外接範囲。有限用紙の端・中央を追加し、無限用紙に原点を追加しない。吸着範囲は7画面px。accept(axis,position)があれば、移動後の外接枠の左上／サイズ変更中の辺が有効な目盛りに合う候補だけを採用する。最も近い端・中央・等間隔候補を採用し、位置合わせ候補がない軸には既存グリッドの移動量を使う。等間隔候補は直交方向で重なる近隣の図形から求める。
 
 `markup(result,zoom,unit)`の出力は専用の`#alignment-guides`へだけ配置する。線・ラベルのサイズは表示倍率で補正し、距離は用紙単位で表示する。ドラッグ中のsession/表示だけに保持し、キャンセル・完了・ツール切替で除去する。Alt/Shiftキーだけの変化も最後のポインタ座標から再計算する。表示設定`smartGuides`は既定true、作品とは別の既存設定キーへ保存する。
 

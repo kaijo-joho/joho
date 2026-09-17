@@ -103,7 +103,7 @@
     const raw = shifted(session.box, delta), fallback = options.fallback || delta;
     if (options.alt || options.enabled === false) return { delta: { ...(options.alt ? delta : fallback) }, box: shifted(session.box, options.alt ? delta : fallback), lines: [], distances: [] };
     const threshold = tolerance(options), winners = {};
-    for (const axis of ['x', 'y']) winners[axis] = closest([...alignmentCandidates(raw, session.targets, axis, threshold), ...spacingCandidates(raw, session.targets, axis, threshold)]);
+    for (const axis of ['x', 'y']) winners[axis] = closest([...alignmentCandidates(raw, session.targets, axis, threshold), ...spacingCandidates(raw, session.targets, axis, threshold)].filter(candidate => !options.accept || options.accept(axis, raw[axis] + candidate.delta)));
     const adjusted = { x: winners.x ? delta.x + winners.x.delta : fallback.x, y: winners.y ? delta.y + winners.y.delta : fallback.y };
     const box = shifted(session.box, adjusted);
     return { delta: adjusted, box, ...decorations(box, session.targets, winners, Number(options.zoom) || 1) };
@@ -114,7 +114,7 @@
     const original = session.box, threshold = tolerance(options), winners = {};
     for (const axis of ['x', 'y']) {
       const edge = options[axis];
-      winners[axis] = edge && original[axes[axis].size] > EPS ? closest(alignmentCandidates(proposed, session.targets, axis, threshold, edge)) : null;
+      winners[axis] = edge && original[axes[axis].size] > EPS ? closest(alignmentCandidates(proposed, session.targets, axis, threshold, edge).filter(candidate => !options.accept || options.accept(axis, (edge === 'start' ? proposed[axis] : end(proposed, axis)) + candidate.delta))) : null;
     }
     let box = { ...proposed };
     if (options.uniform) {
