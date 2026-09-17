@@ -1,8 +1,8 @@
 /* グラフエディタの初期テンプレート。外部データやコードは実行しない。 */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.GraphTemplates = factory();
-}(typeof globalThis === 'object' ? globalThis : this, function () {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./physics-templates.js'), require('./science-templates.js'));
+  else root.GraphTemplates = factory(root.GraphPhysicsTemplates, root.GraphScienceTemplates);
+}(typeof globalThis === 'object' ? globalThis : this, function (Physics, Science) {
   'use strict';
 
   const IAPWS_WATER = 'https://www.iapws.org/relguide/Supp-sat.html';
@@ -179,7 +179,13 @@
       return item;
     });
   }
-  const templates = makeTemplates();
+  // 分類をまとめ、テンプレート数が増えても見出しを繰り返さない。
+  const groups = new Map();
+  for (const item of [...makeTemplates(), ...Physics.list(), ...Science.list()]) {
+    if (!groups.has(item.category)) groups.set(item.category, []);
+    groups.get(item.category).push(item);
+  }
+  const templates = [...groups.values()].flat();
   function clone(value) { return JSON.parse(JSON.stringify(value)); }
   return { list: function () { return clone(templates); } };
 }));

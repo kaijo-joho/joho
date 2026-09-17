@@ -48,12 +48,21 @@
       panels[id] = make('section', null, {id: 'data-import-' + id, 'aria-label': label});
       panels[id].hidden = id !== mode; sourceChooser.append(panels[id]);
     }
+    const catalogSearch = input(panels.catalog, 'データを検索', '', 'search', {placeholder: '札幌、気象、惑星…'});
     const catalogCards = make('div', null, {class: 'data-import-catalog'}); panels.catalog.append(catalogCards);
     panels.catalog.append(make('p', '出典と利用条件を確認した、授業で使えるデータです。読み込み時のネット接続は不要です。', {class: 'small muted'}));
-    for (const item of GraphOpenDataCatalog.list()) {
-      const card = button(catalogCards, null, () => loadCatalog(item), {class: 'data-import-card', 'data-catalog-id': item.id});
-      card.append(make('strong', item.title), make('small', item.description));
+    const catalog = GraphOpenDataCatalog.list();
+    function renderCatalog() {
+      const query = catalogSearch.value.trim().toLowerCase();
+      catalogCards.replaceChildren();
+      for (const item of catalog) {
+        if (query && !(item.title + item.description + (item.category || '')).toLowerCase().includes(query)) continue;
+        const card = button(catalogCards, null, () => loadCatalog(item), {class: 'data-import-card', 'data-catalog-id': item.id});
+        card.append(make('strong', item.title), make('small', item.description));
+      }
+      if (!catalogCards.children.length) catalogCards.append(make('p', '一致するデータがありません。', {class: 'small muted'}));
     }
+    catalogSearch.addEventListener('input', renderCatalog); renderCatalog();
     const urlRow = make('div', null, {class: 'data-import-url'}); panels.url.append(urlRow);
     const urlInput = input(urlRow, '公開CSVのURL', '', 'url', {placeholder: 'https://…/data.csv', maxlength: 2000, autocomplete: 'off', spellcheck: 'false'});
     const fetchButton = button(urlRow, '読み込む', fetchURL, {class: 'primary'});

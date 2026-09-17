@@ -39,7 +39,7 @@
   const axisTitle = (a, fallback) => rich((a && a.label) || (a && a.symbol) || fallback) + ((a && a.unit) ? ' (' + rich(a.unit) + ')' : '');
   const tick = (a) => {
     const dataRange = range(a, [-10, 10]), isLog = a && a.scale === 'log';
-    return Object.assign({ title: { text: axisTitle(a, '') }, range: isLog ? dataRange.map((v) => Math.log10(v)) : dataRange, type: isLog ? 'log' : 'linear', showgrid: true, zeroline: true }, root.GraphSymbols ? root.GraphSymbols.ticksFor(a) : {});
+    return Object.assign({ title: { text: axisTitle(a, '') }, range: isLog ? dataRange.map((v) => Math.log10(v)) : dataRange, type: isLog ? 'log' : 'linear', showgrid: true, zeroline: true }, isLog ? { exponentformat: 'power', showexponent: 'all' } : {}, root.GraphSymbols ? root.GraphSymbols.ticksFor(a) : {});
   };
   const presentation = (doc) => Object.assign({ axisArrows: false, originLabel: false, tickMarks: true, tickLabels: true }, doc && doc.presentation || {});
   const outputDefaults = (doc, element) => {
@@ -85,6 +85,13 @@
       out.push({ name: '__graph_origin_label', x: 0, y: 0, xref: 'x', yref: 'y', text: 'O', showarrow: false, xshift: 7, yshift: -7, xanchor: 'left', yanchor: 'top', font: { size: 13, color: fg }, captureevents: false, meta: { decoration: true, origin: true } });
     }
     return out;
+  };
+  // Plotly annotations use log10 coordinates when their reference axis is logarithmic,
+  // whereas scatter traces continue to receive the original data values.
+  const annotationCoordinate = (value, axis) => axis && axis.scale === 'log' ? finite(value) && value > 0 ? Math.log10(value) : null : value;
+  const annotationPosition = (point, doc) => {
+    const out = [annotationCoordinate(point[0], doc.axes && doc.axes.x), annotationCoordinate(point[1], doc.axes && doc.axes.y)];
+    return out.every(finite) ? out : null;
   };
   const defaultCamera = (doc) => {
     if (doc.mode !== '3d' || !doc.equalScale) return undefined;
@@ -212,7 +219,7 @@
         if (label.visible) lines.push(annotation.name);
         if (annotation.showArea && finite(result.area) && root.GraphRegions && typeof root.GraphRegions.areaText === 'function') lines.push(root.GraphRegions.areaText(result.area, doc));
         if (annotation.kind === 'curveRegion' && annotation.showIntegral && finite(result.integral) && root.GraphRegions && typeof root.GraphRegions.integralText === 'function') lines.push(root.GraphRegions.integralText(result.integral, doc));
-        if (lines.length && Array.isArray(result.labelPoint)) decorations.push({ name: annotation.id, x: result.labelPoint[0], y: result.labelPoint[1], xref: 'x', yref: 'y', text: lines.map(rich).join('<br>'), showarrow: false, xanchor: 'left', yanchor: 'bottom', xshift: label.dx, yshift: -label.dy, font: { size: label.size }, opacity: 1, captureevents: true });
+        if (lines.length && Array.isArray(result.labelPoint)) { const point = annotationPosition(result.labelPoint, doc); if (point) decorations.push({ name: annotation.id, x: point[0], y: point[1], xref: 'x', yref: 'y', text: lines.map(rich).join('<br>'), showarrow: false, xanchor: 'left', yanchor: 'bottom', xshift: label.dx, yshift: -label.dy, font: { size: label.size }, opacity: 1, captureevents: true }); }
       }
       return traces;
     }
@@ -229,7 +236,9 @@
     const metrics = annotation.kind==='regression'&&annotation.showMetrics&&result.fit&&finite(result.fit.r2) ? 'R² ≈ ' + Number(result.fit.r2.toPrecision(8)) : '';
     if (label.visible || equation || metrics) positions.forEach((point,i) => {
       const title=label.visible?rich(annotation.kind==='text'?annotation.text:annotation.name+(positions.length>1?' '+(i+1):'')):'';
-      decorations.push({name:annotation.id,x:point[0],y:point[1],xref:'x',yref:'y',text:[title,equation?rich(equation):'',metrics?rich(metrics):''].filter(Boolean).join('<br>'),showarrow:false,xanchor:'left',yanchor:'bottom',xshift:label.dx,yshift:-label.dy,font:annotation.kind==='text'?{size:label.size,color:st.color}:{size:label.size},opacity:st.opacity,captureevents:true});
+      const position = annotationPosition(point, doc);
+      if (!position) return;
+      decorations.push({name:annotation.id,x:position[0],y:position[1],xref:'x',yref:'y',text:[title,equation?rich(equation):'',metrics?rich(metrics):''].filter(Boolean).join('<br>'),showarrow:false,xanchor:'left',yanchor:'bottom',xshift:label.dx,yshift:-label.dy,font:annotation.kind==='text'?{size:label.size,color:st.color}:{size:label.size},opacity:st.opacity,captureevents:true});
     });
     if (annotation.kind === 'segment' && annotation.arrows !== 'none' && result.segments.length) {
       const [a,b]=result.segments[0];
@@ -423,7 +432,7 @@
   }
 
   async function render(element, doc, options) {
-    options = options || {};
+    options = Object.assign({ compactLegend: !!element && element.clientWidth > 0 && element.clientWidth < 520 }, options || {});
     const P = plotly(); if (!P || !element) throw new Error('Plotly を読み込めません。');
     const warnings = [], traces = [], decorations=[];
     // 領域面はすべての系列・線分より背面へ置く。
