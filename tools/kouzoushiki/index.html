@@ -251,6 +251,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <div class="sep"></div>
     <button class="ic" id="tgFix" title="結合長固定：選択部分や H をドラッグで動かすとき、結合の長さを変えない。矢印の長さ・π軌道の大きさも段階的に変わる"><svg viewBox="0 0 24 24"><path d="M5 14.5L18 8"/><circle cx="5" cy="14.5" r="1.8"/><circle cx="18" cy="8" r="1.8"/><path d="M6.5 19.5L20 12.8M5.8 18.1l1.4 2.8M19.3 11.4l1.4 2.8"/></svg></button>
     <button class="ic" id="tgSnap" title="結合角固定：選択部分や H をドラッグで動かすとき、つながっている結合の角度を 15°刻みにする"><svg viewBox="0 0 24 24"><path d="M3.5 19.5h17"/><path d="M3.5 19.5L15 7"/><path d="M10.5 19.5a7 7 0 00-2.2-5.1"/><circle cx="15" cy="7" r="1.6"/></svg></button>
+    <button class="ic" id="btn3d" title="3D で見る：いまの図を分子模型エディタ（別のタブ）で立体の模型にします"><svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.6"/><circle cx="5.5" cy="17" r="2.6"/><circle cx="18.5" cy="17" r="2.6"/><path d="M10.7 8.3L6.8 14.7M13.3 8.3l3.9 6.4M8.1 17h7.8"/></svg></button>
     <div class="spacer"></div>
     <button class="ic" id="btnHelp" title="操作方法（?）">?</button>
    </div>
@@ -265,7 +266,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
         <button data-tool="bondBold" title="太い結合（ハース式の手前の辺など）"><svg viewBox="0 0 24 24"><path d="M5 19L19 5" stroke-width="4.5"/></svg></button>
         <button data-tool="bondWedge" title="くさび形の結合（手前へ出る結合）。同じツールで結合をクリックすると向きを反転"><svg viewBox="0 0 24 24"><path d="M4.5 19.5L17.5 3.5L20.5 6.5Z" fill="currentColor"/></svg></button>
         <button data-tool="bondHash" title="破線のくさび形の結合（奥へ向かう結合）。同じツールで結合をクリックすると向きを反転"><svg viewBox="0 0 24 24"><path d="M6.05 17.25l.7.7M8.5 14.1l1.4 1.4M10.94 10.94l2.12 2.12M13.39 7.79l2.82 2.82M15.83 4.63l3.54 3.54"/></svg></button>
-        <button data-tool="bondCoord" title="配位結合（矢印。価標の数に数えない）：原子からドラッグした向きに矢印。既存の結合をクリックすると配位結合に（金属があれば金属向き）、もう一度で矢印の向きを反転。単結合ツールで元に戻す"><svg viewBox="0 0 24 24"><path d="M5 19L17 7"/><path d="M13 5.5L19 5l-.5 6" /></svg></button>
+        <button data-tool="bondCoord" title="配位結合（矢印。価標の数に数えない）：原子からドラッグした向きに矢印。既存の結合をクリックすると配位結合に（金属があれば金属向き、なければ端の原子向き。S=O → S→O）、もう一度で矢印の向きを反転。単結合ツールで元に戻す"><svg viewBox="0 0 24 24"><path d="M5 19L17 7"/><path d="M13 5.5L19 5l-.5 6" /></svg></button>
         <button data-tool="bondDash" title="点線（水素結合・補助線。価標の数に数えません）。結合をクリックで点線に、もう一度で元に戻す"><svg viewBox="0 0 24 24"><path d="M5 19L19 5" stroke-dasharray="2.5 3"/></svg></button>
       </div>
     </div>
@@ -376,6 +377,10 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     </span>
     <span class="fg" id="fgDisp"><span class="lbl">表記</span>
     <select id="dispSel" title="選択した部分だけ表記を変える"><option value="">全体に合わせる</option><option value="full">構造式</option><option value="condensed">簡略構造式</option><option value="skeletal">骨格構造式</option><option value="mixed" disabled hidden>（混在）</option></select>
+    </span>
+    <span class="fg" id="fgAtom"><span class="lbl">原子</span>
+    <label class="chk" title="選択した原子に H を付けない（H の数を 0 にする。分子式・分子量にも入らない）"><input type="checkbox" id="atNoH">H を付けない</label>
+    <label class="chk" title="選択した原子で、価標の数が多すぎるときの赤い表示と警告を出さない"><input type="checkbox" id="atNoWarn">価標の警告を出さない</label>
     </span>
     <span class="fg" id="fgGrp"><span class="lbl">置換基</span>
     <select id="grpSel" title="選択した端の原子（メチル基など）を、アルキル基や官能基の簡略構造式に置き換える"></select>
@@ -504,7 +509,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     </ol>
     <details><summary>置換基（CH₃ を COOH などに）</summary><p>端の原子を選び、ポップアップの「置換基」から C₂H₅・COOH・NO₂ などを選ぶと、簡略構造式のラベルに変わります（結合が右から来るときは HOOC– のように向きが反転）。原子をダブルクリック、原子に乗せて <kbd>Enter</kbd>、テキストツールで原子をクリックしても入力できます（COO- のように最後に + − を付けると電荷）。「CH₃（メチル基に戻す）」で元に戻り、分子式・分子量にも反映されます。</p></details>
     <details><summary>略記号・一般の記号</summary><p>R・R'・R1・X・Ar（一般の記号）、Me・Et・Pr・iPr・Bu・tBu・Ph・Ac・Bn（略記号）が使えます。OMe・COOEt のように組み合わせることもできます。R・X を含むと分子量は「—」になります。</p></details>
-    <details><summary>分子式・分子量</summary><p>画面の下に、つながりごとの分子式と分子量（金属・電荷を含むときは式量）が出ます。クリックするとその構造全体が選ばれ、選んでいる構造の分子式には色が付きます。</p></details>
+    <details><summary>分子式・分子量</summary><p>画面の下に、つながりごとの分子式と分子量（金属・電荷を含むときは式量）が出ます。有機化合物は C・H・そのほかの順（C₂H₆O など）、無機物は教科書の書き方（H₂SO₄・HNO₃・NH₃・CO₂ など）で並べます。クリックするとその構造全体が選ばれ、選んでいる構造の分子式には色が付きます。</p></details>
   </section>
   <section data-help-topic="stereo" data-help-title="立体・テンプレート">
     <h3>立体・テンプレート</h3>
@@ -516,11 +521,12 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <details><summary>いす形・舟形</summary><p>構造式・簡略構造式では、H がアキシアル（環に垂直：真上・真下）とエクアトリアル（1 つ隔てた環の結合に平行）の向きに付きます。環の炭素を結合ツールでクリックすると、その向きに置換基が伸びます。</p></details>
     <details><summary>ニューマン投影式</summary><p>ねじれ形・重なり形を置き、H にマウスを乗せて <kbd>C</kbd> などで置き換えます。奥の円をクリックすると奥側がまとめて選ばれ、ドラッグで 15°刻みに回せます。</p></details>
     <details><summary>錯体・配位結合</summary><p>テンプレートを置き、中心の金属を「金属」の元素でクリックして置き換えます。配位結合ツールで原子からドラッグすると、矢印の先が入力待ちの空欄（点線の枠）になり、Cu・NH3 などを入力できます。配位結合は価標の数に数えません。錯イオンの電荷は「[ ]²⁺」のかっこで付けます。</p></details>
+    <details><summary>S→O・N→O（硫酸・硝酸など）</summary><p>配位結合の矢印の先の原子（電子対を受け取る側）には H が付きません。S=O の結合を配位結合ツールでクリックすると、端の O に向いた S→O になります。原子を選び、ポップアップの「原子」で「H を付けない」「価標の警告を出さない」を選ぶこともできます（H を隠すのではなく、H の数を 0 にします。分子式・分子量にも入りません）。</p></details>
   </section>
   <section data-help-topic="electron" data-help-title="電子・反応式">
     <h3>電子・反応式</h3>
     <ol>
-      <li>電荷は「電荷」のツールで原子をクリックします（+ − と丸囲みの ⊕ ⊖。もう一度で外れます）。</li>
+      <li>電荷は「電荷」のツールで原子をクリックします（+ − と丸囲みの ⊕ ⊖。もう一度で外れます）。選択ツールで電荷の記号をクリックすると選ばれ、ポップアップで色を変えられます（消しゴム・<kbd>Delete</kbd> で電荷を外せます）。</li>
       <li>非共有電子対・不対電子は「電子・軌道」のツールで原子をクリック、原子からドラッグで向きを 15°刻み（<kbd>Shift</kbd> で自由）。</li>
       <li>反応の矢印は「反応式」のツールでドラッグします。</li>
     </ol>
@@ -555,6 +561,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
       <li>「◀ 書き出し」を開き、構造などを選んで「＋ 選択したものを追加」（何も選んでいなければ図全体）。</li>
       <li>形式（PNG・SVG）と解像度を決めて「書き出す」。チェックした項目がそれぞれ別のファイルになります。</li>
     </ol>
+    <details><summary>3D で見る</summary><p>上部の 3D のボタンを押すと、いまの図を<strong>分子模型エディタ</strong>（別のタブ）で立体の模型にします。R・X などの一般の記号や金属を含む構造は取り込めません。くさび形・ハースの投影式は立体配置として読み取られます。</p></details>
     <details><summary>Word・PowerPoint に貼る</summary><p>各項目のコピーのボタンで、画像をそのまま貼り付けられます。SVG はベクター形式なので、拡大しても鮮明です。</p></details>
     <details><summary>表示の移動・拡大</summary><p><kbd>Space</kbd>+ドラッグ、ホイール・2 本指スクロールで移動します。<kbd>⌘/Ctrl</kbd>+ホイール、ピンチで拡大縮小。右下の − ＋ とプルダウンでも変えられます（「全体表示」もプルダウンの中）。</p></details>
     <details><summary>右側のパネル・ポップアップ</summary><p>パネルの左端をドラッグすると幅を変えられます。何かを選んでいるとき（または文字の編集中）、キャンバスの上に、選んだものに合うポップアップが出ます。左のパレットの「金属」「ハースの投影式」「立体配座」「錯体」「フローチャート」は、見出しをクリックで開閉できます。</p></details>
@@ -584,7 +591,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.1.1（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.2（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -848,12 +855,13 @@ function valences(el, ch){
 }
 const bondSum = list => list.reduce((s, x) => s + (x.bond.nv ? 0 : x.bond.order), 0);   // 配位結合・点線（nv）は数えない
 function implicitH(a, list){
-  if (a.grp || a.blank || !HCAP.has(a.el)) return 0;   // 置換基のラベル・入力待ちの空欄には H を足さない
+  if (a.grp || a.blank || a.noH || !HCAP.has(a.el)) return 0;   // 置換基のラベル・入力待ちの空欄・「H を付けない」原子には H を足さない
+  if (list.some(x => x.bond.style === 'coord' && x.bond.a2 === a.id)) return 0;   // 配位結合の矢印の先（S→O の O など）は電子対を受け取るので H を足さない
   const bs = bondSum(list), v = valences(a.el, a.charge).find(v => v >= bs);
   const nRad = (a.dots || []).filter(dt => dt.n === 1).length;   // 不対電子の数だけ H が減る（CH3• など）
   return v === undefined ? 0 : Math.max(0, v - bs - nRad);
 }
-const isOver = (a, list) => !a.blank && bondSum(list) > (a.grp ? 1 : Math.max(...valences(a.el, a.charge)));   // 置換基は結合 1 本まで
+const isOver = (a, list) => !a.blank && !a.noWarn && bondSum(list) > (a.grp ? 1 : Math.max(...valences(a.el, a.charge)));   // 置換基は結合 1 本まで
 
 // 各結合が属する最小の環（なければなし）
 function computeRings(d, adj){
@@ -890,6 +898,34 @@ function components(d, adj){
   }
   return comps;
 }
+// 有機化合物か：C が H・C・O 以外（N・S・ハロゲンなど）と結合していれば有機（CH4・C2H5OH・尿素・CCl4 など）。
+// C がないもの、C が O とだけ結合しているもの（CO2・H2CO3・Na2CO3 など）は無機として書く
+function isOrganic(d, adj, comp){
+  for (const id of comp){
+    const a = d.atoms[id];
+    if (a.blank) continue;
+    if (a.grp){ if (/C(?![lorsu])/.test(a.grp) || /R|Ar|Me|Et|Ph|Pr|Bu|Ac/.test(a.grp)) return true; continue; }   // C を含む置換基（Cl・Co・Cr・Cs・Cu は除く）
+    if (a.el !== 'C') continue;
+    if (implicitH(a, adj.get(id))) return true;
+    if (adj.get(id).some(({bond, nb}) => !bond.nv && d.atoms[nb].el !== 'O')) return true;
+  }
+  return false;
+}
+// 無機物の分子式の並び（教科書の書き方）：金属 → 酸の H（O に付いた H：H2SO4・HNO3・H2O）→ そのほかは電気的に陽性な順
+// （IUPAC の元素の順：B Si C Sb As P N H Te Se S At I Br Cl O F。NH3・H2S・HCl・PH3・CO2・SO2 など）。OH⁻ は OH
+const INORG_SEQ = ['B', 'Si', 'C', 'Sb', 'As', 'P', 'N', 'H', 'Te', 'Se', 'S', 'At', 'I', 'Br', 'Cl', 'O', 'F'];
+function inorgOrder(d, adj, comp, cnt){
+  const els = Object.keys(cnt);
+  if (els.length === 2 && cnt.O === 1 && cnt.H === 1) return ['O', 'H'];
+  const acidH = comp.some(id => {   // O に付いた H があるか
+    const a = d.atoms[id]; if (a.blank) return false;
+    if (a.grp) return /O/.test(a.grp) && /H/.test(a.grp);
+    if (a.el === 'O' && implicitH(a, adj.get(id))) return true;
+    return (a.el === 'H' || a.el === 'O') && adj.get(id).some(({bond, nb}) => !bond.nv && d.atoms[nb].el === (a.el === 'H' ? 'O' : 'H'));
+  });
+  const rank = e => METALS.includes(e) || e === 'Na' ? -2 : e === 'H' && acidH ? -1 : INORG_SEQ.includes(e) ? INORG_SEQ.indexOf(e) : 99;
+  return els.sort((p, q) => rank(p) - rank(q) || (p < q ? -1 : p > q ? 1 : 0));
+}
 function formulaOf(d, adj, comp){
   const cnt = {}; let ch = 0;
   for (const id of comp){
@@ -901,7 +937,8 @@ function formulaOf(d, adj, comp){
     ch += a.charge || 0;
   }
   const els = Object.keys(cnt);
-  const order = cnt.C ? ['C', ...(cnt.H ? ['H'] : []), ...els.filter(e => e!=='C' && e!=='H').sort()] : els.sort();
+  const order = !cnt.C && els.some(e => !(e in MASS)) ? els.sort()   // R・X などだけ（C を書いていない）は今までどおり
+    : cnt.C && isOrganic(d, adj, comp) ? ['C', ...(cnt.H ? ['H'] : []), ...els.filter(e => e!=='C' && e!=='H').sort()] : inorgOrder(d, adj, comp, cnt);
   let mass = 0; for (const e of els) mass += (MASS[e]||0) * cnt[e];
   return {parts: order.map(e => [e, cnt[e]]), charge: ch, mass, generic: els.some(e => !(e in MASS))};   // generic：R・X などを含む（分子量なし）
 }
@@ -1063,27 +1100,30 @@ function textTokens(o){
 }
 // 行の先頭・末尾に置かない文字（簡単な禁則）
 const NO_START = '、。，．）〕］｝〉》」』】・：；？！ー…‥,.:;?!)]}';
+const NO_END = '（〔［｛〈《「『【([{';
 // 図形の中で文字を折り返す幅（0 なら折り返さない）。ひし形は内側の四角に収める
 const wrapW = o => o.type === 'shape' && o.wrap ? Math.max(24, (shapeBox(o).x2 - shapeBox(o).x1)*(o.kind === 'diamond' ? 0.5 : 1) - 16) : 0;
-// 折り返しの単位：英数字と記号のまとまり（下付き・上付きも続きとして含める）、和文は 1 文字ずつ、空白は 1 つずつ
+// 折り返しの単位：英数字と記号のまとまり（下付き・上付きも続きとして含める）、和文は 1 文字ずつ、空白は 1 つずつ。
+// 行末に置けない括弧（（「など）は、次の 1 文字とひとまとまりにして次の行へ送る
 function wrapUnits(chars){
   const word = ch => /[0-9A-Za-z.,+\-_'"()\[\]{}=%^]/.test(ch), out = [];
   for (const c of chars){
     const u = out[out.length-1], prev = u && u[u.length-1];
     const sp = c.ch === '\n' || c.ch === ' ', psp = prev && (prev.ch === '\n' || prev.ch === ' ');
     // H2O・Cu2+ のように下付き・上付きが続くときは切らない
-    const join = prev && !sp && !psp && ((c.t.v || prev.t.v) ? (word(c.ch) || !!c.t.v) : (word(c.ch) && word(prev.ch)));
+    const join = prev && !sp && !psp && (NO_END.includes(prev.ch)
+      || ((c.t.v || prev.t.v) ? (word(c.ch) || !!c.t.v) : (word(c.ch) && word(prev.ch))));
     if (join) u.push(c); else out.push([c]);
   }
   return out;
 }
 // 文字を行に分ける（Shift+Enter で入れた改行 \n と、図形の「文字を折り返す」）。各行は textTokens の小片の配列
 function textLines(o){
-  const maxW = wrapW(o), lines = [[]];
+  const maxW = wrapW(o), lines = [[]], ff = textStyleOf(o).ff;
   let w = 0, lastTok = null;
   const cur = () => lines[lines.length-1];
   const nl = () => { lines.push([]); w = 0; lastTok = null; };
-  const cw = c => tw(c.ch, c.t.v ? c.t.fs*0.7 : c.t.fs)*(c.t.b ? 1.06 : 1);
+  const cw = c => maxW ? measureW(c.ch, c.t.v ? c.t.fs*0.7 : c.t.fs, c.t.ff || ff, c.t.b, c.t.i) : 0;
   const put = c => {   // 1 文字ずつ書き足す（同じ書式が続くときは 1 つの小片にまとめる）
     const last = cur()[cur().length-1];
     if (last && lastTok === c.t) last.t += c.ch; else cur().push({...c.t, t:c.ch});
@@ -1105,7 +1145,26 @@ function textLines(o){
   return lines;
 }
 const lineH = o => textStyleOf(o).fs*1.3;   // 行の間隔（入力欄の行の高さと同じ）
-function textWidth(o){ return Math.max(0, ...textLines(o).map(l => l.reduce((s, t) => s + tw(t.t, t.v ? t.fs*0.7 : t.fs)*(t.b ? 1.06 : 1), 0))); }
+// 文字の幅：ブラウザで実際に測る（入力欄の折り返しと位置をそろえるため）。測れないときは CW の表で概算
+const measCtx = (() => { try { return document.createElement('canvas').getContext('2d'); } catch { return null; } })();
+const measCache = new Map();
+function measureW(s, fs, ff, b, i){
+  if (!measCtx || !s) return tw(s, fs)*(b ? 1.06 : 1);
+  const font = `${i ? 'italic ' : ''}${b ? 'bold ' : ''}${r2(fs)}px ${ff}`, key = font + '\u0000' + s;
+  let w = measCache.get(key);
+  if (w === undefined){
+    measCtx.font = font; w = measCtx.measureText(s).width;
+    if (measCache.size > 4000) measCache.clear();
+    measCache.set(key, w);
+  }
+  return w;
+}
+// 小片 1 つの幅（上付き・下付きは 0.7 倍の大きさ）
+const pieceW = (t, ff) => measureW(t.t, t.v ? t.fs*0.7 : t.fs, t.ff || ff, t.b, t.i);
+function textWidth(o){
+  const ff = textStyleOf(o).ff;
+  return Math.max(0, ...textLines(o).map(l => l.reduce((s, t) => s + pieceW(t, ff), 0)));
+}
 function textMarkup(o, mid = false){   // mid：x を文字の左右の中央にする（図形の中の文字）。2 行目からは行の間隔ずつ下へ
   const st = textStyleOf(o), lh = lineH(o);
   let s = '';
@@ -1283,17 +1342,21 @@ function routeCost(pts, boxes){   // 道筋の良くなさ：曲がる回数・�
 }
 // カギ型矢印の道筋：縦・横の線だけの折れ線。図形の辺からは外向きに出て、外から入る。
 // いくつかの候補から、折り返しがなく、図形の中を通らず、曲がる回数と長さが少ないものを選ぶ
-function elbowRoute(A, B){
+function elbowRoute(A, B, all){
   const M = 14, P = A.pt, Q = B.pt;
   const P1 = A.dir ? {x:P.x + A.dir[0]*M, y:P.y + A.dir[1]*M} : P, Q1 = B.dir ? {x:Q.x + B.dir[0]*M, y:Q.y + B.dir[1]*M} : Q;
-  const boxes = [A.box, B.box].filter(Boolean), mx = (P1.x + Q1.x)/2, my = (P1.y + Q1.y)/2;
-  const hiX = Math.max(P1.x, Q1.x, ...boxes.map(b => b.x2 + M)), loX = Math.min(P1.x, Q1.x, ...boxes.map(b => b.x1 - M));
-  const hiY = Math.max(P1.y, Q1.y, ...boxes.map(b => b.y2 + M)), loY = Math.min(P1.y, Q1.y, ...boxes.map(b => b.y1 - M));
+  const boxes = [A.box, B.box].filter(Boolean), avoid = all && all.length ? all : boxes;   // 避ける図形（つなぐ 2 つだけでなく、ほかの図形も）
+  const mx = (P1.x + Q1.x)/2, my = (P1.y + Q1.y)/2;
+  // 回り込む先は、始点と終点の間にある図形から決める（遠くの図形に引っぱられないように）
+  const sp = {x1:Math.min(P.x, Q.x) - M, y1:Math.min(P.y, Q.y) - M, x2:Math.max(P.x, Q.x) + M, y2:Math.max(P.y, Q.y) + M};
+  const near = avoid.filter(b => b.x2 > sp.x1 && b.x1 < sp.x2 && b.y2 > sp.y1 && b.y1 < sp.y2), ext = near.length ? near : boxes;
+  const hiX = Math.max(P1.x, Q1.x, ...ext.map(b => b.x2 + M)), loX = Math.min(P1.x, Q1.x, ...ext.map(b => b.x1 - M));
+  const hiY = Math.max(P1.y, Q1.y, ...ext.map(b => b.y2 + M)), loY = Math.min(P1.y, Q1.y, ...ext.map(b => b.y1 - M));
   const cands = [[{x:P1.x, y:my}, {x:Q1.x, y:my}], [{x:mx, y:P1.y}, {x:mx, y:Q1.y}], [{x:P1.x, y:Q1.y}], [{x:Q1.x, y:P1.y}],
     [{x:P1.x, y:hiY}, {x:Q1.x, y:hiY}], [{x:P1.x, y:loY}, {x:Q1.x, y:loY}], [{x:hiX, y:P1.y}, {x:hiX, y:Q1.y}], [{x:loX, y:P1.y}, {x:loX, y:Q1.y}]];
   let best = null;
   for (const mid of cands){
-    const pts = simplifyPath([P, P1, ...mid, Q1, Q]), s = routeCost(pts, boxes);
+    const pts = simplifyPath([P, P1, ...mid, Q1, Q]), s = routeCost(pts, avoid);
     if (!best || s < best.s - 0.01) best = {pts, s};
   }
   return best.pts;
@@ -1301,7 +1364,10 @@ function elbowRoute(A, B){
 // つなぐ矢印の図形：pts は折れ線の点（始点〜終点）、d は線（矢じりの手前まで）、heads は矢じり
 // o.head：なし＝終点だけ、'both'＝両端、'none'＝矢じりなし（ただの線）
 function connGeom(d, o){
-  const [A, B] = connEnds(d, o), pts = o.kind === 'elbow' ? elbowRoute(A, B) : [A.pt, B.pt], line = pts.slice(), heads = [];
+  const [A, B] = connEnds(d, o);
+  // カギ型は、図の中のすべての図形を避けて道筋を選ぶ
+  const shapes = o.kind === 'elbow' ? Object.values(d.objs).filter(x => x.type === 'shape').map(shapeBox) : null;
+  const pts = o.kind === 'elbow' ? elbowRoute(A, B, shapes) : [A.pt, B.pt], line = pts.slice(), heads = [];
   const put = (i, j) => {   // pts[i] に、pts[j] から来る向きの矢じり（両端が同じ点なら向きが決まらないので描かない）
     const e = pts[i], s = pts[j]; if (!e || !s) return;
     const L = Math.hypot(e.x - s.x, e.y - s.y); if (L < 0.01) return;
@@ -1419,13 +1485,14 @@ function buildScene(d, opt){
       const right = Math.abs(best) === 45, up = best < 0;
       if (a.chgc){   // 丸囲みの ⊕ ⊖
         const r = 5.2, cx = right ? lab.box.x2 + 5 : lab.box.x1 - 5, cy = a.y + (up ? -1 : 1)*FS*0.6;
-        circles.push({cx, cy, r, w:1.1, col:a.color}); lines.push([{x:cx-2.8, y:cy}, {x:cx+2.8, y:cy}, 1.1, a.color]);
+        const cc = a.chgcol || a.color;   // 電荷だけの色（a.chgcol）
+        circles.push({cx, cy, r, w:1.1, col:cc}); lines.push([{x:cx-2.8, y:cy}, {x:cx+2.8, y:cy}, 1.1, cc]);
         chgHits.push({atom:a.id, x:cx, y:cy});
-        if (a.charge > 0) lines.push([{x:cx, y:cy-2.8}, {x:cx, y:cy+2.8}, 1.1, a.color]);
+        if (a.charge > 0) lines.push([{x:cx, y:cy-2.8}, {x:cx, y:cy+2.8}, 1.1, cc]);
         grow(cx-r, cy-r, cx+r, cy+r);
       } else {
         const s = (Math.abs(a.charge) > 1 ? Math.abs(a.charge) : '') + (a.charge > 0 ? '+' : '−'), w = tw(s, SFS);
-        const t = {t:s, x: right ? lab.box.x2 - 0.5 : lab.box.x1 - w + 0.5, y: up ? a.y - FS*0.28 : a.y + FS*0.8, fs:SFS, fill};
+        const t = {t:s, x: right ? lab.box.x2 - 0.5 : lab.box.x1 - w + 0.5, y: up ? a.y - FS*0.28 : a.y + FS*0.8, fs:SFS, fill:a.chgcol || fill};
         texts.push(t); grow(t.x, t.y - SFS, t.x + w, t.y);
         chgHits.push({atom:a.id, x:t.x + w/2, y:t.y - SFS*0.35});
       }
@@ -1584,15 +1651,17 @@ const state = {mode:'full', showRingC:false, tool:'bond1', el:'C', ringN:6, ring
 // data-kind で種類を選ぶツールと、その種類を覚える state の項目
 const KIND_KEY = {arrow:'arrowKind', cyclo:'cyKind', newman:'nmKind', complex:'cxKind', bracket:'brKind', curve:'cvKind', shape:'shKind', conn:'cnKind'};
 // hyd：構造式で書いた暗黙の H（'原子id:番号'）。色を変えるために選べる
-const sel = {atoms:new Set(), bonds:new Set(), objs:new Set(), hyd:new Set()};
+// chg：原子の電荷の記号（'c' + 原子id）。色を変えるために選べる
+const sel = {atoms:new Set(), bonds:new Set(), objs:new Set(), hyd:new Set(), chg:new Set()};
 let hover = null, drag = null, scene = null, spaceDown = false;
 
-function clearSel(){ sel.atoms.clear(); sel.bonds.clear(); sel.objs.clear(); sel.hyd.clear(); }
-const selKey = h => h.type === 'atom' ? sel.atoms : h.type === 'bond' ? sel.bonds : h.type === 'hyd' ? sel.hyd : sel.objs;
+function clearSel(){ sel.atoms.clear(); sel.bonds.clear(); sel.objs.clear(); sel.hyd.clear(); sel.chg.clear(); }
+const selKey = h => h.type === 'atom' ? sel.atoms : h.type === 'bond' ? sel.bonds : h.type === 'hyd' ? sel.hyd : h.type === 'chg' ? sel.chg : sel.objs;
 const isSel = h => selKey(h).has(h.id);
-const hasSel = () => sel.atoms.size + sel.bonds.size + sel.objs.size + sel.hyd.size > 0;
+const hasSel = () => sel.atoms.size + sel.bonds.size + sel.objs.size + sel.hyd.size + sel.chg.size > 0;
 function pruneSel(){
   for (const k of [...sel.hyd]) if (!doc.atoms[+k.split(':')[0]]) sel.hyd.delete(k);
+  for (const k of [...sel.chg]){ const a = doc.atoms[+k.slice(1)]; if (!a || !a.charge) sel.chg.delete(k); }
   for (const id of [...sel.atoms]) if (!doc.atoms[id]) sel.atoms.delete(id);
   for (const id of [...sel.bonds]) if (!doc.bonds[id]) sel.bonds.delete(id);
   for (const id of [...sel.objs]) if (!doc.objs[id]) sel.objs.delete(id);
@@ -1650,6 +1719,7 @@ function renderOverlay(){
                       : `<circle cx="${a.x}" cy="${a.y}" r="9" fill="${C}" fill-opacity=".25"/>`;
   }
   for (const h of scene.hs) if (sel.hyd.has(h.parent + ':' + h.i)) m += `<circle cx="${h.x}" cy="${h.y}" r="9" fill="${C}" fill-opacity=".25"/>`;
+  for (const ch of scene.chgHits) if (sel.chg.has('c' + ch.atom)) m += `<circle cx="${ch.x}" cy="${ch.y}" r="7" fill="${C}" fill-opacity=".25"/>`;
   // つなぐ矢印は折れ線に沿って、ほかは枠で選択を示す
   const poly = (pts, attrs) => `<polyline points="${pts.map(q => q.x + ',' + q.y).join(' ')}" fill="none" stroke-linejoin="round" stroke-linecap="round" ${attrs}/>`;
   for (const id of sel.objs){
@@ -1876,7 +1946,9 @@ function clickBond(b, t){
   if (t === 'bondCoord'){   // 配位結合（矢印）にする。配位結合をもう一度クリックすると矢印の向きを反転（単結合ツールで元に戻す）
     if (b.style === 'coord'){ [b.a1, b.a2] = [b.a2, b.a1]; return; }
     b.style = 'coord'; b.order = 1; b.nv = true; delete b.flip;
-    if (METALS.includes(doc.atoms[b.a1].el) && !METALS.includes(doc.atoms[b.a2].el)) [b.a1, b.a2] = [b.a2, b.a1];   // 矢印は金属に向ける
+    const m1 = METALS.includes(doc.atoms[b.a1].el), m2 = METALS.includes(doc.atoms[b.a2].el);
+    if (m1 && !m2) [b.a1, b.a2] = [b.a2, b.a1];   // 矢印は金属に向ける
+    else if (!m1 && !m2 && bondsOf(b.a1).length === 1 && bondsOf(b.a2).length > 1) [b.a1, b.a2] = [b.a2, b.a1];   // 金属がなければ端の原子に向ける（S=O → S→O）
     return;
   }
   const st = STYLE_OF[t];
@@ -2078,9 +2150,11 @@ function newmanBackGroup(bid){
   }
   return out;
 }
+const clearCharge = a => { if (!a) return; a.charge = 0; delete a.chgc; delete a.chgcol; };
 function deleteSelection(){
   if (!hasSel()) return;
   commit();
+  for (const k of sel.chg) clearCharge(doc.atoms[+k.slice(1)]);   // 選んだ電荷の記号は電荷を 0 に
   for (const id of sel.objs) delete doc.objs[id];
   for (const id of sel.bonds) deleteBond(id);
   for (const id of sel.atoms) if (doc.atoms[id]) deleteAtom(id);
@@ -2181,6 +2255,9 @@ function insertFragment(frag, dx, dy){
     if (a.color) doc.atoms[id].color = a.color;
     if (a.dots) doc.atoms[id].dots = a.dots.map(dt => ({...dt}));
     if (a.hcol) doc.atoms[id].hcol = {...a.hcol};
+    if (a.chgcol) doc.atoms[id].chgcol = a.chgcol;
+    if (a.noH) doc.atoms[id].noH = true;
+    if (a.noWarn) doc.atoms[id].noWarn = true;
     if (a.grp) doc.atoms[id].grp = a.grp;
     if (a.blank) doc.atoms[id].blank = true;
   }
@@ -2301,7 +2378,7 @@ const HINTS = {
   bondHash:'原子からドラッグで破線くさび形の結合（始点が細い側）。結合をクリックで変更、もう一度で向きを反転',
   haworth:'クリックした位置にハースの投影式の環を配置。環の炭素を結合ツールでクリックすると置換基が上下に伸びます',
   text:'クリックして文字を入力（H2SO4 の数字は自動で下付き、上付きは ^{…}、下付きは _{…}、Shift+Enter で改行）。既存の文字・かっこの n や電荷はクリックで編集。原子をクリックすると COOH・C2H5 などの置換基に変更。',
-  bondCoord:'原子からドラッグで配位結合の矢印（価標に数えない。矢印の先は入力欄になるので Cu などを入力）／結合をクリックで配位結合に、もう一度で矢印の向きを反転',
+  bondCoord:'原子からドラッグで配位結合の矢印（価標に数えない。矢印の先は入力欄になるので Cu などを入力）／結合をクリックで配位結合に（S=O → S→O）、もう一度で矢印の向きを反転。矢印の先の原子には H を付けない',
   bondDash:'点線（水素結合・補助線）を追加。結合をクリックで点線に、もう一度で元に戻す',
   cyclo:'クリックした位置にシクロヘキサンのいす形／舟形を配置。環の炭素を結合ツールでクリックするとアキシアル・エクアトリアルの向きに伸びます',
   newman:'クリックした位置にニューマン投影式を配置。H にマウスを乗せて C などで置換、選択ツールで奥の円をドラッグすると 15°刻みで回転',
@@ -2336,8 +2413,12 @@ function hitTest(p){
   const tolA = Math.min(10/state.zoom, 14), tolB = Math.min(6/state.zoom, 9);
   let best = null, bd = tolA;
   // 非共有電子対・不対電子（すぐ近くなら原子より優先）
-  if (state.tool === 'curve') for (const ch of scene.chgHits || [])   // 電荷（− などから電子の矢印を描く）
-    if (Math.hypot(ch.x-p.x, ch.y-p.y) < Math.min(7/state.zoom, 9)) return {type:'chg', id:'c' + ch.atom, atom:ch.atom, x:ch.x, y:ch.y};
+  if (['select', 'erase', 'curve'].includes(state.tool)) for (const ch of scene.chgHits || [])   // 電荷（選んで色を変える・消す、− などから電子の矢印を描く）
+    if (Math.hypot(ch.x-p.x, ch.y-p.y) < Math.min(7/state.zoom, 9)){
+      const a = doc.atoms[ch.atom];   // 選択・消しゴムでは、原子の中心の方が近ければ原子をつかむ
+      if (state.tool !== 'curve' && a && Math.hypot(a.x-p.x, a.y-p.y) < Math.hypot(ch.x-p.x, ch.y-p.y)) continue;
+      return {type:'chg', id:'c' + ch.atom, atom:ch.atom, x:ch.x, y:ch.y};
+    }
   if (['select', 'erase', 'lp', 'rad', 'curve'].includes(state.tool)) for (const dh of scene.dotHits || [])
     if (Math.hypot(dh.x-p.x, dh.y-p.y) < Math.min(5.5/state.zoom, 8)) return {type:'dot', id:dh.atom + ':' + dh.i, atom:dh.atom, i:dh.i, x:dh.x, y:dh.y};
   for (const a of Object.values(doc.atoms)){
@@ -2592,6 +2673,10 @@ svg.addEventListener('pointerdown', e => {
   }
   drag = {kind:'click', start:p, cur:p, hit, moved:false};
   if (t === 'select'){
+    if (hit && hit.type === 'chg'){   // 電荷の記号：選ぶだけ（ポップアップで色を変える。Shift で追加）。ドラッグでは動かさない
+      if (e.shiftKey){ if (isSel(hit)) sel.chg.delete(hit.id); else sel.chg.add(hit.id); } else { clearSel(); sel.chg.add(hit.id); }
+      drag = null; renderOverlay(); return;
+    }
     if (hit){
       if (e.shiftKey){ if (isSel(hit)) selKey(hit).delete(hit.id); else selKey(hit).add(hit.id); drag = null; renderOverlay(); return; }
       if (!isSel(hit)){
@@ -2818,12 +2903,13 @@ function clickAction(t, p, hit){
     if (!hit || hit.type !== 'atom') return;
     const c = t[6] === '+' ? 1 : -1, circ = t.endsWith('c');
     commit();
-    if (H.charge === c && !!H.chgc === circ){ H.charge = 0; delete H.chgc; }
+    if (H.charge === c && !!H.chgc === circ){ H.charge = 0; delete H.chgc; delete H.chgcol; }
     else { H.charge = c; if (circ) H.chgc = true; else delete H.chgc; }
   } else if (t === 'erase'){
     if (!hit || hit.type === 'hyd') return;
     commit();
     if (hit.type === 'dot') doc.atoms[hit.atom].dots.splice(hit.i, 1);
+    else if (hit.type === 'chg') clearCharge(doc.atoms[hit.atom]);
     else if (hit.type === 'atom') deleteAtom(hit.id);
     else if (hit.type === 'bond'){   // 二重結合・三重結合は 1 本ずつ消す（H の数が変わるので H は並べ直し）
       const b = doc.bonds[hit.id];
@@ -3087,6 +3173,12 @@ function syncFmt(){
   $('fgText').hidden = !(styled.length || editTxt);
   $('fgBond').hidden = !bonds.length;
   $('fgOrb').hidden = !orbs.length;
+  const ats = [...sel.atoms].map(id => doc.atoms[id]).filter(a => a && !a.grp && !a.blank);   // 原子：H を付けない・警告を出さない
+  $('fgAtom').hidden = !ats.length;
+  for (const [cb, k] of [['atNoH', 'noH'], ['atNoWarn', 'noWarn']]) if (ats.length){
+    $(cb).checked = ats.every(a => a[k]);
+    $(cb).indeterminate = !ats.every(a => !!a[k] === !!ats[0][k]);
+  }
   const shs = selObjsOf('shape');   // 図形：文字の折り返し
   $('fgShape').hidden = !shs.length;
   if (shs.length){
@@ -3148,16 +3240,20 @@ function setColor(c){
 function applyColor(c){
   const atoms = new Set(sel.atoms), bonds = new Set(sel.bonds), objs = [...sel.objs];
   for (const b of Object.values(doc.bonds)) if (atoms.has(b.a1) && atoms.has(b.a2)) bonds.add(b.id);
-  if (!atoms.size && !bonds.size && !objs.length && !sel.hyd.size){ toast('色を変える原子・結合・矢印・文字・図形を選択してください'); return; }
+  if (!atoms.size && !bonds.size && !objs.length && !sel.hyd.size && !sel.chg.size){ toast('色を変える原子・結合・電荷・矢印・文字・図形を選択してください'); return; }
   commit();
   const black = !c || c.toLowerCase() === '#000000';
   const set = o => { if (!o) return; if (black) delete o.color; else o.color = c; };
-  atoms.forEach(id => set(doc.atoms[id])); bonds.forEach(id => set(doc.bonds[id]));
+  atoms.forEach(id => { set(doc.atoms[id]); if (doc.atoms[id]) delete doc.atoms[id].chgcol; }); bonds.forEach(id => set(doc.bonds[id]));
   objs.forEach(id => { const o = doc.objs[id]; set(o); if (o && o.runs) o.runs.forEach(r => { delete r.color; }); });   // 文字の一部だけの色も全体に合わせる
   for (const k of sel.hyd){   // 選んだ H だけの色（黒で原子の色に戻る）
     const [aid, i] = k.split(':').map(Number), a = doc.atoms[aid]; if (!a) continue;
     a.hcol = a.hcol || {}; if (black) delete a.hcol[i]; else a.hcol[i] = c;
     if (!Object.keys(a.hcol).length) delete a.hcol;
+  }
+  for (const k of sel.chg){   // 選んだ電荷の記号だけの色（黒で原子の色に戻る）
+    const a = doc.atoms[+k.slice(1)]; if (!a) continue;
+    if (black) delete a.chgcol; else a.chgcol = c;
   }
   changed();
 }
@@ -3269,6 +3365,7 @@ window.addEventListener('keydown', e => {
   const isDel = k === 'Delete' || k === 'Backspace';
   const h = hover;
   if (h && h.type === 'dot' && isDel && doc.atoms[h.atom]){ e.preventDefault(); commit(); doc.atoms[h.atom].dots.splice(h.i, 1); hover = null; changed(); return; }
+  if (h && h.type === 'chg' && isDel && doc.atoms[h.atom] && !hasSel()){ e.preventDefault(); commit(); clearCharge(doc.atoms[h.atom]); hover = null; changed(); return; }
   if (h && h.type === 'hyd' && doc.atoms[h.parent]){   // 構造式の H を置き換え
     const map = {c:'C', o:'O', n:'N', s:'S', l:'Cl', b:'Br', i:'I'};
     if (map[lk]){ e.preventDefault(); commit(); replaceH(h, map[lk]); hover = null; changed(); return; }
@@ -3697,6 +3794,9 @@ function sanitize(d){
     if (a.nm === 'f' || a.nm === 'b') n.nm = a.nm;
     if (a.nmb != null && isFinite(a.nmb)) n.nmb = +a.nmb;
     if (okCol(a.color)) n.color = a.color;
+    if (okCol(a.chgcol)) n.chgcol = a.chgcol;   // 電荷の記号だけの色
+    if (a.noH) n.noH = true;         // H を付けない
+    if (a.noWarn) n.noWarn = true;   // 価標の数の警告を出さない
     if (Array.isArray(a.dots)) n.dots = a.dots.filter(dt => dt && isFinite(dt.a) && (dt.n === 1 || dt.n === 2)).map(dt => ({a:+dt.a, n:dt.n}));
     if (typeof a.grp === 'string' && a.grp.length <= 20 && parseGroup(a.grp)) n.grp = a.grp;   // 置換基のラベル
     if (a.blank) n.blank = true;   // 入力待ちの空欄
@@ -3989,6 +4089,13 @@ $('orbW').addEventListener('change', e => {
   const os = selObjsOf('orb'); if (!os.length) return;
   commit(); os.forEach(o => { if (+e.target.value === 0.42) delete o.w; else o.w = +e.target.value; }); changed();
 });
+for (const [cb, k] of [['atNoH', 'noH'], ['atNoWarn', 'noWarn']])   // 選択した原子：H を付けない・価標の警告を出さない
+  $(cb).addEventListener('change', e => {
+    const ats = [...sel.atoms].map(id => doc.atoms[id]).filter(a => a && !a.grp && !a.blank); if (!ats.length) return;
+    commit();
+    ats.forEach(a => { if (e.target.checked) a[k] = true; else delete a[k]; });
+    changed();
+  });
 $('shWrap').addEventListener('change', e => {   // 図形の中の文字を折り返すか
   const shs = selObjsOf('shape'); if (!shs.length) return;
   commit();
@@ -4047,6 +4154,13 @@ $('btnRotL').onclick = () => rotateSel(-15);
 $('btnRotR').onclick = () => rotateSel(15);
 $('btnRot90').onclick = () => rotateSel(90);
 $('libSearch').addEventListener('input', filterLib);
+// 3D で見る：いまの図を自動保存に書いてから、分子模型エディタを別のタブで開いて取り込ませる
+$('btn3d').onclick = () => {
+  if (isEmpty()){ toast('3D で見るものがありません。先に構造式を描いてください'); return; }
+  autosave();
+  const w = window.open('../bunshi/?import=kouzoushiki', '_blank', 'noopener');
+  if (!w) toast('別のタブを開けませんでした。ブラウザのポップアップの設定を確かめてください');
+};
 // ---- 左のパレットの開閉（開いた状態を覚える） ----
 const FOLD_KEY = 'kouzoushiki-folds';
 try {

@@ -552,7 +552,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.26 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.27 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1969,13 +1969,28 @@ function kzValences(el, ch){   // 構造式エディタと同じ価数の決め�
 }
 // 戻り値：{mols:[分子のグラフ], skipped:[取り込めなかった理由], notes:[注意]}。つながった部分ごとに 1 つの分子
 function molsFromKouzoushiki(kd){
-  const atoms = Object.values(kd?.atoms || {}).filter(a => a && !a.blank && isFinite(a.x) && isFinite(a.y));
+  const atoms = Object.values(kd?.atoms || {}).filter(a => a && !a.blank && isFinite(a.x) && isFinite(a.y)).map(a => ({...a}));   // 電荷を変えることがあるので写しを使う
   const byId = new Map(atoms.map(a => [a.id, a]));
-  const bonds = Object.values(kd?.bonds || {}).filter(b => b && byId.has(b.a1) && byId.has(b.a2) && b.a1 !== b.a2 && !b.nv &&
+  const ok = b => b && byId.has(b.a1) && byId.has(b.a2) && b.a1 !== b.a2;
+  const bonds = Object.values(kd?.bonds || {}).filter(b => ok(b) && !b.nv &&
     b.style !== 'dash' && b.style !== 'coord' && [1, 2, 3].includes(b.order));
+  const out = {mols:[], skipped:[], notes:new Set()}, seen = new Set();
+  // 配位結合 X→O・X→S・X→N（硫酸・硝酸など）：分子の形は同じなので、X=O の二重結合として取り込む。
+  // X の価標が足りなければ X⁺–O⁻ にする（HNO3 の N など）。金属への配位結合（錯体）は今までどおり取り込まない
+  const sumOf = id => bonds.reduce((t, b) => t + (b.a1 === id || b.a2 === id ? b.order : 0), 0);
+  for (const b of Object.values(kd?.bonds || {})){
+    if (!ok(b) || b.style !== 'coord') continue;
+    byId.get(b.a2).acc = true;   // 配位結合の矢印の先（構造式エディタでは H を付けない）
+    const d = byId.get(b.a1), q = byId.get(b.a2);
+    if (d.grp || q.grp || !KZ_HCAP.has(d.el) && d.el !== 'P' || !['O', 'S', 'N'].includes(q.el) || sumOf(q.id)) continue;
+    const sd = sumOf(d.id);
+    if (!q.charge && kzValences(d.el, d.charge || 0).some(v => v >= sd + 2)) bonds.push({a1:d.id, a2:q.id, order:2});
+    else if (!d.charge && !q.charge){ d.charge = 1; q.charge = -1; bonds.push({a1:d.id, a2:q.id, order:1}); }
+    else continue;
+    out.notes.add('配位結合（→）は、二重結合（または +・− の電荷を付けた単結合）として取り込みました');
+  }
   const nbK = new Map(atoms.map(a => [a.id, []]));
   for (const b of bonds){ nbK.get(b.a1).push(b); nbK.get(b.a2).push(b); }
-  const out = {mols:[], skipped:[], notes:new Set()}, seen = new Set();
   for (const a0 of atoms){
     if (seen.has(a0.id)) continue;
     const comp = [], st = [a0.id]; seen.add(a0.id);
@@ -2008,7 +2023,7 @@ function kzComponent(comp, byId, nbK, notes){
   for (const id of comp) for (const b of nbK.get(id)) if (!done.has(b)) { done.add(b); addB(node.get(b.a1), node.get(b.a2), b.order); }
   // 暗黙の H を足す（構造式エディタと同じ数え方）
   for (const id of comp){
-    const a = byId.get(id); if (a.grp) continue;
+    const a = byId.get(id); if (a.grp || a.noH || a.acc) continue;   // 「H を付けない」原子・配位結合の矢印の先には足さない
     const i = node.get(id), s = mol.atoms[i].nb.reduce((t, j) => t + bondOrder(mol, i, j), 0);
     const v = kzValences(a.el, a.charge || 0).find(v => v >= s);
     if (v == null) throw new Error('価標の数が多すぎる原子があるため、取り込めません');
@@ -4366,6 +4381,15 @@ if (['lib', 'exp', 'mo'].includes(savedPane)) openSide(savedPane);
 analyze(); renderInfo(); renderSel(); syncUndo(); syncSaveStatus();
 if (!restored) { try { addMolecule(buildCached('CCO'), true); hist.undo = []; syncUndo(); } catch (e) { console.error(e); } }
 requestAnimationFrame(() => { if (!restored) fitView(); requestDraw(true); });
+
+// 構造式エディタの「3D で見る」から来たとき（../bunshi/?import=kouzoushiki）は、そのまま取り込む。
+// 読み込み直しで二重に取り込まないよう、済んだらアドレスの ?import= を消す
+try {
+  if (new URLSearchParams(location.search).get('import') === 'kouzoushiki'){
+    history.replaceState(null, '', location.pathname + location.hash);
+    setTimeout(() => $('kzImport').click(), 0);
+  }
+} catch (e) { console.error(e); }
 
 // 検証用
 window.__bunshi = {get doc(){ return doc; }, state, view, makeMolecule, addMolecule, buildCached, fitView, setMode, toggleMirror, changed, renderImage, LIB, info:() => info};
