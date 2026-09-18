@@ -1,5 +1,6 @@
 /* Direct color, live range previews, line samples, and one-step undo. */
 const assert=require('node:assert/strict');
+const Toolbar=require('./toolbar-helpers.cjs');
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path'),os=require('node:os');
 let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
 const C=require('../core.js'),T=require('../tables.js'),Charts=require('../charts.js');
@@ -43,14 +44,14 @@ let browser,page;
   assert.equal((await doc()).series[0].style.width,3.25);assert.equal(await page.evaluate(()=>document.querySelector('#plot').data[0].line.width),3.25);
   await choose('scatter');await control('custom-color').fill('#abcdef');await control('chart-width-slider').fill('4');await bar.getByRole('button',{name:'点線',exact:true}).click();await settle();
   assert.equal((await doc()).charts[0].color,'#abcdef');assert.equal((await doc()).charts[0].style.width,4);assert.equal((await doc()).charts[0].style.dash,'dot');assert(!await dialog.isVisible());
-  await choose('formula');await page.locator('#multiple-select').click();await choose('measure');
+  await choose('formula');await Toolbar.clickToolbarControl(page,'multiple-select');await choose('measure');
   await control('bulk-opacity-slider').fill('0.6');await settle();assert.deepEqual((await doc()).series.map(s=>s.style.opacity),[.6,.6]);
   await control('custom-color').fill('#fedcba');await settle();assert.deepEqual((await doc()).series.map(s=>s.style.color),['#fedcba','#fedcba']);
   await bar.getByRole('button',{name:'点線',exact:true}).click();await settle();assert.deepEqual((await doc()).series.map(s=>s.style.dash),['dot','dot']);
-  await page.locator('#multiple-select').click();await choose('formula');
+  await Toolbar.clickToolbarControl(page,'multiple-select');await choose('formula');
   await page.locator('#series-add-toggle').click();for(const kind of ['residual','scatter','matrix','histogram','box'])assert.equal(await page.locator('#add-'+kind+'-chart svg').count(),1,kind+' has its own icon');await page.keyboard.press('Escape');
   await page.screenshot({path:'/private/tmp/graph-020-style-desktop.png'});
-  await page.locator('#view-menu summary').click();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');
+  await Toolbar.openSettings(page);await page.locator('[data-theme-value="dark"]').click();await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');
   await page.setViewportSize({width:390,height:850});await settle();
   assert(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth));assert(await bar.evaluate(el=>el.scrollWidth<=el.clientWidth));
   for(const name of ['実線','破線','点線'])assert(await bar.getByRole('button',{name,exact:true}).evaluate(el=>{const r=el.getBoundingClientRect();return r.width>=44&&r.height>=44;}));

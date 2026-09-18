@@ -9,6 +9,7 @@ catch { ({ chromium } = require(path.join(os.homedir(), '.cache/codex-runtimes/c
 const C = require('../core.js');
 const T = require('../tables.js');
 const Charts = require('../charts.js');
+const Toolbar = require('./toolbar-helpers.cjs');
 const root = path.resolve(__dirname, '../../..');
 const server = http.createServer((req, res) => {
   const file = path.resolve(root, '.' + decodeURIComponent(req.url.split('?')[0]));
@@ -53,7 +54,7 @@ const server = http.createServer((req, res) => {
     assert.equal(await tabs().count(), 3); await assertStable(['描画', '出典', '数表']);
     await page.locator('#dialog-cancel').click(); await dialog.waitFor({ state: 'hidden' });
 
-    await page.locator('#axes-button').click(); await assertStable(['軸名', '目盛・表示', '範囲']);
+    await Toolbar.openAxes(page); await assertStable(['軸名', '目盛・表示', '範囲']);
     await page.locator('#dialog-cancel').click(); await dialog.waitFor({ state: 'hidden' });
 
     await page.locator('[data-object-id="scatter"]').click();
@@ -66,7 +67,7 @@ const server = http.createServer((req, res) => {
     assert(shortHeight.height < 760, 'non-tab dialog was unnecessarily enlarged');
     await page.locator('#dialog-cancel').click();
 
-    await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape');
+    await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape');
     await page.setViewportSize({ width: 390, height: 900 }); await settle();
     await page.locator('#list-toggle').click(); await page.locator('[data-object-id="measure"]').click(); await page.locator('#selection-toolbar').getByRole('button', { name: '数表・出典', exact: true }).click();
     await assertStable(['数表', '描画', '出典']);

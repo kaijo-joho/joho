@@ -1,5 +1,6 @@
 /* Chrome checks for grouped CSV import controls and a stable tabbed dialog. */
 const assert = require('node:assert/strict');
+const Toolbar = require('./toolbar-helpers.cjs');
 const fs = require('node:fs');
 const http = require('node:http');
 const os = require('node:os');
@@ -75,8 +76,8 @@ let browser;
   await assertStable(before, 'expanded import settings');
   assert(await page.locator('#dialog-content').evaluate(el => el.scrollHeight > el.clientHeight), 'long preview scrolls inside the dialog');
   await page.locator('#dialog-cancel').click();
-  await page.locator('#view-menu summary').click();
-  await page.locator('#theme').selectOption('dark');
+  await Toolbar.openSettings(page);
+  await page.locator('[data-theme-value="dark"]').click();
   await page.locator('#text-size').selectOption('largest');
   await page.keyboard.press('Escape');
   for (const viewport of [{width: 390, height: 850}, {width: 1000, height: 520}]) {

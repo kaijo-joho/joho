@@ -1,6 +1,7 @@
 /* Draft preservation, accessible dialog tabs and visible validation targets. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),http=require('node:http'),path=require('node:path'),os=require('node:os');
 const C=require('../core.js'),T=require('../tables.js'),Charts=require('../charts.js');
+const Toolbar=require('./toolbar-helpers.cjs');
 let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
 const root=path.resolve(__dirname,'../../..');
 const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end();}fs.readFile(file,(error,data)=>{res.writeHead(error?404:200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.svg')?'image/svg+xml':'text/html'});res.end(error?'not found':data);});});
@@ -35,7 +36,7 @@ let browser,page;
   await dialog.getByRole('button',{name:'取消',exact:true}).click();await apply();const saved=await doc();assert.equal(saved.series[0].rows[1][1],12);assert.equal(saved.series[0].source.title,'計算の記録');
   await page.locator('#undo').click();await settle();assert.deepEqual(await doc(),original,'all sections commit a single undo entry');await page.locator('#redo').click();await settle();
 
-  await page.locator('#axes-button').click();const range=dialog.locator('[data-dialog-panel=range]'),names=dialog.locator('[data-dialog-panel=names]');
+  await Toolbar.openAxes(page);const range=dialog.locator('[data-dialog-panel=range]'),names=dialog.locator('[data-dialog-panel=names]');
   const xBox=await range.locator('[data-axis=x]').boundingBox(),yBox=await range.locator('[data-axis=y]').boundingBox();assert(Math.abs(xBox.y-yBox.y)<2&&yBox.x>xBox.x,'axis ranges stay side by side');
   await range.locator('[data-axis=x]').getByLabel('最小値',{exact:true}).fill('-2');await tab('軸名').click();await names.locator('[data-axis=x]').getByLabel('軸名（表示）',{exact:true}).fill('時間');
   await tab('目盛・表示').click();await dialog.getByLabel('グリッドを表示',{exact:true}).uncheck();await tab('範囲').click();assert.equal(await range.locator('[data-axis=x]').getByLabel('最小値',{exact:true}).inputValue(),'-2');await close();assert.deepEqual(await doc(),saved);
@@ -46,7 +47,7 @@ let browser,page;
   await tab('軸').click();await dialog.getByLabel('横軸の名前',{exact:true}).fill('経過時間');await tab('データ').click();await apply();const edited=await doc();assert.equal(edited.charts[0].style.pointSize,10);assert.equal(edited.charts[0].color,'#dc2626');assert.equal(edited.charts[0].axes.x.label,'経過時間');
 
   // Narrow screens and large text keep each section and the Apply/Cancel actions usable.
-  await page.locator('#view-menu summary').click();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await page.setViewportSize({width:390,height:900});await settle();
+  await Toolbar.openSettings(page);await page.locator('[data-theme-value="dark"]').click();await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await page.setViewportSize({width:390,height:900});await settle();
   await page.locator('[data-quick-control="edit-detail"]').click();for(const label of ['データ','軸','書式']){await tab(label).click();assert(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth+1));assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));}
   await page.screenshot({path:'/private/tmp/graph-019-chart-mobile.png'});await close();
   await page.setViewportSize({width:1320,height:950});await detail('measure','数表・出典');await page.screenshot({path:'/private/tmp/graph-019-table-desktop.png'});await page.setViewportSize({width:390,height:900});await tab('数表').click();assert(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth+1));await page.screenshot({path:'/private/tmp/graph-019-table-mobile.png'});await close();

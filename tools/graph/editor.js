@@ -13,7 +13,7 @@
   const chartNames = {residual:'残差グラフ',scatter:'散布図',matrix:'散布図行列',histogram:'ヒストグラム',box:'箱ひげ図'};
   const regressionModels = [['','回帰なし'],['linear','直線'],['proportional','原点を通る直線'],['quadratic','2次式'],['exponential','指数'],['power','べき乗']];
   let workspaceView = 'main', templateLibrary, observedSelection = null;
-  let history, store, localAuto, help, tooltip, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey, dialogListDetail;
+  let history, store, localAuto, help, tooltip, toolbar, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey, dialogListDetail;
   let drawPending = false, drawing = false, drawTask = Promise.resolve(), exportBusy = false, fileBusy = false, toastTimer, saveTimer;
   let parameterPreview = null, axesPreview = null, stylePreview = null, gesture = null, tangentDraft = null, tangentHoverTimer;
   let addMenu = null, addMenuTimer, dialogCleanup, objectMenuTarget = null, objectMenuTimer, listReorder;
@@ -61,7 +61,7 @@
   function curveAnchor(value,at) {return value.startsWith('regression:')?{type:'regression',regressionId:value.slice(11),at}:{type:'curve',seriesId:value,at};}
   function activeParameter() { return selected?.type==='parameter' ? current().parameters.find(p=>p.name===selected.name) : null; }
   function activeChart() { return selected?.type==='chart' ? current().charts.find(chart=>chart.id===selected.id) : null; }
-  function closeTopMenus() { for (const el of document.querySelectorAll('.top details[open]')) el.open=false; }
+  function closeTopMenus() { toolbar?.close(); }
   function closeMenus() { closeTopMenus();closeAddMenu();closeObjectMenu();closeZoom(); }
   function closeAddMenu(restoreFocus=false) {
     clearTimeout(addMenuTimer);if(!addMenu)return;
@@ -101,7 +101,11 @@
   }
   function savePreferences() { try { localStorage.setItem('kaijo-graph:settings',JSON.stringify(settings)); } catch (_) {} }
   function isDark() { return settings.theme==='dark' || (settings.theme!=='light' && matchMedia('(prefers-color-scheme:dark)').matches); }
-  function applySettings() { document.documentElement.dataset.theme=settings.theme||'auto'; document.documentElement.dataset.textSize=settings.textSize||'standard'; $('theme').value=settings.theme||'auto'; $('text-size').value=settings.textSize||'standard'; savePreferences(); requestDraw();positionAddMenu(); }
+  function applySettings() {
+    document.documentElement.dataset.theme=settings.theme||'auto'; document.documentElement.dataset.textSize=settings.textSize||'standard';
+    for(const control of $('theme').querySelectorAll('[data-theme-value]'))control.setAttribute('aria-pressed',String(control.dataset.themeValue===(settings.theme||'auto')));
+    $('text-size').value=settings.textSize||'standard';savePreferences();toolbar?.refresh();requestDraw();positionAddMenu();
+  }
   function persistSoon() { clearTimeout(saveTimer); saveTimer=setTimeout(persist,250); }
   function persist() {
     clearTimeout(saveTimer);
@@ -115,10 +119,10 @@
     updateWorkspaceControls();
     updateOutputControls();
     $('document-name').textContent=current().name || '無題のグラフ';
-    $('mode-label').textContent=current().mode.toUpperCase();
+    $('document-name').dataset.tip=$('document-name').textContent;
     for (const mode of ['2d','3d']) $('mode-'+mode).setAttribute('aria-pressed',String(current().mode===mode));
-    for (const id of ['undo','undo-menu']) $(id).disabled=!history.canUndo;
-    for (const id of ['redo','redo-menu']) $(id).disabled=!history.canRedo;
+    $('undo').disabled=!history.canUndo;
+    $('redo').disabled=!history.canRedo;
     $('add-function').textContent=current().mode==='3d'?'曲面':'数式';D.decorate($('add-function'),'function');
     $('other-curves').hidden=current().mode==='3d';
     $('add-implicit').textContent='＋ 陰関数 F('+symbol('x')+', '+symbol('y')+') = 0';
@@ -389,7 +393,7 @@
     if(restoreFocus){const target=previous.returnTarget||previous.opener;if(target.closest('#objects')&&matchMedia('(max-width:850px)').matches)setListOpen(true);if(target.isConnected&&target.getBoundingClientRect().width)target.focus({preventScroll:true});else $('stage').focus({preventScroll:true});}
   }
   function positionQuickTangent() {
-    if(!tangentDraft)return;const panel=$('tangent-quick-panel'),openerBounds=(tangentDraft.returnTarget||tangentDraft.opener).getBoundingClientRect(),anchor=openerBounds.width?openerBounds:tangentDraft.anchor||document.querySelector('.stage-heading').getBoundingClientRect(),viewport=window.visualViewport;
+    if(!tangentDraft)return;const panel=$('tangent-quick-panel'),openerBounds=(tangentDraft.returnTarget||tangentDraft.opener).getBoundingClientRect(),anchor=openerBounds.width?openerBounds:tangentDraft.anchor||document.querySelector('.top').getBoundingClientRect(),viewport=window.visualViewport;
     const left=viewport?.offsetLeft||0,top=viewport?.offsetTop||0,width=viewport?.width||innerWidth,height=viewport?.height||innerHeight;
     panel.style.maxHeight=Math.max(120,height-16)+'px';const bounds=panel.getBoundingClientRect();
     panel.style.left=Math.max(left+8,Math.min(anchor.left,left+width-bounds.width-8))+'px';
@@ -584,7 +588,8 @@
     document.body.classList.remove('print-ready');$('print-sheet').replaceChildren();$('editor-dialog').close();
     const replacement=dialogListDetail?document.querySelector('[data-object-details="'+CSS.escape(dialogListDetail)+'"]'):dialogOpenerKey&&dialogSelectionKey===$('selection-toolbar').dataset.selectionKey?$('selection-toolbar').querySelector('[data-quick-control="'+CSS.escape(dialogOpenerKey)+'"]'):null,opener=dialogOpener?.isConnected?dialogOpener:replacement;
     if((dialogListDetail||opener?.classList.contains('add-menu-toggle'))&&opener&&matchMedia('(max-width:850px)').matches)setListOpen(true);
-    if(opener?.getBoundingClientRect().width)opener.focus();else $('stage').focus();
+    const target=toolbar?.returnTarget(opener)||opener;
+    if(target?.getBoundingClientRect().width)target.focus();else $('stage').focus();
   }
   function field(parent,label,value,type='text',attrs={}) { const wrap=node('label',label);const input=node('input',null,Object.assign({type},attrs)); input.value=value;wrap.append(input);parent.append(wrap);return input; }
   function area(parent,label,value) {const wrap=node('label',label);const input=node('textarea');input.value=value;wrap.append(input);parent.append(wrap);return input;}
@@ -846,6 +851,7 @@
     const input=$('workspace-view');input.replaceChildren(node('option','作図',{value:'main'}));
     for(const chart of current().charts)input.append(node('option',(chart.name||chartNames[chart.kind])+(chart.visible===false?'（非表示）':''),{value:chart.id}));
     input.append(node('option','比較',{value:'comparison'}));input.value=workspaceView;
+    const displayTrigger=$('display-menu').querySelector('summary');displayTrigger.dataset.tip='表示するグラフ：'+input.selectedOptions[0].textContent;
     $('plot').hidden=workspaceView!=='main';$('analysis-stage').hidden=['main','comparison'].includes(workspaceView);$('comparison-stage').hidden=workspaceView!=='comparison';
     const matrix=current().charts.find(chart=>chart.id===workspaceView&&chart.kind==='matrix');$('analysis-stage').classList.toggle('is-matrix',!!matrix);$('analysis-stage').style.setProperty('--matrix-size',matrix?.columns.length||2);
     $('fit-comparison-output').hidden=workspaceView!=='comparison';
@@ -1428,10 +1434,10 @@
     try{localAuto=new IlapoLocalAutosave({encode:doc=>new Blob([encode(doc)],{type:'application/json'}),onStatus:result=>{status(result.message);$('stop-local-auto').disabled=!localAuto.active;if(result.state==='error')notify(result.message);}});}catch(_){$('start-local-auto').disabled=true;}
     listen('list-toggle','click',()=>setListOpen(!$('objects').classList.contains('is-open')));listen('list-close','click',()=>setListOpen(false));
     bindAddMenu('series');
-    listen('multiple-select','click',()=>{multipleMode=!multipleMode;refreshSelectionMarks();if(multipleMode)notify('一覧をクリック・タップして選択を追加します。選択した件数のボタンから書式を編集できます。');});
+    listen('multiple-select','click',()=>{closeTopMenus();multipleMode=!multipleMode;refreshSelectionMarks();if(multipleMode){setListOpen(true);notify('一覧をクリック・タップして選択を追加します。選択した件数のボタンから書式を編集できます。');}});
     listen('selection-count','click',()=>{if(selectionRefs.length)setSide('format',true);});
     listReorder=GraphListReorder.bind($('objects'),{onStart:()=>{closeMenus();cancelTangentDraft();cancelParameterPreview();tooltip?.hide();},onMove:(type,id,index)=>run(()=>moveObject(type,id,index))});
-    listen('workspace-view','change',()=>showWorkspace($('workspace-view').value));listen('comparison-settings','click',editComparison);
+    listen('workspace-view','change',()=>{const view=$('workspace-view').value;closeTopMenus();showWorkspace(view);});listen('comparison-settings','click',editComparison);
     for(const kind of Object.keys(chartNames))listen('add-'+kind+'-chart','click',()=>editChart(null,kind));
     $('plot').addEventListener('pointerdown',startGesture,{capture:true});
     $('plot').addEventListener('pointermove',moveGesture,{capture:true});
@@ -1444,10 +1450,12 @@
     for(const kind of ['point','segment','intersection','text','guide','region','regression'])listen('add-'+kind,'click',()=>addAnnotation(kind));bindTangentTrigger($('add-tangent'));
     for(const el of document.querySelectorAll('[data-icon]'))el.prepend(GraphIcons.create(el.dataset.icon,document));
     try{tooltip=JohoUI.tooltip();}catch(_){}
-    listen('mode-2d','click',()=>switchMode('2d'));listen('mode-3d','click',()=>switchMode('3d'));
-    for(const id of ['undo','undo-menu'])listen(id,'click',()=>{closeMenus();undo();});for(const id of ['redo','redo-menu'])listen(id,'click',()=>{closeMenus();undo(true);});
-    for(const id of ['axes-button','axes-menu'])listen(id,'click',editAxes);for(const id of ['reset-view','fit-button'])listen(id,'click',()=>{closeMenus();fitView();});
-    listen('theme','change',()=>{settings.theme=$('theme').value;applySettings();});listen('text-size','change',()=>{settings.textSize=$('text-size').value;applySettings();});
+    toolbar=GraphToolbar.create(document.querySelector('.top'),{isBusy:()=>$('editor-dialog').open,onOpen:()=>{closeAddMenu();closeObjectMenu();closeZoom();cancelTangentDraft();tooltip?.hide();}});
+    listen('mode-2d','click',()=>{closeTopMenus();switchMode('2d');});listen('mode-3d','click',()=>{closeTopMenus();switchMode('3d');});
+    listen('undo','click',()=>{closeMenus();undo();});listen('redo','click',()=>{closeMenus();undo(true);});
+    listen('axes-button','click',editAxes);listen('fit-button','click',()=>{closeMenus();fitView();});
+    for(const control of $('theme').querySelectorAll('[data-theme-value]'))control.addEventListener('click',()=>run(()=>{settings.theme=control.dataset.themeValue;applySettings();}));
+    listen('text-size','change',()=>{settings.textSize=$('text-size').value;applySettings();});
     for(const panel of ['format','templates','export'])listen(panel+'-tab','click',()=>setSide(panel));for(const el of document.querySelectorAll('[data-close-side]'))el.addEventListener('click',()=>{const previous=side;setSide(side);$(previous+'-tab')?.focus();});listen('template-search','input',templateList);
     listen('zoom-toggle','click',()=>{if(!$('zoom-panel').hidden){closeZoom();return;}closeMenus();$('zoom-panel').hidden=false;$('zoom-toggle').setAttribute('aria-expanded','true');positionZoom();});
     for(const control of document.querySelectorAll('[data-zoom-axis]'))control.addEventListener('click',()=>run(()=>zoomView(control.dataset.zoomAxis,Number(control.dataset.zoomFactor))));
@@ -1474,7 +1482,6 @@
       D.reveal(event.target);event.target.focus();report(event.target.validationMessage||'入力内容を確認してください。');
     },true);
     $('dialog-form').addEventListener('submit',event=>{event.preventDefault();$('dialog-error').hidden=true;try{if(dialogApply){dialogApply();closeDialog();}}catch(error){report(error);}});
-    for(const menu of document.querySelectorAll('.top details'))menu.addEventListener('toggle',()=>{if(menu.open){closeAddMenu();closeObjectMenu();closeZoom();for(const other of document.querySelectorAll('.top details'))if(other!==menu)other.open=false;}});
     document.addEventListener('pointerdown',event=>{if(objectMenuTarget&&!$('object-menu').contains(event.target)&&!objectMenuTarget.trigger.contains(event.target))closeObjectMenu();if(!$('zoom-panel').contains(event.target)&&!$('zoom-toggle').contains(event.target))closeZoom();},true);
     document.addEventListener('focusin',event=>{if(objectMenuTarget&&!$('object-menu').contains(event.target)&&!objectMenuTarget.trigger.contains(event.target))closeObjectMenu();if(!$('zoom-panel').contains(event.target)&&!$('zoom-toggle').contains(event.target))closeZoom();});
     document.addEventListener('pointerdown',event=>{if(!event.target.closest('.top .menu'))closeTopMenus();if(addMenu&&!addMenu.trigger.contains(event.target)&&!addMenu.panel.contains(event.target))closeAddMenu();if(tangentDraft&&!$('tangent-quick-panel').contains(event.target)&&!tangentDraft.opener.contains(event.target))cancelTangentDraft();},true);
@@ -1503,7 +1510,7 @@
         }
       }
       if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='z'){event.preventDefault();undo(event.shiftKey);return;}
-      if(event.key==='Escape'){const menu=document.querySelector('.top details[open]');if(gesture)cancelGesture();else if(menu){menu.open=false;menu.querySelector('summary').focus();}else{select(null);setListOpen(false);}event.preventDefault();}
+      if(event.key==='Escape'){if(gesture)cancelGesture();else if(!toolbar?.escape()){select(null);setListOpen(false);}event.preventDefault();}
       if(event.key==='Enter'&&!event.metaKey&&!event.ctrlKey&&!event.altKey&&(event.target===$('stage')||event.target.closest('[data-object-id][aria-pressed="true"]'))){if(selectionRefs.length>1||multipleMode){event.preventDefault();setSide('format',true);return;}if(selected?.type==='row'){event.preventDefault();run(editObservedRow);return;}const s=activeSeries(),a=activeAnnotation(),chart=activeChart();if(s||a||chart){event.preventDefault();run(()=>s?editSeries(s.id):a?editAnnotation(a.id):editChart(chart.id));}}
       if(event.key==='?'){event.preventDefault();help?.open();}
       if((event.key==='Delete'||event.key==='Backspace')&&selectionRefs.length>1){event.preventDefault();run(removeSelectedObjects);return;}

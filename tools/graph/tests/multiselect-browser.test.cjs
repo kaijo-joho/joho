@@ -1,5 +1,6 @@
 /* Chrome coverage for multi-selection, bulk formatting, style transfer, and responsive state. */
 const assert = require('node:assert/strict');
+const Toolbar = require('./toolbar-helpers.cjs');
 const fs = require('node:fs');
 const http = require('node:http');
 const os = require('node:os');
@@ -79,11 +80,11 @@ let browser, page;
   assert.deepEqual((await state()).selection.map(ref => ref.id), ['f', 'g', 'd'], 'shift click selects an inclusive range');
   await item('series', 'd').focus(); await page.keyboard.press('Shift+ArrowUp'); await settle(); assert.deepEqual((await state()).selection.map(ref => ref.id), ['f', 'g', 'd'], 'shift arrow preserves the selected range without editing data');
 
-  await load(fixture()); await page.locator('#multiple-select').click(); await settle(); await item('series', 'f').click(); await item('series', 'g').click(); await settle();
+  await load(fixture()); await Toolbar.clickToolbarControl(page,'multiple-select'); await settle(); await item('series', 'f').click(); await item('series', 'g').click(); await settle();
   assert.equal(await page.locator('#selection-count').innerText(), '2件の書式を編集'); assert.equal(await page.locator('#selection-count').isVisible(), true);
   await page.locator('#selection-count').click(); assert.equal(await page.locator('#format-panel').isVisible(), true);
   await bar.getByLabel('線の太さ', { exact: true }).fill('4'); await bar.getByLabel('線の太さ', { exact: true }).press('Tab'); await settle();
-  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape'); await page.setViewportSize({ width: 390, height: 850 }); await settle();
+  await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape'); await page.setViewportSize({ width: 390, height: 850 }); await settle();
   await page.keyboard.press(mod + '+s'); await settle(); await page.reload(); if (await page.locator('#editor-dialog').isVisible()) { await page.locator('#editor-dialog .saved-option').first().click(); await settle(); } assert.deepEqual((await state()).selection, [], 'reload clears transient selection'); assert.equal((await doc()).series[0].style.width, 4, 'reload preserves saved style');
   assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth), 'mobile view does not overflow'); assert.deepEqual(errors, []);
   await page.screenshot({ path: '/private/tmp/graph-multiselect-mobile.png' });

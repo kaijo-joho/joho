@@ -1,6 +1,7 @@
 /* Output snapshots, clipboard payloads (without touching the system clipboard), and new library entries. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),http=require('node:http'),path=require('node:path'),os=require('node:os');
 const C=require('../core.js'),T=require('../tables.js');let chromium;
+const Toolbar=require('./toolbar-helpers.cjs');
 try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
 const root=path.resolve(__dirname,'../../..');
 const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end();}fs.readFile(file,(error,data)=>{res.writeHead(error?404:200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.svg')?'image/svg+xml':'text/html'});res.end(error?'not found':data);});});
@@ -39,7 +40,7 @@ let browser,page;
   await page.locator('#export-tab').click();await page.locator('#output-preset').selectOption('slide');assert.equal((await doc()).output.width,1600);assert.equal((await doc()).output.height,900);
   await page.locator('#undo').click();assert.equal((await doc()).output.width,1200);await page.locator('#redo').click();assert.equal(await page.locator('#output-preset').inputValue(),'slide');
   await page.locator('#export-scale').selectOption('1');await page.locator('#export-background').selectOption('transparent');
-  await page.locator('#view-menu summary').click();await page.locator('#theme').selectOption('dark');await page.keyboard.press('Escape');await settle();
+  await Toolbar.openSettings(page);await page.locator('[data-theme-value="dark"]').click();await page.keyboard.press('Escape');await settle();
   const saved=await doc();assert.deepEqual(await copied(),{type:'image/png',width:1600,height:900,alpha:0});assert.deepEqual(await doc(),saved);assert.equal(await page.locator('html').getAttribute('data-theme'),'dark');
   assert.match(await page.locator('#export-size-note').innerText(),/1600 × 900/);
   await page.locator('#export-format').selectOption('svg');await page.locator('#image-preview').click();await dialog.locator('.image-export-preview img').waitFor();
@@ -52,12 +53,12 @@ let browser,page;
   for(const name of ['等加速度運動：区間平均速度','オームの法則：抵抗を計算','フックの法則：伸びと力','センサー時系列：差分と移動平均']){
     if(await page.locator('#templates-panel').isHidden())await page.locator('#templates-tab').click();await page.locator('#template-list .template-card').filter({hasText:name}).click();await settle();const value=await doc();assert.equal(value.name,name);assert.equal(await page.locator('#plot-error').isVisible(),false);assert(value.series.every(s=>s.source.kind==='model'));
   }
-  await page.locator('#workspace-view').selectOption('calculation-sensor-smoothed-chart');await settle();await page.locator('#export-tab').click();assert.equal((await copied()).type,'image/png');
-  await page.locator('#workspace-view').selectOption('comparison');await settle();assert.equal((await copied()).type,'image/png');
+  await Toolbar.selectWorkspace(page,'calculation-sensor-smoothed-chart');await settle();await page.locator('#export-tab').click();assert.equal((await copied()).type,'image/png');
+  await Toolbar.selectWorkspace(page,'comparison');await settle();assert.equal((await copied()).type,'image/png');
   for(const id of ['jma-global-temperature-anomaly-2000-2024','jma-japan-temperature-anomaly-2000-2024','noaa-mauna-loa-co2-annual-2000-2024']){
     await page.locator('#series-add-toggle').click();await page.locator('#import-csv').click();await page.locator('[data-catalog-id="'+id+'"]').click();await page.locator('[data-import-summary]').waitFor();await page.locator('#dialog-submit').click();await settle();const s=(await doc()).series.at(-1);assert.equal(s.dataTable.rows.length,25);assert.equal(s.source.kind,'reference');assert.match(s.source.notes,/2026-09-17/);
   }
   const mixed=C.createDocument();mixed.name='次元切替';const surface=C.createSeries('surface');surface.id='surface';surface.expression='x+y';mixed.series=[surface];await load(mixed);await page.locator('[data-object-id="surface"]').click();await bar.getByRole('button',{name:'3Dで表示',exact:true}).click();await settle();assert.equal((await doc()).mode,'3d');assert.equal(await bar.locator('summary[aria-label="その他"]').count(),0);await page.locator('#export-tab').click();assert.equal((await copied()).type,'image/png');
-  await page.setViewportSize({width:390,height:850});await page.locator('#view-menu summary').click();await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await settle();await page.locator('#image-preview').click();await dialog.locator('.image-export-preview img').waitFor();assert(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth));assert(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth));await page.screenshot({path:'/private/tmp/graph-017-output-mobile.png'});await close();
+  await page.setViewportSize({width:390,height:850});await Toolbar.openSettings(page);await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await settle();await page.locator('#image-preview').click();await dialog.locator('.image-export-preview img').waitFor();assert(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth));assert(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth));await page.screenshot({path:'/private/tmp/graph-017-output-mobile.png'});await close();
   assert.deepEqual(errors,[]);console.log('publication-library-browser.test.cjs: ok');
 })().catch(async error=>{if(page)await page.screenshot({path:'/private/tmp/graph-017-output-failure.png'}).catch(()=>{});console.error(error);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));});

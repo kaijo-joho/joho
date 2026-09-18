@@ -1,6 +1,7 @@
 /* Previous/next rows and moving aggregates through the actual editor controls. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),http=require('node:http'),path=require('node:path'),os=require('node:os');
 const C=require('../core.js'),T=require('../tables.js');
+const Toolbar=require('./toolbar-helpers.cjs');
 let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
 const root=path.resolve(__dirname,'../../..');
 const server=http.createServer((req,res)=>{
@@ -68,7 +69,7 @@ let browser,page;
   const file=JSON.parse(fs.readFileSync(await (await download).path(),'utf8'));assert.deepEqual(file,saved);
   await load({...C.createDocument(),name:'空の図'});await load(file);assert.deepEqual(await doc(),saved);
   // Custom offsets, draft retention, keyboard operation and narrow dark layouts.
-  await page.locator('#view-menu summary').click();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');
+  await Toolbar.openSettings(page);await page.locator('[data-theme-value="dark"]').click();await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');
   await page.setViewportSize({width:390,height:850});await page.locator('#list-toggle').tap();await item().tap();
   await page.locator('#selection-toolbar').getByRole('button',{name:'数表・出典',exact:true}).tap();await editor.waitFor();await add('2行前');
   await editor.locator('.graph-table-editor__relative summary').focus();await page.keyboard.press('Enter');

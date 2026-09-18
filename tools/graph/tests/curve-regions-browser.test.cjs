@@ -2,6 +2,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), http = require('node:http'), path = require('node:path'), os = require('node:os');
 const C = require('../core.js');
+const Toolbar = require('./toolbar-helpers.cjs');
 let chromium;
 try { ({ chromium } = require('playwright')); } catch { ({ chromium } = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'))); }
 const root = path.resolve(__dirname, '../../..');
@@ -65,7 +66,7 @@ let browser, page;
   assert.match(decodeURIComponent(svg.split(',').slice(1).join(',')),/2ローブ/);assert.match(decodeURIComponent(svg.split(',').slice(1).join(',')),/面積/);
   const png = await page.evaluate(() => GraphPlot.exportImage(document.querySelector('#plot'), { format: 'png', scale: 1, background: 'white' })); assert.match(png, /^data:image\/png/);
   await page.locator('[data-object-id="'+lobes.id+'"]').click();await page.screenshot({path:'/private/tmp/graph-curve-regions-desktop.png'});
-  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape'); await page.setViewportSize({ width: 390, height: 850 });
+  await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape'); await page.setViewportSize({ width: 390, height: 850 });
   assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth));
   await page.mouse.move(380,840);await page.locator('#list-toggle').tap();await page.locator('#series-add-toggle').tap();await page.locator('#add-region').tap();await dialog.waitFor({ state: 'visible' });
   await dialog.getByLabel('領域の作り方', { exact: true }).selectOption('curveRegion');await dialog.getByLabel('x の終点', { exact: true }).fill('0.9');await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');

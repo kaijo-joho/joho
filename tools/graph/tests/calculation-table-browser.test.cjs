@@ -2,6 +2,7 @@
 const assert=require('node:assert/strict');
 const fs=require('node:fs'),http=require('node:http'),path=require('node:path'),os=require('node:os');
 const C=require('../core.js'),T=require('../tables.js');
+const Toolbar=require('./toolbar-helpers.cjs');
 let chromium;
 try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
 const root=path.resolve(__dirname,'../../..');
@@ -82,7 +83,7 @@ let browser,page;
   assert(await page.locator('#dialog-submit').evaluate(el=>el.getBoundingClientRect().bottom<=innerHeight));
   await page.screenshot({path:'/private/tmp/graph-calculated-desktop.png'});
   await editor.getByRole('button',{name:'取消',exact:true}).click();await page.locator('#dialog-cancel').click();
-  await page.locator('#view-menu summary').click();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');
+  await Toolbar.openSettings(page);await page.locator('[data-theme-value="dark"]').click();await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');
   await page.setViewportSize({width:390,height:850});await page.locator('#list-toggle').tap();await item().tap();
   await page.locator('#selection-toolbar').getByRole('button',{name:'数表・出典',exact:true}).tap();await editor.waitFor();
   await editor.locator('.graph-table-editor__column-menu summary').tap();await editor.getByRole('button',{name:'計算列を追加',exact:true}).tap();await formula.fill('[@気温] / SUM([気温]) * 100');

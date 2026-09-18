@@ -2,6 +2,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), http = require('node:http'), path = require('node:path'), os = require('node:os');
 const C = require('../core.js'), Charts = require('../charts.js');
+const Toolbar = require('./toolbar-helpers.cjs');
 let chromium;
 try { ({ chromium } = require('playwright')); }
 catch { ({ chromium } = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'))); }
@@ -79,7 +80,7 @@ let browser,page;
   await action('chart','chart','非表示');assert.equal((await doc()).charts[0].visible,false);assert.deepEqual((await doc()).comparison.items,['main','chart']);
   await item('chart','chart').click();await settle();assert.match(await page.locator('#analysis-plot').innerText(),/非表示/);
   assert.equal(await bar.getByRole('button',{name:/複製|削除|非表示/}).count(),0);assert(await bar.getByLabel('自由な色（RGB）',{exact:true}).isVisible());
-  await page.locator('#workspace-view').selectOption('comparison');await settle();assert.equal(await page.locator('.comparison-card').count(),1);
+  await Toolbar.selectWorkspace(page,'comparison');await settle();assert.equal(await page.locator('.comparison-card').count(),1);
   await action('chart','chart','表示');assert.equal(await page.locator('.comparison-card').count(),2);
   await action('chart','chart','複製');copy=(await doc()).charts[1];assert.equal(copy.seriesId,'data');await action('chart',copy.id,'削除');
   await load(fixture());await item('series','f').click();await settle();await page.screenshot({path:'/private/tmp/graph-sidebar-format-desktop.png'});
@@ -94,7 +95,7 @@ let browser,page;
   await page.locator('#objects').evaluate(el=>{el.scrollTop=0;});await cdp.detach();
   await more('series','f').tap();await menu.getByRole('menuitem',{name:'非表示',exact:true}).tap();await settle();
   assert.equal((await doc()).series.find(s=>s.id==='f').visible,false);await more('series','f').tap();await page.keyboard.press('Escape');assert(await menu.isHidden());
-  await item('series','f').tap();await settle();await page.locator('#view-menu summary').tap();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await settle();
+  await item('series','f').tap();await settle();await Toolbar.openSettings(page);await page.locator('[data-theme-value="dark"]').click();await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await settle();
   assert(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth));assert(await bar.getByLabel('自由な色（RGB）',{exact:true}).isVisible());await page.screenshot({path:'/private/tmp/graph-sidebar-format-mobile.png'});
   assert.deepEqual(errors,[]);console.log('sidebar-actions-browser.test.cjs: ok');
 })().catch(async error=>{if(page)await page.screenshot({path:'/private/tmp/graph-sidebar-actions-failure.png'}).catch(()=>{});console.error(error);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));});

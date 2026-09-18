@@ -1,5 +1,6 @@
 /* Chrome UI checks for the science templates and the bundled data catalog. */
 const assert = require('node:assert/strict');
+const Toolbar = require('./toolbar-helpers.cjs');
 const fs = require('node:fs');
 const http = require('node:http');
 const os = require('node:os');
@@ -109,7 +110,7 @@ let browser;
     assert(current.series.at(-1).source.notes.includes('固定スナップショット'));
   }
 
-  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.keyboard.press('Escape');
+  await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); await page.keyboard.press('Escape');
   await page.setViewportSize({width: 390, height: 820}); await page.waitForTimeout(120);
   assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth), '390pxで横スクロールしない');
   await openTemplate('二酸化炭素の状態図');

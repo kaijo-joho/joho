@@ -1,0 +1,43 @@
+/* 共通仕様2.1。寸法は上部の操作だけに適用し、メニュー内は44pxを保つ。 */
+:root{--graph-toolbar-button:calc(30px * var(--ui-k));--graph-toolbar-icon:calc(32px * var(--ui-k));--graph-toolbar-pad:calc(5px * var(--ui-k));--graph-toolbar-height:calc(var(--graph-toolbar-button) + var(--graph-toolbar-pad) * 2 + 1px)}
+#app{grid-template-rows:var(--graph-toolbar-height) minmax(0,1fr)}
+.top{height:var(--graph-toolbar-height);padding:var(--graph-toolbar-pad) 8px;gap:5px;font-size:calc(13px * var(--ui-k));flex-wrap:nowrap}
+.top .brand{min-width:0;gap:5px;margin:0;flex:none;font-size:inherit}
+.top .brand img{width:24px;height:24px}
+.top .brand span{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;font-size:inherit}
+.top .brand small{font-size:9px;line-height:16px;padding:0 3px}
+.top .toolbar-control{display:inline-flex;align-items:center;justify-content:center;flex:none;width:var(--graph-toolbar-icon);min-height:var(--graph-toolbar-button);height:var(--graph-toolbar-button);border-radius:7px;padding:2px;font-size:inherit;line-height:1.2}
+.top .toolbar-control svg{width:calc(22px * var(--ui-k));height:calc(22px * var(--ui-k));flex:none;margin:0}
+.top .compact-only{display:none}
+.top #help-button{font-size:calc(17px * var(--ui-k))}
+.top .sep{flex:none;width:1px;height:calc(20px * var(--ui-k));margin-inline:2px;background:var(--line)}
+#toolbar-secondary{display:flex;flex:none;align-items:center;gap:5px}
+.top .toolbar-label{display:none}
+.top #document-name{flex:1;min-width:30px;color:var(--muted);font-size:inherit;padding-inline:3px}
+.top #view-menu{margin-left:0}
+.top .menu[open]>summary{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+.top .menu-panel{position:fixed;top:calc(var(--graph-toolbar-height) + 4px);left:8px;right:auto;width:calc(310px * var(--ui-k));max-width:calc(100vw - 16px);max-height:calc(100dvh - var(--graph-toolbar-height) - 16px);overscroll-behavior:contain;font-size:1rem;z-index:35}
+.top .menu-panel::before{content:"";position:absolute;left:0;right:0;top:-7px;height:7px}
+.top .menu-panel button,.top .menu-panel summary{min-height:44px;white-space:normal;overflow-wrap:anywhere}
+.top .menu-panel>button[data-icon]{display:flex;align-items:center;gap:8px}
+.top .menu-panel [data-icon]>svg{width:24px;height:24px;flex:none}
+.top .menu-panel hr{margin:10px 0}
+.top .menu-panel p{margin-bottom:6px}
+#display-menu #workspace-view{width:100%;max-width:none;margin:4px 0 0;font-size:inherit;padding:8px}
+#display-menu .mode-switch button{flex:1}
+.theme-choices{display:flex;gap:6px}
+.theme-choices button{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:7px 4px;font-size:.85rem}
+.theme-choices [aria-pressed=true]{outline:1px solid var(--accent);outline-offset:1px}
+#toolbar-more-panel #toolbar-secondary{flex-direction:column;align-items:stretch;gap:10px}
+#toolbar-more-panel .sep{display:none}
+#toolbar-more-panel .toolbar-label{display:inline}
+#toolbar-more-panel .toolbar-control{width:100%;height:auto;min-height:44px;padding:8px;gap:7px;justify-content:flex-start}
+#toolbar-more-panel .history-buttons>.toolbar-control{flex:1;width:0;justify-content:center;font-size:.9rem}
+#toolbar-more-panel #display-menu>.menu-panel{position:static;left:auto!important;top:auto!important;right:auto;width:100%;max-width:none;max-height:none!important;padding:4px 0 0;border:0;box-shadow:none;overflow:visible}
+#toolbar-more-panel #display-menu>.menu-panel::before{display:none}
+@media(max-width:1150px){#side-panel{top:var(--graph-toolbar-height)}}
+@media(max-width:850px){.top .compact-only{display:inline-flex}#objects{top:var(--graph-toolbar-height)}.top .brand small{display:none}}
+@media(max-width:590px){.top{gap:3px;padding-inline:4px}.top .brand{gap:3px}.top .brand span{max-width:12vw}.top .sep{margin-inline:0}.top #document-name{min-width:26px;padding-inline:0}}
+@media(max-width:520px){#app.has-side{grid-template-rows:var(--graph-toolbar-height) minmax(150px,1fr) minmax(170px,42dvh)}}
+@media(max-width:360px){.top{gap:2px}.top .brand img{width:20px;height:20px}.top .brand span{max-width:30px}.top #document-name{min-width:22px}}
+@media(pointer:coarse){:root{--graph-toolbar-button:max(44px,calc(30px * var(--ui-k)));--graph-toolbar-icon:max(44px,calc(32px * var(--ui-k)))}}

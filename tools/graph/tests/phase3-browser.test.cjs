@@ -1,5 +1,6 @@
 /* Actual Chrome interaction: custom symbols, shared endpoints, labels and drag history. */
 const assert = require('node:assert/strict');
+const Toolbar = require('./toolbar-helpers.cjs');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
@@ -43,7 +44,7 @@ let browser, page;
     await page.mouse.up(); await settle();
   }
   await page.goto(process.env.GRAPH_TEST_URL || `http://127.0.0.1:${server.address().port}/tools/graph/index.html`); await settle();
-  await page.locator('#axes-button').click();
+  await Toolbar.openAxes(page);
   await dialog.getByRole('tab',{name:'軸名',exact:true}).click();await axes('names','x').getByLabel('数式で使う記号', { exact: true }).fill('t');
   await axes('names','y').getByLabel('数式で使う記号', { exact: true }).fill('s');
   await axes('names','y').getByLabel('軸名（表示）', { exact: true }).fill('距離 s_0');
@@ -58,15 +59,15 @@ let browser, page;
   assert(plotted.yaxis.title.text.includes('m<sup>2</sup>'));
   await seriesAdd(); await page.locator('#add-function').click(); await fill('名前', '移動'); await fill('数式（例：s = a*t^2）', 's = 2*t'); await submit();
   assert.equal((await doc()).series.at(-1).expression, 'y = 2*x');
-  const beforeInvalid = await doc(); await page.locator('#axes-button').click();
+  const beforeInvalid = await doc(); await Toolbar.openAxes(page);
   await dialog.getByRole('tab',{name:'軸名',exact:true}).click();await axes('names','y').getByLabel('数式で使う記号', { exact: true }).fill('t'); await page.locator('#dialog-submit').click();
   assert(await page.locator('#dialog-error').isVisible()); assert.deepEqual(await doc(), beforeInvalid); await page.locator('#dialog-cancel').click();
-  await page.locator('#axes-button').click();
+  await Toolbar.openAxes(page);
   await dialog.getByRole('tab',{name:'軸名',exact:true}).click();await axes('names','x').getByLabel('数式で使う記号', { exact: true }).fill('時間'); await axes('names','y').getByLabel('数式で使う記号', { exact: true }).fill('距離'); await submit();
   await page.locator('#series-list .object-item').last().click(); await page.getByRole('button', { name: '数式・範囲', exact: true }).click();
   assert.equal(await page.getByLabel('数式（例：距離 = a*時間^2）', { exact: true }).inputValue(), '距離 = 2*時間'); await page.locator('#dialog-cancel').click();
   // Restore simple axis names and a square range for the direct manipulation checks.
-  await page.locator('#axes-button').click();
+  await Toolbar.openAxes(page);
   await dialog.getByRole('tab',{name:'軸名',exact:true}).click();for (const key of ['x', 'y']) { await axes('names',key).getByLabel('数式で使う記号', { exact: true }).fill(key); await axes('names',key).getByLabel('軸名（表示）', { exact: true }).fill(key); await axes('names',key).getByLabel('単位（表示）', { exact: true }).fill(''); }
   await dialog.getByRole('tab',{name:'範囲',exact:true}).click();for (const key of ['x', 'y']) { await axes('range',key).getByLabel('最小値', { exact: true }).fill('-5'); await axes('range',key).getByLabel('最大値', { exact: true }).fill('5'); }
   await submit();
@@ -120,7 +121,7 @@ let browser, page;
   fs.writeFileSync('/private/tmp/graph-03-export.svg',svg);
   assert(svg.includes('annotation') && svg.includes('AB') && svg.includes('BC') && svg.includes('font-size:70%'), 'SVG includes labels, arrows and rich text');
   await page.locator('#export-panel [data-close-side]').click();
-  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.keyboard.press('Escape'); await settle();
+  await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); await page.keyboard.press('Escape'); await settle();
   await page.screenshot({ path: '/private/tmp/graph-03-desktop.png' });
   await page.setViewportSize({ width: 390, height: 850 }); await page.waitForTimeout(250); await settle(); assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth));
   await page.locator('#list-toggle').tap(); await ann('AB').tap(); await page.getByLabel('文字サイズ（px）', { exact: true }).fill('16'); await page.getByLabel('文字サイズ（px）', { exact: true }).press('Tab'); await settle();
@@ -135,8 +136,8 @@ let browser, page;
   await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:touch[0]+12,y:touch[1]-20}]});
   await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await settle();assert.notDeepEqual(await doc(),beforeTouch,'touch drag commits the shared endpoint');
   await page.setViewportSize({width:1360,height:900});await page.waitForTimeout(200);await settle();
-  await page.locator('#mode-3d').click();await settle();assert.equal((await doc()).annotations.length,saved.annotations.length);
-  await page.locator('#axes-button').click();
+  await Toolbar.clickToolbarControl(page,'mode-3d');await settle();assert.equal((await doc()).annotations.length,saved.annotations.length);
+  await Toolbar.openAxes(page);
   await dialog.getByRole('tab',{name:'軸名',exact:true}).click();for(const [key,value] of [['x','α'],['y','β'],['z','γ']])await axes('names',key).getByLabel('数式で使う記号',{exact:true}).fill(value);
   await submit();await seriesAdd();await page.locator('#add-function').click();await fill('数式（例：γ = α^2 + β^2）','γ = α^2 + β^2');await submit();
   assert.equal((await doc()).series.at(-1).expression,'z = x^2 + y^2');

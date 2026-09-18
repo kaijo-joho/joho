@@ -2,6 +2,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), http = require('node:http'), path = require('node:path'), os = require('node:os');
 let chromium;
+const Toolbar = require('./toolbar-helpers.cjs');
 try { ({ chromium } = require('playwright')); }
 catch { ({ chromium } = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'))); }
 const root = path.resolve(__dirname, '../../..');
@@ -25,7 +26,7 @@ let browser, page;
   const submit = async () => { await page.locator('#dialog-submit').click(); await dialog.waitFor({state:'hidden'}); await settle(); };
   const menu = page.locator('#object-menu');
   const add = async () => { if(await page.locator('#series-add-panel').isHidden()) await page.locator('#series-add-toggle').click(); };
-  const openAxes = async () => { if(await page.locator('#axes-button').isVisible()) await page.locator('#axes-button').click(); else { await page.locator('#view-menu summary').click(); await page.locator('#axes-menu').click(); } await dialog.waitFor({state:'visible'}); };
+  const openAxes = async () => { await Toolbar.openAxes(page); await dialog.waitFor({state:'visible'}); };
   await settle();
   assert.equal(await page.locator('#objects .add-menu-toggle').count(),1);
   await add();
@@ -108,7 +109,7 @@ let browser, page;
   await page.locator('#dialog-cancel').tap();
   await page.mouse.move(380,840);await page.locator('#list-toggle').tap();if(await page.locator('#series-add-panel').isVisible())await page.keyboard.press('Escape');await item(first).focus();await page.keyboard.press('Alt+End');await settle();
   await item(first).tap();await settle();assert(await bar.isVisible());
-  await page.locator('#view-menu summary').tap();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await settle();
+  await Toolbar.setAppearance(page,{theme:'dark',textSize:'largest'});await page.keyboard.press('Escape');await settle();
   assert.equal(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth),true);
   await page.screenshot({path:'/private/tmp/graph-inspector-mobile.png'});
   assert.deepEqual(errors,[]);

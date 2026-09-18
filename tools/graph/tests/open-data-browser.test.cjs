@@ -1,5 +1,6 @@
 /* Chrome UI regression tests for the public CSV import flow. */
 const assert = require('assert');
+const Toolbar = require('./toolbar-helpers.cjs');
 const fs = require('fs');
 const http = require('http');
 const os = require('os');
@@ -126,7 +127,7 @@ let browser;
   await page.keyboard.press('Escape'); await page.waitForFunction(() => !document.querySelector('#editor-dialog').open); await page.waitForTimeout(220);
   assert.deepEqual(await page.evaluate(() => GraphEditor.getDocument()), beforeCancel, '中止した遅延URL取得は文書を変更しない');
 
-  await page.locator('#mode-3d').click(); await page.waitForFunction(() => GraphEditor.getDocument().mode === '3d');
+  await Toolbar.clickToolbarControl(page,'mode-3d'); await page.waitForFunction(() => GraphEditor.getDocument().mode === '3d');
   await openImport(); await page.getByRole('button', {name:'ファイル', exact:true}).click();
   await page.setInputFiles('[data-import-file]', {name:'three.csv', mimeType:'text/csv', buffer:Buffer.from('x,y,z,extra\n1,2,3,4\n5,6,7,8\n')}); await page.locator('[data-import-summary]').waitFor();
   await page.getByLabel('横軸の列', {exact:true}).selectOption('1'); await page.getByLabel('縦軸の列', {exact:true}).selectOption('2'); await page.getByLabel('高さの列', {exact:true}).selectOption('0');
@@ -135,9 +136,9 @@ let browser;
   await page.locator('#file-menu summary').click(); const jsonDownload = page.waitForEvent('download'); await page.locator('#save-local').click(); const json = await jsonDownload;
   const saved = JSON.parse(fs.readFileSync(await json.path(), 'utf8')); assert.deepEqual(saved.series.at(-1).dataTable.mapping, three.dataTable.mapping); assert.equal(saved.series.find(series => series.source.url === 'https://open-data.example/good.csv').source.kind, 'reference');
   await page.setInputFiles('#file-input', await json.path()); await page.waitForFunction(() => !GraphEditor.getState().drawing); assert.deepEqual((await page.evaluate(() => GraphEditor.getDocument())).series.at(-1).dataTable.mapping, three.dataTable.mapping);
-  await page.locator('#mode-2d').click(); await page.waitForFunction(() => GraphEditor.getDocument().mode === '2d');
+  await Toolbar.clickToolbarControl(page,'mode-2d'); await page.waitForFunction(() => GraphEditor.getDocument().mode === '2d');
 
-  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape');
+  await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape');
   await page.setViewportSize({width:390,height:820}); await page.waitForTimeout(80); assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth), '390pxで横スクロールしない');
   await openImport(); await page.locator('[data-catalog-id="jma-tokyo-normal-1991-2020"]').click(); await page.locator('[data-import-summary]').waitFor();
   const dialogBox = await page.locator('#editor-dialog').boundingBox();

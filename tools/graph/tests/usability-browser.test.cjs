@@ -1,5 +1,6 @@
 /* Chrome: unified intersections, live tangent equations and persistent coefficient controls. */
 const assert = require('node:assert/strict');
+const Toolbar = require('./toolbar-helpers.cjs');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
@@ -112,7 +113,7 @@ let browser, page;
   const svg = await page.evaluate(async () => { const url = await GraphPlot.exportImage(document.querySelector('#plot'), { format: 'svg', scale: 1, background: 'white' }); return fetch(url).then(r => r.text()); });
   assert(svg.includes('≈') && svg.includes('4x'));
   // Touch, large text and the single-line header at a narrow viewport.
-  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape'); await settle();
+  await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape'); await settle();
   await item(plus).click(); await page.screenshot({ path: '/private/tmp/graph-usability-desktop.png' });
   await page.setViewportSize({ width: 390, height: 850 }); await page.waitForTimeout(200); await settle();
   assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth));

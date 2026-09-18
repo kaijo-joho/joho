@@ -2,6 +2,7 @@
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), http = require('node:http'), path = require('node:path'), os = require('node:os');
 const C = require('../core.js');
+const Toolbar = require('./toolbar-helpers.cjs');
 let chromium;
 try { ({ chromium } = require('playwright')); }
 catch { ({ chromium } = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'))); }
@@ -82,8 +83,8 @@ let browser, page;
   await page.locator('[data-object-details="annotation:A"]').click(); await page.locator('#object-menu').getByRole('menuitem', { name: '削除', exact: true }).click(); await settle();
   assert(!(await doc()).annotations.some(a => a.id === region.id)); assert((await doc()).annotations.some(a => a.id === 'BC'));
   await page.locator('#undo').click(); await settle(); assert.deepEqual(await doc(), valid);
-  await page.locator('#mode-3d').click(); await settle(); assert.equal(await regionTrace(region.id), undefined); assert((await doc()).annotations.some(a => a.id === region.id));
-  await page.locator('#mode-2d').click(); await settle();
+  await Toolbar.clickToolbarControl(page,'mode-3d'); await settle(); assert.equal(await regionTrace(region.id), undefined); assert((await doc()).annotations.some(a => a.id === region.id));
+  await Toolbar.clickToolbarControl(page,'mode-2d'); await settle();
   // JSON and browser saves preserve references, settings and area after reload.
   await page.locator('#file-menu summary').click(); const downloading = page.waitForEvent('download'); await page.locator('#save-local').click();
   const saved = JSON.parse(fs.readFileSync(await (await downloading).path(), 'utf8')); assert.equal(saved.version, 14);
@@ -95,7 +96,7 @@ let browser, page;
   const png = await page.evaluate(() => GraphPlot.exportImage(document.querySelector('#plot'), { format: 'png', scale: 1, background: 'white' }));
   assert.match(png, /^data:image\/png;base64,/); assert(Buffer.from(png.split(',')[1], 'base64').length > 2000);
   await page.screenshot({ path: '/private/tmp/graph-regions-desktop.png' });
-  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape');
+  await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape');
   await page.setViewportSize({ width: 390, height: 850 }); await page.mouse.move(380,840); await page.locator('#list-toggle').tap(); await page.locator('#series-add-toggle').tap(); await page.locator('#add-region').tap();
   await dialog.waitFor({ state: 'visible' }); assert.equal(await dialog.locator('[data-region-segment]:checked').count(), 3);
   assert(await dialog.evaluate(el => el.scrollWidth <= el.clientWidth)); await page.screenshot({ path: '/private/tmp/graph-regions-mobile.png' });

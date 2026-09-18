@@ -1,5 +1,6 @@
 /* Chrome UI regression tests. Run with the bundled Node runtime. */
 const assert = require('assert');
+const Toolbar = require('./toolbar-helpers.cjs');
 const fs = require('fs');
 const http = require('http');
 const os = require('os');
@@ -49,7 +50,7 @@ let browser;
   assert.deepStrictEqual(await page.evaluate(() => GraphEditor.getDocument()), beforeInvalid, 'bad formula keeps the document');
   await page.locator('#dialog-cancel').click();
 
-  await page.locator('#mode-3d').click(); await page.waitForFunction(() => GraphEditor.getDocument().mode === '3d');
+  await Toolbar.clickToolbarControl(page,'mode-3d'); await page.waitForFunction(() => GraphEditor.getDocument().mode === '3d');
   await seriesAdd(); await page.locator('#add-function').click(); await setField('数式', 'z = sin(x)*cos(y)'); await submit();
   await page.waitForSelector('#plot canvas');
   assert((await page.locator('#plot canvas').count()) > 0, '3D uses WebGL canvas');
@@ -59,7 +60,7 @@ let browser;
   await page.getByRole('button', { name: '3D 曲面 z = x² + y²' }).click();
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).mode, '3d');
 
-  await page.locator('#mode-2d').click(); await seriesAdd(); await page.locator('#add-parameter').click(); await setField('名前', 'a'); await submit();
+  await Toolbar.clickToolbarControl(page,'mode-2d'); await seriesAdd(); await page.locator('#add-parameter').click(); await setField('名前', 'a'); await submit();
   await seriesAdd(); await page.locator('#add-function').click(); await setField('数式', 'y = a*x^2'); await submit();
   const slider = page.locator('#parameter-list input[type=range]').first(); await slider.fill('2');
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).parameters.find(p => p.name === 'a').value, 2);
@@ -82,7 +83,7 @@ let browser;
 
   await page.locator('#export-tab').click(); const svgDownload = page.waitForEvent('download'); await page.locator('#export-format').selectOption('svg'); await page.locator('#export-image').click();const svg=await svgDownload;assert(/\.svg$/.test(svg.suggestedFilename()));assert(fs.readFileSync(await svg.path(),'utf8').includes('<svg'),'SVGの実体を出力する');
   const pngDownload = page.waitForEvent('download'); await page.locator('#export-format').selectOption('png'); await page.locator('#export-image').click();const png=await pngDownload;assert(/\.png$/.test(png.suggestedFilename()));assert.equal(fs.readFileSync(await png.path()).subarray(0,8).toString('hex'),'89504e470d0a1a0a','PNGの実体を出力する');
-  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark'); await page.keyboard.press('Escape'); await page.waitForFunction(() => !document.querySelector('#view-menu').open);
+  await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark'); await page.keyboard.press('Escape'); await page.waitForFunction(() => !document.querySelector('#view-menu').open);
 
   for (const width of [736,390]) { await page.setViewportSize({ width, height: 820 }); await page.waitForTimeout(100); assert((await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth)),'no horizontal overflow at '+width); assert.equal(await page.locator('.top').evaluate(el => getComputedStyle(el).flexWrap), 'nowrap'); }
   await page.locator('#export-panel:not([hidden]) [data-close-side]').click(); await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.locator('#operation-help:visible').waitFor(); assert(await page.locator('#operation-help:visible select').isEditable(), 'keyboard opens visible non-modal help'); await page.locator('#operation-help:visible').getByRole('button', { name: 'ヘルプを開いたまま編集へ戻る' }).click(); await page.locator('#list-toggle').click(); await seriesAdd(); await page.locator('#add-function').click(); await page.locator('#dialog-cancel').click(); await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.keyboard.press('Escape');

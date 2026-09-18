@@ -1,5 +1,6 @@
 /* Chrome regression for the collapsed sidebar add panels. */
 const assert = require('node:assert/strict');
+const Toolbar = require('./toolbar-helpers.cjs');
 const fs = require('node:fs'), http = require('node:http'), path = require('node:path'), os = require('node:os');
 let chromium;
 try { ({ chromium } = require('playwright')); }
@@ -51,11 +52,11 @@ let browser, page;
   await page.locator('.data-import-preview').waitFor({state:'visible'}); assert.equal(await page.getByLabel('横軸の列',{exact:true}).inputValue(),'0');
   await page.locator('#dialog-cancel').click(); assert(await focused(series), 'CSV import returns to the heading icon');
 
-  await page.locator('#mode-3d').click(); await settle(); await series.click();
+  await Toolbar.clickToolbarControl(page,'mode-3d'); await settle(); await series.click();
   assert.equal(await page.locator('#add-function').innerText(), '曲面'); assert.equal(await page.locator('#add-function svg').count(),1); assert(await page.locator('#other-curves').isHidden());
   assert(await page.locator('#add-point').isDisabled()); assert(await page.locator('#annotation-mode-note').isVisible());
-  await page.locator('#mode-2d').click(); await settle();
-  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape');
+  await Toolbar.clickToolbarControl(page,'mode-2d'); await settle();
+  await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape');
   await page.setViewportSize({ width: 390, height: 850 }); await page.waitForTimeout(200); await settle();
   await page.locator('#list-toggle').tap(); await series.tap(); assert(await sp.isVisible());
   await page.locator('#other-curves summary').tap(); assert(await inViewport(sp), 'expanded formula choices stay inside narrow viewport');

@@ -1,5 +1,6 @@
 /* Chrome: compact tangent equations and direct, non-modal object formatting. */
 const assert = require('node:assert/strict');
+const Toolbar = require('./toolbar-helpers.cjs');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
@@ -82,7 +83,7 @@ let browser, page;
   assert(svg.includes('3.6x') && svg.includes('0.9x')); assert(!svg.includes('999999988')); assert.deepEqual(await doc(), beforeDisplay, 'formatting a displayed equation never rewrites formula data');
   await page.locator('#file-menu summary').click(); await page.locator('#save-browser').click(); await page.reload(); await page.locator('#editor-dialog[open]').waitFor(); await page.getByRole('button', { name: /^明示保存：/ }).click(); await settle(); assert.deepEqual(await doc(), beforeDisplay);
   await item(tangent).click(); await page.screenshot({ path: '/private/tmp/graph-quick-style-desktop.png' });
-  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape'); await settle();
+  await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape'); await settle();
   await page.setViewportSize({ width: 390, height: 850 }); await page.waitForTimeout(220); await settle();
   assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth)); assert(await bar.evaluate(el => el.scrollWidth <= el.clientWidth));
   await color('#111827').tap(); await settle(); assert.equal((await annotation(tangent)).style.color, '#111827'); assert(!await dialog.isVisible());

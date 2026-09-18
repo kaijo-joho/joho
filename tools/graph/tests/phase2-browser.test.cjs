@@ -1,5 +1,6 @@
 /* Chrome regression for curve types, dependent annotations and migrated documents. */
 const assert = require('node:assert/strict');
+const Toolbar = require('./toolbar-helpers.cjs');
 const fs = require('node:fs');
 const http = require('node:http');
 const path = require('node:path');
@@ -74,9 +75,9 @@ let browser;
   const beforeDelete = await doc(); await curves().first().click(); await more('削除'); await settle();
   assert.equal((await doc()).annotations.length, beforeDelete.annotations.length - 2, 'deleting a function removes only its tangent and intersections');
   await page.locator('#undo').click(); await settle(); assert.deepEqual(await doc(), beforeDelete, 'one undo restores all dependent annotations');
-  await page.locator('#mode-3d').click(); await settle(); assert.equal((await doc()).mode, '3d'); assert.equal((await doc()).annotations.length, beforeDelete.annotations.length);
+  await Toolbar.clickToolbarControl(page,'mode-3d'); await settle(); assert.equal((await doc()).mode, '3d'); assert.equal((await doc()).annotations.length, beforeDelete.annotations.length);
   assert(await page.locator('#add-point').isDisabled()); assert(await page.locator('#other-curves').isHidden());
-  await page.locator('#mode-2d').click(); await settle();
+  await Toolbar.clickToolbarControl(page,'mode-2d'); await settle();
 
   const downloadPromise = page.waitForEvent('download'); await page.locator('#file-menu summary').click(); await page.locator('#save-local').click(); const file = await downloadPromise;
   const serialized = JSON.parse(fs.readFileSync(await file.path(), 'utf8')); assert.equal(serialized.version, 14); assert.equal(serialized.annotations.length, 5);
@@ -99,7 +100,7 @@ let browser;
   await openTemplate('極座標の花形曲線'); await page.screenshot({path:'/private/tmp/graph-02-polar.png'}); assert.equal((await doc()).series[0].kind, 'polar');
   await openTemplate('放物線の接線と交点'); assert.equal((await doc()).annotations.length, 2);
   await page.locator('#templates-panel [data-close-side]').click();
-  await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.keyboard.press('Escape'); await settle();
+  await Toolbar.openSettings(page); await page.locator('[data-theme-value="dark"]').click(); await page.keyboard.press('Escape'); await settle();
   await page.waitForFunction(()=>{const p=document.querySelector('#plot');return Math.abs(p.clientWidth-p.layout.width)<2;});
   await page.screenshot({ path: '/private/tmp/graph-02-desktop.png' });
   for (const width of [736, 390]) { await page.setViewportSize({ width, height: 850 }); await page.waitForTimeout(150); assert(await page.locator('body').evaluate(el => el.scrollWidth <= innerWidth)); assert.equal(await page.locator('.top').evaluate(el => getComputedStyle(el).flexWrap), 'nowrap'); }

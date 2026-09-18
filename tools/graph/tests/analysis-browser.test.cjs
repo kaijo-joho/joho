@@ -1,6 +1,7 @@
 /* Chrome integration: measured tables, error bars, live regression, exports, and narrow touch UI. */
 const assert=require('node:assert/strict'),fs=require('node:fs'),http=require('node:http'),path=require('node:path'),os=require('node:os');
 const C=require('../core.js');let chromium;
+const Toolbar=require('./toolbar-helpers.cjs');
 try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
 const root=path.resolve(__dirname,'../../..');
 const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end();}fs.readFile(file,(error,data)=>{res.writeHead(error?404:200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':file.endsWith('.svg')?'image/svg+xml':'text/html'});res.end(error?'not found':data);});});
@@ -52,7 +53,7 @@ let browser,page;
   await detail('annotation',a.id);await dialog.getByLabel('回帰モデル',{exact:true}).selectOption('exponential');await submit();assert.equal((await doc()).annotations[0].id,a.id);assert.equal((await doc()).annotations[0].model,'exponential');
   await detail('series',s.id);const before=await doc();await dialog.locator('summary').filter({hasText:'CSV・TSVを貼り付け'}).click();await dialog.getByLabel('CSV・TSVを貼り付け',{exact:true}).fill('0,1,.1,-1');await dialog.getByRole('button',{name:'表に取り込む',exact:true}).click();await dialog.getByLabel('縦誤差の列',{exact:true}).selectOption('3');await page.locator('#dialog-submit').click();assert(await page.locator('#dialog-error').isVisible());assert.deepEqual(await doc(),before);await page.keyboard.press('Escape');
   await page.locator('#csv-input').setInputFiles({name:'horizontal.csv',mimeType:'text/csv',buffer:Buffer.from('x,y,dx\n1,2,0.1\n2,4,0.2')});await dialog.waitFor({state:'visible'});await dialog.locator('.data-import-column-settings > summary').click();assert.equal(await dialog.getByLabel('横誤差の列',{exact:true}).inputValue(),'');await dialog.getByLabel('横誤差の列',{exact:true}).selectOption('2');await submit();assert.deepEqual((await doc()).series.at(-1).errorBars,{x:[.1,.2],y:[]});
-  await page.locator('#view-menu summary').click();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await page.setViewportSize({width:390,height:850});
+  await Toolbar.openSettings(page);await page.locator('[data-theme-value="dark"]').click();await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');await page.setViewportSize({width:390,height:850});
   await page.locator('#list-toggle').tap();await page.locator('#series-add-toggle').tap();await page.locator('#add-regression').tap();await dialog.waitFor({state:'visible'});
   await dialog.getByLabel('回帰モデル',{exact:true}).selectOption('power');await page.keyboard.press('Tab');await page.keyboard.press('Shift+Tab');
   assert(await dialog.evaluate(el=>el.scrollWidth<=el.clientWidth));assert(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth));await page.screenshot({path:'/private/tmp/graph-analysis-mobile.png'});
