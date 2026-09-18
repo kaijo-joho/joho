@@ -6,7 +6,7 @@
   function create(ctx) {
     const M=window.IlapoObjectsModel, L=window.IlapoLayers, esc=ctx.esc;
     let expanded=new Set(), expansionScope='', drag=null, bindings=null;
-    const body=()=>document.getElementById('inspector-body');
+    const body=()=>ctx.inspectorBody?.()||document.getElementById('inspector-body');
     const scope=()=>ctx.document().id+'|'+ctx.page().id;
     const icon=key=>ctx.icon(key);
     const pickId=id=>'object-pick-'+id;

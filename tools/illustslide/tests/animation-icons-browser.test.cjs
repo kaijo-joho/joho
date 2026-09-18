@@ -20,7 +20,12 @@ function fixture(){const d=C.createDocument(),p=d.pages[0];d.id='animation-icons
   await load();await select('box');await list();const noAdd=await read();await page.locator('#animation-add').click();await page.locator('[data-animation-choice="wipe-up-out"]').click();assert.deepEqual(await read(),noAdd,'新規追加は確定前に保存しない');await submit();assert.equal((await read()).pages[0].animations.length,3);
   await load();await select('image');await list();await page.locator('#animation-add').click();assert.equal(await page.locator('[data-animation-choice="color"]').isDisabled(),true,'画像で色変更を無効にする');await page.locator('#inspector-close').click();
   await load();await select('box');await list();assert.equal(await page.locator('.animation-row-unavailable').count(),1);assert.match(await page.locator('#inspector-body').innerText(),/クリック 1回/);assert.equal(await page.locator('.animation-row .object-preview').count(),2);assert.equal(await page.locator('.animation-row .animation-effect-icon').count(),2);
-  await page.evaluate(()=>document.documentElement.dataset.theme='dark');await page.screenshot({path:'/private/tmp/illustslide-animation-list.png'});await page.locator('[data-animation-edit="0"]').click();await page.screenshot({path:'/private/tmp/illustslide-animation-effects.png'});
+  await page.evaluate(()=>document.documentElement.dataset.theme='dark');await page.screenshot({path:'/private/tmp/illustslide-animation-list.png'});await page.locator('[data-animation-edit="0"]').click();await page.mouse.move(100,700);await page.screenshot({path:'/private/tmp/illustslide-animation-effects.png'});
+  const triggers=page.locator('[data-animation-trigger]');
+  assert.equal(await triggers.count(),3);
+  assert.deepEqual(await triggers.evaluateAll(buttons=>buttons.map(b=>b.getAttribute('aria-label'))),['クリック時','前の動きと同時','前の動きの後']);
+  assert.equal(await triggers.evaluateAll(buttons=>buttons.every(b=>b.querySelector('svg')&&b.innerText.trim()==='')),true,'開始タイミングは名前付きのアイコンだけで表示');
+  await page.locator('.animation-trigger-group').scrollIntoViewIfNeeded();await settle(page);await page.screenshot({path:'/private/tmp/illustslide-animation-timing.png'});
   for(const width of [320,390,1280]){await page.setViewportSize({width,height:860});await settle(page);assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),true);assert.equal(await page.evaluate(()=>{const p=document.getElementById('inspector-panel');return p.scrollWidth<=p.clientWidth;}),true);}
   assert.deepEqual(errors,[]);console.log('animation-icons-browser.test.cjs: passed');
  }finally{await context.close();await browser.close();server.close();}

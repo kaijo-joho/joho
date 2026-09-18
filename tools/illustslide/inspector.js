@@ -6,7 +6,8 @@
 
   function create(options) {
     const settings = options || {};
-    const byId = id => document.getElementById(id);
+    const byId = id => document.getElementById(settings.prefix && id.startsWith('inspector-') ? settings.prefix + id : id);
+    const storageKey = settings.prefix ? STORAGE_KEY + ':' + settings.prefix : STORAGE_KEY;
     const panel = byId('inspector-panel');
     const form = byId('inspector-form');
     const title = byId('inspector-title');
@@ -46,7 +47,7 @@
 
     function loadWidth() {
       try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem(storageKey);
         const stored = raw === null ? NaN : Number(raw);
         if (Number.isFinite(stored)) return Math.round(Math.max(220, Math.min(520, stored)));
       } catch (_) {}
@@ -54,10 +55,11 @@
     }
 
     function persistWidth() {
-      try { localStorage.setItem(STORAGE_KEY, String(width)); } catch (_) {}
+      try { localStorage.setItem(storageKey, String(width)); } catch (_) {}
     }
 
     function maxWidth() {
+      if (settings.maxWidth) return settings.maxWidth();
       if (panel.hidden) return 520;
       const stage = byId('stage');
       const panelBounds = panel.getBoundingClientRect();
@@ -68,11 +70,16 @@
 
     function setWidth(next, save) {
       width = Math.round(Math.max(220, Math.min(maxWidth(), Number(next) || 320)));
-      panel.style.setProperty('--inspector-width', width + 'px');
-      app.style.setProperty('--inspector-width', width + 'px');
+      reflow();
       updateResizeValue();
       if (save) persistWidth();
       layout();
+    }
+
+    function reflow() {
+      panel.style.setProperty('--inspector-width', Math.min(width, maxWidth()) + 'px');
+      if (!settings.managed) app.style.setProperty('--inspector-width', width + 'px');
+      updateResizeValue();
     }
 
     function updateResizeValue() {
@@ -111,11 +118,13 @@
     }
 
     function hideExport() {
+      if (settings.managed) return;
       if (exportPanel) exportPanel.hidden = true;
       document.querySelectorAll('.side-tab [data-action="export-toggle"]').forEach(button => button.setAttribute('aria-expanded', 'false'));
     }
 
     function updateTabs() {
+      if (settings.managed) return;
       for (const section of ['pages', 'objects', 'assets', 'board', 'view', 'animation']) {
         byId(section + '-toggle')?.setAttribute('aria-expanded', String(Boolean(current && current.section === section)));
       }
@@ -147,6 +156,7 @@
       const details = [...body.querySelectorAll('details')].map((element, index) => ({ index, open: element.open }));
       return {
         key: focusKey(active),
+        hadFocus: panel.contains(active),
         start: typeof active?.selectionStart === 'number' ? active.selectionStart : null,
         end: typeof active?.selectionEnd === 'number' ? active.selectionEnd : null,
         scrollTop: body.scrollTop,
@@ -165,7 +175,7 @@
       if (target && document.activeElement !== target) {
         target.focus({ preventScroll: true });
         if (snapshot.start !== null && typeof target.setSelectionRange === 'function') { try { target.setSelectionRange(snapshot.start, snapshot.end); } catch (_) {} }
-      } else if (focusTitle) {
+      } else if (focusTitle && snapshot.hadFocus) {
         title.focus({ preventScroll: true });
       }
     }
@@ -188,13 +198,12 @@
       const footer = formFooter();
       if (footer) footer.hidden = !hasApply && !request.auto;
       panel.hidden = false;
-      app.classList.add('inspector-open');
-      if (!window.matchMedia('(max-width: 850px)').matches && width > maxWidth()) setWidth(width, false);
-      else updateResizeValue();
+      if (!settings.managed) app.classList.add('inspector-open');
+      reflow();
       hideExport();
       updateTabs();
       layout();
-      if (initialFocus) title.focus({ preventScroll: true });
+      if (initialFocus && !settings.background?.()) title.focus({ preventScroll: true });
       else restoreState(snapshot, false);
     }
 
@@ -356,11 +365,11 @@
       body.replaceChildren();
       clearError();
       panel.hidden = true;
-      app.classList.remove('inspector-open');
+      if (!settings.managed) app.classList.remove('inspector-open');
       updateTabs();
       layout();
       if (returnFocus) {
-        if (opener?.isConnected) opener.focus();
+        if (opener?.isConnected && opener.getClientRects().length && !opener.closest('[inert]')) opener.focus();
         else canvas.focus();
       }
     }
@@ -372,6 +381,7 @@
     }
 
     function startResize(event) {
+      if (settings.beforeResize) settings.beforeResize();
       if (window.matchMedia('(max-width: 850px)').matches || event.button !== 0) return;
       event.preventDefault();
       resize = { pointerId: event.pointerId, original: width };
@@ -410,7 +420,8 @@
     panel.addEventListener('pointerdown', event => event.stopPropagation());
     panel.addEventListener('keydown', event => {
       event.stopPropagation();
-      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z' && !composing && !event.isComposing && current?.auto) {
+      if (event.defaultPrevented) return;
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'z' && !composing && !event.isComposing && (current?.auto || !event.target.closest('input,textarea,select,[contenteditable=true]'))) {
         event.preventDefault(); inputGroup = groupTarget = pendingAuto = null; settings.onHistory?.(event.shiftKey); return;
       }
       if (event.key === 'Escape') {
@@ -451,11 +462,10 @@
     resizeButton.addEventListener('blur', () => { keyboardResizeOrigin = null; });
     window.addEventListener('blur', () => { if (resize) finishResize(null, true); });
     window.addEventListener('resize', () => {
-      if (!window.matchMedia('(max-width: 850px)').matches && width > maxWidth()) setWidth(width, false);
-      else updateResizeValue();
+      reflow();
     });
     document.addEventListener('click', event => {
-      if (!current || !event.target.closest('.side-tab [data-action="export-toggle"], #export-panel [data-action="export-toggle"]')) return;
+      if (settings.managed || !current || !event.target.closest('.side-tab [data-action="export-toggle"], #export-panel [data-action="export-toggle"]')) return;
       close(false);
     }, true);
 
@@ -464,6 +474,10 @@
       close,
       sync,
       reset,
+      reflow,
+      element: byId,
+      get request() { return current; },
+      get width() { return width; },
       get changeGroup() { return applyingGroup; },
       get section() { return current?.section || null; },
       get isOpen() { return Boolean(current); },

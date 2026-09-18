@@ -21,7 +21,7 @@ async function run(){
     const direction=fields.direction||'right',mode=fields.mode||'in';
     const choice=effect==='fade'?`fade-${mode}`:effect==='wipe'?`wipe-${direction}-${mode}`:effect;
     await page.locator(`[data-animation-choice="${choice}"]`).click();
-    for(const [key,value]of Object.entries(fields)){if(key==='direction'||key==='mode')continue;const el=page.locator('#animation-'+key);if(await el.evaluate(e=>e.tagName==='SELECT'))await el.selectOption(String(value));else await el.fill(String(value));}
+    for(const [key,value]of Object.entries(fields)){if(key==='direction'||key==='mode')continue;if(key==='trigger'){await page.locator(`[data-animation-trigger="${value}"]`).click();continue;}const el=page.locator('#animation-'+key);if(await el.evaluate(e=>e.tagName==='SELECT'))await el.selectOption(String(value));else await el.fill(String(value));}
     await inspectorSubmit();await page.waitForFunction(()=>document.getElementById('inspector-title').textContent==='動きと再生順序');await page.locator('#inspector-body .animation-list').waitFor();await inspectorClose();
   }
   try{
@@ -49,8 +49,8 @@ async function run(){
     let animated=await read();assert.equal(animated.version,3);assert.equal(animated.pages[0].animations.length,4);
     assert.equal(animated.pages[0].animations[1].color,'#EF4464');
     // Reorder then restore; delete then Undo restores precisely the effect, not artwork.
-    await openList();await page.screenshot({path:'/private/tmp/illustslide-stage4-order.png'});await page.locator('[data-animation-move="3,-1"]').click();assert.equal((await read()).pages[0].animations[2].effect,'wipe');await page.locator('[data-animation-move="2,1"]').click();
-    await page.locator('[data-animation-delete="3"]').click();await inspectorClose();await page.locator('#canvas').focus();await page.keyboard.press('Meta+z');await page.waitForFunction(()=>IlapoEditor.getDocument().pages[0].animations.length===4);animated=await read();
+    await openList();await page.screenshot({path:'/private/tmp/illustslide-stage4-order.png'});await page.locator('[data-animation-index="3"] .animation-order-handle').dragTo(page.locator('[data-animation-index="2"] .animation-order-handle'));assert.equal((await read()).pages[0].animations[2].effect,'wipe');await page.locator('[data-animation-index="2"] .animation-order-handle').dragTo(page.locator('[data-animation-index="3"] .animation-order-handle'));
+    await page.locator('[data-animation-more="3"]').click();await page.locator('[data-animation-delete="3"]').click();await inspectorClose();await page.locator('#canvas').focus();await page.keyboard.press('Meta+z');await page.waitForFunction(()=>IlapoEditor.getDocument().pages[0].animations.length===4);animated=await read();
     await page.evaluate(()=>window.viewer=IlapoPresentation.open(IlapoEditor.getDocument(),{opener:document.getElementById('present-button')}));
     assert.equal(await page.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');assert.equal(await page.locator('[data-animation-object=arrow]').getAttribute('opacity'),'0');
     await page.evaluate(()=>viewer.seek(1,300));near(Number(await page.locator('[data-animation-object=pc]').getAttribute('opacity')),.5);

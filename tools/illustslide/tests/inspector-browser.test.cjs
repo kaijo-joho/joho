@@ -115,6 +115,9 @@ async function close(page) { if (await page.locator('#inspector-panel').isVisibl
     await select(page, 'b'); await style(page);
     await page.locator('#color-hex').focus(); await page.keyboard.press('Delete'); await page.keyboard.press('v');
     assert.deepEqual(await read(page), before, 'editing controls does not delete or change canvas objects');
+    // リフローでポインタ下に現れた選択メニューを離れ、パネル単体のEscを検証する。
+    await page.locator('#color-hex').hover();
+    await page.waitForFunction(() => !document.getElementById('command-menu').matches(':popover-open'));
     await page.keyboard.press('Escape'); await settle(page);
     assert.equal(await page.locator('#inspector-panel').isVisible(), false);
     await style(page); await page.locator('#help-button').click();

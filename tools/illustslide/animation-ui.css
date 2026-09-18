@@ -11,23 +11,41 @@
 .animation-effect-caption{margin:8px 0 6px;font-weight:700}
 .animation-targets{display:flex;gap:8px;align-items:center;margin-bottom:10px;min-width:0}
 .animation-targets>span{overflow-wrap:anywhere;min-width:0}
-.animation-timing>label:first-child{grid-column:1/-1}
-.animation-list .animation-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px;padding:5px;border-radius:8px;min-width:0}
+.animation-edit{container-type:inline-size}
+.animation-trigger-group{grid-column:1/-1;display:flex;gap:4px;align-items:center;border:0;padding:0;margin:0}
+.animation-trigger-group legend{font-size:.85em;color:var(--muted);padding:0 4px 0 0}
+.animation-trigger{width:44px;min-width:44px;min-height:40px;padding:4px;display:grid;place-items:center}
+.animation-trigger svg{width:28px;height:28px}
+.animation-trigger[aria-pressed=true]{color:var(--accent);border-color:var(--accent);background:var(--accent-soft)}
+.animation-list .animation-row{display:block;gap:4px;padding:5px;border-radius:8px;min-width:0}
+.animation-row-main{display:grid;grid-template-columns:32px minmax(0,1fr) 32px;align-items:center;gap:3px}
+.animation-order-handle,.animation-more{width:32px;min-width:32px;min-height:40px;padding:4px;touch-action:none;cursor:grab}
+.animation-order-handle:active{cursor:grabbing}
+.animation-order-handle svg{width:22px;height:22px;fill:currentColor;stroke:none}
+.animation-more svg{width:22px;height:22px;fill:currentColor;stroke:none}
+.animation-row-dragging{opacity:.55}
+.animation-row-drop-before{box-shadow:inset 0 3px 0 var(--accent)}
+.animation-row-drop-after{box-shadow:inset 0 -3px 0 var(--accent)}
+.animation-row-editor{margin:6px 0 2px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.animation-row-menu{display:flex;justify-content:flex-end;gap:5px;margin-bottom:6px}
+.animation-row-menu .danger{color:var(--danger)}
 .animation-list .animation-title{display:grid;grid-template-columns:32px 28px minmax(0,1fr);gap:5px;align-items:center;padding:4px;min-height:44px}
 .animation-row-effect{display:grid;place-items:center;color:var(--accent)}
 .animation-row-effect svg{width:24px;height:24px}
 .animation-row-text{display:flex;flex-direction:column;gap:4px;min-width:0;overflow:hidden}
 .animation-row-text strong,.animation-row-text small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-weight:normal}
 .animation-row-text small{font-size:.78em}
-.animation-row-actions{gap:2px;align-items:center}
-.animation-row-actions button{width:28px;min-width:28px;min-height:34px;padding:4px;flex:none}
-.animation-row-actions svg{width:18px;height:18px;display:block}
+.animation-row-trigger{display:inline-grid;vertical-align:middle;margin-right:3px}
+.animation-row-trigger svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .animation-row-unavailable{opacity:.65}
 @media(pointer:coarse){
   .animation-effect-card{min-height:56px;min-width:44px}
-  .animation-list .animation-row{grid-template-columns:minmax(0,1fr)}
-  .animation-row-actions button{min-width:44px;width:44px;min-height:44px}
+  .animation-order-handle,.animation-more{min-width:44px;width:44px;min-height:44px}
+  .animation-row-main{grid-template-columns:44px minmax(0,1fr) 44px}
 }
 @media(max-width:360px){
   .animation-effect-group,.animation-effect-other{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
+
+@container(max-width:235px){.animation-effect-group,.animation-effect-other{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.animation-more{cursor:pointer;touch-action:manipulation}

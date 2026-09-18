@@ -92,7 +92,7 @@
           <p class="muted">部品集はこのブラウザに保存します。別のブラウザで使うには、部品集を保存して読み込みます。配置後の編集は登録した部品へ反映しません。</p>
         </section>`, null);
 
-      const body = byId('inspector-body'), input = byId('component-name');
+      const body = (ctx.inspectorBody?.()||byId('inspector-body')), input = byId('component-name');
       input.oninput = () => { draftName = input.value; input.setCustomValidity(''); };
       const register = () => {
         if (byId('components-register').disabled) return;
@@ -142,7 +142,7 @@
             queueMicrotask(() => {
               if (!ctx.isOpen()) return;
               open();
-              const buttons = [...byId('inspector-body').querySelectorAll('[data-insert-component]')];
+              const buttons = [...(ctx.inspectorBody?.()||byId('inspector-body')).querySelectorAll('[data-insert-component]')];
               (buttons[Math.min(index, buttons.length - 1)] || byId('components-import')).focus();
             });
           });

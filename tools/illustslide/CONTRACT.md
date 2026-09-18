@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.24）
+# イラストスライド illustSlideの内部契約（0.4.25）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -15,6 +15,14 @@ style: `{fill,stroke,strokeWidth,opacity,fillOpacity?,strokeOpacity?,dash,lineca
 fillOpacity/strokeOpacityは0〜1の有限数値、省略時は1。DEFAULT_STYLEや旧文書へ自動補完しない。opacityは塗りと線を合成した後の全体不透明度として既存の意味を保持する。図形内文字はlabel.styleを使い、図形本体のチャンネル値を継承しない。
 fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。fontFamilyはsans-serif/serif/monospace。
 グループは初期版では同じgroup値を持つ平坦な集合。選択・変形は原則グループ全体へ適用。
+
+## 複数パネル（panel-dock.js、0.4.25）
+
+IlapoPanelDockが従来のInspectorを包み、primaryとpinnedの2インスタンスを管理する。pinnedはpages/objects/animation/assets/view/boardのうち1つだけ。同じセクションを2つのフォームへ複製しない。show・sync・reset・changeGroupの窓口はdockへ集約し、履歴のグループは適用中のインスタンスを参照する。Inspectorの外枠IDにはpinned-を付け、本文の対象IDは従来どおり一意に保つ。
+
+セクションに応じたbody/form/error等はdock.element(section,id)から解決し、objects/pages/assets/animationはこの窓口を使う。レイヤーからの選択・表示切替と主パネルの設定は同じ文書・選択を参照し、scopeでsession/page/revisionの変化を検出する。バックグラウンドの再描画は主パネルの文字作成を取り消さず、他方のフォーカスを奪わない。ドラッグ中は更新を待ち、タブ・パネル変更では必要なドラッグを取り消す。
+
+横並べは1120px以上。未満はslot切替として非表示側だけをinertにし、主作業領域をinertにしない。850px以下は下部のdockを共有する。幅は各インスタンスの希望値を保持し、画面幅による一時的な制限を保存幅に書き戻さない。kaijo-ilapo:inspector（従来）、kaijo-ilapo:inspector:pinned-（追加）とkaijo-ilapo:panel-dockのsectionで保存する。起動時は残すパネルだけを復元し、文書の復元・保存フローは変えない。
 
 ## 複数作品のセッション（0.4.23）
 
@@ -195,7 +203,7 @@ Inspector.changeGroupは即時applyの実行中だけ有効。History.change(fn,
 `create({onLayout,clearPreview,isBusy})` は `show(request)`、`close({focus?:boolean})`、`reset()`、`sync()` と読み取り専用の `section`・`isOpen`・`root` を返す。
 requestは `{section,title,html,label,apply,auto?,preview?,scope,refresh,opener}`。labelがnullなら適用・取消フッターを表示しない。htmlはeditor側でエスケープしたフォーム断片だけを渡す。
 
-- showModal・暗幕・inert・Tabの閉じ込めを使わない。通常は右側、850px以下は下部へ配置し、キャンバスと別の領域を確保する。ページ一覧はpages、図形一覧はobjects、アイコン・部品はassetsセクションを使い、設定と同じパネルの内容を切り替える。書き出しとは排他的、共通ヘルプとは独立して開く。
+- showModal・暗幕・inert・Tabの閉じ込めを使わない。通常は右側、850px以下は下部へ配置し、キャンバスと別の領域を確保する。ページ一覧はpages、図形一覧はobjects、アイコン・部品はassetsセクションを使い、設定と同じパネルの内容を切り替える。primaryは書き出しと排他的、pinnedおよび共通ヘルプとは独立して開く（0.4.25）。
 - scopeは文書ID・ページID・選択ID・編集リビジョンを含み、アンカー座標では選択点、表示設定では設定値も含む。syncと適用直前に比較し、古い対象への入力を別の対象へ適用しない。ドラッグ中の更新は終了まで待ち、閉じた後の非同期再構築で再度開かない。
 - 色・変形・接続・画像のpreviewは検証済みの文書複製から表示用ページを作り、editorのinspectorPreviewだけを更新する。History・文書本体・保存・dirtyを変更しない。不正入力では前回のプレビューも取り消す。適用時だけ通常のchangePageで1履歴にまとめる。
 - 適用・取消・対象切替ではフォームを現在の値から作り直す。変形の基準座標や回転・反転の入力を持ち越さない。再構築後は可能な範囲で入力フォーカス・本文スクロール・detailsの開閉を保つ。閉じたパネルの本文は空にし、重複IDを残さない。
@@ -324,6 +332,9 @@ RAFを所有し、close/reset/seekで取り消す。reduced-motionは群を即�
 
 Presentationの返却APIにreset/seekを追加し、getState.animationにPlayer状態を入れる。群の前後が尽きたらページを切り替える。前ページは全効果後、次ページは初期状態。Homeは先頭の初期状態、Endは最終の全効果後。
 IlapoAnimationUI.create(ctx)のlist/edit(id?)は設定パネルのanimationセクションを利用する。効果はフェード2種・ワイプ8種・色・移動の12アイコンで選び、内部のeffect/mode/directionへ対応付ける。一覧の再生位置はLayers.forOutput(page)から求め、非表示の図形だけを対象とする動きは編集用の行を残して再生対象外と示す。プレビューは未確定pageだけの検証済み複製をPresentationへ渡す。
+
+0.4.25では開始タイミングもclick/with/afterの3アイコンで選ぶ。一覧の「︙」から同じ行に設定と削除を開き、既存の動きは即時反映、新規追加は確定時に保存する。時間や開始方法の変更時は、後続も含む各行の開始時刻・クリック回数を更新する。並べ替えは専用ハンドルのドラッグかAlt+↑／↓を使い、隣の行を越えた後のpointerupで1履歴へ確定する。Escape・pointercancel・パネル外へのドロップ・文書／ページ切替は取消。ドラッグ開始時のページ参照が変わった場合も確定しない。子の設定をEscapeで閉じる場合は外側のパネルを保ち、パネル再構築・別セクションへの移動後は古いイベントを働かせない。
+
 IlapoPlaybackExport.buildHTML(doc)はPromise<string>。アプリと同じ配信元の固定されたruntimeファイルだけを読み込み、JSONのHTML終了タグとUnicode行区切りをエスケープして埋め込む。下絵を除いた文書・埋め込み画像・CSS・Paper.jsのライセンスを同梱し、生成HTMLは外部通信を必要としない。
 
 ## オブジェクトの縮小プレビュー（0.4.24）
