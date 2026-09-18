@@ -1,4 +1,4 @@
-//2026-09-14 07:46:31;
+//2026-09-18 12:08:10;
 const pages = {
   "index": {
     "id": "index",
@@ -513,6 +513,16 @@ const pages = {
       }
     ],
     "show": true,
+    "worksheetApp": [
+      {
+        "id": "dr41",
+        "title": "4-1. 画像のデジタル表現 ワークシート",
+        "text": "4-1. 画像のデジタル表現 ワークシート",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr41",
+        "detail": "画像のデジタル化・画質の観察・符号化・データ量を整理するワークシート。A4/B5の印刷と公開後の解答・解説に対応。"
+      }
+    ],
     "backFile": "dr00.html"
   },
   "dr42": {
