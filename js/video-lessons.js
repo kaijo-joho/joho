@@ -19,6 +19,46 @@
     return 160 - 128 * Math.cos(2 * Math.PI * seconds / clipSeconds);
   }
 
+  // 一周分の歩行を静止画にする。再生時には、この絵を補間せず切り替える。
+  function walkingPose(phase) {
+    const bob = 2 * Math.cos(4 * Math.PI * phase);
+    const hip = { x: 155, y: 78 + bob };
+    const shoulder = { x: 160, y: 48 + bob };
+    const point = p => `${p.x.toFixed(2)} ${p.y.toFixed(2)}`;
+    const pose = svgNode('g', { class: 'vd-walker' });
+    function leg(cycle, rear) {
+      const swing = Math.max(0, (cycle - 0.5) * 2);
+      const ankle = {
+        x: cycle < 0.5 ? 175 - 80 * cycle : 135 + 20 * (1 - Math.cos(Math.PI * swing)),
+        y: 122 - 13 * Math.sin(Math.PI * swing)
+      };
+      const dx = ankle.x - hip.x;
+      const dy = ankle.y - hip.y;
+      const distance = Math.hypot(dx, dy);
+      const bend = Math.sqrt(25 ** 2 - (distance / 2) ** 2);
+      const knee = { x: (hip.x + ankle.x) / 2 + dy / distance * bend, y: (hip.y + ankle.y) / 2 - dx / distance * bend };
+      return svgNode('path', {
+        class: rear ? 'vd-walker-rear' : 'vd-walker-front',
+        d: `M${point(hip)} L${point(knee)} L${point(ankle)} M${point({ x: ankle.x - 4, y: ankle.y })} h12`
+      });
+    }
+    function arm(cycle, rear) {
+      const angle = -0.6 * Math.cos(2 * Math.PI * cycle);
+      const elbow = { x: shoulder.x + 19 * Math.sin(angle), y: shoulder.y + 19 * Math.cos(angle) };
+      const hand = { x: elbow.x + 18 * Math.sin(angle + 0.5), y: elbow.y + 18 * Math.cos(angle + 0.5) };
+      return svgNode('path', { class: rear ? 'vd-walker-rear' : 'vd-walker-front', d: `M${point(shoulder)} L${point(elbow)} L${point(hand)}` });
+    }
+    const opposite = (phase + 0.5) % 1;
+    pose.append(
+      arm(opposite, true), leg(opposite, true),
+      svgNode('path', { d: `M160 ${39 + bob} L${point(shoulder)} L${point(hip)}` }),
+      svgNode('circle', { class: 'vd-walker-head', cx: 162, cy: 28 + bob, r: 11 }),
+      svgNode('circle', { class: 'vd-walker-eye', cx: 166, cy: 26.5 + bob, r: 1.3 }),
+      leg(phase, false), arm(phase, false)
+    );
+    return pose;
+  }
+
   function createPlayer(host, render, startLabel) {
     const button = host.querySelector('[data-video-play]');
     let elapsed = 0;
@@ -67,19 +107,20 @@
   }
 
   function initializeFrames(host) {
-    const fps = 3;
+    const fps = 6;
     const count = Core.frameCount(fps, clipSeconds);
-    const ball = host.querySelector('[data-video-ball]');
+    const walker = host.querySelector('[data-video-walker]');
     const caption = host.querySelector('[data-video-frame-caption]');
     const strip = host.querySelector('[data-video-filmstrip]');
+    const poses = Array.from({ length: count }, (_, index) => walkingPose(index / count));
     const buttons = [];
     let currentFrame = -1;
     for (let index = 0; index < count; index += 1) {
       const button = document.createElement('button');
       button.type = 'button'; button.className = 'vd-frame';
       button.setAttribute('aria-label', `フレーム${index + 1}を表示`);
-      const svg = svgNode('svg', { viewBox: '0 0 320 150', 'aria-hidden': 'true' });
-      svg.append(svgNode('path', { class: 'vd-track', d: 'M32 106H288' }), svgNode('circle', { class: 'vd-ball', cx: ballX(index / fps), cy: 77, r: 22 }));
+      const svg = svgNode('svg', { viewBox: '90 0 140 150', 'aria-hidden': 'true' });
+      svg.append(svgNode('path', { class: 'vd-track', d: 'M104 125H216' }), poses[index].cloneNode(true));
       const label = document.createElement('span'); label.textContent = `${index + 1}`;
       button.append(svg, label); strip.append(button); buttons.push(button);
     }
@@ -87,9 +128,16 @@
       const index = Core.frameAt(seconds, fps, clipSeconds);
       if (index === currentFrame) return;
       currentFrame = index;
-      ball.setAttribute('cx', ballX(index / fps));
+      walker.replaceChildren(poses[index].cloneNode(true));
       caption.textContent = `フレーム${index + 1} / ${count}`;
       buttons.forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
+      // 一覧の中だけを横に送り、再生中も選択中のフレームを見える位置に保つ。
+      if (strip.clientWidth) {
+        const selected = buttons[index].getBoundingClientRect();
+        const viewport = strip.getBoundingClientRect();
+        if (selected.left < viewport.left + 4) strip.scrollLeft += selected.left - viewport.left - 4;
+        else if (selected.right > viewport.right - 4) strip.scrollLeft += selected.right - viewport.right + 4;
+      }
     }, '再生');
     buttons.forEach((button, index) => button.addEventListener('click', () => player.seek(index / fps)));
     host.querySelector('[data-video-frame-prev]').addEventListener('click', () => player.seek((Core.frameAt(player.time(), fps, clipSeconds) + count - 1) % count / fps));
