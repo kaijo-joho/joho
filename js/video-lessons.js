@@ -59,6 +59,83 @@
     return pose;
   }
 
+  function onGround(pose) {
+    const frame = svgNode('g', {});
+    frame.append(svgNode('path', { class: 'vd-track', d: 'M104 125H216' }), pose);
+    return frame;
+  }
+
+  function birdPose(phase) {
+    const lift = Math.cos(2 * Math.PI * phase);
+    const pose = svgNode('g', { class: 'vd-bird', transform: `translate(0 ${3 * Math.sin(2 * Math.PI * phase)})` });
+    const wing = (rear) => svgNode('path', {
+      class: rear ? 'vd-bird-wing vd-bird-wing--rear' : 'vd-bird-wing',
+      d: `M158 75 Q146 ${72 - 18 * lift} 124 ${72 - 46 * lift} L143 ${82 - 22 * lift} Q154 82 168 77 Z`,
+      transform: rear ? 'translate(8 -4)' : ''
+    });
+    pose.append(
+      wing(true),
+      svgNode('path', { class: 'vd-bird-body', d: 'M139 73 L113 62 L121 82 L140 82 Z' }),
+      svgNode('ellipse', { class: 'vd-bird-body', cx: 155, cy: 77, rx: 26, ry: 12 }),
+      svgNode('path', { class: 'vd-bird-beak', d: 'M185 62 L200 68 L186 72 Z' }),
+      svgNode('circle', { class: 'vd-bird-body', cx: 180, cy: 67, r: 11 }),
+      svgNode('circle', { class: 'vd-bird-eye', cx: 184, cy: 65, r: 1.8 }),
+      wing(false)
+    );
+    return pose;
+  }
+
+  function jumpingPose(index) {
+    // しゃがむ→踏み切る→上昇→下降→着地の12枚。
+    const [crouch, height, arms] = [
+      [0, 0, 0], [6, 0, 0.05], [13, 0, 0], [2, 12, 0.6],
+      [0, 25, 1], [0, 34, 1], [0, 37, 0.9], [0, 34, 0.8],
+      [0, 25, 0.6], [0, 10, 0.3], [11, 0, 0.1], [4, 0, 0]
+    ][index];
+    const hipY = 98 + crouch - height;
+    const shoulderY = 74 + crouch - height;
+    const headY = 52 + crouch - height;
+    const ankleY = 122 - height;
+    const pose = svgNode('g', { class: 'vd-walker vd-jumper' });
+    for (const side of [-1, 1]) {
+      const kneeX = 160 + side * (14 + crouch * 0.6);
+      const kneeY = (hipY + ankleY) / 2;
+      const ankleX = 160 + side * 14;
+      pose.append(
+        svgNode('path', { d: `M160 ${hipY} L${kneeX} ${kneeY} L${ankleX} ${ankleY} h${side * 7}` }),
+        svgNode('path', { d: `M160 ${shoulderY} L${160 + side * 18} ${shoulderY + 14 - arms * 22} L${160 + side * 23} ${shoulderY + 27 - arms * 52}` })
+      );
+    }
+    pose.append(
+      svgNode('path', { d: `M160 ${headY + 10} V${hipY}` }),
+      svgNode('circle', { class: 'vd-walker-head', cx: 160, cy: headY, r: 10 }),
+      svgNode('circle', { class: 'vd-walker-eye', cx: 157, cy: headY - 1, r: 1 }),
+      svgNode('circle', { class: 'vd-walker-eye', cx: 163, cy: headY - 1, r: 1 })
+    );
+    return pose;
+  }
+
+  function blocksPose(index) {
+    const second = [[114, 102], [114, 76], [136, 68], [150, 82], [150, 82], [150, 82], [150, 82], [150, 82], [150, 82], [150, 82], [136, 68], [114, 76]][index];
+    const third = [[186, 102], [186, 102], [186, 102], [186, 102], [186, 66], [168, 50], [150, 62], [168, 50], [186, 66], [186, 102], [186, 102], [186, 102]][index];
+    const pose = svgNode('g', { class: 'vd-blocks' });
+    [[150, 102], second, third].forEach(([x, y], i) => {
+      const block = svgNode('g', { transform: `translate(${x} ${y})` });
+      const number = svgNode('text', { class: 'vd-block-number', x: 10, y: 14 });
+      number.textContent = String(i + 1);
+      block.append(svgNode('rect', { class: `vd-block vd-block--${i + 1}`, width: 20, height: 20, rx: 1.5 }), number);
+      pose.append(block);
+    });
+    return pose;
+  }
+
+  const frameExamples = {
+    walk: { subject: '棒人間が歩く', change: '手足の姿勢', makeFrame: (phase) => onGround(walkingPose(phase)) },
+    bird: { subject: '鳥が羽ばたく', change: '羽の角度', makeFrame: birdPose },
+    jump: { subject: '棒人間がジャンプする', change: '体の高さと手足の姿勢', makeFrame: (_, index) => onGround(jumpingPose(index)) },
+    blocks: { subject: '積み木を積み上げて元に戻す', change: '積み木の位置', makeFrame: (_, index) => onGround(blocksPose(index)) }
+  };
+
   function createPlayer(host, render, startLabel) {
     const button = host.querySelector('[data-video-play]');
     let elapsed = 0;
@@ -109,10 +186,13 @@
   function initializeFrames(host) {
     const fps = 6;
     const count = Core.frameCount(fps, clipSeconds);
-    const walker = host.querySelector('[data-video-walker]');
+    const artwork = host.querySelector('[data-video-artwork]');
     const caption = host.querySelector('[data-video-frame-caption]');
     const strip = host.querySelector('[data-video-filmstrip]');
-    const poses = Array.from({ length: count }, (_, index) => walkingPose(index / count));
+    const frames = Object.fromEntries(Object.entries(frameExamples).map(([key, example]) => [
+      key, Array.from({ length: count }, (_, index) => example.makeFrame(index / count, index))
+    ]));
+    let poses = frames.walk;
     const buttons = [];
     let currentFrame = -1;
     for (let index = 0; index < count; index += 1) {
@@ -120,7 +200,7 @@
       button.type = 'button'; button.className = 'vd-frame';
       button.setAttribute('aria-label', `フレーム${index + 1}を表示`);
       const svg = svgNode('svg', { viewBox: '90 0 140 150', 'aria-hidden': 'true' });
-      svg.append(svgNode('path', { class: 'vd-track', d: 'M104 125H216' }), poses[index].cloneNode(true));
+      svg.append(poses[index].cloneNode(true));
       const label = document.createElement('span'); label.textContent = `${index + 1}`;
       button.append(svg, label); strip.append(button); buttons.push(button);
     }
@@ -128,7 +208,7 @@
       const index = Core.frameAt(seconds, fps, clipSeconds);
       if (index === currentFrame) return;
       currentFrame = index;
-      walker.replaceChildren(poses[index].cloneNode(true));
+      artwork.replaceChildren(poses[index].cloneNode(true));
       caption.textContent = `フレーム${index + 1} / ${count}`;
       buttons.forEach((button, i) => button.setAttribute('aria-pressed', String(i === index)));
       // 一覧の中だけを横に送り、再生中も選択中のフレームを見える位置に保つ。
@@ -142,6 +222,22 @@
     buttons.forEach((button, index) => button.addEventListener('click', () => player.seek(index / fps)));
     host.querySelector('[data-video-frame-prev]').addEventListener('click', () => player.seek((Core.frameAt(player.time(), fps, clipSeconds) + count - 1) % count / fps));
     host.querySelector('[data-video-frame-next]').addEventListener('click', () => player.seek((Core.frameAt(player.time(), fps, clipSeconds) + 1) % count / fps));
+    host.querySelectorAll('[name="vd-example"]').forEach(input => input.addEventListener('change', () => {
+      const example = frameExamples[input.value];
+      if (!input.checked || !example) return;
+      player.seek(0);
+      poses = frames[input.value];
+      buttons.forEach((button, index) => button.querySelector('svg').replaceChildren(poses[index].cloneNode(true)));
+      host.querySelector('[data-video-frame-intro]').textContent = `${example.subject}2秒間の動きを、${count}枚のフレームで表してみましょう。`;
+      host.querySelector('#vd-frame-title').textContent = `${example.subject}動きを表すフレーム`;
+      host.querySelector('#vd-frame-desc').textContent = `${example.change}を少しずつ変えた${count}枚の静止画を順に表示します。一覧の画像や前後のボタンで一枚ずつ確認できます。`;
+      host.querySelector('[data-video-frame-hint]').textContent = `一枚ずつ見ると、${example.change}が異なる静止画です。「再生」で順に切り替えると、動きとして見えます。一覧の枠は現在のフレームを示します。`;
+      currentFrame = -1;
+      player.draw();
+      resized();
+    }));
+    // WebKitでも例の選択・コマ送り・再生へTabキーで移れるようにする。
+    host.querySelectorAll('button, input').forEach(element => { element.tabIndex = 0; });
     reveal(host);
   }
 
