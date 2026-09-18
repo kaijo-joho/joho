@@ -21,43 +21,40 @@
       <p><strong>動画</strong>は、少しずつ異なる静止画を連続して表示することで、動いているように見せています。その一枚一枚の静止画を<strong>フレーム</strong>といいます。</p>
       <div class="vd-widget" data-video-frames data-lesson-slide-navigation-lock>
         <p data-video-frame-intro>棒人間が歩く2秒間の動きを、12枚のフレームで表してみましょう。</p>
-        <div class="vd-frame-view">
-          <fieldset class="vd-examples vd-enhancement" hidden>
-            <legend>動きの例</legend>
-            <div class="vd-example-options">
-              <label class="vd-example-option"><input type="radio" name="vd-example" value="walk" checked><span>歩く</span></label>
-              <label class="vd-example-option"><input type="radio" name="vd-example" value="bird"><span>鳥</span></label>
-              <label class="vd-example-option"><input type="radio" name="vd-example" value="jump"><span>ジャンプ</span></label>
-              <label class="vd-example-option"><input type="radio" name="vd-example" value="blocks"><span>積み木</span></label>
-            </div>
-          </fieldset>
-          <figure class="vd-player vd-player--frames">
-            <svg class="vd-scene" viewBox="90 0 140 150" role="img" aria-labelledby="vd-frame-title vd-frame-desc">
-              <title id="vd-frame-title">歩く棒人間を表すフレーム</title>
-              <desc id="vd-frame-desc">手足の姿勢を少しずつ変えた12枚の静止画を順に表示します。一覧の画像や前後のボタンで一枚ずつ確認できます。</desc>
-              <g data-video-artwork><g>
-                <path class="vd-track" d="M104 125H216"/>
-                <g class="vd-walker">
-                  <path class="vd-walker-rear" d="M160 50 L170.73 65.68 L186.77 73.85"/>
-                  <path class="vd-walker-rear" d="M155 80 L153.27 104.94 L135 122 M131 122 h12"/>
-                  <path d="M160 41 L160 50 L155 80"/>
-                  <circle class="vd-walker-head" cx="162" cy="30" r="11"/>
-                  <circle class="vd-walker-eye" cx="166" cy="28.5" r="1.3"/>
-                  <path class="vd-walker-front" d="M155 80 L173.27 97.06 L175 122 M171 122 h12"/>
-                  <path class="vd-walker-front" d="M160 50 L149.27 65.68 L147.47 83.59"/>
-                </g>
-              </g></g>
-            </svg>
-            <figcaption data-video-frame-caption>フレーム1 / 12</figcaption>
-          </figure>
-        </div>
-        <div class="vd-filmstrip vd-enhancement" data-video-filmstrip role="group" aria-label="表示するフレームを選択" hidden></div>
-        <div class="vd-controls vd-enhancement" hidden>
+        <div class="vd-controls vd-frame-controls vd-enhancement" hidden>
+          <label class="vd-example-select" for="vd-example">動きの例
+            <select id="vd-example" data-video-example>
+              <option value="walk">歩く</option>
+              <option value="bird">鳥</option>
+              <option value="jump">ジャンプ</option>
+              <option value="blocks">積み木</option>
+            </select>
+          </label>
           <button class="dr-button" type="button" data-video-frame-prev>前のフレーム</button>
           <button class="dr-button dr-button--primary" type="button" data-video-play aria-pressed="false">再生</button>
           <button class="dr-button" type="button" data-video-frame-next>次のフレーム</button>
           <button class="dr-button" type="button" data-video-reset>最初に戻す</button>
         </div>
+        <figure class="vd-player vd-player--frames">
+          <svg class="vd-scene" viewBox="90 0 140 150" role="img" aria-labelledby="vd-frame-title vd-frame-desc">
+            <title id="vd-frame-title">歩く棒人間を表すフレーム</title>
+            <desc id="vd-frame-desc">手足の姿勢を少しずつ変えた12枚の静止画を順に表示します。一覧の画像や前後のボタンで一枚ずつ確認できます。</desc>
+            <g data-video-artwork><g>
+              <path class="vd-track" d="M104 125H216"/>
+              <g class="vd-walker">
+                <path class="vd-walker-rear" d="M160 50 L170.73 65.68 L186.77 73.85"/>
+                <path class="vd-walker-rear" d="M155 80 L153.27 104.94 L135 122 M131 122 h12"/>
+                <path d="M160 41 L160 50 L155 80"/>
+                <circle class="vd-walker-head" cx="162" cy="30" r="11"/>
+                <circle class="vd-walker-eye" cx="166" cy="28.5" r="1.3"/>
+                <path class="vd-walker-front" d="M155 80 L173.27 97.06 L175 122 M171 122 h12"/>
+                <path class="vd-walker-front" d="M160 50 L149.27 65.68 L147.47 83.59"/>
+              </g>
+            </g></g>
+          </svg>
+          <figcaption data-video-frame-caption>フレーム1 / 12</figcaption>
+        </figure>
+        <div class="vd-filmstrip vd-enhancement" data-video-filmstrip role="group" aria-label="表示するフレームを選択" hidden></div>
         <p class="vd-hint" data-video-frame-hint>一枚ずつ見ると、手足の姿勢が異なる静止画です。「再生」で順に切り替えると、歩く動きとして見えます。一覧の枠は現在のフレームを示します。</p>
         <noscript><p>動きの例の選択・連続再生・フレームの切り替えにはJavaScriptが必要です。</p></noscript>
       </div>
@@ -69,10 +66,12 @@
       <h2 id="headline_2">(2) フレームレート</h2>
       <p>1秒間に表示するフレーム数を<strong>フレームレート</strong>といい、単位には<strong>fps（frames per second）</strong>を使います。30fpsなら、1秒間に30枚の静止画を表示します。</p>
       <div class="vd-widget" data-video-rate data-lesson-slide-navigation-lock>
-        <div class="vd-controls vd-enhancement" hidden>
+        <div class="vd-controls vd-rate-controls vd-enhancement" hidden>
           <label class="vd-slider" for="vd-rate">比較するフレームレート <output for="vd-rate" data-video-rate-output>6fps</output><input id="vd-rate" type="range" min="1" max="60" step="1" value="6" data-video-rate-input><span class="vd-scale"><span>1fps</span><span>60fps</span></span></label>
-          <button class="dr-button dr-button--primary" type="button" data-video-play aria-pressed="false">同時に再生</button>
-          <button class="dr-button" type="button" data-video-reset>最初に戻す</button>
+          <div class="vd-rate-actions">
+            <button class="dr-button dr-button--primary" type="button" data-video-play aria-pressed="false">同時に再生</button>
+            <button class="dr-button" type="button" data-video-reset>最初に戻す</button>
+          </div>
         </div>
         <div class="vd-comparison">
           <figure>
@@ -121,13 +120,13 @@
           <h3>フレーム間圧縮</h3>
           <p><strong>前後のフレームの関係</strong>を使ってデータ量を減らします。例えば、前のフレームから変化した部分を記録する方法があります。</p>
           <p>下の例では、背景は同じで、ボールの位置だけが変わっています。背景を毎回すべて記録する必要がありません。</p>
+          <div class="vd-inter-frames">
+            <figure><figcaption>前のフレーム</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-label="左寄りにボールがある前のフレーム"><path class="vd-track" d="M32 106H288"/><circle class="vd-ball" cx="96" cy="77" r="22"/></svg></figure>
+            <figure><figcaption>次のフレーム</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-label="同じ背景でボールが右寄りへ移動した次のフレーム"><path class="vd-track" d="M32 106H288"/><circle class="vd-ball" cx="224" cy="77" r="22"/></svg></figure>
+            <figure><figcaption>変化した部分に注目</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-labelledby="vd-difference-title vd-difference-desc"><title id="vd-difference-title">ボールの移動前と移動後の2か所を更新</title><desc id="vd-difference-desc">破線の枠は変化した範囲。左の枠内はボールを消して背景に戻し、右の枠内には移動後のボールを表示します。</desc><path class="vd-track" d="M32 106H288"/><rect class="vd-changed" x="68" y="49" width="56" height="56"/><rect class="vd-changed" x="196" y="49" width="56" height="56"/><circle class="vd-ball" cx="224" cy="77" r="22"/></svg></figure>
+          </div>
           <button class="dr-supplement-link" type="button" data-lesson-supplement-open="vd-compression-detail">移動前の位置はどうなる？</button>
         </div>
-      </div>
-      <div class="vd-inter-frames">
-        <figure><figcaption>前のフレーム</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-label="左寄りにボールがある前のフレーム"><path class="vd-track" d="M32 106H288"/><circle class="vd-ball" cx="96" cy="77" r="22"/></svg></figure>
-        <figure><figcaption>次のフレーム</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-label="同じ背景でボールが右寄りへ移動した次のフレーム"><path class="vd-track" d="M32 106H288"/><circle class="vd-ball" cx="224" cy="77" r="22"/></svg></figure>
-        <figure><figcaption>変化した部分に注目</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-labelledby="vd-difference-title vd-difference-desc"><title id="vd-difference-title">ボールの移動前と移動後の2か所を更新</title><desc id="vd-difference-desc">破線の枠は変化した範囲。左の枠内はボールを消して背景に戻し、右の枠内には移動後のボールを表示します。</desc><path class="vd-track" d="M32 106H288"/><rect class="vd-changed" x="68" y="49" width="56" height="56"/><rect class="vd-changed" x="196" y="49" width="56" height="56"/><circle class="vd-ball" cx="224" cy="77" r="22"/></svg></figure>
       </div>
     </article>
   </section>

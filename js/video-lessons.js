@@ -222,11 +222,12 @@
     buttons.forEach((button, index) => button.addEventListener('click', () => player.seek(index / fps)));
     host.querySelector('[data-video-frame-prev]').addEventListener('click', () => player.seek((Core.frameAt(player.time(), fps, clipSeconds) + count - 1) % count / fps));
     host.querySelector('[data-video-frame-next]').addEventListener('click', () => player.seek((Core.frameAt(player.time(), fps, clipSeconds) + 1) % count / fps));
-    host.querySelectorAll('[name="vd-example"]').forEach(input => input.addEventListener('change', () => {
-      const example = frameExamples[input.value];
-      if (!input.checked || !example) return;
+    const exampleSelect = host.querySelector('[data-video-example]');
+    exampleSelect.addEventListener('change', () => {
+      const example = frameExamples[exampleSelect.value];
+      if (!example) return;
       player.seek(0);
-      poses = frames[input.value];
+      poses = frames[exampleSelect.value];
       buttons.forEach((button, index) => button.querySelector('svg').replaceChildren(poses[index].cloneNode(true)));
       host.querySelector('[data-video-frame-intro]').textContent = `${example.subject}2秒間の動きを、${count}枚のフレームで表してみましょう。`;
       host.querySelector('#vd-frame-title').textContent = `${example.subject}動きを表すフレーム`;
@@ -235,9 +236,9 @@
       currentFrame = -1;
       player.draw();
       resized();
-    }));
+    });
     // WebKitでも例の選択・コマ送り・再生へTabキーで移れるようにする。
-    host.querySelectorAll('button, input').forEach(element => { element.tabIndex = 0; });
+    host.querySelectorAll('button, select').forEach(element => { element.tabIndex = 0; });
     reveal(host);
   }
 
