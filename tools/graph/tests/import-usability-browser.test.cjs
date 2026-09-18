@@ -41,6 +41,7 @@ let browser;
     assert(after.dialog.top >= 0 && after.dialog.bottom <= after.height, `${label}: dialog exceeds viewport height`);
     assert(after.dialog.left >= 0 && after.dialog.right <= after.width, `${label}: dialog exceeds viewport width`);
     assert(after.content.bottom <= after.actions.top + 1, `${label}: content overlaps actions`);
+    assert(await page.locator('#dialog-content').evaluate(el => el.scrollWidth <= el.clientWidth + 1), `${label}: content overflows horizontally`);
   }
   async function checkTabs() {
     const before = await geometry();
