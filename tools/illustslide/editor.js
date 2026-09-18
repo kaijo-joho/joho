@@ -14,7 +14,8 @@
     transform:'M3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM17 17h4v4h-4zM7 5h10M5 7v10M19 7v10M7 19h10m-8-3 8-8m-5 0h5v5',
     outline:'M2 21 9 3h6l7 18h-5l-2-5H9l-2 5zM10 12h4l-2-5z',
     path:'M3 17C7 17 7 7 13 7s6 4 8 4M1 15h4v4H1zM11 5h4v4h-4zM13 7l5-4m-1-1h2v2h-2z',
-    edit:'m4 16 12-12 4 4L8 20l-5 1zM14 6l4 4',image:'M3 3h18v18H3zM3 16l5-6 4 5 3-3 6 7M15 7h.01',
+    'flip-h':'M12 2v3m0 3v3m0 3v3m0 3v2M3 5l6 6v7H3zM21 5l-6 6v7h6z','flip-v':'M2 12h3m3 0h3m3 0h3m3 0h2M5 3l6 6h7V3zM5 21l6-6h7v6z',
+    details:'M3 5h18M3 12h18M3 19h18M8 2v6M16 9v6M9 16v6',back:'m14 5-7 7 7 7',edit:'m4 16 12-12 4 4L8 20l-5 1zM14 6l4 4',image:'M3 3h18v18H3zM3 16l5-6 4 5 3-3 6 7M15 7h.01',
     arrange:'M4 2v20M8 5h12v5H8zM8 14h8v5H8z',animation:'m10 6 9 6-9 6zM3 7h3M1 12h5M3 17h3',
     'align-left':'M3 2v20M6 4h15v5H6zM6 15h9v5H6z','align-center':'M12 1v22M3 4h18v5H3zM7 15h10v5H7z','align-right':'M21 2v20M3 4h15v5H3zM9 15h9v5H9z',
     'align-top':'M2 3h20M4 6h5v15H4zM15 6h5v9h-5z','align-middle':'M1 12h22M4 3h5v18H4zM15 7h5v10h-5z','align-bottom':'M2 21h20M4 3h5v15H4zM15 9h5v9h-5z',
@@ -218,7 +219,7 @@
     $('text-options').disabled=!unlocked;
     $('selection-arrange').hidden=objects.length<2;$('selection-arrange').disabled=!unlocked;
     const bar=$('selection-bar');
-    bar.querySelector('[data-menu=edit]').hidden=!!points;
+    for(const axis of ['h','v']){$('selection-flip-'+axis).hidden=!!points;$('selection-flip-'+axis).disabled=!unlocked;}
     bar.querySelector('[data-action=transform]').hidden=true;
     bar.querySelectorAll('.selection-extra').forEach(button=>button.hidden=true);
   }
@@ -382,7 +383,35 @@
   new ResizeObserver(()=>{$('app').style.setProperty('--toolbar-height',document.querySelector('.top').getBoundingClientRect().height+'px');}).observe(document.querySelector('.top'));
 
   let menuOpener,menuKind,hoverMenu=false,menuCloseTimer,ignoredHover=null;
-  function hideMenu(){clearTimeout(menuCloseTimer);if($('command-menu').matches(':popover-open'))$('command-menu').hidePopover();if(menuOpener)menuOpener.setAttribute('aria-expanded','false');hoverMenu=false;menuKind=null;$('arrange-reference').replaceChildren();}
+  const submenus=[];
+  const menuSurface=element=>element?.closest('#command-menu,.command-submenu');
+  const menuItems=surface=>[...surface.querySelectorAll('button:not(:disabled)')].filter(button=>menuSurface(button)===surface);
+  const menuContent=surface=>surface.querySelector(':scope > .menu-content');
+  const menuTitle=kind=>({arrange:'整列','arrange-details':'整列の詳細',order:'重なり順',path:'アンカー・パス','selection-more':'その他の編集'})[kind]||'メニュー';
+  const caret=direction=>`<span class="menu-caret" aria-hidden="true">${direction==='right'?'▶':'▼'}</span>`;
+  function closeSubmenus(from=0,focus=false){
+    const removed=submenus.splice(from),opener=removed[0]?.opener;
+    for(const entry of removed.reverse()){entry.opener?.setAttribute('aria-expanded','false');if(entry.element.matches(':popover-open'))entry.element.hidePopover();entry.element.remove();}
+    if(focus&&opener?.isConnected){hoverMenu=false;ignoredHover=opener.matches(':hover')?opener:null;opener.focus();}
+    renderArrangeReference();
+  }
+  function hideMenu(){
+    clearTimeout(menuCloseTimer);closeSubmenus();
+    if($('command-menu').matches(':popover-open'))$('command-menu').hidePopover();
+    if(menuOpener)menuOpener.setAttribute('aria-expanded','false');hoverMenu=false;menuKind=null;$('arrange-reference').replaceChildren();
+  }
+  function positionSubmenu(entry){
+    const {element,opener}=entry;if(!opener?.isConnected)return;
+    const parent=menuSurface(opener),p=parent.getBoundingClientRect(),r=opener.getBoundingClientRect();
+    element.style.maxHeight=Math.max(80,innerHeight-16)+'px';
+    const box=element.getBoundingClientRect();
+    const right=p.right+5,left=p.left-box.width-5;
+    const beside=right+box.width<=innerWidth-8||left>=8;
+    element.style.left=(right+box.width<=innerWidth-8?right:left>=8?left:Math.max(8,Math.min(p.left,innerWidth-box.width-8)))+'px';
+    // 横に収まらない画面では親の上に重ね、戻るボタンで一段ずつ移動する。
+    const top=beside?r.top:p.top+24;
+    element.style.top=Math.max(8,Math.min(top,innerHeight-box.height-8))+'px';
+  }
   function positionMenu(){
     if(!menuOpener||!$('command-menu').matches(':popover-open'))return;
     const r=menuOpener.getBoundingClientRect(),below=innerHeight-r.bottom-13,above=r.top-13,down=below>=Math.min(220,above);
@@ -390,9 +419,14 @@
     const m=$('command-menu').getBoundingClientRect();
     $('command-menu').style.left=Math.max(8,Math.min(r.left,innerWidth-m.width-8))+'px';
     $('command-menu').style.top=Math.max(8,down?r.bottom+5:r.top-m.height-5)+'px';
+    submenus.forEach(positionSubmenu);
   }
   const actionIcons={'path-union':'union','path-subtract':'subtract','path-intersect':'intersect','anchor-add':'anchor-add','anchor-position':'anchor-position','anchor-corner':'anchor-corner','anchor-smooth':'anchor-smooth','selection-path':'path',outline:'outline',transform:'transform',copy:'copy',paste:'paste',duplicate:'duplicate',delete:'delete',group:'group',ungroup:'ungroup',lock:'lock','style-copy':'brush','style-paste':'paste','text-edit':'text','component-save':'group','connection-between':'connector','connection-convert':'path','selection-arrange':'arrange','selection-order':'layers',animations:'animation'};
-  function menuButton(label,action,disabled=false){const name=actionIcons[action]||(icons[action]?action:action.startsWith('order-')?'layers':null);return `<button data-action="${action}" ${disabled?'disabled':''}>${name?icon(name):''}<span>${label}</span></button>`;}
+  const actionSubmenus={'selection-path':'path','selection-arrange':'arrange','selection-order':'order'};
+  function menuButton(label,action,disabled=false){
+    const name=actionIcons[action]||(icons[action]?action:action.startsWith('order-')?'layers':null),child=actionSubmenus[action];
+    return `<button data-action="${action}" ${child?`data-submenu="${child}" aria-haspopup="true" aria-expanded="false"`:''} ${disabled?'disabled':''}>${name?icon(name):''}<span>${label}</span>${child?caret('right'):''}</button>`;
+  }
   function syncArrangeSelection(){
     const signature=JSON.stringify([doc().id,page().id,selected]);
     if(signature!==arrangeSelectionKey){arrangeKey=null;arrangeSelectionKey=signature;}
@@ -406,35 +440,44 @@
     else if(reference==='board'&&p.board.infinite)reference='selection';
     return {units,reference,key:arrangeKey,board:p.board};
   }
+  const arrangeButton=(mode,label,short,disabled)=>`<button type="button" data-action="align-${mode}" aria-label="${label}" data-tip="${label}" ${disabled?'disabled':''}>${icon('align-'+mode)}<span>${short}</span></button>`;
   function arrangeMenu(){
-    const {units,reference,key,board}=arrangeContext(),keyUnit=units.find(u=>u.key===key),unlocked=allUnlocked(),multiple=units.length>1;
-    const choices=[['board','用紙'],['selection','選択範囲'],['object','基準の図形']].map(([value,label])=>`<button type="button" data-arrange-reference="${value}" aria-pressed="${reference===value}" ${value==='board'?board.infinite?'disabled':'':!multiple?'disabled':''}>${label}</button>`).join('');
-    const keySelect=reference==='object'?`<label class="arrange-key">基準の図形<select id="arrange-key" ${!multiple?'disabled':''}>${units.map((u,i)=>`<option value="${esc(u.key)}" ${u.key===key?'selected':''}>${i+1}. ${esc(u.label)}</option>`).join('')}</select></label><p class="arrange-note">紫の枠の図形を動かさずにそろえます。</p>`:'';
-    const button=(mode,label,short,disabled)=>`<button type="button" data-action="align-${mode}" aria-label="${label}" data-tip="${label}" ${disabled?'disabled':''}>${icon('align-'+mode)}<span>${short}</span></button>`;
+    const {units,reference,key}=arrangeContext(),unlocked=allUnlocked(),multiple=units.length>1;
     const disabled=!unlocked||!units.length||reference!=='board'&&!multiple;
-    const directions=[['left','左にそろえる','左'],['center','左右中央にそろえる','左右中央'],['right','右にそろえる','右'],['top','上にそろえる','上'],['middle','上下中央にそろえる','上下中央'],['bottom','下にそろえる','下']].map(([mode,label,short])=>button(mode,label,short,disabled)).join('');
-    const spacing=[['distribute-x','左右に等間隔','左右'],['distribute-y','上下に等間隔','上下']].map(([mode,label,short])=>button(mode,label,short,!unlocked||units.length<3)).join('');
-    const sizes=[['width','幅をそろえる','幅'],['height','高さをそろえる','高さ'],['size','幅と高さをそろえる','幅と高さ']].map(([mode,label,short])=>button(mode,label,short,!unlocked||!multiple)).join('');
-    return `<div class="arrange-menu"><div class="arrange-heading">整列の基準</div><div class="arrange-basis" role="group" aria-label="整列の基準">${choices}</div>${board.infinite?'<p class="arrange-note">自由キャンバスでは用紙基準は使えません。</p>':''}${keySelect}<div class="arrange-actions" role="group" aria-label="整列方向">${directions}</div><hr><div class="arrange-heading">等間隔 <small>（${reference==='board'?'用紙':'選択範囲'}の両端）</small></div><div class="arrange-actions two" role="group" aria-label="等間隔に配置">${spacing}</div><p class="arrange-note">3つ以上の図形・グループで使えます。</p><hr><div class="arrange-heading">大きさをそろえる</div><p class="arrange-note">基準：${esc(keyUnit?.label||'図形を選択してください')}</p><div class="arrange-actions" role="group" aria-label="大きさをそろえる">${sizes}</div></div>`;
+    const directions=[['left','左にそろえる','左'],['center','左右中央にそろえる','左右中央'],['right','右にそろえる','右'],['top','上にそろえる','上'],['middle','上下中央にそろえる','上下中央'],['bottom','下にそろえる','下']].map(([mode,label,short])=>arrangeButton(mode,label,short,disabled)).join('');
+    const spacing=[['distribute-x','左右に等間隔','左右等間隔'],['distribute-y','上下に等間隔','上下等間隔']].map(([mode,label,short])=>arrangeButton(mode,label,short,!unlocked||units.length<3)).join('');
+    const basis=reference==='board'?'用紙':reference==='selection'?'選択範囲':'図形：'+(units.find(u=>u.key===key)?.label||'未選択');
+    return `<div class="arrange-menu"><div class="arrange-heading">整列</div><p class="arrange-note">基準：${esc(basis)}</p><div class="arrange-actions" role="group" aria-label="整列と等間隔">${directions}${spacing}<button type="button" id="arrange-details-button" data-submenu="arrange-details" aria-label="整列の詳細" data-tip="整列の基準・大きさをそろえる" aria-haspopup="true" aria-expanded="false">${icon('details')}<span>詳細</span>${caret('right')}</button></div></div>`;
+  }
+  function arrangeDetailsMenu(){
+    const {units,reference,key,board}=arrangeContext(),keyUnit=units.find(u=>u.key===key),multiple=units.length>1;
+    const choices=[['board','用紙'],['selection','選択範囲'],['object','基準の図形']].map(([value,label])=>`<button type="button" data-arrange-reference="${value}" aria-pressed="${reference===value}" ${value==='board'?board.infinite?'disabled':'':!multiple?'disabled':''}>${label}</button>`).join('');
+    const keySelect=`<label class="arrange-key">${reference==='object'?'基準の図形':'大きさの基準にする図形'}<select id="arrange-key" ${!multiple?'disabled':''}>${units.map((u,i)=>`<option value="${esc(u.key)}" ${u.key===key?'selected':''}>${i+1}. ${esc(u.label)}</option>`).join('')}</select></label>`;
+    const sizes=[['width','幅をそろえる','幅'],['height','高さをそろえる','高さ'],['size','幅と高さをそろえる','幅と高さ']].map(([mode,label,short])=>arrangeButton(mode,label,short,!allUnlocked()||!multiple)).join('');
+    return `<div class="arrange-heading">整列の基準</div><div class="arrange-basis" role="group" aria-label="整列の基準">${choices}</div>${board.infinite?'<p class="arrange-note">自由キャンバスでは用紙基準は使えません。</p>':''}${keySelect}${reference==='object'?'<p class="arrange-note">紫の枠の図形を動かさずにそろえます。</p>':''}<hr><div class="arrange-heading">大きさをそろえる</div><p class="arrange-note">基準：${esc(keyUnit?.label||'図形を選択してください')}</p><div class="arrange-actions" role="group" aria-label="大きさをそろえる">${sizes}</div><p class="arrange-note">等間隔は3つ以上の図形・グループで使えます。${reference==='board'?'用紙':'選択範囲'}の両端を基準にします。</p>`;
   }
   function renderArrangeReference(){
     const layer=$('arrange-reference');layer.replaceChildren();
-    if(drag||menuKind!=='arrange'||!$('command-menu').matches(':popover-open'))return;
+    if(drag||!$('command-menu').matches(':popover-open')||![menuKind,...submenus.map(s=>s.kind)].includes('arrange'))return;
     const {units,reference,key}=arrangeContext(),unit=units.find(u=>u.key===key);
     if(reference!=='object'||!unit||units.length<2)return;
     const z=zoom(),b=unit.b,pad=4/z;
     layer.innerHTML=`<rect x="${b.x-pad}" y="${b.y-pad}" width="${b.width+pad*2}" height="${b.height+pad*2}" fill="none" stroke-width="${2/z}"/><rect class="arrange-reference-label" x="${b.x-pad}" y="${b.y-pad-19/z}" width="${32/z}" height="${18/z}" rx="${3/z}"/><text x="${b.x-pad+4/z}" y="${b.y-pad-6/z}" font-size="${12/z}">基準</text>`;
   }
   function refreshArrangeMenu(focus){
-    $('command-menu').innerHTML=arrangeMenu();positionMenu();renderArrangeReference();
-    if(focus==='key')$('arrange-key')?.focus();
-    else $('command-menu').querySelector(`[data-arrange-reference="${focus}"]`)?.focus();
+    for(const surface of [$('command-menu'),...submenus.map(s=>s.element)]){
+      const kind=surface.dataset.menuKind;if(kind==='arrange'||kind==='arrange-details')menuContent(surface).innerHTML=buildMenu(kind);
+    }
+    for(const entry of submenus){
+      if(!entry.opener.isConnected)entry.opener=menuItems(entry.element.parentElement).find(b=>b.dataset.submenu===entry.kind);
+      entry.opener?.setAttribute('aria-expanded','true');
+    }
+    positionMenu();renderArrangeReference();
+    const details=submenus.find(s=>s.kind==='arrange-details')?.element;
+    if(focus==='key')$('arrange-key')?.focus();else details?.querySelector(`[data-arrange-reference="${focus}"]`)?.focus();
   }
-  function openMenu(kind,opener,options={}){
-    const was=$('command-menu').matches(':popover-open')&&menuOpener===opener&&menuKind===kind;
-    if(was&&(options.hover||hoverMenu)){clearTimeout(menuCloseTimer);if(!options.hover){hoverMenu=false;$('command-menu').querySelector('button:not(:disabled)')?.focus();}return;}
-    hideMenu();if(was)return;menuOpener=opener;menuKind=kind;hoverMenu=!!options.hover;$('tooltip').hidden=true;
-    const selectedNone=!selected.length;
+  function buildMenu(kind){
+    const selectedNone=!selected.length,objects=page().objects.filter(o=>selected.includes(o.id)),one=objects.length===1?objects[0]:null,unlocked=allUnlocked();
     const menus={
       save:()=>menuButton('ブラウザに保存','save-browser')+menuButton('ローカルファイルに保存…','save-local')+'<hr>'+menuButton(localAuto?.active?'ローカル自動保存を停止':'ローカル自動保存を開始…',localAuto?.active?'auto-stop':'auto-start'),
       open:()=>menuButton('保存した内容を選ぶ…','recovery')+menuButton('ファイルを開く…','open-file')+menuButton('SVGを追加する…','import-svg')+'<hr>'+menuButton('新しい作品…','new'),
@@ -444,52 +487,89 @@
         const actions=menuButton('すべて選択','select-all',!page().objects.length)+menuButton('貼り付け','paste',!clipboard);
         const historyMenu=(hidden('[data-action="undo"]')?menuButton('元に戻す','undo',!history.canUndo):'')+(hidden('[data-action="redo"]')?menuButton('やり直し','redo',!history.canRedo):'');
         const pagesMenu=hidden('[data-action="pages"]')?menuButton('ページ一覧…','pages'):'';
-        const presentationMenu=hidden('#present-button')?menus.present():'';
-        return [tools,actions,historyMenu,pagesMenu,presentationMenu].filter(Boolean).join('<hr>');
+        return [tools,actions,historyMenu,pagesMenu,hidden('#present-button')?menus.present():''].filter(Boolean).join('<hr>');
       },
       present:()=>menuButton('先頭から発表','present-start')+menuButton('このページから発表','present-current'),
       path:()=>pathUI.menu(menuButton)+'<hr>'+menuButton('アウトライン化…','outline',!outlineAvailable()),
-      'selection-more':()=>menuButton('位置・大きさ・回転…','transform')+(page().objects.some(o=>selected.includes(o.id)&&o.type==='path')?menuButton('アンカー・パスの操作…','selection-path'):'')+menuButton('アウトライン化…','outline',!outlineAvailable())+'<hr>'+menuButton('整列・大きさをそろえる','selection-arrange',selectedNone||!allUnlocked())+menuButton('重なり順','selection-order')+menuButton('動きと再生順序…','animations')+'<hr>'+menuButton('複製','duplicate')+menuButton('削除','delete'),
-      edit:()=>menuButton('文字を編集…','text-edit',selected.length!==1||!page().objects.some(o=>o.id===selected[0]&&(o.type==='text'||o.type==='path'&&(o.label||/[zZ]/.test(o.d)))))+menuButton('アウトライン化…','outline',!outlineAvailable())+'<hr>'+menuButton('コピー','copy',selectedNone)+menuButton('貼り付け','paste',!clipboard)+menuButton('複製','duplicate',selectedNone)+menuButton('削除','delete',selectedNone)+'<hr>'+menuButton('グループ化','group',selected.length<2)+menuButton('グループ解除','ungroup',selectedNone)+menuButton('固定／固定解除','lock',selectedNone)+'<hr>'+menuButton('書式をコピー','style-copy',selectedNone)+menuButton('書式を適用','style-paste',selectedNone||!copiedStyle),
-      arrange:arrangeMenu,
+      'selection-more':()=>{
+        const text=one&&(one.type==='text'||one.type==='path'&&(one.label||/[zZ]/.test(one.d)))?menuButton('文字を編集…','text-edit',!unlocked):'';
+        const path=objects.some(o=>o.type==='path')?menuButton('アンカー・パスの操作','selection-path'):'';
+        return menuButton('コピー','copy',selectedNone)+menuButton('貼り付け','paste',!clipboard)+menuButton('複製','duplicate',selectedNone)+menuButton('削除','delete',!unlocked)+'<hr>'+menuButton('グループ化','group',objects.length<2||!unlocked)+menuButton('グループ解除','ungroup',!objects.some(o=>o.group)||!unlocked)+menuButton('固定／固定解除','lock',selectedNone)+'<hr>'+menuButton('書式をコピー','style-copy',selectedNone)+menuButton('書式を適用','style-paste',!unlocked||!copiedStyle)+'<hr>'+menuButton('位置・大きさ・回転…','transform',!unlocked)+menuButton('整列','selection-arrange',selectedNone||!unlocked)+menuButton('重なり順','selection-order',!unlocked)+text+path+menuButton('アウトライン化…','outline',!outlineAvailable())+'<hr>'+menuButton('動きと再生順序…','animations')+(objects.length===2?menuButton('選択した2図形を接続','connection-between'):'')+menuButton('自作部品に登録…','component-save',selectedNone)+(one?.type==='connector'?menuButton('接続矢印を通常のパスに変換','connection-convert',!unlocked):'');
+      },
+      arrange:arrangeMenu,'arrange-details':arrangeDetailsMenu,
       order:()=>menuButton('最前面へ','order-front')+menuButton('1つ前へ','order-forward')+menuButton('1つ後ろへ','order-backward')+menuButton('最背面へ','order-back')
     };
-    if(kind==='edit'){const old=menus.edit;menus.edit=()=>old()+'<hr>'+menuButton('選択した2図形を接続','connection-between',selected.length!==2)+menuButton('自作部品に登録…','component-save',selectedNone)+menuButton('接続矢印を通常のパスに変換','connection-convert',selected.length!==1||page().objects.find(o=>o.id===selected[0])?.type!=='connector');}
-    $('command-menu').dataset.menuKind=kind;$('command-menu').innerHTML=(menus[kind]||menus.more)();$('command-menu').showPopover();opener.setAttribute('aria-expanded','true');
-    positionMenu();renderArrangeReference();if(!options.hover)$('command-menu').querySelector('button:not(:disabled)')?.focus();
+    return (menus[kind]||menus.more)();
+  }
+  function openMenu(kind,opener,options={}){
+    const was=$('command-menu').matches(':popover-open')&&menuOpener===opener&&menuKind===kind;
+    if(was&&(options.hover||hoverMenu)){clearTimeout(menuCloseTimer);if(!options.hover){hoverMenu=false;menuItems($('command-menu'))[0]?.focus();}return;}
+    hideMenu();if(was)return;menuOpener=opener;menuKind=kind;hoverMenu=!!options.hover;$('tooltip').hidden=true;
+    $('command-menu').dataset.menuKind=kind;$('command-menu').innerHTML=`<div class="menu-content">${buildMenu(kind)}</div>`;$('command-menu').showPopover();opener.setAttribute('aria-expanded','true');
+    positionMenu();renderArrangeReference();if(!options.hover)menuItems($('command-menu'))[0]?.focus();
+  }
+  function openSubmenu(opener,options={}){
+    if(opener.disabled||!opener.isConnected||!$('command-menu').matches(':popover-open'))return;
+    clearTimeout(menuCloseTimer);$('tooltip').hidden=true;
+    const parent=menuSurface(opener),index=submenus.findIndex(s=>s.element===parent)+1,existing=submenus[index];
+    // 起点のpointerdownでブラウザが子を閉じた直後は、toggle通知より先にclickが来る。
+    if(existing?.opener===opener&&existing.element.matches(':popover-open')){
+      if(options.hover)return;
+      if(existing.hover){existing.hover=false;hoverMenu=false;menuItems(existing.element)[0]?.focus();return;}
+      closeSubmenus(index,true);return;
+    }
+    closeSubmenus(index);
+    const kind=opener.dataset.submenu,element=document.createElement('div');element.className='command-submenu';element.popover='auto';element.dataset.menuKind=kind;element.setAttribute('aria-label',menuTitle(kind));
+    element.innerHTML=`<div class="submenu-heading"><button type="button" data-menu-back aria-label="${menuTitle(parent.dataset.menuKind)}へ戻る" data-tip="戻る Esc / ←">${icon('back')}</button><strong>${menuTitle(kind)}</strong></div><div class="menu-content">${buildMenu(kind)}</div>`;
+    parent.append(element);
+    const width=parseFloat(getComputedStyle(element).width),rect=parent.getBoundingClientRect();
+    // 重ね表示をホバーで開くと、押そうとしたボタンを別の操作が覆ってしまう。
+    if(options.hover&&rect.right+5+width>innerWidth-8&&rect.left-width-5<8){element.remove();return;}
+    const entry={element,opener,kind,hover:!!options.hover};submenus.push(entry);element.showPopover();opener.setAttribute('aria-expanded','true');
+    element.addEventListener('toggle',event=>{if(event.newState==='closed'){const i=submenus.indexOf(entry);if(i>=0)closeSubmenus(i);}});
+    element.addEventListener('pointerenter',()=>clearTimeout(menuCloseTimer));element.addEventListener('pointerleave',deferHoverClose);
+    positionSubmenu(entry);renderArrangeReference();if(!options.hover){hoverMenu=false;menuItems(element)[0]?.focus();}
   }
   window.addEventListener('resize',hideMenu);
-  $('command-menu').addEventListener('toggle',event=>{if(event.newState==='closed'&&menuOpener)menuOpener.setAttribute('aria-expanded','false');renderArrangeReference();});
+  $('command-menu').addEventListener('toggle',event=>{if(event.newState==='closed'){closeSubmenus();menuOpener?.setAttribute('aria-expanded','false');}renderArrangeReference();});
   $('command-menu').addEventListener('click',event=>{
+    const back=event.target.closest('[data-menu-back]');if(back){closeSubmenus(submenus.findIndex(s=>s.element===menuSurface(back)),true);return;}
     const button=event.target.closest('[data-arrange-reference]');if(!button||button.disabled)return;
     arrangeReference=button.dataset.arrangeReference;hoverMenu=false;refreshArrangeMenu(arrangeReference);
   });
-  $('command-menu').addEventListener('change',event=>{
-    if(event.target.id!=='arrange-key')return;arrangeKey=event.target.value;hoverMenu=false;refreshArrangeMenu('key');
-  });
+  $('command-menu').addEventListener('change',event=>{if(event.target.id==='arrange-key'){arrangeKey=event.target.value;hoverMenu=false;refreshArrangeMenu('key');}});
   function deferHoverClose(){clearTimeout(menuCloseTimer);if(hoverMenu)menuCloseTimer=setTimeout(()=>{if(hoverMenu&&!$('command-menu').contains(document.activeElement))hideMenu();},240);}
   document.querySelectorAll('[data-menu]').forEach(button=>{
-    button.setAttribute('aria-haspopup','true');
-    button.setAttribute('aria-expanded','false');
+    button.setAttribute('aria-haspopup','true');button.setAttribute('aria-expanded','false');button.insertAdjacentHTML('beforeend',caret('down'));
     if($('selection-bar').contains(button)){
       button.addEventListener('pointerenter',event=>{if(button.disabled||event.pointerType!=='mouse'||event.buttons||drag||$('dialog').open||button===ignoredHover)return;openMenu(button.dataset.menu,button,{hover:true});});
       button.addEventListener('pointerleave',()=>{if(ignoredHover===button)ignoredHover=null;deferHoverClose();});
     }
-    button.addEventListener('keydown',event=>{if(!['ArrowDown','ArrowUp'].includes(event.key))return;event.preventDefault();event.stopPropagation();if(!$('command-menu').matches(':popover-open')||menuOpener!==button)openMenu(button.dataset.menu,button);hoverMenu=false;const items=$('command-menu').querySelectorAll('button:not(:disabled)');(event.key==='ArrowUp'?items[items.length-1]:items[0])?.focus();});
+    button.addEventListener('keydown',event=>{if(!['ArrowDown','ArrowUp'].includes(event.key))return;event.preventDefault();event.stopPropagation();if(!$('command-menu').matches(':popover-open')||menuOpener!==button)openMenu(button.dataset.menu,button);hoverMenu=false;const items=menuItems($('command-menu'));(event.key==='ArrowUp'?items[items.length-1]:items[0])?.focus();});
   });
+  $('command-menu').addEventListener('pointerover',event=>{
+    const button=event.target.closest('[data-submenu]');if(!button||button.contains(event.relatedTarget)||event.pointerType!=='mouse'||event.buttons||drag||button===ignoredHover)return;
+    openSubmenu(button,{hover:true});
+  });
+  $('command-menu').addEventListener('pointerout',event=>{const button=event.target.closest('[data-submenu]');if(button===ignoredHover&&!button?.contains(event.relatedTarget))ignoredHover=null;});
   $('command-menu').addEventListener('pointerenter',()=>clearTimeout(menuCloseTimer));
   $('command-menu').addEventListener('pointerleave',deferHoverClose);
   $('command-menu').addEventListener('focusin',()=>clearTimeout(menuCloseTimer));
   $('command-menu').addEventListener('focusout',deferHoverClose);
   $('command-menu').addEventListener('keydown',event=>{
     if(event.target.closest('select,input,textarea'))return;
+    const surface=menuSurface(event.target),button=event.target.closest('[data-submenu]');
+    if(event.key==='ArrowRight'&&button){event.preventDefault();event.stopPropagation();openSubmenu(button);return;}
+    if(event.key==='ArrowLeft'&&surface!==$('command-menu')){event.preventDefault();event.stopPropagation();closeSubmenus(submenus.findIndex(s=>s.element===surface),true);return;}
     if(!['ArrowDown','ArrowUp','Home','End'].includes(event.key))return;
-    event.preventDefault();event.stopPropagation();const items=[...$('command-menu').querySelectorAll('button:not(:disabled)')],i=items.indexOf(document.activeElement);
+    event.preventDefault();event.stopPropagation();const items=menuItems(surface),i=items.indexOf(document.activeElement);
     const next=event.key==='Home'?0:event.key==='End'?items.length-1:(i+(event.key==='ArrowDown'?1:-1)+items.length)%items.length;items[next]?.focus();
   });
   document.addEventListener('keydown',event=>{
     if(event.key!=='Escape'||!$('command-menu').matches(':popover-open'))return;
-    event.preventDefault();event.stopPropagation();const focus=$('command-menu').contains(document.activeElement)||!hoverMenu;ignoredHover=menuOpener?.matches(':hover')?menuOpener:null;hideMenu();if(focus)menuOpener?.focus();
+    event.preventDefault();event.stopPropagation();
+    if(submenus.length){closeSubmenus(submenus.length-1,true);return;}
+    const focus=$('command-menu').contains(document.activeElement)||!hoverMenu;ignoredHover=menuOpener?.matches(':hover')?menuOpener:null;hideMenu();if(focus)menuOpener?.focus();
   },true);
   let dialogOpener,dialogCallback;
   function closeDialog(){if($('dialog').open)$('dialog').close();if(dialogOpener?.isConnected)dialogOpener.focus();else $('canvas').focus();}
@@ -590,6 +670,11 @@
     if(!doc().pages.some(p=>p.id===id)||pageId===id)return;
     clearInspectorPreview();cancelDrag();pathUI.reset();connectionUI.reset();
     pageId=id;clearSelection();fit();
+  }
+  function flipSelection(horizontal){
+    if(!editable())return;
+    const ids=selected.slice(),b=bounds(ids),matrix=around([horizontal?-1:1,0,0,horizontal?1:-1,0,0],b.x+b.width/2,b.y+b.height/2);
+    changePage(p=>C.transformObjects(p,ids,matrix));
   }
   function transformDialog(){
     if(!editable())return;const base=C.clone(page()),ids=selected.slice(),b=bounds(ids,base);
@@ -792,6 +877,7 @@
     'select-all':()=>selection(page().objects.map(o=>o.id)),copy,paste,duplicate:()=>{if(!selected.length)return;let ids;if(changePage(p=>ids=C.duplicateObjects(p,selected,standardSize()*.12,standardSize()*.12)))selected=ids;render();},
     delete:()=>{if(editable())changePage(p=>C.removeObjects(p,selected));},group:()=>{if(editable())changePage(p=>C.groupObjects(p,selected));},ungroup:()=>{if(editable())changePage(p=>C.ungroupObjects(p,selected));},
     lock:()=>{if(selected.some(id=>L.layerOf(page(),id)?.locked)){toast('「図形」でレイヤーの固定を解除してください。');return;}const lock=allUnlocked();changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.locked=lock));},
+    'flip-h':()=>flipSelection(true),'flip-v':()=>flipSelection(false),
     'text-edit':()=>openInspectorSection('text'),outline:()=>openInspectorSection('outline'),
     'style-copy':()=>{if(selected.length){copiedStyle=C.clone(page().objects.find(o=>o.id===selected[0]).style);toast('書式をコピーしました。');}},'style-paste':()=>{if(copiedStyle&&editable())changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>{if(o.type==='image')o.style.opacity=copiedStyle.opacity;else o.style=C.clone(copiedStyle);}));},
     fit,'zoom-in':()=>zoomAt(1.25),'zoom-out':()=>zoomAt(.8),'zoom-reset':()=>zoomAt(1/zoom()),
@@ -809,7 +895,7 @@
   };
   function toggleInspector(section){if(inspector.isOpen&&inspector.section===section)inspector.close();else openInspectorSection(section);}
   function execute(action){hideMenu();closePalette(false);objectsUI?.cancelDrag();if(inspectorPreview)inspector.reset();cancelDrag();try{if(action.startsWith('align-'))align(action.slice(6));else if(action.startsWith('order-')){if(editable())changePage(p=>C.reorderObjects(p,selected,action.slice(6)));}else if(pathUI.commands[action])pathUI.commands[action]();else {const result=commands[action]?.();if(result?.catch)result.catch(error=>toast(errorMessage(error)));}}catch(error){toast(errorMessage(error));}}
-  document.addEventListener('click',event=>{const button=event.target.closest('button');if(!button||button.disabled)return;if(button.dataset.inspectorSection)openInspectorSection(button.dataset.inspectorSection);else if(button.dataset.tool)setTool(button.dataset.tool);else if(button.dataset.menu)openMenu(button.dataset.menu,button);else if(button.dataset.action)execute(button.dataset.action);});
+  document.addEventListener('click',event=>{const button=event.target.closest('button');if(!button||button.disabled)return;if(button.dataset.inspectorSection)openInspectorSection(button.dataset.inspectorSection);else if(button.dataset.tool)setTool(button.dataset.tool);else if(button.dataset.menu)openMenu(button.dataset.menu,button);else if(button.dataset.submenu)openSubmenu(button);else if(button.dataset.action)execute(button.dataset.action);});
   document.addEventListener('keydown',event=>{
     if(inspector?.root.contains(event.target)||help?.root.contains(event.target)||event.isComposing||event.target.closest('input,textarea,select,[contenteditable=true],.ilapo-present-dialog')||$('dialog').open)return;
     if(['Alt','Shift'].includes(event.key)&&drag?.lastPoint){updateSelectionDrag(drag.lastPoint,event);render();}
@@ -828,7 +914,7 @@
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(settings.theme==='auto')applySettings();});
   if(window.IlapoLocalAutosave)localAuto=new IlapoLocalAutosave({encode:S.encodeProject,onStatus:status=>{if(status.state==='error')toast('ローカル自動保存を停止しました。'+status.message);else if(status.state==='saved')$('save-status').textContent='ローカルへ自動保存済み';}});
   try{help=window.JohoToolHelp?.create({root:$('operation-help'),opener:$('help-button'),title:'イラストスライドの使い方',storageKey:'kaijo-ilapo:help',bounds:()=>({top:document.querySelector('.top').getBoundingClientRect().bottom+8,bottom:$('stage').getBoundingClientRect().bottom-8}),isBusy:()=>!!drag,returnToEditor:()=>$('canvas').focus()});}catch(error){console.warn('Help unavailable',error);}
-  function showTooltip(target){if(!target||target===menuOpener&&$('command-menu').matches(':popover-open'))return;const r=target.getBoundingClientRect();$('tooltip').textContent=target.dataset.tip;$('tooltip').hidden=false;$('tooltip').style.left=Math.max(8,Math.min(r.left,innerWidth-$('tooltip').offsetWidth-8))+'px';$('tooltip').style.top=Math.min(r.bottom+7,innerHeight-$('tooltip').offsetHeight-8)+'px';}
+  function showTooltip(target){if(!target||target===menuOpener&&$('command-menu').matches(':popover-open')||target.dataset.submenu&&target.getAttribute('aria-expanded')==='true')return;const r=target.getBoundingClientRect();$('tooltip').textContent=target.dataset.tip;$('tooltip').hidden=false;$('tooltip').style.left=Math.max(8,Math.min(r.left,innerWidth-$('tooltip').offsetWidth-8))+'px';$('tooltip').style.top=Math.min(r.bottom+7,innerHeight-$('tooltip').offsetHeight-8)+'px';}
   const hideTooltip=()=>$('tooltip').hidden=true;
   document.addEventListener('pointerover',event=>{if(event.pointerType!=='touch')showTooltip(event.target.closest('[data-tip]'));});
   document.addEventListener('focusin',event=>{hideTooltip();if(event.target.matches(':focus-visible'))showTooltip(event.target.closest('[data-tip]'));});

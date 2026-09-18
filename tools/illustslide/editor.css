@@ -21,11 +21,19 @@ dialog{padding:0;border:1px solid var(--line);border-radius:14px;box-shadow:var(
 /* 選択時はアイコンで操作をまとめ、残りは「その他」から開く。 */
 #stage{container-type:inline-size}
 .side-tab{overflow:auto}
-.selection-bar{flex-wrap:nowrap;gap:3px;padding:5px}
+.selection-bar{width:max-content;flex-wrap:wrap;gap:3px;padding:5px}
 .selection-bar button{width:36px;min-width:36px;padding:5px;flex:none}
 #selection-more{display:inline-flex}
 #command-menu button span{white-space:normal;text-align:left;min-width:0}
 #command-menu button svg{width:19px;height:19px;flex:none}
+.menu-caret{font-size:8px;line-height:1;flex:none;pointer-events:none}
+.selection-bar [data-menu]{width:46px;min-width:46px;gap:3px}
+#command-menu button[data-submenu]{position:relative}
+#command-menu button[data-submenu]>.menu-caret{margin-left:auto;font-size:8px}
+.command-submenu{position:fixed;margin:0;padding:10px;border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);background:var(--panel);color:var(--text);width:min(300px,calc(100vw - 16px));max-height:calc(100dvh - 16px);overflow:auto;z-index:21}
+.submenu-heading{display:flex;align-items:center;gap:6px;position:sticky;top:-10px;margin:-10px -10px 10px;padding:6px;background:var(--panel);border-bottom:1px solid var(--line);z-index:1}
+.submenu-heading strong{font-size:.9em}
+#command-menu .submenu-heading button{width:44px;min-width:44px;min-height:44px;justify-content:center;padding:4px}
 .inspector-target{font-size:.85em;color:var(--muted);overflow-wrap:anywhere;margin:8px 0 14px}
 @container(max-width:520px){.selection-bar .selection-extra{display:none}#selection-more{display:inline-flex}.selection-bar>span{display:none}}
 @container(max-width:330px){.selection-bar [data-action=transform]{display:none}}
@@ -68,8 +76,8 @@ dialog{padding:0;border:1px solid var(--line);border-radius:14px;box-shadow:var(
 
 #canvas[data-hover-kind=anchor]{cursor:crosshair}#canvas[data-hover-kind=whole]{cursor:pointer}
 
-/* 整列は基準と方向を同じポップアップから選ぶ。 */
-#command-menu[data-menu-kind=arrange]{width:min(320px,calc(100vw - 16px));padding:10px}
+/* 整列は基本8操作を先に示し、基準とサイズは詳細サブメニューで選ぶ。 */
+:is(#command-menu,.command-submenu)[data-menu-kind=arrange]{width:min(280px,calc(100vw - 16px));padding:10px}
 .arrange-heading{font-size:.86em;font-weight:700;margin:4px 0 8px}
 .arrange-heading small{font-size:.88em;color:var(--muted);font-weight:400}
 .arrange-basis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;margin-bottom:10px}
@@ -79,6 +87,7 @@ dialog{padding:0;border:1px solid var(--line);border-radius:14px;box-shadow:var(
 .arrange-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px}.arrange-actions.two{grid-template-columns:repeat(2,minmax(0,1fr))}
 #command-menu .arrange-actions button{flex-direction:column;justify-content:center;gap:4px;padding:7px 3px;min-height:58px;border:1px solid var(--line)}
 #command-menu .arrange-actions button svg{width:23px;height:23px}#command-menu .arrange-actions button span{font-size:.82em;text-align:center}
+#command-menu .arrange-actions button[data-submenu]>.menu-caret{position:absolute;right:4px;bottom:5px}
 .arrange-note{font-size:.78em;color:var(--muted);line-height:1.5;margin:7px 0;overflow-wrap:anywhere}
 #arrange-reference{--reference:#a21caf;stroke:var(--reference);pointer-events:none}
 :root[data-theme=dark] #arrange-reference{--reference:#e879f9}

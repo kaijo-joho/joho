@@ -97,7 +97,7 @@ async function selectObject(page, id, x, y, modifiers = []) {
   if (!modifiers.includes('Shift')) assert.deepEqual(await page.evaluate(() => IlapoEditor.getSelection()), [id], `図形 ${id} を選択する`);
 }
 
-async function openOutline(page, menu = 'edit') {
+async function openOutline(page, menu = 'selection-more') {
   await page.locator(`[data-menu="${menu}"]`).click();
   await page.locator('#command-menu [data-action="outline"]').waitFor();
   await page.locator('#command-menu [data-action="outline"]').click();
@@ -153,7 +153,7 @@ async function panelMetrics(page) {
 
     // 選択ポップアップの編集メニューから同じUIを開き、適用1回をUndo/Redo1回で戻す。
     await selectObject(page, 'outline-line', 155, 80);
-    await openOutline(page, 'edit'); await waitPreview(page); await page.locator('#inspector-submit').click(); await settle(page);
+    await openOutline(page, 'selection-more'); await waitPreview(page); await page.locator('#inspector-submit').click(); await settle(page);
     let doc = await documentOf(page); let outlinedLine = doc.pages[0].objects.find(object => object.id === 'outline-line');
     assert.equal(await page.locator('#inspector-panel').isHidden(), true, '確定後にアウトラインパネルを閉じる');
     assert.equal(outlinedLine.type, 'path'); assert.equal(outlinedLine.style.stroke, 'none'); assert.equal(outlinedLine.style.fill, '#2563EB'); assert.notEqual(outlinedLine.d, original.pages[0].objects[0].d, '線を塗りのある輪郭パスへ変換する');
@@ -164,7 +164,7 @@ async function panelMetrics(page) {
     // 日本語・大小英字の文字を別フォントへ変換し、文字オブジェクトを複合パスへ置き換える。
     await load(page, original);
     await selectObject(page, 'outline-text', 150, 176);
-    await openOutline(page, 'edit');
+    await openOutline(page, 'selection-more');
     assert.equal(await page.locator('#outline-text').isChecked(), true); assert.equal(await page.locator('#outline-lines').isChecked(), false);
     assert.equal(await page.locator('#outline-font').count(), 1); assert.equal(await page.locator('#outline-font').inputValue(), 'sans');
     await waitPreview(page);
@@ -186,7 +186,7 @@ async function panelMetrics(page) {
     // 図形ラベルは本体と文字を同じグループのパスへ分け、画像はそのまま残す。
     await load(page, original);
     await selectObject(page, 'outline-label-shape', 450, 120);
-    await openOutline(page, 'edit'); await waitPreview(page);
+    await openOutline(page, 'selection-more'); await waitPreview(page);
     const labelPreviewObjects = await page.locator('#artwork [data-object]').count(); assert(labelPreviewObjects >= 5, 'ラベルの本体と文字を分けたプレビューを表示する');
     await page.locator('#inspector-submit').click(); await settle(page);
     doc = await documentOf(page); const labelParts = doc.pages[0].objects.filter(object => object.id === 'outline-label-shape' || object.name.startsWith('ラベル付き図形（'));
@@ -198,7 +198,7 @@ async function panelMetrics(page) {
     await page.setViewportSize({ width: 390, height: 736 });
     await page.locator('#board-toggle').click(); await page.locator('#view-toggle').click();
     await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await inspectorSubmit(page);
-    await load(page, original); await selectObject(page, 'outline-label-shape', 450, 120); await openOutline(page, 'edit'); await waitPreview(page);
+    await load(page, original); await selectObject(page, 'outline-label-shape', 450, 120); await openOutline(page, 'selection-more'); await waitPreview(page);
     const narrow = await panelMetrics(page); assert(narrow.documentScroll <= narrow.width + 1 && narrow.bodyScroll <= narrow.width + 1 && narrow.panelRight <= narrow.width + 1, `390px dark xlargeで横overflowしない: ${JSON.stringify(narrow)}`);
     await page.screenshot({ path: '/private/tmp/illustslide-outline-390.png', fullPage: true });
     await page.locator('#outline-font').focus(); await page.keyboard.press('Tab'); await page.keyboard.press('Escape'); await settle(page); assert(await page.locator('#inspector-panel').isHidden(), 'Escapeでアウトラインパネルを閉じる');
@@ -209,7 +209,7 @@ async function panelMetrics(page) {
     await touch.locator('#palette-toggle').tap(); await touch.locator('#palette-close').tap();
     await worldTap(touch, 150, 176);
     assert.deepEqual(await touch.evaluate(() => IlapoEditor.getSelection()), ['outline-text'], 'タッチでも日本語文字を確実に選択する');
-    await touch.locator('[data-menu="edit"]').tap(); await touch.locator('#command-menu [data-action="outline"]').tap(); await touch.locator('#outline-lines').waitFor();
+    await touch.locator('#selection-more').tap(); await touch.locator('#command-menu [data-action="outline"]').tap(); await touch.locator('#outline-lines').waitFor();
     await waitPreview(touch); assert(await touch.locator('#outline-preview').isVisible(), 'タッチでもアウトラインの再試行ボタンを表示する');
     await touch.locator('#inspector-submit').tap(); await settle(touch);
     assert.equal((await documentOf(touch)).pages[0].objects.some(object => object.id === 'outline-text' && object.type === 'path'), true, 'タッチで文字のアウトライン化を適用する');
@@ -226,7 +226,7 @@ async function panelMetrics(page) {
       else await route.continue();
     });
     await flaky.goto(url); await flaky.waitForFunction(() => !!window.IlapoEditor); await load(flaky, original);
-    await selectObject(flaky, 'outline-text', 150, 176); await openOutline(flaky, 'edit');
+    await selectObject(flaky, 'outline-text', 150, 176); await openOutline(flaky, 'selection-more');
     await flaky.waitForFunction(() => /フォントを読み込めませんでした/.test(document.getElementById('outline-message')?.textContent || '') && document.getElementById('inspector-submit')?.disabled);
     assert.deepEqual(await documentOf(flaky), original, 'フォント取得失敗時も文書を保持する');
     assert.equal((await stateOf(flaky)).dirty, false, 'フォント取得失敗時もdirtyを変更しない');
@@ -242,19 +242,19 @@ async function panelMetrics(page) {
       await route.continue();
     });
     await stale.goto(url); await stale.waitForFunction(() => !!window.IlapoEditor); await load(stale, original);
-    await selectObject(stale, 'outline-text', 150, 176); await openOutline(stale, 'edit');
+    await selectObject(stale, 'outline-text', 150, 176); await openOutline(stale, 'selection-more');
     await stale.locator('#outline-message').waitFor();
     await stale.locator('#inspector-close').click();
     const staleBefore = await documentOf(stale);
     assert.equal(await stale.locator('#artwork [data-object="outline-text"] text').count(), 1, '閉じた直後のartworkは元の文字を表示する');
     // 閉じたあとに開き直しても、最初の保留結果が新しいパネルへ戻らない。
-    await openOutline(stale, 'edit'); await stale.locator('#outline-message').waitFor(); await stale.locator('#inspector-close').click();
+    await openOutline(stale, 'selection-more'); await stale.locator('#outline-message').waitFor(); await stale.locator('#inspector-close').click();
     for (const release of releases.splice(0)) release();
     await stale.waitForTimeout(600); assert.deepEqual(await documentOf(stale), staleBefore, '閉じたパネルのフォント結果を文書へ反映しない');
     assert.equal(await stale.locator('#artwork [data-object="outline-text"] text').count(), 1, '再オープン後の古い結果も元の文字を置き換えない');
 
     // 対象切替とResetで発生した再構築のあとも、古い対象の結果を表示しない。
-    await openOutline(stale, 'edit'); await stale.locator('#outline-message').waitFor();
+    await openOutline(stale, 'selection-more'); await stale.locator('#outline-message').waitFor();
     await selectObject(stale, 'outline-label-shape', 450, 120);
     await stale.waitForTimeout(200);
     assert.match(await stale.locator('#inspector-body').textContent(), /ラベル付き図形/, '対象切替後は新しい対象のパネルになる');

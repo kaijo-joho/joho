@@ -105,8 +105,8 @@ function near(actual,expected,label,tolerance=2) { assert.equal(actual.length,ex
 
     // Copying format and saving retain both channels independently.
     await page.locator('#inspector-close').click();await select(page,'a');
-    await page.locator('[data-menu="edit"]').click();await page.locator('#command-menu [data-action="style-copy"]').click();
-    await select(page,'b');await page.locator('[data-menu="edit"]').click();await page.locator('#command-menu [data-action="style-paste"]').click();await settle(page);
+    await page.locator('#selection-more').click();await page.locator('#command-menu [data-action="style-copy"]').click();
+    await select(page,'b');await page.locator('#selection-more').click();await page.locator('#command-menu [data-action="style-paste"]').click();await settle(page);
     assert.deepEqual((await object(page,'b')).style,(await object(page,'a')).style);
     await page.locator('[data-menu="save"]').click();await page.locator('#command-menu [data-action="save-browser"]').click();
     const saved=await read(page);
@@ -161,8 +161,8 @@ function near(actual,expected,label,tolerance=2) { assert.equal(actual.length,ex
     await page.locator('#inspector-close').click();await select(page,'i1');await select(page,'i2',true);await openStyle(page);
     assert.equal(await page.locator('[data-color-channel]').count(),0);await input(page,'opacity',40);
     assert.equal((await object(page,'i1')).style.opacity,.4);assert.equal((await object(page,'i2')).style.opacity,.4);
-    await page.locator('#inspector-close').click();await select(page,'a');await page.locator('[data-menu="edit"]').click();await page.locator('[data-action="style-copy"]').click();
-    await select(page,'i2');await page.locator('[data-menu="edit"]').click();await page.locator('[data-action="style-paste"]').click();await settle(page);
+    await page.locator('#inspector-close').click();await select(page,'a');await page.locator('#selection-more').click();await page.locator('[data-action="style-copy"]').click();
+    await select(page,'i2');await page.locator('#selection-more').click();await page.locator('[data-action="style-paste"]').click();await settle(page);
     assert.equal((await object(page,'i2')).style.opacity,.6);assert.equal((await object(page,'i2')).style.fillOpacity,undefined);
     await select(page,'a');await select(page,'t',true);await openStyle(page);await page.locator('.style-extra summary').filter({hasText:'文字の基本書式'}).click();
     await input(page,'fontSize',32);assert.equal((await object(page,'t')).style.fontSize,32);assert.equal((await object(page,'a')).style.fontSize,24);

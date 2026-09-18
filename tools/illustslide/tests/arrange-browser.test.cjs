@@ -42,8 +42,17 @@ const documentOf = page => page.evaluate(() => IlapoEditor.getDocument());
 async function selectIds(page, ids) {
   for (const [index, id] of ids.entries()) { const box = await page.locator(`[data-object="${id}"]`).boundingBox(); assert(box, `図形 ${id} が描画される`); if (index) await page.keyboard.down('Shift'); await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2); if (index) await page.keyboard.up('Shift'); await settle(page); }
 }
-async function openArrange(page) { await page.locator('#selection-arrange').click(); await page.locator('#command-menu').waitFor({state:'visible'}); }
-async function clickArrange(page, action) { await page.locator(`#command-menu [data-action="align-${action}"]`).click(); await settle(page); }
+async function openDetails(page) { await page.locator('#arrange-details-button').click(); await page.locator('.command-submenu[data-menu-kind="arrange-details"]').waitFor({state:'visible'}); }
+async function openArrange(page) {
+  await settle(page); // 画面サイズ変更によるメニュー閉鎖を待ってから操作する。
+  for(let depth=0;depth<3&&await page.locator('#command-menu').isVisible();depth++){await page.keyboard.press('Escape');await settle(page);}
+  assert(await page.locator('#command-menu').isHidden());
+  await page.locator('#selection-arrange').click(); await page.locator('#command-menu').waitFor({state:'visible'}); await openDetails(page);
+}
+async function clickArrange(page, action) {
+  if(!['width','height','size'].includes(action)) await page.locator('.command-submenu[data-menu-kind="arrange-details"] [data-menu-back]').click();
+  await page.locator(`#command-menu [data-action="align-${action}"]`).click(); await settle(page);
+}
 async function bounds(page, id) { return page.evaluate(id => { const o=IlapoEditor.getDocument().pages[0].objects.find(v=>v.id===id); const b=IlapoGeometry.bounds(o); return {x:b.x,y:b.y,right:b.x+b.width,bottom:b.y+b.height,width:b.width,height:b.height}; }, id); }
 
 async function run() {
@@ -75,7 +84,7 @@ async function run() {
     await page.locator('[data-arrange-reference="selection"]').click(); await clickArrange(page,'center');
     const sel=[await bounds(page,'a'),await bounds(page,'b'),await bounds(page,'c')]; for (const b of sel) assert(Math.abs((b.x+b.right)/2-290)<1e-6,'選択範囲中央（元の範囲中心290）へ整列');
     await page.locator('[data-action="undo"]').click(); await settle(page); await selectIds(page,['a','b','c']); await openArrange(page); await page.locator('[data-arrange-reference="board"]').click(); await clickArrange(page,'center'); for (const id of ['a','b','c']) { const b=await bounds(page,id); assert(Math.abs((b.x+b.right)/2-320)<1e-6,'用紙中央320へ整列'); } await page.locator('[data-action="undo"]').click();
-    await load(page,fixture([shape('only',100,100,40,20)])); await page.locator('[data-object="only"]').click(); await page.locator('#selection-more').click(); await page.locator('[data-action="selection-arrange"]').click(); assert.equal(await page.locator('[data-arrange-reference="board"]').getAttribute('aria-pressed'),'true','単一選択は用紙基準'); await clickArrange(page,'center'); const one=await bounds(page,'only'); assert.equal(Math.round((one.x+one.right)/2),320,'単一図形を用紙中央へ配置');
+    await load(page,fixture([shape('only',100,100,40,20)])); await page.locator('[data-object="only"]').click(); await page.locator('#selection-more').click(); await page.locator('[data-action="selection-arrange"]').click(); await openDetails(page); assert.equal(await page.locator('[data-arrange-reference="board"]').getAttribute('aria-pressed'),'true','単一選択は用紙基準'); await clickArrange(page,'center'); const one=await bounds(page,'only'); assert.equal(Math.round((one.x+one.right)/2),320,'単一図形を用紙中央へ配置');
 
     const g1=shape('g1',80,80,40,30,{group:'g'}),g2=shape('g2',140,100,30,20,{group:'g'}),x=shape('x',260,180,20,50),y=shape('y',420,60,30,30); await load(page,fixture([g1,g2,x,y])); await selectIds(page,['g1','x','y']); await openArrange(page); await page.locator('[data-arrange-reference="object"]').click(); await page.locator('#arrange-key').selectOption('x'); const beforeG=await documentOf(page); const g1Before=beforeG.pages[0].objects.find(o=>o.id==='g1').matrix[4],g2Before=beforeG.pages[0].objects.find(o=>o.id==='g2').matrix[4]; await clickArrange(page,'right'); const grouped=await documentOf(page), g1After=grouped.pages[0].objects.find(o=>o.id==='g1').matrix[4],g2After=grouped.pages[0].objects.find(o=>o.id==='g2').matrix[4]; assert.equal(g1After-g1Before,110); assert.equal(g1After-g1Before,g2After-g2Before,'グループ内部は同じ移動量');
 

@@ -18,7 +18,7 @@ async function run(){
   const click=async p=>{const q=await screen(p);await page.mouse.click(q.x,q.y);await sleep(40);};
   const drag=async(a,b,preview)=>{a=await screen(a);b=await screen(b);await page.mouse.move(a.x,a.y);await page.mouse.down();await page.mouse.move(b.x,b.y,{steps:6});if(preview)await preview();await page.mouse.up();await sleep(60);};
   const pick=async id=>{await page.locator('#objects-toggle').click();await (await revealObject(page,id)).click();await page.locator("#inspector-close").click();await sleep(50);};
-  const edit=async action=>{await page.locator('[data-menu=edit]').click();await page.locator(`#command-menu [data-action="${action}"]`).click();};
+  const edit=async action=>{await page.locator('#selection-more').click();await page.locator(`#command-menu [data-action="${action}"]`).click();};
   const submit=async()=>{await page.locator('#dialog-submit').click();await page.waitForFunction(()=>!document.getElementById('dialog').open);await sleep(40);};
   const inspectorSubmit=async()=>{if(await page.locator('#inspector-submit').isVisible())await page.locator('#inspector-submit').click();await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden&&!document.getElementById('dialog').open;});await sleep(40);};
   const inspectorClose=async()=>{await page.locator('#inspector-close').click();await page.waitForFunction(()=>document.getElementById('inspector-panel').hidden);await sleep(40);};

@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.19）
+# イラストスライド illustSlideの内部契約（0.4.20）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -15,6 +15,14 @@ style: `{fill,stroke,strokeWidth,opacity,fillOpacity?,strokeOpacity?,dash,lineca
 fillOpacity/strokeOpacityは0〜1の有限数値、省略時は1。DEFAULT_STYLEや旧文書へ自動補完しない。opacityは塗りと線を合成した後の全体不透明度として既存の意味を保持する。図形内文字はlabel.styleを使い、図形本体のチャンネル値を継承しない。
 fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。fontFamilyはsans-serif/serif/monospace。
 グループは初期版では同じgroup値を持つ平坦な集合。選択・変形は原則グループ全体へ適用。
+
+## 選択メニューの階層（0.4.20）
+
+ルートは従来のcommand-menu、子はそのDOM内へappendするpopover=autoのcommand-submenu。各メニューの本文をmenu-contentへ分け、整列基準の再描画で子を除去しない。再描画で入れ替わった起点ボタンは再接続し、aria-expanded・配置・紫の基準枠を更新する。メニュー操作だけで文書や保存形式を変えない。
+
+data-menuの入口に▼、data-submenuの入口に▶を表示する。選択バーと横に展開できる子メニューはマウスのホバーで開く。横に収まらず起点へ重なる子はホバーで開かず、クリック・タップ・右矢印で開く。子の戻る・左矢印・Escapeは1階層だけ閉じて起点へ戻し、ルートのEscapeは従来の起点へ戻す。上下・Home/Endは現在階層の有効ボタンだけを巡回する。select/inputは標準キー操作を維持する。外側操作・実行・ウィンドウサイズ変更では子も閉じる。
+
+arrangeは整列6方向と等間隔2方向、arrange-detailsは基準の種類・基準図形・サイズ合わせを持つ。基準変更時は両方の本文を更新し、計算自体は既存IlapoArrangeを使う。selection-moreは旧editと旧selection-moreを統合し、重複操作を作らない。flip-h/vは既存aroundとCore.transformObjectsを使い、選択範囲の中心を基準とした反転を通常のchangePage経路で1履歴にする。文字やグループを含め全体を反転する操作で、点の編集状態では入口を隠す。
 
 ## 書式の入力部品（0.4.19）
 
