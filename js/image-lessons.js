@@ -435,7 +435,11 @@
     const canvas = host.querySelector('[data-image-explorer-canvas]');
     const caption = host.querySelector('[data-image-explorer-caption]');
     const metrics = host.querySelector('[data-image-metrics]');
-    const gradationSteps = host.querySelector('[data-image-gradation-steps]');
+    const gradationBands = [...host.querySelectorAll('[data-image-gradation-channel]')].map(band => ({
+      channel: band.dataset.imageGradationChannel === 'gray' ? null : Number(band.dataset.imageGradationChannel),
+      steps: band.querySelector('[data-image-gradation-steps]'),
+      description: band.querySelector('[data-image-gradation-description]')
+    }));
     let sampledResolution = 0;
     let samples;
     let animation = 0;
@@ -447,11 +451,15 @@
       host.querySelector('[data-image-bits-output]').textContent = gradationLabel;
       bitsControl.setAttribute('aria-valuetext', gradationLabel);
       host.querySelector('[data-image-gradation-caption]').textContent = `量子化後：${gradationLabel}`;
-      host.querySelector('[data-image-gradation-description]').textContent = `明るさを${levels}段階に分けています。左端は黒、右端は白です。各段階を${bits}bitで表せます。`;
-      gradationSteps.replaceChildren(...Array.from({ length: levels }, (_, code) => {
-        const tone = Core.tone(code, bits);
-        return svgNode('rect', { x: code * 1024 / levels, width: 1024 / levels, height: 56, fill: `rgb(${tone},${tone},${tone})` });
-      }));
+      gradationBands.forEach(({ channel, steps, description }) => {
+        const endColor = channel === null ? '白' : channelNames[channel];
+        description.textContent = `${channel === null ? '明るさの目安です。' : ''}黒から${endColor}までを${levels}段階に分け、各段階を${bits}bitで表します。`;
+        steps.replaceChildren(...Array.from({ length: levels }, (_, code) => {
+          const tone = Core.tone(code, bits);
+          const rgb = [0, 1, 2].map(component => channel === null || component === channel ? tone : 0);
+          return svgNode('rect', { x: code * 1024 / levels, width: 1024 / levels, height: 56, fill: `rgb(${rgb.join(',')})` });
+        }));
+      });
       if (sampledResolution !== resolution) {
         samples = Core.sampleRgb(source.data, 800, 800, resolution, resolution);
         sampledResolution = resolution;

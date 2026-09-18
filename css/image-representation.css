@@ -63,11 +63,12 @@ section article .im-frame-note { margin: 8px 0 0; text-align: center; font-size:
 .im-quiz-pipeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 24px; align-items: start; margin-bottom: 24px; }
 .im-sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 .im-comparison { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(240px, 1.2fr); gap: clamp(12px, 2vw, 24px); align-items: start; }
-.im-gradation { width: min(100%, 900px); margin: 0 auto 24px; }
-section article .im-gradation figure { margin: 0; }
-section article .im-gradation figcaption { margin: 0 0 6px; color: var(--dr-text); font-size: .9em; font-weight: 700; }
-.im-tone-band { display: block; box-sizing: border-box; width: 100%; height: clamp(44px, 4vw, 56px); overflow: hidden; border: 1px solid var(--dr-border); border-radius: 7px; }
-.im-gradation-arrow { margin: 2px 0; color: var(--dr-axis); font-size: 1.5em; line-height: 1; text-align: center; }
+.im-gradation { display: grid; gap: 8px; width: min(100%, 900px); margin: 20px auto 0; }
+section article .im-gradation-caption { margin: 0 0 2px; color: var(--dr-text); font-size: .9em; font-weight: 700; }
+section article .im-gradation figure { display: grid; grid-template-columns: 6em minmax(0, 1fr); align-items: center; gap: 12px; min-width: 0; margin: 0; }
+section article .im-gradation figcaption { margin: 0; color: var(--dr-text); font-size: .85em; font-weight: 700; line-height: 1.4; }
+.im-gradation-reference { display: block; color: var(--dr-muted); font-size: .8em; font-weight: 400; }
+.im-tone-band { display: block; box-sizing: border-box; width: 100%; height: clamp(20px, 1.4em, 32px); overflow: hidden; border: 1px solid var(--dr-border); border-radius: 3px; }
 .im-comparison > *, .im-gray-layout > *, .im-problems > * { min-width: 0; }
 section article .im-comparison figure, section article .im-gray-layout figure { margin: 0; }
 .im-picture { display: block; width: 100%; height: auto; aspect-ratio: 1; border: 1px solid var(--dr-border); border-radius: 5px; overflow: hidden; }
@@ -177,5 +178,5 @@ section article .im-format-table { display: table; width: 100%; min-width: 420px
   .im-guide-ready :is(.im-guide-heading, .im-guide-row, .im-guide-row[hidden]) { display: grid !important; grid-template-columns: minmax(72px, 1fr) repeat(5, minmax(0, 1.35fr)); break-inside: avoid; }
   .im-guide-ready .im-guide-label { position: static; display: block; grid-column: auto; box-shadow: none; }
   .im-guide-heading > :first-child { display: block; }
-  .im-picture { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .im-picture, .im-tone-band { print-color-adjust: exact; -webkit-print-color-adjust: exact; }
 }
