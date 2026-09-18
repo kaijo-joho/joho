@@ -40,7 +40,7 @@ async function run(){
     await add('fade',{duration:.6});
     await add('color',{trigger:'after',duration:.4});
     await openList();await page.locator('[data-animation-edit="1"]').click();await page.locator('[data-animation-color="#EF4444"]').click();
-    assert.equal(await page.locator('#animation-color-R').inputValue(),'239');await page.locator('#animation-color-B').fill('100');assert.equal(await page.locator('#animation-color-hex').inputValue(),'#EF4464');await inspectorSubmit();await inspectorClose();
+    assert.equal(await page.locator('#animation-color-picker').inputValue(),'#ef4444');await page.locator('#animation-color-hex').fill('#EF4464');assert.equal(await page.locator('#animation-color-picker').inputValue(),'#ef4464');await inspectorSubmit();await inspectorClose();
     await add('move',{trigger:'with',duration:.4,dx:160,dy:80});
     await pick('arrow');await add('wipe',{duration:.5,direction:'right'});
     let animated=await read();assert.equal(animated.version,3);assert.equal(animated.pages[0].animations.length,4);

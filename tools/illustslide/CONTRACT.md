@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.18）
+# イラストスライド illustSlideの内部契約（0.4.19）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -15,6 +15,14 @@ style: `{fill,stroke,strokeWidth,opacity,fillOpacity?,strokeOpacity?,dash,lineca
 fillOpacity/strokeOpacityは0〜1の有限数値、省略時は1。DEFAULT_STYLEや旧文書へ自動補完しない。opacityは塗りと線を合成した後の全体不透明度として既存の意味を保持する。図形内文字はlabel.styleを使い、図形本体のチャンネル値を継承しない。
 fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。fontFamilyはsans-serif/serif/monospace。
 グループは初期版では同じgroup値を持つ平坦な集合。選択・変形は原則グループ全体へ適用。
+
+## 書式の入力部品（0.4.19）
+
+色はパレット・native color input・16進数欄を使い、nativeピッカーにあるRGB数値欄をパネルへ重複して置かない。文字色・アニメーション色も同じ原則にする。色なし・混在・部分書式の既存の意味を維持する。
+
+書式パネルのfillOpacity/strokeOpacity/opacity/strokeWidthはrangeと精密numberを同じpatchへ結ぶ。rangeの刻みは不透明度1%、線幅は通常0.1px、boardの幅・高さがともに72px以下なら0.01px。線幅の上限は通常20px、小用紙4pxと、対象の保存値の最大値を比較し、数値入力時も必要なら広げる。numberはstep=anyでモデルの有効範囲を受け付ける。rangeの表示丸めを文書へ戻さず、初期化・タブ切替で任意キーの補完や値の丸めをしない。混在はnumberを空欄・rangeを薄い表示とし、aria-valuetextでも示す。
+
+dash/linecap/linejoinはaria-pressed付きの単一選択ボタン群とし、SVGプレビュー・aria-label・data-tip・選択名を持つ。対象に効く項目だけを表示し、従来の値・適用先の判定は変えない。カスタムdashもプレビューと名称を保持する。スライダーのpointerdownで入力の履歴groupを区切り、1回のドラッグ内のinput/changeは同じUndoへまとめる。書式ボタンは従来どおり離散操作として扱う。UI変更による文書形式の追加はない。
 
 ## IlapoArrange（arrange.js、0.4.17）
 

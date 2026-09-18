@@ -603,6 +603,13 @@
     for(const axis of ['width','height'])$('transform-'+axis).oninput=()=>{if(!$('transform-ratio').checked||!b.width||!b.height)return;const target=axis==='width'?'height':'width';$('transform-'+target).value=round(Number($('transform-'+axis).value)*b[target]/b[axis]);};
   }
   const palette=['#FFFFFF','#E2E8F0','#94A3B8','#475569','#172B4D','#000000','#FCA5A5','#EF4444','#F59E0B','#FDE047','#BEF264','#22C55E','#5EEAD4','#06B6D4','#93C5FD','#2563EB','#A78BFA','#EC4899'];
+  function styleChoiceIcon(key,value){
+    let drawing;
+    if(key==='dash')drawing=`<path d="M2 12H34" stroke-width="2.5" stroke-linecap="butt" stroke-dasharray="${esc(value)}"/>`;
+    else if(key==='linecap')drawing=`<path d="M10 12H26" stroke-width="8" stroke-linecap="${value}"/><path d="M10 2V22M26 2V22" stroke-width="1" opacity=".5"/>`;
+    else drawing=`<path d="M6 21 18 6 30 21" stroke-width="7" stroke-linecap="butt" stroke-linejoin="${value}"/><path d="M6 21 18 6 30 21" stroke="var(--panel)" stroke-width="1" opacity=".6"/>`;
+    return `<svg viewBox="0 0 36 24" aria-hidden="true" focusable="false">${drawing}</svg>`;
+  }
   let styleChannelScope='',styleChannel='fill';
   function styleDialog(){
     if(selected.length===1&&page().objects.find(o=>o.id===selected[0])?.type==='image'){imageDialog();return;}
@@ -625,6 +632,16 @@
     let channel=styleChannelScope===channelScope&&channels.includes(styleChannel)?styleChannel:channels[0];
     styleChannelScope=channelScope;styleChannel=channel;
     const numeric=(key,label,min=0,max='')=>`<label>${label}<input id="style-${key}" data-style="${key}" type="number" min="${min}" ${max!==''?`max="${max}"`:''} step="any" ${mixed(key)?'placeholder="混在"':`required value="${key.endsWith('Opacity')||key==='opacity'?percent(key):value(key)}"`}></label>`;
+    const smallBoard=Math.max(page().board.width,page().board.height)<=72;
+    const widthMax=Math.max(smallBoard?4:20,...targets('strokeWidth').map(o=>o.style.strokeWidth));
+    const slider=(key,label)=>{
+      const width=key==='strokeWidth',current=width?value(key):percent(key);
+      return `<div class="style-slider"><label id="style-${key}-label" for="style-${key}-range">${label}</label><div class="style-slider-row"><input id="style-${key}-range" data-style-range="${key}" type="range" min="0" max="${width?widthMax:100}" step="${width ? (smallBoard ? 0.01 : 0.1) : 1}" value="${current}" aria-labelledby="style-${key}-label"><input id="style-${key}" data-style="${key}" type="number" min="0" max="${width?C.LIMITS.coordinate:100}" step="any" aria-label="${label}を数値で指定" ${mixed(key)?'placeholder="混在"':`required value="${current}"`}></div></div>`;
+    };
+    const iconChoices=(key,label,choices)=>{
+      if(!choices.some(([v])=>v===first(key)))choices=[...choices,[first(key),'カスタム']];
+      return `<div class="style-choice"><div class="style-choice-heading"><span id="style-${key}-label">${label}</span><small id="style-${key}-state"></small></div><div class="style-choices" role="group" aria-labelledby="style-${key}-label">${choices.map(([v,name])=>`<button type="button" data-style-choice="${key}" data-style-value="${esc(v)}" data-style-name="${name}" aria-label="${label}：${name}" data-tip="${label}：${name}${name==='カスタム'?'（'+esc(v)+'）':''}" aria-pressed="${!mixed(key)&&v===value(key)}">${styleChoiceIcon(key,v)}</button>`).join('')}</div></div>`;
+    };
     const choice=(key,label,choices)=>{
       if(!mixed(key)&&!choices.some(([v])=>v===value(key)))choices=[...choices,[value(key),'カスタム（'+value(key)+'）']];
       return `<label>${label}<select id="style-${key}" data-style="${key}">${mixed(key)?'<option value="__mixed" disabled selected>混在</option>':''}${choices.map(([v,name])=>`<option value="${esc(v)}" ${!mixed(key)&&v===value(key)?'selected':''}>${esc(name)}</option>`).join('')}</select></label>`;
@@ -647,17 +664,16 @@
         <p id="mixed-color" class="muted"></p>
         <div class="swatches">${palette.map(v=>`<button type="button" data-color="${v}" style="--swatch:${v}" aria-label="色 ${v}"></button>`).join('')}</div>
         <div class="row"><button type="button" id="color-none">色なし</button><input id="color-picker" type="color" aria-label="自由な色を選択" style="flex:1"><input id="color-hex" aria-label="色の16進数" maxlength="7" pattern="#[0-9a-fA-F]{6}|none" required style="flex:1"></div>
-        <div class="fields three">${['R','G','B'].map(k=>`<label>${k}<input id="color-${k}" type="number" required min="0" max="255" step="1"></label>`).join('')}</div>
-        ${channels.includes('fill')?`<fieldset class="paint-fields" data-paint-fields="fill">${numeric('fillOpacity','塗りの不透明度（%）',0,100)}</fieldset>`:''}
-        <fieldset class="paint-fields" data-paint-fields="stroke"><div class="fields">
-          ${numeric('strokeOpacity','線の不透明度（%）',0,100)}${numeric('strokeWidth','線幅（px）')}
-          ${choice('dash','線の種類',[['','実線'],['6 4','破線'],['1 3','点線'],['10 3 2 3','一点鎖線']])}
-          ${choice('linecap','線の端',[['butt','平ら'],['round','丸い'],['square','四角い']])}
-          ${choice('linejoin','線の角',[['miter','角'],['round','丸い'],['bevel','面取り']])}
-        </div><p id="style-line-note" class="muted"></p></fieldset>
+        ${channels.includes('fill')?`<fieldset class="paint-fields" data-paint-fields="fill">${slider('fillOpacity','塗りの不透明度（%）')}</fieldset>`:''}
+        <fieldset class="paint-fields" data-paint-fields="stroke">
+          ${slider('strokeOpacity','線の不透明度（%）')}${slider('strokeWidth','線幅（px）')}
+          ${iconChoices('dash','線の種類',[['','実線'],['6 4','破線'],['1 3','点線'],['10 3 2 3','一点鎖線']])}
+          ${iconChoices('linecap','線の端',[['butt','平ら'],['round','丸い'],['square','四角い']])}
+          ${iconChoices('linejoin','線の角',[['miter','角'],['round','丸い'],['bevel','面取り']])}
+        <p id="style-line-note" class="muted"></p></fieldset>
       </section>
       <details id="style-overall" class="style-extra" ${mixed('opacity')||value('opacity')!==1?'open':''}><summary id="style-overall-summary"></summary>
-        ${numeric('opacity','全体の不透明度（%）',0,100)}<p class="muted">塗りと線をまとめて薄くします。${objects.some(o=>o.label&&o.type==='path')?'図形内の文字は別の書式です。':''}</p>
+        ${slider('opacity','全体の不透明度（%）')}<p class="muted">塗りと線をまとめて薄くします。${objects.some(o=>o.label&&o.type==='path')?'図形内の文字は別の書式です。':''}</p>
       </details>
       ${bulkText?`<details class="style-extra"><summary>文字の基本書式（${textObjects.length}個）</summary><div class="fields">${numeric('fontSize','文字サイズ（px）',.01)}${choice('fontFamily','書体',[['sans-serif','ゴシック'],['serif','明朝'],['monospace','等幅']])}</div><div class="row">${['bold','italic'].map(key=>`<label class="check"><input type="checkbox" id="style-${key}" data-style="${key}" ${value(key)?'checked':''}>${key==='bold'?'太字':'斜体'}</label>`).join('')}</div><p class="muted">選択中の文字・接続ラベルの基本書式に反映します。部分書式は、文字を1つ選んで「文字・配置」で編集します。</p></details>`:''}
       ${textLink?`<div class="style-text-link">${textLink}${one?.type==='text'?'<p class="muted">部分ごとの文字色・太字・斜体は「文字・配置」で編集します。</p>':''}</div>`:''}
@@ -668,7 +684,6 @@
     function updateColor(){
       const color=value(channel),hex=color==='none'?'#000000':color;
       $('color-picker').value=hex;$('color-hex').value=color;
-      ['R','G','B'].forEach((k,i)=>$('color-'+k).value=parseInt(hex.slice(1+i*2,3+i*2),16));
       $('mixed-color').textContent=mixed(channel)?'複数の色が混在しています。色を選ぶとそろえます。':color==='none'?'色なし':color;
       body.querySelectorAll('[data-color]').forEach(b=>b.setAttribute('aria-pressed',String(!mixed(channel)&&b.dataset.color===color.toUpperCase())));
       $('style-line-note').textContent=channel==='stroke'?(value('stroke')==='none'?'線の色が「色なし」のため、線は表示されません。':value('strokeWidth')===0?'線幅が0のため、線は表示されません。':objects.some(o=>o.type==='connector')?'接続矢印では、矢じりとラベルにも線の色・不透明度を使います。':'線の端は開いたパスの両端、線の角は折れ曲がる部分に反映します。'):'';
@@ -678,6 +693,18 @@
       body.querySelectorAll('[data-paint-fields]').forEach(el=>{el.hidden=el.dataset.paintFields!==channel;el.disabled=el.hidden;});
       $('style-paint').setAttribute('aria-label',channelNames[channel]+'の設定');updateColor();
     }
+    function updateRange(key){
+      const range=$('style-'+key+'-range');if(!range)return;
+      const current=key==='strokeWidth'?value(key):percent(key);
+      if(key==='strokeWidth')range.max=Math.max(Number(range.max),current);
+      range.value=current;range.setAttribute('aria-valuetext',mixed(key)?'混在':current+(key==='strokeWidth'?' px':'%'));
+      range.closest('.style-slider').classList.toggle('mixed',mixed(key));
+    }
+    function updateChoices(key){
+      let name='混在';
+      body.querySelectorAll(`[data-style-choice="${key}"]`).forEach(b=>{const on=!mixed(key)&&b.dataset.styleValue===value(key);b.setAttribute('aria-pressed',String(on));if(on)name=b.dataset.styleName;});
+      $('style-'+key+'-state').textContent=name;
+    }
     body.querySelectorAll('[data-color-channel]').forEach(b=>b.onclick=()=>{
       body.querySelectorAll('[data-paint-fields] input[type=number]').forEach(el=>{if(el.value===''||!el.checkValidity()){const key=el.dataset.style;el.value=mixed(key)?'':key.endsWith('Opacity')?percent(key):value(key);}});
       channel=b.dataset.colorChannel;styleChannel=channel;updateChannel();
@@ -686,15 +713,22 @@
     $('color-none').onclick=()=>{patch[channel]='none';updateColor();};
     $('color-picker').oninput=()=>{patch[channel]=$('color-picker').value.toUpperCase();updateColor();};
     $('color-hex').oninput=()=>{if(/^#[0-9a-f]{6}$/i.test($('color-hex').value)){patch[channel]=$('color-hex').value.toUpperCase();updateColor();}};
-    ['R','G','B'].forEach(k=>$('color-'+k).oninput=()=>{const rgb=['R','G','B'].map(c=>Number($('color-'+c).value));if(rgb.every((v,i)=>$('color-'+['R','G','B'][i]).value!==''&&Number.isInteger(v)&&v>=0&&v<=255)){patch[channel]='#'+rgb.map(v=>v.toString(16).padStart(2,'0')).join('').toUpperCase();updateColor();}});
     body.querySelectorAll('[data-style]').forEach(el=>{
       const key=el.dataset.style;if(el.type==='checkbox')el.indeterminate=mixed(key);
       el.oninput=el.onchange=()=>{
         if(el.type==='number'&&(el.value===''||!el.checkValidity()))return;
         patch[key]=el.type==='checkbox'?el.checked:el.type==='number'?Number(el.value)/(key.endsWith('Opacity')||key==='opacity'?100:1):el.value;
         if(el.type==='checkbox')el.indeterminate=false;
-        updateOverall();if(key==='strokeWidth')updateColor();
+        updateOverall();updateRange(key);if(key==='strokeWidth')updateColor();
       };
+    });
+    body.querySelectorAll('[data-style-range]').forEach(range=>{
+      const key=range.dataset.styleRange;updateRange(key);
+      range.oninput=range.onchange=()=>{const number=$('style-'+key);number.value=range.value;number.oninput();};
+    });
+    body.querySelectorAll('[data-style-choice]').forEach(button=>{
+      const key=button.dataset.styleChoice;updateChoices(key);
+      button.onclick=()=>{patch[key]=button.dataset.styleValue;updateChoices(key);};
     });
     updateChannel();updateOverall();
   }

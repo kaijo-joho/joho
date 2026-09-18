@@ -32,7 +32,7 @@
         <div class="text-tools" role="group" aria-label="選択した文字の書式"><button type="button" id="text-bold" aria-label="太字" data-tip="太字 ⌘B" aria-pressed="false"><strong>B</strong></button><button type="button" id="text-italic" aria-label="斜体" data-tip="斜体 ⌘I" aria-pressed="false"><i>I</i></button><button type="button" data-script="normal" aria-label="通常の文字にする" data-tip="通常の文字">x</button><button type="button" data-script="super" aria-label="上付きにする" data-tip="上付き">x²</button><button type="button" data-script="sub" aria-label="下付きにする" data-tip="下付き">x₂</button></div>
         <details id="text-colors"><summary>文字の色</summary><div class="swatches">${ctx.palette.map(color=>`<button type="button" data-text-color="${color}" style="--swatch:${color}" aria-label="文字色 ${color}"></button>`).join('')}</div>
         <div class="row text-color-row"><input id="text-color-picker" type="color" aria-label="自由な文字色"><input id="text-color-hex" maxlength="7" pattern="#[0-9a-fA-F]{6}|none" aria-label="文字色の16進数"><button type="button" id="text-color-none">色なし</button></div>
-        <div class="fields three">${['R','G','B'].map(value=>`<label>${value}<input data-text-rgb="${value}" type="number" min="0" max="255" step="1"></label>`).join('')}</div></details>
+        </details>
         <details id="text-markdown-tools"><summary>Markdownから挿入</summary><label>記法で入力<textarea id="text-markdown-input" maxlength="${C.LIMITS.textLength}" spellcheck="false" placeholder="**太字** · *斜体* · x^2^ · H_2_O"></textarea></label><div id="text-markdown-preview" class="rich-text-preview" aria-label="Markdownの挿入プレビュー"></div><p id="text-markdown-note" class="muted"></p><button id="text-markdown-insert" type="button" disabled>文章へ挿入</button><p class="muted">選択中の文字を置き換え、範囲選択がなければカーソル位置へ挿入します。色は {{color=#2563EB | 文字}}。表・リンクなどの未対応記法は原文を残します。</p></details>
         <div class="text-align-buttons" role="group" aria-label="文字の揃え方">${alignment}</div>
         ${isLabel?`<label>図形内の余白（px）<input id="text-padding" type="number" required min="0" max="10000000" step="any" value="${model.padding}"></label><p class="muted">図形の中央に配置し、図形の幅に合わせて折り返します。</p>`:`<label class="check"><input id="text-wrap" type="checkbox" ${source.layout?.width?'checked':''}>幅を指定して折り返す</label><label>文字幅（px）<input id="text-width" type="number" required min="0.01" max="10000000" step="any" value="${initialWidth}" ${source.layout?.width?'':'disabled'}></label>`}
@@ -76,7 +76,6 @@
       function color(value) {
         $('text-color-hex').value=value||'';$('text-color-hex').placeholder=value===null?'複数の色':'';
         const hex=!value||value==='none'?'#000000':value;$('text-color-picker').value=hex;
-        panel.querySelectorAll('[data-text-rgb]').forEach((input,index)=>input.value=value===null?'':parseInt(hex.slice(1+index*2,3+index*2),16));
         panel.querySelectorAll('[data-text-color]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.textColor===value?.toUpperCase())));
       }
       function toolbar() {
@@ -97,7 +96,6 @@
       $('text-color-picker').oninput=()=>applyColor($('text-color-picker').value,false);
       $('text-color-hex').oninput=()=>{const value=$('text-color-hex').value;if(value==='none'||/^#[0-9a-f]{6}$/i.test(value))applyColor(value,false);};
       $('text-color-none').onclick=()=>applyColor('none');
-      panel.querySelectorAll('[data-text-rgb]').forEach(input=>input.oninput=()=>{const fields=[...panel.querySelectorAll('[data-text-rgb]')];if(fields.some(field=>!field.value||!field.checkValidity()))return;applyColor('#'+fields.map(field=>Number(field.value).toString(16).padStart(2,'0')).join(''),false);});
       panel.querySelectorAll('[data-text-align]').forEach(button=>button.onclick=()=>{align=button.dataset.textAlign;panel.querySelectorAll('[data-text-align]').forEach(b=>b.setAttribute('aria-pressed',String(b===button)));notify();});
       if(!isLabel)$('text-wrap').onchange=()=>{$('text-width').disabled=!$('text-wrap').checked;};
       $('text-font-family').onchange=()=>inputEditor.setStyle({...style,fontFamily:$('text-font-family').value});

@@ -234,7 +234,7 @@ async function viewSettings(page) {
     await page.locator('#text-input').focus(); await page.keyboard.press('Tab'); await page.keyboard.press('Shift+Tab');
     assert.equal(await page.evaluate(()=>document.activeElement.id),'text-input');
     await page.locator('#text-colors summary').click();
-    await page.locator('[data-text-rgb="R"]').scrollIntoViewIfNeeded();
+    await page.locator('#text-color-hex').scrollIntoViewIfNeeded();
     const smallest=await page.locator('#inspector-body').evaluate(el=>({client:el.clientWidth,scroll:el.scrollWidth}));
     assert(smallest.scroll<=smallest.client+1,'幅220pxの文字パネル内も横overflowなし');
     await page.locator('#text-input').focus(); await page.keyboard.press('Escape'); await settle(page);

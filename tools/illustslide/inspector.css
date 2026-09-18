@@ -10,6 +10,18 @@
 #inspector-tabs button{flex:none;min-height:36px;padding:5px 9px;font-size:.9em}
 #inspector-body{min-height:0;overflow:auto;padding:4px 16px 18px;overscroll-behavior:contain}
 .paint-fields{border:0;min-width:0;padding:0;margin:0}
+.style-slider{margin:12px 0}
+.style-slider>label{margin:0 0 5px}
+.style-slider-row{display:grid;grid-template-columns:minmax(0,1fr) 5.5em;align-items:center;gap:12px}
+.style-slider input[type=range]{width:100%;height:44px;padding:0;margin:0;border:0;accent-color:var(--accent);background:transparent;cursor:ew-resize;touch-action:pan-y}
+.style-slider input[type=number]{padding:6px;min-height:38px;text-align:right}
+.style-slider.mixed input[type=range]{opacity:.5}
+.style-choice{margin:12px 0}
+.style-choice-heading{display:flex;align-items:baseline;justify-content:space-between;gap:8px;color:var(--muted);margin-bottom:5px}
+.style-choice-heading small{font-size:.85em}
+.style-choices{display:flex;flex-wrap:wrap;gap:4px}
+.style-choices button{min-width:44px;min-height:44px;padding:4px}
+.style-choices button svg{width:32px;height:24px}
 .style-extra{margin-top:16px;padding-top:12px;border-top:1px solid var(--line)}
 .style-extra summary{cursor:pointer;color:var(--muted);padding:6px 0}
 .style-text-link{margin-top:16px}

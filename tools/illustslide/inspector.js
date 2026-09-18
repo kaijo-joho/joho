@@ -397,6 +397,10 @@
     form.addEventListener('submit', apply);
     form.addEventListener('input', queuePreview);
     form.addEventListener('change', queuePreview);
+    form.addEventListener('pointerdown', event => {
+      // Each slider drag is one undo step, even when the same slider keeps focus.
+      if (event.target.matches('input[type=range]')) inputGroup = groupTarget = null;
+    });
     body.addEventListener('click', event => {
       if (event.target.closest('button:not(:disabled)')) queuePreview(event);
     });

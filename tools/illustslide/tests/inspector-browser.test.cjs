@@ -145,10 +145,11 @@ async function close(page) { if (await page.locator('#inspector-panel').isVisibl
     await page.setViewportSize({ width: 390, height: 320 }); await settle(page);
     assert(await page.evaluate(() => document.getElementById('inspector-live-note').getBoundingClientRect().bottom <= innerHeight && document.getElementById('canvas').getBoundingClientRect().height >= 70), 'short viewport keeps canvas and即時反映の案内を表示する');
     const shortBefore = await read(page);
-    for (const [channel, value] of [['R', '18'], ['G', '52'], ['B', '86']]) await page.locator('#color-' + channel).fill(value);
-    await page.locator('#color-B').evaluate(el => el.scrollIntoView({ block:'center' })); await settle(page);
+    await page.locator('#color-hex').fill('#123456');
+    await page.locator('#color-hex').evaluate(el => el.scrollIntoView({ block:'center' })); await settle(page);
     assert.equal(await page.locator('#color-hex').inputValue(), '#123456');
-    const shortField = await page.locator('#color-B').boundingBox(), shortFooter = await page.locator('#inspector-panel footer').boundingBox(), shortPanel = await page.locator('#inspector-panel').boundingBox();
+    assert.equal(await page.locator('#color-R').count(), 0, '書式パネルはRGBの数値入力を重複して表示しない');
+    const shortField = await page.locator('#color-hex').boundingBox(), shortFooter = await page.locator('#inspector-panel footer').boundingBox(), shortPanel = await page.locator('#inspector-panel').boundingBox();
     assert(shortField.y >= shortPanel.y && shortField.y + shortField.height <= shortFooter.y + 1, 'short viewport exposes the input above the fixed footer');
     assert.notDeepEqual(await read(page), shortBefore, 'short viewportでも入力をすぐ保存する');
     await page.screenshot({ path: path.join(artifacts, 'short-viewport.png') });

@@ -104,8 +104,8 @@ async function run() {
 
     await selectObject(page, rectId); await page.locator('[data-action="style"]').click();
     assert(await page.locator('#inspector-panel').isVisible(), 'style settings use the non-modal inspector'); assert(await page.locator('#canvas').isVisible(), 'canvas remains visible while style settings are open');
-    for (const [id, value] of [['color-R', '17'], ['color-G', '34'], ['color-B', '51']]) { await page.locator('#' + id).fill(value); await page.locator('#' + id).dispatchEvent('input'); }
-    await inspectorSubmit(page); doc = await documentOf(page); assert.equal(doc.pages[0].objects.find(object => object.id === rectId).style.fill, '#112233', 'RGB palette controls use the selected color'); await inspectorClose(page);
+    await page.locator('#color-hex').fill('#112233');
+    await inspectorSubmit(page); doc = await documentOf(page); assert.equal(doc.pages[0].objects.find(object => object.id === rectId).style.fill, '#112233', '16進数の色入力は選択中の色へ反映する'); await inspectorClose(page);
     await page.locator('[data-menu="edit"]').click(); await page.locator('#command-menu').getByRole('button', { name: '書式をコピー', exact: true }).click();
     await addShape(page, 'ellipse', 700, 330, [80, 55]); doc = await documentOf(page); const ellipse = doc.pages[0].objects.at(-1);
     await selectObject(page, ellipse.id); await page.locator('[data-menu="edit"]').click(); await page.locator('#command-menu').getByRole('button', { name: '書式を適用', exact: true }).click();

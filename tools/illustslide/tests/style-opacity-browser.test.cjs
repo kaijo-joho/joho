@@ -44,6 +44,8 @@ async function select(page,id,add=false) {
 async function openStyle(page) { await page.locator('#style-button').click();await settle(page); }
 async function channel(page,key) { await page.locator(`[data-color-channel="${key}"]`).click();await settle(page); }
 async function input(page,key,value) { await page.locator('#style-'+key).fill(String(value));await settle(page); }
+async function choice(page,key,value) { await page.locator(`[data-style-choice="${key}"][data-style-value="${value}"]`).click();await settle(page); }
+const numberValue = async (page,key) => Number(await page.locator('#style-'+key).inputValue());
 function near(actual,expected,label,tolerance=2) { assert.equal(actual.length,expected.length);actual.forEach((n,i)=>assert(Math.abs(n-expected[i])<=tolerance,`${label}: ${actual} != ${expected}`)); }
 
 (async()=>{
@@ -57,10 +59,19 @@ function near(actual,expected,label,tolerance=2) { assert.equal(actual.length,ex
     await page.goto(url);await page.waitForFunction(()=>!!window.IlapoEditor);
     await load(page);await select(page,'a');await openStyle(page);
     const before=await read(page);
+    assert.equal(await page.locator('#color-R,#color-G,#color-B').count(),0,'RGB欄は色ピッカーと重複して置かない');
     assert(await page.locator('#style-fillOpacity').isVisible());
+    assert.equal(await page.locator('#style-fillOpacity-range').getAttribute('type'),'range');
+    assert.equal(await page.locator('#style-fillOpacity-range').getAttribute('min'),'0');
+    assert.equal(await page.locator('#style-fillOpacity-range').getAttribute('max'),'100');
+    assert.equal(await page.locator('#style-fillOpacity-range').getAttribute('step'),'1');
     assert(await page.locator('#style-strokeWidth').isHidden());
     assert.equal(await page.locator('[data-style="fontSize"]').count(),0,'図形本体に無効な文字設定を並べない');
     await channel(page,'stroke');assert(await page.locator('#style-strokeWidth').isVisible());assert(await page.locator('#style-fillOpacity').isHidden());
+    assert.equal(await page.locator('#style-strokeWidth-range').getAttribute('type'),'range');
+    assert.equal(await page.locator('#style-strokeWidth-range').getAttribute('min'),'0');
+    assert.equal(await page.locator('#style-strokeWidth-range').getAttribute('max'),'20');
+    assert.equal(await page.locator('#style-strokeWidth-range').getAttribute('step'),'0.1');
     assert.equal(await page.locator('[data-color-channel="stroke"]').getAttribute('aria-pressed'),'true');
     await channel(page,'fill');assert.deepEqual(await read(page),before,'切替だけで属性や履歴を追加しない');
     await input(page,'fillOpacity',20);await input(page,'fillOpacity',40);
@@ -73,8 +84,13 @@ function near(actual,expected,label,tolerance=2) { assert.equal(actual.length,ex
     await page.keyboard.press('Meta+Shift+z');await settle(page);
     const valid=await read(page);await input(page,'strokeOpacity',101);assert.deepEqual(await read(page),valid,'不正値を保存しない');
     await channel(page,'fill');await channel(page,'stroke');assert.equal(await page.locator('#style-strokeOpacity').inputValue(),'70');
-    await input(page,'strokeWidth',12);await page.locator('#style-dash').selectOption('6 4');await page.locator('#style-linecap').selectOption('round');await page.locator('#style-linejoin').selectOption('bevel');await settle(page);
+    await input(page,'strokeWidth',12);await choice(page,'dash','6 4');await choice(page,'linecap','round');
+    await page.locator('[data-style-choice="linejoin"][data-style-value="bevel"]').focus();await page.keyboard.press('Enter');await settle(page);
     a=await object(page,'a');assert.deepEqual([a.style.strokeWidth,a.style.dash,a.style.linecap,a.style.linejoin],[12,'6 4','round','bevel']);
+    for(const [key,value,label] of [['dash','6 4','線の種類：破線'],['linecap','round','線の端：丸い'],['linejoin','bevel','線の角：面取り']]){
+      const button=page.locator(`[data-style-choice="${key}"][data-style-value="${value}"]`);
+      assert.equal(await button.getAttribute('aria-pressed'),'true');assert.equal(await button.getAttribute('aria-label'),label);
+    }
     await page.locator('#style-overall summary').click();await input(page,'opacity',50);
     a=await object(page,'a');assert.deepEqual([a.style.fillOpacity,a.style.strokeOpacity,a.style.opacity],[.4,.7,.5]);
     await channel(page,'fill');await page.locator('#color-none').click();await settle(page);assert.equal((await object(page,'a')).style.fill,'none');
@@ -159,6 +175,41 @@ function near(actual,expected,label,tolerance=2) { assert.equal(actual.length,ex
     });
     assert.deepEqual(playback,{fill:'0.4',stroke:'0.7',overall:'0.5',fade:'0.5'},'フェードの倍率と各書式の不透明度を保持');
 
+    // Sliders are the direct controls; compact number inputs remain synchronized.
+    await load(page);await select(page,'a');await openStyle(page);await channel(page,'stroke');
+    const widthRange=page.locator('#style-strokeWidth-range');
+    await widthRange.focus();await page.keyboard.press('Home');await page.keyboard.press('ArrowRight');await settle(page);
+    assert.equal((await object(page,'a')).style.strokeWidth,.1,'rangeのキーボード操作は線幅をすぐ反映する');
+    assert.equal(await numberValue(page,'strokeWidth'),Number(await widthRange.inputValue()),'rangeと精密数値入力を同期する');
+    const widthBox=await widthRange.boundingBox();
+    async function dragWidth(fraction){await page.mouse.move(widthBox.x+widthBox.width*.15,widthBox.y+widthBox.height/2);await page.mouse.down();await page.mouse.move(widthBox.x+widthBox.width*fraction,widthBox.y+widthBox.height/2,{steps:4});await page.mouse.up();await settle(page);}
+    await dragWidth(.45);const firstDrag=(await object(page,'a')).style.strokeWidth;
+    await dragWidth(.75);const secondDrag=(await object(page,'a')).style.strokeWidth;
+    assert.notEqual(firstDrag,secondDrag,'同じrangeの別ドラッグはそれぞれ値を反映する');
+    await page.keyboard.press('Meta+z');await settle(page);assert.equal((await object(page,'a')).style.strokeWidth,firstDrag,'2回目のrangeドラッグは1回のUndoで戻る');
+    await page.keyboard.press('Meta+z');await settle(page);assert.equal((await object(page,'a')).style.strokeWidth,.1,'1回目のrangeドラッグも1回のUndoで戻る');
+
+    const tiny=fixture();tiny.pages[0].board={width:18,height:18,unit:'px',infinite:false};tiny.pages[0].objects=[C.makeShape('rect',1,1,12,12,{fill:'#EF4444',stroke:'#172B4D',strokeWidth:1})];tiny.pages[0].objects[0].id='a';
+    await load(page,tiny);await select(page,'a');await openStyle(page);await channel(page,'stroke');
+    assert.equal(await page.locator('#style-strokeWidth-range').getAttribute('max'),'4','18px角の小用紙は線幅rangeを4pxまでに抑える');
+    assert.equal(await page.locator('#style-strokeWidth-range').getAttribute('step'),'0.01','小用紙の線幅rangeは0.01px刻み');
+    await page.locator('#style-strokeWidth-range').focus();await page.keyboard.press('Home');await page.keyboard.press('ArrowRight');await settle(page);
+    assert.equal((await object(page,'a')).style.strokeWidth,.01,'小用紙で0.01pxの細い線幅を操作できる');
+    await input(page,'strokeWidth',6);assert.equal((await object(page,'a')).style.strokeWidth,6,'精密数値入力は小用紙の標準range上限を越える値を保存できる');
+    assert(Number(await page.locator('#style-strokeWidth-range').getAttribute('max'))>=6,'保存値に合わせてrange上限を拡張する');
+
+    const preserved=fixture();preserved.pages[0].objects[0].style.strokeWidth=1.234567;preserved.pages[0].objects[0].style.strokeOpacity=.3333;preserved.pages[0].objects[1].style.strokeWidth=48;
+    const preservedBefore=structuredClone(preserved);await load(page,preserved);await select(page,'a');await select(page,'b',true);await openStyle(page);await channel(page,'stroke');
+    assert.deepEqual(await read(page),preservedBefore,'混在の線幅は書式パネルを開いただけで補完や丸めをしない');
+    assert.equal(await page.locator('#style-strokeWidth').inputValue(),'');assert.equal(await page.locator('#style-strokeWidth').getAttribute('placeholder'),'混在');
+    await page.locator('#inspector-close').click();await select(page,'b');await openStyle(page);await channel(page,'stroke');
+    assert.equal(await page.locator('#style-strokeWidth').inputValue(),'48');assert(Number(await page.locator('#style-strokeWidth-range').getAttribute('max'))>=48,'範囲外の保存済み線幅は開いただけで丸めずrange上限を拡張する');
+    await page.locator('#inspector-close').click();await select(page,'a');await openStyle(page);await channel(page,'stroke');
+    assert.equal(await page.locator('#style-strokeWidth').inputValue(),'1.234567');
+    await choice(page,'linecap','square');await settle(page);
+    assert.equal((await object(page,'a')).style.strokeWidth,1.234567,'別の書式を選んでもスライダーの刻みへ丸めない');
+    assert.equal((await object(page,'a')).style.strokeOpacity,.3333,'保存済みの細かい不透明度も保つ');
+
     // Theme, panel width and keyboard switching on a narrow viewport.
     await load(page);await select(page,'a');await openStyle(page);
     for(const width of [1280,736,390]){
@@ -172,9 +223,13 @@ function near(actual,expected,label,tolerance=2) { assert.equal(actual.length,ex
     try {
       const touch=await touchContext.newPage();touch.on('pageerror',e=>errors.push(e.message));await touch.goto(url);await touch.waitForFunction(()=>!!window.IlapoEditor);await load(touch);
       await touch.locator('#artwork [data-object="a"]').tap();await touch.locator('#style-button').tap();await touch.locator('[data-color-channel="stroke"]').tap();
-      await input(touch,'strokeOpacity',55);assert.equal((await object(touch,'a')).style.strokeOpacity,.55);
+      const touchRange=touch.locator('#style-strokeOpacity-range');const touchBox=await touchRange.boundingBox();
+      await touchRange.tap({position:{x:Math.round(touchBox.width*.55),y:Math.round(touchBox.height/2)}});await settle(touch);
+      const touchOpacity=Number(await touchRange.inputValue())/100;assert.equal((await object(touch,'a')).style.strokeOpacity,touchOpacity,'touchでrangeを操作すると線の不透明度と数値入力を同期する');
+      await touch.locator('[data-style-choice="linecap"][data-style-value="round"]').tap();await settle(touch);
+      assert.equal((await object(touch,'a')).style.linecap,'round','アイコン選択はホバー不要でタップできる');
       await touch.locator('[data-color-channel="fill"]').tap();await input(touch,'fillOpacity',15);
-      assert.equal((await object(touch,'a')).style.fillOpacity,.15);assert.equal((await object(touch,'a')).style.strokeOpacity,.55);
+      assert.equal((await object(touch,'a')).style.fillOpacity,.15);assert.equal((await object(touch,'a')).style.strokeOpacity,touchOpacity);
     }finally{await touchContext.close();}
     assert.deepEqual(errors,[]);console.log('Style opacity browser tests passed. Artifacts: '+artifacts);
   }finally{await context.close();await browser.close();await new Promise(r=>server.close(r));}
