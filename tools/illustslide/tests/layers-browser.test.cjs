@@ -23,7 +23,7 @@ function fixture(){const d=C.createDocument();d.id='layer-browser';d.pages[0].bo
   try{
     await page.goto(supplied||`http://127.0.0.1:${server.address().port}/illustslide/`);await page.waitForFunction(()=>!!window.IlapoEditor);
     const original=fixture();await page.locator('#file-input').setInputFiles({name:'layers.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(original))});await page.waitForFunction(()=>IlapoEditor.getDocument().id==='layer-browser');await settle(page);
-    assert.deepEqual(await page.locator('.side-tab button').allTextContents(),['ページ','図形','部品','用紙サイズ','表示と吸着','動きと再生順序','書き出し']);
+    assert.deepEqual(await page.locator('.side-tab button').allTextContents(),['ページ','レイヤー','部品','用紙サイズ','表示と吸着','動きと再生順序','書き出し']);
     await rail(page,'objects');assert.deepEqual(await read(page),original,'一覧を開くだけでは旧作品を変更しない');
     await page.locator('[data-object-command=layer-create]').click();await settle(page);
     let doc=await read(page),layerId=doc.pages[0].layers[1].id;assert.equal(doc.version,6);assert.equal(await page.evaluate(()=>IlapoEditor.getState().activeLayerId),layerId);

@@ -15,6 +15,7 @@
     outline:'M2 21 9 3h6l7 18h-5l-2-5H9l-2 5zM10 12h4l-2-5z',
     path:'M3 17C7 17 7 7 13 7s6 4 8 4M1 15h4v4H1zM11 5h4v4h-4zM13 7l5-4m-1-1h2v2h-2z',
     'flip-h':'M12 2v3m0 3v3m0 3v3m0 3v2M3 5l6 6v7H3zM21 5l-6 6v7h6z','flip-v':'M2 12h3m3 0h3m3 0h3m3 0h2M5 3l6 6h7V3zM5 21l6-6h7v6z',
+    'rotate-left':'M3 3v6h6M3 9a9 9 0 1 1 1 10','rotate-right':'M21 3v6h-6M21 9a9 9 0 1 0-1 10',export:'M12 3v12m-5-5 5 5 5-5M4 15v6h16v-6',
     details:'M3 5h18M3 12h18M3 19h18M8 2v6M16 9v6M9 16v6',back:'m14 5-7 7 7 7',edit:'m4 16 12-12 4 4L8 20l-5 1zM14 6l4 4',image:'M3 3h18v18H3zM3 16l5-6 4 5 3-3 6 7M15 7h.01',
     arrange:'M4 2v20M8 5h12v5H8zM8 14h8v5H8z',animation:'m10 6 9 6-9 6zM3 7h3M1 12h5M3 17h3',
     'align-left':'M3 2v20M6 4h15v5H6zM6 15h9v5H6z','align-center':'M12 1v22M3 4h18v5H3zM7 15h10v5H7z','align-right':'M21 2v20M3 4h15v5H3zM9 15h9v5H9z',
@@ -71,7 +72,7 @@
   function canInsert() {
     const layer=L.list(page()).find(l=>l.id===activeLayer());
     if(layer.visible&&!layer.locked)return true;
-    toast('「図形」で追加先のレイヤーを表示し、固定を解除してください。');return false;
+    toast('「レイヤー」で追加先のレイヤーを表示し、固定を解除してください。');return false;
   }
   const snapshot=()=>JSON.stringify(doc());
   const dirty=()=>edited&&snapshot()!==saveFingerprint;
@@ -204,24 +205,27 @@
     syncArrangeSelection();
     const objects=p.objects.filter(o=>selected.includes(o.id)),one=objects.length===1?objects[0]:null;
     const paths=objects.filter(o=>o.type==='path'),combine=paths.length>1&&paths.length===objects.length;
-    const points=!combine&&tool==='direct'&&pathUI.count()>0,unlocked=allUnlocked();
+    const direct=tool==='direct',points=!combine&&direct&&pathUI.count()>0,unlocked=allUnlocked();
     const canDirect=paths.length>0||one?.type==='connector';
     $('whole-mode').hidden=!canDirect||tool!=='direct';$('direct-mode').hidden=!canDirect||tool==='direct';
     $('selection-bar').dataset.mode=tool==='direct'?'direct':'whole';
-    for(const key of ['union','subtract','intersect']){$('quick-'+key).hidden=!combine;$('quick-'+key).disabled=!unlocked;}
-    $('quick-add-anchor').hidden=!one||one.type!=='path';$('quick-add-anchor').disabled=!unlocked;
+    for(const key of ['union','subtract','intersect']){$('quick-'+key).hidden=!direct||!combine;$('quick-'+key).disabled=!unlocked;}
+    $('quick-add-anchor').hidden=!direct||!one||one.type!=='path';$('quick-add-anchor').disabled=!unlocked;
     $('quick-add-anchor').setAttribute('aria-pressed',String(!!pathUI.context?.().adding));
     for(const key of ['corner','smooth']){$('quick-anchor-'+key).hidden=!points;$('quick-anchor-'+key).disabled=!unlocked;}
-    $('path-menu-button').hidden=!one||one.type!=='path';
-    $('connection-options').hidden=one?.type!=='connector';$('image-options').hidden=one?.type!=='image';
-    $('style-button').hidden=points||one?.type==='image';$('style-button').disabled=!unlocked;
+    $('path-menu-button').hidden=direct?(!one||one.type!=='path'):!paths.length;
+    $('path-menu-button').setAttribute('aria-label',direct?'パス':'アンカー');
+    $('connection-options').hidden=!direct||one?.type!=='connector';$('image-options').hidden=!direct||one?.type!=='image';
+    $('style-button').hidden=points||direct&&one?.type==='image';$('style-button').disabled=one?.type==='image'?!!L.layerOf(p,one.id)?.locked:!unlocked;
     $('text-options').hidden=points||!one||!(one.type==='text'||one.type==='path'&&(one.label||/[zZ]/.test(one.d)));
     $('text-options').disabled=!unlocked;
     $('selection-arrange').hidden=objects.length<2;$('selection-arrange').disabled=!unlocked;
-    const bar=$('selection-bar');
-    for(const axis of ['h','v']){$('selection-flip-'+axis).hidden=!!points;$('selection-flip-'+axis).disabled=!unlocked;}
-    bar.querySelector('[data-action=transform]').hidden=true;
-    bar.querySelectorAll('.selection-extra').forEach(button=>button.hidden=true);
+    for(const axis of ['h','v']){$('selection-flip-'+axis).hidden=!direct||!!points;$('selection-flip-'+axis).disabled=!unlocked;}
+    $('selection-transform').hidden=direct;$('selection-transform').disabled=!unlocked;
+    $('selection-combine').hidden=direct||!combine;$('selection-combine').disabled=!unlocked;
+    $('selection-group').hidden=direct;
+    $('selection-more').setAttribute('aria-label',direct?'その他の編集':'詳細');
+    $('selection-more').dataset.tip=direct?'その他の編集：コピー・グループ・重なり順など':'詳細：コピー・重なり順・アウトライン化など';
   }
   function renderSelection() {
     const z=zoom(), stroke=1/z;
@@ -387,7 +391,7 @@
   const menuSurface=element=>element?.closest('#command-menu,.command-submenu');
   const menuItems=surface=>[...surface.querySelectorAll('button:not(:disabled)')].filter(button=>menuSurface(button)===surface);
   const menuContent=surface=>surface.querySelector(':scope > .menu-content');
-  const menuTitle=kind=>({arrange:'整列','arrange-details':'整列の詳細',order:'重なり順',path:'アンカー・パス','selection-more':'その他の編集'})[kind]||'メニュー';
+  const menuTitle=kind=>({arrange:'整列','arrange-details':'整列の詳細',order:'重なり順',path:'アンカー・パス','selection-more':tool==='direct'?'その他の編集':'詳細','selection-transform':'変形','selection-combine':'図形の合成','selection-group':'グループ・固定'})[kind]||'メニュー';
   const caret=direction=>`<span class="menu-caret" aria-hidden="true">${direction==='right'?'▶':'▼'}</span>`;
   function closeSubmenus(from=0,focus=false){
     const removed=submenus.splice(from),opener=removed[0]?.opener;
@@ -490,11 +494,21 @@
         return [tools,actions,historyMenu,pagesMenu,hidden('#present-button')?menus.present():''].filter(Boolean).join('<hr>');
       },
       present:()=>menuButton('先頭から発表','present-start')+menuButton('このページから発表','present-current'),
-      path:()=>pathUI.menu(menuButton)+'<hr>'+menuButton('アウトライン化…','outline',!outlineAvailable()),
+      path:()=>pathUI.menu(menuButton,{includeCombine:tool==='direct'})+'<hr>'+menuButton('アウトライン化…','outline',!outlineAvailable()),
+      'selection-transform':()=>menuButton('左右反転','flip-h',!unlocked)+menuButton('上下反転','flip-v',!unlocked)+'<hr>'+menuButton('左に90°回転','rotate-left',!unlocked)+menuButton('右に90°回転','rotate-right',!unlocked)+'<hr>'+menuButton('位置・拡大縮小・回転を指定…','transform',!unlocked),
+      'selection-combine':()=>menuButton('合体','path-union',!unlocked)+menuButton('型抜き（最初の図形から）','path-subtract',!unlocked)+menuButton('重なりを残す','path-intersect',!unlocked),
+      'selection-group':()=>{
+        const groups=objects.length>1?menuButton('グループ化','group',!unlocked):'';
+        const ungroup=objects.some(o=>o.group)?menuButton('グループ解除','ungroup',!unlocked):'';
+        return groups+ungroup+(groups||ungroup?'<hr>':'')+menuButton(unlocked?'固定':'固定を解除','lock',selectedNone);
+      },
       'selection-more':()=>{
+        const direct=tool==='direct';
         const text=one&&(one.type==='text'||one.type==='path'&&(one.label||/[zZ]/.test(one.d)))?menuButton('文字を編集…','text-edit',!unlocked):'';
         const path=objects.some(o=>o.type==='path')?menuButton('アンカー・パスの操作','selection-path'):'';
-        return menuButton('コピー','copy',selectedNone)+menuButton('貼り付け','paste',!clipboard)+menuButton('複製','duplicate',selectedNone)+menuButton('削除','delete',!unlocked)+'<hr>'+menuButton('グループ化','group',objects.length<2||!unlocked)+menuButton('グループ解除','ungroup',!objects.some(o=>o.group)||!unlocked)+menuButton('固定／固定解除','lock',selectedNone)+'<hr>'+menuButton('書式をコピー','style-copy',selectedNone)+menuButton('書式を適用','style-paste',!unlocked||!copiedStyle)+'<hr>'+menuButton('位置・大きさ・回転…','transform',!unlocked)+menuButton('整列','selection-arrange',selectedNone||!unlocked)+menuButton('重なり順','selection-order',!unlocked)+text+path+menuButton('アウトライン化…','outline',!outlineAvailable())+'<hr>'+menuButton('動きと再生順序…','animations')+(objects.length===2?menuButton('選択した2図形を接続','connection-between'):'')+menuButton('自作部品に登録…','component-save',selectedNone)+(one?.type==='connector'?menuButton('接続矢印を通常のパスに変換','connection-convert',!unlocked):'');
+        const grouping=direct?menuButton('グループ化','group',objects.length<2||!unlocked)+menuButton('グループ解除','ungroup',!objects.some(o=>o.group)||!unlocked)+menuButton('固定／固定解除','lock',selectedNone)+'<hr>':'';
+        const specific=!direct&&one?.type==='image'?menuButton('画像の設定…','image-options'):!direct&&one?.type==='connector'?menuButton('接続・経路…','connection-options',!unlocked):'';
+        return menuButton('コピー','copy',selectedNone)+menuButton('貼り付け','paste',!clipboard)+menuButton('複製','duplicate',selectedNone)+menuButton('削除','delete',!unlocked)+'<hr>'+grouping+menuButton('書式をコピー','style-copy',selectedNone)+menuButton('書式を適用','style-paste',!unlocked||!copiedStyle)+'<hr>'+(direct?menuButton('位置・大きさ・回転…','transform',!unlocked):'')+menuButton('整列','selection-arrange',selectedNone||!unlocked)+menuButton('重なり順','selection-order',!unlocked)+(direct?text+path:'')+specific+menuButton('アウトライン化…','outline',!outlineAvailable())+'<hr>'+menuButton('動きと再生順序…','animations')+(objects.length===2?menuButton('選択した2図形を接続','connection-between'):'')+menuButton('自作部品に登録…','component-save',selectedNone)+(one?.type==='connector'?menuButton('接続矢印を通常のパスに変換','connection-convert',!unlocked):'');
       },
       arrange:arrangeMenu,'arrange-details':arrangeDetailsMenu,
       order:()=>menuButton('最前面へ','order-front')+menuButton('1つ前へ','order-forward')+menuButton('1つ後ろへ','order-backward')+menuButton('最背面へ','order-back')
@@ -577,7 +591,7 @@
   $('dialog-close').onclick=$('dialog-cancel').onclick=closeDialog;
   $('dialog').addEventListener('cancel',()=>{setTimeout(()=>dialogOpener?.focus(),0);});
   $('dialog-form').onsubmit=async event=>{event.preventDefault();if(!dialogCallback){closeDialog();return;}const cb=dialogCallback;try{const result=cb();if(result?.then)await result;if(dialogCallback===cb)closeDialog();}catch(error){$('dialog-error').textContent=error.message;$('dialog-error').hidden=false;}};
-  const inspectorSections={outline:['アウトライン化','outline'],text:['文字・配置','text'],style:['書式・色','style'],transform:['位置・大きさ','transform'],anchor:['アンカーの座標','path'],connection:['接続・経路','connector'],image:['画像の設定','image'],animation:['動きと再生順序','animation'],board:['用紙サイズ','board'],view:['表示と吸着','view'],pages:['ページ一覧','pages'],objects:['図形の一覧','layers'],assets:['アイコン・部品','assets']};
+  const inspectorSections={outline:['アウトライン化','outline'],text:['文字・配置','text'],style:['書式・色','style'],transform:['位置・大きさ','transform'],anchor:['アンカーの座標','path'],connection:['接続・経路','connector'],image:['画像の設定','image'],animation:['動きと再生順序','animation'],board:['用紙サイズ','board'],view:['表示と吸着','view'],pages:['ページ一覧','pages'],objects:['レイヤー','layers'],assets:['アイコン・部品','assets']};
   let inspectorTabsKey='';
   function inspectorScope(section){return JSON.stringify([revision,doc().id,pageId,['pages','board','view'].includes(section)?null:selected,section==='objects'?activeLayer():null,section==='anchor'?pathUI.getRefs():null,section==='view'?settings:null]);}
   function clearInspectorPreview(){if(inspectorPreview){inspectorPreview=null;render();}}
@@ -612,7 +626,7 @@
     const needsSelection=['style','transform','anchor','connection','image','text','outline'].includes(section)&&!(section==='text'&&textUI?.hasDraft);
     const compatible=!needsSelection||selected.length&&(section!=='image'||one?.type==='image')&&(section!=='connection'||one?.type==='connector')&&(section!=='anchor'||pathUI.count())&&(section!=='text'||one&&(one.type==='text'||one.type==='path'&&(one.label||/[zZ]/.test(one.d))));
     if(!compatible||needsSelection&&(section==='image'?!!L.layerOf(page(),one?.id)?.locked:!allUnlocked())){
-      const message=!compatible?'対象の図形'+(section==='anchor'?'とアンカー':'')+'を選ぶと、ここで調整できます。':'固定された図形を含みます。「図形」で図形やレイヤーの固定を解除すると調整できます。';
+      const message=!compatible?'対象の図形'+(section==='anchor'?'とアンカー':'')+'を選ぶと、ここで調整できます。':'固定された図形を含みます。「レイヤー」で図形やレイヤーの固定を解除すると調整できます。';
       showInspector(section,inspectorSections[section][0],`<p class="muted">${message}</p>`,null);return;
     }
     ({outline:()=>outlineUI.open(),text:()=>textUI.open(one),style:styleDialog,transform:transformDialog,board:boardDialog,view:viewDialog,image:imageDialog,connection:()=>connectionUI.dialog(),anchor:()=>pathUI.commands['anchor-position'](),animation:()=>animationUI.list(),pages:()=>pagesUI.open(),objects:()=>objectsUI.open(),assets:()=>assetsUI.open()})[section]?.();
@@ -674,6 +688,11 @@
   function flipSelection(horizontal){
     if(!editable())return;
     const ids=selected.slice(),b=bounds(ids),matrix=around([horizontal?-1:1,0,0,horizontal?1:-1,0,0],b.x+b.width/2,b.y+b.height/2);
+    changePage(p=>C.transformObjects(p,ids,matrix));
+  }
+  function rotateSelection(clockwise){
+    if(!editable())return;
+    const ids=selected.slice(),b=bounds(ids),matrix=around(clockwise?[0,1,-1,0,0,0]:[0,-1,1,0,0,0],b.x+b.width/2,b.y+b.height/2);
     changePage(p=>C.transformObjects(p,ids,matrix));
   }
   function transformDialog(){
@@ -876,8 +895,8 @@
     undo:()=>moveHistory(false),redo:()=>moveHistory(true),
     'select-all':()=>selection(page().objects.map(o=>o.id)),copy,paste,duplicate:()=>{if(!selected.length)return;let ids;if(changePage(p=>ids=C.duplicateObjects(p,selected,standardSize()*.12,standardSize()*.12)))selected=ids;render();},
     delete:()=>{if(editable())changePage(p=>C.removeObjects(p,selected));},group:()=>{if(editable())changePage(p=>C.groupObjects(p,selected));},ungroup:()=>{if(editable())changePage(p=>C.ungroupObjects(p,selected));},
-    lock:()=>{if(selected.some(id=>L.layerOf(page(),id)?.locked)){toast('「図形」でレイヤーの固定を解除してください。');return;}const lock=allUnlocked();changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.locked=lock));},
-    'flip-h':()=>flipSelection(true),'flip-v':()=>flipSelection(false),
+    lock:()=>{if(selected.some(id=>L.layerOf(page(),id)?.locked)){toast('「レイヤー」でレイヤーの固定を解除してください。');return;}const lock=allUnlocked();changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>o.locked=lock));},
+    'flip-h':()=>flipSelection(true),'flip-v':()=>flipSelection(false),'rotate-left':()=>rotateSelection(false),'rotate-right':()=>rotateSelection(true),
     'text-edit':()=>openInspectorSection('text'),outline:()=>openInspectorSection('outline'),
     'style-copy':()=>{if(selected.length){copiedStyle=C.clone(page().objects.find(o=>o.id===selected[0]).style);toast('書式をコピーしました。');}},'style-paste':()=>{if(copiedStyle&&editable())changePage(p=>p.objects.filter(o=>selected.includes(o.id)).forEach(o=>{if(o.type==='image')o.style.opacity=copiedStyle.opacity;else o.style=C.clone(copiedStyle);}));},
     fit,'zoom-in':()=>zoomAt(1.25),'zoom-out':()=>zoomAt(.8),'zoom-reset':()=>zoomAt(1/zoom()),

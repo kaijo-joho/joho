@@ -412,14 +412,14 @@
       'path-subtract': () => combine('subtract'),
       'path-intersect': () => combine('intersect')
     };
-    function menu(button) {
+    function menu(button, { includeCombine = true } = {}) {
       clean();
       const noRefs = !refs.length, paths = selectedPaths(), combineDisabled = paths.length < 2 || paths.length !== ctx.selected().length;
       return button('アンカーを選択…', 'anchor-list', !paths.length) + button('すべてのアンカーを選択', 'anchor-all', !paths.length) + button('アンカーの座標…', 'anchor-position', noRefs)
         + '<hr>' + button('アンカーを追加', 'anchor-add', !paths.length) + button('削除して切り開く', 'anchor-delete', noRefs) + button('削除して前後をつなぐ', 'anchor-remove', noRefs)
         + '<hr>' + button('角にする', 'anchor-corner', noRefs) + button('滑らかにする', 'anchor-smooth', noRefs) + button('選んだ角を丸める…', 'anchor-round', noRefs)
         + '<hr>' + button('ここで切り開く', 'path-open', refs.length !== 1) + button('パスを閉じる', 'path-close', !paths.length) + button('2つの端点をつなぐ…', 'path-join', !endpoints())
-        + '<hr>' + button('合体', 'path-union', combineDisabled) + button('型抜き（最初の図形から）', 'path-subtract', combineDisabled) + button('重なりを残す', 'path-intersect', combineDisabled);
+        + (includeCombine ? '<hr>' + button('合体', 'path-union', combineDisabled) + button('型抜き（最初の図形から）', 'path-subtract', combineDisabled) + button('重なりを残す', 'path-intersect', combineDisabled) : '');
     }
     function nudge(dx, dy, event) { if (!refs.length) return false; const delta = Grid.nudgeDelta(node(refs[0]).point, { x: dx, y: dy }, ctx.settings(), event); editRefs('moveAnchors', delta.x, delta.y); return true; }
     function keyboard(event) {

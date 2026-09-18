@@ -156,7 +156,7 @@
       cancelDrag(); bindings?.abort(); bindings=new AbortController();
       const initialScope=scope();
       if(expansionScope!==initialScope) { expanded=new Set(); expansionScope=initialScope; }
-      ctx.showInspector('objects','図形',markup(),null);
+      ctx.showInspector('objects','レイヤー',markup(),null);
       const panel=body(), rows=panel.querySelector('#object-rows');
       if(!rows) return;
       for(const layer of layers()){

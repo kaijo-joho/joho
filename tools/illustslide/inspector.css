@@ -1,5 +1,5 @@
 /* illustSlide: 設定を図形と並べて編集する右側インスペクタ。 */
-#app.inspector-open{grid-template-columns:146px minmax(220px,1fr) var(--inspector-width,320px) 38px}
+#app.inspector-open{grid-template-columns:146px minmax(220px,1fr) var(--inspector-width,320px) var(--side-tab-width)}
 #inspector-panel{grid-area:export;position:relative;z-index:4;display:grid;grid-template-rows:auto auto minmax(0,1fr);min-width:220px;width:var(--inspector-width,320px);background:var(--panel);border-left:1px solid var(--line);box-shadow:-8px 0 20px #1e293b0d;overflow:hidden}
 #inspector-panel.global-settings{grid-template-rows:auto minmax(0,1fr)}
 #inspector-form{display:grid;grid-template-rows:minmax(0,1fr) auto auto;min-height:0}
@@ -61,26 +61,26 @@
 @media(pointer:coarse),(max-width:560px){.page-toolbar button,.page-moves button{min-width:44px;min-height:44px}}
 .inspector-resizing,.inspector-resizing *{cursor:col-resize!important;user-select:none!important}
 
-@media(max-width:1100px){#app.inspector-open{grid-template-columns:125px minmax(220px,1fr) var(--inspector-width,320px) 38px}}
+@media(max-width:1100px){#app.inspector-open{grid-template-columns:125px minmax(220px,1fr) var(--inspector-width,320px) var(--side-tab-width)}}
 @media(max-width:850px){
-  #app.inspector-open{grid-template:"top top top" auto "palette stage side" minmax(80px,1fr) "palette inspector inspector" 42dvh "palette status status" 44px / 86px minmax(0,1fr) 38px}
+  #app.inspector-open{grid-template:"top top top" auto "palette stage side" minmax(80px,1fr) "palette inspector inspector" 42dvh "palette status status" 44px / 86px minmax(0,1fr) var(--side-tab-width)}
   #inspector-panel{grid-area:inspector;width:auto;min-width:0;max-height:45dvh;border-top:1px solid var(--line);border-left:0;box-shadow:0 -8px 20px #1e293b14}
   #inspector-resize{display:none}
   #inspector-body{padding-inline:14px}
 }
 @media(max-width:560px){
-  #app.inspector-open{grid-template:"top top top" auto "palette stage side" minmax(80px,1fr) "palette inspector inspector" 42dvh "palette status status" 44px / 0 minmax(0,1fr) 38px}
+  #app.inspector-open{grid-template:"top top top" auto "palette stage side" minmax(80px,1fr) "palette inspector inspector" 42dvh "palette status status" 44px / 0 minmax(0,1fr) var(--side-tab-width)}
   #inspector-panel header{padding:10px 12px}
   #inspector-tabs{padding-inline:10px}
   #inspector-tabs button,#inspector-panel footer button,#inspector-close{min-height:44px;min-width:44px}
   #inspector-panel footer{padding:8px 10px}
 }
-@media(pointer:coarse) and (min-width:851px){#app.inspector-open{grid-template-columns:146px minmax(220px,1fr) var(--inspector-width,320px) 44px}}
+@media(pointer:coarse) and (min-width:851px){#app.inspector-open{grid-template-columns:146px minmax(220px,1fr) var(--inspector-width,320px) var(--side-tab-width)}}
 @media(pointer:coarse) and (max-width:850px){
-  #app.inspector-open{grid-template:"top top top" auto "palette stage side" minmax(80px,1fr) "palette inspector inspector" 42dvh "palette status status" 44px / 86px minmax(0,1fr) 44px}
+  #app.inspector-open{grid-template:"top top top" auto "palette stage side" minmax(80px,1fr) "palette inspector inspector" 42dvh "palette status status" 44px / 86px minmax(0,1fr) var(--side-tab-width)}
 }
 @media(pointer:coarse) and (max-width:560px){
-  #app.inspector-open{grid-template:"top top top" auto "palette stage side" minmax(80px,1fr) "palette inspector inspector" 42dvh "palette status status" 44px / 0 minmax(0,1fr) 44px}
+  #app.inspector-open{grid-template:"top top top" auto "palette stage side" minmax(80px,1fr) "palette inspector inspector" 42dvh "palette status status" 44px / 0 minmax(0,1fr) var(--side-tab-width)}
 }
 @media(max-width:850px) and (max-height:420px){
   #inspector-panel{display:block;overflow:auto;overscroll-behavior:contain;scroll-padding-bottom:60px}

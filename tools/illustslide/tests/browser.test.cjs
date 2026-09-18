@@ -100,7 +100,7 @@ async function run() {
     await setTextSelection(page, 4, 5); await page.locator('[data-script="sub"]').click();
     await setTextSelection(page, 5, 6); await page.locator('[data-script="super"]').click(); await inspectorSubmit(page); await inspectorClose(page);
     doc = await documentOf(page); const text = doc.pages[0].objects.find(object => object.type === 'text'); assert.match(text.runs.map(run => run.text).join(''), /日本語\nH2O/); assert(text.runs.some(run => run.script === 'sub') && text.runs.some(run => run.script === 'super'));
-    await selectObject(page, text.id); await page.locator('#selection-more').click(); await page.locator('#command-menu').getByRole('button', { name: '文字を編集…', exact: true }).click(); assert.equal(await page.locator('#text-input').textContent(), '日本語\nH2O'); await inspectorSubmit(page); await inspectorClose(page);
+    await selectObject(page, text.id); await page.locator('#text-options').click(); assert.equal(await page.locator('#text-input').textContent(), '日本語\nH2O'); await inspectorSubmit(page); await inspectorClose(page);
 
     await selectObject(page, rectId); await page.locator('[data-action="style"]').click();
     assert(await page.locator('#inspector-panel').isVisible(), 'style settings use the non-modal inspector'); assert(await page.locator('#canvas').isVisible(), 'canvas remains visible while style settings are open');
@@ -111,9 +111,9 @@ async function run() {
     await selectObject(page, ellipse.id); await page.locator('#selection-more').click(); await page.locator('#command-menu').getByRole('button', { name: '書式を適用', exact: true }).click();
     assert.equal((await documentOf(page)).pages[0].objects.find(object => object.id === ellipse.id).style.fill, '#112233', 'style copy applies full selected style');
 
-    await selectTwo(page, [rectId, ellipse.id]); await page.locator('#selection-more').click(); await page.locator('#command-menu').getByRole('button', { name: 'グループ化', exact: true }).click();
+    await selectTwo(page, [rectId, ellipse.id]); await page.locator('#selection-group').click(); await page.locator('#command-menu').getByRole('button', { name: 'グループ化', exact: true }).click();
     doc = await documentOf(page); assert.equal(new Set(doc.pages[0].objects.filter(object => [rectId, ellipse.id].includes(object.id)).map(object => object.group)).size, 1, 'two selected shapes form a flat group');
-    await page.locator('#selection-more').click(); await page.locator('#command-menu').getByRole('button', { name: 'グループ解除', exact: true }).click();
+    await page.locator('#selection-group').click(); await page.locator('#command-menu').getByRole('button', { name: 'グループ解除', exact: true }).click();
     await page.locator('#selection-arrange').click(); await page.locator('#arrange-details-button').click(); await page.locator('#command-menu').getByRole('button', { name: '幅をそろえる', exact: true }).click();
 
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-command="add"]').click(); assert.equal((await documentOf(page)).pages.length, 2);

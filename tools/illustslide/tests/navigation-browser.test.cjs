@@ -51,6 +51,7 @@ async function selectShape(page){await page.locator('#canvas').focus();await pag
     const item=await menu.locator('[data-action=order-front]').boundingBox();
     await page.mouse.move(item.x+30,item.y+item.height/2,{steps:5});await page.waitForTimeout(300);
     assert(await menu.evaluate(el=>el.matches(':popover-open')),'the pointer can cross into the submenu');
+    await page.keyboard.press('Escape');assert(await menu.evaluate(el=>el.matches(':popover-open')),'Escape from the child returns to the parent menu');
     await page.keyboard.press('Escape');assert.equal(await menu.evaluate(el=>el.matches(':popover-open')),false);
     await openOrder();assert(await menu.evaluate(el=>el.matches(':popover-open')),'hover works again after Escape from inside the menu');
     await menu.locator('[data-action=order-front]').click();await settle(page);
@@ -61,11 +62,12 @@ async function selectShape(page){await page.locator('#canvas').focus();await pag
     await more.hover();await page.keyboard.press('Escape');assert.equal(await menu.evaluate(el=>el.matches(':popover-open')),false);
     assert.equal((await page.evaluate(()=>IlapoEditor.getSelection())).length,1,'Escape closes only the submenu');
     await page.mouse.move(20,790);await more.focus();await page.keyboard.press('ArrowDown');
-    assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'transform');
-    await menu.locator('[data-action=selection-order]').focus();await page.keyboard.press('Enter');
-    assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'order-front');
+    assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'copy');
+    await menu.locator('[data-action=selection-order]').focus();await page.keyboard.press('ArrowRight');
+    assert(await page.evaluate(()=>document.activeElement.hasAttribute('data-menu-back')),'submenu focus starts at its back button');
+    await page.keyboard.press('ArrowDown');assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'order-front');
     await page.keyboard.press('End');assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'order-back');
-    await page.keyboard.press('Escape');assert.equal(await more.evaluate(el=>document.activeElement===el),true);
+    await page.keyboard.press('Escape');assert.equal(await menu.locator('[data-action=selection-order]').evaluate(el=>document.activeElement===el),true);
     await more.click();await menu.locator('[data-action=selection-order]').click();assert(await menu.locator('[data-action=order-front]').isVisible(),'click remains available');await page.keyboard.press('Escape');
 
     // 入力中でもホバーはフォーカスを奪わず、Escapeはメニューだけを閉じる。

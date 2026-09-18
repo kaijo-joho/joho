@@ -92,7 +92,7 @@ async function close(page) { if (await page.locator('#inspector-panel').isVisibl
     assert.equal((await read(page)).pages[0].objects.find(o => o.id === 'a').style.fill, '#EC4899', '対象切替前の入力は元の対象へだけ反映する');
     assert.equal((await read(page)).pages[0].objects.find(o => o.id === 'b').style.fill, '#22C55E', '古い入力が切替先へ漏れない');
 
-    await select(page, 'a'); await page.locator('#selection-more').click(); await page.locator('#command-menu [data-action=transform]').click(); await settle(page);
+    await select(page, 'a'); await page.locator('#selection-transform').click(); await page.locator('#command-menu [data-action=transform]').click(); await settle(page);
     await page.locator('#transform-width').fill('240'); await settle(page);
     assert.equal((await read(page)).pages[0].objects.find(o => o.id === 'a').matrix[0], 1.5, '変形も入力と同時に保存する');
     const changedWidth = await shape(page, 'a').boundingBox();

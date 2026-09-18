@@ -43,7 +43,8 @@ async function run() {
   const inspectorClose = async () => { await page.locator('#inspector-close').click(); await page.waitForFunction(() => document.getElementById('inspector-panel').hidden); await sleep(50); };
   const menu = async action => {
     const pathButton = page.locator('#path-menu-button');
-    if (await pathButton.isVisible()) await pathButton.click();
+    if (['path-union','path-subtract','path-intersect'].includes(action) && await page.locator('#selection-combine').isVisible()) await page.locator('#selection-combine').click();
+    else if (await pathButton.isVisible()) await pathButton.click();
     else { await page.locator('#selection-more').click(); await page.locator('#command-menu [data-action="selection-path"]').click(); }
     await page.locator(`#command-menu [data-action="${action}"]`).click(); await sleep(40);
   };

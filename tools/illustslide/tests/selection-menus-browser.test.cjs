@@ -58,11 +58,11 @@ const bounds = page => page.evaluate(() => IlapoEditor.getDocument().pages[0].ob
   try {
     await page.goto(url); await page.waitForFunction(() => !!window.IlapoEditor); await load(page); await select(page);
     assert.equal(await page.locator('[data-menu="edit"]').count(),0,'鉛筆の重複入口を廃止');
-    for (const selector of ['#selection-arrange','#selection-more','#path-menu-button','.top [data-menu="save"]']) {
+    for (const selector of ['#selection-arrange','#selection-more','#path-menu-button','#selection-transform','#selection-combine','#selection-group','.top [data-menu="save"]']) {
       assert.equal(await page.locator(selector + ' > .menu-caret[aria-hidden="true"]').count(),1,'メニュー入口には三角の目印');
     }
     await page.locator('#selection-more').click(); const menu = page.locator('#command-menu');
-    for (const action of ['copy','paste','duplicate','delete','group','ungroup','lock','style-copy','style-paste','outline']) {
+    for (const action of ['copy','paste','duplicate','delete','style-copy','style-paste','outline']) {
       assert.equal(await menu.locator(`[data-action="${action}"]`).count(),1,`${action}を重複せず保持`);
     }
     await page.keyboard.press('Escape'); await page.locator('#selection-arrange').click();
@@ -97,7 +97,7 @@ const bounds = page => page.evaluate(() => IlapoEditor.getDocument().pages[0].ob
     // 中心を保った各方向の反転と、1操作単位のUndo。
     for (const axis of ['h','v']) {
       await select(page); const before = await read(page), boxes = await bounds(page);
-      await page.locator('#selection-flip-' + axis).click(); await settle(page); const after = await bounds(page);
+      await page.locator('#selection-transform').click(); await page.locator('#command-menu [data-action="flip-' + axis + '"]').click(); await settle(page); const after = await bounds(page);
       for (let i=0;i<boxes.length;i++) {
         const old=boxes[i], next=after[i];
         assert(Math.abs(next.x - (axis==='h' ? 600-old.x-old.width : old.x))<1e-6);
@@ -108,7 +108,7 @@ const bounds = page => page.evaluate(() => IlapoEditor.getDocument().pages[0].ob
       await page.locator('[data-action="undo"]').click(); await settle(page); assert.deepEqual(await read(page),before);
     }
     await load(page,fixture(true)); await select(page,['a','b']);
-    assert(await page.locator('#selection-flip-h').isDisabled()); assert(await page.locator('#selection-flip-v').isDisabled());
+    assert(await page.locator('#selection-transform').isDisabled());
     await load(page); await select(page); await page.setViewportSize({width:390,height:736});
     await page.locator('#selection-arrange').click(); await opener.hover(); assert(await details(page).isHidden(),'重ね表示はホバーで押す位置を覆わない');
     await opener.click(); await details(page).waitFor({state:'visible'});

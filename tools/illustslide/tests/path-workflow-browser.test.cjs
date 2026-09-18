@@ -71,16 +71,18 @@ async function run() {
     await page.goto(url);
     await page.waitForFunction(() => !!window.IlapoEditor);
 
-    // The selection context bar exposes the three path operations only when
-    // every selected object is a path, and each operation remains one undo.
+    // Whole-object selection groups the three Boolean operations in a submenu;
+    // anchor editing retains its direct shortcuts below.
     const left = shape('M80 100L180 100L180 200L80 200Z', 'left');
     const right = shape('M150 100L250 100L250 200L150 200Z', 'right');
     await load([left, right]);
     await clickPoint({ x: 200, y: 150 }, true);
-    for (const action of ['union', 'subtract', 'intersect']) assert.equal(await page.locator(`#quick-${action}`).isVisible(), true, `${action} quick action is visible`);
+    assert.equal(await page.locator('#selection-combine').isVisible(), true);
+    await page.locator('#selection-combine').click();
+    for (const action of ['union', 'subtract', 'intersect']) assert.equal(await page.locator(`#command-menu [data-action="path-${action}"]`).isVisible(), true, `${action} is available in the combine menu`);
     await page.screenshot({path:path.join(os.tmpdir(),'illustslide-quick-boolean-desktop.png')});
     const beforeBoolean = await documentOf();
-    await page.locator('#quick-union').click(); await sleep(50);
+    await page.locator('#command-menu [data-action="path-union"]').click(); await sleep(50);
     assert.equal((await documentOf()).pages[0].objects.length, 1);
     await page.keyboard.press('Meta+z'); await sleep(50);
     assert.deepEqual((await documentOf()).pages[0].objects.map(object => object.id), beforeBoolean.pages[0].objects.map(object => object.id));

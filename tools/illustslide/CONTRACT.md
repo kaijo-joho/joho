@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.20）
+# イラストスライド illustSlideの内部契約（0.4.21）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -15,6 +15,12 @@ style: `{fill,stroke,strokeWidth,opacity,fillOpacity?,strokeOpacity?,dash,lineca
 fillOpacity/strokeOpacityは0〜1の有限数値、省略時は1。DEFAULT_STYLEや旧文書へ自動補完しない。opacityは塗りと線を合成した後の全体不透明度として既存の意味を保持する。図形内文字はlabel.styleを使い、図形本体のチャンネル値を継承しない。
 fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。fontFamilyはsans-serif/serif/monospace。
 グループは初期版では同じgroup値を持つ平坦な集合。選択・変形は原則グループ全体へ適用。
+
+## 通常選択とアンカー選択のメニュー（0.4.21）
+
+renderSelectionActionsはtool=directで従来の表示条件を保持し、それ以外は通常選択用の目的別メニューを表示する。selection-transformは反転・90°回転・transformインスペクタ、selection-combineは複数パスの3演算、selection-groupは利用可能なグループ操作と単体にも使える固定を持つ。selection-moreは通常時の名称を「詳細」とし、アンカー時は従来の内容を維持する。PathUI.menuの第2引数includeCombine（省略時true）により、通常選択のアンカーメニューから合成の重複項目を省く。保存形式は変更しない。
+
+右端のobjects-toggleとobjectsセクションは識別子・保存設定を保持し、表示名だけ「レイヤー」にする。各タブは固定のSVGと縦書きspanを持つ。--side-tab-widthは標準26px（--ui-size + 12px）、pointer:coarseでは44pxとし、app・inspector-openの全ブレークポイントと書き出しパネルの位置から共用する。
 
 ## 選択メニューの階層（0.4.20）
 
