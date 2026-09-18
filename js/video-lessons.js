@@ -270,6 +270,63 @@
     reveal(host); update();
   }
 
+  function initializeCompression(host) {
+    const timeline = host.querySelector('.vd-compression-timeline');
+    const result = host.querySelector('[data-video-rebuild]');
+    const pixels = host.querySelector('[data-video-rebuilt-pixels]');
+    const outlines = host.querySelector('[data-video-rebuilt-outlines]');
+    const next = host.querySelector('[data-video-rebuild-next]');
+    const reset = host.querySelector('[data-video-rebuild-reset]');
+    const count = host.querySelectorAll('[id^="vd-compression-frame-"]').length;
+    let frame = 1;
+
+    function update() {
+      result.dataset.frame = String(frame);
+      host.querySelector('[data-video-rebuilt-caption]').textContent = `復元したフレーム${frame}`;
+      host.querySelector('#vd-rebuilt-title').textContent = `フレーム${frame}を復元した画像`;
+      host.querySelector('#vd-rebuilt-desc').textContent = frame === 1
+        ? '最初のフレームは、背景と鳥を含む画像全体を読み込みます。'
+        : `直前のフレーム${frame - 1}へ2か所の変化部分を重ねた画像です。鳥の移動前の場所を背景に戻し、移動先に鳥を描いています。`;
+      host.querySelector('[data-video-rebuild-status]').textContent = frame === 1
+        ? '最初は、フレーム1の画像全体を読み込みます。'
+        : `フレーム${frame - 1}に「${frame - 1}→${frame}の変化」を重ねました。鳥がいた場所を背景に戻し、移動先に鳥を描きます。`;
+      next.setAttribute('aria-disabled', String(frame === count));
+      next.textContent = frame === count ? '4枚の復元が完了' : '次のフレームを復元';
+      next.setAttribute('aria-label', frame === count ? '4枚の復元が完了' : `次のフレーム${frame + 1}を復元`);
+      host.querySelectorAll('[data-video-compression-frame]').forEach(figure => {
+        figure.dataset.current = String(Number(figure.dataset.videoCompressionFrame) === frame);
+      });
+      // 上下2行の対応を保ち、比較表の中だけを横に送る。
+      const selected = host.querySelector('[data-video-compression-frame][data-current="true"]').getBoundingClientRect();
+      const viewport = timeline.getBoundingClientRect();
+      if (selected.left < viewport.left + 4) timeline.scrollLeft += selected.left - viewport.left - 4;
+      else if (selected.right > viewport.right - 4) timeline.scrollLeft += selected.right - viewport.right + 4;
+      resized();
+    }
+
+    next.addEventListener('click', () => {
+      if (frame >= count) return;
+      frame += 1;
+      // 全画像への差し替えではなく、前の復元画像へ変化範囲だけを重ねる。
+      pixels.append(svgNode('use', { href: `#vd-compression-delta-${frame}` }));
+      outlines.replaceChildren(...[...host.querySelectorAll(`#vd-compression-change-${frame} rect`)].map(rect => {
+        const outline = rect.cloneNode(true);
+        outline.setAttribute('class', 'vd-change-outline');
+        return outline;
+      }));
+      update();
+    });
+    reset.addEventListener('click', () => {
+      frame = 1;
+      pixels.replaceChildren(svgNode('use', { href: '#vd-compression-frame-1' }));
+      outlines.replaceChildren();
+      update();
+    });
+    host.querySelectorAll('button').forEach(button => { button.tabIndex = 0; });
+    reveal(host);
+    update();
+  }
+
   function initializeSize(host) {
     const resolution = host.querySelector('[data-video-size-resolution]');
     const fpsControl = host.querySelector('[data-video-size-fps]');
@@ -338,6 +395,7 @@
     if (!Core || !Images) return;
     for (const [selector, setup] of [
       ['[data-video-frames]', initializeFrames], ['[data-video-rate]', initializeRate],
+      ['[data-video-compression]', initializeCompression],
       ['[data-video-size]', initializeSize], ['[data-video-quiz]', initializeQuiz]
     ]) {
       document.querySelectorAll(selector).forEach(host => {

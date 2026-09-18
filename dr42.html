@@ -102,32 +102,119 @@
   <section data-lesson-slide data-lesson-slide-title="動画の圧縮">
     <article>
       <h2 id="headline_3">(3) 動画の圧縮</h2>
-      <p>動画は多数のフレームを使うため、データ量が大きくなります。そこで、各フレームの特徴やフレームどうしの似ている部分を利用して<strong>圧縮</strong>します。</p>
-      <div class="dr-reference-grid">
+      <p>動画は多数のフレームを使うため、データ量が大きくなります。そこで、<strong>1枚の中の特徴</strong>や<strong>フレームどうしの似ている部分</strong>を利用して圧縮します。</p>
+      <div class="dr-reference-grid vd-compression-grid" data-video-compression>
+        <svg class="vd-compression-defs" width="0" height="0" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="vd-landscape-sky" x2="0" y2="1"><stop stop-color="#78b9df"/><stop offset="1" stop-color="#e0f0f4"/></linearGradient>
+            <linearGradient id="vd-landscape-hill" x2="0" y2="1"><stop stop-color="#a8c68d"/><stop offset="1" stop-color="#6a9875"/></linearGradient>
+            <linearGradient id="vd-landscape-grass" x2="0" y2="1"><stop stop-color="#739865"/><stop offset="1" stop-color="#3d7058"/></linearGradient>
+            <linearGradient id="vd-landscape-cloud" x2="0" y2="1"><stop stop-color="#ffffff"/><stop offset="1" stop-color="#d5e5ed"/></linearGradient>
+            <linearGradient id="vd-landscape-wing" x2="0" y2="1"><stop stop-color="#58a2bb"/><stop offset="1" stop-color="#2e6886"/></linearGradient>
+            <pattern id="vd-reused-pattern" width="8" height="8" patternUnits="userSpaceOnUse"><rect class="vd-reused-fill" width="8" height="8"/><path class="vd-reused-line" d="M-2 2L2-2M0 8L8 0M6 10L10 6"/></pattern>
+            <g id="vd-landscape">
+              <rect class="vd-landscape-sky" width="320" height="180"/>
+              <circle cx="271" cy="30" r="15" fill="#fff1bd"/>
+              <path class="vd-landscape-cloud" d="M30 63C23 62 20 51 29 47C28 36 44 33 50 41C59 35 71 41 71 51C83 50 85 64 74 66H33Z M206 42C194 42 195 29 205 28C204 16 220 14 225 23C237 16 247 25 244 34C252 37 248 45 240 45H209Z"/>
+              <path class="vd-landscape-hill" d="M0 132Q48 69 107 125Q179 58 253 118Q285 91 320 116V180H0Z"/>
+              <path class="vd-landscape-grass" d="M0 154Q63 112 139 153Q233 110 320 144V180H0Z"/>
+            </g>
+            <g id="vd-flight-bird" stroke="#233e50" stroke-width="1.7" stroke-linejoin="round">
+              <path d="M15 22L2 16L5 33L18 30Z" fill="#ddebf0"/>
+              <ellipse cx="28" cy="27" rx="20" ry="11" fill="#e9f3f5"/>
+              <path class="vd-landscape-wing" d="M30 28L12 3Q31 7 43 21Z"/>
+              <path d="M54 15L65 20L54 23Z" fill="#edbb65"/>
+              <circle cx="45" cy="17" r="10" fill="#e9f3f5"/>
+              <circle cx="48" cy="15" r="1.5" fill="#233e50" stroke="none"/>
+            </g>
+            <g id="vd-compression-frame-1"><use href="#vd-landscape"/><use href="#vd-flight-bird" x="24" y="50"/></g>
+            <g id="vd-compression-frame-2"><use href="#vd-landscape"/><use href="#vd-flight-bird" x="98" y="50"/></g>
+            <clipPath id="vd-compression-change-2" clipPathUnits="userSpaceOnUse"><rect x="21" y="47" width="72" height="48"/><rect x="95" y="47" width="72" height="48"/></clipPath>
+            <g id="vd-compression-delta-2"><g clip-path="url(#vd-compression-change-2)"><use href="#vd-compression-frame-2"/></g></g>
+            <g id="vd-compression-frame-3"><use href="#vd-landscape"/><use href="#vd-flight-bird" x="172" y="50"/></g>
+            <clipPath id="vd-compression-change-3" clipPathUnits="userSpaceOnUse"><rect x="95" y="47" width="72" height="48"/><rect x="169" y="47" width="72" height="48"/></clipPath>
+            <g id="vd-compression-delta-3"><g clip-path="url(#vd-compression-change-3)"><use href="#vd-compression-frame-3"/></g></g>
+            <g id="vd-compression-frame-4"><use href="#vd-landscape"/><use href="#vd-flight-bird" x="246" y="50"/></g>
+            <clipPath id="vd-compression-change-4" clipPathUnits="userSpaceOnUse"><rect x="169" y="47" width="72" height="48"/><rect x="243" y="47" width="72" height="48"/></clipPath>
+            <g id="vd-compression-delta-4"><g clip-path="url(#vd-compression-change-4)"><use href="#vd-compression-frame-4"/></g></g>
+          </defs>
+        </svg>
         <div class="dr-reference-card">
           <h3>フレーム内圧縮</h3>
-          <p><strong>1枚のフレームの中</strong>でデータ量を減らします。例えば、見分けにくい色の違いなどを省く方法があります。</p>
-          <svg class="vd-tone-demo" viewBox="0 0 320 118" role="img" aria-labelledby="vd-intra-title vd-intra-desc">
-            <title id="vd-intra-title">1枚の画像の中で細かな違いを減らす例</title><desc id="vd-intra-desc">上は連続した濃淡、下は濃淡の段階を減らした模式図です。細かな違いを省くと、画質が変化する場合があります。</desc>
-            <defs><linearGradient id="vd-tone-gradient"><stop stop-color="#1d3557"/><stop offset="1" stop-color="#eaf4ff"/></linearGradient></defs>
-            <rect x="10" y="6" width="300" height="40" rx="5" fill="url(#vd-tone-gradient)"/>
-            <path d="M160 50v15m-6-6 6 6 6-6" class="vd-track"/>
-            <path d="M10 76h50v36H10z" fill="#1d3557"/><path d="M60 76h50v36H60z" fill="#465b78"/><path d="M110 76h50v36h-50z" fill="#6f819a"/><path d="M160 76h50v36h-50z" fill="#98a8bc"/><path d="M210 76h50v36h-50z" fill="#c1cede"/><path d="M260 76h50v36h-50z" fill="#eaf4ff"/>
-          </svg>
-          <p class="vd-hint">細かな違いを省く方法の模式図。省きすぎると、画質の変化が目立ちます。</p>
+          <p><strong>1枚のフレームの中</strong>でデータ量を減らします。下は、見分けにくい細かな色の違いをまとめる例です。</p>
+          <div class="vd-intra-pair">
+            <figure><figcaption>圧縮前</figcaption><svg class="vd-scene vd-compression-scene" viewBox="0 0 320 180" role="img" aria-labelledby="vd-intra-before-title vd-intra-before-desc">
+              <title id="vd-intra-before-title">圧縮前の1枚のフレーム</title><desc id="vd-intra-before-desc">同じ背景の前を鳥が飛んでいます。空や山、雲、羽には細かな色の違いがあります。</desc>
+              <use href="#vd-compression-frame-1"/>
+            </svg></figure>
+            <figure><figcaption>細かな色の違いを省く</figcaption><svg class="vd-scene vd-compression-scene vd-compression-scene--compressed" viewBox="0 0 320 180" role="img" aria-labelledby="vd-intra-after-title vd-intra-after-desc">
+              <title id="vd-intra-after-title">細かな色の違いを省いた1枚のフレーム</title><desc id="vd-intra-after-desc">鳥や背景の形と位置は同じで、空や山、雲、羽の色の細かな違いをまとめた例です。</desc>
+              <use href="#vd-compression-frame-1"/>
+            </svg></figure>
+          </div>
+          <p class="vd-hint">画素数や物体の形・位置は同じです。違いを見やすくした模式図で、省きすぎると画質の変化が目立ちます。</p>
+          <p class="vd-compression-point"><strong>1枚ずつ、それぞれ圧縮する。</strong><br>ほかのフレームを使わずに画像を表します。</p>
         </div>
         <div class="dr-reference-card">
           <h3>フレーム間圧縮</h3>
-          <p><strong>前後のフレームの関係</strong>を使ってデータ量を減らします。例えば、前のフレームから変化した部分を記録する方法があります。</p>
-          <p>下の例では、背景は同じで、ボールの位置だけが変わっています。背景を毎回すべて記録する必要がありません。</p>
-          <div class="vd-inter-frames">
-            <figure><figcaption>前のフレーム</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-label="左寄りにボールがある前のフレーム"><path class="vd-track" d="M32 106H288"/><circle class="vd-ball" cx="96" cy="77" r="22"/></svg></figure>
-            <figure><figcaption>次のフレーム</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-label="同じ背景でボールが右寄りへ移動した次のフレーム"><path class="vd-track" d="M32 106H288"/><circle class="vd-ball" cx="224" cy="77" r="22"/></svg></figure>
-            <figure><figcaption>変化した部分に注目</figcaption><svg class="vd-scene" viewBox="0 0 320 150" role="img" aria-labelledby="vd-difference-title vd-difference-desc"><title id="vd-difference-title">ボールの移動前と移動後の2か所を更新</title><desc id="vd-difference-desc">破線の枠は変化した範囲。左の枠内はボールを消して背景に戻し、右の枠内には移動後のボールを表示します。</desc><path class="vd-track" d="M32 106H288"/><rect class="vd-changed" x="68" y="49" width="56" height="56"/><rect class="vd-changed" x="196" y="49" width="56" height="56"/><circle class="vd-ball" cx="224" cy="77" r="22"/></svg></figure>
+          <p><strong>前後のフレームの関係</strong>を使ってデータ量を減らします。この例では背景が同じなので、最初の画像と、その後の変化部分を記録します。</p>
+          <div class="vd-compression-timeline" tabindex="0" role="region" aria-label="4枚のフレームと記録する内容の比較。狭い画面では横にスクロールできます。" data-lesson-slide-navigation-lock>
+            <div class="vd-compression-rows">
+              <p class="vd-compression-row-label">再生する4枚（フレーム内圧縮後）</p>
+              <figure data-video-compression-frame="1" data-current="true"><figcaption>フレーム1</figcaption><svg class="vd-scene vd-compression-scene vd-compression-scene--compressed" viewBox="0 0 320 180" role="img" aria-labelledby="vd-source-1-title vd-source-1-desc">
+              <title id="vd-source-1-title">フレーム1</title><desc id="vd-source-1-desc">背景は同じで、鳥が左から右へ進む4枚のうち1枚目。</desc>
+              <use href="#vd-compression-frame-1"/>
+            </svg></figure>
+              <figure data-video-compression-frame="2" data-current="false"><figcaption>フレーム2</figcaption><svg class="vd-scene vd-compression-scene vd-compression-scene--compressed" viewBox="0 0 320 180" role="img" aria-labelledby="vd-source-2-title vd-source-2-desc">
+              <title id="vd-source-2-title">フレーム2</title><desc id="vd-source-2-desc">背景は同じで、鳥が左から右へ進む4枚のうち2枚目。</desc>
+              <use href="#vd-compression-frame-2"/>
+            </svg></figure>
+              <figure data-video-compression-frame="3" data-current="false"><figcaption>フレーム3</figcaption><svg class="vd-scene vd-compression-scene vd-compression-scene--compressed" viewBox="0 0 320 180" role="img" aria-labelledby="vd-source-3-title vd-source-3-desc">
+              <title id="vd-source-3-title">フレーム3</title><desc id="vd-source-3-desc">背景は同じで、鳥が左から右へ進む4枚のうち3枚目。</desc>
+              <use href="#vd-compression-frame-3"/>
+            </svg></figure>
+              <figure data-video-compression-frame="4" data-current="false"><figcaption>フレーム4</figcaption><svg class="vd-scene vd-compression-scene vd-compression-scene--compressed" viewBox="0 0 320 180" role="img" aria-labelledby="vd-source-4-title vd-source-4-desc">
+              <title id="vd-source-4-title">フレーム4</title><desc id="vd-source-4-desc">背景は同じで、鳥が左から右へ進む4枚のうち4枚目。</desc>
+              <use href="#vd-compression-frame-4"/>
+            </svg></figure>
+              <p class="vd-compression-row-label">記録する内容（模式図）</p>
+              <figure data-video-compression-frame="1" data-current="true"><figcaption>画像全体</figcaption><svg class="vd-scene vd-compression-scene vd-compression-scene--compressed" viewBox="0 0 320 180" role="img" aria-labelledby="vd-record-1-title vd-record-1-desc">
+              <title id="vd-record-1-title">最初に記録する画像全体</title><desc id="vd-record-1-desc">フレーム1は背景と鳥を含む画像全体を記録します。</desc>
+              <use href="#vd-compression-frame-1"/>
+            </svg></figure>
+              <figure data-video-compression-frame="2" data-current="false"><figcaption>1→2の変化</figcaption><svg class="vd-scene vd-compression-scene vd-compression-scene--compressed" viewBox="0 0 320 180" role="img" aria-labelledby="vd-record-2-title vd-record-2-desc">
+              <title id="vd-record-2-title">フレーム1から2への変化部分</title><desc id="vd-record-2-desc">枠内は移動前の鳥を背景へ戻す部分と、移動先の鳥を描く部分。斜線部分は前の画像を利用します。</desc>
+              <rect width="320" height="180" fill="url(#vd-reused-pattern)"/><use href="#vd-compression-delta-2"/><rect class="vd-change-outline" x="21" y="47" width="72" height="48"/><rect class="vd-change-outline" x="95" y="47" width="72" height="48"/>
+            </svg></figure>
+              <figure data-video-compression-frame="3" data-current="false"><figcaption>2→3の変化</figcaption><svg class="vd-scene vd-compression-scene vd-compression-scene--compressed" viewBox="0 0 320 180" role="img" aria-labelledby="vd-record-3-title vd-record-3-desc">
+              <title id="vd-record-3-title">フレーム2から3への変化部分</title><desc id="vd-record-3-desc">枠内は移動前の鳥を背景へ戻す部分と、移動先の鳥を描く部分。斜線部分は前の画像を利用します。</desc>
+              <rect width="320" height="180" fill="url(#vd-reused-pattern)"/><use href="#vd-compression-delta-3"/><rect class="vd-change-outline" x="95" y="47" width="72" height="48"/><rect class="vd-change-outline" x="169" y="47" width="72" height="48"/>
+            </svg></figure>
+              <figure data-video-compression-frame="4" data-current="false"><figcaption>3→4の変化</figcaption><svg class="vd-scene vd-compression-scene vd-compression-scene--compressed" viewBox="0 0 320 180" role="img" aria-labelledby="vd-record-4-title vd-record-4-desc">
+              <title id="vd-record-4-title">フレーム3から4への変化部分</title><desc id="vd-record-4-desc">枠内は移動前の鳥を背景へ戻す部分と、移動先の鳥を描く部分。斜線部分は前の画像を利用します。</desc>
+              <rect width="320" height="180" fill="url(#vd-reused-pattern)"/><use href="#vd-compression-delta-4"/><rect class="vd-change-outline" x="169" y="47" width="72" height="48"/><rect class="vd-change-outline" x="243" y="47" width="72" height="48"/>
+            </svg></figure>
+            </div>
           </div>
+          <p class="vd-hint vd-compression-key"><span class="vd-reused-key" aria-hidden="true"></span>斜線部分は前の画像を利用。枠内の2か所を更新します。</p>
+          <div class="vd-rebuild vd-enhancement" data-video-rebuild data-lesson-slide-navigation-lock hidden>
+            <div class="vd-controls">
+              <button class="dr-button dr-button--primary" type="button" data-video-rebuild-next aria-disabled="false">次のフレームを復元</button>
+              <button class="dr-button" type="button" data-video-rebuild-reset>最初に戻す</button>
+            </div>
+            <div class="vd-rebuild-result">
+              <figure><figcaption data-video-rebuilt-caption>復元したフレーム1</figcaption><svg class="vd-scene vd-compression-scene vd-compression-scene--compressed" viewBox="0 0 320 180" role="img" aria-labelledby="vd-rebuilt-title vd-rebuilt-desc">
+              <title id="vd-rebuilt-title">フレーム1を復元した画像</title><desc id="vd-rebuilt-desc">最初は画像全体を読み込みます。次のフレームでは、直前の画像へ変化した2か所の画像を重ねます。</desc>
+              <g data-video-rebuilt-pixels><use href="#vd-compression-frame-1"/></g><g data-video-rebuilt-outlines></g>
+            </svg></figure>
+              <p class="vd-rebuild-status" data-video-rebuild-status role="status">最初は、画像全体を読み込みます。</p>
+            </div>
+          </div>
+          <p class="vd-compression-point"><strong>前の画像を利用し、変化部分から次の画像を復元する。</strong></p>
           <button class="dr-supplement-link" type="button" data-lesson-supplement-open="vd-compression-detail">移動前の位置はどうなる？</button>
         </div>
       </div>
+      <p class="dr-note">フレーム内圧縮とフレーム間圧縮は、組み合わせて利用できます。</p>
     </article>
   </section>
 
@@ -172,7 +259,7 @@
           <details class="dr-reveal-item"><summary>60fpsの動画を10秒間表示すると何枚？</summary><div class="dr-reveal-item__body">60［枚/秒］×10［秒］＝600枚です。</div></details>
           <details class="dr-reveal-item"><summary>フレームレートを上げると、再生時間も短くなる？</summary><div class="dr-reveal-item__body">この比較のように、同じ時間の動きをより多くのフレームで表す場合、再生時間は変わりません。動きを表す時間の間隔が細かくなります。</div></details>
           <details class="dr-reveal-item"><summary>圧縮しない動画のデータ量を求めるには？</summary><div class="dr-reveal-item__body">1フレームのデータ量×フレームレート×再生時間です。フレームレートがfpsなら、再生時間の単位を秒にそろえます。</div></details>
-          <details class="dr-reveal-item"><summary>背景が変わらず、ボールだけが動くときは？</summary><div class="dr-reveal-item__body">フレーム間圧縮では同じ背景を利用できます。移動前の位置を背景へ戻すことも、変化の一部です。</div></details>
+          <details class="dr-reveal-item"><summary>背景が変わらず、鳥だけが動くときは？</summary><div class="dr-reveal-item__body">フレーム間圧縮では同じ背景を利用できます。移動前の位置を背景へ戻すことも、変化の一部です。</div></details>
         </div></div>
       </div>
     </article>
@@ -229,7 +316,7 @@
 
   <dialog id="vd-compression-detail" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="vd-compression-detail-title">
     <div class="lesson-supplement-dialog__header"><h2 id="vd-compression-detail-title" data-skip-numbering>移動前の位置も更新する</h2><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="補足を閉じる">×</button></div>
-    <div class="lesson-supplement-dialog__body"><p>次のフレームを作るときは、ボールの移動先を描くだけでは足りません。移動前の位置にあったボールを消し、その部分を背景へ戻す必要があります。</p><p>図の破線の枠は、この2か所の変化を示しています。実際の圧縮では、物体の移動なども利用して、さらに効率よく表します。</p></div>
+    <div class="lesson-supplement-dialog__body"><p>次のフレームを作るときは、鳥の移動先を描くだけでは足りません。移動前の位置にあった鳥を消し、その部分を背景へ戻す必要があります。</p><p>図の枠は「背景へ戻す部分」と「移動先に鳥を描く部分」です。斜線部分は画像の色ではなく、前の画像を利用する部分を示しています。復元ボタンでは、直前に復元した画像へこの2か所を重ねています。</p><p>これはフレーム間圧縮の考え方を示す模式図です。実際の圧縮では、物体の移動なども利用して、さらに効率よく表します。</p></div>
   </dialog>
 </body>
 </html>
