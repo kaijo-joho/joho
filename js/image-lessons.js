@@ -108,7 +108,10 @@
         const label = stage === 1 ? brightness.toFixed(1) : stage === 2 ? String(code) : Core.binary(code, bits);
         const value = stage === 1 ? Math.round(brightness) : Core.tone(code, bits);
         const rgb = [0, 0, 0].map((_, c) => c === channel ? value : 0);
-        const cell = node('td', '', label);
+        const cell = node('td');
+        if (stage === 3 && bits > 4) {
+          cell.append(node('span', 'im-pixel-code-line', label.slice(0, 4)), node('span', 'im-pixel-code-line', label.slice(4)));
+        } else cell.textContent = label;
         cell.style.backgroundColor = `rgb(${rgb.join(',')})`;
         cell.style.color = textColor(rgb);
         const selected = row === region.row && col === region.column;
@@ -131,6 +134,7 @@
     let closeTimer;
     let pointerFrame;
     let restoringFocus = false;
+    let enabled = true;
 
     function close() {
       clearTimeout(closeTimer);
@@ -157,6 +161,27 @@
       const topEdge = Math.max(8, slide.top + 8);
       const bottomEdge = Math.min(window.innerHeight, slide.bottom) - 8;
       if (rect.bottom < topEdge || rect.top > bottomEdge || rect.right < scroll.left || rect.left > scroll.right) { close(); return; }
+      if (selectPixel) {
+        // 正方形を保ったまま、画像と重ならない上下左右の空きへ収める。
+        const leftEdge = 8;
+        const rightEdge = document.documentElement.clientWidth - 8;
+        const maxSize = Math.min(360, rightEdge - leftEdge, bottomEdge - topEdge);
+        const choices = [
+          { side: 'right', space: rightEdge - rect.right - 8 },
+          { side: 'left', space: rect.left - leftEdge - 8 },
+          { side: 'below', space: bottomEdge - rect.bottom - 8 },
+          { side: 'above', space: rect.top - topEdge - 8 }
+        ].map(choice => ({ ...choice, size: Math.floor(Math.min(maxSize, choice.space)) }));
+        const best = choices.reduce((largest, choice) => choice.size > largest.size ? choice : largest);
+        if (best.size <= 0) { close(); return; }
+        popup.style.setProperty('--im-zoom-size', `${best.size}px`);
+        const horizontal = best.side === 'left' || best.side === 'right';
+        const left = horizontal ? (best.side === 'right' ? rect.right + 8 : rect.left - best.size - 8) : rect.left + (rect.width - best.size) / 2;
+        const top = horizontal ? rect.top + (rect.height - best.size) / 2 : (best.side === 'below' ? rect.bottom + 8 : rect.top - best.size - 8);
+        popup.style.left = `${Math.max(leftEdge, Math.min(left, rightEdge - best.size))}px`;
+        popup.style.top = `${Math.max(topEdge, Math.min(top, bottomEdge - best.size))}px`;
+        return;
+      }
       // 表が画像と重なってマウスの追従を妨げないよう、上下の空きに収める。
       const belowSpace = bottomEdge - rect.bottom - 8;
       const aboveSpace = rect.top - topEdge - 8;
@@ -170,6 +195,7 @@
       popup.style.left = `${Math.max(8, Math.min(rect.left + (rect.width - size.width) / 2, document.documentElement.clientWidth - size.width - 8))}px`;
     }
     function open(trigger, pin = false, point = null) {
+      if (!enabled) return;
       clearTimeout(closeTimer);
       const changedTrigger = active !== trigger;
       if (changedTrigger) {
@@ -209,6 +235,7 @@
         if (!restoringFocus && trigger.matches(':focus-visible')) open(trigger);
       });
       trigger.addEventListener('click', event => {
+        if (!enabled) return;
         const point = event.detail ? event : null;
         if (active === trigger && pinned) {
           if (selectPixel?.(trigger, point)) { renderContent(trigger, popup); position(); }
@@ -219,7 +246,7 @@
         }
       });
       trigger.addEventListener('keydown', event => {
-        if (!selectPixel || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+        if (!enabled || !selectPixel || !['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
         event.preventDefault();
         open(trigger, false, { key: event.key });
       });
@@ -245,7 +272,11 @@
     document.addEventListener('joho:overlay-open', event => {
       if (event.detail?.source !== popup.id) close();
     });
-    return { close };
+    return { close, setEnabled(value) {
+      enabled = value;
+      if (!enabled) close();
+      triggers.forEach(trigger => { trigger.disabled = !enabled; });
+    } };
   }
 
   async function initializeGuide(host) {
@@ -254,17 +285,13 @@
     const bitsControl = host.querySelector('[data-image-guide-bits]');
     const captions = Object.fromEntries([...host.querySelectorAll('[data-image-guide-caption]')].map(caption => [caption.dataset.imageGuideCaption, caption]));
     const rows = [...host.querySelectorAll('[data-image-guide-row]')];
-    const headings = [...host.querySelectorAll('[data-image-guide-stage]')];
-    const previous = host.querySelector('[data-image-guide-prev]');
-    const next = host.querySelector('[data-image-guide-next]');
-    const showAll = host.querySelector('[data-image-guide-all]');
-    const scroller = host.querySelector('.im-guide-scroll');
+    const helpButtons = [...host.querySelectorAll('[data-image-guide-help]')];
+    const zoomToggle = host.querySelector('[data-image-guide-zoom-toggle]');
     const descriptions = [...host.querySelectorAll('[data-image-guide-description]')];
     const stageNames = ['元画像', '光の成分に分解', '標本化', '量子化', '符号化'];
     const processNames = ['component', 'sample', 'quantize', 'encode'];
     const canvases = [];
     const sampledImages = new Map();
-    let stage = 0;
     let resolution = 0;
     let bits = 0;
     let samples;
@@ -345,8 +372,8 @@
       popup.setAttribute('aria-label', `${channels[channel]}（${channelNames[channel]}）・${stageNames[process + 1]}の4×4画素。選択：${selected.row + 1}行・${selected.column + 1}列。`);
       popup.querySelector('[data-image-guide-zoom-table]').replaceChildren(zoomTable(samples, resolution, current, channel, bits, process));
     }, selectPixel);
-    const explanation = initializeGuidePopover(host, host.querySelector('[data-image-guide-description-popup]'), headings, (trigger, popup) => {
-      const index = Number(trigger.dataset.imageGuideStage);
+    const explanation = initializeGuidePopover(host, host.querySelector('[data-image-guide-description-popup]'), helpButtons, (trigger, popup) => {
+      const index = Number(trigger.dataset.imageGuideHelp);
       popup.setAttribute('aria-label', `${stageNames[index]}の説明`);
       popup.textContent = descriptions[index].textContent;
     });
@@ -385,40 +412,18 @@
       descriptions[2].textContent = `標本化：画像の縦・横をそれぞれ${resolution}等分し、各マス内の平均の明るさを取り出します。このマス目が画素（ピクセル）です。拡大表では平均値を小数第1位まで表示します。`;
       descriptions[3].textContent = `量子化：各画素の明るさを0〜${Core.levels(bits) - 1}の${Core.levels(bits)}段階の値にします。標本化した画像と比べ、スライダーで階調数も変えてみましょう。`;
       descriptions[4].textContent = `符号化：段階値を${bits}桁の2進数で表し、左上から右へ1行ずつ並べます。画像にマウスを重ねると、その付近の符号を拡大して読めます。`;
-      host.querySelectorAll('[data-image-guide-step]').forEach(figure => {
-        const index = Number(figure.dataset.imageGuideStep);
-        figure.classList.toggle('is-pending', index > stage);
-        figure.classList.toggle('is-current-step', index === stage);
-        figure.setAttribute('aria-hidden', String(index > stage));
-      });
-      headings.forEach((heading, index) => {
-        heading.classList.toggle('is-current-step', index === stage);
-        if (index === stage) heading.setAttribute('aria-current', 'step');
-        else heading.removeAttribute('aria-current');
-      });
-      showAll.disabled = stage === 4;
-      previous.disabled = stage === 0; next.disabled = stage === 4;
-      previous.setAttribute('aria-label', stage ? `前の工程：${stageNames[stage - 1]}` : '最初の工程です');
-      next.setAttribute('aria-label', stage < 4 ? `次の工程：${stageNames[stage + 1]}` : '最後の工程です');
-      host.querySelector('[data-image-guide-progress]').textContent = `${stage + 1} / 5　${stageNames[stage]}`;
       resized();
-    }
-    function moveTo(nextStage) {
-      const focused = document.activeElement;
-      stage = Math.max(0, Math.min(4, nextStage)); update();
-      if ((focused === next || focused === showAll) && stage === 4) previous.focus({ preventScroll: true });
-      if (focused === previous && previous.disabled) next.focus({ preventScroll: true });
-      const target = headings[stage].getBoundingClientRect();
-      const viewport = scroller.getBoundingClientRect();
-      const labelWidth = rows[0].querySelector('.im-guide-label').getBoundingClientRect().width;
-      if (target.right > viewport.right) scroller.scrollLeft += target.right - viewport.right + 8;
-      else if (target.left < viewport.left + labelWidth) scroller.scrollLeft -= viewport.left + labelWidth - target.left + 8;
     }
     let frame;
     function scheduleUpdate() { cancelAnimationFrame(frame); frame = requestAnimationFrame(update); }
     resolutionControl.addEventListener('input', scheduleUpdate); bitsControl.addEventListener('input', scheduleUpdate);
-    showAll.addEventListener('click', () => moveTo(4));
-    previous.addEventListener('click', () => moveTo(stage - 1)); next.addEventListener('click', () => moveTo(stage + 1));
+    zoomToggle.addEventListener('click', () => {
+      const enabled = zoomToggle.getAttribute('aria-pressed') !== 'true';
+      zoomToggle.setAttribute('aria-pressed', String(enabled));
+      zoomToggle.title = enabled ? '拡大表を非表示にする' : '拡大表を表示する';
+      host.classList.toggle('im-guide-zoom-disabled', !enabled);
+      zoom.setEnabled(enabled);
+    });
     host.classList.add('im-guide-ready');
     reveal(host); update();
   }
