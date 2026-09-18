@@ -15,8 +15,17 @@ async function revealObject(page, id) {
 
 async function startPresentation(page, current = false) {
   const button = page.locator('#present-button');
-  await (await button.isVisible() ? button : page.locator('.top [data-menu="more"]')).click();
+  await button.click();
   await page.locator(`#command-menu [data-action="${current ? 'present-current' : 'present-start'}"]`).click();
 }
 
-module.exports = { openView, revealObject, startPresentation };
+async function setAppearance(page, { theme, size } = {}) {
+  const settings = page.locator('.top #settings-button[data-menu="settings"]');
+  if (await settings.getAttribute('aria-expanded') !== 'true') await settings.click();
+  if (theme) await page.locator(`button[data-theme-choice="${theme}"]`).click();
+  if (size) await page.locator(`button[data-ui-size="${size}"]`).click();
+  await page.keyboard.press('Escape');
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+}
+
+module.exports = { openView, revealObject, startPresentation, setAppearance };

@@ -1,6 +1,6 @@
 /* Run: node tools/illustslide/tests/browser.test.cjs [http://127.0.0.1:port/illustslide/] */
 'use strict';
-const {openView,revealObject,startPresentation}=require('./ui-helpers.cjs');
+const {openView,revealObject,startPresentation,setAppearance}=require('./ui-helpers.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
@@ -125,7 +125,7 @@ async function run() {
     await page.locator('#board-toggle').click(); await page.locator('#board-preset').selectOption('a4'); await inspectorSubmit(page); doc = await documentOf(page); currentId = await page.evaluate(() => IlapoEditor.getState().pageId); current = doc.pages.find(p => p.id === currentId); assert(Math.abs(current.board.width - 210 * 96 / 25.4) < 1e-6, 'A4 preset uses CSS-pixel width'); await inspectorClose(page);
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-pick="0"]').click();
 
-    await menu(page, '[data-menu="save"]', 'ブラウザに保存');
+    await menu(page, '[data-menu="file"]', 'ブラウザに保存');
     await sleep(520); const slots = await page.evaluate(() => [localStorage.getItem('kaijo-ilapo:auto'), localStorage.getItem('kaijo-ilapo:saved')]); assert(slots[0] && slots[1], 'browser auto and explicit saves are independent');
 
     await page.locator('.side-tab [data-action="export-toggle"]').click(); const svgDownloadPromise = page.waitForEvent('download'); await page.locator('[data-action="export-svg"]').click(); const svgDownload = await svgDownloadPromise;
@@ -133,14 +133,14 @@ async function run() {
     const beforeImport = (await documentOf(page)).pages.length; await page.locator('#file-input').setInputFiles({ name: 'roundtrip.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(svg) }); await page.waitForFunction(count => IlapoEditor.getDocument().pages.length === count + 1, beforeImport);
 
     await page.evaluate(() => Object.defineProperty(window, 'showSaveFilePicker', { value: undefined, configurable: true }));
-    await page.locator('[data-menu="save"]').click(); const zipDownloadPromise = page.waitForEvent('download'); await page.locator('#command-menu').getByRole('button', { name: 'ローカルファイルに保存…', exact: true }).click(); const zipDownload = await zipDownloadPromise;
+    await page.locator('[data-menu="file"]').click(); const zipDownloadPromise = page.waitForEvent('download'); await page.locator('#command-menu').getByRole('button', { name: 'ローカルファイルに保存…', exact: true }).click(); const zipDownload = await zipDownloadPromise;
     assert.match(zipDownload.suggestedFilename(), /\.illustslide\.zip$/, 'project download uses the official filename');
     const zipPath = path.join(artifacts, 'illustslide-roundtrip.illustslide.zip'); await zipDownload.saveAs(zipPath); const zip = await fs.readFile(zipPath); assert(zip.length > 100, 'ZIP export has contents');
     await page.locator('#file-input').setInputFiles({ name: 'roundtrip.ilapo.zip', mimeType: 'application/zip', buffer: zip });
     if (await page.locator('#replace-discard').isVisible()) await page.locator('#replace-discard').click();
     await page.waitForFunction(() => IlapoEditor.getDocument().pages.length >= 3);
 
-    for (const width of [1280, 736, 390]) { await page.setViewportSize({ width, height: 736 }); await openView(page); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await inspectorSubmit(page); assert(await page.locator('#inspector-panel').isVisible(), `${width}px keeps the view inspector available`); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `${width}px has no document horizontal overflow`); await inspectorClose(page); }
+    for (const width of [1280, 736, 390]) { await page.setViewportSize({ width, height: 736 }); await setAppearance(page, {theme:'dark', size:'xlarge'}); await openView(page); await inspectorSubmit(page); assert(await page.locator('#inspector-panel').isVisible(), `${width}px keeps the view inspector available`); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `${width}px has no document horizontal overflow`); await inspectorClose(page); }
     await page.screenshot({ path: path.join(artifacts, 'illustslide-dark-mobile.png'), fullPage: true });
     await page.locator('#help-button').focus(); await page.keyboard.press('Enter'); await page.waitForFunction(() => !document.getElementById('operation-help').hidden); await page.keyboard.press('Escape'); assert.equal(await page.locator('#help-button').evaluate(el => document.activeElement === el), true, 'Escape returns focus to help opener');
     await page.setViewportSize({ width: 390, height: 736 }); await page.locator('#canvas').focus(); await page.keyboard.press('Tab');

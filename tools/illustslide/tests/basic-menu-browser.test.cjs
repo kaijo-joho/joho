@@ -1,5 +1,6 @@
 /* 通常選択の基本メニューから、実際に編集してUndoできることをChromeで確認する。 */
 'use strict';
+const { setAppearance } = require('./ui-helpers.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const http = require('node:http');
@@ -163,12 +164,7 @@ async function openMenu(page, button, submenu) {
     assert.equal(await objectsTab.getAttribute('aria-expanded'), 'false', 'パネルを閉じるとaria-expandedを戻す');
 
     // 表示設定に応じて右端タブの幅とテーマを変え、狭い画面で横へあふれないことを確認する。
-    const applyView = async (size, theme) => {
-      if (!await page.locator('#view-size').isVisible()) await page.locator('#view-toggle').click();
-      await page.locator('#view-size').selectOption(size);
-      await page.locator('#view-theme').selectOption(theme);
-      await settle(page);
-    };
+    const applyView = async (size, theme) => { await setAppearance(page, {size, theme}); await settle(page); };
     assert.equal(Math.round((await page.locator('.side-tab').boundingBox()).width), 26, '標準文字では右端タブを26pxにする');
     await applyView('large', 'dark');
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'dark', 'ダークテーマを適用する');
@@ -177,7 +173,7 @@ async function openMenu(page, button, submenu) {
     assert.equal(await page.evaluate(() => document.documentElement.dataset.theme), 'light', 'ライトテーマへ戻せる');
     assert.equal(Math.round((await page.locator('.side-tab').boundingBox()).width), 30, '文字を特大にすると右端タブも30pxにする');
     await applyView('xlarge', 'dark');
-    await page.locator('#inspector-close').click();
+    if (await page.locator('#inspector-close').isVisible()) await page.locator('#inspector-close').click();
     await page.setViewportSize({width:390,height:736}); await settle(page);
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), '390px幅でもページ全体を横スクロールさせない');
     await page.screenshot({path:path.join(artifacts, 'narrow-dark-390.png')});

@@ -6,7 +6,7 @@ const http = require('node:http');
 const os = require('node:os');
 const path = require('node:path');
 const C = require('../core.js');
-const { startPresentation } = require('./ui-helpers.cjs');
+const { startPresentation, setAppearance } = require('./ui-helpers.cjs');
 let chromium;
 try { ({ chromium } = require('playwright')); }
 catch { ({ chromium } = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'))); }
@@ -241,7 +241,7 @@ async function viewSettings(page) {
     assert(await page.locator('#inspector-panel').isHidden(),'文字入力欄のEscapeでパネルを閉じられる');
 
     // 390px・dark・xlarge・タッチ入力で横overflowを起こさない。
-    await page.setViewportSize({ width: 390, height: 736 }); await viewSettings(page); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await settle(page);
+    await page.setViewportSize({ width: 390, height: 736 }); await setAppearance(page,{theme:'dark',size:'xlarge'}); await viewSettings(page); await settle(page);
     await selectObject(page, 'existing-text'); await textEditButton(page).click(); await openTextSection(page);
     const narrow = await page.evaluate(() => { const panel = document.getElementById('inspector-panel').getBoundingClientRect(); return { width: innerWidth, panelRight: panel.right, scroll: document.documentElement.scrollWidth, bodyScroll: document.body.scrollWidth, input: document.getElementById('text-input').getBoundingClientRect() }; });
     assert(narrow.scroll <= narrow.width + 1 && narrow.bodyScroll <= narrow.width + 1 && narrow.panelRight <= narrow.width + 1, '390px dark xlarge文字パネルは横overflowなし');
@@ -256,7 +256,7 @@ async function viewSettings(page) {
     // v4 ZIP往復と発表で、label・align・runsを保持する。
     await page.setViewportSize({ width: 1280, height: 820 }); await load(page, await documentOf(page));
     await page.evaluate(() => Object.defineProperty(window, 'showSaveFilePicker', { value: undefined, configurable: true }));
-    await page.locator('[data-menu="save"]').click(); const downloadPromise = page.waitForEvent('download'); await page.locator('#command-menu').getByRole('button', { name: 'ローカルファイルに保存…', exact: true }).click();
+    await page.locator('[data-menu="file"]').click(); const downloadPromise = page.waitForEvent('download'); await page.locator('#command-menu').getByRole('button', { name: 'ローカルファイルに保存…', exact: true }).click();
     const download = await downloadPromise; const zipPath = '/private/tmp/illustslide-text-roundtrip.illustslide.zip'; await download.saveAs(zipPath); const zip = await fs.readFile(zipPath); assert(zip.length > 100);
     await load(page, zip, 'text-v4.illustslide.zip'); const resumed = await documentOf(page); const resumedShape = resumed.pages[0].objects.find(o => o.id === 'labelled-shape'); const resumedText = resumed.pages[0].objects.find(o => o.id === 'existing-text');
     assert.equal(resumed.version, 4, '最終のplain runだけの文書はv4を保つ'); assert.equal(resumedShape.label.align, 'left'); assert.equal(resumedShape.label.padding, 12); assert.equal(resumedShape.label.runs[0].text, '破棄される変更'); assert.equal(resumedText.layout.align, 'left'); assert.equal(resumedText.layout.width, 220);

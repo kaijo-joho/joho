@@ -1,6 +1,6 @@
 /* Real controls, portable output, and recovery of explanatory diagrams. */
 'use strict';
-const {openView,revealObject,startPresentation}=require('./ui-helpers.cjs');
+const {openView,revealObject,startPresentation,setAppearance}=require('./ui-helpers.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),http=require('node:http');
 const C=require('../core.js');
 let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
@@ -92,7 +92,7 @@ async function run(){
     });
     await load(example);await page.screenshot({path:'/private/tmp/illustslide-stage3-example.png'});await startPresentation(page);await page.screenshot({path:'/private/tmp/illustslide-stage3-presentation.png'});
     await page.locator('.ilapo-present-fullscreen').click();await page.waitForFunction(()=>document.fullscreenElement===document.querySelector('.ilapo-present-viewport'));await page.keyboard.press('Escape');await page.waitForFunction(()=>!document.getElementById('ilapo-presentation'));assert.deepEqual(await read(),example);
-    await pick(example.pages[0].objects.at(-1).id);await page.locator('#canvas').focus();await page.keyboard.press('a');await openView(page);await page.locator('#view-theme').selectOption('dark');await inspectorSubmit();await inspectorClose();await page.setViewportSize({width:390,height:844});await page.locator('#connection-options').click();await page.screenshot({path:'/private/tmp/illustslide-stage3-dark-dialog.png'});assert(await page.evaluate(()=>document.getElementById('inspector-panel').scrollWidth<=innerWidth));assert(await page.locator('#canvas').isVisible());await inspectorClose();
+    await pick(example.pages[0].objects.at(-1).id);await page.locator('#canvas').focus();await page.keyboard.press('a');await setAppearance(page,{theme:'dark'});await openView(page);await inspectorSubmit();await inspectorClose();await page.setViewportSize({width:390,height:844});await page.locator('#connection-options').click();await page.screenshot({path:'/private/tmp/illustslide-stage3-dark-dialog.png'});assert(await page.evaluate(()=>document.getElementById('inspector-panel').scrollWidth<=innerWidth));assert(await page.locator('#canvas').isVisible());await inspectorClose();
     assert.deepEqual(errors,[]);console.log('stage3-browser.test.cjs: passed');
   }finally{await context.close();await browser.close();server.close();}
 }

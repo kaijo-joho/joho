@@ -1,5 +1,6 @@
 /* illustSlide④: アウトライン化の入口、未確定プレビュー、フォント、確定後のUndoを実Chromeで確認する。 */
 'use strict';
+const { setAppearance } = require('./ui-helpers.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const http = require('node:http');
@@ -197,7 +198,7 @@ async function panelMetrics(page) {
     // 390px・dark・xlarge・タッチでも右パネル内のoverflowを起こさず、Escapeで閉じられる。
     await page.setViewportSize({ width: 390, height: 736 });
     await page.locator('#board-toggle').click(); await page.locator('#view-toggle').click();
-    await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await inspectorSubmit(page);
+    await setAppearance(page,{theme:'dark',size:'xlarge'}); await inspectorSubmit(page);
     await load(page, original); await selectObject(page, 'outline-label-shape', 450, 120); await openOutline(page, 'selection-more'); await waitPreview(page);
     const narrow = await panelMetrics(page); assert(narrow.documentScroll <= narrow.width + 1 && narrow.bodyScroll <= narrow.width + 1 && narrow.panelRight <= narrow.width + 1, `390px dark xlargeで横overflowしない: ${JSON.stringify(narrow)}`);
     await page.screenshot({ path: '/private/tmp/illustslide-outline-390.png', fullPage: true });

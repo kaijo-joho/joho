@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.21）
+# イラストスライド illustSlideの内部契約（0.4.22）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -208,11 +208,17 @@ pagesのscopeは文書ID・ページID・編集リビジョン。図形の選択
 - 並べ替えは専用ハンドルのPointer Eventsを使い、タッチではそのハンドルだけtouch-action:none。挿入表示と端での自動スクロールはUIのみ。pointerupで一度確定する。Escape・pointercancel・lostpointercapture・blurは確定せず終了する。
 - 開いたDOMのイベントはAbortControllerで再構築時に破棄する。ドラッグ中はInspectorのsyncを保留し、ページ参照・文書／ページID・DOM接続状態が変わったら取消。ページ／作品／設定切替でもcancelDragを呼ぶ。選択・開閉だけで非連続グループを再配列しない。
 
-## 上部と追加ツール（0.4.8）
+## 上部と追加ツール（0.4.22）
 
-上部は1行。insert/viewメニューは置かず、図形・文字・接続・画像は左の追加ツール、用紙・表示は右の設定、倍率は下部から扱う。560px以下は同一の左パレットを非モーダルで開閉し、Escape・外側操作・ツール選択で閉じる。外側のキャンバスを押して閉じた1回目のpointerdownで図形を置かない。Tabを閉じ込めず、隠れるパネルへフォーカスを残さない。
+上部はbrand（ロゴのみtools一覧リンク）／file・Undo・Redo／select／present／document-title／settings・helpの1行。標準は高さ41px、ボタン32×30px。--ui-kを共通と同じ1・1.15・1.3とし、30pxの操作部・上下各5pxを拡大する。pointer:coarseは44px以上。700px以下（coarseは850px以下）では履歴ボタンを隠し、fileメニューの構築時に同じUndo/Redoを補う。発表・設定は常時アクセスできる。
 
-moreはすべて選択／貼り付けに加え、実際に非表示の上部操作だけを補う。発表の先頭／現在ページは通常幅ではpresentメニュー、狭い幅ではmoreに置く。選択中の編集は選択ポップアップ、部品は右パネルを維持する。
+fileは既存のnew／rename／save-browser／save-local／recovery／open-file／auto-start・stopを呼ぶ。保存形式・保存キー・新規／読込前の未保存確認・beforeunloadは変えない。selectは統合選択とpan、すべて選択を提供し、対象の編集は選択ポップアップへ残す。insert/view/moreと上部pagesの重複は置かない。図形・文字・接続・画像・SVG追加・貼り付けは左、用紙・グリッドと吸着は右、倍率は下部を使う。複数ファイルのタブは共通仕様4.5の詳細合意まで未実装。
+
+settingsはテーマと操作部文字サイズの単一選択ボタン群。data-theme-choice・data-ui-sizeのクリックでsettingsとaria-pressedを同期し、メニューを保つ。既存のkaijo-ilapo:settingsを使い、作品・保存済みファイル・履歴を変えない。テーマ用SVGは教材サイトと同じ端末・太陽・月の意匠。viewパネルのscopeはcanvas設定のみを含め、外観設定でviewを再構築したり入力を失わない。
+
+トップと選択バーは共通のポップオーバー処理を使う。ホバーは表示のみでフォーカスや文書を変えず、別メニューにフォーカスがある間はホバーで切り替えない。クリック・タップ・上下キー・Escapeでも操作可能。サイズ変更で上部高さとメニュー位置、左右パレット・書き出しパネルの上端を同期する。
+
+560px以下は同一の左パレットを非モーダルで開閉し、Escape・外側操作・ツール選択で閉じる。外側のキャンバスを押して閉じた1回目のpointerdownで図形を置かない。Tabを閉じ込めず、隠れるパネルへフォーカスを残さない。
 
 ## IlapoAssetsUI（assets-ui.js）
 

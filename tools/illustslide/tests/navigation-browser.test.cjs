@@ -1,5 +1,6 @@
 /* ホバーメニューと、開いたまま編集できるページ一覧のChrome回帰。 */
 'use strict';
+const { setAppearance } = require('./ui-helpers.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),http=require('node:http');
 const C=require('../core.js');
 let chromium;
@@ -115,7 +116,7 @@ async function selectShape(page){await page.locator('#canvas').focus();await pag
 
     for(const width of [1280,736,390,320]){
       await page.setViewportSize({width,height:736});
-      await page.locator('#view-toggle').click();await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await inspectorSubmit(page);
+      await setAppearance(page,{theme:'dark',size:'xlarge'});await page.locator('#view-toggle').click();await inspectorSubmit(page);
       await page.locator('#pages-toggle').click();await settle(page);
       assert.equal(await page.locator('.page-card').count(),4);
       const layout=await page.evaluate(()=>{const p=document.getElementById('inspector-panel').getBoundingClientRect(),c=document.getElementById('canvas').getBoundingClientRect();return{overflow:document.documentElement.scrollWidth>innerWidth,pr:p.right,pt:p.top,cb:c.bottom,ch:c.height};});

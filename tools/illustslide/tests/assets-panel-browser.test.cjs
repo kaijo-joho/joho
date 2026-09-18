@@ -1,5 +1,6 @@
 /* アイコン・部品を右パネルで配置・登録・管理するChrome回帰。 */
 'use strict';
+const { setAppearance } = require('./ui-helpers.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
@@ -130,7 +131,7 @@ async function load(page, document) {
     assert.equal(await page.locator('#inspector-panel').isVisible(), false, 'an import finishing after close does not reopen the panel');
 
     await page.locator('#board-toggle').click(); await page.locator('#view-toggle').click();
-    await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await settle(page);
+    await setAppearance(page,{theme:'dark',size:'xlarge'}); await settle(page);
     await page.setViewportSize({ width: 390, height: 736 }); await page.locator('#assets-toggle').click(); await settle(page);
     assert.equal(await page.locator('#component-name').inputValue(), '', 'reopening the panel resets the unfinished name');
     const layout = await page.evaluate(() => {

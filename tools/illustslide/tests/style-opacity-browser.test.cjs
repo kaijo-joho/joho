@@ -1,5 +1,6 @@
 /* 塗り・線の対象、即時入力、保存と画像出力の不透明度をChromeで確認する。 */
 'use strict';
+const { setAppearance } = require('./ui-helpers.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
@@ -108,7 +109,7 @@ function near(actual,expected,label,tolerance=2) { assert.equal(actual.length,ex
     await page.locator('#selection-more').click();await page.locator('#command-menu [data-action="style-copy"]').click();
     await select(page,'b');await page.locator('#selection-more').click();await page.locator('#command-menu [data-action="style-paste"]').click();await settle(page);
     assert.deepEqual((await object(page,'b')).style,(await object(page,'a')).style);
-    await page.locator('[data-menu="save"]').click();await page.locator('#command-menu [data-action="save-browser"]').click();
+    await page.locator('[data-menu="file"]').click();await page.locator('#command-menu [data-action="save-browser"]').click();
     const saved=await read(page);
     const roundtrip=await page.evaluate(()=>IlapoSVG.decodeProject(IlapoSVG.encodeProject(IlapoEditor.getDocument())));
     assert.deepEqual(roundtrip,saved,'ZIPで別々の値を復元');
@@ -213,7 +214,7 @@ function near(actual,expected,label,tolerance=2) { assert.equal(actual.length,ex
     // Theme, panel width and keyboard switching on a narrow viewport.
     await load(page);await select(page,'a');await openStyle(page);
     for(const width of [1280,736,390]){
-      await page.setViewportSize({width,height:820});await page.locator('#view-toggle').click();await page.locator('#view-theme').selectOption('dark');await settle(page);await openStyle(page);await channel(page,'stroke');
+      await page.setViewportSize({width,height:820});await setAppearance(page,{theme:'dark'});await page.locator('#view-toggle').click();await settle(page);await openStyle(page);await channel(page,'stroke');
       await page.locator('#style-strokeOpacity').scrollIntoViewIfNeeded();assert(await page.locator('#style-strokeOpacity').isVisible());
       assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth),'書式パネルを開いても横にはみ出さない');
       await page.screenshot({path:path.join(artifacts,'stroke-'+width+'.png')});

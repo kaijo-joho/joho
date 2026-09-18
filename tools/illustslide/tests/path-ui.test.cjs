@@ -1,6 +1,6 @@
 /* Exercise direct selection through the same file input and controls used by students. */
 'use strict';
-const {openView,revealObject,startPresentation}=require('./ui-helpers.cjs');
+const {openView,revealObject,startPresentation,setAppearance}=require('./ui-helpers.cjs');
 const assert = require('node:assert/strict');
 const fs = require('node:fs/promises');
 const path = require('node:path');
@@ -120,7 +120,7 @@ async function run() {
     await choose([0, paths[0].segments.length - 1]); await menu('path-join'); await page.locator('#join-mode').selectOption('line'); await submit();
     assert.equal((await info('c1'))[0].closed, true);
     await page.evaluate(() => Object.defineProperty(window, 'showSaveFilePicker', { configurable: true, value: undefined }));
-    await page.locator('[data-menu="save"]').click(); const zipEvent = page.waitForEvent('download'); await page.locator('#command-menu [data-action="save-local"]').click();
+    await page.locator('[data-menu="file"]').click(); const zipEvent = page.waitForEvent('download'); await page.locator('#command-menu [data-action="save-local"]').click();
     const zip = await zipEvent, zipPath = '/private/tmp/illustslide-path-roundtrip.zip'; await zip.saveAs(zipPath); const beforeZip = await documentOf();
     await page.locator('#file-input').setInputFiles(zipPath); await sleep(100); assert.deepEqual(await documentOf(), beforeZip, 'curves and IDs survive actual local ZIP round trip');
     await pick('c1'); await choose([0]); await page.locator('#canvas').focus(); await page.keyboard.press('ArrowRight'); await sleep(40);
@@ -154,7 +154,7 @@ async function run() {
     const png = await pngEvent; assert.match(png.suggestedFilename(), /\.png$/);
     await page.locator('.side-tab [data-action="export-toggle"]').click();
     await page.screenshot({ path: '/private/tmp/illustslide-path-desktop.png' });
-    await page.setViewportSize({ width: 390, height: 736 }); await openView(page); assert(await page.locator('#inspector-panel').isVisible()); assert(await page.locator('#canvas').isVisible()); await page.locator('#view-theme').selectOption('dark'); await page.locator('#view-size').selectOption('xlarge'); await inspectorSubmit();
+    await page.setViewportSize({ width: 390, height: 736 }); await setAppearance(page, {theme:'dark', size:'xlarge'}); await openView(page); assert(await page.locator('#inspector-panel').isVisible()); assert(await page.locator('#canvas').isVisible()); await inspectorSubmit();
     assert(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)); assert(await page.evaluate(() => document.getElementById('inspector-panel').scrollWidth <= innerWidth)); await inspectorClose();
     await menu('anchor-list'); await page.screenshot({ path: '/private/tmp/illustslide-path-mobile.png' });
     await page.keyboard.press('Escape'); assert.equal(await page.locator('#dialog').evaluate(el => el.open), false);

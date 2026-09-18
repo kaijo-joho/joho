@@ -10,6 +10,11 @@
   const icon = name => `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="${icons[name] || icons.rect}"/></svg>`;
   Object.assign(icons,{diamond:'m12 2 10 10-10 10L2 12z',parallelogram:'M7 5h15l-5 14H2z',arrow:'M2 9h12V3l8 9-8 9v-6H2z',callout:'M2 3h20v14H11l-5 5v-5H2z',connector:'M3 19 21 5m-7-1 7 1-1 7','connector-orthogonal':'M3 4h9v16h9m-5-5 5 5-5 3'});
   Object.assign(icons,{
+    file:'M5 2h9l5 5v15H5zM14 2v6h5M8 12h8M8 16h8',help:'M22 12a10 10 0 1 0-20 0 10 10 0 0 0 20 0M9 8a3 3 0 1 1 5 2c-2 1-2 2-2 3M12 17h.01',
+    settings:'M9 3h6l1 3 3 1 2 5-2 5-3 1-1 3H9l-1-3-3-1-2-5 2-5 3-1zM16 12a4 4 0 1 0-8 0 4 4 0 0 0 8 0',
+    'theme-auto':'M5 4h14a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2zM8 21h8M12 17v4',
+    'theme-light':'M15.5 12a3.5 3.5 0 1 0-7 0 3.5 3.5 0 0 0 7 0M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42',
+    'theme-dark':'M20 15.2A8 8 0 0 1 8.8 4 8 8 0 1 0 20 15.2Z',
     style:'M12 3a9 9 0 1 0 0 18h1a2 2 0 0 0 0-4h-1a2 2 0 0 1 0-4h5a4 4 0 0 0 4-4c0-3-4-6-9-6zM7 9h.01M11 6h.01M16 7h.01M5 13h.01',
     transform:'M3 3h4v4H3zM17 3h4v4h-4zM3 17h4v4H3zM17 17h4v4h-4zM7 5h10M5 7v10M19 7v10M7 19h10m-8-3 8-8m-5 0h5v5',
     outline:'M2 21 9 3h6l7 18h-5l-2-5H9l-2 5zM10 12h4l-2-5z',
@@ -86,6 +91,9 @@
     const dark=settings.theme==='dark'||settings.theme==='auto'&&matchMedia('(prefers-color-scheme: dark)').matches;
     document.documentElement.dataset.theme=dark?'dark':'light';
     document.documentElement.style.setProperty('--ui-size',({standard:14,large:16,xlarge:18}[settings.size]||14)+'px');
+    document.documentElement.style.setProperty('--ui-k',({standard:1,large:1.15,xlarge:1.3}[settings.size]||1));
+    document.querySelectorAll('[data-theme-choice]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.themeChoice===settings.theme)));
+    document.querySelectorAll('[data-ui-size]').forEach(button=>button.setAttribute('aria-pressed',String(button.dataset.uiSize===settings.size)));
     try { localStorage.setItem('kaijo-ilapo:settings',JSON.stringify(settings)); } catch (_) {}
     render(); help?.refresh();
   }
@@ -195,6 +203,9 @@
     $('page-status').textContent=`${doc().pages.indexOf(page())+1} / ${doc().pages.length} · ${page().name}`;
     $('zoom-value').textContent=(zoom()*100<10?(zoom()*100).toFixed(1):Math.round(zoom()*100))+'%';
     document.querySelectorAll('[data-action=undo]').forEach(b=>b.disabled=!history.canUndo);document.querySelectorAll('[data-action=redo]').forEach(b=>b.disabled=!history.canRedo);
+    document.querySelectorAll('[data-action=paste]').forEach(b=>b.disabled=!clipboard);
+    const method=tool==='pan'?'pan':tool==='direct'?'direct':'select',methodButton=$('selection-method-button');
+    if(methodButton.dataset.currentTool!==method){methodButton.querySelector('svg').outerHTML=icon(method);methodButton.dataset.currentTool=method;methodButton.dataset.tip='選択方法・表示の移動：'+names[method];}
     document.querySelectorAll('button[data-tool]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tool==='select'?selecting():b.dataset.tool===tool)));
     $('hint').textContent=['connector','connector-orthogonal'].includes(tool)?connectionUI.hint():!$('connection-options').hidden&&tool==='direct'?'丸い端点で接続位置 · 四角で折れ曲がり位置 · ダブルクリックで点を追加 · Enterで詳細':tool==='direct'?pathUI.hint():tool==='select'?(selected.length?'全体を選択中 · 枠の角・辺で拡大縮小 · 内側ダブルクリックで文字 · Escで解除':'頂点・辺で点を編集 · 内側で全体を選択 · 空白ドラッグで範囲選択'):tool==='pan'?'ドラッグして表示を移動':`${names[tool]}：クリックで配置 · ドラッグで大きさを指定`;
     renderSelection();
@@ -384,14 +395,14 @@
   document.addEventListener('focusin',event=>{if($('app').classList.contains('palette-open')&&!event.target.closest('#add-palette,#palette-toggle'))closePalette(false);});
   document.addEventListener('keydown',event=>{if(event.key==='Escape'&&$('app').classList.contains('palette-open')){event.preventDefault();event.stopImmediatePropagation();closePalette();}},true);
   narrowPalette.addEventListener('change',()=>{const focused=$('add-palette').contains(document.activeElement);closePalette(false);if(narrowPalette.matches&&focused)$('palette-toggle').focus();});
-  new ResizeObserver(()=>{$('app').style.setProperty('--toolbar-height',document.querySelector('.top').getBoundingClientRect().height+'px');}).observe(document.querySelector('.top'));
+  new ResizeObserver(()=>{$('app').style.setProperty('--toolbar-height',document.querySelector('.top').getBoundingClientRect().height+'px');positionMenu();}).observe(document.querySelector('.top'));
 
   let menuOpener,menuKind,hoverMenu=false,menuCloseTimer,ignoredHover=null;
   const submenus=[];
   const menuSurface=element=>element?.closest('#command-menu,.command-submenu');
   const menuItems=surface=>[...surface.querySelectorAll('button:not(:disabled)')].filter(button=>menuSurface(button)===surface);
   const menuContent=surface=>surface.querySelector(':scope > .menu-content');
-  const menuTitle=kind=>({arrange:'整列','arrange-details':'整列の詳細',order:'重なり順',path:'アンカー・パス','selection-more':tool==='direct'?'その他の編集':'詳細','selection-transform':'変形','selection-combine':'図形の合成','selection-group':'グループ・固定'})[kind]||'メニュー';
+  const menuTitle=kind=>({file:'ファイル',select:'選択方法',present:'発表',settings:'設定',arrange:'整列','arrange-details':'整列の詳細',order:'重なり順',path:'アンカー・パス','selection-more':tool==='direct'?'その他の編集':'詳細','selection-transform':'変形','selection-combine':'図形の合成','selection-group':'グループ・固定'})[kind]||'メニュー';
   const caret=direction=>`<span class="menu-caret" aria-hidden="true">${direction==='right'?'▶':'▼'}</span>`;
   function closeSubmenus(from=0,focus=false){
     const removed=submenus.splice(from),opener=removed[0]?.opener;
@@ -427,6 +438,7 @@
   }
   const actionIcons={'path-union':'union','path-subtract':'subtract','path-intersect':'intersect','anchor-add':'anchor-add','anchor-position':'anchor-position','anchor-corner':'anchor-corner','anchor-smooth':'anchor-smooth','selection-path':'path',outline:'outline',transform:'transform',copy:'copy',paste:'paste',duplicate:'duplicate',delete:'delete',group:'group',ungroup:'ungroup',lock:'lock','style-copy':'brush','style-paste':'paste','text-edit':'text','component-save':'group','connection-between':'connector','connection-convert':'path','selection-arrange':'arrange','selection-order':'layers',animations:'animation'};
   const actionSubmenus={'selection-path':'path','selection-arrange':'arrange','selection-order':'order'};
+  Object.assign(actionIcons,{new:'plus',rename:'edit','save-browser':'save','save-local':'save',recovery:'open','open-file':'open','auto-start':'save','auto-stop':'save','select-all':'select','present-start':'animation','present-current':'animation'});
   function menuButton(label,action,disabled=false){
     const name=actionIcons[action]||(icons[action]?action:action.startsWith('order-')?'layers':null),child=actionSubmenus[action];
     return `<button data-action="${action}" ${child?`data-submenu="${child}" aria-haspopup="true" aria-expanded="false"`:''} ${disabled?'disabled':''}>${name?icon(name):''}<span>${label}</span>${child?caret('right'):''}</button>`;
@@ -483,16 +495,12 @@
   function buildMenu(kind){
     const selectedNone=!selected.length,objects=page().objects.filter(o=>selected.includes(o.id)),one=objects.length===1?objects[0]:null,unlocked=allUnlocked();
     const menus={
-      save:()=>menuButton('ブラウザに保存','save-browser')+menuButton('ローカルファイルに保存…','save-local')+'<hr>'+menuButton(localAuto?.active?'ローカル自動保存を停止':'ローカル自動保存を開始…',localAuto?.active?'auto-stop':'auto-start'),
-      open:()=>menuButton('保存した内容を選ぶ…','recovery')+menuButton('ファイルを開く…','open-file')+menuButton('SVGを追加する…','import-svg')+'<hr>'+menuButton('新しい作品…','new'),
-      more:()=>{
-        const hidden=selector=>!document.querySelector('.top '+selector)?.getClientRects().length;
-        const tools=['select','pan'].filter(key=>hidden(`[data-tool="${key}"]`)).map(key=>`<button data-tool="${key}" aria-pressed="${key==='select'?selecting():tool===key}">${icon(key)}<span>${names[key]}</span></button>`).join('');
-        const actions=menuButton('すべて選択','select-all',!page().objects.length)+menuButton('貼り付け','paste',!clipboard);
-        const historyMenu=(hidden('[data-action="undo"]')?menuButton('元に戻す','undo',!history.canUndo):'')+(hidden('[data-action="redo"]')?menuButton('やり直し','redo',!history.canRedo):'');
-        const pagesMenu=hidden('[data-action="pages"]')?menuButton('ページ一覧…','pages'):'';
-        return [tools,actions,historyMenu,pagesMenu,hidden('#present-button')?menus.present():''].filter(Boolean).join('<hr>');
+      file:()=>{
+        const historyMenu=!document.querySelector('.top [data-action="undo"]').getClientRects().length?'<hr>'+menuButton('元に戻す','undo',!history.canUndo)+menuButton('やり直し','redo',!history.canRedo):'';
+        return menuButton('新しい作品…','new')+menuButton('作品名を変更…','rename')+'<hr>'+menuButton('ブラウザに保存','save-browser')+menuButton('ローカルファイルに保存…','save-local')+'<hr>'+menuButton('ブラウザの保存内容を選ぶ…','recovery')+menuButton('ファイルを開く…','open-file')+'<hr>'+menuButton(localAuto?.active?'ローカル自動保存を停止':'ローカル自動保存を開始…',localAuto?.active?'auto-stop':'auto-start')+historyMenu;
       },
+      select:()=>['select','pan'].map(key=>`<button data-tool="${key}" aria-pressed="${key==='select'?selecting():tool===key}">${icon(key)}<span>${key==='select'?'選択（内側は全体・頂点は点）':'表示を移動'}</span></button>`).join('')+'<hr>'+menuButton('すべて選択','select-all',!page().objects.length),
+      settings:()=>`<div class="appearance-settings"><h3>テーマ</h3><div class="appearance-choices" role="group" aria-label="テーマ">${[['auto','自動'],['light','ライト'],['dark','ダーク']].map(([value,label])=>`<button type="button" data-theme-choice="${value}" aria-label="${label}" aria-pressed="${settings.theme===value}" data-tip="${value==='auto'?'端末の設定に合わせる':label+'モード'}">${icon('theme-'+value)}<span>${label}</span></button>`).join('')}</div><h3>操作部の文字サイズ</h3><div class="appearance-choices" role="group" aria-label="操作部の文字サイズ">${[['standard','標準'],['large','大'],['xlarge','特大']].map(([value,label])=>`<button type="button" data-ui-size="${value}" aria-pressed="${settings.size===value}"><span>${label}</span></button>`).join('')}</div></div>`,
       present:()=>menuButton('先頭から発表','present-start')+menuButton('このページから発表','present-current'),
       path:()=>pathUI.menu(menuButton,{includeCombine:tool==='direct'})+'<hr>'+menuButton('アウトライン化…','outline',!outlineAvailable()),
       'selection-transform':()=>menuButton('左右反転','flip-h',!unlocked)+menuButton('上下反転','flip-v',!unlocked)+'<hr>'+menuButton('左に90°回転','rotate-left',!unlocked)+menuButton('右に90°回転','rotate-right',!unlocked)+'<hr>'+menuButton('位置・拡大縮小・回転を指定…','transform',!unlocked),
@@ -513,13 +521,14 @@
       arrange:arrangeMenu,'arrange-details':arrangeDetailsMenu,
       order:()=>menuButton('最前面へ','order-front')+menuButton('1つ前へ','order-forward')+menuButton('1つ後ろへ','order-backward')+menuButton('最背面へ','order-back')
     };
-    return (menus[kind]||menus.more)();
+    return (menus[kind]||menus.file)();
   }
   function openMenu(kind,opener,options={}){
+    if(options.hover&&menuOpener!==opener&&$('command-menu').matches(':popover-open')&&$('command-menu').contains(document.activeElement))return;
     const was=$('command-menu').matches(':popover-open')&&menuOpener===opener&&menuKind===kind;
     if(was&&(options.hover||hoverMenu)){clearTimeout(menuCloseTimer);if(!options.hover){hoverMenu=false;menuItems($('command-menu'))[0]?.focus();}return;}
     hideMenu();if(was)return;menuOpener=opener;menuKind=kind;hoverMenu=!!options.hover;$('tooltip').hidden=true;
-    $('command-menu').dataset.menuKind=kind;$('command-menu').innerHTML=`<div class="menu-content">${buildMenu(kind)}</div>`;$('command-menu').showPopover();opener.setAttribute('aria-expanded','true');
+    $('command-menu').dataset.menuKind=kind;$('command-menu').setAttribute('aria-label',menuTitle(kind));$('command-menu').innerHTML=`<div class="menu-content">${buildMenu(kind)}</div>`;$('command-menu').showPopover();opener.setAttribute('aria-expanded','true');
     positionMenu();renderArrangeReference();if(!options.hover)menuItems($('command-menu'))[0]?.focus();
   }
   function openSubmenu(opener,options={}){
@@ -547,6 +556,12 @@
   window.addEventListener('resize',hideMenu);
   $('command-menu').addEventListener('toggle',event=>{if(event.newState==='closed'){closeSubmenus();menuOpener?.setAttribute('aria-expanded','false');}renderArrangeReference();});
   $('command-menu').addEventListener('click',event=>{
+    const preference=event.target.closest('[data-theme-choice],[data-ui-size]');
+    if(preference){
+      const key=preference.dataset.themeChoice?'theme':'size',value=preference.dataset.themeChoice||preference.dataset.uiSize;
+      if(!(key==='theme'?['auto','light','dark']:['standard','large','xlarge']).includes(value))return;
+      hoverMenu=false;settings[key]=value;applySettings();positionMenu();return;
+    }
     const back=event.target.closest('[data-menu-back]');if(back){closeSubmenus(submenus.findIndex(s=>s.element===menuSurface(back)),true);return;}
     const button=event.target.closest('[data-arrange-reference]');if(!button||button.disabled)return;
     arrangeReference=button.dataset.arrangeReference;hoverMenu=false;refreshArrangeMenu(arrangeReference);
@@ -555,7 +570,7 @@
   function deferHoverClose(){clearTimeout(menuCloseTimer);if(hoverMenu)menuCloseTimer=setTimeout(()=>{if(hoverMenu&&!$('command-menu').contains(document.activeElement))hideMenu();},240);}
   document.querySelectorAll('[data-menu]').forEach(button=>{
     button.setAttribute('aria-haspopup','true');button.setAttribute('aria-expanded','false');button.insertAdjacentHTML('beforeend',caret('down'));
-    if($('selection-bar').contains(button)){
+    if(button.closest('#selection-bar,.top')){
       button.addEventListener('pointerenter',event=>{if(button.disabled||event.pointerType!=='mouse'||event.buttons||drag||$('dialog').open||button===ignoredHover)return;openMenu(button.dataset.menu,button,{hover:true});});
       button.addEventListener('pointerleave',()=>{if(ignoredHover===button)ignoredHover=null;deferHoverClose();});
     }
@@ -593,7 +608,7 @@
   $('dialog-form').onsubmit=async event=>{event.preventDefault();if(!dialogCallback){closeDialog();return;}const cb=dialogCallback;try{const result=cb();if(result?.then)await result;if(dialogCallback===cb)closeDialog();}catch(error){$('dialog-error').textContent=error.message;$('dialog-error').hidden=false;}};
   const inspectorSections={outline:['アウトライン化','outline'],text:['文字・配置','text'],style:['書式・色','style'],transform:['位置・大きさ','transform'],anchor:['アンカーの座標','path'],connection:['接続・経路','connector'],image:['画像の設定','image'],animation:['動きと再生順序','animation'],board:['用紙サイズ','board'],view:['表示と吸着','view'],pages:['ページ一覧','pages'],objects:['レイヤー','layers'],assets:['アイコン・部品','assets']};
   let inspectorTabsKey='';
-  function inspectorScope(section){return JSON.stringify([revision,doc().id,pageId,['pages','board','view'].includes(section)?null:selected,section==='objects'?activeLayer():null,section==='anchor'?pathUI.getRefs():null,section==='view'?settings:null]);}
+  function inspectorScope(section){const {theme,size,...canvasSettings}=settings;return JSON.stringify([revision,doc().id,pageId,['pages','board','view'].includes(section)?null:selected,section==='objects'?activeLayer():null,section==='anchor'?pathUI.getRefs():null,section==='view'?canvasSettings:null]);}
   function clearInspectorPreview(){if(inspectorPreview){inspectorPreview=null;render();}}
   function previewInspectorChange(fn){
     const next=C.clone(doc()),p=next.pages.find(v=>v.id===pageId);fn(p);L.reconcile(p,page(),activeLayer());K.sync(p);C.pruneAnimations(p);
@@ -836,13 +851,13 @@
     });
     updateChannel();updateOverall();
   }
-  function viewDialog(){showInspector('view','表示設定',`<label>テーマ<select id="view-theme"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label><label>操作部の文字サイズ<select id="view-size"><option value="standard">標準</option><option value="large">大</option><option value="xlarge">特大</option></select></label><label class="check"><input id="view-guides" type="checkbox" ${settings.smartGuides?'checked':''}>図形・用紙への位置合わせガイドと吸着</label><label class="check"><input id="view-grid" type="checkbox" ${settings.grid?'checked':''}>作図用グリッド（点）を表示</label><label class="check"><input id="view-pixel-grid" type="checkbox" ${settings.pixelGrid?'checked':''}>ピクセルの方眼を表示（拡大時・1px）</label><label class="check"><input id="view-snap" type="checkbox" ${settings.snap?'checked':''}>指定間隔のグリッドに吸着</label><label class="check"><input id="view-pixel" type="checkbox" ${settings.snapPixel?'checked':''}>図形・アンカー・ハンドルをピクセルに吸着</label><label class="check"><input id="view-anchor" type="checkbox" ${settings.snapAnchor?'checked':''}>他のアンカーに吸着</label><label class="check"><input id="view-path" type="checkbox" ${settings.snapPath?'checked':''}>他のパスの上に吸着</label><label>グリッドの間隔（px）<input id="view-step" type="number" min="0.01" max="10000" step="any" required value="${Number(settings.gridStep)||20}"></label><p class="muted">拡大すると1pxの方眼を表示します。画像や印刷には入りません。両方の吸着を選ぶと指定間隔を優先し、目盛りに合う位置へそろえます。曲線のハンドルも同じ間隔に吸着します。Optionで吸着を一時解除、Shift＋矢印キーで10倍移動。数値入力では指定値、Shiftでの拡大縮小では縦横比、図形への接続では輪郭の位置を保ちます。</p>`,'適用',()=>{settings={...settings,theme:$('view-theme').value,size:$('view-size').value,grid:$('view-grid').checked,pixelGrid:$('view-pixel-grid').checked,snap:$('view-snap').checked,snapPixel:$('view-pixel').checked,snapAnchor:$('view-anchor').checked,snapPath:$('view-path').checked,smartGuides:$('view-guides').checked,gridStep:Number($('view-step').value)};applySettings();});$('view-theme').value=settings.theme;$('view-size').value=settings.size;}
+  function viewDialog(){showInspector('view','表示と吸着',`<label class="check"><input id="view-guides" type="checkbox" ${settings.smartGuides?'checked':''}>図形・用紙への位置合わせガイドと吸着</label><label class="check"><input id="view-grid" type="checkbox" ${settings.grid?'checked':''}>作図用グリッド（点）を表示</label><label class="check"><input id="view-pixel-grid" type="checkbox" ${settings.pixelGrid?'checked':''}>ピクセルの方眼を表示（拡大時・1px）</label><label class="check"><input id="view-snap" type="checkbox" ${settings.snap?'checked':''}>指定間隔のグリッドに吸着</label><label class="check"><input id="view-pixel" type="checkbox" ${settings.snapPixel?'checked':''}>図形・アンカー・ハンドルをピクセルに吸着</label><label class="check"><input id="view-anchor" type="checkbox" ${settings.snapAnchor?'checked':''}>他のアンカーに吸着</label><label class="check"><input id="view-path" type="checkbox" ${settings.snapPath?'checked':''}>他のパスの上に吸着</label><label>グリッドの間隔（px）<input id="view-step" type="number" min="0.01" max="10000" step="any" required value="${Number(settings.gridStep)||20}"></label><p class="muted">拡大すると1pxの方眼を表示します。画像や印刷には入りません。両方の吸着を選ぶと指定間隔を優先し、目盛りに合う位置へそろえます。曲線のハンドルも同じ間隔に吸着します。Optionで吸着を一時解除、Shift＋矢印キーで10倍移動。数値入力では指定値、Shiftでの拡大縮小では縦横比、図形への接続では輪郭の位置を保ちます。</p>`,'適用',()=>{settings={...settings,grid:$('view-grid').checked,pixelGrid:$('view-pixel-grid').checked,snap:$('view-snap').checked,snapPixel:$('view-pixel').checked,snapAnchor:$('view-anchor').checked,snapPath:$('view-path').checked,smartGuides:$('view-guides').checked,gridStep:Number($('view-step').value)};applySettings();});}
   function align(mode){
     if(!editable())return;
     const context=arrangeContext(),transforms=Arrange.plan(context.units,mode,context);
     if(transforms.length)changePage(p=>transforms.forEach(({ids,matrix})=>C.transformObjects(p,ids,matrix)));
   }
-  function copy(){if(!selected.length)return;clipboard={objects:C.clone(page().objects.filter(o=>selected.includes(o.id))),animations:C.clone((page().animations||[]).filter(a=>a.targets.some(id=>selected.includes(id))).map(a=>({...a,targets:a.targets.filter(id=>selected.includes(id))}))),count:0};toast('図形と動きをコピーしました。別のページにも貼り付けられます。');}
+  function copy(){if(!selected.length)return;clipboard={objects:C.clone(page().objects.filter(o=>selected.includes(o.id))),animations:C.clone((page().animations||[]).filter(a=>a.targets.some(id=>selected.includes(id))).map(a=>({...a,targets:a.targets.filter(id=>selected.includes(id))}))),count:0};toast('図形と動きをコピーしました。別のページにも貼り付けられます。');render();}
   function paste(){if(!clipboard)return;const temp=C.createPage('コピー',page().board);temp.objects=C.clone(clipboard.objects);temp.animations=C.clone(clipboard.animations||[]);const offset=++clipboard.count*standardSize()*.12,ids=C.duplicateObjects(temp,temp.objects.map(o=>o.id),offset,offset);const copies=temp.objects.filter(o=>ids.includes(o.id)),animations=temp.animations.filter(a=>a.targets.every(id=>ids.includes(id)));copies.forEach(o=>o.locked=false);if(changePage(p=>{p.objects.push(...copies);if(animations.length){p.animations||=[];p.animations.push(...animations);}}))selected=ids;render();}
   function exportOptions(){
     const selectionIds=$('export-range').value==='selection'?selected.slice():null,padding=Number($('export-padding').value);

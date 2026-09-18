@@ -1,5 +1,6 @@
 /* 接続の作成・折れ曲がり線の移動・端点の吸着を実際のポインターで検証する。 */
 'use strict';
+const { setAppearance } = require('./ui-helpers.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),http=require('node:http');
 const C=require('../core.js');
 let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
@@ -53,7 +54,7 @@ async function load(page,doc){await page.locator('#file-input').setInputFiles({n
     // The detailed panel remains available alongside the direct controls.
     await page.locator('#connection-options').click();await page.locator('#connection-to-ratio').fill('0.75');await inspectorSubmit(page);near(line(await read(page)).to.ratio,.75);await page.locator('#inspector-close').click();
     for(const width of [736,390]){await page.setViewportSize({width,height:844});await settle(page);assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));if(width<=560)await page.locator('#palette-toggle').click();assert(await page.locator('#shape-tools [data-tool=connector-orthogonal]').isVisible());if(width<=560)await page.keyboard.press('Escape');}
-    await page.locator('#board-toggle').click();await page.locator('#view-toggle').click();await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await inspectorSubmit(page);await page.locator('#inspector-close').click();await settle(page);await page.screenshot({path:'/private/tmp/illustslide-elbow-390px.png'});
+    await page.locator('#board-toggle').click();await setAppearance(page,{theme:'dark',size:'xlarge'});await page.locator('#view-toggle').click();await inspectorSubmit(page);await page.locator('#inspector-close').click();await settle(page);await page.screenshot({path:'/private/tmp/illustslide-elbow-390px.png'});
     // A real touch drag moves the central lane, and retains attachment references.
     const touchContext=await browser.newContext({viewport:{width:390,height:844},hasTouch:true,isMobile:true}),touch=await touchContext.newPage();touch.on('pageerror',error=>errors.push(error.message));await touch.goto(url);await touch.waitForFunction(()=>!!window.IlapoEditor);await load(touch,bent);await pick(touch,id);await touch.locator('#canvas').focus();await touch.keyboard.press('a');await settle(touch);
     const position=await screen(touch,{x:325,y:195}),cdp=await touchContext.newCDPSession(touch);

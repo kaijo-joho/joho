@@ -58,7 +58,7 @@ const bounds = page => page.evaluate(() => IlapoEditor.getDocument().pages[0].ob
   try {
     await page.goto(url); await page.waitForFunction(() => !!window.IlapoEditor); await load(page); await select(page);
     assert.equal(await page.locator('[data-menu="edit"]').count(),0,'鉛筆の重複入口を廃止');
-    for (const selector of ['#selection-arrange','#selection-more','#path-menu-button','#selection-transform','#selection-combine','#selection-group','.top [data-menu="save"]']) {
+    for (const selector of ['#selection-arrange','#selection-more','#path-menu-button','#selection-transform','#selection-combine','#selection-group','.top [data-menu="file"]']) {
       assert.equal(await page.locator(selector + ' > .menu-caret[aria-hidden="true"]').count(),1,'メニュー入口には三角の目印');
     }
     await page.locator('#selection-more').click(); const menu = page.locator('#command-menu');

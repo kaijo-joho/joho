@@ -7,7 +7,7 @@ const path = require('node:path');
 const os = require('node:os');
 const http = require('node:http');
 const C = require('../core.js');
-const { revealObject } = require('./ui-helpers.cjs');
+const { revealObject, setAppearance } = require('./ui-helpers.cjs');
 
 let chromium;
 try { ({ chromium } = require('playwright')); }
@@ -279,7 +279,7 @@ async function run() {
     if (await touch.locator('#replace-discard').isVisible()) await touch.locator('#replace-discard').click();
     await touch.waitForFunction(id => IlapoEditor.getDocument().id === id, mobileDocument.id); await settle(touch);
     await touch.locator('#board-toggle').tap(); await touch.locator('#view-toggle').tap();
-    await touch.locator('#view-theme').selectOption('dark'); await touch.locator('#view-size').selectOption('xlarge');
+    await setAppearance(touch,{theme:'dark',size:'xlarge'});
     const touchSubmit = touch.locator('#inspector-submit'); if (await touchSubmit.isVisible()) await touchSubmit.tap(); await settle(touch);
     assert.equal(await touch.evaluate(() => document.documentElement.dataset.theme), 'dark');
     assert(await touch.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1));

@@ -6,6 +6,7 @@ const path = require('node:path');
 const os = require('node:os');
 const http = require('node:http');
 const C = require('../core.js');
+const { setAppearance } = require('./ui-helpers.cjs');
 let chromium;
 try { ({ chromium } = require('playwright')); }
 catch { ({ chromium } = require(path.join(os.homedir(), '.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright'))); }
@@ -128,7 +129,7 @@ async function close(page) { if (await page.locator('#inspector-panel').isVisibl
       for (const [theme, size] of [['light', 'standard'], ['dark', 'large'], ['auto', 'xlarge']]) {
         await page.setViewportSize({ width, height: 736 });
         await page.locator('#view-toggle').click();
-        await page.locator('#view-theme').selectOption(theme); await page.locator('#view-size').selectOption(size); await settle(page);
+        await setAppearance(page,{theme,size}); await settle(page);
         await page.locator('#style-button').click(); await settle(page);
         const dimensions = await page.evaluate(() => {
           const rect = id => { const r = document.getElementById(id).getBoundingClientRect(); return { x:r.x, y:r.y, right:r.right, bottom:r.bottom, width:r.width, height:r.height }; };

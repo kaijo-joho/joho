@@ -1,6 +1,6 @@
 /* Actual editing, reversible playback, and an offline copy of the same runtime. */
 'use strict';
-const {openView,revealObject,startPresentation}=require('./ui-helpers.cjs');
+const {openView,revealObject,startPresentation,setAppearance}=require('./ui-helpers.cjs');
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),http=require('node:http');
 let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
 const root=path.resolve(__dirname,'../..');
@@ -78,7 +78,7 @@ async function run(){
     await page.locator('[data-action=pages]').first().click();await page.locator('[data-page-pick="0"]').click();
     // Narrow, dark and touch operation; large fonts must not break the one-row toolbar.
     for(const width of [736,390]){
-      await page.setViewportSize({width,height:844});await openView(page);await page.locator('#view-theme').selectOption('dark');await page.locator('#view-size').selectOption('xlarge');await inspectorSubmit();await inspectorClose();await pick('pc');
+      await page.setViewportSize({width,height:844});await setAppearance(page,{theme:'dark',size:'xlarge'});await openView(page);await inspectorSubmit();await inspectorClose();await pick('pc');
       await openList();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth&&document.getElementById('inspector-panel').scrollWidth<=innerWidth));assert(await page.locator('#canvas').isVisible());
       await page.locator('[data-animation-edit="1"]').click();assert(await page.evaluate(()=>document.getElementById('inspector-panel').scrollWidth<=innerWidth));
       await page.screenshot({path:`/private/tmp/illustslide-stage4-editor-${width}.png`});await inspectorClose();
