@@ -19,13 +19,14 @@ const server = http.createServer((req, res) => {
     const page = await browser.newPage({ viewport: { width: 1000, height: 760 } });
     const base = 'http://127.0.0.1:' + server.address().port + '/tools/graph/';
     await page.setContent('<div id="workspace" style="width:900px;height:600px"></div>');
-    for (const script of ['vendor/plotly.min.js', 'expression.js', 'symbols.js', 'curves.js', 'annotations.js', 'plot.js', 'tables.js', 'statistics.js', 'analysis.js', 'charts.js', 'workspace.js']) await page.addScriptTag({ url: base + script });
+    for (const script of ['vendor/plotly.min.js', 'expression.js', 'symbols.js', 'curves.js', 'annotations.js', 'plot.js', 'tables.js', 'statistics.js', 'analysis.js', 'axis-style.js', 'charts.js', 'workspace.js']) await page.addScriptTag({ url: base + script });
     const source = Core.createDocument(); source.name = 'ばねの測定';
     const series = Core.createSeries('data2d'); series.id = 'spring'; series.name = '伸びの測定'; series.rows = [[0, 1], [1, 2.8], [2, 5.1], [3, 6.9], [4, 9.2], [5, 10.8]]; series.dataTable = { columns: ['力', '伸び'], rows: series.rows, mapping: { x: 0, y: 1, z: null, errorX: null, errorY: null } }; source.series = [series];
     const fit = Core.createAnnotation('regression'); fit.id = 'fit'; fit.name = 'ばねの回帰'; fit.seriesId = series.id; fit.model = 'linear'; source.annotations = [fit];
     source.charts = [{ id: 'residual', name: '残差', kind: 'residual', regressionId: 'fit', horizontal: 'x', color: '#2563eb' }, { id: 'scatter', name: '散布図', kind: 'scatter', seriesId: 'spring', xColumn: 0, yColumn: 1, model: 'linear', color: '#dc2626' }, { id: 'hist', name: 'ヒストグラム', kind: 'histogram', seriesId: 'spring', column: 1, bins: 3, color: '#059669' }];
     source.comparison = { columns: 2, items: ['main', 'residual', 'scatter', 'hist'] };
     const result = await page.evaluate(async source => {
+      const styledScatter = source.charts.find(chart => chart.id === 'scatter'); styledScatter.axes = { x: { style: { color: '#dc2626', width: 3, grid: true, gridColor: '#16a34a', gridWidth: 2, gridDash: 'dot', tickMarks: true, tickLabels: true } }, y: {} };
       const before = JSON.stringify(source); const selected = [];
       const mounted = await GraphWorkspace.renderComparison(document.querySelector('#workspace'), source, { dark: true, onSelect: id => selected.push(id) });
       document.querySelector('.comparison-title').click();
@@ -70,13 +71,14 @@ const server = http.createServer((req, res) => {
       clickHost.emit('plotly_click', { points:[matrixPoint], event:{clientX:matrixBox.left + matrixX._offset + matrixX.d2p(matrixPoint.x),clientY:matrixBox.top + matrixY._offset + matrixY.d2p(matrixPoint.y)} });
       clickHost.emit('plotly_click', { points:[matrixPoint], event:{clientX:matrixBox.left + matrixX._offset + matrixX.d2p(matrixPoint.x) + 100,clientY:matrixBox.top + matrixY._offset + matrixY.d2p(matrixPoint.y)} });
       GraphWorkspace.purge(clickHost); clickHost.remove();
-      return { legendClearances, mounted, selected, rowClicks, initialMatrixRanges, resetMatrixRanges, grid: getComputedStyle(document.querySelector('#workspace')).gridTemplateColumns, cards, unchanged: before === JSON.stringify(source), svg, png, chartPng, exportedRanges, rerenderedRanges, resetRange, camera, colors: { blue, red, green }, pngSize: [pngBytes.getUint32(16), pngBytes.getUint32(20)], whiteLayouts: exportLayouts.slice(0, 4).every(layout => layout.paper_bgcolor === '#ffffff' && layout.font.color === '#172033' && (!layout.xaxis || layout.xaxis.zerolinecolor !== '#e5e7eb')), disposed };
+      return { legendClearances, mounted, selected, rowClicks, initialMatrixRanges, resetMatrixRanges, grid: getComputedStyle(document.querySelector('#workspace')).gridTemplateColumns, cards, unchanged: before === JSON.stringify(source), svg, png, chartPng, exportedRanges, rerenderedRanges, resetRange, camera, colors: { blue, red, green }, pngSize: [pngBytes.getUint32(16), pngBytes.getUint32(20)], whiteLayouts: exportLayouts.slice(0, 4).every(layout => layout.paper_bgcolor === '#ffffff' && layout.font.color === '#172033' && (!layout.xaxis || layout.xaxis.zerolinecolor !== '#e5e7eb')), explicitAxisExport: exportLayouts.some(layout => layout.xaxis?.color === '#dc2626' && layout.xaxis?.gridcolor === '#16a34a' && layout.xaxis?.zerolinecolor === '#374151'), disposed };
     }, source);
     assert(result.legendClearances.length >= 2 && result.legendClearances.every(gap => gap >= 1), '比較画像で横軸タイトルと凡例を重ねない: ' + JSON.stringify(result.legendClearances));
     assert.equal(result.cards, 4); assert.deepEqual(result.selected, ['main']); assert.equal(result.unchanged, true); assert.equal(result.disposed, 1, '比較を閉じるとメイングラフのPlotly listenerも破棄する');
     assert.deepEqual(result.rowClicks, [{ seriesId:'spring', rowIndex:0 }], '散布図行列は実際にクリックしたsubplotの座標だけを元行へ結び、離れた座標は選択しない');
     assert.deepEqual(result.resetMatrixRanges, result.initialMatrixRanges, '散布図行列はxaxis2/yaxis2を含むsubplotのズームをまとめて初期範囲へ戻す');
     assert.match(result.grid, /px/); assert.match(result.svg, /^data:image\/svg\+xml/); assert.match(result.png, /^data:image\/png/); assert.match(result.chartPng, /^data:image\/png/);
+    assert.equal(result.explicitAxisExport, true, '明示した軸色・補助線色を分析グラフ出力へ保持する');
     assert(result.svg.length > 1000, 'SVG 出力が空ではない'); assert(result.png.length > 1000, 'PNG 出力が空ではない'); assert.deepEqual(result.rerenderedRanges, [[1, 3], [1, 4]], '同じ比較を再描画してもメインと統計グラフのズームを保つ'); assert.deepEqual(result.exportedRanges, [[1, 3], [1, 3]], '比較出力はライブのズーム範囲を使う'); assert.notDeepEqual(result.resetRange, [1, 3], '比較全体の表示範囲を初期状態へ戻せる'); assert.deepEqual(result.camera, { x: 2, y: 1, z: 1.5 }, '同じ比較を再描画しても3Dカメラを保つ'); assert.deepEqual(result.pngSize, [2000, 1400], '比較PNGの倍率を各パネルと合成結果へ反映する'); assert.equal(result.whiteLayouts, true, 'ダーク表示から白背景へ出力すると軸・ゼロ線を含めて黒字にする');
     assert(result.colors.blue > 30 && result.colors.red > 30 && result.colors.green > 30, 'SVGに埋め込んだ実グラフはChromeで色付きの曲線・棒として描画される');
     console.log('workspace.test.cjs: ok');

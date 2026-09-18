@@ -23,12 +23,12 @@ function documentWithMatrix() {
 {
   const doc = documentWithMatrix();
   const clean = Core.validateDocument(doc);
-  assert.equal(clean.version, 14);
+  assert.equal(clean.version, 15);
   assert.deepEqual(clean.charts[0].columns, [0, 1, 2]);
   const old = structuredClone(doc); old.version = 13;
   assert.throws(() => Core.validateDocument(old), /版と散布図行列/);
   old.charts = []; old.comparison = { columns: 2, items: ['main'] };
-  assert.equal(Core.validateDocument(old).version, 14, 'v13はmatrixなしで移行する');
+  assert.equal(Core.validateDocument(old).version, 15, 'v13はmatrixなしで移行する');
 }
 {
   const doc = documentWithMatrix(), chart = doc.charts[0], built = Charts.build(chart, doc, { selectedRow: { seriesId: 'data', rowIndex: 1 } });

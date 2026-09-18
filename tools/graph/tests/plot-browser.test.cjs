@@ -21,12 +21,12 @@ const server = http.createServer((req, res) => {
   const browser = await chromium.launch({ channel: 'chrome', headless: true });
   try {
     const page = await browser.newPage({ viewport: { width: 800, height: 600 } });
-    await page.setContent(`<div id="graph" style="width:700px;height:500px"></div><script src="http://127.0.0.1:${port}/vendor/plotly.min.js"></script><script src="http://127.0.0.1:${port}/expression.js"></script><script src="http://127.0.0.1:${port}/symbols.js"></script><script src="http://127.0.0.1:${port}/curves.js"></script><script src="http://127.0.0.1:${port}/annotations.js"></script><script src="http://127.0.0.1:${port}/plot.js"></script>`);
+    await page.setContent(`<div id="graph" style="width:700px;height:500px"></div><script src="http://127.0.0.1:${port}/vendor/plotly.min.js"></script><script src="http://127.0.0.1:${port}/expression.js"></script><script src="http://127.0.0.1:${port}/symbols.js"></script><script src="http://127.0.0.1:${port}/curves.js"></script><script src="http://127.0.0.1:${port}/annotations.js"></script><script src="http://127.0.0.1:${port}/axis-style.js"></script><script src="http://127.0.0.1:${port}/plot.js"></script>`);
     const checks = await page.evaluate(async () => {
       const graph = document.querySelector('#graph');
       let views = 0; window.__blank3d = 0; window.__surfaceSelect = 0;
       await GraphPlot.render(document.querySelector('#graph'), {
-        mode: '3d', angle: 'rad', axes: { x: { min: -2, max: 2, label: '<x>', symbol: 'x', unit: '', scale: 'linear', ticks:{step:null,format:'auto'} }, y: { min: -2, max: 2, label: 'y', symbol: 'y', unit: '', scale: 'linear', ticks:{step:null,format:'auto'} }, z: { min: -4, max: 4, label: 'z', symbol: 'z', unit: '', scale: 'linear', ticks:{step:null,format:'auto'} } },
+        mode: '3d', angle: 'rad', axes: { x: { min: -2, max: 2, label: '<x>', symbol: 'x', unit: '', scale: 'linear', ticks:{step:null,format:'auto'}, style:{color:'#a21caf',width:3,grid:true,gridColor:'#14532d',gridWidth:2,gridDash:'dot',tickMarks:false,tickLabels:false} }, y: { min: -2, max: 2, label: 'y', symbol: 'y', unit: '', scale: 'linear', ticks:{step:null,format:'auto'} }, z: { min: -4, max: 4, label: 'z', symbol: 'z', unit: '', scale: 'linear', ticks:{step:null,format:'auto'} } },
         parameters: [], grid: true, legend: true, equalScale: true,
         series: [{ id: 's', kind: 'surface', name: '<surface>', expression: 'x^2-y^2', domain: { x: [-2, 2], y: [-2, 2] }, visible: true, style: { color: '#2563eb', width: 2, dash: 'solid', points: false, lines: true, opacity: .85 } }, { id: 'points', kind: 'data3d', name: '欠測', rows: [[1, null, 3], [1, 2, 3]], visible: true, style: { color: '#2563eb', width: 2, dash: 'solid', points: true, lines: true, opacity: .85 } }]
       }, { dark: true, onViewChange: () => { views++; }, onBlankClick: () => { window.__blank3d++; }, onSelect: () => { window.__surfaceSelect++; } });
@@ -41,7 +41,8 @@ const server = http.createServer((req, res) => {
       const webgl = graph.querySelectorAll('.gl-container canvas').length;
       const aspectmode = graph.layout.scene.aspectmode, dragmode = graph.layout.dragmode, legendClick = graph.layout.legend.itemclick;
       const missing = graph.data[1].x[0] === null && graph.data[1].y[0] === null && graph.data[1].z[0] === null, liveFont = graph.layout.font.color;
-      return { webgl, aspectmode, dragmode, legendClick, missing, afterAutosize, afterCamera: views, image, exportFont: exportLayout.font.color, exportScene: exportLayout.scene.bgcolor, exportCamera: exportLayout.scene.camera.eye.x, liveFont, svgError };
+      const xAxis = graph.layout.scene.xaxis, exportAxis = exportLayout.scene.xaxis;
+      return { webgl, aspectmode, dragmode, legendClick, missing, afterAutosize, afterCamera: views, image, exportFont: exportLayout.font.color, exportScene: exportLayout.scene.bgcolor, exportCamera: exportLayout.scene.camera.eye.x, liveFont, svgError, xAxis:{color:xAxis.color,linecolor:xAxis.linecolor,linewidth:xAxis.linewidth,gridcolor:xAxis.gridcolor,gridwidth:xAxis.gridwidth,griddash:xAxis.griddash,ticks:xAxis.ticks,showticklabels:xAxis.showticklabels}, exportAxis:{color:exportAxis.color,linecolor:exportAxis.linecolor,gridcolor:exportAxis.gridcolor} };
     });
     assert.equal(checks.webgl, 1, '3D 曲面を WebGL canvas で描画する');
     const text = await page.locator('body').innerHTML();
@@ -58,6 +59,8 @@ const server = http.createServer((req, res) => {
     assert.equal(checks.exportScene, '#ffffff');
     assert.equal(checks.exportCamera, 2, '書き出しにも現在のカメラを使う');
     assert.equal(checks.liveFont, '#e5e7eb', '表示テーマを変えない');
+    assert.deepEqual(checks.xAxis, {color:'#a21caf',linecolor:'#a21caf',linewidth:3,gridcolor:'#14532d',gridwidth:2,griddash:'dot',ticks:'',showticklabels:false}, '3Dの軸書式を描画へ渡す');
+    assert.deepEqual(checks.exportAxis, {color:'#a21caf',linecolor:'#a21caf',gridcolor:'#14532d'}, '3D画像でも明示した軸色を保つ');
     const canvas = await page.locator('.gl-container canvas').boundingBox();
     await page.mouse.click(canvas.x + 8, canvas.y + 8); await page.waitForTimeout(30);
     assert.equal(await page.evaluate(() => window.__blank3d), 1, '3D の空白クリックだけを通知する');
@@ -89,6 +92,20 @@ const server = http.createServer((req, res) => {
     assert.deepEqual(viewCheck.axes, ['x']);
     assert.deepEqual(viewCheck.y, [10, 20], 'x だけのズーム通知で y 範囲を復元しない');
     assert.equal(viewCheck.dragmode, 'pan');
+    const zeroLineCheck = await page.evaluate(async () => {
+      const graph = document.querySelector('#graph'), axis = key => ({min:-2,max:2,label:key,symbol:key,unit:'',scale:'linear',ticks:{step:null,format:'auto'}});
+      const base = {mode:'2d',angle:'rad',axes:{x:axis('x'),y:axis('y'),z:axis('z')},parameters:[],grid:true,legend:true,equalScale:false,series:[]};
+      await GraphPlot.render(graph,base,{});
+      const before = {x:{color:graph._fullLayout.xaxis.zerolinecolor,width:graph._fullLayout.xaxis.zerolinewidth},y:{color:graph._fullLayout.yaxis.zerolinecolor,width:graph._fullLayout.yaxis.zerolinewidth}};
+      const styled = structuredClone(base); styled.axes.x.style={color:'#dc2626',width:5};
+      await GraphPlot.render(graph,styled,{});
+      const path = selector => { const node=graph.querySelector(selector); return node ? getComputedStyle(node).stroke : null; };
+      return {before,after:{x:{color:graph._fullLayout.xaxis.zerolinecolor,width:graph._fullLayout.xaxis.zerolinewidth},y:{color:graph._fullLayout.yaxis.zerolinecolor,width:graph._fullLayout.yaxis.zerolinewidth}},paths:{vertical:path('.xzl'),horizontal:path('.yzl')}};
+    });
+    assert.deepEqual(zeroLineCheck.after.x, zeroLineCheck.before.x, '横軸の色は縦のゼロ線へ継承しない');
+    assert.deepEqual(zeroLineCheck.after.y, {color:'#dc2626',width:5}, '横軸の色・幅を水平ゼロ線へ適用する');
+    assert(zeroLineCheck.paths.vertical && zeroLineCheck.paths.horizontal, '実DOMに両方のゼロ線を描画する');
+    assert.notEqual(zeroLineCheck.paths.vertical, zeroLineCheck.paths.horizontal, '実DOMでも縦と横のゼロ線の色を分ける');
     const blankCheck = await page.evaluate(async () => {
       const graph = document.querySelector('#graph'), axis = key => ({ min: -2, max: 2, label: key, symbol: key, unit: '', scale: 'linear', ticks:{step:null,format:'auto'} });
       window.__blankState = {blanks:0,selected:0,annotationSelected:0};

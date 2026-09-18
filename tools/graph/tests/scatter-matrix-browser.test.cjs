@@ -41,7 +41,7 @@ let browser,page;
   });
   assert.equal(exported.highlights,0);assert.equal(exported.axes.length,32);assert(exported.axes.every(color=>color==='#172033'));assert(exported.png.startsWith('data:image/png;base64,'));
   const svgText=decodeURIComponent(exported.svg.split(',').slice(1).join(','));assert.match(svgText,/度数/);assert.match(svgText,/r=—/);fs.writeFileSync('/private/tmp/graph-matrix-export.svg',svgText);fs.writeFileSync('/private/tmp/graph-matrix-export.png',Buffer.from(exported.png.split(',')[1],'base64'));
-  const saved=await doc();await importDoc({...C.createDocument(),name:'空の文書'});await importDoc(saved);assert.deepEqual(await doc(),saved);assert.equal(saved.version,14);
+  const saved=await doc();await importDoc({...C.createDocument(),name:'空の文書'});await importDoc(saved);assert.deepEqual(await doc(),saved);assert.equal(saved.version,15);
   await page.locator('[data-object-details="series:matrix-data"]').click();await page.locator('#object-menu').getByRole('menuitem',{name:'削除',exact:true}).click();await settle();assert.equal((await doc()).charts.length,0);await page.locator('#undo').click();await settle();assert.equal((await doc()).charts.length,1);
   await page.setViewportSize({width:390,height:900});await Toolbar.selectWorkspace(page,'matrix');await settle();assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth));
   const viewport=page.locator('#analysis-viewport');assert(await viewport.evaluate(el=>el.scrollWidth>el.clientWidth&&el.scrollHeight>el.clientHeight),'small screens keep readable cells in a local scroll area');

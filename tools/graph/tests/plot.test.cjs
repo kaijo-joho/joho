@@ -4,6 +4,12 @@ const Plot = require('../plot.js');
 
 const doc = () => ({ mode: '2d', angle: 'rad', axes: { x: { min: -2, max: 2, label: 'x', unit: '', scale: 'linear' }, y: { min: -2, max: 2, label: 'y', unit: '', scale: 'linear' }, z: { min: -2, max: 2, label: 'z', unit: '', scale: 'linear' } }, parameters: [], series: [] });
 
+assert.deepStrictEqual(Plot.pickObject({
+  data:[{x:[0,1],y:[0,1],mode:'lines',line:{width:2},meta:{objectType:'series',objectId:'line'}}],
+  _fullLayout:{xaxis:{d2p:value=>100+value*20,_offset:0,_length:300},yaxis:{d2p:value=>100+value*20,_offset:0,_length:300}},
+  getBoundingClientRect:()=>({left:0,top:0})
+}, {clientX:110,clientY:110}), {objectType:'series',objectId:'line'});
+
 {
   const p = Plot.sampleFunction({ expression: 'x^2', domain: { x: [-2, 2] } }, doc());
   assert(p.x.length > 64 && p.x.length <= 1601);

@@ -8,7 +8,8 @@
   const Tables = typeof module === 'object' && module.exports ? require('./tables.js') : root.GraphTables,
     Statistics = typeof module === 'object' && module.exports ? require('./statistics.js') : root.GraphStatistics,
     Analysis = typeof module === 'object' && module.exports ? require('./analysis.js') : root.GraphAnalysis,
-    Symbols = typeof module === 'object' && module.exports ? require('./symbols.js') : root.GraphSymbols;
+    Symbols = typeof module === 'object' && module.exports ? require('./symbols.js') : root.GraphSymbols,
+    AxisStyle = typeof module === 'object' && module.exports ? require('./axis-style.js') : root.GraphAxisStyle;
   const kinds = ['residual', 'scatter', 'histogram', 'box', 'matrix'],
     models = ['linear', 'proportional', 'quadratic', 'exponential', 'power'],
     dashes = ['solid', 'dot', 'dash'];
@@ -27,6 +28,10 @@
     },
     clone = v => JSON.parse(JSON.stringify(v)),
     num = v => String(Number(v.toPrecision(8)));
+  function applyAxisStyle(target, style, foreground, gridColor) {
+    if (!style || typeof style !== 'object') return target;
+    return AxisStyle.apply(target, style, { foreground, gridColor, showLine: true }) || target;
+  }
   const axisDefault = () => ({
     label: '',
     unit: '',
@@ -185,6 +190,10 @@
     if (o.min === null !== (o.max === null) || o.min !== null && (!(o.min < o.max) || Math.abs(o.min) > 1e9 || Math.abs(o.max) > 1e9)) fail(key + '軸の範囲が不正です。');
     if (o.step !== null && !(o.step > 0)) fail(key + '軸の目盛が不正です。');
     if (!['auto', 'decimal', 'fraction', 'pi'].includes(o.format)) fail(key + '軸の表示形式が不正です。');
+    if (raw.style !== undefined) {
+      const style = AxisStyle.validate(raw.style);
+      if (Object.keys(style).length) o.style = style; else delete o.style;
+    } else delete o.style;
     return o;
   }
   function validateView(raw, kind) {
@@ -345,7 +354,7 @@
       target.title = {
         text: escape(axisName(axis, fallback[key]))
       };
-      if (key === 'x' && box) continue;
+      if (key === 'x' && box) { applyAxisStyle(target, axis.style, layout.font.color, target.gridcolor); continue; }
       if (axis.min !== null) target.range = [axis.min, axis.max];
       if (axis.format === 'decimal') target.tickformat = '.8g';
       if (axis.step !== null || axis.format !== 'auto') {
@@ -365,6 +374,7 @@
         }
       }
       typedAxisLayout(target, typed[key], target.range || extent[key]);
+      applyAxisStyle(target, axis.style, layout.font.color, target.gridcolor);
     }
   }
   function empty(chart, msg, dark, fontSize, f = {
@@ -695,6 +705,8 @@
         layout.annotations.push({xref:matrixTraceAxis('x',number)+' domain',yref:matrixTraceAxis('y',number)+' domain',x:.98,y:.98,xanchor:'right',yanchor:'top',text:'r='+(correlation.r===null?'—':matrixNum(correlation.r))+'　n='+correlation.n,showarrow:false,font:{size:Math.max(8,fontSize-4),color},bgcolor:dark?'rgba(17,24,39,.75)':'rgba(255,255,255,.75)'});
         if (selectedRow && selectedRow.seriesId === source.id) { const selected=points.find(point=>point.row===selectedRow.rowIndex+1); if(selected) data.push({...highlight(chart,source,selected),xaxis:matrixTraceAxis('x',number),yaxis:matrixTraceAxis('y',number)}); }
       }
+      applyAxisStyle(layout[xKey], chart.axes.x.style, color, grid);
+      applyAxisStyle(layout[yKey], chart.axes.y.style, color, grid);
     }
     return { data, layout, summary:'散布図行列：'+columns.map(column=>escape(table.columns[column])).join('、')+'。各散布図は同じ行にそろった数値だけを使います。', warnings:[] };
   }

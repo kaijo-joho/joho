@@ -4,7 +4,7 @@ const items = Templates.list();
 assert.strictEqual(items.length, 3);
 for (const item of items) {
   const doc = item.document, series = doc.series[0], chart = doc.charts[0];
-  assert.strictEqual(doc.version, 14);
+  assert.strictEqual(doc.version, 15);
   assert.strictEqual(chart.kind, 'matrix');
   assert.strictEqual(chart.seriesId, series.id);
   assert.ok(Array.isArray(chart.columns) && chart.columns.length >= 2 && chart.columns.length <= 4);

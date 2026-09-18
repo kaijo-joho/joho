@@ -1,0 +1,22 @@
+#axis-selector{border-bottom:1px solid var(--line);padding-bottom:10px;margin-bottom:12px}
+#axis-selector .axis-select-buttons{display:flex;gap:5px}
+#axis-selector button{flex:1;min-width:0;min-height:44px;padding:6px 3px;font-size:.85rem}
+#axis-selector button[aria-pressed=true],.axis-auto-color[aria-pressed=true]{background:var(--accent-soft);border-color:var(--accent);color:var(--accent)}
+#axis-selector label{display:block;font-size:.85rem;margin-bottom:8px}
+#axis-selector select{width:100%;margin-top:5px}
+.axis-inspector-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;width:100%}
+.axis-inspector-heading strong{min-width:0;overflow-wrap:anywhere}
+.axis-style-section{width:100%;min-width:0;border:0;border-top:1px solid var(--line);margin:14px 0 0;padding:12px 0 0}
+.axis-style-section legend{font-weight:700;padding:0 8px 0 0;font-size:.9rem}
+.axis-field-label,.axis-inspector-field>span{display:block;font-size:.85rem;margin-bottom:5px}
+.axis-inspector-field{display:block;margin-top:10px}
+.axis-inspector-field input,.axis-inspector-field select{display:block;width:100%;margin-top:5px}
+.axis-palette{justify-content:flex-start!important;gap:2px!important}
+.axis-color-heading{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.axis-color-heading .axis-field-label{margin:0}
+.axis-auto-color{font-size:.75rem;padding:4px;min-width:44px;min-height:44px}
+.axis-style-section .check{display:flex;align-items:center;gap:8px;min-height:44px;margin:0}
+.axis-style-section .check input{flex:none}
+#selection-toolbar[data-selection-key^="axis:"]{display:block}
+#selection-toolbar[data-selection-key^="axis:"]>.full-button{margin-top:14px}
+#stage .xaxislayer-above text,#stage .yaxislayer-above text,#stage text[class^="x"][class$="title"],#stage text[class^="y"][class$="title"],#stage .axis-pickable,#stage .axis-pickable .annotation-text{pointer-events:all!important;cursor:pointer}

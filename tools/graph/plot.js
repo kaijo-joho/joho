@@ -7,11 +7,15 @@
   'use strict';
 
   const Tables = typeof module === 'object' && module.exports ? require('./tables.js') : root.GraphTables;
+  const AxisStyle = typeof module === 'object' && module.exports ? require('./axis-style.js') : root.GraphAxisStyle;
   const states = new WeakMap();
   const MAX_FUNCTION_SAMPLES = 1600;
   const BASE_FUNCTION_SEGMENTS = 128;
   const MAX_ADAPTIVE_EVALUATIONS = MAX_FUNCTION_SAMPLES - BASE_FUNCTION_SEGMENTS;
   const MAX_SURFACE_CELLS = 70;
+  // Plotlyの既定zerolinecolor。styleを持つ軸のcolorが反対向きのゼロ線へ
+  // 継承されないよう、個別書式を使う2Dだけ明示する。
+  const LEGACY_ZERO_LINE_COLOR = '#444';
   const esc = (value) => String(value == null ? '' : value)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -83,6 +87,19 @@
     return Object.assign({ title: { text: axisTitle(a, '') }, range: isLog ? dataRange.map((v) => Math.log10(v)) : dataRange, type: isLog ? 'log' : 'linear', showgrid: true, zeroline: a?.type === 'number' || !a?.type }, isLog ? { exponentformat: 'power', showexponent: 'all' } : {}, specialised || (root.GraphSymbols ? root.GraphSymbols.ticksFor(a) : {}));
   };
   const presentation = (doc) => Object.assign({ axisArrows: false, originLabel: false, tickMarks: true, tickLabels: true }, doc && doc.presentation || {});
+  const axisStyle = axis => axis && axis.style && typeof axis.style === 'object' ? axis.style : null;
+  const hasStyleKey = (style, key) => Object.prototype.hasOwnProperty.call(style || {}, key);
+  const styledBoolean = (axis, key, fallback) => typeof axisStyle(axis)?.[key] === 'boolean' ? axisStyle(axis)[key] : fallback;
+  const axisColor = (doc, key, fallback) => axisStyle(doc?.axes?.[key])?.color || fallback;
+  const axisWidth = (doc, key, fallback=1.5) => Number.isFinite(axisStyle(doc?.axes?.[key])?.width) ? axisStyle(doc.axes[key]).width : fallback;
+  const tickLabelsVisible = (doc, key) => styledBoolean(doc?.axes?.[key], 'tickLabels', presentation(doc).tickLabels);
+  const tickMarksVisible = (doc, key) => styledBoolean(doc?.axes?.[key], 'tickMarks', presentation(doc).tickMarks);
+  const applyZeroAxisStyle = (layoutAxis, style, foreground) => {
+    if (!layoutAxis || !style) return layoutAxis;
+    if (hasStyleKey(style, 'color')) layoutAxis.zerolinecolor = style.color || foreground;
+    if (hasStyleKey(style, 'width')) layoutAxis.zerolinewidth = style.width;
+    return layoutAxis;
+  };
   const axisUsesInternalLabels = (doc, key) => {
     if (!doc || doc.mode === '3d' || axisType(doc, key) !== 'number' || doc.axes?.[key]?.labelPosition !== 'axis') return false;
     const other = doc.axes[key === 'x' ? 'y' : 'x'];
@@ -132,17 +149,17 @@
     return { tickmode: 'array', tickvals: values.map(item => item.value), ticktext: values.map(item => item.text) };
   };
   const axisTickDecorations = (doc, color) => {
-    if (doc.mode === '3d' || !presentation(doc).tickLabels) return [];
+    if (doc.mode === '3d') return [];
     const xOnAxis = axisUsesInternalLabels(doc, 'x'), yOnAxis = axisUsesInternalLabels(doc, 'y'), originShown = presentation(doc).originLabel && xOnAxis && yOnAxis;
     const out = [];
     for (const key of ['x', 'y']) {
-      if (!axisUsesInternalLabels(doc, key)) continue;
+      if (!tickLabelsVisible(doc, key) || !axisUsesInternalLabels(doc, key)) continue;
       const axis = doc.axes[key];
       for (const tickValue of labelTicks(axis)) {
         if (!finite(tickValue.value) || !tickValue.text || (tickValue.value === 0 && (originShown || (key === 'x' && yOnAxis)))) continue;
         const point = key === 'x' ? annotationPosition([tickValue.value, 0], doc) : annotationPosition([0, tickValue.value], doc);
         if (!point) continue;
-        out.push({ name: '__graph_axis_tick_' + key + '_' + out.length, x: point[0], y: point[1], xref: 'x', yref: 'y', text: esc(tickValue.text), showarrow: false, captureevents: false, font: { size: 12, color }, xanchor: key === 'x' ? 'center' : 'right', yanchor: key === 'x' ? 'top' : 'middle', xshift: key === 'x' ? 0 : -6, yshift: key === 'x' ? -6 : 0, meta: { decoration: true, axisTick: key } });
+        out.push({ name: '__graph_axis_tick_' + key + '_' + out.length, x: point[0], y: point[1], xref: 'x', yref: 'y', text: esc(tickValue.text), showarrow: false, captureevents: false, font: { size: 12, color: axisColor(doc, key, color) }, xanchor: key === 'x' ? 'center' : 'right', yanchor: key === 'x' ? 'top' : 'middle', xshift: key === 'x' ? 0 : -6, yshift: key === 'x' ? -6 : 0, meta: { decoration: true, axisTick: key } });
       }
     }
     return out;
@@ -178,7 +195,7 @@
     // Paper coordinates keep arrows on the viewport edge on both linear and log axes.
     return {name:'__graph_axis_'+key,text:'',xref:'paper',yref:'paper',axref:'pixel',ayref:'pixel',
       x:key==='x'?1:fraction,y:key==='x'?fraction:1,ax:key==='x'?-20:0,ay:key==='x'?0:20,
-      showarrow:true,arrowhead:2,arrowsize:1,arrowwidth:1.5,arrowcolor:color,captureevents:false};
+      showarrow:true,arrowhead:2,arrowsize:1,arrowwidth:axisWidth(doc, key),arrowcolor:axisColor(doc, key, color),captureevents:false};
   };
   const axisDecorations = (doc, fg) => {
     if (doc.mode === '3d') return [];
@@ -366,21 +383,33 @@
     const dark = !!options.dark, fg = dark ? '#e5e7eb' : '#172033', bg = dark ? '#111827' : '#ffffff';
     const p = presentation(doc), common = { paper_bgcolor: bg, plot_bgcolor: bg, font: { color: fg }, showlegend: doc.legend !== false, legend: { itemclick: false, itemdoubleclick: false }, margin: { l: 64, r: 24, t: 28, b: 56 }, hovermode: 'closest' };
     if(options.compactLegend){Object.assign(common.legend,{orientation:'h',x:0,y:0,yref:'container',yanchor:'bottom'});common.margin.b=100;}
-    const configure = (axis, name) => Object.assign(tick(axis), axisUsesInternalLabels(doc, name) ? axisLabelTickLayout(axis) : {}, {
+    const configure = (axis, name) => {
+      const base = Object.assign(tick(axis), axisUsesInternalLabels(doc, name) ? axisLabelTickLayout(axis) : {}, {
       title: { text: axisTitle(axis, name) },
       ...(options.compactLegend && doc.mode!=='3d' ? {automargin:true} : {}),
       showgrid: doc.grid !== false,
       zerolinecolor: p.axisArrows ? fg : undefined, zerolinewidth: p.axisArrows ? 1.5 : 1,
       linecolor:fg, linewidth:1.5,
-      ticks: p.tickMarks ? 'outside' : '',
-      showticklabels: p.tickLabels && !axisUsesInternalLabels(doc, name),
+      ticks: tickMarksVisible(doc, name) ? 'outside' : '',
+      showticklabels: tickLabelsVisible(doc, name) && !axisUsesInternalLabels(doc, name),
       showline: doc.mode!=='3d'&&axisType(doc, name)==='number'&&p.axisArrows&&(doc.axes[name==='x'?'y':'x'].scale==='log'||doc.axes[name==='x'?'y':'x'].min>0||doc.axes[name==='x'?'y':'x'].max<0)
     });
+      if (AxisStyle && typeof AxisStyle.apply === 'function') AxisStyle.apply(base, axisStyle(axis), {foreground:fg, gridColor:dark ? '#374151' : '#cbd5e1',showLine:doc.mode==='3d'});
+      // 軸上へ置く数値は Plotly の外側目盛を再表示せず、注釈だけを使う。
+      base.showticklabels = tickLabelsVisible(doc, name) && !axisUsesInternalLabels(doc, name);
+      return base;
+    };
     if (doc.mode === '3d') return Object.assign(common, { dragmode: 'orbit', scene: { xaxis: configure(doc.axes && doc.axes.x, 'x'), yaxis: configure(doc.axes && doc.axes.y, 'y'), zaxis: configure(doc.axes && doc.axes.z, 'z'), aspectmode: doc.equalScale ? 'data' : 'auto', camera: options.camera || defaultCamera(doc) } });
-    return Object.assign(common, { dragmode: 'pan',
-      xaxis: configure(doc.axes && doc.axes.x, 'x'),
-      yaxis: Object.assign(configure(doc.axes && doc.axes.y, 'y'), { scaleanchor: doc.equalScale && !typed2d(doc) ? 'x' : undefined, scaleratio: doc.equalScale && !typed2d(doc) ? 1 : undefined })
-    });
+    const xaxis = configure(doc.axes && doc.axes.x, 'x'), yaxis = Object.assign(configure(doc.axes && doc.axes.y, 'y'), { scaleanchor: doc.equalScale && !typed2d(doc) ? 'x' : undefined, scaleratio: doc.equalScale && !typed2d(doc) ? 1 : undefined });
+    // Plotlyのxaxis.zerolineは縦軸、yaxis.zerolineは横軸として描画される。
+    if (axisStyle(doc.axes && doc.axes.x) || axisStyle(doc.axes && doc.axes.y)) {
+      const zeroColor = p.axisArrows ? fg : LEGACY_ZERO_LINE_COLOR;
+      xaxis.zerolinecolor = zeroColor;
+      yaxis.zerolinecolor = zeroColor;
+    }
+    applyZeroAxisStyle(xaxis, axisStyle(doc.axes && doc.axes.y), fg);
+    applyZeroAxisStyle(yaxis, axisStyle(doc.axes && doc.axes.x), fg);
+    return Object.assign(common, { dragmode: 'pan', xaxis, yaxis });
   }
 
   function viewFrom(event, doc) {
@@ -459,6 +488,7 @@
     return regionMeta;
   }
   const traceHit = (element, traces, event) => !!traceMetaAt(element, traces, event);
+  const pickObject = (element, event) => traceMetaAt(element, element?.data || [], event);
 
   function installBlankClick(element, callback, traces) {
     if (typeof callback !== 'function') return null;
@@ -630,11 +660,24 @@
     layout.font = Object.assign({}, layout.font, { size: output.fontSize });
     if (output.title && state.doc.name) layout.title = Object.assign({}, layout.title, { text: rich(state.doc.name), font: Object.assign({}, layout.title && layout.title.font, { size: output.fontSize }) });
     else if (!output.title) delete layout.title;
-    for(const annotation of layout.annotations||[])if(['__graph_axis_x','__graph_axis_y','__graph_origin_label'].includes(annotation.name)||annotation.name?.startsWith('__graph_axis_tick_')){annotation.arrowcolor=fg;if(annotation.font)annotation.font={...annotation.font,color:fg,size:output.fontSize};}
+    for(const annotation of layout.annotations||[]) {
+      const axisKey = annotation.name === '__graph_axis_x' || annotation.name?.startsWith('__graph_axis_tick_x') ? 'x' : annotation.name === '__graph_axis_y' || annotation.name?.startsWith('__graph_axis_tick_y') ? 'y' : null;
+      if (!axisKey && annotation.name !== '__graph_origin_label') continue;
+      const color = axisKey ? axisColor(state.doc, axisKey, fg) : fg;
+      annotation.arrowcolor = color;
+      if(annotation.font)annotation.font={...annotation.font,color,size:output.fontSize};
+    }
     layout.paper_bgcolor = bg; layout.plot_bgcolor = bg; layout.font = Object.assign({}, layout.font, { color: fg });
-    ['xaxis', 'yaxis'].forEach((key) => { if (layout[key]) { layout[key].color = fg; layout[key].gridcolor = grid; layout[key].zerolinecolor = presentation(state.doc).axisArrows ? fg : grid; layout[key].linecolor=fg; layout[key].title = Object.assign({}, layout[key].title, { font: Object.assign({}, layout[key].title && layout[key].title.font, { color: fg }) }); } });
-    if (layout.scene) { layout.scene.bgcolor = bg; layout.scene.camera = state.camera || layout.scene.camera; ['xaxis', 'yaxis', 'zaxis'].forEach((key) => { const axis = layout.scene[key]; if (axis) { axis.color = fg; axis.gridcolor = grid; axis.zerolinecolor = grid; axis.backgroundcolor = bg; axis.title = Object.assign({}, axis.title, { font: Object.assign({}, axis.title && axis.title.font, { color: fg }) }); } }); }
+    [['xaxis', 'x'], ['yaxis', 'y']].forEach(([key, name]) => { if (layout[key]) { const axis=layout[key]; axis.color = fg; axis.gridcolor = grid; axis.zerolinecolor = presentation(state.doc).axisArrows ? fg : grid; axis.linecolor=fg; if (AxisStyle?.apply) AxisStyle.apply(axis, axisStyle(state.doc.axes?.[name]), {foreground:fg,gridColor:grid}); axis.title = Object.assign({}, axis.title, { font: Object.assign({}, axis.title && axis.title.font, { color: axisColor(state.doc, name, fg) }) }); } });
+    if (axisStyle(state.doc.axes?.x) || axisStyle(state.doc.axes?.y)) {
+      const zeroColor = presentation(state.doc).axisArrows ? fg : LEGACY_ZERO_LINE_COLOR;
+      if (layout.xaxis) layout.xaxis.zerolinecolor = zeroColor;
+      if (layout.yaxis) layout.yaxis.zerolinecolor = zeroColor;
+    }
+    applyZeroAxisStyle(layout.xaxis, axisStyle(state.doc.axes?.y), fg);
+    applyZeroAxisStyle(layout.yaxis, axisStyle(state.doc.axes?.x), fg);
+    if (layout.scene) { layout.scene.bgcolor = bg; layout.scene.camera = state.camera || layout.scene.camera; [['xaxis', 'x'], ['yaxis', 'y'], ['zaxis', 'z']].forEach(([key, name]) => { const axis = layout.scene[key]; if (axis) { axis.color = fg; axis.gridcolor = grid; axis.zerolinecolor = grid; axis.backgroundcolor = bg; if (AxisStyle?.apply) AxisStyle.apply(axis, axisStyle(state.doc.axes?.[name]), {foreground:fg,gridColor:grid}); axis.title = Object.assign({}, axis.title, { font: Object.assign({}, axis.title && axis.title.font, { color: axisColor(state.doc, name, fg) }) }); } }); }
     try { await P.newPlot(host, data, layout, { displayModeBar: false }); return await P.toImage(host, { format: output.format, width: output.width, height: output.height, scale: output.scale }); } finally { if (typeof P.purge === 'function') P.purge(host); host.remove(); }
   }
-  return { sampleFunction, sampleSurface, render, resetView, resize, exportImage, screenPoint, dataPoint, viewRanges, pickAnnotation, dispose, escapeText: esc, seriesAxisCompatible, seriesAxisWarning };
+  return { sampleFunction, sampleSurface, render, resetView, resize, exportImage, screenPoint, dataPoint, viewRanges, pickAnnotation, pickObject, dispose, escapeText: esc, seriesAxisCompatible, seriesAxisWarning };
 }));

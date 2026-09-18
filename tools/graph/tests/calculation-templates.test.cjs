@@ -22,7 +22,7 @@ function clean(id) {
 
 for (const entry of entries) {
   const document = clean(entry.id);
-  assert.equal(document.version, 14, entry.id);
+  assert.equal(document.version, 15, entry.id);
   assert.ok(document.series.length, entry.id);
   for (const series of document.series) {
     assert.equal(series.source.kind, 'model', entry.id);

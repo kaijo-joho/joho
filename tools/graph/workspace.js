@@ -11,9 +11,11 @@
   const MAX_DIMENSION = 8192, MAX_PIXELS = 33554432;
   const text = value => value == null ? '' : String(value);
   const unique = values => [...new Set(values)];
+  const hex = value => typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value);
   const chartById = (doc, id) => (doc && doc.charts || []).find(chart => chart && chart.id === id) || null;
   const chartVisible = chart => !chart || chart.visible !== false;
   const titleFor = (item, doc) => item === 'main' ? (doc && doc.name || 'メインのグラフ') : (chartById(doc, item) || {}).name || 'グラフ';
+  const chartAxesRevision = chart => ['x', 'y'].map(key => { const axis = Object.assign({}, chart?.axes?.[key] || {}); delete axis.style; return axis; });
   const rowFromClick = (element, event) => { const point = event?.points?.[0], trace = point?.data || point?.fullData, meta = trace?.meta, layout = element?._fullLayout, mouse = event?.event, box = element?.getBoundingClientRect?.(); if (!point || !meta?.dataRows || meta.observationHighlight || !Array.isArray(point.customdata) || !Number.isInteger(point.customdata[0])) return null; const axisKey = value => { value = String(value || 'x'); return value[0] + 'axis' + value.slice(1); }; const xaxis = layout?.[axisKey(trace?.xaxis || 'x')], yaxis = layout?.[axisKey(trace?.yaxis || 'y')]; if (xaxis?.d2p && yaxis?.d2p && mouse && box) { const x = xaxis.d2p(point.x), y = yaxis.d2p(point.y); if (!Number.isFinite(x) || !Number.isFinite(y) || Math.hypot(box.left + xaxis._offset + x - mouse.clientX, box.top + yaxis._offset + y - mouse.clientY) > 14) return null; } return { seriesId: meta.seriesId || meta.objectId, rowIndex: point.customdata[0] - 1 }; };
 
   function comparison(doc) {
@@ -45,7 +47,7 @@
     if (out.width * out.height > MAX_PIXELS || out.width * out.scale > MAX_DIMENSION || out.height * out.scale > MAX_DIMENSION || out.width * out.height * out.scale * out.scale > MAX_PIXELS) throw new Error('書き出し画像のサイズが上限を超えています。');
     return out;
   }
-  function graphLayout(layout, options) {
+  function graphLayout(layout, options, chart) {
     const clone = JSON.parse(JSON.stringify(layout || {}));
     const bg = options.background === 'transparent' ? 'rgba(0,0,0,0)' : '#ffffff';
     clone.width = options.width; clone.height = options.height; clone.autosize = false;
@@ -55,7 +57,15 @@
     if (clone.title) clone.title.font = Object.assign({}, clone.title.font, { color: '#172033', size: options.fontSize + 2 });
     if(options.title===false)delete clone.title;
     clone.paper_bgcolor = bg; clone.plot_bgcolor = bg;
-    Object.keys(clone).filter(key => /^xaxis\d*$|^yaxis\d*$/.test(key)).forEach(key => { const axis = clone[key]; axis.color = '#172033'; axis.linecolor = '#172033'; axis.gridcolor = '#cbd5e1'; axis.zerolinecolor = '#374151'; axis.tickfont = Object.assign({}, axis.tickfont, { color: '#172033' }); if (axis.title) axis.title.font = Object.assign({}, axis.title.font, { color: '#172033' }); });
+    Object.keys(clone).filter(key => /^xaxis\d*$|^yaxis\d*$/.test(key)).forEach(key => {
+      const axis = clone[key], styleKey = key[0], style = chart?.axes?.[styleKey]?.style;
+      const explicitColor = hex(style?.color) ? style.color : '#172033';
+      const explicitGrid = hex(style?.gridColor) ? style.gridColor : '#cbd5e1';
+      axis.color = explicitColor; axis.linecolor = explicitColor; axis.gridcolor = explicitGrid;
+      axis.zerolinecolor = '#374151';
+      axis.tickfont = Object.assign({}, axis.tickfont, { color: explicitColor });
+      if (axis.title) axis.title.font = Object.assign({}, axis.title.font, { color: explicitColor });
+    });
     for (const annotation of clone.annotations || []) { annotation.font = Object.assign({}, annotation.font, { color: '#172033' }); if (annotation.bgcolor) annotation.bgcolor = 'rgba(255,255,255,.88)'; if (annotation.bordercolor) annotation.bordercolor = '#6b7280'; }
     return clone;
   }
@@ -79,7 +89,7 @@
     if (!root.GraphCharts || typeof root.GraphCharts.build !== 'function') throw new Error('比較グラフの機能を読み込めません。');
     const previous = states.get(element), built = root.GraphCharts.build(chart, doc, { dark: !!options.dark, fontSize: options.fontSize, selectedRow: options.selectedRow });
     const layout = Object.assign({}, built.layout || {}, { autosize: true, width: element.clientWidth || 640, height: element.clientHeight || 320, uirevision: 'chart:' + text(chart && chart.id) + ':' + text(chart && chart.kind) });
-    layout.uirevision += ':' + JSON.stringify([chart.seriesId,chart.regressionId,chart.horizontal,chart.xColumn,chart.yColumn,chart.column,chart.columns,chart.axes]);
+    layout.uirevision += ':' + JSON.stringify([chart.seriesId,chart.regressionId,chart.horizontal,chart.xColumn,chart.yColumn,chart.column,chart.columns,chartAxesRevision(chart)]);
     if(options.title===false){delete layout.title;layout.margin={...layout.margin,t:24};}
     await root.Plotly.react(element, built.data || [], layout, { displayModeBar: false, responsive: true, scrollZoom: chart?.kind !== 'matrix' });
     const blank = previous?.blankCleanup || installChartBlankClick(element, options.onBlankClick); blank.update(options.onBlankClick);
@@ -119,7 +129,7 @@
     const out = output(options, { width: element.clientWidth || 640, height: element.clientHeight || 400 });
     const host = hostFor(element, out.width, out.height);
     const data = JSON.parse(JSON.stringify((element.data || []).filter(trace => !trace?.meta?.observationHighlight)));
-    const layout = graphLayout(element.layout, out);
+    const layout = graphLayout(element.layout, out, state.chart);
     try { await root.Plotly.newPlot(host, data, layout, { displayModeBar: false, responsive: false }); return await root.Plotly.toImage(host, { format: out.format, width: out.width, height: out.height, scale: out.scale }); }
     finally { if (root.Plotly && typeof root.Plotly.purge === 'function') root.Plotly.purge(host); host.remove(); }
   }

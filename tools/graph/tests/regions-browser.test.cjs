@@ -43,7 +43,7 @@ let browser, page;
   await addRegion(); assert.equal(await dialog.locator('[data-region-segment]:checked').count(), 3);
   assert.match(await dialog.getByLabel('領域の確認').innerText(), /面積 ≈ 6/);
   await fill('名前', '三角形'); await submit();
-  let d = await doc(); const region = d.annotations.find(a => a.kind === 'region'); assert(region); assert.equal(d.version, 14);
+  let d = await doc(); const region = d.annotations.find(a => a.kind === 'region'); assert(region); assert.equal(d.version, 15);
   const area = page.locator('[data-region-area="' + region.id + '"]'); assert.equal(await area.innerText(), '面積 ≈ 6');
   assert.equal((await regionTrace(region.id)).fill, 'toself');
   assert.equal(await page.evaluate(() => document.querySelector('#plot').data[0].meta.kind), 'region');
@@ -93,7 +93,7 @@ let browser, page;
   await Toolbar.clickToolbarControl(page,'mode-2d'); await settle();
   // JSON and browser saves preserve references, settings and area after reload.
   await page.locator('#file-menu summary').click(); const downloading = page.waitForEvent('download'); await page.locator('#save-local').click();
-  const saved = JSON.parse(fs.readFileSync(await (await downloading).path(), 'utf8')); assert.equal(saved.version, 14);
+  const saved = JSON.parse(fs.readFileSync(await (await downloading).path(), 'utf8')); assert.equal(saved.version, 15);
   await importDoc(C.createDocument()); await importDoc(saved); assert.deepEqual(await doc(), saved); assert.equal(await area.innerText(), '面積 ≈ 6');
   await page.locator('#file-menu summary').click(); await page.locator('#save-browser').click();
   assert.deepEqual(await page.evaluate(() => new GraphDocumentStore.Store(localStorage).load(GraphEditor.getState().tabId,'saved').document), saved);

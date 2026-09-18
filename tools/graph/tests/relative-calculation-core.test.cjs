@@ -6,7 +6,7 @@ const table={columns:['時刻','気温','差分','移動平均','変化率'],row
 const series=C.createSeries('data2d');series.id='relative';T.assign(series,table);series.excludedRows=[1];
 const document=C.createDocument();document.series=[series];
 const clean=C.validateDocument(document);
-assert.equal(clean.version,14);
+assert.equal(clean.version,15);
 assert.deepEqual(clean.series[0].dataTable.rows.map(row=>row[2]),[null,10,null,null,30]);
 assert.deepEqual(clean.series[0].rows.map(row=>row[1]),[null,null,15,30,55]);
 assert.equal(clean.series[0].dataTable.rows[2][4],20/3,'relative rows follow physical order and unequal time intervals');
@@ -39,7 +39,7 @@ const legacySeries=C.createSeries('data2d');legacySeries.id='legacy';legacySerie
 legacySeries.dataTable={columns:['x','x,-1','x,-2:0','@x','result'],rows:[[1,8,3,4,999],[2,9,5,6,999]],mapping:{...mapping,y:4},formulas:[null,null,null,null,'[@x,-1]+SUM([x,-2:0])+[@"@x"]']};legacy.series=[legacySeries];
 const raw=JSON.stringify(legacy),migrated=C.validateDocument(legacy);
 assert.equal(JSON.stringify(legacy),raw,'migration never mutates the source document');
-assert.equal(migrated.version,14);
+assert.equal(migrated.version,15);
 assert.equal(migrated.series[0].dataTable.formulas[4],'[@"x,-1"]+SUM(["x,-2:0"])+[@"@x"]');
 assert.deepEqual(migrated.series[0].rows,[[1,20],[2,23]]);
 assert.deepEqual(C.validateDocument(JSON.stringify(migrated)),migrated,'subsequent imports keep quoted references');
@@ -49,6 +49,6 @@ notRelative.version=13;
 assert.deepEqual(C.validateDocument(notRelative).series[0].rows,[[1,2],[2,null]]);
 const invalid=C.clone(legacy);invalid.series[0].dataTable.formulas[4]='[@"x",-1]';
 assert.throws(()=>C.validateDocument(invalid),/旧式/,'invalid old quoted references fail closed');
-const oldPlain=C.createDocument();oldPlain.version=12;assert.equal(C.validateDocument(oldPlain).version,14);
-const future=C.createDocument();future.version=15;assert.throws(()=>C.validateDocument(future),/ファイル/);
+const oldPlain=C.createDocument();oldPlain.version=12;assert.equal(C.validateDocument(oldPlain).version,15);
+const future=C.createDocument();future.version=16;assert.throws(()=>C.validateDocument(future),/ファイル/);
 console.log('relative-calculation-core.test.cjs: ok');
