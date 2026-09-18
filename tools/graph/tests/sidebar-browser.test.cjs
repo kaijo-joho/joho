@@ -52,7 +52,7 @@ let browser, page;
   await page.locator('#dialog-cancel').click(); assert(await focused(series), 'CSV import returns to the heading icon');
 
   await page.locator('#mode-3d').click(); await settle(); await series.click();
-  assert.equal(await page.locator('#add-function').innerText(), '＋ 曲面'); assert(await page.locator('#other-curves').isHidden());
+  assert.equal(await page.locator('#add-function').innerText(), '曲面'); assert.equal(await page.locator('#add-function svg').count(),1); assert(await page.locator('#other-curves').isHidden());
   assert(await page.locator('#add-point').isDisabled()); assert(await page.locator('#annotation-mode-note').isVisible());
   await page.locator('#mode-2d').click(); await settle();
   await page.locator('#view-menu summary').click(); await page.locator('#theme').selectOption('dark'); await page.locator('#text-size').selectOption('largest'); await page.keyboard.press('Escape');

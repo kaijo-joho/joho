@@ -41,7 +41,7 @@ let browser;
   await page.locator('input[aria-label="57行目を選択"]').uncheck(); await page.locator('input[aria-label="58行目を選択"]').uncheck();
 
   await page.locator('input[aria-label="56行目を選択"]').check(); await page.getByRole('button', { name: '次の50行', exact: true }).click(); await page.locator('input[aria-label="101行目を選択"]').check();
-  await page.getByRole('button', { name: '選択行を削除', exact: true }).click();
+  await page.locator('.graph-table-editor__row-menu summary').click(); await page.getByRole('button', { name: '選択行を削除', exact: true }).click();
   assert.deepEqual(await page.evaluate(() => __tableTest.getExcludedRows()), [1, 99], '削除行を除いてmaskを新indexへremap');
   assert.equal(await page.locator('.graph-table-editor__pager span').innerText(), '101〜103行 / 103行');
 

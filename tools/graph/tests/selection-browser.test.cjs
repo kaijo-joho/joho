@@ -40,7 +40,7 @@ let browser, page;
   const dash = bar.getByLabel('線種', { exact: true });
   assert(await width.isVisible()); assert(await dash.isVisible());
   await width.fill('4'); await width.press('Tab'); await settle();
-  await dash.selectOption('dash'); await settle();
+  await dash.getByRole('button',{name:'破線',exact:true}).click(); await settle();
   assert.equal((await doc()).series[0].style.width, 4); assert.equal((await doc()).series[0].style.dash, 'dash');
   for (const label of ['曲線上に点を追加','接線を追加','交点を追加']) assert.equal(await bar.getByRole('button', { name: label, exact: true }).count(), 1, label + ' is available in the inspector');
   assert.equal(await bar.getByRole('button', { name:'選択を解除',exact:true }).count(),0);

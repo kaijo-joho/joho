@@ -1,4 +1,6 @@
-# グラフエディタ 0.19.0 BETA
+# グラフエディタ 0.20.0 BETA
+
+0.20.0では、右パネルから自由な色を直接選べるようにし、線幅・不透明度のスライダーと線種の見本ボタンを追加した。数表はクリックでセル選択、矢印キーで移動、Enter・F2・ダブルクリック・文字入力で編集する。表の下・右の＋から行・列を追加でき、列＋には計算列もまとめた。タブ付きモーダルの高さを固定し、広い画面では列の割り当てを常時表示する。保存形式はversion 14を維持する。詳細は [編集画面の整理](docs/dialog-usability.md) を参照。
 
 0.19.0では、数表・数式、座標設定、分析グラフの編集画面を目的別のタブへ整理した。入力途中の値は切り替えても保持し、入力エラーの欄は該当タブ・折りたたみを開いて表示する。数表の行・列・計算操作とデータ取り込みにアイコンを加え、列割り当てと詳しい説明は必要なときに開く。保存形式はversion 14を維持する。詳細は [編集画面の整理](docs/dialog-usability.md) を参照。
 
@@ -106,6 +108,8 @@
 | `calculation-templates.js` | 速度・抵抗・単位換算・移動平均の計算列テンプレート4件 |
 | `water-properties.js` / `co2-properties.js` | 公開相関式による相境界・水の密度の計算 |
 | `editor.js` / `editor.css` / `index.html` | 操作画面 |
+| `style-ui.js` / `style-ui.css` | 色・線種・スライダーの直接操作 |
+| `dialog-ui.js` / `dialog-ui.css` | タブとモーダル内の共通操作 |
 | `vendor/` | 固定版Plotly.jsとライセンス |
 | `../shared/help-panel.*` | 共通の非モーダルヘルプ |
 | `../shared/ui-kit.*` | 共通UIの配色・文字サイズ変数とツールチップ（既存ファイルを変更せず参照） |
@@ -124,6 +128,9 @@
 
 ```sh
 node tools/graph/tests/dialog-usability-browser.test.cjs
+node tools/graph/tests/dialog-height-browser.test.cjs
+node tools/graph/tests/style-controls-browser.test.cjs
+node tools/graph/tests/table-grid-browser.test.cjs
 node tools/graph/tests/table-usability-browser.test.cjs
 node tools/graph/tests/import-usability-browser.test.cjs
 node tools/graph/tests/publication.test.cjs

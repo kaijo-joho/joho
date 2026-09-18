@@ -58,7 +58,7 @@ let browser;
   await page.waitForTimeout(150); await page.mouse.down(); await page.mouse.up();
   await page.waitForFunction(id => GraphEditor.getState().selected?.id === id, pId).catch(async error => { console.error('click state', pointBox, await page.evaluate(() => ({state:GraphEditor.getState(),traces:document.querySelector('#plot').data.map(t=>({meta:t.meta,mode:t.mode})),hover:document.querySelector('#plot')._hoverdata?.map(p=>({curve:p.curveNumber,point:p.pointNumber}))})));await page.screenshot({path:'/private/tmp/graph-02-click-debug.png'});throw error; });
   assert.equal((await page.evaluate(() => GraphEditor.getState())).selected.type, 'annotation', 'multiple traces still select the correct annotation');
-  await page.getByRole('button', { name: '自由な色（RGB）', exact: true }).click(); await field('R', 10); await field('G', 20); await field('B', 30); await submit();
+  await page.getByLabel('自由な色（RGB）', { exact: true }).fill('#0a141e'); await settle();
   assert.equal((await doc()).annotations[0].style.color, '#0a141e');
 
   await addAnnotation('点'); await field('名前', '自由点'); await field('x 座標', '1/2'); await field('y 座標', 'sqrt(2)'); await submit();

@@ -68,9 +68,8 @@ let browser, page;
   await page.locator('#undo').click(); await settle(); assert.equal((await doc()).series.some(s => s.id === 'f'), true); assert.equal((await doc()).annotations.some(a => a.id === 'p'), true, 'one undo restores cascade');
 
   await item('series', 'f').click(); await page.keyboard.down(mod); await item('series', 'g').click(); await page.keyboard.up(mod); await settle();
-  await bar.getByRole('button', { name: '自由な色（RGB）', exact: true }).click();
-  for (const [label, value] of [['R', '12'], ['G', '34'], ['B', '56']]) await page.locator('#editor-dialog').getByLabel(label, { exact: true }).fill(value);
-  await page.locator('#dialog-submit').click(); await settle(); assert.deepEqual((await doc()).series.slice(0, 2).map(s => s.style.color), ['#0c2238', '#0c2238'], 'RGB applies to all selected series');
+  await bar.getByLabel('自由な色（RGB）', { exact: true }).fill('#0c2238');
+  await settle(); assert(!await page.locator('#editor-dialog').isVisible()); assert.deepEqual((await doc()).series.slice(0, 2).map(s => s.style.color), ['#0c2238', '#0c2238'], 'RGB applies to all selected series');
 
   await item('series', 'f').click(); await page.keyboard.down(mod); await item('annotation', 'p').click(); await page.keyboard.up(mod); await settle();
   assert.equal(await bar.getByLabel('線の太さ', { exact: true }).count(), 0, 'incompatible bulk width control is hidden');

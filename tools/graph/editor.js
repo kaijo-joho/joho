@@ -1,7 +1,7 @@
 /* global GraphCore, GraphExpression, GraphCurves, GraphAnnotations, GraphAnalysis, GraphRegions, GraphSymbols, GraphIcons, GraphPlot, GraphTemplates, IlapoLocalAutosave, JohoToolHelp, JohoUI */
 (function () {
   'use strict';
-  const C = window.GraphCore, P = window.GraphPlot, S = window.GraphSymbols, W = window.GraphWorkspace, Selection = window.GraphSelection, D = window.GraphDialogUI;
+  const C = window.GraphCore, P = window.GraphPlot, S = window.GraphSymbols, W = window.GraphWorkspace, Selection = window.GraphSelection, D = window.GraphDialogUI, U = window.GraphStyleUI;
   const $ = id => document.getElementById(id);
   const palette = ['#2563eb','#dc2626','#16a34a','#9333ea','#ea580c','#0891b2','#db2777','#4f46e5','#65a30d','#ca8a04','#0f766e','#7c3aed','#111827','#64748b','#ffffff','#a16207','#e11d48','#0284c7'];
   const quickColors = [palette[0],palette[1],palette[2],palette[3],palette[12]];
@@ -15,7 +15,7 @@
   let workspaceView = 'main', templateLibrary, observedSelection = null;
   let history, store, localAuto, help, tooltip, selected = null, camera, settings = {}, side = '', dialogApply, dialogOpener, dialogOpenerKey, dialogSelectionKey, dialogListDetail;
   let drawPending = false, drawing = false, drawTask = Promise.resolve(), exportBusy = false, fileBusy = false, toastTimer, saveTimer;
-  let parameterPreview = null, axesPreview = null, gesture = null, tangentDraft = null, tangentHoverTimer;
+  let parameterPreview = null, axesPreview = null, stylePreview = null, gesture = null, tangentDraft = null, tangentHoverTimer;
   let addMenu = null, addMenuTimer, dialogCleanup, objectMenuTarget = null, objectMenuTimer, listReorder;
   let selectionRefs = [], selectionAnchor = null, multipleMode = false, styleClipboard = null;
   const templates = typeof GraphTemplates.list === 'function' ? GraphTemplates.list() : C.clone(GraphTemplates.list);
@@ -109,7 +109,7 @@
     if (localAuto?.active) localAuto.schedule(current());
   }
   function changed(mutator, message, draw=true, rebuildToolbar=true) {
-    cancelTangentDraft();cancelGesture(); parameterPreview=null;axesPreview=null; history.change(mutator);if(rebuildToolbar){updateList();updateToolbar();}updateHeader(); persistSoon(); if(draw) requestDraw(); if(message) notify(message);
+    cancelTangentDraft();cancelGesture(); parameterPreview=null;axesPreview=null;stylePreview=null; history.change(mutator);if(rebuildToolbar){updateList();updateToolbar();}updateHeader(); persistSoon(); if(draw) requestDraw(); if(message) notify(message);
   }
   function updateHeader() {
     updateWorkspaceControls();
@@ -119,7 +119,7 @@
     for (const mode of ['2d','3d']) $('mode-'+mode).setAttribute('aria-pressed',String(current().mode===mode));
     for (const id of ['undo','undo-menu']) $(id).disabled=!history.canUndo;
     for (const id of ['redo','redo-menu']) $(id).disabled=!history.canRedo;
-    $('add-function').textContent=current().mode==='3d'?'＋ 曲面':'＋ 数式';
+    $('add-function').textContent=current().mode==='3d'?'曲面':'数式';D.decorate($('add-function'),'function');
     $('other-curves').hidden=current().mode==='3d';
     $('add-implicit').textContent='＋ 陰関数 F('+symbol('x')+', '+symbol('y')+') = 0';
     $('add-parametric').textContent='＋ 媒介変数 '+symbol('x')+'(t), '+symbol('y')+'(t)';
@@ -249,9 +249,11 @@
     }
   }
   function cancelParameterPreview() { if(!parameterPreview)return;parameterPreview=null;updateParameters();updateTangentEquations(current());requestDraw(); }
+  function cancelStylePreview() { if(!stylePreview)return;stylePreview=null;requestDraw(); }
+  function previewStyle(mutator) { const draft=C.clone(current());mutator(draft);stylePreview=draft;requestDraw(); }
   function setListOpen(open) { if(!open){closeAddMenu();closeObjectMenu();listReorder?.cancel();}else if(side&&matchMedia('(max-width:850px)').matches)setSide('',true);$('objects').classList.toggle('is-open',open); $('list-toggle').setAttribute('aria-expanded',String(open)); }
   function select(value,{keepListOpen=false,preserveObservation=false,reveal=true,additive=false,range=false}={}) {
-    closeObjectMenu();cancelTangentDraft();cancelParameterPreview();
+    closeObjectMenu();cancelTangentDraft();cancelParameterPreview();cancelStylePreview();
     if(additive&&value&&['series','annotation','chart'].includes(value.type)){
       selectionRefs=selectedObjects().filter(ref=>['series','annotation','chart'].includes(ref.type));
       if(range&&selectionAnchor?.type===value.type){
@@ -316,7 +318,7 @@
     const box=node('div',null,{class:'inspector-related'}),actions=[];
     const add=(icon,label,action)=>actions.push([icon,label,action]);
     if(s?.kind==='data2d'&&regressionTableSupported(s))add('regression','回帰分析',()=>addAnnotation('regression',s.id));
-    if(s?.kind.startsWith('data')){add('statistics','統計量・相関行列',()=>showStatistics(s.id));for(const kind of ['scatter','matrix','histogram','box'])add(kind==='scatter'?'point':'statistics',chartNames[kind]+'を追加',()=>editChart(null,kind,{seriesId:s.id}));}
+    if(s?.kind.startsWith('data')){add('statistics','統計量・相関行列',()=>showStatistics(s.id));for(const kind of ['scatter','matrix','histogram','box'])add(kind==='box'?'boxplot':kind,chartNames[kind]+'を追加',()=>editChart(null,kind,{seriesId:s.id}));}
     const source=s&&curveKinds.includes(s.kind)?s.id:a?.kind==='regression'?'regression:'+a.id:null;
     if(source)add('point','曲線上に点を追加',()=>addAnnotation('point',source));
     if(s?.kind==='function'||a?.kind==='regression')add('tangent','接線を追加',()=>addAnnotation('tangent',source));
@@ -352,28 +354,20 @@
     if(has('color')){
       const colors=node('div',null,{class:'quick-palette',role:'group','aria-label':'選択対象の色'});
       for(const color of quickColors){const control=button(null,()=>change({color}),{class:'quick-color','aria-label':'色を変更：'+colorNames[palette.indexOf(color)],'aria-pressed':String(values.color===color),'data-quick-control':'bulk-color-'+color.slice(1)});control.style.setProperty('--swatch-color',color);control.append(node('span',null,{'aria-hidden':'true'}));colors.append(control);}
-      const custom=button(null,()=>editMultipleColor(refs,values.color),{class:'quick-color custom-color','aria-label':'自由な色（RGB）','data-tip':'自由な色・RGBで指定','data-quick-control':'custom-color','aria-haspopup':'dialog'});custom.style.setProperty('--swatch-color',values.color||'#64748b');custom.append(node('span',null,{'aria-hidden':'true'}));colors.append(custom);bar.append(colors);
+      colors.append(U.color(values.color,value=>run(()=>change({color:value}))));bar.append(colors);
     }
     const controls=node('div',null,{class:'quick-line-controls field-grid'});bar.append(controls);
     for(const [key,label,min,max,step]of [['width','線の太さ',.5,20,.5],['opacity','不透明度（0〜1）',0,1,.05],['pointSize','点の大きさ',2,30,1],['fontSize','文字サイズ（px）',8,48,1]]){
-      if(!has(key))continue;const input=quickNumber(controls,label,values[key]??'',min,max,step,'bulk-'+key,value=>change({[key]:value}));if(values[key]===null)input.placeholder='混在';
+      if(!has(key))continue;
+      if(['width','opacity'].includes(key))U.range(controls,{label,value:values[key],min,max,step,key:'bulk-'+key,onCommit:value=>change({[key]:value}),onPreview:value=>previewStyle(doc=>Selection.apply(doc,refs,{[key]:value})),onCancel:cancelStylePreview,onError:report});
+      else {const input=quickNumber(controls,label,values[key]??'',min,max,step,'bulk-'+key,value=>change({[key]:value}));if(values[key]===null)input.placeholder='混在';}
     }
-    if(has('dash')){const options=[['solid','実線'],['dash','破線'],['dot','点線']];if(values.dash===null)options.unshift(['','混在']);const input=choice(controls,'線種',values.dash??'',options);input.dataset.quickControl='bulk-dash';if(values.dash===null)input.options[0].disabled=true;input.addEventListener('change',()=>run(()=>change({dash:input.value})));}
+    if(has('dash'))U.dash(controls,{value:values.dash,key:'bulk-dash',onChange:value=>run(()=>change({dash:value}))});
     const checks=node('div',null,{class:'inspector-checks'});bar.append(checks);
     for(const[key,label]of [['points','点を表示'],['lines','線を表示'],['labelVisible','名前・文字を表示']]){
       if(!has(key))continue;const input=check(checks,label,values[key]===true);input.indeterminate=values[key]===null;input.dataset.quickControl='bulk-'+key;input.addEventListener('change',()=>run(()=>change({[key]:input.checked})));
     }
     bar.append(node('p','共通する書式を変更します。「混在」は対象ごとに値が異なる項目です。',{class:'small muted bulk-format-note'}));
-  }
-  function editMultipleColor(refs,initial) {
-    let color,rgb;initial=initial||'#2563eb';
-    openDialog('選択対象の色（RGB）',parent=>{
-      color=field(parent,'自由な色',initial,'color');const fields=grid(parent,true);
-      rgb=['R','G','B'].map((label,i)=>field(fields,label,parseInt(initial.slice(1+i*2,3+i*2),16),'number',{min:0,max:255,step:1}));
-      color.addEventListener('input',()=>rgb.forEach((input,i)=>{input.value=parseInt(color.value.slice(1+i*2,3+i*2),16);}));
-      for(const input of rgb)input.addEventListener('change',()=>run(()=>{color.value=read();}));
-    },()=>changed(doc=>Selection.apply(doc,refs,{color:read()})));
-    function read(){const values=rgb.map(requiredNumber);if(values.some(value=>!Number.isInteger(value)||value<0||value>255))throw new Error('RGBは0〜255の整数です。');return '#'+values.map(value=>value.toString(16).padStart(2,'0')).join('');}
   }
   function removeSelectedObjects() {
     const refs=selectedObjects();changed(doc=>{
@@ -439,14 +433,15 @@
     at.addEventListener('input',refresh);at.addEventListener('keydown',event=>{if(event.key==='Enter'&&!event.isComposing&&event.keyCode!==229&&!event.metaKey&&!event.ctrlKey&&!event.altKey){event.preventDefault();run(commit);}});
     refresh();if(focus){at.focus({preventScroll:true});at.select();}
   }
-  function quickChange(type,id,mutator) { try{changed(d=>{const object=d[type==='series'?'series':'annotations'].find(x=>x.id===id);if(!object)throw new Error('対象が見つかりません。');mutator(object);},null,true,false);}finally{refreshQuickControls();} }
+  function quickChange(type,id,mutator) { try{changed(d=>{const object=d[objectCollection(type)].find(x=>x.id===id);if(!object)throw new Error('対象が見つかりません。');mutator(object);},null,true,false);}finally{refreshQuickControls();} }
   function refreshQuickControls() {
-    const target=activeSeries()||activeAnnotation();if(!target)return;
-    const swatch=document.querySelector('[data-object-id="'+target.id+'"] .swatch');if(swatch)swatch.style.backgroundColor=target.style.color;
-    for(const b of $('selection-toolbar').querySelectorAll('.quick-color'))b.setAttribute('aria-pressed',String(b.dataset.quickControl==='color-'+target.style.color.toLowerCase().slice(1)));
-    const values={width:target.style.width,dash:target.style.dash,opacity:target.style.opacity,points:target.style.points,lines:target.style.lines,'label-size':target.label?.size,'label-dx':target.label?.dx,'label-dy':target.label?.dy,'label-visible':target.label?.visible,'equation-visible':target.showEquation,'metrics-visible':target.showMetrics,'area-visible':target.showArea,'integral-visible':target.showIntegral};
-    for(const [key,value]of Object.entries(values)){const el=$('selection-toolbar').querySelector('[data-quick-control="'+key+'"]');if(!el)continue;if(el.type==='checkbox')el.checked=value;else{el.value=value;if(el.type==='number')el.defaultValue=String(value);}}
-    const custom=$('selection-toolbar').querySelector('[data-quick-control="custom-color"]');if(custom)custom.style.setProperty('--swatch-color',target.style.color);
+    const chart=activeChart(),target=chart||activeSeries()||activeAnnotation();if(!target)return;
+    const color=chart?chart.color:target.style.color;
+    const swatch=document.querySelector('[data-object-id="'+target.id+'"] .swatch');if(swatch)swatch.style.backgroundColor=color;
+    for(const b of $('selection-toolbar').querySelectorAll('button.quick-color'))b.setAttribute('aria-pressed',String(b.dataset.quickControl===(chart?'chart-color-':'color-')+color.toLowerCase().slice(1)));
+    const values=chart?{'chart-width':chart.style.width,'chart-dash':chart.style.dash,'chart-point-size':chart.style.pointSize}:{width:target.style.width,dash:target.style.dash,opacity:target.style.opacity,points:target.style.points,lines:target.style.lines,'label-size':target.label?.size,'label-dx':target.label?.dx,'label-dy':target.label?.dy,'label-visible':target.label?.visible,'equation-visible':target.showEquation,'metrics-visible':target.showMetrics,'area-visible':target.showArea,'integral-visible':target.showIntegral};
+    for(const [key,value]of Object.entries(values)){const el=$('selection-toolbar').querySelector('[data-quick-control="'+key+'"]');if(!el||U.sync(el,value))continue;if(el.type==='checkbox')el.checked=value;else{el.value=value;if(el.type==='number')el.defaultValue=String(value);}}
+    const custom=$('selection-toolbar').querySelector('[data-quick-control="custom-color"]');if(custom)U.sync(custom,color);
   }
   function colorButtons(target,type,colors,label) {
     const group=node('div',null,{class:'quick-palette',role:'group','aria-label':label});
@@ -459,23 +454,27 @@
     input.addEventListener('change',()=>run(()=>{try{onChange(requiredNumber(input));}catch(error){refreshQuickControls();throw error;}}));return input;
   }
   function customColorButton(target,type) {
-    const control=button(null,()=>editColor(target.id,type),{class:'quick-color custom-color','aria-label':'自由な色（RGB）','data-tip':'自由な色・RGBで指定','data-quick-control':'custom-color','aria-haspopup':'dialog'});
-    control.style.setProperty('--swatch-color',type==='chart'?target.color:target.style.color);control.append(node('span',null,{'aria-hidden':'true'}));return control;
+    return U.color(type==='chart'?target.color:target.style.color,value=>run(()=>quickChange(type,target.id,object=>{if(type==='chart')object.color=value;else object.style.color=value;})));
+  }
+  function quickStyleRange(parent,label,target,type,key,min,max,step,controlKey=key) {
+    return U.range(parent,{label,value:target.style[key],min,max,step,key:controlKey,
+      onCommit:value=>quickChange(type,target.id,object=>{object.style[key]=value;}),
+      onPreview:value=>previewStyle(doc=>{doc[objectCollection(type)].find(object=>object.id===target.id).style[key]=value;}),onCancel:cancelStylePreview,onError:report});
   }
   function appendQuickLine(bar,target,type) {
     if(isRegion(target)){
       const group=node('div',null,{class:'quick-line-controls field-grid',role:'group','aria-label':'領域の表示'});bar.append(group);
-      quickNumber(group,'不透明度（0〜1）',target.style.opacity,0,1,.05,'opacity',value=>quickChange(type,target.id,o=>{o.style.opacity=value;}));
+      quickStyleRange(group,'不透明度（0〜1）',target,type,'opacity',0,1,.05);
       const checks=node('div',null,{class:'region-display-options'});group.append(checks);
       const visible=check(checks,'面積を図に表示',target.showArea);visible.dataset.quickControl='area-visible';visible.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.showArea=visible.checked;})));
       if(target.kind==='curveRegion'){const integral=check(checks,'定積分を図に表示',target.showIntegral);integral.dataset.quickControl='integral-visible';integral.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.showIntegral=integral.checked;})));}return;
     }
     const group=node('div',null,{class:'quick-line-controls field-grid',role:'group','aria-label':'線と色の設定'});bar.append(group);
     if(!['surface','text'].includes(target.kind)){
-      quickNumber(group,'線の太さ',target.style.width,.5,20,.5,'width',value=>quickChange(type,target.id,o=>{o.style.width=value;}));
-      const dash=choice(group,'線種',target.style.dash,[['solid','実線'],['dash','破線'],['dot','点線']]);dash.dataset.quickControl='dash';dash.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.style.dash=dash.value;})));
+      quickStyleRange(group,'線の太さ',target,type,'width',.5,20,.5);
+      U.dash(group,{value:target.style.dash,key:'dash',onChange:value=>run(()=>quickChange(type,target.id,o=>{o.style.dash=value;}))});
     }
-    quickNumber(group,'不透明度（0〜1）',target.style.opacity,0,1,.05,'opacity',value=>quickChange(type,target.id,o=>{o.style.opacity=value;}));
+    quickStyleRange(group,'不透明度（0〜1）',target,type,'opacity',0,1,.05);
     if(type==='series'&&target.kind!=='surface'){
       const checks=node('div',null,{class:'inspector-checks'});bar.append(checks);
       for(const [key,label]of [['points','点を表示'],['lines','線を表示']]){const input=check(checks,label,target.style[key]);input.dataset.quickControl=key;input.addEventListener('change',()=>run(()=>quickChange(type,target.id,o=>{o.style[key]=input.checked;if(!o.style.points&&!o.style.lines)throw new Error('点または線のいずれかを表示してください。');})));}
@@ -498,7 +497,7 @@
     if(!history)return Promise.resolve();drawPending=true;if(exportBusy||drawing)return drawTask;drawing=true;drawTask=drawPlot();return drawTask;
   }
   async function drawPlot() {
-    try { while(drawPending) { drawPending=false; const doc=C.clone(axesPreview||gesture?.preview||current()); if(parameterPreview){const p=doc.parameters.find(x=>x.name===parameterPreview.name);if(p)p.value=parameterPreview.value;}
+    try { while(drawPending) { drawPending=false; const doc=C.clone(axesPreview||stylePreview||gesture?.preview||current()); if(parameterPreview){const p=doc.parameters.find(x=>x.name===parameterPreview.name);if(p)p.value=parameterPreview.value;}
       if(tangentDraft?.valid){const preview=C.clone(tangentDraft.annotation);preview.name='接線（プレビュー）';preview.style.opacity=.65;doc.annotations.push(preview);}
       updateTangentEquations(doc);updateRegionAreas(doc);
       updateWorkspaceControls();
@@ -512,7 +511,7 @@
         continue;
       }
       try { const result=await P.render($('plot'),doc,{dark:isDark(),camera,selectedRow:observedSelection,onRowSelect:selectDataRow,onSelect:id=>select({type:'series',id}),onAnnotationSelect:id=>{if(current().annotations.some(a=>a.id===id))select({type:'annotation',id});},onBlankClick:()=>{if(selected||observedSelection)select(null);},onViewChange:view=>{
-        if(drawing||parameterPreview||axesPreview||gesture)return; if(view.camera)camera=view.camera;
+        if(drawing||parameterPreview||axesPreview||stylePreview||gesture)return; if(view.camera)camera=view.camera;
         if(view.axes){const next=C.clone(current());let modified=false;for(const key of ['x','y','z'])if(view.axes[key]&&Number.isFinite(view.axes[key].min)&&Number.isFinite(view.axes[key].max)){for(const part of ['min','max'])if(next.axes[key][part]!==view.axes[key][part]){next.axes[key][part]=view.axes[key][part];modified=true;}}
           if(modified)run(()=>{history.replace(next);updateHeader();persistSoon();requestDraw();});}
       }}); $('plot-error').hidden=true;$('plot-notes').replaceChildren();for(const warning of result?.warnings||[])$('plot-notes').append(node('p',warning));$('plot-notes').hidden=!result?.warnings?.length; } catch(error) { $('plot-error').textContent=error.message; $('plot-error').hidden=false; }
@@ -570,11 +569,11 @@
       else {const table=d.series.find(s=>s.visible&&s.kind==='data2d'&&s.dataTable?.columnTypes?.some(type=>type!=='number'));if(table)alignTableAxes(d,table);}
     });select(null);camera=undefined;
   }
-  function undo(redo=false) { cancelTangentDraft();cancelGesture();parameterPreview=null; if(redo)history.redo();else history.undo(); selected=null;selectionRefs=[];selectionAnchor=null;observedSelection=null;camera=undefined;updateHeader();updateList();updateToolbar();persistSoon();requestDraw(); }
+  function undo(redo=false) { cancelTangentDraft();cancelGesture();parameterPreview=null;stylePreview=null; if(redo)history.redo();else history.undo(); selected=null;selectionRefs=[];selectionAnchor=null;observedSelection=null;camera=undefined;updateHeader();updateList();updateToolbar();persistSoon();requestDraw(); }
   function openDialog(title, build, onApply, submit='適用') {
     const focused=document.activeElement,addTrigger=focused?.closest('.add-menu')?.querySelector('.add-menu-toggle');
     if(dialogCleanup){const cleanup=dialogCleanup;dialogCleanup=null;cleanup();}
-    cancelTangentDraft();cancelGesture();cancelParameterPreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=addTrigger||focused;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogListDetail=dialogOpener?.dataset.objectDetails;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
+    cancelTangentDraft();cancelGesture();cancelParameterPreview();cancelStylePreview();closeMenus(); if($('editor-dialog').open)$('editor-dialog').close(); dialogOpener=addTrigger||focused;dialogOpenerKey=dialogOpener?.dataset.quickControl;dialogListDetail=dialogOpener?.dataset.objectDetails;dialogSelectionKey=$('selection-toolbar').dataset.selectionKey;dialogApply=onApply;
     $('editor-dialog').classList.remove('wide-dialog','data-import-dialog','axes-dialog');$('dialog-title').textContent=title;$('dialog-content').replaceChildren();$('dialog-error').hidden=true;$('dialog-submit').hidden=!onApply;$('dialog-submit').disabled=false;$('dialog-submit').textContent=submit;
     $('dialog-cancel').textContent=onApply?'キャンセル':'閉じる';build($('dialog-content'));$('editor-dialog').showModal();
     D.decorate($('dialog-title'),/数表|データ/.test(title)?'table':/数式|関数|曲面|極座標|媒介/.test(title)?'function':/統計|分析|散布|ヒスト|箱ひげ|残差/.test(title)?'statistics':'settings');D.decorate($('dialog-submit'),'check');D.decorate($('dialog-cancel'),'close');
@@ -609,6 +608,7 @@
       if(isData){
         $('editor-dialog').classList.add('wide-dialog');
         table=GraphTableEditor.mount(content,s,{symbols:{x:symbol('x'),y:symbol('y'),z:symbol('z')},selectedRow:options.selectedRow??(observedSelection?.seriesId===s.id?observedSelection.rowIndex:undefined),onError:report});
+        dialogCleanup=()=>table.destroy();
         const actions=node('div',null,{class:'table-export-actions'});
         actions.append(labeledButton('download','CSV保存',()=>{
           const draft=readTable();download(C.tableCSV(draft.rows,draft.columns),filename(name.value.trim()||s.name||'数表')+'.csv','text/csv;charset=utf-8');notify('編集中の数表をCSVで保存しました。');
@@ -881,8 +881,8 @@
     const paletteGroup=colors(quickColors,'分析グラフの色');paletteGroup.append(customColorButton(chart,'chart'));bar.append(paletteGroup);
     const style=node('div',null,{class:'quick-line-controls field-grid chart-quick-style'});bar.append(style);
     if(['scatter','residual','matrix'].includes(chart.kind))quickNumber(style,'点の大きさ',chart.style.pointSize,2,30,1,'chart-point-size',value=>change(item=>{item.style.pointSize=value;}));
-    if(chart.kind!=='residual')quickNumber(style,'線の太さ',chart.style.width,.5,20,.5,'chart-width',value=>change(item=>{item.style.width=value;}));
-    if(chart.kind==='scatter'&&chart.model){const dash=choice(style,'線種',chart.style.dash,[['solid','実線'],['dash','破線'],['dot','点線']]);dash.dataset.quickControl='chart-dash';dash.addEventListener('change',()=>run(()=>change(item=>{item.style.dash=dash.value;})));}
+    if(chart.kind!=='residual')quickStyleRange(style,'線の太さ',chart,'chart','width',.5,20,.5,'chart-width');
+    if(chart.kind==='scatter'&&chart.model)U.dash(style,{value:chart.style.dash,key:'chart-dash',onChange:value=>run(()=>quickChange('chart',chart.id,item=>{item.style.dash=value;}))});
     const labels=node('div',null,{class:'chart-display-options'});bar.append(labels);
     for(const [key,label,value]of [...(chart.kind==='matrix'?[]:[['legend','凡例',chart.legend]]),...((chart.kind==='scatter'&&chart.model)?[['equation','回帰式',chart.labels.equation],['metrics','統計指標',chart.labels.metrics]]:[])]){const input=check(labels,label,value);input.dataset.quickControl='chart-'+key;input.addEventListener('change',()=>run(()=>change(item=>{if(key==='legend')item.legend=input.checked;else item.labels[key]=input.checked;})));}
     const sourceId=chart.kind==='residual'?current().annotations.find(a=>a.id===chart.regressionId)?.seriesId:chart.seriesId;
@@ -969,7 +969,7 @@
   function chartViewFields(parent,chart,getTypes=()=>({x:'number',y:'number'}),axisParent=parent) {
     if(chart.kind==='matrix'){
       notes(axisParent,'軸・使用する行について','列名を軸名に使い、同じ列の表示範囲をそろえます。数表の全行を使い、回帰から除外した行も表示します。');
-      const style=grid(parent),pointSize=field(style,'点の大きさ',chart.style.pointSize,'number',{min:2,max:30,step:'any'}),width=field(style,'線の太さ',chart.style.width,'number',{min:.5,max:20,step:'any'});
+      const style=grid(parent),pointSize=field(style,'点の大きさ',chart.style.pointSize,'number',{min:2,max:30,step:'any'}),width=U.range(style,{label:'線の太さ',value:chart.style.width,min:.5,max:20,step:.5,onError:report});
       const read=()=>({axes:C.clone(chart.axes),style:{...chart.style,pointSize:requiredNumber(pointSize),width:requiredNumber(width)},legend:false,labels:{equation:false,metrics:true}});read.refreshTypes=()=>{};return read;
     }
     const axes={},details=node('div',null,{class:'chart-axis-settings'});axisParent.append(details);
@@ -983,7 +983,8 @@
       axes[key]=inputs;
     }
     details.append(node('p','範囲は最小値・最大値を両方空欄にすると自動です。設定した範囲と目盛りは画像にも反映します。',{class:'small muted'}));
-    const style=grid(parent),pointSize=field(style,'点の大きさ',chart.style.pointSize,'number',{min:2,max:30,step:'any'}),width=field(style,'線の太さ',chart.style.width,'number',{min:.5,max:20,step:'any'}),dash=choice(style,'線種',chart.style.dash,[['solid','実線'],['dash','破線'],['dot','点線']]);pointSize.disabled=!['scatter','residual'].includes(chart.kind);width.disabled=chart.kind==='residual';dash.disabled=chart.kind!=='scatter';
+    const style=grid(parent),pointSize=field(style,'点の大きさ',chart.style.pointSize,'number',{min:2,max:30,step:'any'}),width=U.range(style,{label:'線の太さ',value:chart.style.width,min:.5,max:20,step:.5,onError:report}),dash=U.dash(style,{value:chart.style.dash});pointSize.disabled=!['scatter','residual'].includes(chart.kind);
+    for(const input of width.closest('.style-range').querySelectorAll('input'))input.disabled=chart.kind==='residual';for(const button of dash.children)button.disabled=chart.kind!=='scatter';
     const legend=check(parent,'凡例を表示',chart.legend);let equation,metrics;
     if(chart.kind==='scatter'){equation=check(parent,'回帰式を図に表示',chart.labels.equation);metrics=check(parent,'統計指標を図に表示（n・r・R²・RMSE）',chart.labels.metrics);}
     function refreshTypes(){
@@ -1114,20 +1115,6 @@
       changed(d=>{if(existing)d.annotations[d.annotations.findIndex(item=>item.id===id)]=a;else d.annotations.push(a);if(residualChart.checked&&!d.charts.some(item=>item.id===chart.id)){d.charts.push(chart);if(d.comparison.items.length<6)d.comparison.items.push(chart.id);}});
       select(residualChart.checked?{type:'chart',id:chart.id}:{type:'annotation',id:a.id});
     },existing?'適用':'回帰曲線を追加');
-  }
-  function editColor(id,type) {
-    const object=current()[objectCollection(type)].find(item=>item.id===id);if(!object)return;
-    const initial=type==='chart'?object.color:object.style.color;let color,rgb;
-    openDialog('自由な色（RGB）',parent=>{
-      color=field(parent,'自由な色',initial,'color');const fields=grid(parent,true);
-      rgb=['R','G','B'].map((label,i)=>field(fields,label,parseInt(initial.slice(1+i*2,3+i*2),16),'number',{min:0,max:255,step:1}));
-      color.addEventListener('input',()=>rgb.forEach((input,i)=>{input.value=parseInt(color.value.slice(1+i*2,3+i*2),16);}));
-      for(const input of rgb)input.addEventListener('change',()=>run(()=>{color.value=read();}));
-      parent.append(node('p','R・G・Bを0〜255の整数で指定します。',{class:'small muted'}));
-    },()=>{
-      const value=read();changed(doc=>{const target=doc[objectCollection(type)].find(item=>item.id===id);if(type==='chart')target.color=value;else target.style.color=value;});
-    });
-    function read(){const values=rgb.map(requiredNumber);if(values.some(value=>!Number.isInteger(value)||value<0||value>255))throw new Error('RGBは0〜255の整数です。');return '#'+values.map(value=>value.toString(16).padStart(2,'0')).join('');}
   }
   function editParameter(name) {
     const existing=current().parameters.find(p=>p.name===name);let paramName,value,min,max,step;
@@ -1310,7 +1297,7 @@
     if(fileBusy)return;if(!localAuto||!window.showSaveFilePicker)throw new Error('ローカル自動保存には対応するChromeが必要です。「ファイルに保存」も利用できます。');fileBusy=true;closeMenus();
     try{const handle=await window.showSaveFilePicker({suggestedName:filename(current().name)+'.autosave.graph.json',types:[{description:'グラフの自動保存',accept:{'application/json':['.json']}}]});await localAuto.start(current(),handle);$('stop-local-auto').disabled=!localAuto.active;}catch(error){if(error.name!=='AbortError')throw error;}finally{fileBusy=false;}
   }
-  function loadDocument(doc) {const valid=C.validateDocument(doc);cancelGesture();cancelParameterPreview();history.replace(valid);workspaceView='main';selected=null;selectionRefs=[];selectionAnchor=null;observedSelection=null;camera=undefined;updateList();updateToolbar();updateHeader();persistSoon();requestDraw();}
+  function loadDocument(doc) {const valid=C.validateDocument(doc);cancelGesture();cancelParameterPreview();cancelStylePreview();history.replace(valid);workspaceView='main';selected=null;selectionRefs=[];selectionAnchor=null;observedSelection=null;camera=undefined;updateList();updateToolbar();updateHeader();persistSoon();requestDraw();}
   function showSaved(initial=false) {
     openDialog(initial?'保存したグラフから再開':'保存したグラフを開く',parent=>{
       if(!store)parent.append(node('p','ブラウザ保存を利用できません。ローカルファイルを開いてください。'));
@@ -1352,7 +1339,7 @@
   }
   function prepareImage(options) {
     if(exportBusy)return null;
-    saveOutputControls();cancelTangentDraft();cancelParameterPreview();
+    saveOutputControls();cancelTangentDraft();cancelParameterPreview();cancelStylePreview();
     const view=workspaceView,ready=requestDraw();setOutputBusy(true);outputStatus('画像を作成しています…');
     return ready.then(async()=>{
       if(view!==workspaceView)throw new Error('表示するグラフが変わりました。もう一度書き出してください。');

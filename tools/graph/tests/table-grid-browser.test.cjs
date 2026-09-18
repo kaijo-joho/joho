@@ -1,0 +1,54 @@
+/* Spreadsheet-like selection and explicit editing in the graph data table. */
+const assert=require('node:assert/strict'),fs=require('node:fs'),http=require('node:http'),path=require('node:path'),os=require('node:os');
+let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
+const root=path.resolve(__dirname,'../../..');
+const server=http.createServer((request,response)=>{const file=path.resolve(root,'.'+decodeURIComponent(request.url.split('?')[0]));if(!file.startsWith(root+path.sep)){response.writeHead(403);return response.end();}fs.readFile(file,(error,data)=>{response.writeHead(error?404:200,{'Content-Type':file.endsWith('.js')?'text/javascript':file.endsWith('.css')?'text/css':'text/html'});response.end(error?'not found':data);});});
+let browser;
+(async()=>{
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));browser=await chromium.launch({channel:'chrome',headless:true});
+  const page=await browser.newPage({viewport:{width:900,height:760}}),base=process.env.GRAPH_TEST_URL||`http://127.0.0.1:${server.address().port}/tools/graph/index.html`;
+  await page.goto(base);await page.addStyleTag({url:new URL('table-editor.css',base).href});await page.waitForFunction(()=>window.GraphTableEditor&&window.GraphTables);
+  await page.evaluate(()=>{const series=GraphCore.createSeries('data2d');series.rows=Array.from({length:51},(_,index)=>[index,index*2]);const host=document.createElement('div');document.body.append(host);window.__grid=GraphTableEditor.mount(host,series);});
+  const editor=page.locator('.graph-table-editor'),cell=(row,column)=>editor.locator(`[data-cell="${row},${column}"]`);
+  await cell(1,0).click();assert.equal(await cell(1,0).getAttribute('readonly'),'');assert(await cell(1,0).evaluate(el=>el.classList.contains('graph-table-editor__cell-selected')));
+  await page.keyboard.press('Enter');assert(await cell(1,0).evaluate(el=>el===document.activeElement&&!el.readOnly),'選択中のEnterは同じセルを編集状態にする');await page.keyboard.press('Escape');assert(await cell(1,0).evaluate(el=>el===document.activeElement),'Escape後も選択セルにとどまる');
+  await cell(1,0).evaluate(el=>el.dispatchEvent(new KeyboardEvent('keydown',{bubbles:true,key:'Enter',isComposing:true,keyCode:229})));assert(await cell(1,0).evaluate(el=>el===document.activeElement),'IME変換確定のEnterではセルを移動しない');
+  await page.keyboard.type('7');await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>__grid.read().rows[0][0]),7,'文字キーによる置換をEnterで保存する');
+  assert(await cell(2,0).evaluate(el=>el===document.activeElement),'確定後のEnterは次行を選択する');
+  await page.keyboard.press('F2');await page.keyboard.type('99');await page.keyboard.press('Escape');assert.equal(await cell(2,0).inputValue(),'1','Escape restores the selected cell value');
+  await page.keyboard.press('Enter');await cell(2,0).fill('42');await page.keyboard.press('Enter');assert(await cell(3,0).evaluate(el=>el===document.activeElement));
+  await cell(4,0).evaluate(el=>{const data=new DataTransfer();data.setData('text/plain','70\n80');el.dispatchEvent(new ClipboardEvent('paste',{bubbles:true,clipboardData:data}));});assert.deepEqual(await page.evaluate(()=>__grid.read().rows.slice(3,5).map(row=>row[0])),[70,80],'複数セル貼り付けを保存する');
+  await cell(4,0).click();await page.keyboard.press('F2');await cell(4,0).fill('71');await page.keyboard.press('Enter');assert(await cell(5,0).evaluate(el=>el===document.activeElement),'貼り付け後に古い編集状態を残さない');
+  await cell(6,0).click();await page.keyboard.press('F2');await cell(6,0).fill('66');await cell(7,0).click();assert.equal(await cell(6,0).getAttribute('readonly'),'','別セルをクリックすると編集を確定してreadonlyへ戻す');await cell(6,0).click();await page.keyboard.type('67');await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>__grid.read().rows[5][0]),67,'再選択後も文字キーで置換できる');
+  await cell(50,1).click();await page.keyboard.press('ArrowDown');assert.equal(await editor.locator('.graph-table-editor__pager span').innerText(),'51〜51行 / 51行');assert(await cell(51,1).evaluate(el=>el===document.activeElement));
+  await cell(51,0).evaluate(el=>el.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:''})));await cell(51,0).fill('123');await page.keyboard.press('Enter');assert.equal(await page.evaluate(()=>__grid.read().rows[50][0]),123,'IME composition can enter edit mode and the saved value stays numeric');
+  await editor.locator('.graph-table-editor__column-menu summary').click();await editor.getByRole('button',{name:'列を追加',exact:true}).click();assert.equal(await editor.locator('thead th').count(),5,'column plus adds an input column');
+  assert.equal(await editor.locator('.graph-table-editor__column-menu summary').innerText(),'','列追加メニューは視覚上＋だけにする');assert.equal(await editor.locator('.graph-table-editor__column-menu summary').getAttribute('aria-label'),'列を追加');assert.equal(await editor.getByRole('button',{name:'行を追加',exact:true}).innerText(),'','行追加は＋アイコンだけにする');
+  await editor.locator('.graph-table-editor__column-menu summary').click();await editor.getByRole('button',{name:'計算列を追加',exact:true}).click();assert.equal(await editor.locator('.graph-table-editor__calculation-panel').count(),1,'column menu exposes calculated columns');await editor.getByLabel('計算列の名前',{exact:true}).fill('2倍');await editor.getByLabel('計算式',{exact:true}).fill('[@x] * 2');await editor.getByRole('button',{name:'適用',exact:true}).click();await editor.getByRole('button',{name:'前の50行',exact:true}).click();
+  await cell(1,0).click();await cell(1,0).press('F2');await cell(1,0).fill('6');await cell(1,0).press('Escape');assert.equal(await cell(1,3).inputValue(),'14','Escapeで元値へ戻し計算列も再計算する');
+  await page.setViewportSize({width:390,height:760});await editor.locator('.graph-table-editor__column-menu summary').click();const menuBox=await editor.locator('.graph-table-editor__column-menu[open]').boundingBox();assert(menuBox.x>=0&&menuBox.x+menuBox.width<=390,'狭幅でも列＋メニュー全体を表の内側へ表示する');
+  await page.evaluate(()=>{__grid.destroy();__grid.element.parentElement.remove();});
+  // Exercise the actual modal, including clipping, sticky headers, and resize.
+  await page.setViewportSize({width:1320,height:950});
+  const fixture=await page.evaluate(()=>{const doc=GraphCore.createDocument(),series=GraphCore.createSeries('data2d');series.id='grid-modal';series.rows=Array.from({length:50},(_,i)=>[i,i*2]);doc.series=[series];return doc;});
+  await page.locator('#file-input').setInputFiles({name:'grid.graph.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});await page.waitForFunction(()=>GraphEditor.getDocument().series[0].id==='grid-modal'&&!GraphEditor.getState().drawing);
+  await page.locator('[data-object-id="grid-modal"]').dblclick();const dialog=page.locator('#editor-dialog');
+  await dialog.locator('.graph-table-editor__column-menu summary').click();await dialog.getByRole('button',{name:'計算列を追加',exact:true}).click();await dialog.getByLabel('計算列の名前',{exact:true}).fill('2倍');await dialog.getByLabel('計算式',{exact:true}).fill('[@x]*2');await dialog.getByRole('button',{name:'適用',exact:true}).click();
+  const heading=dialog.getByLabel('3列目の名前',{exact:true}),edit=dialog.getByRole('button',{name:'2倍の式を編集',exact:true});
+  await heading.waitFor({state:'visible'});await page.evaluate(()=>new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));
+  const aligned=await heading.evaluate(el=>{const name=el.getBoundingClientRect(),edit=el.closest('th').querySelector('.graph-table-editor__formula-edit').getBoundingClientRect();return Math.abs(name.y-edit.y)<6&&edit.width>=44&&edit.height>=44;});assert(aligned,'計算の編集は列名と同じ行の44pxアイコン');assert.equal(await edit.innerText(),'');
+  const tableWrap=dialog.locator('.graph-table-editor__table-wrap');await tableWrap.evaluate(el=>{el.scrollTop=150;});
+  assert.equal(await heading.evaluate(el=>getComputedStyle(el.closest('th')).position),'sticky','列見出しの固定を保つ');
+  await dialog.screenshot({path:'/private/tmp/graph-020-table-final-desktop.png'});
+  await page.locator('#dialog-cancel').click();fixture.series[0].rows=[];
+  await page.locator('#file-input').setInputFiles({name:'empty.graph.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});await page.waitForFunction(()=>GraphEditor.getDocument().series[0].rows.length===0&&!GraphEditor.getState().drawing);
+  await page.locator('[data-object-id="grid-modal"]').dblclick();await page.setViewportSize({width:390,height:850});
+  await dialog.locator('.graph-table-editor__column-menu summary').click();const lastAction=dialog.getByRole('button',{name:'最後の列を削除',exact:true});
+  assert(await lastAction.evaluate(el=>{const r=el.getBoundingClientRect(),hit=document.elementFromPoint(r.x+r.width/2,r.y+r.height/2);return r.x>=0&&r.right<=innerWidth&&(hit===el||el.contains(hit));}),'0行の表でも列メニュー末尾が欠けず操作できる');
+  await dialog.screenshot({path:'/private/tmp/graph-020-table-final-mobile-menu.png'});
+  await page.keyboard.press('Escape');assert(await dialog.isVisible());assert.equal(await dialog.locator('.graph-table-editor__column-menu').getAttribute('open'),null,'Escapeは先に列メニューを閉じる');
+  const mapping=dialog.locator('.graph-table-editor__mapping-details');if(await mapping.getAttribute('open')!==null)await mapping.locator('summary').click();
+  await page.setViewportSize({width:1320,height:950});await dialog.getByLabel('横軸の列',{exact:true}).waitFor({state:'visible'});assert.equal(await mapping.getAttribute('open'),'','狭幅で閉じても広幅へ戻すと列割当を表示する');
+  await page.locator('#dialog-cancel').click();
+  await browser.close();browser=null;await new Promise(resolve=>server.close(resolve));console.log('table-grid-browser.test.cjs: ok');
+})().catch(error=>{console.error(error.stack||error);process.exitCode=1;}).finally(async()=>{if(browser)await browser.close();await new Promise(resolve=>server.close(resolve));});

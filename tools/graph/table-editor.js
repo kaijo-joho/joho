@@ -74,9 +74,17 @@
     let excludedRows=new Set(Array.isArray(series.excludedRows)?series.excludedRows.filter(index=>Number.isInteger(index)&&index>=0&&index<table.rows.length):[]);
     let focusedRow=Number.isInteger(options.selectedRow)&&options.selectedRow>=0&&options.selectedRow<table.rows.length?options.selectedRow:null;
     const selected=new Set();
-    let mappingOpen=false;
+    let mappingOpen=false,editCell=null;
+    const wideMapping=matchMedia('(min-width:721px)');
     const root=make('section','graph-table-editor'),status=make('p','graph-table-editor__status');
     status.setAttribute('role','status');root.appendChild(status);parent.appendChild(root);
+    root.addEventListener('keydown',event=>{
+      if(event.key!=='Escape'||event.isComposing)return;
+      const menu=root.querySelector('.graph-table-editor__column-menu[open],.graph-table-editor__row-menu[open]');
+      if(menu){event.preventDefault();event.stopPropagation();menu.open=false;menu.querySelector('summary').focus();}
+    });
+    const updateMapping=()=>{const details=root.querySelector('.graph-table-editor__mapping-details');if(details)details.open=wideMapping.matches||mappingOpen;};
+    wideMapping.addEventListener('change',updateMapping);
     const report=error=>{const message=error instanceof Error?error.message:String(error);status.textContent=message;if(typeof options.onError==='function')options.onError(error);};
     const clearReport=()=>{status.textContent='';};
     const pageCount=()=>Math.max(1,Math.ceil(table.rows.length/PAGE_SIZE));
@@ -232,7 +240,10 @@
       actions.append(button('適用',()=>{
         try{
           draft.name=nameInput.value;draft.formula=formula.value;
-          const result=calculationCandidate();table=cloneTable(result.table);calculationDraft=null;clearReport();render();
+          const result=calculationCandidate();table=cloneTable(result.table);calculationDraft=null;clearReport();render();requestAnimationFrame(()=>{
+            const wrap=root.querySelector('.graph-table-editor__table-wrap');if(!wrap?.isConnected)return;
+            const tabs=root.closest('.dialog-tabs')?.querySelector('.dialog-tab-list');wrap.style.scrollMarginTop=((tabs?.offsetHeight||0)+12)+'px';wrap.scrollIntoView({block:'start'});
+          });
         }catch(error){report(error);}
       },'save'),button('取消',()=>{calculationDraft=null;clearReport();render();},'close'));
       panel.appendChild(actions);return panel;
@@ -292,8 +303,62 @@
       details.append(fields,make('p','graph-table-editor__calculation-help','−1 は1行前、0 は同じ行、+1 は1行後。範囲は両端を含み、空欄や回帰から除外した行も数えます。'),example,message,insert);
       update();return details;
     }
+    function wireCell(input){
+      const [oneBasedRow,column]=input.dataset.cell.split(',').map(Number),row=oneBasedRow-1;
+      const isComputed=computed(column);
+      const select=()=>{
+        focusedRow=row;
+        root.querySelectorAll('.graph-table-editor__cell-selected').forEach(cell=>cell.classList.remove('graph-table-editor__cell-selected'));
+        input.classList.add('graph-table-editor__cell-selected');
+      };
+      const move=(nextRow,nextColumn)=>{
+        if(nextRow<0||nextRow>=table.rows.length||nextColumn<0||nextColumn>=table.columns.length)return;
+        focusedRow=nextRow;
+        if(Math.floor(nextRow/PAGE_SIZE)!==page){page=Math.floor(nextRow/PAGE_SIZE);focusCell={row:nextRow+1,column:nextColumn};render();return;}
+        const target=root.querySelector('[data-cell="'+(nextRow+1)+','+nextColumn+'"]');if(target)target.focus();
+      };
+      const begin=(replacement)=>{
+        if(isComputed||(editCell?.row===row&&editCell.column===column))return;
+        select();editCell={row,column,original:table.rows[row][column]};input.readOnly=false;
+        if(replacement!==undefined){input.value=replacement;table.rows[row][column]=replacement;}
+        input.focus();input.select();
+      };
+      const commit=()=>{
+        if(!editCell||editCell.row!==row||editCell.column!==column)return;
+        table.rows[row][column]=input.value;editCell=null;input.readOnly=true;
+        refreshCalculations();updateComputedCells();if(refreshCalculationPreview)refreshCalculationPreview();
+      };
+      input.readOnly=true;
+      input.addEventListener('focus',select);
+      input.addEventListener('blur',commit);
+      input.addEventListener('dblclick',()=>begin());
+      input.addEventListener('compositionstart',()=>{if(!editCell&&!isComputed)begin();});
+      input.addEventListener('paste',event=>{
+        const text=event.clipboardData&&event.clipboardData.getData('text/plain');
+        // 矩形貼り付けは既存のpaste()が再描画する。編集状態を残さない。
+        if(text&& (text.includes('\t')||/[\r\n]/.test(text))){editCell=null;return;}
+        if(!isComputed&&!editCell)begin();
+      },true);
+      input.addEventListener('keydown',event=>{
+        // readonlyのままではIMEを開始できないため、最初のキーで編集可能にする。
+        if(event.isComposing||event.keyCode===229){if(!editCell)begin();event.stopImmediatePropagation();return;}
+        const editing=!!editCell&&editCell.row===row&&editCell.column===column;
+        if(editing){
+          if(event.key==='Escape'){event.preventDefault();event.stopImmediatePropagation();input.value=editCell.original;table.rows[row][column]=editCell.original;editCell=null;input.readOnly=true;refreshCalculations();updateComputedCells();if(refreshCalculationPreview)refreshCalculationPreview();return;}
+          if(event.key==='Enter'){event.preventDefault();event.stopImmediatePropagation();commit();move(row+1,column);return;}
+          if(event.key==='Tab'){event.preventDefault();event.stopImmediatePropagation();commit();move(row,column+(event.shiftKey?-1:1));return;}
+          return;
+        }
+        if(event.key==='Enter'||event.key==='F2'){event.preventDefault();event.stopImmediatePropagation();begin();return;}
+        if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(event.key)){
+          event.preventDefault();event.stopImmediatePropagation();const delta={ArrowUp:[-1,0],ArrowDown:[1,0],ArrowLeft:[0,-1],ArrowRight:[0,1]}[event.key];move(row+delta[0],column+delta[1]);return;
+        }
+        if(event.key==='Escape')return;
+        if(!isComputed&&!event.ctrlKey&&!event.metaKey&&!event.altKey&&event.key.length===1){event.preventDefault();event.stopImmediatePropagation();begin(event.key);input.setSelectionRange(1,1);}
+      },true);
+    }
     function render(){
-      refreshCalculationPreview=null;root.replaceChildren();ensurePage();
+      refreshCalculationPreview=null;editCell=null;root.replaceChildren();ensurePage();
       const tools=make('div','graph-table-editor__tools');
       const toolGroup=(title)=>{const group=make('section','graph-table-editor__tool-group'),heading=make('h3','',title),controls=make('div','graph-table-editor__tool-actions');group.append(heading,controls);tools.appendChild(group);return controls;};
       const rows=toolGroup('行');
@@ -323,7 +388,7 @@
       const mappingDetails=make('details','graph-table-editor__mapping-details'),mappingSummary=make('summary','','列の割り当て（軸・誤差）');
       if(globalThis.GraphIcons)mappingSummary.prepend(globalThis.GraphIcons.create('axes',document));
       const description=make('span','graph-table-editor__mapping-description');mappingSummary.appendChild(description);
-      mappingDetails.open=mappingOpen;mappingDetails.addEventListener('toggle',()=>{mappingOpen=mappingDetails.open;});mappingDetails.appendChild(mappingSummary);
+      mappingDetails.open=mappingOpen||wideMapping.matches;mappingDetails.addEventListener('toggle',()=>{if(!wideMapping.matches)mappingOpen=mappingDetails.open;});mappingDetails.appendChild(mappingSummary);
       const mappings=make('div','graph-table-editor__mappings');
       mappings.append(mappingControl('x','横軸'),mappingControl('y','縦軸'));
       if(kind==='data3d')mappings.append(mappingControl('z','奥行き'));
@@ -342,18 +407,29 @@
       head.appendChild(header);grid.appendChild(head);
       const body=make('tbody');
       shown.forEach((row,offset)=>{const rowIndex=start+offset,tr=make('tr',focusedRow===rowIndex?'graph-table-editor__focused-row':''),th=make('th',''),check=make('input',''),exclude=make('input','');th.scope='row';check.type='checkbox';check.checked=selected.has(rowIndex);check.setAttribute('aria-label',(rowIndex+1)+'行目を選択');check.addEventListener('change',()=>{check.checked?selected.add(rowIndex):selected.delete(rowIndex);});exclude.type='checkbox';exclude.checked=!excludedRows.has(rowIndex);exclude.className='graph-table-editor__regression-checkbox';exclude.setAttribute('aria-label',(rowIndex+1)+'行目を回帰に使用');exclude.title='回帰に使用';exclude.addEventListener('change',()=>{exclude.checked?excludedRows.delete(rowIndex):excludedRows.add(rowIndex);});th.appendChild(check);th.appendChild(document.createTextNode(String(rowIndex+1)));th.appendChild(exclude);tr.appendChild(th);
-        row.forEach((value,columnIndex)=>{const td=make('td',''),input=make('input','');input.type='text';input.inputMode=table.columnTypes[columnIndex]==='number'?'decimal':'text';input.dataset.column=columnIndex;input.value=computed(columnIndex)?displayValue(value):value;input.readOnly=computed(columnIndex);input.setAttribute('aria-label',(rowIndex+1)+'行'+(columnIndex+1)+'列');if(computed(columnIndex)){input.classList.add('graph-table-editor__computed-cell');showComputedCell(input,rowIndex,columnIndex);}input.addEventListener('focus',()=>{if(computed(columnIndex))updateComputedCells();focusedRow=rowIndex;if(typeof options.onRowSelect==='function')options.onRowSelect(rowIndex);});input.addEventListener('input',()=>{if(!computed(columnIndex))table.rows[rowIndex][columnIndex]=input.value;});input.addEventListener('change',()=>{if(!computed(columnIndex)){refreshCalculations();updateComputedCells();if(refreshCalculationPreview)refreshCalculationPreview();}});input.addEventListener('paste',event=>paste(event,rowIndex,columnIndex));input.addEventListener('keydown',event=>{if(event.key!=='Enter')return;event.preventDefault();const nextRow=rowIndex+1;if(nextRow>=table.rows.length)return;if(nextRow>=start+PAGE_SIZE){page=Math.floor(nextRow/PAGE_SIZE);render();}const next=root.querySelector('[data-cell="'+(nextRow+1)+','+columnIndex+'"]');if(next)next.focus();});input.dataset.cell=(rowIndex+1)+','+columnIndex;td.appendChild(input);tr.appendChild(td);});body.appendChild(tr);});
+        row.forEach((value,columnIndex)=>{const td=make('td',''),input=make('input','');input.type='text';input.inputMode=table.columnTypes[columnIndex]==='number'?'decimal':'text';input.dataset.column=columnIndex;input.value=computed(columnIndex)?displayValue(value):value;input.readOnly=computed(columnIndex);input.setAttribute('aria-label',(rowIndex+1)+'行'+(columnIndex+1)+'列');if(computed(columnIndex)){input.classList.add('graph-table-editor__computed-cell');showComputedCell(input,rowIndex,columnIndex);}input.addEventListener('focus',()=>{if(computed(columnIndex))updateComputedCells();focusedRow=rowIndex;if(typeof options.onRowSelect==='function')options.onRowSelect(rowIndex);});input.addEventListener('input',()=>{if(!computed(columnIndex))table.rows[rowIndex][columnIndex]=input.value;});input.addEventListener('change',()=>{if(!computed(columnIndex)){refreshCalculations();updateComputedCells();if(refreshCalculationPreview)refreshCalculationPreview();}});input.addEventListener('paste',event=>paste(event,rowIndex,columnIndex));input.dataset.cell=(rowIndex+1)+','+columnIndex;td.appendChild(input);tr.appendChild(td);});body.appendChild(tr);});
       grid.appendChild(body);wrap.appendChild(grid);root.appendChild(wrap);
       const pager=make('div','graph-table-editor__pager');pager.append(button('前の50行',()=>{page--;render();}));pager.append(make('span','', (table.rows.length?start+1:0)+'〜'+end+'行 / '+table.rows.length+'行'));pager.append(button('次の50行',()=>{page++;render();}));pager.children[0].disabled=page===0;pager.children[2].disabled=page>=pageCount()-1;root.appendChild(pager);
       root.appendChild(regressionTools);
       const details=make('details','graph-table-editor__import'),summary=make('summary','','CSV・TSVを貼り付け');details.appendChild(summary);const textarea=make('textarea','');textarea.setAttribute('aria-label','CSV・TSVを貼り付け');details.appendChild(textarea);details.append(button('表に取り込む',()=>{try{if(!textarea.value.trim())throw new Error('CSV・TSVを入力してから表に取り込んでください。');replace(GraphTables.parse(textarea.value,kind));}catch(error){report(error);}},'upload'));root.appendChild(details);
-      const calculationStatus=make('p','graph-table-editor__calculation-status');root.append(calculationStatus,status);updateComputedCells();
+      const calculationStatus=make('p','graph-table-editor__calculation-status');root.append(calculationStatus,status);
+      // 既存の操作を表の近くへ置くため、生成後にツール枠から移す。
+      const oldTools=root.querySelector('.graph-table-editor__tools'),findButton=name=>[...oldTools.querySelectorAll('button')].find(control=>control.textContent.trim()===name||control.getAttribute('aria-label')===name);
+      const addRow=findButton('行を追加'),deleteRows=findButton('選択行を削除'),addColumn=findButton('列を追加'),addCalculation=findButton('計算列を追加'),deleteColumn=findButton('最後の列を削除');
+      for(const control of [deleteRows,deleteColumn])if(control.classList.contains('graph-table-editor__icon-button'))control.append(make('span','',control.getAttribute('aria-label')));
+      const columnCell=make('th','graph-table-editor__add-column'),columnMenu=make('details','graph-table-editor__column-menu'),columnSummary=make('summary','');columnSummary.setAttribute('aria-label','列を追加');columnSummary.title='列を追加';
+      if(globalThis.GraphIcons)columnSummary.appendChild(globalThis.GraphIcons.create('plus',document));else columnSummary.textContent='＋';
+      columnMenu.append(columnSummary,addColumn,addCalculation,deleteColumn);columnCell.appendChild(columnMenu);header.appendChild(columnCell);
+      addRow.classList.add('graph-table-editor__icon-button');addRow.setAttribute('aria-label','行を追加');addRow.title='行を追加';addRow.querySelector('span')?.remove();
+      const tableActions=make('div','graph-table-editor__table-actions'),rowMenu=make('details','graph-table-editor__row-menu'),rowSummary=make('summary','','行の操作');rowMenu.append(rowSummary,deleteRows);tableActions.append(rowMenu,addRow);root.insertBefore(tableActions,pager);oldTools.remove();
+      root.querySelectorAll('.graph-table-editor__formula-edit').forEach(edit=>{edit.classList.add('graph-table-editor__icon-button');edit.title=edit.getAttribute('aria-label');edit.replaceChildren(globalThis.GraphIcons?globalThis.GraphIcons.create('function',document):document.createTextNode('ƒ'));});
+      root.querySelectorAll('[data-cell]').forEach(wireCell);updateComputedCells();
       if(focusCell){const target=root.querySelector('[data-cell="'+focusCell.row+','+focusCell.column+'"]');if(target)target.focus();focusCell=null;}
     }
     function getExcludedRows(){return [...excludedRows].sort((a,b)=>a-b);}
     function getSelectedRow(){return focusedRow;}
     function focusRow(index){if(!Number.isInteger(index)||index<0||index>=table.rows.length)return false;focusedRow=index;page=Math.floor(index/PAGE_SIZE);render();const target=root.querySelector('[data-cell="'+(index+1)+',0"]');if(target)target.focus();if(typeof options.onRowSelect==='function')options.onRowSelect(index);return true;}
-    render();if(focusedRow!==null)focusRow(focusedRow);return {read,replace,element:root,getExcludedRows,getSelectedRow,focusRow};
+    render();if(focusedRow!==null)focusRow(focusedRow);return {read,replace,element:root,getExcludedRows,getSelectedRow,focusRow,destroy:()=>wideMapping.removeEventListener('change',updateMapping)};
   }
   return {mount};
 });

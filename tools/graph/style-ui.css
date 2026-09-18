@@ -1,0 +1,21 @@
+.style-range,.style-dash{min-width:0;margin:8px 0}
+.style-range-heading{display:flex;gap:8px;align-items:center;justify-content:space-between;font-size:.85rem}
+.style-range-heading>span{min-width:0;overflow-wrap:anywhere}
+.style-range-heading input[type=number]{width:76px;min-width:60px;flex:0 0 76px;padding:5px 7px;margin:0}
+.style-range input[type=range]{display:block;width:100%;height:44px;margin:3px 0 0;padding:0;accent-color:var(--accent);cursor:pointer}
+.style-dash>span{display:block;font-size:.85rem;margin:0 0 7px}
+.style-dash-buttons{display:flex;gap:5px;min-width:0}
+.style-dash-buttons>button{min-width:0;min-height:44px;flex:1;padding:7px 3px}
+.style-dash-buttons svg{display:block;width:32px;height:24px;margin:auto}
+.style-dash-buttons>button[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);outline:1px solid var(--accent)}
+.quick-color.direct-color{display:grid;place-items:center;position:relative;margin:0;padding:6px;width:44px;height:44px;flex:0 0 44px;cursor:pointer;border:1px solid transparent;border-radius:8px}
+.quick-color.direct-color:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.quick-color.direct-color input[type=color]{position:absolute;inset:0;opacity:.001;width:100%;height:100%;padding:0;border:0;margin:0;cursor:pointer}
+.quick-color.direct-color>span{pointer-events:none}
+.quick-line-controls.field-grid .style-range,.quick-line-controls.field-grid .style-dash{grid-column:1/-1}
+.analysis-add-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.analysis-add-grid>button{display:flex;align-items:center;justify-content:flex-start;gap:8px;min-width:0;text-align:left;white-space:normal}
+.analysis-add-grid>button svg{flex:none;width:24px;height:24px}
+.add-menu-panel .full-button[data-icon],.add-menu-panel .add-grid>button{display:flex;align-items:center;justify-content:center;gap:6px;white-space:normal}
+.add-menu-panel .analysis-add-grid>button{justify-content:flex-start}
+.add-menu-panel .full-button[data-icon]>svg,.add-menu-panel .add-grid>button>svg{flex:none;width:22px;height:22px;margin:0}

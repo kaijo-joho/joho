@@ -1,0 +1,60 @@
+/* Direct color, live range previews, line samples, and one-step undo. */
+const assert=require('node:assert/strict');
+const fs=require('node:fs'),http=require('node:http'),path=require('node:path'),os=require('node:os');
+let chromium;try{({chromium}=require('playwright'));}catch{({chromium}=require(path.join(os.homedir(),'.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright')));}
+const C=require('../core.js'),T=require('../tables.js'),Charts=require('../charts.js');
+const root=path.resolve(__dirname,'../../..');
+const server=http.createServer((req,res)=>{const file=path.resolve(root,'.'+decodeURIComponent(req.url.split('?')[0]));if(!file.startsWith(root+path.sep)){res.writeHead(403);return res.end();}fs.readFile(file,(error,data)=>{res.writeHead(error?404:200);res.end(error?'not found':data);});});
+let browser,page;
+(async()=>{
+  await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
+  browser=await chromium.launch({channel:'chrome',headless:true});
+  page=await browser.newPage({viewport:{width:1360,height:950},hasTouch:true});page.setDefaultTimeout(15000);
+  const errors=[];page.on('pageerror',error=>errors.push(error.message));
+  const doc=()=>page.evaluate(()=>GraphEditor.getDocument()),settle=()=>page.waitForFunction(()=>window.GraphEditor&&!GraphEditor.getState().drawing);
+  const bar=page.locator('#selection-toolbar'),dialog=page.locator('#editor-dialog');
+  const control=key=>bar.locator('[data-quick-control="'+key+'"]');
+  const choose=async id=>{await page.locator('[data-object-id="'+id+'"]').click();await settle();};
+  await page.goto(process.env.GRAPH_TEST_URL||'http://127.0.0.1:'+server.address().port+'/tools/graph/index.html');await settle();
+  const fixture=C.createDocument(),f=C.createSeries('function'),data=C.createSeries('data2d');f.id='formula';f.expression='x^2';data.id='measure';
+  T.assign(data,{columns:['x','y'],rows:[[0,1],[1,3],[2,5]],mapping:{x:0,y:1,z:null,errorX:null,errorY:null}});
+  fixture.series=[f,data];fixture.charts=[Charts.create('scatter',{seriesId:data.id,model:'linear',name:'散布図'})];fixture.charts[0].id='scatter';
+  await page.locator('#file-input').setInputFiles({name:'style.graph.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});
+  await page.waitForFunction(()=>GraphEditor.getDocument().series[0].id==='formula');await settle();await choose('formula');
+  // The actual native color input is the palette control, without an intervening dialog.
+  await control('custom-color').fill('#123456');await settle();
+  assert(!await dialog.isVisible());assert.equal((await doc()).series[0].style.color,'#123456');
+  const before=await doc();
+  await control('width-slider').evaluate(el=>{el.value='7';el.dispatchEvent(new Event('input',{bubbles:true}));});await settle();
+  assert.equal(await control('width').inputValue(),'7');assert.equal((await doc()).series[0].style.width,before.series[0].style.width,'preview does not change saved data');
+  assert.equal(await page.evaluate(()=>document.querySelector('#plot').data[0].line.width),7,'preview draws the new line');
+  await control('width-slider').evaluate(el=>el.dispatchEvent(new Event('change',{bubbles:true})));await settle();assert.equal((await doc()).series[0].style.width,7);
+  await page.locator('#undo').click();await settle();assert.deepEqual(await doc(),before,'one undo reverts an entire range adjustment');
+  await choose('formula');await control('opacity-slider').evaluate(el=>{el.value='.25';el.dispatchEvent(new Event('input',{bubbles:true}));});await settle();
+  await control('opacity-slider').press('Escape');await settle();assert.equal((await doc()).series[0].style.opacity,before.series[0].style.opacity);
+  assert.equal(await page.evaluate(()=>document.querySelector('#plot').data[0].opacity),before.series[0].style.opacity,'Escape cancels preview');
+  await control('width').fill('3.25');await control('width').press('Tab');await settle();assert.equal((await doc()).series[0].style.width,3.25,'numeric entry permits finer values');
+  await bar.getByRole('button',{name:'破線',exact:true}).click();await settle();assert.equal((await doc()).series[0].style.dash,'dash');
+  assert.equal(await bar.getByRole('button',{name:'破線',exact:true}).getAttribute('aria-pressed'),'true');
+  assert.equal(await bar.getByRole('button',{name:'実線',exact:true}).getAttribute('aria-pressed'),'false');
+  await control('opacity-slider').fill('0.4');await settle();assert.equal((await doc()).series[0].style.opacity,.4);
+  // Changing selection removes an unfinished preview and cannot affect the next object.
+  await control('width-slider').evaluate(el=>{el.value='9';el.dispatchEvent(new Event('input',{bubbles:true}));});await choose('measure');
+  assert.equal((await doc()).series[0].style.width,3.25);assert.equal(await page.evaluate(()=>document.querySelector('#plot').data[0].line.width),3.25);
+  await choose('scatter');await control('custom-color').fill('#abcdef');await control('chart-width-slider').fill('4');await bar.getByRole('button',{name:'点線',exact:true}).click();await settle();
+  assert.equal((await doc()).charts[0].color,'#abcdef');assert.equal((await doc()).charts[0].style.width,4);assert.equal((await doc()).charts[0].style.dash,'dot');assert(!await dialog.isVisible());
+  await choose('formula');await page.locator('#multiple-select').click();await choose('measure');
+  await control('bulk-opacity-slider').fill('0.6');await settle();assert.deepEqual((await doc()).series.map(s=>s.style.opacity),[.6,.6]);
+  await control('custom-color').fill('#fedcba');await settle();assert.deepEqual((await doc()).series.map(s=>s.style.color),['#fedcba','#fedcba']);
+  await bar.getByRole('button',{name:'点線',exact:true}).click();await settle();assert.deepEqual((await doc()).series.map(s=>s.style.dash),['dot','dot']);
+  await page.locator('#multiple-select').click();await choose('formula');
+  await page.locator('#series-add-toggle').click();for(const kind of ['residual','scatter','matrix','histogram','box'])assert.equal(await page.locator('#add-'+kind+'-chart svg').count(),1,kind+' has its own icon');await page.keyboard.press('Escape');
+  await page.screenshot({path:'/private/tmp/graph-020-style-desktop.png'});
+  await page.locator('#view-menu summary').click();await page.locator('#theme').selectOption('dark');await page.locator('#text-size').selectOption('largest');await page.keyboard.press('Escape');
+  await page.setViewportSize({width:390,height:850});await settle();
+  assert(await page.locator('body').evaluate(el=>el.scrollWidth<=innerWidth));assert(await bar.evaluate(el=>el.scrollWidth<=el.clientWidth));
+  for(const name of ['実線','破線','点線'])assert(await bar.getByRole('button',{name,exact:true}).evaluate(el=>{const r=el.getBoundingClientRect();return r.width>=44&&r.height>=44;}));
+  await bar.getByRole('button',{name:'実線',exact:true}).tap();await settle();assert.equal((await doc()).series[0].style.dash,'solid');
+  await page.screenshot({path:'/private/tmp/graph-020-style-mobile.png'});assert.deepEqual(errors,[]);
+  await browser.close();await new Promise(resolve=>server.close(resolve));console.log('style-controls-browser.test.cjs: ok');
+})().catch(async error=>{if(page)await page.screenshot({path:'/private/tmp/graph-020-style-failure.png'}).catch(()=>{});if(browser)await browser.close();server.close();console.error(error);process.exitCode=1;});

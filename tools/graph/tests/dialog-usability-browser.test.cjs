@@ -19,10 +19,10 @@ let browser,page;
   await page.locator('#file-input').setInputFiles({name:'dialog.graph.json',mimeType:'application/json',buffer:Buffer.from(JSON.stringify(fixture))});await page.waitForFunction(()=>GraphEditor.getDocument().name==='設定の整理');await settle();const original=await doc();
 
   await detail('measure','数表・出典');assert.equal(await dialog.getByRole('tab').count(),3);assert.equal(await dialog.locator('[role=tab] svg').count(),3);
-  assert.equal(await dialog.locator('.graph-table-editor__mapping-details').getAttribute('open'),null);
-  assert.match(await dialog.locator('.graph-table-editor__mapping-description').innerText(),/横：時刻.*縦：位置/);
-  await dialog.getByLabel('2列目の名前',{exact:true}).fill('距離');await dialog.getByLabel('2列目の名前',{exact:true}).press('Tab');assert.match(await dialog.locator('.graph-table-editor__mapping-description').innerText(),/縦：距離/);await dialog.getByLabel('2列目の名前',{exact:true}).fill('位置');await dialog.getByLabel('2列目の名前',{exact:true}).press('Tab');
-  await dialog.getByLabel('2行2列',{exact:true}).fill('12');await tab('描画').click();await dialog.getByLabel('点の結び方',{exact:true}).selectOption('linear');
+  assert.equal(await dialog.locator('.graph-table-editor__mapping-details').getAttribute('open'),'');
+  assert.equal(await dialog.getByLabel('横軸の列',{exact:true}).inputValue(),'0');assert.equal(await dialog.getByLabel('縦軸の列',{exact:true}).inputValue(),'1');
+  await dialog.getByLabel('2列目の名前',{exact:true}).fill('距離');await dialog.getByLabel('2列目の名前',{exact:true}).press('Tab');assert.equal(await dialog.getByLabel('縦軸の列',{exact:true}).locator('option:checked').innerText(),'距離');await dialog.getByLabel('2列目の名前',{exact:true}).fill('位置');await dialog.getByLabel('2列目の名前',{exact:true}).press('Tab');
+  const sourceCell=dialog.getByLabel('2行2列',{exact:true});await sourceCell.click();await sourceCell.press('F2');await sourceCell.fill('12');await sourceCell.press('Tab');await tab('描画').click();await dialog.getByLabel('点の結び方',{exact:true}).selectOption('linear');
   await tab('出典').click();await dialog.getByLabel('資料名',{exact:true}).fill('試行記録');await dialog.getByLabel('出典URL（https）',{exact:true}).fill('invalid');
   await tab('数表').click();await page.locator('#dialog-submit').click();assert.equal(await tab('出典').getAttribute('aria-selected'),'true');assert(await dialog.getByLabel('出典URL（https）',{exact:true}).evaluate(input=>input===document.activeElement));
   assert.deepEqual(await doc(),original);await dialog.getByLabel('出典URL（https）',{exact:true}).fill('https://example.org/data');
@@ -30,7 +30,7 @@ let browser,page;
   await page.keyboard.press('ArrowRight');assert.equal(await tab('描画').getAttribute('aria-selected'),'true');assert.equal(await dialog.getByLabel('点の結び方',{exact:true}).inputValue(),'linear');await page.keyboard.press('End');assert.equal(await tab('出典').getAttribute('aria-selected'),'true');
   await close();assert.deepEqual(await doc(),original);assert(await page.locator('#selection-toolbar').getByRole('button',{name:'数表・出典',exact:true}).evaluate(el=>el===document.activeElement));
 
-  await detail('measure','数表・出典');await dialog.getByLabel('2行2列',{exact:true}).fill('12');await dialog.getByRole('button',{name:'計算列を追加',exact:true}).click();await dialog.getByLabel('計算式',{exact:true}).fill('[@位置]*2');
+  await detail('measure','数表・出典');const draftCell=dialog.getByLabel('2行2列',{exact:true});await draftCell.click();await draftCell.press('F2');await draftCell.fill('12');await draftCell.press('Tab');await dialog.locator('.graph-table-editor__column-menu summary').click();await dialog.getByRole('button',{name:'計算列を追加',exact:true}).click();await dialog.getByLabel('計算式',{exact:true}).fill('[@位置]*2');
   await tab('出典').click();await dialog.getByLabel('資料名',{exact:true}).fill('計算の記録');await page.locator('#dialog-submit').click();assert.equal(await tab('数表').getAttribute('aria-selected'),'true');assert.match(await page.locator('#dialog-error').innerText(),/計算列の設定/);assert.equal(await dialog.getByLabel('計算式',{exact:true}).inputValue(),'[@位置]*2');assert.equal(await page.locator('dialog[open]').count(),1);
   await dialog.getByRole('button',{name:'取消',exact:true}).click();await apply();const saved=await doc();assert.equal(saved.series[0].rows[1][1],12);assert.equal(saved.series[0].source.title,'計算の記録');
   await page.locator('#undo').click();await settle();assert.deepEqual(await doc(),original,'all sections commit a single undo entry');await page.locator('#redo').click();await settle();

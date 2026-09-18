@@ -1,6 +1,8 @@
 # グラフエディタ 0.1 実装契約（初版の記録）
 
-現行0.17.0のPNGコピー・プレビュー・出典出力・テンプレート拡充は [教材出力・ライブラリの仕様](docs/publication-library-contract.md) を参照する。保存形式はversion 13を維持する。
+現行0.20.0の書式スライダー・直接色選択・数表のセル選択と、0.19.0のタブ付き編集画面は [編集画面の整理](docs/dialog-usability.md) を参照する。保存形式はversion 14を維持する。0.18.0の軸別拡大率と散布図行列は [軸スライダー・散布図行列](docs/axis-zoom-matrix.md) を参照する。
+
+0.17.0のPNGコピー・プレビュー・出典出力・テンプレート拡充は [教材出力・ライブラリの仕様](docs/publication-library-contract.md) を参照する。
 
 0.16.0の計算列・前後の行参照とversion 13への移行は [計算列の仕様](docs/calculated-columns.md) を参照する。
 
