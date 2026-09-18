@@ -124,6 +124,29 @@
     } finally { clear(s); }
   }
 
+  // Coordinates for the direct-selection corner handle.  Keep this in world
+  // space so a transformed path has the same visual radius and drag behaviour.
+  function cornerInfoFor(s, object, path, index) {
+    var seg = path.segments[index], count = path.segments.length;
+    if (!seg || (!path.closed && (index === 0 || index === count - 1))) return null;
+    var prev = path.segments[(index - 1 + count) % count], next = path.segments[(index + 1) % count];
+    if (seg.handleIn.length || seg.handleOut.length || prev.handleOut.length || next.handleIn.length) return null;
+    var center = world(s, object, seg.point), incoming = center.subtract(world(s, object, prev.point)), outgoing = world(s, object, next.point).subtract(center);
+    if (!incoming.length || !outgoing.length) return null;
+    var u = incoming.normalize(), v = outgoing.normalize(), turn = Math.acos(Math.max(-1, Math.min(1, u.dot(v))));
+    if (turn < 1e-6 || Math.PI - turn < 1e-6) return null;
+    var tangent = Math.tan(turn / 2), direction = u.negate().add(v);
+    if (!direction.length || !Number.isFinite(tangent) || tangent <= 0) return null;
+    // turn is the path's exterior turn.  The handle lies on the inner-angle
+    // bisector, whose sin(alpha/2) is cos(turn/2).
+    return { center: center, direction: direction.normalize(), sinHalf: Math.cos(turn / 2), tangent: tangent,
+      maxRadius: Math.min(incoming.length / 2, outgoing.length / 2) / tangent };
+  }
+  function cornerInfo(object, ref) {
+    var s = paper(), item = localItem(s, object);
+    try { var got = refSegment(item, ref, object), value = cornerInfoFor(s, object, got.path, got.segment.index); return value && { center: xy(value.center), direction: xy(value.direction), sinHalf: value.sinHalf, maxRadius: value.maxRadius }; } finally { clear(s); }
+  }
+
   function roundCorners(object, refs, radius) {
     if (!(Number.isFinite(radius) && radius > 0)) fail('角丸半径は正の有限値を指定してください。');
     var s = paper(), item = localItem(s, object);
@@ -259,5 +282,5 @@
       result.matrix = inverse(s, first); return cloneObject(first, result);
     } finally { clear(s); }
   }
-  return { inspect: inspect, moveAnchors: moveAnchors, moveHandle: moveHandle, addAnchor: addAnchor, nearest: nearest, deleteAnchors: deleteAnchors, setAnchorType: setAnchorType, roundCorners: roundCorners, openPath: openPath, closePaths: closePaths, joinEndpoints: joinEndpoints, boolean: boolean };
+  return { inspect: inspect, moveAnchors: moveAnchors, moveHandle: moveHandle, addAnchor: addAnchor, nearest: nearest, deleteAnchors: deleteAnchors, setAnchorType: setAnchorType, cornerInfo: cornerInfo, roundCorners: roundCorners, openPath: openPath, closePaths: closePaths, joinEndpoints: joinEndpoints, boolean: boolean };
 }));

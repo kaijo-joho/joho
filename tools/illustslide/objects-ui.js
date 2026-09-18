@@ -20,46 +20,46 @@
       return `<button type="button" class="object-action" id="object-${command}-${esc(id)}" data-object-command="${command}" data-object-id="${esc(id)}" ${options.key?`data-object-key="${esc(options.key)}"`:''} aria-label="${esc(label)}" data-tip="${esc(label)}" ${options.pressed==null?'':`aria-pressed="${options.pressed}"`} ${options.disabled?'disabled':''}>${icon(ic)}</button>`;
     }
     function handle(kind,name) {
-      return `<button type="button" class="object-drag-handle" tabindex="-1" data-object-drag="${kind}" aria-label="${esc(name)}の重なり順をドラッグ" data-tip="ドラッグして重なり順を変更">☷</button>`;
+      return `<button type="button" class="object-drag-handle" data-object-drag="${kind}" aria-label="${esc(name)}の重なり順をドラッグ" data-tip="ドラッグして重なり順を変更">☷</button>`;
     }
-    function row(object,unit,index,unitIndex,length) {
+    function preview(object) {
+      const rendered=window.IlapoObjectPreview?.markup?.(ctx.page(),[object.id]);
+      return rendered||`<span class="object-preview" aria-hidden="true">${icon(object.type==='path'?'path':object.type)}</span>`;
+    }
+    function row(object,unit) {
       const selected=ctx.selected().includes(object.id), name=named(object), type=TYPES[object.type]||'図形';
-      return `<div class="object-row ${selected?'selected':''}" data-object-row="${esc(object.id)}" data-object-unit="${esc(unit.id)}" data-object-key="${esc(unit.key)}">
+      const visible=object.visible!==false;
+      return `<div class="object-row ${selected?'selected':''} ${visible?'':'object-hidden'}" data-object-row="${esc(object.id)}" data-object-unit="${esc(unit.id)}" data-object-key="${esc(unit.key)}">
         ${handle(unit.group?'child':'unit',name)}
-        <button type="button" class="object-pick" id="${esc(pickId(object.id))}" data-pick-object="${esc(object.id)}" data-object-pick="${esc(object.id)}" aria-pressed="${selected}" aria-label="${esc(type+'、'+name+(object.locked?'、固定':''))}">${icon(object.type==='path'?'path':object.type)}<span class="object-name">${esc(name)}</span>${object.locked?'<small>固定</small>':''}</button>
+        <button type="button" class="object-pick" id="${esc(pickId(object.id))}" data-pick-object="${esc(object.id)}" data-object-pick="${esc(object.id)}" aria-pressed="${selected}" aria-label="${esc(type+'、'+name+(object.locked?'、固定':'')+(visible?'':'、非表示'))}">${preview(object)}<span class="object-name">${esc(name)}</span></button>
         <div class="object-actions">
           ${action('rename',object.id,name+'の名前を変更','edit')}
+          ${action('visible',object.id,name+(object.visible===false?'を表示':'を非表示'),'view',{pressed:object.visible!==false})}
           ${action('lock',object.id,name+(object.locked?'の固定を解除':'を固定'),object.locked?'unlock':'lock',{pressed:object.locked})}
-          ${!unit.group?moves(unit,unitIndex,length):''}
-          ${unit.group?action('child-before',object.id,name+'をグループ内で前へ','up',{disabled:index===unit.items.length-1})+action('child-after',object.id,name+'をグループ内で後へ','down',{disabled:index===0}):''}
         </div>
       </div>`;
-    }
-    function moves(unit,index,length) {
-      const name=unit.group?'グループ':named(unit.items[0]);
-      return `<div class="object-unit-moves">${action('before',unit.id,name+'を前へ移動','up',{key:unit.key,disabled:index===0})}${action('after',unit.id,name+'を後へ移動','down',{key:unit.key,disabled:index===length-1})}</div>`;
     }
     function layerObjectsMarkup(layer) {
       const units=M.units(objectsFor(layer)), selected=new Set(ctx.selected());
       if(!units.length) return '<p class="muted object-empty">このレイヤーには図形がありません。</p>';
       return '<ol class="object-list object-rows" data-object-rows="'+esc(layer.id)+'" aria-label="'+esc(layer.name)+'の図形一覧">'+units.map((unit,index)=>{
         const outer=`data-object-unit="${esc(unit.id)}" data-object-key="${esc(unit.key)}"`;
-        if(!unit.group) return `<li class="object-unit" ${outer}>${row(unit.items[0],unit,0,index,units.length)}</li>`;
-        const open=expanded.has(layer.id+'|'+unit.id), allSelected=unit.items.every(o=>selected.has(o.id)), locked=unit.items.every(o=>o.locked), mixed=unit.items.some(o=>o.locked)&&!locked;
+        if(!unit.group) return `<li class="object-unit" ${outer}>${row(unit.items[0],unit)}</li>`;
+        const open=expanded.has(layer.id+'|'+unit.id), visibleItems=unit.items.filter(o=>L.visible(ctx.page(),o.id)), allSelected=visibleItems.length>0&&visibleItems.every(o=>selected.has(o.id)), locked=unit.items.every(o=>o.locked), mixed=unit.items.some(o=>o.locked)&&!locked;
         return `<li class="object-unit object-group ${allSelected?'selected':''}" ${outer}>
           <div class="object-group-head">${handle('unit','グループ')}
             <button type="button" class="object-group-toggle" id="object-group-toggle-${esc(layer.id+'-'+unit.id)}" data-object-group-toggle="${esc(unit.id)}" aria-expanded="${open}" aria-controls="object-group-${esc(layer.id+'-'+unit.id)}" aria-label="グループを${open?'折りたたむ':'展開'}">${icon(open?'down':'right')}</button>
             <button type="button" class="object-group-pick" id="${esc(groupPickId(unit.id))}" data-object-group-pick="${esc(unit.id)}" data-object-command="group-select" data-object-id="${esc(unit.id)}" aria-pressed="${allSelected}" aria-label="グループ（${unit.items.length}個）をまとめて選択"><span class="object-name">グループ（${unit.items.length}個）</span></button>
-            <div class="object-group-actions">${mixed?'<small>一部固定</small>':locked?'<small>固定</small>':''}${action('group-lock',unit.id,locked?'グループの固定を解除':'グループを固定',locked?'unlock':'lock',{pressed:mixed?'mixed':locked})}${moves(unit,index,units.length)}</div>
+            <div class="object-group-actions">${mixed?'<small>一部固定</small>':locked?'<small>固定</small>':''}${action('group-lock',unit.id,locked?'グループの固定を解除':'グループを固定',locked?'unlock':'lock',{pressed:mixed?'mixed':locked})}</div>
           </div>
-          <ol id="object-group-${esc(layer.id+'-'+unit.id)}" class="object-children" ${open?'':'hidden'}>${unit.items.slice().reverse().map((object,i)=>`<li>${row(object,unit,unit.items.length-1-i)}</li>`).join('')}</ol>
+          <ol id="object-group-${esc(layer.id+'-'+unit.id)}" class="object-children" ${open?'':'hidden'}>${unit.items.slice().reverse().map(object=>`<li>${row(object,unit)}</li>`).join('')}</ol>
         </li>`;
       }).join('')+'</ol>';
     }
     function markup() {
       return '<div class="layer-toolbar"><button type="button" class="object-layer-add" data-object-command="layer-create">'+icon('plus')+'<span>レイヤーを追加</span></button>'+(ctx.selected().length?'<button type="button" class="object-layer-move-selection" data-object-command="move-selection">'+icon('layers')+'<span>選択図形をレイヤーへ移動</span></button>':'')+'</div><p class="muted">上ほど前面です。レイヤーを選ぶと、新しい図形の追加先になります。</p><ol id="object-rows" class="object-layers" aria-label="レイヤーと図形の一覧">'+layers().slice().reverse().map(layer=>{
         const index=layers().indexOf(layer),current=activeLayer()===layer.id;
-        return '<li class="object-layer '+(current?'active ':'')+(!layer.visible?'hidden-layer':'')+'" data-layer-id="'+esc(layer.id)+'"><div class="object-layer-head"><button type="button" class="object-layer-pick" id="object-layer-'+esc(layer.id)+'" data-layer-pick="'+esc(layer.id)+'" aria-pressed="'+current+'" aria-label="'+esc(layer.name+'を現在のレイヤーにする')+'">'+icon('layers')+'<span class="object-name">'+esc(layer.name)+'</span></button><div class="object-layer-actions">'+action('layer-rename',layer.id,layer.name+'の名前を変更','edit')+action('layer-visible',layer.id,layer.name+(layer.visible?'を非表示':'を表示'),'view',{pressed:layer.visible})+action('layer-lock',layer.id,layer.name+(layer.locked?'の固定を解除':'を固定'),layer.locked?'unlock':'lock',{pressed:layer.locked})+action('layer-front',layer.id,layer.name+'を前へ','up',{disabled:index===layers().length-1})+action('layer-back',layer.id,layer.name+'を後へ','down',{disabled:index===0})+action('layer-remove',layer.id,layer.name+'を削除','delete',{disabled:layers().length===1})+'</div></div><div class="object-layer-content '+(!layer.visible||layer.locked?'layer-objects-disabled':'')+'">'+layerObjectsMarkup(layer)+'</div></li>';
+        return '<li class="object-layer '+(current?'active ':'')+(!layer.visible?'hidden-layer':'')+'" data-layer-id="'+esc(layer.id)+'"><div class="object-layer-head">'+handle('layer',layer.name)+'<button type="button" class="object-layer-pick" id="object-layer-'+esc(layer.id)+'" data-layer-pick="'+esc(layer.id)+'" aria-pressed="'+current+'" aria-label="'+esc(layer.name+'を現在のレイヤーにする')+'">'+icon('layers')+'<span class="object-name">'+esc(layer.name)+'</span></button><div class="object-layer-actions">'+action('layer-rename',layer.id,layer.name+'の名前を変更','edit')+action('layer-visible',layer.id,layer.name+(layer.visible?'を非表示':'を表示'),'view',{pressed:layer.visible})+action('layer-lock',layer.id,layer.name+(layer.locked?'の固定を解除':'を固定'),layer.locked?'unlock':'lock',{pressed:layer.locked})+action('layer-remove',layer.id,layer.name+'を削除','delete',{disabled:layers().length===1})+'</div></div><div class="object-layer-content '+(!layer.visible||layer.locked?'layer-objects-disabled':'')+'">'+layerObjectsMarkup(layer)+'</div></li>';
       }).join('')+'</ol>';
     }
     function focusAfter(id) {
@@ -125,6 +125,10 @@
       if(command==='layer-front'||command==='layer-back') { ctx.changePage(page=>L.move(page,id,command==='layer-front'?1:-1)); focusAfter('object-layer-'+id); return; }
       if(command==='layer-remove') { const layer=layers().find(item=>item.id===id); if(!layer) return; const index=layers().indexOf(layer), receiver=layers()[index>0?index-1:1]; if(!receiver) return; ctx.showDialog('レイヤーを削除',`<p><strong>${esc(layer.name)}</strong> を削除します。このレイヤーの図形 ${layer.objectIds.length} 個は、隣の<strong>${esc(receiver.name)}</strong>へ移します。</p>`,'削除',()=>{let next;const current=activeLayer()===id;if(ctx.changePage(page=>next=L.remove(page,id))&&current)ctx.setActiveLayer?.(next);focusAfter('object-layer-'+next);});return; }
       if(command==='group-select') return select(ctx.page().objects.filter(o=>o.group===id&&L.visible(ctx.page(),o.id)).map(o=>o.id),false);
+      if(command==='visible') {
+        ctx.changePage(page=>{const object=page.objects.find(item=>item.id===id);if(object)L.setObjectVisible(page,id,object.visible===false);});
+        focusAfter('object-visible-'+id); return;
+      }
       const member=ctx.page().objects.find(object=>object.id===id||object.group===id);
       const layer=L.layerOf(ctx.page(),member); if(!layer||!layer.visible||layer.locked) return;
       if(command==='rename')return rename(id);
@@ -163,7 +167,8 @@
         const content=[...rows.querySelectorAll('.object-layer')].find(el=>el.dataset.layerId===layer.id)?.querySelector('.object-layer-content');
         if(!content)continue;
         if(!layer.visible)content.querySelectorAll('[data-object-pick],[data-object-group-pick]').forEach(button=>button.disabled=true);
-        if(!layer.visible||layer.locked)content.querySelectorAll('[data-object-command]:not([data-object-command=group-select]),[data-object-drag]').forEach(button=>button.disabled=true);
+        else content.querySelectorAll('[data-object-pick]').forEach(button=>{if(!L.visible(ctx.page(),button.dataset.objectPick))button.disabled=true;});
+        if(!layer.visible||layer.locked)content.querySelectorAll('[data-object-command]:not([data-object-command=group-select]):not([data-object-command=visible]),[data-object-drag]').forEach(button=>button.disabled=true);
       }
       const valid=()=>scope()===initialScope&&!ctx.isBusy?.()&&rows.isConnected;
       const listen=(target,name,callback)=>target.addEventListener(name,callback,{signal:bindings.signal});
@@ -189,9 +194,27 @@
         if(!valid()) {cancelDrag();return;}
         if(!event.isComposing&&(event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='z') {event.preventDefault();event.stopPropagation();cancelDrag();ctx.execute(event.shiftKey?'redo':'undo');return;}
         if(event.key==='Escape'&&drag) {event.preventDefault();event.stopPropagation();cancelDrag();return;}
-        const toggle=event.target.closest('[data-object-group-toggle]');
-        const button=event.target.closest('[data-layer-pick],[data-object-pick],[data-object-group-pick]')||toggle?.closest('.object-group').querySelector('[data-object-group-pick]');
+        const toggle=event.target.closest('[data-object-group-toggle]'), dragHandle=event.target.closest('[data-object-drag]');
+        const handleButton=dragHandle?.dataset.objectDrag==='layer'?dragHandle.closest('.object-layer')?.querySelector('[data-layer-pick]'):dragHandle?.dataset.objectDrag==='child'?dragHandle.closest('.object-row')?.querySelector('[data-object-pick]'):dragHandle?.closest('.object-group')?.querySelector('[data-object-group-pick]');
+        const button=event.target.closest('[data-layer-pick],[data-object-pick],[data-object-group-pick]')||toggle?.closest('.object-group').querySelector('[data-object-group-pick]')||handleButton;
         if(!button) return;
+        if(event.altKey&&!event.ctrlKey&&!event.metaKey&&['ArrowUp','ArrowDown'].includes(event.key)) {
+          event.preventDefault();event.stopPropagation();
+          const forward=event.key==='ArrowUp';
+          if(button.dataset.layerPick) { ctx.changePage(page=>L.move(page,button.dataset.layerPick,forward?1:-1)); focusAfter(button.id); return; }
+          const objectId=button.dataset.objectPick, unitId=button.dataset.objectGroupPick;
+          const member=ctx.page().objects.find(object=>object.id===objectId||object.group===unitId), layer=L.layerOf(ctx.page(),member);
+          if(!layer||!layer.visible||layer.locked) return;
+          if(objectId&&member?.group) {
+            const members=objectsFor(layer).filter(object=>object.group===member.group), index=members.indexOf(member), target=members[index+(forward?1:-1)];
+            if(target&&!member.locked&&!target.locked) ctx.changePage(page=>reorderChildLayer(page,layer.id,member.id,target.id,forward));
+          } else {
+            const units=M.units(objectsFor(layer)), key=M.keyOf(member), index=units.findIndex(unit=>unit.key===key), target=units[index+(forward?-1:1)];
+            const moving=unitId?units[index].items:[member];
+            if(target&&moving.every(object=>!object.locked)&&target.items.every(object=>!object.locked)) ctx.changePage(page=>reorderLayer(page,layer.id,key,target.key,forward));
+          }
+          focusAfter(button.id); return;
+        }
         if(['ArrowUp','ArrowDown','Home','End'].includes(event.key)) {
           event.preventDefault();event.stopPropagation();
           const list=picks(), index=list.indexOf(button), next=event.key==='Home'?0:event.key==='End'?list.length-1:Math.max(0,Math.min(list.length-1,index+(event.key==='ArrowDown'?1:-1))), target=list[next];
@@ -212,10 +235,10 @@
         }
       });
       function previewDrop() {
-        const target=document.elementFromPoint(drag.x,drag.y)?.closest(drag.kind==='child'?'.object-row':'.object-unit');
+        const target=document.elementFromPoint(drag.x,drag.y)?.closest(drag.kind==='layer'?'.object-layer':drag.kind==='child'?'.object-row':'.object-unit');
         panel.querySelectorAll('.drop-before,.drop-after').forEach(row=>row.classList.remove('drop-before','drop-after'));
-        if(!target||!rows.contains(target)||target===drag.row||target.closest('.object-layer')?.dataset.layerId!==drag.layerId||drag.kind==='child'&&target.dataset.objectUnit!==drag.group) {drag.target=null;return;}
-        drag.target=drag.kind==='child'?target.dataset.objectRow:target.dataset.objectKey;
+        if(!target||!rows.contains(target)||target===drag.row||drag.kind!=='layer'&&target.closest('.object-layer')?.dataset.layerId!==drag.layerId||drag.kind==='child'&&target.dataset.objectUnit!==drag.group) {drag.target=null;return;}
+        drag.target=drag.kind==='layer'?target.dataset.layerId:drag.kind==='child'?target.dataset.objectRow:target.dataset.objectKey;
         const rect=target.getBoundingClientRect();drag.front=drag.y<rect.top+rect.height/2;
         target.classList.add(drag.front?'drop-before':'drop-after');
       }
@@ -233,12 +256,12 @@
       listen(panel,'pointerdown',event=>{
         const handle=event.target.closest('[data-object-drag]');
         if(!handle||event.button!==0||!valid()||drag) return;
-        const kind=handle.dataset.objectDrag, row=handle.closest(kind==='child'?'.object-row':'.object-unit'), layer=row?.closest('.object-layer');
+        const kind=handle.dataset.objectDrag, row=handle.closest(kind==='layer'?'.object-layer':kind==='child'?'.object-row':'.object-unit'), layer=row?.closest('.object-layer');
         if(!layer) return;
-        const moving=kind==='child'?[row.dataset.objectRow]:objectsFor(L.list(ctx.page()).find(item=>item.id===layer.dataset.layerId)).filter(object=>M.keyOf(object)===row.dataset.objectKey).map(object=>object.id);
-        if(layer.classList.contains('hidden-layer')||layer.querySelector('[data-object-command="layer-lock"]')?.getAttribute('aria-pressed')==='true'||moving.some(id=>L.locked(ctx.page(),id))) return;
+        const moving=kind==='layer'?[]:kind==='child'?[row.dataset.objectRow]:objectsFor(L.list(ctx.page()).find(item=>item.id===layer.dataset.layerId)).filter(object=>M.keyOf(object)===row.dataset.objectKey).map(object=>object.id);
+        if(kind!=='layer'&&(layer.classList.contains('hidden-layer')||layer.querySelector('[data-object-command="layer-lock"]')?.getAttribute('aria-pressed')==='true'||moving.some(id=>L.locked(ctx.page(),id)))) return;
         event.preventDefault();event.stopPropagation();handle.focus({preventScroll:true});
-        drag={kind,row,handle,pointer:event.pointerId,id:kind==='child'?row.dataset.objectRow:row.dataset.objectKey,group:row.dataset.objectUnit,layerId:layer.dataset.layerId,target:null,front:false,page:ctx.page(),x:event.clientX,y:event.clientY};
+        drag={kind,row,handle,pointer:event.pointerId,id:kind==='layer'?layer.dataset.layerId:kind==='child'?row.dataset.objectRow:row.dataset.objectKey,group:row.dataset.objectUnit,layerId:layer.dataset.layerId,target:null,front:false,page:ctx.page(),x:event.clientX,y:event.clientY};
         drag.frame=requestAnimationFrame(autoScroll);
         row.classList.add('dragging');handle.setPointerCapture(event.pointerId);window.addEventListener('blur',cancelDrag);
       });
@@ -251,9 +274,10 @@
         if(!drag||event.pointerId!==drag.pointer) return;
         const previous=drag, current=valid()&&ctx.page()===previous.page;
         cancelDrag();if(!current||!previous.target) return;
-        if(previous.kind==='child') ctx.changePage(page=>reorderChildLayer(page,previous.layerId,previous.id,previous.target,previous.front));
+        if(previous.kind==='layer') ctx.changePage(page=>{const source=L.list(page).find(item=>item.id===previous.id), target=L.list(page).find(item=>item.id===previous.target), from=L.list(page).indexOf(source);let to=L.list(page).indexOf(target)+(previous.front?1:0);if(from<to)to-=1;L.move(page,previous.id,to-from);});
+        else if(previous.kind==='child') ctx.changePage(page=>reorderChildLayer(page,previous.layerId,previous.id,previous.target,previous.front));
         else ctx.changePage(page=>reorderLayer(page,previous.layerId,previous.id,previous.target,previous.front));
-        const id=previous.kind==='child'?pickId(previous.id):previous.id.startsWith('g:')?groupPickId(previous.row.dataset.objectUnit):pickId(previous.row.dataset.objectUnit);
+        const id=previous.kind==='layer'?'object-layer-'+previous.id:previous.kind==='child'?pickId(previous.id):previous.id.startsWith('g:')?groupPickId(previous.row.dataset.objectUnit):pickId(previous.row.dataset.objectUnit);
         focusAfter(id);
       });
       listen(panel,'pointercancel',cancelDrag);listen(panel,'lostpointercapture',cancelDrag);

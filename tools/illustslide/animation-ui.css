@@ -1,0 +1,33 @@
+/* Compact artwork/effect previews and explicit enter/exit effect groups. */
+.animation-effect-cards{display:grid;gap:8px;margin:8px 0 14px}
+.animation-effect-group{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;min-width:0}
+.animation-effect-group-label{grid-column:1/-1;font-size:.85em;color:var(--muted)}
+.animation-effect-other{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.animation-effect-card{display:flex;min-width:0;min-height:54px;align-items:center;justify-content:center;gap:4px;flex-direction:column;padding:5px 2px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);font-size:.78em;line-height:1.2;text-align:center;white-space:normal}
+.animation-effect-card svg{flex:none;width:28px;height:28px}
+.animation-effect-card:hover{border-color:var(--accent)}
+.animation-effect-card[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
+.animation-effect-card:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.animation-effect-caption{margin:8px 0 6px;font-weight:700}
+.animation-targets{display:flex;gap:8px;align-items:center;margin-bottom:10px;min-width:0}
+.animation-targets>span{overflow-wrap:anywhere;min-width:0}
+.animation-timing>label:first-child{grid-column:1/-1}
+.animation-list .animation-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:4px;padding:5px;border-radius:8px;min-width:0}
+.animation-list .animation-title{display:grid;grid-template-columns:32px 28px minmax(0,1fr);gap:5px;align-items:center;padding:4px;min-height:44px}
+.animation-row-effect{display:grid;place-items:center;color:var(--accent)}
+.animation-row-effect svg{width:24px;height:24px}
+.animation-row-text{display:flex;flex-direction:column;gap:4px;min-width:0;overflow:hidden}
+.animation-row-text strong,.animation-row-text small{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;font-weight:normal}
+.animation-row-text small{font-size:.78em}
+.animation-row-actions{gap:2px;align-items:center}
+.animation-row-actions button{width:28px;min-width:28px;min-height:34px;padding:4px;flex:none}
+.animation-row-actions svg{width:18px;height:18px;display:block}
+.animation-row-unavailable{opacity:.65}
+@media(pointer:coarse){
+  .animation-effect-card{min-height:56px;min-width:44px}
+  .animation-list .animation-row{grid-template-columns:minmax(0,1fr)}
+  .animation-row-actions button{min-width:44px;width:44px;min-height:44px}
+}
+@media(max-width:360px){
+  .animation-effect-group,.animation-effect-other{grid-template-columns:repeat(3,minmax(0,1fr))}
+}

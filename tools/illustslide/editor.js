@@ -149,7 +149,7 @@
   }
   function updateHoverPreview(event, point) {
     if (!hoverPreview || drag || space || !selecting() || event.pointerType==='touch') return;
-    if (event.target.closest('[data-handle],[data-bezier],[data-connection-handle]')) { clearHoverPreview(); return; }
+    if (event.target.closest('[data-handle],[data-bezier],[data-corner-radius],[data-connection-handle]')) { clearHoverPreview(); return; }
     const base=page(), picked=pathUI?.pick(point,event,base);
     const targetId=event.target.closest('[data-object]')?.dataset.object;
     let next=null;
@@ -279,7 +279,7 @@
     const handle=event.target.closest('[data-handle]')?.dataset.handle;
     let hit=event.target.closest('[data-object]')?.dataset.object,picked=null;
     // 既に選択した図形と操作ハンドルは現在の状態を保つ。初回だけ触れた場所で決める。
-    if(selecting()&&!space&&event.button===0&&!handle&&!event.target.closest('[data-node],[data-bezier],[data-connection-handle]')&&!pathUI.context().adding){
+    if(selecting()&&!space&&event.button===0&&!handle&&!event.target.closest('[data-node],[data-bezier],[data-corner-radius],[data-connection-handle]')&&!pathUI.context().adding){
       picked=pathUI.pick(p,event,base);hit||=picked?.id;
       if(hit&&!selected.includes(hit)){
         const next=(picked||base.objects.find(o=>o.id===hit)?.type==='connector')?'direct':'select';
@@ -363,11 +363,11 @@
   $('canvas').addEventListener('dblclick',event=>{
     const point=world(event);
     // 再描画とポインター捕捉で対象がcanvasになる場合も、実際に触れた要素を使う。
-    const target=event.target.closest('[data-object],[data-node],[data-bezier]')?event.target:document.elementFromPoint(event.clientX,event.clientY)||event.target;
+    const target=event.target.closest('[data-object],[data-node],[data-bezier],[data-corner-radius]')?event.target:document.elementFromPoint(event.clientX,event.clientY)||event.target;
     if(connectionUI.doubleClick(event,point,target))return;
     const id=target.closest('[data-object]')?.dataset.object,o=page().objects.find(o=>o.id===id);
     const shape=o?.type==='path'&&(o.label||/[zZ]/.test(o.d)),edge=shape&&tool==='direct'?window.IlapoPathEdit.nearest(o,point):null;
-    if(o&&!isLocked(o)&&(o.type==='text'||shape&&!target.closest('[data-node],[data-bezier]')&&(!edge||edge.distance>9/zoom()))){selection([id]);if(selected.length===1)openInspectorSection('text');return;}
+    if(o&&!isLocked(o)&&(o.type==='text'||shape&&!target.closest('[data-node],[data-bezier],[data-corner-radius]')&&(!edge||edge.distance>9/zoom()))){selection([id]);if(selected.length===1)openInspectorSection('text');return;}
     if(tool==='direct')pathUI.doubleClick({target},point);
   });
   function rotation(a){return [Math.cos(a),Math.sin(a),-Math.sin(a),Math.cos(a),0,0];}
@@ -1023,7 +1023,7 @@
   document.addEventListener('focusout',hideTooltip);document.addEventListener('pointerout',hideTooltip);document.addEventListener('pointerdown',hideTooltip,true);
   pathUI=window.IlapoPathUI.create({page,isVisible,isLocked,canInsert,selected:()=>selected,tool:()=>tool,settings:()=>settings,zoom,select:selection,render,setTool,setDrag:value=>drag=value,setPreview:value=>preview=value,editable,changePage,toast,errorMessage,showDialog,showInspector,esc,round,standardSize});
   connectionUI=window.IlapoConnectorUI.create({page,isVisible,isLocked,canInsert,selected:()=>selected,tool:()=>tool,zoom,snap,select:selection,render,setTool,setDrag:value=>drag=value,setPreview:value=>preview=value,editable,changePage,toast,clearToast:()=>{clearTimeout(toast.timer);$('toast').hidden=true;},showInspector,previewChange:previewInspectorChange,esc,round,standardSize});
-  animationUI=window.IlapoAnimationUI.create({document:doc,page,selected:()=>selected,changePage,toast,showInspector,esc,standardSize,palette});
+  animationUI=window.IlapoAnimationUI.create({document:doc,page,selected:()=>selected,changePage,toast,showInspector,esc,icon,standardSize,palette});
   textUI=window.IlapoTextUI.create({document:doc,page,selected:()=>selected,select:selection,showInspector,changePage,previewChange:previewInspectorChange,clearPreview:clearInspectorPreview,isOpen:()=>!!inspector?.isOpen&&inspector.section==='text',esc,icon,palette,standardSize,toast});
   outlineUI=window.IlapoOutlineUI.create({page,isVisible,isLocked,selected:()=>selected,scope:()=>inspectorScope('outline'),isOpen:()=>!!inspector?.isOpen&&inspector.section==='outline',showInspector,changePage,previewChange:previewInspectorChange,clearPreview:clearInspectorPreview,esc,finish:ids=>{pathUI.reset();connectionUI.reset();selection(ids);setTool('select');inspector.close();render();}});
   objectsUI=window.IlapoObjectsUI.create({document:doc,page,activeLayer,setActiveLayer,isVisible,isLocked,toast,selected:()=>selected,select:selection,showInspector,changePage,showDialog,execute,isBusy:()=>!!drag,esc,icon});

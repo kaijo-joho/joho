@@ -4,7 +4,7 @@
   function create(ctx) {
     const C = root.IlapoCore, P = root.IlapoPathEdit, G = root.IlapoGeometry, Grid = root.IlapoGrid;
     const $ = id => document.getElementById(id);
-    let refs = [], edge = null, snapTarget = null, addMode = false, addModeSelection = [];
+    let refs = [], edge = null, snapTarget = null, cornerHint = null, addMode = false, addModeSelection = [];
     const key = ref => JSON.stringify([ref.id, ref.path, ref.index]);
     const same = (a, b) => key(a) === key(b);
     const objectOf = (id, page = ctx.page()) => page.objects.find(o => o.id === id);
@@ -31,7 +31,7 @@
       if (edge && !selected.includes(edge.id)) edge = null;
       if (addMode && JSON.stringify(ctx.selected().slice().sort()) !== JSON.stringify(addModeSelection)) stopAddMode();
     }
-    function reset() { refs = []; edge = null; snapTarget = null; stopAddMode(); }
+    function reset() { refs = []; edge = null; snapTarget = null; cornerHint = null; stopAddMode(); }
     function selectRefs(next, ids) {
       refs = [...new Map(next.map(ref => [key(ref), ref])).values()];
       ctx.select(ids || [...new Set(refs.map(ref => ref.id))]);
@@ -167,7 +167,15 @@
         addAnchor();
         return;
       }
-      const anchorElement = event.target.closest('[data-node]'), handleElement = event.target.closest('[data-bezier]');
+      const cornerElement = event.target.closest('[data-corner-radius]'), anchorElement = event.target.closest('[data-node]'), handleElement = event.target.closest('[data-bezier]');
+      if (cornerElement) {
+        const [id, path, index] = JSON.parse(cornerElement.dataset.cornerRadius), ref = { id, path, index }, object = objectOf(id, base), info = object && P.cornerInfo(object, ref);
+        if (info && editableObject(object, base) && ctx.editable()) {
+          const handleDistance = Math.min(info.maxRadius / Math.max(info.sinHalf, 1e-8), 16 / ctx.zoom());
+          begin('corner-radius', event, point, base, { ref, nodes: [ref], corner: info, cornerStartDistance: handleDistance });
+        }
+        return;
+      }
       if (handleElement) {
         const [id, path, index, which] = JSON.parse(handleElement.dataset.bezier), ref = { id, path, index };
         if (editableObject(objectOf(id, base)) && ctx.editable()) begin('bezier', event, point, base, { ref, which, nodes: [ref] });
@@ -219,7 +227,7 @@
       }
     }
     function pointerMove(event, point, drag) {
-      if (!['nodes', 'bezier', 'node-marquee'].includes(drag.kind)) return false;
+      if (!['nodes', 'bezier', 'corner-radius', 'node-marquee'].includes(drag.kind)) return false;
       if (drag.kind === 'node-marquee') {
         drag.box = { x: Math.min(point.x, drag.start.x), y: Math.min(point.y, drag.start.y), width: Math.abs(point.x - drag.start.x), height: Math.abs(point.y - drag.start.y) };
       } else if (drag.moved) {
@@ -230,9 +238,17 @@
             for (const id of new Set(drag.nodes.map(r => r.id))) {
               replace(preview, id, P.moveAnchors(objectOf(id, drag.base), drag.nodes.filter(r => r.id === id), target.x - drag.origin.x, target.y - drag.origin.y));
             }
-          } else {
+          } else if (drag.kind === 'bezier') {
             const target = snapped(point, event, drag);
             replace(preview, drag.ref.id, P.moveHandle(objectOf(drag.ref.id, drag.base), drag.ref, drag.which, target, { independent: event.altKey }));
+          } else {
+            const target = snapped(point, event, drag), delta = { x: target.x - drag.corner.center.x, y: target.y - drag.corner.center.y };
+            // The point moves on the inner angle bisector.  Projecting instead
+            // of using Euclidean distance keeps obtuse and concave corners sane.
+            const radius = Math.max(0, ((delta.x * drag.corner.direction.x + delta.y * drag.corner.direction.y) - drag.cornerStartDistance) * drag.corner.sinHalf);
+            if (radius > .001) replace(preview, drag.ref.id, P.roundCorners(objectOf(drag.ref.id, drag.base), [drag.ref], radius));
+            cornerHint = { point: target, radius: Math.min(radius, drag.corner.maxRadius) };
+            drag.cornerChanged = radius > .001;
           }
           ctx.setPreview(preview);
         } catch (error) {
@@ -243,7 +259,7 @@
       return true;
     }
     function finishDrag(action, result) {
-      if (!['nodes', 'bezier', 'node-marquee'].includes(action.kind)) return false;
+      if (!['nodes', 'bezier', 'corner-radius', 'node-marquee'].includes(action.kind)) return false;
       snapTarget = null;
       if (action.kind === 'node-marquee' && action.moved) {
         const b = action.box, hits = [];
@@ -254,13 +270,17 @@
           }));
         }
         selectRefs(action.add ? [...action.originalNodes, ...hits] : hits);
-      } else if (action.moved && result) ctx.changePage(page => { page.objects = result.objects; });
+      } else if (action.moved && result && (action.kind !== 'corner-radius' || action.cornerChanged)) {
+        ctx.changePage(page => { page.objects = result.objects; });
+        if (action.kind === 'corner-radius') refs = [];
+      }
+      cornerHint = null;
       return true;
     }
-    function cancel(drag) { if (drag?.originalNodes) refs = drag.originalNodes; snapTarget = null; }
+    function cancel(drag) { if (drag?.originalNodes) refs = drag.originalNodes; snapTarget = null; cornerHint = null; }
     function doubleClick(event, point) {
       if (addMode) return;
-      if (event.target.closest('[data-node],[data-bezier]')) return;
+      if (event.target.closest('[data-node],[data-bezier],[data-corner-radius]')) return;
       const id = event.target.closest('[data-object]')?.dataset.object, object = objectOf(id);
       if (object?.type !== 'path' || !editableObject(object)) return;
       const near = P.nearest(object, point);
@@ -286,13 +306,30 @@
             result += `<g data-bezier="${ctx.esc(JSON.stringify([object.id, pi, i, which]))}" style="cursor:crosshair"><circle cx="${x}" cy="${y}" r="${hit}" fill="transparent"/><circle cx="${x}" cy="${y}" r="${3.5 / z}" fill="#fff" stroke="#2563eb" stroke-width="${stroke}"/></g>`;
           }
         }));
+        // A selected straight corner receives an inner circular handle.  Curves,
+        // open endpoints, zero-length and straight-through vertices return null.
+        inspected.forEach((path, pi) => path.segments.forEach((segment, i) => {
+          const ref = { id: object.id, path: pi, index: i };
+          if (!chosen.has(key(ref)) || isLocked(object, page)) return;
+          const info = P.cornerInfo(object, ref);
+          if (!info) return;
+          const distance = Math.min(info.maxRadius / Math.max(info.sinHalf, 1e-8), 16 / z);
+          const x = info.center.x + info.direction.x * distance, y = info.center.y + info.direction.y * distance;
+          const cornerHit = (matchMedia('(pointer:coarse)').matches ? 22 : 8) / z;
+          result += `<g data-corner-radius="${ctx.esc(JSON.stringify([object.id, pi, i]))}" aria-label="角丸の半径を調整" data-tip="ドラッグして角丸の半径を調整" style="cursor:ew-resize"><circle cx="${x}" cy="${y}" r="${cornerHit}" fill="transparent"/><circle cx="${x}" cy="${y}" r="${4 / z}" fill="#fff" stroke="#2563eb" stroke-width="${stroke}"/></g>`;
+        }));
         inspected.forEach((path, pi) => path.segments.forEach((segment, i) => {
           const active = chosen.has(key({ id: object.id, path: pi, index: i })), p = segment.point;
           const endpoint = !path.closed && (i === 0 || i === path.segments.length - 1), size = (endpoint ? 5 : 4) / z;
           result += `<g data-node="${ctx.esc(JSON.stringify([object.id, pi, i]))}" style="cursor:${isLocked(object, page) ? 'not-allowed' : 'move'}"><circle cx="${p.x}" cy="${p.y}" r="${hit}" fill="transparent"/><rect x="${p.x - size}" y="${p.y - size}" width="${size * 2}" height="${size * 2}" rx="${endpoint ? 3 / z : 0}" fill="${active ? '#2563eb' : '#fff'}" stroke="#2563eb" stroke-width="${stroke}"/></g>`;
         }));
       }
-      return result + snapMarkup(z);
+      return result + cornerMarkup(z) + snapMarkup(z);
+    }
+    function cornerMarkup(z) {
+      if (!cornerHint) return '';
+      const p = cornerHint.point, text = `半径 ${ctx.round(cornerHint.radius)} px`;
+      return `<g data-corner-popup="true" pointer-events="none"><rect x="${p.x + 10 / z}" y="${p.y - 25 / z}" width="${Math.max(82, text.length * 7) / z}" height="${20 / z}" rx="${4 / z}" fill="var(--text)" opacity=".92"/><text x="${p.x + 16 / z}" y="${p.y - 11 / z}" font-size="${12 / z}" font-family="sans-serif" fill="var(--panel)">${ctx.esc(text)}</text></g>`;
     }
     function snapMarkup(z) {
       if (!snapTarget) return '';

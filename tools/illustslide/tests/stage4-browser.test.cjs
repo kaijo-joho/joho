@@ -17,8 +17,11 @@ async function run(){
   const inspectorSubmit=async()=>{if(await page.locator('#inspector-submit').isVisible())await page.locator('#inspector-submit').click();await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden&&!document.getElementById('dialog').open;});};
   const inspectorClose=async()=>{await page.locator('#inspector-close').click();await page.waitForFunction(()=>document.getElementById('inspector-panel').hidden);};
   async function add(effect,fields={}){
-    await openList();await page.locator('#animation-add').click();await page.locator('#animation-effect').selectOption(effect);
-    for(const [key,value]of Object.entries(fields)){const el=page.locator('#animation-'+key);if(await el.evaluate(e=>e.tagName==='SELECT'))await el.selectOption(String(value));else await el.fill(String(value));}
+    await openList();await page.locator('#animation-add').click();
+    const direction=fields.direction||'right',mode=fields.mode||'in';
+    const choice=effect==='fade'?`fade-${mode}`:effect==='wipe'?`wipe-${direction}-${mode}`:effect;
+    await page.locator(`[data-animation-choice="${choice}"]`).click();
+    for(const [key,value]of Object.entries(fields)){if(key==='direction'||key==='mode')continue;const el=page.locator('#animation-'+key);if(await el.evaluate(e=>e.tagName==='SELECT'))await el.selectOption(String(value));else await el.fill(String(value));}
     await inspectorSubmit();await page.waitForFunction(()=>document.getElementById('inspector-title').textContent==='動きと再生順序');await page.locator('#inspector-body .animation-list').waitFor();await inspectorClose();
   }
   try{

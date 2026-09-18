@@ -101,7 +101,7 @@ async function run() {
   const errors = []; page.on('pageerror', error => errors.push(error.message));
   try {
     await page.goto(url); await page.waitForFunction(() => !!window.IlapoEditor);
-    assert.equal(await page.locator('.top [data-tool="select"]').count(), 1, 'whole selection is the only top selection tool');
+    assert.equal(await page.locator('.top #selection-method-button').count(), 1, 'the shared toolbar has one selection menu');
     assert.equal(await page.locator('.top [data-tool="direct"]').count(), 0, 'direct selection is not a top-level button');
 
     const original = selectionFixture(); await load(page, original);
@@ -229,7 +229,8 @@ async function run() {
     assert.notDeepEqual(directGroup.pages[0].objects.find(object => object.id === 'group-a'), groupBefore.pages[0].objects.find(object => object.id === 'group-a'));
     assert.deepEqual(directGroup.pages[0].objects.find(object => object.id === 'group-b'), groupBefore.pages[0].objects.find(object => object.id === 'group-b'));
     const groupRefs = await anchors(page), groupPoints = await Promise.all(['group-a', 'group-b'].map(id => inspect(page, id)));
-    await dragWorld(page, { x: 330, y: 130 }, { x: 355, y: 150 });
+    // 選択した角の内側には角丸ハンドルがあるため、別の構成員の内部から動かす。
+    await dragWorld(page, { x: 410, y: 130 }, { x: 435, y: 150 });
     assert.deepEqual(await anchors(page), groupRefs, 'group interior move preserves the selected anchor');
     const groupMoves = await Promise.all(['group-a', 'group-b'].map(id => inspect(page, id)));
     const groupDeltas = groupMoves.map((paths, i) => ({ x: paths[0].segments[0].point.x - groupPoints[i][0].segments[0].point.x, y: paths[0].segments[0].point.y - groupPoints[i][0].segments[0].point.y }));

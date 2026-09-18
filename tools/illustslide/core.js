@@ -117,13 +117,14 @@
   }
   function validateObject(value) {
     plainObject(value, 'object');
-    const base = ['id', 'type', 'name', 'group', 'locked', 'matrix', 'style'];
+    const base = ['id', 'type', 'name', 'group', 'locked', 'visible', 'matrix', 'style'];
     if (value.type === 'path') keysOnly(value, base.concat('d', 'label'), 'object');
     else if (value.type === 'text') keysOnly(value, base.concat('x', 'y', 'runs', 'layout'), 'object');
     else if (value.type === 'connector') keysOnly(value, base.concat('from','to','waypoints','route','startArrow','endArrow','label','labelOffset'), 'object');
     else if (value.type === 'image') keysOnly(value, base.concat('x','y','width','height','src','reference'), 'object');
     else fail('object.type is invalid');
     const out = { id: id(value.id, 'object.id'), type: value.type, name: string(value.name, 'object.name', true), group: value.group === null ? null : id(value.group, 'object.group'), locked: bool(value.locked, 'object.locked'), matrix: matrix(value.matrix, 'object.matrix'), style: normalizeStyle(value.style, false) };
+    if (Object.hasOwn(value, 'visible')) out.visible = bool(value.visible, 'object.visible');
     if (out.type === 'path') { if (!validPath(value.d)) fail('object.d is not a supported SVG path'); out.d = value.d; if (value.label !== undefined) out.label = validateShapeLabel(value.label); }
     else if(out.type === 'text') {
       out.x = finite(value.x, 'object.x'); out.y = finite(value.y, 'object.y'); out.runs = validateRuns(value.runs);
@@ -203,10 +204,11 @@
   }
   function validateDocument(input) {
     plainObject(input, 'document'); keysOnly(input, ['format', 'version', 'id', 'name', 'pages'], 'document');
-    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3,4,5,6,7].includes(input.version)) fail('version is invalid');
+    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3,4,5,6,7,8].includes(input.version)) fail('version is invalid');
     const pages = array(input.pages, 'document.pages'); if (!pages.length || pages.length > LIMITS.pages) fail('document.pages has an invalid length');
     const ids = new Set(); let count = 0;
     const out = { format: 'kaijo-ilapo', version: input.version, id: id(input.id, 'document.id'), name: string(input.name, 'document.name', true), pages: pages.map(validatePage) };
+    if (out.pages.some(page => page.objects.some(object => Object.hasOwn(object, 'visible')))) out.version = Math.max(out.version, 8);
     for (const page of out.pages) { if (ids.has(page.id)) fail('duplicate page id: ' + page.id); ids.add(page.id); count += page.objects.length; }
     if (count > LIMITS.objects) fail('document exceeds the object limit');
     let imageBytes=0,effects=0;for(const page of out.pages){effects+=(page.animations||[]).length;for(const o of page.objects){if(['image','connector'].includes(o.type))out.version=Math.max(out.version,2);if(o.type==='image')imageBytes+=o.src.length;if(o.type==='text'&&o.layout||o.type==='path'&&o.label)out.version=Math.max(out.version,4);var textRuns=o.type==='text'?o.runs:o.type==='path'&&o.label?o.label.runs:null;if(textRuns&&textRuns.some(run=>run.bold!==undefined||run.italic!==undefined||run.fill!==undefined))out.version=Math.max(out.version,5);var styles=[o.style];if(o.type==='path'&&o.label)styles.push(o.label.style);if(styles.some(style=>Object.prototype.hasOwnProperty.call(style,'fillOpacity')||Object.prototype.hasOwnProperty.call(style,'strokeOpacity')))out.version=Math.max(out.version,7);}if((page.animations||[]).length)out.version=Math.max(out.version,3);if(page.layers)out.version=Math.max(out.version,6);}

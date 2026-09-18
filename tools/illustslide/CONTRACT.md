@@ -1,14 +1,14 @@
-# イラストスライド illustSlideの内部契約（0.4.23）
+# イラストスライド illustSlideの内部契約（0.4.24）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
 
 0.4.2から配置先は `tools/illustslide/`、保存名は `.illustslide.zip`。旧URLは案内ページを残し、旧 `.ilapo.zip`・保存キー・内部API・文書形式・SVG識別子は互換性を保つ。直接ファイル利用時のブラウザ保存は、旧ページでJSONとして取り出せる。
 
-文書: `{format:'kaijo-ilapo',version:1|2|3|4|5|6|7,id,name,pages:[page]}`。version1〜6を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5、page.layersがあればversion6、object.styleまたはpath.label.styleにfillOpacity/strokeOpacityがあればversion7へ上げる。上がったversionを下げず、引数は変更しない。
+文書: `{format:'kaijo-ilapo',version:1|2|3|4|5|6|7|8,id,name,pages:[page]}`。version1〜7を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5、page.layersがあればversion6、object.styleまたはpath.label.styleにfillOpacity/strokeOpacityがあればversion7、object.visibleがあればversion8へ上げる。上がったversionを下げず、引数は変更しない。
 ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation],layers?:[layer]}`。
 幅・高さ・座標はCSS pxの小数。unitは表示単位px/mm/pt。無限ページにも書き出し用の初期width/heightを保持。
-オブジェクト: `{id,type:'path'|'text'|'image'|'connector',name,group:null|string,locked:false,matrix:[a,b,c,d,e,f],style}`。
+オブジェクト: `{id,type:'path'|'text'|'image'|'connector',name,group:null|string,locked:false,visible?:boolean,matrix:[a,b,c,d,e,f],style}`。
 pathは標準SVGの`d`、textは`x,y,runs:[{text,script:'normal'|'super'|'sub',bold?:boolean,italic?:boolean,fill?:色}]`を追加する。部分書式は省略時に親styleを継承し、falseも明示値として保持する。fillは#RRGGBBまたはnone。
 textの任意フィールド`layout:{width:null|正数,align:'left'|'center'|'right'}`は折り返し幅と揃え。pathの任意フィールド`label:{runs,style,align,padding}`は図形内の文章。paddingは0以上のCSS px。省略した既存文書に既定値を追加しない。runsは最大1000区間・合計100000 UTF-16コード単位。余分なキー、不正な書式・数値・揃えは拒否する。
 style: `{fill,stroke,strokeWidth,opacity,fillOpacity?,strokeOpacity?,dash,linecap,linejoin,fontSize,fontFamily,bold,italic}`。
@@ -74,7 +74,8 @@ editorで固定・非表示を判定し、計算結果を1回のchangePageへ渡
 
 `page.layers` は背面→前面順の `[{id,name,visible,locked,objectIds:[id]}]`。1〜100個。すべての図形がちょうど1つのレイヤーに属し、グループはレイヤーをまたがない。レイヤー内のobjectIdsは背面→前面順、全レイヤーを連結した順とpage.objectsを一致させる。不正なID・重複・所属漏れ・順序不一致は検証で拒否する。幾何情報は従来どおりobjectsに置く。
 
-`list(page)`、`layerOf(page,objectOrId)`、`visible(page,objectOrId)`、`locked(page,objectOrId)`、`orderedObjects(page)`。layersなしのページには非破壊の仮想defaultレイヤーを返す。可視性はレイヤーで、固定は個別固定との論理和で判定する。
+`list(page)`、`layerOf(page,objectOrId)`、`visible(page,objectOrId)`、`locked(page,objectOrId)`、`orderedObjects(page)`。layersなしのページには非破壊の仮想defaultレイヤーを返す。可視性はobject.visible !== falseとレイヤーのvisibleの論理積、固定は個別固定との論理和で判定する。任意のvisibleを旧オブジェクトに補完しない。
+`setObjectVisible(page,id,value)` はその図形だけの表示状態をbooleanで変更し、暗黙レイヤーを実体化しない。
 `create(page,name?)`、`rename(page,id,name)`、`setVisible(page,id,value)`、`setLocked(page,id,value)`、`move(page,id,delta)`（+1が前面）、`moveObjects(page,ids,targetId)`、`remove(page,id)`。削除は最後のレイヤーを拒否し、図形を隣へ移す。グループ移動は全構成員を扱う。これらの変更はeditorのHistoryを通す。
 `reconcile(page,beforePage?,activeId?)` は削除済みの所属を除き、新規図形を現在レイヤーへ割り当てて順序を揃える。既存グループの所属を優先し、非表示・固定の現在レイヤーへの追加は拒否する。layersなしのページには何も追加しない。通常の図形操作は所属と順序を保持する。合体・連結・矢印変換・アウトライン化では増減した図形IDと所属を同時に更新する。
 `forOutput(page)` は可視図形だけの複製を返し、動きの対象も絞る。元ページは変更しない。非表示だけを対象とする動きは取り除く。接続はフィルタ前の端点を保持し、出力用の複製で接続先不在を解消する。
@@ -98,6 +99,8 @@ version5は部分書式の任意キーをrunsへ追加する。折り返し付�
 version6はmanifestの各ページにlayersを記録する。非表示の図形もnative SVGに保持し、復元後に所属・順序を含めて検証する。通常のSVGでは非表示図形を省く。
 
 version7は塗りと線の不透明度をSVGのfill-opacity/stroke-opacityへ保存する。属性がない旧SVGは任意キーを補完せず、継承値と子の上書きをSVGの規則で扱う。全体opacityとの乗算を各属性へ焼き込まない。path.label.styleとconnectorは既存のmetadataにも保持する。connectorの矢じりの塗り・輪郭およびラベルにはstrokeOpacityを対応付ける。通常のSVGでtspanごとに不透明度が異なる入力は、未対応として拒否する。
+
+version8はmanifestのobject metadataに任意のvisible:booleanを保持する。native SVGには非表示図形も残し、復元時にvisibleの型とmanifest versionを検証する。通常SVGはレイヤーの有無にかかわらず非表示図形を省く。
 
 `exportPage`の`includeReferences:true`と`includeHidden:true`はnative ZIP用。既定falseは参照画像を省く。imageのsrcはPNG/JPEG/WebPのbase64データURLだけを許し、外部URL・埋め込みSVGを拒否する。ZIPのページファイル名はpage.idをencodeURIComponentしたものとする。
 
@@ -216,8 +219,9 @@ pagesのscopeは文書ID・ページID・編集リビジョン。図形の選択
 `IlapoObjectsUI.create({document,page,selected,select,showInspector,changePage,showDialog,execute,isBusy,esc,icon})` は `open()`・`cancelDrag()`・読み取り専用`isDragging`を返す。objectsのscopeは文書ID・ページID・編集リビジョン・選択ID。選択はeditorのselectionを通して従来のグループ選択を保つ。
 
 - 折り畳みは文書／ページごとのUI状態で、保存・履歴に入れない。クリック／Shift追加／上下・Home/End／Enter・Spaceで選択し、左右でグループを開閉する。折り畳まれた子はキーボード移動の対象外。フォーカス復元では任意IDをCSS用にエスケープする。
-- 名前は既存nameへ保存する。名前・個別固定・グループ固定・前後ボタンの変更は1回のchangePage。グループの一部固定は混在表示し、押すと全体固定になる。一覧内の⌘Z／Ctrl+ZとShift併用はexecuteのUndo/Redoへ渡し、その他のキーはキャンバスへ伝えない。
-- 並べ替えは専用ハンドルのPointer Eventsを使い、タッチではそのハンドルだけtouch-action:none。挿入表示と端での自動スクロールはUIのみ。pointerupで一度確定する。Escape・pointercancel・lostpointercapture・blurは確定せず終了する。
+- 名前は既存nameへ保存する。名前・個別表示・個別固定・グループ固定・並べ替えの変更は1回のchangePage。グループの一部固定は混在表示し、押すと全体固定になる。一覧内の⌘Z／Ctrl+ZとShift併用はexecuteのUndo/Redoへ渡し、その他のキーはキャンバスへ伝えない。
+- 一覧の各図形はハンドル・実形サムネイル・名前・名前変更・目・固定の1行。個別の非表示行は残し、選択だけを不可にする。
+- 並べ替えは図形・子・レイヤーの専用ハンドルのPointer EventsとAlt+↑／↓を使い、タッチではそのハンドルだけtouch-action:none。挿入表示と端での自動スクロールはUIのみ。pointerupで一度確定する。Escape・pointercancel・lostpointercapture・blurは確定せず終了する。
 - 開いたDOMのイベントはAbortControllerで再構築時に破棄する。ドラッグ中はInspectorのsyncを保留し、ページ参照・文書／ページID・DOM接続状態が変わったら取消。ページ／作品／設定切替でもcancelDragを呼ぶ。選択・開閉だけで非連続グループを再配列しない。
 
 ## 上部と追加ツール（0.4.22〜0.4.23）
@@ -275,6 +279,7 @@ libraryのlist/save/remove/instantiate/exportJSON/importJSONは原子的に保�
 - `addAnchor(object,worldPoint)` -> `{object,ref}`。最近点のtimeでベジェ曲線を分割し形を保つ。
 - `deleteAnchors(object,refs,{open?})`。既定open=trueは選択点で切断、falseは接続削除。残る線がなければnull。
 - `setAnchorType(object,refs,'corner'|'smooth')`、`roundCorners(object,refs,radius)`。角丸の半径はworldのpx、直線同士のみ。
+- `cornerInfo(object,ref)` -> `{center,direction,sinHalf,maxRadius}`。角丸ハンドル用のworld座標。sinHalfは内角半分のsin、directionは内角二等分線の単位ベクトル。曲線を含む角、端点、一直線、長さ0の辺はnull。
 - `openPath(object,ref)`、`closePaths(object,pathIndexes)`
 - `joinEndpoints(a,refA,b,refB,'line'|'merge'|'smooth')`。aとbのidが同じ場合は同一objectのパスとして処理。
 - `boolean(objects,'union'|'subtract'|'intersect')`。閉路のみ。最初に選んだobjectの書式を採用し、空結果はnull。
@@ -283,7 +288,7 @@ libraryのlist/save/remove/instantiate/exportJSON/importJSONは原子的に保�
 
 ## IlapoPathUI (path-ui.js)
 
-`create(context)`でeditorに接続する。refs、選択区間、吸着ターゲットはUIだけが保持する。直接選択ツールは`direct`、図形全体は`select`。読み取り専用`IlapoEditor.getAnchors()`は現在のrefsの複製を返す。
+`create(context)`でeditorに接続する。refs、選択区間、吸着ターゲットはUIだけが保持する。選択した有効な角の内側に角丸ハンドルを描き、開始時のパスからプレビューを再計算する。放して1履歴、Esc・pointercancelで取消。通常のベジェパスへ確定し、角丸のUI状態は保存しない。直接選択ツールは`direct`、図形全体は`select`。読み取り専用`IlapoEditor.getAnchors()`は現在のrefsの複製を返す。
 
 ## IlapoExport (export.js)
 
@@ -318,5 +323,9 @@ getStateはstep/steps/playing/time/duration。next/previousは群を操作でき
 RAFを所有し、close/reset/seekで取り消す。reduced-motionは群を即完了する。frameの複製だけをK.syncして移動中の接続を描き直す。下絵・編集枠・ハンドルを表示しない。
 
 Presentationの返却APIにreset/seekを追加し、getState.animationにPlayer状態を入れる。群の前後が尽きたらページを切り替える。前ページは全効果後、次ページは初期状態。Homeは先頭の初期状態、Endは最終の全効果後。
-IlapoAnimationUI.create(ctx)のlist/edit(id?)は設定パネルのanimationセクションを利用する。プレビューは未確定pageだけの検証済み複製をPresentationへ渡す。
+IlapoAnimationUI.create(ctx)のlist/edit(id?)は設定パネルのanimationセクションを利用する。効果はフェード2種・ワイプ8種・色・移動の12アイコンで選び、内部のeffect/mode/directionへ対応付ける。一覧の再生位置はLayers.forOutput(page)から求め、非表示の図形だけを対象とする動きは編集用の行を残して再生対象外と示す。プレビューは未確定pageだけの検証済み複製をPresentationへ渡す。
 IlapoPlaybackExport.buildHTML(doc)はPromise<string>。アプリと同じ配信元の固定されたruntimeファイルだけを読み込み、JSONのHTML終了タグとUnicode行区切りをエスケープして埋め込む。下絵を除いた文書・埋め込み画像・CSS・Paper.jsのライセンスを同梱し、生成HTMLは外部通信を必要としない。
+
+## オブジェクトの縮小プレビュー（0.4.24）
+
+`IlapoObjectPreview.markup(page,ids)` はレイヤー・動きパネルで共用する安全な小型SVGを返す。可視性にかかわらず対象の形を確認でき、接続先の座標を一時的に解決してから表示する。原稿を変更しない。WeakMapでページ参照ごとの結果をキャッシュし、1行ごとに原稿内の全画像を複製しない。出力・保存データにはこのUIを含めない。

@@ -4,7 +4,7 @@
   const NS = 'http://www.w3.org/2000/svg';
   function create(paper, input, options = {}) {
     const C = root.IlapoCore, A = root.IlapoAnimation, G = root.IlapoGeometry, K = root.IlapoConnectors, S = root.IlapoSVG;
-    const page = input.layers ? root.IlapoLayers.forOutput(input) : C.clone(input), nodes = new Map();
+    const page = (input.layers || input.objects.some(o=>o.visible===false)) ? root.IlapoLayers.forOutput(input) : C.clone(input), nodes = new Map();
     page.objects = page.objects.filter(o => !(o.type === 'image' && o.reference));
     root.IlapoLayers?.reconcile(page); C.pruneAnimations(page);
     const plan = A.compile(page), visibilityModes = new Map((page.animations || []).map(a => [a.id, a.mode]));

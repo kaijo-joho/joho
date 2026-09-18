@@ -14,7 +14,7 @@
   function virtual(page) { return { id: 'default', name: 'レイヤー 1', visible: true, locked: false, objectIds: objects(page).map(object => object.id) }; }
   function list(page) { return hasLayers(page) ? page.layers : [virtual(page)]; }
   function layerOf(page, objectOrId) { const objectId = typeof objectOrId === 'string' ? objectOrId : objectOrId && objectOrId.id; return list(page).find(layer => layer.objectIds.includes(objectId)) || null; }
-  function visible(page, objectOrId) { const layer = layerOf(page, objectOrId); return !!(layer && layer.visible); }
+  function visible(page, objectOrId) { const object = typeof objectOrId === 'string' ? objects(page).find(item => item.id === objectOrId) : objectOrId; const layer = layerOf(page, object); return !!(object && object.visible !== false && layer && layer.visible); }
   function locked(page, objectOrId) { const object = typeof objectOrId === 'string' ? objects(page).find(item => item.id === objectOrId) : objectOrId; const layer = layerOf(page, object); return !!(object && (object.locked || (layer && layer.locked))); }
   function orderedObjects(page) { const byId = new Map(objects(page).map(object => [object.id, object])); return list(page).flatMap(layer => layer.objectIds.map(id => byId.get(id)).filter(Boolean)); }
   function chooseActive(page, activeId) { const layers = page.layers; const requested = layers.find(layer => layer.id === activeId && layer.visible && !layer.locked); return requested || layers.find(layer => layer.visible && !layer.locked) || layers[0]; }
@@ -41,6 +41,13 @@
   function find(page, id) { if (!hasLayers(page) && id === 'default') page.layers = [virtual(page)]; const layer = hasLayers(page) && page.layers.find(item => item.id === id); if (!layer) fail('unknown layer id: ' + id); return layer; }
   function rename(page, id, name) { if (typeof name !== 'string') fail('name must be a string'); find(page, id).name = name; return page; }
   function setVisible(page, id, value) { if (typeof value !== 'boolean') fail('visible must be boolean'); find(page, id).visible = value; return page; }
+  function setObjectVisible(page, id, value) {
+    if (typeof value !== 'boolean') fail('visible must be boolean');
+    const object = objects(page).find(item => item.id === id);
+    if (!object) fail('unknown object id: ' + id);
+    object.visible = value;
+    return page;
+  }
   function setLocked(page, id, value) { if (typeof value !== 'boolean') fail('locked must be boolean'); find(page, id).locked = value; return page; }
   function move(page, id, delta) { if (!Number.isInteger(delta)) fail('delta must be an integer'); const layer = find(page, id), from = page.layers.indexOf(layer), to = Math.max(0, Math.min(page.layers.length - 1, from + delta)); if (from !== to) { page.layers.splice(from, 1); page.layers.splice(to, 0, layer); } reconcile(page); return to; }
   function expand(page, ids) { const known = new Map(objects(page).map(object => [object.id, object])); const selected = new Set(ids); ids.forEach(id => { if (!known.has(id)) fail('unknown object id: ' + id); }); const groups = new Set([...selected].map(id => known.get(id).group).filter(group => group !== null)); objects(page).forEach(object => { if (groups.has(object.group)) selected.add(object.id); }); return objects(page).filter(object => selected.has(object.id)).map(object => object.id); }
@@ -55,11 +62,16 @@
     const receiver = page.layers[index > 0 ? index - 1 : 1]; receiver.objectIds.push(...layer.objectIds); page.layers.splice(index, 1); reconcile(page); return receiver.id;
   }
   function forOutput(page) {
-    const output = clone(page); const shown = new Set(list(output).filter(layer => layer.visible).flatMap(layer => layer.objectIds));
+    const output = clone(page);
+    // Resolve attachments while their targets are still present, then detach
+    // absent targets in the output copy without moving the visible connector.
+    root.IlapoConnectors?.sync(output);
+    const shown = new Set(orderedObjects(output).filter(object => visible(output, object)).map(object => object.id));
     output.objects = orderedObjects(output).filter(object => shown.has(object.id));
     if (Array.isArray(output.layers)) output.layers.forEach(layer => { layer.objectIds = layer.objectIds.filter(id => shown.has(id)); });
     if (Array.isArray(output.animations)) output.animations = output.animations.map(animation => Object.assign({}, animation, { targets: animation.targets.filter(id => shown.has(id)) })).filter(animation => animation.targets.length);
+    root.IlapoConnectors?.sync(output);
     return output;
   }
-  return { list, layerOf, visible, locked, orderedObjects, reconcile, create, rename, setVisible, setLocked, move, moveObjects, remove, forOutput };
+  return { list, layerOf, visible, locked, orderedObjects, reconcile, create, rename, setVisible, setObjectVisible, setLocked, move, moveObjects, remove, forOutput };
 }));
