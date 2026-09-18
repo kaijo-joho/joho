@@ -7,13 +7,13 @@ button.with-icon,summary.with-icon{align-items:center;gap:6px}
 .dialog-tab-list [role=tab][aria-selected=true]{background:var(--panel);border-color:var(--accent);color:var(--accent);font-weight:600}
 .dialog-tab-panel[hidden]{display:none!important}
 .dialog-tab-panel{min-width:0}
-/* Tabbed editors keep a stable viewport while their panels vary in height. */
-dialog:has(.dialog-tabs){height:min(760px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);overflow:hidden}
-dialog:has(.dialog-tabs) #dialog-form{height:100%;min-height:0;display:flex;flex-direction:column}
-dialog:has(.dialog-tabs) .dialog-heading{flex:none}
-dialog:has(.dialog-tabs) #dialog-content{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
-dialog:has(.dialog-tabs) #dialog-error{flex:none}
-dialog:has(.dialog-tabs) .dialog-actions{position:static;flex:none}
+/* Editors and import-source tabs share a stable viewport, including previews. */
+dialog:has(.dialog-tabs,.data-import-tabs){height:min(760px,calc(100dvh - 24px));max-height:calc(100dvh - 24px);overflow:hidden}
+dialog:has(.dialog-tabs,.data-import-tabs) #dialog-form{height:100%;min-height:0;display:flex;flex-direction:column}
+dialog:has(.dialog-tabs,.data-import-tabs) .dialog-heading{flex:none}
+dialog:has(.dialog-tabs,.data-import-tabs) #dialog-content{flex:1;min-height:0;overflow:auto;overscroll-behavior:contain}
+dialog:has(.dialog-tabs,.data-import-tabs) #dialog-error{flex:none}
+dialog:has(.dialog-tabs,.data-import-tabs) .dialog-actions{position:static;flex:none}
 .dialog-section{min-width:0;margin:12px 0;padding:10px 12px;border:1px solid var(--line);border-radius:9px}
 .dialog-section>legend{padding:0 5px;font-size:.9rem;font-weight:600}
 .dialog-notes{font-size:.85rem;color:var(--muted);margin:10px 0}
