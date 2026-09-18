@@ -71,15 +71,16 @@ let browser;
   assert.equal((await page.evaluate(() => GraphEditor.getDocument())).series.find(s => s.expression === 'y = a*x^2').style.color, '#ff0000');
 
   await page.locator('#file-menu summary').click(); await page.locator('#save-browser').click(); await page.waitForTimeout(300);
-  const saved = await page.evaluate(() => ({ auto: !!localStorage.getItem('kaijo-graph:auto'), saved: !!localStorage.getItem('kaijo-graph:saved') })); assert(saved.auto && saved.saved, 'auto and explicit browser saves are separate');
+  const saved = await page.evaluate(() => { const id = GraphEditor.getState().tabId, entries = new GraphDocumentStore.Store(localStorage).list().entries; return {id, auto: entries.find(entry => entry.id === id && entry.kind === 'auto'), saved: entries.find(entry => entry.id === id && entry.kind === 'saved')}; }); assert(saved.auto && saved.saved, '同じタブの自動保存と明示保存を分けて保持する');
   const savedDocument = await page.evaluate(() => GraphEditor.getDocument());
   const downloadPromise = page.waitForEvent('download'); await page.locator('#file-menu summary').click(); await page.locator('#save-local').click(); const json = await downloadPromise; assert(/\.graph\.json$/.test(json.suggestedFilename()));
   const jsonPath=await json.path();assert.deepStrictEqual(JSON.parse(fs.readFileSync(jsonPath,'utf8')),savedDocument,'ダウンロードしたJSONは元の数式・表を保持する');
   await page.setInputFiles('#file-input',jsonPath);await page.waitForFunction(()=>!GraphEditor.getState().drawing);
   await seriesAdd(); await page.locator('#add-function').click();await setField('数式','y = x^3');await submit();
-  await page.waitForFunction(()=>JSON.parse(localStorage.getItem('kaijo-graph:auto')).document.series.some(s=>s.expression==='y = x^3'));
-  assert.deepStrictEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('kaijo-graph:saved')).document),savedDocument,'後の自動保存は明示保存を変更しない');
-  await page.reload(); await page.waitForFunction(() => window.GraphEditor && document.querySelector('#editor-dialog').open); await page.locator('.saved-option').filter({ hasText: '明示保存' }).click(); await page.waitForFunction(()=>!GraphEditor.getState().drawing); assert.deepStrictEqual(await page.evaluate(() => GraphEditor.getDocument()), savedDocument, 'reload restores the explicitly saved document independently');
+  const loadedTabId = await page.evaluate(() => GraphEditor.getState().tabId);
+  await page.waitForFunction(id => new GraphDocumentStore.Store(localStorage).list().entries.some(entry => entry.id === id && entry.kind === 'auto' && entry.document.series.some(series => series.expression === 'y = x^3')), loadedTabId);
+  assert.deepStrictEqual(await page.evaluate(id => new GraphDocumentStore.Store(localStorage).list().entries.find(entry => entry.id === id && entry.kind === 'saved').document, saved.id),savedDocument,'別タブの後の自動保存は元タブの明示保存を変更しない');
+  await page.reload(); await page.waitForFunction(() => window.GraphEditor && document.querySelector('#editor-dialog').open); await page.locator('.saved-option').filter({ hasText: '明示保存' }).click(); await page.waitForFunction(()=>!GraphEditor.getState().drawing); assert.deepStrictEqual(await page.evaluate(() => GraphEditor.getDocument()), savedDocument, '再読み込み後も元タブの明示保存を独立して開ける');
 
   await page.locator('#export-tab').click(); const svgDownload = page.waitForEvent('download'); await page.locator('#export-format').selectOption('svg'); await page.locator('#export-image').click();const svg=await svgDownload;assert(/\.svg$/.test(svg.suggestedFilename()));assert(fs.readFileSync(await svg.path(),'utf8').includes('<svg'),'SVGの実体を出力する');
   const pngDownload = page.waitForEvent('download'); await page.locator('#export-format').selectOption('png'); await page.locator('#export-image').click();const png=await pngDownload;assert(/\.png$/.test(png.suggestedFilename()));assert.equal(fs.readFileSync(await png.path()).subarray(0,8).toString('hex'),'89504e470d0a1a0a','PNGの実体を出力する');

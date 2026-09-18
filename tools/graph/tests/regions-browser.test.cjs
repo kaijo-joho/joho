@@ -65,8 +65,14 @@ let browser, page;
   await page.locator('#undo').click(); await settle(); assert.deepEqual(await doc(), beforeLabelDrag);
   // A point, a curve and a region all remain selectable where they overlap.
   await page.mouse.click(...await screen([1.4, .5])); await page.waitForFunction(id => GraphEditor.getState().selected?.id === id, region.id);
+  await settle();
+  // Keep these independent selections outside Plotly's double-click interval.
+  await page.waitForTimeout(350);
   await page.mouse.click(...await screen([2, 2])); await page.waitForFunction(() => GraphEditor.getState().selected?.id === 'curve');
+  await settle();
+  await page.waitForTimeout(350);
   await page.mouse.click(...await screen([4, 0])); await page.waitForFunction(() => GraphEditor.getState().selected?.id === 'B');
+  await settle();
   const beforeDrag = await doc(), from = await screen([4, 0]), to = await screen([5, 0]);
   await page.mouse.move(...from); await page.mouse.down(); await page.mouse.move(...to, { steps: 5 }); await page.mouse.up(); await settle();
   assert(Math.abs(Number((await doc()).annotations.find(a => a.id === 'B').anchor.x) - 5) < .03);
@@ -90,7 +96,7 @@ let browser, page;
   const saved = JSON.parse(fs.readFileSync(await (await downloading).path(), 'utf8')); assert.equal(saved.version, 14);
   await importDoc(C.createDocument()); await importDoc(saved); assert.deepEqual(await doc(), saved); assert.equal(await area.innerText(), '面積 ≈ 6');
   await page.locator('#file-menu summary').click(); await page.locator('#save-browser').click();
-  assert.deepEqual(await page.evaluate(() => JSON.parse(localStorage.getItem('kaijo-graph:saved')).document), saved);
+  assert.deepEqual(await page.evaluate(() => new GraphDocumentStore.Store(localStorage).load(GraphEditor.getState().tabId,'saved').document), saved);
   const svg = await page.evaluate(async () => decodeURIComponent((await GraphPlot.exportImage(document.querySelector('#plot'), { format: 'svg', scale: 1, background: 'white' })).split(',').slice(1).join(',')));
   assert.match(svg, /js-fill/); assert.match(svg, /面積/); assert.match(svg, /22, 163, 74/);
   const png = await page.evaluate(() => GraphPlot.exportImage(document.querySelector('#plot'), { format: 'png', scale: 1, background: 'white' }));

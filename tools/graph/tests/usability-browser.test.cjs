@@ -72,12 +72,12 @@ let browser, page;
   // Controls remain visible with a curve selected. Preview does not save or mutate history.
   await item(seriesId).click(); await slider.scrollIntoViewIfNeeded(); await slider.focus();
   await page.waitForTimeout(350);
-  const savedBefore = await page.evaluate(() => localStorage.getItem('kaijo-graph:auto'));
+  const savedBefore = await page.evaluate(() => JSON.stringify(new GraphDocumentStore.Store(localStorage).load(GraphEditor.getState().tabId,'auto')));
   await slider.evaluate(el => { window.sliderUnderTest = el; el.value = '2'; el.dispatchEvent(new Event('input', { bubbles: true })); }); await settle();
   assert.equal((await doc()).parameters[0].value, 1);
   assert((await equation(plus).innerText()).includes('4x'));
   assert((await labels()).some(t => t.includes('4x')));
-  await page.waitForTimeout(350); assert.equal(await page.evaluate(() => localStorage.getItem('kaijo-graph:auto')), savedBefore);
+  await page.waitForTimeout(350); assert.equal(await page.evaluate(() => JSON.stringify(new GraphDocumentStore.Store(localStorage).load(GraphEditor.getState().tabId,'auto'))), savedBefore);
   assert(await slider.evaluate(el => el === window.sliderUnderTest && el === document.activeElement));
   await page.keyboard.press('Escape'); await settle(); assert.equal(await slider.inputValue(), '1'); assert((await equation(plus).innerText()).includes('2x'));
   await slider.evaluate(el => { el.value = '2'; el.dispatchEvent(new Event('input', { bubbles: true })); el.dispatchEvent(new PointerEvent('pointercancel', { bubbles: true })); }); await settle(); assert.equal(await slider.inputValue(), '1');

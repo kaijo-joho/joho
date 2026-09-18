@@ -31,6 +31,7 @@
     more: [['circle', { cx: 5, cy: 12, r: .8 }], ['circle', { cx: 12, cy: 12, r: .8 }], ['circle', { cx: 19, cy: 12, r: .8 }]],
     moreVertical: [['circle', { cx: 12, cy: 5, r: .8 }], ['circle', { cx: 12, cy: 12, r: .8 }], ['circle', { cx: 12, cy: 19, r: .8 }]],
     list: [['path', { d: 'M9 5h12M9 12h12M9 19h12M3 5h.1M3 12h.1M3 19h.1' }]],
+    template: [['rect', { x: 3, y: 3, width: 8, height: 8, rx: 1 }], ['rect', { x: 14, y: 3, width: 7, height: 18, rx: 1 }], ['rect', { x: 3, y: 14, width: 8, height: 7, rx: 1 }]],
     themeAuto: [['rect', { x: 3, y: 4, width: 18, height: 13, rx: 2 }], ['path', { d: 'M8 21h8M12 17v4' }]],
     themeLight: [['circle', { cx: 12, cy: 12, r: 3.5 }], ['path', { d: 'M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42' }]],
     themeDark: [['path', { d: 'M20 15.2A8 8 0 0 1 8.8 4 8 8 0 1 0 20 15.2Z' }]],

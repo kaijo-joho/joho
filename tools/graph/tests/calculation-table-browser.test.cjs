@@ -61,7 +61,7 @@ let browser,page;
   await page.locator('#undo').click();await settle();assert.equal((await doc()).series[0].dataTable.formulas,undefined);
   await page.locator('#redo').click();await settle();assert.deepEqual(await doc(),saved);
   await page.locator('#file-menu summary').click();await page.locator('#save-browser').click();
-  assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('kaijo-graph:saved')).document),saved);
+  assert.deepEqual(await page.evaluate(()=>new GraphDocumentStore.Store(localStorage).load(GraphEditor.getState().tabId,'saved').document),saved);
   await load(C.createDocument());await load(saved);assert.deepEqual(await doc(),saved);
   await open();
   const download=page.waitForEvent('download');await page.getByRole('button',{name:'数値をCSVで保存',exact:true}).click();

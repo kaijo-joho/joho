@@ -54,7 +54,7 @@ let browser;
   assert((await page.evaluate(() => JSON.parse(__graphFakeFS.state.auto.text))).series.some(s => s.expression === 'y = sin(x)'));
 
   await page.locator('#file-menu summary').click(); await page.locator('#save-local').click();
-  await page.waitForFunction(() => document.querySelector('#toast').textContent.includes('自動保存先は明示保存先として使用できません'));
+  await page.waitForFunction(() => document.querySelector('#toast').textContent.includes('自動保存先として使用中'));
   assert.equal(await page.evaluate(() => __graphFakeFS.state.auto.text.includes('sin(x)')), true, 'rejected explicit save does not overwrite the auto-save file');
 
   await page.evaluate(() => __graphFakeFS.externalChange());
@@ -63,7 +63,7 @@ let browser;
   const afterExternal = await page.evaluate(() => GraphEditor.getDocument());
   assert(afterExternal.series.some(s => s.expression === 'y = cos(x)'), 'external change stops only local saving, not editing');
   await page.waitForTimeout(350);
-  const browserAuto = await page.evaluate(() => JSON.parse(localStorage.getItem('kaijo-graph:auto')).document);
+  const browserAuto = await page.evaluate(() => new GraphDocumentStore.Store(localStorage).load(GraphEditor.getState().tabId,'auto').document);
   assert.deepStrictEqual(browserAuto, afterExternal, 'browser auto-save remains available after local save stops');
   assert.equal(errors.length, 0, errors.join('\n'));
   await browser.close(); await new Promise(resolve => server.close(resolve));

@@ -1,0 +1,35 @@
+/* 複数文書タブと右側パネルタブ。既存の文書状態・保存先は扱わない。 */
+:root{--graph-side-tab-width:26px}
+:root[data-text-size="large"]{--graph-side-tab-width:28px}
+:root[data-text-size="largest"]{--graph-side-tab-width:30px}
+
+#document-tabs.graph-document-tabs{display:flex;align-items:center;min-width:0;flex:1;gap:3px}
+.graph-document-tabs__strip{display:flex;align-items:center;gap:3px;min-width:0;overflow-x:auto;overflow-y:hidden;overscroll-behavior-x:contain;scrollbar-width:thin;white-space:nowrap}
+.graph-document-tabs__item{display:flex;align-items:center;flex:none;min-width:72px;border:1px solid var(--line);border-radius:7px;background:var(--panel)}
+.graph-document-tabs__tab,.graph-document-tabs__close{border:0;background:transparent;min-height:30px;padding:3px 6px;color:var(--text)}
+.graph-document-tabs__tab{display:flex;align-items:center;gap:4px;min-width:0;max-width:min(220px,35vw);border-radius:6px 0 0 6px;font-size:inherit;overflow:hidden}
+.graph-document-tabs__tab[aria-selected="true"]{color:var(--accent);background:var(--accent-soft)}
+.graph-document-tabs__name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.graph-document-tabs__dirty{font-size:.65em;color:var(--danger);flex:none}
+.graph-document-tabs__close{width:25px;flex:none;border-radius:0 6px 6px 0;font-size:1rem;line-height:1}
+.graph-document-tabs__close:hover{background:var(--accent-soft)}
+.graph-document-tabs__menu{position:relative;flex:none}
+.graph-document-tabs__menu>summary{display:flex;align-items:center;justify-content:center;width:26px;min-height:30px;padding:2px;border:1px solid var(--line);border-radius:7px;background:var(--panel);list-style:none}
+.graph-document-tabs__menu>summary::-webkit-details-marker{display:none}
+.graph-document-tabs__menu[open]>summary{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
+.graph-document-tabs__menu-panel{position:fixed;z-index:36;width:min(310px,calc(100vw - 16px));max-height:calc(100dvh - var(--graph-toolbar-height,41px) - 16px);overflow:auto;padding:6px;background:var(--panel);border:1px solid var(--line);border-radius:8px;box-shadow:var(--shadow);left:auto;right:8px;top:calc(var(--graph-toolbar-height,41px) + 4px)}
+.graph-document-tabs__menu-panel button{display:block;width:100%;min-height:44px;border:0;background:transparent;text-align:left;overflow-wrap:anywhere;white-space:normal}
+.graph-document-tabs__menu-panel button[aria-checked="true"]{color:var(--accent);background:var(--accent-soft)}
+.graph-document-tabs__menu-panel button:hover{background:var(--accent-soft)}
+
+#app{grid-template-columns:240px minmax(0,1fr) auto var(--graph-side-tab-width)}
+.side-tabs{width:var(--graph-side-tab-width)}
+.side-tabs button{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;width:var(--graph-side-tab-width);min-width:var(--graph-side-tab-width);padding:7px 2px;writing-mode:initial;letter-spacing:0}
+.side-tabs button>svg{width:18px;height:18px;flex:none;margin-bottom:5px}
+.side-tabs button>span{writing-mode:vertical-rl;line-height:1;letter-spacing:.08em}
+.side-tabs button[aria-expanded="true"]{color:var(--accent);background:var(--accent-soft);border-color:var(--accent)}
+@media(max-width:1150px){#app{grid-template-columns:220px minmax(0,1fr) auto var(--graph-side-tab-width)}}
+@media(max-width:850px){#app{grid-template-columns:0 minmax(0,1fr) auto var(--graph-side-tab-width)}}
+@media(max-width:520px){#app{grid-template-columns:0 minmax(0,1fr) 0 var(--graph-side-tab-width)}}
+@media(pointer:coarse){:root,:root[data-text-size]{--graph-side-tab-width:44px}.graph-document-tabs__tab,.graph-document-tabs__close,.graph-document-tabs__menu>summary{min-width:44px;min-height:44px}.graph-document-tabs__close{width:44px}.graph-document-tabs__menu>summary{width:44px}.side-tabs button{width:44px;min-width:44px;padding-inline:4px}.side-tabs button>svg{width:22px;height:22px}}
+@media(max-width:590px){.top .brand span{display:none}.graph-document-tabs__tab{max-width:34vw}}

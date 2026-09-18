@@ -56,9 +56,12 @@ function fixture() {
   assert.equal(savedLibrary.items.length, 1);
 
   await page.locator('#template-list .template-card').filter({ has: page.locator('strong', { hasText: '2次関数と係数 a' }) }).click(); await waitReady();
-  const beforeTemplateOpen = await doc();
+  const beforeTemplateOpen = await doc(), originalTabId = await page.evaluate(() => GraphEditor.getState().tabId), tabCount = await page.evaluate(() => GraphEditor.getState().tabs.length);
   await page.locator('#custom-template-list [data-template-id]').click(); await waitReady();
-  await page.locator('#undo').click(); await waitReady(); assert.deepEqual(await doc(), beforeTemplateOpen, 'テンプレートを開く操作をUndoできる');
+  assert.notEqual(await page.evaluate(() => GraphEditor.getState().tabId), originalTabId, 'テンプレートは別タブで開く');
+  assert.equal(await page.evaluate(() => GraphEditor.getState().tabs.length), tabCount + 1, '既存タブを残してテンプレート用のタブを追加する');
+  await page.locator(`[role="tab"][data-document-tab-id="${originalTabId}"]`).click(); await waitReady();
+  assert.deepEqual(await doc(), beforeTemplateOpen, '元タブを選択するとテンプレートを開く前の図へ戻る');
   const itemId = await page.locator('#custom-template-list [data-template-id]').getAttribute('data-template-id');
   await page.getByRole('button', { name: '授業用テンプレートの管理', exact: true }).click();
   await page.getByLabel('テンプレート名', { exact: true }).fill('変更済みテンプレート'); await page.getByLabel('説明', { exact: true }).fill('変更した説明'); await submit();
@@ -72,7 +75,7 @@ function fixture() {
   const currentBeforeBadImport = await doc(), libraryBeforeBadImport = await page.evaluate(() => localStorage.getItem('kaijo-graph:templates'));
   await page.setInputFiles('#template-input', { name: 'bad.json', mimeType: 'application/json', buffer: Buffer.from('{broken') }); await waitReady();
   assert.deepEqual(await doc(), currentBeforeBadImport); assert.equal(await page.evaluate(() => localStorage.getItem('kaijo-graph:templates')), libraryBeforeBadImport, '不正importで図とライブラリを保持する');
-  await page.reload(); await page.waitForFunction(() => window.GraphEditor && !GraphEditor.getState().drawing); if (await page.locator('#editor-dialog').isVisible()) await page.locator('#dialog-close').click(); await waitReady(); await page.locator('#templates-tab').click(); assert.equal(await page.locator('#custom-template-list [data-template-id]').count(), 2, 'reload後も自作テンプレートを保持する');
+  await page.reload(); await page.waitForFunction(() => window.GraphEditor && !GraphEditor.getState().drawing); if (await page.locator('#editor-dialog').isVisible()) await page.locator('#dialog-close').click(); await waitReady(); if (await page.locator('#templates-tab').getAttribute('aria-expanded') === 'false') await page.locator('#templates-tab').click(); assert.equal(await page.locator('#custom-template-list [data-template-id]').count(), 2, 'reload後も自作テンプレートを保持する');
 
   await templateName('授業用テンプレート').last().click(); await waitReady();
   await page.locator('#save-template').click(); await page.getByLabel('テンプレート名', { exact: true }).fill('数値なしUI'); await page.getByLabel('説明', { exact: true }).fill('列を残す'); await page.getByLabel('数表の数値も含める', { exact: true }).uncheck(); await page.getByLabel('保存先', { exact: true }).selectOption('browser'); await submit();
