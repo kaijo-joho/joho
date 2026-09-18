@@ -71,8 +71,8 @@ function fixture() {
     assert.equal(await page.locator('a.brand-link[href="../index.html"]').count(), 1, 'ロゴは tools 一覧へのリンク');
     assert.match(await page.locator('.top .brand').innerText(), /illustSlide/, '上部にアプリ名を表示する');
     assert.equal(await page.locator('.top [data-menu="save"],.top [data-menu="open"],.top [data-menu="more"],.top [data-menu="insert"],.top [data-menu="view"]').count(), 0, '旧来の上部メニューを置かない');
-    assert.deepEqual(await page.locator('.top .brand,.top #file-button,.top [data-action="undo"],.top [data-action="redo"],.top #selection-method-button,.top #present-button,.top #document-title,.top #settings-button,.top #help-button').evaluateAll(nodes => nodes.map(node => node.id || node.className)), [
-      'brand', 'file-button', 'toolbar-history', 'toolbar-history', 'selection-method-button', 'present-button', 'document-title', 'settings-button', 'help-button'
+    assert.deepEqual(await page.locator('.top .brand,.top #file-button,.top [data-action="undo"],.top [data-action="redo"],.top #selection-method-button,.top #present-button,.top #document-workspace,.top #settings-button,.top #help-button').evaluateAll(nodes => nodes.map(node => node.id || node.className)), [
+      'brand', 'file-button', 'toolbar-history', 'toolbar-history', 'selection-method-button', 'present-button', 'document-workspace', 'settings-button', 'help-button'
     ], '上部ツールバーは決められた順序で1行に置く');
     assert.equal(await page.locator('#file-button[data-menu="file"]').count(), 1);
     assert.equal(await page.locator('#selection-method-button[data-menu="select"]').count(), 1);
@@ -84,7 +84,7 @@ function fixture() {
 
     await openMenu(page, '#file-button');
     const fileActions = await page.locator('#command-menu [data-action]').evaluateAll(nodes => nodes.map(node => node.dataset.action));
-    assert.deepEqual(fileActions.filter(action => action !== 'auto-start' && action !== 'auto-stop').sort(), ['new','open-file','recovery','rename','save-browser','save-local'], 'ファイル操作は1つのメニューへ集約');
+    assert.deepEqual(fileActions.filter(action => action !== 'auto-start' && action !== 'auto-stop').sort(), ['new','open-file','recovery','rename','save','save-browser','save-local'], 'ファイル操作は1つのメニューへ集約');
     assert(fileActions.some(action => ['auto-start', 'auto-stop'].includes(action)), 'ローカル自動保存の開始・停止をファイルメニューに置く');
     await page.keyboard.press('Escape');
     const beforeFileHover = await read(page);
@@ -100,7 +100,12 @@ function fixture() {
     assert.equal(await page.evaluate(() => document.activeElement.dataset.action), focusedAction);
     await page.keyboard.press('Escape');
     await page.locator('#canvas').focus(); await page.keyboard.press('Meta+s');
-    await page.waitForFunction(() => localStorage.getItem('kaijo-ilapo:saved'));
+    await page.locator('#document-destinations').waitFor();
+    await page.locator('#document-save-browser').click();
+    await page.waitForFunction(() => {
+      const current = IlapoEditor.getDocuments().find(item => item.active);
+      return current && new IlapoDocumentStore(localStorage).list().some(entry => entry.storageId === current.storageId && entry.kind === 'saved');
+    });
     assert.equal((await read(page)).id, 'toolbar-fixture', 'ブラウザ保存は作品を保つ');
 
     await openMenu(page, '#selection-method-button');
@@ -130,11 +135,11 @@ function fixture() {
     assert((await page.locator('.ilapo-present-status').textContent()).startsWith('1 / 2'));
     await page.keyboard.press('Escape');
 
-    const savedBeforeAppearance = await page.evaluate(() => localStorage.getItem('kaijo-ilapo:saved'));
+    const savedBeforeAppearance = await page.evaluate(() => localStorage.getItem('kaijo-ilapo:document:'+IlapoEditor.getDocuments().find(d=>d.active).storageId+':saved'));
     const historyBeforeAppearance = await read(page);
     for (const [theme, size] of [['light','standard'], ['dark','xlarge'], ['auto','large']]) {
       await chooseAppearance(page, theme, size);
-      assert.equal(await page.evaluate(() => localStorage.getItem('kaijo-ilapo:saved')), savedBeforeAppearance, '表示設定で保存済み作品を変更しない');
+      assert.equal(await page.evaluate(() => localStorage.getItem('kaijo-ilapo:document:'+IlapoEditor.getDocuments().find(d=>d.active).storageId+':saved')), savedBeforeAppearance, '表示設定で保存済み作品を変更しない');
       assert.deepEqual(await read(page), historyBeforeAppearance, '表示設定で作品を変更しない');
       if (theme === 'light') {
         await page.locator('#canvas').focus(); await page.keyboard.press('Meta+Shift+z'); await settle(page);
@@ -148,7 +153,7 @@ function fixture() {
           const top=document.querySelector('.top'), r=top.getBoundingClientRect();
           const buttons=[...top.querySelectorAll('button')].filter(b=>b.getClientRects().length).map(b=>b.getBoundingClientRect());
           const undoRedo=[...top.querySelectorAll('[data-action="undo"],[data-action="redo"]')];
-          return {fits:top.scrollWidth<=top.clientWidth+1 && document.documentElement.scrollWidth<=innerWidth+1, oneRow:buttons.every(b=>b.top>=r.top && b.bottom<=r.bottom+1), height:r.height, undoRedoVisible:undoRedo.some(b=>b.getClientRects().length)};
+          return {fits:top.scrollWidth<=top.clientWidth+1 && document.documentElement.scrollWidth<=innerWidth+1, oneRow:buttons.every(b=>b.top>=r.top && b.bottom<=r.bottom+1), height:r.height, undoRedoVisible:undoRedo.some(b=>b.getClientRects().length), selectionVisible:document.querySelector('#selection-method-button').getClientRects().length>0, presentVisible:document.querySelector('#present-button').getClientRects().length>0};
         });
         assert(layout.fits && layout.oneRow, `${theme}/${size}/${width}px: 上部は1行で画面内に収まる`);
         if (width === 1280) assert(Math.abs(layout.height - ({standard:41,large:47,xlarge:53}[size])) <= 1, `${size}の上部ツールバー高を保つ`);
@@ -156,11 +161,18 @@ function fixture() {
           const button = await page.locator('#file-button').boundingBox();
           assert.equal(button.width,32); assert.equal(button.height,30);
         }
-        if (width <= 700) assert.equal(layout.undoRedoVisible, false, '700px以下ではUndo/Redoを上部から隠す');
+        if (width <= 700) {
+          assert.equal(layout.undoRedoVisible, false, '700px以下ではUndo/Redoを上部から隠す');
+          assert.equal(layout.selectionVisible, false, '700px以下では選択方法を上部から隠す');
+          assert.equal(layout.presentVisible, false, '700px以下では発表を上部から隠す');
+        }
         assert.equal(await page.locator('#palette-toggle').isVisible(), width<=560);
         await openMenu(page, '#file-button');
         const actions=await page.locator('#command-menu [data-action]').evaluateAll(nodes=>nodes.map(n=>n.dataset.action));
-        if (width <= 700) assert(actions.includes('undo') && actions.includes('redo'), '狭幅ではファイルメニューからUndo/Redoできる');
+        if (width <= 700) {
+          assert(actions.includes('undo') && actions.includes('redo'), '狭幅ではファイルメニューからUndo/Redoできる');
+          assert(actions.includes('compact-select') && actions.includes('present-start') && actions.includes('present-current'), '狭幅ではファイルメニューから選択方法と発表を開始できる');
+        }
         assert(await page.locator('#command-menu').evaluate(el => { const r=el.getBoundingClientRect(); return r.left>=0&&r.right<=innerWidth&&r.top>=0&&r.bottom<=innerHeight&&el.scrollWidth<=el.clientWidth+1; }), '展開したメニューが画面内に収まる');
         assert.equal(await page.locator('#command-menu [data-action="paste"],#command-menu [data-action="import-image"],#command-menu [data-action="import-svg"],#command-menu [data-action="export-playback"]').count(),0);
         await page.keyboard.press('Escape');

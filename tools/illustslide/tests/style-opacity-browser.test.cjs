@@ -113,8 +113,8 @@ function near(actual,expected,label,tolerance=2) { assert.equal(actual.length,ex
     const saved=await read(page);
     const roundtrip=await page.evaluate(()=>IlapoSVG.decodeProject(IlapoSVG.encodeProject(IlapoEditor.getDocument())));
     assert.deepEqual(roundtrip,saved,'ZIPで別々の値を復元');
-    await page.waitForFunction(()=>JSON.parse(localStorage.getItem('kaijo-ilapo:auto')||'null')?.document?.version===7);
-    const stored=await page.evaluate(()=>new IlapoCore.Store(localStorage).list());
+    await page.waitForFunction(()=>{const current=IlapoEditor.getDocuments().find(item=>item.active);return current&&new IlapoDocumentStore(localStorage).list().some(entry=>entry.storageId===current.storageId&&entry.kind==='auto'&&entry.document.version===7);});
+    const stored=await page.evaluate(()=>{const current=IlapoEditor.getDocuments().find(item=>item.active);return new IlapoDocumentStore(localStorage).list().filter(entry=>entry.storageId===current.storageId);});
     assert(stored.some(s=>s.kind==='auto'&&s.document.pages[0].objects[0].style.fillOpacity===.25));
     assert(stored.some(s=>s.kind==='saved'&&s.document.pages[0].objects[0].style.strokeOpacity===.7));
 

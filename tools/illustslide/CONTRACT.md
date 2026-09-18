@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.22）
+# イラストスライド illustSlideの内部契約（0.4.23）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -15,6 +15,18 @@ style: `{fill,stroke,strokeWidth,opacity,fillOpacity?,strokeOpacity?,dash,lineca
 fillOpacity/strokeOpacityは0〜1の有限数値、省略時は1。DEFAULT_STYLEや旧文書へ自動補完しない。opacityは塗りと線を合成した後の全体不透明度として既存の意味を保持する。図形内文字はlabel.styleを使い、図形本体のチャンネル値を継承しない。
 fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。fontFamilyはsans-serif/serif/monospace。
 グループは初期版では同じgroup値を持つ平坦な集合。選択・変形は原則グループ全体へ適用。
+
+## 複数作品のセッション（0.4.23）
+
+`IlapoDocumentWorkspace`はタブIDごとにHistory・storageId・現在ページ・選択・表示位置/倍率・最後の明示保存先・明示保存snapshotを保持する。文書のidとは独立したstorageIdを使い、同じファイルを重ねて開いても既存タブや保存枠を上書きしない。編集用JSON/ZIPの形式は変更しない。タブの切り替えはHistoryを変更せず、インスペクタのscopeにはsession.idを含める。追加先レイヤーもタブID・ページIDで分離する。
+
+ブラウザ保存は`IlapoDocumentStore(storage).save(doc,kind,storageId)`、`list()`。`kaijo-ilapo:document:<storageId>:auto|saved`へ`{storageId,kind,at,document}`を1回のsetItemで書く。旧2キーは読み出し専用とし、不正な候補だけを除外する。保存・読み出し容量/権限エラーは呼出側へ返し、成功と表示しない。候補選択は新しいタブを作り、開いている作品を保持する。
+
+自動保存タイマーとLocalAutosaveはセッションごとに持つ。非同期保存は開始時の文書を複製し、そのsessionの明示snapshotと保存先だけを成功後に更新する。編集中に保存が完了しても、開始後の変更を保存済みとしない。ファイルハンドルの比較と予約は全セッション共通の直列処理とし、自動/明示・別作品への同一ファイルの同時書込を拒否する。保存先を選び直して失敗した予約だけを解除する。
+
+終了時は保存中のタブを閉じず、保存後もdirtyなら保持する。終了確認dialogは世代番号を持ち、キャンセル後のPromiseでタブを閉じない。閉じるとそのタブの自動保存を停止するが既存の保存枠は削除しない。beforeunloadは非選択タブも含むdirty/保存処理を確認する。全タブ一括再開、再起動をまたぐ履歴とファイルハンドルの復元は実装しない。
+
+`IlapoDocumentTabs.create({root,onSelect,onClose})`は`render(items,activeId)`で既存DOMを再利用し、`reveal(id)`でタブ領域だけをスクロールする。文書名はtextContent、閉じるボタンはタブの外側へ置く。1行に収まらないタブは横スクロールとdocumentsメニューで選べる。
 
 ## 通常選択とアンカー選択のメニュー（0.4.21）
 
@@ -67,7 +79,7 @@ editorで固定・非表示を判定し、計算結果を1回のchangePageへ渡
 `reconcile(page,beforePage?,activeId?)` は削除済みの所属を除き、新規図形を現在レイヤーへ割り当てて順序を揃える。既存グループの所属を優先し、非表示・固定の現在レイヤーへの追加は拒否する。layersなしのページには何も追加しない。通常の図形操作は所属と順序を保持する。合体・連結・矢印変換・アウトライン化では増減した図形IDと所属を同時に更新する。
 `forOutput(page)` は可視図形だけの複製を返し、動きの対象も絞る。元ページは変更しない。非表示だけを対象とする動きは取り除く。接続はフィルタ前の端点を保持し、出力用の複製で接続先不在を解消する。
 
-追加先レイヤーは文書ID・ページIDごとのUI状態で、作品JSONやUndoには保存しない。単一レイヤーの図形選択で追加先を合わせる。レイヤーを直接選ぶと図形選択を解除する。ページ全体のプレビューを可視図形だけのデータで置き換えない。PathUI・ConnectorUI・OutlineUIへ `isVisible(object,page?)` / `isLocked(object,page?)` を注入し、Guides.prepareの第5引数は `{isVisible}` とする。
+追加先レイヤーはタブID・ページIDごとのUI状態で、作品JSONやUndoには保存しない。単一レイヤーの図形選択で追加先を合わせる。レイヤーを直接選ぶと図形選択を解除する。ページ全体のプレビューを可視図形だけのデータで置き換えない。PathUI・ConnectorUI・OutlineUIへ `isVisible(object,page?)` / `isLocked(object,page?)` を注入し、Guides.prepareの第5引数は `{isVisible}` とする。
 
 ## IlapoSVG (svg.js)
 
@@ -208,11 +220,11 @@ pagesのscopeは文書ID・ページID・編集リビジョン。図形の選択
 - 並べ替えは専用ハンドルのPointer Eventsを使い、タッチではそのハンドルだけtouch-action:none。挿入表示と端での自動スクロールはUIのみ。pointerupで一度確定する。Escape・pointercancel・lostpointercapture・blurは確定せず終了する。
 - 開いたDOMのイベントはAbortControllerで再構築時に破棄する。ドラッグ中はInspectorのsyncを保留し、ページ参照・文書／ページID・DOM接続状態が変わったら取消。ページ／作品／設定切替でもcancelDragを呼ぶ。選択・開閉だけで非連続グループを再配列しない。
 
-## 上部と追加ツール（0.4.22）
+## 上部と追加ツール（0.4.22〜0.4.23）
 
-上部はbrand（ロゴのみtools一覧リンク）／file・Undo・Redo／select／present／document-title／settings・helpの1行。標準は高さ41px、ボタン32×30px。--ui-kを共通と同じ1・1.15・1.3とし、30pxの操作部・上下各5pxを拡大する。pointer:coarseは44px以上。700px以下（coarseは850px以下）では履歴ボタンを隠し、fileメニューの構築時に同じUndo/Redoを補う。発表・設定は常時アクセスできる。
+上部はbrand（ロゴのみtools一覧リンク）／file・Undo・Redo／select／present／document-workspace（作品タブ・一覧）／settings・helpの1行。標準は高さ41px、ボタン32×30px。--ui-kを共通と同じ1・1.15・1.3とし、30pxの操作部・上下各5pxを拡大する。pointer:coarseは44px以上。700px以下（coarseは850px以下）では履歴ボタンを隠し、fileメニューの構築時に同じUndo/Redoを補う。700px以下はselectとpresentも隠し、ファイルメニューへ選択方法・発表を補う。設定・ヘルプは右端に残す。
 
-fileは既存のnew／rename／save-browser／save-local／recovery／open-file／auto-start・stopを呼ぶ。保存形式・保存キー・新規／読込前の未保存確認・beforeunloadは変えない。selectは統合選択とpan、すべて選択を提供し、対象の編集は選択ポップアップへ残す。insert/view/moreと上部pagesの重複は置かない。図形・文字・接続・画像・SVG追加・貼り付けは左、用紙・グリッドと吸着は右、倍率は下部を使う。複数ファイルのタブは共通仕様4.5の詳細合意まで未実装。
+fileはnew／rename／save／save-browser／save-local／recovery／open-file／auto-start・stopを呼ぶ。0.4.23ではnew／読込は別タブを開き、タブ終了時に未保存確認を行う。保存キーとbeforeunloadの対象は上記の複数作品仕様に従う。selectは統合選択とpan、すべて選択を提供し、対象の編集は選択ポップアップへ残す。insert/view/moreと上部pagesの重複は置かない。図形・文字・接続・画像・SVG追加・貼り付けは左、用紙・グリッドと吸着は右、倍率は下部を使う。確定した共通仕様4.5による複数作品タブを0.4.23で追加した。
 
 settingsはテーマと操作部文字サイズの単一選択ボタン群。data-theme-choice・data-ui-sizeのクリックでsettingsとaria-pressedを同期し、メニューを保つ。既存のkaijo-ilapo:settingsを使い、作品・保存済みファイル・履歴を変えない。テーマ用SVGは教材サイトと同じ端末・太陽・月の意匠。viewパネルのscopeはcanvas設定のみを含め、外観設定でviewを再構築したり入力を失わない。
 

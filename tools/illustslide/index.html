@@ -5,55 +5,59 @@
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <meta name="description" content="図形・文字・接続矢印で、ピクトグラム・ロゴ・説明図・スライドをつくるイラストスライド illustSlide。ブラウザで編集し、SVG・PNG・PDFとして持ち出せます。">
   <title>イラストスライド illustSlide | 海城中学高等学校 情報科</title>
-  <link rel="icon" href="icon.svg?v=0.4.22" type="image/svg+xml">
-  <link rel="stylesheet" href="editor.css?v=0.4.22">
-  <link rel="stylesheet" href="presentation.css?v=0.4.22">
-  <link rel="stylesheet" href="inspector.css?v=0.4.22">
-  <link rel="stylesheet" href="objects.css?v=0.4.22">
-  <link rel="stylesheet" href="text-ui.css?v=0.4.22">
+  <link rel="icon" href="icon.svg?v=0.4.23" type="image/svg+xml">
+  <link rel="stylesheet" href="editor.css?v=0.4.23">
+  <link rel="stylesheet" href="document-tabs.css?v=0.4.23">
+  <link rel="stylesheet" href="presentation.css?v=0.4.23">
+  <link rel="stylesheet" href="inspector.css?v=0.4.23">
+  <link rel="stylesheet" href="objects.css?v=0.4.23">
+  <link rel="stylesheet" href="text-ui.css?v=0.4.23">
   <link rel="stylesheet" href="../shared/help-panel.css">
   <script defer src="vendor/paper-core-0.12.18.min.js"></script>
   <script defer src="vendor/fflate-0.8.2.umd.js"></script>
-  <script defer src="core.js?v=0.4.22"></script>
-  <script defer src="layers.js?v=0.4.22"></script>
-  <script defer src="geometry.js?v=0.4.22"></script>
-  <script defer src="text-layout.js?v=0.4.22"></script>
-  <script defer src="connectors.js?v=0.4.22"></script>
-  <script defer src="assets.js?v=0.4.22"></script>
-  <script defer src="path-edit.js?v=0.4.22"></script>
-  <script defer src="svg.js?v=0.4.22"></script>
-  <script defer src="export.js?v=0.4.22"></script>
-  <script defer src="path-ui.js?v=0.4.22"></script>
-  <script defer src="connector-ui.js?v=0.4.22"></script>
-  <script defer src="animation.js?v=0.4.22"></script>
-  <script defer src="animation-player.js?v=0.4.22"></script>
-  <script defer src="presentation.js?v=0.4.22"></script>
-  <script defer src="animation-ui.js?v=0.4.22"></script>
-  <script defer src="playback-export.js?v=0.4.22"></script>
-  <script defer src="local-autosave.js?v=0.4.22"></script>
+  <script defer src="core.js?v=0.4.23"></script>
+  <script defer src="layers.js?v=0.4.23"></script>
+  <script defer src="geometry.js?v=0.4.23"></script>
+  <script defer src="text-layout.js?v=0.4.23"></script>
+  <script defer src="connectors.js?v=0.4.23"></script>
+  <script defer src="assets.js?v=0.4.23"></script>
+  <script defer src="path-edit.js?v=0.4.23"></script>
+  <script defer src="svg.js?v=0.4.23"></script>
+  <script defer src="export.js?v=0.4.23"></script>
+  <script defer src="path-ui.js?v=0.4.23"></script>
+  <script defer src="connector-ui.js?v=0.4.23"></script>
+  <script defer src="animation.js?v=0.4.23"></script>
+  <script defer src="animation-player.js?v=0.4.23"></script>
+  <script defer src="presentation.js?v=0.4.23"></script>
+  <script defer src="animation-ui.js?v=0.4.23"></script>
+  <script defer src="playback-export.js?v=0.4.23"></script>
+  <script defer src="local-autosave.js?v=0.4.23"></script>
+  <script defer src="document-store.js?v=0.4.23"></script>
+  <script defer src="document-workspace.js?v=0.4.23"></script>
+  <script defer src="document-tabs.js?v=0.4.23"></script>
   <script defer src="../shared/help-panel.js"></script>
-  <script defer src="inspector.js?v=0.4.22"></script>
-  <script defer src="pages-ui.js?v=0.4.22"></script>
-  <script defer src="objects-model.js?v=0.4.22"></script>
-  <script defer src="objects-ui.js?v=0.4.22"></script>
-  <script defer src="assets-ui.js?v=0.4.22"></script>
-  <script defer src="grid.js?v=0.4.22"></script>
-  <script defer src="guides.js?v=0.4.22"></script>
-  <script defer src="arrange.js?v=0.4.22"></script>
-  <script defer src="rich-text-input.js?v=0.4.22"></script>
-  <script defer src="text-markdown.js?v=0.4.22"></script>
-  <script defer src="text-ui.js?v=0.4.22"></script>
+  <script defer src="inspector.js?v=0.4.23"></script>
+  <script defer src="pages-ui.js?v=0.4.23"></script>
+  <script defer src="objects-model.js?v=0.4.23"></script>
+  <script defer src="objects-ui.js?v=0.4.23"></script>
+  <script defer src="assets-ui.js?v=0.4.23"></script>
+  <script defer src="grid.js?v=0.4.23"></script>
+  <script defer src="guides.js?v=0.4.23"></script>
+  <script defer src="arrange.js?v=0.4.23"></script>
+  <script defer src="rich-text-input.js?v=0.4.23"></script>
+  <script defer src="text-markdown.js?v=0.4.23"></script>
+  <script defer src="text-ui.js?v=0.4.23"></script>
   <script defer src="vendor/opentype-1.3.4.min.js"></script>
-  <script defer src="stroke-outline.js?v=0.4.22"></script>
-  <script defer src="text-outline.js?v=0.4.22"></script>
-  <script defer src="outline.js?v=0.4.22"></script>
-  <script defer src="outline-ui.js?v=0.4.22"></script>
-  <script defer src="editor.js?v=0.4.22"></script>
+  <script defer src="stroke-outline.js?v=0.4.23"></script>
+  <script defer src="text-outline.js?v=0.4.23"></script>
+  <script defer src="outline.js?v=0.4.23"></script>
+  <script defer src="outline-ui.js?v=0.4.23"></script>
+  <script defer src="editor.js?v=0.4.23"></script>
 </head>
 <body>
 <div id="app">
   <header class="top" aria-label="メインツールバー">
-    <div class="brand"><a class="brand-link" href="../index.html" aria-label="ツール一覧へ" data-tip="ツール一覧へ"><img src="icon.svg?v=0.4.22" alt="" width="26" height="26"></a><span>illustSlide</span><small>BETA</small></div>
+    <div class="brand"><a class="brand-link" href="../index.html" aria-label="ツール一覧へ" data-tip="ツール一覧へ"><img src="icon.svg?v=0.4.23" alt="" width="26" height="26"></a><span>illustSlide</span><small>BETA</small></div>
     <span class="sep" aria-hidden="true"></span>
     <div class="toolbar-group" role="group" aria-label="ファイルと履歴">
       <button id="file-button" data-menu="file" aria-label="ファイル" data-tip="新規・保存・読み込み ⌘S / ⌘O" data-icon="file"></button>
@@ -64,7 +68,10 @@
     <button id="selection-method-button" data-menu="select" aria-label="選択方法" data-tip="選択方法・表示の移動" data-icon="select"></button>
     <span class="sep" aria-hidden="true"></span>
     <button id="present-button" data-menu="present" aria-label="発表の開始方法" data-tip="発表：先頭から・このページから" data-icon="animation"></button>
-    <span id="document-title" class="document-title">無題の作品</span>
+    <div id="document-workspace">
+      <div id="document-tabs" role="tablist" aria-label="開いている作品"></div>
+      <button id="document-list-button" data-menu="documents" aria-label="作品の一覧" data-tip="開いている作品の一覧" data-icon="pages"></button>
+    </div>
     <div class="toolbar-group toolbar-settings" role="group" aria-label="設定とヘルプ">
       <button id="settings-button" data-menu="settings" aria-label="設定" data-tip="設定：テーマ・操作部の文字サイズ" data-icon="settings"></button>
       <button id="help-button" aria-label="使い方" data-tip="使い方 ?" data-icon="help"></button>
@@ -151,14 +158,14 @@
   <section data-help-topic="settings" data-help-title="図形を見ながら調整"><h3>図形を見ながら調整</h3><p>図形を選ぶと、上中央に編集アイコンが現れます。選択切替・書式と色・文字・アンカー・変形・図形の合成・整列・グループと固定・詳細の順に、対象に使える入口を表示します。「変形」に反転・回転・拡大縮小、「図形の合成」に合体・型抜き・重なりをまとめています。コピーや重なり順などは「詳細」から開きます。マウスを合わせるかTabキーで選ぶと名前が表示されます。▼・▶はメニューを開く目印です。横に収まるサブメニューはホバーでも開き、狭い画面ではクリック・タップで開きます。右矢印で子を開き、Esc・左矢印・戻るで親へ戻れます。</p><p>「書式・色」で塗り／線を選ぶと、設定項目も切り替わります。塗りは色と不透明度、線は色・不透明度・線幅・種類・端・角を設定します。塗りと線は別々に薄くでき、「全体の不透明度」ではまとめて薄くできます。複数選択で異なる値は「混在」と表示し、変更した項目だけをそろえます。</p><p>線幅と不透明度はスライダーで調整し、横の数値欄でも正確に指定できます。1回のドラッグは1回の⌘Zで戻せます。線の種類・端・角はプレビューアイコンから選びます。色はパレット・自由色ピッカー・16進数で指定し、RGB値は色ピッカーの中で入力できます。</p><p>文字サイズ・書体・部分書式は「文字・配置」、接続ラベルの文字書式は「接続・経路」で編集します。接続矢印の矢じり・ラベルは線の色と不透明度に合わせます。画像は全体の不透明度を設定できます。</p><p>通常の設定は入力するとすぐ反映・保存され、閉じても保持します。⌘Zで直前の入力を戻せます。パネルを開いたまま別の図形を選べます。ページ・レイヤー・部品・用紙サイズ・表示と吸着・動きと再生順序・書き出しは、右端のアイコンと縦書き名のタブから開きます。開いているタブを押すと閉じます。</p><details><summary>画面の広さとキーボード</summary><p>右パネルの境界をドラッグすると幅を変えられます。境界をTabキーで選び、左右キーでも調整できます。狭い画面では下部パネルになり、高さが足りないときはパネル内をスクロールします。</p><p>「キャンバスへ戻る」はパネルを開いたまま編集面へ戻ります。パネル内のEscapeで閉じます。アウトライン化・新しい動きの追加・部品登録・書き出しは、内容を確認して実行ボタンで確定します。</p></details></section>
   <section data-help-topic="objects" data-help-title="レイヤーと図形を整理"><h3>レイヤーと図形を整理</h3><p>右端の「レイヤー」を開くと、上ほど前面になる順で一覧が表示されます。名前を押して選択し、鉛筆で改名、鍵で固定・解除できます。グループは三角で展開し、見出しから全体を選択・固定できます。</p><p>左端のハンドルをドラッグすると重なり順を変えられます。挿入先に青い線を表示し、上下端に近づけるとスクロールします。上下のボタンでも移動できます。グループ全体はまとめて、展開した図形はグループ内で並べ替えます。</p><p>Shiftで追加選択、上下・Home/Endで表示中の項目へ移動し、左右でグループを開閉します。ドラッグ中のEscapeは並べ替えだけを取り消します。確定した変更は⌘Zで元に戻し、⇧⌘Zでやり直せます。</p></section>
   <section data-help-topic="pages" data-help-title="用紙とページ"><h3>用紙とページ</h3><p>右端の「用紙サイズ」では18pxの正方形からA4・16:9まで選べます。「自由キャンバス」なら用紙の外にも広げられます。用紙の変更で図形の大きさは変わりません。18・36・72pxなどの小用紙を選ぶと、1pxの方眼とピクセル吸着が有効になります。</p><p>右端の「ページ」または下部のページ番号を押すと、サムネイル付きの一覧が開きます。開いたまま別のページを選び、追加・複製・並べ替え・名前変更・削除ができます。一覧で選んだサムネイルは上下・Home・Endキーでも切り替えられます。コピーした図形は別のページにも貼り付けられます。</p></section>
-  <section data-help-topic="save" data-help-title="保存・読み込み"><h3>保存・読み込み</h3><p>上部のファイルアイコンに、新規作成・作品名の変更・保存・読み込みをまとめています。ブラウザへ編集途中を自動保存し、「ブラウザに保存」で残した内容は別に保持します。「ブラウザの保存内容を選ぶ」で自動保存と明示保存を選べます。</p><p>ローカル保存は、各ページと作品情報をまとめた再編集用ZIPです。他のアプリへ渡す図は「書き出し」からSVGで保存すると、設定した枠線の太さも保てます。対応するSVGの範囲は基本図形・パス・文字・グループです。</p><details><summary>ローカルへの自動保存</summary><p>Chromeで保存先を選んだ場合に使えます。明示保存とは別のファイルへ保存し、この画面を閉じると終了します。保存先が使えない場合も作品を保持し、ブラウザ保存とファイルのダウンロードを利用できます。</p></details></section>
+  <section data-help-topic="save" data-help-title="作品タブ・保存・読み込み"><h3>作品タブ・保存・読み込み</h3><p>上部のタブ1つが1つの作品です。新規作成やファイルの読み込みは別のタブで開きます。作品内のページは右の「ページ」で切り替えます。作品ごとに元に戻す・やり直し、倍率、保存先を保ちます。タブは左右にスクロールでき、一覧ボタンからも選べます。タブにフォーカスすると左右・Home・Endで移動し、Deleteで閉じます。</p><p>タブの点は明示保存後の変更です。自動保存しても点は残ります。×で閉じるときは、保存して閉じる・保存せずに閉じる・キャンセルを選べます。閉じても保存済みの作品は削除されません。⌘S（WindowsはCtrl+S）は、その作品で最後に選んだ保存先を使います。初回はブラウザ・ローカルから選びます。保存先の変更はファイルメニューから行えます。</p><p>上部のファイルアイコンに、新規作成・作品名の変更・保存・読み込みをまとめています。ブラウザへ編集途中を自動保存し、「ブラウザに保存」で残した内容は別に保持します。「ブラウザの保存内容を選ぶ」で自動保存と明示保存を選べます。</p><p>ローカル保存は、各ページと作品情報をまとめた再編集用ZIPです。他のアプリへ渡す図は「書き出し」からSVGで保存すると、設定した枠線の太さも保てます。対応するSVGの範囲は基本図形・パス・文字・グループです。</p><details><summary>ローカルへの自動保存</summary><p>Chromeで保存先を選んだ場合に使えます。明示保存とは別のファイルへ保存し、その作品のタブかこの画面を閉じると終了します。保存先が使えない場合も作品を保持し、ブラウザ保存とファイルのダウンロードを利用できます。</p></details></section>
   <section data-help-topic="guides" data-help-title="図形の位置と間隔をそろえる"><h3>図形の位置と間隔をそろえる</h3><p>図形全体をドラッグすると、他の図形や用紙の端・中央へ吸着し、紫色のガイドを表示します。サイズ変更でも辺を合わせられます。Shiftでは縦横比を保ちます。</p><p>横や縦に並べると間隔を表示し、等間隔の位置にも吸着します。Optionを押している間はガイドと吸着を解除します。右端の「表示と吸着」で無効にできます。Escapeでドラッグを取り消し、確定した操作は1回のUndoで戻せます。</p><p>通常のサイズ変更では、設定した枠線の太さを保ちます。線も太く・細くしたい場合は「位置・大きさ」の「線幅も拡大縮小」を選んで適用します。ガイドは保存・書き出し・発表には含まれません。</p></section>
   <section data-help-topic="keys" data-help-title="表示・ショートカット"><h3>表示・ショートカット</h3><p>Space＋ドラッグ、または2本指スクロールで移動。ピンチや⌘＋ホイールで拡大縮小。上部の設定アイコンでテーマ（自動・ライト・ダーク）と操作部の文字サイズを切り替えます。右端の「表示と吸着」でグリッド・位置合わせを変えられます。ピクセル方眼は拡大時だけ表示し、画像や印刷には含めません。配置・移動・サイズ変更・アンカーを1px単位に吸着させられ、指定間隔のグリッドにも切り替えられます。矢印キーは吸着の間隔、Shiftでは10倍、Optionで一時解除します。数値入力は小数のまま調整できます。ハンドルも吸着し、Optionで自由に動かせます。</p><p>⌘S 保存／⌘O 開く／⌘Z 元に戻す／⇧⌘Z やり直し／⌘C コピー／⌘V 貼り付け／⌘A すべて選択／Delete 削除／矢印キー 移動／Escape 操作の取消。</p></section>
   <section data-help-topic="export" data-help-title="画像・PDFを書き出す"><h3>画像・PDFを書き出す</h3><p>右の「書き出し」からSVG・PNG・PDFを出力します。PNGは倍率と透明・白背景を選べます。SVGとPNGでは選択部分だけを切り出すこともできます。</p><p>PDFは「現在のページ」「すべてのページ」を選び、Chromeの印刷画面からPDFに保存します。固定用紙はその寸法、自由キャンバスは作品を収める寸法です。印刷の倍率・余白・ヘッダーとフッターも確認してください。</p></section>
   <section data-help-topic="connections" data-help-title="図形を矢印でつなぐ"><h3>図形を矢印でつなぐ</h3><p>左の「接続矢印」か「カギ型矢印」で、接続元から接続先へドラッグ、または順にクリックします。空白にも端点を置けます。図形に接続すると、その移動に合わせて端点と経路が追従します。狭い画面では左端の「＋追加」から選べます。</p><p>直接選択で矢印を選ぶと、丸い端点と経路点、カギ型の線の途中には四角が現れます。四角をドラッグすると、両端の接続を保って折れ曲がり位置を移動します。丸い点は自由に動かせ、線のダブルクリックで追加できます。</p><p>丸い端点を図形の輪郭へドラッグすると接続位置を変更できます。近づけると候補が現れ、辺の端・中央・1/4・3/4に吸着します。その間も自由に指定できます。Optionを押して置くと、吸着と図形への接続を解除します。</p><p>「接続・経路」またはEnterでは数値・矢じり・ラベルを指定できます。ラベル横の紫色の点で位置を動かせます。ドラッグ中はEscapeで取消し、確定後は1回のUndoで戻せます。</p><p>通常のアンカー編集や型抜きをするときは「詳細」から通常のパスへ変換します。変換後は図形への追従を終了します。</p></section>
   <section data-help-topic="assets" data-help-title="アイコン・部品・下絵"><h3>アイコン・部品・下絵</h3><p>右端の「部品」から人・鍵・PCなどを配置できます。開いたままキャンバスで図形を選ぶと、プレビューを確認して名前を付け、「部品に登録」で再利用できます。選択した図形の「詳細 → 自作部品に登録」からも同じパネルを開けます。「部品集を保存」「部品集を追加」でJSONを別のブラウザへ持ち出せます。登録・削除は配置済みの図形には影響しません。</p><p>左の追加ツールには「SVGを追加」と、コピーした図形の「貼り付け」もあります。「画像・下絵」でPNG・JPEG・WebPを読み込みます。最初は薄く表示し、位置を固定します。「画像の設定」で固定・不透明度・出力に含めるかを選べます。下絵は編集用ZIPに保存し、書き出し・印刷・発表からは省きます。</p></section>
-  <section data-help-topic="present" data-help-title="スライドとして発表"><h3>スライドとして発表</h3><p>上部の「発表」で先頭から／このページからを選びます。発表のアイコンは狭い画面でも同じ位置にあります。←→・PageUp/PageDown・Spaceで前後へ、Home/Endで最初・最後へ、Escapeで編集へ戻ります。画面クリックや左右のスワイプでも進められます。「全画面」ではアートボードだけを縦横比を保って最大表示します。操作ボタンは隠れますが、キー・クリック・スワイプで移動でき、Escapeで編集へ戻れます。</p><p>図形を選び「動き」からフェード・ワイプ・色変更・移動を追加します。一覧で順序を変更し、クリック時・前と同時・前の後、時間・遅延を指定できます。最初の「同時」「後」はページを開くと自動再生します。複数図形を選ぶとまとめて動かせます。</p><p>発表中は動きごとに進み、再生中に次へ進めるとその動きを完了します。前へ戻ると、ひとつ前の動きが完了した状態になります。「やり直す」またはRで現在のページをリセットします。Homeは先頭、Endは最終ページの全動作後へ移動します。OSで動きを減らす設定をすると、クリック順序を保ったまま即時に切り替えます。</p><p>右の「書き出し」にある再生用HTMLには、全ページと再生機能をまとめます。下絵を含めず、ファイル単体で再生できます。再編集用ZIPにも動きを保存します。SVG・PNG・PDFは元の色と配置による静止画です。</p></section>
-  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>イラストスライド illustSlide 0.4.22 BETA（2026年9月）</p><p>パス編集・合体・型抜き、接続矢印、アイコンと自作部品、下絵、複数ページの発表、SVG・PNG・PDFに対応しています。</p><p>推奨環境：macOS＋Google Chrome。教育用ツールです。制作物の寸法や表示は出力後にも確認してください。作品はブラウザ内または利用者が選んだローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの権利と利用条件は各ライセンスに従います。</p><p><a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a> · <a href="../index.html">ウェブアプリ一覧</a></p></section>
+  <section data-help-topic="present" data-help-title="スライドとして発表"><h3>スライドとして発表</h3><p>上部の「発表」で先頭から／このページからを選びます。狭い画面ではファイルメニューから発表を開始できます。←→・PageUp/PageDown・Spaceで前後へ、Home/Endで最初・最後へ、Escapeで編集へ戻ります。画面クリックや左右のスワイプでも進められます。「全画面」ではアートボードだけを縦横比を保って最大表示します。操作ボタンは隠れますが、キー・クリック・スワイプで移動でき、Escapeで編集へ戻れます。</p><p>図形を選び「動き」からフェード・ワイプ・色変更・移動を追加します。一覧で順序を変更し、クリック時・前と同時・前の後、時間・遅延を指定できます。最初の「同時」「後」はページを開くと自動再生します。複数図形を選ぶとまとめて動かせます。</p><p>発表中は動きごとに進み、再生中に次へ進めるとその動きを完了します。前へ戻ると、ひとつ前の動きが完了した状態になります。「やり直す」またはRで現在のページをリセットします。Homeは先頭、Endは最終ページの全動作後へ移動します。OSで動きを減らす設定をすると、クリック順序を保ったまま即時に切り替えます。</p><p>右の「書き出し」にある再生用HTMLには、全ページと再生機能をまとめます。下絵を含めず、ファイル単体で再生できます。再編集用ZIPにも動きを保存します。SVG・PNG・PDFは元の色と配置による静止画です。</p></section>
+  <section data-help-topic="about" data-help-title="このアプリについて"><h3>このアプリについて</h3><p>イラストスライド illustSlide 0.4.23 BETA（2026年9月）</p><p>パス編集・合体・型抜き、接続矢印、アイコンと自作部品、下絵、複数ページの発表、SVG・PNG・PDFに対応しています。</p><p>推奨環境：macOS＋Google Chrome。教育用ツールです。制作物の寸法や表示は出力後にも確認してください。作品はブラウザ内または利用者が選んだローカルファイルに保存し、外部へ送信しません。</p><p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.<br>アプリの改変・再配布はご遠慮ください。同梱ライブラリの権利と利用条件は各ライセンスに従います。</p><p><a href="vendor/README.md" target="_blank" rel="noopener">同梱ライブラリ</a> · <a href="../index.html">ウェブアプリ一覧</a></p></section>
 </aside>
 <noscript>イラストスライドを使うにはJavaScriptを有効にしてください。</noscript>
 </body>

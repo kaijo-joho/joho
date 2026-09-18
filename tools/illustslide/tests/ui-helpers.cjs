@@ -15,7 +15,11 @@ async function revealObject(page, id) {
 
 async function startPresentation(page, current = false) {
   const button = page.locator('#present-button');
-  await button.click();
+  if (await button.isVisible()) await button.click();
+  else {
+    const file = page.locator('#file-button');
+    if (await file.getAttribute('aria-expanded') !== 'true') await file.click();
+  }
   await page.locator(`#command-menu [data-action="${current ? 'present-current' : 'present-start'}"]`).click();
 }
 

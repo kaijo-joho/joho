@@ -68,7 +68,7 @@ async function loadFile(page, file, expected) {
       assert.deepEqual(await page.evaluate(() => Object.fromEntries(['kaijo-ilapo:auto', 'kaijo-ilapo:saved'].map(key => [key, localStorage.getItem(key)]))), slots);
     }
     for (const expected of [automatic, explicit]) {
-      await openCommand(page, 'open', 'recovery');
+      await openCommand(page, 'file', 'recovery');
       assert.equal(await page.locator('.recovery').count(), 2);
       await page.locator('.recovery').filter({ hasText: expected.name }).click();
       assert.deepEqual(await page.evaluate(() => IlapoEditor.getDocument()), expected);
@@ -86,12 +86,12 @@ async function loadFile(page, file, expected) {
         };
       };
     });
-    await openCommand(page, 'save', 'save-local');
+    await openCommand(page, 'file', 'save-local');
     await page.waitForFunction(() => document.getElementById('save-status').textContent === 'ローカルに明示保存済み');
-    await openCommand(page, 'save', 'auto-start');
+    await openCommand(page, 'file', 'auto-start');
     await page.waitForFunction(() => window.__saveNames.length === 2);
-    assert.deepEqual(await page.evaluate(() => window.__saveNames), ['以前の明示保存.illustslide.zip', 'illustSlide.autosave.illustslide.zip']);
-    await openCommand(page, 'save', 'auto-stop');
+    assert.deepEqual(await page.evaluate(() => window.__saveNames), ['以前の明示保存.illustslide.zip', '以前の明示保存.autosave.illustslide.zip']);
+    await openCommand(page, 'file', 'auto-stop');
     for (const filename of ['legacy.ilapo.zip', 'current.illustslide.zip']) {
       const expected = fixture(filename, 'rect');
       const bytes = await page.evaluate(async document => Array.from(await IlapoSVG.encodeProject(document)), expected);

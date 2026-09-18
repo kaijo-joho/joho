@@ -126,18 +126,25 @@ async function run() {
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-pick="0"]').click();
 
     await menu(page, '[data-menu="file"]', 'ブラウザに保存');
-    await sleep(520); const slots = await page.evaluate(() => [localStorage.getItem('kaijo-ilapo:auto'), localStorage.getItem('kaijo-ilapo:saved')]); assert(slots[0] && slots[1], 'browser auto and explicit saves are independent');
+    await sleep(520); const slots = await page.evaluate(() => {
+      const current = IlapoEditor.getDocuments().find(item => item.active), entries = new IlapoDocumentStore(localStorage).list();
+      return [entries.find(entry => entry.storageId === current.storageId && entry.kind === 'auto'), entries.find(entry => entry.storageId === current.storageId && entry.kind === 'saved')];
+    }); assert(slots[0] && slots[1], '文書ごとの自動保存と明示保存は別に保持する');
 
     await page.locator('.side-tab [data-action="export-toggle"]').click(); const svgDownloadPromise = page.waitForEvent('download'); await page.locator('[data-action="export-svg"]').click(); const svgDownload = await svgDownloadPromise;
     const svgPath = path.join(artifacts, 'illustslide-export.svg'); await svgDownload.saveAs(svgPath); const svg = await fs.readFile(svgPath, 'utf8'); assert.match(svg, /<svg[\s>]/); assert.match(svg, /<path|<text/);
-    const beforeImport = (await documentOf(page)).pages.length; await page.locator('#file-input').setInputFiles({ name: 'roundtrip.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(svg) }); await page.waitForFunction(count => IlapoEditor.getDocument().pages.length === count + 1, beforeImport);
+    const beforeImport = (await documentOf(page)).pages.length;
+    const svgChoosing = page.waitForEvent('filechooser'); await page.locator('#add-palette [data-action="import-svg"]').click();
+    await (await svgChoosing).setFiles({ name: 'roundtrip.svg', mimeType: 'image/svg+xml', buffer: Buffer.from(svg) });
+    await page.waitForFunction(count => IlapoEditor.getDocument().pages.length === count + 1, beforeImport);
 
     await page.evaluate(() => Object.defineProperty(window, 'showSaveFilePicker', { value: undefined, configurable: true }));
-    await page.locator('[data-menu="file"]').click(); const zipDownloadPromise = page.waitForEvent('download'); await page.locator('#command-menu').getByRole('button', { name: 'ローカルファイルに保存…', exact: true }).click(); const zipDownload = await zipDownloadPromise;
+    const zipDownloadPromise = page.waitForEvent('download'); await page.locator('[data-menu="file"]').click(); await page.locator('#command-menu').getByRole('button', { name: 'ローカルファイルに保存…', exact: true }).click(); const zipDownload = await zipDownloadPromise;
     assert.match(zipDownload.suggestedFilename(), /\.illustslide\.zip$/, 'project download uses the official filename');
     const zipPath = path.join(artifacts, 'illustslide-roundtrip.illustslide.zip'); await zipDownload.saveAs(zipPath); const zip = await fs.readFile(zipPath); assert(zip.length > 100, 'ZIP export has contents');
+    const beforeOpen = await page.evaluate(() => IlapoEditor.getDocuments().length);
     await page.locator('#file-input').setInputFiles({ name: 'roundtrip.ilapo.zip', mimeType: 'application/zip', buffer: zip });
-    if (await page.locator('#replace-discard').isVisible()) await page.locator('#replace-discard').click();
+    await page.waitForFunction(count => IlapoEditor.getDocuments().length === count + 1, beforeOpen);
     await page.waitForFunction(() => IlapoEditor.getDocument().pages.length >= 3);
 
     for (const width of [1280, 736, 390]) { await page.setViewportSize({ width, height: 736 }); await setAppearance(page, {theme:'dark', size:'xlarge'}); await openView(page); await inspectorSubmit(page); assert(await page.locator('#inspector-panel').isVisible(), `${width}px keeps the view inspector available`); assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), true, `${width}px has no document horizontal overflow`); await inspectorClose(page); }

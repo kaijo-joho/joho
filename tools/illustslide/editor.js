@@ -42,11 +42,11 @@
   const names = {rect:'長方形',roundrect:'角丸',ellipse:'楕円',triangle:'三角形',pentagon:'五角形',diamond:'菱形',parallelogram:'平行四辺形',arrow:'太い矢印',callout:'吹き出し',line:'線',connector:'接続矢印','connector-orthogonal':'カギ型矢印',text:'文字',direct:'点を編集',select:'選択',pan:'移動'};
   document.querySelectorAll('[data-icon]').forEach(el => el.insertAdjacentHTML('afterbegin',icon(el.dataset.icon)));
   $('shape-tools').innerHTML = Object.keys(names).filter(k=>!['direct','select','pan'].includes(k)).map(k=>`<button data-tool="${k}" aria-label="${names[k]}を追加" data-tip="${names[k]}を追加">${icon(k)}<span>${names[k]}</span></button>`).join('');
-  if (!C || !L || !S || !G || !E || !K || !A || !Guides || !Grid || !Arrange || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector || !window.IlapoPagesUI || !window.IlapoObjectsUI || !window.IlapoObjectsModel || !window.IlapoAssetsUI || !window.IlapoTextUI || !window.IlapoTextLayout || !window.IlapoOutline || !window.IlapoOutlineUI || !window.IlapoStrokeOutline || !window.IlapoTextOutline) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
+  if (!window.IlapoDocumentStore || !window.IlapoDocumentWorkspace || !window.IlapoDocumentTabs || !C || !L || !S || !G || !E || !K || !A || !Guides || !Grid || !Arrange || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector || !window.IlapoPagesUI || !window.IlapoObjectsUI || !window.IlapoObjectsModel || !window.IlapoAssetsUI || !window.IlapoTextUI || !window.IlapoTextLayout || !window.IlapoOutline || !window.IlapoOutlineUI || !window.IlapoStrokeOutline || !window.IlapoTextOutline) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
   const initial=C.createDocument(); initial.name='無題の作品'; initial.pages[0].board=C.boardPreset('16:9');
-  const history=new C.History(initial);
+  let history,activeSession,workspace,tabsUI;
   let pageId=initial.pages[0].id, selected=[], tool='select', drag=null, preview=null, clipboard=null, copiedStyle=null;
-  let camera={x:0,y:0,width:1280,height:720}, saveTimer, saveFingerprint=JSON.stringify(initial), edited=false, store, localAuto, help, space=false, renderPending=false, writeInProgress=false;
+  let camera={x:0,y:0,width:1280,height:720}, store, help, space=false, renderPending=false;
   let pathUI,connectionUI,animationUI,pagesUI,objectsUI,assetsUI,textUI,outlineUI,library,inspector,inspectorPreview=null,revision=0;
   let hoverPreview,hoverState=null,hoverInvalidated=false,hoverEpoch=0;
   let arrangeReference='object',arrangeKey=null,arrangeSelectionKey='';
@@ -57,13 +57,17 @@
   if(!['auto','light','dark'].includes(settings.theme))settings.theme='auto';
   if(!['standard','large','xlarge'].includes(settings.size))settings.size='standard';
   if(!Number.isFinite(Number(settings.gridStep))||Number(settings.gridStep)<.01||Number(settings.gridStep)>10000)settings.gridStep=20;
-  try { store=new C.Store(localStorage); } catch (_) { store=null; }
+  try { store=new window.IlapoDocumentStore(localStorage); } catch (_) { store=null; }
   try { library=A.createLibrary(localStorage); } catch (_) { library=null; }
+  workspace=new window.IlapoDocumentWorkspace({store,encode:S.encodeProject,download,
+    getPicker:()=>typeof window.showSaveFilePicker==='function'?options=>window.showSaveFilePicker(options):null,
+    onChange:()=>render(),onNotice:(session,message)=>toast((session===activeSession?'':session.history.document.name+'：')+message)});
+  activeSession=workspace.add(initial);history=activeSession.history;
   const doc=()=>history.document;
   const page=()=>doc().pages.find(p=>p.id===pageId)||doc().pages[0];
   const drawPage=()=>preview||inspectorPreview||page();
   const activeLayers=new Map();
-  const layerScope=(p=page())=>doc().id+'|'+p.id;
+  const layerScope=(p=page())=>activeSession.id+'|'+p.id;
   const isVisible=(object,p=page())=>L.visible(p,object);
   const isLocked=(object,p=page())=>L.locked(p,object);
   function activeLayer(p=page()) {
@@ -80,7 +84,7 @@
     toast('「レイヤー」で追加先のレイヤーを表示し、固定を解除してください。');return false;
   }
   const snapshot=()=>JSON.stringify(doc());
-  const dirty=()=>edited&&snapshot()!==saveFingerprint;
+  const dirty=()=>workspace.dirty(activeSession);
   function toast(message) { $('toast').textContent=message; $('toast').hidden=false; clearTimeout(toast.timer); toast.timer=setTimeout(()=>$('toast').hidden=true,6000); }
   function errorMessage(error) {
     console.error(error);const message=error?.message||String(error);
@@ -126,22 +130,13 @@
   function editable() { if(!selected.length)return false; if(!allUnlocked()){toast('固定された図形を含むため、先に固定を解除してください。');return false;} return true; }
   function change(fn) {
     const before=snapshot(), previous=doc();
-    try { history.change(d=>{fn(d);d.pages.forEach(p=>{L.reconcile(p,previous.pages.find(v=>v.id===p.id),activeLayer(p));K.sync(p);});},{group:inspector?.changeGroup}); pageId=page().id; selected=selected.filter(id=>page().objects.some(o=>o.id===id&&isVisible(o))); if(before!==snapshot()){revision++;edited=true;queueSave();} render(); return before!==snapshot(); }
+    try { history.change(d=>{fn(d);d.pages.forEach(p=>{L.reconcile(p,previous.pages.find(v=>v.id===p.id),activeLayer(p));K.sync(p);});},{group:inspector?.changeGroup}); pageId=page().id; selected=selected.filter(id=>page().objects.some(o=>o.id===id&&isVisible(o))); if(before!==snapshot()){revision++;queueSave();} render(); return before!==snapshot(); }
     catch(error){toast(errorMessage(error));render();return false;}
   }
   const changePage=fn=>change(d=>fn(d.pages.find(p=>p.id===pageId)));
-  function queueSave() {
-    clearTimeout(saveTimer); $('save-status').textContent='変更あり';
-    saveTimer=setTimeout(()=>{
-      try { if(!store)throw Error('ブラウザ保存が利用できません');store.save(doc(),'auto'); $('save-status').textContent=dirty()?'自動保存済み · 明示保存後に変更':'自動保存済み'; }
-      catch(error){$('save-status').textContent='自動保存に失敗';toast('ブラウザへの自動保存に失敗しました。「保存」からローカルファイルへ保存できます。');}
-      localAuto?.schedule(doc());
-    },450);
-  }
-  function saveBrowser() {
-    try { if(!store)throw Error('ブラウザ保存を利用できません。ローカル保存を使ってください。');store.save(doc(),'saved');saveFingerprint=snapshot();$('save-status').textContent='ブラウザに明示保存済み';toast('ブラウザに保存しました。自動保存とは別に保持します。');return true; }
-    catch(error){toast(errorMessage(error));return false;}
-  }
+  function queueSave(){workspace.changed(activeSession);}
+  function saveBrowser(){return workspace.saveBrowser(activeSession);}
+  function saveLocal(){return workspace.saveLocal(activeSession);}
   function render() {
     hoverInvalidated=true;
     if(renderPending)return; renderPending=true;requestAnimationFrame(()=>{renderPending=false;renderNow();});
@@ -198,7 +193,9 @@
     $('welcome').hidden=p.objects.some(o=>isVisible(o,p))||!!drag; $('selection-bar').hidden=!selected.length||!!drag;
     $('selection-count').textContent=pathUI?.count()?pathUI.count()+'点':selected.length+'個';
     renderSelectionActions(p);
-    $('document-title').textContent=doc().name;document.title=doc().name+' — イラストスライド illustSlide';
+    tabsUI?.render(workspace.sessions.map(session=>({id:session.id,name:session.history.document.name,dirty:workspace.dirty(session),saving:session.saving})),activeSession.id);
+    $('save-status').textContent=activeSession.status;
+    document.title=doc().name+' — イラストスライド illustSlide';
     renderInspectorTabs();
     $('page-status').textContent=`${doc().pages.indexOf(page())+1} / ${doc().pages.length} · ${page().name}`;
     $('zoom-value').textContent=(zoom()*100<10?(zoom()*100).toFixed(1):Math.round(zoom()*100))+'%';
@@ -402,7 +399,7 @@
   const menuSurface=element=>element?.closest('#command-menu,.command-submenu');
   const menuItems=surface=>[...surface.querySelectorAll('button:not(:disabled)')].filter(button=>menuSurface(button)===surface);
   const menuContent=surface=>surface.querySelector(':scope > .menu-content');
-  const menuTitle=kind=>({file:'ファイル',select:'選択方法',present:'発表',settings:'設定',arrange:'整列','arrange-details':'整列の詳細',order:'重なり順',path:'アンカー・パス','selection-more':tool==='direct'?'その他の編集':'詳細','selection-transform':'変形','selection-combine':'図形の合成','selection-group':'グループ・固定'})[kind]||'メニュー';
+  const menuTitle=kind=>({file:'ファイル',documents:'作品の一覧',select:'選択方法',present:'発表',settings:'設定',arrange:'整列','arrange-details':'整列の詳細',order:'重なり順',path:'アンカー・パス','selection-more':tool==='direct'?'その他の編集':'詳細','selection-transform':'変形','selection-combine':'図形の合成','selection-group':'グループ・固定'})[kind]||'メニュー';
   const caret=direction=>`<span class="menu-caret" aria-hidden="true">${direction==='right'?'▶':'▼'}</span>`;
   function closeSubmenus(from=0,focus=false){
     const removed=submenus.splice(from),opener=removed[0]?.opener;
@@ -438,13 +435,13 @@
   }
   const actionIcons={'path-union':'union','path-subtract':'subtract','path-intersect':'intersect','anchor-add':'anchor-add','anchor-position':'anchor-position','anchor-corner':'anchor-corner','anchor-smooth':'anchor-smooth','selection-path':'path',outline:'outline',transform:'transform',copy:'copy',paste:'paste',duplicate:'duplicate',delete:'delete',group:'group',ungroup:'ungroup',lock:'lock','style-copy':'brush','style-paste':'paste','text-edit':'text','component-save':'group','connection-between':'connector','connection-convert':'path','selection-arrange':'arrange','selection-order':'layers',animations:'animation'};
   const actionSubmenus={'selection-path':'path','selection-arrange':'arrange','selection-order':'order'};
-  Object.assign(actionIcons,{new:'plus',rename:'edit','save-browser':'save','save-local':'save',recovery:'open','open-file':'open','auto-start':'save','auto-stop':'save','select-all':'select','present-start':'animation','present-current':'animation'});
+  Object.assign(actionIcons,{new:'plus',save:'save','compact-select':'select',rename:'edit','save-browser':'save','save-local':'save',recovery:'open','open-file':'open','auto-start':'save','auto-stop':'save','select-all':'select','present-start':'animation','present-current':'animation'});
   function menuButton(label,action,disabled=false){
     const name=actionIcons[action]||(icons[action]?action:action.startsWith('order-')?'layers':null),child=actionSubmenus[action];
     return `<button data-action="${action}" ${child?`data-submenu="${child}" aria-haspopup="true" aria-expanded="false"`:''} ${disabled?'disabled':''}>${name?icon(name):''}<span>${label}</span>${child?caret('right'):''}</button>`;
   }
   function syncArrangeSelection(){
-    const signature=JSON.stringify([doc().id,page().id,selected]);
+    const signature=JSON.stringify([activeSession.id,page().id,selected]);
     if(signature!==arrangeSelectionKey){arrangeKey=null;arrangeSelectionKey=signature;}
   }
   function arrangeContext(){
@@ -497,8 +494,10 @@
     const menus={
       file:()=>{
         const historyMenu=!document.querySelector('.top [data-action="undo"]').getClientRects().length?'<hr>'+menuButton('元に戻す','undo',!history.canUndo)+menuButton('やり直し','redo',!history.canRedo):'';
-        return menuButton('新しい作品…','new')+menuButton('作品名を変更…','rename')+'<hr>'+menuButton('ブラウザに保存','save-browser')+menuButton('ローカルファイルに保存…','save-local')+'<hr>'+menuButton('ブラウザの保存内容を選ぶ…','recovery')+menuButton('ファイルを開く…','open-file')+'<hr>'+menuButton(localAuto?.active?'ローカル自動保存を停止':'ローカル自動保存を開始…',localAuto?.active?'auto-stop':'auto-start')+historyMenu;
+        const compact=!$('present-button').getClientRects().length?'<hr>'+menuButton('選択方法','compact-select')+menuButton('先頭から発表','present-start')+menuButton('このページから発表','present-current'):'';
+        return menuButton('新しい作品','new')+menuButton('作品名を変更…','rename')+'<hr>'+menuButton('保存 ⌘S','save',activeSession.saving)+menuButton('ブラウザに保存','save-browser',activeSession.saving)+menuButton('ローカルファイルに保存…','save-local',activeSession.saving)+'<hr>'+menuButton('ブラウザの保存内容を選ぶ…','recovery')+menuButton('ファイルを開く…','open-file')+'<hr>'+menuButton(activeSession.localAuto.active?'ローカル自動保存を停止':'ローカル自動保存を開始…',activeSession.localAuto.active?'auto-stop':'auto-start',activeSession.autoStarting)+historyMenu+compact;
       },
+      documents:()=>workspace.sessions.map(session=>`<button data-document-pick="${esc(session.id)}" aria-current="${session===activeSession}">${icon('file')}<span>${esc(session.history.document.name)}${workspace.dirty(session)?' •':''}${session.saving?'（保存中）':''}</span></button>`).join('')+'<hr>'+menuButton('新しい作品','new'),
       select:()=>['select','pan'].map(key=>`<button data-tool="${key}" aria-pressed="${key==='select'?selecting():tool===key}">${icon(key)}<span>${key==='select'?'選択（内側は全体・頂点は点）':'表示を移動'}</span></button>`).join('')+'<hr>'+menuButton('すべて選択','select-all',!page().objects.length),
       settings:()=>`<div class="appearance-settings"><h3>テーマ</h3><div class="appearance-choices" role="group" aria-label="テーマ">${[['auto','自動'],['light','ライト'],['dark','ダーク']].map(([value,label])=>`<button type="button" data-theme-choice="${value}" aria-label="${label}" aria-pressed="${settings.theme===value}" data-tip="${value==='auto'?'端末の設定に合わせる':label+'モード'}">${icon('theme-'+value)}<span>${label}</span></button>`).join('')}</div><h3>操作部の文字サイズ</h3><div class="appearance-choices" role="group" aria-label="操作部の文字サイズ">${[['standard','標準'],['large','大'],['xlarge','特大']].map(([value,label])=>`<button type="button" data-ui-size="${value}" aria-pressed="${settings.size===value}"><span>${label}</span></button>`).join('')}</div></div>`,
       present:()=>menuButton('先頭から発表','present-start')+menuButton('このページから発表','present-current'),
@@ -596,19 +595,20 @@
   });
   document.addEventListener('keydown',event=>{
     if(event.key!=='Escape'||!$('command-menu').matches(':popover-open'))return;
+    if(hoverMenu&&inspector?.root.contains(event.target)){hideMenu();return;}
     event.preventDefault();event.stopPropagation();
     if(submenus.length){closeSubmenus(submenus.length-1,true);return;}
     const focus=$('command-menu').contains(document.activeElement)||!hoverMenu;ignoredHover=menuOpener?.matches(':hover')?menuOpener:null;hideMenu();if(focus)menuOpener?.focus();
   },true);
-  let dialogOpener,dialogCallback;
-  function closeDialog(){if($('dialog').open)$('dialog').close();if(dialogOpener?.isConnected)dialogOpener.focus();else $('canvas').focus();}
-  function showDialog(title,html,label,callback){if(inspectorPreview)inspector.reset();const focused=document.activeElement,opener=$('dialog').contains(focused)?dialogOpener:$('command-menu').contains(focused)?menuOpener:focused;hideMenu();if($('dialog').open)$('dialog').close();dialogOpener=opener;$('dialog-title').textContent=title;$('dialog-body').innerHTML=html;$('dialog-error').hidden=true;$('dialog-submit').textContent=label||'適用';$('dialog-submit').hidden=!label;dialogCallback=callback;$('dialog').showModal();}
+  let dialogOpener,dialogCallback,dialogGeneration=0;
+  function closeDialog(){dialogGeneration++;if($('dialog').open)$('dialog').close();if(dialogOpener?.isConnected)dialogOpener.focus();else $('canvas').focus();}
+  function showDialog(title,html,label,callback){dialogGeneration++;if(inspectorPreview)inspector.reset();const focused=document.activeElement,opener=$('dialog').contains(focused)?dialogOpener:$('command-menu').contains(focused)?menuOpener:focused;hideMenu();if($('dialog').open)$('dialog').close();dialogOpener=opener;$('dialog-title').textContent=title;$('dialog-body').innerHTML=html;$('dialog-error').hidden=true;$('dialog-submit').textContent=label||'適用';$('dialog-submit').hidden=!label;dialogCallback=callback;$('dialog').showModal();}
   $('dialog-close').onclick=$('dialog-cancel').onclick=closeDialog;
-  $('dialog').addEventListener('cancel',()=>{setTimeout(()=>dialogOpener?.focus(),0);});
+  $('dialog').addEventListener('cancel',()=>{dialogGeneration++;setTimeout(()=>dialogOpener?.focus(),0);});
   $('dialog-form').onsubmit=async event=>{event.preventDefault();if(!dialogCallback){closeDialog();return;}const cb=dialogCallback;try{const result=cb();if(result?.then)await result;if(dialogCallback===cb)closeDialog();}catch(error){$('dialog-error').textContent=error.message;$('dialog-error').hidden=false;}};
   const inspectorSections={outline:['アウトライン化','outline'],text:['文字・配置','text'],style:['書式・色','style'],transform:['位置・大きさ','transform'],anchor:['アンカーの座標','path'],connection:['接続・経路','connector'],image:['画像の設定','image'],animation:['動きと再生順序','animation'],board:['用紙サイズ','board'],view:['表示と吸着','view'],pages:['ページ一覧','pages'],objects:['レイヤー','layers'],assets:['アイコン・部品','assets']};
   let inspectorTabsKey='';
-  function inspectorScope(section){const {theme,size,...canvasSettings}=settings;return JSON.stringify([revision,doc().id,pageId,['pages','board','view'].includes(section)?null:selected,section==='objects'?activeLayer():null,section==='anchor'?pathUI.getRefs():null,section==='view'?canvasSettings:null]);}
+  function inspectorScope(section){const {theme,size,...canvasSettings}=settings;return JSON.stringify([revision,activeSession.id,doc().id,pageId,['pages','board','view'].includes(section)?null:selected,section==='objects'?activeLayer():null,section==='anchor'?pathUI.getRefs():null,section==='view'?canvasSettings:null]);}
   function clearInspectorPreview(){if(inspectorPreview){inspectorPreview=null;render();}}
   function previewInspectorChange(fn){
     const next=C.clone(doc()),p=next.pages.find(v=>v.id===pageId);fn(p);L.reconcile(p,page(),activeLayer());K.sync(p);C.pruneAnimations(p);
@@ -647,37 +647,103 @@
     ({outline:()=>outlineUI.open(),text:()=>textUI.open(one),style:styleDialog,transform:transformDialog,board:boardDialog,view:viewDialog,image:imageDialog,connection:()=>connectionUI.dialog(),anchor:()=>pathUI.commands['anchor-position'](),animation:()=>animationUI.list(),pages:()=>pagesUI.open(),objects:()=>objectsUI.open(),assets:()=>assetsUI.open()})[section]?.();
   }
   function renameDialog(){showDialog('作品名',`<label>名前<input id="name-input" value="${esc(doc().name)}" maxlength="120" required></label>`,'変更',()=>{const name=$('name-input').value.trim();if(!name)throw Error('名前を入力してください。');change(d=>d.name=name);});}
-  function checkReplace(next){
-    if(!dirty()){next();return;}
-    showDialog('作業中の変更を保存', '<p>今の作品には明示保存していない変更があります。</p><div class="list-actions"><button type="button" id="replace-save" class="primary">保存して開く</button><button type="button" id="replace-discard">保存せず開く</button></div>',null);
-    $('replace-save').onclick=()=>{if(saveBrowser()){closeDialog();next();}};$('replace-discard').onclick=()=>{closeDialog();next();};
+  let switchGeneration=0;
+  async function finishTextInput(){
+    if(document.querySelector('[data-rich-composing="true"]')){toast('日本語の変換を確定してから作品を切り替えてください。');return false;}
+    if(document.activeElement?.matches('input,textarea,select,[contenteditable=true]'))document.activeElement.blur();
+    await Promise.resolve();return true;
   }
-  function replaceDocument(value){objectsUI?.cancelDrag();textUI?.cancelDraft();clearInspectorPreview();revision++;pathUI.reset();connectionUI.reset();const checked=C.validateDocument(value);checked.pages.forEach(p=>K.sync(p));history.replace(checked);pageId=doc().pages[0].id;selected=[];if(selecting())tool='select';edited=false;saveFingerprint=snapshot();clearTimeout(saveTimer);clearTimeout(toast.timer);$('toast').hidden=true;localAuto?.stop();$('save-status').textContent='読み込みました';fit();}
+  async function selectDocument(id){
+    const next=workspace.sessions.find(session=>session.id===id);if(!next||next===activeSession)return;
+    const generation=++switchGeneration;
+    if(!await finishTextInput()||generation!==switchGeneration||next.closed)return;
+    const previous=activeSession;
+    cancelDrag();objectsUI?.cancelDrag();
+    if(!previous.closed){
+      previous.pageId=pageId;previous.selected=selected.slice();previous.tool=tool==='direct'?'select':tool;
+      previous.view={camera:{...camera},zoom:zoom()};workspace.flush(previous);
+    }
+    textUI?.cancelDraft();inspector.close({focus:false});clearInspectorPreview();pathUI.reset();connectionUI.reset();
+    hideMenu();closePalette(false);$('export-panel').hidden=true;space=false;revision++;
+    activeSession=next;history=next.history;pageId=next.pageId;selected=next.selected.slice();tool=next.tool;
+    if(next.view){const old=next.view.camera,z=next.view.zoom,width=$('canvas').clientWidth/z,height=$('canvas').clientHeight/z;camera={x:old.x+old.width/2-width/2,y:old.y+old.height/2-height/2,width,height};render();}else fit();
+    renderNow();tabsUI.reveal(next.id);
+  }
+  function newDocument(){const value=C.createDocument();value.name='無題の作品';value.pages[0].board=C.boardPreset('16:9');return openDocument(value,{status:'新しい作品'});}
+  async function openDocument(value,options={}){
+    if(!await finishTextInput())return;
+    const checked=C.validateDocument(value);checked.pages.forEach(p=>K.sync(p));
+    const session=workspace.add(checked,{status:'読み込みました',...options});await selectDocument(session.id);return session;
+  }
+  function closeDocument(session){
+    const index=workspace.sessions.indexOf(session),wasActive=session===activeSession;
+    if(!workspace.close(session))return;
+    if(wasActive){const next=workspace.sessions[Math.min(index,workspace.sessions.length-1)];if(next)selectDocument(next.id);else newDocument();}
+    else {render();tabsUI.reveal(activeSession.id);}
+  }
+  function saveDestinationDialog(session,closing=false){
+    const last=session.lastSave;
+    showDialog(closing?'作品を閉じる':'作品を保存',`<p>「${esc(session.history.document.name)}」${closing?'には明示保存していない変更があります。':'の保存先を選んでください。'}</p>
+      ${closing?'<div class="list-actions"><button type="button" id="document-close-save" class="primary">保存して閉じる</button><button type="button" id="document-close-discard">保存せずに閉じる</button></div>':''}
+      <div id="document-destinations" ${closing?'hidden':''}><p>保存先</p><div class="list-actions"><button type="button" id="document-save-browser">ブラウザに保存${closing?'して閉じる':''}</button><button type="button" id="document-save-local">ローカルに保存${closing?'して閉じる':''}…</button></div></div>`,null);
+    const generation=dialogGeneration;
+    const report=message=>{$('dialog-error').textContent=message;$('dialog-error').hidden=false;};
+    const save=async kind=>{
+      $('dialog-body').querySelectorAll('button').forEach(button=>button.disabled=true);
+      const ok=kind==='browser'?workspace.saveBrowser(session):await workspace.saveLocal(session,kind==='last');
+      if(dialogGeneration!==generation||!$('dialog').open)return;
+      $('dialog-body').querySelectorAll('button').forEach(button=>button.disabled=false);
+      if(ok&&(!closing||!workspace.dirty(session))){closeDialog();if(closing)closeDocument(session);}
+      else {report(ok?'保存中に追加の変更がありました。もう一度保存してから閉じてください。':'保存を完了していません。作品は開いたままです。保存先を選び直すかキャンセルできます。');$('document-destinations').hidden=false;}
+    };
+    $('document-save-browser').onclick=()=>save('browser');$('document-save-local').onclick=()=>save('local');
+    if(closing){
+      $('document-close-save').onclick=()=>{if(last)save(last.kind==='browser'?'browser':'last');else{$('document-destinations').hidden=false;$('document-save-browser').focus();}};
+      $('document-close-discard').onclick=()=>{closeDialog();closeDocument(session);};
+    }
+  }
+  async function requestClose(id){
+    const session=workspace.sessions.find(s=>s.id===id);if(!session||!await finishTextInput())return;
+    if(session.saving||session.autoStarting){toast('保存処理が終わってから、この作品を閉じてください。');return;}
+    if(workspace.dirty(session))saveDestinationDialog(session,true);else closeDocument(session);
+  }
+  function saveDocument(){
+    if(document.querySelector('[data-rich-composing="true"]')){toast('日本語の変換を確定してから保存してください。');return;}
+    const session=activeSession;
+    if(session.saving){toast('この作品を保存しています。');return;}
+    if(session.lastSave?.kind==='browser')return workspace.saveBrowser(session);
+    if(session.lastSave?.kind==='local')return workspace.saveLocal(session,true);
+    saveDestinationDialog(session);
+  }
+  function recoveryEntries(){try{return store?.list()||[];}catch(error){toast('ブラウザの保存内容を読み出せませんでした。ローカルファイルも開けます。');return [];}}
   function recoveryDialog(){
-    const entries=store?.list()||[];
-    showDialog('保存した内容を選ぶ',entries.length?'<p>開かなかった保存内容も保持されます。</p>'+entries.map((e,i)=>`<button type="button" class="recovery" data-recovery="${i}"><strong>${esc(e.document.name)}</strong> — ${e.kind==='auto'?'自動保存':'明示保存'}<small>ブラウザ内 · ${esc(new Date(e.at).toLocaleString('ja-JP'))} · ${e.document.pages.length}ページ</small></button>`).join(''):'<p>ブラウザ内に保存候補がありません。ローカルの作品は「ファイルを開く」から選べます。</p>',null);
-    $('dialog-body').querySelectorAll('[data-recovery]').forEach(b=>b.onclick=()=>{const value=entries[Number(b.dataset.recovery)].document;closeDialog();checkReplace(()=>replaceDocument(value));});
+    const entries=recoveryEntries();
+    showDialog('保存した内容を選ぶ',entries.length?'<p>選んだ内容を新しい作品タブで開きます。他の保存内容も保持します。</p>'+entries.map((e,i)=>`<button type="button" class="recovery" data-recovery="${i}"><strong>${esc(e.document.name)}</strong> — ${e.kind==='auto'?'自動保存':'明示保存'}<small>ブラウザ内 · ${esc(new Date(e.at).toLocaleString('ja-JP'))} · ${e.document.pages.length}ページ</small></button>`).join(''):'<p>ブラウザ内に保存候補がありません。ローカルの作品は「ファイルを開く」から選べます。</p>',null);
+    $('dialog-body').querySelectorAll('[data-recovery]').forEach(b=>b.onclick=()=>{
+      const entry=entries[Number(b.dataset.recovery)],saved=entries.find(e=>e.kind==='saved'&&e.storageId===entry.storageId),fingerprint=saved?JSON.stringify(saved.document):null;
+      closeDialog();openDocument(entry.document,{storageId:entry.storageId,edited:entry.kind==='auto',savedFingerprint:entry.kind==='saved'?JSON.stringify(entry.document):fingerprint,lastSave:saved?{kind:'browser'}:null});
+    });
   }
   function fileName(name,suffix){return (name.replace(/[\x00-\x1f<>:"/\\|?*]/g,'_').slice(0,100)||'作品')+suffix;}
   function download(data,name,type){const url=URL.createObjectURL(new Blob([data],{type})),a=document.createElement('a');a.href=url;a.download=name;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),10000);}
-  async function saveLocal(){
-    const frozen=C.clone(doc()),fingerprint=JSON.stringify(frozen);writeInProgress=true;
-    try{
-      if(window.showSaveFilePicker){const handle=await showSaveFilePicker({suggestedName:fileName(frozen.name,'.illustslide.zip'),types:[{description:'イラストスライドの作品',accept:{'application/zip':['.zip']}}]});await localAuto?.protect(handle);const bytes=await S.encodeProject(frozen);const writer=await handle.createWritable();try{await writer.write(bytes);await writer.close();}catch(error){await writer.abort().catch(()=>{});throw error;}await localAuto?.rememberExplicit(handle);}
-      else download(await S.encodeProject(frozen),fileName(frozen.name,'.illustslide.zip'),'application/zip');
-      saveFingerprint=fingerprint;$('save-status').textContent='ローカルに明示保存済み';toast('編集用ファイルを保存しました。');
-    }catch(error){if(error.name!=='AbortError')toast(errorMessage(error));}finally{writeInProgress=false;}
-  }
+  let fileIntent=null;
+  $('file-input').addEventListener('cancel',()=>{fileIntent=null;});
+  function chooseFile(importSVG=false){fileIntent={importSVG,session:activeSession};$('file-input').accept=importSVG?'.svg':'.zip,.json,.svg';$('file-input').click();}
   $('file-input').onchange=async()=>{
-    const file=$('file-input').files[0];$('file-input').value='';if(!file)return;
+    const file=$('file-input').files[0],intent=fileIntent||{importSVG:false,session:activeSession};fileIntent=null;$('file-input').value='';if(!file)return;
     try{
       if(file.size>20*1024*1024)throw Error('読み込めるファイルは20MBまでです。');
       if(/\.svg$/i.test(file.name)){
         const result=S.importSVG(await file.text());result.page.name=file.name.replace(/\.svg$/i,'');
         result.page.id=C.uid('page');const groupIds=new Map();result.page.objects.forEach(o=>{o.id=C.uid('object');if(o.group){if(!groupIds.has(o.group))groupIds.set(o.group,C.uid('group'));o.group=groupIds.get(o.group);}});
-        const insert=()=>{if(change(d=>d.pages.push(result.page))){pageId=result.page.id;selected=[];fit();}};
-        if(result.warnings?.length){showDialog('SVGの読み込み確認',`<p>${esc(result.warnings.join('\n'))}</p>`,'追加',insert);}else insert();
-      }else{const value=/\.json$/i.test(file.name)?C.validateDocument(JSON.parse(await file.text())):await S.decodeProject(new Uint8Array(await file.arrayBuffer()));checkReplace(()=>replaceDocument(value));}
+        const insert=()=>{
+          if(intent.importSVG){
+            if(activeSession!==intent.session||intent.session.closed)throw Error('作品が切り替わったため、SVGをもう一度選んでください。');
+            if(change(d=>d.pages.push(result.page))){pageId=result.page.id;selected=[];fit();}
+          }else{const value=C.createDocument();value.name=result.page.name;value.pages=[result.page];return openDocument(value);}
+        };
+        if(result.warnings?.length){showDialog('SVGの読み込み確認',`<p>${esc(result.warnings.join('\n'))}</p>`,intent.importSVG?'追加':'開く',insert);}else await insert();
+      }else{const value=/\.json$/i.test(file.name)?C.validateDocument(JSON.parse(await file.text())):await S.decodeProject(new Uint8Array(await file.arrayBuffer()));await openDocument(value);}
     }catch(error){toast(errorMessage(error));}
   };
   // 次のブロックに選択時の編集フォームとコマンドをまとめる。
@@ -747,7 +813,7 @@
     const value=key=>patch[key]??first(key),percent=key=>Math.round(value(key)*1000000)/10000;
     const channels=['fill','stroke'].filter(key=>targets(key).length);
     const channelNames={fill:objects.every(o=>o.type==='text')?'文字の塗り':'塗り',stroke:'線'};
-    const channelScope=JSON.stringify([doc().id,pageId,ids]);
+    const channelScope=JSON.stringify([activeSession.id,pageId,ids]);
     let channel=styleChannelScope===channelScope&&channels.includes(styleChannel)?styleChannel:channels[0];
     styleChannelScope=channelScope;styleChannel=channel;
     const numeric=(key,label,min=0,max='')=>`<label>${label}<input id="style-${key}" data-style="${key}" type="number" min="${min}" ${max!==''?`max="${max}"`:''} step="any" ${mixed(key)?'placeholder="混在"':`required value="${key.endsWith('Opacity')||key==='opacity'?percent(key):value(key)}"`}></label>`;
@@ -877,8 +943,8 @@
   function insertionPoint(size=standardSize()){return {x:camera.x+camera.width/2-size/2,y:camera.y+camera.height/2-size/2,size};}
   function insertObjects(objects){if(!canInsert())return;if(changePage(p=>p.objects.push(...objects))){selected=objects.map(o=>o.id);setTool('select');}}
   $('image-input').onchange=async()=>{
-    const file=$('image-input').files[0];$('image-input').value='';if(!file||!canInsert())return;const targetDoc=doc().id,targetPage=pageId,targetLayer=activeLayer(),center={x:camera.x+camera.width/2,y:camera.y+camera.height/2},board=C.clone(page().board);
-    try{const image=await A.imageFromFile(file,{maxWidth:board.width*.8,maxHeight:board.height*.8});image.x=center.x-image.width/2;image.y=center.y-image.height/2;if(doc().id!==targetDoc||!doc().pages.some(p=>p.id===targetPage))throw Error('作品が切り替わったため、画像をもう一度選んでください。');if(change(d=>{const p=d.pages.find(p=>p.id===targetPage),layer=L.list(p).find(l=>l.id===targetLayer);if(!layer||!layer.visible||layer.locked)throw Error('下絵の追加先レイヤーを表示し、固定を解除してください。');p.objects.unshift(image);if(p.layers)layer.objectIds.unshift(image.id);})){pageId=targetPage;selected=[image.id];setTool('select');toast('下絵を追加しました。位置は固定、書き出し・発表では非表示です。「画像の設定」で変更できます。');}}catch(error){toast(errorMessage(error));}
+    const file=$('image-input').files[0];$('image-input').value='';if(!file||!canInsert())return;const targetSession=activeSession,targetPage=pageId,targetLayer=activeLayer(),center={x:camera.x+camera.width/2,y:camera.y+camera.height/2},board=C.clone(page().board);
+    try{const image=await A.imageFromFile(file,{maxWidth:board.width*.8,maxHeight:board.height*.8});image.x=center.x-image.width/2;image.y=center.y-image.height/2;if(activeSession!==targetSession||!doc().pages.some(p=>p.id===targetPage))throw Error('作品が切り替わったため、画像をもう一度選んでください。');if(change(d=>{const p=d.pages.find(p=>p.id===targetPage),layer=L.list(p).find(l=>l.id===targetLayer);if(!layer||!layer.visible||layer.locked)throw Error('下絵の追加先レイヤーを表示し、固定を解除してください。');p.objects.unshift(image);if(p.layers)layer.objectIds.unshift(image.id);})){pageId=targetPage;selected=[image.id];setTool('select');toast('下絵を追加しました。位置は固定、書き出し・発表では非表示です。「画像の設定」で変更できます。');}}catch(error){toast(errorMessage(error));}
   };
   function imageDialog(){
     const o=page().objects.find(o=>o.id===selected[0]&&o.type==='image');if(!o||selected.length!==1)return;
@@ -896,7 +962,7 @@
   function moveHistory(redo,keepSelection=false){
     if(!(redo?history.canRedo:history.canUndo))return;
     clearInspectorPreview();revision++;history[redo?'redo':'undo']();pageId=page().id;
-    selected=keepSelection?selected.filter(id=>page().objects.some(o=>o.id===id&&isVisible(o))):[];if(!selected.length)clearSelection();edited=true;queueSave();render();
+    selected=keepSelection?selected.filter(id=>page().objects.some(o=>o.id===id&&isVisible(o))):[];if(!selected.length)clearSelection();queueSave();render();
   }
   const commands={
     animations:()=>openInspectorSection('animation'),'animation-add':()=>animationUI.edit(),'export-playback':exportPlayback,
@@ -904,9 +970,9 @@
     'connection-tool':()=>setTool('connector'),'connection-orthogonal-tool':()=>setTool('connector-orthogonal'),'connection-options':()=>openInspectorSection('connection'),'connection-between':()=>connectionUI.addBetween(),'connection-convert':()=>connectionUI.convert(),
     'present-start':()=>present(true),'present-current':()=>present(false),
     rename:renameDialog,artboard:()=>openInspectorSection('board'),pages:()=>openInspectorSection('pages'),objects:()=>openInspectorSection('objects'),transform:()=>openInspectorSection('transform'),style:()=>openInspectorSection('style'),'view-dialog':()=>openInspectorSection('view'),
-    'save-browser':saveBrowser,'save-local':saveLocal,recovery:recoveryDialog,'open-file':()=>{$('file-input').accept='.zip,.json,.svg';$('file-input').click();},'import-svg':()=>{$('file-input').accept='.svg';$('file-input').click();},
-    new:()=>checkReplace(()=>{const d=C.createDocument();d.name='無題の作品';d.pages[0].board=C.boardPreset('16:9');replaceDocument(d);$('save-status').textContent='新しい作品';}),
-    'auto-start':async()=>{if(!localAuto){toast('ローカル自動保存を利用できません。');return;}try{await localAuto.start(doc());}catch(error){if(error.name!=='AbortError')toast(errorMessage(error));}},'auto-stop':()=>localAuto?.stop(),
+    save:saveDocument,'save-browser':saveBrowser,'save-local':saveLocal,recovery:recoveryDialog,'open-file':()=>chooseFile(),'import-svg':()=>chooseFile(true),
+    new:newDocument,'compact-select':()=>openMenu('select',$('file-button')),
+    'auto-start':()=>workspace.startAutosave(activeSession),'auto-stop':()=>{activeSession.localAuto.stop();render();},
     undo:()=>moveHistory(false),redo:()=>moveHistory(true),
     'select-all':()=>selection(page().objects.map(o=>o.id)),copy,paste,duplicate:()=>{if(!selected.length)return;let ids;if(changePage(p=>ids=C.duplicateObjects(p,selected,standardSize()*.12,standardSize()*.12)))selected=ids;render();},
     delete:()=>{if(editable())changePage(p=>C.removeObjects(p,selected));},group:()=>{if(editable())changePage(p=>C.groupObjects(p,selected));},ungroup:()=>{if(editable())changePage(p=>C.ungroupObjects(p,selected));},
@@ -929,14 +995,17 @@
   };
   function toggleInspector(section){if(inspector.isOpen&&inspector.section===section)inspector.close();else openInspectorSection(section);}
   function execute(action){hideMenu();closePalette(false);objectsUI?.cancelDrag();if(inspectorPreview)inspector.reset();cancelDrag();try{if(action.startsWith('align-'))align(action.slice(6));else if(action.startsWith('order-')){if(editable())changePage(p=>C.reorderObjects(p,selected,action.slice(6)));}else if(pathUI.commands[action])pathUI.commands[action]();else {const result=commands[action]?.();if(result?.catch)result.catch(error=>toast(errorMessage(error)));}}catch(error){toast(errorMessage(error));}}
-  document.addEventListener('click',event=>{const button=event.target.closest('button');if(!button||button.disabled)return;if(button.dataset.inspectorSection)openInspectorSection(button.dataset.inspectorSection);else if(button.dataset.tool)setTool(button.dataset.tool);else if(button.dataset.menu)openMenu(button.dataset.menu,button);else if(button.dataset.submenu)openSubmenu(button);else if(button.dataset.action)execute(button.dataset.action);});
+  document.addEventListener('click',event=>{const button=event.target.closest('button');if(!button||button.disabled)return;if(button.dataset.documentPick){hideMenu();selectDocument(button.dataset.documentPick);}else if(button.dataset.inspectorSection)openInspectorSection(button.dataset.inspectorSection);else if(button.dataset.tool)setTool(button.dataset.tool);else if(button.dataset.menu)openMenu(button.dataset.menu,button);else if(button.dataset.submenu)openSubmenu(button);else if(button.dataset.action)execute(button.dataset.action);});
+  document.addEventListener('keydown',event=>{
+    if((event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='s'&&!event.isComposing&&!$('dialog').open&&!event.target.closest('.ilapo-present-dialog')){event.preventDefault();event.stopImmediatePropagation();saveDocument();}
+  },true);
   document.addEventListener('keydown',event=>{
     if(inspector?.root.contains(event.target)||help?.root.contains(event.target)||event.isComposing||event.target.closest('input,textarea,select,[contenteditable=true],.ilapo-present-dialog')||$('dialog').open)return;
     if(['Alt','Shift'].includes(event.key)&&drag?.lastPoint){updateSelectionDrag(drag.lastPoint,event);render();}
     if(event.key==='Escape'){if(drag)cancelDrag();else if($('command-menu').matches(':popover-open')){hideMenu();menuOpener?.focus();}else if(!connectionUI.keyboard(event)&&!pathUI.keyboard(event)){clearSelection();}space=false;render();return;}
     const mod=event.metaKey||event.ctrlKey,key=event.key.toLowerCase();
-    if(mod){const map={s:'save-browser',o:'recovery',z:event.shiftKey?'redo':'undo',a:'select-all',c:'copy',v:'paste',d:'duplicate'};if(map[key]){event.preventDefault();execute(map[key]);}return;}
-    if(event.target.closest('button')&&[' ','Enter'].includes(event.key))return;
+    if(mod){const map={s:'save',o:'recovery',z:event.shiftKey?'redo':'undo',a:'select-all',c:'copy',v:'paste',d:'duplicate'};if(map[key]){event.preventDefault();execute(map[key]);}return;}
+    if(event.target.closest('#document-tabs')||event.target.closest('button')&&[' ','Enter'].includes(event.key))return;
     if(event.key===' '){event.preventDefault();space=true;render();return;}
     if(connectionUI.keyboard(event)||pathUI.keyboard(event)){event.preventDefault();return;}
     if(event.key==='Delete'||event.key==='Backspace'){event.preventDefault();execute('delete');}
@@ -944,9 +1013,8 @@
     else if(event.key==='?')help?.open();else if(key==='a')setTool('direct');else if(key==='v')setTool('select');else if(key==='h')setTool('pan');else if(key==='t')setTool('text');else if(key==='r')setTool('rect');else if(key==='e')setTool('ellipse');
   });
   document.addEventListener('keyup',event=>{if(['Alt','Shift'].includes(event.key)&&drag?.lastPoint){updateSelectionDrag(drag.lastPoint,event);render();}if(event.key===' '){space=false;render();}});window.addEventListener('blur',()=>{space=false;cancelDrag();});
-  window.addEventListener('beforeunload',event=>{if(dirty()||writeInProgress||localAuto?.pending){event.preventDefault();event.returnValue='';}});
+  window.addEventListener('beforeunload',event=>{if(workspace.pending){event.preventDefault();event.returnValue='';}});
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(settings.theme==='auto')applySettings();});
-  if(window.IlapoLocalAutosave)localAuto=new IlapoLocalAutosave({encode:S.encodeProject,onStatus:status=>{if(status.state==='error')toast('ローカル自動保存を停止しました。'+status.message);else if(status.state==='saved')$('save-status').textContent='ローカルへ自動保存済み';}});
   try{help=window.JohoToolHelp?.create({root:$('operation-help'),opener:$('help-button'),title:'イラストスライドの使い方',storageKey:'kaijo-ilapo:help',bounds:()=>({top:document.querySelector('.top').getBoundingClientRect().bottom+8,bottom:$('stage').getBoundingClientRect().bottom-8}),isBusy:()=>!!drag,returnToEditor:()=>$('canvas').focus()});}catch(error){console.warn('Help unavailable',error);}
   function showTooltip(target){if(!target||target===menuOpener&&$('command-menu').matches(':popover-open')||target.dataset.submenu&&target.getAttribute('aria-expanded')==='true')return;const r=target.getBoundingClientRect();$('tooltip').textContent=target.dataset.tip;$('tooltip').hidden=false;$('tooltip').style.left=Math.max(8,Math.min(r.left,innerWidth-$('tooltip').offsetWidth-8))+'px';$('tooltip').style.top=Math.min(r.bottom+7,innerHeight-$('tooltip').offsetHeight-8)+'px';}
   const hideTooltip=()=>$('tooltip').hidden=true;
@@ -962,6 +1030,7 @@
   pagesUI=window.IlapoPagesUI.create({document:doc,page,selectPage,change,showInspector,showDialog,esc,icon});
   assetsUI=window.IlapoAssetsUI.create({document:doc,page,selected:()=>selected,library,insertionPoint,insertObjects,showInspector,showDialog,isOpen:()=>inspector?.isOpen&&inspector.section==='assets',esc,icon,toast,download});
   inspector=window.IlapoInspector.create({onHistory:redo=>moveHistory(redo,true),onLayout:()=>{render();help?.refresh();},clearPreview:clearInspectorPreview,isBusy:()=>!!drag||objectsUI?.isDragging});
-  window.IlapoEditor=Object.freeze({getAnchors:()=>pathUI.getRefs(),getDocument:()=>C.clone(doc()),getSelection:()=>selected.slice(),getCamera:()=>({...camera}),getState:()=>({tool,dirty:dirty(),pageId,activeLayerId:activeLayer()})});
-  applySettings();requestAnimationFrame(()=>{fit();if(store?.list().length)recoveryDialog();});
+  tabsUI=window.IlapoDocumentTabs.create({root:$('document-tabs'),onSelect:selectDocument,onClose:requestClose});
+  window.IlapoEditor=Object.freeze({getDocuments:()=>workspace.sessions.map(s=>({id:s.id,name:s.history.document.name,storageId:s.storageId,active:s===activeSession,dirty:workspace.dirty(s),saving:s.saving,destination:s.lastSave?.kind||null})),getAnchors:()=>pathUI.getRefs(),getDocument:()=>C.clone(doc()),getSelection:()=>selected.slice(),getCamera:()=>({...camera}),getState:()=>({sessionId:activeSession.id,tool,dirty:dirty(),pageId,activeLayerId:activeLayer()})});
+  applySettings();requestAnimationFrame(()=>{fit();if(recoveryEntries().length)recoveryDialog();});
 }());

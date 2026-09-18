@@ -92,7 +92,7 @@ const bounds = page => page.evaluate(() => IlapoEditor.getDocument().pages[0].ob
     await page.keyboard.press('Escape'); assert.equal(await page.locator('.command-submenu:popover-open').count(),0); assert(await menu.isVisible());
     await page.keyboard.press('Escape'); await page.locator('#selection-more').click();
     await menu.locator('[data-action="selection-order"]').hover(); await page.locator('.command-submenu[data-menu-kind="order"]').waitFor({state:'visible'});
-    await page.locator('#document-title').click(); await settle(page); assert(await menu.isHidden()); assert.equal(await page.locator('.command-submenu').count(),0);
+    await page.locator('#document-workspace [data-document-tab][aria-selected="true"]').click(); await settle(page); assert(await menu.isHidden()); assert.equal(await page.locator('.command-submenu').count(),0);
 
     // 中心を保った各方向の反転と、1操作単位のUndo。
     for (const axis of ['h','v']) {

@@ -70,8 +70,9 @@ async function run(){
     await page.keyboard.press('Escape');assert.deepEqual(await read(),animated);assert.equal(await page.evaluate(()=>document.activeElement.id),'present-button');
     // Explicit/autosave and native ZIP all preserve the exact animation document.
     assert.deepEqual(await page.evaluate(()=>IlapoSVG.decodeProject(IlapoSVG.encodeProject(IlapoEditor.getDocument()))),animated);
-    await page.locator('#canvas').focus();await page.keyboard.press('Meta+s');await page.waitForFunction(()=>localStorage.getItem('kaijo-ilapo:saved'));
-    assert.deepEqual(await page.evaluate(()=>JSON.parse(localStorage.getItem('kaijo-ilapo:saved')).document),animated);
+    await page.locator('#canvas').focus();await page.keyboard.press('Meta+s');await page.locator('#document-destinations').waitFor();await page.locator('#document-save-browser').click();
+    await page.waitForFunction(()=>{const current=IlapoEditor.getDocuments().find(item=>item.active);return current&&new IlapoDocumentStore(localStorage).list().some(entry=>entry.storageId===current.storageId&&entry.kind==='saved');});
+    assert.deepEqual(await page.evaluate(()=>{const current=IlapoEditor.getDocuments().find(item=>item.active);return new IlapoDocumentStore(localStorage).list().find(entry=>entry.storageId===current.storageId&&entry.kind==='saved').document;}),animated);
     await pick('pc');await page.locator('#canvas').focus();await page.keyboard.press('Meta+c');await page.locator('[data-action=pages]').first().click();await page.locator('[data-page-pick="1"]').click();await page.locator('#canvas').focus();await page.keyboard.press('Meta+v');
     await page.waitForFunction(()=>IlapoEditor.getDocument().pages[1].animations?.length===3);const pasted=await read(),copied=pasted.pages[1].objects.at(-1);assert(pasted.pages[1].animations.every(a=>a.targets.length===1&&a.targets[0]===copied.id));
     await page.keyboard.press('Meta+z');await page.waitForFunction(()=>!IlapoEditor.getDocument().pages[1].animations?.length);

@@ -69,7 +69,10 @@ async function close(page) { if (await page.locator('#inspector-panel').isVisibl
     assert.equal(await painted(page, 'a'), '#F59E0B', '色はすぐキャンバスへ反映する');
     assert.equal((await read(page)).pages[0].objects[0].style.fill, '#F59E0B', '色はすぐ文書へ保存する');
     await page.waitForTimeout(520);
-    assert(await page.evaluate(() => localStorage.getItem('kaijo-ilapo:auto')), '即時変更は自動保存の対象になる');
+    assert(await page.evaluate(() => {
+      const current = IlapoEditor.getDocuments().find(item => item.active);
+      return current && new IlapoDocumentStore(localStorage).list().some(entry => entry.storageId === current.storageId && entry.kind === 'auto');
+    }), '即時変更は文書ごとの自動保存の対象になる');
     assert.equal(await page.locator('.top [data-action=undo]').isDisabled(), false);
     await page.screenshot({ path: path.join(artifacts, 'style-desktop.png') });
     await page.locator('#inspector-close').click(); await settle(page);

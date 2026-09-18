@@ -1,0 +1,24 @@
+/* 作品タブは1行の中央領域だけを横スクロールする。 */
+.top #document-workspace{display:flex;align-items:center;flex:1 1 auto;min-width:0;gap:3px}
+.top #document-tabs{display:flex;align-items:center;flex:1 1 auto;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;overscroll-behavior-x:contain;container-type:inline-size}
+.top #document-tabs::-webkit-scrollbar{display:none}
+.top #document-list-button{flex:none}
+.document-tab-item{display:flex;align-items:center;flex:none;min-width:0;max-width:min(260px,100cqw);border-radius:7px;color:var(--muted)}
+.document-tab-item.is-active{color:var(--accent);background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent)}
+.top .document-tab,.top .document-tab-close{border:0;background:transparent;color:inherit;cursor:pointer}
+.top .document-tab{display:inline-flex;align-items:center;justify-content:flex-start;flex:1 1 auto;min-width:0;width:auto;max-width:100%;padding:0 4px 0 10px;gap:5px;text-align:left;border-radius:6px 0 0 6px}
+.document-tab-label{overflow:hidden;min-width:0;text-overflow:ellipsis;white-space:nowrap}
+.document-tab-dirty{flex:none;color:var(--accent);font-size:1.2em;line-height:0}
+.document-tab-state{flex:none;color:var(--muted);font-size:.85em;white-space:nowrap}
+.document-tab-state.is-saving{color:var(--accent)}
+.top .document-tab-close{flex:none;width:26px;min-width:26px;padding:0;border-radius:0 6px 6px 0;font-size:1.1em}
+.top .document-tab:hover,.top .document-tab-close:hover{background:var(--hover)}
+.top .document-tab:focus-visible,.top .document-tab-close:focus-visible{outline:0;box-shadow:inset 0 0 0 2px var(--accent)}
+@media(max-width:700px){
+  .top #selection-method-button,.top #present-button,.top .sep,.top .brand>span,.top .brand>small{display:none}
+}
+@media(pointer:coarse){.top .document-tab-close{width:44px;min-width:44px}.top .document-tab{min-width:44px}}
+@media(max-width:420px){.top #document-workspace{gap:1px}.top .document-tab{padding-left:7px}.document-tab-state{display:none}}
+#command-menu [data-document-pick]{max-width:min(330px,calc(100vw - 30px))}
+#command-menu [data-document-pick] span{overflow:hidden;text-overflow:ellipsis}
+#command-menu [data-document-pick][aria-current=true]{background:var(--accent-soft);color:var(--accent)}
