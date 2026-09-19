@@ -427,8 +427,7 @@
       host.querySelector('[data-video-size-count]').textContent = `${format(video.frames)} 枚`;
       host.querySelector('[data-video-size-total]').textContent = `${format(video.megabytes)} MB`;
       host.querySelector('[data-video-size-color-note]').textContent = `${format(2 ** bits)}色${bits === 24 ? '（24ビットフルカラー）' : ''}は、1画素あたり${bits}bitです。`;
-      host.querySelector('[data-video-size-pixels-formula]').textContent = `${format(width)} × ${format(height)} ＝ ${format(frame.pixels)}画素`;
-      host.querySelector('[data-video-size-frame-formula]').textContent = `${format(frame.pixels)} × ${bits}\n÷ 8 ÷ 1000 ÷ 1000`;
+      host.querySelector('[data-video-size-frame-formula]').textContent = `${format(width)} × ${format(height)} × ${bits} ÷ 8 ÷ 1000 ÷ 1000`;
       host.querySelector('[data-video-size-count-formula]').textContent = `${fps}［枚/秒］× ${seconds}［秒］`;
       host.querySelector('[data-video-size-total-formula]').textContent = `${format(frame.megabytes)}［MB/枚］\n× ${format(video.frames)}［枚］`;
       preparePreview();
