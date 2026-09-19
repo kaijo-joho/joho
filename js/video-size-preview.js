@@ -1,9 +1,13 @@
-/* 動画サイズ比較用。描画時は量子化済みの2枚を重ねるだけにする。 */
+/* 動画サイズ比較用。描画時は量子化済みの背景と羽の姿勢を重ねる。 */
 (() => {
   'use strict';
 
   const SOURCE_WIDTH = 320;
   const SOURCE_HEIGHT = 180;
+  const BIRD_WIDTH = 67;
+  const BIRD_HEIGHT = 56;
+  const WING_STEPS = 24;
+  const FLAP_SECONDS = .8;
   const MAX_CACHE_ENTRIES = 2;
   const paletteBits = { 1: [1, 0, 0], 4: [1, 2, 1], 8: [3, 3, 2], 16: [5, 6, 5], 24: [8, 8, 8] };
   const channelTables = Object.fromEntries(Object.entries(paletteBits).map(([bits, channels]) => [bits,
@@ -54,7 +58,7 @@
     for (const child of element.children) resolveStyles(child);
   }
 
-  function svgFor(defs, groupId, viewBox, width, height) {
+  function svgFor(defs, groupId, viewBox, width, height, wingScale = 1) {
     const ns = 'http://www.w3.org/2000/svg';
     const svg = document.createElementNS(ns, 'svg');
     svg.setAttribute('xmlns', ns);
@@ -74,6 +78,8 @@
       const sceneHeight = SOURCE_WIDTH * height / width;
       group.querySelector('.vd-landscape-sky').setAttribute('height', sceneHeight);
       group.querySelectorAll('.vd-landscape-hill, .vd-landscape-grass').forEach(part => part.setAttribute('transform', `translate(0 ${sceneHeight - SOURCE_HEIGHT})`));
+    } else if (groupId === 'vd-flight-bird') {
+      group.querySelector('.vd-landscape-wing').setAttribute('transform', `translate(0 28) scale(1 ${wingScale}) translate(0 -28)`);
     }
     svg.append(localDefs, group);
     return new XMLSerializer().serializeToString(svg);
@@ -144,15 +150,20 @@
 
     async function prepare(settings) {
       const { width, height, bits } = settings;
-      const birdWidth = Math.max(1, Math.round(width * 67 / SOURCE_WIDTH));
-      const birdHeight = Math.max(1, Math.round(width * 39 / SOURCE_WIDTH));
-      const [background, bird] = await Promise.all([
+      const birdWidth = Math.max(1, Math.round(width * BIRD_WIDTH / SOURCE_WIDTH));
+      const birdHeight = Math.max(1, Math.round(width * BIRD_HEIGHT / SOURCE_WIDTH));
+      // 半周期の25姿勢を往復して使い、60fpsでも羽をなめらかに変える。
+      const poses = Array.from({ length: WING_STEPS + 1 }, (_, index) => {
+        const scale = Math.cos(Math.PI * index / WING_STEPS);
+        return rasterize(svgFor(defs, 'vd-flight-bird', `0 0 ${BIRD_WIDTH} ${BIRD_HEIGHT}`, birdWidth, birdHeight, scale), birdWidth, birdHeight);
+      });
+      const [background, birds] = await Promise.all([
         rasterize(svgFor(defs, 'vd-landscape', `0 0 ${SOURCE_WIDTH} ${SOURCE_WIDTH * height / width}`, width, height), width, height),
-        rasterize(svgFor(defs, 'vd-flight-bird', '0 0 67 39', birdWidth, birdHeight), birdWidth, birdHeight)
+        Promise.all(poses)
       ]);
       quantize(background, bits, false);
-      quantize(bird, bits, true);
-      return { width, height, bits, background, bird };
+      birds.forEach(bird => quantize(bird, bits, true));
+      return { width, height, bits, background, birds };
     }
 
     function retain(key, entry) {
@@ -192,11 +203,15 @@
         const context = output.getContext('2d', { alpha: false });
         context.imageSmoothingEnabled = false;
         context.drawImage(active.background, 0, 0);
+        const flap = ((seconds % FLAP_SECONDS) + FLAP_SECONDS) % FLAP_SECONDS / FLAP_SECONDS;
+        const step = Math.round(flap * WING_STEPS * 2);
+        const bird = active.birds[step <= WING_STEPS ? step : WING_STEPS * 2 - step];
         const phase = ((seconds % 4) + 4) % 4 / 4;
-        const progress = phase < .5 ? phase * 2 : 2 - phase * 2;
-        const x = Math.round((active.width - active.bird.width) * progress);
-        const y = Math.round(active.height * .28 - active.bird.height / 2);
-        context.drawImage(active.bird, x, y);
+        const distance = active.width + bird.width;
+        // 右端を抜けたら画面外の左端へ戻す。初期画像では鳥全体を見せる。
+        const x = Math.round((phase * distance + bird.width) % distance - bird.width);
+        const y = Math.round(active.height * .28 - active.width * 39 / SOURCE_WIDTH / 2);
+        context.drawImage(bird, x, y);
       }
     };
     return api;
