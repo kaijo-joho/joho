@@ -329,23 +329,29 @@
 
   function initializeSize(host) {
     const resolution = host.querySelector('[data-video-size-resolution]');
+    const bitsControl = host.querySelector('[data-video-size-bits]');
     const fpsControl = host.querySelector('[data-video-size-fps]');
     const secondsControl = host.querySelector('[data-video-size-seconds]');
     function update() {
       const [width, height] = resolution.value.split(',').map(Number);
+      const bits = Number(bitsControl.value);
       const fps = Number(fpsControl.value);
       const seconds = Number(secondsControl.value);
-      const frame = Images.imageSize(width, height, 24, 1000);
+      const frame = Images.imageSize(width, height, bits, 1000);
       const video = Core.videoSize(frame.bytes, fps, seconds, 1000);
       host.querySelector('[data-video-size-frame]').textContent = `${format(frame.megabytes)} MB`;
       host.querySelector('[data-video-size-count]').textContent = `${format(video.frames)} 枚`;
       host.querySelector('[data-video-size-total]').textContent = `${format(video.megabytes)} MB`;
-      host.querySelector('[data-video-size-frame-formula]').textContent = `${width}×${height}［画素］×24［bit/画素］÷8÷1000÷1000＝${format(frame.megabytes)}［MB/枚］`;
-      host.querySelector('[data-video-size-total-formula]').textContent = `${format(frame.megabytes)}［MB/枚］×${fps}［枚/秒］×${seconds}［秒］＝${format(video.megabytes)}［MB］`;
+      host.querySelector('[data-video-size-color-note]').textContent = `${format(2 ** bits)}色${bits === 24 ? '（24ビットフルカラー）' : ''}は、1画素あたり${bits}bitです。`;
+      host.querySelector('[data-video-size-pixels-formula]').textContent = `${format(width)} × ${format(height)} ＝ ${format(frame.pixels)}画素`;
+      host.querySelector('[data-video-size-frame-formula]').textContent = `${format(frame.pixels)} × ${bits}\n÷ 8 ÷ 1000 ÷ 1000`;
+      host.querySelector('[data-video-size-count-formula]').textContent = `${fps}［枚/秒］× ${seconds}［秒］`;
+      host.querySelector('[data-video-size-total-formula]').textContent = `${format(frame.megabytes)}［MB/枚］\n× ${format(video.frames)}［枚］`;
       resized();
     }
-    [resolution, fpsControl, secondsControl].forEach(input => input.addEventListener('change', update));
-    host.querySelector('[data-video-size-reset]').addEventListener('click', () => { resolution.value = '800,600'; fpsControl.value = '30'; secondsControl.value = '60'; update(); });
+    [resolution, bitsControl, fpsControl, secondsControl].forEach(input => input.addEventListener('change', update));
+    host.querySelector('[data-video-size-reset]').addEventListener('click', () => { resolution.value = '800,600'; bitsControl.value = '24'; fpsControl.value = '30'; secondsControl.value = '60'; update(); });
+    host.querySelectorAll('select, button').forEach(control => { control.tabIndex = 0; });
     reveal(host); update();
   }
 

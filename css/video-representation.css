@@ -71,12 +71,18 @@
   --vd-scene-wing: url(#vd-landscape-wing);
 }
 .vd-compression-scene--compressed { --vd-scene-sky: #afd7e9; --vd-scene-hill: #8cb287; --vd-scene-grass: #59865f; --vd-scene-cloud: #eef5f6; --vd-scene-wing: #4385a0; }
+.vd-compression-scene--reduced {
+  --vd-scene-sky: #90bfd2; --vd-scene-hill: #70925a; --vd-scene-grass: #70925a;
+  --vd-scene-cloud: #edf4e7; --vd-scene-sun: #edf4e7; --vd-scene-body: #edf4e7;
+  --vd-scene-tail: #edf4e7; --vd-scene-beak: #edf4e7; --vd-scene-wing: #314854; --vd-scene-ink: #314854;
+}
 .vd-landscape-sky { fill: var(--vd-scene-sky); }
 .vd-landscape-hill { fill: var(--vd-scene-hill); }
 .vd-landscape-grass { fill: var(--vd-scene-grass); }
 .vd-landscape-cloud { fill: var(--vd-scene-cloud); }
 .vd-landscape-wing { fill: var(--vd-scene-wing); }
-.vd-intra-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: end; gap: 12px; margin: 16px 0; }
+.vd-intra-stages { display: grid; grid-template-columns: minmax(0, 1fr); align-items: end; gap: 12px; margin: 16px 0; }
+.vd-intra-stages figure { width: min(100%, 300px); margin-inline: auto; }
 .vd-compression-point { padding: 10px 12px; border-left: 4px solid var(--dr-info); background: var(--dr-info-soft); }
 .vd-compression-timeline { min-width: 0; overflow-x: auto; overscroll-behavior-x: contain; padding: 4px 4px 8px; }
 .vd-compression-rows { display: grid; grid-template-columns: repeat(4, minmax(124px, 1fr)); align-items: end; gap: 6px 10px; }
@@ -96,17 +102,25 @@ section article .vd-compression-row-label { grid-column: 1 / -1; margin: 10px 0 
 .vd-rebuild-result { display: grid; grid-template-columns: minmax(0, 280px) minmax(0, 1fr); align-items: center; justify-content: center; gap: 16px; }
 section article .vd-rebuild-status { margin: 0; text-indent: 0; }
 .vd-compression-grid :is(button, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
-.vd-formula { display: flex; align-items: center; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 1em 0; }
-.vd-formula span, .vd-formula strong { padding: 10px; border-radius: 8px; background: var(--dr-info-soft); color: var(--dr-text); }
 .vd-size-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 14px; }
-.vd-size-controls label { display: grid; gap: 5px; flex: 1 1 180px; }
-.vd-size-controls select { min-width: 0; width: 100%; min-height: 44px; padding: 8px; border: 1px solid var(--dr-border); border-radius: 7px; background: var(--dr-panel-strong); color: var(--dr-text); font: inherit; }
-.vd-metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; padding: 0; margin: 20px 0; }
-.vd-metrics > div { padding: 14px; border: 1px solid var(--dr-border); border-radius: 10px; background: var(--dr-panel-strong); }
-.vd-metrics dt { margin: 0; color: var(--dr-muted); font-size: .85em; text-indent: 0; }
-.vd-metrics dt::before { content: none; }
-.vd-metrics dd { margin: 6px 0 0; color: var(--dr-text); font-size: clamp(1.1em, 2vw, 1.6em); font-weight: 700; font-variant-numeric: tabular-nums; text-indent: 0; overflow-wrap: anywhere; }
-.vd-metrics > div:last-child { border-color: var(--dr-info); background: var(--dr-info-soft); }
+.vd-size-controls label { display: grid; gap: 5px; flex: 1 1 180px; min-width: 0; }
+.vd-size-controls label:has([data-video-size-bits]) { flex-basis: 220px; }
+.vd-size-controls select {
+  box-sizing: border-box; min-width: 0; width: 100%; min-height: 44px; padding: 8px 32px 8px 12px;
+  appearance: none; -webkit-appearance: none;
+  border: 1px solid var(--dr-border); border-radius: 7px; background: var(--dr-panel-strong); color: var(--dr-text); font: inherit;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: right 16px center, right 10px center; background-size: 6px 6px; background-repeat: no-repeat;
+}
+.vd-metrics { display: grid; grid-template-columns: minmax(0, 1.15fr) auto minmax(0, 1fr) auto minmax(0, 1fr); gap: 10px; margin: 20px 0; }
+.vd-metric { display: flex; flex-direction: column; min-width: 0; padding: 16px; border: 1px solid var(--dr-border); border-radius: 10px; background: var(--dr-panel-strong); }
+.vd-metric:last-child { border-color: var(--dr-info); background: var(--dr-info-soft); }
+section article .vd-metric h3 { margin: 0 0 12px; font-size: 1em; text-indent: 0; }
+section article .vd-metric p { margin: 0 0 12px; text-indent: 0; overflow-wrap: anywhere; }
+.vd-metric-rule, .vd-metric-detail { color: var(--dr-muted); font-size: .85em; }
+.vd-metric-calculation { font-variant-numeric: tabular-nums; white-space: pre-line; }
+section article .vd-metric .vd-metric-value { margin: auto 0 0; padding-top: 12px; font-size: clamp(1.1em, 2vw, 1.6em); font-variant-numeric: tabular-nums; }
+.vd-metric-operator { align-self: center; justify-self: center; font-size: 1.7em; font-weight: 700; }
 .vd-equation { margin: 12px 0; padding: 10px 12px; border-radius: 6px; background: var(--dr-panel-strong); color: var(--dr-text); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .vd-answer-fields { display: flex; flex-wrap: wrap; gap: 18px; margin: 20px 0; }
 .vd-answer-fields label { display: grid; gap: 7px; }
@@ -119,13 +133,14 @@ section article .vd-rebuild-status { margin: 0; text-indent: 0; }
 .vd-widget :is(button, input, select):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
 .vd-enhancement[hidden], [data-video-solution] li[hidden] { display: none !important; }
 
-@media (max-width: 700px) {
-  .vd-metrics { grid-template-columns: 1fr; }
-  .vd-metrics > div { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
-  .vd-metrics dd { margin: 0; }
-}
 @media (max-width: 1000px) {
   .vd-compression-grid { grid-template-columns: 1fr; }
+  .vd-intra-stages { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .vd-metrics { grid-template-columns: minmax(0, 1fr); }
+  .vd-metric-operator { line-height: 1; }
+}
+@media (max-width: 700px) {
+  .vd-intra-stages { grid-template-columns: minmax(0, 1fr); }
 }
 @media (max-width: 560px) {
   .vd-rebuild-result { grid-template-columns: minmax(0, 1fr); }

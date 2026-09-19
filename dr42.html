@@ -114,18 +114,18 @@
             <pattern id="vd-reused-pattern" width="8" height="8" patternUnits="userSpaceOnUse"><rect class="vd-reused-fill" width="8" height="8"/><path class="vd-reused-line" d="M-2 2L2-2M0 8L8 0M6 10L10 6"/></pattern>
             <g id="vd-landscape">
               <rect class="vd-landscape-sky" width="320" height="180"/>
-              <circle cx="271" cy="30" r="15" fill="#fff1bd"/>
+              <circle cx="271" cy="30" r="15" fill="var(--vd-scene-sun, #fff1bd)"/>
               <path class="vd-landscape-cloud" d="M30 63C23 62 20 51 29 47C28 36 44 33 50 41C59 35 71 41 71 51C83 50 85 64 74 66H33Z M206 42C194 42 195 29 205 28C204 16 220 14 225 23C237 16 247 25 244 34C252 37 248 45 240 45H209Z"/>
               <path class="vd-landscape-hill" d="M0 132Q48 69 107 125Q179 58 253 118Q285 91 320 116V180H0Z"/>
               <path class="vd-landscape-grass" d="M0 154Q63 112 139 153Q233 110 320 144V180H0Z"/>
             </g>
-            <g id="vd-flight-bird" stroke="#233e50" stroke-width="1.7" stroke-linejoin="round">
-              <path d="M15 22L2 16L5 33L18 30Z" fill="#ddebf0"/>
-              <ellipse cx="28" cy="27" rx="20" ry="11" fill="#e9f3f5"/>
+            <g id="vd-flight-bird" stroke="var(--vd-scene-ink, #233e50)" stroke-width="1.7" stroke-linejoin="round">
+              <path d="M15 22L2 16L5 33L18 30Z" fill="var(--vd-scene-tail, #ddebf0)"/>
+              <ellipse cx="28" cy="27" rx="20" ry="11" fill="var(--vd-scene-body, #e9f3f5)"/>
               <path class="vd-landscape-wing" d="M30 28L12 3Q31 7 43 21Z"/>
-              <path d="M54 15L65 20L54 23Z" fill="#edbb65"/>
-              <circle cx="45" cy="17" r="10" fill="#e9f3f5"/>
-              <circle cx="48" cy="15" r="1.5" fill="#233e50" stroke="none"/>
+              <path d="M54 15L65 20L54 23Z" fill="var(--vd-scene-beak, #edbb65)"/>
+              <circle cx="45" cy="17" r="10" fill="var(--vd-scene-body, #e9f3f5)"/>
+              <circle cx="48" cy="15" r="1.5" fill="var(--vd-scene-ink, #233e50)" stroke="none"/>
             </g>
             <g id="vd-compression-frame-1"><use href="#vd-landscape"/><use href="#vd-flight-bird" x="24" y="50"/></g>
             <g id="vd-compression-frame-2"><use href="#vd-landscape"/><use href="#vd-flight-bird" x="98" y="50"/></g>
@@ -142,7 +142,7 @@
         <div class="dr-reference-card">
           <h3>フレーム内圧縮</h3>
           <p><strong>1枚のフレームの中</strong>でデータ量を減らします。下は、見分けにくい細かな色の違いをまとめる例です。</p>
-          <div class="vd-intra-pair">
+          <div class="vd-intra-stages">
             <figure><figcaption>圧縮前</figcaption><svg class="vd-scene vd-compression-scene" viewBox="0 0 320 180" role="img" aria-labelledby="vd-intra-before-title vd-intra-before-desc">
               <title id="vd-intra-before-title">圧縮前の1枚のフレーム</title><desc id="vd-intra-before-desc">同じ背景の前を鳥が飛んでいます。空や山、雲、羽には細かな色の違いがあります。</desc>
               <use href="#vd-compression-frame-1"/>
@@ -151,8 +151,12 @@
               <title id="vd-intra-after-title">細かな色の違いを省いた1枚のフレーム</title><desc id="vd-intra-after-desc">鳥や背景の形と位置は同じで、空や山、雲、羽の色の細かな違いをまとめた例です。</desc>
               <use href="#vd-compression-frame-1"/>
             </svg></figure>
+            <figure><figcaption>さらに色を省く</figcaption><svg class="vd-scene vd-compression-scene vd-compression-scene--reduced" viewBox="0 0 320 180" role="img" aria-labelledby="vd-intra-reduced-title vd-intra-reduced-desc">
+              <title id="vd-intra-reduced-title">さらに色を省いた1枚のフレーム</title><desc id="vd-intra-reduced-desc">形や位置は同じですが、手前と奥の緑、太陽と雲などの色もまとめたため、山の境目や色の違いが失われています。</desc>
+              <use href="#vd-compression-frame-1"/>
+            </svg></figure>
           </div>
-          <p class="vd-hint">画素数や物体の形・位置は同じです。違いを見やすくした模式図で、省きすぎると画質の変化が目立ちます。</p>
+          <p class="vd-hint">画素数や物体の形・位置は同じです。違いを見やすくした模式図です。色を省きすぎると、山の境目などが分かりにくくなります。</p>
           <p class="vd-compression-point"><strong>1枚ずつ、それぞれ圧縮する。</strong><br>ほかのフレームを使わずに画像を表します。</p>
         </div>
         <div class="dr-reference-card">
@@ -222,23 +226,39 @@
     <article>
       <h2 id="headline_4">(4) 動画のデータ量</h2>
       <p><strong>圧縮しない動画</strong>は、1フレームのデータ量にフレームの総数を掛けて求めます。ここでは音声や付加情報を含めません。</p>
-      <div class="vd-formula"><span>1フレームのデータ量</span><b>×</b><span>フレームレート</span><b>×</b><span>再生時間</span><b>＝</b><strong>動画のデータ量</strong></div>
       <div class="vd-widget" data-video-size data-lesson-slide-navigation-lock>
         <div class="vd-size-controls vd-enhancement" hidden>
           <label>解像度 <select data-video-size-resolution><option value="400,300">400×300</option><option value="800,600" selected>800×600</option><option value="1600,1200">1600×1200</option><option value="1920,1080">1920×1080</option></select></label>
+          <label>色数 <select data-video-size-bits><option value="1">2色</option><option value="4">16色</option><option value="8">256色</option><option value="16">65,536色</option><option value="24" selected>16,777,216色</option></select></label>
           <label>フレームレート <select data-video-size-fps><option value="15">15fps</option><option value="24">24fps</option><option value="30" selected>30fps</option><option value="60">60fps</option></select></label>
           <label>再生時間 <select data-video-size-seconds><option value="1">1秒</option><option value="10">10秒</option><option value="30">30秒</option><option value="60" selected>60秒（1分）</option></select></label>
           <button class="dr-button" type="button" data-video-size-reset>最初の条件に戻す</button>
         </div>
-        <p class="vd-hint">24ビットフルカラー、1B＝8bit、1KB＝1000B、1MB＝1000KBとします。</p>
-        <dl class="vd-metrics">
-          <div><dt>1フレーム</dt><dd data-video-size-frame>1.44 MB</dd></div>
-          <div><dt>フレームの総数</dt><dd data-video-size-count>1,800 枚</dd></div>
-          <div><dt>動画全体</dt><dd data-video-size-total>2,592 MB</dd></div>
-        </dl>
-        <p class="vd-equation" data-video-size-frame-formula>800×600［画素］×24［bit/画素］÷8÷1000÷1000＝1.44［MB/枚］</p>
-        <p class="vd-equation" data-video-size-total-formula>1.44［MB/枚］×30［枚/秒］×60［秒］＝2,592［MB］</p>
-        <p class="vd-observation">条件を一つずつ変えて確かめましょう。フレームレートや再生時間を2倍にすると？ 横と縦の画素数を両方2倍にすると？</p>
+        <p class="vd-hint"><span data-video-size-color-note>16,777,216色（24ビットフルカラー）は、1画素あたり24bitです。</span> 1B＝8bit、1KB＝1000B、1MB＝1000KBとします。</p>
+        <div class="vd-metrics">
+          <div class="vd-metric">
+            <h3>1フレームのデータ量</h3>
+            <p class="vd-metric-rule">総画素数 × 1画素あたりのビット数<br>÷ 8 ÷ 1000 ÷ 1000</p>
+            <p class="vd-metric-detail" data-video-size-pixels-formula>800 × 600 ＝ 480,000画素</p>
+            <p class="vd-metric-calculation" data-video-size-frame-formula>480,000 × 24<br>÷ 8 ÷ 1000 ÷ 1000</p>
+            <p class="vd-metric-value">＝ <strong data-video-size-frame>1.44 MB</strong></p>
+          </div>
+          <span class="vd-metric-operator">×</span>
+          <div class="vd-metric">
+            <h3>フレームの総数</h3>
+            <p class="vd-metric-rule">フレームレート × 再生時間</p>
+            <p class="vd-metric-calculation" data-video-size-count-formula>30［枚/秒］× 60［秒］</p>
+            <p class="vd-metric-value">＝ <strong data-video-size-count>1,800 枚</strong></p>
+          </div>
+          <span class="vd-metric-operator">＝</span>
+          <div class="vd-metric">
+            <h3>動画のデータ量</h3>
+            <p class="vd-metric-rule">1フレームのデータ量 × フレームの総数</p>
+            <p class="vd-metric-calculation" data-video-size-total-formula>1.44［MB/枚］<br>× 1,800［枚］</p>
+            <p class="vd-metric-value">＝ <strong data-video-size-total>2,592 MB</strong></p>
+          </div>
+        </div>
+        <p class="vd-observation">条件を一つずつ変えて確かめましょう。1画素のビット数やフレームレート、再生時間を2倍にすると？ 横と縦の画素数を両方2倍にすると？</p>
       </div>
       <p class="dr-note">実際の動画ファイルは圧縮されていることが多く、この式の結果とファイルサイズが一致するとは限りません。計算問題では、圧縮の有無と単位の換算条件を確認します。</p>
     </article>
