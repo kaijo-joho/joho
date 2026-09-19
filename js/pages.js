@@ -1,4 +1,4 @@
-//2026-09-18 12:08:10;
+//2026-09-19 04:32:45;
 const pages = {
   "index": {
     "id": "index",
@@ -550,6 +550,16 @@ const pages = {
       }
     ],
     "show": true,
+    "worksheetApp": [
+      {
+        "id": "dr42",
+        "title": "4-2. 動画のデジタル表現 ワークシート",
+        "text": "4-2. 動画のデジタル表現 ワークシート",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr42",
+        "detail": "動画のフレーム・フレームレート・圧縮・データ量を整理するワークシート。A4/B5の印刷と公開後の解答・解説に対応。"
+      }
+    ],
     "backFile": "dr41.html"
   },
   "dr43": {
