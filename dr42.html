@@ -11,6 +11,7 @@
   <script defer src="./js/main.js"></script>
   <script defer src="./js/image-core.js"></script>
   <script defer src="./js/video-core.js"></script>
+  <script defer src="./js/video-size-preview.js"></script>
   <script defer src="./js/video-lessons.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -227,12 +228,49 @@
       <h2 id="headline_4">(4) 動画のデータ量</h2>
       <p><strong>圧縮しない動画</strong>は、1フレームのデータ量にフレームの総数を掛けて求めます。ここでは音声や付加情報を含めません。</p>
       <div class="vd-widget" data-video-size data-lesson-slide-navigation-lock>
-        <div class="vd-size-controls vd-enhancement" hidden>
-          <label>解像度 <select data-video-size-resolution><option value="400,300">400×300</option><option value="800,600" selected>800×600</option><option value="1600,1200">1600×1200</option><option value="1920,1080">1920×1080</option></select></label>
-          <label>色数 <select data-video-size-bits><option value="1">2色</option><option value="4">16色</option><option value="8">256色</option><option value="16">65,536色</option><option value="24" selected>16,777,216色</option></select></label>
-          <label>フレームレート <select data-video-size-fps><option value="15">15fps</option><option value="24">24fps</option><option value="30" selected>30fps</option><option value="60">60fps</option></select></label>
-          <label>再生時間 <select data-video-size-seconds><option value="1">1秒</option><option value="10">10秒</option><option value="30">30秒</option><option value="60" selected>60秒（1分）</option></select></label>
-          <button class="dr-button" type="button" data-video-size-reset>最初の条件に戻す</button>
+        <div class="vd-size-lab">
+          <div class="vd-size-controls vd-enhancement" hidden>
+            <div class="vd-size-resolution">
+              <label class="vd-slider" for="vd-size-resolution"><span>解像度</span><output for="vd-size-resolution" data-video-size-resolution-output>800×600画素</output>
+                <input id="vd-size-resolution" type="range" min="0" max="3" step="1" value="1" data-video-size-resolution>
+                <span class="vd-scale" aria-hidden="true"><span>400×300</span><span>1920×1080</span></span>
+              </label>
+              <div class="vd-resolution-stage">
+                <div class="vd-resolution-map" data-video-size-map>
+                  <div class="vd-resolution-guides" aria-hidden="true"><span style="width:20.833333%;height:25%"></span><span style="width:41.666667%;height:50%"></span><span style="width:83.333333%;height:100%"></span><span style="width:100%;height:90%"></span><span class="vd-resolution-selected" data-video-size-rectangle style="width:41.666667%;height:50%"></span></div>
+                  <div class="vd-resolution-handle" data-video-size-handle role="slider" tabindex="0" aria-label="長方形の解像度" aria-orientation="horizontal" aria-valuemin="0" aria-valuemax="3" aria-valuenow="1" aria-valuetext="800×600画素" aria-describedby="vd-resolution-help" style="left:41.666667%;top:50%"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 10V4h6M4 4l6 6m10 4v6h-6m6 0-6-6"/></svg></div>
+                </div>
+              </div>
+              <p class="vd-hint" id="vd-resolution-help">角をドラッグ、またはスライダーで4段階に変更。角にフォーカスして矢印キーでも操作できます。</p>
+            </div>
+            <label class="vd-slider" for="vd-size-bits"><span>1画素あたりのビット数</span><output for="vd-size-bits" data-video-size-bits-output>24bit（16,777,216色）</output>
+              <input id="vd-size-bits" type="range" min="0" max="4" step="1" value="4" data-video-size-bits>
+              <span class="vd-scale" aria-hidden="true"><span>1bit</span><span>24bit</span></span>
+            </label>
+            <label class="vd-slider" for="vd-size-fps"><span>フレームレート</span><output for="vd-size-fps" data-video-size-fps-output>30fps</output>
+              <input id="vd-size-fps" type="range" min="1" max="60" step="1" value="30" data-video-size-fps>
+              <span class="vd-scale" aria-hidden="true"><span>1fps</span><span>60fps</span></span>
+            </label>
+            <label class="vd-slider" for="vd-size-seconds"><span>再生時間</span><output for="vd-size-seconds" data-video-size-seconds-output>60秒（1分）</output>
+              <input id="vd-size-seconds" type="range" min="1" max="60" step="1" value="60" data-video-size-seconds>
+              <span class="vd-scale" aria-hidden="true"><span>1秒</span><span>60秒</span></span>
+            </label>
+            <button class="dr-button" type="button" data-video-size-reset>最初の条件に戻す</button>
+          </div>
+          <div class="vd-size-preview" data-video-size-preview>
+            <h3>この条件で再生</h3>
+            <p class="vd-hint" data-video-size-preview-conditions>800×600画素・24bit・30fps・60秒</p>
+            <div class="vd-size-preview-window">
+              <svg class="vd-scene vd-compression-scene" data-video-size-still viewBox="0 0 320 240" role="img" aria-labelledby="vd-size-still-title vd-size-still-desc"><title id="vd-size-still-title">鳥の動画の最初のフレーム</title><desc id="vd-size-still-desc">空と山を背景に鳥が飛ぶ動画の例です。</desc><use href="#vd-landscape" transform="scale(1 1.333333)"/><use href="#vd-flight-bird" x="24" y="50"/></svg>
+              <canvas class="vd-scene" data-video-size-canvas width="800" height="600" role="img" aria-label="選んだ条件で描画した、空と山の前を鳥が飛ぶ動画" hidden>空と山を背景に鳥が飛ぶ動画のプレビュー。</canvas>
+              <p class="vd-hint" data-video-size-preview-message hidden>動画を準備しています…</p>
+            </div>
+            <div class="vd-preview-actions vd-enhancement" hidden><button class="dr-button dr-button--primary" type="button" data-video-play aria-pressed="false" disabled>再生</button><button class="dr-button" type="button" data-video-reset>先頭に戻す</button></div>
+            <p class="vd-preview-progress" data-video-size-progress>0.0 / 60秒・フレーム1 / 1,800</p>
+            <progress data-video-size-progress-bar max="60" value="0" aria-label="動画の再生位置"></progress>
+            <p class="vd-hint" data-video-size-preview-note>表示枠に合わせて縮小しています。条件を変えると先頭に戻ります。</p>
+            <p class="vd-hint">色の割り当ては一例です（1bitは白黒）。表示できる動きの細かさは、画面の更新頻度や端末の処理にも左右されます。</p>
+          </div>
         </div>
         <p class="vd-hint"><span data-video-size-color-note>16,777,216色（24ビットフルカラー）は、1画素あたり24bitです。</span> 1B＝8bit、1KB＝1000B、1MB＝1000KBとします。</p>
         <div class="vd-metrics">

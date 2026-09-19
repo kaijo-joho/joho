@@ -136,16 +136,22 @@
     blocks: { subject: '積み木を積み上げて元に戻す', change: '積み木の位置', makeFrame: (_, index) => onGround(blocksPose(index)) }
   };
 
-  function createPlayer(host, render, startLabel) {
+  function createPlayer(host, render, startLabel, options = {}) {
     const button = host.querySelector('[data-video-play]');
     let elapsed = 0;
     let startedAt = 0;
     let running = false;
     let animation = 0;
-    const time = () => (elapsed + (running ? (performance.now() - startedAt) / 1000 : 0)) % clipSeconds;
+    const duration = options.duration || (() => clipSeconds);
+    const loops = options.loop !== false;
+    const time = () => {
+      const seconds = elapsed + (running ? (performance.now() - startedAt) / 1000 : 0);
+      return loops ? seconds % duration() : Math.min(seconds, duration());
+    };
     function draw() { render(time()); }
     function tick() {
       if (!running) return;
+      if (!loops && time() >= duration()) { pause(); return; }
       draw();
       animation = requestAnimationFrame(tick);
     }
@@ -153,18 +159,20 @@
       elapsed = time();
       running = false;
       cancelAnimationFrame(animation);
-      button.textContent = startLabel;
+      button.textContent = !loops && elapsed >= duration() ? 'もう一度再生' : startLabel;
       button.setAttribute('aria-pressed', 'false');
       draw();
     }
     function seek(seconds) {
       pause();
-      elapsed = seconds % clipSeconds;
+      elapsed = loops ? seconds % duration() : Math.min(seconds, duration());
+      button.textContent = !loops && elapsed >= duration() ? 'もう一度再生' : startLabel;
       draw();
     }
     button.addEventListener('click', () => {
       if (running) pause();
       else {
+        if (!loops && elapsed >= duration()) elapsed = 0;
         startedAt = performance.now();
         running = true;
         button.textContent = '一時停止';
@@ -328,15 +336,91 @@
   }
 
   function initializeSize(host) {
+    const resolutions = [[400, 300], [800, 600], [1600, 1200], [1920, 1080]];
+    const bitDepths = [1, 4, 8, 16, 24];
     const resolution = host.querySelector('[data-video-size-resolution]');
     const bitsControl = host.querySelector('[data-video-size-bits]');
     const fpsControl = host.querySelector('[data-video-size-fps]');
     const secondsControl = host.querySelector('[data-video-size-seconds]');
+    const map = host.querySelector('[data-video-size-map]');
+    const rectangle = host.querySelector('[data-video-size-rectangle]');
+    const handle = host.querySelector('[data-video-size-handle]');
+    const canvas = host.querySelector('[data-video-size-canvas]');
+    const still = host.querySelector('[data-video-size-still]');
+    const play = host.querySelector('[data-video-play]');
+    const progress = host.querySelector('[data-video-size-progress]');
+    const progressBar = host.querySelector('[data-video-size-progress-bar]');
+    const previewNote = host.querySelector('[data-video-size-preview-note]');
+    const previewMessage = host.querySelector('[data-video-size-preview-message]');
+    const preview = host.querySelector('[data-video-size-preview]');
+    let renderer = null;
+    try { renderer = globalThis.VideoSizePreview?.create(canvas, document.querySelector('.vd-compression-defs defs')); }
+    catch (error) { console.error('動画プレビューを準備できませんでした', error); }
+    let settings = { width: 800, height: 600, bits: 24, fps: 30, seconds: 60 };
+    let ready = false;
+    let version = 0;
+    let currentFrame = -1;
+    const player = createPlayer(host, seconds => {
+      const count = Core.frameCount(settings.fps, settings.seconds);
+      const frame = seconds >= settings.seconds ? count - 1 : Core.frameAt(seconds, settings.fps, settings.seconds);
+      if (ready && frame !== currentFrame) { renderer.draw(frame / settings.fps); currentFrame = frame; }
+      progress.textContent = `${seconds.toFixed(1)} / ${settings.seconds}秒・フレーム${format(frame + 1)} / ${format(count)}`;
+      progressBar.max = settings.seconds;
+      progressBar.value = seconds;
+    }, '再生', { duration: () => settings.seconds, loop: false });
+
+    function preparePreview() {
+      const request = ++version;
+      ready = false;
+      currentFrame = -1;
+      player.seek(0);
+      play.disabled = true;
+      canvas.hidden = true;
+      still.setAttribute('hidden', '');
+      preview.setAttribute('aria-busy', 'true');
+      previewMessage.hidden = false;
+      previewMessage.textContent = '動画を準備しています…';
+      previewNote.textContent = '動画を準備しています…';
+      const failed = () => {
+        if (request !== version) return;
+        preview.setAttribute('aria-busy', 'false');
+        previewMessage.textContent = '動画を表示できませんでした。';
+        previewNote.textContent = '動画を表示できませんでした。条件と計算は操作できます。';
+      };
+      if (!renderer) { failed(); return; }
+      renderer.configure(settings).then(() => {
+        if (request !== version) return;
+        ready = true;
+        canvas.hidden = false;
+        previewMessage.hidden = true;
+        play.disabled = false;
+        preview.setAttribute('aria-busy', 'false');
+        canvas.setAttribute('aria-label', `${settings.width}×${settings.height}画素、${settings.bits}bit、${settings.fps}fpsで鳥が飛ぶ動画`);
+        previewNote.textContent = '表示枠に合わせて縮小しています。条件を変えると先頭に戻ります。';
+        player.draw();
+      }).catch(failed);
+    }
+
     function update() {
-      const [width, height] = resolution.value.split(',').map(Number);
-      const bits = Number(bitsControl.value);
+      const [width, height] = resolutions[Number(resolution.value)];
+      const bits = bitDepths[Number(bitsControl.value)];
       const fps = Number(fpsControl.value);
       const seconds = Number(secondsControl.value);
+      settings = { width, height, bits, fps, seconds };
+      const resolutionText = `${width}×${height}画素`;
+      const bitsText = `${bits}bit（${format(2 ** bits)}色）`;
+      const secondsText = seconds === 60 ? '60秒（1分）' : `${seconds}秒`;
+      for (const [control, name, text] of [[resolution, 'resolution', resolutionText], [bitsControl, 'bits', bitsText], [fpsControl, 'fps', `${fps}fps`], [secondsControl, 'seconds', secondsText]]) {
+        host.querySelector(`[data-video-size-${name}-output]`).textContent = text;
+        control.setAttribute('aria-valuetext', text);
+      }
+      rectangle.style.width = `${width / 1920 * 100}%`;
+      rectangle.style.height = `${height / 1200 * 100}%`;
+      handle.style.left = rectangle.style.width;
+      handle.style.top = rectangle.style.height;
+      handle.setAttribute('aria-valuenow', resolution.value);
+      handle.setAttribute('aria-valuetext', resolutionText);
+      host.querySelector('[data-video-size-preview-conditions]').textContent = `${resolutionText}・${bits}bit・${fps}fps・${seconds}秒`;
       const frame = Images.imageSize(width, height, bits, 1000);
       const video = Core.videoSize(frame.bytes, fps, seconds, 1000);
       host.querySelector('[data-video-size-frame]').textContent = `${format(frame.megabytes)} MB`;
@@ -347,11 +431,54 @@
       host.querySelector('[data-video-size-frame-formula]').textContent = `${format(frame.pixels)} × ${bits}\n÷ 8 ÷ 1000 ÷ 1000`;
       host.querySelector('[data-video-size-count-formula]').textContent = `${fps}［枚/秒］× ${seconds}［秒］`;
       host.querySelector('[data-video-size-total-formula]').textContent = `${format(frame.megabytes)}［MB/枚］\n× ${format(video.frames)}［枚］`;
+      preparePreview();
       resized();
     }
-    [resolution, bitsControl, fpsControl, secondsControl].forEach(input => input.addEventListener('change', update));
-    host.querySelector('[data-video-size-reset]').addEventListener('click', () => { resolution.value = '800,600'; bitsControl.value = '24'; fpsControl.value = '30'; secondsControl.value = '60'; update(); });
-    host.querySelectorAll('select, button').forEach(control => { control.tabIndex = 0; });
+    [resolution, bitsControl, fpsControl, secondsControl].forEach(input => input.addEventListener('input', update));
+    function setResolution(index) {
+      const value = String(Math.max(0, Math.min(resolutions.length - 1, index)));
+      if (resolution.value === value) return;
+      resolution.value = value;
+      update();
+    }
+    let drag = null;
+    handle.addEventListener('pointerdown', event => {
+      if (!event.isPrimary || event.button !== 0) return;
+      const box = handle.getBoundingClientRect();
+      drag = { id: event.pointerId, initial: Number(resolution.value), offsetX: event.clientX - box.left - box.width / 2, offsetY: event.clientY - box.top - box.height / 2 };
+      handle.setPointerCapture(event.pointerId);
+      handle.focus({ preventScroll: true });
+      event.preventDefault();
+    });
+    handle.addEventListener('pointermove', event => {
+      if (!drag || drag.id !== event.pointerId) return;
+      const bounds = map.getBoundingClientRect();
+      const x = event.clientX - bounds.left - drag.offsetX;
+      const y = event.clientY - bounds.top - drag.offsetY;
+      const distances = resolutions.map(([width, height]) => Math.hypot(x - width / 1920 * bounds.width, y - height / 1200 * bounds.height));
+      setResolution(distances.indexOf(Math.min(...distances)));
+    });
+    function finishDrag(event) {
+      if (!drag || drag.id !== event.pointerId) return;
+      const pointerId = drag.id;
+      drag = null;
+      if (handle.hasPointerCapture(pointerId)) handle.releasePointerCapture(pointerId);
+    }
+    handle.addEventListener('pointerup', finishDrag);
+    handle.addEventListener('pointercancel', finishDrag);
+    handle.addEventListener('lostpointercapture', () => { drag = null; });
+    handle.addEventListener('keydown', event => {
+      const index = Number(resolution.value);
+      const keys = { ArrowRight: index + 1, ArrowUp: index + 1, ArrowLeft: index - 1, ArrowDown: index - 1, Home: 0, End: resolutions.length - 1 };
+      if (event.key === 'Escape' && drag) {
+        const original = drag.initial;
+        finishDrag({ pointerId: drag.id });
+        setResolution(original);
+        event.preventDefault();
+      } else if (Object.hasOwn(keys, event.key)) { setResolution(keys[event.key]); event.preventDefault(); }
+    });
+    host.querySelector('[data-video-size-reset]').addEventListener('click', () => { resolution.value = '1'; bitsControl.value = '4'; fpsControl.value = '30'; secondsControl.value = '60'; update(); });
+    host.querySelectorAll('input, button').forEach(control => { control.tabIndex = 0; });
     reveal(host); update();
   }
 
