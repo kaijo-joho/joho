@@ -57,6 +57,23 @@ assert.equal(doc.pages[0].id, pageCopy);
 Core.removePage(doc, pageCopy);
 assert.throws(() => Core.removePage(doc, page.id), /at least one page/);
 
+const presenter = Core.createDocument();
+presenter.pages[0].notes = '';
+presenter.pages[0].skip = false;
+assert.equal(Core.validateDocument(presenter).version, 9, '発表者ノートまたは発表スキップを使う作品はversion 9になる');
+presenter.pages[0].notes = '次の図を指してください。';
+presenter.pages[0].skip = true;
+const presenterCopyId = Core.duplicatePage(presenter, presenter.pages[0].id);
+const presenterChecked = Core.validateDocument(presenter);
+assert.equal(presenterChecked.pages[0].notes, '次の図を指してください。');
+assert.equal(presenterChecked.pages[0].skip, true);
+assert.equal(presenterChecked.pages.find(value => value.id === presenterCopyId).notes, '次の図を指してください。', '複製したページにも発表者ノートを保持する');
+assert.equal(presenterChecked.pages.find(value => value.id === presenterCopyId).skip, true, '複製したページにも発表スキップを保持する');
+const legacyPresenter = Core.createDocument(); legacyPresenter.version = 8;
+assert.equal(Object.hasOwn(Core.validateDocument(legacyPresenter).pages[0], 'notes'), false, '旧形式には発表者ノートを勝手に追加しない');
+for (const invalid of [123, null, {}, 'x'.repeat(100001)]) { const bad = Core.clone(presenter); bad.pages[0].notes = invalid; assert.throws(() => Core.validateDocument(bad), /notes/); }
+for (const invalid of [0, 'true', null]) { const bad = Core.clone(presenter); bad.pages[0].skip = invalid; assert.throws(() => Core.validateDocument(bad), /skip/); }
+
 const history = new Core.History(doc);
 history.change(d => d.name = '変更');
 assert(history.canUndo);

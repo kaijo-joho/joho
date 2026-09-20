@@ -33,10 +33,9 @@
     if (!root.document || !root.document.body) throw new Error('IlapoPresentation.open requires a browser document');
     if (!Core || typeof Core.validateDocument !== 'function') throw new Error('IlapoCore.validateDocument is required');
     var documentValue = freeze(Core.validateDocument(clone(input)));
-    var layers=root.IlapoLayers||(typeof require==='function'?require('./layers.js'):null);
-    var pages = documentValue.pages.map(function(page){return page.layers||page.objects.some(o=>o.visible===false)?freeze(layers.forOutput(page)):page;});
-    var initial = options.pageId == null ? 0 : pages.findIndex(function (page) { return page.id === options.pageId; });
-    if (initial < 0) throw new RangeError('Unknown page id: ' + options.pageId);
+    var data=root.IlapoPresentationData||(typeof require==='function'?require('./presentation-data.js'):null);
+    var initial = data.startIndex(documentValue, options.pageId);
+    var pages = freeze(data.outputDocument(documentValue)).pages;
     if (active) active.close();
 
     var doc = root.document;

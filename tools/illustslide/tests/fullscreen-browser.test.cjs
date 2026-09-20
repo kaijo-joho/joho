@@ -18,7 +18,7 @@ test('Chrome fullscreen presents the artboard surface alone and preserves presen
   t.after(() => browser.close());
   const page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
   await page.setContent('<button id="opener">発表</button><style>' + source('presentation.css') + '</style>');
-  for (const file of ['core.js', 'svg.js', 'presentation.js']) await page.addScriptTag({ content: source(file) });
+  for (const file of ['core.js', 'svg.js', 'layers.js', 'presentation-data.js', 'presentation.js']) await page.addScriptTag({ content: source(file) });
   await page.evaluate(() => {
     const doc = IlapoCore.createDocument();
     doc.name = '全画面の作品';

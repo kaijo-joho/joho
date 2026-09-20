@@ -16,7 +16,7 @@ const near = (a, b, label) => assert.ok(Math.abs(a - b) < .03, `${label}: ${a} !
     const page = await browser.newPage({ viewport: { width: 900, height: 680 } });
     await page.emulateMedia({ reducedMotion: 'no-preference' });
     await page.setContent('<style>' + source('presentation.css') + '</style><div id="paper"></div>');
-    for (const file of ['vendor/paper-core-0.12.18.min.js', 'vendor/fflate-0.8.2.umd.js', 'core.js', 'geometry.js', 'connectors.js', 'svg.js', 'animation.js', 'animation-player.js', 'presentation.js']) await page.addScriptTag({ path: path.join(root, file) });
+    for (const file of ['vendor/paper-core-0.12.18.min.js', 'vendor/fflate-0.8.2.umd.js', 'core.js', 'layers.js', 'geometry.js', 'connectors.js', 'svg.js', 'animation.js', 'animation-player.js', 'presentation-data.js', 'presentation.js']) await page.addScriptTag({ path: path.join(root, file) });
     const result = await page.evaluate(() => {
       const C = IlapoCore, P = IlapoAnimationPlayer, G = IlapoGeometry;
       const style = { fill: '#4477AA', stroke: 'none', strokeWidth: 0, opacity: 1, dash: '', linecap: 'butt', linejoin: 'miter', fontSize: 18, fontFamily: 'sans-serif', bold: false, italic: false };
@@ -61,7 +61,7 @@ const near = (a, b, label) => assert.ok(Math.abs(a - b) < .03, `${label}: ${a} !
 
     const touch = await browser.newContext({ viewport: { width: 390, height: 736 }, isMobile: true, hasTouch: true }); const mobile = await touch.newPage();
     await mobile.setContent('<button id="open">発表</button><style>' + source('presentation.css') + '</style>');
-    for (const file of ['vendor/paper-core-0.12.18.min.js', 'vendor/fflate-0.8.2.umd.js', 'core.js', 'geometry.js', 'connectors.js', 'svg.js', 'animation.js', 'animation-player.js', 'presentation.js']) await mobile.addScriptTag({ path: path.join(root, file) });
+    for (const file of ['vendor/paper-core-0.12.18.min.js', 'vendor/fflate-0.8.2.umd.js', 'core.js', 'layers.js', 'geometry.js', 'connectors.js', 'svg.js', 'animation.js', 'animation-player.js', 'presentation-data.js', 'presentation.js']) await mobile.addScriptTag({ path: path.join(root, file) });
     const mobileFixture = await mobile.evaluate(() => { const C = IlapoCore, d = C.createDocument(), p = d.pages[0], o = C.makeShape('rect', 10, 10, 30, 30); o.id = 'one'; p.objects = [o]; p.animations = [{ id: 'zero', targets: ['one'], effect: 'fade', mode: 'in', trigger: 'with', duration: 0, delay: 0 }, { id: 'next', targets: ['one'], effect: 'fade', mode: 'out', trigger: 'click', duration: 0, delay: 0 }]; window.sourceDocument = C.clone(d); window.viewer = IlapoPresentation.open(d, { opener: document.getElementById('open') }); return C.clone(d); });
     const box = await mobile.locator('.ilapo-present-viewport').boundingBox(); const cdp = await touch.newCDPSession(mobile);
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: box.x + box.width * .8, y: box.y + box.height * .5, id: 1 }] });

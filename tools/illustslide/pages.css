@@ -1,0 +1,13 @@
+/* 発表に関するページ固有の印。通常の作品やSVGの内容には混ぜない。 */
+.page-notes{margin:0 0 14px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
+.page-notes label{font-weight:700}
+.page-notes textarea{display:block;width:100%;box-sizing:border-box;min-height:6.8em;margin-top:6px;resize:vertical}
+.page-notes .muted{margin:6px 0 0;font-size:.82em}
+.page-card.presentation-skipped .page-thumb{filter:grayscale(.72) brightness(.76)}
+.page-card.presentation-skipped .page-label em{display:inline-flex;align-items:center;margin-left:auto;padding:2px 5px;border:1px solid currentColor;border-radius:999px;color:var(--muted);font-size:.74em;font-style:normal;white-space:nowrap}
+.page-moves{position:relative}
+.page-more-menu{position:fixed;inset:auto;margin:0;min-width:min(180px,calc(100vw - 16px));max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);overflow:auto;gap:3px;padding:5px;border:1px solid var(--line);border-radius:7px;background:var(--panel);box-shadow:var(--shadow)}
+.page-more-menu button{width:100%;justify-content:flex-start;min-height:36px;white-space:nowrap}
+@media(pointer:coarse),(max-width:560px){.page-more-menu button{min-height:44px}}
+
+.page-more-menu:popover-open{display:grid}

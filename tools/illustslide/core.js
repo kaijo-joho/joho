@@ -8,7 +8,7 @@
   const PX_PER_MM = 96 / 25.4;
   const PX_PER_PT = 96 / 72;
   const HISTORY_LIMIT = 100;
-  const LIMITS = Object.freeze({ pages: 100, objectsPerPage: 5000, objects: 10000, pathLength: 100000, textLength: 100000, runs: 1000, coordinate: 10000000 });
+  const LIMITS = Object.freeze({ pages: 100, objectsPerPage: 5000, objects: 10000, pathLength: 100000, textLength: 100000, notesLength: 100000, runs: 1000, coordinate: 10000000 });
   const presets = Object.freeze({
     18: Object.freeze({ width: 18, height: 18, unit: 'px', infinite: false }),
     36: Object.freeze({ width: 36, height: 36, unit: 'px', infinite: false }),
@@ -191,7 +191,7 @@
     return out;
   }
   function validatePage(value) {
-    plainObject(value, 'page'); keysOnly(value, ['id', 'name', 'board', 'objects','animations','layers'], 'page');
+    plainObject(value, 'page'); keysOnly(value, ['id', 'name', 'board', 'objects','animations','layers','notes','skip'], 'page');
     const objects = array(value.objects, 'page.objects'); if (objects.length > LIMITS.objectsPerPage) fail('page.objects exceeds the limit');
     const ids = new Set();
     const out = { id: id(value.id, 'page.id'), name: string(value.name, 'page.name', true), board: validateBoard(value.board), objects: objects.map(validateObject) };
@@ -200,15 +200,18 @@
     out.objects.filter(o=>o.type==='connector').forEach(o=>{if(connectors.has(o.from.objectId)||connectors.has(o.to.objectId))fail('connector target cannot be a connector');});
     if(value.animations!==undefined){const animations=array(value.animations,'page.animations');if(animations.length>1000)fail('page.animations exceeds limit');const animationIds=new Set();out.animations=animations.map(animation=>{const checked=validateAnimation(animation,out);if(animationIds.has(checked.id))fail('duplicate animation id: '+checked.id);animationIds.add(checked.id);return checked;});}
     if(value.layers!==undefined) out.layers=validateLayers(value.layers,out.objects);
+    if (value.notes !== undefined) { out.notes = string(value.notes, 'page.notes', true); if (out.notes.length > LIMITS.notesLength) fail('page.notes exceeds limit'); }
+    if (value.skip !== undefined) out.skip = bool(value.skip, 'page.skip');
     return out;
   }
   function validateDocument(input) {
     plainObject(input, 'document'); keysOnly(input, ['format', 'version', 'id', 'name', 'pages'], 'document');
-    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3,4,5,6,7,8].includes(input.version)) fail('version is invalid');
+    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3,4,5,6,7,8,9].includes(input.version)) fail('version is invalid');
     const pages = array(input.pages, 'document.pages'); if (!pages.length || pages.length > LIMITS.pages) fail('document.pages has an invalid length');
     const ids = new Set(); let count = 0;
     const out = { format: 'kaijo-ilapo', version: input.version, id: id(input.id, 'document.id'), name: string(input.name, 'document.name', true), pages: pages.map(validatePage) };
     if (out.pages.some(page => page.objects.some(object => Object.hasOwn(object, 'visible')))) out.version = Math.max(out.version, 8);
+    if (out.pages.some(page => Object.hasOwn(page, 'notes') || Object.hasOwn(page, 'skip'))) out.version = Math.max(out.version, 9);
     for (const page of out.pages) { if (ids.has(page.id)) fail('duplicate page id: ' + page.id); ids.add(page.id); count += page.objects.length; }
     if (count > LIMITS.objects) fail('document exceeds the object limit');
     let imageBytes=0,effects=0;for(const page of out.pages){effects+=(page.animations||[]).length;for(const o of page.objects){if(['image','connector'].includes(o.type))out.version=Math.max(out.version,2);if(o.type==='image')imageBytes+=o.src.length;if(o.type==='text'&&o.layout||o.type==='path'&&o.label)out.version=Math.max(out.version,4);var textRuns=o.type==='text'?o.runs:o.type==='path'&&o.label?o.label.runs:null;if(textRuns&&textRuns.some(run=>run.bold!==undefined||run.italic!==undefined||run.fill!==undefined))out.version=Math.max(out.version,5);var styles=[o.style];if(o.type==='path'&&o.label)styles.push(o.label.style);if(styles.some(style=>Object.prototype.hasOwnProperty.call(style,'fillOpacity')||Object.prototype.hasOwnProperty.call(style,'strokeOpacity')))out.version=Math.max(out.version,7);}if((page.animations||[]).length)out.version=Math.max(out.version,3);if(page.layers)out.version=Math.max(out.version,6);}

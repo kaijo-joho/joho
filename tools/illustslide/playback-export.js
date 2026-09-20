@@ -2,7 +2,7 @@
 (function (root) {
   'use strict';
   const runtimeURL = new URL(document.currentScript.src), base = new URL('.', runtimeURL);
-  const scripts = ['vendor/paper-core-0.12.18.min.js', 'core.js', 'layers.js', 'geometry.js', 'text-layout.js', 'connectors.js', 'svg.js', 'animation.js', 'animation-player.js', 'presentation.js'];
+  const scripts = ['vendor/paper-core-0.12.18.min.js', 'core.js', 'layers.js', 'geometry.js', 'text-layout.js', 'connectors.js', 'svg.js', 'animation.js', 'animation-player.js', 'presentation-data.js', 'presentation.js'];
   let bundlePromise;
   function bundle() {
     if (!bundlePromise) bundlePromise = Promise.all([...scripts, 'presentation.css', 'vendor/PAPER-LICENSE.txt'].map(async file => {
@@ -16,9 +16,8 @@
   const esc = value => String(value).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
   function json(value) { return JSON.stringify(value).replace(/</g, '\\u003c').replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029'); }
   async function buildHTML(input) {
-    const C = root.IlapoCore, doc = C.validateDocument(input);
+    const C = root.IlapoCore, doc = root.IlapoPresentationData.outputDocument(input);
     // Playback files carry only artwork intended for presentation.
-    doc.pages=doc.pages.map(page=>root.IlapoLayers.forOutput(page));
     for (const page of doc.pages) {
       root.IlapoConnectors.sync(page);
       page.objects = page.objects.filter(o => !(o.type === 'image' && o.reference));

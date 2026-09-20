@@ -29,6 +29,8 @@ test('presentation viewer keeps document isolated and navigates without wrapping
   await page.setContent('<button id="opener">発表</button><style>' + source('presentation.css') + '</style>');
   await page.addScriptTag({ content: source('core.js') });
   await page.addScriptTag({ content: source('svg.js') });
+  await page.addScriptTag({ content: source('layers.js') });
+  await page.addScriptTag({ content: source('presentation-data.js') });
   await page.addScriptTag({ content: source('presentation.js') });
   const original = fixture();
   await page.evaluate(doc => {window.inputDocument=doc;window.viewer = IlapoPresentation.open(doc, { pageId: 'page-b', opener: document.getElementById('opener') });}, original);
@@ -61,6 +63,8 @@ test('presentation traps focus, supports swipe, fullscreen fallback, and narrow 
   await page.setContent('<button id="opener">発表</button><style>' + source('presentation.css') + '</style>');
   await page.addScriptTag({ content: source('core.js') });
   await page.addScriptTag({ content: source('svg.js') });
+  await page.addScriptTag({ content: source('layers.js') });
+  await page.addScriptTag({ content: source('presentation-data.js') });
   await page.addScriptTag({ content: source('presentation.js') });
   await page.evaluate(doc => {
     doc.pages.push({...structuredClone(doc.pages[1]),id:'page-c',name:'3ページ'});
@@ -95,7 +99,7 @@ test('presentation traps focus, supports swipe, fullscreen fallback, and narrow 
 test('free canvas uses artwork ratio, reopening cleans up, and existing fullscreen is retained',async t=>{
   const browser=await chromium.launch({channel:'chrome',headless:true});t.after(()=>browser.close());const page=await browser.newPage({viewport:{width:900,height:700}});
   await page.setContent('<button id="opener">発表</button><style>'+source('presentation.css')+'</style>');
-  for(const file of ['core.js','geometry.js','svg.js','presentation.js'])await page.addScriptTag({content:source(file)});
+  for(const file of ['core.js','geometry.js','svg.js','layers.js','presentation-data.js','presentation.js'])await page.addScriptTag({content:source(file)});
   const result=await page.evaluate(()=>{
     const d=IlapoCore.createDocument(),p=d.pages[0];p.board=IlapoCore.boardPreset('free');p.objects=[IlapoCore.makeText(-50,-20,'自由キャンバス',{fontSize:40,stroke:'none'})];
     Object.defineProperty(document,'fullscreenElement',{configurable:true,value:document.documentElement});let exitCalls=0;document.exitFullscreen=()=>{exitCalls++;return Promise.resolve();};

@@ -211,5 +211,5 @@
     document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drag){e.preventDefault();e.stopPropagation();cancelDrag();}},true);window.addEventListener('blur',cancelDrag);
     return {list,edit,cancelDrag,get isDragging(){return !!drag;}};
   }
-  root.IlapoAnimationUI={create};
+  root.IlapoAnimationUI={create, effectIcon:animation=>effectIcon(choiceOf(animation)), triggerIcon, effectLabel:animation=>choiceOf(animation).label};
 }(globalThis));

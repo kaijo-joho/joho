@@ -287,6 +287,8 @@
       var file='pages/'+encodeURIComponent(page.id)+'.svg',meta={id:page.id,name:page.name,board:page.board,file:file,objects:Object.create(null)};
       if(page.animations!==undefined)meta.animations=page.animations;
       if(page.layers!==undefined)meta.layers=page.layers;
+      if(page.notes!==undefined)meta.notes=page.notes;
+      if(page.skip!==undefined)meta.skip=page.skip;
       page.objects.forEach(function(o){
         var m={name:o.name,group:o.group,locked:o.locked};
         if(Object.hasOwn(o,'visible'))m.visible=o.visible;
@@ -313,17 +315,21 @@
     }}),raw=files['manifest.json'];
     if(!raw)throw new Error('Project manifest is missing');
     var manifest=JSON.parse(root.fflate.strFromU8(raw));
-    if(manifest.format!=='kaijo-ilapo'||![1,2,3,4,5,6,7,8].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
+    if(manifest.format!=='kaijo-ilapo'||![1,2,3,4,5,6,7,8,9].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
     var seenPages=new Set(),doc={format:'kaijo-ilapo',version:manifest.version,id:manifest.id,name:manifest.name,pages:[]};
     manifest.pages.forEach(function(meta){
       if(!meta||typeof meta.id!=='string'||typeof meta.name!=='string'||typeof meta.file!=='string'||!meta.board||typeof meta.board!=='object'||!meta.objects||typeof meta.objects!=='object'||Array.isArray(meta.objects)||seenPages.has(meta.id)||!Object.hasOwn(files,meta.file))throw new Error('Invalid project page metadata');
       seenPages.add(meta.id);
       if(meta.animations!==undefined&&(!Array.isArray(meta.animations)||meta.animations.length>1000))throw new Error('Invalid animation metadata');
+      if(meta.notes!==undefined&&(manifest.version<9||typeof meta.notes!=='string'||meta.notes.length>100000))throw new Error('Invalid page notes metadata');
+      if(meta.skip!==undefined&&(manifest.version<9||typeof meta.skip!=='boolean'))throw new Error('Invalid page skip metadata');
       var imported=importSVG(root.fflate.strFromU8(files[meta.file]),{preserveCoordinates:true,nativeObjects:manifest.version>=2?meta.objects:null}),page=imported.page,seenObjects=new Set(),labelCounts=new Map(),labelGroups=new Map();
       imported.nativeLabels.forEach(function(owner){labelCounts.set(owner,(labelCounts.get(owner)||0)+1);});
       imported.nativeLabelGroups.forEach(function(owner){labelGroups.set(owner,(labelGroups.get(owner)||0)+1);});
       page.id=meta.id;page.name=meta.name;page.board=meta.board;if(meta.animations!==undefined)page.animations=meta.animations;
       if(meta.layers!==undefined){if(manifest.version<6)throw new Error('Invalid layer metadata version');page.layers=meta.layers;}
+      if(meta.notes!==undefined)page.notes=meta.notes;
+      if(meta.skip!==undefined)page.skip=meta.skip;
       page.objects.forEach(function(o){
         if(seenObjects.has(o.id))throw new Error('Duplicate SVG object ID');
         seenObjects.add(o.id);var m=Object.hasOwn(meta.objects,o.id)?meta.objects[o.id]:null;

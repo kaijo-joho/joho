@@ -28,7 +28,9 @@ const root = path.resolve(__dirname, '..');
         { id: 'move', targets: ['image'], effect: 'move', dx: 8, dy: -4, trigger: 'with', duration: 150, delay: 15 }
       ];
       const doc = C.validateDocument({ format: 'kaijo-ilapo', version: 3, id: 'constructor', name: 'ZIP', pages: [p] });
-      const bytes = S.encodeProject(doc), decoded = S.decodeProject(bytes), ordinary = S.exportPage(doc.pages[0]), portable = S.importSVG(ordinary).page;
+      doc.pages[0].notes = '投影前に確認'; doc.pages[0].skip = true;
+      const presenterDoc = C.validateDocument(doc);
+      const bytes = S.encodeProject(presenterDoc), decoded = S.decodeProject(bytes), ordinary = S.exportPage(presenterDoc.pages[0]), portable = S.importSVG(ordinary).page;
       function mutated(change) { const files = fflate.unzipSync(bytes), manifest = JSON.parse(fflate.strFromU8(files['manifest.json'])); change(manifest); files['manifest.json'] = fflate.strToU8(JSON.stringify(manifest)); return fflate.zipSync(files); }
       function rejected(change) { try { S.decodeProject(mutated(change)); return false; } catch (_) { return JSON.stringify(S.decodeProject(bytes)) === JSON.stringify(decoded); } }
       const v1 = C.validateDocument({ format: 'kaijo-ilapo', version: 1, id: 'v1', name: '', pages: [C.createPage()] });
@@ -39,7 +41,7 @@ const root = path.resolve(__dirname, '..');
       history.change(d => C.duplicatePage(d, d.pages[0].id)); const pageCopy = history.document.pages[1]; const pageCopied = pageCopy.animations.length === 4 && pageCopy.animations.every(a => !doc.pages[0].animations.some(source => source.id === a.id));
       history.undo(); const pageUndo = history.document.pages.length === 1 && history.document.pages[0].animations.length === 4;
       return {
-        doc, decoded, ordinary, portable, v1: S.decodeProject(S.encodeProject(v1)).version, v2: S.decodeProject(S.encodeProject(v2)).version,
+        doc:presenterDoc, decoded, ordinary, portable, v1: S.decodeProject(S.encodeProject(v1)).version, v2: S.decodeProject(S.encodeProject(v2)).version,
         rejectedUnknown: rejected(m => { m.pages[0].animations[0].extra = true; }),
         rejectedMissing: rejected(m => { m.pages[0].animations[0].targets = ['missing']; }),
         rejectedVersion: rejected(m => { m.version = 99; }), copiedEffects, objectUndo, pageCopied, pageUndo
@@ -48,7 +50,9 @@ const root = path.resolve(__dirname, '..');
     assert.deepEqual(report.decoded, report.doc, 'v3 native ZIP round-trips all object and animation semantics exactly');
     assert.equal(report.decoded.pages[0].objects.map(o => o.id).join(','), '__proto__,constructor,image,connector');
     assert.equal(report.decoded.pages[0].animations.length, 4);
+    assert.equal(report.decoded.pages[0].notes, '投影前に確認'); assert.equal(report.decoded.pages[0].skip, true, 'native ZIP round-trips presenter metadata');
     assert(!/animation/i.test(report.ordinary), 'ordinary SVG contains artwork only, without animation metadata');
+    assert(!/投影前に確認|skip/i.test(report.ordinary), 'ordinary SVG excludes presenter metadata');
     assert.match(report.ordinary, /#123456/);
     assert.equal(report.portable.objects.some(o => o.type === 'connector'), false, 'ordinary SVG flattens connector artwork');
     assert.equal(report.v1, 1); assert.equal(report.v2, 2);

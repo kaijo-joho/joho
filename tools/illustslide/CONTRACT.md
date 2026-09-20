@@ -1,12 +1,12 @@
-# イラストスライド illustSlideの内部契約（0.4.25）
+# イラストスライド illustSlideの内部契約（0.4.27）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
 
 0.4.2から配置先は `tools/illustslide/`、保存名は `.illustslide.zip`。旧URLは案内ページを残し、旧 `.ilapo.zip`・保存キー・内部API・文書形式・SVG識別子は互換性を保つ。直接ファイル利用時のブラウザ保存は、旧ページでJSONとして取り出せる。
 
-文書: `{format:'kaijo-ilapo',version:1|2|3|4|5|6|7|8,id,name,pages:[page]}`。version1〜7を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5、page.layersがあればversion6、object.styleまたはpath.label.styleにfillOpacity/strokeOpacityがあればversion7、object.visibleがあればversion8へ上げる。上がったversionを下げず、引数は変更しない。
-ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation],layers?:[layer]}`。
+文書: `{format:'kaijo-ilapo',version:1|2|3|4|5|6|7|8|9,id,name,pages:[page]}`。version1〜8を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5、page.layersがあればversion6、object.styleまたはpath.label.styleにfillOpacity/strokeOpacityがあればversion7、object.visibleがあればversion8、page.notes/skipがあればversion9へ上げる。上がったversionを下げず、引数は変更しない。
+ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation],layers?:[layer],notes?:string,skip?:boolean}`。
 幅・高さ・座標はCSS pxの小数。unitは表示単位px/mm/pt。無限ページにも書き出し用の初期width/heightを保持。
 オブジェクト: `{id,type:'path'|'text'|'image'|'connector',name,group:null|string,locked:false,visible?:boolean,matrix:[a,b,c,d,e,f],style}`。
 pathは標準SVGの`d`、textは`x,y,runs:[{text,script:'normal'|'super'|'sub',bold?:boolean,italic?:boolean,fill?:色}]`を追加する。部分書式は省略時に親styleを継承し、falseも明示値として保持する。fillは#RRGGBBまたはnone。
@@ -354,3 +354,19 @@ IlapoPlaybackExport.buildHTML(doc)はPromise<string>。アプリと同じ配信�
 0.4.26の効果選択は現在の効果＋▼から開き、表示／消去／その他に分類する。時間・遅延のrangeは0〜10秒・0.1秒刻み、numberは従来の任意精度を保つ。両者を同期し、入力の即時適用とrangeドラッグのUndo集約はInspectorへ渡す。プレビューや効果選択メニューの開閉だけで文書を確定しない。
 
 Guides.resizeの1:1吸着は画面上6pxで始まり、同じdrag session内で10pxまで保持する。Shiftのuniform・Alt・無効設定で解除。動かしていない辺と反対側の支点を維持し、最小サイズとacceptによるグリッド整合を検証する。`square`がtrueの場合、markupは1:1を表示する。
+
+## 発表者ビューと発表ページ（0.4.27）
+
+`page.notes` は任意の平文（最大100000 UTF-16コード単位）、`page.skip` は任意のboolean。省略は空のノート／発表スキップなし。旧データへ既定値を足さない。存在時version9へ上げ、JSON・ZIPのmanifestページメタデータ・履歴・複製で保持する。通常SVGにはノートを含めない。
+
+`IlapoPresentationData.pages(doc)` はskipでないページを返し、0件なら日本語のエラー。`startIndex(doc,pageId?)` は発表ページ内の位置。スキップページの開始指定は次の対象へ、なければ最後の対象へ進める。未知IDは拒否。`outputDocument(input)` は検証済み複製からスキップページ・ノート・非表示オブジェクト・下絵を取り除き、動きの対象と接続を整える。投影と再生HTMLが同じ関数を使う。SVG/PNG/印刷はこの発表用フィルターを使わない。
+
+`IlapoPresenter.open(doc,{pageId?,opener?})` は手元のdialogと投影用 `audience.html` を開く。ソースの複製を保持し、作品/Undoへ書き込まない。返値はclose/next/previous/reset/setHiddenMode/getState。`IlapoPresenter.getState()` は現在の読取専用状態。手元のmaster PlayerのpageId/step/time/playingに送信時刻と単調増加sequenceを添えて送る。開始・完了・ページ移動と1秒ごとの補正を使い、投影側で遅延分を補って同じ時刻を描く。投影側の操作はmasterへ指示し、独立したクリック順序を持たない。
+
+windowメッセージは固定channel・セッションごとのランダムtoken・既知windowのsource・同じoriginで照合する。HTTP(S)では正確なtargetOrigin、ローカルfileではsourceとtokenを併用する。投影データはoutputDocumentの結果だけで、ノート・手元専用の非表示図形は送らない。reloadのreadyで再初期化し現在位置を送る。閉鎖／読込失敗／接続待ちの案内と利用者のクリックによる再試行を備える。終了で両窓のRAFと監視を片付ける。
+
+AnimationPlayerの`hiddenMode: hide|ghost|show`は既定hide。計画は従来の可視出力だけから作り、隠した対象の動きでstepsを増やさない。ghostはアニメーション不透明度の下限30%を使い、ワイプは通常部のclipと未表示部のinverse maskを分ける。元style.opacityを重ねて乗算しない。showは表示効果による非表示を解除して手元で通常表示する。編集時非表示の対象はsource順で補い、接続矢印は現在のframeへ追従する。下絵は全モード除外。有限用紙の範囲は維持し、自由キャンバスの手元表示は隠した図形の範囲も含める。`setHiddenMode(mode)`は再生位置を変えない。
+
+`Player.sync({step,time,playing},elapsedMs=0)`は有限で有効な位置だけ受け、途中時刻からRAF再生する。同期の受信直後にはonChangeを返さない。reduced-motionでは再生を即完了し、destroy後は再開しない。getStateの再生中timeは実時計から求め、背景ウィンドウのRAF間引きが投影の時間を止めないようにする。
+
+手元の隠れた図形の表示方法は `kaijo-ilapo:presenter-hidden` に保存する。ノート欄は既存Inspectorの即時反映・IME・入力単位の履歴を使う。ページパネルのハンドラーは作品セッションを照合し、同じ文書IDを別タブで開いても書込みを混ぜない。

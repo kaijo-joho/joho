@@ -1,0 +1,20 @@
+'use strict';
+const assert = require('node:assert/strict');
+const C = require('../core.js'), D = require('../presentation-data.js');
+const doc = C.createDocument(); doc.pages = [];
+for (let i=0;i<4;i++) { const page=C.createPage('ページ'+i);page.id='page-'+i;page.skip=i%2===0;page.notes='手元メモ'+i;page.objects=[C.makeShape('rect',0,0,10,10)];doc.pages.push(page); }
+const original = JSON.stringify(doc);
+assert.deepEqual(D.pages(doc).map(p=>p.id),['page-1','page-3']);
+assert.equal(D.startIndex(doc,'page-0'),0);assert.equal(D.startIndex(doc,'page-2'),1);assert.equal(D.startIndex(doc,'page-3'),1);
+assert.throws(()=>D.startIndex(doc,'unknown'));
+const output = D.outputDocument(doc);
+assert.deepEqual(output.pages.map(p=>p.id),['page-1','page-3']);
+assert(output.pages.every(p=>!Object.hasOwn(p,'notes')&&!Object.hasOwn(p,'skip')));
+assert.equal(JSON.stringify(doc),original);
+const allSkipped=C.clone(doc);allSkipped.pages.forEach(page=>page.skip=true);
+assert.throws(()=>D.outputDocument(allSkipped),/すべてのページ/);
+const lastSkipped=C.clone(doc);lastSkipped.pages[3].skip=true;
+assert.equal(D.startIndex(lastSkipped,'page-3'),0);
+const hidden=C.clone(doc);hidden.pages[1].objects[0].visible=false;hidden.pages[1].animations=[{id:'hidden',targets:[hidden.pages[1].objects[0].id],effect:'fade',mode:'in',trigger:'click',duration:100,delay:0}];
+assert.equal(D.outputDocument(hidden).pages[0].objects.length,0);assert.equal(D.outputDocument(hidden).pages[0].animations.length,0);
+console.log('presentation-data.test.cjs: passed');
