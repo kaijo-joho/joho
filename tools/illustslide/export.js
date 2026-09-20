@@ -81,7 +81,8 @@
     if (!entry || typeof entry !== 'object') throw error('印刷ページはPageまたは{page}で指定してください。');
     var page = entry.page && entry.page.board ? entry.page : entry;
     if (!page.board || !Array.isArray(page.objects)) throw error('印刷ページが正しくありません。');
-    return { svg: selectedPage(page, { padding: padding }) };
+    var selectionIds = entry.page && entry.page.board ? entry.selectionIds : undefined;
+    return { svg: selectedPage(page, { padding: padding, selectionIds: selectionIds }) };
   }
   function paperSize(size) { return [size.width / PX_PER_MM, size.height / PX_PER_MM]; }
   function htmlEscape(value) { return String(value).replace(/[&<>"']/g, function (c) { return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]; }); }

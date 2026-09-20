@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.29）
+# イラストスライド illustSlideの内部契約（0.4.30）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -16,15 +16,20 @@ fillOpacity/strokeOpacityは0〜1の有限数値、省略時は1。DEFAULT_STYLE
 fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。fontFamilyはsans-serif/serif/monospace。
 グループは初期版では同じgroup値を持つ平坦な集合。選択・変形は原則グループ全体へ適用。
 
-## 書き出しアセット（export-assets.js / export-ui.js、0.4.29）
+## 書き出し対象・登録アセット（export-assets.js / export-targets.js / export-ui.js、0.4.30）
 
 `document.exportAssets`は任意の配列（最大100件）。各項目は`{id,name,pageId,objectIds,enabled}`。idは一覧内で一意、nameは1〜120文字、objectIdsは重複なしの1〜5000件、enabledはboolean。余分なキー・不正な型は拒否する。参照先のページ・図形が削除されても登録を保持し、Undo後に再解決する。図形のスナップショット・位置・書式は複製しない。JSONとZIP manifest直下で保存し、既存文書へ空配列を自動追加しない。
 
 `IlapoExportAssets.add(document,pageId,objectIds,name?)`は参照を登録して項目を返す。`resolve(document,asset)`は検証済み文書から`{page,selectionIds,missingCount,hiddenCount,available}`を返す。選択部分の一時参照`{pageId,objectIds}`も受け付ける。非表示の図形・レイヤーと下絵は対象外。0件でもselectionIdsをnullへ変換せず、ページ全体の出力へフォールバックしない。
 
-`IlapoExportUI`は一覧のDOMをIDで再利用し、名前の日本語変換・フォーカス・入力単位のUndoを保つ。イベントは作品タブのscopeを照合する。SVG/PNGの範囲・余白・倍率・背景と印刷範囲は作品タブ別のUI状態とし、文書へ含めない。元の図形へ移動する際はページを切り替えてから通常選択する。
+`IlapoExportUI`は一覧のDOMをIDで再利用し、名前の日本語変換・フォーカス・入力単位のUndoを保つ。イベントは作品タブのscopeを照合する。範囲（assets/pages/all）・形式・余白・倍率・背景・HTMLのスキップ除外・詳細の開閉とチェック済みページIDは作品タブ別のUI状態とし、文書・Undoへ含めない。チェック済みページは初回のパネル表示時に現在ページで初期化し、ページ移動で自動変更しない。削除されたページIDは出力対象から除き、Undoでページが復元されればチェックも戻る。元の図形へ移動する際はページを切り替えてから通常選択する。
 
-出力開始時に文書・名前・範囲・設定を固定する。1件は画像1ファイル、複数はfflateで画像だけのZIPを作る。ファイル名は安全な名前へ変換し、重複は連番で区別する。生成の合計64MiBまでとし、失敗時は部分的なファイルを保存せずエラーを表示する。既存PNGの1辺16384px・約3200万画素上限も維持する。PDF・印刷・再生HTMLの範囲はこの一覧から独立する。投影データ・再生HTMLからexportAssetsを除外する。
+出力開始時に文書・名前・範囲・設定を固定する。1件は画像1ファイル、複数はfflateで画像だけのZIPを作る。ファイル名は安全な名前へ変換し、重複は連番で区別する。生成の合計64MiBまでとし、失敗時は部分的なファイルを保存せずエラーを表示する。既存PNGの1辺16384px・約3200万画素上限も維持する。PDF・印刷・再生HTMLも同じ対象と共通ボタンを使う。投影データ・再生HTMLからexportAssetsを除外する。
+
+
+`IlapoExportTargets.collect(document,{mode,pageIds,excludeSkipped})`は`{entries:[{key,name,page,selectionIds}],omitted}`を返す。ページは元文書の順、アセットは登録順。未チェック項目はomittedへ数えず、チェック済みで参照先なし・非表示・スキップ除外となった項目だけを数える。ページ全体はselectionIds:null、部分の0件をページ全体へ置き換えない。全ページはskip指定を含み、excludeSkippedはHTML形式のときだけUIから渡す。
+
+`htmlDocument(document,entries,{padding})`は再生用の独立文書を作る。部分はアセット名をページ名とし、ページIDを一意化して図形・接続線の座標を切り抜き範囲へ移す。動きの対象を絞り、移動の範囲も用紙に収める。ノート・skip属性・非表示・下絵・アセット登録情報を除いて`IlapoPlaybackExport.buildHTML`へ渡す。通常の発表用データ境界は変更しない。PDFは`IlapoExport.print`/`buildPrintHTML`へ同じ`{page,selectionIds}`を渡す。静止画像は従来の用紙・余白・線幅の規則に従う。
 
 ## 複数パネル（panel-dock.js、0.4.25）
 

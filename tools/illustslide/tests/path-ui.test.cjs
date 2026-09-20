@@ -149,8 +149,8 @@ async function run() {
     await menu('anchor-list'); await page.keyboard.press('Escape'); await sleep(30);
     assert.equal(await page.locator('#path-menu-button').evaluate(el => el === document.activeElement), true);
 
-    // Export controls exercise the page-wide null selection branch and PDF iframe route.
-    await page.locator('.side-tab [data-action="export-toggle"]').click(); const pngEvent = page.waitForEvent('download'); await page.locator('[data-action="export-png"]').click();
+    // Export controls exercise the page-wide null selection branch.
+    await page.locator('.side-tab [data-action="export-toggle"]').click(); await page.locator('#export-format').selectOption('png'); const pngEvent = page.waitForEvent('download'); await page.locator('[data-action="export-save"]').click();
     const png = await pngEvent; assert.match(png.suggestedFilename(), /\.png$/);
     await page.locator('.side-tab [data-action="export-toggle"]').click();
     await page.screenshot({ path: '/private/tmp/illustslide-path-desktop.png' });

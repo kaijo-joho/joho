@@ -132,7 +132,7 @@ async function run() {
       return [entries.find(entry => entry.storageId === current.storageId && entry.kind === 'auto'), entries.find(entry => entry.storageId === current.storageId && entry.kind === 'saved')];
     }); assert(slots[0] && slots[1], '文書ごとの自動保存と明示保存は別に保持する');
 
-    await page.locator('.side-tab [data-action="export-toggle"]').click(); const svgDownloadPromise = page.waitForEvent('download'); await page.locator('[data-action="export-svg"]').click(); const svgDownload = await svgDownloadPromise;
+    await page.locator('.side-tab [data-action="export-toggle"]').click(); await page.locator('#export-format').selectOption('svg'); const svgDownloadPromise = page.waitForEvent('download'); await page.locator('[data-action="export-save"]').click(); const svgDownload = await svgDownloadPromise;
     const svgPath = path.join(artifacts, 'illustslide-export.svg'); await svgDownload.saveAs(svgPath); const svg = await fs.readFile(svgPath, 'utf8'); assert.match(svg, /<svg[\s>]/); assert.match(svg, /<path|<text/);
     const beforeImport = (await documentOf(page)).pages.length;
     const svgChoosing = page.waitForEvent('filechooser'); await page.locator('#add-palette [data-action="import-svg"]').click();

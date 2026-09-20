@@ -1,8 +1,39 @@
 /* 書き出しも通常の右パネルの幅と、狭い画面での下部配置を共用する。 */
 #panel-panes > .export-panel{flex:none;width:var(--inspector-width,320px);min-width:220px}
-.export-assets h3{font-size:1em;margin:6px 0 10px}
+#export-panel{display:flex;flex-direction:column;overflow:hidden}
+#export-panel[hidden]{display:none}
+#export-panel>header{flex:none;position:static;padding:8px 12px;min-height:48px}
+#export-panel>header h2{font-size:1.05em;margin:0}
+#export-panel>header button{min-width:36px;min-height:36px}
+.export-modes{display:flex;flex:none;gap:4px;padding:8px 12px;border-bottom:1px solid var(--line)}
+.export-modes button{flex:1;min-width:0;min-height:40px;padding:5px 4px;white-space:nowrap;font-size:.9em}
+.export-modes [aria-selected=true]{color:var(--accent);background:var(--accent-soft);border-color:var(--accent);font-weight:700}
+.export-targets{flex:1;min-height:72px;overflow:auto;padding:10px 12px;overscroll-behavior:contain}
+.export-page-actions{display:flex;gap:4px;margin-bottom:8px}
+.export-page-actions button{min-height:36px;min-width:0;padding:4px 6px;font-size:.8em;flex:1;white-space:nowrap}
+.export-page-actions button:last-child{flex:1.8}
+.export-page-row{display:grid;grid-template-columns:24px minmax(0,1fr);align-items:center;gap:6px;border-bottom:1px solid var(--line);padding:6px 0}
+.export-page-pick{display:flex;gap:8px;align-items:center;text-align:left;min-width:0;min-height:58px;width:100%;padding:4px;border-color:transparent}
+.export-page-pick[aria-current=page]{background:var(--accent-soft);border-color:var(--accent)}
+.export-page-pick img{flex:none;width:60px;height:44px;object-fit:contain;background:#fff;border:1px solid var(--line);border-radius:3px}
+.export-page-pick span{min-width:0}
+.export-page-pick strong{display:block;font-size:.9em;font-weight:500;overflow-wrap:anywhere}
+.export-page-pick small{display:block;font-size:.72em;color:var(--muted)}
+.export-settings{flex:none;max-height:44%;overflow:auto;padding:10px 12px;border-top:1px solid var(--line);overscroll-behavior:contain}
+.export-settings label{font-size:.9em;margin:0 0 8px}
+.export-settings .export-format-label{display:flex;flex-direction:row;align-items:center;gap:10px;margin:0}
+.export-format-label select{min-width:0;flex:1;width:auto;min-height:40px}
+#export-details{margin-top:4px}
+#export-details summary{cursor:pointer;color:var(--muted);font-size:.85em;min-height:36px;align-content:center;padding:6px 0}
+.export-detail-fields{padding-top:6px}
+.export-detail-fields .muted,.export-footer .muted{font-size:.8em;line-height:1.5;margin:0 0 6px;overflow-wrap:anywhere}
+.export-check-option{display:flex;flex-direction:row;align-items:center;gap:8px;min-height:44px;cursor:pointer}
+.export-check-option input{width:18px;height:18px;margin:0;flex:none;accent-color:var(--accent)}
+.export-footer{flex:none;padding:8px 12px 12px;border-top:1px solid var(--line);background:var(--panel)}
+#export-save{width:100%;margin-top:0!important}
+#export-all-summary{margin:0;font-size:.9em;line-height:1.6}
 #export-asset-add{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;min-height:44px}
-.export-assets .muted,#export-asset-summary{font-size:.85em;line-height:1.6}
+.export-assets .muted{font-size:.85em;line-height:1.6}
 .export-asset-row{display:grid;grid-template-columns:24px 48px minmax(0,1fr) 32px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
 .export-asset-check{display:flex;align-items:center;justify-content:center;margin:0;min-height:44px;cursor:pointer}
 .export-asset-check input{width:18px;height:18px;margin:0;accent-color:var(--accent)}
@@ -16,8 +47,31 @@
 .export-asset-remove{width:32px;min-height:36px;padding:5px}
 .export-asset-remove svg{width:20px;height:20px}
 @media(pointer:coarse){
+  #export-panel>header button,.export-modes button,.export-page-actions button,#export-details summary{min-height:44px}
+  .export-page-row{grid-template-columns:44px minmax(0,1fr)}
   .export-asset-row{grid-template-columns:44px 48px minmax(0,1fr) 44px;gap:4px}
   .export-asset-remove,.export-asset-name{min-height:44px}
   .export-asset-remove{width:44px}
 }
 @media(max-width:850px){#panel-panes > .export-panel{width:100%;min-width:0}}
+
+/* 高さが足りないときはパネル全体をスクロールし、書き出し操作を下端に残す。 */
+@media(max-height:600px){
+  #export-panel{display:block;overflow:auto}
+  #export-panel[hidden]{display:none}
+  .export-targets{min-height:0;max-height:42dvh}
+  .export-settings{max-height:none;overflow:visible}
+  .export-footer{position:sticky;bottom:0;z-index:1}
+}
+@media(max-width:850px){
+  .export-settings{max-height:40%}
+  .export-targets{min-height:0}
+  .export-footer .muted{margin-bottom:3px}
+}
+@media(max-width:850px) and (max-height:760px){
+  #export-panel{display:block;overflow:auto}
+  #export-panel[hidden]{display:none}
+  .export-settings{max-height:none;overflow:visible}
+  .export-targets{max-height:30dvh}
+  .export-footer{position:sticky;bottom:0;z-index:1}
+}

@@ -1,4 +1,4 @@
-# イラストスライド illustSlide 0.4.29 BETA
+# イラストスライド illustSlide 0.4.30 BETA
 
 正式名称は「イラストスライド illustSlide」（開発ネーム：イラポ）。海城中学高等学校 情報科の、ピクトグラム・ロゴ・説明図・スライド制作を目指すブラウザ用ベクターエディタ。
 
@@ -13,6 +13,17 @@
 0.4.3で選択時の操作をアイコン中心に整理し、図形を見ながら調整する設定を右パネルへ移した。アイコンの名前はマウスとキーボードフォーカスで表示する。上部の1行表示、選択ポップアップから編集を始める構成は維持する。
 
 0.4.4では、選択バーのパス・編集・整列・重なり・「…」のメニューをマウスのホバーでもすぐ開くようにした。右パネルにページ一覧を追加し、発表の全画面はアートボードの表示領域だけを使う。
+
+## 書き出し対象と共通設定（0.4.30）
+
+- 右の書き出しを「部分」「ページ」「全ページ」の3タブへ整理。部分は登録アセットの一覧・チェック・追加、ページはサムネイル付きチェック一覧、全ページは件数だけを表示する。ページのチェックは最初に書き出しパネルを開いた時点の現在ページに入り、編集ページを移動しても変えない。「すべて」「解除」「現在ページのみ」で選び直せる。
+- 形式（SVG・PNG・HTML・PDF/印刷）、開閉式の詳細設定、下部の書き出しボタンを共用する。形式と設定、ページのチェック、詳細の開閉は作品タブ別に保持し、文書・Undo・自動保存には含めない。アセットの登録・名前・チェックは従来どおり作品に保存する。
+- SVG・PNGは1件なら直接画像、複数なら個別の画像をまとめたZIP。ページは作品の順、アセットは登録順で出力する。固定用紙は用紙のサイズ、部分・自由キャンバスは図形と余白で範囲を決める。PNGは倍率と透明/白背景も選べる。
+- HTMLは1つのオフライン再生ファイル。チェックしたページだけの出力と、1アセットを1ページに切り抜く出力に対応し、対象図形の動きも保持する。部分の用紙は移動アニメーションの範囲も収める。発表者ノート・非表示図形・下絵・アセット登録情報は含めない。元の作品は変更しない。
+- 「全ページ」は発表スキップを含む。HTMLの詳細設定で「発表スキップのページを除外」を選んだ場合だけ、対象から除く（部分は元ページの指定に従う）。この設定は静止画像・PDFと通常の発表のスキップ判定を変えない。
+- PDF・印刷も同じ対象を用い、アセットは切り抜いた範囲で1件1枚として印刷画面へ渡す。対象が0件なら書き出しボタンを無効にする。以下の旧版にある個別の範囲選択・個別の書き出しボタンは、この構成で置き換える。
+
+検証：Chromeで3タブ・チェックと編集ページの分離・設定の作品タブ別保持、実際のSVG/PNGと画像ZIP、選択ページHTML・スキップ除外・部分HTMLのオフライン再生、元の文書とノートの保持を確認。キーボード操作、320〜1280pxと390×600px、ダーク・大きい文字、既存の作図・保存・パネル横並べ・アニメーションも回帰確認。PDFは共通対象の引き渡しと既存のChrome headless出力の用紙寸法を確認し、OSの印刷ダイアログでの操作・紙への印刷は未確認。
 
 ## 書き出しアセット（0.4.29）
 
@@ -397,6 +408,8 @@ Codexが担当。担当外アプリは閲覧・レビューのみ。共通仕様
 | `animation-ui.js` | 選択・ページの動き設定パネル |
 | `playback-export.js` | 同じ再生コードを含む単体HTMLの書き出し |
 | `export.js` | PNGとベクター印刷用ページ |
+| `export-assets.js` / `export-targets.js` | 登録アセットの参照・出力対象・部分再生ページの生成 |
+| `export-ui.js` / `export-ui.css` | 対象3タブと共通の書き出し設定 |
 | `svg.js` | 安全なSVG表示・入出力、ZIPの保存・復元 |
 | `local-autosave.js` | ローカル保存先・権限・外部変更・書き込み順序 |
 | `legacy-redirect.js` / `../ilapo/index.html` | 旧URLからの移動、直接ファイル利用時の保存内容の取り出し |
@@ -458,6 +471,9 @@ node tools/illustslide/tests/path-semantics.test.cjs
 node tools/illustslide/tests/path-ui.test.cjs
 node tools/illustslide/tests/export.test.cjs
 node tools/illustslide/tests/export-browser.test.cjs
+node tools/illustslide/tests/export-targets.test.cjs
+node tools/illustslide/tests/export-panel-browser.test.cjs
+node tools/illustslide/tests/export-assets-browser.test.cjs
 node tools/illustslide/tests/connectors.test.cjs
 node tools/illustslide/tests/connectors-browser.test.cjs
 node tools/illustslide/tests/connector-routing-browser.test.cjs

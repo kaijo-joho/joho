@@ -17,8 +17,11 @@ async function load(page,doc,name='assets.json'){
   await page.waitForFunction(id=>IlapoEditor.getDocument().id===id,doc.id);await settle(page);
 }
 async function openExport(page){if(await page.locator('#export-panel').isHidden())await page.locator('.side-tab [data-action="export-toggle"]').click();await settle(page);}
+async function switchMode(page,mode){await page.locator(`[data-export-mode="${mode}"]`).click();await page.waitForFunction(value=>document.querySelector(`[data-export-mode="${value}"]`)?.getAttribute('aria-selected')==='true',mode);await settle(page);}
+async function openDetails(page){const details=page.locator('#export-details');if(!(await details.evaluate(element=>element.open)))await details.locator('summary').click();await settle(page);}
+async function selectFormat(page,format){await page.locator('#export-format').selectOption(format);}
 async function pick(page,id){await page.locator('#canvas').focus();await page.keyboard.press('v');await page.locator(`#artwork [data-object="${id}"]`).click();await settle(page);}
-async function download(page,format){const pending=page.waitForEvent('download');await page.locator(`[data-action="export-${format}"]`).click();const value=await pending;return {name:value.suggestedFilename(),bytes:await fs.readFile(await value.path())};}
+async function download(page,format,mode){if(mode)await switchMode(page,mode);await selectFormat(page,format);const pending=page.waitForEvent('download');await page.locator('[data-action="export-save"]').click();const value=await pending;return {name:value.suggestedFilename(),bytes:await fs.readFile(await value.path())};}
 function fixture(){
   const doc=C.createDocument();doc.id='export-fixture';doc.name='アセットの確認';
   const p=doc.pages[0];p.id='page-first';p.name='最初';p.board={width:200,height:140,unit:'px',infinite:false};
@@ -36,8 +39,11 @@ function fixture(){
     await page.goto(url);await page.waitForFunction(()=>window.IlapoEditor);await load(page,fixture());
     await pick(page,'red');await page.locator('#style-button').click();const width=(await page.locator('#inspector-panel').boundingBox()).width;
     await openExport(page);assert.equal((await page.locator('#export-panel').boundingBox()).width,width,'export shares the normal inspector width');
+    assert.equal(await page.locator('[data-export-mode="pages"]').getAttribute('aria-selected'),'true','page export is the initial mode');
+    assert(await page.locator('[data-export-page="page-first"] input[type=checkbox]').isChecked(),'the current page is initially checked');
+    await switchMode(page,'assets');
     await page.locator('#export-asset-add').click();await page.waitForFunction(()=>IlapoEditor.getDocument().exportAssets?.length===1);
-    assert.equal(await page.locator('#export-range').inputValue(),'assets');
+    assert.equal(await page.locator('[data-export-mode="assets"]').getAttribute('aria-selected'),'true');
     const firstId=(await read(page)).exportAssets[0].id;const first=page.locator(`[data-export-asset="${firstId}"]`);
     const name=first.locator('.export-asset-name');await name.focus();
     await name.evaluate(input=>{input.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true}));input.value='ロゴ';input.dispatchEvent(new InputEvent('input',{bubbles:true,isComposing:true}));});
@@ -56,7 +62,7 @@ function fixture(){
     await pick(page,'blue');await page.locator('#export-asset-add').click();await settle(page);
     const secondId=(await read(page)).exportAssets[1].id;const second=page.locator(`[data-export-asset="${secondId}"]`);
     await second.locator('.export-asset-name').fill('ロゴ/共通');await second.locator('.export-asset-name').press('Enter');
-    await page.locator('#export-padding').fill('0');
+    await openDetails(page);await page.locator('#export-padding').fill('0');
     const batch=await download(page,'svg');assert(batch.name.endsWith('.zip'));
     const files=zip.unzipSync(batch.bytes);assert.deepEqual(Object.keys(files).sort(),['ロゴ_共通.svg','ロゴ_共通_2.svg']);
     assert.match(zip.strFromU8(files['ロゴ_共通.svg']),/#FF0000/);assert.doesNotMatch(zip.strFromU8(files['ロゴ_共通.svg']),/#0000FF/);
@@ -73,21 +79,20 @@ function fixture(){
     await first.locator('.export-asset-thumb').click();await page.locator('#style-button').click();
     await page.locator('#color-hex').fill('#22C55E');await page.locator('#color-hex').press('Tab');
     await page.waitForFunction(()=>IlapoEditor.getDocument().pages[0].objects[0].style.fill==='#22C55E');
-    await openExport(page);const edited=await download(page,'svg');assert.match(edited.bytes.toString(),/#22C55E/);assert.doesNotMatch(edited.bytes.toString(),/#FF0000/);
+    await openExport(page);await switchMode(page,'assets');const edited=await download(page,'svg');assert.match(edited.bytes.toString(),/#22C55E/);assert.doesNotMatch(edited.bytes.toString(),/#FF0000/);
     await first.locator('.export-asset-thumb').click();await page.locator('#canvas').focus();await page.keyboard.press('Delete');await settle(page);
     assert.equal((await read(page)).exportAssets.length,2);assert.match(await first.locator('.export-asset-status').innerText(),/元の図形/);
-    assert(await page.locator('[data-action="export-svg"]').isDisabled(),'missing checked source never falls back to a whole-page export');
-    await page.locator('.toolbar-history[data-action="undo"]').click();await settle(page);assert(!(await page.locator('[data-action="export-svg"]').isDisabled()));
+    assert(await page.locator('[data-action="export-save"]').isDisabled(),'missing checked source never falls back to a whole-page export');
+    await page.locator('.toolbar-history[data-action="undo"]').click();await settle(page);assert(!(await page.locator('[data-action="export-save"]').isDisabled()));
     await second.locator('.export-asset-remove').click();assert.equal((await read(page)).exportAssets.length,1);assert.equal((await read(page)).pages[0].objects.length,2,'removal only unregisters');
     await page.locator('.toolbar-history[data-action="undo"]').click();await settle(page);assert.equal((await read(page)).exportAssets.length,2);
     // Page changes and thumbnail navigation preserve cross-page registration.
-    await page.locator('#pages-toggle').click();await page.locator('[data-page-id="page-second"]').click();await pick(page,'green');await openExport(page);await page.locator('#export-asset-add').click();await settle(page);
-    assert.equal((await read(page)).exportAssets[2].pageId,'page-second');
+    await page.locator('#pages-toggle').click();await page.locator('[data-page-id="page-second"]').click();await pick(page,'green');await openExport(page);await switchMode(page,'assets');await page.locator('#export-asset-add').click();await settle(page);
+    assert.equal((await read(page)).exportAssets[2].pageId,'page-second');const thirdId=(await read(page)).exportAssets[2].id;const third=page.locator(`[data-export-asset="${thirdId}"]`);
     await first.locator('.export-asset-thumb').click();await page.waitForFunction(()=>IlapoEditor.getState().pageId==='page-first');
     assert.deepEqual(await page.evaluate(()=>IlapoEditor.getSelection()),['red']);
-    await page.locator('#export-range').selectOption('page');const whole=await download(page,'svg');assert.match(whole.bytes.toString(),/width="200" height="140"/);assert.match(whole.bytes.toString(),/#0000FF/);
-    await page.locator('#export-range').selectOption('selection');const selection=await download(page,'svg');assert.doesNotMatch(selection.bytes.toString(),/#0000FF/);
-    assert.equal(await page.locator('#print-range option').count(),2);assert(await page.locator('[data-action="export-playback"]').isVisible(),'full-page print and playback exports remain');
+    const whole=await download(page,'svg','pages');assert.match(whole.bytes.toString(),/width="200" height="140"/);assert.match(whole.bytes.toString(),/#0000FF/);
+    await switchMode(page,'assets');await second.locator('input[type=checkbox]').uncheck();await third.locator('input[type=checkbox]').uncheck();const selection=await download(page,'svg');assert.doesNotMatch(selection.bytes.toString(),/#0000FF/);
     const project=await read(page);
     const beforeImport=await page.evaluate(()=>IlapoEditor.getState().sessionId);
     const zipBytes=await page.evaluate(()=>Array.from(IlapoSVG.encodeProject(IlapoEditor.getDocument())));
@@ -95,23 +100,22 @@ function fixture(){
     await page.waitForFunction(id=>IlapoEditor.getState().sessionId!==id,beforeImport);await settle(page);
     assert.deepEqual((await read(page)).exportAssets,project.exportAssets,'editable ZIP preserves registrations');
     assert.equal((await read(page)).version,10);
-    await openExport(page);assert.equal(await page.locator('.export-asset-row').count(),3);
+    await openExport(page);await switchMode(page,'assets');assert.equal(await page.locator('.export-asset-row').count(),3);
     await page.locator('#file-button').click();await page.locator('#command-menu [data-action="save-browser"]').click();
     await page.waitForFunction(()=>Object.keys(localStorage).some(key=>key.endsWith(':saved')&&JSON.parse(localStorage[key]).document?.exportAssets?.length===3));
     await page.waitForFunction(()=>Object.keys(localStorage).some(key=>key.endsWith(':auto')&&JSON.parse(localStorage[key]).document?.exportAssets?.length===3));
     const session=await page.evaluate(()=>IlapoEditor.getState().sessionId);
-    const other=fixture();other.id='other-export-fixture';other.name='別の作品';await load(page,other);await openExport(page);assert.equal(await page.locator('.export-asset-row').count(),0);
+    const other=fixture();other.id='other-export-fixture';other.name='別の作品';await load(page,other);await openExport(page);await switchMode(page,'assets');assert.equal(await page.locator('.export-asset-row').count(),0);
     const otherSession=await page.evaluate(()=>IlapoEditor.getState().sessionId);
-    await page.locator(`[data-document-tab="${session}"]`).click();await openExport(page);assert.equal(await page.locator('.export-asset-row').count(),3,'asset lists belong to each document session');
-    await page.locator('#export-range').selectOption('page');
+    await page.locator(`[data-document-tab="${session}"]`).click();await openExport(page);await switchMode(page,'assets');assert.equal(await page.locator('.export-asset-row').count(),3,'asset lists belong to each document session');
     await page.evaluate(()=>{const original=IlapoExport.png;IlapoExport.png=async(...args)=>{IlapoExport.png=original;await new Promise(resolve=>window.__releaseExport=resolve);return original(...args);};});
-    const frozenDownload=page.waitForEvent('download');await page.locator('[data-action="export-png"]').click();
+    await selectFormat(page,'png');const frozenDownload=page.waitForEvent('download');await page.locator('[data-action="export-save"]').click();
     await page.waitForFunction(()=>typeof window.__releaseExport==='function');
-    await page.locator(`[data-document-tab="${otherSession}"]`).click();await openExport(page);
+    await page.locator(`[data-document-tab="${otherSession}"]`).click();await openExport(page);await switchMode(page,'assets');
     await page.evaluate(()=>window.__releaseExport());const frozenResult=await frozenDownload;
-    assert.equal(frozenResult.suggestedFilename(),'アセットの確認_最初.png','async export keeps its source document after a tab switch');
+    assert.equal(frozenResult.suggestedFilename(),'ロゴ_共通.png','async export keeps its source document after a tab switch');
     assert.equal(await page.locator('.export-asset-row').count(),0,'async completion does not transfer assets into another document');
-    await page.locator(`[data-document-tab="${session}"]`).click();await openExport(page);
+    await page.locator(`[data-document-tab="${session}"]`).click();await openExport(page);await switchMode(page,'assets');
     // Two panels and narrow layouts retain the established dock behavior.
     await page.locator('#pages-toggle').click();await page.locator('#inspector-pin').click();await openExport(page);
     assert(await page.locator('#pinned-inspector-panel').isVisible());

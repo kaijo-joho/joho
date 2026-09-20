@@ -43,7 +43,7 @@
   const names = {rect:'長方形',roundrect:'角丸',ellipse:'楕円',triangle:'三角形',pentagon:'五角形',diamond:'菱形',parallelogram:'平行四辺形',arrow:'太い矢印',callout:'吹き出し',line:'線',connector:'接続矢印','connector-orthogonal':'カギ型矢印',text:'文字',direct:'点を編集',select:'選択',pan:'移動'};
   document.querySelectorAll('[data-icon]').forEach(el => el.insertAdjacentHTML('afterbegin',icon(el.dataset.icon)));
   $('shape-tools').innerHTML = Object.keys(names).filter(k=>!['direct','select','pan'].includes(k)).map(k=>`<button data-tool="${k}" aria-label="${names[k]}を追加" data-tip="${names[k]}を追加">${icon(k)}<span>${names[k]}</span></button>`).join('');
-  if (!window.IlapoDocumentStore || !window.IlapoDocumentWorkspace || !window.IlapoDocumentTabs || !C || !L || !S || !G || !E || !K || !A || !Guides || !Grid || !Arrange || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoPresenter || !window.IlapoPresentationData || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoInlinePlayback || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector || !window.IlapoPanelDock || !window.IlapoPagesUI || !window.IlapoObjectsUI || !window.IlapoObjectsModel || !window.IlapoAssetsUI || !window.IlapoExportAssets || !window.IlapoExportUI || !window.IlapoTextUI || !window.IlapoTextLayout || !window.IlapoOutline || !window.IlapoOutlineUI || !window.IlapoStrokeOutline || !window.IlapoTextOutline) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
+  if (!window.IlapoDocumentStore || !window.IlapoDocumentWorkspace || !window.IlapoDocumentTabs || !C || !L || !S || !G || !E || !K || !A || !Guides || !Grid || !Arrange || !window.IlapoPathEdit || !window.IlapoPathUI || !window.IlapoConnectorUI || !window.IlapoPresentation || !window.IlapoPresenter || !window.IlapoPresentationData || !window.IlapoAnimation || !window.IlapoAnimationPlayer || !window.IlapoInlinePlayback || !window.IlapoAnimationUI || !window.IlapoPlaybackExport || !window.IlapoInspector || !window.IlapoPanelDock || !window.IlapoPagesUI || !window.IlapoObjectsUI || !window.IlapoObjectsModel || !window.IlapoAssetsUI || !window.IlapoExportAssets || !window.IlapoExportUI || !window.IlapoExportTargets || !window.IlapoTextUI || !window.IlapoTextLayout || !window.IlapoOutline || !window.IlapoOutlineUI || !window.IlapoStrokeOutline || !window.IlapoTextOutline) { $('hint').textContent='必要なファイルを読み込めませんでした。ページを再読み込みしてください。'; return; }
   const initial=C.createDocument(); initial.name='無題の作品'; initial.pages[0].board=C.boardPreset('16:9');
   let history,activeSession,workspace,tabsUI,inlinePlayback;
   let pageId=initial.pages[0].id, selected=[], tool='select', drag=null, preview=null, clipboard=null, copiedStyle=null;
@@ -955,13 +955,6 @@
     showInspector('image','画像の設定',`<label>名前<input id="image-name" maxlength="120" value="${esc(o.name)}"></label><label>不透明度（%）<input id="image-opacity" type="number" required min="0" max="100" value="${o.style.opacity*100}"></label><label class="check"><input id="image-locked" type="checkbox" ${o.locked?'checked':''}>位置と大きさを固定する</label><label class="check"><input id="image-output" type="checkbox" ${!o.reference?'checked':''}>画像として書き出し・印刷・発表にも含める</label><p class="muted">下絵は編集用ファイルに保存されます。固定を解除すると移動・拡大縮小できます。画像自体の輪郭はパスにはなりません。</p>`,'適用',()=>changePage(read()),{preview:()=>previewInspectorChange(read())});
   }
   function present(fromStart,presenter=false){inlinePlayback?.stop();const focused=document.activeElement,opener=$('command-menu').contains(focused)?menuOpener:focused;hideMenu();cancelDrag();connectionUI.reset();(presenter?window.IlapoPresenter:window.IlapoPresentation).open(doc(),{pageId:fromStart?null:pageId,opener});}
-  let playbackBusy=false;
-  async function exportPlayback(){
-    if(playbackBusy)return;playbackBusy=true;
-    const frozen=C.clone(doc());document.querySelectorAll('[data-action=export-playback]').forEach(b=>b.disabled=true);
-    try{const html=await window.IlapoPlaybackExport.buildHTML(frozen);download(html,fileName(frozen.name,'.play.html'),'text/html');toast('スキップを除く発表ページを再生用HTMLへ保存しました。ファイルだけで再生できます。');}
-    finally{playbackBusy=false;document.querySelectorAll('[data-action=export-playback]').forEach(b=>b.disabled=false);}
-  }
   function startInlinePlayback(value){
     hideMenu();objectsUI?.cancelDrag();animationUI?.cancelDrag?.();cancelDrag();clearHoverPreview();
     const checked=C.clone(doc());checked.pages=[C.clone(value)];
@@ -973,7 +966,7 @@
     selected=keepSelection?selected.filter(id=>page().objects.some(o=>o.id===id&&isVisible(o))):[];if(!selected.length)clearSelection();queueSave();render();
   }
   const commands={
-    animations:()=>openInspectorSection('animation'),'animation-add':()=>animationUI.edit(),'export-playback':exportPlayback,
+    animations:()=>openInspectorSection('animation'),'animation-add':()=>animationUI.edit(),
     assets:()=>openInspectorSection('assets'),'component-save':()=>assetsUI.focusRegistration(),'import-image':()=>$('image-input').click(),'image-options':()=>openInspectorSection('image'),
     'connection-tool':()=>setTool('connector'),'connection-orthogonal-tool':()=>setTool('connector-orthogonal'),'connection-options':()=>openInspectorSection('connection'),'connection-between':()=>connectionUI.addBetween(),'connection-convert':()=>connectionUI.convert(),
     'present-start':()=>present(true),'present-current':()=>present(false),'presenter-start':()=>present(true,true),'presenter-current':()=>present(false,true),
@@ -997,9 +990,7 @@
     'pages-toggle':()=>toggleInspector('pages'),
     'selection-path':()=>openMenu('path',$('selection-more')),'selection-arrange':()=>openMenu('arrange',$('selection-more')),'selection-order':()=>openMenu('order',$('selection-more')),
     'export-toggle':()=>{inspector.toggleExport();exportUI.sync();},
-    'export-svg':()=>exportUI.save('svg'),
-    'export-png':()=>exportUI.save('png'),
-    'export-pdf':async()=>{const pages=C.clone($('print-range').value==='all'?doc().pages:[page()]);await E.print(pages,{title:doc().name});}
+    'export-save':()=>exportUI.save()
   };
   function toggleInspector(section){inspector.toggle(section,()=>openInspectorSection(section));}
   function execute(action){hideMenu();closePalette(false);objectsUI?.cancelDrag();animationUI?.cancelDrag?.();if(inspectorPreview)inspector.reset();cancelDrag();try{if(action.startsWith('align-'))align(action.slice(6));else if(action.startsWith('layer-set:')){
@@ -1040,7 +1031,7 @@
   objectsUI=window.IlapoObjectsUI.create({inspectorBody:()=>inspector.element('objects','inspector-body'),document:doc,page,activeLayer,setActiveLayer,isVisible,isLocked,toast,selected:()=>selected,select:selection,showInspector,changePage,showDialog,execute,isBusy:()=>!!drag,esc,icon});
   pagesUI=window.IlapoPagesUI.create({session:()=>activeSession.id,isBusy:()=>!!drag||objectsUI?.isDragging||animationUI?.isDragging,inspectorBody:()=>inspector.element('pages','inspector-body'),document:doc,page,selectPage,change,showInspector,showDialog,esc,icon});
   assetsUI=window.IlapoAssetsUI.create({inspectorBody:()=>inspector.element('assets','inspector-body'),document:doc,page,selected:()=>selected,library,insertionPoint,insertObjects,showInspector,showDialog,isOpen:()=>inspector?.isSectionOpen('assets'),esc,icon,toast,download});
-  exportUI=window.IlapoExportUI.create({root:$('export-panel'),session:()=>activeSession.id,document:doc,page,selected:()=>selected,change,select:(id,ids)=>{selectPage(id);selection(ids);setTool('select');},onHistory:redo=>moveHistory(redo,true),icon,toast,download,fileName});
+  exportUI=window.IlapoExportUI.create({root:$('export-panel'),session:()=>activeSession.id,document:doc,page,selected:()=>selected,change,selectPage,select:(id,ids)=>{selectPage(id);selection(ids);setTool('select');},onHistory:redo=>moveHistory(redo,true),icon,toast,download,fileName});
   inspector=window.IlapoPanelDock.create({openSection:openInspectorSection,cancelDrag:()=>{objectsUI?.cancelDrag();animationUI?.cancelDrag?.();pagesUI?.cancelDrag();},onHistory:redo=>moveHistory(redo,true),onLayout:()=>{render();help?.refresh();},clearPreview:clearInspectorPreview,isBusy:()=>!!drag||objectsUI?.isDragging||animationUI?.isDragging||pagesUI?.isDragging});
   tabsUI=window.IlapoDocumentTabs.create({root:$('document-tabs'),onSelect:selectDocument,onClose:requestClose});
   window.IlapoEditor=Object.freeze({getDocuments:()=>workspace.sessions.map(s=>({id:s.id,name:s.history.document.name,storageId:s.storageId,active:s===activeSession,dirty:workspace.dirty(s),saving:s.saving,destination:s.lastSave?.kind||null})),getAnchors:()=>pathUI.getRefs(),getDocument:()=>C.clone(doc()),getSelection:()=>selected.slice(),getCamera:()=>({...camera}),getState:()=>({sessionId:activeSession.id,tool,dirty:dirty(),pageId,activeLayerId:activeLayer(),playback:inlinePlayback.getState()})});
