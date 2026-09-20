@@ -7,9 +7,13 @@
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
+  <link rel="stylesheet" href="./css/bird-frames.css">
   <link rel="stylesheet" href="./css/output-representation.css">
+  <link rel="stylesheet" href="./css/output-print.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/output-core.js"></script>
+  <script defer src="./js/bird-frames.js"></script>
+  <script defer src="./js/output-print.js"></script>
   <script defer src="./js/output-lessons.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -27,11 +31,15 @@
         <div class="op-comparison op-comparison--screen">
           <figure>
             <figcaption>1インチ四方の画面を拡大</figcaption>
+            <div class="op-inch-diagram">
+              <div class="op-dimension op-dimension--top"><span aria-hidden="true">←</span><span>1インチ</span><span aria-hidden="true">→</span></div>
+              <div class="op-dimension op-dimension--left"><span aria-hidden="true">↑</span><span>1インチ</span><span aria-hidden="true">↓</span></div>
             <svg class="op-square op-pixels" viewBox="0 0 320 320" role="img" aria-labelledby="op-pixel-title op-pixel-desc">
               <title id="op-pixel-title">同じ面積に並ぶ画素</title><desc id="op-pixel-desc" data-output-pixel-desc>1インチ四方に64×64画素が並んでいます。各画素はRGBの3つのサブピクセルで構成されます。</desc>
               <defs><pattern id="op-pixel-pattern" width="5" height="5" patternUnits="userSpaceOnUse"><rect width="1.667" height="5" fill="#ff3030" data-output-subpixel="r"/><rect x="1.667" width="1.667" height="5" fill="#24e249" data-output-subpixel="g"/><rect x="3.334" width="1.666" height="5" fill="#3274ff" data-output-subpixel="b"/><path d="M0 0H5V5H0Z" fill="none" stroke="#101010" stroke-width=".3" data-output-pixel-edge/></pattern></defs>
               <rect width="320" height="320" fill="url(#op-pixel-pattern)"/>
             </svg>
+            </div>
             <p class="op-caption" data-output-pixel-count>横64画素 × 縦64画素</p>
           </figure>
           <div>
@@ -56,41 +64,80 @@
       <h2 id="headline_2">(2) ディスプレイの発色のしくみ</h2>
       <p><strong>液晶ディスプレイ（LCD）</strong>は、バックライトの光を通す量を調整します。<strong>有機ELディスプレイ（OLED）</strong>は、発光する部分そのものの明るさを調整します。</p>
       <div class="op-widget" data-output-light data-lesson-slide-navigation-lock>
-        <div class="op-controls op-enhancement" hidden>
-          <label class="op-slider" for="op-brightness">表示する明るさ（模式図） <output for="op-brightness" data-output-brightness-label>70%</output><input id="op-brightness" type="range" min="0" max="100" step="10" value="70"><span class="op-scale"><span>暗い</span><span>明るい</span></span></label>
+        <div class="op-controls op-controls--rgb op-enhancement" hidden>
+          <label class="op-slider" for="op-brightness-r">R（赤）の明るさ <output for="op-brightness-r" data-output-brightness-label="r">70%</output><input id="op-brightness-r" type="range" min="0" max="100" step="10" value="70" data-output-brightness="r"><span class="op-scale"><span>暗い</span><span>明るい</span></span></label>
+          <label class="op-slider" for="op-brightness-g">G（緑）の明るさ <output for="op-brightness-g" data-output-brightness-label="g">70%</output><input id="op-brightness-g" type="range" min="0" max="100" step="10" value="70" data-output-brightness="g"><span class="op-scale"><span>暗い</span><span>明るい</span></span></label>
+          <label class="op-slider" for="op-brightness-b">B（青）の明るさ <output for="op-brightness-b" data-output-brightness-label="b">70%</output><input id="op-brightness-b" type="range" min="0" max="100" step="10" value="70" data-output-brightness="b"><span class="op-scale"><span>暗い</span><span>明るい</span></span></label>
           <button class="dr-button" type="button" data-output-reset>最初の条件に戻す</button>
         </div>
-        <div class="op-comparison">
+        <div class="op-comparison op-comparison--light">
           <figure>
             <figcaption><strong>LCD：光を通す量を調整</strong></figcaption>
-            <svg class="op-mechanism" viewBox="0 0 460 210" role="img" aria-labelledby="op-lcd-title op-lcd-desc">
-              <title id="op-lcd-title">液晶ディスプレイの光の流れ</title><desc id="op-lcd-desc">バックライトの白い光が液晶と偏光板、RGBのカラーフィルタを通って画面から出ます。表示を暗くしても、この模式図ではバックライトは点灯したままです。</desc>
-              <rect x="16" y="48" width="56" height="106" rx="5" fill="#fff5bd" stroke="#967827"/>
-              <path d="M76 75H155M76 100H155M76 125H155" stroke="#d8aa32" stroke-width="8"/>
-              <rect x="163" y="48" width="54" height="106" rx="4" fill="#7498b0"/>
-              <path d="M176 62l25 16m-25 7 25 16m-25 7 25 16m-25 7 25 16" stroke="#e6f4ff" stroke-width="4"/>
-              <rect x="252" y="48" width="29" height="35" fill="#ff3030"/><rect x="252" y="83" width="29" height="36" fill="#24e249"/><rect x="252" y="119" width="29" height="35" fill="#3274ff"/>
-              <g data-output-lcd-light opacity=".7"><path d="M285 65H401" stroke="#ef3d3d" stroke-width="12"/><path d="M285 101H401" stroke="#1daf45" stroke-width="12"/><path d="M285 137H401" stroke="#3274ff" stroke-width="12"/></g>
-              <rect x="218" y="49" width="24" height="104" fill="#000" opacity=".3" data-output-lcd-shutter/>
-              <g class="op-diagram-text"><text x="46" y="180" text-anchor="middle">バックライト</text><text x="190" y="180" text-anchor="middle">液晶＋偏光板</text><text x="267" y="202" text-anchor="middle">RGBフィルタ</text><text x="357" y="180" text-anchor="middle">画面へ出る光</text></g>
+            <div class="op-mechanism-scroll" tabindex="0" role="region" aria-label="光の流れ。狭い画面では横にスクロールできます。">
+            <svg class="op-mechanism" viewBox="0 0 600 324" role="img" aria-labelledby="op-lcd-title op-lcd-desc">
+              <title id="op-lcd-title">液晶ディスプレイの光の流れ</title><desc id="op-lcd-desc">一定の白色バックライトから出た光を、R・G・Bそれぞれの液晶と偏光板で調整してからカラーフィルタへ通します。</desc>
+              <rect x="24" y="54" width="65" height="208" rx="5" fill="#fff5bd" stroke="#967827" stroke-width="2"/>
+              <g class="op-diagram-text"><text x="135" y="35" text-anchor="middle">白色光</text><text x="324" y="35" text-anchor="middle">透過した白色光</text></g>
+              <g data-output-lcd-channel="r">
+                <path d="M96 86H180" class="op-white-light-edge"/><path d="M96 86H180" class="op-white-light"/>
+                <rect x="184" y="57" width="65" height="58" rx="4" class="op-liquid-cell"/>
+                <g class="op-molecules"><g transform="translate(216 71)"><path d="M-15 0H15" transform="rotate(-23)" data-output-molecule="r"/></g><g transform="translate(216 86)"><path d="M-15 0H15" transform="rotate(-23)" data-output-molecule="r"/></g><g transform="translate(216 101)"><path d="M-15 0H15" transform="rotate(-23)" data-output-molecule="r"/></g></g>
+                <rect x="252" y="57" width="16" height="58" class="op-polarizer"/>
+                <g data-output-lcd-through="r" opacity=".7"><path d="M274 86H374" class="op-white-light-edge"/><path d="M274 86H374" class="op-white-light"/></g>
+                <rect x="378" y="57" width="34" height="58" fill="#ed3e48"/><text x="395" y="92" class="op-channel-letter" text-anchor="middle">R</text>
+                <path d="M418 86H564" stroke="#ed3e48" stroke-width="14" opacity=".7" data-output-lcd-light="r"/>
+              </g>
+              <g data-output-lcd-channel="g">
+                <path d="M96 158H180" class="op-white-light-edge"/><path d="M96 158H180" class="op-white-light"/>
+                <rect x="184" y="129" width="65" height="58" rx="4" class="op-liquid-cell"/>
+                <g class="op-molecules"><g transform="translate(216 143)"><path d="M-15 0H15" transform="rotate(-23)" data-output-molecule="g"/></g><g transform="translate(216 158)"><path d="M-15 0H15" transform="rotate(-23)" data-output-molecule="g"/></g><g transform="translate(216 173)"><path d="M-15 0H15" transform="rotate(-23)" data-output-molecule="g"/></g></g>
+                <rect x="252" y="129" width="16" height="58" class="op-polarizer"/>
+                <g data-output-lcd-through="g" opacity=".7"><path d="M274 158H374" class="op-white-light-edge"/><path d="M274 158H374" class="op-white-light"/></g>
+                <rect x="378" y="129" width="34" height="58" fill="#1fa951"/><text x="395" y="164" class="op-channel-letter" text-anchor="middle">G</text>
+                <path d="M418 158H564" stroke="#1fa951" stroke-width="14" opacity=".7" data-output-lcd-light="g"/>
+              </g>
+              <g data-output-lcd-channel="b">
+                <path d="M96 230H180" class="op-white-light-edge"/><path d="M96 230H180" class="op-white-light"/>
+                <rect x="184" y="201" width="65" height="58" rx="4" class="op-liquid-cell"/>
+                <g class="op-molecules"><g transform="translate(216 215)"><path d="M-15 0H15" transform="rotate(-23)" data-output-molecule="b"/></g><g transform="translate(216 230)"><path d="M-15 0H15" transform="rotate(-23)" data-output-molecule="b"/></g><g transform="translate(216 245)"><path d="M-15 0H15" transform="rotate(-23)" data-output-molecule="b"/></g></g>
+                <rect x="252" y="201" width="16" height="58" class="op-polarizer"/>
+                <g data-output-lcd-through="b" opacity=".7"><path d="M274 230H374" class="op-white-light-edge"/><path d="M274 230H374" class="op-white-light"/></g>
+                <rect x="378" y="201" width="34" height="58" fill="#3974e7"/><text x="395" y="236" class="op-channel-letter" text-anchor="middle">B</text>
+                <path d="M418 230H564" stroke="#3974e7" stroke-width="14" opacity=".7" data-output-lcd-light="b"/>
+              </g>
+              <g class="op-diagram-text"><text x="65" y="293" text-anchor="middle">バックライト</text><text x="225" y="293" text-anchor="middle">液晶＋偏光板</text><text x="395" y="293" text-anchor="middle">RGBフィルタ</text><text x="503" y="293" text-anchor="middle">画面へ出る光</text></g>
             </svg>
-            <p>液晶にかける電圧で分子の向きが変わり、偏光板と組み合わせて光の透過量を調整します。液晶自体が発光するわけではありません。</p>
+            </div>
+            <p>R・G・Bそれぞれで液晶分子の向きを変え、偏光板と組み合わせて<strong>白色光を通す量</strong>を調整します。フィルタを通ると、それぞれの色の光になります。</p>
           </figure>
           <figure>
             <figcaption><strong>OLED：発光する量を調整</strong></figcaption>
-            <svg class="op-mechanism" viewBox="0 0 460 210" role="img" aria-labelledby="op-oled-title op-oled-desc">
-              <title id="op-oled-title">有機ELディスプレイの発光</title><desc id="op-oled-desc">電気によって有機ELの発光部が光ります。バックライトは不要で、黒を表示する部分は発光を止めます。</desc>
-              <path d="M32 102H153m-15-12 15 12-15 12" class="op-flow"/>
-              <rect x="163" y="48" width="64" height="106" rx="5" fill="#080808"/>
-              <g data-output-oled-emitter opacity=".7"><rect x="168" y="53" width="17" height="96" fill="#ff3030"/><rect x="187" y="53" width="17" height="96" fill="#24e249"/><rect x="206" y="53" width="17" height="96" fill="#3274ff"/></g>
-              <g data-output-oled-light opacity=".7"><path d="M235 65H401" stroke="#ef3d3d" stroke-width="12"/><path d="M235 101H401" stroke="#1daf45" stroke-width="12"/><path d="M235 137H401" stroke="#3274ff" stroke-width="12"/></g>
-              <g class="op-diagram-text"><text x="86" y="180" text-anchor="middle">電気エネルギー</text><text x="196" y="180" text-anchor="middle">有機ELの発光部</text><text x="340" y="180" text-anchor="middle">画面へ出る光</text></g>
+            <div class="op-mechanism-scroll" tabindex="0" role="region" aria-label="光の流れ。狭い画面では横にスクロールできます。">
+            <svg class="op-mechanism" viewBox="0 0 600 324" role="img" aria-labelledby="op-oled-title op-oled-desc">
+              <title id="op-oled-title">有機ELディスプレイの発光</title><desc id="op-oled-desc">R・G・Bの発光部を縦に並べ、各発光部から対応する色の光が右へ出る模式図です。各色は別々のサブピクセルで、発光層を重ねた図ではありません。</desc>
+              <path d="M55 86H205m-13-10 13 10-13 10" class="op-flow"/>
+              <rect x="217" y="57" width="82" height="58" rx="4" fill="#080808"/>
+              <rect x="222" y="62" width="72" height="48" fill="#ed3e48" opacity=".7" data-output-oled-emitter="r"/>
+              <text x="258" y="92" class="op-channel-letter" text-anchor="middle">R</text>
+              <path d="M305 86H564" stroke="#ed3e48" stroke-width="14" opacity=".7" data-output-oled-light="r"/>
+              <path d="M55 158H205m-13-10 13 10-13 10" class="op-flow"/>
+              <rect x="217" y="129" width="82" height="58" rx="4" fill="#080808"/>
+              <rect x="222" y="134" width="72" height="48" fill="#1fa951" opacity=".7" data-output-oled-emitter="g"/>
+              <text x="258" y="164" class="op-channel-letter" text-anchor="middle">G</text>
+              <path d="M305 158H564" stroke="#1fa951" stroke-width="14" opacity=".7" data-output-oled-light="g"/>
+              <path d="M55 230H205m-13-10 13 10-13 10" class="op-flow"/>
+              <rect x="217" y="201" width="82" height="58" rx="4" fill="#080808"/>
+              <rect x="222" y="206" width="72" height="48" fill="#3974e7" opacity=".7" data-output-oled-emitter="b"/>
+              <text x="258" y="236" class="op-channel-letter" text-anchor="middle">B</text>
+              <path d="M305 230H564" stroke="#3974e7" stroke-width="14" opacity=".7" data-output-oled-light="b"/>
+              <g class="op-diagram-text"><text x="132" y="293" text-anchor="middle">電気エネルギー</text><text x="258" y="293" text-anchor="middle">R・G・Bの発光部</text><text x="437" y="293" text-anchor="middle">画面へ出る光</text></g>
             </svg>
-            <p>有機ELの発光部に電気を流して光らせます。バックライトが不要で、黒を表示する部分は発光を止めることができます。</p>
+            </div>
+            <p>R・G・Bそれぞれの有機ELの発光部に電気を流し、<strong>自ら発する光の量</strong>を調整します。バックライトは不要で、黒を表示する部分は発光を止めます。</p>
           </figure>
         </div>
-        <p class="op-observation" data-output-light-note>明るさを0%にして、バックライトと有機ELの発光部を比べましょう。</p>
-        <p class="op-hint">基本的な違いを示す模式図です。LCD側のバックライトは一定とし、偏光板などの細かな構造や、製品ごとの調光方式は省略しています。</p>
+        <p class="op-observation" data-output-light-note>各色を0%にして、LCDのバックライトとOLEDの発光部を比べましょう。</p>
+        <p class="op-hint">光の流れを示す模式図です。LCDのバックライトは一定とし、分子の向きと透過量の関係は簡略化しています。RGBはそれぞれ別のサブピクセルで、図の上下に並べています。</p>
       </div>
       <button class="dr-supplement-link" type="button" data-lesson-supplement-open="op-quantum-detail">量子ドット（QLED）も確認する</button>
     </article>
@@ -104,19 +151,25 @@
         <div class="op-controls op-enhancement" hidden>
           <label class="op-select">元の動画 <select data-output-fps><option value="30">30fps</option><option value="60" selected>60fps</option></select></label>
           <label class="op-select">ディスプレイ <select data-output-hz><option value="30" selected>30Hz</option><option value="60">60Hz</option><option value="120">120Hz</option></select></label>
+          <button class="dr-button" type="button" data-output-refresh-prev>前の更新</button>
+          <button class="dr-button dr-button--primary" type="button" data-output-refresh-play aria-pressed="false">ゆっくり再生</button>
+          <button class="dr-button" type="button" data-output-refresh-next>次の更新</button>
+          <button class="dr-button" type="button" data-output-reset>最初の条件に戻す</button>
         </div>
-        <p><strong>0.1秒間</strong>を拡大して、どのフレームが画面に表示されるかを見ます。数字はフレーム番号です。</p>
-        <div class="op-timelines">
-          <div><p class="op-timeline-label" data-output-source-label>動画：6枚のフレーム</p><div class="op-timeline" data-output-source-frames style="--op-columns:6" aria-label="動画のフレーム番号"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div></div>
-          <div><p class="op-timeline-label" data-output-display-label>画面：3回更新</p><div class="op-timeline op-timeline--display" data-output-display-frames style="--op-columns:3" aria-label="画面に表示するフレーム番号"><span>1</span><span>3</span><span>5</span></div></div>
-          <div class="op-scale"><span>0秒</span><span>0.1秒</span></div>
+        <p>鳥が羽ばたく<strong>0.1秒間</strong>の動きを比べます。数字はフレーム番号です。「ゆっくり再生」では、この0.1秒間を<strong>2秒間</strong>に引き伸ばして表示します。</p>
+        <div class="op-timeline-scroll" tabindex="0" role="region" aria-label="動画と画面更新の対応。狭い画面では横にスクロールできます。">
+          <div class="op-timelines">
+            <div><p class="op-timeline-label" data-output-source-label>動画：6枚のフレーム</p><div class="op-timeline" data-output-source-frames style="--op-columns:6" aria-label="動画のフレーム番号"><span><svg viewBox="95 10 120 124" aria-hidden="true"><g class="vd-bird"><path class="vd-bird-body" d="M139 73L113 62L121 82L140 82Z"/><ellipse class="vd-bird-body" cx="155" cy="77" rx="26" ry="12"/><path class="vd-bird-beak" d="M185 62L200 68L186 72Z"/><circle class="vd-bird-body" cx="180" cy="67" r="11"/><circle class="vd-bird-eye" cx="184" cy="65" r="1.8"/><path class="vd-bird-wing" d="M158 75Q146 54 124 26L143 60Q154 82 168 77Z"/></g></svg><b>1</b></span><span><svg viewBox="95 10 120 124" aria-hidden="true"><g class="vd-bird"><path class="vd-bird-body" d="M139 73L113 62L121 82L140 82Z"/><ellipse class="vd-bird-body" cx="155" cy="77" rx="26" ry="12"/><path class="vd-bird-beak" d="M185 62L200 68L186 72Z"/><circle class="vd-bird-body" cx="180" cy="67" r="11"/><circle class="vd-bird-eye" cx="184" cy="65" r="1.8"/><path class="vd-bird-wing" d="M158 75Q146 54 124 26L143 60Q154 82 168 77Z"/></g></svg><b>2</b></span><span><svg viewBox="95 10 120 124" aria-hidden="true"><g class="vd-bird"><path class="vd-bird-body" d="M139 73L113 62L121 82L140 82Z"/><ellipse class="vd-bird-body" cx="155" cy="77" rx="26" ry="12"/><path class="vd-bird-beak" d="M185 62L200 68L186 72Z"/><circle class="vd-bird-body" cx="180" cy="67" r="11"/><circle class="vd-bird-eye" cx="184" cy="65" r="1.8"/><path class="vd-bird-wing" d="M158 75Q146 54 124 26L143 60Q154 82 168 77Z"/></g></svg><b>3</b></span><span><svg viewBox="95 10 120 124" aria-hidden="true"><g class="vd-bird"><path class="vd-bird-body" d="M139 73L113 62L121 82L140 82Z"/><ellipse class="vd-bird-body" cx="155" cy="77" rx="26" ry="12"/><path class="vd-bird-beak" d="M185 62L200 68L186 72Z"/><circle class="vd-bird-body" cx="180" cy="67" r="11"/><circle class="vd-bird-eye" cx="184" cy="65" r="1.8"/><path class="vd-bird-wing" d="M158 75Q146 54 124 26L143 60Q154 82 168 77Z"/></g></svg><b>4</b></span><span><svg viewBox="95 10 120 124" aria-hidden="true"><g class="vd-bird"><path class="vd-bird-body" d="M139 73L113 62L121 82L140 82Z"/><ellipse class="vd-bird-body" cx="155" cy="77" rx="26" ry="12"/><path class="vd-bird-beak" d="M185 62L200 68L186 72Z"/><circle class="vd-bird-body" cx="180" cy="67" r="11"/><circle class="vd-bird-eye" cx="184" cy="65" r="1.8"/><path class="vd-bird-wing" d="M158 75Q146 54 124 26L143 60Q154 82 168 77Z"/></g></svg><b>5</b></span><span><svg viewBox="95 10 120 124" aria-hidden="true"><g class="vd-bird"><path class="vd-bird-body" d="M139 73L113 62L121 82L140 82Z"/><ellipse class="vd-bird-body" cx="155" cy="77" rx="26" ry="12"/><path class="vd-bird-beak" d="M185 62L200 68L186 72Z"/><circle class="vd-bird-body" cx="180" cy="67" r="11"/><circle class="vd-bird-eye" cx="184" cy="65" r="1.8"/><path class="vd-bird-wing" d="M158 75Q146 54 124 26L143 60Q154 82 168 77Z"/></g></svg><b>6</b></span></div></div>
+            <div><p class="op-timeline-label" data-output-display-label>画面：3回更新</p><div class="op-timeline op-timeline--display" data-output-display-frames style="--op-columns:3" aria-label="画面に表示するフレーム番号"><span><svg viewBox="95 10 120 124" aria-hidden="true"><g class="vd-bird"><path class="vd-bird-body" d="M139 73L113 62L121 82L140 82Z"/><ellipse class="vd-bird-body" cx="155" cy="77" rx="26" ry="12"/><path class="vd-bird-beak" d="M185 62L200 68L186 72Z"/><circle class="vd-bird-body" cx="180" cy="67" r="11"/><circle class="vd-bird-eye" cx="184" cy="65" r="1.8"/><path class="vd-bird-wing" d="M158 75Q146 54 124 26L143 60Q154 82 168 77Z"/></g></svg><b>1</b></span><span><svg viewBox="95 10 120 124" aria-hidden="true"><g class="vd-bird"><path class="vd-bird-body" d="M139 73L113 62L121 82L140 82Z"/><ellipse class="vd-bird-body" cx="155" cy="77" rx="26" ry="12"/><path class="vd-bird-beak" d="M185 62L200 68L186 72Z"/><circle class="vd-bird-body" cx="180" cy="67" r="11"/><circle class="vd-bird-eye" cx="184" cy="65" r="1.8"/><path class="vd-bird-wing" d="M158 75Q146 54 124 26L143 60Q154 82 168 77Z"/></g></svg><b>3</b></span><span><svg viewBox="95 10 120 124" aria-hidden="true"><g class="vd-bird"><path class="vd-bird-body" d="M139 73L113 62L121 82L140 82Z"/><ellipse class="vd-bird-body" cx="155" cy="77" rx="26" ry="12"/><path class="vd-bird-beak" d="M185 62L200 68L186 72Z"/><circle class="vd-bird-body" cx="180" cy="67" r="11"/><circle class="vd-bird-eye" cx="184" cy="65" r="1.8"/><path class="vd-bird-wing" d="M158 75Q146 54 124 26L143 60Q154 82 168 77Z"/></g></svg><b>5</b></span></div></div>
+            <div class="op-scale"><span>0秒</span><span>0.1秒</span></div>
+          </div>
         </div>
-        <div class="op-controls op-enhancement" hidden><button class="dr-button" type="button" data-output-refresh-prev>前の更新</button><button class="dr-button dr-button--primary" type="button" data-output-refresh-next>次の更新</button><button class="dr-button" type="button" data-output-reset>最初の条件に戻す</button></div>
-        <p class="op-caption" data-output-refresh-current role="status">更新1 / 3：フレーム1を表示</p>
-        <svg class="op-motion-preview" viewBox="0 0 480 96" role="img" aria-labelledby="op-refresh-title op-refresh-desc"><title id="op-refresh-title">その更新時刻に画面へ表示するボール</title><desc id="op-refresh-desc" data-output-refresh-desc>フレーム1。ボールは左端にあります。</desc><path d="M32 72H448" class="op-flow"/><circle cx="32" cy="43" r="19" class="op-ball" data-output-refresh-ball/></svg>
-        <p class="op-observation" data-output-refresh-note>60fpsの動画を30Hzで表示すると、6枚のうち3枚を表示します。この例では、フレーム2・4・6が表示されません。</p>
-        <p class="op-hint">動画と画面更新の開始時刻をそろえ、更新時点の最新フレームを表示するモデルです。端末そのもののリフレッシュレートを変更する操作ではありません。</p>
-        <noscript><p>条件変更と更新ごとの確認にはJavaScriptが必要です。図は60fpsと30Hzの例です。</p></noscript>
+        <div class="op-refresh-preview">
+          <figure><figcaption>画面に表示するフレーム</figcaption><svg class="op-motion-preview" viewBox="70 0 170 140" role="img" aria-labelledby="op-refresh-title op-refresh-desc"><title id="op-refresh-title">画面に表示する鳥</title><desc id="op-refresh-desc" data-output-refresh-desc>フレーム1の鳥を表示しています。</desc><g data-output-refresh-bird><g class="vd-bird"><path class="vd-bird-body" d="M139 73L113 62L121 82L140 82Z"/><ellipse class="vd-bird-body" cx="155" cy="77" rx="26" ry="12"/><path class="vd-bird-beak" d="M185 62L200 68L186 72Z"/><circle class="vd-bird-body" cx="180" cy="67" r="11"/><circle class="vd-bird-eye" cx="184" cy="65" r="1.8"/><path class="vd-bird-wing" d="M158 75Q146 54 124 26L143 60Q154 82 168 77Z"/></g></g></svg></figure>
+          <div><p class="op-caption" data-output-refresh-current role="status">更新1 / 3：フレーム1を表示</p><p class="op-observation" data-output-refresh-note>60fpsの動画を30Hzで表示すると、6枚のうち3枚を表示します。</p></div>
+        </div>
+        <p class="op-hint">動画と画面更新の開始時刻をそろえ、更新時点の最新フレームを表示します。同じ番号では、鳥の羽も同じ形です。</p>
+        <noscript><p>条件変更・鳥の羽の変化・更新ごとの確認にはJavaScriptが必要です。フレーム番号は60fpsと30Hzの例です。</p></noscript>
       </div>
     </article>
   </section>
@@ -129,9 +182,18 @@
       <div class="op-widget" data-output-dots data-lesson-slide-navigation-lock>
         <div class="op-controls op-enhancement" hidden><label class="op-slider" for="op-dpi-demo">比較するドットの細かさ <output for="op-dpi-demo" data-output-dots-label>10dpi</output><input id="op-dpi-demo" type="range" min="5" max="20" step="5" value="10"><span class="op-scale"><span>5dpi</span><span>20dpi</span></span></label><button class="dr-button" type="button" data-output-reset>最初の条件に戻す</button></div>
         <div class="op-comparison op-comparison--dots">
-          <figure><figcaption>5dpi（基準）</figcaption><svg class="op-square op-paper" viewBox="0 0 300 300" role="img" aria-labelledby="op-dots-reference-title op-dots-reference-desc"><title id="op-dots-reference-title">5dpiの1インチ四方</title><desc id="op-dots-reference-desc">横5個、縦5個、合計25個のドットが並びます。</desc><defs><pattern id="op-dots-reference" width="60" height="60" patternUnits="userSpaceOnUse"><circle cx="30" cy="30" r="18" fill="#222"/></pattern></defs><rect width="300" height="300" fill="url(#op-dots-reference)"/></svg><p class="op-caption">5×5＝25ドット</p></figure>
-          <figure><figcaption data-output-dots-caption>10dpi（比較）</figcaption><svg class="op-square op-paper" viewBox="0 0 300 300" role="img" aria-labelledby="op-dots-title op-dots-desc"><title id="op-dots-title">dpiを変えて比べる1インチ四方</title><desc id="op-dots-desc" data-output-dots-desc>横10個、縦10個、合計100個のドットが並びます。</desc><defs><pattern id="op-dots-pattern" width="30" height="30" patternUnits="userSpaceOnUse"><circle cx="15" cy="15" r="9" fill="#222" data-output-dot/></pattern></defs><rect width="300" height="300" fill="url(#op-dots-pattern)"/></svg><p class="op-caption" data-output-dot-count>10×10＝100ドット</p></figure>
+          <figure><figcaption>5dpi（基準）</figcaption>
+            <div class="op-inch-diagram"><div class="op-dimension op-dimension--top"><span aria-hidden="true">←</span><span>1インチ</span><span aria-hidden="true">→</span></div><div class="op-dimension op-dimension--left"><span aria-hidden="true">↑</span><span>1インチ</span><span aria-hidden="true">↓</span></div>
+              <svg class="op-square op-paper" viewBox="0 0 300 300" role="img" aria-labelledby="op-dots-reference-title op-dots-reference-desc"><title id="op-dots-reference-title">5dpiの1インチ四方</title><desc id="op-dots-reference-desc">CMYのドットが横5個、縦5個、合計25個並びます。</desc><g><circle cx="30" cy="30" r="16.2" fill="#00acc1"/><circle cx="90" cy="30" r="16.2" fill="#d93887"/><circle cx="150" cy="30" r="16.2" fill="#e2bd16"/><circle cx="210" cy="30" r="16.2" fill="#00acc1"/><circle cx="270" cy="30" r="16.2" fill="#d93887"/><circle cx="30" cy="90" r="16.2" fill="#d93887"/><circle cx="90" cy="90" r="16.2" fill="#e2bd16"/><circle cx="150" cy="90" r="16.2" fill="#00acc1"/><circle cx="210" cy="90" r="16.2" fill="#d93887"/><circle cx="270" cy="90" r="16.2" fill="#e2bd16"/><circle cx="30" cy="150" r="16.2" fill="#e2bd16"/><circle cx="90" cy="150" r="16.2" fill="#00acc1"/><circle cx="150" cy="150" r="16.2" fill="#d93887"/><circle cx="210" cy="150" r="16.2" fill="#e2bd16"/><circle cx="270" cy="150" r="16.2" fill="#00acc1"/><circle cx="30" cy="210" r="16.2" fill="#00acc1"/><circle cx="90" cy="210" r="16.2" fill="#d93887"/><circle cx="150" cy="210" r="16.2" fill="#e2bd16"/><circle cx="210" cy="210" r="16.2" fill="#00acc1"/><circle cx="270" cy="210" r="16.2" fill="#d93887"/><circle cx="30" cy="270" r="16.2" fill="#d93887"/><circle cx="90" cy="270" r="16.2" fill="#e2bd16"/><circle cx="150" cy="270" r="16.2" fill="#00acc1"/><circle cx="210" cy="270" r="16.2" fill="#d93887"/><circle cx="270" cy="270" r="16.2" fill="#e2bd16"/></g></svg>
+            </div><p class="op-caption">5×5＝25ドット</p>
+          </figure>
+          <figure><figcaption data-output-dots-caption>10dpi（比較）</figcaption>
+            <div class="op-inch-diagram"><div class="op-dimension op-dimension--top"><span aria-hidden="true">←</span><span>1インチ</span><span aria-hidden="true">→</span></div><div class="op-dimension op-dimension--left"><span aria-hidden="true">↑</span><span>1インチ</span><span aria-hidden="true">↓</span></div>
+              <svg class="op-square op-paper" viewBox="0 0 300 300" role="img" aria-labelledby="op-dots-title op-dots-desc"><title id="op-dots-title">10dpiの1インチ四方</title><desc id="op-dots-desc" data-output-dots-desc>CMYのドットが横10個、縦10個、合計100個並びます。</desc><g data-output-dot-layer><circle cx="15" cy="15" r="8.1" fill="#00acc1"/><circle cx="45" cy="15" r="8.1" fill="#d93887"/><circle cx="75" cy="15" r="8.1" fill="#e2bd16"/><circle cx="105" cy="15" r="8.1" fill="#00acc1"/><circle cx="135" cy="15" r="8.1" fill="#d93887"/><circle cx="165" cy="15" r="8.1" fill="#e2bd16"/><circle cx="195" cy="15" r="8.1" fill="#00acc1"/><circle cx="225" cy="15" r="8.1" fill="#d93887"/><circle cx="255" cy="15" r="8.1" fill="#e2bd16"/><circle cx="285" cy="15" r="8.1" fill="#00acc1"/><circle cx="15" cy="45" r="8.1" fill="#d93887"/><circle cx="45" cy="45" r="8.1" fill="#e2bd16"/><circle cx="75" cy="45" r="8.1" fill="#00acc1"/><circle cx="105" cy="45" r="8.1" fill="#d93887"/><circle cx="135" cy="45" r="8.1" fill="#e2bd16"/><circle cx="165" cy="45" r="8.1" fill="#00acc1"/><circle cx="195" cy="45" r="8.1" fill="#d93887"/><circle cx="225" cy="45" r="8.1" fill="#e2bd16"/><circle cx="255" cy="45" r="8.1" fill="#00acc1"/><circle cx="285" cy="45" r="8.1" fill="#d93887"/><circle cx="15" cy="75" r="8.1" fill="#e2bd16"/><circle cx="45" cy="75" r="8.1" fill="#00acc1"/><circle cx="75" cy="75" r="8.1" fill="#d93887"/><circle cx="105" cy="75" r="8.1" fill="#e2bd16"/><circle cx="135" cy="75" r="8.1" fill="#00acc1"/><circle cx="165" cy="75" r="8.1" fill="#d93887"/><circle cx="195" cy="75" r="8.1" fill="#e2bd16"/><circle cx="225" cy="75" r="8.1" fill="#00acc1"/><circle cx="255" cy="75" r="8.1" fill="#d93887"/><circle cx="285" cy="75" r="8.1" fill="#e2bd16"/><circle cx="15" cy="105" r="8.1" fill="#00acc1"/><circle cx="45" cy="105" r="8.1" fill="#d93887"/><circle cx="75" cy="105" r="8.1" fill="#e2bd16"/><circle cx="105" cy="105" r="8.1" fill="#00acc1"/><circle cx="135" cy="105" r="8.1" fill="#d93887"/><circle cx="165" cy="105" r="8.1" fill="#e2bd16"/><circle cx="195" cy="105" r="8.1" fill="#00acc1"/><circle cx="225" cy="105" r="8.1" fill="#d93887"/><circle cx="255" cy="105" r="8.1" fill="#e2bd16"/><circle cx="285" cy="105" r="8.1" fill="#00acc1"/><circle cx="15" cy="135" r="8.1" fill="#d93887"/><circle cx="45" cy="135" r="8.1" fill="#e2bd16"/><circle cx="75" cy="135" r="8.1" fill="#00acc1"/><circle cx="105" cy="135" r="8.1" fill="#d93887"/><circle cx="135" cy="135" r="8.1" fill="#e2bd16"/><circle cx="165" cy="135" r="8.1" fill="#00acc1"/><circle cx="195" cy="135" r="8.1" fill="#d93887"/><circle cx="225" cy="135" r="8.1" fill="#e2bd16"/><circle cx="255" cy="135" r="8.1" fill="#00acc1"/><circle cx="285" cy="135" r="8.1" fill="#d93887"/><circle cx="15" cy="165" r="8.1" fill="#e2bd16"/><circle cx="45" cy="165" r="8.1" fill="#00acc1"/><circle cx="75" cy="165" r="8.1" fill="#d93887"/><circle cx="105" cy="165" r="8.1" fill="#e2bd16"/><circle cx="135" cy="165" r="8.1" fill="#00acc1"/><circle cx="165" cy="165" r="8.1" fill="#d93887"/><circle cx="195" cy="165" r="8.1" fill="#e2bd16"/><circle cx="225" cy="165" r="8.1" fill="#00acc1"/><circle cx="255" cy="165" r="8.1" fill="#d93887"/><circle cx="285" cy="165" r="8.1" fill="#e2bd16"/><circle cx="15" cy="195" r="8.1" fill="#00acc1"/><circle cx="45" cy="195" r="8.1" fill="#d93887"/><circle cx="75" cy="195" r="8.1" fill="#e2bd16"/><circle cx="105" cy="195" r="8.1" fill="#00acc1"/><circle cx="135" cy="195" r="8.1" fill="#d93887"/><circle cx="165" cy="195" r="8.1" fill="#e2bd16"/><circle cx="195" cy="195" r="8.1" fill="#00acc1"/><circle cx="225" cy="195" r="8.1" fill="#d93887"/><circle cx="255" cy="195" r="8.1" fill="#e2bd16"/><circle cx="285" cy="195" r="8.1" fill="#00acc1"/><circle cx="15" cy="225" r="8.1" fill="#d93887"/><circle cx="45" cy="225" r="8.1" fill="#e2bd16"/><circle cx="75" cy="225" r="8.1" fill="#00acc1"/><circle cx="105" cy="225" r="8.1" fill="#d93887"/><circle cx="135" cy="225" r="8.1" fill="#e2bd16"/><circle cx="165" cy="225" r="8.1" fill="#00acc1"/><circle cx="195" cy="225" r="8.1" fill="#d93887"/><circle cx="225" cy="225" r="8.1" fill="#e2bd16"/><circle cx="255" cy="225" r="8.1" fill="#00acc1"/><circle cx="285" cy="225" r="8.1" fill="#d93887"/><circle cx="15" cy="255" r="8.1" fill="#e2bd16"/><circle cx="45" cy="255" r="8.1" fill="#00acc1"/><circle cx="75" cy="255" r="8.1" fill="#d93887"/><circle cx="105" cy="255" r="8.1" fill="#e2bd16"/><circle cx="135" cy="255" r="8.1" fill="#00acc1"/><circle cx="165" cy="255" r="8.1" fill="#d93887"/><circle cx="195" cy="255" r="8.1" fill="#e2bd16"/><circle cx="225" cy="255" r="8.1" fill="#00acc1"/><circle cx="255" cy="255" r="8.1" fill="#d93887"/><circle cx="285" cy="255" r="8.1" fill="#e2bd16"/><circle cx="15" cy="285" r="8.1" fill="#00acc1"/><circle cx="45" cy="285" r="8.1" fill="#d93887"/><circle cx="75" cy="285" r="8.1" fill="#e2bd16"/><circle cx="105" cy="285" r="8.1" fill="#00acc1"/><circle cx="135" cy="285" r="8.1" fill="#d93887"/><circle cx="165" cy="285" r="8.1" fill="#e2bd16"/><circle cx="195" cy="285" r="8.1" fill="#00acc1"/><circle cx="225" cy="285" r="8.1" fill="#d93887"/><circle cx="255" cy="285" r="8.1" fill="#e2bd16"/><circle cx="285" cy="285" r="8.1" fill="#00acc1"/></g></svg>
+            </div><p class="op-caption" data-output-dot-count>10×10＝100ドット</p>
+          </figure>
         </div>
+        <p class="op-dot-legend"><span><i class="op-ink-c"></i>C（シアン）</span><span><i class="op-ink-m"></i>M（マゼンタ）</span><span><i class="op-ink-y"></i>Y（イエロー）</span></p>
         <p class="op-hint">どちらも<strong>1インチ×1インチ</strong>の範囲です。5〜20dpiは仕組みを見るための架空の低い値で、図の長さは実寸ではありません。</p>
       </div>
       <p class="dr-note">例えば縦横300dpiなら、1インチ四方は<strong>300×300＝90,000ドット</strong>で表されます。dpiを2倍にすると、同じ面積の縦・横はそれぞれ2倍、ドット数は4倍になります。</p>
@@ -144,15 +206,15 @@
       <h2 id="headline_5">(5) 印刷サイズと必要な画素数</h2>
       <p>印刷する長さをインチに直してから、1インチあたりの数を掛けます。<strong>横と縦を別々に計算</strong>しましょう。</p>
       <p class="op-hint">ここでは、画像の1画素を印刷の1ドットに対応させるモデルで計算します。1インチ＝25.4mm、余白なしとします。</p>
-      <div class="op-widget" data-output-print data-lesson-slide-navigation-lock>
-        <div class="op-controls op-enhancement" hidden>
-          <label class="op-select">印刷する大きさ（横×縦） <select data-output-print-size><option value="25.4,25.4">25.4×25.4mm</option><option value="50.8,50.8">50.8×50.8mm</option><option value="152.4,101.6">152.4×101.6mm</option></select></label>
-          <label class="op-slider" for="op-print-dpi">印刷の解像度 <output for="op-print-dpi" data-output-print-dpi-label>300dpi</output><input id="op-print-dpi" type="range" min="100" max="600" step="100" value="300"><span class="op-scale"><span>100dpi</span><span>600dpi</span></span></label>
+      <div class="op-widget op-print-widget" data-output-print data-lesson-slide-navigation-lock>
+        <div class="op-controls op-print-controls op-enhancement" hidden>
+          <label class="op-slider" for="op-print-size">印刷する大きさ <output for="op-print-size" data-output-print-size-label>25.4×25.4mm</output><input id="op-print-size" data-output-print-size type="range" min="0" max="2" step="1" value="0" aria-valuetext="25.4×25.4mm"><span class="op-scale"><span>25.4mm四方</span><span>152.4×101.6mm</span></span></label>
+          <label class="op-slider" for="op-print-dpi">印刷の解像度 <output for="op-print-dpi" data-output-print-dpi-label>300dpi</output><input id="op-print-dpi" data-output-print-dpi type="range" min="100" max="600" step="100" value="300" aria-valuetext="300dpi、1インチに300ドット"><span class="op-scale"><span>100dpi</span><span>600dpi</span></span></label>
           <button class="dr-button" type="button" data-output-reset>最初の条件に戻す</button>
         </div>
-        <div class="op-comparison op-comparison--print">
-          <figure><svg class="op-print-size" viewBox="0 0 340 280" role="img" aria-labelledby="op-size-title op-size-desc"><title id="op-size-title">印刷する写真の横と縦</title><desc id="op-size-desc" data-output-size-desc>横25.4mm、縦25.4mmの正方形に、横300画素、縦300画素を対応させます。</desc><rect class="op-photo-outline" x="60" y="26" width="224" height="224" data-output-photo/><text x="172" y="20" text-anchor="middle" class="op-diagram-text" data-output-width-mm>横25.4mm</text><text x="172" y="273" text-anchor="middle" class="op-diagram-text" data-output-height-mm>縦25.4mm</text><text x="172" y="145" text-anchor="middle" class="op-diagram-text">印刷する範囲</text></svg><figcaption>図は縦横比を示します。実寸ではありません。</figcaption></figure>
-          <div><p class="op-equation" data-output-print-width>横：25.4［mm］÷25.4［mm/インチ］×300［画素/インチ］＝<strong>300画素</strong></p><p class="op-equation" data-output-print-height>縦：25.4［mm］÷25.4［mm/インチ］×300［画素/インチ］＝<strong>300画素</strong></p><p class="op-result" data-output-print-result>300×300画素<br><span>合計90,000画素</span></p></div>
+        <div class="op-print-layout">
+          <figure class="op-print-figure"><div class="op-print-diagram-scroll" tabindex="0" role="region" aria-label="印刷範囲の図。狭い画面では横にスクロールできます。"><div class="op-print-diagram-wrap"><svg class="op-print-diagram" data-output-print-diagram viewBox="0 0 600 420" role="img" aria-labelledby="op-print-title op-print-desc"><title id="op-print-title">印刷範囲と必要なドット数</title><desc id="op-print-desc" data-output-print-desc>横25.4mm、縦25.4mm。横300ドット、縦300ドットを、双方向矢印の寸法線で示します。CMYの点は密度を表す模式図です。</desc><defs><marker id="op-print-arrow" viewBox="0 0 8 8" refX="4" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0L8 4L0 8Z" fill="var(--dr-axis)"/></marker><pattern id="op-print-cmy" data-output-print-pattern width="17" height="17" patternUnits="userSpaceOnUse"><rect width="100%" height="100%" fill="#f7f7f3"/><circle data-output-print-dot data-row="0" data-column="0" cx="2.83333" cy="2.83333" r="1.36" fill="#00a6c7"/><circle data-output-print-dot data-row="0" data-column="1" cx="8.5" cy="2.83333" r="1.36" fill="#d42c86"/><circle data-output-print-dot data-row="0" data-column="2" cx="14.1667" cy="2.83333" r="1.36" fill="#e1bc00"/><circle data-output-print-dot data-row="1" data-column="0" cx="2.83333" cy="8.5" r="1.36" fill="#d42c86"/><circle data-output-print-dot data-row="1" data-column="1" cx="8.5" cy="8.5" r="1.36" fill="#e1bc00"/><circle data-output-print-dot data-row="1" data-column="2" cx="14.1667" cy="8.5" r="1.36" fill="#00a6c7"/><circle data-output-print-dot data-row="2" data-column="0" cx="2.83333" cy="14.1667" r="1.36" fill="#e1bc00"/><circle data-output-print-dot data-row="2" data-column="1" cx="8.5" cy="14.1667" r="1.36" fill="#00a6c7"/><circle data-output-print-dot data-row="2" data-column="2" cx="14.1667" cy="14.1667" r="1.36" fill="#d42c86"/></pattern></defs><line data-output-print-extension="top" class="op-print-extension" x1="100" y1="70" x2="100" y2="46"/><line data-output-print-extension="top-right" class="op-print-extension" x1="160" y1="70" x2="160" y2="46"/><line data-output-print-extension="left" class="op-print-extension" x1="100" y1="70" x2="73" y2="70"/><line data-output-print-extension="left-bottom" class="op-print-extension" x1="100" y1="130" x2="73" y2="130"/><line data-output-print-extension="bottom" class="op-print-extension" x1="100" y1="130" x2="100" y2="155"/><line data-output-print-extension="bottom-right" class="op-print-extension" x1="160" y1="130" x2="160" y2="155"/><line data-output-print-extension="right" class="op-print-extension" x1="160" y1="70" x2="187" y2="70"/><line data-output-print-extension="right-bottom" class="op-print-extension" x1="160" y1="130" x2="187" y2="130"/><line class="op-print-dimension" data-output-print-width-line x1="100" y1="44" x2="160" y2="44"/><line class="op-print-dimension" data-output-print-height-line x1="71" y1="70" x2="71" y2="130"/><line class="op-print-dimension" data-output-print-width-pixels-line x1="100" y1="157" x2="160" y2="157"/><line class="op-print-dimension" data-output-print-height-pixels-line x1="189" y1="70" x2="189" y2="130"/><rect class="op-print-range" data-output-print-range x="100" y="70" width="60" height="60"/><text class="op-print-label" text-anchor="middle" data-output-print-width-label x="130.0" y="36" data-output-print-width-mm>← 25.4 mm →</text><text class="op-print-label" text-anchor="middle" data-output-print-height-label x="63" y="100.0" transform="rotate(-90 63 100)" data-output-print-height-mm>← 25.4 mm →</text><text class="op-print-label" text-anchor="middle" data-output-print-width-pixels-label x="130.0" y="177" data-output-print-width-pixels>← 300 ドット →</text><text class="op-print-label" text-anchor="middle" data-output-print-height-pixels-label x="210" y="100.0" transform="rotate(-90 210 100)" data-output-print-height-pixels>← 300 ドット →</text></svg><button class="op-print-handle op-enhancement" type="button" data-output-print-handle role="slider" aria-label="印刷する大きさ" aria-grabbed="false" aria-valuemin="0" aria-valuemax="2" aria-valuenow="0" aria-valuetext="大きさ25.4×25.4mm、1段階目" hidden></button></div></div><figcaption>CMYの点は密度を示す模式図です。実際のドット数は寸法線に表示しています。図の長さは実寸ではありません。</figcaption></figure>
+          <div class="op-print-equations"><p class="op-equation" data-output-print-width-equation>横：25.4［mm］÷25.4［mm/インチ］×300［画素/インチ］＝<strong class="op-print-value">300画素</strong></p><p class="op-equation" data-output-print-height-equation>縦：25.4［mm］÷25.4［mm/インチ］×300［画素/インチ］＝<strong class="op-print-value">300画素</strong></p><p class="op-result"><strong data-output-print-result>300×300画素</strong><br><small data-output-print-total>合計90,000画素</small></p><p class="op-print-drag-hint">右下の丸をドラッグして大きさを変更できます。矢印キー、Home、End、Escapeでも操作できます。</p></div>
         </div>
         <p class="op-observation">印刷サイズを固定してdpiを変えた場合と、dpiを固定して印刷サイズを変えた場合を比べましょう。</p>
         <noscript><p>条件変更にはJavaScriptが必要です。図は300dpiで25.4mm四方に印刷する例です。</p></noscript>
@@ -185,9 +247,32 @@
     </article>
   </section>
 
+  <section data-lesson-slide data-lesson-slide-title="プリンタの問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_7">(7) プリンタのドット数を求める</h2>
+      <form class="op-widget" data-output-dot-quiz data-lesson-slide-navigation-lock>
+        <h3>問題1　1インチ四方には何ドット？</h3>
+        <p>縦横<strong>300dpi</strong>のプリンタで、<strong>1インチ×1インチ</strong>の範囲にドットを並べます。横1列のドット数と、範囲全体のドット数を求めましょう。</p>
+        <div class="op-answer-fields"><label>横1列 <span><input name="row" type="text" inputmode="numeric" autocomplete="off" aria-label="300dpiで横1列のドット数"> ドット</span></label><label>範囲全体 <span><input name="total" type="text" inputmode="numeric" autocomplete="off" aria-label="300dpiで1インチ四方のドット数"> ドット</span></label></div>
+        <h3>問題2　dpiを2倍にすると？</h3>
+        <p>同じ1インチ四方の範囲を、縦横<strong>600dpi</strong>に変えます。範囲全体のドット数は何個になり、300dpiのときの何倍になるでしょうか。</p>
+        <div class="op-answer-fields"><label>範囲全体 <span><input name="doubleTotal" type="text" inputmode="numeric" autocomplete="off" aria-label="600dpiで1インチ四方のドット数"> ドット</span></label><label>300dpiのときの <span><input name="ratio" type="text" inputmode="numeric" autocomplete="off" aria-label="300dpiに対する600dpiの全ドット数の倍率"> 倍</span></label></div>
+        <div class="op-controls op-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button><button class="dr-button" type="reset">入力を消す</button></div>
+        <p class="op-feedback" data-output-feedback role="status"></p>
+        <details class="dr-reveal-item"><summary>解き方を確認</summary><div class="dr-reveal-item__body" data-output-solution><ol>
+          <li>dpiは、長さ1インチあたりのドット数です。横1列の式を作ります。<p class="op-equation">300［ドット/インチ］×1［インチ］＝<strong>300ドット</strong></p></li>
+          <li>縦にも300ドットが並ぶので、全体は横×縦です。<p class="op-equation">300×300＝<strong>90,000ドット</strong></p></li>
+          <li>600dpiでは、横も縦も600ドットになります。<p class="op-equation">600×600＝<strong>360,000ドット</strong></p></li>
+          <li>横・縦がそれぞれ2倍なので、全体のドット数は4倍です。<p class="op-equation">360,000÷90,000＝2×2＝<strong>4倍</strong></p></li>
+        </ol><div class="op-controls op-enhancement" hidden><button class="dr-button" type="button" data-output-solution-next>次へ</button><button class="dr-button" type="button" data-output-solution-reset>解説を最初から</button></div></div></details>
+        <noscript><p>自動判定にはJavaScriptが必要です。「解き方を確認」から解答を読めます。</p></noscript>
+      </form>
+    </article>
+  </section>
+
   <section data-lesson-slide data-lesson-slide-title="印刷の問題" data-lesson-slide-layout="exercise">
     <article>
-      <h2 id="headline_7">(7) 印刷に必要な画素数を求める</h2>
+      <h2 id="headline_8">(8) 印刷に必要な画素数を求める</h2>
       <form class="op-widget" data-output-quiz data-lesson-slide-navigation-lock>
         <h3>問題　写真は何画素×何画素？</h3>
         <p>デジタルカメラで撮影する写真を、縦横<strong>400dpi</strong>の解像度で、<strong>横101.6mm×縦76.2mm</strong>の大きさに印刷します。データの加工や写真の拡大・縮小をせずに印刷するには、カメラで記録する画像を何画素×何画素にすればよいでしょうか。</p>
@@ -211,7 +296,19 @@
 
   <dialog id="op-quantum-detail" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="op-quantum-title">
     <div class="lesson-supplement-dialog__header"><h2 id="op-quantum-title" data-skip-numbering>量子ドットとQLED</h2><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="量子ドットの補足を閉じる">×</button></div>
-    <div class="lesson-supplement-dialog__body"><p><strong>量子ドット</strong>は、非常に小さな半導体の結晶です。青色の光を当てると、結晶の大きさに応じた色の光を発します。このように光の波長を変える仕組みを利用します。</p><svg class="op-quantum" viewBox="0 0 460 180" role="img" aria-labelledby="op-quantum-svg-title op-quantum-svg-desc"><title id="op-quantum-svg-title">量子ドットによる光の波長変換</title><desc id="op-quantum-svg-desc">同じ青い光を当てても、小さい結晶は緑、大きい結晶は赤の光を出す例です。</desc><path d="M30 45H167M30 122H162" stroke="#3274ff" stroke-width="9"/><circle cx="203" cy="45" r="15" fill="#21b765"/><circle cx="203" cy="122" r="26" fill="#ef5350"/><path d="M237 45H428" stroke="#21b765" stroke-width="9"/><path d="M242 122H428" stroke="#ef5350" stroke-width="9"/><g class="op-diagram-text"><text x="86" y="82" text-anchor="middle">青色の光</text><text x="203" y="82" text-anchor="middle">小さい結晶</text><text x="203" y="174" text-anchor="middle">大きい結晶</text><text x="358" y="77" text-anchor="middle">緑色の光</text><text x="358" y="158" text-anchor="middle">赤色の光</text></g></svg><p>一般的な<strong>QLED</strong>と呼ばれる液晶ディスプレイは、バックライトの光に量子ドットによる波長変換を利用します。OLEDのように各画素を直接発光させる方式とは仕組みが異なります。</p><p class="op-hint">構造の確認：<a href="https://www.j-display.com/product_tech/displaybasic.html" target="_blank" rel="noopener">ジャパンディスプレイ「ディスプレイの基礎」</a>、<a href="https://insights.samsung.com/2021/12/29/what-is-quantum-dot-display-technology/" target="_blank" rel="noopener">Samsung「Quantum Dot display technology」</a></p></div>
+    <div class="lesson-supplement-dialog__body">
+      <p><strong>量子ドット</strong>は、とても小さな半導体の結晶です。同じ材料でも、<strong>反応の時間や温度など</strong>を変えると、結晶の大きさを作り分けられます。結晶の大きさによって、発する光の色が変わります。</p>
+      <svg class="op-quantum" viewBox="0 0 620 300" role="img" aria-labelledby="op-quantum-svg-title op-quantum-svg-desc">
+        <title id="op-quantum-svg-title">赤・緑への波長変換と青色光の利用</title><desc id="op-quantum-svg-desc">青色の光を、大きい結晶では赤に、小さい結晶では緑に変えます。青色の成分は結晶で変換せず、そのまま利用します。</desc>
+        <path d="M30 60H251M30 150H260M30 240H586" stroke="#3974e7" stroke-width="10"/>
+        <circle cx="285" cy="60" r="26" fill="#ed3e48"/><circle cx="285" cy="150" r="16" fill="#1fa951"/>
+        <path d="M320 60H586" stroke="#ed3e48" stroke-width="10"/><path d="M311 150H586" stroke="#1fa951" stroke-width="10"/>
+        <g class="op-diagram-text"><text x="115" y="30" text-anchor="middle">青色の光</text><text x="285" y="110" text-anchor="middle">大きい結晶</text><text x="285" y="190" text-anchor="middle">小さい結晶</text><text x="285" y="279" text-anchor="middle">変換せず、そのまま利用</text><text x="486" y="92" text-anchor="middle">赤色の光</text><text x="486" y="182" text-anchor="middle">緑色の光</text><text x="508" y="279" text-anchor="middle">青色の光</text></g>
+      </svg>
+      <p>一般的な<strong>QLED液晶ディスプレイ</strong>は、青色バックライトの光の一部を量子ドットで赤色・緑色に変え、変換されない青色と合わせて利用します。</p>
+      <p class="op-observation"><strong>2023年のノーベル化学賞</strong>は、「量子ドットの発見と合成」に対して贈られました。</p>
+      <p class="op-hint">参考：<a href="https://www.nobelprize.org/prizes/chemistry/2023/press-release/" target="_blank" rel="noopener">ノーベル化学賞2023</a>、<a href="https://www.nobelprize.org/uploads/2023/10/Slideshow_Chemistry_2023_NobelPrizeLessons_2.pdf" target="_blank" rel="noopener">Nobel Prize Lessons（結晶の合成）</a>、<a href="https://insights.samsung.com/2021/12/29/what-is-quantum-dot-display-technology/" target="_blank" rel="noopener">Samsung（QLEDのしくみ）</a></p>
+    </div>
   </dialog>
   <dialog id="op-pixel-dot-detail" class="lesson-supplement-dialog" data-lesson-supplement-dialog aria-labelledby="op-pixel-dot-title">
     <div class="lesson-supplement-dialog__header"><h2 id="op-pixel-dot-title" data-skip-numbering>画像の画素と印刷のドット</h2><button type="button" class="lesson-supplement-dialog__close" data-lesson-supplement-close aria-label="画素とドットの補足を閉じる">×</button></div>

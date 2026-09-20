@@ -65,26 +65,6 @@
     return frame;
   }
 
-  function birdPose(phase) {
-    const lift = Math.cos(2 * Math.PI * phase);
-    const pose = svgNode('g', { class: 'vd-bird', transform: `translate(0 ${3 * Math.sin(2 * Math.PI * phase)})` });
-    const wing = (rear) => svgNode('path', {
-      class: rear ? 'vd-bird-wing vd-bird-wing--rear' : 'vd-bird-wing',
-      d: `M158 75 Q146 ${72 - 18 * lift} 124 ${72 - 46 * lift} L143 ${82 - 22 * lift} Q154 82 168 77 Z`,
-      transform: rear ? 'translate(8 -4)' : ''
-    });
-    pose.append(
-      wing(true),
-      svgNode('path', { class: 'vd-bird-body', d: 'M139 73 L113 62 L121 82 L140 82 Z' }),
-      svgNode('ellipse', { class: 'vd-bird-body', cx: 155, cy: 77, rx: 26, ry: 12 }),
-      svgNode('path', { class: 'vd-bird-beak', d: 'M185 62 L200 68 L186 72 Z' }),
-      svgNode('circle', { class: 'vd-bird-body', cx: 180, cy: 67, r: 11 }),
-      svgNode('circle', { class: 'vd-bird-eye', cx: 184, cy: 65, r: 1.8 }),
-      wing(false)
-    );
-    return pose;
-  }
-
   function jumpingPose(index) {
     // しゃがむ→踏み切る→上昇→下降→着地の12枚。
     const [crouch, height, arms] = [
@@ -131,7 +111,7 @@
 
   const frameExamples = {
     walk: { subject: '棒人間が歩く', change: '手足の姿勢', makeFrame: (phase) => onGround(walkingPose(phase)) },
-    bird: { subject: '鳥が羽ばたく', change: '羽の角度', makeFrame: birdPose },
+    bird: { subject: '鳥が羽ばたく', change: '羽の角度', makeFrame: globalThis.BirdFrames.createPose },
     jump: { subject: '棒人間がジャンプする', change: '体の高さと手足の姿勢', makeFrame: (_, index) => onGround(jumpingPose(index)) },
     blocks: { subject: '積み木を積み上げて元に戻す', change: '積み木の位置', makeFrame: (_, index) => onGround(blocksPose(index)) }
   };

@@ -1,0 +1,8 @@
+@charset "UTF-8";
+
+.vd-bird { stroke: var(--dr-text); stroke-width: 1.8; stroke-linejoin: round; }
+.vd-bird-body { fill: var(--dr-info-soft); }
+.vd-bird-wing { fill: var(--dr-sample); }
+.vd-bird-wing--rear { fill: var(--dr-muted); }
+.vd-bird-beak { fill: var(--dr-warning-soft); }
+.vd-bird-eye { fill: var(--dr-text); stroke: none; }

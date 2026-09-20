@@ -5,6 +5,11 @@
 .op-widget > :last-child { margin-bottom: 0; }
 .op-controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 20px; margin: 14px 0 20px; }
 .op-controls .dr-button { min-height: 44px; }
+.op-controls--rgb { align-items: center; }
+.op-controls--rgb .op-slider { flex-basis: 200px; }
+.op-controls--rgb [data-output-brightness="r"] { accent-color: #de3949; }
+.op-controls--rgb [data-output-brightness="g"] { accent-color: #22964a; }
+.op-controls--rgb [data-output-brightness="b"] { accent-color: #3974e7; }
 .op-slider { display: grid; grid-template-columns: 1fr auto; gap: 4px 12px; flex: 1 1 300px; max-width: 500px; }
 .op-slider output { font-weight: 700; font-variant-numeric: tabular-nums; }
 .op-slider input { grid-column: 1 / -1; width: 100%; min-height: 44px; margin: 0; accent-color: var(--dr-focus); cursor: pointer; }
@@ -21,28 +26,50 @@ section article .op-widget figcaption { margin: 0 0 10px; text-align: center; fo
 .op-square { display: block; width: min(100%, 340px); height: auto; margin-inline: auto; aspect-ratio: 1; border: 1px solid var(--dr-axis); border-radius: 3px; }
 .op-pixels { background: #101010; shape-rendering: crispEdges; }
 .op-paper { background: #fff; }
-.op-subpixels { display: grid; grid-template-columns: repeat(3, 1fr); max-width: 340px; height: 104px; gap: 4px; padding: 5px; margin: 0 auto 20px; background: #111; border-radius: 4px; }
+.op-subpixels { display: grid; grid-template-columns: repeat(3, 1fr); box-sizing: border-box; width: min(100%, 280px); aspect-ratio: 1; gap: 0; padding: 0; margin: 0 auto 20px; background: #111; border: 3px solid #111; border-radius: 4px; overflow: hidden; }
 .op-subpixels span { display: grid; place-items: center; font-weight: 800; font-size: 1.3em; color: #fff; text-shadow: 0 1px 3px #000; }
 .op-subpixels span:nth-child(1) { background: #e62d36; }
 .op-subpixels span:nth-child(2) { background: #21b74a; color: #061909; text-shadow: none; }
 .op-subpixels span:nth-child(3) { background: #225bdd; }
+.op-inch-diagram { display: grid; grid-template-columns: 2em minmax(0, 1fr); grid-template-rows: 2em auto; gap: 4px; width: min(100%, 380px); margin-inline: auto; }
+.op-inch-diagram .op-square { grid-column: 2; grid-row: 2; width: 100%; }
+.op-dimension { display: flex; align-items: center; justify-content: space-between; gap: 4px; color: var(--dr-text); font-size: .85em; white-space: nowrap; }
+.op-dimension--top { grid-column: 2; grid-row: 1; border-bottom: 1px solid var(--dr-axis); }
+.op-dimension--left { grid-column: 1; grid-row: 2; flex-direction: column; border-right: 1px solid var(--dr-axis); padding-right: 4px; }
+.op-dimension--left > span:nth-child(2) { writing-mode: vertical-rl; }
 .op-caption { text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
 .op-equation { padding: 12px 16px; background: var(--dr-panel-strong); color: var(--dr-text); border-left: 3px solid var(--dr-info); font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
 .op-hint { color: var(--dr-muted); font-size: .88em; line-height: 1.6; }
 .op-observation { padding: 12px 16px; border-left: 4px solid var(--dr-info); background: var(--dr-info-soft); color: var(--dr-text); }
 .op-mechanism, .op-print-size, .op-quantum { display: block; width: 100%; height: auto; margin-inline: auto; }
 .op-mechanism { background: var(--dr-svg-bg); border: 1px solid var(--dr-border); border-radius: 8px; }
-.op-quantum { max-width: 550px; }
+.op-mechanism-scroll { max-width: 100%; overflow-x: auto; padding-bottom: 4px; }
+.op-mechanism-scroll .op-mechanism { min-width: 540px; }
+.op-liquid-cell { fill: #557489; stroke: #314d60; }
+.op-molecules { fill: none; stroke: #e7f6ff; stroke-width: 4; stroke-linecap: round; }
+.op-polarizer { fill: #334654; }
+.op-white-light-edge { fill: none; stroke: #9faeba; stroke-width: 17; }
+.op-white-light { fill: none; stroke: #fff; stroke-width: 13; }
+.op-channel-letter { fill: #fff; font: 700 18px system-ui, sans-serif; stroke: #263646; stroke-width: 1px; paint-order: stroke; }
+.op-quantum { max-width: 680px; }
+.op-dot-legend { display: flex; flex-wrap: wrap; gap: 12px 22px; align-items: center; justify-content: center; font-size: .88em; }
+.op-dot-legend > span { display: inline-flex; align-items: center; gap: 6px; }
+.op-dot-legend i { display: inline-block; width: .8em; aspect-ratio: 1; border-radius: 50%; border: 1px solid var(--dr-axis); }
+.op-ink-c { background: #00acc1; }
+.op-ink-m { background: #d93887; }
+.op-ink-y { background: #e2bd16; }
 .op-diagram-text { fill: var(--dr-text); font: 15px system-ui, sans-serif; }
 .op-flow { fill: none; stroke: var(--dr-axis); stroke-width: 3; }
-.op-timelines { display: grid; gap: 14px; margin: 20px 0; }
+.op-timeline-scroll { max-width: 100%; overflow-x: auto; margin: 20px 0; }
+.op-timelines { display: grid; gap: 14px; min-width: 720px; padding: 4px; }
 section article .op-timeline-label { margin: 0 0 6px; font-weight: 700; }
 .op-timeline { display: grid; grid-template-columns: repeat(var(--op-columns), minmax(0, 1fr)); gap: 2px; }
-.op-timeline > span { min-width: 0; display: grid; place-items: center; height: 46px; background: var(--dr-panel-strong); border: 1px solid var(--dr-border); font-size: max(14px, .8em); font-variant-numeric: tabular-nums; }
+.op-timeline > span { min-width: 0; display: grid; place-items: center; padding: 4px 0; background: var(--dr-panel-strong); border: 1px solid var(--dr-border); font-size: max(14px, .8em); font-variant-numeric: tabular-nums; }
+.op-timeline svg { width: 100%; height: 70px; }
 .op-timeline--display > span { background: var(--dr-info-soft); }
 .op-timeline > .is-current { box-shadow: inset 0 -5px var(--dr-focus); border: 2px solid var(--dr-focus); font-weight: 800; }
-.op-motion-preview { display: block; width: min(100%, 600px); height: auto; margin: 0 auto; }
-.op-ball { fill: var(--dr-sample); }
+.op-refresh-preview { display: grid; grid-template-columns: minmax(160px, .6fr) minmax(0, 1.4fr); gap: 22px; align-items: center; }
+.op-motion-preview { display: block; width: min(100%, 240px); height: auto; margin: 0 auto; background: var(--dr-svg-bg); border: 1px solid var(--dr-border); border-radius: 8px; }
 .op-photo-outline { fill: var(--dr-info-soft); stroke: var(--dr-axis); stroke-width: 2; }
 .op-print-size { max-width: 370px; }
 .op-result { font-size: 1.45em; font-weight: 700; font-variant-numeric: tabular-nums; }
@@ -55,9 +82,12 @@ section article .op-timeline-label { margin: 0 0 6px; font-weight: 700; }
 .op-feedback { min-height: 1.5em; font-weight: 700; }
 [data-output-solution] ol { padding-left: 1.8em; }
 [data-output-solution] li { margin: 12px 0; }
-.op-widget :is(button, input, select):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+.op-widget :is(button, input, select, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
 .op-enhancement[hidden], [data-output-solution] li[hidden] { display: none !important; }
 
+@media (max-width: 1150px) {
+  .op-comparison--light { grid-template-columns: 1fr; }
+}
 @media (max-width: 700px) {
   .op-comparison, .op-comparison--screen, .op-comparison--print { grid-template-columns: 1fr; }
   .op-comparison--dots { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
@@ -66,6 +96,10 @@ section article .op-timeline-label { margin: 0 0 6px; font-weight: 700; }
   .op-answer-fields { align-items: start; flex-direction: column; }
   .op-answer-times { display: none; }
   .op-timeline > span { font-size: 14px; }
+  .op-refresh-preview { grid-template-columns: 1fr; }
+}
+@media (max-width: 500px) {
+  .op-comparison--dots { grid-template-columns: 1fr; gap: 24px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .op-widget *, .op-widget *::before, .op-widget *::after { scroll-behavior: auto !important; transition: none !important; }
@@ -74,5 +108,7 @@ section article .op-timeline-label { margin: 0 0 6px; font-weight: 700; }
   .op-controls, .op-feedback { display: none !important; }
   .op-widget { box-shadow: none; background: transparent; }
   .op-comparison, .op-timelines { break-inside: avoid; }
+  .op-mechanism-scroll, .op-timeline-scroll { overflow: visible; }
+  .op-mechanism-scroll .op-mechanism, .op-timelines { min-width: 0; }
   [data-output-solution] li[hidden] { display: list-item !important; }
 }

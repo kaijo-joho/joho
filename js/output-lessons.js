@@ -15,8 +15,10 @@
   function attributes(node, values) {
     Object.entries(values).forEach(([key, value]) => node.setAttribute(key, String(value)));
   }
-  function equation(node, expression, result) {
-    node.replaceChildren(document.createTextNode(expression), element('strong', result));
+  function svgElement(name, values = {}) {
+    const node = document.createElementNS('http://www.w3.org/2000/svg', name);
+    attributes(node, values);
+    return node;
   }
 
   function initializeScreen(host) {
@@ -43,21 +45,31 @@
   }
 
   function initializeLight(host) {
-    const control = host.querySelector('#op-brightness');
+    const controls = [...host.querySelectorAll('[data-output-brightness]')];
     function update() {
-      const brightness = Number(control.value);
-      const opacity = brightness / 100;
-      ['[data-output-lcd-light]', '[data-output-oled-emitter]', '[data-output-oled-light]'].forEach(selector => attributes(host.querySelector(selector), { opacity }));
-      attributes(host.querySelector('[data-output-lcd-shutter]'), { opacity: 1 - opacity });
-      text(host, '[data-output-brightness-label]', `${brightness}%`);
-      control.setAttribute('aria-valuetext', `表示する明るさ${brightness}%`);
-      text(host, '[data-output-light-note]', brightness === 0
-        ? '0%：LCDは光を遮り、OLEDは発光を止めています。LCDのバックライトは点灯したままです。'
-        : `${brightness}%：LCDは通す光の量を、OLEDは発光する量を調整しています。0%にして光源の違いも比べましょう。`);
+      const labels = controls.map(control => {
+        const channel = control.dataset.outputBrightness;
+        const brightness = Number(control.value);
+        const opacity = brightness / 100;
+        for (const part of ['lcd-through', 'lcd-light', 'oled-emitter', 'oled-light']) {
+          attributes(host.querySelector(`[data-output-${part}="${channel}"]`), { opacity });
+        }
+        // 電圧の大小は一般化せず、向きの変化と透過量の対応を模式的に示す。
+        host.querySelectorAll(`[data-output-molecule="${channel}"]`).forEach(molecule => {
+          attributes(molecule, { transform: `rotate(${-65 + .6 * brightness})` });
+        });
+        text(host, `[data-output-brightness-label="${channel}"]`, `${brightness}%`);
+        control.setAttribute('aria-valuetext', `${channel.toUpperCase()}の明るさ${brightness}%`);
+        return `${channel.toUpperCase()} ${brightness}%`;
+      });
+      const allOff = controls.every(control => Number(control.value) === 0);
+      text(host, '[data-output-light-note]', `${labels.join('・')}：${allOff
+        ? 'LCDは光を遮り、OLEDは発光を止めています。LCDのバックライトは点灯したままです。'
+        : '各色で、LCDは通す光の量を、OLEDは自ら発する光の量を調整します。'}`);
       resized();
     }
-    control.addEventListener('input', update);
-    host.querySelector('[data-output-reset]').addEventListener('click', () => { control.value = '70'; update(); });
+    controls.forEach(control => control.addEventListener('input', update));
+    host.querySelector('[data-output-reset]').addEventListener('click', () => { controls.forEach(control => { control.value = '70'; }); update(); });
     update(); reveal(host);
   }
 
@@ -66,31 +78,72 @@
     const hzControl = host.querySelector('[data-output-hz]');
     const source = host.querySelector('[data-output-source-frames]');
     const display = host.querySelector('[data-output-display-frames]');
+    const preview = host.querySelector('[data-output-refresh-bird]');
     const previous = host.querySelector('[data-output-refresh-prev]');
     const next = host.querySelector('[data-output-refresh-next]');
+    const play = host.querySelector('[data-output-refresh-play]');
+    const duration = 2;
     let plan;
+    let poses = [];
     let index = 0;
+    let running = false;
+    let elapsed = 0;
+    let startedAt = 0;
+    let animation = 0;
+    function playLabel() {
+      play.textContent = running ? '一時停止' : elapsed >= duration ? 'もう一度再生' : 'ゆっくり再生';
+      play.setAttribute('aria-pressed', String(running));
+    }
     function draw() {
       const current = plan.frames[index];
-      source.querySelectorAll('span').forEach((cell, position) => cell.classList.toggle('is-current', position + 1 === current.frame));
-      display.querySelectorAll('span').forEach((cell, position) => cell.classList.toggle('is-current', position === index));
+      [...source.children].forEach((cell, position) => cell.classList.toggle('is-current', position + 1 === current.frame));
+      [...display.children].forEach((cell, position) => cell.classList.toggle('is-current', position === index));
       text(host, '[data-output-refresh-current]', `更新${index + 1} / ${plan.updateCount}：開始から${format(current.time * 1000)}msで、フレーム${current.frame}を表示`);
-      text(host, '[data-output-refresh-desc]', `更新${index + 1}。元の動画のフレーム${current.frame}を表示しています。`);
-      // 0.1秒で左から右へ進む動きを、元の動画の時刻で標本化する。
-      attributes(host.querySelector('[data-output-refresh-ball]'), { cx: 32 + 416 * (current.frame - 1) / plan.sourceCount });
+      text(host, '[data-output-refresh-desc]', `更新${index + 1}。元の動画のフレーム${current.frame}の鳥を表示しています。同じフレーム番号では羽の形は変わりません。`);
+      preview.replaceChildren(poses[current.frame - 1].cloneNode(true));
       previous.disabled = index === 0;
       next.disabled = index === plan.updateCount - 1;
-      resized();
+    }
+    function time() { return Math.min(duration, elapsed + (running ? (performance.now() - startedAt) / 1000 : 0)); }
+    function pause() {
+      elapsed = time();
+      running = false;
+      cancelAnimationFrame(animation);
+      playLabel();
+    }
+    function seek(position) {
+      pause();
+      index = Math.max(0, Math.min(plan.updateCount - 1, position));
+      elapsed = index * duration / plan.updateCount;
+      playLabel(); draw();
+    }
+    function tick() {
+      if (!running) return;
+      const seconds = time();
+      const position = Math.min(plan.updateCount - 1, Math.floor(seconds / duration * plan.updateCount));
+      if (position !== index) { index = position; draw(); }
+      if (seconds >= duration) { pause(); return; }
+      animation = requestAnimationFrame(tick);
+    }
+    function frameCell(number) {
+      const cell = element('span');
+      const svg = svgElement('svg', { viewBox: '95 10 120 124', 'aria-hidden': 'true' });
+      svg.append(poses[number - 1].cloneNode(true));
+      cell.append(svg, element('b', number));
+      return cell;
     }
     function update() {
+      pause();
       const fps = Number(fpsControl.value);
       const hz = Number(hzControl.value);
       plan = Core.refreshFrames(fps, hz);
-      index = 0;
+      index = 0; elapsed = 0;
+      // 同じ時刻の鳥を元動画のfpsで標本化し、画面側は選ばれた静止画だけを使う。
+      poses = Array.from({ length: plan.sourceCount }, (_, frame) => globalThis.BirdFrames.createPose(frame / fps * 5));
       source.style.setProperty('--op-columns', plan.sourceCount);
       display.style.setProperty('--op-columns', plan.updateCount);
-      source.replaceChildren(...Array.from({ length: plan.sourceCount }, (_, i) => element('span', i + 1)));
-      display.replaceChildren(...plan.frames.map(frame => element('span', frame.frame)));
+      source.replaceChildren(...poses.map((pose, i) => frameCell(i + 1)));
+      display.replaceChildren(...plan.frames.map(frame => frameCell(frame.frame)));
       text(host, '[data-output-source-label]', `動画（${fps}fps）：0.1秒に${plan.sourceCount}枚`);
       text(host, '[data-output-display-label]', `画面（${hz}Hz）：0.1秒に${plan.updateCount}回更新`);
       const sequence = plan.frames.map(frame => frame.frame).join('→');
@@ -100,29 +153,42 @@
           ? `同じフレームを${hz / fps}回ずつ表示します。元の動画に新しいフレームが増えるわけではありません。`
           : '動画の各フレームを1回ずつ表示します。';
       text(host, '[data-output-refresh-note]', `${fps}fps・${hz}Hz：${description}（${sequence}）`);
-      draw();
+      playLabel(); draw(); resized();
     }
     fpsControl.addEventListener('change', update);
     hzControl.addEventListener('change', update);
-    previous.addEventListener('click', () => { index = Math.max(0, index - 1); draw(); });
-    next.addEventListener('click', () => { index = Math.min(plan.updateCount - 1, index + 1); draw(); });
+    previous.addEventListener('click', () => seek(index - 1));
+    next.addEventListener('click', () => seek(index + 1));
+    play.addEventListener('click', () => {
+      if (running) { pause(); return; }
+      if (elapsed >= duration) seek(0);
+      startedAt = performance.now(); running = true; playLabel(); tick();
+    });
     host.querySelector('[data-output-reset]').addEventListener('click', () => { fpsControl.value = '60'; hzControl.value = '30'; update(); });
+    document.addEventListener('joho:lesson-slide-change', event => { if (event.detail.slide !== host.closest('[data-lesson-slide]')) pause(); });
+    document.addEventListener('visibilitychange', () => { if (document.hidden) pause(); });
+    window.addEventListener('pagehide', pause);
+    window.matchMedia('(prefers-reduced-motion: reduce)').addEventListener('change', event => { if (event.matches) pause(); });
     update(); reveal(host);
   }
 
   function initializeDots(host) {
     const control = host.querySelector('#op-dpi-demo');
+    const layer = host.querySelector('[data-output-dot-layer]');
+    const colors = ['#00acc1', '#d93887', '#e2bd16'];
     function update() {
       const dpi = Number(control.value);
       const grid = Core.dotGrid(dpi);
       const size = 300 / grid.perSide;
-      attributes(host.querySelector('#op-dots-pattern'), { width: size, height: size });
-      attributes(host.querySelector('[data-output-dot]'), { cx: size / 2, cy: size / 2, r: size * .3 });
+      layer.replaceChildren(...Array.from({ length: grid.total }, (_, i) => {
+        const row = Math.floor(i / dpi); const column = i % dpi;
+        return svgElement('circle', { cx: (column + .5) * size, cy: (row + .5) * size, r: size * .27, fill: colors[(row + column) % 3] });
+      }));
       text(host, '[data-output-dots-label]', `${dpi}dpi`);
       control.setAttribute('aria-valuetext', `${dpi}dpi、1インチに${dpi}ドット`);
       text(host, '[data-output-dots-caption]', `${dpi}dpi（比較）`);
       text(host, '[data-output-dot-count]', `${dpi}×${dpi}＝${format(grid.total)}ドット`);
-      text(host, '[data-output-dots-desc]', `横${dpi}個、縦${dpi}個、合計${grid.total}個のドットが並びます。`);
+      text(host, '[data-output-dots-desc]', `CMYのドットが横${dpi}個、縦${dpi}個、合計${grid.total}個並びます。`);
       resized();
     }
     control.addEventListener('input', update);
@@ -130,35 +196,13 @@
     update(); reveal(host);
   }
 
-  function initializePrint(host) {
-    const sizeControl = host.querySelector('[data-output-print-size]');
-    const dpiControl = host.querySelector('#op-print-dpi');
-    function update() {
-      const [width, height] = sizeControl.value.split(',').map(Number);
-      const dpi = Number(dpiControl.value);
-      const pixels = Core.printPixels(width, height, dpi);
-      text(host, '[data-output-print-dpi-label]', `${dpi}dpi`);
-      dpiControl.setAttribute('aria-valuetext', `${dpi}dpi`);
-      for (const [direction, mm, count] of [['width', width, pixels.width], ['height', height, pixels.height]]) {
-        const label = direction === 'width' ? '横' : '縦';
-        equation(host.querySelector(`[data-output-print-${direction}]`), `${label}：${format(mm)}［mm］÷25.4［mm/インチ］×${dpi}［画素/インチ］＝`, `${format(count)}画素`);
-        text(host, `[data-output-${direction}-mm]`, `${label}${format(mm)}mm`);
-      }
-      host.querySelector('[data-output-print-result]').replaceChildren(document.createTextNode(`${format(pixels.width)}×${format(pixels.height)}画素`), element('br'), element('span', `合計${format(pixels.total)}画素`));
-      const scale = 224 / Math.max(width, height);
-      attributes(host.querySelector('[data-output-photo]'), { x: 172 - width * scale / 2, y: 138 - height * scale / 2, width: width * scale, height: height * scale });
-      text(host, '[data-output-size-desc]', `横${width}mm、縦${height}mmに、横${pixels.width}画素、縦${pixels.height}画素を対応させます。`);
-      resized();
-    }
-    sizeControl.addEventListener('change', update);
-    dpiControl.addEventListener('input', update);
-    host.querySelector('[data-output-reset]').addEventListener('click', () => { sizeControl.value = '25.4,25.4'; dpiControl.value = '300'; update(); });
-    update(); reveal(host);
-  }
-
   function initializeQuiz(host) {
-    const answer = Core.printPixels(101.6, 76.2, 400);
-    const fields = ['width', 'height'].map(name => host.elements.namedItem(name));
+    const dots = host.hasAttribute('data-output-dot-quiz');
+    const answer = dots
+      ? { row: 300, total: Core.dotGrid(300).total, doubleTotal: Core.dotGrid(600).total, ratio: Core.dotGrid(600).total / Core.dotGrid(300).total }
+      : Core.printPixels(101.6, 76.2, 400);
+    const names = dots ? ['row', 'total', 'doubleTotal', 'ratio'] : ['width', 'height'];
+    const fields = names.map(name => host.elements.namedItem(name));
     const feedback = host.querySelector('[data-output-feedback]');
     function clearFeedback() {
       fields.forEach(field => field.removeAttribute('aria-invalid'));
@@ -178,9 +222,11 @@
         if (valid) correct += 1;
       });
       feedback.textContent = fields.some(field => field.value.trim() === '')
-        ? '横と縦の画素数を両方入力しましょう。'
-        : correct === 2 ? '正解です。横1600画素×縦1200画素です。'
-          : `${correct === 1 ? '一方は正解です。' : ''}横と縦をそれぞれインチに直してから、400を掛けましょう。`;
+        ? (dots ? '4つの欄をすべて入力しましょう。' : '横と縦の画素数を両方入力しましょう。')
+        : correct === fields.length
+          ? (dots ? '正解です。全体は横×縦で求めます。dpiが2倍になると、同じ面積のドット数は4倍です。' : '正解です。横1600画素×縦1200画素です。')
+          : dots ? `${correct}か所が正解です。dpiは長さ1インチあたりの数です。全体のドット数は横×縦で考えましょう。`
+            : `${correct === 1 ? '一方は正解です。' : ''}横と縦をそれぞれインチに直してから、400を掛けましょう。`;
       resized();
     });
     host.addEventListener('reset', clearFeedback);
@@ -204,7 +250,8 @@
     const widgets = [
       ['[data-output-screen]', initializeScreen], ['[data-output-light]', initializeLight],
       ['[data-output-refresh]', initializeRefresh], ['[data-output-dots]', initializeDots],
-      ['[data-output-print]', initializePrint], ['[data-output-quiz]', initializeQuiz]
+      ['[data-output-print]', host => globalThis.OutputPrint?.initialize(host)],
+      ['[data-output-dot-quiz]', initializeQuiz], ['[data-output-quiz]', initializeQuiz]
     ];
     widgets.forEach(([selector, setup]) => document.querySelectorAll(selector).forEach(host => {
       try { setup(host); }

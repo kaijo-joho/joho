@@ -1,0 +1,29 @@
+@charset "UTF-8";
+.op-print-widget { --op-print-handle-x: 26.6667%; --op-print-handle-y: 30.9524%; }
+.op-print-controls { align-items: end; }
+.op-print-layout { display: grid; grid-template-columns: minmax(0, 1fr) minmax(230px, .9fr); gap: clamp(18px, 3vw, 36px); align-items: center; }
+.op-print-figure { margin: 0; min-width: 0; }
+.op-print-diagram-scroll { max-width: 100%; overflow-x: auto; padding: 4px; }
+.op-print-diagram-wrap { position: relative; width: min(100%, 600px); min-width: 480px; margin-inline: auto; }
+.op-print-diagram { display: block; width: 100%; height: auto; overflow: visible; background: var(--dr-svg-bg); border: 1px solid var(--dr-border); border-radius: 9px; }
+.op-print-diagram text { fill: var(--dr-text); font: 16px system-ui, sans-serif; font-variant-numeric: tabular-nums; }
+.op-print-diagram .op-print-range { fill: url(#op-print-cmy); stroke: var(--dr-axis); stroke-width: 2; }
+.op-print-diagram .op-print-dimension { fill: none; stroke: var(--dr-axis); stroke-width: 1.5; marker-start: url(#op-print-arrow); marker-end: url(#op-print-arrow); }
+.op-print-diagram .op-print-extension { stroke: var(--dr-axis); stroke-width: 1; stroke-dasharray: 3 3; }
+.op-print-diagram .op-print-label { font-weight: 700; }
+.op-print-diagram .op-print-note { fill: var(--dr-muted); font-size: 12px; }
+.op-print-handle { display: grid; place-items: center; position: absolute; left: var(--op-print-handle-x); top: var(--op-print-handle-y); transform: translate(-50%, -50%); width: 44px; height: 44px; min-width: 44px; min-height: 44px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #fff; cursor: nwse-resize; touch-action: none; }
+.op-print-handle::before { content: "↘"; display: grid; place-items: center; box-sizing: border-box; width: 26px; height: 26px; border: 2px solid var(--dr-panel); border-radius: 50%; background: var(--dr-focus); font: 800 18px/1 system-ui, sans-serif; box-shadow: 0 1px 4px #0005; }
+.op-print-handle[aria-grabbed="true"] { cursor: grabbing; transform: translate(-50%, -50%) scale(1.08); }
+.op-print-handle:focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+.op-print-handle[hidden] { display: none; }
+.op-print-figure figcaption { margin-top: 8px; }
+.op-print-schematic-note { margin: 8px 0 0; color: var(--dr-muted); font-size: .84em; text-align: center; }
+.op-print-equations { min-width: 0; }
+.op-print-value { white-space: nowrap; }
+.op-print-drag-hint { margin: 12px 0 0; color: var(--dr-muted); font-size: .9em; }
+.op-print-widget .op-result strong { color: var(--dr-text); font-size: 1em; font-weight: 700; }
+.op-print-widget .op-result small { color: var(--dr-muted); font-size: .7em; font-weight: 400; }
+@media (max-width: 1050px) { .op-print-layout { grid-template-columns: 1fr; } }
+@media (max-width: 700px) { .op-print-controls .op-slider { flex-basis: 100%; } }
+@media print { .op-print-handle { display: none !important; } .op-print-diagram-scroll { overflow: visible; } .op-print-diagram-wrap { min-width: 0; } }
