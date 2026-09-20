@@ -3,7 +3,6 @@
 .op-ink-intro figure { margin: 0; }
 .op-ink-intro figcaption { color: var(--dr-muted); font-size: .8em; text-align: center; }
 .op-mixing-paper { display: block; width: min(100%, 340px); margin-inline: auto; isolation: isolate; border: 1px solid var(--dr-border); border-radius: 8px; background: white; }
-.op-ink-overlap > * { mix-blend-mode: multiply; }
 .op-halftone-comparison { display: grid; grid-template-columns: minmax(130px, .6fr) 40px minmax(200px, 1.4fr); gap: 16px; align-items: center; max-width: 900px; margin-inline: auto; }
 .op-halftone-comparison > * { min-width: 0; }
 .op-halftone-paper { display: block; width: 100%; height: auto; border: 1px solid var(--dr-axis); background: #fff; isolation: isolate; }

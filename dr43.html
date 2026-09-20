@@ -11,13 +11,13 @@
   <link rel="stylesheet" href="./css/output-representation.css">
   <link rel="stylesheet" href="./css/output-refresh.css">
   <link rel="stylesheet" href="./css/output-print.css">
-  <link rel="stylesheet" href="./css/output-ink.css">
+  <link rel="stylesheet" href="./css/output-ink.css?v=20260920b">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/output-core.js"></script>
   <script defer src="./js/bird-frames.js"></script>
   <script defer src="./js/output-refresh.js"></script>
   <script defer src="./js/output-print.js"></script>
-  <script defer src="./js/output-ink.js"></script>
+  <script defer src="./js/output-ink.js?v=20260920c"></script>
   <script defer src="./js/output-lessons.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -196,15 +196,26 @@
     </article>
   </section>
 
-  <section data-lesson-slide data-lesson-slide-title="プリンタの色とdpi">
+  <section data-lesson-slide data-lesson-slide-title="プリンタの色">
     <article>
-      <h2 id="headline_4">(4) プリンタの色と解像度</h2>
+      <h2 id="headline_4">(4) プリンタの色</h2>
       <h3>インクを重ねると、反射する光が減る</h3>
       <div class="op-ink-intro">
         <figure><svg class="op-mixing-paper" viewBox="0 0 340 240" role="img" aria-labelledby="op-mix-title op-mix-desc">
           <title id="op-mix-title">CMYの減法混色</title><desc id="op-mix-desc">白い紙の上でシアンとマゼンタを重ねると青、マゼンタとイエローで赤、シアンとイエローで緑になります。理想的な3色をすべて重ねると黒になります。</desc>
           <rect width="340" height="240" fill="white"/>
-          <g class="op-ink-overlap"><circle cx="135" cy="95" r="65" fill="#00ffff"/><circle cx="205" cy="95" r="65" fill="#ff00ff"/><circle cx="170" cy="150" r="65" fill="#ffff00"/></g>
+          <defs>
+            <clipPath id="op-mix-c"><circle cx="135" cy="95" r="65"/></clipPath>
+            <clipPath id="op-mix-m"><circle cx="205" cy="95" r="65"/></clipPath>
+            <clipPath id="op-mix-y"><circle cx="170" cy="150" r="65"/></clipPath>
+          </defs>
+          <g clip-path="url(#op-mix-c)"><rect width="340" height="240" fill="#00ffff"/></g>
+          <g clip-path="url(#op-mix-m)"><rect width="340" height="240" fill="#ff00ff"/></g>
+          <g clip-path="url(#op-mix-y)"><rect width="340" height="240" fill="#ffff00"/></g>
+          <g clip-path="url(#op-mix-c)"><g clip-path="url(#op-mix-m)"><rect width="340" height="240" fill="#0000ff"/></g></g>
+          <g clip-path="url(#op-mix-c)"><g clip-path="url(#op-mix-y)"><rect width="340" height="240" fill="#00ff00"/></g></g>
+          <g clip-path="url(#op-mix-m)"><g clip-path="url(#op-mix-y)"><rect width="340" height="240" fill="#ff0000"/></g></g>
+          <g clip-path="url(#op-mix-c)"><g clip-path="url(#op-mix-m)"><g clip-path="url(#op-mix-y)"><rect width="340" height="240" fill="#000000"/></g></g></g>
           <g fill="#111" font-family="system-ui,sans-serif" font-size="16" font-weight="700" text-anchor="middle"><text x="105" y="76">C</text><text x="235" y="76">M</text><text x="170" y="193">Y</text><text x="123" y="148">緑</text><text x="217" y="148">赤</text><text x="170" y="70" fill="#fff">青</text><text x="170" y="130" fill="#fff">黒</text></g>
         </svg><figcaption>白い紙にCMYを重ねた模式図</figcaption></figure>
         <div><p>紙に当たった白色光の一部をインクが<strong>吸収</strong>し、残った反射光が目に届きます。色を重ねるほど反射する光が減る混色を<strong>減法混色</strong>といいます。</p><p>印刷では<strong>C（シアン）・M（マゼンタ）・Y（イエロー）</strong>に、はっきりした黒を表す<strong>K（黒）</strong>を加えたCMYKをよく使います。インクを付けない部分には紙の白が見えます。</p></div>
@@ -213,11 +224,43 @@
       <p>各色が紙を覆う面積を変えると、離れて見たときの色や濃淡が変わります。下のスライダーで、CMYそれぞれの点を大きくしたり小さくしたりしてみましょう。</p>
       <div class="op-widget" data-output-ink data-lesson-slide-navigation-lock>
         <div class="op-halftone-comparison">
-          <figure><figcaption>離れて見たとき（模式図）</figcaption><svg class="op-halftone-paper op-halftone-distant" viewBox="0 0 5760 3840" role="img" aria-labelledby="op-ink-small-title op-ink-small-desc"><title id="op-ink-small-title">同じ網点を縮小して見た色</title><desc id="op-ink-small-desc">右の拡大図と同じ点の並びを小さく表示しています。</desc><defs><filter id="op-ink-distant-blur" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="32"/></filter></defs><rect width="5760" height="3840" fill="#fff"/><g filter="url(#op-ink-distant-blur)"><rect width="5760" height="3840" fill="#fff"/><g class="op-ink-overlap"><rect width="5760" height="3840" fill="url(#op-ink-pattern-c)"/><rect width="5760" height="3840" fill="url(#op-ink-pattern-m)"/><rect width="5760" height="3840" fill="url(#op-ink-pattern-y)"/></g></g></svg><p class="op-hint">同じ点の並びを縮小表示</p></figure>
+          <figure><figcaption>離れて見たとき（模式図）</figcaption><svg class="op-halftone-paper op-halftone-distant" viewBox="0 0 5760 3840" role="img" aria-labelledby="op-ink-small-title op-ink-small-desc"><title id="op-ink-small-title">同じ網点を縮小して見た色</title><desc id="op-ink-small-desc" data-output-ink-desc>右の拡大図と同じ点の並びを小さく表示しています。</desc>
+            <defs>
+              <filter id="op-ink-distant-blur" color-interpolation-filters="sRGB"><feGaussianBlur stdDeviation="32"/></filter>
+              <clipPath id="op-ink-small-pattern-c" clipPathUnits="userSpaceOnUse"><circle cx="32" cy="32" r="27.6" data-output-ink-dot="c"/></clipPath>
+              <clipPath id="op-ink-small-pattern-m" clipPathUnits="userSpaceOnUse"><circle cx="0" cy="0" r="13.8" data-output-ink-dot="m"/><circle cx="64" cy="0" r="13.8" data-output-ink-dot="m"/><circle cx="0" cy="64" r="13.8" data-output-ink-dot="m"/><circle cx="64" cy="64" r="13.8" data-output-ink-dot="m"/></clipPath>
+              <clipPath id="op-ink-small-pattern-y" clipPathUnits="userSpaceOnUse"><circle cx="32" cy="0" r="4.6" data-output-ink-dot="y"/><circle cx="32" cy="64" r="4.6" data-output-ink-dot="y"/></clipPath>
+              <pattern id="op-ink-small-pattern" width="64" height="64" patternUnits="userSpaceOnUse">
+                <rect width="64" height="64" fill="#fff"/>
+                <g clip-path="url(#op-ink-small-pattern-c)"><rect width="64" height="64" fill="#00ffff"/></g>
+                <g clip-path="url(#op-ink-small-pattern-m)"><rect width="64" height="64" fill="#ff00ff"/></g>
+                <g clip-path="url(#op-ink-small-pattern-y)"><rect width="64" height="64" fill="#ffff00"/></g>
+                <g clip-path="url(#op-ink-small-pattern-c)"><g clip-path="url(#op-ink-small-pattern-m)"><rect width="64" height="64" fill="#0000ff"/></g></g>
+                <g clip-path="url(#op-ink-small-pattern-c)"><g clip-path="url(#op-ink-small-pattern-y)"><rect width="64" height="64" fill="#00ff00"/></g></g>
+                <g clip-path="url(#op-ink-small-pattern-m)"><g clip-path="url(#op-ink-small-pattern-y)"><rect width="64" height="64" fill="#ff0000"/></g></g>
+                <g clip-path="url(#op-ink-small-pattern-c)"><g clip-path="url(#op-ink-small-pattern-m)"><g clip-path="url(#op-ink-small-pattern-y)"><rect width="64" height="64" fill="#000000"/></g></g></g>
+              </pattern>
+            </defs>
+            <rect width="5760" height="3840" fill="#fff"/><rect x="-64" y="-64" width="5888" height="3968" fill="url(#op-ink-small-pattern)" filter="url(#op-ink-distant-blur)" data-output-ink-distant data-output-ink-surface="op-ink-small-pattern"/>
+          </svg><p class="op-hint">同じ点の並びを縮小表示</p></figure>
           <div class="op-halftone-arrow" aria-hidden="true">→</div>
           <figure><figcaption>拡大した網点</figcaption><svg class="op-halftone-paper" viewBox="0 0 384 256" role="img" aria-labelledby="op-ink-zoom-title op-ink-zoom-desc"><title id="op-ink-zoom-title">CMYの点の大きさを変える模式図</title><desc id="op-ink-zoom-desc" data-output-ink-desc>シアンの大きな点、マゼンタの中くらいの点、イエローの小さな点が並んでいます。</desc>
-            <defs><pattern id="op-ink-pattern-c" width="64" height="64" patternUnits="userSpaceOnUse"><circle cx="32" cy="32" r="27.153" fill="#00ffff" data-output-ink-dot="c"/></pattern><pattern id="op-ink-pattern-m" width="64" height="64" patternUnits="userSpaceOnUse" patternTransform="translate(32 32)"><circle cx="32" cy="32" r="13.576" fill="#ff00ff" data-output-ink-dot="m"/></pattern><pattern id="op-ink-pattern-y" width="64" height="64" patternUnits="userSpaceOnUse" patternTransform="translate(0 32)"><circle cx="32" cy="32" r="4.525" fill="#ffff00" data-output-ink-dot="y"/></pattern></defs>
-            <rect width="384" height="256" fill="#fff"/><g class="op-ink-overlap"><rect width="384" height="256" fill="url(#op-ink-pattern-c)"/><rect width="384" height="256" fill="url(#op-ink-pattern-m)"/><rect width="384" height="256" fill="url(#op-ink-pattern-y)"/></g>
+            <defs>
+              <clipPath id="op-ink-zoom-pattern-c" clipPathUnits="userSpaceOnUse"><circle cx="32" cy="32" r="27.6" data-output-ink-dot="c"/></clipPath>
+              <clipPath id="op-ink-zoom-pattern-m" clipPathUnits="userSpaceOnUse"><circle cx="0" cy="0" r="13.8" data-output-ink-dot="m"/><circle cx="64" cy="0" r="13.8" data-output-ink-dot="m"/><circle cx="0" cy="64" r="13.8" data-output-ink-dot="m"/><circle cx="64" cy="64" r="13.8" data-output-ink-dot="m"/></clipPath>
+              <clipPath id="op-ink-zoom-pattern-y" clipPathUnits="userSpaceOnUse"><circle cx="32" cy="0" r="4.6" data-output-ink-dot="y"/><circle cx="32" cy="64" r="4.6" data-output-ink-dot="y"/></clipPath>
+              <pattern id="op-ink-zoom-pattern" width="64" height="64" patternUnits="userSpaceOnUse">
+                <rect width="64" height="64" fill="#fff"/>
+                <g clip-path="url(#op-ink-zoom-pattern-c)"><rect width="64" height="64" fill="#00ffff"/></g>
+                <g clip-path="url(#op-ink-zoom-pattern-m)"><rect width="64" height="64" fill="#ff00ff"/></g>
+                <g clip-path="url(#op-ink-zoom-pattern-y)"><rect width="64" height="64" fill="#ffff00"/></g>
+                <g clip-path="url(#op-ink-zoom-pattern-c)"><g clip-path="url(#op-ink-zoom-pattern-m)"><rect width="64" height="64" fill="#0000ff"/></g></g>
+                <g clip-path="url(#op-ink-zoom-pattern-c)"><g clip-path="url(#op-ink-zoom-pattern-y)"><rect width="64" height="64" fill="#00ff00"/></g></g>
+                <g clip-path="url(#op-ink-zoom-pattern-m)"><g clip-path="url(#op-ink-zoom-pattern-y)"><rect width="64" height="64" fill="#ff0000"/></g></g>
+                <g clip-path="url(#op-ink-zoom-pattern-c)"><g clip-path="url(#op-ink-zoom-pattern-m)"><g clip-path="url(#op-ink-zoom-pattern-y)"><rect width="64" height="64" fill="#000000"/></g></g></g>
+              </pattern>
+            </defs>
+            <rect width="384" height="256" fill="url(#op-ink-zoom-pattern)" data-output-ink-surface="op-ink-zoom-pattern"/>
           </svg></figure>
         </div>
         <div class="op-controls op-ink-controls op-enhancement" hidden>
@@ -230,6 +273,13 @@
         <p class="op-hint">点の大きさで濃淡を表す網点の模式図です。スライダーは直径を最大値に対する割合で変えます。実際のプリンタでは、点の配置やインク量なども調整します。拡大図の網点の間隔は、次のdpiの図とは別です。</p>
         <noscript><p>点の大きさの調整にはJavaScriptが必要です。初期条件の図を表示しています。</p></noscript>
       </div>
+      <button class="dr-supplement-link" type="button" data-lesson-supplement-open="op-pixel-dot-detail">インクの点・網点・画素の違い</button>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="プリンタの解像度">
+    <article>
+      <h2 id="headline_dpi">(5) プリンタの解像度</h2>
       <h3>ドットの細かさを表すdpi</h3>
       <p>プリンタは、紙に小さな<strong>点（ドット）</strong>を並べて文字や画像を表します。カラー印刷では、主に<strong>C（シアン）・M（マゼンタ）・Y（イエロー）・K（黒）</strong>を使います。</p>
       <p>印刷の解像度は、<strong>1インチあたりに印刷できるドット数</strong>で表します。単位は<strong>dpi（dots per inch）</strong>です。</p>
@@ -257,7 +307,7 @@
 
   <section data-lesson-slide data-lesson-slide-title="印刷サイズと画素数">
     <article>
-      <h2 id="headline_5">(5) 印刷サイズと必要な画素数</h2>
+      <h2 id="headline_5">(6) 印刷サイズと必要な画素数</h2>
       <p>印刷する長さをインチに直してから、1インチあたりの数を掛けます。<strong>横と縦を別々に計算</strong>しましょう。</p>
       <p class="op-hint">ここでは、画像の1画素を印刷の1ドットに対応させるモデルで計算します。1インチ＝25.4mm、余白なしとします。</p>
       <div class="op-widget op-print-widget" data-output-print data-lesson-slide-navigation-lock>
@@ -278,7 +328,7 @@
 
   <section data-lesson-slide data-lesson-slide-title="語句・ポイントまとめ">
     <article>
-      <h2 id="headline_6">(6) 語句・ポイントまとめ</h2>
+      <h2 id="headline_6">(7) 語句・ポイントまとめ</h2>
       <p>語句や問いをクリックすると説明が開きます。まず自分の言葉で説明してから確認しましょう。</p>
       <div class="dr-reference-grid">
         <div class="dr-reference-card"><h3>語句まとめ</h3><div class="dr-reveal-list">
@@ -303,7 +353,7 @@
 
   <section data-lesson-slide data-lesson-slide-title="プリンタの問題" data-lesson-slide-layout="exercise">
     <article>
-      <h2 id="headline_7">(7) プリンタのドット数を求める</h2>
+      <h2 id="headline_7">(8) プリンタのドット数を求める</h2>
       <form class="op-widget" data-output-dot-quiz data-lesson-slide-navigation-lock>
         <h3>問題1　1インチ四方には何ドット？</h3>
         <p>縦横<strong>300dpi</strong>のプリンタで、<strong>1インチ×1インチ</strong>の範囲にドットを並べます。横1列のドット数と、範囲全体のドット数を求めましょう。</p>
@@ -326,7 +376,7 @@
 
   <section data-lesson-slide data-lesson-slide-title="印刷の問題" data-lesson-slide-layout="exercise">
     <article>
-      <h2 id="headline_8">(8) 印刷に必要な画素数を求める</h2>
+      <h2 id="headline_8">(9) 印刷に必要な画素数を求める</h2>
       <form class="op-widget" data-output-quiz data-lesson-slide-navigation-lock>
         <h3>問題　写真は何画素×何画素？</h3>
         <p>デジタルカメラで撮影する写真を、縦横<strong>400dpi</strong>の解像度で、<strong>横101.6mm×縦76.2mm</strong>の大きさに印刷します。データの加工や写真の拡大・縮小をせずに印刷するには、カメラで記録する画像を何画素×何画素にすればよいでしょうか。</p>
