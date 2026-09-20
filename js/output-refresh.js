@@ -1,12 +1,12 @@
 (function () {
   'use strict';
 
-  const WINDOW_SECONDS = 0.1;
+  const LOOP_SECONDS = 1;
   const WING_PERIOD_SECONDS = 0.5;
   const DEFAULT_FPS = 60;
   const DEFAULT_HZ = 30;
   const DEFAULT_SPEED_INDEX = 2;
-  const RATE_VALUES = [30, 60, 120];
+  const RATE_VALUES = [5, 10, 15, 30, 60, 120];
   const SPEED_VALUES = [0.05, 0.1, 0.25, 0.5, 1];
 
   function svgElement(name, attributes = {}) {
@@ -41,13 +41,14 @@
     const current = host.querySelector('[data-output-refresh-current]');
     const note = host.querySelector('[data-output-refresh-note]');
     const windowLabel = host.querySelector('[data-output-refresh-window]');
+    const durationLabel = host.querySelector('[data-output-refresh-duration]');
     const play = host.querySelector('[data-output-refresh-play]');
     const reset = host.querySelector('[data-output-refresh-reset]');
     const fpsButtons = [...host.querySelectorAll('[data-output-refresh-fps] button')];
     const hzButtons = [...host.querySelectorAll('[data-output-refresh-hz] button')];
     const speed = host.querySelector('[data-output-refresh-speed]');
     const speedOutput = host.querySelector('[data-output-refresh-speed-output]');
-    if (![sourceFrames, displayFrames, sourceLabel, displayLabel, preview, description, current, note, windowLabel, play, reset, speed, speedOutput].every(Boolean)) return;
+    if (![sourceFrames, displayFrames, sourceLabel, displayLabel, preview, description, current, note, windowLabel, durationLabel, play, reset, speed, speedOutput].every(Boolean)) return;
 
     const slide = host.closest('[data-lesson-slide]');
     const media = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -63,9 +64,10 @@
     let userPaused = media.matches;
     let renderedWindow = -1;
     let renderedUpdate = -1;
-    let plan = Core.refreshFrames(fps, hz, WINDOW_SECONDS);
-    let updatesPerPeriod = Math.round(WING_PERIOD_SECONDS * hz);
-    let updatesPerWindow = plan.updateCount;
+    let windowSeconds;
+    let plan;
+    let updatesPerPeriod;
+    let updatesPerWindow;
 
     function active() {
       return !slide || slide.classList.contains('is-current');
@@ -123,9 +125,15 @@
     }
 
     function configurePlan() {
-      plan = Core.refreshFrames(fps, hz, WINDOW_SECONDS);
-      updatesPerPeriod = Math.round(WING_PERIOD_SECONDS * hz);
+      // 5・15fps/Hzでも、表示区間ごとのフレーム数と更新回数を整数にする。
+      windowSeconds = Math.min(fps, hz) < 30 ? 0.2 : 0.1;
+      plan = Core.refreshFrames(fps, hz, windowSeconds);
+      // 0.5秒で折り返すと5・15Hzでは半端な更新回数になるため、1秒分を繰り返す。
+      updatesPerPeriod = Math.round(LOOP_SECONDS * hz);
       updatesPerWindow = plan.updateCount;
+      durationLabel.textContent = `${windowSeconds}秒間`;
+      host.style.setProperty('--or-frame-count', Math.max(plan.sourceCount, plan.updateCount));
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
 
     function updatePosition(time) {
@@ -139,7 +147,7 @@
     function renderWindow(windowIndex) {
       if (windowIndex === renderedWindow) return;
       renderedWindow = windowIndex;
-      const start = windowIndex * WINDOW_SECONDS;
+      const start = windowIndex * windowSeconds;
       const sourceStart = Math.round(start * fps) + 1;
       const source = Array.from({ length: plan.sourceCount }, (_, index) => sourceStart + index);
       const displayed = plan.frames.map(entry => sourceStart + entry.frame - 1);
@@ -147,9 +155,9 @@
       displayFrames.replaceChildren(...displayed.map(frame => frameCell(frame, true)));
       sourceFrames.style.setProperty('--or-columns', plan.sourceCount);
       displayFrames.style.setProperty('--or-columns', plan.updateCount);
-      sourceLabel.textContent = `動画 ${fps}fps：${formatSeconds(start)}秒〜${formatSeconds(start + WINDOW_SECONDS)}秒`;
-      displayLabel.textContent = `画面 ${hz}Hz：この0.1秒に${plan.updateCount}回更新`;
-      windowLabel.textContent = `表示中の区間：${formatSeconds(start)}秒〜${formatSeconds(start + WINDOW_SECONDS)}秒`;
+      sourceLabel.textContent = `動画 ${fps}fps：${formatSeconds(start)}秒〜${formatSeconds(start + windowSeconds)}秒`;
+      displayLabel.textContent = `画面 ${hz}Hz：この${windowSeconds}秒に${plan.updateCount}回更新`;
+      windowLabel.textContent = `表示中の区間：${formatSeconds(start)}秒〜${formatSeconds(start + windowSeconds)}秒`;
       const relation = hz < fps
         ? `動画の${plan.sourceCount}枚から${plan.uniqueCount}枚を選びます。`
         : hz > fps
@@ -164,7 +172,7 @@
       renderWindow(position.windowIndex);
       if (position.updateIndex === renderedUpdate) return;
       renderedUpdate = position.updateIndex;
-      const windowStart = position.windowIndex * WINDOW_SECONDS;
+      const windowStart = position.windowIndex * windowSeconds;
       const sourceStart = Math.round(windowStart * fps) + 1;
       const displayedFrame = sourceStart + plan.frames[position.updateIndex].frame - 1;
       sourceFrames.querySelectorAll('.or-frame').forEach(cell => cell.classList.toggle('is-current', Number(cell.dataset.frame) === displayedFrame));
@@ -267,6 +275,7 @@
     });
 
     host.dataset.outputRefreshInitialized = 'true';
+    configurePlan();
     updateRateButtons(fpsButtons, fps);
     updateRateButtons(hzButtons, hz);
     setSpeed(speedIndex);

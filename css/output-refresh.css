@@ -7,7 +7,7 @@
 .or-speed input { grid-column: 1 / -1; width: 100%; min-height: 44px; margin: 0; accent-color: var(--dr-focus); cursor: pointer; }
 .or-speed output { font-weight: 700; font-variant-numeric: tabular-nums; }
 .or-timeline-scroll { min-width: 0; max-width: 100%; overflow-x: auto; padding-bottom: 4px; }
-.or-timelines { display: grid; min-width: 680px; gap: 10px; }
+.or-timelines { display: grid; min-width: max(680px, calc(200px + var(--or-frame-count, 12) * 44px)); gap: 10px; }
 .or-timeline-row { display: grid; grid-template-columns: minmax(158px, 190px) minmax(480px, 1fr); align-items: stretch; gap: 10px; }
 .or-rate-group { display: grid; align-content: center; gap: 6px; min-width: 0; padding: 8px; border: 1px solid var(--dr-border); border-radius: 8px; background: var(--dr-panel-strong); }
 .or-rate-group[hidden] + .or-timeline-wrap { grid-column: 1 / -1; }

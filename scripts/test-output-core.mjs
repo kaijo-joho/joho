@@ -46,6 +46,10 @@ equal(core.refreshFrames(60, 120).uniqueCount, 6);
 // 120fpsも0.1秒に12枚として扱い、60Hzでは1枚おきに表示する。
 jsonEqual(core.refreshFrames(120, 60).frames.map(entry => entry.frame), [1, 3, 5, 7, 9, 11]);
 equal(core.refreshFrames(120, 120).sourceCount, 12);
+// 低い値では0.2秒分を比べ、5fpsの1枚を保持したり15fpsから間引いたりする。
+jsonEqual(core.refreshFrames(5, 15, 0.2).frames.map(entry => entry.frame), [1, 1, 1]);
+jsonEqual(core.refreshFrames(15, 10, 0.2).frames.map(entry => entry.frame), [1, 2]);
+jsonEqual(core.refreshFrames(120, 5, 0.2).frames.map(entry => entry.frame), [1]);
 equal(core.refreshFrames(24, 60, 0.5).frames.at(-1).frame, 12);
 
 for (const action of [
