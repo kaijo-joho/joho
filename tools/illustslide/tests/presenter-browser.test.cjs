@@ -1,4 +1,4 @@
-/* 実際の二つのChromeウィンドウで、同期・手元表示・スキップ・配布内容を確認する。 */
+/* 実際の二つのChromeウィンドウで、同期・発表者表示・スキップ・配布内容を確認する。 */
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs/promises'),path=require('node:path'),os=require('node:os'),http=require('node:http');
 const C=require('../core.js');
@@ -50,8 +50,8 @@ const waitAudience=page=>page.waitForFunction(()=>window.IlapoAudience?.getState
     await page.locator('[data-presenter-action="next"]').click();await audience.waitForFunction(()=>IlapoAudience.getState().animation.step===1);
     assert.equal(await page.evaluate(()=>IlapoPresenter.getState().animation.step),1);
     await audience.keyboard.press('ArrowRight');await page.waitForFunction(()=>IlapoPresenter.getState().animation.step===2);
-    await page.locator('.presenter-browse summary').click();await page.locator('[data-browse-page]').selectOption('page-2');
-    assert(await page.locator('[data-presenter-action="jump"]').isDisabled());assert.match(await page.locator('[data-browse-notes]').textContent(),/NOTE_SECRET_2/);
+    assert.equal(await page.locator('.presenter-browse').count(),0);
+    assert.equal(await page.locator('[data-browse-page]').count(),0);
     assert.equal(await audience.evaluate(()=>IlapoAudience.getState().pageId),'page-1');
     await page.locator('[data-presenter-action="next"]').click();await audience.waitForFunction(()=>IlapoAudience.getState().pageId==='page-3');
     assert.match(await page.locator('[data-preview-paper="next"]').textContent(),/最後/);
@@ -83,7 +83,7 @@ const waitAudience=page=>page.waitForFunction(()=>window.IlapoAudience?.getState
     for(const width of [720,390,320]) {
       await page.setViewportSize({width,height:800});await settle(page);
       assert(await page.evaluate(()=>document.querySelector('.presenter-layout').scrollWidth<=document.querySelector('.presenter-layout').clientWidth+1),'presenter layout fits '+width);
-      assert(await page.evaluate(()=>{const order=document.querySelector('.presenter-order').getBoundingClientRect(),browse=document.querySelector('.presenter-browse').getBoundingClientRect();return order.bottom<=browse.top;}),'order panel does not overlap the browse panel');
+      assert.equal(await page.locator('.presenter-browse').count(),0);
     }
     await page.evaluate(()=>document.documentElement.dataset.theme='dark');
     assert.notEqual(await page.locator('#illustslide-presenter').evaluate(el=>getComputedStyle(el).color),'rgb(31, 41, 51)');

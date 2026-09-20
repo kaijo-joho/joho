@@ -118,7 +118,8 @@ async function run() {
 
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-command="add"]').click(); assert.equal((await documentOf(page)).pages.length, 2);
     await page.locator('[data-action="pages"]').first().click(); await page.locator('[data-page-command="duplicate"]').click(); assert.equal((await documentOf(page)).pages.length, 3);
-    await page.locator('[data-page-move="2,-1"]').click(); assert.equal((await documentOf(page)).pages.length, 3, 'pages can be reordered');
+    const movedPageId=(await documentOf(page)).pages[2].id;
+    await page.locator(`[data-page-handle="${movedPageId}"]`).focus();await page.keyboard.press('Alt+ArrowUp'); assert.equal((await documentOf(page)).pages[1].id, movedPageId, 'pages can be reordered');
     await inspectorClose(page);
 
     await page.locator('#board-toggle').click(); await page.locator('#board-preset').selectOption('18'); await inspectorSubmit(page); doc = await documentOf(page); let currentId = await page.evaluate(() => IlapoEditor.getState().pageId); let current = doc.pages.find(p => p.id === currentId); assert.equal(current.board.width, 18); await inspectorClose(page);

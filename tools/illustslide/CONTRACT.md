@@ -1,4 +1,4 @@
-# イラストスライド illustSlideの内部契約（0.4.27）
+# イラストスライド illustSlideの内部契約（0.4.28）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
@@ -370,3 +370,11 @@ AnimationPlayerの`hiddenMode: hide|ghost|show`は既定hide。計画は従来�
 `Player.sync({step,time,playing},elapsedMs=0)`は有限で有効な位置だけ受け、途中時刻からRAF再生する。同期の受信直後にはonChangeを返さない。reduced-motionでは再生を即完了し、destroy後は再開しない。getStateの再生中timeは実時計から求め、背景ウィンドウのRAF間引きが投影の時間を止めないようにする。
 
 手元の隠れた図形の表示方法は `kaijo-ilapo:presenter-hidden` に保存する。ノート欄は既存Inspectorの即時反映・IME・入力単位の履歴を使う。ページパネルのハンドラーは作品セッションを照合し、同じ文書IDを別タブで開いても書込みを混ぜない。
+
+## ページ一覧の並べ替えとノート（0.4.28）
+
+ページの順序は既存の`Core.movePage`を使い、専用ハンドルのPointer EventsとAlt+↑／↓で変更する。5px以上の移動でドラッグを開始し、隣接サムネイルの中央を越えると挿入位置を示す。パネル端で自動スクロールし、pointerupで1回だけ文書を更新する。選択中のpageIdと各ページの内容は保持する。Esc・pointercancel・lostpointercapture・blur・パネル外へのドロップ・ページ／作品切替・元の文書参照の変更では取り消す。PanelDockのbusy/cancelDragに参加し、再描画で古いドラッグを確定しない。
+
+各ページのサムネイル下にdetailsとtextareaを持つ。開閉は作品セッション＋ページIDでメモリに保持し、並べ替え時も別ページへ移さない。Inspectorがdetailsを位置で復元した後にページIDの開閉状態を適用する。入力対象はtextareaのpageIdで解決し、現在表示中でないページにも即時反映できる。既存Inspectorのcompositionend、入力単位のUndo集約、セッション照合を使用する。古いDOMや別タブの入力を適用せず、開閉だけで文書を更新しない。
+
+発表者ビュー内の独立したページ参照欄と投影ジャンプ操作は廃止する。通常の前後・Home/Endと、現在／次のクリック／次の発表ページ・ノート・再生順序・経過時間・手元のみの非表示図形表示を維持する。

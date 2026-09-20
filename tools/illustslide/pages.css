@@ -1,13 +1,22 @@
 /* 発表に関するページ固有の印。通常の作品やSVGの内容には混ぜない。 */
-.page-notes{margin:0 0 14px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
-.page-notes label{font-weight:700}
-.page-notes textarea{display:block;width:100%;box-sizing:border-box;min-height:6.8em;margin-top:6px;resize:vertical}
+.page-notes{grid-column:1/-1;margin:0;border-top:1px solid var(--line);min-width:0}
+.page-notes summary{padding:8px 2px;font-size:.9em;font-weight:700;cursor:pointer;min-height:36px;box-sizing:border-box}
+.page-notes textarea{display:block;width:100%;box-sizing:border-box;min-height:6.8em;margin:0;resize:vertical}
 .page-notes .muted{margin:6px 0 0;font-size:.82em}
+.page-order-handle{touch-action:none;cursor:grab}
+.page-order-handle:disabled{cursor:default}
+.page-order-handle svg{stroke:currentColor;stroke-width:2.5;stroke-linecap:round;fill:none}
+.page-card{position:relative}
+.page-card.page-dragging{opacity:.55}
+.page-card.page-drop-before::before,.page-card.page-drop-after::after{content:"";position:absolute;left:0;right:0;height:3px;border-radius:2px;background:var(--accent);pointer-events:none}
+.page-card.page-drop-before::before{top:-7px}
+.page-card.page-drop-after::after{bottom:-7px}
+.page-order-dragging,.page-order-dragging *{cursor:grabbing!important;user-select:none!important}
 .page-card.presentation-skipped .page-thumb{filter:grayscale(.72) brightness(.76)}
 .page-card.presentation-skipped .page-label em{display:inline-flex;align-items:center;margin-left:auto;padding:2px 5px;border:1px solid currentColor;border-radius:999px;color:var(--muted);font-size:.74em;font-style:normal;white-space:nowrap}
 .page-moves{position:relative}
 .page-more-menu{position:fixed;inset:auto;margin:0;min-width:min(180px,calc(100vw - 16px));max-width:calc(100vw - 16px);max-height:calc(100dvh - 16px);overflow:auto;gap:3px;padding:5px;border:1px solid var(--line);border-radius:7px;background:var(--panel);box-shadow:var(--shadow)}
 .page-more-menu button{width:100%;justify-content:flex-start;min-height:36px;white-space:nowrap}
-@media(pointer:coarse),(max-width:560px){.page-more-menu button{min-height:44px}}
+@media(pointer:coarse),(max-width:560px){.page-more-menu button,.page-notes summary{min-height:44px}}
 
 .page-more-menu:popover-open{display:grid}

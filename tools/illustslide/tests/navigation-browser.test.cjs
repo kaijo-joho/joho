@@ -67,7 +67,7 @@ async function selectShape(page){await page.locator('#canvas').focus();await pag
     await menu.locator('[data-action=selection-order]').focus();await page.keyboard.press('ArrowRight');
     assert(await page.evaluate(()=>document.activeElement.hasAttribute('data-menu-back')),'submenu focus starts at its back button');
     await page.keyboard.press('ArrowDown');assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'order-front');
-    await page.keyboard.press('End');assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'order-back');
+    await page.keyboard.press('End');assert.equal(await page.evaluate(()=>document.activeElement.dataset.action),'selection-layer');
     await page.keyboard.press('Escape');assert.equal(await menu.locator('[data-action=selection-order]').evaluate(el=>document.activeElement===el),true);
     await more.click();await menu.locator('[data-action=selection-order]').click();assert(await menu.locator('[data-action=order-front]').isVisible(),'click remains available');await page.keyboard.press('Escape');
 
@@ -99,7 +99,7 @@ async function selectShape(page){await page.locator('#canvas').focus();await pag
     await page.locator('#pages-rename').click();await page.locator('#page-name').fill('説明の続き');await page.locator('#dialog-submit').click();await settle(page);
     assert.equal((await read(page)).pages.find(p=>p.id===duplicateId).name,'説明の続き');assert(await page.locator('#inspector-panel').isVisible());
     const beforeMove=await read(page),index=beforeMove.pages.findIndex(p=>p.id===duplicateId);
-    await page.locator(`[data-page-move="${index},-1"]`).click();await settle(page);
+    await page.locator(`[data-page-handle="${duplicateId}"]`).focus();await page.keyboard.press('Alt+ArrowUp');await settle(page);
     assert.equal((await read(page)).pages[index-1].id,duplicateId);assert.equal((await state(page)).pageId,duplicateId);
     await page.locator('.top [data-action=undo]').click();await settle(page);assert.deepEqual(await read(page),beforeMove);
     await page.locator('#pages-delete').click();await page.locator('#dialog-cancel').click();assert.deepEqual(await read(page),beforeMove);

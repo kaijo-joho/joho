@@ -258,7 +258,7 @@
     $('selection').innerHTML=markup;
   }
   function setTool(value){inlinePlayback?.stop();closePalette(false);objectsUI?.cancelDrag();animationUI?.cancelDrag?.();cancelDrag();clearHoverPreview();if(tool!==value){pathUI?.reset();connectionUI?.reset();}tool=value;hideMenu();render();$('canvas').focus();}
-  function cancelDrag(){if(drag?.originalSelection)selected=drag.originalSelection;pathUI?.cancel(drag);connectionUI?.cancel();preview=null;drag=null;clearHoverPreview();render();}
+  function cancelDrag(){pagesUI?.cancelDrag();if(drag?.originalSelection)selected=drag.originalSelection;pathUI?.cancel(drag);connectionUI?.cancel();preview=null;drag=null;clearHoverPreview();render();}
   function standardSize(){return Math.max(.5,Math.min(160,page().board.width*.2,page().board.height*.25));}
   function createShape(kind,start,end,defaultSize=false,event){
     const size=standardSize();let x=defaultSize?start.x-size/2:Math.min(start.x,end.x),y=defaultSize?start.y-size*.32:Math.min(start.y,end.y),w=defaultSize?size:Math.abs(end.x-start.x),h=defaultSize?size*.65:Math.abs(end.y-start.y);
@@ -646,7 +646,7 @@
   }
   function openInspectorSection(section,{background=false}={}){
     if(!background){
-      objectsUI?.cancelDrag();animationUI?.cancelDrag?.();
+      objectsUI?.cancelDrag();animationUI?.cancelDrag?.();pagesUI?.cancelDrag();
       if(section!=='text')textUI?.cancelDraft();
       clearInspectorPreview();
     }
@@ -673,7 +673,7 @@
     if(!await finishTextInput()||generation!==switchGeneration||next.closed)return;
     const previous=activeSession;
     inlinePlayback?.stop();
-    cancelDrag();objectsUI?.cancelDrag();animationUI?.cancelDrag?.();
+    cancelDrag();objectsUI?.cancelDrag();animationUI?.cancelDrag?.();pagesUI?.cancelDrag();
     if(!previous.closed){
       previous.pageId=pageId;previous.selected=selected.slice();previous.tool=tool==='direct'?'select':tool;
       previous.view={camera:{...camera},zoom:zoom()};workspace.flush(previous);
@@ -779,7 +779,7 @@
   function selectPage(id){
     if(!doc().pages.some(p=>p.id===id)||pageId===id)return;
     inlinePlayback?.stop();
-    objectsUI?.cancelDrag();animationUI?.cancelDrag?.();
+    objectsUI?.cancelDrag();animationUI?.cancelDrag?.();pagesUI?.cancelDrag();
     clearInspectorPreview();cancelDrag();pathUI.reset();connectionUI.reset();
     pageId=id;clearSelection();fit();
   }
@@ -1052,9 +1052,9 @@
   textUI=window.IlapoTextUI.create({document:doc,page,selected:()=>selected,select:selection,showInspector,changePage,previewChange:previewInspectorChange,clearPreview:clearInspectorPreview,isOpen:()=>!!inspector?.isOpen&&inspector.section==='text',esc,icon,palette,standardSize,toast});
   outlineUI=window.IlapoOutlineUI.create({page,isVisible,isLocked,selected:()=>selected,scope:()=>inspectorScope('outline'),isOpen:()=>!!inspector?.isOpen&&inspector.section==='outline',showInspector,changePage,previewChange:previewInspectorChange,clearPreview:clearInspectorPreview,esc,finish:ids=>{pathUI.reset();connectionUI.reset();selection(ids);setTool('select');inspector.close();render();}});
   objectsUI=window.IlapoObjectsUI.create({inspectorBody:()=>inspector.element('objects','inspector-body'),document:doc,page,activeLayer,setActiveLayer,isVisible,isLocked,toast,selected:()=>selected,select:selection,showInspector,changePage,showDialog,execute,isBusy:()=>!!drag,esc,icon});
-  pagesUI=window.IlapoPagesUI.create({session:()=>activeSession.id,inspectorBody:()=>inspector.element('pages','inspector-body'),document:doc,page,selectPage,change,showInspector,showDialog,esc,icon});
+  pagesUI=window.IlapoPagesUI.create({session:()=>activeSession.id,isBusy:()=>!!drag||objectsUI?.isDragging||animationUI?.isDragging,inspectorBody:()=>inspector.element('pages','inspector-body'),document:doc,page,selectPage,change,showInspector,showDialog,esc,icon});
   assetsUI=window.IlapoAssetsUI.create({inspectorBody:()=>inspector.element('assets','inspector-body'),document:doc,page,selected:()=>selected,library,insertionPoint,insertObjects,showInspector,showDialog,isOpen:()=>inspector?.isSectionOpen('assets'),esc,icon,toast,download});
-  inspector=window.IlapoPanelDock.create({openSection:openInspectorSection,cancelDrag:()=>{objectsUI?.cancelDrag();animationUI?.cancelDrag?.();},onHistory:redo=>moveHistory(redo,true),onLayout:()=>{render();help?.refresh();},clearPreview:clearInspectorPreview,isBusy:()=>!!drag||objectsUI?.isDragging||animationUI?.isDragging});
+  inspector=window.IlapoPanelDock.create({openSection:openInspectorSection,cancelDrag:()=>{objectsUI?.cancelDrag();animationUI?.cancelDrag?.();pagesUI?.cancelDrag();},onHistory:redo=>moveHistory(redo,true),onLayout:()=>{render();help?.refresh();},clearPreview:clearInspectorPreview,isBusy:()=>!!drag||objectsUI?.isDragging||animationUI?.isDragging||pagesUI?.isDragging});
   tabsUI=window.IlapoDocumentTabs.create({root:$('document-tabs'),onSelect:selectDocument,onClose:requestClose});
   window.IlapoEditor=Object.freeze({getDocuments:()=>workspace.sessions.map(s=>({id:s.id,name:s.history.document.name,storageId:s.storageId,active:s===activeSession,dirty:workspace.dirty(s),saving:s.saving,destination:s.lastSave?.kind||null})),getAnchors:()=>pathUI.getRefs(),getDocument:()=>C.clone(doc()),getSelection:()=>selected.slice(),getCamera:()=>({...camera}),getState:()=>({sessionId:activeSession.id,tool,dirty:dirty(),pageId,activeLayerId:activeLayer(),playback:inlinePlayback.getState()})});
   applySettings();inspector.restore();requestAnimationFrame(()=>{fit();if(recoveryEntries().length)recoveryDialog();});

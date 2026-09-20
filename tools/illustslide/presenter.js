@@ -28,7 +28,7 @@
     const audienceURL = new URL('audience.html' + version, base); audienceURL.hash = token;
     const targetOrigin = location.protocol === 'file:' ? '*' : location.origin;
     let closed = false, audience = null, connected = false, hasStarted = false, sequence = 0;
-    let master = null, previewPlayers = [], browsePlayer = null, suppress = false, hiddenMode = 'ghost';
+    let master = null, previewPlayers = [], suppress = false, hiddenMode = 'ghost';
     let startTime = null, lastAck = 0, openedAt = 0, previewKey = '', pagePlan = null, hasConnectionError = false;
     try { const saved = localStorage.getItem(hiddenKey); if (['hide','ghost','show'].includes(saved)) hiddenMode = saved; } catch (_) {}
     const dialog = document.createElement('dialog');
@@ -41,7 +41,6 @@
         <div class="presenter-forecasts"><section><div class="presenter-section-title"><h2>次のクリック</h2><span data-next-action-caption></span></div>${paper('action','次のクリック後の表示')}</section><section><div class="presenter-section-title"><h2>次のページ</h2><span data-next-page-caption></span></div>${paper('next','次のページ')}</section></div>
         <section class="presenter-notes"><h2>発表者ノート</h2><div class="presenter-note-text" data-notes tabindex="0"></div></section>
         <section class="presenter-order"><h2>動きと再生順序</h2><div data-animation-order></div></section>
-        <details class="presenter-browse"><summary>ページを手元で確認</summary><div class="presenter-browse-controls"><label>ページ<select data-browse-page aria-label="手元で確認するページ">${source.pages.map((page,i)=>`<option value="${esc(page.id)}">${i+1}. ${esc(page.name)}${page.skip?'（スキップ）':''}</option>`).join('')}</select></label><button type="button" data-presenter-action="jump">このページへ発表を移動</button></div><div class="presenter-browse-body">${paper('browse','手元で確認するページ')}<div class="presenter-note-text" data-browse-notes></div></div><p class="presenter-muted">この欄の表示を変えても投影画面は変わりません。スキップしたページは手元でのみ確認できます。</p></details>
       </main>
       <footer class="presenter-footer"><div class="presenter-navigation">${button('previous','前の動き・ページへ','previous')}${button('reset','このページをやり直す','reset')}${button('next','次の動き・ページへ','next')}<span data-progress></span></div><div class="presenter-visibility" role="group" aria-label="手元だけの非表示オブジェクトの見せ方"><span>非表示の図形</span>${[['hide','非表示'],['ghost','半透明'],['show','表示']].map(([mode,name])=>`<button type="button" data-hidden-mode="${mode}" aria-label="非表示の図形：${name}（手元のみ）" title="${name}（手元のみ）" aria-pressed="${hiddenMode===mode}">${icon(mode)}<span>${name}</span></button>`).join('')}</div></footer>`;
     document.body.append(dialog); document.body.style.overflow = 'hidden';
@@ -149,21 +148,11 @@
     function previous() { if (closed) return; if (!master.previous() && index > 0) { index--; render(true); } }
     function reset() { if (!hasStarted) begin(); else master.reset(); }
     function begin() { hasStarted = true; startTime ??= Date.now(); master.reset(); }
-    function browse() {
-      browsePlayer?.destroy(); browsePlayer = null;
-      const page = source.pages.find(page=>page.id === q('[data-browse-page]').value);
-      if (!page) return;
-      q('[data-browse-notes]').textContent = page.notes || 'このページにノートはありません。';
-      act('jump').disabled = page.skip === true;
-      act('jump').title = page.skip ? 'スキップしたページは投影しません' : '選んだページの最初から発表します';
-      browsePlayer = Player.create(surface('browse'), page, {hiddenMode}); browsePlayer.seek(0);
-      fit();
-    }
     function setHiddenMode(mode) {
       if (!['hide','ghost','show'].includes(mode)) return;
       hiddenMode = mode;
       try { localStorage.setItem(hiddenKey, mode); } catch (_) {}
-      suppress = true; master.setHiddenMode(mode); browsePlayer?.setHiddenMode(mode); suppress = false;
+      suppress = true; master.setHiddenMode(mode); suppress = false;
       for (const button of dialog.querySelectorAll('[data-hidden-mode]')) button.setAttribute('aria-pressed', String(button.dataset.hiddenMode === mode));
       previews(); fit();
     }
@@ -171,7 +160,6 @@
       next, previous, reset,
       first:()=>{index=0;render();}, last:()=>{index=included.length-1;render(true);},
       close, screen:openAudience,
-      jump:()=>{const nextIndex=included.findIndex(page=>page.id===q('[data-browse-page]').value);if(nextIndex>=0){index=nextIndex;render();}}
     };
     function receive(event) {
       const message = event.data;
@@ -208,7 +196,7 @@
     function close() {
       if (closed) return;
       post('end'); closed = true;
-      master?.destroy(); previewPlayers.forEach(player=>player.destroy()); browsePlayer?.destroy();
+      master?.destroy(); previewPlayers.forEach(player=>player.destroy());
       clearInterval(timer); observer.disconnect();
       root.removeEventListener('message', receive); root.removeEventListener('pagehide', close);
       if (audience && !audience.closed) audience.close();
@@ -223,9 +211,6 @@
       if (button?.dataset.presenterAction) commands[button.dataset.presenterAction]?.();
       if (button?.dataset.hiddenMode) setHiddenMode(button.dataset.hiddenMode);
     });
-    q('[data-browse-page]').value = included[index].id;
-    q('[data-browse-page]').addEventListener('change', browse);
-    q('.presenter-browse').addEventListener('toggle',()=>{if(q('.presenter-browse').open)browse();});
     root.addEventListener('message', receive); root.addEventListener('pagehide', close);
     const observer = new ResizeObserver(fit); dialog.querySelectorAll('.presenter-preview').forEach(el=>observer.observe(el));
     const timer = setInterval(tick,1000);
