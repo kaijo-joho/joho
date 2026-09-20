@@ -1,11 +1,11 @@
-# イラストスライド illustSlideの内部契約（0.4.28）
+# イラストスライド illustSlideの内部契約（0.4.29）
 
 開発担当 Codex。初期4段階と、位置合わせ・図形管理・文字編集・アウトライン化まで実装。
 ブラウザは通常の script タグで依存順に読み込む。計算・保存用のモジュールはglobalThisとCommonJSへ公開し、編集UIはブラウザ内で初期化する。
 
 0.4.2から配置先は `tools/illustslide/`、保存名は `.illustslide.zip`。旧URLは案内ページを残し、旧 `.ilapo.zip`・保存キー・内部API・文書形式・SVG識別子は互換性を保つ。直接ファイル利用時のブラウザ保存は、旧ページでJSONとして取り出せる。
 
-文書: `{format:'kaijo-ilapo',version:1|2|3|4|5|6|7|8|9,id,name,pages:[page]}`。version1〜8を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5、page.layersがあればversion6、object.styleまたはpath.label.styleにfillOpacity/strokeOpacityがあればversion7、object.visibleがあればversion8、page.notes/skipがあればversion9へ上げる。上がったversionを下げず、引数は変更しない。
+文書: `{format:'kaijo-ilapo',version:1|2|3|4|5|6|7|8|9|10,id,name,pages:[page],exportAssets?:[exportAsset]}`。version1〜9を読み込める。image/connectorで最低version2、非空animationsでversion3、text.layoutまたはpath.labelでversion4、text.runsまたはpath.label.runsにbold/italic/fill指定があればversion5、page.layersがあればversion6、object.styleまたはpath.label.styleにfillOpacity/strokeOpacityがあればversion7、object.visibleがあればversion8、page.notes/skipがあればversion9、exportAssetsがあればversion10へ上げる。上がったversionを下げず、引数は変更しない。
 ページ: `{id,name,board:{width,height,unit,infinite},objects:[object],animations?:[animation],layers?:[layer],notes?:string,skip?:boolean}`。
 幅・高さ・座標はCSS pxの小数。unitは表示単位px/mm/pt。無限ページにも書き出し用の初期width/heightを保持。
 オブジェクト: `{id,type:'path'|'text'|'image'|'connector',name,group:null|string,locked:false,visible?:boolean,matrix:[a,b,c,d,e,f],style}`。
@@ -16,6 +16,16 @@ fillOpacity/strokeOpacityは0〜1の有限数値、省略時は1。DEFAULT_STYLE
 fill/strokeは#RRGGBBかnone、dashは''または数値を空白で区切る。fontFamilyはsans-serif/serif/monospace。
 グループは初期版では同じgroup値を持つ平坦な集合。選択・変形は原則グループ全体へ適用。
 
+## 書き出しアセット（export-assets.js / export-ui.js、0.4.29）
+
+`document.exportAssets`は任意の配列（最大100件）。各項目は`{id,name,pageId,objectIds,enabled}`。idは一覧内で一意、nameは1〜120文字、objectIdsは重複なしの1〜5000件、enabledはboolean。余分なキー・不正な型は拒否する。参照先のページ・図形が削除されても登録を保持し、Undo後に再解決する。図形のスナップショット・位置・書式は複製しない。JSONとZIP manifest直下で保存し、既存文書へ空配列を自動追加しない。
+
+`IlapoExportAssets.add(document,pageId,objectIds,name?)`は参照を登録して項目を返す。`resolve(document,asset)`は検証済み文書から`{page,selectionIds,missingCount,hiddenCount,available}`を返す。選択部分の一時参照`{pageId,objectIds}`も受け付ける。非表示の図形・レイヤーと下絵は対象外。0件でもselectionIdsをnullへ変換せず、ページ全体の出力へフォールバックしない。
+
+`IlapoExportUI`は一覧のDOMをIDで再利用し、名前の日本語変換・フォーカス・入力単位のUndoを保つ。イベントは作品タブのscopeを照合する。SVG/PNGの範囲・余白・倍率・背景と印刷範囲は作品タブ別のUI状態とし、文書へ含めない。元の図形へ移動する際はページを切り替えてから通常選択する。
+
+出力開始時に文書・名前・範囲・設定を固定する。1件は画像1ファイル、複数はfflateで画像だけのZIPを作る。ファイル名は安全な名前へ変換し、重複は連番で区別する。生成の合計64MiBまでとし、失敗時は部分的なファイルを保存せずエラーを表示する。既存PNGの1辺16384px・約3200万画素上限も維持する。PDF・印刷・再生HTMLの範囲はこの一覧から独立する。投影データ・再生HTMLからexportAssetsを除外する。
+
 ## 複数パネル（panel-dock.js、0.4.25）
 
 IlapoPanelDockが従来のInspectorを包み、primaryとpinnedの2インスタンスを管理する。pinnedはpages/objects/animation/assets/view/boardのうち1つだけ。同じセクションを2つのフォームへ複製しない。show・sync・reset・changeGroupの窓口はdockへ集約し、履歴のグループは適用中のインスタンスを参照する。Inspectorの外枠IDにはpinned-を付け、本文の対象IDは従来どおり一意に保つ。
@@ -23,6 +33,8 @@ IlapoPanelDockが従来のInspectorを包み、primaryとpinnedの2インスタ�
 セクションに応じたbody/form/error等はdock.element(section,id)から解決し、objects/pages/assets/animationはこの窓口を使う。レイヤーからの選択・表示切替と主パネルの設定は同じ文書・選択を参照し、scopeでsession/page/revisionの変化を検出する。バックグラウンドの再描画は主パネルの文字作成を取り消さず、他方のフォーカスを奪わない。ドラッグ中は更新を待ち、タブ・パネル変更では必要なドラッグを取り消す。
 
 横並べは1120px以上。未満はslot切替として非表示側だけをinertにし、主作業領域をinertにしない。850px以下は下部のdockを共有する。幅は各インスタンスの希望値を保持し、画面幅による一時的な制限を保存幅に書き戻さない。kaijo-ilapo:inspector（従来）、kaijo-ilapo:inspector:pinned-（追加）とkaijo-ilapo:panel-dockのsectionで保存する。起動時は残すパネルだけを復元し、文書の復元・保存フローは変えない。
+
+書き出しパネルはprimaryの表示幅を共用する（0.4.29）。固定285pxを使わず、通常の希望幅320pxと利用者の調整幅、横並べ時の一時的な制限を反映する。
 
 ## 複数作品のセッション（0.4.23）
 

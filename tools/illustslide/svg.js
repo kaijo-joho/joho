@@ -283,6 +283,7 @@
   function encodeProject(input) {
     assertZip();
     var doc=root.IlapoCore.validateDocument(input), manifest={format:'kaijo-ilapo',version:doc.version,id:doc.id,name:doc.name,pages:[]}, files=Object.create(null);
+    if(doc.exportAssets!==undefined)manifest.exportAssets=doc.exportAssets;
     doc.pages.forEach(function(page,index){
       var file='pages/'+encodeURIComponent(page.id)+'.svg',meta={id:page.id,name:page.name,board:page.board,file:file,objects:Object.create(null)};
       if(page.animations!==undefined)meta.animations=page.animations;
@@ -315,8 +316,10 @@
     }}),raw=files['manifest.json'];
     if(!raw)throw new Error('Project manifest is missing');
     var manifest=JSON.parse(root.fflate.strFromU8(raw));
-    if(manifest.format!=='kaijo-ilapo'||![1,2,3,4,5,6,7,8,9].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
+    if(manifest.format!=='kaijo-ilapo'||![1,2,3,4,5,6,7,8,9,10].includes(manifest.version)||typeof manifest.id!=='string'||typeof manifest.name!=='string'||!Array.isArray(manifest.pages)||manifest.pages.length>100)throw new Error('Unsupported project manifest');
+    if(manifest.exportAssets!==undefined&&manifest.version<10)throw new Error('Invalid export asset metadata version');
     var seenPages=new Set(),doc={format:'kaijo-ilapo',version:manifest.version,id:manifest.id,name:manifest.name,pages:[]};
+    if(manifest.exportAssets!==undefined)doc.exportAssets=manifest.exportAssets;
     manifest.pages.forEach(function(meta){
       if(!meta||typeof meta.id!=='string'||typeof meta.name!=='string'||typeof meta.file!=='string'||!meta.board||typeof meta.board!=='object'||!meta.objects||typeof meta.objects!=='object'||Array.isArray(meta.objects)||seenPages.has(meta.id)||!Object.hasOwn(files,meta.file))throw new Error('Invalid project page metadata');
       seenPages.add(meta.id);

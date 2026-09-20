@@ -20,6 +20,7 @@
   }
   function outputDocument(input) {
     const document = C.validateDocument(input);
+    delete document.exportAssets;
     document.pages = pages(document).map(source => {
       const page = L.forOutput(source);
       delete page.notes; delete page.skip;

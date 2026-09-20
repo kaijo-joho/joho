@@ -57,6 +57,7 @@
           panel.classList.toggle('dock-inactive',inactive); panel.inert = inactive;
         }
         primary.reflow(); pinned.reflow();
+        exportPanel.style.setProperty('--inspector-width',primaryRoot.style.getPropertyValue('--inspector-width'));
         byId('inspector-pin').hidden = !labels[primary.section] || Boolean(pinnedSection);
         for (const section of Object.keys(labels)) {
           const instance = instances().find(i => i.isOpen && i.section === section);

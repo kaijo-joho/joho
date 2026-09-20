@@ -8,7 +8,7 @@
   const PX_PER_MM = 96 / 25.4;
   const PX_PER_PT = 96 / 72;
   const HISTORY_LIMIT = 100;
-  const LIMITS = Object.freeze({ pages: 100, objectsPerPage: 5000, objects: 10000, pathLength: 100000, textLength: 100000, notesLength: 100000, runs: 1000, coordinate: 10000000 });
+  const LIMITS = Object.freeze({ pages: 100, objectsPerPage: 5000, objects: 10000, pathLength: 100000, textLength: 100000, notesLength: 100000, runs: 1000, coordinate: 10000000, exportAssets: 100, exportAssetRefs: 5000, exportAssetNameLength: 120 });
   const presets = Object.freeze({
     18: Object.freeze({ width: 18, height: 18, unit: 'px', infinite: false }),
     36: Object.freeze({ width: 36, height: 36, unit: 'px', infinite: false }),
@@ -204,14 +204,42 @@
     if (value.skip !== undefined) out.skip = bool(value.skip, 'page.skip');
     return out;
   }
+  function validateExportAssets(value) {
+    const assets = array(value, 'document.exportAssets');
+    if (assets.length > LIMITS.exportAssets) fail('document.exportAssets exceeds the limit');
+    const ids = new Set();
+    return assets.map((asset, index) => {
+      const label = 'document.exportAssets[' + index + ']';
+      plainObject(asset, label); keysOnly(asset, ['id', 'name', 'pageId', 'objectIds', 'enabled'], label);
+      const assetId = id(asset.id, label + '.id');
+      if (ids.has(assetId)) fail('duplicate export asset id: ' + assetId);
+      ids.add(assetId);
+      const name = string(asset.name, label + '.name', false);
+      if (!name.trim()) fail(label + '.name must not be blank');
+      if (name.length > LIMITS.exportAssetNameLength) fail(label + '.name exceeds the limit');
+      const objectIds = array(asset.objectIds, label + '.objectIds');
+      if (!objectIds.length || objectIds.length > LIMITS.exportAssetRefs) fail(label + '.objectIds has an invalid length');
+      const references = new Set();
+      const checkedIds = objectIds.map((objectId, objectIndex) => {
+        const checked = id(objectId, label + '.objectIds[' + objectIndex + ']');
+        if (references.has(checked)) fail('duplicate export asset object id: ' + checked);
+        references.add(checked); return checked;
+      });
+      // pageId/objectIds deliberately are not resolved here. An object or page
+      // can be restored by Undo after deletion, so stale references remain data.
+      return { id: assetId, name, pageId: id(asset.pageId, label + '.pageId'), objectIds: checkedIds, enabled: bool(asset.enabled, label + '.enabled') };
+    });
+  }
   function validateDocument(input) {
-    plainObject(input, 'document'); keysOnly(input, ['format', 'version', 'id', 'name', 'pages'], 'document');
-    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3,4,5,6,7,8,9].includes(input.version)) fail('version is invalid');
+    plainObject(input, 'document'); keysOnly(input, ['format', 'version', 'id', 'name', 'pages', 'exportAssets'], 'document');
+    if (input.format !== 'kaijo-ilapo') fail('format is invalid'); if (![1,2,3,4,5,6,7,8,9,10].includes(input.version)) fail('version is invalid');
     const pages = array(input.pages, 'document.pages'); if (!pages.length || pages.length > LIMITS.pages) fail('document.pages has an invalid length');
     const ids = new Set(); let count = 0;
     const out = { format: 'kaijo-ilapo', version: input.version, id: id(input.id, 'document.id'), name: string(input.name, 'document.name', true), pages: pages.map(validatePage) };
+    if (input.exportAssets !== undefined) out.exportAssets = validateExportAssets(input.exportAssets);
     if (out.pages.some(page => page.objects.some(object => Object.hasOwn(object, 'visible')))) out.version = Math.max(out.version, 8);
     if (out.pages.some(page => Object.hasOwn(page, 'notes') || Object.hasOwn(page, 'skip'))) out.version = Math.max(out.version, 9);
+    if (Object.hasOwn(out, 'exportAssets')) out.version = Math.max(out.version, 10);
     for (const page of out.pages) { if (ids.has(page.id)) fail('duplicate page id: ' + page.id); ids.add(page.id); count += page.objects.length; }
     if (count > LIMITS.objects) fail('document exceeds the object limit');
     let imageBytes=0,effects=0;for(const page of out.pages){effects+=(page.animations||[]).length;for(const o of page.objects){if(['image','connector'].includes(o.type))out.version=Math.max(out.version,2);if(o.type==='image')imageBytes+=o.src.length;if(o.type==='text'&&o.layout||o.type==='path'&&o.label)out.version=Math.max(out.version,4);var textRuns=o.type==='text'?o.runs:o.type==='path'&&o.label?o.label.runs:null;if(textRuns&&textRuns.some(run=>run.bold!==undefined||run.italic!==undefined||run.fill!==undefined))out.version=Math.max(out.version,5);var styles=[o.style];if(o.type==='path'&&o.label)styles.push(o.label.style);if(styles.some(style=>Object.prototype.hasOwnProperty.call(style,'fillOpacity')||Object.prototype.hasOwnProperty.call(style,'strokeOpacity')))out.version=Math.max(out.version,7);}if((page.animations||[]).length)out.version=Math.max(out.version,3);if(page.layers)out.version=Math.max(out.version,6);}
@@ -308,5 +336,5 @@
     replace(doc) { this.document = validateDocument(doc); this._undo = []; this._redo = []; this._group = null; return this.document; }
   }
   class Store { constructor(storage) { this.storage = storage || (typeof localStorage !== 'undefined' ? localStorage : null); if (!this.storage || typeof this.storage.getItem !== 'function' || typeof this.storage.setItem !== 'function') throw new TypeError('Store requires Storage'); } _key(kind) { if (!['auto', 'saved'].includes(kind)) throw new RangeError('Store kind must be auto or saved'); return 'kaijo-ilapo:' + kind; } save(doc, kind) { const entry = { kind, at: new Date().toISOString(), document: validateDocument(doc) }; this.storage.setItem(this._key(kind), JSON.stringify(entry)); return clone(entry); } list() { const found = []; ['auto', 'saved'].forEach(kind => { try { const raw = this.storage.getItem(this._key(kind)); if (!raw) return; const entry = JSON.parse(raw); if (!entry || entry.kind !== kind || typeof entry.at !== 'string') return; found.push({ kind, at: entry.at, document: validateDocument(entry.document) }); } catch (_) { /* A corrupt slot must not hide the other slot. */ } }); return found.sort((a, b) => b.at.localeCompare(a.at)); } }
-  return { uid, clone, createDocument, createPage, boardPreset, presets, validateDocument, validateObject, validateAnimation, pruneAnimations, normalizeStyle, validImageSource, DEFAULT_STYLE, makeShape, makeText, multiply, transformObjects, expandSelection, duplicateObjects, groupObjects, ungroupObjects, removeObjects, reorderObjects, duplicatePage, removePage, movePage, History, Store, LIMITS, HISTORY_LIMIT };
+  return { uid, clone, createDocument, createPage, boardPreset, presets, validateDocument, validateObject, validateAnimation, validateExportAssets, pruneAnimations, normalizeStyle, validImageSource, DEFAULT_STYLE, makeShape, makeText, multiply, transformObjects, expandSelection, duplicateObjects, groupObjects, ungroupObjects, removeObjects, reorderObjects, duplicatePage, removePage, movePage, History, Store, LIMITS, HISTORY_LIMIT };
 }));
