@@ -14,6 +14,20 @@ const binary = ['110', '101', '100', '011', '101', '100', '011', '010', '100', '
 for (const [index, sample] of core.grayscaleExample().entries()) {
   equal(sample.code, codes[index]); equal(sample.binary, binary[index]);
 }
+
+// 説明用5×5・16階調は、演習用4×4・8階調と別条件で平均・符号化する。
+const demoCodes = [14, 12, 11, 9, 7, 12, 11, 9, 7, 6, 11, 9, 7, 6, 4, 9, 7, 6, 4, 3, 7, 6, 4, 3, 1];
+const demoSamples = core.grayscaleExample(5, 4);
+equal(demoSamples.length, 25);
+for (const [index, sample] of demoSamples.entries()) {
+  equal(sample.code, demoCodes[index]);
+  equal(parseInt(sample.binary, 2), demoCodes[index]);
+  equal(sample.binary.length, 4);
+}
+equal(demoSamples[0].brightness, 229.5);
+equal(Math.round(demoSamples[24].brightness * 10) / 10, 25.5);
+equal(demoSamples[4].binary, '0111');
+equal(demoSamples[24].binary, '0001');
 equal(core.quantize(0, 3), 0);
 equal(core.quantize(31.999, 3), 0);
 equal(core.quantize(32, 3), 1);
@@ -38,7 +52,7 @@ equal(core.imageSize(100, 100, 6).bytes / core.imageSize(50, 50, 6).bytes, 4);
 const data = Uint8ClampedArray.from([0, 30, 60, 255, 100, 130, 160, 255, 200, 230, 240, 255]);
 equal(JSON.stringify(core.sampleRgb(data, 3, 1, 1, 1)), '[[100,130,153.33333333333334]]');
 equal(JSON.stringify(core.sampleRgb(data, 3, 1, 2, 1)), '[[0,30,60],[150,180,200]]');
-for (const action of [() => core.levels(0), () => core.levels(9), () => core.binary(8, 3), () => core.quantize(NaN, 3), () => core.imageSize(0, 4, 3), () => core.imageSize(4, 4, 3, 999), () => core.sampleRgb(data, 3, 1, 4, 1)]) {
+for (const action of [() => core.levels(0), () => core.levels(9), () => core.binary(8, 3), () => core.quantize(NaN, 3), () => core.imageSize(0, 4, 3), () => core.imageSize(4, 4, 3, 999), () => core.sampleRgb(data, 3, 1, 4, 1), () => core.grayscaleExample(0, 4), () => core.grayscaleExample(5, 9)]) {
   assert.throws(action); checks += 1;
 }
-console.log(`image-core: ${checks}件の検証に合格（原本の16画素・2問、量子化境界、RGB平均、単位換算）`);
+console.log(`image-core: ${checks}件の検証に合格（説明用25画素、原本の16画素・2問、量子化境界、RGB平均、単位換算）`);

@@ -66,7 +66,7 @@
       <p>前のスライドで変えた<strong>標本化の間隔</strong>は、画素の細かさである<strong>解像度</strong>に関係します。<strong>階調</strong>は、量子化で決める明るさの段階数です。カラー画像で変化を比べ、下の帯で各成分の階調を確かめましょう。</p>
       <div class="im-widget" data-image-explorer data-lesson-slide-navigation-lock>
         <div class="im-controls im-enhancement" hidden>
-          <label class="im-select">解像度 <select data-image-resolution><option value="10">10×10</option><option value="20">20×20</option><option value="50" selected>50×50</option><option value="100">100×100</option><option value="200">200×200</option><option value="800">800×800</option></select></label>
+          <label class="im-slider">解像度 <output for="im-explorer-resolution" data-image-resolution-output>50×50画素</output><input id="im-explorer-resolution" type="range" min="0" max="5" step="1" value="2" data-image-resolution aria-label="解像度"><span class="im-slider-scale"><span>10×10画素</span><span>800×800画素</span></span></label>
           <label class="im-slider">各色の階調 <output for="im-explorer-bits" data-image-bits-output>4階調（2bit）</output><input id="im-explorer-bits" type="range" min="1" max="8" step="1" value="2" data-image-bits aria-label="各色の階調"><span class="im-slider-scale"><span>2階調</span><span>256階調</span></span></label>
           <button class="dr-button" type="button" data-image-reset>最初の条件に戻す</button>
         </div>
@@ -119,42 +119,40 @@
   <section data-lesson-slide data-lesson-slide-title="グレースケール">
     <article>
       <h2 id="headline_3">(3) グレースケール画像</h2>
-      <p><strong>グレースケール画像</strong>は、各画素に明るさの情報だけを持つ画像です。ここでは4×4画素に分け、各画素を3bit（8階調）で表します。段階値は<strong>0が最も暗く、7が最も明るい</strong>値です。</p>
+      <p><strong>グレースケール画像</strong>は、各画素に明るさの情報だけを持つ画像です。ここでは<strong>5×5画素</strong>に分け、各画素を<strong>4bit（16階調）</strong>で表します。</p>
       <div class="im-widget" data-image-grayscale data-lesson-slide-navigation-lock>
-        <div class="im-controls im-enhancement" hidden>
-          <div class="im-button-group" role="group" aria-label="グレースケール画像の工程" data-image-stages>
-            <button class="dr-button" type="button" data-stage="0" aria-pressed="true">0. 元の画像</button>
-            <button class="dr-button" type="button" data-stage="1" aria-pressed="false">1. 標本化</button>
-            <button class="dr-button" type="button" data-stage="2" aria-pressed="false">2. 量子化</button>
-            <button class="dr-button" type="button" data-stage="3" aria-pressed="false">3. 符号化</button>
+        <div class="im-gray-scroll" tabindex="0" role="region" aria-label="グレースケール画像の4工程。狭い画面では横にスクロールできます。">
+          <div class="im-gray-pipeline">
+            <figure>
+              <figcaption>元のグレースケール画像</figcaption>
+              <svg class="im-picture" viewBox="0 0 320 320" role="img" aria-labelledby="im-gray-title im-gray-desc">
+                <title id="im-gray-title">左上が白く、右下が黒いグレースケール画像</title>
+                <desc id="im-gray-desc">左上から右下へ、明るさが連続して変わっています。</desc>
+                <defs><linearGradient id="im-gray-gradient" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient></defs>
+                <rect width="320" height="320" fill="url(#im-gray-gradient)"/>
+              </svg>
+              <p class="im-frame-note">左上から右下へ、明るさが連続して変わっています。</p>
+            </figure>
+            <figure>
+              <figcaption>標本化した画像</figcaption>
+              <div data-image-gray-picture="1"></div>
+              <p class="im-frame-note">縦・横をそれぞれ5等分し、各マス内の平均の明るさを取り出します。</p>
+            </figure>
+            <figure>
+              <figcaption>量子化した画像</figcaption>
+              <div id="im-gray-quantized" data-image-gray-picture="2"></div>
+              <p class="im-frame-note">各画素の明るさを、0〜15の16段階の値にします。</p>
+              <button class="dr-button im-gray-value-toggle im-enhancement" type="button" data-image-gray-values="2" aria-pressed="false" aria-controls="im-gray-quantized" hidden>段階値を表示</button>
+            </figure>
+            <figure>
+              <figcaption>符号化した画像</figcaption>
+              <div id="im-gray-encoded" data-image-gray-picture="3"></div>
+              <p class="im-frame-note">各画素の段階値を、4桁の2進数で表します。</p>
+              <button class="dr-button im-gray-value-toggle im-enhancement" type="button" data-image-gray-values="3" aria-pressed="false" aria-controls="im-gray-encoded" hidden>2進数を表示</button>
+            </figure>
           </div>
         </div>
-        <div class="im-gray-layout">
-          <figure>
-            <svg class="im-picture" viewBox="0 0 320 320" role="img" aria-labelledby="im-gray-title im-gray-desc" data-image-grayscale-svg>
-              <title id="im-gray-title">左上が白く、右下が黒いグレースケール画像</title>
-              <desc id="im-gray-desc">左上から右下に向かって明るさが連続して変わります。工程ボタンで4×4画素への標本化、8階調への量子化、3桁の2進数への符号化を確認できます。</desc>
-              <defs><linearGradient id="im-gray-gradient" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#000"/></linearGradient></defs>
-              <rect width="320" height="320" fill="url(#im-gray-gradient)"/>
-              <g data-image-grayscale-layer></g>
-            </svg>
-            <figcaption data-image-grayscale-caption>元のグレースケール画像</figcaption>
-          </figure>
-          <div>
-            <p class="im-step-text" data-image-stage-text>左上から右下へ、明るさが連続して変わっています。</p>
-            <p>符号化では、左上から右へ1行ずつ読みます。1画素の値が小さくても、<strong>3桁になるよう先頭を0で埋めます</strong>。</p>
-            <details class="dr-reveal-item"><summary>量子化後の値を表で確認</summary><div class="dr-reveal-item__body">
-              <table class="im-value-table"><caption>4×4画素の段階値（0〜7）</caption><thead><tr><th scope="col">行／列</th><th scope="col">1</th><th scope="col">2</th><th scope="col">3</th><th scope="col">4</th></tr></thead><tbody>
-                <tr><th scope="row">1</th><td>6</td><td>5</td><td>4</td><td>3</td></tr>
-                <tr><th scope="row">2</th><td>5</td><td>4</td><td>3</td><td>2</td></tr>
-                <tr><th scope="row">3</th><td>4</td><td>3</td><td>2</td><td>1</td></tr>
-                <tr><th scope="row">4</th><td>3</td><td>2</td><td>1</td><td>0</td></tr>
-              </tbody></table>
-            </div></details>
-            <p class="im-bitstream im-enhancement" data-image-bitstream hidden></p>
-            <button class="dr-supplement-link" type="button" data-lesson-supplement-open="im-quantization-rule">この教材の明るさの分け方</button>
-          </div>
-        </div>
+        <noscript><p>標本化・量子化・符号化の図と数値の表示にはJavaScriptが必要です。</p></noscript>
       </div>
     </article>
   </section>
@@ -255,7 +253,7 @@
         </div>
         <div class="im-controls im-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button><button class="dr-button" type="button" data-image-encoding-clear>入力を消す</button></div>
         <p class="im-feedback" data-image-encoding-feedback role="status"></p>
-        <noscript><p>解答用のマス目と自動判定にはJavaScriptが必要です。スライド3の段階値を、左上から順に3桁の2進数へ変換してください。</p></noscript>
+        <noscript><p>解答用のマス目と自動判定にはJavaScriptが必要です。段階値は、1行目が6・5・4・3、2行目が5・4・3・2、3行目が4・3・2・1、4行目が3・2・1・0です。左上から順に3桁の2進数へ変換してください。</p></noscript>
         <details class="dr-reveal-item"><summary>考え方と解答</summary><div class="dr-reveal-item__body"><p>各桁の重みは、左から4・2・1です。例えば6＝4＋2なので110、3＝2＋1なので011です。</p><p class="im-bitstream">1行目：110 101 100 011<br>2行目：101 100 011 010<br>3行目：100 011 010 001<br>4行目：011 010 001 000</p></div></details>
       </form>
     </article>
@@ -294,13 +292,5 @@
     </article>
   </section>
 
-  <dialog class="dr-supplement-dialog" id="im-quantization-rule" data-lesson-supplement-dialog aria-labelledby="im-quantization-rule-title">
-    <div class="dr-supplement-dialog__surface"><header class="dr-supplement-dialog__header"><h2 id="im-quantization-rule-title" data-skip-numbering>明るさの分け方</h2><button type="button" class="dr-button" data-lesson-supplement-close aria-label="明るさの分け方を閉じる">閉じる</button></header>
-      <p>明るさは0が黒、255が白です。各マス内の明るさの平均値を取り出し、0以上256未満の範囲を等しい幅の区間に分けます。</p>
-      <p>8階調の場合は幅32ずつです。0以上32未満を段階0、32以上64未満を段階1、…、224以上256未満を段階7とします。境界上の値は上側の段階に含めます。</p>
-      <p>4×4の例では、左上の画素内の平均は約223.1で段階6、右下は約31.9で段階0になります。元の画像の角に白と黒があっても、マス内の平均とは異なります。</p>
-      <p>図では、段階0を黒、最大の段階を白として等間隔の濃淡で表示します。</p>
-    </div>
-  </dialog>
 </body>
 </html>

@@ -32,17 +32,6 @@
     host.querySelectorAll('.im-enhancement').forEach(item => { item.hidden = false; });
   }
 
-  function stages(host, update) {
-    const buttons = [...host.querySelectorAll('[data-stage]')];
-    function select(stage) {
-      buttons.forEach(button => button.setAttribute('aria-pressed', String(Number(button.dataset.stage) === stage)));
-      update(stage);
-      resized();
-    }
-    buttons.forEach(button => button.addEventListener('click', () => select(Number(button.dataset.stage))));
-    select(0);
-  }
-
   let sourcePromise;
   function sourceImage() {
     if (!sourcePromise) {
@@ -430,6 +419,7 @@
 
   async function initializeExplorer(host) {
     const source = await sourceImage();
+    const resolutions = [10, 20, 50, 100, 200, 800];
     const resolutionControl = host.querySelector('[data-image-resolution]');
     const bitsControl = host.querySelector('[data-image-bits]');
     const canvas = host.querySelector('[data-image-explorer-canvas]');
@@ -444,10 +434,13 @@
     let samples;
     let animation = 0;
     function update() {
-      const resolution = Number(resolutionControl.value);
+      const resolution = resolutions[Number(resolutionControl.value)];
       const bits = Number(bitsControl.value);
       const levels = Core.levels(bits);
+      const resolutionLabel = `${resolution}×${resolution}画素`;
       const gradationLabel = `${levels}階調（${bits}bit）`;
+      host.querySelector('[data-image-resolution-output]').textContent = resolutionLabel;
+      resolutionControl.setAttribute('aria-valuetext', resolutionLabel);
       host.querySelector('[data-image-bits-output]').textContent = gradationLabel;
       bitsControl.setAttribute('aria-valuetext', gradationLabel);
       host.querySelector('[data-image-gradation-caption]').textContent = `量子化後：${gradationLabel}`;
@@ -479,74 +472,79 @@
       caption.textContent = description;
       canvas.setAttribute('aria-label', `条件を変えた気球の画像。${description}。${bits === 8 ? '各色の明るさを細かく表しています。' : '色の変化が段階的に見えます。'}`);
       metrics.replaceChildren();
-      for (const [label, value] of [
-        ['全画素数', `${format(size.pixels)}画素`],
-        ['1画素あたり', `${bits}bit×3色＝${bits * 3}bit`],
-        ['表せる色数', `${format(2 ** (bits * 3))}色`],
-        ['データ量', `${format(size.bytes)}B`]
-      ]) metrics.append(node('dt', '', label), node('dd', '', value));
+      for (const [label, calculation, value] of [
+        ['全画素数', `${resolution} × ${resolution} ＝`, `${format(size.pixels)}画素`],
+        ['1画素あたり', `${bits}bit × 3色 ＝`, `${bits * 3}bit`],
+        ['表せる色数', `${levels} × ${levels} × ${levels} ＝`, `${format(2 ** (bits * 3))}色`],
+        ['データ量', `${resolution} × ${resolution} × ${bits * 3} ÷ 8 ＝`, `${format(size.bytes)}B`]
+      ]) {
+        const detail = node('dd');
+        detail.append(node('span', 'im-metric-calculation', calculation), node('strong', '', value));
+        metrics.append(node('dt', '', label), detail);
+      }
       resized();
     }
     function scheduleUpdate() {
       cancelAnimationFrame(animation);
       animation = requestAnimationFrame(update);
     }
-    resolutionControl.addEventListener('change', update);
+    resolutionControl.addEventListener('input', scheduleUpdate);
     bitsControl.addEventListener('input', scheduleUpdate);
-    host.querySelector('[data-image-reset]').addEventListener('click', () => { resolutionControl.value = '50'; bitsControl.value = '2'; update(); });
+    host.querySelector('[data-image-reset]').addEventListener('click', () => { resolutionControl.value = '2'; bitsControl.value = '2'; update(); });
     update(); reveal(host);
   }
 
-  function drawGrayscale(layer, stage, values) {
+  function drawGrayscale(layer, stage, values, { resolution = 4, bits = 3, showValues = true } = {}) {
+    const cellSize = 320 / resolution;
     layer.replaceChildren();
     if (stage >= 1) values.forEach(value => {
-      const brightness = stage >= 2 ? Core.tone(value.code, 3) : Math.round(value.brightness);
-      const x = value.column * 80; const y = value.row * 80;
-      layer.append(svgNode('rect', { x, y, width: 80, height: 80, fill: `rgb(${brightness},${brightness},${brightness})`, stroke: '#888', 'stroke-width': 1 }));
-      if (stage >= 2) {
-        const label = svgNode('text', { x: x + 40, y: y + 42, fill: textColor([brightness, brightness, brightness]), 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-family': 'ui-monospace, monospace', 'font-size': stage === 3 ? 24 : 28, 'font-weight': 700 });
+      const brightness = stage >= 2 ? Core.tone(value.code, bits) : Math.round(value.brightness);
+      const x = value.column * cellSize; const y = value.row * cellSize;
+      layer.append(svgNode('rect', { x, y, width: cellSize, height: cellSize, fill: `rgb(${brightness},${brightness},${brightness})`, stroke: '#888', 'stroke-width': 1 }));
+      if (stage >= 2 && showValues) {
+        const label = svgNode('text', { x: x + cellSize / 2, y: y + cellSize / 2 + 2, fill: textColor([brightness, brightness, brightness]), 'text-anchor': 'middle', 'dominant-baseline': 'middle', 'font-family': 'ui-monospace, monospace', 'font-size': cellSize * (stage === 3 ? .3 : .35), 'font-weight': 700 });
         label.textContent = stage === 3 ? value.binary : String(value.code); layer.append(label);
       }
     });
   }
 
-  function grayscalePicture(stage, values) {
-    const svg = svgNode('svg', { class: 'im-picture', viewBox: '0 0 320 320', role: 'img', 'aria-labelledby': `im-quiz-picture-title-${stage} im-quiz-picture-desc-${stage}` });
-    const title = svgNode('title', { id: `im-quiz-picture-title-${stage}` });
-    title.textContent = ['元のグレースケール画像', '4×4画素に標本化した画像', '8階調に量子化した画像'][stage];
-    const desc = svgNode('desc', { id: `im-quiz-picture-desc-${stage}` });
-    desc.textContent = stage < 2 ? '左上が明るく、右下が暗い画像。同じ画像の変化を左から順に比べます。' : '段階値は1行目が6、5、4、3。2行目は5、4、3、2。3行目は4、3、2、1。4行目は3、2、1、0です。';
+  function grayscalePicture(stage, values, { resolution = 4, bits = 3, idPrefix = 'im-quiz', showValues = true } = {}) {
+    const svg = svgNode('svg', { class: 'im-picture', viewBox: '0 0 320 320', role: 'img', 'aria-labelledby': `${idPrefix}-picture-title-${stage} ${idPrefix}-picture-desc-${stage}` });
+    const title = svgNode('title', { id: `${idPrefix}-picture-title-${stage}` });
+    title.textContent = ['元のグレースケール画像', `${resolution}×${resolution}画素に標本化した画像`, `${Core.levels(bits)}階調に量子化した画像`, `各画素を${bits}桁の2進数で符号化した画像`][stage];
+    const desc = svgNode('desc', { id: `${idPrefix}-picture-desc-${stage}` });
+    desc.textContent = '左上が明るく、右下が暗い画像。同じ画像の変化を左から順に比べます。';
+    if (stage >= 2 && showValues) {
+      desc.textContent = Array.from({ length: resolution }, (_, row) => `${row + 1}行目は${values.slice(row * resolution, (row + 1) * resolution).map(value => stage === 3 ? value.binary : value.code).join('、')}`).join('。') + 'です。';
+    }
     svg.append(title, desc);
     if (stage === 0) {
       const defs = svgNode('defs', {});
-      const gradient = svgNode('linearGradient', { id: 'im-quiz-gray-gradient', x1: 0, y1: 0, x2: 1, y2: 1 });
+      const gradient = svgNode('linearGradient', { id: `${idPrefix}-gray-gradient`, x1: 0, y1: 0, x2: 1, y2: 1 });
       gradient.append(svgNode('stop', { 'stop-color': '#fff' }), svgNode('stop', { offset: 1, 'stop-color': '#000' }));
-      defs.append(gradient); svg.append(defs, svgNode('rect', { width: 320, height: 320, fill: 'url(#im-quiz-gray-gradient)' }));
+      defs.append(gradient); svg.append(defs, svgNode('rect', { width: 320, height: 320, fill: `url(#${idPrefix}-gray-gradient)` }));
     }
-    const layer = svgNode('g', {}); drawGrayscale(layer, stage, values); svg.append(layer);
+    const layer = svgNode('g', {}); drawGrayscale(layer, stage, values, { resolution, bits, showValues }); svg.append(layer);
     return svg;
   }
 
   function initializeGrayscale(host) {
-    const values = Core.grayscaleExample();
-    const layer = host.querySelector('[data-image-grayscale-layer]');
-    const caption = host.querySelector('[data-image-grayscale-caption]');
-    const bitstream = host.querySelector('[data-image-bitstream]');
-    const text = host.querySelector('[data-image-stage-text]');
-    const descriptions = [
-      '左上から右下へ、明るさが連続して変わっています。',
-      '縦横を4つずつに区切り、各マス内の平均の明るさを取り出します。',
-      '明るさを0〜7の8段階に分けます。図の数字は、その画素の段階値です。',
-      '8段階を3桁の2進数で表します。例えば、段階6は110、段階3は011です。'
-    ];
-    function update(stage) {
-      drawGrayscale(layer, stage, values);
-      caption.textContent = ['元のグレースケール画像', '標本化：4×4画素', '量子化：8階調', '符号化：1画素3bit'][stage];
-      text.textContent = descriptions[stage];
-      bitstream.hidden = stage !== 3;
-      bitstream.textContent = `1行目の符号：${values.slice(0, 4).map(value => value.binary).join(' ')}（12bit）`;
-    }
-    reveal(host); stages(host, update);
+    const options = { resolution: 5, bits: 4, idPrefix: 'im-gray-demo', showValues: false };
+    const values = Core.grayscaleExample(options.resolution, options.bits);
+    host.querySelectorAll('[data-image-gray-picture]').forEach(picture => {
+      const stage = Number(picture.dataset.imageGrayPicture);
+      picture.append(grayscalePicture(stage, values, options));
+      const button = host.querySelector(`[data-image-gray-values="${stage}"]`);
+      if (!button) return;
+      button.addEventListener('click', () => {
+        const showValues = button.getAttribute('aria-pressed') !== 'true';
+        picture.replaceChildren(grayscalePicture(stage, values, { ...options, showValues }));
+        button.setAttribute('aria-pressed', String(showValues));
+        button.textContent = `${stage === 2 ? '段階値' : '2進数'}を${showValues ? '隠す' : '表示'}`;
+        resized();
+      });
+    });
+    reveal(host);
   }
 
   const normalize = value => value.normalize('NFKC').trim();

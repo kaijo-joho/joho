@@ -37,14 +37,16 @@
     return { pixels, bits, bytes: bits / 8, kilobytes: bits / 8 / base, megabytes: bits / 8 / base ** 2 };
   }
 
-  // 原本56枚目の斜めの濃淡。各マス内の平均値から原本と同じ6〜0を得る。
-  function grayscaleExample() {
-    return Array.from({ length: 16 }, (_, index) => {
-      const row = Math.floor(index / 4);
-      const column = index % 4;
-      const brightness = 255 * (1 - (row + column + 1) / 8);
-      const code = quantize(brightness, 3);
-      return { row, column, brightness, code, binary: binary(code, 3) };
+  // 斜めの線形グラデーションを各マスで平均する。既定値は原本56枚目の4×4・3bit。
+  function grayscaleExample(resolution = 4, bits = 3) {
+    integer(resolution, 1, 64, '縦横の分割数');
+    levels(bits);
+    return Array.from({ length: resolution ** 2 }, (_, index) => {
+      const row = Math.floor(index / resolution);
+      const column = index % resolution;
+      const brightness = 255 * (1 - (row + column + 1) / (resolution * 2));
+      const code = quantize(brightness, bits);
+      return { row, column, brightness, code, binary: binary(code, bits) };
     });
   }
 
