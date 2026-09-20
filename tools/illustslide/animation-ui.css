@@ -8,7 +8,13 @@
 .animation-effect-card:hover{border-color:var(--accent)}
 .animation-effect-card[aria-pressed=true]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent)}
 .animation-effect-card:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.animation-effect-caption{margin:8px 0 6px;font-weight:700}
+.animation-effect-picker{margin:8px 0}
+.animation-effect-picker>button{display:flex;align-items:center;gap:6px;min-height:44px}
+.animation-effect-picker>button svg{width:28px;height:28px}
+.animation-play{display:inline-grid;place-items:center;width:44px;min-width:44px;min-height:44px;padding:6px}
+.animation-play-icon{width:24px;height:24px}
+#animation-effect-menu{width:min(360px,calc(100vw - 16px));position:fixed;inset:auto;margin:0;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--panel);color:var(--text);box-shadow:0 8px 24px #0003;max-width:min(420px,calc(100vw - 16px));max-height:calc(100dvh - 16px);overflow:auto}
+.animation-time-range{width:100%;min-width:0}
 .animation-targets{display:flex;gap:8px;align-items:center;margin-bottom:10px;min-width:0}
 .animation-targets>span{overflow-wrap:anywhere;min-width:0}
 .animation-edit{container-type:inline-size}
@@ -29,6 +35,8 @@
 .animation-row-editor{margin:6px 0 2px;padding:8px;border:1px solid var(--line);border-radius:8px;background:var(--bg)}
 .animation-row-menu{display:flex;justify-content:flex-end;gap:5px;margin-bottom:6px}
 .animation-row-menu .danger{color:var(--danger)}
+.animation-row-menu button{display:grid;place-items:center;width:44px;min-width:44px;min-height:44px;padding:7px}
+.animation-row-menu button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .animation-list .animation-title{display:grid;grid-template-columns:32px 28px minmax(0,1fr);gap:5px;align-items:center;padding:4px;min-height:44px}
 .animation-row-effect{display:grid;place-items:center;color:var(--accent)}
 .animation-row-effect svg{width:24px;height:24px}
@@ -47,5 +55,4 @@
   .animation-effect-group,.animation-effect-other{grid-template-columns:repeat(3,minmax(0,1fr))}
 }
 
-@container(max-width:235px){.animation-effect-group,.animation-effect-other{grid-template-columns:repeat(3,minmax(0,1fr))}}
 .animation-more{cursor:pointer;touch-action:manipulation}

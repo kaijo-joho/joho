@@ -16,8 +16,10 @@ assert.equal(p.layers.length, 3); assert.deepEqual(p.layers[0].objectIds, ['a','
 L.rename(p, second, '文字'); L.setVisible(p, first, false); L.setLocked(p, second, true);
 assert.equal(L.layerOf(p, 'a').id, 'default'); assert.equal(p.layers[2].name, '文字'); assert.equal(L.visible(p, 'a'), true); assert.equal(L.locked(p, 'a'), false);
 L.setVisible(p, first, true); L.setLocked(p, second, false); L.moveObjects(p, ['c'], first);
+L.moveObjects(p, ['b'], first, 'c'); assert.deepEqual(p.layers.find(layer=>layer.id===first).objectIds, ['b','c'], '指定した図形の直前へ移動できる');
+const positioned=page(), positionedLayer=L.create(positioned,'移動先'); L.moveObjects(positioned,['a','b','c'],positionedLayer); const source=L.create(positioned,'移動元'); L.moveObjects(positioned,['a'],source); L.moveObjects(positioned,['a'],positionedLayer,'b'); assert.deepEqual(positioned.layers.find(layer=>layer.id===positionedLayer).objectIds,['a','b','c'],'背面側のドロップは対象の前へ入る'); L.moveObjects(positioned,['a'],source); L.moveObjects(positioned,['a'],positionedLayer,'c'); assert.deepEqual(positioned.layers.find(layer=>layer.id===positionedLayer).objectIds,['b','a','c'],'前面側のドロップは対象の後へ入る'); assert.throws(()=>L.moveObjects(positioned,['a'],positionedLayer,'a'),/自身/,'移動中の図形を挿入基準にしない');
 assert.deepEqual(L.orderedObjects(p).map(object=>object.id), ['a','b','c']); L.move(p, first, -1);
-assert.deepEqual(L.orderedObjects(p).map(object=>object.id), ['c','a','b']);
+assert.deepEqual(L.orderedObjects(p).map(object=>object.id), ['b','c','a']);
 L.remove(p, first); assert.deepEqual(p.layers.find(layer=>layer.id==='default').objectIds.sort(), ['a','b','c'], '削除したレイヤーの内容を隣へ保持する');
 
 const invalid = page(); invalid.layers=[{id:'one',name:'1',visible:true,locked:false,objectIds:['a']},{id:'two',name:'2',visible:true,locked:false,objectIds:['a','b','c']}];

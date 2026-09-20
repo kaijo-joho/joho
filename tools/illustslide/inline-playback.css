@@ -1,0 +1,21 @@
+#stage.inline-playback-active #artwork,
+#stage.inline-playback-active #selection,
+#stage.inline-playback-active #hover-preview,
+#stage.inline-playback-active #alignment-guides,
+#stage.inline-playback-active #arrange-reference { visibility:hidden; }
+#stage.inline-playback-active #selection-bar,
+#stage.inline-playback-active #welcome,
+#stage.inline-playback-active #hint { display:none; }
+#stage.inline-playback-active #canvas { cursor:pointer; }
+#inline-playback-controls {
+  position:absolute; left:50%; bottom:12px; transform:translateX(-50%);
+  z-index:5; display:flex; align-items:center; gap:4px; max-width:calc(100% - 12px);
+  padding:5px; border:1px solid var(--line); border-radius:10px;
+  background:var(--panel); color:var(--text); box-shadow:var(--shadow);
+}
+#inline-playback-controls[hidden] { display:none; }
+#inline-playback-controls button { display:grid; place-items:center; padding:4px; min-width:36px; min-height:36px; }
+#inline-playback-controls svg { width:22px; height:22px; }
+#inline-playback-status { min-width:3em; text-align:center; white-space:nowrap; font-size:.8em; }
+@media(pointer:coarse) { #inline-playback-controls button { min-width:44px; min-height:44px; } }
+@container(max-width:240px) { #inline-playback-controls { gap:2px; padding:3px; } #inline-playback-status { display:none; } }

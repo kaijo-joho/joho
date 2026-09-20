@@ -84,7 +84,8 @@ editorで固定・非表示を判定し、計算結果を1回のchangePageへ渡
 
 `list(page)`、`layerOf(page,objectOrId)`、`visible(page,objectOrId)`、`locked(page,objectOrId)`、`orderedObjects(page)`。layersなしのページには非破壊の仮想defaultレイヤーを返す。可視性はobject.visible !== falseとレイヤーのvisibleの論理積、固定は個別固定との論理和で判定する。任意のvisibleを旧オブジェクトに補完しない。
 `setObjectVisible(page,id,value)` はその図形だけの表示状態をbooleanで変更し、暗黙レイヤーを実体化しない。
-`create(page,name?)`、`rename(page,id,name)`、`setVisible(page,id,value)`、`setLocked(page,id,value)`、`move(page,id,delta)`（+1が前面）、`moveObjects(page,ids,targetId)`、`remove(page,id)`。削除は最後のレイヤーを拒否し、図形を隣へ移す。グループ移動は全構成員を扱う。これらの変更はeditorのHistoryを通す。
+`create(page,name?)`、`rename(page,id,name)`、`setVisible(page,id,value)`、`setLocked(page,id,value)`、`move(page,id,delta)`（+1が前面）、`moveObjects(page,ids,targetId,beforeId?)`、`remove(page,id)`。削除は最後のレイヤーを拒否し、図形を隣へ移す。グループ移動は全構成員を扱う。これらの変更はeditorのHistoryを通す。
+`moveObjects` のbeforeIdは移動先objectIds（背面→前面順）の挿入直後に来る図形ID。省略またはnullは最前面へ追加する。移動対象自身・移動先にないIDを拒否し、対象外の相対順と移動するグループの内部順を保持する。
 `reconcile(page,beforePage?,activeId?)` は削除済みの所属を除き、新規図形を現在レイヤーへ割り当てて順序を揃える。既存グループの所属を優先し、非表示・固定の現在レイヤーへの追加は拒否する。layersなしのページには何も追加しない。通常の図形操作は所属と順序を保持する。合体・連結・矢印変換・アウトライン化では増減した図形IDと所属を同時に更新する。
 `forOutput(page)` は可視図形だけの複製を返し、動きの対象も絞る。元ページは変更しない。非表示だけを対象とする動きは取り除く。接続はフィルタ前の端点を保持し、出力用の複製で接続先不在を解消する。
 
@@ -226,6 +227,9 @@ pagesのscopeは文書ID・ページID・編集リビジョン。図形の選択
 
 `IlapoObjectsUI.create({document,page,selected,select,showInspector,changePage,showDialog,execute,isBusy,esc,icon})` は `open()`・`cancelDrag()`・読み取り専用`isDragging`を返す。objectsのscopeは文書ID・ページID・編集リビジョン・選択ID。選択はeditorのselectionを通して従来のグループ選択を保つ。
 
+0.4.26ではレイヤー見出しをハンドル・名前・︙の1行にまとめ、レイヤーの名前変更・表示・固定・削除をpopoverへ置く。画面端とInspectorのスクロール領域で欠けないよう表示位置を調整し、ホバーではフォーカスを動かさない。クリック・Enter・Space・↓で操作に入り、Escapeは︙へ戻す。外側クリック・スクロール・再構築で閉じる。
+図形行の上半分は前面側、下半分は背面側への挿入位置を示し、別レイヤーへもドロップできる。空レイヤーや別レイヤーの見出しへのドロップは最前面へ追加する。レイヤーをまたぐ場合は移動元・移動先のグループを分割せず、固定・非表示のレイヤーへ移動しない。移動先レイヤーの指定は選択メニューの「詳細 → 重なり順 → レイヤーを変更」からも可能。
+
 - 折り畳みは文書／ページごとのUI状態で、保存・履歴に入れない。クリック／Shift追加／上下・Home/End／Enter・Spaceで選択し、左右でグループを開閉する。折り畳まれた子はキーボード移動の対象外。フォーカス復元では任意IDをCSS用にエスケープする。
 - 名前は既存nameへ保存する。名前・個別表示・個別固定・グループ固定・並べ替えの変更は1回のchangePage。グループの一部固定は混在表示し、押すと全体固定になる。一覧内の⌘Z／Ctrl+ZとShift併用はexecuteのUndo/Redoへ渡し、その他のキーはキャンバスへ伝えない。
 - 一覧の各図形はハンドル・実形サムネイル・名前・名前変更・目・固定の1行。個別の非表示行は残し、選択だけを不可にする。
@@ -331,7 +335,7 @@ getStateはstep/steps/playing/time/duration。next/previousは群を操作でき
 RAFを所有し、close/reset/seekで取り消す。reduced-motionは群を即完了する。frameの複製だけをK.syncして移動中の接続を描き直す。下絵・編集枠・ハンドルを表示しない。
 
 Presentationの返却APIにreset/seekを追加し、getState.animationにPlayer状態を入れる。群の前後が尽きたらページを切り替える。前ページは全効果後、次ページは初期状態。Homeは先頭の初期状態、Endは最終の全効果後。
-IlapoAnimationUI.create(ctx)のlist/edit(id?)は設定パネルのanimationセクションを利用する。効果はフェード2種・ワイプ8種・色・移動の12アイコンで選び、内部のeffect/mode/directionへ対応付ける。一覧の再生位置はLayers.forOutput(page)から求め、非表示の図形だけを対象とする動きは編集用の行を残して再生対象外と示す。プレビューは未確定pageだけの検証済み複製をPresentationへ渡す。
+IlapoAnimationUI.create(ctx)のlist/edit(id?)は設定パネルのanimationセクションを利用する。効果はフェード2種・ワイプ8種・色・移動の12アイコンで選び、内部のeffect/mode/directionへ対応付ける。一覧の再生位置はLayers.forOutput(page)から求め、非表示の図形だけを対象とする動きは編集用の行を残して再生対象外と示す。プレビューは未確定pageだけの検証済み複製をctx.previewへ渡す。0.4.26のeditorではInlinePlaybackを使う。
 
 0.4.25では開始タイミングもclick/with/afterの3アイコンで選ぶ。一覧の「︙」から同じ行に設定と削除を開き、既存の動きは即時反映、新規追加は確定時に保存する。時間や開始方法の変更時は、後続も含む各行の開始時刻・クリック回数を更新する。並べ替えは専用ハンドルのドラッグかAlt+↑／↓を使い、隣の行を越えた後のpointerupで1履歴へ確定する。Escape・pointercancel・パネル外へのドロップ・文書／ページ切替は取消。ドラッグ開始時のページ参照が変わった場合も確定しない。子の設定をEscapeで閉じる場合は外側のパネルを保ち、パネル再構築・別セクションへの移動後は古いイベントを働かせない。
 
@@ -340,3 +344,13 @@ IlapoPlaybackExport.buildHTML(doc)はPromise<string>。アプリと同じ配信�
 ## オブジェクトの縮小プレビュー（0.4.24）
 
 `IlapoObjectPreview.markup(page,ids)` はレイヤー・動きパネルで共用する安全な小型SVGを返す。可視性にかかわらず対象の形を確認でき、接続先の座標を一時的に解決してから表示する。原稿を変更しない。WeakMapでページ参照ごとの結果をキャッシュし、1行ごとに原稿内の全画像を複製しない。出力・保存データにはこのUIを含めない。
+
+## キャンバス内の試し再生（inline-playback.js、0.4.26）
+
+`IlapoInlinePlayback.create({canvas,stage,scope})` は `play(page)`、`stop({focus?})`、`sync()`、`getState()`、`active`を持つ。AnimationPlayerが作ったSVGの子ノードをキャンバス内の専用gへ移し、既存のworld座標・カメラ・グリッド・パネル配置を保持する。原稿のartworkと選択枠は再生中だけ隠し、複製だけを再生する。最初の自動群があれば先に再生し、なければ最初のクリック群から始める。後続のクリック群は利用者が進める。
+
+停止時はRAFと一時ノードを破棄し、元の図形・選択へ戻す。編集対象・ページ／作品切替、実際の文書変更、Undo、ツール変更で停止する。scopeはsession ID・page ID・revision。キャンバス内のEscapeは再生だけを終了し、Delete等で下の選択図形を編集しない。パネルは操作可能で、他パネルの入力へ戻るときにフォーカスを奪わない。編集画面での状態は保存形式と履歴に追加しない。
+
+0.4.26の効果選択は現在の効果＋▼から開き、表示／消去／その他に分類する。時間・遅延のrangeは0〜10秒・0.1秒刻み、numberは従来の任意精度を保つ。両者を同期し、入力の即時適用とrangeドラッグのUndo集約はInspectorへ渡す。プレビューや効果選択メニューの開閉だけで文書を確定しない。
+
+Guides.resizeの1:1吸着は画面上6pxで始まり、同じdrag session内で10pxまで保持する。Shiftのuniform・Alt・無効設定で解除。動かしていない辺と反対側の支点を維持し、最小サイズとacceptによるグリッド整合を検証する。`square`がtrueの場合、markupは1:1を表示する。

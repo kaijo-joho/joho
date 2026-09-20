@@ -17,7 +17,7 @@ async function run(){
   const inspectorSubmit=async()=>{if(await page.locator('#inspector-submit').isVisible())await page.locator('#inspector-submit').click();await page.waitForFunction(()=>{const panel=document.getElementById('inspector-panel');return panel&&!panel.hidden&&!document.getElementById('dialog').open;});};
   const inspectorClose=async()=>{await page.locator('#inspector-close').click();await page.waitForFunction(()=>document.getElementById('inspector-panel').hidden);};
   async function add(effect,fields={}){
-    await openList();await page.locator('#animation-add').click();
+    await openList();await page.locator('#animation-add').click();await page.locator('#animation-effect-toggle').evaluate(el=>el.click());
     const direction=fields.direction||'right',mode=fields.mode||'in';
     const choice=effect==='fade'?`fade-${mode}`:effect==='wipe'?`wipe-${direction}-${mode}`:effect;
     await page.locator(`[data-animation-choice="${choice}"]`).click();
@@ -37,12 +37,12 @@ async function run(){
     await pick('pc');await openList();await page.locator('#animation-add').click();
     await page.locator('#animation-duration').fill('-1');await page.locator('#inspector-submit').click();assert.deepEqual(await read(),fixture,'invalid input does not apply');await page.locator('#animation-duration').fill('.6');
     // Preview the draft, then cancel it without writing a history or a save.
-    await page.locator('#animation-try').click();await page.waitForSelector('#ilapo-presentation[open]');assert.equal(await page.locator('[data-animation-object=pc]').getAttribute('opacity'),'0');
-    await page.keyboard.press('Space');await page.waitForFunction(()=>document.querySelector('[data-animation-object=pc]').getAttribute('opacity')==='1');await page.keyboard.press('Escape');assert.deepEqual(await read(),fixture);assert.equal(await page.evaluate(()=>document.activeElement.id),'animation-try');
+    await page.locator('#animation-try').click();await page.waitForSelector('#inline-playback-controls');assert.equal(await page.locator('#inline-playback-controls').isVisible(),true);assert.deepEqual(await read(),fixture,'inline preview does not edit the document');
+    await page.locator('#inline-playback-stop').click();await page.waitForSelector('#inline-playback-controls',{state:'hidden'});assert.deepEqual(await read(),fixture);assert.equal(await page.evaluate(()=>document.activeElement.id),'animation-try');
     await inspectorClose();assert.deepEqual(await read(),fixture);
     await add('fade',{duration:.6});
     await add('color',{trigger:'after',duration:.4});
-    await openList();await page.locator('[data-animation-edit="1"]').click();await page.locator('[data-animation-color="#EF4444"]').click();
+    await openList();await page.locator('[data-animation-edit="1"]').click();await page.locator('#animation-effect-toggle').evaluate(el=>el.click());await page.locator('[data-animation-color="#EF4444"]').click();
     assert.equal(await page.locator('#animation-color-picker').inputValue(),'#ef4444');await page.locator('#animation-color-hex').fill('#EF4464');assert.equal(await page.locator('#animation-color-picker').inputValue(),'#ef4464');await inspectorSubmit();await inspectorClose();
     await add('move',{trigger:'with',duration:.4,dx:160,dy:80});
     await pick('arrow');await add('wipe',{duration:.5,direction:'right'});

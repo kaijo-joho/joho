@@ -112,8 +112,38 @@
     return { delta: adjusted, box, ...decorations(box, session.targets, winners, Number(options.zoom) || 1) };
   }
 
+  function squareBox(original, proposed, options) {
+    const active = ['x', 'y'].filter(axis => options[axis]);
+    if (!active.length) return null;
+    const minimum = Math.max(...active.map(axis => original[axes[axis].size] * .01));
+    const sizes = active.length === 2 ? [(proposed.width + proposed.height) / 2, proposed.width, proposed.height] : [proposed[axes[active[0]].crossSize]];
+    for (const size of sizes) {
+      if (!Number.isFinite(size) || size < minimum) continue;
+      const box = { ...proposed };
+      for (const axis of active) {
+        const dimension = axes[axis].size, edge = options[axis];
+        box[dimension] = size;
+        if (edge === 'start') box[axis] = end(original, axis) - size;
+        else if (edge === 'end') box[axis] = original[axis];
+      }
+      if (!options.accept || active.every(axis => options.accept(axis, options[axis] === 'start' ? box[axis] : end(box, axis)))) return box;
+    }
+    return null;
+  }
+
+  function squareSnap(session, original, proposed, options) {
+    if (options.alt || options.enabled === false || options.uniform) { delete session.squareSnap; return null; }
+    const zoom = Math.max(.005, Number(options.zoom) || 1), distance = Math.abs(proposed.width - proposed.height);
+    const limit = (session.squareSnap ? 10 : 6) / zoom;
+    if (distance > limit) { delete session.squareSnap; return null; }
+    const box = squareBox(original, proposed, options);
+    if (!box) { delete session.squareSnap; return null; }
+    session.squareSnap = true;
+    return box;
+  }
+
   function resize(session, proposed, options = {}) {
-    if (options.alt || options.enabled === false) return { box: { ...proposed }, lines: [], distances: [] };
+    if (options.alt || options.enabled === false) { delete session.squareSnap; return { box: { ...proposed }, lines: [], distances: [], square: false }; }
     const original = session.box, threshold = tolerance(options), winners = {};
     for (const axis of ['x', 'y']) {
       const edge = options[axis];
@@ -140,7 +170,9 @@
       if (options[axis] === 'start') box[axis] += winner.delta;
       box[size] = nextSize;
     }
-    return { box, ...decorations(box, session.targets, winners, Number(options.zoom) || 1) };
+    const squared = squareSnap(session, original, proposed, options);
+    if (squared) return { box: squared, lines: [], distances: [], square: true };
+    return { box, ...decorations(box, session.targets, winners, Number(options.zoom) || 1), square: false };
   }
 
   function markup(result, zoom, unit = 'px') {
@@ -151,13 +183,14 @@
       const divisor = unit === 'mm' ? 96 / 25.4 : unit === 'pt' ? 96 / 72 : 1;
       return Number((value / divisor).toFixed(2)) + ' ' + (['mm', 'pt'].includes(unit) ? unit : 'px');
     };
+    const ratio = result.square && result.box ? `<g class="alignment-ratio"><text x="${result.box.x + result.box.width / 2}" y="${result.box.y + result.box.height / 2}" font-size="${11 / z}" text-anchor="middle" dominant-baseline="central">1:1</text></g>` : '';
     return lines.map(line => `<path class="alignment-line" d="${segment(line.axis, line.position, line.start, line.end)}" stroke-width="${1 / z}" stroke-dasharray="${4 / z} ${3 / z}"/>`).join('') + distances.map(distance => {
       const horizontal = distance.axis === 'x', middle = (distance.start + distance.end) / 2;
       const x = horizontal ? middle : distance.position, y = horizontal ? distance.position : middle;
       const label = format(distance.value), width = (label.length * 6.4 + 10) / z, height = 18 / z;
       const tick = position => segment(distance.axis, position, distance.position - 3 / z, distance.position + 3 / z);
       return `<g class="alignment-distance"><path d="${segment(horizontal ? 'y' : 'x', distance.position, distance.start, distance.end)}${tick(distance.start)}${tick(distance.end)}" stroke-width="${1 / z}"/><rect x="${x - width / 2}" y="${y - height / 2}" width="${width}" height="${height}" rx="${3 / z}"/><text x="${x}" y="${y}" font-size="${11 / z}" text-anchor="middle" dominant-baseline="central">${label}</text></g>`;
-    }).join('');
+    }).join('') + ratio;
   }
 
   const api = Object.freeze({ prepare, move, resize, markup });

@@ -64,6 +64,31 @@ const fromLeft = prepare([object('moving', 100, 100, 50, 20), object('target', 2
 result = Guides.resize(fromLeft, { x: 22, y: 100, width: 128, height: 20 }, { x: 'start', zoom: 1 });
 near(result.box.x, 20); near(result.box.width, 130); near(result.box.x + result.box.width, 150);
 
+const square = prepare([object('moving', 0, 0, 50, 50)]);
+result = Guides.resize(square, { x: 0, y: 0, width: 52, height: 48 }, { x: 'end', y: 'end', zoom: 1 });
+near(result.box.width, 50); near(result.box.height, 50); assert.equal(result.square, true, '角の操作は1:1へ吸着する');
+assert(Guides.markup(result, 1).includes('1:1'), '1:1の吸着をガイドとして表示する');
+result = Guides.resize(square, { x: 0, y: 0, width: 57, height: 49 }, { x: 'end', y: 'end', zoom: 1 });
+near(result.box.width, 53); near(result.box.height, 53); assert.equal(result.square, true, '一度吸着した後は少し離れても保持する');
+result = Guides.resize(square, { x: 0, y: 0, width: 61, height: 49 }, { x: 'end', y: 'end', zoom: 1 });
+near(result.box.width, 61); near(result.box.height, 49); assert.equal(result.square, false, 'ヒステリシスの外へ動かすと解除する');
+result = Guides.resize(square, { x: 0, y: 0, width: 31, height: 30 }, { x: 'end', zoom: 1 });
+near(result.box.width, 30); near(result.box.height, 30); near(result.box.y, 0, '辺の操作では非操作辺の位置を保つ');
+result = Guides.resize(square, { x: 92, y: 91, width: 58, height: 59 }, { x: 'start', y: 'start', zoom: 1 });
+near(result.box.width, 58.5); near(result.box.height, 58.5); near(result.box.x + result.box.width, 50); near(result.box.y + result.box.height, 50, '角の操作では反対角を保つ');
+result = Guides.resize(square, { x: 0, y: 0, width: 52, height: 48 }, { x: 'end', y: 'end', alt: true, zoom: 1 });
+near(result.box.width, 52); near(result.box.height, 48); assert.equal(result.square, false, 'Optionでは1:1吸着を一時解除する');
+result = Guides.resize(square, { x: 0, y: 0, width: 52, height: 48 }, { x: 'end', y: 'end', uniform: true, zoom: 1 });
+near(result.box.width, 52); near(result.box.height, 48); assert.equal(result.square, false, 'Shiftの元比率保持を優先する');
+result = Guides.resize(prepare([object('moving', 0, 0, 50, 50)]), { x: 0, y: 0, width: 52, height: 48 }, { x: 'end', y: 'end', zoom: 2 });
+assert.equal(result.square, false, '拡大時は画面上の6px範囲だけへ吸着する');
+result = Guides.resize(prepare([object('moving', 0, 0, 50, 50)]), { x: 0, y: 0, width: 58, height: 50 }, { x: 'end', y: 'end', zoom: .5 });
+assert.equal(result.square, true, '縮小時も画面上の範囲で吸着する');
+result = Guides.resize(prepare([object('moving', 0, 0, 50, 50)]), { x: 0, y: 0, width: 31, height: 30 }, { x: 'end', y: 'end', zoom: 1, accept: (axis, value) => axis === 'x' ? value === 31 : value === 30 });
+near(result.box.width, 31); near(result.box.height, 30); assert.equal(result.square, false, 'グリッドに合わない1:1吸着は行わない');
+result = Guides.resize(prepare([object('moving', 0, 0, 1, 1)], ['moving'], { infinite: false, width: 1, height: 1 }), { x: 0, y: 0, width: .005, height: .005 }, { x: 'end', y: 'end', zoom: 1 });
+near(result.box.width, .005); near(result.box.height, .005); assert.equal(result.square, false, '最小サイズを下回る1px用紙の吸着は行わない');
+
 const output = Guides.markup({ lines: [], distances: [{ axis: 'x', start: 0, end: 96, position: 0, value: 96 }] }, 2, 'mm');
 assert(output.includes('25.4 mm'));
 assert(output.includes('font-size="5.5"'));

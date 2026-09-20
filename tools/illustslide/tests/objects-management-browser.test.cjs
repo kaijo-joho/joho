@@ -160,7 +160,7 @@ async function drag(page, source, target, before = true) {
     const cdp=await context.newCDPSession(page),touchBefore=await ids(page);
     const startPoint={x:sourceRect.x+sourceRect.width/2,y:sourceRect.y+sourceRect.height/2};
     // Stay outside the auto-scroll edge; edge holding is checked separately below.
-    const endPoint={x:targetRect.x+targetRect.width/2,y:targetRect.y+32};
+    const endPoint={x:targetRect.x+targetRect.width/2,y:targetRect.y+targetRect.height*.25};
     const touch=(type,p)=>cdp.send('Input.dispatchTouchEvent',{type,touchPoints:p?[{...p,id:7,radiusX:5,radiusY:5,force:1}]:[]});
     await touch('touchStart',startPoint);
     for(let i=1;i<=6;i++) await touch('touchMove',{x:startPoint.x+(endPoint.x-startPoint.x)*i/6,y:startPoint.y+(endPoint.y-startPoint.y)*i/6});

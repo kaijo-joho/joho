@@ -51,11 +51,15 @@
   function setLocked(page, id, value) { if (typeof value !== 'boolean') fail('locked must be boolean'); find(page, id).locked = value; return page; }
   function move(page, id, delta) { if (!Number.isInteger(delta)) fail('delta must be an integer'); const layer = find(page, id), from = page.layers.indexOf(layer), to = Math.max(0, Math.min(page.layers.length - 1, from + delta)); if (from !== to) { page.layers.splice(from, 1); page.layers.splice(to, 0, layer); } reconcile(page); return to; }
   function expand(page, ids) { const known = new Map(objects(page).map(object => [object.id, object])); const selected = new Set(ids); ids.forEach(id => { if (!known.has(id)) fail('unknown object id: ' + id); }); const groups = new Set([...selected].map(id => known.get(id).group).filter(group => group !== null)); objects(page).forEach(object => { if (groups.has(object.group)) selected.add(object.id); }); return objects(page).filter(object => selected.has(object.id)).map(object => object.id); }
-  function moveObjects(page, ids, targetId) {
+  function moveObjects(page, ids, targetId, beforeId) {
     if (!Array.isArray(ids)) fail('ids must be an array'); const target = find(page, targetId), selected = expand(page, ids);
     if (!target.visible || target.locked) fail('移動先のレイヤーを表示し、固定を解除してください。');
     selected.forEach(id => { const object = objects(page).find(item => item.id === id), layer = layerOf(page, id); if (!layer || !layer.visible || layer.locked || object.locked) fail('移動する図形と元のレイヤーを表示し、固定を解除してください。'); });
-    page.layers.forEach(layer => { layer.objectIds = layer.objectIds.filter(id => !selected.includes(id)); }); target.objectIds.push(...selected); reconcile(page); return selected;
+    if (beforeId !== undefined && beforeId !== null && !target.objectIds.includes(beforeId)) fail('挿入先の図形が移動先レイヤーにありません。');
+    if (beforeId !== undefined && beforeId !== null && selected.includes(beforeId)) fail('移動する図形自身の前には挿入できません。');
+    page.layers.forEach(layer => { layer.objectIds = layer.objectIds.filter(id => !selected.includes(id)); });
+    const at = beforeId === undefined || beforeId === null ? target.objectIds.length : target.objectIds.indexOf(beforeId);
+    target.objectIds.splice(at, 0, ...selected); reconcile(page); return selected;
   }
   function remove(page, id) {
     const layer = find(page, id), index = page.layers.indexOf(layer); if (page.layers.length <= 1) fail('最後のレイヤーは削除できません。');

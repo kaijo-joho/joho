@@ -5,10 +5,11 @@
 
   function create(ctx) {
     const M=window.IlapoObjectsModel, L=window.IlapoLayers, esc=ctx.esc;
-    let expanded=new Set(), expansionScope='', drag=null, bindings=null;
+    let expanded=new Set(), expansionScope='', drag=null, bindings=null, layerMenu=null;
     const body=()=>ctx.inspectorBody?.()||document.getElementById('inspector-body');
     const scope=()=>ctx.document().id+'|'+ctx.page().id;
     const icon=key=>ctx.icon(key);
+    const moreIcon=()=>'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="5" r="1.7"></circle><circle cx="12" cy="12" r="1.7"></circle><circle cx="12" cy="19" r="1.7"></circle></svg>';
     const pickId=id=>'object-pick-'+id;
     const groupPickId=id=>'object-group-pick-'+id;
     const named=object=>object.name||'名前なし';
@@ -58,14 +59,15 @@
     }
     function markup() {
       return '<div class="layer-toolbar"><button type="button" class="object-layer-add" data-object-command="layer-create">'+icon('plus')+'<span>レイヤーを追加</span></button>'+(ctx.selected().length?'<button type="button" class="object-layer-move-selection" data-object-command="move-selection">'+icon('layers')+'<span>選択図形をレイヤーへ移動</span></button>':'')+'</div><p class="muted">上ほど前面です。レイヤーを選ぶと、新しい図形の追加先になります。</p><ol id="object-rows" class="object-layers" aria-label="レイヤーと図形の一覧">'+layers().slice().reverse().map(layer=>{
-        const index=layers().indexOf(layer),current=activeLayer()===layer.id;
-        return '<li class="object-layer '+(current?'active ':'')+(!layer.visible?'hidden-layer':'')+'" data-layer-id="'+esc(layer.id)+'"><div class="object-layer-head">'+handle('layer',layer.name)+'<button type="button" class="object-layer-pick" id="object-layer-'+esc(layer.id)+'" data-layer-pick="'+esc(layer.id)+'" aria-pressed="'+current+'" aria-label="'+esc(layer.name+'を現在のレイヤーにする')+'">'+icon('layers')+'<span class="object-name">'+esc(layer.name)+'</span></button><div class="object-layer-actions">'+action('layer-rename',layer.id,layer.name+'の名前を変更','edit')+action('layer-visible',layer.id,layer.name+(layer.visible?'を非表示':'を表示'),'view',{pressed:layer.visible})+action('layer-lock',layer.id,layer.name+(layer.locked?'の固定を解除':'を固定'),layer.locked?'unlock':'lock',{pressed:layer.locked})+action('layer-remove',layer.id,layer.name+'を削除','delete',{disabled:layers().length===1})+'</div></div><div class="object-layer-content '+(!layer.visible||layer.locked?'layer-objects-disabled':'')+'">'+layerObjectsMarkup(layer)+'</div></li>';
+        const current=activeLayer()===layer.id,menuOpen=false;
+        const menu='<div id="object-layer-menu-'+esc(layer.id)+'" class="object-layer-menu" data-layer-menu="'+esc(layer.id)+'" popover="manual" aria-label="'+esc(layer.name+'の操作')+'">'+action('layer-rename',layer.id,layer.name+'の名前を変更','edit')+action('layer-visible',layer.id,layer.name+(layer.visible?'を非表示':'を表示'),'view',{pressed:layer.visible})+action('layer-lock',layer.id,layer.name+(layer.locked?'の固定を解除':'を固定'),layer.locked?'unlock':'lock',{pressed:layer.locked})+action('layer-remove',layer.id,layer.name+'を削除','delete',{disabled:layers().length===1})+'</div>';
+        return '<li class="object-layer '+(current?'active ':'')+(!layer.visible?'hidden-layer':'')+'" data-layer-id="'+esc(layer.id)+'"><div class="object-layer-head">'+handle('layer',layer.name)+'<button type="button" class="object-layer-pick" id="object-layer-'+esc(layer.id)+'" data-layer-pick="'+esc(layer.id)+'" aria-pressed="'+current+'" aria-label="'+esc(layer.name+'を現在のレイヤーにする')+'">'+icon('layers')+'<span class="object-name">'+esc(layer.name)+'</span></button><button type="button" class="object-layer-more" aria-haspopup="true" id="object-layer-more-'+esc(layer.id)+'" data-layer-more="'+esc(layer.id)+'" aria-expanded="'+menuOpen+'" aria-controls="object-layer-menu-'+esc(layer.id)+'" aria-label="'+esc(layer.name+'の操作メニュー')+'" data-tip="レイヤーの操作">'+moreIcon()+'</button>'+menu+'</div><div class="object-layer-content '+(!layer.visible||layer.locked?'layer-objects-disabled':'')+'">'+layerObjectsMarkup(layer)+'</div></li>';
       }).join('')+'</ol>';
     }
     function focusAfter(id) {
       requestAnimationFrame(()=>requestAnimationFrame(()=>{
         let target=document.getElementById(id);
-        if(target?.disabled) target=target.closest('.object-row')?.querySelector('[data-object-pick]')||target.closest('.object-group-head')?.querySelector('[data-object-group-pick]');
+        if(target&&(target.disabled||!target.getClientRects().length)) target=target.closest('.object-group')?.querySelector('[data-object-group-pick]')||target.closest('.object-row')?.querySelector('[data-object-pick]');
         target?.focus({preventScroll:true});
       }));
     }
@@ -157,7 +159,7 @@
     }
 
     function open() {
-      cancelDrag(); bindings?.abort(); bindings=new AbortController();
+      cancelDrag(); bindings?.abort(); bindings=new AbortController(); layerMenu=null;
       const initialScope=scope();
       if(expansionScope!==initialScope) { expanded=new Set(); expansionScope=initialScope; }
       ctx.showInspector('objects','レイヤー',markup(),null);
@@ -171,7 +173,24 @@
         if(!layer.visible||layer.locked)content.querySelectorAll('[data-object-command]:not([data-object-command=group-select]):not([data-object-command=visible]),[data-object-drag]').forEach(button=>button.disabled=true);
       }
       const valid=()=>scope()===initialScope&&!ctx.isBusy?.()&&rows.isConnected;
-      const listen=(target,name,callback)=>target.addEventListener(name,callback,{signal:bindings.signal});
+      const listen=(target,name,callback,options={})=>target.addEventListener(name,callback,{...options,signal:bindings.signal});
+      function setLayerMenu(id,focus) {
+        layerMenu=id;
+        panel.querySelectorAll('[data-layer-menu]').forEach(menu=>{
+          const shown=menu.dataset.layerMenu===id;
+          const opener=panel.querySelector('[data-layer-more="'+CSS.escape(menu.dataset.layerMenu)+'"]'); opener?.setAttribute('aria-expanded',String(shown));
+          if(!shown&&menu.matches(':popover-open')) menu.hidePopover();
+          if(!shown||!opener) return;
+          if(!menu.matches(':popover-open')) menu.showPopover();
+          const anchor=opener.getBoundingClientRect(),rect=menu.getBoundingClientRect();
+          menu.style.left=Math.max(8,Math.min(innerWidth-rect.width-8,anchor.right-rect.width))+'px';
+          menu.style.top=Math.max(8,Math.min(innerHeight-rect.height-8,anchor.bottom+4+rect.height<=innerHeight-8?anchor.bottom+4:anchor.top-rect.height-4))+'px';
+          if(focus) menu.querySelector('button:not([disabled])')?.focus({preventScroll:true});
+        });
+      }
+      listen(document,'pointerdown',event=>{if(layerMenu&&!event.target.closest('[data-layer-menu],[data-layer-more]'))setLayerMenu(null,false);},{capture:true});
+      listen(panel,'scroll',()=>setLayerMenu(null,false));
+      listen(window,'resize',()=>setLayerMenu(null,false));
       const picks=()=>[...rows.querySelectorAll('[data-layer-pick],[data-object-pick],[data-object-group-pick]')].filter(button=>!button.disabled&&button.getClientRects().length);
       function pick(button,add) {
         if(button.dataset.layerPick) { ctx.setActiveLayer?.(button.dataset.layerPick); ctx.select([]); }
@@ -185,15 +204,25 @@
       }
       listen(panel,'click',event=>{
         if(!valid()||drag) return;
-        const toggle=event.target.closest('[data-object-group-toggle]'), selected=event.target.closest('[data-layer-pick],[data-object-pick],[data-object-group-pick]'), command=event.target.closest('[data-object-command]');
+        const toggle=event.target.closest('[data-object-group-toggle]'), more=event.target.closest('[data-layer-more]'), selected=event.target.closest('[data-layer-pick],[data-object-pick],[data-object-group-pick]'), command=event.target.closest('[data-object-command]');
         if(toggle) expand(toggle.dataset.objectGroupToggle,toggle.closest('.object-layer').dataset.layerId,!expanded.has(toggle.closest('.object-layer').dataset.layerId+'|'+toggle.dataset.objectGroupToggle),toggle.id);
+        else if(more) { if(layerMenu===more.dataset.layerMore) setLayerMenu(more.dataset.layerMore,true); else setLayerMenu(more.dataset.layerMore,false); }
         else if(selected) {pick(selected,event.shiftKey);focusAfter(selected.id);}
-        else if(command) { try { perform(command.dataset.objectCommand,command.dataset.objectId,command.dataset.objectKey); } catch(error) { ctx.toast?.(error.message||'操作できませんでした。'); } }
+        else if(command) {
+          const menuId=command.closest('[data-layer-menu]')?.dataset.layerMenu;
+          setLayerMenu(null,false);
+          if(menuId) panel.querySelector('[data-layer-more="'+CSS.escape(menuId)+'"]')?.focus({preventScroll:true});
+          try { perform(command.dataset.objectCommand,command.dataset.objectId,command.dataset.objectKey); } catch(error) { ctx.toast?.(error.message||'操作できませんでした。'); }
+        }
       });
+      listen(panel,'pointerover',event=>{const more=event.target.closest('[data-layer-more]');if(more&&event.pointerType!=='touch'&&!drag&&layerMenu!==more.dataset.layerMore)setLayerMenu(more.dataset.layerMore,false);});
       listen(panel,'keydown',event=>{
         if(!valid()) {cancelDrag();return;}
         if(!event.isComposing&&(event.metaKey||event.ctrlKey)&&event.key.toLowerCase()==='z') {event.preventDefault();event.stopPropagation();cancelDrag();ctx.execute(event.shiftKey?'redo':'undo');return;}
         if(event.key==='Escape'&&drag) {event.preventDefault();event.stopPropagation();cancelDrag();return;}
+        if(event.key==='Escape'&&layerMenu) {event.preventDefault();event.stopPropagation();const id=layerMenu;setLayerMenu(null,false);focusAfter('object-layer-more-'+id);return;}
+        const more=event.target.closest('[data-layer-more]');
+        if(more&&(event.key==='Enter'||event.key===' '||event.key==='ArrowDown')) {event.preventDefault();setLayerMenu(more.dataset.layerMore,true);return;}
         const toggle=event.target.closest('[data-object-group-toggle]'), dragHandle=event.target.closest('[data-object-drag]');
         const handleButton=dragHandle?.dataset.objectDrag==='layer'?dragHandle.closest('.object-layer')?.querySelector('[data-layer-pick]'):dragHandle?.dataset.objectDrag==='child'?dragHandle.closest('.object-row')?.querySelector('[data-object-pick]'):dragHandle?.closest('.object-group')?.querySelector('[data-object-group-pick]');
         const button=event.target.closest('[data-layer-pick],[data-object-pick],[data-object-group-pick]')||toggle?.closest('.object-group').querySelector('[data-object-group-pick]')||handleButton;
@@ -235,11 +264,23 @@
         }
       });
       function previewDrop() {
-        const target=document.elementFromPoint(drag.x,drag.y)?.closest(drag.kind==='layer'?'.object-layer':drag.kind==='child'?'.object-row':'.object-unit');
+        const hit=document.elementFromPoint(drag.x,drag.y);
+        let target=hit?.closest(drag.kind==='layer'?'.object-layer':drag.kind==='child'?'.object-row':'.object-unit')||hit?.closest('.object-layer');
         panel.querySelectorAll('.drop-before,.drop-after').forEach(row=>row.classList.remove('drop-before','drop-after'));
-        if(!target||!rows.contains(target)||target===drag.row||drag.kind!=='layer'&&target.closest('.object-layer')?.dataset.layerId!==drag.layerId||drag.kind==='child'&&target.dataset.objectUnit!==drag.group) {drag.target=null;return;}
-        drag.target=drag.kind==='layer'?target.dataset.layerId:drag.kind==='child'?target.dataset.objectRow:target.dataset.objectKey;
+        const targetLayer=target?.closest('.object-layer');
+        const destination=layers().find(layer=>layer.id===targetLayer?.dataset.layerId),crossLayer=destination?.id!==drag.layerId;
+        const blocked=!destination||!destination.visible||destination.locked;
+        // Crossing a layer keeps a group together, including when its child row
+        // was grabbed or targeted. Within a group, child reordering stays local.
+        if(drag.kind!=='layer'&&crossLayer) target=hit?.closest('.object-unit')||targetLayer;
+        if(!target||!rows.contains(target)||target===drag.row||(drag.kind!=='layer'&&blocked)||(!crossLayer&&drag.kind!=='layer'&&target===targetLayer)||drag.kind==='child'&&!crossLayer&&target.dataset.objectUnit!==drag.group) {drag.target=null;return;}
+        if(drag.kind==='child'&&crossLayer&&ctx.page().objects.some(object=>(object.id===drag.id||object.group===drag.group)&&L.locked(ctx.page(),object.id))) {drag.target=null;return;}
+        drag.target=drag.kind==='layer'?target.dataset.layerId:(drag.kind==='child'?target.dataset.objectRow:target.dataset.objectKey)||'__empty__';
+        drag.targetLayer=targetLayer.dataset.layerId;
         const rect=target.getBoundingClientRect();drag.front=drag.y<rect.top+rect.height/2;
+        const targetUnit=target.dataset.objectKey,unitItems=objectsFor(destination).filter(object=>M.keyOf(object)===targetUnit).map(object=>object.id);
+        const indices=unitItems.map(id=>destination.objectIds.indexOf(id)),firstIndex=Math.min(...indices),lastIndex=Math.max(...indices);
+        drag.targetBefore=unitItems.length?(drag.front?destination.objectIds[lastIndex+1]||null:destination.objectIds[firstIndex]):null;
         target.classList.add(drag.front?'drop-before':'drop-after');
       }
       function autoScroll(time) {
@@ -260,7 +301,7 @@
         if(!layer) return;
         const moving=kind==='layer'?[]:kind==='child'?[row.dataset.objectRow]:objectsFor(L.list(ctx.page()).find(item=>item.id===layer.dataset.layerId)).filter(object=>M.keyOf(object)===row.dataset.objectKey).map(object=>object.id);
         if(kind!=='layer'&&(layer.classList.contains('hidden-layer')||layer.querySelector('[data-object-command="layer-lock"]')?.getAttribute('aria-pressed')==='true'||moving.some(id=>L.locked(ctx.page(),id)))) return;
-        event.preventDefault();event.stopPropagation();handle.focus({preventScroll:true});
+        event.preventDefault();event.stopPropagation();setLayerMenu(null,false);handle.focus({preventScroll:true});
         drag={kind,row,handle,pointer:event.pointerId,id:kind==='layer'?layer.dataset.layerId:kind==='child'?row.dataset.objectRow:row.dataset.objectKey,group:row.dataset.objectUnit,layerId:layer.dataset.layerId,target:null,front:false,page:ctx.page(),x:event.clientX,y:event.clientY};
         drag.frame=requestAnimationFrame(autoScroll);
         row.classList.add('dragging');handle.setPointerCapture(event.pointerId);window.addEventListener('blur',cancelDrag);
@@ -273,9 +314,13 @@
       listen(panel,'pointerup',event=>{
         if(!drag||event.pointerId!==drag.pointer) return;
         const previous=drag, current=valid()&&ctx.page()===previous.page;
+        if(current) {drag.x=event.clientX;drag.y=event.clientY;previewDrop();}
         cancelDrag();if(!current||!previous.target) return;
         if(previous.kind==='layer') ctx.changePage(page=>{const source=L.list(page).find(item=>item.id===previous.id), target=L.list(page).find(item=>item.id===previous.target), from=L.list(page).indexOf(source);let to=L.list(page).indexOf(target)+(previous.front?1:0);if(from<to)to-=1;L.move(page,previous.id,to-from);});
-        else if(previous.kind==='child') ctx.changePage(page=>reorderChildLayer(page,previous.layerId,previous.id,previous.target,previous.front));
+        else if(previous.targetLayer!==previous.layerId) {
+          const layer=L.list(ctx.page()).find(item=>item.id===previous.layerId), sourceObjects=objectsFor(layer), source=previous.kind==='child'?[previous.id]:sourceObjects.filter(object=>M.keyOf(object)===previous.id).map(object=>object.id);
+          ctx.changePage(page=>L.moveObjects(page,source,previous.targetLayer,previous.targetBefore));
+        } else if(previous.kind==='child') ctx.changePage(page=>reorderChildLayer(page,previous.layerId,previous.id,previous.target,previous.front));
         else ctx.changePage(page=>reorderLayer(page,previous.layerId,previous.id,previous.target,previous.front));
         const id=previous.kind==='layer'?'object-layer-'+previous.id:previous.kind==='child'?pickId(previous.id):previous.id.startsWith('g:')?groupPickId(previous.row.dataset.objectUnit):pickId(previous.row.dataset.objectUnit);
         focusAfter(id);
