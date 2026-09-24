@@ -378,6 +378,9 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <span class="fg" id="fgDisp"><span class="lbl">表記</span>
     <select id="dispSel" title="選択した部分だけ表記を変える"><option value="">全体に合わせる</option><option value="full">構造式</option><option value="condensed">簡略構造式</option><option value="skeletal">骨格構造式</option><option value="mixed" disabled hidden>（混在）</option></select>
     </span>
+    <span class="fg" id="fgChg"><span class="lbl">電荷</span>
+    <button class="ic" id="chgAuto" title="電荷の記号の位置を自動に戻す（ドラッグで動かした位置を取り消す）"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 2.3 5.7"/><path d="M4 6v5h5"/></svg></button>
+    </span>
     <span class="fg" id="fgAtom"><span class="lbl">原子</span>
     <label class="chk" title="選択した原子に H を付けない（H の数を 0 にする。分子式・分子量にも入らない）"><input type="checkbox" id="atNoH">H を付けない</label>
     <label class="chk" title="選択した原子で、価標の数が多すぎるときの赤い表示と警告を出さない"><input type="checkbox" id="atNoWarn">価標の警告を出さない</label>
@@ -526,7 +529,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
   <section data-help-topic="electron" data-help-title="電子・反応式">
     <h3>電子・反応式</h3>
     <ol>
-      <li>電荷は「電荷」のツールで原子をクリックします（+ − と丸囲みの ⊕ ⊖。もう一度で外れます）。選択ツールで電荷の記号をクリックすると選ばれ、ポップアップで色を変えられます（消しゴム・<kbd>Delete</kbd> で電荷を外せます）。</li>
+      <li>電荷は「電荷」のツールで原子をクリックします（+ − と丸囲みの ⊕ ⊖。もう一度で外れます）。選択ツールで電荷の記号をクリックすると選ばれ、ポップアップで色を変えられます（消しゴム・<kbd>Delete</kbd> で電荷を外せます）。記号はドラッグで原子のまわりの好きな位置に動かせます（「結合角固定」なら 15°刻み、「結合長固定」なら原子からの距離を変えません）。動かした位置は、ポップアップの「電荷」の ↺ で自動に戻せます。</li>
       <li>非共有電子対・不対電子は「電子・軌道」のツールで原子をクリック、原子からドラッグで向きを 15°刻み（<kbd>Shift</kbd> で自由）。</li>
       <li>反応の矢印は「反応式」のツールでドラッグします。</li>
     </ol>
@@ -591,7 +594,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.2（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.3（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -956,6 +959,7 @@ function tw(s, fs){
   for (const ch of s) w += CW[ch] ?? (/[0-9]/.test(ch) ? .556 : (ch.charCodeAt(0) > 255 ? 1 : .6));
   return w*fs;
 }
+const okVec2 = v => Array.isArray(v) && v.length === 2 && v.every(isFinite);   // [dx, dy]（手で動かした電荷の位置など）
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 const r2 = n => Math.round(n*100)/100;
 
@@ -1483,8 +1487,9 @@ function buildScene(d, opt){
         if (s > bs + 1e-6){ bs = s; best = c; }
       }
       const right = Math.abs(best) === 45, up = best < 0;
+      const mv = okVec2(a.chgv) ? {x:a.x + a.chgv[0], y:a.y + a.chgv[1]} : null;   // 手で動かした位置（a.chgv）
       if (a.chgc){   // 丸囲みの ⊕ ⊖
-        const r = 5.2, cx = right ? lab.box.x2 + 5 : lab.box.x1 - 5, cy = a.y + (up ? -1 : 1)*FS*0.6;
+        const r = 5.2, cx = mv ? mv.x : right ? lab.box.x2 + 5 : lab.box.x1 - 5, cy = mv ? mv.y : a.y + (up ? -1 : 1)*FS*0.6;
         const cc = a.chgcol || a.color;   // 電荷だけの色（a.chgcol）
         circles.push({cx, cy, r, w:1.1, col:cc}); lines.push([{x:cx-2.8, y:cy}, {x:cx+2.8, y:cy}, 1.1, cc]);
         chgHits.push({atom:a.id, x:cx, y:cy});
@@ -1492,7 +1497,8 @@ function buildScene(d, opt){
         grow(cx-r, cy-r, cx+r, cy+r);
       } else {
         const s = (Math.abs(a.charge) > 1 ? Math.abs(a.charge) : '') + (a.charge > 0 ? '+' : '−'), w = tw(s, SFS);
-        const t = {t:s, x: right ? lab.box.x2 - 0.5 : lab.box.x1 - w + 0.5, y: up ? a.y - FS*0.28 : a.y + FS*0.8, fs:SFS, fill:a.chgcol || fill};
+        const t = {t:s, x: mv ? mv.x - w/2 : right ? lab.box.x2 - 0.5 : lab.box.x1 - w + 0.5,
+          y: mv ? mv.y + SFS*0.35 : up ? a.y - FS*0.28 : a.y + FS*0.8, fs:SFS, fill:a.chgcol || fill};
         texts.push(t); grow(t.x, t.y - SFS, t.x + w, t.y);
         chgHits.push({atom:a.id, x:t.x + w/2, y:t.y - SFS*0.35});
       }
@@ -2150,7 +2156,7 @@ function newmanBackGroup(bid){
   }
   return out;
 }
-const clearCharge = a => { if (!a) return; a.charge = 0; delete a.chgc; delete a.chgcol; };
+const clearCharge = a => { if (!a) return; a.charge = 0; delete a.chgc; delete a.chgcol; delete a.chgv; };
 function deleteSelection(){
   if (!hasSel()) return;
   commit();
@@ -2235,6 +2241,7 @@ function transformSel(fn){
     const a = doc.atoms[id], ox = a.x, oy = a.y; [a.x, a.y] = T(ox, oy);
     for (const key of ['hv', 'pd'])   // 動かした H・いす形の置換基の向きも一緒に
       if (a[key]) a[key] = a[key].map(([vx, vy]) => { const [tx, ty] = T(ox+vx, oy+vy); return [tx-a.x, ty-a.y]; });
+    if (okVec2(a.chgv)){ const [tx, ty] = T(ox+a.chgv[0], oy+a.chgv[1]); a.chgv = [tx-a.x, ty-a.y]; }   // 動かした電荷の位置も
     if (a.dots) a.dots = turnDots(a.dots, {x:ox, y:oy}, a, TP);
   }
   for (const [id, src] of srcs) transformObj(doc.objs[id], TP, src);
@@ -2256,6 +2263,7 @@ function insertFragment(frag, dx, dy){
     if (a.dots) doc.atoms[id].dots = a.dots.map(dt => ({...dt}));
     if (a.hcol) doc.atoms[id].hcol = {...a.hcol};
     if (a.chgcol) doc.atoms[id].chgcol = a.chgcol;
+    if (okVec2(a.chgv)) doc.atoms[id].chgv = [...a.chgv];
     if (a.noH) doc.atoms[id].noH = true;
     if (a.noWarn) doc.atoms[id].noWarn = true;
     if (a.grp) doc.atoms[id].grp = a.grp;
@@ -2673,9 +2681,9 @@ svg.addEventListener('pointerdown', e => {
   }
   drag = {kind:'click', start:p, cur:p, hit, moved:false};
   if (t === 'select'){
-    if (hit && hit.type === 'chg'){   // 電荷の記号：選ぶだけ（ポップアップで色を変える。Shift で追加）。ドラッグでは動かさない
-      if (e.shiftKey){ if (isSel(hit)) sel.chg.delete(hit.id); else sel.chg.add(hit.id); } else { clearSel(); sel.chg.add(hit.id); }
-      drag = null; renderOverlay(); return;
+    if (hit && hit.type === 'chg'){   // 電荷の記号：ドラッグで原子のまわりを動かす。クリックだけなら選ぶ（Shift で追加）
+      drag = {kind:'chgMove', start:p, cur:p, moved:false, atom:hit.atom, id:hit.id, at:{x:hit.x, y:hit.y}, snap:JSON.stringify(doc), shift:e.shiftKey};
+      return;
     }
     if (hit){
       if (e.shiftKey){ if (isSel(hit)) selKey(hit).delete(hit.id); else selKey(hit).add(hit.id); drag = null; renderOverlay(); return; }
@@ -2713,6 +2721,18 @@ svg.addEventListener('pointermove', e => {
     if (!e.shiftKey) th = snapAng(th, 15);
     applyTransform(drag.orig, rotateTransform(drag.c, th)); renderDoc();
     $('hint').textContent = `回転 ${Math.round(norm180(th))}°（Shift を押すと自由な角度）`;
+  }
+  else if (drag.kind === 'chgMove'){   // 電荷の記号を原子のまわりで動かす（結合角固定なら 15°刻み、結合長固定なら距離を変えない）
+    const P = doc.atoms[drag.atom], o = drag.at;
+    if (P){
+      const tgt = {x:o.x + p.x - drag.start.x, y:o.y + p.y - drag.start.y};
+      let ang = angOf(P, tgt), len = Math.hypot(tgt.x-P.x, tgt.y-P.y);
+      if (state.moveSnap) ang = snapAng(ang, 15);
+      if (state.moveFix) len = Math.hypot(o.x-P.x, o.y-P.y);
+      const np = dirPt(P, ang, Math.max(6, len));
+      P.chgv = [np.x-P.x, np.y-P.y];
+      renderDoc();
+    }
   }
   else if (drag.kind === 'moveH'){
     const P = doc.atoms[drag.parent], o = drag.pts[drag.i];
@@ -2826,6 +2846,11 @@ svg.addEventListener('pointerup', () => {
     return;
   }
   if (d.kind === 'dotMove' || d.kind === 'objHandle'){ $('hint').textContent = HINTS[state.tool] || ''; if (d.moved){ pushSnap(d.snap); changed(); } else renderOverlay(); return; }
+  if (d.kind === 'chgMove'){
+    if (d.moved){ pushSnap(d.snap); changed(); return; }
+    if (d.shift){ if (sel.chg.has(d.id)) sel.chg.delete(d.id); else sel.chg.add(d.id); } else { clearSel(); sel.chg.add(d.id); }
+    renderOverlay(); return;
+  }
   if (d.kind === 'moveH'){
     if (d.moved){ pushSnap(d.snap); changed(); return; }
     const k = d.parent + ':' + d.i;   // クリックだけなら、その H を選択（ポップアップで色を変えられる。Shift で追加）
@@ -2903,7 +2928,7 @@ function clickAction(t, p, hit){
     if (!hit || hit.type !== 'atom') return;
     const c = t[6] === '+' ? 1 : -1, circ = t.endsWith('c');
     commit();
-    if (H.charge === c && !!H.chgc === circ){ H.charge = 0; delete H.chgc; delete H.chgcol; }
+    if (H.charge === c && !!H.chgc === circ){ H.charge = 0; delete H.chgc; delete H.chgcol; delete H.chgv; }
     else { H.charge = c; if (circ) H.chgc = true; else delete H.chgc; }
   } else if (t === 'erase'){
     if (!hit || hit.type === 'hyd') return;
@@ -3173,6 +3198,8 @@ function syncFmt(){
   $('fgText').hidden = !(styled.length || editTxt);
   $('fgBond').hidden = !bonds.length;
   $('fgOrb').hidden = !orbs.length;
+  const chgs = [...sel.chg].map(k => doc.atoms[+k.slice(1)]).filter(Boolean);   // 電荷：位置を自動に戻す
+  $('fgChg').hidden = !chgs.some(a => a.chgv);
   const ats = [...sel.atoms].map(id => doc.atoms[id]).filter(a => a && !a.grp && !a.blank);   // 原子：H を付けない・警告を出さない
   $('fgAtom').hidden = !ats.length;
   for (const [cb, k] of [['atNoH', 'noH'], ['atNoWarn', 'noWarn']]) if (ats.length){
@@ -3791,6 +3818,7 @@ function sanitize(d){
     if (a.chgc) n.chgc = true;
     if (okVecs(a.hv)) n.hv = a.hv.map(v => [+v[0], +v[1]]);
     if (okVecs(a.pd)) n.pd = a.pd.map(v => [+v[0], +v[1]]);
+    if (okVec2(a.chgv)) n.chgv = [+a.chgv[0], +a.chgv[1]];   // 手で動かした電荷の位置
     if (a.nm === 'f' || a.nm === 'b') n.nm = a.nm;
     if (a.nmb != null && isFinite(a.nmb)) n.nmb = +a.nmb;
     if (okCol(a.color)) n.color = a.color;
@@ -4088,6 +4116,10 @@ $('bondGap').addEventListener('change', e => {   // 選択した二重結合・�
 $('orbW').addEventListener('change', e => {
   const os = selObjsOf('orb'); if (!os.length) return;
   commit(); os.forEach(o => { if (+e.target.value === 0.42) delete o.w; else o.w = +e.target.value; }); changed();
+});
+$('chgAuto').addEventListener('click', () => {   // 電荷の記号の位置を自動に戻す
+  const chgs = [...sel.chg].map(k => doc.atoms[+k.slice(1)]).filter(a => a && a.chgv); if (!chgs.length) return;
+  commit(); chgs.forEach(a => { delete a.chgv; }); changed();
 });
 for (const [cb, k] of [['atNoH', 'noH'], ['atNoWarn', 'noWarn']])   // 選択した原子：H を付けない・価標の警告を出さない
   $(cb).addEventListener('change', e => {
