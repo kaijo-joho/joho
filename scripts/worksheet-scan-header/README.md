@@ -16,6 +16,9 @@ B5・A4の表面にタイトル・氏名・組/番号OMR・ワークシートQR�
 | `scan_core.py` | 座標JSONを使う共通OpenCV読取コア |
 | `scan_poc.py` | ローカルPDF/JPEG/PNGの読取CLI。JSON・コンソール・確認画像を出力 |
 | `scan_batch.py` | 複数ファイルの順次検証と正解付きmanifestの照合 |
+| `scan_intake.py` | 複数人PDFの分割・名簿照合・ローカル提出履歴CLI |
+| `submission_ledger.py` | SQLite台帳・重複候補・選択・誤記案件・確認一覧 |
+| `intake-settings.example.json` / `INTAKE.md` | ダミー名簿・教材設定例と運用手順 |
 | `reader-config.json` / `requirements-scan.txt` | 読取閾値・処理上限とPython依存 |
 | `read_scan.py` | 旧API互換。内部では同じ読取コアを使用 |
 | `read_duplex.py` | 1人分の両面PDFのQR検査と表面から裏面への生徒候補継承 |
@@ -146,7 +149,9 @@ dr31・dr32・dr41・dr42の表面には全要素、裏面にはタイトル・Q
 
 ## ローカルOpenCV読取PoC
 
-Python 3.11以上と `requirements-scan.txt` を使う。PDF入力にはローカルのPoppler `pdftoppm` が必要。画像入力にはPoppler、Node、ReportLab、日本語フォントは不要。処理中の通信、ScanSnap・Drive・GSS接続、名簿照合、本文の筆記量判定は実装しない。
+Python 3.11以上と `requirements-scan.txt` を使う。PDF入力にはローカルのPoppler `pdftoppm` が必要。画像入力にはPoppler、Node、ReportLab、日本語フォントは不要。この読取PoC単体は、通信、ScanSnap・Drive・GSS接続、名簿照合、本文の筆記量判定を行わない。
+
+複数人を含む連続スキャンPDFの分割、ローカル設定による名簿照合、提出履歴・重複・誤記案件の管理には、新しい [取り込みCLIの手順](INTAKE.md) を使用する。既存の `scan_poc.py` と `scan_batch.py` の入力単位・互換性は維持している。
 
 ```sh
 python3 -m venv /tmp/worksheet-scan-venv

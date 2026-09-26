@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "worksheet-intake-settings/1",
+  "roster": [
+    {"year": 2026, "grade": 1, "studentIdentifier": "307", "studentKey": "demo-student-307"},
+    {"year": 2026, "grade": 1, "studentIdentifier": "327", "studentKey": "demo-student-327"},
+    {"year": 2026, "grade": 1, "studentIdentifier": "408", "studentKey": "demo-student-408"}
+  ],
+  "worksheets": [
+    {"subject": "INFO1", "year": 2026, "worksheetId": "WS05", "grade": 1, "period": "demo-term", "dueAt": null},
+    {"subject": "INFO1", "year": 2026, "worksheetId": "WS32", "grade": 1, "period": "demo-term", "dueAt": null}
+  ],
+  "reviewRules": {"minClosedAssignments": 5, "maxSparseSubmissions": 2}
+}
