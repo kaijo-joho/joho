@@ -45,10 +45,12 @@ var WorksheetScanHeader = (function () {
     if (!Number.isFinite(scale) || scale <= 0 || (paperSize === 'b5' && scale !== 1)) throw new Error('B5 scale is fixed at 1; A4 scale must be positive');
     if (o.diameter * scale < config.limits.minCircleDiameter || o.stroke * scale < config.limits.minStroke || q.size * scale < config.limits.minQrSize) throw new Error('Scale is below reading limits');
     if (h.leftWidth + h.middleWidth + h.rightWidth + h.gap * 2 !== h.width || q.size > h.rightWidth || q.quietModules < 4) throw new Error('Invalid column or quiet-zone geometry');
+    const id = identity(options, config), front = id.side === 'F';
+    const top = front ? h.top : config.back.top;
+    if (top < m.inset) throw new Error('Header must stay inside the printable inset');
     const width = paper.width, height = paper.height;
-    const hx = width - (h.right + h.width) * scale, hy = h.top * scale;
+    const hx = width - (h.right + h.width) * scale, hy = top * scale;
     if (hx < (m.inset + m.size + m.clearance) * scale || hy + h.height * scale >= height / 2) throw new Error('Header does not fit printable area');
-    const id = identity(options, config);
     const title = String(options.title || '音のデジタル表現');
     const qr = qrLibrary.QrCode.encodeSegments(qrLibrary.QrSegment.makeSegments(id.payload), qrLibrary.QrCode.Ecc.MEDIUM, 1, q.maxVersion, -1, false);
     const moduleSize = q.size * scale / (qr.size + q.quietModules * 2);
@@ -64,25 +66,28 @@ var WorksheetScanHeader = (function () {
     const pointInfo = (x, y) => ({ mm: { x: round(x), y: round(y) }, normalized: { x: round(x / width), y: round(y / height) } });
     const header = rectInfo(box(hx, hy, h.width * scale, h.height * scale));
     const middleX = h.leftWidth + h.gap, rightX = middleX + h.middleWidth + h.gap;
-    const columns = { left: rectInfo(box(hx, hy, h.leftWidth * scale, h.height * scale)), middle: rectInfo(box(X(middleX), hy, h.middleWidth * scale, h.height * scale)), right: rectInfo(box(X(rightX), hy, h.rightWidth * scale, h.height * scale)) };
-    const fitted = titleLines(title, h.leftWidth - 1, config.text);
+    const leftWidth = front ? h.leftWidth : rightX - h.gap;
+    const columns = { left: rectInfo(box(hx, hy, leftWidth * scale, h.height * scale)), middle: front ? rectInfo(box(X(middleX), hy, h.middleWidth * scale, h.height * scale)) : null, right: rectInfo(box(X(rightX), hy, h.rightWidth * scale, h.height * scale)) };
+    const fitted = titleLines(title, leftWidth - 1, config.text);
     fitted.lines.forEach((v, i) => text(v, hx, Y(5 + i * config.text.titleLineHeight), fitted.size * scale, 'start', true));
-    text('氏名', hx, Y(19), config.text.labelSize * scale);
-    line(X(9), Y(20), X(h.leftWidth - 1), Y(20), o.stroke * scale);
     const omr = {}, handwriting = {};
-    for (let digit = 0; digit < 10; digit++) text(String(digit), X(middleX + o.firstX + digit * o.pitchX), Y(o.headingY), config.text.labelSize * scale, 'middle');
-    ['class', 'tens', 'ones'].forEach((row, index) => {
-      const localY = o.firstY + index * o.pitchY, y = Y(localY);
-      if (index < 2) text(index === 0 ? '組' : '番', X(middleX), y + 0.95 * scale, config.text.labelSize * scale);
-      const r = box(X(middleX + o.boxX), y - o.boxSize * scale / 2, o.boxSize * scale, o.boxSize * scale);
-      rect(r.x, r.y, r.width, r.height, null, '#000', o.stroke * scale, 'header');
-      handwriting[row + '_box'] = rectInfo(r);
-      omr[row] = Array.from({ length: 10 }, (_, digit) => {
-        const localX = middleX + o.firstX + digit * o.pitchX, x = X(localX), radius = o.diameter * scale / 2;
-        scene.push({ type: 'circle', x, y, radius, lineWidth: o.stroke * scale, group: 'header' });
-        return { digit, center: pointInfo(x, y), radiusMm: round(radius), radiusNormalized: { x: round(radius / width), y: round(radius / height) }, sampleRadiusMm: round(radius * o.sampleRadiusRatio), headerNormalized: { x: round(localX / h.width), y: round(localY / h.height) } };
+    if (front) {
+      text('氏名', hx, Y(19), config.text.labelSize * scale);
+      line(X(9), Y(20), X(h.leftWidth - 1), Y(20), o.stroke * scale);
+      for (let digit = 0; digit < 10; digit++) text(String(digit), X(middleX + o.firstX + digit * o.pitchX), Y(o.headingY), config.text.labelSize * scale, 'middle');
+      ['class', 'tens', 'ones'].forEach((row, index) => {
+        const localY = o.firstY + index * o.pitchY, y = Y(localY);
+        if (index < 2) text(index === 0 ? '組' : '番', X(middleX), y + 0.95 * scale, config.text.labelSize * scale);
+        const r = box(X(middleX + o.boxX), y - o.boxSize * scale / 2, o.boxSize * scale, o.boxSize * scale);
+        rect(r.x, r.y, r.width, r.height, null, '#000', o.stroke * scale, 'header');
+        handwriting[row + '_box'] = rectInfo(r);
+        omr[row] = Array.from({ length: 10 }, (_, digit) => {
+          const localX = middleX + o.firstX + digit * o.pitchX, x = X(localX), radius = o.diameter * scale / 2;
+          scene.push({ type: 'circle', x, y, radius, lineWidth: o.stroke * scale, group: 'header' });
+          return { digit, center: pointInfo(x, y), radiusMm: round(radius), radiusNormalized: { x: round(radius / width), y: round(radius / height) }, sampleRadiusMm: round(radius * o.sampleRadiusRatio), headerNormalized: { x: round(localX / h.width), y: round(localY / h.height) } };
+        });
       });
-    });
+    }
     const qx = X(rightX), qy = hy, quiet = q.quietModules * moduleSize;
     rect(qx, qy, q.size * scale, q.size * scale, '#fff', null, 0, 'header');
     // Merge contiguous black modules per row: compact vectors, no raster images.
@@ -103,7 +108,7 @@ var WorksheetScanHeader = (function () {
       rect(x, y, size, size, '#000', null, 0, 'marker');
       markers[key] = { ...rectInfo(box(x, y, size, size)), center: pointInfo(x + size / 2, y + size / 2), exclusion: rectInfo(box(x - m.clearance * scale, y - m.clearance * scale, size + 2 * m.clearance * scale, size + 2 * m.clearance * scale)) };
     }
-    const coordinates = { schemaVersion: config.schemaVersion, origin: 'top-left', axes: 'x-right,y-down', units: 'mm', pageSize: paperSize, page: { widthMm: width, heightMm: height }, scale, dpi: config.dpi, raster: { width: Math.round(width / 25.4 * config.dpi), height: Math.round(height / 25.4 * config.dpi) }, identity: id, title, displayedTitle: fitted.lines, header, columns, qr: { region: rectInfo(box(qx, qy, q.size * scale, q.size * scale)), symbol: rectInfo(box(qx + quiet, qy + quiet, qr.size * moduleSize, qr.size * moduleSize)), center: pointInfo(qx + q.size * scale / 2, qy + q.size * scale / 2), sizeMm: round(q.size * scale), moduleMm: round(moduleSize), quietZoneModules: q.quietModules, quietZoneMm: round(quiet), version: qr.version, modules: qr.size, ecc: 'M' }, omr, handwriting, markers, body: { minTopMm: round((h.top + h.height + config.bodyGap) * scale), minBottomMarginMm: round((m.inset + m.size + m.clearance) * scale) } };
+    const coordinates = { schemaVersion: config.schemaVersion, origin: 'top-left', axes: 'x-right,y-down', units: 'mm', pageSize: paperSize, page: { widthMm: width, heightMm: height }, scale, dpi: config.dpi, raster: { width: Math.round(width / 25.4 * config.dpi), height: Math.round(height / 25.4 * config.dpi) }, identity: id, title, displayedTitle: fitted.lines, header, columns, qr: { region: rectInfo(box(qx, qy, q.size * scale, q.size * scale)), symbol: rectInfo(box(qx + quiet, qy + quiet, qr.size * moduleSize, qr.size * moduleSize)), center: pointInfo(qx + q.size * scale / 2, qy + q.size * scale / 2), sizeMm: round(q.size * scale), moduleMm: round(moduleSize), quietZoneModules: q.quietModules, quietZoneMm: round(quiet), version: qr.version, modules: qr.size, ecc: 'M' }, studentIdentitySource: front ? 'front-omr' : 'paired-front', omr, handwriting, markers, body: { minTopMm: round((top + h.height + config.bodyGap) * scale), minBottomMarginMm: round((m.inset + m.size + m.clearance) * scale) } };
     return { coordinates, scene };
   }
   function svg(model, onlyHeader) {
@@ -115,7 +120,9 @@ var WorksheetScanHeader = (function () {
       if (s.type === 'circle') return '<circle ' + attrs({ cx: s.x, cy: s.y, r: s.radius, fill: 'none', stroke: '#000', 'stroke-width': s.lineWidth }) + '/>';
       return '<rect ' + attrs({ x: s.x, y: s.y, width: s.width, height: s.height, fill: s.fill || 'none', stroke: s.stroke || 'none', 'stroke-width': s.lineWidth || 0 }) + '/>';
     }).join('\n');
-    return '<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--' + c.pageSize + '" width="' + b.width + 'mm" height="' + b.height + 'mm" viewBox="' + [b.x, b.y, b.width, b.height].join(' ') + '" role="img" aria-label="' + escape(c.title + ' ' + c.identity.side + ' 氏名欄、組と番号のマーク欄、ワークシート識別QR') + '" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>' + escape(c.title) + '</title><desc>組・出席番号の十の位・一の位を各行1つ塗りつぶす。QR: ' + escape(c.identity.payload) + '</desc>\n' + children + '\n</svg>';
+    const front = c.identity.side === 'F';
+    const description = front ? '組・出席番号の十の位・一の位を各行1つ塗りつぶす。' : '生徒情報は同じ両面PDFの表面から引き継ぐ。';
+    return '<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--' + c.pageSize + '" data-scan-side="' + c.identity.side + '" width="' + b.width + 'mm" height="' + b.height + 'mm" viewBox="' + [b.x, b.y, b.width, b.height].join(' ') + '" role="img" aria-label="' + escape(c.title + ' ' + c.identity.side + (front ? ' 氏名欄、組と番号のマーク欄、ワークシート識別QR' : ' ワークシート識別QR')) + '" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>' + escape(c.title) + '</title><desc>' + description + 'QR: ' + escape(c.identity.payload) + '</desc>\n' + children + '\n</svg>';
   }
   return { create, svg, escape, fiscalYear };
 })();

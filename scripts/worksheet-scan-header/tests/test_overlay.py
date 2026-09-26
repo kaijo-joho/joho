@@ -51,6 +51,12 @@ class OverlayTests(unittest.TestCase):
         c = json.loads(self.output.with_suffix('.coordinates.json').read_text())
         self.assertEqual([p['pageSize'] for p in c], ['b5', 'a4'])
         self.assertEqual([p['identity']['payload'] for p in c], ['INFO1|2026|WS05|F', 'INFO1|2026|WS05|B'])
+        self.assertEqual(len(c[0]['omr']), 3)
+        self.assertEqual(c[1]['omr'], {})
+        self.assertEqual(c[1]['studentIdentitySource'], 'paired-front')
+        pages = PdfReader(self.output).pages
+        self.assertIn('氏名', pages[0].extract_text())
+        self.assertNotIn('氏名', pages[1].extract_text())
         for page in PdfReader(self.output).pages:
             self.assertIn('Original body: keep exactly here.', page.extract_text())
         for path in [self.source, self.output]:

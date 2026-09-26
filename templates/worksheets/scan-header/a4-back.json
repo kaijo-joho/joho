@@ -1,0 +1,281 @@
+{
+  "schemaVersion": "worksheet-scan-header/2",
+  "origin": "top-left",
+  "axes": "x-right,y-down",
+  "units": "mm",
+  "pageSize": "a4",
+  "page": {
+    "widthMm": 210,
+    "heightMm": 297
+  },
+  "scale": 1.12,
+  "dpi": 300,
+  "raster": {
+    "width": 2480,
+    "height": 3508
+  },
+  "identity": {
+    "subject": "INFO1",
+    "year": 2026,
+    "worksheetId": "WS05",
+    "side": "B",
+    "payload": "INFO1|2026|WS05|B"
+  },
+  "title": "音のデジタル表現",
+  "displayedTitle": [
+    "音のデジタル表現"
+  ],
+  "header": {
+    "mm": {
+      "x": 19.6,
+      "y": 5.6,
+      "width": 179.2,
+      "height": 26.88
+    },
+    "normalized": {
+      "x": 0.093333,
+      "y": 0.018855,
+      "width": 0.853333,
+      "height": 0.090505
+    }
+  },
+  "columns": {
+    "left": {
+      "mm": {
+        "x": 19.6,
+        "y": 5.6,
+        "width": 151.2,
+        "height": 26.88
+      },
+      "normalized": {
+        "x": 0.093333,
+        "y": 0.018855,
+        "width": 0.72,
+        "height": 0.090505
+      }
+    },
+    "middle": null,
+    "right": {
+      "mm": {
+        "x": 174.16,
+        "y": 5.6,
+        "width": 24.64,
+        "height": 26.88
+      },
+      "normalized": {
+        "x": 0.829333,
+        "y": 0.018855,
+        "width": 0.117333,
+        "height": 0.090505
+      }
+    }
+  },
+  "qr": {
+    "region": {
+      "mm": {
+        "x": 174.16,
+        "y": 5.6,
+        "width": 24.64,
+        "height": 24.64
+      },
+      "normalized": {
+        "x": 0.829333,
+        "y": 0.018855,
+        "width": 0.117333,
+        "height": 0.082963
+      }
+    },
+    "symbol": {
+      "mm": {
+        "x": 177.146667,
+        "y": 8.586667,
+        "width": 18.666667,
+        "height": 18.666667
+      },
+      "normalized": {
+        "x": 0.843556,
+        "y": 0.028911,
+        "width": 0.088889,
+        "height": 0.062851
+      }
+    },
+    "center": {
+      "mm": {
+        "x": 186.48,
+        "y": 17.92
+      },
+      "normalized": {
+        "x": 0.888,
+        "y": 0.060337
+      }
+    },
+    "sizeMm": 24.64,
+    "moduleMm": 0.746667,
+    "quietZoneModules": 4,
+    "quietZoneMm": 2.986667,
+    "version": 2,
+    "modules": 25,
+    "ecc": "M"
+  },
+  "studentIdentitySource": "paired-front",
+  "omr": {},
+  "handwriting": {},
+  "markers": {
+    "topLeft": {
+      "mm": {
+        "x": 5.6,
+        "y": 5.6,
+        "width": 3.92,
+        "height": 3.92
+      },
+      "normalized": {
+        "x": 0.026667,
+        "y": 0.018855,
+        "width": 0.018667,
+        "height": 0.013199
+      },
+      "center": {
+        "mm": {
+          "x": 7.56,
+          "y": 7.56
+        },
+        "normalized": {
+          "x": 0.036,
+          "y": 0.025455
+        }
+      },
+      "exclusion": {
+        "mm": {
+          "x": 3.92,
+          "y": 3.92,
+          "width": 7.28,
+          "height": 7.28
+        },
+        "normalized": {
+          "x": 0.018667,
+          "y": 0.013199,
+          "width": 0.034667,
+          "height": 0.024512
+        }
+      }
+    },
+    "topRight": {
+      "mm": {
+        "x": 200.48,
+        "y": 5.6,
+        "width": 3.92,
+        "height": 3.92
+      },
+      "normalized": {
+        "x": 0.954667,
+        "y": 0.018855,
+        "width": 0.018667,
+        "height": 0.013199
+      },
+      "center": {
+        "mm": {
+          "x": 202.44,
+          "y": 7.56
+        },
+        "normalized": {
+          "x": 0.964,
+          "y": 0.025455
+        }
+      },
+      "exclusion": {
+        "mm": {
+          "x": 198.8,
+          "y": 3.92,
+          "width": 7.28,
+          "height": 7.28
+        },
+        "normalized": {
+          "x": 0.946667,
+          "y": 0.013199,
+          "width": 0.034667,
+          "height": 0.024512
+        }
+      }
+    },
+    "bottomLeft": {
+      "mm": {
+        "x": 5.6,
+        "y": 287.48,
+        "width": 3.92,
+        "height": 3.92
+      },
+      "normalized": {
+        "x": 0.026667,
+        "y": 0.967946,
+        "width": 0.018667,
+        "height": 0.013199
+      },
+      "center": {
+        "mm": {
+          "x": 7.56,
+          "y": 289.44
+        },
+        "normalized": {
+          "x": 0.036,
+          "y": 0.974545
+        }
+      },
+      "exclusion": {
+        "mm": {
+          "x": 3.92,
+          "y": 285.8,
+          "width": 7.28,
+          "height": 7.28
+        },
+        "normalized": {
+          "x": 0.018667,
+          "y": 0.96229,
+          "width": 0.034667,
+          "height": 0.024512
+        }
+      }
+    },
+    "bottomRight": {
+      "mm": {
+        "x": 200.48,
+        "y": 287.48,
+        "width": 3.92,
+        "height": 3.92
+      },
+      "normalized": {
+        "x": 0.954667,
+        "y": 0.967946,
+        "width": 0.018667,
+        "height": 0.013199
+      },
+      "center": {
+        "mm": {
+          "x": 202.44,
+          "y": 289.44
+        },
+        "normalized": {
+          "x": 0.964,
+          "y": 0.974545
+        }
+      },
+      "exclusion": {
+        "mm": {
+          "x": 198.8,
+          "y": 285.8,
+          "width": 7.28,
+          "height": 7.28
+        },
+        "normalized": {
+          "x": 0.946667,
+          "y": 0.96229,
+          "width": 0.034667,
+          "height": 0.024512
+        }
+      }
+    }
+  },
+  "body": {
+    "minTopMm": 35.84,
+    "minBottomMarginMm": 11.2
+  }
+}

@@ -10,6 +10,7 @@
 [data-paper-size="b5"] .ws-page .ws-scan-svg--a4 { display: none; }
 /* Reflow existing paper content without changing 10.5/9 pt text or lesson data. */
 @media print, screen and (min-width: 841px) {
+  .ws-page[data-scan-side="B"] { padding-top: var(--ws-scan-back-top); }
   .ws-page p { margin-block: .9mm; }
   :where([data-paper-size="b5"]) .ws-page p { margin-block: .8mm; }
   .ws-page .ws-table:not(.ws-table--samples) th,
@@ -53,6 +54,17 @@
   :where([data-paper-size="b5"]) .ws-page--video .ws-vid-work--long { height: 20mm; min-height: 20mm; }
   .ws-page--video .ws-vid-terms .ws-answer { height: 5.4mm; min-height: 5.4mm; line-height: 5mm; }
   :where([data-paper-size="b5"]) .ws-page--video .ws-vid-terms .ws-answer { height: 4.8mm; min-height: 4.8mm; line-height: 4.4mm; }
+  /* Give the space released on the back to existing writing areas. */
+  [data-worksheet-id="dr31"] .ws-page[data-scan-side="B"] .ws-table--terms td { padding-block: .6mm; }
+  :where([data-paper-size="b5"]) [data-worksheet-id="dr31"] .ws-page[data-scan-side="B"] .ws-table--terms td { padding-block: .55mm; }
+  .ws-page--sound-data[data-scan-side="B"] .ws-calc-scratch { height: 12.8mm; }
+  :where([data-paper-size="b5"]) .ws-page--sound-data[data-scan-side="B"] .ws-calc-scratch { height: 10.5mm; }
+  .ws-page--image[data-scan-side="B"] .ws-img-work { height: 19.5mm; min-height: 19.5mm; }
+  :where([data-paper-size="b5"]) .ws-page--image[data-scan-side="B"] .ws-img-work { height: 15mm; min-height: 15mm; }
+  .ws-page--video[data-scan-side="B"] .ws-vid-work { height: 19.5mm; min-height: 19.5mm; }
+  .ws-page--video[data-scan-side="B"] .ws-vid-work--long { height: 25.5mm; min-height: 25.5mm; }
+  :where([data-paper-size="b5"]) .ws-page--video[data-scan-side="B"] .ws-vid-work { height: 16mm; min-height: 16mm; }
+  :where([data-paper-size="b5"]) .ws-page--video[data-scan-side="B"] .ws-vid-work--long { height: 22mm; min-height: 22mm; }
 }
 @media print {
   .ws-calc-tools:not(:has(.ws-calc-result)) { display: none; }

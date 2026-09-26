@@ -8,7 +8,7 @@ function addWorksheetScanHeader_(bodyHtml, definition, year) {
     var models = ['a4', 'b5'].map(function (pageSize) {
       return WorksheetScanHeader.create({ pageSize: pageSize, title: title, worksheetId: definition.id, year: year, side: side }, WS_SCAN_CONFIG_, qrcodegen);
     });
-    return '<article' + attrs + '><div class="ws-scan-layer">' + models.map(function (model) { return WorksheetScanHeader.svg(model); }).join('') + '</div>'
+    return '<article' + attrs + ' data-scan-side="' + side + '"><div class="ws-scan-layer">' + models.map(function (model) { return WorksheetScanHeader.svg(model); }).join('') + '</div>'
       + '<div class="ws-scan-mobile">' + models.map(function (model) { return WorksheetScanHeader.svg(model, true); }).join('') + '</div>';
   });
   if (count !== 2) throw new Error('Scan worksheets require exactly two explicit pages');

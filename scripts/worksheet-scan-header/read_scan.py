@@ -7,6 +7,7 @@ Four markers must be visible and near the image corners (page crops are expected
 import argparse
 import json
 from pathlib import Path
+import re
 
 import cv2
 import numpy as np
@@ -45,7 +46,15 @@ def find_markers(gray):
     return np.float32(result)
 
 
-def read_image(gray, coordinates):
+def parse_payload(payload):
+    if not re.fullmatch(r'[A-Za-z0-9_-]{1,20}\|[0-9]{4}\|[A-Za-z0-9_-]{1,20}\|[FB]', payload):
+        raise ValueError('Invalid worksheet QR payload')
+    subject, year, worksheet_id, side = payload.split('|')
+    return {'subject': subject, 'year': int(year), 'worksheetId': worksheet_id, 'side': side, 'payload': payload}
+
+
+def read_image(gray, coordinates, strict_identity=True):
+    """Read one side. Unbound identity is only for subsequent duplex validation."""
     source = find_markers(gray)
     width, height = coordinates["raster"]["width"], coordinates["raster"]["height"]
     mm_width, mm_height = coordinates["page"]["widthMm"], coordinates["page"]["heightMm"]
@@ -59,12 +68,18 @@ def read_image(gray, coordinates):
         matrix = cv2.getPerspectiveTransform(np.roll(source, turns, axis=0), target)
         normalized = cv2.warpPerspective(gray, matrix, (width, height), borderValue=255)
         payload, points, _ = cv2.QRCodeDetector().detectAndDecode(normalized[y1:y2, x1:x2])
-        if payload == coordinates["identity"]["payload"]:
+        try:
+            identity = parse_payload(payload)
+        except ValueError:
+            continue
+        if identity['side'] == coordinates['identity']['side'] and (not strict_identity or payload == coordinates["identity"]["payload"]):
             break
     else:
         raise ValueError("QR did not match the expected worksheet/year/side; do not identify the student")
     rows = {}
-    for name, marks in coordinates["omr"].items():
+    # The back must never sample body ink or infer its own student candidate.
+    marks_by_row = coordinates['omr'] if identity['side'] == 'F' else {}
+    for name, marks in marks_by_row.items():
         ratios = []
         for mark in marks:
             x, y = px(mark["center"]["mm"])
@@ -79,8 +94,8 @@ def read_image(gray, coordinates):
         best, second = ranked[:2]
         status = "ok" if ratios[best] >= .55 and ratios[second] < .2 else ("blank" if ratios[best] < .15 else "ambiguous")
         rows[name] = {"status": status, "digit": best if status == "ok" else None, "blackRatios": [round(r, 4) for r in ratios]}
-    valid = all(row["status"] == "ok" for row in rows.values())
-    return {"qrPayload": payload, "orientationQuarterTurns": turns, "rows": rows, "candidate": {"class": rows["class"]["digit"], "number": rows["tens"]["digit"] * 10 + rows["ones"]["digit"]} if valid else None, "requiresRosterMatch": True}
+    valid = set(rows) == {'class', 'tens', 'ones'} and all(row["status"] == "ok" for row in rows.values())
+    return {"qrPayload": payload, "identity": identity, "orientationQuarterTurns": turns, "rows": rows, "candidate": {"class": rows["class"]["digit"], "number": rows["tens"]["digit"] * 10 + rows["ones"]["digit"]} if valid else None, "studentIdentitySource": 'front-omr' if identity['side'] == 'F' else 'paired-front', "requiresRosterMatch": True}
 
 
 def main():

@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--a4" width="210mm" height="297mm" viewBox="0 0 210 297" role="img" aria-label="音のデジタル表現 F 氏名欄、組と番号のマーク欄、ワークシート識別QR" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>音のデジタル表現</title><desc>組・出席番号の十の位・一の位を各行1つ塗りつぶす。QR: INFO1|2026|WS05|F</desc>
+<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--a4" data-scan-side="F" width="210mm" height="297mm" viewBox="0 0 210 297" role="img" aria-label="音のデジタル表現 F 氏名欄、組と番号のマーク欄、ワークシート識別QR" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>音のデジタル表現</title><desc>組・出席番号の十の位・一の位を各行1つ塗りつぶす。QR: INFO1|2026|WS05|F</desc>
 <text x="19.6" y="16.8" font-size="4.256" text-anchor="start" font-weight="700">音のデジタル表現</text>
 <text x="19.6" y="32.48" font-size="3.136" text-anchor="start" font-weight="400">氏名</text>
 <line x1="29.68" y1="33.6" x2="99.12" y2="33.6" stroke="#000" stroke-width="0.28"/>

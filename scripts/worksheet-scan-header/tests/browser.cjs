@@ -32,7 +32,7 @@ let runningBrowser;
             return a.right > b.right + 1 || a.bottom > b.bottom + 1 || a.left < b.left - 1 || a.top < b.top - 1;
           }).map(el => el.parentElement.dataset.answerId);
           const svg = [...p.querySelectorAll('.ws-scan-layer > svg')].filter(el => getComputedStyle(el).display !== 'none');
-          return { widthMm: r.width * 25.4 / 96, heightMm: r.height * 25.4 / 96, usedMm: (end - r.top) * 25.4 / 96, spareMm: (r.bottom - end) * 25.4 / 96, contentSpareMm: (r.bottom - parseFloat(getComputedStyle(p).paddingBottom) - end) * 25.4 / 96, clipped, visibleHeaders: svg.length, marks: svg[0]?.querySelectorAll('circle').length, qrDescription: svg[0]?.querySelector('desc').textContent };
+          return { side: p.dataset.scanSide, nameFields: [...(svg[0]?.querySelectorAll('text') || [])].filter(t => t.textContent === '氏名').length, widthMm: r.width * 25.4 / 96, heightMm: r.height * 25.4 / 96, usedMm: (end - r.top) * 25.4 / 96, spareMm: (r.bottom - end) * 25.4 / 96, contentSpareMm: (r.bottom - parseFloat(getComputedStyle(p).paddingBottom) - end) * 25.4 / 96, clipped, visibleHeaders: svg.length, marks: svg[0]?.querySelectorAll('circle').length, qrDescription: svg[0]?.querySelector('desc').textContent };
         }));
         const name = id + '-' + paper + '-' + (answers ? 'answers' : 'blank');
         report.push({ name, metrics });
@@ -41,7 +41,10 @@ let runningBrowser;
           assert.ok(m.contentSpareMm >= -0.15, name + ' content overflow ' + m.contentSpareMm);
           assert.deepEqual(m.clipped, [], name + ' clipped answers');
           assert.equal(m.visibleHeaders, 1);
-          assert.equal(m.marks, 30);
+          assert.ok(['F', 'B'].includes(m.side));
+          assert.equal(m.marks, m.side === 'F' ? 30 : 0);
+          assert.equal(m.nameFields, m.side === 'F' ? 1 : 0);
+          assert.ok(m.qrDescription.includes('INFO1|2026|' + id + '|' + m.side));
         }
         await page.emulateMedia({ media: 'screen' });
       }

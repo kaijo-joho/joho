@@ -32,7 +32,7 @@ def main():
             sample = pdf.stem in ["b5", "a4"]
             paper = pdf.stem if sample else pdf.stem.split("-")[1]
             reader = PdfReader(pdf)
-            assert len(reader.pages) == (1 if sample else 2), str(pdf)
+            assert len(reader.pages) == 2, str(pdf)
             for index, page in enumerate(reader.pages):
                 options = {"pageSize": paper, "worksheetId": "WS05" if sample else pdf.stem.split("-")[0], "title": "音のデジタル表現", "year": 2026, "side": "F" if index % 2 == 0 else "B"}
                 c = generate(options)["coordinates"]
@@ -44,8 +44,9 @@ def main():
                 result = read_image(gray, c)
                 assert result["candidate"] is None
                 assert all(row["status"] == "blank" for row in result["rows"].values())
-                report.append({"pdf": pdf.name, "page": index + 1, "qr": result["qrPayload"], "omr": "30 blank circles"})
-                if sample:
+                assert len(result['rows']) == (3 if index == 0 else 0)
+                report.append({"pdf": pdf.name, "page": index + 1, "qr": result["qrPayload"], "omr": "30 blank circles" if index == 0 else "no student fields"})
+                if sample and index == 0:
                     height, width = gray.shape
                     def center(mark):
                         return tuple(round(mark["center"]["normalized"][axis] * size) for axis, size in [("x", width), ("y", height)])

@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "worksheet-scan-header/1",
+  "schemaVersion": "worksheet-scan-header/2",
   "origin": "top-left",
   "axes": "x-right,y-down",
   "units": "mm",
@@ -130,6 +130,7 @@
     "modules": 25,
     "ecc": "M"
   },
+  "studentIdentitySource": "front-omr",
   "omr": {
     "class": [
       {

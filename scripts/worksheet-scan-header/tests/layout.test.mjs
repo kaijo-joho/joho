@@ -48,14 +48,36 @@ test('QR quiet zone and physical module limits are enforced', () => {
   assert.throws(() => generate({ ...options, pageSize: 'a5' }), /B5/);
 });
 test('Markers have printable insets and do not overlap the header', () => {
-  for (const pageSize of ['a4', 'b5']) {
-    const c = generate({ ...options, pageSize }).coordinates, h = c.header.mm;
+  for (const pageSize of ['a4', 'b5']) for (const side of ['F', 'B']) {
+    const c = generate({ ...options, pageSize, side }).coordinates, h = c.header.mm;
     for (const marker of Object.values(c.markers)) {
       const r = marker.mm;
       assert.ok(r.x >= 5 && r.y >= 5);
       assert.ok(r.x + r.width <= c.page.widthMm - 5 && r.y + r.height <= c.page.heightMm - 5);
       assert.ok(r.x + r.width <= h.x || r.x >= h.x + h.width || r.y + r.height <= h.y || r.y >= h.y + h.height);
     }
+  }
+});
+test('Only the front has student fields; back retains QR/markers and releases body space', () => {
+  for (const pageSize of ['a4', 'b5']) {
+    const front = generate({ ...options, pageSize });
+    const back = generate({ ...options, pageSize, side: 'B' });
+    const f = front.coordinates, b = back.coordinates;
+    assert.equal(front.scene.filter(s => s.type === 'circle').length, 30);
+    assert.equal(back.scene.filter(s => s.type === 'circle').length, 0);
+    assert.ok(!back.svg.includes('氏名'));
+    assert.equal(back.scene.filter(s => s.type === 'line').length, 0);
+    assert.equal(Object.keys(b.omr).length, 0);
+    assert.equal(Object.keys(b.handwriting).length, 0);
+    assert.equal(b.columns.middle, null);
+    assert.equal(b.studentIdentitySource, 'paired-front');
+    assert.equal(b.identity.payload, 'INFO1|2026|dr31|B');
+    assert.equal(JSON.stringify(b.markers), JSON.stringify(f.markers));
+    near(b.qr.sizeMm, f.qr.sizeMm);
+    near(b.qr.region.mm.x, f.qr.region.mm.x);
+    near(f.body.minTopMm - b.body.minTopMm, 5 * f.scale);
+    near(f.header.mm.y, 10 * f.scale);
+    near(f.omr.class[0].center.mm.y, 17.5 * f.scale);
   }
 });
 test('Long titles are bounded and XML characters cannot become markup', () => {

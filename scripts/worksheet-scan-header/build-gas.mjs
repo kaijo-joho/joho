@@ -12,8 +12,9 @@ const script = '// Generated from joho/scripts/worksheet-scan-header. Edit the s
 let css = '';
 for (const [paper, p] of Object.entries(config.papers)) {
   const bodyTop = (config.header.top + config.header.height + config.bodyGap) * p.scale;
+  const backTop = (config.back.top + config.header.height + config.bodyGap) * p.scale;
   const bottom = (config.markers.inset + config.markers.size + config.markers.clearance) * p.scale;
-  css += ':root[data-paper-size="' + paper + '"] { --ws-scan-body-top: ' + bodyTop + 'mm; --ws-scan-bottom: ' + bottom + 'mm; }\n';
+  css += ':root[data-paper-size="' + paper + '"] { --ws-scan-body-top: ' + bodyTop + 'mm; --ws-scan-back-top: ' + backTop + 'mm; --ws-scan-bottom: ' + bottom + 'mm; }\n';
 }
 fs.mkdirSync(destination, { recursive: true });
 fs.writeFileSync(path.join(destination, '05_scan_header.js'), script);
