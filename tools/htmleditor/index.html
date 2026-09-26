@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-build="html-editor-720bcd45669af7bf">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>HTMLエディタ — 海城 情報科</title>
+  <style>
+    [hidden] { display: none !important; }
+    #startupFallback { position: fixed; inset: 0; padding: 24px; overflow: auto; background: Canvas; color: CanvasText; z-index: 9999; font: 16px/1.7 sans-serif; }
+    #startupFallback a { color: LinkText; }
+    #startupFallback li { margin-block: 12px; }
+  </style>
+  <script src="startup.js?v=html-editor-720bcd45669af7bf" integrity="sha384-kdkWCIqZcVNIiwdTwltAJQiP4p5foex8cr9xtuHrqyub2AfHB4PQf6pzeVWoix+p" crossorigin="anonymous"></script>
+  <link rel="icon" type="image/svg+xml" href="icon.svg">
+  <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-720bcd45669af7bf" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
+  <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-720bcd45669af7bf" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
+  <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-4HG+FaprjNnR+j66FlnWO+yCzSjm8TQowy0GQmYMk6cutdiC18tQ85ftPkntobRe" crossorigin="anonymous">
+</head>
+<body class="mode-lesson" data-pane="center">
+<section id="startupFallback" aria-labelledby="startupTitle">
+  <h1 id="startupTitle">HTMLエディタ</h1>
+  <p id="startupMessage">エディタを準備しています。開けない場合も、解説を読むことができます。</p>
+  <p><a id="startupLessonLink" href="../../html00.html">教材の目次を開く</a></p>
+  <details><summary>解説を選んで開く</summary><ul id="startupLessonList">
+    <li><a data-lesson="html11" href="../../html11.html?view=lesson">1-1. HTMLとは・実習の進め方</a></li>
+    <li><a data-lesson="html12" href="../../html12.html?view=lesson">1-2. HTMLファイルの構成</a></li>
+    <li><a data-lesson="html13" href="../../html13.html?view=lesson">1-3. 見出し・段落・文字の強調</a></li>
+    <li><a data-lesson="html14" href="../../html14.html?view=lesson">1-4. 画像</a></li>
+    <li><a data-lesson="html15" href="../../html15.html?view=lesson">1-5. リンク</a></li>
+    <li><a data-lesson="html16" href="../../html16.html?view=lesson">1-6. リスト</a></li>
+    <li><a data-lesson="html17" href="../../html17.html?view=lesson">1-7. テーブル（表）</a></li>
+    <li><a data-lesson="html18" href="../../html18.html?view=lesson">1-8. HTMLの応用</a></li>
+    <li><a data-lesson="html21" href="../../html21.html?view=lesson">2-1. CSSとは</a></li>
+    <li><a data-lesson="html22" href="../../html22.html?view=lesson">2-2. フォントの書式</a></li>
+    <li><a data-lesson="html23" href="../../html23.html?view=lesson">2-3. IDとクラス</a></li>
+    <li><a data-lesson="html24" href="../../html24.html?view=lesson">2-4. ブロック要素の書式</a></li>
+    <li><a data-lesson="html25" href="../../html25.html?view=lesson">2-5. CSSの応用</a></li>
+  </ul></details>
+  <noscript><p>このエディタにはJavaScriptが必要です。上のリンクから解説を開いてください。</p></noscript>
+</section>
+<div id="app" hidden>
+  <header id="toolbar" aria-label="エディタの操作">
+    <a class="brand" href="../index.html" aria-label="ツール一覧へ戻る"><img class="brand-icon" src="icon.svg" alt=""><span>HTMLエディタ <small class="beta-tag">BETA</small></span></a>
+    <details class="menu-wrap" id="fileMenu">
+      <summary class="btn" aria-label="ファイル"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4M9 12h6M9 16h6"/></svg><span class="wide-label">ファイル</span></summary>
+      <div class="menu-dropdown">
+        <button class="menu-item" id="openFilesBtn" type="button">ファイルを開く…</button>
+        <button class="menu-item" id="openFolderBtn" type="button">フォルダを開く…</button>
+        <button class="menu-item" id="fileListBtn" type="button">読み込んだファイル一覧…</button>
+        <button class="menu-item" id="newBtn" type="button">新しく始める…</button>
+        <div class="menu-divider"></div>
+        <button class="menu-item" id="browserSaveBtn" type="button">ブラウザに控えを保存</button>
+        <button class="menu-item" id="folderSaveBtn" type="button">接続したフォルダへ保存…</button>
+        <button class="menu-item" id="downloadBtn" type="button">ファイルをダウンロード</button>
+        <button class="menu-item" id="restoreBtn" type="button">保存した控えから復元…</button>
+      </div>
+    </details>
+    <button class="btn" id="saveBtn" type="button" title="開いたファイルに保存。直接保存できない場合はブラウザに控えを保存（Command+S）">保存</button>
+    <button class="btn primary" id="runBtn" type="button" title="プレビューを更新（Command+Enter）">更新</button>
+    <button class="btn" id="submitBtn" type="button" aria-label="学校の課題の提出条件を確認" aria-describedby="submissionState"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4H5v17h14V4h-2M9 3h6v4H9zM12 17v-6M9 14l3-3 3 3"/></svg><span id="submitLabel" class="wide-label">提出条件</span></button>
+    <div class="toolbar-right">
+      <details class="menu-wrap" id="displayMenuWrap">
+        <summary class="btn" aria-label="表示設定">表示</summary>
+        <div class="menu-dropdown display-settings">
+          <label>テーマ<select id="themeSelect"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label>
+          <label>文字サイズ<select id="sizeSelect"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label>
+          <p id="displayNotice" hidden>表示設定を読み込めませんでした。編集と保存は続けられます。</p>
+        </div>
+      </details>
+      <button class="btn icon-only" id="helpBtn" type="button" aria-label="ヘルプ">?</button>
+    </div>
+  </header>
+  <section id="practiceBar" aria-label="教材と課題">
+    <label>教材<select id="lessonSelect" aria-label="教材"></select></label>
+    <label>学校の課題<select id="taskSelect" aria-label="学校の課題"></select></label>
+    <a class="btn" id="personalLink" target="_blank" rel="noopener noreferrer" hidden>本人用HTMLを取得</a>
+    <span id="distributionState"></span>
+    <button class="btn" id="practiceOpenBtn" type="button">ファイルを開く</button>
+    <p id="usageNotice">基本編集・保存はログイン不要です。手元のHTML/CSSを開くか、このまま編集を始められます。</p>
+  </section>
+  <div id="documentStatus">
+    <span id="folderStatusText">フォルダ未接続</span>
+    <span id="saveState">HTML/CSSを開くか、このまま編集を始めてください。</span>
+    <span id="recoveryState">ブラウザの控えはバックアップの補助です。</span>
+    <span id="submissionState">学校への提出は、配付された本人用HTMLが対象です。</span>
+  </div>
+  <nav id="paneNav" aria-label="表示する領域">
+    <button class="btn" data-pane="left" aria-pressed="false" type="button">教材</button>
+    <button class="btn" data-pane="center" aria-pressed="true" type="button">コード</button>
+    <button class="btn" data-pane="right" aria-pressed="false" type="button">プレビュー</button>
+  </nav>
+  <main id="mainContainer">
+    <section class="pane" id="leftPane" aria-label="教材">
+      <div class="pane-header"><div class="pane-title">解説</div><div class="pane-actions"><a class="btn" id="lessonOnlyLink" target="_blank" rel="noopener noreferrer">解説・印刷</a><button class="btn icon-only" id="collapseLeftBtn" type="button" aria-label="教材を折りたたむ">◀</button></div></div>
+      <p id="lessonNotice" hidden></p>
+      <div id="leftPaneContent"><iframe id="lessonIframe" title="教材ページビューア"></iframe></div>
+    </section>
+    <div class="splitter" id="splitLeft" role="separator" aria-label="教材とコードの幅" aria-orientation="vertical" tabindex="0"></div>
+    <section class="pane" id="centerPane" aria-label="コード">
+      <div class="pane-header">
+        <button class="btn icon-only" id="expandLeftBtn" type="button" aria-label="教材を展開">▶</button>
+        <div class="breadcrumb"><span id="currentFileLabel">new.html</span><span id="dirtyMark" aria-label="未保存の変更" hidden>＊</span></div>
+      </div>
+      <div id="editorContainer"><textarea id="codeEditor" aria-label="HTML・CSSコード"></textarea></div>
+    </section>
+    <div class="splitter" id="splitRight" role="separator" aria-label="コードとプレビューの幅" aria-orientation="vertical" tabindex="0"></div>
+    <section class="pane" id="rightPane" aria-label="プレビュー">
+      <div class="pane-header"><div class="pane-title">プレビュー</div><div class="pane-actions">
+        <button class="btn" id="togglePhoneWidthBtn" type="button" aria-pressed="false">スマホ幅</button>
+        <button class="btn" id="openPreviewTabBtn" type="button">別タブ</button>
+      </div></div>
+      <p id="previewNotice" hidden></p>
+      <div id="previewContainer"><div id="previewWrapper"><iframe id="previewIframe" sandbox="allow-same-origin allow-popups allow-popups-to-escape-sandbox" title="Webページプレビュー"></iframe></div></div>
+    </section>
+  </main>
+</div>
+<input id="fileInput" type="file" multiple accept=".html,.htm,.css,.png,.jpg,.jpeg,.gif,.svg,.webp" hidden>
+<input id="directoryInput" type="file" multiple webkitdirectory hidden>
+
+<dialog id="actionDialog" aria-labelledby="actionTitle">
+  <h2 id="actionTitle"></h2><div id="actionBody"></div><p id="actionError" class="error" hidden></p><div id="actionButtons" class="modal-actions"></div>
+</dialog>
+<div id="toast" role="status" aria-live="polite"></div>
+<p id="editorPrintNotice">解説を印刷するには、「解説・印刷」から解説だけを別タブで開き、ブラウザの印刷を使ってください。</p>
+
+<aside id="helpWindow" aria-label="HTMLエディタの使い方" hidden>
+  <section data-help-topic="intro" data-help-title="基本の使い方">
+    <h3>基本の使い方</h3>
+    <p>HTML/CSSの編集と保存は、学校アカウントがなくても利用できます。</p>
+    <ol><li>「ファイルを開く」で手元のHTML/CSSを開くか、「ファイル」→「新しく始める」で名前を付けて作成します。</li>
+      <li>コードを編集し、「更新」でプレビューを確認します。</li>
+      <li>「ファイルをダウンロード」、または接続したフォルダへの保存で、編集したファイルを持ち帰ります。</li></ol>
+    <p>「保存」は、開いたファイルに直接書き込めない場合、ブラウザに控えを残します。Macの元ファイルが更新されたとは限らないため、上部の保存先・保存状態を確認してください。</p>
+    <p>教材を選んでも編集中の内容は変わりません。狭い画面では「教材」「コード」「プレビュー」で表示を切り替えます。</p>
+  </section>
+  <section data-help-topic="school" data-help-title="学校の実習を始める">
+    <h3>学校の実習を始める</h3>
+    <p>本人用HTMLの取得と提出は、海城の学校アカウントと、対象学年・年度・利用期間などの課題の条件を確認する別画面で行います。</p>
+    <ol><li>教材・課題を選び、「本人用HTMLを取得」から学校アカウントで受け取ります。</li>
+      <li>Macの「HTML実習」フォルダへ、指定のファイル名のまま保存します。</li>
+      <li>「ファイルを開く」、または「ファイル」→「フォルダを開く」から読み込みます。</li></ol>
+    <p>教材の選択だけでは、編集中のファイルは変わりません。課題が2つある単元では「課題」で切り替えます。</p>
+    <p>このエディタはログイン状態を判定しません。一般の方も公開教材と基本編集を使えますが、学校用の配付・提出は利用できません。配付リンクが使えない場合も、編集中の内容は保存できます。</p>
+  </section>
+  <section data-help-topic="save" data-help-title="保存と復元">
+    <h3>保存と復元</h3>
+    <p>Chromeでフォルダを接続し、その中から開いたファイルは「保存」（Command+S）で上書きできます。それ以外ではブラウザに控えを保存します。保存先は画面上部に表示されます。</p>
+    <p>Safariなどでは「ファイルをダウンロード」でMacへ保存してください。ダウンロードを開始しただけでは、Macへの保存完了を確認できません。同名ファイルの「(1)」などに注意し、保存先と指定のファイル名を確認します。</p>
+    <p>自動保存と「ブラウザに控えを保存」は別々の復元候補です。起動時と「保存した控えから復元」で日時を見て選びます。選ばなかった候補は消しません。復元後にファイルへ保存するには、フォルダを接続して保存先を確認します。</p>
+    <p>ブラウザの控えはクラウドバックアップではありません。データ消去・プロファイル変更・容量不足では控えを失うことがあります。作業の終わりにはファイルへ保存し、画像も含むフォルダ全体をバックアップしてください。</p>
+    <details><summary>保存できない・違う内容を開いてしまったとき</summary><p>編集内容が残っていれば、まずダウンロードして控えを確保します。保存を取り消した場合や保存エラーでは、そのまま編集を続けられます。復元する場合は、自動保存と明示保存の日時を見比べて選んでください。学校へ提出済みのHTMLは提出画面から取得できますが、未提出の変更や画像一式の控えにはなりません。</p></details>
+  </section>
+  <section data-help-topic="preview" data-help-title="画像・CSS・リンク">
+    <h3>画像・CSS・リンク</h3>
+    <p>画像や別ファイルのCSSを使うときは、フォルダ全体を読み込みます。<code>images/photo.jpg</code>はHTMLのある場所からの相対パスです。読み込んだフォルダ外は参照できません。</p>
+    <p>見つからない画像を教材サイトから自動補完しません。外部画像・外部CSSなどの自動通信を止めているため、通常のブラウザと表示が異なる場合があります。HTML/CSS実習用のプレビューであり、入力したJavaScriptは実行しません。</p>
+    <p>別のHTMLへの相対リンクは、未保存の変更を確認してからそのファイルを開きます。外部サイトへのリンクは、クリックしたときだけ別タブで開きます。</p>
+    <details><summary>対応範囲とファイルの上限</summary><p>HTML/HTM/CSSの本文はUTF-8・1ファイル2MiBまで、フォルダは200ファイル・合計50MiB・深さ8までです。CSS内の画像URL・@import・フォント、srcsetによる画像切替はプレビューの対応範囲外です。フォルダ全体の一括提出や、サイトの公開機能はありません。</p></details>
+  </section>
+  <section data-help-topic="submit" data-help-title="課題を提出する">
+    <h3>課題を提出する</h3>
+    <p>学校で配付された本人用HTMLだけが対象です。通常のHTML/CSSや新規文書は、提出せずファイルに保存して利用できます。「提出条件」では、準備できない理由を確認できます。</p>
+    <ol><li>「提出」で、開いている本人用HTMLと提出先の対応を確認します。</li>
+      <li>ファイルを保存するか、ダウンロードして保存先・ファイル名を確認します。</li>
+      <li>「提出画面を開く」で、そのファイルを選択して送信します。</li></ol>
+    <p>提出画面を開いただけでは提出は完了していません。受領と採点結果は提出画面で確認してください。何度でも提出できますが、続けて提出するときは60秒以上空けます。採点項目を満たすと★が付きます。</p>
+    <p>本人・対象学年・利用期限・配付情報の署名は、学校アカウントで開く配付・提出画面が確認します。このエディタ内の照合だけで本人確認が済んだことにはなりません。</p>
+  </section>
+  <section data-help-topic="shortcuts" data-help-title="ショートカット">
+    <h3>ショートカット</h3>
+    <p>Command+S：保存、Command+O：ファイルを開く、Command+Enter：プレビュー更新。WindowsではCommandをCtrlに読み替えます。</p>
+    <p>幅の境界線にTabで移動し、左右キーでもペイン幅を調整できます。未保存確認はEscapeでキャンセルできます。</p>
+  </section>
+  <section data-help-topic="about" data-help-title="このアプリについて">
+    <h3>このアプリについて</h3>
+    <p>HTMLエディタ 0.2 BETA（2026年9月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>編集中のコードはこの端末とブラウザで処理します。入力内容の自動送信はしません。本人用HTMLの取得と提出は、別タブの学校アカウント用画面で行います。</p>
+    <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
+    <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+  </section>
+</aside>
+<script src="../shared/ui-kit.js?v=html-editor-720bcd45669af7bf" integrity="sha384-6vJ67E5P9WETdT3svRZktKmBdh6RE4UK+nb6Pcadtum0wtL5h1qyPJzoxuT9ejVB" crossorigin="anonymous"></script>
+<script src="../shared/help-panel.js?v=html-editor-720bcd45669af7bf" integrity="sha384-Ts3DYhHzaKGhPhPw8aYbXGEreQwLeHvt+Rj1agj95ZTBhphe94YBWz6EiTY1kmAL" crossorigin="anonymous"></script>
+<script src="vendor/codemirror.min.js?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-BEgQlz0fN4eG0n4jipmUe+nOg65hPY7L0E/lPVRaOPdzAfLPGEbXnpAodHtSnlwM" crossorigin="anonymous"></script>
+<script src="vendor/xml.min.js?v=html-editor-720bcd45669af7bf" integrity="sha384-xPpkMo5nDgD98fIcuRVYhxkZV6/9Y4L8s3p0J5c4MxgJkyKJ8BJr+xfRkq7kn6Tw" crossorigin="anonymous"></script>
+<script src="vendor/css.min.js?v=html-editor-720bcd45669af7bf" integrity="sha384-fpeIC2FZuPmw7mIsTvgB5BNc8QVxQC/nWg2W+CgPYOAiBiYVuHe2E8HiTWHBMIJQ" crossorigin="anonymous"></script>
+<script src="vendor/javascript.min.js?v=html-editor-720bcd45669af7bf" integrity="sha384-g0o+WW9mdIxA7LaaCKTkRm0M5TVT+Bb4s9eocxPsI2G0Xm0POG9iD6G6qP1IIsfS" crossorigin="anonymous"></script>
+<script src="vendor/htmlmixed.min.js?v=html-editor-720bcd45669af7bf" integrity="sha384-xYIbc5F55vPi7pb/lUnFj3wu24HlpAMZdtBHkNrb2YhPzJV3pX7+eqXT2PXSNMrw" crossorigin="anonymous"></script>
+<script src="vendor/closetag.min.js?v=html-editor-720bcd45669af7bf" integrity="sha384-WIyvbwMte2q6VXgBkN7prVo9ZSmBm47nI2ftVjoJLPY4yOu9gmI6lqaNXjBwHU5k" crossorigin="anonymous"></script>
+<script src="lessons.js?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-zQm2dkvh2i1mz/O0hPJ+0nbLop6LJqZO236MuebYuaIyZPFpYq0YLkmTL5oozg2M" crossorigin="anonymous"></script>
+<script src="../../js/pages.js" async data-editor-catalog="data"></script>
+<script src="../../js/html_practice_links.js?v=html-editor-720bcd45669af7bf" async data-editor-catalog="links" integrity="sha384-0zXB4UbQesX1/2+7mx+6LTyNhM2AuJsXFHSTZXuElZ07w0csICD9d6WOEx07NReM" crossorigin="anonymous"></script>
+<script src="practice.js?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-EmEJFFuGKISiZjRvF3WwAVOotu8Ps6GZLUyvAkytrYMIiU6wgGbs8r6f4KDVWZ2K" crossorigin="anonymous"></script>
+<script src="workflow.js?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-0Aq0YgOkiFEDdTVc9yMATDxLb/HB68DQte5KfLHaJUV/58wu1z3ArVOUetMttZeg" crossorigin="anonymous"></script>
+<script src="routing.js?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
+<script src="navigation.js?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-aTIYSw4EG0pfFUyUYsfH4e1QtqirJeoefG6fkAPCsnRS282YBKL/V3HadxUM8LFK" crossorigin="anonymous"></script>
+<script src="recovery.js?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-WUBpuQ+SCfm95EX9761oZF+37n29WXX0tD0lkgTep/8FF2R5dGjQKEkRwmboOOa1" crossorigin="anonymous"></script>
+<script src="filesystem.js?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-XE6MfJeVHNSxN3Mii72shYeZ1Gx+IdIBDMi0VfJgs6eqTkaErCUYow41HptYoaEa" crossorigin="anonymous"></script>
+<script src="preview.js?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-QDwyILUTSwy2wN70uaZXPTieZrHvRyAo9fDdY6L//Lz/tV99QgnbmcEaDLtZ6lfd" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-editor-720bcd45669af7bf" data-editor-required integrity="sha384-zvSGo0AMFYEEBnLJsOGQSQlUfWQ/0HNpLBcgFCWNBpH+2lrg5FWkwvFL/hFoWtAy" crossorigin="anonymous"></script>
+</body>
+</html>

@@ -1,0 +1,701 @@
+/**
+ * HTMLエディタ スタイルシート
+ * 共通仕様（ui-kit.css・help-panel.css）準拠
+ * 海城中学高等学校 情報科
+ */
+
+:root {
+  color-scheme: light;
+  --bg: #eef0f3;
+  --panel: #ffffff;
+  --line: #d9dde3;
+  --text: #1f2933;
+  --muted: #6b7480;
+  --accent: #00548a;
+  --accent-soft: #e3ecff;
+  --accent-hover: #00436e;
+  --danger: #d61f1f;
+  --danger-soft: #ffebeb;
+  --warning: #b45309;
+  --warning-soft: #fef3c7;
+  --success: #15803d;
+  --success-soft: #dcfce7;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  --font-code: "SF Mono", Menlo, Monaco, Consolas, "Courier New", monospace;
+  --ui-size: 14px;
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #151b23;
+  --panel: #1f2631;
+  --line: #333f50;
+  --text: #e6edf3;
+  --muted: #8b949e;
+  --accent: #4ba3e3;
+  --accent-soft: #1a2f44;
+  --accent-hover: #6cb6f0;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root[data-theme="auto"] {
+    color-scheme: dark;
+    --bg: #151b23;
+    --panel: #1f2631;
+    --line: #333f50;
+    --text: #e6edf3;
+    --muted: #8b949e;
+    --accent: #4ba3e3;
+    --accent-soft: #1a2f44;
+    --accent-hover: #6cb6f0;
+    --shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  }
+}
+
+:root[data-text-size="large"] { --ui-size: 16px; }
+:root[data-text-size="largest"] { --ui-size: 18px; }
+
+* { box-sizing: border-box; }
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: var(--font-ui);
+  font-size: var(--ui-size);
+  color: var(--text);
+  background: var(--bg);
+}
+
+#app {
+  display: grid;
+  grid-template-rows: 46px auto 1fr;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+}
+
+/* ==========================================================================
+   上部ツールバー（常設1行）
+   ========================================================================== */
+#toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px;
+  background: var(--panel);
+  border-bottom: 1px solid var(--line);
+  white-space: nowrap;
+  overflow-x: auto;
+  overflow-y: hidden;
+  z-index: 20;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: var(--text);
+  text-decoration: none;
+  flex: none;
+}
+
+.brand-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: block;
+}
+
+.beta-tag {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 5px;
+  background: #ea7a00;
+  color: #fff;
+  border-radius: 4px;
+  margin-left: 2px;
+}
+
+.sep {
+  width: 1px;
+  height: 22px;
+  background: var(--line);
+  flex: none;
+  margin: 0 4px;
+}
+
+/* ツールバー内のボタンとメニュー */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  min-height: 32px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.15s;
+}
+
+.btn:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+
+.btn.primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+  font-weight: 600;
+}
+
+.btn.primary:hover {
+  background: var(--accent-hover);
+}
+
+.btn.success {
+  background: var(--success);
+  color: #fff;
+  border-color: var(--success);
+  font-weight: 600;
+}
+
+.btn.icon-only {
+  padding: 6px;
+  min-width: 32px;
+  justify-content: center;
+}
+
+.btn svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex: none;
+}
+
+/* ドロップダウンメニュー */
+.menu-wrap {
+  position: relative;
+  display: inline-block;
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 220px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  padding: 6px 0;
+  z-index: 100;
+  display: none;
+}
+
+.menu-wrap[open] .menu-dropdown,
+.menu-wrap.active .menu-dropdown {
+  display: block;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  width: 100%;
+  font-size: 0.85rem;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.menu-item:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.menu-item.active {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.menu-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 4px 0;
+}
+
+/* ステータスバッジ */
+.status-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-chip.connected {
+  background: var(--success-soft);
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--muted);
+}
+
+.status-chip.connected .status-dot {
+  background: var(--success);
+}
+
+/* ツールバー右寄せ */
+.toolbar-right {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ==========================================================================
+   実習警告バナー（実習モードかつフォルダ未接続時のみ表示）
+   ========================================================================== */
+#warningBar {
+  display: none;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 16px;
+  background: var(--warning-soft);
+  border-bottom: 1px solid #fcd34d;
+  color: var(--warning);
+  font-size: 0.85rem;
+  font-weight: 600;
+  z-index: 15;
+}
+
+body.mode-lesson.not-connected #warningBar {
+  display: flex;
+}
+
+.warning-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ==========================================================================
+   メインコンテナ（3ペイン ＋ スプリッター）
+   ========================================================================== */
+#mainContainer {
+  display: flex;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  position: relative;
+}
+
+/* ペイン基本スタイル */
+.pane {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  overflow: hidden;
+}
+
+#leftPane {
+  width: 32%;
+  min-width: 220px;
+  border-right: 1px solid var(--line);
+  position: relative;
+}
+
+#centerPane {
+  flex: 1;
+  min-width: 280px;
+  position: relative;
+}
+
+#rightPane {
+  width: 32%;
+  min-width: 240px;
+  border-left: 1px solid var(--line);
+  position: relative;
+}
+
+/* スプリッター（境界線のドラッグバー） */
+.splitter {
+  width: 6px;
+  cursor: col-resize;
+  background: var(--bg);
+  transition: background 0.15s;
+  flex: none;
+  z-index: 10;
+  position: relative;
+}
+
+.splitter:hover, .splitter.active {
+  background: var(--accent);
+}
+
+.splitter::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 2px;
+  height: 24px;
+  background: var(--muted);
+  border-radius: 1px;
+}
+
+/* ペインヘッダー */
+.pane-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 6px 10px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+  min-height: 38px;
+  font-size: 0.85rem;
+}
+
+.pane-title {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.pane-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: none;
+}
+
+/* 左ペイン内部 */
+#leftPaneContent {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+#lessonIframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+}
+
+#fileTreeContainer {
+  display: none;
+  height: 100%;
+  padding: 10px;
+  overflow-y: auto;
+}
+
+body.mode-free #lessonIframe { display: none; }
+body.mode-free #fileTreeContainer { display: block; }
+
+/* 左ペイン折りたたみ */
+#expandLeftBtn {
+  display: none;
+  margin-right: 6px;
+}
+
+body.left-collapsed #leftPane {
+  display: none !important;
+}
+
+body.left-collapsed #splitLeft {
+  display: none !important;
+}
+
+body.left-collapsed #expandLeftBtn {
+  display: inline-flex;
+}
+
+/* 中央エディタ内部 */
+#editorContainer {
+  flex: 1;
+  overflow: hidden;
+  position: relative;
+}
+
+.CodeMirror {
+  height: 100%;
+  font-family: var(--font-code);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+:root[data-theme="dark"] .CodeMirror {
+  background: #19202a;
+  color: #e6edf3;
+}
+
+:root[data-theme="dark"] .CodeMirror-gutters {
+  background: #151b23;
+  border-right: 1px solid #333f50;
+}
+
+:root[data-theme="dark"] .CodeMirror-linenumber {
+  color: #6b7480;
+}
+
+:root[data-theme="dark"] .CodeMirror-cursor {
+  border-left: 2px solid #fff;
+}
+
+:root[data-theme="dark"] .CodeMirror-selected {
+  background: #2a3d54;
+}
+
+/* パンくずリスト */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.8rem;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.breadcrumb-item {
+  color: var(--text);
+  font-weight: 600;
+}
+
+/* 右プレビュー内部 */
+#previewContainer {
+  flex: 1;
+  overflow: auto;
+  position: relative;
+  background: #f4f5f7;
+  display: flex;
+  justify-content: center;
+}
+
+:root[data-theme="dark"] #previewContainer {
+  background: #0f141c;
+}
+
+#previewWrapper {
+  width: 100%;
+  height: 100%;
+  transition: width 0.2s;
+  background: #fff;
+}
+
+#previewWrapper.phone-mode {
+  width: 375px;
+  margin: 16px auto;
+  height: calc(100% - 32px);
+  border: 10px solid #222;
+  border-radius: 28px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  overflow: hidden;
+}
+
+#previewIframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+  background: #fff;
+  display: block;
+}
+
+/* ==========================================================================
+   ダイアログ・モーダル
+   ========================================================================== */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-dialog {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  width: 480px;
+  max-width: calc(100vw - 32px);
+  box-shadow: var(--shadow);
+  padding: 24px;
+}
+
+.modal-title {
+  margin: 0 0 12px;
+  font-size: 1.2rem;
+  color: var(--text);
+}
+
+.modal-body {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+/* ==========================================================================
+   トースト通知
+   ========================================================================== */
+#toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #1f2933;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 2000;
+  display: none;
+  pointer-events: none;
+}
+
+/* 通常HTML実習の保存・復元UI。公開候補の適用時は既存CSSとまとめて検証する。 */
+[hidden] { display: none !important; }
+#app { grid-template-rows: 46px auto auto auto minmax(0, 1fr); }
+#mainContainer { grid-row: 5; }
+#toolbar { overflow: visible; min-width: 0; gap: 6px; }
+#toolbar > *, .toolbar-right { flex-shrink: 0; }
+#toolbar .brand { margin-right: 6px; }
+.menu-dropdown { max-height: min(70vh, 650px); overflow-y: auto; }
+.display-settings { right: 0; left: auto; padding: 12px; }
+.display-settings label { display: grid; gap: 4px; margin-bottom: 8px; }
+select { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; min-height: 36px; max-width: 100%; padding: 4px; }
+.btn:focus-visible, .menu-item:focus-visible, select:focus-visible, .splitter:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.btn:disabled { opacity: .55; cursor: not-allowed; }
+.btn { text-decoration: none; }
+#practiceBar { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+#practiceBar label { display: flex; align-items: center; gap: 6px; min-width: 0; max-width: 100%; }
+#practiceBar select { max-width: min(29vw, 26rem); min-width: 0; }
+#distributionState { font-size: .85rem; color: var(--muted); }
+#usageNotice { flex-basis: 100%; margin: 0; font-size: .85rem; line-height: 1.5; color: var(--muted); }
+#submissionState { flex-basis: 100%; color: var(--muted); }
+#displayNotice { margin: 8px 0 0; white-space: normal; max-width: 18rem; font-size: .85rem; }
+#newFileName { display: block; width: 100%; min-height: 44px; margin-block: 8px; padding: 8px; font: inherit; color: var(--text); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+#newFileName:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+#documentStatus { display: flex; flex-wrap: wrap; gap: 4px 16px; padding: 6px 12px; border-bottom: 1px solid var(--line); font-size: .8rem; overflow-wrap: anywhere; }
+#saveState { font-weight: 700; }
+#recoveryState { color: var(--muted); }
+#paneNav { display: none; }
+#leftPane, #centerPane, #rightPane { min-width: 220px; min-height: 0; }
+#mainContainer .pane-header { flex-shrink: 0; min-height: 44px; }
+#previewNotice { font-size: .8rem; color: var(--warning); background: var(--warning-soft); padding: 8px; margin: 0; max-height: 120px; overflow: auto; overflow-wrap: anywhere; }
+#previewWrapper.phone-mode { max-width: 100%; }
+.CodeMirror { font-size: 1rem; }
+.issued-marker { display: inline-block; max-width: 100%; white-space: normal; padding: 2px 6px; color: var(--muted); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; font-family: var(--font-ui); font-size: .8rem; }
+:root[data-resolved-theme="dark"] .CodeMirror { background: #19202a; color: #e6edf3; }
+:root[data-resolved-theme="dark"] .CodeMirror-gutters { background: #151b23; border-color: #333f50; }
+:root[data-resolved-theme="dark"] .CodeMirror-cursor { border-left-color: #fff; }
+:root[data-resolved-theme="dark"] .cm-tag { color: #7ee787; }
+:root[data-resolved-theme="dark"] .cm-attribute { color: #79c0ff; }
+:root[data-resolved-theme="dark"] .cm-string { color: #a5d6ff; }
+:root[data-resolved-theme="dark"] .cm-comment,
+:root[data-resolved-theme="dark"] .cm-meta,
+:root[data-resolved-theme="dark"] .cm-bracket { color: #a7b0bc; }
+:root[data-resolved-theme="dark"] .cm-property { color: #d2a8ff; }
+:root[data-resolved-theme="dark"] .cm-number { color: #ffa657; }
+#actionDialog { color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 20px; width: min(650px, calc(100vw - 24px)); max-height: calc(100dvh - 32px); overflow: auto; box-shadow: var(--shadow); }
+#actionDialog::backdrop { background: rgb(0 0 0 / .45); }
+#actionDialog h2 { font-size: 1.2rem; margin: 0 0 12px; }
+#actionBody { overflow-wrap: anywhere; }
+#actionBody p { line-height: 1.6; }
+#actionBody .file-entry { display: block; width: 100%; margin: 6px 0; text-align: left; white-space: normal; overflow-wrap: anywhere; }
+#actionDialog .btn, #practiceBar .btn, .menu-item { min-height: 44px; }
+#actionButtons { flex-wrap: wrap; margin-top: 20px; }
+.confirm-download { display: flex; gap: 8px; align-items: flex-start; margin: 16px 0; }
+.confirm-download input { width: 20px; height: 20px; flex-shrink: 0; }
+.error { color: var(--danger); }
+#toast { max-width: min(650px, calc(100vw - 24px)); width: max-content; border-radius: 8px; overflow-wrap: anywhere; }
+@media (max-width: 1050px) {
+  #paneNav { display: flex; padding: 4px 8px; gap: 4px; }
+  #paneNav .btn { flex: 1; min-height: 44px; justify-content: center; }
+  #paneNav [aria-pressed="true"] { background: var(--accent-soft); border-color: var(--accent); font-weight: 700; }
+  #mainContainer .splitter { display: none; }
+  #mainContainer .pane { display: none !important; width: 100% !important; min-width: 0; flex: 1 !important; }
+  body[data-pane="left"] #leftPane, body[data-pane="center"] #centerPane, body[data-pane="right"] #rightPane { display: flex !important; }
+  #collapseLeftBtn, #expandLeftBtn { display: none !important; }
+  #practiceBar select { max-width: 68vw; }
+}
+@media (max-width: 600px) {
+  #toolbar { padding: 0 6px; gap: 4px; }
+  #toolbar .brand span, #toolbar .wide-label { display: none; }
+  #toolbar .brand { margin: 0; }
+  #toolbar .btn { padding: 5px 7px; min-width: 0; }
+  .toolbar-right { gap: 4px; }
+  #practiceBar { padding: 6px 8px; gap: 4px; }
+  #practiceBar label { width: 100%; }
+  #practiceBar select { flex: 1; max-width: 100%; width: 0; }
+  #documentStatus { max-height: 90px; overflow-y: auto; padding: 4px 8px; }
+  #toolbar .menu-dropdown { position: fixed; left: 8px; top: 48px; right: auto; max-width: calc(100vw - 16px); }
+}
+@media (pointer: coarse) {
+  #app { grid-template-rows: 50px auto auto auto minmax(0, 1fr); }
+  #toolbar .btn { min-height: 44px; min-width: 44px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
+}
+
+#lessonNotice { margin: 0; padding: 8px; font-size: .85rem; overflow-wrap: anywhere; }
+#lessonOnlyLink { min-height: 44px; }
+#editorPrintNotice { display: none; }
+@media print {
+  html, body { height: auto; overflow: visible; }
+  #app, #helpWindow, #toast, #actionDialog, #startupFallback { display: none !important; }
+  #editorPrintNotice { display: block; padding: 16px; }
+}
