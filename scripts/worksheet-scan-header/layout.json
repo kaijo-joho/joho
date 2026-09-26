@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "worksheet-scan-header/1",
+  "dpi": 300,
+  "subject": "INFO1",
+  "papers": {
+    "b5": { "width": 182, "height": 257, "scale": 1 },
+    "a4": { "width": 210, "height": 297, "scale": 1.12 }
+  },
+  "header": { "width": 160, "height": 24, "top": 10, "right": 10, "leftWidth": 72, "middleWidth": 60, "rightWidth": 22, "gap": 3 },
+  "omr": { "diameter": 3, "pitchX": 4.5, "pitchY": 5, "firstX": 14, "firstY": 7.5, "headingY": 3, "boxX": 5, "boxSize": 4, "stroke": 0.25, "sampleRadiusRatio": 0.65 },
+  "qr": { "size": 22, "quietModules": 4, "maxVersion": 4, "minModule": 0.45, "ecc": "M" },
+  "markers": { "size": 3.5, "inset": 5, "clearance": 1.5 },
+  "text": { "titleSize": 3.8, "titleMinSize": 3.2, "titleLineHeight": 4.6, "labelSize": 2.8, "idSize": 2 },
+  "limits": { "minCircleDiameter": 3, "minStroke": 0.2, "minQrSize": 22 },
+  "bodyGap": 3
+}

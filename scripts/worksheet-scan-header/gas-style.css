@@ -1,0 +1,65 @@
+/* Header geometry variables below are generated from layout.json. */
+.ws-page { position: relative; padding-top: var(--ws-scan-body-top); padding-bottom: var(--ws-scan-bottom); }
+.ws-page > .ws-section:first-of-type { margin-top: 0; }
+.ws-scan-layer { position: absolute; inset: 0; pointer-events: none; }
+.ws-page .ws-scan-layer > svg.ws-scan-svg { width: var(--ws-page-width); height: var(--ws-page-height); max-height: none; margin: 0; }
+.ws-scan-mobile { display: none; }
+.ws-page .ws-scan-svg--b5 { display: none; }
+.ws-page .ws-scan-svg--a4 { display: block; }
+[data-paper-size="b5"] .ws-page .ws-scan-svg--b5 { display: block; }
+[data-paper-size="b5"] .ws-page .ws-scan-svg--a4 { display: none; }
+/* Reflow existing paper content without changing 10.5/9 pt text or lesson data. */
+@media print, screen and (min-width: 841px) {
+  .ws-page p { margin-block: .9mm; }
+  :where([data-paper-size="b5"]) .ws-page p { margin-block: .8mm; }
+  .ws-page .ws-table:not(.ws-table--samples) th,
+  .ws-page .ws-table:not(.ws-table--samples) td { padding-block: 1mm; }
+  :where([data-paper-size="b5"]) .ws-page .ws-table:not(.ws-table--samples) th,
+  :where([data-paper-size="b5"]) .ws-page .ws-table:not(.ws-table--samples) td { padding-block: .85mm; }
+  [data-worksheet-id="dr31"] .ws-answer { vertical-align: middle; }
+  [data-worksheet-id="dr31"] .ws-figure svg { height: 51mm; }
+  :where([data-paper-size="b5"]) [data-worksheet-id="dr31"] .ws-figure svg { height: 44mm; }
+  .ws-page .ws-table--terms th,
+  .ws-page .ws-table--terms td { padding-block: .4mm; }
+  .ws-page--sound-data .ws-channel-diagram { height: 28mm; }
+  :where([data-paper-size="b5"]) .ws-page--sound-data .ws-channel-diagram { height: 24mm; }
+  .ws-page--sound-data .ws-calc-scratch { height: 11mm; }
+  :where([data-paper-size="b5"]) .ws-page--sound-data .ws-calc-scratch { height: 9mm; }
+  .ws-page--sound-data .ws-calc-question--exercise { margin-bottom: 3mm; }
+  .ws-page--image .ws-img-pixels td { height: 11mm; }
+  :where([data-paper-size="b5"]) .ws-page--image .ws-img-pixels td { height: 9.5mm; }
+  .ws-page .ws-table.ws-img-levels td { padding-block: .4mm; }
+  :where([data-paper-size="b5"]) .ws-page .ws-table.ws-img-levels td { padding-block: .3mm; }
+  .ws-page--image .ws-img-observations td { height: 15mm; }
+  .ws-page--image .ws-img-observations .ws-answer { height: 12mm; min-height: 12mm; }
+  :where([data-paper-size="b5"]) .ws-page--image .ws-img-observations td { height: 13mm; }
+  :where([data-paper-size="b5"]) .ws-page--image .ws-img-observations .ws-answer { height: 10.5mm; min-height: 10.5mm; }
+  .ws-page--image .ws-img-work { height: 17mm; min-height: 17mm; }
+  :where([data-paper-size="b5"]) .ws-page--image .ws-img-work { height: 13mm; min-height: 13mm; }
+  .ws-page--image .ws-img-terms .ws-answer { height: 5.4mm; min-height: 5.4mm; line-height: 5mm; }
+  :where([data-paper-size="b5"]) .ws-page--image .ws-img-terms .ws-answer { height: 4.8mm; min-height: 4.8mm; line-height: 4.4mm; }
+  .ws-page .ws-table.ws-img-terms td,
+  .ws-page .ws-table.ws-vid-terms td { padding-block: .2mm; }
+  .ws-page--video .ws-vid-strip svg { height: 23mm; }
+  .ws-page--video .ws-vid-pair svg { height: 27mm; }
+  :where([data-paper-size="b5"]) .ws-page--video .ws-vid-strip svg { height: 18mm; }
+  :where([data-paper-size="b5"]) .ws-page--video .ws-vid-pair svg { height: 22mm; }
+  .ws-page--video .ws-vid-formula br { display: none; }
+  .ws-page--video .ws-vid-formula p { margin-block: .6mm; }
+  .ws-page .ws-table.ws-vid-changes td { padding-block: .3mm; }
+  .ws-page--video .ws-vid-work { height: 17mm; min-height: 17mm; }
+  .ws-page--video .ws-vid-work--long { height: 23mm; min-height: 23mm; }
+  :where([data-paper-size="b5"]) .ws-page--video .ws-vid-work { height: 14mm; min-height: 14mm; }
+  :where([data-paper-size="b5"]) .ws-page--video .ws-vid-work--long { height: 20mm; min-height: 20mm; }
+  .ws-page--video .ws-vid-terms .ws-answer { height: 5.4mm; min-height: 5.4mm; line-height: 5mm; }
+  :where([data-paper-size="b5"]) .ws-page--video .ws-vid-terms .ws-answer { height: 4.8mm; min-height: 4.8mm; line-height: 4.4mm; }
+}
+@media print {
+  .ws-calc-tools:not(:has(.ws-calc-result)) { display: none; }
+}
+@media screen and (max-width: 840px) {
+  .ws-page { padding: 14px; }
+  .ws-scan-layer { display: none; }
+  .ws-scan-mobile { display: block; margin-bottom: 12px; }
+  .ws-page .ws-scan-mobile > svg.ws-scan-svg { width: 100%; height: auto; max-height: none; }
+}
