@@ -96,7 +96,7 @@
   function textNode(parent, text, tag = 'p') {
     const node = document.createElement(tag); node.textContent = text; parent.append(node); return node;
   }
-  function modal(title, build) {
+  function modal(title, build, options = {}) {
     const dialog = $('actionDialog'), opener = document.activeElement;
     if (dialog.open) throw Error('開いている確認画面を閉じてください。');
     $('actionTitle').textContent = title; $('actionBody').replaceChildren(); $('actionButtons').replaceChildren();
@@ -105,6 +105,7 @@
       let settled = false;
       function finish(value) {
         if (settled) return;
+        if (options.canClose && !options.canClose()) return;
         settled = true; dialog.close(); dialog.removeEventListener('cancel', cancel);
         if (opener?.isConnected) opener.focus(); resolve(value);
       }
@@ -189,27 +190,16 @@
     updateSubmission();
   }
   function distributionDialog() {
-    return exclusive(() => modal('課題ファイルのダウンロード', (body, button) => {
-      textNode(body, selectedLesson.title);
-      textNode(body, '対象ファイルを選ぶと配付ページが別タブで開きます。学校アカウント・対象学年・課題設定の開始日時などを確認して、本人用HTMLを発行します。');
-      if (!selectedLesson.files.length) textNode(body, 'この教材には配付するHTML課題はありません。');
-      for (const task of selectedLesson.files) {
-        const state = Workflow.distribution(window.pages, task.id, window.htmlPracticeLinks, catalogState());
-        textNode(body, task.fileName + ' — ' + task.title, 'h3');
-        if (!state.item) { textNode(body, state.message); continue; }
-        const link = textNode(body, task.fileName + ' をダウンロード', 'a');
-        link.className = 'btn file-entry'; link.href = state.item.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
-        link.dataset.taskDownload = task.id;
-        link.addEventListener('click', event => {
-          const fresh = Workflow.distribution(window.pages, task.id, window.htmlPracticeLinks, catalogState());
-          if (!fresh.item || fresh.item.url !== link.href) {
-            event.preventDefault(); $('actionError').textContent = '配付設定を確認できません。閉じてからもう一度開いてください。'; $('actionError').hidden = false;
-          }
-        });
-      }
-      textNode(body, '取得したHTMLは、名前を変えずに「書類／HTML実習」へ保存してください。取り直しても途中の編集内容は戻りません。');
-      button('閉じる', 'close');
-    }));
+    return exclusive(async () => {
+      let panel;
+      try {
+        await modal('課題ファイルのダウンロード', (body, button, finish) => {
+          panel = window.HtmlEditorDownload.create({container:body, dialog:$('actionDialog'), lesson:selectedLesson,
+            stateFor:id => Workflow.distribution(window.pages, id, window.htmlPracticeLinks, catalogState()), requestClose:() => finish('close')});
+          button('閉じる', 'close');
+        }, {canClose:() => !panel || panel.canClose()});
+      } finally { panel?.dispose(); }
+    });
   }
   function practiceSteps() {
     return exclusive(() => modal('実習の手順', (body, button) => {

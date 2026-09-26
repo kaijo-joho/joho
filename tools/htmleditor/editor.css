@@ -680,6 +680,14 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
 #actionBody .file-entry { display: block; width: 100%; margin: 6px 0; text-align: left; white-space: normal; overflow-wrap: anywhere; }
 #actionDialog .btn, #practiceBar .btn, .menu-item { min-height: 44px; }
 #actionButtons { flex-wrap: wrap; margin-top: 20px; }
+#actionDialog.download-open { width: min(960px, calc(100vw - 24px)); }
+.download-controls { display: flex; gap: 10px; flex-wrap: wrap; }
+.download-status { display: flex; align-items: center; gap: 10px; }
+.download-note { font-size: .88rem; color: var(--muted); }
+.download-frame { display: block; width: 100%; height: clamp(280px, 58dvh, 720px); border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+.download-spinner { width: 1.2em; height: 1.2em; flex-shrink: 0; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: download-spin 1s linear infinite; }
+@keyframes download-spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .download-spinner { animation: none; border-style: dotted; } }
 .confirm-download { display: flex; gap: 8px; align-items: flex-start; margin: 16px 0; }
 .confirm-download input { width: 20px; height: 20px; flex-shrink: 0; }
 .error { color: var(--danger); }
