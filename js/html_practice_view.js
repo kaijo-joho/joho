@@ -1,4 +1,4 @@
-// 候補の9教材だけを対象にした入口と埋込表示。本文は同じHTMLを使い、取得/提出は実行しない。
+// 9教材の入口。埋込でも学校名を含む通常教材を表示し、実習操作は親エディタへ集約する。
 (function () {
   'use strict';
   const doc = document;
@@ -56,7 +56,7 @@
         const response = await fetch(probe, {signal:controller.signal, cache:'no-store', credentials:'same-origin', redirect:'error'});
         if (!response.ok || response.url !== probe || !/text\/html/i.test(response.headers.get('content-type') || '')) throw Error('editor unavailable');
         const source = await response.text();
-        if (!source.includes('data-html-editor-shell="1"') || !source.includes('data-html-editor-build="html-editor-99b7462b9699a88b"')) throw Error('editor not ready');
+        if (!source.includes('data-html-editor-shell="1"') || !source.includes('data-html-editor-build="html-editor-54206ec4bf0bfbca"')) throw Error('editor not ready');
         if (!stopped) location.replace(routes.editorUrl(parsed.selection));
       } catch {
         if (!stopped) {
@@ -71,67 +71,22 @@
   }
   function embedded(routes, parsed, bridge) {
     doc.documentElement.classList.add('html-practice-embedded');
-    const header = element('section'); header.id = 'htmlPracticeReadingHeader';
-    const lesson = window.HtmlEditorRouting.catalog.find(row => row.id === parsed.selection.lessonId);
-    element('h1', lesson.title, header);
-    const label = element('label', '見出し ', header);
-    const select = element('select', '', label); select.id = 'htmlPracticeHeading'; select.setAttribute('aria-label', '解説の見出し');
-    const top = element('option', '本文の先頭', select); top.value = '';
-    for (const heading of doc.querySelectorAll('article h2[id]:not([data-skip-numbering])')) {
-      const option = element('option', heading.textContent.trim(), select); option.value = '#' + heading.id;
-    }
-    doc.body.prepend(header);
-    const workflow = doc.querySelector('.html-practice-workflow');
-    let fold;
-    if (workflow) {
-      fold = element('details'); fold.className = 'html-practice-fold';
-      element('summary', '取得・保存・提出の手順', fold);
-      workflow.before(fold); fold.append(workflow);
-    }
     function show(hash, {focus = false} = {}) {
       if (hash && !/^#[A-Za-z0-9_-]{1,100}$/.test(hash)) return;
       const url = new URL(location.href); url.hash = hash;
       if (location.href !== url.href) history.replaceState(null, '', url.href);
-      const target = hash ? doc.getElementById(hash.slice(1)) : header;
+      const target = hash ? doc.getElementById(hash.slice(1)) : doc.getElementById('page_header') || doc.body;
       if (!target) return;
+      // 実習手順はエディタ上部へ移したため、非表示の記事へスクロールしない。
+      if (target.closest('.html-practice-workflow')) return;
       for (let node = target.parentElement; node; node = node.parentElement) if (node.tagName === 'DETAILS') node.open = true;
-      select.value = [...select.options].some(option => option.value === hash) ? hash : '';
       target.scrollIntoView({block:'start', behavior:'instant'});
-      if (focus && !select.matches(':focus')) {
+      if (focus) {
         if (!target.hasAttribute('tabindex')) target.tabIndex = -1;
         target.focus({preventScroll:true});
       }
     }
-    function prepareLinks() {
-      for (const link of doc.querySelectorAll('a[href]:not([data-html-practice-destination])')) {
-        if (link.hasAttribute('download')) continue;
-        let url, destination;
-        try {
-          url = new URL(link.href);
-          destination = routes.fromLesson(url.href);
-        } catch { continue; }
-        if (destination) {
-          link.dataset.htmlPracticeDestination = url.href;
-          link.href = routes.editorUrl(destination.selection);
-          // 既存の「別タブ」は尊重。通常クリックだけが現在のエディタを操作する。
-          if (link.target === '_blank') link.rel = 'noopener noreferrer';
-        } else if (/^https?:$/.test(url.protocol)) {
-          link.target = '_blank'; link.rel = 'noopener noreferrer';
-        }
-      }
-    }
-    doc.addEventListener('click', event => {
-      if (event.defaultPrevented || event.button || event.metaKey || event.ctrlKey || event.altKey || event.shiftKey) return;
-      const link = event.target.closest?.('a[data-html-practice-destination]');
-      if (!link || link.hasAttribute('download') || (link.target && link.target !== '_self')) return;
-      if (bridge.visit(window, link.dataset.htmlPracticeDestination)) { event.preventDefault(); event.stopImmediatePropagation(); }
-    }, true);
-    select.addEventListener('change', () => bridge.visit(window, routes.lessonUrl({...parsed.selection, hash:select.value})));
-    prepareLinks();
-    new MutationObserver(prepareLinks).observe(doc.body, {subtree:true, childList:true});
-    let printOpen = false;
-    window.addEventListener('beforeprint', () => { if (fold) { printOpen = fold.open; fold.open = true; } });
-    window.addEventListener('afterprint', () => { if (fold) fold.open = printOpen; });
+    // リンクの未保存確認は親navigationが全教材の動的ナビを含めて一括で担当する。
     window.HtmlPracticeLessonView = Object.freeze({show});
     // 初回位置は、親がテーマ反映を終えたiframe load後に一度だけ合わせる。
     bridge.ready(window);

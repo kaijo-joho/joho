@@ -1,4 +1,4 @@
-/* エディタが所有する解説iframeだけを本文中心にする。独立した解説・印刷は従来本文を保持。 */
+/* 解説iframeも学校名ヘッダーを含む通常の教材ページ。実習操作だけ親メニューに移す。 */
 #htmlPracticeEntry {
   box-sizing: border-box;
   width: min(100% - 24px, var(--content-width, 1000px));
@@ -19,48 +19,10 @@
   color: inherit;
 }
 #htmlPracticeEntry [hidden] { display: none !important; }
-.html-practice-embedded :is(#site-header, #site-header-spacer, #page_header, #site-footer, #lesson-dock, .skip-link) { display: none !important; }
-html.html-practice-embedded { scroll-padding-top: 8px; }
-.html-practice-embedded body {
-  width: 100%; min-width: 0; height: auto; padding: 0; margin: 0;
-  background: rgb(var(--article-glass-rgb));
-}
-.html-practice-embedded body > section { margin: 0; }
-.html-practice-embedded section article {
-  width: 100% !important;
-  margin: 0 0 12px;
-  padding: 12px;
-  border-radius: 0;
-  box-shadow: none;
-  overflow-wrap: anywhere;
-}
-#htmlPracticeReadingHeader { padding: 12px; }
-#htmlPracticeReadingHeader h1 { margin: 0 0 8px; font-size: 1.1em; }
-#htmlPracticeReadingHeader label { display: flex; align-items: center; gap: 8px; }
-#htmlPracticeHeading {
-  min-width: 0;
-  flex: 1;
-  max-width: 100%;
-  min-height: 44px;
-  height: 44px;
-  border-radius: 4px;
-  padding-inline: 8px;
-  font: inherit;
-  background: rgb(var(--article-glass-rgb));
-  color: var(--font-color-normal-text, CanvasText);
-  border: 1px solid var(--theme-color, #225386);
-}
-.html-practice-fold { margin: 0 8px 12px; border: 1px solid var(--theme-color, #225386); border-radius: 6px; }
-.html-practice-fold > summary { min-height: 44px; box-sizing: border-box; padding: 10px; cursor: pointer; font-weight: 700; }
-.html-practice-embedded :is(h2,h3,h4,[id^="practice-"]) { scroll-margin-top: 8px; }
-.html-practice-embedded section article p { margin-inline: 4px; }
-.html-practice-embedded section article > details { margin-inline: 4px; max-width: 100%; }
-.html-practice-embedded section :is(pre, .code, .example, .result, .code-details) { max-width: 100%; }
-#htmlPracticeHeading:focus-visible, .html-practice-fold > summary:focus-visible, #htmlPracticeEntry :is(a,button):focus-visible {
+.html-practice-embedded .html-practice-workflow { display: none !important; }
+#htmlPracticeEntry :is(a,button):focus-visible {
   outline: 3px solid var(--theme-color, #225386); outline-offset: 2px;
 }
 @media print {
-  #htmlPracticeEntry, #htmlPracticeReadingHeader label, .html-practice-fold > summary { display: none !important; }
-  .html-practice-fold { border: 0; }
-  .html-practice-embedded section article { break-inside: auto; }
+  #htmlPracticeEntry { display: none !important; }
 }

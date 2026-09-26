@@ -128,13 +128,13 @@
       dialog.showModal();
     });
   }
-  async function allowReplace() {
+  async function allowReplace({navigation = false} = {}) {
     if (!dirty()) return true;
     autoSave();
-    const result = await modal('開いている内容を切り替えますか？', (body, button) => {
-      textNode(body, doc.fileName + ' に未保存の変更があります。切り替える前にMacへ保存してください。');
-      button('保存して開く', 'save');
-      button('保存せずに開く', 'discard');
+    const result = await modal(navigation ? '未保存の変更があります' : '開いている内容を切り替えますか？', (body, button) => {
+      textNode(body, doc.fileName + ' に未保存の変更があります。' + (navigation ? '別ページへ移動する前にMacへ保存してください。編集中の内容は保持します。' : '切り替える前にMacへ保存してください。'));
+      button(navigation ? '保存して移動する' : '保存して開く', 'save');
+      button(navigation ? '保存せずに移動する' : '保存せずに開く', 'discard');
       button('キャンセル', 'cancel');
     });
     if (result === 'discard') return true;
@@ -144,17 +144,34 @@
     // ダウンロードの完了はブラウザから検証できない。本人の確認までは切り替えない。
     return await modal('保存したファイルを確認', (body, button) => {
       textNode(body, 'ダウンロードした ' + doc.fileName + ' の保存先と内容を確認してください。元のファイルへの上書き保存ではありません。');
-      button('保存を確認して開く', 'confirmed');
+      button(navigation ? '保存を確認して移動する' : '保存を確認して開く', 'confirmed');
       button('キャンセル', 'cancel');
     }) === 'confirmed';
   }
   function setLesson(id, taskId = '', hash = '') {
     navigation.navigate({lessonId:id, taskId, hash});
   }
+  async function beforeLessonVisit() {
+    if (busy || $('actionDialog').open) return false;
+    if (!dirty()) return true;
+    let allowed = false;
+    await exclusive(async () => { allowed = await allowReplace({navigation:true}); });
+    return allowed;
+  }
+  function externalLessonVisit(href) {
+    return exclusive(async () => {
+      if (!await allowReplace({navigation:true})) return;
+      await modal('別ページを開く', (body, button) => {
+        textNode(body, '編集中のファイルはこの画面に保持しています。次のボタンで別タブを開いてください。');
+        const link = textNode(body, '別ページを開く（別タブ）', 'a');
+        link.className = 'btn'; link.href = href; link.target = '_blank'; link.rel = 'noopener noreferrer';
+        button('閉じる', 'close');
+      });
+    });
+  }
   function renderLesson({lessonId:id, taskId, hash}) {
     selectedLesson = catalog.find(row => row.id === id) || catalog[1];
     $('lessonSelect').value = selectedLesson.id;
-    $('readingLessonSelect').value = selectedLesson.id;
     $('taskSelect').replaceChildren();
     for (const task of selectedLesson.files) {
       const option = document.createElement('option'); option.value = task.id;
@@ -166,20 +183,55 @@
     // 教材の選択は文書名、保存先、Undo、配付情報を変更しない。
   }
   function updateDistribution() {
-    const link = $('personalLink');
     const state = Workflow.distribution(window.pages, $('taskSelect').value, window.htmlPracticeLinks, catalogState());
-    const item = state.item;
-    link.hidden = !item; link.removeAttribute('href');
-    if (item) link.href = item.url;
     $('distributionState').textContent = state.message;
     $('distributionState').dataset.state = state.kind;
     updateSubmission();
+  }
+  function distributionDialog() {
+    return exclusive(() => modal('課題ファイルのダウンロード', (body, button) => {
+      textNode(body, selectedLesson.title);
+      textNode(body, '対象ファイルを選ぶと配付ページが別タブで開きます。学校アカウント・対象学年・課題設定の開始日時などを確認して、本人用HTMLを発行します。');
+      if (!selectedLesson.files.length) textNode(body, 'この教材には配付するHTML課題はありません。');
+      for (const task of selectedLesson.files) {
+        const state = Workflow.distribution(window.pages, task.id, window.htmlPracticeLinks, catalogState());
+        textNode(body, task.fileName + ' — ' + task.title, 'h3');
+        if (!state.item) { textNode(body, state.message); continue; }
+        const link = textNode(body, task.fileName + ' をダウンロード', 'a');
+        link.className = 'btn file-entry'; link.href = state.item.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
+        link.dataset.taskDownload = task.id;
+        link.addEventListener('click', event => {
+          const fresh = Workflow.distribution(window.pages, task.id, window.htmlPracticeLinks, catalogState());
+          if (!fresh.item || fresh.item.url !== link.href) {
+            event.preventDefault(); $('actionError').textContent = '配付設定を確認できません。閉じてからもう一度開いてください。'; $('actionError').hidden = false;
+          }
+        });
+      }
+      textNode(body, '取得したHTMLは、名前を変えずに「書類／HTML実習」へ保存してください。取り直しても途中の編集内容は戻りません。');
+      button('閉じる', 'close');
+    }));
+  }
+  function practiceSteps() {
+    return exclusive(() => modal('実習の手順', (body, button) => {
+      const list = document.createElement('ol'); body.append(list);
+      for (const text of [
+        '上部の「課題ファイルのダウンロード」で対象ファイルを選び、自分の学校アカウントで本人用HTMLを取得します。',
+        'ファイル名を変えずに「書類／HTML実習」フォルダへ保存します。以前のHTMLや画像も同じ実習フォルダにまとめます。',
+        '「フォルダを接続…」でHTML実習フォルダを選び、一覧から今回のHTMLを開きます。ファイル選択ではなくフォルダ選択の画面では、HTMLがグレー表示でも正常です。',
+        'コードを編集し、プレビューの更新アイコン（⌘Enter）で表示を確認します。「保存」（⌘S）を押し、「Macのファイルに保存しました」を確認します。',
+        '「提出」→「提出画面を開く」で保存したHTMLを選び、提出を受け付けましたの表示と★を確認します。'
+      ]) textNode(list, text, 'li');
+      textNode(body, 'プレビュー更新とファイル保存は別の操作です。直接保存できない場合はダウンロード先・内容・ファイル名をFinderで確認してください。');
+      textNode(body, '本人用の配付情報は削除・変更しないでください。受付期間内は何回でも再提出できますが、同じ課題の新しい提出は60秒以上あけます。');
+      textNode(body, '次回はMacのファイルを開いて再開します。作業後は画像も含むフォルダ全体をバックアップしてください。万が一の復旧は「設定」→「困ったときの復旧」から行います。');
+      button('閉じる', 'close');
+    }));
   }
   function runPreview() {
     if (!doc) return;
     if (/\.css$/i.test(doc.fileName)) {
       $('previewNotice').textContent = 'CSSは保存してから、参照しているHTMLを開いて確認します。';
-      $('previewNotice').hidden = false; preview.update('', doc.fileName); return;
+      $('previewNotice').hidden = false; preview.update('<html><body></body></html>', doc.fileName); return;
     }
     preview.update(content(), doc.fileName);
   }
@@ -370,7 +422,11 @@
   function setPane(name) {
     document.body.dataset.pane = name;
     document.querySelectorAll('[data-pane]').forEach(node => { if (node.tagName === 'BUTTON') node.setAttribute('aria-pressed', String(node.dataset.pane === name)); });
-    if (name === 'left') document.body.classList.remove('left-collapsed');
+    if (name === 'left') {
+      document.body.classList.remove('left-collapsed');
+      $('toggleLessonBtn').setAttribute('aria-pressed', 'false');
+      $('toggleLessonBtn').textContent = 'エディタ・プレビューを全体表示';
+    }
     requestAnimationFrame(() => cm.refresh());
   }
   function initSplitters() {
@@ -442,24 +498,28 @@
         'Cmd-Enter':runPreview, 'Ctrl-Enter':runPreview}
     });
     for (const lesson of catalog) {
-      for (const id of ['lessonSelect','readingLessonSelect']) {
-        const option = document.createElement('option'); option.value = lesson.id; option.textContent = lesson.title; $(id).append(option);
-      }
+      const option = document.createElement('option'); option.value = lesson.id; option.textContent = lesson.title; $('lessonSelect').append(option);
     }
-    navigation = window.HtmlEditorNavigationMount({iframe:$('lessonIframe'), onSelect:renderLesson, onError:notify});
+    navigation = window.HtmlEditorNavigationMount({iframe:$('lessonIframe'), onSelect:renderLesson, onError:notify,
+      beforeVisit:beforeLessonVisit, hasUnsaved:dirty, openExternal:externalLessonVisit});
     // 起動時は空のまま。ローカルファイルも復旧候補も自動では開かない。
     displayState();
     cm.on('change', () => {
       if (replacing || !doc) return;
       doc.hasWork = true; displayState(); clearTimeout(autoTimer); autoTimer = setTimeout(autoSave, 500);
     });
-    $('lessonSelect').addEventListener('change', event => setLesson(event.target.value));
-    $('readingLessonSelect').addEventListener('change', event => setLesson(event.target.value));
-    $('taskSelect').addEventListener('change', () => navigation.navigate({...navigation.selection, taskId:$('taskSelect').value}));
-    $('personalLink').addEventListener('click', event => {
-      const item = Workflow.distribution(window.pages, $('taskSelect').value, window.htmlPracticeLinks, catalogState()).item;
-      if (!item || item.url !== event.currentTarget.href) { event.preventDefault(); updateDistribution(); notify('配付設定が変わりました。もう一度確認してください。'); }
+    $('lessonSelect').addEventListener('change', async event => {
+      const value = event.target.value; event.target.value = selectedLesson.id;
+      closeMenus(event.target);
+      await navigation.request({lessonId:value});
     });
+    $('taskSelect').addEventListener('change', async event => {
+      const value = event.target.value; event.target.value = navigation.selection.taskId;
+      closeMenus(event.target);
+      await navigation.request({...navigation.selection, taskId:value});
+    });
+    $('taskDownloadBtn').addEventListener('click', event => { event.currentTarget.focus(); distributionDialog(); });
+    $('practiceStepsBtn').addEventListener('click', event => { event.currentTarget.focus(); practiceSteps(); });
     document.addEventListener('pages:ready', updateDistribution);
     document.addEventListener('html-editor:catalog-change', updateDistribution);
     for (const id of ['openFilesBtn','practiceOpenBtn']) $(id).addEventListener('click', event => { if (!busy) { closeMenus(event.currentTarget); $('fileInput').click(); } });
@@ -477,8 +537,11 @@
     $('submitBtn').addEventListener('click', event => { event.currentTarget.focus(); submit(); });
     $('runBtn').addEventListener('click', runPreview);
     $('openPreviewTabBtn').addEventListener('click', () => { if (doc && !busy) { runPreview(); preview.openInNewTab(); } });
-    for (const id of ['collapseLeftBtn','expandLeftBtn']) $(id).addEventListener('click', () => {
-      document.body.classList.toggle('left-collapsed'); cm.refresh();
+    $('toggleLessonBtn').addEventListener('click', event => {
+      const collapsed = document.body.classList.toggle('left-collapsed');
+      event.currentTarget.setAttribute('aria-pressed', String(collapsed));
+      event.currentTarget.textContent = collapsed ? '解説とエディタを並べて表示' : 'エディタ・プレビューを全体表示';
+      closeMenus(event.currentTarget); cm.refresh();
     });
     document.querySelectorAll('#paneNav button').forEach(button => button.addEventListener('click', () => setPane(button.dataset.pane)));
     document.addEventListener('click', event => { if (!event.target.closest('.menu-wrap')) closeMenus(); });

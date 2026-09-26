@@ -469,21 +469,12 @@ body.mode-free #lessonIframe { display: none; }
 body.mode-free #fileTreeContainer { display: block; }
 
 /* 左ペイン折りたたみ */
-#expandLeftBtn {
-  display: none;
-  margin-right: 6px;
-}
-
 body.left-collapsed #leftPane {
   display: none !important;
 }
 
 body.left-collapsed #splitLeft {
   display: none !important;
-}
-
-body.left-collapsed #expandLeftBtn {
-  display: inline-flex;
 }
 
 /* 中央エディタ内部 */
@@ -641,11 +632,8 @@ body.left-collapsed #expandLeftBtn {
 .display-settings label { display: grid; gap: 4px; margin-bottom: 8px; }
 .display-settings p { margin: 8px 0; font-size: .85rem; line-height: 1.6; overflow-wrap: anywhere; }
 .settings-section { border-top: 1px solid var(--line); padding-top: 10px; margin-top: 10px; }
-.settings-section summary, .reading-menu summary { padding: 8px 0; cursor: pointer; font-size: .85rem; }
+.settings-section summary { padding: 8px 0; cursor: pointer; font-size: .85rem; }
 .settings-section .menu-item { white-space: normal; }
-.reading-menu { padding: 0 10px; border-bottom: 1px solid var(--line); flex: none; }
-.reading-menu label { display: grid; gap: 4px; padding-bottom: 10px; font-size: .85rem; }
-.reading-menu select { width: 100%; min-width: 0; }
 select { font: inherit; color: var(--text); background: var(--panel); border: 1px solid var(--line); border-radius: 6px; min-height: 36px; max-width: 100%; padding: 4px; }
 .btn:focus-visible, .menu-item:focus-visible, select:focus-visible, .splitter:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
 .btn:disabled { opacity: .55; cursor: not-allowed; }
@@ -688,6 +676,7 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
 #actionDialog h2 { font-size: 1.2rem; margin: 0 0 12px; }
 #actionBody { overflow-wrap: anywhere; }
 #actionBody p { line-height: 1.6; }
+#actionBody li { line-height: 1.7; margin-block: 10px; }
 #actionBody .file-entry { display: block; width: 100%; margin: 6px 0; text-align: left; white-space: normal; overflow-wrap: anywhere; }
 #actionDialog .btn, #practiceBar .btn, .menu-item { min-height: 44px; }
 #actionButtons { flex-wrap: wrap; margin-top: 20px; }
@@ -704,7 +693,16 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
   #workspace { width: 100%; }
   #mainContainer .pane { display: none !important; width: 100% !important; min-width: 0; flex: 1 !important; }
   body[data-pane="left"] #leftPane, body[data-pane="center"] #centerPane, body[data-pane="right"] #rightPane { display: flex !important; }
-  #collapseLeftBtn, #expandLeftBtn { display: none !important; }
+  #toggleLessonBtn { display: none; }
+}
+/* 右の作業列が狭いときも操作ボタンを1行に収める。 */
+#workspace { container-type: inline-size; }
+@container (max-width: 1120px) {
+  #toolbar .wide-label { display: none; }
+}
+@container (max-width: 640px) {
+  #toolbar .brand span { display: none; }
+  #toolbar .brand { margin-right: 0; }
 }
 @media (max-width: 600px) {
   #toolbar { padding: 0 6px; gap: 4px; }
@@ -719,6 +717,11 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
 }
 @media (pointer: coarse) {
   #toolbar .btn { min-height: 44px; min-width: 44px; }
+}
+@media (max-width: 420px) and (pointer: coarse) {
+  #toolbar .brand { display: none; }
+  #toolbar { gap: 1px; padding-inline: 2px; }
+  .toolbar-right { gap: 1px; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; scroll-behavior: auto !important; }
