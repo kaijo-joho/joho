@@ -1,4 +1,4 @@
-/* 通常HTML実習の非公開統合候補。認証と採点は配付・提出サーバーの責務。 */
+/* ローカルHTML/CSSの編集。認証と採点は配付・提出サーバーの責務。 */
 (function () {
   'use strict';
   const $ = id => document.getElementById(id);
@@ -17,17 +17,27 @@
   }
   function errorMessage(error) { return error && error.message || '操作を完了できませんでした。'; }
   function displayState() {
-    $('currentFileLabel').textContent = doc.fileName;
+    document.body.classList.toggle('has-document', Boolean(doc));
+    $('emptyState').hidden = Boolean(doc);
+    $('documentStatus').hidden = !doc;
+    $('currentFileLabel').textContent = doc?.fileName || '';
     $('dirtyMark').hidden = !dirty();
-    $('saveState').textContent = dirty() ? '未保存の変更があります。' : doc.saveMessage;
+    $('saveState').textContent = dirty() ? '未保存の変更があります。' : doc?.saveMessage || '';
+    for (const id of ['saveBtn','folderSaveBtn','downloadBtn','submitBtn','runBtn','openPreviewTabBtn']) $(id).disabled = !doc || busy;
+    $('fileListBtn').disabled = !fs.getFileList().length || busy;
+    $('disconnectBtn').disabled = !fs.getFileList().length && !fs.isConnected() || busy;
     $('folderStatusText').textContent = fs.isConnected() ? '保存先フォルダ：' + fs.getDirectoryName() :
       fs.getFileList().length ? '読み取り専用：保存はダウンロードで行います。' : 'フォルダ未接続';
+    $('folderAlert').hidden = fs.isConnected();
+    $('folderAlertMessage').textContent = fs.isSupported() ?
+      '上書き保存や画像・リンクの確認には、実習フォルダを接続してください。' :
+      'このブラウザでは上書き保存できません。「保存」でダウンロードしてください。画像の確認にはフォルダ全体を読み込みます。';
     updateSubmission();
   }
   const catalogState = () => window.HtmlEditorStartup.catalogState();
-  function submissionState() { return Workflow.submission(window.pages, doc.fileName, content(), window.htmlPracticeLinks, catalogState()); }
+  function submissionState() { return doc ? Workflow.submission(window.pages, doc.fileName, content(), window.htmlPracticeLinks, catalogState()) :
+    {ready:false, message:'配付された本人用HTMLを開くと、提出条件を確認できます。'}; }
   function updateSubmission() {
-    if (!doc) return;
     const state = submissionState();
     $('submissionState').textContent = state.message;
     $('submitBtn').classList.toggle('success', state.ready);
@@ -46,17 +56,10 @@
       if (!recovery) throw Error('ブラウザの保存領域を利用できません。');
       recovery.save(snapshot('auto'));
       doc.lastAutoContent = content();
-      $('recoveryState').textContent = '自動復元用の控え：' + new Date().toLocaleTimeString('ja-JP');
+      $('recoveryState').textContent = '復旧用の控え：' + new Date().toLocaleTimeString('ja-JP');
     } catch (error) {
       $('recoveryState').textContent = '自動保存に失敗しました。Macへ保存してください。' + errorMessage(error);
     }
-  }
-  function saveBrowser() {
-    if (!recovery) throw Error('ブラウザの保存領域を利用できません。ファイルをダウンロードしてください。');
-    recovery.save(snapshot('manual'));
-    doc.savedContent = content(); doc.hasWork = true;
-    doc.saveMessage = 'ブラウザに控えを保存しました。Macのファイルは未更新です。';
-    displayState(); notify(doc.saveMessage);
   }
   function replaceDocument(text, fileName, options = {}) {
     clearTimeout(autoTimer);
@@ -80,14 +83,15 @@
     cm.clearHistory();
     if (!options.restored) doc.savedContent = content();
     replacing = false; displayState(); runPreview();
+    requestAnimationFrame(() => cm.refresh());
     if (doc.hasWork) autoSave();
   }
   async function exclusive(action) {
     if (busy || $('actionDialog').open) return;
-    busy = true; cm.setOption('readOnly', true); $('app').setAttribute('aria-busy', 'true');
+    busy = true; cm.setOption('readOnly', true); $('app').setAttribute('aria-busy', 'true'); displayState();
     try { await action(); }
     catch (error) { if (error.name !== 'AbortError') notify(errorMessage(error)); }
-    finally { busy = false; cm.setOption('readOnly', false); $('app').removeAttribute('aria-busy'); displayState(); }
+    finally { busy = false; cm.setOption('readOnly', doc ? false : 'nocursor'); $('app').removeAttribute('aria-busy'); displayState(); }
   }
   function textNode(parent, text, tag = 'p') {
     const node = document.createElement(tag); node.textContent = text; parent.append(node); return node;
@@ -128,12 +132,21 @@
     if (!dirty()) return true;
     autoSave();
     const result = await modal('開いている内容を切り替えますか？', (body, button) => {
-      textNode(body, doc.fileName + ' に未保存の変更があります。自動保存とは別に控えを保存できます。');
-      button('ブラウザに保存して開く', 'save', saveBrowser);
+      textNode(body, doc.fileName + ' に未保存の変更があります。切り替える前にMacへ保存してください。');
+      button('保存して開く', 'save');
       button('保存せずに開く', 'discard');
       button('キャンセル', 'cancel');
     });
-    return result === 'save' || result === 'discard';
+    if (result === 'discard') return true;
+    if (result !== 'save') return false;
+    if (fs.isConnected()) return saveToFile(doc.binding !== fs.dirHandle);
+    download();
+    // ダウンロードの完了はブラウザから検証できない。本人の確認までは切り替えない。
+    return await modal('保存したファイルを確認', (body, button) => {
+      textNode(body, 'ダウンロードした ' + doc.fileName + ' の保存先と内容を確認してください。元のファイルへの上書き保存ではありません。');
+      button('保存を確認して開く', 'confirmed');
+      button('キャンセル', 'cancel');
+    }) === 'confirmed';
   }
   function setLesson(id, taskId = '', hash = '') {
     navigation.navigate({lessonId:id, taskId, hash});
@@ -141,6 +154,7 @@
   function renderLesson({lessonId:id, taskId, hash}) {
     selectedLesson = catalog.find(row => row.id === id) || catalog[1];
     $('lessonSelect').value = selectedLesson.id;
+    $('readingLessonSelect').value = selectedLesson.id;
     $('taskSelect').replaceChildren();
     for (const task of selectedLesson.files) {
       const option = document.createElement('option'); option.value = task.id;
@@ -162,6 +176,7 @@
     updateSubmission();
   }
   function runPreview() {
+    if (!doc) return;
     if (/\.css$/i.test(doc.fileName)) {
       $('previewNotice').textContent = 'CSSは保存してから、参照しているHTMLを開いて確認します。';
       $('previewNotice').hidden = false; preview.update('', doc.fileName); return;
@@ -209,7 +224,7 @@
     if (!fs.isSupported()) { $('directoryInput').click(); return; }
     await exclusive(async () => {
       await fs.openDirectory();
-      doc.binding = null; // 同名ファイルが別フォルダにあっても自動上書きしない。
+      if (doc) doc.binding = null; // 同名ファイルが別フォルダにあっても自動上書きしない。
       displayState(); runPreview();
       notify('フォルダを読み込みました。編集内容は保持しています。開くファイルを選んでください。');
       await fileList();
@@ -231,13 +246,14 @@
           if (Practice.taskForFile(path)) setLesson(doc.lessonId, Practice.taskForFile(path));
           setPane('center');
         } else {
-          fs.disconnect(); fs = staged; preview.fs = fs; doc.binding = null;
+          fs.disconnect(); fs = staged; preview.fs = fs; if (doc) doc.binding = null;
           displayState(); runPreview(); await fileList();
         }
       } catch (error) { if (fs !== staged) staged.disconnect(); throw error; }
     });
   }
   async function saveToFile(explicit = false) {
+    if (!doc) return false;
     if (!fs.isConnected()) throw Error('書き込み可能なフォルダを接続してください。このブラウザではダウンロードで保存することもできます。');
     if (doc.binding !== fs.dirHandle && !explicit) throw Error('保存先を確認できません。ファイルから開き直すか、保存先フォルダを確認してください。');
     const saved = {docId:doc.docId, fileName:doc.fileName, content:content(), binding:fs.dirHandle};
@@ -268,26 +284,27 @@
   }
   function save() {
     return exclusive(async () => {
-      if (doc.binding && doc.binding === fs.dirHandle) await saveToFile();
-      else saveBrowser();
+      if (!doc) return;
+      if (fs.isConnected()) await saveToFile(doc.binding !== fs.dirHandle);
+      else download();
       runPreview();
     });
   }
-  function download(text = content(), name = doc.fileName) {
+  function download(text = content(), name = doc?.fileName) {
+    if (!name) return;
     const blob = new Blob([text], {type:/\.css$/i.test(name) ? 'text/css;charset=utf-8' : 'text/html;charset=utf-8'});
     const url = URL.createObjectURL(blob), link = document.createElement('a');
     link.href = url; link.download = name.split('/').pop(); document.body.append(link); link.click(); link.remove();
     setTimeout(() => URL.revokeObjectURL(url), 60000);
     notify('ダウンロードを開始しました。保存先とファイル名を確認してください。');
   }
-  async function restore(startup = false) {
+  async function restore() {
     let result;
     try {
       if (!recovery) throw Error('ブラウザの保存領域を利用できません。');
       result = recovery.list();
-    } catch (error) { $('recoveryState').textContent = errorMessage(error); return; }
-    if (startup && !result.items.length && !result.errors.length) return;
-    const choice = await modal('保存した控えから復元', (body, button, finish) => {
+    } catch (error) { $('recoveryState').textContent = errorMessage(error); notify(errorMessage(error)); return; }
+    const choice = await modal('ブラウザの控えから復旧', (body, button, finish) => {
       textNode(body, '日時とファイル名を確認して選んでください。選ばなかった控えは削除しません。');
       if (!result.items.length) textNode(body, '復元できる控えがありません。');
       if (result.errors.length) textNode(body, '読み取れない控えが ' + result.errors.length + ' 件あります。元データは保持しています。');
@@ -297,14 +314,14 @@
         const node = textNode(body, label, 'button'); node.type = 'button'; node.className = 'btn file-entry';
         node.addEventListener('click', () => finish(item));
       });
-      button(startup ? '復元せずに始める' : 'キャンセル', 'cancel');
+      button('キャンセル', 'cancel');
     });
     if (!choice || choice === 'cancel') return;
     if (!await allowReplace()) return;
     autoSave();
     replaceDocument(choice.content, choice.fileName, {lessonId:choice.lessonId, restored:true, hasWork:true,
-      message:'控えから復元しました。Macの保存先は再確認してください。'});
-    setLesson(doc.lessonId, Practice.taskForFile(choice.fileName) || ''); setPane('center'); notify('控えを復元しました。Macのファイルは変更していません。');
+      message:'控えから復旧しました。Macの保存先は再確認してください。'});
+    setLesson(doc.lessonId, Practice.taskForFile(choice.fileName) || ''); setPane('center'); notify('控えを復旧しました。Macのファイルは変更していません。');
   }
   async function submit() {
     await exclusive(async () => {
@@ -361,7 +378,8 @@
       const splitter = $(id), pane = $(paneId);
       let x = null;
       function move(delta) {
-        const width = Math.max(220, Math.min($('mainContainer').clientWidth * .45, pane.offsetWidth + delta * sign));
+        const maximum = id === 'splitLeft' ? $('mainContainer').clientWidth * .5 : $('editingPanes').clientWidth - 186;
+        const width = Math.max(id === 'splitLeft' ? 220 : 180, Math.min(maximum, pane.offsetWidth + delta * sign));
         pane.style.width = width + 'px'; pane.style.flex = 'none'; cm.refresh();
       }
       splitter.addEventListener('pointerdown', event => { event.preventDefault(); x = event.clientX; splitter.setPointerCapture(event.pointerId); });
@@ -374,33 +392,22 @@
     }
   }
   function closeMenus(trigger = document.activeElement) {
-    const owner = trigger?.closest('header details[open]');
-    document.querySelectorAll('header details[open]').forEach(node => node.open = false);
+    const owner = trigger?.closest('.menu-wrap[open]');
+    document.querySelectorAll('.menu-wrap[open]').forEach(node => node.open = false);
     if (owner) owner.querySelector('summary').focus();
   }
-  async function newDocument() {
-    if (!await allowReplace()) return;
-    let name;
-    const selected = await modal('新しい文書', (body, button) => {
-      const label = textNode(body, 'ファイル名', 'label'); label.htmlFor = 'newFileName';
-      const input = document.createElement('input'); input.id = 'newFileName'; input.type = 'text';
-      input.value = 'new.html'; input.maxLength = 100; input.autocomplete = 'off'; body.append(input);
-      textNode(body, 'HTMLは .html、CSSは .css で終わる名前を付けます。既存のファイルは変更しません。');
-      textNode(body, '学校の課題は新規作成せず、配付された本人用HTMLを開いてください。');
-      button('作成する', 'create', () => { name = Workflow.newFileName(input.value); });
-      button('キャンセル', 'cancel');
+  function disconnectFolder() {
+    return exclusive(async () => {
+      autoSave(); fs.disconnect(); if (doc) doc.binding = null;
+      displayState(); runPreview();
+      notify('フォルダの接続を解除しました。編集中の内容は保持しています。');
     });
-    if (selected !== 'create') return;
-    autoSave();
-    replaceDocument(/\.css$/i.test(name) ? '' : window.HtmlLessons.DEFAULT_HTML, name,
-      {message:'新しい文書です。編集後は「ファイル」からダウンロードするか、接続したフォルダへ保存してください。'});
-    setPane('center'); cm.focus();
   }
   function setupHelp() {
     try {
       if (!window.JohoToolHelp?.create) throw Error('help unavailable');
       window.JohoToolHelp.create({title:'HTMLエディタの使い方', storageKey:'joho.htmleditor.help.v1',
-        opener:$('helpBtn'), root:$('helpWindow'), isBusy:() => busy, returnToEditor:() => cm.focus(),
+        opener:$('helpBtn'), root:$('helpWindow'), isBusy:() => busy, returnToEditor:() => doc ? cm.focus() : $('practiceOpenBtn').focus(),
         bounds:() => ({top:$('toolbar').getBoundingClientRect().bottom + 8, bottom:innerHeight - 8})});
     } catch {
       // 小窓の共通部品を取得できなくても、保存・復元の説明は読めるようにする。
@@ -421,26 +428,33 @@
     preview = new window.HtmlPreview({iframe:$('previewIframe'), fs,
       onNotice:message => { if (/\.css$/i.test(doc?.fileName || '')) return; $('previewNotice').textContent = message; $('previewNotice').hidden = !message; },
       onNavigate:href => exclusive(async () => {
+        if (!doc) return;
         const path = safeRelativeLink(href, doc.fileName);
         if (!path) throw Error('リンク先を読み込んだフォルダ内で見つけられません。パスを確認してください。');
         await loadFile(path);
       })});
     cm = CodeMirror.fromTextArea($('codeEditor'), {
-      mode:'htmlmixed', lineNumbers:true, autoCloseTags:true, indentUnit:2, tabSize:2, lineWrapping:true,
-      extraKeys:{Tab:editor => editor.replaceSelection('  ', 'end'),
+      mode:'htmlmixed', lineNumbers:true, autoCloseTags:false, smartIndent:false, electricChars:false,
+      indentUnit:2, tabSize:2, lineWrapping:true, readOnly:'nocursor',
+      extraKeys:{Tab:editor => { if (doc && !busy) editor.replaceSelection('  ', 'end', '+input'); },
+        Enter:editor => { if (doc && !busy) editor.replaceSelection('\n', 'end', '+input'); },
         'Cmd-S':save, 'Ctrl-S':save, 'Cmd-O':() => $('fileInput').click(), 'Ctrl-O':() => $('fileInput').click(),
         'Cmd-Enter':runPreview, 'Ctrl-Enter':runPreview}
     });
     for (const lesson of catalog) {
-      const option = document.createElement('option'); option.value = lesson.id; option.textContent = lesson.title; $('lessonSelect').append(option);
+      for (const id of ['lessonSelect','readingLessonSelect']) {
+        const option = document.createElement('option'); option.value = lesson.id; option.textContent = lesson.title; $(id).append(option);
+      }
     }
     navigation = window.HtmlEditorNavigationMount({iframe:$('lessonIframe'), onSelect:renderLesson, onError:notify});
-    replaceDocument(window.HtmlLessons.DEFAULT_HTML, 'new.html', {message:'このまま編集するか、「ファイル」からHTML/CSSを開いてください。'});
+    // 起動時は空のまま。ローカルファイルも復旧候補も自動では開かない。
+    displayState();
     cm.on('change', () => {
-      if (replacing) return;
+      if (replacing || !doc) return;
       doc.hasWork = true; displayState(); clearTimeout(autoTimer); autoTimer = setTimeout(autoSave, 500);
     });
     $('lessonSelect').addEventListener('change', event => setLesson(event.target.value));
+    $('readingLessonSelect').addEventListener('change', event => setLesson(event.target.value));
     $('taskSelect').addEventListener('change', () => navigation.navigate({...navigation.selection, taskId:$('taskSelect').value}));
     $('personalLink').addEventListener('click', event => {
       const item = Workflow.distribution(window.pages, $('taskSelect').value, window.htmlPracticeLinks, catalogState()).item;
@@ -451,33 +465,31 @@
     for (const id of ['openFilesBtn','practiceOpenBtn']) $(id).addEventListener('click', event => { if (!busy) { closeMenus(event.currentTarget); $('fileInput').click(); } });
     $('fileInput').addEventListener('change', () => importSelection($('fileInput'), false));
     $('directoryInput').addEventListener('change', () => importSelection($('directoryInput'), true));
-    $('openFolderBtn').addEventListener('click', event => { closeMenus(event.currentTarget); openFolder(); });
+    for (const id of ['openFolderBtn','connectFolderBtn','settingsFolderBtn']) $(id).addEventListener('click', event => {
+      closeMenus(event.currentTarget); if (!busy) openFolder();
+    });
+    $('disconnectBtn').addEventListener('click', event => { closeMenus(event.currentTarget); disconnectFolder(); });
     $('fileListBtn').addEventListener('click', event => { closeMenus(event.currentTarget); exclusive(fileList); });
-    $('newBtn').addEventListener('click', event => { closeMenus(event.currentTarget); exclusive(newDocument); });
     $('saveBtn').addEventListener('click', save);
-    $('browserSaveBtn').addEventListener('click', event => { closeMenus(event.currentTarget); exclusive(saveBrowser); });
     $('folderSaveBtn').addEventListener('click', event => { closeMenus(event.currentTarget); exclusive(() => saveToFile(true)); });
     $('downloadBtn').addEventListener('click', event => { closeMenus(event.currentTarget); if (!busy) download(); });
     $('restoreBtn').addEventListener('click', event => { closeMenus(event.currentTarget); exclusive(() => restore()); });
     $('submitBtn').addEventListener('click', event => { event.currentTarget.focus(); submit(); });
     $('runBtn').addEventListener('click', runPreview);
-    $('togglePhoneWidthBtn').addEventListener('click', event => {
-      const phone = $('previewWrapper').classList.toggle('phone-mode'); event.currentTarget.setAttribute('aria-pressed', String(phone));
-    });
-    $('openPreviewTabBtn').addEventListener('click', () => preview.openInNewTab());
+    $('openPreviewTabBtn').addEventListener('click', () => { if (doc && !busy) { runPreview(); preview.openInNewTab(); } });
     for (const id of ['collapseLeftBtn','expandLeftBtn']) $(id).addEventListener('click', () => {
       document.body.classList.toggle('left-collapsed'); cm.refresh();
     });
     document.querySelectorAll('#paneNav button').forEach(button => button.addEventListener('click', () => setPane(button.dataset.pane)));
-    document.addEventListener('click', event => { if (!event.target.closest('header details')) closeMenus(); });
+    document.addEventListener('click', event => { if (!event.target.closest('.menu-wrap')) closeMenus(); });
     document.addEventListener('keydown', event => {
       if (event.key === 'Escape' && !$('actionDialog').open) {
-        const open = document.querySelector('header details[open]');
+        const open = document.querySelector('.menu-wrap[open]');
         if (open) { closeMenus(); open.querySelector('summary').focus(); }
       }
     });
-    document.querySelectorAll('header details').forEach(details => details.addEventListener('toggle', () => {
-      if (details.open) document.querySelectorAll('header details').forEach(other => { if (other !== details) other.open = false; });
+    document.querySelectorAll('.menu-wrap').forEach(details => details.addEventListener('toggle', () => {
+      if (details.open) document.querySelectorAll('.menu-wrap').forEach(other => { if (other !== details) other.open = false; });
     }));
     try {
       if (!window.JohoUI?.theme) throw Error('theme unavailable');
@@ -491,7 +503,6 @@
     window.addEventListener('pagehide', autoSave);
     if (!window.HtmlEditorStartup.ready()) return;
     requestAnimationFrame(() => cm.refresh());
-    exclusive(() => restore(true));
   }
   window.addEventListener('DOMContentLoaded', () => {
     try { init(); }
