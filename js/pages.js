@@ -1,4 +1,4 @@
-//2026-09-19 04:32:45;
+//2026-09-26 10:59:06;
 const pages = {
   "index": {
     "id": "index",
@@ -520,7 +520,7 @@ const pages = {
         "text": "4-1. 画像のデジタル表現 ワークシート",
         "release": false,
         "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr41",
-        "detail": "画像のデジタル化・画質の観察・符号化・データ量を整理するワークシート。A4/B5の印刷と公開後の解答・解説に対応。"
+        "detail": "画像のデジタル化・画質の観察・符号化・データ量を整理するワークシート。"
       }
     ],
     "backFile": "dr00.html"
@@ -557,7 +557,7 @@ const pages = {
         "text": "4-2. 動画のデジタル表現 ワークシート",
         "release": false,
         "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr42",
-        "detail": "動画のフレーム・フレームレート・圧縮・データ量を整理するワークシート。A4/B5の印刷と公開後の解答・解説に対応。"
+        "detail": "動画のフレーム・フレームレート・圧縮・データ量を整理するワークシート。"
       }
     ],
     "backFile": "dr41.html"
@@ -803,18 +803,20 @@ const pages = {
     "category": "1. HTMLの基本",
     "title": "1-2. HTMLファイルの構成",
     "detail": "HTMLファイルの構成について学びます。",
-    "practiceFile": false,
-    "dlFile": [
+    "practiceFile": [
       {
-        "id": "sample1-2",
-        "release": true,
+        "id": "html12-01",
         "title": "HTMLファイルの構成",
-        "fileName": "sample1-2.html",
-        "url": "./html/sample1-2.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample1-2",
-        "text": "sample1-2.html"
+        "text": "HTMLファイルの構成",
+        "fileName": "html12-01.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html12-01",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html12-01"
       }
     ],
+    "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
@@ -840,27 +842,31 @@ const pages = {
     "category": "1. HTMLの基本",
     "title": "1-3. 見出し・段落・文字の強調",
     "detail": "見出し・段落・文字の強調について学びます。",
-    "practiceFile": false,
-    "dlFile": [
+    "practiceFile": [
       {
-        "id": "sample1-3_1",
-        "release": true,
+        "id": "html13-01",
         "title": "見出し・段落・強調",
-        "fileName": "sample1-3_1.html",
-        "url": "./html/sample1-3_1.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample1-3_1",
-        "text": "sample1-3_1.html"
+        "text": "見出し・段落・強調",
+        "fileName": "html13-01.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html13-01",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html13-01"
       },
       {
-        "id": "sample1-3_2",
-        "release": true,
+        "id": "html13-02",
         "title": "ページの構成",
-        "fileName": "sample1-3_2.html",
-        "url": "./html/sample1-3_2.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample1-3_2",
-        "text": "sample1-3_2.html"
+        "text": "ページの構成",
+        "fileName": "html13-02.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html13-02",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html13-02"
       }
     ],
+    "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
@@ -886,18 +892,20 @@ const pages = {
     "category": "1. HTMLの基本",
     "title": "1-4. 画像",
     "detail": "画像の挿入について学びます。",
-    "practiceFile": false,
-    "dlFile": [
+    "practiceFile": [
       {
-        "id": "sample1-4",
-        "release": true,
+        "id": "html14-01",
         "title": "画像",
-        "fileName": "sample1-4.html",
-        "url": "./html/sample1-4.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample1-4",
-        "text": "sample1-4.html"
+        "text": "画像",
+        "fileName": "html14-01.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html14-01",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html14-01"
       }
     ],
+    "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
@@ -923,27 +931,31 @@ const pages = {
     "category": "1. HTMLの基本",
     "title": "1-5. リンク",
     "detail": "リンクの作成方法について学びます。",
-    "practiceFile": false,
-    "dlFile": [
+    "practiceFile": [
       {
-        "id": "sample1-5_1",
-        "release": true,
+        "id": "html15-01",
         "title": "リンク1",
-        "fileName": "sample1-5_1.html",
-        "url": "./html/sample1-5_1.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample1-5_1",
-        "text": "sample1-5_1.html"
+        "text": "リンク1",
+        "fileName": "html15-01.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html15-01",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html15-01"
       },
       {
-        "id": "sample1-5_2",
-        "release": true,
+        "id": "html15-02",
         "title": "リンク2",
-        "fileName": "sample1-5_2.html",
-        "url": "./html/sample1-5_2.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample1-5_2",
-        "text": "sample1-5_2.html"
+        "text": "リンク2",
+        "fileName": "html15-02.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html15-02",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html15-02"
       }
     ],
+    "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
@@ -969,18 +981,20 @@ const pages = {
     "category": "1. HTMLの基本",
     "title": "1-6. リスト",
     "detail": "リストの作成方法について学びます。",
-    "practiceFile": false,
-    "dlFile": [
+    "practiceFile": [
       {
-        "id": "sample1-6",
-        "release": true,
+        "id": "html16-01",
         "title": "リスト",
-        "fileName": "sample1-6.html",
-        "url": "./html/sample1-6.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample1-6",
-        "text": "sample1-6.html"
+        "text": "リスト",
+        "fileName": "html16-01.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html16-01",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html16-01"
       }
     ],
+    "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
@@ -1006,18 +1020,20 @@ const pages = {
     "category": "1. HTMLの基本",
     "title": "1-7. テーブル（表）",
     "detail": "テーブル（表）の作成方法について学びます。",
-    "practiceFile": false,
-    "dlFile": [
+    "practiceFile": [
       {
-        "id": "sample1-7",
-        "release": true,
+        "id": "html17-01",
         "title": "テーブル",
-        "fileName": "sample1-7.html",
-        "url": "./html/sample1-7.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample1-7",
-        "text": "sample1-7.html"
+        "text": "テーブル",
+        "fileName": "html17-01.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html17-01",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html17-01"
       }
     ],
+    "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
@@ -1097,27 +1113,31 @@ const pages = {
     "category": "2. CSSの基本",
     "title": "2-2. フォントの書式",
     "detail": "フォントの書式設定を学びます。",
-    "practiceFile": false,
-    "dlFile": [
+    "practiceFile": [
       {
-        "id": "sample2-2_1",
-        "release": true,
+        "id": "html22-01",
         "title": "テキストのスタイル例題",
-        "fileName": "sample2-2_1.html",
-        "url": "./html/sample2-2_1.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample2-2_1",
-        "text": "sample2-2_1.html"
+        "text": "テキストのスタイル例題",
+        "fileName": "html22-01.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html22-01",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html22-01"
       },
       {
-        "id": "sample2-2_2",
-        "release": true,
+        "id": "html22-02",
         "title": "テキストのスタイル実践",
-        "fileName": "sample2-2_2.html",
-        "url": "./html/sample2-2_2.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample2-2_2",
-        "text": "sample2-2_2.html"
+        "text": "テキストのスタイル実践",
+        "fileName": "html22-02.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html22-02",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html22-02"
       }
     ],
+    "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
@@ -1143,18 +1163,20 @@ const pages = {
     "category": "2. CSSの基本",
     "title": "2-3. IDとクラス",
     "detail": "ID(id)とクラス(class)を使ったセレクタの指定方法を学びます。",
-    "practiceFile": false,
-    "dlFile": [
+    "practiceFile": [
       {
-        "id": "sample2-3",
-        "release": true,
+        "id": "html23-01",
         "title": "IDとクラス",
-        "fileName": "sample2-3.html",
-        "url": "./html/sample2-3.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample2-3",
-        "text": "sample2-3.html"
+        "text": "IDとクラス",
+        "fileName": "html23-01.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html23-01",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html23-01"
       }
     ],
+    "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,
@@ -1180,18 +1202,20 @@ const pages = {
     "category": "2. CSSの基本",
     "title": "2-4. ブロック要素の書式",
     "detail": "ブロック要素の書式設定について学びます。",
-    "practiceFile": false,
-    "dlFile": [
+    "practiceFile": [
       {
-        "id": "sample2-4",
-        "release": true,
+        "id": "html24-01",
         "title": "ブロック要素の書式",
-        "fileName": "sample2-4.html",
-        "url": "./html/sample2-4.html",
-        "submitUrl": "https://script.google.com/a/macros/gfe.kaijo.ed.jp/s/AKfycbxBumMkcK31LENmqOX15neY8ZF09nkwD7lIUUzzdhbxtbEt_TYFr_QS32Zs_3Zb6Ba45g/exec?pid=htmlp&mode=submit&variant=sample2-4",
-        "text": "sample2-4.html"
+        "text": "ブロック要素の書式",
+        "fileName": "html24-01.html",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html24-01",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html24-01"
       }
     ],
+    "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
     "quizForm": false,

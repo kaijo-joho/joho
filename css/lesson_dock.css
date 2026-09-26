@@ -272,3 +272,44 @@
 .ld-next__card { display: block; padding: .6rem .8rem; border: 1px solid var(--ld-border); border-radius: .5rem; text-decoration: none; }
 .ld-next__title { font-weight: 600; }
 .ld-next__detail { opacity: .8; font-size: .9em; }
+
+/* 通常HTMLの共通入口。教材メニューと講座の配付物一覧で同じDOMを使う。 */
+.file-list.html-practice-list { list-style: none; padding-inline-start: 0; }
+.html-practice-entry {
+  display: grid;
+  min-width: 0;
+  gap: .4em;
+  padding-block: .35em;
+  overflow-wrap: anywhere;
+}
+.html-practice-entry__title { font-weight: 700; }
+.html-practice-entry__filename { font-size: .9em; color: inherit; }
+.html-practice-entry__actions { display: flex; flex-wrap: wrap; gap: .5em; }
+.html-practice-entry a.html-practice-entry__link {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  max-width: 100%;
+  padding: .4em .6em;
+  border: 1px solid currentColor;
+  border-radius: .4em;
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: .15em;
+}
+.html-practice-entry a.html-practice-entry__link:focus-visible {
+  outline: 3px solid var(--theme-color, #225386);
+  outline-offset: 2px;
+}
+/* メニュー共通の装飾リセット後も、通常HTMLの操作リンクは四辺を囲む。 */
+#lesson-dock.lesson-dock .lesson-dock__panel a.html-practice-entry__link {
+  border-bottom: 1px solid currentColor !important;
+}
+.html-practice-guide { margin: 0 0 .5em; font-size: .9em; overflow-wrap: anywhere; }
+@media (prefers-reduced-motion: reduce) {
+  .html-practice-entry a.html-practice-entry__link {
+    transition: none;
+    transform: none;
+  }
+}

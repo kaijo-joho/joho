@@ -259,12 +259,13 @@
     faqShared: "./js/faq_shared.js",       // FAQ検索・表示・AI導線の共通処理
     faq: "./js/faq.js",                   // FAQ_DATA / FAQ_CATEGORY_DATA を定義
     nav: "./js/nav.js",                   // window.initNav()
-    scriptPages: "./js/script_pages.js",  // window.initPageScripts()
+    scriptPages: "./js/script_pages.js?v=html-entry-1e8c1a0dba1571e8",  // window.initPageScripts()
     highlightLocal: "./js/highlight.js",  // 自前のハイライト
     searchCore: "./js/site_search_core.js", // window.__siteSearchCore
     siteSearch: "./js/site_search.js",     // window.initSiteSearch()
-    lessonDock: "./js/lesson_dock.js",    // フローティングドック
-    script: "./js/script.js"              // レイアウトやその他の共通初期化
+    lessonDock: "./js/lesson_dock.js?v=html-entry-1e8c1a0dba1571e8",    // フローティングドック
+    htmlPracticeLinks: "./js/html_practice_links.js?v=html-entry-1e8c1a0dba1571e8", // 通常HTMLの取得・提出リンク
+    script: "./js/script.js?v=html-entry-1e8c1a0dba1571e8"              // レイアウトやその他の共通初期化
   };
 
   /** ---------- 起動シーケンス ---------- */
@@ -283,6 +284,9 @@
         }),
         loadOptionalScript(PATH.faq, {
           ready: () => Array.isArray(window.FAQ_DATA)
+        }),
+        loadOptionalScript(PATH.htmlPracticeLinks, {
+          ready: () => typeof window.htmlPracticeLinks?.normalize === 'function'
         })
       ]);
 

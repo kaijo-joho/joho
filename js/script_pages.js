@@ -294,6 +294,7 @@ const COURSE_RESOURCE_TYPES = [
     actionLabel: 'ワークシートを開く（印刷・解答・解説）'
   },
   { key: 'practiceFile', label: '配付ノートブック', fallback: 'ノートブックを開く' },
+  { key: 'practiceFile', label: 'HTML実習ファイル', htmlPractice: true },
   { key: 'questionFile', label: '演習問題', fallback: '演習問題を開く' },
   { key: 'quizForm', label: '確認テスト', fallback: '確認テストを開く' }
 ];
@@ -311,9 +312,21 @@ function getCourseResourceGroups(pagesDict, currentId) {
     const resources = COURSE_RESOURCE_TYPES.map(type => ({
       ...type,
       items: Array.isArray(page[type.key])
-        ? page[type.key].filter(item =>
-            item && item.release !== false && typeof item.url === 'string' && item.url.trim() !== ''
-          )
+        ? page[type.key].flatMap(item => {
+            // 検出だけは共通部の読込失敗時も行い、旧Colabリンクへ代替しない。
+            const nativeHtml = window.htmlPracticeLinks?.claims(item) || (item && (
+              item.distributionMode === 'personal-html-v2' ||
+              (typeof item.id === 'string' && /^html\d{2}-\d{2}(?:\.html)?$/i.test(item.id.trim())) ||
+              (typeof item.fileName === 'string' && /^html\d{2}-\d{2}\.html$/i.test(item.fileName.trim()))
+            ));
+            if (nativeHtml) {
+              const valid = type.htmlPractice && window.htmlPracticeLinks?.normalize(item);
+              return valid ? [valid] : [];
+            }
+            if (type.htmlPractice) return [];
+            return item && item.release !== false && typeof item.url === 'string' && item.url.trim() !== ''
+              ? [item] : [];
+          })
         : []
     })).filter(resource => resource.items.length > 0);
     if (resources.length === 0) continue;
@@ -376,6 +389,15 @@ function renderCourseResourceIndex(pagesDict, currentId) {
 
         for (const item of resource.items) {
           const resourceItem = document.createElement('dd');
+
+          if (resource.htmlPractice) {
+            const entry = window.htmlPracticeLinks.createEntry(item);
+            if (entry) {
+              resourceItem.appendChild(entry);
+              resourceList.appendChild(resourceItem);
+            }
+            continue;
+          }
 
           const resourceLink = document.createElement('a');
           resourceLink.href = item.url.trim();

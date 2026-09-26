@@ -233,6 +233,13 @@
 
   // ==================== 中間モデルの構築 ====================
   function normalizeItem(raw, kind) {
+    // 共通部が読めない場合も、通常HTMLだけは旧リンク補完へ流さない。
+    const nativeHtml = window.htmlPracticeLinks?.claims(raw) || (raw && (
+      raw.distributionMode === 'personal-html-v2' ||
+      (typeof raw.id === 'string' && /^html\d{2}-\d{2}(?:\.html)?$/i.test(raw.id.trim())) ||
+      (typeof raw.fileName === 'string' && /^html\d{2}-\d{2}\.html$/i.test(raw.fileName.trim()))
+    ));
+    if (nativeHtml) return kind === 'practicefile' ? window.htmlPracticeLinks?.normalize(raw) || null : null;
     if (!raw || raw.release === false) return null;
 
     const text = textOf(raw) || '';
@@ -376,6 +383,19 @@
     return sec;
   }
 
+  function secHtmlPractice(items) {
+    const sec = el('div', { class: 'ld-sec' });
+    sec.appendChild(sectionTitle('HTML実習ファイル', 'practicefile'));
+    sec.appendChild(el('p', { class: 'html-practice-guide' }, window.htmlPracticeLinks.guide));
+    const ul = el('ul', { class: 'ld-sec__list' });
+    items.forEach(item => {
+      const entry = window.htmlPracticeLinks.createEntry(item);
+      if (entry) ul.appendChild(el('li', { class: 'ld-sec__item' }, entry));
+    });
+    sec.appendChild(ul);
+    return sec;
+  }
+
   function secDownload(title, items) {
     const sec = el('div', { class: 'ld-sec' });
     sec.appendChild(sectionTitle(title, 'download'));
@@ -385,17 +405,18 @@
     items.forEach(it => {
       const label = it.text || it.title || it.fileName || 'ダウンロード';
       const downloadName = it.downloadName || it.fileName || '';
+      const personalHtml = it.distributionMode === 'personal-html-v1';
 
       const li = el('li', { class: 'ld-sec__item ld-pair' }, [
         el('span', { class: 'ld-pair__title' }, label),
         el('span', { class: 'ld-pair__links' }, [
           el('a', {
             href: it.url,
-            download: downloadName,
+            ...(personalHtml ? { target: '_blank' } : { download: downloadName }),
             rel: 'noopener',
             class: 'ld-pair__link',
-            'aria-label': `${label} をダウンロード`
-          }, 'ダウンロード'),
+            'aria-label': `${label} ${personalHtml ? 'の本人用HTMLを取得' : 'をダウンロード'}`
+          }, personalHtml ? '本人用HTMLを取得' : 'ダウンロード'),
           it.submitUrl ? el('a', {
             href: it.submitUrl,
             target: '_blank',
@@ -529,7 +550,10 @@
     const root = el('div', { id: 'lesson-dock', class: 'lesson-dock', role: 'group', 'aria-label': '教材と検索' });
     const sections = [];
     if (model.worksheet.length) sections.push(secWorksheet('ワークシート', model.worksheet));
-    if (model.practicefile.length) sections.push(secList('実習ファイル', model.practicefile, 'practicefile'));
+    const htmlPractice = model.practicefile.filter(item => item.distributionMode === 'personal-html-v2');
+    const otherPractice = model.practicefile.filter(item => item.distributionMode !== 'personal-html-v2');
+    if (otherPractice.length) sections.push(secList('実習ファイル', otherPractice, 'practicefile'));
+    if (htmlPractice.length) sections.push(secHtmlPractice(htmlPractice));
     if (model.exercise.length) sections.push(secList('演習問題', model.exercise, 'exercise'));
     if (model.quiz.length) sections.push(secList('確認テスト', model.quiz, 'quiz'));
     if (model.download.length) sections.push(secDownload('ダウンロードファイル', model.download));

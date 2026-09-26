@@ -1,0 +1,40 @@
+/* 教材本文の案内だけに適用。リンク部品は html_practice_links.js / lesson_dock.css を共用する。 */
+.html-practice-workflow {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.html-practice-workflow .html-practice-slot {
+  margin-block: .8em;
+  padding: .6em .8em;
+  border: 1px solid currentColor;
+  border-radius: .5em;
+  scroll-margin-top: 6rem;
+}
+.html-practice-workflow [hidden] { display: none; }
+.html-practice-steps { padding-inline-start: 1.5em; }
+.html-practice-steps li { margin-block: .7em; }
+.html-practice-recovery summary {
+  min-height: 44px;
+  box-sizing: border-box;
+  padding-block: .6em;
+  cursor: pointer;
+  font-weight: 700;
+}
+.html-practice-recovery summary:focus-visible {
+  outline: 3px solid var(--theme-color, #225386);
+  outline-offset: 2px;
+}
+pre.html-practice-tree {
+  box-sizing: border-box;
+  max-width: 100%;
+  white-space: pre;
+  overflow-x: auto;
+  padding: 1em;
+  color: inherit;
+  background: transparent;
+  border: 1px solid currentColor;
+  font-family: ui-monospace, monospace;
+}
+@media print {
+  .html-practice-workflow .html-practice-entry__actions { display: none; }
+}

@@ -239,9 +239,19 @@
 
   function releasedItems(type) {
     const items = meta && Array.isArray(meta[type]) ? meta[type] : [];
-    return items.filter(item =>
-      item && item.release !== false && text(item.url) !== ''
-    );
+    return items.flatMap(item => {
+      // 共通部を読めないときも通常HTMLを旧配付方式へ流さない。
+      const nativeHtml = window.htmlPracticeLinks?.claims(item) || (item && (
+        item.distributionMode === 'personal-html-v2' ||
+        (typeof item.id === 'string' && /^html\d{2}-\d{2}(?:\.html)?$/i.test(item.id.trim())) ||
+        (typeof item.fileName === 'string' && /^html\d{2}-\d{2}\.html$/i.test(item.fileName.trim()))
+      ));
+      if (nativeHtml) {
+        const valid = type === 'practiceFile' && window.htmlPracticeLinks?.normalize(item);
+        return valid ? [valid] : [];
+      }
+      return item && item.release !== false && text(item.url) !== '' ? [item] : [];
+    });
   }
 
   function createPreferenceMenu({
@@ -736,11 +746,17 @@
     subDesc = '',
     { worksheet = false, worksheetApp = false } = {}
   ) {
-    const files = releasedItems(type);
-    if (files.length === 0) return false;
+    const allFiles = releasedItems(type);
+    if (allFiles.length === 0) return false;
+    const htmlFiles = allFiles.filter(file => file.distributionMode === 'personal-html-v2');
+    const mixed = htmlFiles.length > 0 && htmlFiles.length < allFiles.length;
+    const files = mixed ? allFiles.filter(file => file.distributionMode !== 'personal-html-v2') : allFiles;
 
     const p1 = document.createElement('p');
-    p1.innerHTML = worksheetApp
+    const htmlOnly = files.every(file => file.distributionMode === 'personal-html-v2');
+    p1.innerHTML = htmlOnly
+      ? window.htmlPracticeLinks.guide
+      : worksheetApp
       ? 'ブラウザでワークシートを開き、印刷や解答・解説の確認ができます。'
       : worksheet
         ? 'ワークシート（PDF）をダウンロードして、学習に使ってください。'
@@ -749,6 +765,13 @@
 
     const { ul, hasRightClickFile } = createFileList(files, type, { worksheet, worksheetApp });
     parentElem.appendChild(ul);
+
+    if (mixed) {
+      const htmlGuide = document.createElement('p');
+      htmlGuide.textContent = window.htmlPracticeLinks.guide;
+      parentElem.appendChild(htmlGuide);
+      parentElem.appendChild(createFileList(htmlFiles, 'practiceFile').ul);
+    }
 
     if (hasRightClickFile) {
       const pGuide = document.createElement('p');
@@ -768,9 +791,22 @@
   function createFileList(files, type, { worksheet = false, worksheetApp = false } = {}) {
     const ul = document.createElement('ul');
     ul.className = 'file-list';
+    if (files.length && files.every(file => file.distributionMode === 'personal-html-v2')) {
+      ul.classList.add('html-practice-list');
+    }
     let hasRightClickFile = false;
 
     files.forEach(file => {
+      if (file.distributionMode === 'personal-html-v2') {
+        const entry = type === 'practiceFile' && window.htmlPracticeLinks?.createEntry(file);
+        if (entry) {
+          const li = document.createElement('li');
+          li.className = 'practiceFile_listitem';
+          li.appendChild(entry);
+          ul.appendChild(li);
+        }
+        return;
+      }
       const url = text(file.url);
       const label = text(file.text) || text(file.title) || text(file.fileName) || 'ファイルを開く';
       const isLocalFile = url.startsWith('./');
