@@ -1,5 +1,4 @@
 reportlab>=4,<5
 pypdf>=5,<7
 Pillow>=10,<13
-# Optional: read_scan.py and synthetic scan verification only.
-# opencv-python-headless>=4.10,<6
+# Local OpenCV reader: additionally install requirements-scan.txt.

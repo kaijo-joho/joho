@@ -1,0 +1,22 @@
+{
+  "schemaVersion": "worksheet-scan-reader-config/1",
+  "pdfDpi": 300,
+  "maxInputPixels": 40000000,
+  "maxInputBytes": 104857600,
+  "rendererTimeoutSeconds": 60,
+  "markerCornerFraction": 0.2,
+  "minMarkerAreaFraction": 0.00008,
+  "minMarkerFill": 0.9,
+  "maxMarkerSizeError": 0.25,
+  "maxQrAlignmentErrorMm": 0.45,
+  "minLayoutErrorGapMm": 0.12,
+  "minSourcePixelsPerModule": 3,
+  "minSourceSampleRadiusPixels": 4,
+  "strongInkFraction": 0.65,
+  "weakInkFraction": 0.9,
+  "minFillRatio": 0.55,
+  "maxOtherRatio": 0.18,
+  "minWinnerMargin": 0.4,
+  "blankMaxRatio": 0.08,
+  "maxOtherWeakRatio": 0.28
+}

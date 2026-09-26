@@ -13,7 +13,11 @@ B5・A4の表面にタイトル・氏名・組/番号OMR・ワークシートQR�
 | `pdf_support.py` | 共通シーンをReportLabのベクター・埋込文字として描画 |
 | `make_samples.py` | サンプルSVG・JSON・PDFの再生成 |
 | `add_header.py` | 既存PDFへ重ねる。新規ファイルへ出力 |
-| `read_scan.py` | OpenCV接続例。マーカー補正、QR照合、OMR黒画素率 |
+| `scan_core.py` | 座標JSONを使う共通OpenCV読取コア |
+| `scan_poc.py` | ローカルPDF/JPEG/PNGの読取CLI。JSON・コンソール・確認画像を出力 |
+| `scan_batch.py` | 複数ファイルの順次検証と正解付きmanifestの照合 |
+| `reader-config.json` / `requirements-scan.txt` | 読取閾値・処理上限とPython依存 |
+| `read_scan.py` | 旧API互換。内部では同じ読取コアを使用 |
 | `read_duplex.py` | 1人分の両面PDFのQR検査と表面から裏面への生徒候補継承 |
 | `gas-adapter.js` / `gas-style.css` | 既存ワークシートへの差し込みと紙面調整 |
 | `build-gas.mjs` | GAS用 `05_scan_header.js`・`24_scan_style.html` を生成 |
@@ -140,35 +144,113 @@ dr31・dr32・dr41・dr42の表面には全要素、裏面にはタイトル・Q
 
 本文は10.5pt/9ptと0/2/4mmのインデントを維持する。段落余白、図表寸法、語句表行間、計算欄を用紙別に調整する。解答が入っても紙面を動かさない。実教材の解答入りHTML/PDFはGASのローカル `_tests` のみへ保存し、教材サイトへコミットしない。
 
-## OpenCVとの接続
+## ローカルOpenCV読取PoC
+
+Python 3.11以上と `requirements-scan.txt` を使う。PDF入力にはローカルのPoppler `pdftoppm` が必要。画像入力にはPoppler、Node、ReportLab、日本語フォントは不要。処理中の通信、ScanSnap・Drive・GSS接続、名簿照合、本文の筆記量判定は実装しない。
 
 ```sh
-python3 scripts/worksheet-scan-header/read_scan.py scan.png templates/worksheets/scan-header/b5.json
-python3 scripts/worksheet-scan-header/read_scan.py back.png templates/worksheets/scan-header/b5-back.json
-python3 scripts/worksheet-scan-header/read_duplex.py student-duplex.pdf --pdftoppm /path/to/pdftoppm
+python3 -m venv /tmp/worksheet-scan-venv
+/tmp/worksheet-scan-venv/bin/pip install -r scripts/worksheet-scan-header/requirements-scan.txt
+
+# 単独の表面画像。用紙は自動選択。
+/tmp/worksheet-scan-venv/bin/python scripts/worksheet-scan-header/scan_poc.py scan.jpg \
+  --output /tmp/scan-result-001
+
+# 1人分の両面PDF。必要時は --pdftoppm /path/to/pdftoppm を付ける。
+/tmp/worksheet-scan-venv/bin/python scripts/worksheet-scan-header/scan_poc.py student.pdf \
+  --output /tmp/scan-result-002
+
+# 複数ファイル。フォルダ指定は直下のPDF/JPEG/PNGのみ。別ファイル間で表裏を結合しない。
+/tmp/worksheet-scan-venv/bin/python scripts/worksheet-scan-header/scan_batch.py /path/to/scans \
+  --output /tmp/scan-batch-001
 ```
 
-用紙別JSONと一致するQRを使う。四隅近くの黒四角を検出し、四角の対角線の交点を基準へ写像する。0/90/180/270度の候補を試し、想定位置のQRが一致した向きだけ採用する。4点が欠ける場合やQR不一致時は停止する。同じ形の四角だけでは上下を決定できないので、QRの向き・位置を併用する。
+`--output` は新しいディレクトリを指定する。入力・既存結果を上書きしない。`--paper b5` / `--paper a4` で候補を限定できるが、QR位置の照合は省略しない。`--coordinates-dir` で4つの座標JSONのディレクトリ、`--config` で **reader-config.jsonの項目** の上書きを指定できる（ヘッダー生成用layout.jsonとは別）。縮尺を変更した用紙は、同時に生成した座標JSONを使う。
 
-円の輪郭を黒画素率へ含めないよう、半径の65%を測定する。初期の仮閾値は黒画素率55%以上かつ他の候補20%未満。未記入・二重マーク・薄い/曖昧なマークは数字を決めず、人手確認へ回す。JSONには全30個の黒画素率も返す。
+画像は1枚の表面だけでも判定する。PDFは原則1人分の表裏として扱い、1ページPDFは欠落としてREVIEWにする。意図した片面PDFだけ `--single-page` で単ページとして検証できる。2ページPDFの照合をこの指定で省略することはできない。裏面だけの場合、生徒識別値は出さず `missing_front` とする。PDFの3ページ以上・暗号化・破損・処理上限超過はERROR。
 
-裏面の単ページ読取はQRだけを返し、OMR抽出・生徒候補の推定を行わない。両面読取は1人分の1〜2ページPDFを入力とし、MediaBoxでB5/A4を選び、QRからIDと面を発見して次を検証する。
+### 処理と用紙選択
 
-| 条件 | 出力と継承 |
+1. JPEG/PNGはEXIF回転を反映し、透過部分を白へ合成してグレースケール化。PDFは300dpiで画像化する。1ファイル100MiB、1ページ4000万画素、PDF描画60秒を初期上限とする。
+2. 各画像隅の20%以内から、白抜きを持たない塗り四角を検出する。各隅が一意でない場合、欠け・複数候補をREVIEWとする。用紙全体を含む画像を入力し、広い机面や別用紙を含む写真は先に用紙単位へ切り出す。
+3. 四角の対角線の交点を、JSONのマーカー中心へ透視変換する。B5/A4と4方向の回転候補を試す。正規化画像のサイズはJSONの `raster`、円の中心・半径はmm座標から求める。
+4. 固定QR領域の周辺を復号し、実際のモジュール数と4モジュールのquiet zoneからQR外形を照合する。**サンプルJSONのQRバージョンへ固定しない。** 四隅の最大位置誤差0.45mm以下、候補間の誤差差0.12mm以上を初期条件とし、識別が曖昧ならREVIEW。マーカー寸法差25%超、原画像でQRが1モジュール3px未満、OMR測定半径4px未満もREVIEW。
+5. QRがFの場合だけ、30円の内側（JSONの `sampleRadiusMm`、現行は印刷半径の65%）を測定する。各円周辺の明るい画素（90パーセンタイル）を紙の明るさとし、その65%未満を濃い黒画素、90%未満を薄い筆跡として別々に記録する。円枠を黒画素率に含めない。
+6. 各行の最多・2位・差・薄い2個目の筆跡を評価し、3行すべてOKの場合だけ `class + tens + ones` を文字列として返す（例 `307`＝3組07番）。00〜99や組0の名簿上の妥当性は別工程で確認する。
+
+B5/A4は縦横比が近いため、画像寸法やPDFのMediaBoxだけでは判定しない。`pageSize` は **採用したヘッダーの座標体系** を表し、写真から物理的な紙寸法を測った値ではない。A4原稿を全体縮小してB5へ印刷した画像はA4の座標体系になり得る。PDFの実寸情報は `inputMetadata` に別途残す。
+
+### 判定とconfidence
+
+| 条件 | 初期値・扱い |
 | --- | --- |
-| 同じ教科・年度・IDのFとB各1枚 | 表面の読取候補を両面へ割当。`sourcePage`で元のページ番号を記録 |
-| B→Fの逆順 | `reversedPages: true`と`reversed_pages`警告。実際のFを取得元として継承 |
-| 裏面欠落・表面欠落 | `missing_back` / `missing_front`。継承しない |
-| F/F・B/B | `duplicate_front` / `duplicate_back`。継承しない |
-| 教科・年度・IDの不一致 | `worksheet_mismatch`。継承しない |
-| QR読取失敗・不正 | `unreadable_qr`。継承しない |
-| 表面OMRが未記入・複数・曖昧 | `unreadable_student`。継承しない |
+| 最多の濃い黒画素率 | 0.55以上 |
+| 2位の濃い黒画素率 | 0.18未満 |
+| 最多と2位の差 | 0.40以上 |
+| 他の数字の薄い筆跡率 | 0.28未満 |
+| 全領域がほぼ白 | 濃い・薄い筆跡とも0.08未満なら未記入 |
+| 薄い塗り、部分塗り、二重、消し残り、小さい判定差 | REVIEW。`digit: null` |
+| マーカー・QR・座標照合が不確実 | REVIEW。OMRを確定しない |
+| ファイルが読めない、非対応入力、設定不正、描画失敗 | ERROR |
 
-問題がある結果は `status: review`、`studentAssignments: []`。照合できる表裏でも名簿照合は必須であり、`requiresRosterMatch: true` を保持する。画像の90/180/270度回転補正と、PDF内のF/Bページ順序の逆転検出は別に記録する。
+`OK` は上の条件に適合したという意味で、名簿上の生徒本人を確認した意味ではない。各段階・各行に0〜1の `confidence` を出す。これは実スキャンで校正した正答確率ではなく **判定条件への適合度**。OMRは最多黒率、1−2位黒率、判定差、1−他候補の薄い筆跡率の最小値。REVIEW行は0.49以下、座標補正が信用できなければ0。QRは最大位置誤差から計算し、ページ・ファイルは成立した各判定の最小値を使用する。
 
-QRは生徒を含まないため、**同じ教材・年度を使う別の生徒の裏面が混入した場合は、このQRだけでは検出できない**。1人分の表裏を同じPDFにまとめる回収工程を前提とし、別PDF間の自動組合せや複数生徒を含むバッチの推測ペアリングは行わない。
+### 出力
 
-検証には200dpiのPDF画像と台形歪み・ぼかし・4方向回転の人工画像を使う。**実際の筆記具・複写機・影・紙折れ・消し跡への閾値調整、名簿照合、学年/回収バッチの管理、記入状況判定、採点は今後の工程**。候補が1組00番等の形式上有効な値でも、名簿照合が通るまでは生徒を確定しない。スキャン画像・名簿を外部へ送らない。
+- `result.json`: スキーマ `worksheet-scan-result/1`。ファイル状態、confidence、`studentIdentifier`、各ページ、表裏照合、設定値、入力SHA-256、座標JSONのパス/SHA-256、OpenCVバージョンを含む。
+- `pages[].rows.class/tens/ones`: 10個の `blackRatios`、`weakInkRatios`、各測定円の中心・半径・背景値、最多・2位・差、`status`、`confidence`、`issues`。`candidateDigit` は要確認時の参考値で、確定した `digit` と区別する。
+- `page-01-markers.png`: 入力上の検出マーカーと候補。四隅が不足しても検出途中の画像を残す。
+- `page-01-normalized.png`: 正規化した用紙、四隅・QR予定領域（青）・検出QR（紫）・OMR測定円を描画。
+- `page-01-header.png`: 同じ画像のヘッダー拡大確認用。緑の太線は確定、橙の太線は要確認候補。30領域に数字と黒画素率を添える。裏面にはOMRを描かない。
+
+補正方向を決定できないときはマーカー画像だけを残し、架空のQR/OMR位置を描かない。通常はコンソールへ要約を表示し、`--json` では標準出力にJSON、標準エラーに要約を出す。単一CLIの終了コードはOK=0、REVIEW=2、ERROR=1。
+
+後工程は **ファイル直下の `status` と `studentAssignments`** を利用する。ページ単位で表面の数字が読めても、表裏照合がREVIEWならファイル直下の `studentIdentifier` はnull、`studentAssignments` は空にする。
+
+### 表裏照合
+
+同じ教科・年度・ワークシートIDのF/B各1枚で、両面の読取がOKの場合だけ表面の3桁を継承する。`sourcePage` に表面の実ページ番号を記録する。B→Fの逆順はQRで復元してOKとし、必ず `reversedPages: true` と `warnings: ["reversed_pages"]` を記録・コンソール表示する。90度などの画像回転とは別に扱う。
+
+裏面/表面の欠落、F/F・B/B、教科・年度・IDの混在、用紙体系の不一致、片面のQR/OMR不明瞭はREVIEWとし、継承しない。**同じ教材・年度を使う別の生徒の裏面混入は、QRに生徒IDがないため検出できない。** 1人分を1つのPDFにする前提を維持し、別PDF間の自動ペアリングは行わない。
+
+### 一括検証と正解データ
+
+`scan_batch.py` は1ファイルずつ処理する。壊れた入力があっても次へ進み、ファイルごとの出力を連番フォルダへ保存する。`batch-result.json` にOK/REVIEW/ERROR件数と結果ファイルへのパスをまとめる。正解データなしの場合、認識精度を計算しない。
+
+実スキャンを評価するときは、次のmanifestを人手でラベル付けする。入力パスはmanifestのディレクトリからの相対パスでもよい。期待する識別値は先頭ゼロを保持する文字列、REVIEW/ERRORではnullにする。
+
+```json
+{
+  "schemaVersion": "worksheet-scan-cases/1",
+  "cases": [
+    {"input": "b5-filled.jpg", "expected": {"status": "OK", "studentIdentifier": "307", "pageSize": "b5"}},
+    {"input": "double-mark.png", "expected": {"status": "REVIEW", "studentIdentifier": null}}
+  ]
+}
+```
+
+```sh
+python3 scripts/worksheet-scan-header/scan_batch.py --manifest /path/to/manifest.json \
+  --output /tmp/labeled-scan-check
+```
+
+期待値との一致・不一致・**誤ったOK判定（falseAcceptances）** を集計する。正解付きでは、期待したREVIEW/ERRORも成功とし、全件一致=終了0、不一致あり=終了1。正解なしではERRORを含むと終了1、REVIEWだけを含むと終了2、それ以外は終了0。
+
+### 再現用の人工スキャン
+
+既存サンプルPDFと共通生成器から、B5/A4の記入済みPNG/JPEG、回転、台形歪み、影、ぼけ、二重マーク、薄い塗り、消し跡、QR/マーカー欠落、両面逆順・欠落・混在、QRバージョン1〜4、破損ファイルを作る。すべてダミーで、実際の生徒情報を含まない。生成にはNodeとPopplerも必要。
+
+```sh
+python3 scripts/worksheet-scan-header/tests/make_scan_cases.py --output /tmp/scan-cases
+python3 scripts/worksheet-scan-header/scan_batch.py --manifest /tmp/scan-cases/manifest.json \
+  --output /tmp/scan-cases-results
+```
+
+実際の筆記具・プリンタ・複写機・紙折れ・消し方の違いは別途実スキャンで検証する。人工画像の成功率を実運用精度とみなさない。生徒のスキャン・認識結果・確認画像はリポジトリ外に保管し、公開コミットしない。
+
+2026-09-26にOpenCV 5.0.0で上記の人工50ケースを検証し、期待結果50件すべて一致（OK 22件、REVIEW 26件、ERROR 2件）、誤ったOK判定0件を確認した。逆の用紙を明示指定するケースと同点候補も別テストでREVIEWを確認。PDF画像化で生じる小さな文字片をマーカーとして拾わないよう、マーカー候補の最小面積を画像全体の0.00008に設定している。実紙スキャンでの評価は未実施。
+
+旧 `read_scan.py` / `read_duplex.py` は既存テスト向けの互換APIとして残す。行の小文字状態（ok/blank/ambiguous）など旧形式は新しいCLIの契約と異なる。新規接続には `scan_poc.py` / `scan_batch.py` を使用する。
 
 ## 検証
 
@@ -179,6 +261,6 @@ python3 scripts/worksheet-scan-header/tests/verify_scan.py --report /tmp/scan-re
 node scripts/worksheet-scan-header/tests/browser.cjs /path/to/private/fixtures /path/to/private/output
 ```
 
-読取検証にはOpenCV（`opencv-python-headless`）が必要。両面テストは実際のPDFを描画してQRを復号し、正順・逆順で3組27番を表面から裏面へ継承することも確認する。ブラウザ検証にはPlaywrightとChromeを使い、`PLAYWRIGHT_MODULE` でモジュールを指定できる。`--webkit` はWebKit補助検証。GAS側の70テストも実行する。
+読取検証にはOpenCV（`opencv-python-headless`）が必要。両面テストは実際のPDFを描画してQRを復号し、正順・逆順で3組27番を表面から裏面へ継承することも確認する。ブラウザ検証にはPlaywrightとChromeを使い、`PLAYWRIGHT_MODULE` でモジュールを指定できる。`--webkit` はWebKit補助検証。GAS側を変更した場合は同プロジェクトのテストも実行する。ローカル読取PoCだけの変更ではGASを更新しない。
 
 実機確認では、原寸で印刷したB5/A4の四隅欠け、マーク直径、QR・消し跡の判定、両面の向き、スキャン後の座標補正を確認する。Chrome PDFやWebKitの検証は、物理プリンタやSafari印刷プレビューの確認の代わりにはしない。
