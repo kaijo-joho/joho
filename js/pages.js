@@ -1,4 +1,4 @@
-//2026-09-27 01:18:22;
+//2026-09-27 02:19:45;
 const pages = {
   "index": {
     "id": "index",
@@ -776,7 +776,19 @@ const pages = {
     "category": "1. HTMLの基本",
     "title": "1-1. HTMLとは・実習の進め方",
     "detail": "HTML講座の実習の進め方についての説明です。",
-    "practiceFile": false,
+    "practiceFile": [
+      {
+        "id": "html11-01",
+        "title": "HTML実習の準備",
+        "text": "HTML実習の準備",
+        "fileName": "html11-01.html",
+        "release": true,
+        "url": "https://script.google.com/macros/s/AKfycby-xnqeze89LX6r1ajacHONDedPIwKUOB-VkR5wcrV0x0-SakJmljeXlNOuGL5bRI3zTw/exec?type=htmlPractice&target=html11-01",
+        "distributionMode": "personal-html-v2",
+        "submitBackend": "grade",
+        "submitUrl": "https://script.google.com/macros/s/AKfycbw8kStE3TZlfMMyAZJAmC8I5UqeW1113cUnci6oZytEF_UX-IbfqlZDHFL34VrfBiy_rQ/exec?kind=html&flow=normal&kadai=html11-01"
+      }
+    ],
     "dlFile": false,
     "exampleFile": false,
     "questionFile": false,
