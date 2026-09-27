@@ -56,7 +56,7 @@
         const response = await fetch(probe, {signal:controller.signal, cache:'no-store', credentials:'same-origin', redirect:'error'});
         if (!response.ok || response.url !== probe || !/text\/html/i.test(response.headers.get('content-type') || '')) throw Error('editor unavailable');
         const source = await response.text();
-        if (!source.includes('data-html-editor-shell="1"') || !source.includes('data-html-editor-build="html-editor-43c73d7121d9c77d"')) throw Error('editor not ready');
+        if (!source.includes('data-html-editor-shell="1"') || !source.includes('data-html-editor-build="html-editor-ea96aca6697832ce"')) throw Error('editor not ready');
         if (!stopped) location.replace(routes.editorUrl(parsed.selection));
       } catch {
         if (!stopped) {

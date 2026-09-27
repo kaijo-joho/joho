@@ -9,7 +9,7 @@
     'html22-01', 'html22-02', 'html23-01', 'html24-01'
   ]);
   const APP_BASE = 'https://script\\.google\\.com/(?:macros/s/|a/macros/gfe\\.kaijo\\.ed\\.jp/s/)[A-Za-z0-9_-]+/exec';
-  const GUIDE = '取得したHTMLを編集して保存し、提出画面で選択してください。';
+  const GUIDE = '本人用HTMLを取得し、課題の指示に従って保存・提出してください。';
 
   // 不正な通常HTMLも旧Colabや通常DLへ流さないため、検出は検証より広くする。
   function claims(raw) {
