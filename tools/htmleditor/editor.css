@@ -646,6 +646,9 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
 #submissionState { flex-basis: 100%; color: var(--muted); }
 #displayNotice { margin: 8px 0 0; white-space: normal; max-width: 18rem; font-size: .85rem; }
 #documentStatus { padding: 6px 12px; border-bottom: 1px solid var(--line); font-size: .8rem; overflow-wrap: anywhere; flex: none; }
+#onboardingStatus { padding: 8px 12px; border-bottom: 1px solid var(--line); font-size: .85rem; flex: none; max-height: min(210px, 28vh); overflow: auto; overflow-wrap: anywhere; }
+#onboardingSteps { display: flex; flex-wrap: wrap; gap: 4px 16px; list-style: none; padding: 0; margin: 6px 0; }
+#onboardingMessage { margin: 4px 0; }
 #saveState { font-weight: 700; }
 #recoveryState { color: var(--muted); }
 #folderAlert { display: flex; gap: 10px; align-items: center; padding: 10px 12px; border-bottom: 2px solid var(--warning); background: var(--warning-soft); color: var(--warning); font-size: .85rem; flex: none; }

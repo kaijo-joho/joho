@@ -15,15 +15,41 @@
 	</style>
   <title>海城中学高等学校 情報科</title>
   <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/html_practice_lesson.css" integrity="sha384-6BES8JOV8q15UEhSXYFco3ywDM3rPeHaQ9ss80Llip+nC64fEOaOz427Irdrq2FO" crossorigin="anonymous">
+  <link rel="stylesheet" href="./css/html_practice_view.css?v=html-editor-43c73d7121d9c77d" integrity="sha384-uzOloCm84W7PVm40Q+QiU4/h8oexTQCK8zgqkLfzTJhOADpczaXr5fvW9bgZjxtZ" crossorigin="anonymous">
+  <script defer src="./tools/htmleditor/lessons.js?v=html-editor-43c73d7121d9c77d" integrity="sha384-/yLIL7w5k5/Jdwz48kFqft21ru5i+VZAo4wbqunj8MZiuViCuW1ubGJq3BxQApev" crossorigin="anonymous"></script>
+  <script defer src="./tools/htmleditor/practice.js?v=html-editor-43c73d7121d9c77d" integrity="sha384-ucYuy0bPaj51bntSJCJFI/NxIlaT8/CVD4bdMHybNVPhEhyGLPxelZDHbsGeNJ8+" crossorigin="anonymous"></script>
+  <script defer src="./tools/htmleditor/routing.js" integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
+  <script defer src="./js/html_practice_view.js?v=html-editor-43c73d7121d9c77d" integrity="sha384-99LzIHkoIdlRSeE6KOpfWsfGpBtTNB1T13Cm7HsyWlfvAdGR1sDLPCnYJK79T57j" crossorigin="anonymous"></script>
   <script defer src="./js/main.js"></script>
+  <script defer src="./js/html_practice_lesson.js" integrity="sha384-aJAwGbcBAHrx6Hzl7pliuP7eF2ylQBM4y5zN2Sk4Uhrjo//PiQxzlm3KciWos0Mz" crossorigin="anonymous"></script>
 </head>
 
-<body>
+<body data-html-editor-entry="candidate">
   
   
 
 
   <section>
+    <article class="html-practice-workflow" aria-labelledby="practice-heading">
+      <h2 id="practice-heading" data-skip-numbering>導入課題：実習の準備と提出</h2>
+      <p>これからの実習で使う、取得・フォルダ接続・保存・提出を一度練習します。<b>今回はコードを編集する必要はありません。</b></p>
+      <div class="html-practice-slot" id="practice-html11-01" data-html-practice="html11-01">
+        <div data-html-practice-fallback><p><code>html11-01.html</code></p><p>取得の案内が表示されないときは、先生に確認してください。</p></div>
+        <div data-html-practice-actions></div>
+      </div>
+      <ol class="html-practice-steps">
+        <li>Google Chromeでこの教材のHTMLエディタを開きます。</li>
+        <li>Finderの<b>書類</b>の中に<b>HTML実習</b>フォルダを作ります。すでにある場合は、そのフォルダを使います。</li>
+        <li>エディタ上部の<b>「課題ファイルのダウンロード」</b>から、自分の学校アカウントで<b>html11-01.html</b>を取得します。名前を変えずに<b>HTML実習</b>フォルダの直下へ保存します。</li>
+        <li><b>「フォルダを接続…」</b>でHTML実習フォルダを選び、表示される一覧から<b>html11-01.html</b>を開きます。</li>
+        <li>編集せずに<b>「保存」</b>を押します。「Macのファイルに保存しました」と、導入課題の3項目が確認済みになったことを確かめます。</li>
+        <li><b>「提出」→「提出画面を開く」</b>で、保存した<b>html11-01.html</b>を選び、送信します。<b>「提出を受け付けました」</b>まで確認してください。</li>
+      </ol>
+      <p>準備確認は、接続した<b>フォルダ名</b>、その中から開いた<b>ファイル</b>、<b>保存後の読み戻し</b>をこのエディタで確認します。書類フォルダ内にあるか、新しく作成したかは自動確認できないので、Finderでも確かめます。</p>
+      <p>準備確認と提出記録は別です。提出フォームは本人用HTMLを受け付けますが、アップロードされたHTMLだけからMacのフォルダ接続状態は確認できません。再読み込みや接続先の変更後は、フォルダから開いて保存し直してください。</p>
+      <p>フォルダ接続は、選んだフォルダのファイルを読み書きし、画像や相対リンクも確認するための許可です。Mac全体へのアクセスや、自動バックアップではありません。接続できない場合は、先生に相談してください。</p>
+    </article>
     <article>
       <h2 id="headline_1">(1) HTMLとは</h2>
 
@@ -131,7 +157,7 @@
 
       <h3 id="html_editor_start">HTMLエディタを開く</h3>
       <p>授業では、<b>Google Chrome</b>で教材サイトの<b>HTMLエディタ</b>を使います。左に解説、中央にコード、右にプレビューが表示されます。画面が狭いときは「解説」「コード」「プレビュー」で切り替えます。</p>
-      <p>実習する教材のリンク（例：<a href="./html12.html">1-2. HTMLファイルの構成</a>）を開くと、対応するエディタへ進みます。最初はファイルが開かれていないので、コードとプレビューは空の状態です。</p>
+      <p>実習する教材のリンク（このページでは<a href="./html11.html">1-1. HTMLとは・実習の進め方</a>）を開くと、対応するエディタへ進みます。最初はファイルが開かれていないので、コードとプレビューは空の状態です。</p>
       <figure>
         <img src="./img/html-editor-start.png" class="screen_shot wrap-always" alt="HTMLエディタの初期画面。左に解説、右にフォルダを接続するボタンとローカルファイル選択ボタンがある" decoding="async" loading="lazy">
         <figcaption>ファイルを開く前の画面。学校の実習では、本人用HTMLを保存してから実習フォルダを接続します。</figcaption>

@@ -4,6 +4,7 @@
   const $ = id => document.getElementById(id);
   const Practice = window.HtmlPracticeEditor;
   const Workflow = window.HtmlEditorWorkflow;
+  const Onboarding = window.HtmlEditorOnboarding;
   const catalog = Practice.lessons(window.HtmlLessons.LESSONS);
   let cm, fs, preview, recovery, doc, selectedLesson, navigation, busy = false, replacing = false;
   let autoTimer, toastTimer;
@@ -35,9 +36,24 @@
     updateSubmission();
   }
   const catalogState = () => window.HtmlEditorStartup.catalogState();
-  function submissionState() { return doc ? Workflow.submission(window.pages, doc.fileName, content(), window.htmlPracticeLinks, catalogState()) :
-    {ready:false, message:'配付された本人用HTMLを開くと、提出条件を確認できます。'}; }
+  function preparationState() {
+    return Onboarding.assess({doc, source:doc ? content() : '', connected:fs.isConnected(), directory:fs.dirHandle,
+      directoryName:fs.getDirectoryName(), files:fs.getFileList(), lessonId:selectedLesson?.id});
+  }
+  function submissionState() {
+    const preparation = preparationState();
+    if (preparation.active && !preparation.ready) return {ready:false, message:preparation.message};
+    return doc ? Workflow.submission(window.pages, doc.fileName, content(), window.htmlPracticeLinks, catalogState()) :
+      {ready:false, message:'配付された本人用HTMLを開くと、提出条件を確認できます。'};
+  }
   function updateSubmission() {
+    const preparation = preparationState();
+    $('onboardingStatus').hidden = !preparation.active;
+    $('onboardingSteps').replaceChildren();
+    if (preparation.active) {
+      for (const step of preparation.steps) textNode($('onboardingSteps'), (step.done ? '✓ 確認済み：' : '未確認：') + step.text, 'li');
+      $('onboardingMessage').textContent = preparation.message;
+    }
     const state = submissionState();
     $('submissionState').textContent = state.message;
     $('submitBtn').classList.toggle('success', state.ready);
@@ -66,7 +82,7 @@
     replacing = true;
     const task = Practice.taskForFile(fileName);
     doc = {docId:crypto.randomUUID(), fileName, lessonId:task ? task.slice(0,6) : options.lessonId || selectedLesson.id,
-      binding:options.binding || null, diskContent:options.diskContent ?? text,
+      binding:options.binding || null, openedFrom:options.openedFrom || null, verifiedSave:null, diskContent:options.diskContent ?? text,
       savedContent:options.restored ? null : text, hasWork:Boolean(options.hasWork),
       saveMessage:options.message || 'ファイルを開きました。'};
     cm.setOption('mode', /\.css$/i.test(fileName) ? 'css' : 'htmlmixed');
@@ -208,10 +224,12 @@
         '上部の「課題ファイルのダウンロード」で対象ファイルを選び、自分の学校アカウントで本人用HTMLを取得します。',
         'ファイル名を変えずに「書類／HTML実習」フォルダへ保存します。以前のHTMLや画像も同じ実習フォルダにまとめます。',
         '「フォルダを接続…」でHTML実習フォルダを選び、一覧から今回のHTMLを開きます。ファイル選択ではなくフォルダ選択の画面では、HTMLがグレー表示でも正常です。',
-        'コードを編集し、プレビューの更新アイコン（⌘Enter）で表示を確認します。「保存」（⌘S）を押し、「Macのファイルに保存しました」を確認します。',
+        selectedLesson.id === 'html11' ? '今回は html11-01.html を開くだけで、コードの編集は不要です。「保存」（⌘S）を押し、準備確認の3項目が確認済みになることを確かめます。' :
+          'コードを編集し、プレビューの更新アイコン（⌘Enter）で表示を確認します。「保存」（⌘S）を押し、「Macのファイルに保存しました」を確認します。',
         '「提出」→「提出画面を開く」で保存したHTMLを選び、提出を受け付けましたの表示と★を確認します。'
       ]) textNode(list, text, 'li');
       textNode(body, 'プレビュー更新とファイル保存は別の操作です。直接保存できない場合はダウンロード先・内容・ファイル名をFinderで確認してください。');
+      if (selectedLesson.id === 'html11') textNode(body, '導入課題の準備確認には、フォルダへ上書き保存できるGoogle Chromeを使います。フォルダ名とファイルの読み書きを確認しますが、書類フォルダ内かどうかや新しく作ったかどうかは確認できません。準備確認はこの画面内だけの案内で、提出物の採点結果とは別です。');
       textNode(body, '本人用の配付情報は削除・変更しないでください。受付期間内は何回でも再提出できますが、同じ課題の新しい提出は60秒以上あけます。');
       textNode(body, '次回はMacのファイルを開いて再開します。作業後は画像も含むフォルダ全体をバックアップしてください。万が一の復旧は「設定」→「困ったときの復旧」から行います。');
       button('閉じる', 'close');
@@ -244,7 +262,8 @@
     const value = await fs.readFile(path); // 読取失敗は現在の文書に触れない。
     if (!await allowReplace()) return;
     autoSave();
-    replaceDocument(value, path, {binding:fs.isConnected() ? fs.dirHandle : null, diskContent:value, hasWork:true});
+    replaceDocument(value, path, {binding:fs.isConnected() ? fs.dirHandle : null,
+      openedFrom:fs.isConnected() ? fs.dirHandle : null, diskContent:value, hasWork:true});
     if (Practice.taskForFile(path)) setLesson(doc.lessonId, Practice.taskForFile(path));
     setPane('center');
   }
@@ -266,7 +285,7 @@
     if (!fs.isSupported()) { $('directoryInput').click(); return; }
     await exclusive(async () => {
       await fs.openDirectory();
-      if (doc) doc.binding = null; // 同名ファイルが別フォルダにあっても自動上書きしない。
+      if (doc) { doc.binding = null; doc.openedFrom = null; doc.verifiedSave = null; } // 同名ファイルが別フォルダにあっても自動上書きしない。
       displayState(); runPreview();
       notify('フォルダを読み込みました。編集内容は保持しています。開くファイルを選んでください。');
       await fileList();
@@ -288,7 +307,8 @@
           if (Practice.taskForFile(path)) setLesson(doc.lessonId, Practice.taskForFile(path));
           setPane('center');
         } else {
-          fs.disconnect(); fs = staged; preview.fs = fs; if (doc) doc.binding = null;
+          fs.disconnect(); fs = staged; preview.fs = fs;
+          if (doc) { doc.binding = null; doc.openedFrom = null; doc.verifiedSave = null; }
           displayState(); runPreview(); await fileList();
         }
       } catch (error) { if (fs !== staged) staged.disconnect(); throw error; }
@@ -296,6 +316,7 @@
   }
   async function saveToFile(explicit = false) {
     if (!doc) return false;
+    doc.verifiedSave = null; // 取消・権限喪失・書込失敗を以前の成功で隠さない。
     if (!fs.isConnected()) throw Error('書き込み可能なフォルダを接続してください。このブラウザではダウンロードで保存することもできます。');
     if (doc.binding !== fs.dirHandle && !explicit) throw Error('保存先を確認できません。ファイルから開き直すか、保存先フォルダを確認してください。');
     const saved = {docId:doc.docId, fileName:doc.fileName, content:content(), binding:fs.dirHandle};
@@ -316,6 +337,7 @@
     await fs.writeFile(saved.fileName, saved.content);
     if (doc.docId !== saved.docId) throw Error('文書が切り替わりました。保存内容を確認してください。');
     doc.binding = saved.binding; doc.diskContent = saved.content; doc.savedContent = saved.content; doc.hasWork = true;
+    doc.verifiedSave = {directory:saved.binding, content:saved.content}; // writeFileはclose後に同じファイルを読み戻して照合済み。
     doc.saveMessage = 'Macのファイルに保存しました：' + saved.fileName;
     try {
       if (!recovery) throw Error('保存領域を利用できません。');
@@ -384,13 +406,15 @@
         const label = document.createElement('label'); label.className = 'confirm-download';
         const check = document.createElement('input'); check.type = 'checkbox'; check.id = 'downloadConfirmed';
         label.append(check, document.createTextNode('保存したファイル名と保存先を確認しました。')); body.append(label);
+        if (preparationState().active) { down.hidden = true; label.hidden = true; } // 導入課題は自己申告のダウンロード確認で代替しない。
         const link = textNode(body, '提出画面を開く', 'a'); link.className = 'btn primary'; link.id = 'submissionLink';
         link.href = fixed.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
         link.hidden = !savedToFile;
         if (savedToFile) textNode(body, 'Macのファイルへの保存を確認しました。');
         function unchanged() {
           try {
-            return catalogState() === 'ready' && doc.docId === fixed.docId && doc.fileName === fixed.fileName && content() === fixed.source &&
+            const preparation = preparationState();
+            return (!preparation.active || preparation.ready) && catalogState() === 'ready' && doc.docId === fixed.docId && doc.fileName === fixed.fileName && content() === fixed.source &&
               Practice.submission(window.pages, doc.fileName, content(), window.htmlPracticeLinks).url === fixed.url;
           } catch { return false; }
         }
@@ -444,7 +468,7 @@
   }
   function disconnectFolder() {
     return exclusive(async () => {
-      autoSave(); fs.disconnect(); if (doc) doc.binding = null;
+      autoSave(); fs.disconnect(); if (doc) { doc.binding = null; doc.openedFrom = null; doc.verifiedSave = null; }
       displayState(); runPreview();
       notify('フォルダの接続を解除しました。編集中の内容は保持しています。');
     });

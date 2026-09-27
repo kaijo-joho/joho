@@ -48,7 +48,7 @@
       title: '1-1. HTMLとは・実習の進め方',
       category: '1. HTMLの基本',
       docUrl: '../../html11.html',
-      files: []
+      files: [{id:'html11-01', fileName:'html11-01.html', title:'実習の準備と提出'}]
     },
     {
       id: 'html12',

@@ -3,6 +3,7 @@
   'use strict';
 
   const TARGETS = new Set([
+    'html11-01',
     'html12-01', 'html13-01', 'html13-02', 'html14-01',
     'html15-01', 'html15-02', 'html16-01', 'html17-01',
     'html22-01', 'html22-02', 'html23-01', 'html24-01'

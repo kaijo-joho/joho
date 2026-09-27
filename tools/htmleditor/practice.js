@@ -5,6 +5,7 @@
 })(typeof globalThis === 'undefined' ? this : globalThis, function () {
   'use strict';
   const MAP = Object.freeze({
+    'html11-01':'html11-01',
     'sample1-2':'html12-01', 'sample1-3_1':'html13-01', 'sample1-3_2':'html13-02',
     'sample1-4':'html14-01', 'sample1-5_1':'html15-01', 'sample1-5_2':'html15-02',
     'sample1-6':'html16-01', 'sample1-7':'html17-01', 'sample2-2_1':'html22-01',
