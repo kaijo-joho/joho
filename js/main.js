@@ -264,7 +264,7 @@
     searchCore: "./js/site_search_core.js", // window.__siteSearchCore
     siteSearch: "./js/site_search.js",     // window.initSiteSearch()
     lessonDock: "./js/lesson_dock.js?v=html-entry-1e8c1a0dba1571e8",    // フローティングドック
-    htmlPracticeLinks: "./js/html_practice_links.js?v=html-entry-1e8c1a0dba1571e8", // 通常HTMLの取得・提出リンク
+    htmlPracticeLinks: "./js/html_practice_links.js?v=practice-file-20260927", // 通常HTMLの取得・提出リンク
     script: "./js/script.js?v=html-entry-1e8c1a0dba1571e8"              // レイアウトやその他の共通初期化
   };
 

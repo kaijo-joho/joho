@@ -7,7 +7,7 @@
   const Onboarding = window.HtmlEditorOnboarding;
   const catalog = Practice.lessons(window.HtmlLessons.LESSONS);
   let cm, fs, preview, recovery, doc, selectedLesson, navigation, busy = false, replacing = false;
-  let autoTimer, toastTimer;
+  let autoTimer, toastTimer, submissionPanel = null;
   const editable = path => /\.(html?|css)$/i.test(path);
   const content = () => cm.getValue();
   const dirty = () => doc && content() !== doc.savedContent;
@@ -44,7 +44,7 @@
     const preparation = preparationState();
     if (preparation.active && !preparation.ready) return {ready:false, message:preparation.message};
     return doc ? Workflow.submission(window.pages, doc.fileName, content(), window.htmlPracticeLinks, catalogState()) :
-      {ready:false, message:'配付された本人用HTMLを開くと、提出条件を確認できます。'};
+      {ready:false, message:'配付された実習ファイルを開くと、提出条件を確認できます。'};
   }
   function updateSubmission() {
     const preparation = preparationState();
@@ -221,8 +221,8 @@
     return exclusive(() => modal('実習の手順', (body, button) => {
       const list = document.createElement('ol'); body.append(list);
       for (const text of [
-        '上部の「課題ファイルのダウンロード」で対象ファイルを選び、自分の学校アカウントで本人用HTMLを取得します。',
-        'ファイル名を変えずに「書類／HTML実習」フォルダへ保存します。以前のHTMLや画像も同じ実習フォルダにまとめます。',
+        '上部の「課題ファイルのダウンロード」で対象ファイルを選び、自分の学校アカウントで実習ファイルを取得します。',
+        '通常は「ダウンロード」に保存されます。Finderでファイル名を確認し、「書類／HTML実習」フォルダへ移動します。以前のHTMLや画像も同じ実習フォルダにまとめます。',
         '「フォルダを接続…」でHTML実習フォルダを選び、一覧から今回のHTMLを開きます。ファイル選択ではなくフォルダ選択の画面では、HTMLがグレー表示でも正常です。',
         selectedLesson.id === 'html11' ? '今回は html11-01.html を開くだけで、コードの編集は不要です。「保存」（⌘S）を押し、準備確認の3項目が確認済みになることを確かめます。' :
           'コードを編集し、プレビューの更新アイコン（⌘Enter）で表示を確認します。「保存」（⌘S）を押し、「Macのファイルに保存しました」を確認します。',
@@ -398,11 +398,13 @@
         savedToFile = await saveToFile();
         if (!savedToFile) return;
       }
-      await modal('HTMLを保存して提出へ', (body, button) => {
+      try {
+      await modal('実習ファイルを保存して提出へ', (body, button, finish) => {
         textNode(body, receipt.fileName);
-        textNode(body, 'まだ提出は完了していません。提出画面でこのHTMLを選択して送信し、受領と★を確認してください。');
+        textNode(body, 'まだ提出は完了していません。提出フォームでこの実習ファイルを選択して送信し、受領と★を確認してください。');
         let downloaded = false;
-        const down = textNode(body, 'HTMLをダウンロード', 'button'); down.type = 'button'; down.className = 'btn'; down.id = 'submitDownload';
+        const down = textNode(body, '実習ファイルを保存する', 'button'); down.type = 'button'; down.className = 'btn'; down.id = 'submitDownload';
+        if (!savedToFile) textNode(body, '通常は「ダウンロード」に保存されます。Finderで「書類／HTML実習」へ移動してください。同名の編集中ファイルを上書きせず、提出する最新版の名前と内容を確認します。');
         const label = document.createElement('label'); label.className = 'confirm-download';
         const check = document.createElement('input'); check.type = 'checkbox'; check.id = 'downloadConfirmed';
         label.append(check, document.createTextNode('保存したファイル名と保存先を確認しました。')); body.append(label);
@@ -427,11 +429,19 @@
           if (!unchanged() || !(savedToFile || downloaded && check.checked)) {
             event.preventDefault(); link.hidden = true;
             $('actionError').textContent = '内容または提出先が変わりました。確認画面を閉じて保存し直してください。'; $('actionError').hidden = false;
+            return;
           }
+          if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+          event.preventDefault();
+          submissionPanel = window.HtmlEditorSubmission.create({container:body, dialog:$('actionDialog'),
+            url:fixed.url, targetId:receipt.proof.assignmentId, isCurrent:unchanged, requestClose:() => finish('close')});
         });
         button('閉じる', 'close');
-      });
+      }, {canClose:() => !submissionPanel || submissionPanel.canClose()});
+      } finally { submissionPanel?.dispose(); submissionPanel = null; }
     });
+    // exclusive中は提出ボタンがdisabledなので、解除後にフォーカスを戻す。
+    if (!$('actionDialog').open) $('submitBtn').focus();
   }
   function setPane(name) {
     document.body.dataset.pane = name;
@@ -576,7 +586,7 @@
     }
     setupHelp();
     initSplitters();
-    window.addEventListener('beforeunload', event => { autoSave(); if (dirty()) { event.preventDefault(); event.returnValue = ''; } });
+    window.addEventListener('beforeunload', event => { autoSave(); if (dirty() || submissionPanel?.needsAttention()) { event.preventDefault(); event.returnValue = ''; } });
     window.addEventListener('pagehide', autoSave);
     if (!window.HtmlEditorStartup.ready()) return;
     requestAnimationFrame(() => cm.refresh());

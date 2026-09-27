@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-build="html-editor-ea96aca6697832ce">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-build="html-editor-c254092698930d45">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,12 +10,12 @@
     #startupFallback a { color: LinkText; }
     #startupFallback li { margin-block: 12px; }
   </style>
-  <script src="startup.js?v=html-editor-ea96aca6697832ce" integrity="sha384-kdkWCIqZcVNIiwdTwltAJQiP4p5foex8cr9xtuHrqyub2AfHB4PQf6pzeVWoix+p" crossorigin="anonymous"></script>
+  <script src="startup.js?v=html-editor-c254092698930d45" integrity="sha384-kdkWCIqZcVNIiwdTwltAJQiP4p5foex8cr9xtuHrqyub2AfHB4PQf6pzeVWoix+p" crossorigin="anonymous"></script>
   <link rel="icon" type="image/svg+xml" href="icon.svg">
-  <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-ea96aca6697832ce" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
-  <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-ea96aca6697832ce" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
-  <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
-  <link rel="stylesheet" href="editor.css?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-05W2bRKKIo7dkbvNz+WAys440qoGryiMcSq4tJHg8vp7AhRmFjj2W7Q3oVZgM5i7" crossorigin="anonymous">
+  <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-c254092698930d45" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
+  <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-c254092698930d45" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
+  <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-05W2bRKKIo7dkbvNz+WAys440qoGryiMcSq4tJHg8vp7AhRmFjj2W7Q3oVZgM5i7" crossorigin="anonymous">
 </head>
 <body class="mode-lesson" data-pane="center">
 <section id="startupFallback" aria-labelledby="startupTitle">
@@ -87,7 +87,7 @@
             <label>教材<select id="lessonSelect" aria-label="教材"></select></label>
             <label>学校の課題<select id="taskSelect" aria-label="学校の課題"></select></label>
             <p id="distributionState"></p>
-            <p id="submissionState">学校への提出は、配付された本人用HTMLが対象です。</p>
+            <p id="submissionState">学校への提出は、配付された実習ファイルが対象です。</p>
           </section>
           <section class="settings-section" aria-label="保存先フォルダ">
             <p id="folderStatusText">フォルダ未接続</p>
@@ -158,7 +158,7 @@
   </section>
   <section data-help-topic="school" data-help-title="学校の実習を始める">
     <h3>学校の実習を始める</h3>
-    <p>本人用HTMLの取得と提出は、海城の学校アカウントと、対象学年・年度・利用期間などの課題の条件を確認する別画面で行います。</p>
+    <p>実習ファイルの取得と提出は、海城の学校アカウントと、対象学年・年度・利用期間などの課題の条件を確認する別画面で行います。</p>
     <ol><li>教材のリンクからエディタを開き、上部の「課題ファイルのダウンロード」で対象ファイルを選び、学校アカウントで受け取ります。「実習の手順」から詳しい操作を確認できます。</li>
       <li>Macの「HTML実習」フォルダへ、指定のファイル名のまま保存します。</li>
       <li>「ファイルを開く」、または「ファイル」→「フォルダを開く」から読み込みます。</li></ol>
@@ -184,8 +184,8 @@
   </section>
   <section data-help-topic="submit" data-help-title="課題を提出する">
     <h3>課題を提出する</h3>
-    <p>学校で配付された本人用HTMLだけが対象です。通常のHTML/CSSや新規文書は、提出せずファイルに保存して利用できます。「提出条件」では、準備できない理由を確認できます。</p>
-    <ol><li>「提出」で、開いている本人用HTMLと提出先の対応を確認します。</li>
+    <p>学校で配付された実習ファイルだけが対象です。通常のHTML/CSSや新規文書は、提出せずファイルに保存して利用できます。「提出条件」では、準備できない理由を確認できます。</p>
+    <ol><li>「提出」で、開いている実習ファイルと提出先の対応を確認します。</li>
       <li>ファイルを保存するか、ダウンロードして保存先・ファイル名を確認します。</li>
       <li>「提出画面を開く」で、そのファイルを選択して送信します。</li></ol>
     <p>提出画面を開いただけでは提出は完了していません。受領と採点結果は提出画面で確認してください。何度でも提出できますが、続けて提出するときは60秒以上空けます。採点項目を満たすと★が付きます。</p>
@@ -198,32 +198,33 @@
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.4.1 BETA（2026年9月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
-    <p>編集中のコードはこの端末とブラウザで処理します。入力内容の自動送信はしません。本人用HTMLは「課題ファイルのダウンロード」の画面内で取得できます。ログインや表示がうまくいかない場合は「別タブで開く」を使ってください。提出は別タブの学校アカウント用画面で行います。</p>
+    <p>HTMLエディタ 0.5 BETA（2026年9月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>編集中のコードはこの端末とブラウザで処理します。入力内容の自動送信はしません。実習ファイルの取得と提出はモーダル内の学校アカウント用画面で行います。ログインや表示がうまくいかない場合は「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
-<script src="../shared/ui-kit.js?v=html-editor-ea96aca6697832ce" integrity="sha384-6vJ67E5P9WETdT3svRZktKmBdh6RE4UK+nb6Pcadtum0wtL5h1qyPJzoxuT9ejVB" crossorigin="anonymous"></script>
-<script src="../shared/help-panel.js?v=html-editor-ea96aca6697832ce" integrity="sha384-Ts3DYhHzaKGhPhPw8aYbXGEreQwLeHvt+Rj1agj95ZTBhphe94YBWz6EiTY1kmAL" crossorigin="anonymous"></script>
-<script src="vendor/codemirror.min.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-BEgQlz0fN4eG0n4jipmUe+nOg65hPY7L0E/lPVRaOPdzAfLPGEbXnpAodHtSnlwM" crossorigin="anonymous"></script>
-<script src="vendor/xml.min.js?v=html-editor-ea96aca6697832ce" integrity="sha384-xPpkMo5nDgD98fIcuRVYhxkZV6/9Y4L8s3p0J5c4MxgJkyKJ8BJr+xfRkq7kn6Tw" crossorigin="anonymous"></script>
-<script src="vendor/css.min.js?v=html-editor-ea96aca6697832ce" integrity="sha384-fpeIC2FZuPmw7mIsTvgB5BNc8QVxQC/nWg2W+CgPYOAiBiYVuHe2E8HiTWHBMIJQ" crossorigin="anonymous"></script>
-<script src="vendor/javascript.min.js?v=html-editor-ea96aca6697832ce" integrity="sha384-g0o+WW9mdIxA7LaaCKTkRm0M5TVT+Bb4s9eocxPsI2G0Xm0POG9iD6G6qP1IIsfS" crossorigin="anonymous"></script>
-<script src="vendor/htmlmixed.min.js?v=html-editor-ea96aca6697832ce" integrity="sha384-xYIbc5F55vPi7pb/lUnFj3wu24HlpAMZdtBHkNrb2YhPzJV3pX7+eqXT2PXSNMrw" crossorigin="anonymous"></script>
-<script src="vendor/closetag.min.js?v=html-editor-ea96aca6697832ce" integrity="sha384-WIyvbwMte2q6VXgBkN7prVo9ZSmBm47nI2ftVjoJLPY4yOu9gmI6lqaNXjBwHU5k" crossorigin="anonymous"></script>
-<script src="lessons.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-/yLIL7w5k5/Jdwz48kFqft21ru5i+VZAo4wbqunj8MZiuViCuW1ubGJq3BxQApev" crossorigin="anonymous"></script>
-<script src="../../js/pages.js?v=html-editor-ea96aca6697832ce" async data-editor-catalog="data"></script>
-<script src="../../js/html_practice_links.js?v=html-editor-ea96aca6697832ce" async data-editor-catalog="links" integrity="sha384-pW0TyRi9qDPSZUcjfEaRkD8hoLcXbv/FMaTqgSIgSCCxjnJyiCot1QScvEw2nSrb" crossorigin="anonymous"></script>
-<script src="practice.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-ucYuy0bPaj51bntSJCJFI/NxIlaT8/CVD4bdMHybNVPhEhyGLPxelZDHbsGeNJ8+" crossorigin="anonymous"></script>
-<script src="workflow.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-0Aq0YgOkiFEDdTVc9yMATDxLb/HB68DQte5KfLHaJUV/58wu1z3ArVOUetMttZeg" crossorigin="anonymous"></script>
-<script src="download.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-bXKT58aHvzIu+dLzbL8hfBkM8CBZw60CUi9bs4fWgJRcrAxNNJFfUBrNPYyzx0/k" crossorigin="anonymous"></script>
-<script src="routing.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
-<script src="navigation.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-6RxGxz13Sct6vVWh8st9I4GO+nBSOwQ7LyiL+h+s/s7bLbsTLGnSCJ07JnYZJFXx" crossorigin="anonymous"></script>
-<script src="recovery.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-j5rv44DgQetWLG8LlvUQBTDmR8Ex6u3HktVI3w2QwWplULJLYh8Jn7Oqn+spWRUO" crossorigin="anonymous"></script>
-<script src="filesystem.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-XE6MfJeVHNSxN3Mii72shYeZ1Gx+IdIBDMi0VfJgs6eqTkaErCUYow41HptYoaEa" crossorigin="anonymous"></script>
-<script src="preview.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-8+HmkoCVPikTTU7ZLOmQ4OTcP0lpaSDsibdKGCM3s5/D8rqlZbEbEAPOldE8n2T8" crossorigin="anonymous"></script>
-<script src="onboarding.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-095gWiJ23P9TNSH9Rsv92W9ZVXOqY2gz8wDrNXP+yzViGrDKiaGwrcw3n+j2Wt/E" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-editor-ea96aca6697832ce" data-editor-required integrity="sha384-1i9VtThh5eA9aAQP/U+oAxCmB0Az+jU84nLS1s/5BQJQiXY20Bq/84zAGJNmF6lH" crossorigin="anonymous"></script>
+<script src="../shared/ui-kit.js?v=html-editor-c254092698930d45" integrity="sha384-6vJ67E5P9WETdT3svRZktKmBdh6RE4UK+nb6Pcadtum0wtL5h1qyPJzoxuT9ejVB" crossorigin="anonymous"></script>
+<script src="../shared/help-panel.js?v=html-editor-c254092698930d45" integrity="sha384-Ts3DYhHzaKGhPhPw8aYbXGEreQwLeHvt+Rj1agj95ZTBhphe94YBWz6EiTY1kmAL" crossorigin="anonymous"></script>
+<script src="vendor/codemirror.min.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-BEgQlz0fN4eG0n4jipmUe+nOg65hPY7L0E/lPVRaOPdzAfLPGEbXnpAodHtSnlwM" crossorigin="anonymous"></script>
+<script src="vendor/xml.min.js?v=html-editor-c254092698930d45" integrity="sha384-xPpkMo5nDgD98fIcuRVYhxkZV6/9Y4L8s3p0J5c4MxgJkyKJ8BJr+xfRkq7kn6Tw" crossorigin="anonymous"></script>
+<script src="vendor/css.min.js?v=html-editor-c254092698930d45" integrity="sha384-fpeIC2FZuPmw7mIsTvgB5BNc8QVxQC/nWg2W+CgPYOAiBiYVuHe2E8HiTWHBMIJQ" crossorigin="anonymous"></script>
+<script src="vendor/javascript.min.js?v=html-editor-c254092698930d45" integrity="sha384-g0o+WW9mdIxA7LaaCKTkRm0M5TVT+Bb4s9eocxPsI2G0Xm0POG9iD6G6qP1IIsfS" crossorigin="anonymous"></script>
+<script src="vendor/htmlmixed.min.js?v=html-editor-c254092698930d45" integrity="sha384-xYIbc5F55vPi7pb/lUnFj3wu24HlpAMZdtBHkNrb2YhPzJV3pX7+eqXT2PXSNMrw" crossorigin="anonymous"></script>
+<script src="vendor/closetag.min.js?v=html-editor-c254092698930d45" integrity="sha384-WIyvbwMte2q6VXgBkN7prVo9ZSmBm47nI2ftVjoJLPY4yOu9gmI6lqaNXjBwHU5k" crossorigin="anonymous"></script>
+<script src="lessons.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-/yLIL7w5k5/Jdwz48kFqft21ru5i+VZAo4wbqunj8MZiuViCuW1ubGJq3BxQApev" crossorigin="anonymous"></script>
+<script src="../../js/pages.js?v=html-editor-c254092698930d45" async data-editor-catalog="data"></script>
+<script src="../../js/html_practice_links.js?v=html-editor-c254092698930d45" async data-editor-catalog="links" integrity="sha384-vBohxCGPwzaTW5q0oRj6LLB1y5nsB4cCLbuZYRN03bVFSWMfgrb5QtC35I7YxfWW" crossorigin="anonymous"></script>
+<script src="practice.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-RgJLWukv8vD7l/eyBcaHn5I2L3fkFmxrkMjdT/B0S+SL4jMOZ7WTjD6WMtTzSmnR" crossorigin="anonymous"></script>
+<script src="workflow.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-oJmPBn0EqhE7xQ26mqno+/eqlUXowH64e8RobjuanKiallBhN4dh8LgTasUBMqJ5" crossorigin="anonymous"></script>
+<script src="download.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-b7P4Kg92YTnMvT0wG6WGPKv6dUY4tFri01m7Xf+1USCEEwVUbEyiykJKzdMB27vQ" crossorigin="anonymous"></script>
+<script src="submission.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-+zjSvSZPmtUvHu0NvY8Uby9ypdfWGtdxukPxJHWyIvVHo8dEwzXMUtAFK6lHUSMb" crossorigin="anonymous"></script>
+<script src="routing.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
+<script src="navigation.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-6RxGxz13Sct6vVWh8st9I4GO+nBSOwQ7LyiL+h+s/s7bLbsTLGnSCJ07JnYZJFXx" crossorigin="anonymous"></script>
+<script src="recovery.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-j5rv44DgQetWLG8LlvUQBTDmR8Ex6u3HktVI3w2QwWplULJLYh8Jn7Oqn+spWRUO" crossorigin="anonymous"></script>
+<script src="filesystem.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-XE6MfJeVHNSxN3Mii72shYeZ1Gx+IdIBDMi0VfJgs6eqTkaErCUYow41HptYoaEa" crossorigin="anonymous"></script>
+<script src="preview.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-8+HmkoCVPikTTU7ZLOmQ4OTcP0lpaSDsibdKGCM3s5/D8rqlZbEbEAPOldE8n2T8" crossorigin="anonymous"></script>
+<script src="onboarding.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-095gWiJ23P9TNSH9Rsv92W9ZVXOqY2gz8wDrNXP+yzViGrDKiaGwrcw3n+j2Wt/E" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-editor-c254092698930d45" data-editor-required integrity="sha384-RWX9o7p9LU3SqGmUYMnMd9bcxoi2hTn7bADM9w3yqKUe0ucfd3CqTzPfbA+odFtH" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -53,7 +53,7 @@
         typeof data.templateVersion !== 'string' || !/^[A-Za-z0-9._-]{1,64}$/.test(data.templateVersion) ||
         typeof data.templateSha256 !== 'string' || !/^[a-f0-9]{64}$/.test(data.templateSha256) ||
         typeof data.keyId !== 'string' || !/^[A-Za-z0-9_-]{1,40}$/.test(data.keyId)) {
-      throw Error('本人用HTMLの課題情報が正しくありません。');
+      throw Error('実習ファイルの課題情報が正しくありません。');
     }
     return Object.freeze({...canonical, marker:match[0]});
   }
@@ -63,7 +63,7 @@
     }
     const id = taskForFile(fileName), item = resource(pages, id, links), proof = inspect(source);
     if (!item || !proof || proof.assignmentId !== id || proof.fileName !== String(fileName).split('/').pop()) {
-      throw Error('本人用HTMLと提出先の対応を確認できません。ファイル名と配付情報を確認してください。');
+      throw Error('実習ファイルと提出先の対応を確認できません。ファイル名と配付情報を確認してください。');
     }
     // 年度/学年をURLで指定して認可しない。遷移先が学校アカウントと登録版を再検証する。
     return {url:item.submitUrl, fileName:item.fileName, proof};

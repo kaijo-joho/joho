@@ -42,7 +42,7 @@
       if (disposed) return;
       clearFrame(); container.replaceChildren();
       node(container, lesson.title);
-      node(container, '対象ファイルを選ぶと、この画面内に配付ページを表示します。学校アカウント・対象学年・課題設定を確認して、本人用HTMLを発行します。');
+      node(container, '対象ファイルを選ぶと、この画面内に配付ページを表示します。学校アカウント・対象学年・課題設定を確認して、実習ファイルを発行します。');
       if (!lesson.files.length) node(container, 'この教材には配付するHTML課題はありません。');
       for (const task of lesson.files) {
         const state = stateFor(task.id);
@@ -59,7 +59,7 @@
           event.preventDefault(); showFrame(task, fresh.item);
         });
       }
-      node(container, '取得したHTMLは、名前を変えずに「書類／HTML実習」へ保存してください。取り直しても途中の編集内容は戻りません。');
+      node(container, '通常は「ダウンロード」に保存されます。Finderで実習ファイルを「書類／HTML実習」へ移動してください。ファイル名に「(1)」などが付いた場合は、編集中のファイルを上書きしないよう確認してから指定の名前に戻します。取り直しても途中の編集内容は戻りません。');
       if (focusTask) container.querySelector('[data-task-download="' + focusTask + '"]')?.focus();
     }
     function showFrame(task, item) {
@@ -77,7 +77,7 @@
       const status = node(container, '', 'p', 'download-status'); status.setAttribute('role', 'status');
       const spinner = node(status, '', 'span', 'download-spinner'); spinner.setAttribute('aria-hidden', 'true');
       const label = node(status, '配付ページを読み込んでいます…', 'span');
-      node(container, 'ログインや表示がうまくいかない場合は「別タブで開く」を使ってください。ダウンロード後は、この画面を閉じて保存したファイルを開きます。', 'p', 'download-note');
+      node(container, 'ログインや表示がうまくいかない場合は「別タブで開く」を使ってください。ダウンロード後はFinderで「書類／HTML実習」へ移動し、この画面を閉じてファイルを開きます。', 'p', 'download-note');
       const frame = document.createElement('iframe'); frame.className = 'download-frame';
       frame.title = task.fileName + ' の配付ページ'; frame.referrerPolicy = 'no-referrer';
       frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals');
@@ -112,10 +112,10 @@
         if (phase === 'loading') { label.textContent = '学校アカウントと課題設定を確認しています…'; return; }
         clearTimeout(slowTimer); spinner.hidden = true;
         if (phase === 'ready') label.textContent = '配付ページを表示しました。画面内の案内に従って取得してください。';
-        else if (phase === 'issuing') { spinner.hidden = false; label.textContent = '本人用HTMLを発行しています。完了までお待ちください。'; }
+        else if (phase === 'issuing') { spinner.hidden = false; label.textContent = '実習ファイルを発行しています。完了までお待ちください。'; }
         else if (phase === 'uncertain') label.textContent = '発行結果をまだ確認できません。配付ページ内の同じボタンで確認し直してください。';
-        else if (phase === 'issued') label.textContent = '発行しました。配付ページ内の「HTMLを保存する」を押してください。';
-        else if (phase === 'download-started') label.textContent = '保存を開始しました。Macにファイルが保存されたことを確認してください。';
+        else if (phase === 'issued') label.textContent = '発行しました。配付ページ内の「実習ファイルを保存する」を押してください。';
+        else if (phase === 'download-started') label.textContent = 'ダウンロードを開始しました。Finderの「ダウンロード」で実習ファイルを確認し、「書類／HTML実習」へ移動してください。';
         else label.textContent = '配付ページ内の案内を確認してください。必要な場合は「別タブで開く」を使えます。';
       };
       root.addEventListener('message', receive);

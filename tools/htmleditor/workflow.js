@@ -27,8 +27,8 @@
     try { proof = practice.inspect(source); }
     catch { return unavailable('proof-invalid', '配付情報を読み取れないため提出準備はできません。内容を保存し、授業では先生に相談してください。'); }
     if (!proof) return unavailable(id ? 'proof-missing' : 'local', id ?
-      'このファイルには本人用の配付情報がありません。内容を保存し、授業では本人用HTMLを確認してください。' :
-      '通常のファイルです。編集・保存はログイン不要です。学校への提出は本人用HTMLが対象です。');
+      'このファイルには本人用の配付情報がありません。内容を保存し、授業では実習ファイルを確認してください。' :
+      '通常のファイルです。編集・保存はログイン不要です。学校への提出は実習ファイルが対象です。');
     if (!id || proof.assignmentId !== id || proof.fileName !== String(fileName).split('/').pop()) {
       return unavailable('name-mismatch', 'ファイル名と配付情報が一致しません。内容を保存して、配付時のファイル名を確認してください。');
     }
