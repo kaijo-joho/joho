@@ -19,7 +19,13 @@
   color: inherit;
 }
 #htmlPracticeEntry [hidden] { display: none !important; }
-.html-practice-embedded .html-practice-workflow { display: none !important; }
+/* 接続済みの解説だけ、本文の手順と後から生成される取得・提出欄を親へ集約する。
+   学校名・教材名・解説、および単独で開いた教材の案内は残す。 */
+.html-practice-embedded .html-practice-workflow,
+.html-practice-embedded #page_header .html-practice-list,
+.html-practice-embedded #page_header p:has(+ .html-practice-list) {
+  display: none !important;
+}
 #htmlPracticeEntry :is(a,button):focus-visible {
   outline: 3px solid var(--theme-color, #225386); outline-offset: 2px;
 }
