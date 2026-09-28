@@ -52,7 +52,8 @@ class OverlayTests(unittest.TestCase):
         self.assertEqual([p['pageSize'] for p in c], ['b5', 'a4'])
         self.assertEqual([p['identity']['payload'] for p in c], ['INFO1|2026|WS05|F', 'INFO1|2026|WS05|B'])
         self.assertEqual(len(c[0]['omr']), 3)
-        self.assertEqual(c[1]['omr'], {})
+        self.assertEqual(len(c[1]['omr']['class']), 10)
+        self.assertEqual(c[1]['omrMode'], 'optional-verification')
         self.assertEqual(c[1]['studentIdentitySource'], 'paired-front')
         pages = PdfReader(self.output).pages
         self.assertIn('氏名', pages[0].extract_text())

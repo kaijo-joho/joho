@@ -37,6 +37,14 @@ def pair_pages(pages):
         f, b = identities[fronts[0]], identities[backs[0]]
         if any(f[key] != b[key] for key in ['subject', 'year', 'worksheetId']):
             issues.append('worksheet_mismatch')
+        verification = pages[backs[0]].get('backOmrVerification')
+        if verification:
+            candidate = pages[fronts[0]].get('candidate')
+            identifier = f"{candidate['class']}{candidate['number']:02d}" if candidate else None
+            if verification['status'] != 'OK':
+                issues.append('back_omr_review')
+            elif not verification['blank'] and verification['studentIdentifier'] != identifier:
+                issues.append('student_mismatch')
     pair_valid = len(pages) == 2 and not issues
     reversed_pages = pair_valid and fronts[0] > backs[0]
     assignments = []

@@ -48,8 +48,8 @@ def parse_payload(payload):
 
 def validate_coordinates(c):
     """Reject incompatible/stale schemas instead of silently sampling body text."""
-    if not isinstance(c, dict) or c.get('schemaVersion') != 'worksheet-scan-header/2' or c.get('origin') != 'top-left' or c.get('units') != 'mm':
-        raise ValueError('Expected worksheet-scan-header/2 top-left mm coordinates')
+    if not isinstance(c, dict) or c.get('schemaVersion') not in ('worksheet-scan-header/2', 'worksheet-scan-header/3') or c.get('origin') != 'top-left' or c.get('units') != 'mm':
+        raise ValueError('Expected worksheet-scan-header/2 or /3 top-left mm coordinates')
     paper = c['pageSize']
     sizes = {'b5': (182, 257), 'a4': (210, 297)}
     if paper not in sizes or tuple(c['page'][k] for k in ('widthMm', 'heightMm')) != sizes[paper]:
@@ -74,9 +74,14 @@ def validate_coordinates(c):
     if c['qr']['quietZoneModules'] != 4:
         raise ValueError('Expected four-module QR quiet zone')
     side = c['identity']['side']
-    if side not in ('F', 'B') or (side == 'B' and c['omr']):
-        raise ValueError('Back coordinates must not contain OMR')
-    if side == 'F':
+    if side not in ('F', 'B'):
+        raise ValueError('Invalid side')
+    modern = c['schemaVersion'] == 'worksheet-scan-header/3'
+    if modern and c.get('omrMode') != ('required' if side == 'F' else 'optional-verification'):
+        raise ValueError('Invalid OMR mode')
+    if not modern and side == 'B' and c['omr']:
+        raise ValueError('Version 2 back coordinates must not contain OMR')
+    if side == 'F' or modern:
         if set(c['omr']) != set(ROWS):
             raise ValueError('Missing OMR rows')
         for marks in c['omr'].values():
@@ -323,8 +328,12 @@ def analyze_image(gray, catalog, config=None, paper='auto'):
     result['qr'] = {'status': 'REVIEW' if issues else 'OK', 'confidence': round(best['confidence'], 4) if not issues else 0.,
         'regionMm': c['qr']['region']['mm'], 'polygonPx': best['qrPoints'].round(3).tolist(),
         'modules': best['modules'], 'sourcePixelsPerModule': round(best['pixelsPerModule'], 3), 'maxCornerErrorMm': round(best['alignment'], 4)}
-    if best['identity']['side'] == 'F':
+    if c['omr']:
         rows = measure_omr(best['normalized'], c, config)
+        optional = best['identity']['side'] == 'B'
+        # Blank back OMR (including older sheets with no rings) is permitted.
+        # Any detected ink requires all three rows to be legible.
+        blank = optional and all('blank' in row['issues'] for row in rows.values())
         inverse = np.linalg.inv(best['matrix'])
         min_radius = float('inf')
         for name in ROWS:
@@ -341,14 +350,20 @@ def analyze_image(gray, catalog, config=None, paper='auto'):
             if issues:
                 row.update(status='REVIEW', digit=None, confidence=0.)
                 row['issues'].append('untrusted_normalization')
-            if row['status'] != 'OK':
+            if row['status'] != 'OK' and not blank:
                 result['issues'].append('omr_' + name + '_review')
         result['rows'] = rows
+        identifier = None
         if not issues and all(row['status'] == 'OK' for row in rows.values()):
             digits = [rows[name]['digit'] for name in ROWS]
-            result['studentIdentifier'] = ''.join(map(str, digits))
-            result['candidate'] = {'class': digits[0], 'number': digits[1] * 10 + digits[2]}
-        result['confidence'] = round(min(best['confidence'], *(row['confidence'] for row in rows.values())), 4)
+            identifier = ''.join(map(str, digits))
+            if not optional:
+                result['studentIdentifier'] = identifier
+                result['candidate'] = {'class': digits[0], 'number': digits[1] * 10 + digits[2]}
+        result['confidence'] = round(best['confidence'] if blank else min(best['confidence'], *(row['confidence'] for row in rows.values())), 4)
+        if optional:
+            result['backOmrVerification'] = {'status': 'REVIEW' if issues or (not blank and identifier is None) else 'OK',
+                'blank': blank, 'studentIdentifier': identifier, 'confidence': 0. if issues else result['confidence']}
     else:
         result['confidence'] = round(best['confidence'], 4)
     result['issues'] = issues + result['issues']

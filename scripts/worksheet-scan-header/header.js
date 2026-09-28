@@ -66,28 +66,28 @@ var WorksheetScanHeader = (function () {
     const pointInfo = (x, y) => ({ mm: { x: round(x), y: round(y) }, normalized: { x: round(x / width), y: round(y / height) } });
     const header = rectInfo(box(hx, hy, h.width * scale, h.height * scale));
     const middleX = h.leftWidth + h.gap, rightX = middleX + h.middleWidth + h.gap;
-    const leftWidth = front ? h.leftWidth : rightX - h.gap;
-    const columns = { left: rectInfo(box(hx, hy, leftWidth * scale, h.height * scale)), middle: front ? rectInfo(box(X(middleX), hy, h.middleWidth * scale, h.height * scale)) : null, right: rectInfo(box(X(rightX), hy, h.rightWidth * scale, h.height * scale)) };
+    const leftWidth = h.leftWidth;
+    const columns = { left: rectInfo(box(hx, hy, leftWidth * scale, h.height * scale)), middle: rectInfo(box(X(middleX), hy, h.middleWidth * scale, h.height * scale)), right: rectInfo(box(X(rightX), hy, h.rightWidth * scale, h.height * scale)) };
     const fitted = titleLines(title, leftWidth - 1, config.text);
     fitted.lines.forEach((v, i) => text(v, hx, Y(5 + i * config.text.titleLineHeight), fitted.size * scale, 'start', true));
     const omr = {}, handwriting = {};
     if (front) {
       text('氏名', hx, Y(19), config.text.labelSize * scale);
       line(X(9), Y(20), X(h.leftWidth - 1), Y(20), o.stroke * scale);
-      for (let digit = 0; digit < 10; digit++) text(String(digit), X(middleX + o.firstX + digit * o.pitchX), Y(o.headingY), config.text.labelSize * scale, 'middle');
-      ['class', 'tens', 'ones'].forEach((row, index) => {
-        const localY = o.firstY + index * o.pitchY, y = Y(localY);
-        if (index < 2) text(index === 0 ? '組' : '番', X(middleX), y + 0.95 * scale, config.text.labelSize * scale);
-        const r = box(X(middleX + o.boxX), y - o.boxSize * scale / 2, o.boxSize * scale, o.boxSize * scale);
-        rect(r.x, r.y, r.width, r.height, null, '#000', o.stroke * scale, 'header');
-        handwriting[row + '_box'] = rectInfo(r);
-        omr[row] = Array.from({ length: 10 }, (_, digit) => {
-          const localX = middleX + o.firstX + digit * o.pitchX, x = X(localX), radius = o.diameter * scale / 2;
-          scene.push({ type: 'circle', x, y, radius, lineWidth: o.stroke * scale, group: 'header' });
-          return { digit, center: pointInfo(x, y), radiusMm: round(radius), radiusNormalized: { x: round(radius / width), y: round(radius / height) }, sampleRadiusMm: round(radius * o.sampleRadiusRatio), headerNormalized: { x: round(localX / h.width), y: round(localY / h.height) } };
-        });
-      });
     }
+    for (let digit = 0; digit < 10; digit++) text(String(digit), X(middleX + o.firstX + digit * o.pitchX), Y(o.headingY), config.text.labelSize * scale, 'middle');
+    ['class', 'tens', 'ones'].forEach((row, index) => {
+      const localY = o.firstY + index * o.pitchY, y = Y(localY);
+      if (index < 2) text(index === 0 ? '組' : '番', X(middleX), y + 0.95 * scale, config.text.labelSize * scale);
+      const r = box(X(middleX + o.boxX), y - o.boxSize * scale / 2, o.boxSize * scale, o.boxSize * scale);
+      rect(r.x, r.y, r.width, r.height, null, '#000', o.stroke * scale, 'header');
+      handwriting[row + '_box'] = rectInfo(r);
+      omr[row] = Array.from({ length: 10 }, (_, digit) => {
+        const localX = middleX + o.firstX + digit * o.pitchX, x = X(localX), radius = o.diameter * scale / 2;
+        scene.push({ type: 'circle', x, y, radius, lineWidth: o.stroke * scale, group: 'header' });
+        return { digit, center: pointInfo(x, y), radiusMm: round(radius), radiusNormalized: { x: round(radius / width), y: round(radius / height) }, sampleRadiusMm: round(radius * o.sampleRadiusRatio), headerNormalized: { x: round(localX / h.width), y: round(localY / h.height) } };
+      });
+    });
     const qx = X(rightX), qy = hy, quiet = q.quietModules * moduleSize;
     rect(qx, qy, q.size * scale, q.size * scale, '#fff', null, 0, 'header');
     // Merge contiguous black modules per row: compact vectors, no raster images.
@@ -101,6 +101,9 @@ var WorksheetScanHeader = (function () {
     }
     const label = id.worksheetId + ' ' + id.side;
     text(label, qx + q.size * scale / 2, Y(23.5), Math.min(config.text.idSize, q.size / textWidth(label, 1)) * scale, 'middle');
+    if (h.separatorStroke * scale < config.limits.minStroke || h.separatorY - h.separatorStroke / 2 < 25 || h.separatorY + h.separatorStroke / 2 > h.height) throw new Error('Separator must stay below the QR label and inside the header');
+    const separator = { start: pointInfo(hx, Y(h.separatorY)), end: pointInfo(X(h.width), Y(h.separatorY)), strokeMm: round(h.separatorStroke * scale) };
+    line(hx, Y(h.separatorY), X(h.width), Y(h.separatorY), h.separatorStroke * scale);
     const markers = {};
     for (const [key, right, bottom] of [['topLeft', false, false], ['topRight', true, false], ['bottomLeft', false, true], ['bottomRight', true, true]]) {
       const size = m.size * scale, inset = m.inset * scale;
@@ -108,7 +111,7 @@ var WorksheetScanHeader = (function () {
       rect(x, y, size, size, '#000', null, 0, 'marker');
       markers[key] = { ...rectInfo(box(x, y, size, size)), center: pointInfo(x + size / 2, y + size / 2), exclusion: rectInfo(box(x - m.clearance * scale, y - m.clearance * scale, size + 2 * m.clearance * scale, size + 2 * m.clearance * scale)) };
     }
-    const coordinates = { schemaVersion: config.schemaVersion, origin: 'top-left', axes: 'x-right,y-down', units: 'mm', pageSize: paperSize, page: { widthMm: width, heightMm: height }, scale, dpi: config.dpi, raster: { width: Math.round(width / 25.4 * config.dpi), height: Math.round(height / 25.4 * config.dpi) }, identity: id, title, displayedTitle: fitted.lines, header, columns, qr: { region: rectInfo(box(qx, qy, q.size * scale, q.size * scale)), symbol: rectInfo(box(qx + quiet, qy + quiet, qr.size * moduleSize, qr.size * moduleSize)), center: pointInfo(qx + q.size * scale / 2, qy + q.size * scale / 2), sizeMm: round(q.size * scale), moduleMm: round(moduleSize), quietZoneModules: q.quietModules, quietZoneMm: round(quiet), version: qr.version, modules: qr.size, ecc: 'M' }, studentIdentitySource: front ? 'front-omr' : 'paired-front', omr, handwriting, markers, body: { minTopMm: round((top + h.height + config.bodyGap) * scale), minBottomMarginMm: round((m.inset + m.size + m.clearance) * scale) } };
+    const coordinates = { schemaVersion: config.schemaVersion, origin: 'top-left', axes: 'x-right,y-down', units: 'mm', pageSize: paperSize, page: { widthMm: width, heightMm: height }, scale, dpi: config.dpi, raster: { width: Math.round(width / 25.4 * config.dpi), height: Math.round(height / 25.4 * config.dpi) }, identity: id, title, displayedTitle: fitted.lines, header, separator, columns, qr: { region: rectInfo(box(qx, qy, q.size * scale, q.size * scale)), symbol: rectInfo(box(qx + quiet, qy + quiet, qr.size * moduleSize, qr.size * moduleSize)), center: pointInfo(qx + q.size * scale / 2, qy + q.size * scale / 2), sizeMm: round(q.size * scale), moduleMm: round(moduleSize), quietZoneModules: q.quietModules, quietZoneMm: round(quiet), version: qr.version, modules: qr.size, ecc: 'M' }, studentIdentitySource: front ? 'front-omr' : 'paired-front', omrMode: front ? 'required' : 'optional-verification', omr, handwriting, markers, body: { minTopMm: round((top + h.height + config.bodyGap) * scale), minBottomMarginMm: round((m.inset + m.size + m.clearance) * scale) } };
     return { coordinates, scene };
   }
   function svg(model, onlyHeader) {
@@ -121,8 +124,8 @@ var WorksheetScanHeader = (function () {
       return '<rect ' + attrs({ x: s.x, y: s.y, width: s.width, height: s.height, fill: s.fill || 'none', stroke: s.stroke || 'none', 'stroke-width': s.lineWidth || 0 }) + '/>';
     }).join('\n');
     const front = c.identity.side === 'F';
-    const description = front ? '組・出席番号の十の位・一の位を各行1つ塗りつぶす。' : '生徒情報は同じ両面PDFの表面から引き継ぐ。';
-    return '<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--' + c.pageSize + '" data-scan-side="' + c.identity.side + '" width="' + b.width + 'mm" height="' + b.height + 'mm" viewBox="' + [b.x, b.y, b.width, b.height].join(' ') + '" role="img" aria-label="' + escape(c.title + ' ' + c.identity.side + (front ? ' 氏名欄、組と番号のマーク欄、ワークシート識別QR' : ' ワークシート識別QR')) + '" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>' + escape(c.title) + '</title><desc>' + description + 'QR: ' + escape(c.identity.payload) + '</desc>\n' + children + '\n</svg>';
+    const description = front ? '組・出席番号の十の位・一の位を各行1つ塗りつぶす。' : '裏面のマーク欄は任意。生徒情報は表面から引き継ぎ、裏面に記入があれば一致を確認する。';
+    return '<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--' + c.pageSize + '" data-scan-side="' + c.identity.side + '" width="' + b.width + 'mm" height="' + b.height + 'mm" viewBox="' + [b.x, b.y, b.width, b.height].join(' ') + '" role="img" aria-label="' + escape(c.title + ' ' + c.identity.side + (front ? ' 氏名欄、組と番号のマーク欄、ワークシート識別QR' : ' 任意の組と番号のマーク欄、ワークシート識別QR')) + '" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>' + escape(c.title) + '</title><desc>' + description + 'QR: ' + escape(c.identity.payload) + '</desc>\n' + children + '\n</svg>';
   }
   return { create, svg, escape, fiscalYear };
 })();

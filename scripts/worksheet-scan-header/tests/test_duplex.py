@@ -68,6 +68,15 @@ class DuplexTests(unittest.TestCase):
         self.assertIn('unexpected_page_count', result['issues'])
         self.assertEqual(result['studentAssignments'], [])
 
+    def test_optional_back_verification_is_not_ignored_by_legacy_api(self):
+        for status, blank, identifier, expected in [('OK', True, None, 'ok'), ('OK', False, '327', 'ok'),
+                ('OK', False, '328', 'review'), ('REVIEW', False, None, 'review')]:
+            back = {**self.back, 'backOmrVerification': {'status': status, 'blank': blank, 'studentIdentifier': identifier}}
+            result = pair_pages([self.front, back])
+            self.assertEqual(result['status'], expected)
+            if expected == 'review':
+                self.assertEqual(result['studentAssignments'], [])
+
     def test_real_pdf_qr_discovery_both_papers_and_reversed_order(self):
         register_fonts()
         renderer = os.environ.get('PDFTOPPM', 'pdftoppm')

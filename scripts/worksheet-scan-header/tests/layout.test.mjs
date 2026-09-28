@@ -58,18 +58,24 @@ test('Markers have printable insets and do not overlap the header', () => {
     }
   }
 });
-test('Only the front has student fields; back retains QR/markers and releases body space', () => {
+test('Both sides have OMR; only front has a name field, with unchanged body space', () => {
   for (const pageSize of ['a4', 'b5']) {
     const front = generate({ ...options, pageSize });
     const back = generate({ ...options, pageSize, side: 'B' });
     const f = front.coordinates, b = back.coordinates;
     assert.equal(front.scene.filter(s => s.type === 'circle').length, 30);
-    assert.equal(back.scene.filter(s => s.type === 'circle').length, 0);
+    assert.equal(back.scene.filter(s => s.type === 'circle').length, 30);
     assert.ok(!back.svg.includes('氏名'));
-    assert.equal(back.scene.filter(s => s.type === 'line').length, 0);
-    assert.equal(Object.keys(b.omr).length, 0);
-    assert.equal(Object.keys(b.handwriting).length, 0);
-    assert.equal(b.columns.middle, null);
+    assert.equal(back.scene.filter(s => s.type === 'line').length, 1);
+    assert.equal(Object.keys(b.omr).length, 3);
+    assert.equal(b.omrMode, 'optional-verification');
+    assert.equal(f.omrMode, 'required');
+    assert.equal(Object.keys(b.handwriting).length, 3);
+    assert.ok(b.columns.middle);
+    for (const row of ['class', 'tens', 'ones']) for (let i = 0; i < 10; i++) {
+      near(b.omr[row][i].center.mm.x, f.omr[row][i].center.mm.x);
+      near(f.omr[row][i].center.mm.y - b.omr[row][i].center.mm.y, 5 * f.scale);
+    }
     assert.equal(b.studentIdentitySource, 'paired-front');
     assert.equal(b.identity.payload, 'INFO1|2026|dr31|B');
     assert.equal(JSON.stringify(b.markers), JSON.stringify(f.markers));
@@ -92,4 +98,19 @@ test('Academic year is determined at the JST April boundary', () => {
   const { api } = load();
   assert.equal(api.fiscalYear(new Date('2026-03-31T14:59:59Z')), 2025);
   assert.equal(api.fiscalYear(new Date('2026-03-31T15:00:00Z')), 2026);
+});
+
+test('Separator fits below the QR label while keeping the existing body start', () => {
+  for (const pageSize of ['a4', 'b5']) for (const side of ['F', 'B']) {
+    const { coordinates: c, scene, headerSvg } = generate({ ...options, pageSize, side });
+    const s = c.separator, h = c.header.mm;
+    near(s.start.mm.x, h.x);
+    near(s.end.mm.x, h.x + h.width);
+    near(s.start.mm.y, h.y + 25.5 * c.scale);
+    assert.ok(s.start.mm.y > c.qr.region.mm.y + c.qr.sizeMm + 2 * c.scale);
+    assert.ok(s.start.mm.y + s.strokeMm / 2 < h.y + h.height);
+    near(c.body.minTopMm, (side === 'F' ? 37 : 32) * c.scale);
+    assert.ok(scene.some(v => v.type === 'line' && Math.abs(v.y1 - s.start.mm.y) < 0.00001));
+    assert.ok(headerSvg.includes('<line '));
+  }
 });

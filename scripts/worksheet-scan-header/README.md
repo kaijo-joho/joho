@@ -1,6 +1,6 @@
 # ワークシート共通スキャンヘッダー
 
-B5・A4の表面にタイトル・氏名・組/番号OMR・ワークシートQR・四隅マーカー、裏面にタイトル・QR・四隅マーカーを加える共通部品。氏名とOMRは表面だけに置き、裏面の生徒情報は同じ両面PDFの表面から引き継ぐ。寸法の正本は `layout.json`、描画と座標の正本は `header.js`。SVG、PDF、GASで同じ座標を使用する。教材本文・解答・名簿はこのフォルダに含めない。
+B5・A4の表面にタイトル・氏名・組/番号OMR・ワークシートQR・四隅マーカー、裏面にタイトル・任意の組/番号OMR・QR・四隅マーカーを加える共通部品。両面にヘッダー下の区切り線を置く。氏名は表面だけとし、生徒情報は表面から引き継ぎ、裏面にマークがあれば一致を確認する。寸法の正本は `layout.json`、描画と座標の正本は `header.js`。SVG、PDF、GASで同じ座標を使用する。教材本文・解答・名簿はこのフォルダに含めない。
 
 ## 成果物と生成経路
 
@@ -41,7 +41,7 @@ SVGは編集可能なtext・circle・rect・lineで構成する。ただし継�
 | 項目 | B5（1.0倍） | A4（1.12倍） |
 | --- | ---: | ---: |
 | ヘッダー左上 | (12, 10) | (19.6, 11.2) |
-| ヘッダー幅 × 高さ | 160 × 24 | 179.2 × 26.88 |
+| ヘッダー幅 × 高さ | 160 × 26 | 179.2 × 29.12 |
 | 左列／中央列／右列 | 72 / 60 / 22 | 80.64 / 67.2 / 24.64 |
 | 列間 | 3 | 3.36 |
 | ○の直径／横ピッチ／縦ピッチ | 3 / 4.5 / 5 | 3.36 / 5.04 / 5.6 |
@@ -59,7 +59,7 @@ SVGは編集可能なtext・circle・rect・lineで構成する。ただし継�
 
 ### 裏面
 
-氏名・記入線・数字見出し・3つの手書き枠・30個の円を生成しない。タイトルはQR左側の135mm（B5基準）を利用できる。QRサイズ・x位置と四隅マーカーは表面と共通。`back.top = 5` によりヘッダーとQRを5mm×scale上へ寄せる。
+氏名・氏名記入線は生成しない。表面と同じ3列構成で、中央列に数字見出し・3つの手書き枠・30個の円を置く。タイトルは表面と同じ72mm幅に収める。裏面のマーク記入は任意。QRサイズ・x位置と四隅マーカーは表面と共通。`back.top = 5` によりヘッダーとQRを5mm×scale上へ寄せる。
 
 | 項目 | B5 | A4 |
 | --- | ---: | ---: |
@@ -70,6 +70,10 @@ SVGは編集可能なtext・circle・rect・lineで構成する。ただし継�
 | 表面より増える本文の高さ | 5 | 5.6 |
 
 この高さをdr31の語句記入欄、dr32の演習下書き欄、dr41/dr42の計算欄へ配分する。表面の印刷配置・マーク座標を維持し、本文・解答データは変更しない。
+
+### ヘッダー下の区切り線
+
+ヘッダー全幅に0.25mm × scaleの黒線を引く。ローカルy=25.5mmで、B5の表面y=35.5mm・裏面y=30.5mm、A4は各1.12倍。QRラベルより下、本文より上に置く。ヘッダー外接高さを24→26mm、直後の空きを3→1mmへ変更し、合計27mmを維持する。既存のQR・表面OMR・四隅マーカー・本文開始位置は動かさない。
 
 ## 縮尺ルール
 
@@ -95,12 +99,14 @@ QR Model 2、誤り訂正M、バージョン1〜4の範囲で最小サイズを�
 
 B5のマーカー左上は、左上(5,5)、右上(173.5,5)、左下(5,248.5)、右下(173.5,248.5)。黒の塗り四角とし、周囲1.5mm×scaleの余白を確保する。プリンタがこの位置を印字できることを実機で確認する。
 
-JSONの `schemaVersion` は `worksheet-scan-header/2`。用紙、scale、想定DPI=300、丸めた画像幅/高さ、identityを含む。矩形は `mm:{x,y,width,height}` と `normalized:{x,y,width,height}`、中心は `mm:{x,y}` と `normalized:{x,y}` を持つ。
+JSONの `schemaVersion` は `worksheet-scan-header/3`。読取側は旧第2版JSONも受け付けるが、裏面OMRの照合には第3版を使用する。用紙、scale、想定DPI=300、丸めた画像幅/高さ、identityを含む。矩形は `mm:{x,y,width,height}` と `normalized:{x,y,width,height}`、中心は `mm:{x,y}` と `normalized:{x,y}` を持つ。
 
-- `header`、`columns.left/middle/right`: 外接矩形と列。裏面はleftを拡張しmiddleはnull。
+- `header`、`columns.left/middle/right`: 外接矩形と3列。表裏共通の列幅。
+- `separator.start/end/strokeMm`: 区切り線の両端（mm・正規化）と線幅。
 - `qr.region/symbol/center/sizeMm/moduleMm/quietZoneMm`: QR外形、本体、中心、寸法。
-- `omr.class/tens/ones[0..9]`: 表面の30円の中心・半径・測定半径・`headerNormalized`。裏面は空オブジェクト。
-- `handwriting.class_box/tens_box/ones_box`: 表面の各1桁の手書き枠。裏面は空オブジェクト。
+- `omr.class/tens/ones[0..9]`: 両面の30円の中心・半径・測定半径・`headerNormalized`。裏面は表面より5mm × scale上。
+- `handwriting.class_box/tens_box/ones_box`: 両面の各1桁の手書き枠。
+- `omrMode`: 表面は`required`、裏面は`optional-verification`。
 - `studentIdentitySource`: 表面は`front-omr`、裏面は`paired-front`。
 - `markers.topLeft/topRight/bottomLeft/bottomRight`: 黒四角・中心・周囲を含む禁止領域。
 - `body`: 本文が使える縦方向の境界。
@@ -120,7 +126,7 @@ node scripts/worksheet-scan-header/generate.mjs --options '{"pageSize":"b5","tit
 
 `--config` で別の設定JSONを指定できる。`generate.mjs --format json` は共通描画シーンも含むJSONを標準出力へ返す。サンプルのB5/A4 PDFは各用紙の実寸。比較PDFはA3横の中へ両者を**90%**で並べた閲覧用で、機械読取用原紙にしない。通常の印刷は単独PDFを選び、実際のサイズ/100%にする。
 
-いずれのPDFも1ページ目が表面、2ページ目が裏面。単独の裏面SVG/JSON生成には `"side":"B"` を指定する。旧版の裏面OMR用JSONを新しい紙へ使わず、用紙と面に合う第2版JSONへ更新する。
+いずれのPDFも1ページ目が表面、2ページ目が裏面。単独の裏面SVG/JSON生成には `"side":"B"` を指定する。用紙と面に合う第3版JSONを使用する。マーク欄のなかった第2版の裏面も測定領域が白ければ空欄として扱う。旧紙面の長いタイトルなどが測定領域へ重なる場合はREVIEWになり得る。第2版JSONを明示して旧紙面を読む場合は従来どおり裏面OMRを測定しない。
 
 ## 既存PDFへのオーバーレイ
 
@@ -147,7 +153,7 @@ node scripts/worksheet-scan-header/build-gas.mjs /path/to/GAS/ws
 
 生成される2ファイルを同じGASプロジェクトへ置き、`10_webapp.js` の本文生成を `addWorksheetScanHeader_(readWorksheetHtml_(definition.template), definition, WorksheetScanHeader.fiscalYear(new Date()))`、スタイルを `readWorksheetHtml_('21_style') + readWorksheetHtml_('24_scan_style')` とする。
 
-dr31・dr32・dr41・dr42の表面には全要素、裏面にはタイトル・QR・四隅マーカーを差し込む。articleの `data-scan-side="F/B"` で余白と記入欄を切り替える。元のタイトル欄は返すHTMLからだけ置き換え、`30_*.html` / `31_*_answers.html` はそのまま保つ。JS無効時もA4ヘッダーを印刷できる。用紙切替は既存data属性で表示するSVGを切り替え、解答の取得や公開判定を行わない。390px画面ではヘッダーのみ小さなプレビューにし、印刷時は選択用紙へ戻す。
+dr31・dr32・dr41・dr42の表面には全要素、裏面には氏名以外の同じ要素を差し込む。両面に区切り線を置く。articleの `data-scan-side="F/B"` で余白と記入欄を切り替える。元のタイトル欄は返すHTMLからだけ置き換え、`30_*.html` / `31_*_answers.html` はそのまま保つ。JS無効時もA4ヘッダーを印刷できる。用紙切替は既存data属性で表示するSVGを切り替え、解答の取得や公開判定を行わない。390px画面ではヘッダーのみ小さなプレビューにし、印刷時は選択用紙へ戻す。
 
 本文は10.5pt/9ptと0/2/4mmのインデントを維持する。段落余白、図表寸法、語句表行間、計算欄を用紙別に調整する。解答が入っても紙面を動かさない。実教材の解答入りHTML/PDFはGASのローカル `_tests` のみへ保存し、教材サイトへコミットしない。
 
@@ -184,8 +190,8 @@ python3 -m venv /tmp/worksheet-scan-venv
 2. 各画像隅の20%以内から、白抜きを持たない塗り四角を検出する。各隅が一意でない場合、欠け・複数候補をREVIEWとする。用紙全体を含む画像を入力し、広い机面や別用紙を含む写真は先に用紙単位へ切り出す。
 3. 四角の対角線の交点を、JSONのマーカー中心へ透視変換する。B5/A4と4方向の回転候補を試す。正規化画像のサイズはJSONの `raster`、円の中心・半径はmm座標から求める。
 4. 固定QR領域の周辺を復号し、実際のモジュール数と4モジュールのquiet zoneからQR外形を照合する。**サンプルJSONのQRバージョンへ固定しない。** 四隅の最大位置誤差0.45mm以下、候補間の誤差差0.12mm以上を初期条件とし、識別が曖昧ならREVIEW。マーカー寸法差25%超、原画像でQRが1モジュール3px未満、OMR測定半径4px未満もREVIEW。
-5. QRがFの場合だけ、30円の内側（JSONの `sampleRadiusMm`、現行は印刷半径の65%）を測定する。各円周辺の明るい画素（90パーセンタイル）を紙の明るさとし、その65%未満を濃い黒画素、90%未満を薄い筆跡として別々に記録する。円枠を黒画素率に含めない。
-6. 各行の最多・2位・差・薄い2個目の筆跡を評価し、3行すべてOKの場合だけ `class + tens + ones` を文字列として返す（例 `307`＝3組07番）。00〜99や組0の名簿上の妥当性は別工程で確認する。
+5. QRの面に対応する30円の内側（JSONの `sampleRadiusMm`、現行は印刷半径の65%）を測定する。各円周辺の明るい画素（90パーセンタイル）を紙の明るさとし、その65%未満を濃い黒画素、90%未満を薄い筆跡として別々に記録する。円枠を黒画素率に含めない。
+6. 各行の最多・2位・差・薄い2個目の筆跡を評価し、3行すべてOKの場合だけ `class + tens + ones` を文字列として確定する。表面は生徒識別用、裏面は照合用に返す（例 `307`＝3組07番）。00〜99や組0の名簿上の妥当性は別工程で確認する。
 
 B5/A4は縦横比が近いため、画像寸法やPDFのMediaBoxだけでは判定しない。`pageSize` は **採用したヘッダーの座標体系** を表し、写真から物理的な紙寸法を測った値ではない。A4原稿を全体縮小してB5へ印刷した画像はA4の座標体系になり得る。PDFの実寸情報は `inputMetadata` に別途残す。
 
@@ -208,9 +214,10 @@ B5/A4は縦横比が近いため、画像寸法やPDFのMediaBoxだけでは判�
 
 - `result.json`: スキーマ `worksheet-scan-result/1`。ファイル状態、confidence、`studentIdentifier`、各ページ、表裏照合、設定値、入力SHA-256、座標JSONのパス/SHA-256、OpenCVバージョンを含む。
 - `pages[].rows.class/tens/ones`: 10個の `blackRatios`、`weakInkRatios`、各測定円の中心・半径・背景値、最多・2位・差、`status`、`confidence`、`issues`。`candidateDigit` は要確認時の参考値で、確定した `digit` と区別する。
+- `pages[].backOmrVerification`: 裏面だけの照合結果。`status`（OK/REVIEW）、`blank`、照合用`studentIdentifier`、`confidence`。裏面ページ本体の`studentIdentifier`と`candidate`は常にnullで、表面の代用にはしない。3行とも未記入ならページはOK、confidenceは補正/QRの適合度（生徒番号の確度ではない）。
 - `page-01-markers.png`: 入力上の検出マーカーと候補。四隅が不足しても検出途中の画像を残す。
 - `page-01-normalized.png`: 正規化した用紙、四隅・QR予定領域（青）・検出QR（紫）・OMR測定円を描画。
-- `page-01-header.png`: 同じ画像のヘッダー拡大確認用。緑の太線は確定、橙の太線は要確認候補。30領域に数字と黒画素率を添える。裏面にはOMRを描かない。
+- `page-01-header.png`: 同じ画像のヘッダー拡大確認用。緑の太線は確定、橙の太線は要確認候補。30領域に数字と黒画素率を添える。第3版は裏面にも30領域を描く。空欄が許容されても各行の未記入判定は記録する。
 
 補正方向を決定できないときはマーカー画像だけを残し、架空のQR/OMR位置を描かない。通常はコンソールへ要約を表示し、`--json` では標準出力にJSON、標準エラーに要約を出す。単一CLIの終了コードはOK=0、REVIEW=2、ERROR=1。
 
@@ -220,7 +227,7 @@ B5/A4は縦横比が近いため、画像寸法やPDFのMediaBoxだけでは判�
 
 同じ教科・年度・ワークシートIDのF/B各1枚で、両面の読取がOKの場合だけ表面の3桁を継承する。`sourcePage` に表面の実ページ番号を記録する。B→Fの逆順はQRで復元してOKとし、必ず `reversedPages: true` と `warnings: ["reversed_pages"]` を記録・コンソール表示する。90度などの画像回転とは別に扱う。
 
-裏面/表面の欠落、F/F・B/B、教科・年度・IDの混在、用紙体系の不一致、片面のQR/OMR不明瞭はREVIEWとし、継承しない。**同じ教材・年度を使う別の生徒の裏面混入は、QRに生徒IDがないため検出できない。** 1人分を1つのPDFにする前提を維持し、別PDF間の自動ペアリングは行わない。
+裏面/表面の欠落、F/F・B/B、教科・年度・IDの混在、用紙体系の不一致、片面のQR/OMR不明瞭はREVIEWとし、継承しない。**裏面3行が空欄なら表面の情報を継承する。記入があれば3行すべてを判定し、表面と異なれば`student_mismatch`、部分記入・二重・不鮮明なら`back_omr_review`でREVIEWにする。** 裏面だけから生徒を確定しない。同じ教材の別生徒の裏面混入は裏面にも正しくマークされていれば検出できるが、裏面空欄・両面の同じ誤記は検出できない。 1人分を1つのPDFにする前提を維持し、別PDF間の自動ペアリングは行わない。
 
 ### 一括検証と正解データ
 

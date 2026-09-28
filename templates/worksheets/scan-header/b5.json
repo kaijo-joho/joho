@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "worksheet-scan-header/2",
+  "schemaVersion": "worksheet-scan-header/3",
   "origin": "top-left",
   "axes": "x-right,y-down",
   "units": "mm",
@@ -30,14 +30,37 @@
       "x": 12,
       "y": 10,
       "width": 160,
-      "height": 24
+      "height": 26
     },
     "normalized": {
       "x": 0.065934,
       "y": 0.038911,
       "width": 0.879121,
-      "height": 0.093385
+      "height": 0.101167
     }
+  },
+  "separator": {
+    "start": {
+      "mm": {
+        "x": 12,
+        "y": 35.5
+      },
+      "normalized": {
+        "x": 0.065934,
+        "y": 0.138132
+      }
+    },
+    "end": {
+      "mm": {
+        "x": 172,
+        "y": 35.5
+      },
+      "normalized": {
+        "x": 0.945055,
+        "y": 0.138132
+      }
+    },
+    "strokeMm": 0.25
   },
   "columns": {
     "left": {
@@ -45,13 +68,13 @@
         "x": 12,
         "y": 10,
         "width": 72,
-        "height": 24
+        "height": 26
       },
       "normalized": {
         "x": 0.065934,
         "y": 0.038911,
         "width": 0.395604,
-        "height": 0.093385
+        "height": 0.101167
       }
     },
     "middle": {
@@ -59,13 +82,13 @@
         "x": 87,
         "y": 10,
         "width": 60,
-        "height": 24
+        "height": 26
       },
       "normalized": {
         "x": 0.478022,
         "y": 0.038911,
         "width": 0.32967,
-        "height": 0.093385
+        "height": 0.101167
       }
     },
     "right": {
@@ -73,13 +96,13 @@
         "x": 150,
         "y": 10,
         "width": 22,
-        "height": 24
+        "height": 26
       },
       "normalized": {
         "x": 0.824176,
         "y": 0.038911,
         "width": 0.120879,
-        "height": 0.093385
+        "height": 0.101167
       }
     }
   },
@@ -131,6 +154,7 @@
     "ecc": "M"
   },
   "studentIdentitySource": "front-omr",
+  "omrMode": "required",
   "omr": {
     "class": [
       {
@@ -153,7 +177,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.55625,
-          "y": 0.3125
+          "y": 0.288462
         }
       },
       {
@@ -176,7 +200,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.584375,
-          "y": 0.3125
+          "y": 0.288462
         }
       },
       {
@@ -199,7 +223,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.6125,
-          "y": 0.3125
+          "y": 0.288462
         }
       },
       {
@@ -222,7 +246,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.640625,
-          "y": 0.3125
+          "y": 0.288462
         }
       },
       {
@@ -245,7 +269,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.66875,
-          "y": 0.3125
+          "y": 0.288462
         }
       },
       {
@@ -268,7 +292,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.696875,
-          "y": 0.3125
+          "y": 0.288462
         }
       },
       {
@@ -291,7 +315,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.725,
-          "y": 0.3125
+          "y": 0.288462
         }
       },
       {
@@ -314,7 +338,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.753125,
-          "y": 0.3125
+          "y": 0.288462
         }
       },
       {
@@ -337,7 +361,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.78125,
-          "y": 0.3125
+          "y": 0.288462
         }
       },
       {
@@ -360,7 +384,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.809375,
-          "y": 0.3125
+          "y": 0.288462
         }
       }
     ],
@@ -385,7 +409,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.55625,
-          "y": 0.520833
+          "y": 0.480769
         }
       },
       {
@@ -408,7 +432,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.584375,
-          "y": 0.520833
+          "y": 0.480769
         }
       },
       {
@@ -431,7 +455,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.6125,
-          "y": 0.520833
+          "y": 0.480769
         }
       },
       {
@@ -454,7 +478,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.640625,
-          "y": 0.520833
+          "y": 0.480769
         }
       },
       {
@@ -477,7 +501,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.66875,
-          "y": 0.520833
+          "y": 0.480769
         }
       },
       {
@@ -500,7 +524,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.696875,
-          "y": 0.520833
+          "y": 0.480769
         }
       },
       {
@@ -523,7 +547,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.725,
-          "y": 0.520833
+          "y": 0.480769
         }
       },
       {
@@ -546,7 +570,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.753125,
-          "y": 0.520833
+          "y": 0.480769
         }
       },
       {
@@ -569,7 +593,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.78125,
-          "y": 0.520833
+          "y": 0.480769
         }
       },
       {
@@ -592,7 +616,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.809375,
-          "y": 0.520833
+          "y": 0.480769
         }
       }
     ],
@@ -617,7 +641,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.55625,
-          "y": 0.729167
+          "y": 0.673077
         }
       },
       {
@@ -640,7 +664,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.584375,
-          "y": 0.729167
+          "y": 0.673077
         }
       },
       {
@@ -663,7 +687,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.6125,
-          "y": 0.729167
+          "y": 0.673077
         }
       },
       {
@@ -686,7 +710,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.640625,
-          "y": 0.729167
+          "y": 0.673077
         }
       },
       {
@@ -709,7 +733,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.66875,
-          "y": 0.729167
+          "y": 0.673077
         }
       },
       {
@@ -732,7 +756,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.696875,
-          "y": 0.729167
+          "y": 0.673077
         }
       },
       {
@@ -755,7 +779,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.725,
-          "y": 0.729167
+          "y": 0.673077
         }
       },
       {
@@ -778,7 +802,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.753125,
-          "y": 0.729167
+          "y": 0.673077
         }
       },
       {
@@ -801,7 +825,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.78125,
-          "y": 0.729167
+          "y": 0.673077
         }
       },
       {
@@ -824,7 +848,7 @@
         "sampleRadiusMm": 0.975,
         "headerNormalized": {
           "x": 0.809375,
-          "y": 0.729167
+          "y": 0.673077
         }
       }
     ]

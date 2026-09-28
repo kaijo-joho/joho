@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from scan_core import analyze_image, classify_row, load_catalog, load_config, validate_coordinates
 from scan_batch import compare_expected, read_manifest
 from scan_poc import associate_pages, scan_file
-from make_scan_cases import filled, scene_image
+from make_scan_cases import filled, scene_image, ink, clear_region
 
 
 def page(side='F', **changes):
@@ -71,11 +71,46 @@ class ReaderTests(unittest.TestCase):
         self.assertEqual(len(catalog), 4)
         with self.assertRaises(ValueError):
             validate_coordinates([])
-        for key, value in [('schemaVersion', 'worksheet-scan-header/1'), ('omr', catalog[0]['omr'])]:
+        for key, value in [('schemaVersion', 'worksheet-scan-header/1'), ('omrMode', 'required'), ('omr', {})]:
             broken = copy.deepcopy(catalog[1])
             broken[key] = value
             with self.assertRaises(ValueError):
                 validate_coordinates(broken)
+        legacy = copy.deepcopy(catalog[1])
+        legacy.update(schemaVersion='worksheet-scan-header/2', omr={})
+        validate_coordinates(legacy)
+        legacy['omr'] = catalog[0]['omr']
+        with self.assertRaises(ValueError):
+            validate_coordinates(legacy)
+
+    def test_optional_back_omr_both_papers(self):
+        catalog = load_catalog()
+        for paper in ('b5', 'a4'):
+            image, c = scene_image({'pageSize': paper, 'worksheetId': 'WS05', 'year': 2026, 'side': 'B'})
+            marked = filled(image, c, (3, 0, 7))
+            partial = image.copy()
+            ink(partial, c, 'class', 3)
+            double = marked.copy()
+            ink(double, c, 'ones', 8)
+            old = image.copy()
+            clear_region(old, c, c['columns']['middle']['mm'])
+            for name, scan, expected, identifier in [('blank', image, 'OK', None), ('matching', marked, 'OK', '307'),
+                    ('mismatch', filled(image, c, (3, 0, 8)), 'OK', '308'), ('partial', partial, 'REVIEW', None),
+                    ('double', double, 'REVIEW', None), ('legacy-blank', old, 'OK', None)]:
+                with self.subTest(paper=paper, case=name):
+                    back, _ = analyze_image(scan, catalog)
+                    self.assertEqual(back['status'], expected, back['issues'])
+                    self.assertIsNone(back['studentIdentifier'])
+                    self.assertIsNone(back['candidate'])
+                    self.assertEqual(back['backOmrVerification']['studentIdentifier'], identifier)
+                    self.assertEqual(back['backOmrVerification']['blank'], name in ('blank', 'legacy-blank'))
+                    pair = associate_pages([page(pageSize=paper), back])
+                    self.assertEqual(pair['status'], 'OK' if name in ('blank', 'matching', 'legacy-blank') else 'REVIEW')
+                    if name == 'mismatch':
+                        self.assertIn('student_mismatch', pair['issues'])
+                    if pair['status'] == 'REVIEW':
+                        self.assertEqual(pair['studentAssignments'], [])
+                    self.assertIsNone(associate_pages([back], False)['studentIdentifier'])
 
     def test_wrong_paper_cannot_be_forced_into_an_accepted_student(self):
         catalog = load_catalog()

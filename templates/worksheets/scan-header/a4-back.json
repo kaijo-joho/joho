@@ -1,5 +1,5 @@
 {
-  "schemaVersion": "worksheet-scan-header/2",
+  "schemaVersion": "worksheet-scan-header/3",
   "origin": "top-left",
   "axes": "x-right,y-down",
   "units": "mm",
@@ -30,43 +30,79 @@
       "x": 19.6,
       "y": 5.6,
       "width": 179.2,
-      "height": 26.88
+      "height": 29.12
     },
     "normalized": {
       "x": 0.093333,
       "y": 0.018855,
       "width": 0.853333,
-      "height": 0.090505
+      "height": 0.098047
     }
+  },
+  "separator": {
+    "start": {
+      "mm": {
+        "x": 19.6,
+        "y": 34.16
+      },
+      "normalized": {
+        "x": 0.093333,
+        "y": 0.115017
+      }
+    },
+    "end": {
+      "mm": {
+        "x": 198.8,
+        "y": 34.16
+      },
+      "normalized": {
+        "x": 0.946667,
+        "y": 0.115017
+      }
+    },
+    "strokeMm": 0.28
   },
   "columns": {
     "left": {
       "mm": {
         "x": 19.6,
         "y": 5.6,
-        "width": 151.2,
-        "height": 26.88
+        "width": 80.64,
+        "height": 29.12
       },
       "normalized": {
         "x": 0.093333,
         "y": 0.018855,
-        "width": 0.72,
-        "height": 0.090505
+        "width": 0.384,
+        "height": 0.098047
       }
     },
-    "middle": null,
+    "middle": {
+      "mm": {
+        "x": 103.6,
+        "y": 5.6,
+        "width": 67.2,
+        "height": 29.12
+      },
+      "normalized": {
+        "x": 0.493333,
+        "y": 0.018855,
+        "width": 0.32,
+        "height": 0.098047
+      }
+    },
     "right": {
       "mm": {
         "x": 174.16,
         "y": 5.6,
         "width": 24.64,
-        "height": 26.88
+        "height": 29.12
       },
       "normalized": {
         "x": 0.829333,
         "y": 0.018855,
         "width": 0.117333,
-        "height": 0.090505
+        "height": 0.098047
       }
     }
   },
@@ -118,8 +154,749 @@
     "ecc": "M"
   },
   "studentIdentitySource": "paired-front",
-  "omr": {},
-  "handwriting": {},
+  "omrMode": "optional-verification",
+  "omr": {
+    "class": [
+      {
+        "digit": 0,
+        "center": {
+          "mm": {
+            "x": 119.28,
+            "y": 14
+          },
+          "normalized": {
+            "x": 0.568,
+            "y": 0.047138
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.55625,
+          "y": 0.288462
+        }
+      },
+      {
+        "digit": 1,
+        "center": {
+          "mm": {
+            "x": 124.32,
+            "y": 14
+          },
+          "normalized": {
+            "x": 0.592,
+            "y": 0.047138
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.584375,
+          "y": 0.288462
+        }
+      },
+      {
+        "digit": 2,
+        "center": {
+          "mm": {
+            "x": 129.36,
+            "y": 14
+          },
+          "normalized": {
+            "x": 0.616,
+            "y": 0.047138
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.6125,
+          "y": 0.288462
+        }
+      },
+      {
+        "digit": 3,
+        "center": {
+          "mm": {
+            "x": 134.4,
+            "y": 14
+          },
+          "normalized": {
+            "x": 0.64,
+            "y": 0.047138
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.640625,
+          "y": 0.288462
+        }
+      },
+      {
+        "digit": 4,
+        "center": {
+          "mm": {
+            "x": 139.44,
+            "y": 14
+          },
+          "normalized": {
+            "x": 0.664,
+            "y": 0.047138
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.66875,
+          "y": 0.288462
+        }
+      },
+      {
+        "digit": 5,
+        "center": {
+          "mm": {
+            "x": 144.48,
+            "y": 14
+          },
+          "normalized": {
+            "x": 0.688,
+            "y": 0.047138
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.696875,
+          "y": 0.288462
+        }
+      },
+      {
+        "digit": 6,
+        "center": {
+          "mm": {
+            "x": 149.52,
+            "y": 14
+          },
+          "normalized": {
+            "x": 0.712,
+            "y": 0.047138
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.725,
+          "y": 0.288462
+        }
+      },
+      {
+        "digit": 7,
+        "center": {
+          "mm": {
+            "x": 154.56,
+            "y": 14
+          },
+          "normalized": {
+            "x": 0.736,
+            "y": 0.047138
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.753125,
+          "y": 0.288462
+        }
+      },
+      {
+        "digit": 8,
+        "center": {
+          "mm": {
+            "x": 159.6,
+            "y": 14
+          },
+          "normalized": {
+            "x": 0.76,
+            "y": 0.047138
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.78125,
+          "y": 0.288462
+        }
+      },
+      {
+        "digit": 9,
+        "center": {
+          "mm": {
+            "x": 164.64,
+            "y": 14
+          },
+          "normalized": {
+            "x": 0.784,
+            "y": 0.047138
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.809375,
+          "y": 0.288462
+        }
+      }
+    ],
+    "tens": [
+      {
+        "digit": 0,
+        "center": {
+          "mm": {
+            "x": 119.28,
+            "y": 19.6
+          },
+          "normalized": {
+            "x": 0.568,
+            "y": 0.065993
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.55625,
+          "y": 0.480769
+        }
+      },
+      {
+        "digit": 1,
+        "center": {
+          "mm": {
+            "x": 124.32,
+            "y": 19.6
+          },
+          "normalized": {
+            "x": 0.592,
+            "y": 0.065993
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.584375,
+          "y": 0.480769
+        }
+      },
+      {
+        "digit": 2,
+        "center": {
+          "mm": {
+            "x": 129.36,
+            "y": 19.6
+          },
+          "normalized": {
+            "x": 0.616,
+            "y": 0.065993
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.6125,
+          "y": 0.480769
+        }
+      },
+      {
+        "digit": 3,
+        "center": {
+          "mm": {
+            "x": 134.4,
+            "y": 19.6
+          },
+          "normalized": {
+            "x": 0.64,
+            "y": 0.065993
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.640625,
+          "y": 0.480769
+        }
+      },
+      {
+        "digit": 4,
+        "center": {
+          "mm": {
+            "x": 139.44,
+            "y": 19.6
+          },
+          "normalized": {
+            "x": 0.664,
+            "y": 0.065993
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.66875,
+          "y": 0.480769
+        }
+      },
+      {
+        "digit": 5,
+        "center": {
+          "mm": {
+            "x": 144.48,
+            "y": 19.6
+          },
+          "normalized": {
+            "x": 0.688,
+            "y": 0.065993
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.696875,
+          "y": 0.480769
+        }
+      },
+      {
+        "digit": 6,
+        "center": {
+          "mm": {
+            "x": 149.52,
+            "y": 19.6
+          },
+          "normalized": {
+            "x": 0.712,
+            "y": 0.065993
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.725,
+          "y": 0.480769
+        }
+      },
+      {
+        "digit": 7,
+        "center": {
+          "mm": {
+            "x": 154.56,
+            "y": 19.6
+          },
+          "normalized": {
+            "x": 0.736,
+            "y": 0.065993
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.753125,
+          "y": 0.480769
+        }
+      },
+      {
+        "digit": 8,
+        "center": {
+          "mm": {
+            "x": 159.6,
+            "y": 19.6
+          },
+          "normalized": {
+            "x": 0.76,
+            "y": 0.065993
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.78125,
+          "y": 0.480769
+        }
+      },
+      {
+        "digit": 9,
+        "center": {
+          "mm": {
+            "x": 164.64,
+            "y": 19.6
+          },
+          "normalized": {
+            "x": 0.784,
+            "y": 0.065993
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.809375,
+          "y": 0.480769
+        }
+      }
+    ],
+    "ones": [
+      {
+        "digit": 0,
+        "center": {
+          "mm": {
+            "x": 119.28,
+            "y": 25.2
+          },
+          "normalized": {
+            "x": 0.568,
+            "y": 0.084848
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.55625,
+          "y": 0.673077
+        }
+      },
+      {
+        "digit": 1,
+        "center": {
+          "mm": {
+            "x": 124.32,
+            "y": 25.2
+          },
+          "normalized": {
+            "x": 0.592,
+            "y": 0.084848
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.584375,
+          "y": 0.673077
+        }
+      },
+      {
+        "digit": 2,
+        "center": {
+          "mm": {
+            "x": 129.36,
+            "y": 25.2
+          },
+          "normalized": {
+            "x": 0.616,
+            "y": 0.084848
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.6125,
+          "y": 0.673077
+        }
+      },
+      {
+        "digit": 3,
+        "center": {
+          "mm": {
+            "x": 134.4,
+            "y": 25.2
+          },
+          "normalized": {
+            "x": 0.64,
+            "y": 0.084848
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.640625,
+          "y": 0.673077
+        }
+      },
+      {
+        "digit": 4,
+        "center": {
+          "mm": {
+            "x": 139.44,
+            "y": 25.2
+          },
+          "normalized": {
+            "x": 0.664,
+            "y": 0.084848
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.66875,
+          "y": 0.673077
+        }
+      },
+      {
+        "digit": 5,
+        "center": {
+          "mm": {
+            "x": 144.48,
+            "y": 25.2
+          },
+          "normalized": {
+            "x": 0.688,
+            "y": 0.084848
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.696875,
+          "y": 0.673077
+        }
+      },
+      {
+        "digit": 6,
+        "center": {
+          "mm": {
+            "x": 149.52,
+            "y": 25.2
+          },
+          "normalized": {
+            "x": 0.712,
+            "y": 0.084848
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.725,
+          "y": 0.673077
+        }
+      },
+      {
+        "digit": 7,
+        "center": {
+          "mm": {
+            "x": 154.56,
+            "y": 25.2
+          },
+          "normalized": {
+            "x": 0.736,
+            "y": 0.084848
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.753125,
+          "y": 0.673077
+        }
+      },
+      {
+        "digit": 8,
+        "center": {
+          "mm": {
+            "x": 159.6,
+            "y": 25.2
+          },
+          "normalized": {
+            "x": 0.76,
+            "y": 0.084848
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.78125,
+          "y": 0.673077
+        }
+      },
+      {
+        "digit": 9,
+        "center": {
+          "mm": {
+            "x": 164.64,
+            "y": 25.2
+          },
+          "normalized": {
+            "x": 0.784,
+            "y": 0.084848
+          }
+        },
+        "radiusMm": 1.68,
+        "radiusNormalized": {
+          "x": 0.008,
+          "y": 0.005657
+        },
+        "sampleRadiusMm": 1.092,
+        "headerNormalized": {
+          "x": 0.809375,
+          "y": 0.673077
+        }
+      }
+    ]
+  },
+  "handwriting": {
+    "class_box": {
+      "mm": {
+        "x": 109.2,
+        "y": 11.76,
+        "width": 4.48,
+        "height": 4.48
+      },
+      "normalized": {
+        "x": 0.52,
+        "y": 0.039596,
+        "width": 0.021333,
+        "height": 0.015084
+      }
+    },
+    "tens_box": {
+      "mm": {
+        "x": 109.2,
+        "y": 17.36,
+        "width": 4.48,
+        "height": 4.48
+      },
+      "normalized": {
+        "x": 0.52,
+        "y": 0.058451,
+        "width": 0.021333,
+        "height": 0.015084
+      }
+    },
+    "ones_box": {
+      "mm": {
+        "x": 109.2,
+        "y": 22.96,
+        "width": 4.48,
+        "height": 4.48
+      },
+      "normalized": {
+        "x": 0.52,
+        "y": 0.077306,
+        "width": 0.021333,
+        "height": 0.015084
+      }
+    }
+  },
   "markers": {
     "topLeft": {
       "mm": {

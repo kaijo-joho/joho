@@ -102,6 +102,12 @@ def associate_pages(pages, require_duplex=True):
             issues.append('worksheet_mismatch')
         if pages[fronts[0]].get('pageSize') != pages[backs[0]].get('pageSize'):
             issues.append('paper_mismatch')
+        verification = pages[backs[0]].get('backOmrVerification')
+        if verification:
+            if verification['status'] != 'OK':
+                issues.append('back_omr_review')
+            elif not verification['blank'] and verification['studentIdentifier'] != pages[fronts[0]].get('studentIdentifier'):
+                issues.append('student_mismatch')
     pair_valid = not issues
     reversed_pages = pair_valid and fronts[0] > backs[0]
     if reversed_pages:

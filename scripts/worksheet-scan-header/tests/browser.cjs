@@ -42,7 +42,7 @@ let runningBrowser;
           assert.deepEqual(m.clipped, [], name + ' clipped answers');
           assert.equal(m.visibleHeaders, 1);
           assert.ok(['F', 'B'].includes(m.side));
-          assert.equal(m.marks, m.side === 'F' ? 30 : 0);
+          assert.equal(m.marks, 30);
           assert.equal(m.nameFields, m.side === 'F' ? 1 : 0);
           assert.ok(m.qrDescription.includes('INFO1|2026|' + id + '|' + m.side));
         }

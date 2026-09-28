@@ -1,5 +1,50 @@
-<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--b5" data-scan-side="B" width="182mm" height="257mm" viewBox="0 0 182 257" role="img" aria-label="音のデジタル表現 B ワークシート識別QR" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>音のデジタル表現</title><desc>生徒情報は同じ両面PDFの表面から引き継ぐ。QR: INFO1|2026|WS05|B</desc>
+<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--b5" data-scan-side="B" width="182mm" height="257mm" viewBox="0 0 182 257" role="img" aria-label="音のデジタル表現 B 任意の組と番号のマーク欄、ワークシート識別QR" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>音のデジタル表現</title><desc>裏面のマーク欄は任意。生徒情報は表面から引き継ぎ、裏面に記入があれば一致を確認する。QR: INFO1|2026|WS05|B</desc>
 <text x="12" y="10" font-size="3.8" text-anchor="start" font-weight="700">音のデジタル表現</text>
+<text x="101" y="8" font-size="2.8" text-anchor="middle" font-weight="400">0</text>
+<text x="105.5" y="8" font-size="2.8" text-anchor="middle" font-weight="400">1</text>
+<text x="110" y="8" font-size="2.8" text-anchor="middle" font-weight="400">2</text>
+<text x="114.5" y="8" font-size="2.8" text-anchor="middle" font-weight="400">3</text>
+<text x="119" y="8" font-size="2.8" text-anchor="middle" font-weight="400">4</text>
+<text x="123.5" y="8" font-size="2.8" text-anchor="middle" font-weight="400">5</text>
+<text x="128" y="8" font-size="2.8" text-anchor="middle" font-weight="400">6</text>
+<text x="132.5" y="8" font-size="2.8" text-anchor="middle" font-weight="400">7</text>
+<text x="137" y="8" font-size="2.8" text-anchor="middle" font-weight="400">8</text>
+<text x="141.5" y="8" font-size="2.8" text-anchor="middle" font-weight="400">9</text>
+<text x="87" y="13.45" font-size="2.8" text-anchor="start" font-weight="400">組</text>
+<rect x="92" y="10.5" width="4" height="4" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="101" cy="12.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="105.5" cy="12.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="110" cy="12.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="114.5" cy="12.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="119" cy="12.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="123.5" cy="12.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="128" cy="12.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="132.5" cy="12.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="137" cy="12.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="141.5" cy="12.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<text x="87" y="18.45" font-size="2.8" text-anchor="start" font-weight="400">番</text>
+<rect x="92" y="15.5" width="4" height="4" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="101" cy="17.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="105.5" cy="17.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="110" cy="17.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="114.5" cy="17.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="119" cy="17.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="123.5" cy="17.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="128" cy="17.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="132.5" cy="17.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="137" cy="17.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="141.5" cy="17.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<rect x="92" y="20.5" width="4" height="4" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="101" cy="22.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="105.5" cy="22.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="110" cy="22.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="114.5" cy="22.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="119" cy="22.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="123.5" cy="22.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="128" cy="22.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="132.5" cy="22.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="137" cy="22.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
+<circle cx="141.5" cy="22.5" r="1.5" fill="none" stroke="#000" stroke-width="0.25"/>
 <rect x="150" y="5" width="22" height="22" fill="#fff" stroke="none" stroke-width="0"/>
 <rect x="152.666667" y="7.666667" width="4.666667" height="0.666667" fill="#000" stroke="none" stroke-width="0"/>
 <rect x="158" y="7.666667" width="2" height="0.666667" fill="#000" stroke="none" stroke-width="0"/>
@@ -176,6 +221,7 @@
 <rect x="165.333333" y="23.666667" width="1.333333" height="0.666667" fill="#000" stroke="none" stroke-width="0"/>
 <rect x="168.666667" y="23.666667" width="0.666667" height="0.666667" fill="#000" stroke="none" stroke-width="0"/>
 <text x="161" y="28.5" font-size="2" text-anchor="middle" font-weight="400">WS05 B</text>
+<line x1="12" y1="30.5" x2="172" y2="30.5" stroke="#000" stroke-width="0.25"/>
 <rect x="5" y="5" width="3.5" height="3.5" fill="#000" stroke="none" stroke-width="0"/>
 <rect x="173.5" y="5" width="3.5" height="3.5" fill="#000" stroke="none" stroke-width="0"/>
 <rect x="5" y="248.5" width="3.5" height="3.5" fill="#000" stroke="none" stroke-width="0"/>

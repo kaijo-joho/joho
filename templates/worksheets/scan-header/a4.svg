@@ -216,6 +216,7 @@
 <rect x="189.84" y="32.106667" width="0.746667" height="0.746667" fill="#000" stroke="none" stroke-width="0"/>
 <rect x="193.573333" y="32.106667" width="2.24" height="0.746667" fill="#000" stroke="none" stroke-width="0"/>
 <text x="186.48" y="37.52" font-size="2.24" text-anchor="middle" font-weight="400">WS05 F</text>
+<line x1="19.6" y1="39.76" x2="198.8" y2="39.76" stroke="#000" stroke-width="0.28"/>
 <rect x="5.6" y="5.6" width="3.92" height="3.92" fill="#000" stroke="none" stroke-width="0"/>
 <rect x="200.48" y="5.6" width="3.92" height="3.92" fill="#000" stroke="none" stroke-width="0"/>
 <rect x="5.6" y="287.48" width="3.92" height="3.92" fill="#000" stroke="none" stroke-width="0"/>
