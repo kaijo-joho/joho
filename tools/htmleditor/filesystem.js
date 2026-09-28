@@ -26,6 +26,20 @@
     getDirectoryName(){return this.dirName||(this.isConnected()?'実習フォルダ':'')}
     getCurrentFilePath(){return this.currentFilePath}
     async openDirectory(){if(!this.isSupported())throw new Error('お使いのブラウザはフォルダ直接操作に対応していません。Google Chromeを推奨します。');const h=await window.showDirectoryPicker({mode:'readwrite'});const s=await this._stageDirectory(h);this._replace(s,h,h.name,false);this._notify('directory-opened',{dirName:this.dirName});return this.dirName}
+    async reconnectDirectory(handle,{requestPermission=false}={}){
+      if(!handle||handle.kind!=='directory'||typeof handle.name!=='string'||!handle.name||typeof handle.entries!=='function'||typeof handle.queryPermission!=='function')throw new Error('保存されたフォルダーハンドルを利用できません。フォルダーを選び直してください。');
+      let permission;
+      try{permission=await handle.queryPermission({mode:'readwrite'})}catch(error){throw new Error(`フォルダーの利用許可を確認できません: ${error.message||error}`)}
+      if(permission!=='granted'&&requestPermission===true){
+        if(typeof handle.requestPermission!=='function')throw new Error('このブラウザーではフォルダーの利用許可を再確認できません。');
+        try{permission=await handle.requestPermission({mode:'readwrite'})}catch(error){throw new Error(`フォルダーの利用許可を再確認できません: ${error.message||error}`)}
+      }
+      if(permission!=='granted')return false;
+      const s=await this._stageDirectory(handle);
+      this._replace(s,handle,handle.name,false);
+      this._notify('directory-opened',{dirName:this.dirName});
+      return true;
+    }
     async scanDirectory(){if(!this.dirHandle||this.readOnly)return[];const s=await this._stageDirectory(this.dirHandle);this._replace(s,this.dirHandle,this.dirName,false);const files=this.getFileList();this._notify('files-scanned',{files});return files}
     async _stageDirectory(root) {
       const entries = new Map();

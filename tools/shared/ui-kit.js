@@ -41,17 +41,32 @@
     const el = document.createElement('div');
     el.className = 'joho-tip'; el.setAttribute('role', 'tooltip');
     document.body.appendChild(el);
-    const hide = () => el.classList.remove('show');
+    let active = null;
+    if (opt.keyboard) el.id = 'joho-tip-' + Math.random().toString(36).slice(2);
+    const hide = () => {
+      el.classList.remove('show');
+      if (opt.keyboard && active) {
+        const ids = (active.getAttribute('aria-describedby') || '').split(/\s+/).filter(id => id && id !== el.id);
+        if (ids.length) active.setAttribute('aria-describedby', ids.join(' ')); else active.removeAttribute('aria-describedby');
+        active = null;
+      }
+    };
     const show = target => {
+      hide();
       if (target.hasAttribute('title')){ target.dataset.tip = target.getAttribute('title'); target.removeAttribute('title'); }
       const t = target.dataset.tip;
       if (!t) return;
+      if (opt.keyboard) {
+        active = target;
+        const ids = (target.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+        target.setAttribute('aria-describedby', [...new Set([...ids, el.id])].join(' '));
+      }
       el.textContent = t; el.classList.add('show');
       const r = target.getBoundingClientRect(), w = el.offsetWidth, hgt = el.offsetHeight;
       let y = r.bottom + 6;
       if (y + hgt > innerHeight - 4) y = r.top - hgt - 6;
       el.style.left = Math.max(4, Math.min(innerWidth - w - 4, r.left + r.width/2 - w/2)) + 'px';
-      el.style.top = y + 'px';
+      el.style.top = Math.max(4, y) + 'px';
     };
     const over = e => {
       const target = e.target.closest && e.target.closest('[title],[data-tip]');
@@ -61,7 +76,20 @@
     document.addEventListener('mouseover', over);
     document.addEventListener('mouseout', out);
     document.addEventListener('pointerdown', hide, true);
+    const escape = e => { if (e.key === 'Escape') hide(); };
+    if (opt.keyboard) {
+      document.addEventListener('focusin', over);
+      document.addEventListener('focusout', out);
+      document.addEventListener('keydown', escape);
+      window.addEventListener('scroll', hide, true);
+      window.addEventListener('resize', hide);
+    }
     return {hide, el, destroy(){ document.removeEventListener('mouseover', over); document.removeEventListener('mouseout', out);
+      hide();
+      if (opt.keyboard) {
+        document.removeEventListener('focusin', over); document.removeEventListener('focusout', out);
+        document.removeEventListener('keydown', escape); window.removeEventListener('scroll', hide, true); window.removeEventListener('resize', hide);
+      }
       document.removeEventListener('pointerdown', hide, true); el.remove(); }};
   }
 

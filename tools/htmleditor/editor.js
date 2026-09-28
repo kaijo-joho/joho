@@ -8,6 +8,7 @@
   const catalog = Practice.lessons(window.HtmlLessons.LESSONS);
   let cm, fs, preview, recovery, doc, selectedLesson, navigation, busy = false, replacing = false;
   let autoTimer, toastTimer, submissionPanel = null;
+  let folderMemory = null, rememberedFolder = null, folderMemoryIssue = '';
   const editable = path => /\.(html?|css)$/i.test(path);
   const content = () => cm.getValue();
   const dirty = () => doc && content() !== doc.savedContent;
@@ -25,14 +26,21 @@
     $('dirtyMark').hidden = !dirty();
     $('saveState').textContent = dirty() ? '未保存の変更があります。' : doc?.saveMessage || '';
     for (const id of ['saveBtn','folderSaveBtn','downloadBtn','submitBtn','runBtn','openPreviewTabBtn']) $(id).disabled = !doc || busy;
-    $('fileListBtn').disabled = !fs.getFileList().length || busy;
-    $('disconnectBtn').disabled = !fs.getFileList().length && !fs.isConnected() || busy;
+    for (const id of ['openFilesBtn','practiceOpenBtn','openOtherFileBtn','connectFolderBtn','settingsFolderBtn','reconnectFolderBtn']) $(id).disabled = busy;
+    $('disconnectBtn').disabled = !fs.getFileList().length && !fs.isConnected() && !rememberedFolder && !folderMemoryIssue || busy;
     $('folderStatusText').textContent = fs.isConnected() ? '保存先フォルダ：' + fs.getDirectoryName() :
-      fs.getFileList().length ? '読み取り専用：保存はダウンロードで行います。' : 'フォルダ未接続';
+      fs.getFileList().length ? '読み取り専用：上書き保存にはフォルダ接続が必要です。' : 'フォルダ未接続';
+    $('folderMemoryNotice').textContent = folderMemoryIssue || (!fs.isSupported() ?
+      'このブラウザでは上書き保存用の接続先を記憶できません。必要なフォルダはその都度読み込みます。' : rememberedFolder ?
+      '前回のフォルダ：' + rememberedFolder.name + '。許可が続いていれば次回も自動接続します。ファイルは自動で開きません。' :
+      '接続したフォルダをこのブラウザに記憶します。');
+    $('reconnectFolderBtn').hidden = fs.isConnected() || !rememberedFolder;
     $('folderAlert').hidden = fs.isConnected();
-    $('folderAlertMessage').textContent = fs.isSupported() ?
+    $('connectFolderBtn').textContent = rememberedFolder ? '前回のフォルダへ再接続' : 'フォルダを接続…';
+    $('folderAlertMessage').textContent = rememberedFolder ?
+      '前回の「' + rememberedFolder.name + '」を使うには、再接続ボタンで利用許可を確認してください。別のフォルダは「設定」から選べます。' : fs.isSupported() ?
       '上書き保存や画像・リンクの確認には、実習フォルダを接続してください。' :
-      'このブラウザでは上書き保存できません。「保存」でダウンロードしてください。画像の確認にはフォルダ全体を読み込みます。';
+      'このブラウザでは上書き保存できません。「保存」からコピーをダウンロードできます。画像の確認にはフォルダ全体を読み込みます。';
     updateSubmission();
   }
   const catalogState = () => window.HtmlEditorStartup.catalogState();
@@ -58,8 +66,8 @@
     $('submissionState').textContent = state.message;
     $('submitBtn').classList.toggle('success', state.ready);
     $('submitBtn').dataset.available = String(state.ready);
-    $('submitLabel').textContent = state.ready ? '提出' : '提出条件';
-    $('submitBtn').setAttribute('aria-label', state.ready ? '学校の課題を提出する' : '学校の課題の提出条件を確認');
+    $('submitLabel').textContent = '提出';
+    $('submitBtn').dataset.tip = state.ready ? '保存済みの実習ファイルを提出します。フォームで「提出する」を押すまで送信は完了しません。' : '提出の準備状況：' + state.message;
   }
   function snapshot(kind, destination = 'browser') {
     return {docId:doc.docId, fileName:doc.fileName, lessonId:doc.lessonId,
@@ -104,10 +112,14 @@
   }
   async function exclusive(action) {
     if (busy || $('actionDialog').open) return;
+    const opener = document.activeElement;
     busy = true; cm.setOption('readOnly', true); $('app').setAttribute('aria-busy', 'true'); displayState();
     try { await action(); }
     catch (error) { if (error.name !== 'AbortError') notify(errorMessage(error)); }
-    finally { busy = false; cm.setOption('readOnly', doc ? false : 'nocursor'); $('app').removeAttribute('aria-busy'); displayState(); }
+    finally {
+      busy = false; cm.setOption('readOnly', doc ? false : 'nocursor'); $('app').removeAttribute('aria-busy'); displayState();
+      if (!$('actionDialog').open && document.activeElement === document.body && opener?.isConnected && !opener.disabled) opener.focus();
+    }
   }
   function textNode(parent, text, tag = 'p') {
     const node = document.createElement(tag); node.textContent = text; parent.append(node); return node;
@@ -143,6 +155,7 @@
       dialog.addEventListener('cancel', cancel);
       build($('actionBody'), button, finish);
       dialog.showModal();
+      dialog.scrollTop = 0;
     });
   }
   async function allowReplace({navigation = false} = {}) {
@@ -219,21 +232,29 @@
   }
   function practiceSteps() {
     return exclusive(() => modal('実習の手順', (body, button) => {
+      textNode(body, '初回はFinderで「書類」に「HTML実習」フォルダを作ります。次回からは同じフォルダを使います。');
       const list = document.createElement('ol'); body.append(list);
-      for (const text of [
-        '上部の「課題ファイルのダウンロード」で対象ファイルを選び、自分の学校アカウントで実習ファイルを取得します。',
-        '通常は「ダウンロード」に保存されます。Finderでファイル名を確認し、「書類／HTML実習」フォルダへ移動します。以前のHTMLや画像も同じ実習フォルダにまとめます。',
-        '「フォルダを接続…」でHTML実習フォルダを選び、一覧から今回のHTMLを開きます。ファイル選択ではなくフォルダ選択の画面では、HTMLがグレー表示でも正常です。',
-        selectedLesson.id === 'html11' ? '今回は html11-01.html を開くだけで、コードの編集は不要です。「保存」（⌘S）を押し、準備確認の3項目が確認済みになることを確かめます。' :
-          'コードを編集し、プレビューの更新アイコン（⌘Enter）で表示を確認します。「保存」（⌘S）を押し、「Macのファイルに保存しました」を確認します。',
-        '「提出」で保存済みファイルを準備し、フォームの「提出する」を押します。受領と★を確認してください。別タブ・ダウンロード保存ではファイルを選びます。'
-      ]) textNode(list, text, 'li');
+      function step(id, label, text) { const li = document.createElement('li'); list.append(li); menuHint(li, id, label); li.append(document.createTextNode(text)); }
+      step('taskDownloadBtn', 'ダウンロード', '：新しい課題の実習ファイルを、自分の学校アカウントで取得します。通常はMacの「ダウンロード」に入るので、Finderで名前を変えずに「書類／HTML実習」へ移動します。');
+      step('displayMenuWrap', '設定', '：初回は「フォルダを接続・変更…」で「HTML実習」を選びます。フォルダ選択中にHTMLがグレー表示でも正常です。次回は許可が続いていれば自動接続し、許可の確認が必要な場合は「前回のフォルダへ再接続」を押します。');
+      step('openFilesBtn', '開く', '：接続したフォルダの一覧から今回の実習ファイルを選びます。初回の接続直後は、そのまま一覧が開きます。新しく移動したファイルや画像も「開く」で一覧に取り込みます。');
+      step('runBtn', 'プレビューを更新', selectedLesson.id === 'html11' ?
+        '：今回は html11-01.html を開くだけで、コードの編集は不要です。そのまま次の保存へ進みます。' :
+        '：コードを編集し、このアイコン（⌘Enter）で表示を確認します。更新と保存は別の操作です。');
+      step('saveBtn', '保存', '：コード欄のファイル名の横にあります（⌘S）。上書き保存して「Macのファイルに保存しました」を確認します。' + (selectedLesson.id === 'html11' ? '準備確認の3項目が確認済みになることも確かめます。' : ''));
+      step('submitBtn', '提出', '：保存済みファイルを準備し、フォームの「提出する」を押します。受領と★を確認してください。別タブ・ダウンロード保存ではファイルを選びます。');
       textNode(body, 'プレビュー更新とファイル保存は別の操作です。直接保存できない場合はダウンロード先・内容・ファイル名をFinderで確認してください。');
       if (selectedLesson.id === 'html11') textNode(body, '導入課題の準備確認には、フォルダへ上書き保存できるGoogle Chromeを使います。フォルダ名とファイルの読み書きを確認しますが、書類フォルダ内かどうかや新しく作ったかどうかは確認できません。準備確認はこの画面内だけの案内で、提出物の採点結果とは別です。');
       textNode(body, '本人用の配付情報は削除・変更しないでください。受付期間内は何回でも再提出できますが、同じ課題の新しい提出は60秒以上あけます。');
-      textNode(body, '次回はMacのファイルを開いて再開します。作業後は画像も含むフォルダ全体をバックアップしてください。万が一の復旧は「設定」→「困ったときの復旧」から行います。');
+      textNode(body, '続きの作業は「開く」から再開します。「ダウンロード」で取り直しても途中の編集内容には戻りません。作業後は画像も含むフォルダ全体をバックアップしてください。万が一の復旧は「設定」→「復旧候補を開く…」から行います。');
       button('閉じる', 'close');
     }));
+  }
+  function menuHint(parent, id, label) {
+    const badge = document.createElement('span'); badge.className = 'menu-hint';
+    const icon = $(id)?.querySelector('svg');
+    if (icon) badge.append(icon.cloneNode(true));
+    badge.append(document.createTextNode(label)); parent.append(badge);
   }
   function runPreview() {
     if (!doc) return;
@@ -269,8 +290,9 @@
   }
   async function fileList() {
     const files = fs.getFileList();
-    const selected = await modal('読み込んだファイル', (body, button, finish) => {
-      if (!files.length) textNode(body, 'まず「ファイルを開く」または「フォルダを開く」で読み込んでください。');
+    const selected = await modal(fs.isConnected() ? '実習フォルダ内のファイル' : '読み込んだファイル', (body, button, finish) => {
+      textNode(body, fs.isConnected() ? fs.getDirectoryName() + '：開くファイルを選んでください。' : '読み込んだファイルから選んでください。');
+      if (!files.length) textNode(body, '開けるファイルがありません。Finderで実習ファイルを移動し、もう一度「開く」を押してください。フォルダの変更は「設定」から行えます。');
       for (const path of files) {
         if (editable(path)) {
           const item = document.createElement('button'); item.type = 'button'; item.className = 'file-entry btn';
@@ -285,10 +307,50 @@
     if (!fs.isSupported()) { $('directoryInput').click(); return; }
     await exclusive(async () => {
       await fs.openDirectory();
+      rememberedFolder = fs.dirHandle;
+      try {
+        if (!folderMemory) throw Error('ブラウザの記憶領域を利用できません。');
+        await folderMemory.save(rememberedFolder); folderMemoryIssue = '';
+      } catch {
+        folderMemoryIssue = 'フォルダの記憶に失敗しました。今回は使えますが、次回は再選択が必要な場合があります。';
+        try { await folderMemory?.forget(); } catch { folderMemoryIssue += '以前の接続先が残っている可能性があります。'; }
+      }
       if (doc) { doc.binding = null; doc.openedFrom = null; doc.verifiedSave = null; } // 同名ファイルが別フォルダにあっても自動上書きしない。
       displayState(); runPreview();
-      notify('フォルダを読み込みました。編集内容は保持しています。開くファイルを選んでください。');
+      notify(folderMemoryIssue || 'フォルダを接続・記憶しました。開くファイルを選んでください。');
       await fileList();
+    });
+  }
+  function openSavedFile() {
+    if (busy || $('actionDialog').open) return;
+    if (fs.isConnected()) return exclusive(async () => { await fs.scanDirectory(); displayState(); runPreview(); await fileList(); });
+    if (rememberedFolder) return reconnectFolder(true);
+    if (fs.getFileList().length > 1) return exclusive(fileList);
+    $('fileInput').click();
+  }
+  function reconnectFolder(openList = false) {
+    return exclusive(async () => {
+      if (!rememberedFolder) return;
+      if (!await fs.reconnectDirectory(rememberedFolder, {requestPermission:true})) {
+        notify('フォルダの利用が許可されませんでした。内容は保持しています。「設定」から選び直すこともできます。'); return;
+      }
+      if (doc) { doc.binding = null; doc.openedFrom = null; doc.verifiedSave = null; }
+      displayState(); runPreview();
+      notify('前回のフォルダへ再接続しました。');
+      if (openList) await fileList();
+    });
+  }
+  function restoreFolderConnection() {
+    return exclusive(async () => {
+      if (!folderMemory || !fs.isSupported()) return;
+      try {
+        rememberedFolder = await folderMemory.load();
+        if (rememberedFolder) await fs.reconnectDirectory(rememberedFolder); // 起動時に許可を要求しない。
+      } catch {
+        folderMemoryIssue = '前回のフォルダに自動接続できませんでした。「設定」から再接続・選び直しができます。';
+        notify(folderMemoryIssue);
+      }
+      // 接続先だけを復元する。編集中のファイル・ブラウザの控えは開かない。
     });
   }
   async function importSelection(input, directory) {
@@ -318,7 +380,7 @@
     if (!doc) return false;
     doc.verifiedSave = null; // 取消・権限喪失・書込失敗を以前の成功で隠さない。
     if (!fs.isConnected()) throw Error('書き込み可能なフォルダを接続してください。このブラウザではダウンロードで保存することもできます。');
-    if (doc.binding !== fs.dirHandle && !explicit) throw Error('保存先を確認できません。ファイルから開き直すか、保存先フォルダを確認してください。');
+    if (doc.binding !== fs.dirHandle && !explicit) throw Error('保存先を確認できません。「開く」から開き直すか、保存先フォルダを確認してください。');
     const saved = {docId:doc.docId, fileName:doc.fileName, content:content(), binding:fs.dirHandle};
     const exists = fs.fileEntries.has(saved.fileName);
     if (doc.binding === fs.dirHandle && exists && await fs.readFile(saved.fileName) !== doc.diskContent) {
@@ -350,7 +412,12 @@
     return exclusive(async () => {
       if (!doc) return;
       if (fs.isConnected()) await saveToFile(doc.binding !== fs.dirHandle);
-      else download();
+      else await modal('上書き保存できません', (body, button) => {
+        textNode(body, 'フォルダ未接続、または読み取り専用で開いています。上書き保存するには「設定」で実習フォルダを接続してください。編集中の内容は保持しています。');
+        textNode(body, 'このままコピーをダウンロードすることもできます。元のファイルへの上書き保存ではないため、Finderで保存先・ファイル名・内容を確認してください。');
+        button('コピーをダウンロード', 'download', () => { download(); });
+        button('閉じる', 'close');
+      });
       runPreview();
     });
   }
@@ -368,14 +435,17 @@
       if (!recovery) throw Error('ブラウザの保存領域を利用できません。');
       result = recovery.list();
     } catch (error) { $('recoveryState').textContent = errorMessage(error); notify(errorMessage(error)); return; }
-    const choice = await modal('ブラウザの控えから復旧', (body, button, finish) => {
-      textNode(body, '日時とファイル名を確認して選んでください。選ばなかった控えは削除しません。');
+    const choice = await modal('復旧候補', (body, button, finish) => {
+      textNode(body, '日時とファイル名を確認して選んでください。選ぶと編集画面に取り出しますが、Macのファイルは上書きしません。選ばなかった控えも削除しません。');
+      textNode(body, '自動保存は編集を止めた後の控え、ファイル保存時の控えは保存成功時の内容です。画像・フォルダ一式や編集履歴すべてのバックアップではありません。');
+      textNode(body, $('recoveryState').textContent);
       if (!result.items.length) textNode(body, '復元できる控えがありません。');
       if (result.errors.length) textNode(body, '読み取れない控えが ' + result.errors.length + ' 件あります。元データは保持しています。');
+      const list = document.createElement('div'); list.className = 'recovery-list'; body.append(list);
       result.items.forEach(item => {
-        const label = (item.kind === 'auto' ? '自動保存' : '明示保存') + ' / ' + item.fileName + ' / ' +
+        const label = (item.kind === 'auto' ? '自動保存' : 'ファイル保存時') + ' / ' + item.fileName + ' / ' +
           new Date(item.savedAt).toLocaleString('ja-JP') + (item.destination === 'file' ? ' / ファイル保存時の控え' : '');
-        const node = textNode(body, label, 'button'); node.type = 'button'; node.className = 'btn file-entry';
+        const node = textNode(list, label, 'button'); node.type = 'button'; node.className = 'btn file-entry';
         node.addEventListener('click', () => finish(item));
       });
       button('キャンセル', 'cancel');
@@ -455,7 +525,7 @@
     if (name === 'left') {
       document.body.classList.remove('left-collapsed');
       $('toggleLessonBtn').setAttribute('aria-pressed', 'false');
-      $('toggleLessonBtn').textContent = 'エディタ・プレビューを全体表示';
+      $('toggleLessonBtn').textContent = 'エディタを広く表示';
     }
     requestAnimationFrame(() => cm.refresh());
   }
@@ -484,9 +554,12 @@
   }
   function disconnectFolder() {
     return exclusive(async () => {
+      if (folderMemory) await folderMemory.forget(); // 記憶の解除に失敗したら成功扱いせず、現状を保持。
+      rememberedFolder = null;
+      folderMemoryIssue = folderMemory ? '' : 'この環境では記憶領域を使えません。今回の接続だけを解除しました。以前の記憶がある場合は削除できていません。';
       autoSave(); fs.disconnect(); if (doc) { doc.binding = null; doc.openedFrom = null; doc.verifiedSave = null; }
       displayState(); runPreview();
-      notify('フォルダの接続を解除しました。編集中の内容は保持しています。');
+      notify(folderMemoryIssue || 'フォルダの接続と記憶を解除しました。編集中の内容は保持しています。');
     });
   }
   function setupHelp() {
@@ -511,6 +584,7 @@
   function init() {
     fs = new window.HtmlFileSystem();
     try { recovery = window.HtmlEditorRecovery.create(localStorage); } catch { recovery = null; }
+    try { folderMemory = window.HtmlEditorFolderMemory.create(indexedDB); } catch { folderMemoryIssue = 'この環境ではフォルダを記憶できません。接続は今回のみ有効です。'; }
     preview = new window.HtmlPreview({iframe:$('previewIframe'), fs,
       onNotice:message => { if (/\.css$/i.test(doc?.fileName || '')) return; $('previewNotice').textContent = message; $('previewNotice').hidden = !message; },
       onNavigate:href => exclusive(async () => {
@@ -524,7 +598,7 @@
       indentUnit:2, tabSize:2, lineWrapping:true, readOnly:'nocursor',
       extraKeys:{Tab:editor => { if (doc && !busy) editor.replaceSelection('  ', 'end', '+input'); },
         Enter:editor => { if (doc && !busy) editor.replaceSelection('\n', 'end', '+input'); },
-        'Cmd-S':save, 'Ctrl-S':save, 'Cmd-O':() => $('fileInput').click(), 'Ctrl-O':() => $('fileInput').click(),
+        'Cmd-S':save, 'Ctrl-S':save, 'Cmd-O':openSavedFile, 'Ctrl-O':openSavedFile,
         'Cmd-Enter':runPreview, 'Ctrl-Enter':runPreview}
     });
     for (const lesson of catalog) {
@@ -552,14 +626,14 @@
     $('practiceStepsBtn').addEventListener('click', event => { event.currentTarget.focus(); practiceSteps(); });
     document.addEventListener('pages:ready', updateDistribution);
     document.addEventListener('html-editor:catalog-change', updateDistribution);
-    for (const id of ['openFilesBtn','practiceOpenBtn']) $(id).addEventListener('click', event => { if (!busy) { closeMenus(event.currentTarget); $('fileInput').click(); } });
+    for (const id of ['openFilesBtn','practiceOpenBtn']) $(id).addEventListener('click', event => { closeMenus(event.currentTarget); openSavedFile(); });
+    $('openOtherFileBtn').addEventListener('click', event => { closeMenus(event.currentTarget); if (!busy) $('fileInput').click(); });
     $('fileInput').addEventListener('change', () => importSelection($('fileInput'), false));
     $('directoryInput').addEventListener('change', () => importSelection($('directoryInput'), true));
-    for (const id of ['openFolderBtn','connectFolderBtn','settingsFolderBtn']) $(id).addEventListener('click', event => {
-      closeMenus(event.currentTarget); if (!busy) openFolder();
-    });
+    $('settingsFolderBtn').addEventListener('click', event => { closeMenus(event.currentTarget); if (!busy) openFolder(); });
+    $('connectFolderBtn').addEventListener('click', () => { if (!busy) rememberedFolder ? reconnectFolder(true) : openFolder(); });
+    $('reconnectFolderBtn').addEventListener('click', event => { closeMenus(event.currentTarget); reconnectFolder(true); });
     $('disconnectBtn').addEventListener('click', event => { closeMenus(event.currentTarget); disconnectFolder(); });
-    $('fileListBtn').addEventListener('click', event => { closeMenus(event.currentTarget); exclusive(fileList); });
     $('saveBtn').addEventListener('click', save);
     $('folderSaveBtn').addEventListener('click', event => { closeMenus(event.currentTarget); exclusive(() => saveToFile(true)); });
     $('downloadBtn').addEventListener('click', event => { closeMenus(event.currentTarget); if (!busy) download(); });
@@ -570,7 +644,7 @@
     $('toggleLessonBtn').addEventListener('click', event => {
       const collapsed = document.body.classList.toggle('left-collapsed');
       event.currentTarget.setAttribute('aria-pressed', String(collapsed));
-      event.currentTarget.textContent = collapsed ? '解説とエディタを並べて表示' : 'エディタ・プレビューを全体表示';
+      event.currentTarget.textContent = collapsed ? '解説とエディタを並べて表示' : 'エディタを広く表示';
       closeMenus(event.currentTarget); cm.refresh();
     });
     document.querySelectorAll('#paneNav button').forEach(button => button.addEventListener('click', () => setPane(button.dataset.pane)));
@@ -581,9 +655,15 @@
         if (open) { closeMenus(); open.querySelector('summary').focus(); }
       }
     });
+    function positionMenus() {
+      document.querySelectorAll('.menu-wrap[open]').forEach(details => {
+        details.style.setProperty('--menu-top', (details.querySelector('summary').getBoundingClientRect().bottom + 6) + 'px');
+      });
+    }
     document.querySelectorAll('.menu-wrap').forEach(details => details.addEventListener('toggle', () => {
-      if (details.open) document.querySelectorAll('.menu-wrap').forEach(other => { if (other !== details) other.open = false; });
+      if (details.open) { document.querySelectorAll('.menu-wrap').forEach(other => { if (other !== details) other.open = false; }); positionMenus(); }
     }));
+    window.addEventListener('resize', positionMenus);
     try {
       if (!window.JohoUI?.theme) throw Error('theme unavailable');
       window.JohoUI.theme({storageKey:'joho.htmleditor.ui.v1', themeSelect:$('themeSelect'), sizeSelect:$('sizeSelect'), onChange:() => cm.refresh()});
@@ -591,14 +671,17 @@
       $('themeSelect').disabled = true; $('sizeSelect').disabled = true; $('displayNotice').hidden = false;
     }
     setupHelp();
+    document.querySelectorAll('[data-menu-hint]').forEach(node => { const label = node.textContent; node.replaceChildren(); menuHint(node, node.dataset.menuHint, label); });
+    try { window.JohoUI?.tooltip({keyboard:true}); } catch { /* 説明が使えなくても編集は継続。 */ }
     initSplitters();
     window.addEventListener('beforeunload', event => { autoSave(); if (dirty() || submissionPanel?.needsAttention()) { event.preventDefault(); event.returnValue = ''; } });
     window.addEventListener('pagehide', autoSave);
     if (!window.HtmlEditorStartup.ready()) return;
     requestAnimationFrame(() => cm.refresh());
+    restoreFolderConnection();
   }
   window.addEventListener('DOMContentLoaded', () => {
     try { init(); }
-    catch { window.HtmlEditorStartup?.fail(); }
+    catch (error) { console.error('HTMLエディタの初期化に失敗しました。', error); window.HtmlEditorStartup?.fail(); }
   });
 })();

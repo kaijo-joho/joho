@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-build="html-editor-946e7bf6db8952db">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-build="html-editor-8354453f49547d8e">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -10,12 +10,12 @@
     #startupFallback a { color: LinkText; }
     #startupFallback li { margin-block: 12px; }
   </style>
-  <script src="startup.js?v=html-editor-946e7bf6db8952db" integrity="sha384-kdkWCIqZcVNIiwdTwltAJQiP4p5foex8cr9xtuHrqyub2AfHB4PQf6pzeVWoix+p" crossorigin="anonymous"></script>
+  <script src="startup.js?v=html-editor-8354453f49547d8e" integrity="sha384-kdkWCIqZcVNIiwdTwltAJQiP4p5foex8cr9xtuHrqyub2AfHB4PQf6pzeVWoix+p" crossorigin="anonymous"></script>
   <link rel="icon" type="image/svg+xml" href="icon.svg">
-  <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-946e7bf6db8952db" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
-  <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-946e7bf6db8952db" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
-  <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
-  <link rel="stylesheet" href="editor.css?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-DrogQeTMwL64cHUIT1KOpc2T3hP7pNYGFyjhJp28qmYTnu1L4UK14ro4WAVA0aGR" crossorigin="anonymous">
+  <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-8354453f49547d8e" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
+  <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-8354453f49547d8e" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
+  <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-aMW2s65Qv0s2srXPYLilFWg2846J8cKez6brnaz7/KcK1z0HnXjn318Zc77Y8DK6" crossorigin="anonymous">
 </head>
 <body class="mode-lesson" data-pane="center">
 <section id="startupFallback" aria-labelledby="startupTitle">
@@ -54,28 +54,19 @@
     <section id="workspace" aria-label="HTML・CSSの編集">
   <header id="toolbar" aria-label="エディタの操作">
     <a class="brand" href="../index.html" aria-label="ツール一覧へ戻る"><img class="brand-icon" src="icon.svg" alt=""><span>HTMLエディタ <small class="beta-tag">BETA</small></span></a>
-    <details class="menu-wrap" id="fileMenu">
-      <summary class="btn" aria-label="ファイル"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v5h4M9 12h6M9 16h6"/></svg><span class="wide-label">ファイル</span></summary>
-      <div class="menu-dropdown">
-        <button class="menu-item" id="openFilesBtn" type="button">ファイルを開く…</button>
-        <button class="menu-item" id="openFolderBtn" type="button">フォルダを開く…</button>
-        <button class="menu-item" id="fileListBtn" type="button">読み込んだファイル一覧…</button>
-        <div class="menu-divider"></div>
-        <button class="menu-item" id="folderSaveBtn" type="button">接続したフォルダへ保存…</button>
-        <button class="menu-item" id="downloadBtn" type="button">ファイルをダウンロード</button>
-      </div>
-    </details>
-    <button class="btn" id="saveBtn" type="button" title="Macのファイルへ保存。直接保存できない場合はダウンロード（Command+S）" disabled>保存</button>
-    <button class="btn" id="taskDownloadBtn" type="button" aria-label="課題ファイルのダウンロード" title="課題ファイルのダウンロード"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><span class="wide-label">課題ファイルのダウンロード</span></button>
-    <button class="btn" id="submitBtn" type="button" aria-label="学校の課題の提出条件を確認" aria-describedby="submissionState"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4H5v17h14V4h-2M9 3h6v4H9zM12 17v-6M9 14l3-3 3 3"/></svg><span id="submitLabel" class="wide-label">提出条件</span></button>
-    <button class="btn" id="practiceStepsBtn" type="button" aria-label="実習の手順" title="実習の手順"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M2 5l1 1 2-3M2 12l1 1 2-3M2 19l1 1 2-3"/></svg><span class="wide-label">実習の手順</span></button>
+    <div class="practice-actions" role="group" aria-label="実習の操作">
+    <button class="btn" id="openFilesBtn" type="button" data-tip="保存済みの実習ファイルを開きます（⌘O）。接続中はフォルダ内の一覧から選びます。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7V4h6l2 3h10v3M3 7h7l2 3h10l-3 10H3z"/></svg><span>開く</span></button>
+    <button class="btn" id="taskDownloadBtn" type="button" data-tip="学校アカウントで新しい実習ファイルをダウンロードします。編集中の内容を保存する操作ではありません。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5"/></svg><span>ダウンロード</span></button>
+    <button class="btn" id="submitBtn" type="button" aria-describedby="submissionState" data-tip="保存済みの実習ファイルを提出します。送信前に保存と提出条件を確認します。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4H5v17h14V4h-2M9 3h6v4H9zM12 17v-6M9 14l3-3 3 3"/></svg><span id="submitLabel">提出</span></button>
+    <button class="btn" id="practiceStepsBtn" type="button" data-tip="取得・フォルダ接続・編集・保存・提出の手順を確認します。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5h12M9 12h12M9 19h12M2 5l1 1 2-3M2 12l1 1 2-3M2 19l1 1 2-3"/></svg><span>手順</span></button>
     <details class="menu-wrap" id="viewMenu">
-      <summary class="btn icon-only" aria-label="表示の切り替え" title="表示の切り替え"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM9 4v16"/></svg></summary>
+      <summary class="btn" data-tip="エディタを広く表示したり、解説を別タブで開いたりします。"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 4h18v16H3zM9 4v16"/></svg><span>表示</span></summary>
       <div class="menu-dropdown">
-        <button class="menu-item" id="toggleLessonBtn" type="button" aria-pressed="false">エディタ・プレビューを全体表示</button>
-        <a class="menu-item" id="lessonOnlyLink" target="_blank" rel="noopener noreferrer">解説ページを全体表示（別タブ）</a>
+        <button class="menu-item" id="toggleLessonBtn" type="button" aria-pressed="false">エディタを広く表示</button>
+        <a class="menu-item" id="lessonOnlyLink" target="_blank" rel="noopener noreferrer">解説を別タブで開く</a>
       </div>
     </details>
+    </div>
     <div class="toolbar-right">
       <details class="menu-wrap" id="displayMenuWrap">
         <summary class="btn icon-only" aria-label="設定" title="設定"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 3-.5 3-2.5 1.5-2.8-1-2 3.5 2.3 2v3L1.2 17l2 3.5 2.8-1L8.5 21l.5 3h4l.5-3 2.5-1.5 2.8 1 2-3.5-2.3-2v-3l2.3-2-2-3.5-2.8 1L13.5 6 13 3z" transform="translate(1 -1) scale(.9)"/><circle cx="12" cy="12" r="3"/></svg></summary>
@@ -83,27 +74,32 @@
           <label>テーマ<select id="themeSelect"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select></label>
           <label>文字サイズ<select id="sizeSelect"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select></label>
           <p id="displayNotice" hidden>表示設定を読み込めませんでした。編集と保存は続けられます。</p>
-          <section id="practiceBar" aria-label="教材と課題">
+          <details id="practiceBar" class="settings-section"><summary>教材と課題</summary>
             <label>教材<select id="lessonSelect" aria-label="教材"></select></label>
             <label>学校の課題<select id="taskSelect" aria-label="学校の課題"></select></label>
             <p id="distributionState"></p>
             <p id="submissionState">学校への提出は、配付された実習ファイルが対象です。</p>
-          </section>
+          </details>
           <section class="settings-section" aria-label="保存先フォルダ">
             <p id="folderStatusText">フォルダ未接続</p>
+            <p id="folderMemoryNotice"></p>
+            <button class="menu-item" id="reconnectFolderBtn" type="button" hidden>前回のフォルダへ再接続</button>
             <button class="menu-item" id="settingsFolderBtn" type="button">フォルダを接続・変更…</button>
             <button class="menu-item" id="disconnectBtn" type="button" disabled>フォルダの接続を解除</button>
           </section>
-          <details class="settings-section" id="recoverySettings">
-            <summary>困ったときの復旧</summary>
-            <p>ブラウザの控えは万が一の復旧用です。普段はMacのファイルを開いて保存してください。</p>
-            <p id="recoveryState">リロード時に控えを自動で開くことはありません。</p>
-            <button class="menu-item" id="restoreBtn" type="button">ブラウザの控えから復旧…</button>
+          <section class="settings-section recovery-entry" aria-label="困ったときの復旧">
+            <p>困ったときの復旧：ブラウザの控えを選んで取り出します。</p>
+            <button class="btn" id="restoreBtn" type="button">復旧候補を開く…</button>
+          </section>
+          <details class="settings-section"><summary>保存の補助操作</summary>
+            <button class="menu-item" id="folderSaveBtn" type="button">接続したフォルダへ保存…</button>
+            <button class="menu-item" id="downloadBtn" type="button">編集中のファイルのコピーをダウンロード</button>
+            <button class="menu-item" id="openOtherFileBtn" type="button">別の場所からファイルを開く…</button>
           </details>
           <p id="usageNotice">基本編集・保存はログイン不要です。ローカルのHTML/CSSを開いて使います。</p>
         </div>
       </details>
-      <button class="btn icon-only" id="helpBtn" type="button" aria-label="ヘルプ">?</button>
+      <button class="btn icon-only" id="helpBtn" type="button" aria-label="ヘルプ" data-tip="操作方法・保存・復旧・提出についての説明を開きます。">?</button>
     </div>
   </header>
   <div id="folderAlert" role="alert">
@@ -117,10 +113,11 @@
     <p id="onboardingMessage"></p>
   </section>
   <div id="editingPanes">
-    <div id="emptyState"><button class="btn primary" id="practiceOpenBtn" type="button">ローカルファイルを選択…</button></div>
+    <div id="emptyState"><button class="btn primary" id="practiceOpenBtn" type="button">保存済みの実習ファイルを開く…</button></div>
     <section class="pane" id="centerPane" aria-label="コード">
       <div class="pane-header">
         <div class="breadcrumb"><span id="currentFileLabel"></span><span id="dirtyMark" aria-label="未保存の変更" hidden>＊</span></div>
+        <button class="btn" id="saveBtn" type="button" data-tip="開いている実習ファイルに上書き保存します（⌘S）。直接保存できない場合は保存方法を案内します。" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 3h13l4 4v14H3V3zM7 3v6h10V3M7 21v-8h10v8"/></svg><span>保存</span></button>
       </div>
       <div id="editorContainer"><textarea id="codeEditor" aria-label="HTML・CSSコード"></textarea></div>
     </section>
@@ -144,32 +141,35 @@
   <h2 id="actionTitle"></h2><div id="actionBody"></div><p id="actionError" class="error" hidden></p><div id="actionButtons" class="modal-actions"></div>
 </dialog>
 <div id="toast" role="status" aria-live="polite"></div>
-<p id="editorPrintNotice">解説を印刷するには、上部の「表示の切り替え」→「解説ページを全体表示（別タブ）」から開き、ブラウザの印刷を使ってください。</p>
+<p id="recoveryState" hidden>リロード時に控えを自動で開くことはありません。</p>
+<p id="editorPrintNotice">解説を印刷するには、上部の「表示」→「解説を別タブで開く」から開き、ブラウザの印刷を使ってください。</p>
 
 <aside id="helpWindow" aria-label="HTMLエディタの使い方" hidden>
   <section data-help-topic="intro" data-help-title="基本の使い方">
     <h3>基本の使い方</h3>
     <p>HTML/CSSの編集と保存は、学校アカウントがなくても利用できます。</p>
-    <ol><li>「ローカルファイルを選択」で手元のHTML/CSSを開きます。起動時にはファイルを自動で開きません。</li>
+    <ol><li><span data-menu-hint="openFilesBtn">開く</span>で手元のHTML/CSSを開きます。接続中はフォルダ内の一覧から選びます。起動時にはファイルを自動で開きません。</li>
       <li>コードを編集し、プレビュー横の更新アイコンで表示を確認します。改行・字下げ・閉じタグは自分で入力します。</li>
-      <li>「ファイルをダウンロード」、または接続したフォルダへの保存で、編集したファイルを持ち帰ります。</li></ol>
-    <p>「保存」はMacのファイルへ保存します。フォルダを接続していない場合はダウンロードになるため、保存先・ファイル名を確認してください。ブラウザの控えだけを作って保存済みと扱うことはありません。</p>
+      <li>コード欄のファイル名の横にある<span data-menu-hint="saveBtn">保存</span>で、Macのファイルへ上書き保存します。</li></ol>
+    <p>上書き保存できない場合は保存方法を案内します。「コピーをダウンロード」は元のファイルへの上書きではありません。Finderで保存先・ファイル名を確認してください。ブラウザの控えだけを作って保存済みと扱うことはありません。</p>
+    <p>上部の<span data-menu-hint="taskDownloadBtn">ダウンロード</span>は新しい実習ファイルの取得、<span data-menu-hint="submitBtn">提出</span>は学校への提出、<span data-menu-hint="practiceStepsBtn">手順</span>は実習の進め方です。<span data-menu-hint="viewMenu">表示</span>でエディタを広く表示したり、解説を別タブで開いたりできます。</p>
     <p>教材の変更は解説ページ内のナビゲーション、または「設定」から行います。未保存の変更があるときは、移動前に保存を確認します。選択だけでは編集中の内容は変わりません。狭い画面では「解説」「コード」「プレビュー」で表示を切り替えます。</p>
   </section>
   <section data-help-topic="school" data-help-title="学校の実習を始める">
     <h3>学校の実習を始める</h3>
     <p>実習ファイルの取得と提出は、海城の学校アカウントと、対象学年・年度・利用期間などの課題の条件を確認する別画面で行います。</p>
-    <ol><li>教材のリンクからエディタを開き、上部の「課題ファイルのダウンロード」で対象ファイルを選び、学校アカウントで受け取ります。「実習の手順」から詳しい操作を確認できます。</li>
-      <li>Macの「HTML実習」フォルダへ、指定のファイル名のまま保存します。</li>
-      <li>「ファイルを開く」、または「ファイル」→「フォルダを開く」から読み込みます。</li></ol>
+    <ol><li>教材のリンクからエディタを開き、上部の「ダウンロード」で対象ファイルを選び、学校アカウントで受け取ります。「手順」から詳しい操作を確認できます。</li>
+      <li>通常はMacの「ダウンロード」に入ります。Finderで指定のファイル名のまま「書類／HTML実習」フォルダへ移動します。</li>
+      <li>初回は「設定」でフォルダを接続し、「開く」の一覧から実習ファイルを選びます。</li></ol>
     <p>教材の選択だけでは、編集中のファイルは変わりません。課題が2つある単元では「課題」で切り替えます。</p>
     <p>このエディタはログイン状態を判定しません。一般の方も公開教材と基本編集を使えますが、学校用の配付・提出は利用できません。配付リンクが使えない場合も、編集中の内容は保存できます。</p>
   </section>
   <section data-help-topic="save" data-help-title="保存と復元">
     <h3>保存と復元</h3>
     <p>Chromeでフォルダを接続し、その中から開いたファイルは「保存」（Command+S）で上書きできます。別に開いたファイルを接続先へ保存するときは、場所と同名ファイルの上書きを確認します。保存先フォルダの確認・変更・接続解除は「設定」から行います。</p>
-    <p>Safariなどでは「ファイルをダウンロード」でMacへ保存してください。ダウンロードを開始しただけでは、Macへの保存完了を確認できません。同名ファイルの「(1)」などに注意し、保存先と指定のファイル名を確認します。</p>
-    <p>編集中の内容とファイル保存時の控えは、万が一の復旧用にブラウザへ残します。普段の保存先ではなく、起動・リロード時には自動で復元しません。必要なときだけ「設定」→「困ったときの復旧」→「ブラウザの控えから復旧」で、日時とファイル名を見て選びます。以前の控えも削除しません。</p>
+    <p>フォルダの接続先をこのブラウザに記憶します。再読み込み後も利用許可が続いていれば自動接続し、許可が必要な場合は「前回のフォルダへ再接続」を押します。ファイルは自動で開きません。プライベートブラウズ・ブラウザのデータ消去・権限変更などで再選択が必要になることがあります。「接続を解除」はアプリの記憶も解除しますが、ブラウザ自体の許可設定は変更しません。</p>
+    <p>Safariなど上書き保存できない場合は「保存」の案内から「コピーをダウンロード」を使います。ダウンロードを開始しただけでは、Macへの保存完了を確認できません。同名ファイルの「(1)」などに注意し、保存先と指定のファイル名を確認します。予備のコピーは「設定」→「保存の補助操作」からも取得できます。</p>
+    <p>編集中の内容とファイル保存時の控えは、万が一の復旧用にブラウザへ残します。普段の保存先ではなく、起動・リロード時には自動で復元しません。必要なときだけ「設定」→「復旧候補を開く…」で、日時とファイル名を見て選びます。選ばなかった控えも削除しません。自動保存は編集を止めて約0.5秒後に行い、同じ文書の控えを更新します。すべての編集履歴が残るわけではありません。</p>
     <p>復旧してもMacのファイルは変更されません。復旧した内容は、保存先を確認してファイルへ保存してください。</p>
     <p>ブラウザの控えはクラウドバックアップではありません。データ消去・プロファイル変更・容量不足では控えを失うことがあります。作業の終わりにはファイルへ保存し、画像も含むフォルダ全体をバックアップしてください。</p>
     <details><summary>保存できない・違う内容を開いてしまったとき</summary><p>編集内容が残っていれば、まずダウンロードして控えを確保します。保存を取り消した場合や保存エラーでは、そのまま編集を続けられます。復元する場合は、自動保存と明示保存の日時を見比べて選んでください。学校へ提出済みのHTMLは提出画面から取得できますが、未提出の変更や画像一式の控えにはなりません。</p></details>
@@ -184,7 +184,7 @@
   </section>
   <section data-help-topic="submit" data-help-title="課題を提出する">
     <h3>課題を提出する</h3>
-    <p>学校で配付された実習ファイルだけが対象です。通常のHTML/CSSや新規文書は、提出せずファイルに保存して利用できます。「提出条件」では、準備できない理由を確認できます。</p>
+    <p>学校で配付された実習ファイルだけが対象です。通常のHTML/CSSは、提出せずファイルに保存して利用できます。提出の準備ができていない場合は「提出」で理由を確認できます。</p>
     <ol><li>「提出」で、開いている実習ファイルと提出先の対応を確認します。</li>
       <li>ファイルを保存するか、ダウンロードして保存先・ファイル名を確認します。</li>
       <li>「提出」で保存済みファイルを準備し、フォームの「提出する」を押します。別タブ・ダウンロード保存ではファイルを選択します。</li></ol>
@@ -198,33 +198,34 @@
   </section>
   <section data-help-topic="about" data-help-title="このアプリについて">
     <h3>このアプリについて</h3>
-    <p>HTMLエディタ 0.6 BETA（2026年9月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
+    <p>HTMLエディタ 0.7 BETA（2026年9月）。推奨環境：MacBook AirのGoogle Chrome。フォルダへの直接保存が使えない環境では、ファイルをダウンロードして保存します。</p>
     <p>通常の編集はこの端末とブラウザで処理します。「提出」を押すと、保存確認済みの内容をモーダル内の学校アカウント用フォームへ渡します。提出記録の作成は、フォーム内の「提出する」を押したときだけです。ログインや表示がうまくいかない場合は「表示・ログインで困ったとき」から「別タブで開く」を使ってください。</p>
     <p>HTML/CSSの学習用です。基本編集は一般の方も利用できます。プレビューには安全のための制限があり、すべてのウェブ機能を再現するものではありません。</p>
     <p>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
-<script src="../shared/ui-kit.js?v=html-editor-946e7bf6db8952db" integrity="sha384-6vJ67E5P9WETdT3svRZktKmBdh6RE4UK+nb6Pcadtum0wtL5h1qyPJzoxuT9ejVB" crossorigin="anonymous"></script>
-<script src="../shared/help-panel.js?v=html-editor-946e7bf6db8952db" integrity="sha384-Ts3DYhHzaKGhPhPw8aYbXGEreQwLeHvt+Rj1agj95ZTBhphe94YBWz6EiTY1kmAL" crossorigin="anonymous"></script>
-<script src="vendor/codemirror.min.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-BEgQlz0fN4eG0n4jipmUe+nOg65hPY7L0E/lPVRaOPdzAfLPGEbXnpAodHtSnlwM" crossorigin="anonymous"></script>
-<script src="vendor/xml.min.js?v=html-editor-946e7bf6db8952db" integrity="sha384-xPpkMo5nDgD98fIcuRVYhxkZV6/9Y4L8s3p0J5c4MxgJkyKJ8BJr+xfRkq7kn6Tw" crossorigin="anonymous"></script>
-<script src="vendor/css.min.js?v=html-editor-946e7bf6db8952db" integrity="sha384-fpeIC2FZuPmw7mIsTvgB5BNc8QVxQC/nWg2W+CgPYOAiBiYVuHe2E8HiTWHBMIJQ" crossorigin="anonymous"></script>
-<script src="vendor/javascript.min.js?v=html-editor-946e7bf6db8952db" integrity="sha384-g0o+WW9mdIxA7LaaCKTkRm0M5TVT+Bb4s9eocxPsI2G0Xm0POG9iD6G6qP1IIsfS" crossorigin="anonymous"></script>
-<script src="vendor/htmlmixed.min.js?v=html-editor-946e7bf6db8952db" integrity="sha384-xYIbc5F55vPi7pb/lUnFj3wu24HlpAMZdtBHkNrb2YhPzJV3pX7+eqXT2PXSNMrw" crossorigin="anonymous"></script>
-<script src="vendor/closetag.min.js?v=html-editor-946e7bf6db8952db" integrity="sha384-WIyvbwMte2q6VXgBkN7prVo9ZSmBm47nI2ftVjoJLPY4yOu9gmI6lqaNXjBwHU5k" crossorigin="anonymous"></script>
-<script src="lessons.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-/yLIL7w5k5/Jdwz48kFqft21ru5i+VZAo4wbqunj8MZiuViCuW1ubGJq3BxQApev" crossorigin="anonymous"></script>
-<script src="../../js/pages.js?v=html-editor-946e7bf6db8952db" async data-editor-catalog="data"></script>
-<script src="../../js/html_practice_links.js?v=html-editor-946e7bf6db8952db" async data-editor-catalog="links" integrity="sha384-vBohxCGPwzaTW5q0oRj6LLB1y5nsB4cCLbuZYRN03bVFSWMfgrb5QtC35I7YxfWW" crossorigin="anonymous"></script>
-<script src="practice.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-RgJLWukv8vD7l/eyBcaHn5I2L3fkFmxrkMjdT/B0S+SL4jMOZ7WTjD6WMtTzSmnR" crossorigin="anonymous"></script>
-<script src="workflow.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-oJmPBn0EqhE7xQ26mqno+/eqlUXowH64e8RobjuanKiallBhN4dh8LgTasUBMqJ5" crossorigin="anonymous"></script>
-<script src="download.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-b7P4Kg92YTnMvT0wG6WGPKv6dUY4tFri01m7Xf+1USCEEwVUbEyiykJKzdMB27vQ" crossorigin="anonymous"></script>
-<script src="submission.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-qE5WsgTlbO6oFAGMPrj/9RO/p8tSNG8lEDQogOJOegDQ0tA843YzoMYr6Yi0RHWA" crossorigin="anonymous"></script>
-<script src="routing.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
-<script src="navigation.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-6RxGxz13Sct6vVWh8st9I4GO+nBSOwQ7LyiL+h+s/s7bLbsTLGnSCJ07JnYZJFXx" crossorigin="anonymous"></script>
-<script src="recovery.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-j5rv44DgQetWLG8LlvUQBTDmR8Ex6u3HktVI3w2QwWplULJLYh8Jn7Oqn+spWRUO" crossorigin="anonymous"></script>
-<script src="filesystem.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-XE6MfJeVHNSxN3Mii72shYeZ1Gx+IdIBDMi0VfJgs6eqTkaErCUYow41HptYoaEa" crossorigin="anonymous"></script>
-<script src="preview.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-8+HmkoCVPikTTU7ZLOmQ4OTcP0lpaSDsibdKGCM3s5/D8rqlZbEbEAPOldE8n2T8" crossorigin="anonymous"></script>
-<script src="onboarding.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-095gWiJ23P9TNSH9Rsv92W9ZVXOqY2gz8wDrNXP+yzViGrDKiaGwrcw3n+j2Wt/E" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-editor-946e7bf6db8952db" data-editor-required integrity="sha384-00m4Lr2Kkm5YO6wa6sWQmRp6tp56LQRjWzMdEzkwtp5Z16uSvD7iACDY6i1Q52fl" crossorigin="anonymous"></script>
+<script src="../shared/ui-kit.js?v=html-editor-8354453f49547d8e" integrity="sha384-gJtzyxvyBGTi1NPgFRgtgm9RQdY0TVXYqum+SjC1t7bk9gPwfLx1nWbXClyimQjk" crossorigin="anonymous"></script>
+<script src="../shared/help-panel.js?v=html-editor-8354453f49547d8e" integrity="sha384-Ts3DYhHzaKGhPhPw8aYbXGEreQwLeHvt+Rj1agj95ZTBhphe94YBWz6EiTY1kmAL" crossorigin="anonymous"></script>
+<script src="vendor/codemirror.min.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-BEgQlz0fN4eG0n4jipmUe+nOg65hPY7L0E/lPVRaOPdzAfLPGEbXnpAodHtSnlwM" crossorigin="anonymous"></script>
+<script src="vendor/xml.min.js?v=html-editor-8354453f49547d8e" integrity="sha384-xPpkMo5nDgD98fIcuRVYhxkZV6/9Y4L8s3p0J5c4MxgJkyKJ8BJr+xfRkq7kn6Tw" crossorigin="anonymous"></script>
+<script src="vendor/css.min.js?v=html-editor-8354453f49547d8e" integrity="sha384-fpeIC2FZuPmw7mIsTvgB5BNc8QVxQC/nWg2W+CgPYOAiBiYVuHe2E8HiTWHBMIJQ" crossorigin="anonymous"></script>
+<script src="vendor/javascript.min.js?v=html-editor-8354453f49547d8e" integrity="sha384-g0o+WW9mdIxA7LaaCKTkRm0M5TVT+Bb4s9eocxPsI2G0Xm0POG9iD6G6qP1IIsfS" crossorigin="anonymous"></script>
+<script src="vendor/htmlmixed.min.js?v=html-editor-8354453f49547d8e" integrity="sha384-xYIbc5F55vPi7pb/lUnFj3wu24HlpAMZdtBHkNrb2YhPzJV3pX7+eqXT2PXSNMrw" crossorigin="anonymous"></script>
+<script src="vendor/closetag.min.js?v=html-editor-8354453f49547d8e" integrity="sha384-WIyvbwMte2q6VXgBkN7prVo9ZSmBm47nI2ftVjoJLPY4yOu9gmI6lqaNXjBwHU5k" crossorigin="anonymous"></script>
+<script src="lessons.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-/yLIL7w5k5/Jdwz48kFqft21ru5i+VZAo4wbqunj8MZiuViCuW1ubGJq3BxQApev" crossorigin="anonymous"></script>
+<script src="../../js/pages.js?v=html-editor-8354453f49547d8e" async data-editor-catalog="data"></script>
+<script src="../../js/html_practice_links.js?v=html-editor-8354453f49547d8e" async data-editor-catalog="links" integrity="sha384-vBohxCGPwzaTW5q0oRj6LLB1y5nsB4cCLbuZYRN03bVFSWMfgrb5QtC35I7YxfWW" crossorigin="anonymous"></script>
+<script src="practice.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-RgJLWukv8vD7l/eyBcaHn5I2L3fkFmxrkMjdT/B0S+SL4jMOZ7WTjD6WMtTzSmnR" crossorigin="anonymous"></script>
+<script src="workflow.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-oJmPBn0EqhE7xQ26mqno+/eqlUXowH64e8RobjuanKiallBhN4dh8LgTasUBMqJ5" crossorigin="anonymous"></script>
+<script src="download.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-b7P4Kg92YTnMvT0wG6WGPKv6dUY4tFri01m7Xf+1USCEEwVUbEyiykJKzdMB27vQ" crossorigin="anonymous"></script>
+<script src="submission.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-qE5WsgTlbO6oFAGMPrj/9RO/p8tSNG8lEDQogOJOegDQ0tA843YzoMYr6Yi0RHWA" crossorigin="anonymous"></script>
+<script src="routing.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-Qpfip6HsGxMhqAugO4ole0nckFRJ3JRIktctFBSPtxZqKvyiMW6fqnOpxgC6I4/T" crossorigin="anonymous"></script>
+<script src="navigation.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-6RxGxz13Sct6vVWh8st9I4GO+nBSOwQ7LyiL+h+s/s7bLbsTLGnSCJ07JnYZJFXx" crossorigin="anonymous"></script>
+<script src="recovery.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-j5rv44DgQetWLG8LlvUQBTDmR8Ex6u3HktVI3w2QwWplULJLYh8Jn7Oqn+spWRUO" crossorigin="anonymous"></script>
+<script src="filesystem.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-BU8+p22BQ95NYFZFChyOkjVdBRj5GdiTgCyn/yXDY6FkPcEHW+hEnw8gVzlNSxFQ" crossorigin="anonymous"></script>
+<script src="folder-memory.js?v=html-editor-8354453f49547d8e" integrity="sha384-X0jCctHQJZmYAtsq/o7avFraHuzzySbJTNpOMmVbYCw0Ct4ywp/H5hccAHB8XF1v" crossorigin="anonymous"></script>
+<script src="preview.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-8+HmkoCVPikTTU7ZLOmQ4OTcP0lpaSDsibdKGCM3s5/D8rqlZbEbEAPOldE8n2T8" crossorigin="anonymous"></script>
+<script src="onboarding.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-095gWiJ23P9TNSH9Rsv92W9ZVXOqY2gz8wDrNXP+yzViGrDKiaGwrcw3n+j2Wt/E" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-editor-8354453f49547d8e" data-editor-required integrity="sha384-7zZ+VcORF3IalHKuRM5hwPwo/BfSpSJqw9Bk/HHmpQxmZgHeZHSYDvUmcTnlG0hc" crossorigin="anonymous"></script>
 </body>
 </html>
