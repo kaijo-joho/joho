@@ -35,6 +35,34 @@ Pythonと依存パッケージの準備は[CLOUD.md](CLOUD.md)を参照。
 送信には既存の[CLOUD.md](CLOUD.md)に記載した書込権限を別途設定する。
 受信用・送信用で異なる認証JSONを指定できる。学校のアプリ許可設定も確認する。
 
+### 0. 取得専用の初回認証
+
+Google Cloudでこの受信処理用のプロジェクトを用意し、Drive APIとGoogle Auth Platformを設定する。
+学校Workspace内の運用では対象ユーザーを「内部」とし、学校の管理ポリシーで利用できることを確認する。
+OAuthクライアントの種類は「デスクトップアプリ」。ダウンロードしたJSONはGit・Drive同期・Web公開の外に置く。
+外部ユーザー向けの「テスト」状態では通常リフレッシュトークンが7日で失効するため、そのまま常駐運用にしない。
+プロジェクト作成や学校のアプリ許可、Googleの同意画面は利用者が確認して行う。
+
+`requirements-cloud.txt`導入後、非公開フォルダー（権限700）を作り、次を実行する。
+以下のメールアドレス・パスは実環境のものへ置き換える。
+
+```bash
+python3 scripts/worksheet-scan-header/authorize_drive.py \
+  --client-secrets /path/to/private/desktop-client.json \
+  --output /path/to/private/drive-read-oauth.json \
+  --expected-account teacher@example.edu
+```
+
+ブラウザで本人が認証・同意する。コールバックは同じMacの127.0.0.1だけで待ち受け、PKCEを利用する。
+Drive APIでアカウントを照合し、継続利用用トークンを得た場合だけ権限600で保存する。
+アカウント不一致、既存の保存先、Git内のパス、読取以外の追加スコープは拒否する。
+認証コード・トークン・認可URLをコンソールへ出さず、既存認証ファイルを上書きしない。
+同意後の検査に失敗してもGoogle側の認可を自動で取り消す処理は行わない。
+
+このCLIが要求する権限は`drive.readonly`のみで、受信に使用する。
+Driveへの結果送信・GSSへの登録には別途書込用認証と保存先の設定が必要。
+失効時は同じ手順で別名へ再認証し、設定を切り替える。無期限の認証を保証するものではない。
+
 ### 1. 接続とPDF一覧だけを確認
 
 ```bash
@@ -102,6 +130,7 @@ GAS・送信設定・生徒向けUIの手順と未実装範囲は[CLOUD.md](CLOU
 
 ```bash
 python3 -m unittest discover -s scripts/worksheet-scan-header/tests -p test_drive_inbox.py -v
+python3 -m unittest discover -s scripts/worksheet-scan-header/tests -p test_authorize_drive.py -v
 python3 -m unittest discover -s scripts/worksheet-scan-header/tests -p test_cloud_intake.py -v
 node --test scripts/worksheet-scan-header/tests/cloud-import.test.mjs
 ```
@@ -111,3 +140,6 @@ Drive到着からGSS登録までの時間は別途実機検証が必要。
 
 参照: [Drive PDFダウンロード](https://developers.google.com/workspace/drive/api/guides/manage-downloads)、
 [Drive権限スコープ](https://developers.google.com/workspace/drive/api/guides/api-specific-auth)。
+初回認証: [GoogleのデスクトップOAuth](https://developers.google.com/identity/protocols/oauth2/native-app)、
+[トークン失効条件](https://developers.google.com/identity/protocols/oauth2)、
+[google-auth-oauthlib](https://googleapis.dev/python/google-auth-oauthlib/latest/reference/google_auth_oauthlib.flow.html)。
