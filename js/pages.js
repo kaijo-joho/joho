@@ -1,4 +1,4 @@
-//2026-09-27 02:19:45;
+//2026-09-29 08:08:26;
 const pages = {
   "index": {
     "id": "index",
@@ -453,7 +453,7 @@ const pages = {
         "id": "dr31",
         "title": "3-1. 音のデジタル表現 ワークシート",
         "text": "3-1. 音のデジタル表現 ワークシート",
-        "release": false,
+        "release": true,
         "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr31",
         "detail": "問題の印刷と、公開後の解答・解説を確認できます。"
       }
@@ -481,7 +481,7 @@ const pages = {
         "id": "dr32",
         "title": "3-2. 音のデジタル表現 ワークシート",
         "text": "3-2. 音のデジタル表現 ワークシート",
-        "release": false,
+        "release": true,
         "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr32",
         "detail": "音のチャンネルと、例題・演習の印刷、公開後の解答・解法を確認できます。"
       }
@@ -518,7 +518,7 @@ const pages = {
         "id": "dr41",
         "title": "4-1. 画像のデジタル表現 ワークシート",
         "text": "4-1. 画像のデジタル表現 ワークシート",
-        "release": false,
+        "release": true,
         "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr41",
         "detail": "画像のデジタル化・画質の観察・符号化・データ量を整理するワークシート。"
       }
@@ -555,7 +555,7 @@ const pages = {
         "id": "dr42",
         "title": "4-2. 動画のデジタル表現 ワークシート",
         "text": "4-2. 動画のデジタル表現 ワークシート",
-        "release": false,
+        "release": true,
         "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr42",
         "detail": "動画のフレーム・フレームレート・圧縮・データ量を整理するワークシート。"
       }
