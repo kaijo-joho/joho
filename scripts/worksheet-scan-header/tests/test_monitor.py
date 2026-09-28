@@ -4,6 +4,7 @@ from datetime import datetime
 import json
 from pathlib import Path
 import plistlib
+import subprocess
 import sys
 import tempfile
 import threading
@@ -14,7 +15,7 @@ from zoneinfo import ZoneInfo
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from cloud_intake import CloudQueue
 from drive_inbox import InboxWorker
-from install_monitor import launch_agent
+from install_monitor import bootstrap_agent, launch_agent
 from monitor import (DEFAULT_SETTINGS, analyze_once, archive_plan, configuration, polling_delay,
                      poll_once, service_lock, cloud_once)
 from test_drive_inbox import CONFIG, MemorySource
@@ -225,6 +226,32 @@ class MonitorTests(unittest.TestCase):
         state = cloud_once(worker, self.settings, state, clock=lambda: epoch('2026-09-28T10:01:00'))
         self.assertEqual(state['state'], 'waiting')
         self.assertEqual(state['failureCount'], 0)
+
+
+class LaunchdTests(unittest.TestCase):
+    def test_bootstrap_waits_for_transient_unload(self):
+        results = [subprocess.CompletedProcess([], 5), subprocess.CompletedProcess([], 0)]
+        with patch('install_monitor.subprocess.run', side_effect=results) as run, \
+                patch('install_monitor.time.sleep') as sleep:
+            bootstrap_agent('gui/501', Path('/private/agent.plist'))
+        self.assertEqual(run.call_count, 2)
+        sleep.assert_called_once_with(1)
+
+    def test_bootstrap_stops_after_bounded_retry(self):
+        with patch('install_monitor.subprocess.run', return_value=subprocess.CompletedProcess([], 5)) as run, \
+                patch('install_monitor.time.sleep') as sleep:
+            with self.assertRaises(subprocess.CalledProcessError):
+                bootstrap_agent('gui/501', Path('/private/agent.plist'))
+        self.assertEqual(run.call_count, 11)
+        self.assertEqual(sleep.call_count, 10)
+
+    def test_bootstrap_does_not_retry_other_errors(self):
+        with patch('install_monitor.subprocess.run', return_value=subprocess.CompletedProcess([], 64)) as run, \
+                patch('install_monitor.time.sleep') as sleep:
+            with self.assertRaises(subprocess.CalledProcessError):
+                bootstrap_agent('gui/501', Path('/private/agent.plist'))
+        run.assert_called_once()
+        sleep.assert_not_called()
 
 
 if __name__ == '__main__':

@@ -9,10 +9,24 @@ from pathlib import Path
 import plistlib
 import shutil
 import subprocess
+import time
 
 from cloud_intake import atomic_json
 
 LABELS = {role: 'jp.kaijo.worksheet-' + role for role in ('poller', 'analyzer', 'cloud')}
+
+
+def bootstrap_agent(domain, path):
+    # bootout may return before launchd finishes removing a running job. In
+    # that short interval bootstrap returns EIO (5), including during rollback.
+    command = ['launchctl', 'bootstrap', domain, str(path)]
+    for attempt in range(11):
+        result = subprocess.run(command, capture_output=True)
+        if result.returncode == 0:
+            return
+        if result.returncode != 5 or attempt == 10:
+            result.check_returncode()
+        time.sleep(1)
 
 
 def launch_agent(role, runtime, release, python, renderer):
@@ -104,8 +118,9 @@ def install(runtime, python, renderer, source_root, revision, *, activate=False,
             subprocess.run(['plutil', '-lint', str(path)], check=True, capture_output=True)
         if activate:
             for path in targets.values():
-                subprocess.run(['launchctl', 'bootstrap', domain, str(path)], check=True)
-    except Exception:
+                bootstrap_agent(domain, path)
+    except Exception as install_error:
+        rollback_errors = []
         for role, path in targets.items():
             if activate:
                 subprocess.run(['launchctl', 'bootout', domain + '/' + LABELS[role]], capture_output=True)
@@ -114,7 +129,12 @@ def install(runtime, python, renderer, source_root, revision, *, activate=False,
             else:
                 path.write_bytes(prior[role])
                 if activate and was_loaded[role]:
-                    subprocess.run(['launchctl', 'bootstrap', domain, str(path)], check=False)
+                    try:
+                        bootstrap_agent(domain, path)
+                    except subprocess.CalledProcessError:
+                        rollback_errors.append(role)
+        if rollback_errors:
+            raise RuntimeError('Agent rollback needs attention: ' + ', '.join(rollback_errors)) from install_error
         raise
     result = {'release': str(release), 'backup': str(backup), 'sourceRevision': revision,
               'activated': activate, 'agents': {k: str(v) for k, v in targets.items()},

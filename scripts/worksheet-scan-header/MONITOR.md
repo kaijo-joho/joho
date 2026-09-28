@@ -52,6 +52,8 @@ python3 scripts/worksheet-scan-header/install_monitor.py \
 
 導入時にソースと座標JSONを非公開の`releases/<日時>/`へ複製し、ファイルハッシュとリビジョンを記録する。
 実行中のコードはGit作業ツリーの変更に影響されない。再導入時も以前のリリースを残す。
+稼働中ジョブの停止直後、launchdが再登録を一時的に拒否する場合は10秒以内で再試行する。
+解消しなければ導入失敗として旧plistを復元する。復元時も同じ再試行を行う。
 `--activate`を外すとplist作成まで（既に起動中の場合は更新を拒否）。
 
 以下を`~/Library/LaunchAgents/`へ置く。
