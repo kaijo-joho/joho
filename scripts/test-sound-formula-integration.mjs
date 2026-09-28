@@ -146,7 +146,8 @@ try {
   assert.equal(appendedExample.targets.sample, appendedExample.rows[1].id, '同小問末尾へ追加した行を最終採点対象にする');
   assert.equal(appendedExample.answers.sample, '', '追加した最終回答は空欄で始める');
   const appendedRow = sampleTask.locator('[data-formula-row]').last();
-  await appendedRow.locator('.formula-reference-card').click();
+  await sampleTask.locator('[data-formula-row="sample"] [data-formula-result-grip="sample"]').click();
+  await appendedRow.locator('[data-formula-slot]').first().click();
   await exampleBuilder.locator('[data-formula-operator="="]').click();
   await appendedRow.locator('[data-formula-answer="sample"]').fill('4');
   assert.equal(await page.evaluate(() => window.formulaTestEvaluations), 0, '末尾追加・結果移送・参照でも自動計算しない');

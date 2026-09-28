@@ -395,12 +395,14 @@ equal((dr32.match(/<title id="(?:mono|stereo|surround)-title">/g) || []).length,
 equal((dr32.match(/<desc id="(?:mono|stereo|surround)-desc">/g) || []).length, 3, '各チャンネルSVGにdescを設定');
 ok(dr32.includes('信号A（1系統）') && dr32.includes('左：信号A') && dr32.includes('右：信号B'), 'モノラルとステレオの信号系統を図示');
 ok(dr32.includes('スクリーン（前）') && dr32.includes('dr-channel-svg__subwoofer') && dr32.includes('>.1</text>'), '5.1チャンネルの向きと低音用信号を図示');
-for (const requirement of ['data-sound-worked-example="channel-data"', '標本化周波数 44,100Hz', '量子化ビット数 16bit', 'ステレオ 2チャンネル', '1KB = 1,000B', 'data-worked-example-next']) {
+for (const requirement of ['data-sound-worked-example="channel-data"', 'data-worked-example-next']) {
   ok(dr32.includes(requirement), `チャンネル数とデータ量の例題に「${requirement}」`);
 }
 const channelExampleSlide = dr32.match(/<section data-lesson-slide data-lesson-slide-title="チャンネル数とデータ量の例題">([\s\S]*?)<\/section>/)?.[1] || '';
 ok(/次の各問いに答えなさい。<br>\s*\(1\) 1回の標本化で生じるデータ量は何Bですか。<br>\s*\(2\) 1秒あたり何KBですか。/.test(channelExampleSlide), 'ステレオの例題を番号付きの2問に分けて表示');
+ok(channelExampleSlide.includes('標本化周波数44,100Hz、量子化ビット数16bit、ステレオ（2チャンネル）'), '例題の問題文に標本化周波数・量子化ビット数・チャンネル数を保持');
 ok(channelExampleSlide.includes('ただし、音声は圧縮せず、1KB = 1,000Bとして計算します。'), 'ステレオの例題に非圧縮と1000倍換算の条件を明記');
+ok(!channelExampleSlide.includes('dr-condition-list') && !channelExampleSlide.includes('dr-condition'), '例題の問題文下に重複する条件バッジを表示しない');
 equal((dr32.match(/data-sound-calculation="/g) || []).length, 3, '計算問題を3パターンのスライドへ分割');
 for (const pattern of ['sampling', 'quantization', 'data-size']) {
   ok(dr32.includes(`data-sound-calculation="${pattern}"`), `計算スライドに分類「${pattern}」`);

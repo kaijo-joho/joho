@@ -58,9 +58,14 @@ async function seed({ first = [], second = [], answer = '', secondAnswer = '', o
     answers: { sample: answer, second: secondAnswer }
   });
 }
-async function openDetails(details) {
-  if (!await details.evaluate(node => node.open)) await details.locator('summary').click();
+async function openPopup(name) {
+  const host = page.locator(exampleSelector);
+  const trigger = host.locator(`[data-formula-popup-trigger="${name}"]`);
+  const popup = host.locator(`[data-formula-popup="${name}"]`);
+  if (!await popup.isVisible()) await trigger.click();
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  await expect(popup).toBeVisible();
+  return { trigger, popup };
 }
 async function sameEquationLine(row) {
   const layout = await row.evaluate(node => {
@@ -90,6 +95,26 @@ try {
     .filter(node => node.checkVisibility()).map(node => node.dataset.formulaOperator));
   assert.deepEqual(operatorValues, ['+', '-', '×', '÷', '='], '5つの基本演算子を常設する');
   assert.equal(await example.locator('[data-formula-operator="relation="]').count(), 1, '関係式用の=は基本操作と分離する');
+  assert.equal(await example.locator('details.formula-constants, details.formula-more-operators, details.formula-help').count(), 0, '定数・その他記号・ヘルプにdetailsを使わない');
+  for (const name of ['constants', 'operators', 'help']) {
+    const trigger = example.locator(`[data-formula-popup-trigger="${name}"]`);
+    const popup = example.locator(`[data-formula-popup="${name}"]`);
+    await expect(trigger).toBeVisible();
+    await expect(popup).toBeHidden();
+    await trigger.press('Enter');
+    await expect(popup).toBeVisible();
+    await page.keyboard.press('Escape');
+    await expect(popup).toBeHidden();
+    await expect(trigger).toBeFocused();
+  }
+  const constantsTrigger = example.locator('[data-formula-popup-trigger="constants"]');
+  const constantsPanel = example.locator('[data-formula-popup="constants"]');
+  await constantsTrigger.hover();
+  await expect(constantsPanel).toBeVisible();
+  await constantsPanel.hover();
+  await page.mouse.move(1, 1);
+  await page.waitForTimeout(240);
+  await expect(constantsPanel).toBeHidden();
   for (const task of [sample, second]) {
     assert.equal(await task.locator('[data-formula-row]').count(), 1, '各小問は独立した1行で始まる');
     assert.equal(await task.locator('[data-formula-answer], [data-formula-result], [data-formula-judge]').count(), 0, '初期状態では答え欄も判定も出さない');
@@ -117,12 +142,21 @@ try {
   await expect(example.locator('[data-formula-manual-unit]')).toBeHidden();
   await manual.focus();
   await expect(example.locator('[data-formula-manual-unit]')).toBeVisible();
+  const manualInline = await example.evaluate(host => {
+    const unit = host.querySelector('[data-formula-manual-unit]');
+    const insert = host.querySelector('[aria-label="自由入力の数値を式へ挿入"]');
+    const a = unit.getBoundingClientRect(); const b = insert.getBoundingClientRect();
+    return a.left < b.left && Math.max(a.top, b.top) < Math.min(a.bottom, b.bottom);
+  });
+  assert.equal(manualInline, true, '自由入力の単位と挿入ボタンを横並びにする');
   const manualUnits = await example.locator('[data-formula-manual-unit] option').evaluateAll(nodes => nodes.map(node => ({ value: node.value, label: node.textContent })));
   assert.equal(manualUnits.filter(item => item.value === '').length, 1, '単位なしは1つだけ表示する');
   assert.ok(manualUnits.some(item => item.value === 'bit/sample') && manualUnits.some(item => item.value === 'Hz'), '通常数量の単位を自由入力で選べる');
   assert.equal(manualUnits.some(item => /→|掛ける値|割る値|bit\/B|B\/KB|s\/min/.test(item.label + item.value)), false, '自由入力から換算方向の選択肢を外す');
-  await openDetails(example.locator('.formula-constants'));
+  await openPopup('constants');
   const constantCards = await example.locator('[data-formula-constant]').evaluateAll(nodes => nodes.map(node => ({ id: node.dataset.formulaConstant, amount: node.querySelector('.formula-card-value').textContent.trim(), conversion: !!node.querySelector('.formula-conversion-label') })));
+  assert.ok(await example.locator('[data-formula-quantity] .formula-drag-dots, [data-formula-constant] .formula-drag-dots').count() > 0, '数量・定数カードに小型のdragハンドルを置く');
+  assert.ok(await example.locator('.formula-drag-dots').evaluateAll(nodes => nodes.every(node => node.getBoundingClientRect().width <= 24 && node.getBoundingClientRect().height <= 24)), 'dragハンドルをカード本文より小さく保つ');
   assert.equal(new Set(constantCards.map(card => card.amount)).size, constantCards.length, '同じ数値・単位の補助カードを重複させない');
   for (const value of ['8', '0.125', '60', '1000', '1024']) assert.ok(constantCards.some(card => card.amount.replace(/,/g, '') === value), `${value}の換算定数を単位なしで示す`);
   assert.equal(constantCards.some(card => card.conversion || /→/.test(card.amount)), false, '補助定数に換算方向の表示を付けない');
@@ -182,8 +216,8 @@ try {
   await finalRow.locator('[data-formula-slot]').first().click();
   await example.locator('[data-formula-operator="="]').click();
   await finalRow.locator('[data-formula-answer]').fill('7');
-  await secondRow.locator('[data-formula-reference-source]').selectOption(finalRowId);
-  await secondRow.locator('.formula-reference-card').click();
+  await finalRow.locator(`[data-formula-result-grip="${finalRowId}"]`).click();
+  await secondRow.locator('[data-formula-slot]').last().click();
   await expect(finalRow.locator('.formula-row-remove')).toBeDisabled();
   const currentReference = secondRow.locator(`[data-formula-reference="${finalRowId}"]`);
   await currentReference.click();
@@ -217,9 +251,9 @@ try {
 
   // 実際のドラッグ中だけ挿入候補を強調し、hover先を案内する。
   await seed({ first: [v(16, 'bit/sample')], open: false });
-  await openDetails(example.locator('.formula-constants'));
+  await openPopup('constants');
   const dragCard = example.locator('[data-formula-constant="two"]');
-  assert.equal(await example.locator('.is-drop-target, .is-dragover, .formula-drop-guide:visible').count(), 0, '通常表示にdrag用の案内を残さない');
+  assert.equal(await example.locator('.is-drop-target, .is-drop-preferred, .is-dragover').count(), 0, '通常表示にdrag用の案内を残さない');
   await dragCard.hover();
   const sourceBox = await dragCard.boundingBox();
   await page.mouse.down();
@@ -230,34 +264,35 @@ try {
   await targetToken.hover({ position: { x: targetBox.width - 3, y: targetBox.height / 2 } });
   await expect(example).toHaveClass(/is-dragging/);
   assert.ok(await example.locator('[data-formula-slot].is-drop-target').count() > 0, 'ドラッグ中に挿入できるslotを目立たせる');
-  await expect(example.locator('.formula-drop-guide:visible')).toHaveText('ここへ挿入');
-  await expect(example.locator('[data-formula-slot].is-dragover')).toHaveCount(1);
+  assert.ok(await example.locator('[data-formula-slot].is-drop-preferred').count() > 0, 'ドラッグ中は自然な挿入候補を濃く示す');
   await page.mouse.up();
   assert.deepEqual((await draft()).rows[0].tokens.map(token => token.value), ['16', '2'], 'token右半分にdropすると直後へ1個だけ挿入');
   await expect(example).not.toHaveClass(/is-dragging/);
-  assert.equal(await example.locator('.is-drop-target, .is-dragover, .formula-drop-guide:visible').count(), 0, 'drop完了後はdrag用の案内を消す');
+  assert.equal(await example.locator('.is-drop-target, .is-drop-preferred, .is-dragover').count(), 0, 'drop完了後はdrag用の案内を消す');
+  await openPopup('constants');
   await dragCard.dragTo(firstRow.locator('[data-formula-token]').first(), { targetPosition: { x: 4, y: 20 } });
   assert.deepEqual((await draft()).rows[0].tokens.map(token => token.value), ['2', '16', '2'], 'token左半分にdropすると直前へ1個だけ挿入');
   const expression = firstRow.locator('.formula-expression');
   const expressionBox = await expression.boundingBox();
+  await openPopup('constants');
   await dragCard.dragTo(expression, { targetPosition: { x: expressionBox.width - 6, y: expressionBox.height / 2 } });
   assert.deepEqual((await draft()).rows[0].tokens.map(token => token.value), ['2', '16', '2', '2'], '式の右余白へのdropは最寄りの末尾slotに入る');
   await firstRow.locator('[data-formula-token]').first().dragTo(firstRow.locator('[data-formula-slot]').last());
   assert.deepEqual((await draft()).rows[0].tokens.map(token => token.value), ['16', '2', '2', '2'], '既存部品のdrag移動は1個だけ移し、複製しない');
-  await expect(example.locator('.formula-constants')).toHaveAttribute('open', '');
 
   // 入れ子のslotを外側より優先し、dropの伝播で重複挿入しない。
   await seed({ open: false });
-  const moreOperators = example.locator('.formula-more-operators');
-  await openDetails(moreOperators);
-  await openDetails(example.locator('.formula-constants'));
   await firstRow.locator('[data-formula-slot]').first().click();
+  await openPopup('operators');
   await example.getByRole('button', { name: '分数を式へ挿入', exact: true }).press('Enter');
   await firstRow.locator('.formula-fraction > .formula-token-list').first().locator('[data-formula-slot]').first().click();
+  await openPopup('operators');
   await example.getByRole('button', { name: '指数を式へ挿入', exact: true }).press('Enter');
   await firstRow.locator('.formula-power > .formula-token-list [data-formula-slot]').first().click();
+  await openPopup('constants');
   await dragCard.press('Enter');
   const nestedExponent = firstRow.locator('.formula-power-exponent [data-formula-slot]').first();
+  await openPopup('constants');
   await dragCard.dragTo(nestedExponent);
   const nested = (await draft()).rows[0].tokens;
   assert.equal(nested.length, 1, '入れ子へのdropで外側には部品を増やさない');
@@ -268,6 +303,36 @@ try {
   assert.equal(await firstRow.locator('.formula-power-exponent [data-formula-token]').count(), 0, '指数内の値だけをキーボードで削除する');
   assert.equal(await firstRow.locator('.formula-power').count(), 1, '外側の指数は残す');
 
+  // 値の右上ターゲットは、その値を底とする指数へ包み、指数欄へ直ちに入力できる。
+  await seed({ first: [v(16, 'bit/sample')], open: false });
+  await openPopup('constants');
+  const exponentTarget = firstRow.locator('[data-formula-exponent]').first();
+  await dragCard.dragTo(exponentTarget);
+  assert.equal((await draft()).rows[0].tokens[0].kind, 'power', '値の右上ターゲットへ直接dropして指数形式へ包む');
+  assert.deepEqual((await draft()).rows[0].tokens[0].exponent.map(token => token.value), ['2'], '右上ターゲットへのdrop値を指数へ入れる');
+  await seed({ first: [v(16, 'bit/sample')], open: false });
+  await exponentTarget.click();
+  assert.equal((await draft()).rows[0].tokens[0].kind, 'power', '値を指数形式へ包む');
+  assert.equal((await draft()).rows[0].tokens[0].base[0].value, '16', '元の値を指数の底として保つ');
+  await expect(firstRow.locator('.formula-power-exponent [data-formula-slot]').first()).toBeFocused();
+  await openPopup('constants');
+  await dragCard.dragTo(firstRow.locator('.formula-power-exponent [data-formula-slot]').first());
+  assert.deepEqual((await draft()).rows[0].tokens[0].exponent.map(token => token.value), ['2'], '指数欄へ値をdrag挿入できる');
+
+  // 前後に既存部品がある値と、入れ子の値でも右上targetだけを指数化する。
+  await seed({ first: [v(1), v(16, 'bit/sample'), v(2)], open: false });
+  await openPopup('constants');
+  await dragCard.dragTo(firstRow.locator('[data-formula-exponent]').nth(1));
+  const surrounded = (await draft()).rows[0].tokens;
+  assert.deepEqual(surrounded.map(token => token.kind), ['value', 'power', 'value'], '前後の既存tokenを保って中央の値だけを指数化する');
+  assert.deepEqual(surrounded[1].exponent.map(token => token.value), ['2'], '中央の右上targetへdropした値を指数にする');
+  await seed({ first: [{ kind: 'fraction', numerator: [v(16)], denominator: [v(2)] }], open: false });
+  await openPopup('constants');
+  await dragCard.dragTo(firstRow.locator('.formula-fraction [data-formula-exponent]').first());
+  const nestedPower = (await draft()).rows[0].tokens[0].numerator[0];
+  assert.equal(nestedPower.kind, 'power', '分数内の値も外側を壊さず指数化する');
+  assert.deepEqual(nestedPower.exponent.map(token => token.value), ['2'], '分数内の右上targetへdropした値を指数にする');
+
   // 答えinputと小さいgripの両方から前式参照をdragできる。
   await seed({ first: sampleTokens, answer: '4', secondAnswer: '99' });
   const resultSource = firstRow.locator('[data-formula-result-source="sample-start"]');
@@ -275,13 +340,25 @@ try {
   await expect(grip).toBeVisible();
   await expect(grip).toHaveAttribute('draggable', 'true');
   assert.ok((await grip.boundingBox()).height >= 43.5, '小さいgripも44pxの操作領域を持つ');
+  assert.equal(await resultSource.evaluate(source => {
+    const box = source.querySelector('.formula-result-input');
+    const input = box?.querySelector('input'); const grip = box?.querySelector('[data-formula-result-grip]');
+    return !!box && box.contains(input) && box.contains(grip) && input.getBoundingClientRect().right >= grip.getBoundingClientRect().left;
+  }), true, 'gripを答えinputと同じ入力枠内に置く');
+  await grip.click();
+  await secondRow.locator('[data-formula-slot]').first().click();
+  assert.equal((await draft()).rows[1].tokens.filter(token => token.kind === 'reference').length, 1, 'gripのクリック選択後にslotクリックで参照を挿入する');
+  await grip.press('Enter');
+  await page.keyboard.press('Escape');
+  await secondRow.locator('[data-formula-slot]').last().click();
+  assert.equal((await draft()).rows[1].tokens.filter(token => token.kind === 'reference').length, 1, 'Escapeでgripの参照選択を取り消す');
   await resultSource.locator('input').dragTo(secondRow.locator('[data-formula-slot]').first());
-  assert.equal((await draft()).rows[1].tokens.filter(token => token.kind === 'reference').length, 1, '答えinputから1個の参照を挿入する');
+  assert.equal((await draft()).rows[1].tokens.filter(token => token.kind === 'reference').length, 2, '答えinputから1個の参照を挿入する');
   await answer.fill('４');
   await expect(grip).toHaveAttribute('draggable', 'true');
   await answer.fill('4');
   await grip.dragTo(secondRow.locator('[data-formula-slot]').last());
-  assert.equal((await draft()).rows[1].tokens.filter(token => token.kind === 'reference').length, 2, 'gripからも1個の参照を挿入する');
+  assert.equal((await draft()).rows[1].tokens.filter(token => token.kind === 'reference').length, 3, 'gripからも1個の参照を挿入する');
   assert.ok((await secondRow.locator('[data-formula-reference]').allTextContents()).every(text => /4.*B/.test(text) && !text.includes('↳')), '参照は数値・単位だけを表示する');
   await answer.fill('5');
   assert.ok((await secondRow.locator('[data-formula-reference]').allTextContents()).every(text => /5.*B/.test(text)), '参照カードを手入力値へ追従させる');
@@ -316,9 +393,13 @@ try {
 
   // 数量を先に並べ、間に演算子を入れる実際の組み立て順で採点する。
   await seed({ open: false });
-  await openDetails(example.locator('.formula-constants'));
+  const inlineConstantCount = await example.locator('[data-formula-constant]').evaluateAll(nodes => nodes.filter(node => node.checkVisibility()).length);
+  const allConstantCount = await example.locator('[data-formula-constant]').count();
+  if (allConstantCount <= 8) assert.equal(inlineConstantCount, allConstantCount, '少数の補助定数はポップアップを開かず常時表示する');
+  else await expect(example.locator('[data-formula-popup-trigger="constants"]')).toBeVisible();
   await example.locator('[data-formula-quantity="bits"]').click();
   await example.locator('[data-formula-quantity="channels"]').click();
+  await openPopup('constants');
   await example.locator('[data-formula-constant="bit-byte"]').click();
   assert.deepEqual((await draft()).rows[0].tokens.map(token => [token.value, token.unit]), [['16', 'bit/sample'], ['2', 'channel'], ['8', '']], '先に数値16・2・8を数量の単位を保って並べる');
   const rootSlots = firstRow.locator('.formula-expression-line > .formula-token-list > [data-formula-slot]');
@@ -342,6 +423,49 @@ try {
   await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
   await sameEquationLine(firstRow);
   assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), '390px幅でも横列の式はページ全体を広げない');
+
+  const touch = await browser.newPage({ viewport: { width: 390, height: 844 }, hasTouch: true });
+  await touch.route('**/*', route => new URL(route.request().url()).origin === baseURL.origin ? route.continue() : route.abort());
+  await touch.goto(new URL('dr32.html#headline_2', baseURL).href, { waitUntil: 'networkidle' });
+  const touchBuilder = touch.locator(exampleSelector);
+  const touchSample = touchBuilder.locator('[data-formula-task="sample"] [data-formula-row]').first();
+  const touchSecond = touchBuilder.locator('[data-formula-task="second"] [data-formula-row]').first();
+  await touch.evaluate(() => {
+    window.siteTheme.setPreference('dark', { persist: false });
+    window.siteTextSize.setPreference('xlarge', { persist: false });
+  });
+  await touchSample.locator('[data-formula-slot]').first().tap();
+  await touchBuilder.locator('[data-formula-quantity]').first().tap();
+  await touchBuilder.locator('[data-formula-operator="="]').tap();
+  const touchAnswer = touchSample.locator('[data-formula-answer="sample"]');
+  await touchAnswer.fill('4');
+  await touchSample.locator('[data-formula-result-grip]').tap();
+  await touchSecond.locator('[data-formula-slot]').first().tap();
+  await expect(touchSecond.locator('[data-formula-reference]')).toHaveCount(1);
+  const touchOperators = touchBuilder.locator('[data-formula-popup-trigger="operators"]');
+  await touchOperators.tap();
+  await expect(touchBuilder.locator('[data-formula-popup="operators"]')).toBeVisible();
+  await touchBuilder.locator('[data-formula-operator="relation="]').tap();
+  await expect(touchBuilder.locator('[data-formula-popup="operators"]')).toBeHidden();
+  await touchBuilder.getByRole('textbox', { name: '自由入力の数値', exact: true }).tap();
+  const touchManualInline = await touchBuilder.evaluate(host => {
+    const unit = host.querySelector('[data-formula-manual-unit]');
+    const insert = host.querySelector('[aria-label="自由入力の数値を式へ挿入"]');
+    const a = unit.getBoundingClientRect(); const b = insert.getBoundingClientRect();
+    return Math.max(a.top, b.top) < Math.min(a.bottom, b.bottom);
+  });
+  assert.equal(touchManualInline, true, '390px・特大文字でも自由入力の単位と挿入を横並びにする');
+  const touchInlineConstants = await touchBuilder.locator('[data-formula-constant]').evaluateAll(nodes => nodes.filter(node => node.checkVisibility()).length);
+  const touchAllConstants = await touchBuilder.locator('[data-formula-constant]').count();
+  if (touchAllConstants <= 8) assert.equal(touchInlineConstants, touchAllConstants, '少数の補助定数はタップ画面でも常時表示する');
+  else await expect(touchBuilder.locator('[data-formula-popup-trigger="constants"]')).toBeVisible();
+  await touch.goto(new URL('dr32.html#headline_3', baseURL).href, { waitUntil: 'networkidle' });
+  const samplingBuilder = touch.locator('[data-sound-calculation="sampling"] [data-formula-builder]');
+  await samplingBuilder.waitFor();
+  const samplingConstants = await samplingBuilder.locator('[data-formula-constant]').evaluateAll(nodes => nodes.filter(node => node.checkVisibility()).length);
+  assert.equal(samplingConstants, await samplingBuilder.locator('[data-formula-constant]').count(), '少数のsampling補助定数は全て常時表示する');
+  assert.equal(await samplingBuilder.locator('[data-formula-popup-trigger="constants"]').count(), 0, '少数のsampling補助定数にポップアップ入口を置かない');
+  await touch.close();
   assert.deepEqual(errors, [], errors.join('\n'));
   console.log(`lesson-formula-builder-browser (${engineName}): 行内答え、末尾追加/削除復帰、挿入先切替、drag位置/案内/参照、補助定数、キーボード、入力保持 OK`);
 } finally {
