@@ -1,8 +1,8 @@
 (function(global) {
   'use strict';
 
-  const COURSE_KEYS = ['il', 'html', 'ss', 'py'];
-  const AI_COURSE_KEYS = [...COURSE_KEYS, 'dr', 'lc', 'nw'];
+  const COURSE_KEYS = ['il', 'html', 'ss', 'py', 'dr'];
+  const AI_COURSE_KEYS = [...COURSE_KEYS, 'lc', 'nw'];
 
   const FAQBOT_WEB_APP_URL =
     'https://script.google.com/macros/s/AKfycbzSuitUdIidJRMXTrJCOcdxE1fdcFLj8NB-LfHM1z0KABRzv463y131Y6KR2TYoOtk/exec';
@@ -11,7 +11,8 @@
     il: 'Illustrator実習',
     html: 'HTML実習',
     ss: 'スプレッドシート実習',
-    py: 'Python講座'
+    py: 'Python講座',
+    dr: 'デジタル表現'
   };
 
   const el = (tag, attrs = {}, ...children) => {

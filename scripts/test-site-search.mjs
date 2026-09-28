@@ -58,7 +58,7 @@ assert.equal(pages.cp22.back, 'cp21');
 assert.equal(pages.lc02.back, 'cp21');
 
 assert.equal(Object.hasOwn(globalThis, '__siteSearchCore'), false);
-assert.deepEqual(Array.from(siteFaq.COURSE_KEYS), ['il', 'html', 'ss', 'py']);
+assert.deepEqual(Array.from(siteFaq.COURSE_KEYS), ['il', 'html', 'ss', 'py', 'dr']);
 assert.equal(siteFaq.normalizeForSearch('  ＰＬＴ．ＰＬＯＴ\n'), 'plt.plot');
 assert.equal(core.normalizeText('  ＰＬＴ．ＰＬＯＴ\n'), 'plt.plot');
 assert.deepEqual(core.tokenize(' IF　文 if '), ['if', '文']);
@@ -148,6 +148,10 @@ const syntheticFaqs = [
   }
 ];
 const faqState = { q: 'インデント エラー', course: 'py', unit: '', category: '', keyword: '' };
+assert.equal(siteFaq.applyFilters([
+  { faqId: 'dr-test', status: '公開', course: 'dr', question: '音の量子化', keywords: [] },
+  { faqId: 'dr-draft', status: '下書き', course: 'dr', question: '音の量子化', keywords: [] }
+], { q: '量子化', course: 'dr' }).length, 1, 'DRも公開FAQだけを検索する');
 assert.deepEqual(
   Array.from(siteFaq.applyFilters(syntheticFaqs, faqState), faq => faq.faqId),
   ['public-split'],
@@ -180,6 +184,12 @@ assert.equal(faqBotReturnUrl.pathname, '/py21.html');
 assert.equal(faqBotReturnUrl.search, '');
 assert.equal(faqBotReturnUrl.hash, '');
 assert.equal(faqBotReturnUrl.searchParams.has('q'), false);
+const drBotUrl = new URL(siteFaq.buildFaqBotUrl({ course: 'dr', q: '量子化' }, {
+  baseUrl: 'https://joho.kaijo.ed.jp/faq.html?q=test#result', pageKey: 'faq'
+}));
+assert.equal(drBotUrl.searchParams.get('course'), 'dr');
+assert.equal(drBotUrl.searchParams.has('q'), false);
+assert.equal(new URL(drBotUrl.searchParams.get('returnUrl')).search, '?course=dr');
 assert.equal(new URL(siteFaq.buildFaqBotUrl({}, {
   baseUrl: 'https://joho.kaijo.ed.jp/faq.html?q=%E7%A7%98%E5%AF%86#result', pageKey: '<invalid>'
 })).searchParams.get('page'), 'faq');

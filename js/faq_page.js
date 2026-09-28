@@ -6,7 +6,8 @@
     il: 'Illustrator実習',
     html: 'HTML実習',
     ss: 'スプレッドシート実習',
-    py: 'Python講座'
+    py: 'Python講座',
+    dr: 'デジタル表現'
   };
 
   const $ = (sel, root = document) => root.querySelector(sel);
