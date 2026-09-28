@@ -13,10 +13,16 @@
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
+  <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/sound-core.js"></script>
   <script defer src="./js/sound-renderer.js"></script>
   <script defer src="./js/sound-widgets.js"></script>
+  <script defer src="./js/lesson-formula-core.js"></script>
+  <script defer src="./js/lesson-formula-grader.js"></script>
+  <script defer src="./js/sound-formulas.js"></script>
+  <script defer src="./js/lesson-formula-builder.js"></script>
+  <script defer src="./js/sound-reference-formulas.js"></script>
   <script defer src="./js/sound-lessons.js"></script>
   <script defer src="./js/sound-quiz.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
@@ -190,24 +196,56 @@
         <section class="dr-reference-card" aria-labelledby="dr-number-examples-title">
           <header class="dr-reference-card__header">
             <h3 id="dr-number-examples-title">数値の例</h3>
-            <p>問題をクリックすると、途中式と答えが開きます。</p>
+            <p>問題を開き、値と記号で式を組み立ててから、自分で計算して判定します。考え方と答えは、別の操作で確認できます。</p>
           </header>
           <div class="dr-reveal-list dr-reveal-list--examples">
-            <details class="dr-reveal-item dr-reveal-item--example">
+            <details class="dr-reveal-item dr-reveal-item--example" data-sound-reference-example="period-10hz">
               <summary>標本化周波数が10Hzのとき、標本化周期は？</summary>
-              <div class="dr-reveal-item__body"><code>T = 1 / fs = 1 / 10 = 0.1秒</code><strong>答え：0.1秒</strong></div>
+              <div class="dr-reveal-item__body">
+                <p>標本化周期は、標本化周波数の逆数です。値と記号を使って式を組み立て、自分で計算してから判定しましょう。</p>
+                <div data-sound-reference-formula></div>
+                <details class="dr-reference-solution" data-sound-reference-solution>
+                  <summary>考え方と答えを確認する</summary>
+                  <div class="dr-reveal-item__body"></div>
+                  <noscript><p>T = 1 / fs = 1 / 10 = 0.1秒。答えは0.1秒です。</p></noscript>
+                </details>
+              </div>
             </details>
-            <details class="dr-reveal-item dr-reveal-item--example">
+            <details class="dr-reveal-item dr-reveal-item--example" data-sound-reference-example="rate-005sec">
               <summary>標本化周期が0.05秒のとき、標本化周波数は？</summary>
-              <div class="dr-reveal-item__body"><code>fs = 1 / T = 1 / 0.05 = 20Hz</code><strong>答え：20Hz</strong></div>
+              <div class="dr-reveal-item__body">
+                <p>標本化周波数は、標本化周期の逆数です。値と記号を使って式を組み立て、自分で計算してから判定しましょう。</p>
+                <div data-sound-reference-formula></div>
+                <details class="dr-reference-solution" data-sound-reference-solution>
+                  <summary>考え方と答えを確認する</summary>
+                  <div class="dr-reveal-item__body"></div>
+                  <noscript><p>fs = 1 / T = 1 / 0.05 = 20Hz。答えは20Hzです。</p></noscript>
+                </details>
+              </div>
             </details>
-            <details class="dr-reveal-item dr-reveal-item--example">
+            <details class="dr-reveal-item dr-reveal-item--example" data-sound-reference-example="levels-3bit">
               <summary>量子化ビット数が3bitのとき、量子化段階数は？</summary>
-              <div class="dr-reveal-item__body"><code>2ⁿ = 2³ = 8段階</code><strong>答え：8段階</strong></div>
+              <div class="dr-reveal-item__body">
+                <p>量子化段階数は2のべき乗で表します。値と記号を使って式を組み立て、自分で計算してから判定しましょう。</p>
+                <div data-sound-reference-formula></div>
+                <details class="dr-reference-solution" data-sound-reference-solution>
+                  <summary>考え方と答えを確認する</summary>
+                  <div class="dr-reveal-item__body"></div>
+                  <noscript><p>2ⁿ = 2³ = 8段階。答えは8段階です。</p></noscript>
+                </details>
+              </div>
             </details>
-            <details class="dr-reveal-item dr-reveal-item--example">
+            <details class="dr-reveal-item dr-reveal-item--example" data-sound-reference-example="bits-16levels">
               <summary>量子化段階数が16段階のとき、必要なビット数は？</summary>
-              <div class="dr-reveal-item__body"><code>2⁴ = 16</code> なので、16段階を表すには4bit必要です。<strong>答え：4bit</strong></div>
+              <div class="dr-reveal-item__body">
+                <p>2の何乗で16段階を表せるかを、その一つ前では足りないことも含めて式で確かめます。</p>
+                <div data-sound-reference-formula></div>
+                <details class="dr-reference-solution" data-sound-reference-solution>
+                  <summary>考え方と答えを確認する</summary>
+                  <div class="dr-reveal-item__body"></div>
+                  <noscript><p>2³ ＜ 16 ≦ 2⁴。したがって、必要な最小ビット数は4bitです。</p></noscript>
+                </details>
+              </div>
             </details>
             <details class="dr-reveal-item dr-reveal-item--example">
               <summary>3bitで段階値2を符号化すると？</summary>

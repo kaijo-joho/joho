@@ -115,6 +115,7 @@ Colab原本は別プロジェクトの`~/Documents/Colab/`に同期されてい�
 - ヘッダー、ナビゲーション、LessonDock、本文幅、テーマ、文字サイズ、アクセシビリティなどの基本デザインは、実習・座学で共通にする。
 - 座学ページは、原則として`css/lesson-slide-deck.css`と`js/lesson-slide-deck.js`の座学共通スライド基盤を使用する。実装時は`docs/lesson-slide-deck.md`を確認し、`body`の`data-lesson-slide-deck`、各スライドの`data-lesson-slide`と`data-lesson-slide-title`を用いる。同等のスライド操作をページ別・シリーズ別のCSSやJavaScriptへ重複実装しない。
 - 座学の計算問題で式を組み立てるUIを導入するときは、値の選択・立式・自分での計算・判定を基本の学習順とし、演算・単位検証、共通UI、教材ごとの問題と採点を分離する。詳細仕様は`docs/lesson-slide-deck.md`の「計算問題の式ビルダー」に従う。スライド移動処理へ計算を混在させない。
+- 学習段階に応じて式の型を与えてよい。段階数・色数から必要最小ビット数を求める問題は、`2^□ ＜ □ ≦ 2^□　∴ □ bit`の穴埋めを基本とし、対数や不等式に対する`＝`入力を要求しない。結論欄は初めから表示し、比較式と答えを別々に判定する。`dr31`の数値例、`dr32`、`dr41`・`dr42`の既存計算問題は共通式UIを使い、波形・画像の読み取り問題と説明用の自動計算表示は混同しない。
 - 座学ページを新規作成または編集するときは、`/Users/takashi/授業スライド`にある対応するPPTまたはPPTXファイルを参考にし、教材内容、説明順、用語、図表との整合性を確認する。
 - 指定ディレクトリへアクセスできない、または対応するPPTファイルを特定できない場合は、参照したものとして扱わず、未確認事項としてユーザーへ報告する。PPTファイル自体は、明示的な依頼がない限り変更しない。
 - 教材固有の図、シミュレーション、回路エディタ、問題UIなどにはシリーズ別のCSSとJavaScriptを使用してよい。個別設定は必要な範囲へ限定し、共通部分をページごとに複製しない。
@@ -347,11 +348,14 @@ node scripts/test-sound-pages.mjs
 
 ### 座学の式ビルダー関連
 
-`js/lesson-formula-*.js`、`css/lesson-formula-builder.css`、`js/sound-formulas.js`または組み込み先を変更するときは、DOM非依存テストと実ブラウザの編集・教材統合テストを実行する。ブラウザ検証の起動方法は`docs/lesson-slide-deck.md`の「計算問題の式ビルダー」を参照する。
+`js/lesson-formula-*.js`、`css/lesson-formula-builder.css`、`js/sound-formulas.js`、`js/media-formulas.js`または組み込み先を変更するときは、DOM非依存テストと実ブラウザの編集・教材統合テストを実行する。ブラウザ検証の起動方法は`docs/lesson-slide-deck.md`の「計算問題の式ビルダー」を参照する。
 
 ```sh
 node scripts/test-lesson-formula-core.mjs
+node scripts/test-lesson-formula-grader.mjs
 node scripts/test-sound-formulas.mjs
+node scripts/test-media-formulas.mjs
+node scripts/test-sound-reference-formulas.mjs
 ```
 
 ### ブラウザ確認

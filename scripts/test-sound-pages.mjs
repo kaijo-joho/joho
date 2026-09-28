@@ -336,8 +336,13 @@ ok(dr31.indexOf('data-sound-pcm data-stage') < dr31.indexOf('data-sound-sampling
 ok(dr31.indexOf('data-sound-sampling-theorem') < dr31.indexOf('class="dr-reference-grid"'), '標本化定理の後に用語と数値の例を配置');
 equal((dr31.match(/<details class="dr-reveal-item/g) || []).length, 15, '用語9項目と数値例6項目をクリック展開にする');
 equal((dr31.match(/class="dr-reference-card"/g) || []).length, 2, '用語と数値の例を2つのまとまりに分ける');
-for (const example of ['T = 1 / fs = 1 / 10 = 0.1秒', 'fs = 1 / T = 1 / 0.05 = 20Hz', '2ⁿ = 2³ = 8段階', '2⁴ = 16', '答え：010', '答え：1100']) {
-  ok(dr31.includes(example), `クリック式の数値例に「${example}」`);
+for (const exampleId of ['period-10hz', 'rate-005sec', 'levels-3bit', 'bits-16levels']) {
+  ok(dr31.includes(`data-sound-reference-example="${exampleId}"`), `数値例${exampleId}を共通の立式UIへ接続`);
+}
+ok((dr31.match(/data-sound-reference-formula/g) || []).length === 4, '4種類の数値例だけに立式UIを置く');
+ok((dr31.match(/data-sound-reference-solution/g) || []).length === 4, '解答・考え方は立式UIと別の明示操作で開く');
+for (const example of ['答え：010', '答え：1100']) {
+  ok(dr31.includes(example), `符号化の数値例に「${example}」`);
 }
 for (const selector of ['.dr-reference-grid', '.dr-reference-card', '.dr-reveal-list', '.dr-reveal-item > summary', '.dr-reveal-item__body']) {
   ok(css.includes(selector), `用語・数値例の表示CSSに ${selector}`);
@@ -415,8 +420,18 @@ ok(quiz.includes('calculationHosts.forEach(initializeCalculation)'), '3つの計
 ok(quiz.includes('workedExampleHosts.forEach(initializeWorkedExample)'), '例題を独立した段階表示として初期化');
 for (const asset of ['css/lesson-formula-builder.css', 'js/lesson-formula-core.js', 'js/lesson-formula-builder.js', 'js/sound-formulas.js']) {
   ok(dr32.includes(`./${asset}`), `dr32は共通式ビルダーの${asset}を読む`);
-  ok(!dr31.includes(`./${asset}`), `今回の式ビルダーをdr31へ展開しない：${asset}`);
+  ok(dr31.includes(`./${asset}`), `dr31も数値例の共通式ビルダーに${asset}を使う`);
 }
+for (const asset of ['js/lesson-formula-grader.js', 'js/sound-reference-formulas.js']) {
+  ok(dr31.includes(`./${asset}`), `dr31の数値例に${asset}を読む`);
+}
+ok(
+  dr31.indexOf('./js/lesson-formula-core.js') < dr31.indexOf('./js/lesson-formula-grader.js')
+  && dr31.indexOf('./js/lesson-formula-grader.js') < dr31.indexOf('./js/sound-formulas.js')
+  && dr31.indexOf('./js/sound-formulas.js') < dr31.indexOf('./js/lesson-formula-builder.js')
+  && dr31.indexOf('./js/lesson-formula-builder.js') < dr31.indexOf('./js/sound-reference-formulas.js'),
+  'dr31はCore→grader→SoundFormulas→builder→数値例統合の依存順'
+);
 ok(dr32.indexOf('./js/lesson-formula-core.js') < dr32.indexOf('./js/sound-formulas.js') && dr32.indexOf('./js/sound-formulas.js') < dr32.indexOf('./js/sound-quiz.js'), '式Core→音教材adapter→quizの依存順');
 equal((dr32.match(/<div data-sound-formula-builder>/g) || []).length, 4, '例題1か所・計算演習3か所に式エディター');
 equal((dr32.match(/data-sound-formula-score/g) || []).length, 3, '演習の立式・答えを分離集計');

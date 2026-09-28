@@ -1409,6 +1409,11 @@ section article .dr-reference-card__header p {
   align-items: start;
 }
 
+/* 数値例は開いた項目だけカード幅全体を使い、式編集を4分の1幅へ閉じ込めない。 */
+.dr-reveal-list--examples > [data-sound-reference-example][open] { grid-column: 1 / -1; }
+.dr-reference-solution > summary { display: flex; align-items: center; min-height: 44px; cursor: pointer; }
+.dr-reference-solution > summary:focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 2px; }
+
 .dr-reveal-item {
   min-width: 0;
   border: 1px solid var(--dr-border);

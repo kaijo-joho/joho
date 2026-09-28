@@ -96,8 +96,12 @@ async function nextProblem(selector) {
   await expect(host.locator('.dr-solution__point')).toBeVisible();
   await next.click();
   const draft = await editorDraft(selector);
-  assert.ok(draft.rows.every(row => !row.tokens.length && !row.result), '次の問題で式と途中結果を初期化');
+  assert.ok(draft.rows.every(row => blankExpression(row.tokens) && !row.result), '次の問題で式と途中結果を初期化');
   assert.ok(Object.values(draft.answers).every(value => !value), '次の問題で答えを初期化');
+}
+function blankExpression(tokens) {
+  return !tokens.length || tokens.length === 5 && tokens[0].kind === 'power'
+    && tokens[0].exponent[0].value === '' && tokens[2].value === '' && tokens[4].exponent[0].value === '';
 }
 async function judgeFor(host, taskId) {
   const task = taskId ? host.locator(`[data-formula-task="${taskId}"]`) : host;
@@ -120,9 +124,9 @@ try {
   }
   for (const selector of [exampleSelector, ...['sampling', 'quantization', 'data-size'].map(selectorFor)]) {
     const draft = await editorDraft(selector);
-    assert.ok(draft.rows.every(row => !row.tokens.length && !row.result), '式と結果は初期空欄');
+    assert.ok(draft.rows.every(row => blankExpression(row.tokens) && !row.result), '式と結果は初期空欄');
     assert.ok(Object.values(draft.answers).every(value => !value), '最終回答を補完しない');
-    assert.ok(draft.rows.every(row => !row.answerOpen), '初期状態で答え欄を開かない');
+    assert.ok(draft.rows.every(row => row.tokens.length ? row.answerOpen : !row.answerOpen), '比較の結論欄だけ初めから表示する');
   }
 
   // 例題の小問(1)から(2)へ共有する途中結果。
@@ -227,18 +231,20 @@ try {
       const id = await fillCorrect(selector);
       seen.add(id);
       if (id === 'bits-17levels') {
-        // 不等式は計算で変形しなくてよい。＝から「⇒ 答え」を開き、
-        // 2^4 < 17 <= 2^5 を根拠として5bitを入力・判定できる。
+        // 不等式の型と結論欄を最初から示す。＝操作は不要。
         await page.evaluate(selector => {
           const entry = window.formulaTestEditors.find(item => item.host.closest(selector));
           const draft = entry.editor.getDraft();
-          draft.rows.forEach(row => { row.answerOpen = false; row.result = ''; });
+          draft.rows.forEach(row => { row.tokens[0].exponent[0].value = ''; row.tokens[2].value = ''; row.tokens[4].exponent[0].value = ''; row.result = ''; });
           draft.answers.answer = '';
           entry.editor.setDraft(draft);
         }, selector);
-        await expect(page.locator(`${selector} [data-formula-answer]`)).toHaveCount(0);
-        await page.locator(`${selector} [data-formula-operator="="]`).click();
-        await expect(page.locator(`${selector} .formula-answer-equals`)).toHaveText('⇒ 答え');
+        await expect(page.locator(`${selector} [data-formula-answer]`)).toHaveCount(1);
+        await expect(page.locator(`${selector} [data-formula-operator="="]`)).toHaveCount(0);
+        await expect(page.locator(`${selector} .formula-answer-equals`)).toHaveText('∴したがって');
+        await page.locator(`${selector} [data-formula-blank="lower"]`).fill('4');
+        await page.locator(`${selector} [data-formula-blank="bound"]`).fill('17');
+        await page.locator(`${selector} [data-formula-blank="upper"]`).fill('5');
         await page.locator(`${selector} [data-formula-answer]`).fill('5');
       }
       await (await judgeFor(page.locator(selector))).click();
@@ -311,7 +317,8 @@ try {
   await page.locator('#digitization-judge').waitFor();
   await page.locator('#digitization-judge').click();
   await expect(page.locator('#digitization-feedback')).toContainText('正解');
-  assert.equal(await page.locator('[data-formula-builder]').count(), 0, 'dr31の既存問題UIへ拡張しない');
+  assert.equal(await page.locator('[data-formula-builder]').count(), 4, 'dr31は4つの数値例だけを共通UIにする');
+  assert.equal(await page.locator('#headline_6 [data-formula-builder]').count(), 0, 'dr31の既存波形問題UIは変更しない');
   assert.deepEqual(errors, [], 'ブラウザ例外なし');
   console.log(`sound-formula-integration (${engine}): 単位なし換算の11問型、例題2小問/末尾追加/途中式、分離スコア、入力保持、解説、採点保留、二重加算防止、27表示条件、タップ、dr31回帰 OK`);
 } finally {

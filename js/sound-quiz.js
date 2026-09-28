@@ -964,10 +964,12 @@
       });
       setFeedback(
         controller.host.querySelector('[data-calculation-feedback]'),
-        '値と記号で元の式を組み立て、答えは自分で計算して入力してください。立式と答えを別々に判定します。'
+        controller.definition.tasks.some(task => task.scaffold?.type === 'power-bounds')
+          ? '比較式の空欄と「∴（したがって）」の後の答えを入力してください。立式と答えを別々に判定します。'
+          : '値と記号で元の式を組み立て、答えは自分で計算して入力してください。立式と答えを別々に判定します。'
       );
       renderCalculation(controller);
-      if (focusAnswer) controller.host.querySelector('[data-formula-slot]')?.focus({ preventScroll: true });
+      if (focusAnswer) controller.host.querySelector('[data-formula-blank], [data-formula-slot]')?.focus({ preventScroll: true });
     }
 
     function initializeCalculation(host) {

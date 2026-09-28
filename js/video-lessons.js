@@ -461,31 +461,23 @@
     reveal(host); update();
   }
 
-  function numericAnswer(text) {
-    const normalized = text.normalize('NFKC').trim();
-    if (!/^(?:\d+|\d{1,3}(?:,\d{3})+)(?:\.\d+)?$/.test(normalized)) return NaN;
-    return Number(normalized.replaceAll(',', ''));
-  }
-
   function initializeQuiz(host) {
-    const frame = Images.imageSize(800, 600, 24, 1000);
-    const expected = host.dataset.videoQuiz === 'duration'
-      ? { duration: Core.playbackSeconds(1.5 * 1024, 1, 24) }
-      : { frame: frame.megabytes, total: Core.videoSize(frame.bytes, 30, 60, 1000).megabytes };
-    const labels = { duration: '再生時間', frame: '1フレーム', total: '動画全体' };
-    const inputs = [...host.querySelectorAll('input')];
-    const feedback = host.querySelector('[data-video-feedback]');
-    inputs.forEach(input => input.addEventListener('input', () => { input.removeAttribute('aria-invalid'); feedback.textContent = ''; }));
-    host.addEventListener('submit', event => {
-      event.preventDefault();
-      feedback.textContent = inputs.map(input => {
-        const correct = numericAnswer(input.value) === expected[input.name];
-        input.setAttribute('aria-invalid', String(!correct));
-        return `${labels[input.name]}：${correct ? '○ 正解' : input.value.trim() ? 'もう一度確認' : '未入力'}`;
-      }).join(' ／ ');
-      resized();
+    const kind = host.dataset.videoQuiz;
+    const Formulas = globalThis.MediaFormulas;
+    const Builder = globalThis.LessonFormulaBuilder;
+    if (!Formulas || !Builder) throw new Error('動画の立式UIを読み込めませんでした。');
+    const definition = Formulas.defineVideo(kind);
+    const builderHost = host.querySelector('[data-video-formula-builder]');
+    if (!builderHost) throw new Error('動画の立式欄がありません。');
+    let builder;
+    builder = Builder.mount(builderHost, definition, {
+      onJudge({ rowId, taskId, intermediate, draft }) {
+        builder.setFeedback(intermediate
+          ? Formulas.gradeRow(definition, draft, rowId)
+          : Formulas.grade(definition, draft, { taskId }));
+      }
     });
-    host.addEventListener('reset', () => { inputs.forEach(input => input.removeAttribute('aria-invalid')); feedback.textContent = ''; resized(); });
+    host.querySelector('[data-video-formula-reset]').addEventListener('click', () => builder.reset(definition));
     const solution = host.querySelector('[data-video-solution]');
     const steps = [...solution.querySelectorAll('ol > li')];
     const next = solution.querySelector('[data-video-solution-next]');

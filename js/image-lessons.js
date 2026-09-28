@@ -548,10 +548,6 @@
   }
 
   const normalize = value => value.normalize('NFKC').trim();
-  function numberAnswer(value) {
-    const text = normalize(value);
-    return /^(?:\d+(?:\.\d+)?|\.\d+)$/.test(text) ? Number(text) : NaN;
-  }
 
   function initializeEncoding(host) {
     const feedback = host.querySelector('[data-image-encoding-feedback]');
@@ -603,22 +599,20 @@
   }
 
   function initializeSizeQuiz(host) {
-    const fullColor = host.dataset.imageSizeQuiz === 'full-color';
-    const expected = fullColor
-      ? { levels: Core.levels(8), size: Core.imageSize(4096, 3072, 24, 1024).megabytes }
-      : { bits: 15, size: Core.imageSize(1000, 800, 15, 1000).megabytes };
-    const feedback = host.querySelector('[data-image-size-feedback]');
-    const inputs = [...host.querySelectorAll('input')];
-    inputs.forEach(input => input.addEventListener('input', () => { input.removeAttribute('aria-invalid'); feedback.textContent = ''; }));
-    host.addEventListener('submit', event => {
-      event.preventDefault();
-      const results = inputs.map(input => {
-        const valid = numberAnswer(input.value) === expected[input.name];
-        input.setAttribute('aria-invalid', String(!valid));
-        return `${input.name === 'size' ? 'データ量' : fullColor ? '階調数' : 'ビット数'}：${valid ? '正解' : normalize(input.value) ? 'もう一度確認' : '未入力'}`;
-      });
-      feedback.textContent = results.join(' ／ ');
-      resized();
+    const kind = host.dataset.imageSizeQuiz;
+    const Formulas = globalThis.MediaFormulas;
+    const Builder = globalThis.LessonFormulaBuilder;
+    if (!Formulas || !Builder) throw new Error('画像の立式UIを読み込めませんでした。');
+    const definition = Formulas.defineImage(kind);
+    const builderHost = host.querySelector('[data-image-formula-builder]');
+    if (!builderHost) throw new Error('画像の立式欄がありません。');
+    let builder;
+    builder = Builder.mount(builderHost, definition, {
+      onJudge({ rowId, taskId, intermediate, draft }) {
+        builder.setFeedback(intermediate
+          ? Formulas.gradeRow(definition, draft, rowId)
+          : Formulas.grade(definition, draft, { taskId }));
+      }
     });
     const solution = host.querySelector('[data-image-solution]');
     const steps = [...solution.querySelectorAll('ol > li')];

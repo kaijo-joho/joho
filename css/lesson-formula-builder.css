@@ -19,6 +19,8 @@
 }
 
 .formula-palette, .formula-task {
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
   border: 1px solid var(--formula-border);
   border-radius: .6rem;
@@ -282,6 +284,24 @@
 .formula-popup-panel p { margin: 0; font-size: 1em; }
 .formula-popup-panel .formula-palette-cards { margin: 0; }
 .formula-help { margin-block-start: .35rem; color: var(--formula-muted); font-size: .82em; }
+
+/* 最小ビット数は比較式の型を与える。等式の答え欄と混同させない。 */
+.formula-scaffold-expression { display: flex; flex-wrap: wrap; align-items: center; gap: .7rem 1rem; padding-block: .5rem; }
+.formula-scaffold-comparison { display: inline-flex; align-items: center; gap: .2rem; min-width: 0; max-width: 100%; overflow-x: auto; padding: .25rem; }
+.formula-scaffold-power { display: inline-flex; align-items: flex-start; flex: 0 0 auto; }
+.formula-scaffold-base { align-self: center; font-size: 1.4em; }
+.formula-scaffold-power .formula-scaffold-blank { font-size: .8em; margin-block-end: 2em; }
+.formula-row .formula-scaffold-blank { width: 3em; min-width: 44px; padding-inline: .2rem; text-align: center; font-variant-numeric: tabular-nums; }
+.formula-row .formula-scaffold-blank[data-formula-blank="bound"] { width: 5.5em; }
+.formula-scaffold-relation { flex: 0 0 auto; font-weight: 700; }
+.formula-scaffold .formula-result-input { width: 4.5em; }
+.formula-scaffold .formula-result-input input { text-align: center; }
+.formula-scaffold .formula-answer-item { flex: 0 1 auto; flex-wrap: wrap; min-width: 0; max-width: 100%; }
+.formula-scaffold .formula-answer-equals { display: flex; flex-direction: column; align-items: center; font-size: 1.2em; }
+.formula-therefore-label { font-size: .55em; font-weight: 400; color: var(--formula-muted); }
+.formula-scaffold input[aria-invalid="true"] { outline: 2px solid color-mix(in oklab, #a32727 65%, var(--formula-text)); outline-offset: 1px; }
+.formula-scaffold-blank.is-drop-target { background: color-mix(in oklab, var(--formula-panel) 82%, var(--formula-focus)); border-color: var(--formula-focus); }
+.formula-scaffold-blank.is-dragover { outline: 2px solid var(--formula-focus); outline-offset: 1px; }
 
 @media (max-width: 640px) {
   .formula-result-source { flex: 0 0 auto; }

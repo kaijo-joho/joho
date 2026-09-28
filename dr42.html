@@ -9,11 +9,16 @@
   <link rel="stylesheet" href="./css/digital-representation.css">
   <link rel="stylesheet" href="./css/bird-frames.css">
   <link rel="stylesheet" href="./css/video-representation.css">
+  <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <script defer src="./js/main.js"></script>
+  <script defer src="./js/lesson-formula-core.js"></script>
+  <script defer src="./js/lesson-formula-grader.js"></script>
+  <script defer src="./js/lesson-formula-builder.js"></script>
   <script defer src="./js/image-core.js"></script>
   <script defer src="./js/video-core.js"></script>
   <script defer src="./js/bird-frames.js"></script>
   <script defer src="./js/video-size-preview.js"></script>
+  <script defer src="./js/media-formulas.js"></script>
   <script defer src="./js/video-lessons.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -327,13 +332,12 @@
   <section data-lesson-slide data-lesson-slide-title="再生時間の問題" data-lesson-slide-layout="exercise">
     <article>
       <h2 id="headline_6">(6) 動画の再生時間を求める</h2>
-      <form class="vd-widget" data-video-quiz="duration" data-lesson-slide-navigation-lock>
+      <section class="vd-widget" data-video-quiz="duration" data-lesson-slide-navigation-lock>
         <h3>問題1　何秒間の動画？</h3>
         <p>1フレームのデータ量が<strong>1MB</strong>、フレームレートが<strong>24fps</strong>の動画があります。全体のデータ量が<strong>1.5GB</strong>のとき、再生時間を求めましょう。</p>
         <p class="vd-hint">1GB＝1024MBとします。動画は圧縮せず、音声や付加情報は含めません。</p>
-        <div class="vd-answer-fields"><label>再生時間 <span><input name="duration" type="text" inputmode="decimal" autocomplete="off" aria-label="問題1の再生時間、秒"> 秒</span></label></div>
-        <div class="vd-controls vd-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button><button class="dr-button" type="reset">入力を消す</button></div>
-        <p class="vd-feedback" data-video-feedback role="status"></p>
+        <div data-video-formula-builder></div>
+        <div class="vd-controls vd-enhancement" hidden><button class="dr-button" type="button" data-video-formula-reset>入力を消す</button></div>
         <details class="dr-reveal-item"><summary>解き方を確認</summary><div class="dr-reveal-item__body" data-video-solution>
           <ol>
             <li>全体のデータ量を、1フレームと同じMBにそろえます。<p class="vd-equation">1.5［GB］×1024［MB/GB］</p></li>
@@ -344,20 +348,19 @@
           <div class="vd-controls vd-enhancement" hidden><button class="dr-button" type="button" data-video-solution-next>次へ</button><button class="dr-button" type="button" data-video-solution-reset>解説を最初から</button></div>
         </div></details>
         <noscript><p>自動判定にはJavaScriptが必要です。「解き方を確認」から解答を読めます。</p></noscript>
-      </form>
+      </section>
     </article>
   </section>
 
   <section data-lesson-slide data-lesson-slide-title="データ量の問題" data-lesson-slide-layout="exercise">
     <article>
       <h2 id="headline_7">(7) 動画のデータ量を求める</h2>
-      <form class="vd-widget" data-video-quiz="size" data-lesson-slide-navigation-lock>
+      <section class="vd-widget" data-video-quiz="size" data-lesson-slide-navigation-lock>
         <h3>問題2　画像1枚から動画全体へ</h3>
         <p><strong>800×600画素、24ビットフルカラー</strong>の画像を1フレームとし、<strong>30fps</strong>で<strong>1分間</strong>の動画を作ります。1フレームと動画全体のデータ量を、それぞれMBで求めましょう。</p>
         <p class="vd-hint">1B＝8bit、1KB＝1000B、1MB＝1000KBとします。動画は圧縮せず、音声や付加情報は含めません。</p>
-        <div class="vd-answer-fields"><label>1フレーム <span><input name="frame" type="text" inputmode="decimal" autocomplete="off" aria-label="問題2の1フレームのデータ量、MB"> MB</span></label><label>動画全体 <span><input name="total" type="text" inputmode="decimal" autocomplete="off" aria-label="問題2の動画全体のデータ量、MB"> MB</span></label></div>
-        <div class="vd-controls vd-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button><button class="dr-button" type="reset">入力を消す</button></div>
-        <p class="vd-feedback" data-video-feedback role="status"></p>
+        <div data-video-formula-builder></div>
+        <div class="vd-controls vd-enhancement" hidden><button class="dr-button" type="button" data-video-formula-reset>入力を消す</button></div>
         <details class="dr-reveal-item"><summary>解き方を確認</summary><div class="dr-reveal-item__body" data-video-solution>
           <ol>
             <li>全画素数に1画素あたりのビット数を掛けます。<p class="vd-equation">800×600［画素］×24［bit/画素］</p></li>
@@ -369,7 +372,7 @@
           <div class="vd-controls vd-enhancement" hidden><button class="dr-button" type="button" data-video-solution-next>次へ</button><button class="dr-button" type="button" data-video-solution-reset>解説を最初から</button></div>
         </div></details>
         <noscript><p>自動判定にはJavaScriptが必要です。「解き方を確認」から解答を読めます。</p></noscript>
-      </form>
+      </section>
     </article>
   </section>
 
