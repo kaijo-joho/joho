@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from authorize_drive import MANAGE_SCOPES, READ_SCOPE, SetupError, authorize, load_client, main
+from authorize_drive import ARCHIVE_SCOPES, MANAGE_SCOPES, READ_SCOPE, SetupError, authorize, load_client, main
 
 CLIENT = {'installed': {'client_id': 'test.apps.googleusercontent.com', 'client_secret': 'dummy',
     'auth_uri': 'https://accounts.google.com/o/oauth2/auth', 'token_uri': 'https://oauth2.googleapis.com/token'}}
@@ -66,6 +66,21 @@ class AuthorizeTests(unittest.TestCase):
     def test_manage_partial_consent_does_not_save(self):
         with self.assertRaises(SetupError):
             authorize(self.client, self.output, 'teacher@example.edu', access='manage',
+                      flow_factory=self.factory, get_account=self.account)
+        self.assertFalse(self.output.exists())
+
+    def test_archive_requires_separate_explicit_mode(self):
+        self.credentials.granted_scopes = ARCHIVE_SCOPES
+        result = authorize(self.client, self.output, 'teacher@example.edu', access='archive',
+                           flow_factory=self.factory, get_account=self.account)
+        self.assertEqual(result['access'], 'drive.archive')
+        self.assertEqual(json.loads(self.output.read_text())['scopes'], ARCHIVE_SCOPES)
+        self.factory.assert_called_once_with(CLIENT, scopes=['https://www.googleapis.com/auth/drive'])
+
+    def test_manage_consent_cannot_satisfy_archive_mode(self):
+        self.credentials.granted_scopes = MANAGE_SCOPES
+        with self.assertRaises(SetupError):
+            authorize(self.client, self.output, 'teacher@example.edu', access='archive',
                       flow_factory=self.factory, get_account=self.account)
         self.assertFalse(self.output.exists())
 

@@ -11,6 +11,7 @@ import sys
 READ_SCOPE = 'https://www.googleapis.com/auth/drive.readonly'
 MANAGE_SCOPES = [READ_SCOPE, 'https://www.googleapis.com/auth/drive.file',
                  'https://www.googleapis.com/auth/drive.metadata']
+ARCHIVE_SCOPES = ['https://www.googleapis.com/auth/drive']
 
 
 class SetupError(ValueError):
@@ -69,9 +70,9 @@ def account_email(credentials):
 
 def authorize(client_path, destination, expected_account, *, flow_factory=google_flow,
               get_account=account_email, access='read'):
-    if access not in ('read', 'manage'):
+    if access not in ('read', 'manage', 'archive'):
         raise SetupError('認可モードを確認してください。')
-    scopes = [READ_SCOPE] if access == 'read' else MANAGE_SCOPES
+    scopes = {'read': [READ_SCOPE], 'manage': MANAGE_SCOPES, 'archive': ARCHIVE_SCOPES}[access]
     if not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', expected_account):
         raise SetupError('処理用アカウントのメールアドレスを指定してください。')
     target = output_path(destination)
@@ -106,7 +107,8 @@ def authorize(client_path, destination, expected_account, *, flow_factory=google
     except BaseException:
         target.unlink(missing_ok=True)
         raise
-    return {'status': 'OK', 'access': 'drive.readonly' if access == 'read' else 'drive.manage',
+    return {'status': 'OK', 'access': {'read': 'drive.readonly', 'manage': 'drive.manage',
+                                     'archive': 'drive.archive'}[access],
             'credentialsSaved': True}
 
 
@@ -115,7 +117,8 @@ def main(argv=None):
     parser.add_argument('--client-secrets', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--expected-account', required=True)
-    parser.add_argument('--access', choices=['read', 'manage'], default='read')
+    parser.add_argument('--access', choices=['read', 'manage', 'archive'], default='read',
+                        help='archiveはDrive全体の編集権限。原本移動の追加許可を得た場合だけ使用する')
     args = parser.parse_args(argv)
     # OAuth redirects and SDK debug logs can contain authorization codes/tokens.
     logging.disable(logging.CRITICAL)

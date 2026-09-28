@@ -11,14 +11,23 @@
 ```bash
 python3 scripts/worksheet-scan-header/authorize_drive.py \
   --client-secrets /private/path/desktop-client.json \
-  --output /private/path/drive-manage-oauth.json \
-  --expected-account SCHOOL_ACCOUNT --access manage
+  --output /private/path/drive-archive-oauth.json \
+  --expected-account SCHOOL_ACCOUNT --access archive
 ```
 
-`manage`は`drive.readonly`・`drive.file`・`drive.metadata`を要求する。
-Googleの権限はフォルダー単位ではないため、明示的な追加認可が必要。
+`archive`は`drive`（Drive全体の編集。権限上は削除も含む）を要求する。
+Googleの権限はフォルダー単位ではないため、この範囲への明示的な追加認可が必要。
+既存の`manage`は`drive.readonly`・`drive.file`・`drive.metadata`のまま維持する。
+2026-09-28の実接続では、これら3権限が認可済みでも、ScanSnapが作った原本の
+`addParents` / `removeParents`は403 `appNotAuthorizedToFile`となった。
+保存・GSS登録通知の確認と原本移動の認可を区別し、移動できると推定しない。
+`archive`は別名の認証ファイルへ保存して検証し、旧認証をバックアップしてから
+常駐用`drive-manage-oauth.json`へ切り替える。スクリプトが既存認証を上書きすることはない。
 プログラムでは学校アカウントと下記のIDを固定して操作を制限する。ACL変更・削除は行わない。
 認証ファイル・キュー・実環境の設定はGitや公開ウェブ、同期フォルダーの外へ置く。
+
+参考: [Driveのスコープ](https://developers.google.com/workspace/drive/api/guides/api-specific-auth)、
+[appNotAuthorizedToFile](https://developers.google.com/workspace/drive/api/guides/handle-errors#appnotauthorizedtofile)。
 
 `cloud-sync-settings.example.json`をコピーして設定する。
 
