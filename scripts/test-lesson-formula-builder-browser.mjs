@@ -1,0 +1,152 @@
+// Usage: PLAYWRIGHT_MODULE=/path/to/playwright node scripts/test-lesson-formula-builder-browser.mjs http://127.0.0.1:8771/
+import assert from 'node:assert/strict';
+import { createRequire } from 'node:module';
+
+const require = createRequire(import.meta.url);
+const { chromium, webkit } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const baseURL = new URL(process.argv[2] || 'http://127.0.0.1:8771/');
+const engine = process.env.JOHO_BROWSER === 'webkit' ? webkit : chromium;
+const browser = await engine.launch(engine === chromium ? { channel: 'chrome', headless: true } : { headless: true });
+const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+const errors = [];
+
+await page.addInitScript(() => {
+  let calls = 0;
+  let core;
+  Object.defineProperty(window, 'LessonFormulaCore', {
+    configurable: true,
+    get: () => core,
+    set: value => {
+      core = Object.assign({}, value, {
+        evaluate(...args) { calls += 1; return value.evaluate(...args); }
+      });
+    }
+  });
+  window.__formulaBuilderCoreCalls = () => calls;
+});
+await page.route('**/*', route => {
+  const url = new URL(route.request().url());
+  if (url.origin !== baseURL.origin) return route.abort();
+  return route.continue();
+});
+page.on('pageerror', error => errors.push(error.message));
+page.on('requestfailed', request => {
+  const url = new URL(request.url());
+  if (url.origin === baseURL.origin) errors.push(`failed: ${url.pathname}`);
+});
+
+try {
+  await page.goto(new URL('dr32.html#headline_2', baseURL).href, { waitUntil: 'networkidle' });
+  await page.locator('[data-sound-worked-example] [data-formula-builder]').waitFor();
+  const example = page.locator('[data-sound-worked-example] [data-formula-builder]');
+  assert.equal(await page.evaluate(() => typeof window.__formulaBuilderCoreCalls === 'function'), true);
+
+  const firstSlot = example.locator('[data-formula-slot]').first();
+  await firstSlot.click();
+  await assert.doesNotReject(() => firstSlot.press('ArrowRight'));
+  assert.equal(await page.evaluate(() => location.hash), '#headline_2', '式欄の矢印操作でスライドを移動しない');
+  await example.locator('[data-formula-quantity]').first().click();
+  assert.match(await example.locator('[data-formula-token]').first().textContent(), /44,100|16/, '式内は数値を読みやすく表示する');
+  assert.doesNotMatch(await example.locator('[data-formula-token]').first().textContent(), /標本化周波数/, '式内へ長い数量名を常時表示しない');
+  await expectFocusedSlot(page);
+
+  const manual = example.getByRole('textbox', { name: '自由入力の数値', exact: true });
+  await manual.fill('12.5');
+  const manualInsert = example.getByRole('button', { name: '自由入力の数値を式へ挿入' });
+  assert.equal(await manualInsert.isDisabled(), false, '自由入力後に数値を挿入できる');
+  await manualInsert.click();
+  assert.equal(await page.evaluate(() => window.__formulaBuilderCoreCalls()), 0, '編集時にCore計算を呼ばない');
+
+  const beforeDrag = await example.locator('[data-formula-token]').count();
+  // ネイティブdragの試験は両端を同時に見せて行う。狭い画面は後段で
+  // 挿入位置→クリック/タップ、および選択→移動の代替操作を確認する。
+  await page.setViewportSize({ width: 1280, height: 1800 });
+  await example.getByText('補助定数・換算値を開く', { exact: true }).click();
+  await example.locator('[data-formula-constant]').first().dragTo(example.locator('[data-formula-slot]').first());
+  assert.equal(await example.locator('.formula-constants').evaluate(node => node.open), true, '定数パレットの開閉状態を挿入後も保つ');
+  assert.equal(await example.locator('[data-formula-token]').count(), beforeDrag + 1, 'パレットカードをドラッグ挿入できる');
+  await example.getByRole('button', { name: '↶ 元に戻す' }).click();
+  assert.equal(await example.locator('[data-formula-token]').count(), beforeDrag, 'ドラッグ挿入を元に戻せる');
+  await example.getByRole('button', { name: '↷ やり直す' }).click();
+  assert.equal(await example.locator('[data-formula-token]').count(), beforeDrag + 1, 'やり直しできる');
+
+  await example.locator('[data-formula-add-row]').click();
+  const rows = example.locator('[data-formula-row]');
+  const firstRow = rows.first();
+  const secondRow = rows.nth(1);
+  const result = firstRow.locator('[data-formula-result]');
+  await result.fill('4');
+  await firstRow.locator('[data-formula-result-unit]').selectOption('B');
+  assert.equal(await firstRow.locator('[data-formula-result-unit] option[value=""]').count(), 1, '単位なしの選択肢を重複させない');
+  await secondRow.getByRole('button', { name: '選んだ前の式の手入力結果を参照として挿入' }).click();
+  assert.equal(await firstRow.locator('.formula-row-remove').isDisabled(), true, '参照元の行を削除できない');
+  assert.equal(await rows.nth(2).locator('[data-formula-reference-source] option').count(), 2, 'すべての前の式を参照候補にする');
+
+  const thirdRow = rows.nth(2);
+  const firstToken = firstRow.locator('[data-formula-token]').first();
+  await firstToken.click();
+  await example.getByRole('button', { name: '選択を移動' }).click();
+  const moveTarget = thirdRow.locator('[data-formula-slot]').last();
+  assert.match(await moveTarget.getAttribute('class'), /is-move-target/);
+  await moveTarget.press('Escape');
+  assert.match(await firstRow.locator('[data-formula-token]').first().getAttribute('class'), /is-selected/);
+  await example.getByRole('button', { name: '選択を移動' }).click();
+  const countBeforeMove = await firstRow.locator('[data-formula-token]').count();
+  await moveTarget.click();
+  assert.equal(await firstRow.locator('[data-formula-token]').count(), countBeforeMove - 1, '選択部品を移動先スロットへ移動できる');
+
+  // Nested reference cannot be dragged to a preceding row.
+  await secondRow.locator('[data-formula-slot]').first().click();
+  await example.getByRole('button', { name: '括弧グループを式へ挿入' }).click();
+  const group = secondRow.locator('.formula-group').last();
+  await group.locator('[data-formula-slot]').first().click();
+  await secondRow.getByRole('button', { name: '選んだ前の式の手入力結果を参照として挿入' }).click();
+  const firstBefore = await firstRow.locator('[data-formula-token]').count();
+  await group.dragTo(firstRow.locator('[data-formula-slot]').first());
+  assert.equal(await firstRow.locator('[data-formula-token]').count(), firstBefore, 'ネストした参照を前の行へ移動できない');
+
+  await thirdRow.locator('[data-formula-result]').fill('99');
+  await firstRow.locator('[data-formula-result]').fill('5');
+  assert.ok((await secondRow.locator('[data-formula-reference]').allTextContents()).every(text => text.includes('5')), '前の結果を変更すると参照カードも更新');
+  assert.equal(await thirdRow.locator('[data-formula-result]').inputValue(), '99', '後の手入力結果は自動更新しない');
+  await example.locator('[data-formula-action="undo"]').click();
+  assert.equal(await firstRow.locator('[data-formula-result]').inputValue(), '4', '結果入力も取り消せる');
+
+  // 分数の中に指数を作り、ネストした値だけをキーボードで編集する。
+  await example.locator('[data-formula-add-row]').click();
+  const nested = rows.last();
+  await nested.locator('[data-formula-slot]').first().click();
+  await example.getByRole('button', { name: '分数を式へ挿入', exact: true }).press('Enter');
+  await nested.locator('.formula-fraction > .formula-token-list').first().locator('[data-formula-slot]').first().click();
+  await example.getByRole('button', { name: '指数を式へ挿入', exact: true }).press('Enter');
+  await nested.locator('.formula-power > .formula-token-list [data-formula-slot]').first().click();
+  await example.locator('[data-formula-constant="two"]').press('Enter');
+  await nested.locator('.formula-power-exponent [data-formula-slot]').first().click();
+  await manual.fill('3');
+  await manualInsert.press('Enter');
+  const exponent = nested.locator('.formula-power-exponent [data-formula-token]').first();
+  await exponent.press('Enter');
+  assert.match(await exponent.getAttribute('class'), /is-selected/, '指数内の値だけが選択される');
+  await exponent.press('Delete');
+  assert.equal(await nested.locator('.formula-power-exponent [data-formula-token]').count(), 0, '指数内の値だけを削除');
+  assert.equal(await nested.locator('.formula-power').count(), 1, '外側の指数は残す');
+  await example.locator('[data-formula-action="undo"]').press('Enter');
+  assert.equal(await nested.locator('.formula-power-exponent [data-formula-token]').textContent(), '3', 'ネストした値の削除を取り消す');
+  assert.equal(await page.evaluate(() => window.__formulaBuilderCoreCalls()), 0, '分数・指数・参照・取り消しでも自動計算しない');
+
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.evaluate(() => {
+    window.siteTheme.setPreference('dark', { persist: false });
+    window.siteTextSize.setPreference('xlarge', { persist: false });
+  });
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1), '390px幅でページ全体が横にはみ出さない');
+  assert.equal(errors.length, 0, errors.join('\n'));
+  console.log('lesson-formula-builder-browser: ok');
+} finally {
+  await browser.close();
+}
+
+async function expectFocusedSlot(page) {
+  assert.equal(await page.evaluate(() => document.activeElement?.matches('[data-formula-slot]')), true, '挿入後もスロットへフォーカスが戻る');
+}

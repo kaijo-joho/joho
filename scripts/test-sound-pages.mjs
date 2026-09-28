@@ -410,6 +410,17 @@ for (const pattern of ["pattern: 'sampling'", "pattern: 'quantization'", "patter
 ok(quiz.includes('calculationProblemGroups[controller.pattern]') && quiz.includes('calculation-${controller.pattern}'), '各スライドの計算パターン内から連続出題');
 ok(quiz.includes('calculationHosts.forEach(initializeCalculation)'), '3つの計算スライドをそれぞれ初期化');
 ok(quiz.includes('workedExampleHosts.forEach(initializeWorkedExample)'), '例題を独立した段階表示として初期化');
+for (const asset of ['css/lesson-formula-builder.css', 'js/lesson-formula-core.js', 'js/lesson-formula-builder.js', 'js/sound-formulas.js']) {
+  ok(dr32.includes(`./${asset}`), `dr32は共通式ビルダーの${asset}を読む`);
+  ok(!dr31.includes(`./${asset}`), `今回の式ビルダーをdr31へ展開しない：${asset}`);
+}
+ok(dr32.indexOf('./js/lesson-formula-core.js') < dr32.indexOf('./js/sound-formulas.js') && dr32.indexOf('./js/sound-formulas.js') < dr32.indexOf('./js/sound-quiz.js'), '式Core→音教材adapter→quizの依存順');
+equal((dr32.match(/<div data-sound-formula-builder>/g) || []).length, 4, '例題1か所・計算演習3か所に式エディター');
+equal((dr32.match(/data-sound-formula-score/g) || []).length, 3, '演習の立式・答えを分離集計');
+ok(!dr32.includes('data-calculation-answer'), '答えだけの旧入力欄を式エディターで置き換える');
+const formulaEditorSource = await source('js/lesson-formula-builder.js');
+ok(!/\beval\s*\(|\bFunction\s*\(/.test(formulaEditorSource), '式をJavaScriptとして実行しない');
+ok(!formulaEditorSource.includes('LessonFormulaCore.evaluate') && !formulaEditorSource.includes('SoundCore'), '編集UIは計算処理を呼ばない');
 for (const requirement of ['dr-solution__steps', '式を選ぶ', '時間を秒にそろえる', '標本化周波数を置く', '時間を掛ける', '量子化ビット数を掛ける', 'チャンネル数を掛ける', 'bitからBへ換算する', '約分して、まとめて計算する', 'ポイント']) {
   ok(quiz.includes(requirement), `計算問題の段階的な解説に「${requirement}」`);
 }

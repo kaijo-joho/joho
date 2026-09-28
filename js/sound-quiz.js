@@ -5,6 +5,8 @@
   const Core = root.SoundCore;
   const Renderer = root.SoundRenderer;
   const Widgets = root.SoundWidgets;
+  const FormulaBuilder = root.LessonFormulaBuilder;
+  const Formulas = root.SoundFormulas;
   if (!Core || !Renderer || !Widgets) throw new Error('sound-quiz.jsの依存ファイルが読み込まれていません。');
 
   const el = Widgets.element;
@@ -484,6 +486,7 @@
     const seed = querySeed || document.body.dataset.soundQuizSeed || 'sound-classroom-v1';
     const random = Core.createSeededRandom(seed);
     const score = { attempted: 0, correct: 0 };
+    const formulaScore = { attempted: 0, formula: 0, answer: 0 };
     const state = {
       digitization: null,
       terminology: null,
@@ -585,6 +588,7 @@
         id: 'high-resolution-binary', kind: 'dataSize', pattern: 'data-size', level: 3,
         params: {
           sampleRate: 192000,
+          sampleRateUnit: 'kHz',
           seconds: 4 * 60 + 16,
           durationParts: { minutes: 4, seconds: 16 },
           bitDepth: 24,
@@ -620,6 +624,18 @@
       document.querySelectorAll('[data-sound-score]').forEach(output => {
         output.textContent = `解答 ${score.attempted}問 ／ 正解 ${score.correct}問`;
       });
+      document.querySelectorAll('[data-sound-formula-score]').forEach(output => {
+        output.textContent = `解答 ${formulaScore.attempted}問 ／ 立式正解 ${formulaScore.formula}問 ／ 答え正解 ${formulaScore.answer}問`;
+      });
+    }
+
+    function recordFormula(result, judgment) {
+      if (result.counted) return;
+      result.counted = true;
+      formulaScore.attempted += 1;
+      if (judgment.formulaCorrect) formulaScore.formula += 1;
+      if (judgment.answerCorrect) formulaScore.answer += 1;
+      updateScore();
     }
 
     function record(result, correct) {
@@ -692,7 +708,8 @@
           : `正解は ${calculationNumber(problem.expected, problem.answerDigits)}${problem.answerUnit} です。`
       );
       const solution = buildSolution(problem, result.revealedSteps);
-      target.replaceChildren(outcome, solution);
+      const formulaOutcome = el('p', 'dr-feedback__result', `立式：${result.formulaFeedback?.formulaCorrect ? '○ 正解' : '× 見直しましょう'} ／ 答え：${correct ? '○ 正解' : '× 見直しましょう'}`);
+      target.replaceChildren(formulaOutcome, outcome, solution);
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
 
@@ -703,6 +720,16 @@
       const nextButton = host.querySelector('[data-worked-example-next]');
       if (!target || !nextButton) return;
       let revealedSteps = 0;
+      const formulaHost = host.querySelector('[data-sound-formula-builder]');
+      const judgeButton = host.querySelector('[data-worked-example-judge]');
+      if (formulaHost && FormulaBuilder && Formulas) {
+        const definition = Formulas.define(problem);
+        const builder = FormulaBuilder.mount(formulaHost, definition);
+        judgeButton?.addEventListener('click', () => builder.setFeedback(Formulas.grade(definition, builder.getDraft())));
+      } else if (judgeButton) {
+        judgeButton.disabled = true;
+        if (formulaHost) formulaHost.textContent = '式の編集部品を読み込めませんでした。再読み込みしてください。解説は引き続き確認できます。';
+      }
 
       function render() {
         const solution = buildSolution(problem, revealedSteps);
@@ -862,10 +889,7 @@
       const { host, result } = controller;
       const problem = result.problem;
       host.querySelector('[data-calculation-prompt]').textContent = problem.prompt;
-      const input = host.querySelector('[data-calculation-answer]');
-      input.value = result.answer;
-      input.disabled = result.judged;
-      host.querySelector('[data-calculation-unit]').textContent = problem.answerUnit;
+      controller.builder?.setDisabled(result.judged);
       host.querySelector('[data-calculation-judge]').disabled = result.judged;
       const nextButton = host.querySelector('[data-calculation-next]');
       const hasHiddenSteps = result.judged && result.revealedSteps < problem.solution.steps.length;
@@ -882,32 +906,39 @@
     function newCalculationProblem(controller, focusAnswer = true) {
       const problem = choose(`calculation-${controller.pattern}`, calculationProblemGroups[controller.pattern]);
       controller.result = { problem, answer: '', judged: false, counted: false, revealedSteps: 0 };
+      controller.definition = Formulas.define(problem);
+      if (controller.builder) controller.builder.reset(controller.definition);
+      else controller.builder = FormulaBuilder.mount(controller.host.querySelector('[data-sound-formula-builder]'), controller.definition);
       setFeedback(
         controller.host.querySelector('[data-calculation-feedback]'),
-        '式を立てて数値を入力してください。単位は問題文と入力欄の右側で確認できます。'
+        '値と記号で元の式を組み立て、答えは自分で計算して入力してください。立式と答えを別々に判定します。'
       );
       renderCalculation(controller);
-      if (focusAnswer) controller.host.querySelector('[data-calculation-answer]').focus({ preventScroll: true });
+      if (focusAnswer) controller.host.querySelector('[data-formula-slot]')?.focus({ preventScroll: true });
     }
 
     function initializeCalculation(host) {
       const pattern = host.dataset.soundCalculation;
       if (!calculationProblemGroups[pattern]) return;
+      if (!FormulaBuilder || !Formulas) {
+        setFeedback(host.querySelector('[data-calculation-feedback]'), '式の編集部品を読み込めませんでした。ページを再読み込みしてください。', 'is-info');
+        host.querySelector('[data-calculation-judge]').disabled = true;
+        return;
+      }
       const controller = { host, pattern, result: null };
-      const input = host.querySelector('[data-calculation-answer]');
-      input.addEventListener('input', event => {
-        if (controller.result) controller.result.answer = event.target.value;
-      });
       host.querySelector('[data-calculation-judge]').addEventListener('click', () => {
         const result = controller.result;
         if (!result || result.judged) return;
-        const answer = Number(result.answer);
-        const correct = result.answer.trim() !== ''
-          && Number.isFinite(answer)
-          && Math.abs(answer - result.problem.expected) <= result.problem.tolerance;
+        const draft = controller.builder.getDraft();
+        const judgment = Formulas.grade(controller.definition, draft);
+        controller.builder.setFeedback(judgment);
+        if (judgment.status !== 'judged') return;
+        const correct = judgment.answerCorrect;
+        result.answer = draft.answers.answer;
+        result.formulaFeedback = judgment;
         result.judged = true;
         result.correct = correct;
-        record(result, correct);
+        recordFormula(result, judgment);
         renderCalculationFeedback(host, result, correct);
         renderCalculation(controller);
         host.querySelector('[data-calculation-next]').focus({ preventScroll: true });

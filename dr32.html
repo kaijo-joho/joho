@@ -13,10 +13,14 @@
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
+  <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/sound-core.js"></script>
   <script defer src="./js/sound-renderer.js"></script>
   <script defer src="./js/sound-widgets.js"></script>
+  <script defer src="./js/lesson-formula-core.js"></script>
+  <script defer src="./js/lesson-formula-builder.js"></script>
+  <script defer src="./js/sound-formulas.js"></script>
   <script defer src="./js/sound-quiz.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -172,6 +176,12 @@
             <span class="dr-condition">ステレオ 2チャンネル</span>
             <span class="dr-condition">1KB = 1,000B</span>
           </div>
+          <p class="dr-lead">値と記号で式を組み立て、自分で計算します。(1)の結果を次の式に使うこともできます。例題の判定はスコアに加算しません。</p>
+          <div data-sound-formula-builder></div>
+          <noscript><p>式の組み立てと判定にはJavaScriptが必要です。問題文を使って紙に式を書き、自分で計算してください。</p></noscript>
+          <div class="dr-question-actions">
+            <button type="button" class="dr-button dr-button--primary" data-worked-example-judge>式と答えを判定</button>
+          </div>
           <div class="dr-feedback is-info" data-worked-example-feedback role="status" aria-live="polite">
             「次へ」を押すと、解き方を一段階ずつ確認できます。
           </div>
@@ -192,14 +202,10 @@
         <div class="dr-question-card" data-sound-calculation="sampling">
           <div class="dr-question-header">
             <h3>周波数と周期を相互変換</h3>
-            <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+            <output class="dr-score" data-sound-formula-score>解答 0問 ／ 立式正解 0問 ／ 答え正解 0問</output>
           </div>
           <p class="dr-prompt" data-calculation-prompt></p>
-          <div class="dr-number-answer">
-            <label for="sampling-answer">答え</label>
-            <input class="dr-quiz-input" id="sampling-answer" data-calculation-answer type="number" step="any" inputmode="decimal">
-            <span class="dr-answer-unit" data-calculation-unit></span>
-          </div>
+          <div data-sound-formula-builder></div>
           <div class="dr-feedback" data-calculation-feedback role="status" aria-live="polite"></div>
           <div class="dr-question-actions">
             <button type="button" class="dr-button dr-button--primary" data-calculation-judge>判定</button>
@@ -219,14 +225,10 @@
         <div class="dr-question-card" data-sound-calculation="quantization">
           <div class="dr-question-header">
             <h3>ビット数と段階数を相互変換</h3>
-            <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+            <output class="dr-score" data-sound-formula-score>解答 0問 ／ 立式正解 0問 ／ 答え正解 0問</output>
           </div>
           <p class="dr-prompt" data-calculation-prompt></p>
-          <div class="dr-number-answer">
-            <label for="quantization-answer">答え</label>
-            <input class="dr-quiz-input" id="quantization-answer" data-calculation-answer type="number" step="any" inputmode="decimal">
-            <span class="dr-answer-unit" data-calculation-unit></span>
-          </div>
+          <div data-sound-formula-builder></div>
           <div class="dr-feedback" data-calculation-feedback role="status" aria-live="polite"></div>
           <div class="dr-question-actions">
             <button type="button" class="dr-button dr-button--primary" data-calculation-judge>判定</button>
@@ -246,14 +248,10 @@
         <div class="dr-question-card" data-sound-calculation="data-size">
           <div class="dr-question-header">
             <h3>音声データ量を計算</h3>
-            <output class="dr-score" data-sound-score>解答 0問 ／ 正解 0問</output>
+            <output class="dr-score" data-sound-formula-score>解答 0問 ／ 立式正解 0問 ／ 答え正解 0問</output>
           </div>
           <p class="dr-prompt" data-calculation-prompt></p>
-          <div class="dr-number-answer">
-            <label for="data-size-answer">答え</label>
-            <input class="dr-quiz-input" id="data-size-answer" data-calculation-answer type="number" step="any" inputmode="decimal">
-            <span class="dr-answer-unit" data-calculation-unit></span>
-          </div>
+          <div data-sound-formula-builder></div>
           <div class="dr-feedback" data-calculation-feedback role="status" aria-live="polite"></div>
           <div class="dr-question-actions">
             <button type="button" class="dr-button dr-button--primary" data-calculation-judge>判定</button>
