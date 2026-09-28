@@ -1,5 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--b5" data-scan-side="B" width="182mm" height="257mm" viewBox="0 0 182 257" role="img" aria-label="音のデジタル表現 B 任意の組と番号のマーク欄、ワークシート識別QR" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>音のデジタル表現</title><desc>裏面のマーク欄は任意。生徒情報は表面から引き継ぎ、裏面に記入があれば一致を確認する。QR: INFO1|2026|WS05|B</desc>
+<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--b5" data-scan-side="B" width="182mm" height="257mm" viewBox="0 0 182 257" role="img" aria-label="音のデジタル表現 B 氏名欄、任意の組と番号のマーク欄、ワークシート識別QR" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>音のデジタル表現</title><desc>裏面のマーク欄は任意。生徒情報は表面から引き継ぎ、裏面に記入があれば一致を確認する。QR: INFO1|2026|WS05|B</desc>
 <text x="12" y="10" font-size="3.8" text-anchor="start" font-weight="700">音のデジタル表現</text>
+<text x="12" y="24" font-size="2.8" text-anchor="start" font-weight="400">氏名</text>
+<line x1="21" y1="25" x2="83" y2="25" stroke="#000" stroke-width="0.25"/>
 <text x="101" y="8" font-size="2.8" text-anchor="middle" font-weight="400">0</text>
 <text x="105.5" y="8" font-size="2.8" text-anchor="middle" font-weight="400">1</text>
 <text x="110" y="8" font-size="2.8" text-anchor="middle" font-weight="400">2</text>

@@ -57,7 +57,7 @@ class OverlayTests(unittest.TestCase):
         self.assertEqual(c[1]['studentIdentitySource'], 'paired-front')
         pages = PdfReader(self.output).pages
         self.assertIn('氏名', pages[0].extract_text())
-        self.assertNotIn('氏名', pages[1].extract_text())
+        self.assertIn('氏名', pages[1].extract_text())
         for page in PdfReader(self.output).pages:
             self.assertIn('Original body: keep exactly here.', page.extract_text())
         for path in [self.source, self.output]:

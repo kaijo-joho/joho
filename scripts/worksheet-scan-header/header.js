@@ -71,10 +71,8 @@ var WorksheetScanHeader = (function () {
     const fitted = titleLines(title, leftWidth - 1, config.text);
     fitted.lines.forEach((v, i) => text(v, hx, Y(5 + i * config.text.titleLineHeight), fitted.size * scale, 'start', true));
     const omr = {}, handwriting = {};
-    if (front) {
-      text('氏名', hx, Y(19), config.text.labelSize * scale);
-      line(X(9), Y(20), X(h.leftWidth - 1), Y(20), o.stroke * scale);
-    }
+    text('氏名', hx, Y(19), config.text.labelSize * scale);
+    line(X(9), Y(20), X(h.leftWidth - 1), Y(20), o.stroke * scale);
     for (let digit = 0; digit < 10; digit++) text(String(digit), X(middleX + o.firstX + digit * o.pitchX), Y(o.headingY), config.text.labelSize * scale, 'middle');
     ['class', 'tens', 'ones'].forEach((row, index) => {
       const localY = o.firstY + index * o.pitchY, y = Y(localY);
@@ -125,7 +123,7 @@ var WorksheetScanHeader = (function () {
     }).join('\n');
     const front = c.identity.side === 'F';
     const description = front ? '組・出席番号の十の位・一の位を各行1つ塗りつぶす。' : '裏面のマーク欄は任意。生徒情報は表面から引き継ぎ、裏面に記入があれば一致を確認する。';
-    return '<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--' + c.pageSize + '" data-scan-side="' + c.identity.side + '" width="' + b.width + 'mm" height="' + b.height + 'mm" viewBox="' + [b.x, b.y, b.width, b.height].join(' ') + '" role="img" aria-label="' + escape(c.title + ' ' + c.identity.side + (front ? ' 氏名欄、組と番号のマーク欄、ワークシート識別QR' : ' 任意の組と番号のマーク欄、ワークシート識別QR')) + '" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>' + escape(c.title) + '</title><desc>' + description + 'QR: ' + escape(c.identity.payload) + '</desc>\n' + children + '\n</svg>';
+    return '<svg xmlns="http://www.w3.org/2000/svg" class="ws-scan-svg ws-scan-svg--' + c.pageSize + '" data-scan-side="' + c.identity.side + '" width="' + b.width + 'mm" height="' + b.height + 'mm" viewBox="' + [b.x, b.y, b.width, b.height].join(' ') + '" role="img" aria-label="' + escape(c.title + ' ' + c.identity.side + (front ? ' 氏名欄、組と番号のマーク欄、ワークシート識別QR' : ' 氏名欄、任意の組と番号のマーク欄、ワークシート識別QR')) + '" font-family="Yu Gothic, YuGothic, sans-serif" fill="#000"><title>' + escape(c.title) + '</title><desc>' + description + 'QR: ' + escape(c.identity.payload) + '</desc>\n' + children + '\n</svg>';
   }
   return { create, svg, escape, fiscalYear };
 })();

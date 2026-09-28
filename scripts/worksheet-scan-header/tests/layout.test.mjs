@@ -58,15 +58,15 @@ test('Markers have printable insets and do not overlap the header', () => {
     }
   }
 });
-test('Both sides have OMR; only front has a name field, with unchanged body space', () => {
+test('Both sides have OMR and a name field, with unchanged body space', () => {
   for (const pageSize of ['a4', 'b5']) {
     const front = generate({ ...options, pageSize });
     const back = generate({ ...options, pageSize, side: 'B' });
     const f = front.coordinates, b = back.coordinates;
     assert.equal(front.scene.filter(s => s.type === 'circle').length, 30);
     assert.equal(back.scene.filter(s => s.type === 'circle').length, 30);
-    assert.ok(!back.svg.includes('氏名'));
-    assert.equal(back.scene.filter(s => s.type === 'line').length, 1);
+    assert.equal(back.scene.filter(s => s.type === 'text' && s.text === '氏名').length, 1);
+    assert.equal(back.scene.filter(s => s.type === 'line').length, 2);
     assert.equal(Object.keys(b.omr).length, 3);
     assert.equal(b.omrMode, 'optional-verification');
     assert.equal(f.omrMode, 'required');
