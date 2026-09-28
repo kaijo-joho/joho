@@ -159,6 +159,11 @@ class CloudQueue:
             if state['status'] == 'received':
                 raise ValueError('Analysis has not completed; prepare the same original again')
             destination = {k: config[k] for k in ('artifactFolderId', 'receiptFolderId')}
+            inbox_journal = self.root / 'drive-inbox.json'
+            if inbox_journal.exists():
+                source_folder = json.loads(inbox_journal.read_text())['binding']['sourceFolderId']
+                if source_folder in destination.values():
+                    raise ValueError('Drive inbox must differ from both output folders to avoid re-ingestion')
             if state['destination'] is not None and state['destination'] != destination:
                 raise ValueError('Destination changed for an existing receipt')
             for folder_id in destination.values():

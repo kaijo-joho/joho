@@ -1,5 +1,9 @@
 # 教室スキャン → Mac mini → Drive → GSS
 
+**2026-09-28追記:** ScanSnap CloudでDriveへ直接保存する運用では、Mac miniを介さずMac Studioが
+取得・QR/OMR読取・送信を担当する。[DRIVE-INBOX.md](DRIVE-INBOX.md)を入口として参照。
+以下のローカルキュー・送信・GAS登録はそのまま共用し、「Mac mini」を処理担当のMac Studioに読み替える。
+
 2026-09-27。Mac miniで用紙補正・QR・3桁OMRを読み、Drive保存後にGASで名簿照合するための実装。
 記入有無・筆記量・正誤・成績は判定しない。生徒全員の確定操作は要求しない。
 

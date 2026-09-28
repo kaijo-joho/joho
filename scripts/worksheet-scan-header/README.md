@@ -20,6 +20,7 @@ B5・A4の表面にタイトル・氏名・組/番号OMR・ワークシートQR�
 | `submission_ledger.py` | SQLite台帳・重複候補・選択・誤記案件・確認一覧 |
 | `intake-settings.example.json` / `INTAKE.md` | ダミー名簿・教材設定例と運用手順 |
 | `cloud_intake.py` / `drive_transport.py` | Mac miniで名簿を持たずに読む監視・送信キューとDrive転送 |
+| `drive_inbox.py` / `drive-inbox-settings.example.json` / `DRIVE-INBOX.md` | ScanSnap Cloudの保存先からMac StudioがPDFを取得し、既存の読取キューへ渡す |
 | `gas/` / `cloud-settings.example.json` / `CLOUD.md` | Drive受信後のGSS登録・名簿照合、接続設定例、導入手順（本番未接続） |
 | `reader-config.json` / `requirements-scan.txt` | 読取閾値・処理上限とPython依存 |
 | `read_scan.py` | 旧API互換。内部では同じ読取コアを使用 |
