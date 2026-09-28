@@ -226,7 +226,7 @@
         '「フォルダを接続…」でHTML実習フォルダを選び、一覧から今回のHTMLを開きます。ファイル選択ではなくフォルダ選択の画面では、HTMLがグレー表示でも正常です。',
         selectedLesson.id === 'html11' ? '今回は html11-01.html を開くだけで、コードの編集は不要です。「保存」（⌘S）を押し、準備確認の3項目が確認済みになることを確かめます。' :
           'コードを編集し、プレビューの更新アイコン（⌘Enter）で表示を確認します。「保存」（⌘S）を押し、「Macのファイルに保存しました」を確認します。',
-        '「提出」→「提出画面を開く」で保存したHTMLを選び、提出を受け付けましたの表示と★を確認します。'
+        '「提出」で保存済みファイルを準備し、フォームの「提出する」を押します。受領と★を確認してください。別タブ・ダウンロード保存ではファイルを選びます。'
       ]) textNode(list, text, 'li');
       textNode(body, 'プレビュー更新とファイル保存は別の操作です。直接保存できない場合はダウンロード先・内容・ファイル名をFinderで確認してください。');
       if (selectedLesson.id === 'html11') textNode(body, '導入課題の準備確認には、フォルダへ上書き保存できるGoogle Chromeを使います。フォルダ名とファイルの読み書きを確認しますが、書類フォルダ内かどうかや新しく作ったかどうかは確認できません。準備確認はこの画面内だけの案内で、提出物の採点結果とは別です。');
@@ -399,7 +399,22 @@
         if (!savedToFile) return;
       }
       try {
-      await modal('実習ファイルを保存して提出へ', (body, button, finish) => {
+      await modal('実習ファイルの提出', (body, button, finish) => {
+        function unchanged() {
+          try {
+            const preparation = preparationState();
+            return (!preparation.active || preparation.ready) && catalogState() === 'ready' && doc.docId === fixed.docId && doc.fileName === fixed.fileName && content() === fixed.source &&
+              Practice.submission(window.pages, doc.fileName, content(), window.htmlPracticeLinks).url === fixed.url;
+          } catch { return false; }
+        }
+        function openForm() {
+          submissionPanel = window.HtmlEditorSubmission.create({container:body, dialog:$('actionDialog'),
+            url:fixed.url, targetId:receipt.proof.assignmentId, isCurrent:unchanged, requestClose:() => finish('close'),
+            savedFile:savedToFile ? {fileName:fixed.fileName, text:fixed.source} : null});
+        }
+        button('閉じる', 'close');
+        // 接続先へ書込・読戻し確認済み。ダウンロード用の自己確認は重ねない。
+        if (savedToFile) { openForm(); return; }
         textNode(body, receipt.fileName);
         textNode(body, 'まだ提出は完了していません。提出フォームでこの実習ファイルを選択して送信し、受領と★を確認してください。');
         let downloaded = false;
@@ -413,13 +428,6 @@
         link.href = fixed.url; link.target = '_blank'; link.rel = 'noopener noreferrer';
         link.hidden = !savedToFile;
         if (savedToFile) textNode(body, 'Macのファイルへの保存を確認しました。');
-        function unchanged() {
-          try {
-            const preparation = preparationState();
-            return (!preparation.active || preparation.ready) && catalogState() === 'ready' && doc.docId === fixed.docId && doc.fileName === fixed.fileName && content() === fixed.source &&
-              Practice.submission(window.pages, doc.fileName, content(), window.htmlPracticeLinks).url === fixed.url;
-          } catch { return false; }
-        }
         down.addEventListener('click', () => {
           if (!unchanged()) { notify('内容または提出先が変わりました。確認画面を閉じて、もう一度提出を準備してください。'); return; }
           download(fixed.source, fixed.fileName); downloaded = true; check.checked = false; link.hidden = !savedToFile;
@@ -433,10 +441,8 @@
           }
           if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
           event.preventDefault();
-          submissionPanel = window.HtmlEditorSubmission.create({container:body, dialog:$('actionDialog'),
-            url:fixed.url, targetId:receipt.proof.assignmentId, isCurrent:unchanged, requestClose:() => finish('close')});
+          openForm();
         });
-        button('閉じる', 'close');
       }, {canClose:() => !submissionPanel || submissionPanel.canClose()});
       } finally { submissionPanel?.dispose(); submissionPanel = null; }
     });

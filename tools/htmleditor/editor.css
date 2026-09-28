@@ -688,6 +688,15 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
 .download-status { display: flex; align-items: center; gap: 10px; }
 .download-note { font-size: .88rem; color: var(--muted); }
 .download-frame { display: block; width: 100%; height: clamp(280px, 58dvh, 720px); border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
+#actionDialog.submission-open[open] { display: flex; flex-direction: column; overflow: hidden; margin: max(12px, 4dvh) auto auto; max-height: calc(100dvh - max(24px, 8dvh)); }
+.submission-open #actionBody { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.submission-open .download-frame { border: 0; border-radius: 0; flex: 0 1 auto; min-height: 100px; height: 430px; }
+.submission-open #actionButtons { flex: none; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.submission-help { flex: none; color: var(--muted); margin-bottom: 8px; }
+.submission-help summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; gap: 6px; }
+.submission-help summary::before { content: '▸'; }
+.submission-help[open] summary::before { content: '▾'; }
+.submission-help .btn { margin-bottom: 8px; }
 .download-spinner { width: 1.2em; height: 1.2em; flex-shrink: 0; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: download-spin 1s linear infinite; }
 @keyframes download-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .download-spinner { animation: none; border-style: dotted; } }
