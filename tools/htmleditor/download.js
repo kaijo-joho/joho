@@ -36,7 +36,7 @@
     }
     function clearFrame() {
       disposeFrame(); disposeFrame = () => {}; phase = ''; frameOpen = false;
-      dialog.classList.remove('download-open');
+      dialog.classList.remove('download-open','distribution-open','distribution-integrated');
     }
     function showList(focusTask) {
       if (disposed) return;
@@ -64,24 +64,29 @@
     }
     function showFrame(task, item) {
       clearFrame(); container.replaceChildren(); selectedTask = task.id; frameOpen = true;
-      dialog.classList.add('download-open');
+      dialog.classList.add('download-open','distribution-open');
       const heading = node(container, task.fileName + ' — ' + task.title, 'h3'); heading.tabIndex = -1;
       const controls = node(container, '', 'div', 'download-controls');
       const back = node(controls, '課題一覧へ戻る', 'button', 'btn'); back.type = 'button';
       back.addEventListener('click', () => { if (canClose()) showList(task.id); });
-      const external = node(controls, '別タブで開く', 'a', 'btn');
+      const help = node(container, '', 'details', 'submission-help');
+      node(help, '表示・ログインで困ったとき', 'summary');
+      node(help, '別タブで学校アカウントを確認できます。発行・保存は開いた画面で続けてください。');
+      const external = node(help, '別タブで開く', 'a', 'btn');
       external.href = item.url; external.target = '_blank'; external.rel = 'noopener noreferrer';
       external.addEventListener('click', event => {
-        if (stateFor(task.id).item?.url !== item.url) { event.preventDefault(); showList(task.id); }
+        if (stateFor(task.id).item?.url !== item.url) { event.preventDefault(); if (canClose()) showList(task.id); return; }
+        if (!canClose()) { event.preventDefault(); return; }
+        // 二つの画面での重複発行を誘わず、別タブを開いた後にこちらを閉じる。
+        phase = 'ready'; setTimeout(requestClose, 0);
       });
       const status = node(container, '', 'p', 'download-status'); status.setAttribute('role', 'status');
       const spinner = node(status, '', 'span', 'download-spinner'); spinner.setAttribute('aria-hidden', 'true');
       const label = node(status, '配付ページを読み込んでいます…', 'span');
-      node(container, 'ログインや表示がうまくいかない場合は「別タブで開く」を使ってください。ダウンロード後はFinderで「書類／HTML実習」へ移動し、この画面を閉じてファイルを開きます。', 'p', 'download-note');
       const frame = document.createElement('iframe'); frame.className = 'download-frame';
       frame.title = task.fileName + ' の配付ページ'; frame.referrerPolicy = 'no-referrer';
       frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals');
-      let bridge, source = null;
+      let bridge, source = null, sourceOrigin = '', integrated = false;
       if (root.location.origin !== ORIGIN || root.top !== root) {
         spinner.hidden = true; label.textContent = 'この場所では埋め込み表示を利用できません。「別タブで開く」から取得してください。';
         heading.focus(); return;
@@ -99,14 +104,24 @@
         if (disposed || !frame.isConnected || !gasOrigin(event.origin) || !withinFrame(event.source, frame.contentWindow) ||
             !data || data.channel !== CHANNEL || data.bridge !== bridge || data.targetId !== task.id) return;
         if (data.type === 'hello') {
-          if (source && source !== event.source) return;
+          if (source && (source !== event.source || sourceOrigin !== event.origin)) return;
           if (stateFor(task.id).item?.url !== item.url) { showList(task.id); return; }
-          source = event.source;
+          source = event.source; sourceOrigin = event.origin;
           source.postMessage({channel:CHANNEL,type:'connect',bridge,targetId:task.id,
+            layout:'integrated-v1',
             theme:document.documentElement.dataset.resolvedTheme,fontSize:document.documentElement.dataset.textSize}, event.origin);
           return;
         }
-        if (event.source !== source || data.type !== 'state' || !STATES.has(data.phase)) return;
+        if (event.source !== source || event.origin !== sourceOrigin) return;
+        if (data.type === 'layout' && data.layout === 'integrated-v1') {
+          if (document.activeElement === heading) back.focus();
+          integrated = true; status.hidden = true; heading.hidden = true;
+          dialog.classList.add('distribution-integrated'); clearTimeout(slowTimer); return;
+        }
+        if (integrated && data.type === 'height' && Number.isInteger(data.height) && data.height >= 0 && data.height <= 20000) {
+          frame.style.height = Math.max(200, Math.min(1600, data.height)) + 'px'; return;
+        }
+        if (data.type !== 'state' || !STATES.has(data.phase)) return;
         if (data.phase === 'escape') { requestClose(); return; }
         phase = data.phase;
         if (phase === 'loading') { label.textContent = '学校アカウントと課題設定を確認しています…'; return; }
