@@ -62,7 +62,7 @@ async function fillCorrect(selector, wrongAnswer = false) {
     const pow = value => ({ kind: 'power', base: [v(2)], exponent: [v(value)] });
     const definition = entry.definition;
     const rows = definition.tasks.map((task, index) => ({
-      id: `row-${index + 1}`, taskId: task.id, result: '', resultUnit: '',
+      id: `row-${index + 1}`, taskId: task.id, result: '', resultUnit: '', answerOpen: true,
       tokens: task.rule === 'minimum-bits'
         ? [pow(task.expected - 1), op('<'), v(task.levels, 'levels'), op('<='), pow(task.expected)]
         : task.expectedTokens
@@ -90,6 +90,12 @@ async function nextProblem(selector) {
   assert.ok(draft.rows.every(row => !row.tokens.length && !row.result), '次の問題で式と途中結果を初期化');
   assert.ok(Object.values(draft.answers).every(value => !value), '次の問題で答えを初期化');
 }
+async function judgeFor(host, taskId) {
+  const task = taskId ? host.locator(`[data-formula-task="${taskId}"]`) : host;
+  const judge = task.locator('[data-formula-judge]').last();
+  await expect(judge).toBeVisible();
+  return judge;
+}
 
 try {
   await page.goto(new URL('dr32.html#headline_2', baseURL).href);
@@ -101,13 +107,13 @@ try {
     const task = exampleBuilder.locator(`[data-formula-task="${taskId}"]`);
     const finalRow = task.locator('[data-formula-row]').last();
     assert.equal(await task.locator('[data-formula-row]').count(), 1, `${taskId}: 小問ごとに独立した最終式で始まる`);
-    assert.equal(await finalRow.locator('[data-formula-result]').count(), 0, `${taskId}: 最終式に途中結果入力を置かない`);
-    assert.equal(await finalRow.locator(`[data-formula-answer="${taskId}"]`).count(), 1, `${taskId}: 最終式に回答欄を一つ置く`);
+    assert.equal(await finalRow.locator('[data-formula-result], [data-formula-answer], [data-formula-judge]').count(), 0, `${taskId}: 初期状態で結果・答え・判定を置かない`);
   }
   for (const selector of [exampleSelector, ...['sampling', 'quantization', 'data-size'].map(selectorFor)]) {
     const draft = await editorDraft(selector);
     assert.ok(draft.rows.every(row => !row.tokens.length && !row.result), '式と結果は初期空欄');
     assert.ok(Object.values(draft.answers).every(value => !value), '最終回答を補完しない');
+    assert.ok(draft.rows.every(row => !row.answerOpen), '初期状態で答え欄を開かない');
   }
 
   // 例題の小問(1)から(2)へ共有する途中結果。
@@ -116,8 +122,8 @@ try {
     const v = (value, unit = '') => ({ kind: 'value', value: String(value), unit });
     const op = value => ({ kind: 'operator', value });
     editor.setDraft({ rows: [
-      { id: 'sample', taskId: 'sample', tokens: [v(16, 'bit/sample'), op('×'), v(2, 'channel'), op('÷'), v(8, 'bit/B')], result: '', resultUnit: '' },
-      { id: 'second', taskId: 'second', tokens: [{ kind: 'reference', rowId: 'sample' }, op('×'), v(44100, 'Hz'), op('÷'), v(1000, 'B/KB')], result: '', resultUnit: '' }
+      { id: 'sample', taskId: 'sample', tokens: [v(16, 'bit/sample'), op('×'), v(2, 'channel'), op('÷'), v(8, 'bit/B')], result: '', resultUnit: '', answerOpen: true },
+      { id: 'second', taskId: 'second', tokens: [{ kind: 'reference', rowId: 'sample' }, op('×'), v(44100, 'Hz'), op('÷'), v(1000, 'B/KB')], result: '', resultUnit: '', answerOpen: true }
     ], targets: { sample: 'sample', second: 'second' }, answers: { sample: '4', second: '176.4' } });
   }, exampleSelector);
   assert.equal(await page.evaluate(() => window.formulaTestEvaluations), 0, '入力・参照の追加で自動計算しない');
@@ -149,10 +155,15 @@ try {
     await page.getByRole('button', { name: '全画面表示を終了', exact: true }).click();
     await expect(page.locator('body')).not.toHaveClass(/is-lesson-fullscreen/);
   }
-  await page.locator(`${exampleSelector} [data-worked-example-judge]`).click();
+  assert.equal(await page.locator('[data-worked-example-judge], [data-calculation-judge]').count(), 0, '外側の一括判定ボタンを置かない');
+  await (await judgeFor(exampleBuilder, 'sample')).click();
+  const sampleFeedback = await exampleBuilder.locator('[data-formula-task="sample"] .formula-feedback').allTextContents();
+  assert.ok(sampleFeedback.some(text => text.includes('立式') && text.includes('○')), '例題の小問(1)だけを判定する');
+  assert.equal(await exampleBuilder.locator('[data-formula-task="second"] .dr-solution__steps li').count(), 0, '未判定の小問(2)の正解を表示しない');
+  await (await judgeFor(exampleBuilder, 'second')).click();
   const exampleFeedback = await page.locator(`${exampleSelector} .formula-feedback`).allTextContents();
-  assert.ok(exampleFeedback.some(text => text.includes('立式') && text.includes('○')), '例題も立式を判定');
-  assert.ok(exampleFeedback.some(text => text.includes('答え') && text.includes('○')), '例題も答えを判定');
+  assert.ok(exampleFeedback.some(text => text.includes('答え') && text.includes('○')), '例題も行内で答えを判定する');
+  assert.ok((await exampleBuilder.locator('[data-formula-task="sample"] .formula-feedback').allTextContents()).some(text => text.includes('立式') && text.includes('○')), '小問(2)の判定後も小問(1)の判定結果を残す');
   assert.ok(await page.locator('[data-sound-formula-score]').evaluateAll(nodes => nodes.every(node => node.textContent.includes('解答 0問'))), '例題はスコア外');
   await page.locator(`${exampleSelector} [data-worked-example-next]`).click();
   await expect(page.locator(`${exampleSelector} .dr-solution__steps li`)).toHaveCount(1);
@@ -160,15 +171,20 @@ try {
 
   await showSlide(3);
   const sampling = page.locator(selectorFor('sampling'));
-  await sampling.locator('[data-calculation-judge]').click();
+  await sampling.locator('[data-formula-operator="="]').click();
+  const emptyJudge = await judgeFor(sampling);
+  await expect(emptyJudge).toBeDisabled();
+  await sampling.locator('[data-formula-answer]').fill('1');
+  await expect(emptyJudge).toBeEnabled();
+  await emptyJudge.click();
   await expect(sampling.locator('[data-sound-formula-score]')).toContainText('解答 0問');
-  await expect(sampling.locator('[data-calculation-judge]')).toBeEnabled();
+  await expect(sampling.locator('[data-formula-judge]')).toBeEnabled();
   await expect(sampling.locator('.formula-feedback-summary')).toContainText('まだ判定していません');
   await fillCorrect(selectorFor('sampling'), true);
-  await sampling.locator('[data-calculation-judge]').click();
+  await (await judgeFor(sampling)).click();
   await expect(sampling.locator('[data-sound-formula-score]')).toHaveText('解答 1問 ／ 立式正解 1問 ／ 答え正解 0問');
   // disable属性を回避してイベントを再送してもコントローラー側が二重計上しない。
-  await sampling.locator('[data-calculation-judge]').dispatchEvent('click');
+  await sampling.locator('[data-formula-judge]').dispatchEvent('click');
   await expect(sampling.locator('[data-sound-formula-score]')).toHaveText('解答 1問 ／ 立式正解 1問 ／ 答え正解 0問');
   await nextProblem(selectorFor('sampling'));
 
@@ -181,7 +197,7 @@ try {
     for (let i = 0; seen.size < size && i < 60; i += 1) {
       const id = await fillCorrect(selector);
       seen.add(id);
-      await page.locator(`${selector} [data-calculation-judge]`).click();
+      await (await judgeFor(page.locator(selector))).click();
       attempts += 1;
       await expect(page.locator(`${selector} [data-sound-formula-score]`)).toHaveText(`解答 ${attempts}問 ／ 立式正解 ${attempts}問 ／ 答え正解 ${attempts - 1}問`);
       await nextProblem(selector);

@@ -378,7 +378,8 @@ ok(dr32.indexOf('data-lesson-slide-title="音のチャンネル"') < dr32.indexO
 for (const title of ['周波数と周期の問題', 'ビット数と段階数の問題', '音声データ量の問題', '用語と標本化定理の問題']) {
   ok(dr32.includes(`data-lesson-slide-title="${title}"`), `dr32に問題スライド「${title}」`);
 }
-equal((dr32.match(/data-calculation-judge/g) || []).length, 3, '3種類の計算問題に判定ボタン');
+equal((dr32.match(/data-calculation-judge|data-worked-example-judge/g) || []).length, 0, '計算問題の判定は式ごとの答え欄の横に置く');
+ok(quiz.includes('onJudge(') && quiz.includes('Formulas.gradeRow('), '式ビルダーの行内判定から最終回答と途中式を分けて検証');
 equal((dr32.match(/data-terminology-judge/g) || []).length, 1, '用語問題に判定ボタン');
 ok(!dr32.includes('id="digitization-judge"'), 'dr32では波形問題を重複させない');
 ok(!dr32.includes('計算の確認'), '計算の確認を独立したスライドへ重複掲載しない');

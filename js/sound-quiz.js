@@ -652,6 +652,25 @@
       target.textContent = message;
     }
 
+    // A builder reports one row or one task at a time.  Keep prior results in
+    // their own locations until the learner edits any formula again.
+    function mergeFormulaFeedback(previous, next) {
+      if (!previous) return next;
+      const mergeById = (oldItems, newItems) => {
+        const items = new Map((oldItems || []).map(item => [String(item.id), item]));
+        (newItems || []).forEach(item => items.set(String(item.id), item));
+        return [...items.values()];
+      };
+      return {
+        ...previous,
+        ...next,
+        rows: mergeById(previous.rows, next.rows),
+        tasks: mergeById(previous.tasks, next.tasks),
+        // An old validation summary must not survive a later successful check.
+        message: next.message || ''
+      };
+    }
+
     function buildSolution(problem, revealedSteps) {
       const solution = el('div', 'dr-solution');
       solution.appendChild(el('h4', 'dr-solution__title', '解き方'));
@@ -721,13 +740,22 @@
       if (!target || !nextButton) return;
       let revealedSteps = 0;
       const formulaHost = host.querySelector('[data-sound-formula-builder]');
-      const judgeButton = host.querySelector('[data-worked-example-judge]');
       if (formulaHost && FormulaBuilder && Formulas) {
         const definition = Formulas.define(problem);
-        const builder = FormulaBuilder.mount(formulaHost, definition);
-        judgeButton?.addEventListener('click', () => builder.setFeedback(Formulas.grade(definition, builder.getDraft())));
-      } else if (judgeButton) {
-        judgeButton.disabled = true;
+        let formulaFeedback = null;
+        const builder = FormulaBuilder.mount(formulaHost, definition, {
+          onJudge({ rowId, taskId, intermediate, draft }) {
+            const judgment = intermediate
+              ? Formulas.gradeRow(definition, draft, rowId)
+              : Formulas.grade(definition, draft, { taskId });
+            formulaFeedback = mergeFormulaFeedback(formulaFeedback, judgment);
+            builder.setFeedback(formulaFeedback);
+          },
+          onChange() {
+            formulaFeedback = null;
+          }
+        });
+      } else if (formulaHost) {
         if (formulaHost) formulaHost.textContent = '式の編集部品を読み込めませんでした。再読み込みしてください。解説は引き続き確認できます。';
       }
 
@@ -890,7 +918,6 @@
       const problem = result.problem;
       host.querySelector('[data-calculation-prompt]').textContent = problem.prompt;
       controller.builder?.setDisabled(result.judged);
-      host.querySelector('[data-calculation-judge]').disabled = result.judged;
       const nextButton = host.querySelector('[data-calculation-next]');
       const hasHiddenSteps = result.judged && result.revealedSteps < problem.solution.steps.length;
       nextButton.textContent = hasHiddenSteps ? '次へ' : '次の問題';
@@ -903,12 +930,38 @@
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
 
+    function judgeCalculationFormula(controller, { rowId, taskId, intermediate, draft }) {
+      const result = controller.result;
+      if (!result || result.judged) return;
+      const judgment = intermediate
+        ? Formulas.gradeRow(controller.definition, draft, rowId)
+        : Formulas.grade(controller.definition, draft, { taskId });
+      controller.formulaFeedback = mergeFormulaFeedback(controller.formulaFeedback, judgment);
+      controller.builder.setFeedback(controller.formulaFeedback);
+      if (intermediate || judgment.status !== 'judged') return;
+      const correct = judgment.answerCorrect;
+      result.answer = draft.answers.answer;
+      result.formulaFeedback = judgment;
+      result.judged = true;
+      result.correct = correct;
+      recordFormula(result, judgment);
+      renderCalculationFeedback(controller.host, result, correct);
+      renderCalculation(controller);
+      controller.host.querySelector('[data-calculation-next]').focus({ preventScroll: true });
+    }
+
     function newCalculationProblem(controller, focusAnswer = true) {
       const problem = choose(`calculation-${controller.pattern}`, calculationProblemGroups[controller.pattern]);
       controller.result = { problem, answer: '', judged: false, counted: false, revealedSteps: 0 };
+      controller.formulaFeedback = null;
       controller.definition = Formulas.define(problem);
       if (controller.builder) controller.builder.reset(controller.definition);
-      else controller.builder = FormulaBuilder.mount(controller.host.querySelector('[data-sound-formula-builder]'), controller.definition);
+      else controller.builder = FormulaBuilder.mount(controller.host.querySelector('[data-sound-formula-builder]'), controller.definition, {
+        onJudge(judge) { judgeCalculationFormula(controller, judge); },
+        onChange() {
+          controller.formulaFeedback = null;
+        }
+      });
       setFeedback(
         controller.host.querySelector('[data-calculation-feedback]'),
         '値と記号で元の式を組み立て、答えは自分で計算して入力してください。立式と答えを別々に判定します。'
@@ -922,27 +975,9 @@
       if (!calculationProblemGroups[pattern]) return;
       if (!FormulaBuilder || !Formulas) {
         setFeedback(host.querySelector('[data-calculation-feedback]'), '式の編集部品を読み込めませんでした。ページを再読み込みしてください。', 'is-info');
-        host.querySelector('[data-calculation-judge]').disabled = true;
         return;
       }
       const controller = { host, pattern, result: null };
-      host.querySelector('[data-calculation-judge]').addEventListener('click', () => {
-        const result = controller.result;
-        if (!result || result.judged) return;
-        const draft = controller.builder.getDraft();
-        const judgment = Formulas.grade(controller.definition, draft);
-        controller.builder.setFeedback(judgment);
-        if (judgment.status !== 'judged') return;
-        const correct = judgment.answerCorrect;
-        result.answer = draft.answers.answer;
-        result.formulaFeedback = judgment;
-        result.judged = true;
-        result.correct = correct;
-        recordFormula(result, judgment);
-        renderCalculationFeedback(host, result, correct);
-        renderCalculation(controller);
-        host.querySelector('[data-calculation-next]').focus({ preventScroll: true });
-      });
       host.querySelector('[data-calculation-next]').addEventListener('click', () => {
         const result = controller.result;
         if (result?.judged && result.revealedSteps < result.problem.solution.steps.length) {

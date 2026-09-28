@@ -244,4 +244,37 @@ assert.equal(workedWrongFirstResult.formulaCorrect, true, 'dr32例題(1)の元�
 assert.equal(workedWrongFirstResult.answerCorrect, false, 'dr32例題(1)の手入力誤答を(2)で自動修正しない');
 assert.equal(workedWrongFirstResult.rows.find(row => row.id === 'row-1').calculationCorrect, false, 'dr32例題(1)の手入力誤答を残す');
 
+// 小問単位の判定は、別の小問や無関係な途中式が未完成でも妨げない。
+const scopedWorked = correctDraft(worked);
+scopedWorked.rows[0].tokens = [];
+scopedWorked.answers.sample = '';
+const scopedSecond = Formulas.grade(worked, scopedWorked, { taskId: 'second' });
+assert.equal(scopedSecond.status, 'judged', '未完成の(1)があっても独立した(2)を判定できる');
+assert.equal(scopedSecond.tasks.length, 1, '小問別判定は選んだ小問だけを返す');
+assert.equal(scopedSecond.tasks[0].id, 'second');
+assert.equal(scopedSecond.formulaCorrect, true, '独立した(2)の立式を判定する');
+const scopedWithUnrelated = correctDraft(data);
+scopedWithUnrelated.rows.unshift({ id: 'unused', tokens: [], result: '', resultUnit: '' });
+assert.equal(Formulas.grade(data, scopedWithUnrelated, { taskId: 'answer' }).status, 'judged', '無関係な未完成途中式を要求しない');
+const scopedSameTaskIncomplete = correctDraft(data);
+scopedSameTaskIncomplete.rows[0].taskId = 'answer';
+scopedSameTaskIncomplete.rows.unshift({ id: 'started-answer-work', taskId: 'answer', tokens: [value(1), op('÷')], result: '', resultUnit: '' });
+assert.equal(Formulas.grade(data, scopedSameTaskIncomplete, { taskId: 'answer' }).status, 'invalid', '同じ小問で始めた途中式は完成させてから判定する');
+const scopedReference = Formulas.grade(worked, workedWrongFirst, { taskId: 'second' });
+assert.equal(scopedReference.status, 'judged', '(1)を参照する(2)は参照元の手入力結果を使って判定する');
+assert.equal(scopedReference.rows.find(row => row.id === 'row-1').calculationCorrect, false, '参照元の誤入力は(2)の判定にも残る');
+
+const rowOnly = correctDraft(data);
+rowOnly.rows[0].result = String(dataTask.expected);
+rowOnly.rows[0].resultUnit = 'B';
+const rowOnlyResult = Formulas.gradeRow(data, rowOnly, 'row-1');
+assert.equal(rowOnlyResult.status, 'checked', '途中式だけを確認できる');
+assert.equal(rowOnlyResult.rows[0].calculationCorrect, true, '途中式の数値と単位を確認する');
+const rowWrongUnit = clone(rowOnly);
+rowWrongUnit.rows[0].resultUnit = 'KB';
+assert.equal(Formulas.gradeRow(data, rowWrongUnit, 'row-1').rows[0].calculationCorrect, false, '途中式の単位違いを検出する');
+const rowZeroDivision = clone(rowOnly);
+rowZeroDivision.rows[0].tokens = [value(1), op('÷'), value(0)];
+assert.equal(Formulas.gradeRow(data, rowZeroDivision, 'row-1').status, 'invalid', 'ゼロ除算の途中式は保留にする');
+
 console.log('sound-formulas: ok');

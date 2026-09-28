@@ -8,24 +8,24 @@
   const op = n => ({ kind: 'operator', value: n });
   const group = body => ({ kind: 'group', body });
   const power = (base, exponent) => ({ kind: 'power', base, exponent });
-  const unit = (label, dimensions) => ({ label, dimensions });
+  const unit = (label, dimensions, extras = {}) => ({ label, dimensions, ...extras });
   // bit/B/KB/MB are deliberately independent bases: wrong conversion direction
   // must not disappear through automatic unit conversion. Counts are dimensionless.
   const UNITS = Object.freeze({
     '': unit('単位なし', {}), s: unit('秒', { s: 1 }), min: unit('分', { min: 1 }),
     Hz: unit('回/秒（Hz）', { s: -1 }), kHz: unit('kHz', { kHz: 1 }),
-    'Hz/kHz': unit('Hz/kHz', { s: -1, kHz: -1 }), 's/min': unit('秒/分', { s: 1, min: -1 }),
+    'Hz/kHz': unit('Hz/kHz', { s: -1, kHz: -1 }, { conversion: true, conversionLabel: 'kHz→Hz', conversionOperation: '掛ける' }), 's/min': unit('秒/分', { s: 1, min: -1 }, { conversion: true, conversionLabel: '分→秒', conversionOperation: '掛ける' }),
     bit: unit('bit', { bit: 1 }), 'bit/sample': unit('bit/回', { bit: 1 }),
     bitCount: unit('bit（桁数）', {}), levels: unit('段階', {}), channel: unit('チャンネル', {}),
     B: unit('B', { B: 1 }), 'B/sample': unit('B/回', { B: 1 }),
     KB: unit('KB', { KB: 1 }), MB: unit('MB', { MB: 1 }),
     KiB: unit('KiB', { KiB: 1 }), MiB: unit('MiB', { MiB: 1 }),
     'B/s': unit('B/秒', { B: 1, s: -1 }), 'KB/s': unit('KB/秒', { KB: 1, s: -1 }),
-    'bit/B': unit('bit/B', { bit: 1, B: -1 }), 'B/bit': unit('B/bit', { B: 1, bit: -1 }),
-    'B/KB': unit('B/KB', { B: 1, KB: -1 }), 'KB/B': unit('KB/B', { KB: 1, B: -1 }),
-    'KB/MB': unit('KB/MB', { KB: 1, MB: -1 }), 'MB/KB': unit('MB/KB', { MB: 1, KB: -1 }),
-    'B/MB': unit('B/MB', { B: 1, MB: -1 }),
-    'B/KiB': unit('B/KiB', { B: 1, KiB: -1 }), 'KiB/MiB': unit('KiB/MiB', { KiB: 1, MiB: -1 })
+    'bit/B': unit('bit/B', { bit: 1, B: -1 }, { conversion: true, conversionLabel: 'bit→B', conversionOperation: '割る' }), 'B/bit': unit('B/bit', { B: 1, bit: -1 }, { conversion: true, conversionLabel: 'bit→B', conversionOperation: '掛ける' }),
+    'B/KB': unit('B/KB', { B: 1, KB: -1 }, { conversion: true, conversionLabel: 'B→KB', conversionOperation: '割る' }), 'KB/B': unit('KB/B', { KB: 1, B: -1 }, { conversion: true, conversionLabel: 'B→KB', conversionOperation: '掛ける' }),
+    'KB/MB': unit('KB/MB', { KB: 1, MB: -1 }, { conversion: true, conversionLabel: 'KB→MB', conversionOperation: '割る' }), 'MB/KB': unit('MB/KB', { MB: 1, KB: -1 }, { conversion: true, conversionLabel: 'KB→MB', conversionOperation: '掛ける' }),
+    'B/MB': unit('B/MB', { B: 1, MB: -1 }, { conversion: true, conversionLabel: 'B→MB', conversionOperation: '割る' }),
+    'B/KiB': unit('B/KiB', { B: 1, KiB: -1 }, { conversion: true, conversionLabel: 'B→KiB', conversionOperation: '割る' }), 'KiB/MiB': unit('KiB/MiB', { KiB: 1, MiB: -1 }, { conversion: true, conversionLabel: 'KiB→MiB', conversionOperation: '割る' })
   });
   const close = (a, b, tolerance = 1e-8) => Number.isFinite(a) && Number.isFinite(b) && Math.abs(a - b) <= Math.max(tolerance, Math.abs(b) * 1e-9);
   const sameDimensions = (a, b) => [...new Set([...Object.keys(a), ...Object.keys(b)])].every(key => (a[key] || 0) === (b[key] || 0));
@@ -109,7 +109,10 @@
     return definition;
   }
 
-  function grade(definition, draft) {
+  // `taskId` limits a judgement to one small question and the rows it actually
+  // uses.  This lets an independent (2) be checked while (1) is still blank,
+  // without relaxing the existing all-questions API.
+  function grade(definition, draft, options = {}) {
     const result = { status: 'invalid', tasks: [], rows: [], message: '' };
     const rows = Array.isArray(draft?.rows) ? draft.rows : [];
     const records = new Map();
@@ -201,9 +204,24 @@
       }
       return lower && upper;
     }
+    const requestedTaskId = options.taskId == null ? null : String(options.taskId);
+    const requestedRowId = options.rowId == null ? null : String(options.rowId);
+    let selectedTasks = definition.tasks;
     try {
       if (!rows.length || rows.length > 16 || indexes.size !== rows.length) throw new Error('式の行を確認してください。');
-      for (const task of definition.tasks) {
+      if (requestedRowId != null) {
+        const index = indexes.get(requestedRowId);
+        if (index === undefined) throw new Error('確認する途中式が見つかりません。');
+        const record = evaluateRow(index);
+        if (record.calculationCorrect == null) throw new Error(`式${index + 1}の結果と単位を入力してください。`);
+        result.status = 'checked';
+        return result;
+      }
+      if (requestedTaskId != null) {
+        selectedTasks = definition.tasks.filter(task => String(task.id) === requestedTaskId);
+        if (!selectedTasks.length) throw new Error('確認する小問が見つかりません。');
+      }
+      for (const task of selectedTasks) {
         const index = indexes.get(draft.targets?.[task.id]);
         if (index === undefined) throw new Error(`${task.label}に使う式を選んでください。`);
         const record = evaluateRow(index);
@@ -229,18 +247,31 @@
         if (formulaCorrect && answerCorrect && !arithmeticErrors.length) messages.push('元の数量・演算・単位と、答えが合っています。');
         result.tasks.push({ id: task.id, formulaCorrect, answerCorrect, messages });
       }
-      // Validate non-empty working rows too, so an invalid intermediate expression
-      // cannot be hidden by selecting a different final row.
-      rows.forEach((row, index) => { if (row.tokens.length) evaluateRow(index); });
+      // A student must not be able to hide a started working line by selecting
+      // another final line for the same question.  Other questions remain
+      // independent, and blank placeholders remain harmless.
+      if (requestedTaskId != null) {
+        rows.forEach((row, index) => {
+          if (String(row.taskId) === requestedTaskId && row.tokens.length) evaluateRow(index);
+        });
+      }
+      // All-question grading retains the previous strict behavior.  Scoped
+      // grading deliberately leaves unrelated unfinished rows alone.
+      if (requestedTaskId == null) rows.forEach((row, index) => { if (row.tokens.length) evaluateRow(index); });
       result.status = 'judged';
       result.formulaCorrect = result.tasks.every(task => task.formulaCorrect);
       result.answerCorrect = result.tasks.every(task => task.answerCorrect);
     } catch (error) {
       errors.push(error.message || '式と入力欄を確認してください。');
-      result.tasks = [];
+      // Keep a scoped error beside its question rather than only at the bottom
+      // of the builder.  No expected value is exposed here.
+      result.tasks = requestedTaskId == null ? [] : [{ id: requestedTaskId, messages: [errors[0]] }];
       result.message = `まだ判定していません。${errors.join(' ')}`;
     }
     return result;
   }
-  return Object.freeze({ define, grade });
+  function gradeRow(definition, draft, rowId) {
+    return grade(definition, draft, { rowId });
+  }
+  return Object.freeze({ define, grade, gradeRow });
 });

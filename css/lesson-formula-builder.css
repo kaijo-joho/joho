@@ -31,7 +31,7 @@
   margin-block-end: .45rem;
 }
 .formula-control, .formula-palette-card, .formula-operator, .formula-add-row,
-.formula-row-remove, .formula-reference-card, .formula-slot {
+.formula-row-remove, .formula-reference-card, .formula-slot, .formula-judge {
   border: 1px solid var(--formula-border);
   border-radius: .4rem;
   color: var(--formula-text);
@@ -50,13 +50,16 @@
   text-align: start;
   background: color-mix(in oklab, var(--formula-panel) 92%, var(--formula-focus));
 }
-.formula-card-value { font-variant-numeric: tabular-nums; }
+.formula-card-value, .formula-reference-value { display: inline-flex; align-items: baseline; gap: .25em; font-variant-numeric: tabular-nums; }
+.formula-unit, .formula-conversion-label { font-size: .7em; font-weight: 400; color: var(--formula-muted); white-space: nowrap; }
+.formula-conversion-label { font-size: .64em; }
+.formula-value { gap: .25em; }
 .formula-operator { min-width: 44px; font-weight: 700; }
 .formula-control:disabled, .formula-palette-card:disabled, .formula-operator:disabled,
-.formula-add-row:disabled, .formula-row-remove:disabled, .formula-reference-card:disabled { cursor: not-allowed; opacity: .55; }
+.formula-add-row:disabled, .formula-row-remove:disabled, .formula-reference-card:disabled, .formula-judge:disabled { cursor: not-allowed; opacity: .55; }
 .formula-control:focus-visible, .formula-palette-card:focus-visible, .formula-operator:focus-visible,
 .formula-add-row:focus-visible, .formula-row-remove:focus-visible, .formula-reference-card:focus-visible,
-.formula-slot:focus-visible, .formula-token:focus-visible, .formula-token-remove:focus-visible, .formula-row input:focus-visible,
+.formula-slot:focus-visible, .formula-token:focus-visible, .formula-token-remove:focus-visible, .formula-row input:focus-visible, .formula-judge:focus-visible,
 .formula-answer-item input:focus-visible, .formula-answer-item select:focus-visible,
 .lesson-formula-builder :is(input, select, summary):focus-visible {
   outline: 3px solid color-mix(in oklab, var(--formula-focus) 65%, transparent);
@@ -166,20 +169,24 @@
 }
 .formula-slot.is-empty { padding: .4rem .75rem; font-size: .88em; }
 .formula-slot:not(.is-empty)::before { content: ''; display: block; margin: auto; height: 1.35em; width: 2px; background: currentColor; opacity: 0; }
-.formula-slot:is(:hover, :focus-visible, .is-active, .is-dragover)::before { opacity: 1; }
+.formula-slot:is(.is-active, .is-dragover)::before { opacity: 1; }
 .formula-slot.is-active, .formula-slot.is-dragover { border-color: var(--formula-focus); color: var(--formula-focus); background: color-mix(in oklab, var(--formula-panel) 82%, var(--formula-focus)); }
 .formula-slot.is-move-target { border-style: solid; border-color: var(--formula-focus); color: var(--formula-focus); }
-.formula-row-result { align-items: center; }
-.formula-row-result input { min-width: min(9rem, 100%); }
+.formula-row-result, .formula-answer-item { align-items: center; margin-block: .5rem; }
+.formula-result-source { display: inline-flex; align-items: center; gap: .3rem; min-width: 0; max-width: 100%; }
+.formula-result-source.is-draggable { cursor: grab; }
+.formula-result-source.is-draggable input { cursor: grab; }
+.formula-result-source.is-draggable input:focus { cursor: text; }
+.formula-answer-equals { font-weight: 700; }
+.formula-result-source input { min-width: 0; width: 11em; }
+.formula-result-source select { min-width: 0; width: 6em; font-size: .8em; }
+.formula-judge { flex: 0 0 auto; font-size: .9em; }
 .formula-row-references { margin-block: .35rem; font-size: .85em; }
 .formula-add-row { display: block; margin-block: .5rem 0; background: transparent; font-size: .85em; }
-.formula-answer-item { align-items: center; margin-block-start: .5rem; }
-.formula-answer-item > label:first-child { display: flex; align-items: center; gap: .5rem; min-width: 0; font-weight: 700; }
-.formula-answer-item input { width: 12em; }
 .formula-answer-unit { min-height: 44px; display: inline-flex; align-items: center; color: var(--formula-muted); }
 .formula-feedback { flex: 1 1 100%; margin: .2rem 0 0; padding: .35rem .45rem; border-inline-start: 3px solid currentColor; font-size: .9em; }
-.formula-feedback.is-ok { color: color-mix(in oklab, #147b3a 82%, var(--formula-text)); }
-.formula-feedback.is-error { color: color-mix(in oklab, #a32727 82%, var(--formula-text)); }
+.formula-feedback.is-ok { color: color-mix(in oklab, #147b3a 55%, var(--formula-text)); }
+.formula-feedback.is-error { color: color-mix(in oklab, #a32727 55%, var(--formula-text)); }
 .formula-feedback-summary { border-radius: .35rem; background: color-mix(in oklab, var(--formula-panel) 88%, var(--formula-focus)); }
 .formula-feedback-announcement {
   position: absolute;
@@ -203,10 +210,11 @@
 .formula-help p { margin: .2rem 0 0; }
 
 @media (max-width: 640px) {
-  .formula-row-result, .formula-manual-options { align-items: stretch; }
-  .formula-row-result input, .formula-row-result select, .formula-manual-options select { flex: 1 1 100%; width: 100%; }
-  .formula-answer-item > label:first-child { flex: 1 1 0; }
-  .formula-answer-item input { flex: 1 1 auto; width: 0; min-width: 0; }
+  .formula-manual-options { align-items: stretch; }
+  .formula-manual-options select { flex: 1 1 100%; width: 100%; }
+  .formula-result-source { flex: 1 1 0; }
+  .formula-result-source input { flex: 1 1 auto; width: 0; min-width: 0; }
+  .formula-result-source select { width: 4.5em; flex: 0 1 auto; }
 }
 @media (max-width: 390px) {
   .formula-palette, .formula-task { padding: .5rem; }
