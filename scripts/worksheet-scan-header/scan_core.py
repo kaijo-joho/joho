@@ -34,9 +34,25 @@ def load_config(path=None):
             raise ValueError('Expected a fraction: ' + key)
     if not config['blankMaxRatio'] < config['maxOtherRatio'] < config['minFillRatio']:
         raise ValueError('Expected blank < secondary mark < filled mark thresholds')
-    if config['strongInkFraction'] >= config['weakInkFraction']:
-        raise ValueError('Strong ink threshold must be below weak ink threshold')
+    if not config['strongInkFraction'] <= config['maxInkFraction'] < config['weakInkFraction']:
+        raise ValueError('Expected initial ink <= maximum ink < weak ink threshold')
+    if config['inkFractionStep'] < .005 or len(ink_thresholds(config)) > 64:
+        raise ValueError('Ink threshold search must have at most 64 steps of at least 0.005')
+    if type(config['minStableInkSteps']) is not int or not 2 <= config['minStableInkSteps'] <= len(ink_thresholds(config)):
+        raise ValueError('Require at least two stable ink thresholds within the search range')
     return config
+
+
+def ink_thresholds(config):
+    start, stop, step = (config[k] for k in ('strongInkFraction', 'maxInkFraction', 'inkFractionStep'))
+    # Bound allocation even while validating user-supplied configuration.
+    count = int(np.floor((stop - start) / step + 1e-9)) + 1
+    if not 1 <= count <= 64:
+        raise ValueError('Invalid ink threshold search range')
+    values = [round(start + i * step, 6) for i in range(count)]
+    if stop - values[-1] > 1e-6:
+        values.append(stop)
+    return values
 
 
 def parse_payload(payload):
@@ -182,7 +198,9 @@ def detect_markers(gray, config):
 
 
 def classify_row(ratios, weak_ratios, config):
-    order = sorted(range(10), key=lambda d: ratios[d], reverse=True)
+    # Weak evidence breaks a strong-ink tie; an all-zero strong row must not
+    # misleadingly highlight digit 0 when only a faint 9 is present.
+    order = sorted(range(10), key=lambda d: (ratios[d], weak_ratios[d]), reverse=True)
     best, second = order[:2]
     high, runner = ratios[best], ratios[second]
     margin = high - runner
@@ -202,16 +220,48 @@ def classify_row(ratios, weak_ratios, config):
     score = min(high, max(0., 1 - runner), margin, max(0., 1 - other_weak))
     if issues:
         score = min(.49, score)
+    unique_candidate = (high, weak_ratios[best]) != (runner, weak_ratios[second])
     return {'status': 'REVIEW' if issues else 'OK', 'confidence': round(score, 4),
-            'digit': None if issues else best, 'candidateDigit': best if max(weak_ratios) >= config['blankMaxRatio'] else None,
+            'digit': None if issues else best, 'candidateDigit': best if unique_candidate and max(weak_ratios) >= config['blankMaxRatio'] else None,
             'blackRatios': [round(v, 4) for v in ratios], 'weakInkRatios': [round(v, 4) for v in weak_ratios],
             'winnerRatio': round(high, 4), 'runnerUpRatio': round(runner, 4), 'margin': round(margin, 4), 'issues': issues}
+
+
+def classify_ink_steps(samples, backgrounds, config):
+    """Accept only a stable unique choice, with a fixed faint-secondary veto."""
+    weak = [float(np.mean(values < background * config['weakInkFraction']))
+            for values, background in zip(samples, backgrounds)]
+    trials, stable = [], []
+    for fraction in ink_thresholds(config):
+        ratios = [float(np.mean(values < background * fraction))
+                  for values, background in zip(samples, backgrounds)]
+        row = classify_row(ratios, weak, config)
+        trials.append({'inkFraction': fraction, **row})
+        if row['status'] == 'OK':
+            if stable and stable[-1]['digit'] != row['digit']:
+                stable = []
+            stable.append(row)
+        else:
+            stable = []
+        if len(stable) >= config['minStableInkSteps'] or 'blank' in row['issues']:
+            break
+    accepted = len(stable) >= config['minStableInkSteps']
+    row = {**row, 'issues': list(row['issues'])}
+    if accepted:
+        row['confidence'] = min(r['confidence'] for r in stable)
+    elif row['status'] == 'OK':
+        row.update(status='REVIEW', digit=None, confidence=min(.49, row['confidence']))
+        row['issues'].append('unstable_ink_threshold')
+    row['thresholdSearch'] = {'mode': 'progressive', 'accepted': accepted,
+        'selectedInkFraction': fraction, 'stableSteps': len(stable),
+        'requiredStableSteps': config['minStableInkSteps'], 'trials': trials}
+    return row
 
 
 def measure_omr(gray, c, config):
     rows = {}
     for name in ROWS:
-        ratios, weak_ratios, measurements = [], [], []
+        samples, backgrounds, measurements = [], [], []
         for mark in c['omr'][name]:
             center = px(c, mark['center']['mm'])
             factor = np.array([c['raster']['width'] / c['page']['widthMm'], c['raster']['height'] / c['page']['heightMm']])
@@ -225,13 +275,15 @@ def measure_omr(gray, c, config):
             if not np.any(mask):
                 raise ValueError('OMR measurement disk contains no pixels')
             background = float(np.percentile(patch, 90))
-            strong = background * config['strongInkFraction']
-            weak = background * config['weakInkFraction']
-            ratios.append(float(np.mean(patch[mask] < strong)))
-            weak_ratios.append(float(np.mean(patch[mask] < weak)))
+            samples.append(patch[mask])
+            backgrounds.append(background)
             measurements.append({'digit': mark['digit'], 'centerPx': center.round(3).tolist(), 'sampleRadiusPx': radius.round(3).tolist(),
-                                 'samplePixels': int(np.sum(mask)), 'backgroundGray': round(background, 2), 'inkThresholdGray': round(strong, 2)})
-        rows[name] = {**classify_row(ratios, weak_ratios, config), 'measurements': measurements}
+                                 'samplePixels': int(np.sum(mask)), 'backgroundGray': round(background, 2)})
+        row = classify_ink_steps(samples, backgrounds, config)
+        fraction = row['thresholdSearch']['selectedInkFraction']
+        for measurement, background in zip(measurements, backgrounds):
+            measurement['inkThresholdGray'] = round(background * fraction, 2)
+        rows[name] = {**row, 'measurements': measurements}
     return rows
 
 
@@ -410,6 +462,10 @@ def draw_debug(result, artifacts, directory, page_number):
                 cv2.putText(canvas, f"{digit}:{row['blackRatios'][digit]:.2f}", (center[0] - 22, center[1] + radius[1] + 14), cv2.FONT_HERSHEY_SIMPLEX, .4, color, 1)
         caption = f"{result['status']}  student={result['studentIdentifier'] or '-'}  confidence={result['confidence']:.3f}  | green=accepted, orange=review candidate"
         cv2.putText(canvas, caption, (15, 28), cv2.FONT_HERSHEY_SIMPLEX, .6, (0, 0, 0), 1, cv2.LINE_AA)
+        thresholds = ' | '.join(f"{name}: ink<={row['thresholdSearch']['selectedInkFraction']:.3f}, steps={len(row['thresholdSearch']['trials'])}"
+                                for name, row in result['rows'].items() if 'thresholdSearch' in row)
+        if thresholds:
+            cv2.putText(canvas, thresholds, (15, 48), cv2.FONT_HERSHEY_SIMPLEX, .5, (0, 0, 0), 1, cv2.LINE_AA)
         files['normalized'] = directory / (prefix + '-normalized.png')
         if not cv2.imwrite(str(files['normalized']), canvas):
             raise OSError('Cannot write normalized debug image')
