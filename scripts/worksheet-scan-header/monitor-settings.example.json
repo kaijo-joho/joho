@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "worksheet-monitor/1",
+  "timezone": "Asia/Tokyo",
+  "periods": [
+    {"startHour": 0, "intervalSeconds": 1800},
+    {"startHour": 7, "intervalSeconds": 60},
+    {"startHour": 17, "intervalSeconds": 300}
+  ],
+  "burstIntervalSeconds": 30,
+  "burstDurationSeconds": 600,
+  "maximumBackoffSeconds": 1800,
+  "stableSeconds": 15,
+  "downloadLimit": 20,
+  "analysisCheckSeconds": 5,
+  "minimumFreeBytes": 2147483648
+}

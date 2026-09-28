@@ -150,7 +150,8 @@ class InboxWorker:
             finally:
                 fcntl.flock(stream, fcntl.LOCK_UN)
 
-    def pull(self, *, limit=20, stable_seconds=15, clock=time.time, **reader_options):
+    def pull(self, *, limit=20, stable_seconds=15, clock=time.time, defer_analysis=False,
+             before_download=None, **reader_options):
         if not 1 <= limit <= 100 or stable_seconds < 5:
             raise ValueError('Use limit 1..100 and stable-seconds >= 5')
         with self.locked():
@@ -185,11 +186,16 @@ class InboxWorker:
                         break
                     with tempfile.TemporaryDirectory(prefix='drive-download-', dir=self.queue.root) as tmp:
                         path = Path(tmp) / 'source.pdf'
+                        if before_download:
+                            before_download()
                         self.source.download(item, binding['sourceFolderId'], path)
-                        state = self.queue.prepare(path, binding['stationId'], received_at=item['createdTime'], **reader_options)
+                        if defer_analysis:
+                            state = self.queue.receive(path, binding['stationId'], received_at=item['createdTime'])
+                        else:
+                            state = self.queue.prepare(path, binding['stationId'], received_at=item['createdTime'], **reader_options)
                     journal['files'][file_id] = {'contentKey': content_key(item), 'source': item,
                         'receiptId': state['receiptId'], 'originalSha256': state['originalSha256'], 'importedAt': now_iso()}
-                    # A crash before this commit repeats prepare, whose SHA-256 ID is idempotent.
+                    # A crash before this commit repeats reception, whose SHA-256 ID is idempotent.
                     atomic_json(self.path, journal)
                     prepared += 1
                     reports.append({'fileId': file_id, **summary(state)})

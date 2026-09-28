@@ -80,8 +80,10 @@ class CloudQueue:
         (self.root / 'jobs').mkdir(exist_ok=True)
 
     @contextmanager
-    def locked(self):
-        with (self.root / 'queue.lock').open('a') as stream:
+    def locked(self, receipt_id=None):
+        # Reception uses the queue lock briefly; analysis/upload serialize per job.
+        path = self.state_path(receipt_id).parent / 'job.lock' if receipt_id else self.root / 'queue.lock'
+        with path.open('a') as stream:
             fcntl.flock(stream, fcntl.LOCK_EX)
             try:
                 yield
@@ -100,14 +102,12 @@ class CloudQueue:
         return sorted([json.loads(p.read_text()) for p in (self.root / 'jobs').glob('ws-*/state.json')],
                       key=lambda s: (s['receivedAt'], s['receiptId']))
 
-    def prepare(self, source, station_id, *, received_at=None, catalog=None, reader_config=None, renderer=None):
+    def receive(self, source, station_id, *, received_at=None):
         if not re.fullmatch(r'[A-Za-z0-9_-]{1,64}', station_id):
             raise ValueError('Invalid stationId')
         if Path(source).is_symlink():
             raise ValueError('Input symlinks are not accepted')
         reception = timestamp(received_at).isoformat() if received_at else None
-        catalog = catalog if catalog is not None else load_catalog()
-        reader_config = reader_config if reader_config is not None else load_config()
         with self.locked():
             with tempfile.TemporaryDirectory(prefix='receiving-', dir=self.root) as tmp:
                 original, sha = snapshot(source, Path(tmp), MAX_BATCH_BYTES)
@@ -125,8 +125,24 @@ class CloudQueue:
                     atomic_json(Path(tmp) / 'state.json', state)
                     # Both the original and initial journal appear as one directory rename.
                     Path(tmp).rename(destination)
+            return state
+
+    def prepare(self, source, station_id, *, received_at=None, **reader_options):
+        state = self.receive(source, station_id, received_at=received_at)
+        return self.analyze(state['receiptId'], **reader_options)
+
+    def analyze(self, receipt_id, *, catalog=None, reader_config=None, renderer=None):
+        catalog = catalog if catalog is not None else load_catalog()
+        reader_config = reader_config if reader_config is not None else load_config()
+        state_path = self.state_path(receipt_id)
+        with self.locked(receipt_id):
+            state = json.loads(state_path.read_text())
             if state['status'] != 'received':
                 return state
+            original = self.root / state['originalPath']
+            sha = state['originalSha256']
+            if file_description(original, self.root, MIMES[original.suffix])['sha256'] != sha:
+                raise ValueError('Stored original changed')
             run = state_path.parent / ('run-' + uuid.uuid4().hex)
             stack = scan_stack(self.root / state['originalPath'], run, catalog=catalog,
                                config=reader_config, renderer=renderer)
@@ -154,7 +170,7 @@ class CloudQueue:
             return state
 
     def upload(self, receipt_id, config, drive):
-        with self.locked():
+        with self.locked(receipt_id):
             state = json.loads(self.state_path(receipt_id).read_text())
             if state['status'] == 'received':
                 raise ValueError('Analysis has not completed; prepare the same original again')
