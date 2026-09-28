@@ -62,7 +62,7 @@ async function fillCorrect(selector, wrongAnswer = false) {
     const pow = value => ({ kind: 'power', base: [v(2)], exponent: [v(value)] });
     const definition = entry.definition;
     const rows = definition.tasks.map((task, index) => ({
-      id: `row-${index + 1}`, result: '', resultUnit: '',
+      id: `row-${index + 1}`, taskId: task.id, result: '', resultUnit: '',
       tokens: task.rule === 'minimum-bits'
         ? [pow(task.expected - 1), op('<'), v(task.levels, 'levels'), op('<='), pow(task.expected)]
         : task.expectedTokens
@@ -96,6 +96,14 @@ try {
   await page.locator('body.lesson-slide-ready').waitFor();
   assert.equal(await page.locator('[data-formula-builder]').count(), 4, '例題と3種の計算問題だけに導入');
   assert.equal(await page.evaluate(() => window.formulaTestEvaluations), 0, '初期表示では式を計算しない');
+  const exampleBuilder = page.locator(`${exampleSelector} [data-formula-builder]`);
+  for (const taskId of ['sample', 'second']) {
+    const task = exampleBuilder.locator(`[data-formula-task="${taskId}"]`);
+    const finalRow = task.locator('[data-formula-row]').last();
+    assert.equal(await task.locator('[data-formula-row]').count(), 1, `${taskId}: 小問ごとに独立した最終式で始まる`);
+    assert.equal(await finalRow.locator('[data-formula-result]').count(), 0, `${taskId}: 最終式に途中結果入力を置かない`);
+    assert.equal(await finalRow.locator(`[data-formula-answer="${taskId}"]`).count(), 1, `${taskId}: 最終式に回答欄を一つ置く`);
+  }
   for (const selector of [exampleSelector, ...['sampling', 'quantization', 'data-size'].map(selectorFor)]) {
     const draft = await editorDraft(selector);
     assert.ok(draft.rows.every(row => !row.tokens.length && !row.result), '式と結果は初期空欄');
@@ -108,12 +116,28 @@ try {
     const v = (value, unit = '') => ({ kind: 'value', value: String(value), unit });
     const op = value => ({ kind: 'operator', value });
     editor.setDraft({ rows: [
-      { id: 'sample', tokens: [v(16, 'bit/sample'), op('×'), v(2, 'channel'), op('÷'), v(8, 'bit/B')], result: '4', resultUnit: 'B' },
-      { id: 'second', tokens: [{ kind: 'reference', rowId: 'sample' }, op('×'), v(44100, 'Hz'), op('÷'), v(1000, 'B/KB')], result: '', resultUnit: '' }
+      { id: 'sample', taskId: 'sample', tokens: [v(16, 'bit/sample'), op('×'), v(2, 'channel'), op('÷'), v(8, 'bit/B')], result: '', resultUnit: '' },
+      { id: 'second', taskId: 'second', tokens: [{ kind: 'reference', rowId: 'sample' }, op('×'), v(44100, 'Hz'), op('÷'), v(1000, 'B/KB')], result: '', resultUnit: '' }
     ], targets: { sample: 'sample', second: 'second' }, answers: { sample: '4', second: '176.4' } });
   }, exampleSelector);
   assert.equal(await page.evaluate(() => window.formulaTestEvaluations), 0, '入力・参照の追加で自動計算しない');
   const savedExample = await editorDraft(exampleSelector);
+  assert.equal(savedExample.rows[0].result, '4', '参照元の最終式には小問の手入力回答を渡す');
+  assert.equal(savedExample.rows[0].resultUnit, 'B', '参照元の単位は小問の回答単位を使う');
+  assert.equal(savedExample.rows[1].result, '', '参照されていない最終式へ結果を重複保存しない');
+  assert.deepEqual(await page.evaluate(selector => {
+    const editor = window.formulaTestEditors.find(entry => entry.host.closest(selector)).editor;
+    const draft = editor.getDraft();
+    editor.setDraft(draft);
+    return editor.getDraft();
+  }, exampleSelector), savedExample, 'taskIdを含むdraftはgetDraft/setDraftで互換に復元できる');
+  assert.deepEqual(await page.evaluate(selector => {
+    const editor = window.formulaTestEditors.find(entry => entry.host.closest(selector)).editor;
+    const draft = editor.getDraft();
+    draft.rows.forEach(row => { delete row.taskId; });
+    editor.setDraft(draft);
+    return editor.getDraft();
+  }, exampleSelector), savedExample, '旧形式のdraftも小問ごとの式へ復元できる');
   await showSlide(3);
   await showSlide(2);
   assert.deepEqual(await editorDraft(exampleSelector), savedExample, 'スライド移動で入力を保持');

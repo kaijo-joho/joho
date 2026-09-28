@@ -61,7 +61,7 @@
     } else if (problem.type === 'bitsFromLevels') {
       const levels = source('levels', '区別する段階数', p.levels, 'levels');
       const bits = Sound.requiredBitsForLevels(p.levels);
-      task('answer', '必要な最小のビット数', 'bitCount', bits, [], { rule: 'minimum-bits', levels: p.levels });
+      task('answer', '必要な最小のビット数', 'bitCount', bits, [], { rule: 'minimum-bits', levels: p.levels, answerIsResult: false });
       definition.hint = '2の何乗で足りるか、その一つ前では足りないことも式で確かめます。指数の数値は自分で追加してください。';
       definition.bound = levels;
     } else if (problem.type === 'dataSize' || problem.type === 'workedExample') {

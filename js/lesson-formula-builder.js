@@ -50,10 +50,10 @@
     var drag = null;
     var feedback = null;
     var feedbackAnnouncement = '';
-    var undo = [];
-    var redo = [];
     var moving = null;
     var constantsOpen = false;
+    var operatorsOpen = false;
+    var manualOpen = false;
     var referenceChoices = {};
     var manualValue = '';
     var manualUnit = '';
@@ -65,10 +65,23 @@
     host.addEventListener('keydown', lockSlideKeys);
 
     function initialRows() {
-      var count = Math.max(1, Math.min(2, tasks.length || 1));
-      return Array.from({ length: count }, function () { return { id: makeId(), tokens: [], result: '', resultUnit: '' }; });
+      var count = Math.max(1, Math.min(MAX_ROWS, tasks.length || 1));
+      return Array.from({ length: count }, function (_, index) { return { id: makeId(), taskId: tasks[index] ? taskIdFor(tasks[index], index) : '', tokens: [], result: '', resultUnit: '' }; });
     }
-    function cloneDraft() { return copy(state); }
+    function taskIdFor(task, index) { return String(task.id == null ? index : task.id); }
+    function taskForRow(row) { return tasks.find(function (task, index) { return state.targets[taskIdFor(task, index)] === row.id; }); }
+    function rowsForTask(taskId) { return state.rows.filter(function (row) { return row.taskId === taskId; }); }
+    function ensureTaskRows() {
+      tasks.forEach(function (task, index) {
+        var taskId = taskIdFor(task, index);
+        var rows = rowsForTask(taskId);
+        if (!rows.length) {
+          var row = { id: makeId(), taskId: taskId, tokens: [], result: '', resultUnit: '' };
+          state.rows.push(row); rows = [row];
+        }
+        if (!rows.some(function (row) { return row.id === state.targets[taskId]; })) state.targets[taskId] = rows[rows.length - 1].id;
+      });
+    }
     function rowById(id) { return state.rows.find(function (row) { return row.id === id; }); }
     function makeSlot(rowId, path, index) { return { rowId: rowId, path: path.slice(), index: index }; }
     function encode(value) { return JSON.stringify(value); }
@@ -88,14 +101,9 @@
       var root = source.path.concat(source.index);
       return destination.path.length >= root.length && root.every(function (part, index) { return destination.path[index] === part; });
     }
-    function pushHistory() { undo.push(cloneDraft()); if (undo.length > 80) undo.shift(); redo = []; }
     function inputChanged() {
       feedback = null; feedbackAnnouncement = '';
       host.querySelectorAll('.formula-feedback, .formula-feedback-announcement').forEach(function (node) { node.remove(); });
-      var back = host.querySelector('[data-formula-action="undo"]');
-      var forward = host.querySelector('[data-formula-action="redo"]');
-      if (back) back.disabled = disabled || !undo.length;
-      if (forward) forward.disabled = disabled || !redo.length;
       if (typeof options.onChange === 'function') options.onChange(getDraft());
     }
     function slotIsValid(slot) {
@@ -116,7 +124,7 @@
       render(active ? { kind: 'slot', location: active } : selected ? { kind: 'token', location: selected } : { kind: 'slot', location: makeSlot(state.rows[0].id, [], 0) });
       if (typeof options.onChange === 'function') options.onChange(getDraft());
     }
-    function update(mutator) { if (disabled) return; pushHistory(); mutator(); feedback = null; feedbackAnnouncement = ''; changed(); }
+    function update(mutator) { if (disabled) return; mutator(); feedback = null; feedbackAnnouncement = ''; changed(); }
     function referencesTo(rowId) {
       function contains(tokens) {
         return tokens.some(function (token) {
@@ -130,8 +138,23 @@
     }
     function updateReferenceLabels(rowId) {
       var source = rowById(rowId);
-      var label = '↳ ' + (source && source.result ? displayNumber(source.result) : '前の行の結果') + (source && source.resultUnit ? ' ' + displayUnit(source.resultUnit) : '');
-      host.querySelectorAll('[data-formula-reference]').forEach(function (node) { if (node.dataset.formulaReference === rowId) node.textContent = label; });
+      var label = referenceLabel(source);
+      host.querySelectorAll('[data-formula-reference]').forEach(function (node) {
+        if (node.dataset.formulaReference === rowId) node.querySelector('.formula-reference-value').textContent = label;
+      });
+    }
+    function enteredResult(row) {
+      if (!row) return { result: '', resultUnit: '' };
+      var task = taskForRow(row);
+      if (!task) return row;
+      // 小問の答えは一度だけ入力する。数値の最終回答を前式の結果として
+      // 使う場合も、その手入力を読むだけで計算・正解の補完はしない。
+      if (task.answerIsResult === false) return { result: '', resultUnit: '' };
+      return { result: state.answers[taskIdFor(task, tasks.indexOf(task))] || '', resultUnit: task.answerUnit || '' };
+    }
+    function referenceLabel(row) {
+      var source = enteredResult(row);
+      return '↳ ' + (source.result ? displayNumber(source.result) : '前の式の答え') + (source.resultUnit ? ' ' + displayUnit(source.resultUnit) : '');
     }
     function validReference(rowId, targetId) {
       var sourceIndex = state.rows.findIndex(function (row) { return row.id === rowId; });
@@ -182,13 +205,14 @@
     function lockSlideKeys(event) {
       var keys = ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End', 'PageUp', 'PageDown', ' '];
       if (keys.indexOf(event.key) >= 0 || (event.key === 'Delete' && selected)) event.stopPropagation();
-      if (event.key === 'Delete' && selected && !disabled) { event.preventDefault(); removeToken(selected); }
+      if (event.key === 'Delete' && selected && !disabled && !event.target.closest('input, select, textarea')) { event.preventDefault(); removeToken(selected); }
       if (event.key === 'Escape' && moving) { event.preventDefault(); event.stopPropagation(); selected = moving; moving = null; render({ kind: 'token', location: selected }); }
-      else if (event.key === 'Escape' && selected) { var previous = selected; selected = null; render({ kind: 'token', location: previous }); }
+      else if (event.key === 'Escape' && selected) { event.preventDefault(); event.stopPropagation(); var previous = selected; selected = null; render({ kind: 'token', location: previous }); }
     }
     function activeOrDefault() {
       if (slotIsValid(active)) return active;
-      var row = state.rows[state.rows.length - 1];
+      if (tokenIsValid(selected)) return makeSlot(selected.rowId, selected.path, selected.index + 1);
+      var row = state.rows[0];
       return makeSlot(row.id, [], row.tokens.length);
     }
     function displayUnit(unit) { return units[unit] && units[unit].label ? units[unit].label : unit || '単位なし'; }
@@ -229,7 +253,8 @@
     }
 
     function slotNode(slot, text) {
-      var node = button(text || 'ここへ挿入', { className: 'formula-slot', label: 'この位置へ挿入', dataset: { formulaSlot: encode(slot) } });
+      var node = button(text || '', { className: 'formula-slot' + (text ? ' is-empty' : ''), label: 'この位置へ挿入', dataset: { formulaSlot: encode(slot) } });
+      node.disabled = disabled;
       if (active && active.rowId === slot.rowId && samePath(active.path, slot.path) && active.index === slot.index) node.classList.add('is-active');
       if (moving) { node.classList.add('is-move-target'); node.setAttribute('aria-label', '選択した部品をこの位置へ移動'); }
       node.addEventListener('click', function (event) {
@@ -250,9 +275,7 @@
         var next = slots[slots.indexOf(node) + delta];
         if (next) {
           active = decode(next.dataset.formulaSlot); selected = null;
-          host.querySelectorAll('.formula-slot.is-active').forEach(function (item) { item.classList.remove('is-active'); });
-          next.classList.add('is-active');
-          try { next.focus({ preventScroll: true }); } catch (_) { next.focus(); }
+          render({ kind: 'slot', location: active });
         }
       });
       node.addEventListener('dragover', function (event) { if (!disabled) { event.preventDefault(); node.classList.add('is-dragover'); } });
@@ -280,7 +303,8 @@
         node.append(el('span', { text: ')' }));
       } else if (token.kind === 'reference') {
         var refRow = rowById(token.rowId);
-        node = el('span', { className: 'formula-token formula-reference', text: refRow ? '↳ ' + (refRow.result ? displayNumber(refRow.result) : '前の行の結果') + (refRow.resultUnit ? ' ' + displayUnit(refRow.resultUnit) : '') : '↳ 前の行の結果', label: '前の行の手入力結果を参照' });
+        node = el('span', { className: 'formula-token formula-reference', label: '前の式の手入力結果を参照' });
+        node.append(el('span', { className: 'formula-reference-value', text: referenceLabel(refRow) }));
         node.dataset.formulaReference = token.rowId;
       } else {
         var visible = tokenLabel(token);
@@ -289,11 +313,18 @@
         if (token.kind === 'value' && token.label) node.title = token.label;
       }
       node.tabIndex = disabled ? -1 : 0;
-      node.setAttribute('role', ['fraction', 'power', 'group'].indexOf(token.kind) >= 0 ? 'group' : 'button');
+      node.setAttribute('role', 'group');
       node.draggable = !disabled;
       node.dataset.formulaToken = encode(location);
-      if (selected && selected.rowId === location.rowId && samePath(selected.path, location.path) && selected.index === location.index) node.classList.add('is-selected');
-      node.addEventListener('click', function (event) { event.stopPropagation(); selected = location; active = null; render({ kind: 'token', location: location }); });
+      if (!disabled && selected && selected.rowId === location.rowId && samePath(selected.path, location.path) && selected.index === location.index) {
+        node.classList.add('is-selected');
+        var remove = button('×', { className: 'formula-token-remove', label: tokenLabel(token) + 'を削除' });
+        remove.draggable = false;
+        remove.addEventListener('click', function (event) { event.stopPropagation(); removeToken(location); });
+        remove.addEventListener('dragstart', function (event) { event.preventDefault(); event.stopPropagation(); });
+        node.append(remove);
+      }
+      node.addEventListener('click', function (event) { event.stopPropagation(); if (disabled) return; selected = location; active = null; render({ kind: 'token', location: location }); });
       node.addEventListener('keydown', function (event) {
         if (event.target !== node || disabled) return;
         if (event.key === 'Enter' || event.key === ' ') {
@@ -308,10 +339,11 @@
     }
     function renderTokenList(row, list, path, name) {
       var group = el('span', { className: 'formula-token-list', label: name || '式' });
-      group.append(slotNode(makeSlot(row.id, path, 0), '＋'));
+      if (!path.length && !list.length) group.classList.add('is-empty-expression');
+      group.append(slotNode(makeSlot(row.id, path, 0), list.length ? '' : path.length ? name : 'ここに式を組み立てる'));
       list.forEach(function (token, index) {
         group.append(tokenNode(token, { rowId: row.id, path: path.slice(), index: index }, row));
-        group.append(slotNode(makeSlot(row.id, path, index + 1), '＋'));
+        group.append(slotNode(makeSlot(row.id, path, index + 1)));
       });
       return group;
     }
@@ -320,7 +352,6 @@
       var amount = (item.value != null ? displayNumber(item.value) : '') + (item.unit ? ' ' + displayUnit(item.unit) : '');
       var text = label + (amount ? ' ' + amount : '');
       var card = button('', { className: 'formula-palette-card', label: text + 'を式へ挿入', dataset: type === 'quantity' ? { formulaQuantity: item.id } : { formulaConstant: item.id } });
-      card.append(el('span', { className: 'formula-card-label', text: label }));
       card.append(el('span', { className: 'formula-card-value', text: amount }));
       card.disabled = disabled;
       var token = { kind: 'value', value: String(item.value == null ? '' : item.value), unit: String(item.unit || ''), label: item.label };
@@ -347,11 +378,8 @@
     }
     function controlButton(text, action, label) {
       var node = button(text, { className: 'formula-control', label: label || text, dataset: { formulaAction: action } });
-      node.disabled = disabled || (action === 'undo' && !undo.length) || (action === 'redo' && !redo.length) || (action === 'move' && !selected);
+      node.disabled = disabled || !selected;
       node.addEventListener('click', function () {
-        if (action === 'undo' && undo.length) { redo.push(cloneDraft()); state = undo.pop(); feedback = null; feedbackAnnouncement = ''; changed(); }
-        if (action === 'redo' && redo.length) { undo.push(cloneDraft()); state = redo.pop(); feedback = null; feedbackAnnouncement = ''; changed(); }
-        if (action === 'delete' && selected) removeToken(selected);
         if (action === 'move' && selected) { moving = selected; selected = null; active = null; render(); }
       });
       return node;
@@ -366,90 +394,103 @@
       return el('p', { className: 'formula-feedback ' + (item.calculationCorrect === false || item.formulaCorrect === false || item.answerCorrect === false ? 'is-error' : 'is-ok'), text: messages.join(' ') || fallback });
     }
     function renderRow(row, index) {
+      var task = taskForRow(row);
       var box = el('section', { className: 'formula-row', dataset: { formulaRow: row.id } });
       var heading = el('div', { className: 'formula-row-heading' });
-      heading.append(el('h4', { text: '式 ' + (index + 1) }));
-      var remove = button('行を削除', { className: 'formula-row-remove', label: '式 ' + (index + 1) + ' を削除' });
-      remove.disabled = disabled || state.rows.length === 1 || referencesTo(row.id);
-      if (referencesTo(row.id)) remove.title = 'この行を参照している式があるため削除できません。';
-      remove.addEventListener('click', function () { update(function () { state.rows = state.rows.filter(function (entry) { return entry.id !== row.id; }); Object.keys(state.targets).forEach(function (taskId) { if (state.targets[taskId] === row.id) state.targets[taskId] = state.rows[0].id; }); }); });
-      heading.append(remove);
+      heading.append(el('span', { className: 'formula-row-label', text: (task ? '式 ' : '途中式 ') + (index + 1) }));
+      if (!task) {
+        var remove = button('×', { className: 'formula-row-remove', label: '式 ' + (index + 1) + ' を削除' });
+        remove.disabled = disabled || state.rows.length === 1 || referencesTo(row.id);
+        if (referencesTo(row.id)) remove.title = 'この行を参照している式があるため削除できません。';
+        remove.addEventListener('click', function () { update(function () { state.rows = state.rows.filter(function (entry) { return entry.id !== row.id; }); }); });
+        heading.append(remove);
+      }
       box.append(heading);
       var formula = el('div', { className: 'formula-expression', label: '式 ' + (index + 1) + '。挿入位置を選択して部品を追加します。' });
       formula.append(renderTokenList(row, row.tokens, [], '式 ' + (index + 1)));
       box.append(formula);
-      var result = el('div', { className: 'formula-row-result' });
-      result.append(el('label', { text: '式の結果（手入力・次の式で使う場合）' }));
-      var value = el('input', { type: 'text', value: row.result, label: '式 ' + (index + 1) + ' の手入力結果', dataset: { formulaResult: row.id } });
-      value.disabled = disabled;
-      value.addEventListener('focus', function () { if (!disabled) pushHistory(); });
-      value.inputMode = 'decimal';
-      value.addEventListener('input', function () { row.result = value.value; updateReferenceLabels(row.id); inputChanged(); });
-      result.append(value);
-      var unit = unitSelect(row.resultUnit, '式 ' + (index + 1) + ' の結果の単位', { formulaResultUnit: row.id });
-      unit.disabled = disabled;
-      unit.addEventListener('focus', function () { if (!disabled) pushHistory(); });
-      unit.addEventListener('change', function () { row.resultUnit = unit.value; updateReferenceLabels(row.id); inputChanged(); });
-      result.append(unit);
+      if (selected && selected.rowId === row.id && !disabled) box.append(controlButton('選択を移動', 'move'));
       if (index > 0) {
+        var references = el('div', { className: 'formula-row-references' });
         var referenceSource = el('select', { label: '参照する前の式', dataset: { formulaReferenceSource: row.id } });
         state.rows.slice(0, index).forEach(function (prior, priorIndex) { referenceSource.append(el('option', { value: prior.id, text: '式 ' + (priorIndex + 1) + ' の結果' })); });
         referenceSource.value = validReference(row.id, referenceChoices[row.id]) ? referenceChoices[row.id] : state.rows[index - 1].id;
         referenceSource.addEventListener('change', function () { referenceChoices[row.id] = referenceSource.value; });
         referenceSource.disabled = disabled;
-        result.append(el('label', { className: 'formula-reference-label', text: '参照する式' }));
-        result.append(referenceSource);
-        var reference = button('選んだ式の結果を挿入', { className: 'formula-reference-card', label: '選んだ前の式の手入力結果を参照として挿入' });
+        references.append(referenceSource);
+        var reference = button('この結果を使う', { className: 'formula-reference-card', label: '選んだ前の式の手入力結果を参照として挿入' });
         reference.disabled = disabled;
         reference.addEventListener('click', function () {
           var destination = active && active.rowId === row.id && slotIsValid(active) ? active : makeSlot(row.id, [], row.tokens.length);
           insertToken(destination, { kind: 'reference', rowId: referenceSource.value });
         });
-        result.append(reference);
+        references.append(reference);
+        box.append(references);
       }
-      box.append(result);
+      if (task) {
+        box.append(renderAnswer(row, task));
+      } else {
+        var result = el('div', { className: 'formula-row-result' });
+        result.append(el('span', { text: '途中式の結果' }));
+        var value = el('input', { type: 'text', value: row.result, label: '式 ' + (index + 1) + ' の手入力結果', dataset: { formulaResult: row.id } });
+        value.placeholder = '自分で計算して入力'; value.disabled = disabled; value.inputMode = 'decimal';
+        value.addEventListener('input', function () { row.result = value.value; updateReferenceLabels(row.id); inputChanged(); });
+        result.append(value);
+        var unit = unitSelect(row.resultUnit, '式 ' + (index + 1) + ' の結果の単位', { formulaResultUnit: row.id });
+        unit.disabled = disabled;
+        unit.addEventListener('change', function () { row.resultUnit = unit.value; updateReferenceLabels(row.id); inputChanged(); });
+        result.append(unit);
+        box.append(result);
+      }
       var rowFeedback = feedbackFor(feedback && feedback.rows, row.id);
       var message = statusNode(rowFeedback);
       if (message) box.append(message);
       return box;
     }
-    function renderAnswers(root) {
-      if (!tasks.length) return;
-      var section = el('section', { className: 'formula-answers' });
-      section.append(el('h4', { text: '小問の最終回答（手入力）' }));
-      tasks.forEach(function (task, index) {
-        var item = el('div', { className: 'formula-answer-item' });
-        var taskId = String(task.id || index);
-        item.append(el('label', { text: task.label || '小問 ' + (index + 1) }));
-        var answer = el('input', { type: 'text', value: state.answers[taskId] || '', label: (task.label || '小問') + ' の最終回答', dataset: { formulaAnswer: taskId } });
-        answer.disabled = disabled;
-        answer.addEventListener('focus', function () { if (!disabled) pushHistory(); });
-        answer.inputMode = 'decimal';
-        answer.addEventListener('input', function () { state.answers[taskId] = answer.value; inputChanged(); });
-        item.append(answer);
-        item.append(el('span', { className: 'formula-answer-unit', text: task.answerUnitLabel || task.answerUnit || '単位なし' }));
-        var target = el('select', { label: (task.label || '小問') + ' の採点対象の式' });
-        state.rows.forEach(function (row, rowIndex) { var option = el('option', { value: row.id, text: '式 ' + (rowIndex + 1) }); target.append(option); });
-        if (!state.targets[taskId] || !rowById(state.targets[taskId])) state.targets[taskId] = state.rows[Math.min(index, state.rows.length - 1)].id;
-        target.value = state.targets[taskId]; target.disabled = disabled;
-        target.addEventListener('change', function () { if (disabled) return; pushHistory(); state.targets[taskId] = target.value; inputChanged(); });
-        item.append(el('label', { className: 'formula-target-label', text: '採点対象の式' })); item.append(target);
-        var itemFeedback = feedbackFor(feedback && feedback.tasks, taskId);
-        var note = statusNode(itemFeedback);
-        if (note) item.append(note);
-        section.append(item);
+    function renderAnswer(row, task) {
+      var item = el('div', { className: 'formula-answer-item' });
+      var taskId = taskIdFor(task, tasks.indexOf(task));
+      var label = el('label', { text: '答え ' });
+      var answer = el('input', { type: 'text', value: state.answers[taskId] || '', label: (task.label || '小問') + ' の最終回答', dataset: { formulaAnswer: taskId } });
+      answer.placeholder = '自分で計算して入力'; answer.disabled = disabled; answer.inputMode = 'decimal';
+      answer.addEventListener('input', function () { state.answers[taskId] = answer.value; updateReferenceLabels(row.id); inputChanged(); });
+      label.append(answer); item.append(label);
+      item.append(el('span', { className: 'formula-answer-unit', text: task.answerUnitLabel || task.answerUnit || '単位なし' }));
+      var note = statusNode(feedbackFor(feedback && feedback.tasks, taskId));
+      if (note) item.append(note);
+      return item;
+    }
+    function addRowButton(taskId) {
+      var add = button('途中式を追加', { className: 'formula-add-row', label: '式の行を追加', dataset: { formulaAddRow: taskId } });
+      add.disabled = disabled || state.rows.length >= MAX_ROWS;
+      add.addEventListener('click', function () {
+        if (state.rows.length >= MAX_ROWS) return;
+        update(function () {
+          var row = { id: makeId(), taskId: taskId, tokens: [], result: '', resultUnit: '' };
+          var targetIndex = state.rows.findIndex(function (entry) { return entry.id === state.targets[taskId]; });
+          state.rows.splice(targetIndex < 0 ? state.rows.length : targetIndex, 0, row);
+          active = makeSlot(row.id, [], 0); selected = null;
+        });
       });
-      root.append(section);
+      return add;
+    }
+    function renderTasks() {
+      var groups = el('div', { className: 'formula-tasks' });
+      var entries = tasks.length ? tasks : [{ id: '', label: '式を組み立てる' }];
+      entries.forEach(function (task, taskIndex) {
+        var taskId = taskIdFor(task, taskIndex);
+        var group = el('section', { className: 'formula-task', dataset: { formulaTask: taskId } });
+        group.append(el('h4', { text: task.label || '小問 ' + (taskIndex + 1) }));
+        var rows = el('div', { className: 'formula-rows' });
+        rowsForTask(taskId).forEach(function (row) { rows.append(renderRow(row, state.rows.indexOf(row))); });
+        group.append(rows); group.append(addRowButton(taskId)); groups.append(group);
+      });
+      host.append(groups);
     }
     function render(focusTarget) {
+      ensureTaskRows();
       host.replaceChildren();
       host.classList.toggle('is-disabled', disabled);
-      var toolbar = el('div', { className: 'formula-toolbar' });
-      toolbar.append(controlButton('↶ 元に戻す', 'undo'));
-      toolbar.append(controlButton('↷ やり直す', 'redo'));
-      toolbar.append(controlButton('選択を移動', 'move'));
-      toolbar.append(controlButton('選択を削除', 'delete'));
-      host.append(toolbar);
       var palette = el('section', { className: 'formula-palette' });
       palette.append(el('h4', { text: '問題の数値' }));
       var cards = el('div', { className: 'formula-palette-cards' });
@@ -467,34 +508,50 @@
       }
       if (config.hint) palette.append(el('p', { className: 'formula-hint', text: 'ヒント：' + config.hint }));
       var manual = el('div', { className: 'formula-manual-value' });
-      manual.append(el('label', { text: '自由入力の数値' }));
-      var manualInput = el('input', { type: 'text', value: manualValue, label: '自由入力の数値' }); manualInput.placeholder = '例: 8'; manualInput.disabled = disabled; manualInput.inputMode = 'decimal';
+      var manualInput = el('input', { type: 'text', value: manualValue, label: '自由入力の数値' }); manualInput.placeholder = '数値を入力'; manualInput.disabled = disabled; manualInput.inputMode = 'decimal';
       manual.append(manualInput);
+      var manualOptions = el('div', { className: 'formula-manual-options' });
+      manualOptions.hidden = !manualOpen && !manualValue;
+      manualInput.setAttribute('aria-expanded', String(!manualOptions.hidden));
+      manualInput.addEventListener('focus', function () { manualOpen = true; manualOptions.hidden = false; manualInput.setAttribute('aria-expanded', 'true'); dispatchResize(); });
+      manual.addEventListener('focusout', function (event) {
+        if (!manualValue && !manual.contains(event.relatedTarget)) { manualOpen = false; manualOptions.hidden = true; manualInput.setAttribute('aria-expanded', 'false'); dispatchResize(); }
+      });
       var manualUnitInput = unitSelect(manualUnit, '自由入力の単位', { formulaManualUnit: 'true' }); manualUnitInput.disabled = disabled;
-      manualUnitInput.addEventListener('change', function () { manualUnit = manualUnitInput.value; }); manual.append(manualUnitInput);
+      manualUnitInput.addEventListener('change', function () { manualUnit = manualUnitInput.value; }); manualOptions.append(manualUnitInput);
       var insertManual = button('数値を挿入', { className: 'formula-palette-card', label: '自由入力の数値を式へ挿入' }); insertManual.disabled = disabled || !manualValue;
       manualInput.addEventListener('input', function () { manualValue = manualInput.value; insertManual.disabled = disabled || !manualValue; });
-      insertManual.addEventListener('click', function () { if (manualValue) insertToken(activeOrDefault(), { kind: 'value', value: manualValue, unit: manualUnit }); });
+      function insertManualValue() {
+        if (!manualValue || disabled) return;
+        var token = { kind: 'value', value: manualValue, unit: manualUnit };
+        manualValue = ''; manualOpen = false;
+        insertToken(activeOrDefault(), token);
+      }
+      insertManual.addEventListener('click', insertManualValue);
+      manualInput.addEventListener('keydown', function (event) { if (event.key === 'Enter') { event.preventDefault(); event.stopPropagation(); insertManualValue(); } });
       insertManual.draggable = !disabled;
       insertManual.addEventListener('dragstart', function (event) {
         if (disabled || !manualValue) { event.preventDefault(); return; }
         event.dataTransfer.effectAllowed = 'copy';
         event.dataTransfer.setData('application/x-lesson-formula-new', encode({ kind: 'value', value: manualValue, unit: manualUnit }));
       });
-      manual.append(insertManual); palette.append(manual);
+      manualOptions.append(insertManual); manual.append(manualOptions); cards.append(manual);
       var ops = el('div', { className: 'formula-operators', label: '演算子' });
-      ['+', '-', '×', '÷', '=', '(', ')', '<', '<=', '>', '>='].forEach(function (operator) { ops.append(operatorCard(operator)); });
+      ['+', '-', '×', '÷'].forEach(function (operator) { ops.append(operatorCard(operator)); });
+      var more = el('details', { className: 'formula-more-operators' });
+      more.open = operatorsOpen;
+      more.addEventListener('toggle', function () { operatorsOpen = more.open; dispatchResize(); });
+      more.append(el('summary', { text: 'その他の記号' }));
+      var extraOps = el('div', { className: 'formula-operators' });
+      ['=', '(', ')', '<', '<=', '>', '>='].forEach(function (operator) { extraOps.append(operatorCard(operator)); });
       var fractionToken = { kind: 'fraction', numerator: [], denominator: [] };
-      var fraction = button('分数', { className: 'formula-operator', label: '分数を式へ挿入' }); fraction.disabled = disabled; fraction.addEventListener('click', function () { insertToken(activeOrDefault(), fractionToken); }); makePaletteDraggable(fraction, fractionToken); ops.append(fraction);
+      var fraction = button('分数', { className: 'formula-operator', label: '分数を式へ挿入' }); fraction.disabled = disabled; fraction.addEventListener('click', function () { insertToken(activeOrDefault(), fractionToken); }); makePaletteDraggable(fraction, fractionToken); extraOps.append(fraction);
       var powerToken = { kind: 'power', base: [], exponent: [] };
-      var power = button('指数', { className: 'formula-operator', label: '指数を式へ挿入' }); power.disabled = disabled; power.addEventListener('click', function () { insertToken(activeOrDefault(), powerToken); }); makePaletteDraggable(power, powerToken); ops.append(power);
+      var power = button('指数', { className: 'formula-operator', label: '指数を式へ挿入' }); power.disabled = disabled; power.addEventListener('click', function () { insertToken(activeOrDefault(), powerToken); }); makePaletteDraggable(power, powerToken); extraOps.append(power);
       var groupToken = { kind: 'group', body: [] };
-      var group = button('括弧グループ', { className: 'formula-operator', label: '括弧グループを式へ挿入' }); group.disabled = disabled; group.addEventListener('click', function () { insertToken(activeOrDefault(), groupToken); }); makePaletteDraggable(group, groupToken); ops.append(group);
-      palette.append(ops); host.append(palette);
-      var rows = el('div', { className: 'formula-rows' }); state.rows.forEach(function (row, index) { rows.append(renderRow(row, index)); }); host.append(rows);
-      var add = button('＋ 式の行を追加', { className: 'formula-add-row', label: '式の行を追加', dataset: { formulaAddRow: 'true' } }); add.disabled = disabled || state.rows.length >= MAX_ROWS;
-      add.addEventListener('click', function () { if (state.rows.length >= MAX_ROWS) return; update(function () { state.rows.push({ id: makeId(), tokens: [], result: '', resultUnit: '' }); active = makeSlot(state.rows[state.rows.length - 1].id, [], 0); }); }); host.append(add);
-      renderAnswers(host);
+      var group = button('括弧グループ', { className: 'formula-operator', label: '括弧グループを式へ挿入' }); group.disabled = disabled; group.addEventListener('click', function () { insertToken(activeOrDefault(), groupToken); }); makePaletteDraggable(group, groupToken); extraOps.append(group);
+      more.append(extraOps); ops.append(more); palette.append(ops); host.append(palette);
+      renderTasks();
       if (feedback && feedback.message) host.append(el('p', { className: 'formula-feedback formula-feedback-summary', text: feedback.message }));
       if (feedbackAnnouncement) {
         var announcement = el('p', { className: 'formula-feedback-announcement', text: feedbackAnnouncement });
@@ -504,22 +561,39 @@
         host.append(announcement);
         feedbackAnnouncement = '';
       }
-      var help = el('details', { className: 'formula-help' }); help.append(el('summary', { text: '式の組み立て方' })); help.append(el('p', { text: '＋の位置を選び、カードをクリックして挿入します。式の部品はドラッグで移動できます。分数・指数・括弧の中にも式を入れられます。計算結果と最終回答は自分で入力します。' })); host.append(help);
+      var help = el('details', { className: 'formula-help' }); help.append(el('summary', { text: '式の組み立て方' })); help.append(el('p', { text: '空欄や部品の間を選び、数値や記号をクリックして挿入します。ドラッグでも挿入・移動できます。部品を選ぶと右上の×で削除でき、「選択を移動」で挿入先を選べます。Tabと矢印で位置を選び、Enterで操作、Deleteで削除、Escで選択を解除できます。分数・指数などは「その他の記号」から開きます。小問ごとの答えと途中式の結果は自分で入力します。' })); host.append(help);
       dispatchResize();
       restoreFocus(focusTarget);
       if (moving && !focusTarget) { var firstSlot = host.querySelector('[data-formula-slot]'); if (firstSlot) { try { firstSlot.focus({ preventScroll: true }); } catch (_) { firstSlot.focus(); } } }
     }
-    function getDraft() { return copy(state); }
+    function getDraft() {
+      var draft = copy(state);
+      draft.rows.forEach(function (row) {
+        if (!taskForRow(row)) return;
+        var source = enteredResult(row);
+        // 採点APIとの互換性を保つため、参照される最終回答だけを投影する。
+        // 比較式の答えは式自体の数値結果ではないので投影しない。
+        row.result = referencesTo(row.id) ? source.result : '';
+        row.resultUnit = referencesTo(row.id) ? source.resultUnit : '';
+      });
+      return draft;
+    }
     function setDraft(draft) {
       var incoming = draft && typeof draft === 'object' ? draft : {};
-      state.rows = Array.isArray(incoming.rows) && incoming.rows.length ? incoming.rows.map(function (row) { return { id: String(row.id || makeId()), tokens: normalTokens(row.tokens), result: String(row.result || ''), resultUnit: String(row.resultUnit || '') }; }) : initialRows();
+      state.rows = Array.isArray(incoming.rows) && incoming.rows.length ? incoming.rows.slice(0, MAX_ROWS).map(function (row) { return { id: String(row.id || makeId()), taskId: row.taskId == null ? null : String(row.taskId), tokens: normalTokens(row.tokens), result: String(row.result == null ? '' : row.result), resultUnit: String(row.resultUnit || '') }; }) : initialRows();
       state.answers = incoming.answers && typeof incoming.answers === 'object' ? copy(incoming.answers) : {};
       state.targets = incoming.targets && typeof incoming.targets === 'object' ? copy(incoming.targets) : {};
-      undo = []; redo = []; active = null; selected = null; moving = null; feedback = null; feedbackAnnouncement = ''; render();
+      // 旧draftにはtaskIdがないため、各小問の最終式までを同じ欄へ割り当てる。
+      state.rows.forEach(function (row, rowIndex) {
+        if (row.taskId != null) return;
+        var task = tasks.find(function (entry, index) { return state.rows.findIndex(function (candidate) { return candidate.id === state.targets[taskIdFor(entry, index)]; }) >= rowIndex; }) || tasks[tasks.length - 1];
+        row.taskId = task ? taskIdFor(task, tasks.indexOf(task)) : '';
+      });
+      active = null; selected = null; moving = null; feedback = null; feedbackAnnouncement = ''; render();
     }
     function reset(nextDefinition) {
       if (nextDefinition) { config = nextDefinition; quantities = Array.isArray(config.quantities) ? config.quantities : []; constants = Array.isArray(config.constants) ? config.constants : []; tasks = Array.isArray(config.tasks) ? config.tasks : []; units = config.units || {}; }
-      state = { rows: initialRows(), answers: {}, targets: {} }; undo = []; redo = []; manualValue = ''; manualUnit = ''; constantsOpen = false; referenceChoices = {}; active = null; selected = null; moving = null; feedback = null; feedbackAnnouncement = ''; render();
+      state = { rows: initialRows(), answers: {}, targets: {} }; manualValue = ''; manualUnit = ''; manualOpen = false; constantsOpen = false; operatorsOpen = false; referenceChoices = {}; active = null; selected = null; moving = null; feedback = null; feedbackAnnouncement = ''; render();
     }
     function setFeedback(nextFeedback) { feedback = nextFeedback || null; feedbackAnnouncement = feedback ? (feedback.status === 'judged' ? '立式と答えの判定結果を表示しました。' : '式の確認結果を表示しました。') : ''; render(); }
     function setDisabled(nextDisabled) { disabled = !!nextDisabled; render(); }
