@@ -56,6 +56,20 @@ function correctDraft(definition) {
   };
 }
 
+function legacyUnitfulDraft(definition) {
+  const rows = definition.tasks.map((task, index) => ({
+    id: `legacy-row-${index + 1}`,
+    tokens: task.rule === 'minimum-bits' ? minBitsEvidence(definition) : clone(task.legacyExpectedTokens || task.expectedTokens),
+    result: String(task.rule === 'minimum-bits' ? 1 : task.expected),
+    resultUnit: task.rule === 'minimum-bits' ? '' : task.answerUnit
+  }));
+  return {
+    rows,
+    targets: Object.fromEntries(definition.tasks.map((task, index) => [task.id, rows[index].id])),
+    answers: Object.fromEntries(definition.tasks.map(task => [task.id, String(task.expected)]))
+  };
+}
+
 function judged(definition, draft, message) {
   const result = Formulas.grade(definition, draft);
   assert.equal(result.status, 'judged', `${definition.id}: ${message} は判定可能`);
@@ -69,6 +83,7 @@ for (const spec of problemSpecs) {
   const result = judged(definition, correctDraft(definition), '正しい立式');
   assert.equal(result.formulaCorrect, true, `${spec.id}: 立式`);
   assert.equal(result.answerCorrect, true, `${spec.id}: 最終回答`);
+  if (spec.type === 'dataSize' || spec.type === 'workedExample') assert.ok(result.rows.every(row => row.calculationCorrect !== false), `${spec.id}: 単位なし換算を含む行の結果と単位`);
   for (const task of definition.tasks) {
     const expectedFromCore = spec.type === 'periodFromRate' ? Sound.samplingPeriod(spec.params.sampleRate)
       : spec.type === 'rateFromPeriod' ? 1 / spec.params.period
@@ -82,7 +97,43 @@ for (const spec of problemSpecs) {
   }
 }
 
+// 換算カードはUIの候補でも手入力でも単位なしの同じ数値である。
+const unitlessDefinition = Formulas.define(problemSpecs.find(spec => spec.id === 'cd-full-binary'));
+assert.ok(unitlessDefinition.constants.filter(item => /^(bit-byte|byte-bit|byte-kilo-|kilo-mega-|minute-second|kilo-hertz)/.test(item.id)).every(item => item.unit === ''), '換算定数は単位なしで定義する');
+
+// 更新前に保存された比の単位付き式も、正しい換算方向なら続けて判定できる。
+for (const spec of problemSpecs) {
+  const definition = Formulas.define({ ...spec, tolerance: 1e-7 });
+  assert.equal(judged(definition, legacyUnitfulDraft(definition), '旧unitful式との互換').formulaCorrect, true, `${spec.id}: 旧unitful式`);
+}
+
+// 単位なしの換算数は値だけで一律に決めず、式全体と入力した結果の
+// 単位に整合する候補だけを採る。kHz/KB/MB/分秒を個別に確認する。
+const highResolution = Formulas.define(problemSpecs.find(spec => spec.id === 'high-resolution-binary'));
+const dataForRows = Formulas.define(problemSpecs.find(spec => spec.id === 'pdf-6000b'));
+const highRateRow = { rows: [{ id: 'row-rate', tokens: [source(highResolution, 'rate'), op('×'), value(1000)], result: '192000', resultUnit: 'Hz' }] };
+assert.equal(Formulas.gradeRow(highResolution, highRateRow, 'row-rate').rows[0].calculationCorrect, true, 'kHz × 1000をHzとして確認する');
+const byteToKilo = { rows: [{ id: 'row-kilo', tokens: [value(81920, 'B'), op('÷'), value(1024)], result: '80', resultUnit: 'KB' }] };
+assert.equal(Formulas.gradeRow(dataForRows, byteToKilo, 'row-kilo').rows[0].calculationCorrect, true, 'B ÷ 1024をKBとして確認する');
+const kiloToMega = { rows: [{ id: 'row-mega', tokens: [value(80, 'KB'), op('÷'), value(1024)], result: String(80 / 1024), resultUnit: 'MB' }] };
+assert.equal(Formulas.gradeRow(dataForRows, kiloToMega, 'row-mega').rows[0].calculationCorrect, true, 'KB ÷ 1024をMBとして確認する');
+const minuteSecond = { rows: [{ id: 'row-duration', tokens: [
+  { kind: 'group', body: [source(highResolution, 'minutes'), op('×'), value(60), op('+'), source(highResolution, 'seconds')] }
+], result: '256', resultUnit: 's' }] };
+assert.equal(Formulas.gradeRow(highResolution, minuteSecond, 'row-duration').rows[0].calculationCorrect, true, '分 × 60 + 秒を秒として確認する');
+const exponentEight = Formulas.define({ id: 'levels-8bit', type: 'levelsFromBits', params: { bitDepth: 8 } });
+const exponentRow = { rows: [{ id: 'row-power', tokens: [power([value(2)], [value(8)])], result: '256', resultUnit: 'levels' }] };
+assert.equal(Formulas.gradeRow(exponentEight, exponentRow, 'row-power').rows[0].calculationCorrect, true, '指数の8はbit/Bへ誤認しない');
+const wrongDeclaredUnit = { rows: [{ id: 'row-wrong-unit', tokens: [value(81920, 'B'), op('÷'), value(1024)], result: '80', resultUnit: 'MB' }] };
+assert.equal(Formulas.gradeRow(dataForRows, wrongDeclaredUnit, 'row-wrong-unit').rows[0].calculationCorrect, false, '正しい数値でも宣言単位が違えば通さない');
+const tooManyConversions = { rows: [{ id: 'row-many', tokens: [value(1000), op('×'), value(1000), op('×'), value(1000), op('×'), value(1000), op('×'), value(1000)], result: '', resultUnit: '' }] };
+assert.equal(Formulas.gradeRow(dataForRows, tooManyConversions, 'row-many').status, 'invalid', '換算候補の探索上限を超える式は判定保留にする');
+
 const data = Formulas.define(problemSpecs.find(spec => spec.id === 'pdf-6000b'));
+const explicitEquality = correctDraft(data);
+const equalityTask = taskFor(data);
+explicitEquality.rows[0].tokens = [...clone(equalityTask.expectedTokens), op('='), value(equalityTask.expected, 'B')];
+assert.equal(judged(data, explicitEquality, '明示した等式の左辺').formulaCorrect, true, '等式は左辺の構造を採点する');
 for (const answerUnit of ['KiB', 'MiB']) {
   const binary = Formulas.define({ id: `explicit-${answerUnit}`, type: 'dataSize', answerUnit,
     params: { sampleRate: 20480, seconds: 2, bitDepth: 16, channels: 1, base: 1024 } });
@@ -131,6 +182,12 @@ fractionReciprocal.rows[0].tokens = [
   { kind: 'fraction', numerator: [value(1)], denominator: [value(8)] }, op('×'), value(1, 'B/bit')
 ];
 assert.equal(judged(data, fractionReciprocal, '分数とB/bitによる逆数換算').formulaCorrect, true, '1/8 × 1 B/bitの等価な換算を受け入れる');
+const unitlessFraction = correctDraft(data);
+unitlessFraction.rows[0].tokens = [
+  rate, op('×'), duration, op('×'), bits, op('×'), channels, op('×'),
+  { kind: 'fraction', numerator: [value(1)], denominator: [value(8)] }
+];
+assert.equal(judged(data, unitlessFraction, '単位なし分数による逆数換算').formulaCorrect, true, '単位なしの1/8も÷8と同値に扱う');
 
 const levelFour = Formulas.define(problemSpecs.find(spec => spec.id === 'levels-4bit'));
 const bitCountAsConstant = correctDraft(levelFour);
@@ -152,7 +209,7 @@ function replaceUnitValue(tokens, unit, from, to) {
     return token;
   });
 }
-decimalInsteadOfBinary.rows[0].tokens = replaceUnitValue(decimalInsteadOfBinary.rows[0].tokens, 'B/KB', 1024, 1000);
+decimalInsteadOfBinary.rows[0].tokens = replaceUnitValue(decimalInsteadOfBinary.rows[0].tokens, '', 1024, 1000);
 assert.equal(judged(binaryBase, decimalInsteadOfBinary, '1024を1000とする換算').formulaCorrect, false, '1024基数の問題に1000換算を使わない');
 
 const longBinary = Formulas.define(problemSpecs.find(spec => spec.id === 'cd-full-binary'));
@@ -243,6 +300,76 @@ const workedWrongFirstResult = judged(worked, workedWrongFirst, 'dr32例題の(1
 assert.equal(workedWrongFirstResult.formulaCorrect, true, 'dr32例題(1)の元式が正しければ(2)の立式も正しい');
 assert.equal(workedWrongFirstResult.answerCorrect, false, 'dr32例題(1)の手入力誤答を(2)で自動修正しない');
 assert.equal(workedWrongFirstResult.rows.find(row => row.id === 'row-1').calculationCorrect, false, 'dr32例題(1)の手入力誤答を残す');
+
+const reciprocalThousand = correctDraft(worked);
+reciprocalThousand.rows[1].tokens = [
+  ...clone(taskFor(worked, 'sample').expectedTokens), op('×'), source(worked, 'rate'), op('×'), value(0.001)
+];
+assert.equal(judged(worked, reciprocalThousand, '単位なし0.001による逆数換算').formulaCorrect, true, '×0.001を÷1000と同値に扱う');
+const reciprocal1024 = correctDraft(binaryBase);
+reciprocal1024.rows[0].tokens = [
+  source(binaryBase, 'rate'), op('×'), source(binaryBase, 'duration'), op('×'), source(binaryBase, 'bits'), op('×'), source(binaryBase, 'channels'), op('÷'), value(8), op('×'),
+  { kind: 'fraction', numerator: [value(1)], denominator: [value(1024)] }
+];
+assert.equal(judged(binaryBase, reciprocal1024, '単位なし1/1024による逆数換算').formulaCorrect, true, '×(1/1024)を÷1024と同値に扱う');
+
+const decimalMega = Formulas.define({ id: 'decimal-mega', type: 'dataSize', params: {
+  sampleRate: 200000, seconds: 10, bitDepth: 8, channels: 1, answerUnit: 'MB', base: 1000
+} });
+const megaBaseTokens = [source(decimalMega, 'rate'), op('×'), source(decimalMega, 'duration'), op('×'), source(decimalMega, 'bits'), op('×'), source(decimalMega, 'channels'), op('÷'), value(8), op('÷')];
+const directMegaUnitless = correctDraft(decimalMega);
+directMegaUnitless.rows[0].tokens = [...megaBaseTokens, value(1000000)];
+assert.equal(judged(decimalMega, directMegaUnitless, '単位なし1000000によるBからMB換算').formulaCorrect, true, '÷1000000を÷1000÷1000と同値に扱う');
+const directMegaUnitful = correctDraft(decimalMega);
+directMegaUnitful.rows[0].tokens = [...megaBaseTokens, value(1000000, 'B/MB')];
+assert.equal(judged(decimalMega, directMegaUnitful, '既存1000000 B/MB換算').formulaCorrect, true, '既存のB/MB付き換算も維持する');
+const powerMega = correctDraft(decimalMega);
+powerMega.rows[0].tokens = [...megaBaseTokens, power([value(1000)], [value(2)])];
+assert.equal(judged(decimalMega, powerMega, '単位なし1000の2乗による換算').formulaCorrect, true, '÷(1000^2)を指数式のまま換算に使える');
+const binaryMegaPower = correctDraft(longBinary);
+binaryMegaPower.rows[0].tokens = [
+  source(longBinary, 'rate'), op('×'), { kind: 'group', body: [source(longBinary, 'minutes'), op('×'), value(60), op('+'), source(longBinary, 'seconds')] }, op('×'), source(longBinary, 'bits'), op('×'), source(longBinary, 'channels'), op('÷'), value(8), op('÷'), power([value(1024)], [value(2)])
+];
+assert.equal(judged(longBinary, binaryMegaPower, '単位なし1024の2乗による換算').formulaCorrect, true, '÷(1024^2)を指数式のまま換算に使える');
+
+// 単位なし1000を含む途中式の誤入力は、後続の数値を補正しない。一方で
+// 元の式の構造は引き継ぐため、後続行の立式判定は正しいままになる。
+const kHzReferenceWrong = correctDraft(highResolution);
+kHzReferenceWrong.rows = [
+  { id: 'row-rate', tokens: [source(highResolution, 'rate'), op('×'), value(1000)], result: '190000', resultUnit: 'Hz' },
+  { id: 'row-answer', tokens: [
+    { kind: 'reference', rowId: 'row-rate' }, op('×'),
+    { kind: 'group', body: [source(highResolution, 'minutes'), op('×'), value(60), op('+'), source(highResolution, 'seconds')] },
+    op('×'), source(highResolution, 'bits'), op('×'), source(highResolution, 'channels'), op('÷'), value(8), op('÷'), value(1024), op('÷'), value(1024)
+  ], result: '', resultUnit: '' }
+];
+kHzReferenceWrong.targets = { answer: 'row-answer' };
+kHzReferenceWrong.answers = { answer: String(taskFor(highResolution).expected) };
+const kHzReferenceWrongResult = judged(highResolution, kHzReferenceWrong, 'kHz換算途中式の誤答参照');
+assert.equal(kHzReferenceWrongResult.formulaCorrect, true, '誤入力値を参照しても元の立式構造は正しい');
+assert.equal(kHzReferenceWrongResult.rows.find(row => row.id === 'row-rate').calculationCorrect, false, 'kHz換算の途中結果190000 Hzを自動修正しない');
+
+// 単位なし換算を含む途中式でも、手入力した結果と単位を次の行で使える。
+const unitlessIntermediate = correctDraft(worked);
+unitlessIntermediate.rows = [
+  { id: 'row-1', taskId: 'sample', tokens: [source(worked, 'bits'), op('×'), source(worked, 'channels'), op('÷'), value(8)], result: '4', resultUnit: 'B' },
+  { id: 'row-2', taskId: 'sample', tokens: [{ kind: 'reference', rowId: 'row-1' }], result: '', resultUnit: '' },
+  { id: 'row-3', taskId: 'second', tokens: clone(taskFor(worked, 'second').expectedTokens), result: '', resultUnit: '' }
+];
+unitlessIntermediate.targets = { sample: 'row-2', second: 'row-3' };
+unitlessIntermediate.answers = { sample: '4', second: String(taskFor(worked, 'second').expected) };
+const unitlessIntermediateResult = judged(worked, unitlessIntermediate, '単位なし8を含む途中式の参照');
+assert.equal(unitlessIntermediateResult.formulaCorrect, true, '4 Bを参照した行も元の立式を引き継ぐ');
+assert.equal(unitlessIntermediateResult.rows.find(row => row.id === 'row-1').calculationCorrect, true, '単位なし8の途中式は4 Bとして確認できる');
+const unitlessChannel = correctDraft(worked);
+unitlessChannel.rows[0].tokens = [source(worked, 'bits'), op('×'), value(2), op('÷'), value(8)];
+assert.equal(judged(worked, unitlessChannel, '単位なし2をステレオに代用').formulaCorrect, false, '単位なし2は2 channelの代用にしない');
+const wrongQuantityUnit = correctDraft(worked);
+wrongQuantityUnit.rows[0].tokens = [value(16, 's'), op('×'), source(worked, 'channels'), op('÷'), value(8)];
+assert.equal(judged(worked, wrongQuantityUnit, '量子化ビット数の誤単位').formulaCorrect, false, '問題の数量に誤った単位を付けた式を通さない');
+const unknownFour = correctDraft(worked);
+unknownFour.rows[0].tokens = [value(4, 'B')];
+assert.equal(judged(worked, unknownFour, '由来不明の4 B').formulaCorrect, false, '計算済みの4 Bだけを立式正解にしない');
 
 // 小問単位の判定は、別の小問や無関係な途中式が未完成でも妨げない。
 const scopedWorked = correctDraft(worked);

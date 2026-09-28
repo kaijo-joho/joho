@@ -71,39 +71,51 @@
       const bits = source('bits', '量子化ビット数（1回・1チャンネル分）', p.bitDepth, 'bit/sample');
       const channels = source('channels', 'チャンネル数', p.channels, 'channel', !example);
       for (const n of [1, 2, 6]) constant(`channels-${n}`, 'チャンネル数の候補', n, 'channel');
-      const bytes = constant('bit-byte', 'bitからBへ', 8, 'bit/B');
-      constant('byte-bit', 'B/bitで表す換算値（1/8）', 0.125, 'B/bit');
+      // 換算値は、値カードでも自由入力でも同じ「単位なしの数」として
+      // 扱う。採点では下の構造比較で、掛ける/割る位置と 1000/1024 を
+      // 確認するため、表示用の比の単位をトークンへ持ち込まない。
+      const bytes = constant('bit-byte', '換算用の数', 8);
+      constant('byte-bit', '換算用の数', 0.125);
       const base = p.base ?? 1000;
       const binaryName = (problem.answerUnit || p.answerUnit || '').includes('i');
       const k = binaryName ? 'KiB' : 'KB';
       const m = binaryName ? 'MiB' : 'MB';
       for (const n of [1000, 1024]) {
-        constant(`byte-kilo-${n}`, 'Bからキロ単位へ', n, `B/${k}`);
-        constant(`kilo-mega-${n}`, 'キロからメガ単位へ', n, `${k}/${m}`);
+        constant(`byte-kilo-${n}`, '換算用の数', n);
+        constant(`kilo-mega-${n}`, '換算用の数', n);
       }
-      constant('minute-second', '分から秒へ', 60, 's/min');
-      constant('kilo-hertz', 'kHzからHzへ', 1000, 'Hz/kHz');
-      const normalizedRate = kilo ? group([rate, op('×'), value(1000, 'Hz/kHz')]) : rate;
+      constant('minute-second', '換算用の数', 60);
+      constant('kilo-hertz', '換算用の数', 1000);
+      const normalizedRate = kilo ? group([rate, op('×'), value(1000)]) : rate;
+      const legacyNormalizedRate = kilo ? group([rate, op('×'), value(1000, 'Hz/kHz')]) : rate;
       const sample = [bits, op('×'), channels, op('÷'), bytes];
+      const legacySample = [bits, op('×'), channels, op('÷'), value(8, 'bit/B')];
       if (example) {
         const size = Sound.audioDataSize({ sampleRate: 1, seconds: 1, bitDepth: p.bitDepth, channels: p.channels });
-        task('sample', '(1) 1回の標本化で生じるデータ量', 'B', size.bytes, sample);
+        task('sample', '(1) 1回の標本化で生じるデータ量', 'B', size.bytes, sample, { legacyExpectedTokens: legacySample });
         const second = Sound.audioDataSize({ ...p, seconds: 1 });
-        task('second', '(2) 1秒あたりのデータ量', 'KB/s', Sound.convertBytes(second.bytes, 'KB', 1000), [...sample, op('×'), normalizedRate, op('÷'), value(1000, 'B/KB')]);
+        task('second', '(2) 1秒あたりのデータ量', 'KB/s', Sound.convertBytes(second.bytes, 'KB', 1000), [...sample, op('×'), normalizedRate, op('÷'), value(1000)], {
+          legacyExpectedTokens: [...legacySample, op('×'), legacyNormalizedRate, op('÷'), value(1000, 'B/KB')]
+        });
       } else {
         let duration;
+        let legacyDuration;
         if (p.durationParts) {
           const minute = source('minutes', '録音時間（分の部分）', p.durationParts.minutes, 'min');
           const second = source('seconds', '録音時間（秒の部分）', p.durationParts.seconds, 's');
-          duration = group([minute, op('×'), value(60, 's/min'), op('+'), second]);
-        } else duration = source('duration', '録音時間', p.seconds, 's');
+          duration = group([minute, op('×'), value(60), op('+'), second]);
+          legacyDuration = group([minute, op('×'), value(60, 's/min'), op('+'), second]);
+        } else duration = legacyDuration = source('duration', '録音時間', p.seconds, 's');
         const expression = [normalizedRate, op('×'), duration, op('×'), ...sample];
+        const legacyExpression = [legacyNormalizedRate, op('×'), legacyDuration, op('×'), ...legacySample];
         const targetUnit = problem.answerUnit || p.answerUnit;
-        if ([k, m].includes(targetUnit)) expression.push(op('÷'), value(base, `B/${k}`));
-        if (targetUnit === m) expression.push(op('÷'), value(base, `${k}/${m}`));
+        if ([k, m].includes(targetUnit)) expression.push(op('÷'), value(base));
+        if (targetUnit === m) expression.push(op('÷'), value(base));
+        if ([k, m].includes(targetUnit)) legacyExpression.push(op('÷'), value(base, `B/${k}`));
+        if (targetUnit === m) legacyExpression.push(op('÷'), value(base, `${k}/${m}`));
         const size = Sound.audioDataSize(p);
         const expected = targetUnit === 'B' ? size.bytes : Sound.convertBytes(size.bytes, targetUnit, base);
-        task('answer', '音声データ量', targetUnit, expected, expression);
+        task('answer', '音声データ量', targetUnit, expected, expression, { legacyExpectedTokens: legacyExpression });
       }
     } else throw new TypeError('この問題には式の組み立てを設定していません。');
     return definition;
@@ -143,27 +155,95 @@
         return { ...record.expression, value: record.declared.value, dimensions: record.declared.dimensions };
       } });
     }
+    // The UI deliberately stores conversion cards as plain numbers.  At grading
+    // time, try only the conversion dimensions that this lesson permits, plus
+    // the genuinely unitless interpretation.  A number is never globally
+    // assigned a unit: for example 1000 may be Hz/kHz, B/KB, or KB/MB only when
+    // that choice makes the complete student expression match the task's
+    // dimensional expected expression.
+    const unitlessConversionChoices = Object.freeze({
+      '8': ['', 'bit/B'], '0.125': ['', 'B/bit'], '60': ['', 's/min'],
+      '0.001': ['', 'KB/B', 'MB/KB'],
+      '1000': ['', 'Hz/kHz', 'B/KB', 'KB/MB', 'B/KiB', 'KiB/MiB'],
+      '1024': ['', 'B/KB', 'KB/MB', 'B/KiB', 'KiB/MiB'],
+      '1000000': ['', 'B/MB'], '1048576': ['', 'B/MB']
+    });
+    // Current sound problems peak at 300 alternatives (kHz, 分秒, and two
+    // 1024 conversions).  Keep a bounded search comfortably above that case.
+    const MAX_UNITLESS_VARIANTS = 1024;
+    function choicesForValue(token) {
+      if (token.kind !== 'value' || (token.unit || '')) return [token];
+      const normalized = String(Formula.normalizeNumber(token.value));
+      const choices = unitlessConversionChoices[normalized];
+      return choices ? choices.map(unitId => ({ ...token, unit: unitId })) : [token];
+    }
+    function combineVariants(parts) {
+      return parts.reduce((all, options) => {
+        if (all.length * options.length > MAX_UNITLESS_VARIANTS) throw new Error('換算値の候補が多すぎます。式を途中式に分けて確認してください。');
+        return all.flatMap(prefix => options.map(option => prefix.concat([option])));
+      }, [[]]);
+    }
+    function tokenVariants(token) {
+      if (Array.isArray(token)) return combineVariants(token.map(tokenVariants));
+      if (token.kind === 'value') return choicesForValue(token);
+      if (token.kind === 'group') return tokenVariants(token.body).map(body => ({ ...token, body }));
+      if (token.kind === 'fraction') return combineVariants([tokenVariants(token.numerator), tokenVariants(token.denominator)]).map(([numerator, denominator]) => ({ ...token, numerator, denominator }));
+      if (token.kind === 'power') {
+        const ordinary = combineVariants([tokenVariants(token.base), tokenVariants(token.exponent)]).map(([base, exponent]) => ({ ...token, base, exponent }));
+        // Keep the student's visible 1000²/1024² structure intact, while
+        // evaluating an additional dimensional interpretation for a permitted
+        // B→MB conversion.  The temporary value is never written into draft.
+        const base = token.base?.length === 1 && token.base[0];
+        const exponent = token.exponent?.length === 1 && token.exponent[0];
+        const n = base?.kind === 'value' && exponent?.kind === 'value' && !(base.unit || '') && !(exponent.unit || '')
+          ? Formula.normalizeNumber(base.value) ** Formula.normalizeNumber(exponent.value) : NaN;
+        if (n === 1000000 || n === 1048576) ordinary.push({ kind: 'value', value: String(n), unit: 'B/MB' });
+        return ordinary;
+      }
+      return [token];
+    }
+    function evaluateVariants(tokens, rowIndex) {
+      // Check token count, nesting, and grammar once before expanding the
+      // permitted unit interpretations.  Invalid input must not trigger a
+      // large number of repeated evaluator calls.
+      Formula.parse(tokens);
+      const results = [];
+      let error = null;
+      tokenVariants(tokens).forEach(candidate => {
+        try { results.push({ tokens: candidate, result: evaluate(candidate, rowIndex) }); } catch (caught) { error = caught; }
+      });
+      if (!results.length) throw error || new Error('式を確認してください。');
+      return results;
+    }
     function evaluateRow(index) {
       const row = rows[index];
       if (records.has(row.id)) return records.get(row.id);
       if (!Array.isArray(row.tokens) || row.tokens.length === 0) throw new Error(`式${index + 1}を組み立ててください。`);
-      const expressionResult = evaluate(row.tokens, index);
-      const relation = expressionResult.relation;
-      const equality = relation && relation.operators.every(operator => operator === '=');
-      const expression = equality ? relation.operands[0] : expressionResult;
-      let declared = equality ? relation.operands.at(-1) : null;
-      if (String(row.result ?? '').trim()) declared = evaluate([value(row.result, row.resultUnit || '')], index, true);
-      const calculationCorrect = equality
-        ? relation.truths.every(Boolean) && (!declared || close(declared.value, expression.value) && sameDimensions(declared.dimensions, expression.dimensions))
-        : declared ? close(declared.value, expression.value) && sameDimensions(declared.dimensions, expression.dimensions) : null;
-      const record = { expression, declared, equality, relation, calculationCorrect, original: expressionResult, index };
+      const declaredInput = String(row.result ?? '').trim() ? evaluate([value(row.result, row.resultUnit || '')], index, true) : null;
+      const candidates = evaluateVariants(row.tokens, index).map(({ result: expressionResult }) => {
+        const relation = expressionResult.relation;
+        const equality = relation && relation.operators.every(operator => operator === '=');
+        const expression = equality ? relation.operands[0] : expressionResult;
+        const declared = equality ? relation.operands.at(-1) : declaredInput;
+        const calculationCorrect = equality
+          ? relation.truths.every(Boolean) && (!declared || close(declared.value, expression.value) && sameDimensions(declared.dimensions, expression.dimensions))
+          : declared ? close(declared.value, expression.value) && sameDimensions(declared.dimensions, expression.dimensions) : null;
+        return { expression, declared, equality, relation, calculationCorrect, original: expressionResult, index };
+      });
+      // A declared intermediate result selects the dimensional interpretation
+      // that actually agrees with it.  This is not a numerical-answer waiver.
+      const record = candidates.find(candidate => candidate.calculationCorrect === true) || candidates[0];
       records.set(row.id, record);
-      result.rows.push({ id: row.id, calculationCorrect,
-        message: calculationCorrect === false ? `式${index + 1}：入力した結果またはその単位を確認してください。` : calculationCorrect === true ? `式${index + 1}：この式の計算結果は合っています。` : '' });
+      result.rows.push({ id: row.id, calculationCorrect: record.calculationCorrect,
+        message: record.calculationCorrect === false ? `式${index + 1}：入力した結果またはその単位を確認してください。` : record.calculationCorrect === true ? `式${index + 1}：この式の計算結果は合っています。` : '' });
       return record;
     }
     function structural(actual, expected) {
       return !actual.relation && sameDimensions(actual.dimensions, expected.dimensions) && Formula.equivalent(actual.symbolic, expected.symbolic);
+    }
+    function formulaExpression(result) {
+      const relation = result.relation;
+      return relation && relation.operators.every(operator => operator === '=') ? relation.operands[0] : result;
     }
     function minimumBits(task, index) {
       const n = task.expected;
@@ -228,11 +308,14 @@
         const answer = Formula.normalizeNumber(draft.answers?.[task.id] ?? '');
         const formulaCorrect = task.rule === 'minimum-bits'
           ? minimumBits(task, index)
-          : structural(record.expression, evaluate(task.expectedTokens, index, true));
+          : (() => {
+            const expected = evaluate(task.legacyExpectedTokens || task.expectedTokens, index, false);
+            return evaluateVariants(rows[index].tokens, index).some(candidate => structural(formulaExpression(candidate.result), expected));
+          })();
         const answerCorrect = close(answer, task.expected, task.tolerance);
         const messages = [];
         if (!formulaCorrect) {
-          const expected = task.rule === 'minimum-bits' ? null : evaluate(task.expectedTokens, index, true);
+          const expected = task.rule === 'minimum-bits' ? null : evaluate(task.legacyExpectedTokens || task.expectedTokens, index, false);
           if (expected && !sameDimensions(record.expression.dimensions, expected.dimensions)) {
             messages.push('式の単位が答えの単位と一致していません。換算の向き（掛ける・割る）と、各値に付けた単位を確認してください。');
           } else if (task.rule === 'minimum-bits') {

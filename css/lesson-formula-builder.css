@@ -51,8 +51,7 @@
   background: color-mix(in oklab, var(--formula-panel) 92%, var(--formula-focus));
 }
 .formula-card-value, .formula-reference-value { display: inline-flex; align-items: baseline; gap: .25em; font-variant-numeric: tabular-nums; }
-.formula-unit, .formula-conversion-label { font-size: .7em; font-weight: 400; color: var(--formula-muted); white-space: nowrap; }
-.formula-conversion-label { font-size: .64em; }
+.formula-unit { font-size: .7em; font-weight: 400; color: var(--formula-muted); white-space: nowrap; }
 .formula-value { gap: .25em; }
 .formula-operator { min-width: 44px; font-weight: 700; }
 .formula-control:disabled, .formula-palette-card:disabled, .formula-operator:disabled,
@@ -98,13 +97,17 @@
 .formula-row-label { color: var(--formula-muted); font-size: .85em; }
 .formula-row-remove { margin-inline-start: auto; min-width: 44px; padding: 0; background: transparent; }
 .formula-expression {
+  position: relative;
   overflow-x: auto;
   margin-block: .5rem;
-  padding: 1.15rem .5rem .5rem;
+  padding: 1.15rem .5rem 1.5rem;
   border: 1px dashed var(--formula-border);
   border-radius: .45rem;
   background: color-mix(in oklab, var(--formula-panel) 96%, var(--formula-text));
 }
+.formula-expression-line { display: flex; align-items: center; width: max-content; min-width: 100%; gap: .25rem; }
+.formula-expression-line > .formula-token-list { flex: 0 0 auto; }
+.formula-expression-line > .is-empty-expression { flex: 1 0 auto; }
 .formula-token-list { display: inline-flex; align-items: center; gap: .15rem; min-height: 44px; white-space: nowrap; }
 .formula-token-list.is-empty-expression { display: flex; }
 .is-empty-expression > .formula-slot { flex: 1; text-align: start; }
@@ -158,6 +161,7 @@
 .formula-power-exponent { display: inline-flex; font-size: .72em; }
 .formula-group { gap: .05rem; }
 .formula-slot {
+  position: relative;
   min-width: 44px;
   min-height: 44px;
   padding: 0 .2rem;
@@ -172,13 +176,21 @@
 .formula-slot:is(.is-active, .is-dragover)::before { opacity: 1; }
 .formula-slot.is-active, .formula-slot.is-dragover { border-color: var(--formula-focus); color: var(--formula-focus); background: color-mix(in oklab, var(--formula-panel) 82%, var(--formula-focus)); }
 .formula-slot.is-move-target { border-style: solid; border-color: var(--formula-focus); color: var(--formula-focus); }
-.formula-row-result, .formula-answer-item { align-items: center; margin-block: .5rem; }
+.is-dragging .formula-slot.is-drop-target { border: 1px dashed var(--formula-focus); background: color-mix(in oklab, var(--formula-panel) 88%, var(--formula-focus)); }
+.is-dragging .formula-slot.is-dragover { outline: 2px solid var(--formula-focus); outline-offset: -2px; background: color-mix(in oklab, var(--formula-panel) 65%, var(--formula-focus)); }
+.formula-drop-guide { position: sticky; left: .5rem; display: block; width: max-content; height: 1.2em; margin-block-end: -1.2em; line-height: 1.2; font-size: .75em; font-weight: 700; color: var(--formula-focus); }
+.formula-drop-guide[hidden] { display: none; }
+/* ドラッグを開始しても式やターゲットの位置を動かさない。 */
+.formula-row-result, .formula-answer-item { align-items: center; flex: 0 0 auto; flex-wrap: nowrap; margin: 0; white-space: nowrap; }
 .formula-result-source { display: inline-flex; align-items: center; gap: .3rem; min-width: 0; max-width: 100%; }
 .formula-result-source.is-draggable { cursor: grab; }
 .formula-result-source.is-draggable input { cursor: grab; }
 .formula-result-source.is-draggable input:focus { cursor: text; }
 .formula-answer-equals { font-weight: 700; }
 .formula-result-source input { min-width: 0; width: 11em; }
+.formula-result-grip { border: 0; border-radius: .3rem; background: transparent; box-shadow: none; color: var(--formula-muted); min-width: 44px; width: 44px; height: 44px; padding: 0; font-size: 1.1em; cursor: grab; }
+.formula-result-grip[hidden] { display: none; }
+.formula-result-grip:disabled { cursor: not-allowed; }
 .formula-result-source select { min-width: 0; width: 6em; font-size: .8em; }
 .formula-judge { flex: 0 0 auto; font-size: .9em; }
 .formula-row-references { margin-block: .35rem; font-size: .85em; }
@@ -212,8 +224,8 @@
 @media (max-width: 640px) {
   .formula-manual-options { align-items: stretch; }
   .formula-manual-options select { flex: 1 1 100%; width: 100%; }
-  .formula-result-source { flex: 1 1 0; }
-  .formula-result-source input { flex: 1 1 auto; width: 0; min-width: 0; }
+  .formula-result-source { flex: 0 0 auto; }
+  .formula-result-source input { width: 9em; min-width: 0; }
   .formula-result-source select { width: 4.5em; flex: 0 1 auto; }
 }
 @media (max-width: 390px) {

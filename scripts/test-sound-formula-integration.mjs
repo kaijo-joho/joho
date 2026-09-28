@@ -61,11 +61,20 @@ async function fillCorrect(selector, wrongAnswer = false) {
     const op = value => ({ kind: 'operator', value });
     const pow = value => ({ kind: 'power', base: [v(2)], exponent: [v(value)] });
     const definition = entry.definition;
+    function paletteForm(tokens) {
+      return tokens.map(token => {
+        if (token.kind === 'value') return definition.units[token.unit]?.conversion ? { ...token, unit: '' } : token;
+        if (token.kind === 'fraction') return { ...token, numerator: paletteForm(token.numerator), denominator: paletteForm(token.denominator) };
+        if (token.kind === 'power') return { ...token, base: paletteForm(token.base), exponent: paletteForm(token.exponent) };
+        if (token.kind === 'group') return { ...token, body: paletteForm(token.body) };
+        return token;
+      });
+    }
     const rows = definition.tasks.map((task, index) => ({
       id: `row-${index + 1}`, taskId: task.id, result: '', resultUnit: '', answerOpen: true,
       tokens: task.rule === 'minimum-bits'
         ? [pow(task.expected - 1), op('<'), v(task.levels, 'levels'), op('<='), pow(task.expected)]
-        : task.expectedTokens
+        : paletteForm(task.expectedTokens)
     }));
     entry.editor.setDraft({ rows,
       targets: Object.fromEntries(definition.tasks.map((task, index) => [task.id, rows[index].id])),
@@ -122,15 +131,30 @@ try {
     const v = (value, unit = '') => ({ kind: 'value', value: String(value), unit });
     const op = value => ({ kind: 'operator', value });
     editor.setDraft({ rows: [
-      { id: 'sample', taskId: 'sample', tokens: [v(16, 'bit/sample'), op('×'), v(2, 'channel'), op('÷'), v(8, 'bit/B')], result: '', resultUnit: '', answerOpen: true },
-      { id: 'second', taskId: 'second', tokens: [{ kind: 'reference', rowId: 'sample' }, op('×'), v(44100, 'Hz'), op('÷'), v(1000, 'B/KB')], result: '', resultUnit: '', answerOpen: true }
+      { id: 'sample', taskId: 'sample', tokens: [v(16, 'bit/sample'), op('×'), v(2, 'channel'), op('÷'), v(8)], result: '', resultUnit: '', answerOpen: true },
+      { id: 'second', taskId: 'second', tokens: [{ kind: 'reference', rowId: 'sample' }, op('×'), v(44100, 'Hz'), op('÷'), v(1000)], result: '', resultUnit: '', answerOpen: true }
     ], targets: { sample: 'sample', second: 'second' }, answers: { sample: '4', second: '176.4' } });
   }, exampleSelector);
   assert.equal(await page.evaluate(() => window.formulaTestEvaluations), 0, '入力・参照の追加で自動計算しない');
+  const sampleTask = exampleBuilder.locator('[data-formula-task="sample"]');
+  await sampleTask.locator('[data-formula-add-row]').click();
+  const appendedExample = await editorDraft(exampleSelector);
+  assert.equal(appendedExample.rows.length, 3, '例題の小問(1)だけに行を追加する');
+  assert.equal(appendedExample.rows[0].id, 'sample', '既存の参照元のIDを保持する');
+  assert.equal(appendedExample.rows[0].result, '4', '追加時に最終回答を途中結果へ保持する');
+  assert.equal(appendedExample.rows[0].resultUnit, 'B', '追加時に途中結果の単位も保持する');
+  assert.equal(appendedExample.targets.sample, appendedExample.rows[1].id, '同小問末尾へ追加した行を最終採点対象にする');
+  assert.equal(appendedExample.answers.sample, '', '追加した最終回答は空欄で始める');
+  const appendedRow = sampleTask.locator('[data-formula-row]').last();
+  await appendedRow.locator('.formula-reference-card').click();
+  await exampleBuilder.locator('[data-formula-operator="="]').click();
+  await appendedRow.locator('[data-formula-answer="sample"]').fill('4');
+  assert.equal(await page.evaluate(() => window.formulaTestEvaluations), 0, '末尾追加・結果移送・参照でも自動計算しない');
   const savedExample = await editorDraft(exampleSelector);
-  assert.equal(savedExample.rows[0].result, '4', '参照元の最終式には小問の手入力回答を渡す');
-  assert.equal(savedExample.rows[0].resultUnit, 'B', '参照元の単位は小問の回答単位を使う');
+  assert.equal(savedExample.rows[0].result, '4', '参照元の途中式に手入力結果を保持する');
+  assert.equal(savedExample.rows[0].resultUnit, 'B', '参照元の単位は元の小問の回答単位を使う');
   assert.equal(savedExample.rows[1].result, '', '参照されていない最終式へ結果を重複保存しない');
+  assert.equal(savedExample.rows[2].result, '', '小問(2)へ最終回答を重複保存しない');
   assert.deepEqual(await page.evaluate(selector => {
     const editor = window.formulaTestEditors.find(entry => entry.host.closest(selector)).editor;
     const draft = editor.getDraft();
@@ -156,6 +180,10 @@ try {
     await expect(page.locator('body')).not.toHaveClass(/is-lesson-fullscreen/);
   }
   assert.equal(await page.locator('[data-worked-example-judge], [data-calculation-judge]').count(), 0, '外側の一括判定ボタンを置かない');
+  await sampleTask.locator('[data-formula-row="sample"] [data-formula-judge]').click();
+  const intermediateFeedback = await sampleTask.locator('[data-formula-row="sample"] .formula-feedback').allTextContents();
+  assert.equal(await sampleTask.locator('[data-formula-row="sample"] .formula-feedback.is-ok').count(), 1, `単位なし換算定数を使った途中式を行内で判定する: ${intermediateFeedback.join(' ')}`);
+  assert.ok(await page.locator('[data-sound-formula-score]').evaluateAll(nodes => nodes.every(node => node.textContent.includes('解答 0問'))), '途中式判定はスコアに加算しない');
   await (await judgeFor(exampleBuilder, 'sample')).click();
   const sampleFeedback = await exampleBuilder.locator('[data-formula-task="sample"] .formula-feedback').allTextContents();
   assert.ok(sampleFeedback.some(text => text.includes('立式') && text.includes('○')), '例題の小問(1)だけを判定する');
@@ -268,7 +296,7 @@ try {
   await expect(page.locator('#digitization-feedback')).toContainText('正解');
   assert.equal(await page.locator('[data-formula-builder]').count(), 0, 'dr31の既存問題UIへ拡張しない');
   assert.deepEqual(errors, [], 'ブラウザ例外なし');
-  console.log(`sound-formula-integration (${engine}): 11問型、例題2小問、分離スコア、入力保持、解説、採点保留、二重加算防止、27表示条件、タップ、dr31回帰 OK`);
+  console.log(`sound-formula-integration (${engine}): 単位なし換算の11問型、例題2小問/末尾追加/途中式、分離スコア、入力保持、解説、採点保留、二重加算防止、27表示条件、タップ、dr31回帰 OK`);
 } finally {
   await browser.close();
 }

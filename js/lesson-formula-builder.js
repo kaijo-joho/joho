@@ -49,7 +49,7 @@
     var caretVisible = false;
     var currentRowId = null;
     var selected = null;
-    var drag = null;
+    var dragPayload = null;
     var feedback = null;
     var feedbackAnnouncement = '';
     var moving = null;
@@ -68,6 +68,7 @@
     document.addEventListener('pointerdown', clearInactiveSelection);
     document.addEventListener('focusin', clearInactiveSelection);
     window.addEventListener('blur', clearInactiveSelection);
+    document.addEventListener('dragend', endDrag);
 
     function initialRows() {
       var count = Math.max(1, Math.min(MAX_ROWS, tasks.length || 1));
@@ -104,7 +105,19 @@
     function clearInactiveSelection(event) {
       var target = event.target;
       var inside = target instanceof Element && host.contains(target);
-      if (inside && target.closest('[data-formula-row]')) currentRowId = target.closest('[data-formula-row]').dataset.formulaRow;
+      var rowElement = inside && target.closest('[data-formula-row]');
+      if (rowElement) {
+        var rowId = rowElement.dataset.formulaRow;
+        // 別行や答え欄を選んだ後に、以前の行・入れ子の挿入位置を使わない。
+        var expressionTarget = target.closest('[data-formula-slot], [data-formula-token]');
+        if (!expressionTarget && (currentRowId !== rowId || target.closest('[data-formula-result-source]'))) {
+          active = makeSlot(rowId, [], rowById(rowId).tokens.length);
+          selected = null; moving = null;
+          host.querySelectorAll('.is-selected, .is-move-target').forEach(function (node) { node.classList.remove('is-selected', 'is-move-target'); });
+          host.querySelectorAll('.formula-token-remove, [data-formula-action="move"]').forEach(function (node) { node.remove(); });
+        }
+        currentRowId = rowId;
+      }
       if (inside && target.closest('[data-formula-slot], [data-formula-token]')) return;
       // 挿入先の記憶と見た目のカーソルを分離する。再描画しないので、
       // pointerdown 中に押そうとしたボタンや入力欄を消してしまわない。
@@ -175,7 +188,7 @@
     }
     function renderReferenceValue(node, row) {
       var source = enteredResult(row);
-      node.replaceChildren(document.createTextNode('↳ '));
+      node.replaceChildren();
       if (!source.result) node.append(document.createTextNode('前の式の答え'));
       else appendAmount(node, source.result, source.resultUnit);
     }
@@ -240,8 +253,8 @@
       else if (event.key === 'Escape' && selected) { event.preventDefault(); event.stopPropagation(); var previous = selected; selected = null; render({ kind: 'token', location: previous }); }
     }
     function activeOrDefault() {
-      if (slotIsValid(active)) return active;
-      if (tokenIsValid(selected)) return makeSlot(selected.rowId, selected.path, selected.index + 1);
+      if (slotIsValid(active) && (!currentRowId || active.rowId === currentRowId)) return active;
+      if (tokenIsValid(selected) && (!currentRowId || selected.rowId === currentRowId)) return makeSlot(selected.rowId, selected.path, selected.index + 1);
       var row = rowById(currentRowId) || state.rows[0];
       return makeSlot(row.id, [], row.tokens.length);
     }
@@ -249,12 +262,7 @@
     function appendAmount(node, value, unit) {
       node.append(el('span', { className: 'formula-number', text: displayNumber(value) }));
       if (!unit) return;
-      var info = units[unit] || {};
-      // 換算方向は構造化データに保持し、画面では複雑な比の単位を省略。
-      if (info.conversion) {
-        node.title = info.conversionLabel || displayUnit(unit);
-        node.append(el('small', { className: 'formula-conversion-label', text: info.conversionLabel || '' }));
-      } else node.append(el('small', { className: 'formula-unit', text: displayUnit(unit) }));
+      node.append(el('small', { className: 'formula-unit', text: displayUnit(unit) }));
     }
     function displayNumber(value) {
       var raw = String(value == null ? '' : value);
@@ -293,6 +301,76 @@
         if (disabled) { event.preventDefault(); return; }
         event.dataTransfer.effectAllowed = 'copy';
         event.dataTransfer.setData('application/x-lesson-formula-new', encode(token));
+        beginDrag({ token: token });
+      });
+    }
+
+    function canDropAt(slot) {
+      if (disabled || !dragPayload || !slotIsValid(slot)) return false;
+      if (dragPayload.token) return referencesAreValidInRow(dragPayload.token, slot.rowId);
+      var source = dragPayload.source;
+      if (!tokenIsValid(source) || descendant(source, slot)) return false;
+      return referencesAreValidInRow(arrayFor(rowById(source.rowId), source.path)[source.index], slot.rowId);
+    }
+    function beginDrag(payload) {
+      dragPayload = payload;
+      host.classList.add('is-dragging');
+      host.querySelectorAll('[data-formula-slot]').forEach(function (node) {
+        node.classList.toggle('is-drop-target', canDropAt(decode(node.dataset.formulaSlot)));
+      });
+    }
+    function endDrag() {
+      dragPayload = null;
+      host.classList.remove('is-dragging');
+      host.querySelectorAll('.is-drop-target, .is-dragover').forEach(function (node) { node.classList.remove('is-drop-target', 'is-dragover'); });
+      host.querySelectorAll('.formula-drop-guide').forEach(function (node) { node.hidden = true; });
+    }
+    function dropSlot(event, formula, row) {
+      var target = event.target instanceof Element ? event.target : null;
+      var direct = target && target.closest('[data-formula-slot]');
+      if (direct && formula.contains(direct)) return decode(direct.dataset.formulaSlot);
+      var token = target && target.closest('[data-formula-token]');
+      if (token && formula.contains(token)) {
+        var location = decode(token.dataset.formulaToken);
+        var bounds = token.getBoundingClientRect();
+        return makeSlot(location.rowId, location.path, location.index + (event.clientX >= bounds.left + bounds.width / 2 ? 1 : 0));
+      }
+      // 部品の間だけでなく式の余白も受け付ける。分数・指数の内側は
+      // 上の直接slot/token判定を優先し、外側への二重挿入を防ぐ。
+      var slots = Array.from(formula.querySelectorAll('[data-formula-slot]')).filter(function (node) { return !decode(node.dataset.formulaSlot).path.length; });
+      slots.sort(function (a, b) {
+        var ar = a.getBoundingClientRect(); var br = b.getBoundingClientRect();
+        return Math.abs(event.clientX - (ar.left + ar.width / 2)) - Math.abs(event.clientX - (br.left + br.width / 2));
+      });
+      return slots.length ? decode(slots[0].dataset.formulaSlot) : makeSlot(row.id, [], row.tokens.length);
+    }
+    function wireDropArea(formula, row) {
+      var guide = el('span', { className: 'formula-drop-guide', text: 'ここへ挿入' });
+      guide.hidden = true; guide.setAttribute('aria-hidden', 'true'); formula.append(guide);
+      formula.addEventListener('dragover', function (event) {
+        var slot = dropSlot(event, formula, row);
+        host.querySelectorAll('.is-dragover').forEach(function (node) { node.classList.remove('is-dragover'); });
+        host.querySelectorAll('.formula-drop-guide').forEach(function (node) { node.hidden = true; });
+        if (!canDropAt(slot)) return;
+        event.preventDefault(); event.stopPropagation();
+        event.dataTransfer.dropEffect = dragPayload.source ? 'move' : 'copy';
+        var node = findFormulaNode('slot', slot);
+        if (node) node.classList.add('is-dragover');
+        guide.hidden = false;
+      });
+      formula.addEventListener('dragleave', function (event) {
+        if (event.relatedTarget instanceof Node && formula.contains(event.relatedTarget)) return;
+        formula.querySelectorAll('.is-dragover').forEach(function (node) { node.classList.remove('is-dragover'); });
+        guide.hidden = true;
+      });
+      formula.addEventListener('drop', function (event) {
+        event.preventDefault(); event.stopPropagation();
+        var slot = dropSlot(event, formula, row);
+        var payload = dragPayload;
+        var allowed = canDropAt(slot);
+        endDrag();
+        if (!allowed) return;
+        if (payload.token) insertToken(slot, payload.token); else moveToken(payload.source, slot);
       });
     }
 
@@ -322,9 +400,6 @@
           render({ kind: 'slot', location: active });
         }
       });
-      node.addEventListener('dragover', function (event) { if (!disabled) { event.preventDefault(); node.classList.add('is-dragover'); } });
-      node.addEventListener('dragleave', function () { node.classList.remove('is-dragover'); });
-      node.addEventListener('drop', function (event) { event.preventDefault(); event.stopPropagation(); node.classList.remove('is-dragover'); var fresh = decode(event.dataTransfer.getData('application/x-lesson-formula-new')); var source = decode(event.dataTransfer.getData('application/x-lesson-formula')); if (fresh) insertToken(slot, fresh); else moveToken(source || drag, slot); drag = null; });
       return node;
     }
     function tokenNode(token, location, row) {
@@ -380,8 +455,7 @@
           event.stopPropagation(); event.preventDefault(); removeToken(location);
         }
       });
-      node.addEventListener('dragstart', function (event) { event.stopPropagation(); drag = location; event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('application/x-lesson-formula', encode(location)); });
-      node.addEventListener('dragend', function (event) { event.stopPropagation(); drag = null; });
+      node.addEventListener('dragstart', function (event) { if (disabled) { event.preventDefault(); return; } event.stopPropagation(); event.dataTransfer.effectAllowed = 'move'; event.dataTransfer.setData('application/x-lesson-formula', encode(location)); beginDrag({ source: location }); });
       return node;
     }
     function renderTokenList(row, list, path, name) {
@@ -422,21 +496,11 @@
       select.append(el('option', { value: '', text: displayUnit('') }));
       var used = quantities.concat(constants).map(function (item) { return item.unit; }).concat(tasks.map(function (task) { return task.answerUnit; }));
       if (used.some(function (id) { return /^(bit|B|KB|MB|KiB|MiB)/.test(id); })) used = used.concat(['bit', 'B', 'B/sample', 'B/s']);
-      if (used.indexOf('MB') >= 0) used.push('B/MB');
       var ordinary = Object.keys(units).filter(function (id) { return id && !units[id].conversion && (!limited || id === value || used.indexOf(id) >= 0); });
       ordinary.forEach(function (id) { select.append(el('option', { value: id, text: displayUnit(id) })); });
-      var directions = used.map(function (id) { return units[id] && units[id].conversionLabel; }).filter(Boolean);
-      // ÷1000 と ×(1/1000) のような逆数表現も、単位候補を絞ることで
-      // 入力不能にしない。同じ換算方向の掛ける値・割る値を残す。
-      var conversions = Object.keys(units).filter(function (id) { return units[id].conversion && (!limited || id === value || used.indexOf(id) >= 0 || directions.indexOf(units[id].conversionLabel) >= 0); });
-      if (conversions.length) {
-        var group = el('optgroup'); group.label = '換算として使う';
-        conversions.forEach(function (id) {
-          group.append(el('option', { value: id, text: (units[id].conversionLabel || displayUnit(id)) + (units[id].conversionOperation ? '（' + units[id].conversionOperation + '値）' : '') }));
-        });
-        select.append(group);
-      }
-      if (value && !units[value]) select.append(el('option', { value: value, text: value }));
+      // 換算値は単位なしで入力し、方向・桁数は教材側の立式採点で確認する。
+      // 旧draftの明示単位だけは編集できるよう残す。
+      if (value && ordinary.indexOf(value) < 0) select.append(el('option', { value: value, text: displayUnit(value) }));
       select.value = value || '';
       return select;
     }
@@ -463,18 +527,32 @@
       var box = el('section', { className: 'formula-row', dataset: { formulaRow: row.id } });
       var heading = el('div', { className: 'formula-row-heading' });
       heading.append(el('span', { className: 'formula-row-label', text: (task ? '式 ' : '途中式 ') + (index + 1) }));
-      if (!task) {
+      if (rowsForTask(row.taskId).length > 1) {
         var remove = button('×', { className: 'formula-row-remove', label: '式 ' + (index + 1) + ' を削除' });
         remove.disabled = disabled || state.rows.length === 1 || referencesTo(row.id);
         if (referencesTo(row.id)) remove.title = 'この行を参照している式があるため削除できません。';
-        remove.addEventListener('click', function () { update(function () { state.rows = state.rows.filter(function (entry) { return entry.id !== row.id; }); }); });
+        remove.addEventListener('click', function () {
+          update(function () {
+            if (task) {
+              var remaining = rowsForTask(row.taskId).filter(function (entry) { return entry.id !== row.id; });
+              var previous = remaining[remaining.length - 1];
+              state.targets[row.taskId] = previous.id;
+              state.answers[row.taskId] = previous.result;
+              previous.result = ''; previous.resultUnit = '';
+              currentRowId = previous.id;
+            }
+            state.rows = state.rows.filter(function (entry) { return entry.id !== row.id; });
+          });
+        });
         heading.append(remove);
       }
       box.append(heading);
       var formula = el('div', { className: 'formula-expression', label: '式 ' + (index + 1) + '。挿入位置を選択して部品を追加します。' });
-      formula.append(renderTokenList(row, row.tokens, [], '式 ' + (index + 1)));
+      var line = el('div', { className: 'formula-expression-line' });
+      line.append(renderTokenList(row, row.tokens, [], '式 ' + (index + 1)));
+      if (row.answerOpen) line.append(renderResult(row, task, index));
+      formula.append(line); wireDropArea(formula, row);
       box.append(formula);
-      if (row.answerOpen) box.append(renderResult(row, task, index));
       if (selected && selected.rowId === row.id && !disabled) box.append(controlButton('選択を移動', 'move'));
       if (index > 0) {
         var references = el('div', { className: 'formula-row-references' });
@@ -496,6 +574,10 @@
       var rowFeedback = feedbackFor(feedback && feedback.rows, row.id);
       var message = statusNode(rowFeedback);
       if (message) box.append(message);
+      if (task) {
+        var taskMessage = statusNode(feedbackFor(feedback && feedback.tasks, taskIdFor(task, tasks.indexOf(task))));
+        if (taskMessage) box.append(taskMessage);
+      }
       return box;
     }
     function renderResult(row, task, index) {
@@ -506,6 +588,10 @@
       answer.placeholder = '自分で計算して入力'; answer.disabled = disabled; answer.inputMode = 'decimal';
       item.append(el('span', { className: 'formula-answer-equals', text: task && task.answerIsResult === false ? '⇒ 答え' : '＝' }));
       source.append(answer);
+      // inputの文字選択ドラッグをブラウザが優先する場合も、答え部分の
+      // 専用つまみから確実に「前式参照」をドラッグできるようにする。
+      var grip = button('⠿', { className: 'formula-result-grip', label: 'この答えを後の式へドラッグ', dataset: { formulaResultGrip: row.id } });
+      grip.tabIndex = -1; grip.title = 'この答えを後の式へドラッグ';
       if (task) source.append(el('small', { className: 'formula-unit formula-answer-unit', text: task.answerUnitLabel || task.answerUnit || '単位なし' }));
       else {
         var unit = unitSelect(row.resultUnit, '式 ' + (index + 1) + ' の結果の単位', { formulaResultUnit: row.id }, true);
@@ -513,14 +599,18 @@
         unit.addEventListener('change', function () { row.resultUnit = unit.value; updateReferenceLabels(row.id); inputChanged(); });
         source.append(unit);
       }
+      source.append(grip);
       item.append(source);
       var judge = button('判定', { className: 'formula-judge', label: task ? (task.label || '小問') + ' を判定' : '途中式 ' + (index + 1) + ' の計算を判定', dataset: { formulaJudge: row.id } });
       function refreshEntryControls() {
         judge.disabled = disabled || !answer.value.trim();
-        var canDrag = (!task || task.answerIsResult !== false) && !!answer.value.trim() && Number.isFinite(Number(answer.value.replace(/,/g, '')));
-        source.draggable = canDrag; answer.draggable = canDrag;
-        source.classList.toggle('is-draggable', canDrag);
-        source.title = canDrag ? 'この答えを後の式へドラッグして使えます' : '';
+        // 全角数字や桁区切りも採点時の数値入力と同様に扱う。
+        var numericText = answer.value.normalize('NFKC').replace(/[,_\s]/g, '');
+        var canDrag = (!task || task.answerIsResult !== false) && !!numericText && Number.isFinite(Number(numericText));
+        source.draggable = canDrag && !disabled; answer.draggable = canDrag && !disabled;
+        grip.draggable = canDrag && !disabled; grip.hidden = !grip.draggable; grip.disabled = disabled;
+        source.classList.toggle('is-draggable', source.draggable);
+        source.title = source.draggable ? 'この答えを後の式へドラッグして使えます' : '';
       }
       answer.addEventListener('input', function () {
         if (task) state.answers[taskId] = answer.value; else row.result = answer.value;
@@ -530,15 +620,12 @@
         if (!source.draggable || event.target.closest('select')) { event.preventDefault(); return; }
         event.stopPropagation(); event.dataTransfer.effectAllowed = 'copy';
         event.dataTransfer.setData('application/x-lesson-formula-new', encode({ kind: 'reference', rowId: row.id }));
+        beginDrag({ token: { kind: 'reference', rowId: row.id } });
       });
       judge.addEventListener('click', function () {
         if (!disabled && typeof options.onJudge === 'function') options.onJudge({ rowId: row.id, taskId: taskId, intermediate: !task, draft: getDraft() });
       });
       refreshEntryControls(); item.append(judge);
-      if (task) {
-        var note = statusNode(feedbackFor(feedback && feedback.tasks, taskId));
-        if (note) item.append(note);
-      }
       return item;
     }
     function addRowButton(taskId) {
@@ -548,8 +635,17 @@
         if (state.rows.length >= MAX_ROWS) return;
         update(function () {
           var row = { id: makeId(), taskId: taskId, tokens: [], result: '', resultUnit: '', answerOpen: false };
-          var targetIndex = state.rows.findIndex(function (entry) { return entry.id === state.targets[taskId]; });
-          state.rows.splice(targetIndex < 0 ? state.rows.length : targetIndex, 0, row);
+          var priorRows = rowsForTask(taskId);
+          var previous = priorRows[priorRows.length - 1];
+          var targetIndex = state.rows.indexOf(previous);
+          if (previous) {
+            var source = enteredResult(previous);
+            previous.result = source.result; previous.resultUnit = source.resultUnit;
+          }
+          // 既存の式と手入力結果をその位置に残し、次の計算用の行を下へ
+          // 増やす。行IDを保つので、別小問からの参照も切れない。
+          state.rows.splice(targetIndex < 0 ? state.rows.length : targetIndex + 1, 0, row);
+          state.targets[taskId] = row.id; state.answers[taskId] = '';
           active = makeSlot(row.id, [], 0); currentRowId = row.id; caretVisible = true; selected = null;
         });
       });
@@ -583,7 +679,9 @@
         constantDetails.addEventListener('toggle', function () { constantsOpen = constantDetails.open; });
         constantDetails.append(el('summary', { text: '補助定数・換算値を開く' }));
         var constantCards = el('div', { className: 'formula-palette-cards formula-constant-cards' });
-        constants.forEach(function (item) { constantCards.append(paletteCard(item, 'constant')); });
+        constants.filter(function (item, index) {
+          return constants.findIndex(function (candidate) { return String(candidate.value) === String(item.value) && (candidate.unit || '') === (item.unit || ''); }) === index;
+        }).forEach(function (item) { constantCards.append(paletteCard(item, 'constant')); });
         constantDetails.append(constantCards);
         palette.append(constantDetails);
       }
@@ -598,7 +696,7 @@
       manual.addEventListener('focusout', function (event) {
         if (!manualValue && !manual.contains(event.relatedTarget)) { manualOpen = false; manualOptions.hidden = true; manualInput.setAttribute('aria-expanded', 'false'); dispatchResize(); }
       });
-      var manualUnitInput = unitSelect(manualUnit, '自由入力の単位・換算方向', { formulaManualUnit: 'true' }, true); manualUnitInput.disabled = disabled;
+      var manualUnitInput = unitSelect(manualUnit, '自由入力の単位', { formulaManualUnit: 'true' }, true); manualUnitInput.disabled = disabled;
       manualUnitInput.addEventListener('change', function () { manualUnit = manualUnitInput.value; }); manualOptions.append(manualUnitInput);
       var insertManual = button('数値を挿入', { className: 'formula-palette-card', label: '自由入力の数値を式へ挿入' }); insertManual.disabled = disabled || !manualValue;
       manualInput.addEventListener('input', function () { manualValue = manualInput.value; insertManual.disabled = disabled || !manualValue; });
@@ -615,6 +713,7 @@
         if (disabled || !manualValue) { event.preventDefault(); return; }
         event.dataTransfer.effectAllowed = 'copy';
         event.dataTransfer.setData('application/x-lesson-formula-new', encode({ kind: 'value', value: manualValue, unit: manualUnit }));
+        beginDrag({ token: { kind: 'value', value: manualValue, unit: manualUnit } });
       });
       manualOptions.append(insertManual); manual.append(manualOptions); cards.append(manual);
       var ops = el('div', { className: 'formula-operators', label: '演算子' });
@@ -694,7 +793,7 @@
       }
     }
     function setDisabled(nextDisabled) { disabled = !!nextDisabled; render(); }
-    function destroy() { host.removeEventListener('keydown', lockSlideKeys); document.removeEventListener('pointerdown', clearInactiveSelection); document.removeEventListener('focusin', clearInactiveSelection); window.removeEventListener('blur', clearInactiveSelection); host.replaceChildren(); host.classList.remove('lesson-formula-builder', 'is-disabled'); delete host.dataset.formulaBuilder; delete host.dataset.lessonSlideNavigationLock; }
+    function destroy() { endDrag(); host.removeEventListener('keydown', lockSlideKeys); document.removeEventListener('pointerdown', clearInactiveSelection); document.removeEventListener('focusin', clearInactiveSelection); document.removeEventListener('dragend', endDrag); window.removeEventListener('blur', clearInactiveSelection); host.replaceChildren(); host.classList.remove('lesson-formula-builder', 'is-disabled'); delete host.dataset.formulaBuilder; delete host.dataset.lessonSlideNavigationLock; }
     render();
     return { getDraft: getDraft, setDraft: setDraft, reset: reset, setFeedback: setFeedback, setDisabled: setDisabled, destroy: destroy };
   }
