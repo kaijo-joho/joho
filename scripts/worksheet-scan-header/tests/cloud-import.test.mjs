@@ -6,6 +6,7 @@ import vm from 'node:vm';
 
 const coreSource = readFileSync(new URL('../gas/00_receipt_core.js', import.meta.url), 'utf8');
 const importerSource = readFileSync(new URL('../gas/10_receipt_import.js', import.meta.url), 'utf8');
+const gradeSource = readFileSync(new URL('../gas/05_grade_sources.js', import.meta.url), 'utf8');
 const copy = value => JSON.parse(JSON.stringify(value));
 const context = vm.createContext({});
 vm.runInContext(coreSource, context);
@@ -110,12 +111,17 @@ class Sheet {
 function harness(m = fixture()) {
   const properties = {WS_ARTIFACT_FOLDER_ID: 'artifact-folder-0001', WS_RECEIPT_FOLDER_ID: 'receipt-folder-00001',
     WS_LEDGER_ID: 'ledger-file-0001', WS_ROSTER_ID: 'roster-file-0001', WS_ROSTER_SHEET: 'roster', WS_ROSTER_YEAR: '2026',
-    WS_ROSTER_COLUMNS: JSON.stringify({studentKey: 'account', grade: '年', classNumber: '組', number: '番'})};
+    WS_ROSTER_COLUMNS: JSON.stringify({studentKey: 'account', grade: '年', classNumber: '組', number: '番'}),
+    WS_GRADE_SOURCES: JSON.stringify([{subject: 'INFO1', year: 2026, distributionId: 'distribution-0001',
+      scheduleId: 'schedule-0001', lectureAliases: {}}])};
   const sheets = {
     ws_receipts: new Sheet('ws_receipts', [copy(core.RECEIPT_HEADERS)]),
     ws_attempts: new Sheet('ws_attempts', [copy(core.ATTEMPT_HEADERS)]),
     ws_catalog: new Sheet('ws_catalog', [copy(core.CATALOG_HEADERS), ['INFO1', 2026, 'WS05', 1, true]]),
-    roster: new Sheet('roster', [['account', 'unused-name', '年', '組', '番'], ['fake-307', 'never read', 1, 3, 7]])
+    roster: new Sheet('roster', [['account', 'unused-name', '年', '組', '番'], ['fake-307', 'never read', 1, 3, 7]]),
+    'ページ一覧': new Sheet('ページ一覧', [['id', 'worksheetApp'], ['page05', 'WS05']]),
+    '授業進度': new Sheet('授業進度', [['lessonPlanKey', 'year', 'grade', 'lectureKeys', 'status'],
+      ['授業進度キー', '年度', '学年', '座学キー', '状態'], ['plan_01', 2026, 1, 'page05', 'active']])
   };
   const bytes = Buffer.from(JSON.stringify(m));
   const md5 = createHash('md5').update(bytes).digest('hex');
@@ -138,7 +144,7 @@ function harness(m = fixture()) {
         assert.equal(minutes, 1); return {create: () => {state.triggers.push(name);}};
       }})})},
     SpreadsheetApp: {openById: id => {
-      assert.ok([properties.WS_LEDGER_ID, properties.WS_ROSTER_ID].includes(id)); return book;
+      assert.ok([properties.WS_LEDGER_ID, properties.WS_ROSTER_ID, 'distribution-0001', 'schedule-0001'].includes(id)); return book;
     }, flush() {}},
     DriveApp: {getFileById: id => {assert.equal(id, manifest.id); return {getBlob: () => ({getBytes: () => [...bytes], getDataAsString: () => bytes.toString()})};}},
     Utilities: {DigestAlgorithm: {MD5: 'md5'}, computeDigest: (algo, data) => [...createHash(algo).update(Buffer.from(data)).digest()]},
@@ -150,7 +156,7 @@ function harness(m = fixture()) {
         if (state.failUpdate) {state.failUpdate = false; throw new Error('lost property update');}
         state.updates++; manifest.properties = body.properties;
       }}}});
-  vm.runInContext(coreSource + '\n' + importerSource, c);
+  vm.runInContext(coreSource + '\n' + gradeSource + '\n' + importerSource, c);
   return {c, sheets, manifest, state, properties, remotes};
 }
 
@@ -277,5 +283,54 @@ test('schema mismatch does not modify existing sheets or create others', () => {
   delete h.sheets.ws_catalog;
   assert.throws(() => h.c.setupWorksheetReceiptTables(), /TABLE_SCHEMA_MISMATCH/);
   assert.equal(h.sheets.ws_catalog, undefined);
+  assert.equal(h.sheets.ws_attempts.writes, 0);
+});
+
+test('teaching-plan grade overrides stale catalog without changing source sheets', () => {
+  const h = harness();
+  h.sheets.ws_catalog.rows[1][3] = 3;
+  h.sheets.roster.rows.push(['fake-wrong-grade', 'never read', 3, 3, 7]);
+  const preview = h.c.previewWorksheetGrades();
+  assert.equal(preview[0].grade, 1);
+  assert.equal(h.sheets.ws_catalog.rows[1][3], 3);
+  assert.equal(h.c.importWorksheetReceipts().pendingErrors.length, 0);
+  assert.equal(h.sheets.ws_catalog.rows[1][3], 1);
+  assert.equal(h.sheets.ws_attempts.rows[1][core.ATTEMPT_HEADERS.indexOf('studentKey')], 'fake-307');
+  assert.equal(h.sheets['ページ一覧'].writes + h.sheets['授業進度'].writes, 0);
+  const reads = h.sheets['授業進度'].reads.length;
+  h.c.importWorksheetReceipts();
+  assert.equal(h.sheets['授業進度'].reads.length, reads, 'idle import does not poll plans');
+});
+
+test('missing plan or source access never falls back to catalog grade', () => {
+  for (const failure of ['missing', 'access', 'ambiguous']) {
+    const h = harness();
+    if (failure === 'missing') h.sheets['授業進度'].rows[2][3] = 'different';
+    if (failure === 'access') delete h.sheets['授業進度'];
+    if (failure === 'ambiguous') h.sheets['授業進度'].rows.push(['plan_02', 2026, 3, 'page05', 'active']);
+    assert.equal(h.c.importWorksheetReceipts().pendingErrors.length, 0);
+    const a = Object.fromEntries(core.ATTEMPT_HEADERS.map((k,i) => [k,h.sheets.ws_attempts.rows[1][i]]));
+    assert.equal(a.intakeStatus, 'REVIEW'); assert.equal(a.studentKey, ''); assert.equal(a.grade, '');
+    assert.match(a.flags, /worksheet_grade_/);
+    assert.equal(h.sheets.ws_catalog.rows[1][3], '');
+    assert.equal(h.manifest.properties.worksheetArchiveStatus, 'REVIEW');
+    assert.equal(h.sheets.roster.reads.length, 0);
+  }
+});
+
+test('plan updates refresh catalog but preserve already committed student assignment', () => {
+  const h = harness(); h.state.failUpdate = true;
+  h.c.importWorksheetReceipts();
+  const committed = copy(h.sheets.ws_attempts.rows);
+  h.sheets['授業進度'].rows[2][2] = 3;
+  h.sheets.roster.rows.push(['different-grade', 'never read', 3, 3, 7]);
+  assert.equal(h.c.importWorksheetReceipts().registered[0].duplicate, true);
+  assert.deepEqual(h.sheets.ws_attempts.rows, committed);
+  assert.equal(h.sheets.ws_catalog.rows[1][3], 3);
+});
+
+test('grade source config is mandatory, with no legacy manual-grade fallback', () => {
+  const h = harness(); delete h.properties.WS_GRADE_SOURCES;
+  assert.throws(() => h.c.importWorksheetReceipts(), /MISSING_PROPERTY_WS_GRADE_SOURCES/);
   assert.equal(h.sheets.ws_attempts.writes, 0);
 });

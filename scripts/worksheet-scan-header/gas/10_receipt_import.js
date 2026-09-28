@@ -2,7 +2,7 @@
 function worksheetImportConfig_() {
   var p = PropertiesService.getScriptProperties().getProperties();
   var required = ['WS_ARTIFACT_FOLDER_ID', 'WS_RECEIPT_FOLDER_ID', 'WS_LEDGER_ID',
-    'WS_ROSTER_ID', 'WS_ROSTER_SHEET', 'WS_ROSTER_YEAR', 'WS_ROSTER_COLUMNS'];
+    'WS_ROSTER_ID', 'WS_ROSTER_SHEET', 'WS_ROSTER_YEAR', 'WS_ROSTER_COLUMNS', 'WS_GRADE_SOURCES'];
   required.forEach(function (key) { if (!p[key]) throw new Error('MISSING_PROPERTY_' + key); });
   ['WS_ARTIFACT_FOLDER_ID', 'WS_RECEIPT_FOLDER_ID', 'WS_LEDGER_ID', 'WS_ROSTER_ID'].forEach(function (key) {
     if (!/^[A-Za-z0-9_-]{10,200}$/.test(p[key])) throw new Error('INVALID_PROPERTY_' + key);
@@ -16,6 +16,8 @@ function worksheetImportConfig_() {
   if (!Number.isInteger(p.year) || p.year < 2000 || p.year > 9999) throw new Error('INVALID_ROSTER_YEAR');
   p.limit = Number(p.WS_IMPORT_LIMIT || 20);
   if (!Number.isInteger(p.limit) || p.limit < 1 || p.limit > 50) throw new Error('INVALID_IMPORT_LIMIT');
+  p.gradeSources = WorksheetGradeSource.config(JSON.parse(p.WS_GRADE_SOURCES));
+  if (p.gradeSources.some(function (s) { return s.distributionId === p.WS_LEDGER_ID || s.scheduleId === p.WS_LEDGER_ID; })) throw new Error('USE_DEDICATED_DESTINATIONS');
   return p;
 }
 
@@ -41,6 +43,8 @@ function worksheetRows_(sheet, headers) {
 }
 
 function worksheetRoster_(p, catalog) {
+  var grades = new Set(catalog.filter(function (c) { return Number.isInteger(c.grade) && c.grade > 0; }).map(function (c) { return c.grade; }));
+  if (!grades.size) return [];
   var sheet = SpreadsheetApp.openById(p.WS_ROSTER_ID).getSheetByName(p.WS_ROSTER_SHEET);
   if (!sheet || sheet.getLastRow() < 2 || sheet.getLastRow() > 5000 || sheet.getLastColumn() > 100) throw new Error('INVALID_ROSTER_TABLE');
   var header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
@@ -52,11 +56,10 @@ function worksheetRoster_(p, catalog) {
     values[key] = sheet.getRange(2, column + 1, sheet.getLastRow() - 1, 1).getDisplayValues().map(function (v) { return String(v[0]).trim(); });
   });
   var result = [];
-  var grades = new Set(catalog.map(function (c) { return Number(c.grade); }));
   values.studentKey.forEach(function (key, i) {
     if (!key && !values.grade[i] && !values.classNumber[i] && !values.number[i]) return;
     // The source also contains staff/test rows and other grades. Limit matching
-    // to grades explicitly configured for these worksheets, without writing it.
+    // to grades resolved from teaching plans, without writing the roster.
     if (!grades.has(Number(values.grade[i]))) return;
     result.push({studentKey: key, grade: Number(values.grade[i]), classNumber: Number(values.classNumber[i]), number: Number(values.number[i])});
   });
@@ -177,8 +180,7 @@ function importWorksheetReceipts() {
       var ss = SpreadsheetApp.openById(p.WS_LEDGER_ID);
       tables = {receipts: worksheetTable_(ss, 'ws_receipts', WorksheetReceipt.RECEIPT_HEADERS, false),
         attempts: worksheetTable_(ss, 'ws_attempts', WorksheetReceipt.ATTEMPT_HEADERS, false)};
-      catalog = worksheetRows_(worksheetTable_(ss, 'ws_catalog', WorksheetReceipt.CATALOG_HEADERS, false), WorksheetReceipt.CATALOG_HEADERS);
-      if (!catalog.length) throw new Error('EMPTY_CATALOG');
+      catalog = worksheetGradeCatalog_(p, ss, true);
       roster = worksheetRoster_(p, catalog);
     }
     var completedPage = true;

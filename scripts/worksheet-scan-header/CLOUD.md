@@ -121,7 +121,7 @@ ScanSnapは両面・白紙削除なし・各用紙の表裏が隣接する設定
 
 ## GAS側の準備
 
-`gas/00_receipt_core.js`と`gas/10_receipt_import.js`を**専用GASプロジェクト**へ置く。
+`gas/00_receipt_core.js`、`gas/05_grade_sources.js`、`gas/10_receipt_import.js`の順に**専用GASプロジェクト**へ置く。
 既存のワークシート配付・解答公開アプリ`ws`やCommonライブラリへ混ぜない。
 Drive拡張サービスv3を有効にする。Drive読取・受付JSONのプロパティ更新、名簿読取・専用台帳への書込が必要。
 Webアプリ公開や匿名HTTP受付は不要。既存GASのデプロイ／権限を変更しない。
@@ -137,11 +137,12 @@ Webアプリ公開や匿名HTTP受付は不要。既存GASのデプロイ／権�
 | `WS_ROSTER_SHEET` | 例`生徒名簿` |
 | `WS_ROSTER_YEAR` | その名簿が示す年度。例`2026` |
 | `WS_ROSTER_COLUMNS` | `studentKey`・`grade`・`classNumber`・`number`と実際の列名の対応JSON |
+| `WS_GRADE_SOURCES` | 教科・年度ごとの配付一覧GSS、授業予定GSS、旧座学キーとの対応JSON（下記） |
 | `WS_IMPORT_LIMIT` | 任意。1回の受付数、初期20、最大50 |
 
 Commonの現行コードでは、`生徒名簿`の先頭列でアカウントを照合し、学年・組・番号に`年`・`組`・`番`を使っている。
 実GSSの先頭列名を確認し、`studentKey`へその列を指定する。列名や年度を推測して設定しない。
-読み取るのは本人キー・学年・組・番号の4列だけで、名簿を変更しない。catalogに設定された学年だけを照合対象とし、
+読み取るのは本人キー・学年・組・番号の4列だけで、名簿を変更しない。授業進度から取得した学年だけを照合対象とし、
 同じ名簿内の学年0の教員行や別学年の行は除外する。対象学年内の重複・欠損は照合を停止する。
 
 例（`account`は仮の列名）:
@@ -151,7 +152,7 @@ Commonの現行コードでは、`生徒名簿`の先頭列でアカウントを
 ```
 
 1. `setupWorksheetReceiptTables()`を一度実行し、専用GSSに3表を作る。既存表の列が異なる場合は停止し、書き換えない。
-2. `ws_catalog`へ`subject / year / worksheetId / grade / enabled`を登録する。QRから学年が一意に決まる必要がある。
+2. `ws_catalog`へ`subject / year / worksheetId / enabled`を登録する。`grade`列は自動取得結果の表示用で、手入力値を照合に使わない。
 3. オフラインの架空名簿・スキャンで試験後、実環境の許可された原本で`importWorksheetReceipts()`を実行する。
    架空の名簿行を本番へ追加しない。
 4. 学校アカウント・保存先・GSS実登録を確認後、`installWorksheetReceiptTrigger()`で毎分トリガーを設定する。
@@ -161,11 +162,38 @@ Commonの現行コードでは、`生徒名簿`の先頭列でアカウントを
 1回最大20受付、約210秒を超えたら後続を次回へ回し、スクリプトロックで同時登録を防ぐ。
 機種・クラス分の同時投入・GAS実行時間と上限を測定して間隔と件数を調整する。
 
+### 対象学年の取得
+
+`WS_GRADE_SOURCES`には、例えば次の配列を設定する（IDは実在する参照先へ差し替える）。
+
+```json
+[{"subject":"INFO1","year":2026,"distributionId":"DISTRIBUTION_SPREADSHEET_ID","scheduleId":"SCHEDULE_SPREADSHEET_ID","lectureAliases":{"dr41":["di09"],"dr42":["di12"]}}]
+```
+
+1. QRの教科・年度に一致する参照先を選ぶ。別教科・別年度の設定を流用しない。
+2. 配付ファイル一覧GSSの`ページ一覧.worksheetApp`をワークシートIDに一致させ、`id`を座学キーとして取得する。
+3. 授業予定GSS内の正本`授業進度`から、同年度・`status=active`で`lectureKeys`にそのキーを含む行を読む。
+4. 該当行の`grade`が一意なら、その学年＋OMRの組・番号で名簿照合する。複数の授業回で同じ学年なら問題ない。
+
+2026年の既存予定は画像が`di09`、動画が`di12`の旧キーであるため、`lectureAliases`で教材IDの対応を明示する。
+学年そのものは設定しない。新旧キーの両方が存在して学年が食い違う場合もREVIEW。
+タイトルの似方・IDの前方一致・「以前は3だった」などから推測しない。
+ページやワークシートの`release`は掲載設定なので、学年の取得条件にはしない。
+
+元GSSは読取専用。ページ一覧は`id/worksheetApp`、授業進度は`lessonPlanKey/year/grade/lectureKeys/status`のみ読む。
+`課題設定`の期限・解答公開、授業日程・投稿・カレンダー、名簿、既存受付結果は変更しない。
+未登録、複数学年、読取不能は`worksheet_grade_*`等の理由付きREVIEWとし、学年と生徒キーを空欄にする。
+`ws_catalog.grade`は空欄または取得結果へ更新するが、この列を代替値に使わない。
+
+`previewWorksheetGrades()`は根拠の授業進度キーを含む読取専用の確認、`refreshWorksheetGrades()`は表示用学年列の更新。
+新着受付がある登録処理でも毎回再取得する。同じ1巡内の参照先は共用し、新着がない毎分処理ではGSSを読み直さない。
+登録済みの受付・本人対応は後日の予定変更によって書き換えない。
+
 ## GSSに保存するもの
 
 - `ws_receipts`: 原本単位の受付ID・日時・端末・Drive原本ID・JSON ID・ハッシュ・読取状態。
 - `ws_attempts`: 用紙単位の受付ID・ページ・QR・組番号・照合した生徒キー・状態・confidence・分割PDF ID。
-- `ws_catalog`: QR識別と学年の対応。名簿の年度と一致しない教材はREVIEW。
+- `ws_catalog`: QR識別・受付対象の設定と、元GSSから取得した学年の表示用キャッシュ。名簿年度の不一致はREVIEW。
 
 `readingStatus`は画像読取の状態、`intakeStatus`は名簿照合を含む状態。両方を保存する。
 ERRORや本人不明の候補も保持する。正常候補1件なら自動選択、同じ生徒・教材の複数候補は選択保留にするための
@@ -187,7 +215,7 @@ GSSの判定状態・結果への参照を更新する。提出受付日時・�
 
 ```bash
 python3 -m unittest discover -s scripts/worksheet-scan-header/tests -p test_cloud_intake.py -v
-node --test scripts/worksheet-scan-header/tests/cloud-import.test.mjs
+node --test scripts/worksheet-scan-header/tests/cloud-import.test.mjs scripts/worksheet-scan-header/tests/grade-sources.test.mjs
 ```
 
 ローカル試験は架空名簿・模擬Drive/Sheetsと既存のQR/OMR処理を使う。

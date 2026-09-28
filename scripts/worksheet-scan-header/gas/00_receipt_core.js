@@ -66,7 +66,11 @@ var WorksheetReceipt = (function () {
   function validateCatalog(rows) {
     var map = new Map();
     rows.forEach(function (w) {
-      if (!worksheet(w) || !integer(w.grade, 1, 12) || typeof w.enabled !== 'boolean') fail('INVALID_CATALOG');
+      var unresolvedGrade = w.grade === null && ['worksheet_grade_source_missing', 'worksheet_page_unresolved',
+        'worksheet_grade_source_invalid', 'worksheet_grade_ambiguous', 'worksheet_grade_not_found',
+        'worksheet_grade_source_unavailable'].indexOf(w.gradeIssue) >= 0;
+      if (!worksheet(w) || (!integer(w.grade, 1, 12) && !unresolvedGrade) ||
+          (integer(w.grade, 1, 12) && w.gradeIssue) || typeof w.enabled !== 'boolean') fail('INVALID_CATALOG');
       var key = catalogKey(w);
       if (map.has(key)) fail('AMBIGUOUS_CATALOG');
       map.set(key, w);
@@ -89,22 +93,25 @@ var WorksheetReceipt = (function () {
   }
   function match(m, catalog, roster, rosterYear) {
     validate(m);
-    var materials = validateCatalog(catalog), pupils = validateRoster(roster, rosterYear);
+    if (!integer(rosterYear, 2000, 9999)) fail('INVALID_ROSTER_YEAR');
+    var materials = validateCatalog(catalog);
+    var pupils = catalog.some(function (c) { return integer(c.grade, 1, 12); }) ? validateRoster(roster, rosterYear) : new Map();
     return m.items.map(function (item) {
       var flags = [], w = item.worksheet, material = w && materials.get(catalogKey(w));
       if (m.pairingIntegrity !== 'consistent' || !item.pairValid) flags.push('pairing_uncertain');
       if (item.readingStatus !== 'OK' || !item.studentIdentifier) flags.push('reading_unresolved');
       if (!material) flags.push('worksheet_not_registered');
       else if (!material.enabled) flags.push('worksheet_disabled');
+      if (material && material.gradeIssue) flags.push(material.gradeIssue);
       if (w && w.year !== rosterYear) flags.push('roster_year_mismatch');
       var person = null;
-      if (material && item.studentIdentifier && w.year === rosterYear) {
+      if (material && integer(material.grade, 1, 12) && item.studentIdentifier && w.year === rosterYear) {
         person = pupils.get([w.year, material.grade, Number(item.studentIdentifier[0]), Number(item.studentIdentifier.slice(1))].join('|'));
         if (!person) flags.push('roster_not_found');
       }
       return {attemptId: item.attemptId, receiptId: m.receiptId, sourcePages: JSON.stringify(item.sourcePages),
         subject: w ? w.subject : '', year: w ? w.year : '', worksheetId: w ? w.worksheetId : '',
-        grade: material ? material.grade : '', studentIdentifier: item.studentIdentifier || '',
+        grade: material && integer(material.grade, 1, 12) ? material.grade : '', studentIdentifier: item.studentIdentifier || '',
         studentKey: !flags.length && person ? person.studentKey : '', readingStatus: item.readingStatus,
         intakeStatus: item.readingStatus === 'ERROR' ? 'ERROR' : flags.length ? 'REVIEW' : 'OK',
         confidence: item.confidence, pdfFileId: item.pdf ? item.pdf.fileId : '',
@@ -131,6 +138,6 @@ var WorksheetReceipt = (function () {
     });
   }
   return {RECEIPT_HEADERS: RECEIPT_HEADERS, ATTEMPT_HEADERS: ATTEMPT_HEADERS,
-    CATALOG_HEADERS: CATALOG_HEADERS, validate: validate, match: match,
+    CATALOG_HEADERS: CATALOG_HEADERS, validate: validate, validateCatalog: validateCatalog, match: match,
     verifyRemote: verifyRemote, groups: groups};
 })();
