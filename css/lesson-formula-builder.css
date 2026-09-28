@@ -161,6 +161,8 @@
 .formula-token.is-selected { border-color: var(--formula-focus); background: color-mix(in oklab, var(--formula-panel) 78%, var(--formula-focus)); }
 .formula-token.has-exponent-target { margin-inline-end: 12px; }
 .formula-exponent-target {
+  visibility: hidden;
+  pointer-events: none;
   position: absolute;
   inset-block-start: -26px;
   inset-inline-end: -28px;
@@ -179,6 +181,11 @@
 }
 .formula-exponent-target:hover { color: var(--formula-focus); background: color-mix(in oklab, var(--formula-panel) 85%, var(--formula-focus)); }
 .formula-token.is-selected > .formula-exponent-target { visibility: hidden; }
+/* 右上の入力先は数値等をドラッグ中だけ表示する。位置は動かさない。 */
+.lesson-formula-builder.is-dragging .formula-exponent-target.is-drop-target {
+  visibility: visible;
+  pointer-events: auto;
+}
 .formula-value { background: color-mix(in oklab, var(--formula-panel) 86%, #77b96b); }
 .formula-operator { background: color-mix(in oklab, var(--formula-panel) 90%, #d6a748); }
 .formula-reference { background: color-mix(in oklab, var(--formula-panel) 88%, #a68bd0); font-size: .9em; }

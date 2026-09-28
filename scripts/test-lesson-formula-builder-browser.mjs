@@ -67,6 +67,25 @@ async function openPopup(name) {
   await expect(popup).toBeVisible();
   return { trigger, popup };
 }
+async function startDrag(source) {
+  await source.hover();
+  const bounds = await source.boundingBox();
+  await page.mouse.down();
+  await page.mouse.move(bounds.x + bounds.width / 2 + 12, bounds.y + bounds.height / 2 + 8, { steps: 4 });
+  await expect(page.locator(exampleSelector)).toHaveClass(/is-dragging/);
+}
+async function dragToExponent(source, target) {
+  await expect(target).toBeHidden();
+  await startDrag(source);
+  await expect(target).toBeVisible();
+  await target.hover();
+  await target.hover();
+  await page.mouse.up();
+  await expect(page.locator(exampleSelector)).not.toHaveClass(/is-dragging/);
+  for (const exponentTarget of await page.locator(exampleSelector).locator('[data-formula-exponent]').all()) {
+    await expect(exponentTarget, 'drop後は右上の指数入力先を残さない').toBeHidden();
+  }
+}
 async function sameEquationLine(row) {
   const layout = await row.evaluate(node => {
     const line = node.querySelector('.formula-expression-line');
@@ -303,32 +322,40 @@ try {
   assert.equal(await firstRow.locator('.formula-power-exponent [data-formula-token]').count(), 0, '指数内の値だけをキーボードで削除する');
   assert.equal(await firstRow.locator('.formula-power').count(), 1, '外側の指数は残す');
 
-  // 値の右上ターゲットは、その値を底とする指数へ包み、指数欄へ直ちに入力できる。
+  // 右上ターゲットは通常表示・演算子ドラッグ中は隠し、数値ドラッグ時だけ出す。
   await seed({ first: [v(16, 'bit/sample')], open: false });
-  await openPopup('constants');
   const exponentTarget = firstRow.locator('[data-formula-exponent]').first();
-  await dragCard.dragTo(exponentTarget);
-  assert.equal((await draft()).rows[0].tokens[0].kind, 'power', '値の右上ターゲットへ直接dropして指数形式へ包む');
-  assert.deepEqual((await draft()).rows[0].tokens[0].exponent.map(token => token.value), ['2'], '右上ターゲットへのdrop値を指数へ入れる');
-  await seed({ first: [v(16, 'bit/sample')], open: false });
-  await exponentTarget.click();
-  assert.equal((await draft()).rows[0].tokens[0].kind, 'power', '値を指数形式へ包む');
-  assert.equal((await draft()).rows[0].tokens[0].base[0].value, '16', '元の値を指数の底として保つ');
-  await expect(firstRow.locator('.formula-power-exponent [data-formula-slot]').first()).toBeFocused();
+  await expect(exponentTarget).toBeHidden();
+  const initialTokenBounds = await firstRow.locator('.formula-value').boundingBox();
+  await startDrag(example.locator('[data-formula-operator="×"]'));
+  await expect(exponentTarget).toBeHidden();
+  await page.locator('#headline_2').hover();
+  await page.mouse.up();
+  await expect(exponentTarget).toBeHidden();
   await openPopup('constants');
-  await dragCard.dragTo(firstRow.locator('.formula-power-exponent [data-formula-slot]').first());
-  assert.deepEqual((await draft()).rows[0].tokens[0].exponent.map(token => token.value), ['2'], '指数欄へ値をdrag挿入できる');
+  await startDrag(dragCard);
+  await expect(exponentTarget).toBeVisible();
+  assert.deepEqual(await firstRow.locator('.formula-value').boundingBox(), initialTokenBounds, '入力先の表示で式の配置を動かさない');
+  await page.locator('#headline_2').hover();
+  await page.mouse.up();
+  await expect(exponentTarget).toBeHidden();
+  assert.equal((await draft()).rows[0].tokens[0].kind, 'value', 'ドラッグ取消では元の値を保つ');
+  await openPopup('constants');
+  await dragToExponent(dragCard, exponentTarget);
+  assert.equal((await draft()).rows[0].tokens[0].kind, 'power', '値の右上ターゲットへ直接dropして指数形式へ包む');
+  assert.equal((await draft()).rows[0].tokens[0].base[0].value, '16', '元の値を底として保つ');
+  assert.deepEqual((await draft()).rows[0].tokens[0].exponent.map(token => token.value), ['2'], '右上ターゲットへのdrop値を指数へ入れる');
 
   // 前後に既存部品がある値と、入れ子の値でも右上targetだけを指数化する。
   await seed({ first: [v(1), v(16, 'bit/sample'), v(2)], open: false });
   await openPopup('constants');
-  await dragCard.dragTo(firstRow.locator('[data-formula-exponent]').nth(1));
+  await dragToExponent(dragCard, firstRow.locator('[data-formula-exponent]').nth(1));
   const surrounded = (await draft()).rows[0].tokens;
   assert.deepEqual(surrounded.map(token => token.kind), ['value', 'power', 'value'], '前後の既存tokenを保って中央の値だけを指数化する');
   assert.deepEqual(surrounded[1].exponent.map(token => token.value), ['2'], '中央の右上targetへdropした値を指数にする');
   await seed({ first: [{ kind: 'fraction', numerator: [v(16)], denominator: [v(2)] }], open: false });
   await openPopup('constants');
-  await dragCard.dragTo(firstRow.locator('.formula-fraction [data-formula-exponent]').first());
+  await dragToExponent(dragCard, firstRow.locator('.formula-fraction [data-formula-exponent]').first());
   const nestedPower = (await draft()).rows[0].tokens[0].numerator[0];
   assert.equal(nestedPower.kind, 'power', '分数内の値も外側を壊さず指数化する');
   assert.deepEqual(nestedPower.exponent.map(token => token.value), ['2'], '分数内の右上targetへdropした値を指数にする');

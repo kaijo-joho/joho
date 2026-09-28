@@ -226,6 +226,21 @@ try {
     for (let i = 0; seen.size < size && i < 60; i += 1) {
       const id = await fillCorrect(selector);
       seen.add(id);
+      if (id === 'bits-17levels') {
+        // 不等式は計算で変形しなくてよい。＝から「⇒ 答え」を開き、
+        // 2^4 < 17 <= 2^5 を根拠として5bitを入力・判定できる。
+        await page.evaluate(selector => {
+          const entry = window.formulaTestEditors.find(item => item.host.closest(selector));
+          const draft = entry.editor.getDraft();
+          draft.rows.forEach(row => { row.answerOpen = false; row.result = ''; });
+          draft.answers.answer = '';
+          entry.editor.setDraft(draft);
+        }, selector);
+        await expect(page.locator(`${selector} [data-formula-answer]`)).toHaveCount(0);
+        await page.locator(`${selector} [data-formula-operator="="]`).click();
+        await expect(page.locator(`${selector} .formula-answer-equals`)).toHaveText('⇒ 答え');
+        await page.locator(`${selector} [data-formula-answer]`).fill('5');
+      }
       await (await judgeFor(page.locator(selector))).click();
       attempts += 1;
       await expect(page.locator(`${selector} [data-sound-formula-score]`)).toHaveText(`解答 ${attempts}問 ／ 立式正解 ${attempts}問 ／ 答え正解 ${attempts - 1}問`);
@@ -235,6 +250,7 @@ try {
     allSeen.push(...seen);
   }
   assert.equal(allSeen.length, 11, '既存11問型の採点・解説を通す');
+  assert.ok(allSeen.includes('bits-17levels'), '17段階の不等式から答え入力・判定までを実際に検証する');
 
   // 長い式は式欄内だけでスクロールし、ページ全体は各幅へ収める。
   await showSlide(2);
