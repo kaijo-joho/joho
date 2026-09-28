@@ -40,7 +40,7 @@ function worksheetRows_(sheet, headers) {
   });
 }
 
-function worksheetRoster_(p) {
+function worksheetRoster_(p, catalog) {
   var sheet = SpreadsheetApp.openById(p.WS_ROSTER_ID).getSheetByName(p.WS_ROSTER_SHEET);
   if (!sheet || sheet.getLastRow() < 2 || sheet.getLastRow() > 5000 || sheet.getLastColumn() > 100) throw new Error('INVALID_ROSTER_TABLE');
   var header = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getDisplayValues()[0];
@@ -52,8 +52,12 @@ function worksheetRoster_(p) {
     values[key] = sheet.getRange(2, column + 1, sheet.getLastRow() - 1, 1).getDisplayValues().map(function (v) { return String(v[0]).trim(); });
   });
   var result = [];
+  var grades = new Set(catalog.map(function (c) { return Number(c.grade); }));
   values.studentKey.forEach(function (key, i) {
     if (!key && !values.grade[i] && !values.classNumber[i] && !values.number[i]) return;
+    // The source also contains staff/test rows and other grades. Limit matching
+    // to grades explicitly configured for these worksheets, without writing it.
+    if (!grades.has(Number(values.grade[i]))) return;
     result.push({studentKey: key, grade: Number(values.grade[i]), classNumber: Number(values.classNumber[i]), number: Number(values.number[i])});
   });
   return result;
@@ -62,6 +66,13 @@ function worksheetRoster_(p) {
 function worksheetRemote_(id) {
   return Drive.Files.get(id, {supportsAllDrives: true,
     fields: 'id,mimeType,size,md5Checksum,parents,trashed,properties'});
+}
+
+function worksheetArchiveStatus_(readingStatus, attempts) {
+  var states = [readingStatus].concat(attempts.map(function (a) { return a.intakeStatus; }));
+  if (states.some(function (s) { return ['OK', 'REVIEW', 'ERROR'].indexOf(s) < 0; })) throw new Error('INVALID_COMMITTED_STATUS');
+  if (states.indexOf('ERROR') >= 0) return 'ERROR';
+  return states.indexOf('REVIEW') >= 0 || !attempts.length ? 'REVIEW' : 'OK';
 }
 
 function worksheetImportOne_(file, p, tables, catalog, roster, importedAt) {
@@ -91,7 +102,8 @@ function worksheetImportOne_(file, p, tables, catalog, roster, importedAt) {
       var rows = committed.filter(function (a) { return a.attemptId === item.attemptId; });
       return rows.length !== 1 || rows[0].sourcePages !== JSON.stringify(item.sourcePages) || rows[0].pdfFileId !== (item.pdf ? item.pdf.fileId : '');
     })) throw new Error('COMMITTED_RECEIPT_INCOMPLETE');
-    return {receiptId: m.receiptId, duplicate: true, count: 0};
+    return {receiptId: m.receiptId, duplicate: true, count: 0,
+      archiveStatus: worksheetArchiveStatus_(existing[0].readingStatus, committed)};
   }
   var attempts = WorksheetReceipt.match(m, catalog, roster, p.year);
   var prior = worksheetRows_(tables.attempts, WorksheetReceipt.ATTEMPT_HEADERS);
@@ -121,7 +133,8 @@ function worksheetImportOne_(file, p, tables, catalog, roster, importedAt) {
   receiptRange.setNumberFormat('@');
   receiptRange.setValues([WorksheetReceipt.RECEIPT_HEADERS.map(function (h) { return receipt[h]; })]);
   SpreadsheetApp.flush();
-  return {receiptId: m.receiptId, duplicate: false, count: attempts.length};
+  return {receiptId: m.receiptId, duplicate: false, count: attempts.length,
+    archiveStatus: worksheetArchiveStatus_(m.readingStatus, attempts)};
 }
 
 function setupWorksheetReceiptTables() {
@@ -146,12 +159,7 @@ function importWorksheetReceipts() {
   var p = worksheetImportConfig_(), lock = LockService.getScriptLock();
   if (!lock.tryLock(1000)) return {busy: true};
   try {
-    var ss = SpreadsheetApp.openById(p.WS_LEDGER_ID);
-    var tables = {receipts: worksheetTable_(ss, 'ws_receipts', WorksheetReceipt.RECEIPT_HEADERS, false),
-      attempts: worksheetTable_(ss, 'ws_attempts', WorksheetReceipt.ATTEMPT_HEADERS, false)};
-    var catalog = worksheetRows_(worksheetTable_(ss, 'ws_catalog', WorksheetReceipt.CATALOG_HEADERS, false), WorksheetReceipt.CATALOG_HEADERS);
-    if (!catalog.length) throw new Error('EMPTY_CATALOG');
-    var roster = worksheetRoster_(p), results = [], errors = [], start = Date.now();
+    var results = [], errors = [], start = Date.now();
     var properties = PropertiesService.getScriptProperties();
     var cursorKey = 'WS_IMPORT_CURSOR', cursor = properties.getProperty(cursorKey);
     var query = "'" + p.WS_RECEIPT_FOLDER_ID + "' in parents and trashed = false and mimeType = 'application/json'" +
@@ -163,12 +171,26 @@ function importWorksheetReceipts() {
     var page;
     try { page = Drive.Files.list(args); }
     catch (e) { properties.deleteProperty(cursorKey); throw new Error('DRIVE_LIST_FAILED_RETRY'); }
+    // An idle minute needs only the Drive query, not a full roster/ledger read.
+    var tables, catalog, roster;
+    if ((page.files || []).length) {
+      var ss = SpreadsheetApp.openById(p.WS_LEDGER_ID);
+      tables = {receipts: worksheetTable_(ss, 'ws_receipts', WorksheetReceipt.RECEIPT_HEADERS, false),
+        attempts: worksheetTable_(ss, 'ws_attempts', WorksheetReceipt.ATTEMPT_HEADERS, false)};
+      catalog = worksheetRows_(worksheetTable_(ss, 'ws_catalog', WorksheetReceipt.CATALOG_HEADERS, false), WorksheetReceipt.CATALOG_HEADERS);
+      if (!catalog.length) throw new Error('EMPTY_CATALOG');
+      roster = worksheetRoster_(p, catalog);
+    }
     var completedPage = true;
     (page.files || []).some(function (file) {
       if (Date.now() - start > 210000) { completedPage = false; return true; }
       try {
-        results.push(worksheetImportOne_(file, p, tables, catalog, roster, new Date().toISOString()));
-        var nextProperties = Object.assign({}, file.properties, {worksheetImport: 'registered'});
+        var imported = worksheetImportOne_(file, p, tables, catalog, roster, new Date().toISOString());
+        results.push(imported);
+        // This acknowledgement is written only AFTER the ledger commit. The Mac
+        // verifies the immutable manifest plus this exact ledger before archiving.
+        var nextProperties = Object.assign({}, file.properties, {worksheetImport: 'registered',
+          worksheetLedger: p.WS_LEDGER_ID, worksheetArchiveStatus: imported.archiveStatus});
         Drive.Files.update({properties: nextProperties}, file.id, null, {supportsAllDrives: true, fields: 'id'});
       } catch (e) {
         // Never log roster values, raw SDK messages, PDF contents or credentials.
@@ -181,6 +203,21 @@ function importWorksheetReceipts() {
     var result = {registered: results, pendingErrors: errors, gradingEnabled: false};
     console.log(JSON.stringify(result));
     return result;
+  } finally { lock.releaseLock(); }
+}
+
+function installWorksheetReceiptTrigger() {
+  worksheetImportConfig_();
+  var lock = LockService.getScriptLock();
+  if (!lock.tryLock(1000)) throw new Error('IMPORT_BUSY');
+  try {
+    var existing = ScriptApp.getProjectTriggers().filter(function (t) {
+      return t.getHandlerFunction() === 'importWorksheetReceipts';
+    });
+    if (existing.length > 1) throw new Error('DUPLICATE_IMPORT_TRIGGERS');
+    if (!existing.length) ScriptApp.newTrigger('importWorksheetReceipts').timeBased().everyMinutes(1).create();
+    console.log(JSON.stringify({importTriggerInstalled: true, intervalMinutes: 1}));
+    return {importTriggerInstalled: true, intervalMinutes: 1};
   } finally { lock.releaseLock(); }
 }
 

@@ -8,7 +8,7 @@ import sys
 import tempfile
 import threading
 import unittest
-from unittest.mock import patch
+from unittest.mock import patch, Mock
 from zoneinfo import ZoneInfo
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
@@ -16,7 +16,7 @@ from cloud_intake import CloudQueue
 from drive_inbox import InboxWorker
 from install_monitor import launch_agent
 from monitor import (DEFAULT_SETTINGS, analyze_once, archive_plan, configuration, polling_delay,
-                     poll_once, service_lock)
+                     poll_once, service_lock, cloud_once)
 from test_drive_inbox import CONFIG, MemorySource
 from test_scan_intake import pdf, pair, fake_reader
 
@@ -203,14 +203,28 @@ class MonitorTests(unittest.TestCase):
         self.assertTrue((self.queue.state_path(state['receiptId']).parent / 'archive-plan.json').is_file())
 
     def test_launch_agents_use_absolute_paths_without_shell_or_analyzer_credentials(self):
-        for role in ('poller', 'analyzer'):
+        for role in ('poller', 'analyzer', 'cloud'):
             value = launch_agent(role, Path('/private/runtime'), Path('/private/release'),
                                  Path('/private/venv/bin/python'), Path('/bin/pdftoppm'))
             self.assertEqual(plistlib.loads(plistlib.dumps(value)), value)
             self.assertTrue(value['KeepAlive'])
             self.assertEqual(value['ProcessType'], 'Background')
             self.assertEqual(value['Umask'], 0o077)
-            self.assertEqual('--credentials-file' in value['ProgramArguments'], role == 'poller')
+            self.assertEqual('--credentials-file' in value['ProgramArguments'], role != 'analyzer')
+            if role == 'cloud':
+                self.assertIn('/private/runtime/drive-manage-oauth.json', value['ProgramArguments'])
+
+    def test_cloud_errors_backoff_and_do_not_log_private_sdk_text(self):
+        worker = Mock()
+        worker.run_once.side_effect = ConnectionError('private OAuth details')
+        state = cloud_once(worker, self.settings, {}, clock=lambda: epoch('2026-09-28T10:00:00'))
+        self.assertEqual(state['state'], 'retry_wait')
+        self.assertNotIn('private', json.dumps(state))
+        worker.run_once.side_effect = None
+        worker.run_once.return_value = {'status': 'OK', 'errors': [], 'moved': 0}
+        state = cloud_once(worker, self.settings, state, clock=lambda: epoch('2026-09-28T10:01:00'))
+        self.assertEqual(state['state'], 'waiting')
+        self.assertEqual(state['failureCount'], 0)
 
 
 if __name__ == '__main__':

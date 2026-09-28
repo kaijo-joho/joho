@@ -10,7 +10,7 @@ import unittest
 from unittest.mock import Mock, patch
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
-from authorize_drive import READ_SCOPE, SetupError, authorize, load_client, main
+from authorize_drive import MANAGE_SCOPES, READ_SCOPE, SetupError, authorize, load_client, main
 
 CLIENT = {'installed': {'client_id': 'test.apps.googleusercontent.com', 'client_secret': 'dummy',
     'auth_uri': 'https://accounts.google.com/o/oauth2/auth', 'token_uri': 'https://oauth2.googleapis.com/token'}}
@@ -52,6 +52,21 @@ class AuthorizeTests(unittest.TestCase):
     def test_wrong_account_never_saves(self):
         self.account.return_value = 'personal@example.net'
         with self.assertRaises(SetupError): self.run_auth()
+        self.assertFalse(self.output.exists())
+
+    def test_manage_mode_requires_exact_explicit_scopes(self):
+        self.credentials.granted_scopes = MANAGE_SCOPES
+        result = authorize(self.client, self.output, 'teacher@example.edu', access='manage',
+                           flow_factory=self.factory, get_account=self.account)
+        self.assertEqual(result['access'], 'drive.manage')
+        self.assertEqual(json.loads(self.output.read_text())['scopes'], MANAGE_SCOPES)
+        self.factory.assert_called_once_with(CLIENT, scopes=MANAGE_SCOPES)
+        self.assertNotIn('https://www.googleapis.com/auth/drive', MANAGE_SCOPES)
+
+    def test_manage_partial_consent_does_not_save(self):
+        with self.assertRaises(SetupError):
+            authorize(self.client, self.output, 'teacher@example.edu', access='manage',
+                      flow_factory=self.factory, get_account=self.account)
         self.assertFalse(self.output.exists())
 
     def test_missing_refresh_or_extra_scope_never_saves(self):

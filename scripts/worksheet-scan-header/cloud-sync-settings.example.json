@@ -1,0 +1,16 @@
+{
+  "schemaVersion": "worksheet-drive-sync/1",
+  "sourceFolderId": "REPLACE_SOURCE_FOLDER_ID",
+  "artifactFolderId": "REPLACE_ARTIFACT_FOLDER_ID",
+  "receiptFolderId": "REPLACE_RECEIPT_FOLDER_ID",
+  "processedRootId": "REPLACE_PROCESSED_ROOT_FOLDER_ID",
+  "reviewRootId": "REPLACE_REVIEW_ROOT_FOLDER_ID",
+  "expectedAccount": "replace-with-authorized-staff@example.invalid",
+  "stationId": "mac-studio",
+  "ledgerId": "REPLACE_PINNED_LEDGER_ID",
+  "subject": "INFO1",
+  "timezone": "Asia/Tokyo",
+  "archiveStartHour": 21,
+  "archiveEndHour": 7,
+  "maxJobsPerCycle": 10
+}

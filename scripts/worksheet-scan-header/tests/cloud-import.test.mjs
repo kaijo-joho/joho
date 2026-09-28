@@ -127,12 +127,16 @@ function harness(m = fixture()) {
     properties: {worksheetReceipt: m.receiptId, worksheetRole: role}});
   add(m.original, 'original');
   m.items.forEach(i => {if (i.pdf) add(i.pdf, 'sheet-' + i.sheetIndex);});
-  const state = {releases: 0, updates: 0, failUpdate: false, busy: false};
+  const state = {releases: 0, updates: 0, failUpdate: false, busy: false, triggers: []};
   const pservice = {getProperties: () => copy(properties), getProperty: k => properties[k],
     setProperty: (k, v) => {properties[k] = v;}, deleteProperty: k => {delete properties[k];}};
   const book = {getSheetByName: name => sheets[name], insertSheet: name => (sheets[name] = new Sheet(name))};
   const c = vm.createContext({console: {log() {}}, PropertiesService: {getScriptProperties: () => pservice},
     LockService: {getScriptLock: () => ({tryLock: () => !state.busy, releaseLock: () => {state.releases++;}})},
+    ScriptApp: {getProjectTriggers: () => state.triggers.map(name => ({getHandlerFunction: () => name})),
+      newTrigger: name => ({timeBased: () => ({everyMinutes: minutes => {
+        assert.equal(minutes, 1); return {create: () => {state.triggers.push(name);}};
+      }})})},
     SpreadsheetApp: {openById: id => {
       assert.ok([properties.WS_LEDGER_ID, properties.WS_ROSTER_ID].includes(id)); return book;
     }, flush() {}},
@@ -157,8 +161,12 @@ test('GAS import appends one receipt and candidate; roster stays read-only', () 
   assert.equal(h.sheets.ws_receipts.rows.length, 2);
   assert.equal(h.sheets.ws_attempts.rows.length, 2);
   assert.equal(h.sheets.roster.writes, 0);
+  assert.equal(h.manifest.properties.worksheetLedger, h.properties.WS_LEDGER_ID);
+  assert.equal(h.manifest.properties.worksheetArchiveStatus, 'OK');
   assert.ok(h.sheets.roster.reads.filter(r => r.row === 2).every(r => r.width === 1 && r.col !== 2));
+  const reads = h.sheets.roster.reads.length;
   assert.equal(h.c.importWorksheetReceipts().registered.length, 0);
+  assert.equal(h.sheets.roster.reads.length, reads);
   assert.equal(h.state.releases, 2);
 });
 
@@ -172,6 +180,25 @@ test('GAS recovers after candidate append but before receipt commit', () => {
   assert.equal(h.c.importWorksheetReceipts().registered.length, 1);
   assert.equal(h.sheets.ws_attempts.rows.length, 2);
   assert.equal(h.sheets.ws_receipts.rows.length, 2);
+  assert.equal(h.manifest.properties.worksheetArchiveStatus, 'OK');
+});
+
+test('archive acknowledgement reflects roster REVIEW, not just readable marks', () => {
+  const m = fixture(); m.items[0].studentIdentifier = '999';
+  const h = harness(m);
+  h.state.failUpdate = true;
+  h.c.importWorksheetReceipts();
+  assert.equal(h.manifest.properties.worksheetImport, undefined);
+  h.c.importWorksheetReceipts();
+  assert.equal(h.manifest.properties.worksheetArchiveStatus, 'REVIEW');
+});
+
+test('invalid committed status cannot be acknowledged', () => {
+  const h = harness(); h.state.failUpdate = true;
+  h.c.importWorksheetReceipts();
+  h.sheets.ws_attempts.rows[1][core.ATTEMPT_HEADERS.indexOf('intakeStatus')] = 'UNKNOWN';
+  assert.equal(h.c.importWorksheetReceipts().pendingErrors[0].code, 'INVALID_COMMITTED_STATUS');
+  assert.equal(h.manifest.properties.worksheetImport, undefined);
 });
 
 test('lost Drive completion update does not duplicate GSS registration', () => {
@@ -225,6 +252,23 @@ test('busy lock and invalid destinations make no writes', () => {
   h.properties.WS_LEDGER_ID = h.properties.WS_ROSTER_ID;
   assert.throws(() => h.c.setupWorksheetReceiptTables(), /USE_DEDICATED_DESTINATIONS/);
   assert.equal(h.sheets.roster.writes, 0);
+});
+
+test('only catalog grades participate; staff and unrelated grades stay untouched', () => {
+  const h = harness();
+  h.sheets.roster.rows.push(['staff', 'private name', 0, 9, 99], ['staff', 'private name', 4, 9, 99]);
+  assert.equal(h.c.importWorksheetReceipts().pendingErrors.length, 0);
+  assert.equal(h.manifest.properties.worksheetArchiveStatus, 'OK');
+  assert.equal(h.sheets.roster.writes, 0);
+});
+
+test('trigger setup is idempotent and preserves unrelated triggers', () => {
+  const h = harness(); h.state.triggers.push('otherFunction');
+  h.c.installWorksheetReceiptTrigger();
+  h.c.installWorksheetReceiptTrigger();
+  assert.deepEqual(h.state.triggers, ['otherFunction', 'importWorksheetReceipts']);
+  h.state.triggers.push('importWorksheetReceipts');
+  assert.throws(() => h.c.installWorksheetReceiptTrigger(), /DUPLICATE_IMPORT_TRIGGERS/);
 });
 
 test('schema mismatch does not modify existing sheets or create others', () => {

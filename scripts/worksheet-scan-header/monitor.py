@@ -183,6 +183,22 @@ def analyze_once(queue, settings, root, *, clock=time.time, **reader_options):
     return status
 
 
+def cloud_once(worker, settings, previous, *, clock=time.time):
+    status = {**previous, 'lastAttemptAt': as_iso(clock()), 'errorType': None}
+    try:
+        report = worker.run_once()
+        failed = bool(report.get('errors'))
+        status.update(report=report, failureCount=previous.get('failureCount', 0) + 1 if failed else 0)
+        if not failed:
+            status['lastSuccessAt'] = as_iso(clock())
+    except Exception as error:
+        status.update(failureCount=previous.get('failureCount', 0) + 1, errorType=type(error).__name__)
+    delay = polling_delay(settings, clock(), failures=status['failureCount'])
+    status.update(state='retry_wait' if status['failureCount'] else 'waiting', delaySeconds=delay,
+                  nextPollAt=as_iso(clock() + delay), updatedAt=as_iso(clock()))
+    return status
+
+
 def run(args):
     os.umask(0o077)
     queue = CloudQueue(args.queue)
@@ -190,7 +206,7 @@ def run(args):
     root.mkdir(mode=0o700, exist_ok=True)
     if args.role == 'status':
         result = {role: json.loads(path.read_text()) if path.exists() else None
-                  for role in ('poller', 'analyzer')
+                  for role in ('poller', 'analyzer', 'cloud')
                   for path in [root / (role + '-status.json')]}
         for value in result.values():
             if value:
@@ -240,6 +256,21 @@ def run(args):
                          status.get('counts'), status.get('errorType'), status['nextPollAt'])
                 if reports:
                     atomic_json(root / 'last-poll-reports.json', reports)
+            elif args.role == 'cloud':
+                try:
+                    if worker is None:
+                        from cloud_sync import CloudSync, configuration as sync_configuration
+                        drive = DriveTransport.from_credentials_file(args.credentials_file)
+                        worker = CloudSync(queue, sync_configuration(args.settings), drive=drive)
+                    status = cloud_once(worker, settings, status)
+                except Exception as error:
+                    failures = status.get('failureCount', 0) + 1
+                    delay = polling_delay(settings, time.time(), failures=failures)
+                    status = {**status, 'state': 'retry_wait', 'failureCount': failures,
+                              'errorType': type(error).__name__, 'updatedAt': now_iso(),
+                              'delaySeconds': delay, 'nextPollAt': as_iso(time.time() + delay)}
+                delay = status['delaySeconds']
+                log.info('cloud state=%s error=%s next=%s', status['state'], status.get('errorType'), status['nextPollAt'])
             else:
                 previous = status
                 status = analyze_once(queue, settings, root, **options)
@@ -268,7 +299,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('role', choices=['poller', 'analyzer', 'status'])
+    parser.add_argument('role', choices=['poller', 'analyzer', 'cloud', 'status'])
     parser.add_argument('--queue', type=Path, required=True)
     parser.add_argument('--monitor-settings', type=Path, default=DEFAULT_SETTINGS)
     parser.add_argument('--settings', type=Path)
@@ -278,8 +309,8 @@ def main():
     parser.add_argument('--pdftoppm')
     parser.add_argument('--once', action='store_true')
     args = parser.parse_args()
-    if args.role == 'poller' and (not args.settings or not args.credentials_file):
-        parser.error('poller requires --settings and --credentials-file')
+    if args.role in ('poller', 'cloud') and (not args.settings or not args.credentials_file):
+        parser.error(args.role + ' requires --settings and --credentials-file')
     try:
         return run(args)
     except Exception as error:

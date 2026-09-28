@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Freeze a local reader release and install two per-user macOS LaunchAgents."""
+"""Freeze a local reader release and install per-user macOS LaunchAgents."""
 import argparse
 from datetime import datetime, timezone
 import hashlib
@@ -12,7 +12,7 @@ import subprocess
 
 from cloud_intake import atomic_json
 
-LABELS = {role: 'jp.kaijo.worksheet-' + role for role in ('poller', 'analyzer')}
+LABELS = {role: 'jp.kaijo.worksheet-' + role for role in ('poller', 'analyzer', 'cloud')}
 
 
 def launch_agent(role, runtime, release, python, renderer):
@@ -22,6 +22,9 @@ def launch_agent(role, runtime, release, python, renderer):
     if role == 'poller':
         args += ['--settings', str(runtime / 'drive-inbox-settings.json'),
                  '--credentials-file', str(runtime / 'drive-read-oauth.json')]
+    elif role == 'cloud':
+        args += ['--settings', str(runtime / 'cloud-sync-settings.json'),
+                 '--credentials-file', str(runtime / 'drive-manage-oauth.json')]
     else:
         args += ['--pdftoppm', str(renderer)]
     return {'Label': LABELS[role], 'ProgramArguments': args, 'WorkingDirectory': str(runtime),
@@ -34,7 +37,7 @@ def launch_agent(role, runtime, release, python, renderer):
             'StandardErrorPath': str(runtime / 'queue/monitor' / (role + '-launch.log'))}
 
 
-def install(runtime, python, renderer, source_root, revision, *, activate=False):
+def install(runtime, python, renderer, source_root, revision, *, activate=False, with_cloud=False):
     """Stage everything before touching agents; retain plists for rollback."""
     os.umask(0o077)
     runtime, source_root = Path(runtime).expanduser().resolve(), Path(source_root).resolve()
@@ -45,6 +48,10 @@ def install(runtime, python, renderer, source_root, revision, *, activate=False)
     for file in (python, renderer, runtime / 'drive-inbox-settings.json', runtime / 'drive-read-oauth.json'):
         if not file.is_file():
             raise ValueError('Required local runtime file is missing')
+    if with_cloud:
+        for name in ('cloud-sync-settings.json', 'drive-manage-oauth.json'):
+            if not (runtime / name).is_file():
+                raise ValueError('Cloud sync settings and explicit manage credentials are required')
     stamp = datetime.now(timezone.utc).strftime('%Y%m%dT%H%M%S%fZ')
     release = runtime / 'releases' / stamp
     scripts = release / 'scripts/worksheet-scan-header'
@@ -52,7 +59,7 @@ def install(runtime, python, renderer, source_root, revision, *, activate=False)
     scripts.mkdir(parents=True)
     coordinates.mkdir(parents=True)
     source = source_root / 'scripts/worksheet-scan-header'
-    for path in [*source.glob('*.py'), source / 'reader-config.json', source / 'monitor-settings.example.json']:
+    for path in [*source.glob('*.py'), source / 'reader-config.json', *source.glob('*settings.example.json')]:
         shutil.copy2(path, scripts / path.name)
     for path in (source_root / 'templates/worksheets/scan-header').glob('*.json'):
         shutil.copy2(path, coordinates / path.name)
@@ -67,13 +74,17 @@ def install(runtime, python, renderer, source_root, revision, *, activate=False)
                     'from monitor import configuration; from scan_core import load_catalog, load_config; '
                     'import sys; configuration(sys.argv[1]); load_catalog(); load_config()', str(settings)],
                    cwd=scripts, check=True, timeout=30)
+    if with_cloud:
+        subprocess.run([str(python), '-c', 'from cloud_sync import configuration; import sys; configuration(sys.argv[1])',
+                        str(runtime / 'cloud-sync-settings.json')], cwd=scripts, check=True, timeout=30)
     (runtime / 'queue/monitor').mkdir(parents=True, exist_ok=True)
     agent_dir = Path.home() / 'Library/LaunchAgents'
     agent_dir.mkdir(parents=True, exist_ok=True)
     backup = runtime / 'service-backups' / stamp
     backup.mkdir(parents=True)
     domain = 'gui/' + str(os.getuid())
-    targets = {role: agent_dir / (label + '.plist') for role, label in LABELS.items()}
+    targets = {role: agent_dir / (label + '.plist') for role, label in LABELS.items()
+               if role != 'cloud' or with_cloud}
     prior, was_loaded = {}, {}
     for role, path in targets.items():
         prior[role] = path.read_bytes() if path.exists() else None
@@ -107,7 +118,7 @@ def install(runtime, python, renderer, source_root, revision, *, activate=False)
         raise
     result = {'release': str(release), 'backup': str(backup), 'sourceRevision': revision,
               'activated': activate, 'agents': {k: str(v) for k, v in targets.items()},
-              'startup': 'user_login', 'archiveEnabled': False}
+              'startup': 'user_login', 'archiveEnabled': with_cloud}
     atomic_json(runtime / 'monitor-installation.json', result)
     return result
 
@@ -120,6 +131,7 @@ if __name__ == '__main__':
     parser.add_argument('--source-root', type=Path, default=Path(__file__).resolve().parents[2])
     parser.add_argument('--revision', required=True)
     parser.add_argument('--activate', action='store_true')
+    parser.add_argument('--with-cloud', action='store_true', help='Enable authorized upload, GSS acknowledgement and archiving')
     args = parser.parse_args()
     print(json.dumps(install(args.runtime, args.python, args.pdftoppm, args.source_root,
-                             args.revision, activate=args.activate), ensure_ascii=False, indent=2))
+                             args.revision, activate=args.activate, with_cloud=args.with_cloud), ensure_ascii=False, indent=2))

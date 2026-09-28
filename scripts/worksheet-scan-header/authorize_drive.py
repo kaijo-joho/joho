@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Interactive, read-only Drive OAuth setup. No scan downloads or cloud writes."""
+"""Interactive dedicated Drive OAuth setup. No scan downloads or cloud writes."""
 import argparse
 import json
 import logging
@@ -9,6 +9,8 @@ import re
 import sys
 
 READ_SCOPE = 'https://www.googleapis.com/auth/drive.readonly'
+MANAGE_SCOPES = [READ_SCOPE, 'https://www.googleapis.com/auth/drive.file',
+                 'https://www.googleapis.com/auth/drive.metadata']
 
 
 class SetupError(ValueError):
@@ -50,9 +52,9 @@ def output_path(value):
     return path
 
 
-def google_flow(data):
+def google_flow(data, scopes=None):
     from google_auth_oauthlib.flow import InstalledAppFlow
-    return InstalledAppFlow.from_client_config(data, scopes=[READ_SCOPE],
+    return InstalledAppFlow.from_client_config(data, scopes=scopes or [READ_SCOPE],
                                                autogenerate_code_verifier=True)
 
 
@@ -66,28 +68,31 @@ def account_email(credentials):
 
 
 def authorize(client_path, destination, expected_account, *, flow_factory=google_flow,
-              get_account=account_email):
+              get_account=account_email, access='read'):
+    if access not in ('read', 'manage'):
+        raise SetupError('認可モードを確認してください。')
+    scopes = [READ_SCOPE] if access == 'read' else MANAGE_SCOPES
     if not re.fullmatch(r'[^\s@]+@[^\s@]+\.[^\s@]+', expected_account):
         raise SetupError('処理用アカウントのメールアドレスを指定してください。')
     target = output_path(destination)
     data = load_client(client_path)
-    flow = flow_factory(data)
+    flow = flow_factory(data) if access == 'read' else flow_factory(data, scopes=scopes)
     credentials = flow.run_local_server(
         host='127.0.0.1', port=0, open_browser=True, timeout_seconds=180,
-        authorization_prompt_message='ブラウザで処理用アカウントを選び、Drive読取を許可してください。',
+        authorization_prompt_message='ブラウザで処理用アカウントと、要求されたDrive権限を確認してください。',
         success_message='Google認証の応答を受け取りました。結果はターミナルで確認してください。',
         prompt='consent select_account', login_hint=expected_account,
         access_type='offline', include_granted_scopes='false')
     granted = credentials.granted_scopes
     if not credentials.refresh_token:
         raise SetupError('継続利用用の認証を取得できませんでした。再認証してください。')
-    if granted is not None and set(granted) != {READ_SCOPE}:
-        raise SetupError('許可された権限が取得専用の設定と異なるため保存しません。')
+    if granted is not None and set(granted) != set(scopes):
+        raise SetupError('許可された権限が要求した設定と異なるため保存しません。')
     if get_account(credentials).casefold() != expected_account.casefold():
         raise SetupError('選択されたGoogleアカウントが指定と異なるため保存しません。')
     payload = json.loads(credentials.to_json())
     payload['type'] = 'authorized_user'
-    payload['scopes'] = [READ_SCOPE]
+    payload['scopes'] = scopes
     # Exclusive creation also protects against another process creating the target
     # while the browser is open. Never print the token or overwrite old credentials.
     output_path(target)
@@ -101,19 +106,21 @@ def authorize(client_path, destination, expected_account, *, flow_factory=google
     except BaseException:
         target.unlink(missing_ok=True)
         raise
-    return {'status': 'OK', 'access': 'drive.readonly', 'credentialsSaved': True}
+    return {'status': 'OK', 'access': 'drive.readonly' if access == 'read' else 'drive.manage',
+            'credentialsSaved': True}
 
 
 def main(argv=None):
-    parser = argparse.ArgumentParser(description='Drive取得専用の初回Google認証（ブラウザで本人が同意）')
+    parser = argparse.ArgumentParser(description='専用OAuthのGoogle認証（ブラウザで本人が同意）')
     parser.add_argument('--client-secrets', required=True, type=Path)
     parser.add_argument('--output', required=True, type=Path)
     parser.add_argument('--expected-account', required=True)
+    parser.add_argument('--access', choices=['read', 'manage'], default='read')
     args = parser.parse_args(argv)
     # OAuth redirects and SDK debug logs can contain authorization codes/tokens.
     logging.disable(logging.CRITICAL)
     try:
-        result = authorize(args.client_secrets, args.output, args.expected_account)
+        result = authorize(args.client_secrets, args.output, args.expected_account, access=args.access)
     except KeyboardInterrupt:
         print('認証を中止しました。', file=sys.stderr)
         return 130
