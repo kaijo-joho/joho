@@ -20,6 +20,8 @@ HTML本文・SVGはGASプロジェクト「座学ワークシート」（ロー�
 
 GAS `fl` の`run_previewPagesJsGeneration()`で差分を確認後、`exportData_to_pages_js()`で生成する。`js/pages.js`は手で編集しない。座学表紙、LessonDock、講座の教材一覧が`worksheetApp`を使用する。印刷済みPDFの配付リンクは従来の`practiceFile`として別に管理できる。
 
+2026-09-29に登録済み4件（dr31・dr32・dr41・dr42）のワークシートリンクを掲載した。`ワークシート一覧.release`のみをTRUEにして正規生成し、教材ページ自体の`ページ一覧.release`は保持する。
+
 ## 解答公開の設定
 
 「課題設定」に以下の対応を設定する。日時は日本時間で、数式の文字列ではなくシート上の日付・時刻値を使う。
@@ -31,9 +33,11 @@ GAS `fl` の`run_previewPagesJsGeneration()`で差分を確認後、`exportData_
 | targetId | `dr31`などのworksheetId |
 | subTargetId | 空欄 |
 | status | 採点しないワークシートでは`practice`。`active`も閲覧可 |
-| standardDueAt | この日時を過ぎたら解答・解説を公開（同時刻は未公開） |
+| standardDueAt | 解答配布専用。この日時を過ぎたら解答・解説を公開（同時刻は未公開）。遅延・成績判定には使わない |
 | startAt | 設定する場合はstandardDueAt以下。問題自体の印刷開始は制限しない |
-| finalDueAt | 既存の提出期限用。ワークシートの解答終了日時にはしない |
+| finalDueAt | ワークシートの提出期限。この日時まで（同時刻を含む）の提出を期限内とする。解答公開の終了日時にはしない |
+
+`standardDueAt`を過ぎてから提出しても、`finalDueAt`以内であれば遅延扱いや期限による減点をしない。未設定・不正な提出期限は推測せず要確認とする。現在の回収処理は受付・識別までで、提出の期限判定と成績集計は未接続。将来それらを接続するときも、この区別を維持する。
 
 年度・学年・item・targetIdが一致する行は1行だけにする。同じ学年に学期違いの重複行があっても解答は開かない。未設定・不正日時・GSS読取障害では解答は非公開、問題は印刷できる。教員は既存Commonの教員判定で常時確認できる。閲覧日時を変えるだけならGAS再デプロイやpages.js再生成は不要。
 
