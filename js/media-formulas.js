@@ -82,9 +82,15 @@
       const rgbChannels = constant('rgb-channels', 'RGBの成分数', 3, 'colorChannel');
       constant('bit-byte', '換算用の数', 8);
       constant('byte-kilo', '換算用の数', 1024);
+      definition.taskPalettes = true;
+      definition.quantities.forEach(item => { item.hideUnit = true; });
+      definition.constants.forEach(item => { item.hideUnit = true; });
       const expectedSize = Image.imageSize(4096, 3072, 24, 1024).megabytes;
-      task('levels', '各色の階調数', 'levels', Image.levels(8), [power([value(2)], [group([colorBits, op('÷'), rgbChannels])])]);
-      task('size', '画像のデータ量', 'MB', expectedSize, imageDataTokens(width, height, bitsPerPixel, 1024), {
+      task('levels', '(1) 各色の階調数を答えなさい。', 'levels', Image.levels(8), [power([value(2)], [group([colorBits, op('÷'), rgbChannels])])], {
+        palette: { quantities: ['width', 'height', 'color-bits'], constants: ['two', 'rgb-channels', 'byte-kilo'] }
+      });
+      task('size', '(2) この画像のデータ量は何MBですか。', 'MB', expectedSize, imageDataTokens(width, height, bitsPerPixel, 1024), {
+        palette: { quantities: ['width', 'height', 'bits-per-pixel'], constants: ['two', 'rgb-channels', 'bit-byte', 'byte-kilo'] },
         legacyExpectedTokens: imageDataTokens(width, height, bitsPerPixel, 1024, true)
       });
       return definition;
@@ -95,18 +101,17 @@
       const width = source('width', '横の画素数', 1000, 'pixel');
       const height = source('height', '縦の画素数', 800, 'pixel');
       source('colors', '色数', 32768, 'colors');
-      // 15は問題文に「= 2^15」として明示された指数であり、色数から逆算した
-      // bitカードではない。サイズ式では選択肢に出さず、値と単位を自分で入れる。
+      // 問題文の指数からbit数を直接記入し、その手入力をサイズ式で参照する。
+      // 正解の15を数値パレットへ置かない。
       const bitsPerPixel = source('bits-per-pixel', '1画素あたりのビット数', 15, 'bit/pixel', { implicit: true });
       constant('two', '2進数の基数', 2);
-      constant('given-exponent', '問題文の指数', 15);
       constant('bit-byte', '換算用の数', 8);
       constant('byte-kilo', '換算用の数', 1000);
       const expectedSize = Image.imageSize(1000, 800, 15, 1000).megabytes;
-      task('bits', '1画素あたりのビット数', 'bitCount', 15, [], {
-        rule: 'minimum-bits', levels: 32768, boundUnit: 'colors', boundSymbol: 'colors', answerIsResult: false,
+      task('bits', '1画素あたりのデータ量', 'bit/pixel', 15, [], {
+        rule: 'given-value', answerUnitLabel: 'bit。',
         conclusionQuantity: { unit: 'bit/pixel', symbol: 'bits-per-pixel' },
-        scaffold: { type: 'power-bounds', base: 2 }
+        scaffold: { type: 'given-value', prompt: '問題文より、1画素あたりのデータ量は' }
       });
       task('size', '画像のデータ量', 'MB', expectedSize, imageDataTokens(width, height, bitsPerPixel, 1000), {
         legacyExpectedTokens: imageDataTokens(width, height, bitsPerPixel, 1000, true)

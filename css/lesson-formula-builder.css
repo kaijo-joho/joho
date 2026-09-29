@@ -320,3 +320,8 @@
 @media (prefers-reduced-motion: reduce) {
   .lesson-formula-builder *, .lesson-formula-builder *::before, .lesson-formula-builder *::after { scroll-behavior: auto !important; transition: none !important; }
 }
+
+/* 問題文から読み取る値は、式の選択肢を使わず直接記入する。 */
+.formula-given-value .formula-answer-item { flex-wrap: wrap; white-space: normal; min-width: 0; }
+.formula-given-value .formula-result-input { width: 4.5em; }
+.formula-given-value input { text-align: center; }

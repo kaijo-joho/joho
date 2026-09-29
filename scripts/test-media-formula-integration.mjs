@@ -78,7 +78,7 @@ async function verifyProblem({ pageName, slide, selector, tasks, reset = false }
     const judge = task.locator('[data-formula-judge]').last();
     await judge.click();
     const feedback = await task.locator('.formula-feedback').allTextContents();
-    assert.ok(feedback.some(text => text.includes('立式') && text.includes('○') && text.includes('答え') && text.includes('○')), `${selector}/${taskId}: 立式と手入力答えを別々に判定 (${feedback.join(' / ')})`);
+    assert.ok(feedback.some(text => (initial.definition.tasks.find(entry => entry.id === taskId).rule === 'given-value' || text.includes('立式')) && text.includes('○') && text.includes('答え')), `${selector}/${taskId}: 立式と手入力答えを別々に判定 (${feedback.join(' / ')})`);
     assert.equal(await task.locator('[data-formula-answer]').last().isEditable(), true, `${selector}/${taskId}: 判定後も答えを編集できる`);
     assert.equal(await details.evaluate(node => node.open), false, `${selector}/${taskId}: 判定で解答を自動表示しない`);
   }
@@ -153,15 +153,14 @@ try {
   await page.goto(pageURL('dr41.html', 'headline_7'));
   const colorHost = page.locator('[data-image-size-quiz="color-count"]');
   const bitsTask = colorHost.locator('[data-formula-task="bits"]');
-  await bitsTask.locator('[data-formula-blank="lower"]').fill('14');
-  await bitsTask.locator('[data-formula-blank="bound"]').fill('32768');
-  await bitsTask.locator('[data-formula-blank="upper"]').fill('15');
+  assert.equal(await bitsTask.locator('[data-formula-blank]').count(), 0, '比較式は置かない');
+  assert.equal(await colorHost.locator('[data-formula-constant="given-exponent"]').count(), 0, '15を候補に置かない');
   await bitsTask.locator('[data-formula-answer="bits"]').fill('15');
   const colorRows = await prepareReferenceTarget('[data-image-size-quiz="color-count"]', 'bits', 'size', ['width', 'height']);
   const colorSize = colorHost.locator('[data-formula-task="size"]');
   const colorGrip = bitsTask.locator(`[data-formula-result-grip="${colorRows.sourceRowId}"]`);
   await colorGrip.dragTo(colorSize.locator('[data-formula-slot]').last());
-  assert.ok((await entryFor('[data-image-size-quiz="color-count"]')).draft.rows.find(row => row.id === colorRows.targetRowId).tokens.some(token => token.kind === 'reference' && token.rowId === colorRows.sourceRowId), 'bitsの∴結論つまみをdragしてsize式へ参照を挿入');
+  assert.ok((await entryFor('[data-image-size-quiz="color-count"]')).draft.rows.find(row => row.id === colorRows.targetRowId).tokens.some(token => token.kind === 'reference' && token.rowId === colorRows.sourceRowId), 'bitsの直接記入つまみをdragしてsize式へ参照を挿入');
   await finishReferenceFormula('[data-image-size-quiz="color-count"]', 'size', ['bit-byte', 'byte-kilo', 'byte-kilo']);
   await colorSize.locator('[data-formula-answer="size"]').fill('1.5');
   await colorSize.locator('[data-formula-judge]').click();

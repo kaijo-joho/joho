@@ -113,11 +113,11 @@
     // Top layerを使ってスライドのスクロール枠に切られないポップアップにする。
     // 未対応ブラウザではfixed配置へフォールバック。ホバーは補助操作で、
     // 同じ入口をタップ・Enter・Escapeでも操作できる。
-    function popup(name, label, contents) {
+    function popup(name, label, contents, scope) {
       var wrapper = el('span', { className: 'formula-popup formula-' + name });
       var trigger = button(label, { className: 'formula-popup-trigger', dataset: { formulaPopupTrigger: name } });
       var panel = el('div', { className: 'formula-popup-panel', label: label, dataset: { formulaPopup: name } });
-      panel.id = popupSource + '-' + name;
+      panel.id = popupSource + '-' + name + (scope ? '-' + scope : '');
       panel.hidden = true; panel.tabIndex = -1; panel.setAttribute('role', 'dialog');
       if (typeof panel.showPopover === 'function') panel.setAttribute('popover', 'manual');
       trigger.setAttribute('aria-haspopup', 'dialog');
@@ -157,8 +157,9 @@
 
     function initialRows() {
       var count = Math.max(1, Math.min(MAX_ROWS, tasks.length || 1));
-      return Array.from({ length: count }, function (_, index) { return { id: makeId(), taskId: tasks[index] ? taskIdFor(tasks[index], index) : '', tokens: initialTokens(tasks[index]), result: '', resultUnit: '', answerOpen: isScaffold(tasks[index]) }; });
+      return Array.from({ length: count }, function (_, index) { return { id: makeId(), taskId: tasks[index] ? taskIdFor(tasks[index], index) : '', tokens: initialTokens(tasks[index]), result: '', resultUnit: '', answerOpen: isScaffold(tasks[index]) || isGivenValue(tasks[index]) }; });
     }
+    function isGivenValue(task) { return !!(task && task.scaffold && task.scaffold.type === 'given-value'); }
     function isScaffold(task) { return !!(task && task.scaffold && task.scaffold.type === 'power-bounds'); }
     function initialTokens(task, previous) {
       if (!isScaffold(task)) return [];
@@ -178,7 +179,7 @@
         var taskId = taskIdFor(task, index);
         var rows = rowsForTask(taskId);
         if (!rows.length) {
-          var row = { id: makeId(), taskId: taskId, tokens: initialTokens(task), result: '', resultUnit: '', answerOpen: isScaffold(task) };
+          var row = { id: makeId(), taskId: taskId, tokens: initialTokens(task), result: '', resultUnit: '', answerOpen: isScaffold(task) || isGivenValue(task) };
           state.rows.push(row); rows = [row];
         }
         if (!rows.some(function (row) { return row.id === state.targets[taskId]; })) state.targets[taskId] = rows[rows.length - 1].id;
@@ -367,7 +368,8 @@
     function activeOrDefault() {
       if (slotIsValid(active) && (!currentRowId || active.rowId === currentRowId)) return active;
       if (tokenIsValid(selected) && (!currentRowId || selected.rowId === currentRowId)) return makeSlot(selected.rowId, selected.path, selected.index + 1);
-      var row = rowById(currentRowId) || state.rows[0];
+      var row = rowById(currentRowId);
+      if (!row || isGivenValue(taskForRow(row))) row = state.rows.find(function (candidate) { return !isGivenValue(taskForRow(candidate)); }) || state.rows[0];
       return makeSlot(row.id, [], row.tokens.length);
     }
     function displayUnit(unit) { return units[unit] && units[unit].label ? units[unit].label : unit || '単位なし'; }
@@ -713,7 +715,7 @@
       var card = button('', { className: 'formula-palette-card', label: text + 'を式へ挿入', dataset: type === 'quantity' ? { formulaQuantity: item.id } : { formulaConstant: item.id } });
       card.append(dragDots());
       var value = el('span', { className: 'formula-card-value' });
-      appendAmount(value, item.value, item.unit); card.append(value);
+      appendAmount(value, item.value, item.hideUnit ? '' : item.unit); card.append(value);
       card.disabled = disabled;
       var token = { kind: 'value', value: String(item.value == null ? '' : item.value), unit: String(item.unit || ''), label: item.label };
       card.addEventListener('click', function () { insertToken(activeOrDefault(), token); });
@@ -760,7 +762,8 @@
     function statusNode(item, fallback) {
       if (!item) return null;
       var messages = Array.isArray(item.messages) ? item.messages.slice() : item.message ? [item.message] : [];
-      if (item.formulaCorrect != null || item.answerCorrect != null) messages.unshift('立式：' + (item.formulaCorrect ? '○' : '×') + '　答え：' + (item.answerCorrect ? '○' : '×'));
+      if (item.answerOnly) messages.unshift('答え：' + (item.answerCorrect ? '○' : '×'));
+      else if (item.formulaCorrect != null || item.answerCorrect != null) messages.unshift('立式：' + (item.formulaCorrect ? '○' : '×') + '　答え：' + (item.answerCorrect ? '○' : '×'));
       if (!messages.length && item.calculationCorrect != null) messages.push(item.calculationCorrect ? '✓ 式を確認しました。' : '△ 式を見直してください。');
       if (!messages.length) return null;
       var status = item.calculationCorrect === false || item.formulaCorrect === false || item.answerCorrect === false ? 'is-error' : item.calculationCorrect === true || item.formulaCorrect === true || item.answerCorrect === true ? 'is-ok' : 'is-pending';
@@ -820,6 +823,13 @@
     function renderRow(row, index) {
       var task = taskForRow(row);
       if (isScaffold(task)) return renderScaffold(row, task, index);
+      if (isGivenValue(task)) {
+        var given = el('section', { className: 'formula-row formula-given-value', dataset: { formulaRow: row.id } });
+        given.append(renderResult(row, task, index));
+        var givenMessage = statusNode(feedbackFor(feedback && feedback.tasks, task.id));
+        if (givenMessage) given.append(givenMessage);
+        return given;
+      }
       var box = el('section', { className: 'formula-row', dataset: { formulaRow: row.id } });
       var heading = el('div', { className: 'formula-row-heading' });
       heading.append(el('span', { className: 'formula-row-label', text: (task ? '式 ' : '途中式 ') + (index + 1) }));
@@ -873,7 +883,8 @@
         var judgedTask = feedbackFor(feedback && feedback.tasks, taskId);
         if (judgedTask && judgedTask.answerCorrect === false) answer.setAttribute('aria-invalid', 'true');
       }
-      item.append(separator);
+      item.append(isGivenValue(task) ? el('span', { text: task.scaffold.prompt }) : separator);
+      if (isGivenValue(task)) { answer.placeholder = '□'; answer.inputMode = 'numeric'; answer.classList.add('formula-scaffold-answer'); }
       var inputBox = el('span', { className: 'formula-result-input' });
       inputBox.append(answer); source.append(inputBox);
       // inputの文字選択ドラッグをブラウザが優先する場合も、答え部分の
@@ -951,26 +962,35 @@
         var taskId = taskIdFor(task, taskIndex);
         var group = el('section', { className: 'formula-task', dataset: { formulaTask: taskId } });
         group.append(el('h4', { text: task.label || '小問 ' + (taskIndex + 1) }));
+        if (config.taskPalettes && !isGivenValue(task)) group.append(renderPalette(task));
         var rows = el('div', { className: 'formula-rows' });
         rowsForTask(taskId).forEach(function (row) { rows.append(renderRow(row, state.rows.indexOf(row))); });
         group.append(rows);
-        if (!isScaffold(task)) group.append(addRowButton(taskId));
+        if (!isScaffold(task) && !isGivenValue(task)) group.append(addRowButton(taskId));
         groups.append(group);
       });
       host.append(groups);
     }
-    function render(focusTarget) {
-      ensureTaskRows();
-      closePopup();
-      host.replaceChildren();
-      host.classList.toggle('is-disabled', disabled);
+    function renderPalette(task) {
       var guidedOnly = tasks.length > 0 && tasks.every(isScaffold);
-      host.classList.toggle('is-guided-only', guidedOnly);
+      var quantities = config.quantities || [];
+      var constants = config.constants || [];
+      if (task && task.palette) {
+        quantities = quantities.filter(function (item) { return task.palette.quantities.includes(item.id); });
+        constants = constants.filter(function (item) { return task.palette.constants.includes(item.id); });
+      }
       var palette = el('section', { className: 'formula-palette' });
       palette.append(el('h4', { text: '問題の数値' }));
       var cards = el('div', { className: 'formula-palette-cards' });
       quantities.forEach(function (item) { cards.append(paletteCard(item, 'quantity')); });
       palette.append(cards);
+      if (task) palette.addEventListener('click', function () {
+        var row = rowById(currentRowId || (active && active.rowId));
+        if (!row || row.taskId !== task.id) {
+          row = rowsForTask(task.id).slice(-1)[0];
+          currentRowId = row.id; active = makeSlot(row.id, [], row.tokens.length); selected = null;
+        }
+      }, true);
       var constantCards = null;
       var uniqueConstants = (guidedOnly ? [] : constants).filter(function (item, index) {
         function same(candidate) { return String(candidate.value) === String(item.value) && (candidate.unit || '') === (item.unit || ''); }
@@ -1027,10 +1047,19 @@
       var power = button('指数', { className: 'formula-operator', label: '指数を式へ挿入' }); power.disabled = disabled; power.addEventListener('click', function () { insertToken(activeOrDefault(), powerToken); }); makePaletteDraggable(power, powerToken); extraOps.append(power);
       var groupToken = { kind: 'group', body: [] };
       var group = button('括弧グループ', { className: 'formula-operator', label: '括弧グループを式へ挿入' }); group.disabled = disabled; group.addEventListener('click', function () { insertToken(activeOrDefault(), groupToken); }); makePaletteDraggable(group, groupToken); extraOps.append(group);
-      ops.append(popup('operators', 'その他の記号', extraOps));
-      if (constantCards) ops.append(popup('constants', '補助定数・換算値', constantCards));
+      ops.append(popup('operators', 'その他の記号', extraOps, task && task.id));
+      if (constantCards) ops.append(popup('constants', '補助定数・換算値', constantCards, task && task.id));
       if (!guidedOnly) palette.append(ops);
-      host.append(palette);
+      return palette;
+    }
+    function render(focusTarget) {
+      ensureTaskRows();
+      closePopup();
+      host.replaceChildren();
+      host.classList.toggle('is-disabled', disabled);
+      var guidedOnly = tasks.length > 0 && tasks.every(isScaffold);
+      host.classList.toggle('is-guided-only', guidedOnly);
+      if (!config.taskPalettes) host.append(renderPalette());
       renderTasks();
       if (feedback && feedback.message) host.append(el('p', { className: 'formula-feedback formula-feedback-summary', text: feedback.message }));
       if (feedbackAnnouncement) {
@@ -1080,6 +1109,7 @@
       ensureTaskRows();
       state.rows.forEach(function (row) {
         var task = taskForRow(row);
+        if (isGivenValue(task)) { row.tokens = []; row.answerOpen = true; }
         if (isScaffold(task)) { row.tokens = initialTokens(task, row.tokens); row.answerOpen = true; }
         if (row.result || (task && state.answers[taskIdFor(task, tasks.indexOf(task))])) row.answerOpen = true;
       });

@@ -130,6 +130,18 @@
     function evaluateRow(index) {
       const row = rows[index];
       if (records.has(row.id)) return records.get(row.id);
+      const givenTask = conclusionTaskForRow(index);
+      if (givenTask?.rule === 'given-value') {
+        const entered = draft.answers?.[givenTask.id];
+        if (!String(entered ?? '').trim()) throw new Error(`${givenTask.label}の空欄を入力してください。`);
+        const quantity = givenTask.conclusionQuantity;
+        const expression = evaluate([value(entered, quantity.unit, quantity.symbol)], index, true);
+        const calculationCorrect = close(expression.value, givenTask.expected, givenTask.tolerance);
+        const record = { expression, declared: expression, equality: false, relation: null, calculationCorrect, original: expression, index };
+        records.set(row.id, record);
+        result.rows.push({ id: row.id, calculationCorrect, message: calculationCorrect ? '入力した値は合っています。' : '入力した値を確認してください。' });
+        return record;
+      }
       if (!Array.isArray(row.tokens) || row.tokens.length === 0) throw new Error(`式${index + 1}を組み立ててください。`);
       const declaredInput = String(row.result ?? '').trim() ? evaluate([value(row.result, row.resultUnit || '')], index, true) : null;
       const conclusionTask = conclusionTaskForRow(index);
@@ -232,6 +244,12 @@
       for (const task of selectedTasks) {
         const index = indexes.get(draft.targets?.[task.id]);
         if (index === undefined) throw new Error(`${task.label}に使う式を選んでください。`);
+        if (task.rule === 'given-value') {
+          const record = evaluateRow(index);
+          result.tasks.push({ id: task.id, formulaCorrect: true, answerCorrect: record.calculationCorrect, answerOnly: true,
+            messages: [record.calculationCorrect ? '入力した値は合っています。' : '問題文の指数を確認してください。'] });
+          continue;
+        }
         const fields = scaffoldFields(task, rows[index].tokens || []);
         const record = evaluateRow(index);
         const answer = Formula.normalizeNumber(draft.answers?.[task.id] ?? '');

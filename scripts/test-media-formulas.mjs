@@ -51,7 +51,7 @@ assert.deepEqual(colorCount.tasks.map(task => task.id), ['bits', 'size']);
 assert.deepEqual(duration.tasks.map(task => task.id), ['duration']);
 assert.deepEqual(size.tasks.map(task => task.id), ['frame', 'total']);
 assert.deepEqual(fullColor.constants.map(item => item.value), ['2', '3', '8', '1024'], 'フルカラーの指数と換算の補助定数を用意する');
-assert.deepEqual(colorCount.constants.map(item => item.value), ['2', '15', '8', '1000'], '色数画像の指数と換算の補助定数を用意する');
+assert.deepEqual(colorCount.constants.map(item => item.value), ['2', '8', '1000'], '色数画像の指数と換算の補助定数を用意する');
 assert.equal(taskFor(fullColor, 'levels').expected, Image.levels(8), 'RGB各色は24÷3=8bitから導く');
 assert.equal(taskFor(fullColor, 'size').expected, Image.imageSize(4096, 3072, 24, 1024).megabytes, '4096×3072の画像サイズはImageCore由来');
 assert.equal(taskFor(colorCount, 'size').expected, Image.imageSize(1000, 800, 15, 1000).megabytes, '32768色の画像サイズはImageCore由来');
@@ -82,8 +82,8 @@ const wrongDecimalBase = correctDraft(colorCount);
 wrongDecimalBase.rows[1].tokens = clone(taskFor(colorCount, 'size').expectedTokens).map(token => token.kind === 'value' && token.value === '1000' ? value(1024) : token);
 assert.equal(judged(colorCount, wrongDecimalBase, '1000を1024にする').tasks.find(task => task.id === 'size').formulaCorrect, false, '1000進の画像を1024進で換算しない');
 
-// color-countは比較式そのものを真偽値として参照せず、根拠が正しい場合にだけ
-// 「1画素あたりのbit数」という結論量を次の小問へ渡す。
+// color-countは直接記入した値を「1画素あたりのbit数」として次の小問へ渡す。
+// 数量の役割を保持し、誤った値を正解へ補完しない。
 assert.deepEqual(taskFor(colorCount, 'bits').conclusionQuantity, { unit: 'bit/pixel', symbol: 'bits-per-pixel' }, '色数の結論を参照する量を明示する');
 const colorReference = correctDraft(colorCount);
 colorReference.rows[0].result = '15';
@@ -92,13 +92,14 @@ colorReference.rows[1].tokens = [
   { kind: 'reference', rowId: 'row-1' }, op('×'), source(colorCount, 'width'), op('×'), source(colorCount, 'height'),
   op('÷'), value(8), op('÷'), value(1000), op('÷'), value(1000)
 ];
-const colorReferenceResult = judged(colorCount, colorReference, '正しい比較から15bitを参照');
+const colorReferenceResult = judged(colorCount, colorReference, '直接記入の15bitを参照');
 assert.equal(colorReferenceResult.tasks.find(task => task.id === 'size').formulaCorrect, true, '15bitを参照した1.5MBの立式を受け入れる');
 assert.equal(colorReferenceResult.tasks.find(task => task.id === 'size').answerCorrect, true, '15bitを参照した1.5MBの答えを受け入れる');
-assert.equal(colorReferenceResult.rows.find(row => row.id === 'row-1').calculationCorrect, true, '比較式の結論15bitを確認する');
+assert.equal(colorReferenceResult.rows.find(row => row.id === 'row-1').calculationCorrect, true, '直接記入の15bitを確認する');
 
 const wrongColorConclusion = clone(colorReference);
 wrongColorConclusion.rows[0].result = '14';
+wrongColorConclusion.answers.bits = '14';
 wrongColorConclusion.rows[1].result = '1.4';
 wrongColorConclusion.rows[1].resultUnit = 'MB';
 wrongColorConclusion.answers.size = '1.4';
@@ -107,12 +108,22 @@ assert.equal(wrongColorConclusionResult.tasks.find(task => task.id === 'size').f
 assert.equal(wrongColorConclusionResult.tasks.find(task => task.id === 'size').answerCorrect, false, '14bitからの1.4MBを正解1.5MBへ補正しない');
 assert.equal(wrongColorConclusionResult.rows.find(row => row.id === 'row-1').calculationCorrect, false, '14bitという途中結論の誤りを示す');
 
-const wrongColorEvidence = clone(colorReference);
-wrongColorEvidence.rows[0].tokens[0] = { kind: 'power', base: [value(2)], exponent: [value(13)] };
-assert.equal(Media.grade(colorCount, wrongColorEvidence).status, 'invalid', '比較の根拠が誤っていれば結論を参照しない');
+const emptyGiven = correctDraft(colorCount);
+emptyGiven.answers.bits = '';
+assert.equal(Media.grade(colorCount, emptyGiven, { taskId: 'bits' }).status, 'invalid', '直接記入が空なら判定を保留する');
+const wrongGiven = correctDraft(colorCount);
+wrongGiven.answers.bits = '14';
+assert.equal(Media.grade(colorCount, wrongGiven, { taskId: 'bits' }).answerCorrect, false, '直接記入の誤答を通さない');
+assert.equal(Media.grade(colorCount, correctDraft(colorCount), { taskId: 'bits' }).tasks[0].answerOnly, true, '直接記入に立式判定を表示しない');
+const invalidGiven = correctDraft(colorCount);
+invalidGiven.answers.bits = '15+0';
+assert.equal(Media.grade(colorCount, invalidGiven, { taskId: 'bits' }).status, 'invalid', '式を数値として解釈しない');
 const missingColorConclusion = clone(colorReference);
-missingColorConclusion.rows[0].result = '';
-assert.equal(Media.grade(colorCount, missingColorConclusion).status, 'invalid', '比較の結論が未入力なら参照先を保留する');
+missingColorConclusion.answers.bits = '';
+assert.equal(Media.grade(colorCount, missingColorConclusion).status, 'invalid', '直接記入が未入力なら参照先を保留する');
+assert.ok(!taskFor(fullColor, 'levels').palette.constants.includes('bit-byte'), '(1)のパレットには8を含めない');
+assert.ok(taskFor(fullColor, 'size').palette.constants.includes('bit-byte'), '(2)では8を換算に使える');
+assert.ok(fullColor.quantities.every(item => item.hideUnit) && fullColor.constants.every(item => item.hideUnit), '問題1の数値カードは単位を省く');
 const independentColorSize = correctDraft(colorCount);
 independentColorSize.rows[0].tokens = [];
 independentColorSize.answers.bits = '';
