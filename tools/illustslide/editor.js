@@ -60,10 +60,29 @@
   if(!Number.isFinite(Number(settings.gridStep))||Number(settings.gridStep)<.01||Number(settings.gridStep)>10000)settings.gridStep=20;
   try { store=new window.IlapoDocumentStore(localStorage); } catch (_) { store=null; }
   try { library=A.createLibrary(localStorage); } catch (_) { library=null; }
+  let resumed=null,startupNotice='',resumeState=null,resumeFailed=false;
+  try {
+    if(!store)throw Error('Browser storage unavailable');
+    resumed=store?.loadResume();
+    // Before this version there was no active-work record. Use the newest valid
+    // candidate once, without rewriting any of the old save slots.
+    if(!resumed){
+      const entries=store?.list()||[],entry=entries[0];
+      if(entry){
+        const saved=entries.find(value=>value.kind==='saved'&&value.storageId===entry.storageId);
+        resumed={document:entry.document,storageId:entry.storageId,pageId:entry.document.pages[0].id,
+          dirty:entry.kind==='auto'&&(!saved||JSON.stringify(entry.document)!==JSON.stringify(saved.document)),
+          saveDestination:saved?'browser':null};
+      }
+    }
+  } catch (_) {startupNotice='前回の作品を復元できませんでした。ファイルメニューの「ブラウザから開く」から保存した内容を選べます。';}
   workspace=new window.IlapoDocumentWorkspace({store,encode:S.encodeProject,download,
     getPicker:()=>typeof window.showSaveFilePicker==='function'?options=>window.showSaveFilePicker(options):null,
-    onChange:()=>render(),onNotice:(session,message)=>toast((session===activeSession?'':session.history.document.name+'：')+message)});
-  activeSession=workspace.add(initial);history=activeSession.history;
+    onChange:()=>{render();rememberDocument();},onNotice:(session,message)=>toast((session===activeSession?'':session.history.document.name+'：')+message)});
+  activeSession=workspace.add(resumed?.document||initial,resumed?{storageId:resumed.storageId,edited:resumed.dirty,
+    savedFingerprint:resumed.dirty?null:undefined,lastSave:resumed.saveDestination==='browser'?{kind:'browser'}:null,
+    status:resumed.dirty?'前回の作品を再開 · 明示保存していない変更あり':'前回の作品を再開'}:{});
+  history=activeSession.history;pageId=resumed?.pageId||history.document.pages[0].id;activeSession.pageId=pageId;
   const doc=()=>history.document;
   const page=()=>doc().pages.find(p=>p.id===pageId)||doc().pages[0];
   const drawPage=()=>preview||inspectorPreview||page();
@@ -140,6 +159,21 @@
   function queueSave(){workspace.changed(activeSession);}
   function saveBrowser(){return workspace.saveBrowser(activeSession);}
   function saveLocal(){return workspace.saveLocal(activeSession);}
+  function currentResumeState(){return {document:doc(),storageId:activeSession.storageId,pageId:page().id,
+    dirty:workspace.dirty(activeSession),saveDestination:activeSession.lastSave?.kind==='browser'?'browser':null};}
+  function rememberDocument(){
+    if(!activeSession||activeSession.closed)return;
+    const state=currentResumeState();
+    if(resumeState&&Object.keys(state).every(key=>state[key]===resumeState[key]))return;
+    try {
+      if(!store)throw Error('Browser storage unavailable');
+      store.saveResume(state.document,state);resumeState=state;resumeFailed=false;
+    } catch (_) {
+      if(!resumeFailed)toast('次回再開用の記録を保存できませんでした。作品は開いたままです。ファイルへの保存を利用できます。');
+      resumeFailed=true;
+    }
+  }
+  function flushDocuments(){workspace.sessions.forEach(session=>workspace.flush(session));rememberDocument();}
   function render() {
     hoverInvalidated=true;
     if(renderPending)return; renderPending=true;requestAnimationFrame(()=>{renderPending=false;renderNow();});
@@ -503,7 +537,7 @@
       file:()=>{
         const historyMenu=!document.querySelector('.top [data-action="undo"]').getClientRects().length?'<hr>'+menuButton('元に戻す','undo',!history.canUndo)+menuButton('やり直し','redo',!history.canRedo):'';
         const compact=!$('present-button').getClientRects().length?'<hr>'+menuButton('選択方法','compact-select')+menuButton('先頭から発表','present-start')+menuButton('このページから発表','present-current')+menuButton('発表者ビューで開始','presenter-start')+menuButton('発表者ビューでこのページから','presenter-current'):'';
-        return menuButton('新しい作品','new')+menuButton('作品名を変更…','rename')+'<hr>'+menuButton('保存 ⌘S','save',activeSession.saving)+menuButton('ブラウザに保存','save-browser',activeSession.saving)+menuButton('ローカルファイルに保存…','save-local',activeSession.saving)+'<hr>'+menuButton('ブラウザの保存内容を選ぶ…','recovery')+menuButton('ファイルを開く…','open-file')+'<hr>'+menuButton(activeSession.localAuto.active?'ローカル自動保存を停止':'ローカル自動保存を開始…',activeSession.localAuto.active?'auto-stop':'auto-start',activeSession.autoStarting)+historyMenu+compact;
+        return menuButton('新しい作品','new')+menuButton('作品名を変更…','rename')+'<hr>'+menuButton('保存 ⌘S','save',activeSession.saving)+menuButton('ブラウザに保存','save-browser',activeSession.saving)+menuButton('ローカルファイルに保存…','save-local',activeSession.saving)+'<hr>'+menuButton('ブラウザから開く…','recovery')+menuButton('ファイルを開く…','open-file')+'<hr>'+menuButton(activeSession.localAuto.active?'ローカル自動保存を停止':'ローカル自動保存を開始…',activeSession.localAuto.active?'auto-stop':'auto-start',activeSession.autoStarting)+historyMenu+compact;
       },
       documents:()=>workspace.sessions.map(session=>`<button data-document-pick="${esc(session.id)}" aria-current="${session===activeSession}">${icon('file')}<span>${esc(session.history.document.name)}${workspace.dirty(session)?' •':''}${session.saving?'（保存中）':''}</span></button>`).join('')+'<hr>'+menuButton('新しい作品','new'),
       select:()=>['select','pan'].map(key=>`<button data-tool="${key}" aria-pressed="${key==='select'?selecting():tool===key}">${icon(key)}<span>${key==='select'?'選択（内側は全体・頂点は点）':'表示を移動'}</span></button>`).join('')+'<hr>'+menuButton('すべて選択','select-all',!page().objects.length),
@@ -683,7 +717,7 @@
     hideMenu();closePalette(false);$('export-panel').hidden=true;space=false;revision++;
     activeSession=next;history=next.history;pageId=next.pageId;selected=next.selected.slice();tool=next.tool;
     if(next.view){const old=next.view.camera,z=next.view.zoom,width=$('canvas').clientWidth/z,height=$('canvas').clientHeight/z;camera={x:old.x+old.width/2-width/2,y:old.y+old.height/2-height/2,width,height};render();}else fit();
-    renderNow();tabsUI.reveal(next.id);
+    renderNow();tabsUI.reveal(next.id);rememberDocument();
   }
   function newDocument(){const value=C.createDocument();value.name='無題の作品';value.pages[0].board=C.boardPreset('16:9');return openDocument(value,{status:'新しい作品'});}
   async function openDocument(value,options={}){
@@ -782,7 +816,7 @@
     inlinePlayback?.stop();
     objectsUI?.cancelDrag();animationUI?.cancelDrag?.();pagesUI?.cancelDrag();
     clearInspectorPreview();cancelDrag();pathUI.reset();connectionUI.reset();
-    pageId=id;clearSelection();fit();
+    pageId=id;clearSelection();fit();rememberDocument();
   }
   function flipSelection(horizontal){
     if(!editable())return;
@@ -1014,7 +1048,9 @@
     else if(event.key==='?')help?.open();else if(key==='a')setTool('direct');else if(key==='v')setTool('select');else if(key==='h')setTool('pan');else if(key==='t')setTool('text');else if(key==='r')setTool('rect');else if(key==='e')setTool('ellipse');
   });
   document.addEventListener('keyup',event=>{if(['Alt','Shift'].includes(event.key)&&drag?.lastPoint){updateSelectionDrag(drag.lastPoint,event);render();}if(event.key===' '){space=false;render();}});window.addEventListener('blur',()=>{space=false;cancelDrag();});
-  window.addEventListener('beforeunload',event=>{if(workspace.pending){event.preventDefault();event.returnValue='';}});
+  window.addEventListener('beforeunload',event=>{flushDocuments();if(workspace.pending){event.preventDefault();event.returnValue='';}});
+  window.addEventListener('pagehide',flushDocuments);
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')flushDocuments();});
   matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{if(settings.theme==='auto')applySettings();});
   try{help=window.JohoToolHelp?.create({root:$('operation-help'),opener:$('help-button'),title:'イラストスライドの使い方',storageKey:'kaijo-ilapo:help',bounds:()=>({top:document.querySelector('.top').getBoundingClientRect().bottom+8,bottom:$('stage').getBoundingClientRect().bottom-8}),isBusy:()=>!!drag,returnToEditor:()=>$('canvas').focus()});}catch(error){console.warn('Help unavailable',error);}
   function showTooltip(target){if(!target||target===menuOpener&&$('command-menu').matches(':popover-open')||target.dataset.submenu&&target.getAttribute('aria-expanded')==='true')return;const r=target.getBoundingClientRect();$('tooltip').textContent=target.dataset.tip;$('tooltip').hidden=false;$('tooltip').style.left=Math.max(8,Math.min(r.left,innerWidth-$('tooltip').offsetWidth-8))+'px';$('tooltip').style.top=Math.min(r.bottom+7,innerHeight-$('tooltip').offsetHeight-8)+'px';}
@@ -1035,5 +1071,8 @@
   inspector=window.IlapoPanelDock.create({openSection:openInspectorSection,cancelDrag:()=>{objectsUI?.cancelDrag();animationUI?.cancelDrag?.();pagesUI?.cancelDrag();},onHistory:redo=>moveHistory(redo,true),onLayout:()=>{render();help?.refresh();},clearPreview:clearInspectorPreview,isBusy:()=>!!drag||objectsUI?.isDragging||animationUI?.isDragging||pagesUI?.isDragging});
   tabsUI=window.IlapoDocumentTabs.create({root:$('document-tabs'),onSelect:selectDocument,onClose:requestClose});
   window.IlapoEditor=Object.freeze({getDocuments:()=>workspace.sessions.map(s=>({id:s.id,name:s.history.document.name,storageId:s.storageId,active:s===activeSession,dirty:workspace.dirty(s),saving:s.saving,destination:s.lastSave?.kind||null})),getAnchors:()=>pathUI.getRefs(),getDocument:()=>C.clone(doc()),getSelection:()=>selected.slice(),getCamera:()=>({...camera}),getState:()=>({sessionId:activeSession.id,tool,dirty:dirty(),pageId,activeLayerId:activeLayer(),playback:inlinePlayback.getState()})});
-  applySettings();inspector.restore();requestAnimationFrame(()=>{fit();if(recoveryEntries().length)recoveryDialog();});
+  // Do not replace an unreadable record with the untouched blank starter.
+  if(startupNotice||!resumed||resumed.version===1)resumeState=currentResumeState();
+  else rememberDocument();
+  applySettings();inspector.restore();requestAnimationFrame(()=>{fit();if(startupNotice)toast(startupNotice);});
 }());

@@ -41,6 +41,14 @@ IlapoPanelDockが従来のInspectorを包み、primaryとpinnedの2インスタ�
 
 書き出しパネルはprimaryの表示幅を共用する（0.4.29）。固定285pxを使わず、通常の希望幅320pxと利用者の調整幅、横並べ時の一時的な制限を反映する。
 
+## 起動時の作業再開（0.4.31）
+
+`IlapoDocumentStore.saveResume(document,state)` / `loadResume()` は `kaijo-ilapo:resume` を使う。version=1、保存日時、文書、storageId、pageId、dirty、saveDestination（browserまたはnull）を検証し、1回のsetItemで置き換える。pageIdがなくなっていれば先頭ページへ戻す。既存のauto/saved/旧キーは書き換えず、`list()`の候補にも混ぜない。保存・読出し・形式エラーを呼出側へ返し、壊れた記録や未知versionを正常な空作品として扱わない。
+
+初期セッションはこの文書から作る。再開用の記録がない旧版だけ、`list()`の最新の有効候補を採用する。破損した再開用の記録がある場合は候補を推測で選ばず、空作品と案内を表示する。未操作の空作品で壊れた記録を上書きしない。保存候補のダイアログはファイルメニューの明示操作で開く。
+
+作品の切替完了・ページ選択・workspace保存通知から現在の確定済みHistoryを記録する。同じ文書参照・ページ・保存状態なら再書込せず、backgroundの別作品の保存完了で再開対象を切り替えない。beforeunload/pagehide/visibilitychange(hidden)は待機中のブラウザ自動保存をflushする。IME変換途中やドラッグ中のプレビューは記録対象外。dirtyを復元し、ブラウザの明示保存先だけを引き継ぐ。ローカルの許可・ハンドル・Undo/Redo・全作品タブは復元しない。再開だけで明示保存成功やローカル自動保存中と表示しない。
+
 ## 複数作品のセッション（0.4.23）
 
 `IlapoDocumentWorkspace`はタブIDごとにHistory・storageId・現在ページ・選択・表示位置/倍率・最後の明示保存先・明示保存snapshotを保持する。文書のidとは独立したstorageIdを使い、同じファイルを重ねて開いても既存タブや保存枠を上書きしない。編集用JSON/ZIPの形式は変更しない。タブの切り替えはHistoryを変更せず、インスペクタのscopeにはsession.idを含める。追加先レイヤーもタブID・ページIDで分離する。

@@ -17,4 +17,24 @@ const legacy = store.list().filter(entry => entry.legacy); assert.equal(legacy.l
 storage.setItem('kaijo-ilapo:document:tab_bad:auto', '{broken'); assert.equal(store.list().filter(entry => entry.storageId === 'tab_A').length, 2);
 const before = storage.getItem('kaijo-ilapo:document:tab_A:saved'), failing = new MemoryStorage(); failing.values = storage.values; failing.setItem = () => { throw new Error('quota'); }; assert.throws(() => new DocumentStore(failing).save(duplicateId, 'saved', 'tab_A'), /quota/); assert.equal(storage.getItem('kaijo-ilapo:document:tab_A:saved'), before);
 const unavailable = new MemoryStorage(); unavailable.getItem = () => { throw new Error('storage unavailable'); }; assert.throws(() => new DocumentStore(unavailable).list(), /storage unavailable/);
+const resumeKey = 'kaijo-ilapo:resume', beforeResume = new Map(storage.values), beforeList = store.list();
+assert.equal(store.loadResume(), null);
+const working = documentWith('working', '直前に開いた作品'), state = {storageId:'tab_A', pageId:working.pages[0].id, dirty:true, saveDestination:'browser'};
+store.saveResume(working, state);
+const resumed = store.loadResume();
+assert.deepEqual(resumed.document, working); assert.equal(resumed.pageId, state.pageId); assert.equal(resumed.dirty, true); assert.equal(resumed.saveDestination, 'browser');
+for (const [key, value] of beforeResume) assert.equal(storage.getItem(key), value, '再開記録は既存の保存候補を変更しない');
+assert.deepEqual(store.list(), beforeList, '再開記録を保存候補へ混ぜない');
+resumed.document.name = 'outside mutation'; assert.equal(store.loadResume().document.name, working.name);
+store.saveResume(working, {...state, pageId:'deleted-page', dirty:false, saveDestination:null});
+assert.equal(store.loadResume().pageId, working.pages[0].id); assert.equal(store.loadResume().dirty, false);
+const validResume = storage.getItem(resumeKey);
+assert.throws(() => store.saveResume({nope:true}, state)); assert.equal(storage.getItem(resumeKey), validResume);
+assert.throws(() => store.saveResume(working, {...state, storageId:'unsafe:id'})); assert.equal(storage.getItem(resumeKey), validResume);
+assert.throws(() => new DocumentStore(failing).saveResume(working, state), /quota/); assert.equal(storage.getItem(resumeKey), validResume);
+for (const raw of ['{broken', 'null', JSON.stringify({...JSON.parse(validResume),version:99}), JSON.stringify({...JSON.parse(validResume),dirty:'false'}), JSON.stringify({...JSON.parse(validResume),saveDestination:'local'})]) {
+  storage.setItem(resumeKey, raw); assert.throws(() => store.loadResume()); assert.equal(storage.getItem(resumeKey), raw, '壊れた再開記録は読出しで上書きしない');
+  assert.deepEqual(store.list(), beforeList, '再開記録が壊れていても保存候補を読み出せる');
+}
+assert.throws(() => new DocumentStore(unavailable).loadResume(), /storage unavailable/);
 console.log('IlapoDocumentStore tests passed');

@@ -62,8 +62,8 @@ async function loadFile(page, file, expected) {
       await page.goto(origin + '/tools/' + entry + '?source=bookmark#page-2');
       await page.waitForURL(origin + '/tools/illustslide/index.html?source=bookmark#page-2');
       await page.waitForFunction(() => !!window.IlapoEditor);
-      await page.locator('.recovery').first().waitFor();
-      await page.locator('#dialog-cancel').click();
+      assert.equal(await page.locator('#dialog').isVisible(), false, '旧URLからも保存候補を自動表示しない');
+      assert.deepEqual(await page.evaluate(() => IlapoEditor.getDocument()), automatic, '旧保存の最新内容から再開する');
       assert.equal(await page.locator('html').getAttribute('data-theme'), 'dark');
       assert.deepEqual(await page.evaluate(() => Object.fromEntries(['kaijo-ilapo:auto', 'kaijo-ilapo:saved'].map(key => [key, localStorage.getItem(key)]))), slots);
     }

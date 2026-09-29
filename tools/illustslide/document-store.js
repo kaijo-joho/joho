@@ -5,7 +5,7 @@
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (root, Core) {
   'use strict';
   if (!Core || typeof Core.validateDocument !== 'function' || typeof Core.clone !== 'function') throw new Error('IlapoDocumentStore requires IlapoCore');
-  var PREFIX = 'kaijo-ilapo:document:', LEGACY_PREFIX = 'kaijo-ilapo:', KINDS = ['auto', 'saved'];
+  var PREFIX = 'kaijo-ilapo:document:', LEGACY_PREFIX = 'kaijo-ilapo:', RESUME_KEY = 'kaijo-ilapo:resume', KINDS = ['auto', 'saved'];
   var STORAGE_ID = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/, DOCUMENT_KEY = /^kaijo-ilapo:document:([A-Za-z0-9][A-Za-z0-9._-]{0,127}):(auto|saved)$/;
   function clone(value) { return Core.clone(value); }
   function validKind(kind) { if (KINDS.indexOf(kind) < 0) throw new RangeError('DocumentStore kind must be auto or saved'); return kind; }
@@ -17,6 +17,13 @@
     try { var entry = { storageId: legacy ? null : storageId, kind: kind, at: value.at, document: Core.validateDocument(value.document) }; if (legacy) entry.legacy = true; return entry; } catch (_) { return null; }
   }
   function parseEntry(raw, kind, storageId, legacy) { if (!raw) return null; try { return checkedEntry(JSON.parse(raw), kind, storageId, legacy); } catch (_) { return null; } }
+  function checkedResume(value) {
+    if (!value || value.version !== 1 || !validAt(value.at) || typeof value.dirty !== 'boolean' || ![null, 'browser'].includes(value.saveDestination)) throw new TypeError('Invalid resume record');
+    var document = Core.validateDocument(value.document);
+    return { version: 1, at: value.at, storageId: validStorageId(value.storageId), document: document,
+      pageId: document.pages.some(function (page) { return page.id === value.pageId; }) ? value.pageId : document.pages[0].id,
+      dirty: value.dirty, saveDestination: value.saveDestination };
+  }
   function DocumentStore(storage) {
     this.storage = storage || (typeof root.localStorage !== 'undefined' ? root.localStorage : null);
     if (!this.storage || typeof this.storage.getItem !== 'function' || typeof this.storage.setItem !== 'function' || typeof this.storage.key !== 'function') throw new TypeError('DocumentStore requires Storage');
@@ -28,6 +35,17 @@
     var serialized = JSON.stringify(entry);
     this.storage.setItem(this._key(storageId, kind), serialized);
     return clone(entry);
+  };
+  // The working copy is separate: merely opening an older saved candidate must
+  // not replace either its automatic or its explicit save.
+  DocumentStore.prototype.saveResume = function (documentValue, state) {
+    var entry = checkedResume({ version: 1, at: new Date().toISOString(), document: documentValue,
+      storageId: state.storageId, pageId: state.pageId, dirty: state.dirty, saveDestination: state.saveDestination });
+    this.storage.setItem(RESUME_KEY, JSON.stringify(entry));
+  };
+  DocumentStore.prototype.loadResume = function () {
+    var raw = this.storage.getItem(RESUME_KEY);
+    return raw === null ? null : checkedResume(JSON.parse(raw));
   };
   DocumentStore.prototype.list = function () {
     var found = [];

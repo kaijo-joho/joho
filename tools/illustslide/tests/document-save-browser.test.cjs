@@ -76,6 +76,9 @@ async function load(page, value) {
     const afterA = await page.evaluate(() => IlapoEditor.getDocuments());
     assert.equal(afterA.find(item => item.name === '作品A・保存対象').dirty, false, '遅延保存の完了はAだけを保存済みにする');
     assert.equal(afterA.find(item => item.name === '作品B・編集中').dirty, true, 'Aの保存中に編集したBはdirtyのまま残る');
+    const resumedB = await page.evaluate(() => JSON.parse(localStorage.getItem('kaijo-ilapo:resume')));
+    assert.equal(resumedB.document.name, '作品B・編集中', '別作品の非同期保存完了で再開対象を戻さない');
+    assert.equal(resumedB.dirty, true, '保存通知で選択中の作品の未保存状態を消さない');
 
     await selectDocument(page, a); await rename(page, '作品A・再保存'); await page.evaluate(() => { __documentSaveHarness.handles.A.block = false; });
     const pickerBeforeReuse = await page.evaluate(() => __documentSaveHarness.calls.filter(call => call.picker).length);
@@ -87,6 +90,9 @@ async function load(page, value) {
     await page.keyboard.press('Meta+s'); await page.locator('#document-save-browser').waitFor(); await chooseLocalInDialog(page);
     await page.waitForFunction(() => IlapoEditor.getDocuments().some(item => item.name === '作品B・編集中' && item.destination === 'local' && !item.dirty));
     assert.equal(await page.evaluate(() => __documentSaveHarness.calls.filter(call => call.picker).length), pickerBeforeReuse + 1, 'Bの初回Cmd+Sだけはchooserを開く');
+    const savedResume = await page.evaluate(() => JSON.parse(localStorage.getItem('kaijo-ilapo:resume')));
+    assert.equal(savedResume.dirty, false, 'ローカル保存成功後の再開記録も保存済み');
+    assert.equal(savedResume.saveDestination, null, 'ローカルのハンドルは永続化しない');
 
     await rename(page, '作品B・取消確認'); await page.evaluate(() => __documentSaveHarness.picks.push('cancel'));
     await openFileMenu(page); await page.locator('#command-menu [data-action="save-local"]').click();

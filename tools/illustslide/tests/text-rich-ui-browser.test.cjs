@@ -12,8 +12,13 @@ async function textObject(page) { return (await doc(page)).pages[0].objects.find
 (async()=>{
   const supplied=process.argv.find(value=>/^https?:/.test(value)); if(!supplied) await new Promise(resolve => server.listen(0,'127.0.0.1',resolve)); const browser=await chromium.launch({channel:'chrome',headless:true}), context=await browser.newContext({viewport:{width:1280,height:800}}), page=await context.newPage(); page.setDefaultTimeout(12000); const errors=[];page.on('pageerror',e=>errors.push(e.message));
   try {
+    page.on('dialog', dialog => dialog.accept());
+    await fs.mkdir('/private/tmp/illustslide-text-qa', {recursive:true});
     await page.goto(supplied||`http://127.0.0.1:${server.address().port}/illustslide/`); await page.waitForFunction(()=>!!IlapoEditor&&!!IlapoTextMarkdown);
     const freshCdp=await context.newCDPSession(page); await page.locator('[data-tool=text]').click(); await page.locator('#canvas').click({position:{x:120,y:120}}); await page.locator('#text-input').focus(); await freshCdp.send('Input.imeSetComposition',{text:'へんかん',selectionStart:4,selectionEnd:4,replacementStart:0,replacementEnd:0}); await settle(page); assert.equal((await doc(page)).pages[0].objects.filter(o=>o.type==='text').length,0,'新規文字のIME変換中は空オブジェクトを作らない'); await freshCdp.send('Input.insertText',{text:'変換'}); await settle(page); assert.equal((await doc(page)).pages[0].objects.find(o=>o.type==='text').runs.map(r=>r.text).join(''),'変換','新規文字は最初のIME確定だけで作成する'); await page.reload(); await page.waitForFunction(()=>!!IlapoEditor&&!!IlapoTextMarkdown);
+    assert.equal((await textObject(page)).runs.map(run=>run.text).join(''),'変換','IME確定後は再読み込みでも文字を復元する');
+    assert.equal(await page.locator('#dialog').isVisible(),false,'再開時は保存候補を自動表示しない');
+    await page.locator('#file-button').click(); await page.locator('#command-menu [data-action=new]').click(); await page.waitForFunction(()=>IlapoEditor.getDocuments().length===2);
     await page.locator('[data-tool=text]').click(); await page.locator('#canvas').click({position:{x:300,y:240}}); await page.locator('#text-input').fill('ABCD');
     assert.equal(await page.locator('#text-input').getAttribute('contenteditable'),'true'); assert.equal(await page.locator('#text-input').getAttribute('role'),'textbox');
     await selection(page,1,3); await page.locator('#text-bold').click(); await settle(page); let object=await textObject(page);
