@@ -36,15 +36,18 @@
       set, apply, isDark: () => document.documentElement.dataset.resolvedTheme === 'dark'};
   }
 
-  // ---- ツールチップ：title を data-tip に移し、マウスを乗せるとすぐ出す ----
+  // ---- ツールチップ：title を data-tip に移し、マウスを乗せる（opt.keyboard ならフォーカスでも）とすぐ出す ----
+  // title は出している間だけ外して、消すときに元へ戻す（title は読み上げ用の名前にもなるので、外したままにしない）
   function tooltip(opt = {}){
     const el = document.createElement('div');
     el.className = 'joho-tip'; el.setAttribute('role', 'tooltip');
     document.body.appendChild(el);
-    let active = null;
+    let active = null, held = null;   // held：出すために外した title（戻すために覚える）
     if (opt.keyboard) el.id = 'joho-tip-' + Math.random().toString(36).slice(2);
     const hide = () => {
       el.classList.remove('show');
+      if (held && !held.el.hasAttribute('title')) held.el.setAttribute('title', held.title);
+      held = null;
       if (opt.keyboard && active) {
         const ids = (active.getAttribute('aria-describedby') || '').split(/\s+/).filter(id => id && id !== el.id);
         if (ids.length) active.setAttribute('aria-describedby', ids.join(' ')); else active.removeAttribute('aria-describedby');
@@ -53,7 +56,10 @@
     };
     const show = target => {
       hide();
-      if (target.hasAttribute('title')){ target.dataset.tip = target.getAttribute('title'); target.removeAttribute('title'); }
+      if (target.hasAttribute('title')){
+        held = {el:target, title:target.getAttribute('title')};
+        target.dataset.tip = held.title; target.removeAttribute('title');
+      }
       const t = target.dataset.tip;
       if (!t) return;
       if (opt.keyboard) {

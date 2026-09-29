@@ -212,7 +212,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
 .side-tab.on{font-weight:700}
 /* 狭い画面（共通仕様 2.9）：上部はいつも 1 行。あふれる操作は「その他」へ入れ、左のパレットは引き出しにする */
 #app{max-width:100vw;overflow:hidden}
-.top .row{flex-wrap:nowrap;overflow:hidden}
+.top .row{flex-wrap:nowrap;overflow:clip}
 .top .row.tb > *{flex:none}   /* 縮めずに、あふれたら「その他」へ入れる */
 .top .row.tb > .spacer{flex:1 1 0;min-width:0}
 #btnTools{display:none}
@@ -230,6 +230,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
   .info{gap:8px}
 }
 @media (max-width:760px){ .app-name{display:none} }
+.top .row.tb.tight .app-name{display:none}   /* 操作が入りきらないときは、アプリ名を隠して場所をあける */
 @media (max-width:560px){   /* いちばん狭いとき：すき間と区切りを詰めて、1 行に収める */
   #modeName{display:none}
   .top .row{gap:3px;padding:5px 6px}
@@ -245,6 +246,9 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
 }
 #moreRow .hmenu > .menu{left:auto;right:0}   /* 「その他」に入った表示メニューは右寄せで開く */
 #moreRow .hmenu{display:flex}
+/* キーボードで移動したとき、どこにいるか分かるようにする（共通仕様 2.9） */
+button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible,[tabindex]:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:7px}
+.side-tab:focus-visible{outline-offset:-2px}
 </style>
 </head>
 <body>
@@ -664,7 +668,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.5（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.6（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -4281,6 +4285,15 @@ $('btnConnRev').onclick = () => {   // 矢印の向きを反転（始点と終�
 // ---- 狭い画面：上部バーはいつも 1 行。あふれる操作は「その他」のメニューへ移す（共通仕様 2.1・2.9）----
 const COLLAPSE = ['btn3d', 'tgSnap', 'tgFix', 'toolText', 'toolErase', 'viewMenu'];   // 入りきらないとき、この順で「その他」へ
 const barHome = new Map();   // 元の場所（戻すときに使う）
+function barFits(row){   // 上部バーに全部入っているか（子の幅と左右の余白の合計を、見える幅とくらべる）
+  const st = getComputedStyle(row), gap = parseFloat(st.gap) || 0;
+  const kids = [...row.children].filter(el => !el.hidden && getComputedStyle(el).display !== 'none');
+  const w = kids.reduce((t, el) => {
+    const cs = getComputedStyle(el), m = (parseFloat(cs.marginLeft) || 0) + (parseFloat(cs.marginRight) || 0);
+    return t + m + (el.classList.contains('spacer') ? 0 : el.getBoundingClientRect().width);
+  }, 0);
+  return w + gap*Math.max(0, kids.length - 1) + parseFloat(st.paddingLeft) + parseFloat(st.paddingRight) <= row.clientWidth + 1;
+}
 function fitBar(){
   const row = document.querySelector('.top .row.tb'), box = $('moreRow');
   for (const id of COLLAPSE){   // いったん全部バーに戻す
@@ -4288,12 +4301,14 @@ function fitBar(){
     if (el && home && el.parentElement === box) home.parent.insertBefore(el, home.next);
   }
   $('moreMenu').hidden = true;
+  row.classList.remove('tight');   // いったん元の見た目で測る
   for (const id of COLLAPSE){
-    if (row.scrollWidth <= row.clientWidth + 1) break;
+    if (barFits(row)) break;
     const el = $(id); if (!el) continue;
     if (!barHome.has(id)) barHome.set(id, {parent:el.parentElement, next:el.nextSibling});
     box.appendChild(el); $('moreMenu').hidden = false;
   }
+  row.classList.toggle('tight', !barFits(row));   // それでも入らないときは、アプリ名を隠す
   document.documentElement.style.setProperty('--top-h', Math.round($('topBar').getBoundingClientRect().height) + 'px');
 }
 // 左のパレット：狭い画面では引き出しにする
@@ -4305,7 +4320,11 @@ function openTools(open = !document.getElementById('app').classList.contains('to
 $('btnTools').onclick = () => openTools();
 $('toolsBack').onclick = () => openTools(false);
 $('tools').addEventListener('click', e => { if (narrow() && e.target.closest('button,summary')) setTimeout(() => openTools(false), 80); });
-addEventListener('resize', () => { fitBar(); if (!narrow()) openTools(false); });
+let fitTimer = 0;
+addEventListener('resize', () => {   // 大きさを変えている途中は幅が定まらないので、少し待ってからもう一度そろえる
+  fitBar(); if (!narrow()) openTools(false);
+  clearTimeout(fitTimer); fitTimer = setTimeout(fitBar, 180);
+});
 // 設定メニュー（テーマ・文字サイズ）の選択状態を示す
 function syncSetMenu(v){
   document.querySelectorAll('#themeSeg button').forEach(b => b.classList.toggle('on', b.dataset.theme === v.theme));
@@ -4384,8 +4403,18 @@ $('formulas').addEventListener('click', e => {
   setTool('select');
 });
 
-// ---- ツールチップ（マウスを乗せるとすぐ出る。共通部品） ----
-if (hasUI) JohoUI.tooltip({skip: el => el.closest('.tool-help')});   // ヘルプの小窓は共通部品側の説明に任せる
+// ---- 読み上げ用の名前：アイコンだけのボタンに、説明（title）の先頭の短い部分を aria-label として付ける ----
+// （title は「配位結合（矢印。…）：…」のように長いので、読み上げでは「配位結合」のような短い名前にする）
+function nameButtons(){
+  for (const b of document.querySelectorAll('button[title], summary[title]')){
+    if (b.getAttribute('aria-label') || b.textContent.trim()) continue;   // 文字が見えているボタンはそのまま
+    const t = (b.getAttribute('title') || b.dataset.tip || '').split(/[（(：:]/)[0].trim();
+    if (t) b.setAttribute('aria-label', t);
+  }
+}
+nameButtons();
+// ---- ツールチップ（マウスを乗せる・キーボードでフォーカスするとすぐ出る。共通部品） ----
+if (hasUI) JohoUI.tooltip({keyboard:true, skip: el => el.closest('.tool-help')});   // キーボードのフォーカスでも出す。ヘルプの小窓は共通部品側の説明に任せる
 $('libBody').addEventListener('click', e => { const b = e.target.closest('.lib-item'); if (b) insertLib(+b.dataset.i); });
 // favicon：画面左上のアプリのアイコン（#appIcon）と同じ SVG をデータ URL にして使う（校章の輪郭を 2 か所に書かないように）
 try { $('favicon').href = 'data:image/svg+xml,' + encodeURIComponent(new XMLSerializer().serializeToString($('appIcon'))); } catch {}
