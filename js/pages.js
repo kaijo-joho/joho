@@ -1,4 +1,4 @@
-//2026-09-29 11:53:21;
+//2026-09-29 04:11:35;
 const pages = {
   "index": {
     "id": "index",
@@ -493,7 +493,7 @@ const pages = {
     "release": true,
     "fileName": "dr41.html",
     "mainTitle": "デジタル表現",
-    "category": "画像のデジタル表現",
+    "category": "画像・動画のデジタル表現",
     "title": "4-1. 画像のデジタル表現",
     "detail": "画像の標本化・量子化・符号化、解像度と階調、グレースケール、画像のデータ量を操作と問題で学びます。",
     "practiceFile": false,
@@ -530,7 +530,7 @@ const pages = {
     "release": true,
     "fileName": "dr42.html",
     "mainTitle": "デジタル表現",
-    "category": "動画のデジタル表現",
+    "category": "画像・動画のデジタル表現",
     "title": "4-2. 動画のデジタル表現",
     "detail": "フレームとフレームレート、動画の圧縮、圧縮しない動画のデータ量と再生時間を操作と問題で学びます。",
     "practiceFile": false,
@@ -567,7 +567,7 @@ const pages = {
     "release": false,
     "fileName": "dr43.html",
     "mainTitle": "デジタル表現",
-    "category": "ディスプレイとプリンタ",
+    "category": "画像・動画のデジタル表現",
     "title": "4-3. ディスプレイとプリンタ",
     "detail": "ディスプレイの画素と発色、リフレッシュレート、プリンタの解像度と印刷に必要な画素数を操作と問題で学びます。",
     "practiceFile": false,
