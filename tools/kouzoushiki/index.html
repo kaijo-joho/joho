@@ -84,6 +84,7 @@ details.fold > summary:hover{color:var(--text)}
 .side-sec{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}
 .side-sec .row2{display:flex;gap:14px}
 .side .frow{margin:0}
+.sbtn-ic{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-right:5px}
 
 /* ---- 上部バー ---- */
 .top{grid-area:top;display:flex;flex-direction:column;font-size:13px;background:var(--panel);border-bottom:1px solid var(--line)}
@@ -316,7 +317,6 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <div class="sep"></div>
     <button class="ic" id="tgFix" title="結合長固定：選択部分や H をドラッグで動かすとき、結合の長さを変えない。矢印の長さ・π軌道の大きさも段階的に変わる"><svg viewBox="0 0 24 24"><path d="M5 14.5L18 8"/><circle cx="5" cy="14.5" r="1.8"/><circle cx="18" cy="8" r="1.8"/><path d="M6.5 19.5L20 12.8M5.8 18.1l1.4 2.8M19.3 11.4l1.4 2.8"/></svg></button>
     <button class="ic" id="tgSnap" title="結合角固定：選択部分や H をドラッグで動かすとき、つながっている結合の角度を 15°刻みにする"><svg viewBox="0 0 24 24"><path d="M3.5 19.5h17"/><path d="M3.5 19.5L15 7"/><path d="M10.5 19.5a7 7 0 00-2.2-5.1"/><circle cx="15" cy="7" r="1.6"/></svg></button>
-    <button class="ic" id="btn3d" title="3D で見る：いまの図を分子模型エディタ（別のタブ）で立体の模型にします"><svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.6"/><circle cx="5.5" cy="17" r="2.6"/><circle cx="18.5" cy="17" r="2.6"/><path d="M10.7 8.3L6.8 14.7M13.3 8.3l3.9 6.4M8.1 17h7.8"/></svg></button>
     <div class="sep"></div>
     <div class="tabs" id="docTabs"><div class="tabstrip" id="tabStrip" role="tablist" aria-label="開いている図"></div></div>
     <button class="ic tabadd" id="btnNewTab" aria-label="新しい図" title="新しい図を開く（タブを増やす）">＋</button>
@@ -562,6 +562,11 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
         <label class="chk"><input type="checkbox" id="expTransparent">背景を透明にする</label>
       </div>
       <button class="sbtn primary" id="expGo">書き出す</button>
+      <div class="side-sec">
+        <div class="gl">ほかのアプリへ</div>
+        <button class="sbtn" id="btn3d" title="いまの図を分子模型エディタ（別のタブ）で立体の模型にします"><svg class="sbtn-ic" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="6" r="2.6"/><circle cx="5.5" cy="17" r="2.6"/><circle cx="18.5" cy="17" r="2.6"/><path d="M10.7 8.3L6.8 14.7M13.3 8.3l3.9 6.4M8.1 17h7.8"/></svg>分子模型エディタで見る（3D）</button>
+        <p class="muted">いま見ている図を、分子模型エディタ（別のタブ）で立体の模型にします。R・X などの一般の記号や金属を含む構造は取り込めません。</p>
+      </div>
       <p class="muted">チェックした項目を、名前をファイル名にして書き出します。各項目の <b>コピー</b> ボタンで Word・PowerPoint に直接貼り付けできます。サムネイルをクリックするとキャンバス上で選択されます。何も選択せずに追加すると「図全体」の項目になり、あとで描き足した分も含めて書き出します。</p>
     </div>
     </section>
@@ -658,8 +663,9 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
       <li>画面右端の「◀ 化合物ライブラリ」で、よく使う化合物を選んで入れられます。</li>
       <li>「◀ 書き出し」を開き、構造などを選んで「＋ 選択したものを追加」（何も選んでいなければ図全体）。</li>
       <li>形式（PNG・SVG）と解像度を決めて「書き出す」。チェックした項目がそれぞれ別のファイルになります。</li>
+      <li>同じパネルの下にある「分子模型エディタで見る（3D）」で、いまの図を立体の模型にできます。</li>
     </ol>
-    <details><summary>3D で見る</summary><p>上部の 3D のボタンを押すと、いまの図を<strong>分子模型エディタ</strong>（別のタブ）で立体の模型にします。R・X などの一般の記号や金属を含む構造は取り込めません。くさび形・ハースの投影式は立体配置として読み取られます。</p></details>
+    <details><summary>3D で見る</summary><p>「書き出し」パネルの<strong>「分子模型エディタで見る（3D）」</strong>を押すと、いまの図を<strong>分子模型エディタ</strong>（別のタブ）で立体の模型にします。R・X などの一般の記号や金属を含む構造は取り込めません。くさび形・ハースの投影式は立体配置として読み取られます。</p></details>
     <details><summary>Word・PowerPoint に貼る</summary><p>各項目のコピーのボタンで、画像をそのまま貼り付けられます。SVG はベクター形式なので、拡大しても鮮明です。</p></details>
     <details><summary>表示の移動・拡大</summary><p><kbd>Space</kbd>+ドラッグ、ホイール・2 本指スクロールで移動します。<kbd>⌘/Ctrl</kbd>+ホイール、ピンチで拡大縮小。右下の − ＋ とプルダウンでも変えられます（「全体表示」もプルダウンの中）。</p></details>
     <details><summary>右側のパネル・ポップアップ</summary><p>パネルの左端をドラッグすると幅を変えられます。何かを選んでいるとき（または文字の編集中）、キャンバスの上に、選んだものに合うポップアップが出ます。左のパレットの「金属」「ハースの投影式」「立体配座」「錯体」「フローチャート」は、見出しをクリックで開閉できます。</p></details>
@@ -693,7 +699,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.7.1（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.8（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -4441,7 +4447,7 @@ $('btnConnRev').onclick = () => {   // 矢印の向きを反転（始点と終�
   changed();
 };
 // ---- 狭い画面：上部バーはいつも 1 行。あふれる操作は「その他」のメニューへ移す（共通仕様 2.1・2.9）----
-const COLLAPSE = ['btn3d', 'tgSnap', 'tgFix', 'toolText', 'toolErase', 'viewMenu', 'btnNewTab', 'btnRedo', 'btnUndo'];   // 入りきらないとき、この順で「その他」へ
+const COLLAPSE = ['tgSnap', 'tgFix', 'toolText', 'toolErase', 'viewMenu', 'btnNewTab', 'btnRedo', 'btnUndo'];   // 入りきらないとき、この順で「その他」へ
 const barHome = new Map();   // 元の場所（戻すときに使う）
 function barFits(row){   // 上部バーに全部入っているか（子の幅と左右の余白の合計を、見える幅とくらべる）
   const st = getComputedStyle(row), gap = parseFloat(st.gap) || 0;
