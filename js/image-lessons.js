@@ -618,6 +618,166 @@
     reveal(host);
   }
 
+  async function initializeSizeComparison(host) {
+    const source = await sourceImage();
+    const widthControl = host.querySelector('[data-image-size-width]');
+    const heightControl = host.querySelector('[data-image-size-height]');
+    const bitsControl = host.querySelector('[data-image-size-bits]');
+    const previous = host.querySelector('[data-image-size-previous]');
+    const next = host.querySelector('[data-image-size-next]');
+    const steps = [...host.querySelectorAll('.im-size-progress li')];
+    const cards = [...host.querySelectorAll('[data-image-size-card]')];
+    const sampleCache = new Map();
+    let stage = 0;
+    let column = 0;
+    let row = 0;
+    let gridKey = '';
+
+    function bitRow(label, value, bits) {
+      const line = node('div', 'im-size-bit-row');
+      const binary = Core.binary(value, bits);
+      line.setAttribute('role', 'img');
+      line.setAttribute('aria-label', `${label}：2進数 ${[...binary].join(' ')}、${bits}bit`);
+      const name = node('span', 'im-size-bit-label', label);
+      const digits = node('span', 'im-size-bit-digits');
+      digits.setAttribute('aria-hidden', 'true');
+      for (const digit of binary) digits.append(node('span', '', digit));
+      name.setAttribute('aria-hidden', 'true');
+      line.append(name, digits);
+      return line;
+    }
+
+    function update() {
+      const width = Number(widthControl.value);
+      const height = Number(heightControl.value);
+      const grayBits = Number(bitsControl.value);
+      column = Math.min(column, width - 1);
+      row = Math.min(row, height - 1);
+      const selected = row * width + column;
+      const key = `${width},${height}`;
+      if (!sampleCache.has(key)) sampleCache.set(key, Core.sampleRgb(source.data, 800, 800, width, height));
+      const samples = sampleCache.get(key);
+      host.dataset.stage = String(stage);
+      host.style.setProperty('--im-size-columns', width);
+      for (const card of cards) {
+        const gray = card.dataset.imageSizeCard === 'gray';
+        const bits = gray ? grayBits : 24;
+        const size = Core.imageSize(width, height, bits);
+        const grid = card.querySelector('[data-image-size-pixels]');
+        if (gridKey !== key) {
+          grid.replaceChildren(...samples.map((sample, index) => {
+            const button = node('button', 'im-size-pixel');
+            button.type = 'button';
+            button.dataset.pixelIndex = String(index);
+            return button;
+          }));
+        }
+        const codes = samples.map(rgb => gray
+          ? [Core.quantize(rgb[0] * .299 + rgb[1] * .587 + rgb[2] * .114, grayBits)]
+          : rgb.map(value => Core.quantize(value, 8)));
+        [...grid.children].forEach((button, index) => {
+          const values = codes[index];
+          const brightness = gray ? Core.tone(values[0], grayBits) : null;
+          const rgb = gray ? [brightness, brightness, brightness] : values;
+          button.style.backgroundColor = `rgb(${rgb.join(',')})`;
+          const selectedPixel = index === selected;
+          button.tabIndex = selectedPixel ? 0 : -1;
+          button.setAttribute('aria-pressed', String(selectedPixel));
+          const position = `${Math.floor(index / width) + 1}行${index % width + 1}列`;
+          button.setAttribute('aria-label', `${position}、${gray ? `明るさの段階値 ${values[0]}` : values.map((value, i) => `${channels[i]} ${value}`).join('、')}`);
+          button.classList.toggle('is-counted', stage === 0 ? selectedPixel : stage === 1 && Math.floor(index / width) === row);
+        });
+        card.querySelector('[data-image-size-position]').textContent = `選択：${row + 1}行${column + 1}列の1画素`;
+        const binary = card.querySelector('[data-image-size-binary]');
+        binary.replaceChildren(...codes[selected].map((value, i) => bitRow(gray ? '明るさ' : channels[i], value, gray ? grayBits : 8)));
+        card.querySelector('[data-image-size-colors]').textContent = gray
+          ? `${Core.levels(grayBits)}階調・1画素${grayBits}bit`
+          : '各色256階調・全体16,777,216色';
+        const calculation = card.querySelector('[data-image-size-calculation]');
+        const label = node('span', 'im-size-calculation-label', ['1画素', '横1行', '画像全体', 'Bに換算'][stage]);
+        const formula = node('span');
+        // 最新の因子を下線でも示し、色だけに依存せず掛け算の意味を追えるようにする。
+        function factor(text, active) { formula.append(node(active ? 'strong' : 'span', active ? 'im-size-factor' : '', text)); }
+        if (stage === 0) {
+          factor(gray ? `${bits}bit` : '8 ＋ 8 ＋ 8 ＝ 24bit', true);
+        } else {
+          factor(String(width), stage === 1);
+          if (stage >= 2) { formula.append(' × '); factor(String(height), stage === 2); }
+          formula.append(` × ${bits}`);
+          if (stage === 3) { formula.append(' '); factor('÷ 8', true); }
+          formula.append(` ＝ ${format(stage === 1 ? width * bits : stage === 2 ? size.bits : size.bytes)}${stage === 3 ? 'B' : 'bit'}`);
+        }
+        calculation.replaceChildren(label, formula);
+        card.querySelector('[data-image-size-total]').textContent = `${format(size.bits)}bit ＝ ${format(size.bytes)}B`;
+      }
+      gridKey = key;
+      steps.forEach((step, index) => {
+        if (index === stage) step.setAttribute('aria-current', 'step');
+        else step.removeAttribute('aria-current');
+      });
+      previous.disabled = stage === 0;
+      next.disabled = stage === 3;
+      host.querySelector('[data-image-size-stage-note]').textContent = [
+        '選んだ1画素のビット数を、左右で比べましょう。',
+        `選んだ画素を含む横1行には、${width}画素あります。`,
+        `横${width}画素の行が${height}行あるので、全画素数は${width * height}画素です。`,
+        '8bit＝1Bなので、画像全体のビット数を8で割ります。'
+      ][stage];
+      const ratio = 24 / grayBits;
+      const relation = Number(format(ratio).replaceAll(',', '')) === ratio ? '＝' : '≈';
+      host.querySelector('[data-image-size-comparison-note]').textContent = `全画素数は初期の4×4から${width * height / 16}倍。同じ${width}×${height}画素では、フルカラーのデータ量はグレースケールの24 ÷ ${grayBits} ${relation} ${format(ratio)}倍です。`;
+      host.querySelectorAll('[data-image-size-preset]').forEach(button => {
+        button.setAttribute('aria-pressed', String(button.dataset.imageSizePreset === key));
+      });
+      resized();
+    }
+
+    cards.forEach(card => {
+      const grid = card.querySelector('[data-image-size-pixels]');
+      grid.addEventListener('click', event => {
+        const button = event.target.closest('[data-pixel-index]');
+        if (!button) return;
+        const width = Number(widthControl.value);
+        column = Number(button.dataset.pixelIndex) % width;
+        row = Math.floor(Number(button.dataset.pixelIndex) / width);
+        update();
+      });
+      grid.addEventListener('keydown', event => {
+        if (!event.target.matches('[data-pixel-index]')) return;
+        const width = Number(widthControl.value);
+        const height = Number(heightControl.value);
+        if (!['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Home', 'End'].includes(event.key)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        if (event.key === 'ArrowLeft') column = Math.max(0, column - 1);
+        if (event.key === 'ArrowRight') column = Math.min(width - 1, column + 1);
+        if (event.key === 'ArrowUp') row = Math.max(0, row - 1);
+        if (event.key === 'ArrowDown') row = Math.min(height - 1, row + 1);
+        if (event.key === 'Home') column = 0;
+        if (event.key === 'End') column = width - 1;
+        update();
+        grid.children[row * width + column].focus({ preventScroll: true });
+      });
+    });
+    [widthControl, heightControl, bitsControl].forEach(control => control.addEventListener('change', update));
+    previous.addEventListener('click', () => { stage = Math.max(0, stage - 1); update(); });
+    next.addEventListener('click', () => { stage = Math.min(3, stage + 1); update(); });
+    host.querySelectorAll('[data-image-size-preset]').forEach(button => button.addEventListener('click', () => {
+      [widthControl.value, heightControl.value] = button.dataset.imageSizePreset.split(',');
+      update();
+    }));
+    host.querySelector('[data-image-size-reset]').addEventListener('click', () => {
+      widthControl.value = heightControl.value = '4';
+      bitsControl.value = '3';
+      stage = column = row = 0;
+      update();
+    });
+    update();
+    host.querySelectorAll('[data-image-size-fallback]').forEach(item => { item.hidden = true; });
+    reveal(host);
+    resized();
+  }
+
   function initializeFormats(host) {
     const buttons = [...host.querySelectorAll('[data-image-format-zoom]')];
     const caption = host.querySelector('[data-image-format-caption]');
@@ -646,7 +806,8 @@
     for (const [selector, setup] of [
       ['[data-image-guide]', initializeGuide], ['[data-image-explorer]', initializeExplorer],
       ['[data-image-grayscale]', initializeGrayscale], ['[data-image-encoding-quiz]', initializeEncoding],
-      ['[data-image-size-quiz]', initializeSizeQuiz], ['[data-image-formats]', initializeFormats]
+      ['[data-image-size-quiz]', initializeSizeQuiz], ['[data-image-formats]', initializeFormats],
+      ['[data-image-size-comparison]', initializeSizeComparison]
     ]) document.querySelectorAll(selector).forEach(host => safely(host, setup));
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, { once: true });

@@ -168,9 +168,51 @@
       <h2 id="headline_4">(4) 画像のデータ量</h2>
       <p>圧縮せず、付加情報を含めない画像のデータ量は、<strong>全画素数×1画素あたりのビット数</strong>で求めます。</p>
       <div class="im-size-formula"><span>横の画素数</span><b>×</b><span>縦の画素数</span><b>×</b><span>1画素あたりの<br>ビット数</span><b>＝</b><strong>データ量［bit］</strong></div>
-      <div class="dr-reference-grid">
-        <div class="dr-reference-card"><h3>グレースケール</h3><p>8階調なら1画素は3bitです。4×4画素の画像は、</p><p class="im-equation">4×4×3＝48bit＝6B</p><p>明るさの値を、各画素に1つずつ持ちます。</p></div>
-        <div class="dr-reference-card"><h3>24ビットフルカラー</h3><p>R・G・Bを各8bitで表すと、1画素は24bitです。</p><p class="im-equation">8＋8＋8＝24bit</p><p>各色は2<sup>8</sup>＝256階調、全体では2<sup>24</sup>＝16,777,216色を表せます。</p></div>
+      <div class="im-widget im-size-lab" data-image-size-comparison data-lesson-slide-navigation-lock>
+        <div class="im-controls im-size-controls im-enhancement" hidden>
+          <label class="im-select">横の画素数 <select data-image-size-width><option value="4">4画素</option><option value="8">8画素</option></select></label>
+          <label class="im-select">縦の画素数 <select data-image-size-height><option value="4">4画素</option><option value="8">8画素</option></select></label>
+          <div class="im-button-group" role="group" aria-label="初期の4×4画素と比較">
+            <button class="dr-button" type="button" data-image-size-preset="8,4">横だけ2倍</button>
+            <button class="dr-button" type="button" data-image-size-preset="4,8">縦だけ2倍</button>
+            <button class="dr-button" type="button" data-image-size-preset="8,8">縦横とも2倍</button>
+          </div>
+          <button class="dr-button" type="button" data-image-size-reset>最初に戻す</button>
+        </div>
+        <div class="im-size-columns">
+          <div class="im-size-card" data-image-size-card="gray">
+            <div class="im-size-card-heading">
+              <h3>グレースケール</h3>
+              <label class="im-select im-enhancement" hidden>1画素 <select data-image-size-bits><option value="1">1bit</option><option value="2">2bit</option><option value="3" selected>3bit</option><option value="4">4bit</option><option value="5">5bit</option><option value="6">6bit</option><option value="7">7bit</option><option value="8">8bit</option></select></label>
+            </div>
+            <div data-image-size-fallback><p>8階調なら1画素は3bitです。4×4画素の画像は、</p><p class="im-equation">4×4×3＝48bit＝6B</p><p>明るさの値を、各画素に1つずつ持ちます。</p></div>
+            <div class="im-size-detail im-enhancement" hidden>
+              <div class="im-size-picture"><div class="im-size-pixels" data-image-size-pixels role="group" aria-label="グレースケールの画素。矢印キーでも選べます。"></div></div>
+              <div class="im-size-pixel-info"><p data-image-size-position></p><div class="im-size-bits" data-image-size-binary></div><p data-image-size-colors></p></div>
+            </div>
+            <p class="im-size-calculation im-enhancement" data-image-size-calculation hidden></p>
+            <p class="im-size-total im-enhancement" hidden>画像全体：<strong data-image-size-total></strong></p>
+          </div>
+          <div class="im-size-card" data-image-size-card="rgb">
+            <div class="im-size-card-heading"><h3>24ビットフルカラー</h3><span class="im-size-fixed">1画素 24bit</span></div>
+            <div data-image-size-fallback><p>R・G・Bを各8bitで表すと、1画素は24bitです。</p><p class="im-equation">8＋8＋8＝24bit</p><p>各色は2<sup>8</sup>＝256階調、全体では2<sup>24</sup>＝16,777,216色を表せます。</p></div>
+            <div class="im-size-detail im-enhancement" hidden>
+              <div class="im-size-picture"><div class="im-size-pixels" data-image-size-pixels role="group" aria-label="フルカラーの画素。矢印キーでも選べます。"></div></div>
+              <div class="im-size-pixel-info"><p data-image-size-position></p><div class="im-size-bits" data-image-size-binary></div><p data-image-size-colors></p></div>
+            </div>
+            <p class="im-size-calculation im-enhancement" data-image-size-calculation hidden></p>
+            <p class="im-size-total im-enhancement" hidden>画像全体：<strong data-image-size-total></strong></p>
+          </div>
+        </div>
+        <div class="im-controls im-size-steps im-enhancement" hidden>
+          <button class="dr-button" type="button" data-image-size-previous>戻る</button>
+          <ol class="im-size-progress" aria-label="計算の段階"><li>1画素</li><li>横1行</li><li>画像全体</li><li>Bに換算</li></ol>
+          <button class="dr-button dr-button--primary" type="button" data-image-size-next>次へ</button>
+        </div>
+        <p class="im-size-stage-note im-enhancement" data-image-size-stage-note aria-live="polite" hidden></p>
+        <p class="im-size-comparison im-enhancement" data-image-size-comparison-note hidden></p>
+        <p class="im-hint im-enhancement" hidden>画素はクリック・タップ・矢印キーで選べます。2倍ボタンは初期の4×4画素が基準です。</p>
+        <noscript><p>画素数の変更や段階表示にはJavaScriptが必要です。</p></noscript>
       </div>
       <p class="dr-note"><strong>換算に注意：</strong>8bit＝1Bです。KB・MBへの換算には1000倍と1024倍の扱いがあるため、問題文の指定に従います。</p>
     </article>
