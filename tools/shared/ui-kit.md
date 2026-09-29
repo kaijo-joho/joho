@@ -30,16 +30,11 @@ view.isDark();              // いまダークで表示しているか
 ## ツールチップ
 
 ```js
-JohoUI.tooltip();                                    // ページ全体に効く（マウスのみ）
-JohoUI.tooltip({keyboard: true});                    // キーボードのフォーカスでも出す
+JohoUI.tooltip();                                   // ページ全体に効く
 JohoUI.tooltip({skip: el => el.closest('.no-tip')}); // 出したくないところ
 ```
 
 `title` を `data-tip` に移して、マウスを乗せるとすぐ出します（ブラウザ標準の遅い `title` は使いません）。画面の外にはみ出すときは上に出します。
-
-`keyboard: true` にすると、フォーカスが当たったときにも出し、`aria-describedby` で読み上げにもつなぎます。Esc・スクロール・画面の大きさの変更で消えます。
-
-外した `title` は、**消すときに元へ戻します**（2026-09-29）。`title` は読み上げ用の名前にもなるので、外したままにしません。アイコンだけのボタンには、短い `aria-label`（名前）と詳しい `title`／`data-tip`（説明）の両方を付けるのがおすすめです。
 
 ## 知らせ
 
