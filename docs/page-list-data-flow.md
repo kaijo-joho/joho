@@ -114,6 +114,15 @@ impクイズ管理_cfg ───────────────────
 
 `ページ一覧`で管理するページの追加では、HTMLファイルの追加、`release: false`での行追加、`js/pages.js`の再生成を一連の作業として扱う。`ページ一覧`へ登録しないHTMLファイルの追加では、そのためだけに`ページ一覧`や`js/pages.js`を変更しない。
 
+## 既存教材を手動で公開する
+
+1. 「配付ファイル一覧」GSSの「ページ一覧」で対象の`id`を探し、その行の`release`を`TRUE`にする。dr41は2026-09-29時点でB22。行位置は変わるため必ずIDで確認する。
+2. 上部メニュー「スクリプト」→「pages.jsを更新」を実行する。現行処理は検証後にDriveとGitHubへ出力するため、別途ファイルをアップロードする必要はない。完了ダイアログの「pages.jsをアップロードしてください。」は旧案内。
+3. GitHub Pagesの反映後、教材の目次を再読み込みしてリンクを確認する。
+4. サイト内検索にも反映するため、最新の`origin/main`を取り込んだクリーンな作業ツリーで`node scripts/generate-search-index.mjs`、`node scripts/generate-search-index.mjs --check`、`node scripts/test-site-search.mjs`を実行し、生成された`data/search-index.json`だけをコミット・pushする。未コミット作業がある場合は隔離作業ツリーを使う。
+
+非掲載へ戻す場合は対象行の`release`を`FALSE`にして同じ手順を実行する。ワークシートのリンク公開（`ワークシート一覧.release`）と解答公開日時（`課題設定.standardDueAt`）は別設定であり、教材ページの公開に合わせて自動変更しない。
+
 ## 避けること
 
 - `ページ一覧`の参照欄へDrive URLやWebアプリURLを直接入力する。
