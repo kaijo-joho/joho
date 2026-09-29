@@ -195,28 +195,40 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
 .lib-item svg{width:100%;height:78px}
 .lib-item span{font-size:12px;margin-top:2px;text-align:center}
 kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font:12px Menlo,monospace;background:var(--bg)}
+/* ファイルメニュー（共通仕様 2.1）：左にアイコン・中央に名称・右端にショートカット */
+.app-home{display:inline-flex;border-radius:7px}
+.app-home:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.hmenu .mi{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:8px;padding:6px 10px;min-height:30px}
+.hmenu .mi svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.hmenu .mi kbd{border:0;background:none;color:var(--muted);font:12px Menlo,monospace;padding:0;justify-self:end}
+.hmenu .mi:hover kbd{color:inherit}
+.hmenu .msep{height:1px;background:var(--line);margin:4px 2px}
+.top .seg.iseg button{padding:5px 10px;display:inline-flex;align-items:center}
+.top .seg.iseg svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.top .seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+#setMenu > .menu{left:auto;right:0}   /* 右端にあるので、画面からはみ出さないように右寄せ */
 </style>
 </head>
 <body>
 <div id="app">
   <header class="top">
    <div class="row tb">
-    <div class="brand"><!-- アプリのアイコン：紺の角丸四角・白いベンゼン環・白抜きの校章（校章の輪郭は Illustrator のデータから）。favicon にも使う -->
-      <svg id="appIcon" class="app-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="13" fill="#00548a"/><polygon points="32,8 53.65,20.5 53.65,45.5 32,58 10.35,45.5 10.35,20.5" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path fill="#fff" transform="translate(19 19.32) scale(.27368)" d="M27.4 52.3C27.4 52.2 27.5 52.2 27.6 52.2C27.7 52.3 27.9 52.3 28.1 52.4C29.7 53.1 31.4 53.8 33.1 54.5C34.6 55.1 36.2 55.7 37.8 56.2C40 57 42.2 57.7 44.4 58.5C46.1 59 47.8 59.6 49.5 60.1C52.4 61 55.3 61.9 58.2 62.8C58.7 63 59.2 63.1 59.7 63.3C60 63.4 60.2 63.5 60.5 63.6C61.1 63.9 61.7 64.1 62.3 64.3C63.6 64.9 64.8 65.6 65.8 66.5C66.2 66.9 66.5 67.2 66.9 67.6C67.4 68.1 67.8 68.7 68.2 69.2C68.7 70 69.1 70.8 69.4 71.6C69.8 72.6 69.9 73.7 69.8 74.8C69.6 76.4 69.1 77.9 68.1 79.2C67.4 80 66.7 80.7 65.8 81.2C65.1 81.6 64.4 81.9 63.6 82.1C63.4 82.2 63.2 82.2 62.9 82.2C62.6 82.3 62.2 82.3 61.9 82.3C61.2 82.3 60.5 82.3 59.8 82.2C59.4 82.2 58.9 82.1 58.5 82C58.2 81.9 57.9 81.9 57.6 81.9C57.2 81.8 56.8 81.7 56.4 81.7C55.6 81.5 54.9 81.5 54.1 81.5C53.8 81.5 53.6 81.5 53.3 81.5C53 81.5 52.6 81.5 52.3 81.5C52 81.6 51.7 81.6 51.4 81.7C50.9 81.7 50.4 81.8 49.9 82C48.4 82.4 47.1 82.9 45.8 83.6C44.7 84.3 43.6 85 42.6 85.9C42 86.5 41.3 87.2 40.7 87.9C40.6 87.9 40.6 87.9 40.6 88C40.1 88.6 39.5 89.2 39.1 89.9C38.6 90.6 38.2 91.2 37.9 92C37.2 93.3 36.8 94.6 36.4 96C36.2 96.8 36.1 97.7 36.1 98.5C36.1 98.8 36 99.2 36 99.5C36 99.6 36 99.6 35.9 99.6C35.9 99.6 35.9 99.6 35.9 99.6C35.7 99.3 35.5 99 35.3 98.7C34.9 98.2 34.5 97.6 34.2 97C34 96.5 33.7 96.1 33.5 95.6C33.2 94.9 32.9 94.2 32.6 93.5C32.4 93 32.3 92.5 32.1 92C32 91.6 31.9 91.3 31.8 90.9C31.7 90.5 31.6 90.2 31.5 89.8C31.4 89.2 31.2 88.6 31.1 88C30.9 86.9 30.6 85.8 30.5 84.7C30.4 84.1 30.2 83.5 30.1 82.9C30 82.1 29.9 81.3 29.7 80.4C29.6 79.5 29.4 78.6 29.3 77.7C29.1 76.7 29 75.6 28.9 74.5C28.8 73.9 28.7 73.3 28.6 72.7C28.5 72 28.4 71.4 28.4 70.8C28.3 70.3 28.3 69.7 28.2 69.2C28.2 68.8 28.1 68.4 28.1 68C28.1 67.3 28 66.6 27.9 66C27.9 65.4 27.8 64.9 27.8 64.4C27.8 64.2 27.8 64.1 27.8 63.9C27.7 62.9 27.6 61.9 27.6 60.9C27.6 60.6 27.6 60.3 27.6 60C27.5 59.2 27.5 58.4 27.5 57.6L27.5 57.6C27.4 56.1 27.4 54.7 27.4 53.3C27.4 53 27.4 52.8 27.4 52.5C27.4 52.5 27.4 52.4 27.4 52.3M0.1 31.1C0.1 32.9 0.1 34.4 0.1 36C0.1 36.9 0.1 37.8 0.2 38.8C0.2 39.5 0.3 40.3 0.3 41.1C0.3 42.2 0.4 43.3 0.4 44.5C0.5 45.2 0.5 46 0.6 46.7C0.6 47.5 0.7 48.2 0.7 49C0.7 49 0.7 49 0.7 49C0.8 49.6 0.8 50.2 0.9 50.8C0.9 51.1 0.9 51.4 1 51.7C1 52.2 1 52.8 1.1 53.4C1.2 54.2 1.2 55 1.3 55.8C1.4 56.4 1.5 57.1 1.6 57.7C1.7 58.7 1.8 59.6 1.9 60.6C2.1 61.5 2.2 62.5 2.4 63.4C2.8 65.1 3.2 66.8 3.7 68.5C4.2 70 4.8 71.5 5.4 73C6 74.6 6.8 76.1 7.6 77.6C8.2 78.8 9 80 9.7 81.2C10.6 82.5 11.6 83.8 12.6 85.1C13.3 86 14.1 86.9 14.9 87.7C15.9 88.9 17 90 18.2 91C19.1 91.9 20 92.6 20.9 93.4C21.9 94.2 22.9 94.9 23.9 95.6C25 96.3 26 97 27.2 97.5C28.1 98 29.1 98.4 30.2 98.8C30.9 99 31.6 99.3 32.4 99.5C33 99.7 33.6 99.8 34.3 99.9C34.7 100 35.1 100 35.5 100C35.6 99.9 35.7 99.9 35.8 99.8C36.5 99.3 37.3 98.8 38.1 98.4C38.6 98.1 39.1 97.8 39.6 97.6C40.5 97.1 41.4 96.8 42.3 96.4C43.1 96.1 43.9 95.9 44.7 95.7C45.7 95.4 46.6 95.2 47.5 95.1C48 95 48.4 95 48.8 95C49 95 49.2 95 49.3 94.9C50.1 94.9 50.8 94.9 51.6 94.9C52.1 95 52.7 95 53.3 95C54.1 95.1 54.9 95.3 55.6 95.4C56.7 95.6 57.8 95.9 58.8 96.2C59.4 96.4 59.9 96.6 60.5 96.9C61 97.2 61.6 97.4 62.2 97.7C63.1 98 63.9 98.3 64.8 98.5C65.5 98.7 66.2 98.8 66.9 98.9C67.4 99 67.9 99 68.3 99C68.8 99.1 69.2 99.1 69.6 99.1C70.2 99.1 70.8 99 71.4 98.9C71.9 98.9 72.3 98.8 72.8 98.8C73.2 98.7 73.7 98.7 74.1 98.6C74.3 98.5 74.4 98.5 74.5 98.5C75.1 98.4 75.6 98.3 76.1 98.1C77.3 97.8 78.4 97.4 79.6 97C80.5 96.7 81.4 96.3 82.2 95.8C83.1 95.3 84 94.8 84.8 94.2C85.7 93.7 86.6 93 87.4 92.3C88.2 91.6 88.9 90.8 89.7 90C89.7 89.9 89.8 89.9 89.8 89.8C90.1 89.5 90.3 89.2 90.6 88.8C91.1 88.2 91.6 87.5 92 86.8C92.5 86.1 92.9 85.3 93.3 84.4C93.4 84.2 93.5 84 93.6 83.8C93.7 83.5 93.8 83.3 93.9 83C94 82.6 94.1 82.1 94.2 81.7C94.3 81.4 94.4 81 94.5 80.7C94.6 80.1 94.8 79.4 94.8 78.8C94.8 78.3 94.9 77.7 95 77.2C95 76.6 95 76 94.9 75.4C94.9 74.9 94.9 74.4 94.8 74C94.8 73.5 94.7 73 94.6 72.5C94.3 71.2 93.9 69.9 93.4 68.6C93.2 68.2 93 67.8 92.8 67.3C92.5 66.8 92.2 66.3 91.9 65.8C91.7 65.5 91.6 65.2 91.4 65C90.8 64.2 90.3 63.5 89.7 62.8C89.3 62.4 88.9 62 88.5 61.6C87.4 60.7 86.3 59.8 85 59C85 59 84.9 59 84.9 59C84.6 58.7 84.3 58.5 84 58.3C83.4 57.9 82.8 57.5 82.1 57.2C81.2 56.7 80.3 56.2 79.5 55.8C78.4 55.3 77.4 54.9 76.3 54.5C75 54 73.7 53.6 72.4 53.1C71.6 52.9 70.9 52.7 70.2 52.4C68.5 51.9 66.9 51.3 65.2 50.8C64.1 50.4 62.9 50 61.8 49.6C59.6 48.9 57.5 48.2 55.3 47.5C53.7 47 52.1 46.5 50.5 45.9C49.4 45.5 48.2 45 47.2 44.5C46.9 44.4 46.7 44.3 46.5 44.2C45.9 43.9 45.5 43.5 45 43.1C44 42.2 43.3 41.1 42.8 39.9C42.6 39.5 42.5 39.1 42.3 38.7C42.1 37.8 42 36.9 42.1 35.9C42.1 35.7 42.1 35.6 42.1 35.4C42.1 35 42.2 34.6 42.3 34.1C42.5 33.5 42.7 32.8 43.1 32.1C43.8 30.8 44.8 29.6 46 28.8C46.2 28.6 46.4 28.5 46.5 28.4C47.1 28 47.8 27.6 48.5 27.3C49 27.1 49.4 26.9 49.9 26.7C51 26.2 52.1 25.8 53.3 25.5C54 25.3 54.8 25.1 55.6 25C56.1 24.9 56.6 24.9 57.1 24.8C57.4 24.7 57.7 24.7 58 24.6C58.7 24.6 59.4 24.5 60.1 24.5C60.2 24.5 60.3 24.5 60.4 24.5C61.2 24.4 62 24.4 62.8 24.3C63 24.3 63.3 24.3 63.5 24.3C64.2 24.2 65 24.1 65.7 24C66 23.9 66.4 23.9 66.8 23.8C67 23.8 67.2 23.7 67.3 23.7C67.7 23.6 68 23.6 68.4 23.5C69.7 23.2 71 22.8 72.3 22.4C73.9 21.9 75.5 21.2 77.1 20.5C77.9 20.2 78.7 19.8 79.5 19.4C80.8 18.9 82 18.2 83.2 17.6C84.3 16.9 85.5 16.2 86.6 15.4C87.3 14.9 88.1 14.4 88.8 13.9C89.4 13.5 90 13 90.5 12.5C91.4 11.7 92.3 10.9 93.1 10C93.3 9.9 93.4 9.7 93.6 9.5C93.7 9.4 93.7 9.4 93.7 9.3C93.8 9.2 93.7 9.1 93.6 9.1C93.5 9.1 93.4 9.1 93.3 9.1C92.8 9.1 92.2 9.1 91.7 9.1C91 9.1 90.4 9.1 89.8 9.1C89 9.1 88.3 9 87.6 8.9C87.1 8.9 86.6 8.8 86.1 8.8C85.7 8.7 85.3 8.7 84.9 8.6C84.5 8.5 84 8.4 83.6 8.4C82.7 8.2 81.8 8 80.8 7.8C79.9 7.6 79 7.3 78 7C76.4 6.5 74.7 5.8 73.1 5.1C71.8 4.5 70.5 3.9 69.2 3.1C67.7 2.3 66.2 1.4 64.8 0.3C64.7 0.2 64.5 0.1 64.4 0.1C64.3 0 64.2 0 64.2 0.1C64 0.3 63.9 0.5 63.8 0.7C62.9 2.2 61.9 3.6 60.8 5C60.2 5.8 59.6 6.6 59 7.4C58 8.5 57.1 9.6 56 10.7C55.4 11.2 54.8 11.8 54.2 12.4C53.4 13.1 52.6 13.8 51.6 14.4C51.1 14.7 50.7 15.1 50.2 15.4C50.1 15.5 50 15.6 49.9 15.7C49.2 16.1 48.5 16.4 47.8 16.8C47 17.2 46.1 17.6 45.3 17.9C43.9 18.5 42.5 18.9 41 19.2C40.7 19.3 40.3 19.4 40 19.5C39.7 19.5 39.4 19.6 39.1 19.6C38.9 19.7 38.7 19.7 38.4 19.8C38.1 19.8 37.8 19.8 37.4 19.9C36.7 20 36 20.1 35.4 20.2C34.7 20.3 34 20.4 33.4 20.6C32.3 20.8 31.2 21 30.2 21.4C29.6 21.5 29.1 21.7 28.6 21.8C28.5 21.8 28.5 21.9 28.4 21.9C28.3 21.9 28.3 21.8 28.3 21.8C28.3 21.6 28.3 21.4 28.3 21.2C28.4 20.8 28.4 20.3 28.5 19.9C28.7 18.5 29 17.2 29.3 15.9C29.6 14.9 29.8 13.9 30.1 12.9C30.4 12.1 30.7 11.2 31 10.4C31.6 9.1 32.1 7.8 32.8 6.5C33 6.2 33.2 5.8 33.4 5.4C33.4 5.4 33.4 5.3 33.4 5.3C33.5 5.2 33.5 5.2 33.4 5.2C33.4 5.1 33.3 5.1 33.3 5.1C33.1 5.2 32.9 5.3 32.6 5.4C32.2 5.5 31.9 5.7 31.5 5.8C30.3 6.2 29 6.6 27.8 6.9C26.6 7.2 25.5 7.4 24.3 7.6C23.6 7.8 22.8 7.9 22 8C21.4 8.1 20.8 8.1 20.2 8.2C19.3 8.2 18.4 8.3 17.5 8.3C16.7 8.3 15.9 8.3 15.1 8.2C13.9 8.2 12.7 8.1 11.6 8C11.3 8 11.1 7.9 10.9 7.9C10.3 7.8 9.8 7.8 9.2 7.7C8.4 7.5 7.6 7.4 6.8 7.2C5.9 7 4.9 6.7 3.9 6.4C3.2 6.2 2.5 6 1.9 5.8C1.8 5.8 1.7 5.8 1.7 5.8C1.6 6 1.6 6.1 1.6 6.3C1.4 7.1 1.2 7.9 1.1 8.8C0.9 9.6 0.8 10.4 0.7 11.2C0.6 11.9 0.6 12.6 0.5 13.3C0.4 13.8 0.4 14.3 0.4 14.8C0.3 15.5 0.3 16.3 0.2 17C0.2 17.8 0.2 18.5 0.1 19.2C0.1 20 0.1 20.9 0.1 21.8C0.1 22.3 0 22.8 0 23.3C0 24.7 0 26.1 0 27.5C0 28.8 0.1 30.1 0.1 31.1"/></svg>構造式エディタ</div>
-    <div class="hmenu" id="saveMenu">
-      <button class="ic" id="btnSave" aria-haspopup="true" title="保存（⌘/Ctrl+S でファイルに保存）。描いた内容はブラウザにも自動で保存されます"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><path d="M8 21v-7h8v7"/></svg></button>
+    <div class="brand"><a class="app-home" href="../index.html" title="ツールの一覧へ" aria-label="ツールの一覧へ"><!-- アプリのアイコン：紺の角丸四角・白いベンゼン環・白抜きの校章（校章の輪郭は Illustrator のデータから）。favicon にも使う -->
+      <svg id="appIcon" class="app-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" aria-hidden="true"><rect x="2" y="2" width="60" height="60" rx="13" fill="#00548a"/><polygon points="32,8 53.65,20.5 53.65,45.5 32,58 10.35,45.5 10.35,20.5" fill="none" stroke="#fff" stroke-width="3" stroke-linejoin="round"/><path fill="#fff" transform="translate(19 19.32) scale(.27368)" d="M27.4 52.3C27.4 52.2 27.5 52.2 27.6 52.2C27.7 52.3 27.9 52.3 28.1 52.4C29.7 53.1 31.4 53.8 33.1 54.5C34.6 55.1 36.2 55.7 37.8 56.2C40 57 42.2 57.7 44.4 58.5C46.1 59 47.8 59.6 49.5 60.1C52.4 61 55.3 61.9 58.2 62.8C58.7 63 59.2 63.1 59.7 63.3C60 63.4 60.2 63.5 60.5 63.6C61.1 63.9 61.7 64.1 62.3 64.3C63.6 64.9 64.8 65.6 65.8 66.5C66.2 66.9 66.5 67.2 66.9 67.6C67.4 68.1 67.8 68.7 68.2 69.2C68.7 70 69.1 70.8 69.4 71.6C69.8 72.6 69.9 73.7 69.8 74.8C69.6 76.4 69.1 77.9 68.1 79.2C67.4 80 66.7 80.7 65.8 81.2C65.1 81.6 64.4 81.9 63.6 82.1C63.4 82.2 63.2 82.2 62.9 82.2C62.6 82.3 62.2 82.3 61.9 82.3C61.2 82.3 60.5 82.3 59.8 82.2C59.4 82.2 58.9 82.1 58.5 82C58.2 81.9 57.9 81.9 57.6 81.9C57.2 81.8 56.8 81.7 56.4 81.7C55.6 81.5 54.9 81.5 54.1 81.5C53.8 81.5 53.6 81.5 53.3 81.5C53 81.5 52.6 81.5 52.3 81.5C52 81.6 51.7 81.6 51.4 81.7C50.9 81.7 50.4 81.8 49.9 82C48.4 82.4 47.1 82.9 45.8 83.6C44.7 84.3 43.6 85 42.6 85.9C42 86.5 41.3 87.2 40.7 87.9C40.6 87.9 40.6 87.9 40.6 88C40.1 88.6 39.5 89.2 39.1 89.9C38.6 90.6 38.2 91.2 37.9 92C37.2 93.3 36.8 94.6 36.4 96C36.2 96.8 36.1 97.7 36.1 98.5C36.1 98.8 36 99.2 36 99.5C36 99.6 36 99.6 35.9 99.6C35.9 99.6 35.9 99.6 35.9 99.6C35.7 99.3 35.5 99 35.3 98.7C34.9 98.2 34.5 97.6 34.2 97C34 96.5 33.7 96.1 33.5 95.6C33.2 94.9 32.9 94.2 32.6 93.5C32.4 93 32.3 92.5 32.1 92C32 91.6 31.9 91.3 31.8 90.9C31.7 90.5 31.6 90.2 31.5 89.8C31.4 89.2 31.2 88.6 31.1 88C30.9 86.9 30.6 85.8 30.5 84.7C30.4 84.1 30.2 83.5 30.1 82.9C30 82.1 29.9 81.3 29.7 80.4C29.6 79.5 29.4 78.6 29.3 77.7C29.1 76.7 29 75.6 28.9 74.5C28.8 73.9 28.7 73.3 28.6 72.7C28.5 72 28.4 71.4 28.4 70.8C28.3 70.3 28.3 69.7 28.2 69.2C28.2 68.8 28.1 68.4 28.1 68C28.1 67.3 28 66.6 27.9 66C27.9 65.4 27.8 64.9 27.8 64.4C27.8 64.2 27.8 64.1 27.8 63.9C27.7 62.9 27.6 61.9 27.6 60.9C27.6 60.6 27.6 60.3 27.6 60C27.5 59.2 27.5 58.4 27.5 57.6L27.5 57.6C27.4 56.1 27.4 54.7 27.4 53.3C27.4 53 27.4 52.8 27.4 52.5C27.4 52.5 27.4 52.4 27.4 52.3M0.1 31.1C0.1 32.9 0.1 34.4 0.1 36C0.1 36.9 0.1 37.8 0.2 38.8C0.2 39.5 0.3 40.3 0.3 41.1C0.3 42.2 0.4 43.3 0.4 44.5C0.5 45.2 0.5 46 0.6 46.7C0.6 47.5 0.7 48.2 0.7 49C0.7 49 0.7 49 0.7 49C0.8 49.6 0.8 50.2 0.9 50.8C0.9 51.1 0.9 51.4 1 51.7C1 52.2 1 52.8 1.1 53.4C1.2 54.2 1.2 55 1.3 55.8C1.4 56.4 1.5 57.1 1.6 57.7C1.7 58.7 1.8 59.6 1.9 60.6C2.1 61.5 2.2 62.5 2.4 63.4C2.8 65.1 3.2 66.8 3.7 68.5C4.2 70 4.8 71.5 5.4 73C6 74.6 6.8 76.1 7.6 77.6C8.2 78.8 9 80 9.7 81.2C10.6 82.5 11.6 83.8 12.6 85.1C13.3 86 14.1 86.9 14.9 87.7C15.9 88.9 17 90 18.2 91C19.1 91.9 20 92.6 20.9 93.4C21.9 94.2 22.9 94.9 23.9 95.6C25 96.3 26 97 27.2 97.5C28.1 98 29.1 98.4 30.2 98.8C30.9 99 31.6 99.3 32.4 99.5C33 99.7 33.6 99.8 34.3 99.9C34.7 100 35.1 100 35.5 100C35.6 99.9 35.7 99.9 35.8 99.8C36.5 99.3 37.3 98.8 38.1 98.4C38.6 98.1 39.1 97.8 39.6 97.6C40.5 97.1 41.4 96.8 42.3 96.4C43.1 96.1 43.9 95.9 44.7 95.7C45.7 95.4 46.6 95.2 47.5 95.1C48 95 48.4 95 48.8 95C49 95 49.2 95 49.3 94.9C50.1 94.9 50.8 94.9 51.6 94.9C52.1 95 52.7 95 53.3 95C54.1 95.1 54.9 95.3 55.6 95.4C56.7 95.6 57.8 95.9 58.8 96.2C59.4 96.4 59.9 96.6 60.5 96.9C61 97.2 61.6 97.4 62.2 97.7C63.1 98 63.9 98.3 64.8 98.5C65.5 98.7 66.2 98.8 66.9 98.9C67.4 99 67.9 99 68.3 99C68.8 99.1 69.2 99.1 69.6 99.1C70.2 99.1 70.8 99 71.4 98.9C71.9 98.9 72.3 98.8 72.8 98.8C73.2 98.7 73.7 98.7 74.1 98.6C74.3 98.5 74.4 98.5 74.5 98.5C75.1 98.4 75.6 98.3 76.1 98.1C77.3 97.8 78.4 97.4 79.6 97C80.5 96.7 81.4 96.3 82.2 95.8C83.1 95.3 84 94.8 84.8 94.2C85.7 93.7 86.6 93 87.4 92.3C88.2 91.6 88.9 90.8 89.7 90C89.7 89.9 89.8 89.9 89.8 89.8C90.1 89.5 90.3 89.2 90.6 88.8C91.1 88.2 91.6 87.5 92 86.8C92.5 86.1 92.9 85.3 93.3 84.4C93.4 84.2 93.5 84 93.6 83.8C93.7 83.5 93.8 83.3 93.9 83C94 82.6 94.1 82.1 94.2 81.7C94.3 81.4 94.4 81 94.5 80.7C94.6 80.1 94.8 79.4 94.8 78.8C94.8 78.3 94.9 77.7 95 77.2C95 76.6 95 76 94.9 75.4C94.9 74.9 94.9 74.4 94.8 74C94.8 73.5 94.7 73 94.6 72.5C94.3 71.2 93.9 69.9 93.4 68.6C93.2 68.2 93 67.8 92.8 67.3C92.5 66.8 92.2 66.3 91.9 65.8C91.7 65.5 91.6 65.2 91.4 65C90.8 64.2 90.3 63.5 89.7 62.8C89.3 62.4 88.9 62 88.5 61.6C87.4 60.7 86.3 59.8 85 59C85 59 84.9 59 84.9 59C84.6 58.7 84.3 58.5 84 58.3C83.4 57.9 82.8 57.5 82.1 57.2C81.2 56.7 80.3 56.2 79.5 55.8C78.4 55.3 77.4 54.9 76.3 54.5C75 54 73.7 53.6 72.4 53.1C71.6 52.9 70.9 52.7 70.2 52.4C68.5 51.9 66.9 51.3 65.2 50.8C64.1 50.4 62.9 50 61.8 49.6C59.6 48.9 57.5 48.2 55.3 47.5C53.7 47 52.1 46.5 50.5 45.9C49.4 45.5 48.2 45 47.2 44.5C46.9 44.4 46.7 44.3 46.5 44.2C45.9 43.9 45.5 43.5 45 43.1C44 42.2 43.3 41.1 42.8 39.9C42.6 39.5 42.5 39.1 42.3 38.7C42.1 37.8 42 36.9 42.1 35.9C42.1 35.7 42.1 35.6 42.1 35.4C42.1 35 42.2 34.6 42.3 34.1C42.5 33.5 42.7 32.8 43.1 32.1C43.8 30.8 44.8 29.6 46 28.8C46.2 28.6 46.4 28.5 46.5 28.4C47.1 28 47.8 27.6 48.5 27.3C49 27.1 49.4 26.9 49.9 26.7C51 26.2 52.1 25.8 53.3 25.5C54 25.3 54.8 25.1 55.6 25C56.1 24.9 56.6 24.9 57.1 24.8C57.4 24.7 57.7 24.7 58 24.6C58.7 24.6 59.4 24.5 60.1 24.5C60.2 24.5 60.3 24.5 60.4 24.5C61.2 24.4 62 24.4 62.8 24.3C63 24.3 63.3 24.3 63.5 24.3C64.2 24.2 65 24.1 65.7 24C66 23.9 66.4 23.9 66.8 23.8C67 23.8 67.2 23.7 67.3 23.7C67.7 23.6 68 23.6 68.4 23.5C69.7 23.2 71 22.8 72.3 22.4C73.9 21.9 75.5 21.2 77.1 20.5C77.9 20.2 78.7 19.8 79.5 19.4C80.8 18.9 82 18.2 83.2 17.6C84.3 16.9 85.5 16.2 86.6 15.4C87.3 14.9 88.1 14.4 88.8 13.9C89.4 13.5 90 13 90.5 12.5C91.4 11.7 92.3 10.9 93.1 10C93.3 9.9 93.4 9.7 93.6 9.5C93.7 9.4 93.7 9.4 93.7 9.3C93.8 9.2 93.7 9.1 93.6 9.1C93.5 9.1 93.4 9.1 93.3 9.1C92.8 9.1 92.2 9.1 91.7 9.1C91 9.1 90.4 9.1 89.8 9.1C89 9.1 88.3 9 87.6 8.9C87.1 8.9 86.6 8.8 86.1 8.8C85.7 8.7 85.3 8.7 84.9 8.6C84.5 8.5 84 8.4 83.6 8.4C82.7 8.2 81.8 8 80.8 7.8C79.9 7.6 79 7.3 78 7C76.4 6.5 74.7 5.8 73.1 5.1C71.8 4.5 70.5 3.9 69.2 3.1C67.7 2.3 66.2 1.4 64.8 0.3C64.7 0.2 64.5 0.1 64.4 0.1C64.3 0 64.2 0 64.2 0.1C64 0.3 63.9 0.5 63.8 0.7C62.9 2.2 61.9 3.6 60.8 5C60.2 5.8 59.6 6.6 59 7.4C58 8.5 57.1 9.6 56 10.7C55.4 11.2 54.8 11.8 54.2 12.4C53.4 13.1 52.6 13.8 51.6 14.4C51.1 14.7 50.7 15.1 50.2 15.4C50.1 15.5 50 15.6 49.9 15.7C49.2 16.1 48.5 16.4 47.8 16.8C47 17.2 46.1 17.6 45.3 17.9C43.9 18.5 42.5 18.9 41 19.2C40.7 19.3 40.3 19.4 40 19.5C39.7 19.5 39.4 19.6 39.1 19.6C38.9 19.7 38.7 19.7 38.4 19.8C38.1 19.8 37.8 19.8 37.4 19.9C36.7 20 36 20.1 35.4 20.2C34.7 20.3 34 20.4 33.4 20.6C32.3 20.8 31.2 21 30.2 21.4C29.6 21.5 29.1 21.7 28.6 21.8C28.5 21.8 28.5 21.9 28.4 21.9C28.3 21.9 28.3 21.8 28.3 21.8C28.3 21.6 28.3 21.4 28.3 21.2C28.4 20.8 28.4 20.3 28.5 19.9C28.7 18.5 29 17.2 29.3 15.9C29.6 14.9 29.8 13.9 30.1 12.9C30.4 12.1 30.7 11.2 31 10.4C31.6 9.1 32.1 7.8 32.8 6.5C33 6.2 33.2 5.8 33.4 5.4C33.4 5.4 33.4 5.3 33.4 5.3C33.5 5.2 33.5 5.2 33.4 5.2C33.4 5.1 33.3 5.1 33.3 5.1C33.1 5.2 32.9 5.3 32.6 5.4C32.2 5.5 31.9 5.7 31.5 5.8C30.3 6.2 29 6.6 27.8 6.9C26.6 7.2 25.5 7.4 24.3 7.6C23.6 7.8 22.8 7.9 22 8C21.4 8.1 20.8 8.1 20.2 8.2C19.3 8.2 18.4 8.3 17.5 8.3C16.7 8.3 15.9 8.3 15.1 8.2C13.9 8.2 12.7 8.1 11.6 8C11.3 8 11.1 7.9 10.9 7.9C10.3 7.8 9.8 7.8 9.2 7.7C8.4 7.5 7.6 7.4 6.8 7.2C5.9 7 4.9 6.7 3.9 6.4C3.2 6.2 2.5 6 1.9 5.8C1.8 5.8 1.7 5.8 1.7 5.8C1.6 6 1.6 6.1 1.6 6.3C1.4 7.1 1.2 7.9 1.1 8.8C0.9 9.6 0.8 10.4 0.7 11.2C0.6 11.9 0.6 12.6 0.5 13.3C0.4 13.8 0.4 14.3 0.4 14.8C0.3 15.5 0.3 16.3 0.2 17C0.2 17.8 0.2 18.5 0.1 19.2C0.1 20 0.1 20.9 0.1 21.8C0.1 22.3 0 22.8 0 23.3C0 24.7 0 26.1 0 27.5C0 28.8 0.1 30.1 0.1 31.1"/></svg></a>構造式エディタ</div>
+    <div class="hmenu" id="fileMenu">
+      <button class="ic wide" id="btnFile" aria-haspopup="true" aria-label="ファイル・保存と読み込み" title="ファイル・保存と読み込み"><svg viewBox="0 0 24 24"><path d="M5 3h9l4 4v14H5z"/><path d="M14 3v5h4"/><path d="M8 13h7M8 17h7"/></svg><span class="caret">▼</span></button>
       <div class="menu mlist">
-        <button class="mi" id="miSaveFile">ファイルに保存…（⌘/Ctrl+S）</button>
-        <button class="mi" id="miSaveBrowser">ブラウザに保存（この端末に残す）</button>
-        <button class="mi" id="miSaveAuto">ファイルを決めて自動保存…</button>
-      </div>
-    </div>
-    <div class="hmenu" id="openMenu">
-      <button class="ic" id="btnOpen" aria-haspopup="true"><svg viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></svg></button>
-      <div class="menu mlist">
-        <button class="mi" id="miOpen">ファイルを開く…（⌘/Ctrl+O）</button>
-        <button class="mi" id="miOpenSaved">保存した内容から開く…</button>
-        <button class="mi" id="btnNew">新規作成（描画をすべて消去）</button>
+        <button class="mi" id="miNew"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>新規作成</span><kbd></kbd></button>
+        <button class="mi" id="miRename"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14.5 5.5l4 4"/></svg><span>名前を変更…</span><kbd></kbd></button>
+        <div class="msep"></div>
+        <button class="mi" id="miSave"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><path d="M8 21v-7h8v7"/></svg><span>保存</span><kbd id="kbSave"></kbd></button>
+        <button class="mi" id="miSaveBrowser"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><path d="M8 21v-7h8v7"/></svg><span>ブラウザに保存</span><kbd></kbd></button>
+        <button class="mi" id="miSaveFile"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><path d="M8 21v-7h8v7"/></svg><span>ファイルに保存…</span><kbd></kbd></button>
+        <div class="msep"></div>
+        <button class="mi" id="miOpenSaved"><svg viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></svg><span>ブラウザから開く…</span><kbd></kbd></button>
+        <button class="mi" id="miOpen"><svg viewBox="0 0 24 24"><path d="M3 6h6l2 2h10v11H3z"/></svg><span>ファイルから開く…</span><kbd id="kbOpen"></kbd></button>
+        <div class="msep"></div>
+        <button class="mi" id="miAuto"><svg viewBox="0 0 24 24" id="icAutoStart"><path d="M4 12a8 8 0 1 1 2.3 5.7"/><path d="M4 6v5h5"/></svg><svg viewBox="0 0 24 24" id="icAutoStop" hidden><rect x="6" y="6" width="12" height="12" rx="2"/></svg><span id="miAutoLabel">ファイルへの自動保存を開始…</span><kbd></kbd></button>
       </div>
     </div>
     <div class="sep"></div>
@@ -237,12 +249,6 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
           <button data-mode="skeletal" title="炭素と水素を省略した骨格構造式">骨格構造式</button>
         </div>
         <label class="chk" title="構造式・簡略構造式で、環の炭素原子も書く"><input type="checkbox" id="showRingC">環の炭素も表示</label>
-        <label class="mrow">テーマ
-          <select id="themeSel" title="画面の配色（自動はパソコンの設定に合わせます）"><option value="auto">自動</option><option value="light">ライト</option><option value="dark">ダーク</option></select>
-        </label>
-        <label class="mrow">文字サイズ
-          <select id="textSizeSel" title="ツールバーやパネルの文字の大きさ（キャンバスの図は右下の倍率で変えます）"><option value="standard">標準</option><option value="large">大</option><option value="largest">特大</option></select>
-        </label>
         <label class="mrow">二重結合の間隔
           <select id="dbGap" title="二重結合・三重結合の線の間隔（図全体。個別の結合は選択して変更）"><option value="0.7">狭い</option><option value="1" selected>標準</option><option value="1.3">広い</option><option value="1.6">とても広い</option></select>
         </label>
@@ -253,7 +259,24 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <button class="ic" id="tgSnap" title="結合角固定：選択部分や H をドラッグで動かすとき、つながっている結合の角度を 15°刻みにする"><svg viewBox="0 0 24 24"><path d="M3.5 19.5h17"/><path d="M3.5 19.5L15 7"/><path d="M10.5 19.5a7 7 0 00-2.2-5.1"/><circle cx="15" cy="7" r="1.6"/></svg></button>
     <button class="ic" id="btn3d" title="3D で見る：いまの図を分子模型エディタ（別のタブ）で立体の模型にします"><svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.6"/><circle cx="5.5" cy="17" r="2.6"/><circle cx="18.5" cy="17" r="2.6"/><path d="M10.7 8.3L6.8 14.7M13.3 8.3l3.9 6.4M8.1 17h7.8"/></svg></button>
     <div class="spacer"></div>
-    <button class="ic" id="btnHelp" title="操作方法（?）">?</button>
+    <div class="hmenu" id="setMenu">
+      <button class="ic" id="btnSet" aria-haspopup="true" aria-label="設定" title="設定：画面の配色・文字サイズ"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2"/><path d="M12 2.8l1.3 2.6 2.9-.5.9 2.8 2.6 1.3-1.4 2.6 1.4 2.6-2.6 1.3-.9 2.8-2.9-.5L12 21.2l-1.3-2.6-2.9.5-.9-2.8-2.6-1.3L5.7 12 4.3 9.4l2.6-1.3.9-2.8 2.9.5z"/></svg></button>
+      <div class="menu">
+        <div class="gl">画面の配色</div>
+        <div class="seg iseg" id="themeSeg">
+          <button data-theme="auto" title="自動：パソコンの設定に合わせる" aria-label="自動：パソコンの設定に合わせる"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button>
+          <button data-theme="light" title="ライト" aria-label="ライト"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.5"/><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.65 17.65l1.42 1.42M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.65 6.35l1.42-1.42"/></svg></button>
+          <button data-theme="dark" title="ダーク" aria-label="ダーク"><svg viewBox="0 0 24 24"><path d="M20 15.2A8 8 0 0 1 8.8 4 8 8 0 1 0 20 15.2Z"/></svg></button>
+        </div>
+        <div class="gl">文字サイズ（操作部）</div>
+        <div class="seg" id="sizeSeg">
+          <button data-size="standard" title="標準">標準</button>
+          <button data-size="large" title="大">大</button>
+          <button data-size="largest" title="特大">特大</button>
+        </div>
+      </div>
+    </div>
+    <button class="ic" id="btnHelp" aria-label="操作方法" title="操作方法（?）">?</button>
    </div>
   </header>
 
@@ -508,6 +531,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <h3>表記と置換基</h3>
     <ol>
       <li>上部の「構造式 ▼」で、全体の表記（構造式・簡略構造式・骨格構造式）を選べます。環の炭素の表示、二重結合の間隔もここです。</li>
+      <li>画面の配色（自動・ライト・ダーク）と、操作部の文字サイズは、右上の<strong>設定</strong>（歯車）で変えられます。</li>
       <li>一部だけ変えるときは、その部分を選んでポップアップの「表記」で指定します（「全体に合わせる」で解除）。</li>
     </ol>
     <details><summary>置換基（CH₃ を COOH などに）</summary><p>端の原子を選び、ポップアップの「置換基」から C₂H₅・COOH・NO₂ などを選ぶと、簡略構造式のラベルに変わります（結合が右から来るときは HOOC– のように向きが反転）。原子をダブルクリック、原子に乗せて <kbd>Enter</kbd>、テキストツールで原子をクリックしても入力できます（COO- のように最後に + − を付けると電荷）。「CH₃（メチル基に戻す）」で元に戻り、分子式・分子量にも反映されます。</p></details>
@@ -573,11 +597,13 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <h3>保存・読み込み</h3>
     <ol>
       <li>描いた内容は、このブラウザに<strong>自動で保存</strong>されます（画面の下に「自動保存 時刻」と出ます）。</li>
-      <li>残したいときは保存ボタンのメニューから、<strong>ファイルに保存</strong>（.json）か<strong>ブラウザに保存</strong>を選びます。<kbd>⌘/Ctrl</kbd>+<kbd>S</kbd> はファイルに保存です。</li>
-      <li>開くときは、開くボタンから「ファイルを開く…」か「保存した内容から開く…」。画面の下の保存の状態をクリックしても開けます。</li>
+      <li>残したいときは、左上の<strong>ファイルメニュー</strong>（書類のアイコン ▼）から「ブラウザに保存」か「ファイルに保存…」（.json）を選びます。<kbd>⌘/Ctrl</kbd>+<kbd>S</kbd>（メニューの「保存」）は、前に選んだ保存先へ保存します（初めてのときは保存先を聞きます）。</li>
+      <li>開くときも同じメニューから「ブラウザから開く…」か「ファイルから開く…」（<kbd>⌘/Ctrl</kbd>+<kbd>O</kbd>）。画面の下の保存の状態をクリックしても開けます。</li>
+      <li>アプリを開くと、<strong>前に描いていた内容がそのまま出ます</strong>（自動保存）。前に「ブラウザに保存」した内容は、「ブラウザから開く…」から選べます。</li>
     </ol>
     <details><summary>自動保存と保存のちがい</summary><p>自動保存は編集のたびに上書きされる「作業中の控え」です。「ブラウザに保存」を押した内容は別に残るので、自動保存が進んでも消えません。開くときは、自動保存と保存した内容のどちらかを選べます。開く前に、いまの内容を保存するか・破棄するかも選べます。</p></details>
-    <details><summary>ファイルへ自動保存する</summary><p>保存ボタンのメニューの「ファイルを決めて自動保存…」で保存先のファイルを選ぶと、以後は編集するたびにそのファイルへ書き込みます（対応しているブラウザのみ。Chrome は対応しています）。画面の下に「ファイルへ自動保存」と出ます。ページを開き直したときは、もう一度ファイルを選んでください。</p></details>
+    <details><summary>ファイルへ自動保存する</summary><p>ファイルメニューの「ファイルへの自動保存を開始…」で保存先のファイルを選ぶと、以後は編集するたびにそのファイルへ書き込みます（対応しているブラウザのみ。Chrome は対応しています）。画面の下に「ファイルへ自動保存」と出ます。同じ行が「ファイルへの自動保存を停止」に変わり、押すとやめられます（ブラウザへの自動保存は続きます）。ページを開き直したときは、もう一度ファイルを選んでください。</p></details>
+    <details><summary>図の名前</summary><p>ファイルメニューの「名前を変更…」で、この図の名前を付けられます。名前は保存するファイル名や、「ブラウザから開く…」の一覧に出ます。</p></details>
     <details><summary>ファイルの持ち運び・画像</summary><p>ブラウザへの保存は、ブラウザごと・ファイルの場所ごとに別です。別のパソコンで続きを描くときは、.json ファイルにして持っていきます。画像（PNG・SVG）は書き出しパネルから保存します。</p></details>
   </section>
   <section data-help-topic="shortcuts" data-help-title="ショートカット">
@@ -585,7 +611,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <ul>
       <li>ツール：<kbd>V</kbd> 選択、<kbd>E</kbd> 消しゴム、<kbd>T</kbd> テキスト、<kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> 結合、<kbd>B</kbd> ベンゼン、<kbd>A</kbd> 矢印</li>
       <li>編集：<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> 元に戻す、<kbd>⇧</kbd>+<kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> やり直し、<kbd>⌘/Ctrl</kbd>+<kbd>A</kbd> 全選択、<kbd>⌘/Ctrl</kbd>+<kbd>C</kbd>／<kbd>X</kbd>／<kbd>V</kbd>、<kbd>Delete</kbd> 削除</li>
-      <li>ファイル：<kbd>⌘/Ctrl</kbd>+<kbd>S</kbd> 保存、<kbd>⌘/Ctrl</kbd>+<kbd>O</kbd> 開く</li>
+      <li>ファイル：<kbd>⌘/Ctrl</kbd>+<kbd>S</kbd> 保存（前に選んだ保存先へ）、<kbd>⌘/Ctrl</kbd>+<kbd>O</kbd> ファイルから開く</li>
       <li>そのほか：<kbd>Esc</kbd> 選択解除、<kbd>?</kbd> この使い方、<kbd>Space</kbd>+ドラッグ 表示の移動</li>
     </ul>
     <details><summary>この小窓の操作</summary><p>見出しをドラッグすると動かせ、右端・下端・右下の角で大きさを変えられます。「−」で小さくたたみ、「位置を戻す」で元の場所に戻ります。「編集へ戻る」を押すと、小窓を開いたままキャンバスの操作に戻れます。開いたままでも、構造式の編集は続けられます。</p></details>
@@ -594,7 +620,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.3（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.4（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -608,6 +634,11 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
   <h2 id="askDlgTitle">保存していない変更があります</h2>
   <p class="muted" id="askDlgNote">開く前に、いまの内容をどうしますか。</p>
   <div class="row"><button class="sbtn primary" data-ask="save">保存してから開く</button><button class="sbtn" data-ask="discard">破棄して開く</button><button class="sbtn" data-ask="cancel">キャンセル</button></div>
+</dialog>
+<dialog id="saveDlg" aria-labelledby="saveDlgTitle">
+  <h2 id="saveDlgTitle">どこに保存しますか</h2>
+  <p class="muted">選んだ保存先は、次からの「保存」（⌘/Ctrl+S）でも使います。ファイルメニューからいつでも変えられます。</p>
+  <div class="row"><button class="sbtn primary" data-dest="browser">ブラウザに保存</button><button class="sbtn" data-dest="file">ファイルに保存…</button><button class="sbtn" data-dest="cancel">キャンセル</button></div>
 </dialog>
 <input type="file" id="fileInput" accept=".json,application/json" hidden>
 
@@ -3383,7 +3414,7 @@ window.addEventListener('keydown', e => {
     else if (lk === 'c'){ if (copySel()){ e.preventDefault(); toast('コピーしました（⌘/Ctrl+V で貼り付け）'); } }
     else if (lk === 'x'){ if (copySel()){ e.preventDefault(); deleteSelection(); } }
     else if (lk === 'v'){ if (clip){ e.preventDefault(); paste(); } }
-    else if (lk === 's'){ e.preventDefault(); saveJSON(); }
+    else if (lk === 's'){ e.preventDefault(); saveCurrent(); }
     else if (lk === 'o'){ e.preventDefault(); openWithGuard(() => $('fileInput').click()); }
     return;
   }
@@ -3897,24 +3928,64 @@ function sanitize(d){
   out.nid = Math.max(max + 1, +d.nid || 0);
   return out;
 }
-function saveJSON(){   // 明示保存：ファイルに保存（ダウンロード）
-  if (isEmpty()){ toast('保存するものがありません'); return; }
-  const name = prompt('ファイル名を入力してください', save.name);
-  if (name === null) return;
-  save.name = (name.trim() || '構造式').replace(/\.json$/i, '');
+// 明示保存：ファイルに保存。対応ブラウザでは保存先を覚えて、次からは同じファイルへ上書きする
+async function saveJSON(again){
+  if (isEmpty()){ toast('保存するものがありません'); return false; }
+  if (canPick){
+    try {
+      if (!again || !saveHandle){
+        saveHandle = await window.showSaveFilePicker({suggestedName: save.name + '.json',
+          types:[{description:'構造式エディタのファイル', accept:{'application/json':['.json']}}]});
+        save.name = (saveHandle.name || save.name).replace(/\.json$/i, '');
+      }
+      const w = await saveHandle.createWritable(); await w.write(fileData()); await w.close();
+      markSaved('file'); toast(`「${save.name}.json」に保存しました`); return true;
+    } catch (e) {
+      if (e && e.name === 'AbortError') return false;
+      saveHandle = null; save.err = 'ファイルに保存できませんでした'; toast(save.err); syncSaveStatus(); return false;
+    }
+  }
+  const name = again ? save.name : prompt('ファイル名を入力してください', save.name);
+  if (name === null) return false;
+  save.name = (String(name).trim() || '構造式').replace(/\.json$/i, '');
   download(new Blob([fileData()], {type:'application/json'}), save.name + '.json');
-  save.savedAt = Date.now(); save.savedWhere = 'download'; save.mark = JSON.stringify(doc); save.dirty = false;
+  markSaved('download'); return true;
+}
+// 保存できたときの共通の後始末（保存先を覚え、「保存後に変更あり」を消す）
+function markSaved(where){
+  save.savedAt = Date.now(); save.savedWhere = where; save.dest = where === 'browser' ? 'browser' : 'file';
+  save.mark = JSON.stringify(doc); save.dirty = false; save.err = '';
   syncSaveStatus();
 }
+// ⌘/Ctrl+S・メニューの「保存」：前回選んだ明示保存先へ保存する。初めてなら保存先を選ぶ（共通仕様 4.5）
+function saveCurrent(){
+  if (isEmpty()){ toast('保存するものがありません'); return; }
+  if (save.dest === 'browser') return saveToBrowser();
+  if (save.dest === 'file') return saveJSON(true);
+  $('saveDlg').showModal();
+}
+$('miSave').onclick = () => { $('miSave').blur(); saveCurrent(); };
 $('miSaveFile').onclick = () => { $('miSaveFile').blur(); saveJSON(); };
 $('miSaveBrowser').onclick = () => { $('miSaveBrowser').blur(); saveToBrowser(); };
-$('miSaveAuto').onclick = () => { $('miSaveAuto').blur(); pickAutoSaveFile(); };
+$('miAuto').onclick = () => { $('miAuto').blur(); if (fileHandle) stopAutoSaveFile(); else pickAutoSaveFile(); };
+$('miRename').onclick = () => {   // 文書の名前を変える（保存するファイル名・保存候補の表示に使う）
+  $('miRename').blur();
+  const n = prompt('この図の名前を入力してください', save.name);
+  if (n === null) return;
+  save.name = (n.trim() || '構造式').replace(/\.json$/i, '').slice(0, 40);
+  autosave(); toast(`名前を「${save.name}」にしました`);
+};
+$('saveDlg').addEventListener('click', e => {   // 初めての「保存」：保存先を選ぶ
+  const b = e.target.closest('[data-dest]'); if (!b) return;
+  $('saveDlg').close();
+  if (b.dataset.dest === 'browser') saveToBrowser();
+  else if (b.dataset.dest === 'file') saveJSON();
+});
 $('miOpen').onclick = () => { $('miOpen').blur(); openWithGuard(() => $('fileInput').click()); };
 $('miOpenFile2').onclick = () => { $('openDlg').close(); openWithGuard(() => $('fileInput').click()); };
 $('miOpenSaved').onclick = () => { $('miOpenSaved').blur(); showOpenDialog(); };
 $('openDlgClose').onclick = () => $('openDlg').close();
 $('saveStatus').onclick = () => showOpenDialog();
-$('btnOpen').onclick = () => { $('btnOpen').blur(); openWithGuard(() => $('fileInput').click()); };
 $('fileInput').addEventListener('change', async e => {
   const f = e.target.files[0]; e.target.value = '';
   if (!f) return;
@@ -3925,8 +3996,8 @@ $('fileInput').addEventListener('change', async e => {
     toast(`「${f.name}」を開きました`); syncSaveStatus();
   } catch { alert('このファイルは読み込めませんでした。構造式エディタで保存した .json ファイルを選んでください。'); }
 });
-$('btnNew').onclick = () => {
-  $('btnNew').blur();   // 開くメニューを閉じる
+$('miNew').onclick = () => {
+  $('miNew').blur();   // ファイルメニューを閉じる
   if (isEmpty()) return;
   if (!confirm('描画内容をすべて消去しますか？（「元に戻す」で復元できます）')) return;
   commit(); doc = emptyDoc(); clearSel(); changed();
@@ -3939,8 +4010,9 @@ let view = null;
 // 保存方法（自動・明示）と保存先（ブラウザ内・ローカルファイル）は別のもの（共通仕様 4 章）
 const STORE_KEY = 'kouzoushiki-v1';      // 自動保存（ブラウザ内）
 const SAVED_KEY = 'kouzoushiki-saved';   // 明示保存（ブラウザ内）
-const save = {name:'構造式', at:0, savedAt:0, savedWhere:'', dirty:false, err:'', mark:'{}'};   // mark：最後に保存した内容
+const save = {name:'構造式', at:0, savedAt:0, savedWhere:'', dest:'', dirty:false, err:'', mark:'{}'};   // mark：最後に保存した内容、dest：前回選んだ明示保存先
 let fileHandle = null, fileTimer = 0;    // ローカルファイルへの自動保存（対応ブラウザで、利用者が選んだとき）
+let saveHandle = null;                   // 「ファイルに保存…」で選んだファイル（⌘/Ctrl+S で上書きする）
 const canPick = typeof window.showSaveFilePicker === 'function';
 const fileData = () => JSON.stringify({app:'kouzoushiki', version:1, mode:state.mode, showRingC:state.showRingC, name:save.name, savedAt:Date.now(), doc});
 const hhmm = t => { const d = new Date(t); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
@@ -3982,8 +4054,8 @@ function saveToBrowser(){
   if (isEmpty()){ toast('保存するものがありません'); return; }
   try {
     localStorage.setItem(SAVED_KEY, JSON.stringify({doc, mode:state.mode, showRingC:state.showRingC, name:save.name, at:Date.now()}));
-    save.savedAt = Date.now(); save.savedWhere = 'browser'; save.mark = JSON.stringify(doc); save.dirty = false; save.err = '';
-    toast('ブラウザに保存しました（「開く」→「保存した内容から開く」で戻せます）');
+    markSaved('browser');
+    toast('ブラウザに保存しました（ファイルメニューの「ブラウザから開く…」で戻せます）');
   } catch { save.err = 'ブラウザに保存できませんでした'; toast(save.err); }
   syncSaveStatus();
 }
@@ -3997,10 +4069,23 @@ async function pickAutoSaveFile(){
     fileHandle = await window.showSaveFilePicker({suggestedName: save.name + '.json',
       types:[{description:'構造式エディタのファイル', accept:{'application/json':['.json']}}]});
     const w = await fileHandle.createWritable(); await w.write(fileData()); await w.close();
-    save.savedAt = Date.now(); save.savedWhere = 'file'; save.mark = JSON.stringify(doc); save.dirty = false; save.err = '';
+    markSaved('file');
     toast(`「${save.name}.json」に保存しました。これからは自動で書き込みます`);
   } catch (e) { if (e && e.name !== 'AbortError'){ save.err = 'ファイルに保存できませんでした'; toast(save.err); } }
-  syncSaveStatus();
+  syncAutoItem(); syncSaveStatus();
+}
+// ファイルへの自動保存をやめる（ブラウザ内への自動保存は続ける）
+function stopAutoSaveFile(){
+  clearTimeout(fileTimer); fileHandle = null;
+  if (save.err.startsWith('ファイル')) save.err = '';
+  toast('ファイルへの自動保存をやめました（ブラウザへの自動保存は続きます）');
+  syncAutoItem(); syncSaveStatus();
+}
+// メニューの 1 行で「開始…」と「停止」を切り替える（共通仕様 2.1）
+function syncAutoItem(){
+  const on = !!fileHandle;
+  $('miAutoLabel').textContent = on ? 'ファイルへの自動保存を停止' : 'ファイルへの自動保存を開始…';
+  $('icAutoStart').hidden = on; $('icAutoStop').hidden = !on;
 }
 // 読み込む（検査してから反映する）
 function openData(data, how){
@@ -4149,6 +4234,15 @@ $('btnConnRev').onclick = () => {   // 矢印の向きを反転（始点と終�
   });
   changed();
 };
+// 設定メニュー（テーマ・文字サイズ）の選択状態を示す
+function syncSetMenu(v){
+  document.querySelectorAll('#themeSeg button').forEach(b => b.classList.toggle('on', b.dataset.theme === v.theme));
+  document.querySelectorAll('#sizeSeg button').forEach(b => b.classList.toggle('on', b.dataset.size === v.textSize));
+}
+// ショートカットの表記は Mac では ⌘、ほかでは Ctrl
+const IS_MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
+$('kbSave').textContent = IS_MAC ? '⌘S' : 'Ctrl+S';
+$('kbOpen').textContent = IS_MAC ? '⌘O' : 'Ctrl+O';
 const TOGGLES = [['tgSnap', 'moveSnap'], ['tgFix', 'moveFix']];
 const syncToggles = () => TOGGLES.forEach(([id, k]) => $(id).classList.toggle('on', state[k]));
 TOGGLES.forEach(([id, k]) => { $(id).onclick = () => { state[k] = !state[k]; syncToggles(); autosave(); }; });
@@ -4249,17 +4343,16 @@ let savedPane = ''; try { savedPane = localStorage.getItem(SIDE_KEY) || ''; } ca
 openSide(['lib', 'exp'].includes(savedPane) ? savedPane : '');
 $('showRingC').checked = state.showRingC;
 syncToggles();
+syncAutoItem();
 try {   // テーマ・文字サイズ（共通部品）。線の色が変わるので描き直す
-  view = JohoUI.theme({storageKey:VIEW_KEY, themeSelect:$('themeSel'), sizeSelect:$('textSizeSel'),
-    onChange: () => { if (scene){ renderDoc(); renderOverlay(); } }});
-} catch { $('themeSel').closest('.mrow').hidden = true; $('textSizeSel').closest('.mrow').hidden = true; }
+  view = JohoUI.theme({storageKey:VIEW_KEY,
+    onChange: v => { syncSetMenu(v); if (scene){ renderDoc(); renderOverlay(); } }});
+  $('themeSeg').onclick = e => { const b = e.target.closest('[data-theme]'); if (b) view.set({theme:b.dataset.theme}); };
+  $('sizeSeg').onclick = e => { const b = e.target.closest('[data-size]'); if (b) view.set({textSize:b.dataset.size}); };
+} catch { $('setMenu').hidden = true; }   // 共通部品が読めないときは設定を出さない
 syncSaveStatus();
-// 自動保存と明示保存の両方があり、内容が違うときは、どちらを開くか選べるようにする（共通仕様 4.2）
-{
-  const a = readStore(STORE_KEY), b = readStore(SAVED_KEY);
-  if (a && b && JSON.stringify(a.doc) !== JSON.stringify(b.doc))
-    setTimeout(() => showOpenDialog('前回の続き（自動保存）を開いています。ブラウザに保存した内容もあります。開きたい方を選んでください。'), 300);
-}
+// 起動時は直前に開いていた内容（自動保存）をそのまま表示する。ほかの保存内容はファイルメニューの
+// 「ブラウザから開く…」や、画面下の保存の状態から選んで開く（共通仕様 4.2、2026-09-29）
 setMode(state.mode);
 setTool('bond1');
 applyView();
