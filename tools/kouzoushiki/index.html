@@ -215,6 +215,7 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
 .top .row{flex-wrap:nowrap;overflow:clip}
 .top .row.tb > *{flex:none}   /* 縮めずに、あふれたら「その他」へ入れる */
 .top .row.tb > .spacer{flex:1 1 0;min-width:0}
+.top .row.tb > .tabs{flex:1 1 56px;min-width:56px}   /* タブの列は縮んで、中を横スクロールする */
 #btnTools{display:none}
 .more-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:2px}
 #moreBox .ic{width:32px;height:30px}
@@ -231,6 +232,19 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
 }
 @media (max-width:760px){ .app-name{display:none} }
 .top .row.tb.tight .app-name{display:none}   /* 操作が入りきらないときは、アプリ名を隠して場所をあける */
+/* 開いている図のタブ（共通仕様 4.5）。狭いときは横にスクロールし、一覧のメニューからも選べる */
+.tabs{display:flex;align-items:center;gap:3px;flex:1 1 auto;min-width:56px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.dtab{display:flex;align-items:center;gap:5px;max-width:180px;height:30px;padding:0 4px 0 9px;border:1px solid var(--line);
+  background:var(--panel);color:var(--text);border-radius:7px;cursor:pointer;font-size:13px;white-space:nowrap;flex:none}
+.dtab:hover{background:var(--hover)}
+.dtab.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+.dtab .nm{overflow:hidden;text-overflow:ellipsis;max-width:130px}
+.dtab .dot{width:7px;height:7px;border-radius:50%;background:var(--muted);flex:none}          /* 保存していない変更がある印 */
+.dtab .x{border:0;background:none;color:inherit;cursor:pointer;font-size:14px;line-height:1;padding:2px 3px;border-radius:5px;opacity:.6}
+.dtab .x:hover{background:var(--line);opacity:1}
+#tabList .mi{grid-template-columns:14px 1fr auto}
+#tabList .mi .dot{width:7px;height:7px;border-radius:50%;background:var(--muted);justify-self:center}
 @media (max-width:560px){   /* いちばん狭いとき：すき間と区切りを詰めて、1 行に収める */
   #modeName{display:none}
   .top .row{gap:3px;padding:5px 6px}
@@ -301,6 +315,13 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <button class="ic" id="tgFix" title="結合長固定：選択部分や H をドラッグで動かすとき、結合の長さを変えない。矢印の長さ・π軌道の大きさも段階的に変わる"><svg viewBox="0 0 24 24"><path d="M5 14.5L18 8"/><circle cx="5" cy="14.5" r="1.8"/><circle cx="18" cy="8" r="1.8"/><path d="M6.5 19.5L20 12.8M5.8 18.1l1.4 2.8M19.3 11.4l1.4 2.8"/></svg></button>
     <button class="ic" id="tgSnap" title="結合角固定：選択部分や H をドラッグで動かすとき、つながっている結合の角度を 15°刻みにする"><svg viewBox="0 0 24 24"><path d="M3.5 19.5h17"/><path d="M3.5 19.5L15 7"/><path d="M10.5 19.5a7 7 0 00-2.2-5.1"/><circle cx="15" cy="7" r="1.6"/></svg></button>
     <button class="ic" id="btn3d" title="3D で見る：いまの図を分子模型エディタ（別のタブ）で立体の模型にします"><svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.6"/><circle cx="5.5" cy="17" r="2.6"/><circle cx="18.5" cy="17" r="2.6"/><path d="M10.7 8.3L6.8 14.7M13.3 8.3l3.9 6.4M8.1 17h7.8"/></svg></button>
+    <div class="sep"></div>
+    <div class="tabs" id="docTabs" role="tablist" aria-label="開いている図"></div>
+    <button class="ic" id="btnNewTab" aria-label="新しい図" title="新しい図を開く（タブを増やす）">＋</button>
+    <div class="hmenu" id="tabsMenu" hidden>
+      <button class="ic" id="btnTabList" aria-haspopup="true" aria-label="開いている図の一覧" title="開いている図の一覧"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/><path d="M17 15l3 3 3-3"/></svg></button>
+      <div class="menu mlist" id="tabList"></div>
+    </div>
     <div class="hmenu" id="moreMenu" hidden>
       <button class="ic" id="btnMore" aria-haspopup="true" aria-label="そのほかの操作" title="そのほかの操作">…</button>
       <div class="menu" id="moreBox"><div class="gl">そのほかの操作</div><div class="more-row" id="moreRow"></div></div>
@@ -645,12 +666,14 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>保存・読み込み</h3>
     <ol>
       <li>描いた内容は、このブラウザに<strong>自動で保存</strong>されます（画面の下に「自動保存 時刻」と出ます）。</li>
-      <li>残したいときは、左上の<strong>ファイルメニュー</strong>（書類のアイコン ▼）から「ブラウザに保存」か「ファイルに保存…」（.json）を選びます。<kbd>⌘/Ctrl</kbd>+<kbd>S</kbd>（メニューの「保存」）は、前に選んだ保存先へ保存します（初めてのときは保存先を聞きます）。</li>
+      <li>残したいときは、左上の<strong>ファイルメニュー</strong>（書類のアイコン ▼）から「ブラウザに保存」か「ファイルに保存…」（.json）を選びます。<kbd>⌘/Ctrl</kbd>+<kbd>S</kbd>（メニューの「保存」）は、いま見ている図の前に選んだ保存先へ保存します（初めてのときは保存先を聞きます）。保存先はタブごとに覚えます。</li>
       <li>開くときも同じメニューから「ブラウザから開く…」か「ファイルから開く…」（<kbd>⌘/Ctrl</kbd>+<kbd>O</kbd>）。画面の下の保存の状態をクリックしても開けます。</li>
-      <li>アプリを開くと、<strong>前に描いていた内容がそのまま出ます</strong>（自動保存）。前に「ブラウザに保存」した内容は、「ブラウザから開く…」から選べます。</li>
+      <li>アプリを開くと、<strong>前に開いていた図がそのまま出ます</strong>（自動保存）。前に「ブラウザに保存」した内容は、「ブラウザから開く…」から選べます。</li>
+      <li>図は<strong>タブで何枚でも開けます</strong>。上部の ＋ か「新規作成」で増え、「開く」も新しいタブで開きます。タブごとに、内容・元に戻す・保存先・表示倍率が別々です。</li>
     </ol>
     <details><summary>自動保存と保存のちがい</summary><p>自動保存は編集のたびに上書きされる「作業中の控え」です。「ブラウザに保存」を押した内容は別に残るので、自動保存が進んでも消えません。開くときは、自動保存と保存した内容のどちらかを選べます。開く前に、いまの内容を保存するか・破棄するかも選べます。</p></details>
     <details><summary>ファイルへ自動保存する</summary><p>ファイルメニューの「ファイルへの自動保存を開始…」で保存先のファイルを選ぶと、以後は編集するたびにそのファイルへ書き込みます（対応しているブラウザのみ。Chrome は対応しています）。画面の下に「ファイルへ自動保存」と出ます。同じ行が「ファイルへの自動保存を停止」に変わり、押すとやめられます（ブラウザへの自動保存は続きます）。ページを開き直したときは、もう一度ファイルを選んでください。</p></details>
+    <details><summary>タブ（複数の図）</summary><p>上部のタブで図を切り替えます。タブの名前は「名前を変更…」で変えられます。保存していない変更があるタブには ● が付きます。タブの × で閉じ、保存していない変更があるときは「保存して閉じる・保存せずに閉じる・キャンセル」を選べます（閉じても、ブラウザやファイルに保存した内容は消えません）。タブが増えて入りきらないときは横にスクロールし、右の一覧のボタンからも選べます。</p></details>
     <details><summary>図の名前</summary><p>ファイルメニューの「名前を変更…」で、この図の名前を付けられます。名前は保存するファイル名や、「ブラウザから開く…」の一覧に出ます。</p></details>
     <details><summary>ファイルの持ち運び・画像</summary><p>ブラウザへの保存は、ブラウザごと・ファイルの場所ごとに別です。別のパソコンで続きを描くときは、.json ファイルにして持っていきます。画像（PNG・SVG）は書き出しパネルから保存します。</p></details>
   </section>
@@ -668,7 +691,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.6（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.7（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -678,10 +701,10 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
   <div id="openList"></div>
   <div class="row"><button class="sbtn" id="miOpenFile2">ファイルを開く…</button><button class="sbtn" id="openDlgClose">閉じる</button></div>
 </dialog>
-<dialog id="askDlg" aria-labelledby="askDlgTitle">
-  <h2 id="askDlgTitle">保存していない変更があります</h2>
-  <p class="muted" id="askDlgNote">開く前に、いまの内容をどうしますか。</p>
-  <div class="row"><button class="sbtn primary" data-ask="save">保存してから開く</button><button class="sbtn" data-ask="discard">破棄して開く</button><button class="sbtn" data-ask="cancel">キャンセル</button></div>
+<dialog id="closeDlg" aria-labelledby="closeDlgTitle">
+  <h2 id="closeDlgTitle">保存していない変更があります</h2>
+  <p class="muted" id="closeDlgNote">この図を閉じる前に、どうしますか。</p>
+  <div class="row"><button class="sbtn primary" data-close="save">保存して閉じる</button><button class="sbtn" data-close="discard">保存せずに閉じる</button><button class="sbtn" data-close="cancel">キャンセル</button></div>
 </dialog>
 <dialog id="saveDlg" aria-labelledby="saveDlgTitle">
   <h2 id="saveDlgTitle">どこに保存しますか</h2>
@@ -3463,7 +3486,7 @@ window.addEventListener('keydown', e => {
     else if (lk === 'x'){ if (copySel()){ e.preventDefault(); deleteSelection(); } }
     else if (lk === 'v'){ if (clip){ e.preventDefault(); paste(); } }
     else if (lk === 's'){ e.preventDefault(); saveCurrent(); }
-    else if (lk === 'o'){ e.preventDefault(); openWithGuard(() => $('fileInput').click()); }
+    else if (lk === 'o'){ e.preventDefault(); $('fileInput').click(); }
     return;
   }
   if (e.altKey) return;
@@ -3987,6 +4010,7 @@ async function saveJSON(again){
         save.name = (saveHandle.name || save.name).replace(/\.json$/i, '');
       }
       const w = await saveHandle.createWritable(); await w.write(fileData()); await w.close();
+      if (tabs[cur]) tabs[cur].saveHandle = saveHandle;
       markSaved('file'); toast(`「${save.name}.json」に保存しました`); return true;
     } catch (e) {
       if (e && e.name === 'AbortError') return false;
@@ -4003,14 +4027,21 @@ async function saveJSON(again){
 function markSaved(where){
   save.savedAt = Date.now(); save.savedWhere = where; save.dest = where === 'browser' ? 'browser' : 'file';
   save.mark = JSON.stringify(doc); save.dirty = false; save.err = '';
-  syncSaveStatus();
+  stashTab(); syncSaveStatus(); syncTabs();
 }
 // ⌘/Ctrl+S・メニューの「保存」：前回選んだ明示保存先へ保存する。初めてなら保存先を選ぶ（共通仕様 4.5）
-function saveCurrent(){
-  if (isEmpty()){ toast('保存するものがありません'); return; }
+async function saveCurrent(){   // 保存できたら true
+  if (isEmpty()){ toast('保存するものがありません'); return false; }
   if (save.dest === 'browser') return saveToBrowser();
-  if (save.dest === 'file') return saveJSON(true);
-  $('saveDlg').showModal();
+  if (save.dest === 'file') return await saveJSON(true);
+  const dlg = $('saveDlg');
+  const ans = await new Promise(res => {
+    const on = e => { const b = e.target.closest('[data-dest]'); if (!b) return; dlg.close(); dlg.removeEventListener('click', on); res(b.dataset.dest); };
+    dlg.addEventListener('click', on); dlg.showModal();
+  });
+  if (ans === 'browser') return saveToBrowser();
+  if (ans === 'file') return await saveJSON();
+  return false;
 }
 $('miSave').onclick = () => { $('miSave').blur(); saveCurrent(); };
 $('miSaveFile').onclick = () => { $('miSaveFile').blur(); saveJSON(); };
@@ -4021,16 +4052,10 @@ $('miRename').onclick = () => {   // 文書の名前を変える（保存する�
   const n = prompt('この図の名前を入力してください', save.name);
   if (n === null) return;
   save.name = (n.trim() || '構造式').replace(/\.json$/i, '').slice(0, 40);
-  autosave(); toast(`名前を「${save.name}」にしました`);
+  stashTab(); autosave(); syncTabs(); toast(`名前を「${save.name}」にしました`);
 };
-$('saveDlg').addEventListener('click', e => {   // 初めての「保存」：保存先を選ぶ
-  const b = e.target.closest('[data-dest]'); if (!b) return;
-  $('saveDlg').close();
-  if (b.dataset.dest === 'browser') saveToBrowser();
-  else if (b.dataset.dest === 'file') saveJSON();
-});
-$('miOpen').onclick = () => { $('miOpen').blur(); openWithGuard(() => $('fileInput').click()); };
-$('miOpenFile2').onclick = () => { $('openDlg').close(); openWithGuard(() => $('fileInput').click()); };
+$('miOpen').onclick = () => { $('miOpen').blur(); $('fileInput').click(); };
+$('miOpenFile2').onclick = () => { $('openDlg').close(); $('fileInput').click(); };
 $('miOpenSaved').onclick = () => { $('miOpenSaved').blur(); showOpenDialog(); };
 $('openDlgClose').onclick = () => $('openDlg').close();
 $('saveStatus').onclick = () => showOpenDialog();
@@ -4040,52 +4065,153 @@ $('fileInput').addEventListener('change', async e => {
   try {
     const data = JSON.parse(await f.text());
     if (!openData(data, 'file')) throw 0;
-    save.name = f.name.replace(/\.json$/i, '');
-    toast(`「${f.name}」を開きました`); syncSaveStatus();
+    if (!data.name) { save.name = f.name.replace(/\.json$/i, ''); stashTab(); syncTabs(); }
+    toast(`「${f.name}」を新しいタブで開きました`); syncSaveStatus();
   } catch { alert('このファイルは読み込めませんでした。構造式エディタで保存した .json ファイルを選んでください。'); }
 });
-$('miNew').onclick = () => {
-  $('miNew').blur();   // ファイルメニューを閉じる
-  if (isEmpty()) return;
-  if (!confirm('描画内容をすべて消去しますか？（「元に戻す」で復元できます）')) return;
-  commit(); doc = emptyDoc(); clearSel(); changed();
-};
+$('miNew').onclick = () => { $('miNew').blur(); addTab(); toast('新しい図を開きました'); };   // 新規作成は新しいタブ（今の図はそのまま）
 
 // 表示の設定（テーマ・文字サイズ）は文書と分けて覚える（共通部品が持つ）
 const VIEW_KEY = 'kouzoushiki-view';
 let view = null;
 
 // 保存方法（自動・明示）と保存先（ブラウザ内・ローカルファイル）は別のもの（共通仕様 4 章）
-const STORE_KEY = 'kouzoushiki-v1';      // 自動保存（ブラウザ内）
-const SAVED_KEY = 'kouzoushiki-saved';   // 明示保存（ブラウザ内）
+const STORE_KEY = 'kouzoushiki-v1';        // 自動保存（ブラウザ内。いま選んでいる図。分子模型エディタもこれを読む）
+const SAVED_KEY = 'kouzoushiki-saved';     // 明示保存（ブラウザ内。図ごとに別々に持つ）
+const TABS_KEY = 'kouzoushiki-tabs-v1';    // 開いている図ぜんぶの自動保存（共通仕様 4.5）
 const save = {name:'構造式', at:0, savedAt:0, savedWhere:'', dest:'', dirty:false, err:'', mark:'{}'};   // mark：最後に保存した内容、dest：前回選んだ明示保存先
-let fileHandle = null, fileTimer = 0;    // ローカルファイルへの自動保存（対応ブラウザで、利用者が選んだとき）
+let fileHandle = null;                   // ローカルファイルへの自動保存（対応ブラウザで、利用者が選んだとき。図ごと）
 let saveHandle = null;                   // 「ファイルに保存…」で選んだファイル（⌘/Ctrl+S で上書きする）
 const canPick = typeof window.showSaveFilePicker === 'function';
-const fileData = () => JSON.stringify({app:'kouzoushiki', version:1, mode:state.mode, showRingC:state.showRingC, name:save.name, savedAt:Date.now(), doc});
+const fileDataOf = t => JSON.stringify({app:'kouzoushiki', version:1, id:t.id, mode:t.mode, showRingC:t.showRingC, name:t.save.name, savedAt:Date.now(), doc:t.doc});
+const fileData = () => { stashTab(); return fileDataOf(tabs[cur]); };
+// ================= 開いている図（タブ）＝ 1 タブ 1 つの図（共通仕様 4.5） =================
+// いま選んでいるタブの中身が doc・hist・state・save に入っている。切り替えるときに入れ替える
+const tabs = [];
+let cur = 0;
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const newName = () => { const used = new Set(tabs.map(t => t.save.name)); let n = 1; while (used.has(n === 1 ? '構造式' : `構造式 ${n}`)) n++; return n === 1 ? '構造式' : `構造式 ${n}`; };
+function newTab(name){
+  return {id:uid(), doc:emptyDoc(), hist:{undo:[], redo:[]}, mode:state.mode, showRingC:false, zoom:1, pan:{x:0, y:0},
+    fileHandle:null, saveHandle:null, fileTimer:0,
+    save:{name: name || newName(), at:0, savedAt:0, savedWhere:'', dest:'', dirty:false, err:'', mark:'{}'}};
+}
+function stashTab(){   // いまの内容をタブへ書き戻す（保存・切り替えの前に必ず呼ぶ）
+  const t = tabs[cur]; if (!t) return;
+  t.doc = doc; t.hist.undo = hist.undo; t.hist.redo = hist.redo;
+  t.mode = state.mode; t.showRingC = state.showRingC; t.zoom = state.zoom; t.pan = {...state.pan};
+  t.fileHandle = fileHandle; t.saveHandle = saveHandle;
+  Object.assign(t.save, save);
+}
+function loadTab(i){   // タブを選ぶ（内容・履歴・保存先・表示倍率をそのまま引き継ぐ）
+  if (i < 0 || i >= tabs.length || i === cur) { syncTabs(); return; }
+  finishText(true);   // 入力中なら取りやめ
+  stashTab(); cur = i;
+  const t = tabs[i];
+  doc = t.doc; hist.undo = t.hist.undo; hist.redo = t.hist.redo;
+  state.showRingC = t.showRingC; state.zoom = t.zoom; state.pan = {...t.pan};
+  fileHandle = t.fileHandle; saveHandle = t.saveHandle;
+  Object.assign(save, t.save);
+  clearSel(); hover = null;
+  $('showRingC').checked = state.showRingC;
+  setMode(t.mode, true);   // 表記のボタンも合わせる（切り替えただけでは保存しない）
+  applyView(); renderDoc(); renderOverlay(); renderExpList();
+  syncSaveStatus(); syncAutoItem(); syncTabs();
+  try { localStorage.setItem(TABS_KEY, tabsData()); } catch {}
+}
+function addTab(name, fill){   // 新しい図を開いて、そのタブを選ぶ
+  stashTab();
+  const t = newTab(name); tabs.push(t); cur = tabs.length - 1;
+  doc = t.doc; hist.undo = []; hist.redo = [];
+  state.showRingC = t.showRingC; state.zoom = 1; state.pan = {x:0, y:0};
+  fileHandle = null; saveHandle = null;
+  Object.assign(save, t.save);
+  clearSel(); hover = null;
+  if (fill) fill();   // 読み込んだ内容を入れる
+  $('showRingC').checked = state.showRingC;
+  setMode(state.mode, true);
+  applyView(); renderDoc(); renderOverlay(); renderExpList();
+  save.mark = JSON.stringify(doc); save.dirty = false;
+  autosave(); fitView(); syncTabs();
+  return t;
+}
+async function closeTab(i){   // タブを閉じる（保存していない変更があれば確かめる）
+  const t = tabs[i]; if (!t) return;
+  if (i === cur) stashTab();
+  if (t.save.dirty && Object.keys(t.doc.atoms || {}).length + Object.keys(t.doc.objs || {}).length > 0){
+    if (i !== cur) loadTab(i);
+    const dlg = $('closeDlg');
+    $('closeDlgNote').textContent = `「${t.save.name}」には、保存していない変更があります。閉じる前にどうしますか。`;
+    const ans = await new Promise(res => {
+      const on = e => { const b = e.target.closest('[data-close]'); if (!b) return; dlg.close(); dlg.removeEventListener('click', on); res(b.dataset.close); };
+      dlg.addEventListener('click', on); dlg.showModal();
+    });
+    if (ans === 'cancel') return;
+    if (ans === 'save'){ const ok = await saveCurrent(); if (!ok) return; stashTab(); }   // 保存できなければ閉じない
+  }
+  clearTimeout(t.fileTimer);
+  const wasCur = i === cur;
+  tabs.splice(i, 1);
+  if (!tabs.length){ tabs.push(newTab('構造式')); cur = 0; }
+  else if (wasCur) cur = Math.min(i, tabs.length - 1);
+  else if (i < cur) cur--;
+  const t2 = tabs[cur];
+  doc = t2.doc; hist.undo = t2.hist.undo; hist.redo = t2.hist.redo;
+  state.showRingC = t2.showRingC; state.zoom = t2.zoom; state.pan = {...t2.pan};
+  fileHandle = t2.fileHandle; saveHandle = t2.saveHandle;
+  Object.assign(save, t2.save);
+  clearSel(); hover = null; $('showRingC').checked = state.showRingC;
+  setMode(t2.mode, true); applyView(); renderDoc(); renderOverlay(); renderExpList();
+  syncSaveStatus(); syncAutoItem(); autosave(); syncTabs();
+}
+function syncTabs(){   // タブの見た目（名前・選択・保存していない印）
+  const box = $('docTabs');
+  box.innerHTML = tabs.map((t, i) =>
+    `<button class="dtab${i === cur ? ' on' : ''}" role="tab" aria-selected="${i === cur}" data-tab="${i}" title="${esc(t.save.name)}${t.save.dirty ? '（保存していない変更があります）' : ''}">`
+    + `<span class="nm">${esc(t.save.name)}</span>${t.save.dirty ? '<span class="dot" aria-label="保存していない変更あり"></span>' : ''}`
+    + `<span class="x" role="button" tabindex="0" data-close-tab="${i}" aria-label="「${esc(t.save.name)}」を閉じる" title="閉じる">×</span></button>`).join('');
+  $('tabsMenu').hidden = tabs.length < 2;
+  $('tabList').innerHTML = tabs.map((t, i) =>
+    `<button class="mi" data-tab="${i}"><span class="dot" style="${t.save.dirty ? '' : 'visibility:hidden'}"></span><span>${esc(t.save.name)}</span><kbd>${i === cur ? '表示中' : ''}</kbd></button>`).join('');
+  const on = box.querySelector('.dtab.on'); if (on) on.scrollIntoView({block:'nearest', inline:'nearest'});
+  fitBar();
+}
+$('docTabs').addEventListener('click', e => {
+  const x = e.target.closest('[data-close-tab]');
+  if (x){ e.stopPropagation(); closeTab(+x.dataset.closeTab); return; }
+  const b = e.target.closest('[data-tab]'); if (b) loadTab(+b.dataset.tab);
+});
+$('tabList').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b){ b.blur(); loadTab(+b.dataset.tab); } });
+$('btnNewTab').onclick = () => addTab();
 const hhmm = t => { const d = new Date(t); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
 const ymdhm = t => { const d = new Date(t); return `${d.getMonth()+1}/${d.getDate()} ${hhmm(t)}`; };
+const tabsData = () => JSON.stringify({cur, at:Date.now(), tabs: tabs.map(t => ({id:t.id, name:t.save.name, doc:t.doc, mode:t.mode,
+  showRingC:t.showRingC, zoom:t.zoom, pan:t.pan, at:t.save.at, savedAt:t.save.savedAt, savedWhere:t.save.savedWhere, dest:t.save.dest}))});
 function autosave(){
   save.at = Date.now(); save.dirty = JSON.stringify(doc) !== save.mark;   // 最後に保存したときから変わったか
+  stashTab();
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify({doc, mode:state.mode, showRingC:state.showRingC,
       moveSnap:state.moveSnap, moveFix:state.moveFix, name:save.name, at:save.at}));
+    localStorage.setItem(TABS_KEY, tabsData());   // 開いている図ぜんぶ（次に開いたときの続き）
     if (save.err.startsWith('ブラウザ')) save.err = '';
   } catch { save.err = 'ブラウザに自動保存できませんでした（保存できる量を超えているかもしれません）'; }
   fileAutoSave();
-  syncSaveStatus();
+  syncSaveStatus(); syncTabs();
 }
 // 選んだファイルへの自動保存（少し待ってからまとめて書く）
 function fileAutoSave(){
-  if (!fileHandle) return;
-  clearTimeout(fileTimer);
-  fileTimer = setTimeout(async () => {
+  const t = tabs[cur]; if (!t || !t.fileHandle) return;
+  clearTimeout(t.fileTimer);
+  t.fileTimer = setTimeout(async () => {
+    const body = fileDataOf(t);
     try {
-      const w = await fileHandle.createWritable();
-      await w.write(fileData()); await w.close();
-      save.savedAt = Date.now(); save.savedWhere = 'file'; save.mark = JSON.stringify(doc); save.dirty = false; save.err = '';
-    } catch { save.err = 'ファイルに自動保存できませんでした。保存先を選び直してください'; }
-    syncSaveStatus();
+      const w = await t.fileHandle.createWritable();
+      await w.write(body); await w.close();
+      t.save.savedAt = Date.now(); t.save.savedWhere = 'file'; t.save.mark = JSON.stringify(t.doc); t.save.dirty = false; t.save.err = '';
+    } catch { t.save.err = 'ファイルに自動保存できませんでした。保存先を選び直してください'; }
+    if (tabs[cur] === t) Object.assign(save, t.save);   // その図をまだ見ているときだけ画面に反映
+    syncSaveStatus(); syncTabs();
   }, 1200);
 }
 function syncSaveStatus(){
@@ -4098,14 +4224,27 @@ function syncSaveStatus(){
     : save.at ? `自動保存 ${hhmm(save.at)}（このブラウザ）` : '';
 }
 // 明示保存：ブラウザ内
-function saveToBrowser(){
-  if (isEmpty()){ toast('保存するものがありません'); return; }
+const readSavedMap = () => {   // 明示保存（ブラウザ内）：{図の id: 内容}。古い 1 つだけの形も読める
   try {
-    localStorage.setItem(SAVED_KEY, JSON.stringify({doc, mode:state.mode, showRingC:state.showRingC, name:save.name, at:Date.now()}));
+    const v = JSON.parse(localStorage.getItem(SAVED_KEY) || 'null');
+    if (!v) return {};
+    if (v.doc) return {old: {...v, id:'old'}};   // 以前の形（1 つだけ）
+    return v;
+  } catch { return {}; }
+};
+function saveToBrowser(){
+  if (isEmpty()){ toast('保存するものがありません'); return false; }
+  stashTab();
+  const t = tabs[cur];
+  try {
+    const map = readSavedMap();
+    map[t.id] = {id:t.id, doc:t.doc, mode:t.mode, showRingC:t.showRingC, name:t.save.name, at:Date.now()};
+    localStorage.setItem(SAVED_KEY, JSON.stringify(map));
     markSaved('browser');
     toast('ブラウザに保存しました（ファイルメニューの「ブラウザから開く…」で戻せます）');
+    return true;
   } catch { save.err = 'ブラウザに保存できませんでした'; toast(save.err); }
-  syncSaveStatus();
+  syncSaveStatus(); return false;
 }
 // 明示保存：ファイルを決めて、以後そのファイルへ自動保存
 async function pickAutoSaveFile(){
@@ -4117,6 +4256,7 @@ async function pickAutoSaveFile(){
     fileHandle = await window.showSaveFilePicker({suggestedName: save.name + '.json',
       types:[{description:'構造式エディタのファイル', accept:{'application/json':['.json']}}]});
     const w = await fileHandle.createWritable(); await w.write(fileData()); await w.close();
+    if (tabs[cur]) tabs[cur].fileHandle = fileHandle;
     markSaved('file');
     toast(`「${save.name}.json」に保存しました。これからは自動で書き込みます`);
   } catch (e) { if (e && e.name !== 'AbortError'){ save.err = 'ファイルに保存できませんでした'; toast(save.err); } }
@@ -4124,7 +4264,8 @@ async function pickAutoSaveFile(){
 }
 // ファイルへの自動保存をやめる（ブラウザ内への自動保存は続ける）
 function stopAutoSaveFile(){
-  clearTimeout(fileTimer); fileHandle = null;
+  const t = tabs[cur]; if (t){ clearTimeout(t.fileTimer); t.fileHandle = null; }
+  fileHandle = null;
   if (save.err.startsWith('ファイル')) save.err = '';
   toast('ファイルへの自動保存をやめました（ブラウザへの自動保存は続きます）');
   syncAutoItem(); syncSaveStatus();
@@ -4136,40 +4277,35 @@ function syncAutoItem(){
   $('icAutoStart').hidden = on; $('icAutoStop').hidden = !on;
 }
 // 読み込む（検査してから反映する）
-function openData(data, how){
+function openData(data, how){   // 読み込んだ内容を新しいタブで開く（いま開いている図はそのまま）
   const d = data && (data.doc || data);
   if (!d || !d.atoms || !d.bonds) return false;
-  commit(); doc = sanitize(d); clearSel();
-  if (MODE_NAMES[data.mode]) setMode(data.mode);
-  if (typeof data.name === 'string' && data.name) save.name = data.name.slice(0, 40);
+  const clean = sanitize(d);
+  const t = addTab(typeof data.name === 'string' && data.name ? data.name.slice(0, 40) : undefined, () => {
+    doc = clean;
+    if (MODE_NAMES[data.mode]) state.mode = data.mode;
+    state.showRingC = !!data.showRingC;
+  });
+  if (typeof data.id === 'string' && data.id) t.id = data.id;   // 同じ図の明示保存とひもづける
   save.savedAt = data.at || data.savedAt || 0; save.savedWhere = how || '';
-  changed(); fitView();
-  save.mark = JSON.stringify(doc); save.dirty = false; syncSaveStatus();   // 開いた直後は「変更なし」
+  save.dest = how === 'browser' ? 'browser' : how === 'file' ? 'file' : '';
+  save.mark = JSON.stringify(doc); save.dirty = false;
+  stashTab(); syncSaveStatus(); syncTabs();
   return true;
 }
 const readStore = k => { try { const s = JSON.parse(localStorage.getItem(k) || 'null'); return s && s.doc ? s : null; } catch { return null; } };
-// 保存していない変更があるとき：保存してから開く・破棄して開く・キャンセル
-function askBeforeOpen(){
-  return new Promise(res => {
-    if (!save.dirty || isEmpty()) return res('discard');
-    const dlg = $('askDlg');
-    const on = e => { const b = e.target.closest('[data-ask]'); if (!b) return; dlg.close(); dlg.removeEventListener('click', on); res(b.dataset.ask); };
-    dlg.addEventListener('click', on);
-    dlg.showModal();
-  });
-}
-async function openWithGuard(fn){
-  const a = await askBeforeOpen();
-  if (a === 'cancel') return;
-  if (a === 'save'){ if (fileHandle){ clearTimeout(fileTimer); await fileHandle.createWritable().then(async w => { await w.write(fileData()); await w.close(); }).catch(() => {}); } else saveToBrowser(); }
-  fn();
-}
 // 保存した内容の候補（自動保存・明示保存）
-function showOpenDialog(note){
+function showOpenDialog(note){   // 保存した内容の候補（明示保存は図ごと、自動保存は前に開いていた図）
   const list = $('openList'), cands = [];
-  const a = readStore(STORE_KEY), b = readStore(SAVED_KEY);
-  if (a) cands.push({key:STORE_KEY, kind:'自動保存（このブラウザ）', data:a});
-  if (b) cands.push({key:SAVED_KEY, kind:'保存（このブラウザ）', data:b});
+  for (const v of Object.values(readSavedMap())) if (v && v.doc) cands.push({kind:'保存（このブラウザ）', how:'browser', data:v});
+  try {
+    const st = JSON.parse(localStorage.getItem(TABS_KEY) || 'null');
+    for (const t of (st && st.tabs) || []) if (t && t.doc && !tabs.some(x => x.id === t.id))
+      cands.push({kind:'自動保存（このブラウザ）', how:'', data:t});
+  } catch {}
+  const a = readStore(STORE_KEY);   // 以前の形（1 つだけの自動保存）
+  if (a && !cands.length) cands.push({kind:'自動保存（このブラウザ）', how:'', data:a});
+  cands.sort((p, q) => (q.data.at || 0) - (p.data.at || 0));
   list.innerHTML = cands.length ? cands.map((c, i) =>
     `<div class="cand"><div><b>${esc(c.data.name || '構造式')}</b><span>${c.kind}　${c.data.at ? ymdhm(c.data.at) : '日時なし'}</span></div>`
     + `<button class="sbtn" data-cand="${i}">開く</button></div>`).join('')
@@ -4177,35 +4313,51 @@ function showOpenDialog(note){
   list.onclick = e => {
     const btn = e.target.closest('[data-cand]'); if (!btn) return;
     const c = cands[+btn.dataset.cand];
-    openWithGuard(() => {
-      $('openDlg').close();
-      if (openData(c.data, c.key === SAVED_KEY ? 'browser' : '')) toast(`${c.kind}を開きました`);
-      else toast('この内容は読み込めませんでした');
-    });
+    $('openDlg').close();
+    if (openData(c.data, c.how)) toast(`${c.kind}を新しいタブで開きました`);
+    else toast('この内容は読み込めませんでした');
   };
-  $('openDlgNote').textContent = note || '開きたい内容を選んでください。いまの内容は、開く前に保存できます。';
+  $('openDlgNote').textContent = note || '開きたい内容を選んでください。いま開いている図はそのまま残り、新しいタブで開きます。';
   $('openDlg').showModal();
 }
 function restore(){
-  try {
-    const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
-    if (!s) return;
-    if (s.doc) doc = sanitize(s.doc);
-    if (MODE_NAMES[s.mode]) state.mode = s.mode;
-    state.showRingC = !!s.showRingC;
-    state.moveSnap = !!s.moveSnap; state.moveFix = !!s.moveFix;   // 文字の書式は引き継がない（毎回ゴシック体・斜体なしから）
-    if (typeof s.name === 'string' && s.name) save.name = s.name;
-    save.at = s.at || 0; save.mark = JSON.stringify(doc); save.dirty = false;   // 復元した内容は「変更なし」から始める
-  } catch {}
+  let one = null;
+  try { one = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); } catch {}
+  if (one){   // 操作の設定（結合長固定など）は図と別。前回のものを引き継ぐ
+    state.moveSnap = !!one.moveSnap; state.moveFix = !!one.moveFix;   // 文字の書式は引き継がない
+  }
+  let st = null;
+  try { st = JSON.parse(localStorage.getItem(TABS_KEY) || 'null'); } catch {}
+  const list = (st && Array.isArray(st.tabs) ? st.tabs : []).filter(t => t && t.doc && t.doc.atoms);
+  if (!list.length && one && one.doc) list.push({...one, id:uid()});   // 前の版（タブがなかったころ）から引き継ぐ
+  for (const d of list){
+    const t = newTab(typeof d.name === 'string' && d.name ? d.name.slice(0, 40) : undefined);
+    if (typeof d.id === 'string' && d.id) t.id = d.id;
+    t.doc = sanitize(d.doc);
+    if (MODE_NAMES[d.mode]) t.mode = d.mode;
+    t.showRingC = !!d.showRingC;
+    if (isFinite(d.zoom) && d.zoom > 0) t.zoom = Math.max(0.25, Math.min(4, +d.zoom));
+    if (d.pan && isFinite(d.pan.x) && isFinite(d.pan.y)) t.pan = {x:+d.pan.x, y:+d.pan.y};
+    t.save.at = d.at || 0; t.save.savedAt = d.savedAt || 0; t.save.savedWhere = d.savedWhere || '';
+    t.save.dest = d.dest === 'browser' || d.dest === 'file' ? d.dest : '';
+    t.save.mark = JSON.stringify(t.doc); t.save.dirty = false;   // 復元した内容は「変更なし」から始める
+    tabs.push(t);
+  }
+  if (!tabs.length) tabs.push(newTab('構造式'));
+  cur = st && isFinite(st.cur) && st.cur >= 0 && st.cur < tabs.length ? st.cur : 0;
+  const t = tabs[cur];
+  doc = t.doc; state.mode = t.mode; state.showRingC = t.showRingC; state.zoom = t.zoom; state.pan = {...t.pan};
+  Object.assign(save, t.save);
 }
 
 // ================= 初期化 =================
-function setMode(m){
+function setMode(m, quiet){
   state.mode = m;
   document.querySelectorAll('#modeSeg button').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
   $('modeName').textContent = {full:'構造式', condensed:'簡略構造式', skeletal:'骨格構造式'}[m];
   renderLibrary();   // ライブラリも今の表記で描き直す
-  renderDoc(); renderOverlay(); autosave();
+  renderDoc(); renderOverlay();
+  if (!quiet) autosave();   // タブを選び直しただけのときは保存しない
 }
 const elBtn = e => `<button class="el" data-tool="el" data-el="${e}" title="${e} に置き換え（原子をクリック）／空白をクリックで配置">${e}</button>`;
 $('elGrid').innerHTML = ELEMENTS.map(elBtn).join('');
@@ -4283,14 +4435,15 @@ $('btnConnRev').onclick = () => {   // 矢印の向きを反転（始点と終�
   changed();
 };
 // ---- 狭い画面：上部バーはいつも 1 行。あふれる操作は「その他」のメニューへ移す（共通仕様 2.1・2.9）----
-const COLLAPSE = ['btn3d', 'tgSnap', 'tgFix', 'toolText', 'toolErase', 'viewMenu'];   // 入りきらないとき、この順で「その他」へ
+const COLLAPSE = ['btn3d', 'tgSnap', 'tgFix', 'toolText', 'toolErase', 'viewMenu', 'btnNewTab', 'btnRedo', 'btnUndo'];   // 入りきらないとき、この順で「その他」へ
 const barHome = new Map();   // 元の場所（戻すときに使う）
 function barFits(row){   // 上部バーに全部入っているか（子の幅と左右の余白の合計を、見える幅とくらべる）
   const st = getComputedStyle(row), gap = parseFloat(st.gap) || 0;
   const kids = [...row.children].filter(el => !el.hidden && getComputedStyle(el).display !== 'none');
   const w = kids.reduce((t, el) => {
     const cs = getComputedStyle(el), m = (parseFloat(cs.marginLeft) || 0) + (parseFloat(cs.marginRight) || 0);
-    return t + m + (el.classList.contains('spacer') ? 0 : el.getBoundingClientRect().width);
+    const min = el.id === 'docTabs' ? Math.min(el.getBoundingClientRect().width, parseFloat(cs.minWidth) || 56) : null;
+    return t + m + (el.classList.contains('spacer') ? 0 : min != null ? min : el.getBoundingClientRect().width);
   }, 0);
   return w + gap*Math.max(0, kids.length - 1) + parseFloat(st.paddingLeft) + parseFloat(st.paddingRight) <= row.clientWidth + 1;
 }
@@ -4445,6 +4598,7 @@ openSide(['lib', 'exp'].includes(savedPane) ? savedPane : '');
 $('showRingC').checked = state.showRingC;
 syncToggles();
 syncAutoItem();
+syncTabs();
 fitBar();
 try {   // テーマ・文字サイズ（共通部品）。線の色が変わるので描き直す
   view = JohoUI.theme({storageKey:VIEW_KEY,
