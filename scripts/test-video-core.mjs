@@ -13,6 +13,8 @@ equal(Object.isFrozen(core), true);
 // 原本「情報_授業スライド_03デジタル.pptm」61枚目: 1 MB/frame, 24 fps, 1.5 GB (1 GB = 1024 MB)。
 const binaryMegabyte = 1024 ** 2;
 equal(core.playbackSeconds(1.5 * 1024 * binaryMegabyte, binaryMegabyte, 24), 64);
+// dr42問題1は2026-09-29の指定で2MB/枚へ変更。同じ総量・fpsで1枚の容量が2倍なら再生時間は半分。
+equal(core.playbackSeconds(1.5 * 1024 * binaryMegabyte, 2 * binaryMegabyte, 24), 32);
 
 // 同じ原本: 800 × 600画素・24 bitの1枚を1000進で換算し、30 fpsで60秒再生する。
 const frameBytes = 800 * 600 * 24 / 8;

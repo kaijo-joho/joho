@@ -125,10 +125,10 @@
     if (kind === 'duration') {
       const { definition, source, constant, task } = createDefinition('video-duration');
       const total = source('total', '動画全体のデータ量', 1.5, 'GB');
-      const frameSize = source('frame-size', '1フレームのデータ量', 1, 'MB/frame');
+      const frameSize = source('frame-size', '1フレームのデータ量', 2, 'MB/frame');
       const rate = source('rate', 'フレームレート', 24, 'frame/s');
       constant('mega-giga', '換算用の数', 1024);
-      const expected = Video.playbackSeconds(1.5 * 1024 * (1024 ** 2), 1024 ** 2, 24);
+      const expected = Video.playbackSeconds(1.5 * 1024 * (1024 ** 2), 2 * (1024 ** 2), 24);
       task('duration', '再生時間', 's', expected, [total, op('×'), value(1024), op('÷'), frameSize, op('÷'), rate], {
         legacyExpectedTokens: [total, op('×'), value(1024, 'MB/GB'), op('÷'), frameSize, op('÷'), rate]
       });

@@ -55,7 +55,9 @@ assert.deepEqual(colorCount.constants.map(item => item.value), ['2', '8', '1000'
 assert.equal(taskFor(fullColor, 'levels').expected, Image.levels(8), 'RGB各色は24÷3=8bitから導く');
 assert.equal(taskFor(fullColor, 'size').expected, Image.imageSize(4096, 3072, 24, 1024).megabytes, '4096×3072の画像サイズはImageCore由来');
 assert.equal(taskFor(colorCount, 'size').expected, Image.imageSize(1000, 800, 15, 1000).megabytes, '32768色の画像サイズはImageCore由来');
-assert.equal(taskFor(duration, 'duration').expected, Video.playbackSeconds(1.5 * 1024 * 1024 ** 2, 1024 ** 2, 24), '再生時間はVideoCore由来');
+assert.equal(source(duration, 'frame-size').value, '2', '問題1は乗除算の違いが現れる2MB/枚');
+assert.equal(taskFor(duration, 'duration').expected, Video.playbackSeconds(1.5 * 1024 * 1024 ** 2, 2 * 1024 ** 2, 24), '再生時間はVideoCore由来');
+assert.equal(taskFor(duration, 'duration').expected, 32, '1.5GB÷2MB/枚÷24fpsは32秒');
 assert.equal(taskFor(size, 'frame').expected, 1.44, '動画の1フレームは1.44MB');
 assert.equal(taskFor(size, 'total').expected, Video.videoSize(Image.imageSize(800, 600, 24).bytes, 30, 60).megabytes, '動画全体はVideoCore由来');
 
@@ -148,6 +150,12 @@ assert.equal(judged(duration, durationPlainConversion, '単位なし1024によ�
 const durationWrongDirection = correctDraft(duration);
 durationWrongDirection.rows[0].tokens = [source(duration, 'total'), op('÷'), value(1024, 'MB/GB'), op('÷'), source(duration, 'frame-size'), op('÷'), source(duration, 'rate')];
 assert.equal(judged(duration, durationWrongDirection, 'GBからMBの逆向き換算').formulaCorrect, false, 'GBからMBを割らない');
+const multipliedFrameSize = correctDraft(duration);
+multipliedFrameSize.rows[0].tokens = [source(duration, 'total'), op('×'), value(1024), op('×'), source(duration, 'frame-size'), op('÷'), source(duration, 'rate')];
+assert.equal(judged(duration, multipliedFrameSize, '1フレームのデータ量を掛ける').formulaCorrect, false, '1フレームの2MBは割る必要がある');
+const oldDurationAnswer = correctDraft(duration);
+oldDurationAnswer.answers.duration = '64';
+assert.equal(judged(duration, oldDurationAnswer, '変更前の64秒').answerCorrect, false, '2MBへの変更後は64秒を正解にしない');
 
 const referenceTotal = correctDraft(size);
 referenceTotal.rows[1].tokens = [{ kind: 'reference', rowId: 'row-1' }, op('×'), source(size, 'rate'), op('×'), source(size, 'duration')];
