@@ -422,7 +422,8 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     </details>
     <div class="group"><div class="gl">反応式（矢印をクリックで種類変更）</div>
       <div class="grid3">
-        <button data-tool="arrow" data-kind="arrow" class="wide" title="反応の矢印（A）"><svg viewBox="0 0 24 24"><path d="M3 12h17M15 7l5 5-5 5"/></svg>&nbsp;反応の矢印</button>
+        <button data-tool="plus" class="txt" title="反応式の ＋（クリックで置く。左右の物質をつなぐ記号）">＋</button>
+        <button data-tool="arrow" data-kind="arrow" title="反応の矢印（A）"><svg viewBox="0 0 24 24"><path d="M3 12h17M15 7l5 5-5 5"/></svg>&nbsp;反応の矢印</button>
         <button data-tool="arrow" data-kind="equil" title="可逆反応の矢印（片側だけの矢じり）"><svg viewBox="0 0 24 24"><path d="M3 9h18l-5-4M21 15H3l5 4"/></svg></button>
         <button data-tool="arrow" data-kind="equilTop" title="可逆反応の矢印・片側の矢じり（上の右向きが短い＝平衡が左に偏る）"><svg viewBox="0 0 24 24"><path d="M10 9h11l-5-4M21 15H3l5 4"/></svg></button>
         <button data-tool="arrow" data-kind="equilBot" title="可逆反応の矢印・片側の矢じり（下の左向きが短い＝平衡が右に偏る）"><svg viewBox="0 0 24 24"><path d="M3 9h18l-5-4M14 15H3l5 4"/></svg></button>
@@ -517,6 +518,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <button class="ic" data-align="bottom" title="下端をそろえる"><svg viewBox="0 0 24 24"><path d="M3 20h18M7 6v10M12 10v6M17 4v12"/></svg></button>
     <button class="ic" data-align="distH" title="左右に等間隔で並べる（3つ以上）"><svg viewBox="0 0 24 24"><path d="M3 4v16M21 4v16"/><rect x="7" y="8" width="3" height="8"/><rect x="14" y="8" width="3" height="8"/></svg></button>
     <button class="ic" data-align="distV" title="上下に等間隔で並べる（3つ以上）"><svg viewBox="0 0 24 24"><path d="M4 3h16M4 21h16"/><rect x="8" y="7" width="8" height="3"/><rect x="8" y="14" width="8" height="3"/></svg></button>
+    <button class="ic" data-align="react" title="反応式にそろえる：選んだ構造・＋・矢印を左から順に、高さと間隔をそろえて並べます（矢印は水平・同じ長さに、上下の説明の文字は矢印の中央へ）"><svg viewBox="0 0 24 24"><path d="M3 12h4M10 12h4M17 12h4M12 9v6"/><path d="M19 10l2 2-2 2"/></svg></button>
     </span>
     </div>
     <div id="textEditor" contenteditable="true" spellcheck="false"></div>
@@ -631,8 +633,10 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <ol>
       <li>電荷は「電荷」のツールで原子をクリックします（+ − と丸囲みの ⊕ ⊖。もう一度で外れます）。選択ツールで電荷の記号をクリックすると選ばれ、ポップアップで色を変えられます（消しゴム・<kbd>Delete</kbd> で電荷を外せます）。記号はドラッグで原子のまわりの好きな位置に動かせます（「結合角固定」なら 15°刻み、「結合長固定」なら原子からの距離を変えません）。動かした位置は、ポップアップの「電荷」の ↺ で自動に戻せます。</li>
       <li>非共有電子対・不対電子は「電子・軌道」のツールで原子をクリック、原子からドラッグで向きを 15°刻み（<kbd>Shift</kbd> で自由）。</li>
-      <li>反応の矢印は「反応式」のツールでドラッグします。</li>
+      <li>反応の矢印は「反応式」のツールでドラッグします。物質をつなぐ <strong>＋</strong> は、同じところの「＋」をクリックして置きます。</li>
+      <li>並べ終えたら、全部を選んでポップアップの「整列」のいちばん右（→ の印）で<strong>反応式にそろえます</strong>。</li>
     </ol>
+    <details><summary>反応式をきれいに並べる</summary><p>構造・＋・矢印をまとめて選び、「整列」の <strong>反応式にそろえる</strong> を押すと、左から順に並べ直します。<br>・すべての高さを、構造の上下の中央でそろえます（＋ と矢印も同じ高さに）。<br>・矢印は水平にし、長さを同じにします（いちばん長いものに合わせます）。<br>・すき間を一定にします（＋ の左右は狭め、矢印の左右は広め）。<br>・矢印の上下に置いた「点火」「触媒」などの文字は、矢印の中央の上（下）に一定の高さで付いていきます。<br>並び順は、そろえる前の左右の位置のままです。気に入らなければ <kbd>⌘/Ctrl</kbd>+<kbd>Z</kbd> で元に戻せます。</p></details>
     <details><summary>電子の置き方</summary><p>2 つの点は、その向きの仮想の価標に垂直に並びます。何もないところをクリックすると、その場所に電子を置けます（電子式などに使えます）。選択ツールでドラッグして動かし、消しゴムか <kbd>Delete</kbd> で消せます。不対電子を付けると、その分 H が減ります（CH₃• など）。</p></details>
     <details><summary>電子の移動の矢印</summary><p>両羽（電子対）・片羽（電子 1 個）の曲がった矢印を、原子・結合・非共有電子対・電荷（−）からドラッグして描きます（何もないところからでも描けます。<kbd>Shift</kbd> で反対側に曲がります）。選ぶと両端と ◇（曲がり具合）の取っ手が出ます。分子を動かすと一緒に動きます。</p></details>
     <details><summary>π軌道</summary><p>π軌道のツールで原子をクリックします（重ねてクリックすると別の向きに増えます）。原子からドラッグで向きと大きさ（「結合長固定」がオンなら結合 0.3 本分ずつ）。クリックすると色の付いた側が入れ替わります。選ぶと先端の ○ で大きさ・向き、横の □ で幅を変えられます。</p></details>
@@ -699,7 +703,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.8（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.9（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -2478,9 +2482,11 @@ function rotateTransform(c, th){
 }
 
 // ================= ツールと入力 =================
+const PLUS_FS = 20;   // 反応式の ＋ の大きさ（原子のラベルより少し大きい）
 const HINTS = {
   select:'クリックで選択、ドラッグで範囲選択（Shift で追加）。選択したものはドラッグで移動、上の ○ をドラッグで回転、矢印の端をドラッグで長さ・向きを変更、図形は角の □ で大きさを変更、Delete で削除。',
   erase:'原子・結合・矢印・文字・図形をクリックして削除',
+  plus:'クリックして反応式の ＋ を置く（選択ツールで動かす・大きさや色を変えられます）',
   bond1:'原子からドラッグで結合を追加（30°刻み）／原子クリックで自動の方向に伸長／結合クリックで 単→二重→三重',
   bond2:'原子から二重結合を追加／二重結合をクリックすると 2 本目の線の側を反転',
   bond3:'原子から三重結合を追加',
@@ -3093,6 +3099,11 @@ function clickAction(t, p, hit){
     const [kind, head] = connTool();
     if (!(H && hit.type === 'obj' && H.type === 'conn') || (H.kind === kind && (H.head || '') === (head || ''))) return;
     commit(); H.kind = kind; if (head) H.head = head; else delete H.head;
+  } else if (t === 'plus'){   // 反応式の ＋（文字として置くので、動かす・色を変える・書き出すがそのまま使える）
+    commit();
+    const id = newId();
+    doc.objs[id] = {id, type:'text', x:p.x - tw('+', PLUS_FS)/2, y:p.y + PLUS_FS*0.36, text:'+', fs:PLUS_FS, ff:'sans', b:false, i:false, auto:false};
+    clearSel(); sel.objs.add(id);
   } else if (t === 'text'){
     if (hit && hit.type === 'obj' && (H.type === 'text' || H.type === 'shape')) startText(H);   // 図形は中の文字を編集
     else if (hit && hit.type === 'obj' && H.type === 'bracket') startText(H, null, 'label');   // かっこの n や電荷
@@ -3428,7 +3439,71 @@ function moveGroup(g, dx, dy){
   const mv = q => ({x:q.x+dx, y:q.y+dy});
   for (const id of new Set([...g.objs, ...anchoredObjIds(new Set(g.atoms))])) transformObj(doc.objs[id], mv);
 }
+// 反応式にそろえる：左から順に、構造・＋・矢印の高さと間隔をそろえる（2026-09-29）
+const REACT_GAP = {plus:0.5*BOND, arrow:0.8*BOND, other:0.6*BOND};   // となり合うものの間のすき間
+const REACT_LABEL = 0.22*BOND;   // 矢印と、その上下に書く説明（触媒・加熱など）とのすき間
+const isPlusText = o => o && o.type === 'text' && /^[+＋]$/.test((o.text || '').trim());
+function reactKind(g){
+  if (g.atoms.length) return 'struct';
+  const o = doc.objs[g.objs[0]];
+  if (o && o.type === 'arrow') return 'arrow';
+  if (isPlusText(o)) return 'plus';
+  return 'struct';
+}
+function alignReaction(){
+  let gs = alignGroups();
+  if (gs.length < 2){ toast('反応式にする構造・＋・矢印を 2 つ以上選択してください'); return; }
+  commit();
+  // 1) 矢印は水平・同じ長さにそろえる（いちばん長いものに合わせる）
+  const arrowIds = gs.filter(g => reactKind(g) === 'arrow').map(g => g.objs[0]);
+  if (arrowIds.length){
+    const len = Math.max(...arrowIds.map(id => { const o = doc.objs[id]; return Math.hypot(o.x2-o.x1, o.y2-o.y1); }));
+    for (const id of arrowIds){
+      const o = doc.objs[id], y = (o.y1 + o.y2)/2, x = Math.min(o.x1, o.x2);
+      o.x1 = x; o.x2 = x + len; o.y1 = o.y2 = y;
+    }
+    renderDoc(); gs = alignGroups();   // 枠を測り直す
+  }
+  // 2) 上下の基準線：構造のまとまりの中央（構造がなければ全体の中央）
+  const cy = b => (b.y1 + b.y2)/2, cx = b => (b.x1 + b.x2)/2;
+  const mains = gs.filter(g => reactKind(g) === 'struct');
+  const ref = (mains.length ? mains : gs);
+  const base = (Math.min(...ref.map(g => g.bb.y1)) + Math.max(...ref.map(g => g.bb.y2)))/2;
+  // 3) 矢印の上下に置いた説明の文字は、矢印についていくものとして分ける
+  const arrows = gs.filter(g => reactKind(g) === 'arrow');
+  const labels = new Map();   // まとまり → ついていく矢印
+  for (const g of gs){
+    if (reactKind(g) !== 'struct' || g.atoms.length) continue;
+    const o = doc.objs[g.objs[0]];
+    if (!o || o.type !== 'text') continue;
+    const a = arrows.find(ar => cx(g.bb) > ar.bb.x1 - 8 && cx(g.bb) < ar.bb.x2 + 8);
+    if (a && Math.abs(cy(g.bb) - base) > 0.3*BOND) labels.set(g, a);
+  }
+  // 4) 左から順に、すき間をそろえて並べる（左端はそのまま）
+  const items = gs.filter(g => !labels.has(g)).sort((p, q) => p.bb.x1 - q.bb.x1);
+  let x = items[0].bb.x1;
+  for (let i = 0; i < items.length; i++){
+    const g = items[i], w = g.bb.x2 - g.bb.x1;
+    const dx = x - g.bb.x1, dy = base - cy(g.bb);
+    moveGroup(g, dx, dy);
+    for (const [lb, ar] of labels) if (ar === g){   // 矢印についていく文字は、矢印の中央の上下へ（離れ方も一定に）
+      const up = cy(lb.bb) < cy(g.bb);
+      const ty = base + (up ? -1 : 1)*(REACT_LABEL + (lb.bb.y2 - lb.bb.y1)/2);
+      moveGroup(lb, (g.bb.x1 + dx + w/2) - cx(lb.bb), ty - cy(lb.bb));
+    }
+    g.bb.x1 += dx; g.bb.x2 += dx;
+    if (i < items.length - 1){
+      const k1 = reactKind(g), k2 = reactKind(items[i+1]);
+      const gap = k1 === 'arrow' || k2 === 'arrow' ? REACT_GAP.arrow
+        : k1 === 'plus' || k2 === 'plus' ? REACT_GAP.plus : REACT_GAP.other;
+      x += w + gap;
+    }
+  }
+  changed();
+  toast('反応式にそろえました');
+}
 function alignSel(kind){
+  if (kind === 'react') return alignReaction();
   const gs = alignGroups(), dist = kind.startsWith('dist');
   if (gs.length < (dist ? 3 : 2)){
     toast(dist ? '3 つ以上のまとまり（分子・矢印・文字など）を選択してください' : '2 つ以上のまとまり（分子・矢印・文字など）を選択してください');
