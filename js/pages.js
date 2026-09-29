@@ -1,4 +1,4 @@
-//2026-09-29 08:08:26;
+//2026-09-29 11:37:10;
 const pages = {
   "index": {
     "id": "index",
@@ -490,7 +490,7 @@ const pages = {
   },
   "dr41": {
     "id": "dr41",
-    "release": false,
+    "release": true,
     "fileName": "dr41.html",
     "mainTitle": "デジタル表現",
     "category": "画像のデジタル表現",
