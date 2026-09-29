@@ -1,4 +1,4 @@
-//2026-09-29 11:37:10;
+//2026-09-29 11:53:21;
 const pages = {
   "index": {
     "id": "index",
@@ -507,7 +507,7 @@ const pages = {
         "id": "dr42",
         "title": "4-2. 動画のデジタル表現",
         "text": "4-2. 動画のデジタル表現",
-        "release": false,
+        "release": true,
         "url": "dr42.html",
         "detail": "フレームとフレームレート、動画の圧縮、圧縮しない動画のデータ量と再生時間を操作と問題で学びます。"
       }
@@ -527,7 +527,7 @@ const pages = {
   },
   "dr42": {
     "id": "dr42",
-    "release": false,
+    "release": true,
     "fileName": "dr42.html",
     "mainTitle": "デジタル表現",
     "category": "動画のデジタル表現",
