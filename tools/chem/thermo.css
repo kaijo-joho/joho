@@ -1,0 +1,226 @@
+/* エネルギー図エディタの画面。見た目は構造式エディタ（../kouzoushiki/）にそろえる（共通仕様 tools/docs/README.md 2 章）
+   ダークの色・文字サイズ・ツールチップ・知らせは ../shared/ui-kit.css */
+:root{
+  --bg:#eef0f3; --panel:#ffffff; --line:#d9dde3; --text:#1f2933; --muted:#6b7480;
+  --accent:#2563eb; --accent-soft:#e3ecff; --danger:#d61f1f; --ok:#16803c; --warn:#b45309;
+  --hover:#f4f6f9; --shadow:0 6px 22px #14233724;
+  --paper:#ffffff;
+  /* エネルギー図の色：段と文字・目的の式の矢印・与えられた式の矢印・両方の段に足した物質 */
+  --ink:#1f2933; --arrow-target:#2563eb; --arrow-step:#7c3aed; --spect:#d9480f;
+}
+:root[data-theme="dark"], :root[data-resolved-theme="dark"]{
+  --ok:#6fd08c; --warn:#f5b453;
+  --ink:#e8edf4; --arrow-target:#8fb4ff; --arrow-step:#c4a5ff; --spect:#ff9a66;
+}
+/* 操作部だけを拡大する（図は画面に合わせて自動で大きさが変わる） */
+.top,.tools,.side,.info,#hint{zoom:var(--ui-k, 1)}
+.tool-help{font-size:var(--ui-size, 14px)}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);
+  font:14px/1.4 -apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Yu Gothic",Meiryo,sans-serif}
+button,select,input{font:inherit;color:inherit}
+#app{display:grid;height:100vh;max-width:100vw;overflow:hidden;
+  grid-template:"top top top" auto "tools canvas side" 1fr "tools info side" auto / calc(320px*var(--ui-k, 1)) 1fr auto}
+
+/* ---- 上部バー（1 行） ---- */
+.top{grid-area:top;display:flex;align-items:center;gap:5px;padding:5px 10px;font-size:13px;background:var(--panel);border-bottom:1px solid var(--line);min-width:0}
+.top > *{flex:none}
+.brand{display:flex;align-items:center;gap:7px;font-weight:700;font-size:15px;margin-right:6px;white-space:nowrap}
+.brand .app-icon{width:24px;height:24px;flex:none}
+.app-home{display:inline-flex;border-radius:7px}
+.beta{font-size:10px;font-weight:700;color:#fff;background:#ea7a00;border-radius:4px;padding:1px 5px;letter-spacing:.5px}
+.top button.ic{width:32px;height:30px;padding:0;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);
+  background:var(--panel);border-radius:7px;cursor:pointer;font-size:13px;font-weight:600}
+.top button.ic:hover{background:var(--hover)}
+.top button.ic svg{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.top button.ic.wide{width:auto;padding:0 8px;gap:4px;font-size:12.5px;font-weight:500}
+.top button.ic.wide .caret{font-size:9px;color:var(--muted)}
+.top button:disabled{opacity:.4;cursor:default}
+.top .btn{border:1px solid var(--line);background:var(--panel);border-radius:7px;height:30px;padding:0 10px;cursor:pointer;white-space:nowrap;display:inline-flex;align-items:center;gap:4px}
+.top .btn:hover{background:var(--hover)}
+.top .btn svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sep{width:1px;height:22px;background:var(--line);margin:0 2px}
+.spacer{flex:1 1 0!important;min-width:0}
+#docName{max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted);font-size:12.5px;border:0;background:none;cursor:pointer;padding:3px 6px;border-radius:6px}
+#docName:hover{background:var(--hover);color:var(--text)}
+/* ホバー・クリックで開くメニュー */
+.hmenu{position:relative;display:inline-flex}
+.hmenu > .menu{display:none;position:absolute;top:100%;left:0;margin-top:6px;z-index:25;background:var(--panel);border:1px solid var(--line);border-radius:10px;
+  box-shadow:0 8px 24px rgba(20,30,50,.16);padding:10px 12px;min-width:250px;flex-direction:column;gap:9px;font-size:13px}
+.hmenu > .menu::before{content:'';position:absolute;left:0;right:0;top:-9px;height:9px}
+.hmenu:hover > .menu,.hmenu:focus-within > .menu,.hmenu.open > .menu{display:flex}
+.hmenu.closed > .menu{display:none!important}
+.hmenu > .menu.mlist{min-width:0;padding:6px;gap:2px}
+.hmenu .mi{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:8px;padding:6px 10px;min-height:30px;border:0;background:none;text-align:left;border-radius:6px;cursor:pointer;font-size:13px;white-space:nowrap}
+.hmenu .mi:hover{background:var(--accent-soft);color:var(--accent)}
+.hmenu .mi svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.hmenu .mi kbd{border:0;background:none;color:var(--muted);font:12px Menlo,monospace;padding:0;justify-self:end}
+.hmenu .msep{height:1px;background:var(--line);margin:4px 2px}
+#setMenu > .menu{left:auto;right:0}
+.gl{font-size:11px;color:var(--muted);margin:2px 2px 0}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{border:0;background:var(--panel);color:var(--text);padding:5px 11px;cursor:pointer;border-right:1px solid var(--line);white-space:nowrap}
+.seg button:last-child{border-right:0}
+.seg button.on{background:var(--accent-soft);color:var(--accent);font-weight:700}
+.seg.iseg button{padding:5px 10px;display:inline-flex;align-items:center}
+.seg.iseg svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.chk{display:flex;align-items:flex-start;gap:6px;cursor:pointer;line-height:1.45}
+.chk input{margin-top:3px}
+.chk small{display:block;color:var(--muted);font-size:11.5px}
+
+/* ---- 左：式の一覧 ---- */
+.tools{grid-area:tools;background:var(--panel);border-right:1px solid var(--line);overflow-y:auto;padding:8px 10px 16px;display:flex;flex-direction:column;gap:8px;min-height:0}
+.libbtn{width:100%;height:36px;background:var(--accent);border:1px solid var(--accent);color:#fff;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;flex:none}
+.libbtn:hover{filter:brightness(1.08)}
+.libbtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.inserts{display:flex;flex-wrap:wrap;gap:3px}
+.inserts button{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:2px 7px;font-size:12.5px;cursor:pointer;min-width:30px;height:26px}
+.inserts button:hover{background:var(--hover)}
+.inserts sub,.inserts sup{font-size:9px}
+.sec-title{font-size:11px;color:var(--muted);margin:6px 2px 0;display:flex;align-items:center;justify-content:space-between}
+.card{border:1px solid var(--line);border-radius:9px;padding:7px 8px;display:flex;flex-direction:column;gap:5px;background:var(--panel)}
+.card.target{border:2px solid var(--accent)}
+.card.bad{border-color:var(--danger)}
+.card.hl{box-shadow:0 0 0 3px var(--accent-soft)}
+.card.unused .eq-prev{opacity:.55}
+.card-head{display:flex;align-items:center;gap:6px}
+.eq-no{font-weight:700;font-size:13px;min-width:24px;color:var(--arrow-step)}
+.card.target .eq-no{color:var(--accent)}
+.card-head .grow{flex:1}
+.card-del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:2px 5px;border-radius:5px}
+.card-del:hover{background:var(--hover);color:var(--danger)}
+.eq-text{width:100%;border:1px solid var(--line);border-radius:6px;padding:5px 7px;background:var(--panel);font-size:13.5px;font-family:Menlo,Consolas,"Hiragino Sans",monospace}
+.eq-text:focus,.eq-dh:focus{border-color:var(--accent);outline:none}
+.eq-row{display:flex;align-items:center;gap:5px;flex-wrap:wrap;font-size:13px}
+.eq-dh{width:84px;border:1px solid var(--line);border-radius:6px;padding:4px 6px;background:var(--panel);font-family:Menlo,Consolas,monospace;font-size:13px}
+.eq-row .lbl{color:var(--muted)}
+.eq-row select{border:1px solid var(--line);border-radius:6px;padding:3px 4px;background:var(--panel)}
+.rev{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:3px 7px;cursor:pointer;font-size:12px;white-space:nowrap}
+.rev.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent);font-weight:700}
+.rev:disabled{opacity:.4;cursor:default}
+.eq-prev{font-family:Arial,"Hiragino Sans",sans-serif;font-size:14px;line-height:1.5;word-break:break-word}
+.eq-prev sub,.eq-prev sup{font-size:.72em;line-height:0}
+.eq-prev small{font-size:.82em}
+.eq-msg{font-size:12px;line-height:1.45}
+.eq-msg.err{color:var(--danger)}
+.eq-msg.warn{color:var(--warn)}
+.eq-msg.solved{color:var(--ok);font-weight:700}
+.build-row{display:flex;gap:6px;flex-wrap:wrap}
+.build-row .sbtn{display:inline-flex;align-items:center;gap:4px}
+.build-row svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.addbtn{border:1px dashed var(--line);background:none;border-radius:8px;padding:7px;cursor:pointer;color:var(--muted);font-size:13px}
+.addbtn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ---- 中央：エネルギー図 ---- */
+#wrap{grid-area:canvas;position:relative;overflow:hidden;background:var(--paper);min-width:0;min-height:0;outline:none}
+#dia{position:absolute;inset:0;padding:14px 14px 38px;display:flex;overflow:auto}
+#dia svg{margin:auto;flex:none;overflow:visible}   /* 中央に置く。入りきらないときは枠の中でスクロール（左端が切れないよう margin:auto） */
+#dia .arrow{cursor:pointer}
+#dia .arrow.hl line{stroke-width:4}
+#dia .empty{color:var(--muted);text-align:center;line-height:1.8;max-width:420px}
+#hint{position:absolute;left:10px;bottom:8px;font-size:12px;color:var(--muted);background:var(--panel);opacity:.92;
+  padding:3px 8px;border-radius:6px;pointer-events:none;max-width:calc(100% - 20px)}
+
+/* ---- 下：計算・状態 ---- */
+.info{grid-area:info;display:flex;align-items:center;gap:10px;padding:6px 10px;background:var(--panel);border-top:1px solid var(--line);min-height:42px;flex-wrap:wrap}
+#calc{flex:1;min-width:0;font-family:Arial,"Hiragino Sans",sans-serif;font-size:14px;line-height:1.5}
+#calc .combo{color:var(--arrow-step);font-weight:700;margin-right:10px}
+#calc .res{color:var(--arrow-target);font-weight:700}
+#calc .left{color:var(--muted);font-size:12.5px}
+#calc sub,#calc sup{font-size:.72em;line-height:0}
+.chip{border-radius:14px;padding:2px 10px;font-size:12.5px;white-space:nowrap;border:1px solid var(--line);background:var(--bg)}
+.chip.ok{color:var(--ok);border-color:var(--ok)}
+.chip.no{color:var(--warn);border-color:var(--warn)}
+#saveStatus{border:0;background:none;padding:2px 4px;cursor:pointer;font-size:12px;color:var(--muted);white-space:nowrap}
+#saveStatus:hover{text-decoration:underline}
+#saveStatus.warn{color:var(--danger)}
+
+/* ---- 右：ライブラリ・書き出し（右端のタブで開閉） ---- */
+.side{grid-area:side;display:flex;flex-direction:row;min-height:0;background:var(--panel);border-left:1px solid var(--line)}
+.side-main{display:none;flex-direction:column;min-height:0;width:var(--side-w, 330px)}
+.side.open > .side-main{display:flex}
+.side-pane{display:flex;flex-direction:column;min-height:0;flex:1}
+.side-resize{display:none;width:6px;margin-right:-6px;position:relative;z-index:2;cursor:col-resize;flex:none}
+.side-resize:hover,.side-resize.drag{background:var(--accent-soft)}
+.side.open > .side-resize{display:block}
+.side-tabs{width:26px;flex:none;display:flex;flex-direction:column;background:var(--bg);border-left:1px solid var(--line)}
+.side-tab{border:0;border-bottom:1px solid var(--line);background:none;cursor:pointer;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 0;font-size:12px}
+.side-tab:hover,.side-tab.on{background:var(--accent-soft);color:var(--accent)}
+.side-tab.on{font-weight:700}
+.side-tab .vt{writing-mode:vertical-rl;letter-spacing:3px}
+.side-tab svg{width:17px;height:17px;flex:none;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.side header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px;border-bottom:1px solid var(--line);font-weight:700;font-size:13px}
+.side header button{border:0;background:none;font-size:18px;cursor:pointer;color:var(--muted)}
+.side-body{overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;flex:1;min-height:0;font-size:13px}
+.lib-search{border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:13px;width:100%;background:var(--panel)}
+details.lib{border-top:1px solid var(--line);padding-top:6px}
+details.lib > summary{cursor:pointer;font-weight:700;font-size:13px;list-style:none;display:flex;align-items:center;gap:5px;user-select:none}
+details.lib > summary::-webkit-details-marker{display:none}
+details.lib > summary::before{content:'▸';font-size:10px;color:var(--muted);transition:transform .15s}
+details.lib[open] > summary::before{transform:rotate(90deg)}
+details.lib .note{color:var(--muted);font-size:11.5px;margin:3px 0 6px}
+.lib-item{border:1px solid var(--line);border-radius:8px;padding:5px 7px;margin-bottom:5px;display:flex;flex-direction:column;gap:3px}
+.lib-item:hover{border-color:var(--accent)}
+.lib-item .nm{font-size:11.5px;color:var(--muted)}
+.lib-item .eq{font-family:Arial,"Hiragino Sans",sans-serif;font-size:13.5px;line-height:1.45}
+.lib-item .eq sub,.lib-item .eq sup{font-size:.72em;line-height:0}
+.lib-item .eq small{font-size:.82em}
+.lib-item .acts{display:flex;gap:5px;justify-content:flex-end}
+.sbtn{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:7px;padding:4px 10px;cursor:pointer;font-size:12.5px}
+.sbtn:hover{background:var(--hover)}
+.sbtn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.sbtn.primary:hover{filter:brightness(1.08)}
+.ex-item{text-align:left;border:1px solid var(--line);background:var(--panel);border-radius:8px;padding:7px 9px;cursor:pointer;font-size:13px;margin-bottom:5px;width:100%}
+.ex-item:hover{border-color:var(--accent);background:var(--hover)}
+.frow{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.frow select,.frow input[type=text]{border:1px solid var(--line);border-radius:7px;padding:4px 6px;background:var(--panel)}
+.exp-prev{border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px;display:flex;justify-content:center}
+.exp-prev svg{max-width:100%;height:auto;max-height:220px}
+
+/* ---- ダイアログ ---- */
+dialog{border:1px solid var(--line);border-radius:12px;background:var(--panel);color:var(--text);padding:16px 18px;max-width:min(520px,92vw);box-shadow:var(--shadow)}
+dialog::backdrop{background:rgba(20,25,35,.35)}
+dialog h2{margin:0 0 8px;font-size:15px}
+dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-wrap:wrap}
+dialog input[type=text]{width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:var(--panel)}
+.cand{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:8px;padding:8px 10px;margin-top:8px}
+.cand div{flex:1;min-width:0}
+.cand b{font-size:13px}
+.cand span{display:block;font-size:12px;color:var(--muted)}
+kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;padding:0 5px;font:12px Menlo,monospace;background:var(--bg)}
+.credit{margin:18px 0 4px;text-align:center;font-size:12px;color:var(--muted);line-height:1.8}
+
+/* キーボードで移動したとき、どこにいるか分かるようにする（共通仕様 2.9） */
+button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visible,[tabindex]:focus-visible,a:focus-visible{outline:2px solid var(--accent);outline-offset:1px;border-radius:7px}
+.side-tab:focus-visible{outline-offset:-2px}
+
+/* ---- 狭い画面（共通仕様 2.9）：上部は 1 行。左の式の一覧は引き出しにする ---- */
+#btnTools{display:none!important}
+.tools-back{display:none;position:fixed;inset:0;z-index:29;background:rgba(0,0,0,.25)}
+#app.tools-open .tools-back{display:block}
+@media (max-width:900px){
+  #app{grid-template:"top top top" auto "canvas canvas side" 1fr "info info side" auto / 0 1fr auto}
+  .tools{position:fixed;left:0;top:var(--top-h, 41px);bottom:0;width:min(calc(320px*var(--ui-k, 1)), 88vw);z-index:30;
+    transform:translateX(-102%);transition:transform .15s;box-shadow:2px 0 18px rgba(0,0,0,.28)}
+  #app.tools-open .tools{transform:none}
+  #btnTools{display:inline-flex!important}
+  .side.open > .side-main{width:min(var(--side-w, 330px), 70vw)}
+  #docName{display:none}
+}
+@media (max-width:700px){
+  .app-name,.beta{display:none}
+}
+@media (max-width:560px){
+  .top{gap:3px;padding:5px 6px}
+  .top .sep{display:none}
+  .top button.ic{width:30px}
+  #viewName{display:none}   /* 表示メニューはアイコンだけにして、右端の設定・ヘルプを画面に残す */
+  .top button.ic.wide{padding:0 5px}
+  .brand{margin-right:2px}
+  .side.open > .side-main{width:calc(100vw - 27px)}
+  .side.open > .side-resize{display:none}
+  #hint{font-size:11px}
+  #app:has(.side.open) #hint{display:none}
+  .info{font-size:12px}
+}
