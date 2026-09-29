@@ -212,10 +212,10 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
 .side-tab.on{font-weight:700}
 /* 狭い画面（共通仕様 2.9）：上部はいつも 1 行。あふれる操作は「その他」へ入れ、左のパレットは引き出しにする */
 #app{max-width:100vw;overflow:hidden}
-.top .row{flex-wrap:nowrap;overflow:clip}
+.top .row{flex-wrap:nowrap}   /* はみ出しは fitBar が「その他」へ入れて防ぐ。ここで切り取るとメニューが開けない */
 .top .row.tb > *{flex:none}   /* 縮めずに、あふれたら「その他」へ入れる */
 .top .row.tb > .spacer{flex:1 1 0;min-width:0}
-.top .row.tb > .tabs{flex:1 1 56px;min-width:56px}   /* タブの列は縮んで、中を横スクロールする */
+.top .row.tb > .tabs{flex:0 1 auto;min-width:40px}   /* タブの列は縮んで、中を横スクロールする */
 #btnTools{display:none}
 .more-row{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;padding:2px}
 #moreBox .ic{width:32px;height:30px}
@@ -233,8 +233,10 @@ kbd{border:1px solid var(--line);border-bottom-width:2px;border-radius:4px;paddi
 @media (max-width:760px){ .app-name{display:none} }
 .top .row.tb.tight .app-name{display:none}   /* 操作が入りきらないときは、アプリ名を隠して場所をあける */
 /* 開いている図のタブ（共通仕様 4.5）。狭いときは横にスクロールし、一覧のメニューからも選べる */
-.tabs{display:flex;align-items:center;gap:3px;flex:1 1 auto;min-width:56px;overflow-x:auto;scrollbar-width:none}
+.tabs{display:flex;align-items:center;flex:0 1 auto;min-width:40px;overflow-x:auto;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
+.tabstrip{display:flex;align-items:center;gap:3px;flex:none}
+.tabadd{flex:none}   /* 「＋」はタブの列のすぐ右（切れない位置）に置く */
 .dtab{display:flex;align-items:center;gap:5px;max-width:180px;height:30px;padding:0 4px 0 9px;border:1px solid var(--line);
   background:var(--panel);color:var(--text);border-radius:7px;cursor:pointer;font-size:13px;white-space:nowrap;flex:none}
 .dtab:hover{background:var(--hover)}
@@ -316,8 +318,8 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <button class="ic" id="tgSnap" title="結合角固定：選択部分や H をドラッグで動かすとき、つながっている結合の角度を 15°刻みにする"><svg viewBox="0 0 24 24"><path d="M3.5 19.5h17"/><path d="M3.5 19.5L15 7"/><path d="M10.5 19.5a7 7 0 00-2.2-5.1"/><circle cx="15" cy="7" r="1.6"/></svg></button>
     <button class="ic" id="btn3d" title="3D で見る：いまの図を分子模型エディタ（別のタブ）で立体の模型にします"><svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="2.6"/><circle cx="5.5" cy="17" r="2.6"/><circle cx="18.5" cy="17" r="2.6"/><path d="M10.7 8.3L6.8 14.7M13.3 8.3l3.9 6.4M8.1 17h7.8"/></svg></button>
     <div class="sep"></div>
-    <div class="tabs" id="docTabs" role="tablist" aria-label="開いている図"></div>
-    <button class="ic" id="btnNewTab" aria-label="新しい図" title="新しい図を開く（タブを増やす）">＋</button>
+    <div class="tabs" id="docTabs"><div class="tabstrip" id="tabStrip" role="tablist" aria-label="開いている図"></div></div>
+    <button class="ic tabadd" id="btnNewTab" aria-label="新しい図" title="新しい図を開く（タブを増やす）">＋</button>
     <div class="hmenu" id="tabsMenu" hidden>
       <button class="ic" id="btnTabList" aria-haspopup="true" aria-label="開いている図の一覧" title="開いている図の一覧"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h10"/><path d="M17 15l3 3 3-3"/></svg></button>
       <div class="menu mlist" id="tabList"></div>
@@ -691,7 +693,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.7（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.7.1（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -4165,23 +4167,27 @@ async function closeTab(i){   // タブを閉じる（保存していない変�
   syncSaveStatus(); syncAutoItem(); autosave(); syncTabs();
 }
 function syncTabs(){   // タブの見た目（名前・選択・保存していない印）
-  const box = $('docTabs');
+  const box = $('tabStrip');
   box.innerHTML = tabs.map((t, i) =>
     `<button class="dtab${i === cur ? ' on' : ''}" role="tab" aria-selected="${i === cur}" data-tab="${i}" title="${esc(t.save.name)}${t.save.dirty ? '（保存していない変更があります）' : ''}">`
     + `<span class="nm">${esc(t.save.name)}</span>${t.save.dirty ? '<span class="dot" aria-label="保存していない変更あり"></span>' : ''}`
     + `<span class="x" role="button" tabindex="0" data-close-tab="${i}" aria-label="「${esc(t.save.name)}」を閉じる" title="閉じる">×</span></button>`).join('');
   $('tabsMenu').hidden = tabs.length < 2;
   $('tabList').innerHTML = tabs.map((t, i) =>
-    `<button class="mi" data-tab="${i}"><span class="dot" style="${t.save.dirty ? '' : 'visibility:hidden'}"></span><span>${esc(t.save.name)}</span><kbd>${i === cur ? '表示中' : ''}</kbd></button>`).join('');
+    `<button class="mi" data-tab="${i}"><span class="dot" style="${t.save.dirty ? '' : 'visibility:hidden'}"></span><span>${esc(t.save.name)}</span><kbd>${i === cur ? '表示中' : ''}</kbd></button>`).join('')
+    + '<div class="msep"></div><button class="mi" id="miNewTab2"><span>＋</span><span>新しい図</span><kbd></kbd></button>';
   const on = box.querySelector('.dtab.on'); if (on) on.scrollIntoView({block:'nearest', inline:'nearest'});
   fitBar();
 }
-$('docTabs').addEventListener('click', e => {
+$('tabStrip').addEventListener('click', e => {
   const x = e.target.closest('[data-close-tab]');
   if (x){ e.stopPropagation(); closeTab(+x.dataset.closeTab); return; }
   const b = e.target.closest('[data-tab]'); if (b) loadTab(+b.dataset.tab);
 });
-$('tabList').addEventListener('click', e => { const b = e.target.closest('[data-tab]'); if (b){ b.blur(); loadTab(+b.dataset.tab); } });
+$('tabList').addEventListener('click', e => {
+  if (e.target.closest('#miNewTab2')){ e.target.blur(); addTab(); return; }
+  const b = e.target.closest('[data-tab]'); if (b){ b.blur(); loadTab(+b.dataset.tab); }
+});
 $('btnNewTab').onclick = () => addTab();
 const hhmm = t => { const d = new Date(t); return `${d.getHours()}:${String(d.getMinutes()).padStart(2, '0')}`; };
 const ymdhm = t => { const d = new Date(t); return `${d.getMonth()+1}/${d.getDate()} ${hhmm(t)}`; };
