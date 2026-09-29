@@ -478,21 +478,8 @@
       }
     });
     host.querySelector('[data-video-formula-reset]').addEventListener('click', () => builder.reset(definition));
-    const solution = host.querySelector('[data-video-solution]');
-    const steps = [...solution.querySelectorAll('ol > li')];
-    const next = solution.querySelector('[data-video-solution-next]');
-    let count = 1;
-    function updateSolution() {
-      steps.forEach((step, index) => { step.hidden = index >= count; });
-      next.disabled = count === steps.length;
-      next.textContent = next.disabled ? '解説はここまで' : '次へ';
-      next.setAttribute('aria-label', next.disabled ? '解説はここまで' : `解説の次の段階を表示（${count + 1} / ${steps.length}）`);
-      resized();
-    }
-    next.addEventListener('click', () => { count = Math.min(steps.length, count + 1); updateSolution(); });
-    solution.querySelector('[data-video-solution-reset]').addEventListener('click', () => { count = 1; updateSolution(); });
     host.querySelector('details').addEventListener('toggle', resized);
-    reveal(host); updateSolution();
+    reveal(host);
   }
 
   function initialize() {

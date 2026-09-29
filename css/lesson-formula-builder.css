@@ -109,16 +109,16 @@
 .formula-expression {
   position: relative;
   overflow-x: auto;
-  margin-block: .5rem;
-  padding: 1.65rem .5rem 1.5rem;
+  margin-block: .35rem;
+  padding: 1.25rem .25rem .75rem;
   border: 1px dashed var(--formula-border);
   border-radius: .45rem;
   background: color-mix(in oklab, var(--formula-panel) 96%, var(--formula-text));
 }
-.formula-expression-line { display: flex; align-items: center; width: max-content; min-width: 100%; gap: .25rem; }
+.formula-expression-line { display: flex; align-items: center; width: max-content; min-width: 100%; gap: 0; }
 .formula-expression-line > .formula-token-list { flex: 0 0 auto; }
 .formula-expression-line > .is-empty-expression { flex: 1 0 auto; }
-.formula-token-list { display: inline-flex; align-items: center; gap: .15rem; min-height: 44px; white-space: nowrap; }
+.formula-token-list { display: inline-flex; align-items: center; gap: 0; min-height: 44px; white-space: nowrap; }
 .formula-token-list.is-empty-expression { display: flex; }
 .is-empty-expression > .formula-slot { flex: 1; text-align: start; }
 .formula-token {
@@ -128,14 +128,14 @@
   min-height: 44px;
   border: 1px solid transparent;
   border-radius: .3rem;
-  padding: .12rem .25rem;
+  padding: .08rem .12rem;
   vertical-align: middle;
   cursor: grab;
 }
 .formula-token-remove {
   position: absolute;
-  inset-block-start: -24px;
-  inset-inline-end: -16px;
+  inset-block-start: -20px;
+  inset-inline-end: -14px;
   width: 44px;
   height: 44px;
   min-height: 44px;
@@ -161,13 +161,13 @@
   font: 700 14px/1 sans-serif;
 }
 .formula-token.is-selected { border-color: var(--formula-focus); background: color-mix(in oklab, var(--formula-panel) 78%, var(--formula-focus)); }
-.formula-token.has-exponent-target { margin-inline-end: 12px; }
+.formula-token.has-exponent-target { margin-inline-end: 8px; }
 .formula-exponent-target {
   visibility: hidden;
   pointer-events: none;
   position: absolute;
   inset-block-start: -26px;
-  inset-inline-end: -28px;
+  inset-inline-end: -24px;
   width: 44px;
   height: 44px;
   min-height: 44px;
@@ -199,9 +199,10 @@
 .formula-group { gap: .05rem; }
 .formula-slot {
   position: relative;
-  min-width: 44px;
+  width: 20px;
+  min-width: 20px;
   min-height: 44px;
-  padding: 0 .2rem;
+  padding: 0;
   border-color: transparent;
   background: transparent;
   color: var(--formula-muted);
@@ -310,7 +311,11 @@
 }
 @media (max-width: 390px) {
   .formula-palette, .formula-task { padding: .5rem; }
-  .formula-token-list { gap: .08rem; }
+  .formula-token-list { gap: 0; }
+}
+/* マウスでは式間を詰め、タップでは従来どおり44pxの挿入先を確保する。 */
+@media (pointer: coarse) {
+  .formula-slot { width: 44px; min-width: 44px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .lesson-formula-builder *, .lesson-formula-builder *::before, .lesson-formula-builder *::after { scroll-behavior: auto !important; transition: none !important; }

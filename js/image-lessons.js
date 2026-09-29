@@ -614,19 +614,8 @@
           : Formulas.grade(definition, draft, { taskId }));
       }
     });
-    const solution = host.querySelector('[data-image-solution]');
-    const steps = [...solution.querySelectorAll('ol > li')];
-    const next = solution.querySelector('[data-image-solution-next]');
-    let count = 1;
-    function update() {
-      steps.forEach((step, index) => { step.hidden = index >= count; });
-      next.disabled = count === steps.length;
-      next.textContent = next.disabled ? '解説はここまで' : '次へ';
-      resized();
-    }
-    next.addEventListener('click', () => { count = Math.min(steps.length, count + 1); update(); });
     host.querySelector('details').addEventListener('toggle', resized);
-    reveal(host); update();
+    reveal(host);
   }
 
   function initializeFormats(host) {

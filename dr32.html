@@ -175,13 +175,9 @@
           <div data-sound-formula-builder></div>
           <noscript><p>式の組み立てと判定にはJavaScriptが必要です。問題文を使って紙に式を書き、自分で計算してください。</p></noscript>
           <div class="dr-question-actions">
+            <button type="button" class="dr-button dr-button--primary" data-worked-example-reveal aria-expanded="false" aria-controls="channel-data-solution">解答を見る</button>
           </div>
-          <div class="dr-feedback is-info" data-worked-example-feedback role="status" aria-live="polite">
-            「次へ」を押すと、解き方を一段階ずつ確認できます。
-          </div>
-          <div class="dr-question-actions">
-            <button type="button" class="dr-button dr-button--primary" data-worked-example-next>次へ</button>
-          </div>
+          <div class="dr-feedback is-info" id="channel-data-solution" data-worked-example-feedback hidden></div>
         </div>
       </div>
     </article>
@@ -202,8 +198,10 @@
           <div data-sound-formula-builder></div>
           <div class="dr-feedback" data-calculation-feedback role="status" aria-live="polite"></div>
           <div class="dr-question-actions">
+            <button type="button" class="dr-button" data-calculation-reveal aria-expanded="false" aria-controls="sampling-solution">解答を見る</button>
             <button type="button" class="dr-button" data-calculation-next>次の問題</button>
           </div>
+          <div class="dr-feedback is-info" id="sampling-solution" data-calculation-solution hidden></div>
         </div>
       </div>
     </article>
@@ -224,8 +222,10 @@
           <div data-sound-formula-builder></div>
           <div class="dr-feedback" data-calculation-feedback role="status" aria-live="polite"></div>
           <div class="dr-question-actions">
+            <button type="button" class="dr-button" data-calculation-reveal aria-expanded="false" aria-controls="quantization-solution">解答を見る</button>
             <button type="button" class="dr-button" data-calculation-next>次の問題</button>
           </div>
+          <div class="dr-feedback is-info" id="quantization-solution" data-calculation-solution hidden></div>
         </div>
       </div>
     </article>
@@ -246,8 +246,10 @@
           <div data-sound-formula-builder></div>
           <div class="dr-feedback" data-calculation-feedback role="status" aria-live="polite"></div>
           <div class="dr-question-actions">
+            <button type="button" class="dr-button" data-calculation-reveal aria-expanded="false" aria-controls="data-size-solution">解答を見る</button>
             <button type="button" class="dr-button" data-calculation-next>次の問題</button>
           </div>
+          <div class="dr-feedback is-info" id="data-size-solution" data-calculation-solution hidden></div>
         </div>
       </div>
     </article>

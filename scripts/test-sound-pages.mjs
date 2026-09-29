@@ -400,7 +400,7 @@ equal((dr32.match(/<title id="(?:mono|stereo|surround)-title">/g) || []).length,
 equal((dr32.match(/<desc id="(?:mono|stereo|surround)-desc">/g) || []).length, 3, '各チャンネルSVGにdescを設定');
 ok(dr32.includes('信号A（1系統）') && dr32.includes('左：信号A') && dr32.includes('右：信号B'), 'モノラルとステレオの信号系統を図示');
 ok(dr32.includes('スクリーン（前）') && dr32.includes('dr-channel-svg__subwoofer') && dr32.includes('>.1</text>'), '5.1チャンネルの向きと低音用信号を図示');
-for (const requirement of ['data-sound-worked-example="channel-data"', 'data-worked-example-next']) {
+for (const requirement of ['data-sound-worked-example="channel-data"', 'data-worked-example-reveal']) {
   ok(dr32.includes(requirement), `チャンネル数とデータ量の例題に「${requirement}」`);
 }
 const channelExampleSlide = dr32.match(/<section data-lesson-slide data-lesson-slide-title="チャンネル数とデータ量の例題">([\s\S]*?)<\/section>/)?.[1] || '';
@@ -445,9 +445,11 @@ for (const requirement of ['dr-solution__steps', '式を選ぶ', '時間を秒�
 for (const unit of ['［回/秒］', '［秒］', '［bit］', '［チャンネル］', '［bit/B］']) {
   ok(quiz.includes(unit), `音声データ量の立式に単位「${unit}」`);
 }
-for (const requirement of ['revealedSteps', "nextButton.textContent = hasHiddenSteps ? '次へ' : '次の問題'", 'problem.solution.steps.slice(0, revealedSteps)', 'replaceGroupIndexes']) {
-  ok(quiz.includes(requirement), `計算問題の解法を順次表示する実装「${requirement}」`);
+for (const requirement of ['solutionVisible', 'data-calculation-reveal', 'problem.solution.steps.forEach', "nextButton.textContent = '次の問題'"]) {
+  ok(quiz.includes(requirement), `解答を別操作で一括表示する実装「${requirement}」`);
 }
+ok(!quiz.includes('setDisabled(result.judged)'), '判定後も式を編集できる');
+ok(quiz.includes("answerUnit: 'MB', answerDigits: 0, tolerance: 0.5"), 'CD全体のデータ量は整数回答を採点');
 ok(quiz.includes('192000') && quiz.includes('4 * 60 + 16'), '添付例と同じ192kHz・24bit・ステレオ・4分16秒の問題を維持');
 
 const quizContext = {

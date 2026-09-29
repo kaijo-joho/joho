@@ -86,14 +86,16 @@ async function fillCorrect(selector, wrongAnswer = false) {
 async function nextProblem(selector) {
   const host = page.locator(selector);
   const next = host.locator('[data-calculation-next]');
-  let stepCount = 0;
-  while (await next.textContent() === '次へ') {
-    await next.click();
-    stepCount += 1;
-    assert.ok(stepCount < 20, '解説は有限の手順で完了する');
-  }
-  assert.ok(stepCount > 0, '既存の次へ解説を確認できる');
+  await expect(host.locator('[data-calculation-solution]')).toBeHidden();
+  assert.equal(await host.locator('.dr-solution__steps li').count(), 0, '判定だけでは正解・解説を生成しない');
+  const before = await editorDraft(selector);
+  await host.locator('[data-calculation-reveal]').click();
   await expect(host.locator('.dr-solution__point')).toBeVisible();
+  assert.ok(await host.locator('.dr-solution__steps li').count() >= 3, '解答を見ると全手順を一括表示');
+  assert.deepEqual(await editorDraft(selector), before, '解答を開いても式と手入力答えを保持');
+  await host.locator('[data-calculation-reveal]').click();
+  await expect(host.locator('[data-calculation-solution]')).toBeHidden();
+  await expect(next).toHaveText('次の問題');
   await next.click();
   const draft = await editorDraft(selector);
   assert.ok(draft.rows.every(row => blankExpression(row.tokens) && !row.result), '次の問題で式と途中結果を初期化');
@@ -198,8 +200,10 @@ try {
   assert.ok(exampleFeedback.some(text => text.includes('答え') && text.includes('○')), '例題も行内で答えを判定する');
   assert.ok((await exampleBuilder.locator('[data-formula-task="sample"] .formula-feedback').allTextContents()).some(text => text.includes('立式') && text.includes('○')), '小問(2)の判定後も小問(1)の判定結果を残す');
   assert.ok(await page.locator('[data-sound-formula-score]').evaluateAll(nodes => nodes.every(node => node.textContent.includes('解答 0問'))), '例題はスコア外');
-  await page.locator(`${exampleSelector} [data-worked-example-next]`).click();
-  await expect(page.locator(`${exampleSelector} .dr-solution__steps li`)).toHaveCount(1);
+  await expect(page.locator(`${exampleSelector} [data-worked-example-feedback]`)).toBeHidden();
+  await page.locator(`${exampleSelector} [data-worked-example-reveal]`).click();
+  assert.ok(await page.locator(`${exampleSelector} .dr-solution__steps li`).count() > 1, '例題の全解説を一度で表示');
+  await expect(page.locator(`${exampleSelector} .dr-solution__point`)).toBeVisible();
   assert.deepEqual(await editorDraft(exampleSelector), savedExample, '例題解説は入力を消さない');
 
   await showSlide(3);
@@ -216,9 +220,22 @@ try {
   await fillCorrect(selectorFor('sampling'), true);
   await (await judgeFor(sampling)).click();
   await expect(sampling.locator('[data-sound-formula-score]')).toHaveText('解答 1問 ／ 立式正解 1問 ／ 答え正解 0問');
-  // disable属性を回避してイベントを再送してもコントローラー側が二重計上しない。
-  await sampling.locator('[data-formula-judge]').dispatchEvent('click');
+  await expect(sampling.locator('[data-formula-answer]')).toBeEnabled();
+  await expect(sampling.locator('[data-formula-judge]')).toBeEnabled();
+  await sampling.locator('[data-formula-judge]').click();
   await expect(sampling.locator('[data-sound-formula-score]')).toHaveText('解答 1問 ／ 立式正解 1問 ／ 答え正解 0問');
+  await expect(sampling.locator('[data-calculation-solution]')).toBeHidden();
+  await fillCorrect(selectorFor('sampling'));
+  await (await judgeFor(sampling)).click();
+  await expect(sampling.locator('[data-calculation-feedback]')).toContainText('答え：○ 正解');
+  await expect(sampling.locator('[data-sound-formula-score]')).toHaveText('解答 1問 ／ 立式正解 1問 ／ 答え正解 0問');
+  // 答えだけでなく、判定済みの式も通常のクリック操作で修正できる。
+  await sampling.locator('[data-formula-token]').first().click();
+  await expect(sampling.locator('.formula-token-remove')).toBeVisible();
+  await sampling.locator('.formula-token-remove').click();
+  await expect(sampling.locator('[data-formula-token]')).toHaveCount(2);
+  await expect(sampling.locator('[data-calculation-feedback]')).toContainText('もう一度判定');
+  await fillCorrect(selectorFor('sampling'));
   await nextProblem(selectorFor('sampling'));
 
   let attempts = 1;
@@ -230,6 +247,10 @@ try {
     for (let i = 0; seen.size < size && i < 60; i += 1) {
       const id = await fillCorrect(selector);
       seen.add(id);
+      if (id === 'cd-full-binary') {
+        await expect(page.locator(`${selector} [data-calculation-prompt]`)).toContainText('整数で答えてください');
+        await page.locator(`${selector} [data-formula-answer]`).fill('754');
+      }
       if (id === 'bits-17levels') {
         // 不等式の型と結論欄を最初から示す。＝操作は不要。
         await page.evaluate(selector => {

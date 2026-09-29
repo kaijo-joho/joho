@@ -71,6 +71,7 @@ async function verifyProblem({ pageName, slide, selector, tasks, reset = false }
     assert.ok(initial.draft.rows.every(row => !row.tokens.length && !row.answerOpen), `${selector}: 初期状態では答え欄を開かない`);
     assert.equal(await host.locator('[data-formula-answer], [data-formula-judge]').count(), 0, `${selector}: 初期状態で答え欄と判定を置かない`);
   }
+  const details = host.locator('details');
   const taskIds = await setCorrect(selector);
   for (const taskId of taskIds) {
     const task = host.locator(`[data-formula-task="${taskId}"]`);
@@ -78,17 +79,16 @@ async function verifyProblem({ pageName, slide, selector, tasks, reset = false }
     await judge.click();
     const feedback = await task.locator('.formula-feedback').allTextContents();
     assert.ok(feedback.some(text => text.includes('立式') && text.includes('○') && text.includes('答え') && text.includes('○')), `${selector}/${taskId}: 立式と手入力答えを別々に判定 (${feedback.join(' / ')})`);
+    assert.equal(await task.locator('[data-formula-answer]').last().isEditable(), true, `${selector}/${taskId}: 判定後も答えを編集できる`);
+    assert.equal(await details.evaluate(node => node.open), false, `${selector}/${taskId}: 判定で解答を自動表示しない`);
   }
-  const details = host.locator('details');
+  assert.equal(await details.locator('summary').textContent(), '解答を見る', `${selector}: 解説の入口を統一`);
   await details.locator('summary').click();
-  const next = details.locator('[data-image-solution-next], [data-video-solution-next]');
-  let steps = 0;
-  while (await next.isVisible() && await next.isEnabled() && await next.textContent() === '次へ') {
-    await next.click();
-    steps += 1;
-    assert.ok(steps < 20, `${selector}: 解説は有限の段階で終わる`);
-  }
-  assert.ok(steps > 0, `${selector}: 既存の段階解説を維持`);
+  const steps = details.locator('ol > li');
+  assert.ok(await steps.count() > 0, `${selector}: 既存の解説を保持`);
+  assert.equal(await details.evaluate(node => node.open), true, `${selector}: 解答を見るで解説を開く`);
+  assert.ok(await steps.evaluateAll(nodes => nodes.every(node => !node.hidden && node.checkVisibility())), `${selector}: 解説を一度に全表示`);
+  assert.equal(await details.locator('[data-image-solution-next], [data-video-solution-next], [data-video-solution-reset]').count(), 0, `${selector}: 次へ・解説リセットを置かない`);
   if (reset) {
     await host.locator('[data-video-formula-reset]').click();
     const cleared = await entryFor(selector);

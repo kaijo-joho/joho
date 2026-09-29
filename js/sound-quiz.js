@@ -214,7 +214,9 @@
         ...formulaSteps,
         {
           label: '約分して、まとめて計算する',
-          text: `計算しやすい形にすると、${simplifiedDataSizeExpression(params, answerUnit)} = ${calculationNumber(expected, answerDigits)}${answerUnit}です。`
+          text: answerDigits === 0 && !Number.isInteger(expected)
+            ? `計算しやすい形にすると、${simplifiedDataSizeExpression(params, answerUnit)} ≈ ${calculationNumber(expected, 4)}${answerUnit}です。最後に小数第1位を四捨五入して、約${calculationNumber(expected, 0)}${answerUnit}となります。`
+            : `計算しやすい形にすると、${simplifiedDataSizeExpression(params, answerUnit)} = ${calculationNumber(expected, answerDigits)}${answerUnit}です。`
         }
       ];
       point = '途中ごとに大きな数を求めず、単位換算まで含む一本の式を先に立てます。掛け算と割り算をまとめると、割り切れる部分を先に約分して計算量を減らせます。';
@@ -581,8 +583,8 @@
           answerUnit: 'MB',
           base: 1024
         },
-        prompt: 'CD音質（44,100Hz、16bit、ステレオ）で74分42秒を記録すると約何MBですか。この問題では1KB = 1024B、1MB = 1024KBで換算し、小数第1位まで答えてください。',
-        answerUnit: 'MB', answerDigits: 1, tolerance: 0.06
+        prompt: 'CD音質（44,100Hz、16bit、ステレオ）で74分42秒を記録すると約何MBですか。この問題では1KB = 1024B、1MB = 1024KBで換算し、小数第1位を四捨五入して整数で答えてください。',
+        answerUnit: 'MB', answerDigits: 0, tolerance: 0.5
       }),
       createCalculationProblem({
         id: 'high-resolution-binary', kind: 'dataSize', pattern: 'data-size', level: 3,
@@ -671,64 +673,33 @@
       };
     }
 
-    function buildSolution(problem, revealedSteps) {
+    function buildSolution(problem) {
       const solution = el('div', 'dr-solution');
       solution.appendChild(el('h4', 'dr-solution__title', '解き方'));
-      if (revealedSteps === 0) {
-        solution.appendChild(el('p', 'dr-solution__prompt', '「次へ」を押すと、解き方を一段階ずつ確認できます。'));
-      } else {
-        const list = el('ol', 'dr-solution__steps');
-        const revealed = problem.solution.steps.slice(0, revealedSteps);
-        const visibleSteps = [];
-        const replaceGroupIndexes = new Map();
-        revealed.forEach(step => {
-          if (!step.replaceGroup) {
-            visibleSteps.push(step);
-            return;
-          }
-          if (replaceGroupIndexes.has(step.replaceGroup)) {
-            visibleSteps[replaceGroupIndexes.get(step.replaceGroup)] = step;
-            return;
-          }
-          replaceGroupIndexes.set(step.replaceGroup, visibleSteps.length);
-          visibleSteps.push(step);
-        });
-        const newestStep = revealed[revealed.length - 1];
-        visibleSteps.forEach(step => {
-          const item = document.createElement('li');
-          if (step === newestStep) item.classList.add('is-new');
-          item.appendChild(el('strong', 'dr-solution__step-label', step.label));
-          if (step.formula) item.appendChild(el('span', 'dr-solution__formula', step.formula));
-          item.appendChild(el('span', 'dr-solution__step-text', step.text));
-          list.appendChild(item);
-        });
-        solution.appendChild(list);
-      }
-      if (revealedSteps === problem.solution.steps.length) {
-        const point = el('p', 'dr-solution__point is-new');
-        point.append(
-          el('strong', '', 'ポイント'),
-          document.createTextNode(`：${problem.solution.point}`)
-        );
-        solution.appendChild(point);
-      }
+      const list = el('ol', 'dr-solution__steps');
+      // Keep every reason/unit explanation, not just the last accumulated
+      // formula from the former step-by-step presentation.
+      problem.solution.steps.forEach(step => {
+        const item = document.createElement('li');
+        item.appendChild(el('strong', 'dr-solution__step-label', step.label));
+        if (step.formula) item.appendChild(el('span', 'dr-solution__formula', step.formula));
+        item.appendChild(el('span', 'dr-solution__step-text', step.text));
+        list.appendChild(item);
+      });
+      const point = el('p', 'dr-solution__point');
+      point.append(
+        el('strong', '', 'ポイント'),
+        document.createTextNode(`：${problem.solution.point}`)
+      );
+      solution.append(list, point);
       return solution;
     }
 
     function renderCalculationFeedback(host, result, correct) {
-      const problem = result.problem;
       const target = host.querySelector('[data-calculation-feedback]');
-      target.className = `dr-feedback ${correct ? 'is-correct' : 'is-wrong'}`;
-      const outcome = el(
-        'p',
-        'dr-feedback__result',
-        correct
-          ? `正解です。答えは ${calculationNumber(problem.expected, problem.answerDigits)}${problem.answerUnit} です。`
-          : `正解は ${calculationNumber(problem.expected, problem.answerDigits)}${problem.answerUnit} です。`
-      );
-      const solution = buildSolution(problem, result.revealedSteps);
+      target.className = `dr-feedback ${correct && result.formulaFeedback?.formulaCorrect ? 'is-correct' : 'is-wrong'}`;
       const formulaOutcome = el('p', 'dr-feedback__result', `立式：${result.formulaFeedback?.formulaCorrect ? '○ 正解' : '× 見直しましょう'} ／ 答え：${correct ? '○ 正解' : '× 見直しましょう'}`);
-      target.replaceChildren(formulaOutcome, outcome, solution);
+      target.replaceChildren(formulaOutcome, el('p', '', '式と答えを修正して、もう一度判定できます。スコアは初回の判定のみを数えます。'));
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
 
@@ -736,9 +707,9 @@
       if (host.dataset.soundWorkedExample !== 'channel-data') return;
       const problem = createChannelDataExample();
       const target = host.querySelector('[data-worked-example-feedback]');
-      const nextButton = host.querySelector('[data-worked-example-next]');
-      if (!target || !nextButton) return;
-      let revealedSteps = 0;
+      const revealButton = host.querySelector('[data-worked-example-reveal]');
+      if (!target || !revealButton) return;
+      let solutionVisible = false;
       const formulaHost = host.querySelector('[data-sound-formula-builder]');
       if (formulaHost && FormulaBuilder && Formulas) {
         const definition = Formulas.define(problem);
@@ -760,23 +731,20 @@
       }
 
       function render() {
-        const solution = buildSolution(problem, revealedSteps);
-        solution.classList.add('dr-solution--standalone');
+        const solution = solutionVisible ? buildSolution(problem) : null;
+        solution?.classList.add('dr-solution--standalone');
         target.className = 'dr-feedback is-info';
-        target.replaceChildren(solution);
-        const finished = revealedSteps === problem.solution.steps.length;
-        nextButton.textContent = finished ? '最初から見る' : '次へ';
-        nextButton.setAttribute(
-          'aria-label',
-          finished ? '例題の解き方を最初から見る' : `解き方の${revealedSteps + 1}段階目を表示`
-        );
+        target.replaceChildren(...(solution ? [solution] : []));
+        target.hidden = !solutionVisible;
+        revealButton.textContent = solutionVisible ? '解答を隠す' : '解答を見る';
+        revealButton.setAttribute('aria-expanded', String(solutionVisible));
         document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
       }
 
-      nextButton.addEventListener('click', () => {
-        revealedSteps = revealedSteps === problem.solution.steps.length ? 0 : revealedSteps + 1;
+      revealButton.addEventListener('click', () => {
+        solutionVisible = !solutionVisible;
         render();
-        nextButton.scrollIntoView({ block: 'nearest' });
+        revealButton.scrollIntoView({ block: 'nearest' });
       });
       render();
     }
@@ -917,22 +885,21 @@
       const { host, result } = controller;
       const problem = result.problem;
       host.querySelector('[data-calculation-prompt]').textContent = problem.prompt;
-      controller.builder?.setDisabled(result.judged);
       const nextButton = host.querySelector('[data-calculation-next]');
-      const hasHiddenSteps = result.judged && result.revealedSteps < problem.solution.steps.length;
-      nextButton.textContent = hasHiddenSteps ? '次へ' : '次の問題';
-      nextButton.setAttribute(
-        'aria-label',
-        hasHiddenSteps
-          ? `解き方の${result.revealedSteps + 1}段階目を表示`
-          : '次の問題を表示'
-      );
+      nextButton.textContent = '次の問題';
+      nextButton.setAttribute('aria-label', '次の問題を表示');
+      const reveal = host.querySelector('[data-calculation-reveal]');
+      const solution = host.querySelector('[data-calculation-solution]');
+      reveal.textContent = result.solutionVisible ? '解答を隠す' : '解答を見る';
+      reveal.setAttribute('aria-expanded', String(result.solutionVisible));
+      solution.hidden = !result.solutionVisible;
+      solution.replaceChildren(...(result.solutionVisible ? [buildSolution(problem)] : []));
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     }
 
     function judgeCalculationFormula(controller, { rowId, taskId, intermediate, draft }) {
       const result = controller.result;
-      if (!result || result.judged) return;
+      if (!result) return;
       const judgment = intermediate
         ? Formulas.gradeRow(controller.definition, draft, rowId)
         : Formulas.grade(controller.definition, draft, { taskId });
@@ -947,12 +914,11 @@
       recordFormula(result, judgment);
       renderCalculationFeedback(controller.host, result, correct);
       renderCalculation(controller);
-      controller.host.querySelector('[data-calculation-next]').focus({ preventScroll: true });
     }
 
     function newCalculationProblem(controller, focusAnswer = true) {
       const problem = choose(`calculation-${controller.pattern}`, calculationProblemGroups[controller.pattern]);
-      controller.result = { problem, answer: '', judged: false, counted: false, revealedSteps: 0 };
+      controller.result = { problem, answer: '', judged: false, counted: false, solutionVisible: false };
       controller.formulaFeedback = null;
       controller.definition = Formulas.define(problem);
       if (controller.builder) controller.builder.reset(controller.definition);
@@ -960,6 +926,8 @@
         onJudge(judge) { judgeCalculationFormula(controller, judge); },
         onChange() {
           controller.formulaFeedback = null;
+          controller.result.judged = false;
+          setFeedback(controller.host.querySelector('[data-calculation-feedback]'), '変更した式と答えを、もう一度判定できます。');
         }
       });
       setFeedback(
@@ -980,16 +948,10 @@
         return;
       }
       const controller = { host, pattern, result: null };
-      host.querySelector('[data-calculation-next]').addEventListener('click', () => {
-        const result = controller.result;
-        if (result?.judged && result.revealedSteps < result.problem.solution.steps.length) {
-          result.revealedSteps += 1;
-          renderCalculationFeedback(host, result, result.correct);
-          renderCalculation(controller);
-          host.querySelector('[data-calculation-next]').scrollIntoView({ block: 'nearest' });
-          return;
-        }
-        newCalculationProblem(controller);
+      host.querySelector('[data-calculation-next]').addEventListener('click', () => newCalculationProblem(controller));
+      host.querySelector('[data-calculation-reveal]').addEventListener('click', () => {
+        controller.result.solutionVisible = !controller.result.solutionVisible;
+        renderCalculation(controller);
       });
       newCalculationProblem(controller, false);
     }

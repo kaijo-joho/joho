@@ -145,6 +145,24 @@ try {
   await firstRow.locator('[data-formula-slot]').first().click();
   await example.locator('[data-formula-quantity]').first().click();
   assert.equal(await firstRow.locator('[data-formula-slot].is-active').count(), 0, '挿入後にキャレットを残さない');
+  const compactDesktop = await firstRow.locator('.formula-expression').evaluate(expression => {
+    const line = expression.querySelector('.formula-expression-line');
+    const list = expression.querySelector('.formula-token-list');
+    const slot = expression.querySelector('[data-formula-slot]:not(.is-empty)');
+    const style = getComputedStyle(expression);
+    return {
+      lineGap: parseFloat(getComputedStyle(line).gap),
+      listGap: parseFloat(getComputedStyle(list).gap),
+      slotWidth: slot.getBoundingClientRect().width,
+      slotHeight: slot.getBoundingClientRect().height,
+      paddingTop: parseFloat(style.paddingTop),
+      paddingBottom: parseFloat(style.paddingBottom)
+    };
+  });
+  assert.equal(compactDesktop.lineGap, 0, '式と答え欄の間に余分なgapを置かない');
+  assert.equal(compactDesktop.listGap, 0, '数値・演算子間に余分なgapを置かない');
+  assert.ok(compactDesktop.slotWidth <= 21 && compactDesktop.slotHeight >= 43.5, '精密ポインタでは小さいslotでもクリック・キーボード用の高さを保つ');
+  assert.ok(compactDesktop.paddingTop <= 20 && compactDesktop.paddingBottom <= 12, '式枠内の上下余白を詰める');
   await example.locator('[data-formula-operator="="]').click();
   assert.equal((await draft()).rows[0].tokens.some(token => token.kind === 'operator' && token.value === '='), false, '= 操作を式へ等号tokenとして追加しない');
   const answer = firstRow.locator('[data-formula-answer="sample"]');
@@ -273,18 +291,24 @@ try {
   await openPopup('constants');
   const dragCard = example.locator('[data-formula-constant="two"]');
   assert.equal(await example.locator('.is-drop-target, .is-drop-preferred, .is-dragover').count(), 0, '通常表示にdrag用の案内を残さない');
-  await dragCard.hover();
-  const sourceBox = await dragCard.boundingBox();
-  await page.mouse.down();
-  await page.mouse.move(sourceBox.x + sourceBox.width / 2 + 8, sourceBox.y + sourceBox.height / 2 + 8, { steps: 4 });
   const targetToken = firstRow.locator('[data-formula-token]').first();
   const targetBox = await targetToken.boundingBox();
-  await targetToken.hover({ position: { x: targetBox.width - 4, y: targetBox.height / 2 } });
-  await targetToken.hover({ position: { x: targetBox.width - 3, y: targetBox.height / 2 } });
-  await expect(example).toHaveClass(/is-dragging/);
-  assert.ok(await example.locator('[data-formula-slot].is-drop-target').count() > 0, 'ドラッグ中に挿入できるslotを目立たせる');
-  assert.ok(await example.locator('[data-formula-slot].is-drop-preferred').count() > 0, 'ドラッグ中は自然な挿入候補を濃く示す');
-  await page.mouse.up();
+  if (engineName === 'webkit') {
+    // WebKitはマウス座標だけの擬似dragでdropを発火しないため、実際の
+    // native drag APIで同じ右半分へのdropを行う。
+    await dragCard.dragTo(targetToken, { targetPosition: { x: targetBox.width - 4, y: targetBox.height / 2 } });
+  } else {
+    await dragCard.hover();
+    const sourceBox = await dragCard.boundingBox();
+    await page.mouse.down();
+    await page.mouse.move(sourceBox.x + sourceBox.width / 2 + 8, sourceBox.y + sourceBox.height / 2 + 8, { steps: 4 });
+    await targetToken.hover({ position: { x: targetBox.width - 4, y: targetBox.height / 2 } });
+    await targetToken.hover({ position: { x: targetBox.width - 3, y: targetBox.height / 2 } });
+    await expect(example).toHaveClass(/is-dragging/);
+    assert.ok(await example.locator('[data-formula-slot].is-drop-target').count() > 0, 'ドラッグ中に挿入できるslotを目立たせる');
+    assert.ok(await example.locator('[data-formula-slot].is-drop-preferred').count() > 0, 'ドラッグ中は自然な挿入候補を濃く示す');
+    await page.mouse.up();
+  }
   assert.deepEqual((await draft()).rows[0].tokens.map(token => token.value), ['16', '2'], 'token右半分にdropすると直後へ1個だけ挿入');
   await expect(example).not.toHaveClass(/is-dragging/);
   assert.equal(await example.locator('.is-drop-target, .is-drop-preferred, .is-dragover').count(), 0, 'drop完了後はdrag用の案内を消す');
@@ -463,6 +487,9 @@ try {
   });
   await touchSample.locator('[data-formula-slot]').first().tap();
   await touchBuilder.locator('[data-formula-quantity]').first().tap();
+  const coarseSlot = touchSample.locator('[data-formula-slot]:not(.is-empty)').first();
+  assert.ok((await coarseSlot.boundingBox()).width >= 43.5 && (await coarseSlot.boundingBox()).height >= 43.5, 'coarse pointerでは挿入slotを44px以上に保つ');
+  assert.equal(await touchSample.locator('.formula-token-list').first().evaluate(list => parseFloat(getComputedStyle(list).gap)), 0, '390px幅でも数値・演算子間の余白を増やさない');
   await touchBuilder.locator('[data-formula-operator="="]').tap();
   const touchAnswer = touchSample.locator('[data-formula-answer="sample"]');
   await touchAnswer.fill('4');
