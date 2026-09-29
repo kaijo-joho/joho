@@ -84,6 +84,14 @@ details.fold > summary:hover{color:var(--text)}
 .side-sec{border-top:1px solid var(--line);padding-top:8px;display:flex;flex-direction:column;gap:6px}
 .side-sec .row2{display:flex;gap:14px}
 .side .frow{margin:0}
+.iso-f input{font-size:16px;padding:5px 8px;border:1px solid var(--line);border-radius:7px;width:12em;background:var(--panel);color:var(--text)}
+.iso-info{min-height:1.4em;margin:4px 0 8px}
+.iso-info.bad{color:var(--danger)}
+.iso-conds{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px;margin:4px 0 10px}
+.iso-conds label{display:flex;flex-direction:column;gap:3px;font-size:13px}
+.iso-conds select:disabled{opacity:.5}
+.iso-opts{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin:4px 0}
+.iso-msg{min-height:1.4em;margin:8px 0 0;font-size:13px}
 .sbtn-ic{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-right:5px}
 
 /* ---- 上部バー ---- */
@@ -279,6 +287,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
       <button class="ic wide" id="btnFile" aria-haspopup="true" aria-label="ファイル・保存と読み込み" title="ファイル・保存と読み込み"><svg viewBox="0 0 24 24"><path d="M5 3h9l4 4v14H5z"/><path d="M14 3v5h4"/><path d="M8 13h7M8 17h7"/></svg><span class="caret">▼</span></button>
       <div class="menu mlist">
         <button class="mi" id="miNew"><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span>新規作成</span><kbd></kbd></button>
+        <button class="mi" id="miIso"><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="6" r="2"/><circle cx="19" cy="18" r="2"/><path d="M7 12h3M13.7 11l3.6-3.8M13.7 13l3.6 3.8"/></svg><span>異性体から作る…</span><kbd></kbd></button>
         <button class="mi" id="miRename"><svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M14.5 5.5l4 4"/></svg><span>名前を変更…</span><kbd></kbd></button>
         <div class="msep"></div>
         <button class="mi" id="miSave"><svg viewBox="0 0 24 24"><path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3"/><path d="M8 21v-7h8v7"/></svg><span>保存</span><kbd id="kbSave"></kbd></button>
@@ -425,7 +434,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
         <button data-tool="plus" class="txt" title="反応式の ＋（クリックで置く。左右の物質をつなぐ記号）">＋</button>
         <button data-tool="gas" class="txt" title="気体が発生する印 ↑（物質のすぐ右をクリックして置く）">↑</button>
         <button data-tool="prec" class="txt" title="沈殿ができる印 ↓（物質のすぐ右をクリックして置く）">↓</button>
-        <button data-tool="arrow" data-kind="arrow" title="反応の矢印（A）"><svg viewBox="0 0 24 24"><path d="M3 12h17M15 7l5 5-5 5"/></svg>&nbsp;反応の矢印</button>
+        <button data-tool="arrow" data-kind="arrow" class="wide" title="反応の矢印（A）"><svg viewBox="0 0 24 24"><path d="M3 12h17M15 7l5 5-5 5"/></svg>&nbsp;反応の矢印</button>
         <button data-tool="arrow" data-kind="equil" title="可逆反応の矢印（片側だけの矢じり）"><svg viewBox="0 0 24 24"><path d="M3 9h18l-5-4M21 15H3l5 4"/></svg></button>
         <button data-tool="arrow" data-kind="equilTop" title="可逆反応の矢印・片側の矢じり（上の右向きが短い＝平衡が左に偏る）"><svg viewBox="0 0 24 24"><path d="M10 9h11l-5-4M21 15H3l5 4"/></svg></button>
         <button data-tool="arrow" data-kind="equilBot" title="可逆反応の矢印・片側の矢じり（下の左向きが短い＝平衡が右に偏る）"><svg viewBox="0 0 24 24"><path d="M3 9h18l-5-4M14 15H3l5 4"/></svg></button>
@@ -691,6 +700,17 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <details><summary>図の名前</summary><p>ファイルメニューの「名前を変更…」で、この図の名前を付けられます。名前は保存するファイル名や、「ブラウザから開く…」の一覧に出ます。</p></details>
     <details><summary>ファイルの持ち運び・画像</summary><p>ブラウザへの保存は、ブラウザごと・ファイルの場所ごとに別です。別のパソコンで続きを描くときは、.json ファイルにして持っていきます。画像（PNG・SVG）は書き出しパネルから保存します。</p></details>
   </section>
+  <section data-help-topic="isomer" data-help-title="異性体を並べる">
+    <h3>異性体を並べる</h3>
+    <ol>
+      <li>ファイルメニューの<strong>「異性体から作る…」</strong>を選びます。</li>
+      <li>分子式（例：C5H12）を入れ、必要なら条件（C=C・C≡C・環を「含む／含まない」）を選んで「作成」。</li>
+      <li>構造異性体を並べた図が、<strong>新しいタブ</strong>にできます。いま描いている図はそのまま残ります。</li>
+    </ol>
+    <details><summary>並び方</summary><p>「主鎖の炭素数で列を分ける」をオンにすると、左から主鎖の長い順に列を作ります（主鎖 7（直鎖）→ 主鎖 6 → …）。教科書の数え方（主鎖を 1 つずつ短くして枝を動かす）と同じ順なので、数え落としを見つけやすくなります。環を含むものは「環を含む」の列にまとまります。1 列が 12 個を超えると、次の列に続きます。</p></details>
+    <details><summary>名前</summary><p>名前は、高校の教科書の決まり（いちばん長い鎖を主鎖に、枝の位置番号が小さくなるように、枝はアルファベット順）で付けます。イソブタン・ネオペンタン・エチレンなどの慣用名は（ ）に添えます。<strong>確信が持てないものは「—」</strong>にしています。名前はふつうの文字なので、テキストツールで直せます。</p></details>
+    <details><summary>できること・できないこと</summary><p>いまは C と H だけ（炭素 10 個まで）に対応しています。立体（シス・トランス、鏡像）は区別しません。候補が 300 個を超えるか、計算に時間がかかりすぎるときは途中で打ち切り、見出しにそう書きます。並べた図はふつうの図なので、いらないものを消す・書き込む・画像に書き出す・保存する、が自由にできます。</p></details>
+  </section>
   <section data-help-topic="shortcuts" data-help-title="ショートカット">
     <h3>ショートカット</h3>
     <ul>
@@ -705,7 +725,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.9.1（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.10（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -714,6 +734,27 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
   <p class="muted" id="openDlgNote"></p>
   <div id="openList"></div>
   <div class="row"><button class="sbtn" id="miOpenFile2">ファイルを開く…</button><button class="sbtn" id="openDlgClose">閉じる</button></div>
+</dialog>
+<dialog id="isoDlg" aria-labelledby="isoDlgTitle">
+  <h2 id="isoDlgTitle">異性体から作る</h2>
+  <p class="muted">分子式を入れると、条件に合う構造異性体を<strong>新しいタブ</strong>に並べます。いまは C と H だけ（炭素 10 個まで）に対応しています。立体（シス・トランス、鏡像）は区別しません。</p>
+  <label class="frow iso-f">分子式 <input id="isoF" placeholder="例：C5H12" autocomplete="off" spellcheck="false"></label>
+  <p class="muted iso-info" id="isoInfo">&nbsp;</p>
+  <div class="gl">条件</div>
+  <div class="iso-conds">
+    <label>C=C（二重結合）<select data-cond="C=C"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
+    <label>C≡C（三重結合）<select data-cond="C#C"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
+    <label>環<select data-cond="環"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
+  </div>
+  <div class="gl">並べ方</div>
+  <div class="iso-opts">
+    <label class="chk"><input type="checkbox" id="isoNum" checked>番号</label>
+    <label class="chk"><input type="checkbox" id="isoName" checked>名前</label>
+    <label class="chk"><input type="checkbox" id="isoCols" checked>主鎖の炭素数で列を分ける</label>
+    <label class="frow">表記 <select id="isoMode"><option value="condensed">簡略構造式</option><option value="full">構造式</option><option value="skeletal">骨格構造式</option></select></label>
+  </div>
+  <p class="iso-msg" id="isoMsg" role="status"></p>
+  <div class="row"><button class="sbtn primary" id="isoGo">作成</button><button class="sbtn" id="isoCancel">キャンセル</button></div>
 </dialog>
 <dialog id="closeDlg" aria-labelledby="closeDlgTitle">
   <h2 id="closeDlgTitle">保存していない変更があります</h2>
@@ -1068,6 +1109,524 @@ function formulaHTML(f){
 }
 const formulaPlain = f => f.parts.map(([e, n]) => e + (n > 1 ? n : '')).join('') + (f.charge ? (f.charge > 0 ? '+' : '-') : '');
 function fmtMass(m){ const r = Math.round(m*10)/10; return Number.isInteger(r) ? String(r) : r.toFixed(1); }
+
+// ===== 異性体の数え上げと命名（ここから。dev/isomer_test.mjs が取り出して Node で検査する） =====
+// グラフ g = {el:['C', …], e:[[原子1, 原子2, 結合の次数], …]}。水素は数えない（残った手に付くだけ）。
+// 使い方：ISO.enumerate({C:5, H:12}, {ring:'no'}) → [{g, chain, name}]
+function isoFactory(){
+  const VAL = {C:4, O:2, N:3};
+  let DEADLINE = Infinity;                                       // 時間の打ち切り（数え上げの途中のどこでも止める）
+  const TIMEUP = {timeup:true};
+  const tick = () => { if (Date.now() > DEADLINE) throw TIMEUP; };
+  const mat = g => {
+    const n = g.el.length, A = Array.from({length:n}, () => new Array(n).fill(0));
+    for (const [i, j, o] of g.e){ A[i][j] = o; A[j][i] = o; }
+    return A;
+  };
+  const used = (g, i) => g.e.reduce((s, [a, b, o]) => s + (a === i || b === i ? o : 0), 0);
+  const spare = (g, i) => (VAL[g.el[i]] || 0) - used(g, i);   // 残っている手（＝水素の数）
+  const clone = g => ({el:[...g.el], e:g.e.map(x => [...x])});
+  const hasEdge = (g, i, j) => g.e.some(([a, b]) => (a === i && b === j) || (a === j && b === i));
+  const rings = g => g.e.length - g.el.length + 1;            // つながっている図での環の数
+  const pis = g => g.e.reduce((s, [, , o]) => s + o - 1, 0);   // 二重・三重結合の分
+
+  // ---- 分子式を読む（C5H12・C4H8O2 など） ----
+  function parseFormula(str){
+    const s = String(str || '').replace(/\s+/g, '').replace(/[₀-₉]/g, c => '0123456789'['₀₁₂₃₄₅₆₇₈₉'.indexOf(c)]);
+    if (!/^([A-Z][a-z]?\d*)+$/.test(s)) return null;
+    const out = {C:0, H:0, O:0, N:0};
+    for (const m of s.matchAll(/([A-Z][a-z]?)(\d*)/g)){
+      if (!(m[1] in out)) return null;                        // 扱えるのは C・H・O・N
+      out[m[1]] += m[2] ? +m[2] : 1;
+    }
+    if (!out.C) return null;
+    return out;
+  }
+  // 不飽和度（環と π 結合の合計）。整数にならなければ、その分子式はありえない
+  function degUnsat(f){
+    const d = (2*f.C + 2 + f.N - f.H)/2;
+    return Number.isInteger(d) && d >= 0 ? d : null;
+  }
+  const formulaOfGraph = g => {
+    const f = {C:0, H:0, O:0, N:0};
+    g.el.forEach((e, i) => { f[e]++; f.H += spare(g, i); });
+    return f;
+  };
+  const sameFormula = (a, b) => a.C === b.C && a.H === b.H && a.O === b.O && a.N === b.N;
+
+  // ---- 同じ構造かどうかの判定（正準形）----
+  // 色の細分化でだいたい分けてから、いちばん小さい並び方（コード）を探す
+  function refine(g){
+    const n = g.el.length, A = mat(g);
+    let col = g.el.map((e, i) => e + A[i].filter(Boolean).sort().join(''));
+    for (let k = 0; k < n; k++){
+      const nx = col.map((c, i) => c + '|' + col.map((cj, j) => A[i][j] ? cj + A[i][j] : '').filter(Boolean).sort().join(','));
+      const uniq = [...new Set(nx)].sort();
+      const next = nx.map(c => String(uniq.indexOf(c)).padStart(2, '0'));
+      if (next.join(',') === col.join(',')) break;
+      col = next;
+    }
+    return col;
+  }
+  function canon(g){
+    const n = g.el.length, A = mat(g), col = refine(g);
+    let best = null, steps = 0;
+    const perm = [], taken = new Array(n).fill(false);
+    const rec = (k, code) => {
+      if (++steps > 300000) return;                            // 保険（この大きさでは届かない）
+      if (best !== null){
+        const p = best.slice(0, code.length);
+        if (code > p) return;                                  // すでに大きいので見る必要なし
+      }
+      if (k === n){ if (best === null || code < best) best = code; return; }
+      let low = null;
+      for (let v = 0; v < n; v++) if (!taken[v] && (low === null || col[v] < low)) low = col[v];
+      for (let v = 0; v < n; v++){
+        if (taken[v] || col[v] !== low) continue;
+        let row = g.el[v];
+        for (let t = 0; t < k; t++) row += A[v][perm[t]];
+        taken[v] = true; perm[k] = v;
+        rec(k + 1, code + row + ';');
+        taken[v] = false;
+      }
+    };
+    rec(0, '');
+    return best;
+  }
+
+  // ---- 骨格を育てる：原子を 1 つずつ足して、同じものは捨てる ----
+  function growSkeletons(n, el = 'C'){
+    let list = [{el:[el], e:[]}];
+    for (let k = 1; k < n; k++){
+      const next = new Map();
+      for (const g of list) for (let i = 0; i < g.el.length; i++){
+        if (spare(g, i) < 1) continue;
+        const h = clone(g); h.el.push(el); h.e.push([i, h.el.length - 1, 1]);
+        const key = canon(h);
+        if (!next.has(key)) next.set(key, h);
+      }
+      list = [...next.values()];
+    }
+    return list;
+  }
+  // ---- 環を作る（枝と枝をつなぐ）----
+  function addRings(g, r){
+    if (!r) return [g];
+    const out = new Map();
+    const rec = (h, left) => {
+      tick();
+      if (!left){ const k = canon(h); if (!out.has(k)) out.set(k, h); return; }
+      for (let i = 0; i < h.el.length; i++) for (let j = i + 1; j < h.el.length; j++){
+        if (hasEdge(h, i, j) || spare(h, i) < 1 || spare(h, j) < 1) continue;
+        const h2 = clone(h); h2.e.push([i, j, 1]);
+        rec(h2, left - 1);
+      }
+    };
+    rec(g, r);
+    return [...out.values()];
+  }
+  // ---- 二重・三重結合にする ----
+  function addPi(g, p){
+    if (!p) return [g];
+    const out = new Map();
+    const rec = (h, left, from) => {
+      tick();
+      if (!left){ const k = canon(h); if (!out.has(k)) out.set(k, h); return; }
+      for (let x = from; x < h.e.length; x++){
+        const [i, j, o] = h.e[x];
+        if (o >= 3 || spare(h, i) < 1 || spare(h, j) < 1) continue;
+        const h2 = clone(h); h2.e[x][2] = o + 1;
+        rec(h2, left - 1, x);
+      }
+    };
+    rec(g, p, 0);
+    return [...out.values()];
+  }
+
+  // ---- 条件（絞り込み）----
+  const ringSizes = g => {                                      // 含まれる環の大きさ（小さい環から）
+    const n = g.el.length, A = mat(g), sizes = [];
+    for (const [i, j] of g.e){                                  // その結合を切って回り道の長さを測る
+      const dist = new Array(n).fill(-1); dist[i] = 0;
+      const q = [i];
+      while (q.length){
+        const x = q.shift();
+        for (let y = 0; y < n; y++){
+          if (!A[x][y] || dist[y] >= 0) continue;
+          if ((x === i && y === j) || (x === j && y === i)) continue;
+          dist[y] = dist[x] + 1; q.push(y);
+        }
+      }
+      if (dist[j] > 0) sizes.push(dist[j] + 1);
+    }
+    return sizes.sort((a, b) => a - b);
+  };
+  const tests = {
+    'C=C': g => g.e.some(([i, j, o]) => o === 2 && g.el[i] === 'C' && g.el[j] === 'C'),
+    'C#C': g => g.e.some(([i, j, o]) => o === 3 && g.el[i] === 'C' && g.el[j] === 'C'),
+    '環':   g => rings(g) > 0,
+    'ベンゼン環': g => {
+      if (!ringSizes(g).includes(6)) return false;
+      return g.e.filter(([i, j, o]) => o === 2 && g.el[i] === 'C' && g.el[j] === 'C').length >= 3;
+    },
+    'OH':  g => g.el.some((e, i) => e === 'O' && spare(g, i) === 1 && g.e.some(([a, b, o]) => o === 1 && (a === i || b === i))),
+    'エーテル': g => g.el.some((e, i) => e === 'O' && g.e.filter(([a, b, o]) => o === 1 && (a === i || b === i)).length === 2),
+    'C=O': g => g.e.some(([i, j, o]) => o === 2 && ((g.el[i] === 'C' && g.el[j] === 'O') || (g.el[i] === 'O' && g.el[j] === 'C'))),
+    'COOH': g => carboxyl(g).length > 0,
+    'COO':  g => ester(g).length > 0,
+  };
+  function carbonylC(g){                                        // C=O の炭素
+    const out = [];
+    for (const [i, j, o] of g.e){
+      if (o !== 2) continue;
+      if (g.el[i] === 'C' && g.el[j] === 'O') out.push(i);
+      if (g.el[j] === 'C' && g.el[i] === 'O') out.push(j);
+    }
+    return out;
+  }
+  const nbrs = (g, i) => g.e.filter(([a, b]) => a === i || b === i).map(([a, b, o]) => [a === i ? b : a, o]);
+  function carboxyl(g){                                         // −COOH の炭素
+    return carbonylC(g).filter(c => nbrs(g, c).some(([x, o]) => o === 1 && g.el[x] === 'O' && spare(g, x) === 1));
+  }
+  function ester(g){                                            // −COO− の炭素
+    return carbonylC(g).filter(c => nbrs(g, c).some(([x, o]) =>
+      o === 1 && g.el[x] === 'O' && spare(g, x) === 0 && nbrs(g, x).length === 2));
+  }
+  function matchOpts(g, opts = {}){
+    for (const [k, want] of Object.entries(opts)){
+      if (!tests[k] || want === 'any' || want == null) continue;
+      const has = tests[k](g);
+      if (want === 'yes' && !has) return false;
+      if (want === 'no' && has) return false;
+    }
+    return true;
+  }
+
+  // ---- 数え上げ ----
+  function enumerate(f, opts = {}, cb){
+    const nHeavy = f.C + f.O + f.N, d = degUnsat(f);
+    if (d === null) return {list:[], over:false, reason:'その分子式の化合物はありません（水素の数を確かめてください）'};
+    if (nHeavy > (opts.maxHeavy || 10)) return {list:[], over:false, reason:'炭素が多すぎます（10 個まで）'};
+    const cap = opts.cap || 300;
+    DEADLINE = Date.now() + (opts.ms || 3000);
+    const out = new Map();
+    let stop = '';                                               // 'cap'：個数で打ち切り ／ 'time'：時間で打ち切り
+    const wantRing = opts['環'];
+    try {
+    const skel = growSkeletons(nHeavy, 'C');                    // 段階 1：炭素だけ
+    search:
+    for (const t of skel){
+      for (let r = 0; r <= d; r++){
+        if (wantRing === 'no' && r > 0) continue;
+        const p = d - r;
+        for (const g1 of addRings(t, r)){
+          for (const g2 of addPi(g1, p)){
+            if (!sameFormula(formulaOfGraph(g2), f)) continue;
+            if (!matchOpts(g2, opts)) continue;
+            const key = canon(g2);
+            if (out.has(key)) continue;
+            out.set(key, g2);
+            if (out.size >= cap){ stop = 'cap'; break search; }
+          }
+        }
+      }
+      if (cb) cb(out.size);
+    }
+    } catch (e) { if (e !== TIMEUP) throw e; stop = 'time'; }
+    DEADLINE = Infinity;
+    const list = [...out.values()].map(g => ({g, ...describe(g)}));
+    list.sort((a, b) => (a.cyclic - b.cyclic) || (b.chain - a.chain) || (a.plain || '\uffff').localeCompare(b.plain || '\uffff', 'ja'));
+    return {list, over:!!stop, stop, reason:''};
+  }
+
+  // ================= 主鎖と名前 =================
+  const ALKANE = ['メタン','エタン','プロパン','ブタン','ペンタン','ヘキサン','ヘプタン','オクタン','ノナン','デカン'];
+  const ALKENE = ['','エテン','プロペン','ブテン','ペンテン','ヘキセン','ヘプテン','オクテン','ノネン','デセン'];
+  const ALKYNE = ['','エチン','プロピン','ブチン','ペンチン','ヘキシン','ヘプチン','オクチン','ノニン','デシン'];
+  const MULT = {2:'ジ', 3:'トリ', 4:'テトラ', 5:'ペンタ', 6:'ヘキサ'};
+  const ABC = {'メチル':'methyl', 'エチル':'ethyl', 'プロピル':'propyl', 'イソプロピル':'isopropyl',
+    'ブチル':'butyl', 'イソブチル':'isobutyl', 'sec-ブチル':'butyl(sec)', 'tert-ブチル':'butyl(tert)'};
+  // 教科書で使う慣用名（系統名 → 慣用名）
+  // 教科書で使う慣用名（系統名 → 慣用名）。表にないものは系統名だけ
+  const COMMON = {
+    'C4H10|2-メチルプロパン':'イソブタン',
+    'C5H12|2-メチルブタン':'イソペンタン',
+    'C5H12|2,2-ジメチルプロパン':'ネオペンタン',
+    'C2H4|エテン':'エチレン',
+    'C3H6|プロペン':'プロピレン',
+    'C4H8|2-メチルプロペン':'イソブチレン',
+    'C2H2|エチン':'アセチレン',
+  };
+  const formulaKey = f => 'C' + f.C + 'H' + f.H + (f.O ? 'O' + f.O : '') + (f.N ? 'N' + f.N : '');
+
+  // すべての道（鎖）を調べて、いちばん長いものを主鎖にする
+  function allPaths(g){
+    const n = g.el.length, A = mat(g), out = [];
+    const rec = (path, seen) => {
+      out.push([...path]);
+      const x = path[path.length - 1];
+      for (let y = 0; y < n; y++) if (A[x][y] && !seen.has(y)){
+        seen.add(y); path.push(y); rec(path, seen); path.pop(); seen.delete(y);
+      }
+    };
+    for (let s = 0; s < n; s++) rec([s], new Set([s]));
+    return out;
+  }
+  function branchName(g, from, at, banned){                     // 枝の名前（メチル・エチル…）
+    const sub = [];                                             // 枝に含まれる原子
+    const st = [at], seen = new Set([from, at]);
+    while (st.length){
+      const x = st.pop(); sub.push(x);
+      for (const [y] of nbrs(g, x)) if (!seen.has(y)){ seen.add(y); st.push(y); }
+    }
+    if (sub.some(i => g.el[i] !== 'C')) return null;             // C 以外を含む枝は段階 1 では名付けない
+    if (sub.some(i => g.e.some(([a, b, o]) => o > 1 && (sub.includes(a) && sub.includes(b))))) return null;
+    const k = sub.length;
+    if (k === 1) return 'メチル';
+    if (k === 2) return 'エチル';
+    const degIn = i => nbrs(g, i).filter(([y]) => sub.includes(y)).length;
+    if (k === 3) return degIn(at) === 2 ? 'イソプロピル' : 'プロピル';
+    if (k === 4){
+      if (degIn(at) === 3) return 'tert-ブチル';
+      if (degIn(at) === 2) return 'sec-ブチル';
+      const mid = sub.find(i => i !== at && degIn(i) === 3);
+      return mid ? 'イソブチル' : 'ブチル';
+    }
+    return null;                                                // それ以上は名付けない（「—」になる）
+  }
+  // 主鎖と名前を決める
+  function describe(g){
+    const d = describe0(g);
+    let path = d.path, ring = d.ring, chain = d.chain;
+    if (!path && !ring){
+      if (rings(g) > 0) ring = findCycle(g);
+      else { const ps = allPaths(g); path = ps.reduce((a, b) => b.length > a.length ? b : a, [0]); }
+    }
+    if (chain == null) chain = ring ? ring.length : path.length;
+    return {chain, name:withCommon(g, d.name), plain:d.name, path, ring, cyclic:!!ring};   // plain：慣用名なしの系統名
+  }
+  function describe0(g){
+    const n = g.el.length;
+    if (g.el.some(e => e !== 'C')) return {chain:null, name:null};   // 段階 1 は炭化水素だけ
+    const r = rings(g), mb = g.e.filter(([, , o]) => o > 1);   // mb：二重・三重結合
+    const dbls = mb.filter(([, , o]) => o === 2);
+    if (r > 1) return {chain:null, name:null};                  // 環が 2 つ以上は名付けない
+    if (r === 1) return nameRing(g);
+    if (mb.length === 2 && dbls.length === 2) return nameDiene(g, dbls);
+    if (mb.length > 1) return {chain:null, name:null};          // 込み入ったものは名付けない
+    const dbl = g.e.find(([, , o]) => o === 2), tri = g.e.find(([, , o]) => o === 3);
+    // 鎖：主鎖の候補（二重・三重結合があれば、それを含む道だけ）
+    let paths = allPaths(g).filter(pa => pa.length >= 1);
+    const multi = dbl || tri;
+    if (multi) paths = paths.filter(pa => {
+      const k = pa.indexOf(multi[0]), l = pa.indexOf(multi[1]);
+      return k >= 0 && l >= 0 && Math.abs(k - l) === 1;
+    });
+    if (!paths.length) return {chain:null, name:null};
+    const L = Math.max(...paths.map(pa => pa.length));
+    const longest = paths.filter(pa => pa.length === L);
+    let best = null;
+    for (const pa of longest){
+      const inChain = new Set(pa);
+      const subs = [];                                           // 枝：[主鎖での番号, 名前]
+      let ok = true;
+      pa.forEach((c, idx) => {
+        for (const [y] of nbrs(g, c)) if (!inChain.has(y)){
+          const nm = branchName(g, c, y, inChain);
+          if (!nm) ok = false; else subs.push([idx + 1, nm]);
+        }
+      });
+      if (!ok) return {chain:L, name:null, path:pa};
+      // 番号の向き：位置番号の並びが小さくなる方
+      const flip = subs.map(([i, nm]) => [L + 1 - i, nm]);
+      const key = ss => ss.map(([i]) => i).sort((a, b) => a - b).join(',');
+      const multiPos = multi ? Math.min(pa.indexOf(multi[0]), pa.indexOf(multi[1])) + 1 : null;
+      const multiFlip = multi ? L - Math.max(pa.indexOf(multi[0]), pa.indexOf(multi[1])) : null;
+      let use = subs, mp = multiPos;
+      const abcKey = ss => [...ss].sort((x, y) => (ABC[x[1]] || x[1]).localeCompare(ABC[y[1]] || y[1]) || x[0] - y[0]).map(([i]) => i).join(',');
+      if (multi){ if (multiFlip < multiPos){ use = flip; mp = multiFlip; } }
+      else if (key(flip) < key(subs) || (key(flip) === key(subs) && abcKey(flip) < abcKey(subs))) use = flip;
+      const cand = {len:L, subs:use, multi:multi ? (tri ? 'yne' : 'ene') : 'ane', mp, count:subs.length, path:pa};
+      if (!best || cand.count > best.count || (cand.count === best.count && key(cand.subs) < key(best.subs))) best = cand;
+    }
+    if (!best) return {chain:L, name:null, path:longest[0]};
+    return {chain:L, name:assemble(g, best), path:best.path};
+  }
+  function assemble(g, b){
+    const parent = b.multi === 'ane' ? ALKANE[b.len - 1] : b.multi === 'ene' ? ALKENE[b.len - 1] : ALKYNE[b.len - 1];
+    if (!parent) return null;
+    const groups = new Map();
+    for (const [i, nm] of b.subs){ if (!groups.has(nm)) groups.set(nm, []); groups.get(nm).push(i); }
+    const parts = [...groups.entries()].sort((x, y) => (ABC[x[0]] || x[0]).localeCompare(ABC[y[0]] || y[0]))
+      .map(([nm, pos]) => pos.sort((a, c) => a - c).join(',') + '-' + (pos.length > 1 ? (MULT[pos.length] || '') : '') + nm);
+    const head = parts.join('-');
+    const tail = b.multi === 'ane' || b.len <= 3 ? parent : b.mp + '-' + parent;   // エテン・プロペンは位置が 1 通り
+    return !head ? tail : /^\d/.test(tail) ? head + '-' + tail : head + tail;
+  }
+  function withCommon(g, name){                                 // 系統名（慣用名）
+    if (!name) return name;
+    const c = COMMON[formulaKey(formulaOfGraph(g)) + '|' + name];
+    return c ? name + '（' + c + '）' : name;
+  }
+  const DIENE = ['','','プロパジエン','ブタジエン','ペンタジエン','ヘキサジエン','ヘプタジエン','オクタジエン','ノナジエン','デカジエン'];
+  function nameDiene(g, dbls){                                   // 二重結合 2 つ（置換基がないものだけ）
+    const paths = allPaths(g).filter(pa => dbls.every(([i, j]) => {
+      const k = pa.indexOf(i), l = pa.indexOf(j); return k >= 0 && l >= 0 && Math.abs(k - l) === 1;
+    }));
+    if (!paths.length) return {chain:null, name:null};
+    const L = Math.max(...paths.map(pa => pa.length));
+    const pa = paths.find(x => x.length === L);
+    if (L !== g.el.length) return {chain:L, name:null};          // 枝があるものは名付けない
+    const pos = dbls.map(([i, j]) => Math.min(pa.indexOf(i), pa.indexOf(j)) + 1).sort((a, b) => a - b);
+    const flip = dbls.map(([i, j]) => L - Math.max(pa.indexOf(i), pa.indexOf(j))).sort((a, b) => a - b);
+    const use = flip.join(',') < pos.join(',') ? flip : pos;
+    const parent = DIENE[L - 1];
+    if (!parent) return {chain:L, name:null};
+    return {chain:L, name: L === 3 ? parent : use.join(',') + '-' + parent};
+  }
+  function nameRing(g){                                          // 環（シクロアルカン・シクロアルケン）
+    const size = ringSizes(g)[0] || 0;
+    if (!size || !ALKANE[size - 1]) return {chain:null, name:null};
+    const mb = g.e.filter(([, , o]) => o > 1);
+    if (mb.length > 1) return {chain:size, name:null, ring:findCycle(g)};
+    // 環の原子を並べる（次数 2 以上でたどれる閉路）
+    const cyc = findCycle(g);
+    if (!cyc || cyc.length !== size) return {chain:size, name:null, ring:findCycle(g)};
+    const onRing = new Set(cyc);
+    const subs = [];
+    let ok = true;
+    cyc.forEach((c, idx) => {
+      for (const [y] of nbrs(g, c)) if (!onRing.has(y)){
+        const nm = branchName(g, c, y, onRing);
+        if (!nm) ok = false; else subs.push([idx, nm]);
+      }
+    });
+    if (!ok) return {chain:size, name:null, ring:findCycle(g)};
+    if (mb.length){                                              // 環の中の二重結合：置換基がなければシクロ○○エン
+      const [i, j, o] = mb[0];
+      if (o !== 2 || !onRing.has(i) || !onRing.has(j) || subs.length) return {chain:size, name:null, ring:findCycle(g)};
+      return {chain:size, name:'シクロ' + ALKENE[size - 1], ring:cyc};
+    }
+    if (!subs.length) return {chain:size, name:'シクロ' + ALKANE[size - 1], ring:cyc};
+    // 環の番号：どこから数えても環を回れるので、位置番号がいちばん小さくなる並びを選ぶ
+    let bestKey = null, bestSubs = null;
+    for (let s = 0; s < size; s++) for (const dir of [1, -1]){
+      const cur = subs.map(([i, nm]) => [((i - s)*dir + size*2) % size + 1, nm]);
+      const k = cur.map(([i]) => i).sort((a, b) => a - b).join(',');
+      if (bestKey === null || k < bestKey){ bestKey = k; bestSubs = cur; }
+    }
+    const groups = new Map();
+    for (const [i, nm] of bestSubs){ if (!groups.has(nm)) groups.set(nm, []); groups.get(nm).push(i); }
+    const parts = [...groups.entries()].sort((x, y) => (ABC[x[0]] || x[0]).localeCompare(ABC[y[0]] || y[0]))
+      .map(([nm, pos]) => (subs.length > 1 ? pos.sort((a, c) => a - c).join(',') + '-' : '') + (pos.length > 1 ? (MULT[pos.length] || '') : '') + nm);
+    return {chain:size, name:parts.join('-') + 'シクロ' + ALKANE[size - 1], ring:cyc};
+  }
+  function findCycle(g){                                         // 環を 1 つ見つけて、順に並べて返す
+    const n = g.el.length, A = mat(g), par = new Array(n).fill(-1), seen = new Array(n).fill(false);
+    const st = [0]; seen[0] = true;
+    while (st.length){
+      const x = st.pop();
+      for (let y = 0; y < n; y++){
+        if (!A[x][y]) continue;
+        if (!seen[y]){ seen[y] = true; par[y] = x; st.push(y); }
+        else if (par[x] !== y){                                  // 戻る辺＝環
+          const a = [], b = [];
+          for (let v = x; v >= 0; v = par[v]) a.push(v);
+          for (let v = y; v >= 0; v = par[v]) b.push(v);
+          const sa = new Set(a), common = b.find(v => sa.has(v));
+          const ring = a.slice(0, a.indexOf(common) + 1).concat(b.slice(0, b.indexOf(common)).reverse());
+          return ring;
+        }
+      }
+    }
+    return null;
+  }
+
+  function layout1(g, info, style, variant){
+    const n = g.el.length, pos = new Array(n).fill(null);
+    const nb = g.el.map((_, i) => nbrs(g, i).map(([y]) => y));
+    const deg = d => d*Math.PI/180;
+    const put = (i, x, y) => { pos[i] = {x, y}; };
+    const near = (x, y, skip) => pos.some((q, k) => q && k !== skip && Math.hypot(q.x - x, q.y - y) < 0.72);
+    const turn = new Array(n).fill(1);                           // ジグザグの曲がる向き
+    let core;
+    if (info.ring){
+      core = info.ring;
+      const k = core.length, R = 1/(2*Math.sin(Math.PI/k));
+      core.forEach((v, t) => { const a = -Math.PI/2 + 2*Math.PI*t/k; put(v, R*Math.cos(a), R*Math.sin(a)); });
+    } else {
+      core = info.path;
+      core.forEach((v, t) => style === 'grid' ? put(v, t, 0) : put(v, t*Math.cos(deg(30)), t % 2 ? -0.5 : 0));
+      core.forEach((v, t) => { turn[v] = t % 2 ? 1 : -1; });
+    }
+    const cx = () => { const ps = pos.filter(Boolean); return {x:ps.reduce((s, q) => s + q.x, 0)/ps.length, y:ps.reduce((s, q) => s + q.y, 0)/ps.length}; };
+    const q = [...core];
+    while (q.length){
+      const a = q.shift(), pa = pos[a];
+      const kids = nb[a].filter(b => !pos[b]);
+      if (!kids.length) continue;
+      const placed = nb[a].filter(b => pos[b]);
+      const used = placed.map(b => Math.atan2(pos[b].y - pa.y, pos[b].x - pa.x));
+      const c = cx(), away = Math.atan2(pa.y - c.y, pa.x - c.x);   // 分子の中心から外へ向かう向き
+      const incoming = placed.length === 1 ? used[0] + Math.PI : null;   // 一本道で来たときの「まっすぐ」
+      const step = style === 'grid' && !info.ring ? 90 : 30;
+      for (const b of kids){
+        let bestA = null, bestS = -Infinity;
+        for (let d = 0; d < 360; d += step){
+          const ang = deg(d);
+          const sep = used.length ? Math.min(...used.map(u => { const x = Math.abs(((ang - u) % (2*Math.PI) + 3*Math.PI) % (2*Math.PI) - Math.PI); return x; })) : Math.PI;
+          if (sep < deg(style === 'grid' && !info.ring ? 80 : 55)) continue;   // 環のまわりは斜めも使う
+          const x = pa.x + Math.cos(ang), y = pa.y + Math.sin(ang);
+          let score = sep;
+          if (near(x, y, -1)) score -= 10;                         // 重なるところは避ける
+          if (style === 'grid' && !info.ring){
+            if (incoming !== null && Math.abs(Math.cos(ang - incoming) - 1) < 1e-6) score += 3;   // まっすぐ続ける
+            if (incoming === null){                                    // 主鎖からの枝：ふつうは上、込み合うときは下や交互
+              const t = info.path.indexOf(a), up = variant === 0 ? true : variant === 1 ? t % 2 === 0 : variant === 2 ? false : t % 2 === 1;
+              if (Math.abs(ang - deg(up ? 270 : 90)) < 1e-6) score += 2;
+              if (Math.abs(ang - deg(up ? 90 : 270)) < 1e-6) score += 1;
+            }
+          } else if (incoming !== null){
+            const want = incoming + turn[a]*deg(60);                 // 120°で折れるジグザグ
+            if (Math.abs(Math.cos(ang - want) - 1) < 1e-6) score += 3;
+          } else {
+            score += Math.cos(ang - away);                            // 外側を向く
+          }
+          if (score > bestS){ bestS = score; bestA = ang; }
+        }
+        if (bestA === null) bestA = away;
+        put(b, pa.x + Math.cos(bestA), pa.y + Math.sin(bestA));
+        turn[b] = -turn[a];
+        used.push(bestA);
+        q.push(b);
+      }
+    }
+    return pos;
+  }
+  // 重なりがない並べ方を探す（枝を上にそろえる → 交互 → 下 → 逆の交互）
+  function layout(g, info, style = 'grid'){
+    let best = null, bestGap = -1;
+    for (let v = 0; v < 4; v++){
+      const pos = layout1(g, info, style, v), gap = pos.some(q => !q) ? -1 : minGap(g, pos);
+      if (gap >= 0.72) return pos;
+      if (gap > bestGap){ bestGap = gap; best = pos; }
+    }
+    return best;
+  }
+  // 重なりの検査：結合していない原子どうしの、いちばん近い距離
+  function minGap(g, pos){
+    let m = Infinity;
+    for (let i = 0; i < pos.length; i++) for (let j = i + 1; j < pos.length; j++){
+      if (hasEdge(g, i, j)) continue;
+      m = Math.min(m, Math.hypot(pos[i].x - pos[j].x, pos[i].y - pos[j].y));
+    }
+    return m;
+  }
+  return {parseFormula, degUnsat, enumerate, canon, growSkeletons, addRings, addPi, layout, minGap,
+    describe, ringSizes, formulaOfGraph, tests, COMMON};
+}
+const ISO = isoFactory();
+// ===== 異性体の数え上げと命名（ここまで） =====
 
 // ================= 描画（シーン生成：画面と書き出しで共用） =================
 function tw(s, fs){
@@ -4164,7 +4723,131 @@ $('fileInput').addEventListener('change', async e => {
     toast(`「${f.name}」を新しいタブで開きました`); syncSaveStatus();
   } catch { alert('このファイルは読み込めませんでした。構造式エディタで保存した .json ファイルを選んでください。'); }
 });
-$('miNew').onclick = () => { $('miNew').blur(); addTab(); toast('新しい図を開きました'); };   // 新規作成は新しいタブ（今の図はそのまま）
+$('miNew').onclick = () => { $('miNew').blur(); addTab(); toast('新しい図を開きました'); };
+
+// ================= 異性体から作る（分子式 → 構造異性体を新しいタブに並べる） =================
+const isoDlg = $('isoDlg');
+let isoWorker = null;
+const ISO_MAX_C = 10;
+function isoCheck(){   // 入力した分子式を確かめて、条件の欄を合わせる。作れるなら分子式を返す
+  const raw = $('isoF').value.trim(), info = $('isoInfo');
+  const f = ISO.parseFormula(raw);
+  const bad = m => { info.textContent = m; info.classList.add('bad'); $('isoGo').disabled = true; return null; };
+  info.classList.remove('bad'); $('isoGo').disabled = false;
+  if (!raw){ info.textContent = '例：C5H12（ペンタンの仲間）、C4H8、C6H12'; $('isoGo').disabled = true; return null; }
+  if (!f) return bad('分子式として読めません。C5H12 のように、元素記号と数字で入れてください');
+  if (f.O || f.N) return bad('いまは C と H だけに対応しています（O・N を含むものは次の段階で対応します）');
+  if (f.C > ISO_MAX_C) return bad(`炭素は ${ISO_MAX_C} 個までにしてください`);
+  const d = ISO.degUnsat(f);
+  if (d === null) return bad('その分子式の化合物はありません（水素の数を確かめてください）');
+  info.textContent = d === 0 ? '不飽和度 0：環も二重結合もない（アルカン）'
+    : `不飽和度 ${d}：環と二重結合（三重結合は 2 と数える）を合わせて ${d} つ`;
+  isoDlg.querySelectorAll('[data-cond]').forEach(sl => { sl.disabled = d === 0; if (d === 0) sl.value = 'any'; });
+  return f;
+}
+function isoRun(f, opts){   // 数え上げは別のスレッド（Worker）で。使えないときはその場で
+  return new Promise(res => {
+    try {
+      const src = 'const ISO = (' + isoFactory.toString() + ')();\n'
+        + 'onmessage = e => { const r = ISO.enumerate(e.data.f, e.data.opts, n => postMessage({n})); postMessage({r}); };';
+      const url = URL.createObjectURL(new Blob([src], {type:'text/javascript'}));
+      isoWorker = new Worker(url);
+      URL.revokeObjectURL(url);
+      isoWorker.onmessage = e => {
+        if (e.data.r){ isoWorker.terminate(); isoWorker = null; res(e.data.r); }
+        else $('isoMsg').textContent = `数えています… ${e.data.n} 個`;
+      };
+      isoWorker.onerror = () => { if (isoWorker) isoWorker.terminate(); isoWorker = null; res(ISO.enumerate(f, opts)); };
+      isoWorker.postMessage({f, opts});
+    } catch { res(ISO.enumerate(f, opts)); }
+  });
+}
+const circled = n => n <= 20 ? String.fromCharCode(0x2460 + n - 1) : n <= 35 ? String.fromCharCode(0x3251 + n - 21)
+  : n <= 50 ? String.fromCharCode(0x32B1 + n - 36) : `(${n})`;
+const fText = f => 'C' + f.C + 'H' + f.H;
+function fRuns(f, tail){   // 分子式の数字だけ下付きにした文字（runs）
+  const runs = [{t:'C'}, {t:String(f.C), v:'sub'}, {t:'H'}, {t:String(f.H), v:'sub'}, {t:tail}];
+  return {text:runs.map(r => r.t).join(''), runs};
+}
+// 並べた図（ふつうの doc）を作る。主鎖の炭素数ごとの列、番号・名前つき
+function isoSheet(f, res, o){
+  const style = o.mode === 'skeletal' ? 'zig' : 'grid', FSN = 13, FSH = 15, FST = 18;
+  const d = emptyDoc(); let nid = 1;
+  const text = (x, y, t, fs, extra = {}) => { const id = nid++; d.objs[id] = {id, type:'text', x, y, text:t, fs, ff:'sans', b:false, i:false, auto:false, ...extra}; };
+  // 1) 1 つずつ座標を作り、描いたときの大きさを測る
+  const items = res.list.map((it, k) => {
+    const pos = ISO.layout(it.g, it, style), md = emptyDoc();
+    it.g.el.forEach((el, i) => { md.atoms[i + 1] = {id:i + 1, el, x:pos[i].x*BOND, y:pos[i].y*BOND, charge:0}; });
+    it.g.e.forEach(([i, j, ord], q) => { md.bonds[1000 + q] = {id:1000 + q, a1:i + 1, a2:j + 1, order:ord}; });
+    const bb = buildScene(md, {mode:o.mode, showRingC:false}).bbox;
+    const label = [o.num ? circled(k + 1) : '', o.name ? (it.name || '—') : ''].filter(Boolean).join(' ');
+    return {it, md, bb, label, n:k + 1};
+  });
+  // 2) 列（主鎖の炭素数ごと。1 列 12 個まで、あふれたら次の列へ）
+  const cols = [];
+  if (o.cols){
+    const keyOf = x => x.it.cyclic ? 'ring' : 'c' + x.it.chain;
+    const keys = [...new Set(items.map(keyOf))];
+    for (const key of keys){
+      const g = items.filter(x => keyOf(x) === key);
+      const head = key === 'ring' ? '環を含む' : `主鎖 ${g[0].it.chain}` + (g[0].it.chain === f.C ? '（直鎖）' : '');
+      for (let i = 0; i < g.length; i += 12) cols.push({head: i ? head + '（続き）' : head, items:g.slice(i, i + 12)});
+    }
+  } else {
+    const per = Math.min(5, items.length) || 1;   // 列分けしないときは 1 行 5 個
+    for (let c = 0; c < per; c++) cols.push({head:'', items:items.filter((_, i) => i % per === c)});
+  }
+  // 3) ます目の大きさ（いちばん大きい構造と、いちばん長い文字に合わせる）
+  const lw = x => x.label ? tw(x.label, FSN) : 0;
+  const cellW = Math.max(...items.map(x => Math.max(x.bb.x2 - x.bb.x1, lw(x)))) + BOND*1.2;
+  const bodyH = Math.max(...items.map(x => x.bb.y2 - x.bb.y1));
+  const cellH = bodyH + (items.some(x => x.label) ? FSN*1.9 : 0) + BOND*1.0;
+  // 4) 見出しと、並べた構造
+  const title = fRuns(f, ` の構造異性体（${res.list.length} 個${res.stop === 'cap' ? '・300 個で打ち切り' : res.stop === 'time' ? '・時間で打ち切り' : ''}）`);
+  text(0, 0, title.text, FST, {runs:title.runs});
+  const top = FST + (o.cols ? FSH*2.4 : FSN);
+  cols.forEach((col, c) => {
+    const x0 = c*cellW;
+    if (col.head) text(x0, FST + FSH*1.6, col.head, FSH);
+    col.items.forEach((x, r) => {
+      const cx = x0 + cellW/2, cy = top + r*cellH;
+      const dx = cx - (x.bb.x1 + x.bb.x2)/2, dy = cy + (bodyH - (x.bb.y2 - x.bb.y1))/2 - x.bb.y1;
+      const map = new Map();
+      for (const a of Object.values(x.md.atoms)){ const id = nid++; map.set(a.id, id); d.atoms[id] = {...a, id, x:a.x + dx, y:a.y + dy}; }
+      for (const b of Object.values(x.md.bonds)){ const id = nid++; d.bonds[id] = {...b, id, a1:map.get(b.a1), a2:map.get(b.a2)}; }
+      if (x.label) text(cx - lw(x)/2, cy + bodyH + FSN*1.5, x.label, FSN);
+    });
+  });
+  d.nid = nid;
+  return d;
+}
+async function isoMake(){
+  const f = isoCheck(); if (!f) return;
+  const opts = {cap:300, ms:4000};
+  isoDlg.querySelectorAll('[data-cond]').forEach(sl => { opts[sl.dataset.cond] = sl.value; });
+  const o = {num:$('isoNum').checked, name:$('isoName').checked, cols:$('isoCols').checked, mode:$('isoMode').value};
+  $('isoGo').disabled = true; $('isoMsg').textContent = '数えています…';
+  const res = await isoRun(f, opts);
+  $('isoGo').disabled = false;
+  if (!isoDlg.open) return;                                     // 途中でやめた
+  if (res.reason){ $('isoMsg').textContent = res.reason; return; }
+  if (!res.list.length){ $('isoMsg').textContent = '条件に合う異性体はありません。条件をゆるめてください'; return; }
+  isoDlg.close(); $('isoMsg').textContent = '';
+  const sheet = isoSheet(f, res, o);
+  addTab(fText(f) + ' の異性体', () => { doc = sheet; state.mode = o.mode; state.showRingC = false; });
+  toast(`${fText(f)} の構造異性体を ${res.list.length} 個並べました` + (res.stop ? '（多いので途中で打ち切りました）' : ''), 3200);
+}
+$('miIso').onclick = () => {
+  $('miIso').blur();
+  $('isoMsg').textContent = '';
+  $('isoMode').value = state.mode;
+  isoCheck(); isoDlg.showModal(); $('isoF').focus(); $('isoF').select();
+};
+$('isoF').addEventListener('input', isoCheck);
+$('isoF').addEventListener('keydown', e => { if (e.key === 'Enter' && !e.isComposing){ e.preventDefault(); isoMake(); } });
+$('isoGo').onclick = isoMake;
+$('isoCancel').onclick = () => { if (isoWorker){ isoWorker.terminate(); isoWorker = null; } $('isoGo').disabled = false; isoDlg.close(); };
+isoDlg.addEventListener('close', () => { if (isoWorker){ isoWorker.terminate(); isoWorker = null; } });   // 新規作成は新しいタブ（今の図はそのまま）
 
 // 表示の設定（テーマ・文字サイズ）は文書と分けて覚える（共通部品が持つ）
 const VIEW_KEY = 'kouzoushiki-view';
