@@ -552,7 +552,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.27 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.28 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -3881,8 +3881,16 @@ function importKouzoushiki(kd){
   if (r.skipped.length) msg.push(`${r.skipped.length} 個は取り込めませんでした（${r.skipped[0]}）`);
   toast([...msg, ...r.notes].join('。'));
 }
+// 構造式エディタが「選んだ分子だけ」を渡してくれたとき（kouzoushiki-send）は、それを一度だけ読む。なければ自動保存（図全体）
+let kzFromSend = false;
 $('kzImport').onclick = () => {
-  let s = null; try { s = JSON.parse(localStorage.getItem('kouzoushiki-v1') || 'null'); } catch {}
+  let s = null;
+  if (kzFromSend){
+    kzFromSend = false;
+    try { const v = JSON.parse(localStorage.getItem('kouzoushiki-send') || 'null'); if (v && v.doc && Date.now() - v.at < 10*60*1000) s = v; } catch {}
+    try { localStorage.removeItem('kouzoushiki-send'); } catch {}
+  }
+  if (!s) try { s = JSON.parse(localStorage.getItem('kouzoushiki-v1') || 'null'); } catch {}
   if (!s || !s.doc || !Object.keys(s.doc.atoms || {}).length) {
     toast('構造式エディタの図が見つかりません。同じブラウザで構造式エディタを開いて描いてから押してください（構造式エディタで保存した .json は「開く」からも取り込めます）');
     return;
@@ -4385,7 +4393,9 @@ requestAnimationFrame(() => { if (!restored) fitView(); requestDraw(true); });
 // 構造式エディタの「3D で見る」から来たとき（../bunshi/?import=kouzoushiki）は、そのまま取り込む。
 // 読み込み直しで二重に取り込まないよう、済んだらアドレスの ?import= を消す
 try {
-  if (new URLSearchParams(location.search).get('import') === 'kouzoushiki'){
+  const qs = new URLSearchParams(location.search);
+  if (qs.get('import') === 'kouzoushiki'){
+    kzFromSend = qs.get('src') === 'send';
     history.replaceState(null, '', location.pathname + location.hash);
     setTimeout(() => $('kzImport').click(), 0);
   }
