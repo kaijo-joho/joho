@@ -86,11 +86,13 @@
       <button data-ins=" + " title="物質を足す">＋</button>
       <button data-ins="e-" title="電子（e-）">e<sup>−</sup></button>
     </div>
+    <div class="inserts species" id="insSpecies" aria-label="物質を入れる"></div>
     <div class="sec-title"><span>目的の式（求めたい反応）</span></div>
     <div id="targetCard"></div>
+    <div class="build-status" id="buildStatus" aria-live="polite" hidden></div>
     <div class="sec-title"><span>与えられた式（係数を選んで組み立てる）</span></div>
     <div class="build-row">
-      <button class="sbtn" id="btnClearCoef" title="与えられた式の係数をすべて「使わない」に戻す（組み立てをやり直す）"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v5h5"/></svg>係数を戻す</button>
+      <button class="sbtn" id="btnClearCoef" title="与えられた式をすべて「使わない」にする（組み立てをやり直す）"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 0 2.3-5.7"/><path d="M4 4v5h5"/></svg>すべて使わない</button>
       <button class="sbtn" id="btnAnswer" title="係数を自動で求めて、エネルギー図を完成させる（設定で出し入れできる）" hidden><svg viewBox="0 0 24 24"><path d="M2.5 12s3.5-6.5 9.5-6.5S21.5 12 21.5 12s-3.5 6.5-9.5 6.5S2.5 12 2.5 12z"/><circle cx="12" cy="12" r="2.8"/></svg>答えを見る</button>
     </div>
     <div id="eqList" style="display:flex;flex-direction:column;gap:8px"></div>
@@ -105,7 +107,6 @@
 
   <footer class="info">
     <div id="calc"></div>
-    <span class="chip" id="status" hidden></span>
     <button id="saveStatus" title="保存の状態。クリックで、ブラウザに保存した内容を選んで開く"></button>
   </footer>
 
@@ -152,6 +153,15 @@
   <input type="text" id="nameInput" maxlength="60">
   <div class="row"><button class="sbtn" data-close>やめる</button><button class="sbtn primary" id="nameOk">変更</button></div>
 </dialog>
+<dialog id="dlgAdd">
+  <h2>式を足す</h2>
+  <p style="margin:0 0 4px;font-size:13px;color:var(--muted)">どちらで入れますか。</p>
+  <div style="display:flex;flex-direction:column;gap:8px;margin-top:8px">
+    <button class="sbtn big" id="addLib"><b>ライブラリから選ぶ</b><small>生成・燃焼エンタルピー、結合エネルギーなどの式と ΔH が入ります</small></button>
+    <button class="sbtn big" id="addFree"><b>自分で入力する</b><small>式を打ちます。ΔH が空のときは、表の値から候補を出します</small></button>
+  </div>
+  <div class="row"><button class="sbtn" data-close>やめる</button></div>
+</dialog>
 <dialog id="dlgOpen">
   <h2>ブラウザから開く</h2>
   <p style="margin:0;font-size:12.5px;color:var(--muted)">このブラウザに保存した内容です。自動保存は、最後に開いていた内容です。</p>
@@ -172,7 +182,7 @@
     <ol>
       <li>左の「目的の式」に、ΔH を求めたい反応を入れます。ΔH は <b>?</b> のままにします。</li>
       <li>「与えられた式」に、問題で与えられた式と ΔH を入れます。右の「ライブラリ」から選ぶこともできます。</li>
-      <li>与えられた式の<b>係数</b>（×1・×2・×½ など）と<b>逆向き</b>を選んで、目的の式を組み立てます。</li>
+      <li>与えられた式の［使わない］を押して<b>使う</b>にし、<b>倍率</b>（×1・×2・×½ など）と<b>逆向き</b>を選んで、目的の式を組み立てます。</li>
     </ol>
     <details><summary>例題を開く</summary><p>左上の「ライブラリ・例題から選ぶ」を押し、いちばん上の「例題」から選びます。</p></details>
   </section>
@@ -186,16 +196,18 @@
       <li>ΔH の欄には数（kJ）を入れます。求める値は <kbd>?</kbd>。</li>
     </ul>
     <details><summary>赤い字が出たとき</summary><p>左右で原子の数や電荷が合っていない、読めない文字がある、などです。赤い字の説明を見て直します。直すまで、その式は図に使いません。係数を自動で合わせることはしません。</p></details>
+    <details><summary>物質のボタンと ΔH の候補</summary><p>式の欄の上にある物質のボタン（C(黒鉛)・O₂(気)・H₂O(液) など）を押すと、カーソルの位置に入ります。いま書いてある式に出てくる物質も並びます。与えられた式の ΔH の欄が空のときは、「表の値から：ΔH = … 入れる」と候補が出ます。押したときだけ値が入ります。</p></details>
     <details><summary>旧課程の熱化学方程式</summary><p><kbd>C(黒鉛) + O2(気) = CO2(気) + 394 kJ</kbd> のように打っても読めます（ΔH = −394 kJ と読みます）。設定で「旧課程の書き方」を選ぶと、表示もこの書き方になります。</p></details>
   </section>
   <section data-help-topic="build" data-help-title="組み立てる">
     <h3>ヘスの法則で組み立てる</h3>
     <ol>
-      <li>与えられた式ごとに、係数（使わない・×1・×2・×½ など）を選びます。</li>
+      <li>与えられた式ごとに、［使わない］を押して<b>使う</b>にします。倍率（×1・×2・×½ など）を選ぶと、自動で「使う」になります。</li>
       <li>式を逆向きに使うときは「逆向き」を押します（ΔH の符号が変わります）。</li>
-      <li>足し合わせた結果が目的の式と同じになると、下に「目的の式になりました」と出て、図が完成します。</li>
+      <li>足し合わせた結果が目的の式と同じになると、左の目的の式の下に「目的の式になりました」と出て、図が完成します。</li>
     </ol>
-    <p>まだ合わないときは、下の欄に<b>消えずに残っている物質</b>が出ます。それを消すには、どの式をどう使えばよいか考えます。</p>
+    <p>まだ合わないときは、同じ場所に<b>消えずに残っている物質</b>が出ます。それを消すには、どの式をどう使えばよいか考えます。</p>
+    <p>式ごとに色が付いていて、左の式の枠と図の矢印の色が対応しています。目的の式は青い太い線です。</p>
     <details><summary>赤い色の物質（両方の段に足した物質）</summary><p>燃焼の式を使うときの O₂ のように、目的の式にはないけれど途中の式に必要な物質は、図の<b>すべての段に同じ量だけ</b>足して描きます。赤い色で示します。足しても両方の段で同じなので、ΔH は変わりません。</p></details>
     <details><summary>ΔH が分からない式が 1 本だけあるとき</summary><p>目的の式の ΔH が分かっていて、与えられた式の 1 本だけ ΔH が <b>?</b> のときは、その ΔH を計算して表示します。</p></details>
   </section>
@@ -214,7 +226,7 @@
     <h3>ライブラリ・例題</h3>
     <ul>
       <li>右の「ライブラリ」から、生成・燃焼エンタルピー、状態変化、溶解・中和、結合エネルギー、ボルン・ハーバーの式を選べます。</li>
-      <li>「追加」は与えられた式に、「目的の式に」は目的の式に入れます（ΔH は ? になります）。</li>
+      <li>「追加」は与えられた式に、「目的の式に」は目的の式に入れます（ΔH は ? になります）。左の「式を足す」で「ライブラリから選ぶ」を選ぶと、次に「追加」した式がその欄に入ります。</li>
       <li>例題は、目的の式と与えられた式をまとめて入れ替えます。</li>
     </ul>
     <details><summary>値について</summary><p>25 ℃ の値（kJ/mol）です。教科書の値と 1 kJ ほど違うことがあります。結合エネルギーは、多原子の分子では平均の値なので、生成エンタルピーから求めた値と少しずれます。</p></details>
@@ -231,7 +243,7 @@
     <h3>このアプリについて</h3>
     <p><b>推奨環境</b>：macOS ＋ Google Chrome。</p>
     <p><b>ご利用にあたって</b>：教育用のアプリです。内容の正確さは保証しません。作った内容は、このブラウザの中か、利用者が選んだファイルに保存し、外部へ送信しません。著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">エネルギー図エディタ　バージョン <span id="appVer">0.1</span> BETA（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">エネルギー図エディタ　バージョン <span id="appVer">0.2</span> BETA（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 

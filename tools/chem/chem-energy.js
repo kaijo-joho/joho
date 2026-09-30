@@ -515,7 +515,9 @@ function arrangeColumns(g){
 // groups を 1 枚の SVG にする。opt.scale：'prop'（高さを ΔH に比例）／'even'（等間隔）
 // opt.colors：{ink, muted, target, step, spect, bg}。opt.old：旧課程の表示（「エネルギー」「Q kJ」）
 function diagramSVG(groups, opt = {}){
-  const C = Object.assign({ink: '#1f2933', muted: '#6b7480', target: '#2563eb', step: '#7c3aed', spect: '#d9480f', bg: ''}, opt.colors || {});
+  // eqs：与えられた式ごとの色（式の番号順に使う）。target：目的の式の矢印、step：色が決まっていない式の矢印
+  const C = Object.assign({ink: '#1f2933', muted: '#6b7480', target: '#2563eb', step: '#7c3aed', spect: '#d9480f', bg: '',
+    eqs: ['#7c3aed', '#0e9f6e', '#d97706', '#db2777', '#0891b2', '#65a30d']}, opt.colors || {});
   const LS = 16, AS = 13.5;       // 段の文字・矢印の文字の大きさ
   const padL = 44, padT = 58, padB = 28, gapG = 50, colGap = 14, lvPad = 12;
   // 縦の位置：高さ（H）が分かる段は、H の順（等間隔）か H に比例した位置。分からない段（点線の目的の段）は、その下に並べる
@@ -588,18 +590,18 @@ function diagramSVG(groups, opt = {}){
       l.tx = best.tx; l.ty = best.ty;
     });
     for (const l of g.levels){
-      lines.push('<line x1="' + l.x0 + '" y1="' + l.y.toFixed(1) + '" x2="' + l.x1 + '" y2="' + l.y.toFixed(1) + '" stroke="' + C.ink + '" stroke-width="2.2"' + (l.dashed ? ' stroke-dasharray="6 5"' : '') + '/>');
+      lines.push('<line x1="' + l.x0 + '" y1="' + l.y.toFixed(1) + '" x2="' + l.x1 + '" y2="' + l.y.toFixed(1) + '" stroke="' + C.ink + '" stroke-width="' + (l.bold ? 3.6 : 2.2) + '"' + (l.dashed ? ' stroke-dasharray="6 5"' : '') + '/>');
       texts.push('<text x="' + l.tx.toFixed(1) + '" y="' + l.ty.toFixed(1) + '" font-size="' + LS + '" fill="' + C.ink + '">' + segsToSVG(l.segs, LS, {spect: C.spect}) + '</text>');
       maxY = Math.max(maxY, l.y + 6, l.ty + 6); maxX = Math.max(maxX, l.x1, l.tx + segsWidth(l.segs, LS));
     }
     g.arrows.forEach((a, ai) => {
       const {ax, y1, y2, w, my} = geo[ai];
       const dir = Math.sign(y2 - y1) || 1;
-      const color = a.kind === 'target' ? C.target : C.step;
+      const color = a.kind === 'target' ? C.target : (a.ci != null ? C.eqs[a.ci % C.eqs.length] : C.step);
       const ya = y1 + dir * 3, yb = y2 - dir * 3;
       const head = Math.abs(yb - ya) >= 10;
       arrows.push('<g class="arrow" data-kind="' + a.kind + '"' + (a.eq != null ? ' data-eq="' + a.eq + '"' : '') + '>' +
-        '<line x1="' + ax + '" y1="' + ya.toFixed(1) + '" x2="' + ax + '" y2="' + (head ? yb - dir * 7 : yb).toFixed(1) + '" stroke="' + color + '" stroke-width="' + (a.kind === 'target' ? 2.6 : 2.2) + '"' + (a.dashed ? ' stroke-dasharray="5 4"' : '') + '/>' +
+        '<line x1="' + ax + '" y1="' + ya.toFixed(1) + '" x2="' + ax + '" y2="' + (head ? yb - dir * 7 : yb).toFixed(1) + '" stroke="' + color + '" stroke-width="' + (a.kind === 'target' ? 3.8 : 2.2) + '"' + (a.dashed ? ' stroke-dasharray="5 4"' : '') + '/>' +
         (head ? '<path d="M' + (ax - 5.5) + ' ' + (yb - dir * 9).toFixed(1) + ' L' + ax + ' ' + yb.toFixed(1) + ' L' + (ax + 5.5) + ' ' + (yb - dir * 9).toFixed(1) + ' Z" fill="' + color + '"/>' : '') +
         '<text x="' + (ax + 8) + '" y="' + my.toFixed(1) + '" font-size="' + AS + '" fill="' + color + '">' + segsToSVG(a.segs, AS) + '</text>' +
         '<rect x="' + (ax - 8) + '" y="' + Math.min(y1, y2).toFixed(1) + '" width="' + (w + 24).toFixed(0) + '" height="' + Math.max(8, Math.abs(y2 - y1)).toFixed(1) + '" fill="transparent"/>' +   // マウスで指しやすくする
@@ -652,11 +654,12 @@ function groupFromPath(path, heights, target, eqs, species, opt = {}){
     const label = '(' + (st.eq + 1) + ')' + (mag.eq(1) ? '' : '×' + fracText(mag));
     // 矢印は、もとの式の向き（反応物 → 生成物）に描く。逆向きに使った式は、矢印が道のりと逆を向く
     const [from, to] = st.c.sign > 0 ? [st.from, st.to] : [st.to, st.from];
-    g.arrows.push({from, to, kind: 'step', eq: st.eq, dashed: typeof dh !== 'number',
+    g.arrows.push({from, to, kind: 'step', eq: st.eq, ci: st.eq, dashed: typeof dh !== 'number',
       segs: arrowSegs(label, typeof dh === 'number' ? +mag * dh : null, digits, opt.old)});
   });
   const last = g.levels.length - 1;
   if (path.matched){
+    g.levels[0].bold = true; g.levels[last].bold = true;   // 目的の式の出発点と到着点の段は太い線にする
     g.arrows.push({from: 0, to: last, kind: 'target', segs: arrowSegs(opt.targetLabel || '', heights.targetDH, digits, opt.old), dashed: heights.targetDH == null});
   } else {
     // まだ目的の式にならないとき：目的の生成物の段を点線で下に置く（高さは分からない）
@@ -676,7 +679,7 @@ function groupFromEquation(eq, label, species, opt = {}){
   const g = {levels: [
     {H: 0, segs: compSegs(L, species, order), ord: 0},
     {H: known ? eq.dh : null, segs: compSegs(R, species, order), ord: 1, dashed: !known}], arrows: []};
-  g.arrows.push({from: 0, to: 1, kind: opt.kind || 'step', eq: opt.eqIndex, dashed: !known, segs: arrowSegs(label, known ? eq.dh : null, digits, opt.old)});
+  g.arrows.push({from: 0, to: 1, kind: opt.kind || 'step', eq: opt.eqIndex, ci: opt.eqIndex, dashed: !known, segs: arrowSegs(label, known ? eq.dh : null, digits, opt.old)});
   return g;
 }
 

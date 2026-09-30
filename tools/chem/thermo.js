@@ -10,15 +10,19 @@ const isMac = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent);
 const KEY = {auto: 'joho.chem.thermo.auto', saves: 'joho.chem.thermo.saves', prefs: 'joho.chem.thermo.prefs',
   view: 'joho.chem.thermo.view', side: 'joho.chem.thermo.side', sideW: 'joho.chem.thermo.sideW', help: 'joho.chem.thermo.help.v1'};
 // 係数の選択肢（値は分数の文字。逆向きは「逆向き」ボタンで負にする）
-const COEFS = [['0', '使わない'], ['1', '×1'], ['2', '×2'], ['3', '×3'], ['4', '×4'], ['1/2', '×½'], ['3/2', '×3/2'], ['1/3', '×⅓'], ['1/4', '×¼']];
+const COEFS = [['1', '×1'], ['2', '×2'], ['3', '×3'], ['4', '×4'], ['1/2', '×½'], ['3/2', '×3/2'], ['1/3', '×⅓'], ['1/4', '×¼']];
+const EQ_COLORS = 6;   // 式ごとの色の数（CSS の --eq0〜--eq5）
 const lsGet = k => { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch { return null; } };
 const lsSet = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch { return false; } };
 
 // ===================== 文書 =====================
-// doc = {app, version, name, target:{text, dh}, eqs:[{id, text, dh, coef}], scale}
+// doc = {app, version, name, target:{text, dh}, eqs:[{id, text, dh, on, mult, rev}], scale}
+// on：この式を使うか、mult：何倍か（×1・×2・×½ など。分数の文字）、rev：逆向きに使うか
 // dh はいつも「ΔH」の文字で持つ（旧課程の表示では、欄に Q = −ΔH を出す）
 let uid = 1;
-const newEq = (text = '', dh = '') => ({id: uid++, text, dh: String(dh), coef: '0'});
+const newEq = (text = '', dh = '') => ({id: uid++, text, dh: String(dh), on: false, mult: '1', rev: false});
+// 計算に渡す係数（使わない式は 0、逆向きは負）
+const coefOf = e => e.on ? (e.rev ? '-' : '') + e.mult : '0';
 const blankDoc = () => ({app: 'chem-thermo', version: 1, name: '無題', target: {text: '', dh: '?'}, eqs: [newEq(), newEq()], scale: 'even'});
 let doc = blankDoc();
 
@@ -26,17 +30,24 @@ let doc = blankDoc();
 function sanitize(o){
   if (!o || typeof o !== 'object' || o.app !== 'chem-thermo') throw new Error('エネルギー図エディタのファイルではありません');
   const str = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
-  const okCoef = c => { const f = E.Frac.parse(str(c, 12)); return f && Math.abs(+f) <= 20 ? f.toString() : '0'; };
+  const okMult = c => { const f = E.Frac.parse(str(c, 12)); return f && f.sign > 0 && +f <= 20 ? f.toString() : '1'; };
   const t = o.target && typeof o.target === 'object' ? o.target : {};
   const d = {app: 'chem-thermo', version: 1, name: str(o.name, 60).trim() || '無題', target: {text: str(t.text, 300), dh: str(t.dh, 30)},
     eqs: [], scale: o.scale === 'prop' ? 'prop' : 'even'};
-  for (const e of (Array.isArray(o.eqs) ? o.eqs : []).slice(0, 20)) if (e && typeof e === 'object') d.eqs.push({id: uid++, text: str(e.text, 300), dh: str(e.dh, 30), coef: okCoef(e.coef)});
+  for (const e of (Array.isArray(o.eqs) ? o.eqs : []).slice(0, 20)) if (e && typeof e === 'object') {
+    const item = {id: uid++, text: str(e.text, 300), dh: str(e.dh, 30), on: false, mult: '1', rev: false};
+    if (typeof e.coef === 'string'){   // 0.1 の保存（係数を 1 つの文字で持っていた）を読み替える
+      const f = E.Frac.parse(str(e.coef, 12));
+      if (f && !f.isZero && +f.abs() <= 20){ item.on = true; item.mult = f.abs().toString(); item.rev = f.sign < 0; }
+    } else { item.on = e.on === true; item.mult = okMult(e.mult); item.rev = e.rev === true; }
+    d.eqs.push(item);
+  }
   if (!d.eqs.length) d.eqs.push(newEq());
   return d;
 }
 // 保存する中身（id は保存しない）
 const content = d => ({app: d.app, version: d.version, name: d.name, target: {text: d.target.text, dh: d.target.dh},
-  eqs: d.eqs.map(e => ({text: e.text, dh: e.dh, coef: e.coef})), scale: d.scale});
+  eqs: d.eqs.map(e => ({text: e.text, dh: e.dh, on: e.on, mult: e.mult, rev: e.rev})), scale: d.scale});
 const contentJSON = d => JSON.stringify(content(d));
 
 // ===================== 元に戻す・やり直し =====================
@@ -68,7 +79,7 @@ function buildCard(kind, i){
   const isT = kind === 'target';
   const d = isT ? doc.target : doc.eqs[i];
   const card = el('div', 'card' + (isT ? ' target' : ''));
-  card.dataset.kind = kind; if (!isT) card.dataset.i = i;
+  card.dataset.kind = kind; if (!isT){ card.dataset.i = i; card.style.setProperty('--c', 'var(--eq' + (i % EQ_COLORS) + ')'); }
   const head = el('div', 'card-head');
   const no = el('span', 'eq-no'); no.textContent = isT ? '目的' : '(' + (i + 1) + ')';
   head.append(no, el('span', 'grow'));
@@ -93,25 +104,23 @@ function buildCard(kind, i){
   const unit = el('span', 'lbl'); unit.textContent = 'kJ';
   row.append(lbl, dh, unit);
   if (!isT){
-    const c = E.Frac.parse(d.coef) || E.ZERO;
-    const mag = c.abs().toString();
-    const sel = el('select', '', {title: 'この式を何倍して使うか（使わない・×1・×2・×½ など）', 'aria-label': '式 ' + (i + 1) + ' の係数'});
+    const use = el('button', 'use' + (d.on ? ' on' : ''), {title: 'この式を組み立てに使う／使わない', 'aria-pressed': String(d.on)});
+    use.textContent = d.on ? '使う' : '使わない';
+    const ctl = el('span', 'ctl' + (d.on ? '' : ' off'));
+    const sel = el('select', '', {title: 'この式を何倍して使うか（×1・×2・×½ など）', 'aria-label': '式 ' + (i + 1) + ' の倍率'});
     const opts = COEFS.slice();
-    if (!opts.some(o => o[0] === mag)) opts.push([mag, '×' + E.fracText(c.abs())]);
+    if (!opts.some(o => o[0] === d.mult)) opts.push([d.mult, '×' + E.fracText(E.Frac.parse(d.mult) || E.ONE)]);
     for (const [v, t] of opts){ const o = el('option'); o.value = v; o.textContent = t; sel.append(o); }
-    sel.value = mag;
-    const rev = el('button', 'rev' + (c.sign < 0 ? ' on' : ''), {title: '式を逆向きに使う（左辺と右辺を入れかえ、ΔH の符号を変える）', 'aria-pressed': String(c.sign < 0)});
-    rev.textContent = '逆向き'; rev.disabled = mag === '0';
-    sel.onchange = () => {
-      const r = rev.classList.contains('on') && sel.value !== '0';
-      const next = (r ? '-' : '') + sel.value;
-      rev.disabled = sel.value === '0'; if (sel.value === '0') rev.classList.remove('on');
-      if (next === d.coef) return;   // 変わらないときは、元に戻すの記録を増やさない
-      commit(); d.coef = next; changed();
-    };
-    rev.onclick = () => { if (sel.value === '0') return; commit(); rev.classList.toggle('on'); rev.setAttribute('aria-pressed', String(rev.classList.contains('on'))); d.coef = (rev.classList.contains('on') ? '-' : '') + sel.value; changed(); };
+    sel.value = d.mult;
+    const rev = el('button', 'rev' + (d.rev ? ' on' : ''), {title: '式を逆向きに使う（左辺と右辺を入れかえ、ΔH の符号を変える）', 'aria-pressed': String(d.rev)});
+    rev.textContent = '逆向き';
+    // 倍率や向きをさわったら、その式を使う状態にする（使わない状態のまま選んでも、値は覚えている）
+    use.onclick = () => { commit(); d.on = !d.on; renderList(); changed(); };
+    sel.onchange = () => { if (sel.value === d.mult && d.on) return; commit(); d.mult = sel.value; d.on = true; renderList(); changed(); };
+    rev.onclick = () => { commit(); d.rev = !d.rev; d.on = true; renderList(); changed(); };
+    ctl.append(sel, rev);
     const sp = el('span', 'grow'); sp.style.flex = '1';
-    row.append(sp, sel, rev);
+    row.append(sp, use, ctl);
   }
   const prev = el('div', 'eq-prev');
   const msg = el('div', 'eq-msg');
@@ -144,8 +153,8 @@ function renderList(){
 function renderAll(){ renderList(); refresh(); syncUndo(); syncView(); $('docName').textContent = doc.name; document.title = doc.name + ' – エネルギー図エディタ'; }
 
 // 記号を入れるボタン：最後にさわった式の欄のカーソルの位置へ
-$('inserts').addEventListener('mousedown', e => { if (e.target.closest('button')) e.preventDefault(); });   // 欄のフォーカスを外さない
-$('inserts').addEventListener('click', e => {
+$('tools').addEventListener('mousedown', e => { if (e.target.closest('[data-ins]')) e.preventDefault(); });   // 欄のフォーカスを外さない
+$('tools').addEventListener('click', e => {
   const b = e.target.closest('[data-ins]'); if (!b) return;
   const f = lastField && document.body.contains(lastField) ? lastField : document.querySelector('#targetCard .eq-text');
   const s = f.selectionStart ?? f.value.length, en = f.selectionEnd ?? f.value.length;
@@ -153,7 +162,45 @@ $('inserts').addEventListener('click', e => {
   f.focus(); f.setSelectionRange(s + b.dataset.ins.length, s + b.dataset.ins.length);
   f.dispatchEvent(new Event('input', {bubbles: true}));
 });
-$('btnAdd').onclick = () => { commit(); doc.eqs.push(newEq()); renderAll(); changed(); const inp = [...document.querySelectorAll('#eqList .eq-text')].pop(); inp && inp.focus(); };
+// 物質のボタン：よく使う物質と、いま書いてある式に出てくる物質（打ちにくい形を選んで入れられる）
+const FIXED_SPECIES = ['C(黒鉛)', 'H2(気)', 'O2(気)', 'N2(気)', 'CO2(気)', 'H2O(液)', 'H2O(気)'];
+function speciesText(sp){
+  if (sp.kind === 'e') return 'e-';
+  if (sp.kind !== 'species') return '';
+  const n = Math.abs(sp.charge);
+  const charge = sp.charge ? (n > 1 ? n : '') + (sp.charge > 0 ? '+' : '-') : '';
+  return sp.formula + charge + (sp.state ? '(' + sp.state + ')' : '');
+}
+let speciesKey = '';
+function drawSpeciesButtons(r){
+  const texts = [...FIXED_SPECIES];
+  for (const sp of r.species.values()){ const t = speciesText(sp); if (t && !texts.includes(t)) texts.push(t); }
+  const key = texts.join('|');
+  if (key === speciesKey) return;
+  speciesKey = key;
+  const box = $('insSpecies'); box.replaceChildren();
+  texts.slice(0, 24).forEach((t, i) => {
+    const b = el('button', i >= FIXED_SPECIES.length ? 'dyn' : '', {'data-ins': t, title: t + ' を入れる' + (i >= FIXED_SPECIES.length ? '（いま書いてある式に出てくる物質）' : '')});
+    try { b.innerHTML = E.segsToHTML(E.speciesSegs(E.parseTerm(t).sp)); } catch { b.textContent = t; }
+    box.append(b);
+  });
+}
+
+// 式を足す：自分で入力するか、ライブラリから選ぶか
+let fillTarget = 0;   // ライブラリから選ぶために足した空の式（次に選んだ式がここへ入る）
+$('btnAdd').onclick = () => $('dlgAdd').showModal();
+$('addFree').onclick = () => {
+  $('dlgAdd').close();
+  commit(); doc.eqs.push(newEq()); renderAll(); changed();
+  const inp = [...document.querySelectorAll('#eqList .eq-text')].pop(); inp && inp.focus();
+};
+$('addLib').onclick = () => {
+  $('dlgAdd').close();
+  commit(); const e = newEq(); doc.eqs.push(e); fillTarget = e.id; renderAll(); changed();
+  if (openPane !== 'lib') openSide('lib'); else $('libSearch').focus();
+  if (narrow()) openTools(false);
+  toast('右のライブラリで、入れたい式の「追加」を押します', 3500);
+};
 
 // ===================== 計算して表示を更新 =====================
 const okEq = p => p && !p.empty && !p.errors.length;
@@ -166,16 +213,16 @@ function digitsOf(strs){
 function compute(){
   const T = doc.target.text.trim() ? E.parseEquation(doc.target.text, doc.target.dh) : null;
   const eqs = doc.eqs.map(e => e.text.trim() ? E.parseEquation(e.text, e.dh) : null);
-  const coefs = doc.eqs.map((e, i) => okEq(eqs[i]) ? (E.Frac.parse(e.coef) || E.ZERO) : E.ZERO);
+  const coefs = doc.eqs.map((e, i) => okEq(eqs[i]) ? (E.Frac.parse(coefOf(e)) || E.ZERO) : E.ZERO);
   const species = E.collectSpecies([T, ...eqs].filter(okEq));
   const digits = digitsOf([doc.target.dh, ...doc.eqs.map(e => e.dh)]);
   const r = {T, eqs, coefs, species, digits, path: null, heights: null, groups: [], mode: 'empty'};
-  const opt = {old: prefs.old, digits};
+  const opt = {old: prefs.old, digits, targetLabel: '目的'};
   if (okEq(T)){
     const used = coefs.some(c => !c.isZero);
     if (!used && typeof T.dh === 'number'){
       r.mode = 'single';
-      r.groups = [E.groupFromEquation(T, '', species, Object.assign({kind: 'target'}, opt))];
+      r.groups = [E.groupFromEquation(T, '目的', species, Object.assign({kind: 'target'}, opt))];
     } else {
       r.path = E.buildPath(T, eqs.map(p => okEq(p) ? p : null), coefs);
       r.heights = E.levelHeights(r.path, T, eqs);
@@ -203,22 +250,33 @@ function refresh(){
     if (extra) lines.push(extra);
     msg.innerHTML = lines.join('');
   };
+  // 自分で入力した式の ΔH が空のとき、生成エンタルピーの表から計算した値を候補として見せる（押したときだけ入れる）
+  const suggest = (p, who, allow) => {
+    if (!allow || !okEq(p)) return '';
+    const v = D.suggestDH(p); if (v == null) return '';
+    const shown = prefs.old ? 'Q = ' + E.numText(-v, 1) : 'ΔH = ' + E.numText(v, 1);
+    return '<div class="eq-msg hint">表の値から：' + shown + ' kJ <button class="sbtn mini" data-fill="' + who + '" data-v="' + v + '" title="この値を ΔH の欄に入れる">入れる</button></div>';
+  };
   const tCard = document.querySelector('#targetCard .card');
   let tExtra = '';
+  if (!(solved && solved.kind === 'target')) tExtra = suggest(r.T, 'target', prefs.answer && (doc.target.dh === '?' || doc.target.dh === ''));   // 目的の式は答えになるので、「答えを見る」を出す設定のときだけ
   if (solved && solved.kind === 'target') tExtra = '<div class="eq-msg solved">' + (prefs.old ? 'Q = ' + E.numText(-solved.value, r.digits) : 'ΔH = ' + E.numText(solved.value, r.digits)) + ' kJ（組み立てて求めた値）</div>';
   if (tCard) show(tCard, r.T, tExtra);
   document.querySelectorAll('#eqList .card').forEach(card => {
     const i = +card.dataset.i, p = r.eqs[i];
     let extra = '';
     if (solved && solved.kind === 'eq' && solved.eq === i) extra = '<div class="eq-msg solved">' + (prefs.old ? 'Q = ' + E.numText(-solved.value, r.digits) : 'ΔH = ' + E.numText(solved.value, r.digits)) + ' kJ（目的の式から求めた値）</div>';
-    const c = E.Frac.parse(doc.eqs[i].coef) || E.ZERO;
+    const c = E.Frac.parse(coefOf(doc.eqs[i])) || E.ZERO;
     if (p && p.errors.length && !c.isZero) extra += '<div class="eq-msg err">直すまで、この式は図に使いません</div>';
+    extra += suggest(p, i, doc.eqs[i].dh.trim() === '');
     card.classList.toggle('unused', c.isZero);
     show(card, p, extra);
   });
   drawDiagram(r);
+  drawStatus(r);
   drawCalc(r);
   drawHint(r);
+  drawSpeciesButtons(r);
   if (openPane === 'exp') drawExportPreview();
 }
 
@@ -226,7 +284,8 @@ function refresh(){
 function themeColors(){
   const cs = getComputedStyle(document.documentElement);
   const v = n => cs.getPropertyValue(n).trim();
-  return {ink: v('--ink'), muted: v('--muted'), target: v('--arrow-target'), step: v('--arrow-step'), spect: v('--spect')};
+  return {ink: v('--ink'), muted: v('--muted'), target: v('--arrow-target'), step: v('--arrow-step'), spect: v('--spect'),
+    eqs: Array.from({length: EQ_COLORS}, (_, i) => v('--eq' + i))};
 }
 function drawDiagram(r){
   const box = $('dia');
@@ -253,26 +312,15 @@ function fitSVG(){
   svg.style.width = Math.floor(w * k) + 'px'; svg.style.height = Math.floor(h * k) + 'px';
 }
 
-// 下の欄：式の足し引きと計算、まだ残っている物質
+// 左の欄：立式の状況（目的の式になったか。まだ残っている物質）
 function sideText(v){ const a = v.abs(); return (v.sign > 0 ? '右辺に ' : '左辺に ') + (a.eq(1) ? '1' : E.fracText(a)); }
-function drawCalc(r){
-  const box = $('calc'), st = $('status');
-  st.hidden = true;
-  if (!r.path || !r.path.steps.length){
-    box.innerHTML = r.mode === 'start' ? '<span class="left">与えられた式の係数（×1・×2・逆向き など）を選ぶと、ここに式の足し引きが出ます。</span>' : '';
-    return;
-  }
-  const ov = r.heights.overrides;
-  const result = r.path.matched ? r.heights.targetDH : null;
-  const c = E.calcText(r.path.steps, r.eqs, result, {digits: r.digits, old: prefs.old, overrides: ov});
-  let h = '<span class="combo">' + E.esc(c.combo) + '</span><span>' + E.esc(c.expr.replace(/ = ([^=]*kJ)$/, '')) + (result != null ? ' = <span class="res">' + E.esc(c.expr.match(/ = ([^=]*kJ)$/)[1]) + '</span>' : '') + '</span>';
-  if (r.path.matched){
-    st.hidden = false; st.className = 'chip ok'; st.textContent = '✓ 目的の式になりました';
-  } else {
-    st.hidden = false; st.className = 'chip no'; st.textContent = 'まだ目的の式ではありません';
-    // 残っている物質
-    const tvec = E.vectorOf(r.T);
-    const items = [];
+function drawStatus(r){
+  const box = $('buildStatus');
+  let cls = '', h = '';
+  if (r.mode === 'matched'){ cls = 'ok'; h = '<b>✓ 目的の式になりました</b>'; }
+  else if (r.mode === 'building'){
+    cls = 'no'; h = '<b>まだ目的の式ではありません</b>';
+    const tvec = E.vectorOf(r.T), items = [];
     for (const [k] of r.path.residual){
       const sp = r.species.get(k); if (!sp) continue;
       const name = E.segsToHTML(E.speciesSegs(sp));
@@ -280,18 +328,31 @@ function drawCalc(r){
       if (t.isZero) items.push(name + ' が' + (s.sign > 0 ? '右辺' : '左辺') + 'に残っています（' + E.esc(s.abs().eq(1) ? '1' : E.fracText(s.abs())) + '）');
       else items.push(name + '：目的の式は' + sideText(t) + '、いまは' + (s.isZero ? 'なし' : sideText(s)));
     }
-    h += '<div class="left">' + items.slice(0, 4).join('　／　') + (items.length > 4 ? '　ほか' : '') + '</div>';
+    h += items.slice(0, 5).map(x => '<div>' + x + '</div>').join('') + (items.length > 5 ? '<div>ほか ' + (items.length - 5) + ' 件</div>' : '');
+  } else if (r.mode === 'start' || r.mode === 'single'){
+    cls = 'idle'; h = '与えられた式の［使わない］を押して「使う」にし、倍率（×2 など）と「逆向き」を選びます。';
   }
-  box.innerHTML = h;
+  box.className = 'build-status ' + cls; box.hidden = !h; box.innerHTML = h;
+}
+
+// 下の欄：式の足し引きと計算
+function drawCalc(r){
+  const box = $('calc');
+  if (!r.path || !r.path.steps.length){ box.innerHTML = ''; return; }
+  const ov = r.heights.overrides;
+  const result = r.path.matched ? r.heights.targetDH : null;
+  const c = E.calcText(r.path.steps, r.eqs, result, {digits: r.digits, old: prefs.old, overrides: ov});
+  box.innerHTML = '<span class="combo">' + E.esc(c.combo) + '</span><span>' + E.esc(c.expr.replace(/ = ([^=]*kJ)$/, '')) +
+    (result != null ? ' = <span class="res">' + E.esc(c.expr.match(/ = ([^=]*kJ)$/)[1]) + '</span>' : '') + '</span>';
 }
 
 const HINTS = {
   empty: '左の「目的の式」に求めたい反応を、「与えられた式」に問題の式と ΔH を入れます',
   free: '目的の式を入れると、与えられた式を組み立ててヘスの法則を使えます',
-  single: '与えられた式の係数を選ぶと、目的の式を回り道で組み立てられます',
-  start: '与えられた式の係数（×1・×2・×½）と「逆向き」を選んで、目的の式を組み立てます',
-  building: 'まだ目的の式になっていません。下の欄の「残っている物質」を消すには、どの式をどう使うか考えます',
-  matched: '目的の式ができました。図の回り道（紫）とまっすぐの道（青）の ΔH が等しいことを確かめましょう',
+  single: '与えられた式を「使う」にすると、目的の式を回り道で組み立てられます',
+  start: '与えられた式を「使う」にして、倍率（×2 など）と「逆向き」を選び、目的の式を組み立てます',
+  building: 'まだ目的の式になっていません。左の「残っている物質」を消すには、どの式をどう使うか考えます',
+  matched: '目的の式ができました。図の回り道（式ごとの色）とまっすぐの道（青・太い線）の ΔH が等しいことを確かめましょう',
   badTarget: '目的の式の赤い字を見て、式を直します',
 };
 function drawHint(r){ $('hint').textContent = HINTS[r.mode] || ''; }
@@ -317,10 +378,18 @@ $('dia').addEventListener('click', e => {
   card.querySelector('.eq-text').focus({preventScroll: true});
 });
 
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-fill]'); if (!b) return;
+  commit();
+  const v = String(b.dataset.v);
+  if (b.dataset.fill === 'target') doc.target.dh = v; else doc.eqs[+b.dataset.fill].dh = v;
+  renderAll(); changed(); toast('ΔH の欄に入れました');
+});
+
 // ===================== 組み立ての補助 =====================
 $('btnClearCoef').onclick = () => {
-  if (doc.eqs.every(e => e.coef === '0')) return toast('係数はすでに「使わない」です');
-  commit(); doc.eqs.forEach(e => { e.coef = '0'; }); renderAll(); changed(); toast('係数を「使わない」に戻しました');
+  if (doc.eqs.every(e => !e.on)) return toast('使う式はありません');
+  commit(); doc.eqs.forEach(e => { e.on = false; }); renderAll(); changed(); toast('すべての式を「使わない」にしました');
 };
 $('btnAnswer').onclick = () => {
   const r = compute();
@@ -333,8 +402,8 @@ $('btnAnswer').onclick = () => {
     return toast(miss.length ? miss.join('、') + ' がどの与えられた式にも出てこないので、目的の式を作れません' : 'この式の組み合わせでは、目的の式を作れません', 4500);
   }
   commit();
-  doc.eqs.forEach(e => { e.coef = '0'; });
-  idx.forEach((i, k) => { doc.eqs[i].coef = res.coefs[k].toString(); });
+  doc.eqs.forEach(e => { e.on = false; });
+  idx.forEach((i, k) => { const c = res.coefs[k]; if (!c.isZero){ Object.assign(doc.eqs[i], {on: true, mult: c.abs().toString(), rev: c.sign < 0}); } });
   renderAll(); changed(); toast('係数を入れて、図を完成させました');
 };
 
@@ -609,9 +678,11 @@ function useLib(it, where){
   commit();
   if (where === 'target'){ doc.target = {text: it.text, dh: '?'}; toast('目的の式に入れました'); }
   else {
-    let i = doc.eqs.findIndex(e => !e.text.trim());
+    let i = doc.eqs.findIndex(e => e.id === fillTarget && !e.text.trim());
+    if (i < 0) i = doc.eqs.findIndex(e => !e.text.trim());
+    fillTarget = 0;
     if (i < 0){ doc.eqs.push(newEq()); i = doc.eqs.length - 1; }
-    doc.eqs[i].text = it.text; doc.eqs[i].dh = String(it.dh); doc.eqs[i].coef = '0';
+    Object.assign(doc.eqs[i], {text: it.text, dh: String(it.dh), on: false, mult: '1', rev: false});
     toast('(' + (i + 1) + ') に入れました');
   }
   renderAll(); changed();
@@ -632,7 +703,7 @@ function exportSVG(){
   if (!r.groups.length) return null;
   const color = $('expColor').checked;
   const colors = color ? {ink: '#1f2933', muted: '#6b7480', target: '#2563eb', step: '#7c3aed', spect: '#d9480f'}
-    : {ink: '#000000', muted: '#555555', target: '#000000', step: '#000000', spect: '#000000'};
+    : {ink: '#000000', muted: '#555555', target: '#000000', step: '#000000', spect: '#000000', eqs: ['#000000']};
   if (!$('expTrans').checked) colors.bg = '#ffffff';
   return E.diagramSVG(r.groups, {scale: doc.scale, old: prefs.old, colors});
 }

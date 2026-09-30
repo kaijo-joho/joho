@@ -189,7 +189,34 @@ function examples(){
   ];
 }
 
-const api = {FORMATION, ATOM_GAS, ION_AQ, IONIZATION, ELECTRON_AFFINITY, BOND_AVG, STANDARD,
+// ---- 表の値から ΔH を出す（自分で入力した式の ΔH が分からないとき、候補として見せる） ----
+// 物質の生成エンタルピー（式の物質の key で引く）。表にないものは null
+const CATION = {Li:'Li', Na:'Na', K:'K'}, ANION = ['F', 'Cl', 'Br', 'I'];
+function enthalpyOf(key){
+  if (key === 'e-') return 0;   // 電子は 0 とする（イオン化エネルギー・電子親和力の式が合うように）
+  const [body, state] = key.split('|');
+  const m = body.match(/^(.*?)(?:\^(-?\d+))?$/);
+  const f = m[1], charge = m[2] ? +m[2] : 0;
+  if (!charge){
+    if (isStandard(f, state)) return 0;
+    const x = fOf(f, state); if (x) return x.v;
+    if (state === '気' && ATOM_GAS[f] != null) return ATOM_GAS[f];   // 気体の原子
+    return null;
+  }
+  if (state === '気' && charge === 1 && CATION[f] && IONIZATION[f] != null) return r1(ATOM_GAS[f] + IONIZATION[f]);
+  if (state === '気' && charge === -1 && ANION.includes(f) && ELECTRON_AFFINITY[f] != null) return r1(ATOM_GAS[f] - ELECTRON_AFFINITY[f]);
+  return null;
+}
+// 式（parseEquation の結果）の ΔH を、表の値から計算する。分からない物質があれば null
+function suggestDH(eq){
+  const vec = E.vectorOf(eq);
+  if (!vec.size) return null;
+  let sum = 0;
+  for (const [k, c] of vec){ const h = enthalpyOf(k); if (h == null) return null; sum += +c * h; }
+  return r1(sum);
+}
+
+const api = {enthalpyOf, suggestDH, FORMATION, ATOM_GAS, ION_AQ, IONIZATION, ELECTRON_AFFINITY, BOND_AVG, STANDARD,
   formationEq, combustionEq, bondEq, bondValue, diatomicBond, library, examples};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemData = api;

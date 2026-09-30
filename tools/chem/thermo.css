@@ -7,10 +7,13 @@
   --paper:#ffffff;
   /* エネルギー図の色：段と文字・目的の式の矢印・与えられた式の矢印・両方の段に足した物質 */
   --ink:#1f2933; --arrow-target:#2563eb; --arrow-step:#7c3aed; --spect:#d9480f;
+  /* 与えられた式ごとの色（番号順）。左の式の枠と図の矢印で同じ色を使う */
+  --eq0:#7c3aed; --eq1:#0e9f6e; --eq2:#d97706; --eq3:#db2777; --eq4:#0891b2; --eq5:#65a30d;
 }
 :root[data-theme="dark"], :root[data-resolved-theme="dark"]{
   --ok:#6fd08c; --warn:#f5b453;
   --ink:#e8edf4; --arrow-target:#8fb4ff; --arrow-step:#c4a5ff; --spect:#ff9a66;
+  --eq0:#c4a5ff; --eq1:#5fd4a5; --eq2:#ffb454; --eq3:#ff8fc0; --eq4:#5fd0e8; --eq5:#b6e26b;
 }
 /* 操作部だけを拡大する（図は画面に合わせて自動で大きさが変わる） */
 .top,.tools,.side,.info,#hint{zoom:var(--ui-k, 1)}
@@ -85,7 +88,8 @@ button,select,input{font:inherit;color:inherit}
 .card.hl{box-shadow:0 0 0 3px var(--accent-soft)}
 .card.unused .eq-prev{opacity:.55}
 .card-head{display:flex;align-items:center;gap:6px}
-.eq-no{font-weight:700;font-size:13px;min-width:24px;color:var(--arrow-step)}
+.eq-no{font-weight:700;font-size:13px;min-width:24px;color:var(--c, var(--arrow-step))}
+.card:not(.target){border-left:5px solid var(--c, var(--line))}
 .card.target .eq-no{color:var(--accent)}
 .card-head .grow{flex:1}
 .card-del{border:0;background:none;color:var(--muted);cursor:pointer;font-size:16px;line-height:1;padding:2px 5px;border-radius:5px}
@@ -224,3 +228,25 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
   #app:has(.side.open) #hint{display:none}
   .info{font-size:12px}
 }
+
+/* ---- 0.2：使うボタン・物質のボタン・立式の状況・式を足すダイアログ ---- */
+.use{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:3px 9px;cursor:pointer;font-size:12.5px;white-space:nowrap;color:var(--muted)}
+.use.on{background:var(--c, var(--accent));border-color:var(--c, var(--accent));color:#fff;font-weight:700}
+:root[data-theme="dark"] .use.on,:root[data-resolved-theme="dark"] .use.on{color:#111}
+.ctl{display:inline-flex;align-items:center;gap:5px}
+.ctl.off{opacity:.5}
+.ctl select{border:1px solid var(--line);border-radius:6px;padding:3px 4px;background:var(--panel)}
+.inserts.species button{min-width:0}
+.inserts.species button.dyn{border-style:dashed}
+.eq-msg.hint{color:var(--muted)}
+.sbtn.mini{padding:1px 8px;font-size:12px;margin-left:4px}
+.build-status{border:1px solid var(--line);border-radius:9px;padding:8px 10px;font-size:13px;line-height:1.5;display:flex;flex-direction:column;gap:2px}
+.build-status[hidden]{display:none}
+.build-status.ok{border-color:var(--ok);color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent)}
+.build-status.no{border-color:var(--warn);color:var(--text);background:color-mix(in srgb,var(--warn) 9%,transparent)}
+.build-status.no b{color:var(--warn)}
+.build-status.idle{color:var(--muted);font-size:12.5px}
+.build-status sub,.build-status sup{font-size:.72em;line-height:0}
+.build-status small{font-size:.82em}
+.sbtn.big{display:flex;flex-direction:column;align-items:flex-start;gap:2px;padding:10px 12px;text-align:left;width:100%}
+.sbtn.big small{color:var(--muted);font-size:12px}
