@@ -183,13 +183,13 @@ NWシリーズの語句の穴埋めは`js/network-lessons.js`の共通処理を�
 
 ### 対象と検証
 
-導入対象は`dr32`の本文2枚目の例題・3〜5枚目の演習、`dr31`の「数値の例」の計算4種、`dr41`の原稿由来の計算2問（4小問）、`dr42`の計算2問（3小問）、`dr43`の9枚目の印刷計算（横・縦の2小問）とする。`SoundCore`・`ImageCore`・`VideoCore`・`OutputCore`と各ページの問題定義から構成し、問題の条件・換算方式・丸めを維持する。`dr31`の確認例では説明を開く操作を別に設け、非スコアで何度でも判定できる。波形・画像の読み取り、符号化の表、説明のためにスライダーへ連動する計算は置き換えない。GASワークシートや他教材への自動展開は行わない。教材固有の条件は[ページ別編集メモ](page-specific-editing-notes.md)を参照する。
+導入対象は`dr32`の本文2枚目の例題・3〜5枚目の演習、`dr31`の「数値の例」の計算4種、`dr41`の原稿由来の計算2問（4小問）、`dr42`の計算2問（3小問）、`dr43`の8〜9枚目のppi・fps/Hz計算（計5小問）と11枚目の印刷計算（横・縦の2小問）とする。`SoundCore`・`ImageCore`・`VideoCore`・`OutputCore`と各ページの問題定義から構成し、問題の条件・換算方式・丸めを維持する。`dr31`の確認例では説明を開く操作を別に設け、非スコアで何度でも判定できる。波形・画像の読み取り、符号化の表、説明のためにスライダーへ連動する計算は置き換えない。GASワークシートや他教材への自動展開は行わない。教材固有の条件は[ページ別編集メモ](page-specific-editing-notes.md)を参照する。
 
 実装後はcore、教材adapter、ブラウザUIの新規テストに加え、既存の音教材・共通スライド・検索の検証を行う。ブラウザでは1440px・720px・390px、ライト・ダーク・自動、3段階の文字サイズ、全画面の開始・終了、ドラッグ、キーボード、タッチを確認する。選択部品の削除・移動、参照の更新と削除制限、同一問題・小問の参照範囲、式・答えの別集計、重複採点防止、未完成式などの採点保留も確認する。実施前の確認項目であり、合格済みの実績を意味しない。
 
 ### データと接続API
 
-問題定義は`quantities`（与えられた数値）、`constants`（補助候補）、`units`（表示名と次元）、`sources`（数量の出自）、`tasks`（小問と回答単位）を持つ。音教材は`SoundFormulas.define(problem)`、画像・動画は`MediaFormulas.defineImage(kind)`・`defineVideo(kind)`、印刷計算は`OutputFormulas.definePrint()`で既存問題から導出する。採点APIは共通graderへ委ねる。自由入力の単位は`units`のうち問題・答えで使用するものと、問題定義の`manualUnits`から選ぶ。bit・B・KB・MBを自動換算せず別の単位として管理し、換算値を掛ける／割る方向も採点する。段階数・チャンネル数・桁数は物理的には無次元でも役割を区別し、単位なしの定数`2`をステレオの`2チャンネル`と同一視しない。単位なし換算の候補は`unitlessConversionChoices`で教材ごとに宣言できる。
+問題定義は`quantities`（与えられた数値）、`constants`（補助候補）、`units`（表示名と次元）、`sources`（数量の出自）、`tasks`（小問と回答単位）を持つ。音教材は`SoundFormulas.define(problem)`、画像・動画は`MediaFormulas.defineImage(kind)`・`defineVideo(kind)`、出力装置は`OutputFormulas.defineDisplay()`・`defineRefresh()`・`definePrint()`で既存問題から導出する。採点APIは共通graderへ委ねる。自由入力の単位は`units`のうち問題・答えで使用するものと、問題定義の`manualUnits`から選ぶ。bit・B・KB・MBを自動換算せず別の単位として管理し、換算値を掛ける／割る方向も採点する。段階数・チャンネル数・桁数は物理的には無次元でも役割を区別し、単位なしの定数`2`をステレオの`2チャンネル`と同一視しない。単位なし換算の候補は`unitlessConversionChoices`で教材ごとに宣言できる。
 
 `LessonFormulaBuilder.mount(host, definition, {onJudge, onChange})`は`getDraft()`、`setDraft(draft)`、`reset(definition)`、`setFeedback(judgment)`、`setDisabled(boolean)`、`destroy()`を返す。行内判定は`onJudge({rowId, taskId, intermediate, draft})`へ通知する。教材側が`SoundFormulas.grade(definition, draft, {taskId})`または`gradeRow(definition, draft, rowId)`を判定操作時だけ呼び、結果を`setFeedback`へ渡す。全小問一括の`grade(definition, draft)`も互換性のため残す。途中式・解答は次のような構造であり、計算済みの派生値を編集中の状態へ書き戻さない。
 

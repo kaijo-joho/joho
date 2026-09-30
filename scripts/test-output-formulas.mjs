@@ -65,4 +65,51 @@ const wrongStepUnit = clone(steps); wrongStepUnit.rows[0].resultUnit = 'mm';
 assert.equal(judge(wrongStepUnit).rows.find(r => r.id === 'inches').calculationCorrect, false, '途中結果の単位を確認');
 const missingReference = clone(steps); missingReference.rows[1].tokens[0].rowId = 'missing';
 assert.equal(judge(missingReference).status, 'invalid', '不正参照は判定保留');
-console.log('印刷の式・答え・単位・途中結果参照の検証に合格しました。');
+const display = F.defineDisplay();
+const refresh = F.defineRefresh();
+function correctDraft(definition) {
+  return {
+    rows: definition.tasks.map((t, i) => ({ id: `r${i}`, taskId: t.id, tokens: clone(t.expectedTokens), result: '', resultUnit: '', answerOpen: true })),
+    targets: Object.fromEntries(definition.tasks.map((t, i) => [t.id, `r${i}`])),
+    answers: Object.fromEntries(definition.tasks.map(t => [t.id, String(t.expected)]))
+  };
+}
+assert.deepEqual(display.tasks.map(t => t.expected), [1920, 128], 'ppiの画素数と逆算');
+assert.deepEqual(refresh.tasks.map(t => t.expected), [15, 60, 4], 'フレーム数・更新回数・表示回数');
+for (const definition of [display, refresh]) {
+  assert.equal(F.grade(definition, correctDraft(definition)).formulaCorrect, true);
+  assert.equal(F.grade(definition, correctDraft(definition)).answerCorrect, true);
+  assert.equal(F.gradeChoice(definition).status, 'invalid', '未選択は判定保留');
+  assert.equal(F.gradeChoice(definition, definition.choice.expected).correct, true);
+  assert.ok(definition.choice.options.filter(x => x !== definition.choice.expected).every(x => F.gradeChoice(definition, x).correct === false));
+}
+const inversePpi = correctDraft(display);
+inversePpi.rows[1].tokens[1] = op('×');
+assert.equal(F.grade(display, inversePpi, { taskId: 'ppi' }).formulaCorrect, false, 'ppiの逆算で掛けない');
+const alonePpi = correctDraft(display); alonePpi.rows[0].tokens = []; alonePpi.answers.pixels = '';
+assert.equal(F.grade(display, alonePpi, { taskId: 'ppi' }).status, 'judged', '独立した逆算を判定');
+const wrongFrameRate = correctDraft(refresh); wrongFrameRate.rows[0].tokens[0] = v(120, 'Hz');
+assert.equal(F.grade(refresh, wrongFrameRate, { taskId: 'frames' }).formulaCorrect, false, 'Hzをフレームレートと混同しない');
+const refreshAnswerOnly = correctDraft(refresh); refreshAnswerOnly.rows[2].tokens = [v(4, 'repeat')];
+assert.equal(F.grade(refresh, refreshAnswerOnly, { taskId: 'repeats' }).formulaCorrect, false, '計算結果のみを立式として通さない');
+const refreshReferences = correctDraft(refresh);
+refreshReferences.rows[0].result = '15'; refreshReferences.rows[0].resultUnit = 'frame';
+refreshReferences.rows[1].result = '60'; refreshReferences.rows[1].resultUnit = 'update';
+refreshReferences.rows[2].tokens = [ref('r1'), op('÷'), ref('r0')];
+assert.equal(F.grade(refresh, refreshReferences, { taskId: 'repeats' }).formulaCorrect, true, '前の2小問を参照');
+assert.equal(F.grade(refresh, refreshReferences, { taskId: 'repeats' }).answerCorrect, true);
+const incorrectFrames = clone(refreshReferences); incorrectFrames.answers.frames = '20'; incorrectFrames.rows[0].result = '20'; incorrectFrames.answers.repeats = '3';
+const badFramesResult = F.grade(refresh, incorrectFrames, { taskId: 'repeats' });
+assert.equal(badFramesResult.rows.find(r => r.id === 'r0').calculationCorrect, false, '参照元の計算ミスを検出');
+assert.equal(badFramesResult.answerCorrect, false, '20枚を15枚へ自動補正しない');
+assert.equal(incorrectFrames.answers.frames, '20');
+const directRateRatio = correctDraft(refresh);
+directRateRatio.rows[0].tokens = []; directRateRatio.rows[1].tokens = [];
+directRateRatio.answers.frames = ''; directRateRatio.answers.updates = '';
+directRateRatio.rows[2].tokens = [v(120, 'Hz'), op('÷'), v(30, 'fps')];
+assert.equal(F.grade(refresh, directRateRatio, { taskId: 'repeats' }).formulaCorrect, true, '120Hz÷30fpsの同値な直接式も許可');
+const reversedRatio = clone(refreshReferences); reversedRatio.rows[2].tokens = [ref('r0'), op('÷'), ref('r1')];
+assert.equal(F.grade(refresh, reversedRatio, { taskId: 'repeats' }).formulaCorrect, false, '回数÷枚数の向きを確認');
+assert.equal(F.gradeChoice(refresh, 'increase').correct, false, '新しいフレームが増えるという誤解を検出');
+assert.equal(F.gradeChoice(display, '2').correct, false, 'ppi2倍を面積の画素数2倍としない');
+console.log('ppi・fps/Hz・印刷の立式、単位、参照、確認問題の検証に合格しました。');

@@ -356,9 +356,66 @@
     </article>
   </section>
 
+  <section data-lesson-slide data-lesson-slide-title="ディスプレイの問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_ppi_quiz">(8) ディスプレイのppiと画素数</h2>
+      <form class="op-widget" data-output-ppi-quiz data-lesson-slide-navigation-lock>
+        <h3>問題　画素数とppiを求める</h3>
+        <p>(1) 横幅<strong>20インチ</strong>、<strong>96ppi</strong>のディスプレイでは、横方向に何画素が並んでいますか。</p>
+        <p>(2) 同じ横幅20インチで、横方向を<strong>2560画素</strong>にすると、何ppiになりますか。</p>
+        <p class="op-hint">20インチは画面の横幅です。製品の「○型」のような対角線の長さではありません。</p>
+        <div data-output-formula-builder></div>
+        <fieldset class="op-choice" data-output-choice>
+          <legend>確認問題　同じ面積で縦横のppiを2倍にすると、画素数は何倍になりますか。</legend>
+          <div class="op-choice-options"><label><input type="radio" name="ppi-area" value="2">2倍</label><label><input type="radio" name="ppi-area" value="4">4倍</label><label><input type="radio" name="ppi-area" value="8">8倍</label></div>
+          <button class="dr-button op-enhancement" type="button" data-output-choice-judge hidden>確認問題を判定</button>
+          <p class="op-feedback" data-output-choice-feedback role="status"></p>
+        </fieldset>
+        <div class="op-controls op-enhancement" hidden><button class="dr-button" type="reset">入力を消す</button></div>
+        <details class="dr-reveal-item"><summary>解答を見る</summary><div class="dr-reveal-item__body" data-output-solution>
+          <ol>
+            <li>ppiは1インチあたりの画素数です。横幅を掛けて、横方向の画素数を求めます。<p class="op-equation">96［画素/インチ］×20［インチ］＝<strong>1920画素</strong></p></li>
+            <li>画素数を横幅で割ると、1インチあたりの画素数を求められます。<p class="op-equation">2560［画素］÷20［インチ］＝<strong>128ppi</strong></p></li>
+            <li>同じ面積で縦横のppiを2倍にすると、横も縦も画素数が2倍です。<p class="op-equation">2×2＝<strong>4倍</strong></p></li>
+          </ol>
+        </div></details>
+        <noscript><p>途中式入力と自動判定にはJavaScriptが必要です。「解答を見る」から解答を読めます。</p></noscript>
+      </form>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="fpsとHzの問題" data-lesson-slide-layout="exercise">
+    <article>
+      <h2 id="headline_refresh_quiz">(9) fpsとHzの関係を考える</h2>
+      <form class="op-widget" data-output-refresh-quiz data-lesson-slide-navigation-lock>
+        <h3>問題　動画のフレームと画面の更新</h3>
+        <p><strong>30fps</strong>の動画を、リフレッシュレート<strong>120Hz</strong>の画面で表示します。<strong>0.5秒間</strong>について、次の値を求めましょう。</p>
+        <p>(1) 動画のフレーム数　(2) 画面の更新回数　(3) 同じフレームの表示回数</p>
+        <p class="op-hint">動画と画面は同時に開始し、補間せず、更新時点の最新フレームを表示します。(3)では、(1)(2)で入力した答えを式へ参照できます。</p>
+        <div data-output-formula-builder></div>
+        <fieldset class="op-choice" data-output-choice>
+          <legend>確認問題　画面を120Hzにすると、動画の新しいフレームも増えますか。</legend>
+          <div class="op-choice-options"><label><input type="radio" name="refresh-frames" value="increase">増える</label><label><input type="radio" name="refresh-frames" value="unchanged">増えない</label></div>
+          <button class="dr-button op-enhancement" type="button" data-output-choice-judge hidden>確認問題を判定</button>
+          <p class="op-feedback" data-output-choice-feedback role="status"></p>
+        </fieldset>
+        <div class="op-controls op-enhancement" hidden><button class="dr-button" type="reset">入力を消す</button></div>
+        <details class="dr-reveal-item"><summary>解答を見る</summary><div class="dr-reveal-item__body" data-output-solution>
+          <ol>
+            <li>fpsは1秒あたりに用意されるフレーム数です。<p class="op-equation">30［枚/秒］×0.5［秒］＝<strong>15枚</strong></p></li>
+            <li>Hzは1秒あたりの画面の更新回数です。<p class="op-equation">120［回/秒］×0.5［秒］＝<strong>60回</strong></p></li>
+            <li>画面の更新回数をフレーム数で割ります。前の2つの計算結果を使えます。<p class="op-equation">60［回］÷15［枚］＝<strong>1枚につき4回</strong></p><p>120［回/秒］÷30［枚/秒］から求めても同じです。</p></li>
+            <li>同じフレームを繰り返し表示しています。動画の新しいフレームは<strong>増えません</strong>。</li>
+          </ol>
+        </div></details>
+        <noscript><p>途中式入力と自動判定にはJavaScriptが必要です。「解答を見る」から解答を読めます。</p></noscript>
+      </form>
+    </article>
+  </section>
+
   <section data-lesson-slide data-lesson-slide-title="プリンタの問題" data-lesson-slide-layout="exercise">
     <article>
-      <h2 id="headline_7">(8) プリンタのドット数を求める</h2>
+      <h2 id="headline_7">(10) プリンタのドット数を求める</h2>
       <form class="op-widget" data-output-dot-quiz data-lesson-slide-navigation-lock>
         <h3>問題1　1インチ四方には何ドット？</h3>
         <p>縦横<strong>300dpi</strong>のプリンタで、<strong>1インチ×1インチ</strong>の範囲にドットを並べます。横1列のドット数と、範囲全体のドット数を求めましょう。</p>
@@ -381,7 +438,7 @@
 
   <section data-lesson-slide data-lesson-slide-title="印刷の問題" data-lesson-slide-layout="exercise">
     <article>
-      <h2 id="headline_8">(9) 印刷に必要な画素数を求める</h2>
+      <h2 id="headline_8">(11) 印刷に必要な画素数を求める</h2>
       <form class="op-widget" data-output-quiz data-lesson-slide-navigation-lock>
         <h3>問題　写真は何画素×何画素？</h3>
         <p>デジタルカメラで撮影する写真を、縦横<strong>400dpi</strong>の解像度で、<strong>横101.6mm×縦76.2mm</strong>の大きさに印刷します。データの加工や写真の拡大・縮小をせずに印刷するには、カメラで記録する画像を何画素×何画素にすればよいでしょうか。</p>

@@ -100,7 +100,7 @@ for (const name of selected) {
     await expect(page.locator('#op-ink-c')).toHaveValue('0');
 
     const ids = ['headline_4', 'headline_dpi', 'headline_5', 'headline_6', 'headline_7', 'headline_8'];
-    await expect(page.locator('section[data-lesson-slide]')).toHaveCount(10); // Generated title plus nine content slides.
+    await expect(page.locator('section[data-lesson-slide]')).toHaveCount(12); // Generated title plus eleven content slides.
     for (const width of [1440, 720, 390]) {
       await page.setViewportSize({ width, height: 900 });
       for (const theme of ['light', 'dark', 'auto']) for (const text of ['normal', 'large', 'xlarge']) {
@@ -122,7 +122,7 @@ for (const name of selected) {
     assert.deepEqual(failures, [], `${name}: no page errors or missing local files`);
     const plain = await browser.newPage({ javaScriptEnabled: false });
     await plain.goto(new URL('dr43.html', base).href);
-    await expect(plain.locator('section[data-lesson-slide]')).toHaveCount(9);
+    await expect(plain.locator('section[data-lesson-slide]')).toHaveCount(11);
     await expect(plain.locator('#headline_dpi')).toBeVisible();
     await expect(plain.locator('[data-output-ink] .op-enhancement')).toBeHidden();
     console.log(`${name}: actual CMY endpoint/intermediate pixels, sliders, split slides, stable links, responsive layout and no-JS fallback passed`);

@@ -101,13 +101,14 @@
     update(); reveal(host);
   }
 
-  function initializePrintQuiz(host) {
+  function initializeFormulaQuiz(host) {
     const Formulas = globalThis.OutputFormulas;
     const Builder = globalThis.LessonFormulaBuilder;
-    if (!Formulas || !Builder) throw new Error('印刷の立式UIを読み込めませんでした。');
-    const definition = Formulas.definePrint();
+    if (!Formulas || !Builder) throw new Error('出力装置の立式UIを読み込めませんでした。');
+    const definition = host.hasAttribute('data-output-ppi-quiz') ? Formulas.defineDisplay()
+      : host.hasAttribute('data-output-refresh-quiz') ? Formulas.defineRefresh() : Formulas.definePrint();
     const builderHost = host.querySelector('[data-output-formula-builder]');
-    if (!builderHost) throw new Error('印刷の立式欄がありません。');
+    if (!builderHost) throw new Error('出力装置の立式欄がありません。');
     let builder;
     builder = Builder.mount(builderHost, definition, {
       onJudge({ rowId, taskId, intermediate, draft }) {
@@ -116,11 +117,30 @@
           : Formulas.grade(definition, draft, { taskId }));
       }
     });
-    host.querySelector('[data-output-answer-fallback]').hidden = true;
+    const fallback = host.querySelector('[data-output-answer-fallback]');
+    if (fallback) fallback.hidden = true;
+    const choice = host.querySelector('[data-output-choice]');
+    const choiceFeedback = choice?.querySelector('[data-output-choice-feedback]');
+    if (choice) {
+      choice.querySelector('[data-output-choice-judge]').addEventListener('click', () => {
+        const answer = choice.querySelector('input:checked')?.value;
+        const result = Formulas.gradeChoice(definition, answer);
+        choiceFeedback.textContent = result.message;
+        choiceFeedback.classList.toggle('is-ok', result.correct === true);
+        choiceFeedback.classList.toggle('is-error', result.correct === false);
+        resized();
+      });
+      choice.addEventListener('change', () => {
+        choiceFeedback.textContent = '';
+        choiceFeedback.classList.remove('is-ok', 'is-error');
+        resized();
+      });
+    }
     host.addEventListener('submit', event => event.preventDefault());
     host.addEventListener('reset', () => {
       builder.reset(definition);
       host.querySelector('details').open = false;
+      if (choiceFeedback) { choiceFeedback.textContent = ''; choiceFeedback.classList.remove('is-ok', 'is-error'); }
       resized();
     });
     host.querySelector('details').addEventListener('toggle', resized);
@@ -179,7 +199,8 @@
       ['[data-output-refresh]', host => globalThis.OutputRefresh?.initialize(host)], ['[data-output-dots]', initializeDots],
       ['[data-output-print]', host => globalThis.OutputPrint?.initialize(host)],
       ['[data-output-ink]', host => globalThis.OutputInk?.initialize(host)],
-      ['[data-output-dot-quiz]', initializeDotQuiz], ['[data-output-quiz]', initializePrintQuiz]
+      ['[data-output-dot-quiz]', initializeDotQuiz],
+      ['[data-output-quiz], [data-output-ppi-quiz], [data-output-refresh-quiz]', initializeFormulaQuiz]
     ];
     widgets.forEach(([selector, setup]) => document.querySelectorAll(selector).forEach(host => {
       try { setup(host); }

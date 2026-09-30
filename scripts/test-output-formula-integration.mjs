@@ -24,7 +24,7 @@ await page.addInitScript(() => {
     } }; }
   });
 });
-const builder = page.locator('[data-output-formula-builder]');
+const builder = page.locator('[data-output-quiz] [data-output-formula-builder]');
 const host = page.locator('[data-output-quiz]');
 const width = host.locator('[data-formula-task="width"]');
 const height = host.locator('[data-formula-task="height"]');
@@ -113,17 +113,17 @@ try {
   }
   const plain = await browser.newPage({ javaScriptEnabled: false });
   await plain.goto(new URL('dr43.html#headline_8', base).href);
-  await expect(plain.locator('section[data-lesson-slide]')).toHaveCount(9);
+  await expect(plain.locator('section[data-lesson-slide]')).toHaveCount(11);
   await expect(plain.locator('[data-output-answer-fallback]')).toBeVisible();
   await plain.locator('[data-output-quiz] summary').press('Enter');
   await expect(plain.locator('[data-output-quiz] [data-output-solution]')).toContainText('1600×1200画素');
   await plain.close();
   const touch = await browser.newPage({ viewport: { width: 390, height: 900 }, hasTouch: true, reducedMotion: 'reduce' });
   await touch.goto(new URL('dr43.html#headline_8', base).href);
-  await touch.locator('[data-output-formula-builder] .formula-task').first().locator('[data-formula-slot]').first().tap();
-  await touch.locator('[data-formula-quantity="width"]').tap();
-  await touch.locator('[data-formula-operator="="]').tap();
-  await expect(touch.locator('[data-formula-task="width"] [data-formula-answer]')).toBeVisible();
+  await touch.locator('[data-output-quiz] [data-output-formula-builder] .formula-task').first().locator('[data-formula-slot]').first().tap();
+  await touch.locator('[data-output-quiz] [data-formula-quantity="width"]').tap();
+  await touch.locator('[data-output-quiz] [data-formula-operator="="]').tap();
+  await expect(touch.locator('[data-output-quiz] [data-formula-task="width"] [data-formula-answer]')).toBeVisible();
   await touch.close();
   assert.deepEqual(errors, []);
   console.log(`${engine}: 印刷の途中式・参照・再判定・従来問題・27表示条件・タッチ・JS無効の検証に合格`);
