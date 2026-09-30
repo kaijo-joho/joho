@@ -30,7 +30,7 @@
 
 .cp-staged-panel:focus { outline: none; }
 .cp-staged-panel:focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
-.cp-staged-title { margin: 0 0 5px; font-size: 1.05em; }
+.cp-staged-title { color: var(--dr-text); margin: 0 0 5px; font-size: 1.05em; }
 .cp-staged-description { margin: 0; color: var(--dr-muted); }
 .cp-staged-formula { margin: 18px 0; padding: 14px; border: 1px solid var(--dr-border); border-radius: 8px; background: var(--dr-panel-strong); color: var(--dr-text); }
 .cp-staged-formula > h5 { margin: 0 0 10px; font-size: 1em; }

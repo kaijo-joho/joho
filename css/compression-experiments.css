@@ -1,6 +1,8 @@
 @charset "UTF-8";
 
 .cp-experiment { min-width: 0; margin: 22px 0; padding: clamp(12px, 2vw, 20px); border: 1px solid var(--dr-border); border-radius: 12px; background: var(--dr-panel); color: var(--dr-text); }
+.cp-experiment :is(h3, h4) { color: var(--dr-info); }
+.cp-experiment-results li { color: var(--dr-text); }
 .cp-experiment > :first-child { margin-top: 0; }
 .cp-experiment > :last-child { margin-bottom: 0; }
 .cp-experiment :is(button, input, select):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
