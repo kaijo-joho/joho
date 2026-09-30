@@ -489,6 +489,9 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <span class="fg" id="fgChg"><span class="lbl">電荷</span>
     <button class="ic" id="chgAuto" title="電荷の記号の位置を自動に戻す（ドラッグで動かした位置を取り消す）"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 1 1 2.3 5.7"/><path d="M4 6v5h5"/></svg></button>
     </span>
+    <span class="fg" id="fgName"><span class="lbl">名前</span>
+    <button class="sbtn" id="btnName" title="選んだ構造に、教科書の決まりで名前を付けて、構造のすぐ下に文字で置く（付けられないときは知らせます）">名前を付ける</button>
+    </span>
     <span class="fg" id="fgAtom"><span class="lbl">原子</span>
     <label class="chk" title="選択した原子に H を付けない（H の数を 0 にする。分子式・分子量にも入らない）"><input type="checkbox" id="atNoH">H を付けない</label>
     <label class="chk" title="選択した原子で、価標の数が多すぎるときの赤い表示と警告を出さない"><input type="checkbox" id="atNoWarn">価標の警告を出さない</label>
@@ -627,6 +630,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     </ol>
     <details><summary>置換基（CH₃ を COOH などに）</summary><p>端の原子を選び、ポップアップの「置換基」から C₂H₅・COOH・NO₂ などを選ぶと、簡略構造式のラベルに変わります（結合が右から来るときは HOOC– のように向きが反転）。原子をダブルクリック、原子に乗せて <kbd>Enter</kbd>、テキストツールで原子をクリックしても入力できます（COO- のように最後に + − を付けると電荷）。「CH₃（メチル基に戻す）」で元に戻り、分子式・分子量にも反映されます。</p></details>
     <details><summary>略記号・一般の記号</summary><p>R・R'・R1・X・Ar（一般の記号）、Me・Et・Pr・iPr・Bu・tBu・Ph・Ac・Bn（略記号）が使えます。OMe・COOEt のように組み合わせることもできます。R・X を含むと分子量は「—」になります。</p></details>
+    <details><summary>名前を付ける</summary><p>構造を選び（画面下の分子式の札をクリックしても選べます）、ポップアップの<strong>「名前を付ける」</strong>を押すと、教科書の決まりで名前を付けて、構造のすぐ下に<strong>文字</strong>で置きます（元に戻すで 1 回で取り消せます。文字なので、テキストツールで直せます）。異性体を並べる機能と同じ命名の仕組みです。イソブタンなどの慣用名は（ ）に添えます。<strong>確信が持てない構造や、まだ対応していない構造（C・H・O 以外の原子、電荷、環が 2 つ以上のものなど）には付けず</strong>、理由を知らせます。立体（シス・トランスなど）は区別しません。</p></details>
     <details><summary>分子式・分子量</summary><p>画面の下に、つながりごとの分子式と分子量（金属・電荷を含むときは式量）が出ます。有機化合物は C・H・そのほかの順（C₂H₆O など）、無機物は教科書の書き方（H₂SO₄・HNO₃・NH₃・CO₂ など）で並べます。クリックするとその構造全体が選ばれ、選んでいる構造の分子式には色が付きます。</p></details>
   </section>
   <section data-help-topic="stereo" data-help-title="立体・テンプレート">
@@ -728,7 +732,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.11（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.12（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -1360,7 +1364,7 @@ function isoFactory(){
     } catch (e) { if (e !== TIMEUP) throw e; stop = 'time'; }
     DEADLINE = Infinity;
     const list = [...out.values()].map(g => ({g, ...describe(g)}));
-    const rk = x => x.rs.length * 1e6 + x.rs.reduce((t, z) => t*100 + z, 0);   // 環の系の順（1 環 → 2 環…、小さい環が先）
+    const rk = x => x.rs.length * 1e12 - x.rs.slice().sort((a, b) => b - a).reduce((t, z) => t*100 + z, 0);   // 環の系の順：1 環 → 2 環…、同じ環の数なら員数の多い環が先
     list.sort((a, b) => (a.cyclic - b.cyclic) || (a.cyclic ? rk(a) - rk(b) : b.chain - a.chain)
       || (a.plain || '\uffff').localeCompare(b.plain || '\uffff', 'ja'));
     return {list, over:!!stop, stop, reason:''};
@@ -3179,6 +3183,34 @@ function findPivot(){
   }
   return found;
 }
+// 原子を通る小さな環（3〜8 員環）の、中心から外へ向かう向き（度）。五員環などは外向きが 15°刻みに乗らないので、刻みの候補に加える
+function ringRadials(aid){
+  if (!doc.atoms[aid]) return [];
+  const out = [], seen = new Set(), path = [aid];
+  const adj = v => bondsOf(v).filter(b => !b.nv).map(b => otherEnd(b, v));
+  const dfs = v => {
+    for (const w of adj(v)){
+      if (w === aid && path.length >= 3){
+        const key = [...path].sort((x, y) => x - y).join(',');
+        if (seen.has(key)) continue;
+        seen.add(key);
+        const chord = path.some((x, i) => path.some((y, j) => j > i + 1 && !(i === 0 && j === path.length - 1) && adj(x).includes(y)));   // 近道がある（環の中の環）ものは除く
+        if (chord) continue;
+        let cx = 0, cy = 0; for (const id of path){ cx += doc.atoms[id].x; cy += doc.atoms[id].y; }
+        out.push(angOf({x:cx/path.length, y:cy/path.length}, doc.atoms[aid]));
+      } else if (path.length < 8 && !path.includes(w)){ path.push(w); dfs(w); path.pop(); }
+    }
+  };
+  dfs(aid);
+  return out;
+}
+// 向き ang（度）を、step 刻みか、環の外向きのうち近い方にそろえる。
+// 外向きのすぐ近く（6.5°以内）の step 刻みは外す（五員環の −18° と −15° のように、ほとんど同じ向きの候補が 2 つ並ばないように）
+function snapAtom(aid, ang, step){
+  const rs = ringRadials(aid), cand = [...rs], g0 = Math.floor(ang/step)*step;
+  for (const g of [g0 - step, g0, g0 + step, g0 + 2*step]) if (!rs.some(r => Math.abs(norm180(g - r)) < 6.5)) cand.push(g);
+  return cand.reduce((b, c) => Math.abs(norm180(ang - c)) < Math.abs(norm180(ang - b)) ? c : b);
+}
 // 「15°刻み」「結合長固定」を考慮した移動の変換
 function moveTransform(d, p){
   const dx = p.x - d.start.x, dy = p.y - d.start.y;
@@ -3190,7 +3222,7 @@ function moveTransform(d, p){
     const P = doc.atoms[d.pivot.pivot], A0 = d.orig.atoms.get(d.pivot.anchor);
     const a0 = angOf(P, A0), l0 = Math.hypot(A0.x-P.x, A0.y-P.y), tgt = {x:A0.x+dx, y:A0.y+dy};
     let ang = angOf(P, tgt), len = Math.hypot(tgt.x-P.x, tgt.y-P.y);
-    if (state.moveSnap) ang = snapAng(ang, 15);
+    if (state.moveSnap) ang = snapAtom(d.pivot.pivot, ang, 15);   // 15°刻み＋環の外向き
     if (state.moveFix) len = l0;
     const th = rad(ang - a0), c = Math.cos(th), s = Math.sin(th), sh = len - l0, ux = Math.cos(rad(ang)), uy = Math.sin(rad(ang));
     return q => { const x = q.x-P.x, y = q.y-P.y; return {x:P.x + x*c - y*s + sh*ux, y:P.y + x*s + y*c + sh*uy}; };
@@ -3323,7 +3355,8 @@ const sameHit = (a, b) => (!a && !b) || (a && b && a.type === b.type && a.id ===
 function bondTarget(from, p){
   const h = nearAtom(p.x, p.y, 12, from.id != null ? new Set([from.id]) : null);
   if (h && Math.hypot(h.x-from.x, h.y-from.y) > 5) return {x:h.x, y:h.y, id:h.id};
-  return {...dirPt(from, snapAng(angOf(from, p), 30), BOND), id:null};
+  const a30 = from.id != null && doc.atoms[from.id] ? snapAtom(from.id, angOf(from, p), 30) : snapAng(angOf(from, p), 30);   // 30°刻み＋環の外向き
+  return {...dirPt(from, a30, BOND), id:null};
 }
 // 「結合長固定」がオンなら、矢印の長さを結合 0.5 本分ずつの段階にする
 const qArrowLen = L => state.moveFix ? Math.max(BOND, Math.round(L/(BOND/2))*(BOND/2)) : L;
@@ -3571,7 +3604,7 @@ svg.addEventListener('pointermove', e => {
     if (P){
       const tgt = {x:o.x + p.x - drag.start.x, y:o.y + p.y - drag.start.y};
       let ang = angOf(P, tgt), len = Math.hypot(tgt.x-P.x, tgt.y-P.y);
-      if (state.moveSnap) ang = snapAng(ang, 15);
+      if (state.moveSnap) ang = snapAtom(drag.atom, ang, 15);
       if (state.moveFix) len = Math.hypot(o.x-P.x, o.y-P.y);
       const np = dirPt(P, ang, Math.max(6, len));
       P.chgv = [np.x-P.x, np.y-P.y];
@@ -3582,7 +3615,7 @@ svg.addEventListener('pointermove', e => {
     const P = doc.atoms[drag.parent], o = drag.pts[drag.i];
     const tgt = {x:o.x + p.x - drag.start.x, y:o.y + p.y - drag.start.y};
     let ang = angOf(P, tgt), len = Math.hypot(tgt.x-P.x, tgt.y-P.y);
-    if (state.moveSnap) ang = snapAng(ang, 15);
+    if (state.moveSnap) ang = snapAtom(drag.parent, ang, 15);
     if (state.moveFix) len = Math.hypot(o.x-P.x, o.y-P.y);
     const np = dirPt(P, ang, len);
     P.hv = drag.pts.map((q, k) => k === drag.i ? [np.x-P.x, np.y-P.y] : [q.x-P.x, q.y-P.y]);
@@ -4050,6 +4083,7 @@ function syncFmt(){
   $('fgOrb').hidden = !orbs.length;
   const chgs = [...sel.chg].map(k => doc.atoms[+k.slice(1)]).filter(Boolean);   // 電荷：位置を自動に戻す
   $('fgChg').hidden = !chgs.some(a => a.chgv);
+  $('fgName').hidden = !sel.atoms.size;   // 名前を付ける：原子を選んでいるとき
   const ats = [...sel.atoms].map(id => doc.atoms[id]).filter(a => a && !a.grp && !a.blank);   // 原子：H を付けない・警告を出さない
   $('fgAtom').hidden = !ats.length;
   for (const [cb, k] of [['atNoH', 'noH'], ['atNoWarn', 'noWarn']]) if (ats.length){
@@ -4885,6 +4919,54 @@ $('fileInput').addEventListener('change', async e => {
   } catch { alert('このファイルは読み込めませんでした。構造式エディタで保存した .json ファイルを選んでください。'); }
 });
 $('miNew').onclick = () => { $('miNew').blur(); addTab(); toast('新しい図を開きました'); };
+
+// ================= 名前を付ける（描いた構造に、異性体の命名と同じ決まりで名前を付ける） =================
+// 図の原子・結合を、命名の部分が読めるグラフ（水素以外の原子だけ。水素は残りの手）に直す。読めないときは理由を返す
+function docToGraph(ids){
+  const heavy = ids.filter(id => doc.atoms[id] && doc.atoms[id].el !== 'H');
+  const idx = new Map(heavy.map((id, i) => [id, i]));
+  if (!heavy.length) return {err:'水素だけの構造には名前を付けられません'};
+  for (const id of heavy){
+    const a = doc.atoms[id];
+    if (a.el !== 'C' && a.el !== 'O') return {err:`${a.el} を含む構造には、まだ名前を付けられません（C・H・O だけ対応しています）`};
+    if (a.charge || a.grp || a.blank || a.noH || a.nm || a.hw || a.pd) return {err:'電荷・置換基のラベル・特別な描き方（いす形・ハースの式など）を含む構造には、まだ名前を付けられません'};
+  }
+  const e = [];
+  for (const b of Object.values(doc.bonds)){
+    if (!idx.has(b.a1) || !idx.has(b.a2)) continue;
+    if (b.nv || b.style === 'dash' || b.style === 'coord') return {err:'配位結合・点線を含む構造には名前を付けられません'};
+    e.push([idx.get(b.a1), idx.get(b.a2), b.order]);
+  }
+  const g = {el:heavy.map(id => doc.atoms[id].el), e};
+  const need = {C:4, O:2};
+  for (let i = 0; i < g.el.length; i++)
+    if (g.e.reduce((t, [a, b, o]) => t + (a === i || b === i ? o : 0), 0) > need[g.el[i]]) return {err:'価標の数が多すぎる原子があるため、名前を付けられません'};
+  return {g};
+}
+const NAME_FS = 14;
+function nameSel(){
+  const gs = alignGroups().filter(g => g.atoms.length);
+  if (!gs.length){ toast('名前を付けたい構造の原子を選択してください（画面下の分子式の札をクリックすると、その構造全体を選べます）'); return; }
+  const jobs = [], bad = [];
+  for (const g of gs){
+    const r = docToGraph(g.atoms);
+    if (r.err){ bad.push(r.err); continue; }
+    const d = ISO.describe(r.g);
+    if (!d.name){ bad.push('この構造には、確信を持って付けられる名前がありません（「—」）'); continue; }
+    jobs.push({g, name:d.name});
+  }
+  if (!jobs.length){ toast(bad[0], 3600); return; }
+  commit();
+  const ids = [];
+  for (const {g, name} of jobs){
+    const id = newId(), w = tw(name, NAME_FS);
+    doc.objs[id] = {id, type:'text', x:(g.bb.x1 + g.bb.x2)/2 - w/2, y:g.bb.y2 + NAME_FS + 12, text:name, ...TEXT_DEFAULT, fs:NAME_FS, auto:false};   // auto:false（自動の下付き）にしないと、位置番号の数字が小さくなる
+    ids.push(id);
+  }
+  clearSel(); ids.forEach(id => sel.objs.add(id)); changed();
+  toast(bad.length ? `${jobs.length} 個に名前を付けました（${bad.length} 個は付けられませんでした）` : `${jobs.length} 個の構造に名前を付けました（文字なので、テキストツールで直せます）`, 3200);
+}
+$('btnName').onclick = nameSel;
 
 // ================= 異性体から作る（分子式 → 構造異性体を新しいタブに並べる） =================
 const isoDlg = $('isoDlg');
