@@ -90,6 +90,8 @@ details.fold > summary:hover{color:var(--text)}
 .iso-conds{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px 12px;margin:4px 0 10px}
 .iso-conds label{display:flex;flex-direction:column;gap:3px;font-size:13px}
 .iso-conds select:disabled{opacity:.5}
+.iso-ringsz{display:flex;flex-wrap:wrap;gap:4px 16px;align-items:center;margin:0 0 10px;font-size:13px}
+.iso-ringsz.off{opacity:.45}
 .iso-opts{display:flex;flex-wrap:wrap;gap:6px 16px;align-items:center;margin:4px 0}
 .iso-msg{min-height:1.4em;margin:8px 0 0;font-size:13px}
 .sbtn-ic{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px;margin-right:5px}
@@ -707,7 +709,8 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
       <li>分子式（例：C5H12）を入れ、必要なら条件（C=C・C≡C・環を「含む／含まない」）を選んで「作成」。</li>
       <li>構造異性体を並べた図が、<strong>新しいタブ</strong>にできます。いま描いている図はそのまま残ります。</li>
     </ol>
-    <details><summary>並び方</summary><p>「主鎖の炭素数で列を分ける」をオンにすると、左から主鎖の長い順に列を作ります（主鎖 7（直鎖）→ 主鎖 6 → …）。教科書の数え方（主鎖を 1 つずつ短くして枝を動かす）と同じ順なので、数え落としを見つけやすくなります。環を含むものは「環を含む」の列にまとまります。1 列が 12 個を超えると、次の列に続きます。</p></details>
+    <details><summary>並び方</summary><p>「主鎖の炭素数で列を分ける」をオンにすると、左から主鎖の長い順に列を作ります（主鎖 7（直鎖）→ 主鎖 6 → …）。教科書の数え方（主鎖を 1 つずつ短くして枝を動かす）と同じ順なので、数え落としを見つけやすくなります。環を含むものは、そのあとに「3員環」「4員環」「5員環」…の列に分かれます（環が 2 つ以上のものは「二環（3・5員環）」のように、環の大きさの組で分けます）。1 列が 12 個を超えると、次の列に続きます。</p></details>
+    <details><summary>3・4 員環を出すか選ぶ</summary><p>環を含む異性体を数えるときは、モーダルの「環の大きさ」で、3 員環（シクロプロパン）・4 員環（シクロブタン）を出すかどうかを選べます。ひずみが大きくて高校ではあまり扱わないので、外すと候補がすっきりします。二環などの中に 3・4 員環がある構造も、外すと出なくなります。</p></details>
     <details><summary>名前</summary><p>名前は、高校の教科書の決まり（いちばん長い鎖を主鎖に、枝の位置番号が小さくなるように、枝はアルファベット順）で付けます。イソブタン・ネオペンタン・エチレンなどの慣用名は（ ）に添えます。<strong>確信が持てないものは「—」</strong>にしています。名前はふつうの文字なので、テキストツールで直せます。</p></details>
     <details><summary>できること・できないこと</summary><p>いまは C と H だけ（炭素 10 個まで）に対応しています。立体（シス・トランス、鏡像）は区別しません。候補が 300 個を超えるか、計算に時間がかかりすぎるときは途中で打ち切り、見出しにそう書きます。並べた図はふつうの図なので、いらないものを消す・書き込む・画像に書き出す・保存する、が自由にできます。</p></details>
   </section>
@@ -725,7 +728,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.10（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.11（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -744,7 +747,12 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
   <div class="iso-conds">
     <label>C=C（二重結合）<select data-cond="C=C"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
     <label>C≡C（三重結合）<select data-cond="C#C"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
-    <label>環<select data-cond="環"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
+    <label>環<select data-cond="環" id="isoRingSel"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
+  </div>
+  <div class="iso-ringsz" id="isoRingSz">
+    <span class="muted">環の大きさ</span>
+    <label class="chk"><input type="checkbox" id="isoR3" checked>3 員環を出す</label>
+    <label class="chk"><input type="checkbox" id="isoR4" checked>4 員環を出す</label>
   </div>
   <div class="gl">並べ方</div>
   <div class="iso-opts">
@@ -1210,7 +1218,7 @@ function isoFactory(){
     return list;
   }
   // ---- 環を作る（枝と枝をつなぐ）----
-  function addRings(g, r){
+  function addRings(g, r, ban3){
     if (!r) return [g];
     const out = new Map();
     const rec = (h, left) => {
@@ -1218,6 +1226,7 @@ function isoFactory(){
       if (!left){ const k = canon(h); if (!out.has(k)) out.set(k, h); return; }
       for (let i = 0; i < h.el.length; i++) for (let j = i + 1; j < h.el.length; j++){
         if (hasEdge(h, i, j) || spare(h, i) < 1 || spare(h, j) < 1) continue;
+        if (ban3 && nbrs(h, i).some(([x]) => hasEdge(h, x, j))) continue;   // 3 員環（三角形）は作らない
         const h2 = clone(h); h2.e.push([i, j, 1]);
         rec(h2, left - 1);
       }
@@ -1244,23 +1253,37 @@ function isoFactory(){
   }
 
   // ---- 条件（絞り込み）----
-  const ringSizes = g => {                                      // 含まれる環の大きさ（小さい環から）
-    const n = g.el.length, A = mat(g), sizes = [];
-    for (const [i, j] of g.e){                                  // その結合を切って回り道の長さを測る
-      const dist = new Array(n).fill(-1); dist[i] = 0;
-      const q = [i];
-      while (q.length){
-        const x = q.shift();
-        for (let y = 0; y < n; y++){
-          if (!A[x][y] || dist[y] >= 0) continue;
-          if ((x === i && y === j) || (x === j && y === i)) continue;
-          dist[y] = dist[x] + 1; q.push(y);
-        }
+  // 最小の環の組（SSSR）。縮合環・スピロ・橋かけでも、環の数と大きさが正しく数えられる
+  function sssr(g){
+    const n = g.el.length, adj = g.el.map((_, i) => nbrs(g, i).map(([y]) => y)), want = rings(g);
+    if (want <= 0) return [];
+    const eid = new Map(); g.e.forEach(([a, b], k) => { eid.set(a + ',' + b, k); eid.set(b + ',' + a, k); });
+    const cands = new Map();
+    for (let s = 0; s < n; s++){                                // どの原子からも、最短の道を使って環の候補を作る
+      const par = new Array(n).fill(-1), dist = new Array(n).fill(-1); dist[s] = 0;
+      const q = [s];
+      while (q.length){ const x = q.shift(); for (const y of adj[x]) if (dist[y] < 0){ dist[y] = dist[x] + 1; par[y] = x; q.push(y); } }
+      const path = x => { const p = []; for (let v = x; v !== -1; v = par[v]) p.push(v); return p.reverse(); };
+      for (const [x, y] of g.e){
+        if (par[x] === y || par[y] === x) continue;
+        const p1 = path(x), p2 = path(y), s1 = new Set(p1.slice(1));
+        if (p2.slice(1).some(v => s1.has(v))) continue;         // 2 本の道が s 以外で交わるものは環にならない
+        const cyc = [...p1, ...p2.slice(1).reverse()];
+        let m = 0; for (let i = 0; i < cyc.length; i++) m |= 1 << eid.get(cyc[i] + ',' + cyc[(i + 1) % cyc.length]);
+        m >>>= 0;
+        if (!cands.has(m)) cands.set(m, {cyc, m});
       }
-      if (dist[j] > 0) sizes.push(dist[j] + 1);
     }
-    return sizes.sort((a, b) => a - b);
-  };
+    const list = [...cands.values()].sort((a, b) => a.cyc.length - b.cyc.length);
+    const basis = [], out = [];                                  // 短い順に、これまでの環の組み合わせで作れないものだけ選ぶ
+    for (const c of list){
+      let m = c.m;
+      for (const b of basis){ const t = (m ^ b) >>> 0; if (t < m) m = t; }
+      if (m){ basis.push(m); out.push(c.cyc); if (out.length >= want) break; }
+    }
+    return out;
+  }
+  const ringSizes = g => sssr(g).map(r => r.length).sort((a, b) => a - b);   // 含まれる環の大きさ（小さい順）
   const tests = {
     'C=C': g => g.e.some(([i, j, o]) => o === 2 && g.el[i] === 'C' && g.el[j] === 'C'),
     'C#C': g => g.e.some(([i, j, o]) => o === 3 && g.el[i] === 'C' && g.el[j] === 'C'),
@@ -1312,6 +1335,7 @@ function isoFactory(){
     const out = new Map();
     let stop = '';                                               // 'cap'：個数で打ち切り ／ 'time'：時間で打ち切り
     const wantRing = opts['環'];
+    const ban = new Set(); if (opts.ring3 === 'no') ban.add(3); if (opts.ring4 === 'no') ban.add(4);   // 出さない環の大きさ
     try {
     const skel = growSkeletons(nHeavy, 'C');                    // 段階 1：炭素だけ
     search:
@@ -1319,10 +1343,11 @@ function isoFactory(){
       for (let r = 0; r <= d; r++){
         if (wantRing === 'no' && r > 0) continue;
         const p = d - r;
-        for (const g1 of addRings(t, r)){
+        for (const g1 of addRings(t, r, ban.has(3))){
           for (const g2 of addPi(g1, p)){
             if (!sameFormula(formulaOfGraph(g2), f)) continue;
             if (!matchOpts(g2, opts)) continue;
+            if (ban.size && ringSizes(g2).some(z => ban.has(z))) continue;
             const key = canon(g2);
             if (out.has(key)) continue;
             out.set(key, g2);
@@ -1335,7 +1360,9 @@ function isoFactory(){
     } catch (e) { if (e !== TIMEUP) throw e; stop = 'time'; }
     DEADLINE = Infinity;
     const list = [...out.values()].map(g => ({g, ...describe(g)}));
-    list.sort((a, b) => (a.cyclic - b.cyclic) || (b.chain - a.chain) || (a.plain || '\uffff').localeCompare(b.plain || '\uffff', 'ja'));
+    const rk = x => x.rs.length * 1e6 + x.rs.reduce((t, z) => t*100 + z, 0);   // 環の系の順（1 環 → 2 環…、小さい環が先）
+    list.sort((a, b) => (a.cyclic - b.cyclic) || (a.cyclic ? rk(a) - rk(b) : b.chain - a.chain)
+      || (a.plain || '\uffff').localeCompare(b.plain || '\uffff', 'ja'));
     return {list, over:!!stop, stop, reason:''};
   }
 
@@ -1397,13 +1424,11 @@ function isoFactory(){
   // 主鎖と名前を決める
   function describe(g){
     const d = describe0(g);
-    let path = d.path, ring = d.ring, chain = d.chain;
-    if (!path && !ring){
-      if (rings(g) > 0) ring = findCycle(g);
-      else { const ps = allPaths(g); path = ps.reduce((a, b) => b.length > a.length ? b : a, [0]); }
-    }
-    if (chain == null) chain = ring ? ring.length : path.length;
-    return {chain, name:withCommon(g, d.name), plain:d.name, path, ring, cyclic:!!ring};   // plain：慣用名なしの系統名
+    const rs = ringSizes(g);                                     // 環の大きさ（小さい順）。空なら鎖
+    let path = d.path, chain = d.chain;
+    if (!rs.length && !path){ const ps = allPaths(g); path = ps.reduce((a, b) => b.length > a.length ? b : a, [0]); }
+    if (chain == null) chain = rs.length ? rs[0] : path.length;
+    return {chain, name:withCommon(g, d.name), plain:d.name, path, rs, cyclic:rs.length > 0};   // plain：慣用名なしの系統名
   }
   function describe0(g){
     const n = g.el.length;
@@ -1542,22 +1567,118 @@ function isoFactory(){
     return null;
   }
 
+  // ---- 環の系（つながった環のまとまり）の並べ方 ----
+  function ringSystems(rs){                                      // 原子を共有する環どうしを 1 つにまとめる
+    const sys = [];
+    for (const r of rs){
+      const merged = {rings:[r], atoms:[...r]};
+      for (const s of sys.filter(x => x.atoms.some(a => r.includes(a)))){
+        merged.rings.push(...s.rings); merged.atoms.push(...s.atoms); sys.splice(sys.indexOf(s), 1);
+      }
+      merged.atoms = [...new Set(merged.atoms)];
+      sys.push(merged);
+    }
+    return sys;
+  }
+  // 環の系を、結合の長さ 1 の平面に置く。まず大きい環を正多角形にし、残りの環は「もう置いた原子」から
+  // 円弧でつなぐ（辺を共有する縮合環は正多角形になる。1 点だけ共有するスピロは頂点を合わせる。橋かけは円弧で渡す）
+  function layoutSystem(sysRings){
+    const P = new Map();
+    const first = sysRings.reduce((a, b) => b.length > a.length ? b : a);
+    const k0 = first.length, R0 = 1/(2*Math.sin(Math.PI/k0)), a0 = -Math.PI/2 + (k0 === 4 ? Math.PI/4 : 0);   // 四角形は辺を水平・垂直に
+    first.forEach((v, t) => P.set(v, {x:R0*Math.cos(a0 + 2*Math.PI*t/k0), y:R0*Math.sin(a0 + 2*Math.PI*t/k0)}));
+    const dmin = (x, y) => { let m = Infinity; for (const q of P.values()) m = Math.min(m, Math.hypot(q.x - x, q.y - y)); return m; };
+    const placeRun = (A, chain, B) => {                          // A と B（置いてある原子）の間に、原子 chain を並べる
+      const m = chain.length, PA = P.get(A), PB = P.get(B);
+      if (A === B){                                              // スピロ：A を頂点にした正多角形を、外側へ
+        let cx = 0, cy = 0; for (const q of P.values()){ cx += q.x; cy += q.y; } cx /= P.size; cy /= P.size;
+        let ux = PA.x - cx, uy = PA.y - cy; const len = Math.hypot(ux, uy);
+        if (len < 1e-6){ ux = 0; uy = -1; } else { ux /= len; uy /= len; }
+        const kk = m + 1, R = 1/(2*Math.sin(Math.PI/kk)), ccx = PA.x + ux*R, ccy = PA.y + uy*R, b0 = Math.atan2(PA.y - ccy, PA.x - ccx);
+        chain.forEach((v, t) => P.set(v, {x:ccx + R*Math.cos(b0 + 2*Math.PI*(t + 1)/kk), y:ccy + R*Math.sin(b0 + 2*Math.PI*(t + 1)/kk)}));
+        return;
+      }
+      const dx = PB.x - PA.x, dy = PB.y - PA.y, c = Math.hypot(dx, dy), ux = dx/c, uy = dy/c;
+      const score = pts => { let md = Infinity; for (const q of pts) md = Math.min(md, dmin(q.x, q.y)); return md; };
+      const arc = side => {                                      // 結合の長さがそろう円弧（正しい形）
+        if (c >= m + 1 - 1e-6) return null;
+        const nx = -uy*side, ny = ux*side;
+        let lo = 1e-6, hi = Math.PI/(m + 1) - 1e-9;
+        for (let it = 0; it < 60; it++){ const mid = (lo + hi)/2; if (Math.sin((m + 1)*mid)/Math.sin(mid) > c) lo = mid; else hi = mid; }
+        const phi = (lo + hi)/2, r = 1/(2*Math.sin(phi)), al = (m + 1)*phi;
+        const Cx = (PA.x + PB.x)/2 - nx*r*Math.cos(al), Cy = (PA.y + PB.y)/2 - ny*r*Math.cos(al), bA = Math.atan2(r*Math.cos(al), -c/2);
+        return chain.map((v, t) => { const bb = bA - 2*phi*(t + 1), fx = r*Math.cos(bb), fy = r*Math.sin(bb); return {v, x:Cx + fx*ux + fy*nx, y:Cy + fx*uy + fy*ny}; });
+      };
+      const bow = (side, H) => chain.map((v, t) => {             // 他の原子とぶつかるときの逃げ道：高さ H の弓形（結合は少し伸びる）
+        const tt = (t + 1)/(m + 1), nx = -uy*side, ny = ux*side;
+        return {v, x:PA.x + dx*tt + nx*H*Math.sin(Math.PI*tt), y:PA.y + dy*tt + ny*H*Math.sin(Math.PI*tt)};
+      });
+      let best = null, bestS = -1;
+      const consider = pts => { if (!pts) return; const sc = score(pts); if (sc > bestS){ bestS = sc; best = pts; } };
+      consider(arc(1)); consider(arc(-1));
+      for (const H of [0, 0.9, 1.3, 1.7, 2.2]){ if (bestS >= 0.75) break; consider(bow(1, H)); consider(bow(-1, H)); }
+      best.forEach(q => P.set(q.v, {x:q.x, y:q.y}));
+    };
+    const left = sysRings.filter(r => r !== first);
+    while (left.length){
+      left.sort((a, b) => b.filter(v => P.has(v)).length - a.filter(v => P.has(v)).length);   // 置いた原子をいちばん多く共有する環から
+      const r = left.shift(), st = r.findIndex(v => P.has(v));
+      const rot = r.slice(st).concat(r.slice(0, st));           // 先頭が「置いてある原子」になるよう回す
+      let i = 0;
+      while (i < rot.length){
+        if (P.has(rot[i])){ i++; continue; }
+        let j = i; while (j < rot.length && !P.has(rot[j])) j++;
+        placeRun(rot[i - 1], rot.slice(i, j), j < rot.length ? rot[j] : rot[0]);
+        i = j;
+      }
+    }
+    if (sysRings.length > 1){                                    // 細長い環の系は、長い向きが水平になるよう 30°刻みで回す（六角形の向きは変わらない）
+      let sxx = 0, syy = 0, sxy = 0, mx = 0, my = 0;
+      for (const q of P.values()){ mx += q.x; my += q.y; } mx /= P.size; my /= P.size;
+      for (const q of P.values()){ sxx += (q.x - mx)**2; syy += (q.y - my)**2; sxy += (q.x - mx)*(q.y - my); }
+      const tr = sxx + syy, df = Math.hypot(sxx - syy, 2*sxy);
+      if (df > 0.15*tr){                                         // 十分細長いときだけ
+        const th = 0.5*Math.atan2(2*sxy, sxx - syy), rot = -Math.round(th/(Math.PI/6))*(Math.PI/6), cs = Math.cos(rot), sn = Math.sin(rot);
+        for (const [v, q] of P) P.set(v, {x:q.x*cs - q.y*sn, y:q.x*sn + q.y*cs});
+      }
+    }
+    return P;
+  }
+  // 座標を作る。ふつうの構造は結合の長さ 1（単位）。style：'grid' 縦横（簡略構造式）／'zig' ジグザグ（骨格構造式）
   function layout1(g, info, style, variant){
     const n = g.el.length, pos = new Array(n).fill(null);
     const nb = g.el.map((_, i) => nbrs(g, i).map(([y]) => y));
     const deg = d => d*Math.PI/180;
     const put = (i, x, y) => { pos[i] = {x, y}; };
-    const near = (x, y, skip) => pos.some((q, k) => q && k !== skip && Math.hypot(q.x - x, q.y - y) < 0.72);
+    const near = (x, y) => pos.some(q => q && Math.hypot(q.x - x, q.y - y) < 0.72);
+    const isSp = i => { const ns = nbrs(g, i); return ns.some(([, o]) => o === 3) || ns.filter(([, o]) => o === 2).length === 2; };   // 直線になる炭素（三重結合・二重結合が 2 つ）
     const turn = new Array(n).fill(1);                           // ジグザグの曲がる向き
+    const rs = sssr(g), hasRing = rs.length > 0;
+    const systems = ringSystems(rs), sysOf = new Map(), sysPlaced = new Set(), local = new Map();
+    systems.forEach((s, k) => s.atoms.forEach(a => sysOf.set(a, k)));
     let core;
-    if (info.ring){
-      core = info.ring;
-      const k = core.length, R = 1/(2*Math.sin(Math.PI/k));
-      core.forEach((v, t) => { const a = -Math.PI/2 + 2*Math.PI*t/k; put(v, R*Math.cos(a), R*Math.sin(a)); });
+    if (hasRing){
+      let main = 0; systems.forEach((s, k) => { if (s.atoms.length > systems[main].atoms.length) main = k; });
+      layoutSystem(systems[main].rings).forEach((p, v) => put(v, p.x, p.y));
+      sysPlaced.add(main); core = systems[main].atoms;
     } else {
       core = info.path;
-      core.forEach((v, t) => style === 'grid' ? put(v, t, 0) : put(v, t*Math.cos(deg(30)), t % 2 ? -0.5 : 0));
-      core.forEach((v, t) => { turn[v] = t % 2 ? 1 : -1; });
+      if (style === 'grid') core.forEach((v, t) => put(v, t, 0));
+      else {                                                     // ジグザグ。直線になる炭素（三重結合など）では曲がらない
+        let hd = -deg(30), sgn = 1, x = 0, y = 0; put(core[0], 0, 0); turn[core[0]] = -1;
+        const hds = [];
+        for (let t = 1; t < core.length; t++){
+          hds.push(hd); x += Math.cos(hd); y += Math.sin(hd); put(core[t], x, y);
+          turn[core[t]] = sgn;
+          if (!isSp(core[t])){ hd += sgn*deg(60); sgn = -sgn; }
+        }
+        const k = core.findIndex((v, t) => t < core.length - 1 && (isSp(v) || isSp(core[t + 1])));
+        if (k >= 0){                                             // 直線の部分が水平になるよう、全体を回す
+          const rot = -hds[k], c = Math.cos(rot), sn = Math.sin(rot);
+          core.forEach(v => { const q = pos[v]; put(v, q.x*c - q.y*sn, q.x*sn + q.y*c); });
+        }
+      }
+      if (style === 'grid') core.forEach((v, t) => { turn[v] = t % 2 ? 1 : -1; });
     }
     const cx = () => { const ps = pos.filter(Boolean); return {x:ps.reduce((s, q) => s + q.x, 0)/ps.length, y:ps.reduce((s, q) => s + q.y, 0)/ps.length}; };
     const q = [...core];
@@ -1569,17 +1690,18 @@ function isoFactory(){
       const used = placed.map(b => Math.atan2(pos[b].y - pa.y, pos[b].x - pa.x));
       const c = cx(), away = Math.atan2(pa.y - c.y, pa.x - c.x);   // 分子の中心から外へ向かう向き
       const incoming = placed.length === 1 ? used[0] + Math.PI : null;   // 一本道で来たときの「まっすぐ」
-      const step = style === 'grid' && !info.ring ? 90 : 30;
+      const step = style === 'grid' && !hasRing ? 90 : 30;
+      const sp = isSp(a);
       for (const b of kids){
-        let bestA = null, bestS = -Infinity;
+        const cands = [];
         for (let d = 0; d < 360; d += step){
           const ang = deg(d);
-          const sep = used.length ? Math.min(...used.map(u => { const x = Math.abs(((ang - u) % (2*Math.PI) + 3*Math.PI) % (2*Math.PI) - Math.PI); return x; })) : Math.PI;
-          if (sep < deg(style === 'grid' && !info.ring ? 80 : 55)) continue;   // 環のまわりは斜めも使う
+          const sep = used.length ? Math.min(...used.map(u => Math.abs(((ang - u) % (2*Math.PI) + 3*Math.PI) % (2*Math.PI) - Math.PI))) : Math.PI;
+          if (sep < deg(style === 'grid' && !hasRing ? 80 : 55)) continue;   // 環のまわりは斜めも使う
           const x = pa.x + Math.cos(ang), y = pa.y + Math.sin(ang);
           let score = sep;
-          if (near(x, y, -1)) score -= 10;                         // 重なるところは避ける
-          if (style === 'grid' && !info.ring){
+          if (near(x, y)) score -= 10;                             // 重なるところは避ける
+          if (style === 'grid' && !hasRing){
             if (incoming !== null && Math.abs(Math.cos(ang - incoming) - 1) < 1e-6) score += 3;   // まっすぐ続ける
             if (incoming === null){                                    // 主鎖からの枝：ふつうは上、込み合うときは下や交互
               const t = info.path.indexOf(a), up = variant === 0 ? true : variant === 1 ? t % 2 === 0 : variant === 2 ? false : t % 2 === 1;
@@ -1592,16 +1714,55 @@ function isoFactory(){
           } else {
             score += Math.cos(ang - away);                            // 外側を向く
           }
-          if (score > bestS){ bestS = score; bestA = ang; }
+          cands.push({ang, score});
         }
-        if (bestA === null) bestA = away;
+        if (sp && incoming !== null) cands.push({ang:incoming, score:100});   // 直線になる炭素は、来た向きにまっすぐ
+        cands.sort((u, w) => w.score - u.score);
+        if (!cands.length || cands[0].score < 0){                // どの向きも近い原子にぶつかるとき：10°刻みで、いちばん離れた向きを探す
+          for (let d = 0; d < 360; d += 10){
+            const ang = deg(d), x = pa.x + Math.cos(ang), y = pa.y + Math.sin(ang);
+            const sep = used.length ? Math.min(...used.map(u => Math.abs(((ang - u) % (2*Math.PI) + 3*Math.PI) % (2*Math.PI) - Math.PI))) : Math.PI;
+            if (sep < deg(40)) continue;
+            let md = Infinity; for (const o of pos) if (o) md = Math.min(md, Math.hypot(o.x - x, o.y - y));
+            cands.push({ang, score:Math.min(md, 1.5)*5 + sep});
+          }
+          cands.sort((u, w) => w.score - u.score);
+        }
+        const sb = sysOf.get(b);
+        if (sb !== undefined && !sysPlaced.has(sb)){             // 別の環の系につながる：向きを決めて、環ごと置く
+          if (!local.has(sb)) local.set(sb, layoutSystem(systems[sb].rings));
+          const L = local.get(sb), Lb = L.get(b);
+          let lx = 0, ly = 0; for (const p of L.values()){ lx += p.x; ly += p.y; } lx /= L.size; ly /= L.size;
+          const phi = Math.atan2(ly - Lb.y, lx - Lb.x);          // b から環の中心へ向かう向き（回して「外」を向ける）
+          const tryAng = ang => {
+            const rot = ang - phi, cs = Math.cos(rot), sn = Math.sin(rot), tx = pa.x + Math.cos(ang), ty = pa.y + Math.sin(ang), out = new Map();
+            let md = Infinity;
+            for (const [v, p] of L){
+              const rx = p.x - Lb.x, ry = p.y - Lb.y, nx = tx + rx*cs - ry*sn, ny = ty + rx*sn + ry*cs;
+              out.set(v, {x:nx, y:ny});
+              for (const o of pos) if (o) md = Math.min(md, Math.hypot(o.x - nx, o.y - ny));
+            }
+            return {out, md, ang};
+          };
+          let pick = null;
+          for (const cd of (cands.length ? cands : [{ang:away}]).slice(0, 12)){
+            const r = tryAng(cd.ang);
+            if (!pick || r.md > pick.md + 1e-9) pick = r;
+            if (r.md >= 0.75){ pick = r; break; }
+          }
+          pick.out.forEach((p, v) => put(v, p.x, p.y));
+          sysPlaced.add(sb); systems[sb].atoms.forEach(v => q.push(v));
+          used.push(pick.ang);
+          continue;
+        }
+        const bestA = cands.length ? cands[0].ang : away;
         put(b, pa.x + Math.cos(bestA), pa.y + Math.sin(bestA));
-        turn[b] = -turn[a];
+        turn[b] = sp ? turn[a] : -turn[a];
         used.push(bestA);
         q.push(b);
       }
     }
-    return pos;
+    return pos.map(p => p || {x:0, y:0});
   }
   // 重なりがない並べ方を探す（枝を上にそろえる → 交互 → 下 → 逆の交互）
   function layout(g, info, style = 'grid'){
@@ -1622,7 +1783,7 @@ function isoFactory(){
     }
     return m;
   }
-  return {parseFormula, degUnsat, enumerate, canon, growSkeletons, addRings, addPi, layout, minGap,
+  return {parseFormula, degUnsat, enumerate, canon, growSkeletons, addRings, addPi, layout, minGap, sssr, ringSizes,
     describe, ringSizes, formulaOfGraph, tests, COMMON};
 }
 const ISO = isoFactory();
@@ -4743,8 +4904,16 @@ function isoCheck(){   // 入力した分子式を確かめて、条件の欄を
   info.textContent = d === 0 ? '不飽和度 0：環も二重結合もない（アルカン）'
     : `不飽和度 ${d}：環と二重結合（三重結合は 2 と数える）を合わせて ${d} つ`;
   isoDlg.querySelectorAll('[data-cond]').forEach(sl => { sl.disabled = d === 0; if (d === 0) sl.value = 'any'; });
+  isoRingSize(d);
   return f;
 }
+function isoRingSize(d){   // 3・4 員環を出すかどうかの欄は、環ができうるとき（不飽和度 1 以上・環が「含まない」でない）だけ使える
+  if (d === undefined){ const f = ISO.parseFormula($('isoF').value.trim()); d = f ? ISO.degUnsat(f) : 0; }
+  const ok = d > 0 && $('isoRingSel').value !== 'no';
+  $('isoR3').disabled = $('isoR4').disabled = !ok;
+  $('isoRingSz').classList.toggle('off', !ok);
+}
+$('isoRingSel').addEventListener('change', () => isoRingSize());
 function isoRun(f, opts){   // 数え上げは別のスレッド（Worker）で。使えないときはその場で
   return new Promise(res => {
     try {
@@ -4786,11 +4955,12 @@ function isoSheet(f, res, o){
   // 2) 列（主鎖の炭素数ごと。1 列 12 個まで、あふれたら次の列へ）
   const cols = [];
   if (o.cols){
-    const keyOf = x => x.it.cyclic ? 'ring' : 'c' + x.it.chain;
+    const keyOf = x => x.it.cyclic ? 'r' + x.it.rs.join('+') : 'c' + x.it.chain;
+    const ringHead = rs => rs.length === 1 ? `${rs[0]}員環` : `${['', '', '二環', '三環', '四環'][rs.length] || '多環'}（${rs.join('・')}員環）`;
     const keys = [...new Set(items.map(keyOf))];
     for (const key of keys){
       const g = items.filter(x => keyOf(x) === key);
-      const head = key === 'ring' ? '環を含む' : `主鎖 ${g[0].it.chain}` + (g[0].it.chain === f.C ? '（直鎖）' : '');
+      const head = g[0].it.cyclic ? ringHead(g[0].it.rs) : `主鎖 ${g[0].it.chain}` + (g[0].it.chain === f.C ? '（直鎖）' : '');
       for (let i = 0; i < g.length; i += 12) cols.push({head: i ? head + '（続き）' : head, items:g.slice(i, i + 12)});
     }
   } else {
@@ -4803,7 +4973,8 @@ function isoSheet(f, res, o){
   const bodyH = Math.max(...items.map(x => x.bb.y2 - x.bb.y1));
   const cellH = bodyH + (items.some(x => x.label) ? FSN*1.9 : 0) + BOND*1.0;
   // 4) 見出しと、並べた構造
-  const title = fRuns(f, ` の構造異性体（${res.list.length} 個${res.stop === 'cap' ? '・300 個で打ち切り' : res.stop === 'time' ? '・時間で打ち切り' : ''}）`);
+  const title = fRuns(f, res.stop === 'cap' ? ` の構造異性体（${res.list.length} 個。多いので、ここで打ち切りました）`
+    : res.stop === 'time' ? ` の構造異性体（${res.list.length} 個。時間がかかるので、途中で打ち切りました）` : ` の構造異性体（${res.list.length} 個）`);
   text(0, 0, title.text, FST, {runs:title.runs});
   const top = FST + (o.cols ? FSH*2.4 : FSN);
   cols.forEach((col, c) => {
@@ -4825,6 +4996,7 @@ async function isoMake(){
   const f = isoCheck(); if (!f) return;
   const opts = {cap:300, ms:4000};
   isoDlg.querySelectorAll('[data-cond]').forEach(sl => { opts[sl.dataset.cond] = sl.value; });
+  opts.ring3 = $('isoR3').checked ? 'any' : 'no'; opts.ring4 = $('isoR4').checked ? 'any' : 'no';   // 3・4 員環を出さない
   const o = {num:$('isoNum').checked, name:$('isoName').checked, cols:$('isoCols').checked, mode:$('isoMode').value};
   $('isoGo').disabled = true; $('isoMsg').textContent = '数えています…';
   const res = await isoRun(f, opts);
