@@ -19,51 +19,6 @@
   };
   const format = value => Number.isInteger(value) ? String(value) : String(Number(value.toFixed(2)));
 
-  function setupImageModel(root) {
-    const source = 'AAAABBBBCCCCDDDD';
-    const levels = one(root, '[data-cp-model-levels]');
-    const result = one(root, '[data-cp-model-result]');
-    const status = one(root, '[data-cp-model-status]');
-    const renderGrid = (host, value) => {
-      host.replaceChildren();
-      [...value].forEach((shade, index) => {
-        const cell = text('span', shade, `cp-model-cell cp-model-cell--${shade}`);
-        cell.setAttribute('aria-label', `${Math.floor(index / 4) + 1}行${index % 4 + 1}列、${{ A: '黒', B: '濃い灰色', C: '薄い灰色', D: '白' }[shade]}`);
-        host.append(cell);
-      });
-    };
-    const exact = Core.encodeRle(source);
-    const restored = Core.decodeRle(exact.encoded);
-    renderGrid(one(root, '[data-cp-model-source]'), source);
-    renderGrid(one(root, '[data-cp-model-restored]'), restored);
-    renderGrid(one(root, '[data-cp-model-quantized]'), 'AAAAAAAADDDDDDDD');
-
-    one(root, '[data-cp-model-run]').addEventListener('click', () => {
-      const transformed = Number(levels.value) === 2 ? source.replace(/[BC]/g, match => match === 'B' ? 'A' : 'D') : source;
-      const encoded = Core.encodeRle(transformed);
-      const decoded = Core.decodeRle(encoded.encoded);
-      const changed = [...source].reduce((count, pixel, index) => count + (pixel === decoded[index] ? 0 : 1), 0);
-      const bitsPerColor = Number(levels.value) === 2 ? 1 : 2;
-      const countBits = 5; // 1〜16画素のまとまりの長さを直接記録する。
-      const theoreticalBits = encoded.runs.length * (bitsPerColor + countBits);
-      const rawBits = 32;
-      renderGrid(one(root, '[data-cp-model-quantized]'), decoded);
-      one(root, '[data-cp-model-caption]').textContent = Number(levels.value) === 2 ? '2階調へ削減（非可逆模型）' : '4階調を保持（可逆）';
-      result.textContent = `可逆RLE ${exact.encoded} → 復元16 / 16画素一致。階調削減後のRLE表記は${encoded.encoded}。${levels.value}階調模型：各画素${bitsPerColor} bit、RLEは${encoded.runs.length}記録 ×（色${bitsPerColor} bit＋回数5 bit）＝${theoreticalBits} bit。4階調の未圧縮32 bitと比べると理論上${format(theoreticalBits / rawBits * 100)}%。`;
-      status.textContent = changed === 0
-        ? `RLEから復元した画像は元の16画素すべてと一致しました。変更された画素は0個です。`
-        : `階調削減後の画像です。元と異なる画素は${changed} / 16個です。色の情報を減らしたため、元画像そのものには戻りません。`;
-      resized();
-    });
-    levels.addEventListener('change', () => {
-      one(root, '[data-cp-model-quantized]').replaceChildren();
-      one(root, '[data-cp-model-caption]').textContent = `${levels.value}階調（未実行）`;
-      result.textContent = '「圧縮して比べる」で、選んだ階調数の結果を確認してください。';
-      status.textContent = ''; resized();
-    });
-    showControls(root);
-  }
-
   function setupSizeModel(root) {
     const before = one(root, '[data-cp-size-before]');
     const after = one(root, '[data-cp-size-after]');
@@ -90,8 +45,8 @@
       }
       const max = Math.max(a, b);
       const bars = [
-        { label: `圧縮前 ${format(a)} ${unit.value}`, value: a, key: 'before' },
-        { label: `圧縮後 ${format(b)} ${unit.value}`, value: b, key: 'after' }
+        { label: `圧縮後 ${format(b)} ${unit.value}`, value: b, key: 'after' },
+        { label: `圧縮前 ${format(a)} ${unit.value}`, value: a, key: 'before' }
       ];
       bars.forEach(item => {
         const row = text('div', '', 'cp-size-row');
@@ -176,7 +131,6 @@
 
   function initialize() {
     [
-      ['[data-cp-image-model]', setupImageModel],
       ['[data-cp-size-model]', setupSizeModel],
       ['[data-cp-string-compare]', setupStringCompare],
       ['[data-cp-image-compare]', setupImageCompare]

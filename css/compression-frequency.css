@@ -1,0 +1,46 @@
+@charset "UTF-8";
+
+[data-cp-frequency-assignment] { margin: 1em 0; padding: clamp(12px, 2vw, 24px); border: 1px solid var(--dr-border); border-radius: 12px; background: var(--dr-panel); color: var(--dr-text); }
+[data-cp-frequency-assignment] > :first-child { margin-top: 0; }
+[data-cp-frequency-assignment] > :last-child { margin-bottom: 0; }
+.cp-frequency-assignment__source { min-height: 2.2em; padding: 10px 12px; border-radius: 6px; background: var(--dr-panel-strong); font: 1.08em/1.8 ui-monospace, monospace; letter-spacing: .035em; overflow-wrap: anywhere; }
+.cp-frequency-assignment__table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--dr-border); border-radius: 7px; }
+.cp-frequency-assignment__table { width: 100%; min-width: 560px; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
+.cp-frequency-assignment__table caption { padding: 8px; color: var(--dr-muted); text-align: left; }
+.cp-frequency-assignment__table :is(th, td) { min-height: 2.8em; height: 2.8em; padding: 7px 8px; border: 1px solid var(--dr-border); text-align: center; vertical-align: middle; }
+.cp-frequency-assignment__table thead th:first-child,
+.cp-frequency-assignment__table tbody th { width: 9.5em; text-align: left; }
+.cp-frequency-assignment__table thead th:last-child,
+.cp-frequency-assignment__table tbody td:last-child { width: 6em; }
+.cp-frequency-assignment__table .cp-frequency-assignment__value { display: block; min-width: 4ch; height: 1.4em; line-height: 1.4; white-space: nowrap; font-weight: 800; }
+.cp-frequency-assignment__table [data-cp-frequency-contribution] { min-width: 5ch; }
+.cp-frequency-assignment__table [data-cp-frequency-column].is-current { background: var(--dr-info-soft); box-shadow: inset 0 0 0 2px var(--dr-focus); }
+.cp-frequency-assignment__table tr:last-child td:last-child { font-weight: 800; }
+.cp-frequency-assignment__controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 12px 0; }
+.cp-frequency-assignment__controls .dr-button { min-height: 44px; }
+.cp-frequency-assignment__status { box-sizing: border-box; height: 6em; margin: 8px 0 0; padding: 8px 10px; overflow: auto; border-left: 3px solid var(--dr-info); background: var(--dr-info-soft); line-height: 1.5; }
+.cp-frequency-assignment__hint { color: var(--dr-muted); font-size: .9em; line-height: 1.6; }
+[data-cp-frequency-assignment] :is(button, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+
+@media (max-width: 390px) {
+  [data-cp-frequency-assignment] { padding: 10px; }
+  .cp-frequency-assignment__table { min-width: 520px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cp-frequency-assignment__table [data-cp-frequency-column] { scroll-behavior: auto; }
+}
+
+@media print {
+  [data-cp-frequency-assignment] { padding: 0; border: 0; background: transparent; }
+  .cp-frequency-assignment__controls { display: none !important; }
+  .cp-frequency-assignment__table-wrap { overflow: visible; }
+  .cp-frequency-assignment__table { min-width: 0; }
+  .cp-frequency-assignment__table :is(th, td) { height: auto; }
+  .cp-frequency-assignment__table [data-cp-frequency-column].is-current { background: transparent; box-shadow: none; }
+}
+
+.cp-frequency-assignment > h3 { color: var(--dr-info); }
+.cp-frequency-assignment__table { display: table; margin: 0; padding: 0; font: inherit; background: var(--dr-panel); color: var(--dr-text); }
+.cp-frequency-assignment__table th { background: var(--dr-info-soft); color: var(--dr-text); }
+.cp-frequency-assignment__table td { background: var(--dr-panel-strong); color: var(--dr-text); }

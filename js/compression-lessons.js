@@ -37,32 +37,100 @@
     const status = one(root, '[data-cp-rle-step]');
     const rate = one(root, '[data-cp-rle-rate]');
     const next = one(root, '[data-cp-rle-next]');
+    const toggle = one(root, '[data-cp-rle-edit-toggle]');
+    const editor = one(root, '[data-cp-rle-editor]');
+    const apply = one(root, '[data-cp-rle-apply]');
+    const cancel = one(root, '[data-cp-rle-cancel]');
+    const editStatus = one(root, '[data-cp-rle-edit-status]');
+    if (![input, before, after, status, rate, next, toggle, editor, apply, cancel, editStatus].every(Boolean)) return;
+
+    let source = input.value.normalize('NFKC').toUpperCase();
     let step = 0;
+    const validValue = value => /^[A-Z]{1,40}$/.test(value.normalize('NFKC').toUpperCase());
+    const closeEditor = returnFocus => {
+      input.value = source;
+      input.setAttribute('aria-invalid', 'false');
+      editStatus.textContent = 'A〜Zを1〜40文字で入力してください。';
+      editor.hidden = true;
+      before.hidden = false;
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+      toggle.setAttribute('aria-expanded', 'false');
+      if (returnFocus) toggle.focus();
+    };
     const render = () => {
-      const text = input.value.normalize('NFKC').toUpperCase();
-      const valid = /^[A-Z]{1,40}$/.test(text);
-      input.setAttribute('aria-invalid', String(!valid));
-      before.replaceChildren(); after.replaceChildren();
-      if (!valid) {
-        before.textContent = text || '（未入力）';
-        status.textContent = 'A〜Zの文字を1〜40文字で入力してください。';
-        rate.textContent = ''; next.disabled = true; return;
-      }
-      const result = Core.encodeRle(text);
+      before.replaceChildren();
+      after.replaceChildren();
+      const result = Core.encodeRle(source);
       result.runs.forEach((run, index) => {
         before.append(make('span', run.value.repeat(run.count), index === step - 1 ? 'is-current' : ''));
         if (index < step) after.append(make('span', run.encoded, `cp-token${index === step - 1 ? ' is-current' : ''}`));
       });
       if (!step) after.textContent = '「次のまとまり」で圧縮を進めます。';
       const run = result.runs[step - 1];
-      status.textContent = run ? `${step} / ${result.runs.length}：${run.value}が${run.count}回続く → ${run.encoded}${step === result.runs.length ? '。圧縮完了。' : ''}` : `0 / ${result.runs.length}：左端から、同じ文字のまとまりを読みます。`;
-      rate.textContent = step === result.runs.length ? rateText(result) : `元の文字数：${result.before}文字。すべてのまとまりを圧縮して比べましょう。`;
+      status.textContent = run
+        ? `${step} / ${result.runs.length}：${run.value}が${run.count}回続く → ${run.encoded}${step === result.runs.length ? '。圧縮完了。' : ''}`
+        : `0 / ${result.runs.length}：左端から、同じ文字のまとまりを読みます。`;
+      rate.textContent = step === result.runs.length
+        ? rateText(result)
+        : `元の文字数：${result.before}文字。すべてのまとまりを圧縮して比べましょう。`;
       next.disabled = step >= result.runs.length;
     };
-    input.addEventListener('input', () => { step = 0; render(); });
+    const validateInput = () => {
+      const normalized = input.value.normalize('NFKC').toUpperCase();
+      const valid = validValue(input.value);
+      input.setAttribute('aria-invalid', String(!valid));
+      apply.disabled = !valid;
+      editStatus.textContent = valid
+        ? 'この文字列を適用できます。'
+        : `A〜Zの文字を1〜40文字で入力してください（現在${[...normalized].length}文字）。`;
+      return { valid, normalized };
+    };
+    const openEditor = () => {
+      input.value = source;
+      input.setAttribute('aria-invalid', 'false');
+      apply.disabled = false;
+      editStatus.textContent = 'A〜Zを1〜40文字で入力してください。';
+      editor.hidden = false;
+      before.hidden = true;
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+      toggle.setAttribute('aria-expanded', 'true');
+      input.focus();
+      input.select();
+    };
+    const applyInput = () => {
+      const { valid, normalized } = validateInput();
+      if (!valid) {
+        input.focus();
+        return;
+      }
+      source = normalized;
+      step = 0;
+      closeEditor(true);
+      render();
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+    };
+
+    input.addEventListener('input', validateInput);
+    input.addEventListener('keydown', event => {
+      if (event.isComposing) return;
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        applyInput();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        closeEditor(true);
+      }
+    });
+    toggle.addEventListener('click', () => {
+      if (editor.hidden) openEditor();
+      else closeEditor(false);
+    });
+    apply.addEventListener('click', applyInput);
+    cancel.addEventListener('click', () => closeEditor(true));
     next.addEventListener('click', () => { step += 1; render(); });
     one(root, '[data-cp-rle-reset]').addEventListener('click', () => { step = 0; render(); });
-    controls(root); render();
+    controls(root);
+    render();
   }
 
   function setupImageRle(root) {
@@ -167,48 +235,71 @@
     return element;
   }
 
-  function renderTree(container, forest, { active = '', hideCounts = false } = {}) {
+  function renderTree(container, forest, {
+    active = '', hideCounts = false, reservedDepth = 0, layoutRoot = null,
+    selectable = [], selected = [], onSelect = null, newParent = '', tracing = ''
+  } = {}) {
     if (!container) return;
-    const roots = [...forest].sort((a, b) => a.prefix.localeCompare(b.prefix));
+    const roots = [...forest].sort((a, b) => a.prefix.localeCompare(b.prefix) || a.id.localeCompare(b.id));
     const height = node => node.symbol === undefined ? 1 + Math.max(height(node.zero), height(node.one)) : 0;
-    const maxHeight = Math.max(...roots.map(height));
+    const maxHeight = Math.max(reservedDepth, layoutRoot ? height(layoutRoot) : 0, ...roots.map(height));
     const positions = new Map();
     let leaves = 0;
     const locate = node => {
       const y = 40 + (maxHeight - height(node)) * 80;
       let x;
       if (node.symbol !== undefined) x = 60 + leaves++ * 120;
-      else { locate(node.zero); locate(node.one); x = (positions.get(node.zero).x + positions.get(node.one).x) / 2; }
-      positions.set(node, { x, y });
+      else { locate(node.zero); locate(node.one); x = (positions.get(node.zero.id).x + positions.get(node.one.id).x) / 2; }
+      positions.set(node.id, { x, y });
     };
-    roots.forEach(locate);
+    // A fixed final tree keeps every existing circle still while the next parent and branches appear.
+    if (layoutRoot) locate(layoutRoot); else roots.forEach(locate);
     const uid = `cp-tree-${++diagramId}`;
-    const svg = svgElement('svg', { viewBox: `0 0 ${Math.max(520, leaves * 120)} ${maxHeight * 80 + 106}`, role: 'img', 'aria-labelledby': `${uid}-title ${uid}-desc` });
-    svg.append(svgElement('title', { id: `${uid}-title` }, hideCounts ? '枝の0と1から符号を読み取るハフマン木' : 'ハフマン木の結合と符号'));
+    const interactive = typeof onSelect === 'function';
+    container.classList.toggle('cp-tree--interactive', interactive);
+    const svg = svgElement('svg', { viewBox: `0 0 ${Math.max(520, leaves * 120)} ${maxHeight * 80 + 106}`, role: interactive ? 'group' : 'img', 'aria-labelledby': `${uid}-title ${uid}-desc` });
+    svg.append(svgElement('title', { id: `${uid}-title` }, interactive ? '丸を選んで結合するハフマン木' : hideCounts ? '枝の0と1から符号を読み取るハフマン木' : 'ハフマン木の結合と符号'));
     const descriptions = [];
     const visitDescription = (node, base) => {
       if (node.symbol !== undefined) descriptions.push(`${node.symbol}：${hideCounts ? '回数は空欄' : `${node.count}回`}、${node.prefix === base ? '独立した葉' : `この木の根からの枝${node.prefix.slice(base.length)}`}`);
       else { visitDescription(node.zero, base); visitDescription(node.one, base); }
     };
     roots.forEach(node => visitDescription(node, node.prefix));
-    svg.append(svgElement('desc', { id: `${uid}-desc` }, `${roots.length}個の木。${descriptions.join('。')}。`));
+    svg.append(svgElement('desc', { id: `${uid}-desc` }, `${roots.length}個の木。${descriptions.join('。')}。${interactive ? '結合していない根の丸を2つ選びます。Enterキーまたはスペースキーでも選べます。' : ''}`));
     const edges = svgElement('g');
     const nodes = svgElement('g');
+    const symbols = node => node.symbol || `${[...node.id.slice('node:'.length)].join('・')}（結合済み）`;
     const draw = node => {
-      const p = positions.get(node);
+      const p = positions.get(node.id);
       if (node.symbol === undefined) {
         [node.zero, node.one].forEach((child, bit) => {
-          const c = positions.get(child);
-          const highlighted = active !== '' && active.startsWith(child.prefix);
-          edges.append(svgElement('line', { x1: p.x, y1: p.y, x2: c.x, y2: c.y, class: highlighted ? 'is-current' : '' }));
+          const c = positions.get(child.id);
+          const highlighted = active !== '' && active !== 'root' && active.startsWith(child.prefix);
+          const classes = [highlighted ? 'is-current' : '', node.id === newParent ? 'cp-new-edge' : '', child.prefix === tracing ? 'cp-tracing-edge' : ''].filter(Boolean).join(' ');
+          edges.append(svgElement('line', { x1: p.x, y1: p.y, x2: c.x, y2: c.y, class: classes, pathLength: 1, 'data-cp-edge': child.prefix }));
           edges.append(svgElement('text', { x: (p.x + c.x) / 2 + (bit ? 12 : -12), y: (p.y + c.y) / 2, class: 'cp-edge-label' }, bit));
           draw(child);
         });
       }
-      const group = svgElement('g', { 'data-cp-node': node.id, class: active === node.id || (active === 'root' && node.id === 'root') ? 'is-current' : '' });
+      const canSelect = interactive && selectable.includes(node.id);
+      const classes = [active === node.id ? 'is-current' : '', selected.includes(node.id) ? 'is-selected' : '', node.id === newParent ? 'cp-new-node' : ''].filter(Boolean).join(' ');
+      const group = svgElement('g', { 'data-cp-node': node.id, class: classes });
       group.append(svgElement('circle', { cx: p.x, cy: p.y, r: 24 }));
       group.append(svgElement('text', { x: p.x, y: p.y }, hideCounts ? '?' : node.count));
       if (node.symbol !== undefined) group.append(svgElement('text', { x: p.x, y: p.y + 42, class: 'cp-leaf' }, node.symbol));
+      if (canSelect) {
+        group.setAttribute('role', 'button'); group.setAttribute('tabindex', '0');
+        group.setAttribute('aria-label', `${symbols(node)}：${node.count}回`);
+        group.setAttribute('aria-pressed', String(selected.includes(node.id)));
+        group.dataset.cpPracticeNode = node.id;
+        group.addEventListener('click', () => onSelect(node.id));
+        group.addEventListener('keydown', event => {
+          if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); event.stopPropagation(); onSelect(node.id); }
+        });
+        if (selected.includes(node.id)) {
+          group.append(svgElement('text', { x: p.x + 34, y: p.y - 30, class: 'cp-selection-order', 'aria-hidden': 'true' }, selected.indexOf(node.id) + 1));
+        }
+      }
       nodes.append(group);
     };
     roots.forEach(draw); svg.append(edges, nodes); container.replaceChildren(svg);
@@ -232,7 +323,7 @@
       const fixture = preset ? Core.HUFFMAN_PRACTICE[Number(preset.value)] : Core.HUFFMAN_EXAMPLE;
       const tree = Core.huffmanFromCodes(fixture.frequencies, fixture.codes);
       const current = tree.steps[step - 1];
-      renderTree(one(root, '[data-cp-tree]'), current ? current.forest : tree.leaves, { active: current ? current.parent.id : '' });
+      renderTree(one(root, '[data-cp-tree]'), current ? current.forest : tree.leaves, { active: current ? current.parent.id : '', layoutRoot: tree.root, newParent: current ? current.parent.id : '' });
       renderCodes(one(root, '[data-cp-codes]'), fixture, step === tree.steps.length);
       one(root, '[data-cp-build-status]').textContent = current ? `結合${step} / ${tree.steps.length}：${current.zero.count} ＋ ${current.one.count} ＝ ${current.parent.count}。${step === tree.steps.length ? '木が完成。根から0・1をたどって各文字の符号を読みます。' : '残っている数から、最も少ない2つを探しましょう。'}` : `結合0 / ${tree.steps.length}：各文字の出現回数から、最も少ない2つを探しましょう。`;
       next.disabled = step >= tree.steps.length; previous.disabled = step === 0;
@@ -251,7 +342,10 @@
     const input = one(root, '[data-cp-codec-input]');
     const next = one(root, '[data-cp-codec-next]');
     const status = one(root, '[data-cp-codec-status]');
-    let step = 0;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let step = 0, timer = null, busy = false, tracePrefix = '', traceSymbol = '';
+    const stop = () => { clearTimeout(timer); timer = null; busy = false; tracePrefix = ''; traceSymbol = ''; };
+    const isVisible = () => !document.hidden && !root.closest('[data-lesson-slide]')?.hidden && !root.closest('[data-lesson-view-panel]')?.hidden;
     const render = () => {
       const source = clean(input.value);
       const valid = decode ? /^[01]{1,80}$/.test(source) : /^[A-E]{1,80}$/.test(source);
@@ -265,35 +359,59 @@
         status.textContent = decode ? '0と1を1〜80桁で入力してください。' : 'A〜Eの文字を1〜80文字で入力してください。';
         next.disabled = true; renderTree(one(root, '[data-cp-tree]'), [tree.root]); return;
       }
-      [...source].forEach((char, index) => sourceDisplay.append(make('span', char, index === step - 1 ? 'is-current' : '')));
-      let active = 'root';
-      let symbol = '';
-      let message = '';
+      [...source].forEach((char, index) => sourceDisplay.append(make('span', char, index === (busy ? step : step - 1) ? 'is-current' : '')));
+      let active = 'root', symbol = '', message = '';
       if (decode) {
         let node = tree.root;
         let restored = '';
         for (const bit of source.slice(0, step)) {
           node = bit === '0' ? node.zero : node.one;
-          active = node.id; symbol = node.symbol || '';
+          active = node.prefix; symbol = node.symbol || '';
           if (symbol) { restored += symbol; node = tree.root; }
         }
         output.textContent = restored || '（まだ文字は確定していません）';
-        message = step === 0 ? '根からスタート。1bitずつ枝をたどります。' : symbol ? `${source[step - 1]}の枝で${symbol}に到着 → ${symbol}を復元。${step < source.length ? '次は根から読みます。' : '復元完了。'}` : `途中の節点です。${step === source.length ? '符号の途中で終わっています。続きを入力してください。' : '次のbitを読んで枝をたどります。'}`;
+        message = step === 0 ? '根からスタート。1bitずつ枝をたどります。' : symbol ? `${source[step - 1]}の枝で${symbol}に到着 → ${symbol}を復元。${step < source.length ? '次は根から読みます。' : '復元完了。'}` : `根からの経路：${active.split('').join(' → ')}。${step === source.length ? '符号の途中で終わっています。続きを入力してください。' : '次のbitを読んで枝をたどります。'}`;
       } else {
-        [...source.slice(0, step)].forEach((char, index) => output.append(make('span', fixture.codes[char], `cp-token${index === step - 1 ? ' is-current' : ''}`)));
-        symbol = source[step - 1] || '';
-        active = symbol ? fixture.codes[symbol] : 'root';
-        message = symbol ? `${symbol} → ${fixture.codes[symbol]}（${fixture.codes[symbol].length}bit）。${step === source.length ? '符号化完了。' : ''}` : '左端の文字から、符号表を使って置き換えます。';
-        if (!step) output.textContent = '（まだ符号化していません）';
+        [...source.slice(0, step)].forEach((char, index) => output.append(make('span', fixture.codes[char], `cp-token${!busy && index === step - 1 ? ' is-current' : ''}`)));
+        if (busy) {
+          active = tracePrefix || 'root';
+          symbol = traceSymbol;
+          if (tracePrefix) output.append(make('span', tracePrefix, 'cp-token is-current'));
+          message = `${traceSymbol}の葉へ：根${tracePrefix ? ` → ${tracePrefix.split('').join(' → ')}` : 'からスタート'}。枝を上からたどります。`;
+        } else {
+          symbol = source[step - 1] || '';
+          active = symbol ? fixture.codes[symbol] : 'root';
+          message = symbol ? `${symbol}：根 → ${fixture.codes[symbol].split('').join(' → ')}。符号${fixture.codes[symbol]}（${fixture.codes[symbol].length}bit）。${step === source.length ? '符号化完了。' : ''}` : '「次の文字」で、根から葉へ枝を1本ずつたどります。';
+        }
+        if (!step && !busy) output.textContent = '（まだ符号化していません）';
       }
       renderCodes(one(root, '[data-cp-codes]'), fixture, true, symbol);
-      renderTree(one(root, '[data-cp-tree]'), [tree.root], { active });
+      renderTree(one(root, '[data-cp-tree]'), [tree.root], { active, tracing: busy && tracePrefix ? tracePrefix : decode && step ? active : '' });
       status.textContent = `${step} / ${source.length}：${message}`;
-      next.disabled = step >= source.length;
+      next.disabled = busy || step >= source.length;
     };
-    input.addEventListener('input', () => { step = 0; render(); });
-    next.addEventListener('click', () => { step += 1; render(); });
-    one(root, '[data-cp-codec-reset]').addEventListener('click', () => { step = 0; render(); });
+    input.addEventListener('input', () => { stop(); step = 0; render(); });
+    next.addEventListener('click', () => {
+      if (busy || next.disabled) return;
+      if (decode || motion.matches) { step += 1; render(); return; }
+      traceSymbol = clean(input.value)[step];
+      const bits = fixture.codes[traceSymbol];
+      busy = true; tracePrefix = ''; render();
+      const advance = () => {
+        if (!isVisible()) { stop(); render(); return; }
+        if (tracePrefix.length === bits.length) { stop(); step += 1; render(); return; }
+        tracePrefix = bits.slice(0, tracePrefix.length + 1); render();
+        timer = setTimeout(advance, 450);
+      };
+      timer = setTimeout(advance, 350);
+    });
+    one(root, '[data-cp-codec-reset]').addEventListener('click', () => { stop(); step = 0; render(); });
+    const pauseHidden = () => { if (busy && !isVisible()) { stop(); render(); } };
+    document.addEventListener('visibilitychange', pauseHidden);
+    document.addEventListener('joho:lesson-slide-change', pauseHidden);
+    document.addEventListener('joho:lesson-view-change', pauseHidden);
+    motion.addEventListener('change', () => { if (busy) { stop(); render(); } });
+    root.addEventListener('keydown', event => { if (event.key === 'Escape' && busy) { stop(); render(); } });
     controls(root); render();
   }
 

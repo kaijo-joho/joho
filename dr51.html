@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
   <link rel="stylesheet" href="./css/compression-representation.css">
-  <link rel="stylesheet" href="./css/compression-experiments.css?v=20260930">
+  <link rel="stylesheet" href="./css/compression-experiments.css?v=20260930-r2">
   <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <link rel="stylesheet" href="./css/compression-quiz.css?v=20260930">
   <script defer src="./js/main.js"></script>
@@ -17,9 +17,9 @@
   <script defer src="./js/lesson-formula-grader.js"></script>
   <script defer src="./js/lesson-formula-builder.js"></script>
   <script defer src="./js/compression-formulas.js"></script>
-  <script defer src="./js/compression-lessons.js"></script>
+  <script defer src="./js/compression-lessons.js?v=20260930-r2"></script>
   <script defer src="./js/compression-quiz.js"></script>
-  <script defer src="./js/compression-experiments.js"></script>
+  <script defer src="./js/compression-experiments.js?v=20260930-r2"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
 <body data-lesson-slide-deck>
@@ -27,31 +27,29 @@
     <article>
       <h2 id="headline_1">(1) データの圧縮と復元</h2>
       <p><strong>圧縮</strong>とは、決められた方法にしたがって、データを少ないデータ量で表す処理です。保存容量や通信量を減らせます。圧縮したデータから文字や画像などのデータを読み戻す処理を<strong>復元</strong>といいます。</p>
-      <div class="cp-comparison">
-        <div class="cp-equation cp-equation--process"><strong>元のデータ</strong><span>→ 圧縮 →</span><strong>圧縮したデータ</strong><span>→ 復元 →</span><strong>復元したデータ</strong></div>
-        <div class="cp-reference-card"><h3>可逆圧縮</h3><p>圧縮したデータを、元のデータと同じ内容へ戻せます。文書やプログラムのように、1bitの欠損も困るデータに使います。</p></div>
-        <div class="cp-reference-card"><h3>非可逆圧縮</h3><p>一部の情報を削除・変更するため、元のデータそのものへは戻せません。画像や音声では、見た目や聞こえ方の違いが目立ちにくい情報を減らします。</p></div>
+      <div class="cp-comparison cp-comparison--types">
+        <section class="cp-reference-card cp-compression-type" aria-labelledby="cp-lossless-title">
+          <h3 id="cp-lossless-title">可逆圧縮</h3>
+          <p>圧縮したデータから、元のデータと同じ内容へ戻せます。文書やプログラムのように、情報を欠かせないデータに使います。</p>
+          <div class="cp-concept-flow">
+            <figure><svg class="cp-concept-image" viewBox="0 0 120 90" role="img" aria-labelledby="cp-lossless-before-title cp-lossless-before-desc"><title id="cp-lossless-before-title">圧縮前のデータ</title><desc id="cp-lossless-before-desc">大きいファイルで圧縮前のデータ量を表す模式図です。</desc><path d="M16 5h67l21 21v58H16Z" fill="var(--dr-panel-strong)" stroke="var(--dr-axis)" stroke-width="2"/><path d="M83 5v21h21" fill="none" stroke="var(--dr-axis)" stroke-width="2"/><path d="M30 39h58M30 51h58M30 63h58M30 75h40" fill="none" stroke="var(--dr-info)" stroke-width="4"/></svg><figcaption>圧縮前</figcaption></figure>
+            <svg class="cp-concept-arrows" viewBox="0 0 130 90" role="img" aria-labelledby="cp-lossless-arrows-title cp-lossless-arrows-desc"><title id="cp-lossless-arrows-title">圧縮と復元</title><desc id="cp-lossless-arrows-desc">右向きの圧縮は実線、左向きの復元は実線で、元のデータに戻せます。</desc><text x="65" y="18">圧縮</text><path d="M6 32h115"/><path d="m113 25 9 7-9 7"/><text x="65" y="62">復元</text><path d="M124 76H9"/><path d="m17 69-9 7 9 7"/></svg>
+            <figure><svg class="cp-concept-image" viewBox="0 0 120 90" role="img" aria-labelledby="cp-lossless-after-title cp-lossless-after-desc"><title id="cp-lossless-after-title">圧縮後のデータ</title><desc id="cp-lossless-after-desc">小さいファイルで圧縮後のデータ量を表す模式図です。</desc><path d="M33 25h40l15 15v44H33Z" fill="var(--dr-info-soft)" stroke="var(--dr-axis)" stroke-width="2"/><path d="M73 25v15h15" fill="none" stroke="var(--dr-axis)" stroke-width="2"/><path d="M45 51h30M45 62h30M45 73h20" fill="none" stroke="var(--dr-info)" stroke-width="3"/></svg><figcaption>圧縮後</figcaption></figure>
+          </div>
+          <p class="cp-concept-note">実線の戻り矢印：元のデータと完全に同じ内容へ復元できます。</p>
+        </section>
+        <section class="cp-reference-card cp-compression-type" aria-labelledby="cp-lossy-title">
+          <h3 id="cp-lossy-title">非可逆圧縮</h3>
+          <p>一部の情報を削除・変更して圧縮するため、元のデータそのものへは戻せません。画像や音声では、見た目や聞こえ方の違いが目立ちにくい情報を減らすことがあります。</p>
+          <div class="cp-concept-flow">
+            <figure><svg class="cp-concept-image" viewBox="0 0 120 90" role="img" aria-labelledby="cp-lossy-before-title cp-lossy-before-desc"><title id="cp-lossy-before-title">圧縮前のデータ</title><desc id="cp-lossy-before-desc">大きいファイルで圧縮前のデータ量を表す模式図です。</desc><path d="M16 5h67l21 21v58H16Z" fill="var(--dr-panel-strong)" stroke="var(--dr-axis)" stroke-width="2"/><path d="M83 5v21h21" fill="none" stroke="var(--dr-axis)" stroke-width="2"/><path d="M30 39h58M30 51h58M30 63h58M30 75h40" fill="none" stroke="var(--dr-info)" stroke-width="4"/></svg><figcaption>圧縮前</figcaption></figure>
+            <svg class="cp-concept-arrows" viewBox="0 0 130 90" role="img" aria-labelledby="cp-lossy-arrows-title cp-lossy-arrows-desc"><title id="cp-lossy-arrows-title">圧縮と復元</title><desc id="cp-lossy-arrows-desc">右向きの圧縮は実線、左向きの復元は点線で、元のデータそのものへは戻せません。</desc><text x="65" y="18">圧縮</text><path d="M6 32h115"/><path d="m113 25 9 7-9 7"/><text x="65" y="62">復元</text><path d="M124 76H9" stroke-dasharray="6 5"/><path d="m17 69-9 7 9 7"/></svg>
+            <figure><svg class="cp-concept-image" viewBox="0 0 120 90" role="img" aria-labelledby="cp-lossy-after-title cp-lossy-after-desc"><title id="cp-lossy-after-title">圧縮後のデータ</title><desc id="cp-lossy-after-desc">小さいファイルで圧縮後のデータ量を表す模式図です。</desc><path d="M33 25h40l15 15v44H33Z" fill="var(--dr-info-soft)" stroke="var(--dr-axis)" stroke-width="2"/><path d="M73 25v15h15" fill="none" stroke="var(--dr-axis)" stroke-width="2"/><path d="M45 51h30M45 62h30M45 73h20" fill="none" stroke="var(--dr-info)" stroke-width="3"/></svg><figcaption>圧縮後</figcaption></figure>
+          </div>
+          <p class="cp-concept-note">点線の戻り矢印：元のデータそのものへは戻せません。</p>
+        </section>
       </div>
-      <p class="cp-hint">復元は「展開」「伸張」「解凍」とも呼ばれます。可逆圧縮では元のデータと完全に一致するよう復元できますが、非可逆圧縮では元のデータそのものへは戻せません。</p>
-      <section class="cp-experiment" data-cp-image-model aria-labelledby="cp-image-model-title">
-        <h3 id="cp-image-model-title">小さな画像で圧縮と復元を試す</h3>
-        <p>黒・濃い灰色・薄い灰色・白の4階調を、行ごとに左から読みます。まずRLEで可逆圧縮・復元し、次に階調を2色へまとめる模型で変化を比べます。</p>
-        <p class="cp-model-note">これは授業用の理論模型です。実際のPNGやJPEG形式を作るものではありません。A〜Dは4つの階調です。画像の寸法と階調表は共有済みとし、RLEの1記録を「色（4階調なら2 bit、2階調なら1 bit）＋回数5 bit」で数えます。回数は1〜16を直接記録します。付加情報は含めません。</p>
-        <div class="cp-model-panels">
-          <figure><figcaption>元画像（4階調）</figcaption><div class="cp-model-grid" data-cp-model-source role="img" aria-label="自作の4行4列、4階調の見本画像"></div></figure>
-          <figure><figcaption>RLEを復元（可逆）</figcaption><div class="cp-model-grid" data-cp-model-restored role="img" aria-label="RLE復元後の画像"></div></figure>
-          <figure><figcaption data-cp-model-caption>2階調へ削減（非可逆模型）</figcaption><div class="cp-model-grid" data-cp-model-quantized role="img" aria-label="階調削減後の画像"></div></figure>
-        </div>
-        <noscript><p class="cp-model-note">見本（行優先）：元画像は「AAAA／BBBB／CCCC／DDDD」の4行です。RLE復元は同じ16画素です。2階調へまとめると8画素の階調が変わります。</p><p>4階調の32 bitから、2階調RLE模型の12 bitになります。復元結果が異なる画素は8 / 16です。</p></noscript>
-        <div class="cp-controls cp-enhancement" hidden>
-          <label class="cp-select">階調数
-            <select data-cp-model-levels aria-label="階調数"><option value="2">2階調</option><option value="4">4階調</option></select>
-          </label>
-          <button class="dr-button dr-button--primary" type="button" data-cp-model-run>圧縮して比べる</button>
-        </div>
-        <p class="cp-equation" data-cp-model-result>見本：RLEだけなら元画像と16画素すべて一致します。2階調への削減を加えると理論値は32 bitから12 bitになり、8 / 16画素の階調が変わります。</p>
-        <p class="cp-feedback" data-cp-model-status role="status" aria-live="polite"></p>
-      </section>
+      <p class="cp-hint">復元は「展開」「伸張」「解凍」とも呼ばれます。可逆圧縮では元の内容と完全に一致するよう復元でき、非可逆圧縮では似た状態には戻せても元の内容そのものは取り戻せません。</p>
       <button class="dr-supplement-link" type="button" data-lesson-supplement-open="cp-formats-dialog">ファイル形式の例を確認</button>
     </article>
   </section>
@@ -60,7 +58,7 @@
     <article>
       <h2 id="headline_2">(2) 圧縮率</h2>
       <p><strong>圧縮率</strong>は、圧縮前に対して圧縮後のデータがどれくらいの大きさになったかを表します。</p>
-      <p class="cp-equation">圧縮率（%）＝ <strong>圧縮後のサイズ［同じ単位］÷ 圧縮前のサイズ［同じ単位］× 100</strong></p>
+      <p class="cp-equation cp-equation--fraction"><strong>圧縮率（%）</strong><span aria-hidden="true">＝</span><span class="cp-fraction" role="img" aria-label="圧縮後のサイズを圧縮前のサイズで割る"><span>圧縮後のサイズ</span><span>圧縮前のサイズ</span></span><span aria-hidden="true">× 100</span><span class="cp-sr-only">圧縮後のサイズを圧縮前のサイズで割り、100を掛けます。</span></p>
       <div class="cp-comparison cp-comparison--rate">
         <div class="cp-reference-card"><h3>例：小さくなった場合</h3><p>圧縮前が16文字、圧縮後が10文字なら、</p><p class="cp-equation">10 ÷ 16 × 100 ＝ <strong>62.5%</strong></p><p>圧縮後は圧縮前の62.5%です。</p></div>
         <div class="cp-reference-card"><h3>100%を超える場合</h3><p>圧縮後の情報を記録するための目印が増えると、圧縮後のサイズが大きくなる場合があります。</p><p class="cp-equation">圧縮率が <strong>100%超</strong> なら、データ量は増えています。</p></div>
@@ -80,9 +78,9 @@
             <input data-cp-size-after type="number" min="0" step="any" value="10" inputmode="decimal">
           </label>
         </div>
-        <div class="cp-size-chart" data-cp-size-chart role="img" aria-label="圧縮前16 B、圧縮後10 Bのサイズ比較">
-          <div class="cp-size-row"><span class="cp-size-label">圧縮前 16 B</span><span class="cp-size-track"><span class="cp-size-bar cp-size-bar--before" style="--cp-size-width:100%"></span></span></div>
+        <div class="cp-size-chart" data-cp-size-chart role="img" aria-label="圧縮後10 B、圧縮前16 Bのサイズ比較">
           <div class="cp-size-row"><span class="cp-size-label">圧縮後 10 B</span><span class="cp-size-track"><span class="cp-size-bar cp-size-bar--after" style="--cp-size-width:62.5%"></span></span></div>
+          <div class="cp-size-row"><span class="cp-size-label">圧縮前 16 B</span><span class="cp-size-track"><span class="cp-size-bar cp-size-bar--before" style="--cp-size-width:100%"></span></span></div>
         </div>
         <noscript><p class="cp-model-note">見本：16文字から10文字なら圧縮率62.5%、削減率37.5%です。単位をそろえて比べます。</p></noscript>
         <p class="cp-equation" data-cp-size-result>圧縮率：10 ÷ 16 × 100 = 62.5%。削減率：37.5%です。</p>
@@ -98,15 +96,22 @@
       <div class="cp-widget" data-cp-string-rle data-lesson-slide-navigation-lock>
         <p class="cp-hint">回数が1回のまとまりも、ここでは<strong>文字と「1」</strong>を書きます。</p>
         <div class="cp-rle-demo" aria-live="polite">
-          <div><h3>元の文字列</h3><p class="cp-string" data-cp-rle-original>AAAAAABBBBCCDAAA</p></div>
+          <div>
+            <h3 class="cp-rle-original-heading">元の文字列 <button class="dr-button cp-rle-edit-toggle cp-enhancement" hidden type="button" data-cp-rle-edit-toggle aria-expanded="false" aria-controls="cp-rle-editor">編集</button></h3>
+            <p class="cp-string" data-cp-rle-original>AAAAAABBBBCCDAAA</p>
+            <div class="cp-rle-editor" id="cp-rle-editor" data-cp-rle-editor hidden>
+              <label class="cp-input-label" for="cp-rle-edit">新しい文字列（A〜Z、1〜40文字）</label>
+              <input id="cp-rle-edit" class="cp-edit" data-cp-rle-edit type="text" maxlength="40" pattern="[A-Za-z]{1,40}" value="AAAAAABBBBCCDAAA" autocomplete="off" spellcheck="false" aria-describedby="cp-rle-edit-status">
+              <p class="cp-feedback cp-rle-edit-status" data-cp-rle-edit-status role="status">A〜Zを1〜40文字で入力してください。</p>
+              <div class="cp-controls cp-rle-editor-actions"><button class="dr-button dr-button--primary" type="button" data-cp-rle-apply>適用</button><button class="dr-button" type="button" data-cp-rle-cancel>キャンセル</button></div>
+            </div>
+          </div>
           <div><h3>圧縮後</h3><p class="cp-string" data-cp-rle-compressed>A6B4C2D1A3</p></div>
         </div>
         <p class="cp-feedback" data-cp-rle-step role="status">1つ目のまとまり：A6</p>
         <div class="cp-controls cp-enhancement" hidden><button class="dr-button dr-button--primary" type="button" data-cp-rle-next>次のまとまり</button><button class="dr-button" type="button" data-cp-rle-reset>最初から</button></div>
         <p class="cp-equation" data-cp-rle-rate>元16文字 → 圧縮後10文字：10 ÷ 16 × 100 ＝ <strong>62.5%</strong></p>
-        <label class="cp-input-label" for="cp-rle-edit">元の文字列を変えて試す（A〜Z、最大40文字）</label>
-        <input id="cp-rle-edit" class="cp-edit" data-cp-rle-edit type="text" maxlength="40" pattern="[A-Za-z]*" value="AAAAAABBBBCCDAAA" autocomplete="off" spellcheck="false">
-        <p class="cp-hint">入力した文字列も、同じ文字が続くまとまりごとに圧縮します。</p>
+        <p class="cp-hint">文字列を編集して適用すると、同じ文字が続くまとまりごとの圧縮を試せます。入力中はEnterで適用、Escapeでキャンセルできます。</p>
         <noscript><p>JavaScriptがなくても、上の例「AAAAAABBBBCCDAAA → A6B4C2D1A3」と圧縮率62.5%を確認できます。</p></noscript>
       </div>
       <section class="cp-experiment" data-cp-string-compare aria-labelledby="cp-string-compare-title">
