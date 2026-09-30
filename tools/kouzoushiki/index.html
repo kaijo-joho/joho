@@ -713,10 +713,10 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
       <li>分子式（例：C5H12）を入れ、必要なら条件（C=C・C≡C・環を「含む／含まない」）を選んで「作成」。</li>
       <li>構造異性体を並べた図が、<strong>新しいタブ</strong>にできます。いま描いている図はそのまま残ります。</li>
     </ol>
-    <details><summary>並び方</summary><p>「主鎖の炭素数で列を分ける」をオンにすると、左から主鎖の長い順に列を作ります（主鎖 7（直鎖）→ 主鎖 6 → …）。教科書の数え方（主鎖を 1 つずつ短くして枝を動かす）と同じ順なので、数え落としを見つけやすくなります。環を含むものは、そのあとに「3員環」「4員環」「5員環」…の列に分かれます（環が 2 つ以上のものは「二環（3・5員環）」のように、環の大きさの組で分けます）。1 列が 12 個を超えると、次の列に続きます。</p></details>
+    <details><summary>並び方</summary><p>「主鎖の炭素数で列を分ける」をオンにすると、左から主鎖の長い順に列を作ります（主鎖 7（直鎖）→ 主鎖 6 → …）。教科書の数え方（主鎖を 1 つずつ短くして枝を動かす）と同じ順なので、数え落としを見つけやすくなります。環を含むものは、そのあとに「6員環」「5員環」「4員環」「3員環」のように、員数の多い環から順に列が分かれます（環が 2 つ以上のものは「二環（5・6員環）」のように、環の大きさの組で分けます）。酸素を含むときは、まず官能基（アルコール・エーテル・アルデヒド・ケトン・カルボン酸・エステル・その他）ごとにまとまりを分け、そのまとまりの中を、主鎖や環の列に分けます。1 列が 12 個を超えると、次の列に続きます。</p></details>
     <details><summary>3・4 員環を出すか選ぶ</summary><p>環を含む異性体を数えるときは、モーダルの「環の大きさ」で、3 員環（シクロプロパン）・4 員環（シクロブタン）を出すかどうかを選べます。ひずみが大きくて高校ではあまり扱わないので、外すと候補がすっきりします。二環などの中に 3・4 員環がある構造も、外すと出なくなります。</p></details>
-    <details><summary>名前</summary><p>名前は、高校の教科書の決まり（いちばん長い鎖を主鎖に、枝の位置番号が小さくなるように、枝はアルファベット順）で付けます。イソブタン・ネオペンタン・エチレンなどの慣用名は（ ）に添えます。<strong>確信が持てないものは「—」</strong>にしています。名前はふつうの文字なので、テキストツールで直せます。</p></details>
-    <details><summary>できること・できないこと</summary><p>いまは C と H だけ（炭素 10 個まで）に対応しています。立体（シス・トランス、鏡像）は区別しません。候補が 300 個を超えるか、計算に時間がかかりすぎるときは途中で打ち切り、見出しにそう書きます。並べた図はふつうの図なので、いらないものを消す・書き込む・画像に書き出す・保存する、が自由にできます。</p></details>
+    <details><summary>名前</summary><p>名前は、高校の教科書の決まり（いちばん長い鎖を主鎖に、枝の位置番号が小さくなるように、枝はアルファベット順）で付けます。アルコール（エタノール）、エーテル（ジエチルエーテル）、アルデヒド（プロパナール）、ケトン（2-ブタノン）、カルボン酸（エタン酸）、エステル（酢酸エチル）に対応しています。イソブタン・ネオペンタン・エチレン・アセトン・酢酸・グリセリンなどの慣用名は（ ）に添えます（エステルは「酢酸エチル」のように酸の慣用名で書きます）。<strong>確信が持てないものは「—」</strong>にしています。名前はふつうの文字なので、テキストツールで直せます。</p></details>
+    <details><summary>できること・できないこと</summary><p>C・H・O だけ（炭素と酸素の合計 10 個まで）に対応しています。立体（シス・トランス、鏡像）は区別せず、過酸化物（O–O）は数えません。窒素・ハロゲンなどはまだ対応していません。酸素の条件では、「−OH」からカルボキシ基の OH を、「−O−（エーテル）」からエステルの O を除いて数えます（アルコールと酸、エーテルとエステルを分ける教科書の考え方に合わせています）。候補が 300 個を超えるか、計算に時間がかかりすぎるときは途中で打ち切り、見出しにそう書きます。並べた図はふつうの図なので、いらないものを消す・書き込む・画像に書き出す・保存する、が自由にできます。</p></details>
   </section>
   <section data-help-topic="shortcuts" data-help-title="ショートカット">
     <h3>ショートカット</h3>
@@ -732,7 +732,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.12（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.13（2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -744,7 +744,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 </dialog>
 <dialog id="isoDlg" aria-labelledby="isoDlgTitle">
   <h2 id="isoDlgTitle">異性体から作る</h2>
-  <p class="muted">分子式を入れると、条件に合う構造異性体を<strong>新しいタブ</strong>に並べます。いまは C と H だけ（炭素 10 個まで）に対応しています。立体（シス・トランス、鏡像）は区別しません。</p>
+  <p class="muted">分子式を入れると、条件に合う構造異性体を<strong>新しいタブ</strong>に並べます。C・H・O だけ（炭素と酸素の合計 10 個まで）に対応しています。酸素を含むときは、官能基（アルコール・エーテル・アルデヒド・ケトン・カルボン酸・エステル）ごとに分けて並べます。立体（シス・トランス、鏡像）は区別せず、過酸化物（O–O）は数えません。</p>
   <label class="frow iso-f">分子式 <input id="isoF" placeholder="例：C5H12" autocomplete="off" spellcheck="false"></label>
   <p class="muted iso-info" id="isoInfo">&nbsp;</p>
   <div class="gl">条件</div>
@@ -757,6 +757,16 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <span class="muted">環の大きさ</span>
     <label class="chk"><input type="checkbox" id="isoR3" checked>3 員環を出す</label>
     <label class="chk"><input type="checkbox" id="isoR4" checked>4 員環を出す</label>
+  </div>
+  <div id="isoOBox">
+    <div class="gl">酸素を含む条件</div>
+    <div class="iso-conds">
+      <label>−OH（ヒドロキシ基）<select data-cond="OH"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
+      <label>−O−（エーテル結合）<select data-cond="エーテル"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
+      <label>C=O（カルボニル基）<select data-cond="C=O"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
+      <label>−COO−（エステル結合）<select data-cond="COO"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
+      <label>−COOH（カルボキシ基）<select data-cond="COOH"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
+    </div>
   </div>
   <div class="gl">並べ方</div>
   <div class="iso-opts">
@@ -1207,15 +1217,21 @@ function isoFactory(){
   }
 
   // ---- 骨格を育てる：原子を 1 つずつ足して、同じものは捨てる ----
-  function growSkeletons(n, el = 'C'){
-    let list = [{el:[el], e:[]}];
-    for (let k = 1; k < n; k++){
+  function growSkeletons(nC, nO = 0){                            // 骨格（木）を、原子を 1 つずつ足して作る。O は末端か、C にはさまれる位置
+    let list = [{el:['C'], e:[]}];
+    for (let k = 1; k < nC + nO; k++){
       const next = new Map();
-      for (const g of list) for (let i = 0; i < g.el.length; i++){
-        if (spare(g, i) < 1) continue;
-        const h = clone(g); h.el.push(el); h.e.push([i, h.el.length - 1, 1]);
-        const key = canon(h);
-        if (!next.has(key)) next.set(key, h);
+      for (const g of list){
+        const c = g.el.filter(e => e === 'C').length, o = g.el.length - c;
+        for (const el of ['C', 'O']){
+          if (el === 'C' ? c >= nC : o >= nO) continue;
+          for (let i = 0; i < g.el.length; i++){
+            if (spare(g, i) < 1 || (el === 'O' && g.el[i] === 'O')) continue;   // O–O（過酸化物）は作らない
+            const h = clone(g); h.el.push(el); h.e.push([i, h.el.length - 1, 1]);
+            const key = canon(h);
+            if (!next.has(key)) next.set(key, h);
+          }
+        }
       }
       list = [...next.values()];
     }
@@ -1229,7 +1245,7 @@ function isoFactory(){
       tick();
       if (!left){ const k = canon(h); if (!out.has(k)) out.set(k, h); return; }
       for (let i = 0; i < h.el.length; i++) for (let j = i + 1; j < h.el.length; j++){
-        if (hasEdge(h, i, j) || spare(h, i) < 1 || spare(h, j) < 1) continue;
+        if (hasEdge(h, i, j) || spare(h, i) < 1 || spare(h, j) < 1 || (h.el[i] === 'O' && h.el[j] === 'O')) continue;
         if (ban3 && nbrs(h, i).some(([x]) => hasEdge(h, x, j))) continue;   // 3 員環（三角形）は作らない
         const h2 = clone(h); h2.e.push([i, j, 1]);
         rec(h2, left - 1);
@@ -1248,6 +1264,7 @@ function isoFactory(){
       for (let x = from; x < h.e.length; x++){
         const [i, j, o] = h.e[x];
         if (o >= 3 || spare(h, i) < 1 || spare(h, j) < 1) continue;
+        if (h.el[i] === 'O' || h.el[j] === 'O'){ if (h.el[i] === h.el[j] || o >= 2) continue; }   // O は C=O の二重結合だけ
         const h2 = clone(h); h2.e[x][2] = o + 1;
         rec(h2, left - 1, x);
       }
@@ -1292,16 +1309,19 @@ function isoFactory(){
     'C=C': g => g.e.some(([i, j, o]) => o === 2 && g.el[i] === 'C' && g.el[j] === 'C'),
     'C#C': g => g.e.some(([i, j, o]) => o === 3 && g.el[i] === 'C' && g.el[j] === 'C'),
     '環':   g => rings(g) > 0,
+    'O':    g => g.el.includes('O'),
     'ベンゼン環': g => {
       if (!ringSizes(g).includes(6)) return false;
       return g.e.filter(([i, j, o]) => o === 2 && g.el[i] === 'C' && g.el[j] === 'C').length >= 3;
     },
-    'OH':  g => g.el.some((e, i) => e === 'O' && spare(g, i) === 1 && g.e.some(([a, b, o]) => o === 1 && (a === i || b === i))),
-    'エーテル': g => g.el.some((e, i) => e === 'O' && g.e.filter(([a, b, o]) => o === 1 && (a === i || b === i)).length === 2),
+    // ヒドロキシ基（−OH）：カルボキシ基（−COOH）の OH は除く ／ エーテル結合（−O−）：エステル（−COO−）の O は除く（教科書の分け方）
+    'OH':  g => g.el.some((e, i) => e === 'O' && spare(g, i) === 1 && nbrs(g, i).length === 1 && nbrs(g, i)[0][1] === 1 && !isCarbonylC(g, nbrs(g, i)[0][0])),
+    'エーテル': g => g.el.some((e, i) => e === 'O' && nbrs(g, i).length === 2 && nbrs(g, i).every(([y, o]) => o === 1 && g.el[y] === 'C' && !isCarbonylC(g, y))),
     'C=O': g => g.e.some(([i, j, o]) => o === 2 && ((g.el[i] === 'C' && g.el[j] === 'O') || (g.el[i] === 'O' && g.el[j] === 'C'))),
     'COOH': g => carboxyl(g).length > 0,
     'COO':  g => ester(g).length > 0,
   };
+  const isCarbonylC = (g, c) => nbrs(g, c).some(([y, o]) => o === 2 && g.el[y] === 'O');   // その炭素は C=O か
   function carbonylC(g){                                        // C=O の炭素
     const out = [];
     for (const [i, j, o] of g.e){
@@ -1332,8 +1352,9 @@ function isoFactory(){
   // ---- 数え上げ ----
   function enumerate(f, opts = {}, cb){
     const nHeavy = f.C + f.O + f.N, d = degUnsat(f);
+    if (f.N) return {list:[], over:false, reason:'窒素を含む分子式には、まだ対応していません（C・H・O だけです）'};
     if (d === null) return {list:[], over:false, reason:'その分子式の化合物はありません（水素の数を確かめてください）'};
-    if (nHeavy > (opts.maxHeavy || 10)) return {list:[], over:false, reason:'炭素が多すぎます（10 個まで）'};
+    if (nHeavy > (opts.maxHeavy || 10)) return {list:[], over:false, reason:'炭素と酸素の合計が多すぎます（10 個まで）'};
     const cap = opts.cap || 300;
     DEADLINE = Date.now() + (opts.ms || 3000);
     const out = new Map();
@@ -1341,7 +1362,7 @@ function isoFactory(){
     const wantRing = opts['環'];
     const ban = new Set(); if (opts.ring3 === 'no') ban.add(3); if (opts.ring4 === 'no') ban.add(4);   // 出さない環の大きさ
     try {
-    const skel = growSkeletons(nHeavy, 'C');                    // 段階 1：炭素だけ
+    const skel = growSkeletons(f.C, f.O);                       // C と O の骨格（木）
     search:
     for (const t of skel){
       for (let r = 0; r <= d; r++){
@@ -1365,7 +1386,8 @@ function isoFactory(){
     DEADLINE = Infinity;
     const list = [...out.values()].map(g => ({g, ...describe(g)}));
     const rk = x => x.rs.length * 1e12 - x.rs.slice().sort((a, b) => b - a).reduce((t, z) => t*100 + z, 0);   // 環の系の順：1 環 → 2 環…、同じ環の数なら員数の多い環が先
-    list.sort((a, b) => (a.cyclic - b.cyclic) || (a.cyclic ? rk(a) - rk(b) : b.chain - a.chain)
+    const cr = x => CAT_ORDER.indexOf(x.cat);                    // 官能基の順（炭化水素は -1 で一様）
+    list.sort((a, b) => (cr(a) - cr(b)) || (a.cyclic - b.cyclic) || (a.cyclic ? rk(a) - rk(b) : b.chain - a.chain)
       || (a.plain || '\uffff').localeCompare(b.plain || '\uffff', 'ja'));
     return {list, over:!!stop, stop, reason:''};
   }
@@ -1387,7 +1409,30 @@ function isoFactory(){
     'C3H6|プロペン':'プロピレン',
     'C4H8|2-メチルプロペン':'イソブチレン',
     'C2H2|エチン':'アセチレン',
+    // 酸素を含むもの（分子式は C○H○O○ の形）
+    'C1H4O1|メタノール':'メチルアルコール',
+    'C2H6O1|エタノール':'エチルアルコール',
+    'C3H8O1|1-プロパノール':'プロピルアルコール',
+    'C3H8O1|2-プロパノール':'イソプロピルアルコール',
+    'C4H10O1|1-ブタノール':'ブチルアルコール',
+    'C4H10O1|2-ブタノール':'sec-ブチルアルコール',
+    'C4H10O1|2-メチル-2-プロパノール':'tert-ブチルアルコール',
+    'C2H6O2|1,2-エタンジオール':'エチレングリコール',
+    'C3H8O3|1,2,3-プロパントリオール':'グリセリン',
+    'C1H2O1|メタナール':'ホルムアルデヒド',
+    'C2H4O1|エタナール':'アセトアルデヒド',
+    'C3H6O1|プロパナール':'プロピオンアルデヒド',
+    'C4H8O1|ブタナール':'ブチルアルデヒド',
+    'C4H8O1|2-メチルプロパナール':'イソブチルアルデヒド',
+    'C3H6O1|プロパノン':'アセトン',
+    'C4H8O1|2-ブタノン':'エチルメチルケトン',
+    'C1H2O2|メタン酸':'ギ酸',
+    'C2H4O2|エタン酸':'酢酸',
+    'C3H6O2|プロパン酸':'プロピオン酸',
+    'C4H8O2|ブタン酸':'酪酸',
+    'C4H8O2|2-メチルプロパン酸':'イソ酪酸',
   };
+  const ACID_COMMON = {'メタン酸':'ギ酸', 'エタン酸':'酢酸', 'プロパン酸':'プロピオン酸', 'ブタン酸':'酪酸', '2-メチルプロパン酸':'イソ酪酸'};   // エステルの名前に使う酸の呼び方
   const formulaKey = f => 'C' + f.C + 'H' + f.H + (f.O ? 'O' + f.O : '') + (f.N ? 'N' + f.N : '');
 
   // すべての道（鎖）を調べて、いちばん長いものを主鎖にする
@@ -1426,17 +1471,140 @@ function isoFactory(){
     return null;                                                // それ以上は名付けない（「—」になる）
   }
   // 主鎖と名前を決める
+  // ---- 酸素を含む化合物（官能基で分類し、名前を付ける）----
+  const CAT_ORDER = ['アルコール', 'エーテル', 'アルデヒド', 'ケトン', 'カルボン酸', 'エステル', 'その他'];
+  function categoryOf(g){                                        // 主な官能基（酸 > エステル > アルデヒド > ケトン > アルコール > エーテル）
+    if (!g.el.includes('O')) return '';
+    if (carboxyl(g).length) return 'カルボン酸';
+    if (ester(g).length) return 'エステル';
+    const cc = carbonylC(g);
+    if (cc.length) return cc.some(c => spare(g, c) >= 1) ? 'アルデヒド' : 'ケトン';   // カルボニル炭素に H が付いていればアルデヒド
+    const enol = g.el.some((e, i) => e === 'O' && nbrs(g, i).some(([y]) => nbrs(g, y).some(([, o]) => o === 2)));   // C=C–OH（エノール）などは「その他」
+    if (tests['OH'](g) && !enol) return 'アルコール';
+    if (tests['エーテル'](g) && !enol) return 'エーテル';
+    return 'その他';
+  }
+  function carbonPaths(g){                                       // 炭素だけをたどる道（向きごと）
+    const n = g.el.length, A = mat(g), out = [];
+    const rec = (path, seen) => {
+      out.push([...path]);
+      const x = path[path.length - 1];
+      for (let y = 0; y < n; y++) if (A[x][y] && g.el[y] === 'C' && !seen.has(y)){ seen.add(y); path.push(y); rec(path, seen); path.pop(); seen.delete(y); }
+    };
+    for (let s = 0; s < n; s++) if (g.el[s] === 'C') rec([s], new Set([s]));
+    return out;
+  }
+  const cmpArr = (a, b) => { for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i] - b[i]; return a.length - b.length; };
+  const abcKey = ss => [...ss].sort((x, y) => (ABC[x[1]] || x[1]).localeCompare(ABC[y[1]] || y[1]) || x[0] - y[0]).map(([i]) => i);
+  // 官能基の炭素 need を含む主鎖を選ぶ。mode：'end'（need[0] が鎖の端）／'mid'（端でない）／'any'。
+  // skipO：主鎖のまわりにあってよい O（官能基そのもの）。ほかの O が付いている道は使わない
+  function pickChain(g, need, mode, skipO){
+    let best = null;
+    for (const pa of carbonPaths(g)){
+      if (!need.every(c => pa.includes(c))) continue;
+      if (mode === 'end' && pa[0] !== need[0]) continue;
+      if (mode === 'mid' && (pa[0] === need[0] || pa[pa.length - 1] === need[0])) continue;
+      const inChain = new Set(pa), subs = []; let ok = true;
+      pa.forEach((c, idx) => {
+        for (const [y] of nbrs(g, c)) if (!inChain.has(y)){
+          if (g.el[y] === 'O'){ if (!skipO.has(y)) ok = false; continue; }
+          const nm = branchName(g, c, y, inChain);
+          if (!nm) ok = false; else subs.push([idx + 1, nm]);
+        }
+      });
+      if (!ok) continue;
+      const cand = {path:pa, len:pa.length, prin:need.map(c => pa.indexOf(c) + 1).sort((a, b) => a - b), subs};
+      if (!best) { best = cand; continue; }
+      let better;
+      if (cand.len !== best.len) better = cand.len > best.len;                                            // 1) いちばん長い鎖
+      else if (cmpArr(cand.prin, best.prin)) better = cmpArr(cand.prin, best.prin) < 0;                    // 2) 官能基の位置番号が小さい
+      else if (cand.subs.length !== best.subs.length) better = cand.subs.length > best.subs.length;        // 3) 枝が多い
+      else {
+        const kc = cand.subs.map(([i]) => i).sort((a, b) => a - b), kb = best.subs.map(([i]) => i).sort((a, b) => a - b);
+        better = cmpArr(kc, kb) ? cmpArr(kc, kb) < 0 : cmpArr(abcKey(cand.subs), abcKey(best.subs)) < 0;   // 4) 枝の位置番号が小さい → 5) 名前の順
+      }
+      if (better) best = cand;
+    }
+    return best;
+  }
+  const subsPrefix = subs => {                                   // 「2-メチル」「3-エチル-2-メチル」
+    const groups = new Map();
+    for (const [i, nm] of subs){ if (!groups.has(nm)) groups.set(nm, []); groups.get(nm).push(i); }
+    return [...groups.entries()].sort((x, y) => (ABC[x[0]] || x[0]).localeCompare(ABC[y[0]] || y[0]))
+      .map(([nm, pos]) => pos.sort((a, c) => a - c).join(',') + '-' + (pos.length > 1 ? (MULT[pos.length] || '') : '') + nm).join('-');
+  };
+  const joinName = (head, tail) => !head ? tail : /^\d/.test(tail) ? head + '-' + tail : head + tail;
+  const stemN = st => st.replace(/ン$/, '');                     // ブタン → ブタ
+  function describeO(g){
+    const none = {chain:null, name:null};
+    if (rings(g) > 0 || g.el.some(e => e !== 'C' && e !== 'O')) return none;
+    const kindOf = i => { const ns = nbrs(g, i); return ns.length === 1 ? (ns[0][1] === 2 ? 'carbonyl' : 'hydroxyl') : ns.length === 2 ? 'ether' : 'other'; };
+    const Os = g.el.map((e, i) => e === 'O' ? {i, k:kindOf(i)} : null).filter(Boolean);
+    if (Os.some(x => x.k === 'other')) return none;
+    if (g.e.some(([i, j, o]) => o > 1 && !(o === 2 && g.el[i] !== g.el[j]))) return none;   // 二重・三重結合は C=O だけ
+    const carbonyls = Os.filter(x => x.k === 'carbonyl'), hyds = Os.filter(x => x.k === 'hydroxyl'), eths = Os.filter(x => x.k === 'ether');
+    const cOf = i => nbrs(g, i)[0][0];
+    const alkyl = (o, c) => branchName(g, o, c, null);           // O の先の炭素から始まるアルキル基の名前
+    const res = (len, plain, path) => ({chain:len, name:plain, path});
+    if (!carbonyls.length && !eths.length && hyds.length){       // アルコール（多価も）
+      const need = hyds.map(x => cOf(x.i));
+      if (new Set(need).size !== need.length) return none;      // 同じ炭素に OH が 2 つ
+      const pk = pickChain(g, need, 'any', new Set(hyds.map(x => x.i)));
+      if (!pk) return none;
+      const stem = ALKANE[pk.len - 1]; if (!stem) return none;
+      const k = need.length;
+      const tail = k === 1 ? (pk.len <= 2 ? stemN(stem) + 'ノール' : pk.prin[0] + '-' + stemN(stem) + 'ノール')
+        : pk.prin.join(',') + '-' + stem + (MULT[k] || '') + 'オール';
+      return res(pk.len, joinName(subsPrefix(pk.subs), tail), pk.path);
+    }
+    if (!carbonyls.length && eths.length === 1 && !hyds.length){ // エーテル：アルキル基 2 つ + エーテル
+      const [x, y] = nbrs(g, eths[0].i).map(([c]) => alkyl(eths[0].i, c));
+      if (!x || !y) return none;
+      const [u, v] = [x, y].sort((a, b) => (ABC[a] || a).localeCompare(ABC[b] || b));
+      return {chain:null, name:(u === v ? 'ジ' + u : u + v) + 'エーテル'};   // 主鎖の炭素数は、あとで最長の炭素の道から数える
+    }
+    if (carbonyls.length === 1){
+      const cc = cOf(carbonyls[0].i), skipCO = new Set([carbonyls[0].i]);
+      const nCn = nbrs(g, cc).filter(([y]) => g.el[y] === 'C').length;
+      if (hyds.length === 1 && !eths.length && cOf(hyds[0].i) === cc){   // カルボン酸
+        const pk = pickChain(g, [cc], 'end', new Set([carbonyls[0].i, hyds[0].i]));
+        const stem = pk && ALKANE[pk.len - 1]; if (!stem) return none;
+        return res(pk.len, joinName(subsPrefix(pk.subs), stem + '酸'), pk.path);
+      }
+      if (eths.length === 1 && !hyds.length && nbrs(g, eths[0].i).some(([y]) => y === cc)){   // エステル：酸の名前 + アルキル基
+        const pk = pickChain(g, [cc], 'end', new Set([carbonyls[0].i, eths[0].i]));
+        const stem = pk && ALKANE[pk.len - 1]; if (!stem) return none;
+        const rc = nbrs(g, eths[0].i).find(([y]) => y !== cc);
+        const r = rc && alkyl(eths[0].i, rc[0]); if (!r) return none;
+        const acid = joinName(subsPrefix(pk.subs), stem + '酸');
+        return {chain:pk.len, name:acid + r, path:pk.path, commonName:(ACID_COMMON[acid] || acid) + r};
+      }
+      if (!hyds.length && !eths.length){
+        if (nCn <= 1){                                           // アルデヒド（メタナールも）
+          const pk = pickChain(g, [cc], 'end', skipCO), stem = pk && ALKANE[pk.len - 1]; if (!stem) return none;
+          return res(pk.len, joinName(subsPrefix(pk.subs), stemN(stem) + 'ナール'), pk.path);
+        }
+        const pk = pickChain(g, [cc], 'mid', skipCO), stem = pk && ALKANE[pk.len - 1]; if (!stem) return none;   // ケトン
+        return res(pk.len, joinName(subsPrefix(pk.subs), pk.len === 3 ? stemN(stem) + 'ノン' : pk.prin[0] + '-' + stemN(stem) + 'ノン'), pk.path);
+      }
+    }
+    return none;
+  }
   function describe(g){
     const d = describe0(g);
-    const rs = ringSizes(g);                                     // 環の大きさ（小さい順）。空なら鎖
+    const rs = ringSizes(g), hasO = g.el.includes('O');            // 環の大きさ（小さい順）。空なら鎖
     let path = d.path, chain = d.chain;
     if (!rs.length && !path){ const ps = allPaths(g); path = ps.reduce((a, b) => b.length > a.length ? b : a, [0]); }
-    if (chain == null) chain = rs.length ? rs[0] : path.length;
-    return {chain, name:withCommon(g, d.name), plain:d.name, path, rs, cyclic:rs.length > 0};   // plain：慣用名なしの系統名
+    if (chain == null) chain = rs.length ? rs[0] : hasO ? Math.max(1, ...carbonPaths(g).map(pa => pa.length)) : path.length;
+    let lpath = path;                                            // 図に並べるときの主軸（O も通る、いちばん長い道）
+    if (hasO && !rs.length){ const ps = allPaths(g); lpath = ps.reduce((a, b) => b.length > a.length ? b : a, [0]); }
+    const nm = d.commonName ? d.commonName : withCommon(g, d.name);   // エステルは「酢酸エチル」のように酸の呼び方で
+    return {chain, name:nm, plain:d.name, path, lpath, rs, cyclic:rs.length > 0, cat:categoryOf(g)};   // plain：慣用名なしの系統名
   }
   function describe0(g){
     const n = g.el.length;
-    if (g.el.some(e => e !== 'C')) return {chain:null, name:null};   // 段階 1 は炭化水素だけ
+    if (g.el.includes('O')) return describeO(g);                  // 酸素を含むもの
+    if (g.el.some(e => e !== 'C')) return {chain:null, name:null};   // C・H・O 以外は名付けない
     const r = rings(g), mb = g.e.filter(([, , o]) => o > 1);   // mb：二重・三重結合
     const dbls = mb.filter(([, , o]) => o === 2);
     if (r > 1) return {chain:null, name:null};                  // 環が 2 つ以上は名付けない
@@ -1666,7 +1834,7 @@ function isoFactory(){
       layoutSystem(systems[main].rings).forEach((p, v) => put(v, p.x, p.y));
       sysPlaced.add(main); core = systems[main].atoms;
     } else {
-      core = info.path;
+      core = info.lpath || info.path;
       if (style === 'grid') core.forEach((v, t) => put(v, t, 0));
       else {                                                     // ジグザグ。直線になる炭素（三重結合など）では曲がらない
         let hd = -deg(30), sgn = 1, x = 0, y = 0; put(core[0], 0, 0); turn[core[0]] = -1;
@@ -1708,7 +1876,7 @@ function isoFactory(){
           if (style === 'grid' && !hasRing){
             if (incoming !== null && Math.abs(Math.cos(ang - incoming) - 1) < 1e-6) score += 3;   // まっすぐ続ける
             if (incoming === null){                                    // 主鎖からの枝：ふつうは上、込み合うときは下や交互
-              const t = info.path.indexOf(a), up = variant === 0 ? true : variant === 1 ? t % 2 === 0 : variant === 2 ? false : t % 2 === 1;
+              const t = (info.lpath || info.path).indexOf(a), up = variant === 0 ? true : variant === 1 ? t % 2 === 0 : variant === 2 ? false : t % 2 === 1;
               if (Math.abs(ang - deg(up ? 270 : 90)) < 1e-6) score += 2;
               if (Math.abs(ang - deg(up ? 90 : 270)) < 1e-6) score += 1;
             }
@@ -4977,15 +5145,21 @@ function isoCheck(){   // 入力した分子式を確かめて、条件の欄を
   const f = ISO.parseFormula(raw);
   const bad = m => { info.textContent = m; info.classList.add('bad'); $('isoGo').disabled = true; return null; };
   info.classList.remove('bad'); $('isoGo').disabled = false;
-  if (!raw){ info.textContent = '例：C5H12（ペンタンの仲間）、C4H8、C6H12'; $('isoGo').disabled = true; return null; }
+  if (!raw){ info.textContent = '例：C5H12（ペンタンの仲間）、C4H8、C6H12、C4H8O2（酸素を含む）'; $('isoGo').disabled = true; return null; }
   if (!f) return bad('分子式として読めません。C5H12 のように、元素記号と数字で入れてください');
-  if (f.O || f.N) return bad('いまは C と H だけに対応しています（O・N を含むものは次の段階で対応します）');
-  if (f.C > ISO_MAX_C) return bad(`炭素は ${ISO_MAX_C} 個までにしてください`);
+  if (f.N) return bad('窒素を含む分子式には、まだ対応していません（C・H・O だけです）');
+  if (f.C + f.O > ISO_MAX_C) return bad(`炭素と酸素の合計は ${ISO_MAX_C} 個までにしてください`);
+  if (f.O > 4) return bad('酸素は 4 個までにしてください');
   const d = ISO.degUnsat(f);
   if (d === null) return bad('その分子式の化合物はありません（水素の数を確かめてください）');
   info.textContent = d === 0 ? '不飽和度 0：環も二重結合もない（アルカン）'
-    : `不飽和度 ${d}：環と二重結合（三重結合は 2 と数える）を合わせて ${d} つ`;
-  isoDlg.querySelectorAll('[data-cond]').forEach(sl => { sl.disabled = d === 0; if (d === 0) sl.value = 'any'; });
+    : `不飽和度 ${d}：環と二重結合（三重結合は 2 と数える。C=O も 1 つ）を合わせて ${d} つ`;
+  const carbonylOnly = ['C=O', 'COO', 'COOH'];                 // C=O を含む条件は、二重結合が作れる（不飽和度 1 以上）ときだけ
+  isoDlg.querySelectorAll('[data-cond]').forEach(sl => {
+    const isO = !!sl.closest('#isoOBox'), off = isO ? (!f.O || (d === 0 && carbonylOnly.includes(sl.dataset.cond))) : d === 0;
+    sl.disabled = off; if (off) sl.value = 'any';
+  });
+  $('isoOBox').hidden = !f.O;
   isoRingSize(d);
   return f;
 }
@@ -5015,9 +5189,12 @@ function isoRun(f, opts){   // 数え上げは別のスレッド（Worker）で�
 }
 const circled = n => n <= 20 ? String.fromCharCode(0x2460 + n - 1) : n <= 35 ? String.fromCharCode(0x3251 + n - 21)
   : n <= 50 ? String.fromCharCode(0x32B1 + n - 36) : `(${n})`;
-const fText = f => 'C' + f.C + 'H' + f.H;
+const fParts = f => [['C', f.C], ['H', f.H], ['O', f.O]].filter(([, n]) => n > 0);   // 分子式の並び（C・H・O）
+const fText = f => fParts(f).map(([e, n]) => e + (n > 1 ? n : '')).join('');
 function fRuns(f, tail){   // 分子式の数字だけ下付きにした文字（runs）
-  const runs = [{t:'C'}, {t:String(f.C), v:'sub'}, {t:'H'}, {t:String(f.H), v:'sub'}, {t:tail}];
+  const runs = [];
+  for (const [e, n] of fParts(f)){ runs.push({t:e}); if (n > 1) runs.push({t:String(n), v:'sub'}); }
+  runs.push({t:tail});
   return {text:runs.map(r => r.t).join(''), runs};
 }
 // 並べた図（ふつうの doc）を作る。主鎖の炭素数ごとの列、番号・名前つき
@@ -5034,21 +5211,27 @@ function isoSheet(f, res, o){
     const label = [o.num ? circled(k + 1) : '', o.name ? (it.name || '—') : ''].filter(Boolean).join(' ');
     return {it, md, bb, label, n:k + 1};
   });
-  // 2) 列（主鎖の炭素数ごと。1 列 12 個まで、あふれたら次の列へ）
-  const cols = [];
-  if (o.cols){
-    const keyOf = x => x.it.cyclic ? 'r' + x.it.rs.join('+') : 'c' + x.it.chain;
-    const ringHead = rs => rs.length === 1 ? `${rs[0]}員環` : `${['', '', '二環', '三環', '四環'][rs.length] || '多環'}（${rs.join('・')}員環）`;
-    const keys = [...new Set(items.map(keyOf))];
-    for (const key of keys){
-      const g = items.filter(x => keyOf(x) === key);
-      const head = g[0].it.cyclic ? ringHead(g[0].it.rs) : `主鎖 ${g[0].it.chain}` + (g[0].it.chain === f.C ? '（直鎖）' : '');
-      for (let i = 0; i < g.length; i += 12) cols.push({head: i ? head + '（続き）' : head, items:g.slice(i, i + 12)});
+  // 2) まとまり（酸素を含むときは官能基ごと）と、その中の列（主鎖の炭素数ごと・環の大きさごと。1 列 12 個まで、あふれたら次の列へ）
+  const keyOf = x => x.it.cyclic ? 'r' + x.it.rs.join('+') : 'c' + x.it.chain;
+  const ringHead = rs => rs.length === 1 ? `${rs[0]}員環` : `${['', '', '二環', '三環', '四環'][rs.length] || '多環'}（${rs.join('・')}員環）`;
+  const makeCols = list => {
+    const cols = [];
+    if (o.cols){
+      for (const key of [...new Set(list.map(keyOf))]){
+        const g = list.filter(x => keyOf(x) === key);
+        const head = g[0].it.cyclic ? ringHead(g[0].it.rs) : `主鎖 ${g[0].it.chain}` + (g[0].it.chain === f.C && !f.O ? '（直鎖）' : '');
+        for (let i = 0; i < g.length; i += 12) cols.push({head: i ? head + '（続き）' : head, items:g.slice(i, i + 12)});
+      }
+    } else {
+      const per = Math.min(5, list.length) || 1;   // 列分けしないときは 1 行 5 個
+      for (let c = 0; c < per; c++) cols.push({head:'', items:list.filter((_, i) => i % per === c)});
     }
-  } else {
-    const per = Math.min(5, items.length) || 1;   // 列分けしないときは 1 行 5 個
-    for (let c = 0; c < per; c++) cols.push({head:'', items:items.filter((_, i) => i % per === c)});
-  }
+    return cols;
+  };
+  const blocks = (f.O ? [...new Set(items.map(x => x.it.cat || 'その他'))] : ['']).map(cat => {
+    const list = f.O ? items.filter(x => (x.it.cat || 'その他') === cat) : items;
+    return {cat, count:list.length, cols:makeCols(list)};
+  });
   // 3) ます目の大きさ（いちばん大きい構造と、いちばん長い文字に合わせる）
   const lw = x => x.label ? tw(x.label, FSN) : 0;
   const cellW = Math.max(...items.map(x => Math.max(x.bb.x2 - x.bb.x1, lw(x)))) + BOND*1.2;
@@ -5058,19 +5241,24 @@ function isoSheet(f, res, o){
   const title = fRuns(f, res.stop === 'cap' ? ` の構造異性体（${res.list.length} 個。多いので、ここで打ち切りました）`
     : res.stop === 'time' ? ` の構造異性体（${res.list.length} 個。時間がかかるので、途中で打ち切りました）` : ` の構造異性体（${res.list.length} 個）`);
   text(0, 0, title.text, FST, {runs:title.runs});
-  const top = FST + (o.cols ? FSH*2.4 : FSN);
-  cols.forEach((col, c) => {
-    const x0 = c*cellW;
-    if (col.head) text(x0, FST + FSH*1.6, col.head, FSH);
-    col.items.forEach((x, r) => {
-      const cx = x0 + cellW/2, cy = top + r*cellH;
-      const dx = cx - (x.bb.x1 + x.bb.x2)/2, dy = cy + (bodyH - (x.bb.y2 - x.bb.y1))/2 - x.bb.y1;
-      const map = new Map();
-      for (const a of Object.values(x.md.atoms)){ const id = nid++; map.set(a.id, id); d.atoms[id] = {...a, id, x:a.x + dx, y:a.y + dy}; }
-      for (const b of Object.values(x.md.bonds)){ const id = nid++; d.bonds[id] = {...b, id, a1:map.get(b.a1), a2:map.get(b.a2)}; }
-      if (x.label) text(cx - lw(x)/2, cy + bodyH + FSN*1.5, x.label, FSN);
+  let y0 = FST + FSH*1.6;   // いまのまとまりの、いちばん上の文字の基準線
+  for (const blk of blocks){
+    if (blk.cat){ text(0, y0, `${blk.cat}（${blk.count} 個）`, 17, {b:true}); y0 += 26; }
+    const headY = y0, top = y0 + (o.cols ? FSH*0.8 : -FSN*0.6);
+    blk.cols.forEach((col, c) => {
+      const x0 = c*cellW;
+      if (col.head) text(x0, headY, col.head, FSH);
+      col.items.forEach((x, r) => {
+        const cx = x0 + cellW/2, cy = top + r*cellH;
+        const dx = cx - (x.bb.x1 + x.bb.x2)/2, dy = cy + (bodyH - (x.bb.y2 - x.bb.y1))/2 - x.bb.y1;
+        const map = new Map();
+        for (const a of Object.values(x.md.atoms)){ const id = nid++; map.set(a.id, id); d.atoms[id] = {...a, id, x:a.x + dx, y:a.y + dy}; }
+        for (const bd of Object.values(x.md.bonds)){ const id = nid++; d.bonds[id] = {...bd, id, a1:map.get(bd.a1), a2:map.get(bd.a2)}; }
+        if (x.label) text(cx - lw(x)/2, cy + bodyH + FSN*1.5, x.label, FSN);
+      });
     });
-  });
+    y0 = top + Math.max(...blk.cols.map(c => c.items.length))*cellH + 24;   // 次のまとまりへ
+  }
   d.nid = nid;
   return d;
 }
