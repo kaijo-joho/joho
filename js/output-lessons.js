@@ -101,12 +101,35 @@
     update(); reveal(host);
   }
 
-  function initializeQuiz(host) {
-    const dots = host.hasAttribute('data-output-dot-quiz');
-    const answer = dots
-      ? { row: 300, total: Core.dotGrid(300).total, doubleTotal: Core.dotGrid(600).total, ratio: Core.dotGrid(600).total / Core.dotGrid(300).total }
-      : Core.printPixels(101.6, 76.2, 400);
-    const names = dots ? ['row', 'total', 'doubleTotal', 'ratio'] : ['width', 'height'];
+  function initializePrintQuiz(host) {
+    const Formulas = globalThis.OutputFormulas;
+    const Builder = globalThis.LessonFormulaBuilder;
+    if (!Formulas || !Builder) throw new Error('印刷の立式UIを読み込めませんでした。');
+    const definition = Formulas.definePrint();
+    const builderHost = host.querySelector('[data-output-formula-builder]');
+    if (!builderHost) throw new Error('印刷の立式欄がありません。');
+    let builder;
+    builder = Builder.mount(builderHost, definition, {
+      onJudge({ rowId, taskId, intermediate, draft }) {
+        builder.setFeedback(intermediate
+          ? Formulas.gradeRow(definition, draft, rowId)
+          : Formulas.grade(definition, draft, { taskId }));
+      }
+    });
+    host.querySelector('[data-output-answer-fallback]').hidden = true;
+    host.addEventListener('submit', event => event.preventDefault());
+    host.addEventListener('reset', () => {
+      builder.reset(definition);
+      host.querySelector('details').open = false;
+      resized();
+    });
+    host.querySelector('details').addEventListener('toggle', resized);
+    reveal(host);
+  }
+
+  function initializeDotQuiz(host) {
+    const answer = { row: 300, total: Core.dotGrid(300).total, doubleTotal: Core.dotGrid(600).total, ratio: Core.dotGrid(600).total / Core.dotGrid(300).total };
+    const names = ['row', 'total', 'doubleTotal', 'ratio'];
     const fields = names.map(name => host.elements.namedItem(name));
     const feedback = host.querySelector('[data-output-feedback]');
     function clearFeedback() {
@@ -127,11 +150,10 @@
         if (valid) correct += 1;
       });
       feedback.textContent = fields.some(field => field.value.trim() === '')
-        ? (dots ? '4つの欄をすべて入力しましょう。' : '横と縦の画素数を両方入力しましょう。')
+        ? '4つの欄をすべて入力しましょう。'
         : correct === fields.length
-          ? (dots ? '正解です。全体は横×縦で求めます。dpiが2倍になると、同じ面積のドット数は4倍です。' : '正解です。横1600画素×縦1200画素です。')
-          : dots ? `${correct}か所が正解です。dpiは長さ1インチあたりの数です。全体のドット数は横×縦で考えましょう。`
-            : `${correct === 1 ? '一方は正解です。' : ''}横と縦をそれぞれインチに直してから、400を掛けましょう。`;
+          ? '正解です。全体は横×縦で求めます。dpiが2倍になると、同じ面積のドット数は4倍です。'
+          : `${correct}か所が正解です。dpiは長さ1インチあたりの数です。全体のドット数は横×縦で考えましょう。`;
       resized();
     });
     host.addEventListener('reset', clearFeedback);
@@ -157,7 +179,7 @@
       ['[data-output-refresh]', host => globalThis.OutputRefresh?.initialize(host)], ['[data-output-dots]', initializeDots],
       ['[data-output-print]', host => globalThis.OutputPrint?.initialize(host)],
       ['[data-output-ink]', host => globalThis.OutputInk?.initialize(host)],
-      ['[data-output-dot-quiz]', initializeQuiz], ['[data-output-quiz]', initializeQuiz]
+      ['[data-output-dot-quiz]', initializeDotQuiz], ['[data-output-quiz]', initializePrintQuiz]
     ];
     widgets.forEach(([selector, setup]) => document.querySelectorAll(selector).forEach(host => {
       try { setup(host); }

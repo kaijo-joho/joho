@@ -71,7 +71,7 @@ section article .op-widget figcaption { margin: 0 0 10px; text-align: center; fo
 [data-output-solution] ol { padding-left: 1.8em; }
 [data-output-solution] li { margin: 12px 0; }
 .op-widget :is(button, input, select, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
-.op-enhancement[hidden], [data-output-solution] li[hidden] { display: none !important; }
+.op-enhancement[hidden], [data-output-answer-fallback][hidden], [data-output-solution] li[hidden] { display: none !important; }
 
 @media (max-width: 1150px) {
   .op-comparison--light { grid-template-columns: 1fr; }

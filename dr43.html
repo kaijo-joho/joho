@@ -12,8 +12,13 @@
   <link rel="stylesheet" href="./css/output-refresh.css">
   <link rel="stylesheet" href="./css/output-print.css">
   <link rel="stylesheet" href="./css/output-ink.css?v=20260920b">
+  <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <script defer src="./js/main.js"></script>
+  <script defer src="./js/lesson-formula-core.js"></script>
+  <script defer src="./js/lesson-formula-grader.js"></script>
+  <script defer src="./js/lesson-formula-builder.js"></script>
   <script defer src="./js/output-core.js"></script>
+  <script defer src="./js/output-formulas.js"></script>
   <script defer src="./js/bird-frames.js"></script>
   <script defer src="./js/output-refresh.js"></script>
   <script defer src="./js/output-print.js"></script>
@@ -381,19 +386,18 @@
         <h3>問題　写真は何画素×何画素？</h3>
         <p>デジタルカメラで撮影する写真を、縦横<strong>400dpi</strong>の解像度で、<strong>横101.6mm×縦76.2mm</strong>の大きさに印刷します。データの加工や写真の拡大・縮小をせずに印刷するには、カメラで記録する画像を何画素×何画素にすればよいでしょうか。</p>
         <p class="op-hint">1インチ＝25.4mmとし、余白は考えません。この問題では、画像の1画素を印刷の1ドットに対応させます。</p>
-        <div class="op-answer-fields"><label>横 <span><input name="width" type="text" inputmode="numeric" autocomplete="off" aria-label="写真の横方向の画素数"> 画素</span></label><span class="op-answer-times" aria-hidden="true">×</span><label>縦 <span><input name="height" type="text" inputmode="numeric" autocomplete="off" aria-label="写真の縦方向の画素数"> 画素</span></label></div>
-        <div class="op-controls op-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button><button class="dr-button" type="reset">入力を消す</button></div>
-        <p class="op-feedback" data-output-feedback role="status"></p>
-        <details class="dr-reveal-item"><summary>解き方を確認</summary><div class="dr-reveal-item__body" data-output-solution>
+        <div class="op-answer-fields" data-output-answer-fallback><label>横 <span><input name="width" type="text" inputmode="numeric" autocomplete="off" aria-label="写真の横方向の画素数"> 画素</span></label><span class="op-answer-times" aria-hidden="true">×</span><label>縦 <span><input name="height" type="text" inputmode="numeric" autocomplete="off" aria-label="写真の縦方向の画素数"> 画素</span></label></div>
+        <div data-output-formula-builder></div>
+        <div class="op-controls op-enhancement" hidden><button class="dr-button" type="reset">入力を消す</button></div>
+        <details class="dr-reveal-item"><summary>解答を見る</summary><div class="dr-reveal-item__body" data-output-solution>
           <ol>
             <li>横の長さをインチに直すため、25.4［mm/インチ］で割ります。<p class="op-equation">101.6［mm］÷25.4［mm/インチ］</p></li>
             <li>1インチあたり400画素を対応させ、横の式を作ります。<p class="op-equation">101.6［mm］÷25.4［mm/インチ］×400［画素/インチ］</p></li>
             <li>同じように、縦の式を作ります。<p class="op-equation">76.2［mm］÷25.4［mm/インチ］×400［画素/インチ］</p></li>
             <li>約分してから計算します。<p class="op-equation">横：4×400＝<strong>1600画素</strong><br>縦：3×400＝<strong>1200画素</strong></p><p>答えは<strong>1600×1200画素</strong>です。</p></li>
           </ol>
-          <div class="op-controls op-enhancement" hidden><button class="dr-button" type="button" data-output-solution-next>次へ</button><button class="dr-button" type="button" data-output-solution-reset>解説を最初から</button></div>
         </div></details>
-        <noscript><p>自動判定にはJavaScriptが必要です。「解き方を確認」から解答を読めます。</p></noscript>
+        <noscript><p>自動判定にはJavaScriptが必要です。「解答を見る」から解答を読めます。</p></noscript>
       </form>
     </article>
   </section>
