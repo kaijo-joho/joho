@@ -1,0 +1,190 @@
+(function () {
+  'use strict';
+
+  const Core = window.CompressionCore;
+  if (!Core) return;
+
+  const one = (root, selector) => root.querySelector(selector);
+  const text = (tag, value, className) => {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    node.textContent = value;
+    return node;
+  };
+  const showControls = root => root.querySelectorAll('.cp-enhancement').forEach(node => { node.hidden = false; });
+  const resized = () => document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+  const predictionText = root => {
+    const chosen = root.querySelector('input[type=radio]:checked');
+    return !chosen ? '予想を選ぶと結果と比べられます。' : chosen.value === 'clustered' ? '予想どおり、まとまった方が小さくなりました。' : '予想と結果を比べましょう。まとまった方が小さくなりました。';
+  };
+  const format = value => Number.isInteger(value) ? String(value) : String(Number(value.toFixed(2)));
+
+  function setupImageModel(root) {
+    const source = 'AAAABBBBCCCCDDDD';
+    const levels = one(root, '[data-cp-model-levels]');
+    const result = one(root, '[data-cp-model-result]');
+    const status = one(root, '[data-cp-model-status]');
+    const renderGrid = (host, value) => {
+      host.replaceChildren();
+      [...value].forEach((shade, index) => {
+        const cell = text('span', shade, `cp-model-cell cp-model-cell--${shade}`);
+        cell.setAttribute('aria-label', `${Math.floor(index / 4) + 1}行${index % 4 + 1}列、${{ A: '黒', B: '濃い灰色', C: '薄い灰色', D: '白' }[shade]}`);
+        host.append(cell);
+      });
+    };
+    const exact = Core.encodeRle(source);
+    const restored = Core.decodeRle(exact.encoded);
+    renderGrid(one(root, '[data-cp-model-source]'), source);
+    renderGrid(one(root, '[data-cp-model-restored]'), restored);
+    renderGrid(one(root, '[data-cp-model-quantized]'), 'AAAAAAAADDDDDDDD');
+
+    one(root, '[data-cp-model-run]').addEventListener('click', () => {
+      const transformed = Number(levels.value) === 2 ? source.replace(/[BC]/g, match => match === 'B' ? 'A' : 'D') : source;
+      const encoded = Core.encodeRle(transformed);
+      const decoded = Core.decodeRle(encoded.encoded);
+      const changed = [...source].reduce((count, pixel, index) => count + (pixel === decoded[index] ? 0 : 1), 0);
+      const bitsPerColor = Number(levels.value) === 2 ? 1 : 2;
+      const countBits = 5; // 1〜16画素のまとまりの長さを直接記録する。
+      const theoreticalBits = encoded.runs.length * (bitsPerColor + countBits);
+      const rawBits = 32;
+      renderGrid(one(root, '[data-cp-model-quantized]'), decoded);
+      one(root, '[data-cp-model-caption]').textContent = Number(levels.value) === 2 ? '2階調へ削減（非可逆模型）' : '4階調を保持（可逆）';
+      result.textContent = `可逆RLE ${exact.encoded} → 復元16 / 16画素一致。階調削減後のRLE表記は${encoded.encoded}。${levels.value}階調模型：各画素${bitsPerColor} bit、RLEは${encoded.runs.length}記録 ×（色${bitsPerColor} bit＋回数5 bit）＝${theoreticalBits} bit。4階調の未圧縮32 bitと比べると理論上${format(theoreticalBits / rawBits * 100)}%。`;
+      status.textContent = changed === 0
+        ? `RLEから復元した画像は元の16画素すべてと一致しました。変更された画素は0個です。`
+        : `階調削減後の画像です。元と異なる画素は${changed} / 16個です。色の情報を減らしたため、元画像そのものには戻りません。`;
+      resized();
+    });
+    levels.addEventListener('change', () => {
+      one(root, '[data-cp-model-quantized]').replaceChildren();
+      one(root, '[data-cp-model-caption]').textContent = `${levels.value}階調（未実行）`;
+      result.textContent = '「圧縮して比べる」で、選んだ階調数の結果を確認してください。';
+      status.textContent = ''; resized();
+    });
+    showControls(root);
+  }
+
+  function setupSizeModel(root) {
+    const before = one(root, '[data-cp-size-before]');
+    const after = one(root, '[data-cp-size-after]');
+    const unit = one(root, '[data-cp-size-unit]');
+    const chart = one(root, '[data-cp-size-chart]');
+    const output = one(root, '[data-cp-size-result]');
+    const status = one(root, '[data-cp-size-status]');
+    const update = () => {
+      const a = before.value === '' ? NaN : before.valueAsNumber;
+      const b = after.value === '' ? NaN : after.valueAsNumber;
+      chart.replaceChildren();
+      chart.removeAttribute('aria-label');
+      if (!Number.isFinite(a) || !Number.isFinite(b) || a <= 0 || b < 0) {
+        chart.removeAttribute('aria-label');
+        output.textContent = '圧縮前は0より大きい数、圧縮後は0以上の有限な数を入力してください。';
+        status.textContent = '';
+        return;
+      }
+      const rate = b / a * 100;
+      if (!Number.isFinite(rate)) {
+        output.textContent = '入力値の比を計算できません。小さい数を入力してください。';
+        status.textContent = '';
+        return;
+      }
+      const max = Math.max(a, b);
+      const bars = [
+        { label: `圧縮前 ${format(a)} ${unit.value}`, value: a, key: 'before' },
+        { label: `圧縮後 ${format(b)} ${unit.value}`, value: b, key: 'after' }
+      ];
+      bars.forEach(item => {
+        const row = text('div', '', 'cp-size-row');
+        row.append(text('span', item.label, 'cp-size-label'));
+        const track = document.createElement('span'); track.className = 'cp-size-track';
+        const bar = document.createElement('span'); bar.className = `cp-size-bar cp-size-bar--${item.key}`;
+        bar.style.setProperty('--cp-size-width', `${item.value / max * 100}%`);
+        track.append(bar); row.append(track); chart.append(row);
+      });
+      chart.setAttribute('aria-label', `圧縮前 ${format(a)} ${unit.value}、圧縮後 ${format(b)} ${unit.value}`);
+      const delta = 100 - rate;
+      const deltaText = delta >= 0 ? `削減率：${format(delta)}%です。` : `増加率：${format(-delta)}%です。`;
+      output.textContent = `圧縮率：${format(b)} ÷ ${format(a)} × 100 = ${format(rate)}%。${deltaText}`;
+      status.textContent = rate > 100 ? '圧縮後の棒が長く、圧縮率は100%を超えています。データ量が増えています。' : rate === 100 ? '前後のサイズは同じです。' : '圧縮後は圧縮前より小さくなっています。';
+    };
+    [before, after, unit].forEach(control => control.addEventListener('input', update));
+    [before, after, unit].forEach(control => control.addEventListener('change', update));
+    update();
+    showControls(root);
+  }
+
+  function setupStringCompare(root) {
+    const pairs = [
+      { label: 'まとまった並び', value: 'AAAAAAAABBBBBBBB' },
+      { label: '交互の並び', value: 'ABABABABABABABAB' }
+    ];
+    const results = one(root, '[data-cp-string-compare-results]');
+    one(root, '[data-cp-string-compare-run]').addEventListener('click', () => {
+      results.replaceChildren();
+      const list = document.createElement('ul');
+      pairs.forEach(pair => {
+        const encoded = Core.encodeRle(pair.value);
+        const item = document.createElement('li');
+        item.append(text('strong', `${pair.label}：`), document.createTextNode(`${pair.value.length}文字 → ${encoded.encoded}（${encoded.after}文字、圧縮率${format(Core.compressionRate(encoded.before, encoded.after))}%）`));
+        list.append(item);
+      });
+      results.append(list);
+      one(root, '[data-cp-string-compare-status]').textContent = '同じA・B各8個でも、まとまりは4文字（25%）、交互は32文字（200%）です。連続する同じ文字が多いほど、RLEで短くなります。';
+      results.hidden = false;
+      const status = root.querySelector('.cp-feedback');
+      status.textContent = predictionText(root) + ' ' + status.textContent; resized();
+    });
+    showControls(root);
+  }
+
+  function setupImageCompare(root) {
+    const clustered = ['11111', '11111', '11100', '00000', '00000'].join('');
+    const checker = Array.from({ length: 25 }, (_, index) => index % 2 === 0 ? '1' : '0').join('');
+    const render = (host, pixels) => {
+      host.replaceChildren();
+      [...pixels].forEach((pixel, index) => {
+        const cell = text('span', pixel === '1' ? '黒' : '白', `cp-compare-cell ${pixel === '1' ? 'cp-compare-cell--black' : 'cp-compare-cell--white'}`);
+        cell.setAttribute('aria-label', `${Math.floor(index / 5) + 1}行${index % 5 + 1}列、${pixel === '1' ? '黒' : '白'}`);
+        host.append(cell);
+      });
+    };
+    render(one(root, '[data-cp-cluster-grid]'), clustered);
+    render(one(root, '[data-cp-checker-grid]'), checker);
+    const results = one(root, '[data-cp-image-compare-results]');
+    one(root, '[data-cp-image-compare-run]').addEventListener('click', () => {
+      results.replaceChildren();
+      const list = document.createElement('ul');
+      [
+        { label: 'まとまった配置', pixels: clustered },
+        { label: '市松配置', pixels: checker }
+      ].forEach(example => {
+        const source = [...example.pixels].map(value => value === '1' ? '黒' : '白').join('');
+        const encoded = Core.encodeRle(source);
+        const restored = Core.decodeRle(encoded.encoded);
+        const item = document.createElement('li');
+        item.append(text('strong', `${example.label}：`), document.createTextNode(`${encoded.runs.length}まとまり、${encoded.encoded}（${encoded.after}文字、圧縮率${format(Core.compressionRate(encoded.before, encoded.after))}%、復元一致${restored === source ? '25/25画素' : 'なし'}）`));
+        list.append(item);
+      });
+      results.append(list);
+      one(root, '[data-cp-image-compare-status]').textContent = '黒13画素・白12画素の数は同じです。行末をまたいで読むと、まとまった配置は黒13白12の6文字（24%）、市松配置は25回のまとまりをすべて記録して50文字（200%）になります。各記録では回数1も省略していません。';
+      results.hidden = false;
+      const status = root.querySelector('.cp-feedback');
+      status.textContent = predictionText(root) + ' ' + status.textContent; resized();
+    });
+    showControls(root);
+  }
+
+  function initialize() {
+    [
+      ['[data-cp-image-model]', setupImageModel],
+      ['[data-cp-size-model]', setupSizeModel],
+      ['[data-cp-string-compare]', setupStringCompare],
+      ['[data-cp-image-compare]', setupImageCompare]
+    ].forEach(([selector, setup]) => document.querySelectorAll(selector).forEach(root => {
+      try { setup(root); } catch (error) { console.error('圧縮比較の操作を初期化できませんでした。', error); }
+    }));
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initialize, { once: true });
+  else initialize();
+})();

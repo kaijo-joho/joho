@@ -332,6 +332,8 @@
     controls(root);
   }
 
+  window.CompressionLessonViews = Object.freeze({ renderTree, renderCodes, gradeFields, setupSteps, clean });
+
   function initialize() {
     const widgets = [
       ['[data-cp-string-rle]', setupStringRle], ['[data-cp-image-rle]', setupImageRle],

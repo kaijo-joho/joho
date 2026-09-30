@@ -8,9 +8,19 @@
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
   <link rel="stylesheet" href="./css/compression-representation.css">
+  <link rel="stylesheet" href="./css/lesson-formula-builder.css">
+  <link rel="stylesheet" href="./css/compression-quiz.css">
+  <link rel="stylesheet" href="./css/compression-practice.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/compression-core.js"></script>
+  <script defer src="./js/lesson-formula-core.js"></script>
+  <script defer src="./js/lesson-formula-grader.js"></script>
+  <script defer src="./js/lesson-formula-builder.js"></script>
+  <script defer src="./js/compression-practice-core.js"></script>
+  <script defer src="./js/compression-formulas.js"></script>
   <script defer src="./js/compression-lessons.js"></script>
+  <script defer src="./js/compression-practice.js"></script>
+  <script defer src="./js/compression-quiz.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
 <body data-lesson-slide-deck>
@@ -21,10 +31,24 @@
       <div class="cp-widget" data-cp-frequency-example>
         <h3>文字列「DAEBCBACBBBCDAAABB」</h3>
         <p class="cp-hint">空白はないものとして、18文字の出現回数を数えます。この例のデータ量には、符号表などの付加情報を含めません。</p>
+        <p class="cp-string" data-cp-frequency-text>DAEBCBACBBBCDAAABB</p>
+        <form data-cp-frequency-form class="cp-enhancement" hidden data-lesson-slide-navigation-lock>
+          <div class="cp-frequency-answers"><label>Aの頻度<input data-cp-frequency-answer="A" type="text" inputmode="numeric" aria-label="Aの頻度"></label><label>Bの頻度<input data-cp-frequency-answer="B" type="text" inputmode="numeric" aria-label="Bの頻度"></label><label>Cの頻度<input data-cp-frequency-answer="C" type="text" inputmode="numeric" aria-label="Cの頻度"></label><label>Dの頻度<input data-cp-frequency-answer="D" type="text" inputmode="numeric" aria-label="Dの頻度"></label><label>Eの頻度<input data-cp-frequency-answer="E" type="text" inputmode="numeric" aria-label="Eの頻度"></label></div>
+          <div class="cp-controls"><button class="dr-button dr-button--primary" type="submit">頻度を判定</button><button class="dr-button" type="button" data-cp-frequency-reset>最初から</button></div>
+          <p class="cp-feedback" data-cp-frequency-status role="status"></p>
+        </form>
+        <div class="cp-enhancement" hidden>
+          <p class="cp-hint">文字を押すと同じ文字が強調されます。数え方を確かめたいときは「1文字を数える」で左端から進めてください。</p>
+          <div class="cp-controls"><button class="dr-button" type="button" data-cp-frequency-next>1文字を数える</button></div>
+          <p class="cp-feedback" data-cp-frequency-scan-status role="status"></p>
+          <div class="cp-frequency-bars" data-cp-frequency-bars aria-label="ここまでに数えた文字の頻度"></div>
+        </div>
+        <div data-cp-frequency-result>
         <div class="cp-table-scroll" tabindex="0" role="region" aria-label="文字の頻度とハフマン符号の比較"><table><caption>頻度と符号の比較</caption><thead><tr><th scope="col">文字</th><th scope="col">A</th><th scope="col">B</th><th scope="col">C</th><th scope="col">D</th><th scope="col">E</th><th scope="col">合計</th></tr></thead><tbody><tr><th scope="row">頻度</th><td>5</td><td>7</td><td>3</td><td>2</td><td>1</td><td>18</td></tr><tr><th scope="row">符号</th><td>10</td><td>0</td><td>110</td><td>1110</td><td>1111</td><td>—</td></tr><tr><th scope="row">符号長×頻度</th><td>10</td><td>7</td><td>9</td><td>8</td><td>4</td><td>38bit</td></tr></tbody></table></div>
         <div class="cp-comparison cp-comparison--rate"><div><h4>固定長3bit</h4><p class="cp-equation">3bit × 18文字 ＝ <strong>54bit</strong></p></div><div><h4>可変長符号</h4><p class="cp-equation">10＋7＋9＋8＋4 ＝ <strong>38bit</strong></p></div></div>
         <p class="cp-equation">圧縮率 ＝ 38 ÷ 54 × 100 ＝ 70.370…% → <strong>約70%</strong>（四捨五入）</p>
         <p class="cp-hint">短い符号を割り当てるだけでなく、符号の区切りを復元できるように木を作ります。</p>
+        </div>
         <noscript><p>頻度表と計算はJavaScriptがなくても確認できます。可変長符号はA=10、B=0、C=110、D=1110、E=1111です。</p></noscript>
       </div>
     </article>
@@ -77,10 +101,14 @@
     <article>
       <h2 id="headline_4">(4) ハフマン木を作る練習</h2>
       <p>次の3例について、頻度の小さい2つを結合する順序と、根から読む符号を予想してから確認しましょう。</p>
-      <div class="cp-widget" data-cp-huffman-build="practice" data-lesson-slide-navigation-lock>
+      <div class="cp-widget" data-cp-huffman-practice data-lesson-slide-navigation-lock>
         <label class="cp-select" for="cp-build-preset">練習例を選ぶ<select id="cp-build-preset" data-cp-build-preset><option value="0">例1：A9・B7・C3・D2・E1</option><option value="1">例2：A9・B4・C4・D3・E2</option><option value="2">例3：A9・B6・C5・D3・E2</option></select></label>
-        <p class="cp-hint">選んだ例の頻度と木を先に予想します。結合の順序を「次の結合」で一段ずつ確認できます。</p>
-        <div class="cp-controls cp-enhancement" hidden><button class="dr-button" type="button" data-cp-build-prev>前の結合</button><button class="dr-button dr-button--primary" type="button" data-cp-build-next>次の結合</button><button class="dr-button" type="button" data-cp-build-reset>最初から</button></div>
+        <p class="cp-hint">残っている節点から、頻度の小さい2つを選んで結合します。先に選んだ節点を0の枝、後に選んだ節点を1の枝にします。同じ頻度なら選び方は複数あります。</p>
+        <div class="cp-enhancement" hidden>
+          <div class="cp-practice-candidates" data-cp-practice-candidates aria-label="結合する2つの節点を選ぶ"></div>
+          <p data-cp-practice-selection></p>
+          <div class="cp-controls"><button class="dr-button dr-button--primary" type="button" data-cp-practice-join>選んだ2つを結合</button><button class="dr-button" type="button" data-cp-practice-undo>1つ戻る</button><button class="dr-button" type="button" data-cp-practice-reset>最初から</button></div>
+        </div>
         <h3>頻度とハフマン木</h3><div class="cp-codes" data-cp-codes><p>A(9)・B(7)・C(3)・D(2)・E(1)</p></div><div class="cp-tree" data-cp-tree tabindex="0" role="region" aria-label="練習用ハフマン木">初期の葉5個</div><h3>符号</h3><p class="cp-feedback" data-cp-build-status role="status">例1の木を予想してから進めます。</p>
         <noscript><p>例1の結合順は、E1+D2→3、C3+3→6、B7+6→13、A9+13→22です。頻度が同じ例では結合順が複数あります。</p></noscript>
       </div>
@@ -113,7 +141,7 @@
   <section data-lesson-slide data-lesson-slide-title="演習問題1" data-lesson-slide-layout="exercise">
     <article>
       <h2 id="headline_6">(6) 演習問題1　ハフマン符号化</h2>
-      <form class="cp-widget" data-cp-huffman-quiz="0" data-lesson-slide-navigation-lock>
+      <form class="cp-widget" data-cp-staged-huffman-quiz="0" data-lesson-slide-navigation-lock>
         <h3>問題1</h3>
         <p>文字列「<strong>ACBA BACA BBAB BDBB CBBA</strong>」が1文字あたり<strong>2bit</strong>の固定長符号で保存されています。空白は区切りのためで、文字列には含めません。これをハフマン符号化で可変長符号に圧縮します。</p>
         <div class="cp-hint">頻度表・符号表・符号長・合計bit数を完成させ、圧縮率、先頭4文字の符号化、ビット列「10110100」の復元を答えます。この問題では図に指定された枝の0/1と葉の位置を使います。頻度を正しく入力して判定すると、木の「?」にも頻度が表示されます。符号表の付加情報はデータ量に含めません。</div>
@@ -131,7 +159,7 @@
   <section data-lesson-slide data-lesson-slide-title="演習問題2" data-lesson-slide-layout="exercise">
     <article>
       <h2 id="headline_7">(7) 演習問題2　ハフマン符号化</h2>
-      <form class="cp-widget" data-cp-huffman-quiz="1" data-lesson-slide-navigation-lock>
+      <form class="cp-widget" data-cp-staged-huffman-quiz="1" data-lesson-slide-navigation-lock>
         <h3>問題2</h3>
         <p>文字列「<strong>ABDA ECAB ADCE BAAD BAEC ABAD CBEA ACDB AECA DBAA</strong>」が1文字あたり<strong>3bit</strong>の固定長符号で保存されています。空白は区切りのためで、文字列には含めません。これをハフマン符号化で可変長符号に圧縮します。</p>
         <div class="cp-hint">頻度表・符号表・符号長・合計bit数を完成させ、圧縮率、先頭6文字の符号化、ビット列「1000111101」の復元を答えます。この問題では図に指定された枝の0/1と葉の位置を使います。頻度を正しく入力して判定すると、木の「?」にも頻度が表示されます。符号表の付加情報はデータ量に含めません。</div>

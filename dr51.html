@@ -8,9 +8,18 @@
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
   <link rel="stylesheet" href="./css/compression-representation.css">
+  <link rel="stylesheet" href="./css/compression-experiments.css">
+  <link rel="stylesheet" href="./css/lesson-formula-builder.css">
+  <link rel="stylesheet" href="./css/compression-quiz.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/compression-core.js"></script>
+  <script defer src="./js/lesson-formula-core.js"></script>
+  <script defer src="./js/lesson-formula-grader.js"></script>
+  <script defer src="./js/lesson-formula-builder.js"></script>
+  <script defer src="./js/compression-formulas.js"></script>
   <script defer src="./js/compression-lessons.js"></script>
+  <script defer src="./js/compression-quiz.js"></script>
+  <script defer src="./js/compression-experiments.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
 <body data-lesson-slide-deck>
@@ -24,6 +33,25 @@
         <div class="cp-reference-card"><h3>非可逆圧縮</h3><p>一部の情報を削除・変更するため、元のデータそのものへは戻せません。画像や音声では、見た目や聞こえ方の違いが目立ちにくい情報を減らします。</p></div>
       </div>
       <p class="cp-hint">復元は「展開」「伸張」「解凍」とも呼ばれます。可逆圧縮では元のデータと完全に一致するよう復元できますが、非可逆圧縮では元のデータそのものへは戻せません。</p>
+      <section class="cp-experiment" data-cp-image-model aria-labelledby="cp-image-model-title">
+        <h3 id="cp-image-model-title">小さな画像で圧縮と復元を試す</h3>
+        <p>黒・濃い灰色・薄い灰色・白の4階調を、行ごとに左から読みます。まずRLEで可逆圧縮・復元し、次に階調を2色へまとめる模型で変化を比べます。</p>
+        <p class="cp-model-note">これは授業用の理論模型です。実際のPNGやJPEG形式を作るものではありません。A〜Dは4つの階調です。画像の寸法と階調表は共有済みとし、RLEの1記録を「色（4階調なら2 bit、2階調なら1 bit）＋回数5 bit」で数えます。回数は1〜16を直接記録します。付加情報は含めません。</p>
+        <div class="cp-model-panels">
+          <figure><figcaption>元画像（4階調）</figcaption><div class="cp-model-grid" data-cp-model-source role="img" aria-label="自作の4行4列、4階調の見本画像"></div></figure>
+          <figure><figcaption>RLEを復元（可逆）</figcaption><div class="cp-model-grid" data-cp-model-restored role="img" aria-label="RLE復元後の画像"></div></figure>
+          <figure><figcaption data-cp-model-caption>2階調へ削減（非可逆模型）</figcaption><div class="cp-model-grid" data-cp-model-quantized role="img" aria-label="階調削減後の画像"></div></figure>
+        </div>
+        <noscript><p class="cp-model-note">見本（行優先）：元画像は「AAAA／BBBB／CCCC／DDDD」の4行です。RLE復元は同じ16画素です。2階調へまとめると8画素の階調が変わります。</p><p>4階調の32 bitから、2階調RLE模型の12 bitになります。復元結果が異なる画素は8 / 16です。</p></noscript>
+        <div class="cp-controls cp-enhancement" hidden>
+          <label class="cp-select">階調数
+            <select data-cp-model-levels aria-label="階調数"><option value="2">2階調</option><option value="4">4階調</option></select>
+          </label>
+          <button class="dr-button dr-button--primary" type="button" data-cp-model-run>圧縮して比べる</button>
+        </div>
+        <p class="cp-equation" data-cp-model-result>見本：RLEだけなら元画像と16画素すべて一致します。2階調への削減を加えると理論値は32 bitから12 bitになり、8 / 16画素の階調が変わります。</p>
+        <p class="cp-feedback" data-cp-model-status role="status" aria-live="polite"></p>
+      </section>
       <button class="dr-supplement-link" type="button" data-lesson-supplement-open="cp-formats-dialog">ファイル形式の例を確認</button>
     </article>
   </section>
@@ -32,12 +60,34 @@
     <article>
       <h2 id="headline_2">(2) 圧縮率</h2>
       <p><strong>圧縮率</strong>は、圧縮前に対して圧縮後のデータがどれくらいの大きさになったかを表します。</p>
-      <p class="cp-equation">圧縮率（%）＝ <strong>圧縮後のサイズ［B］÷ 圧縮前のサイズ［B］× 100</strong></p>
+      <p class="cp-equation">圧縮率（%）＝ <strong>圧縮後のサイズ［同じ単位］÷ 圧縮前のサイズ［同じ単位］× 100</strong></p>
       <div class="cp-comparison cp-comparison--rate">
         <div class="cp-reference-card"><h3>例：小さくなった場合</h3><p>圧縮前が16文字、圧縮後が10文字なら、</p><p class="cp-equation">10 ÷ 16 × 100 ＝ <strong>62.5%</strong></p><p>圧縮後は圧縮前の62.5%です。</p></div>
         <div class="cp-reference-card"><h3>100%を超える場合</h3><p>圧縮後の情報を記録するための目印が増えると、圧縮後のサイズが大きくなる場合があります。</p><p class="cp-equation">圧縮率が <strong>100%超</strong> なら、データ量は増えています。</p></div>
       </div>
       <div class="cp-observation"><strong>文字数モデルとbit数は区別する。</strong>文字列を何文字で表すかを比べる問題と、符号化したデータが何bitになるかを比べる問題では、分母・分子の単位を確認します。</div>
+      <section class="cp-experiment" data-cp-size-model aria-labelledby="cp-size-model-title">
+        <h3 id="cp-size-model-title">同じ単位で前後の大きさを比べる</h3>
+        <p>単位を選んで、圧縮前・圧縮後の値を入力します。圧縮率は「後÷前×100」、削減率は100%から圧縮率を引いて求めます。</p>
+        <div class="cp-controls cp-enhancement" hidden>
+          <label class="cp-select">単位
+            <select data-cp-size-unit aria-label="前後サイズの単位"><option value="B">B</option><option value="文字">文字</option><option value="bit">bit</option></select>
+          </label>
+          <label class="cp-select">圧縮前のサイズ
+            <input data-cp-size-before type="number" min="0" step="any" value="16" inputmode="decimal">
+          </label>
+          <label class="cp-select">圧縮後のサイズ
+            <input data-cp-size-after type="number" min="0" step="any" value="10" inputmode="decimal">
+          </label>
+        </div>
+        <div class="cp-size-chart" data-cp-size-chart role="img" aria-label="圧縮前16 B、圧縮後10 Bのサイズ比較">
+          <div class="cp-size-row"><span class="cp-size-label">圧縮前 16 B</span><span class="cp-size-track"><span class="cp-size-bar cp-size-bar--before" style="--cp-size-width:100%"></span></span></div>
+          <div class="cp-size-row"><span class="cp-size-label">圧縮後 10 B</span><span class="cp-size-track"><span class="cp-size-bar cp-size-bar--after" style="--cp-size-width:62.5%"></span></span></div>
+        </div>
+        <noscript><p class="cp-model-note">見本：16文字から10文字なら圧縮率62.5%、削減率37.5%です。単位をそろえて比べます。</p></noscript>
+        <p class="cp-equation" data-cp-size-result>圧縮率：10 ÷ 16 × 100 = 62.5%。削減率：37.5%です。</p>
+        <p class="cp-feedback" data-cp-size-status role="status" aria-live="polite"></p>
+      </section>
     </article>
   </section>
 
@@ -59,6 +109,16 @@
         <p class="cp-hint">入力した文字列も、同じ文字が続くまとまりごとに圧縮します。</p>
         <noscript><p>JavaScriptがなくても、上の例「AAAAAABBBBCCDAAA → A6B4C2D1A3」と圧縮率62.5%を確認できます。</p></noscript>
       </div>
+      <section class="cp-experiment" data-cp-string-compare aria-labelledby="cp-string-compare-title">
+        <h3 id="cp-string-compare-title">同じ文字数・同じ頻度でも、並び方で変わる</h3>
+        <p>どちらもAが8個、Bが8個の16文字です。圧縮後の長さを予想してから「圧縮して比較」を押してください。文字と回数を必ず書き、回数1も省略しない模型です。</p>
+        <div class="cp-compare-strings"><p><strong>まとまった並び</strong><code>AAAAAAAABBBBBBBB</code></p><p><strong>交互の並び</strong><code>ABABABABABABABAB</code></p></div>
+        <fieldset class="cp-prediction cp-enhancement" hidden><legend>圧縮後が小さくなるのは？</legend><label><input type="radio" name="cp-string-prediction" value="clustered">まとまった並び</label><label><input type="radio" name="cp-string-prediction" value="alternating">交互の並び</label><label><input type="radio" name="cp-string-prediction" value="equal">どちらも同じ</label></fieldset>
+        <div class="cp-controls cp-enhancement" hidden><button class="dr-button dr-button--primary" type="button" data-cp-string-compare-run>圧縮して比較</button></div>
+        <div class="cp-experiment-results" data-cp-string-compare-results hidden></div>
+        <p class="cp-feedback" data-cp-string-compare-status role="status" aria-live="polite"></p>
+        <noscript><p class="cp-model-note">まとまった並びはA8B8の4文字で圧縮率25%、交互の並びはA1B1を8回書いて32文字となり圧縮率200%です。同じ文字の連続が長いとRLEで短くなります。</p></noscript>
+      </section>
     </article>
   </section>
 
@@ -92,6 +152,20 @@
         <p class="cp-equation" data-cp-image-rate-summary>元25画素 → 圧縮後16文字：16 ÷ 25 × 100 ＝ <strong>64%</strong></p>
         <noscript><p>図は5×5画素です。左上から行末・次行先頭を続けて読むと、黒6白4黒4白1黒1白4黒1白4になります。</p></noscript>
       </div>
+      <section class="cp-experiment" data-cp-image-compare aria-labelledby="cp-image-compare-title">
+        <h3 id="cp-image-compare-title">同じ白黒数でも、配置でまとまりが変わる</h3>
+        <p>どちらも5×5画素で黒13画素・白12画素です。左上から行優先で読み、行末と次の行の先頭も続けます。圧縮後を予想してから比較してください。</p>
+        <p class="cp-model-note">この問題では黒・白・数字を各1文字とし、回数1も必ず記録します。例：黒1は「黒」と「1」の2文字です。</p>
+        <div class="cp-model-panels">
+          <figure><figcaption>まとまった配置（黒13・白12）</figcaption><div class="cp-compare-grid" data-cp-cluster-grid role="img" aria-label="5行5列、黒13画素と白12画素がまとまって配置された画像"></div></figure>
+          <figure><figcaption>市松配置（黒13・白12）</figcaption><div class="cp-compare-grid" data-cp-checker-grid role="img" aria-label="5行5列、黒13画素と白12画素が交互の市松配置になった画像"></div></figure>
+        </div>
+        <noscript><p class="cp-model-note">行の白黒（1=黒、0=白）：まとまった配置は11111／11111／11100／00000／00000、市松配置は10101／01010／10101／01010／10101です。圧縮表記は黒13白12（6文字）と、市松の黒1白1を12回、最後に黒1（50文字）です。</p></noscript>
+        <fieldset class="cp-prediction cp-enhancement" hidden><legend>圧縮後が小さくなるのは？</legend><label><input type="radio" name="cp-image-prediction" value="clustered">まとまった配置</label><label><input type="radio" name="cp-image-prediction" value="alternating">市松配置</label><label><input type="radio" name="cp-image-prediction" value="equal">どちらも同じ</label></fieldset>
+        <div class="cp-controls cp-enhancement" hidden><button class="dr-button dr-button--primary" type="button" data-cp-image-compare-run>圧縮して比較</button></div>
+        <div class="cp-experiment-results" data-cp-image-compare-results hidden></div>
+        <p class="cp-feedback" data-cp-image-compare-status role="status" aria-live="polite"></p>
+      </section>
     </article>
   </section>
 
@@ -129,6 +203,9 @@
         </div>
         <div class="cp-controls cp-enhancement" hidden><button class="dr-button dr-button--primary" type="submit">判定</button><button class="dr-button" type="reset">入力を消す</button></div>
         <p class="cp-feedback" data-cp-quiz-feedback role="status"></p>
+        <h3>圧縮率を途中式で確かめる</h3>
+        <p class="cp-hint">圧縮前10文字・圧縮後12文字を、同じ単位で比べます。式を組み立てて圧縮率を求めましょう。</p>
+        <div data-cp-string-rate-formula></div>
         <details class="dr-reveal-item"><summary>解き方を確認</summary><div class="dr-reveal-item__body" data-cp-quiz-solution>
           <ol>
             <li>「EEEECCABAB」を同じ文字のまとまりに分けます。<p class="cp-equation">E4・C2・A1・B1・A1・B1</p></li>
