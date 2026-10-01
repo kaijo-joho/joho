@@ -691,7 +691,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     </ol>
     <details><summary>置換基（CH₃ を COOH などに）</summary><p>端の原子を選び、ポップアップの「置換基」から C₂H₅・COOH・NO₂ などを選ぶと、簡略構造式のラベルに変わります（結合が右から来るときは HOOC– のように向きが反転）。原子をダブルクリック、原子に乗せて <kbd>Enter</kbd>、テキストツールで原子をクリックしても入力できます（COO- のように最後に + − を付けると電荷）。「CH₃（メチル基に戻す）」で元に戻り、分子式・分子量にも反映されます。</p></details>
     <details><summary>略記号・一般の記号</summary><p>R・R'・R1・X・Ar（一般の記号）、Me・Et・Pr・iPr・Bu・tBu・Ph・Ac・Bn（略記号）が使えます。OMe・COOEt のように組み合わせることもできます。R・X を含むと分子量は「—」になります。</p></details>
-    <details><summary>名前を付ける</summary><p>構造を選び（画面下の分子式の札をクリックしても選べます）、ポップアップの<strong>「名前を付ける」</strong>を押すと、教科書の決まりで名前を付けて、構造のすぐ下に<strong>文字</strong>で置きます（元に戻すで 1 回で取り消せます。文字なので、テキストツールで直せます）。異性体を並べる機能と同じ命名の仕組みです。イソブタンなどの慣用名は（ ）に添えます。<strong>確信が持てない構造や、まだ対応していない構造（C・H・O 以外の原子、電荷、環が 2 つ以上のものなど）には付けず</strong>、理由を知らせます。立体（シス・トランスなど）は区別しません。</p></details>
+    <details><summary>名前を付ける</summary><p>構造を選び（画面下の分子式の札をクリックしても選べます）、ポップアップの<strong>「名前を付ける」</strong>を押すと、<strong>日本語名と英語名</strong>を、構造のすぐ下に<strong>文字</strong>（2 行）で置きます（元に戻すで 1 回で取り消せます。文字なので、テキストツールで直せます）。異性体を並べる機能と同じ命名の仕組みで、<strong>教科書にある慣用名があれば慣用名を先に書き、系統名（IUPAC 名）を（ ）に添えます</strong>（例：アセトン（プロパノン）／acetone (propan-2-one)）。慣用名がなければ IUPAC 名です。C・H・O だけで、24 原子までが対象です。<strong>環の中に O を含むもの（エポキシド・THF など）、環が 3 つ以上のもの、電荷・特別な描き方を含むものには付けず</strong>、理由を知らせます。立体は、二重結合のシス・トランス（E/Z）だけを描いた向きから読みます。</p></details>
     <details><summary>分子式・分子量</summary><p>画面の下に、つながりごとの分子式と分子量（金属・電荷を含むときは式量）が出ます。有機化合物は C・H・そのほかの順（C₂H₆O など）、無機物は教科書の書き方（H₂SO₄・HNO₃・NH₃・CO₂ など）で並べます。クリックするとその構造全体が選ばれ、選んでいる構造の分子式には色が付きます。構造が 2 つ以上あるときは、下の 1 行に収まるように札を並べ（入りきらないときは右端がかすみます）、左の<strong>「一覧」ボタン</strong>で全部を折り返して見られるポップアップが開きます。ポップアップの上の切り替えで<strong>まとめ方</strong>を選べます：<strong>そのまま</strong>（1 つずつ）、<strong>分子式</strong>（同じ分子式を 1 つの札にして「×個数」を付ける。初めの設定）、<strong>化合物群</strong>（アルカン・アルケン・アルキン・シクロアルカン・ベンゼン環をもつ炭化水素・アルコール・フェノール類・エーテル・アルデヒド・ケトン・カルボン酸・エステルなどに分ける）、<strong>主鎖の C 数</strong>（主鎖の炭素数、環なら員数ごとに分ける。名前を付けられない構造は「—」）。まとめた札をクリックすると、その中の構造がまとめて選ばれます。</p></details>
     <details><summary>官能基を色で強調</summary><p>上のバーの<strong>「−OH」ボタン</strong>（表記とは別の、独立したオン・オフ。オンのときはボタンも強調された色になります）を押すと、ヒドロキシ基（−OH）・エーテル結合（−O−）・ホルミル基（−CHO）・カルボニル基（&gt;C=O）・カルボキシ基（−COOH）・エステル結合（−COO−）・二重結合・三重結合・ベンゼン環を、種類ごとの色の下地で目立たせます（C=C は炭化水素基の二重結合だけで、ベンゼン環の二重結合はベンゼン環として別に扱います）。図の右上に色の凡例が出ます。凡例の<strong>種類をクリック</strong>するとその種類だけ強調を外し（もう一度押すと戻る）、凡例の<strong>「やめる」</strong>か、もう一度「−OH」ボタンを押すと、強調を全部やめます（付け直すときは「−OH」ボタン）。図ごとの設定で、画像に書き出したときにも色が付きます。異性体を並べるときは、モーダルの「官能基を色で強調」（初めはオン）で決めます。</p></details>
   </section>
@@ -778,7 +778,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <details><summary>並び方</summary><p>「主鎖の炭素数で列を分ける」をオンにすると、左から主鎖の長い順に列を作ります（主鎖 7（直鎖）→ 主鎖 6 → …）。教科書の数え方（主鎖を 1 つずつ短くして枝を動かす）と同じ順なので、数え落としを見つけやすくなります。環を含むものは、そのあとに「6員環」「5員環」「4員環」「3員環」のように、員数の多い環から順に列が分かれます（環が 2 つ以上のものは「二環（5・6員環）」のように、環の大きさの組で分けます）。酸素を含むときは、まず官能基（アルコール・フェノール類・エーテル・アルデヒド・ケトン・カルボン酸・エステル・その他）ごとにまとまりを分け、そのまとまりの中を、主鎖や環の列に分けます。ベンゼン環をもつものは「ベンゼン環をもつもの」としてまとめ、置換の数（一置換・二置換（o-・m-・p-）・三置換…）ごとの列に分けます。1 列が 12 個を超えると、次の列に続きます。</p></details>
     <details><summary>条件の選び方</summary><p>C=C・C≡C・環・ベンゼン環・酸素を含む条件は、<strong>「含む／どちらでも／含まない」のボタンを 1 回押す</strong>だけで選べます。C=C は炭化水素基の二重結合だけを数え、ベンゼン環の二重結合は数えません（ベンゼン環は別の条件です）。矛盾する組み合わせは選べないようにしています（環を「含まない」にするとベンゼン環は「含まない」に固定され、ベンゼン環を「含む」にすると環は「含まない」にできません）。</p></details>
     <details><summary>3・4 員環を出すか選ぶ</summary><p>環を含む異性体を数えるときは、モーダルの「環の大きさ」で、3 員環（シクロプロパン）・4 員環（シクロブタン）を出すかどうかを選べます。ひずみが大きくて高校ではあまり扱わないので、外すと候補がすっきりします。二環などの中に 3・4 員環がある構造も、外すと出なくなります。</p></details>
-    <details><summary>名前</summary><p>名前は、高校の教科書の決まり（いちばん長い鎖を主鎖に、枝の位置番号が小さくなるように、枝はアルファベット順）で付けます。ベンゼン環（トルエン・o-／m-／p-キシレン・エチルベンゼン・クメン・フェノール・o-／m-／p-クレゾール・ベンジルアルコール・アニソール・安息香酸・アセトフェノンなど。ベンゼン環は 1 つだけ）、アルコール（エタノール）、エーテル（ジエチルエーテル）、アルデヒド（プロパナール）、ケトン（2-ブタノン）、カルボン酸（エタン酸）、エステル（酢酸エチル）に対応しています。イソブタン・ネオペンタン・エチレン・アセトン・酢酸・グリセリンなどの慣用名は（ ）に添えます（エステルは「酢酸エチル」のように酸の慣用名で書きます）。<strong>確信が持てないものは「—」</strong>にしています。名前はふつうの文字なので、テキストツールで直せます。</p></details>
+    <details><summary>名前</summary><p>名前は、IUPAC の系統名（親になる鎖や環を、主基の数・多重結合の数・長さの順に選び、位置番号がいちばん小さくなるように数える）を、<strong>日本語と英語</strong>で付けます。<strong>教科書にある慣用名（アセトン・酢酸・エチレン・グリセリン・クレゾール・サリチル酸・酢酸エチル・ジエチルエーテルなど）があれば、慣用名を先に書いて、系統名を（ ）に添えます</strong>。慣用名がないものは系統名だけです。エタノールのように教科書で系統名のほうを使うものは、系統名のあとに別名（エチルアルコール）を添えます。アルカン・アルケン・アルキン・アルコール・エーテル・アルデヒド・ケトン・カルボン酸・エステル（不飽和のもの、官能基が 2 つ以上あるものも）、環（シクロアルカン・シクロアルケン・ベンゼン環）、橋かけ環（ビシクロ・スピロ）に対応しています。<strong>環の中に O を含むもの、環が 3 つ以上のもの、ケテンのような特別な形は「—」</strong>です。名前はふつうの文字なので、テキストツールで直せます。英語名は、モーダルの「英語名も書く」で書くかどうかを選べます。</p></details>
     <details><summary>できること・できないこと</summary><p>C・H・O だけ（炭素と酸素の合計 10 個まで）に対応しています。シス・トランスは、モーダルの「シス・トランス（E/Z）を区別する」をオンにすると別の異性体として数え（初めはオフ）、図はジグザグに描いて向きを見せます。環の置換基のシス・トランスと、鏡像異性体は区別しません。過酸化物（O–O）は数えません。窒素・ハロゲンなどはまだ対応していません。酸素の条件では、「−OH」からカルボキシ基の OH を、「−O−（エーテル）」からエステルの O を除いて数えます（アルコールと酸、エーテルとエステルを分ける教科書の考え方に合わせています）。候補が 300 個を超えるか、計算に時間がかかりすぎるときは途中で打ち切り、見出しにそう書きます。並べた図はふつうの図なので、いらないものを消す・書き込む・画像に書き出す・保存する、が自由にできます。</p></details>
   </section>
   <section data-help-topic="shortcuts" data-help-title="ショートカット">
@@ -795,7 +795,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.19（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.20（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -839,6 +839,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
   <div class="iso-opts">
     <label class="chk"><input type="checkbox" id="isoNum" checked>番号</label>
     <label class="chk"><input type="checkbox" id="isoName" checked>名前</label>
+    <label class="chk" title="日本語名の下の行に、英語名も書く"><input type="checkbox" id="isoEn" checked>英語名も書く</label>
     <label class="chk"><input type="checkbox" id="isoCols" checked>主鎖の炭素数で列を分ける</label>
     <label class="chk" title="官能基（ヒドロキシ基・カルボニル基・カルボキシ基・エステル結合・二重結合など）を、種類ごとの色で目立たせる"><input type="checkbox" id="isoFg" checked>官能基を色で強調</label>
     <label class="frow">表記 <select id="isoMode"><option value="condensed">簡略構造式</option><option value="full">構造式</option><option value="skeletal">骨格構造式</option></select></label>
@@ -1700,6 +1701,565 @@ function isoFactory(){
     }
     return none;
   }
+  // ===== IUPAC 系統名（日本語と英語を同時に作る。C・H・O だけ。環の中に O があるもの・環が 3 つ以上のものは対象外） =====
+  // 考え方：親（鎖・環）の候補を全部作り、主基の数 → 環か鎖か → 多重結合の数 → 長さ → 位置番号 … の順で最良のものを選ぶ。
+  // 枝（置換基）は同じ仕組みで再帰的に名前を付ける。名前は日本語と英語を並べて作る
+  const BASE_JA = ['メタ', 'エタ', 'プロパ', 'ブタ', 'ペンタ', 'ヘキサ', 'ヘプタ', 'オクタ', 'ノナ', 'デカ'];
+  const BASE_EN = ['meth', 'eth', 'prop', 'but', 'pent', 'hex', 'hept', 'oct', 'non', 'dec'];
+  const ALKYL_JA = ['メチル', 'エチル', 'プロピル', 'ブチル', 'ペンチル', 'ヘキシル', 'ヘプチル', 'オクチル', 'ノニル', 'デシル'];
+  const M_JA = {2:'ジ', 3:'トリ', 4:'テトラ', 5:'ペンタ', 6:'ヘキサ', 7:'ヘプタ', 8:'オクタ'}, M_EN = {2:'di', 3:'tri', 4:'tetra', 5:'penta', 6:'hexa', 7:'hepta', 8:'octa'};
+  const BIS_JA = {2:'ビス', 3:'トリス', 4:'テトラキス', 5:'ペンタキス', 6:'ヘキサキス'}, BIS_EN = {2:'bis', 3:'tris', 4:'tetrakis', 5:'pentakis', 6:'hexakis'};
+  const NUM_JA = {2:'二', 3:'三', 4:'四', 5:'五', 6:'六'};
+  const SUF_EN = {ol:'ol', one:'one', al:'al', oic:'oic acid', carboxylic:'carboxylic acid', carbaldehyde:'carbaldehyde'};
+  const SUF_JA = {ol:'オール', one:'オン', al:'アール', carboxylic:'カルボン酸', carbaldehyde:'カルバルデヒド'};
+  const nm = (ja, en, cx = false) => ({ja, en, cx, key:en.replace(/^(sec-|tert-)/, '').replace(/^[\d,\-()[\]\s]+/, '')});
+  const asc = (a, b) => a - b;
+  const cmpV = (a, b) => { for (let i = 0; i < Math.min(a.length, b.length); i++) if (a[i] !== b[i]) return a[i] < b[i] ? -1 : 1; return a.length - b.length; };   // 配列を先頭から比べる
+  const cmpT = (a, b) => { for (let i = 0; i < Math.min(a.length, b.length); i++){ const c = cmpV(a[i], b[i]); if (c) return c; } return 0; };      // 配列の配列を比べる
+  const oxyJa = {'メチル':'メトキシ', 'エチル':'エトキシ', 'プロピル':'プロポキシ', 'ブチル':'ブトキシ'};
+  function alkoxyName(R){                                        // 枝の名前 R（…イル）から、…オキシ基の名前を作る
+    let en, ja, cx = R.cx;
+    if (R.en === 'phenyl') en = 'phenoxy'; else if (!R.ring && /(meth|eth|prop|but)yl$/.test(R.en)) en = R.en.replace(/yl$/, 'oxy'); else { en = R.en + 'oxy'; cx = true; }
+    if (R.ja === 'フェニル') ja = 'フェノキシ';
+    else { const m = !R.ring && /(メチル|エチル|プロピル|ブチル)$/.exec(R.ja); ja = m ? R.ja.slice(0, -m[1].length) + oxyJa[m[1]] : R.ja + 'オキシ'; }
+    return nm(ja, en, cx);
+  }
+  const NM_OXO = nm('オキソ', 'oxo'), NM_OH = nm('ヒドロキシ', 'hydroxy'), NM_COOH = nm('カルボキシ', 'carboxy'), NM_CHO = nm('ホルミル', 'formyl');
+
+  function makeNamer(g, st){
+    const n = g.el.length, el = g.el, BAD = {bad:true};
+    if (n < 1 || n > 24 || el.some(e => e !== 'C' && e !== 'O')) return BAD;
+    const A = el.map(() => []);
+    g.e.forEach(([a, b, o], k) => { A[a].push([b, o, k]); A[b].push([a, o, k]); });
+    for (let i = 0; i < n; i++) if (el[i] === 'O'){                 // O：OH・=O・エーテルだけ（過酸化物・水は対象外）
+      const nb = A[i];
+      if (!nb.length || nb.some(([j]) => el[j] === 'O')) return BAD;
+      if (nb.length > 2 || (nb.length === 2 && nb.some(([, o]) => o !== 1))) return BAD;
+    }
+    // ---- 環：橋（切ると離れる結合）でない結合が環の結合 ----
+    const cyc = new Set();
+    for (let k = 0; k < g.e.length; k++){
+      const [a, b] = g.e[k], seen = new Set([a]), stk = [a]; let hit = false;
+      while (stk.length && !hit){ const x = stk.pop(); for (const [y, , kk] of A[x]){ if (kk === k) continue; if (y === b){ hit = true; break; } if (!seen.has(y)){ seen.add(y); stk.push(y); } } }
+      if (hit) cyc.add(k);
+    }
+    const sysOf = new Array(n).fill(-1), systems = [];
+    for (const k of cyc){
+      const [a0] = g.e[k]; if (sysOf[a0] >= 0) continue;
+      const sy = {atoms:[], edges:[]}, id = systems.length, stk = [a0]; sysOf[a0] = id;
+      while (stk.length){ const x = stk.pop(); sy.atoms.push(x); for (const [y, , kk] of A[x]) if (cyc.has(kk)){ if (sysOf[y] < 0){ sysOf[y] = id; stk.push(y); } } }
+      systems.push(sy);
+    }
+    for (const sy of systems){
+      sy.atoms.sort(asc); sy.set = new Set(sy.atoms);
+      sy.edges = [...cyc].filter(k => sy.set.has(g.e[k][0]));
+      sy.rings = sy.edges.length - sy.atoms.length + 1;
+      if (sy.atoms.some(a => el[a] !== 'C') || sy.rings > 2) return BAD;
+      if (sy.rings === 1){
+        const cy = [sy.atoms[0]]; let prev = -1;
+        while (cy.length < sy.atoms.length){ const x = cy[cy.length - 1], nx = A[x].find(([y, , kk]) => cyc.has(kk) && y !== prev && !cy.includes(y)); if (!nx) return BAD; prev = x; cy.push(nx[0]); }
+        sy.cycle = cy;
+        const ords = cy.map((x, i) => A[x].find(([y]) => y === cy[(i + 1) % cy.length])[1]);
+        sy.arom = cy.length === 6 && ords.filter(o => o === 2).length === 3 && ords.every((o, i) => !(o === 2 && ords[(i + 1) % 6] === 2) && o <= 2);
+      } else if (sy.edges.filter(k => g.e[k][2] === 2).length >= 3) return BAD;   // 縮合した芳香環などは対象外
+    }
+    // ---- C=O を含む炭素の種類 ----
+    const kind = new Array(n).fill('');
+    for (let i = 0; i < n; i++) if (el[i] === 'C'){
+      const dO = A[i].filter(([j, o]) => el[j] === 'O' && o === 2), sO = A[i].filter(([j, o]) => el[j] === 'O' && o === 1), cN = A[i].filter(([j]) => el[j] === 'C');
+      if (dO.length > 1 || (dO.length && cN.some(([, o]) => o > 1))) return BAD;
+      if (!dO.length) continue;
+      if (sO.length > 1) return BAD;
+      if (sO.length === 1) kind[i] = A[sO[0][0]].length === 1 ? 'acid' : 'ester';
+      else kind[i] = cN.length <= 1 ? 'ald' : 'ket';
+    }
+    const isOH = o => el[o] === 'O' && A[o].length === 1 && A[o][0][1] === 1;
+    const memo = new Map();
+    const reach = (s, ban) => { const seen = new Set([s, ban]), stk = [s], out = []; while (stk.length){ const x = stk.pop(); out.push(x); for (const [y] of A[x]) if (!seen.has(y)){ seen.add(y); stk.push(y); } } return out; };
+    const edgeOf = (a, b) => A[a].find(([y]) => y === b)[2];
+
+    // ---- 親の候補 ----
+    const stemOK = m => m >= 1 && m <= 10;
+    function chainPaths(elig, from, start = -1){                 // elig を満たす炭素だけでできる道。start があればそこから始まる道だけ（向きも別々）、なければ向きは 1 通り
+      const out = [];
+      const rec = (path, seen) => {
+        const x = path[path.length - 1];
+        if (start >= 0 || path[0] <= x) out.push(path.slice());
+        for (const [y] of A[x]) if (elig(y) && !seen.has(y) && y !== from){ seen.add(y); path.push(y); rec(path, seen); path.pop(); seen.delete(y); }
+      };
+      if (start >= 0){ if (elig(start)) rec([start], new Set([start])); }
+      else for (let s = 0; s < n; s++) if (elig(s) && s !== from) rec([s], new Set([s]));
+      return out;
+    }
+    function ringNums(cy){                                        // 環の番号づけ：どこから・どちら回りでも
+      const m = cy.length, out = [];
+      for (let s = 0; s < m; s++) for (const d of [1, -1]) out.push(cy.map((_, i) => cy[((s + d*i) % m + m) % m]));
+      return out;
+    }
+    function polyNums(sy){                                        // 二環（橋かけ・縮合）とスピロ環の番号づけ
+      const deg = new Map(sy.atoms.map(a => [a, A[a].filter(([, , k]) => cyc.has(k)).length]));
+      const big = sy.atoms.filter(a => deg.get(a) >= 3);
+      if (sy.atoms.length > 10) return null;
+      if (big.length === 1 && deg.get(big[0]) === 4){             // スピロ
+        const S = big[0], paths = [];
+        for (const [y, , k] of A[S]) if (cyc.has(k) && !paths.some(p => p.includes(y))){
+          const p = [y]; let prev = S;
+          for (;;){ const x = p[p.length - 1], nx = A[x].find(([z, , kk]) => cyc.has(kk) && z !== prev && z !== S); if (!nx) break; prev = x; p.push(nx[0]); }
+          paths.push(p);
+        }
+        if (paths.length !== 2) return null;
+        paths.sort((p, q) => p.length - q.length);
+        const nums = [];
+        for (const d1 of [1, -1]) for (const d2 of [1, -1]){
+          const r1 = d1 === 1 ? paths[0] : paths[0].slice().reverse(), r2 = d2 === 1 ? paths[1] : paths[1].slice().reverse();
+          nums.push([...r1, S, ...r2]);
+        }
+        if (paths[0].length === paths[1].length) for (const d1 of [1, -1]) for (const d2 of [1, -1]){
+          const r1 = d1 === 1 ? paths[1] : paths[1].slice().reverse(), r2 = d2 === 1 ? paths[0] : paths[0].slice().reverse();
+          nums.push([...r1, S, ...r2]);
+        }
+        return {kind:'spiro', label:`[${paths[0].length}.${paths[1].length}]`, nums};
+      }
+      if (big.length !== 2 || big.some(a => deg.get(a) !== 3)) return null;
+      const [B1, B2] = big, segs = [];
+      if (A[B1].some(([y, , k]) => y === B2 && cyc.has(k))) segs.push([]);
+      for (const [y, , k] of A[B1]) if (cyc.has(k) && y !== B2 && !segs.some(s => s.includes(y))){
+        const p = [y]; let prev = B1;
+        for (;;){ const x = p[p.length - 1], nx = A[x].find(([z, , kk]) => cyc.has(kk) && z !== prev); if (!nx || nx[0] === B2) break; prev = x; p.push(nx[0]); }
+        segs.push(p);
+      }
+      if (segs.length !== 3) return null;
+      const nums = [], seen = new Set();
+      for (const [s, e] of [[B1, B2], [B2, B1]]){
+        const o = segs.map(p => (s === B1 ? p : p.slice().reverse()));        // s → e の向き
+        for (const perm of [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]){
+          const [a, b, c] = perm.map(i => o[i]);
+          if (a.length < b.length || b.length < c.length) continue;
+          const num = [s, ...a, e, ...b.slice().reverse(), ...c], key = num.join(',');
+          if (!seen.has(key)){ seen.add(key); nums.push(num); }
+        }
+      }
+      const L = segs.map(p => p.length).sort((p, q) => q - p);
+      return {kind:'bicyclo', label:`[${L.join('.')}]`, nums};
+    }
+    function candidates(cls, acidEnd){                           // 親の候補。acidEnd：カルボキシ炭素を鎖に入れてよいか
+      const out = [];
+      const elig = a => el[a] === 'C' && sysOf[a] < 0 && (acidEnd || kind[a] !== 'acid');
+      for (const path of chainPaths(elig, -1)) if (stemOK(path.length)) out.push({kind:'chain', atoms:path, nums:[path, path.slice().reverse()]});
+      for (const sy of systems){
+        if (sy.rings === 1){
+          if (!stemOK(sy.cycle.length)) continue;
+          out.push({kind:sy.arom ? 'benz' : 'ring', atoms:sy.cycle, nums:ringNums(sy.cycle), sys:sy});
+        } else {
+          const pn = polyNums(sy); if (!pn) continue;
+          out.push({kind:pn.kind, label:pn.label, atoms:sy.atoms, nums:pn.nums, sys:sy});
+        }
+      }
+      return out;
+    }
+    // ---- 親の評価：付いているものを分類し、番号づけごとに位置番号を比べ、名前を組み立てる ----
+    function evalP(P, cls, mode, from){
+      const set = new Set(P.atoms), m = P.atoms.length;
+      const edges = P.kind === 'chain' ? P.atoms.slice(1).map((a, i) => edgeOf(P.atoms[i], a)) : P.sys.edges;
+      const unsat = P.kind === 'benz' ? [] : edges.filter(k => g.e[k][2] > 1).map(k => ({a:g.e[k][0], b:g.e[k][1], o:g.e[k][2]}));
+      const items = [], sufs = [];
+      for (const a of P.atoms) for (const [y, o] of A[a]){
+        if (set.has(y) || y === from) continue;
+        if (el[y] === 'O'){
+          if (A[y].length === 1){
+            if (o === 2){
+              const ka = kind[a];
+              if (cls === 'ket' && ka === 'ket') sufs.push({t:'one', a});
+              else if (cls === 'ald' && ka === 'ald') sufs.push({t:'al', a});
+              else if (cls === 'acid' && ka === 'acid') sufs.push({t:'oic', a});
+              else items.push({a, nm:NM_OXO});
+            } else if (kind[a] === 'acid') continue;           // カルボキシ基の OH（=O のほうで数えている）
+            else if (cls === 'alc') sufs.push({t:'ol', a});
+            else items.push({a, nm:NM_OH});
+          } else {
+            const r = A[y].find(([j]) => j !== a)[0], R = sub(r, y, 1);
+            if (!R) return null;
+            items.push({a, nm:alkoxyName(R)});
+          }
+        } else {
+          if (o === 3) return null;
+          if (o === 2){ const S = sub(y, a, 2); if (!S) return null; items.push({a, nm:S}); continue; }
+          const ky = kind[y];
+          if (ky === 'ester') return null;
+          if (ky === 'acid'){ if (cls === 'acid') sufs.push({t:'carboxylic', a}); else items.push({a, nm:NM_COOH}); continue; }
+          if (ky === 'ald'){ if (cls === 'ald') sufs.push({t:'carbaldehyde', a}); else items.push({a, nm:NM_CHO}); continue; }
+          const S = sub(y, a, 1); if (!S) return null;
+          items.push({a, nm:S});
+        }
+      }
+      if (new Set(sufs.map(s => s.t)).size > 1) return null;      // 鎖の中のカルボキシ炭素と付け足しのものが混ざる名前は使わない
+      const stIn = st.filter(s => set.has(s.i) && set.has(s.j));
+      if (mode === 'parent' && st.length !== stIn.length) return null;   // 立体（E/Z）を示す二重結合が親の外にあるものは名付けない
+      let best = null;
+      for (const num of P.nums){
+        const pos = new Map(num.map((a, i) => [a, i + 1]));
+        const mb = unsat.map(u => {
+          const p = pos.get(u.a), q = pos.get(u.b), lo = Math.min(p, q), hi = Math.max(p, q);
+          if (P.kind === 'ring' && lo === 1 && hi === m && m > 2) return {lo:m, txt:String(m), o:u.o};   // 環を一周して戻る結合（m 番）。1・2 番にできる数え方があれば、そちらが選ばれる
+          return {lo, txt:hi - lo === 1 ? String(lo) : `${lo}(${hi})`, o:u.o};
+        }).sort((x, y) => x.lo - y.lo);
+        let stv = [];
+        for (const s of stIn){ const p = pos.get(s.i), q = pos.get(s.j); if (Math.abs(p - q) !== 1) return null; stv.push([Math.min(p, q), s.label === 'Z' ? 0 : 1]); }
+        stv = stv.sort((x, y) => x[0] - y[0]).map(x => x[1]);
+        const vS = sufs.map(s => pos.get(s.a)).sort(asc), vM = mb.map(x => x.lo), vD = mb.filter(x => x.o === 2).map(x => x.lo);
+        const vP = items.map(it => pos.get(it.a)).sort(asc);
+        const alpha = items.slice().sort((x, y) => (x.nm.key < y.nm.key ? -1 : x.nm.key > y.nm.key ? 1 : pos.get(x.a) - pos.get(y.a))).map(it => pos.get(it.a));
+        const t = [vS, vM, vD, vP, alpha, stv];
+        if (!best || cmpT(t, best.t) < 0) best = {t, pos, mb, num};
+      }
+      const ev = {P, cls, mode, items, sufs, unsat, ...best, count:sufs.length, nItems:items.length};
+      ev.mbCount = unsat.length + (P.kind === 'benz' ? 3 : 0);
+      ev.name = assemble(ev, stIn);
+      return ev;
+    }
+    // 親の名前の組み立て（日本語・英語）
+    function assemble(ev, stIn){
+      const {P, mode, items, sufs, mb, pos} = ev, m = P.atoms.length, ring = P.kind !== 'chain';
+      const enes = mb.filter(x => x.o === 2).map(x => x.txt), ynes = mb.filter(x => x.o === 3).map(x => x.txt);
+      const nE = enes.length, nY = ynes.length, unsatN = nE + nY, cnt = sufs.length, type = cnt ? sufs[0].t : '';
+      const inch = type === 'oic' || type === 'al';
+      const sufLocs = sufs.map(s => pos.get(s.a)).sort(asc);
+      const hasOther = items.length > 0 || cnt > 0;
+      // 位置番号を書くか
+      let showE = true;
+      if (mode === 'sub'){ if (!ring) showE = m >= 3; }
+      else if (!ring){ if (m <= 2 ? unsatN === 1 : (!cnt && m === 3 && items.every(it => pos.get(it.a) === 2))) showE = false; }   // エテン・エテノール・プロペン・2-メチルプロペン（位置が 1 通りのとき）
+      else if ((P.kind === 'ring') && !cnt && unsatN === 1) showE = false;   // シクロヘキセン（環の中の二重結合が 1 つなら、位置は 1 番）
+      const showY = showE;
+      let showS = !inch;
+      if (!ring){ if (cnt === 1 && m <= 2) showS = false; else if (cnt === 1 && type === 'one' && m === 3 && !unsatN && !items.length) showS = false; }
+      else if (P.kind === 'ring' || P.kind === 'benz'){ if (cnt === 1 && !unsatN) showS = false; }
+      if (m === 1) showS = false;
+      let showP = true;
+      if (mode === 'sub'){ if (m === 1 && !ring && new Set(items.map(it => it.nm.en)).size <= 1) showP = false; }
+      else if (m === 1){ if (new Set(items.map(it => it.nm.en)).size <= 1) showP = false; }
+      else if (items.length === 1 && !cnt && (!unsatN || (!ring && m <= 2))){ if (ring ? (P.kind === 'ring' || P.kind === 'benz') : m <= 2) showP = false; }
+      const pre = prefixStr(items, pos, !showP);
+      // 立体の頭
+      let stp = {ja:'', en:''};
+      if (stIn.length){
+        const lab = stIn.map(s => ({lo:Math.min(pos.get(s.i), pos.get(s.j)), label:s.label, bothH:s.bothH})).sort((a, b) => a.lo - b.lo);
+        if (lab.length === 1 && lab[0].bothH) stp = {ja:(lab[0].label === 'Z' ? 'シス' : 'トランス') + '-', en:(lab[0].label === 'Z' ? 'cis' : 'trans') + '-'};
+        else { const t = '(' + lab.map(x => (lab.length === 1 ? '' : x.lo) + x.label).join(',') + ')-'; stp = {ja:t, en:t}; }
+      }
+      let en, ja, cx = items.length > 0;
+      if (mode === 'sub'){
+        const o = ev.ord;
+        if (nE && nY) return null;                               // エン・イン両方をもつ枝は名付けない
+        if (P.kind === 'benz') { en = 'phenyl'; ja = 'フェニル'; }
+        else {
+          en = coreEn(P, enes, ynes, showE, showY);
+          en = (unsatN ? en : en.replace(/an$/, '')) + (o === 2 ? 'ylidene' : 'yl');
+          ja = subJa(P, enes, ynes, showE, o);
+          if (unsatN && showE) cx = true;
+        }
+        const pj = joinJa(pre.ja, ja), pe = pre.en + en;
+        const r = nm(pj, pe, cx || (unsatN > 0 && showE)); r.ring = ring; return r;
+      }
+      // 親（主基あり・なし）
+      const sufEn = type ? (ev.ester && type === 'oic' ? 'oate' : ev.ester && type === 'carboxylic' ? 'carboxylate' : SUF_EN[type]) : '';
+      if (P.kind === 'benz' && cnt === 1 && !unsatN && !ev.ester && (type === 'ol' || type === 'carboxylic' || type === 'carbaldehyde')){
+        en = type === 'ol' ? 'phenol' : type === 'carboxylic' ? 'benzoic acid' : 'benzaldehyde';
+        ja = type === 'ol' ? 'フェノール' : type === 'carboxylic' ? '安息香酸' : 'ベンズアルデヒド';
+      } else if (P.kind === 'benz' && cnt === 1 && !unsatN && ev.ester && type === 'carboxylic'){
+        en = 'benzoate'; ja = '安息香酸';
+      } else {
+        const core = P.kind === 'benz' ? 'benzen' : coreEn(P, enes, ynes, showE, showY);
+        if (!type) en = core + 'e';
+        else {
+          const vowel = cnt === 1 && ['ol', 'one', 'al', 'oic'].includes(type);
+          const showSEn = showS || (type === 'one' && !ring && m === 3 && cnt === 1);   // 英語は propan-2-one（日本語はプロパノン）
+          en = core + (vowel ? '' : 'e') + (showSEn ? '-' + sufLocs.join(',') + '-' : '') + (cnt > 1 ? M_EN[cnt] : '') + sufEn;
+        }
+        ja = parentJa(P, enes, ynes, type, cnt, sufLocs, showE, showS, ev);
+      }
+      return nm(stp.ja + joinJa(pre.ja, ja), stp.en + pre.en + en);
+    }
+    const joinJa = (head, tail) => !head ? tail : /^\d/.test(tail) ? head + '-' + tail : head + tail;
+    function prefixStr(its, pos, hideLoc){
+      const gm = new Map();
+      for (const it of its){ if (!gm.has(it.nm.en)) gm.set(it.nm.en, {nm:it.nm, ps:[]}); gm.get(it.nm.en).ps.push(pos.get(it.a)); }
+      const gs = [...gm.values()].sort((x, y) => x.nm.key < y.nm.key ? -1 : x.nm.key > y.nm.key ? 1 : 0);
+      const part = lang => gs.map(gr => {
+        const ps = gr.ps.sort(asc), c = ps.length, v = gr.nm[lang], w = gr.nm.cx;
+        const body = c === 1 ? (w ? '(' + v + ')' : v) : w ? (lang === 'ja' ? BIS_JA : BIS_EN)[c] + '(' + v + ')' : (lang === 'ja' ? M_JA : M_EN)[c] + v;
+        return (hideLoc ? '' : ps.join(',') + '-') + body;
+      }).join('-');
+      return {ja:part('ja'), en:part('en')};
+    }
+    const baseEn = P => P.kind === 'chain' ? BASE_EN[P.atoms.length - 1] : P.kind === 'ring' ? 'cyclo' + BASE_EN[P.atoms.length - 1]
+      : P.kind === 'bicyclo' ? 'bicyclo' + P.label + BASE_EN[P.atoms.length - 1] : P.kind === 'spiro' ? 'spiro' + P.label + BASE_EN[P.atoms.length - 1] : 'benz';
+    function coreEn(P, enes, ynes, showE, showY){
+      const nE = enes.length, nY = ynes.length; let s = baseEn(P);
+      if (!nE && !nY) return s + 'an';
+      if (nE) s += (nE > 1 ? 'a' : '') + (showE ? '-' + enes.join(',') + '-' : '') + (nE > 1 ? M_EN[nE] : '') + 'en';
+      if (nY) s += (nE ? '' : nY > 1 ? 'a' : '') + (showY ? '-' + ynes.join(',') + '-' : '') + (nY > 1 ? M_EN[nY] : '') + 'yn';
+      return s;
+    }
+    const prefJa = P => P.kind === 'ring' ? 'シクロ' : P.kind === 'bicyclo' ? 'ビシクロ' + P.label : P.kind === 'spiro' ? 'スピロ' + P.label : '';
+    function coreJa(P, nE, nY){                                   // 位置番号なしの、○○アン／○○エン／○○イン（ン で終わる）
+      const m = P.atoms.length, pf = prefJa(P);
+      if (!nE && !nY) return pf + ALKANE[m - 1];
+      let s = pf;
+      if (nE === 1) s += ENE_JA_[m - 1]; else if (nE > 1) s += BASE_JA[m - 1] + M_JA[nE] + 'エン';
+      if (nY){
+        if (!nE) s += nY === 1 ? YNE_JA_[m - 1] : BASE_JA[m - 1] + M_JA[nY] + 'イン';
+        else s += (nY > 1 ? M_JA[nY] : '') + 'イン';
+      }
+      return s;
+    }
+    const ENE_JA_ = ALKENE, YNE_JA_ = ALKYNE;
+    const stemJ = s => s.replace(/ン$/, '');
+    function polyJa(P, enes, ynes, type, cnt, sufLocs){              // ビシクロ・スピロ：位置番号は名前の中に入れる（ビシクロ[2.2.1]ヘプタ-2-エン）
+      const nE = enes.length, nY = ynes.length, m = P.atoms.length, pf = prefJa(P);
+      let core;
+      if (!nE && !nY) core = pf + ALKANE[m - 1];
+      else {
+        core = pf + BASE_JA[m - 1];
+        if (nE) core += '-' + enes.join(',') + '-' + (nE > 1 ? M_JA[nE] : '') + 'エン';
+        if (nY) core += '-' + ynes.join(',') + '-' + (nY > 1 ? M_JA[nY] : '') + 'イン';
+      }
+      if (!type) return core;
+      const w = SUF_JA[type];
+      return core + '-' + sufLocs.join(',') + '-' + (cnt > 1 ? M_JA[cnt] : '') + w;
+    }
+    function parentJa(P, enes, ynes, type, cnt, sufLocs, showE, showS, ev){
+      if (P.kind === 'bicyclo' || P.kind === 'spiro') return polyJa(P, enes, ynes, type, cnt, sufLocs);
+      const nE = enes.length, nY = ynes.length, unsatN = nE + nY;
+      const core = P.kind === 'benz' ? 'ベンゼン' : coreJa(P, nE, nY);
+      // 二重結合・三重結合の位置番号：二重結合があればそれを頭に、三重結合だけなら三重結合を頭に（両方あるときは、三重結合は中に入れる）
+      const front = unsatN && showE ? (nE ? enes : ynes).join(',') + '-' : '';
+      const coreTxt = nE && nY && showE ? core.replace(/(ジ|トリ|テトラ|ペンタ|ヘキサ)?イン$/, (mm, mu) => '-' + ynes.join(',') + '-' + (mu || '') + 'イン') : core;
+      const locS = showS ? sufLocs.join(',') : '';
+      if (!type) return front + coreTxt;
+      const MU = cnt > 1 ? M_JA[cnt] : '';
+      if (type === 'ol' || type === 'one'){
+        const w = SUF_JA[type];
+        if (!unsatN) return cnt === 1 ? (locS ? locS + '-' : '') + stemJ(core) + (type === 'ol' ? 'ノール' : 'ノン') : locS + '-' + core + MU + w;
+        if (!front && !locS && cnt === 1) return stemJ(coreTxt) + (type === 'ol' ? 'ノール' : 'ノン');   // エテノール
+        return front + coreTxt + (locS ? '-' + locS + '-' : '') + MU + w;
+      }
+      if (type === 'al') return front + (cnt === 1 ? stemJ(coreTxt) + 'ナール' : coreTxt + MU + 'アール');
+      if (type === 'oic') return front + coreTxt + (cnt > 1 ? NUM_JA[cnt] : '') + '酸';
+      const w = SUF_JA[type];                                    // カルボン酸・カルバルデヒド
+      if (!unsatN) return (locS ? locS + '-' : '') + core + MU + w;
+      return front + coreTxt + (locS ? '-' + locS + '-' : '') + MU + w;
+    }
+    function subJa(P, enes, ynes, showE, ord){                     // 枝の名前（日本語）
+      const nE = enes.length, nY = ynes.length, m = P.atoms.length, pf = P.kind === 'ring' ? 'シクロ' : '';
+      if (ord === 2) return ALKYL_JA[m - 1].replace(/ル$/, 'リデン');
+      if (!nE && !nY) return pf + ALKYL_JA[m - 1];
+      const front = showE ? (nE ? enes : ynes).join(',') + '-' : '';
+      let s = pf;
+      if (nE === 1) s += ENE_JA_[m - 1]; else if (nE > 1) s += BASE_JA[m - 1] + M_JA[nE] + 'エン';
+      if (nY) s += !nE ? (nY === 1 ? YNE_JA_[m - 1] : BASE_JA[m - 1] + M_JA[nY] + 'イン') : (nY > 1 ? M_JA[nY] : '') + 'イン';
+      return front + s.replace(/ン$/, '') + 'ニル';
+    }
+    // ---- 枝（置換基）の名前 ----
+    function sub(y, from, ord){
+      const key = y + '>' + from + ':' + ord;
+      if (memo.has(key)) return memo.get(key);
+      memo.set(key, null);
+      const r = subCalc(y, from, ord);
+      memo.set(key, r);
+      return r;
+    }
+    function leafKids(x, from){ return A[x].filter(([z]) => z !== from && el[z] === 'C'); }
+    function retained(y, from){                                   // イソプロピルなどの慣用の枝（炭素だけの飽和の枝）
+      const body = reach(y, from);
+      if (body.some(a => el[a] !== 'C' || sysOf[a] >= 0 || A[a].some(([z, o]) => z !== from && o !== 1))) return null;
+      const ks = leafKids(y, from), isLeaf = z => A[z].length === 1;   // 葉（相手が 1 つだけ＝つながりの先がない炭素）
+      if (ks.length === 2 && ks.every(([z]) => isLeaf(z))) return nm('イソプロピル', 'isopropyl');
+      if (ks.length === 3 && ks.every(([z]) => isLeaf(z))) return nm('tert-ブチル', 'tert-butyl');
+      if (ks.length === 2){
+        const [p, q] = ks.map(([z]) => z);
+        const a = isLeaf(p) ? p : isLeaf(q) ? q : -1, b = a === p ? q : p;
+        if (a >= 0 && A[b].length === 2 && leafKids(b, y).length === 1 && isLeaf(leafKids(b, y)[0][0])) return nm('sec-ブチル', 'sec-butyl');
+      }
+      if (ks.length === 1){
+        const z = ks[0][0], zk = leafKids(z, y);
+        if (zk.length === 2 && zk.every(([w]) => isLeaf(w)) && A[z].length === 3) return nm('イソブチル', 'isobutyl');
+      }
+      return null;
+    }
+    function subCalc(y, from, ord){
+      if (el[y] !== 'C') return null;
+      const k = kind[y];
+      if (k === 'acid') return ord === 1 ? NM_COOH : null;
+      if (k === 'ester') return null;
+      if (k === 'ald') return ord === 1 ? NM_CHO : null;
+      if (k === 'ket') return null;                               // アシル基（アセチルなど）は、まだ名付けない
+      if (ord === 3) return null;
+      if (sysOf[y] >= 0){
+        if (ord !== 1) return null;
+        const sy = systems[sysOf[y]];
+        if (sy.rings !== 1 || !stemOK(sy.cycle.length)) return null;
+        const i0 = sy.cycle.indexOf(y), cy = sy.cycle, m = cy.length;
+        const nums = [1, -1].map(d => cy.map((_, i) => cy[((i0 + d*i) % m + m) % m]));
+        const P = {kind:sy.arom ? 'benz' : 'ring', atoms:cy, nums, sys:sy};
+        const ev = evalP(P, 'none', 'sub', from); if (!ev) return null;
+        ev.ord = 1;
+        return ev.name;
+      }
+      if (ord === 1){ const r = retained(y, from); if (r) return r; }
+      const elig = a => el[a] === 'C' && sysOf[a] < 0 && kind[a] !== 'acid' && kind[a] !== 'ester';
+      let best = null;
+      for (const path of chainPaths(elig, from, y)){                  // y から始まる道（y 自身が端）
+        if (!stemOK(path.length)) continue;
+        const ev = evalP({kind:'chain', atoms:path, nums:[path]}, 'none', 'sub', from);
+        if (!ev) continue;
+        if (ord === 2 && ev.unsat.length) continue;                // 二重結合を含むアルキリデン基（エテニリデンなど）は名付けない
+        ev.ord = ord;
+        ev.name = reassemble(ev, ord);
+        if (!ev.name) continue;
+        if (!best || cmpSub(ev, best) < 0) best = ev;
+      }
+      return best && best.name;
+    }
+    function reassemble(ev, ord){ ev.ord = ord; return assemble(ev, []); }
+    const cmpSub = (a, b) => (b.mbCount - a.mbCount) || (b.P.atoms.length - a.P.atoms.length) || cmpT(a.t.slice(1, 3), b.t.slice(1, 3)) || (b.nItems - a.nItems) || cmpT(a.t.slice(3), b.t.slice(3));
+    const cmpEv = (a, b) => {
+      if (a.count !== b.count) return b.count - a.count;                                   // 1) 主基の数
+      const ra = a.P.kind !== 'chain', rb = b.P.kind !== 'chain';
+      if (ra !== rb) return ra ? -1 : 1;                                                    // 2) 環は鎖より優先
+      if (ra){
+        const ca = a.P.sys.rings, cb = b.P.sys.rings;
+        if (ca !== cb) return cb - ca;
+        if (a.P.atoms.length !== b.P.atoms.length) return b.P.atoms.length - a.P.atoms.length;
+        if (a.mbCount !== b.mbCount) return b.mbCount - a.mbCount;
+      } else {
+        if (a.mbCount !== b.mbCount) return b.mbCount - a.mbCount;                          // 3) 多重結合の数
+        if (a.P.atoms.length !== b.P.atoms.length) return b.P.atoms.length - a.P.atoms.length;   // 4) 長さ
+      }
+      const c1 = cmpT(a.t.slice(0, 3), b.t.slice(0, 3)); if (c1) return c1;                // 5) 主基・多重結合の位置番号
+      if (a.nItems !== b.nItems) return b.nItems - a.nItems;                                // 6) 枝の数
+      return cmpT(a.t.slice(3), b.t.slice(3)) || (a.name.en < b.name.en ? -1 : a.name.en > b.name.en ? 1 : 0);   // 7) 枝の位置番号
+    };
+    function parent(cls, opts = {}){
+      let best = null;
+      for (const P of candidates(cls, cls === 'acid')){
+        const ev = evalP(P, cls, 'parent', -1);
+        if (!ev) continue;
+        ev.ester = !!opts.ester;
+        if (opts.ester) ev.name = assemble(ev, st.filter(s => ev.P.atoms.includes(s.i) && ev.P.atoms.includes(s.j)));
+        if (!best || cmpEv(ev, best) < 0) best = ev;
+      }
+      return best;
+    }
+    return {bad:false, n, el, A, kind, sub, parent, isOH, reach, systems, cyc};
+  }
+
+  function fromSmiles(s){                                         // 小さな SMILES（C・O・( )・=・#・環の番号 1〜9。H は書かない）
+    const el = [], e = [], stack = [], ring = {}; let prev = -1, bo = 1;
+    for (const ch of s){
+      if (ch === 'C' || ch === 'O'){ el.push(ch); const i = el.length - 1; if (prev >= 0) e.push([prev, i, bo]); prev = i; bo = 1; }
+      else if (ch === '=') bo = 2; else if (ch === '#') bo = 3;
+      else if (ch === '(') stack.push(prev); else if (ch === ')') prev = stack.pop();
+      else if (/\d/.test(ch)){ if (ring[ch]){ e.push([ring[ch].i, prev, Math.max(bo, ring[ch].b)]); delete ring[ch]; } else ring[ch] = {i:prev, b:bo}; bo = 1; }
+    }
+    return {el, e};
+  }
+  function iupacName(g, st){                                      // {ja, en, chain} か null
+    const N = makeNamer(g, st || []);
+    if (N.bad) return null;
+    const {n, el, A, kind} = N;
+    const ester = []; let acid = false, ald = false, ket = false, alc = false;
+    for (let i = 0; i < n; i++){
+      if (kind[i] === 'ester') ester.push(i); else if (kind[i] === 'acid') acid = true; else if (kind[i] === 'ald') ald = true; else if (kind[i] === 'ket') ket = true;
+      if (el[i] === 'O' && N.isOH(i) && kind[A[i][0][0]] !== 'acid') alc = true;
+    }
+    if (ester.length > 1 || (ester.length && acid)) return null;
+    if (ester.length){
+      const c = ester[0], o = A[c].find(([j, od]) => el[j] === 'O' && od === 1)[0], r = A[o].find(([j]) => j !== c)[0];
+      const R = N.sub(r, o, 1); if (!R) return null;
+      const Rset = new Set(N.reach(r, o));
+      if (Rset.has(c)) return null;
+      const keep = []; for (let i = 0; i < n; i++) if (!Rset.has(i)) keep.push(i);
+      const idx = new Map(keep.map((a, i) => [a, i]));
+      const g2 = {el:keep.map(a => g.el[a]), e:g.e.filter(([a, b]) => idx.has(a) && idx.has(b)).map(([a, b, od]) => [idx.get(a), idx.get(b), od])};
+      const st2 = (st || []).filter(s => idx.has(s.i) && idx.has(s.j)).map(s => ({...s, i:idx.get(s.i), j:idx.get(s.j)}));
+      if (st2.length !== (st || []).length) return null;
+      const N2 = makeNamer(g2, st2); if (N2.bad) return null;
+      const ev = N2.parent('acid', {ester:true}); if (!ev) return null;
+      return {ja:ev.name.ja + R.ja, en:R.en + ' ' + ev.name.en, len:ev.P.atoms.length, cyclic:ev.P.kind !== 'chain', ester:{acid:g2, st:st2, R}};
+    }
+    const cls = acid ? 'acid' : ald ? 'ald' : ket ? 'ket' : alc ? 'alc' : 'none';
+    const ev = N.parent(cls); if (!ev) return null;
+    return {ja:ev.name.ja, en:ev.name.en, len:ev.P.atoms.length, cyclic:ev.P.kind !== 'chain'};
+  }
+
+  // ===== 教科書の名前（慣用名）と、名前の組み立て（慣用名があれば慣用名を先に、系統名を（）に） =====
+  // [SMILES, 日本語, 英語, 種類, 立体]　種類 't'：慣用名が先（アセトン（プロパノン））／'a'：系統名が先・別名を（）に（エタノール（エチルアルコール））
+  const TEXTBOOK = [
+    ['CC(C)C', 'イソブタン', 'isobutane', 't'], ['CCC(C)C', 'イソペンタン', 'isopentane', 't'], ['CC(C)(C)C', 'ネオペンタン', 'neopentane', 't'],
+    ['CC(C)CC(C)(C)C', 'イソオクタン', 'isooctane', 't'],
+    ['C=C', 'エチレン', 'ethylene', 't'], ['CC=C', 'プロピレン', 'propylene', 't'], ['CC(C)=C', 'イソブチレン', 'isobutylene', 't'],
+    ['C#C', 'アセチレン', 'acetylene', 't'], ['C=CC(C)=C', 'イソプレン', 'isoprene', 't'], ['C=CC1=CC=CC=C1', 'スチレン', 'styrene', 't'],
+    ['CC1=CC=CC=C1', 'トルエン', 'toluene', 't'],
+    ['CC1=CC=CC=C1C', 'o-キシレン', 'o-xylene', 't'], ['CC1=CC(C)=CC=C1', 'm-キシレン', 'm-xylene', 't'], ['CC1=CC=C(C)C=C1', 'p-キシレン', 'p-xylene', 't'],
+    ['CC(C)C1=CC=CC=C1', 'クメン', 'cumene', 't'], ['CC1=CC(C)=CC(C)=C1', 'メシチレン', 'mesitylene', 't'], ['CC1=CC=C(C)C(C)=C1', 'プソイドクメン', 'pseudocumene', 't'],
+    ['CO', 'メチルアルコール', 'methyl alcohol', 'a'], ['CCO', 'エチルアルコール', 'ethyl alcohol', 'a'], ['CCCO', 'プロピルアルコール', 'propyl alcohol', 'a'],
+    ['CC(C)O', 'イソプロピルアルコール', 'isopropyl alcohol', 'a'], ['CCCCO', 'ブチルアルコール', 'butyl alcohol', 'a'], ['CCC(C)O', 'sec-ブチルアルコール', 'sec-butyl alcohol', 'a'],
+    ['CC(C)CO', 'イソブチルアルコール', 'isobutyl alcohol', 'a'], ['CC(C)(C)O', 'tert-ブチルアルコール', 'tert-butyl alcohol', 'a'],
+    ['OCCO', 'エチレングリコール', 'ethylene glycol', 't'], ['OCC(O)CO', 'グリセリン', 'glycerol', 't'],
+    ['CC1=CC=CC=C1O', 'o-クレゾール', 'o-cresol', 't'], ['CC1=CC(O)=CC=C1', 'm-クレゾール', 'm-cresol', 't'], ['CC1=CC=C(O)C=C1', 'p-クレゾール', 'p-cresol', 't'],
+    ['OCC1=CC=CC=C1', 'ベンジルアルコール', 'benzyl alcohol', 't'], ['COC1=CC=CC=C1', 'アニソール', 'anisole', 't'],
+    ['C=O', 'ホルムアルデヒド', 'formaldehyde', 't'], ['CC=O', 'アセトアルデヒド', 'acetaldehyde', 't'], ['CCC=O', 'プロピオンアルデヒド', 'propionaldehyde', 't'],
+    ['CCCC=O', 'ブチルアルデヒド', 'butyraldehyde', 't'], ['CC(C)C=O', 'イソブチルアルデヒド', 'isobutyraldehyde', 't'], ['C=CC=O', 'アクロレイン', 'acrolein', 't'],
+    ['CC(C)=O', 'アセトン', 'acetone', 't'], ['CCC(C)=O', 'エチルメチルケトン', 'ethyl methyl ketone', 't'], ['CCC(=O)CC', 'ジエチルケトン', 'diethyl ketone', 't'],
+    ['CC(=O)C1=CC=CC=C1', 'アセトフェノン', 'acetophenone', 't'],
+    ['OC=O', 'ギ酸', 'formic acid', 't'], ['CC(O)=O', '酢酸', 'acetic acid', 't'], ['CCC(O)=O', 'プロピオン酸', 'propionic acid', 't'], ['CCCC(O)=O', '酪酸', 'butyric acid', 't'],
+    ['CC(C)C(O)=O', 'イソ酪酸', 'isobutyric acid', 't'], ['CCCCC(O)=O', '吉草酸', 'valeric acid', 't'], ['C=CC(O)=O', 'アクリル酸', 'acrylic acid', 't'],
+    ['C=C(C)C(O)=O', 'メタクリル酸', 'methacrylic acid', 't'],
+    ['OC(=O)C(O)=O', 'シュウ酸', 'oxalic acid', 't'], ['OC(=O)CC(O)=O', 'マロン酸', 'malonic acid', 't'], ['OC(=O)CCC(O)=O', 'コハク酸', 'succinic acid', 't'],
+    ['OC(=O)CCCC(O)=O', 'グルタル酸', 'glutaric acid', 't'], ['OC(=O)CCCCC(O)=O', 'アジピン酸', 'adipic acid', 't'],
+    ['OC(=O)C=CC(O)=O', 'マレイン酸', 'maleic acid', 't', 'Z'], ['OC(=O)C=CC(O)=O', 'フマル酸', 'fumaric acid', 't', 'E'],
+    ['CC(O)C(O)=O', '乳酸', 'lactic acid', 't'], ['OCC(O)=O', 'グリコール酸', 'glycolic acid', 't'], ['CC(=O)C(O)=O', 'ピルビン酸', 'pyruvic acid', 't'],
+    ['OC(=O)C1=CC=CC=C1O', 'サリチル酸', 'salicylic acid', 't'], ['OC(=O)C1=CC=CC=C1C(O)=O', 'フタル酸', 'phthalic acid', 't'],
+    ['OC(=O)C1=CC(=CC=C1)C(O)=O', 'イソフタル酸', 'isophthalic acid', 't'], ['OC(=O)C1=CC=C(C=C1)C(O)=O', 'テレフタル酸', 'terephthalic acid', 't'],
+  ];
+  let TB = null;
+  const tbKey = g => canon(aromCopy(g));
+  function tbLookup(g, st){
+    if (!TB){ TB = new Map(); for (const [sm, ja, en, k, z] of TEXTBOOK) TB.set(tbKey(fromSmiles(sm)) + '|' + (z || ''), {ja, en, k}); }
+    const z = st && st.length === 1 ? st[0].label : '';
+    return TB.get(tbKey(g) + '|' + z) || (z ? null : null) || TB.get(tbKey(g) + '|') || null;
+  }
+  const RADICAL_COMMON = {'ethenyl':['ビニル', 'vinyl'], 'prop-2-enyl':['アリル', 'allyl']};
+  function commonEster(iu, st){                                  // 酸の慣用名＋アルキル基：酢酸エチル（エタン酸エチル）
+    const e = iu && iu.ester; if (!e || e.R.cx && !RADICAL_COMMON[e.R.en]) return null;
+    const tv = tbLookup(e.acid, e.st); if (!tv || tv.k !== 't' || !/ic acid$/.test(tv.en) || !/酸$/.test(tv.ja)) return null;
+    const rc = RADICAL_COMMON[e.R.en] || [e.R.ja, e.R.en];
+    return {ja:tv.ja + rc[0], en:rc[1] + ' ' + tv.en.replace(/ic acid$/, 'ate')};
+  }
+  function commonEther(g, st, iu){                               // ジエチルエーテル（エトキシエタン）：アルキル基 2 つの単純なエーテルだけ
+    if (!iu || g.el.filter(e => e === 'O').length !== 1 || g.e.some(([, , o]) => o !== 1) || g.e.length !== g.el.length - 1) return null;
+    const N = makeNamer(g, st || []); if (N.bad) return null;
+    const o = g.el.indexOf('O'), nb = N.A[o];
+    if (nb.length !== 2) return null;
+    const R = nb.map(([c]) => N.sub(c, o, 1));
+    if (R.some(r => !r || r.cx)) return null;
+    if (R[0].en === R[1].en) return {ja:'ジ' + R[0].ja + 'エーテル', en:'di' + R[0].en + ' ether'};
+    R.sort((a, b) => a.key < b.key ? -1 : 1);
+    return {ja:R[0].ja + R[1].ja + 'エーテル', en:R[0].en + ' ' + R[1].en + ' ether'};
+  }
+  function composeName(g, st){                                    // {ja, en, plain, plainEn}（plain：系統名だけ）か null
+    const iu = iupacName(g, st);
+    const tv = tbLookup(g, st), cm = !tv && (commonEster(iu, st) || commonEther(g, st, iu));
+    if (tv){
+      if (!iu) return {ja:tv.ja, en:tv.en, plain:tv.ja, plainEn:tv.en};
+      if (tv.k === 'a') return {ja:iu.ja + '（' + tv.ja + '）', en:iu.en + ' (' + tv.en + ')', plain:iu.ja, plainEn:iu.en};
+      return iu.ja === tv.ja ? {ja:iu.ja, en:iu.en, plain:iu.ja, plainEn:iu.en} : {ja:tv.ja + '（' + iu.ja + '）', en:tv.en + ' (' + iu.en + ')', plain:iu.ja, plainEn:iu.en};
+    }
+    if (cm) return {ja:cm.ja + '（' + iu.ja + '）', en:cm.en + ' (' + iu.en + ')', plain:iu.ja, plainEn:iu.en};
+    return iu ? {ja:iu.ja, en:iu.en, plain:iu.ja, plainEn:iu.en} : null;
+  }
+  // ===== IUPAC 系統名（ここまで） =====
   function describe(g, st){
     CUR_ST = st || [];
     const d = describe0(g);
@@ -1710,9 +2270,9 @@ function isoFactory(){
     if (chain == null) chain = rs.length ? rs[0] : hasO ? Math.max(1, ...carbonPaths(g).map(pa => pa.length)) : path.length;
     let lpath = path;                                            // 図に並べるときの主軸（O も通る、いちばん長い道）
     if (hasO && !rs.length){ const ps = allPaths(g); lpath = ps.reduce((a, b) => b.length > a.length ? b : a, [0]); }
-    const nm = d.commonName ? d.commonName : withCommon(g, d.name);   // エステルは「酢酸エチル」のように酸の呼び方で
+    const cn = composeName(g, st || []);                          // 慣用名があれば慣用名（系統名）、なければ系統名。日本語と英語
     const arR = aromaticRing(g), nsub = arR ? arR.reduce((t, v) => t + nbrs(g, v).filter(([y]) => !arR.includes(y)).length, 0) : 0;   // 環につく枝の数
-    return {chain, name:nm, plain:d.name, path, lpath, rs, cyclic:rs.length > 0, cat:categoryOf(g), arom:!!arR, nsub};   // plain：慣用名なしの系統名
+    return {chain, name:cn ? cn.ja : null, nameEn:cn ? cn.en : null, plain:cn ? cn.plain : null, plainEn:cn ? cn.plainEn : null, path, lpath, rs, cyclic:rs.length > 0, cat:categoryOf(g), arom:!!arR, nsub};   // plain：系統名だけ
   }
   function describe0(g){
     const n = g.el.length;
@@ -2259,7 +2819,7 @@ function isoFactory(){
     return m;
   }
   return {parseFormula, degUnsat, enumerate, canon, growSkeletons, addRings, addPi, layout, minGap, sssr, ringSizes, stereoBonds, stereoFromGeometry, cipCmp, cipNode,
-    describe, ringSizes, formulaOfGraph, tests, COMMON};
+    describe, iupacName, composeName, fromSmiles, ringSizes, formulaOfGraph, tests, COMMON};
 }
 const ISO = isoFactory();
 // ===== 異性体の数え上げと命名（ここまで） =====
@@ -5603,17 +6163,20 @@ function nameSel(){
   for (const g of gs){
     const r = docToGraph(g.atoms);
     if (r.err){ bad.push(r.err); continue; }
-    const d = ISO.describe(r.g, ISO.stereoFromGeometry(r.g, r.pos));   // 描いた二重結合の向きから、シス・トランス（E/Z）も名前に入れる
-    if (!d.name){ bad.push('この構造には、確信を持って付けられる名前がありません（「—」）'); continue; }
-    jobs.push({g, name:d.name});
+    const d = ISO.composeName(r.g, ISO.stereoFromGeometry(r.g, r.pos));   // 描いた二重結合の向きから、シス・トランス（E/Z）も名前に入れる
+    if (!d){ bad.push('この構造には、確信を持って付けられる名前がありません（「—」）。環に O を含むもの・環が 3 つ以上のもの・24 原子より大きいものには付けません'); continue; }
+    jobs.push({g, name:d.ja, en:d.en});
   }
   if (!jobs.length){ toast(bad[0], 3600); return; }
   commit();
   const ids = [];
-  for (const {g, name} of jobs){
+  for (const {g, name, en} of jobs){
     const id = newId(), w = tw(name, NAME_FS);
     doc.objs[id] = {id, type:'text', x:(g.bb.x1 + g.bb.x2)/2 - w/2, y:g.bb.y2 + NAME_FS + 12, text:name, ...TEXT_DEFAULT, fs:NAME_FS, auto:false};   // auto:false（自動の下付き）にしないと、位置番号の数字が小さくなる
     ids.push(id);
+    const id2 = newId(), w2 = tw(en, NAME_FS - 2);   // 英語名は、日本語名の下の行
+    doc.objs[id2] = {id:id2, type:'text', x:(g.bb.x1 + g.bb.x2)/2 - w2/2, y:g.bb.y2 + NAME_FS + 12 + (NAME_FS - 2)*1.5, text:en, ...TEXT_DEFAULT, fs:NAME_FS - 2, auto:false};
+    ids.push(id2);
   }
   clearSel(); ids.forEach(id => sel.objs.add(id)); changed();
   toast(bad.length ? `${jobs.length} 個に名前を付けました（${bad.length} 個は付けられませんでした）` : `${jobs.length} 個の構造に名前を付けました（文字なので、テキストツールで直せます）`, 3200);
@@ -5740,7 +6303,8 @@ function isoSheet(f, res, o){
     it.g.e.forEach(([i, j, ord], q) => { md.bonds[1000 + q] = {id:1000 + q, a1:i + 1, a2:j + 1, order:ord}; });
     const bb = buildScene(md, {mode:o.mode, showRingC:false}).bbox;
     const label = [o.num ? circled(k + 1) : '', o.name ? (it.name || '—') : ''].filter(Boolean).join(' ');
-    return {it, md, bb, label, n:k + 1};
+    const labelEn = o.name && o.en && it.nameEn ? it.nameEn : '';   // 英語名（日本語名の下の行）
+    return {it, md, bb, label, labelEn, n:k + 1};
   });
   // 2) まとまり（酸素を含むときは官能基ごと）と、その中の列（主鎖の炭素数ごと・環の大きさごと。1 列 12 個まで、あふれたら次の列へ）
   const keyOf = x => x.it.arom ? 'a' + x.it.nsub : x.it.cyclic ? 'r' + x.it.rs.join('+') : 'c' + x.it.chain;
@@ -5766,10 +6330,10 @@ function isoSheet(f, res, o){
     return {cat, count:list.length, cols:makeCols(list)};
   });
   // 3) ます目の大きさ（いちばん大きい構造と、いちばん長い文字に合わせる）
-  const lw = x => x.label ? tw(x.label, FSN) : 0;
+  const FSE = 12, lw = x => Math.max(x.label ? tw(x.label, FSN) : 0, x.labelEn ? tw(x.labelEn, FSE) : 0), anyEn = items.some(x => x.labelEn);
   const cellW = Math.max(...items.map(x => Math.max(x.bb.x2 - x.bb.x1, lw(x)))) + BOND*1.2;
   const bodyH = Math.max(...items.map(x => x.bb.y2 - x.bb.y1));
-  const cellH = bodyH + (items.some(x => x.label) ? FSN*1.9 : 0) + BOND*1.0;
+  const cellH = bodyH + (items.some(x => x.label) ? FSN*1.9 : 0) + (anyEn ? FSE*1.5 : 0) + BOND*1.0;
   // 4) 見出しと、並べた構造
   const title = fRuns(f, res.stop === 'cap' ? ` の構造異性体（${res.list.length} 個。多いので、ここで打ち切りました）`
     : res.stop === 'time' ? ` の構造異性体（${res.list.length} 個。時間がかかるので、途中で打ち切りました）` : ` の構造異性体（${res.list.length} 個${res.stereo ? '。シス・トランスを区別' : ''}）`);
@@ -5787,7 +6351,8 @@ function isoSheet(f, res, o){
         const map = new Map();
         for (const a of Object.values(x.md.atoms)){ const id = nid++; map.set(a.id, id); d.atoms[id] = {...a, id, x:a.x + dx, y:a.y + dy}; }
         for (const bd of Object.values(x.md.bonds)){ const id = nid++; d.bonds[id] = {...bd, id, a1:map.get(bd.a1), a2:map.get(bd.a2)}; }
-        if (x.label) text(cx - lw(x)/2, cy + bodyH + FSN*1.5, x.label, FSN);
+        if (x.label) text(cx - tw(x.label, FSN)/2, cy + bodyH + FSN*1.5, x.label, FSN);
+        if (x.labelEn) text(cx - tw(x.labelEn, FSE)/2, cy + bodyH + FSN*1.5 + FSE*1.45, x.labelEn, FSE);
       });
     });
     y0 = top + Math.max(...blk.cols.map(c => c.items.length))*cellH + 24;   // 次のまとまりへ
@@ -5802,7 +6367,7 @@ async function isoMake(){
   isoDlg.querySelectorAll('[data-cond]').forEach(sl => { opts[sl.dataset.cond] = sl.value; });
   opts.ring3 = $('isoR3').checked ? 'any' : 'no'; opts.ring4 = $('isoR4').checked ? 'any' : 'no';   // 3・4 員環を出さない
   opts.stereo = $('isoStereo').checked && !$('isoStereo').disabled;                                    // シス・トランスを区別する
-  const o = {num:$('isoNum').checked, name:$('isoName').checked, cols:$('isoCols').checked, fg:$('isoFg').checked, mode:$('isoMode').value};
+  const o = {num:$('isoNum').checked, name:$('isoName').checked, en:$('isoEn').checked, cols:$('isoCols').checked, fg:$('isoFg').checked, mode:$('isoMode').value};
   $('isoGo').disabled = true; $('isoMsg').textContent = '数えています…';
   const res = await isoRun(f, opts);
   $('isoGo').disabled = false;
