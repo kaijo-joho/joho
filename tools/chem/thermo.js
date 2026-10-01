@@ -47,7 +47,8 @@ function sanitize(o){
   d.free = o.free && typeof o.free === 'object' ? sanitizeFree(o.free) : migrateDraw(o.draw, d);
   return d;
 }
-// 図（段と矢印）の検査。段の番号がずれないよう、おかしな段に出会ったらそこから先は捨てる
+// 図（横線と矢印）の検査。おかしな横線・矢印は捨てる
+// 形：{levels:[{items, y}], arrows:[{from, to}]}。0.5 の形（levels[i].parent・dy・target）も読み込み時に読み替える
 function sanitizeFree(fr){
   const f = E.emptyFree(), str = (v, n) => typeof v === 'string' ? v.slice(0, n) : '';
   const items = it => {
@@ -57,16 +58,25 @@ function sanitizeFree(fr){
     return o;
   };
   const lv = Array.isArray(fr.levels) ? fr.levels : [];
+  const v05 = lv.length > 1 && lv.slice(1).every(l => l && typeof l === 'object' && Number.isInteger(l.parent));   // 0.5：親の横線と、そこからの上下
   if (lv[0] && lv[0].items && typeof lv[0].items === 'object') f.levels[0].items = items(lv[0].items);
+  const ys = [0];
   for (let i = 1; i < Math.min(lv.length, 40); i++){
     const l = lv[i];
-    if (!l || typeof l !== 'object' || !Number.isInteger(l.parent) || l.parent < 0 || l.parent >= i || !Number.isFinite(l.dy)) break;
-    f.levels.push({items: items(l.items), parent: l.parent, dy: Math.max(-600, Math.min(600, l.dy))});
+    if (!l || typeof l !== 'object') break;
+    let y;
+    if (v05){ if (l.parent < 0 || l.parent >= i || !Number.isFinite(l.dy)) break; y = ys[l.parent] + Math.max(-600, Math.min(600, l.dy)); f.arrows.push({from: l.parent, to: i}); }
+    else { if (!Number.isFinite(l.y)) break; y = Math.max(-2000, Math.min(2000, l.y)); }
+    ys.push(y); f.levels.push({items: items(l.items), y});
   }
-  f.target = Number.isInteger(fr.target) && fr.target >= 1 && fr.target < f.levels.length ? fr.target : null;
+  if (!v05) for (const a of (Array.isArray(fr.arrows) ? fr.arrows : []).slice(0, 80)){
+    if (a && Number.isInteger(a.from) && Number.isInteger(a.to) && a.from !== a.to && a.from >= 0 && a.to >= 0 && a.from < f.levels.length && a.to < f.levels.length
+      && !f.arrows.some(x => x.from === a.from && x.to === a.to)) f.arrows.push({from: a.from, to: a.to});
+  }
+  if (v05 && Number.isInteger(fr.target) && fr.target >= 1 && fr.target < f.levels.length && !f.arrows.some(x => x.from === 0 && x.to === fr.target)) f.arrows.push({from: 0, to: fr.target});   // 0.5 の「目的の矢印」は、ふつうの矢印として引く
   return f;
 }
-// 0.4 の保存（引いた矢印だけを覚えていた）を、段ごとに物質を書く形に読み替える
+// 0.4 の保存（引いた矢印だけを覚えていた）を、横線ごとに物質を書く形に読み替える
 function migrateDraw(dr, d){
   if (!dr || typeof dr !== 'object') return E.emptyFree();
   const str = v => typeof v === 'string' ? v : '';
@@ -84,14 +94,19 @@ function migrateDraw(dr, d){
   if (!okEq(T)) return f;
   const dc = E.drawCompute(draw, T, d.eqs.map(e => e.text.trim() ? E.parseEquation(e.text, e.dh) : null));
   if (Object.keys(draw.spect).length) f.levels[0].items = E.vecToItems(dc.levels[0].vec);
-  dc.levels.forEach((l, i) => { if (i === 0) return; const p = dc.levels[l.parent]; const down = l.H == null || p.H == null || l.H < p.H; f.levels.push({items: E.vecToItems(l.vec), parent: l.parent, dy: down ? 84 : -84}); });
-  f.target = dc.tl > 0 ? dc.tl : null;
+  dc.levels.forEach((l, i) => {
+    if (i === 0) return;
+    const p = dc.levels[l.parent], down = l.H == null || p.H == null || l.H < p.H;
+    f.levels.push({items: E.vecToItems(l.vec), y: f.levels[l.parent].y + (down ? 84 : -84)});
+    f.arrows.push({from: l.parent, to: i});
+  });
+  if (dc.tl > 0) f.arrows.push({from: 0, to: dc.tl});
   return f;
 }
 // 保存する中身（id は保存しない）
 const content = d => ({app: d.app, version: d.version, name: d.name, target: {text: d.target.text, dh: d.target.dh},
   eqs: d.eqs.map(e => ({text: e.text, dh: e.dh, on: e.on, mult: e.mult, rev: e.rev})), scale: d.scale,
-  free: {levels: d.free.levels.map(l => ({items: l.items, parent: l.parent, dy: l.dy})), target: d.free.target}});
+  free: {levels: d.free.levels.map(l => ({items: l.items, y: l.y})), arrows: d.free.arrows.map(a => ({from: a.from, to: a.to}))}});
 const contentJSON = d => JSON.stringify(content(d));
 
 // ===================== 元に戻す・やり直し =====================
@@ -328,7 +343,7 @@ function compute(){
       const fc = r.fc = E.freeCompute(doc.free, T, eqs, species);
       r.groups = [E.groupFromFree(fc, T, eqs, species, opt)];
       r.heights = {solved: fc.solved, targetDH: fc.targetDH, overrides: fc.overrides};
-      r.mode = fc.tl > 0 && fc.targetDH != null ? 'matched' : fc.reached.length ? 'reached' : fc.steps.length ? 'building' : 'start';
+      r.mode = fc.tArrow && fc.targetDH != null ? 'matched' : fc.reached.length ? 'reached' : fc.steps.length ? 'building' : 'start';
     } else if (T) r.mode = 'badTarget';
     return r;
   }
@@ -375,7 +390,7 @@ function refresh(){
   let tExtra = '';
   if (!(solved && solved.kind === 'target')) tExtra = suggest(r.T, 'target', prefs.answer && (doc.target.dh === '?' || doc.target.dh === ''));   // 目的の式は答えになるので、「答えを見る」を出す設定のときだけ
   if (solved && solved.kind === 'target') tExtra = '<div class="eq-msg solved">' + (prefs.old ? 'Q = ' + E.numText(-solved.value, r.digits) : 'ΔH = ' + E.numText(solved.value, r.digits)) + ' kJ（組み立てて求めた値）</div>';
-  if (tCard){ show(tCard, r.T, tExtra); const info = tCard.querySelector('.draw-info'); if (info) info.textContent = r.fc && r.fc.tl > 0 ? '図に引いた' : 'まだ図に引いていません'; }
+  if (tCard){ show(tCard, r.T, tExtra); const info = tCard.querySelector('.draw-info'); if (info) info.textContent = r.fc && r.fc.tArrow ? '図に引いた' : 'まだ図に引いていません'; }
   document.querySelectorAll('#eqList .card').forEach(card => {
     const i = +card.dataset.i, p = r.eqs[i];
     let extra = '';
@@ -453,8 +468,8 @@ function drawStatusDraw(r){
   const box = $('buildStatus'), fc = r.fc;
   let cls = '', h = '';
   if (r.mode === 'matched'){ cls = 'ok'; h = '<b>✓ 目的の式になりました</b>'; }
-  else if (r.mode === 'reached' || (fc.tl > 0 && r.mode !== 'matched')){
-    cls = 'ok'; h = '<b>✓ 目的の生成物がそろった横線があります</b><div>' + (fc.tl > 0 ? '目的の矢印は引けていますが、途中の矢印に ΔH が ? のものがあります。' : '最初の横線から、その横線へ「目的」の矢印を引きます（ドラッグして、その横線の上で離します）。') + '</div>';
+  else if (r.mode === 'reached' || (fc.tArrow && r.mode !== 'matched')){
+    cls = 'ok'; h = '<b>✓ 目的の生成物がそろった横線があります</b><div>' + (fc.tArrow ? '目的の矢印は引けています。最初の横線から、ほかの矢印で道をつなぐと、ΔH が出ます（途中の矢印に ΔH が ? のものがないか確かめます）。' : '最初の横線から、その横線へ矢印を引きます（ドラッグして、その横線の上で離します）。') + '</div>';
   } else if (r.mode === 'building'){
     const items = diffItems(r, fc.levels[fc.last].vec, fc.goal);
     cls = 'no'; h = '<b>まだ目的の式ではありません</b><div class="mut">いちばん新しい横線と、目的の生成物の差：</div>' + items.slice(0, 5).map(x => '<div>' + x + '</div>').join('') + (items.length > 5 ? '<div>ほか ' + (items.length - 5) + ' 件</div>' : '');
@@ -490,13 +505,11 @@ function drawStatus(r){
 // 下の欄：式の足し引きと計算
 function drawCalc(r){
   const box = $('calc');
-  if (r.fc){   // 自分で矢印を引く：目的の矢印があればその道のり、なければいちばん新しい横線までの道のり（途中に説明できない矢印があれば出さない）
-    const fc = r.fc, end = fc.tl > 0 ? fc.tl : fc.last;
-    if (end <= 0){ box.innerHTML = ''; return; }
-    const chain = fc.chainTo(end);
-    if (!chain.every(x => x.ex)){ box.innerHTML = ''; return; }
-    const result = fc.tl > 0 ? fc.targetDH : null;
-    const c = E.calcText(chain.map(x => ({eq: x.ex.i, c: x.ex.c})), r.eqs, result, {digits: r.digits, old: prefs.old, overrides: fc.overrides});
+  if (r.fc){   // 自分で矢印を引く：目的の矢印があれば、ほかの矢印でつないだ道のり。なければ、いちばん新しい横線までの道のり
+    const fc = r.fc;
+    if (!fc.calcSteps.length){ box.innerHTML = ''; return; }
+    const result = fc.tArrow ? fc.targetDH : null;
+    const c = E.calcText(fc.calcSteps, r.eqs, result, {digits: r.digits, old: prefs.old, overrides: fc.overrides});
     box.innerHTML = '<span class="combo">' + E.esc(c.combo) + '</span><span>' + E.esc(c.expr.replace(/ = ([^=]*kJ)$/, '')) +
       (result != null ? ' = <span class="res">' + E.esc(c.expr.match(/ = ([^=]*kJ)$/)[1]) + '</span>' : '') + '</span>';
     return;
@@ -566,13 +579,13 @@ document.addEventListener('click', e => {
 });
 
 // ===================== 自分で矢印を引く =====================
-// 横線（段）をクリック → その横線の物質を書く・消す。
+// 横線をクリック → その横線の物質を書く・消す。
 // 横線からドラッグ → 離した位置に新しい横線ができて、矢印が引かれる（式を選んでいなくてもよい）。
+// 横線からドラッグして、別の横線の上で離す → 2 つの横線を矢印でつなぐ（ヘスの法則の別経路を描ける）。
 // 式を選んでからドラッグ → 新しい横線の物質が、その式で自動で書かれる（近道）。
-// 最初の横線から、ほかの横線の上までドラッグ → 目的の式の矢印。
-// 矢印の式と ΔH は、始点と終点の横線の物質の差から、アプリが探す（見つからないと ?）。
+// 矢印の式と ΔH は、始点と終点の横線の物質の差から、アプリが探す（見つからないと ?）。目的の式の変化なら「目的の矢印」。
 let sel = null;          // 選んでいる式 {kind:'eq', i} / {kind:'target'}（近道のために選ぶ）
-let selStep = -1;        // 選んでいる矢印（終点の横線の番号。目的の矢印は 'target'）
+let selStep = -1;        // 選んでいる矢印の番号（doc.free.arrows の番号）
 const spName = (r, k) => { const sp = r.species.get(k); return sp ? speciesText(sp) || k : k; };
 const spHtml = (r, k) => { const sp = r.species.get(k); return sp ? E.segsToHTML(E.speciesSegs(sp)) : E.esc(k); };
 function setSel(next){
@@ -602,6 +615,8 @@ function svgPoint(e){
 }
 const levelGeo = li => last && last.groups[0] && last.groups[0].levels[li];
 const MIN_DY = 44, DEF_DY = 84;
+const arrowEl = k => $('dia').querySelector('.arrow[data-st="' + k + '"]');
+const levelAtPoint = (e, except) => document.elementsFromPoint(e.clientX, e.clientY).map(n => n.closest && n.closest('.lvl')).find(x => x && +x.dataset.lv !== except);
 
 // ---- 近道：横線 li から式 i を引く（向きと倍率は、その横線にある物質から決まる） ----
 function planStep(li, i, wantDown){
@@ -624,49 +639,60 @@ function planStep(li, i, wantDown){
   const signed = typeof dh === 'number' ? +c * dh : null;
   return {rev: pick.rev, mult, mults: pick.mults, c, items: E.vecToItems(out), down: signed == null ? true : signed < 0};
 }
+// 新しい横線（と、その矢印）を足す。足した矢印を選んだ状態にして、番号を返す
 function addChild(li, items, dy){
   commit(); doc.free = E.freeAddChild(doc.free, li, items, dy); changed();
-  return doc.free.levels.length - 1;
+  return doc.free.arrows.length - 1;
 }
 function stepFromEq(li, i, dy, wantDown){
   const plan = planStep(li, i, wantDown);
   if (plan.err){ toast(plan.err, 5000); return; }
-  const k = addChild(li, plan.items, dy != null ? dy : (plan.down ? DEF_DY : -DEF_DY));
-  selStep = k; showArrowPop();
+  selStep = addChild(li, plan.items, dy != null ? dy : (plan.down ? DEF_DY : -DEF_DY)); showArrowPop();
 }
-// 目的の式の矢印：最初の横線から、目的の生成物がそろった横線まで
-function drawTargetTo(li, fromLi){
-  const r = last, fc = r.fc;
-  if (fromLi !== 0){ toast('目的の式の矢印は、最初の横線から引きます', 3500); return; }
-  if (!fc.levels[li].written || !E.vecEq(fc.levels[li].vec, fc.goal)){
-    const items = fc.levels[li].written ? diffItems(r, fc.levels[li].vec, fc.goal).map(x => x.replace(/<[^>]+>/g, '')) : ['まだ物質が書かれていません'];
-    toast('その横線には、目的の生成物がまだそろっていません。' + items.slice(0, 3).join('、'), 4500); return;
-  }
-  commit(); doc.free = {...doc.free, target: li}; changed();
-  toast('目的の矢印を引きました');
+// 既にある 2 つの横線を、矢印でつなぐ
+function connectLevels(from, to){
+  const f = E.freeAddArrow(doc.free, from, to);
+  if (!f){ toast('その向きの矢印は、もうあります', 3000); return; }
+  commit(); doc.free = f; changed();
+  selStep = doc.free.arrows.length - 1; showArrowPop();
+}
+// すでにある矢印 k に、式 i を当てる：終点の横線の物質を、始点の横線から書きなおす
+function assignEq(k, i){
+  const fc = fcNow(), ar = doc.free.arrows[k]; if (!fc || !ar) return;
+  const from = fc.levels[ar.from], eq = last.eqs[i];
+  if (!okEq(eq)) return toast('(' + (i + 1) + ') の式に直すところがあります', 3500);
+  if (!from.written) return toast('始点の横線に、まだ物質が書かれていません', 3500);
+  const plan = E.dragPlan(from.vec, eq);
+  const dirs = [plan.fwd.length ? {rev: false, mults: plan.fwd} : null, plan.rev.length ? {rev: true, mults: plan.rev} : null].filter(Boolean);
+  if (!dirs.length) return toast('始点の横線には (' + (i + 1) + ') の物質がそろっていません。足りない物質を足します', 4500);
+  const dh = fc.dhOf(i), down = ar.to != null && fc.levels[ar.to].Y > from.Y;
+  const pick = dirs.length > 1 && typeof dh === 'number' ? (dirs.find(d => E.arrowDown(dh, d.rev ? E.Frac.parse('-1') : E.ONE) === down) || dirs[0]) : dirs[0];   // 矢印の向きに合う方を選ぶ
+  const mult = pick.mults[pick.mults.length - 1], out = E.applyEq(from.vec, eq, pick.rev ? mult.neg() : mult);
+  commit(); doc.free = E.freeSetItems(doc.free, ar.to, E.vecToItems(out)); changed(); selStep = k; showArrowPop();
+  toast('終点の横線に、(' + (i + 1) + ') で変わる物質を書きました');
 }
 function levelClick(li, ev){ if (fcNow()) openLevelPop(li, ev.clientX, ev.clientY); }
 function levelDrop(d, e){
   const p = svgPoint(e), g = levelGeo(d.li), raw = g ? p.y - g.y : DEF_DY;
-  const hit = document.elementsFromPoint(e.clientX, e.clientY).map(n => n.closest && n.closest('.lvl')).find(x => x && +x.dataset.lv !== d.li);
-  if (hit){ drawTargetTo(+hit.dataset.lv, d.li); return; }   // ほかの横線の上で離した → 目的の矢印
+  const hit = levelAtPoint(e, d.li);
+  if (hit){ connectLevels(d.li, +hit.dataset.lv); return; }   // ほかの横線の上で離した → その横線へ矢印をつなぐ
   if (sel && sel.kind === 'target'){ toast('目的の矢印は、目的の生成物がそろった横線の上までドラッグして離します', 3500); return; }
   const dy = Math.max(-420, Math.min(420, Math.abs(raw) < MIN_DY ? (raw < 0 ? -MIN_DY : MIN_DY) : raw));
   if (sel && sel.kind === 'eq') stepFromEq(d.li, sel.i, dy, dy > 0);
-  else { const k = addChild(d.li, null, dy); toast('新しい横線ができました。クリックして、物質を書きます。', 3500); selStep = -1; }
+  else { selStep = -1; addChild(d.li, null, dy); toast('新しい横線ができました。「＋」をクリックして、物質を書きます。', 3500); }
 }
 
 // ---- ドラッグ中の見た目 ----
 let drag = null, justDragged = false;
 function ghostLabel(d, e, p, g){
-  const hit = document.elementsFromPoint(e.clientX, e.clientY).map(n => n.closest && n.closest('.lvl')).find(x => x && +x.dataset.lv !== d.li);
-  if (hit) return d.li === 0 ? '目的の矢印（ここで離す）' : {bad: true, t: '目的の矢印は最初の横線から'};
+  const hit = levelAtPoint(e, d.li);
+  if (hit) return '横線 ' + (+hit.dataset.lv + 1) + ' へ矢印をつなぐ';
   if (sel && sel.kind === 'eq'){
     const plan = planStep(d.li, sel.i, g && p.y > g.y);
     if (plan.err) return {bad: true, t: plan.err.split('。')[0]};
     return '(' + (sel.i + 1) + ')' + (plan.rev ? 'の逆' : '') + (plan.mult.eq(1) ? '' : '×' + E.fracText(plan.mult)) + '（選べる倍率：' + plan.mults.map(m => '×' + E.fracText(m)).join(' ') + '）';
   }
-  return sel ? '目的の生成物がそろった横線へ' : '新しい横線';
+  return sel ? '目的の生成物がそろった横線の上へ' : '新しい横線';
 }
 function drawGhost(e){
   const svg = $('dia').querySelector('svg'); if (!svg || !drag) return;
@@ -674,12 +700,15 @@ function drawGhost(e){
   if (!gh){ gh = document.createElementNS('http://www.w3.org/2000/svg', 'g'); gh.id = 'ghost'; gh.setAttribute('pointer-events', 'none'); svg.append(gh); }
   const p = svgPoint(e), g = levelGeo(drag.li); if (!g) return;
   const label = ghostLabel(drag, e, p, g), bad = typeof label === 'object', text = bad ? label.t : label, col = bad ? '#d61f1f' : 'var(--accent)';
+  const hit = levelAtPoint(e, drag.li);
   gh.innerHTML = '<line x1="' + drag.sx + '" y1="' + g.y + '" x2="' + p.x + '" y2="' + p.y + '" stroke="' + col + '" stroke-width="2.5" stroke-dasharray="6 4"/>' +
-    '<line x1="' + (p.x - 40) + '" y1="' + p.y + '" x2="' + (p.x + 40) + '" y2="' + p.y + '" stroke="' + col + '" stroke-width="2" stroke-dasharray="3 3" opacity=".7"/>' +   // 離した位置に、新しい横線ができる
+    (hit ? '' : '<line x1="' + (p.x - 40) + '" y1="' + p.y + '" x2="' + (p.x + 40) + '" y2="' + p.y + '" stroke="' + col + '" stroke-width="2" stroke-dasharray="3 3" opacity=".7"/>') +   // 離した位置に、新しい横線ができる
     '<circle cx="' + p.x + '" cy="' + p.y + '" r="4" fill="' + col + '"/>' +
     '<text x="' + (p.x + 46) + '" y="' + (p.y + 4) + '" font-size="13" fill="' + col + '" style="paint-order:stroke;stroke:var(--paper);stroke-width:4px">' + E.esc(text) + '</text>';
+  document.querySelectorAll('#dia .lvl.drop').forEach(n => n.classList.remove('drop'));
+  if (hit) hit.classList.add('drop');   // つなぐ先の横線を強調する
 }
-function clearGhost(){ const gh = $('dia').querySelector('#ghost'); if (gh) gh.remove(); }
+function clearGhost(){ const gh = $('dia').querySelector('#ghost'); if (gh) gh.remove(); document.querySelectorAll('#dia .lvl.drop').forEach(n => n.classList.remove('drop')); }
 $('dia').addEventListener('pointerdown', e => {
   if (!drawMode() || e.button !== 0) return;
   const lv = e.target.closest && e.target.closest('.lvl'); if (!lv) return;
@@ -706,11 +735,15 @@ function endDrag(e, cancel){
 $('dia').addEventListener('pointerup', e => endDrag(e, false));
 $('dia').addEventListener('pointercancel', e => endDrag(e, true));
 
-// ---- 矢印をクリック（選ぶ）・横線や矢印にフォーカスして Enter（キーボード） ----
+// ---- 矢印をクリック（選ぶ。式を選んでいるときは、その式をこの矢印に当てる）・横線や矢印にフォーカスして Enter（キーボード） ----
 $('dia').addEventListener('click', e => {
   if (!drawMode() || justDragged) return;
   const a = e.target.closest('.arrow');
-  if (a){ selStep = a.dataset.kind === 'target' ? 'target' : +a.dataset.st; hideLevelPop(); showArrowPop(); return; }
+  if (a){
+    const k = +a.dataset.st;
+    if (sel && sel.kind === 'eq' && a.dataset.kind !== 'target'){ hideLevelPop(); assignEq(k, sel.i); return; }
+    selStep = k; hideLevelPop(); showArrowPop(); return;
+  }
   if (!e.target.closest('.lvl')){ selStep = -1; hideArrowPop(); hideLevelPop(); }
 });
 $('dia').addEventListener('keydown', e => {
@@ -722,69 +755,104 @@ $('dia').addEventListener('keydown', e => {
     levelClick(+lv.dataset.lv, {clientX: r.left + 24, clientY: r.top + r.height / 2});
     const b = !$('levelPop').hidden && $('levelPop').querySelector('input, button'); if (b) b.focus();
   } else if (a && (e.key === 'Enter' || e.key === ' ')){
-    e.preventDefault(); selStep = a.dataset.kind === 'target' ? 'target' : +a.dataset.st; hideLevelPop(); showArrowPop();
+    e.preventDefault(); selStep = +a.dataset.st; hideLevelPop(); showArrowPop();
     const b = !$('arrowPop').hidden && $('arrowPop').querySelector('button.on, button'); if (b) b.focus();
   } else if (a && (e.key === 'Delete' || e.key === 'Backspace')){
-    e.preventDefault(); selStep = a.dataset.kind === 'target' ? 'target' : +a.dataset.st; removeSelStep();
+    e.preventDefault(); selStep = +a.dataset.st; removeSelStep();
   }
 });
 
-// ---- 矢印を選んだときのポップアップ（倍率・削除） ----
+// ---- 矢印を選んだときのポップアップ（倍率・式を当てる・削除） ----
 function hideArrowPop(){ const p = $('arrowPop'); if (p) p.hidden = true; document.querySelectorAll('#dia .arrow.selected').forEach(a => a.classList.remove('selected')); }
 function showArrowPop(){
   const pop = $('arrowPop'), r = last, fc = r && r.fc;
   hideArrowPop();
-  if (!fc || selStep === -1) return;
-  const a = $('dia').querySelector(selStep === 'target' ? '.arrow[data-kind="target"]' : '.arrow[data-st="' + selStep + '"]');
-  if (!a){ selStep = -1; return; }
+  if (!fc || selStep < 0) return;
+  const a = arrowEl(selStep), st = fc.steps[selStep];
+  if (!a || !st){ selStep = -1; return; }
   a.classList.add('selected');
   let h = '';
-  if (selStep === 'target') h = '<span class="ap-t">目的の矢印</span><button type="button" data-act="del" class="ap-del">削除</button>';
-  else {
-    const st = fc.steps[selStep - 1]; if (!st){ selStep = -1; return; }
-    if (st.ex){
-      const eq = r.eqs[st.ex.i], rev = st.ex.c.sign < 0, plan = E.dragPlan(fc.levels[st.from].vec, eq), mults = rev ? plan.rev : plan.fwd;
-      h = '<span class="ap-t">(' + (st.ex.i + 1) + ')' + (rev ? ' 逆向き' : '') + '</span>' +
-        (mults.length ? '<span class="ap-chips" role="group" aria-label="倍率">' + mults.map(m => '<button type="button" data-mult="' + m.toString() + '" class="' + (m.eq(st.ex.c.abs()) ? 'on' : '') + '" aria-pressed="' + m.eq(st.ex.c.abs()) + '" title="始点の横線の物質から、終点の横線の物質を書きなおす">×' + E.fracText(m) + '</button>').join('') + '</span>' : '');
-    } else h = '<span class="ap-t">' + (st.both ? 'どの式でも説明できません' : '横線に物質を書くと、式と ΔH が出ます') + '</span>';
-    h += '<button type="button" data-act="del" class="ap-del">削除</button>';
+  if (st.ex && st.ex.target) h = '<span class="ap-t">目的の矢印</span>';
+  else if (st.ex){
+    const rev = st.ex.c.sign < 0, plan = E.dragPlan(fc.levels[st.from].vec, r.eqs[st.ex.i]), mults = rev ? plan.rev : plan.fwd;
+    h = '<span class="ap-t">(' + (st.ex.i + 1) + ')' + (rev ? ' 逆向き' : '') + '</span>' +
+      (mults.length ? '<span class="ap-chips" role="group" aria-label="倍率">' + mults.map(m => '<button type="button" data-mult="' + m.toString() + '" class="' + (m.eq(st.ex.c.abs()) ? 'on' : '') + '" aria-pressed="' + m.eq(st.ex.c.abs()) + '" title="始点の横線の物質から、終点の横線の物質を書きなおす">×' + E.fracText(m) + '</button>').join('') + '</span>' : '');
+  } else h = '<span class="ap-t">' + (st.both ? 'どの式でも説明できません' : '横線に物質を書くと、式と ΔH が出ます') + '</span>';
+  // この矢印に式を当てる（先に矢印だけ引いたとき。終点の横線の物質が、始点から自動で書かれる）
+  if (!(st.ex && st.ex.target) && fc.levels[st.from].written){
+    const opts = r.eqs.map((p, i) => okEq(p) ? {i, pl: E.dragPlan(fc.levels[st.from].vec, p)} : null).filter(x => x && (x.pl.fwd.length || x.pl.rev.length));
+    if (opts.length) h += '<span class="ap-assign" role="group" aria-label="式を当てる"><span class="ap-l">式を当てる</span>' + opts.map(x => '<button type="button" data-assign="' + x.i + '" title="この矢印を、式 (' + (x.i + 1) + ') の変化にする（終点の横線の物質を書きなおす）">(' + (x.i + 1) + ')</button>').join('') + '</span>';
   }
+  h += '<button type="button" data-act="del" class="ap-del">削除</button>';
   pop.innerHTML = h; pop.hidden = false;
   placeFloat(pop, a.getBoundingClientRect(), 'side');
 }
-// 図の近くに浮かべる小窓の位置（作図領域の中に収める）
+// 図の近くに浮かべる小窓の位置：作図領域の中で、図の線・文字・矢印に重ならない場所のうち、クリックしたものにいちばん近い所を選ぶ
 function placeFloat(pop, rect, how){
   const wb = $('wrap').getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
-  let left, top;
-  if (how === 'side'){ left = rect.right + 10; top = rect.top + rect.height / 2 - h / 2; if (left + w > wb.right - 8) left = rect.left - w - 10; }
-  else { left = rect.left; top = rect.bottom + 8; }
-  pop.style.left = Math.max(wb.left + 8, Math.min(left, wb.right - w - 8)) + 'px';
-  pop.style.top = Math.max(wb.top + 8, Math.min(top, wb.bottom - h - 8)) + 'px';
+  const clamp = (v, lo, hi) => Math.max(lo, Math.min(v, hi));
+  const obst = [...$('dia').querySelectorAll('svg .lvl .vis, svg .lvl .plus, svg text, svg .arrow line, svg .arrow path')].map(n => n.getBoundingClientRect()).filter(b => b.width + b.height > 0);
+  const hit = (l, t) => {   // 重なる物の数と、重なる面積
+    let n = 0, area = 0;
+    for (const b of obst){
+      const ox = Math.min(l + w, b.right + 6) - Math.max(l, b.left - 6), oy = Math.min(t + h, b.bottom + 6) - Math.max(t, b.top - 6);
+      if (ox > 0 && oy > 0){ n++; area += ox * oy; }
+    }
+    return {n, area};
+  };
+  const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+  const cands = [];
+  if (how === 'side') cands.push([rect.right + 12, cy - h / 2], [rect.left - w - 12, cy - h / 2]);
+  else cands.push([rect.left, rect.bottom + 8], [rect.left, rect.top - h - 8], [rect.right + 12, cy - h / 2], [rect.left - w - 12, cy - h / 2]);
+  for (let t = wb.top + 8; t <= wb.bottom - h - 8; t += 36) for (let l = wb.left + 8; l <= wb.right - w - 8; l += 72) cands.push([l, t]);   // 作図領域をひとわたり探す
+  let best = null;
+  cands.forEach(([l, t]) => {
+    l = clamp(l, wb.left + 8, wb.right - w - 8); t = clamp(t, wb.top + 8, wb.bottom - h - 8);
+    const o = hit(l, t), dist = Math.hypot(l + w / 2 - cx, t + h / 2 - cy);
+    const score = o.n * 1e6 + o.area + dist;
+    if (!best || score < best.score) best = {l, t, score};
+  });
+  pop.style.left = best.l + 'px'; pop.style.top = best.t + 'px';
+}
+// 小窓の見出しをつかんで、動かせるようにする
+function makeDraggable(pop){
+  let d = null;
+  pop.addEventListener('pointerdown', e => {
+    const hd = e.target.closest('.sp-title, .ap-t'); if (!hd) return;
+    d = {x: e.clientX - pop.offsetLeft, y: e.clientY - pop.offsetTop};
+    try { pop.setPointerCapture(e.pointerId); } catch {}
+    e.preventDefault();
+  });
+  pop.addEventListener('pointermove', e => { if (d){ pop.style.left = (e.clientX - d.x) + 'px'; pop.style.top = (e.clientY - d.y) + 'px'; pop.dataset.moved = '1'; } });
+  pop.addEventListener('pointerup', e => { d = null; try { pop.releasePointerCapture(e.pointerId); } catch {} });
 }
 function removeSelStep(){
   const before = doc.free.levels.length;
-  commit();
-  if (selStep === 'target') doc.free = {...doc.free, target: null};
-  else doc.free = E.freeRemoveLevel(doc.free, selStep);
+  commit(); doc.free = E.freeRemoveArrow(doc.free, selStep);
   const gone = before - doc.free.levels.length;
   selStep = -1; hideArrowPop(); changed();
-  if (gone > 1) toast('その先の横線と矢印も ' + (gone - 1) + ' 本消しました', 3000);
+  if (gone > 0) toast('矢印と、つながらなくなった空の横線を消しました', 3000);
 }
 $('arrowPop').addEventListener('click', e => {
   const fc = fcNow(); if (!fc) return;
-  const m = e.target.closest('[data-mult]'), act = e.target.closest('[data-act]');
-  if (m && typeof selStep === 'number'){   // 倍率を変える → 終点の横線の物質を、始点から書きなおす
-    const st = fc.steps[selStep - 1]; if (!st || !st.ex) return;
+  const m = e.target.closest('[data-mult]'), act = e.target.closest('[data-act]'), as = e.target.closest('[data-assign]');
+  if (m && selStep >= 0){   // 倍率を変える → 終点の横線の物質を、始点から書きなおす
+    const st = fc.steps[selStep]; if (!st || !st.ex || st.ex.target) return;
     const c = st.ex.c.sign < 0 ? E.Frac.parse(m.dataset.mult).neg() : E.Frac.parse(m.dataset.mult);
     const out = E.applyEq(fc.levels[st.from].vec, last.eqs[st.ex.i], c); if (!out) return;
-    commit(); doc.free = E.freeSetItems(doc.free, selStep, E.vecToItems(out)); changed(); showArrowPop();
-  } else if (act && act.dataset.act === 'del') removeSelStep();
+    commit(); doc.free = E.freeSetItems(doc.free, st.to, E.vecToItems(out)); changed(); showArrowPop();
+  } else if (as && selStep >= 0) assignEq(selStep, +as.dataset.assign);
+  else if (act && act.dataset.act === 'del') removeSelStep();
 });
 
 // ---- 横線をクリックしたときの小窓：その横線の物質を書く・消す ----
 let levelPopFor = -1, levelPopAt = null;
-function hideLevelPop(){ const p = $('levelPop'); if (p) p.hidden = true; levelPopFor = -1; levelPopAt = null; }
-function openLevelPop(li, cx, cy){ levelPopFor = li; levelPopAt = {x: cx, y: cy}; selStep = -1; hideArrowPop(); drawLevelPop(); }
+function hideLevelPop(){
+  const p = $('levelPop'); if (p){ p.hidden = true; delete p.dataset.moved; }
+  levelPopFor = -1; levelPopAt = null;
+  document.querySelectorAll('#dia .lvl.editing').forEach(n => n.classList.remove('editing'));
+}
+function openLevelPop(li, cx, cy){ levelPopFor = li; levelPopAt = {x: cx, y: cy}; selStep = -1; hideArrowPop(); delete $('levelPop').dataset.moved; drawLevelPop(); }
 function drawLevelPop(){
   const pop = $('levelPop'), r = last, li = levelPopFor;
   if (!r || !r.fc || li < 0 || li >= r.fc.levels.length){ hideLevelPop(); return; }
@@ -798,7 +866,7 @@ function drawLevelPop(){
   const cands = [...r.species].filter(([k, sp]) => sp.kind === 'species' && !lv.vec.has(k));
   // この横線から、式を使って矢印を引く（キーボード・タッチ向け。ドラッグと同じ）
   const usable = lv.written ? r.eqs.map((p, i) => okEq(p) ? {i, pl: E.dragPlan(lv.vec, p)} : null).filter(x => x && (x.pl.fwd.length || x.pl.rev.length)) : [];
-  pop.innerHTML = '<div class="sp-title">横線 ' + (li + 1) + (li === 0 ? '（最初の横線）' : '') + ' の物質</div>' +
+  pop.innerHTML = '<div class="sp-title" title="見出しをつかんで動かせます">横線 ' + (li + 1) + (li === 0 ? '（最初の横線）' : '') + ' の物質</div>' +
     '<div class="sp-note">この横線にある物質を書きます。足した物質は、ほかの横線にも足して、原子の数をそろえます。</div>' +
     (rows ? '<div class="sp-rows">' + rows + '</div>' : '<div class="sp-none">まだ書いていません。下の物質を押して足します。</div>') +
     '<div class="sp-lbl">足す物質を選ぶ（押すと 1 つ足す）</div><div class="sp-cands">' +
@@ -808,7 +876,12 @@ function drawLevelPop(){
     usable.map(x => '<button type="button" data-eqdraw="' + x.i + '" title="式 (' + (x.i + 1) + ') を使って引く。新しい横線の物質が自動で書かれる">(' + (x.i + 1) + ')' + (x.pl.fwd.length ? '' : ' 逆向き') + '</button>').join('') + '</div>' +
     '<div class="sp-foot">' + (li > 0 ? '<button type="button" data-ldel class="ap-del">この横線を消す</button>' : '') + '<button type="button" data-sclose class="sbtn">閉じる</button></div>';
   pop.hidden = false;
-  placeFloat(pop, {left: levelPopAt.x, right: levelPopAt.x, top: levelPopAt.y, bottom: levelPopAt.y, width: 0, height: 0}, 'below');
+  document.querySelectorAll('#dia .lvl.editing').forEach(n => n.classList.remove('editing'));
+  const lvEl = $('dia').querySelector('.lvl[data-lv="' + li + '"]'); if (lvEl) lvEl.classList.add('editing');   // どの横線を書いているか分かるようにする
+  if (!pop.dataset.moved){   // 動かしていなければ、クリックした横線を隠さず、ほかの横線にも重ならない場所へ
+    const rect = lvEl ? lvEl.getBoundingClientRect() : {left: levelPopAt.x, right: levelPopAt.x, top: levelPopAt.y, bottom: levelPopAt.y, width: 0, height: 0};
+    placeFloat(pop, rect, 'below');
+  }
 }
 // 横線 li の物質を、items（key → 量の文字）にする
 function setLevelItems(li, items){ commit(); doc.free = E.freeSetItems(doc.free, li, items); changed(); drawLevelPop(); }
@@ -832,13 +905,14 @@ $('levelPop').addEventListener('click', e => {
     fc.levels.forEach((l, j) => { if (j === li || !l.written) return; const it = E.vecToItems(l.vec); it[k] = (E.Frac.parse(it[k] || '0') || E.ZERO).add(a).toString(); doc.free = E.freeSetItems(doc.free, j, it); n++; });
     changed(); drawLevelPop(); toast(n ? 'ほかの ' + n + ' 本の横線にも、' + spName(last, k) + ' を足しました' : 'ほかに、物質を書いた横線はありません');
   }
-  else if (t('[data-newdir]')){ const down = t('[data-newdir]').dataset.newdir === 'down'; hideLevelPop(); addChild(li, null, down ? DEF_DY : -DEF_DY); toast('新しい横線ができました。クリックして、物質を書きます。', 3500); }
+  else if (t('[data-newdir]')){ const down = t('[data-newdir]').dataset.newdir === 'down'; hideLevelPop(); selStep = -1; addChild(li, null, down ? DEF_DY : -DEF_DY); toast('新しい横線ができました。「＋」をクリックして、物質を書きます。', 3500); }
   else if (t('[data-eqdraw]')){ const i = +t('[data-eqdraw]').dataset.eqdraw; hideLevelPop(); stepFromEq(li, i, null, null); }
-  else if (t('[data-ldel]')){ hideLevelPop(); selStep = li; removeSelStep(); }
+  else if (t('[data-ldel]')){ hideLevelPop(); commit(); doc.free = E.freeRemoveLevel(doc.free, li); selStep = -1; changed(); toast('横線と、つながる矢印を消しました', 3000); }
   else if (t('[data-sclose]')) hideLevelPop();
 });
 $('levelPop').addEventListener('change', e => { const i = e.target.closest('[data-sk]'); if (i) changeAmount(levelPopFor, i.dataset.sk, i.value); });
 $('levelPop').addEventListener('keydown', e => { if (e.key === 'Escape'){ e.stopPropagation(); hideLevelPop(); } });
+makeDraggable($('levelPop')); makeDraggable($('arrowPop'));
 document.addEventListener('pointerdown', e => {   // 小窓の外を押したら閉じる
   if (!e.target.closest('#levelPop')) hideLevelPop();
   if (!e.target.closest('#arrowPop, #dia .arrow')) hideArrowPop();
@@ -860,7 +934,7 @@ $('hintBtn').onclick = () => {
 $('btnClearCoef').onclick = () => {
   if (drawMode()){
     const f = doc.free;
-    if (f.levels.length === 1 && !f.levels[0].items) return toast('図には、まだ何も引いていません');
+    if (f.levels.length === 1 && !f.levels[0].items && !f.arrows.length) return toast('図には、まだ何も引いていません');
     commit(); doc.free = E.emptyFree(); setSel(null); changed(); toast('図を消して、最初の横線だけにしました');
     return;
   }

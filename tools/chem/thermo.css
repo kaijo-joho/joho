@@ -341,3 +341,15 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .sp-all{font-size:.85em}
 .sp-row .sp-all{white-space:nowrap}
 .sp-foot{gap:6px}
+
+/* ---- 0.6：丸い「＋」ボタン・つなぐ先の強調・編集中の横線・小窓をつかんで動かす ---- */
+#dia svg .lvl .plus-c{fill:var(--panel);stroke:var(--accent);stroke-width:2.2}
+#dia svg .lvl .plus-l{stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;fill:none}
+#dia svg .lvl:hover .plus-c,#dia svg .lvl:focus-visible .plus-c{fill:var(--accent-soft)}
+#dia svg .lvl .plus{cursor:pointer}
+#dia svg .lvl.drop .vis{stroke:var(--accent);stroke-width:5}
+#dia svg .lvl.drop .hit{stroke:var(--accent-soft)}
+#dia svg .lvl.editing .vis{stroke:var(--accent);stroke-width:4.5}
+.float-pop .sp-title,.float-pop .ap-t{cursor:move;user-select:none;-webkit-user-select:none}
+.float-pop .ap-assign{display:inline-flex;align-items:center;gap:3px;flex-wrap:wrap}
+.float-pop .ap-l{color:var(--muted);font-size:.85em;margin-right:2px}

@@ -598,14 +598,14 @@ function diagramSVG(groups, opt = {}){
       const lineEl = '<line class="vis" x1="' + l.x0 + '" y1="' + l.y.toFixed(1) + '" x2="' + l.x1 + '" y2="' + l.y.toFixed(1) + '" stroke="' + C.ink + '" stroke-width="' + (l.bold ? 3.6 : 2.2) + '"' + (l.dashed ? ' stroke-dasharray="6 5"' : '') + '/>';
       if (opt.interactive){   // 段（横線）をつかめるように、太い透明の線を重ねる。キーボードでも選べる
         const gi = groups.indexOf(g), li = g.levels.indexOf(l);
-        lines.push('<g class="lvl" data-g="' + gi + '" data-lv="' + li + '" tabindex="0" role="button" aria-label="段 ' + (li + 1) + '：' + esc(segsText(l.segs)) + '">' +
-          '<line class="hit" x1="' + (l.x0 - 4) + '" y1="' + l.y.toFixed(1) + '" x2="' + (l.x1 + 4) + '" y2="' + l.y.toFixed(1) + '" stroke="transparent" stroke-width="18"/>' + lineEl + '</g>');
+        // まだ物質を書いていない横線には、丸い「＋」ボタンを付ける（書き出しには出さない）
+        const plusEl = l.empty ? '<g class="plus"><title>クリックして物質を書く</title><circle class="plus-c" cx="' + (l.x0 + 20) + '" cy="' + (l.y - 22).toFixed(1) + '" r="12"/><path class="plus-l" d="M' + (l.x0 + 14) + ' ' + (l.y - 22).toFixed(1) + 'h12M' + (l.x0 + 20) + ' ' + (l.y - 28).toFixed(1) + 'v12"/></g>' : '';
+        lines.push('<g class="lvl" data-g="' + gi + '" data-lv="' + li + '"' + (l.empty ? ' data-empty="1"' : '') + ' tabindex="0" role="button" aria-label="横線 ' + (li + 1) + '：' + esc(l.empty ? 'まだ物質を書いていません' : segsText(l.segs)) + '">' +
+          '<line class="hit" x1="' + (l.x0 - 4) + '" y1="' + l.y.toFixed(1) + '" x2="' + (l.x1 + 4) + '" y2="' + l.y.toFixed(1) + '" stroke="transparent" stroke-width="18"/>' + lineEl + plusEl + '</g>');
       } else lines.push(lineEl);
-      if (l.empty){   // まだ物質を書いていない段：クリックして書く、という案内（書き出しには出さない）
-        if (opt.interactive) texts.push('<text pointer-events="none" x="' + (l.x0 + 4) + '" y="' + (l.y - 7).toFixed(1) + '" font-size="13" fill="' + C.muted + '">＋ クリックして物質を書く</text>');
-      } else texts.push('<text pointer-events="none" x="' + l.tx.toFixed(1) + '" y="' + l.ty.toFixed(1) + '" font-size="' + LS + '" fill="' + C.ink + '">' + segsToSVG(l.segs, LS, {spect: C.spect}) + '</text>');
+      if (!l.empty) texts.push('<text pointer-events="none" x="' + l.tx.toFixed(1) + '" y="' + l.ty.toFixed(1) + '" font-size="' + LS + '" fill="' + C.ink + '">' + segsToSVG(l.segs, LS, {spect: C.spect}) + '</text>');
       if (l.warn && opt.interactive) texts.push('<g pointer-events="none"><title>原子の数が、ほかの横線と合っていません</title><circle cx="' + (l.x1 + 14) + '" cy="' + l.y.toFixed(1) + '" r="8" fill="#d61f1f"/><text x="' + (l.x1 + 14) + '" y="' + (l.y + 4.5).toFixed(1) + '" font-size="12" font-weight="700" text-anchor="middle" fill="#fff">!</text></g>');
-      maxY = Math.max(maxY, l.y + 6, l.ty + 6); maxX = Math.max(maxX, l.x1 + (l.warn ? 26 : 0), l.empty ? l.x0 + 160 : l.tx + segsWidth(l.segs, LS));
+      maxY = Math.max(maxY, l.y + 6, l.ty + 6); maxX = Math.max(maxX, l.x1 + (l.warn ? 26 : 0), l.empty ? l.x0 + 50 : l.tx + segsWidth(l.segs, LS));
     }
     g.arrows.forEach((a, ai) => {
       const {ax, y1, y2, w, my} = geo[ai];
@@ -828,13 +828,13 @@ function drawFromPath(path){
   return d;
 }
 
-// ===================== 自分で矢印を引く（0.5：段ごとに物質を自分で書く） =====================
-// free = {levels:[{items, parent, dy}], target}
-//   levels[0] がはじめの段（items が null のあいだは、目的の式の反応物をそのまま使う）。levels[k]（k ≥ 1）は矢印 k の終点の段
-//   items：段の物質 {key: 量}。parent：矢印の出発の段の番号。dy：矢印を離した位置の、出発の段からの上下（下が正）
-//   target：目的の式の矢印の終点の段の番号（出発は、いつもはじめの段）
-// 段は「その段にある物質すべてがもつエネルギー」を表すので、どの段も各元素の原子の数は同じでなければならない。
-const emptyFree = () => ({levels: [{items: null, parent: -1, dy: 0}], target: null});
+// ===================== 自分で矢印を引く（0.6：横線と矢印を別々に持つ） =====================
+// free = {levels:[{items, y}], arrows:[{from, to}]}
+//   levels[0] がはじめの横線（items が null のあいだは、目的の式の反応物をそのまま使う）。
+//   items：横線の物質 {key: 量}。y：横線の高さ（はじめの横線からの上下。下が正）
+//   arrows：矢印（出発の横線の番号 → 終点の横線の番号）。横線どうしを自由につなげる（別経路も描ける）
+// 横線は「その横線にある物質すべてがもつエネルギー」を表すので、どの横線も各元素の原子の数は同じでなければならない。
+const emptyFree = () => ({levels: [{items: null, y: 0}], arrows: []});
 function itemsToVec(items){
   const v = new Map();
   for (const [k, a] of Object.entries(items || {})){ const f = Frac.parse(String(a)); if (f && f.sign > 0) v.set(k, f); }
@@ -854,7 +854,7 @@ function inventory(vec, species){
   return {inv, unknown};
 }
 const invEq = (a, b) => a.size === b.size && [...a].every(([k, v]) => b.has(k) && b.get(k).eq(v));
-// 始点の段 A から終点の段 B への変化（B − A）が、与えられた式の何倍かを探す。順方向は c > 0、逆向きは c < 0
+// 始点の横線 A から終点の横線 B への変化（B − A）が、与えられた式の何倍かを探す。順方向は c > 0、逆向きは c < 0
 function explainArrow(vecA, vecB, eqs){
   const diff = addVec(vecB, vecA, new Frac(-1));
   if (!diff.size) return null;
@@ -869,7 +869,7 @@ function explainArrow(vecA, vecB, eqs){
   }
   return null;
 }
-// 段 li の物質から式 i を引いたあとの物質（引けなければ null）。dir：'fwd' / 'rev'
+// 横線の物質 vec に、式 eq を c 倍した変化を足す（足りなくなるときは null）
 function applyEq(vec, eq, c){
   const out = addVec(vec, vectorOf(eq), c);
   return [...out.values()].some(v => v.sign < 0) ? null : out;
@@ -879,9 +879,8 @@ function freeCompute(free, target, eqs, species){
   const start = lv[0].items ? itemsToVec(lv[0].items) : sideVec(target.lhs);
   const levels = lv.map((l, i) => {
     const vec = i === 0 ? start : itemsToVec(l.items);
-    return {vec, written: i === 0 || vec.size > 0, parent: l.parent, dy: l.dy, Y: 0};
+    return {vec, written: i === 0 || vec.size > 0, Y: l.y || 0};
   });
-  levels.forEach((l, i) => { if (i > 0) l.Y = levels[l.parent].Y + l.dy; });
   // 離した位置が近すぎる横線は、上下の順番を変えずに少しだけ離す（線や文字が重ならないように）
   const GAP = 38, order = levels.map((l, i) => i).sort((a, b) => levels[a].Y - levels[b].Y || a - b);
   for (let n = 1; n < order.length; n++){
@@ -889,63 +888,111 @@ function freeCompute(free, target, eqs, species){
     if (d < GAP) for (let m = n; m < order.length; m++) levels[order[m]].Y += GAP - d;
   }
   const minY = Math.min(...levels.map(l => l.Y)); levels.forEach(l => { l.Y -= minY; });
-  const goal = addVec(start, vectorOf(target), ONE);
+  const tvec = vectorOf(target), goal = addVec(start, tvec, ONE);
   const startInv = inventory(start, species).inv;
   levels.forEach(l => { const r = inventory(l.vec, species); l.inv = r.inv; l.unknown = r.unknown; l.mismatch = l.written && !invEq(r.inv, startInv); });
-  const steps = [];
-  for (let k = 1; k < levels.length; k++){
-    const a = levels[levels[k].parent], b = levels[k], both = a.written && b.written;
-    steps.push({k, from: levels[k].parent, to: k, both, ex: both ? explainArrow(a.vec, b.vec, eqs) : null, down: b.Y > a.Y});
-  }
+  // 矢印：始点と終点の物質の差から、式を探す。目的の式の変化（±1 倍）なら「目的の矢印」
+  const steps = free.arrows.map((ar, k) => {
+    const a = levels[ar.from], b = levels[ar.to], both = a.written && b.written;
+    let ex = null;
+    if (both){
+      ex = explainArrow(a.vec, b.vec, eqs);
+      if (!ex && tvec.size){
+        const diff = addVec(b.vec, a.vec, new Frac(-1));
+        if (vecEq(diff, tvec)) ex = {target: true, c: ONE};
+        else if (vecEq(diff, addVec(new Map(), tvec, new Frac(-1)))) ex = {target: true, c: new Frac(-1)};
+      }
+    }
+    return {k, from: ar.from, to: ar.to, both, ex, down: b.Y > a.Y};
+  });
   const reached = levels.map((l, i) => i > 0 && l.written && vecEq(l.vec, goal) ? i : -1).filter(i => i > 0);
-  const chainTo = j => { const out = []; while (j > 0){ out.unshift(steps[j - 1]); j = steps[j - 1].from; } return out; };
-  let tl = -1;
-  if (free.target != null && free.target > 0 && free.target < levels.length && levels[free.target].written && vecEq(levels[free.target].vec, goal)) tl = free.target;
-  let targetDH = null, solved = null, overrides = new Map();
-  if (tl > 0){
-    const chain = chainTo(tl);
-    if (chain.every(x => x.ex)){
-      const h = levelHeights({steps: chain.map(x => ({eq: x.ex.i, c: x.ex.c})), matched: true}, target, eqs);
+  // 2 つの横線の間の道（別の矢印をたどる。向きは問わない）。skip：使わない矢印
+  const pathBetween = (a, b, skip, onlyExplained = true) => {
+    const adj = new Map();
+    const put = (x, e) => { if (!adj.has(x)) adj.set(x, []); adj.get(x).push(e); };
+    steps.forEach(s => { if (s === skip || (onlyExplained && (!s.ex || s.ex.target))) return; put(s.from, {s, fwd: true, to: s.to}); put(s.to, {s, fwd: false, to: s.from}); });
+    const prev = new Map([[a, null]]), q = [a];
+    while (q.length){
+      const x = q.shift(); if (x === b) break;
+      for (const e of adj.get(x) || []) if (!prev.has(e.to)){ prev.set(e.to, {x, e}); q.push(e.to); }
+    }
+    if (!prev.has(b)) return null;
+    const edges = []; for (let y = b; prev.get(y); y = prev.get(y).x) edges.unshift(prev.get(y).e);
+    return edges;
+  };
+  const tSteps = steps.filter(s => s.ex && s.ex.target);
+  const tArrow = tSteps.find(s => s.from === 0 || s.to === 0) || tSteps[0] || null;
+  let targetDH = null, solved = null, overrides = new Map(), calcSteps = [];
+  const stepsOf = (edges, mul) => edges.map(e => ({eq: e.s.ex.i, c: (e.fwd ? e.s.ex.c : e.s.ex.c.neg()).mul(mul)}));
+  if (tArrow){
+    const edges = pathBetween(tArrow.from, tArrow.to, tArrow);
+    if (edges){
+      calcSteps = stepsOf(edges, tArrow.ex.c);   // 目的の矢印が出発 → 終点の向きなら、道も同じ向きに足す
+      const h = levelHeights({steps: calcSteps, matched: true}, target, eqs);
       targetDH = h.targetDH; solved = h.solved; overrides = h.overrides;
     }
+  } else {   // 目的の矢印がまだないとき：はじめの横線から、いちばん新しい横線までの道（計算の行に出す）
+    let last = 0; levels.forEach((l, i) => { if (l.written) last = i; });
+    const edges = last > 0 ? pathBetween(0, last, null) : [];
+    if (edges) calcSteps = stepsOf(edges, ONE);
   }
   const dhOf = i => overrides.has(i) ? overrides.get(i) : (eqs[i] ? eqs[i].dh : undefined);
-  steps.forEach(st => { if (st.ex){ const d = dhOf(st.ex.i); st.signed = typeof d === 'number' ? +st.ex.c * d : null; } });
+  steps.forEach(st => {
+    if (!st.ex) return;
+    if (st.ex.target){ st.signed = targetDH == null ? null : +st.ex.c * targetDH; return; }
+    const d = dhOf(st.ex.i); st.signed = typeof d === 'number' ? +st.ex.c * d : null;
+  });
   let last = 0; levels.forEach((l, i) => { if (l.written) last = i; });
-  return {levels, steps, start, goal, startInv, reached, tl, targetDH, solved, overrides, dhOf, chainTo, last};
+  return {levels, steps, start, goal, startInv, reached, tArrow, targetDH, solved, overrides, dhOf, pathBetween, calcSteps, last};
 }
-// 段 li とその先の段をすべて消す（番号を詰め直す）
+// ---- 図の変更（元の free は変えず、新しい free を返す） ----
+const cloneFree = f => ({levels: f.levels.map(l => ({...l})), arrows: f.arrows.map(a => ({...a}))});
+// 横線 li と、それにつながる矢印を消す（番号を詰め直す）
 function freeRemoveLevel(free, li){
   if (li <= 0) return free;
-  const gone = new Set([li]);
-  free.levels.forEach((l, i) => { if (i > li && gone.has(l.parent)) gone.add(i); });
   const map = new Map(); let n = 0;
-  free.levels.forEach((l, i) => { if (!gone.has(i)) map.set(i, n++); });
-  return {levels: free.levels.filter((l, i) => !gone.has(i)).map(l => ({...l, parent: l.parent < 0 ? -1 : map.get(l.parent)})),
-    target: free.target != null && map.has(free.target) ? map.get(free.target) : null};
+  free.levels.forEach((l, i) => { if (i !== li) map.set(i, n++); });
+  return {levels: free.levels.filter((l, i) => i !== li).map(l => ({...l})),
+    arrows: free.arrows.filter(a => a.from !== li && a.to !== li).map(a => ({from: map.get(a.from), to: map.get(a.to)}))};
 }
-// 矢印を引く（新しい段を足す）。items：段の物質（null = まだ書いていない）
+// 矢印 k を消す。あとに矢印のつながらない、物質を書いていない横線（はじめの横線以外）も消す
+function freeRemoveArrow(free, k){
+  let f = {levels: free.levels.map(l => ({...l})), arrows: free.arrows.filter((a, i) => i !== k).map(a => ({...a}))};
+  for (let guard = 0; guard < 50; guard++){
+    const used = new Set(); f.arrows.forEach(a => { used.add(a.from); used.add(a.to); });
+    const i = f.levels.findIndex((l, j) => j > 0 && !used.has(j) && (!l.items || !Object.keys(l.items).length));
+    if (i < 0) break;
+    f = freeRemoveLevel(f, i);
+  }
+  return f;
+}
+// 横線 parent から、dy だけ上下に離れた新しい横線と、その矢印を足す。items：新しい横線の物質（null = 書いていない）
 function freeAddChild(free, parent, items, dy){
-  const f = {levels: free.levels.map(l => ({...l})), target: free.target};
-  f.levels.push({items: items ? {...items} : {}, parent, dy});
+  const f = cloneFree(free);
+  f.levels.push({items: items ? {...items} : {}, y: free.levels[parent].y + dy});
+  f.arrows.push({from: parent, to: f.levels.length - 1});
   return f;
 }
-// 段の物質を直す。start 段が items = null のときは、startVec から作る
+// 既にある 2 つの横線を、矢印でつなぐ（同じ向きの矢印があれば null）
+function freeAddArrow(free, from, to){
+  if (from === to || free.arrows.some(a => a.from === from && a.to === to)) return null;
+  const f = cloneFree(free); f.arrows.push({from, to}); return f;
+}
+// 横線の物質を直す
 function freeSetItems(free, li, items){
-  const f = {levels: free.levels.map(l => ({...l})), target: free.target};
-  f.levels[li].items = {...items};
-  return f;
+  const f = cloneFree(free); f.levels[li].items = {...items}; return f;
 }
-// 「答えを見る」：自動で求めた道のり（buildPath）を、段と矢印にする
+// 「答えを見る」：自動で求めた道のり（buildPath）を、横線と矢印にする。最後に、目的の矢印も引く
 function freeFromPath(path, heights){
   const f = emptyFree();
   const h = heights && heights.H ? heights.H : [];
   f.levels[0].items = vecToItems(path.levels[0].vec);
   for (let i = 1; i < path.levels.length; i++){
     const down = h[i] == null || h[i - 1] == null ? true : h[i] < h[i - 1];
-    f.levels.push({items: vecToItems(path.levels[i].vec), parent: i - 1, dy: down ? 84 : -84});
+    f.levels.push({items: vecToItems(path.levels[i].vec), y: f.levels[i - 1].y + (down ? 84 : -84)});
+    f.arrows.push({from: i - 1, to: i});
   }
-  f.target = path.levels.length > 1 ? path.levels.length - 1 : null;
+  if (path.levels.length > 1) f.arrows.push({from: 0, to: path.levels.length - 1});
   return f;
 }
 // 図にする。矢印のラベルは大きさ（絶対値）だけ。向きは生徒が置いた矢印の向き
@@ -954,8 +1001,12 @@ function groupFromFree(fc, target, eqs, species, opt = {}){
   const digits = opt.digits != null ? opt.digits : 1;
   const g = {levels: [], arrows: []};
   fc.levels.forEach((l, i) => g.levels.push({H: null, Y: l.Y, segs: l.written ? compSegs(l.vec, species, order, null) : [], ord: i,
-    dashed: !l.written, empty: !l.written, warn: l.mismatch, bold: fc.tl > 0 && (i === 0 || i === fc.tl)}));
+    dashed: !l.written, empty: !l.written, warn: l.mismatch, bold: !!fc.tArrow && (i === fc.tArrow.from || i === fc.tArrow.to)}));
   for (const st of fc.steps){
+    if (st.ex && st.ex.target){
+      g.arrows.push({from: st.from, to: st.to, kind: 'target', step: st.k, dashed: st.signed == null, segs: arrowSegs('目的', st.signed, digits, opt.old, true)});
+      continue;
+    }
     let segs, unk = false;
     if (st.ex){
       const mag = st.ex.c.abs(), rev = st.ex.c.sign < 0;
@@ -964,13 +1015,12 @@ function groupFromFree(fc, target, eqs, species, opt = {}){
     } else { segs = [{t: 'ΔH = ? kJ'}]; unk = true; }
     g.arrows.push({from: st.from, to: st.to, kind: 'step', eq: st.ex ? st.ex.i : null, ci: st.ex ? st.ex.i : null, step: st.k, dashed: !st.ex, unk, segs});
   }
-  if (fc.tl > 0) g.arrows.push({from: 0, to: fc.tl, kind: 'target', dashed: fc.targetDH === null, segs: arrowSegs('目的', fc.targetDH, digits, opt.old, true)});
   return g;
 }
 
 // ---- ヒント（段階を追って小出しにする） ----
 // 返り値：{cat, id, lines:[弱いヒント, 具体的なヒント, 答えに近いヒント]}。いまいちばん先に直すところを 1 つだけ選ぶ。
-// 順番：段が空 → 原子の数 → 矢印の向き → 説明できない矢印 → つづき（使えそうな式） → 目的の矢印
+// 順番：空の横線 → 原子の数 → 矢印の向き → 説明できない矢印 → 目的の矢印 → つづき（使えそうな式）
 function hintFor(fc, target, eqs, species){
   const nm = k => { const sp = species.get(k); return sp ? segsText(speciesSegs(sp)) : k; };
   const lvName = i => '横線 ' + (i + 1);
@@ -985,8 +1035,7 @@ function hintFor(fc, target, eqs, species){
       const d = (fc.levels[i].inv.get(el) || ZERO).sub(fc.startInv.get(el) || ZERO); if (d.isZero) continue;
       diffs.push((el === '電荷' ? '電荷が ' + fracText(d.abs()) : el + ' が ' + fracText(d.abs()) + ' 個') + (d.sign < 0 ? '足りません' : '多すぎます'));
     }
-    // 横線 1 との差を埋める物質を、1 種類で探す
-    let fix = null;
+    let fix = null;   // 横線 1 との差を埋める物質を、1 種類で探す
     for (const [k, sp] of species){
       if (sp.kind !== 'species') continue;
       for (const m of DRAW_MULTS){
@@ -1002,15 +1051,13 @@ function hintFor(fc, target, eqs, species){
         : lvName(i) + ' の物質を見直します。足すときは、ほかの横線にも同じ物質を足します。']};
   }
   const wrong = fc.steps.filter(st => st.ex && st.signed != null && st.signed !== 0 && (st.signed < 0) !== st.down);
-  const tWrong = fc.tl > 0 && fc.targetDH != null && fc.targetDH !== 0 && (fc.targetDH < 0) !== (fc.levels[fc.tl].Y > fc.levels[0].Y);
-  if (wrong.length || tWrong){
-    const st = wrong[0];
-    if (st) return {cat: 'dir', id: 'dir:' + st.k, lines: [
+  if (wrong.length){
+    const st = wrong[0], tg = st.ex.target;
+    const nameOf = tg ? '目的の矢印' : '矢印 (' + (st.ex.i + 1) + ')' + (st.ex.c.sign < 0 ? ' の逆' : '');
+    return {cat: 'dir', id: 'dir:' + st.k, lines: [
       '矢印の向きが合っていないものがあります。発熱（ΔH < 0）は下向き、吸熱（ΔH > 0）は上向きです。',
-      '矢印 (' + (st.ex.i + 1) + ')' + (st.ex.c.sign < 0 ? ' の逆' : '') + ' の向きを確かめます。',
-      '(' + (st.ex.i + 1) + ')' + (st.ex.c.sign < 0 ? ' の逆' : '') + ' は ΔH = ' + numText(st.signed, 1, true) + ' kJ で、' + (st.signed < 0 ? '発熱なので下' : '吸熱なので上') + '向きに引きます。']};
-    return {cat: 'dir', id: 'dir:target', lines: ['矢印の向きが合っていないものがあります。発熱（ΔH < 0）は下向き、吸熱（ΔH > 0）は上向きです。',
-      '目的の矢印の向きを確かめます。', '目的の式の ΔH = ' + numText(fc.targetDH, 1, true) + ' kJ で、' + (fc.targetDH < 0 ? '発熱なので下' : '吸熱なので上') + '向きです。']};
+      nameOf + ' の向きを確かめます。',
+      nameOf + ' は ΔH = ' + numText(st.signed, 1, true) + ' kJ で、' + (st.signed < 0 ? '発熱なので下' : '吸熱なので上') + '向きに引きます。']};
   }
   const unex = fc.steps.filter(st => st.both && !st.ex);
   if (unex.length){
@@ -1019,30 +1066,32 @@ function hintFor(fc, target, eqs, species){
     const dec = [], inc = [];
     for (const [k, f] of diff) (f.sign < 0 ? dec : inc).push(nm(k) + (f.abs().eq(1) ? '' : ' ' + fracText(f.abs())));
     const same = !diff.size;
-    // いちばん近い式：変化に出てくる物質をいちばん多く含む式
-    let best = null, bestScore = 0;
+    let best = null, bestScore = 0;   // いちばん近い式：変化に出てくる物質をいちばん多く含む式
     eqs.forEach((p, i) => { if (!okEq(p)) return; const v = vectorOf(p); let sc = 0; for (const k of diff.keys()) if (v.has(k)) sc++; if (sc > bestScore){ bestScore = sc; best = i; } });
     return {cat: 'noeq', id: 'noeq:' + st.k, lines: [
-      '矢印 ' + st.k + ' は、どの式でも説明できません（ΔH が ? のままです）。',
+      '矢印 ' + (st.k + 1) + ' は、どの式でも説明できません（ΔH が ? のままです）。',
       same ? '始点と終点の物質が同じです。' : 'この矢印では、' + (dec.length ? dec.join('・') + ' が減り' : '') + (dec.length && inc.length ? '、' : '') + (inc.length ? inc.join('・') + ' が増え' : '') + 'ています。',
       best != null ? '(' + (best + 1) + ') の式が近いです。倍率や向き、足りない物質を確かめます。' : '与えられた式の左辺と右辺の差と、見くらべます。']};
   }
-  if (fc.tl > 0 && fc.targetDH != null) return {cat: 'done', id: 'done', lines: ['目的の式ができています。ΔH = ' + numText(fc.targetDH, 1, true) + ' kJ です。']};
-  if (fc.reached.length && fc.tl < 0) return {cat: 'target', id: 'target', lines: [
+  if (fc.tArrow && fc.targetDH != null) return {cat: 'done', id: 'done', lines: ['目的の式ができています。ΔH = ' + numText(fc.targetDH, 1, true) + ' kJ です。']};
+  if (fc.reached.length && !fc.tArrow) return {cat: 'target', id: 'target', lines: [
     '目的の生成物がそろった横線があります。', '最初の横線（' + lvName(0) + '）から、その横線（' + lvName(fc.reached[0]) + '）へ、目的の矢印を引きます。',
     'ドラッグして、最初の横線から ' + lvName(fc.reached[0]) + ' の線の上で離します。']};
+  if (fc.tArrow && fc.targetDH == null) return {cat: 'path', id: 'path', lines: [
+    '目的の矢印は引けています。つぎは、最初の横線から目的の生成物の横線まで、与えられた式で別の経路をつなぎます。',
+    '途中の矢印がすべて「式の番号」で説明できると、目的の矢印の ΔH が出ます。',
+    '横線から横線へドラッグして、つながっていない横線どうしをつなぎます。']};
   // つづき：いちばん新しく書いた横線から、使える式
   const fl = fc.last, vec = fc.levels[fl].vec;
   const usable = [];
   eqs.forEach((p, i) => { if (!okEq(p)) return; const pl = dragPlan(vec, p); if (pl.fwd.length) usable.push({i, rev: false}); else if (pl.rev.length) usable.push({i, rev: true}); });
-  const used = new Set(fc.steps.filter(x => x.ex).map(x => x.ex.i));
+  const used = new Set(fc.steps.filter(x => x.ex && !x.ex.target).map(x => x.ex.i));
   const fresh = usable.filter(u => !used.has(u.i)), pick = (fresh.length ? fresh : usable)[0];
   if (pick) return {cat: 'next', id: 'next:' + fl, lines: [
     'つづきを考えます。目的の生成物がそろうまで、式を使って矢印を引きます。',
     lvName(fl) + ' から使える式があります。',
     '(' + (pick.i + 1) + ') の式が使えます（' + (pick.rev ? '右辺' : '左辺') + 'の物質が ' + lvName(fl) + ' にそろっています）。']};
-  // 使える式がない → 補う物質が足りない
-  let cand = null, bestM = 99;
+  let cand = null, bestM = 99;   // 使える式がない → 補う物質が足りない
   eqs.forEach((p, i) => { if (!okEq(p) || used.has(i)) return; const pl = dragPlan(vec, p); const m = Math.min(pl.missingFwd.length || 99, pl.missingRev.length || 99); if (m > 0 && m < bestM){ bestM = m; cand = {i, miss: pl.missingFwd.length && pl.missingFwd.length <= (pl.missingRev.length || 99) ? pl.missingFwd : pl.missingRev}; } });
   return {cat: 'next', id: 'next0:' + fl, lines: [
     lvName(fl) + ' からは、どの式も使えません。',
@@ -1050,7 +1099,7 @@ function hintFor(fc, target, eqs, species){
     cand ? '(' + (cand.i + 1) + ') を使うには ' + cand.miss.map(nm).join('・') + ' が要ります。すべての横線に足します。' : '使っていない式の左辺・右辺の物質を見くらべます。']};
 }
 
-const api = {emptyFree, itemsToVec, vecToItems, inventory, invEq, explainArrow, applyEq, freeCompute, freeRemoveLevel, freeAddChild, freeSetItems, freeFromPath, groupFromFree, hintFor, emptyDraw, okEq, feasibleMults, dragPlan, arrowDown, drawCompute, drawRemoveStep, drawRemoveEq, groupFromDraw, drawFromPath, DRAW_MULTS, segsText, Frac, ZERO, ONE, ELEMENTS, normalize, parseFormula, parseCharge, parseTerm, splitTerms, parseDH, parseEquation,
+const api = {emptyFree, itemsToVec, vecToItems, inventory, invEq, explainArrow, applyEq, freeCompute, freeRemoveLevel, freeRemoveArrow, freeAddChild, freeAddArrow, freeSetItems, freeFromPath, groupFromFree, hintFor, emptyDraw, okEq, feasibleMults, dragPlan, arrowDown, drawCompute, drawRemoveStep, drawRemoveEq, groupFromDraw, drawFromPath, DRAW_MULTS, segsText, Frac, ZERO, ONE, ELEMENTS, normalize, parseFormula, parseCharge, parseTerm, splitTerms, parseDH, parseEquation,
   balance, vectorOf, sideVec, collectSpecies, solveCombination, buildPath, levelHeights, addVec, vecEq,
   fracText, coefText, formulaSegs, speciesSegs, compSegs, termsSegs, equationSegs, numText, decimalsOf,
   segsToHTML, segsToSVG, segsWidth, diagramSVG, arrowSegs, groupFromPath, groupFromEquation, calcText, speciesOrder, esc};
