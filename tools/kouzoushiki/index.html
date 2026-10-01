@@ -319,6 +319,10 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .fgrp{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px 6px;border:1px solid var(--line);border-radius:14px;padding:2px 6px 2px 10px;background:var(--panel)}
 .fgrp .gname{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
 .fgrp .chip{padding:1px 8px}
+.chip .nm{margin-left:8px;color:var(--text);font-size:13px;font-weight:600}
+.chip .nm[hidden]{display:none}
+#formulas .chip .nm{max-width:22em;overflow:hidden;text-overflow:ellipsis;vertical-align:bottom;display:inline-block}
+#formulas .chip .nm[hidden]{display:none}
 .chip .cnt{display:inline-block;margin-left:5px;padding:0 6px;border-radius:9px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700}
 .chip.on{border-color:var(--accent);background:var(--accent-soft)}
 </style>
@@ -692,7 +696,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <details><summary>置換基（CH₃ を COOH などに）</summary><p>端の原子を選び、ポップアップの「置換基」から C₂H₅・COOH・NO₂ などを選ぶと、簡略構造式のラベルに変わります（結合が右から来るときは HOOC– のように向きが反転）。原子をダブルクリック、原子に乗せて <kbd>Enter</kbd>、テキストツールで原子をクリックしても入力できます（COO- のように最後に + − を付けると電荷）。「CH₃（メチル基に戻す）」で元に戻り、分子式・分子量にも反映されます。</p></details>
     <details><summary>略記号・一般の記号</summary><p>R・R'・R1・X・Ar（一般の記号）、Me・Et・Pr・iPr・Bu・tBu・Ph・Ac・Bn（略記号）が使えます。OMe・COOEt のように組み合わせることもできます。R・X を含むと分子量は「—」になります。</p></details>
     <details><summary>名前を付ける</summary><p>構造を選び（画面下の分子式の札をクリックしても選べます）、ポップアップの<strong>「名前を付ける」</strong>を押すと、<strong>日本語名と英語名</strong>を、構造のすぐ下に<strong>文字</strong>（2 行）で置きます（元に戻すで 1 回で取り消せます。文字なので、テキストツールで直せます）。異性体を並べる機能と同じ命名の仕組みで、<strong>教科書にある慣用名があれば慣用名を先に書き、系統名（IUPAC 名）を（ ）に添えます</strong>（例：アセトン（プロパノン）／acetone (propan-2-one)）。慣用名がなければ IUPAC 名です。C・H・O だけで、24 原子までが対象です。<strong>環の中に O を含むもの（エポキシド・THF など）、環が 3 つ以上のもの、電荷・特別な描き方を含むものには付けず</strong>、理由を知らせます。立体は、二重結合のシス・トランス（E/Z）だけを描いた向きから読みます。</p></details>
-    <details><summary>分子式・分子量</summary><p>画面の下に、つながりごとの分子式と分子量（金属・電荷を含むときは式量）が出ます。有機化合物は C・H・そのほかの順（C₂H₆O など）、無機物は教科書の書き方（H₂SO₄・HNO₃・NH₃・CO₂ など）で並べます。クリックするとその構造全体が選ばれ、選んでいる構造の分子式には色が付きます。構造が 2 つ以上あるときは、下の 1 行に収まるように札を並べ（入りきらないときは右端がかすみます）、左の<strong>「一覧」ボタン</strong>で全部を折り返して見られるポップアップが開きます。ポップアップの上の切り替えで<strong>まとめ方</strong>を選べます：<strong>そのまま</strong>（1 つずつ）、<strong>分子式</strong>（同じ分子式を 1 つの札にして「×個数」を付ける。初めの設定）、<strong>化合物群</strong>（アルカン・アルケン・アルキン・シクロアルカン・ベンゼン環をもつ炭化水素・アルコール・フェノール類・エーテル・アルデヒド・ケトン・カルボン酸・エステルなどに分ける）、<strong>主鎖の C 数</strong>（主鎖の炭素数、環なら員数ごとに分ける。名前を付けられない構造は「—」）。まとめた札をクリックすると、その中の構造がまとめて選ばれます。</p></details>
+    <details><summary>分子式・分子量</summary><p>画面の下に、つながりごとの分子式と分子量（金属・電荷を含むときは式量）が出ます。有機化合物は C・H・そのほかの順（C₂H₆O など）、無機物は教科書の書き方（H₂SO₄・HNO₃・NH₃・CO₂ など）で並べます。クリックするとその構造全体が選ばれ、選んでいる構造の分子式には色が付きます。構造が 2 つ以上あるときは、下の 1 行に収まるように札を並べ（入りきらないときは右端がかすみます）、左の<strong>「一覧」ボタン</strong>で全部を折り返して見られるポップアップが開きます。ポップアップの上の切り替えで<strong>まとめ方</strong>を選べます：<strong>そのまま</strong>（1 つずつ）、<strong>分子式</strong>（同じ分子式を 1 つの札にして「×個数」を付ける。初めの設定）、<strong>化合物群</strong>（アルカン・アルケン・アルキン・シクロアルカン・ベンゼン環をもつ炭化水素・アルコール・フェノール類・エーテル・アルデヒド・ケトン・カルボン酸・エステルなどに分ける）、<strong>主鎖の C 数</strong>（主鎖の炭素数、環なら員数ごとに分ける。名前を付けられない構造は「—」）。まとめた札をクリックすると、その中の構造がまとめて選ばれます。<strong>構造が 1 つの札には、名前（慣用名や IUPAC 名）も出ます</strong>（札が 3 つまでは下の 1 行に、それより多いときは「一覧」のポップアップに出ます。札にマウスを乗せると英語名も見られます。構造をまとめた札には出しません）。名前を付けられない構造（環に O を含むものなど）には出ません。</p></details>
     <details><summary>官能基を色で強調</summary><p>上のバーの<strong>「−OH」ボタン</strong>（表記とは別の、独立したオン・オフ。オンのときはボタンも強調された色になります）を押すと、ヒドロキシ基（−OH）・エーテル結合（−O−）・ホルミル基（−CHO）・カルボニル基（&gt;C=O）・カルボキシ基（−COOH）・エステル結合（−COO−）・二重結合・三重結合・ベンゼン環を、種類ごとの色の下地で目立たせます（C=C は炭化水素基の二重結合だけで、ベンゼン環の二重結合はベンゼン環として別に扱います）。図の右上に色の凡例が出ます。凡例の<strong>種類をクリック</strong>するとその種類だけ強調を外し（もう一度押すと戻る）、凡例の<strong>「やめる」</strong>か、もう一度「−OH」ボタンを押すと、強調を全部やめます（付け直すときは「−OH」ボタン）。図ごとの設定で、画像に書き出したときにも色が付きます。異性体を並べるときは、モーダルの「官能基を色で強調」（初めはオン）で決めます。</p></details>
   </section>
   <section data-help-topic="stereo" data-help-title="立体・テンプレート">
@@ -795,7 +799,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.20（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.21（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -3865,6 +3869,22 @@ function chainOfComp(ids){
   if (chainCache.size > 2000) chainCache.clear();
   chainCache.set(key, r); return r;
 }
+// 構造 1 つの名前（日本語・英語）。名前を付けられないものは null。同じ構造は覚えておく（描画のたびに作り直さない）
+const nameCache = new Map();
+function nameOfComp(ids){
+  if (ids.length > 24) return null;
+  const S = new Set(ids), bs = Object.values(doc.bonds).filter(b => S.has(b.a1)), dbl = bs.some(b => b.order === 2);
+  const key = ids.map(id => id + doc.atoms[id].el).join(',') + '|' + bs.map(b => b.a1 + '-' + b.a2 + ':' + b.order + (b.nv ? 'n' : '') + (b.style || '')).join(',')
+    + (dbl ? '|' + ids.map(id => Math.round(doc.atoms[id].x) + ',' + Math.round(doc.atoms[id].y)).join(';') : '');   // 二重結合があるときだけ、向き（シス・トランス）を読むので座標も入れる
+  if (nameCache.has(key)) return nameCache.get(key);
+  let r = null;
+  try {
+    const gr = docToGraph(ids);
+    if (!gr.err){ const d = ISO.composeName(gr.g, ISO.stereoFromGeometry(gr.g, gr.pos)); if (d) r = {ja:d.ja, en:d.en}; }
+  } catch {}
+  if (nameCache.size > 2000) nameCache.clear();
+  nameCache.set(key, r); return r;
+}
 const chainKey = n => { const m = /(\d+)/.exec(n); return n === '—' ? 9999 : (n[0] === '主' ? 0 : n === 'ベンゼン環' ? 5000 : 1000) + (m ? +m[1] : 0); };
 function updateInfo(){
   const adj = scene.adj, comps = components(doc, adj), fEl = $('formulas'), wEl = $('warnings');
@@ -3899,13 +3919,15 @@ function updateInfo(){
     shown++;
     const i = infoComps.push(ch.items.flatMap(x => x.ids)) - 1, f = ch.f;
     const ionic = f.charge || f.parts.some(([e]) => e === 'Na' || METALS.includes(e)), n = ch.items.length;
-    return `<button class="chip" data-ci="${i}" title="${n > 1 ? `同じ分子式の ${n} 個をまとめて選択` : 'クリックでこの構造を選択'}"><b>${formulaHTML(f)}</b>${n > 1 ? `<span class="cnt">×${n}</span>` : ''}<span class="mw">${ionic ? '式量' : '分子量'} ${f.generic ? '—' : fmtMass(f.mass)}</span></button>`;
+    const nmv = n === 1 && shown <= 12 ? nameOfComp(ch.items[0].ids) : null;   // 構造が 1 つの札だけ、名前も出す（同じ分子式をまとめた札は、異性体の名前が違うので出さない）
+    return `<button class="chip" data-ci="${i}" title="${n > 1 ? `同じ分子式の ${n} 個をまとめて選択` : 'クリックでこの構造を選択'}${nmv ? esc('\n' + nmv.ja + '\n' + nmv.en) : ''}"><b>${formulaHTML(f)}</b>${n > 1 ? `<span class="cnt">×${n}</span>` : ''}<span class="mw">${ionic ? '式量' : '分子量'} ${f.generic ? '—' : fmtMass(f.mass)}</span>${nmv ? `<span class="nm">{{NM}}${esc(nmv.ja)}</span>` : ''}</button>`;
   };
   const body = sections.map(sc => {
     const h = sc.chips.map(chipHTML).join('');
     return sc.name ? `<span class="fgrp"><span class="gname" title="この群の構造：${sc.count} 個">${esc(sc.name)}（${sc.count}）</span>${h}</span>` : h;
   }).join('') + (hidden ? `<span class="muted">ほか ${hidden} 個</span>` : '');
-  fEl.innerHTML = body; $('fmList').innerHTML = body;   // 下の 1 行と、「一覧」のポップアップ（折り返して全部見える）に同じ内容を出す
+  // 下の 1 行は、札が 3 つまでのときだけ名前も出す（1 行に収めるため）。「一覧」のポップアップ（折り返して全部見える）には、いつも出す
+  fEl.innerHTML = body.replace(/<span class="nm">\{\{NM\}\}/g, infoComps.length <= 3 ? '<span class="nm">' : '<span class="nm" hidden>'); $('fmList').innerHTML = body.replace(/\{\{NM\}\}/g, '');
   $('fmWrap').hidden = list.length < 2;
   if (list.length < 2) closeFm();
   $('fmBtn').textContent = `一覧（${list.length}）▴`;
