@@ -92,6 +92,47 @@
     showControls(root);
   }
 
+  function setupRlePractice(root) {
+    const image = root.dataset.cpRlePractice === 'image';
+    const source = image
+      ? [...root.dataset.cpPracticeSource].map(value => value === '1' ? '黒' : '白').join('')
+      : root.dataset.cpPracticeSource;
+    const result = Core.encodeRle(source);
+    const input = one(root, '[data-cp-practice-answer]');
+    const feedback = one(root, '[data-cp-practice-feedback]');
+    const solution = one(root, '[data-cp-practice-solution]');
+    const clear = () => {
+      input.removeAttribute('aria-invalid');
+      feedback.textContent = '';
+      solution.hidden = true;
+      resized();
+    };
+    root.addEventListener('submit', event => {
+      event.preventDefault();
+      const answer = input.value.normalize('NFKC').replace(/\s/g, '').toUpperCase();
+      if (!answer) {
+        input.setAttribute('aria-invalid', 'true');
+        feedback.textContent = '圧縮後の文字列を入力してください。';
+        solution.hidden = true;
+        input.focus();
+      } else {
+        const correct = answer === result.encoded;
+        input.setAttribute('aria-invalid', String(!correct));
+        feedback.textContent = correct ? '正解です。' : '同じ文字が続くまとまりと回数を確認しましょう。';
+        solution.replaceChildren(
+          text('p', `解答：${result.encoded}`, 'cp-practice-answer'),
+          text('p', result.runs.map(run => `${run.value.repeat(run.count)} → ${run.encoded}`).join('、')),
+          text('p', `元${result.before}${image ? '画素' : '文字'} → 圧縮後${result.after}文字。回数1も省略しません。`)
+        );
+        solution.hidden = false;
+      }
+      resized();
+    });
+    root.addEventListener('input', clear);
+    root.addEventListener('reset', clear);
+    showControls(root);
+  }
+
   function setupImageCompare(root) {
     const clustered = ['11111', '11111', '11100', '00000', '00000'].join('');
     const checker = Array.from({ length: 25 }, (_, index) => index % 2 === 0 ? '1' : '0').join('');
@@ -132,6 +173,7 @@
   function initialize() {
     [
       ['[data-cp-size-model]', setupSizeModel],
+      ['[data-cp-rle-practice]', setupRlePractice],
       ['[data-cp-string-compare]', setupStringCompare],
       ['[data-cp-image-compare]', setupImageCompare]
     ].forEach(([selector, setup]) => document.querySelectorAll(selector).forEach(root => {

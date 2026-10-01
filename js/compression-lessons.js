@@ -34,6 +34,8 @@
     const input = one(root, '[data-cp-rle-edit]');
     const before = one(root, '[data-cp-rle-original]');
     const after = one(root, '[data-cp-rle-compressed]');
+    const beforeCount = one(root, '[data-cp-rle-before-count]');
+    const afterCount = one(root, '[data-cp-rle-after-count]');
     const status = one(root, '[data-cp-rle-step]');
     const rate = one(root, '[data-cp-rle-rate]');
     const next = one(root, '[data-cp-rle-next]');
@@ -53,6 +55,7 @@
       editStatus.textContent = 'A〜Zを1〜40文字で入力してください。';
       editor.hidden = true;
       before.hidden = false;
+      if (beforeCount) beforeCount.hidden = false;
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
       toggle.setAttribute('aria-expanded', 'false');
       if (returnFocus) toggle.focus();
@@ -63,16 +66,15 @@
       const result = Core.encodeRle(source);
       result.runs.forEach((run, index) => {
         before.append(make('span', run.value.repeat(run.count), index === step - 1 ? 'is-current' : ''));
-        if (index < step) after.append(make('span', run.encoded, `cp-token${index === step - 1 ? ' is-current' : ''}`));
+        after.append(make('span', run.encoded, index === step - 1 ? 'is-current' : ''));
       });
-      if (!step) after.textContent = '「次のまとまり」で圧縮を進めます。';
+      if (beforeCount) beforeCount.textContent = `（${result.before}文字）`;
+      if (afterCount) afterCount.textContent = `（${result.after}文字）`;
       const run = result.runs[step - 1];
       status.textContent = run
         ? `${step} / ${result.runs.length}：${run.value}が${run.count}回続く → ${run.encoded}${step === result.runs.length ? '。圧縮完了。' : ''}`
-        : `0 / ${result.runs.length}：左端から、同じ文字のまとまりを読みます。`;
-      rate.textContent = step === result.runs.length
-        ? rateText(result)
-        : `元の文字数：${result.before}文字。すべてのまとまりを圧縮して比べましょう。`;
+        : `0 / ${result.runs.length}：「次のまとまり」で元の文字と圧縮後の対応を確かめます。`;
+      rate.textContent = rateText(result);
       next.disabled = step >= result.runs.length;
     };
     const validateInput = () => {
@@ -92,6 +94,7 @@
       editStatus.textContent = 'A〜Zを1〜40文字で入力してください。';
       editor.hidden = false;
       before.hidden = true;
+      if (beforeCount) beforeCount.hidden = true;
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
       toggle.setAttribute('aria-expanded', 'true');
       input.focus();
@@ -198,32 +201,131 @@
   }
 
   function setupImageQuiz(root) {
-    const feedback = one(root, '[data-cp-image-quiz-feedback]');
-    one(root, '[data-cp-image-quiz-submit]').addEventListener('click', () => {
-      const encode = grid => Core.encodeRle(grid.flat().map(value => value ? '黒' : '白').join(''), 3);
-      const figure2 = one(root, '[data-cp-image-answer]');
-      const figure3 = all(root, 'input[name="figure3"]:checked').map(input => Number(input.value));
-      const figure4 = one(root, 'input[name="figure4"]:checked');
-      const rate = one(root, '[data-cp-image-rate]');
-      const options = Core.IMAGE_QUESTIONS.figure4.map(encode);
-      const shortest = Math.min(...options.map(result => result.after));
-      const noReduction = Core.IMAGE_QUESTIONS.figure3.map(encode).flatMap((result, index) => result.after >= result.before ? [index + 1] : []);
-      const checks = [
-        clean(figure2.value) === encode(Core.IMAGE_QUESTIONS.figure2).encoded,
-        JSON.stringify(figure3) === JSON.stringify(noReduction),
-        Boolean(figure4 && options[Number(figure4.value) - 1].after === shortest),
-        /^\d+(?:\.\d+)?$/.test(clean(rate.value)) && Number(clean(rate.value)) === Core.compressionRate(25, shortest)
-      ];
-      figure2.setAttribute('aria-invalid', String(!checks[0]));
-      rate.setAttribute('aria-invalid', String(!checks[3]));
-      const labels = ['図2の文字列', '図3の選択', '図4の選択', '圧縮率'];
-      feedback.textContent = checks.every(Boolean) ? '全4項目正解です。連続のしかたによる違いを説明してみましょう。' : `4項目中${checks.filter(Boolean).length}項目正解です。${labels.filter((_, index) => !checks[index]).join('、')}を確認しましょう。`;
+    const questions = new Map(['figure2', 'figure3', 'figure4'].map(key => [
+      key,
+      {
+        container: one(root, `[data-cp-image-question="${key}"]`),
+        feedback: one(root, `[data-cp-image-feedback="${key}"]`),
+        solution: one(root, `[data-cp-image-solution="${key}"]`),
+        solutionContent: one(root, `[data-cp-image-solution="${key}"] [data-cp-image-solution-content]`)
+      }
+    ]));
+    if ([...questions.values()].some(question => Object.values(question).some(value => !value))) return;
+
+    const encode = grid => Core.encodeRle(grid.flat().map(value => value ? '黒' : '白').join(''), 3);
+    const byKey = key => questions.get(key);
+    const clearFeedback = key => {
+      const question = byKey(key);
+      question.feedback.textContent = '';
+      question.solution.hidden = true;
+      question.solutionContent.replaceChildren();
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+      question.container.removeAttribute('aria-invalid');
+      all(question.container, '[aria-invalid]').forEach(input => input.removeAttribute('aria-invalid'));
+    };
+    const addParagraph = (parent, text, className) => {
+      const paragraph = make('p', text, className);
+      parent.append(paragraph);
+      return paragraph;
+    };
+    const showSolution = (key, explanation) => {
+      const question = byKey(key);
+      question.solutionContent.replaceChildren();
+      explanation.forEach(text => addParagraph(question.solutionContent, text));
+      question.solution.hidden = false;
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+    };
+    const check = key => {
+      const question = byKey(key);
+      const inputs = all(question.container, 'input');
+      let isComplete = false;
+      let isCorrect = false;
+      let explanation = [];
+
+      if (key === 'figure2') {
+        const input = one(question.container, '[data-cp-image-answer]');
+        const expected = encode(Core.IMAGE_QUESTIONS.figure2);
+        const answer = clean(input.value);
+        isComplete = answer !== '';
+        isCorrect = isComplete && answer === expected.encoded;
+        input.setAttribute('aria-invalid', String(!isCorrect));
+        explanation = [
+          `答えは「${expected.encoded}」です。左上から行末の次も続けて読み、3個以上のまとまりだけ色と個数で表しました。`,
+          '黒が6個、白が3個、黒が3個、白が1個、黒が3個の順です。白1個は「白」のままです。'
+        ];
+      } else if (key === 'figure3') {
+        const selected = all(question.container, 'input[name="figure3"]:checked').map(input => Number(input.value)).sort((a, b) => a - b);
+        const results = Core.IMAGE_QUESTIONS.figure3.map(encode);
+        const noReduction = results.flatMap((result, index) => result.after >= result.before ? [index + 1] : []);
+        isComplete = selected.length > 0;
+        isCorrect = isComplete && JSON.stringify(selected) === JSON.stringify(noReduction);
+        question.container.setAttribute('aria-invalid', String(!isCorrect));
+        explanation = [
+          `答えは${noReduction.map(number => `図3${number === 1 ? '①' : number === 2 ? '②' : number === 3 ? '③' : '④'}`).join('と')}です。②は白黒が1個ずつ交互に並び、④は行の境目でも同じ色が2個までしか続きません。`,
+          '3個以上の連続がないので、そのまま64文字です。①は32文字、③は16文字へ減らせます。'
+        ];
+      } else {
+        const selected = one(question.container, 'input[name="figure4"]:checked');
+        const rate = one(question.container, '[data-cp-image-rate]');
+        const results = Core.IMAGE_QUESTIONS.figure4.map(encode);
+        const shortest = Math.min(...results.map(result => result.after));
+        const expectedRate = Core.compressionRate(25, shortest);
+        const rateValue = clean(rate.value);
+        isComplete = Boolean(selected) && rateValue !== '';
+        const validRate = /^\d+(?:\.\d+)?$/.test(rateValue) && Number(rateValue) === expectedRate;
+        const validChoice = Boolean(selected) && results[Number(selected.value) - 1]?.after === shortest;
+        isCorrect = isComplete && validChoice && validRate;
+        one(question.container, '[data-cp-problem-figure="4"]').setAttribute('aria-invalid', String(!validChoice));
+        rate.setAttribute('aria-invalid', String(!validRate));
+        const optionText = results.map((result, index) => `図4${['①', '②', '③'][index]}は${result.after}文字（${result.encoded}）`).join('。');
+        explanation = [
+          `${optionText}。最も短いのは図4③の${shortest}文字です。`,
+          `圧縮率は圧縮後÷圧縮前×100なので、${shortest} ÷ 25 × 100 ＝ ${number(expectedRate)}%です。`,
+          results[1].runs.some(run => run.value === '白' && run.count === 2)
+            ? '図4②には白が2個続くまとまりがあり、規則どおり「白白」とそのまま表します。2個のまとまりに個数を付けることはありません。'
+            : '同じ色が1個または2個続くところは、色の文字をそのまま残します。'
+        ];
+      }
+
+      if (!isComplete) {
+        question.feedback.textContent = key === 'figure2'
+          ? '答えを入力してから判定してください。'
+          : key === 'figure3'
+            ? '選択肢を1つ以上選んでから判定してください。'
+            : '図を1つ選び、圧縮率も入力してから判定してください。';
+        question.solution.hidden = true;
+        question.solutionContent.replaceChildren();
+        (inputs.find(input => input.type === 'text' && !clean(input.value)) || inputs[0]).focus();
+        document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+        return;
+      }
+
+      question.feedback.textContent = isCorrect ? '正解です。解答・解説を表示します。' : '誤答です。解答・解説を確認しましょう。';
+      showSolution(key, explanation);
+    };
+
+    questions.forEach((question, key) => {
+      one(question.container, `[data-cp-image-check="${key}"]`).addEventListener('click', () => check(key));
+      one(question.container, `[data-cp-image-reset="${key}"]`).addEventListener('click', () => {
+        all(question.container, 'input').forEach(input => {
+          if (input.type === 'text') input.value = '';
+          else input.checked = false;
+        });
+        clearFeedback(key);
+      });
+      question.container.addEventListener('input', event => {
+        if (event.target.matches('input')) clearFeedback(key);
+      });
+      question.container.addEventListener('change', event => {
+        if (event.target.matches('input[type="checkbox"], input[type="radio"]')) clearFeedback(key);
+      });
+      question.container.addEventListener('keydown', event => {
+        if (event.key === 'Enter' && !event.isComposing && event.target.matches('input')) {
+          event.preventDefault();
+          check(key);
+        }
+      });
     });
-    one(root, '[data-cp-image-quiz-reset]').addEventListener('click', () => {
-      all(root, 'input').forEach(input => { if (input.type === 'text') input.value = ''; else input.checked = false; });
-      clearFields(root, feedback);
-    });
-    root.addEventListener('input', event => { event.target.removeAttribute('aria-invalid'); feedback.textContent = ''; });
     controls(root);
   }
 

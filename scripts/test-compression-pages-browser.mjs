@@ -54,6 +54,22 @@ try {
   await expect(page.locator('[data-cp-size-result]')).toContainText('0より大きい数');
   assert.equal(await page.locator('[data-cp-size-chart]').getAttribute('aria-label'), null);
   await goSlide(3);
+  await expect(page.locator('[data-cp-rle-original]')).toHaveText('AAAAAABBBBCCDAAA');
+  await expect(page.locator('[data-cp-rle-compressed]')).toHaveText('A6B4C2D1A3');
+  await expect(page.locator('[data-cp-rle-before-count]')).toHaveText('（16文字）');
+  await expect(page.locator('[data-cp-rle-after-count]')).toHaveText('（10文字）');
+  const stringPresentation = await page.locator('.cp-rle-demo').evaluate(el => {
+    const original = el.querySelector('[data-cp-rle-original]');
+    const compressed = el.querySelector('[data-cp-rle-compressed]');
+    return {
+      before: original.getBoundingClientRect().top,
+      after: compressed.getBoundingClientRect().top,
+      stringFont: parseFloat(getComputedStyle(original).fontSize),
+      labelFont: parseFloat(getComputedStyle(el.querySelector('h3')).fontSize)
+    };
+  });
+  assert(stringPresentation.after > stringPresentation.before, '圧縮後を元の文字列の下へ置く');
+  assert(stringPresentation.stringFont > stringPresentation.labelFont, '対象の文字を大きく表示する');
   await page.getByRole('radio', { name: 'どちらも同じ', exact: true }).check();
   await page.getByRole('button', { name: '圧縮して比較', exact: true }).click();
   await expect(page.locator('[data-cp-string-compare-results]')).toContainText('200%');
@@ -88,6 +104,101 @@ try {
   await expect(rle.locator('[data-cp-rle-original]')).toHaveText('AAABB');
   for (let i = 0; i < 2; i++) await rle.getByRole('button', { name: '次のまとまり', exact: true }).click();
   await expect(rle.locator('[data-cp-rle-compressed]')).toHaveText('A3B2');
+  await expect(rle.locator('[data-cp-rle-before-count]')).toHaveText('（5文字）');
+  await expect(rle.locator('[data-cp-rle-after-count]')).toHaveText('（4文字）');
+  // A long run can wrap while direct editing keeps the full string visible.
+  await rle.getByRole('button', { name: '編集', exact: true }).click();
+  await edit.fill('A'.repeat(40)); await edit.press('Enter');
+  await expect(rle.locator('[data-cp-rle-compressed]')).toHaveText('A40');
+  await expect(rle.locator('[data-cp-rle-before-count]')).toHaveText('（40文字）');
+  const stringPractice = page.locator('[data-cp-rle-practice="string"]');
+  const stringPracticeAnswer = stringPractice.locator('[data-cp-practice-answer]');
+  await stringPractice.getByRole('button', { name: '判定', exact: true }).click();
+  await expect(stringPractice.locator('[data-cp-practice-solution]')).toBeHidden();
+  await expect(stringPractice.locator('[data-cp-practice-feedback]')).toContainText('入力してください');
+  await stringPracticeAnswer.fill('A4B3C2DA2'); await stringPracticeAnswer.press('Enter');
+  await expect(stringPractice.locator('[data-cp-practice-solution]')).toContainText('A4B3C2D1A2');
+  await expect(stringPracticeAnswer).toHaveAttribute('aria-invalid', 'true');
+  await stringPracticeAnswer.fill('Ａ４ Ｂ３ Ｃ２ Ｄ１ Ａ２');
+  await expect(stringPractice.locator('[data-cp-practice-solution]')).toBeHidden();
+  await stringPracticeAnswer.press('Enter');
+  await expect(stringPractice.locator('[data-cp-practice-feedback]')).toHaveText('正解です。');
+  await goSlide(4);
+  const imagePractice = page.locator('[data-cp-rle-practice="image"]');
+  const imagePracticeAnswer = imagePractice.locator('[data-cp-practice-answer]');
+  await imagePractice.getByRole('button', { name: '判定', exact: true }).click();
+  await expect(imagePractice.locator('[data-cp-practice-solution]')).toBeHidden();
+  await imagePracticeAnswer.fill('黒5白4黒白2'); await imagePracticeAnswer.press('Enter');
+  await expect(imagePracticeAnswer).toHaveAttribute('aria-invalid', 'true');
+  await expect(imagePractice.locator('[data-cp-practice-solution]')).toContainText('黒5白4黒1白2');
+  await imagePracticeAnswer.fill('黒５ 白４ 黒１ 白２'); await imagePracticeAnswer.press('Enter');
+  await expect(imagePractice.locator('[data-cp-practice-feedback]')).toHaveText('正解です。');
+  await goSlide(3);
+  await expect(stringPractice.locator('[data-cp-practice-feedback]')).toHaveText('正解です。');
+  await stringPractice.getByRole('button', { name: '入力を消す', exact: true }).click();
+  await expect(stringPracticeAnswer).toHaveValue('');
+  await expect(stringPractice.locator('[data-cp-practice-solution]')).toBeHidden();
+  await goSlide(4);
+  await imagePractice.getByRole('button', { name: '入力を消す', exact: true }).click();
+  await expect(imagePracticeAnswer).toHaveValue('');
+  await expect(imagePractice.locator('[data-cp-practice-solution]')).toBeHidden();
+
+  await goSlide(7);
+  const imageQuiz = page.locator('[data-cp-image-quiz]');
+  await expect(imageQuiz).toContainText('黒黒 → 黒黒、白白 → 白白、黒黒黒 → 黒3');
+  const q1 = imageQuiz.locator('[data-cp-image-question="figure2"]');
+  const q2 = imageQuiz.locator('[data-cp-image-question="figure3"]');
+  const q3 = imageQuiz.locator('[data-cp-image-question="figure4"]');
+  assert.equal(await imageQuiz.getByRole('button', { name: '判定', exact: true }).count(), 3);
+  for (const [question, key] of [[q1, 'figure2'], [q2, 'figure3'], [q3, 'figure4']]) {
+    await question.getByRole('button', { name: '判定', exact: true }).click();
+    await expect(question.locator(`[data-cp-image-solution="${key}"]`)).toBeHidden();
+  }
+  await q1.locator('[data-cp-image-answer]').fill('黒6白3黒3白1黒3');
+  await q1.locator('[data-cp-image-answer]').press('Enter');
+  await expect(q1.locator('[data-cp-image-feedback]')).toContainText('誤答');
+  await expect(q1.locator('[data-cp-image-solution]')).toContainText('黒6白3黒3白黒3');
+  await expect(q2.locator('[data-cp-image-solution]')).toBeHidden();
+  await q1.locator('[data-cp-image-answer]').fill('黒６ 白３ 黒３ 白 黒３');
+  await expect(q1.locator('[data-cp-image-solution]')).toBeHidden();
+  await q1.locator('[data-cp-image-answer]').press('Enter');
+  await expect(q1.locator('[data-cp-image-feedback]')).toContainText('正解');
+  await q2.locator('input[value="2"]').check();
+  await q2.locator('input[value="2"]').press('Enter');
+  await expect(q2.locator('[data-cp-image-feedback]')).toContainText('誤答');
+  await expect(q2.locator('[data-cp-image-solution]')).toContainText('図3②と図3④');
+  await q2.locator('input[value="4"]').check();
+  await expect(q2.locator('[data-cp-image-solution]')).toBeHidden();
+  await q2.getByRole('button', { name: '判定', exact: true }).click();
+  await expect(q2.locator('[data-cp-image-feedback]')).toContainText('正解');
+  await q3.locator('input[value="3"]').check();
+  await q3.getByRole('button', { name: '判定', exact: true }).click();
+  await expect(q3.locator('[data-cp-image-solution]')).toBeHidden();
+  await q3.locator('[data-cp-image-rate]').fill('50');
+  await q3.locator('[data-cp-image-rate]').press('Enter');
+  await expect(q3.locator('[data-cp-image-feedback]')).toContainText('誤答');
+  await expect(q3.locator('[data-cp-problem-figure="4"]')).toHaveAttribute('aria-invalid', 'false');
+  await expect(q3.locator('[data-cp-image-rate]')).toHaveAttribute('aria-invalid', 'true');
+  await expect(q3.locator('[data-cp-image-solution]')).toContainText('60%');
+  await expect(q3.locator('[data-cp-image-solution]')).toContainText('白白');
+  await q3.locator('[data-cp-image-rate]').fill('６０');
+  await expect(q3.locator('[data-cp-image-solution]')).toBeHidden();
+  await q3.locator('[data-cp-image-rate]').press('Enter');
+  await expect(q3.locator('[data-cp-image-feedback]')).toContainText('正解');
+  await q2.getByRole('button', { name: 'この小問をリセット', exact: true }).click();
+  await expect(q2.locator('input:checked')).toHaveCount(0);
+  await expect(q2.locator('[data-cp-image-solution]')).toBeHidden();
+  await expect(q1.locator('[data-cp-image-solution]')).toBeVisible();
+  await expect(q3.locator('[data-cp-image-solution]')).toBeVisible();
+  await q2.locator('input[value="2"]').check();
+  await q2.locator('input[value="4"]').check();
+  await q2.getByRole('button', { name: '判定', exact: true }).click();
+  await goSlide(3);
+  await page.setViewportSize({ width: 390, height: 1000 });
+  await page.evaluate(() => { document.documentElement.dataset.textSize = 'xlarge'; });
+  await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+  assert(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth + 1), '40文字の連続も390px・特大文字で折り返す');
+  await page.setViewportSize({ width: 1440, height: 1000 });
 
   await load('dr52'); await goSlide(1);
   const frequency = page.locator('[data-cp-frequency-assignment]');
@@ -248,10 +359,11 @@ try {
     for (const width of [1440, 720, 390]) {
       await page.setViewportSize({ width, height: 1000 });
       for (const theme of ['light', 'dark', 'system']) for (const font of ['standard', 'large', 'xlarge']) {
-        await page.evaluate(({ theme, font }) => { if (theme === 'system') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme; document.documentElement.dataset.textSize = font; }, { theme, font });
         for (let n = 1; n <= 7; n++) {
           await page.goto(new URL(`${id}.html#headline_${n}`, base).href);
+          await expect(page.getByRole('navigation', { name: 'スライド間の移動' })).toBeVisible();
           await expect(page.locator(`#headline_${n}`)).toBeVisible();
+          await page.evaluate(({ theme, font }) => { if (theme === 'system') delete document.documentElement.dataset.theme; else document.documentElement.dataset.theme = theme; document.documentElement.dataset.textSize = font; }, { theme, font });
           await page.evaluate(() => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve))));
           const sizes = await page.evaluate(() => ({ width: document.documentElement.clientWidth, scroll: document.documentElement.scrollWidth }));
           assert.ok(sizes.scroll <= sizes.width + 1, `${id} ${width}px ${theme}/${font} slide${n} 横はみ出し ${JSON.stringify(sizes)}`);
@@ -259,10 +371,50 @@ try {
       }
     }
   }
+  const touch = await browser.newContext({ viewport: { width: 390, height: 1000 }, hasTouch: true });
+  const touchPage = await touch.newPage();
+  await touchPage.route('**/*', route => new URL(route.request().url()).origin === base.origin ? route.continue() : route.abort());
+  await touchPage.goto(new URL('dr51.html#headline_3', base).href);
+  await expect(touchPage.getByRole('navigation', { name: 'スライド間の移動' })).toBeVisible();
+  const touchString = touchPage.locator('[data-cp-rle-practice="string"]');
+  await touchString.locator('[data-cp-practice-answer]').fill('A4B3C2D1A2');
+  await touchString.getByRole('button', { name: '判定', exact: true }).tap();
+  await expect(touchString.locator('[data-cp-practice-feedback]')).toContainText('正解');
+  await touchString.getByRole('button', { name: '入力を消す', exact: true }).tap();
+  await expect(touchString.locator('[data-cp-practice-answer]')).toHaveValue('');
+  await touchPage.goto(new URL('dr51.html#headline_4', base).href);
+  await expect(touchPage.getByRole('navigation', { name: 'スライド間の移動' })).toBeVisible();
+  const touchImage = touchPage.locator('[data-cp-rle-practice="image"]');
+  await touchImage.locator('[data-cp-practice-answer]').fill('黒5白4黒1白2');
+  await touchImage.getByRole('button', { name: '判定', exact: true }).tap();
+  await expect(touchImage.locator('[data-cp-practice-feedback]')).toContainText('正解');
+  await touchPage.goto(new URL('dr51.html#headline_7', base).href);
+  await expect(touchPage.getByRole('navigation', { name: 'スライド間の移動' })).toBeVisible();
+  const touchQ1 = touchPage.locator('[data-cp-image-question="figure2"]');
+  const touchQ2 = touchPage.locator('[data-cp-image-question="figure3"]');
+  await touchQ1.locator('[data-cp-image-answer]').fill('黒6白3黒3白黒3');
+  await touchQ1.getByRole('button', { name: '判定', exact: true }).tap();
+  await touchQ2.locator('input[value="2"]').tap();
+  await touchQ2.locator('input[value="4"]').tap();
+  await touchQ2.getByRole('button', { name: '判定', exact: true }).tap();
+  await expect(touchQ2.locator('[data-cp-image-feedback]')).toContainText('正解');
+  await expect(touchQ1.locator('[data-cp-image-solution]')).toBeVisible();
+  await touch.close();
   const noScript = await browser.newContext({ javaScriptEnabled: false });
   const fallback = await noScript.newPage();
-  for (const id of ['dr51', 'dr52']) { await fallback.goto(new URL(`${id}.html`, base).href); assert.equal(await fallback.locator('[data-lesson-slide]').count(), 7); await expect(fallback.locator('[data-lesson-slide]').last()).toBeVisible(); assert.equal(await fallback.locator('body.lesson-slide-ready').count(), 0); }
+  for (const id of ['dr51', 'dr52']) {
+    await fallback.goto(new URL(`${id}.html`, base).href);
+    assert.equal(await fallback.locator('[data-lesson-slide]').count(), 7);
+    await expect(fallback.locator('[data-lesson-slide]').last()).toBeVisible();
+    assert.equal(await fallback.locator('body.lesson-slide-ready').count(), 0);
+    if (id === 'dr51') {
+      await expect(fallback.locator('[data-cp-rle-practice="string"] noscript p')).toBeVisible();
+      await expect(fallback.locator('[data-cp-rle-practice="string"] noscript p')).toContainText('解答：A4B3C2D1A2');
+      await expect(fallback.locator('[data-cp-rle-practice="image"] noscript p')).toContainText('解答：黒5白4黒1白2');
+      await expect(fallback.locator('[data-cp-image-quiz] noscript p').nth(1)).toContainText('②と④');
+    }
+  }
   await noScript.close();
   assert.deepEqual(errors, [], 'ページ例外・コンソールエラーなし');
-  console.log(`compression-pages-browser (${engine}): 模式図、分数と棒、直接編集、頻度順アニメーション、固定座標木、根からの経路再生、図中の丸選択と3例、演習2問全段階、誤計算・再入力・リセット、3幅×3テーマ×3文字サイズ×7枚×2ページ、JavaScript無効を検証`);
+  console.log(`compression-pages-browser (${engine}): RLE上下配置・大きな文字・文字数・40文字編集、追加練習2問、画像3小問の独立判定・解答・再入力・リセット・タッチ、既存の圧縮/Huffman操作と演習、3幅×3テーマ×3文字サイズ×7枚×2ページ、JavaScript無効を検証`);
 } finally { await browser.close(); }
