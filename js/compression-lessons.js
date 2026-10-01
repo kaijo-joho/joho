@@ -38,16 +38,31 @@
     const afterCount = one(root, '[data-cp-rle-after-count]');
     const status = one(root, '[data-cp-rle-step]');
     const rate = one(root, '[data-cp-rle-rate]');
+    const numerator = one(root, '[data-cp-rle-numerator]');
+    const denominator = one(root, '[data-cp-rle-denominator]');
+    const rateAnswer = one(root, '[data-cp-rle-rate-answer]');
+    const arrow = one(root, '[data-cp-rle-arrow]');
     const next = one(root, '[data-cp-rle-next]');
     const toggle = one(root, '[data-cp-rle-edit-toggle]');
     const editor = one(root, '[data-cp-rle-editor]');
     const apply = one(root, '[data-cp-rle-apply]');
     const cancel = one(root, '[data-cp-rle-cancel]');
     const editStatus = one(root, '[data-cp-rle-edit-status]');
-    if (![input, before, after, status, rate, next, toggle, editor, apply, cancel, editStatus].every(Boolean)) return;
+    if (![input, before, after, status, rate, numerator, denominator, rateAnswer, arrow, next, toggle, editor, apply, cancel, editStatus].every(Boolean)) return;
 
     let source = input.value.normalize('NFKC').toUpperCase();
     let step = 0;
+    let showAnswer = false;
+    let busy = false;
+    let timer;
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const isVisible = () => !document.hidden && root.getClientRects().length > 0;
+    const stopWipe = () => {
+      clearTimeout(timer);
+      timer = undefined;
+      busy = false;
+      arrow.classList.remove('is-wiping');
+    };
     const validValue = value => /^[A-Z]{1,40}$/.test(value.normalize('NFKC').toUpperCase());
     const closeEditor = returnFocus => {
       input.value = source;
@@ -58,6 +73,7 @@
       if (beforeCount) beforeCount.hidden = false;
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
       toggle.setAttribute('aria-expanded', 'false');
+      render();
       if (returnFocus) toggle.focus();
     };
     const render = () => {
@@ -65,17 +81,31 @@
       after.replaceChildren();
       const result = Core.encodeRle(source);
       result.runs.forEach((run, index) => {
-        before.append(make('span', run.value.repeat(run.count), index === step - 1 ? 'is-current' : ''));
-        after.append(make('span', run.encoded, index === step - 1 ? 'is-current' : ''));
+        before.append(make('span', run.value.repeat(run.count), index === (busy ? step : step - 1) ? 'is-current' : ''));
+        if (index < step) after.append(make('span', run.encoded, index === step - 1 ? 'is-current' : ''));
       });
       if (beforeCount) beforeCount.textContent = `（${result.before}文字）`;
-      if (afterCount) afterCount.textContent = `（${result.after}文字）`;
-      const run = result.runs[step - 1];
-      status.textContent = run
-        ? `${step} / ${result.runs.length}：${run.value}が${run.count}回続く → ${run.encoded}${step === result.runs.length ? '。圧縮完了。' : ''}`
-        : `0 / ${result.runs.length}：「次のまとまり」で元の文字と圧縮後の対応を確かめます。`;
-      rate.textContent = rateText(result);
-      next.disabled = step >= result.runs.length;
+      const complete = step === result.runs.length;
+      if (afterCount) afterCount.textContent = complete ? `（${result.after}文字）` : '';
+      const run = result.runs[busy ? step : step - 1];
+      status.textContent = busy ? `${run.value}が${run.count}回続くまとまりを圧縮しています。`
+        : run ? `${run.value}が${run.count}回続く → ${run.encoded}${complete ? '。圧縮完了。' : ''}`
+          : '「次へ」で、同じ文字のまとまりを順に圧縮します。';
+      rate.hidden = !complete;
+      numerator.textContent = `${result.after}文字`;
+      denominator.textContent = `${result.before}文字`;
+      numerator.parentElement.setAttribute('aria-label', `圧縮後${result.after}文字を圧縮前${result.before}文字で割る`);
+      rateAnswer.hidden = !showAnswer;
+      rateAnswer.textContent = showAnswer ? `＝ ${number(Core.compressionRate(result.before, result.after))}%` : '';
+      next.disabled = busy || !editor.hidden || showAnswer;
+      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
+    };
+    const finishWipe = () => {
+      if (!busy) return;
+      const visible = isVisible();
+      stopWipe();
+      if (visible) step += 1;
+      render();
     };
     const validateInput = () => {
       const normalized = input.value.normalize('NFKC').toUpperCase();
@@ -88,6 +118,7 @@
       return { valid, normalized };
     };
     const openEditor = () => {
+      stopWipe();
       input.value = source;
       input.setAttribute('aria-invalid', 'false');
       apply.disabled = false;
@@ -97,6 +128,7 @@
       if (beforeCount) beforeCount.hidden = true;
       document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
       toggle.setAttribute('aria-expanded', 'true');
+      render();
       input.focus();
       input.select();
     };
@@ -108,9 +140,9 @@
       }
       source = normalized;
       step = 0;
+      showAnswer = false;
+      stopWipe();
       closeEditor(true);
-      render();
-      document.dispatchEvent(new CustomEvent('joho:lesson-content-resize'));
     };
 
     input.addEventListener('input', validateInput);
@@ -130,8 +162,39 @@
     });
     apply.addEventListener('click', applyInput);
     cancel.addEventListener('click', () => closeEditor(true));
-    next.addEventListener('click', () => { step += 1; render(); });
-    one(root, '[data-cp-rle-reset]').addEventListener('click', () => { step = 0; render(); });
+    next.addEventListener('click', () => {
+      if (next.disabled || !isVisible()) return;
+      if (step === Core.encodeRle(source).runs.length) {
+        showAnswer = true;
+        render();
+      } else if (motion.matches) {
+        step += 1;
+        render();
+      } else {
+        busy = true;
+        arrow.classList.add('is-wiping');
+        render();
+        // animationend is the normal completion; the timer also handles suppressed animations.
+        timer = setTimeout(finishWipe, 650);
+      }
+    });
+    arrow.addEventListener('animationend', event => {
+      if (event.animationName === 'cp-rle-arrow-wipe') finishWipe();
+    });
+    one(root, '[data-cp-rle-reset]').addEventListener('click', () => {
+      stopWipe(); step = 0; showAnswer = false; render();
+    });
+    const pauseHidden = () => {
+      if (busy && !isVisible()) { stopWipe(); render(); }
+    };
+    document.addEventListener('visibilitychange', pauseHidden);
+    document.addEventListener('joho:lesson-slide-change', pauseHidden);
+    document.addEventListener('joho:lesson-view-change', pauseHidden);
+    motion.addEventListener('change', () => { if (busy) { stopWipe(); render(); } });
+    // WebKit can move focus out of a button when it becomes disabled during the wipe.
+    document.addEventListener('keydown', event => {
+      if (event.key === 'Escape' && busy && isVisible()) { stopWipe(); render(); }
+    });
     controls(root);
     render();
   }
@@ -156,7 +219,7 @@
       });
       const runs = one(root, '[data-cp-image-runs]');
       runs.replaceChildren(...result.runs.slice(0, step).map((run, index) => make('li', run.encoded, index === step - 1 ? 'is-current' : '')));
-      one(root, '[data-cp-image-step]').textContent = current ? `${step} / ${result.runs.length}：${current.start + 1}〜${current.end}画素目 → ${current.encoded}${step === result.runs.length ? '。読み取り完了。' : ''}` : '左上から読みます。行をまたいでも同じ色が続けば、1つのまとまりです。';
+      one(root, '[data-cp-image-step]').textContent = current ? `${current.start + 1}〜${current.end}画素目 → ${current.encoded}${step === result.runs.length ? '。読み取り完了。' : ''}` : '左上から読みます。行をまたいでも同じ色が続けば、1つのまとまりです。';
       one(root, '[data-cp-image-encoded]').textContent = step ? result.runs.slice(0, step).map(run => run.encoded).join('') : '（まだ読み取っていません）';
       one(root, '[data-cp-image-rate-summary]').textContent = step === result.runs.length ? rateText(result) : '元の画像は25画素。「黒」「白」「数字」をそれぞれ1文字として比べます。';
       next.disabled = step >= result.runs.length;

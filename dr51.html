@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/digital-representation.css">
   <link rel="stylesheet" href="./css/compression-representation.css">
-  <link rel="stylesheet" href="./css/compression-experiments.css?v=20261001">
+  <link rel="stylesheet" href="./css/compression-experiments.css?v=20261001-r2">
   <link rel="stylesheet" href="./css/lesson-formula-builder.css">
   <link rel="stylesheet" href="./css/compression-quiz.css?v=20260930">
   <script defer src="./js/main.js"></script>
@@ -17,9 +17,9 @@
   <script defer src="./js/lesson-formula-grader.js"></script>
   <script defer src="./js/lesson-formula-builder.js"></script>
   <script defer src="./js/compression-formulas.js"></script>
-  <script defer src="./js/compression-lessons.js?v=20261001"></script>
+  <script defer src="./js/compression-lessons.js?v=20261001-r2"></script>
   <script defer src="./js/compression-quiz.js"></script>
-  <script defer src="./js/compression-experiments.js?v=20261001"></script>
+  <script defer src="./js/compression-experiments.js?v=20261001-r2"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
 <body data-lesson-slide-deck>
@@ -64,28 +64,6 @@
         <div class="cp-reference-card"><h3>100%を超える場合</h3><p>圧縮後の情報を記録するための目印が増えると、圧縮後のサイズが大きくなる場合があります。</p><p class="cp-equation">圧縮率が <strong>100%超</strong> なら、データ量は増えています。</p></div>
       </div>
       <div class="cp-observation"><strong>文字数モデルとbit数は区別する。</strong>文字列を何文字で表すかを比べる問題と、符号化したデータが何bitになるかを比べる問題では、分母・分子の単位を確認します。</div>
-      <section class="cp-experiment" data-cp-size-model aria-labelledby="cp-size-model-title">
-        <h3 id="cp-size-model-title">同じ単位で前後の大きさを比べる</h3>
-        <p>単位を選んで、圧縮前・圧縮後の値を入力します。圧縮率は「後÷前×100」、削減率は100%から圧縮率を引いて求めます。</p>
-        <div class="cp-controls cp-enhancement" hidden>
-          <label class="cp-select">単位
-            <select data-cp-size-unit aria-label="前後サイズの単位"><option value="B">B</option><option value="文字">文字</option><option value="bit">bit</option></select>
-          </label>
-          <label class="cp-select">圧縮前のサイズ
-            <input data-cp-size-before type="number" min="0" step="any" value="16" inputmode="decimal">
-          </label>
-          <label class="cp-select">圧縮後のサイズ
-            <input data-cp-size-after type="number" min="0" step="any" value="10" inputmode="decimal">
-          </label>
-        </div>
-        <div class="cp-size-chart" data-cp-size-chart role="img" aria-label="圧縮後10 B、圧縮前16 Bのサイズ比較">
-          <div class="cp-size-row"><span class="cp-size-label">圧縮後 10 B</span><span class="cp-size-track"><span class="cp-size-bar cp-size-bar--after" style="--cp-size-width:62.5%"></span></span></div>
-          <div class="cp-size-row"><span class="cp-size-label">圧縮前 16 B</span><span class="cp-size-track"><span class="cp-size-bar cp-size-bar--before" style="--cp-size-width:100%"></span></span></div>
-        </div>
-        <noscript><p class="cp-model-note">見本：16文字から10文字なら圧縮率62.5%、削減率37.5%です。単位をそろえて比べます。</p></noscript>
-        <p class="cp-equation" data-cp-size-result>圧縮率：10 ÷ 16 × 100 = 62.5%。削減率：37.5%です。</p>
-        <p class="cp-feedback" data-cp-size-status role="status" aria-live="polite"></p>
-      </section>
     </article>
   </section>
 
@@ -108,14 +86,15 @@
               <div class="cp-controls cp-rle-editor-actions"><button class="dr-button dr-button--primary" type="button" data-cp-rle-apply>適用</button><button class="dr-button" type="button" data-cp-rle-cancel>キャンセル</button></div>
             </div>
           </div>
-          <div class="cp-rle-flow-arrow" aria-hidden="true"><span>↓</span></div>
-          <div class="cp-rle-row"><h3>圧縮後</h3><p class="cp-string" data-cp-rle-compressed>A6B4C2D1A3</p><span class="cp-rle-count" data-cp-rle-after-count>（10文字）</span></div>
+          <div class="cp-rle-flow-arrow" data-cp-rle-arrow aria-hidden="true"><svg viewBox="0 0 32 48"><path d="M16 3v38M6 31l10 11 10-11"/><path class="cp-rle-arrow-ink" d="M16 3v38M6 31l10 11 10-11"/></svg></div>
+          <div class="cp-rle-row"><h3>圧縮後</h3><p class="cp-string" data-cp-rle-compressed></p><span class="cp-rle-count" data-cp-rle-after-count></span></div>
         </div>
-        <p class="cp-feedback" data-cp-rle-step role="status">1つ目のまとまり：A6</p>
-        <div class="cp-controls cp-enhancement" hidden><button class="dr-button dr-button--primary" type="button" data-cp-rle-next>次のまとまり</button><button class="dr-button" type="button" data-cp-rle-reset>最初から</button></div>
-        <p class="cp-equation" data-cp-rle-rate>元16文字 → 圧縮後10文字：10 ÷ 16 × 100 ＝ <strong>62.5%</strong></p>
+        <div class="cp-controls cp-enhancement" hidden><button class="dr-button dr-button--primary" type="button" data-cp-rle-next>次へ</button><button class="dr-button" type="button" data-cp-rle-reset>最初から</button></div>
+        <p class="cp-feedback" data-cp-rle-step role="status">「次へ」で、同じ文字のまとまりを順に圧縮します。</p>
+        <h3>圧縮率</h3>
+        <p class="cp-equation cp-equation--fraction" data-cp-rle-rate hidden><span class="cp-fraction" role="img"><span data-cp-rle-numerator></span><span data-cp-rle-denominator></span></span><span>× 100</span><strong data-cp-rle-rate-answer hidden></strong></p>
         <p class="cp-hint">文字列を編集して適用すると、同じ文字が続くまとまりごとの圧縮を試せます。入力中はEnterで適用、Escapeでキャンセルできます。</p>
-        <noscript><p>JavaScriptがなくても、上の例「AAAAAABBBBCCDAAA → A6B4C2D1A3」と圧縮率62.5%を確認できます。</p></noscript>
+        <noscript><p>文字列の圧縮例：AAAAAABBBBCCDAAA（16文字）→ A6B4C2D1A3（10文字）。圧縮率は10 ÷ 16 × 100 ＝ 62.5%です。</p></noscript>
       </div>
       <form class="cp-experiment cp-rle-practice" data-cp-rle-practice="string" data-cp-practice-source="AAAABBBCCDAA" data-lesson-slide-navigation-lock aria-labelledby="cp-string-practice-title">
         <h3 id="cp-string-practice-title">自分でやってみよう</h3>
@@ -158,16 +137,14 @@
           </div>
           <div>
             <h3>読み取りのまとまり</h3>
-            <ol class="cp-runs" data-cp-image-runs>
-              <li data-cp-image-run="0">黒6</li><li data-cp-image-run="1">白4</li><li data-cp-image-run="2">黒4</li><li data-cp-image-run="3">白1</li><li data-cp-image-run="4">黒1</li><li data-cp-image-run="5">白4</li><li data-cp-image-run="6">黒1</li><li data-cp-image-run="7">白4</li>
-            </ol>
-            <p class="cp-feedback" data-cp-image-step role="status">1つ目のまとまり：黒6</p>
             <div class="cp-controls cp-enhancement" hidden><button class="dr-button cp-image-reset" type="button" data-cp-image-reset>元に戻す</button><button class="dr-button dr-button--primary" type="button" data-cp-image-next>読み取り次へ</button></div>
+            <ol class="cp-runs" data-cp-image-runs></ol>
+            <p class="cp-feedback" data-cp-image-step role="status">左上から、行末と次行先頭を続けて読みます。</p>
+            <p class="cp-equation" data-cp-image-encoded>（まだ読み取っていません）</p>
+            <p class="cp-equation" data-cp-image-rate-summary>元の画像は25画素。「黒」「白」「数字」をそれぞれ1文字として比べます。</p>
           </div>
         </div>
-        <p class="cp-equation" data-cp-image-encoded>圧縮後：<strong>黒6白4黒4白1黒1白4黒1白4</strong>（回数1も書くルール）</p>
-        <p class="cp-equation" data-cp-image-rate-summary>元25画素 → 圧縮後16文字：16 ÷ 25 × 100 ＝ <strong>64%</strong></p>
-        <noscript><p>図は5×5画素です。左上から行末・次行先頭を続けて読むと、黒6白4黒4白1黒1白4黒1白4になります。</p></noscript>
+        <noscript><p>図は5×5画素です。左上から行末・次行先頭を続けて読むと、黒6白4黒4白1黒1白4黒1白4（16文字）になります。圧縮率は16 ÷ 25 × 100 ＝ 64%です。</p></noscript>
       </div>
       <form class="cp-experiment cp-rle-practice" data-cp-rle-practice="image" data-cp-practice-source="111110000100" data-lesson-slide-navigation-lock aria-labelledby="cp-image-practice-title">
         <h3 id="cp-image-practice-title">自分でやってみよう</h3>

@@ -43,21 +43,22 @@ try {
   assert.equal(await page.locator('[data-cp-image-model]').count(), 0, '未習の圧縮方式を導入に置かない');
   assert.equal(await page.locator('.cp-concept-arrows path[stroke-dasharray]').count(), 1, '非可逆の戻り矢印は点線');
   await goSlide(2);
-  await expect(page.locator('[data-cp-size-result]')).toContainText('削減率：37.5%');
   await expect(page.locator('.cp-fraction > span').first()).toHaveText('圧縮後のサイズ');
-  await expect(page.locator('[data-cp-size-chart] .cp-size-label').first()).toContainText('圧縮後');
-  await expect(page.locator('[data-cp-size-chart] .cp-size-label').last()).toContainText('圧縮前');
-  await page.getByRole('spinbutton', { name: '圧縮前のサイズ', exact: true }).fill('10');
-  await page.getByRole('spinbutton', { name: '圧縮後のサイズ', exact: true }).fill('12');
-  await expect(page.locator('[data-cp-size-result]')).toContainText('増加率：20%');
-  await page.getByRole('spinbutton', { name: '圧縮前のサイズ', exact: true }).fill('0');
-  await expect(page.locator('[data-cp-size-result]')).toContainText('0より大きい数');
-  assert.equal(await page.locator('[data-cp-size-chart]').getAttribute('aria-label'), null);
+  await expect(page.locator('.cp-fraction > span').nth(1)).toHaveText('圧縮前のサイズ');
+  await expect(page.locator('.cp-comparison--rate')).toContainText('10 ÷ 16 × 100 ＝ 62.5%');
+  assert.equal(await page.locator('[data-cp-size-model]').count(), 0, '圧縮率の定義と例を残し、操作用サイズモデルを置かない');
   await goSlide(3);
-  await expect(page.locator('[data-cp-rle-original]')).toHaveText('AAAAAABBBBCCDAAA');
-  await expect(page.locator('[data-cp-rle-compressed]')).toHaveText('A6B4C2D1A3');
-  await expect(page.locator('[data-cp-rle-before-count]')).toHaveText('（16文字）');
-  await expect(page.locator('[data-cp-rle-after-count]')).toHaveText('（10文字）');
+  const rle = page.locator('[data-cp-string-rle]');
+  const rleNext = rle.locator('[data-cp-rle-next]');
+  const rleArrow = rle.locator('[data-cp-rle-arrow]');
+  await expect(rle.locator('[data-cp-rle-original]')).toHaveText('AAAAAABBBBCCDAAA');
+  await expect(rle.locator('[data-cp-rle-compressed]')).toBeEmpty();
+  await expect(rle.locator('[data-cp-rle-before-count]')).toHaveText('（16文字）');
+  await expect(rle.locator('[data-cp-rle-after-count]')).toBeEmpty();
+  await expect(rle.locator('[data-cp-rle-rate]')).toBeHidden();
+  await expect(rle.locator('[data-cp-rle-rate-answer]')).toBeHidden();
+  await expect(rleNext).toHaveText('次へ');
+  await expect(rle.locator('[data-cp-rle-step]')).not.toContainText(/\b\d+\s*\/\s*\d+\b/);
   const stringPresentation = await page.locator('.cp-rle-demo').evaluate(el => {
     const original = el.querySelector('[data-cp-rle-original]');
     const compressed = el.querySelector('[data-cp-rle-compressed]');
@@ -70,13 +71,82 @@ try {
   });
   assert(stringPresentation.after > stringPresentation.before, '圧縮後を元の文字列の下へ置く');
   assert(stringPresentation.stringFont > stringPresentation.labelFont, '対象の文字を大きく表示する');
+  const firstRuns = ['A6', 'A6B4', 'A6B4C2', 'A6B4C2D1', 'A6B4C2D1A3'];
+  for (const [index, expected] of firstRuns.entries()) {
+    const beforeWipe = await rle.locator('[data-cp-rle-compressed]').textContent();
+    await rleNext.click();
+    if (index === 0) {
+      await expect(rleArrow).toHaveClass(/is-wiping/);
+      await expect(rleNext).toBeDisabled();
+      await expect(rle.locator('[data-cp-rle-compressed]')).toHaveText(beforeWipe);
+      await rleNext.evaluate(button => {
+        for (let i = 0; i < 3; i++) button.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+      });
+      await expect(rle.locator('[data-cp-rle-compressed]')).toHaveText(beforeWipe);
+    }
+    await expect(rle.locator('[data-cp-rle-compressed]')).toHaveText(expected);
+    await expect(rle.locator('[data-cp-rle-step]')).not.toContainText(/\b\d+\s*\/\s*\d+\b/);
+    if (index < firstRuns.length - 1) await expect(rle.locator('[data-cp-rle-rate]')).toBeHidden();
+  }
+  await expect(rle.locator('[data-cp-rle-after-count]')).toHaveText('（10文字）');
+  await expect(rle.locator('[data-cp-rle-rate]')).toBeVisible();
+  await expect(rle.locator('[data-cp-rle-numerator]')).toHaveText('10文字');
+  await expect(rle.locator('[data-cp-rle-denominator]')).toHaveText('16文字');
+  await expect(rle.locator('[data-cp-rle-rate-answer]')).toBeHidden();
+  await rleNext.click();
+  await expect(rle.locator('[data-cp-rle-rate-answer]')).toBeVisible();
+  await expect(rle.locator('[data-cp-rle-rate-answer]')).toHaveText('＝ 62.5%');
+  await expect(rleNext).toBeDisabled();
+  await rle.locator('[data-cp-rle-reset]').click();
+  await expect(rle.locator('[data-cp-rle-compressed]')).toBeEmpty();
+  await expect(rle.locator('[data-cp-rle-rate]')).toBeHidden();
   await page.getByRole('radio', { name: 'どちらも同じ', exact: true }).check();
   await page.getByRole('button', { name: '圧縮して比較', exact: true }).click();
   await expect(page.locator('[data-cp-string-compare-results]')).toContainText('200%');
   await expect(page.locator('[data-cp-string-compare-status]')).toContainText('予想と結果');
-  for (let i = 0; i < 5; i++) await page.getByRole('button', { name: '次のまとまり', exact: true }).click();
-  await expect(page.locator('[data-cp-rle-rate]')).toContainText('62.5%');
   await goSlide(4);
+  const imageRle = page.locator('[data-cp-image-rle]');
+  const imageNext = imageRle.locator('[data-cp-image-next]');
+  await expect(imageRle.locator('[data-cp-image-step]')).not.toContainText(/\b\d+\s*\/\s*\d+\b/);
+  const imageLayout = await imageRle.evaluate(root => {
+    const heading = Array.from(root.querySelectorAll('h3')).find(node => node.textContent.trim() === '読み取りのまとまり');
+    const controls = root.querySelector('[data-cp-image-next]').closest('.cp-controls');
+    const button = root.querySelector('[data-cp-image-next]');
+    const runs = root.querySelector('[data-cp-image-runs]');
+    const status = root.querySelector('[data-cp-image-step]');
+    const encoded = root.querySelector('[data-cp-image-encoded]');
+    const rate = root.querySelector('[data-cp-image-rate-summary]');
+    const after = (left, right) => Boolean(left.compareDocumentPosition(right) & Node.DOCUMENT_POSITION_FOLLOWING);
+    const bounds = button.getBoundingClientRect();
+    let ancestor = button.parentElement;
+    let paneScrollTop = 0;
+    while (ancestor && ancestor !== document.documentElement) { paneScrollTop += ancestor.scrollTop; ancestor = ancestor.parentElement; }
+    return {
+      buttonTop: bounds.top - new DOMMatrix(getComputedStyle(button).transform).m42 + window.scrollY + paneScrollTop,
+      order: Boolean(heading && controls.parentElement === heading.parentElement && heading.nextElementSibling === controls && after(controls, runs) && after(runs, status) && after(status, encoded) && after(encoded, rate))
+    };
+  });
+  assert(imageLayout.order, '画像の読み取りボタンを右列見出し直後に置き、読み取り結果を下へ並べる');
+  const imageRuns = ['黒6', '黒6白4', '黒6白4黒4', '黒6白4黒4白1', '黒6白4黒4白1黒1', '黒6白4黒4白1黒1白4', '黒6白4黒4白1黒1白4黒1', '黒6白4黒4白1黒1白4黒1白4'];
+  for (const [index, expected] of imageRuns.entries()) {
+    await imageNext.click();
+    await expect(imageRle.locator('[data-cp-image-runs] li')).toHaveCount(index + 1);
+    await expect(imageRle.locator('[data-cp-image-encoded]')).toContainText(expected);
+    await expect(imageRle.locator('[data-cp-image-step]')).not.toContainText(/\b\d+\s*\/\s*\d+\b/);
+    const documentTop = await imageNext.evaluate(button => {
+      let ancestor = button.parentElement;
+      let paneScrollTop = 0;
+      while (ancestor && ancestor !== document.documentElement) { paneScrollTop += ancestor.scrollTop; ancestor = ancestor.parentElement; }
+      // Ignore the shared 1px hover lift; compare the button's layout position.
+      return button.getBoundingClientRect().top - new DOMMatrix(getComputedStyle(button).transform).m42 + window.scrollY + paneScrollTop;
+    });
+    assert.ok(Math.abs(documentTop - imageLayout.buttonTop) < 1, `画像の読み取りボタンは段階${index + 1}でも同じ文書位置`);
+  }
+  await expect(imageNext).toBeDisabled();
+  await expect(imageRle.locator('[data-cp-image-rate-summary]')).toContainText('64%');
+  await imageRle.locator('[data-cp-image-reset]').click();
+  await expect(imageRle.locator('[data-cp-image-runs] li')).toHaveCount(0);
+  await expect(imageRle.locator('[data-cp-image-encoded]')).toContainText('まだ読み取っていません');
   await page.getByRole('radio', { name: 'まとまった配置', exact: true }).check();
   await page.getByRole('button', { name: '圧縮して比較', exact: true }).click();
   await expect(page.locator('[data-cp-image-compare-status]')).toContainText('黒13画素・白12画素');
@@ -90,11 +160,41 @@ try {
   await expect(page.locator('[data-cp-quiz-feedback]').first()).toContainText('全2項目正解');
 
   await goSlide(3);
-  const rle = page.locator('[data-cp-string-rle]');
+  // A pending wipe is canceled by Escape, opening the editor, reset, reduced motion, or hiding the slide.
+  await rleNext.click();
+  await expect(rleArrow).toHaveClass(/is-wiping/);
+  await page.keyboard.press('Escape');
+  await expect(rleArrow).not.toHaveClass(/is-wiping/);
+  await expect(rle.locator('[data-cp-rle-compressed]')).toBeEmpty();
+  await rleNext.click();
+  await expect(rleArrow).toHaveClass(/is-wiping/);
+  await rle.locator('[data-cp-rle-reset]').click();
+  await expect(rle.locator('[data-cp-rle-compressed]')).toBeEmpty();
+  await rleNext.click();
+  await expect(rleArrow).toHaveClass(/is-wiping/);
+  await page.emulateMedia({ reducedMotion: 'reduce' });
+  await expect(rleArrow).not.toHaveClass(/is-wiping/);
+  await expect(rle.locator('[data-cp-rle-compressed]')).toBeEmpty();
+  await rleNext.click();
+  await expect(rle.locator('[data-cp-rle-compressed]')).toHaveText('A6');
+  await expect(rleArrow).not.toHaveClass(/is-wiping/);
+  await rle.locator('[data-cp-rle-reset]').click();
+  await page.emulateMedia({ reducedMotion: 'no-preference' });
+  await rleNext.click();
+  await expect(rleArrow).toHaveClass(/is-wiping/);
+  await goSlide(4);
+  await expect(rle.locator('[data-cp-rle-compressed]')).toBeEmpty();
+  await goSlide(3);
+  await rleNext.click();
+  await expect(rleArrow).toHaveClass(/is-wiping/);
   await rle.getByRole('button', { name: '編集', exact: true }).click();
+  await expect(rleNext).toBeDisabled();
+  await expect(rleArrow).not.toHaveClass(/is-wiping/);
+  await expect(rle.locator('[data-cp-rle-compressed]')).toBeEmpty();
   await expect(rle.locator('[data-cp-rle-original]')).toBeHidden();
   const edit = rle.locator('[data-cp-rle-edit]');
   await edit.fill('ABC1');
+  await expect(rleNext).toBeDisabled();
   await expect(rle.locator('[data-cp-rle-apply]')).toBeDisabled();
   await edit.press('Escape');
   await expect(rle.locator('[data-cp-rle-original]')).toHaveText('AAAAAABBBBCCDAAA');
@@ -102,15 +202,33 @@ try {
   await rle.getByRole('button', { name: '編集', exact: true }).click();
   await edit.fill('ＡＡＡＢＢ'); await edit.press('Enter');
   await expect(rle.locator('[data-cp-rle-original]')).toHaveText('AAABB');
-  for (let i = 0; i < 2; i++) await rle.getByRole('button', { name: '次のまとまり', exact: true }).click();
+  await expect(rle.locator('[data-cp-rle-compressed]')).toBeEmpty();
+  await expect(rle.locator('[data-cp-rle-after-count]')).toBeEmpty();
+  await rleNext.click(); await expect(rleArrow).toHaveClass(/is-wiping/); await expect(rle.locator('[data-cp-rle-compressed]')).toHaveText('A3');
+  await rleNext.click(); await expect(rleArrow).toHaveClass(/is-wiping/); await expect(rle.locator('[data-cp-rle-compressed]')).toHaveText('A3B2');
   await expect(rle.locator('[data-cp-rle-compressed]')).toHaveText('A3B2');
   await expect(rle.locator('[data-cp-rle-before-count]')).toHaveText('（5文字）');
   await expect(rle.locator('[data-cp-rle-after-count]')).toHaveText('（4文字）');
+  await expect(rle.locator('[data-cp-rle-numerator]')).toHaveText('4文字');
+  await expect(rle.locator('[data-cp-rle-denominator]')).toHaveText('5文字');
+  await expect(rle.locator('[data-cp-rle-rate-answer]')).toBeHidden();
+  await rleNext.click();
+  await expect(rle.locator('[data-cp-rle-rate-answer]')).toHaveText('＝ 80%');
+  await expect(rleNext).toBeDisabled();
   // A long run can wrap while direct editing keeps the full string visible.
   await rle.getByRole('button', { name: '編集', exact: true }).click();
   await edit.fill('A'.repeat(40)); await edit.press('Enter');
+  await expect(rle.locator('[data-cp-rle-compressed]')).toBeEmpty();
+  await rleNext.click(); await expect(rleArrow).toHaveClass(/is-wiping/);
   await expect(rle.locator('[data-cp-rle-compressed]')).toHaveText('A40');
   await expect(rle.locator('[data-cp-rle-before-count]')).toHaveText('（40文字）');
+  await expect(rle.locator('[data-cp-rle-after-count]')).toHaveText('（3文字）');
+  await expect(rle.locator('[data-cp-rle-rate]')).toBeVisible();
+  await expect(rle.locator('[data-cp-rle-rate-answer]')).toBeHidden();
+  await expect(rle.locator('[data-cp-rle-numerator]')).toHaveText('3文字');
+  await expect(rle.locator('[data-cp-rle-denominator]')).toHaveText('40文字');
+  await rleNext.click();
+  await expect(rle.locator('[data-cp-rle-rate-answer]')).toHaveText('＝ 7.5%');
   const stringPractice = page.locator('[data-cp-rle-practice="string"]');
   const stringPracticeAnswer = stringPractice.locator('[data-cp-practice-answer]');
   await stringPractice.getByRole('button', { name: '判定', exact: true }).click();
@@ -416,5 +534,5 @@ try {
   }
   await noScript.close();
   assert.deepEqual(errors, [], 'ページ例外・コンソールエラーなし');
-  console.log(`compression-pages-browser (${engine}): RLE上下配置・大きな文字・文字数・40文字編集、追加練習2問、画像3小問の独立判定・解答・再入力・リセット・タッチ、既存の圧縮/Huffman操作と演習、3幅×3テーマ×3文字サイズ×7枚×2ページ、JavaScript無効を検証`);
+  console.log(`compression-pages-browser (${engine}): RLEワイプ後の段階表示・圧縮率の分数と答えの開示・連打防止と取消し・画像の読み取りボタン位置・40文字編集、追加練習2問、画像3小問の独立判定・解答・再入力・リセット・タッチ、既存の圧縮/Huffman操作と演習、3幅×3テーマ×3文字サイズ×7枚×2ページ、JavaScript無効を検証`);
 } finally { await browser.close(); }

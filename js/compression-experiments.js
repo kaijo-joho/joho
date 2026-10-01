@@ -19,55 +19,6 @@
   };
   const format = value => Number.isInteger(value) ? String(value) : String(Number(value.toFixed(2)));
 
-  function setupSizeModel(root) {
-    const before = one(root, '[data-cp-size-before]');
-    const after = one(root, '[data-cp-size-after]');
-    const unit = one(root, '[data-cp-size-unit]');
-    const chart = one(root, '[data-cp-size-chart]');
-    const output = one(root, '[data-cp-size-result]');
-    const status = one(root, '[data-cp-size-status]');
-    const update = () => {
-      const a = before.value === '' ? NaN : before.valueAsNumber;
-      const b = after.value === '' ? NaN : after.valueAsNumber;
-      chart.replaceChildren();
-      chart.removeAttribute('aria-label');
-      if (!Number.isFinite(a) || !Number.isFinite(b) || a <= 0 || b < 0) {
-        chart.removeAttribute('aria-label');
-        output.textContent = '圧縮前は0より大きい数、圧縮後は0以上の有限な数を入力してください。';
-        status.textContent = '';
-        return;
-      }
-      const rate = b / a * 100;
-      if (!Number.isFinite(rate)) {
-        output.textContent = '入力値の比を計算できません。小さい数を入力してください。';
-        status.textContent = '';
-        return;
-      }
-      const max = Math.max(a, b);
-      const bars = [
-        { label: `圧縮後 ${format(b)} ${unit.value}`, value: b, key: 'after' },
-        { label: `圧縮前 ${format(a)} ${unit.value}`, value: a, key: 'before' }
-      ];
-      bars.forEach(item => {
-        const row = text('div', '', 'cp-size-row');
-        row.append(text('span', item.label, 'cp-size-label'));
-        const track = document.createElement('span'); track.className = 'cp-size-track';
-        const bar = document.createElement('span'); bar.className = `cp-size-bar cp-size-bar--${item.key}`;
-        bar.style.setProperty('--cp-size-width', `${item.value / max * 100}%`);
-        track.append(bar); row.append(track); chart.append(row);
-      });
-      chart.setAttribute('aria-label', `圧縮前 ${format(a)} ${unit.value}、圧縮後 ${format(b)} ${unit.value}`);
-      const delta = 100 - rate;
-      const deltaText = delta >= 0 ? `削減率：${format(delta)}%です。` : `増加率：${format(-delta)}%です。`;
-      output.textContent = `圧縮率：${format(b)} ÷ ${format(a)} × 100 = ${format(rate)}%。${deltaText}`;
-      status.textContent = rate > 100 ? '圧縮後の棒が長く、圧縮率は100%を超えています。データ量が増えています。' : rate === 100 ? '前後のサイズは同じです。' : '圧縮後は圧縮前より小さくなっています。';
-    };
-    [before, after, unit].forEach(control => control.addEventListener('input', update));
-    [before, after, unit].forEach(control => control.addEventListener('change', update));
-    update();
-    showControls(root);
-  }
-
   function setupStringCompare(root) {
     const pairs = [
       { label: 'まとまった並び', value: 'AAAAAAAABBBBBBBB' },
@@ -172,7 +123,6 @@
 
   function initialize() {
     [
-      ['[data-cp-size-model]', setupSizeModel],
       ['[data-cp-rle-practice]', setupRlePractice],
       ['[data-cp-string-compare]', setupStringCompare],
       ['[data-cp-image-compare]', setupImageCompare]
