@@ -401,7 +401,7 @@
   }
 
   function renderTree(container, forest, {
-    active = '', hideCounts = false, reservedDepth = 0, layoutRoot = null,
+    active = '', hideCounts = false, hideBits = false, visibleBits = [], reservedDepth = 0, layoutRoot = null,
     selectable = [], selected = [], onSelect = null, newParent = '', tracing = ''
   } = {}) {
     if (!container) return;
@@ -426,29 +426,47 @@
     svg.append(svgElement('title', { id: `${uid}-title` }, interactive ? '丸を選んで結合するハフマン木' : hideCounts ? '枝の0と1から符号を読み取るハフマン木' : 'ハフマン木の結合と符号'));
     const descriptions = [];
     const visitDescription = (node, base) => {
-      if (node.symbol !== undefined) descriptions.push(`${node.symbol}：${hideCounts ? '回数は空欄' : `${node.count}回`}、${node.prefix === base ? '独立した葉' : `この木の根からの枝${node.prefix.slice(base.length)}`}`);
+      if (node.symbol !== undefined) descriptions.push(`${node.symbol}：${hideCounts ? '回数は空欄' : `${node.count}回`}${hideBits ? '' : `、${node.prefix === base ? '独立した葉' : `この木の根からの枝${node.prefix.slice(base.length)}`}`}`);
       else { visitDescription(node.zero, base); visitDescription(node.one, base); }
     };
     roots.forEach(node => visitDescription(node, node.prefix));
-    svg.append(svgElement('desc', { id: `${uid}-desc` }, `${roots.length}個の木。${descriptions.join('。')}。${interactive ? '結合していない根の丸を2つ選びます。Enterキーまたはスペースキーでも選べます。' : ''}`));
+    const visibleBitDescription = hideBits && visibleBits.length
+      ? `表示した枝：${visibleBits.map(prefix => `根から${prefix.split('').join('→')}までの最後の枝は${prefix.slice(-1)}`).join('。')}。`
+      : '';
+    svg.append(svgElement('desc', { id: `${uid}-desc` }, `${roots.length}個の木。${descriptions.join('。')}。${hideBits && !visibleBits.length ? '枝の符号はまだ表示していません。' : visibleBitDescription}${interactive ? '結合していない根の丸を2つ選びます。Enterキーまたはスペースキーでも選べます。' : ''}`));
     const edges = svgElement('g');
     const nodes = svgElement('g');
     const symbols = node => node.symbol || `${[...node.id.slice('node:'.length)].join('・')}（結合済み）`;
+    const tracingPrefixes = new Set(Array.isArray(tracing) ? tracing : tracing ? [tracing] : []);
     const draw = node => {
       const p = positions.get(node.id);
       if (node.symbol === undefined) {
         [node.zero, node.one].forEach((child, bit) => {
           const c = positions.get(child.id);
           const highlighted = active !== '' && active !== 'root' && active.startsWith(child.prefix);
-          const classes = [highlighted ? 'is-current' : '', node.id === newParent ? 'cp-new-edge' : '', child.prefix === tracing ? 'cp-tracing-edge' : ''].filter(Boolean).join(' ');
-          edges.append(svgElement('line', { x1: p.x, y1: p.y, x2: c.x, y2: c.y, class: classes, pathLength: 1, 'data-cp-edge': child.prefix }));
-          edges.append(svgElement('text', { x: (p.x + c.x) / 2 + (bit ? 12 : -12), y: (p.y + c.y) / 2, class: 'cp-edge-label' }, bit));
+          const joining = node.id === newParent;
+          const tracingEdge = tracingPrefixes.has(child.prefix);
+          const visibleBit = !hideBits || visibleBits.includes(child.prefix);
+          const classes = [highlighted ? 'is-current' : '', joining ? 'cp-new-edge' : '', tracingEdge ? 'cp-tracing-edge' : ''].filter(Boolean).join(' ');
+          edges.append(svgElement('line', {
+            x1: joining ? c.x : p.x, y1: joining ? c.y : p.y,
+            x2: joining ? p.x : c.x, y2: joining ? p.y : c.y,
+            class: classes, pathLength: 1, 'data-cp-edge': child.prefix
+          }));
+          if (visibleBit) edges.append(svgElement('text', {
+            x: (p.x + c.x) / 2 + (bit ? 12 : -12), y: (p.y + c.y) / 2,
+            class: `cp-edge-label${tracingEdge ? ' cp-tracing-label' : ''}`, 'data-cp-edge-label': child.prefix
+          }, bit));
           draw(child);
         });
       }
       const canSelect = interactive && selectable.includes(node.id);
       const classes = [active === node.id ? 'is-current' : '', selected.includes(node.id) ? 'is-selected' : '', node.id === newParent ? 'cp-new-node' : ''].filter(Boolean).join(' ');
       const group = svgElement('g', { 'data-cp-node': node.id, class: classes });
+      if (canSelect) group.append(svgElement('rect', {
+        x: p.x - 34, y: p.y - 34, width: 68, height: 68,
+        fill: 'transparent', 'aria-hidden': 'true', 'data-cp-hit-area': node.id
+      }));
       group.append(svgElement('circle', { cx: p.x, cy: p.y, r: 24 }));
       group.append(svgElement('text', { x: p.x, y: p.y }, hideCounts ? '?' : node.count));
       if (node.symbol !== undefined) group.append(svgElement('text', { x: p.x, y: p.y + 42, class: 'cp-leaf' }, node.symbol));
@@ -483,18 +501,92 @@
     const preset = one(root, '[data-cp-build-preset]');
     const next = one(root, '[data-cp-build-next]');
     const previous = one(root, '[data-cp-build-prev]');
+    const treeView = one(root, '[data-cp-tree]');
+    const status = one(root, '[data-cp-build-status]');
+    const rows = all(root, '[data-cp-build-row]');
     let step = 0;
+    const leafNames = node => node.symbol !== undefined ? [node.symbol] : [...leafNames(node.zero), ...leafNames(node.one)];
+    const describe = node => node.symbol || leafNames(node).join('・');
+    const internalNodes = rootNode => {
+      const queue = [rootNode], result = [];
+      while (queue.length) {
+        const node = queue.shift();
+        if (node.symbol !== undefined) continue;
+        result.push(node);
+        queue.push(node.zero, node.one);
+      }
+      return result;
+    };
     const render = () => {
       const fixture = preset ? Core.HUFFMAN_PRACTICE[Number(preset.value)] : Core.HUFFMAN_EXAMPLE;
       const tree = Core.huffmanFromCodes(fixture.frequencies, fixture.codes);
-      const current = tree.steps[step - 1];
-      renderTree(one(root, '[data-cp-tree]'), current ? current.forest : tree.leaves, { active: current ? current.parent.id : '', layoutRoot: tree.root, newParent: current ? current.parent.id : '' });
-      renderCodes(one(root, '[data-cp-codes]'), fixture, step === tree.steps.length);
-      one(root, '[data-cp-build-status]').textContent = current ? `結合${step} / ${tree.steps.length}：${current.zero.count} ＋ ${current.one.count} ＝ ${current.parent.count}。${step === tree.steps.length ? '木が完成。根から0・1をたどって各文字の符号を読みます。' : '残っている数から、最も少ない2つを探しましょう。'}` : `結合0 / ${tree.steps.length}：各文字の出現回数から、最も少ない2つを探しましょう。`;
-      next.disabled = step >= tree.steps.length; previous.disabled = step === 0;
+      const branchGroups = internalNodes(tree.root);
+      const joinEnd = 1 + tree.steps.length;
+      const bitStart = joinEnd + 1;
+      const codeStart = bitStart + branchGroups.length;
+      const finalStep = codeStart + Object.keys(fixture.codes).length - 1;
+      let forest = [];
+      let active = '';
+      let newParent = '';
+      let visibleBits = [];
+      let tracing = [];
+      let statusText = '';
+
+      if (step === 0) {
+        statusText = '「次へ」で文字の葉を置きます。';
+      } else if (step === 1) {
+        forest = tree.leaves;
+        statusText = '頻度の小さい2つを選び、順に結合します。';
+      } else if (step <= joinEnd) {
+        const joinIndex = step - 2;
+        const joined = tree.steps[joinIndex];
+        forest = joined.forest;
+        active = joined.parent.id;
+        newParent = joined.parent.id;
+        statusText = `${describe(joined.zero)}（${joined.zero.count}）と${describe(joined.one)}（${joined.one.count}）を結合し、${joined.parent.count}にします。`;
+        if (step === joinEnd) statusText += ' 木ができたら、枝に0と1を付けます。';
+      } else if (step < codeStart) {
+        forest = [tree.root];
+        const groupIndex = step - bitStart;
+        visibleBits = branchGroups.slice(0, groupIndex + 1).flatMap(node => [node.zero.prefix, node.one.prefix]);
+        tracing = [branchGroups[groupIndex].zero.prefix, branchGroups[groupIndex].one.prefix];
+        active = branchGroups[groupIndex].prefix || 'root';
+        statusText = `${branchGroups[groupIndex].prefix ? `節点${branchGroups[groupIndex].prefix.split('').join(' → ')}から` : '根から'}、左の枝を0、右の枝を1として表示します。`;
+        if (step === codeStart - 1) statusText += ' 枝の符号がそろいました。次に文字ごとの経路を読みます。';
+      } else {
+        forest = [tree.root];
+        visibleBits = branchGroups.flatMap(node => [node.zero.prefix, node.one.prefix]);
+        const symbolIndex = step - codeStart;
+        const symbol = Object.keys(fixture.codes)[symbolIndex];
+        active = fixture.codes[symbol];
+        statusText = `${symbol}まで根から枝をたどります。符号は${fixture.codes[symbol]}です。`;
+        if (step === finalStep) statusText += ' 符号表が完成しました。';
+      }
+
+      renderTree(treeView, forest, {
+        layoutRoot: tree.root,
+        reservedDepth: 4,
+        hideBits: true,
+        visibleBits,
+        active,
+        newParent,
+        tracing
+      });
+      rows.forEach((row, index) => {
+        const symbol = row.dataset.cpBuildRow;
+        const symbolIndex = Object.keys(fixture.codes).indexOf(symbol);
+        const codeCell = one(row, '[data-cp-build-code]');
+        const revealed = step >= codeStart + symbolIndex;
+        codeCell.textContent = revealed ? fixture.codes[symbol] : '';
+        row.classList.toggle('is-current', step > joinEnd && step >= codeStart && symbolIndex === step - codeStart);
+      });
+      root.dataset.cpBuildStep = String(step);
+      status.textContent = statusText;
+      next.disabled = step >= finalStep;
+      previous.disabled = step === 0;
     };
     next.addEventListener('click', () => { step += 1; render(); });
-    previous.addEventListener('click', () => { step -= 1; render(); });
+    previous.addEventListener('click', () => { step = Math.max(step - 1, 0); render(); });
     one(root, '[data-cp-build-reset]').addEventListener('click', () => { step = 0; render(); });
     if (preset) preset.addEventListener('change', () => { step = 0; render(); });
     controls(root); render();
@@ -503,80 +595,90 @@
   function setupCodec(root) {
     const decode = root.dataset.cpCodec === 'decode';
     const fixture = Core.HUFFMAN_EXAMPLE;
-    const tree = Core.huffmanFromCodes(fixture.frequencies, fixture.codes);
     const input = one(root, '[data-cp-codec-input]');
+    const form = one(root, '[data-cp-codec-form]');
     const next = one(root, '[data-cp-codec-next]');
+    const reset = one(root, '[data-cp-codec-reset]');
     const status = one(root, '[data-cp-codec-status]');
-    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
-    let step = 0, timer = null, busy = false, tracePrefix = '', traceSymbol = '';
-    const stop = () => { clearTimeout(timer); timer = null; busy = false; tracePrefix = ''; traceSymbol = ''; };
-    const isVisible = () => !document.hidden && !root.closest('[data-lesson-slide]')?.hidden && !root.closest('[data-lesson-view-panel]')?.hidden;
+    const sourceDisplay = one(root, '[data-cp-codec-source]');
+    const output = one(root, '[data-cp-codec-output]');
+    const pendingDisplay = one(root, '[data-cp-codec-pending]');
+    const codeRows = all(root, '[data-cp-codec-row]');
+    const codes = fixture.codes;
+    const codeToSymbol = Object.fromEntries(Object.entries(codes).map(([symbol, bits]) => [bits, symbol]));
+    let step = 0;
     const render = () => {
       const source = clean(input.value);
-      const valid = decode ? /^[01]{1,80}$/.test(source) : /^[A-E]{1,80}$/.test(source);
+      const valid = decode ? /^[01]{1,160}$/.test(source) : /^[A-E]{1,80}$/.test(source);
       input.setAttribute('aria-invalid', String(!valid));
-      const sourceDisplay = one(root, '[data-cp-codec-source]');
-      const output = one(root, '[data-cp-codec-output]');
-      sourceDisplay.replaceChildren(); output.replaceChildren();
-      renderCodes(one(root, '[data-cp-codes]'), fixture);
+      sourceDisplay.replaceChildren(...[...source].map((character, index) =>
+        make('span', character, index === step - 1 ? 'is-current' : '')
+      ));
+      codeRows.forEach(row => row.classList.remove('is-current'));
       if (!valid) {
-        sourceDisplay.textContent = source || '（未入力）';
-        status.textContent = decode ? '0と1を1〜80桁で入力してください。' : 'A〜Eの文字を1〜80文字で入力してください。';
-        next.disabled = true; renderTree(one(root, '[data-cp-tree]'), [tree.root]); return;
+        output.replaceChildren();
+        pendingDisplay.textContent = '—';
+        status.textContent = source
+          ? (decode ? '0と1を1〜160bitで入力してください。' : 'A〜Eの文字を1〜80文字で入力してください。')
+          : (decode ? 'ビット列を入力してください。' : '文字列を入力してください。');
+        next.disabled = true;
+        return;
       }
-      [...source].forEach((char, index) => sourceDisplay.append(make('span', char, index === (busy ? step : step - 1) ? 'is-current' : '')));
-      let active = 'root', symbol = '', message = '';
+
+      let currentSymbol = '';
       if (decode) {
-        let node = tree.root;
-        let restored = '';
-        for (const bit of source.slice(0, step)) {
-          node = bit === '0' ? node.zero : node.one;
-          active = node.prefix; symbol = node.symbol || '';
-          if (symbol) { restored += symbol; node = tree.root; }
+        let decoded = '';
+        let pending = '';
+        const consumed = source.slice(0, step);
+        for (let index = 0; index < consumed.length; index += 1) {
+          pending += consumed[index];
+          const symbol = codeToSymbol[pending];
+          if (symbol) {
+            decoded += symbol;
+            if (index === consumed.length - 1) currentSymbol = symbol;
+            pending = '';
+          }
         }
-        output.textContent = restored || '（まだ文字は確定していません）';
-        message = step === 0 ? '根からスタート。1bitずつ枝をたどります。' : symbol ? `${source[step - 1]}の枝で${symbol}に到着 → ${symbol}を復元。${step < source.length ? '次は根から読みます。' : '復元完了。'}` : `根からの経路：${active.split('').join(' → ')}。${step === source.length ? '符号の途中で終わっています。続きを入力してください。' : '次のbitを読んで枝をたどります。'}`;
+        output.textContent = decoded || '（まだ文字は確定していません）';
+        pendingDisplay.textContent = pending || '—';
+        if (step === source.length && pending) status.textContent = `入力は符号の途中（${pending}）で終わっています。続きのbitを追加してください。`;
+        else if (step === source.length) status.textContent = `復元完了。${decoded.length}文字を確認しました。`;
+        else if (currentSymbol) status.textContent = `符号${codes[currentSymbol]}が表の${currentSymbol}と一致しました。${currentSymbol}を復元しました。`;
+        else status.textContent = pending ? `表と照合中の符号は${pending}です。次のbitを確認します。` : '次のbitを符号表と照合します。';
       } else {
-        [...source.slice(0, step)].forEach((char, index) => output.append(make('span', fixture.codes[char], `cp-token${!busy && index === step - 1 ? ' is-current' : ''}`)));
-        if (busy) {
-          active = tracePrefix || 'root';
-          symbol = traceSymbol;
-          if (tracePrefix) output.append(make('span', tracePrefix, 'cp-token is-current'));
-          message = `${traceSymbol}の葉へ：根${tracePrefix ? ` → ${tracePrefix.split('').join(' → ')}` : 'からスタート'}。枝を上からたどります。`;
+        const completed = source.slice(0, step);
+        output.replaceChildren(...[...completed].map((character, index) => {
+          const span = make('span', codes[character], `cp-token${index === step - 1 ? ' is-current' : ''}`);
+          span.setAttribute('aria-label', `${character}の符号${codes[character]}`);
+          return span;
+        }));
+        pendingDisplay.textContent = step ? codes[source[step - 1]] : '—';
+        if (step < source.length) {
+          status.textContent = step === 0
+            ? `「次へ」で${source[step]}に対応する符号を表から追加します。`
+            : `${source[step - 1]}の符号${codes[source[step - 1]]}を追加しました。次は${source[step]}です。`;
         } else {
-          symbol = source[step - 1] || '';
-          active = symbol ? fixture.codes[symbol] : 'root';
-          message = symbol ? `${symbol}：根 → ${fixture.codes[symbol].split('').join(' → ')}。符号${fixture.codes[symbol]}（${fixture.codes[symbol].length}bit）。${step === source.length ? '符号化完了。' : ''}` : '「次の文字」で、根から葉へ枝を1本ずつたどります。';
+          status.textContent = `符号化完了。${source.length}文字を${Core.encodeHuffman(source, codes).length}bitで表しました。`;
         }
-        if (!step && !busy) output.textContent = '（まだ符号化していません）';
       }
-      renderCodes(one(root, '[data-cp-codes]'), fixture, true, symbol);
-      renderTree(one(root, '[data-cp-tree]'), [tree.root], { active, tracing: busy && tracePrefix ? tracePrefix : decode && step ? active : '' });
-      status.textContent = `${step} / ${source.length}：${message}`;
-      next.disabled = busy || step >= source.length;
+      next.disabled = step >= source.length;
+      next.setAttribute('aria-label', decode ? '次のbitを復元' : '次の文字を符号化');
+      const activeSymbol = decode ? currentSymbol : source[step - 1] || '';
+      codeRows.find(row => row.dataset.cpCodecRow === activeSymbol)?.classList.add('is-current');
     };
-    input.addEventListener('input', () => { stop(); step = 0; render(); });
-    next.addEventListener('click', () => {
-      if (busy || next.disabled) return;
-      if (decode || motion.matches) { step += 1; render(); return; }
-      traceSymbol = clean(input.value)[step];
-      const bits = fixture.codes[traceSymbol];
-      busy = true; tracePrefix = ''; render();
-      const advance = () => {
-        if (!isVisible()) { stop(); render(); return; }
-        if (tracePrefix.length === bits.length) { stop(); step += 1; render(); return; }
-        tracePrefix = bits.slice(0, tracePrefix.length + 1); render();
-        timer = setTimeout(advance, 450);
-      };
-      timer = setTimeout(advance, 350);
+    input.addEventListener('input', () => {
+      step = 0;
+      const normalized = clean(input.value);
+      if (input.value !== normalized) input.value = normalized;
+      render();
     });
-    one(root, '[data-cp-codec-reset]').addEventListener('click', () => { stop(); step = 0; render(); });
-    const pauseHidden = () => { if (busy && !isVisible()) { stop(); render(); } };
-    document.addEventListener('visibilitychange', pauseHidden);
-    document.addEventListener('joho:lesson-slide-change', pauseHidden);
-    document.addEventListener('joho:lesson-view-change', pauseHidden);
-    motion.addEventListener('change', () => { if (busy) { stop(); render(); } });
-    root.addEventListener('keydown', event => { if (event.key === 'Escape' && busy) { stop(); render(); } });
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      if (next.disabled) return;
+      step += 1;
+      render();
+    });
+    reset.addEventListener('click', () => { step = 0; render(); });
     controls(root); render();
   }
 

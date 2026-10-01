@@ -48,7 +48,7 @@
     return { ...source, sortKey };
   }
 
-  function defineHuffman(index) {
+  function defineHuffman(index, { codes: selectedCodes } = {}) {
     if (!Number.isInteger(index) || index < 0 || index >= Compression.HUFFMAN_QUESTIONS.length) {
       throw new RangeError('Huffman問題の番号を指定してください');
     }
@@ -56,8 +56,10 @@
     const result = definition(`huffman-question-${index + 1}`);
     const characterCount = Array.from(fixture.text).length;
     const originalBits = characterCount * fixture.fixedBits;
-    const codes = fixture.codes;
+    const codes = selectedCodes || fixture.codes;
     const frequencies = fixture.frequencies;
+    // The exercise uses the student's completed tree, including valid tie/branch alternatives.
+    Compression.huffmanFromCodes(frequencies, codes);
     const frequencySources = [];
     const codeLengthSources = [];
     const frequencySymbols = new Map();

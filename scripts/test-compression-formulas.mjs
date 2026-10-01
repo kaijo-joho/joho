@@ -33,6 +33,18 @@ equal(judged.tasks[0].answerCorrect, true, 'RLE圧縮率');
 
 const expectedAnswers = [[40, 34, 85], [120, 90, 75]];
 for (const [index, fixture] of Compression.HUFFMAN_QUESTIONS.entries()) {
+  const mirroredCodes = Object.fromEntries(Object.entries(fixture.codes).map(([symbol, code]) => [symbol, [...code].map(bit => bit === '0' ? '1' : '0').join('')]));
+  const mirrored = Formulas.defineHuffman(index, { codes: mirroredCodes });
+  equal(mirrored.tasks.map(item => item.expected), expectedAnswers[index], '左右を入れ替えた自作木でも原稿と同じbit数と率');
+  equal(Compression.decodeHuffman(Compression.encodeHuffman(fixture.encodeText, mirroredCodes), mirroredCodes), fixture.encodeText, '自作木の符号で符号化と復元が対応する');
+}
+const changedLengths = { A: '0', B: '10', C: '110', D: '111' };
+const changedDefinition = Formulas.defineHuffman(0, { codes: changedLengths });
+equal(changedDefinition.tasks.map(item => item.expected), [40, 38, 95], '式の定義は指定された木の符号長から計算し、原稿の34bitを使い回さない');
+equal(changedDefinition.sources.find(item => item.id === 'codeLength-A').value, '1', '自作木のAの符号長を数量へ反映');
+rejects(() => Formulas.defineHuffman(0, { codes: { A: '0', B: '00', C: '10', D: '11' } }), '接頭符号でない表は式の定義に使用しない');
+rejects(() => Formulas.defineHuffman(0, { codes: { A: '0', B: '10', C: '11' } }), '文字種が不足した表は式の定義に使用しない');
+for (const [index, fixture] of Compression.HUFFMAN_QUESTIONS.entries()) {
   const definition = Formulas.defineHuffman(index);
   equal(definition.tasks.map(item => item.expected), expectedAnswers[index], `Huffman ${index + 1} 原稿のbit数と率`);
   equal(definition.quantities.filter(item => item.id.startsWith('frequency-')).length, Object.keys(fixture.frequencies).length, '各頻度を数量として用意');

@@ -1,9 +1,9 @@
 @charset "UTF-8";
 
-[data-cp-frequency-assignment] { margin: 1em 0; padding: clamp(12px, 2vw, 24px); border: 1px solid var(--dr-border); border-radius: 12px; background: var(--dr-panel); color: var(--dr-text); }
-[data-cp-frequency-assignment] > :first-child { margin-top: 0; }
-[data-cp-frequency-assignment] > :last-child { margin-bottom: 0; }
-.cp-frequency-assignment__source { min-height: 2.2em; padding: 10px 12px; border-radius: 6px; background: var(--dr-panel-strong); font: 1.08em/1.8 ui-monospace, monospace; letter-spacing: .035em; overflow-wrap: anywhere; }
+[data-cp-frequency-stepper] { margin: 1em 0; padding: clamp(12px, 2vw, 24px); border: 1px solid var(--dr-border); border-radius: 12px; background: var(--dr-panel); color: var(--dr-text); }
+[data-cp-frequency-stepper] > :first-child { margin-top: 0; }
+[data-cp-frequency-stepper] > :last-child { margin-bottom: 0; }
+.cp-frequency-assignment__source { min-height: 2.2em; padding: 10px 12px; border-radius: 6px; background: var(--dr-panel-strong); font: 700 1.25em/1.8 ui-monospace, monospace; letter-spacing: .035em; overflow-wrap: anywhere; }
 .cp-frequency-assignment__table-wrap { max-width: 100%; overflow-x: auto; border: 1px solid var(--dr-border); border-radius: 7px; }
 .cp-frequency-assignment__table { width: 100%; min-width: 560px; border-collapse: collapse; table-layout: fixed; font-variant-numeric: tabular-nums; }
 .cp-frequency-assignment__table caption { padding: 8px; color: var(--dr-muted); text-align: left; }
@@ -20,10 +20,10 @@
 .cp-frequency-assignment__controls .dr-button { min-height: 44px; }
 .cp-frequency-assignment__status { box-sizing: border-box; height: 6em; margin: 8px 0 0; padding: 8px 10px; overflow: auto; border-left: 3px solid var(--dr-info); background: var(--dr-info-soft); line-height: 1.5; }
 .cp-frequency-assignment__hint { color: var(--dr-muted); font-size: .9em; line-height: 1.6; }
-[data-cp-frequency-assignment] :is(button, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+[data-cp-frequency-stepper] :is(button, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
 
 @media (max-width: 390px) {
-  [data-cp-frequency-assignment] { padding: 10px; }
+  [data-cp-frequency-stepper] { padding: 10px; }
   .cp-frequency-assignment__table { min-width: 520px; }
 }
 
@@ -32,7 +32,7 @@
 }
 
 @media print {
-  [data-cp-frequency-assignment] { padding: 0; border: 0; background: transparent; }
+  [data-cp-frequency-stepper] { padding: 0; border: 0; background: transparent; }
   .cp-frequency-assignment__controls { display: none !important; }
   .cp-frequency-assignment__table-wrap { overflow: visible; }
   .cp-frequency-assignment__table { min-width: 0; }
@@ -44,3 +44,43 @@
 .cp-frequency-assignment__table { display: table; margin: 0; padding: 0; font: inherit; background: var(--dr-panel); color: var(--dr-text); }
 .cp-frequency-assignment__table th { background: var(--dr-info-soft); color: var(--dr-text); }
 .cp-frequency-assignment__table td { background: var(--dr-panel-strong); color: var(--dr-text); }
+
+/* dr52 1枚目: 操作欄の位置を固定し、表と符号列を段階表示 */
+[data-cp-frequency-stepper] .cp-frequency-toolbar { position: sticky; z-index: 3; top: 0; margin: .4rem 0 1rem; padding: .55rem; border: 1px solid var(--dr-border); border-radius: 12px; background: var(--dr-panel-strong); box-shadow: 0 3px 14px rgba(0, 0, 0, .12); }
+[data-cp-frequency-stepper] .cp-frequency-assignment__controls { position: static; justify-content: center; margin: 0; padding: 0; border: 0; background: transparent; box-shadow: none; }
+[data-cp-frequency-stepper] .cp-frequency-assignment__controls .dr-button { min-height: 48px; min-width: min(9rem, 42vw); font-size: 1.05em; transform: none; }
+[data-cp-frequency-stepper] .cp-frequency-assignment__status { height: auto; min-height: 2.8em; max-height: 6em; margin: .5rem 0 0; padding: .55rem .7rem; overflow: auto; }
+[data-cp-frequency-stepper] .cp-frequency-results { margin-top: .75rem; }
+[data-cp-frequency-stepper] .cp-frequency-assignment__table [data-cp-frequency-column].is-current { background: var(--dr-info-soft); box-shadow: inset 0 0 0 2px var(--dr-focus); }
+[data-cp-frequency-stepper] .cp-frequency-streams { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(8px, 1.5vw, 16px); align-items: start; }
+[data-cp-frequency-stepper] .cp-frequency-stream { min-width: 0; margin: .75rem 0; padding: clamp(9px, 1.2vw, 14px); }
+[data-cp-frequency-stepper] .cp-frequency-stream .cp-frequency-assignment__bits { margin-bottom: .5em; }
+[data-cp-frequency-stepper] .cp-frequency-stage[hidden] { display: none !important; }
+[data-cp-frequency-stepper] .cp-frequency-ratio { display: flex; flex-wrap: wrap; align-items: center; gap: .65em 1.2em; }
+[data-cp-frequency-stepper] .cp-frequency-ratio h4 { flex-basis: 100%; }
+[data-cp-frequency-stepper] .cp-frequency-fraction { display: inline-flex; min-width: 3.5em; flex-direction: column; align-items: stretch; text-align: center; font-size: 1.5em; font-variant-numeric: tabular-nums; line-height: 1.2; }
+[data-cp-frequency-stepper] .cp-frequency-fraction span:first-child { padding: 0 .4em .15em; border-bottom: 2px solid currentColor; }
+[data-cp-frequency-stepper] .cp-frequency-fraction span:last-child { padding: .15em .4em 0; }
+[data-cp-frequency-stepper] .cp-frequency-answer { border-color: var(--dr-info); background: var(--dr-info-soft); font-size: clamp(1.05rem, 2vw, 1.3rem); line-height: 1.7; }
+[data-cp-frequency-stepper] :is(button, [tabindex]):focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
+
+@media (max-width: 600px) {
+  [data-cp-frequency-stepper] .cp-frequency-streams { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (max-width: 390px) {
+  [data-cp-frequency-stepper] .cp-frequency-toolbar { padding: .4rem; }
+  [data-cp-frequency-stepper] .cp-frequency-assignment__controls { gap: 6px; }
+  [data-cp-frequency-stepper] .cp-frequency-assignment__controls .dr-button { min-width: 0; flex: 1 1 44%; }
+  [data-cp-frequency-stepper] .cp-frequency-assignment__bits { padding: 10px 8px; font-size: 1rem; letter-spacing: .015em; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  [data-cp-frequency-stepper] .cp-frequency-assignment__table [data-cp-frequency-column] { scroll-behavior: auto; }
+}
+
+@media print {
+  [data-cp-frequency-stepper] .cp-frequency-toolbar { display: none !important; }
+}
+
+[data-cp-frequency-stepper] .cp-frequency-assignment__bits { font: 700 1.1em/1.8 ui-monospace, monospace; overflow-wrap: anywhere; letter-spacing: .035em; }

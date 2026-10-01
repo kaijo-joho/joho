@@ -1,128 +1,126 @@
 (function () {
   'use strict';
 
-  const root = document.querySelector('[data-cp-frequency-assignment]');
+  const root = document.querySelector('[data-cp-frequency-stepper]');
   const Core = window.CompressionCore;
   if (!root || !Core || !Core.HUFFMAN_EXAMPLE) return;
 
   const fixture = Core.HUFFMAN_EXAMPLE;
-  const symbols = Object.keys(fixture.frequencies).sort((left, right) =>
-    fixture.frequencies[right] - fixture.frequencies[left] || left.localeCompare(right, 'en')
-  );
+  const text = fixture.text;
+  const symbols = ['A', 'B', 'C', 'D', 'E'];
+  const fixedCodes = { A: '001', B: '010', C: '011', D: '100', E: '101' };
+  const order = ['B', 'A', 'C', 'D', 'E'];
   const codes = fixture.codes;
+  const expectedCodes = { A: '10', B: '0', C: '110', D: '1110', E: '1111' };
+  const encodedFixed = Array.from(text, symbol => fixedCodes[symbol]);
+  const encodedVariable = Core.encodeHuffman(text, codes);
   const tree = Core.huffmanFromCodes(fixture.frequencies, codes);
-  const expectedOrder = ['B', 'A', 'C', 'D', 'E'];
-  if (symbols.join('') !== expectedOrder.join('') || tree.totalBits !== 38) return;
+  if (symbols.some(symbol => !fixedCodes[symbol] || codes[symbol] !== expectedCodes[symbol]) || encodedFixed.join('').length !== 54 || tree.totalBits !== 38 || encodedVariable.length !== 38) return;
 
-  const source = root.querySelector('[data-cp-frequency-source]');
-  const codeCells = new Map(Array.from(root.querySelectorAll('[data-cp-frequency-code]'), cell => [cell.dataset.cpFrequencyCode, cell]));
-  const bitCells = new Map(Array.from(root.querySelectorAll('[data-cp-frequency-contribution]'), cell => [cell.dataset.cpFrequencyContribution, cell]));
-  const frequencyCells = new Map(Array.from(root.querySelectorAll('[data-cp-frequency-count]'), cell => [cell.dataset.cpFrequencyCount, cell]));
-  const columns = new Map(Object.keys(fixture.frequencies).map(symbol => [symbol,
-    Array.from(root.querySelectorAll(`[data-cp-frequency-column="${symbol}"]`))
-  ]));
-  const original = root.querySelector('[data-cp-frequency-original-total]');
-  const compressed = root.querySelector('[data-cp-frequency-compressed-total]');
-  const status = root.querySelector('[data-cp-frequency-assignment-status]');
-  const controls = root.querySelector('[data-cp-frequency-assignment-controls]');
-  const play = root.querySelector('[data-cp-frequency-play]');
   const next = root.querySelector('[data-cp-frequency-next]');
-  const replay = root.querySelector('[data-cp-frequency-replay]');
-  if (!source || !status || !controls || !play || !next || !replay || symbols.some(symbol =>
-    !codeCells.has(symbol) || !bitCells.has(symbol) || !frequencyCells.has(symbol) || !columns.get(symbol)?.length
-  )) return;
+  const restart = root.querySelector('[data-cp-frequency-restart]');
+  const status = root.querySelector('[data-cp-frequency-status]');
+  const fallback = root.querySelector('[data-cp-frequency-fallback]');
+  const results = root.querySelector('[data-cp-frequency-results]');
+  const toolbar = root.querySelector('[data-cp-frequency-toolbar]');
+  const fixedTable = root.querySelector('[data-cp-frequency-fixed-table]');
+  const frequencyTable = root.querySelector('[data-cp-frequency-frequency-table]');
+  const codeTable = root.querySelector('[data-cp-frequency-code-table]');
+  const fixedStreamPanel = root.querySelector('[data-cp-frequency-fixed-stream-panel]');
+  const fixedStream = root.querySelector('[data-cp-frequency-fixed-bits]');
+  const variableStreamPanel = root.querySelector('[data-cp-frequency-variable-stream-panel]');
+  const variableStream = root.querySelector('[data-cp-frequency-variable-bits]');
+  const ratio = root.querySelector('[data-cp-frequency-ratio]');
+  const answer = root.querySelector('[data-cp-frequency-answer]');
+  if (!next || !restart || !status || !fallback || !results || !toolbar || !fixedTable || !frequencyTable || !codeTable || !fixedStreamPanel || !fixedStream || !variableStreamPanel || !variableStream || !ratio || !answer) return;
 
-  source.textContent = fixture.text;
-  for (const symbol of Object.keys(fixture.frequencies)) frequencyCells.get(symbol).textContent = String(fixture.frequencies[symbol]);
-  original.textContent = `${fixture.text.length * fixture.fixedBits}bit`;
-  compressed.textContent = `${tree.totalBits}bit`;
-
-  const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
-  const slide = root.closest('[data-lesson-slide]');
-  let step = 0;
-  let timer = 0;
-  let running = false;
-  const messages = {
-    B: 'B（7回）には1bitの符号0。最も多い文字に短い符号が使われています。',
-    A: 'A（5回）には2bitの符号10。次に多い文字の符号も短めです。',
-    C: 'C（3回）には3bitの符号110。頻度が下がると符号が長くなっています。',
-    D: 'D（2回）には4bitの符号1110。符号はハフマン木の枝から決まります。',
-    E: 'E（1回）には4bitの符号1111。次のスライドで木から符号の決まり方を確かめます。'
+  const fixedCells = new Map(Array.from(root.querySelectorAll('[data-cp-frequency-fixed-code]'), cell => [cell.dataset.cpFrequencyFixedCode, cell]));
+  const frequencyCells = new Map(Array.from(root.querySelectorAll('[data-cp-frequency-count]'), cell => [cell.dataset.cpFrequencyCount, cell]));
+  const codeCells = new Map(Array.from(root.querySelectorAll('[data-cp-frequency-code]'), cell => [cell.dataset.cpFrequencyCode, cell]));
+  const contributionCells = new Map(Array.from(root.querySelectorAll('[data-cp-frequency-contribution]'), cell => [cell.dataset.cpFrequencyContribution, cell]));
+  const totalCells = {
+    fixed: root.querySelector('[data-cp-frequency-fixed-total]'),
+    frequency: root.querySelector('[data-cp-frequency-frequency-total]'),
+    variable: root.querySelector('[data-cp-frequency-variable-total]'),
+    contribution: root.querySelector('[data-cp-frequency-contribution-total]')
   };
+  const columns = new Map(symbols.map(symbol => [symbol, Array.from(root.querySelectorAll(`[data-cp-frequency-column="${symbol}"]`))]));
+  if (symbols.some(symbol => !fixedCells.has(symbol) || !frequencyCells.has(symbol) || !codeCells.has(symbol) || !contributionCells.has(symbol) || !columns.get(symbol)?.length) || Object.values(totalCells).some(cell => !cell)) return;
 
-  function isAvailable() {
-    return !document.hidden && (!slide || (!slide.hidden && slide.getAttribute('aria-hidden') !== 'true'));
-  }
+  const fixedStreamText = encodedFixed.join(' ');
+  const variableStreamText = Array.from(text, symbol => codes[symbol]).join(' ');
+  const totalSteps = 15;
+  let step = 0;
 
-  function stop() {
-    if (timer) window.clearTimeout(timer);
-    timer = 0;
-    running = false;
-    play.textContent = '再生';
-    play.setAttribute('aria-label', '頻度の高い順に符号を表示');
-    play.setAttribute('aria-pressed', 'false');
+  function setCurrent(symbol) {
+    symbols.forEach(item => columns.get(item).forEach(cell => cell.classList.toggle('is-current', item === symbol)));
   }
 
   function render() {
-    symbols.forEach((symbol, index) => {
-      const shown = index < step;
-      codeCells.get(symbol).textContent = shown ? codes[symbol] : '';
-      bitCells.get(symbol).textContent = shown ? String(fixture.frequencies[symbol] * codes[symbol].length) : '';
-      columns.get(symbol).forEach(cell => cell.classList.toggle('is-current', index === step - 1));
+    root.dataset.cpFrequencyStep = String(step);
+    fixedStreamPanel.hidden = step < 2;
+    variableStreamPanel.hidden = step < 13;
+    ratio.hidden = step < 14;
+    answer.hidden = step < 15;
+
+    symbols.forEach(symbol => {
+      const frequencyStep = 2 + symbols.indexOf(symbol) + 1;
+      const codeStep = 7 + order.indexOf(symbol) + 1;
+      fixedCells.get(symbol).textContent = step >= 1 ? fixedCodes[symbol] : '';
+      frequencyCells.get(symbol).textContent = step >= frequencyStep ? String(fixture.frequencies[symbol]) : '';
+      codeCells.get(symbol).textContent = step >= codeStep ? codes[symbol] : '';
+      contributionCells.get(symbol).textContent = step >= codeStep ? String(fixture.frequencies[symbol] * codes[symbol].length) : '';
     });
-    if (step === 0) status.textContent = '再生または「次の割り当て」で、頻度の高い文字から符号とbit数を見ます。';
-    else if (step < symbols.length) status.textContent = messages[symbols[step - 1]];
-    else status.textContent = '合計は38bit。固定長3bitの54bitに対して約70%です。符号は次のスライドで作るハフマン木から読み取れます。';
-    compressed.textContent = step >= symbols.length ? `${tree.totalBits}bit` : '—';
-    next.disabled = step >= symbols.length;
-    play.disabled = step >= symbols.length;
+    totalCells.fixed.textContent = step >= 2 ? '54bit' : '';
+    totalCells.frequency.textContent = step >= 7 ? '18' : '';
+    totalCells.variable.textContent = step >= 12 ? '38bit' : '';
+    totalCells.contribution.textContent = step >= 12 ? '38bit' : '';
+    fixedStream.textContent = fixedStreamText;
+    variableStream.textContent = variableStreamText;
+
+    const messages = {
+      0: 'まず、5種類の文字に固定長符号を割り当てます。',
+      1: '2bitでは4通りまでなので5種類には足りません。3bitなら8通りを表せます。A=001、B=010、C=011、D=100、E=101とし、各文字を3bitにしました。',
+      2: '元の18文字を固定長符号に置き換えました。1文字3bitなので、合計54bitです。',
+      3: 'Aは5回です。頻度表へ記入しました。',
+      4: 'Bは7回です。頻度表へ記入しました。',
+      5: 'Cは3回です。頻度表へ記入しました。',
+      6: 'Dは2回です。頻度表へ記入しました。',
+      7: 'Eは1回です。5種類すべての頻度が分かり、合計18文字です。',
+      8: '頻度が最も高いBに、最も短い1bitの符号0を割り当てました。',
+      9: '次に多いAへ2bitの符号10を割り当てました。',
+      10: 'Cへ3bitの符号110を割り当てました。',
+      11: 'Dへ4bitの符号1110を割り当てました。',
+      12: 'Eへ4bitの符号1111を割り当てました。符号の形は次のスライドで作るハフマン木から決まります。',
+      13: '各文字を可変長符号へ置き換えると38bitです。空白は文字ごとの境目を見やすくする表示です。',
+      14: '圧縮率は「圧縮後÷圧縮前×100」。分子は38bit、分母は54bitです。',
+      15: '38÷54×100＝70.37…%。小数第1位を四捨五入して約70%です。'
+    };
+    status.textContent = messages[step];
+    next.disabled = step >= totalSteps;
+    next.textContent = step >= totalSteps ? '最後まで確認しました' : '次へ';
+    setCurrent(step >= 8 && step <= 12 ? order[step - 8] : (step >= 3 && step <= 7 ? symbols[step - 3] : ''));
   }
 
   function advance() {
-    if (step < symbols.length) step += 1;
-    render();
-    if (step >= symbols.length) stop();
-  }
-
-  function schedule() {
-    if (!running || !isAvailable()) { stop(); return; }
-    timer = window.setTimeout(() => {
-      timer = 0;
-      advance();
-      if (running) schedule();
-    }, 900);
-  }
-
-  function start() {
-    if (step >= symbols.length || !isAvailable()) return;
-    if (reducedMotion.matches) {
-      step = symbols.length;
+    if (step < totalSteps) {
+      step += 1;
       render();
-      return;
     }
-    running = true;
-    play.textContent = '一時停止';
-    play.setAttribute('aria-label', 'アニメーションを一時停止');
-    play.setAttribute('aria-pressed', 'true');
-    schedule();
   }
 
   function reset() {
-    stop();
     step = 0;
     render();
+    next.focus();
   }
 
-  controls.hidden = false;
+  fallback.hidden = true;
+  results.hidden = false;
+  toolbar.hidden = false;
+  root.querySelector('[data-cp-frequency-controls]').hidden = false;
   root.classList.add('is-enhanced');
-  play.addEventListener('click', () => running ? stop() : start());
-  next.addEventListener('click', () => { stop(); advance(); });
-  replay.addEventListener('click', reset);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) stop(); });
-  window.addEventListener('pagehide', stop);
-  document.addEventListener('joho:lesson-slide-change', event => {
-    if (event.detail?.slide !== slide) stop();
-  });
-  if (reducedMotion.addEventListener) reducedMotion.addEventListener('change', () => { if (reducedMotion.matches) stop(); });
+  next.addEventListener('click', advance);
+  restart.addEventListener('click', reset);
   render();
 })();

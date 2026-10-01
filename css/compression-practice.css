@@ -1,20 +1,15 @@
 @charset "UTF-8";
-.cp-practice-presets [aria-pressed="true"] { border: 2px solid var(--dr-focus); background: var(--dr-info-soft); font-weight: 800; }
-.cp-practice-presets button { min-width: 72px; }
-.cp-practice-selection { min-height: 3.2em; overflow-wrap: anywhere; }
-.cp-tree--interactive svg { min-width: 600px; }
-.cp-tree [data-cp-practice-node] { cursor: pointer; outline: none; }
-.cp-tree [data-cp-practice-node]:hover circle { fill: var(--dr-info-soft); }
-.cp-tree [data-cp-practice-node]:focus-visible circle { stroke: var(--dr-focus); stroke-width: 6px; }
-.cp-tree .is-selected circle { stroke: var(--dr-focus); stroke-width: 5px; fill: var(--dr-info-soft); stroke-dasharray: 5 3; }
-.cp-tree .cp-selection-order { font-size: 18px; font-weight: 800; fill: var(--dr-info); }
-.cp-tree .cp-new-edge, .cp-tree .cp-tracing-edge { animation: cp-connect .4s ease-out both; }
-.cp-tree .cp-new-node { animation: cp-node-appear .4s ease-out both; }
-[data-cp-codec] [data-cp-codec-status] { min-height: 3.2em; }
-@keyframes cp-connect { from { stroke-dasharray: 1; stroke-dashoffset: 1; } to { stroke-dasharray: 1; stroke-dashoffset: 0; } }
-@keyframes cp-node-appear { from { opacity: .25; } to { opacity: 1; } }
-@media (prefers-reduced-motion: reduce) { .cp-tree .cp-new-edge, .cp-tree .cp-tracing-edge, .cp-tree .cp-new-node { animation: none; } }
-@media print { .cp-tree .cp-new-edge, .cp-tree .cp-tracing-edge, .cp-tree .cp-new-node { animation: none; } }
 
-:is([data-cp-huffman-build], [data-cp-huffman-practice], [data-cp-codec]) > h3 { color: var(--dr-info); }
-.cp-comparison--codec h4 { color: var(--dr-text); }
+.cp-huffman-practice .cp-practice-selection { min-height: 3.2em; overflow-wrap: anywhere; }
+.cp-huffman-practice .cp-practice-presets [aria-pressed="true"] { border: 2px solid var(--dr-focus); background: var(--dr-info-soft); font-weight: 800; }
+.cp-huffman-practice .cp-practice-presets button { min-width: 72px; }
+.cp-huffman-practice .cp-tree--interactive { max-width: 100%; min-height: 250px; overflow-x: auto; overscroll-behavior-inline: contain; }
+.cp-huffman-practice .cp-tree--interactive svg { min-width: 600px; }
+.cp-huffman-practice .cp-tree [data-cp-practice-node] { cursor: pointer; outline: none; }
+.cp-huffman-practice .cp-tree [data-cp-practice-node]:hover circle { fill: var(--dr-info-soft); }
+.cp-huffman-practice .cp-tree [data-cp-practice-node]:focus-visible circle { stroke: var(--dr-focus); stroke-width: 6px; }
+.cp-huffman-practice .cp-tree .is-selected circle { stroke: var(--dr-focus); stroke-width: 5px; fill: var(--dr-info-soft); stroke-dasharray: 5 3; }
+.cp-huffman-practice .cp-tree .cp-selection-order { font-size: 18px; font-weight: 800; fill: var(--dr-info); }
+.cp-huffman-practice [data-cp-build-status] { min-height: 3.2em; overflow-wrap: anywhere; }
+.cp-huffman-practice .cp-practice-actions button { min-height: 44px; }
+.cp-huffman-practice button:focus-visible { outline: 3px solid var(--dr-focus); outline-offset: 3px; }
