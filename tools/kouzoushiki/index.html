@@ -291,14 +291,29 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .tri button:focus-visible{outline-offset:-2px}
 .iso-conds label.off{opacity:.5}
 /* ---- 官能基の強調表示の凡例 ---- */
-#fgLegend{position:absolute;right:10px;top:8px;display:flex;flex-direction:column;gap:3px;background:var(--panel);opacity:.93;
-  border:1px solid var(--line);border-radius:8px;padding:5px 9px;font-size:12px;pointer-events:none;z-index:2}
+#fgLegend{position:absolute;right:10px;top:8px;display:flex;flex-direction:column;gap:2px;background:var(--panel);
+  border:1px solid var(--line);border-radius:8px;padding:5px 6px;font-size:12px;z-index:2}
+#fgLegend .lgh{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 3px 2px}
+#fgLegend .lgh button{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:6px;padding:0 7px;font-size:11px;cursor:pointer}
+#fgLegend .lgh button:hover,#fgLegend .lgi:hover{background:var(--hover)}
+#fgLegend .lgi{border:0;background:none;color:var(--text);text-align:left;padding:1px 3px;border-radius:5px;font-size:12px;cursor:pointer;white-space:nowrap}
+#fgLegend .lgi.off{color:var(--muted);text-decoration:line-through}
+#fgLegend .lgi.off i{opacity:.25}
 #fgLegend[hidden]{display:none}
 #fgLegend i{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-2px;opacity:.75}
 /* ---- 下部：分子式のまとめ方 ---- */
-#gmSeg{flex:none}
-#gmSeg[hidden]{display:none}
-#formulas{max-height:92px;overflow-y:auto}
+#fmWrap{flex:none}
+#fmWrap[hidden],#fmPop[hidden]{display:none}
+#fmBtn{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:14px;padding:2px 10px;font-size:12px;cursor:pointer;white-space:nowrap}
+#fmBtn:hover{background:var(--hover)}
+.info{position:relative}
+#fmPop{position:absolute;left:10px;bottom:calc(100% + 4px);width:min(760px,calc(100% - 20px));max-height:min(55vh,420px);overflow:auto;
+  background:var(--panel);border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow);padding:10px;z-index:30}
+#fmList{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+#formulas{flex-wrap:nowrap;overflow:hidden;min-width:0}
+#formulas.clip{-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent);mask-image:linear-gradient(90deg,#000 calc(100% - 28px),transparent)}
+#formulas .fgrp{flex-wrap:nowrap}
+#formulas .chip,#formulas .fgrp{flex:none}
 .fgrp{display:inline-flex;align-items:center;flex-wrap:wrap;gap:4px 6px;border:1px solid var(--line);border-radius:14px;padding:2px 6px 2px 10px;background:var(--panel)}
 .fgrp .gname{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
 .fgrp .chip{padding:1px 8px}
@@ -573,11 +588,17 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
   </main>
 
   <footer class="info">
-    <div class="seg small" id="gmSeg" role="group" aria-label="分子式のまとめ方" hidden>
-      <button data-gm="none" title="1 つずつ並べる">そのまま</button>
-      <button data-gm="formula" title="同じ分子式をまとめる">分子式</button>
-      <button data-gm="class" title="アルカン・アルケン・アルコール・ケトンなど、化合物群ごとにまとめる">化合物群</button>
-      <button data-gm="chain" title="主鎖の炭素数（環なら員数）ごとにまとめる">主鎖の C 数</button>
+    <div id="fmWrap" hidden>
+      <button type="button" id="fmBtn" aria-expanded="false" aria-controls="fmPop" title="分子式の一覧と、まとめ方（分子式・化合物群・主鎖の C 数）を開く">一覧 ▴</button>
+      <div id="fmPop" hidden role="group" aria-label="分子式の一覧">
+        <div class="seg small" id="gmSeg" role="group" aria-label="分子式のまとめ方">
+          <button data-gm="none" title="1 つずつ並べる">そのまま</button>
+          <button data-gm="formula" title="同じ分子式をまとめる">分子式</button>
+          <button data-gm="class" title="アルカン・アルケン・アルコール・ケトンなど、化合物群ごとにまとめる">化合物群</button>
+          <button data-gm="chain" title="主鎖の炭素数（環なら員数）ごとにまとめる">主鎖の C 数</button>
+        </div>
+        <div id="fmList"></div>
+      </div>
     </div>
     <div id="formulas"></div>
     <div id="warnings"></div>
@@ -669,8 +690,8 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <details><summary>置換基（CH₃ を COOH などに）</summary><p>端の原子を選び、ポップアップの「置換基」から C₂H₅・COOH・NO₂ などを選ぶと、簡略構造式のラベルに変わります（結合が右から来るときは HOOC– のように向きが反転）。原子をダブルクリック、原子に乗せて <kbd>Enter</kbd>、テキストツールで原子をクリックしても入力できます（COO- のように最後に + − を付けると電荷）。「CH₃（メチル基に戻す）」で元に戻り、分子式・分子量にも反映されます。</p></details>
     <details><summary>略記号・一般の記号</summary><p>R・R'・R1・X・Ar（一般の記号）、Me・Et・Pr・iPr・Bu・tBu・Ph・Ac・Bn（略記号）が使えます。OMe・COOEt のように組み合わせることもできます。R・X を含むと分子量は「—」になります。</p></details>
     <details><summary>名前を付ける</summary><p>構造を選び（画面下の分子式の札をクリックしても選べます）、ポップアップの<strong>「名前を付ける」</strong>を押すと、教科書の決まりで名前を付けて、構造のすぐ下に<strong>文字</strong>で置きます（元に戻すで 1 回で取り消せます。文字なので、テキストツールで直せます）。異性体を並べる機能と同じ命名の仕組みです。イソブタンなどの慣用名は（ ）に添えます。<strong>確信が持てない構造や、まだ対応していない構造（C・H・O 以外の原子、電荷、環が 2 つ以上のものなど）には付けず</strong>、理由を知らせます。立体（シス・トランスなど）は区別しません。</p></details>
-    <details><summary>分子式・分子量</summary><p>画面の下に、つながりごとの分子式と分子量（金属・電荷を含むときは式量）が出ます。有機化合物は C・H・そのほかの順（C₂H₆O など）、無機物は教科書の書き方（H₂SO₄・HNO₃・NH₃・CO₂ など）で並べます。クリックするとその構造全体が選ばれ、選んでいる構造の分子式には色が付きます。構造が 2 つ以上あるときは、札の左の切り替えで<strong>まとめ方</strong>を選べます：<strong>そのまま</strong>（1 つずつ）、<strong>分子式</strong>（同じ分子式を 1 つの札にして「×個数」を付ける。初めの設定）、<strong>化合物群</strong>（アルカン・アルケン・アルキン・シクロアルカン・ベンゼン環をもつ炭化水素・アルコール・フェノール類・エーテル・アルデヒド・ケトン・カルボン酸・エステルなどに分ける）、<strong>主鎖の C 数</strong>（主鎖の炭素数、環なら員数ごとに分ける。名前を付けられない構造は「—」）。まとめた札をクリックすると、その中の構造がまとめて選ばれます。</p></details>
-    <details><summary>官能基を色で強調</summary><p>「全体の表記」メニューの<strong>「官能基を色で強調」</strong>をオンにすると、ヒドロキシ基（−OH）・エーテル結合（−O−）・ホルミル基（−CHO）・カルボニル基（&gt;C=O）・カルボキシ基（−COOH）・エステル結合（−COO−）・二重結合・三重結合を、種類ごとの色の下地で目立たせます（ベンゼン環の二重結合は対象外）。図の右上に色の凡例が出ます。図ごとの設定で、画像に書き出したときにも色が付きます。異性体を並べるときは、モーダルの「官能基を色で強調」（初めはオン）で決めます。</p></details>
+    <details><summary>分子式・分子量</summary><p>画面の下に、つながりごとの分子式と分子量（金属・電荷を含むときは式量）が出ます。有機化合物は C・H・そのほかの順（C₂H₆O など）、無機物は教科書の書き方（H₂SO₄・HNO₃・NH₃・CO₂ など）で並べます。クリックするとその構造全体が選ばれ、選んでいる構造の分子式には色が付きます。構造が 2 つ以上あるときは、下の 1 行に収まるように札を並べ（入りきらないときは右端がかすみます）、左の<strong>「一覧」ボタン</strong>で全部を折り返して見られるポップアップが開きます。ポップアップの上の切り替えで<strong>まとめ方</strong>を選べます：<strong>そのまま</strong>（1 つずつ）、<strong>分子式</strong>（同じ分子式を 1 つの札にして「×個数」を付ける。初めの設定）、<strong>化合物群</strong>（アルカン・アルケン・アルキン・シクロアルカン・ベンゼン環をもつ炭化水素・アルコール・フェノール類・エーテル・アルデヒド・ケトン・カルボン酸・エステルなどに分ける）、<strong>主鎖の C 数</strong>（主鎖の炭素数、環なら員数ごとに分ける。名前を付けられない構造は「—」）。まとめた札をクリックすると、その中の構造がまとめて選ばれます。</p></details>
+    <details><summary>官能基を色で強調</summary><p>「全体の表記」メニューの<strong>「官能基を色で強調」</strong>をオンにすると、ヒドロキシ基（−OH）・エーテル結合（−O−）・ホルミル基（−CHO）・カルボニル基（&gt;C=O）・カルボキシ基（−COOH）・エステル結合（−COO−）・二重結合・三重結合・ベンゼン環を、種類ごとの色の下地で目立たせます（C=C は炭化水素基の二重結合だけで、ベンゼン環の二重結合はベンゼン環として別に扱います）。図の右上に色の凡例が出ます。凡例の<strong>種類をクリック</strong>するとその種類だけ強調を外し（もう一度押すと戻る）、<strong>「やめる」</strong>で強調を全部やめます。図ごとの設定で、画像に書き出したときにも色が付きます。異性体を並べるときは、モーダルの「官能基を色で強調」（初めはオン）で決めます。</p></details>
   </section>
   <section data-help-topic="stereo" data-help-title="立体・テンプレート">
     <h3>立体・テンプレート</h3>
@@ -753,7 +774,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
       <li>構造異性体を並べた図が、<strong>新しいタブ</strong>にできます。いま描いている図はそのまま残ります。</li>
     </ol>
     <details><summary>並び方</summary><p>「主鎖の炭素数で列を分ける」をオンにすると、左から主鎖の長い順に列を作ります（主鎖 7（直鎖）→ 主鎖 6 → …）。教科書の数え方（主鎖を 1 つずつ短くして枝を動かす）と同じ順なので、数え落としを見つけやすくなります。環を含むものは、そのあとに「6員環」「5員環」「4員環」「3員環」のように、員数の多い環から順に列が分かれます（環が 2 つ以上のものは「二環（5・6員環）」のように、環の大きさの組で分けます）。酸素を含むときは、まず官能基（アルコール・フェノール類・エーテル・アルデヒド・ケトン・カルボン酸・エステル・その他）ごとにまとまりを分け、そのまとまりの中を、主鎖や環の列に分けます。ベンゼン環をもつものは「ベンゼン環をもつもの」としてまとめ、置換の数（一置換・二置換（o-・m-・p-）・三置換…）ごとの列に分けます。1 列が 12 個を超えると、次の列に続きます。</p></details>
-    <details><summary>条件の選び方</summary><p>C=C・C≡C・環・ベンゼン環・酸素を含む条件は、<strong>「どちらでも／含む／含まない」のボタンを 1 回押す</strong>だけで選べます。矛盾する組み合わせは選べないようにしています（環や C=C を「含まない」にするとベンゼン環は「含まない」に固定され、ベンゼン環を「含む」にすると環・C=C は「含まない」にできません）。</p></details>
+    <details><summary>条件の選び方</summary><p>C=C・C≡C・環・ベンゼン環・酸素を含む条件は、<strong>「含む／どちらでも／含まない」のボタンを 1 回押す</strong>だけで選べます。C=C は炭化水素基の二重結合だけを数え、ベンゼン環の二重結合は数えません（ベンゼン環は別の条件です）。矛盾する組み合わせは選べないようにしています（環を「含まない」にするとベンゼン環は「含まない」に固定され、ベンゼン環を「含む」にすると環は「含まない」にできません）。</p></details>
     <details><summary>3・4 員環を出すか選ぶ</summary><p>環を含む異性体を数えるときは、モーダルの「環の大きさ」で、3 員環（シクロプロパン）・4 員環（シクロブタン）を出すかどうかを選べます。ひずみが大きくて高校ではあまり扱わないので、外すと候補がすっきりします。二環などの中に 3・4 員環がある構造も、外すと出なくなります。</p></details>
     <details><summary>名前</summary><p>名前は、高校の教科書の決まり（いちばん長い鎖を主鎖に、枝の位置番号が小さくなるように、枝はアルファベット順）で付けます。ベンゼン環（トルエン・o-／m-／p-キシレン・エチルベンゼン・クメン・フェノール・o-／m-／p-クレゾール・ベンジルアルコール・アニソール・安息香酸・アセトフェノンなど。ベンゼン環は 1 つだけ）、アルコール（エタノール）、エーテル（ジエチルエーテル）、アルデヒド（プロパナール）、ケトン（2-ブタノン）、カルボン酸（エタン酸）、エステル（酢酸エチル）に対応しています。イソブタン・ネオペンタン・エチレン・アセトン・酢酸・グリセリンなどの慣用名は（ ）に添えます（エステルは「酢酸エチル」のように酸の慣用名で書きます）。<strong>確信が持てないものは「—」</strong>にしています。名前はふつうの文字なので、テキストツールで直せます。</p></details>
     <details><summary>できること・できないこと</summary><p>C・H・O だけ（炭素と酸素の合計 10 個まで）に対応しています。シス・トランスは、モーダルの「シス・トランス（E/Z）を区別する」をオンにすると別の異性体として数え（初めはオフ）、図はジグザグに描いて向きを見せます。環の置換基のシス・トランスと、鏡像異性体は区別しません。過酸化物（O–O）は数えません。窒素・ハロゲンなどはまだ対応していません。酸素の条件では、「−OH」からカルボキシ基の OH を、「−O−（エーテル）」からエステルの O を除いて数えます（アルコールと酸、エーテルとエステルを分ける教科書の考え方に合わせています）。候補が 300 個を超えるか、計算に時間がかかりすぎるときは途中で打ち切り、見出しにそう書きます。並べた図はふつうの図なので、いらないものを消す・書き込む・画像に書き出す・保存する、が自由にできます。</p></details>
@@ -772,7 +793,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.17（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.18（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -789,7 +810,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
   <p class="muted iso-info" id="isoInfo">&nbsp;</p>
   <div class="gl">条件</div>
   <div class="iso-conds">
-    <label>C=C（二重結合）<select data-cond="C=C"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
+    <label>C=C（二重結合。ベンゼン環は除く）<select data-cond="C=C"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
     <label>C≡C（三重結合）<select data-cond="C#C"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
     <label>環<select data-cond="環" id="isoRingSel"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
     <label id="isoBenz">ベンゼン環<select data-cond="ベンゼン環"><option value="any">どちらでも</option><option value="yes">含む</option><option value="no">含まない</option></select></label>
@@ -1372,7 +1393,7 @@ function isoFactory(){
   }
   const ringSizes = g => sssr(g).map(r => r.length).sort((a, b) => a - b);   // 含まれる環の大きさ（小さい順）
   const tests = {
-    'C=C': g => g.e.some(([i, j, o]) => o === 2 && g.el[i] === 'C' && g.el[j] === 'C'),
+    'C=C': g => aromCopy(g).e.some(([i, j, o]) => o === 2 && g.el[i] === 'C' && g.el[j] === 'C'),   // ベンゼン環の二重結合は数えない（炭化水素基の C=C だけ）
     'C#C': g => g.e.some(([i, j, o]) => o === 3 && g.el[i] === 'C' && g.el[j] === 'C'),
     '環':   g => rings(g) > 0,
     'O':    g => g.el.includes('O'),
@@ -2246,7 +2267,8 @@ const ISO = isoFactory();
 // ================= 官能基の検出と強調表示（doc.fg が真のとき、buildScene が下地に色を敷く） =================
 const FG_KINDS = {   // 種類：[名前, 色]（順番は凡例の順）
   oh:['ヒドロキシ基 −OH', '#ef4444'], ether:['エーテル結合 −O−', '#f97316'], cho:['ホルミル基 −CHO', '#10b981'], co:['カルボニル基 >C=O', '#3b82f6'],
-  cooh:['カルボキシ基 −COOH', '#a855f7'], coo:['エステル結合 −COO−', '#ec4899'], cc:['二重結合 C=C', '#0d9488'], ccc:['三重結合 C≡C', '#ca8a04']};
+  cooh:['カルボキシ基 −COOH', '#a855f7'], coo:['エステル結合 −COO−', '#ec4899'], cc:['二重結合 C=C', '#0d9488'], ccc:['三重結合 C≡C', '#ca8a04'],
+  ar:['ベンゼン環', '#64748b']};   // C=C はベンゼン環の二重結合を数えない（ベンゼン環は別の種類）
 // 戻り値：groups（{k:種類, atoms:[原子 id], bonds:[結合 id]}）と、ベンゼン環の結合 id の集まり（ケクレ構造の二重結合は C=C に数えない）
 function fgGroups(d, adj){
   const A = id => d.atoms[id];
@@ -2265,11 +2287,15 @@ function fgGroups(d, adj){
       }
       return false;
     };
-    return A(b.a1).el === 'C' && A(b.a2).el === 'C' && go(b.a2, 1) ? ids : null;
+    return A(b.a1).el === 'C' && A(b.a2).el === 'C' && go(b.a2, 1) ? {ids, path} : null;
   };
+  const ringSeen = new Set();
   for (const b of Object.values(d.bonds)){
     if (b.order !== 2 || arom.has(b.id) || !adj.has(b.a1) || !adj.has(b.a2)) continue;
-    const ids = kekule(b); if (ids) ids.forEach(i => arom.add(i));
+    const r = kekule(b); if (!r) continue;
+    r.ids.forEach(i => arom.add(i));
+    const key = r.path.slice().sort((x, y) => x - y).join(',');
+    if (!ringSeen.has(key)){ ringSeen.add(key); groups.push({k:'ar', atoms:r.path, bonds:r.ids, ring:true}); }
   }
   const atoms = Object.values(d.atoms);
   // C=O を含むもの：カルボン酸・エステル・アルデヒド・ケトン
@@ -2978,11 +3004,14 @@ function buildScene(d, opt){
   const fgKinds = [];
   if (d.fg){
     const gs = fgGroups(d, adj).groups.filter(g => !opt.only || g.atoms.every(id => opt.only.atoms.has(id)));
+    const off = new Set(d.fgOff || []);   // 凡例で「外す」と決めた種類
     for (const k of Object.keys(FG_KINDS)){
       const list = gs.filter(g => g.k === k); if (!list.length) continue;
       fgKinds.push(k);
+      if (off.has(k)) continue;
       let h = '';
       for (const g of list){
+        if (g.ring) h += `<polygon points="${g.atoms.map(id => disp.get(id)).filter(Boolean).map(q => r2(q.x) + ',' + r2(q.y)).join(' ')}" fill="${FG_KINDS[k][1]}" stroke="${FG_KINDS[k][1]}" stroke-width="13" stroke-linejoin="round"/>`;
         for (const bid of g.bonds){
           const b = d.bonds[bid], A = disp.get(b.a1), B = disp.get(b.a2); if (!A || !B) continue;
           h += `<line x1="${r2(A.x)}" y1="${r2(A.y)}" x2="${r2(B.x)}" y2="${r2(B.y)}" stroke="${FG_KINDS[k][1]}" stroke-width="13" stroke-linecap="round"/>`;
@@ -3062,7 +3091,9 @@ function renderDoc(){
   const lg = $('fgLegend'), on = !!doc.fg;
   $('fgHl').checked = on;
   lg.hidden = !(on && scene.fgKinds.length);
-  lg.innerHTML = scene.fgKinds.map(k => `<span><i style="background:${FG_KINDS[k][1]}"></i>${FG_KINDS[k][0]}</span>`).join('');
+  const offK = new Set(doc.fgOff || []);
+  lg.innerHTML = `<div class="lgh"><b>官能基の強調</b><button type="button" id="fgOffBtn" title="強調をやめる（「全体の表記」メニューでまた付けられます）">やめる</button></div>`
+    + scene.fgKinds.map(k => `<button type="button" class="lgi${offK.has(k) ? ' off' : ''}" data-k="${k}" aria-pressed="${!offK.has(k)}" title="${offK.has(k) ? 'クリックで強調する' : 'クリックでこの種類の強調を外す'}"><i style="background:${FG_KINDS[k][1]}"></i>${FG_KINDS[k][0]}</button>`).join('');
   updateInfo();
 }
 function applyView(){
@@ -3224,7 +3255,7 @@ function syncConns(){
 let infoComps = [];   // 分子式の札ごとの原子 id（同じ札にまとめた構造の分も全部）
 function syncChips(){   // 選択中の構造の分子式を強調
   const S = selectedAtomIds();
-  document.querySelectorAll('#formulas .chip').forEach(c => {
+  document.querySelectorAll('#formulas .chip, #fmList .chip').forEach(c => {
     const ids = infoComps[+c.dataset.ci] || [];
     c.classList.toggle('on', ids.some(id => S.has(id)));
   });
@@ -3276,9 +3307,8 @@ function chainOfComp(ids){
 const chainKey = n => { const m = /(\d+)/.exec(n); return n === '—' ? 9999 : (n[0] === '主' ? 0 : n === 'ベンゼン環' ? 5000 : 1000) + (m ? +m[1] : 0); };
 function updateInfo(){
   const adj = scene.adj, comps = components(doc, adj), fEl = $('formulas'), wEl = $('warnings');
-  $('gmSeg').hidden = comps.length < 2;
   if (!comps.length){
-    infoComps = [];
+    infoComps = []; $('fmWrap').hidden = true; $('fmList').innerHTML = ''; fEl.classList.remove('clip');
     fEl.innerHTML = '<span class="muted">左のツールで構造式を描くか、画面右端の「化合物ライブラリ」から選んでください。分子式と分子量がここに表示されます。</span>';
     wEl.textContent = ''; return;
   }
@@ -3310,10 +3340,15 @@ function updateInfo(){
     const ionic = f.charge || f.parts.some(([e]) => e === 'Na' || METALS.includes(e)), n = ch.items.length;
     return `<button class="chip" data-ci="${i}" title="${n > 1 ? `同じ分子式の ${n} 個をまとめて選択` : 'クリックでこの構造を選択'}"><b>${formulaHTML(f)}</b>${n > 1 ? `<span class="cnt">×${n}</span>` : ''}<span class="mw">${ionic ? '式量' : '分子量'} ${f.generic ? '—' : fmtMass(f.mass)}</span></button>`;
   };
-  fEl.innerHTML = sections.map(sc => {
+  const body = sections.map(sc => {
     const h = sc.chips.map(chipHTML).join('');
     return sc.name ? `<span class="fgrp"><span class="gname" title="この群の構造：${sc.count} 個">${esc(sc.name)}（${sc.count}）</span>${h}</span>` : h;
   }).join('') + (hidden ? `<span class="muted">ほか ${hidden} 個</span>` : '');
+  fEl.innerHTML = body; $('fmList').innerHTML = body;   // 下の 1 行と、「一覧」のポップアップ（折り返して全部見える）に同じ内容を出す
+  $('fmWrap').hidden = list.length < 2;
+  if (list.length < 2) closeFm();
+  $('fmBtn').textContent = `一覧（${list.length}）▴`;
+  fEl.classList.toggle('clip', fEl.scrollWidth > fEl.clientWidth + 1);
   syncChips();
   const warns = [];
   for (const a of Object.values(doc.atoms)){
@@ -5452,7 +5487,10 @@ function sanitize(d){
   for (const o of Object.values(out.objs)) if (o.type === 'conn')   // つなぐ矢印：つながっている先が図形でなければ切り離す
     for (const k of ['s1', 's2']) if (o[k] && !(out.objs[o[k].id] && out.objs[o[k].id].type === 'shape')) delete o[k];
   if (isFinite(d.dbg) && d.dbg >= 0.5 && d.dbg <= 2 && +d.dbg !== 1) out.dbg = +d.dbg;
-  if (d.fg === true) out.fg = true;   // 官能基の強調
+  if (d.fg === true){   // 官能基の強調（fgOff：外した種類）
+    out.fg = true;
+    if (Array.isArray(d.fgOff)){ const off = [...new Set(d.fgOff.filter(k => Object.prototype.hasOwnProperty.call(FG_KINDS, k)))]; if (off.length) out.fgOff = off; }
+  }
   if (Array.isArray(d.exports)){   // 書き出しパネルの一覧
     out.exports = d.exports.filter(x => x && isFinite(x.id) && Array.isArray(x.atoms) && Array.isArray(x.objs))
       .map(x => ({id:+x.id, name:String(x.name || '図').slice(0, 40), atoms:x.atoms.filter(isFinite).map(Number), objs:x.objs.filter(isFinite).map(Number), on:x.on !== false, ...(x.all ? {all:true} : {})}));
@@ -5617,17 +5655,17 @@ function isoCheck(){   // 入力した分子式を確かめて、条件の欄を
   return f;
 }
 const isoCond = k => isoDlg.querySelector(`select[data-cond="${k}"]`);
-// 条件どうしの矛盾をなくす：環・C=C を「含まない」なら、ベンゼン環（環で、ケクレ構造の二重結合がある）は含まない。
-// ベンゼン環を「含む」なら、環・C=C は「含まない」にできない
+// 条件どうしの矛盾をなくす：環を「含まない」なら、ベンゼン環も含まない。ベンゼン環を「含む」なら、環は「含まない」にできない
+// （C=C は炭化水素基の二重結合だけを数え、ベンゼン環の二重結合は数えないので、ベンゼン環とは別に選べる）
 function isoLink(){
-  const ring = isoCond('環'), cc = isoCond('C=C'), bz = isoCond('ベンゼン環'), can = bz.dataset.can === '1';
-  if (can && (ring.value === 'no' || cc.value === 'no')){
+  const ring = isoCond('環'), bz = isoCond('ベンゼン環'), can = bz.dataset.can === '1';
+  if (can && ring.value === 'no'){
     if (!bz.dataset.forced){ bz.dataset.forced = '1'; bz.dataset.prev = bz.value; }
     bz.value = 'no'; bz.disabled = true;
   } else if (bz.dataset.forced){
     delete bz.dataset.forced; bz.value = bz.dataset.prev || 'any'; bz.disabled = !can;
   }
-  for (const sl of [ring, cc]) sl.options[2].disabled = bz.value === 'yes';
+  ring.options[2].disabled = bz.value === 'yes';
   isoRingSize();
   isoTriSync();
 }
@@ -5636,7 +5674,7 @@ const TRI_LABEL = {any:'どちらでも', yes:'含む', no:'含まない'};
 isoDlg.querySelectorAll('select[data-cond]').forEach(sl => {
   const g = document.createElement('div'); g.className = 'tri'; g.setAttribute('role', 'radiogroup');
   g.setAttribute('aria-label', sl.parentElement.firstChild.textContent.trim());
-  for (const v of ['any', 'yes', 'no']){
+  for (const v of ['yes', 'any', 'no']){
     const b = document.createElement('button'); b.type = 'button'; b.dataset.v = v; b.textContent = TRI_LABEL[v]; b.setAttribute('role', 'radio');
     g.appendChild(b);
   }
@@ -5648,10 +5686,10 @@ isoDlg.querySelectorAll('select[data-cond]').forEach(sl => {
 });
 function isoTriSync(){
   isoDlg.querySelectorAll('select[data-cond]').forEach(sl => {
-    sl._tri.querySelectorAll('button').forEach((b, i) => {
+    sl._tri.querySelectorAll('button').forEach(b => {
       const on = sl.value === b.dataset.v;
       b.classList.toggle('on', on); b.setAttribute('aria-checked', on ? 'true' : 'false');
-      b.disabled = sl.disabled || sl.options[i].disabled;
+      b.disabled = sl.disabled || [...sl.options].find(o => o.value === b.dataset.v).disabled;
     });
   });
 }
@@ -6113,7 +6151,15 @@ $('fmtRow').addEventListener('focusout', e => {   // 書式バーのプルダウ
   setTimeout(() => { if (textEditing && document.activeElement !== te && !$('fmtRow').contains(document.activeElement)) finishText(); }, 0);
 });
 document.querySelectorAll('[data-align]').forEach(b => { b.onclick = () => alignSel(b.dataset.align); });
-$('fgHl').addEventListener('change', e => { commit(); if (e.target.checked) doc.fg = true; else delete doc.fg; changed(); });
+$('fgHl').addEventListener('change', e => { commit(); if (e.target.checked) doc.fg = true; else { delete doc.fg; delete doc.fgOff; } changed(); });
+$('fgLegend').addEventListener('click', e => {   // 凡例：「やめる」で強調を全部外す／種類をクリックでその種類だけ外す・戻す
+  if (e.target.closest('#fgOffBtn')){ commit(); delete doc.fg; delete doc.fgOff; changed(); return; }
+  const b = e.target.closest('.lgi'); if (!b) return;
+  commit(); const off = new Set(doc.fgOff || []);
+  if (off.has(b.dataset.k)) off.delete(b.dataset.k); else off.add(b.dataset.k);
+  if (off.size) doc.fgOff = [...off]; else delete doc.fgOff;
+  changed();
+});
 $('dbGap').addEventListener('change', e => { commit(); const v = +e.target.value; if (v === 1) delete doc.dbg; else doc.dbg = v; changed(); });
 $('bondGap').addEventListener('change', e => {   // 選択した二重結合・三重結合だけの間隔（空なら全体に合わせる）
   const bs = selMultiBonds(); if (!bs.length) return;
@@ -6306,13 +6352,22 @@ $('gmSeg').addEventListener('click', e => {
   updateInfo();
 });
 // 分子式をクリック → その構造を選択
-$('formulas').addEventListener('click', e => {
+function closeFm(){ $('fmPop').hidden = true; $('fmBtn').setAttribute('aria-expanded', 'false'); }
+$('fmBtn').addEventListener('click', () => {
+  const open = $('fmPop').hidden; $('fmPop').hidden = !open; $('fmBtn').setAttribute('aria-expanded', String(open));
+});
+document.addEventListener('pointerdown', e => { if (!$('fmPop').hidden && !e.target.closest('#fmWrap')) closeFm(); });
+$('fmPop').addEventListener('keydown', e => { if (e.key === 'Escape'){ closeFm(); $('fmBtn').focus(); e.stopPropagation(); } });
+window.addEventListener('resize', () => { const f = $('formulas'); f.classList.toggle('clip', f.scrollWidth > f.clientWidth + 1); });
+const pickChip = e => {
   const c = e.target.closest('.chip'); if (!c) return;
   const ids = infoComps[+c.dataset.ci]; if (!ids) return;
   clearSel(); ids.forEach(id => sel.atoms.add(id));
   for (const b of Object.values(doc.bonds)) if (sel.atoms.has(b.a1)) sel.bonds.add(b.id);
   setTool('select');
-});
+};
+$('formulas').addEventListener('click', pickChip);
+$('fmList').addEventListener('click', pickChip);
 
 // ---- 読み上げ用の名前：アイコンだけのボタンに、説明（title）の先頭の短い部分を aria-label として付ける ----
 // （title は「配位結合（矢印。…）：…」のように長いので、読み上げでは「配位結合」のような短い名前にする）
