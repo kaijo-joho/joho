@@ -291,6 +291,8 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .tri button:focus-visible{outline-offset:-2px}
 .iso-conds label.off{opacity:.5}
 /* ---- 官能基の強調表示の凡例 ---- */
+#tgFg{font-family:Arial,Helvetica,sans-serif;font-weight:600;letter-spacing:.2px}
+#tgFg.on{background:rgba(239,68,68,.32);border-color:#ef4444;color:var(--text)}   /* 強調がオンのときは、強調された −OH と同じ見た目 */
 #fgLegend{position:absolute;right:10px;top:8px;display:flex;flex-direction:column;gap:2px;background:var(--panel);
   border:1px solid var(--line);border-radius:8px;padding:5px 6px;font-size:12px;z-index:2}
 #fgLegend .lgh{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 3px 2px}
@@ -363,7 +365,6 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
           <button data-mode="skeletal" title="炭素と水素を省略した骨格構造式">骨格構造式</button>
         </div>
         <label class="chk" title="構造式・簡略構造式で、環の炭素原子も書く"><input type="checkbox" id="showRingC">環の炭素も表示</label>
-        <label class="chk" title="ヒドロキシ基・カルボニル基・カルボキシ基・エステル結合などを、種類ごとの色で目立たせる（図ごとの設定。画像にも写る）"><input type="checkbox" id="fgHl">官能基を色で強調</label>
         <label class="mrow">二重結合の間隔
           <select id="dbGap" title="二重結合・三重結合の線の間隔（図全体。個別の結合は選択して変更）"><option value="0.7">狭い</option><option value="1" selected>標準</option><option value="1.3">広い</option><option value="1.6">とても広い</option></select>
         </label>
@@ -372,6 +373,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <div class="sep"></div>
     <button class="ic" id="tgFix" title="結合長固定：選択部分や H をドラッグで動かすとき、結合の長さを変えない。矢印の長さ・π軌道の大きさも段階的に変わる"><svg viewBox="0 0 24 24"><path d="M5 14.5L18 8"/><circle cx="5" cy="14.5" r="1.8"/><circle cx="18" cy="8" r="1.8"/><path d="M6.5 19.5L20 12.8M5.8 18.1l1.4 2.8M19.3 11.4l1.4 2.8"/></svg></button>
     <button class="ic" id="tgSnap" title="結合角固定：選択部分や H をドラッグで動かすとき、つながっている結合の角度を 15°刻みにする"><svg viewBox="0 0 24 24"><path d="M3.5 19.5h17"/><path d="M3.5 19.5L15 7"/><path d="M10.5 19.5a7 7 0 00-2.2-5.1"/><circle cx="15" cy="7" r="1.6"/></svg></button>
+    <button class="ic wide" id="tgFg" aria-pressed="false" aria-label="官能基を色で強調" title="官能基の強調（オンで有効）：ヒドロキシ基・エーテル結合・ホルミル基・カルボニル基・カルボキシ基・エステル結合・二重結合・三重結合・ベンゼン環を、種類ごとの色で目立たせる。図ごとの設定で、画像にも写る">−OH</button>
     <div class="sep"></div>
     <div class="tabs" id="docTabs"><div class="tabstrip" id="tabStrip" role="tablist" aria-label="開いている図"></div></div>
     <button class="ic tabadd" id="btnNewTab" aria-label="新しい図" title="新しい図を開く（タブを増やす）">＋</button>
@@ -691,7 +693,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <details><summary>略記号・一般の記号</summary><p>R・R'・R1・X・Ar（一般の記号）、Me・Et・Pr・iPr・Bu・tBu・Ph・Ac・Bn（略記号）が使えます。OMe・COOEt のように組み合わせることもできます。R・X を含むと分子量は「—」になります。</p></details>
     <details><summary>名前を付ける</summary><p>構造を選び（画面下の分子式の札をクリックしても選べます）、ポップアップの<strong>「名前を付ける」</strong>を押すと、教科書の決まりで名前を付けて、構造のすぐ下に<strong>文字</strong>で置きます（元に戻すで 1 回で取り消せます。文字なので、テキストツールで直せます）。異性体を並べる機能と同じ命名の仕組みです。イソブタンなどの慣用名は（ ）に添えます。<strong>確信が持てない構造や、まだ対応していない構造（C・H・O 以外の原子、電荷、環が 2 つ以上のものなど）には付けず</strong>、理由を知らせます。立体（シス・トランスなど）は区別しません。</p></details>
     <details><summary>分子式・分子量</summary><p>画面の下に、つながりごとの分子式と分子量（金属・電荷を含むときは式量）が出ます。有機化合物は C・H・そのほかの順（C₂H₆O など）、無機物は教科書の書き方（H₂SO₄・HNO₃・NH₃・CO₂ など）で並べます。クリックするとその構造全体が選ばれ、選んでいる構造の分子式には色が付きます。構造が 2 つ以上あるときは、下の 1 行に収まるように札を並べ（入りきらないときは右端がかすみます）、左の<strong>「一覧」ボタン</strong>で全部を折り返して見られるポップアップが開きます。ポップアップの上の切り替えで<strong>まとめ方</strong>を選べます：<strong>そのまま</strong>（1 つずつ）、<strong>分子式</strong>（同じ分子式を 1 つの札にして「×個数」を付ける。初めの設定）、<strong>化合物群</strong>（アルカン・アルケン・アルキン・シクロアルカン・ベンゼン環をもつ炭化水素・アルコール・フェノール類・エーテル・アルデヒド・ケトン・カルボン酸・エステルなどに分ける）、<strong>主鎖の C 数</strong>（主鎖の炭素数、環なら員数ごとに分ける。名前を付けられない構造は「—」）。まとめた札をクリックすると、その中の構造がまとめて選ばれます。</p></details>
-    <details><summary>官能基を色で強調</summary><p>「全体の表記」メニューの<strong>「官能基を色で強調」</strong>をオンにすると、ヒドロキシ基（−OH）・エーテル結合（−O−）・ホルミル基（−CHO）・カルボニル基（&gt;C=O）・カルボキシ基（−COOH）・エステル結合（−COO−）・二重結合・三重結合・ベンゼン環を、種類ごとの色の下地で目立たせます（C=C は炭化水素基の二重結合だけで、ベンゼン環の二重結合はベンゼン環として別に扱います）。図の右上に色の凡例が出ます。凡例の<strong>種類をクリック</strong>するとその種類だけ強調を外し（もう一度押すと戻る）、<strong>「やめる」</strong>で強調を全部やめます。図ごとの設定で、画像に書き出したときにも色が付きます。異性体を並べるときは、モーダルの「官能基を色で強調」（初めはオン）で決めます。</p></details>
+    <details><summary>官能基を色で強調</summary><p>上のバーの<strong>「−OH」ボタン</strong>（表記とは別の、独立したオン・オフ。オンのときはボタンも強調された色になります）を押すと、ヒドロキシ基（−OH）・エーテル結合（−O−）・ホルミル基（−CHO）・カルボニル基（&gt;C=O）・カルボキシ基（−COOH）・エステル結合（−COO−）・二重結合・三重結合・ベンゼン環を、種類ごとの色の下地で目立たせます（C=C は炭化水素基の二重結合だけで、ベンゼン環の二重結合はベンゼン環として別に扱います）。図の右上に色の凡例が出ます。凡例の<strong>種類をクリック</strong>するとその種類だけ強調を外し（もう一度押すと戻る）、凡例の<strong>「やめる」</strong>か、もう一度「−OH」ボタンを押すと、強調を全部やめます（付け直すときは「−OH」ボタン）。図ごとの設定で、画像に書き出したときにも色が付きます。異性体を並べるときは、モーダルの「官能基を色で強調」（初めはオン）で決めます。</p></details>
   </section>
   <section data-help-topic="stereo" data-help-title="立体・テンプレート">
     <h3>立体・テンプレート</h3>
@@ -793,7 +795,7 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
     <h3>このアプリについて</h3>
     <p><strong>推奨環境</strong>：macOS ＋ Google Chrome（最新版）。ほかのブラウザでも動きますが、表示や一部の機能（画像のコピーなど）が異なる場合があります。</p>
     <p><strong>ご利用にあたって</strong>：このアプリは高校化学の学習・教材作成のための教育用ツールです。化学的な内容（価標の数・分子式・分子量など）は高校の範囲で簡略化しており、表示や計算の正確さを保証するものではありません。描いた内容は、お使いのブラウザの中と、保存のときに選んだファイルにだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</p>
-    <p class="credit">構造式エディタ　バージョン 1.18（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+    <p class="credit">構造式エディタ　バージョン 1.19（2026年10月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
   </section>
 </aside>
 
@@ -1588,9 +1590,8 @@ function isoFactory(){
     if (cc.length) return cc.some(c => spare(g, c) >= 1) ? 'アルデヒド' : 'ケトン';   // カルボニル炭素に H が付いていればアルデヒド
     const ar = aromaticRing(g);                                   // ヒドロキシ基がベンゼン環の炭素に付いていれば、フェノール類
     if (ar && ar.some(v => nbrs(g, v).some(([y]) => g.el[y] === 'O' && nbrs(g, y).length === 1))) return 'フェノール類';
-    const enol = g.el.some((e, i) => e === 'O' && nbrs(g, i).some(([y]) => !(ar && ar.includes(y)) && nbrs(g, y).some(([, o]) => o === 2)));   // C=C–OH（エノール）などは「その他」（ベンゼン環の二重結合は数えない）
-    if (tests['OH'](g) && !enol) return 'アルコール';
-    if (tests['エーテル'](g) && !enol) return 'エーテル';
+    if (tests['OH'](g)) return 'アルコール';                      // C=C–OH（エノール）も、OH があるのでアルコール。C=C–O–C（ビニルエーテル）もエーテル
+    if (tests['エーテル'](g)) return 'エーテル';
     return 'その他';
   }
   function carbonPaths(g){                                       // 炭素だけをたどる道（向きごと）
@@ -3089,10 +3090,10 @@ function renderDoc(){
   scene = buildScene(doc, {mode:state.mode, showRingC:state.showRingC, ...(darkNow() ? {ink:'#e8edf4', paper:'#151c25'} : {})});
   chemLayer.innerHTML = scene.markup;
   const lg = $('fgLegend'), on = !!doc.fg;
-  $('fgHl').checked = on;
+  $('tgFg').classList.toggle('on', on); $('tgFg').setAttribute('aria-pressed', String(on));
   lg.hidden = !(on && scene.fgKinds.length);
   const offK = new Set(doc.fgOff || []);
-  lg.innerHTML = `<div class="lgh"><b>官能基の強調</b><button type="button" id="fgOffBtn" title="強調をやめる（「全体の表記」メニューでまた付けられます）">やめる</button></div>`
+  lg.innerHTML = `<div class="lgh"><b>官能基の強調</b><button type="button" id="fgOffBtn" title="強調をやめる（上のバーの「−OH」ボタンでまた付けられます）">やめる</button></div>`
     + scene.fgKinds.map(k => `<button type="button" class="lgi${offK.has(k) ? ' off' : ''}" data-k="${k}" aria-pressed="${!offK.has(k)}" title="${offK.has(k) ? 'クリックで強調する' : 'クリックでこの種類の強調を外す'}"><i style="background:${FG_KINDS[k][1]}"></i>${FG_KINDS[k][0]}</button>`).join('');
   updateInfo();
 }
@@ -6151,7 +6152,7 @@ $('fmtRow').addEventListener('focusout', e => {   // 書式バーのプルダウ
   setTimeout(() => { if (textEditing && document.activeElement !== te && !$('fmtRow').contains(document.activeElement)) finishText(); }, 0);
 });
 document.querySelectorAll('[data-align]').forEach(b => { b.onclick = () => alignSel(b.dataset.align); });
-$('fgHl').addEventListener('change', e => { commit(); if (e.target.checked) doc.fg = true; else { delete doc.fg; delete doc.fgOff; } changed(); });
+$('tgFg').addEventListener('click', () => { commit(); if (!doc.fg) doc.fg = true; else { delete doc.fg; delete doc.fgOff; } changed(); });   // 官能基の強調（図ごと。ほかの表記とは独立）
 $('fgLegend').addEventListener('click', e => {   // 凡例：「やめる」で強調を全部外す／種類をクリックでその種類だけ外す・戻す
   if (e.target.closest('#fgOffBtn')){ commit(); delete doc.fg; delete doc.fgOff; changed(); return; }
   const b = e.target.closest('.lgi'); if (!b) return;
@@ -6202,7 +6203,7 @@ $('btnConnRev').onclick = () => {   // 矢印の向きを反転（始点と終�
   changed();
 };
 // ---- 狭い画面：上部バーはいつも 1 行。あふれる操作は「その他」のメニューへ移す（共通仕様 2.1・2.9）----
-const COLLAPSE = ['tgSnap', 'tgFix', 'toolText', 'toolErase', 'viewMenu', 'btnNewTab', 'btnRedo', 'btnUndo'];   // 入りきらないとき、この順で「その他」へ
+const COLLAPSE = ['tgFg', 'tgSnap', 'tgFix', 'toolText', 'toolErase', 'viewMenu', 'btnNewTab', 'btnRedo', 'btnUndo'];   // 入りきらないとき、この順で「その他」へ
 const barHome = new Map();   // 元の場所（戻すときに使う）
 function barFits(row){   // 上部バーに全部入っているか（子の幅と左右の余白の合計を、見える幅とくらべる）
   const st = getComputedStyle(row), gap = parseFloat(st.gap) || 0;
