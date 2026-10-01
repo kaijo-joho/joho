@@ -254,6 +254,13 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
 #kzBox.big #kzBody svg{max-height:min(56vh,420px)}
 .kzmsg{font-size:11px;color:var(--muted);text-align:center;margin-top:4px}
 @media (max-width:760px){#kzBox{width:172px}#kzBox.big{width:min(340px,calc(100% - 20px))}}
+/* 取り込み中の進み具合の枠（操作バーの下・キャンバスの上の中央）*/
+#busyBox{position:absolute;left:50%;top:12px;transform:translateX(-50%);z-index:6;width:min(420px,calc(100% - 24px));background:var(--panel);color:var(--text);
+  border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow,0 4px 14px rgba(20,35,55,.15));padding:10px 14px;display:flex;flex-direction:column;gap:8px;align-items:stretch;font-size:13px}
+#busyBox[hidden]{display:none}
+#busyBox .busytrack{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+#busyBar{height:100%;width:0;background:var(--accent);transition:width .15s}
+#busyBox .sbtn{align-self:flex-end}
 </style>
 </head>
 <body>
@@ -431,6 +438,11 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <button id="kzClose" title="構造式を隠す（上の「構造式」ボタンでまた出せます）">✕</button></div>
       <div id="kzBody" title="太いくさびは手前、破線は奥に向いた結合。クリックで大きさを切り替え"></div>
     </div>
+    <div id="busyBox" class="molOnly" role="status" hidden>
+      <div id="busyText"></div>
+      <div class="busytrack"><div id="busyBar"></div></div>
+      <button class="sbtn" id="busyCancel" title="取り込みをやめる（Esc キーでも止められます）">やめる</button>
+    </div>
     <div id="hint"></div>
     <div id="glError" hidden>この環境では 3D 表示（WebGL2）が使えません。Google Chrome の最新版で開いてください。</div>
   </main>
@@ -540,6 +552,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
     <div class="body help" id="helpBody">
       <table>
         <tr><td>分子を表示する</td><td>画面右端の「化合物ライブラリ」のタブを開いて、化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
+        <tr><td>量の上限</td><td>一度に 3D で扱えるのは、<b>分子 30 個・原子 1500 個</b>までです（多すぎると重くなって止まるため）。上限を超えて追加しようとすると、知らせて止めます。構造式エディタの図を取り込むときは、<b>進み具合の枠の「やめる」</b>（または Esc キー）で途中でやめられ、そのときは何も変わりません。構造式エディタで分子を選んでから「3D で見る」を押すと、選んだ分子だけを渡せます。</td></tr>
         <tr><td>構造式の枠</td><td>キャンバスの左上に、表示している分子の<b>構造式</b>（骨格構造式）を小さな枠で出します。枠の <b>✕</b> か、上の「構造式」ボタンで隠せます（もう一度押すと出ます）。図か <b>⤢</b> を押すと、枠の大きさが変わります。分子を選んでいるときは、その分子だけを出します。<b>太いくさび</b>は手前に、<b>破線</b>は奥に向いた結合で、不斉炭素の立体（R/S）を表します（3D の向きに合わせて自動で付けます）。二重結合のシス・トランスも 3D と同じ側に描きます。炭素は頂点で、酸素・窒素などは文字で表し、H の数も添えます（原子 3 個までの小さな分子は、CH<sub>3</sub>–CH<sub>2</sub>–OH のように炭素も書きます）。ベンゼン環は二重結合を交互に描きます。<b>限界</b>：C<sub>60</sub> のような籠の形は平面に描けないので描きません。大きな分子（デンプンの 10 個分など）は、図の一部が重なることがあります。結晶格子のモードでは出ません。構造式の向きや形は 3D の向きとは関係なく、分子のつながり方から決めています。</td></tr>
         <tr><td>水素結合</td><td>「表示 ▼」の<b>「水素結合を表示」</b>で、O–H···O や N–H···O などの水素結合を<b>細い水色の線</b>で表します（結晶モードの氷と同じ色）。水分子どうし、酢酸の二量体、デンプンのらせんを保つ 2 位・3 位の OH のはしご、DNA の相補塩基対のような場面で使えます。判定は <b>H から相手までが 2.6 Å 以内で、O–H···O の角度が 130° 以上</b>。さらに、受け手が水酸基やエーテル・水の O のときは、<b>H がその O の非共有電子対のある向きから近づいていること</b>（O の 2 本の結合がつくる面から 20° 以上外れていること）も条件にしています。面の中から近づく配置は、実際の水素結合としては不自然だからです。<b>H の向きで判断している</b>ので、同じ組に 2 本引かれることはありません（水素結合には向きがあり、結びついているのは片方だけです）。OH の H は、水素結合ができる向きがあればそちらへ向けてあります（重い原子の位置は変えません）。<b>注意</b>：分子そのものの形（C–C のまわりのねじれなど）は変えないので、形によっては本当は水素結合があるのに出ないことがあります。組み立てた形では、C=O と環のあいだの結合の向きも、水素結合ができるほうを選んでいます（たとえば<b>サリチル酸</b>では C=O がフェノールの OH の側を向き、分子内水素結合が出ます。実測の結晶構造と同じ向きです）。ファイルから読み込んだ分子は H の向きもそのままです。</td></tr>
         <tr><td>座標の出どころ</td><td>「表示 ▼」の<b>「座標」</b>で、化合物ライブラリから作るときの原子の位置を切り替えられます。<b>データベース</b>は外部の公開データ（PubChem・RCSB PDB）から取った位置、<b>組み立てた形</b>はこのアプリが標準の結合長・結合角から組み立てた位置です。切り替わるのはデータベースの座標がある分子だけで、いまは 4 つ（エチレングリコール、D-グリセルアルデヒド、β-リボース、α-シクロデキストリン）。たとえば<b>エチレングリコール</b>は、組み立てた形では真っすぐ伸びていますが、データベースの形では<b>ねじれて</b>おり、こちらが実際に近い姿です。<b>注意</b>：どちらの座標も<b>計算で求めたもので、実験で測った値ではありません</b>（PubChem は MMFF94 系、PDB の ideal は生成値）。とくに PubChem の座標は、分子の中の電気的な引き合いを切って作られているため、<b>共役して平面になるはずの分子（フマル酸・サリチル酸など）がねじれていたり、最も安定な形でなかったりします</b>（1,2-ジクロロエタンがゴーシュ形になっていた）。そうした分子は、組み立てた形のほうを使っています。ライブラリにない分子や、自分で編集した分子は、いつも「組み立てた形」になります。</td></tr>
@@ -574,7 +587,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.29 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.30 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -1990,13 +2003,14 @@ function kzValences(el, ch){   // 構造式エディタと同じ価数の決め�
   return [Math.max(0, v[0] - Math.abs(ch))];
 }
 // 戻り値：{mols:[分子のグラフ], skipped:[取り込めなかった理由], notes:[注意]}。つながった部分ごとに 1 つの分子
-function molsFromKouzoushiki(kd){
+// maxMols：取り込む分子の数の上限（それを超えるぶんは作らない）。total は図にあった分子の数
+function molsFromKouzoushiki(kd, maxMols = Infinity){
   const atoms = Object.values(kd?.atoms || {}).filter(a => a && !a.blank && isFinite(a.x) && isFinite(a.y)).map(a => ({...a}));   // 電荷を変えることがあるので写しを使う
   const byId = new Map(atoms.map(a => [a.id, a]));
   const ok = b => b && byId.has(b.a1) && byId.has(b.a2) && b.a1 !== b.a2;
   const bonds = Object.values(kd?.bonds || {}).filter(b => ok(b) && !b.nv &&
     b.style !== 'dash' && b.style !== 'coord' && [1, 2, 3].includes(b.order));
-  const out = {mols:[], skipped:[], notes:new Set()}, seen = new Set();
+  const out = {mols:[], skipped:[], notes:new Set(), total:0}, seen = new Set();
   // 配位結合 X→O・X→S・X→N（硫酸・硝酸など）：分子の形は同じなので、X=O の二重結合として取り込む。
   // X の価標が足りなければ X⁺–O⁻ にする（HNO3 の N など）。金属への配位結合（錯体）は今までどおり取り込まない
   const sumOf = id => bonds.reduce((t, b) => t + (b.a1 === id || b.a2 === id ? b.order : 0), 0);
@@ -2013,13 +2027,17 @@ function molsFromKouzoushiki(kd){
   }
   const nbK = new Map(atoms.map(a => [a.id, []]));
   for (const b of bonds){ nbK.get(b.a1).push(b); nbK.get(b.a2).push(b); }
+  const comps = [];   // つながった部分（分子）ごとの原子の id。重い組み立てをする前に、まず数だけ数える
   for (const a0 of atoms){
     if (seen.has(a0.id)) continue;
     const comp = [], st = [a0.id]; seen.add(a0.id);
     while (st.length){ const x = st.pop(); comp.push(x); for (const b of nbK.get(x)){ const y = b.a1 === x ? b.a2 : b.a1; if (!seen.has(y)) { seen.add(y); st.push(y); } } }
+    comps.push(comp);
+  }
+  for (const comp of comps.slice(0, maxMols)){
     try { out.mols.push(kzComponent(comp, byId, nbK, out.notes)); } catch (e) { out.skipped.push(e.message); }
   }
-  return {mols:out.mols, skipped:out.skipped, notes:[...out.notes]};
+  return {mols:out.mols, skipped:out.skipped, notes:[...out.notes], total:comps.length};
 }
 function kzComponent(comp, byId, nbK, notes){
   const mol = {atoms:[], bonds:[], stereoDB:[]}, node = new Map(), pos = [];   // pos：2D の座標（結合 1 本 = 1、y は上向き）。書かれていない原子は null
@@ -3265,7 +3283,7 @@ function components(){
 function analyze(){
   const comps = components().map(ids => ({ids, f:formulaOf(ids.map(id => doc.atoms[id]))}));
   const {ids, atoms, bonds} = docArrays(), stereo = new Map();
-  let charges = null, pi = null, hb = null, kz = null;
+  let charges = null, pi = null, hb = null, kzSrc = null;
   if (atoms.length){
     const g = graphOf(atoms, bonds);
     for (const s of stereoCenters(g.mol, g.P)) stereo.set(ids[s.atom], s.rs);
@@ -3283,15 +3301,11 @@ function analyze(){
       // 等値面もここで作る（形が変わったときだけ。視点を動かしただけでは作り直さない）
       pi = huckelSystems(g.mol, g.P).map(s => ({...s, ids:s.atoms.map(i => ids[i]), mesh:orbitalMesh(s, g.P, state.piIso, state.piWhich)}));
     }
-    // 構造式（左上の枠）。表示しているときだけ作る。座標の計算は分子のつながり方ごとに覚えてあるので、形を編集している間も軽い
-    if (state.formula && state.world === 'mol'){
-      const idx = new Map(ids.map((id, i) => [id, i]));
-      kz = depictAll(g.mol, g.P, comps.map(c => c.ids.map(id => idx.get(id)))).map((d, k) => ({...d, ids:comps[k].ids}));
-    }
+    kzSrc = {mol:g.mol, P:g.P, ids, rings:null};   // 構造式（左上の枠）の材料。描くのは renderFormula で、枠に出す分子だけ
     // 水素結合（表示するときだけ探す）。番号を doc の id に直しておく
     if (state.hbonds) hb = hydrogenBonds(g.mol, g.P).map(x => ({h:ids[x.h], acc:ids[x.acc], don:ids[x.don], dDA:x.dDA}));
   }
-  info = {comps, stereo, charges, pi, hb, kz};
+  info = {comps, stereo, charges, pi, hb, kzSrc};
   syncPiWhich();   // 分子が変わると軌道の数も HOMO の番号も変わるので、札を出し直す
 }
 // 部分電荷の色：負は赤、正は青、0 に近いほど白（±0.4 でいちばん濃い）
@@ -3509,9 +3523,23 @@ function compOf(id){ return info.comps.find(c => c.ids.includes(id))?.ids || [id
 const screenX = () => M3.apply(M3.tr(view.R), [1, 0, 0]);   // 画面の右向き（分子の座標で）
 
 // ---- 分子を置く（replace：いまの分子と入れ替え） ----
+// 一度に 3D で扱える量の上限。多すぎると、読み込みも操作も重くなって止まってしまう（0.30）
+const LIMIT = {mols:30, atoms:1500};
 function addMolecule(m, replace = true, record = true){
+  if (!replace && state.world === 'mol'){   // 追加するとき（いまの分子に並べる）だけ上限を確かめる
+    if (info.comps.length + 1 > LIMIT.mols){ toast(`分子は一度に ${LIMIT.mols} 個までです（いま ${info.comps.length} 個）。いらない分子を消してから追加してください`); return false; }
+    if (Object.keys(doc.atoms).length + m.atoms.length > LIMIT.atoms){ toast(`原子は一度に ${LIMIT.atoms} 個までです。いらない分子を消してから追加してください`); return false; }
+  }
   if (state.world !== 'mol') setWorld('mol');
   if (record) commit();   // record が false のときは、呼ぶ側でまとめて 1 回の「元に戻す」にする
+  placeMolecule(m, replace);
+  changed();
+  fitView();
+  if (m.approx) toast('この分子の形はおおよそです（テンプレートにない環を含むため）');
+  return true;
+}
+// 分子を置くだけ（解析・描き直し・保存はしない）。まとめて置いたあと、呼ぶ側で changed() を 1 回呼ぶ
+function placeMolecule(m, replace){
   if (replace) { doc = emptyDoc(); view.R = M3.id(); sel = null; }
   // 組み立てた向き（画面に正対）のまま、いまの視点に合わせて置く。追加するときは右に並べる
   const Rt = M3.tr(view.R);
@@ -3529,9 +3557,6 @@ function addMolecule(m, replace = true, record = true){
     return id;
   });
   for (const b of m.bonds){ const id = doc.nid++; doc.bonds[id] = {id, a1:map[b.a], a2:map[b.b], order:b.order}; }
-  changed();
-  fitView();
-  if (m.approx) toast('この分子の形はおおよそです（テンプレートにない環を含むため）');
 }
 // 鏡像体を並べる：画面の右向きに垂直な鏡をはさんで、すべての分子の鏡像を置く
 function toggleMirror(){
@@ -4063,15 +4088,19 @@ function pivotOptions(ids){   // 不斉炭素が 2 つ以上あるときの「�
 let kzLast = '';
 function renderFormula(){
   const box = $('kzBox'); if (!box) return;
-  const list0 = info.kz;
-  const show = state.formula && state.world === 'mol' && list0 && list0.length;
+  const src = info.kzSrc, n0 = info.comps.length;
+  const show = state.formula && state.world === 'mol' && src && n0;
   box.hidden = !show;
   if (!show){ kzLast = ''; return; }
-  let list = list0;
-  if (sel){ const t = list0.filter(k => k.ids.some(id => sel.has(id))); if (t.length) list = t; }
+  let list = info.comps.map((_, k) => k);
+  if (sel){ const t = list.filter(k => info.comps[k].ids.some(id => sel.has(id))); if (t.length) list = t; }
   const MAX = 6, msgs = [];
   let x = 0, h = 0, body = '';
-  for (const d of list.slice(0, MAX)){
+  // 描くのは枠に出す分子（最大 6 個）だけ。全部の分子を描くと、分子が多いときに何秒もかかる
+  const idx = new Map(src.ids.map((id, i) => [id, i]));
+  if (!src.rings) src.rings = findRings(src.mol);
+  const ds = list.slice(0, MAX).map(k => depictMol(src.mol, src.P, info.comps[k].ids.map(id => idx.get(id)), src.rings));
+  for (const d of ds){
     if (!d.ok){ msgs.push('平面の構造式にできない分子（籠のような形など）は描いていません'); continue; }
     if (d.overlap) msgs.push('大きな分子なので、図の一部が重なっています');
     if (d.longBond) msgs.push('大きな環は、輪を閉じる結合が長く描かれます');
@@ -4083,7 +4112,7 @@ function renderFormula(){
   const html = svg + [...new Set(msgs)].map(m => `<div class="kzmsg">${m}</div>`).join('')
     + (list.length > MAX ? `<div class="kzmsg">ほか ${list.length - MAX} 個の分子</div>` : '');
   if (html !== kzLast){ $('kzBody').innerHTML = html; kzLast = html; }
-  $('kzTitle').textContent = sel && list.length < list0.length ? '構造式（選んだ分子）' : '構造式';
+  $('kzTitle').textContent = sel && list.length < n0 ? '構造式（選んだ分子）' : '構造式';
 }
 function renderSel(){
   if (state.world === 'xtal') { ['selBar', 'mirBar', 'measBar', 'optBar'].forEach(id => { $(id).hidden = true; }); updateHint(); return; }
@@ -4384,15 +4413,45 @@ $('smiIn').addEventListener('keydown', e => { if (e.key === 'Enter') fromSmilesI
 
 // ===== 構造式エディタからの取り込み =====
 // 同じサイト（joho.kaijo.ed.jp）の構造式エディタは、描いた図をブラウザに自動保存している（kouzoushiki-v1）。保存した .json も「開く」から取り込める
-function importKouzoushiki(kd){
-  const r = molsFromKouzoushiki(kd), built = [];
-  for (const mol of r.mols){ try { built.push(moleculeFromGraph(mol)); } catch (e) { r.skipped.push('組み立てられませんでした：' + e.message); } }
-  if (!built.length) { toast(r.skipped[0] || '取り込める分子がありません'); return; }
-  commit();   // 何個取り込んでも「元に戻す」1 回で取り込む前に戻せるように
-  built.forEach((m, k) => addMolecule(m, k === 0, false));
-  const msg = [`構造式エディタの図から ${built.length} 個の分子を取り込みました`];
-  if (r.skipped.length) msg.push(`${r.skipped.length} 個は取り込めませんでした（${r.skipped[0]}）`);
-  toast([...msg, ...r.notes].join('。'));
+// 進み具合の枠（「やめる」つき）。上の操作バーは隠さないので、取り込みの途中でもほかの操作や「やめる」ができる
+let busy = null;   // 取り込み中は {cancel:false}
+function busyShow(text, frac){
+  $('busyBox').hidden = false; $('busyText').textContent = text;
+  $('busyBar').style.width = Math.round(Math.max(0, Math.min(1, frac || 0))*100) + '%';
+}
+function busyHide(){ $('busyBox').hidden = true; }
+// 画面を更新する時間を空ける（タブが裏にあるときは、描き直しを待たない）
+const nextTick = () => new Promise(r => document.hidden ? setTimeout(r, 0) : requestAnimationFrame(() => setTimeout(r, 0)));
+$('busyCancel').onclick = () => { if (busy) { busy.cancel = true; $('busyText').textContent = 'やめています…'; } };
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && busy) busy.cancel = true; });
+async function importKouzoushiki(kd){
+  if (busy) { toast('いま取り込んでいる途中です'); return; }
+  busy = {cancel:false};
+  try {
+    busyShow('構造式エディタの図を読んでいます…', 0); await nextTick();
+    const r = molsFromKouzoushiki(kd, LIMIT.mols), built = [], notes = [...r.notes];
+    let atomsN = 0, cutAtoms = 0;
+    for (let k = 0; k < r.mols.length && !busy.cancel; k++){
+      if (atomsN + r.mols[k].atoms.length > LIMIT.atoms && built.length){ cutAtoms = r.mols.length - k; break; }
+      busyShow(`3D の形を作っています… ${k + 1} / ${r.mols.length} 個目（「やめる」で中止できます）`, k/r.mols.length); await nextTick();
+      if (busy.cancel) break;
+      try { const m = moleculeFromGraph(r.mols[k]); built.push(m); atomsN += m.atoms.length; }
+      catch (e) { r.skipped.push('組み立てられませんでした：' + e.message); }
+    }
+    if (busy.cancel){ toast('取り込みをやめました（分子は何も変わっていません）'); return; }
+    if (!built.length) { toast(r.skipped[0] || '取り込める分子がありません'); return; }
+    busyShow('画面に並べています…', 1); await nextTick();
+    commit();   // 何個取り込んでも「元に戻す」1 回で取り込む前に戻せるように
+    if (state.world !== 'mol') setWorld('mol');
+    built.forEach((m, k) => placeMolecule(m, k === 0));
+    changed(); fitView();   // 1 個ずつ解析し直さず、並べ終えてから 1 回だけ
+    const msg = [`構造式エディタの図から ${built.length} 個の分子を取り込みました`];
+    const cut = r.total - r.mols.length + cutAtoms;
+    if (cut > 0) msg.push(`一度に 3D にできる上限（分子 ${LIMIT.mols} 個・原子 ${LIMIT.atoms} 個）を超えるため、残りの ${cut} 個は取り込んでいません。構造式エディタで分子を選んでから「3D で見る」を押すと、選んだ分子だけを渡せます`);
+    if (r.skipped.length) msg.push(`${r.skipped.length} 個は取り込めませんでした（${r.skipped[0]}）`);
+    toast([...msg, ...notes].join('。'));
+  } catch (e) { console.error(e); toast('取り込めませんでした：' + e.message); }
+  finally { busy = null; busyHide(); }
 }
 // 構造式エディタが「選んだ分子だけ」を渡してくれたとき（kouzoushiki-send）は、それを一度だけ読む。なければ自動保存（図全体）
 let kzFromSend = false;
@@ -4658,7 +4717,9 @@ $('fileInput').addEventListener('change', async e => {
       if (d.app === 'kouzoushiki') { importKouzoushiki(d.doc); return; }   // 構造式エディタで保存したファイル
       if (d.app !== 'bunshi') throw new Error('分子模型エディタ・構造式エディタのファイルではありません');
       if (!d.name) save.name = f.name.replace(/\.json$/i, '');   // ファイル名を名前として引き継ぐ
-      if (!openData(d, 'file')) throw new Error('中身を読み取れませんでした');
+      const r = openData(d, 'file');
+      if (r === 'cancel') toast('開くのをやめました');
+      else if (!r) throw new Error('中身を読み取れませんでした');
     } else if (ext === 'mol' || ext === 'sdf') addMolecule(fromMolText(text.split('$$$$')[0]), true);
     else if (ext === 'xyz') addMolecule(fromXYZText(text), true);
     else throw new Error('対応していない形式です');
@@ -4738,6 +4799,8 @@ async function pickAutoSaveFile(){
 function openData(data, how){
   const d = data && (data.doc || data);
   if (!d || !d.atoms) return false;
+  const n = Object.keys(d.atoms).length;
+  if (n > LIMIT.atoms && !confirm(`この内容は原子が ${n} 個あります（一度に扱える目安は ${LIMIT.atoms} 個）。開くと重くなったり、固まったりするかもしれません。それでも開きますか？`)) return 'cancel';
   commit();
   doc = sanitize(d);
   applyViewState(data.view); applyUIState(data.state);
@@ -4771,8 +4834,9 @@ async function openWithGuard(fn){
 // 保存した内容の候補（自動保存・明示保存）から選んで開く
 function showOpenDialog(note){
   const list = $('openList'), cands = [];
-  const a = readStore(STORE_KEY), b = readStore(SAVED_KEY);
+  const a = readStore(STORE_KEY), b = readStore(SAVED_KEY), rs = readStore(RESCUE_KEY);
   if (a) cands.push({key:STORE_KEY, kind:'自動保存（このブラウザ）', data:a});
+  if (rs && !(a && a.at === rs.at)) cands.push({key:RESCUE_KEY, kind:'開かずに始めた自動保存（このブラウザ）', data:rs});
   if (b) cands.push({key:SAVED_KEY, kind:'保存（このブラウザ）', data:b});
   list.innerHTML = cands.length ? cands.map((c, i) => {
     const f = c.data.doc && c.data.doc.atoms ? Object.keys(c.data.doc.atoms).length : 0;
@@ -4784,16 +4848,30 @@ function showOpenDialog(note){
     const c = cands[+btn.dataset.cand];
     openWithGuard(() => {
       $('openDlg').close();
-      if (openData(c.data, c.key === SAVED_KEY ? 'browser' : '')) toast(`${c.kind}を開きました`);
-      else toast('この内容は読み込めませんでした');
+      const r = openData(c.data, c.key === SAVED_KEY ? 'browser' : '');
+      if (r === 'cancel') toast('開くのをやめました');
+      else toast(r ? `${c.kind}を開きました` : 'この内容は読み込めませんでした');
     });
   };
   $('openDlgNote').textContent = note || '開きたい内容を選んでください。いまの内容は、開く前に保存できます。';
   $('openDlg').showModal();
 }
+// 起動の最初に印を付け、起動が終わったら消す。印が残っていたら、前回は読み込みの途中でタブを閉じた（＝読み込みで固まった）ということ。
+// 同じ自動保存をまた開くと固まるので、今回は開かずに始める。内容は消さず、「開く」の候補に残す（RESCUE_KEY）
+const BOOT_KEY = 'bunshi-booting', RESCUE_KEY = 'bunshi-rescue';
+let bootNote = '';
 function restore(){
   try {
-    const s = JSON.parse(localStorage.getItem(STORE_KEY) || 'null'); if (!s) return false;
+    const raw = localStorage.getItem(STORE_KEY);
+    let flag = null; try { flag = localStorage.getItem(BOOT_KEY); localStorage.setItem(BOOT_KEY, String(Date.now())); } catch {}
+    const s = JSON.parse(raw || 'null'); if (!s) return false;
+    const n = Object.keys(s.doc && s.doc.atoms || {}).length;
+    if (flag || n > LIMIT.atoms){   // 前回の読み込みが終わらなかった、または原子が上限より多い
+      try { localStorage.setItem(RESCUE_KEY, raw); } catch {}
+      bootNote = flag ? '前回は読み込みの途中でタブが閉じられたようなので、自動保存の内容は開かずに始めました。' : `自動保存の内容は原子が ${n} 個（上限の目安 ${LIMIT.atoms} 個）あって重いので、開かずに始めました。`;
+      bootNote += '「開く」の候補から開けます。';
+      return false;
+    }
     doc = sanitize(s.doc); applyViewState(s.view); applyUIState(s.state);
     if (typeof s.name === 'string' && s.name) save.name = s.name.slice(0, 40);
     save.at = s.at || 0; save.mark = JSON.stringify(doc); save.dirty = false;   // 続きから開いた直後は「変更なし」
@@ -4902,6 +4980,8 @@ if (['lib', 'exp', 'mo'].includes(savedPane)) openSide(savedPane);
 analyze(); renderInfo(); renderSel(); syncUndo(); syncSaveStatus();
 if (!restored) { try { addMolecule(buildCached('CCO'), true); hist.undo = []; syncUndo(); } catch (e) { console.error(e); } }
 requestAnimationFrame(() => { if (!restored) fitView(); requestDraw(true); });
+setTimeout(() => { try { localStorage.removeItem(BOOT_KEY); } catch {} }, 1500);   // ここまで動いたので、起動の印を消す
+if (bootNote) setTimeout(() => toast(bootNote), 300);
 
 // 構造式エディタの「3D で見る」から来たとき（../bunshi/?import=kouzoushiki）は、そのまま取り込む。
 // 読み込み直しで二重に取り込まないよう、済んだらアドレスの ?import= を消す
@@ -4910,7 +4990,7 @@ try {
   if (qs.get('import') === 'kouzoushiki'){
     kzFromSend = qs.get('src') === 'send';
     history.replaceState(null, '', location.pathname + location.hash);
-    setTimeout(() => $('kzImport').click(), 0);
+    requestAnimationFrame(() => setTimeout(() => $('kzImport').click(), 0));   // 操作バーを先に描いてから始める
   }
 } catch (e) { console.error(e); }
 
