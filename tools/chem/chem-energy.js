@@ -471,6 +471,8 @@ function segsToSVG(segs, size, colors = {}){
   return out;
 }
 // 文字の幅の見積もり（配置のため。ASCII は 0.6 文字、日本語は 1 文字）
+// 文字だけ取り出す（読み上げ用の名前に使う）
+function segsText(segs){ return segs.map(s => s.t).join(''); }
 function segsWidth(segs, size){
   let w = 0;
   for (const s of segs){
@@ -590,8 +592,13 @@ function diagramSVG(groups, opt = {}){
       l.tx = best.tx; l.ty = best.ty;
     });
     for (const l of g.levels){
-      lines.push('<line x1="' + l.x0 + '" y1="' + l.y.toFixed(1) + '" x2="' + l.x1 + '" y2="' + l.y.toFixed(1) + '" stroke="' + C.ink + '" stroke-width="' + (l.bold ? 3.6 : 2.2) + '"' + (l.dashed ? ' stroke-dasharray="6 5"' : '') + '/>');
-      texts.push('<text x="' + l.tx.toFixed(1) + '" y="' + l.ty.toFixed(1) + '" font-size="' + LS + '" fill="' + C.ink + '">' + segsToSVG(l.segs, LS, {spect: C.spect}) + '</text>');
+      const lineEl = '<line class="vis" x1="' + l.x0 + '" y1="' + l.y.toFixed(1) + '" x2="' + l.x1 + '" y2="' + l.y.toFixed(1) + '" stroke="' + C.ink + '" stroke-width="' + (l.bold ? 3.6 : 2.2) + '"' + (l.dashed ? ' stroke-dasharray="6 5"' : '') + '/>';
+      if (opt.interactive){   // 段（横線）をつかめるように、太い透明の線を重ねる。キーボードでも選べる
+        const gi = groups.indexOf(g), li = g.levels.indexOf(l);
+        lines.push('<g class="lvl" data-g="' + gi + '" data-lv="' + li + '" tabindex="0" role="button" aria-label="段 ' + (li + 1) + '：' + esc(segsText(l.segs)) + '">' +
+          '<line class="hit" x1="' + (l.x0 - 4) + '" y1="' + l.y.toFixed(1) + '" x2="' + (l.x1 + 4) + '" y2="' + l.y.toFixed(1) + '" stroke="transparent" stroke-width="18"/>' + lineEl + '</g>');
+      } else lines.push(lineEl);
+      texts.push('<text pointer-events="none" x="' + l.tx.toFixed(1) + '" y="' + l.ty.toFixed(1) + '" font-size="' + LS + '" fill="' + C.ink + '">' + segsToSVG(l.segs, LS, {spect: C.spect}) + '</text>');
       maxY = Math.max(maxY, l.y + 6, l.ty + 6); maxX = Math.max(maxX, l.x1, l.tx + segsWidth(l.segs, LS));
     }
     g.arrows.forEach((a, ai) => {
@@ -600,7 +607,9 @@ function diagramSVG(groups, opt = {}){
       const color = a.kind === 'target' ? C.target : (a.ci != null ? C.eqs[a.ci % C.eqs.length] : C.step);
       const ya = y1 + dir * 3, yb = y2 - dir * 3;
       const head = Math.abs(yb - ya) >= 10;
-      arrows.push('<g class="arrow" data-kind="' + a.kind + '"' + (a.eq != null ? ' data-eq="' + a.eq + '"' : '') + '>' +
+      a.geo = {ax, y1, y2};
+      arrows.push('<g class="arrow" data-kind="' + a.kind + '"' + (a.eq != null ? ' data-eq="' + a.eq + '"' : '') + (a.step != null ? ' data-st="' + a.step + '"' : '') +
+        (opt.interactive ? ' tabindex="0" role="button" aria-label="矢印：' + esc(segsText(a.segs)) + '"' : '') + '>' +
         '<line x1="' + ax + '" y1="' + ya.toFixed(1) + '" x2="' + ax + '" y2="' + (head ? yb - dir * 7 : yb).toFixed(1) + '" stroke="' + color + '" stroke-width="' + (a.kind === 'target' ? 3.8 : 2.2) + '"' + (a.dashed ? ' stroke-dasharray="5 4"' : '') + '/>' +
         (head ? '<path d="M' + (ax - 5.5) + ' ' + (yb - dir * 9).toFixed(1) + ' L' + ax + ' ' + yb.toFixed(1) + ' L' + (ax + 5.5) + ' ' + (yb - dir * 9).toFixed(1) + ' Z" fill="' + color + '"/>' : '') +
         '<text x="' + (ax + 8) + '" y="' + my.toFixed(1) + '" font-size="' + AS + '" fill="' + color + '">' + segsToSVG(a.segs, AS) + '</text>' +
@@ -622,10 +631,10 @@ function diagramSVG(groups, opt = {}){
 }
 
 // 矢印の文字：「(2)  ΔH = −393.5 kJ」「(3)×2  ΔH = −571.6 kJ」。旧課程は「(2)  393.5 kJ」
-function arrowSegs(label, dh, digits, old){
+function arrowSegs(label, dh, digits, old, plus){
   const segs = label ? [{t: label + '  '}] : [];
   if (old) segs.push({t: dh == null ? 'Q kJ' : numText(Math.abs(dh), digits) + ' kJ'});
-  else segs.push({t: 'ΔH = ' + (dh == null ? '?' : numText(dh, digits)) + ' kJ'});
+  else segs.push({t: 'ΔH = ' + (dh == null ? '?' : numText(dh, digits, plus)) + ' kJ'});
   return segs;
 }
 
@@ -704,7 +713,116 @@ function calcText(steps, eqs, result, opt = {}){
   return {combo, expr: lhs + ' = ' + expr + res};
 }
 
-const api = {Frac, ZERO, ONE, ELEMENTS, normalize, parseFormula, parseCharge, parseTerm, splitTerms, parseDH, parseEquation,
+// ===================== 自分で矢印を引く（エネルギー図エディタ 0.4） =====================
+// draw = {spect:{key:量}, steps:[{eq, c, from}], target:段の番号|null}
+//   spect：すべての段に同じだけ足す物質（O₂ など。ΔH は変わらない）
+//   steps：引いた矢印。eq：与えられた式の番号、c：符号つきの倍率（負は逆向き）、from：出発する段の番号（0 = はじめの段、k+1 = steps[k] でできた段）
+//   target：目的の式の矢印の終点の段の番号（出発はいつも 0）
+// 段は、はじめの段（目的の式の反応物 + spect）に矢印を順に足して、計算で作る（保存しない）。
+const emptyDraw = () => ({spect: {}, steps: [], target: null});
+const okEq = p => !!(p && !p.empty && !p.errors.length);
+const DRAW_MULTS = ['1/2', '1', '3/2', '2', '3', '4', '5', '6'].map(x => Frac.parse(x));
+// いまの量（have）で、必要な量（need）の何倍まで引けるか。引ける倍率を小さい順に返す
+function feasibleMults(have, need){
+  if (!need.size) return [];
+  return DRAW_MULTS.filter(m => [...need].every(([k, v]) => (have.get(k) || ZERO).sub(v.mul(m)).sign >= 0));
+}
+// 段（vec）から式 eq を引けるか。fwd：左辺 → 右辺、rev：右辺 → 左辺 で引ける倍率の一覧。引けなければ足りない物質（missing）
+function dragPlan(vec, eq){
+  const lhs = sideVec(eq.lhs), rhs = sideVec(eq.rhs);
+  const fwd = feasibleMults(vec, lhs), rev = feasibleMults(vec, rhs);
+  const short = need => [...need].filter(([k, v]) => (vec.get(k) || ZERO).sub(v).sign < 0).map(([k]) => k);
+  return {fwd, rev, missingFwd: short(lhs), missingRev: short(rhs)};
+}
+// 引いたあとの ΔH の符号から、矢印の向き（発熱 = 下向き）。ΔH が分からないときは null
+function arrowDown(dh, c){
+  if (typeof dh !== 'number') return null;
+  const v = dh * +c;
+  return v < 0 ? true : v > 0 ? false : null;
+}
+// 引いた矢印から、段・高さ・目的の式の矢印を計算する。式が直されて引けなくなった矢印は invalid に入れて、図には出さない
+function drawCompute(draw, target, eqs){
+  const S = new Map();
+  for (const [k, v] of Object.entries(draw.spect || {})){ const f = Frac.parse(v); if (f && f.sign > 0) S.set(k, f); }
+  const start = addVec(sideVec(target.lhs), S), goal = addVec(sideVec(target.rhs), S);
+  const levels = [{vec: start, parent: -1, step: -1, orig: 0, H: 0}];
+  const steps = [], invalid = [], newIdx = new Map([[0, 0]]);
+  (draw.steps || []).forEach((st, k) => {
+    const p = eqs[st.eq], c = Frac.parse(st.c);
+    const fail = why => invalid.push({k, eq: st.eq, why});
+    if (!okEq(p)) return fail('eq');
+    if (!c || c.isZero) return fail('c');
+    if (!newIdx.has(st.from)) return fail('from');
+    const from = newIdx.get(st.from);
+    const vec = addVec(levels[from].vec, vectorOf(p), c);
+    if ([...vec.values()].some(v => v.sign < 0)) return fail('short');
+    levels.push({vec, parent: from, step: k, orig: k + 1, H: null});
+    newIdx.set(k + 1, levels.length - 1);
+    steps.push({k, eq: st.eq, c, from, to: levels.length - 1});
+  });
+  const reached = levels.map((l, i) => i > 0 && vecEq(l.vec, goal) ? i : -1).filter(i => i > 0);
+  let tl = -1;
+  if (draw.target != null && draw.target > 0 && newIdx.has(draw.target)){ const j = newIdx.get(draw.target); if (j > 0 && vecEq(levels[j].vec, goal)) tl = j; }
+  const chainTo = j => { const out = []; while (j > 0){ const st = steps.find(x => x.to === j); out.unshift(st); j = st.from; } return out; };
+  let targetDH = null, solved = null, overrides = new Map();
+  if (tl > 0){
+    const h = levelHeights({steps: chainTo(tl).map(x => ({eq: x.eq, c: x.c})), matched: true}, target, eqs);
+    targetDH = h.targetDH; solved = h.solved; overrides = h.overrides;
+  }
+  const dhOf = i => overrides.has(i) ? overrides.get(i) : (eqs[i] ? eqs[i].dh : undefined);
+  for (const st of steps){
+    const d = dhOf(st.eq), f = levels[st.from].H;
+    levels[st.to].H = typeof d === 'number' && f !== null ? f + +st.c * d : null;
+  }
+  return {S, start, goal, levels, steps, invalid, reached, tl, targetDH, solved, overrides, dhOf, chainTo, last: levels.length - 1};
+}
+// 矢印 k を消す。その段から出ている矢印も、順に消える（番号を詰め直す）
+function drawRemoveStep(draw, k){
+  const gone = new Set([k + 1]);   // 消える段の番号
+  const keep = [];
+  (draw.steps || []).forEach((st, i) => {
+    if (i === k || gone.has(st.from)){ gone.add(i + 1); return; }
+    keep.push({st, i});
+  });
+  const map = new Map([[0, 0]]); keep.forEach(({i}, n) => map.set(i + 1, n + 1));
+  return {spect: Object.assign({}, draw.spect),
+    steps: keep.map(({st}) => ({eq: st.eq, c: st.c, from: map.get(st.from)})),
+    target: draw.target != null && map.has(draw.target) && !gone.has(draw.target) ? map.get(draw.target) : null};
+}
+// 与えられた式 i を消したとき：その式を使った矢印を消し、i より後の式の番号を詰める
+function drawRemoveEq(draw, i){
+  let d = {spect: Object.assign({}, draw.spect), steps: draw.steps.map(x => ({...x})), target: draw.target};
+  for (let k = d.steps.length - 1; k >= 0; k--) if (d.steps[k] && d.steps[k].eq === i) d = drawRemoveStep(d, k);
+  d.steps.forEach(st => { if (st.eq > i) st.eq--; });
+  return d;
+}
+// 図にする。arrowSegs の向きは「引いた向き」（ΔH の符号 = 矢印の向き）
+function groupFromDraw(dc, target, eqs, species, opt = {}){
+  const order = speciesOrder(target, eqs);
+  const digits = opt.digits != null ? opt.digits : 1;
+  const g = {levels: [], arrows: []};
+  dc.levels.forEach((l, i) => g.levels.push({H: l.H, segs: compSegs(l.vec, species, order, dc.S), ord: i, dashed: i > 0 && l.H === null,
+    bold: dc.tl > 0 && (i === 0 || i === dc.tl)}));
+  for (const st of dc.steps){
+    const d = dc.dhOf(st.eq), mag = st.c.abs(), rev = st.c.sign < 0;
+    const label = '(' + (st.eq + 1) + ')' + (rev ? 'の逆' : '') + (mag.eq(1) ? '' : '×' + fracText(mag));
+    const value = typeof d === 'number' ? +st.c * d : null;
+    g.arrows.push({from: st.from, to: st.to, kind: 'step', eq: st.eq, ci: st.eq, step: st.k, dashed: value === null,
+      segs: arrowSegs(label, value, digits, opt.old, true)});
+  }
+  if (dc.tl > 0) g.arrows.push({from: 0, to: dc.tl, kind: 'target', dashed: dc.targetDH === null, segs: arrowSegs('目的', dc.targetDH, digits, opt.old, true)});
+  return g;
+}
+// 「答えを見る」：自動で求めた道のり（buildPath）を、引いた矢印にする
+function drawFromPath(path){
+  const d = emptyDraw();
+  for (const [k, v] of path.spect) d.spect[k] = v.toString();
+  path.steps.forEach((st, n) => d.steps.push({eq: st.eq, c: st.c.toString(), from: n}));
+  d.target = path.steps.length || null;
+  return d;
+}
+
+const api = {emptyDraw, okEq, feasibleMults, dragPlan, arrowDown, drawCompute, drawRemoveStep, drawRemoveEq, groupFromDraw, drawFromPath, DRAW_MULTS, segsText, Frac, ZERO, ONE, ELEMENTS, normalize, parseFormula, parseCharge, parseTerm, splitTerms, parseDH, parseEquation,
   balance, vectorOf, sideVec, collectSpecies, solveCombination, buildPath, levelHeights, addVec, vecEq,
   fracText, coefText, formulaSegs, speciesSegs, compSegs, termsSegs, equationSegs, numText, decimalsOf,
   segsToHTML, segsToSVG, segsWidth, diagramSVG, arrowSegs, groupFromPath, groupFromEquation, calcText, speciesOrder, esc};

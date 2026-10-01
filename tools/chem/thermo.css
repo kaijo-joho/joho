@@ -280,3 +280,50 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .top.tightest .tabs,.top.tightest button.tabadd,.top.tightest .tabs-only{display:none!important}
 .top.tightest .narrow-only{display:flex;flex-direction:column}
 .top.tightest .gl.narrow-only{display:block}
+
+/* ---- 0.4：自分で矢印を引く ---- */
+.eq-no.pick{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:1px 8px;cursor:pointer;min-width:34px;font-size:13px}
+.eq-no.pick:hover{border-color:var(--c, var(--accent))}
+.card.sel{box-shadow:0 0 0 3px var(--accent-soft);outline:2px solid var(--accent);outline-offset:0}
+.card.sel .eq-no.pick{background:var(--c, var(--accent));border-color:var(--c, var(--accent));color:#fff;font-weight:700}
+:root[data-theme="dark"] .card.sel .eq-no.pick,:root[data-resolved-theme="dark"] .card.sel .eq-no.pick{color:#111}
+.card.target.sel .eq-no.pick{background:var(--accent);border-color:var(--accent);color:#fff}
+:root[data-theme="dark"] .card.target.sel .eq-no.pick,:root[data-resolved-theme="dark"] .card.target.sel .eq-no.pick{color:#111}
+.draw-info{font-size:12px;color:var(--muted)}
+.build-status .mut{color:var(--muted);font-size:12px}
+/* 図：段（横線）をつかめる。式を選んでいるときは十字のカーソル */
+#dia svg .lvl{outline:none}
+#dia svg .lvl .hit{cursor:pointer}
+#dia.draw-ready svg .lvl .hit{cursor:crosshair}
+#dia svg .lvl:hover .vis,#dia svg .lvl:focus-visible .vis{stroke:var(--accent);stroke-width:4}
+#dia svg .lvl.src .vis{stroke:var(--accent);stroke-width:4.5}
+#dia svg .lvl:focus-visible .hit{stroke:var(--accent-soft)}
+#dia svg .arrow{outline:none}
+#dia svg .arrow:focus-visible line{stroke-width:4}
+#dia svg .arrow.selected line{stroke-width:4.5}
+#dia svg .arrow.selected{filter:drop-shadow(0 0 3px var(--accent))}
+/* 矢印を選んだときの小窓・補う物質の小窓 */
+.float-pop{position:fixed;z-index:34;background:var(--panel);color:var(--text);border:1px solid var(--accent);border-radius:10px;box-shadow:0 8px 24px rgba(20,30,50,.22);padding:6px 8px;font-size:calc(13px*var(--ui-k, 1));line-height:1.4;display:flex;align-items:center;gap:6px;flex-wrap:wrap;max-width:min(420px,calc(100vw - 16px))}
+.float-pop[hidden]{display:none}
+.float-pop button{border:1px solid var(--line);background:var(--panel);color:inherit;border-radius:6px;padding:2px 8px;font-size:inherit;cursor:pointer;min-height:calc(26px*var(--ui-k, 1))}
+.float-pop button:hover{background:var(--accent-soft);border-color:var(--accent)}
+.float-pop button.on{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:700}
+:root[data-theme="dark"] .float-pop button.on,:root[data-resolved-theme="dark"] .float-pop button.on{color:#111}
+.float-pop .ap-t{font-weight:700;margin-right:2px}
+.float-pop .ap-chips{display:inline-flex;gap:3px;flex-wrap:wrap}
+.float-pop .ap-del:hover{border-color:var(--danger);color:var(--danger);background:transparent}
+.sp-pop{flex-direction:column;align-items:stretch;gap:5px;width:min(320px,calc(100vw - 16px))}
+.sp-title{font-weight:700}
+.sp-note,.sp-none{color:var(--muted);font-size:.9em}
+.sp-lbl{color:var(--muted);font-size:.85em;margin-top:2px}
+.sp-rows{display:flex;flex-direction:column;gap:4px}
+.sp-row{display:flex;align-items:center;gap:6px}
+.sp-n{flex:1}
+.sp-row input{width:3.4em;text-align:center;border:1px solid var(--line);border-radius:6px;padding:2px 4px;background:var(--panel);color:inherit}
+.sp-cands{display:flex;flex-wrap:wrap;gap:4px}
+.sp-pop sub,.sp-pop sup{font-size:.72em;line-height:0}
+.sp-pop small{font-size:.82em}
+.sp-foot{display:flex;justify-content:flex-end}
+#dia svg .lvl .hit{touch-action:none}
+#dia{user-select:none;-webkit-user-select:none}
+.sp-pm{min-width:calc(26px*var(--ui-k, 1));padding:2px 0!important}
