@@ -22,20 +22,43 @@
   function nonce() {
     return Array.from(root.crypto.getRandomValues(new Uint8Array(24)), n => n.toString(16).padStart(2, '0')).join('');
   }
+  // 配付・提出で共通の案内。Googleの認証操作は別タブで本人が行う。
+  function loginHelp(container, retry) {
+    const node = (parent, text, tag = 'p', className = '') => {
+      const element = document.createElement(tag); element.textContent = text;
+      if (className) element.className = className;
+      parent.append(element); return element;
+    };
+    const element = node(container, '', 'details', 'submission-help');
+    node(element, '表示・ログインで困ったとき', 'summary');
+    const body = node(element, '', 'div', 'form-login-help');
+    node(body, '学校のGoogleアカウント（@gfe.kaijo.ed.jp）でログインしてください。ログイン後は、この画面に戻ってフォームだけを開き直せます。編集中の内容はそのまま残ります。');
+    const actions = node(body, '', 'div', 'download-controls');
+    const login = node(actions, 'Googleにログイン', 'a', 'btn');
+    login.href = 'https://accounts.google.com/'; login.target = '_blank'; login.rel = 'noopener noreferrer';
+    const retryButton = node(actions, 'フォームだけを開き直す', 'button', 'btn'); retryButton.type = 'button';
+    retryButton.addEventListener('click', retry);
+    node(body, '複数アカウントでうまく開けない場合は、すべてのGoogleアカウントからログアウトし、学校アカウントだけでログインし直してください');
+    node(body, '同じChromeプロファイルで使っているGmailやGoogleドライブなど、他のGoogleサービスもログアウトされます。ログアウトは必要な場合だけ自分で行ってください。');
+    node(body, '複数アカウントの利用時に、この操作で開けた事例があります。表示できない原因が必ず同じとは限りません。');
+    node(body, '発行・提出中、結果不明、発行結果が未保存のときは開き直さず、フォーム内の同じボタンや受領状況の再確認を使ってください。');
+    const notice = node(body, '', 'p', 'form-retry-notice'); notice.setAttribute('role', 'status');
+    return {element, body, retryButton, say(message) { element.open = true; notice.textContent = message; }};
+  }
   function create({container, dialog, lesson, stateFor, requestClose}) {
-    let disposeFrame = () => {}, phase = '', disposed = false, frameOpen = false, selectedTask = '';
+    let disposeFrame = () => {}, phase = '', protectedResult = '', disposed = false, frameOpen = false, selectedTask = '';
     const node = (parent, text, tag = 'p', className = '') => {
       const element = document.createElement(tag); element.textContent = text;
       if (className) element.className = className;
       parent.append(element); return element;
     };
     function canClose() {
-      if (['issuing','uncertain'].includes(phase)) return root.confirm('発行処理中、または結果をまだ確認できていません。閉じても発行は取り消されません。閉じますか？');
-      if (phase === 'issued') return root.confirm('発行したHTMLをまだ保存していません。保存用リンクを閉じますか？');
+      if (protectedResult === 'unknown' || ['issuing','uncertain'].includes(phase)) return root.confirm('発行処理中、または結果をまだ確認できていません。閉じても発行は取り消されません。閉じますか？');
+      if (protectedResult === 'unsaved' || phase === 'issued') return root.confirm('発行したHTMLをまだ保存していません。保存用リンクを閉じますか？');
       return true;
     }
     function clearFrame() {
-      disposeFrame(); disposeFrame = () => {}; phase = ''; frameOpen = false;
+      disposeFrame(); disposeFrame = () => {}; phase = ''; protectedResult = ''; frameOpen = false;
       dialog.classList.remove('download-open','distribution-open','distribution-integrated');
     }
     function showList(focusTask) {
@@ -62,17 +85,24 @@
       node(container, '通常は「ダウンロード」に保存されます。Finderで実習ファイルを「書類／HTML実習」へ移動してください。ファイル名に「(1)」などが付いた場合は、編集中のファイルを上書きしないよう確認してから指定の名前に戻します。取り直しても途中の編集内容は戻りません。');
       if (focusTask) container.querySelector('[data-task-download="' + focusTask + '"]')?.focus();
     }
-    function showFrame(task, item) {
+    function showFrame(task, item, reopen = false) {
       clearFrame(); container.replaceChildren(); selectedTask = task.id; frameOpen = true;
       dialog.classList.add('download-open','distribution-open');
       const heading = node(container, task.fileName + ' — ' + task.title, 'h3'); heading.tabIndex = -1;
       const controls = node(container, '', 'div', 'download-controls');
       const back = node(controls, '課題一覧へ戻る', 'button', 'btn'); back.type = 'button';
       back.addEventListener('click', () => { if (canClose()) showList(task.id); });
-      const help = node(container, '', 'details', 'submission-help');
-      node(help, '表示・ログインで困ったとき', 'summary');
-      node(help, '別タブで学校アカウントを確認できます。発行・保存は開いた画面で続けてください。');
-      const external = node(help, '別タブで開く', 'a', 'btn');
+      const help = loginHelp(container, () => {
+        if (disposed || !frameOpen) return;
+        if (protectedResult === 'unknown') { help.say('発行結果をまだ確認できません。開き直すと結果を見失うため、配付ページ内の同じボタンで確認し直してください。'); return; }
+        if (protectedResult === 'unsaved') { help.say('発行した実習ファイルがまだ保存されていません。配付ページ内の「実習ファイルを保存する」を使ってください。'); return; }
+        const fresh = stateFor(task.id);
+        if (!fresh.item || fresh.item.url !== item.url) { help.say('配付先が変わりました。課題一覧へ戻って確認してください。'); return; }
+        showFrame(task, fresh.item, true);
+      });
+      if (reopen) help.say('フォームだけを開き直しました。実習ファイルは自動発行されません。');
+      node(help.body, '別タブで配付ページを開く場合は、発行・保存を開いた画面で続けてください。');
+      const external = node(help.body, '別タブで開く', 'a', 'btn');
       external.href = item.url; external.target = '_blank'; external.rel = 'noopener noreferrer';
       external.addEventListener('click', event => {
         if (stateFor(task.id).item?.url !== item.url) { event.preventDefault(); if (canClose()) showList(task.id); return; }
@@ -97,7 +127,8 @@
       }
       const url = new URL(item.url); url.searchParams.set('embed', 'html-editor'); url.searchParams.set('bridge', bridge);
       const slowTimer = setTimeout(() => {
-        label.textContent = '表示に時間がかかっています。学校アカウントのログインが必要な場合は「別タブで開く」を使ってください。';
+        label.textContent = '表示に時間がかかっています。「表示・ログインで困ったとき」から学校アカウントを確認してください。';
+        help.element.open = true;
       }, 20000);
       const receive = event => {
         const data = event.data;
@@ -124,6 +155,10 @@
         if (data.type !== 'state' || !STATES.has(data.phase)) return;
         if (data.phase === 'escape') { requestClose(); return; }
         phase = data.phase;
+        // 通信エラーや再読込中の通知だけで結果不明・未保存を解除しない。
+        if (phase === 'issuing' || phase === 'uncertain') protectedResult = 'unknown';
+        else if (phase === 'issued') protectedResult = 'unsaved';
+        else if (phase === 'download-started') protectedResult = '';
         if (phase === 'loading') { label.textContent = '学校アカウントと課題設定を確認しています…'; return; }
         clearTimeout(slowTimer); spinner.hidden = true;
         if (phase === 'ready') label.textContent = '配付ページを表示しました。画面内の案内に従って取得してください。';
@@ -135,7 +170,8 @@
       };
       root.addEventListener('message', receive);
       disposeFrame = () => { clearTimeout(slowTimer); root.removeEventListener('message', receive); frame.remove(); source = null; };
-      frame.src = url.href; container.append(frame); heading.focus();
+      frame.src = url.href; container.append(frame);
+      if (reopen) help.retryButton.focus(); else heading.focus();
     }
     function catalogChanged() {
       if (!disposed && !frameOpen) showList(selectedTask);
@@ -152,7 +188,7 @@
       }
     };
   }
-  const api = Object.freeze({create,gasOrigin,withinFrame});
+  const api = Object.freeze({create,gasOrigin,withinFrame,loginHelp});
   if (typeof module === 'object' && module.exports) module.exports = api;
   else root.HtmlEditorDownload = api;
 })(typeof window === 'undefined' ? globalThis : window);

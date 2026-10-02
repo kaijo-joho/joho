@@ -1,8 +1,8 @@
 /* 通常HTMLの画面用照合。署名・本人・学年・期限の認証は配付/提出サーバーだけで行う。 */
 (function (root, factory) {
-  if (typeof module === 'object' && module.exports) module.exports = factory();
-  else root.HtmlPracticeEditor = factory();
-})(typeof globalThis === 'undefined' ? this : globalThis, function () {
+  if (typeof module === 'object' && module.exports) module.exports = factory(require('./local-protocol.js'));
+  else root.HtmlPracticeEditor = factory(root.HtmlLocalProtocol);
+})(typeof globalThis === 'undefined' ? this : globalThis, function (localProtocol) {
   'use strict';
   const MAP = Object.freeze({
     'html11-01':'html11-01',
@@ -33,6 +33,15 @@
     return matches.length === 1 ? links.normalize(matches[0]) : null;
   }
   function inspect(source) {
+    if(String(source).includes('joho-html-local')) {
+      if(!localProtocol || String(source).includes('joho-issued-html'))throw Error('実習ファイルの形式が混在しています。');
+      const codec={encode:s=>btoa(Array.from(new TextEncoder().encode(s),c=>String.fromCharCode(c)).join('')).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''),
+        decode:s=>new TextDecoder('utf-8',{fatal:true}).decode(Uint8Array.from(atob(s.replace(/-/g,'+').replace(/_/g,'/')),c=>c.charCodeAt(0)))};
+      const parsed=localProtocol.parseLocal(String(source),codec),marker=String(source).slice(0,String(source).indexOf('\n'));
+      localProtocol.inspectIdentity(parsed.envelope.identity,codec);
+      if(!targets.includes(parsed.envelope.assignmentId))throw Error('実習ファイルの課題情報が正しくありません。');
+      return Object.freeze({...parsed.envelope,protocolVersion:3,marker});
+    }
     const markers = String(source).match(/joho-issued-html/g) || [];
     if (!markers.length) return null;
     const match = String(source).match(/<!-- joho-issued-html:v2:([A-Za-z0-9_-]{1,2048})\.([A-Za-z0-9_-]{43}) -->/);

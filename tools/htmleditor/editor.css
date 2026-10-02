@@ -711,6 +711,9 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
 .submission-help summary::before { content: '▸'; }
 .submission-help[open] summary::before { content: '▾'; }
 .submission-help .btn { margin-bottom: 8px; }
+.form-login-help { max-height: min(320px, 35dvh); overflow-y: auto; padding-inline: 2px; }
+.form-login-help .download-controls { margin-bottom: 4px; }
+.form-retry-notice:not(:empty) { color: var(--text); font-weight: 700; }
 .download-spinner { width: 1.2em; height: 1.2em; flex-shrink: 0; border: 3px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: download-spin 1s linear infinite; }
 @keyframes download-spin { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .download-spinner { animation: none; border-style: dotted; } }

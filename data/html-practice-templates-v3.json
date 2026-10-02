@@ -1,0 +1,136 @@
+{
+  "v": 3,
+  "revision": "reviewed-20261002-1",
+  "templates": [
+    {
+      "assignmentId": "html11-01",
+      "fileName": "html11-01.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "ced0754270b4772ff468eb22477b61f973dbbeae3bff311148448b9586802f1c",
+      "sourcePath": "/html/templates/v3/html11-01/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html12-01",
+      "fileName": "html12-01.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "dba5166ad9db9ba648c1032ebbd34dcd0d085b50023b839ef5c68ca1db93a563",
+      "sourcePath": "/html/templates/v3/html12-01/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html13-01",
+      "fileName": "html13-01.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "ad8c06c6ea32c5e868809bec4a16624a72b5427850c8faf789a7d0bfdd038c0a",
+      "sourcePath": "/html/templates/v3/html13-01/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html13-02",
+      "fileName": "html13-02.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "4266148a137dcc90bd2a5c3a7b1d98249b3a1bb49b253b04d11743f590abb38d",
+      "sourcePath": "/html/templates/v3/html13-02/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html14-01",
+      "fileName": "html14-01.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "a72683b1bff48698fc4966fcc30de8e379ef94da6eb17531740ef58fe963bb1e",
+      "sourcePath": "/html/templates/v3/html14-01/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html15-01",
+      "fileName": "html15-01.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "27a7b952d4e00c8eb8f5f8bea8656cf396150ee76eb75d4604589db165ffbe08",
+      "sourcePath": "/html/templates/v3/html15-01/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html15-02",
+      "fileName": "html15-02.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "ae7ec4ee8c4789662f5f151397219cabc1578811c88b55b90f71a668f839a7a6",
+      "sourcePath": "/html/templates/v3/html15-02/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html16-01",
+      "fileName": "html16-01.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "7d1b31df5bde23e8dc3cbda1baa349feec47430b8857a43a030037b689c8de28",
+      "sourcePath": "/html/templates/v3/html16-01/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html17-01",
+      "fileName": "html17-01.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "16f10e1d3bb64c11bb4f2dec978437bbc97fe4e9e06f2f20e2542ad00b5585e2",
+      "sourcePath": "/html/templates/v3/html17-01/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html22-01",
+      "fileName": "html22-01.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "9a4565dbf9d7696beee9540b0022933239081fbfa659f21ef5866ed8d873da46",
+      "sourcePath": "/html/templates/v3/html22-01/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html22-02",
+      "fileName": "html22-02.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "cee69d8de3e0c14b708bdfe1cfba6a60a24621b97a3fbfc13b6f6dfb9eb49ca2",
+      "sourcePath": "/html/templates/v3/html22-02/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html23-01",
+      "fileName": "html23-01.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "5d311d494f2dddb938ee3906c126f513836fcfb4beb0189ae2fd79c01d702971",
+      "sourcePath": "/html/templates/v3/html23-01/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    },
+    {
+      "assignmentId": "html24-01",
+      "fileName": "html24-01.html",
+      "templateVersion": "2026-10-local-1",
+      "templateSha256": "608e1aa7cb66db8add334f645afa57a231b97bc199ed9ec8a63f1002cf84c51d",
+      "sourcePath": "/html/templates/v3/html24-01/2026-10-local-1.html",
+      "editableRegions": [
+        "document"
+      ]
+    }
+  ]
+}

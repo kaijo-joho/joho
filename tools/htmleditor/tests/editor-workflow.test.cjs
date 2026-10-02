@@ -18,6 +18,7 @@ class Node {
     this.classList = {toggle() {}, add() {}, remove() {}};
   }
   append(...nodes) { this.children.push(...nodes); }
+  after(node) { this.afterNode=node; }
   appendChild(node) { this.children.push(node); return node; }
   replaceChildren(...nodes) { this.children = nodes; }
   addEventListener(name, fn) { (this.listeners.get(name) || this.listeners.set(name, []).get(name)).push(fn); }
@@ -38,7 +39,7 @@ class Node {
   close() { this.open = false; }
 }
 
-function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false} = {}) {
+function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false, v3=false, localDownloads=null} = {}) {
   const nodes = Object.fromEntries([...htmlIds].map(id => [id, new Node()]));
   nodes.app = new Node(); nodes.actionDialog = new Node('dialog');
   const documentEvents = new Map();
@@ -106,6 +107,8 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     addEventListener:(name, fn) => { (windowEvents.get(name) || windowEvents.set(name, []).get(name)).push(fn); }
   };
   context.window = context;
+  context.HTML_LOCAL_V3_CONFIG={enabled:v3,identityUrl:'https://script.google.com/macros/s/SYNTHETIC/exec'};
+  context.HtmlEditorLocalDownloads=localDownloads;
   vm.runInNewContext(source, context, {filename:'editor.js'});
   for (const fn of windowEvents.get('DOMContentLoaded') || []) fn();
   return {nodes, handle, calls, cm, tick};
@@ -191,4 +194,21 @@ test('読取専用の保存と復旧候補はMacへ書込・自動ダウンロ�
   assert.equal(recovery.cm.getValue(), 'old');
   assert.equal(recovery.nodes.currentFileLabel.textContent, 'old.html');
   assert.equal(recovery.calls.writes, 0, '復旧はMacへ書き込まない');
+});
+test('v3実エディタ起動は既存proofを読むだけ。確認・切替・最新取得は明示操作のみ',async()=>{
+ const calls={load:0,register:0,panel:0};let state={status:'missing',label:''};
+ const localDownloads={create:()=>({load:async()=>{calls.load++;return state;},register:async()=>{calls.register++;state={status:'ready',label:'synthetic'};},
+  createPanel(){calls.panel++;return {canClose:()=>true,dispose(){}};}})};
+ const h=makeHarness({v3:true,localDownloads});await h.tick();await h.tick();
+ const box=h.nodes.toolbar.afterNode,confirm=box.children.find(n=>n.textContent==='学校アカウントを確認する');
+ assert(box);assert.equal(calls.load,1);assert.equal(calls.register,0);assert.equal(calls.panel,0);
+ assert.equal(h.nodes.currentFileLabel.textContent,'');assert.equal(h.calls.downloads,0);assert.equal(h.calls.writes,0);
+ confirm.click();await h.tick();assert.equal(calls.register,1);assert.equal(confirm.hidden,true);
+ const second=makeHarness({v3:true,localDownloads});await second.tick();assert.equal(calls.register,1);
+ assert.equal(second.nodes.currentFileLabel.textContent,'');
+});
+test('v3モジュール準備失敗でも実エディタと既存ファイルを保持し旧配付の入口を維持',async()=>{
+ const h=makeHarness({v3:true,localDownloads:{create(){throw Error('synthetic_storage_error');}}});await h.tick();
+ assert.match(h.nodes.toolbar.afterNode.children[0].textContent,/既存の配付/);
+ assert.equal(h.nodes.emptyState.hidden,false);assert.equal(h.calls.writes,0);
 });

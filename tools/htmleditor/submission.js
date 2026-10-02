@@ -29,25 +29,31 @@
     if (savedFile && (savedFile.fileName !== targetId + '.html' || typeof savedFile.text !== 'string' || !savedFile.text.length ||
         new TextEncoder().encode(savedFile.text).length > 2 * 1024 * 1024)) throw Error('保存済みファイルを確認できません。');
     const file = savedFile ? Object.freeze({fileName:savedFile.fileName, text:savedFile.text}) : null;
-    let phase = 'loading', source = null, sourceOrigin = '', disposed = false, slowTimer, transfer = false;
+    let phase = 'loading', protectedResult = '', source = null, sourceOrigin = '', disposed = false, slowTimer, transfer = false, frame = null, bridge = '';
     const node = (parent, text, tag = 'p', className = '') => {
       const element = document.createElement(tag); element.textContent = text;
       if (className) element.className = className;
       parent.append(element); return element;
     };
-    function needsAttention() { return ['selected','sending','uncertain','checking','grading','downloading'].includes(phase); }
+    function needsAttention() { return protectedResult === 'pending' || ['selected','sending','uncertain','checking','grading','downloading'].includes(phase); }
     function canClose() {
-      if (phase === 'sending' || phase === 'uncertain' || phase === 'checking') return root.confirm('提出処理中、または受領結果をまだ確認できていません。閉じても送信は取り消されません。閉じますか？');
+      if (protectedResult === 'pending' || phase === 'sending' || phase === 'uncertain' || phase === 'checking') return root.confirm('提出処理中、または受領結果をまだ確認できていません。閉じても送信は取り消されません。閉じますか？');
       if (phase === 'selected') return root.confirm('選択したファイルはまだ提出していません。提出フォームを閉じますか？');
       if (phase === 'grading') return root.confirm('提出は受け付けていますが、採点結果を確認中です。閉じますか？');
       if (phase === 'downloading') return root.confirm('控えを取得中です。閉じると保存できない場合があります。閉じますか？');
       return true;
     }
     dialog.classList.add('download-open','submission-open'); container.replaceChildren();
-    const help = node(container, '', 'details', 'submission-help');
-    node(help, '表示・ログインで困ったとき', 'summary');
-    node(help, '別タブでは、Macに保存した実習ファイルを選び直してください。');
-    const external = node(help, '別タブで開く', 'a', 'btn');
+    const help = root.HtmlEditorDownload.loginHelp(container, () => {
+      if (disposed) return;
+      if (protectedResult === 'pending') { help.say('提出処理中、または受領結果が不明です。フォーム内の「受領状況を再確認」を使ってください。自動再送はしません。'); return; }
+      if (protectedResult === 'receipt') { help.say('提出は受け付けています。フォーム内で採点結果や控えを確認してください。修正して再提出するときは、フォーム内の「もう一度提出する」から編集へ戻ります。'); return; }
+      if (!isCurrent() || !canClose() || !isCurrent()) return;
+      startFrame();
+      help.say('フォームだけを開き直しました。ファイルは自動送信されません。フォーム内の案内を確認してください。');
+    });
+    node(help.body, '別タブでは、Macに保存した実習ファイルを選び直してください。');
+    const external = node(help.body, '別タブで開く', 'a', 'btn');
     external.href = url; external.target = '_blank'; external.rel = 'noopener noreferrer';
     external.addEventListener('click', event => {
       if (!isCurrent() || !canClose()) { event.preventDefault(); return; }
@@ -57,16 +63,13 @@
     const status = node(container, '', 'p', 'download-status'); status.setAttribute('role', 'status'); status.tabIndex = -1;
     const spinner = node(status, '', 'span', 'download-spinner'); spinner.setAttribute('aria-hidden', 'true');
     const label = node(status, '提出フォームを読み込んでいます…', 'span');
-    const frame = document.createElement('iframe'); frame.className = 'download-frame';
-    frame.title = targetId + '.html の提出フォーム'; frame.referrerPolicy = 'no-referrer';
-    frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals');
     const receive = event => {
       const data = event.data;
-      if (disposed || !frame.isConnected || !root.HtmlEditorDownload.gasOrigin(event.origin) ||
+      if (disposed || !frame?.isConnected || !root.HtmlEditorDownload.gasOrigin(event.origin) ||
           !root.HtmlEditorDownload.withinFrame(event.source, frame.contentWindow) || !data ||
           data.channel !== CHANNEL || data.bridge !== bridge || data.targetId !== targetId) return;
       if (data.type === 'hello') {
-        if (source && source !== event.source || !isCurrent()) return;
+        if (source && (source !== event.source || sourceOrigin !== event.origin) || !isCurrent()) return;
         source = event.source; sourceOrigin = event.origin;
         transfer = Boolean(file && data.fileTransfer === TRANSFER);
         source.postMessage({channel:CHANNEL,type:'connect',bridge,targetId,
@@ -93,22 +96,36 @@
       if (data.phase === 'escape') { requestClose(); return; }
       if (!Object.prototype.hasOwnProperty.call(MESSAGES, data.phase)) return;
       phase = data.phase; clearTimeout(slowTimer);
+      if (['sending','uncertain','checking'].includes(phase)) protectedResult = 'pending';
+      else if (['received','grading','downloading'].includes(phase)) protectedResult = 'receipt';
       label.textContent = MESSAGES[phase]; spinner.hidden = !['loading','sending','checking','grading','downloading'].includes(phase);
     };
-    let bridge = '';
-    if (root.location.origin === ORIGIN && root.top === root) {
-      try { bridge = Array.from(root.crypto.getRandomValues(new Uint8Array(24)), n => n.toString(16).padStart(2,'0')).join(''); } catch { /* 別タブへ案内 */ }
+    function clearFrame() {
+      clearTimeout(slowTimer); root.removeEventListener('message', receive);
+      frame?.remove(); frame = null; source = null; sourceOrigin = ''; transfer = false; bridge = '';
     }
-    if (bridge) {
+    function startFrame() {
+      clearFrame(); phase = 'loading'; protectedResult = ''; status.hidden = false; spinner.hidden = false;
+      label.textContent = '提出フォームを読み込んでいます…';
+      if (root.location.origin === ORIGIN && root.top === root) {
+        try { bridge = Array.from(root.crypto.getRandomValues(new Uint8Array(24)), n => n.toString(16).padStart(2,'0')).join(''); } catch { /* 別タブへ案内 */ }
+      }
+      if (!bridge) { spinner.hidden = true; label.textContent = 'この場所では埋め込み表示を利用できません。「別タブで開く」を使ってください。'; return; }
+      frame = document.createElement('iframe'); frame.className = 'download-frame';
+      frame.title = targetId + '.html の提出フォーム'; frame.referrerPolicy = 'no-referrer';
+      frame.setAttribute('sandbox', 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-downloads allow-modals');
       const embedded = new URL(url); embedded.searchParams.set('embed','html-editor'); embedded.searchParams.set('bridge',bridge);
       root.addEventListener('message', receive);
-      slowTimer = setTimeout(() => { label.textContent = '表示に時間がかかっています。ログインが必要な場合は「別タブで開く」を使ってください。'; }, 20000);
+      slowTimer = setTimeout(() => {
+        label.textContent = '表示に時間がかかっています。「表示・ログインで困ったとき」から学校アカウントを確認してください。';
+        help.element.open = true;
+      }, 20000);
       frame.src = embedded.href; container.append(frame);
-    } else { spinner.hidden = true; label.textContent = 'この場所では埋め込み表示を利用できません。「別タブで開く」を使ってください。'; }
+    }
+    startFrame();
     status.focus();
     return {canClose, needsAttention, dispose() {
-      disposed = true; clearTimeout(slowTimer); root.removeEventListener('message', receive);
-      frame.remove(); source = null; dialog.classList.remove('download-open','submission-open');
+      disposed = true; clearFrame(); dialog.classList.remove('download-open','submission-open');
     }};
   }
   const api = Object.freeze({create, validUrl});
