@@ -599,7 +599,9 @@ function diagramSVG(groups, opt = {}){
       if (opt.interactive){   // 段（横線）をつかめるように、太い透明の線を重ねる。キーボードでも選べる
         const gi = groups.indexOf(g), li = g.levels.indexOf(l);
         // まだ物質を書いていない横線には、丸い「＋」ボタンを付ける（書き出しには出さない）
-        const plusEl = l.empty ? '<g class="plus"><title>クリックして物質を書く</title><circle class="plus-c" cx="' + (l.x0 + 20) + '" cy="' + (l.y - 22).toFixed(1) + '" r="12"/><path class="plus-l" d="M' + (l.x0 + 14) + ' ' + (l.y - 22).toFixed(1) + 'h12M' + (l.x0 + 20) + ' ' + (l.y - 28).toFixed(1) + 'v12"/></g>' : '';
+        // 横線の右の末端に、小さく付ける（左端には矢印が来るので、重ならないように）
+        const pcx = l.x1 - 12, pcy = (l.y - 13).toFixed(1);
+        const plusEl = l.empty ? '<g class="plus"><title>クリックして物質を書く</title><circle class="plus-c" cx="' + pcx + '" cy="' + pcy + '" r="8"/><path class="plus-l" d="M' + (pcx - 4) + ' ' + pcy + 'h8M' + pcx + ' ' + (l.y - 17).toFixed(1) + 'v8"/></g>' : '';
         lines.push('<g class="lvl" data-g="' + gi + '" data-lv="' + li + '"' + (l.empty ? ' data-empty="1"' : '') + ' tabindex="0" role="button" aria-label="横線 ' + (li + 1) + '：' + esc(l.empty ? 'まだ物質を書いていません' : segsText(l.segs)) + '">' +
           '<line class="hit" x1="' + (l.x0 - 4) + '" y1="' + l.y.toFixed(1) + '" x2="' + (l.x1 + 4) + '" y2="' + l.y.toFixed(1) + '" stroke="transparent" stroke-width="18"/>' + lineEl + plusEl + '</g>');
       } else lines.push(lineEl);
