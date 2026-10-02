@@ -15,6 +15,7 @@
 	</style>
   <title>海城中学高等学校 情報科</title>
   <link rel="stylesheet" href="./css/css.css">
+  <script defer src="./js/pages.js"></script>
   <script defer src="./js/main.js"></script>
   <script defer src="./js/links.js"></script>
 </head>
@@ -77,11 +78,47 @@
     return { id, dictKey };
   }
 
+  // Classroom用のHTML実習入口。URLの正本はGSS生成のpages.jsとする。
+  // 既存のfile等の中継には影響させず、まず公開対象の2課題だけを扱う。
+  function resolveHtmlPracticeDownload(id) {
+    if (!['html11-01', 'html12-01'].includes(id)) return null;
+    const matches = Object.values(window.pages || {}).flatMap(page =>
+      Array.isArray(page.practiceFile) ? page.practiceFile : []
+    ).filter(item => item.id === id && item.distributionMode === 'personal-html-v2' && item.release === true);
+    if (matches.length !== 1) return null;
+    const item = matches[0];
+    let url;
+    try { url = new URL(item.url); } catch { return null; }
+    const path = url.pathname.match(/^\/(?:a\/macros\/gfe\.kaijo\.ed\.jp\/|macros\/)s\/([A-Za-z0-9_-]+)\/exec$/);
+    if (url.origin !== 'https://script.google.com' || !path || url.username || url.password || url.hash ||
+        url.searchParams.get('type') !== 'htmlPractice' || url.searchParams.get('target') !== id ||
+        Array.from(url.searchParams.keys()).sort().join(',') !== 'target,type') return null;
+    // 学校Chromeで開く学校ドメイン付きの同じ配付先へ整形する。発行RPCは呼ばない。
+    url.pathname = `/a/macros/gfe.kaijo.ed.jp/s/${path[1]}/exec`;
+    return { ...item, url: url.href };
+  }
+
+  function showUnavailableDownload() {
+    const section = document.createElement('section');
+    const article = document.createElement('article');
+    const message = document.createElement('p');
+    message.textContent = 'この実習ファイルの配付リンクを確認できませんでした。教員の案内を確認してください。';
+    article.appendChild(message);
+    section.appendChild(article);
+    document.body.appendChild(section);
+  }
+
   function createLinkFromParam() {
+    const downloadId = getParam('dl');
+    const download = params.has('dl') ? resolveHtmlPracticeDownload(downloadId) : null;
+    if (params.has('dl') && !download) {
+      showUnavailableDownload();
+      return;
+    }
     const { id, dictKey } = resolveIdAndDictKey();
 
     // デフォルトは「指定なし」＝ 何もしない
-    if (!id) {
+    if (!id && !downloadId) {
       console.debug('[links] id 未指定のため何もしません');
       return;
     }
@@ -98,8 +135,8 @@
     };
 
     // まず dictKey で検索、無ければ横断検索
-    let item = dictKey ? dicts[dictKey]?.[id] : undefined;
-    if (!item) {
+    let item = download || (dictKey ? dicts[dictKey]?.[id] : undefined);
+    if (!item && !downloadId) {
       for (const k of Object.keys(dicts)) {
         if (dicts[k]?.[id]) { item = dicts[k][id]; break; }
       }
@@ -110,7 +147,7 @@
       return;
     }
 
-    const label = getParam('label') || item.title || id;
+    const label = getParam('label') || item.title || downloadId || id;
 
     const a = document.createElement('a');
     a.href = item.url;
