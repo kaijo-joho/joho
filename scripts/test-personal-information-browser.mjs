@@ -25,7 +25,7 @@ async function fits(page, label) {
 for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(',')) {
   const browser = await (name === 'webkit' ? webkit.launch() : chromium.launch({channel:'chrome'}));
   try {
-    const context = await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
+    const context = await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce',hasTouch:true});
     // Existing common analytics/webfonts are not needed by the candidate tests.
     await context.route('https://**/*', route => route.abort());
     const page = await context.newPage();
@@ -91,12 +91,43 @@ for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(','
         await expect(model).toHaveAttribute('data-is-state',await model.getAttribute('data-is-default'));
         await expect(reset).toBeFocused();
       }
+      if(id === 'is32') {
+        await go(page,3);
+        const model=page.locator('[data-is-model="consent-timing"]');
+        const buttons=model.locator('[data-is-select]');
+        const forward=name==='webkit'?'Alt+Tab':'Tab', backward=name==='webkit'?'Alt+Shift+Tab':'Shift+Tab';
+        await buttons.nth(0).focus();await page.keyboard.press(forward);await expect(buttons.nth(1)).toBeFocused();
+        await page.keyboard.press(backward);await expect(buttons.nth(0)).toBeFocused();
+        await buttons.nth(1).tap();await expect(model).toHaveAttribute('data-is-state','choice');
+        await expect(model.locator('.is32-consent-step.is-active')).toHaveCount(2);
+        await expect(model.locator('svg[role="img"]')).toHaveCount(6);
+        assert.ok(await model.locator('svg').evaluateAll(nodes=>nodes.every(svg=>
+          [...svg.querySelectorAll('text')].every(t=>{const b=t.getBBox();return b.x>=0&&b.y>=0&&b.x+b.width<=400&&b.y+b.height<=100})
+        )),'consent diagram labels fit their viewBox');
+        for(const phrase of ['本人への通知等','届出','要配慮個人情報は対象外','単に「拒否がなかった」']) {
+          const condition=page.locator('section').filter({has:page.locator('#headline_3')}).locator('p.is-observe').filter({hasText:phrase});
+          await expect(condition).toBeVisible();assert.equal(await condition.locator('xpath=ancestor::details').count(),0);
+        }
+        assert.ok(await model.locator('svg *').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).animationName==='none')),'no automatic SVG animation');
+      }
       for (const width of [1440,720,390]) {
         await page.setViewportSize({width,height:1000});
         for (const theme of ['light','dark','system']) for (const size of ['standard','large','xlarge']) {
           await page.emulateMedia({colorScheme:theme === 'system' ? 'dark' : theme});
           await page.evaluate(({theme,size})=>{window.siteTheme.setPreference(theme);window.siteTextSize.setPreference(size);},{theme,size});
-          for (let n=1;n<=count;n++) { await go(page,n); await fits(page,`${name} ${id} ${width} ${theme} ${size} ${n}`); }
+          for (let n=1;n<=count;n++) {
+            await go(page,n); await fits(page,`${name} ${id} ${width} ${theme} ${size} ${n}`);
+            if(id==='is32'&&n===3) {
+              const model=page.locator('[data-is-model="consent-timing"]');
+              for(const state of ['before','choice','after']) {
+                await model.locator(`[data-is-select="${state}"]`).click();
+                await expect(model).toHaveAttribute('data-is-state',state);
+                await expect(model.locator(`.is32-consent-step.is-active[data-is-highlight="${state}"]`)).toHaveCount(2);
+                for(const step of await model.locator('.is32-consent-step').all())await expect(step).toBeVisible();
+                await fits(page,`${name} consent ${state} ${width} ${theme} ${size}`);
+              }
+            }
+          }
         }
         await page.evaluate(()=>{window.siteTheme.setPreference('light');window.siteTextSize.setPreference('standard');});
         if(width!==720) for(let n=1;n<=count;n++) {
@@ -122,7 +153,17 @@ for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(','
     assert.deepEqual(errors,[],`${name}: local resources and JS exceptions`);
     const noJs=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:900}});
     await noJs.route('https://**/*', route=>route.abort());
-    for(const id of ids){const p=await noJs.newPage();await p.goto(`${base}${id}.html`);assert.ok(await p.locator('section[data-lesson-slide]').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).display!=='none')));assert.ok(await p.locator('[data-is-panel]').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).display!=='none')));await p.close();}
+    for(const id of ids){
+      const p=await noJs.newPage();await p.goto(`${base}${id}.html`);
+      assert.ok(await p.locator('section[data-lesson-slide]').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).display!=='none')));
+      assert.ok(await p.locator('[data-is-panel]').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).display!=='none')));
+      if(id==='is32') {
+        await expect(p.locator('.is32-consent-controls')).toBeHidden();
+        await expect(p.locator('.is32-consent-step svg')).toHaveCount(6);
+        for(const step of await p.locator('.is32-consent-step').all())await expect(step).toBeVisible();
+      }
+      await p.close();
+    }
     await noJs.close(); await context.close();
   } finally { await browser.close(); }
 }

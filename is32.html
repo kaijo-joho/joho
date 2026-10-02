@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
-  <link rel="stylesheet" href="./css/personal-information.css" integrity="sha384-pz5n7vJvBPUBQTG5w6jh/8PMrhCSk6jq1oJ6sdufPlB7PZntCFNz7A1ctd3d0Ubu">
+  <link rel="stylesheet" href="./css/personal-information.css" integrity="sha384-WERWj16QB3WVl1HC8XU7QmafQTebv7Tk9kjcrUSqEogxTEkYTh0Mo858yr8YwhEf">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
   <script defer src="./js/personal-information.js" integrity="sha384-gtF2EiAIIVXSTWeMyef78vE7NqINs+VygIuwMLQLgJUMT1rv3DwW+eEW3aCicQSO"></script>
@@ -91,28 +91,128 @@
         </ul>
         <p class="is-note">このほかにも法律に定める場合があります。委託など、一定の条件の下で第三者に当たらない取扱いもあります。提供先の種類だけで同意が不要になるわけではありません。</p>
       </div>
-      <div class="is-concept-pair">
-        <div class="is-card">
-          <h3>オプトイン</h3>
-          <ol class="is32-consent-timeline">
-            <li><strong>先に承諾を得る</strong></li>
-            <li><strong>提供する</strong></li>
-          </ol>
-          <p class="is-diagram-note">本人があらかじめ承諾する方式。</p>
-        </div>
-        <div class="is-card">
-          <h3>オプトアウト</h3>
-          <ol class="is32-consent-timeline">
-            <li><strong>停止を求められる仕組み</strong></li>
-            <li><strong>求めに応じて停止</strong></li>
-          </ol>
-          <p class="is-diagram-note">事前の個別の承諾によらず提供し、本人の求めに応じて停止する方式。利用できる条件は法律によって決まります。</p>
-        </div>
-      </div>
       <p class="is-observe">個人情報保護法のオプトアウトによる第三者提供には、<strong>本人への通知等・個人情報保護委員会への届出などの要件</strong>があります。対象にできない情報もあり、<strong>要配慮個人情報は対象外</strong>です。単に「拒否がなかった」だけでは使えません。</p>
+      <div class="is-model is32-consent-model" data-is-model="consent-timing" data-is-default="before">
+        <h3>本人の意思表示と、第三者提供の順序</h3>
+        <p>個人データを扱う<strong>事業者・本人・第三者</strong>の位置をそろえ、三つの段階を比べます。</p>
+        <div class="is32-consent-controls">
+          <div class="is-tabs" role="group" aria-label="比較する段階">
+            <button type="button" data-is-select="before" aria-controls="is32-consent-diagrams is32-consent-detail">1　意思表示の前</button>
+            <button type="button" data-is-select="choice" aria-controls="is32-consent-diagrams is32-consent-detail">2　本人の意思表示</button>
+            <button type="button" data-is-select="after" aria-controls="is32-consent-diagrams is32-consent-detail">3　その後</button>
+          </div>
+          <div class="is32-consent-actions"><button type="button" class="is-button" data-is-reset>はじめから</button></div>
+        </div>
+        <div class="is-concept-pair" id="is32-consent-diagrams">
+          <div class="is32-consent-column" aria-labelledby="is32-consent-in">
+            <h3 id="is32-consent-in">オプトイン</h3>
+            <p class="is-diagram-note">本人があらかじめ承諾する方式。</p>
+            <div class="is32-consent-steps">
+              <div class="is32-consent-step" data-is-highlight="before">
+                <h4>1　意思表示の前</h4>
+                <svg viewBox="0 0 400 100" role="img" aria-labelledby="is32-in-before-title is32-in-before-desc">
+                  <title id="is32-in-before-title">第三者へ提供しない</title>
+                  <desc id="is32-in-before-desc">上に本人、左に事業者、右に提供先の第三者。事業者と第三者の間は破線と止め線で、提供しない状態を示す。</desc>
+                  <g class="is32-consent-actors" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="200" cy="14" r="8"/><path d="M187 37 Q187 27 200 27 Q213 27 213 37"/>
+                    <rect x="12" y="46" width="102" height="42" rx="8"/><rect x="286" y="46" width="102" height="42" rx="8"/>
+                    <path class="is32-consent-flow" d="M124 67 H190 M212 67 H275" stroke-dasharray="5 5"/><path class="is32-consent-stop" d="M201 55 V79"/>
+                  </g>
+                  <g fill="currentColor" text-anchor="middle"><text x="238" y="26">本人</text><text x="63" y="74">事業者</text><text x="337" y="74">第三者</text></g>
+                </svg>
+                <p><strong>第三者へ提供しない</strong></p>
+              </div>
+              <div class="is32-consent-step" data-is-highlight="choice">
+                <h4>2　本人の意思表示</h4>
+                <svg viewBox="0 0 400 100" role="img" aria-labelledby="is32-in-choice-title is32-in-choice-desc">
+                  <title id="is32-in-choice-title">本人が事前に同意する</title>
+                  <desc id="is32-in-choice-desc">本人から左の事業者へ意思を伝える矢印。右には提供先の第三者。</desc>
+                  <g class="is32-consent-actors" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="200" cy="14" r="8"/><path d="M187 37 Q187 27 200 27 Q213 27 213 37"/>
+                    <rect x="12" y="46" width="102" height="42" rx="8"/><rect x="286" y="46" width="102" height="42" rx="8"/>
+                    <path class="is32-consent-flow" d="M181 25 H64 V39 M56 31 L64 39 L72 31"/>
+                  </g>
+                  <g fill="currentColor" text-anchor="middle"><text x="238" y="26">本人</text><text x="63" y="74">事業者</text><text x="337" y="74">第三者</text></g>
+                </svg>
+                <p><strong>本人が事前に同意する</strong></p>
+              </div>
+              <div class="is32-consent-step" data-is-highlight="after">
+                <h4>3　その後</h4>
+                <svg viewBox="0 0 400 100" role="img" aria-labelledby="is32-in-after-title is32-in-after-desc">
+                  <title id="is32-in-after-title">同意を得て、提供を開始する</title>
+                  <desc id="is32-in-after-desc">上に本人、左に事業者、右に提供先の第三者。事業者から第三者へ個人データを提供する矢印。</desc>
+                  <g class="is32-consent-actors" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="200" cy="14" r="8"/><path d="M187 37 Q187 27 200 27 Q213 27 213 37"/>
+                    <rect x="12" y="46" width="102" height="42" rx="8"/><rect x="286" y="46" width="102" height="42" rx="8"/>
+                    <path class="is32-consent-flow" d="M124 67 H275 M266 59 L275 67 L266 75"/>
+                  </g>
+                  <g fill="currentColor" text-anchor="middle"><text x="238" y="26">本人</text><text x="63" y="74">事業者</text><text x="337" y="74">第三者</text></g>
+                </svg>
+                <p><strong>同意を得て、提供を開始する</strong></p>
+              </div>
+            </div>
+          </div>
+          <div class="is32-consent-column" aria-labelledby="is32-consent-out">
+            <h3 id="is32-consent-out">オプトアウト</h3>
+            <p class="is-diagram-note">通知等・届出など、法定の要件を満たした場合。</p>
+            <div class="is32-consent-steps">
+              <div class="is32-consent-step" data-is-highlight="before">
+                <h4>1　意思表示の前</h4>
+                <svg viewBox="0 0 400 100" role="img" aria-labelledby="is32-out-before-title is32-out-before-desc">
+                  <title id="is32-out-before-title">法定の要件を満たして提供中</title>
+                  <desc id="is32-out-before-desc">上に本人、左に事業者、右に提供先の第三者。事業者から第三者へ個人データを提供する矢印。</desc>
+                  <g class="is32-consent-actors" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="200" cy="14" r="8"/><path d="M187 37 Q187 27 200 27 Q213 27 213 37"/>
+                    <rect x="12" y="46" width="102" height="42" rx="8"/><rect x="286" y="46" width="102" height="42" rx="8"/>
+                    <path class="is32-consent-flow" d="M124 67 H275 M266 59 L275 67 L266 75"/>
+                  </g>
+                  <g fill="currentColor" text-anchor="middle"><text x="238" y="26">本人</text><text x="63" y="74">事業者</text><text x="337" y="74">第三者</text></g>
+                </svg>
+                <p><strong>法定の要件を満たして提供中</strong></p>
+              </div>
+              <div class="is32-consent-step" data-is-highlight="choice">
+                <h4>2　本人の意思表示</h4>
+                <svg viewBox="0 0 400 100" role="img" aria-labelledby="is32-out-choice-title is32-out-choice-desc">
+                  <title id="is32-out-choice-title">本人が提供の停止を求める</title>
+                  <desc id="is32-out-choice-desc">本人から左の事業者へ意思を伝える矢印。右には提供先の第三者。</desc>
+                  <g class="is32-consent-actors" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="200" cy="14" r="8"/><path d="M187 37 Q187 27 200 27 Q213 27 213 37"/>
+                    <rect x="12" y="46" width="102" height="42" rx="8"/><rect x="286" y="46" width="102" height="42" rx="8"/>
+                    <path class="is32-consent-flow" d="M181 25 H64 V39 M56 31 L64 39 L72 31"/>
+                  </g>
+                  <g fill="currentColor" text-anchor="middle"><text x="238" y="26">本人</text><text x="63" y="74">事業者</text><text x="337" y="74">第三者</text></g>
+                </svg>
+                <p><strong>本人が提供の停止を求める</strong></p>
+              </div>
+              <div class="is32-consent-step" data-is-highlight="after">
+                <h4>3　その後</h4>
+                <svg viewBox="0 0 400 100" role="img" aria-labelledby="is32-out-after-title is32-out-after-desc">
+                  <title id="is32-out-after-title">その本人のデータの提供を停止する</title>
+                  <desc id="is32-out-after-desc">上に本人、左に事業者、右に提供先の第三者。事業者と第三者の間は破線と止め線で、提供しない状態を示す。</desc>
+                  <g class="is32-consent-actors" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="200" cy="14" r="8"/><path d="M187 37 Q187 27 200 27 Q213 27 213 37"/>
+                    <rect x="12" y="46" width="102" height="42" rx="8"/><rect x="286" y="46" width="102" height="42" rx="8"/>
+                    <path class="is32-consent-flow" d="M124 67 H190 M212 67 H275" stroke-dasharray="5 5"/><path class="is32-consent-stop" d="M201 55 V79"/>
+                  </g>
+                  <g fill="currentColor" text-anchor="middle"><text x="238" y="26">本人</text><text x="63" y="74">事業者</text><text x="337" y="74">第三者</text></g>
+                </svg>
+                <p><strong>その本人のデータの提供を停止する</strong></p>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="is-observe" id="is32-consent-detail" role="region" aria-label="選んだ段階の説明" aria-live="polite" tabindex="0">
+          <p data-is-panel="before"><strong>1　意思表示の前：</strong>オプトイン側はまだ提供しません。オプトアウト側は、法定の要件を満たして提供している場面です。</p>
+          <p data-is-panel="choice"><strong>2　本人の意思表示：</strong>オプトイン側は提供への事前の同意、オプトアウト側は提供を止める求めを、本人から事業者へ伝えます。</p>
+          <p data-is-panel="after"><strong>3　その後：</strong>オプトイン側は同意を得て提供を開始し、オプトアウト側は求めた本人のデータの第三者提供を停止します。</p>
+        </div>
+        <p class="is-note">図の矢印は提供や意思表示の向きを示します。オプトアウトは事前の個別の承諾によらず提供し、本人の求めに応じて停止する方式で、利用できる条件は法律によって決まります。</p>
+        <noscript><p class="is-note">三つの段階と説明を、順に比べてください。</p></noscript>
+      </div>
+
       <p class="is-note">通信販売の電子メール広告には、原則として事前の承諾を求める別の規制があります。</p>
       <p class="is-prompt"><strong>説明しよう</strong>　同意の原則と例外を説明するとき、どの条件を一緒に伝える必要があるでしょうか。</p>
-      <p class="is-source">参考：<a href="https://www.ppc.go.jp/personalinfo/legal/guidelines_tsusoku/" target="_blank" rel="noopener noreferrer">個人情報保護委員会「ガイドライン（通則編）」3-6-1～3</a>、<a href="https://www.no-trouble.caa.go.jp/what/mailorder/" target="_blank" rel="noopener noreferrer">消費者庁「特定商取引法ガイド・通信販売」</a>（2026-10-02確認）</p>
+      <p class="is-source">参考：<a href="https://www.ppc.go.jp/personalinfo/legal/guidelines_tsusoku/" target="_blank" rel="noopener noreferrer">個人情報保護委員会「ガイドライン（通則編）」3-6-1～3</a>、<a href="https://www.no-trouble.caa.go.jp/what/mailorder/" target="_blank" rel="noopener noreferrer">消費者庁「特定商取引法ガイド・通信販売」</a>（本文2026-10-02確認、比較図は2026-10-03に同ガイドライン3-6-1・3-6-2を再確認）</p>
     </article>
   </section>
 
