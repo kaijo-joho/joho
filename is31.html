@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>個人情報とプライバシー | 情報社会</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-sf7yLTtudXQPK63/pQ2M1q8UW2Kp6JuuqsNoD10RCZeblvCwYhp5bZJSSQPZScwL">
+  <link rel="stylesheet" href="./css/personal-information.css" integrity="sha384-pz5n7vJvBPUBQTG5w6jh/8PMrhCSk6jq1oJ6sdufPlB7PZntCFNz7A1ctd3d0Ubu">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/information-society.js" integrity="sha384-ZL1NA1iQuu9S1KtZtIMTpDC5jdWDqOTToq4LHEM832egeUmXhQGMxTHdtnlAbodx"></script>
+  <script defer src="./js/personal-information.js" integrity="sha384-gtF2EiAIIVXSTWeMyef78vE7NqINs+VygIuwMLQLgJUMT1rv3DwW+eEW3aCicQSO"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body class="is-lesson is-personal" data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="個人情報は、名前だけではない">
+    <article>
+      <h2 id="headline_1">(1) 個人情報は、名前だけではない</h2>
+      <p class="is-lead"><strong>個人情報</strong>は、生存する個人に関する情報のうち、<strong>特定の個人を識別できる情報</strong>です。他の情報と容易に照合して識別できるものや、法律で定める<strong>個人識別符号</strong>を含むものも該当します。</p>
+      <div class="is-concept-pair">
+        <div class="is-card">
+          <h3>その情報から分かる</h3>
+          <p>氏名や顔写真などから、特定の個人が誰か分かる場合があります。</p>
+          <p class="is-note">「秘密の情報かどうか」だけで決まるものではありません。</p>
+        </div>
+        <div class="is-card">
+          <h3>他の情報と容易に照合すると分かる</h3>
+          <p>所属などの情報も、他の情報と容易に照合して特定の個人を識別できれば、個人情報に当たります。</p>
+          <p class="is-note">一つの項目だけを見るのではなく、結び付く情報にも着目します。</p>
+        </div>
+      </div>
+      <figure class="is31-record-map">
+        <svg viewBox="0 0 600 160" role="img" aria-labelledby="is31-record-title is31-record-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <title id="is31-record-title">二つの記録を照合する見取り図</title>
+          <desc id="is31-record-desc">文字を表す線と共通の記号がある二枚の記録カードを、中央の線で結んだ模式図。他の記録と結び付けて考えることを示す。実在する人の情報や番号は含まない。</desc>
+          <rect x="36" y="19" width="205" height="122" rx="12" fill="var(--is-panel)"/>
+          <rect x="359" y="19" width="205" height="122" rx="12" fill="var(--is-panel)"/>
+          <path d="M64 47 H155 M64 70 H211 M64 96 H148 M64 116 H186 M387 47 H478 M387 70 H535 M387 96 H471 M387 116 H509"/>
+          <rect x="185" y="88" width="26" height="26" rx="4" fill="var(--is-soft)" stroke="var(--is-accent)"/>
+          <rect x="508" y="88" width="26" height="26" rx="4" fill="var(--is-soft)" stroke="var(--is-accent)"/>
+          <path d="M242 80 H358 M252 71 L243 80 L252 89 M348 71 L357 80 L348 89" stroke="var(--is-accent)"/>
+        </svg>
+        <figcaption>記録を単独で見る場合と、別の記録と結び付けて見る場合では、分かることが変わります。</figcaption>
+      </figure>
+      <div class="is-card">
+        <h3>基本四情報</h3>
+        <p><strong>氏名・住所・生年月日・性別</strong>を基本四情報といいます。この四つが全部そろうことが、個人情報の条件ではありません。</p>
+      </div>
+      <div class="is-prompt"><strong>予想する</strong><p>名前を消せば、いつでも誰の情報か分からなくなるでしょうか。次の画面では、架空のデータを使って情報の組合せを観察します。</p></div>
+      <p class="is-source">確認：個人情報保護委員会「<a href="https://www.ppc.go.jp/personalinfo/legal/guidelines_tsusoku/" target="_blank" rel="noopener noreferrer">個人情報保護法ガイドライン（通則編）</a>」2-1・2-2（2026-10-02確認）。図は本教材独自の模式図です。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="情報を組み合わせて観察する">
+    <article>
+      <h2 id="headline_2">(2) 情報を組み合わせて観察する</h2>
+      <p class="is-lead">架空の体験会の参加者について、<strong>会場・時間帯・テーマ</strong>を組み合わせたとき、条件に一致する人数がどう変わるか観察します。</p>
+      <p class="is-note">この12人は、教材のために作った架空のデータです。表示するのは、この集合の中で条件に一致する人数です。個人情報に当たるかという法的判断や、現実の個人を特定できる確率は示していません。</p>
+      <div data-is-filter-lab>
+        <div class="is-prompt">
+          <strong>予想 → 操作 → 観察</strong>
+          <ol>
+            <li>一つの条件だけなら、何人に当てはまりそうか予想します。</li>
+            <li>「東館」→「午前」→「工作」の順に条件を加えます。</li>
+            <li>「東館」を外します。残った「午前＋工作」と、先ほどの「東館＋午前」の人数を比べます。</li>
+          </ol>
+        </div>
+        <fieldset class="is-filter-controls">
+          <legend>確かめる情報を追加・解除する</legend>
+          <div class="is-filter-options">
+            <label class="is-filter-option"><input type="checkbox" data-is-attribute="会場：東館" value="east" disabled><span>会場：東館</span></label>
+            <label class="is-filter-option"><input type="checkbox" data-is-attribute="時間帯：午前" value="morning" disabled><span>時間帯：午前</span></label>
+            <label class="is-filter-option"><input type="checkbox" data-is-attribute="テーマ：工作" value="craft" disabled><span>テーマ：工作</span></label>
+          </div>
+        </fieldset>
+        <div class="is-filter-summary">
+          <p data-is-match-count role="status" aria-live="polite" aria-atomic="true">この教材の 12 人のうち 12 人が一致</p>
+          <p data-is-active-attributes>条件なし：12 人すべてを表示しています。</p>
+        </div>
+        <p class="is-note">選んだ条件の<strong>すべて</strong>に合うカードを「一致」と実線の枠で示します。合わないカードは「条件外」と破線の枠で示し、12枚とも同じ位置に残します。</p>
+        <ul class="is-person-grid" aria-label="架空の体験会の参加者12人">
+          <li class="is-match" data-is-person="01" data-is-features="east morning craft">
+            <div class="is-person-heading"><strong>人物01</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：東館</span><span>時間帯：午前</span><span>テーマ：工作</span></p>
+          </li>
+          <li class="is-match" data-is-person="02" data-is-features="east morning observe">
+            <div class="is-person-heading"><strong>人物02</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：東館</span><span>時間帯：午前</span><span>テーマ：観察</span></p>
+          </li>
+          <li class="is-match" data-is-person="03" data-is-features="east afternoon craft">
+            <div class="is-person-heading"><strong>人物03</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：東館</span><span>時間帯：午後</span><span>テーマ：工作</span></p>
+          </li>
+          <li class="is-match" data-is-person="04" data-is-features="east afternoon observe">
+            <div class="is-person-heading"><strong>人物04</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：東館</span><span>時間帯：午後</span><span>テーマ：観察</span></p>
+          </li>
+          <li class="is-match" data-is-person="05" data-is-features="west morning craft">
+            <div class="is-person-heading"><strong>人物05</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：西館</span><span>時間帯：午前</span><span>テーマ：工作</span></p>
+          </li>
+          <li class="is-match" data-is-person="06" data-is-features="west morning observe">
+            <div class="is-person-heading"><strong>人物06</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：西館</span><span>時間帯：午前</span><span>テーマ：観察</span></p>
+          </li>
+          <li class="is-match" data-is-person="07" data-is-features="west afternoon craft">
+            <div class="is-person-heading"><strong>人物07</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：西館</span><span>時間帯：午後</span><span>テーマ：工作</span></p>
+          </li>
+          <li class="is-match" data-is-person="08" data-is-features="west afternoon observe">
+            <div class="is-person-heading"><strong>人物08</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：西館</span><span>時間帯：午後</span><span>テーマ：観察</span></p>
+          </li>
+          <li class="is-match" data-is-person="09" data-is-features="south morning craft">
+            <div class="is-person-heading"><strong>人物09</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：南館</span><span>時間帯：午前</span><span>テーマ：工作</span></p>
+          </li>
+          <li class="is-match" data-is-person="10" data-is-features="south morning observe">
+            <div class="is-person-heading"><strong>人物10</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：南館</span><span>時間帯：午前</span><span>テーマ：観察</span></p>
+          </li>
+          <li class="is-match" data-is-person="11" data-is-features="south afternoon craft">
+            <div class="is-person-heading"><strong>人物11</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：南館</span><span>時間帯：午後</span><span>テーマ：工作</span></p>
+          </li>
+          <li class="is-match" data-is-person="12" data-is-features="south afternoon observe">
+            <div class="is-person-heading"><strong>人物12</strong><span data-is-person-status>一致</span></div>
+            <p class="is-person-features"><span>会場：南館</span><span>時間帯：午後</span><span>テーマ：観察</span></p>
+          </li>
+        </ul>
+        <button type="button" class="is-button" data-is-filter-reset disabled>条件をすべて外す</button>
+      </div>
+      <p class="is-observe"><strong>自分の言葉で説明する：</strong>名前を使わなくても、組合せで候補が変わったのはなぜでしょうか。同じ二つの条件でも、選んだ情報によって人数が違うことを、カードを指して説明しましょう。</p>
+      <p class="is-note"><strong>観察例：</strong>東館だけでは4人 → 東館＋午前では2人 → 東館＋午前＋工作では1人。そこから東館を外すと、午前＋工作に一致するのは3人です。これは、この12人の中での結果です。</p>
+      <p class="is-note">情報が一つ増えれば必ず一人になるわけではなく、一致する人数が多ければ安全という意味でもありません。「人物01～12」は観察用の行札です。</p>
+      <noscript><p class="is-note">JavaScriptが無効のため、条件の操作はできません。12枚のカードと観察例を見て、条件を加えたとき・外したときの変化を確かめてください。</p></noscript>
+      <p class="is-source">定義の確認：個人情報保護委員会「<a href="https://www.ppc.go.jp/personalinfo/legal/guidelines_tsusoku/" target="_blank" rel="noopener noreferrer">個人情報保護法ガイドライン（通則編）</a>」2-1（2026-10-02確認）。人工データと観察の操作は本教材独自のものです。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="識別する符号と、特に配慮する情報">
+    <article>
+      <h2 id="headline_3">(3) 識別する符号と、特に配慮する情報</h2>
+      <p class="is-lead"><strong>個人識別符号</strong>と<strong>要配慮個人情報</strong>は、異なる観点から定められた用語です。</p>
+      <div class="is-concept-pair">
+        <div class="is-card">
+          <h3>個人識別符号</h3>
+          <p>特定の個人を識別できるものとして、<strong>法令で定められた符号</strong>です。</p>
+          <ul>
+            <li>旅券番号・運転免許証番号・個人番号</li>
+            <li>本人認証用に変換された顔・指紋などの特徴データ</li>
+          </ul>
+          <p class="is-note">番号なら何でも該当するわけではありません。前の画面の「01～12」は観察用の行札で、個人識別符号の実例ではありません。</p>
+          <p class="is-note">顔写真そのものと、本人認証用に変換された特徴データも区別します。</p>
+        </div>
+        <div class="is-card">
+          <h3>要配慮個人情報</h3>
+          <p>不当な差別や偏見などの不利益が生じないよう、<strong>特に配慮が必要なものとして法令で定められた情報</strong>です。</p>
+          <ul>
+            <li>人種・信条・病歴</li>
+            <li>犯罪の経歴・犯罪被害の事実など</li>
+          </ul>
+          <p class="is-note">本人が秘密にしたい情報すべてを、法律上の要配慮個人情報と呼ぶわけではありません。</p>
+        </div>
+      </div>
+      <div class="is-card">
+        <h3>要配慮個人情報の取扱い</h3>
+        <p>事業者が取得するには、<strong>原則として事前に本人の同意が必要</strong>です。法律上の例外があります。</p>
+        <p>第三者提供にも厳しいルールがあり、個人情報保護法の<strong>オプトアウトによる提供はできません</strong>。</p>
+      </div>
+      <div class="is-prompt"><strong>二つの観点を説明する</strong><p>「どのような符号で個人を識別するか」と「どのような不利益に配慮するか」は、それぞれどちらの用語が着目する問いでしょうか。例を指しながら説明しましょう。</p></div>
+      <p class="is-source">確認：個人情報保護委員会「<a href="https://www.ppc.go.jp/personalinfo/legal/guidelines_tsusoku/" target="_blank" rel="noopener noreferrer">個人情報保護法ガイドライン（通則編）</a>」2-2・2-3・3-3-2・3-6-2（2026-10-02確認）。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="プライバシーと、関連する権利">
+    <article>
+      <h2 id="headline_4">(4) プライバシーと、関連する権利</h2>
+      <p class="is-lead"><strong>プライバシー</strong>では、私生活に関する情報をみだりに公開されないことなど、<strong>私生活の平穏に関わる利益</strong>が問題になります。個人情報と同じ意味ではなく、重なる場面もあります。</p>
+      <figure class="is31-perspectives">
+        <p class="is31-perspective-root">人に関する情報</p>
+        <ul class="is31-viewpoints">
+          <li class="is-card"><h3>識別</h3><p>特定の個人が誰か分かるか。</p><p class="is-note">個人情報の定義に着目</p></li>
+          <li class="is-card"><h3>私生活への影響</h3><p>私生活に関する情報を、どのように扱うか。</p><p class="is-note">プライバシーに着目</p></li>
+          <li class="is-card"><h3>顔・姿の扱い</h3><p>どのように撮影し、公表するか。</p><p class="is-note">肖像に関する利益に着目</p></li>
+        </ul>
+        <figcaption>同じ情報を三つの視点で見る図です。法律や権利の集合関係を表すものではありません。</figcaption>
+      </figure>
+      <div class="is-concept-pair">
+        <div class="is-card">
+          <h3>人格権と肖像権</h3>
+          <p><strong>人格権</strong>は、人の人格的な利益を守る権利です。肖像についても、みだりに撮影・公表されない人格的利益が保護されます。このような顔・姿に関する権利は、<strong>肖像権</strong>と呼ばれます。</p>
+        </div>
+        <div class="is-card">
+          <h3>パブリシティ権</h3>
+          <p>氏名や肖像などが持つ、人を引き付けて商品等の販売を促す力（<strong>顧客吸引力</strong>）を、排他的に利用する権利です。</p>
+        </div>
+      </div>
+      <p class="is-note">撮影・掲載が権利侵害になるかは、目的、場所、方法、必要性など、具体的な事情によって判断されます。「無断なら必ず違法」と一律には決まりません。</p>
+      <div class="is-prompt"><strong>視点を広げる</strong><p>人に関する情報を扱うとき、名前が見えるか以外に、何を考える必要があるでしょうか。図の三つの視点を使って説明しましょう。</p></div>
+      <p class="is-source">確認：裁判所「<a href="https://www.courts.go.jp/assets/hanrei/hanrei-pdf-52388.pdf" target="_blank" rel="noopener noreferrer">最高裁平成17年11月10日判決（PDF）</a>」「<a href="https://www.courts.go.jp/assets/hanrei/hanrei-pdf-81957.pdf" target="_blank" rel="noopener noreferrer">最高裁平成24年2月2日判決（PDF）</a>」「<a href="https://www.courts.go.jp/assets/hanrei/hanrei-pdf-82101.pdf" target="_blank" rel="noopener noreferrer">プライバシーに関する判決（PDF）</a>」（2026-10-02確認）。図と説明は本教材独自の整理です。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="共有する前に、目的と相手を確かめる">
+    <article>
+      <h2 id="headline_5">(5) 共有する前に、目的と相手を確かめる</h2>
+      <p class="is-lead">自分にとって公開してよい情報でも、<strong>他の人が同じように考えるとは限りません</strong>。共有する前に、四つの視点で確かめます。</p>
+      <ol class="is-stage-list">
+        <li><strong>目的</strong><p>何を伝えるための共有か。</p></li>
+        <li><strong>範囲</strong><p>誰が見るか。別の場所へ伝わることも考える。</p></li>
+        <li><strong>情報量</strong><p>名前や細かな行動の記録まで必要か。他の情報と組み合わさらないか。</p></li>
+        <li><strong>本人の意向</strong><p>どの内容をどの範囲で使うか、本人に説明・確認できているか。</p></li>
+      </ol>
+      <figure class="is31-share-map">
+        <svg viewBox="0 0 600 180" role="img" aria-labelledby="is31-share-title is31-share-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <title id="is31-share-title">情報カードを共有する相手の範囲</title>
+          <desc id="is31-share-desc">左に内容を表す線を持つ情報カード、右に共有相手を表す三つの小さな円とその周囲の輪。情報カードから相手の輪へ矢印が伸びている。何を誰に伝えるかを考える模式図。</desc>
+          <rect x="36" y="31" width="160" height="118" rx="12" fill="var(--is-panel)"/>
+          <path d="M61 59 H140 M61 83 H170 M61 107 H159 M61 126 H127"/>
+          <path d="M215 90 H308 M297 80 L308 90 L297 100" stroke="var(--is-accent)"/>
+          <ellipse cx="432" cy="90" rx="119" ry="72" fill="var(--is-soft)" stroke="var(--is-accent)"/>
+          <circle cx="376" cy="91" r="20" fill="var(--is-panel)"/>
+          <circle cx="432" cy="67" r="20" fill="var(--is-panel)"/>
+          <circle cx="489" cy="99" r="20" fill="var(--is-panel)"/>
+        </svg>
+        <figcaption>伝える内容と、共有する相手の範囲を一緒に考えます。</figcaption>
+      </figure>
+      <div class="is-prompt"><strong>目的を先に決めて説明する</strong><p>架空の体験会の様子を説明する文章に、「個人ごとの行動」と「会場全体の人数」のどちらが必要でしょうか。何を伝えるための文章かを先に決め、必要な情報と共有する相手を説明しましょう。</p></div>
+      <p class="is-observe">本人に内容や範囲を説明して確認することは、他の人の情報を大切に扱うための行動です。自分の判断だけで共有を進める前に、本人の意向も確かめましょう。</p>
+      <p class="is-note">四つの視点は、この教材で考えるための整理です。確認すれば必ず適法になるという判定表ではなく、すべての場面で法律上の同意義務があるという意味でもありません。</p>
+      <p class="is-source">前のスライドのプライバシー・肖像に関する資料を踏まえた、本教材独自の学習整理です（2026-10-02確認）。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="語句とポイントを整理する">
+    <article>
+      <h2 id="headline_6">(6) 語句とポイントを整理する</h2>
+      <p class="is-lead">語句の意味を思い出してから開き、<strong>観察したことと共有前に確かめること</strong>を、自分の言葉でつなげましょう。</p>
+      <div class="is-columns">
+        <div class="is-terms">
+          <h3>語句を開いて確認</h3>
+          <details><summary>個人情報</summary><p>生存する個人に関する情報で、特定の個人を識別できるもの。他の情報と容易に照合して識別できるものや、法律で定める個人識別符号を含むものも該当します。</p></details>
+          <details><summary>基本四情報</summary><p>氏名・住所・生年月日・性別の四つ。すべてがそろわなくても、個人情報に当たる場合があります。</p></details>
+          <details><summary>個人識別符号</summary><p>特定の個人を識別できるものとして、法令で定められた符号。旅券番号や、本人認証用に変換された身体的特徴のデータなどがあります。</p></details>
+          <details><summary>要配慮個人情報</summary><p>差別や偏見などの不利益が生じないよう、特に配慮が必要なものとして法令で定められた情報。病歴などが含まれ、取得には原則として事前の本人同意が必要です。法律上の例外があります。</p></details>
+          <details><summary>プライバシー</summary><p>私生活に関する情報をみだりに公開されないことなど、私生活の平穏に関わる利益。個人情報の定義とは着目する点が異なり、重なる場面もあります。</p></details>
+          <details><summary>人格権</summary><p>人の人格的な利益を守る権利。肖像に関する人格的利益なども保護されます。</p></details>
+          <details><summary>肖像権</summary><p>みだりに顔や姿を撮影・公表されないことに関する権利。侵害になるかは、目的・場所・方法などの具体的な事情によって判断されます。</p></details>
+          <details><summary>パブリシティ権</summary><p>氏名や肖像などが持つ顧客吸引力を、排他的に利用する権利です。</p></details>
+        </div>
+        <div>
+          <div class="is-card is-points">
+            <h3>三つのポイント</h3>
+            <ol>
+              <li><strong>名前以外の情報と、その組合せ</strong>にも着目する。</li>
+              <li><strong>法律の定義と、本人への配慮</strong>を両方考える。</li>
+              <li>共有の<strong>目的・範囲・情報量・本人の意向</strong>を確かめる。</li>
+            </ol>
+          </div>
+          <div class="is-card">
+            <h3>自分の言葉で振り返る</h3>
+            <ol>
+              <li>12人の観察で分かったことを、条件の追加・解除と人数の変化を使って説明しましょう。</li>
+              <li>個人識別符号と要配慮個人情報は、どの観点が違うか説明しましょう。</li>
+              <li>他の人の情報を共有する前に、確かめたいことを挙げましょう。</li>
+            </ol>
+            <p class="is-note">説明しにくいところは、前のスライドの図や観察に戻って確かめてください。</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+</body>
+</html>
