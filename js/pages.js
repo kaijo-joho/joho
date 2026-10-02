@@ -1,4 +1,4 @@
-//2026-10-02 10:39:16;
+//2026-10-02 10:47:17;
 const pages = {
   "index": {
     "id": "index",
@@ -3821,6 +3821,42 @@ const pages = {
     "category": "知的財産権",
     "title": "2-3. 作品を利用するときの確認",
     "detail": "引用・ライセンス・公開範囲を、作品を使う前に確認します。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": false,
+    "show": false,
+    "backFile": "index.html"
+  },
+  "is31": {
+    "id": "is31",
+    "release": false,
+    "fileName": "is31.html",
+    "mainTitle": "情報社会",
+    "category": "個人情報とプライバシー",
+    "title": "3-1. 個人情報とプライバシー",
+    "detail": "人工データの組合せを観察し、個人情報とプライバシーを整理します。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": false,
+    "show": false,
+    "backFile": "index.html"
+  },
+  "is32": {
+    "id": "is32",
+    "release": false,
+    "fileName": "is32.html",
+    "mainTitle": "情報社会",
+    "category": "個人情報とプライバシー",
+    "title": "3-2. 個人情報の保護と活用",
+    "detail": "取得・利用・管理・提供と、本人の請求、加工情報の違いを確認します。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
