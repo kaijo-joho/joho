@@ -1,4 +1,4 @@
-//2026-09-29 04:11:35;
+//2026-10-02 10:39:16;
 const pages = {
   "index": {
     "id": "index",
@@ -587,6 +587,16 @@ const pages = {
       }
     ],
     "show": true,
+    "worksheetApp": [
+      {
+        "id": "dr43",
+        "title": "4-3. ディスプレイとプリンタ ワークシート",
+        "text": "4-3. ディスプレイとプリンタ ワークシート",
+        "release": false,
+        "url": "https://script.google.com/macros/s/AKfycbxtFZbgO-jXlvg5NcgS75GhwoC_608hl5ze9FxQQou26SmopWJYVl7ToenIbTTYJOXX4g/exec?id=dr43",
+        "detail": "ディスプレイの画素・発色・更新頻度、プリンタの色・解像度・印刷に必要な画素数を整理するワークシート。"
+      }
+    ],
     "backFile": "dr42.html"
   },
   "dr51": {
@@ -3757,6 +3767,60 @@ const pages = {
     "category": "index",
     "title": "よくある質問",
     "detail": "情報科実習サイトのよくある質問をまとめたページです。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": false,
+    "show": false,
+    "backFile": "index.html"
+  },
+  "is21": {
+    "id": "is21",
+    "release": false,
+    "fileName": "is21.html",
+    "mainTitle": "情報社会",
+    "category": "知的財産権",
+    "title": "2-1. 知的財産と産業財産権",
+    "detail": "何を保護する制度かを、同じ制作物の見方と期間の起点から学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": false,
+    "show": false,
+    "backFile": "index.html"
+  },
+  "is22": {
+    "id": "is22",
+    "release": false,
+    "fileName": "is22.html",
+    "mainTitle": "情報社会",
+    "category": "知的財産権",
+    "title": "2-2. 著作権のしくみ",
+    "detail": "表現と権利の関係、利用許諾と譲渡の違いを図で確かめます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": false,
+    "show": false,
+    "backFile": "index.html"
+  },
+  "is23": {
+    "id": "is23",
+    "release": false,
+    "fileName": "is23.html",
+    "mainTitle": "情報社会",
+    "category": "知的財産権",
+    "title": "2-3. 作品を利用するときの確認",
+    "detail": "引用・ライセンス・公開範囲を、作品を使う前に確認します。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
