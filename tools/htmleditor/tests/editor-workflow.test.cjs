@@ -200,7 +200,7 @@ test('v3実エディタ起動は既存proofを読むだけ。確認・切替・�
  const localDownloads={create:()=>({load:async()=>{calls.load++;return state;},register:async()=>{calls.register++;state={status:'ready',label:'synthetic'};},
   createPanel(){calls.panel++;return {canClose:()=>true,dispose(){}};}})};
  const h=makeHarness({v3:true,localDownloads});await h.tick();await h.tick();
- const box=h.nodes.toolbar.afterNode,confirm=box.children.find(n=>n.textContent==='学校アカウントを確認する');
+ const box=h.nodes.toolbar.children.find(n=>n.className==='identity-toolbar'),confirm=box.children[1].children[1].children.find(n=>n.textContent==='学校アカウントを確認する');
  assert(box);assert.equal(calls.load,1);assert.equal(calls.register,0);assert.equal(calls.panel,0);
  assert.equal(h.nodes.currentFileLabel.textContent,'');assert.equal(h.calls.downloads,0);assert.equal(h.calls.writes,0);
  confirm.click();await h.tick();assert.equal(calls.register,1);assert.equal(confirm.hidden,true);
@@ -209,6 +209,6 @@ test('v3実エディタ起動は既存proofを読むだけ。確認・切替・�
 });
 test('v3モジュール準備失敗でも実エディタと既存ファイルを保持し旧配付の入口を維持',async()=>{
  const h=makeHarness({v3:true,localDownloads:{create(){throw Error('synthetic_storage_error');}}});await h.tick();
- assert.match(h.nodes.toolbar.afterNode.children[0].textContent,/既存の配付/);
+ assert.match(h.nodes.toolbar.children.find(n=>n.className==='identity-toolbar').children[0].textContent,/既存の配付/);
  assert.equal(h.nodes.emptyState.hidden,false);assert.equal(h.calls.writes,0);
 });

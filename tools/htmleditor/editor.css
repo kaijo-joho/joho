@@ -767,3 +767,19 @@ select { font: inherit; color: var(--text); background: var(--panel); border: 1p
   #app, #helpWindow, #toast, #actionDialog, #startupFallback { display: none !important; }
   #editorPrintNotice { display: block; padding: 16px; }
 }
+
+/* Account controls stay in the toolbar; each download retains its own save action. */
+#toolbar { flex-wrap: wrap; }
+#toolbar .practice-actions { order:1; }
+#toolbar .toolbar-right { order:3; }
+#toolbar .identity-toolbar { order:2; display:flex; align-items:center; flex:0 1 auto; gap:6px; min-width:0; flex-wrap:wrap; }
+.identity-status { white-space:normal; margin:0; font-size:.8em; max-width:22em; overflow-wrap:anywhere; }
+.identity-actions { min-width:min(24em,calc(100vw - 24px)); }
+.identity-actions .btn { display:block; width:100%; white-space:normal; text-align:left; }
+.local-download-files { display:flex; flex-wrap:wrap; gap:12px; }
+.local-download-file { flex:1 1 240px; min-width:0; border:1px solid var(--line); border-radius:8px; padding:12px; }
+.local-download-file h3 { margin:0 0 10px; font-size:1em; overflow-wrap:anywhere; }
+.local-download-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.local-download-actions .btn { white-space:normal; overflow-wrap:anywhere; }
+.local-download-file p { overflow-wrap:anywhere; }
+@media(max-width:600px) { #toolbar .identity-toolbar { flex:1 1 180px; } .identity-status { flex:1; } .local-download-file { flex-basis:100%; } }

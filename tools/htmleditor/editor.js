@@ -674,20 +674,21 @@
     setupHelp();
     if(window.HTML_LOCAL_V3_CONFIG?.enabled===true) {
       const config=window.HTML_LOCAL_V3_CONFIG,box=document.createElement('section');box.setAttribute('aria-label','HTML実習の本人確認');
-      box.style.padding='10px';$('toolbar').after(box);
-      const status=textNode(box,'学校アカウントの確認状態を読み込んでいます…');status.setAttribute('role','status');
-      const confirmButton=textNode(box,'学校アカウントを確認する','button');confirmButton.type='button';confirmButton.className='btn';
-      const switchButton=textNode(box,'利用するアカウントを変更','button');switchButton.type='button';switchButton.className='btn';switchButton.hidden=true;
-      const renewalButton=textNode(box,'開いている実習ファイルの確認情報を更新','button');renewalButton.type='button';renewalButton.className='btn';
+      box.className='identity-toolbar';$('toolbar').append(box);
+      const status=textNode(box,'学校アカウントの確認状態を読み込んでいます…');status.setAttribute('role','status');status.className='identity-status';
+      const accountMenu=textNode(box,'','details');accountMenu.className='menu-wrap identity-menu';const accountSummary=textNode(accountMenu,'学校アカウント','summary');accountSummary.className='btn';const accountActions=textNode(accountMenu,'','div');accountActions.className='menu-dropdown identity-actions';
+      const confirmButton=textNode(accountActions,'学校アカウントを確認する','button');confirmButton.type='button';confirmButton.className='btn';
+      const switchButton=textNode(accountActions,'利用するアカウントを変更','button');switchButton.type='button';switchButton.className='btn';switchButton.hidden=true;
+      const renewalButton=textNode(accountActions,'開いている実習ファイルの確認情報を更新','button');renewalButton.type='button';renewalButton.className='btn';
       async function register(switchAccount){
         if(busy || submissionPanel?.needsAttention() || dirty()){notify('未保存の変更を保存し、提出処理を終えてから本人確認してください。');return;}
         if(switchAccount && !window.confirm('本人確認情報を切り替えます。保存済みファイルは変更しません。続けますか？'))return;
-        confirmButton.disabled=switchButton.disabled=true;
+        confirmButton.disabled=switchButton.disabled=true;accountMenu.open=false;status.textContent=switchAccount?'利用するアカウントを確認しています…':'学校アカウントを確認しています…';
         try {await localDownloads.register({switchAccount,safeToSwitch:true});await renderIdentity();}
         catch(e){status.textContent='本人確認を完了できませんでした。もう一度確認してください。（'+errorMessage(e)+'）';}
-        finally{confirmButton.disabled=switchButton.disabled=false;}
+        finally{confirmButton.disabled=switchButton.disabled=false;accountSummary.focus();}
       }
-      async function renderIdentity(){const state=await localDownloads.load();status.textContent=state.status==='ready'?'学校アカウント確認済み：'+state.label:'学校アカウントの確認が必要です。';confirmButton.hidden=state.status==='ready';switchButton.hidden=state.status!=='ready';}
+      async function renderIdentity(){const state=await localDownloads.load();status.textContent=state.status==='ready'?'確認済み：'+state.label:state.status==='expired'?'学校アカウントの確認期限が切れています。':'学校アカウント未確認';confirmButton.hidden=state.status==='ready';switchButton.hidden=state.status!=='ready';}
       async function bridge(ticket,oldToken='') {let response;const controller=new AbortController();try{await modal('学校アカウントの本人確認',(body,button,finish)=>{
         button('閉じる','close');window.HtmlEditorLocalDownloads.confirmationBridge({container:body,url:config.identityUrl,ticket,oldToken,signal:controller.signal}).then(r=>{response=r;finish('confirmed');}).catch(e=>{if(e.message!=='identity_confirmation_canceled')notify(errorMessage(e));finish('failed');});
       });}finally{controller.abort();}if(!response)throw Error('identity_confirmation_canceled');return response;}
