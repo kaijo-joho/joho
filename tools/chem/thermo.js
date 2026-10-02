@@ -335,6 +335,7 @@ function compute(){
   const eqs = doc.eqs.map(e => e.text.trim() ? E.parseEquation(e.text, e.dh) : null);
   const coefs = doc.eqs.map((e, i) => okEq(eqs[i]) ? (E.Frac.parse(coefOf(e)) || E.ZERO) : E.ZERO);
   const species = E.collectSpecies([T, ...eqs].filter(okEq));
+  if (drawMode() && !species.has('e-')) species.set('e-', {key: 'e-', kind: 'e', formula: 'e', charge: -1, state: '', atoms: {}});   // 横線に直接書く物質の候補に、電子 e⁻ を出すため
   const digits = digitsOf([doc.target.dh, ...doc.eqs.map(e => e.dh)]);
   const r = {T, eqs, coefs, species, digits, path: null, heights: null, groups: [], mode: 'empty', fc: null};
   const opt = {old: prefs.old, digits, targetLabel: '目的'};
@@ -848,22 +849,22 @@ $('arrowPop').addEventListener('click', e => {
 // ---- 横線をクリックしたときの小窓：その横線の物質を書く・消す ----
 let levelPopFor = -1, levelPopAt = null;
 function hideLevelPop(){
+  hideAmtPop();
   const p = $('levelPop'); if (p){ p.hidden = true; delete p.dataset.moved; }
   levelPopFor = -1; levelPopAt = null;
   document.querySelectorAll('#dia .lvl.editing').forEach(n => n.classList.remove('editing'));
 }
 function openLevelPop(li, cx, cy){ levelPopFor = li; levelPopAt = {x: cx, y: cy}; selStep = -1; hideArrowPop(); delete $('levelPop').dataset.moved; drawLevelPop(); }
 function drawLevelPop(){
+  hideAmtPop();
   const pop = $('levelPop'), r = last, li = levelPopFor;
   if (!r || !r.fc || li < 0 || li >= r.fc.levels.length){ hideLevelPop(); return; }
   const lv = r.fc.levels[li], items = [...lv.vec];
   const rows = items.map(([k, v]) => '<div class="sp-row"><span class="sp-n">' + spHtml(r, k) + '</span>' +
-    '<button type="button" class="sp-pm" data-sdec="' + E.esc(k) + '" aria-label="' + E.esc(spName(r, k)) + ' を 1 減らす">−</button>' +
-    '<input type="text" inputmode="decimal" value="' + E.esc(v.toString()) + '" data-sk="' + E.esc(k) + '" aria-label="' + E.esc(spName(r, k)) + ' の量" size="3">' +
-    '<button type="button" class="sp-pm" data-sinc="' + E.esc(k) + '" aria-label="' + E.esc(spName(r, k)) + ' を 1 増やす">＋</button>' +
+    '<button type="button" class="sp-amt" data-samt="' + E.esc(k) + '" title="クリックして係数を選ぶ（½・3/2 など）" aria-label="' + E.esc(spName(r, k)) + ' の係数 ' + E.esc(E.fracText(v)) + '。クリックして選ぶ">' + E.esc(E.fracText(v)) + ' ▾</button>' +
     '<button type="button" class="sp-all" data-sall="' + E.esc(k) + '" title="ほかの横線にも、この物質を同じだけ足す（原子の数をそろえる）">ほかの横線にも</button>' +
     '<button type="button" class="sp-x" data-sdel="' + E.esc(k) + '" aria-label="' + E.esc(spName(r, k)) + ' を消す" title="この物質を消す">×</button></div>').join('');
-  const cands = [...r.species].filter(([k, sp]) => sp.kind === 'species' && !lv.vec.has(k));
+  const cands = [...r.species].filter(([k, sp]) => (sp.kind === 'species' || sp.kind === 'e') && !lv.vec.has(k));   // 電子 e⁻ も足せる
   // この横線から、式を使って矢印を引く（キーボード・タッチ向け。ドラッグと同じ）
   const usable = lv.written ? r.eqs.map((p, i) => okEq(p) ? {i, pl: E.dragPlan(lv.vec, p)} : null).filter(x => x && (x.pl.fwd.length || x.pl.rev.length)) : [];
   pop.innerHTML = '<div class="sp-title" title="見出しをつかんで動かせます">横線 ' + (li + 1) + (li === 0 ? '（最初の横線）' : '') + ' の物質</div>' +
@@ -896,8 +897,7 @@ $('levelPop').addEventListener('click', e => {
   const amount = k => fc.levels[li].vec.get(k) || E.ZERO;
   const t = sel => e.target.closest(sel);
   if (t('[data-sadd]')) changeAmount(li, t('[data-sadd]').dataset.sadd, '1');
-  else if (t('[data-sinc]')) changeAmount(li, t('[data-sinc]').dataset.sinc, amount(t('[data-sinc]').dataset.sinc).add(1).toString());
-  else if (t('[data-sdec]')) changeAmount(li, t('[data-sdec]').dataset.sdec, amount(t('[data-sdec]').dataset.sdec).sub(1).toString());
+  else if (t('[data-samt]')) openAmtPop(t('[data-samt]'), li, t('[data-samt]').dataset.samt);
   else if (t('[data-sdel]')) changeAmount(li, t('[data-sdel]').dataset.sdel, '0');
   else if (t('[data-sall]')){   // この物質を、ほかの書いてある横線にも同じだけ足す
     const k = t('[data-sall]').dataset.sall, a = amount(k);
@@ -910,11 +910,41 @@ $('levelPop').addEventListener('click', e => {
   else if (t('[data-ldel]')){ hideLevelPop(); commit(); doc.free = E.freeRemoveLevel(doc.free, li); selStep = -1; changed(); toast('横線と、つながる矢印を消しました', 3000); }
   else if (t('[data-sclose]')) hideLevelPop();
 });
-$('levelPop').addEventListener('change', e => { const i = e.target.closest('[data-sk]'); if (i) changeAmount(levelPopFor, i.dataset.sk, i.value); });
+// 係数の候補の小窓：係数をクリックすると、分数も含めた候補が出る。ほかの数は入力して決める
+const AMT_CANDS = ['1/2', '1', '3/2', '2', '5/2', '3', '7/2', '4', '5', '6'];
+let amtFor = null;
+function hideAmtPop(){ const p = $('amtPop'); if (p) p.hidden = true; amtFor = null; }
+function openAmtPop(btn, li, k){
+  const pop = $('amtPop'), cur = (last.fc.levels[li].vec.get(k) || E.ZERO).toString();
+  amtFor = {li, k};
+  pop.innerHTML = '<div class="sp-lbl">' + spHtml(last, k) + ' の係数を選ぶ</div><div class="sp-cands amt-grid">' +
+    AMT_CANDS.map(c => '<button type="button" data-amt="' + c + '"' + (c === cur ? ' class="on"' : '') + '>' + E.esc(E.fracText(E.Frac.parse(c))) + '</button>').join('') + '</div>' +
+    '<div class="amt-other"><label>ほかの数 <input type="text" inputmode="decimal" id="amtIn" size="6" placeholder="1/3 など"></label><button type="button" data-amtok>決定</button></div>';
+  pop.hidden = false;
+  const r = btn.getBoundingClientRect(), w = pop.offsetWidth, h = pop.offsetHeight;
+  let t = r.bottom + 4; if (t + h > innerHeight - 8) t = Math.max(8, r.top - h - 4);
+  pop.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px'; pop.style.top = t + 'px';
+}
+function amtChosen(v){
+  if (!amtFor) return;
+  const {li, k} = amtFor, f = E.Frac.parse(String(v).trim());
+  if (!f || f.sign <= 0 || +f > 40){ toast('係数は 0 より大きい数（40 まで）で入れてください。例：3/2、0.5', 3500); return; }
+  hideAmtPop(); changeAmount(li, k, f.toString());
+}
+$('amtPop').addEventListener('click', e => {
+  const c = e.target.closest('[data-amt]');
+  if (c) amtChosen(c.dataset.amt);
+  else if (e.target.closest('[data-amtok]')) amtChosen($('amtIn').value);
+});
+$('amtPop').addEventListener('keydown', e => {
+  if (e.key === 'Enter' && e.target.id === 'amtIn'){ e.preventDefault(); amtChosen(e.target.value); }
+  else if (e.key === 'Escape'){ e.stopPropagation(); hideAmtPop(); }
+});
 $('levelPop').addEventListener('keydown', e => { if (e.key === 'Escape'){ e.stopPropagation(); hideLevelPop(); } });
 makeDraggable($('levelPop')); makeDraggable($('arrowPop'));
 document.addEventListener('pointerdown', e => {   // 小窓の外を押したら閉じる
-  if (!e.target.closest('#levelPop')) hideLevelPop();
+  if (!e.target.closest('#levelPop, #amtPop')) hideLevelPop();
+  else if (!e.target.closest('#amtPop, .sp-amt')) hideAmtPop();
   if (!e.target.closest('#arrowPop, #dia .arrow')) hideArrowPop();
 }, true);
 

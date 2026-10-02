@@ -353,3 +353,10 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .float-pop .sp-title,.float-pop .ap-t{cursor:move;user-select:none;-webkit-user-select:none}
 .float-pop .ap-assign{display:inline-flex;align-items:center;gap:3px;flex-wrap:wrap}
 .float-pop .ap-l{color:var(--muted);font-size:.85em;margin-right:2px}
+
+/* ---- 0.7：係数の候補の小窓 ---- */
+.sp-row .sp-amt{min-width:4.2em;white-space:nowrap;font-weight:700}
+.amt-pop{width:auto;max-width:min(270px,calc(100vw - 16px));z-index:35}
+.amt-grid button{min-width:calc(38px*var(--ui-k, 1))}
+.amt-other{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}
+.amt-other input{width:5.5em;border:1px solid var(--line);border-radius:6px;padding:2px 4px;background:var(--panel);color:inherit;text-align:center}
