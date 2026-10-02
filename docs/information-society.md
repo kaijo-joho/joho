@@ -19,6 +19,8 @@
 - is21第2画面は、本人の添付図を構成参考にした独自HTMLの分類ツリーとする。「知的財産権」から産業財産権・著作権・その他の権利と保護制度へ枝分かれし、3分類と説明を常時表示する。選択は枝・見出し・説明の強調だけを変え、狭幅では縦に配置する。産業財産権は特許庁への出願と審査等の手続を経た設定登録、著作権は著作物の創作時に発生し取得のための登録不要、その他は制度によって異なると説明する。方式主義・無方式主義を対比し、実用新案の実体審査の例外も維持する（2026-10-02）。
 - is21の図は本人の視認性指摘を受け、2026-10-02に独自SVGの卓上ライトへ修正した。下向きの傘・電球・光・関節付きアーム・台座を常時表示する。技術ではセンサーと自動調光、構造ではアームと固定部、外観では傘・アーム・台座、名前では商品名とマークへ着目する。同じアームを構造と外観の両方で強調し、部品と権利の一対一対応にしない。
 - is22は個人Aの単独著作・複製権だけという条件で、創作時、利用許諾後、複製権譲渡後を比較する。A・作品・Bの座標は固定し、複製権の札と線を変える。許諾と譲渡は別々の契約として比較する。保護期間の主な違いは本文へ表示する。
+- is22第3画面の表示済み6項目（人格権3・財産権3）と隣接権の権利者4項目は、選択すると同じ説明欄へ短い説明を表示する。人格権だけの詳細欄は置かず、上演権・演奏権と実演家の権利を区別する。noJSと印刷では全説明を読む。第4画面の比較は3状態に限定し、リセットは独立した操作グループの「はじめから」へ分離する（2026-10-02本人指摘）。
+- is22第5画面は、個人が実名で公表した著作物の一般的な原則として「著作者の生存中」と「死後70年」を図の中心に置く。創作時に保護が始まり存命中は保護が続くという正しい関係だけを示し、誤った起算方法を例示して打ち消す比較は加えない。翌年からの起算、団体名義・映画等の既存の例外は補足として維持する（2026-10-02本人の教育上の意図）。
 - is23は実在するCC 4.0のBY・BY-NC・BY-ND・BY-SAを、BYを基準に比較する。NDは改変物の共有、SAは改変物共有時のライセンス条件を扱う。CCのマーク画像や四条件を任意に合成するUIは使わない。引用・OSS・授業利用の条件を可視本文で示す。許諾・例外・満了は三つすべての成立を求めるものではない。
 
 法的事項の出典は特許庁、文化庁令和8年度著作権テキスト、CC公式、OSIに限定して本文へリンクした（2026-10-02確認）。合法・違法の採点、外部送信、成績保存は実装していない。
@@ -27,16 +29,34 @@
 
 モデルはnative buttonの`aria-pressed`で現在状態を示し、クリック・Enter・Spaceで選ぶ。スライド間で状態を保持し、専用の戻すボタンで初期状態へ戻す。表示条件を切り替えても、操作ボタン自体を作り直さない。
 
+長い教材上の断り書きは、図のそばのnative `details.is-supplement`「図の見方・補足」に置く。制度の成立条件・比較の前提・利用条件は本文または比較表へ残し、閉じたままでも誤解しない構成にする。同趣旨の繰返しは統合してよい。HTML原稿ではopenとし、JavaScript初期化時に閉じるため、noJSでも全文を読める。印刷時は全補足を展開し、印刷後はそれぞれの開閉状態を復元する。長文hover tooltipは使わない。
+
 狭幅の比較表は枠内のみ横スクロールする。領域へTabで移動し、左右キーでも読める。JavaScript無効時と印刷時は比較の全状態を読める。全テーマ・3段階の文字サイズとreduced motionに対応する。
 
-IS用CSS・JSにはSHA-384 SRIを付け、変更時に3HTMLの値も更新する。共通CSS・JSをこの教材のために変更しない。
+IS用CSS・JSにはSHA-384 SRIを付け、変更時に読み込むHTMLすべての値を更新する。`information-society.css`はis21・is22・is23・is31・is32の5ページが共用するため、5HTMLを同期し、31・32のテーマも確認する。共通CSS・JSをこの教材のために変更しない。
 
 ## 検証
+
+2026-10-02のオンライン確認後の修正は、is21・is22・is23・is31・is32の確認用5ページを対象とする。全5ページのrelease・showは引き続きfalse。図の補足は全8か所に設置し、共有CSS・JSのSRIは全参照HTMLで照合する。
+
+### 承認済みの場面画像
+
+2026-10-02 23:42の本人承認により、以下4枚を挿入した。いずれも親担当がAI生成した架空の場面で、実在する人物・作品・製品・法的事例の資料ではない。文字や制度の関係を画像から判断させず、制度の説明・操作図・比較表はHTMLと独自SVGで維持する。画像生成の原本は次のLibrary identityに保存されており、今回の統合で置換・変更していない。
+
+| 掲載箇所 | repo asset（img/information-society/） | Library原本 |
+| --- | --- | --- |
+| is21第1画面、制作物の導入 | is21-lamp-creation-desk.webp | libfile_27f12c55bcd481918d6b16152e675a1d / is21-lamp-creation-desk-preview.png |
+| is22第1画面、作者と作品の導入 | is22-original-art-creator.webp | libfile_b7e623dab9e48191be02bfb0add9f28d / is22-original-art-creator-preview.png |
+| is31第5画面、共有前の確認 | is31-share-check.webp | libfile_2de5cfa0ee948191b304ec77263ba40f / is31-share-check-trial.png |
+| is32第6画面、目的に必要な情報 | is32-transit-purpose.webp | libfile_2a968be89f148191a13145042c847984 / is32-transit-purpose-trial.png |
+
+正規Library materializeで原本を取得し、実画像を確認した。1672×941の原寸を保ったlossless WebPとし、元PNGとRGB全画素の一致を確認した（切り抜き・描き直し・縮小なし）。HTMLに寸法・内容に即したalt・lazy loading・async decodingを指定し、表示幅を最大520pxに制限する。各画像の直下にAI生成の架空場面と表示する。
 
 ```sh
 node --check js/information-society.js
 node scripts/test-information-society-pages.mjs
 PLAYWRIGHT_MODULE=/path/to/playwright JOHO_TEST_URL=http://127.0.0.1:8865/ node scripts/test-information-society-browser.mjs
+PLAYWRIGHT_MODULE=/path/to/playwright JOHO_TEST_URL=http://127.0.0.1:8865/ node scripts/test-information-society-supplements.mjs
 ```
 
 確認用公開でも正式GSSに登録し、既存GASの読み取り専用プレビューで差分を確認してから`exportData_to_pages_js()`を実行する。`pages.js`を直接編集しない。`mainTitle`は情報社会、`category`は知的財産権、`contentType`はlecture。各ページの`release`と`show`はfalse、配付物・クイズ・worksheetApp・nextは参照なしとする。生成器が有効なbackを必須とするため、backはindexとし、ISから既存トップページへ戻る一方向のリンクだけを許す。既存ページからISへのリンクは追加しない。

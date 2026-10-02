@@ -3,6 +3,28 @@
   'use strict';
   const includes = (element, key, state) => (element.dataset[key] || '').split(/\s+/).includes(state);
   function initialize() {
+    const supplements = [...document.querySelectorAll('details.is-supplement')];
+    supplements.forEach(details => {
+      // The source is open for a readable no-JS fallback; normal lessons start compact.
+      details.open = false;
+      details.addEventListener('toggle', () => document.dispatchEvent(new CustomEvent('joho:lesson-content-resize')));
+    });
+    let beforePrint = null;
+    const setPrint = printing => {
+      if (printing && beforePrint === null) {
+        beforePrint = supplements.map(details => details.open);
+        supplements.forEach(details => { details.open = true; });
+      } else if (!printing && beforePrint !== null) {
+        supplements.forEach((details, index) => { details.open = beforePrint[index]; });
+        beforePrint = null;
+      }
+    };
+    window.addEventListener('beforeprint', () => setPrint(true));
+    window.addEventListener('afterprint', () => setPrint(false));
+    const printMedia = window.matchMedia('print');
+    if (printMedia.addEventListener) printMedia.addEventListener('change', event => setPrint(event.matches));
+    else printMedia.addListener(event => setPrint(event.matches));
+    setPrint(printMedia.matches);
     document.querySelectorAll('.is-table-wrap[tabindex]').forEach(table => {
       // Browsers with touch emulation do not consistently scroll focused regions.
       table.addEventListener('keydown', event => {

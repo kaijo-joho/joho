@@ -62,6 +62,15 @@
 .is-lesson [data-is-panel][hidden] { display: none; }
 .is-lesson [data-is-panel] { margin-block: 10px; }
 .is-lesson figure { margin: 0; min-width: 0; }
+.is-lesson figure.is-scene { width: min(100%, 520px); margin: 0 auto 14px; }
+.is-lesson .is-scene img { display: block; width: 100%; height: auto; border-radius: 10px; }
+.is-lesson .is-scene figcaption { margin-top: 6px; }
+.is-visual-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; align-items: start; margin: 14px 0; }
+.is-personal .is-visual-pair .is-stage-list { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-top: 0; }
+@media (max-width: 760px) {
+  .is-visual-pair { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+  .is-personal .is-visual-pair .is-stage-list { grid-template-columns: minmax(0, 1fr); }
+}
 .is-lesson figcaption { font-size: .82em; color: var(--is-muted); line-height: 1.6; margin-top: 8px; }
 .is-model svg.is21-product { width: min(100%, 320px); margin-inline: auto; }
 .is-lesson .is-cc-compare { table-layout: fixed; min-width: 36em; }
@@ -133,13 +142,20 @@
 .is22-map-leaf { position: relative; }
 .is22-map-leaf::before { content: ""; position: absolute; width: 2px; height: 20px; background: var(--is-accent); left: calc(50% - 1px); top: -21px; }
 .is22-neighbor-branch > .is22-map-leaf { margin-top: 20px; }
+.is22-rights-explorer { padding: 0; border: 0; background: none; }
+.is22-right-choices { display: grid; gap: 6px; margin: 10px 0; }
+.is22-right-detail { padding: 12px 16px; border: 2px solid var(--is-accent); border-radius: 12px; background: var(--is-soft); min-height: 7.5em; box-sizing: border-box; }
+.is22-right-detail [data-is-panel] > :last-child { margin-bottom: 0; }
+.is22-state-controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 24px; margin: 12px 0; }
+.is22-state-controls .is-tabs { margin: 0; }
+.is22-model-actions { margin-left: auto; padding-left: 20px; border-left: 1px solid var(--is-border); }
 .is22-state { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 18px; align-items: center; }
 .is22-relationship { width: 100%; max-width: 440px; justify-self: center; }
 .is22-relationship svg { color: var(--is-text); }
 .is-lesson .is22-relationship figcaption { text-align: center; color: var(--is-accent); margin: 0 0 6px; font-size: .9em; }
 .is22-right-token { stroke: var(--is-change); }
 .is22-model-condition { border-bottom: 1px solid var(--is-border); padding-bottom: 10px; }
-.is-lesson .is22-timeline { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; list-style: none; padding: 0; margin: 22px 0; }
+.is-lesson .is22-timeline { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; list-style: none; padding: 0; margin: 22px 0; }
 .is22-timeline li { position: relative; border-top: 4px solid var(--is-accent); padding: 12px 8px 8px; margin: 0 !important; background: var(--is-soft); }
 .is-lesson .is22-timeline li:first-child::before { content: none; }
 .is22-timeline li + li::before { content: "→"; position: absolute; left: -18px; top: 14px; font-weight: 700; color: var(--is-accent); }
@@ -148,6 +164,9 @@
 .is-lesson details.is-card { margin-block: 14px; }
 .is-lesson details.is-card > summary { min-height: 44px; box-sizing: border-box; cursor: pointer; font-weight: 700; padding: 8px 0; }
 .is-lesson details.is-card :is(dt, dd) { margin-block: .4em; }
+.is-lesson details.is-supplement { padding: 0 12px; }
+.is-lesson details.is-supplement > summary { color: var(--is-muted); font-size: .88em; }
+.is-lesson details.is-supplement > :last-child:not(summary) { margin-bottom: 12px; }
 
 @media (max-width: 900px) {
   .is22-rights-map { grid-template-columns: minmax(0, 1fr); }

@@ -6,10 +6,10 @@
   <title>個人情報とプライバシー | 情報社会</title>
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
-  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-sf7yLTtudXQPK63/pQ2M1q8UW2Kp6JuuqsNoD10RCZeblvCwYhp5bZJSSQPZScwL">
+  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
   <link rel="stylesheet" href="./css/personal-information.css" integrity="sha384-pz5n7vJvBPUBQTG5w6jh/8PMrhCSk6jq1oJ6sdufPlB7PZntCFNz7A1ctd3d0Ubu">
   <script defer src="./js/main.js"></script>
-  <script defer src="./js/information-society.js" integrity="sha384-ZL1NA1iQuu9S1KtZtIMTpDC5jdWDqOTToq4LHEM832egeUmXhQGMxTHdtnlAbodx"></script>
+  <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
   <script defer src="./js/personal-information.js" integrity="sha384-gtF2EiAIIVXSTWeMyef78vE7NqINs+VygIuwMLQLgJUMT1rv3DwW+eEW3aCicQSO"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -56,15 +56,11 @@
     <article>
       <h2 id="headline_2">(2) 情報を組み合わせて観察する</h2>
       <p class="is-lead">架空の体験会の参加者について、<strong>会場・時間帯・テーマ</strong>を組み合わせたとき、条件に一致する人数がどう変わるか観察します。</p>
-      <p class="is-note">この12人は、教材のために作った架空のデータです。表示するのは、この集合の中で条件に一致する人数です。個人情報に当たるかという法的判断や、現実の個人を特定できる確率は示していません。</p>
+      <p class="is-note">架空の12人の中で条件に一致する人数を観察します。個人情報に当たるかという法的判断や、現実の個人を特定できる確率は示しません。</p>
       <div data-is-filter-lab>
         <div class="is-prompt">
           <strong>予想 → 操作 → 観察</strong>
-          <ol>
-            <li>一つの条件だけなら、何人に当てはまりそうか予想します。</li>
-            <li>「東館」→「午前」→「工作」の順に条件を加えます。</li>
-            <li>「東館」を外します。残った「午前＋工作」と、先ほどの「東館＋午前」の人数を比べます。</li>
-          </ol>
+          <p>一致する人数を予想し、条件の追加・解除による変化を観察しましょう。</p>
         </div>
         <fieldset class="is-filter-controls">
           <legend>確かめる情報を追加・解除する</legend>
@@ -78,7 +74,7 @@
           <p data-is-match-count role="status" aria-live="polite" aria-atomic="true">この教材の 12 人のうち 12 人が一致</p>
           <p data-is-active-attributes>条件なし：12 人すべてを表示しています。</p>
         </div>
-        <p class="is-note">選んだ条件の<strong>すべて</strong>に合うカードを「一致」と実線の枠で示します。合わないカードは「条件外」と破線の枠で示し、12枚とも同じ位置に残します。</p>
+        <p class="is-note">選んだ条件の<strong>すべて</strong>に合うカードが「一致」です。</p>
         <ul class="is-person-grid" aria-label="架空の体験会の参加者12人">
           <li class="is-match" data-is-person="01" data-is-features="east morning craft">
             <div class="is-person-heading"><strong>人物01</strong><span data-is-person-status>一致</span></div>
@@ -132,9 +128,19 @@
         <button type="button" class="is-button" data-is-filter-reset disabled>条件をすべて外す</button>
       </div>
       <p class="is-observe"><strong>自分の言葉で説明する：</strong>名前を使わなくても、組合せで候補が変わったのはなぜでしょうか。同じ二つの条件でも、選んだ情報によって人数が違うことを、カードを指して説明しましょう。</p>
-      <p class="is-note"><strong>観察例：</strong>東館だけでは4人 → 東館＋午前では2人 → 東館＋午前＋工作では1人。そこから東館を外すと、午前＋工作に一致するのは3人です。これは、この12人の中での結果です。</p>
-      <p class="is-note">情報が一つ増えれば必ず一人になるわけではなく、一致する人数が多ければ安全という意味でもありません。「人物01～12」は観察用の行札です。</p>
-      <noscript><p class="is-note">JavaScriptが無効のため、条件の操作はできません。12枚のカードと観察例を見て、条件を加えたとき・外したときの変化を確かめてください。</p></noscript>
+      <p class="is-note">情報が一つ増えれば必ず一人になるわけではなく、一致する人数が多ければ安全という意味でもありません。</p>
+      <details class="is-card is-supplement" open>
+        <summary>図の見方・補足</summary>
+        <p>この12人は、情報の組合せを観察するために作った架空のデータです。「人物01～12」は観察用の行札です。</p>
+        <p>「一致」は実線の枠、「条件外」は破線の枠で示し、12枚とも同じ位置に残します。</p>
+        <ol>
+          <li>一つの条件だけなら、何人に当てはまりそうか予想します。</li>
+          <li>「東館」→「午前」→「工作」の順に条件を加えます。</li>
+          <li>「東館」を外します。残った「午前＋工作」と、先ほどの「東館＋午前」の人数を比べます。</li>
+        </ol>
+        <p><strong>観察例：</strong>東館だけでは4人 → 東館＋午前では2人 → 東館＋午前＋工作では1人。そこから東館を外すと、午前＋工作に一致するのは3人です。これは、この12人の中での結果です。</p>
+      </details>
+      <noscript><p class="is-note">JavaScriptが無効のため、条件の操作はできません。12枚のカードと「図の見方・補足」の観察例を見て、条件を加えたとき・外したときの変化を確かめてください。</p></noscript>
       <p class="is-source">定義の確認：個人情報保護委員会「<a href="https://www.ppc.go.jp/personalinfo/legal/guidelines_tsusoku/" target="_blank" rel="noopener noreferrer">個人情報保護法ガイドライン（通則編）</a>」2-1（2026-10-02確認）。人工データと観察の操作は本教材独自のものです。</p>
     </article>
   </section>
@@ -185,8 +191,12 @@
           <li class="is-card"><h3>私生活への影響</h3><p>私生活に関する情報を、どのように扱うか。</p><p class="is-note">プライバシーに着目</p></li>
           <li class="is-card"><h3>顔・姿の扱い</h3><p>どのように撮影し、公表するか。</p><p class="is-note">肖像に関する利益に着目</p></li>
         </ul>
-        <figcaption>同じ情報を三つの視点で見る図です。法律や権利の集合関係を表すものではありません。</figcaption>
+        <figcaption>同じ情報を三つの視点で見る図です。</figcaption>
       </figure>
+      <details class="is-card is-supplement" open>
+        <summary>図の見方・補足</summary>
+        <p>法律や権利の集合関係を表す図ではありません。それぞれの視点で、同じ情報のどこに着目するかを考えます。</p>
+      </details>
       <div class="is-concept-pair">
         <div class="is-card">
           <h3>人格権と肖像権</h3>
@@ -207,12 +217,18 @@
     <article>
       <h2 id="headline_5">(5) 共有する前に、目的と相手を確かめる</h2>
       <p class="is-lead">自分にとって公開してよい情報でも、<strong>他の人が同じように考えるとは限りません</strong>。共有する前に、四つの視点で確かめます。</p>
+      <div class="is-visual-pair">
+        <figure class="is-scene">
+          <img src="./img/information-society/is31-share-check.webp" width="1672" height="941" loading="lazy" decoding="async" alt="工作中の人たちを背景に、机の上の作品へスマートフォンを向けている場面。">
+          <figcaption>作品を撮るとき、周囲の人も写り込むことがあります。（AI生成の架空の場面）</figcaption>
+        </figure>
       <ol class="is-stage-list">
         <li><strong>目的</strong><p>何を伝えるための共有か。</p></li>
         <li><strong>範囲</strong><p>誰が見るか。別の場所へ伝わることも考える。</p></li>
         <li><strong>情報量</strong><p>名前や細かな行動の記録まで必要か。他の情報と組み合わさらないか。</p></li>
         <li><strong>本人の意向</strong><p>どの内容をどの範囲で使うか、本人に説明・確認できているか。</p></li>
       </ol>
+      </div>
       <figure class="is31-share-map">
         <svg viewBox="0 0 600 180" role="img" aria-labelledby="is31-share-title is31-share-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
           <title id="is31-share-title">情報カードを共有する相手の範囲</title>
@@ -229,7 +245,11 @@
       </figure>
       <div class="is-prompt"><strong>目的を先に決めて説明する</strong><p>架空の体験会の様子を説明する文章に、「個人ごとの行動」と「会場全体の人数」のどちらが必要でしょうか。何を伝えるための文章かを先に決め、必要な情報と共有する相手を説明しましょう。</p></div>
       <p class="is-observe">本人に内容や範囲を説明して確認することは、他の人の情報を大切に扱うための行動です。自分の判断だけで共有を進める前に、本人の意向も確かめましょう。</p>
-      <p class="is-note">四つの視点は、この教材で考えるための整理です。確認すれば必ず適法になるという判定表ではなく、すべての場面で法律上の同意義務があるという意味でもありません。</p>
+      <p class="is-note">確認すれば必ず適法になるわけではなく、すべての場面で法律上の同意義務があるという意味でもありません。</p>
+      <details class="is-card is-supplement" open>
+        <summary>図の見方・補足</summary>
+        <p>四つの視点は、共有する内容と相手をこの教材で考えるための整理です。</p>
+      </details>
       <p class="is-source">前のスライドのプライバシー・肖像に関する資料を踏まえた、本教材独自の学習整理です（2026-10-02確認）。</p>
     </article>
   </section>

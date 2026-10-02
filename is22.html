@@ -6,9 +6,9 @@
   <title>著作権のしくみ | 情報社会</title>
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
-  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-9OVdPbsDb4wmTcDej1IM2rNiZ7HtAymAzUdMFj3HpGEalDNGF6pjpFsb18bkiHiD">
+  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
   <script defer src="./js/main.js"></script>
-  <script defer src="./js/information-society.js" integrity="sha384-ZL1NA1iQuu9S1KtZtIMTpDC5jdWDqOTToq4LHEM832egeUmXhQGMxTHdtnlAbodx"></script>
+  <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
 <body class="is-lesson" data-lesson-slide-deck>
@@ -23,7 +23,11 @@
         <div class="is-card"><p class="is22-kicker">権利を持つ人</p><h3>著作権者</h3><p>著作権（財産権）を持つ人。</p></div>
       </div>
       <div class="is-columns">
-        <div class="is-card"><h3>創作すると権利が生じる</h3><p>著作物の創作時に、著作者人格権と著作権（財産権）が生じます。取得のための申請・登録は不要です。これを<strong>無方式主義</strong>といいます。</p></div>
+        <div class="is-card"><figure class="is-scene">
+          <img src="./img/information-society/is22-original-art-creator.webp" width="1672" height="941" loading="lazy" decoding="async" alt="机で色鉛筆を使い、海辺の風景画を描いている人。">
+          <figcaption>作品と、それを作る人に目を向けます。（AI生成の架空の場面）</figcaption>
+        </figure>
+          <h3>創作すると権利が生じる</h3><p>著作物の創作時に、著作者人格権と著作権（財産権）が生じます。取得のための申請・登録は不要です。これを<strong>無方式主義</strong>といいます。</p></div>
         <div class="is-observe"><h3>今日の観察</h3><p><strong>何を保護するか → 誰のどの権利か → 何が移るか</strong>の順に図を読み、許諾と譲渡の違いを説明しましょう。</p><p class="is-note">ここでは、個人が一人で創作した作品を基本に考えます。</p></div>
       </div>
       <p class="is-source">参考：文化庁<a href="https://www.bunka.go.jp/seisaku/chosakuken/seidokaisetsu/pdf/94436101_01.pdf#page=6" target="_blank" rel="noopener noreferrer">『著作権テキスト 令和8年度版』pp.4–5・8・10</a>（2026-10-02確認）。</p>
@@ -62,7 +66,8 @@
         </figure>
       </div>
       <p class="is-observe"><strong>観察して説明する</strong>　線の形・太さ・位置に注目しましょう。共通なのは発想、違うのは具体的な表し方です。</p>
-      <p class="is-note">著作物は、思想・感情を創作的に表現したもので、文芸・学術・美術・音楽の範囲に属するもの。図は区別を考える模式例で、個々の作品の保護や利用の可否を判定するものではありません。</p>
+      <p class="is-note">著作物は、思想・感情を創作的に表現したもので、文芸・学術・美術・音楽の範囲に属するものです。</p>
+      <details class="is-card is-supplement" open><summary>図の見方・補足</summary><p>図はアイデアと表現の区別を考える模式例で、個々の作品の保護や利用の可否を判定するものではありません。</p></details>
       <p class="is-source">参考：文化庁<a href="https://www.bunka.go.jp/seisaku/chosakuken/seidokaisetsu/pdf/94436101_01.pdf#page=7" target="_blank" rel="noopener noreferrer">『著作権テキスト 令和8年度版』p.5</a>（2026-10-02確認）。</p>
     </article>
   </section>
@@ -71,22 +76,63 @@
     <article>
       <h2 id="headline_3">(3) 権利の関係を読む</h2>
       <p class="is-prompt"><strong>予想する</strong>　作者名の表示と、作品のコピーは、同じ種類の権利で考えるでしょうか。</p>
-      <div class="is22-rights-map">
-        <div class="is22-author-branch">
-          <h3 class="is22-map-root">作品を創作する人 → 著作者の権利</h3>
-          <div class="is-columns">
-            <div class="is-card is22-map-leaf"><h4>著作者人格権</h4><p><strong>人格的な利益</strong>を守る。</p><ul><li>公表権</li><li>氏名表示権</li><li>同一性保持権</li></ul><p class="is-note">他人へ譲渡できない。</p></div>
-            <div class="is-card is22-map-leaf"><h4>著作権（財産権）</h4><p><strong>財産的な利益</strong>を守る。</p><ul><li>複製権</li><li>公衆送信権</li><li>上演権・演奏権 など</li></ul><p class="is-note">全部または一部を譲渡できる。</p></div>
+      <div class="is-model is22-rights-explorer" data-is-model="right-details" data-is-default="copy">
+        <p class="is-note">項目を選ぶと、図の下の同じ説明欄が切り替わります。</p>
+        <div class="is22-rights-map">
+          <div class="is22-author-branch">
+            <h3 class="is22-map-root">作品を創作する人 → 著作者の権利</h3>
+            <div class="is-columns">
+              <div class="is-card is22-map-leaf">
+                <h4>著作者人格権</h4><p><strong>人格的な利益</strong>を守る。</p>
+                <div class="is22-right-choices" role="group" aria-label="著作者人格権の説明を選ぶ">
+                  <button type="button" data-is-select="publication" aria-controls="is22-right-detail">公表権</button>
+                  <button type="button" data-is-select="author-name" aria-controls="is22-right-detail">氏名表示権</button>
+                  <button type="button" data-is-select="integrity" aria-controls="is22-right-detail">同一性保持権</button>
+                </div>
+                <p class="is-note">他人へ譲渡できない。</p>
+              </div>
+              <div class="is-card is22-map-leaf">
+                <h4>著作権（財産権）</h4><p><strong>財産的な利益</strong>を守る。</p>
+                <div class="is22-right-choices" role="group" aria-label="著作権（財産権）の説明を選ぶ">
+                  <button type="button" data-is-select="copy" aria-controls="is22-right-detail">複製権</button>
+                  <button type="button" data-is-select="transmission" aria-controls="is22-right-detail">公衆送信権</button>
+                  <button type="button" data-is-select="performance" aria-controls="is22-right-detail">上演権・演奏権</button>
+                </div>
+                <p class="is-note">このほかにも権利がある。全部または一部を譲渡できる。</p>
+              </div>
+            </div>
+          </div>
+          <div class="is22-neighbor-branch">
+            <h3 class="is22-map-root">実演・録音・放送などを担う人</h3>
+            <div class="is-card is22-map-leaf">
+              <h4>著作隣接権</h4><p>作品などを<strong>伝える側</strong>の権利。</p>
+              <div class="is22-right-choices" role="group" aria-label="著作隣接権の権利者の説明を選ぶ">
+                <button type="button" data-is-select="performer" aria-controls="is22-right-detail">実演家</button>
+                <button type="button" data-is-select="record-producer" aria-controls="is22-right-detail">レコード製作者</button>
+                <button type="button" data-is-select="broadcaster" aria-controls="is22-right-detail">放送事業者</button>
+                <button type="button" data-is-select="cable-broadcaster" aria-controls="is22-right-detail">有線放送事業者</button>
+              </div>
+              <p class="is-note">著作者の権利と併せて関わることがある。</p>
+            </div>
           </div>
         </div>
-        <div class="is22-neighbor-branch">
-          <h3 class="is22-map-root">実演・録音・放送などを担う人</h3>
-          <div class="is-card is22-map-leaf"><h4>著作隣接権</h4><p>作品などを<strong>伝える側</strong>の権利。</p><ul><li>実演家</li><li>レコード製作者</li><li>放送事業者</li><li>有線放送事業者</li></ul><p class="is-note">著作者の権利と併せて関わることがある。</p></div>
+        <div class="is22-right-detail" id="is22-right-detail" role="region" aria-label="選んだ項目の説明" aria-live="polite" tabindex="0">
+          <div data-is-panel="publication"><p class="is22-kicker">著作者人格権</p><h4>公表権</h4><p>まだ公表していない著作物を、公表するかどうかを著作者が決める権利です。著作者の意思に反して初めて公開されないようにします。</p></div>
+          <div data-is-panel="author-name"><p class="is22-kicker">著作者人格権</p><h4>氏名表示権</h4><p>著作物を公表するとき、著作者の名前を載せるかどうか、載せるなら本名やペンネームのどれにするかを決める権利です。</p></div>
+          <div data-is-panel="integrity"><p class="is22-kicker">著作者人格権</p><h4>同一性保持権</h4><p>著作物や題名を、著作者の意思に反して勝手に変えられないための権利です。表現を変えたり、一部を削ったりする改変に関わります。</p></div>
+          <div data-is-panel="copy"><p class="is22-kicker">著作権（財産権）</p><h4>複製権</h4><p>著作物をコピーすることを許諾できる権利です。印刷・複写だけでなく、録音・録画や、画像をコンピュータに保存することなども複製に当たります。</p></div>
+          <div data-is-panel="transmission"><p class="is22-kicker">著作権（財産権）</p><h4>公衆送信権</h4><p>放送やインターネット配信などで、著作物を公衆へ送信することを許諾できる権利です。サーバーへのアップロードなど、アクセスに応じて送信できる状態にする「送信可能化」も含みます。</p></div>
+          <div data-is-panel="performance"><p class="is22-kicker">著作権（財産権）</p><h4>上演権・演奏権</h4><p>演劇や音楽などの著作物を、公衆に直接見せたり聞かせたりするために上演・演奏することを許諾できる権利です。作曲家・脚本家など<strong>著作者側の権利</strong>で、実演家の権利とは区別します。</p></div>
+          <div data-is-panel="performer"><p class="is22-kicker">著作隣接権の権利者</p><h4>実演家の権利</h4><p>演奏家・歌手・俳優などには、自分の生の実演を録音・録画することなどを許諾する権利があります。加えて、氏名表示や、名誉・声望を害する改変から守る<strong>実演家人格権</strong>もあります。</p></div>
+          <div data-is-panel="record-producer"><p class="is22-kicker">著作隣接権の権利者</p><h4>レコード製作者の権利</h4><p>音を最初に録音して原盤を作った人・会社には、その録音物のコピーや、配信のための送信可能化などを許諾する権利があります。曲や歌詞とは別に、<strong>録音物</strong>を保護します。</p></div>
+          <div data-is-panel="broadcaster"><p class="is22-kicker">著作隣接権の権利者</p><h4>放送事業者の権利</h4><p>自分の放送の録音・録画や、受信した放送をさらに放送・有線放送することなどを許諾できる権利があります。番組作品の著作権とは別に、<strong>放送</strong>を保護します。</p></div>
+          <div data-is-panel="cable-broadcaster"><p class="is22-kicker">著作隣接権の権利者</p><h4>有線放送事業者の権利</h4><p>自分の有線放送の録音・録画や、受信した内容をさらに放送・有線放送することなどを許諾できる権利があります。番組作品の著作権とは別に、<strong>有線放送</strong>を保護します。</p></div>
         </div>
+        <p class="is-note">ここでは主な働きを説明しています。法律には例外や条件があります。</p>
+        <noscript><p class="is-note">すべての説明を順に表示しています。</p></noscript>
       </div>
       <p class="is-observe"><strong>図をたどる</strong>　まず「誰の権利か」、次に「何を守る権利か」を確認しましょう。作曲した人と、その曲を演奏した人には、それぞれの権利が関わります。</p>
-      <details class="is-card"><summary>3つの著作者人格権を確認する</summary><dl><dt>公表権</dt><dd>未公表の著作物を公表するかどうかを決める。</dd><dt>氏名表示権</dt><dd>著作者名を表示するか、どの名前で表示するかを決める。</dd><dt>同一性保持権</dt><dd>作品や題名を、意に反して無断で改変されない。</dd></dl><p class="is-note">いずれも基本の説明です。法律には例外や条件があります。実演家には、著作隣接権（財産権）に加えて実演家人格権もあります。</p></details>
-      <p class="is-source">参考：文化庁<a href="https://www.bunka.go.jp/seisaku/chosakuken/seidokaisetsu/pdf/94436101_01.pdf#page=12" target="_blank" rel="noopener noreferrer">『著作権テキスト 令和8年度版』pp.10–14・23</a>（2026-10-02確認）。</p>
+      <p class="is-source">参考：文化庁<a href="https://www.bunka.go.jp/seisaku/chosakuken/seidokaisetsu/pdf/94436101_01.pdf#page=12" target="_blank" rel="noopener noreferrer">『著作権テキスト 令和8年度版』pp.10–16・23–37</a>（2026-10-02確認）。</p>
     </article>
   </section>
 
@@ -97,11 +143,15 @@
       <div class="is-model" data-is-model="rights" data-is-default="create">
         <p class="is-note is22-model-condition"><strong>図の条件：</strong>Aが一人で創作した公表済みの絵。Aが著作者で、創作時の著作権者もAです。Bは契約の相手。比べる対象は<strong>複製権だけ</strong>で、他の財産権と著作者人格権はAのままです。法の例外による利用は、この図では扱いません。</p>
         <p class="is-prompt"><strong>予想 → 操作</strong>　複製権の札はどちらに残るでしょうか。創作時から「利用許諾後」「複製権の譲渡後」をそれぞれ選んで比べましょう。</p>
-        <div class="is-tabs" role="group" aria-label="複製権について比べる状態">
-          <button type="button" class="is-button" data-is-select="create">創作時</button>
-          <button type="button" class="is-button" data-is-select="license">利用許諾後</button>
-          <button type="button" class="is-button" data-is-select="transfer">複製権の譲渡後</button>
-          <button type="button" class="is-button" data-is-reset>創作時に戻す</button>
+        <div class="is22-state-controls">
+          <div class="is-tabs" role="group" aria-label="複製権について比べる3つの状態">
+            <button type="button" class="is-button" data-is-select="create">創作時</button>
+            <button type="button" class="is-button" data-is-select="license">利用許諾後</button>
+            <button type="button" class="is-button" data-is-select="transfer">複製権の譲渡後</button>
+          </div>
+          <div class="is22-model-actions" role="group" aria-label="比較の操作">
+            <button type="button" class="is-button" data-is-reset>はじめから</button>
+          </div>
         </div>
         <div class="is22-state" data-is-panel="create">
           <figure class="is22-relationship">
@@ -164,16 +214,14 @@
   <section data-lesson-slide data-lesson-slide-title="保護期間を読む">
     <article>
       <h2 id="headline_5">(5) 保護期間を読む</h2>
-      <p class="is-lead">著作権（財産権）は創作時に生じ、原則として<strong>著作者の生存中と死後70年</strong>保護されます。</p>
-      <p class="is-prompt"><strong>予想する</strong>　「死後70年」は、亡くなった日から数えるのでしょうか。時間の区切りに注目しましょう。</p>
-      <ol class="is22-timeline" aria-label="個人の著作物についての原則的な保護期間">
-        <li><strong>創作</strong><span>保護が始まる</span></li>
-        <li><strong>著作者の死亡</strong><span>死亡した年の年末まで</span></li>
-        <li><strong>翌年1月1日</strong><span>ここから70年を数える</span></li>
-        <li><strong>70年の満了</strong><span>死亡年＋70年の12月31日</span></li>
+      <p class="is-lead">著作権（財産権）は、原則として<strong>著作者の生存中と死後70年間</strong>保護されます。</p>
+      <p class="is-note">ここでは、個人が実名で公表した著作物（映画などを除く）の一般的な原則を示します。</p>
+      <ol class="is22-timeline" aria-label="著作権の保護は、著作者の生存中と死後70年間続く">
+        <li><strong>著作者の生存中</strong><span>創作した時点で保護が始まり、<br>著作者が存命の間、保護が続きます。</span></li>
+        <li><strong>死後70年</strong><span>死亡した年の翌年から、<br>70年間保護されます。</span></li>
       </ol>
       <div class="is-columns">
-        <div class="is-observe"><h3>変わるのは、財産権の存続</h3><p>原則の計算では、死亡した<strong>翌年の1月1日</strong>から数えます。著作権を譲渡しても、この起算点が譲渡日に変わるわけではありません。</p></div>
+        <div class="is-observe"><h3>年数の数え方</h3><p>死亡した<strong>翌年の1月1日</strong>から70年を数え、<strong>死亡年＋70年の12月31日</strong>まで保護されます。</p><p class="is-note">譲渡後も、期間は著作者の死亡年を基準に数えます。</p></div>
         <div class="is-card"><h3>人格権は別に考える</h3><p>著作者人格権は<strong>譲渡できず、死亡により消滅</strong>します。ただし死後も、原則として人格権の侵害となるような行為は禁止され、人格的な利益が保護されます。</p></div>
       </div>
       <div class="is-card"><h3>「死後70年」と異なる場合</h3><div class="is-table-wrap x-scroll" tabindex="0" role="region" aria-label="比較表。必要に応じて左右にスクロール" data-lesson-slide-navigation-lock><table><caption>主な例外・別の権利の期間</caption><thead><tr><th scope="col">対象</th><th scope="col">基本の考え方</th></tr></thead><tbody><tr><th scope="row">法人等の団体名義の著作物・映画</th><td>原則、公表後70年。創作後70年以内に公表されない場合は創作後70年。</td></tr><tr><th scope="row">実演・レコードの著作隣接権</th><td>実演は実演後70年。レコードは原則、発行後70年で、発行されない場合は固定（録音）後70年。</td></tr><tr><th scope="row">放送・有線放送の著作隣接権</th><td>放送・有線放送後50年。</td></tr></tbody></table></div><p class="is-note">これらも該当する年の翌年から数えます。無名・変名の著作物、古い著作物、外国の著作物などにも別の規定があり、この表だけで実際の満了時期を決めることはできません。</p></div>

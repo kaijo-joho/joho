@@ -24,6 +24,9 @@ async function fits(page, label) {
 }
 for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(',')) {
   const browser = await (name === 'webkit' ? webkit.launch() : chromium.launch({channel:'chrome'}));
+  // WebKit's default macOS preference skips buttons with plain Tab; Option+Tab visits every control.
+  const forwardTab = name === 'webkit' ? 'Alt+Tab' : 'Tab';
+  const backwardTab = name === 'webkit' ? 'Alt+Shift+Tab' : 'Shift+Tab';
   try {
     const context = await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
     // Existing common analytics/webfonts are not needed by the candidate tests.
@@ -71,9 +74,28 @@ for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(','
         await go(page,1); await page.evaluate(hash => {location.hash='#'+hash;},head);
         await expect(model).toHaveAttribute('data-is-state',before);
         const reset = model.locator('[data-is-reset]');
-        await reset.press('Enter');
-        await expect(model).toHaveAttribute('data-is-state',await model.getAttribute('data-is-default'));
-        await expect(reset).toBeFocused();
+        if (await reset.count()) {
+          await reset.press('Enter');
+          await expect(model).toHaveAttribute('data-is-state',await model.getAttribute('data-is-default'));
+          await expect(reset).toBeFocused();
+        }
+        if (await model.getAttribute('data-is-model') === 'right-details') {
+          assert.equal(states.length,10,'six listed author rights and four neighboring-right holders');
+          await choices.last().focus(); await page.keyboard.press(forwardTab);
+          await expect(page.locator('#is22-right-detail')).toBeFocused();
+          await page.keyboard.press(backwardTab); await expect(choices.last()).toBeFocused();
+        }
+        if (id === 'is22' && await model.getAttribute('data-is-model') === 'rights') {
+          const stateGroup = model.getByRole('group',{name:'複製権について比べる3つの状態'});
+          assert.equal(await stateGroup.locator('button').count(),3,'only three states in the state-selection group');
+          assert.equal(await stateGroup.locator('[data-is-reset]').count(),0,'reset outside state-selection group');
+          await choices.last().focus(); await page.keyboard.press(forwardTab);
+          await expect(reset).toBeFocused();
+          await page.keyboard.press('Space');
+          await expect(model.locator('[data-is-panel="create"]')).toBeVisible();
+          await expect(model.locator('[data-is-select="create"]')).toHaveAttribute('aria-pressed','true');
+          await expect(reset).toBeFocused();
+        }
       }
       for (const width of [1440,720,390]) {
         await page.setViewportSize({width,height:1000});
@@ -97,6 +119,19 @@ for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(','
                 await fits(page,`${name} tree ${width} ${theme} ${size}`);
               }
               await tree.locator('[data-is-reset]').click();
+            }
+            if (id === 'is22' && n === 3) {
+              const explorer = page.locator('[data-is-model="right-details"]');
+              const detail = page.locator('#is22-right-detail');
+              for (const button of await explorer.locator('[data-is-select]').all()) {
+                await button.click();
+                await expect(button).toHaveAttribute('aria-pressed','true');
+                const selected = await button.getAttribute('data-is-select');
+                await expect(detail.locator(`[data-is-panel="${selected}"]`)).toBeVisible();
+                assert.equal(await detail.locator('[data-is-panel]:visible').count(),1,'one shared explanation at a time');
+                await detail.focus(); await expect(detail).toBeFocused();
+                await fits(page,`${name} explanation ${selected} ${width} ${theme} ${size}`);
+              }
             }
           }
         }

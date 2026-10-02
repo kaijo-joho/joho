@@ -6,10 +6,10 @@
   <title>個人情報の保護と活用 | 情報社会</title>
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
-  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-sf7yLTtudXQPK63/pQ2M1q8UW2Kp6JuuqsNoD10RCZeblvCwYhp5bZJSSQPZScwL">
+  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
   <link rel="stylesheet" href="./css/personal-information.css" integrity="sha384-pz5n7vJvBPUBQTG5w6jh/8PMrhCSk6jq1oJ6sdufPlB7PZntCFNz7A1ctd3d0Ubu">
   <script defer src="./js/main.js"></script>
-  <script defer src="./js/information-society.js" integrity="sha384-ZL1NA1iQuu9S1KtZtIMTpDC5jdWDqOTToq4LHEM832egeUmXhQGMxTHdtnlAbodx"></script>
+  <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
   <script defer src="./js/personal-information.js" integrity="sha384-gtF2EiAIIVXSTWeMyef78vE7NqINs+VygIuwMLQLgJUMT1rv3DwW+eEW3aCicQSO"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -158,7 +158,7 @@
           <p>特定の個人を<strong>識別できず</strong>、もとの個人情報を<strong>復元できない</strong>よう、法令に従って加工した情報。</p>
         </div>
       </div>
-      <p class="is-note">法律の加工基準を満たして作られた二つの制度を比較します。画面操作でデータを加工したり、適法性を判定したりするものではありません。匿名加工の要件は通常の方法等を基準とし、将来のあらゆる技術でも絶対に識別できないと保証するものではありません。</p>
+      <p class="is-note">法律の加工基準を満たして作られた情報を比較します。匿名加工の要件は通常の方法等を基準とし、将来のあらゆる技術でも絶対に識別できないと保証するものではありません。</p>
       <div class="is-model" data-is-model="processing" data-is-default="pseudonym">
         <p class="is-prompt"><strong>予想 → 比較</strong>　他の情報と照合できる可能性があることと、本人を識別するために照合してよいことは同じでしょうか。二つの制度を切り替え、利用・照合・提供の欄を読みましょう。</p>
         <div class="is-tabs" role="group" aria-label="加工情報の比較対象">
@@ -238,10 +238,15 @@
           </div>
           <p class="is-observe">「誰の情報か識別できない」だけでなく、<strong>復元できないことと、加工後の取扱いの条件</strong>も確かめます。</p>
         </div>
-        <p class="is-note">この図は二つの制度を比べるもので、仮名加工から匿名加工へ進む手順を示しているわけではありません。加工後の制度によって、もとの個人情報の取得が正当化されるわけでもありません。</p>
+        <p class="is-note">加工後の制度によって、もとの個人情報の取得が正当化されるわけではありません。</p>
         <p class="is-note">委託・事業承継・共同利用など、法令上の一定の条件で第三者に当たらない場合があります。</p>
         <p class="is-prompt"><strong>説明しよう</strong>　個人を識別できるか、識別のために照合してよいか、第三者へ提供できるかを分けて、二つの制度の違いを説明しましょう。</p>
       </div>
+      <details class="is-card is-supplement" open>
+        <summary>図の見方・補足</summary>
+        <p>画面操作でデータを加工したり、適法性を判定したりするものではありません。</p>
+        <p>この図は二つの制度を比べるもので、仮名加工から匿名加工へ進む手順を示しているわけではありません。</p>
+      </details>
       <p class="is-source">参考：<a href="https://www.ppc.go.jp/personalinfo/legal/guidelines_anonymous/" target="_blank" rel="noopener noreferrer">個人情報保護委員会「ガイドライン（仮名加工情報・匿名加工情報編）」2-1・2-2・3-1・3-2</a>（2026-10-02確認）</p>
     </article>
   </section>
@@ -250,12 +255,18 @@
     <article>
       <h2 id="headline_6">(6) 目的に必要な情報を考える</h2>
       <p class="is-lead">まず目的を決め、<strong>必要な項目や細かさ</strong>を考えます。</p>
+      <div class="is-visual-pair">
+        <figure class="is-scene">
+          <img src="./img/information-society/is32-transit-purpose.webp" width="1672" height="941" loading="lazy" decoding="async" alt="バス停で乗車を待つ人々と、そばで資料を見る係員。">
+          <figcaption>交通の混雑傾向を把握する場面を考えます。（AI生成の架空の場面）</figcaption>
+        </figure>
       <ol class="is-stage-list" aria-label="情報の活用を考える順序">
         <li><strong>1　目的</strong><p>何を知り、何に役立てるか。</p></li>
         <li><strong>2　必要な項目・細かさ</strong><p>その目的に、どの情報が必要か。</p></li>
         <li><strong>3　保護の方法</strong><p>扱う人・保存期間・提供先などをどう決めるか。</p></li>
         <li><strong>4　活用</strong><p>目的と取扱いのルールを確かめて使う。</p></li>
       </ol>
+      </div>
       <div class="is-concept-pair">
         <div class="is-card">
           <h3>活用を検討する場面</h3>
