@@ -617,3 +617,7 @@
 - `ss41.html`
 - `html/answer1-4.html`
 - `html/answer1-5_1.html`
+
+## 情報社会（IS）シリーズ
+
+2026-10-02の知的財産権3ページ（is21・is22・is23）の構成、操作、原資料の扱い、検証と登録手順は[情報社会の編集方針](information-society.md)を参照する。確認用公開ではrelease・showをfalseにし、オンライン確認後の本人了承まで教材間の導線を追加しない。
