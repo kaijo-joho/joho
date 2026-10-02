@@ -56,6 +56,16 @@ for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(','
           assert.equal(await model.locator('[aria-pressed="true"]').count(),1);
           const wrong = await model.locator('[data-is-panel]').evaluateAll((panels,state) => panels.filter(p => p.hidden === p.dataset.isPanel.split(/\s+/).includes(state)).length,states[n]);
           assert.equal(wrong,0,`${id} ${states[n]}: matching explanation visible`);
+          if (await model.getAttribute('data-is-model') === 'taxonomy') {
+            // Choosing one category must never remove the other categories or their explanations.
+            for (const branch of await model.locator('.is21-tree-branch').all()) {
+              await expect(branch).toBeVisible();
+              await expect(branch.locator('button')).toBeVisible();
+              await expect(branch.locator('.is21-tree-description')).toBeVisible();
+            }
+            assert.equal(await model.locator('.is21-tree-branch.is-active').count(), 1);
+            await expect(button.locator('..')).toHaveClass(/is-active/);
+          }
         }
         const before = await model.getAttribute('data-is-state');
         await go(page,1); await page.evaluate(hash => {location.hash='#'+hash;},head);
@@ -70,7 +80,25 @@ for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(','
         for (const theme of ['light','dark','system']) for (const size of ['standard','large','xlarge']) {
           await page.emulateMedia({colorScheme:theme === 'system' ? 'dark' : theme});
           await page.evaluate(({theme,size})=>{window.siteTheme.setPreference(theme);window.siteTextSize.setPreference(size);},{theme,size});
-          for (let n=1;n<=count;n++) { await go(page,n); await fits(page,`${name} ${id} ${width} ${theme} ${size} ${n}`); }
+          for (let n=1;n<=count;n++) {
+            await go(page,n); await fits(page,`${name} ${id} ${width} ${theme} ${size} ${n}`);
+            if (id === 'is21' && n === 2) {
+              const tree = page.locator('[data-is-model="taxonomy"]');
+              for (const button of await tree.locator('[data-is-select]').all()) {
+                await button.click();
+                await expect(button).toHaveAttribute('aria-pressed','true');
+                const labelLayout = await button.evaluate(node => {
+                  const title = node.querySelector('strong').getBoundingClientRect();
+                  const note = node.querySelector('span').getBoundingClientRect();
+                  return { titleBottom: title.bottom, noteTop: note.top };
+                });
+                assert.ok(labelLayout.noteTop >= labelLayout.titleBottom, 'tree category and examples have separate lines');
+                for (const description of await tree.locator('.is21-tree-description').all()) await expect(description).toBeVisible();
+                await fits(page,`${name} tree ${width} ${theme} ${size}`);
+              }
+              await tree.locator('[data-is-reset]').click();
+            }
+          }
         }
         await page.evaluate(()=>{window.siteTheme.setPreference('light');window.siteTextSize.setPreference('standard');});
         if(width!==720) for(let n=1;n<=count;n++) {
