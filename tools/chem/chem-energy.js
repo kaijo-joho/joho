@@ -600,10 +600,13 @@ function diagramSVG(groups, opt = {}){
         const gi = groups.indexOf(g), li = g.levels.indexOf(l);
         // まだ物質を書いていない横線には、丸い「＋」ボタンを付ける（書き出しには出さない）
         // 横線の右の末端に、小さく付ける（左端には矢印が来るので、重ならないように）
+        // 横線の左の外に、上下に動かすための「︙︙」（つかむところ）を付ける。横線そのもののドラッグは矢印を引く操作なので、分ける
+        const gx = l.x0 - 15, gy = l.y - 13, gripEl = '<g class="grip"><title>つかんで上下に動かす（横線の順番を入れ替える）</title><rect class="grip-bg" x="' + gx + '" y="' + gy.toFixed(1) + '" width="13" height="26" rx="3"/>' +
+          [6, 13, 20].map(dy => '<circle class="grip-d" cx="' + (gx + 4) + '" cy="' + (gy + dy).toFixed(1) + '" r="1.7"/><circle class="grip-d" cx="' + (gx + 9) + '" cy="' + (gy + dy).toFixed(1) + '" r="1.7"/>').join('') + '</g>';
         const pcx = l.x1 - 12, pcy = (l.y - 13).toFixed(1);
         const plusEl = l.empty ? '<g class="plus"><title>クリックして物質を書く</title><circle class="plus-c" cx="' + pcx + '" cy="' + pcy + '" r="8"/><path class="plus-l" d="M' + (pcx - 4) + ' ' + pcy + 'h8M' + pcx + ' ' + (l.y - 17).toFixed(1) + 'v8"/></g>' : '';
         lines.push('<g class="lvl" data-g="' + gi + '" data-lv="' + li + '"' + (l.empty ? ' data-empty="1"' : '') + ' tabindex="0" role="button" aria-label="横線 ' + (li + 1) + '：' + esc(l.empty ? 'まだ物質を書いていません' : segsText(l.segs)) + '">' +
-          '<line class="hit" x1="' + (l.x0 - 4) + '" y1="' + l.y.toFixed(1) + '" x2="' + (l.x1 + 4) + '" y2="' + l.y.toFixed(1) + '" stroke="transparent" stroke-width="18"/>' + lineEl + plusEl + '</g>');
+          '<line class="hit" x1="' + (l.x0 - 4) + '" y1="' + l.y.toFixed(1) + '" x2="' + (l.x1 + 4) + '" y2="' + l.y.toFixed(1) + '" stroke="transparent" stroke-width="18"/>' + lineEl + plusEl + gripEl + '</g>');
       } else lines.push(lineEl);
       if (!l.empty) texts.push('<text pointer-events="none" x="' + l.tx.toFixed(1) + '" y="' + l.ty.toFixed(1) + '" font-size="' + LS + '" fill="' + C.ink + '">' + segsToSVG(l.segs, LS, {spect: C.spect}) + '</text>');
       if (l.warn && opt.interactive) texts.push('<g pointer-events="none"><title>原子の数が、ほかの横線と合っていません</title><circle cx="' + (l.x1 + 14) + '" cy="' + l.y.toFixed(1) + '" r="8" fill="#d61f1f"/><text x="' + (l.x1 + 14) + '" y="' + (l.y + 4.5).toFixed(1) + '" font-size="12" font-weight="700" text-anchor="middle" fill="#fff">!</text></g>');
@@ -980,6 +983,11 @@ function freeAddArrow(free, from, to){
   if (from === to || free.arrows.some(a => a.from === from && a.to === to)) return null;
   const f = cloneFree(free); f.arrows.push({from, to}); return f;
 }
+// 横線 li を、高さ newY（いま図に出ている高さの座標）へ動かす。ys：いま図に出ている全部の横線の高さ（動かさない横線は、そのまま）。
+// 別の横線に近づけすぎたときは、freeCompute が上下の順番を保ったまま、あとの横線を少し下げて離す（割り込みになる）
+function freeMoveLevel(free, ys, li, newY){
+  const f = cloneFree(free); f.levels.forEach((l, i) => { l.y = ys[i]; }); f.levels[li].y = newY; return f;
+}
 // 横線の物質を直す
 function freeSetItems(free, li, items){
   const f = cloneFree(free); f.levels[li].items = {...items}; return f;
@@ -1101,7 +1109,7 @@ function hintFor(fc, target, eqs, species){
     cand ? '(' + (cand.i + 1) + ') を使うには ' + cand.miss.map(nm).join('・') + ' が要ります。すべての横線に足します。' : '使っていない式の左辺・右辺の物質を見くらべます。']};
 }
 
-const api = {emptyFree, itemsToVec, vecToItems, inventory, invEq, explainArrow, applyEq, freeCompute, freeRemoveLevel, freeRemoveArrow, freeAddChild, freeAddArrow, freeSetItems, freeFromPath, groupFromFree, hintFor, emptyDraw, okEq, feasibleMults, dragPlan, arrowDown, drawCompute, drawRemoveStep, drawRemoveEq, groupFromDraw, drawFromPath, DRAW_MULTS, segsText, Frac, ZERO, ONE, ELEMENTS, normalize, parseFormula, parseCharge, parseTerm, splitTerms, parseDH, parseEquation,
+const api = {emptyFree, itemsToVec, vecToItems, inventory, invEq, explainArrow, applyEq, freeCompute, freeMoveLevel, freeRemoveLevel, freeRemoveArrow, freeAddChild, freeAddArrow, freeSetItems, freeFromPath, groupFromFree, hintFor, emptyDraw, okEq, feasibleMults, dragPlan, arrowDown, drawCompute, drawRemoveStep, drawRemoveEq, groupFromDraw, drawFromPath, DRAW_MULTS, segsText, Frac, ZERO, ONE, ELEMENTS, normalize, parseFormula, parseCharge, parseTerm, splitTerms, parseDH, parseEquation,
   balance, vectorOf, sideVec, collectSpecies, solveCombination, buildPath, levelHeights, addVec, vecEq,
   fracText, coefText, formulaSegs, speciesSegs, compSegs, termsSegs, equationSegs, numText, decimalsOf,
   segsToHTML, segsToSVG, segsWidth, diagramSVG, arrowSegs, groupFromPath, groupFromEquation, calcText, speciesOrder, esc};

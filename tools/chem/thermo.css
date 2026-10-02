@@ -360,3 +360,13 @@ button:focus-visible,summary:focus-visible,select:focus-visible,input:focus-visi
 .amt-grid button{min-width:calc(38px*var(--ui-k, 1))}
 .amt-other{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:2px}
 .amt-other input{width:5.5em;border:1px solid var(--line);border-radius:6px;padding:2px 4px;background:var(--panel);color:inherit;text-align:center}
+
+/* ---- 0.8：横線を上下に動かす「︙︙」 ---- */
+#dia svg .grip{cursor:grab;touch-action:none}
+#dia svg .grip:active{cursor:grabbing}
+#dia svg .grip .grip-bg{fill:transparent}
+#dia svg .grip .grip-d{fill:var(--muted)}
+#dia svg .lvl:hover .grip .grip-bg,#dia svg .lvl:focus-visible .grip .grip-bg{fill:var(--accent-soft)}
+#dia svg .grip:hover .grip-bg{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1}
+#dia svg .grip:hover .grip-d{fill:var(--accent)}
+.float-pop button:disabled{opacity:.4;cursor:default}

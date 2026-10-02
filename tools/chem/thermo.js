@@ -695,8 +695,33 @@ function ghostLabel(d, e, p, g){
   }
   return sel ? '目的の生成物がそろった横線の上へ' : '新しい横線';
 }
+// 横線を上下に動かす：離した高さに横線を置く。別の横線に近づけると、その手前か奥に割り込む
+function levelMove(d, e){
+  const fc = fcNow(), g = levelGeo(d.li); if (!fc || !g) return;
+  const raw = svgPoint(e).y - g.y;
+  if (Math.abs(raw) < 6) return;
+  const ys = fc.levels.map(l => l.Y), newY = Math.max(-300, Math.min(Math.max(...ys) + 420, ys[d.li] + raw));
+  commit(); doc.free = E.freeMoveLevel(doc.free, ys, d.li, newY); changed();
+  toast('横線 ' + (d.li + 1) + ' を動かしました', 2200);
+}
+// 隣の横線と、上下の順番を入れ替える（キーボード・タッチ向け。dir：−1 = 上の横線と、1 = 下の横線と）
+function levelSwap(li, dir){
+  const fc = fcNow(); if (!fc) return;
+  const order = fc.levels.map((l, i) => i).sort((a, b) => fc.levels[a].Y - fc.levels[b].Y || a - b), n = order.indexOf(li), o = order[n + dir];
+  if (o == null) return;
+  const ys = fc.levels.map(l => l.Y), t = ys[li]; ys[li] = ys[o]; ys[o] = t;
+  commit(); doc.free = E.freeMoveLevel(doc.free, ys, li, ys[li]); changed();
+}
 function drawGhost(e){
   const svg = $('dia').querySelector('svg'); if (!svg || !drag) return;
+  if (drag.move){   // 横線を動かすとき：離す高さに、点線を出す
+    let gh = svg.querySelector('#ghost');
+    if (!gh){ gh = document.createElementNS('http://www.w3.org/2000/svg', 'g'); gh.id = 'ghost'; gh.setAttribute('pointer-events', 'none'); svg.append(gh); }
+    const p = svgPoint(e), g = levelGeo(drag.li); if (!g) return;
+    gh.innerHTML = '<line x1="' + g.x0 + '" y1="' + p.y + '" x2="' + g.x1 + '" y2="' + p.y + '" stroke="var(--accent)" stroke-width="3" stroke-dasharray="7 4"/>' +
+      '<text x="' + (g.x0 + 4) + '" y="' + (p.y - 6) + '" font-size="13" fill="var(--accent)" style="paint-order:stroke;stroke:var(--paper);stroke-width:4px">ここへ動かす</text>';
+    return;
+  }
   let gh = svg.querySelector('#ghost');
   if (!gh){ gh = document.createElementNS('http://www.w3.org/2000/svg', 'g'); gh.id = 'ghost'; gh.setAttribute('pointer-events', 'none'); svg.append(gh); }
   const p = svgPoint(e), g = levelGeo(drag.li); if (!g) return;
@@ -714,7 +739,8 @@ $('dia').addEventListener('pointerdown', e => {
   if (!drawMode() || e.button !== 0) return;
   const lv = e.target.closest && e.target.closest('.lvl'); if (!lv) return;
   hideArrowPop(); hideLevelPop();
-  drag = {li: +lv.dataset.lv, x0: e.clientX, y0: e.clientY, moved: false, el: lv, sx: svgPoint(e).x};
+  const grip = !!e.target.closest('.grip');   // 「︙︙」をつかんだときは、横線を上下に動かす（それ以外は、矢印を引く）
+  drag = {li: +lv.dataset.lv, x0: e.clientX, y0: e.clientY, moved: false, el: lv, sx: svgPoint(e).x, move: grip};
   try { $('dia').setPointerCapture(e.pointerId); } catch {}
   lv.classList.add('src');
   e.preventDefault();
@@ -731,6 +757,7 @@ function endDrag(e, cancel){
   try { $('dia').releasePointerCapture(e.pointerId); } catch {}
   justDragged = true; setTimeout(() => { justDragged = false; }, 60);   // このあとに来る click は、ドラッグの続きなので無視する
   if (cancel) return;
+  if (d.move){ if (d.moved) levelMove(d, e); return; }   // 「︙︙」は、クリックしても何もしない
   if (d.moved) levelDrop(d, e); else levelClick(d.li, e);
 }
 $('dia').addEventListener('pointerup', e => endDrag(e, false));
@@ -860,6 +887,7 @@ function drawLevelPop(){
   const pop = $('levelPop'), r = last, li = levelPopFor;
   if (!r || !r.fc || li < 0 || li >= r.fc.levels.length){ hideLevelPop(); return; }
   const lv = r.fc.levels[li], items = [...lv.vec];
+  const ord = r.fc.levels.map((l, i) => i).sort((a, b) => r.fc.levels[a].Y - r.fc.levels[b].Y || a - b), swapUp = ord.indexOf(li) > 0, swapDn = ord.indexOf(li) < ord.length - 1;
   const rows = items.map(([k, v]) => '<div class="sp-row"><span class="sp-n">' + spHtml(r, k) + '</span>' +
     '<button type="button" class="sp-amt" data-samt="' + E.esc(k) + '" title="クリックして係数を選ぶ（½・3/2 など）" aria-label="' + E.esc(spName(r, k)) + ' の係数 ' + E.esc(E.fracText(v)) + '。クリックして選ぶ">' + E.esc(E.fracText(v)) + ' ▾</button>' +
     '<button type="button" class="sp-all" data-sall="' + E.esc(k) + '" title="ほかの横線にも、この物質を同じだけ足す（原子の数をそろえる）">ほかの横線にも</button>' +
@@ -875,6 +903,8 @@ function drawLevelPop(){
     '<div class="sp-lbl">この横線から矢印を引く</div><div class="sp-cands">' +
     '<button type="button" data-newdir="down" title="下（発熱）へ、物質を書いていない新しい横線を引く">↓ 下へ</button><button type="button" data-newdir="up" title="上（吸熱）へ、物質を書いていない新しい横線を引く">↑ 上へ</button>' +
     usable.map(x => '<button type="button" data-eqdraw="' + x.i + '" title="式 (' + (x.i + 1) + ') を使って引く。新しい横線の物質が自動で書かれる">(' + (x.i + 1) + ')' + (x.pl.fwd.length ? '' : ' 逆向き') + '</button>').join('') + '</div>' +
+    '<div class="sp-lbl">横線の上下を入れ替える（左の「︙︙」をつかんで動かしてもできます）</div><div class="sp-cands">' +
+    '<button type="button" data-lswap="-1"' + (swapUp ? '' : ' disabled') + ' title="1 つ上の横線と、上下の順番を入れ替える">↑ 上の横線と入れ替え</button><button type="button" data-lswap="1"' + (swapDn ? '' : ' disabled') + ' title="1 つ下の横線と、上下の順番を入れ替える">↓ 下の横線と入れ替え</button></div>' +
     '<div class="sp-foot">' + (li > 0 ? '<button type="button" data-ldel class="ap-del">この横線を消す</button>' : '') + '<button type="button" data-sclose class="sbtn">閉じる</button></div>';
   pop.hidden = false;
   document.querySelectorAll('#dia .lvl.editing').forEach(n => n.classList.remove('editing'));
@@ -907,6 +937,7 @@ $('levelPop').addEventListener('click', e => {
   }
   else if (t('[data-newdir]')){ const down = t('[data-newdir]').dataset.newdir === 'down'; hideLevelPop(); selStep = -1; addChild(li, null, down ? DEF_DY : -DEF_DY); toast('新しい横線ができました。「＋」をクリックして、物質を書きます。', 3500); }
   else if (t('[data-eqdraw]')){ const i = +t('[data-eqdraw]').dataset.eqdraw; hideLevelPop(); stepFromEq(li, i, null, null); }
+  else if (t('[data-lswap]')){ levelSwap(li, +t('[data-lswap]').dataset.lswap); }
   else if (t('[data-ldel]')){ hideLevelPop(); commit(); doc.free = E.freeRemoveLevel(doc.free, li); selStep = -1; changed(); toast('横線と、つながる矢印を消しました', 3000); }
   else if (t('[data-sclose]')) hideLevelPop();
 });
