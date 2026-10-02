@@ -259,6 +259,13 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
   border:1px solid var(--line);border-radius:10px;box-shadow:var(--shadow,0 4px 14px rgba(20,35,55,.15));padding:10px 14px;display:flex;flex-direction:column;gap:8px;align-items:stretch;font-size:13px}
 #busyBox[hidden]{display:none}
 #busyBox .busytrack{height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+/* 3D プリンタ用の書き出し */
+.prinfo{font-size:12px;line-height:1.65;border:1px solid var(--line);border-radius:8px;padding:6px 9px;background:var(--panel)}
+.prinfo b{font-weight:600}
+.prinfo .prwarn{color:#b45309}
+:root[data-theme="dark"] .prinfo .prwarn,:root[data-resolved-theme="dark"] .prinfo .prwarn{color:#fbbf24}
+.prinfo .prok{color:#15803d}
+:root[data-theme="dark"] .prinfo .prok,:root[data-resolved-theme="dark"] .prinfo .prok{color:#4ade80}
 #busyBar{height:100%;width:0;background:var(--accent);transition:width .15s}
 #busyBox .sbtn{align-self:flex-end}
 </style>
@@ -496,6 +503,30 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
             <button class="sbtn" id="expMol">MOL 形式で保存</button>
             <button class="sbtn" id="expXyz">XYZ 形式で保存</button>
           </div>
+          <div class="side-sec molOnly" id="prSec">
+            <div class="gl">3D プリンタ用（STL・3MF）</div>
+            <label class="frow">大きさ
+              <select id="prSize">
+                <optgroup label="いちばん長い分子の長さ（目安）">
+                  <option value="fit:50">50 mm</option><option value="fit:80" selected>80 mm</option><option value="fit:120">120 mm</option><option value="fit:180">180 mm</option><option value="fit:250">250 mm</option>
+                </optgroup>
+                <optgroup label="1 Å の長さ">
+                  <option value="k:8">1 Å = 8 mm（小さめ）</option><option value="k:10">1 Å = 10 mm</option><option value="k:15">1 Å = 15 mm</option><option value="k:20">1 Å = 20 mm</option><option value="k:30">1 Å = 30 mm（大きめ）</option>
+                </optgroup>
+              </select>
+            </label>
+            <label class="frow">支え
+              <select id="prSup"><option value="0">支えなし</option><option value="1">支えあり（細い柱）</option></select>
+            </label>
+            <button class="sbtn primary" id="prMake">データを作って確かめる</button>
+            <div id="prInfo" class="prinfo" hidden></div>
+            <div id="prBtns" class="side-sec" hidden>
+              <button class="sbtn" id="pr3mf" title="元素ごとに別の部品（色つき）にした 3MF。スライサーで部品ごとに CFS の色を割り当てます">3MF（色分け）で保存</button>
+              <button class="sbtn" id="prStl" title="全部を 1 つにした STL（単色）">STL（1 つ・単色）で保存</button>
+              <button class="sbtn" id="prZip" title="元素ごとの STL を ZIP にまとめたもの。スライサーに全部をいっしょに入れると、1 つのモデルの部品として読み込めます">STL（色ごと）を ZIP で保存</button>
+            </div>
+            <p class="muted">いま表示している形（球棒・棒・空間充填）をそのまま出力します。選んでいる分子があれば、その分子だけです。</p>
+          </div>
         </div>
       </section>
       <section class="side-pane" data-pane="mo" hidden>
@@ -553,6 +584,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
       <table>
         <tr><td>分子を表示する</td><td>画面右端の「化合物ライブラリ」のタブを開いて、化合物をクリック。<kbd>Shift</kbd>+クリックで、いまの分子の横に追加します。上級者向けに SMILES からも作れます。</td></tr>
         <tr><td>量の上限</td><td>一度に 3D で扱えるのは、<b>分子 30 個・原子 1500 個</b>までです（多すぎると重くなって止まるため）。上限を超えて追加しようとすると、知らせて止めます。構造式エディタの図を取り込むときは、<b>進み具合の枠の「やめる」</b>（または Esc キー）で途中でやめられ、そのときは何も変わりません。構造式エディタで分子を選んでから「3D で見る」を押すと、選んだ分子だけを渡せます。</td></tr>
+        <tr><td>3D プリンタ</td><td>「書き出し」パネルの「3D プリンタ用」で、いま表示している分子を <b>3MF・STL</b> にできます（Creality K2 Pro など）。大きさは、いちばん長い分子の長さ（mm）か、1 Å あたりの長さで選びます。<b>3MF は元素ごとに別の部品</b>になっているので、スライサーで部品ごとに CFS の色を割り当てられます。台に置く向きは、支えが要らない向きを自動で探します。支えが必要な分子は、「支えが必要です」と知らせます。「支えあり」にすると、細い柱の支えを別の部品として付けます。実際に印刷して、形や強さを確かめてください。</td></tr>
         <tr><td>構造式の枠</td><td>キャンバスの左上に、表示している分子の<b>構造式</b>（骨格構造式）を小さな枠で出します。枠の <b>✕</b> か、上の「構造式」ボタンで隠せます（もう一度押すと出ます）。図か <b>⤢</b> を押すと、枠の大きさが変わります。分子を選んでいるときは、その分子だけを出します。<b>太いくさび</b>は手前に、<b>破線</b>は奥に向いた結合で、不斉炭素の立体（R/S）を表します（3D の向きに合わせて自動で付けます）。二重結合のシス・トランスも 3D と同じ側に描きます。炭素は頂点で、酸素・窒素などは文字で表し、H の数も添えます（原子 3 個までの小さな分子は、CH<sub>3</sub>–CH<sub>2</sub>–OH のように炭素も書きます）。ベンゼン環は二重結合を交互に描きます。<b>限界</b>：C<sub>60</sub> のような籠の形は平面に描けないので描きません。大きな分子（デンプンの 10 個分など）は、図の一部が重なることがあります。結晶格子のモードでは出ません。構造式の向きや形は 3D の向きとは関係なく、分子のつながり方から決めています。</td></tr>
         <tr><td>水素結合</td><td>「表示 ▼」の<b>「水素結合を表示」</b>で、O–H···O や N–H···O などの水素結合を<b>細い水色の線</b>で表します（結晶モードの氷と同じ色）。水分子どうし、酢酸の二量体、デンプンのらせんを保つ 2 位・3 位の OH のはしご、DNA の相補塩基対のような場面で使えます。判定は <b>H から相手までが 2.6 Å 以内で、O–H···O の角度が 130° 以上</b>。さらに、受け手が水酸基やエーテル・水の O のときは、<b>H がその O の非共有電子対のある向きから近づいていること</b>（O の 2 本の結合がつくる面から 20° 以上外れていること）も条件にしています。面の中から近づく配置は、実際の水素結合としては不自然だからです。<b>H の向きで判断している</b>ので、同じ組に 2 本引かれることはありません（水素結合には向きがあり、結びついているのは片方だけです）。OH の H は、水素結合ができる向きがあればそちらへ向けてあります（重い原子の位置は変えません）。<b>注意</b>：分子そのものの形（C–C のまわりのねじれなど）は変えないので、形によっては本当は水素結合があるのに出ないことがあります。組み立てた形では、C=O と環のあいだの結合の向きも、水素結合ができるほうを選んでいます（たとえば<b>サリチル酸</b>では C=O がフェノールの OH の側を向き、分子内水素結合が出ます。実測の結晶構造と同じ向きです）。ファイルから読み込んだ分子は H の向きもそのままです。</td></tr>
         <tr><td>座標の出どころ</td><td>「表示 ▼」の<b>「座標」</b>で、化合物ライブラリから作るときの原子の位置を切り替えられます。<b>データベース</b>は外部の公開データ（PubChem・RCSB PDB）から取った位置、<b>組み立てた形</b>はこのアプリが標準の結合長・結合角から組み立てた位置です。切り替わるのはデータベースの座標がある分子だけで、いまは 4 つ（エチレングリコール、D-グリセルアルデヒド、β-リボース、α-シクロデキストリン）。たとえば<b>エチレングリコール</b>は、組み立てた形では真っすぐ伸びていますが、データベースの形では<b>ねじれて</b>おり、こちらが実際に近い姿です。<b>注意</b>：どちらの座標も<b>計算で求めたもので、実験で測った値ではありません</b>（PubChem は MMFF94 系、PDB の ideal は生成値）。とくに PubChem の座標は、分子の中の電気的な引き合いを切って作られているため、<b>共役して平面になるはずの分子（フマル酸・サリチル酸など）がねじれていたり、最も安定な形でなかったりします</b>（1,2-ジクロロエタンがゴーシュ形になっていた）。そうした分子は、組み立てた形のほうを使っています。ライブラリにない分子や、自分で編集した分子は、いつも「組み立てた形」になります。</td></tr>
@@ -587,7 +619,7 @@ dialog .row{display:flex;gap:8px;justify-content:flex-end;margin-top:14px;flex-w
         <tr><td>使っているソフトウェア</td><td>エネルギー計算には <b>GANSU-Lite</b>（BSD 3-Clause License、Copyright (c) 2026, Yasuaki Ito）を、基底関数のデータには <b>Basis Set Exchange</b>（BSD 3-Clause License、Copyright (c) 2020 The Molecular Sciences Software Institute, Virginia Tech）を使っています。いずれも次の条件のもとで再配布しています：ソース形式・バイナリ形式での再配布および使用は、変更の有無にかかわらず、上記の著作権表示・この条件・下記の免責事項を残すことを条件として許可されます。著作権者および貢献者の名前を、事前の書面による許可なく、派生物の推奨・宣伝に使うことはできません。<br>本ソフトウェアは著作権者および貢献者によって「現状のまま」提供され、商品性および特定目的への適合性の黙示の保証を含め、明示・黙示を問わずいかなる保証もありません。著作権者または貢献者は、本ソフトウェアの使用により生じた直接的・間接的・付随的・特別・懲罰的または結果的な損害（代替品・代替サービスの調達、使用機会・データ・利益の損失、事業の中断を含みます）について、一切の責任を負いません。ライセンスの全文は、配布ファイルの licenses/ に収めています。</td></tr>
         <tr><td>ご利用にあたって</td><td>このアプリは高校化学の学習・教材作成のための教育用ツールです。分子の形・数値は簡略化した方法で求めており、正確さを保証するものではありません。表示した内容はお使いのブラウザの中にだけ保存され、外部には送信されません。このアプリの著作権は海城中学高等学校に帰属します。改変・再配布はご遠慮ください。</td></tr>
       </table>
-      <p class="credit">分子模型エディタ　バージョン 0.30 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
+      <p class="credit">分子模型エディタ　バージョン 0.31 BETA（試作版。2026年9月）<br>海城中学高等学校 情報科<br>Copyright © 2026 Kaijo Junior and Senior High School. All Rights Reserved.</p>
     </div>
   </div>
 </div>
@@ -2820,6 +2852,411 @@ function depictAll(mol, P3, comps){
   const rings = findRings(mol);
   return comps.map(c => depictMol(mol, P3, c, rings));
 }
+// ===== 3D プリンタ用のデータ（STL・3MF） =====
+// 画面の球・棒と同じ形を、mm 単位の三角形の面にする。色は元素ごとの「部品」に分ける（CFS で部品ごとに色を割り当てる）。
+// 台に置く向きは、張り出し（支えが必要な部分）がいちばん少ない向きを探して決める。台に触れる球・棒は底を平らに切る。
+// 張り出しの判定は、形を 1 mm ほどの箱に分けて、下の層から 45° までで支えられているかを調べる（スライサーの考え方に近い）。
+const PP = {
+  ROD:{ballstick:0.11, stick:0.16},   // 棒の半径（Å）。画面（STICK_R）と同じ
+  MIN_ROD:1.25,        // 棒の半径の下限（mm）。細すぎると折れる
+  OVERHANG_VOL:60,     // この体積（mm³）以上の張り出しがあれば「支えが必要」
+  BRIDGE:10,           // 両端が支えられている橋渡しは、この長さ（mm）まで支えなしで印刷できるとみなす
+  MIN_GAP:1.2,         // 下の部分とのすき間がこれ未満の張り出しは、支えなしで印刷できるとみなす（mm）
+  SUP_R:0.9, SUP_GAP:0.3, SUP_PITCH:4,   // 支えの柱：半径・形との隙間（mm）・間隔（mm）
+  BUILD:[300, 300, 300]               // K2 Pro の造形サイズ（mm）
+};
+const PP_NAME = {H:'水素', C:'炭素', N:'窒素', O:'酸素', F:'フッ素', Na:'ナトリウム', P:'リン', S:'硫黄', Cl:'塩素', Br:'臭素', I:'ヨウ素'};
+
+// 球と棒（mm）。atoms：[{el,x,y,z}]（Å）、bonds：[{a,b,order}]。o：{mode, ball, k（1 Å を何 mm にするか）}
+function ppShapes(atoms, bonds, o){
+  const k = o.k, mode = o.mode;
+  const rs0 = PP.ROD[mode === 'stick' ? 'stick' : 'ballstick']*k, rs = Math.max(rs0, PP.MIN_ROD);
+  const P = atoms.map(a => [a.x*k, a.y*k, a.z*k]);   // 位置を mm に（結合の長さも k 倍になる）
+  const R = atoms.map(a => mode === 'spacefill' ? ELEM[a.el].vdw*k : mode === 'stick' ? rs : Math.max(ELEM[a.el].vdw*o.ball*k, 1.35*rs));
+  const rods = [];
+  if (mode !== 'spacefill'){
+    const adj = atoms.map(() => []);
+    for (const b of bonds){ adj[b.a].push(b.b); adj[b.b].push(b.a); }
+    const specs = bonds.map(b => {
+      const p = P[b.a], q = P[b.b], ax = V.norm(V.sub(q, p));
+      const ref = adj[b.a].find(j => j !== b.b) ?? adj[b.b].find(j => j !== b.a);   // 多重結合の棒をずらす向き：隣の原子を含む面の中
+      let off;
+      if (ref != null){ const rv = V.sub(P[ref], adj[b.a].includes(ref) ? p : q); off = V.sub(rv, V.mul(ax, V.dot(rv, ax))); off = V.len(off) > 1e-6 ? V.norm(off) : V.perp(ax); }
+      else off = V.perp(ax);
+      const set = b.order === 2 ? [[-1.05, 0.7], [1.05, 0.7]] : b.order === 3 ? [[-1.4, 0.6], [0, 0.6], [1.4, 0.6]] : [[0, 1]];
+      return {b, p, q, ax, off, set:set.map(([d, f]) => ({o:d*rs, r:f*rs}))};
+    });
+    for (const s of specs) for (const e of s.set) for (const i of [s.b.a, s.b.b]) R[i] = Math.max(R[i], 1.12*(Math.abs(e.o) + e.r));   // 球より棒が太くならないように
+    for (const s of specs){
+      const L = V.dist(s.p, s.q);
+      for (const e of s.set){
+        const mid = V.add(V.mul(V.add(s.p, s.q), 0.5), V.mul(s.off, e.o));
+        for (const [i, pe, dir] of [[s.b.a, s.p, s.ax], [s.b.b, s.q, V.mul(s.ax, -1)]]){
+          const ext = Math.abs(e.o) + e.r, st = Math.sqrt(Math.max(R[i]*R[i] - ext*ext, 0));   // 球の表面から棒を始める
+          if (st < L/2 - 0.05) rods.push({a:V.add(V.add(pe, V.mul(dir, st)), V.mul(s.off, e.o)), b:mid, r:e.r, el:atoms[i].el});
+        }
+      }
+    }
+  }
+  return {sph:atoms.map((a, i) => ({c:P[i], r:R[i], el:a.el})), rods, rs, clamped:mode !== 'spacefill' && rs > rs0*1.25};   // 25% 以上太くしたときだけ知らせる
+}
+// down（台の向き）が −z になるように回す行列（鏡像にはならない）
+function ppBasis(down){
+  const ez = V.mul(V.norm(down), -1), t = Math.abs(ez[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0];
+  const ex = V.norm(V.sub(t, V.mul(ez, V.dot(t, ez))));
+  return [ex, V.cross(ez, ex), ez];
+}
+const ppApply = (M, p) => [V.dot(M[0], p), V.dot(M[1], p), V.dot(M[2], p)];
+const ppRotShapes = (sh, M) => ({sph:sh.sph.map(q => ({...q, c:ppApply(M, q.c)})), rods:sh.rods.map(q => ({...q, a:ppApply(M, q.a), b:ppApply(M, q.b)}))});
+
+// 形を箱（一辺 s mm）に分ける。z0 より下は切り落とす（台）
+function ppVoxels(sph, rods, z0, s){
+  let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
+  for (const q of sph){ x0 = Math.min(x0, q.c[0] - q.r); x1 = Math.max(x1, q.c[0] + q.r); y0 = Math.min(y0, q.c[1] - q.r); y1 = Math.max(y1, q.c[1] + q.r); z1 = Math.max(z1, q.c[2] + q.r); }
+  for (const q of rods) for (const e of [q.a, q.b]){ x0 = Math.min(x0, e[0] - q.r); x1 = Math.max(x1, e[0] + q.r); y0 = Math.min(y0, e[1] - q.r); y1 = Math.max(y1, e[1] + q.r); z1 = Math.max(z1, e[2] + q.r); }
+  const nx = Math.ceil((x1 - x0)/s) + 1, ny = Math.ceil((y1 - y0)/s) + 1, nz = Math.max(1, Math.ceil((z1 - z0)/s));
+  const occ = new Uint8Array(nx*ny*nz), cl = (v, n) => Math.max(0, Math.min(n - 1, v));
+  for (const q of sph){
+    const [cx, cy, cz] = q.c, r2 = q.r*q.r;
+    const i0 = cl(Math.floor((cx - q.r - x0)/s), nx), i1 = cl(Math.floor((cx + q.r - x0)/s), nx), j0 = cl(Math.floor((cy - q.r - y0)/s), ny), j1 = cl(Math.floor((cy + q.r - y0)/s), ny), k0 = cl(Math.floor((cz - q.r - z0)/s), nz), k1 = cl(Math.floor((cz + q.r - z0)/s), nz);
+    for (let k = k0; k <= k1; k++){ const dz = z0 + (k + 0.5)*s - cz;
+      for (let j = j0; j <= j1; j++){ const dy = y0 + (j + 0.5)*s - cy;
+        for (let i = i0; i <= i1; i++){ const dx = x0 + (i + 0.5)*s - cx; if (dx*dx + dy*dy + dz*dz <= r2) occ[(k*ny + j)*nx + i] = 1; } } }
+  }
+  for (const q of rods){
+    const L = V.dist(q.a, q.b), u = V.mul(V.sub(q.b, q.a), 1/(L || 1)), r2 = q.r*q.r;
+    const xs = [q.a[0], q.b[0]], ys = [q.a[1], q.b[1]], zs = [q.a[2], q.b[2]];
+    const i0 = cl(Math.floor((Math.min(...xs) - q.r - x0)/s), nx), i1 = cl(Math.floor((Math.max(...xs) + q.r - x0)/s), nx), j0 = cl(Math.floor((Math.min(...ys) - q.r - y0)/s), ny), j1 = cl(Math.floor((Math.max(...ys) + q.r - y0)/s), ny), k0 = cl(Math.floor((Math.min(...zs) - q.r - z0)/s), nz), k1 = cl(Math.floor((Math.max(...zs) + q.r - z0)/s), nz);
+    for (let k = k0; k <= k1; k++){ const wz = z0 + (k + 0.5)*s - q.a[2];
+      for (let j = j0; j <= j1; j++){ const wy = y0 + (j + 0.5)*s - q.a[1];
+        for (let i = i0; i <= i1; i++){
+          const wx = x0 + (i + 0.5)*s - q.a[0], t = wx*u[0] + wy*u[1] + wz*u[2];
+          if (t < 0 || t > L) continue;
+          if (wx*wx + wy*wy + wz*wz - t*t <= r2) occ[(k*ny + j)*nx + i] = 1;
+        } } }
+  }
+  return {occ, nx, ny, nz, x0, y0, z0, s};
+}
+// 張り出し（支えが要る部分）を調べる。下の層に 45° 以内で材料があれば支えられている。両端が支えられた短い橋渡しも許す
+function ppOverhang(v){
+  const {occ, nx, ny, nz, s} = v, layer = nx*ny, N = occ.length, ok = new Uint8Array(N), B = Math.max(1, Math.round(PP.BRIDGE/s));
+  for (let q = 0; q < layer; q++) ok[q] = occ[q];
+  for (let k = 1; k < nz; k++){
+    const base = k*layer, below = base - layer, add = [];
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){
+      const p = base + j*nx + i; if (!occ[p]) continue;
+      const b = below + j*nx + i;
+      if (ok[b] || (i > 0 && ok[b - 1]) || (i < nx - 1 && ok[b + 1]) || (j > 0 && ok[b - nx]) || (j < ny - 1 && ok[b + nx])) ok[p] = 1;
+    }
+    const hit = (i, j, di, dj) => {
+      for (let m = 1; m <= B; m++){
+        const ii = i + m*di, jj = j + m*dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= ny) return false;
+        const p = base + jj*nx + ii; if (!occ[p]) return false; if (ok[p]) return true;
+      }
+      return false;
+    };
+    for (let j = 0; j < ny; j++) for (let i = 0; i < nx; i++){
+      const p = base + j*nx + i; if (!occ[p] || ok[p]) continue;
+      if ((hit(i, j, 1, 0) && hit(i, j, -1, 0)) || (hit(i, j, 0, 1) && hit(i, j, 0, -1)) || (hit(i, j, 1, 1) && hit(i, j, -1, -1)) || (hit(i, j, 1, -1) && hit(i, j, -1, 1))) add.push(p);
+    }
+    for (const p of add) ok[p] = 1;
+  }
+  // 支えられていない箱を、つながりごとにまとめる。小さなもの（球の下側のわずかなたれ下がりなど）は印刷できる範囲として許す
+  let nb = 0; for (let p = 0; p < N; p++) if (occ[p] && !ok[p]) nb++;
+  const flagged = [], fcomp = []; let vol = 0, cid = 0;   // fcomp：flagged の各箱が、どのつながり（張り出し）に属するか
+  if (nb){
+    const seen = new Uint8Array(N), stack = new Int32Array(nb);
+    for (let p0 = 0; p0 < N; p0++){
+      if (!occ[p0] || ok[p0] || seen[p0]) continue;
+      const comp = []; let sp = 0; stack[sp++] = p0; seen[p0] = 1;
+      while (sp){
+        const p = stack[--sp]; comp.push(p);
+        const k = Math.floor(p/layer), r = p - k*layer, j = Math.floor(r/nx), i = r - j*nx;
+        for (let dk = -1; dk <= 1; dk++) for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++){
+          const kk = k + dk, jj = j + dj, ii = i + di; if (kk < 0 || jj < 0 || ii < 0 || kk >= nz || jj >= ny || ii >= nx) continue;
+          const q = (kk*ny + jj)*nx + ii; if (occ[q] && !ok[q] && !seen[q]){ seen[q] = 1; stack[sp++] = q; }
+        }
+      }
+      // 下の材料とのすき間が 1.2 mm 未満のものは、橋渡しやたれ下がりの範囲で印刷できるので、支えが必要とはみなさない
+      let gap = 0;
+      for (const p of comp){
+        const k = Math.floor(p/layer), r = p - k*layer, j = Math.floor(r/nx), i = r - j*nx; let kk = k - 1;
+        for (; kk >= 0; kk--){
+          const b = kk*layer + j*nx + i;
+          if (occ[b] || (i > 0 && occ[b - 1]) || (i < nx - 1 && occ[b + 1]) || (j > 0 && occ[b - nx]) || (j < ny - 1 && occ[b + nx])) break;
+        }
+        gap = Math.max(gap, (k - 1 - kk)*s);
+      }
+      if (comp.length*s*s*s >= PP.OVERHANG_VOL && gap >= PP.MIN_GAP){ vol += comp.length*s*s*s; cid++; for (const p of comp){ flagged.push(p); fcomp.push(cid); } }
+    }
+  }
+  return {vol, flagged, fcomp};
+}
+// 向きの候補：座標軸と、遠い原子 3 つがつくる面の向き（台に面で置ける向き）
+function ppDirs(C){
+  const dirs = [], add = d => { d = V.norm(d); if (!isFinite(d[0] + d[1] + d[2])) return; for (const e of dirs) if (V.dot(e, d) > 0.9995) return; dirs.push(d); };
+  for (const e of [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]]) add(e);
+  const n = C.length; if (n < 3) return dirs;
+  const cen = C.reduce(V.add, [0, 0, 0]).map(v => v/n), pick = [];
+  let best = 0; for (let i = 1; i < n; i++) if (V.dist(C[i], cen) > V.dist(C[best], cen)) best = i;
+  pick.push(best);
+  while (pick.length < Math.min(n, 14)){
+    let bi = -1, bd = -1; for (let i = 0; i < n; i++){ if (pick.includes(i)) continue; const d = Math.min(...pick.map(j => V.dist(C[i], C[j]))); if (d > bd){ bd = d; bi = i; } }
+    pick.push(bi);
+  }
+  for (let a = 0; a < pick.length; a++) for (let b = a + 1; b < pick.length; b++) for (let c = b + 1; c < pick.length; c++){
+    const nrm = V.cross(V.sub(C[pick[b]], C[pick[a]]), V.sub(C[pick[c]], C[pick[a]]));
+    add(nrm); add(V.mul(nrm, -1));
+  }
+  return dirs;
+}
+// 台に置く向きと、台で切る高さを決める。戻り値：{M（回す行列）, z0（台の高さ）, an（張り出し）, s（箱の大きさ）}
+function ppOrient(sh){
+  const n = sh.sph.length, C = sh.sph.map(q => q.c), Rr = sh.sph.map(q => q.r);
+  let ext = 0; for (const q of sh.sph) for (const p of sh.sph) ext = Math.max(ext, V.dist(q.c, p.c) + q.r + p.r);
+  const s = Math.max(0.8, ext/110), big = n > 150;
+  const prox = ppDirs(C).map(d => {
+    const up = V.mul(d, -1), z = C.map(c => V.dot(c, up)), zb = Math.min(...z.map((v, i) => v - Rr[i]));
+    let cnt = 0; z.forEach((v, i) => { if (v - Rr[i] <= zb + 0.4*Rr[i]) cnt += Rr[i]; });
+    return {d, sc:cnt - 0.001*(Math.max(...z.map((v, i) => v + Rr[i])) - zb)};
+  }).sort((p, q) => q.sc - p.sc).slice(0, big ? 6 : 12);
+  let best = null;
+  for (const {d} of prox){
+    const M = ppBasis(d), r = ppRotShapes(sh, M);
+    const zbot = Math.min(...r.sph.map(q => q.c[2] - q.r)), zlim = Math.min(...r.sph.map(q => q.c[2] - 0.55*q.r)), Rmin = Math.min(...Rr);
+    const lv = [zbot + 0.12*Rmin], deep = [];
+    for (const q of r.sph){ const v = q.c[2] - 0.8*q.r; if (v <= zlim && v > lv[0] + 0.2 && !deep.some(w => Math.abs(w - v) < 0.3)) deep.push(v); }
+    deep.sort((p, q) => q - p); lv.push(...deep.slice(0, big ? 2 : 3));
+    for (const z0 of lv){
+      const vx = ppVoxels(r.sph, r.rods, z0, s), an = ppOverhang(vx);
+      const h = vx.nz*s, key = an.vol*1000 + h;   // 張り出しが少ないほうを優先。同じなら低いほう
+      if (!best || key < best.key) best = {key, M, z0, an, s, vx};
+    }
+  }
+  return best;
+}
+
+// ---- 三角形の面を作る ----
+const PP_ICO = {};
+function ppIco(level){
+  if (PP_ICO[level]) return PP_ICO[level];
+  const t = (1 + Math.sqrt(5))/2;
+  const v = [[-1, t, 0], [1, t, 0], [-1, -t, 0], [1, -t, 0], [0, -1, t], [0, 1, t], [0, -1, -t], [0, 1, -t], [t, 0, -1], [t, 0, 1], [-t, 0, -1], [-t, 0, 1]].map(V.norm);
+  let f = [[0, 11, 5], [0, 5, 1], [0, 1, 7], [0, 7, 10], [0, 10, 11], [1, 5, 9], [5, 11, 4], [11, 10, 2], [10, 7, 6], [7, 1, 8], [3, 9, 4], [3, 4, 2], [3, 2, 6], [3, 6, 8], [3, 8, 9], [4, 9, 5], [2, 4, 11], [6, 2, 10], [8, 6, 7], [9, 8, 1]];
+  for (let L = 0; L < level; L++){
+    const mid = new Map(), nf = [];
+    const m = (a, b) => { const key = a < b ? a + ',' + b : b + ',' + a; if (!mid.has(key)){ v.push(V.norm(V.mul(V.add(v[a], v[b]), 0.5))); mid.set(key, v.length - 1); } return mid.get(key); };
+    for (const [a, b, c] of f){ const ab = m(a, b), bc = m(b, c), ca = m(c, a); nf.push([a, ab, ca], [b, bc, ab], [c, ca, bc], [ab, bc, ca]); }
+    f = nf;
+  }
+  return PP_ICO[level] = {v, f};
+}
+// 部品（元素ごと）に面を足す。pos：頂点の座標、idx：三角形
+function ppPart(parts, key){ if (!parts.has(key)) parts.set(key, {key, pos:[], idx:[]}); return parts.get(key); }
+function ppAddSphere(part, q, z0, planes, ico, off){
+  const base = part.pos.length/3;
+  for (const u of ico.v){
+    let p = [q.c[0] + u[0]*q.r, q.c[1] + u[1]*q.r, q.c[2] + u[2]*q.r];
+    for (const pl of planes){ const sd = V.dot(V.sub(p, q.c), pl.n); if (sd > pl.t) p = V.sub(p, V.mul(pl.n, sd - pl.t)); }   // 隣の球と重なるところは、真ん中の面で切る
+    part.pos.push(p[0] + off[0], p[1] + off[1], Math.max(p[2], z0) + off[2]);
+  }
+  for (const f of ico.f) part.idx.push(base + f[0], base + f[1], base + f[2]);
+}
+function ppAddCyl(part, a, b, r, z0, n, off, capA = true){
+  const u = V.norm(V.sub(b, a)), t = Math.abs(u[0]) < 0.9 ? [1, 0, 0] : [0, 1, 0], e1 = V.norm(V.sub(t, V.mul(u, V.dot(t, u)))), e2 = V.cross(u, e1), base = part.pos.length/3;
+  const put = p => part.pos.push(p[0] + off[0], p[1] + off[1], Math.max(p[2], z0) + off[2]);
+  for (const e of [a, b]) for (let i = 0; i < n; i++){ const th = 2*Math.PI*i/n, c = Math.cos(th)*r, s = Math.sin(th)*r; put([e[0] + e1[0]*c + e2[0]*s, e[1] + e1[1]*c + e2[1]*s, e[2] + e1[2]*c + e2[2]*s]); }
+  put(a); put(b);
+  for (let i = 0; i < n; i++){
+    const i1 = (i + 1)%n;
+    part.idx.push(base + i, base + i1, base + n + i1, base + i, base + n + i1, base + n + i);
+    part.idx.push(base + 2*n, base + i1, base + i, base + 2*n + 1, base + n + i, base + n + i1);
+  }
+}
+// 台からの支えの柱。flagged（張り出した箱）の下に、間隔 SUP_PITCH ごとに細い柱を立てる。柱の通り道に別の材料があるところは置かない
+function ppSupports(vx, flagged, fcomp, sph, rods){
+  const {nx, ny, nz, s, x0, y0, z0, occ} = vx, layer = nx*ny, G = Math.max(1, Math.round(PP.SUP_PITCH/s)), cells = new Map();
+  flagged.forEach((p, n) => {
+    const k = Math.floor(p/layer), r = p - k*layer, j = Math.floor(r/nx), i = r - j*nx, key = fcomp[n] + '|' + Math.floor(i/G) + ',' + Math.floor(j/G), c = cells.get(key);   // 張り出しごと・升目ごとに、いちばん低い箱の下へ柱
+    if (!c || k < c.k) cells.set(key, {i, j, k});
+  });
+  const pillars = []; let thin = 0;
+  const foot = [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]];
+  for (const {i, j, k} of cells.values()){
+    // 真下を調べる。台まで何もなければ台から、下に別の部分があれば、その上から柱を立てる
+    let floorK = -1;
+    for (let kk = k - 1; kk >= 0 && floorK < 0; kk--) for (const [di, dj] of foot){
+      const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= ny) continue;
+      if (occ[(kk*ny + jj)*nx + ii]){ floorK = kk; break; }
+    }
+    const x = x0 + (i + 0.5)*s, y = y0 + (j + 0.5)*s;
+    const zfl = z0 + (floorK + 1)*s - 0.5*s;   // 下の部分の上面（箱の高さ）。これより低い面は、下の部分のもの
+    let zlow = Infinity;   // この柱の真上にある形の、下の部分より上でいちばん低い面の高さ
+    const lowAt = (c, r) => { const d2 = (x - c[0])**2 + (y - c[1])**2; return d2 < r*r ? Math.sqrt(r*r - d2) : null; };
+    for (const q of sph){ const h = lowAt(q.c, q.r); if (h != null && q.c[2] - h >= zfl) zlow = Math.min(zlow, q.c[2] - h); }
+    const along = f => { for (const q of rods){ const L = V.dist(q.a, q.b), m = Math.max(2, Math.ceil(L/0.5)); for (let t = 0; t <= m; t++){ const c = V.add(q.a, V.mul(V.sub(q.b, q.a), t/m)), h = lowAt(c, q.r); if (h != null) f(c, h); } } };
+    along((c, h) => { if (c[2] - h >= zfl) zlow = Math.min(zlow, c[2] - h); });
+    if (!isFinite(zlow)) zlow = z0 + k*s;
+    const top = zlow - PP.SUP_GAP;
+    let base = z0;
+    if (floorK >= 0){   // 下の部分の上面の高さ（真下にある面のうち、top より下で最も高いもの）
+      base = -Infinity;
+      for (const q of sph){ const h = lowAt(q.c, q.r); if (h != null && q.c[2] + h < top - 0.8) base = Math.max(base, q.c[2] + h); }
+      along((c, h) => { if (c[2] + h < top - 0.8) base = Math.max(base, c[2] + h); });
+      if (!isFinite(base)) base = z0 + (floorK + 1)*s;
+    }
+    if (top - base < 1.2){ thin++; continue; }
+    pillars.push({x, y, base, top, onBed:floorK < 0});
+  }
+  return {pillars, thin};   // thin：下の部分とのすき間が 1.2 mm 未満で、柱を立てなかったところ（橋渡しで印刷できる）
+}
+
+// ---- 全体 ----
+// atoms：[{el,x,y,z}]（Å）、bonds：[{a,b,order}]。o：{mode:'ballstick'|'stick'|'spacefill', ball, k または fit（いちばん長い分子の長さ mm）, support:true|false}
+function printModel(atoms, bonds, o){
+  const out = {parts:[], notes:[], comps:[], size:[0, 0, 0], k:0, colors:0, needSupport:false, supportsPlaced:0};
+  if (!atoms.length) return out;
+  const n = atoms.length, adj = atoms.map(() => []);
+  for (const b of bonds){ adj[b.a].push(b.b); adj[b.b].push(b.a); }
+  const seen = new Uint8Array(n), groups = [];
+  for (let i = 0; i < n; i++){
+    if (seen[i]) continue;
+    const g = [], st = [i]; seen[i] = 1;
+    while (st.length){ const x = st.pop(); g.push(x); for (const y of adj[x]) if (!seen[y]){ seen[y] = 1; st.push(y); } }
+    groups.push(g.sort((p, q) => p - q));
+  }
+  const mode = o.mode || 'ballstick', ball = o.ball ?? 0.28;
+  let k = o.k;
+  if (!k){   // いちばん長い分子の、端から端までの長さを fit mm にする（球の大きさは k に比例するので、k は直接求まる）
+    let worst = 0;
+    for (const g of groups){
+      const f = i => mode === 'spacefill' ? ELEM[atoms[i].el].vdw : mode === 'stick' ? PP.ROD.stick : ELEM[atoms[i].el].vdw*ball;
+      for (const i of g) for (const j of g) worst = Math.max(worst, Math.hypot(atoms[i].x - atoms[j].x, atoms[i].y - atoms[j].y, atoms[i].z - atoms[j].z) + f(i) + f(j));
+    }
+    k = o.fit/(worst || 1);
+  }
+  out.k = k;
+  const nAtoms = n, level = nAtoms <= 120 ? 3 : nAtoms <= 500 ? 2 : 1, seg = nAtoms <= 120 ? 24 : nAtoms <= 500 ? 16 : 10, ico = ppIco(level);
+  const parts = new Map(), W = PP.BUILD[0], gap = 10;
+  let cx = 0, cy = 0, rowH = 0, clamped = false, supportParts = 0;
+  groups.forEach((g, gi) => {
+    const loc = new Map(g.map((v, i) => [v, i])), la = g.map(i => atoms[i]);
+    const lb = bonds.filter(b => loc.has(b.a) && loc.has(b.b)).map(b => ({a:loc.get(b.a), b:loc.get(b.b), order:b.order}));
+    const sh0 = ppShapes(la, lb, {mode, ball, k});
+    if (sh0.clamped) clamped = true;
+    const cen = sh0.sph.reduce((t, q) => V.add(t, q.c), [0, 0, 0]).map(v => v/sh0.sph.length);
+    const sh = {sph:sh0.sph.map(q => ({...q, c:V.sub(q.c, cen)})), rods:sh0.rods.map(q => ({...q, a:V.sub(q.a, cen), b:V.sub(q.b, cen)}))};
+    const ori = ppOrient(sh), r = ppRotShapes(sh, ori.M), z0 = ori.z0;
+    const label = `分子 ${gi + 1}（${formulaOf(la).text}）`, info = {label, atoms:g.length, needSupport:ori.an.vol > 0, overhangVol:Math.round(ori.an.vol), pillars:0};
+    if (info.needSupport) out.needSupport = true;
+    // 置き場所：この分子の外形（xy）の左下を、台の上の空いているところへ
+    let x0 = Infinity, y0 = Infinity, x1 = -Infinity, y1 = -Infinity, zt = -Infinity;
+    for (const q of r.sph){ x0 = Math.min(x0, q.c[0] - q.r); x1 = Math.max(x1, q.c[0] + q.r); y0 = Math.min(y0, q.c[1] - q.r); y1 = Math.max(y1, q.c[1] + q.r); zt = Math.max(zt, q.c[2] + q.r); }
+    for (const q of r.rods) for (const e of [q.a, q.b]){ x0 = Math.min(x0, e[0] - q.r); x1 = Math.max(x1, e[0] + q.r); y0 = Math.min(y0, e[1] - q.r); y1 = Math.max(y1, e[1] + q.r); }
+    let sup = null;
+    if (o.support && ori.an.flagged.length){ sup = ppSupports(ori.vx, ori.an.flagged, ori.an.fcomp, r.sph, r.rods); for (const p of sup.pillars){ x0 = Math.min(x0, p.x - 2.5); x1 = Math.max(x1, p.x + 2.5); y0 = Math.min(y0, p.y - 2.5); y1 = Math.max(y1, p.y + 2.5); } }
+    const w = x1 - x0, d = y1 - y0;
+    if (cx > 0 && cx + w > W - 5){ cx = 0; cy += rowH + gap; rowH = 0; }
+    const off = [cx - x0, cy - y0, -z0];
+    cx += w + gap; rowH = Math.max(rowH, d);
+    // 球ごとに、隣の球と重なる向きの「切る面」を用意する
+    r.sph.forEach((q, i) => {
+      const planes = [];
+      r.sph.forEach((p, j) => { if (i === j) return; const dd = V.dist(q.c, p.c); if (dd < q.r + p.r - 1e-6 && dd > 1e-6) planes.push({n:V.mul(V.sub(p.c, q.c), 1/dd), t:(dd*dd + q.r*q.r - p.r*p.r)/(2*dd)}); });
+      ppAddSphere(ppPart(parts, q.el), q, z0, planes, ico, off);
+    });
+    for (const q of r.rods) ppAddCyl(ppPart(parts, q.el), q.a, q.b, q.r, z0, seg, off);
+    if (sup){
+      info.pillars = sup.pillars.length; out.supportsPlaced += sup.pillars.length;
+      const sp = ppPart(parts, 'support');
+      for (const p of sup.pillars){
+        ppAddCyl(sp, [p.x, p.y, p.base], [p.x, p.y, p.top], PP.SUP_R, z0, 12, off);
+        if (p.onBed) ppAddCyl(sp, [p.x, p.y, z0], [p.x, p.y, z0 + 0.6], 2.5, z0, 16, off);   // 台に貼りつく足
+      }
+    }
+    if (o.debug) info.dbg = {r, z0, ori, sup};   // 検査用
+    out.comps.push(info);
+  });
+  // 仕上げ：部品の並びを決め、大きさを測る
+  const order = [...parts.keys()].sort((p, q) => (p === 'support') - (q === 'support') || (ELEM[p]?.Z || 0) - (ELEM[q]?.Z || 0));
+  let lo = [Infinity, Infinity, Infinity], hi = [-Infinity, -Infinity, -Infinity];
+  for (const key of order){
+    const p = parts.get(key), pos = Float32Array.from(p.pos);
+    for (let i = 0; i < pos.length; i += 3) for (let a = 0; a < 3; a++){ lo[a] = Math.min(lo[a], pos[i + a]); hi[a] = Math.max(hi[a], pos[i + a]); }
+    out.parts.push({key, name:key === 'support' ? '支え（サポート）' : `${PP_NAME[key] || key}（${key}）`, color:key === 'support' ? [0.62, 0.62, 0.62] : ELEM[key].color, pos, idx:Uint32Array.from(p.idx)});
+  }
+  out.size = hi.map((v, a) => v - lo[a]);
+  out.colors = out.parts.length;
+  // 知らせ
+  const over = out.size.map((v, a) => v > PP.BUILD[a] + 1e-6);
+  if (over.some(Boolean)) out.notes.push(`大きさが K2 Pro の造形サイズ（${PP.BUILD.join('×')} mm）を超えています。倍率を小さくしてください`);
+  if (clamped) out.notes.push('倍率が小さいため、棒の太さを最小（直径 2.5 mm）まで太くしました。形が実際より太って見えます');
+  if (out.colors > 4) out.notes.push(`色（部品）が ${out.colors} つあります。CFS 1 台は 4 色までなので、近い色を同じフィラメントにするか、CFS を増設してください`);
+  const need = out.comps.filter(c => c.needSupport);
+  if (need.length && !o.support) out.notes.push('支えが必要な分子があります。「支えあり」にするか、スライサーのサポート機能をお使いください');
+  return out;
+}
+
+// ---- ファイル：STL（バイナリ）・ZIP・3MF ----
+function ppStl(parts, title = 'bunshi'){
+  let nt = 0; for (const p of parts) nt += p.idx.length/3;
+  const buf = new ArrayBuffer(84 + 50*nt), dv = new DataView(buf), enc = new TextEncoder().encode('bunshi ' + title);
+  new Uint8Array(buf, 0, 80).set(enc.subarray(0, 80));
+  dv.setUint32(80, nt, true);
+  let o = 84;
+  for (const p of parts) for (let t = 0; t < p.idx.length; t += 3){
+    const a = [], b = [], c = [];
+    for (let m = 0; m < 3; m++){ a.push(p.pos[p.idx[t]*3 + m]); b.push(p.pos[p.idx[t + 1]*3 + m]); c.push(p.pos[p.idx[t + 2]*3 + m]); }
+    const nrm = V.norm(V.cross(V.sub(b, a), V.sub(c, a)));
+    for (const v of [nrm, a, b, c]) for (let m = 0; m < 3; m++){ dv.setFloat32(o, v[m], true); o += 4; }
+    dv.setUint16(o, 0, true); o += 2;
+  }
+  return new Uint8Array(buf);
+}
+const PP_CRC = (() => { const t = new Uint32Array(256); for (let n = 0; n < 256; n++){ let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xEDB88320 ^ (c >>> 1) : c >>> 1; t[n] = c >>> 0; } return t; })();
+function ppCrc(u8){ let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = PP_CRC[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+// 圧縮しない ZIP。files：[{name, data:Uint8Array}]
+function ppZip(files){
+  const enc = new TextEncoder(), chunks = [], central = []; let off = 0;
+  for (const f of files){
+    const nm = enc.encode(f.name), crc = ppCrc(f.data), h = new DataView(new ArrayBuffer(30));
+    h.setUint32(0, 0x04034b50, true); h.setUint16(4, 20, true); h.setUint16(6, 0x0800, true); h.setUint16(8, 0, true); h.setUint16(10, 0, true); h.setUint16(12, 0x21, true);
+    h.setUint32(14, crc, true); h.setUint32(18, f.data.length, true); h.setUint32(22, f.data.length, true); h.setUint16(26, nm.length, true); h.setUint16(28, 0, true);
+    chunks.push(new Uint8Array(h.buffer), nm, f.data);
+    const c = new DataView(new ArrayBuffer(46));
+    c.setUint32(0, 0x02014b50, true); c.setUint16(4, 20, true); c.setUint16(6, 20, true); c.setUint16(8, 0x0800, true); c.setUint16(10, 0, true); c.setUint16(12, 0, true); c.setUint16(14, 0x21, true);
+    c.setUint32(16, crc, true); c.setUint32(20, f.data.length, true); c.setUint32(24, f.data.length, true); c.setUint16(28, nm.length, true); c.setUint32(42, off, true);
+    central.push(new Uint8Array(c.buffer), nm);
+    off += 30 + nm.length + f.data.length;
+  }
+  let csz = 0; for (const c of central) csz += c.length;
+  const e = new DataView(new ArrayBuffer(22));
+  e.setUint32(0, 0x06054b50, true); e.setUint16(8, files.length, true); e.setUint16(10, files.length, true); e.setUint32(12, csz, true); e.setUint32(16, off, true);
+  const all = [...chunks, ...central, new Uint8Array(e.buffer)];
+  let len = 0; for (const a of all) len += a.length;
+  const out = new Uint8Array(len); let p = 0; for (const a of all){ out.set(a, p); p += a.length; }
+  return out;
+}
+const ppEsc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const ppHex = c => '#' + c.map(v => Math.round(v*255).toString(16).padStart(2, '0')).join('').toUpperCase() + 'FF';
+// 3MF：元素ごとに別の部品（色つき）。部品は 1 つの「分子」にまとめる（スライサーでは 1 つのモデルの部品になる）
+function pp3mf(parts, title = 'bunshi'){
+  const enc = new TextEncoder(), np = parts.length;
+  const mats = parts.map(p => `<base name="${ppEsc(p.name)}" displaycolor="${ppHex(p.color)}"/>`).join('');
+  const objs = parts.map((p, i) => {
+    let v = '', t = '';
+    for (let a = 0; a < p.pos.length; a += 3) v += `<vertex x="${p.pos[a].toFixed(3)}" y="${p.pos[a + 1].toFixed(3)}" z="${p.pos[a + 2].toFixed(3)}"/>`;
+    for (let a = 0; a < p.idx.length; a += 3) t += `<triangle v1="${p.idx[a]}" v2="${p.idx[a + 1]}" v3="${p.idx[a + 2]}"/>`;
+    return `<object id="${i + 2}" type="model" name="${ppEsc(p.name)}" pid="1" pindex="${i}"><mesh><vertices>${v}</vertices><triangles>${t}</triangles></mesh></object>`;
+  }).join('');
+  const asm = `<object id="${np + 2}" type="model" name="${ppEsc(title)}"><components>${parts.map((_, i) => `<component objectid="${i + 2}"/>`).join('')}</components></object>`;
+  const model = `<?xml version="1.0" encoding="UTF-8"?>\n<model unit="millimeter" xml:lang="ja-JP" xmlns="http://schemas.microsoft.com/3dmanufacturing/core/2015/02"><metadata name="Title">${ppEsc(title)}</metadata><metadata name="Application">分子模型エディタ</metadata><resources><basematerials id="1">${mats}</basematerials>${objs}${asm}</resources><build><item objectid="${np + 2}"/></build></model>`;
+  return ppZip([
+    {name:'[Content_Types].xml', data:enc.encode('<?xml version="1.0" encoding="UTF-8"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="model" ContentType="application/vnd.ms-package.3dmanufacturing-3dmodel+xml"/></Types>')},
+    {name:'_rels/.rels', data:enc.encode('<?xml version="1.0" encoding="UTF-8"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Target="/3D/3dmodel.model" Id="rel0" Type="http://schemas.microsoft.com/3dmanufacturing/2013/01/3dmodel"/></Relationships>')},
+    {name:'3D/3dmodel.model', data:enc.encode(model)}]);
+}
+
 // ===== 化学 ここまで =====
 
 const $ = id => document.getElementById(id);
@@ -3514,7 +3951,9 @@ function commit(){ abortOptimize(); hist.undo.push(JSON.stringify(doc)); if (his
 function undo(){ abortOptimize(); if (!hist.undo.length) return; hist.redo.push(JSON.stringify(doc)); doc = JSON.parse(hist.undo.pop()); picking = []; changed(); }
 function redo(){ abortOptimize(); if (!hist.redo.length) return; hist.undo.push(JSON.stringify(doc)); doc = JSON.parse(hist.redo.pop()); picking = []; changed(); }
 function syncUndo(){ $('btnUndo').disabled = !hist.undo.length; $('btnRedo').disabled = !hist.redo.length; }
+function printStale(){ if (!printJob) return; printJob = null; $('prBtns').hidden = true; $('prInfo').hidden = true; }
 function changed(){
+  printStale();
   if (sel) { for (const id of sel) if (!doc.atoms[id]) sel.delete(id); if (!sel.size) sel = null; }
   picking = picking.filter(id => doc.atoms[id]);
   analyze(); renderInfo(); renderSel(); syncUndo(); requestDraw(true); autosave();
@@ -4086,6 +4525,7 @@ function pivotOptions(ids){   // 不斉炭素が 2 つ以上あるときの「�
 }
 // 構造式の枠：選んだ分子があればその分子だけ、なければ表示している全部の分子を横に並べる
 let kzLast = '';
+let printJob = null;   // 3D プリンタ用に作ったデータ（形や設定が変わったら捨てる）
 function renderFormula(){
   const box = $('kzBox'); if (!box) return;
   const src = info.kzSrc, n0 = info.comps.length;
@@ -4917,6 +5357,58 @@ $('expCopy').onclick = async () => {
 };
 $('expMol').onclick = () => { const {atoms, bonds} = docArrays(); if (atoms.length) download(new Blob([toMolText(atoms, bonds, fileBase())], {type:'chemical/x-mdl-molfile'}), fileBase() + '.mol'); };
 $('expXyz').onclick = () => { const {atoms} = docArrays(); if (atoms.length) download(new Blob([toXYZText(atoms, fileBase())], {type:'chemical/x-xyz'}), fileBase() + '.xyz'); };
+
+// ===== 3D プリンタ用の書き出し =====
+// 形を作る処理は化学コアの printModel（球棒・棒・空間充填の形を mm の三角形にし、台に置く向きと支えを決める）
+function printIds(){
+  const all = Object.keys(doc.atoms).map(Number).filter(id => atomVisible(doc.atoms[id]));
+  if (!sel || !sel.size) return all;
+  const keep = new Set(); for (const id of sel) for (const j of compOf(id)) keep.add(j);   // 選んだ原子を含む分子ぜんぶ
+  return all.filter(id => keep.has(id));
+}
+function prName(){ return fileBase().replace(/[\\/:*?"<>|]/g, '_') + '_' + Math.round(Math.max(...printJob.res.size)) + 'mm'; }
+function prSave(kind){
+  if (!printJob) return;
+  const parts = printJob.res.parts, name = prName();
+  if (kind === '3mf') download(new Blob([pp3mf(parts, name)], {type:'model/3mf'}), name + '.3mf');
+  else if (kind === 'stl') download(new Blob([ppStl(parts, name)], {type:'model/stl'}), name + '.stl');
+  else download(new Blob([ppZip(parts.map((p, i) => ({name:`${i + 1}_${p.key}.stl`, data:ppStl([p], name)})))], {type:'application/zip'}), name + '_色ごと.zip');
+}
+function prRender(res, support, nSel){
+  const f = v => Math.round(v);
+  const L = [`<b>大きさ</b>：${res.size.map(f).join(' × ')} mm（1 Å = ${res.k.toFixed(1)} mm）${nSel ? '　選んだ分子だけ' : ''}`,
+    `<b>色（部品）</b>：${res.parts.map(p => p.name.replace(/（.*）/, '')).join('、')}（${res.parts.length} 色）`];
+  for (const c of res.comps.slice(0, 8)){
+    if (!c.needSupport) L.push(`<span class="prok">${c.label}：支えは要りません</span>`);
+    else if (support) L.push(`<span class="prok">${c.label}：支えの柱を ${c.pillars} 本付けました</span>`);
+    else L.push(`<span class="prwarn">${c.label}：<b>支えが必要です</b></span>`);
+  }
+  if (res.comps.length > 8) L.push(`ほか ${res.comps.length - 8} 個の分子`);
+  for (const n of res.notes) L.push(`<span class="prwarn">⚠ ${esc(n)}</span>`);
+  if (support && res.supportsPlaced) L.push('支えの柱は、別の部品「支え（サポート）」です。スライサーで、ほかと違う（安い）フィラメントを割り当てると、はがしやすくなります。');
+  $('prInfo').innerHTML = L.join('<br>'); $('prInfo').hidden = false;
+}
+$('prSize').onchange = $('prSup').onchange = printStale;
+$('prMake').onclick = () => {
+  const ids = printIds();
+  if (!ids.length){ toast('3D プリンタ用にできる分子がありません'); return; }
+  const {atoms, bonds} = docArrays(ids), [kind, val] = $('prSize').value.split(':'), support = $('prSup').value === '1';
+  const o = {mode:state.mode, ball:state.ball, support};
+  if (kind === 'fit') o.fit = +val; else o.k = +val;
+  $('prMake').disabled = true; $('prInfo').hidden = false; $('prInfo').textContent = 'つくっています…（大きな分子は数秒かかります）'; $('prBtns').hidden = true;
+  setTimeout(() => {
+    try {
+      const res = printModel(atoms, bonds, o);
+      printJob = {res};
+      prRender(res, support, !!(sel && sel.size));
+      $('prBtns').hidden = false;
+    } catch (e) { console.error(e); $('prInfo').textContent = ''; $('prInfo').hidden = true; toast('3D プリンタ用のデータを作れませんでした：' + e.message); }
+    $('prMake').disabled = false;
+  }, 30);
+};
+$('pr3mf').onclick = () => prSave('3mf');
+$('prStl').onclick = () => prSave('stl');
+$('prZip').onclick = () => prSave('zip');
 
 // ===== モーダル・トースト・ツールチップ =====
 function openModal(){ $('helpModal').hidden = false; }
