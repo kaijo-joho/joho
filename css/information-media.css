@@ -1,0 +1,45 @@
+@charset "UTF-8";
+/* Introductory IS lessons. Models and navigation use the existing shared code. */
+.is-media .im-pair { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 22px; align-items: start; margin-block: 16px; }
+.is-media .im-pair > * { min-width: 0; }
+.is-media .is-scene { max-width: 480px; }
+.is-media .im-visual { width: min(100%,480px); margin-inline: auto; }
+.is-media .im-visual svg { display: block; width: 100%; height: auto; color: var(--is-text); }
+.is-media svg text { font-family: inherit; }
+.is-media .im-stack { display: grid; gap: 12px; }
+.is-media .im-summary { padding: 12px 16px; border-left: 4px solid var(--is-accent); background: var(--is-soft); }
+.is-media .im-summary > :last-child { margin-bottom: 0; }
+.is-media .im-definition { padding: 10px 14px; border-left: 3px solid var(--is-border); }
+.is-media .im-definition h3 { margin-bottom: .25em; }
+.is-media .im-definition p { margin: .25em 0; }
+.is-media .im-era h3 { text-align: center; }
+.is-media .im-era .is-scene { max-width: 400px; margin-bottom: 8px; }
+.is-media .im-era .im-visual { max-width: 430px; }
+.is-media .im-era-note { border-top: 1px solid var(--is-border); padding-top: .6em; }
+.is-media .im-weather-card { padding: 16px; border: 2px solid var(--is-border); border-radius: 12px; }
+.is-media .im-weather-card p { padding: .35em .5em; }
+.is-media .im-weather-card h3 { font-size: 1.25em; }
+.is-media .im-large-text { font-size: 1.2em; font-weight: 700; }
+.is-media [data-is-model]:not([data-is-ready]) :is(.is-tabs,[data-is-reset]) { display: none; }
+.is-media .im-state-heading { font-size: .88em; color: var(--is-muted); }
+@media (max-width: 760px) {
+  .is-media .im-pair { grid-template-columns: minmax(0,1fr); gap: 14px; }
+}
+@media print {
+  .is-media { --is-panel:#fff; --is-soft:#f3f5f7; --is-text:#203040; --is-muted:#53697b; --is-accent:#225386; --is-border:#bbcede; --is-change:#8c480b; background:#fff !important; }
+  .is-media .skip-link { display: none !important; }
+  .is-media footer { display: none !important; }
+  .is-media :focus-visible { outline: none !important; }
+  .is-media .lesson-slide,.is-media section article { background:#fff !important; box-shadow:none; backdrop-filter:none; -webkit-backdrop-filter:none; }
+  .is-media [data-lesson-slide] :is(h1,h2) { color:var(--is-accent) !important; }
+  .is-media .is-model { break-inside:auto; }
+  .is-media :is(.im-pair,.im-stack,.is-review) { display:block; }
+  .is-media :is(.im-pair,.im-stack,.is-review) > * + * { margin-top:12px; }
+  .is-media .im-visual { max-width:340px; }
+  .is-media [data-is-model="is12-purpose"] .im-visual { max-width:280px; }
+  .is-media .is-scene { max-width:340px; }
+  .is-media .im-era .is-scene { max-width:340px; }
+  .is-media :is(.im-visual,.is-terms details,.im-definition,.im-weather-card) { break-inside:avoid; }
+  .is-media :is(h2,h3,summary) { break-after:avoid; }
+  .is-media .im-era { margin-bottom:16px; }
+}
