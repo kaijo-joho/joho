@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>情報を脅かす手口 | 情報社会</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
+  <link rel="stylesheet" href="./css/information-security.css" integrity="sha384-2Yfyj9cjBPwCFJqKNO6/eDZtQhR2FF2EWh1BahExkGRPmKFhAd/D57Nt89vrxhlk">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
+  <script defer src="./js/information-security.js" integrity="sha384-iFVaVYS3IJAYVl5i49m/V6MlxPfQWmRk2jBkEpi2hOwOcxn0VZo50nmy/DGMu+gd"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body class="is-lesson is-security" data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="情報の流れと被害">
+    <article>
+      <h2 id="headline_1">(1) 情報の流れと被害</h2>
+      <p class="is-lead">情報を送る途中で、<strong>読まれる・変えられる・届かなくなる</strong>。同じ情報の流れでも、何が起きたかによって被害が変わります。</p>
+      <p>ここでは、AからBへ架空の文化祭進行表「開始 10:00」を送ります。AとBには、この情報を扱う許可があります。</p>
+      <div class="is-model" data-is-model="is42-transmission" data-is-default="read">
+        <div class="is-prompt"><strong>予想 → 選択 → 観察</strong><p>送信した内容と、受信できた内容を比べます。第三者が何をすると、どのような被害につながるでしょうか。</p></div>
+        <div class="is-tabs" role="group" aria-label="情報の流れで起きることを選ぶ">
+          <button type="button" data-is-select="read" aria-pressed="false">途中で読まれる</button>
+          <button type="button" data-is-select="change" aria-pressed="false">内容が変わる</button>
+          <button type="button" data-is-select="stop" aria-pressed="false">届かない</button>
+        </div>
+        <div class="sec-grid sec-grid--three">
+          <figure class="is-card sec-visual" data-is-highlight="read">
+            <h3>盗聴：途中で読まれる</h3>
+            <svg viewBox="0 0 360 220" role="img" aria-labelledby="is42-read-title is42-read-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is42-read-title">通信途中の情報が第三者へ分岐する</title>
+              <desc id="is42-read-desc">AからBへ同じ内容が届く一方、通信経路から第三者へも情報が流れる。送受信内容が同じでも情報は漏れる。</desc>
+              <rect x="10" y="24" width="92" height="64" rx="10" fill="var(--is-panel)"/>
+              <rect x="258" y="24" width="92" height="64" rx="10" fill="var(--is-panel)"/>
+              <path d="M103 56 H256 M243 45 L256 56 L243 67"/>
+              <g stroke="var(--is-change)"><path d="M180 56 V148 M169 136 L180 149 L191 136"/><rect x="115" y="152" width="130" height="52" rx="8" fill="var(--is-soft)"/></g>
+              <g fill="var(--is-text)" stroke="none" font-size="26" text-anchor="middle"><text x="56" y="66">A</text><text x="304" y="66">B</text><text x="180" y="187">第三者</text></g>
+            </svg>
+            <figcaption>送信：10:00 → 受信：10:00。通信の途中で、許可のない第三者にも内容が読まれます。</figcaption>
+          </figure>
+          <figure class="is-card sec-visual" data-is-highlight="change">
+            <h3>改ざん：内容が変わる</h3>
+            <svg viewBox="0 0 360 220" role="img" aria-labelledby="is42-change-title is42-change-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is42-change-title">通信途中で内容が変更される</title>
+              <desc id="is42-change-desc">Aから送った情報へ第三者が変更を加え、Bは異なる内容を受信する。</desc>
+              <rect x="10" y="24" width="92" height="64" rx="10" fill="var(--is-panel)"/>
+              <rect x="258" y="24" width="92" height="64" rx="10" fill="var(--is-panel)"/>
+              <path d="M103 56 H157 M144 45 L157 56 L144 67 M203 56 H256 M243 45 L256 56 L243 67"/>
+              <g stroke="var(--is-change)"><path d="M159 37 L201 76 M201 37 L159 76 M180 151 V95 M169 107 L180 94 L191 107"/><rect x="115" y="152" width="130" height="52" rx="8" fill="var(--is-soft)"/></g>
+              <g fill="var(--is-text)" stroke="none" font-size="26" text-anchor="middle"><text x="56" y="66">A</text><text x="304" y="66">B</text><text x="180" y="187">第三者</text></g>
+            </svg>
+            <figcaption>送信：10:00 → 受信：11:00。開始時刻が不正に書き換えられ、誤った情報が届きます。</figcaption>
+          </figure>
+          <figure class="is-card sec-visual" data-is-highlight="stop">
+            <h3>妨害：届かない</h3>
+            <svg viewBox="0 0 360 220" role="img" aria-labelledby="is42-stop-title is42-stop-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is42-stop-title">通信が妨げられ情報が届かない</title>
+              <desc id="is42-stop-desc">Aから出た情報の経路が第三者によって途中で止められ、Bへ届かない。</desc>
+              <rect x="10" y="24" width="92" height="64" rx="10" fill="var(--is-panel)"/>
+              <rect x="258" y="24" width="92" height="64" rx="10" fill="var(--is-panel)" stroke-dasharray="7 6"/>
+              <path d="M103 56 H173 M160 45 L173 56 L160 67"/>
+              <g stroke="var(--is-change)"><path d="M187 26 V88 M180 151 V111 M169 123 L180 110 L191 123"/><rect x="115" y="152" width="130" height="52" rx="8" fill="var(--is-soft)"/></g>
+              <g fill="var(--is-text)" stroke="none" font-size="26" text-anchor="middle"><text x="56" y="66">A</text><text x="304" y="66">B</text><text x="180" y="187">第三者</text></g>
+            </svg>
+            <figcaption>送信：10:00 → 受信：できない。必要な時刻に進行表を確かめられません。</figcaption>
+          </figure>
+        </div>
+        <p class="is-observe" data-is-panel="read"><strong>注目：</strong>送受信の内容が同じでも、第三者へ情報が漏れる被害が起きています。</p>
+        <p class="is-observe" data-is-panel="change"><strong>注目：</strong>情報が届いても、内容が正しいとは限りません。受け手の判断や行動にも影響します。</p>
+        <p class="is-observe" data-is-panel="stop"><strong>注目：</strong>内容が漏れたり変わったりしなくても、必要なときに利用できない被害が起きます。</p>
+        <div class="is-tabs" role="group" aria-label="情報の流れの操作を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <p class="is-note">三つを分けて示した模式図です。実際には、複数の被害が同時に起こることがあります。届かない原因には、故障や操作ミスなどもあります。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="不正アクセスの経路">
+    <article>
+      <h2 id="headline_2">(2) 不正アクセスの経路</h2>
+      <p class="is-lead"><strong>不正アクセス</strong>は、許可なくコンピュータやネットワークへアクセスする行為です。<strong>認証情報の悪用</strong>や、<strong>ソフトウェアの弱点の悪用</strong>などの経路があります。</p>
+      <div class="is-model" data-is-model="is42-entry" data-is-default="credential">
+        <div class="is-tabs" role="group" aria-label="不正アクセスの経路を選ぶ">
+          <button type="button" data-is-select="credential" aria-pressed="false">認証情報の悪用</button>
+          <button type="button" data-is-select="weakness" aria-pressed="false">弱点の悪用</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 480 340" role="img" aria-labelledby="is42-entry-title is42-entry-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is42-entry-title">二つの経路から同じシステムへ至る</title>
+              <desc id="is42-entry-desc">上は他人の認証情報を悪用して認証の入口を通る経路、下はソフトウェアの弱点を悪用する経路。どちらも無断の閲覧や変更などにつながり得る。</desc>
+              <rect x="324" y="40" width="144" height="265" rx="14" fill="var(--is-panel)"/>
+              <g data-is-highlight="credential"><rect x="12" y="34" width="196" height="76" rx="10" fill="var(--is-soft)"/><path d="M210 73 H323 M310 61 L323 73 L310 85"/><circle cx="265" cy="73" r="22" fill="var(--is-panel)"/><path d="M257 74 L264 81 L276 66"/></g>
+              <g data-is-highlight="weakness"><rect x="12" y="228" width="196" height="76" rx="10" fill="var(--is-soft)"/><path d="M210 265 H323 M310 253 L323 265 L310 277"/><path d="M251 248 L275 282 M276 248 L252 282"/></g>
+              <g fill="var(--is-text)" stroke="none" font-size="25" text-anchor="middle"><text x="110" y="66">他人の</text><text x="110" y="96">認証情報</text><text x="110" y="260">ソフトウェア</text><text x="110" y="290">の弱点</text><text x="396" y="158">システム</text><text x="396" y="194">内の情報</text></g>
+            </svg>
+            <figcaption>入口は異なっても、無断の閲覧・変更・削除などの被害につながります。</figcaption>
+          </figure>
+          <div>
+            <div class="is-card" data-is-highlight="credential"><h3>認証情報を悪用する経路</h3><p>盗み取られた認証情報や、別のサービスから流出して使い回されていたID・パスワードなどを悪用し、本人になりすまして利用します。</p></div>
+            <div class="is-card" data-is-highlight="weakness"><h3>弱点を悪用する経路</h3><p>ソフトウェアの不具合などを悪用し、本来は許されない処理をさせます。パスワードを知られなくても侵入される場合があります。</p></div>
+          </div>
+        </div>
+        <p class="is-observe" data-is-panel="credential"><strong>経路を説明する：</strong>認証情報が第三者へ渡ると、どのように本人の利用と区別しにくくなるでしょうか。</p>
+        <p class="is-observe" data-is-panel="weakness"><strong>経路を説明する：</strong>パスワードの管理だけでは、この経路への対策が十分にならないのはなぜでしょうか。</p>
+        <div class="is-tabs" role="group" aria-label="侵入経路の操作を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <p class="sec-emphasis"><strong>ログインできることと、利用の許可があることは別です。</strong>他人のアカウントやシステムを、許可なく利用してはいけません。</p>
+      <p class="is-source">認証情報の悪用と対策：IPA「<a href="https://www.ipa.go.jp/security/anshin/measures/account_security.html" target="_blank" rel="noopener noreferrer">不正ログイン対策特集ページ</a>」。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="人をだます・隙を突く">
+    <article>
+      <h2 id="headline_3">(3) 人をだます・隙を突く</h2>
+      <p class="is-lead"><strong>ソーシャルエンジニアリング</strong>は、人の心理や行動の隙を利用して情報を得るなどの手口です。相手をだますほか、入力をのぞき見するような方法も含みます。</p>
+      <div class="is-model" data-is-model="is42-deception" data-is-default="urgency">
+        <p class="is-prompt"><strong>案内の要求を読み取る：</strong>三つの観点を順に選び、受け手に何をさせようとしているか説明しましょう。</p>
+        <div class="is-tabs" role="group" aria-label="案内で確かめる観点を選ぶ">
+          <button type="button" data-is-select="urgency" aria-pressed="false">1 急がせる要求</button>
+          <button type="button" data-is-select="information" aria-pressed="false">2 求める情報</button>
+          <button type="button" data-is-select="contact" aria-pressed="false">3 確認先</button>
+        </div>
+        <div class="is-card">
+          <h3>観察用の架空の案内</h3>
+          <p data-is-highlight="urgency">利用を続けるには、すぐに確認が必要です。</p>
+          <p data-is-highlight="information">案内されたページで、IDとパスワードを入力してください。</p>
+          <p data-is-highlight="contact">問い合わせは、この案内のリンク先で受け付けます。</p>
+        </div>
+        <p class="is-observe" data-is-panel="urgency"><strong>立ち止まる：</strong>急いで判断させようとしています。急がせる表現だけで真偽は決まりませんが、落ち着いて要求を確かめます。</p>
+        <p class="is-observe" data-is-panel="information"><strong>求められたものを見る：</strong>ID・パスワードなどを渡すと、アカウントの悪用につながります。案内の相手と入力先を確かめる必要があります。</p>
+        <p class="is-observe" data-is-panel="contact"><strong>別の経路で確かめる：</strong>案内の真偽を、その案内自身のリンク先だけで確かめないようにします。普段利用する公式アプリや、確認済みの窓口を使います。</p>
+        <div class="is-tabs" role="group" aria-label="案内の観察を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <div class="sec-grid">
+        <div class="is-card"><h3>フィッシング</h3><p>信頼できる組織などを装って偽のページへ誘導し、<strong>本人に認証情報や支払い情報などを入力させて</strong>盗み取る手口です。</p><p class="sec-caption"><strong>偽の要求 → だまされた本人が入力 → 偽の送信先へ情報が渡る</strong></p></div>
+        <div class="is-card"><h3>盗聴との違い</h3><p>盗聴は、<strong>通信の途中で内容を取得する</strong>ことです。「情報を盗まれた」という結果が同じでも、情報を得る手段が違います。</p></div>
+      </div>
+      <p class="is-source">偽の案内への対応：IPA「<a href="https://www.ipa.go.jp/security/anshin/attention/2021/mgdayori20211222.html" target="_blank" rel="noopener noreferrer">事業者をかたる偽SMSへの注意</a>」。案内文は本教材独自のものです。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="脆弱性と更新">
+    <article>
+      <h2 id="headline_4">(4) 脆弱性と更新</h2>
+      <p class="is-lead"><strong>脆弱性</strong>は、ソフトウェアの不具合などによるセキュリティ上の弱点です。<strong>セキュリティホール</strong>とも呼ばれ、修正プログラムを適用する更新が対策になります。</p>
+      <div class="is-model" data-is-model="is42-update" data-is-default="before">
+        <p>図は、<strong>ある一つの脆弱性に対応する修正プログラムが提供されている</strong>場合の比較です。</p>
+        <div class="is-tabs" role="group" aria-label="修正プログラムの適用前後を選ぶ">
+          <button type="button" data-is-select="before" aria-pressed="false">適用前</button>
+          <button type="button" data-is-select="after" aria-pressed="false">適用後</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 440 330" role="img" aria-labelledby="is42-update-title is42-update-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is42-update-title">修正する前と後の同じ弱点</title>
+              <desc id="is42-update-desc">上の適用前は境界に隙間があり経路が内側へ通る。下の適用後は同じ場所を修正し、その弱点を悪用する経路が止まる。ほかの脅威が消えることは示さない。</desc>
+              <g data-is-highlight="before"><rect x="239" y="34" width="182" height="105" rx="10" fill="var(--is-soft)"/><path d="M218 20 V63 M218 103 V148 M44 84 H323 M310 72 L323 84 L310 96"/><path d="M205 63 H232 M205 103 H232"/></g>
+              <g data-is-highlight="after"><rect x="239" y="200" width="182" height="105" rx="10" fill="var(--is-soft)"/><path d="M218 186 V314 M44 249 H197 M184 237 L197 249 L184 261"/><rect x="205" y="224" width="26" height="52" rx="4" fill="var(--is-panel)"/></g>
+              <g fill="var(--is-text)" stroke="none" font-size="26"><text x="22" y="42">適用前</text><text x="22" y="207">適用後</text><text x="259" y="120">ソフト内部</text><text x="259" y="286">ソフト内部</text></g>
+            </svg>
+            <figcaption>隙間とふさぐ板は、脆弱性と修正の関係を表す記号です。</figcaption>
+          </figure>
+          <div>
+            <div class="is-card" data-is-highlight="before"><h3>修正の適用前</h3><p>この脆弱性が残っており、悪用される可能性があります。提供された修正は、適用して初めて働きます。</p></div>
+            <div class="is-card" data-is-highlight="after"><h3>修正の適用後</h3><p>この脆弱性が修正され、同じ弱点を悪用する攻撃への対策になります。</p></div>
+          </div>
+        </div>
+        <p class="is-observe" data-is-panel="before"><strong>観察：</strong>利用者が注意していても、ソフトウェアの弱点が残っている場合があります。</p>
+        <p class="is-observe" data-is-panel="after"><strong>観察：</strong>修正した範囲を確かめましょう。更新だけで、だましや認証情報の悪用など、すべての脅威を防げるわけではありません。</p>
+        <div class="is-tabs" role="group" aria-label="修正前後の比較を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <p class="sec-emphasis">OSやアプリの更新を継続し、サポート期間も確認します。学校などが管理する端末では、管理者の案内に従って更新します。</p>
+      <p class="is-source">修正プログラムの適用：IPA「<a href="https://www.ipa.go.jp/security/anshin/measures/everyday.html" target="_blank" rel="noopener noreferrer">日常における情報セキュリティ対策</a>」。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="マルウェアを二つの観点で見る">
+    <article>
+      <h2 id="headline_5">(5) マルウェアを二つの観点で見る</h2>
+      <p class="is-lead"><strong>マルウェア</strong>は、悪意のある動作をするソフトウェアの総称です。<strong>広がり方・見せ方</strong>と<strong>目的・動作</strong>など、異なる観点から呼び分けます。</p>
+      <p class="sec-emphasis">六つの名前は、互いに重ならない分類ではありません。<strong>一つのマルウェアが、複数の特徴を持つことがあります。</strong></p>
+      <div class="is-model" data-is-model="is42-malware" data-is-default="spread">
+        <div class="is-tabs" role="group" aria-label="マルウェアを見る観点を選ぶ">
+          <button type="button" data-is-select="spread" aria-pressed="false">広がり方・見せ方</button>
+          <button type="button" data-is-select="action" aria-pressed="false">目的・動作</button>
+        </div>
+        <div class="is-table-wrap" tabindex="0" role="region" aria-label="マルウェアの特徴の比較表。狭い画面では横にスクロールできます">
+          <table>
+            <caption>名前と、着目している特徴</caption>
+            <thead><tr><th scope="col">呼び方</th><th scope="col" data-is-highlight="spread">広がり方・見せ方</th><th scope="col" data-is-highlight="action">目的・動作</th></tr></thead>
+            <tbody>
+              <tr><th scope="row">ウイルス</th><td data-is-highlight="spread">他のプログラムなどに入り込み、それを介して増える。</td><td>具体的な動作はさまざま。</td></tr>
+              <tr><th scope="row">ワーム</th><td data-is-highlight="spread">他のプログラムを宿主とせず、単独で動作し、自己増殖する。</td><td>具体的な動作はさまざま。</td></tr>
+              <tr><th scope="row">トロイの木馬</th><td data-is-highlight="spread">役に立つものや無害なものに見せかけ、利用者に実行させる。</td><td>見かけとは別に、不正な処理をする。</td></tr>
+              <tr><th scope="row">スパイウェア</th><td>入り込む方法はさまざま。</td><td data-is-highlight="action">利用者に気づかれないよう、情報を収集・送信する。</td></tr>
+              <tr><th scope="row">ランサムウェア</th><td>入り込む方法はさまざま。</td><td data-is-highlight="action">データを暗号化するなどして利用を妨げ、金銭を要求する。</td></tr>
+              <tr><th scope="row">ボット</th><td>入り込む方法はさまざま。</td><td data-is-highlight="action">外部からの指令で動作し、迷惑メール送信や攻撃などに端末を使う。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="is-observe" data-is-panel="spread"><strong>着目する点：</strong>どのように入り込み、広がり、利用者に見せるかを比べます。この呼び方だけで、被害の内容が一つに決まるわけではありません。</p>
+        <p class="is-observe" data-is-panel="action"><strong>着目する点：</strong>入り込んだ後、何をするかを比べます。たとえば、無害なアプリに見せかけながら、情報を盗むものもあります。</p>
+        <div class="is-tabs" role="group" aria-label="マルウェアの比較を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <details class="is-card is-supplement" open><summary>キーロガーという機能</summary><p><strong>キーロガー</strong>は、キーボードの入力を記録するものです。悪用されると認証情報などが盗まれる原因になります。入力記録の機能そのものは、目的や許可された利用の文脈も含めて考え、名前だけで悪意を断定しません。</p></details>
+      <p class="is-note">この表の「ボット」はマルウェアとしての呼び方です。一般に、自動処理をする正当なプログラムもボットと呼ばれます。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="サービスを止める攻撃">
+    <article>
+      <h2 id="headline_6">(6) サービスを止める攻撃</h2>
+      <p class="is-lead"><strong>DoS攻撃</strong>は、サービスの正常な利用を妨げる攻撃です。多数の端末などに分散して攻撃するものを<strong>DDoS攻撃</strong>といいます。</p>
+      <div class="is-model" data-is-model="is42-service" data-is-default="normal">
+        <p>図では、大量の要求で処理能力を圧迫する例を比べます。丸は要求、右の箱はサービスを提供するシステムです。</p>
+        <div class="is-tabs" role="group" aria-label="要求とサービスの状態を選ぶ">
+          <button type="button" data-is-select="normal" aria-pressed="false">通常の利用</button>
+          <button type="button" data-is-select="dos" aria-pressed="false">DoSの例</button>
+          <button type="button" data-is-select="ddos" aria-pressed="false">DDoSの例</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 480 415" role="img" aria-labelledby="is42-dos-title is42-dos-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is42-dos-title">通常利用とDoS・DDoSの要求の比較</title>
+              <desc id="is42-dos-desc">上は少数の要求を処理する通常利用。中央は一つの攻撃元から大量の要求がたまるDoSの例。下は複数の攻撃元から要求が集まるDDoSの例。要求数や台数は実際の境界値ではない。</desc>
+              <g data-is-highlight="normal"><rect x="16" y="36" width="72" height="54" rx="7" fill="var(--is-panel)"/><path d="M90 63 H350 M337 51 L350 63 L337 75"/><circle cx="180" cy="63" r="15" fill="var(--is-panel)"/><circle cx="274" cy="63" r="15" fill="var(--is-panel)"/><rect x="353" y="24" width="110" height="88" rx="9" fill="var(--is-soft)"/></g>
+              <g data-is-highlight="dos"><rect x="16" y="177" width="72" height="54" rx="7" fill="var(--is-panel)"/><path d="M90 204 H350 M337 192 L350 204 L337 216"/><circle cx="143" cy="204" r="15" fill="var(--is-soft)"/><circle cx="187" cy="204" r="15" fill="var(--is-soft)"/><circle cx="231" cy="204" r="15" fill="var(--is-soft)"/><circle cx="275" cy="204" r="15" fill="var(--is-soft)"/><circle cx="319" cy="204" r="15" fill="var(--is-soft)"/><rect x="353" y="165" width="110" height="88" rx="9" fill="var(--is-soft)"/><path d="M380 230 H435"/></g>
+              <g data-is-highlight="ddos"><rect x="16" y="298" width="62" height="32" rx="6" fill="var(--is-panel)"/><rect x="16" y="341" width="62" height="32" rx="6" fill="var(--is-panel)"/><rect x="16" y="384" width="62" height="25" rx="6" fill="var(--is-panel)"/><path d="M80 313 L118 355 M80 355 H350 M80 396 L118 355 M337 343 L350 355 L337 367"/><circle cx="143" cy="355" r="15" fill="var(--is-soft)"/><circle cx="187" cy="355" r="15" fill="var(--is-soft)"/><circle cx="231" cy="355" r="15" fill="var(--is-soft)"/><circle cx="275" cy="355" r="15" fill="var(--is-soft)"/><circle cx="319" cy="355" r="15" fill="var(--is-soft)"/><rect x="353" y="315" width="110" height="88" rx="9" fill="var(--is-soft)"/><path d="M380 380 H435"/></g>
+              <g fill="var(--is-text)" stroke="none" font-size="25" text-anchor="middle"><text x="180" y="28">通常利用</text><text x="180" y="167">DoSの例</text><text x="180" y="306">DDoSの例</text><text x="408" y="76">処理</text><text x="408" y="210">圧迫</text><text x="408" y="361">圧迫</text></g>
+            </svg>
+            <figcaption>要求の数や端末の台数は模式的な表現です。攻撃になる境界値を表していません。</figcaption>
+          </figure>
+          <div>
+            <div class="is-card" data-is-highlight="normal"><h3>通常の利用</h3><p>利用者がサービスを使うために要求を送ります。利用が集中すると、攻撃がなくても混雑することがあります。</p></div>
+            <div class="is-card" data-is-highlight="dos"><h3>DoSの例</h3><p>攻撃者が故意に大量の要求を送り、処理や通信を圧迫して、正当な利用者の利用を妨げます。</p></div>
+            <div class="is-card" data-is-highlight="ddos"><h3>DDoSの例</h3><p>多数の端末などから分散して攻撃します。マルウェアに感染し、外部から操られる端末が使われることもあります。</p></div>
+          </div>
+        </div>
+        <p class="is-observe" data-is-panel="normal"><strong>観察：</strong>つながりにくいという現象だけでは、攻撃なのか、通常の混雑や故障なのかは判断できません。</p>
+        <p class="is-observe" data-is-panel="dos"><strong>観察：</strong>大量の要求そのものに加え、正常な利用を妨げようとする攻撃である点に着目します。</p>
+        <p class="is-observe" data-is-panel="ddos"><strong>観察：</strong>複数の攻撃元から要求が集中します。DDoSはDoS攻撃の一種です。</p>
+        <div class="is-tabs" role="group" aria-label="要求の比較を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <p class="is-note">DoSには大量の要求を送る方法以外もあります。この図は表示を切り替える教材で、外部のサービスへ要求や負荷を送る機能はありません。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="案内に従う前に確認する">
+    <article>
+      <h2 id="headline_7">(7) 案内に従う前に確認する</h2>
+      <p class="is-lead">不安をあおる案内や請求に出会ったら、<strong>焦って入力・支払いを進めず、確かな経路で確認</strong>します。案内の内容と、自分が行おうとしている操作を分けて見ます。</p>
+      <figure class="is-scene"><img src="./img/information-security/is42-verify-message.webp" alt="不審な通知への操作を止め教師に相談する高校生" width="1672" height="941" loading="lazy" decoding="async"><figcaption>案内に従う前に立ち止まり、確認する場面（架空・AI生成）。</figcaption></figure>
+      <div class="is-model" data-is-model="is42-verify" data-is-default="request">
+        <div class="is-tabs" role="group" aria-label="確認の手順を選ぶ">
+          <button type="button" data-is-select="request" aria-pressed="false">1 要求を読む</button>
+          <button type="button" data-is-select="operation" aria-pressed="false">2 操作を確かめる</button>
+          <button type="button" data-is-select="verify" aria-pressed="false">3 別の経路で確認</button>
+        </div>
+        <div class="sec-flow">
+          <div class="sec-step" data-is-highlight="request"><h3>1 要求を読む</h3><p>何の用件か。自分に身に覚えがあるか。入力・支払い・アプリの導入など、何を求められているか。</p></div>
+          <div class="sec-step" data-is-highlight="operation"><h3>2 操作を確かめる</h3><p>操作を進めると、何を誰に渡すか。認証情報、金銭、端末を操作する権限などに着目する。</p></div>
+          <div class="sec-step" data-is-highlight="verify"><h3>3 別の経路で確認</h3><p>普段使う公式アプリ、確認済みのブックマークや連絡先から確かめる。迷ったら教員・保護者などへ相談する。</p></div>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 440 245" role="img" aria-labelledby="is42-verify-title is42-verify-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is42-verify-title">受け取った案内から離れて確かめる経路</title>
+              <desc id="is42-verify-desc">案内を受け取った人がいったん操作を止め、以前から確認している公式窓口へ向かう。案内内のリンクを確認先としてたどる図ではない。</desc>
+              <rect x="12" y="24" width="160" height="76" rx="10" fill="var(--is-panel)"/><path d="M174 62 H232 M220 51 L233 62 L220 73"/><path d="M248 35 V89" stroke="var(--is-change)" stroke-width="5"/>
+              <g data-is-highlight="verify"><path d="M94 103 V180 H245 M232 168 L245 180 L232 192"/><rect x="250" y="137" width="176" height="87" rx="10" fill="var(--is-soft)"/></g>
+              <g fill="var(--is-text)" stroke="none" font-size="25" text-anchor="middle"><text x="92" y="69">受けた案内</text><text x="321" y="69">立ち止まる</text><text x="338" y="172">確認済みの</text><text x="338" y="205">公式窓口</text></g>
+            </svg>
+            <figcaption>確認する経路を、受け取った案内だけに頼らず選び直します。</figcaption>
+          </figure>
+          <div>
+            <p class="is-observe" data-is-panel="request"><strong>要求を言い換える：</strong>「確認してください」という案内でも、実際には秘密の情報や支払いを求めていないか、具体的な言葉で確かめます。</p>
+            <p class="is-observe" data-is-panel="operation"><strong>操作の結果を考える：</strong>ボタンを押す前に、入力した情報の送り先や、支払いの相手、許可する操作を確かめます。</p>
+            <p class="is-observe" data-is-panel="verify"><strong>相談につなげる：</strong>案内の中のリンク・電話番号だけを信頼せず、確認済みの経路を使います。すでに入力や支払いをした場合も、抱え込まず早く相談します。</p>
+          </div>
+        </div>
+        <div class="is-tabs" role="group" aria-label="確認の手順を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <details class="is-card is-supplement" open>
+        <summary>詐欺の呼び方と、要求に着目する見方</summary>
+        <p><strong>架空請求</strong>は、利用した覚えのない料金などを請求する手口です。<strong>ワンクリック詐欺</strong>では、クリックなどをきっかけに料金が発生したように見せ、支払いを迫ります。</p>
+        <p><strong>ネットショッピング詐欺・オークション詐欺</strong>には、代金を支払わせても商品を送らないなどの手口があります。<strong>サポート詐欺</strong>では、偽の警告などで不安をあおり、有料のサポート契約や遠隔操作へ誘導します。</p>
+        <p>名称だけで判断を終えず、相手が求める情報・金銭・操作を確かめましょう。</p>
+      </details>
+      <p class="is-source">確認行動の参考：IPA「<a href="https://www.ipa.go.jp/security/anshin/attention/2021/mgdayori20211222.html" target="_blank" rel="noopener noreferrer">偽SMSへの注意</a>」「<a href="https://www.ipa.go.jp/security/anshin/attention/2024/mgdayori20241119.html" target="_blank" rel="noopener noreferrer">サポート詐欺への注意</a>」。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="重要語句・ポイント">
+    <article>
+      <h2 id="headline_8">(8) 重要語句・ポイント</h2>
+      <p class="is-lead">語句の意味を思い出してから開き、<strong>手口 → 情報やシステムへの影響 → 確認する行動</strong>をつなげて説明しましょう。</p>
+      <div class="is-columns">
+        <div class="is-terms">
+          <h3>語句を開いて確認</h3>
+          <details open><summary>盗聴</summary><p>通信の途中で、その内容を許可なく取得すること。相手をだまして入力させるフィッシングとは手段が異なります。</p></details>
+          <details open><summary>改ざん</summary><p>情報を不正に書き換えること。情報が届いても、元の正しい内容とは異なる場合があります。</p></details>
+          <details open><summary>不正アクセス</summary><p>許可なくコンピュータやネットワークへアクセスする行為。他人の認証情報やソフトウェアの弱点を悪用する経路などがあります。</p></details>
+          <details open><summary>ソーシャルエンジニアリング</summary><p>人の心理や行動の隙を利用して情報を得るなどの手口。だましや、入力ののぞき見などがあります。</p></details>
+          <details open><summary>フィッシング</summary><p>信頼できる組織などを装い、偽のページへ誘導して、認証情報や支払い情報などを本人に入力させ、盗み取る手口です。</p></details>
+          <details open><summary>脆弱性（セキュリティホール）</summary><p>ソフトウェアの不具合などによるセキュリティ上の弱点。提供された修正プログラムを適用する更新が対策になります。</p></details>
+          <details open><summary>マルウェア</summary><p>悪意のある動作をするソフトウェアの総称。ウイルス・ワーム・トロイの木馬は広がり方や見せ方、スパイウェア・ランサムウェア・ボットは目的や動作に着目する呼び方です。複数の特徴を持つ場合があります。</p></details>
+          <details open><summary>DoS攻撃</summary><p>サービスの正常な利用を妨げる攻撃。通常のアクセス集中や故障による停止と、現象だけで区別できるとは限りません。</p></details>
+          <details open><summary>DDoS攻撃</summary><p>多数の端末などに分散して行うDoS攻撃。外部から操られる端末が攻撃に使われることもあります。</p></details>
+          <details open><summary>架空請求・ワンクリック詐欺</summary><p>身に覚えのない料金を請求したり、クリックなどで料金が発生したように見せたりして、支払いを迫る手口です。</p></details>
+        </div>
+        <div>
+          <div class="is-card sec-summary">
+            <h3>三つのポイント</h3>
+            <ol>
+              <li><strong>被害の結果と、そこへ至る手口を分ける。</strong>同じ情報漏えいでも、盗聴とフィッシングでは情報を得る方法が違う。</li>
+              <li><strong>侵入・だまし・不正な動作・妨害は組み合わさる。</strong>更新や認証情報の管理など、一つの対策だけで十分とは限らない。</li>
+              <li><strong>急いで操作せず、要求と操作の結果を確かめる。</strong>確認済みの経路を使い、迷ったときや被害に気づいたときは相談する。</li>
+            </ol>
+          </div>
+          <div class="is-card">
+            <div><h3>自分の言葉で振り返る</h3><p>「何が起きたか」だけでなく「どの経路で、何が悪用されたか」を、前の画面の図から一つ選んで説明しましょう。</p></div>
+            <div><h3>確認する行動につなげる</h3><p>突然届いた案内で情報の入力を求められたら、何を確かめ、どの経路を使うか説明しましょう。</p></div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+</body>
+</html>

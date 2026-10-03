@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>情報セキュリティの考え方 | 情報社会</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
+  <link rel="stylesheet" href="./css/information-security.css" integrity="sha384-2Yfyj9cjBPwCFJqKNO6/eDZtQhR2FF2EWh1BahExkGRPmKFhAd/D57Nt89vrxhlk">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
+  <script defer src="./js/information-security.js" integrity="sha384-iFVaVYS3IJAYVl5i49m/V6MlxPfQWmRk2jBkEpi2hOwOcxn0VZo50nmy/DGMu+gd"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body class="is-lesson is-security" data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="身近な情報とサービス">
+    <article>
+      <h2 id="headline_1">(1) 身近な情報とサービス</h2>
+      <p class="is-lead"><strong>情報セキュリティ</strong>は、情報とそれを扱うしくみを守り、必要な活動を続けられるようにする取り組みです。文化祭の進行表を共同編集する場面から考えます。</p>
+      <div class="sec-scene-pair">
+        <figure class="is-scene"><img src="./img/information-security/is41-collaboration.webp" alt="文化祭の進行表をノートパソコンで共同確認する3人の高校生" width="1672" height="941" loading="lazy" decoding="async"><figcaption>同じ情報を複数の係で利用する場面（架空・AI生成）。</figcaption></figure>
+        <div class="is-card">
+          <h3>この教材で使う「進行表の内部版」</h3>
+          <p><strong>作成担当は編集、確認担当は閲覧</strong>ができます。来場者など、係の外の人には内部版を見せません。</p>
+          <p>進行表には「舞台開始 10:00」「片付け 11:00」などの時刻を記録します。来場者には、別の公開用の案内を用意します。</p>
+          <p class="is-note">時刻・役割・場面はすべて学習用の架空の設定です。</p>
+        </div>
+      </div>
+      <div class="is-model" data-is-model="is41-assets" data-is-default="information">
+        <div class="is-prompt"><strong>守る対象を選ぶ</strong><p>進行表の内容以外に、どこで問題が起きると係の活動に困るでしょうか。</p></div>
+        <div class="is-tabs" role="group" aria-label="進行表と関わる対象">
+          <button type="button" data-is-select="information" aria-pressed="false">情報</button>
+          <button type="button" data-is-select="account" aria-pressed="false">アカウント</button>
+          <button type="button" data-is-select="device" aria-pressed="false">端末</button>
+          <button type="button" data-is-select="service" aria-pressed="false">サービス</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 440 310" role="img" aria-labelledby="is41-assets-title is41-assets-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is41-assets-title">進行表を扱う四つの対象</title>
+              <desc id="is41-assets-desc">アカウントから端末、共同編集サービス、進行表の情報へ線がつながる。選んだ対象と、その対象が使えなくなった場合の説明を強調する。</desc>
+              <path d="M104 121 V175 M96 166 L104 175 L112 166 M195 236 H245 M236 228 L245 236 L236 244 M337 179 V125 M329 134 L337 125 L345 134" stroke="var(--is-border)"/>
+              <g data-is-highlight="account">
+                <rect x="14" y="18" width="180" height="104" rx="13" fill="var(--is-panel)"/>
+                <circle cx="104" cy="45" r="12"/><path d="M80 74 Q104 50 128 74"/>
+                <text x="104" y="105" text-anchor="middle" font-size="24" fill="currentColor" stroke="none">アカウント</text>
+              </g>
+              <g data-is-highlight="device">
+                <rect x="14" y="181" width="180" height="104" rx="13" fill="var(--is-panel)"/>
+                <rect x="73" y="194" width="62" height="38" rx="3"/><path d="M64 242 H144"/>
+                <text x="104" y="273" text-anchor="middle" font-size="24" fill="currentColor" stroke="none">端末</text>
+              </g>
+              <g data-is-highlight="service">
+                <rect x="246" y="181" width="180" height="104" rx="13" fill="var(--is-panel)"/>
+                <text x="336" y="225" text-anchor="middle" font-size="24" fill="currentColor" stroke="none">共同編集</text>
+                <text x="336" y="262" text-anchor="middle" font-size="24" fill="currentColor" stroke="none">サービス</text>
+              </g>
+              <g data-is-highlight="information">
+                <rect x="246" y="18" width="180" height="104" rx="13" fill="var(--is-soft)"/>
+                <text x="336" y="57" text-anchor="middle" font-size="24" fill="currentColor" stroke="none">進行表</text>
+                <text x="336" y="99" text-anchor="middle" font-size="28" fill="currentColor" stroke="none">10:00</text>
+              </g>
+            </svg>
+            <figcaption>アカウントを使い、端末からサービスに接続して情報を扱います。</figcaption>
+          </figure>
+          <div class="sec-grid">
+            <div class="is-card" data-is-highlight="information"><h3>情報</h3><p>時刻が誤って変わると、進行を判断できなくなります。</p></div>
+            <div class="is-card" data-is-highlight="account"><h3>アカウント</h3><p>他の人に使われると、その人に認めていない閲覧や操作につながります。</p></div>
+            <div class="is-card" data-is-highlight="device"><h3>端末</h3><p>故障すると、その端末から進行表を確認できなくなります。</p></div>
+            <div class="is-card" data-is-highlight="service"><h3>サービス</h3><p>停止すると、複数の係が同時に進行表を使えなくなることがあります。</p></div>
+          </div>
+        </div>
+        <div class="is-tabs" role="group" aria-label="対象の選択を戻す"><button type="button" data-is-reset>情報から見直す</button></div>
+      </div>
+      <p class="is-observe"><strong>活動への影響を説明する：</strong>選んだ対象に問題が起きると、誰の、どの作業に困るでしょうか。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="安全を考える三つの観点">
+    <article>
+      <h2 id="headline_2">(2) 安全を考える三つの観点</h2>
+      <p class="is-lead">情報セキュリティで守る状態を、<strong>機密性・完全性・可用性</strong>の三つの観点から考えます。英語の頭文字を合わせて<strong>CIA</strong>と呼びます。</p>
+      <div class="is-model" data-is-model="is41-cia" data-is-default="confidentiality">
+        <div class="is-tabs" role="group" aria-label="進行表を見る観点">
+          <button type="button" data-is-select="confidentiality" aria-pressed="false">C 機密性</button>
+          <button type="button" data-is-select="integrity" aria-pressed="false">I 完全性</button>
+          <button type="button" data-is-select="availability" aria-pressed="false">A 可用性</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 440 310" role="img" aria-labelledby="is41-cia-title is41-cia-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is41-cia-title">同じ進行表を三つの観点から見る</title>
+              <desc id="is41-cia-desc">中央に進行表。上の機密性、左下の完全性、右下の可用性が、それぞれ同じ進行表と線で結ばれている。三つの別々の情報を示す図ではない。</desc>
+              <g data-is-highlight="confidentiality"><path d="M220 80 V113"/><rect x="137" y="16" width="166" height="64" rx="13" fill="var(--is-soft)"/><text x="220" y="58" text-anchor="middle" font-size="26" fill="currentColor" stroke="none">C 機密性</text></g>
+              <g data-is-highlight="integrity"><path d="M152 185 L94 232"/><rect x="10" y="232" width="166" height="64" rx="13" fill="var(--is-soft)"/><text x="93" y="274" text-anchor="middle" font-size="26" fill="currentColor" stroke="none">I 完全性</text></g>
+              <g data-is-highlight="availability"><path d="M288 185 L346 232"/><rect x="264" y="232" width="166" height="64" rx="13" fill="var(--is-soft)"/><text x="347" y="274" text-anchor="middle" font-size="26" fill="currentColor" stroke="none">A 可用性</text></g>
+              <rect x="110" y="113" width="220" height="82" rx="12" fill="var(--is-panel)"/>
+              <text x="220" y="148" text-anchor="middle" font-size="24" fill="currentColor" stroke="none">同じ進行表</text>
+              <text x="220" y="181" text-anchor="middle" font-size="24" fill="currentColor" stroke="none">舞台開始 10:00</text>
+            </svg>
+            <figcaption>守る対象は同じでも、確かめる問いが違います。</figcaption>
+          </figure>
+          <div class="is41-stack">
+            <div class="is-card" data-is-highlight="confidentiality"><h3>機密性（Confidentiality）</h3><p><strong>許可された人だけが情報にアクセスできる</strong>状態。</p><p class="is-note">進行表の内部版を、許可された係だけが読めるか。</p></div>
+            <div class="is-card" data-is-highlight="integrity"><h3>完全性（Integrity）</h3><p><strong>情報が正確で完全であり、処理も適切に行われる</strong>状態。</p><p class="is-note">進行表の時刻や項目が正しく、必要な情報が欠けていないか。</p></div>
+            <div class="is-card" data-is-highlight="availability"><h3>可用性（Availability）</h3><p><strong>許可された利用者が、必要なときに使える</strong>状態。</p><p class="is-note">係が進行を確かめたいときに、表を開いて使えるか。</p></div>
+          </div>
+        </div>
+        <div class="is-tabs" role="group" aria-label="観点の選択を戻す"><button type="button" data-is-reset>機密性から見直す</button></div>
+      </div>
+      <p class="is-observe">CIAは<strong>守りたい状態</strong>です。一つの対策が複数の状態を支えることもあるため、対策名だけで一対一に分けず、何をどう守るか説明します。</p>
+      <p class="is-source">定義の確認：NIST用語集「<a href="https://csrc.nist.gov/glossary/term/confidentiality" target="_blank" rel="noopener noreferrer">機密性</a>」「<a href="https://csrc.nist.gov/glossary/term/integrity" target="_blank" rel="noopener noreferrer">完全性</a>」「<a href="https://csrc.nist.gov/glossary/term/availability" target="_blank" rel="noopener noreferrer">可用性</a>」（2026-10-03確認）。説明と進行表の図は本教材独自の整理です。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="機密性：誰に見せるか">
+    <article>
+      <h2 id="headline_3">(3) 機密性：誰に見せるか</h2>
+      <p class="is-lead">同じ進行表でも、共有する範囲が変わると、読める人が変わります。<strong>許可された範囲に収まっているか</strong>を確かめるのが機密性の観点です。</p>
+      <p class="sec-emphasis"><strong>比較の前提：</strong>内部版の閲覧を許可するのは作成担当と確認担当だけです。来場者など、係の外の人へ公開する内容は別の案内にまとめます。</p>
+      <div class="is-model" data-is-model="is41-sharing" data-is-default="restricted">
+        <div class="is-tabs" role="group" aria-label="内部版の共有状態を比べる">
+          <button type="button" data-is-select="restricted" aria-pressed="false">許可した係だけ</button>
+          <button type="button" data-is-select="exposed" aria-pressed="false">設定ミスで範囲が広がった</button>
+        </div>
+        <div class="sec-grid">
+          <div class="is41-stack">
+            <figure class="sec-visual" data-is-panel="restricted">
+              <svg viewBox="0 0 440 320" role="img" aria-labelledby="is41-restricted-title is41-restricted-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <title id="is41-restricted-title">許可した係だけが内部版を読める状態</title>
+                <desc id="is41-restricted-desc">中央の内部版から作成担当と確認担当へ矢印がつながる。係の外への線には止め線があり、係の外は読めない。内部版の時刻は10時のまま。</desc>
+                <rect x="8" y="20" width="172" height="66" rx="12" fill="var(--is-soft)"/><rect x="260" y="20" width="172" height="66" rx="12" fill="var(--is-soft)"/>
+                <path d="M176 128 L112 88 M112 100 V88 H124 M264 128 L328 88 M316 88 H328 V100" stroke="var(--is-accent)"/>
+                <rect x="119" y="128" width="202" height="81" rx="12" fill="var(--is-panel)"/>
+                <path d="M220 210 V253" stroke-dasharray="6 6"/><path d="M202 233 H238" stroke-width="5"/>
+                <rect x="100" y="254" width="240" height="54" rx="12" fill="var(--is-panel)" stroke-dasharray="6 6"/>
+                <g font-size="24" text-anchor="middle" fill="var(--is-text)" stroke="none"><text x="94" y="61">作成担当</text><text x="346" y="61">確認担当</text><text x="220" y="160">内部版</text><text x="220" y="194">開始 10:00</text><text x="220" y="289">係の外：読めない</text></g>
+              </svg>
+              <figcaption><strong>許可した係だけ：</strong>作成担当と確認担当は読めます。係の外の人は読めません。</figcaption>
+            </figure>
+            <figure class="sec-visual" data-is-panel="exposed">
+              <svg viewBox="0 0 440 320" role="img" aria-labelledby="is41-exposed-title is41-exposed-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <title id="is41-exposed-title">設定ミスで内部版の閲覧範囲が広がった状態</title>
+                <desc id="is41-exposed-desc">作成担当と確認担当に加えて、係の外への閲覧の矢印がつながる。共有リンクを受け取った係の外の人にも内部版が読める。内容と時刻は変わっていない。</desc>
+                <rect x="8" y="20" width="172" height="66" rx="12" fill="var(--is-soft)"/><rect x="260" y="20" width="172" height="66" rx="12" fill="var(--is-soft)"/>
+                <path d="M176 128 L112 88 M112 100 V88 H124 M264 128 L328 88 M316 88 H328 V100" stroke="var(--is-accent)"/>
+                <rect x="119" y="128" width="202" height="81" rx="12" fill="var(--is-panel)"/>
+                <path d="M220 210 V251 M209 240 L220 251 L231 240" stroke="var(--is-change)" stroke-width="4"/>
+                <rect x="100" y="254" width="240" height="54" rx="12" fill="var(--is-soft)" stroke="var(--is-change)" stroke-width="4"/>
+                <g font-size="24" text-anchor="middle" fill="var(--is-text)" stroke="none"><text x="94" y="61">作成担当</text><text x="346" y="61">確認担当</text><text x="220" y="160">内部版</text><text x="220" y="194">開始 10:00</text><text x="220" y="289">係の外：読める</text></g>
+              </svg>
+              <figcaption><strong>範囲が広がった：</strong>設定ミスにより、リンクを受け取った係の外の人にも読める状態です。</figcaption>
+            </figure>
+          </div>
+          <div class="is41-stack">
+            <div class="is-card"><h3>情報の内容は同じ</h3><p>この比較では、時刻も利用できる時間も変えていません。変わったのは<strong>誰が内部版を読めるか</strong>です。</p></div>
+            <div class="is-card" data-is-panel="restricted"><h3>機密性を保つ状態</h3><p>内部版を読める人が、あらかじめ許可した係の範囲に収まっています。</p></div>
+            <div class="is-card" data-is-panel="exposed"><h3>機密性が損なわれる状態</h3><p>許可していない人にも内部版を見せてしまう状態です。設定上読めることと、活動のルールで許可されていることを区別します。</p></div>
+          </div>
+        </div>
+        <div class="is-tabs" role="group" aria-label="共有状態を戻す"><button type="button" data-is-reset>許可した係だけに戻す</button></div>
+      </div>
+      <p class="is-observe"><strong>変わった点を説明する：</strong>進行表の時刻が正しいままでも、なぜ守るべき状態が損なわれたといえるでしょうか。</p>
+      <details class="is-supplement is-card" open><summary>図の見方・補足</summary><p>矢印は内部版を読める関係、止め線は読めない関係を示します。ここでは二つの共有状態を固定した架空の図で比較しており、実際のファイルの共有設定は変更しません。</p></details>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="完全性：正確な内容を保つ">
+    <article>
+      <h2 id="headline_4">(4) 完全性：正確な内容を保つ</h2>
+      <p class="is-lead"><strong>完全性</strong>では、情報が正確で必要な内容がそろい、適切に処理されているかを確かめます。予定の変更を反映する<strong>正規の更新</strong>も、正確さを保つために必要です。</p>
+      <p class="sec-emphasis"><strong>比較の前提：</strong>舞台の開始を10:00から<strong>10:10へ変更することが承認済み</strong>です。作成担当が更新し、確認担当が内容を確かめます。</p>
+      <div class="is-model" data-is-model="is41-versions" data-is-default="approved">
+        <div class="is-tabs" role="group" aria-label="進行表の版を比べる">
+          <button type="button" data-is-select="approved" aria-pressed="false">1 承認どおりに更新</button>
+          <button type="button" data-is-select="mistake" aria-pressed="false">2 誤操作で変更</button>
+          <button type="button" data-is-select="repaired" aria-pressed="false">3 確認して修正</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 440 342" role="img" aria-labelledby="is41-versions-title is41-versions-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is41-versions-title">同じ進行表の更新・誤操作・修正の履歴</title>
+              <desc id="is41-versions-desc">承認された開始時刻は10時10分。第1の版は承認どおり10時10分、第2の版は誤操作で10時40分、第3の版は確認して10時10分に修正。上から順に矢印でつながる。</desc>
+              <path d="M44 72 V292 M34 282 L44 292 L54 282" stroke="var(--is-border)"/>
+              <g data-is-highlight="approved"><circle cx="44" cy="64" r="20" fill="var(--is-panel)"/><rect x="83" y="19" width="340" height="88" rx="12" fill="var(--is-panel)"/><text x="44" y="73" text-anchor="middle" font-size="26" fill="currentColor" stroke="none">1</text><text x="104" y="53" font-size="24" fill="currentColor" stroke="none">承認どおりに更新</text><text x="104" y="89" font-size="28" fill="currentColor" stroke="none">開始 10:10</text></g>
+              <g data-is-highlight="mistake"><circle cx="44" cy="174" r="20" fill="var(--is-panel)"/><rect x="83" y="129" width="340" height="88" rx="12" fill="var(--is-panel)" stroke-dasharray="7 5"/><text x="44" y="183" text-anchor="middle" font-size="26" fill="currentColor" stroke="none">2</text><text x="104" y="163" font-size="24" fill="currentColor" stroke="none">誤操作で変更</text><text x="104" y="199" font-size="28" fill="currentColor" stroke="none">開始 10:40</text></g>
+              <g data-is-highlight="repaired"><circle cx="44" cy="284" r="20" fill="var(--is-panel)"/><rect x="83" y="239" width="340" height="88" rx="12" fill="var(--is-panel)"/><text x="44" y="293" text-anchor="middle" font-size="26" fill="currentColor" stroke="none">3</text><text x="104" y="273" font-size="24" fill="currentColor" stroke="none">確認して修正</text><text x="104" y="309" font-size="28" fill="currentColor" stroke="none">開始 10:10</text></g>
+            </svg>
+            <figcaption>内容が変わった理由と、承認された予定との一致を確かめます。</figcaption>
+          </figure>
+          <div class="is41-stack">
+            <div class="is-card" data-is-highlight="approved"><h3>1 正規の更新</h3><p>10:00から10:10へ更新し、変更された予定を正しく反映しています。</p></div>
+            <div class="is-card" data-is-highlight="mistake"><h3>2 意図しない変更</h3><p>誤操作で10:40になりました。予定と食い違い、完全性が損なわれています。</p></div>
+            <div class="is-card" data-is-highlight="repaired"><h3>3 確認済みの修正版</h3><p>承認された予定と照合し、10:10に修正しました。必要な項目の抜けも確認します。</p></div>
+          </div>
+        </div>
+        <div class="is-tabs" role="group" aria-label="版の選択を戻す"><button type="button" data-is-reset>正規の更新から見直す</button></div>
+      </div>
+      <p class="is-observe"><strong>理由を比べる：</strong>「1」と「2」は、どちらも値が変わっています。完全性への影響が異なる理由を、承認された予定と比べて説明しましょう。</p>
+      <details class="is-supplement is-card" open><summary>図の見方・補足</summary><p>時刻は架空の固定データです。図の破線と「誤操作で変更」の文字で、承認内容との不一致を表しています。悪意のある書換えだけでなく、誤操作や処理の不具合でも完全性は損なわれます。</p></details>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="可用性：必要なときに使える">
+    <article>
+      <h2 id="headline_5">(5) 可用性：必要なときに使える</h2>
+      <p class="is-lead"><strong>可用性</strong>では、<strong>許可された利用者が必要なときに情報やサービスを使えるか</strong>を確かめます。内容が残っていても、開けなければ進行の確認に使えません。</p>
+      <p class="sec-emphasis"><strong>比較の前提：</strong>確認担当には内部版を読む権限があります。進行表は正しい10:10の版で、予備のしくみにも同じ版を用意してあるものとします。</p>
+      <div class="is-model" data-is-model="is41-availability" data-is-default="normal">
+        <div class="is-tabs" role="group" aria-label="サービスの状態をたどる">
+          <button type="button" data-is-select="normal" aria-pressed="false">1 通常</button>
+          <button type="button" data-is-select="failure" aria-pressed="false">2 故障で停止</button>
+          <button type="button" data-is-select="standby" aria-pressed="false">3 予備へ切替</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 440 340" role="img" aria-labelledby="is41-availability-title is41-availability-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is41-availability-title">確認担当が進行表を使う経路</title>
+              <desc id="is41-availability-desc">左の確認担当から右上の通常のしくみ、右下の予備のしくみへ経路がつながる。通常時は上の経路、停止時は故障の表示、切替後は下の経路を強調する。各状態で使えるかは隣の説明に示す。</desc>
+              <rect x="12" y="119" width="155" height="100" rx="13" fill="var(--is-panel)"/>
+              <text x="89" y="160" text-anchor="middle" font-size="24" fill="var(--is-text)" stroke="none">確認担当</text><text x="89" y="197" text-anchor="middle" font-size="24" fill="var(--is-text)" stroke="none">閲覧権限あり</text>
+              <g data-is-highlight="normal"><path d="M168 147 H196 V77 H245 M235 67 L245 77 L235 87"/><rect x="246" y="18" width="181" height="112" rx="12" fill="var(--is-panel)"/><text x="336" y="58" text-anchor="middle" font-size="24" fill="currentColor" stroke="none">通常のしくみ</text><text x="336" y="101" text-anchor="middle" font-size="26" fill="currentColor" stroke="none">10:10の版</text></g>
+              <g data-is-highlight="failure"><path d="M247 152 H426" stroke-dasharray="7 5"/><text x="336" y="186" text-anchor="middle" font-size="24" fill="currentColor" stroke="none">故障時は停止</text></g>
+              <g data-is-highlight="standby"><path d="M168 191 H196 V272 H245 M235 262 L245 272 L235 282"/><rect x="246" y="214" width="181" height="112" rx="12" fill="var(--is-panel)"/><text x="336" y="254" text-anchor="middle" font-size="24" fill="currentColor" stroke="none">予備のしくみ</text><text x="336" y="297" text-anchor="middle" font-size="26" fill="currentColor" stroke="none">10:10の版</text></g>
+            </svg>
+            <figcaption>線は用意した経路を示します。太線の部分は選択中の場面です。「故障で停止」では通常の経路を使えず、予備への切替もまだ行っていません。</figcaption>
+          </figure>
+          <div class="is41-stack">
+            <div class="is-card" data-is-highlight="normal"><h3>1 通常：使える</h3><p>確認担当は、必要な時刻に通常のサービスから進行表を開けます。</p></div>
+            <div class="is-card" data-is-highlight="failure"><h3>2 故障で停止：使えない</h3><p>進行表の内容は残っていますが、通常のサービスが停止し、確認できません。可用性が損なわれています。</p></div>
+            <div class="is-card" data-is-highlight="standby"><h3>3 予備へ切替：利用を再開</h3><p>用意してあった予備のしくみへ切り替え、同じ進行表を確認できるようになりました。</p></div>
+          </div>
+        </div>
+        <div class="is-tabs" role="group" aria-label="サービスの状態を戻す"><button type="button" data-is-reset>通常から見直す</button></div>
+      </div>
+      <p class="is-observe"><strong>原因と状態を分ける：</strong>故障でも、意図的な妨害でも、必要なときに使えなければ可用性は損なわれます。攻撃だけを情報セキュリティの問題と考えないことが大切です。</p>
+      <details class="is-supplement is-card" open><summary>図の見方・補足</summary><p>図は利用経路の比較です。実際の切替方法や所要時間を再現していません。予備を用意して利用を続ける工夫は、保存した過去の版から戻すバックアップと目的が異なります。対策の組合せは、この単元の後半で扱います。</p></details>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="重要語句・ポイント">
+    <article>
+      <h2 id="headline_6">(6) 重要語句・ポイント</h2>
+      <p class="is-lead">語句の意味を思い出してから開き、進行表で観察した変化を<strong>誰が・どの内容を・いつ使えるか</strong>と結び付けて説明しましょう。</p>
+      <div class="sec-grid">
+        <div class="is-terms">
+          <h3>重要語句</h3>
+          <details open><summary>情報セキュリティ</summary><p>情報の機密性・完全性・可用性を維持すること。情報とそれを扱うしくみを守り、必要な活動を続けられるようにします。</p></details>
+          <details open><summary>CIA</summary><p>機密性（Confidentiality）・完全性（Integrity）・可用性（Availability）の頭文字。守る状態を見る三つの観点です。</p></details>
+          <details open><summary>機密性</summary><p>許可された人だけが情報にアクセスできる状態。内部版の進行表を誰に見せるかに着目しました。</p></details>
+          <details open><summary>完全性</summary><p>情報が正確で完全であり、処理も適切に行われる状態。予定を正しく反映する更新や、必要な項目の確認も大切です。</p></details>
+          <details open><summary>可用性</summary><p>許可された利用者が、必要なときに情報やサービスを使える状態。内容が残っていても、停止して使えなければ損なわれます。</p></details>
+          <details open><summary>アカウント</summary><p>サービスが利用者を区別し、その人の利用を管理するためのもの。他の人に使われると、認めていない閲覧や操作につながります。</p></details>
+          <details open><summary>アクセス権</summary><p>情報やサービスに対して、閲覧・編集など、どの操作を認めるかを定めた権限。この教材では作成担当に編集、確認担当に閲覧を認めました。</p></details>
+          <details open><summary>脅威</summary><p>情報やサービスに損害を与える可能性のある要因。悪意のある攻撃に加え、誤操作や故障なども考えます。</p></details>
+        </div>
+        <div>
+          <div class="is-card sec-summary">
+            <h3>三つのポイント</h3>
+            <ol>
+              <li>同じ情報を<strong>機密性・完全性・可用性</strong>の三つの観点で見る。</li>
+              <li><strong>許可された人・正確で完全な内容・必要なとき</strong>という条件を確かめる。</li>
+              <li>攻撃・誤操作・故障の<strong>原因</strong>と、損なわれた<strong>状態</strong>を分けて説明する。</li>
+            </ol>
+          </div>
+          <div class="is-model" data-is-model="is41-review" data-is-default="sharing">
+            <h3>進行表で振り返る</h3>
+            <p>変わった箇所を思い出し、理由を言ってから説明を確かめましょう。</p>
+            <div class="is-tabs" role="group" aria-label="振り返る場面">
+              <button type="button" data-is-select="sharing" aria-pressed="false">共有範囲</button>
+              <button type="button" data-is-select="time" aria-pressed="false">時刻</button>
+              <button type="button" data-is-select="outage" aria-pressed="false">停止</button>
+            </div>
+            <p data-is-panel="sharing"><strong>機密性：</strong>許可していない係の外の人にも内部版を読める範囲にしてしまいました。</p>
+            <p data-is-panel="time"><strong>完全性：</strong>誤操作によって、承認済みの10:10と異なる時刻が記録されました。</p>
+            <p data-is-panel="outage"><strong>可用性：</strong>閲覧権限のある確認担当が、必要なときに進行表を開けなくなりました。</p>
+            <p class="is-note">ここで説明できるのは各場面に示した影響です。実際の一つの出来事が、複数の観点に影響することもあります。</p>
+            <div class="is-tabs" role="group" aria-label="振り返りを戻す"><button type="button" data-is-reset>共有範囲から見直す</button></div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+</body>
+</html>

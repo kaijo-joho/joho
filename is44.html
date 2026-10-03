@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>対策を組み合わせ、被害に備える | 情報社会</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
+  <link rel="stylesheet" href="./css/information-security.css" integrity="sha384-2Yfyj9cjBPwCFJqKNO6/eDZtQhR2FF2EWh1BahExkGRPmKFhAd/D57Nt89vrxhlk">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
+  <script defer src="./js/information-security.js" integrity="sha384-iFVaVYS3IJAYVl5i49m/V6MlxPfQWmRk2jBkEpi2hOwOcxn0VZo50nmy/DGMu+gd"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body class="is-lesson is-security" data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="複数の対策を重ねる">
+    <article>
+      <h2 id="headline_1">(1) 複数の対策を重ねる</h2>
+      <p class="is-lead">一つの対策で、すべての被害を防げるわけではありません。<strong>予防する・異常に気づく・被害を抑える・復旧する</strong>という目的を考え、対策を組み合わせます。このように複数の対策を重ねる考え方を<strong>多層防御</strong>といいます。</p>
+      <div class="is-prompt"><strong>目的を予想する</strong><p>更新、ログの確認、バックアップは、それぞれ何に備えるのでしょうか。選んで、働く場所と時点を確かめましょう。</p></div>
+      <div class="is-model" data-is-model="is44-layers" data-is-default="prevent">
+        <div class="is-tabs" role="group" aria-label="対策の目的を選ぶ">
+          <button type="button" data-is-select="prevent" aria-pressed="false">予防する</button>
+          <button type="button" data-is-select="notice" aria-pressed="false">気づいて被害を抑える</button>
+          <button type="button" data-is-select="recover" aria-pressed="false">復旧に備える</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 420 320" role="img" aria-labelledby="is44-layers-title is44-layers-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is44-layers-title">対策が働く三つの場所</title>
+              <desc id="is44-layers-desc">端末と入口で更新・認証・権限・通信制御を使い、記録から異常を確認して報告する。別に保存した版を事故後の復元に使う。対策を選ぶと対応する行を強調する。</desc>
+              <g data-is-highlight="prevent">
+                <rect x="20" y="18" width="380" height="78" rx="12" fill="var(--is-panel)"/>
+                <path d="M42 38 H89 V68 H42 Z M38 76 H94"/>
+                <text x="118" y="50" fill="currentColor" stroke="none" font-size="26">端末と入口</text>
+                <text x="118" y="80" fill="currentColor" stroke="none" font-size="24">更新・認証・権限</text>
+              </g>
+              <path d="M210 101 V115 M203 108 H217"/>
+              <g data-is-highlight="notice">
+                <rect x="20" y="122" width="380" height="78" rx="12" fill="var(--is-panel)"/>
+                <path d="M44 142 H87 V181 H44 Z M53 153 H77 M53 164 H71"/>
+                <text x="118" y="154" fill="currentColor" stroke="none" font-size="26">操作の記録</text>
+                <text x="118" y="184" fill="currentColor" stroke="none" font-size="24">確認 → 報告・対応</text>
+              </g>
+              <path d="M210 205 V219 M203 212 H217"/>
+              <g data-is-highlight="recover">
+                <rect x="20" y="226" width="380" height="78" rx="12" fill="var(--is-panel)"/>
+                <rect x="43" y="246" width="45" height="39" rx="5"/>
+                <path d="M51 258 H80 M53 276 H60"/>
+                <text x="118" y="258" fill="currentColor" stroke="none" font-size="26">別に保存した版</text>
+                <text x="118" y="288" fill="currentColor" stroke="none" font-size="24">事故の後に復元</text>
+              </g>
+            </svg>
+            <figcaption>バックアップの<strong>作成は事故の前</strong>、保存版を使う<strong>復元は事故の後</strong>です。</figcaption>
+          </figure>
+          <div>
+            <div class="is-card" data-is-panel="prevent"><h3>予防する</h3><p>OSやアプリを更新して既知の弱点に対処します。認証と必要な範囲のアクセス権で利用を管理し、ファイアウォールで通信を制御します。</p><p>暗号化は、第三者に内容を読み取られにくくするために使います。</p></div>
+            <div class="is-card" data-is-panel="notice"><h3>気づいて被害を抑える</h3><p>対策ソフトの警告や操作のログを確認します。異常が疑われたら早く報告し、管理者が調査や必要な対応を進めます。</p><p>デジタル署名は、データの改ざんの有無などを検証するために使います。</p></div>
+            <div class="is-card" data-is-panel="recover"><h3>復旧に備える</h3><p>事故の前にバックアップを作り、データが失われたときに保存した版を復元します。機器の故障に備えて予備系を用意する対策もあります。</p><p>何をいつの状態に戻せるか、事前に確かめておく必要があります。</p></div>
+          </div>
+        </div>
+        <div role="group" aria-label="対策の目的の表示を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <p class="sec-emphasis">CIAは<strong>守りたい状態</strong>です。一つの対策を、機密性・完全性・可用性のどれか一つだけに固定せず、具体的な被害をどう抑えるか説明します。</p>
+      <p class="is-observe"><strong>説明する：</strong>進行表を誤って失ったとき、認証だけで元に戻せるでしょうか。何を組み合わせる必要があるか考えましょう。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="端末とソフトを保つ">
+    <article>
+      <h2 id="headline_2">(2) 端末とソフトを保つ</h2>
+      <p class="is-lead">OSやアプリの<strong>更新</strong>は、見つかった弱点（脆弱性）を修正するためにも行います。<strong>何を、誰が、いつ更新するか</strong>を決めておくことが大切です。</p>
+      <div class="is-model" data-is-model="is44-maintenance" data-is-default="personal">
+        <div class="is-tabs" role="group" aria-label="管理する端末を選ぶ">
+          <button type="button" data-is-select="personal" aria-pressed="false">自分で管理する端末</button>
+          <button type="button" data-is-select="school" aria-pressed="false">学校が管理する端末</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 420 310" role="img" aria-labelledby="is44-maintenance-title is44-maintenance-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is44-maintenance-title">管理の担当と更新対象の関係</title>
+              <desc id="is44-maintenance-desc">自分で管理する端末では利用者が更新を確認する。学校が管理する端末では管理者の決めた方法で更新し、利用者は困った点を相談する。どちらも更新対象はOSとアプリである。</desc>
+              <g data-is-highlight="personal">
+                <rect x="16" y="20" width="170" height="76" rx="12" fill="var(--is-panel)"/>
+                <text x="101" y="51" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">自分で管理</text>
+                <text x="101" y="82" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">更新を確認</text>
+                <path d="M101 96 V125 H170 V165 M161 156 L170 165 L179 156"/>
+              </g>
+              <g data-is-highlight="school">
+                <rect x="234" y="20" width="170" height="76" rx="12" fill="var(--is-panel)"/>
+                <text x="319" y="51" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">学校が管理</text>
+                <text x="319" y="82" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">手順に従う</text>
+                <path d="M319 96 V125 H250 V165 M241 156 L250 165 L259 156"/>
+              </g>
+              <rect x="75" y="168" width="270" height="112" rx="12" fill="var(--is-soft)"/>
+              <path d="M135 290 H285"/>
+              <rect x="98" y="191" width="95" height="60" rx="7" fill="var(--is-panel)"/>
+              <rect x="214" y="191" width="108" height="60" rx="7" fill="var(--is-panel)"/>
+              <text x="145" y="230" text-anchor="middle" fill="currentColor" stroke="none" font-size="28">OS</text>
+              <text x="268" y="230" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">アプリ</text>
+            </svg>
+            <figcaption>管理の担当が違っても、OSとアプリの両方を確認します。</figcaption>
+          </figure>
+          <div>
+            <div class="is-card" data-is-panel="personal"><h3>自分で管理する端末</h3><p>正規の更新機能で更新を確認し、サポート期間も確かめます。対策ソフトは検出に使う情報も更新します。</p><p>アプリは公式の配布元など、信頼できる場所から入手します。</p></div>
+            <div class="is-card" data-is-panel="school"><h3>学校が管理する端末</h3><p>教員・管理者の決めた更新手順に従います。更新できない、警告が出るといった場合は、その状況を相談します。</p><p>アプリの追加や保護設定の変更も、学校のルールを確認して行います。</p></div>
+          </div>
+        </div>
+        <div role="group" aria-label="端末の選択を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <div class="sec-grid">
+        <div class="is-card"><h3>サポート期間を確認する</h3><p>サポートが終了すると、新たに見つかった弱点を修正する更新が提供されなくなることがあります。継続利用や移行は管理者と相談します。</p></div>
+        <div class="is-card"><h3>対策ソフトも組み合わせる</h3><p>マルウェアの検出などを助けますが、すべての脅威を発見できるとは限りません。更新や利用ルールと合わせて使います。</p></div>
+      </div>
+      <p class="is-observe"><strong>説明する：</strong>「更新を行う技術」だけでなく、「担当と手順を決めること」も必要なのはなぜでしょうか。</p>
+      <p class="is-source">日常の対策：IPA「<a href="https://www.ipa.go.jp/security/anshin/measures/everyday.html" target="_blank" rel="noopener noreferrer">日常における情報セキュリティ対策</a>」（2026-10-03確認）。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="通信の制御と暗号化">
+    <article>
+      <h2 id="headline_3">(3) 通信の制御と暗号化</h2>
+      <p class="is-lead"><strong>ファイアウォール</strong>は規則に従って通信を制御し、<strong>暗号化</strong>は情報の内容を読み取られにくくします。働きの異なる技術を組み合わせます。</p>
+      <div class="is-model" data-is-model="is44-communication" data-is-default="firewall">
+        <div class="is-tabs" role="group" aria-label="通信を守る技術を選ぶ">
+          <button type="button" data-is-select="firewall" aria-pressed="false">通信を制御する</button>
+          <button type="button" data-is-select="encryption" aria-pressed="false">内容を保護する</button>
+        </div>
+        <div class="sec-grid">
+          <div class="is-card" data-is-highlight="firewall">
+            <h3>ファイアウォール</h3>
+            <figure class="sec-visual">
+              <svg viewBox="0 0 420 280" role="img" aria-labelledby="is44-firewall-title is44-firewall-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <title id="is44-firewall-title">規則による通信の許可と遮断</title>
+                <desc id="is44-firewall-desc">上の通信は許可の規則に従って境界を通過する。下の通信は遮断の規則に従って境界で止まる。通過できることだけで通信内容の安全を保証するものではない。</desc>
+                <text x="25" y="35" fill="currentColor" stroke="none" font-size="24">外からの通信</text>
+                <text x="291" y="35" fill="currentColor" stroke="none" font-size="24">端末側</text>
+                <rect x="198" y="50" width="60" height="202" rx="7" fill="var(--is-soft)"/>
+                <text x="228" y="80" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">規則</text>
+                <path d="M24 126 H372 M360 116 L372 126 L360 136" stroke="var(--is-accent)" stroke-width="4"/>
+                <text x="25" y="110" fill="currentColor" stroke="none" font-size="24">許可の対象</text>
+                <text x="285" y="110" fill="currentColor" stroke="none" font-size="24">通す</text>
+                <path d="M24 214 H228" stroke-dasharray="9 6"/>
+                <path d="M228 196 V234" stroke-width="6"/>
+                <text x="25" y="194" fill="currentColor" stroke="none" font-size="24">遮断の対象</text>
+                <text x="285" y="222" fill="currentColor" stroke="none" font-size="24">止める</text>
+              </svg>
+              <figcaption>接続先などの条件を使い、どの通信を許可するかを決めます。</figcaption>
+            </figure>
+            <p><strong>通信を通すかどうか</strong>を制御します。許可された通信でも、不正な内容が含まれる可能性はあります。</p>
+          </div>
+          <div class="is-card" data-is-highlight="encryption">
+            <h3>暗号化</h3>
+            <figure class="sec-visual">
+              <svg viewBox="0 0 420 280" role="img" aria-labelledby="is44-encryption-title is44-encryption-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <title id="is44-encryption-title">送信する内容を暗号化する模式図</title>
+                <desc id="is44-encryption-desc">送信側の読める内容を、通信中は暗号化したデータに変え、受信側で元の内容に戻す。通信の途中で第三者が内容を読み取ることへの対策を示し、具体的な暗号方式は示さない。</desc>
+                <rect x="20" y="32" width="380" height="60" rx="10" fill="var(--is-panel)"/>
+                <text x="210" y="71" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">送信側：読める内容</text>
+                <path d="M85 94 V126 M76 117 L85 126 L94 117"/>
+                <text x="112" y="120" fill="currentColor" stroke="none" font-size="24">暗号化</text>
+                <rect x="20" y="130" width="380" height="54" rx="10" fill="var(--is-soft)" stroke="var(--is-accent)"/>
+                <text x="210" y="166" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">通信中：暗号化したデータ</text>
+                <path d="M85 186 V218 M76 209 L85 218 L94 209"/>
+                <text x="112" y="211" fill="currentColor" stroke="none" font-size="24">元に戻す</text>
+                <rect x="20" y="222" width="380" height="48" rx="10" fill="var(--is-panel)"/>
+                <text x="210" y="254" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">受信側：読める内容</text>
+              </svg>
+              <figcaption>通信途中で、第三者に内容を読み取られにくくします。</figcaption>
+            </figure>
+            <p><strong>情報の内容</strong>を保護します。暗号化された通信であっても、相手の説明や商品が正しいと保証されるわけではありません。</p>
+          </div>
+        </div>
+        <p class="is-observe" data-is-panel="firewall"><strong>着目する場所：</strong>通信の境界です。決めた規則に従って、通す通信と止める通信を分けます。</p>
+        <p class="is-observe" data-is-panel="encryption"><strong>着目する場所：</strong>やり取りするデータの内容です。暗号化だけで、利用者が相手に入力・送信した情報まで守れるとは限りません。</p>
+        <div role="group" aria-label="技術の選択を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <p class="is-note">鍵の使い方、TLS、証明書の仕組みは、ネットワークの単元で学びます。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="保存して戻す／停止を減らして続ける">
+    <article>
+      <h2 id="headline_4">(4) 保存して戻す／停止を減らして続ける</h2>
+      <p class="is-lead"><strong>バックアップ</strong>は保存した版からデータを復元するための備えです。<strong>冗長化</strong>は機器などを余分に用意し、故障したときの停止を減らすための備えです。</p>
+      <p class="is-note">左は9:00の保存版Aだけから復元する例、右は必要なデータを持つ予備系へ切り替える例です。時刻と版は学習用の人工データです。</p>
+      <div class="is-model" data-is-model="is44-recovery" data-is-default="save">
+        <div class="is-tabs" role="group" aria-label="復旧までの時点を選ぶ">
+          <button type="button" data-is-select="save" aria-pressed="false">1 保存時点</button>
+          <button type="button" data-is-select="update" aria-pressed="false">2 内容を更新</button>
+          <button type="button" data-is-select="fault" aria-pressed="false">3 故障</button>
+          <button type="button" data-is-select="restore" aria-pressed="false">4 復元・切替</button>
+        </div>
+        <div class="sec-grid">
+          <div class="is-card">
+            <h3>保存して戻す：バックアップ</h3>
+            <figure class="sec-visual">
+              <svg viewBox="0 0 420 430" role="img" aria-labelledby="is44-backup-title is44-backup-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <title id="is44-backup-title">保存時点から復元時点までの時系列</title>
+                <desc id="is44-backup-desc">9時に作業中の版Aを別に保存する。9時10分に作業中の内容を版Bに更新するが保存版はAのままである。9時20分に故障し、9時30分に保存版Aを復元する。版Bへの更新はこの保存版には含まれない。</desc>
+                <text x="105" y="33" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">作業中の版</text>
+                <text x="324" y="33" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">保存版</text>
+                <g data-is-highlight="save">
+                  <rect x="15" y="56" width="180" height="58" rx="10" fill="var(--is-panel)"/>
+                  <text x="105" y="94" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">9:00 版A</text>
+                  <path d="M196 85 H248 M239 76 L248 85 L239 94"/>
+                  <rect x="256" y="56" width="140" height="58" rx="10" fill="var(--is-soft)"/>
+                  <text x="326" y="94" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">版A</text>
+                </g>
+                <path d="M105 116 V150 M96 141 L105 150 L114 141"/>
+                <g data-is-highlight="update">
+                  <rect x="15" y="156" width="180" height="58" rx="10" fill="var(--is-panel)"/>
+                  <text x="105" y="194" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">9:10 版B</text>
+                </g>
+                <path d="M105 216 V250 M96 241 L105 250 L114 241"/>
+                <g data-is-highlight="fault">
+                  <rect x="15" y="256" width="180" height="58" rx="10" stroke-dasharray="8 5" fill="var(--is-panel)"/>
+                  <text x="105" y="294" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">9:20 故障</text>
+                </g>
+                <g data-is-highlight="restore">
+                  <path d="M326 115 H390 V382 H198 M208 373 L198 382 L208 391"/>
+                  <text x="256" y="202" fill="currentColor" stroke="none" font-size="24">保存版A</text>
+                  <text x="256" y="233" fill="currentColor" stroke="none" font-size="24">を復元</text>
+                  <rect x="15" y="354" width="180" height="58" rx="10" fill="var(--is-soft)"/>
+                  <text x="105" y="392" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">9:30 版A</text>
+                </g>
+              </svg>
+              <figcaption><strong>戻せるのは9:00の版A。</strong>9:10に行った更新は、この保存版には含まれていません。</figcaption>
+            </figure>
+          </div>
+          <div class="is-card">
+            <h3>停止を減らして続ける：冗長化</h3>
+            <figure class="sec-visual">
+              <svg viewBox="0 0 420 430" role="img" aria-labelledby="is44-standby-title is44-standby-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <title id="is44-standby-title">稼働系の故障から予備系への切替</title>
+                <desc id="is44-standby-desc">通常は稼働系が働き、予備系は待機する。稼働系が故障した後、必要なデータを持つ予備系へ切り替えて処理を続ける。これは過去の正しい版にデータを戻す操作とは異なる。</desc>
+                <text x="106" y="33" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">稼働系</text>
+                <text x="312" y="33" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">予備系</text>
+                <g data-is-highlight="save update">
+                  <rect x="16" y="56" width="180" height="92" rx="10" fill="var(--is-soft)"/>
+                  <text x="106" y="96" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">処理する</text>
+                  <text x="106" y="129" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">通常の運用</text>
+                  <rect x="224" y="56" width="180" height="92" rx="10" stroke-dasharray="8 5" fill="var(--is-panel)"/>
+                  <text x="314" y="96" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">待機する</text>
+                  <text x="314" y="129" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">切替に備える</text>
+                </g>
+                <path d="M106 150 V188 M97 179 L106 188 L115 179"/>
+                <g data-is-highlight="fault">
+                  <rect x="16" y="194" width="180" height="66" rx="10" stroke-dasharray="8 5" fill="var(--is-panel)"/>
+                  <text x="106" y="236" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">故障・停止</text>
+                </g>
+                <g data-is-highlight="restore">
+                  <path d="M107 262 V299 H314 V348 M305 339 L314 348 L323 339"/>
+                  <text x="223" y="284" fill="currentColor" stroke="none" font-size="24">切替</text>
+                  <rect x="224" y="354" width="180" height="58" rx="10" fill="var(--is-soft)"/>
+                  <text x="314" y="392" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">処理を続ける</text>
+                </g>
+              </svg>
+              <figcaption><strong>動かす系統を切り替える。</strong>過去の正しい版にデータを戻す操作とは別です。</figcaption>
+            </figure>
+          </div>
+        </div>
+        <p class="is-observe" data-is-panel="save"><strong>1 保存時点：</strong>故障前に版Aを別に保存します。予備系は、故障時に処理を引き継げるよう準備します。</p>
+        <p class="is-observe" data-is-panel="update"><strong>2 内容を更新：</strong>作業中の版がBになっても、9:00の保存版はAのままです。バックアップを作る間隔が、戻せる時点に関係します。</p>
+        <p class="is-observe" data-is-panel="fault"><strong>3 故障：</strong>バックアップも予備系も、ここで初めて準備するのでは間に合わないことがあります。</p>
+        <p class="is-observe" data-is-panel="restore"><strong>4 復元・切替：</strong>左では保存版Aを復元し、内容を確認します。右では予備系に処理を引き継ぎます。予備系にも誤った変更が伝わっていれば、切替だけでは正しい内容に戻りません。</p>
+        <div role="group" aria-label="時点の選択を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <p class="sec-emphasis">バックアップは<strong>保存先・保存する間隔・復元できること</strong>まで確認します。冗長化は、必ず無停止になるという保証ではありません。</p>
+      <p class="is-observe"><strong>説明する：</strong>9:10に開始時刻の情報を更新した後、9:00に保存した版Aを復元しました。そのまま使う前に、何を確かめる必要があるでしょうか。</p>
+      <p class="is-source">日常の備え：IPA「<a href="https://www.ipa.go.jp/security/anshin/measures/everyday.html" target="_blank" rel="noopener noreferrer">日常における情報セキュリティ対策</a>」のバックアップ（2026-10-03確認）。図は目的の違いを示す本教材独自の模式図です。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="記録から異常に気づく">
+    <article>
+      <h2 id="headline_5">(5) 記録から異常に気づく</h2>
+      <p class="is-lead"><strong>ログ</strong>は、システムの動作や利用の記録です。「いつ、何が行われたか」を確認し、異常の発見や調査に役立てます。</p>
+      <p class="is-note">次は文化祭進行表の人工の記録です。係は「9:00以降に開始時刻を変える予定はなかった」と説明しています。</p>
+      <div class="is-model" data-is-model="is44-log" data-is-default="record">
+        <div class="is-tabs" role="group" aria-label="記録を確認する視点を選ぶ">
+          <button type="button" data-is-select="record" aria-pressed="false">記録を読む</button>
+          <button type="button" data-is-select="compare" aria-pressed="false">予定と比べる</button>
+          <button type="button" data-is-select="report" aria-pressed="false">事実を伝える</button>
+        </div>
+        <div class="sec-grid">
+          <div class="is-table-wrap" role="region" tabindex="0" aria-label="進行表の人工ログ">
+            <table>
+              <caption>進行表の操作記録（人工データ）</caption>
+              <thead><tr><th scope="col">時刻</th><th scope="col">記録された操作</th></tr></thead>
+              <tbody>
+                <tr data-is-highlight="record"><th scope="row">8:50</th><td>進行表を保存した</td></tr>
+                <tr data-is-highlight="compare"><th scope="row">9:10</th><td>開始時刻を変更した</td></tr>
+                <tr data-is-highlight="report"><th scope="row">9:12</th><td>共有の設定を変更した</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <figure class="sec-visual">
+            <svg viewBox="0 0 420 310" role="img" aria-labelledby="is44-log-title is44-log-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is44-log-title">記録と予定を照合して確認につなぐ</title>
+              <desc id="is44-log-desc">開始時刻を変更したというログと、変更の予定がなかったという係の説明を照合する。食い違いを見つけたら教員や管理者へ事実を伝え、詳しく確認する。ログだけで不正を断定しない。</desc>
+              <g data-is-highlight="record">
+                <rect x="16" y="20" width="180" height="86" rx="10" fill="var(--is-panel)"/>
+                <text x="106" y="52" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">操作の記録</text>
+                <text x="106" y="86" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">時刻を変更</text>
+              </g>
+              <g data-is-highlight="compare">
+                <rect x="224" y="20" width="180" height="86" rx="10" fill="var(--is-panel)"/>
+                <text x="314" y="52" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">係の説明</text>
+                <text x="314" y="86" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">変更予定なし</text>
+                <path d="M106 108 V134 H210 M314 108 V134 H210 V160 M201 151 L210 160 L219 151"/>
+                <rect x="66" y="166" width="288" height="50" rx="10" fill="var(--is-soft)"/>
+                <text x="210" y="199" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">食い違いに気づく</text>
+              </g>
+              <g data-is-highlight="report">
+                <path d="M210 218 V246 M201 237 L210 246 L219 237"/>
+                <rect x="66" y="252" width="288" height="46" rx="10" fill="var(--is-panel)"/>
+                <text x="210" y="283" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">教員・管理者へ報告</text>
+              </g>
+            </svg>
+            <figcaption>記録と状況を照合し、確認が必要な変化を見つけます。</figcaption>
+          </figure>
+        </div>
+        <p class="is-observe" data-is-panel="record"><strong>記録を読む：</strong>保存・内容の変更・共有設定の変更が、時刻とともに残っています。記録にどのような項目が残るかは、システムによって異なります。</p>
+        <p class="is-observe" data-is-panel="compare"><strong>予定と比べる：</strong>9:10の変更は係の予定と食い違っています。操作の間違い、予定の伝達漏れ、不正な操作など、原因はこの記録だけでは決まりません。</p>
+        <p class="is-observe" data-is-panel="report"><strong>事実を伝える：</strong>9:10の内容変更に加えて、9:12に共有設定も変わったことを伝えます。記録を勝手に消さず、教員・管理者に確認を依頼します。</p>
+        <div role="group" aria-label="記録を見る視点を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <div class="sec-grid">
+        <div class="is-card"><h3>ログは確認・調査を助ける</h3><p>記録を残すだけで、改ざんを自動的に止められるわけではありません。管理者が記録を確認できる運用も必要です。</p></div>
+        <div class="is-card"><h3>デジタル署名は検証に使う</h3><p>署名されたデータについて、改ざんの有無などを検証します。データの変更そのものを阻止する技術とは区別します。</p><p class="is-source">参考：<a href="https://www.ipa.go.jp/e-signature.html" target="_blank" rel="noopener noreferrer">IPA「電子署名」</a>（2026-10-03確認）。</p></div>
+      </div>
+      <p class="is-observe"><strong>説明する：</strong>「記録を確認すること」と「原因を断定すること」は、どのように違うでしょうか。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="被害が疑われたら相談する">
+    <article>
+      <h2 id="headline_6">(6) 被害が疑われたら相談する</h2>
+      <p class="is-lead">被害の疑いに気づいたら、<strong>作業を止め、分かっている事実を教員・管理者へ早く伝えます</strong>。自分だけで原因を決めたり、復旧を進めたりする必要はありません。</p>
+      <figure class="is-scene"><img src="./img/information-security/is44-report-problem.webp" alt="端末の操作を止め、気付いた異常を教師に説明する高校生" width="1672" height="941" loading="lazy" decoding="async"><figcaption>分かっている事実を早く伝え、相談する場面（架空・AI生成）。</figcaption></figure>
+      <div class="is-model" data-is-model="is44-response" data-is-default="device">
+        <div class="is-tabs" role="group" aria-label="被害が疑われる状況を選ぶ">
+          <button type="button" data-is-select="device" aria-pressed="false">学校端末で異常</button>
+          <button type="button" data-is-select="account" aria-pressed="false">認証情報を入力した</button>
+          <button type="button" data-is-select="payment" aria-pressed="false">支払い情報を渡した</button>
+        </div>
+        <div class="is-card" data-is-panel="device">
+          <h3>学校の端末で感染などが疑われる</h3>
+          <p>利用を止め、学校の手順に従ってネットワークから切り離し、<strong>教員・管理者へ連絡</strong>します。切り離し方が分からなければ、すぐにそのことも伝えます。</p>
+          <p>警告に表示された電話番号へ連絡したり、指示されたソフトを入れたりせず、いつもの連絡先を使います。</p>
+        </div>
+        <div class="is-card" data-is-panel="account">
+          <h3>不審な画面にID・パスワードなどを入力した</h3>
+          <p><strong>何のサービスの、どの種類の情報を入力したか</strong>を教員・保護者などへ伝え、正規の窓口で対応を確認します。学校アカウントなら管理者へ連絡します。</p>
+          <p>サービスが案内するパスワード変更や利用状況の確認を、管理者などと進めます。入力した秘密の文字列そのものを、相談用のメモへ書く必要はありません。</p>
+        </div>
+        <div class="is-card" data-is-panel="payment">
+          <h3>カード情報などを入力・送信した、または支払った</h3>
+          <p>保護者などへ早く相談し、<strong>カード会社や金融機関の正規の窓口</strong>へ連絡します。利用停止など、必要な対応を確認します。</p>
+          <p>不審な画面やメッセージ内の連絡先は使わず、カードや公式サイトなどから窓口を確認します。</p>
+        </div>
+        <div role="group" aria-label="相談する状況の選択を戻す"><button type="button" data-is-reset>はじめから</button></div>
+      </div>
+      <div class="sec-grid">
+        <div class="is-card"><h3>相談するときに伝えること</h3><ul><li>いつ、どの端末・サービスで起きたか</li><li>どのような表示や変化があったか</li><li>何を開き、入力・実行・送信したか</li></ul></div>
+        <div class="is-card"><h3>調査と復旧につなぐ</h3><p>教員・管理者の指示を受けるまで、記録の削除や端末の初期化を勝手に進めません。感染の確認や駆除、利用再開の判断は、管理者などと行います。</p><p>警告表示だけで感染を断定せず、事実を落ち着いて伝えます。</p></div>
+      </div>
+      <p class="is-observe"><strong>自分の言葉で伝える：</strong>「9:15ごろ、学校の端末で、見慣れない警告が表示された」と相談を始めるとしたら、次に何を伝えますか。</p>
+      <p class="is-source">対処の確認：IPA「<a href="https://www.ipa.go.jp/security/anshin/attention/2021/mgdayori20211222.html" target="_blank" rel="noopener noreferrer">偽SMSの手口と対処</a>」「<a href="https://www.ipa.go.jp/security/anshin/attention/2024/mgdayori20241119.html" target="_blank" rel="noopener noreferrer">偽のウイルス感染警告への注意</a>」（2026-10-03確認）。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="重要語句・ポイント">
+    <article>
+      <h2 id="headline_7">(7) 重要語句・ポイント</h2>
+      <p class="is-lead">文化祭の進行表を安全に使うには、技術だけでなく、<strong>誰が何をするか</strong>という運用も決めます。</p>
+      <div class="is-table-wrap" role="region" tabindex="0" aria-label="文化祭進行表の運用例">
+        <table>
+          <caption>係の運用を決める例</caption>
+          <thead><tr><th scope="col">決めること</th><th scope="col">担当と行動</th><th scope="col">目的</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">誰が編集するか</th><td>教員が担当に必要な権限を設定し、係は自分のアカウントを使う</td><td>必要な人が、必要な範囲で利用する</td></tr>
+            <tr><th scope="row">いつ保存するか</th><td>保存担当が決めた間隔で別に保存し、教員と復元を確認する</td><td>どの時点に戻せるか分かるようにする</td></tr>
+            <tr><th scope="row">異常を誰に伝えるか</th><td>気づいた人が作業を止め、事実を教員・管理者に伝える</td><td>調査し、被害の拡大を抑えて復旧につなぐ</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="is-review">
+        <div class="is-terms">
+          <h3>重要語句</h3>
+          <details open><summary>多層防御</summary><p>目的や働く場所の異なる複数の対策を重ね、被害を防いだり抑えたりする考え方。</p></details>
+          <details open><summary>更新（アップデート）</summary><p>ソフトウェアを新しい版などにすること。既知の脆弱性を修正する目的でも行う。</p></details>
+          <details open><summary>ファイアウォール</summary><p>決めた規則に従って、通信を許可したり遮断したりする仕組み。</p></details>
+          <details open><summary>暗号化</summary><p>情報を変換し、第三者に元の内容を読み取られにくくすること。</p></details>
+          <details open><summary>バックアップ</summary><p>データの消失などに備えて別に保存した複製、または複製を作ること。復元できる内容は保存時点に関係する。</p></details>
+          <details open><summary>冗長化</summary><p>機器や経路などを余分に用意し、一部が故障しても処理を継続できるようにすること。</p></details>
+          <details open><summary>ログ</summary><p>システムの動作や利用の記録。異常の発見や、何が起きたかの確認・調査に役立つ。</p></details>
+          <details open><summary>デジタル署名</summary><p>データの改ざんの有無や署名者などを検証するための技術。変更そのものを阻止するものではない。</p></details>
+        </div>
+        <div class="sec-summary">
+          <h3>押さえる3つのポイント</h3>
+          <ol>
+            <li><strong>目的が違う対策を組み合わせる。</strong>更新・権限・通信制御・確認・復旧を、人の行動や組織の手順と合わせて考える。</li>
+            <li><strong>戻す時点と、続ける仕組みを区別する。</strong>保存版の復元と、予備系への切替では目的と確認することが違う。</li>
+            <li><strong>異常は早く相談する。</strong>分かっている事実を教員・管理者へ伝え、調査と復旧につなぐ。</li>
+          </ol>
+          <p class="is-observe"><strong>振り返る：</strong>運用表の三つの行から一つ選び、その担当や行動を決めていないと、どんなときに困るか説明しましょう。</p>
+          <p class="is-note">守る必要と使いやすさの両方を考え、担当者が実行できる手順にします。</p>
+        </div>
+      </div>
+    </article>
+  </section>
+</body>
+</html>

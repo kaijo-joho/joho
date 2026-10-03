@@ -1,0 +1,57 @@
+@charset "UTF-8";
+
+/* Security lessons share the IS state controller and the common lesson deck. */
+.is-security .sec-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  align-items: start;
+  margin-block: 14px;
+}
+.is-security .sec-grid--three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.is-security .sec-grid > *, .is-security .sec-scene-pair > * { min-width: 0; }
+.is-security .sec-visual { width: min(100%, 480px); margin-inline: auto; }
+.is-security .sec-visual svg { display: block; width: 100%; height: auto; color: var(--is-text); }
+.is-security .sec-visual svg text { font-family: inherit; }
+.is-security .sec-caption { color: var(--is-muted); font-size: .88em; line-height: 1.6; }
+.is-security .sec-emphasis { color: var(--is-accent); font-weight: 700; }
+.is-security .sec-summary { padding: 14px 16px; border: 2px solid var(--is-accent); border-radius: 12px; background: var(--is-soft); }
+.is-security .sec-tag { display: inline-block; padding: .15em .5em; border: 1px solid var(--is-border); border-radius: 5px; font-size: .85em; font-weight: 700; }
+.is-security .sec-flow { display: flex; flex-wrap: wrap; gap: 20px; align-items: stretch; padding: 0; margin-block: 16px; list-style: none; }
+.is-security .sec-step { position: relative; flex: 1 1 8em; min-width: 0; margin: 0; padding: 12px; box-sizing: border-box; border: 1px solid var(--is-border); border-radius: 10px; background: var(--is-soft); }
+.is-security .sec-step + .sec-step::before { content: "→"; position: absolute; left: -19px; top: 12px; font-weight: 700; color: var(--is-accent); }
+.is-security .sec-scene-pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 20px; align-items: start; margin-block: 16px; }
+.is-security .is41-stack { display: grid; gap: 12px; align-content: start; }
+.is-security [data-is-model]:not([data-is-ready]) :is(.is-tabs, [data-is-reset]) { display: none; }
+
+@media (max-width: 900px) {
+  .is-security .sec-grid--three { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+  .is-security :is(.sec-grid, .sec-scene-pair) { grid-template-columns: minmax(0, 1fr); }
+  .is-security .sec-flow { flex-direction: column; gap: 22px; }
+  .is-security .sec-step { flex-basis: auto; }
+  .is-security .sec-step + .sec-step::before { content: "↓"; left: 12px; top: -25px; }
+}
+@media print {
+  .is-security {
+    --is-panel: #fff; --is-soft: #f4f6f8; --is-text: #203040; --is-muted: #53697b;
+    --is-accent: #225386; --is-border: #bbcede; --is-change: #8c480b;
+    background: #fff !important;
+  }
+  .is-security .skip-link { display: none !important; }
+  .is-security :focus-visible { outline: none !important; }
+  .is-security .lesson-slide { background: #fff; box-shadow: none; }
+  .is-security section article { background: #fff !important; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .is-security [data-lesson-slide] :is(h1, h2) { color: var(--is-accent) !important; }
+  .is-security .is-model { break-inside: auto; }
+  .is-security :is(.sec-grid, .sec-scene-pair, .is41-stack, .is-review, .is-columns) { display: block; }
+  .is-security :is(.sec-grid, .sec-scene-pair, .is41-stack, .is-review, .is-columns) > * + * { margin-top: 12px; }
+  .is-security .sec-visual { max-width: 360px; }
+  .is-security .is-terms details { break-inside: avoid; }
+  .is-security :is(h2, h3, summary) { break-after: avoid; }
+  .is-security :is(.sec-summary, .sec-step, .sec-visual) { break-inside: avoid; }
+  .is-security .sec-flow { display: block; }
+  .is-security .sec-step { margin-block: 12px; }
+  .is-security .sec-step::before { display: none; }
+}

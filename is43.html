@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>認証とアクセス権 | 情報社会</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
+  <link rel="stylesheet" href="./css/information-security.css" integrity="sha384-2Yfyj9cjBPwCFJqKNO6/eDZtQhR2FF2EWh1BahExkGRPmKFhAd/D57Nt89vrxhlk">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
+  <script defer src="./js/information-security.js" integrity="sha384-iFVaVYS3IJAYVl5i49m/V6MlxPfQWmRk2jBkEpi2hOwOcxn0VZo50nmy/DGMu+gd"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body class="is-lesson is-security" data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="利用者を確かめ、権限を確認する">
+    <article>
+      <h2 id="headline_1">(1) 利用者を確かめ、権限を確認する</h2>
+      <p class="is-lead">情報を利用するときは、<strong>誰と名乗るか・本人か・何ができるか</strong>を区別します。本人だと確認できても、すべての操作が許されるわけではありません。</p>
+      <p class="is-note">この画面の条件：架空の「確認担当」は、文化祭の進行表を<strong>閲覧でき、編集できない</strong>設定です。実際のIDやパスワードは入力しません。</p>
+      <div class="is-model" data-is-model="is43-entry" data-is-default="identify">
+        <div class="is-tabs" role="group" aria-label="利用開始の段階を選ぶ">
+          <button type="button" data-is-select="identify" aria-pressed="false">1 IDを示す</button>
+          <button type="button" data-is-select="authenticate" aria-pressed="false">2 本人を確かめる</button>
+          <button type="button" data-is-select="authorize" aria-pressed="false">3 権限を確かめる</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 420 330" role="img" aria-labelledby="is43-entry-title is43-entry-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is43-entry-title">識別から認証、認可への流れ</title>
+              <desc id="is43-entry-desc">上からIDによる識別、本人か確かめる認証、許可された操作を確かめる認可へ進む。確認担当は閲覧のみ許可される。三つの箱と矢印は常に表示する。</desc>
+              <g data-is-highlight="identify">
+                <rect x="35" y="15" width="350" height="76" rx="12" fill="var(--is-panel)"/>
+                <text x="210" y="47" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">識別：誰と名乗るか</text>
+                <text x="210" y="76" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">IDで利用者を区別</text>
+              </g>
+              <path d="M210 93 V117 M201 108 L210 117 L219 108"/>
+              <g data-is-highlight="authenticate">
+                <rect x="35" y="120" width="350" height="76" rx="12" fill="var(--is-panel)"/>
+                <text x="210" y="152" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">認証：本人か</text>
+                <text x="210" y="181" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">認証の情報を確認</text>
+              </g>
+              <path d="M210 198 V222 M201 213 L210 222 L219 213"/>
+              <g data-is-highlight="authorize">
+                <rect x="35" y="225" width="350" height="88" rx="12" fill="var(--is-panel)"/>
+                <text x="210" y="258" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">認可：何ができるか</text>
+                <text x="210" y="290" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">この担当は閲覧のみ</text>
+              </g>
+            </svg>
+            <figcaption>同じ利用者でも、段階によって確かめていることが違います。</figcaption>
+          </figure>
+          <div>
+            <div class="is-card" data-is-panel="identify">
+              <h3>1 識別：IDを示す</h3>
+              <p><strong>ID</strong>は、利用者やアカウントを区別するための符号です。IDを示しただけでは、本人だと確認したことにはなりません。</p>
+              <p>IDと、本人確認に使う秘密のパスワードは役割が異なります。</p>
+            </div>
+            <div class="is-card" data-is-panel="authenticate">
+              <h3>2 認証：本人か確かめる</h3>
+              <p><strong>認証</strong>では、示されたIDの利用者本人かを、パスワードなどで確かめます。</p>
+              <p>この例では本人だと確認できました。続いて、進行表に対して許可されている操作を確認します。</p>
+            </div>
+            <div class="is-card" data-is-panel="authorize">
+              <h3>3 認可：許可された操作を確かめる</h3>
+              <p><strong>認可</strong>では、その利用者のアクセス権に基づいて、操作を許可するか判断します。</p>
+              <p>確認担当には<strong>閲覧を許可</strong>します。編集する権限は与えられていないため、内容の変更はできません。</p>
+            </div>
+          </div>
+        </div>
+        <div class="is-tabs" role="group" aria-label="利用開始の観察を戻す"><button type="button" data-is-reset>最初の段階へ戻す</button></div>
+      </div>
+      <p class="is-observe"><strong>説明する：</strong>本人だと確認できた「確認担当」が、進行表を編集できないのはなぜでしょうか。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="認証に使う3種類の情報">
+    <article>
+      <h2 id="headline_2">(2) 認証に使う3種類の情報</h2>
+      <p class="is-lead">認証に使う要素は、<strong>知識・所持・生体</strong>の3種類に分けられます。使った機器の名前だけでなく、<strong>何を確かめているか</strong>に注目します。</p>
+      <div class="is-model" data-is-model="is43-factors" data-is-default="knowledge">
+        <div class="is-tabs" role="group" aria-label="認証要素の例を選ぶ">
+          <button type="button" data-is-select="knowledge" aria-pressed="false">パスワード</button>
+          <button type="button" data-is-select="possession" aria-pressed="false">登録したセキュリティキー</button>
+          <button type="button" data-is-select="biometric" aria-pressed="false">指紋の照合</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 420 330" role="img" aria-labelledby="is43-factors-title is43-factors-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is43-factors-title">本人を確かめる三つの手掛かり</title>
+              <desc id="is43-factors-desc">知っている秘密、持っている登録済みの機器、身体の特徴という三つの箱から、本人の確認へそれぞれ線がつながる。各行は一種類の認証要素の例。</desc>
+              <g data-is-highlight="knowledge">
+                <rect x="12" y="17" width="238" height="76" rx="12" fill="var(--is-panel)"/>
+                <text x="131" y="48" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">知識</text>
+                <text x="131" y="78" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">知っている秘密</text>
+                <path d="M251 55 H280 V152 H305 M296 143 L305 152 L296 161"/>
+              </g>
+              <g data-is-highlight="possession">
+                <rect x="12" y="127" width="238" height="76" rx="12" fill="var(--is-panel)"/>
+                <text x="131" y="158" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">所持</text>
+                <text x="131" y="188" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">持っている機器</text>
+                <path d="M251 166 H305 M296 157 L305 166 L296 175"/>
+              </g>
+              <g data-is-highlight="biometric">
+                <rect x="12" y="237" width="238" height="76" rx="12" fill="var(--is-panel)"/>
+                <text x="131" y="268" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">生体</text>
+                <text x="131" y="298" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">身体の特徴</text>
+                <path d="M251 275 H280 V180 H305 M296 171 L305 180 L296 189"/>
+              </g>
+              <rect x="309" y="117" width="99" height="100" rx="12" fill="var(--is-soft)"/>
+              <text x="358" y="158" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">本人</text>
+              <text x="358" y="190" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">確認</text>
+            </svg>
+            <figcaption>各行は、1種類の要素を使う例です。三つを同時に求める図ではありません。</figcaption>
+          </figure>
+          <div>
+            <div class="is-card" data-is-panel="knowledge"><h3>知識情報</h3><p>利用者が<strong>秘密を知っていること</strong>を確かめます。パスワードや暗証番号などが該当します。</p></div>
+            <div class="is-card" data-is-panel="possession"><h3>所持情報</h3><p>利用者が<strong>登録された物を持ち、使えること</strong>を確かめます。この例では、登録したセキュリティキーからの応答を確認します。</p><p>スマートフォンを使っていても、パスワードを入力するだけなら、その操作で確認しているのは知識です。</p></div>
+            <div class="is-card" data-is-panel="biometric"><h3>生体情報</h3><p>指紋や顔などの<strong>身体の特徴が、登録した特徴と合うこと</strong>を確かめます。</p><p>ここでは指紋の特徴を照合する例で考えます。</p></div>
+          </div>
+        </div>
+        <div class="is-table-wrap" tabindex="0" role="region" aria-label="認証の3要素と確認内容">
+          <table>
+            <caption>何を確かめているかで分ける</caption>
+            <thead><tr><th scope="col">要素</th><th scope="col">この教材での例</th><th scope="col">確認すること</th></tr></thead>
+            <tbody>
+              <tr data-is-highlight="knowledge"><th scope="row">知識</th><td>パスワード</td><td>秘密を知っている</td></tr>
+              <tr data-is-highlight="possession"><th scope="row">所持</th><td>登録したセキュリティキー</td><td>登録された物を持ち、使える</td></tr>
+              <tr data-is-highlight="biometric"><th scope="row">生体</th><td>指紋の照合</td><td>身体の特徴が登録した特徴と合う</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="is-tabs" role="group" aria-label="認証要素の観察を戻す"><button type="button" data-is-reset>最初の例へ戻す</button></div>
+      </div>
+      <p class="is-observe"><strong>説明する：</strong>「スマートフォンを使った」という情報だけで、認証要素の種類を決められるでしょうか。</p>
+      <p class="is-source">参考：IPA「<a href="https://www.ipa.go.jp/security/anshin/measures/account_security.html" target="_blank" rel="noopener noreferrer">不正ログイン対策特集ページ</a>」多要素認証（2026-10-03確認）。図と例の構成は本教材独自のものです。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="異なる種類を組み合わせる多要素認証">
+    <article>
+      <h2 id="headline_3">(3) 異なる種類を組み合わせる多要素認証</h2>
+      <p class="is-lead"><strong>多要素認証（MFA）</strong>は、知識・所持・生体のうち、<strong>異なる種類の要素を2つ以上</strong>組み合わせて本人を確かめる方法です。</p>
+      <p>一つの要素が他人に知られたり、使われたりしても、別の種類の要素で確認を重ねることで、不正な利用を防ぎやすくします。</p>
+      <div class="is-model" data-is-model="is43-mfa" data-is-default="knowledge-possession">
+        <div class="is-tabs" role="group" aria-label="異なる認証要素の組合せを選ぶ">
+          <button type="button" data-is-select="knowledge-possession" aria-pressed="false">知識 ＋ 所持</button>
+          <button type="button" data-is-select="knowledge-biometric" aria-pressed="false">知識 ＋ 生体</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 420 315" role="img" aria-labelledby="is43-mfa-title is43-mfa-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is43-mfa-title">異なる二種類を組み合わせる認証</title>
+              <desc id="is43-mfa-desc">上段は知識と所持、下段は知識と生体を、それぞれ二本の線で両方を確認する箱につなぐ。どちらの組合せも異なる二種類を使う。</desc>
+              <g data-is-highlight="knowledge-possession">
+                <rect x="12" y="16" width="115" height="52" rx="10" fill="var(--is-panel)"/>
+                <rect x="12" y="88" width="115" height="52" rx="10" fill="var(--is-panel)"/>
+                <text x="69" y="51" text-anchor="middle" fill="currentColor" stroke="none" font-size="27">知識</text>
+                <text x="69" y="123" text-anchor="middle" fill="currentColor" stroke="none" font-size="27">所持</text>
+                <path d="M130 42 H179 V78 H229 M130 114 H179 V78 M219 68 L229 78 L219 88"/>
+                <rect x="234" y="40" width="170" height="76" rx="10" fill="var(--is-soft)"/>
+                <text x="319" y="72" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">両方を確認</text>
+                <text x="319" y="101" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">異なる2種類</text>
+              </g>
+              <g data-is-highlight="knowledge-biometric">
+                <rect x="12" y="175" width="115" height="52" rx="10" fill="var(--is-panel)"/>
+                <rect x="12" y="247" width="115" height="52" rx="10" fill="var(--is-panel)"/>
+                <text x="69" y="210" text-anchor="middle" fill="currentColor" stroke="none" font-size="27">知識</text>
+                <text x="69" y="282" text-anchor="middle" fill="currentColor" stroke="none" font-size="27">生体</text>
+                <path d="M130 201 H179 V237 H229 M130 273 H179 V237 M219 227 L229 237 L219 247"/>
+                <rect x="234" y="199" width="170" height="76" rx="10" fill="var(--is-soft)"/>
+                <text x="319" y="231" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">両方を確認</text>
+                <text x="319" y="260" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">異なる2種類</text>
+              </g>
+            </svg>
+            <figcaption>入力の回数ではなく、要素の種類を数えます。</figcaption>
+          </figure>
+          <div>
+            <div class="is-card" data-is-panel="knowledge-possession"><h3>知識 ＋ 所持の例</h3><p>パスワードを知っていることに加え、登録したセキュリティキーを持ち、使えることを確認します。</p><p><strong>秘密を知っていること</strong>と<strong>登録された物を使えること</strong>は、異なる種類の要素です。</p></div>
+            <div class="is-card" data-is-panel="knowledge-biometric"><h3>知識 ＋ 生体の例</h3><p>パスワードを知っていることに加え、指紋の特徴が登録した特徴と合うことを確認する仕組みを考えます。</p><p><strong>秘密を知っていること</strong>と<strong>身体の特徴が合うこと</strong>は、異なる種類の要素です。</p></div>
+            <p class="is-note">パスワードと暗証番号は、どちらも知識です。2回確認するだけでは、多要素認証の条件を満たしません。</p>
+          </div>
+        </div>
+        <div class="is-tabs" role="group" aria-label="多要素認証の比較を戻す"><button type="button" data-is-reset>最初の組合せへ戻す</button></div>
+      </div>
+      <p class="sec-emphasis"><strong>多要素認証にも残る危険：</strong>認証コードを使う方式では、偽サイトへコードを入力させて悪用する手口があります。多要素認証を設定した後も、入力先を確かめる必要があります。</p>
+      <p class="is-observe"><strong>説明する：</strong>選んだ組合せについて、「何を確かめるか」を二つ挙げ、多要素認証になる理由を説明しましょう。</p>
+      <p class="is-source">参考：IPA「<a href="https://www.ipa.go.jp/security/anshin/measures/account_security.html" target="_blank" rel="noopener noreferrer">不正ログイン対策特集ページ</a>」「<a href="https://www.ipa.go.jp/security/anshin/attention/2021/mgdayori20211222.html" target="_blank" rel="noopener noreferrer">通信事業者などをかたる偽SMSへの注意</a>」（2026-10-03確認）。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="パスワードを守り、影響を広げない">
+    <article>
+      <h2 id="headline_4">(4) パスワードを守り、影響を広げない</h2>
+      <p class="is-lead">パスワードは<strong>長く、推測されにくく、サービスごとに異なるもの</strong>にします。使い回すと、一か所から流出した情報が別のサービスでも悪用されるおそれがあります。</p>
+      <p class="is-note">比較の条件：架空のサービスAからIDとパスワードが流出したと仮定します。A・B・Cで同じIDを使い、パスワードの使い回しの有無だけを比べます。認証が成功するかは、他の対策にも左右されます。</p>
+      <div class="is-model" data-is-model="is43-reuse" data-is-default="reuse">
+        <div class="is-tabs" role="group" aria-label="パスワードの使い方を比較する">
+          <button type="button" data-is-select="reuse" aria-pressed="false">同じ秘密を使う</button>
+          <button type="button" data-is-select="distinct" aria-pressed="false">サービスごとに分ける</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 420 355" role="img" aria-labelledby="is43-reuse-title is43-reuse-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is43-reuse-title">流出した秘密がほかでも一致するかを比べる</title>
+              <desc id="is43-reuse-desc">上段ではサービスA、B、Cの秘密がすべてαで、AからB、Cへ矢印が伸びる。下段ではAがα、Bがβ、Cがγで、Aからの線に止め線があり一致しないことを表す。αなどはパスワードそのものではなく比較用の札。</desc>
+              <g data-is-highlight="reuse">
+                <text x="210" y="31" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">同じ秘密：ほかでも一致</text>
+                <rect x="10" y="57" width="114" height="91" rx="10" fill="var(--is-panel)"/>
+                <rect x="153" y="57" width="114" height="91" rx="10" fill="var(--is-panel)"/>
+                <rect x="296" y="57" width="114" height="91" rx="10" fill="var(--is-panel)"/>
+                <text x="67" y="91" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">A</text><text x="67" y="125" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">秘密 α</text>
+                <text x="210" y="91" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">B</text><text x="210" y="125" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">秘密 α</text>
+                <text x="353" y="91" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">C</text><text x="353" y="125" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">秘密 α</text>
+                <path d="M67 151 V171 H353 V152 M210 171 V152 M202 160 L210 152 L218 160 M345 160 L353 152 L361 160"/>
+              </g>
+              <g data-is-highlight="distinct">
+                <text x="210" y="215" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">別の秘密：ほかでは不一致</text>
+                <rect x="10" y="237" width="114" height="91" rx="10" fill="var(--is-panel)"/>
+                <rect x="153" y="237" width="114" height="91" rx="10" fill="var(--is-panel)"/>
+                <rect x="296" y="237" width="114" height="91" rx="10" fill="var(--is-panel)"/>
+                <text x="67" y="271" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">A</text><text x="67" y="305" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">秘密 α</text>
+                <text x="210" y="271" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">B</text><text x="210" y="305" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">秘密 β</text>
+                <text x="353" y="271" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">C</text><text x="353" y="305" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">秘密 γ</text>
+                <path d="M67 330 V344 H353 V336 M210 344 V336" stroke-dasharray="5 5"/>
+                <path d="M197 335 H223 M340 335 H366"/>
+              </g>
+            </svg>
+            <figcaption>α・β・γは秘密を区別する札です。実際に使う文字列ではありません。</figcaption>
+          </figure>
+          <div>
+            <div class="is-card" data-is-panel="reuse"><h3>同じ秘密を使っている場合</h3><p>Aから流出したIDとパスワードの組合せが、<strong>B・Cでも一致</strong>します。他のサービスでの不正ログインにもつながるおそれがあります。</p></div>
+            <div class="is-card" data-is-panel="distinct"><h3>サービスごとに分けた場合</h3><p>Aから流出したパスワードは、<strong>B・Cでは一致しません</strong>。同じ秘密の使い回しによる被害の拡大を抑えられます。</p><p>Aへの対応は必要です。B・Cにも、別の手口による被害の可能性は残ります。</p></div>
+            <ul>
+              <li>身近な人にも推測されにくい秘密にする。</li>
+              <li>他人へ教えたり、見える場所へ置いたりしない。</li>
+              <li>入力する前に、正しいサービスか確かめる。</li>
+            </ul>
+          </div>
+        </div>
+        <div class="is-tabs" role="group" aria-label="パスワードの比較を戻す"><button type="button" data-is-reset>最初の比較へ戻す</button></div>
+      </div>
+      <p class="is-observe"><strong>説明する：</strong>サービスごとにパスワードを分けると、何による被害の広がりを抑えられるでしょうか。</p>
+      <p class="is-source">参考：IPA「<a href="https://www.ipa.go.jp/security/anshin/measures/account_security.html" target="_blank" rel="noopener noreferrer">不正ログイン対策特集ページ</a>」パスワードの作成・管理（2026-10-03確認）。A・B・Cの比較は本教材独自の模式図です。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="必要な人へ必要な権限を与える">
+    <article>
+      <h2 id="headline_5">(5) 必要な人へ必要な権限を与える</h2>
+      <p class="is-lead"><strong>アクセス権</strong>は、情報や機能に対して、閲覧・編集などの操作を行う権限です。作業の目的に合わせて、<strong>必要な人に、必要な範囲</strong>を許可します。</p>
+      <p>この例では、進行表の<strong>内部版</strong>と、確認して公開した<strong>来場者用</strong>を分けます。作成担当は両方を閲覧・編集し、確認担当は両方を閲覧します。外部の人は来場者用だけを閲覧できます。</p>
+      <div class="is-model" data-is-model="is43-permissions" data-is-default="editor">
+        <div class="is-tabs" role="group" aria-label="進行表を使う役割を選ぶ">
+          <button type="button" data-is-select="editor" aria-pressed="false">作成担当</button>
+          <button type="button" data-is-select="reviewer" aria-pressed="false">確認担当</button>
+          <button type="button" data-is-select="visitor" aria-pressed="false">外部の人</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 420 320" role="img" aria-labelledby="is43-permissions-title is43-permissions-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is43-permissions-title">役割と利用できる進行表の関係</title>
+              <desc id="is43-permissions-desc">左に作成担当、確認担当、外部の人。右に内部版と来場者用。作成担当と確認担当は両方へ線がつながり、外部の人は来場者用だけへつながる。編集と閲覧の違いは併記した権限表に示す。</desc>
+              <rect x="290" y="33" width="120" height="95" rx="10" fill="var(--is-soft)"/>
+              <rect x="290" y="212" width="120" height="95" rx="10" fill="var(--is-soft)"/>
+              <text x="350" y="89" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">内部版</text>
+              <text x="350" y="267" text-anchor="middle" fill="currentColor" stroke="none" font-size="24">来場者用</text>
+              <g data-is-highlight="editor">
+                <rect x="10" y="20" width="145" height="70" rx="10" fill="var(--is-panel)"/>
+                <text x="82" y="64" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">作成担当</text>
+                <path d="M158 55 H286 M277 46 L286 55 L277 64 M184 55 V231 H286 M277 222 L286 231 L277 240"/>
+              </g>
+              <g data-is-highlight="reviewer">
+                <rect x="10" y="124" width="145" height="70" rx="10" fill="var(--is-panel)"/>
+                <text x="82" y="168" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">確認担当</text>
+                <path d="M158 159 H236 V104 H286 M277 95 L286 104 L277 113 M236 159 V261 H286 M277 252 L286 261 L277 270"/>
+              </g>
+              <g data-is-highlight="visitor">
+                <rect x="10" y="228" width="145" height="70" rx="10" fill="var(--is-panel)"/>
+                <text x="82" y="272" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">外部の人</text>
+                <path d="M158 278 H213 V289 H286 M277 280 L286 289 L277 298"/>
+              </g>
+            </svg>
+            <figcaption>線は利用できる範囲を示します。許可される操作の種類は、下の表で確かめます。</figcaption>
+          </figure>
+          <div>
+            <div class="is-card" data-is-panel="editor"><h3>作成担当</h3><p>進行表を整えるため、内部版と来場者用の<strong>閲覧・編集</strong>を許可します。</p><p>編集できても、目的と無関係な内容まで自由に扱ってよいという意味ではありません。</p></div>
+            <div class="is-card" data-is-panel="reviewer"><h3>確認担当</h3><p>内容を確認するため、両方の<strong>閲覧</strong>を許可します。修正が必要なら作成担当へ伝えます。</p><p>本人だと認証されても、編集する権限はありません。</p></div>
+            <div class="is-card" data-is-panel="visitor"><h3>外部の人</h3><p>当日の案内を読むため、<strong>来場者用の閲覧</strong>だけを許可します。内部版へのアクセスは許可しません。</p><p>この例の来場者用は、公開する内容を確認したうえで誰でも閲覧できる設定です。</p></div>
+          </div>
+        </div>
+        <div class="is-table-wrap" tabindex="0" role="region" aria-label="進行表の役割別アクセス権">
+          <table>
+            <caption>この例で許可する操作</caption>
+            <thead><tr><th scope="col">役割</th><th scope="col">進行表・内部版</th><th scope="col">進行表・来場者用</th></tr></thead>
+            <tbody>
+              <tr data-is-highlight="editor"><th scope="row">作成担当</th><td>閲覧・編集</td><td>閲覧・編集</td></tr>
+              <tr data-is-highlight="reviewer"><th scope="row">確認担当</th><td>閲覧のみ</td><td>閲覧のみ</td></tr>
+              <tr data-is-highlight="visitor"><th scope="row">外部の人</th><td>アクセスなし</td><td>閲覧のみ</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="is-tabs" role="group" aria-label="アクセス権の観察を戻す"><button type="button" data-is-reset>最初の役割へ戻す</button></div>
+      </div>
+      <p class="is-observe"><strong>説明する：</strong>確認担当に編集権限を与えなくても、内容を確認する作業ができるのはなぜでしょうか。</p>
+      <details class="is-supplement is-card" open><summary>権限を見直すとき</summary><p>担当が変わったり、作業が終わったりしたら、必要な権限も変わります。誰が設定を変更できるかを決め、不要になった権限を見直します。この操作は教材内の比較であり、実際のファイルの共有設定は変更しません。</p></details>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="共用端末でも本人の利用を終える">
+    <article>
+      <h2 id="headline_6">(6) 共用端末でも本人の利用を終える</h2>
+      <p class="is-lead">利用の開始だけでなく、<strong>離席するとき・終了するとき</strong>にも注意が必要です。ログインした状態を他人が使えるままにすると、自分の権限で操作されるおそれがあります。</p>
+      <figure class="is-scene"><img src="./img/information-security/is43-shared-pc-logout.webp" alt="共用パソコンの利用を終え、席を離れる前に画面を確認する高校生" width="1672" height="941" loading="lazy" decoding="async"><figcaption>利用終了時にログアウトを確認する場面（架空・AI生成）。具体的な操作はサービスにより異なります。</figcaption></figure>
+      <div class="is-model" data-is-model="is43-session" data-is-default="start">
+        <div class="is-tabs" role="group" aria-label="共用端末での利用場面を選ぶ">
+          <button type="button" data-is-select="start" aria-pressed="false">利用を始める</button>
+          <button type="button" data-is-select="work" aria-pressed="false">作業する</button>
+          <button type="button" data-is-select="away" aria-pressed="false">一時的に離席する</button>
+          <button type="button" data-is-select="finish" aria-pressed="false">利用を終える</button>
+        </div>
+        <div class="sec-grid">
+          <figure class="sec-visual">
+            <svg viewBox="0 0 420 355" role="img" aria-labelledby="is43-session-title is43-session-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <title id="is43-session-title">利用の開始と、離席・終了の分岐</title>
+              <desc id="is43-session-desc">自分のアカウントで認証を受けてログインし、許可された作業を行う。その後、一時的な離席なら画面をロックし、利用を終えるならログアウトする。二つの行動は目的に応じた分岐として示す。</desc>
+              <g data-is-highlight="start">
+                <rect x="60" y="13" width="300" height="68" rx="12" fill="var(--is-panel)"/>
+                <text x="210" y="55" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">認証してログイン</text>
+              </g>
+              <path d="M210 84 V115 M201 106 L210 115 L219 106"/>
+              <g data-is-highlight="work">
+                <rect x="60" y="119" width="300" height="68" rx="12" fill="var(--is-panel)"/>
+                <text x="210" y="161" text-anchor="middle" fill="currentColor" stroke="none" font-size="26">許可された作業</text>
+              </g>
+              <path d="M210 190 V214 H104 V246 M210 214 H316 V246 M96 238 L104 246 L112 238 M308 238 L316 246 L324 238"/>
+              <g data-is-highlight="away">
+                <rect x="8" y="250" width="193" height="89" rx="12" fill="var(--is-panel)"/>
+                <text x="104" y="283" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">一時的な離席</text>
+                <text x="104" y="316" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">画面ロック</text>
+              </g>
+              <g data-is-highlight="finish">
+                <rect x="219" y="250" width="193" height="89" rx="12" fill="var(--is-panel)"/>
+                <text x="316" y="283" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">利用の終了</text>
+                <text x="316" y="316" text-anchor="middle" fill="currentColor" stroke="none" font-size="25">ログアウト</text>
+              </g>
+            </svg>
+            <figcaption>画面ロックは一時的な操作の制限、ログアウトはログイン中の利用を終える操作です。</figcaption>
+          </figure>
+          <div>
+            <div class="is-card" data-is-panel="start"><h3>利用を始める</h3><p><strong>自分のアカウント</strong>でログインします。他人の利用が残っていたらそのまま使わず、教員や管理者へ確認します。</p></div>
+            <div class="is-card" data-is-panel="work"><h3>作業する</h3><p><strong>自分に許可された範囲</strong>で進行表を利用します。確認担当なら閲覧し、必要な修正を作成担当へ伝えます。</p></div>
+            <div class="is-card" data-is-panel="away"><h3>一時的に離席する</h3><p>席を離れる前に<strong>画面をロック</strong>し、他人がそのまま操作できないようにします。戻ったら、定められた方法でロックを解除します。</p><p>画面をロックしても、サービスへのログインが終了するとは限りません。</p></div>
+            <div class="is-card" data-is-panel="finish"><h3>利用を終える</h3><p>共用端末では、使ったサービスから<strong>ログアウト</strong>し、終了したことを確かめます。端末の利用終了も、学校の手順に従います。</p><p>ウィンドウを閉じるだけでは、ログインした状態が残る場合があります。</p></div>
+          </div>
+        </div>
+        <div class="is-tabs" role="group" aria-label="共用端末の利用場面を戻す"><button type="button" data-is-reset>利用開始へ戻す</button></div>
+      </div>
+      <p class="is-observe"><strong>説明する：</strong>画面ロックとログアウトは、どのような場面で使い分けるでしょうか。</p>
+      <p class="is-note">実際の端末やサービスの操作方法は、学校・管理者の指示に従います。他人のIDやパスワード、ログインした状態を無断で利用してはいけません。</p>
+    </article>
+  </section>
+
+  <section data-lesson-slide data-lesson-slide-title="重要語句・ポイント">
+    <article>
+      <h2 id="headline_7">(7) 重要語句・ポイント</h2>
+      <p class="is-lead">認証で本人を確かめ、アクセス権に応じて利用します。語句を開き、図の操作と結び付けて振り返りましょう。</p>
+      <div class="is-review">
+        <div class="is-terms">
+          <h3>語句を開いて確認</h3>
+          <details open><summary>ID（識別子）</summary><p>利用者やアカウントを区別するための符号。IDを示すことと、本人であると確認することは異なります。</p></details>
+          <details open><summary>認証</summary><p>示されたIDの利用者本人かを、パスワードなどの情報で確かめることです。</p></details>
+          <details open><summary>認可・アクセス権</summary><p>アクセス権は、閲覧・編集などを行う権限。認可では、その権限に基づいて操作を許可するか判断します。</p></details>
+          <details open><summary>知識情報</summary><p>パスワードなど、利用者が知っている秘密。秘密を知っていることを認証の手掛かりにします。</p></details>
+          <details open><summary>所持情報</summary><p>登録されたセキュリティキーなど、利用者が持っている物に基づく情報。その物を持ち、使えることを確かめます。</p></details>
+          <details open><summary>生体情報</summary><p>指紋や顔などの身体の特徴。認証では、登録した特徴と合うことを確かめます。</p></details>
+          <details open><summary>多要素認証（MFA）</summary><p>知識・所持・生体の異なる種類から、2つ以上の要素を組み合わせて本人を確かめる方法です。</p></details>
+          <details open><summary>画面ロック・ログアウト</summary><p>画面ロックは、一時的に端末の操作を制限すること。ログアウトは、ログイン中の利用を終える操作です。離席と利用終了で使い分けます。</p></details>
+        </div>
+        <div class="is-card sec-summary">
+          <h3>三つのポイント</h3>
+          <ol>
+            <li><strong>識別・認証・認可を区別する。</strong>本人だと確認できても、できる操作はアクセス権によって変わる。</li>
+            <li><strong>異なる種類の認証要素を組み合わせる。</strong>パスワードは長く推測されにくいものにし、サービスごとに分ける。</li>
+            <li><strong>必要な範囲で利用し、利用の終わりまで確かめる。</strong>一時的な離席は画面ロック、共用端末での利用終了はログアウト。</li>
+          </ol>
+          <p class="is-observe"><strong>自分の言葉で：</strong>確認担当が共用端末で進行表を読むとき、利用の開始・作業中・終了時に何を確かめるか説明しましょう。</p>
+        </div>
+      </div>
+    </article>
+  </section>
+</body>
+</html>
