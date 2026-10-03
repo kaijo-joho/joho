@@ -489,6 +489,16 @@ function segsWidth(segs, size){
 function arrangeColumns(g){
   const n = g.arrows.length;
   const y = i => g.levels[i].rank;
+  // すべての矢印が列（col）を覚えているとき（自分で矢印を引く）は、探し直さず、その順にそのまま並べる。
+  // 矢印を足しても、すでにある矢印の位置が変わらないように。並べ直したいときは freeOptimize で col を決め直す
+  if (n && g.arrows.every(a => typeof a.col === 'number')){
+    const ranks = [...new Set(g.arrows.map(a => a.col))].sort((p, q) => p - q);
+    g.col = g.arrows.map(a => ranks.indexOf(a.col));
+    const span = g.levels.map(() => [Infinity, -Infinity]);
+    g.arrows.forEach((a, ai) => { for (const li of [a.from, a.to]){ span[li][0] = Math.min(span[li][0], g.col[ai]); span[li][1] = Math.max(span[li][1], g.col[ai]); } });
+    g.span = span.map(s => isFinite(s[0]) ? s : [0, 0]); g.ncols = ranks.length;
+    return;
+  }
   const stepIdx = g.arrows.map((a, i) => i).filter(i => g.arrows[i].kind !== 'target');
   const tIdx = g.arrows.findIndex(a => a.kind === 'target');
   const cands = [];
@@ -551,7 +561,7 @@ function diagramSVG(groups, opt = {}){
     arrangeColumns(g);
   });
   // 横の位置：列の幅は、矢印の文字と段の文字が入るように決める
-  let x = padL, maxY = 0, maxX = 0;
+  let x = padL, maxY = 0, maxX = 0, lastColW = 0;
   const lines = [], arrows = [], texts = [];
   const overlap = (p, q) => !(p[2] <= q[0] || p[0] >= q[2] || p[3] <= q[1] || p[1] >= q[3]);
   for (const g of groups){
@@ -562,7 +572,8 @@ function diagramSVG(groups, opt = {}){
       const need = segsWidth(l.segs, LS) + 2 * lvPad + 40;   // 矢印の横にも文字が置けるように
       colW = Math.max(colW, need / cols);
     });
-    colW = Math.ceil(colW);
+    colW = Math.max(Math.ceil(colW), Math.ceil(opt.minColW || 0));
+    lastColW = Math.max(lastColW, colW);
     const colX = c => x + c * colW;
     g.levels.forEach((l, li) => { l.x0 = colX(g.span[li][0]) + 2; l.x1 = colX(g.span[li][1] + 1) - colGap; });
     // 矢印（縦の線とその文字）を先に決める
@@ -637,7 +648,7 @@ function diagramSVG(groups, opt = {}){
     '<path d="M13 22 L18 10 L23 22" fill="none" stroke="' + C.muted + '" stroke-width="1.2"/>' +
     '<text x="26" y="20" font-size="12" fill="' + C.muted + '">' + (opt.old ? 'エネルギー' : 'エンタルピー') + '</text>';
   const bg = C.bg ? '<rect width="100%" height="100%" fill="' + C.bg + '"/>' : '';
-  return {width: W, height: H,
+  return {width: W, height: H, colW: lastColW,
     svg: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" font-family="Arial, \'Hiragino Sans\', \'Hiragino Kaku Gothic ProN\', \'Yu Gothic\', Meiryo, sans-serif">' + bg + axis + parts.join('') + '</svg>'};
 }
 
@@ -886,12 +897,7 @@ function freeCompute(free, target, eqs, species){
     const vec = i === 0 ? start : itemsToVec(l.items);
     return {vec, written: i === 0 || vec.size > 0, Y: l.y || 0};
   });
-  // 離した位置が近すぎる横線は、上下の順番を変えずに少しだけ離す（線や文字が重ならないように）
-  const GAP = 38, order = levels.map((l, i) => i).sort((a, b) => levels[a].Y - levels[b].Y || a - b);
-  for (let n = 1; n < order.length; n++){
-    const d = levels[order[n]].Y - levels[order[n - 1]].Y;
-    if (d < GAP) for (let m = n; m < order.length; m++) levels[order[m]].Y += GAP - d;
-  }
+  // 横線の高さは、置いた位置のまま使う（矢印を引いても、すでにある横線は動かさない）。離したいときは freeOptimize
   const minY = Math.min(...levels.map(l => l.Y)); levels.forEach(l => { l.Y -= minY; });
   const tvec = vectorOf(target), goal = addVec(start, tvec, ONE);
   const startInv = inventory(start, species).inv;
@@ -908,7 +914,7 @@ function freeCompute(free, target, eqs, species){
         else if (vecEq(diff, addVec(new Map(), tvec, new Frac(-1)))) ex = {target: true, c: new Frac(-1)};
       }
     }
-    return {k, from: ar.from, to: ar.to, both, ex, down: b.Y > a.Y};
+    return {k, from: ar.from, to: ar.to, both, ex, down: b.Y > a.Y, col: typeof ar.col === 'number' ? ar.col : null};
   });
   const reached = levels.map((l, i) => i > 0 && l.written && vecEq(l.vec, goal) ? i : -1).filter(i => i > 0);
   // 2 つの横線の間の道（別の矢印をたどる。向きは問わない）。skip：使わない矢印
@@ -958,7 +964,7 @@ function freeRemoveLevel(free, li){
   const map = new Map(); let n = 0;
   free.levels.forEach((l, i) => { if (i !== li) map.set(i, n++); });
   return {levels: free.levels.filter((l, i) => i !== li).map(l => ({...l})),
-    arrows: free.arrows.filter(a => a.from !== li && a.to !== li).map(a => ({from: map.get(a.from), to: map.get(a.to)}))};
+    arrows: free.arrows.filter(a => a.from !== li && a.to !== li).map(a => ({...a, from: map.get(a.from), to: map.get(a.to)}))};
 }
 // 矢印 k を消す。あとに矢印のつながらない、物質を書いていない横線（はじめの横線以外）も消す
 function freeRemoveArrow(free, k){
@@ -972,21 +978,47 @@ function freeRemoveArrow(free, k){
   return f;
 }
 // 横線 parent から、dy だけ上下に離れた新しい横線と、その矢印を足す。items：新しい横線の物質（null = 書いていない）
+// 新しい矢印は、いちばん右の列に置く（すでにある矢印は動かさない）。新しい横線がほかの横線に近すぎるときは、新しい横線だけを離す
+const LEVEL_GAP = 38;
+const nextCol = f => f.arrows.reduce((m, a) => Math.max(m, typeof a.col === 'number' ? a.col : -1), f.arrows.length - 1) + 1;
 function freeAddChild(free, parent, items, dy){
   const f = cloneFree(free);
-  f.levels.push({items: items ? {...items} : {}, y: free.levels[parent].y + dy});
-  f.arrows.push({from: parent, to: f.levels.length - 1});
+  let y = (free.levels[parent].y || 0) + dy;
+  const dir = dy >= 0 ? 1 : -1;
+  for (let g = 0; g < 80 && free.levels.some(l => Math.abs((l.y || 0) - y) < LEVEL_GAP); g++) y += dir * 6;
+  f.levels.push({items: items ? {...items} : {}, y});
+  f.arrows.push({from: parent, to: f.levels.length - 1, col: nextCol(free)});
   return f;
 }
 // 既にある 2 つの横線を、矢印でつなぐ（同じ向きの矢印があれば null）
 function freeAddArrow(free, from, to){
   if (from === to || free.arrows.some(a => a.from === from && a.to === to)) return null;
-  const f = cloneFree(free); f.arrows.push({from, to}); return f;
+  const f = cloneFree(free); f.arrows.push({from, to, col: nextCol(free)}); return f;
 }
 // 横線 li を、高さ newY（いま図に出ている高さの座標）へ動かす。ys：いま図に出ている全部の横線の高さ（動かさない横線は、そのまま）。
 // 別の横線に近づけすぎたときは、freeCompute が上下の順番を保ったまま、あとの横線を少し下げて離す（割り込みになる）
 function freeMoveLevel(free, ys, li, newY){
-  const f = cloneFree(free); f.levels.forEach((l, i) => { l.y = ys[i]; }); f.levels[li].y = newY; return f;
+  const f = cloneFree(free), moved = ys.slice(); moved[li] = newY;
+  const out = spreadYs(moved);
+  f.levels.forEach((l, i) => { l.y = out[i]; }); return f;
+}
+// 近すぎる横線を、上下の順番（同じ高さなら番号の順）を保ったまま、あとの横線を下げて離す
+function spreadYs(ys){
+  const out = ys.slice(), order = out.map((_, i) => i).sort((a, b) => out[a] - out[b] || a - b);
+  for (let n = 1; n < order.length; n++){
+    const d = out[order[n]] - out[order[n - 1]];
+    if (d < LEVEL_GAP) for (let m = n; m < order.length; m++) out[order[m]] += LEVEL_GAP - d;
+  }
+  return out;
+}
+// 「位置を整える」：横線を離し、矢印の列を、横線の線と矢印が交わりにくい並びに決め直す（これを押したときだけ）
+function freeOptimize(free, fc){
+  const f = cloneFree(free), ys = spreadYs(fc.levels.map(l => l.Y));
+  f.levels.forEach((l, i) => { l.y = ys[i]; });
+  const g = {levels: ys.map(y => ({rank: y})), arrows: f.arrows.map((a, i) => ({from: a.from, to: a.to, kind: fc.steps[i] && fc.steps[i].ex && fc.steps[i].ex.target ? 'target' : 'step'}))};
+  arrangeColumns(g);
+  f.arrows.forEach((a, i) => { a.col = g.col[i]; });
+  return f;
 }
 // 横線の物質を直す
 function freeSetItems(free, li, items){
@@ -1014,7 +1046,7 @@ function groupFromFree(fc, target, eqs, species, opt = {}){
     dashed: !l.written, empty: !l.written, warn: l.mismatch, bold: !!fc.tArrow && (i === fc.tArrow.from || i === fc.tArrow.to)}));
   for (const st of fc.steps){
     if (st.ex && st.ex.target){
-      g.arrows.push({from: st.from, to: st.to, kind: 'target', step: st.k, dashed: st.signed == null, segs: arrowSegs('目的', st.signed, digits, opt.old, true)});
+      g.arrows.push({from: st.from, to: st.to, col: st.col == null ? undefined : st.col, kind: 'target', step: st.k, dashed: st.signed == null, segs: arrowSegs('目的', st.signed, digits, opt.old, true)});
       continue;
     }
     let segs, unk = false;
@@ -1023,7 +1055,7 @@ function groupFromFree(fc, target, eqs, species, opt = {}){
       const label = '(' + (st.ex.i + 1) + ')' + (rev ? 'の逆' : '') + (mag.eq(1) ? '' : '×' + fracText(mag));
       segs = [{t: label + '  '}, {t: st.signed == null ? '? kJ' : numText(Math.abs(st.signed), digits) + ' kJ'}];
     } else { segs = [{t: 'ΔH = ? kJ'}]; unk = true; }
-    g.arrows.push({from: st.from, to: st.to, kind: 'step', eq: st.ex ? st.ex.i : null, ci: st.ex ? st.ex.i : null, step: st.k, dashed: !st.ex, unk, segs});
+    g.arrows.push({from: st.from, to: st.to, col: st.col == null ? undefined : st.col, kind: 'step', eq: st.ex ? st.ex.i : null, ci: st.ex ? st.ex.i : null, step: st.k, dashed: !st.ex, unk, segs});
   }
   return g;
 }
@@ -1109,7 +1141,7 @@ function hintFor(fc, target, eqs, species){
     cand ? '(' + (cand.i + 1) + ') を使うには ' + cand.miss.map(nm).join('・') + ' が要ります。すべての横線に足します。' : '使っていない式の左辺・右辺の物質を見くらべます。']};
 }
 
-const api = {emptyFree, itemsToVec, vecToItems, inventory, invEq, explainArrow, applyEq, freeCompute, freeMoveLevel, freeRemoveLevel, freeRemoveArrow, freeAddChild, freeAddArrow, freeSetItems, freeFromPath, groupFromFree, hintFor, emptyDraw, okEq, feasibleMults, dragPlan, arrowDown, drawCompute, drawRemoveStep, drawRemoveEq, groupFromDraw, drawFromPath, DRAW_MULTS, segsText, Frac, ZERO, ONE, ELEMENTS, normalize, parseFormula, parseCharge, parseTerm, splitTerms, parseDH, parseEquation,
+const api = {emptyFree, itemsToVec, vecToItems, inventory, invEq, explainArrow, applyEq, freeCompute, freeMoveLevel, freeOptimize, freeRemoveLevel, freeRemoveArrow, freeAddChild, freeAddArrow, freeSetItems, freeFromPath, groupFromFree, hintFor, emptyDraw, okEq, feasibleMults, dragPlan, arrowDown, drawCompute, drawRemoveStep, drawRemoveEq, groupFromDraw, drawFromPath, DRAW_MULTS, segsText, Frac, ZERO, ONE, ELEMENTS, normalize, parseFormula, parseCharge, parseTerm, splitTerms, parseDH, parseEquation,
   balance, vectorOf, sideVec, collectSpecies, solveCombination, buildPath, levelHeights, addVec, vecEq,
   fracText, coefText, formulaSegs, speciesSegs, compSegs, termsSegs, equationSegs, numText, decimalsOf,
   segsToHTML, segsToSVG, segsWidth, diagramSVG, arrowSegs, groupFromPath, groupFromEquation, calcText, speciesOrder, esc};

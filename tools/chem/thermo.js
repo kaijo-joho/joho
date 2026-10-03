@@ -71,7 +71,7 @@ function sanitizeFree(fr){
   }
   if (!v05) for (const a of (Array.isArray(fr.arrows) ? fr.arrows : []).slice(0, 80)){
     if (a && Number.isInteger(a.from) && Number.isInteger(a.to) && a.from !== a.to && a.from >= 0 && a.to >= 0 && a.from < f.levels.length && a.to < f.levels.length
-      && !f.arrows.some(x => x.from === a.from && x.to === a.to)) f.arrows.push({from: a.from, to: a.to});
+      && !f.arrows.some(x => x.from === a.from && x.to === a.to)) f.arrows.push(Number.isInteger(a.col) && a.col >= 0 && a.col < 200 ? {from: a.from, to: a.to, col: a.col} : {from: a.from, to: a.to});
   }
   if (v05 && Number.isInteger(fr.target) && fr.target >= 1 && fr.target < f.levels.length && !f.arrows.some(x => x.from === 0 && x.to === fr.target)) f.arrows.push({from: 0, to: fr.target});   // 0.5 の「目的の矢印」は、ふつうの矢印として引く
   return f;
@@ -106,11 +106,12 @@ function migrateDraw(dr, d){
 // 保存する中身（id は保存しない）
 const content = d => ({app: d.app, version: d.version, name: d.name, target: {text: d.target.text, dh: d.target.dh},
   eqs: d.eqs.map(e => ({text: e.text, dh: e.dh, on: e.on, mult: e.mult, rev: e.rev})), scale: d.scale,
-  free: {levels: d.free.levels.map(l => ({items: l.items, y: l.y})), arrows: d.free.arrows.map(a => ({from: a.from, to: a.to}))}});
+  free: {levels: d.free.levels.map(l => ({items: l.items, y: l.y})), arrows: d.free.arrows.map(a => ({from: a.from, to: a.to, col: a.col}))}});
 const contentJSON = d => JSON.stringify(content(d));
 
 // ===================== 元に戻す・やり直し =====================
 const hist = {undo: [], redo: []};
+let colWKey = null, colWMin = 0;   // 図の列の幅（タブごと。一度広がったら狭くしない）
 let typing = null;   // 文字を打っている欄（打ち続けている間は 1 回の変更にまとめる）
 function commit(){
   hist.undo.push(contentJSON(doc)); if (hist.undo.length > 200) hist.undo.shift();
@@ -128,6 +129,7 @@ function syncPrefs(){
   $('optOld').checked = prefs.old; $('optAnswer').checked = prefs.answer;
   $('btnAnswer').hidden = !prefs.answer;
   document.querySelectorAll('#drawSeg [data-draw]').forEach(b => b.classList.toggle('on', b.dataset.draw === (drawMode() ? 'draw' : 'auto')));
+  $('btnTidy').hidden = !drawMode();   // 位置を整えるのは、自分で矢印を引くときだけ
   $('btnClearCoef').lastChild.textContent = drawMode() ? '図を消す' : 'すべて使わない';
   $('btnClearCoef').title = drawMode() ? '引いた矢印と、足した物質をすべて消して、最初の段だけにする' : '与えられた式をすべて「使わない」にする（組み立てをやり直す）';
 }
@@ -341,7 +343,10 @@ function compute(){
   const opt = {old: prefs.old, digits, targetLabel: '目的'};
   if (drawMode()){   // 自分で矢印を引く：引いた矢印から段を作る
     if (okEq(T)){
-      const fc = r.fc = E.freeCompute(doc.free, T, eqs, species);
+      let fc = r.fc = E.freeCompute(doc.free, T, eqs, species);
+      if (fc.steps.length && doc.free.arrows.some(a => typeof a.col !== 'number')){   // 0.8 までの保存：列を覚えていないので、これまでと同じ並びに決めて覚える
+        doc.free = E.freeOptimize(doc.free, fc); fc = r.fc = E.freeCompute(doc.free, T, eqs, species);
+      }
       r.groups = [E.groupFromFree(fc, T, eqs, species, opt)];
       r.heights = {solved: fc.solved, targetDH: fc.targetDH, overrides: fc.overrides};
       r.mode = fc.tArrow && fc.targetDH != null ? 'matched' : fc.reached.length ? 'reached' : fc.steps.length ? 'building' : 'start';
@@ -435,7 +440,11 @@ function drawDiagram(r){
     const b = $('btnEx'); if (b) b.onclick = openExamples;
     return;
   }
-  box.innerHTML = E.diagramSVG(r.groups, {scale: doc.scale, old: prefs.old, colors: themeColors(), interactive: !!r.fc}).svg;
+  // 列の幅は、一度広がったら狭くしない（矢印や横線を足しても、すでにある矢印の位置が横にずれないように）。「位置を整える」で決め直す
+  if (colWKey !== hist.undo){ colWKey = hist.undo; colWMin = 0; }
+  const res = E.diagramSVG(r.groups, {scale: doc.scale, old: prefs.old, colors: themeColors(), interactive: !!r.fc, minColW: r.fc ? colWMin : 0});
+  if (r.fc) colWMin = Math.max(colWMin, res.colW);
+  box.innerHTML = res.svg;
   box.classList.toggle('draw-ready', !!r.fc && !!sel);
   const svg = box.querySelector('svg');
   svg.setAttribute('role', 'img');
@@ -992,11 +1001,18 @@ $('hintBtn').onclick = () => {
 };
 
 // ===================== 組み立ての補助 =====================
+// 位置を整える：横線を離し、矢印の並びを決め直す（矢印を引いても位置は変わらないので、整えたいときにこれを押す）
+$('btnTidy').onclick = () => {
+  const fc = fcNow(); if (!fc) return;
+  if (!doc.free.arrows.length) return toast('矢印を引いてから、押してください');
+  commit(); doc.free = E.freeOptimize(doc.free, fc); colWMin = 0; changed();
+  toast('横線の間隔と、矢印の並びを整えました', 3000);
+};
 $('btnClearCoef').onclick = () => {
   if (drawMode()){
     const f = doc.free;
     if (f.levels.length === 1 && !f.levels[0].items && !f.arrows.length) return toast('図には、まだ何も引いていません');
-    commit(); doc.free = E.emptyFree(); setSel(null); changed(); toast('図を消して、最初の横線だけにしました');
+    commit(); doc.free = E.emptyFree(); colWMin = 0; setSel(null); changed(); toast('図を消して、最初の横線だけにしました');
     return;
   }
   if (doc.eqs.every(e => !e.on)) return toast('使う式はありません');
@@ -1017,7 +1033,7 @@ $('btnAnswer').onclick = () => {
     const coefs = r.eqs.map(() => E.ZERO);
     idx.forEach((i, k) => { coefs[i] = res.coefs[k]; });
     const path = E.buildPath(r.T, r.eqs.map(p => okEq(p) ? p : null), coefs);
-    doc.free = E.freeFromPath(path, E.levelHeights(path, r.T, r.eqs));
+    doc.free = E.freeFromPath(path, E.levelHeights(path, r.T, r.eqs)); colWMin = 0;
     setSel(null); changed(); toast('正しい矢印をすべて引きました');
     return;
   }
