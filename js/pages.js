@@ -1,4 +1,4 @@
-//2026-10-03 02:58:55;
+//2026-10-03 04:57:59;
 const pages = {
   "index": {
     "id": "index",
@@ -3929,6 +3929,42 @@ const pages = {
     "category": "情報セキュリティ",
     "title": "4-4. 対策を組み合わせ、被害に備える",
     "detail": "更新・通信制御・復元・ログなどの役割を比べ、異常時の対応を考えます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": false,
+    "show": false,
+    "backFile": "index.html"
+  },
+  "is11": {
+    "id": "is11",
+    "release": false,
+    "fileName": "is11.html",
+    "mainTitle": "情報社会",
+    "category": "情報とメディア",
+    "title": "1-1. 情報の意味と特性",
+    "detail": "天気予報を例に、データ・情報・知識・知恵と情報の特性を学びます。",
+    "practiceFile": false,
+    "dlFile": false,
+    "exampleFile": false,
+    "questionFile": false,
+    "quizForm": false,
+    "back": "index",
+    "next": false,
+    "show": false,
+    "backFile": "index.html"
+  },
+  "is12": {
+    "id": "is12",
+    "release": false,
+    "fileName": "is12.html",
+    "mainTitle": "情報社会",
+    "category": "情報とメディア",
+    "title": "1-2. メディアとコミュニケーション",
+    "detail": "メディアの役割とインターネットによる変化、情報を確かめる行動を学びます。",
     "practiceFile": false,
     "dlFile": false,
     "exampleFile": false,
