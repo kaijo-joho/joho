@@ -220,4 +220,143 @@ const api = {enthalpyOf, suggestDH, FORMATION, ATOM_GAS, ION_AQ, IONIZATION, ELE
   formationEq, combustionEq, bondEq, bondValue, diatomicBond, library, examples};
 if (typeof module === 'object' && module.exports) module.exports = api;
 else root.ChemData = api;
+// ======================================================================
+// 追記（周期表と結合 periodic.html 用）：元素データ表。既存の表には手を入れず、api に足すだけ。
+// 値の出典は docs/DEVELOPMENT.md の「定数の出典（周期表と結合）」。
+// ======================================================================
+// [原子番号, 記号, 名前, 原子量（[ ]は安定な同位体がないので質量数）, 電気陰性度（ポーリング）, 第一イオン化エネルギー(kJ/mol),
+//  電子親和力(kJ/mol。放出するエネルギーを正で), 原子半径(pm。スレーターの経験値。貴ガスはなし)]
+const ELEMENT_ROWS = [
+  [1,'H','水素',1.008,2.20,1312.0,72.8,25], [2,'He','ヘリウム',4.003,null,2372.3,null,null],
+  [3,'Li','リチウム',6.94,0.98,520.2,59.6,145], [4,'Be','ベリリウム',9.012,1.57,899.5,null,105],
+  [5,'B','ホウ素',10.81,2.04,800.6,26.7,85], [6,'C','炭素',12.01,2.55,1086.5,121.8,70],
+  [7,'N','窒素',14.01,3.04,1402.3,null,65], [8,'O','酸素',16.00,3.44,1313.9,141.0,60],
+  [9,'F','フッ素',19.00,3.98,1681.0,328.2,50], [10,'Ne','ネオン',20.18,null,2080.7,null,null],
+  [11,'Na','ナトリウム',22.99,0.93,495.8,52.9,180], [12,'Mg','マグネシウム',24.31,1.31,737.7,null,150],
+  [13,'Al','アルミニウム',26.98,1.61,577.5,42.5,125], [14,'Si','ケイ素',28.09,1.90,786.5,134.1,110],
+  [15,'P','リン',30.97,2.19,1011.8,72.0,100], [16,'S','硫黄',32.07,2.58,999.6,200.4,100],
+  [17,'Cl','塩素',35.45,3.16,1251.2,348.6,100], [18,'Ar','アルゴン',39.95,null,1520.6,null,null],
+  [19,'K','カリウム',39.10,0.82,418.8,48.4,220], [20,'Ca','カルシウム',40.08,1.00,589.8,2.4,180],
+  [21,'Sc','スカンジウム',44.96,1.36,633.1,18.1,160], [22,'Ti','チタン',47.87,1.54,658.8,7.6,140],
+  [23,'V','バナジウム',50.94,1.63,650.9,50.6,135], [24,'Cr','クロム',52.00,1.66,652.9,64.3,140],
+  [25,'Mn','マンガン',54.94,1.55,717.3,null,140], [26,'Fe','鉄',55.85,1.83,762.5,15.7,140],
+  [27,'Co','コバルト',58.93,1.88,760.4,63.7,135], [28,'Ni','ニッケル',58.69,1.91,737.1,112.0,135],
+  [29,'Cu','銅',63.55,1.90,745.5,118.4,135], [30,'Zn','亜鉛',65.38,1.65,906.4,null,135],
+  [31,'Ga','ガリウム',69.72,1.81,578.8,28.9,130], [32,'Ge','ゲルマニウム',72.63,2.01,762.0,119.0,125],
+  [33,'As','ヒ素',74.92,2.18,947.0,78.0,115], [34,'Se','セレン',78.97,2.55,941.0,195.0,115],
+  [35,'Br','臭素',79.90,2.96,1139.9,324.6,115], [36,'Kr','クリプトン',83.80,3.00,1350.8,null,null],
+  [37,'Rb','ルビジウム',85.47,0.82,403.0,46.9,235], [38,'Sr','ストロンチウム',87.62,0.95,549.5,5.0,200],
+  [39,'Y','イットリウム',88.91,1.22,600.0,29.6,180], [40,'Zr','ジルコニウム',91.22,1.33,640.1,41.1,155],
+  [41,'Nb','ニオブ',92.91,1.6,652.1,86.1,145], [42,'Mo','モリブデン',95.95,2.16,684.3,71.9,145],
+  [43,'Tc','テクネチウム','[99]',1.9,702.0,null,135], [44,'Ru','ルテニウム',101.1,2.2,710.2,101.3,130],
+  [45,'Rh','ロジウム',102.9,2.28,719.7,109.7,135], [46,'Pd','パラジウム',106.4,2.20,804.4,53.7,140],
+  [47,'Ag','銀',107.9,1.93,731.0,125.6,160], [48,'Cd','カドミウム',112.4,1.69,867.8,null,155],
+  [49,'In','インジウム',114.8,1.78,558.3,28.9,155], [50,'Sn','スズ',118.7,1.96,708.6,107.3,145],
+  [51,'Sb','アンチモン',121.8,2.05,834.0,101.0,145], [52,'Te','テルル',127.6,2.1,869.3,190.2,140],
+  [53,'I','ヨウ素',126.9,2.66,1008.4,295.2,140], [54,'Xe','キセノン',131.3,2.6,1170.4,null,null],
+  [55,'Cs','セシウム',132.9,0.79,375.7,45.5,260], [56,'Ba','バリウム',137.3,0.89,502.9,14.0,215],
+  [57,'La','ランタン',138.9,1.10,538.1,null,195], [58,'Ce','セリウム',140.1,null,null,null,null],
+  [59,'Pr','プラセオジム',140.9,null,null,null,null], [60,'Nd','ネオジム',144.2,null,null,null,null],
+  [61,'Pm','プロメチウム','[145]',null,null,null,null], [62,'Sm','サマリウム',150.4,null,null,null,null],
+  [63,'Eu','ユウロピウム',152.0,null,null,null,null], [64,'Gd','ガドリニウム',157.3,null,null,null,null],
+  [65,'Tb','テルビウム',158.9,null,null,null,null], [66,'Dy','ジスプロシウム',162.5,null,null,null,null],
+  [67,'Ho','ホルミウム',164.9,null,null,null,null], [68,'Er','エルビウム',167.3,null,null,null,null],
+  [69,'Tm','ツリウム',168.9,null,null,null,null], [70,'Yb','イッテルビウム',173.0,null,null,null,null],
+  [71,'Lu','ルテチウム',175.0,null,null,null,null],
+  [72,'Hf','ハフニウム',178.5,1.3,658.5,null,155], [73,'Ta','タンタル',180.9,1.5,761.0,null,145],
+  [74,'W','タングステン',183.8,2.36,770.0,null,135], [75,'Re','レニウム',186.2,1.9,760.0,null,135],
+  [76,'Os','オスミウム',190.2,2.2,840.0,null,130], [77,'Ir','イリジウム',192.2,2.20,880.0,null,135],
+  [78,'Pt','白金',195.1,2.28,870.0,null,135], [79,'Au','金',197.0,2.54,890.1,222.8,135],
+  [80,'Hg','水銀',200.6,2.00,1007.1,null,150], [81,'Tl','タリウム',204.4,1.62,589.4,null,190],
+  [82,'Pb','鉛',207.2,2.33,715.6,null,180], [83,'Bi','ビスマス',209.0,2.02,703.0,null,160],
+  [84,'Po','ポロニウム','[209]',2.0,812.1,null,190], [85,'At','アスタチン','[210]',2.2,null,null,null],
+  [86,'Rn','ラドン','[222]',null,1037.0,null,null],
+  [87,'Fr','フランシウム','[223]',null,null,null,null], [88,'Ra','ラジウム','[226]',0.9,509.3,null,215],
+  [89,'Ac','アクチニウム','[227]',null,null,null,null], [90,'Th','トリウム',232.0,null,null,null,null],
+  [91,'Pa','プロトアクチニウム',231.0,null,null,null,null], [92,'U','ウラン',238.0,null,null,null,null],
+  [93,'Np','ネプツニウム','[237]',null,null,null,null], [94,'Pu','プルトニウム','[244]',null,null,null,null],
+  [95,'Am','アメリシウム','[243]',null,null,null,null], [96,'Cm','キュリウム','[247]',null,null,null,null],
+  [97,'Bk','バークリウム','[247]',null,null,null,null], [98,'Cf','カリホルニウム','[251]',null,null,null,null],
+  [99,'Es','アインスタイニウム','[252]',null,null,null,null], [100,'Fm','フェルミウム','[257]',null,null,null,null],
+  [101,'Md','メンデレビウム','[258]',null,null,null,null], [102,'No','ノーベリウム','[259]',null,null,null,null],
+  [103,'Lr','ローレンシウム','[266]',null,null,null,null],
+  [104,'Rf','ラザホージウム','[267]',null,null,null,null], [105,'Db','ドブニウム','[268]',null,null,null,null],
+  [106,'Sg','シーボーギウム','[269]',null,null,null,null], [107,'Bh','ボーリウム','[270]',null,null,null,null],
+  [108,'Hs','ハッシウム','[269]',null,null,null,null], [109,'Mt','マイトネリウム','[278]',null,null,null,null],
+  [110,'Ds','ダームスタチウム','[281]',null,null,null,null], [111,'Rg','レントゲニウム','[282]',null,null,null,null],
+  [112,'Cn','コペルニシウム','[285]',null,null,null,null], [113,'Nh','ニホニウム','[286]',null,null,null,null],
+  [114,'Fl','フレロビウム','[289]',null,null,null,null], [115,'Mc','モスコビウム','[290]',null,null,null,null],
+  [116,'Lv','リバモリウム','[293]',null,null,null,null], [117,'Ts','テネシン','[294]',null,null,null,null],
+  [118,'Og','オガネソン','[294]',null,null,null,null],
+];
+// 電子を受け取っても安定な陰イオンにならない元素（電子親和力が 0 以下）。表では「なし」と書く
+const EA_NONE = ['He','Be','N','Ne','Mg','Ar','Zn','Kr','Cd','Xe','Mn'];
+// 主なイオンの価数（正：陽イオン、負：陰イオン）。先頭が主なもの。ふつうのイオンをつくらない元素は書かない
+const ION_CHARGES = {Li:[1], Na:[1], K:[1], Rb:[1], Cs:[1], Fr:[1], Be:[2], Mg:[2], Ca:[2], Sr:[2], Ba:[2], Ra:[2],
+  Al:[3], Ga:[3], In:[3], Sc:[3], Cr:[3], Mn:[2], Fe:[2,3], Co:[2], Ni:[2], Cu:[2,1], Zn:[2], Ag:[1], Cd:[2], Hg:[2], Sn:[2], Pb:[2],
+  N:[-3], P:[-3], O:[-2], S:[-2], Se:[-2], Te:[-2], F:[-1], Cl:[-1], Br:[-1], I:[-1]};
+// イオン半径(pm)。キー：記号＋価数（Na+、O2-）。シャノンの値（配位数 6 など）
+const ION_RADIUS = {'Li+':76,'Na+':102,'K+':138,'Rb+':152,'Cs+':167,'Be2+':45,'Mg2+':72,'Ca2+':100,'Sr2+':118,'Ba2+':135,
+  'Al3+':54,'Ga3+':62,'In3+':80,'Sc3+':75,'Cr3+':62,'Mn2+':83,'Fe2+':78,'Fe3+':65,'Co2+':75,'Ni2+':69,'Cu+':77,'Cu2+':73,
+  'Zn2+':74,'Ag+':115,'Cd2+':95,'Hg2+':102,'Pb2+':119,'N3-':146,'O2-':140,'S2-':184,'Se2-':198,'Te2-':221,
+  'F-':133,'Cl-':181,'Br-':196,'I-':220};
+const ionKey = (sym, q) => sym + (Math.abs(q) === 1 ? '' : Math.abs(q)) + (q > 0 ? '+' : '-');
+
+// 周期表の位置（period：周期、group：族。ランタノイド・アクチノイドは group = null、f：'La'|'Ac'）
+function elementPosition(Z){
+  if (Z === 1) return {period:1, group:1};
+  if (Z === 2) return {period:1, group:18};
+  const ends = [2, 10, 18, 36, 54, 86, 118];
+  const period = ends.findIndex(e => Z <= e) + 1, start = ends[period - 2] + 1;
+  const k = Z - start;   // その周期の何番目か（0 から）
+  if (period <= 3) return {period, group: k < 2 ? k + 1 : k + 11};
+  if (period <= 5) return {period, group: k + 1};
+  const fStart = period === 6 ? 57 : 89;
+  if (k < 2) return {period, group: k + 1};
+  if (Z >= fStart && Z <= fStart + 14) return {period, group: null, f: period === 6 ? 'La' : 'Ac'};
+  return {period, group: Z - (fStart + 15) + 4};
+}
+// 種類：alkali アルカリ金属、alk2 2 族、trans 遷移元素（3〜12 族）、post その他の金属、metalloid 半金属、
+//       nonmetal 非金属、halogen ハロゲン、noble 貴ガス、lan ランタノイド、act アクチノイド
+const METALLOID = ['B','Si','Ge','As','Sb','Te'], NONMETAL = ['H','C','N','O','P','S','Se'];
+const POST_METAL = ['Al','Ga','In','Sn','Tl','Pb','Bi','Po','Nh','Fl','Mc','Lv'];
+function elementCategory(Z, sym, pos){
+  if (pos.f) return pos.f === 'La' ? 'lan' : 'act';
+  if (pos.group === 18) return 'noble';
+  if (pos.group === 17) return 'halogen';
+  if (METALLOID.includes(sym)) return 'metalloid';
+  if (NONMETAL.includes(sym)) return 'nonmetal';
+  if (POST_METAL.includes(sym)) return 'post';
+  if (pos.group === 1) return 'alkali';
+  if (pos.group === 2) return 'alk2';
+  return 'trans';
+}
+// 電子殻ごとの電子数（K, L, M, …）。原子番号 54 まで（高校では 20 まで、が中心）。それより先は null
+const SUBSHELLS = [[1,'s',2],[2,'s',2],[2,'p',6],[3,'s',2],[3,'p',6],[4,'s',2],[3,'d',10],[4,'p',6],[5,'s',2],[4,'d',10],[5,'p',6]];
+const CONFIG_EXCEPT = {24:{'4s':1,'3d':5}, 29:{'4s':1,'3d':10}, 41:{'5s':1,'4d':4}, 42:{'5s':1,'4d':5}, 44:{'5s':1,'4d':7},
+  45:{'5s':1,'4d':8}, 46:{'5s':0,'4d':10}, 47:{'5s':1,'4d':10}};
+function electronShells(Z){
+  if (Z < 1 || Z > 54) return null;
+  const occ = {};
+  let left = Z;
+  for (const [n, l, cap] of SUBSHELLS){ const put = Math.min(cap, left); occ[n + l] = put; left -= put; if (!left) break; }
+  if (CONFIG_EXCEPT[Z]) Object.assign(occ, CONFIG_EXCEPT[Z]);
+  const shells = [];
+  for (const k of Object.keys(occ)){ const n = +k[0]; shells[n - 1] = (shells[n - 1] || 0) + occ[k]; }
+  const out = shells.map(v => v || 0);
+  while (out.length && !out[out.length - 1]) out.pop();   // 空になった最後の殻（Pd の 5s など）は除く
+  return out;
+}
+const ELEMENTS = ELEMENT_ROWS.map(([Z, sym, name, mass, en, ie, ea, r]) => {
+  const pos = elementPosition(Z), cat = elementCategory(Z, sym, pos), shells = electronShells(Z);
+  const ions = ION_CHARGES[sym] || [];
+  const eaState = ea != null ? 'value' : (EA_NONE.includes(sym) ? 'none' : 'nodata');
+  const isMetal = ['alkali','alk2','trans','post','lan','act'].includes(cat);
+  return {Z, sym, name, mass, en, ie, ea, r, eaState, period: pos.period, group: pos.group, f: pos.f || null, cat, isMetal,
+    shells, ions, ionR: ions.length && ION_RADIUS[ionKey(sym, ions[0])] || null};
+});
+const elementBySym = sym => ELEMENTS.find(e => e.sym === sym) || null;
+
+Object.assign(api, {ELEMENTS, ELEMENT_ROWS, ION_RADIUS, ION_CHARGES, ionKey, elementBySym, elementPosition, electronShells});
+
 })(typeof globalThis !== 'undefined' ? globalThis : this);
