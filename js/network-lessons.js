@@ -168,7 +168,7 @@
       reading: 'transport',
       action: 'TCP/UDPヘッダを読んで外す',
       packetLabel: '受信側でTCPまたはUDPのヘッダを読み取っている状態',
-      description: '受信側の第3層で、TCPまたはUDPのヘッダを読んで外し、データを結合します。'
+      description: '受信側の第3層で、TCPまたはUDPのヘッダを読んで外し、対応するアプリケーションへデータを渡します。'
     },
     {
       phase: 'receive',

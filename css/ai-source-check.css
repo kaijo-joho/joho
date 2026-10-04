@@ -1,0 +1,27 @@
+@charset "UTF-8";
+/* IS63 source-comparison activity. Shared lesson navigation stays unchanged. */
+.ai-source-check { margin-block: 18px; }
+.ai-source-check .ai-source-material { padding: 14px; border: 2px solid var(--is-border); border-radius: 8px; background: var(--is-soft); }
+.ai-source-check .ai-source-material p { margin-block: .45em; }
+.ai-source-check fieldset { min-width: 0; margin-block: 16px; padding: 12px; border: 1px solid var(--is-border); border-radius: 8px; }
+.ai-source-check legend { max-width: 100%; padding-inline: 6px; font-weight: 700; }
+.ai-source-check .ai-source-fields { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.ai-source-check .ai-source-fields label { display: grid; gap: 6px; min-width: 0; }
+.ai-source-check select { width: 100%; min-width: 0; min-height: 44px; box-sizing: border-box; border: 1px solid var(--is-border); border-radius: 7px; padding: 8px 2em 8px 8px; background: var(--is-panel); color: var(--is-text); font: inherit; appearance: none; -webkit-appearance: none; background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%); background-position: right 16px center, right 10px center; background-repeat: no-repeat; background-size: 6px 6px; }
+.ai-source-check :is(select, button):focus-visible { outline: 3px solid var(--is-focus); outline-offset: 3px; }
+.ai-source-check [data-ai-row-feedback] { font-size: .9em; margin-bottom: 0; }
+.ai-source-check [data-ai-row-feedback]:empty { display: none; }
+.ai-source-check [data-ai-feedback] { padding: 10px 12px; border: 1px solid var(--is-border); border-radius: 8px; background: var(--is-soft); }
+.ai-source-check .ai-source-controls { display: flex; flex-wrap: wrap; gap: 10px; }
+.ai-source-check:not(.ai-source-ready) .ai-source-controls { display: none; }
+.ai-source-check [data-ai-revision-print] { display: none; white-space: pre-wrap; overflow-wrap: anywhere; }
+@media (max-width: 700px) {
+  .ai-source-check .ai-source-fields { grid-template-columns: minmax(0, 1fr); }
+}
+@media print {
+  .ai-source-check { break-inside: auto; }
+  .ai-source-check .ai-source-controls { display: none !important; }
+  .ai-source-check .ai-source-material, .ai-source-check fieldset { break-inside: avoid; }
+  .ai-source-check.ai-source-ready [data-ai-revision] { display: none !important; }
+  .ai-source-check.ai-source-ready [data-ai-revision-print] { display: block !important; min-height: 20mm; }
+}

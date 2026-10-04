@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="1578" height="1432" viewBox="0 0 1578 1432" role="img" aria-labelledby="title description">
+  <title id="title">RGBの色相環</title>
+  <desc id="description">12色の色相環。各円の塗りは、円内の6桁のHEXコードと同じsRGB値で指定している。向かい合う赤とシアンを補色、隣接する色を類似色として示す。</desc>
+  <rect width="1578" height="1432" fill="#FFFFFF"/>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="10" markerHeight="10" orient="auto-start-reverse"><path d="M 0 0 L 10 5 L 0 10 Z" fill="#000000"/></marker></defs>
+  <g font-family="Arial, Helvetica, sans-serif" text-anchor="middle">
+  <g data-color="#FF0000">
+    <circle cx="716" cy="150" r="146" fill="#FF0000" stroke="#000000" stroke-width="4"/>
+    <text x="716" y="125" fill="#000000" font-size="42" font-weight="700">Red</text>
+    <text x="716" y="194" fill="#000000" font-size="40">#FF0000</text>
+  </g>
+  <g data-color="#FF7F00">
+    <circle cx="999" cy="226" r="146" fill="#FF7F00" stroke="#000000" stroke-width="4"/>
+    <text x="999" y="201" fill="#000000" font-size="42" font-weight="700">Orange</text>
+    <text x="999" y="270" fill="#000000" font-size="40">#FF7F00</text>
+  </g>
+  <g data-color="#FFFF00">
+    <circle cx="1206" cy="433" r="146" fill="#FFFF00" stroke="#000000" stroke-width="4"/>
+    <text x="1206" y="408" fill="#000000" font-size="42" font-weight="700">Yellow</text>
+    <text x="1206" y="477" fill="#000000" font-size="40">#FFFF00</text>
+  </g>
+  <g data-color="#7FFF00">
+    <circle cx="1282" cy="716" r="146" fill="#7FFF00" stroke="#000000" stroke-width="4"/>
+    <text x="1282" y="691" fill="#000000" font-size="42" font-weight="700">Yellow Green</text>
+    <text x="1282" y="760" fill="#000000" font-size="40">#7FFF00</text>
+  </g>
+  <g data-color="#00FF00">
+    <circle cx="1206" cy="999" r="146" fill="#00FF00" stroke="#000000" stroke-width="4"/>
+    <text x="1206" y="974" fill="#000000" font-size="42" font-weight="700">Green</text>
+    <text x="1206" y="1043" fill="#000000" font-size="40">#00FF00</text>
+  </g>
+  <g data-color="#00FF7F">
+    <circle cx="999" cy="1206" r="146" fill="#00FF7F" stroke="#000000" stroke-width="4"/>
+    <text x="999" y="1181" fill="#000000" font-size="42" font-weight="700">Blue Green</text>
+    <text x="999" y="1250" fill="#000000" font-size="40">#00FF7F</text>
+  </g>
+  <g data-color="#00FFFF">
+    <circle cx="716" cy="1282" r="146" fill="#00FFFF" stroke="#000000" stroke-width="4"/>
+    <text x="716" y="1257" fill="#000000" font-size="42" font-weight="700">Cyan</text>
+    <text x="716" y="1326" fill="#000000" font-size="40">#00FFFF</text>
+  </g>
+  <g data-color="#007FFF">
+    <circle cx="433" cy="1206" r="146" fill="#007FFF" stroke="#000000" stroke-width="4"/>
+    <text x="433" y="1181" fill="#000000" font-size="42" font-weight="700">Sky Blue</text>
+    <text x="433" y="1250" fill="#000000" font-size="40">#007FFF</text>
+  </g>
+  <g data-color="#0000FF">
+    <circle cx="226" cy="999" r="146" fill="#0000FF" stroke="#000000" stroke-width="4"/>
+    <text x="226" y="974" fill="#FFFFFF" font-size="42" font-weight="700">Blue</text>
+    <text x="226" y="1043" fill="#FFFFFF" font-size="40">#0000FF</text>
+  </g>
+  <g data-color="#7F00FF">
+    <circle cx="150" cy="716" r="146" fill="#7F00FF" stroke="#000000" stroke-width="4"/>
+    <text x="150" y="691" fill="#FFFFFF" font-size="42" font-weight="700">Purple</text>
+    <text x="150" y="760" fill="#FFFFFF" font-size="40">#7F00FF</text>
+  </g>
+  <g data-color="#FF00FF">
+    <circle cx="226" cy="433" r="146" fill="#FF00FF" stroke="#000000" stroke-width="4"/>
+    <text x="226" y="408" fill="#000000" font-size="42" font-weight="700">Magenta</text>
+    <text x="226" y="477" fill="#000000" font-size="40">#FF00FF</text>
+  </g>
+  <g data-color="#FF007F">
+    <circle cx="433" cy="226" r="146" fill="#FF007F" stroke="#000000" stroke-width="4"/>
+    <text x="433" y="201" fill="#000000" font-size="42" font-weight="700">Red Purple</text>
+    <text x="433" y="270" fill="#000000" font-size="40">#FF007F</text>
+  </g>
+  </g>
+  <g fill="#000000" stroke="#000000" stroke-width="8">
+    <path d="M716 630 V420" marker-end="url(#arrow)"/>
+    <path d="M716 802 V1012" marker-end="url(#arrow)"/>
+    <path d="M1493 556 Q1460 386 1360 250" fill="none" marker-end="url(#arrow)"/>
+    <path d="M1493 877 Q1460 1047 1360 1182" fill="none" marker-end="url(#arrow)"/>
+  </g>
+  <g font-family="sans-serif" fill="#000000" font-size="86" font-weight="700" text-anchor="middle">
+    <text x="716" y="735">補色</text>
+    <text x="1510" y="650">類</text><text x="1510" y="742">似</text><text x="1510" y="834">色</text>
+  </g>
+</svg>

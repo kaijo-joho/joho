@@ -610,16 +610,17 @@
         <p class="nw-source-note">波形は原本のビット列との対応を示す模式例です。実際の信号化の方式は規格によって異なります。</p>
 <div class="nw-layer-journey-details" aria-live="polite" aria-atomic="true">
           <p id="nw-layer-step-0" data-layer-journey-step="0"><strong>送信側・第4層</strong><span>アプリケーションが、ファイルやメールなどの送るデータを用意します。</span></p>
-          <p id="nw-layer-step-1" data-layer-journey-step="1"><strong>送信側・第3層</strong><span>データを分割し、アプリケーションを識別するTCP/UDPヘッダを付けます。</span></p>
+          <p id="nw-layer-step-1" data-layer-journey-step="1"><strong>送信側・第3層</strong><span>アプリケーションを識別するTCP/UDPヘッダを付けます。</span></p>
           <p id="nw-layer-step-2" data-layer-journey-step="2"><strong>送信側・第2層</strong><span>宛先ネットワークを指定するIPヘッダを付けます。</span></p>
           <p id="nw-layer-step-3" data-layer-journey-step="3"><strong>送信側・第1層</strong><span>次の機器へデータを渡すため、イーサネットヘッダを付けます。</span></p>
           <p id="nw-layer-step-4" data-layer-journey-step="4"><strong>伝送媒体</strong><span>0/1のビット列を、電気信号・光信号・電波へ変換してネットワークへ流します。</span></p>
           <p id="nw-layer-step-5" data-layer-journey-step="5"><strong>受信側・第1層</strong><span>信号をビット列へ戻し、イーサネットヘッダを読んで外します。</span></p>
           <p id="nw-layer-step-6" data-layer-journey-step="6"><strong>受信側・第2層</strong><span>IPヘッダを読み、送信元を特定して上の層へ渡します。</span></p>
-          <p id="nw-layer-step-7" data-layer-journey-step="7"><strong>受信側・第3層</strong><span>TCP/UDPヘッダを読み、分割されたデータを結合します。</span></p>
+          <p id="nw-layer-step-7" data-layer-journey-step="7"><strong>受信側・第3層</strong><span>TCP/UDPヘッダを読み、対応するアプリケーションへデータを渡します。</span></p>
           <p id="nw-layer-step-8" data-layer-journey-step="8"><strong>受信側・第4層</strong><span>アプリケーションが元のデータを受け取ります。</span></p>
         </div>
 
+        <p class="nw-source-note">TCPでは、必要に応じてデータを分割し、受信側で順序をそろえて再構成します。UDP自体は、このような順序の並べ替えや再送を行いません。</p>
         <p class="nw-layer-journey-summary" data-layer-journey-summary>階層化すると、ある階層の仕様を変更しても、ほかの階層への影響を小さくできます。</p>
       </figure>
     </article>

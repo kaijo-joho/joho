@@ -671,7 +671,7 @@
       className: `dr-svg--sampling-theorem is-${theorem.state}${animateReconstruction ? ' dr-svg--reconstruction-enter' : ''}`,
       title: options.title || '標本化定理を確かめるグラフ',
       description: options.description || (showReconstruction
-        ? '元の正弦波、標本時刻と標本点、標本点を通る滑らかな波形を表示します。条件を満たさない場合の破線は、元の波形と区別できない別の候補です。'
+        ? '元の正弦波、標本時刻と標本点、同じ標本点を通る滑らかな波形の例を表示します。条件を満たす場合の破線は、この図の前提のもとで再現できる波形を示した例です。条件を満たさない場合は、元の波形と区別できない別の候補です。'
         : '元の正弦波と、指定した標本化周波数で取り出した丸い標本点を表示します。')
     });
     const background = layer('drawing-area');
@@ -693,7 +693,7 @@
       });
       const reconstructionLabel = candidate
         ? '同じ標本点を通る別の滑らかな波形（破線。元の波形とは限りません）'
-        : '標本点から再現した滑らかな波形（破線）';
+        : 'この図の前提のもとで再現できる滑らかな波形の例（破線）';
       if (animateReconstruction) {
         const clipId = `dr-reconstruction-clip-${svgSerial}`;
         const definitions = svgElement('defs');

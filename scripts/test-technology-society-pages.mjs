@@ -24,7 +24,7 @@ for (const [index,id] of files.entries()) {
     assert.match(contents,/<title id=/); assert.match(contents,/<desc id=/);
   }
   assert.equal((html.match(/data-lesson-progress\s/g)||[]).length,modelCounts[index],'each model uses shared Next');
-  assert.equal((html.match(/<textarea\b/g)||[]).length,2,'two original explanation exercises');
+  assert.equal((html.match(/<textarea\b/g)||[]).length,id === 'is63' ? 3 : 2,'two explanation exercises, plus the IS63 source-check revision');
   for(const phrase of ['語句まとめ','ポイントまとめ','予想する','説明する','2026-10-04確認']) assert.ok(html.includes(phrase),`${id}: ${phrase}`);
 }
 const ai=await readFile(new URL('is63.html',root),'utf8');

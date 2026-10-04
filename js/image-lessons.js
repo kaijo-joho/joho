@@ -399,7 +399,7 @@
         canvas.setAttribute('aria-label', `${channels[channel]}成分の気球の${stageNames[process + 1]}。${captions[processNames[process]].textContent}`);
       });
       descriptions[2].textContent = `標本化：画像の縦・横をそれぞれ${resolution}等分し、各マス内の平均の明るさを取り出します。このマス目が画素（ピクセル）です。拡大表では平均値を小数第1位まで表示します。`;
-      descriptions[3].textContent = `量子化：各画素の明るさを0〜${Core.levels(bits) - 1}の${Core.levels(bits)}段階の値にします。標本化した画像と比べ、スライダーで階調数も変えてみましょう。`;
+      descriptions[3].textContent = `量子化：この図では、0以上256未満の明るさを幅${256 / Core.levels(bits)}の${Core.levels(bits)}区間に等分し、暗い方から0〜${Core.levels(bits) - 1}の段階値を付けます。境界の値は明るい側の区間に入れます。表示色は段階0を黒、段階${Core.levels(bits) - 1}をその成分の最も明るい色にします。`;
       descriptions[4].textContent = `符号化：段階値を${bits}桁の2進数で表し、左上から右へ1行ずつ並べます。画像にマウスを重ねると、その付近の符号を拡大して読めます。`;
       resized();
     }

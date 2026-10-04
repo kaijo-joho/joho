@@ -258,7 +258,7 @@
       actions.appendChild(this.drawButton);
       controls.append(frequency.wrapper, sampleRate.wrapper, phase.wrapper, this.metrics, actions);
       const warning = el('p', 'dr-warning-note dr-theorem-note');
-      warning.innerHTML = '<strong>描く波形について：</strong>丸い標本点を直線で結ぶのではなく、標本点を通る滑らかな波形を描きます。条件を満たさない場合は、元の波形と区別できない別の候補が現れます。';
+      warning.innerHTML = '<strong>描く波形について：</strong>丸い標本点を直線で結ぶのではなく、同じ標本点を通る滑らかな波形の例を描きます。画面内の限られた数の点だけで元の波形が決まる、という意味ではありません。条件を満たさない場合は、元の波形と区別できない別の候補が現れます。';
       // 判定文や補足文の長さが変わってもグラフ位置が動かないよう、可変テキストはグラフより後ろに置く。
       visual.append(scroll, this.legend, this.status, warning);
       grid.append(controls, visual);
@@ -301,7 +301,7 @@
         statusHtml = '<strong>丸い標本点を確認してください。</strong>標本化周波数を決めたら、「標本点を結ぶグラフを描く」を押して、標本点からどのような波形が得られるか確かめます。';
       } else if (result.theorem.state === 'sufficient') {
         this.status.classList.add('is-sufficient');
-        statusHtml = `<strong>条件を満たしています：${this.state.sampleRate} Hz &gt; ${Widgets.formatNumber(this.state.frequency, 1)} Hz × 2</strong>標本点から描いた破線は元の波形と重なり、元の波形を再現できます。`;
+        statusHtml = `<strong>条件を満たしています：${this.state.sampleRate} Hz &gt; ${Widgets.formatNumber(this.state.frequency, 1)} Hz × 2</strong>この前提では元の波形を再現できます。破線は、再現できる波形を元の波形に重ねて示した例です。`;
       } else if (result.theorem.state === 'boundary') {
         this.status.classList.add('is-boundary');
         const detail = result.candidate?.kind === 'boundary-flat'
@@ -323,7 +323,7 @@
       if (this.state.showReconstruction) {
         const reconstructionLabel = result.candidate
           ? '同じ標本点を通る別の波形（破線）'
-          : '標本点から再現した波形（破線）';
+          : '再現できる波形の例（破線）';
         legendParts.push(`<span class="dr-legend__item"><span class="dr-legend__line dr-legend__line--candidate"></span>${reconstructionLabel}</span>`);
       }
       this.legend.innerHTML = legendParts.join('');

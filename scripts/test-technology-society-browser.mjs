@@ -104,7 +104,7 @@ for(const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(',
     if(width!==720)for(let n=1;n<=7;n++){await go(page,n);await page.screenshot({path:`${out}/${engine}-${id}-${width}-${n}.png`});}
    }
    await go(page,6);const term=page.locator('.is-terms summary').first();await term.focus();await page.keyboard.press('Enter');await expect(term.locator('..')).toHaveAttribute('open','');await page.keyboard.press('Enter');
-   await go(page,7);await page.locator('textarea').first().fill('自分の説明');await page.locator('.ts-problems summary').first().press('Enter');await expect(page.locator('.ts-problems details').first()).toHaveAttribute('open','');
+   await go(page,7);await page.locator('.ts-problems textarea').first().fill('自分の説明');await page.locator('.ts-problems summary').first().press('Enter');await expect(page.locator('.ts-problems details').first()).toHaveAttribute('open','');
    const before=await page.locator('[data-lesson-progress]').first().getAttribute('data-progress-step');
    await page.emulateMedia({media:'print'});
    assert.ok(await page.locator('section[data-lesson-slide]').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).display!=='none')));
@@ -115,7 +115,7 @@ for(const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(',
    if(engine==='chrome')await page.pdf({path:`${out}/${id}.pdf`,format:'A4',printBackground:true});
    await page.emulateMedia({media:'screen'});
    assert.equal(await page.locator('[data-lesson-progress]').first().getAttribute('data-progress-step'),before);
-   await expect(page.locator('textarea').first()).toHaveValue('自分の説明');
+   await expect(page.locator('.ts-problems textarea').first()).toHaveValue('自分の説明');
    results.push({engine,id,widths:[1440,720,390],themes:3,textSizes:3,slides:7,errors:0});console.log(`${engine} ${id}: all layout and interaction checks passed`);
   }
   assert.deepEqual(errors,[],'no page exceptions or local HTTP errors');

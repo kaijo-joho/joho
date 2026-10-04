@@ -9,10 +9,12 @@
     <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
     <link rel="stylesheet" href="./css/lesson-progress.css" integrity="sha384-HOomM/6OjfpYLWciMhnMR3+bbNH5OD+bT4peIOwgCRUkNT7Dmi9c9w7Q7w32HMF8">
     <link rel="stylesheet" href="./css/technology-society.css" integrity="sha384-GIVIEMrI5bGnNyP5Ni26vmmX1ZHMfjVQ10zYoBsAju+/0R7gHXXiXGQDgO/UjCu7">
+    <link rel="stylesheet" href="./css/ai-source-check.css" integrity="sha384-v6+YGgR0i1I1j4WpxW7yzdxBXzd3Qqu1lGWffzA8aqClhbVfLUxZDcc93+4wTk9H">
     <script defer src="./js/main.js"></script>
     <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
     <script defer src="./js/lesson-progress.js" integrity="sha384-hjP23gIIOVkemmd4d55HqEo004lwY0LZinfR9Fn17lxZFM9ydLpe21yP1vsL0yVm"></script>
     <script defer src="./js/technology-society.js" integrity="sha384-e4HZ4gt3bJA0Jze3BQkDP9REUmnMzwZgxKIhyq2rTTYsZsWm5Zo3y8A+RAtxCyZJ"></script>
+    <script defer src="./js/ai-source-check.js" integrity="sha384-Ia8AupECJo2DRPAKNVbT6xyB8DP4BZ5yTzUJTBppgesWA7f+nOewEikglt33gx1T"></script>
     <script defer src="./js/lesson-slide-deck.js"></script>
   </head>
   <body class="is-lesson is-technology" data-lesson-slide-deck>
@@ -305,6 +307,10 @@
           <div data-lesson-stage-from="1">
             <div class="is-model" data-is-model="is63-ai" data-is-default="familiar">
               <p class="ts-model-note">図形は概念説明の模型です。AIを実行した結果や、性能・正答率を示す図ではありません。</p>
+              <div class="is-card">
+                <p><strong>学習：</strong>例のデータからパターンを学び、分類に使うモデルを作ります。</p>
+                <p><strong>利用：</strong>新しい入力をそのモデルへ与えると、分類の候補が出ます。学習用の例と利用時の入力を比べ、確かめる条件を考えます。</p>
+              </div>
               <div class="is-tabs" role="group" aria-label="丸形と四角形の例で学習した分類を、どんな入力でも同じように信頼できるでしょうか。">
                 <button type="button" data-is-select="familiar" aria-pressed="false">似た例のある入力</button>
                 <button type="button" data-is-select="unfamiliar" aria-pressed="false">例にない入力</button>
@@ -314,7 +320,7 @@
                 <div class="ts-grid">
                   <figure class="ts-visual">
                     <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-a-familiar-title is63-a-familiar-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <title id="is63-a-familiar-title">学習用の例と新しい入力の比較</title>
+                      <title id="is63-a-familiar-title">学習用の例と利用時の入力を並べた比較</title>
                       <desc id="is63-a-familiar-desc">学習用の例は丸形と四角形。新しい入力が似た丸形、例にない三角形、線で隠れた四角形の三つに変わる。</desc>
                       <rect x="15" y="15" width="205" height="195" rx="10" fill="var(--is-panel)"/>
                       <text x="117.5" y="120.5" text-anchor="middle" font-size="24"></text>
@@ -326,15 +332,13 @@
                       <rect x="101" y="126" width="28" height="28" fill="var(--is-soft)"/>
                       <circle cx="165" cy="140" r="15" fill="var(--is-soft)"/>
                       <text x="117" y="187" text-anchor="middle" font-size="22">丸形・四角形</text>
-                      <path d="M230 112 L264 112"/>
-                      <path d="M256 105 L264 112 L256 119"/>
                       <rect x="277" y="15" width="188" height="195" rx="10" fill="var(--is-panel)"/>
                       <text x="371.0" y="120.5" text-anchor="middle" font-size="24"></text>
                       <text x="371" y="48" text-anchor="middle" font-size="23">新しい入力</text>
                       <circle cx="370" cy="110" r="26" fill="var(--is-soft)"/>
                       <text x="371" y="183" text-anchor="middle" font-size="22">似た例がある</text>
                     </svg>
-                    <figcaption>学習した例と、利用時の入力がどれだけ対応しているかを考えます。</figcaption>
+                    <figcaption>左右は処理の流れではなく、学習用の例と利用時の入力の比較です。</figcaption>
                   </figure>
                   <div data-lesson-stage-from="2">
                     <h3>似た例がある場面</h3>
@@ -346,7 +350,7 @@
                 <div class="ts-grid">
                   <figure class="ts-visual">
                     <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-a-unfamiliar-title is63-a-unfamiliar-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <title id="is63-a-unfamiliar-title">学習用の例と新しい入力の比較</title>
+                      <title id="is63-a-unfamiliar-title">学習用の例と利用時の入力を並べた比較</title>
                       <desc id="is63-a-unfamiliar-desc">学習用の例は丸形と四角形。新しい入力が似た丸形、例にない三角形、線で隠れた四角形の三つに変わる。</desc>
                       <rect x="15" y="15" width="205" height="195" rx="10" fill="var(--is-panel)"/>
                       <text x="117.5" y="120.5" text-anchor="middle" font-size="24"></text>
@@ -358,15 +362,13 @@
                       <rect x="101" y="126" width="28" height="28" fill="var(--is-soft)"/>
                       <circle cx="165" cy="140" r="15" fill="var(--is-soft)"/>
                       <text x="117" y="187" text-anchor="middle" font-size="22">丸形・四角形</text>
-                      <path d="M230 112 L264 112"/>
-                      <path d="M256 105 L264 112 L256 119"/>
                       <rect x="277" y="15" width="188" height="195" rx="10" fill="var(--is-panel)"/>
                       <text x="371.0" y="120.5" text-anchor="middle" font-size="24"></text>
                       <text x="371" y="48" text-anchor="middle" font-size="23">新しい入力</text>
                       <path d="M370 78 L398 130 H342 Z" fill="var(--is-soft)"/>
                       <text x="371" y="183" text-anchor="middle" font-size="22">例にない形</text>
                     </svg>
-                    <figcaption>学習した例と、利用時の入力がどれだけ対応しているかを考えます。</figcaption>
+                    <figcaption>左右は処理の流れではなく、学習用の例と利用時の入力の比較です。</figcaption>
                   </figure>
                   <div data-lesson-stage-from="2">
                     <h3>経験していない場面</h3>
@@ -378,7 +380,7 @@
                 <div class="ts-grid">
                   <figure class="ts-visual">
                     <svg viewBox="0 0 480 250" role="img" aria-labelledby="is63-a-changed-title is63-a-changed-desc" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                      <title id="is63-a-changed-title">学習用の例と新しい入力の比較</title>
+                      <title id="is63-a-changed-title">学習用の例と利用時の入力を並べた比較</title>
                       <desc id="is63-a-changed-desc">学習用の例は丸形と四角形。新しい入力が似た丸形、例にない三角形、線で隠れた四角形の三つに変わる。</desc>
                       <rect x="15" y="15" width="205" height="195" rx="10" fill="var(--is-panel)"/>
                       <text x="117.5" y="120.5" text-anchor="middle" font-size="24"></text>
@@ -390,8 +392,6 @@
                       <rect x="101" y="126" width="28" height="28" fill="var(--is-soft)"/>
                       <circle cx="165" cy="140" r="15" fill="var(--is-soft)"/>
                       <text x="117" y="187" text-anchor="middle" font-size="22">丸形・四角形</text>
-                      <path d="M230 112 L264 112"/>
-                      <path d="M256 105 L264 112 L256 119"/>
                       <rect x="277" y="15" width="188" height="195" rx="10" fill="var(--is-panel)"/>
                       <text x="371.0" y="120.5" text-anchor="middle" font-size="24"></text>
                       <text x="371" y="48" text-anchor="middle" font-size="23">新しい入力</text>
@@ -399,7 +399,7 @@
                       <path d="M328 89 L410 122 M325 117 L408 91"/>
                       <text x="371" y="183" text-anchor="middle" font-size="22">見え方が違う</text>
                     </svg>
-                    <figcaption>学習した例と、利用時の入力がどれだけ対応しているかを考えます。</figcaption>
+                    <figcaption>左右は処理の流れではなく、学習用の例と利用時の入力の比較です。</figcaption>
                   </figure>
                   <div data-lesson-stage-from="2">
                     <h3>条件が違う場面</h3>
@@ -529,6 +529,64 @@
             </div>
           </div>
           <p class="is-observe" data-lesson-stage-from="2"><strong>説明する：</strong>文案のどの部分を、どの資料で確認すればよいか具体的に挙げましょう。</p>
+          <div data-lesson-stage-from="2" class="is-card ai-source-check" data-ai-source-check>
+            <h3>資料で確かめる：上映会の案内文</h3>
+            <p>文案の各文を正式メモと照らし、判断と根拠を選びましょう。紙に「文A：判断／根拠」のように書いても構いません。</p>
+            <div class="ai-source-material">
+              <h4>学校行事係の正式メモ（架空）</h4>
+              <p><strong>① 日時：</strong>上映会は11月15日15:30開始。</p>
+              <p><strong>② 会場：</strong>視聴覚室。</p>
+              <p><strong>③ 対象：</strong>在校生。</p>
+            </div>
+            <h4>生成AIから得たと想定した文案</h4>
+            <p class="ts-model-note">この文案は学習用に用意した架空の例で、実際の生成AIの出力や性能を示すものではありません。</p>
+                <fieldset data-ai-claim="different" data-ai-source="time">
+                  <legend>文A：上映会は11月15日14:30に始まります。</legend>
+                  <div class="ai-source-fields">
+                    <label for="is63-verdict-A">判断<select id="is63-verdict-A" data-ai-verdict disabled><option value="">選ぶ</option><option value="supported">資料と一致</option><option value="different">資料と食い違う</option><option value="unknown">資料だけでは不明</option></select></label>
+                    <label for="is63-evidence-A">根拠にした項目<select id="is63-evidence-A" data-ai-evidence disabled><option value="">選ぶ</option><option value="time">① 日時</option><option value="place">② 会場</option><option value="audience">③ 対象</option><option value="none">記載なし</option></select></label>
+                  </div>
+                  <p data-ai-row-feedback></p>
+                </fieldset>
+                <fieldset data-ai-claim="different" data-ai-source="place">
+                  <legend>文B：会場は講堂です。</legend>
+                  <div class="ai-source-fields">
+                    <label for="is63-verdict-B">判断<select id="is63-verdict-B" data-ai-verdict disabled><option value="">選ぶ</option><option value="supported">資料と一致</option><option value="different">資料と食い違う</option><option value="unknown">資料だけでは不明</option></select></label>
+                    <label for="is63-evidence-B">根拠にした項目<select id="is63-evidence-B" data-ai-evidence disabled><option value="">選ぶ</option><option value="time">① 日時</option><option value="place">② 会場</option><option value="audience">③ 対象</option><option value="none">記載なし</option></select></label>
+                  </div>
+                  <p data-ai-row-feedback></p>
+                </fieldset>
+                <fieldset data-ai-claim="supported" data-ai-source="audience">
+                  <legend>文C：在校生が参加できます。</legend>
+                  <div class="ai-source-fields">
+                    <label for="is63-verdict-C">判断<select id="is63-verdict-C" data-ai-verdict disabled><option value="">選ぶ</option><option value="supported">資料と一致</option><option value="different">資料と食い違う</option><option value="unknown">資料だけでは不明</option></select></label>
+                    <label for="is63-evidence-C">根拠にした項目<select id="is63-evidence-C" data-ai-evidence disabled><option value="">選ぶ</option><option value="time">① 日時</option><option value="place">② 会場</option><option value="audience">③ 対象</option><option value="none">記載なし</option></select></label>
+                  </div>
+                  <p data-ai-row-feedback></p>
+                </fieldset>
+                <fieldset data-ai-claim="unknown" data-ai-source="none">
+                  <legend>文D：参加者には記念品があります。</legend>
+                  <div class="ai-source-fields">
+                    <label for="is63-verdict-D">判断<select id="is63-verdict-D" data-ai-verdict disabled><option value="">選ぶ</option><option value="supported">資料と一致</option><option value="different">資料と食い違う</option><option value="unknown">資料だけでは不明</option></select></label>
+                    <label for="is63-evidence-D">根拠にした項目<select id="is63-evidence-D" data-ai-evidence disabled><option value="">選ぶ</option><option value="time">① 日時</option><option value="place">② 会場</option><option value="audience">③ 対象</option><option value="none">記載なし</option></select></label>
+                  </div>
+                  <p data-ai-row-feedback></p>
+                </fieldset>
+            <div class="ai-source-controls">
+              <button type="button" class="is-button" data-ai-check disabled>判断と根拠を確かめる</button>
+              <button type="button" class="is-button" data-ai-reset disabled>照合の選択を戻す</button>
+            </div>
+            <p data-ai-feedback role="status">各文の判断と根拠を選び、確かめましょう。</p>
+            <label for="is63-draft-revision">修正版と、確認できない情報の扱い<textarea id="is63-draft-revision" class="ts-response" data-ai-revision rows="4" maxlength="600"></textarea></label>
+            <p data-ai-revision-print>（修正版と、確認できない情報の扱いを記入）</p>
+            <p class="is-note">資料にないことは、正しいとも誤りともまだ判断できません。誰に何を確認するかも書きましょう。入力はこの画面だけで扱い、保存・外部送信しません。</p>
+            <details class="is-supplement" open>
+              <summary>考え方の例</summary>
+              <p>Aは①と食い違います。開始は15:30です。Bは②と食い違い、会場は視聴覚室です。Cは③と一致します。Dの記念品はメモに記載がなく、存在しないとまでは判断できません。</p>
+              <p>修正版の例：「上映会は11月15日15:30から視聴覚室で行います。在校生が参加できます。」記念品については行事係へ確認し、確認できるまでは確定情報として載せません。</p>
+              <p>正式メモだけで案内に必要な情報がすべてそろうとは限りません。申込方法など、目的に必要で未確認の条件も挙げましょう。</p>
+            </details>
+          </div>
         </div>
       </article>
     </section>
