@@ -667,3 +667,14 @@ id11〜id15には各3件、計15件の独立した比較例を既存の本文31�
 - HSL変換と数値見出しの白黒選択は`js/color-study-core.js`を両ページで共用し、HEXは既存`DigitalColorCore.rgb`を再利用する。変換はW3Cの[HSL→sRGB](https://www.w3.org/TR/css-color-4/#hsl-to-rgb)に従い、8bitへ四捨五入した同じRGB値を塗りと表示に使う。本文の3実験は`js/color-study.js`、見本表は`js/color-samples.js`。共通表示は`css/color-study.css`、見本の表は`css/color-samples.css`へ置く。
 - 見本の緑下段の明度表示、マゼンタ中央段の明度表示、心理補色の誤字と赤の説明を修正した。色のイメージは文化・経験による差があるという説明を維持する。実験の制御はJavaScriptの初期化が成功するまで無効とし、無効環境では説明を残す。心理補色の状態通知は部品内だけで行う。
 - 検証は`node scripts/test-color-study-core.mjs`、`node scripts/test-color-wheel.mjs`、`node scripts/test-digital-color-core.mjs`、`node scripts/test-color-study-browser.mjs`を使う。ブラウザーは`JOHO_BROWSER=webkit`で切替、Playwrightは`PLAYWRIGHT_MODULE`、対象URLは第1引数で指定できる。ブラウザー検証は2ページ×1440/720/390px×自動/ライト/ダーク×標準/大/特大、3実験、全252セルの表示値と背景、キー/タッチ、JavaScript無効、動きを減らす設定、例外/404を確認する。Safariアプリ実機と残像の主観的な見え方は自動ブラウザー検証とは区別する。
+
+## 教員用OKLCHパレット（`color-palette.html`）
+
+- 2026-10-04のユーザー指示による不具合修正。配色を決める個人用ツールとして、既存URL・タブ・ストック・CSS出力を維持する。生徒向け教材への変更や台帳への登録は行わない。
+- `js/color-palette-core.js`でOKLab作者の[linear sRGBとの変換式](https://bottosson.github.io/posts/oklab/)を使用し、逆変換にXYZの行列を重ねない。RGB入力の無彩色はC=0/H=0とする。基準明度を必ず一度含む10行を生成し、基準行の上下を白・黒まで分配して重複を避ける。
+- 入力したOKLCH値は保持する。sRGB外ではL/Hを固定し、二分探索でCを色域内まで下げる独自の厳密な方式を使う。CSS Color 4のMINDE等のブラウザー実装と同一という意味ではない。色見本・グリッド・ストック・スライダー・コピー・CSS出力に同じ調整方針を適用し、色域外の説明とsRGB印を表示する。OKLCH出力にも調整後の値を使い、RGB/HEXは同じ8bit値、HSL/HSVは小数3桁で出力する。
+- 数値の編集中の空欄・範囲外・非整数RGB/色数を状態へ保存しない。フォーカスを離れたら最後の有効値へ戻す。HSL/HSVの数値欄は実際に編集した値を使う。HEXは3桁/6桁全体を検証する。
+- 保存キー`oklch-palette-v1`を維持する。復元する設定とストックを個別に検証し、RGBの派生値を再計算する。不正データがあれば元の文字列を`oklch-palette-v1-recovery`へ一度だけ退避し、有効なストックを保持して設定を復旧する。保存や読込が使えない場合は画面で知らせる。保存先は同じブラウザー内で、同期・外部送信はしない。
+- ストック名はHTMLへエスケープし、CSS変数名はUnicodeの文字・数字・アンダースコア・ハイフンへ整える。空名は`color`、重複は番号を付ける。既存の名前を保存データ内で改名しない。
+- 数値表の幅をツール内に限定し、明るい/暗い基準色でも操作文字を読めるようにする。コピーは成功した場合だけ成功表示し、Clipboard APIが使えない場合は旧方式を試して、失敗時は手動コピーを案内する。CSS出力はnative dialogを使い、Escape・外側クリック・フォーカス復帰を扱う。グリッドとストックのコピーはEnter/Spaceでも操作でき、タッチ/キーボードでは追加等の操作を隠さない。
+- 検証は`node scripts/test-color-palette-core.mjs`と`node scripts/test-color-palette-browser.mjs <URL>`。Chrome/WebKitは`JOHO_BROWSER`、Playwrightは`PLAYWRIGHT_MODULE`で指定する。色変換・色域外・入力・既存保存/破損保存の復旧・CSS名・コピー失敗・dialog・390pxを合成データで確認する。実機Safariとモニターの色再現性は別確認とする。
