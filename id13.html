@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/lesson-progress.css" integrity="sha384-HOomM/6OjfpYLWciMhnMR3+bbNH5OD+bT4peIOwgCRUkNT7Dmi9c9w7Q7w32HMF8">
   <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
-  <link rel="stylesheet" href="./css/information-design.css" integrity="sha384-TQrVfXHVAM6wUgPK//SunG0K6DKvHG1cOfc0i/0FDZ502+rGMtsKF+Gbcg1XefkD">
+  <link rel="stylesheet" href="./css/information-design.css" integrity="sha384-+f81pEHG7P/vTuGAsbLO9x2DPmZ7gwX+6mnclizQSJR9K7B2RnEhXhUVT9mGdtv7">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
-  <script defer src="./js/information-design.js" integrity="sha384-LS5wJEXDqPgfAG5WwBRjpZVondTO7YmeoTq1fGzSQttu5km8BslGCUdiqpPY92vK"></script>
+  <script defer src="./js/information-design.js" integrity="sha384-mb/bhY6DKO8MUZg0KA9rALov8Y2QzNpGRYTLduUYtSbBIAN+XvUsOHIQKUSl/VAF"></script>
   <script defer src="./js/lesson-progress.js" integrity="sha384-hjP23gIIOVkemmd4d55HqEo004lwY0LZinfR9Fn17lxZFM9ydLpe21yP1vsL0yVm"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -25,6 +25,24 @@
  <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>利用者の違いと利用環境の違いを両方考えます。ひとつの工夫で全員に対応できるとは限りません。複数の手掛かりと操作方法を用意し、実際に確かめます。</p></div>
  <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>はじめから</button><span data-progress-status role="status"></span></div>
  </div>
+
+      <details class="is-supplement is-card id-extra-case" data-id-extra-case="id13-timetable" open>
+        <summary>追加例　時刻表：運行条件を文字で伝える</summary>
+        <div data-lesson-progress id="id13-timetable-progress">
+          <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>水曜日に8:30の便へ乗る予定です。印と凡例を見落とした場合、どんな誤解が起こりますか。</p></div>
+          <div class="is-model id-example-model" data-is-model="id13-timetable" data-is-default="before">
+            <div data-lesson-stage-from="1" class="is-tabs" role="group" aria-label="時刻表：運行条件を文字で伝えるの比較">
+              <button type="button" data-is-select="before" aria-pressed="false">改善前</button>
+              <button type="button" data-is-select="after" aria-pressed="false">改善後</button>
+              <button type="button" data-is-reset>比較を戻す</button>
+            </div>
+            <div data-is-panel="before"><h4 class="id-example-version">改善前</h4><div class="id-example-table"><table><caption>架空のバス時刻表</caption><thead><tr><th scope="col">出発</th><th scope="col">備考</th></tr></thead><tbody><tr><th scope="row">8:10</th><td>通常運行</td></tr><tr><th scope="row">8:30</th><td><span class="id-timetable-dot" style="background:#a14367" aria-label="色の印"></span></td></tr></tbody></table></div><p class="id-example-legend">赤紫の印＝水曜日は運休</p></div>
+            <div data-is-panel="after"><h4 class="id-example-version">改善後</h4><div class="id-example-table"><table><caption>架空のバス時刻表</caption><thead><tr><th scope="col">出発</th><th scope="col">運行日</th></tr></thead><tbody><tr><th scope="row">8:10</th><td>毎日</td></tr><tr><th scope="row">8:30</th><td>水曜日は運休</td></tr></tbody></table></div><p class="id-example-priority">水曜日の8:30の便は利用できません。8:10の便は運行します。</p></div>
+          </div>
+          <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>情報が必要なセルに「水曜日は運休」と書き、運行条件を本文でも説明します。色・離れた凡例だけで必要な条件を伝えない工夫です。文字の拡大や白黒印刷でも条件を読めるか確認します。</p></div>
+          <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>予想に戻る</button><span data-progress-status role="status"></span></div>
+        </div>
+      </details>
     </article>
   </section>
   <section data-lesson-slide data-lesson-slide-title="色以外の手掛かり">
@@ -36,6 +54,24 @@
  <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>文字・形・模様・線種などを色に加え、凡例と対応させます。色名で指示するなら色名も添えます。グレースケールは色以外の手掛かりを確認する一方法で、すべての人の色覚を再現するものではありません。</p></div>
  <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>はじめから</button><span data-progress-status role="status"></span></div>
  </div><p class="is-source"><a href="https://www.w3.org/WAI/WCAG22/Understanding/use-of-color.html" target="_blank" rel="noopener">W3C：色だけに頼らない表現</a></p>
+
+      <details class="is-supplement is-card id-extra-case" data-id-extra-case="id13-route" open>
+        <summary>追加例　経路図：色・線種・経路の文章</summary>
+        <div data-lesson-progress id="id13-route-progress">
+          <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>色の違いを使わず、昇降機を通る経路を選べるでしょうか。</p></div>
+          <div class="is-model id-example-model" data-is-model="id13-route" data-is-default="before">
+            <div data-lesson-stage-from="1" class="is-tabs" role="group" aria-label="経路図：色・線種・経路の文章の比較">
+              <button type="button" data-is-select="before" aria-pressed="false">色だけの凡例</button>
+              <button type="button" data-is-select="after" aria-pressed="false">線種と経路文も併用</button>
+              <button type="button" data-is-reset>比較を戻す</button>
+            </div>
+            <div data-is-panel="before"><h4 class="id-example-version">色だけの凡例</h4><figure class="id-example-visual"><svg viewBox="0 0 360 220" role="img" aria-labelledby="id13-route-before-title id13-route-before-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><title id="id13-route-before-title">入口から2階へ向かう2つの経路</title><desc id="id13-route-before-desc">青は階段を通る経路、橙は昇降機を通る経路。後者では実線・破線と文字も組み合わせる。</desc><path d="M35 165H145V60H320" stroke="#267399" stroke-width="6"/><path d="M35 165H260V60H320" stroke="#ac7131" stroke-width="6"/><circle cx="35" cy="165" r="9" fill="var(--is-panel)"/><circle cx="320" cy="60" r="9" fill="var(--is-panel)"/><text x="36" y="203" font-size="23" text-anchor="middle" fill="currentColor" stroke="none">入口</text><text x="308" y="34" font-size="23" text-anchor="middle" fill="currentColor" stroke="none">2階</text></svg></figure><p class="id-example-legend">青：階段を通る　橙：昇降機を通る</p></div>
+            <div data-is-panel="after"><h4 class="id-example-version">線種と経路文も併用</h4><figure class="id-example-visual"><svg viewBox="0 0 360 220" role="img" aria-labelledby="id13-route-after-title id13-route-after-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><title id="id13-route-after-title">入口から2階へ向かう2つの経路</title><desc id="id13-route-after-desc">青は階段を通る経路、橙は昇降機を通る経路。後者では実線・破線と文字も組み合わせる。</desc><path d="M35 165H145V60H320" stroke="#267399" stroke-width="6"/><path d="M35 165H260V60H320" stroke="#ac7131" stroke-width="6" stroke-dasharray="12 8"/><circle cx="35" cy="165" r="9" fill="var(--is-panel)"/><circle cx="320" cy="60" r="9" fill="var(--is-panel)"/><text x="36" y="203" font-size="23" text-anchor="middle" fill="currentColor" stroke="none">入口</text><text x="308" y="34" font-size="23" text-anchor="middle" fill="currentColor" stroke="none">2階</text></svg></figure><ul class="id-example-route-legend"><li><span class="id-route-line stairs"></span>実線：入口 → 階段 → 2階</li><li><span class="id-route-line lift"></span>破線：入口 → 昇降機 → 2階</li></ul></div>
+          </div>
+          <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>実線・破線と経路の文章を加えると、色名を使わずに経路をたどれます。図の関係を文章でも示すと、図を利用できない場合にも情報を得られます。実際に移動できるかは段差や設備なども確認が必要です。この図は架空の比較例です。</p></div>
+          <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>予想に戻る</button><span data-progress-status role="status"></span></div>
+        </div>
+      </details>
     </article>
   </section>
   <section data-lesson-slide data-lesson-slide-title="画像と代替テキスト">
@@ -47,6 +83,24 @@
  <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>画像の見た目をすべて列挙するのでなく、その文脈で必要な情報を伝えます。複雑な図表の詳しい内容は、短いaltだけに詰め込まず、本文や表でも説明します。</p></div>
  <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>はじめから</button><span data-progress-status role="status"></span></div>
  </div><p class="is-source"><a href="https://www.w3.org/WAI/tutorials/images/decision-tree/" target="_blank" rel="noopener">W3C：altを考える判断手順</a></p>
+
+      <details class="is-supplement is-card id-extra-case" data-id-extra-case="id13-chart-text" open>
+        <summary>追加例　グラフ：図を読めないときも値を得る</summary>
+        <div data-lesson-progress id="id13-chart-text-progress">
+          <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>「貸出数のグラフ」という短い説明だけで、5月と6月の差を求められるでしょうか。</p></div>
+          <div class="is-model id-example-model" data-is-model="id13-chart-text" data-is-default="before">
+            <div data-lesson-stage-from="1" class="is-tabs" role="group" aria-label="グラフ：図を読めないときも値を得るの比較">
+              <button type="button" data-is-select="before" aria-pressed="false">図だけの提示</button>
+              <button type="button" data-is-select="after" aria-pressed="false">要点と数値表も提示</button>
+              <button type="button" data-is-reset>比較を戻す</button>
+            </div>
+            <div data-is-panel="before"><h4 class="id-example-version">図だけの提示</h4><figure class="id-example-visual"><svg viewBox="0 0 360 220" role="img" aria-labelledby="id13-chart-only-title id13-chart-only-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><title id="id13-chart-only-title">図書館の月別貸出数</title><desc id="id13-chart-only-desc">4月、5月、6月の貸出数を棒で比較する図。正確な数値は図内のラベルで示す。</desc><path d="M20 25V165H340"/><rect x="42" y="105" width="52" height="60" fill="#397eae"/><text x="68" y="190" font-size="23" text-anchor="middle" fill="currentColor" stroke="none">4月</text><text x="68" y="90" font-size="22" text-anchor="middle" fill="currentColor" stroke="none">60</text><rect x="150" y="75" width="52" height="90" fill="#397eae"/><text x="176" y="190" font-size="23" text-anchor="middle" fill="currentColor" stroke="none">5月</text><text x="176" y="60" font-size="22" text-anchor="middle" fill="currentColor" stroke="none">90</text><rect x="258" y="90" width="52" height="75" fill="#397eae"/><text x="284" y="190" font-size="23" text-anchor="middle" fill="currentColor" stroke="none">6月</text><text x="284" y="75" font-size="22" text-anchor="middle" fill="currentColor" stroke="none">75</text></svg></figure></div>
+            <div data-is-panel="after"><h4 class="id-example-version">要点と数値表も提示</h4><figure class="id-example-visual"><svg viewBox="0 0 360 220" role="img" aria-labelledby="id13-chart-with-table-title id13-chart-with-table-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><title id="id13-chart-with-table-title">図書館の月別貸出数</title><desc id="id13-chart-with-table-desc">4月、5月、6月の貸出数を棒で比較する図。正確な数値は図内のラベルで示す。</desc><path d="M20 25V165H340"/><rect x="42" y="105" width="52" height="60" fill="#397eae"/><text x="68" y="190" font-size="23" text-anchor="middle" fill="currentColor" stroke="none">4月</text><text x="68" y="90" font-size="22" text-anchor="middle" fill="currentColor" stroke="none">60</text><rect x="150" y="75" width="52" height="90" fill="#397eae"/><text x="176" y="190" font-size="23" text-anchor="middle" fill="currentColor" stroke="none">5月</text><text x="176" y="60" font-size="22" text-anchor="middle" fill="currentColor" stroke="none">90</text><rect x="258" y="90" width="52" height="75" fill="#397eae"/><text x="284" y="190" font-size="23" text-anchor="middle" fill="currentColor" stroke="none">6月</text><text x="284" y="75" font-size="22" text-anchor="middle" fill="currentColor" stroke="none">75</text></svg></figure><p>5月が最多の90冊。6月は75冊で、5月より15冊少なくなりました。</p><div class="id-example-table"><table><caption>図と同じ貸出数を文字で示す</caption><thead><tr><th scope="col">月</th><th scope="col">貸出数</th></tr></thead><tbody><tr><th scope="row">4月</th><td>60冊</td></tr><tr><th scope="row">5月</th><td>90冊</td></tr><tr><th scope="row">6月</th><td>75冊</td></tr></tbody></table></div></div>
+          </div>
+          <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>複雑な図には短い代替説明だけでなく、要点の文章や値の表も用意します。同じ数値を複数の形で得られれば、読み上げや別の分析でも利用できます。図・説明・表の値が一致しているか確認します。</p></div>
+          <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>予想に戻る</button><span data-progress-status role="status"></span></div>
+        </div>
+      </details>
     </article>
   </section>
   <section data-lesson-slide data-lesson-slide-title="情報と操作にアクセスする">

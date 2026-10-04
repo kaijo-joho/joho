@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/lesson-progress.css" integrity="sha384-HOomM/6OjfpYLWciMhnMR3+bbNH5OD+bT4peIOwgCRUkNT7Dmi9c9w7Q7w32HMF8">
   <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
-  <link rel="stylesheet" href="./css/information-design.css" integrity="sha384-TQrVfXHVAM6wUgPK//SunG0K6DKvHG1cOfc0i/0FDZ502+rGMtsKF+Gbcg1XefkD">
+  <link rel="stylesheet" href="./css/information-design.css" integrity="sha384-+f81pEHG7P/vTuGAsbLO9x2DPmZ7gwX+6mnclizQSJR9K7B2RnEhXhUVT9mGdtv7">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
-  <script defer src="./js/information-design.js" integrity="sha384-LS5wJEXDqPgfAG5WwBRjpZVondTO7YmeoTq1fGzSQttu5km8BslGCUdiqpPY92vK"></script>
+  <script defer src="./js/information-design.js" integrity="sha384-mb/bhY6DKO8MUZg0KA9rALov8Y2QzNpGRYTLduUYtSbBIAN+XvUsOHIQKUSl/VAF"></script>
   <script defer src="./js/lesson-progress.js" integrity="sha384-hjP23gIIOVkemmd4d55HqEo004lwY0LZinfR9Fn17lxZFM9ydLpe21yP1vsL0yVm"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -25,6 +25,24 @@
  <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>相手と目的を決め、必要な情報を選びます。短くするために、開始時刻や場所など判断に必要な情報を落としてはいけません。</p></div>
  <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>はじめから</button><span data-progress-status role="status"></span></div>
  </div>
+
+      <details class="is-supplement is-card id-extra-case" data-id-extra-case="id11-evacuation" open>
+        <summary>追加例　避難訓練：相手に必要な情報を先に置く</summary>
+        <div data-lesson-progress id="id11-evacuation-progress">
+          <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>生徒が1階にいるとします。集合場所と使う出口を探すには、どの順番がよいでしょうか。</p></div>
+          <div class="is-model id-example-model" data-is-model="id11-evacuation" data-is-default="before">
+            <div data-lesson-stage-from="1" class="is-tabs" role="group" aria-label="避難訓練：相手に必要な情報を先に置くの比較">
+              <button type="button" data-is-select="before" aria-pressed="false">改善前</button>
+              <button type="button" data-is-select="after" aria-pressed="false">改善後</button>
+              <button type="button" data-is-reset>比較を戻す</button>
+            </div>
+            <div data-is-panel="before"><h4 class="id-example-version">改善前</h4><div class="id-example-card id-paper id-paper-crowded"><h4>避難訓練のお知らせ</h4><p class="id-example-line">校庭集合　教室確認　開始10:00　係は9:50集合　2階は出口B　1階は出口A</p><p class="is-note">集合場所・出口・係の時刻が同じ段落に混ざっています。</p></div></div>
+            <div data-is-panel="after"><h4 class="id-example-version">改善後</h4><div class="id-example-card id-paper"><h4>生徒が確認すること</h4><div class="id-example-priority"><strong>開始：10:00 ／ 集合場所：校庭</strong><p>教室を確認してから、場所に対応する出口へ。</p></div><div class="id-example-table"><table><caption>場所で整理した案内</caption><thead><tr><th scope="col">場所</th><th scope="col">出口</th></tr></thead><tbody><tr><th scope="row">1階</th><td>出口A</td></tr><tr><th scope="row">2階</th><td>出口B</td></tr></tbody></table></div><aside class="id-example-card"><h4>係向けの連絡</h4><p>係は9:50集合。</p></aside></div></div>
+          </div>
+          <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>相手が生徒なら、まず集合場所と現在地に対応する出口を示します。重要度による階層と、位置による整理を組み合わせます。これは架空の訓練案内で、実際の避難経路は学校の案内で確認します。</p></div>
+          <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>予想に戻る</button><span data-progress-status role="status"></span></div>
+        </div>
+      </details>
     </article>
   </section>
   <section data-lesson-slide data-lesson-slide-title="3つの整理の工夫">
@@ -42,6 +60,24 @@
  <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>表示順やまとまりが変わっても、企画そのものは同じです。唯一の正解を選ぶのではなく、相手の探し方に合う基準を選びます。複数の基準を組み合わせることもできます。</p></div>
  <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>はじめから</button><span data-progress-status role="status"></span></div>
  </div>
+
+      <details class="is-supplement is-card id-extra-case" data-id-extra-case="id11-library" open>
+        <summary>追加例　図書館：本の名前か、調べたい分野か</summary>
+        <div data-lesson-progress id="id11-library-progress">
+          <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>題名を知らずに、星について調べる本を探すなら、どのまとまりから見ますか。</p></div>
+          <div class="is-model id-example-model" data-is-model="id11-library" data-is-default="before">
+            <div data-lesson-stage-from="1" class="is-tabs" role="group" aria-label="図書館：本の名前か、調べたい分野かの比較">
+              <button type="button" data-is-select="before" aria-pressed="false">題名の五十音順</button>
+              <button type="button" data-is-select="after" aria-pressed="false">分野と棚で整理</button>
+              <button type="button" data-is-reset>比較を戻す</button>
+            </div>
+            <div data-is-panel="before"><h4 class="id-example-version">題名の五十音順</h4><ul class="id-example-books"><li><strong>空の観察</strong><span>自然・棚A</span></li><li><strong>星の図鑑</strong><span>自然・棚A</span></li><li><strong>物語を読む</strong><span>文学・棚B</span></li><li><strong>夜空の星座</strong><span>自然・棚A</span></li></ul></div>
+            <div data-is-panel="after"><h4 class="id-example-version">分野と棚で整理</h4><div class="id-example-card "><h4>自然・棚A</h4><ul class="id-example-books"><li><strong>空の観察</strong><span>空・星を調べる</span></li><li><strong>星の図鑑</strong><span>空・星を調べる</span></li><li><strong>夜空の星座</strong><span>空・星を調べる</span></li></ul></div><div class="id-example-card "><h4>文学・棚B</h4><p>物語を読む</p></div></div>
+          </div>
+          <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>題名が分かるなら五十音順、調べたい分野から探すならCategory、棚へ向かうならLocationが役立ちます。「星の図鑑」だけを検索する場合と、星の本を広く探す場合では、適した整理が違います。</p></div>
+          <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>予想に戻る</button><span data-progress-status role="status"></span></div>
+        </div>
+      </details>
     </article>
   </section>
   <section data-lesson-slide data-lesson-slide-title="見出し・整列・余白">
@@ -53,6 +89,24 @@
  <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>大見出しと小見出しで階層を示し、同じ種類の項目の端をそろえます。余白は情報のまとまりを区切る手掛かりです。空いた場所をすべて埋める必要はありません。</p></div>
  <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>はじめから</button><span data-progress-status role="status"></span></div>
  </div>
+
+      <details class="is-supplement is-card id-extra-case" data-id-extra-case="id11-sports" open>
+        <summary>追加例　運動会：時刻順と整列で次を探す</summary>
+        <div data-lesson-progress id="id11-sports-progress">
+          <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>10:30に予定を見るとします。次に何があるか、文章と時刻順の表で比べてください。</p></div>
+          <div class="is-model id-example-model" data-is-model="id11-sports" data-is-default="before">
+            <div data-lesson-stage-from="1" class="is-tabs" role="group" aria-label="運動会：時刻順と整列で次を探すの比較">
+              <button type="button" data-is-select="before" aria-pressed="false">改善前</button>
+              <button type="button" data-is-select="after" aria-pressed="false">改善後</button>
+              <button type="button" data-is-reset>比較を戻す</button>
+            </div>
+            <div data-is-panel="before"><h4 class="id-example-version">改善前</h4><div class="id-example-card id-paper id-paper-crowded"><h4>運動会の案内</h4><p class="id-example-line">競技：リレー11:00、玉入れ9:30、長距離走10:15。休憩10:45。競技場所は校庭。</p><p class="is-note">競技名と時刻の端がそろわず、順番も時間順ではありません。</p></div></div>
+            <div data-is-panel="after"><h4 class="id-example-version">改善後</h4><div class="id-example-card id-paper"><h4>運動会：次に行うこと</h4><div class="id-example-table"><table><caption>校庭で行う当日の予定</caption><thead><tr><th scope="col">開始</th><th scope="col">内容</th></tr></thead><tbody><tr><th scope="row">9:30</th><td>玉入れ</td></tr><tr><th scope="row">10:15</th><td>長距離走</td></tr><tr><th scope="row">10:45</th><td>休憩</td></tr><tr><th scope="row">11:00</th><td>リレー</td></tr></tbody></table></div></div></div>
+          </div>
+          <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>Timeで並べ、時刻と内容の列をそろえると、次の予定をたどりやすくなります。文章には説明を、表には時刻の比較を担当させます。並べ替えても、4つの予定と時刻は変えていません。</p></div>
+          <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>予想に戻る</button><span data-progress-status role="status"></span></div>
+        </div>
+      </details>
     </article>
   </section>
   <section data-lesson-slide data-lesson-slide-title="重要語句・ポイント">

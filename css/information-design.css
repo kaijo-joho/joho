@@ -86,6 +86,54 @@
 .id-redesign-sample figure { max-width: 360px; margin: 12px auto !important; }
 .id-redesign-sample figure svg { color: inherit; }
 .id-lesson [hidden] { display: none; }
+/* Extra cases compare the same task through concrete changes in representation. */
+.id-lesson .id-extra-case { margin-top: 24px; }
+.id-extra-case > summary { cursor: pointer; font-weight: 700; }
+.id-example-model { margin-block: 12px; }
+.id-lesson .id-example-version { font-size: 1em; margin: 12px 0; border-bottom: 1px solid var(--is-border); padding-bottom: 8px; }
+.id-example-card { border: 1px solid var(--is-border); border-radius: 8px; padding: 16px; margin-block: 12px; background: var(--is-panel); color: var(--is-text); }
+.id-lesson .id-example-card :is(h4,p) { color: inherit; }
+.id-lesson .id-example-card h4 { font-size: 1.12em; margin: 0 0 12px; }
+.id-lesson .id-paper-crowded h4 { font-size: 1em; font-weight: 400; }
+.id-lesson .id-paper-crowded .id-example-line { line-height: 1.6; margin-left: 5%; }
+.id-example-priority { padding: 12px; border-left: 5px solid var(--is-accent); background: var(--is-soft); margin-block: 14px; }
+.id-example-priority strong { display: block; }
+.id-lesson .id-example-priority p { margin-block: 8px 0; }
+.id-lesson .id-example-table table { display: table; width: 100%; min-width: 0; max-width: 100%; table-layout: fixed; border-collapse: collapse; padding: 0; border-radius: 0; overflow: visible; margin-block: 14px; background: var(--is-panel); color: var(--is-text); font-size: .94em; }
+.id-example-table :is(th,td) { border: 1px solid var(--is-border); padding: 10px; overflow-wrap: anywhere; text-align: left; }
+.id-example-table tr { background: var(--is-panel); }
+.id-example-table th { background: var(--is-soft); color: var(--is-text); }
+.id-example-table caption { text-align: left; font-weight: 700; padding-block: 8px; color: var(--is-text); }
+.id-lesson .id-example-books { padding: 0; list-style: none; }
+.id-example-books li { display: flex; flex-wrap: wrap; gap: 4px 20px; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--is-border); margin: 0 !important; }
+.id-example-books span { font-size: .9em; }
+.id-lesson .id-poster-loud { padding: 12px; border: 2px solid currentColor; font-weight: 700; }
+.id-lesson .id-poster-loud.a { color: #773c66; background: #f9d5ea; }
+.id-lesson .id-poster-loud.b { color: #5d4310; background: #f5dda4; }
+.id-lesson .id-poster-loud.c { color: #215861; background: #cbebec; }
+.id-lesson .id-poster-loud.d { color: #384e18; background: #e0edb5; }
+.id-example-deadline { border: 3px double currentColor; padding: 12px; }
+.id-lesson .id-example-visual { width: min(100%, 360px); margin: 16px auto; }
+.id-example-visual svg { display: block; width: 100%; height: auto; }
+.id-example-legend, .id-example-route-legend { padding: 12px; border: 1px solid var(--is-border); }
+.id-route-line { display: inline-block; width: 2em; vertical-align: middle; border-top: 4px solid currentColor; margin-right: 8px; }
+.id-route-line.lift { border-top-style: dashed; }
+.id-timetable-dot { display: inline-block; width: 1em; height: 1em; border-radius: 50%; background: #a34fc2; vertical-align: middle; }
+.id-example-actions { display: flex; flex-wrap: wrap; gap: 12px; }
+.id-example-actions > p { flex-basis: 100%; }
+.id-lesson .id-example-icon-button { display: flex; align-items: center; gap: 12px; max-width: 100%; }
+.id-example-icon-button svg { width: 56px; height: 50px; flex: 0 0 56px; }
+.id-extra-case :is([data-id-input-demo],[data-id-booking-demo]) { display: grid; gap: 12px; }
+.id-extra-case :is([data-id-input-demo],[data-id-booking-demo]) > :is(input,select,button) { justify-self: start; }
+.id-extra-case :is(label,.id-input-help) { margin: 0; }
+.id-extra-case input[type="text"] { min-height: 44px; width: min(100%, 12em); box-sizing: border-box; border: 1px solid var(--is-border); border-radius: 8px; padding: 8px; background: var(--is-panel); color: var(--is-text); font: inherit; }
+.id-extra-case input[aria-invalid="true"] { border: 3px double var(--is-change); }
+.id-extra-case [data-id-booking-review] button { margin: 8px 8px 0 0; }
+.id-example-task { display: grid; gap: 8px; padding: 16px; border: 2px solid var(--is-accent); }
+.id-lesson .id-example-steps { list-style: decimal; padding-left: 1.6em; }
+.id-example-steps > li::before { content: none; counter-increment: none; }
+.id-example-steps > li { padding-left: 0; margin-block: 14px; }
+.id-example-decision { display: grid; gap: 8px; padding: 12px; margin-top: 10px; border-left: 4px solid var(--is-accent); background: var(--is-soft); }
 @media (max-width: 980px) {
  .id-grid.three { grid-template-columns: minmax(0,1fr); }
  .id-lesson .id-flow { grid-template-columns: repeat(2,minmax(0,1fr)); }
@@ -97,6 +145,8 @@
  .id-controls { margin-top: 8px; }
 }
 @media (max-width: 480px) {
+ .id-example-card { padding: 12px; }
+ .id-example-table :is(th,td) { padding: 8px; }
  .id-lesson .id-flow { grid-template-columns: minmax(0,1fr); }
  .id-flow li { display: grid; grid-template-columns: 72px minmax(0,1fr); column-gap: 12px; }
  .id-flow .id-icon { grid-row: span 2; }
@@ -116,4 +166,9 @@
  .id-lesson .id-cue-items { grid-template-columns: repeat(3,minmax(0,1fr)); }
  .id-cue-items > div { display: flex; }
  .id-poster { box-shadow: none; }
+ .id-lesson .id-extra-case { break-inside: auto; }
+ .id-extra-case .id-example-model { break-inside: auto; }
+ .id-extra-case [data-is-panel] { break-inside: avoid; margin-block: 16px; }
+ .id-lesson [data-id-booking-review][hidden] { display: block !important; }
+ .id-example-actions .id-example-icon-button { display: flex !important; border: 1px solid currentColor; }
 }

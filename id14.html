@@ -8,10 +8,10 @@
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/lesson-progress.css" integrity="sha384-HOomM/6OjfpYLWciMhnMR3+bbNH5OD+bT4peIOwgCRUkNT7Dmi9c9w7Q7w32HMF8">
   <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
-  <link rel="stylesheet" href="./css/information-design.css" integrity="sha384-TQrVfXHVAM6wUgPK//SunG0K6DKvHG1cOfc0i/0FDZ502+rGMtsKF+Gbcg1XefkD">
+  <link rel="stylesheet" href="./css/information-design.css" integrity="sha384-+f81pEHG7P/vTuGAsbLO9x2DPmZ7gwX+6mnclizQSJR9K7B2RnEhXhUVT9mGdtv7">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
-  <script defer src="./js/information-design.js" integrity="sha384-LS5wJEXDqPgfAG5WwBRjpZVondTO7YmeoTq1fGzSQttu5km8BslGCUdiqpPY92vK"></script>
+  <script defer src="./js/information-design.js" integrity="sha384-mb/bhY6DKO8MUZg0KA9rALov8Y2QzNpGRYTLduUYtSbBIAN+XvUsOHIQKUSl/VAF"></script>
   <script defer src="./js/lesson-progress.js" integrity="sha384-hjP23gIIOVkemmd4d55HqEo004lwY0LZinfR9Fn17lxZFM9ydLpe21yP1vsL0yVm"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
@@ -25,6 +25,24 @@
  <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>操作できる場所と、操作の結果を予測できる手掛かりを示します。名前・形・配置をそろえ、見た目と動作を対応させます。見本のボタンはこのページ内で道順を表示します。</p></div>
  <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>はじめから</button><span data-progress-status role="status"></span></div>
  </div>
+
+      <details class="is-supplement is-card id-extra-case" data-id-extra-case="id14-two-icons" open>
+        <summary>追加例　2つのアイコン：保存と送信を区別する</summary>
+        <div data-lesson-progress id="id14-two-icons-progress">
+          <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>案内を送らず、自分の控えを残したいとき、どちらを押すか予想してから試してください。</p></div>
+          <div class="is-model id-example-model" data-is-model="id14-two-icons" data-is-default="before">
+            <div data-lesson-stage-from="1" class="is-tabs" role="group" aria-label="2つのアイコン：保存と送信を区別するの比較">
+              <button type="button" data-is-select="before" aria-pressed="false">アイコンだけ</button>
+              <button type="button" data-is-select="after" aria-pressed="false">動作名も表示</button>
+              <button type="button" data-is-reset>比較を戻す</button>
+            </div>
+            <div data-is-panel="before"><h4 class="id-example-version">アイコンだけ</h4><div class="id-example-actions" data-id-action-demo><button type="button" class="is-button id-example-icon-button" data-id-demo-action="copy" aria-label="見本操作：控えを保存"><svg viewBox="0 0 56 50" role="img" aria-labelledby="id14-icons-before-copy-title id14-icons-before-copy-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><title id="id14-icons-before-copy-title">控えを保存のアイコン</title><desc id="id14-icons-before-copy-desc">控えを保存を表す矢印とトレイの見本。</desc><path d="M28 4V29M18 19L28 29L38 19"/><path d="M6 29V44H50V29"/></svg></button><button type="button" class="is-button id-example-icon-button" data-id-demo-action="send" aria-label="見本操作：担当者へ送る"><svg viewBox="0 0 56 50" role="img" aria-labelledby="id14-icons-before-send-title id14-icons-before-send-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><title id="id14-icons-before-send-title">担当者へ送るのアイコン</title><desc id="id14-icons-before-send-desc">担当者へ送るを表す矢印とトレイの見本。</desc><path d="M28 29V4M18 14L28 4L38 14"/><path d="M6 29V44H50V29"/></svg></button><p data-id-demo-action-result role="status">見本の操作を試して、結果を確認してください。</p></div></div>
+            <div data-is-panel="after"><h4 class="id-example-version">動作名も表示</h4><div class="id-example-actions" data-id-action-demo><button type="button" class="is-button id-example-icon-button" data-id-demo-action="copy" aria-label="見本操作：控えを保存"><svg viewBox="0 0 56 50" role="img" aria-labelledby="id14-icons-after-copy-title id14-icons-after-copy-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><title id="id14-icons-after-copy-title">控えを保存のアイコン</title><desc id="id14-icons-after-copy-desc">控えを保存を表す矢印とトレイの見本。</desc><path d="M28 4V29M18 19L28 29L38 19"/><path d="M6 29V44H50V29"/></svg><span>控えを保存</span></button><button type="button" class="is-button id-example-icon-button" data-id-demo-action="send" aria-label="見本操作：担当者へ送る"><svg viewBox="0 0 56 50" role="img" aria-labelledby="id14-icons-after-send-title id14-icons-after-send-desc" fill="none" stroke="currentColor" stroke-width="3" stroke-linejoin="round"><title id="id14-icons-after-send-title">担当者へ送るのアイコン</title><desc id="id14-icons-after-send-desc">担当者へ送るを表す矢印とトレイの見本。</desc><path d="M28 29V4M18 14L28 4L38 14"/><path d="M6 29V44H50V29"/></svg><span>担当者へ送る</span></button><p data-id-demo-action-result role="status">見本の操作を試して、結果を確認してください。</p></div></div>
+          </div>
+          <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>矢印の記号だけでは、保存と送信を取り違える場合があります。動作名を添え、押した結果を文字で示します。説明で補うだけでなく、ボタン自体を改善します。この見本はファイル保存や外部送信をせず、ページ内に操作結果を表示します。</p></div>
+          <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>予想に戻る</button><span data-progress-status role="status"></span></div>
+        </div>
+      </details>
     </article>
   </section>
   <section data-lesson-slide data-lesson-slide-title="操作の手掛かり">
@@ -42,6 +60,24 @@
     <article>
       <h2 id="headline_3">(3) 利用できる・使いやすい</h2>
 <p class="is-lead"><strong>アクセシビリティ</strong>は情報や機能を利用できること、<strong>ユーザビリティ</strong>は目的に対する使いやすさです。両方の観点から考えます。</p><div class="is-model" data-is-model="id14-quality" data-is-default="access"><div class="is-tabs" role="group" aria-label="id14-qualityの比較"><button type="button" data-is-select="access" aria-pressed="false">利用できるか</button><button type="button" data-is-select="use" aria-pressed="false">迷わず使えるか</button></div><div data-is-panel="access"><div class="is-card"><h3>アクセシビリティの観点</h3><ul><li>ボタンをキーボードで操作できるか。</li><li>画像の案内を文字でも得られるか。</li><li>拡大しても項目が隠れないか。</li></ul></div></div><div data-is-panel="use"><div class="is-card"><h3>ユーザビリティの観点</h3><ul><li>目的の案内を迷わず探せるか。</li><li>ボタン名から結果を予測できるか。</li><li>間違えた操作を修正できるか。</li></ul></div></div><div class="is-tabs"><button type="button" data-is-reset>選択を戻す</button></div></div><div class="is-card"><h3>同じUIを2つの観点で見る</h3><p>キーボードで押せる「→」ボタンでも、何が起こるか分からなければ使いづらい場合があります。分かりやすい名前のボタンでも、キーボードで届かなければ利用できない人がいます。</p></div><p class="is-observe">どちらか一方の工夫だけで完成とせず、利用者・目的・状況を決めて確認します。</p>
+
+      <details class="is-supplement is-card id-extra-case" data-id-extra-case="id14-review" open>
+        <summary>追加例　確定前：選択内容を確かめ、選び直す</summary>
+        <div data-lesson-progress id="id14-review-progress">
+          <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>相談時刻を15:00にしたいのに、14:00のまま押したとします。確定前に気付ける工夫を考えてください。</p></div>
+          <div class="is-model id-example-model" data-is-model="id14-review" data-is-default="before">
+            <div data-lesson-stage-from="1" class="is-tabs" role="group" aria-label="確定前：選択内容を確かめ、選び直すの比較">
+              <button type="button" data-is-select="before" aria-pressed="false">すぐに確定する</button>
+              <button type="button" data-is-select="after" aria-pressed="false">内容確認と選び直し</button>
+              <button type="button" data-is-reset>比較を戻す</button>
+            </div>
+            <div data-is-panel="before"><h4 class="id-example-version">すぐに確定する</h4><div data-id-booking-demo data-id-review="false"><label for="id14-review-before-time">相談の時刻</label><select id="id14-review-before-time"><option value="14:00">14:00</option><option value="15:00">15:00</option></select><button type="button" class="is-button" data-id-booking-start>予約を確定する</button><p data-id-booking-result role="status">まだ確定していません。ページ内の予約見本です。</p><button type="button" class="is-button" data-id-booking-reset>見本を戻す</button></div></div>
+            <div data-is-panel="after"><h4 class="id-example-version">内容確認と選び直し</h4><div data-id-booking-demo data-id-review="true"><label for="id14-review-after-time">相談の時刻</label><select id="id14-review-after-time"><option value="14:00">14:00</option><option value="15:00">15:00</option></select><button type="button" class="is-button" data-id-booking-start>内容を確認する</button><div data-id-booking-review class="id-example-priority"><p data-id-booking-summary>相談の時刻：14:00</p><button type="button" class="is-button" data-id-booking-edit>選び直す</button><button type="button" class="is-button" data-id-booking-confirm>この内容で確定</button></div><p data-id-booking-result role="status">まだ確定していません。ページ内の予約見本です。</p><button type="button" class="is-button" data-id-booking-reset>見本を戻す</button></div></div>
+          </div>
+          <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>確定前に対象と時刻を表示し、選び直せるようにします。14:00を確認画面で見て選び直し、15:00で確定する操作を試してください。影響に応じて確認を置き、毎回無意味な確認を増やさないことも考えます。外部サービスへの予約は行いません。</p></div>
+          <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>予想に戻る</button><span data-progress-status role="status"></span></div>
+        </div>
+      </details>
     </article>
   </section>
   <section data-lesson-slide data-lesson-slide-title="結果と誤操作の修正">
@@ -53,6 +89,24 @@
  <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>処理の結果を文字で示し、可能なら取り消しや修正を用意します。大きな影響がある操作には事前確認も検討します。確認を増やしすぎると見落とされることもあるため、目的と影響に合わせます。</p></div>
  <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>はじめから</button><span data-progress-status role="status"></span></div>
  </div>
+
+      <details class="is-supplement is-card id-extra-case" data-id-extra-case="id14-input" open>
+        <summary>追加例　入力：どこをどう直すか伝える</summary>
+        <div data-lesson-progress id="id14-input-progress">
+          <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>人数が7のとき、ただ「入力エラー」と表示されるだけで、何に直せばよいか分かるでしょうか。</p></div>
+          <div class="is-model id-example-model" data-is-model="id14-input" data-is-default="before">
+            <div data-lesson-stage-from="1" class="is-tabs" role="group" aria-label="入力：どこをどう直すか伝えるの比較">
+              <button type="button" data-is-select="before" aria-pressed="false">改善前</button>
+              <button type="button" data-is-select="after" aria-pressed="false">改善後</button>
+              <button type="button" data-is-reset>比較を戻す</button>
+            </div>
+            <div data-is-panel="before"><h4 class="id-example-version">改善前</h4><form data-id-input-demo data-id-feedback-style="vague" novalidate><label for="id14-input-before-number">参加人数</label><p class="id-input-help">参加人数を入力します。</p><input id="id14-input-before-number" type="text" inputmode="numeric" value="7" aria-describedby="id14-input-before-result"><button type="submit" class="is-button" disabled>人数を確認</button><button type="button" class="is-button" data-id-input-reset disabled>入力を戻す</button><p id="id14-input-before-result" data-id-input-result role="status">まだ確認していません。</p></form></div>
+            <div data-is-panel="after"><h4 class="id-example-version">改善後</h4><form data-id-input-demo data-id-feedback-style="clear" novalidate><label for="id14-input-after-number">参加人数</label><p class="id-input-help">1〜4の整数を入力してください。</p><input id="id14-input-after-number" type="text" inputmode="numeric" value="7" aria-describedby="id14-input-after-result"><button type="submit" class="is-button" disabled>人数を確認</button><button type="button" class="is-button" data-id-input-reset disabled>入力を戻す</button><p id="id14-input-after-result" data-id-input-result role="status">まだ確認していません。</p></form></div>
+          </div>
+          <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>入力条件を先に示し、問題の項目と直し方を結果にも伝えます。7のまま確認し、次に2へ直して再確認してください。入力した値を消さずに残すと、修正の負担も減らせます。</p></div>
+          <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>予想に戻る</button><span data-progress-status role="status"></span></div>
+        </div>
+      </details>
     </article>
   </section>
   <section data-lesson-slide data-lesson-slide-title="重要語句・ポイント">

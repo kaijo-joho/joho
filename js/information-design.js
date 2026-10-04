@@ -129,6 +129,69 @@
     document.querySelectorAll('[data-id-ui-action]').forEach(button => button.addEventListener('click', () => {
       button.parentElement.querySelector('[data-id-ui-status]').textContent = '講堂への道順：1階入口から廊下をまっすぐ進みます。'; resize();
     }));
+    document.querySelectorAll('[data-id-action-demo]').forEach(container => {
+      const result = container.querySelector('[data-id-demo-action-result]');
+      container.querySelectorAll('[data-id-demo-action]').forEach(button => button.addEventListener('click', () => {
+        result.textContent = button.dataset.idDemoAction === 'copy'
+          ? '見本の結果：自分用の控えを保存しました。担当者へは送っていません。'
+          : '見本の結果：担当者へ送る操作を選びました。実際の送信は行いません。';
+        resize();
+      }));
+    });
+    document.querySelectorAll('[data-id-input-demo]').forEach(form => {
+      const input = form.querySelector('input');
+      const result = form.querySelector('[data-id-input-result]');
+      const reset = form.querySelector('[data-id-input-reset]');
+      form.querySelector('button[type="submit"]').disabled = false;
+      reset.disabled = false;
+      form.addEventListener('submit', e => {
+        e.preventDefault();
+        const value = input.value.trim().replace(/[０-９]/g, char => String.fromCharCode(char.charCodeAt(0) - 0xfee0));
+        const valid = /^[1-4]$/.test(value);
+        input.setAttribute('aria-invalid', String(!valid));
+        result.textContent = valid ? `参加人数${value}人を確認しました。`
+          : form.dataset.idFeedbackStyle === 'clear'
+            ? '参加人数を確認してください。1〜4の整数で入力します。入力した値は残してあります。'
+            : '入力エラーです。';
+        resize();
+      });
+      reset.addEventListener('click', () => {
+        form.reset(); input.removeAttribute('aria-invalid');
+        result.textContent = 'まだ確認していません。'; input.focus(); resize();
+      });
+    });
+    document.querySelectorAll('[data-id-booking-demo]').forEach(container => {
+      const select = container.querySelector('select');
+      const start = container.querySelector('[data-id-booking-start]');
+      const review = container.querySelector('[data-id-booking-review]');
+      const result = container.querySelector('[data-id-booking-result]');
+      const reset = container.querySelector('[data-id-booking-reset]');
+      const summary = () => { if (review) review.querySelector('[data-id-booking-summary]').textContent = `相談の時刻：${select.value}`; };
+      const unlock = () => { select.disabled = false; start.disabled = false; if (review) review.hidden = true; };
+      const confirm = () => {
+        select.disabled = true; start.disabled = true; if (review) review.hidden = true;
+        result.textContent = `見本の結果：${select.value}で予約を確定しました。実際の予約は行いません。`;
+        reset.focus(); resize();
+      };
+      unlock(); summary();
+      select.addEventListener('change', summary);
+      start.addEventListener('click', () => {
+        if (!review) { confirm(); return; }
+        summary(); review.hidden = false; select.disabled = true; start.disabled = true;
+        result.textContent = 'まだ確定していません。内容を確かめてから、確定するか選び直します。';
+        review.querySelector('[data-id-booking-edit]').focus(); resize();
+      });
+      if (review) {
+        review.querySelector('[data-id-booking-edit]').addEventListener('click', () => {
+          unlock(); result.textContent = '時刻を選び直して、もう一度内容を確認してください。'; select.focus(); resize();
+        });
+        review.querySelector('[data-id-booking-confirm]').addEventListener('click', confirm);
+      }
+      reset.addEventListener('click', () => {
+        select.selectedIndex = 0; unlock(); summary();
+        result.textContent = 'まだ確定していません。ページ内の予約見本です。'; select.focus(); resize();
+      });
+    });
     document.querySelectorAll('[data-id-undo]').forEach(container => {
       const list = container.querySelector('[data-id-undo-list]');
       const deleteButton = container.querySelector('[data-id-delete]');
