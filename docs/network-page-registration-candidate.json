@@ -1,5 +1,5 @@
 {
-  "status": "candidate-not-written",
+  "status": "registered-preview-false",
   "sheet": "ページ一覧",
   "incomingLinks": false,
   "existingRowsChanged": false,
@@ -99,5 +99,7 @@
       "contentType": "lecture",
       "worksheetApp": false
     }
-  ]
+  ],
+  "registeredRange": "ページ一覧!A138:Q142",
+  "generationCommit": "8a97100ad32834be93029f25c41dc4135303dbb5"
 }
