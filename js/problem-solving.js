@@ -7,14 +7,23 @@
     if (!document.body.classList.contains('ps-lesson')) return;
     document.body.classList.add('ps-ready');
     const terms = [...document.querySelectorAll('.is-terms details')];
+    const sceneImages = [...document.querySelectorAll('.ps-scene img')];
     terms.forEach(el => { el.open = false; el.addEventListener('toggle', changed); });
     let printState = null;
     function printing(on) {
       if (on && printState === null) {
-        printState = terms.map(el => el.open);
+        printState = { terms: terms.map(el => el.open), images: sceneImages.map(el => el.getAttribute('loading')) };
         terms.forEach(el => { el.open = true; });
+        // WebKit can leave an unvisited slide's lazy image unloaded in print.
+        sceneImages.forEach(el => { el.loading = 'eager'; });
       } else if (!on && printState !== null) {
-        terms.forEach((el, i) => { el.open = printState[i]; }); printState = null;
+        terms.forEach((el, i) => { el.open = printState.terms[i]; });
+        sceneImages.forEach((el, i) => {
+          const loading = printState.images[i];
+          if (loading === null) el.removeAttribute('loading');
+          else el.setAttribute('loading', loading);
+        });
+        printState = null;
       }
     }
     window.addEventListener('beforeprint', () => printing(true));

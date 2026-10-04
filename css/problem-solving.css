@@ -55,3 +55,21 @@
   .ps-lesson .ps-visual svg { color: #111; }
   .ps-reflection textarea { min-height: 20mm; }
 }
+
+/* Fictional scene images introduce the situation; SVGs and records support the reasoning. */
+.ps-scene-intro { display: grid; grid-template-columns: minmax(0, .95fr) minmax(0, 1.2fr); gap: 18px; align-items: center; margin-block: 14px; }
+.ps-scene-intro > * { min-width: 0; }
+.ps-lesson .ps-scene { width: min(100%, 520px); margin: 0 auto; }
+.ps-scene img { display: block; width: 100%; height: auto; border-radius: 10px; }
+.ps-scene-label { display: block; margin-bottom: 3px; font-weight: 700; }
+.ps-scene-text > :first-child { margin-top: 0; }
+.ps-scene-text > :last-child { margin-bottom: 0; }
+@media (max-width: 760px) {
+  .ps-scene-intro { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+}
+@media print {
+  .ps-scene-intro { grid-template-columns: minmax(0, 75mm) minmax(0, 1fr); gap: 5mm; break-inside: avoid; }
+  .ps-lesson .ps-scene { max-width: 75mm; }
+  .ps-lesson .ps-scene figcaption { font-size: 8.5pt; line-height: 1.4; }
+  .ps-scene img { border-radius: 0; }
+}

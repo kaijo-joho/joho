@@ -10,6 +10,7 @@ await mkdir(output,{recursive:true});
 const rawPages=await readFile(new URL('../js/pages.js',import.meta.url),'utf8');
 const metadata=Object.fromEntries([['is51','5-1. 問題を発見し、整理する'],['is52','5-2. アイデアを出し、解決策を考える'],['is53','5-3. 実行し、評価して改善する']].map(([id,title])=>[id,{id,title,mainTitle:'情報社会',category:'問題解決',detail:'理想と現状を比べ、解決策を試して改善する。',fileName:`${id}.html`,release:false,show:false,next:[],back:[]} ]));
 const results=[];
+const scenes={is51:[1,2,3],is52:[2,3,5],is53:[1,3,4]};
 async function go(page,n) {await page.evaluate(n=>{location.hash=`#headline_${n}`;},n);await page.locator(`#headline_${n}`).waitFor({state:'visible'});}
 async function openStep(page,n,step=2) {await go(page,n); await page.evaluate(({n,step})=>window.JohoLessonProgress.set(document.querySelector(`#headline_${n}`).closest('article').querySelector('[data-lesson-progress]'),step),{n,step});}
 async function fit(page,label) {
@@ -53,6 +54,21 @@ for(const name of (process.env.JOHO_TEST_BROWSERS||'chrome,webkit').split(',')) 
         assert.equal(await group.locator('.is-observe').isVisible(),true);
         await group.locator('[data-progress-prev]').press('Enter');assert.equal(await group.getAttribute('data-progress-step'),'1');
         await group.locator('[data-progress-reset]').press('Enter');assert.equal(await group.getAttribute('data-progress-step'),'0');
+      }
+      assert.equal(await page.locator('.ps-scene').count(),3);
+      for(const n of scenes[id]) {
+        await openStep(page,n,0);const figure=page.locator(`#${id}-progress-${n} .ps-scene`),img=figure.locator('img');
+        await img.scrollIntoViewIfNeeded();await img.evaluate(el=>el.decode());
+        assert.deepEqual(await img.evaluate(el=>[el.naturalWidth,el.naturalHeight]),[1672,941]);
+        assert.match(await figure.locator('figcaption').innerText(),/生成イメージ（架空の場面）/);
+        await fit(page,`${name} ${id} scene ${n} desktop`);await page.screenshot({path:`${output}/${name}-${id}-scene-${n}-desktop.png`});
+        await page.setViewportSize({width:390,height:900});await fit(page,`${name} ${id} scene ${n} mobile`);
+        await page.screenshot({path:`${output}/${name}-${id}-scene-${n}-mobile.png`});
+        await page.locator(`#${id}-progress-${n} [data-progress-next]`).press('Enter');
+        await page.locator(`#${id}-progress-${n} [data-progress-next]`).press('Space');
+        assert.equal(await figure.isVisible(),true);assert.equal(await page.locator(`#${id}-progress-${n} .is-observe`).isVisible(),true);
+        await page.locator(`#${id}-progress-${n} [data-progress-reset]`).press('Enter');
+        assert.equal(await figure.isVisible(),true);await page.setViewportSize({width:1440,height:1000});
       }
       // Meaningful learning actions, editing and reset.
       if(id==='is51') {
@@ -106,16 +122,19 @@ for(const name of (process.env.JOHO_TEST_BROWSERS||'chrome,webkit').split(',')) 
       assert.equal(await page.locator('.is-terms details:not([open])').count(),0);
       for(const stage of await page.locator('[data-lesson-stage-from]').all()) assert.equal(await stage.isVisible(),true);
       for(const panel of await page.locator('[data-is-panel]').all()) assert.equal(await panel.isVisible(),true);
+      for(const img of await page.locator('.ps-scene img').all()) {assert.equal(await img.isVisible(),true);assert.equal(await img.evaluate(el=>el.complete&&el.naturalWidth===1672),true);}
+      await page.screenshot({path:`${output}/${name}-${id}-print.png`,fullPage:true});
       await page.emulateMedia({media:'screen'});await page.evaluate(()=>dispatchEvent(new Event('afterprint')));
       assert.deepEqual(await page.evaluate(()=>[...document.querySelectorAll('[data-lesson-progress]')].map(el=>el.dataset.progressStep)),saved);
+      assert.equal(await page.locator('.ps-scene img[loading="lazy"]').count(),3);
       // Common slide navigation and hash preserve widget state.
       await page.evaluate(()=>{location.hash='#headline_1';});await page.locator('.lesson-slide-deck__button--next').press('Enter');assert.equal(await page.locator('#headline_2').isVisible(),true);
       await page.evaluate(()=>{location.hash='#headline_1';});await page.locator('#headline_1').focus();await page.keyboard.press('ArrowRight');assert.equal(await page.locator('#headline_2').isVisible(),true);
-      results.push({browser:name,id,layouts:189,status:'passed'});
+      results.push({browser:name,id,layouts:189,scenes:3,sceneChecks:'initial, Next, reset, mobile, print',status:'passed'});
     }
     assert.deepEqual(errors,[]);
     const nojs=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:900}});await nojs.route('https://**/*',r=>r.abort());const fallback=await nojs.newPage();
-    for(const id of Object.keys(metadata)) {await fallback.goto(`${base}${id}.html`);assert.equal(await fallback.locator('section[data-lesson-slide]:visible').count(),7);for(const stage of await fallback.locator('[data-lesson-stage-from]').all())assert.equal(await stage.isVisible(),true);assert.equal(await fallback.locator('.is-terms details:not([open])').count(),0);const widths=await fallback.evaluate(()=>({w:innerWidth,page:document.documentElement.scrollWidth}));assert.ok(widths.page<=widths.w+2);}
+    for(const id of Object.keys(metadata)) {await fallback.goto(`${base}${id}.html`);assert.equal(await fallback.locator('section[data-lesson-slide]:visible').count(),7);for(const stage of await fallback.locator('[data-lesson-stage-from]').all())assert.equal(await stage.isVisible(),true);assert.equal(await fallback.locator('.is-terms details:not([open])').count(),0);assert.equal(await fallback.locator('.ps-scene:visible').count(),3);for(const img of await fallback.locator('.ps-scene img').all()){await img.scrollIntoViewIfNeeded();await img.evaluate(el=>el.decode());assert.deepEqual(await img.evaluate(el=>[el.naturalWidth,el.naturalHeight]),[1672,941]);}const widths=await fallback.evaluate(()=>({w:innerWidth,page:document.documentElement.scrollWidth}));assert.ok(widths.page<=widths.w+2);}
     await nojs.close();await context.close();
   } finally {await browser.close();}
 }

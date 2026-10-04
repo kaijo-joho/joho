@@ -38,7 +38,31 @@ SVGにはtitle・descを付け、長い説明や条件はHTMLへ置く。既存I
 
 HTML原稿の語句・補足はopenとして、JavaScript初期化時に閉じる。印刷時に語句・補足・段階説明・比較の全状態を表示し、印刷後は開閉と段階を復元する。JavaScript無効時は本文を元の順に読み、操作ボタンを隠す。
 
-共有ISファイルのSRIは実ファイルのSHA-384を照合した。新規専用・段階進行ファイルのSRI付与は、主担当の統合時に行う。
+各HTMLのCSS・JSに付けたSRIは実ファイルのSHA-384と照合する。画像補強で変更した専用CSS・JSのSRIを3ページとも更新した。
+
+## 生成場面画像による補強（2026-10-04）
+
+追加指定に合わせ、built-in `image_gen__imagegen` を1場面ずつ9回呼び出し、架空の学校の問題解決を想像するための画像を生成した。既存の本文7枚、SVG16個、共通Nextの段階数・操作は維持する。画像は予想段階の本文と並べ、Next後も図解・判断操作と一緒に読めるようにした。
+
+| 教材 | 本文の位置 | 場面 | WebP容量 |
+| --- | --- | --- | ---: |
+| is51 | 1 | 返却場所・持ち帰る場面 | 110,764 bytes |
+| is51 | 2 | 対象・期限・確かめ方をそろえる相談 | 119,534 bytes |
+| is51 | 3 | 貸出記録・実物・聞き取りの照合 | 122,740 bytes |
+| is52 | 2 | アイデア出し | 118,376 bytes |
+| is52 | 3 | 付箋のまとまりを考える | 120,662 bytes |
+| is52 | 5 | 費用・時間・負担の制約を確かめる | 123,958 bytes |
+| is53 | 1 | 役割・作業・受け渡しの計画 | 114,106 bytes |
+| is53 | 3 | 札の試行・返却・説明・記録 | 116,164 bytes |
+| is53 | 4 | 記録と利用者の声による評価 | 101,856 bytes |
+
+公開用資産は `img/problem-solving/scenes/` の9枚、合計1,048,160 bytes。元PNGは9枚・17,453,523 bytesで、生成元の出力を変更せず `/Users/takashi/Documents/Codex/2026-10-04/task-2/generated-scenes/is5/masters/` へ同一バイトのコピーを保存した。正確な全プロンプトは同ディレクトリの `prompts.json`、出力元パス・原画像/資産のSHA-256・寸法・容量・HTML caption・目視確認の来歴は `manifest.json` に記録した。マスターはコミットへ含めない。
+
+WebP化はPillowでRGBの形式変換・quality=84、method=6の圧縮のみを行った。1672×941pxの原寸を保持し、切り抜き、構図変更、内容の加工を行っていない。9枚すべてにalt・寸法・lazy・async・「生成イメージ（架空の場面）」と教育的captionを付けた。生徒、記録、図、小物は場面表現として扱う。画像から返却遅れの原因、時刻、費用、数値、改善の傾向を読み取らせず、本文の条件、人工ケース、SVGへつなげる。
+
+狭い画面では画像と予想本文を1列にし、印刷では幅75mm以内の画像と本文を並べる。画像を段階表示のhidden対象へ入れず、JavaScript無効時も本文の順で読める。
+
+WebKitの390pxで、表紙からの印刷時に未訪問のis52・5枚目のlazy画像だけが未読込になることを再現した。専用JSの既存印刷処理で3場面を一時的にeagerへ変え、印刷後に元のloading属性を復元する。beforeprintとprint mediaの両方が通知されても元の状態を上書きしない。
 
 ## 検証
 
@@ -66,3 +90,20 @@ PLAYWRIGHT_MODULE=/Users/takashi/Documents/GAS/webedu/node_modules/playwright JO
 WebKitのnative selectが指定より小さくなるため、専用CSSでappearance:noneと装飾用chevronを使い、44pxの選択欄を確保した。
 
 最終画像と実行記録は `/tmp/is5-review-final`、タップと全画面は `/tmp/is5-review/touch-fullscreen-results.json`、WebKitの位置確認は `/tmp/is5-review-webkit/header-layout-results.json` にある。一時成果はコミットに含めない。
+
+### 画像補強後の検証
+
+- 固有静的188件、共通座学571件、音606件、論理回路4回路、スライド生成確認・コンテンツ検証・JS構文・diff checkに合格した。
+- Chrome／WebKitで、3ページ×3幅×3テーマ×3文字サイズ×本文7枚の1134表示条件を再検証した。各9場面の画像の原寸読込、初期表示、Next後の保持、リセット、390px、印刷を追加確認した。既存のキーボード操作・分類・重み・日程・比較・問題演習も合格した。
+- JavaScript無効・390pxでは本文7枚と3画像が各ページで表示され、横はみ出しがない。9原画像と、画像を含むデスクトップ・モバイル画面を目視確認した。
+- 新しいChrome contextで表紙を開いてすぐ印刷し、各PDFへ1672×941pxの場面画像3枚すべてが埋め込まれること、印刷後の5進行状態が0へ復元されることを確認した。元のSVG16個はbaseとの全文比較で一致した。画像が入るPDFの各ページもレンダリングして目視した。
+- fresh WebKitの1440px・390px各3ページでも、表紙→print media→beforeprintで全3画像の読込、一時eager、重複印刷通知、afterprint後の元のlazyと段階復元を確認した。
+
+再検証例：
+
+```sh
+JOHO_TEST_URL=http://127.0.0.1:8877/ JOHO_TEST_OUTPUT=/tmp/is5-enhance-review node scripts/test-problem-solving-browser.mjs
+JOHO_TEST_URL=http://127.0.0.1:8877/ JOHO_TEST_OUTPUT=/tmp/is5-enhance-print node scripts/test-problem-solving-scenes-print.mjs
+```
+
+最終結果・画面は `/tmp/is5-enhance-review-final/`、fresh印刷PDFとChrome/WebKitの結果は `/tmp/is5-enhance-print-final/` に保存した。初回のPDFレンダリングは `/tmp/is5-enhance-print/`、修正前の再現証拠はそのディレクトリの `fresh-webkit-mobile-results.json` にある。Safariアプリ・物理タッチ端末は今回の補強でも実機未確認。
