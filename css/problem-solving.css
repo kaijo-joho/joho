@@ -1,0 +1,57 @@
+@charset "UTF-8";
+/* Problem-solving lesson components. Shared navigation and themes stay in their own files. */
+.ps-lesson :is(.ps-pair, .ps-card-board, .ps-weight-controls) > * { min-width: 0; }
+.ps-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; align-items: start; margin-block: 14px; }
+.ps-lesson .ps-visual { max-width: 680px; margin: 12px auto; }
+.ps-visual svg { display: block; width: 100%; color: var(--is-text); }
+.ps-visual text { font-family: inherit; }
+.ps-lesson :is(select, input[type="text"], textarea) { background: var(--is-panel); color: var(--is-text); border: 1px solid var(--is-border); border-radius: 7px; box-sizing: border-box; max-width: 100%; padding: 8px; min-height: 44px; }
+/* WebKit's native select can shrink despite min-height; keep a 44px custom surface. */
+.ps-lesson select { -webkit-appearance: none; appearance: none; min-height: 44px; padding-right: 2.2em; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 16 16'%3E%3Cpath d='m3 6 5 5 5-5' fill='none' stroke='%236b7f91' stroke-width='2'/%3E%3C/svg%3E"); background-position: right .6em center; background-repeat: no-repeat; background-size: 1em; }
+.ps-lesson textarea { display: block; width: 100%; margin-top: 8px; font: inherit; resize: vertical; }
+.ps-lesson textarea:focus-visible { outline: 3px solid var(--is-focus); outline-offset: 3px; }
+.ps-control { display: grid; gap: 10px; margin: 16px 0; }
+.ps-control input[type="range"] { width: 100%; min-height: 44px; accent-color: var(--is-accent); }
+.ps-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+.ps-weight-controls { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.ps-weight-controls label { display: grid; gap: 7px; }
+.ps-input-row { display: flex; flex-wrap: wrap; align-items: end; gap: 10px; }
+.ps-input-row label { display: grid; flex: 1 1 18em; gap: 6px; }
+.ps-lesson .ps-classify { list-style: none; padding: 0; counter-reset: fact; }
+.ps-classify li { display: grid; grid-template-columns: minmax(0, 1fr) minmax(10em, .48fr); align-items: center; gap: 10px; border-bottom: 1px solid var(--is-border); padding-block: 12px; counter-increment: fact; }
+.ps-classify label::before { content: counter(fact) ". "; font-weight: 700; }
+.ps-row-feedback { grid-column: 1 / -1; font-size: .88em; font-weight: 700; }
+.ps-row-feedback:empty { display: none; }
+.ps-feedback { padding: 10px 12px; background: var(--is-soft); border: 1px solid var(--is-border); border-radius: 8px; min-height: 1.7em; overflow-wrap: anywhere; }
+.ps-card-board { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.ps-card-board section { padding: 12px; border: 2px solid var(--is-border); border-radius: 10px; background: var(--is-soft); }
+.ps-lesson .ps-card-board ul { display: grid; gap: 10px; min-height: 50px; padding: 0; list-style: none; }
+.ps-lesson .ps-card-board li { margin: 0; padding: 12px; background: var(--is-panel); border: 1px solid var(--is-border); border-radius: 8px; }
+.ps-card-board li p { margin-top: 0; }
+.ps-card-board label { display: grid; gap: 5px; font-size: .88em; }
+.ps-card-board output { margin-left: 6px; font-size: .82em; }
+.ps-lesson fieldset { border: 1px solid var(--is-border); border-radius: 9px; padding: 12px; min-width: 0; }
+.ps-lesson legend { padding: 0 8px; max-width: 100%; font-weight: 700; }
+.ps-radio { display: flex; align-items: start; gap: 10px; padding: 10px 4px; cursor: pointer; min-height: 44px; box-sizing: border-box; }
+.ps-radio input { flex: 0 0 auto; width: 20px; height: 20px; margin-top: 4px; accent-color: var(--is-accent); }
+.ps-reflection { display: block; margin-top: 16px; }
+.ps-lesson :is(.ps-idea-list, .ps-reflection) { overflow-wrap: anywhere; }
+.ps-lesson:not(.ps-ready) :is([data-ps-controls], [data-progress-controls]) { display: none; }
+@media (max-width: 850px) {
+  .ps-pair { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 600px) {
+  .ps-weight-controls, .ps-card-board { grid-template-columns: minmax(0, 1fr); }
+  .ps-classify li { grid-template-columns: minmax(0, 1fr); }
+  .ps-lesson .is-model, .ps-lesson .is-card { padding: 12px; }
+  .ps-visual { min-width: 0; }
+}
+@media print {
+  .ps-lesson [data-ps-controls], .ps-card-board select, .ps-classify select { display: none !important; }
+  .ps-lesson [data-ps-answer-text][hidden] { display: block !important; }
+  .ps-lesson .ps-pair, .ps-lesson .ps-card-board { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ps-lesson .ps-feedback, .ps-lesson .ps-card-board section { background: none; }
+  .ps-lesson .ps-visual { max-width: 130mm; break-inside: avoid; }
+  .ps-lesson .ps-visual svg { color: #111; }
+  .ps-reflection textarea { min-height: 20mm; }
+}
