@@ -12,34 +12,52 @@ function confirmationBridge({container,dialog,url,ticket,oldToken='',signal}){
  if(root.location.origin!==P.ORIGIN || root.top!==root)return Promise.reject(Error('origin_not_allowed'));
  const parsed=new URL(url);
  if(!/^https:\/\/script\.google\.com\/(?:a\/macros\/gfe\.kaijo\.ed\.jp\/|macros\/)s\/[A-Za-z0-9_-]+\/exec$/.test(parsed.href))return Promise.reject(Error('identity_route_invalid'));
- const bridge=id()+id().slice(0,16);parsed.searchParams.set('type','htmlIdentity');parsed.searchParams.set('embed','html-editor');parsed.searchParams.set('bridge',bridge);
+ parsed.searchParams.set('type','htmlIdentity');parsed.searchParams.set('embed','html-editor');
  return new Promise((resolve,reject)=>{
-   const frame=document.createElement('iframe');frame.title='学校アカウントの本人確認';frame.className='download-frame';frame.referrerPolicy='no-referrer';
-   frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox');
+   let frame=null,bridge='',slowTimer,timer;
    const progress=node(container,'','p');progress.className='download-status';progress.setAttribute('role','status');
-   const spinner=node(progress,'','span');spinner.className='download-spinner';spinner.setAttribute('aria-hidden','true');node(progress,'本人確認画面を読み込んでいます…','span');
+   const spinner=node(progress,'','span');spinner.className='download-spinner';spinner.setAttribute('aria-hidden','true');const label=node(progress,'本人確認画面を読み込んでいます…','span');
    dialog?.classList.add('identity-open');
    let source=null,sourceOrigin='',settled=false,integrated=false;
+   const help=root.HtmlEditorDownload.loginHelp(container,()=>{
+     if(settled)return;
+     if(source){help.say('本人確認画面に接続済みです。画面内の確認ボタンを使い、処理中はそのままお待ちください。');return;}
+     startFrame();help.say('本人確認画面だけを開き直しました。編集内容はそのままです。');
+   },{identity:true});
    function appearance(type='appearance') { if(source)source.postMessage({channel:CHANNEL,bridge,type,nonce:ticket.nonce,
      theme:document.documentElement.dataset.resolvedTheme || document.documentElement.dataset.theme,
      fontSize:document.documentElement.dataset.textSize,...(type==='connect'?{oldToken,layout:'integrated-v1'}:{})},sourceOrigin); }
    const observer=typeof root.MutationObserver==='function'?new root.MutationObserver(()=>appearance()):null;
    observer?.observe(document.documentElement,{attributes:true,attributeFilter:['data-resolved-theme','data-theme','data-text-size']});
-   const timer=setTimeout(()=>finish(Error('identity_confirmation_timeout')),180000);
-   function finish(error,response){if(settled)return;settled=true;clearTimeout(timer);observer?.disconnect();root.removeEventListener('message',receive);if(signal)signal.removeEventListener('abort',cancel);frame.remove();progress.remove();dialog?.classList.remove('identity-open','identity-integrated');error?reject(error):resolve(response);}
+   function finish(error,response){if(settled)return;settled=true;clearTimeout(timer);clearTimeout(slowTimer);observer?.disconnect();root.removeEventListener('message',receive);if(signal)signal.removeEventListener('abort',cancel);frame?.remove();progress.remove();help.element.remove();dialog?.classList.remove('identity-open','identity-integrated');error?reject(error):resolve(response);}
    function cancel(){finish(Error('identity_confirmation_canceled'));}
    function receive(event){const data=event.data;
-    if(!frame.isConnected || !root.HtmlEditorDownload.gasOrigin(event.origin) || !root.HtmlEditorDownload.withinFrame(event.source,frame.contentWindow) || !data || data.channel!==CHANNEL || data.bridge!==bridge)return;
+    if(settled || !frame?.isConnected || !root.HtmlEditorDownload.gasOrigin(event.origin) || !root.HtmlEditorDownload.withinFrame(event.source,frame.contentWindow) || !data || data.channel!==CHANNEL || data.bridge!==bridge)return;
     if(data.type==='hello'){
       if(source && (source!==event.source || sourceOrigin!==event.origin))return;
-      source=event.source;sourceOrigin=event.origin;appearance('connect');return;
+      source=event.source;sourceOrigin=event.origin;clearTimeout(slowTimer);appearance('connect');return;
     }
     if(event.source!==source || event.origin!==sourceOrigin || data.nonce!==ticket.nonce)return;
     if(data.type==='layout' && data.layout==='integrated-v1'){integrated=true;progress.hidden=true;dialog?.classList.add('identity-integrated');return;}
     if(integrated && data.type==='height' && Number.isInteger(data.height) && data.height>=0 && data.height<=20000){frame.style.height=Math.max(140,Math.min(700,data.height))+'px';return;}
     if(data.type==='proof')finish(null,data.response);
    }
-   root.addEventListener('message',receive);frame.src=parsed.href;container.append(frame);
+   function startFrame(){
+     clearTimeout(timer);clearTimeout(slowTimer);frame?.remove();source=null;sourceOrigin='';integrated=false;
+     bridge=id()+id().slice(0,16);parsed.searchParams.set('bridge',bridge);
+     const frameBridge=bridge;
+     dialog?.classList.remove('identity-integrated');progress.hidden=false;spinner.hidden=false;label.textContent='本人確認画面を読み込んでいます…';
+     frame=document.createElement('iframe');frame.title='学校アカウントの本人確認';frame.className='download-frame';frame.referrerPolicy='no-referrer';
+     frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox');
+     slowTimer=setTimeout(()=>{if(settled||frameBridge!==bridge||source)return;label.textContent='表示に時間がかかっています。別タブでGoogleにログインし、本人確認画面だけを開き直してください。';help.element.open=true;},20000);
+     timer=setTimeout(()=>{
+       if(settled||frameBridge!==bridge)return;
+       if(source){finish(Error('identity_confirmation_timeout'));return;}
+       spinner.hidden=true;label.textContent='本人確認画面を読み込めませんでした。下のログイン案内を確認してください。';help.element.open=true;
+     },180000);
+     frame.src=parsed.href;container.append(frame);
+   }
+   root.addEventListener('message',receive);startFrame();
    if(signal){signal.addEventListener('abort',cancel,{once:true});if(signal.aborted)cancel();}
  });
 }

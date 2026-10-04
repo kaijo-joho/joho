@@ -141,3 +141,9 @@ test('submission: 再接続時も能力・要求ID・transferId・現在の文�
   h.setCurrent(false); h.message(h.event(child,{...request,transferId:2})); assert.equal(h.sent.at(-1).data.type,'file-unavailable'); assert.ok(!('text' in h.sent.at(-1).data));
   const manual=setup('submission',{manual:true}),manualChild=manual.connect(); manual.message(manual.event(manualChild,request)); assert.equal(manual.sent.length,1);
 });
+test('前回の受領は今回の提出完了にせず、閉じるときに未提出を確認する',()=>{
+ const h=setup('submission'),child=h.connect();h.state(child,'checking');h.state(child,'previous-received');
+ assert.equal(h.panel.needsAttention(),true);assert.equal(h.panel.canClose(),false);assert.match(h.confirmations.at(-1),/今回のファイルはまだ提出/);
+ h.allow(true);assert.equal(h.panel.canClose(),true);
+ h.state(child,'sending');assert.equal(h.panel.needsAttention(),true);h.state(child,'received');assert.equal(h.panel.needsAttention(),false);
+});

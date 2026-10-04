@@ -39,7 +39,7 @@ class Node {
   close() { this.open = false; }
 }
 
-function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false, v3=false, localDownloads=null} = {}) {
+function makeHarness({permission = 'granted', remembered = true, readOnly = false, recoveryItems = [], memoryFails = false, v3=false, localDownloads=null, failWrite=false, failReadAfterWrite=false} = {}) {
   const nodes = Object.fromEntries([...htmlIds].map(id => [id, new Node()]));
   nodes.app = new Node(); nodes.actionDialog = new Node('dialog');
   const documentEvents = new Map();
@@ -57,8 +57,9 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
   const windowEvents = new Map();
   const handle = {kind:'directory', name:'HTML実習', async entries() {}, async queryPermission() { return permission; }, async requestPermission() { this.requests = (this.requests || 0) + 1; return 'granted'; }};
   const calls = {reconnect:[], scan:0, openDirectory:0, disconnect:0, forget:0, downloads:0, writes:0};
+  const disk=new Map([['sample.html','old saved content']]);
   class FakeFs {
-    constructor() { this.dirHandle = null; this.readOnly = readOnly; this.files = readOnly ? ['sample.html'] : []; }
+    constructor() { this.dirHandle = null; this.readOnly = readOnly; this.files = readOnly ? ['sample.html'] : []; this.fileEntries=disk; }
     isSupported() { return true; }
     isConnected() { return Boolean(this.dirHandle) && !this.readOnly; }
     getDirectoryName() { return this.dirHandle ? this.dirHandle.name : ''; }
@@ -76,7 +77,8 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
       this.files = [...files].map(file => file.name); this.imported = first;
       this.readOnly = true; this.dirHandle = null; return this.files;
     }
-    async readFile() { return this.imported ? Buffer.from(await this.imported.arrayBuffer()).toString('utf8') : ''; }
+    async readFile(path) { if(failReadAfterWrite&&calls.writes)throw Error('synthetic read failure');return this.imported ? Buffer.from(await this.imported.arrayBuffer()).toString('utf8') : disk.get(path); }
+    async writeFile(path,value) { if(failWrite)throw Error('synthetic write failure');disk.set(path,value);calls.writes++; }
     disconnect() { calls.disconnect++; this.dirHandle = null; this.files = []; this.readOnly = false; }
     onChange() { return () => {}; }
   }
@@ -88,7 +90,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
     return timer;
   };
   const context = {
-    window:null, document, console, setTimeout:testTimeout, clearTimeout, requestAnimationFrame:fn => fn(),
+    window:null, document, console, confirm:()=>true, setTimeout:testTimeout, clearTimeout, requestAnimationFrame:fn => fn(),
     crypto:{randomUUID:() => 'test-document'}, indexedDB:{}, localStorage:{}, Blob:class {}, URL:{createObjectURL() { calls.downloads++; return 'blob:test'; }, revokeObjectURL() {}},
     CodeMirror:{fromTextArea:() => cm}, HtmlFileSystem:FakeFs,
     HtmlEditorFolderMemory:{create:() => { if (memoryFails) throw Error('IndexedDB unavailable'); return memory; }},
@@ -111,7 +113,7 @@ function makeHarness({permission = 'granted', remembered = true, readOnly = fals
   context.HtmlEditorLocalDownloads=localDownloads;
   vm.runInNewContext(source, context, {filename:'editor.js'});
   for (const fn of windowEvents.get('DOMContentLoaded') || []) fn();
-  return {nodes, handle, calls, cm, tick};
+  return {nodes, handle, calls, cm, tick, disk};
 }
 
 test('起動時は許可済みフォルダだけを再接続し、文書・復旧候補は自動で開かない', async () => {
@@ -219,4 +221,22 @@ test('v3モジュール準備失敗でも実エディタと既存ファイルを
  const h=makeHarness({v3:true,localDownloads:{create(){throw Error('synthetic_storage_error');}}});await h.tick();
  assert.match(h.nodes.toolbar.children.find(n=>n.className==='identity-toolbar').children[0].textContent,/既存の配付/);
  assert.equal(h.nodes.emptyState.hidden,false);assert.equal(h.calls.writes,0);
+});
+async function chooseSample(app){app.nodes.openFilesBtn.dispatch('click');await app.tick();app.nodes.actionBody.children.find(n=>n.textContent==='sample.html').click();await app.tick();}
+test('同じファイルを保存して開くと、Mac上とエディタの双方が新しい内容になる',async()=>{
+ const h=makeHarness();await h.tick();await chooseSample(h);h.cm.setValue('edited content');await chooseSample(h);
+ h.nodes.actionButtons.children.find(n=>n.dataset.choice==='save').click();await h.tick();await h.tick();
+ assert.equal(h.disk.get('sample.html'),'edited content');assert.equal(h.cm.getValue(),'edited content');assert.equal(h.nodes.dirtyMark.hidden,true);
+ h.nodes.saveBtn.click();await h.tick();assert.equal(h.calls.writes,2,'直後の保存で不要な外部変更エラーにしない');
+});
+for(const mode of ['cancel','discard','writeFailure','readFailure'])test('同じファイルを開く際の '+mode+' でも編集内容・保存失敗を取り違えない',async()=>{
+ const h=makeHarness({failWrite:mode==='writeFailure',failReadAfterWrite:mode==='readFailure'});await h.tick();await chooseSample(h);h.cm.setValue('edited content');await chooseSample(h);
+ h.nodes.actionButtons.children.find(n=>n.dataset.choice===(mode==='cancel'?'cancel':mode==='discard'?'discard':'save')).click();await h.tick();await h.tick();
+ assert.equal(h.cm.getValue(),mode==='discard'?'old saved content':'edited content');
+ assert.equal(h.disk.get('sample.html'),mode==='readFailure'?'edited content':'old saved content');
+});
+test('期限切れでも別アカウントへの明示切替を選べる。通常の再確認と区別',async()=>{
+ const calls=[];const h=makeHarness({v3:true,localDownloads:{create:()=>({load:async()=>({status:'expired'}),register:async r=>calls.push(r)})}});await h.tick();
+ const box=h.nodes.toolbar.children.find(n=>n.className==='identity-toolbar'),button=box.children[1].children[1].children.find(n=>n.textContent==='利用するアカウントを変更');
+ assert.equal(button.hidden,false);button.click();await h.tick();assert.equal(calls[0].switchAccount,true);assert.equal(calls[0].safeToSwitch,true);
 });

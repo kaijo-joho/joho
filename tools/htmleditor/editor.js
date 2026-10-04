@@ -236,7 +236,8 @@
       textNode(body, '初回はFinderで「書類」に「HTML実習」フォルダを作ります。次回からは同じフォルダを使います。');
       const list = document.createElement('ol'); body.append(list);
       function step(id, label, text) { const li = document.createElement('li'); list.append(li); menuHint(li, id, label); li.append(document.createTextNode(text)); }
-      step('taskDownloadBtn', 'ダウンロード', '：新しい課題の実習ファイルを、自分の学校アカウントで取得します。通常はMacの「ダウンロード」に入るので、Finderで名前を変えずに「書類／HTML実習」へ移動します。');
+      if (localDownloads) textNode(list, '学校アカウント：赤い案内が出ている場合は、先に「学校アカウントを確認する」を押します。ログイン画面が表示できない場合は「表示・ログインで困ったとき」から別タブでログインし、本人確認画面だけを開き直します。', 'li');
+      step('taskDownloadBtn', 'ダウンロード', '：新しい課題の実習ファイルを取得します。通常はMacの「ダウンロード」に入るので、Finderで名前を変えずに「書類／HTML実習」へ移動します。');
       step('displayMenuWrap', '設定', '：初回は「フォルダを接続・変更…」で「HTML実習」を選びます。フォルダ選択中にHTMLがグレー表示でも正常です。次回は許可が続いていれば自動接続し、許可の確認が必要な場合は「前回のフォルダへ再接続」を押します。');
       step('openFilesBtn', '開く', '：接続したフォルダの一覧から今回の実習ファイルを選びます。初回の接続直後は、そのまま一覧が開きます。新しく移動したファイルや画像も「開く」で一覧に取り込みます。');
       step('runBtn', 'プレビューを更新', selectedLesson.id === 'html11' ?
@@ -247,6 +248,7 @@
       textNode(body, 'プレビュー更新とファイル保存は別の操作です。直接保存できない場合はダウンロード先・内容・ファイル名をFinderで確認してください。');
       if (selectedLesson.id === 'html11') textNode(body, '導入課題の準備確認には、フォルダへ上書き保存できるGoogle Chromeを使います。フォルダ名とファイルの読み書きを確認しますが、書類フォルダ内かどうかや新しく作ったかどうかは確認できません。準備確認はこの画面内だけの案内で、提出物の採点結果とは別です。');
       textNode(body, '本人用の配付情報は削除・変更しないでください。受付期間内は何回でも再提出できますが、同じ課題の新しい提出は60秒以上あけます。');
+      if (localDownloads) textNode(body, '本人確認の有効期間は90日です。期限切れは「学校アカウント」から再確認します。既に取得した実習ファイルの確認情報は自動では変わりません。提出時に更新を求められたら、そのファイルを開いたまま「開いている実習ファイルの確認情報を更新」を選び、Macへ保存してから提出します。別のアカウントを使う場合は「利用するアカウントを変更」を選びます。');
       textNode(body, '続きの作業は「開く」から再開します。「ダウンロード」で取り直しても途中の編集内容には戻りません。作業後は画像も含むフォルダ全体をバックアップしてください。万が一の復旧は「設定」→「復旧候補を開く…」から行います。');
       button('閉じる', 'close');
     }));
@@ -281,8 +283,12 @@
     } catch { return null; }
   }
   async function loadFile(path) {
-    const value = await fs.readFile(path); // 読取失敗は現在の文書に触れない。
+    let value = await fs.readFile(path); // 読取失敗は現在の文書に触れない。
+    const hadChanges = dirty();
     if (!await allowReplace()) return;
+    // 同じファイルを「保存して開く」場合、確認前に読んだ旧内容で戻さない。
+    // 再読取に失敗しても、保存した現在の文書をそのまま保持する。
+    if (hadChanges) value = await fs.readFile(path);
     autoSave();
     replaceDocument(value, path, {binding:fs.isConnected() ? fs.dirHandle : null,
       openedFrom:fs.isConnected() ? fs.dirHandle : null, diskContent:value, hasWork:true});
@@ -689,10 +695,10 @@
         const opener=document.activeElement;
         confirmButton.disabled=switchButton.disabled=warningButton.disabled=true;accountMenu.open=false;status.textContent=switchAccount?'利用するアカウントを確認しています…':'学校アカウントを確認しています…';
         try {await localDownloads.register({switchAccount,safeToSwitch:true});await renderIdentity();}
-        catch(e){status.textContent='本人確認を完了できませんでした。もう一度確認してください。（'+errorMessage(e)+'）';}
+        catch(e){status.textContent=e.message==='identity_confirmation_canceled'?'本人確認を中止しました。編集内容はそのままです。':e.message==='switch_confirmation_required'?'前回と異なるアカウントです。「学校アカウント」から「利用するアカウントを変更」を選んでください。':'本人確認を完了できませんでした。もう一度確認してください。（'+errorMessage(e)+'）';}
         finally{confirmButton.disabled=switchButton.disabled=warningButton.disabled=false;(opener===warningButton && !warning.hidden ? warningButton : accountSummary).focus();}
       }
-      async function renderIdentity(){const state=await localDownloads.load();status.textContent=state.status==='ready'?'確認済み：'+state.label:state.status==='expired'?'学校アカウントの確認期限が切れています。':'学校アカウント未確認';confirmButton.hidden=state.status==='ready';switchButton.hidden=state.status!=='ready';warning.hidden=state.status==='ready';warningMessage.textContent=state.status==='expired'?'⚠ 本人確認の期限が切れています。学校アカウントをもう一度確認してください。':'⚠ 学校アカウントが未確認です。実習ファイルの取得前に本人確認してください。';}
+      async function renderIdentity(){const state=await localDownloads.load();status.textContent=state.status==='ready'?'確認済み：'+state.label:state.status==='expired'?'学校アカウントの確認期限が切れています。':'学校アカウント未確認';confirmButton.hidden=state.status==='ready';switchButton.hidden=!['ready','expired'].includes(state.status);warning.hidden=state.status==='ready';warningMessage.textContent=state.status==='expired'?'⚠ 本人確認の期限が切れています。学校アカウントをもう一度確認してください。':'⚠ 学校アカウントが未確認です。実習ファイルの取得前に本人確認してください。';}
       async function bridge(ticket,oldToken='') {let response;const controller=new AbortController();try{await modal('学校アカウントの本人確認',(body,button,finish)=>{
         button('閉じる','close');window.HtmlEditorLocalDownloads.confirmationBridge({container:body,dialog:$('actionDialog'),url:config.identityUrl,ticket,oldToken,signal:controller.signal}).then(r=>{response=r;finish('confirmed');}).catch(e=>{if(e.message!=='identity_confirmation_canceled')notify(errorMessage(e));finish('failed');});
       });}finally{controller.abort();}if(!response)throw Error('identity_confirmation_canceled');return response;}

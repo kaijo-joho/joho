@@ -106,7 +106,11 @@
         node.removeAttribute('data-local-link'); node.removeAttribute('download'); node.removeAttribute('target');
         if (/^https?:\/\//i.test(href)) {
           node.setAttribute('target', '_blank'); node.setAttribute('rel', 'noopener noreferrer');
-        } else if (href.startsWith('#')) { /* ページ内移動は維持する。 */ }
+        } else if (href.startsWith('#')) {
+          // srcdocの相対URLは親エディタを基準にする。文書自身を明示し、
+          // スクリプトなしで同じプレビュー内をネイティブに移動する。
+          node.setAttribute('href', 'about:srcdoc' + href);
+        }
         else if (href && !external(href)) {
           const destination = 'about:blank#html-editor-' + navigationId + '-' + localLinks.size;
           node.setAttribute('data-local-link', href);

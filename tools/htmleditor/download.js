@@ -23,7 +23,7 @@
     return Array.from(root.crypto.getRandomValues(new Uint8Array(24)), n => n.toString(16).padStart(2, '0')).join('');
   }
   // 配付・提出で共通の案内。Googleの認証操作は別タブで本人が行う。
-  function loginHelp(container, retry) {
+  function loginHelp(container, retry, {identity = false} = {}) {
     const node = (parent, text, tag = 'p', className = '') => {
       const element = document.createElement(tag); element.textContent = text;
       if (className) element.className = className;
@@ -36,12 +36,12 @@
     const actions = node(body, '', 'div', 'download-controls');
     const login = node(actions, 'Googleにログイン', 'a', 'btn');
     login.href = 'https://accounts.google.com/'; login.target = '_blank'; login.rel = 'noopener noreferrer';
-    const retryButton = node(actions, 'フォームだけを開き直す', 'button', 'btn'); retryButton.type = 'button';
+    const retryButton = node(actions, identity ? '本人確認画面だけを開き直す' : 'フォームだけを開き直す', 'button', 'btn'); retryButton.type = 'button';
     retryButton.addEventListener('click', retry);
     node(body, '複数アカウントでうまく開けない場合は、すべてのGoogleアカウントからログアウトし、学校アカウントだけでログインし直してください');
     node(body, '同じChromeプロファイルで使っているGmailやGoogleドライブなど、他のGoogleサービスもログアウトされます。ログアウトは必要な場合だけ自分で行ってください。');
     node(body, '複数アカウントの利用時に、この操作で開けた事例があります。表示できない原因が必ず同じとは限りません。');
-    node(body, '発行・提出中、結果不明、発行結果が未保存のときは開き直さず、フォーム内の同じボタンや受領状況の再確認を使ってください。');
+    node(body, identity ? '本人確認のボタンが表示された後は、その画面内で操作してください。確認処理中は画面を開き直しません。' : '発行・提出中、結果不明、発行結果が未保存のときは開き直さず、フォーム内の同じボタンや受領状況の再確認を使ってください。');
     const notice = node(body, '', 'p', 'form-retry-notice'); notice.setAttribute('role', 'status');
     return {element, body, retryButton, say(message) { element.open = true; notice.textContent = message; }};
   }

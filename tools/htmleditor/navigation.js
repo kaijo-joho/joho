@@ -47,8 +47,22 @@
       try {
         const view = iframe.contentWindow.HtmlPracticeLessonView;
         const frameDocument = iframe.contentDocument;
-        if (view && (force || displayedDocument !== frameDocument || displayedHash !== current.hash)) {
-          view.show(current.hash, {focus}); displayedDocument = frameDocument; displayedHash = current.hash;
+        if (force || displayedDocument !== frameDocument || displayedHash !== current.hash) {
+          if (view) view.show(current.hash, {focus});
+          else {
+            let id = current.hash.replace(/^#/, '');
+            try { id = decodeURIComponent(id); } catch { /* 不正なエスケープは文字列のまま照合。 */ }
+            const target = frameDocument.getElementById(id) || frameDocument.getElementsByName(id)[0];
+            if (target) {
+              target.scrollIntoView({block:'start'});
+              if (focus) {
+                const temporary = !target.hasAttribute('tabindex');
+                if (temporary) { target.setAttribute('tabindex','-1'); target.addEventListener('blur', () => target.removeAttribute('tabindex'), {once:true}); }
+                target.focus({preventScroll:true});
+              }
+            } else if (!id || id.toLowerCase() === 'top') iframe.contentWindow.scrollTo(0,0);
+          }
+          displayedDocument = frameDocument; displayedHash = current.hash;
           displayedScrollY = iframe.contentWindow.scrollY; observedScrollY = displayedScrollY;
         }
       } catch { /* 解説・印刷の独立リンクを残す。 */ }

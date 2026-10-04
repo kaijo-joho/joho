@@ -12,6 +12,7 @@
     checking:'受領状況を確認しています…',
     uncertain:'送信結果をまだ確認できません。フォーム内の「受領状況を再確認」を使ってください。',
     received:'提出を受け付けました。詳細はフォーム内で確認してください。',
+    'previous-received':'前回の受領を確認しました。今回の保存済みファイルはまだ提出していません。',
     grading:'提出は受け付けています。採点結果を確認しています…',
     downloading:'提出した実習ファイルの控えを取得しています…',
     error:'提出フォーム内の案内を確認してください。表示できない場合は「別タブで開く」を使えます。'
@@ -35,10 +36,10 @@
       if (className) element.className = className;
       parent.append(element); return element;
     };
-    function needsAttention() { return protectedResult === 'pending' || ['selected','sending','uncertain','checking','grading','downloading'].includes(phase); }
+    function needsAttention() { return protectedResult === 'pending' || ['selected','previous-received','sending','uncertain','checking','grading','downloading'].includes(phase); }
     function canClose() {
       if (protectedResult === 'pending' || phase === 'sending' || phase === 'uncertain' || phase === 'checking') return root.confirm('提出処理中、または受領結果をまだ確認できていません。閉じても送信は取り消されません。閉じますか？');
-      if (phase === 'selected') return root.confirm('選択したファイルはまだ提出していません。提出フォームを閉じますか？');
+      if (phase === 'selected' || phase === 'previous-received') return root.confirm('今回のファイルはまだ提出していません。提出フォームを閉じますか？');
       if (phase === 'grading') return root.confirm('提出は受け付けていますが、採点結果を確認中です。閉じますか？');
       if (phase === 'downloading') return root.confirm('控えを取得中です。閉じると保存できない場合があります。閉じますか？');
       return true;
@@ -98,6 +99,7 @@
       phase = data.phase; clearTimeout(slowTimer);
       if (['sending','uncertain','checking'].includes(phase)) protectedResult = 'pending';
       else if (['received','grading','downloading'].includes(phase)) protectedResult = 'receipt';
+      else if (phase === 'previous-received') protectedResult = '';
       label.textContent = MESSAGES[phase]; spinner.hidden = !['loading','sending','checking','grading','downloading'].includes(phase);
     };
     function clearFrame() {
