@@ -4,10 +4,14 @@
   else root.HtmlIdentityCache = factory(root.HtmlLocalProtocol);
 }(typeof globalThis !== 'undefined' ? globalThis : this, function (protocol) {
   'use strict';
-  const DB_NAME = 'joho.htmleditor.identity-cache.v3', STORE = 'state', KEY = 'current';
+  const DB_NAME = 'joho.htmleditor.identity-cache.v3', STORE = 'state', KEY = 'current', PROFILE_KEY = 'displayProfile';
   function fail(code) { throw new Error(code); }
   function empty() { return {revision:0, identity:null}; }
   function copy(value) { return JSON.parse(JSON.stringify(value)); }
+  function validName(value) {
+    return typeof value === 'string' && value.length <= 100 && value === value.trim() &&
+      !/[\x00-\x1f\x7f<>\u202a-\u202e\u2066-\u2069]/.test(value);
+  }
   function stateShape(state, codec) {
     if (!state || Object.keys(state).sort().join(',') !== 'identity,revision' ||
       !Number.isSafeInteger(state.revision) || state.revision < 0) fail('cache_invalid');
@@ -41,7 +45,7 @@
         request.onsuccess=() => finish(null,request.result);
       }); return pending;
     }
-    async function transact(revision, next) {
+    async function transact(revision, next, profile, readProfile = false) {
       const db=await open();
       return new Promise((resolve,reject) => {
         let tx, result, settled=false;
@@ -49,12 +53,17 @@
         function finish(error) {if (settled) return; settled=true; clearTimeout(timer); error ? reject(error) : resolve(result);}
         try {
           tx=db.transaction(STORE, next ? 'readwrite' : 'readonly');
-          const store=tx.objectStore(STORE), request=store.get(KEY);
+          const store=tx.objectStore(STORE), request=store.get(readProfile ? PROFILE_KEY : KEY);
           request.onsuccess=() => {
+            if (readProfile) {result=request.result || null; return;}
             const current=request.result === undefined ? empty() : request.result;
             if (!next) {result=current; return;}
             if (!current || current.revision !== revision) {result=false; return;}
-            store.put(next,KEY); result=true;
+            store.put(next,KEY);
+            // Keep the original identity schema and DB version readable by older editors.
+            // Profile and proof change atomically; a stale older tab's profile cannot match.
+            if (profile) store.put(profile,PROFILE_KEY); else store.delete(PROFILE_KEY);
+            result=true;
           };
           tx.oncomplete=() => finish();
           tx.onabort=() => finish(tx.error || new Error('storage_aborted'));
@@ -62,7 +71,8 @@
         } catch(e) {finish(e);}
       });
     }
-    return {read:() => transact(), compareAndSwap:(revision,next) => transact(revision,next),
+    return {read:() => transact(), readDisplayProfile:() => transact(undefined,undefined,undefined,true),
+      compareAndSwap:(revision,next,profile) => transact(revision,next,profile),
       close:() => {if(connection) connection.close(); connection=null;}};
   }
   function create(options) {
@@ -76,16 +86,25 @@
       const p=protocol.inspectIdentity(identity.token,codec), now=options.now();
       return p.issuedAt <= now && now < p.expiresAt;
     }
-    async function save(previous,next) {
+    async function save(previous,next,displayName = '') {
       next.revision=previous.revision+1; stateShape(next,codec);
-      if (!(await storage.compareAndSwap(previous.revision,next))) fail('cache_changed');
+      const profile=next.identity && displayName ? {revision:next.revision,token:next.identity.token,displayName} : null;
+      if (!(await storage.compareAndSwap(previous.revision,next,profile))) fail('cache_changed');
       return next;
     }
     return {
       load:() => serial(async () => {
         const state=await read();
-        return {status:!state.identity ? 'missing' : usable(state.identity) ? 'ready' : 'expired',
-          label:state.identity && state.identity.label || '', revision:state.revision};
+        const ready=usable(state.identity), payload=ready ? protocol.inspectIdentity(state.identity.token,codec) : null;
+        let displayName='';
+        try {
+          const profile=storage.readDisplayProfile && await storage.readDisplayProfile();
+          if (ready && profile && Object.keys(profile).sort().join(',') === 'displayName,revision,token' &&
+            profile.revision === state.revision && profile.token === state.identity.token && validName(profile.displayName)) displayName=profile.displayName;
+        } catch (_) { /* Display-only cache failures fall back to the user ID. */ }
+        return {status:!state.identity ? 'missing' : ready ? 'ready' : 'expired',
+          label:state.identity && state.identity.label || '', displayName, revision:state.revision,
+          subject:payload ? {identityId:payload.identityId,keyId:payload.keyId,issuedAt:payload.issuedAt,expiresAt:payload.expiresAt} : null};
       }),
       identityForGeneration:() => serial(async () => {
         const state=await read();
@@ -107,15 +126,16 @@
         if (!activeTicket || protocol.canonical(ticket) !== protocol.canonical(activeTicket)) fail('confirmation_stale');
         const state=await read();
         if (state.revision !== ticket.revision || generation !== ticket.generation) fail('cache_changed');
-        if (!response || Object.keys(response).sort().join(',') !== 'label,nonce,token' || response.nonce !== ticket.nonce) fail('confirmation_invalid');
+        if (!response || !['label,nonce,token','displayName,label,nonce,token'].includes(Object.keys(response).sort().join(',')) || response.nonce !== ticket.nonce ||
+          ('displayName' in response && !validName(response.displayName))) fail('confirmation_invalid');
         const identity={token:response.token,label:response.label};
         if (!usable(identity)) fail('identity_expired');
         const before=state.identity && protocol.inspectIdentity(state.identity.token,codec);
         const after=protocol.inspectIdentity(identity.token,codec);
         if (before && before.identityId !== after.identityId && !ticket.switchAccount) fail('switch_confirmation_required');
-        const next=await save(state,{revision:state.revision,identity});
+        const next=await save(state,{revision:state.revision,identity},response.displayName || '');
         activeTicket=null;
-        return {status:'ready',label:next.identity.label};
+        return {status:'ready',label:next.identity.label,displayName:response.displayName || ''};
       }),
       cancelConfirmation:() => {generation++; activeTicket=null;},
       forget:(request={}) => serial(async () => {
@@ -126,5 +146,15 @@
       })
     };
   }
-  return {create,indexedDBStorage,DB_NAME};
+  // Advisory only: the browser cannot verify the HMAC or resolve different signing keys.
+  function compareFileIdentity(state, source, codec, now) {
+    const subject=state && state.status === 'ready' && state.subject;
+    if (!subject || !(subject.issuedAt <= now && now < subject.expiresAt)) return 'unknown';
+    try {
+      const file=protocol.inspectIdentity(protocol.parseLocal(source,codec).envelope.identity,codec);
+      if (file.keyId !== subject.keyId || !(file.issuedAt <= now && now < file.expiresAt)) return 'unknown';
+      return file.identityId === subject.identityId ? 'match' : 'mismatch';
+    } catch (_) {return 'unknown';}
+  }
+  return {create,indexedDBStorage,compareFileIdentity,DB_NAME};
 }));

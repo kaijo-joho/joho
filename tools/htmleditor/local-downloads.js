@@ -26,7 +26,7 @@ function confirmationBridge({container,dialog,url,ticket,oldToken='',signal}){
    },{identity:true});
    function appearance(type='appearance') { if(source)source.postMessage({channel:CHANNEL,bridge,type,nonce:ticket.nonce,
      theme:document.documentElement.dataset.resolvedTheme || document.documentElement.dataset.theme,
-     fontSize:document.documentElement.dataset.textSize,...(type==='connect'?{oldToken,layout:'integrated-v1'}:{})},sourceOrigin); }
+     fontSize:document.documentElement.dataset.textSize,...(type==='connect'?{oldToken,layout:'integrated-v1',profile:'display-name-v1'}:{})},sourceOrigin); }
    const observer=typeof root.MutationObserver==='function'?new root.MutationObserver(()=>appearance()):null;
    observer?.observe(document.documentElement,{attributes:true,attributeFilter:['data-resolved-theme','data-theme','data-text-size']});
    function finish(error,response){if(settled)return;settled=true;clearTimeout(timer);clearTimeout(slowTimer);observer?.disconnect();root.removeEventListener('message',receive);if(signal)signal.removeEventListener('abort',cancel);frame?.remove();progress.remove();help.element.remove();dialog?.classList.remove('identity-open','identity-integrated');error?reject(error):resolve(response);}
@@ -69,6 +69,7 @@ function create(options){
  return {
   cache,provider,
   load:()=>cache.load(),
+  compareFileIdentity:(state,source)=>root.HtmlIdentityCache.compareFileIdentity(state,source,codec,Date.now()),
   register:request=>coordinator.ensure({userInitiated:true,...request}),
   createPanel({container,lesson}){
    let busy=false,disposed=false;node(container,lesson.title);

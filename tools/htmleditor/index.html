@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-build="html-editor-account-label-20261004">
+<html lang="ja" data-theme="auto" data-text-size="standard" data-html-editor-shell="1" data-html-editor-build="html-editor-account-name-20261004">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="../shared/ui-kit.css?v=html-editor-v3-20261002-enabled" integrity="sha384-luu6vf69NFmCTn6MzWFgh15TcxjMtY5u9e1dvb07bd8M5hC0ISgdzwpKdbBnv/BX" crossorigin="anonymous">
   <link rel="stylesheet" href="../shared/help-panel.css?v=html-editor-v3-20261002-enabled" integrity="sha384-OsGYmbRple2PdYGlQNWplPWAHxWva69GJs3d79q6F+7bdmK5hasuLodPO2YkA7VR" crossorigin="anonymous">
   <link rel="stylesheet" href="vendor/codemirror.min.css?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-zaeBlB/vwYsDRSlFajnDd7OydJ0cWk+c2OWybl3eSUf6hW2EbhlCsQPqKr3gkznT" crossorigin="anonymous">
-  <link rel="stylesheet" href="editor.css?v=html-editor-account-label-20261004" data-editor-required integrity="sha384-ZLWJePQlHmaSZBitzggCC6GfYCBvtlPs5AwHyu7xYLV82zCRz9dejExuTKGJvfgm" crossorigin="anonymous">
+  <link rel="stylesheet" href="editor.css?v=html-editor-account-name-20261004" data-editor-required integrity="sha384-/VbI19GT9iyK5O85YnKbhxKf+BatUP1HJkoeSMN0iAgw5kuwNYeNQPdGl923n3lF" crossorigin="anonymous">
 </head>
 <body class="mode-lesson" data-pane="center">
 <section id="startupFallback" aria-labelledby="startupTitle">
@@ -107,6 +107,7 @@
     <button class="btn" id="connectFolderBtn" type="button">フォルダを接続…</button>
   </div>
   <div id="documentStatus" hidden><span id="saveState"></span></div>
+  <section id="fileIdentityWarning" class="identity-alert" role="alert" hidden><p>⚠ 開いている実習ファイルの本人情報が、確認済みのアカウントと一致しません。自分のファイルか確認してください。別のアカウントを使う場合は、上部の氏名・IDボタンから切り替えます。提出時には学校アカウントを改めて確認します。</p></section>
   <section id="onboardingStatus" aria-label="導入課題の準備確認" hidden>
     <strong>導入課題：実習の準備</strong>
     <ul id="onboardingSteps"></ul>
@@ -216,10 +217,10 @@
 <script src="../../js/pages.js?v=html-editor-v3-20261002-enabled" async data-editor-catalog="data"></script>
 <script src="../../js/html_practice_links.js?v=html-editor-v3-20261002-enabled" async data-editor-catalog="links" integrity="sha384-vBohxCGPwzaTW5q0oRj6LLB1y5nsB4cCLbuZYRN03bVFSWMfgrb5QtC35I7YxfWW" crossorigin="anonymous"></script>
 <script src="local-protocol.js?v=html-editor-v3-20261002-enabled" integrity="sha384-mzbZiW1hjfOw4fK8hKGX5VeFVXVsB8VqNE46uRnKrgelLewpC5XQWBFiEGsfHPQc" crossorigin="anonymous"></script>
-<script src="identity-cache.js?v=html-editor-v3-20261002-enabled" integrity="sha384-6A+ZqminXP13COiS6lq1r2HmtITPLMMwvKqGLNMVWKPdm7sYzpsd6RFbtOARf/6H" crossorigin="anonymous"></script>
+<script src="identity-cache.js?v=html-editor-account-name-20261004" integrity="sha384-6PJR82qpS0MkNvQRCfoHtjj7lhSVV8WZ+/IRmi2sZIcrgu+OLDR//oRcuEmZ1z59" crossorigin="anonymous"></script>
 <script src="public-original.js?v=html-editor-v3-20261002-enabled" integrity="sha384-aaVRfh6S+kTfr0E6cW3ZDGA9D97QUO2gfNEXPXuOITjv0TatLP3c+yjhIiZHPTyK" crossorigin="anonymous"></script>
 <script src="confirmation-coordinator.js?v=html-editor-v3-20261002-enabled" integrity="sha384-kJMoWhjr/K1dHuwDOHnneUihdhnOIqgMgRNzzzOTsrY5MsBwBaubuh4zUr7RtE0u" crossorigin="anonymous"></script>
-<script src="local-downloads.js?v=html-editor-submit-ui-20261004" integrity="sha384-WyOQyKN0I5njBMtExOSiqQ1nTX3ZUjkEvJ35RfQMiu94DoKenkPyUwZJRsOCBmoI" crossorigin="anonymous"></script>
+<script src="local-downloads.js?v=html-editor-account-name-20261004" integrity="sha384-SNAAIfE3he7vBcd6j5F8yedmG4BRDkidfqJvBg1X5KbS9fbJmDHp171oAstE3y/3" crossorigin="anonymous"></script>
 <script src="local-v3-config.js?v=html-editor-v3-20261002-school" integrity="sha384-0TV/bltJ4+XJdpR30o57T6K8v0q9rDKkbXzWPy9CwqpCoDCfqSINLRIPz0grMNww" crossorigin="anonymous"></script>
 <script src="practice.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-CsnEnzT/kOKZbB3mRBefi0tDQ638fb29+zhietnLMu4kNkgCHCVX8xC6bEmL/sT1" crossorigin="anonymous"></script>
 <script src="workflow.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-oJmPBn0EqhE7xQ26mqno+/eqlUXowH64e8RobjuanKiallBhN4dh8LgTasUBMqJ5" crossorigin="anonymous"></script>
@@ -232,6 +233,6 @@
 <script src="folder-memory.js?v=html-editor-v3-20261002-enabled" integrity="sha384-X0jCctHQJZmYAtsq/o7avFraHuzzySbJTNpOMmVbYCw0Ct4ywp/H5hccAHB8XF1v" crossorigin="anonymous"></script>
 <script src="preview.js?v=html-editor-review-fixes-20261004" data-editor-required integrity="sha384-sieJPvYrREXpNxWPEW5VnKyISG1OKoAwf/L5E/sCbbg4vVi9qjsEb/3hTZ7FyS/D" crossorigin="anonymous"></script>
 <script src="onboarding.js?v=html-editor-v3-20261002-enabled" data-editor-required integrity="sha384-095gWiJ23P9TNSH9Rsv92W9ZVXOqY2gz8wDrNXP+yzViGrDKiaGwrcw3n+j2Wt/E" crossorigin="anonymous"></script>
-<script src="editor.js?v=html-editor-account-label-20261004" data-editor-required integrity="sha384-UCh3sboDGW9uBM73gXk+hDtDCpCboh5nP8Qb0+mYiJhxFJJW9arKXTpoqHINLXae" crossorigin="anonymous"></script>
+<script src="editor.js?v=html-editor-account-name-20261004" data-editor-required integrity="sha384-EGbtdLGWB64M17Tn/ATrDwAtTFJorw43AMzX/S97lQK1Wgdsd1L5Rv79Ni1WhleX" crossorigin="anonymous"></script>
 </body>
 </html>

@@ -18,6 +18,7 @@ function setup(){
 }
 test('本人確認iframeへテーマ・文字サイズを送信。照合済み応答だけ枠を外し高さを調整',async()=>{
  const h=setup();h.receive('hello');assert.equal(h.sent.length,1);assert.equal(h.sent[0].data.theme,'dark');assert.equal(h.sent[0].data.fontSize,'large');assert.equal(h.sent[0].data.oldToken,'');
+ assert.equal(h.sent[0].data.profile,'display-name-v1','氏名は対応クライアントが明示的に要求する');
  h.receive('layout',{layout:'integrated-v1'},{origin:'https://evil.invalid'});assert(!h.classes.has('identity-integrated'));
  h.receive('layout',{layout:'integrated-v1',nonce:'wrong'});assert(!h.classes.has('identity-integrated'));
  h.receive('layout',{layout:'integrated-v1'});assert(h.classes.has('identity-integrated'));assert.equal(h.container.children[0].hidden,true);
