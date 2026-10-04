@@ -1,5 +1,5 @@
 /* Content stays readable without JavaScript; only initialized models gain stage hiding. */
-[data-lesson-progress].lesson-progress-ready [hidden] { display: none !important; }
+[data-lesson-progress].lesson-progress-ready :where([data-lesson-stage], [data-lesson-stage-from])[hidden] { display: none !important; }
 [data-progress-controls] {
   display: flex;
   align-items: center;

@@ -5,10 +5,12 @@ const require = createRequire(import.meta.url);
 const { chromium, webkit } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const source = await readFile(new URL('../js/lesson-progress.js', import.meta.url), 'utf8');
 const css = await readFile(new URL('../css/lesson-progress.css', import.meta.url), 'utf8');
+const comparisonCSS = await readFile(new URL('../css/information-society.css', import.meta.url), 'utf8');
 const fixture = `<main><div id="model" data-lesson-progress>
   <p id="prediction" data-lesson-stage="0">まず予想する</p>
   <figure id="operation" data-lesson-stage-from="1"><svg><g id="diagram" data-lesson-stage-from="2"><text>理由を説明する</text></g></svg></figure>
   <p id="explanation" data-lesson-stage-from="2">操作結果を自分で説明する</p>
+  <p id="comparison" data-is-panel="other" hidden>選択していない比較の説明</p>
   <div data-progress-controls><button data-progress-prev>前の段階</button><button data-progress-next>Next</button><button data-progress-reset>はじめから</button><span data-progress-status></span></div>
   <div id="nested" data-lesson-progress data-progress-count="5"><p data-lesson-stage="4">別の図</p><button data-progress-next>別のNext</button></div>
 </div></main>`;
@@ -17,6 +19,8 @@ for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(','
   try {
     const page = await browser.newPage();
     await page.setContent(fixture);
+    await page.evaluate(() => document.body.classList.add('is-lesson'));
+    await page.addStyleTag({ content: comparisonCSS });
     await page.addStyleTag({ content: css });
     // Fallback retains all explanatory content before script initialization.
     assert.equal(await page.locator('#explanation').isVisible(), true);
@@ -46,6 +50,7 @@ for (const name of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(','
     assert.equal(await page.locator('#prediction').isVisible(), true);
     assert.equal(await page.locator('#explanation').isVisible(), true);
     assert.equal(await page.locator('#diagram').isVisible(), true);
+    assert.equal(await page.locator('#comparison').isVisible(), true, 'shared progression must preserve comparison printing');
     await page.evaluate(() => window.dispatchEvent(new Event('afterprint')));
     await page.emulateMedia({ media: 'screen' });
     assert.equal((await state()).step, 1);
