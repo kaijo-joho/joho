@@ -2,19 +2,15 @@
 (() => {
   'use strict';
 
-  const GROUP_SELECTOR = '[data-network-reveal-group]';
-  const REVEAL_SELECTOR = '[data-network-reveal]';
   const TRANSMISSION_SELECTOR = '[data-network-transmission]';
   const PROTOCOL_SELECTOR = '[data-network-protocol]';
   const LAYER_JOURNEY_SELECTOR = '[data-network-layer-journey]';
-  const REVIEW_TERMS_SELECTOR = '[data-network-review-terms]';
   const INTERFACE_FLOW_SELECTOR = '[data-network-interface-flow]';
   const MEDIUM_DEMO_SELECTOR = '[data-network-medium-demo]';
   const SWITCH_DEMO_SELECTOR = '[data-network-switch-demo]';
   const STEP_DEMO_SELECTOR = '[data-network-step-demo]';
   const QUIZ_SELECTOR = '[data-network-quiz]';
   const CONTENT_RESIZE_EVENT = 'joho:lesson-content-resize';
-  const REVEAL_CHANGE_EVENT = 'joho:network-reveal-change';
 
   const PROTOCOL_VISUAL_DESCRIPTIONS = {
     physical: 'ケーブルのコネクタと無線の電波',
@@ -262,117 +258,8 @@
     'packet-reassembly': (mode, step) => mode === 'packet' && step === 4
   };
 
-  function revealNumber(button, fallbackIndex) {
-    return button.querySelector('.nw-reveal__number')?.textContent?.trim() || String(fallbackIndex + 1);
-  }
-
-  function answerText(button) {
-    return button.querySelector('.nw-reveal__answer')?.textContent?.trim() || '';
-  }
-
   function notifyContentResize() {
     document.dispatchEvent(new CustomEvent(CONTENT_RESIZE_EVENT));
-  }
-
-  class NetworkRevealGroup {
-    constructor(group) {
-      if (!(group instanceof HTMLElement)) throw new TypeError('穴埋めのグループが必要です。');
-      if (group.__networkRevealGroup) return group.__networkRevealGroup;
-
-      this.group = group;
-      this.buttons = Array.from(group.querySelectorAll(REVEAL_SELECTOR));
-      this.toolbar = group.querySelector('[data-network-reveal-toolbar]');
-      this.progress = this.toolbar?.querySelector('[data-network-reveal-progress]') || null;
-      this.allButton = this.toolbar?.querySelector('[data-network-reveal-all]') || null;
-      this.resetButton = this.toolbar?.querySelector('[data-network-reveal-reset]') || null;
-
-      if (!this.buttons.length) throw new Error('穴埋めボタンが見つかりません。');
-
-      this.prepare();
-      this.bind();
-      this.updateControls();
-      group.__networkRevealGroup = this;
-    }
-
-    prepare() {
-      this.buttons.forEach((button, index) => {
-        const prompt = button.querySelector('.nw-reveal__prompt');
-        const answer = button.querySelector('.nw-reveal__answer');
-        const number = revealNumber(button, index);
-
-        button.type = 'button';
-        button.dataset.networkRevealReady = 'true';
-        button.setAttribute('aria-pressed', 'false');
-        button.setAttribute('aria-label', `空欄${number}の答えを表示`);
-        button.classList.remove('is-revealed');
-        if (prompt) prompt.hidden = false;
-        if (answer) answer.hidden = true;
-      });
-
-      if (this.toolbar) this.toolbar.hidden = false;
-    }
-
-    bind() {
-      this.buttons.forEach((button, index) => {
-        button.addEventListener('click', () => this.toggle(button, index));
-        button.addEventListener('keydown', event => {
-          if (event.key !== 'Enter' && event.key !== ' ') return;
-          event.preventDefault();
-          if (!event.repeat) this.toggle(button, index);
-        });
-      });
-
-      this.allButton?.addEventListener('click', () => {
-        this.buttons.forEach((button, index) => this.setRevealed(button, index, true));
-        this.updateControls();
-        this.emitChange('all');
-        notifyContentResize();
-      });
-
-      this.resetButton?.addEventListener('click', () => {
-        this.buttons.forEach((button, index) => this.setRevealed(button, index, false));
-        this.updateControls();
-        this.emitChange('reset');
-        notifyContentResize();
-      });
-    }
-
-    setRevealed(button, index, revealed) {
-      const prompt = button.querySelector('.nw-reveal__prompt');
-      const answer = button.querySelector('.nw-reveal__answer');
-      const number = revealNumber(button, index);
-      const answerLabel = answerText(button);
-
-      button.classList.toggle('is-revealed', revealed);
-      button.setAttribute('aria-pressed', String(revealed));
-      button.setAttribute(
-        'aria-label',
-        revealed ? `空欄${number}の答え：${answerLabel}。非表示に戻す` : `空欄${number}の答えを表示`
-      );
-      if (prompt) prompt.hidden = revealed;
-      if (answer) answer.hidden = !revealed;
-    }
-
-    toggle(button, index) {
-      const revealed = !button.classList.contains('is-revealed');
-      this.setRevealed(button, index, revealed);
-      this.updateControls();
-      this.emitChange(revealed ? 'reveal' : 'hide', button);
-      notifyContentResize();
-    }
-
-    emitChange(action, button = null) {
-      this.group.dispatchEvent(new CustomEvent(REVEAL_CHANGE_EVENT, {
-        detail: { action, button }
-      }));
-    }
-
-    updateControls() {
-      const revealedCount = this.buttons.filter(button => button.classList.contains('is-revealed')).length;
-      if (this.progress) this.progress.textContent = `${revealedCount} / ${this.buttons.length}`;
-      if (this.allButton) this.allButton.disabled = revealedCount === this.buttons.length;
-      if (this.resetButton) this.resetButton.disabled = revealedCount === 0;
-    }
   }
 
   class NetworkProtocol {
@@ -381,8 +268,6 @@
       if (root.__networkProtocol) return root.__networkProtocol;
 
       this.root = root;
-      this.group = root.closest(GROUP_SELECTOR);
-      if (!this.group) throw new Error('プロトコルの穴埋めグループが見つかりません。');
 
       this.roleButtons = Array.from(root.querySelectorAll('[data-protocol-role]'));
       this.visuals = new Map(
@@ -403,32 +288,16 @@
       }
 
       this.prepare();
-      this.group.addEventListener(REVEAL_CHANGE_EVENT, event => this.handleRevealChange(event));
+      this.roleButtons.forEach(button => button.addEventListener('click', () => {
+        this.currentKey = button.dataset.protocolKey;
+        this.render(this.currentKey, button.dataset.protocolRole);
+      }));
       root.__networkProtocol = this;
     }
 
     prepare() {
       this.root.dataset.networkProtocolReady = 'true';
       this.render('intro');
-    }
-
-    handleRevealChange(event) {
-      const action = event.detail?.action;
-      const button = event.detail?.button;
-      const key = button?.dataset.protocolKey;
-      const role = button?.dataset.protocolRole;
-
-      if (action === 'reset') {
-        this.currentKey = 'intro';
-      } else if (action === 'all') {
-        this.currentKey = 'complete';
-      } else if (action === 'hide') {
-        if (this.currentKey === key || this.currentKey === 'complete') this.currentKey = 'intro';
-      } else if (key && this.details.has(key)) {
-        this.currentKey = key;
-      }
-
-      this.render(this.currentKey, action === 'reveal' ? role : null);
     }
 
     render(detailKey, animatedRole = null) {
@@ -449,15 +318,17 @@
       });
 
       this.roleButtons.forEach(button => {
-        button.classList.toggle('is-protocol-current', button.dataset.protocolKey === detailKey);
+        const current = button.dataset.protocolKey === detailKey;
+        button.classList.toggle('is-protocol-current', current);
+        button.setAttribute('aria-pressed', String(current));
       });
 
       this.details.forEach((detail, key) => {
-        detail.hidden = key !== detailKey;
+        detail.hidden = false;
+        detail.classList.toggle('is-source-current', key === detailKey);
       });
 
-      const allRolesRevealed = this.roleButtons.every(button => button.classList.contains('is-revealed'));
-      if (this.summary) this.summary.hidden = !allRolesRevealed;
+      if (this.summary) this.summary.hidden = false;
       this.updateDescription(revealedRoles);
     }
 
@@ -470,6 +341,42 @@
       this.description.textContent = visibleDescriptions.length
         ? `端末Aと端末Bを結ぶ通信に、${visibleDescriptions.join('、')}が示されています。`
         : '端末Aと端末Bがネットワークでつながっています。番号を選ぶと、通信を支える約束が図に加わります。';
+    }
+  }
+
+  // Hide future illustrations without reflowing the source table or diagram.
+  function revealSequence(root, step) {
+    if (!root?.hasAttribute('data-network-sequence')) return;
+    root.classList.add('is-sequence-ready');
+    root.querySelectorAll('[data-reveal-from]').forEach(element => {
+      const pending = Number(element.dataset.revealFrom) > step;
+      if (!('sequenceAria' in element.dataset)) {
+        element.dataset.sequenceAria = element.getAttribute('aria-hidden') || '';
+      }
+      element.classList.toggle('is-sequence-pending', pending);
+      element.toggleAttribute('inert', pending);
+      if (pending || element.dataset.sequenceAria === 'true') element.setAttribute('aria-hidden', 'true');
+      else element.removeAttribute('aria-hidden');
+    });
+  }
+
+  // Reference diagrams retain their rows and columns at every step.
+  function highlightSourceStage(root, step) {
+    root.querySelectorAll('[data-network-stage]').forEach(cell => {
+      const current = cell.dataset.networkStage.split(/\s+/).includes(String(step));
+      cell.classList.toggle('is-source-current', current);
+      if (current) cell.setAttribute('aria-current', 'step');
+      else cell.removeAttribute('aria-current');
+    });
+    const cell = root.querySelector('.nw-source-scroll .is-source-current');
+    const scroller = cell?.closest('.x-scroll, .nw-source-scroll');
+    if (scroller && scroller.clientWidth && scroller.scrollWidth > scroller.clientWidth) {
+      const frame = scroller.getBoundingClientRect();
+      const target = cell.getBoundingClientRect();
+      if (target.left < frame.left || target.right > frame.right) {
+        const inset = Math.max(0, (frame.width - target.width) / 2);
+        scroller.scrollLeft += target.left - frame.left - inset;
+      }
     }
   }
 
@@ -488,6 +395,7 @@
       this.previousButton = root.querySelector('[data-layer-journey-prev]');
       this.nextButton = root.querySelector('[data-layer-journey-next]');
       this.resetButton = root.querySelector('[data-layer-journey-reset]');
+      this.allButton = root.querySelector('[data-network-show-all]');
       this.stepIndex = root.querySelector('[data-layer-journey-index]');
       this.layerChoices = Array.from(root.querySelectorAll('[data-layer-choice]'));
       this.routeNodes = Array.from(root.querySelectorAll('[data-layer-route-node]'));
@@ -514,6 +422,7 @@
     }
 
     bind() {
+      this.allButton?.addEventListener('click', () => this.setStep(LAYER_JOURNEY_STEPS.length - 1));
       this.previousButton?.addEventListener('click', () => this.setStep(this.step - 1));
       this.nextButton?.addEventListener('click', () => this.setStep(this.step + 1));
       this.resetButton?.addEventListener('click', () => this.setStep(0));
@@ -546,6 +455,8 @@
       const visibleSegments = new Set(step.segments);
 
       this.root.dataset.step = String(this.step);
+      revealSequence(this.root, this.step);
+      highlightSourceStage(this.root, this.step);
       this.root.dataset.phase = step.phase;
       this.layerChoices.forEach(choice => {
         const current = choice.dataset.layerChoice === step.layer;
@@ -592,11 +503,13 @@
       });
 
       this.stepDetails.forEach((detail, index) => {
-        detail.hidden = index !== this.step;
+        detail.hidden = false;
+        detail.classList.toggle('is-source-current', index === this.step);
       });
-      if (this.summary) this.summary.hidden = this.step !== LAYER_JOURNEY_STEPS.length - 1;
+      if (this.summary) this.summary.hidden = false;
       if (this.stepIndex) this.stepIndex.textContent = String(this.step + 1);
       if (this.previousButton) this.previousButton.disabled = this.step === 0;
+      if (this.allButton) this.allButton.disabled = this.step === LAYER_JOURNEY_STEPS.length - 1;
       if (this.nextButton) this.nextButton.disabled = this.step === LAYER_JOURNEY_STEPS.length - 1;
       if (this.resetButton) this.resetButton.disabled = this.step === 0;
       if (this.routeDescription) this.routeDescription.textContent = step.description;
@@ -687,12 +600,13 @@
 
       this.root.dataset.mode = this.mode;
       this.root.dataset.step = String(this.step);
+      highlightSourceStage(this.root, this.step);
       this.modeButtons.forEach(button => {
         button.setAttribute('aria-pressed', String(button.dataset.transmissionMode === this.mode));
       });
       this.definitions.forEach(definition => {
         const active = definition.dataset.transmissionDefinition === this.mode;
-        definition.hidden = !active;
+        definition.hidden = false;
         definition.classList.toggle('is-active', active);
       });
       this.visuals.forEach(visual => {
@@ -912,6 +826,7 @@
 
     render(animate) {
       this.root.dataset.step = String(this.step);
+      highlightSourceStage(this.root, this.step);
       this.stages.forEach((stage, index) => {
         const current = index === this.step;
         stage.classList.toggle('is-current', current);
@@ -1067,6 +982,7 @@
       const activeMovers = new Set(step.movers);
 
       this.root.dataset.step = String(this.step);
+      highlightSourceStage(this.root, this.step);
       this.tableRows.forEach((row, key) => {
         row.toggleAttribute('hidden', !visibleRows.has(key));
         row.classList.toggle('is-current', visibleRows.has(key));
@@ -1088,7 +1004,8 @@
         result.toggleAttribute('hidden', !visibleResults.has(key));
       });
       this.stepDetails.forEach((detail, index) => {
-        detail.hidden = index !== this.step;
+        detail.hidden = false;
+        detail.classList.toggle('is-source-current', index === this.step);
       });
       this.movers.forEach((mover, key) => {
         const visible = activeMovers.has(key);
@@ -1199,6 +1116,7 @@
       this.nextButton = root.querySelector('[data-network-step-next]');
       this.replayButton = root.querySelector('[data-network-step-replay]');
       this.resetButton = root.querySelector('[data-network-step-reset]');
+      this.allButton = root.querySelector('[data-network-show-all]');
       this.stepIndex = root.querySelector('[data-network-step-index]');
       this.stepCount = root.querySelector('[data-network-step-count]');
       this.status = root.querySelector('[data-network-step-status]');
@@ -1214,14 +1132,31 @@
 
       if (!this.details.length) throw new Error('段階ごとの説明が見つかりません。');
 
+      // Reserve the longest title/body at the current width so advancing cannot move the diagram.
+      if (root.hasAttribute('data-network-sequence') && this.status) {
+        this.details.forEach((detail, index) => {
+          const title = document.createElement('strong');
+          const description = document.createElement('span');
+          title.textContent = detail.dataset.stepTitle || `段階${index + 1}`;
+          description.textContent = detail.textContent.trim();
+          [title, description].forEach(item => {
+            item.className = 'nw-status-reserve';
+            item.setAttribute('aria-hidden', 'true');
+            this.status.append(item);
+          });
+        });
+      }
+
       this.bind();
       this.root.classList.add('is-ready');
       if (this.controls) this.controls.hidden = false;
       this.render(false);
       root.__networkStepDemo = this;
+      root.querySelector('.nw-source-physical')?.classList.add('is-packet-tracking-ready');
     }
 
     bind() {
+      this.allButton?.addEventListener('click', () => this.setStep(this.details.length - 1));
       this.previousButton?.addEventListener('click', () => this.setStep(this.step - 1));
       this.nextButton?.addEventListener('click', () => this.setStep(this.step + 1));
       this.replayButton?.addEventListener('click', () => this.play());
@@ -1268,12 +1203,14 @@
     render(animate) {
       this.cancelAnimation();
       this.root.dataset.step = String(this.step);
+      revealSequence(this.root, this.step);
+      highlightSourceStage(this.root, this.step);
       this.visuals.forEach(visual => {
         visual.toggleAttribute('hidden', !this.stepsFor(visual).includes(this.step));
       });
       this.details.forEach((detail, index) => {
         const current = index === this.step;
-        detail.hidden = !current;
+        detail.hidden = false;
         detail.classList.toggle('is-current', current);
         if (current) detail.setAttribute('aria-current', 'step');
         else detail.removeAttribute('aria-current');
@@ -1285,6 +1222,7 @@
       if (this.stepIndex) this.stepIndex.textContent = String(this.step + 1);
       if (this.stepCount) this.stepCount.textContent = String(this.details.length);
       if (this.previousButton) this.previousButton.disabled = this.step === 0;
+      if (this.allButton) this.allButton.disabled = this.step === this.details.length - 1;
       if (this.nextButton) this.nextButton.disabled = this.step === this.details.length - 1;
       if (this.resetButton) this.resetButton.disabled = this.step === 0;
 
@@ -1339,6 +1277,13 @@
       if (!path || !Number.isFinite(length)) return;
       const point = path.getPointAtLength(length * Math.min(1, Math.max(0, progress)));
       mover.setAttribute('transform', `translate(${point.x} ${point.y})`);
+      const direction = mover.querySelector('[data-mover-direction]');
+      if (direction) {
+        const before = path.getPointAtLength(Math.max(0, length * progress - 1));
+        const after = path.getPointAtLength(Math.min(length, length * progress + 1));
+        const angle = Math.atan2(after.y - before.y, after.x - before.x) * 180 / Math.PI;
+        direction.setAttribute('transform', `rotate(${angle})`);
+      }
     }
 
     cancelAnimation() {
@@ -1417,97 +1362,100 @@
     }
   }
 
-  class NetworkReviewTerms {
+  // Keep the original payload aligned while headers are added or removed.
+  // Measure the models themselves, so font changes and printing preserve the route.
+  class NetworkPayloadMap {
     constructor(root) {
-      if (!(root instanceof HTMLElement)) throw new TypeError('重要語句のまとまりが必要です。');
-      if (root.__networkReviewTerms) return root.__networkReviewTerms;
-
       this.root = root;
-      this.controls = root.querySelector('[data-review-term-controls]');
-      this.openAllButton = root.querySelector('[data-review-terms-open]');
-      this.closeAllButton = root.querySelector('[data-review-terms-close]');
-      this.entries = Array.from(root.querySelectorAll('[data-review-term]'));
-      this.pendingScroll = null;
-
-      if (!this.entries.length) throw new Error('重要語句が見つかりません。');
-
-      this.prepare();
-      this.bind();
-      this.updateControls();
-      root.__networkReviewTerms = this;
+      this.svg = root.querySelector('.nw-payload-routes');
+      this.edges = this.svg.querySelector('[data-payload-edges]');
+      this.pending = 0;
+      this.schedule = () => {
+        cancelAnimationFrame(this.pending);
+        this.pending = requestAnimationFrame(() => this.draw());
+      };
+      new ResizeObserver(this.schedule).observe(root);
+      document.addEventListener(CONTENT_RESIZE_EVENT, this.schedule);
+      window.addEventListener('resize', this.schedule);
+      window.addEventListener('beforeprint', () => this.draw());
+      window.matchMedia('print').addEventListener('change', this.schedule);
+      document.fonts?.ready.then(this.schedule);
+      this.schedule();
     }
 
-    prepare() {
-      if (this.controls) this.controls.hidden = false;
-      this.root.dataset.networkReviewTermsReady = 'true';
-    }
-
-    bind() {
-      this.entries.forEach(entry => {
-        const summary = entry.querySelector('summary');
-        summary?.addEventListener('pointerdown', () => this.rememberScrollPosition());
-        summary?.addEventListener('keydown', event => {
-          if (event.key === 'Enter' || event.key === ' ') this.rememberScrollPosition();
-        });
-        entry.addEventListener('toggle', () => {
-          this.updateControls();
-          this.restoreScrollPosition();
-        });
-      });
-
-      this.openAllButton?.addEventListener('click', () => this.setAll(true));
-
-      this.closeAllButton?.addEventListener('click', () => this.setAll(false));
-    }
-
-    rememberScrollPosition() {
-      const slide = this.root.closest('.lesson-slide');
-      if (!slide) return;
-      this.pendingScroll = { slide, scrollTop: slide.scrollTop };
-    }
-
-    restoreScrollPosition() {
-      if (!this.pendingScroll) return;
-      const { slide, scrollTop } = this.pendingScroll;
-      this.pendingScroll = null;
-      slide.scrollTop = scrollTop;
-      requestAnimationFrame(() => {
-        slide.scrollTop = scrollTop;
-        requestAnimationFrame(() => {
-          slide.scrollTop = scrollTop;
-        });
-      });
-    }
-
-    setAll(open) {
-      const slide = this.root.closest('.lesson-slide');
-      const scrollTop = slide?.scrollTop;
-      this.entries.forEach(entry => {
-        entry.open = open;
-      });
-      this.updateControls();
-      if (!slide || typeof scrollTop !== 'number') return;
-      slide.scrollTop = scrollTop;
-      requestAnimationFrame(() => {
-        slide.scrollTop = scrollTop;
-      });
-    }
-
-    updateControls() {
-      const expandedCount = this.entries.filter(entry => entry.open).length;
-      if (this.openAllButton) this.openAllButton.disabled = expandedCount === this.entries.length;
-      if (this.closeAllButton) this.closeAllButton.disabled = expandedCount === 0;
+    draw() {
+      const area = this.root.getBoundingClientRect();
+      if (!area.width || !area.height) return;
+      const box = element => {
+        const b = element.getBoundingClientRect();
+        return { left:b.left-area.left, right:b.right-area.left, top:b.top-area.top,
+          bottom:b.bottom-area.top, cx:(b.left+b.right)/2-area.left, cy:(b.top+b.bottom)/2-area.top };
+      };
+      const fontSize = Number.parseFloat(getComputedStyle(this.root.querySelector('table')).fontSize);
+      const gap = fontSize * .3;
+      const paths = [];
+      const add = (kind, from, to, d, revealFrom) => {
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.dataset.payloadRoute = kind;
+        path.dataset.revealFrom = String(revealFrom);
+        path.dataset.routeFrom = from;
+        path.dataset.routeTo = to;
+        path.setAttribute('d', d);
+        path.setAttribute('marker-end', 'url(#nw-payload-arrow)');
+        paths.push(path);
+      };
+      for (const column of ['PC1-send','R1-receive','R1-send','R2-receive','R2-send','PC2-receive']) {
+        const models = [...this.root.querySelectorAll(`[data-route-column="${column}"] .nw-packet-payload`)];
+        for (let i=0; i<models.length-1; i++) {
+          const upper=box(models[i]), lower=box(models[i+1]);
+          const down=column.endsWith('-send');
+          const stages={'PC1-send':[1,2],'R1-receive':[3],'R1-send':[4],'R2-receive':[5],'R2-send':[6],'PC2-receive':[8,8]};
+          add('vertical', column, column, down
+            ? `M${upper.cx} ${upper.bottom+gap}L${lower.cx} ${lower.top-gap}`
+            : `M${lower.cx} ${lower.top-gap}L${upper.cx} ${upper.bottom+gap}`, stages[column][i]);
+        }
+      }
+      for (const router of ['R1','R2']) {
+        const from=box(this.root.querySelector(`[data-route-column="${router}-receive"] [data-packet-kind="ip"] .nw-packet-header--ip`));
+        const to=box(this.root.querySelector(`[data-route-column="${router}-send"] [data-packet-kind="ip"] .nw-packet-payload`));
+        add('horizontal', `${router}-receive`, `${router}-send`, `M${from.right+gap} ${from.cy}L${to.left-gap} ${to.cy}`, router === 'R1' ? 4 : 6);
+      }
+      const signal = box(this.root.querySelector('.nw-routing-links'));
+      for (const [fromColumn,toColumn] of [['PC1-send','R1-receive'],['R1-send','R2-receive'],['R2-send','PC2-receive']]) {
+        const from=box(this.root.querySelector(`[data-route-column="${fromColumn}"] [data-packet-kind="frame"] .nw-packet-payload`));
+        const to=box(this.root.querySelector(`[data-route-column="${toColumn}"] [data-packet-kind="frame"] .nw-packet-payload`));
+        const y=signal.top+(signal.bottom-signal.top)*53/98;
+        add('signal', fromColumn, toColumn, `M${from.cx} ${from.bottom+gap}V${y}H${to.cx}V${to.bottom+gap}`, {'PC1-send':2,'R1-send':4,'R2-send':6}[fromColumn]);
+      }
+      this.svg.setAttribute('viewBox', `0 0 ${area.width} ${area.height}`);
+      this.svg.style.strokeWidth = `${Math.max(2,fontSize*.2)}px`;
+      this.edges.replaceChildren(...paths);
+      this.root.classList.add('is-payload-map-ready');
+      const sequence = this.root.closest('[data-network-sequence]');
+      if (sequence) revealSequence(sequence, Number(sequence.dataset.step));
     }
   }
 
-  function initialize() {
-    document.querySelectorAll(GROUP_SELECTOR).forEach(group => {
-      try {
-        new NetworkRevealGroup(group);
-      } catch (error) {
-        console.warn('ネットワーク教材の穴埋めを初期化できませんでした。', error);
-      }
+  function positionHeaderTips() {
+    document.querySelectorAll('.nw-header-term[popovertarget]').forEach(button => {
+      const tip = document.getElementById(button.getAttribute('popovertarget'));
+      const place = () => {
+        if (!tip?.matches(':popover-open')) return;
+        const b=button.getBoundingClientRect(), t=tip.getBoundingClientRect();
+        const left=Math.max(12,Math.min(b.left,innerWidth-t.width-12));
+        const top=b.bottom+t.height+20<innerHeight ? b.bottom+8 : Math.max(12,b.top-t.height-8);
+        tip.style.left=`${left}px`;
+        tip.style.top=`${top}px`;
+      };
+      tip?.addEventListener('toggle', place);
+      window.addEventListener('resize', place);
+      document.addEventListener('scroll', place, true);
     });
+  }
+
+  function initialize() {
+    document.querySelectorAll('[data-payload-map]').forEach(root => new NetworkPayloadMap(root));
+    positionHeaderTips();
 
     document.querySelectorAll(PROTOCOL_SELECTOR).forEach(root => {
       try {
@@ -1573,13 +1521,6 @@
       }
     });
 
-    document.querySelectorAll(REVIEW_TERMS_SELECTOR).forEach(root => {
-      try {
-        new NetworkReviewTerms(root);
-      } catch (error) {
-        console.warn('重要語句のまとめを初期化できませんでした。', error);
-      }
-    });
   }
 
   if (document.readyState === 'loading') {

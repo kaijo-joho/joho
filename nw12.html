@@ -13,13 +13,14 @@
   <link rel="stylesheet" href="./css/css.css">
   <link rel="stylesheet" href="./css/lesson-slide-deck.css">
   <link rel="stylesheet" href="./css/network-mechanisms.css">
+  <link rel="stylesheet" href="./css/network-source-diagrams.css">
   <script defer src="./js/main.js"></script>
   <script defer src="./js/network-lessons.js"></script>
   <script defer src="./js/lesson-slide-deck.js"></script>
 </head>
-<body data-lesson-slide-deck>
+<body class="nw-source-aligned" data-lesson-slide-deck>
   <section data-lesson-slide data-lesson-slide-title="ネットワークインターフェース層の役割" data-lesson-slide-layout="workspace">
-    <article class="nw-slide nw-slide--interface-intro" data-network-reveal-group>
+    <article class="nw-slide nw-slide--interface-intro" data-network-term-group>
       <h2 id="headline_1">(1) ネットワークインターフェース層の役割</h2>
       <p class="nw-lead">前のページでは、通信を4つの階層に分けて考えました。ここでは、一番下のネットワークインターフェース層が、データを実際の信号として送り出すまでを見ていきます。</p>
 
@@ -28,11 +29,7 @@
         <p>しくみを説明しやすくするために「物理層」「データリンク層」「ヘッダ」「ペイロード」などの専門用語を注釈内で使います。いずれも学習範囲外なので、名称や構造の暗記は不要です。</p>
       </aside>
 
-      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
-        <output data-network-reveal-progress aria-live="polite">0 / 1</output>
-        <button type="button" data-network-reveal-all>すべて表示</button>
-        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
-      </div>
+
 
       <figure class="nw-interface-flow" data-network-interface-flow data-step="0">
         <figcaption>
@@ -57,9 +54,9 @@
             <b aria-hidden="true">2</b>
             <strong>届ける準備</strong>
             <span>
-              <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示">
-                <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">宛先などの情報</span>
-              </button>
+              <span class="nw-reveal is-revealed nw-reveal--inline" data-network-term>
+                <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__answer">宛先などの情報</span>
+              </span>
               を付け加える
             </span>
           </li>
@@ -94,15 +91,11 @@
   </section>
 
   <section data-lesson-slide data-lesson-slide-title="有線でデータを送る" data-lesson-slide-layout="workspace">
-    <article class="nw-slide nw-slide--wired" data-network-reveal-group>
+    <article class="nw-slide nw-slide--wired" data-network-term-group>
       <h2 id="headline_2">(2) 有線でデータを送る</h2>
       <p class="nw-lead">データを信号へ変えたら、相手まで運ぶ媒体が必要です。有線LANでよく使う2種類のケーブルを比べます。</p>
 
-      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
-        <output data-network-reveal-progress aria-live="polite">0 / 2</output>
-        <button type="button" data-network-reveal-all>すべて表示</button>
-        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
-      </div>
+
 
       <figure class="nw-medium-figure" data-network-medium-demo>
         <figcaption>
@@ -113,9 +106,9 @@
         <div class="nw-cable-comparison">
           <section class="nw-cable nw-cable--copper">
             <h3>
-              <button type="button" class="nw-reveal nw-reveal--heading" data-network-reveal aria-label="空欄1の答えを表示">
-                <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">ツイストペアケーブル</span>
-              </button>
+              <span class="nw-reveal is-revealed nw-reveal--heading" data-network-term>
+                <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__answer">ツイストペアケーブル</span>
+              </span>
             </h3>
             <svg viewBox="0 0 420 180" role="img" aria-labelledby="nw-copper-title nw-copper-desc">
               <title id="nw-copper-title">ツイストペアケーブルの模式図</title>
@@ -146,15 +139,16 @@
 
           <section class="nw-cable nw-cable--fiber">
             <h3>
-              <button type="button" class="nw-reveal nw-reveal--heading" data-network-reveal aria-label="空欄2の答えを表示">
-                <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">光ファイバーケーブル</span>
-              </button>
+              <span class="nw-reveal is-revealed nw-reveal--heading" data-network-term>
+                <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__answer">光ファイバーケーブル</span>
+              </span>
             </h3>
             <svg viewBox="0 0 420 180" role="img" aria-labelledby="nw-fiber-title nw-fiber-desc">
               <title id="nw-fiber-title">光ファイバーケーブルの模式図</title>
-              <desc id="nw-fiber-desc">ガラス製の中心部を光が全反射しながら進む様子を示します。</desc>
+              <desc id="nw-fiber-desc">中心のコアと周囲のクラッドの境界で光が全反射しながら進む模式図です。</desc>
               <rect class="nw-fiber__cladding" x="18" y="25" width="384" height="130"/>
               <rect class="nw-fiber__core" x="30" y="55" width="360" height="70"/>
+              <text class="nw-source-fiber-label" x="210" y="47">クラッド（周囲）</text><text class="nw-source-fiber-label" x="210" y="147">コア（中心）</text>
               <path class="nw-fiber__light-path" d="M46 90L102 62 158 118 214 62 270 118 326 62 382 90"/>
               <circle class="nw-cable__signal nw-cable__signal--light" data-medium-moving-signal="light" cx="46" cy="90" r="10"/>
             </svg>
@@ -169,8 +163,11 @@
             <tr><th scope="row">信号</th><td>電気</td><td>光</td></tr>
             <tr><th scope="row">主な素材</th><td>銅</td><td>ガラス</td></tr>
             <tr><th scope="row">伝送距離</th><td>比較的短い</td><td>長い</td></tr>
+            <tr><th scope="row">信号の減衰</th><td>距離が伸びると大きい</td><td>小さく、長距離に向く</td></tr>
             <tr><th scope="row">ノイズ</th><td>影響を受けやすい</td><td>影響を受けにくい</td></tr>
             <tr><th scope="row">取り回し</th><td>しやすい</td><td>慎重な扱いが必要</td></tr>
+            <tr><th scope="row">速度・容量</th><td>規格と距離による</td><td>大容量の幹線に向く</td></tr>
+            <tr><th scope="row">導入コスト</th><td>端末のLAN配線では抑えやすい</td><td>機器・敷設条件による</td></tr>
             <tr><th scope="row">主な用途</th><td>LAN</td><td>WAN・幹線</td></tr>
           </tbody>
         </table>
@@ -180,15 +177,11 @@
   </section>
 
   <section data-lesson-slide data-lesson-slide-title="無線でデータを送る" data-lesson-slide-layout="workspace">
-    <article class="nw-slide nw-slide--wireless" data-network-reveal-group>
+    <article class="nw-slide nw-slide--wireless" data-network-term-group>
       <h2 id="headline_3">(3) 無線でデータを送る</h2>
       <p class="nw-lead">ケーブルを使わない場合は、データを電波の変化として送ります。周波数帯によって、届き方や電波干渉の起こりやすさが異なります。</p>
 
-      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
-        <output data-network-reveal-progress aria-live="polite">0 / 2</output>
-        <button type="button" data-network-reveal-all>すべて表示</button>
-        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
-      </div>
+
 
       <div class="nw-wireless-layout">
         <figure class="nw-wireless-figure">
@@ -223,14 +216,14 @@
 
         <div class="nw-wireless-explanation">
           <p>異なるメーカーの無線LAN機器が接続できることを認定する枠組みを
-            <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示">
-              <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">Wi-Fi</span>
-            </button>
+            <span class="nw-reveal is-revealed nw-reveal--inline" data-network-term>
+              <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__answer">Wi-Fi</span>
+            </span>
             といいます。</p>
           <p>同じ周波数帯を分けて使う、それぞれの範囲を
-            <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄2の答えを表示">
-              <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">チャネル</span>
-            </button>
+            <span class="nw-reveal is-revealed nw-reveal--inline" data-network-term>
+              <span class="nw-reveal__number" aria-hidden="true">2</span><span class="nw-reveal__answer">チャネル</span>
+            </span>
             といいます。</p>
 
           <div class="nw-band-switch" data-lesson-view-group data-lesson-default-view="2g">
@@ -250,8 +243,8 @@
         </div>
       </div>
 
-      <details class="nw-support-details">
-        <summary>主な無線LAN規格</summary>
+      <div class="nw-support-details">
+        <h4 class="nw-static-heading">主な無線LAN規格</h4>
         <div class="nw-support-details__scroll" tabindex="0" aria-label="無線LAN規格表。狭い画面では横方向にスクロールできます。">
           <table>
             <thead><tr><th scope="col">規格</th><th scope="col">策定年</th><th scope="col">最大速度</th><th scope="col">周波数帯</th><th scope="col">チャネル幅</th></tr></thead>
@@ -263,26 +256,22 @@
             </tbody>
           </table>
         </div>
-      </details>
+      </div>
       <p class="nw-wireless-note"><strong>無線LANとWi-Fi：</strong>現在はほぼ同じ意味で使われますが、Wi-Fiは本来、機器どうしが接続できることを認定する枠組みです。</p>
     </article>
   </section>
 
   <section data-lesson-slide data-lesson-slide-title="LAN内で相手を区別するしくみ" data-lesson-slide-layout="workspace">
-    <article class="nw-slide nw-slide--mac" data-network-reveal-group>
+    <article class="nw-slide nw-slide--mac" data-network-term-group>
       <h2 id="headline_4">(4) LAN内で相手を区別するしくみ</h2>
       <p class="nw-lead">信号を送るだけでは、同じLANにいるどの端末へ届けるか決まりません。そこで、端末ごとに割り振られた識別情報を使います。</p>
 
-      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
-        <output data-network-reveal-progress aria-live="polite">0 / 1</output>
-        <button type="button" data-network-reveal-all>すべて表示</button>
-        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
-      </div>
+
 
       <p class="nw-mac-definition">LANへ接続した端末を区別する識別情報を
-        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示">
-          <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">MACアドレス</span>
-        </button>
+        <span class="nw-reveal is-revealed nw-reveal--inline" data-network-term>
+          <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__answer">MACアドレス</span>
+        </span>
         といいます。</p>
 
       <figure class="nw-mac-figure">
@@ -322,20 +311,16 @@
   </section>
 
   <section data-lesson-slide data-lesson-slide-title="スイッチングハブの転送" data-lesson-slide-layout="workspace">
-    <article class="nw-slide nw-slide--switch" data-network-reveal-group>
+    <article class="nw-slide nw-slide--switch" data-network-term-group>
       <h2 id="headline_5">(5) スイッチングハブの転送</h2>
       <p class="nw-lead">MACアドレスを使うと、スイッチングハブはデータを送るポートを選べます。最初は相手の場所が分からないため、通信を受け取りながら接続先を学習します。</p>
 
-      <div class="nw-reveal-toolbar" data-network-reveal-toolbar hidden>
-        <output data-network-reveal-progress aria-live="polite">0 / 1</output>
-        <button type="button" data-network-reveal-all>すべて表示</button>
-        <button type="button" data-network-reveal-reset>穴埋めに戻す</button>
-      </div>
+
 
       <p class="nw-switch-definition">ポートと送信元MACアドレスの対応を
-        <button type="button" class="nw-reveal nw-reveal--inline" data-network-reveal aria-label="空欄1の答えを表示">
-          <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__prompt" hidden>クリック</span><span class="nw-reveal__answer">MACアドレステーブル</span>
-        </button>
+        <span class="nw-reveal is-revealed nw-reveal--inline" data-network-term>
+          <span class="nw-reveal__number" aria-hidden="true">1</span><span class="nw-reveal__answer">MACアドレステーブル</span>
+        </span>
         に記録します。</p>
 
       <figure class="nw-switch-demo" data-network-switch-demo data-step="0">
@@ -515,49 +500,46 @@
         <section class="nw-review-section" data-network-review-terms aria-labelledby="nw12-review-terms-title">
           <div class="nw-review-section__heading">
             <h3 id="nw12-review-terms-title">重要語句</h3>
-            <div class="nw-review-term-controls" data-review-term-controls role="group" aria-label="重要語句の説明を一括操作" hidden>
-              <button type="button" data-review-terms-open>すべて表示</button>
-              <button type="button" data-review-terms-close>すべて閉じる</button>
-            </div>
+
           </div>
-          <p class="nw-review-term-instruction" id="nw12-review-terms-help">語句をクリックすると、説明が表示されます。</p>
+          <p class="nw-review-term-instruction" id="nw12-review-terms-help">語句と説明を対応させて確認します。</p>
           <div class="nw-review-terms" aria-describedby="nw12-review-terms-help">
-            <details class="nw-review-term" data-review-term>
-              <summary>ネットワークインターフェース層</summary>
+            <div class="nw-review-term" data-review-term>
+              <h4 class="nw-static-heading">ネットワークインターフェース層</h4>
               <div class="nw-review-term__body">データを信号に変え、同じLAN内の相手へ届けるための処理を担当する階層。</div>
-            </details>
-            <details class="nw-review-term" data-review-term>
-              <summary>ツイストペアケーブル</summary>
+            </div>
+            <div class="nw-review-term" data-review-term>
+              <h4 class="nw-static-heading">ツイストペアケーブル</h4>
               <div class="nw-review-term__body">銅線を2本ずつより合わせ、電気信号を送るケーブル。LANで広く使われます。</div>
-            </details>
-            <details class="nw-review-term" data-review-term>
-              <summary>光ファイバーケーブル</summary>
+            </div>
+            <div class="nw-review-term" data-review-term>
+              <h4 class="nw-static-heading">光ファイバーケーブル</h4>
               <div class="nw-review-term__body">ガラスの中へ光を通して信号を送るケーブル。長距離・大容量の通信に向いています。</div>
-            </details>
-            <details class="nw-review-term" data-review-term>
-              <summary>無線LAN</summary>
+            </div>
+            <div class="nw-review-term" data-review-term>
+              <h4 class="nw-static-heading">無線LAN</h4>
               <div class="nw-review-term__body">ケーブルの代わりに電波を使って、端末をLANへ接続する方法。</div>
-            </details>
-            <details class="nw-review-term" data-review-term>
-              <summary>Wi-Fi</summary>
+            </div>
+            <div class="nw-review-term" data-review-term>
+              <h4 class="nw-static-heading">Wi-Fi</h4>
               <div class="nw-review-term__body">異なるメーカーの無線LAN機器が、互いに接続できることを認定する枠組み。</div>
-            </details>
-            <details class="nw-review-term" data-review-term>
-              <summary>チャネル</summary>
+            </div>
+            <div class="nw-review-term" data-review-term>
+              <h4 class="nw-static-heading">チャネル</h4>
               <div class="nw-review-term__body">同じ周波数帯を分けて利用する、それぞれの周波数の範囲。</div>
-            </details>
-            <details class="nw-review-term" data-review-term>
-              <summary>MACアドレス</summary>
+            </div>
+            <div class="nw-review-term" data-review-term>
+              <h4 class="nw-static-heading">MACアドレス</h4>
               <div class="nw-review-term__body">同じLANに接続している端末を区別するための識別情報。</div>
-            </details>
-            <details class="nw-review-term" data-review-term>
-              <summary>MACアドレステーブル</summary>
+            </div>
+            <div class="nw-review-term" data-review-term>
+              <h4 class="nw-static-heading">MACアドレステーブル</h4>
               <div class="nw-review-term__body">スイッチングハブが、ポートと接続先のMACアドレスの対応を記録する表。</div>
-            </details>
-            <details class="nw-review-term" data-review-term>
-              <summary>スイッチングハブ</summary>
+            </div>
+            <div class="nw-review-term" data-review-term>
+              <h4 class="nw-static-heading">スイッチングハブ</h4>
               <div class="nw-review-term__body">接続した端末の場所を学習し、MACアドレスを見てLAN内のデータを転送する装置。</div>
-            </details>
+            </div>
           </div>
         </section>
 

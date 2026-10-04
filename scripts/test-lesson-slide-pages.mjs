@@ -159,21 +159,21 @@ for (const selector of [
 
 const networkPage = pages[pageSpecs.findIndex(({ id }) => id === 'nw11')];
 ok(networkPage.includes('./css/network-mechanisms.css'), 'nw11がネットワーク教材CSSを読み込む');
-ok(networkPage.includes('./js/network-lessons.js'), 'nw11が穴埋めJavaScriptを読み込む');
+ok(networkPage.includes('./js/network-lessons.js'), 'nw11が語句表示JavaScriptを読み込む');
 ok(
   networkPage.indexOf('./js/main.js') < networkPage.indexOf('./js/network-lessons.js')
     && networkPage.indexOf('./js/network-lessons.js') < networkPage.indexOf('./js/lesson-slide-deck.js'),
-  'nw11は共通サイト初期化、穴埋め、スライド基盤の順で読み込む'
+  'nw11は共通サイト初期化、語句表示、スライド基盤の順で読み込む'
 );
 equal(
-  (networkPage.match(/<button\b[^>]*\bdata-network-reveal(?:\s|>)/g) || []).length,
+  (networkPage.match(/<(?:button|span)\b[^>]*\bdata-network-term(?:\s|>)/g) || []).length,
   20,
-  'nw11に元スライドどおり20個の穴埋め'
+  'nw11に元スライドどおり20個の語句表示'
 );
 equal(
-  (networkPage.match(/\bdata-network-reveal-group(?:\s|>)/g) || []).length,
+  (networkPage.match(/\bdata-network-term-group(?:\s|>)/g) || []).length,
   4,
-  'nw11の各スライドに穴埋めグループ'
+  'nw11の各スライドに語句表示グループ'
 );
 ok(!/class="nw-reveal__answer"\s+hidden/.test(networkPage), 'JavaScript無効時もnw11の答えを読める');
 const protocolSlide = networkPage.slice(
@@ -181,13 +181,13 @@ const protocolSlide = networkPage.slice(
   networkPage.indexOf('data-lesson-slide-title="プロトコルの階層構造"')
 );
 ok(
-  protocolSlide.indexOf('data-network-reveal-toolbar') < protocolSlide.indexOf('aria-label="空欄1の答えを表示"'),
-  'nw11のプロトコル一括操作は空欄1より前に表示'
+  !protocolSlide.includes('data-network-reveal-toolbar') && protocolSlide.includes('data-protocol-role'),
+  'nw11のプロトコルは語句を隠さず役割を強調する'
 );
 ok(protocolSlide.includes('data-lesson-slide-layout="workspace"'), 'nw11のプロトコルを操作教材向けレイアウトで表示');
 equal((protocolSlide.match(/\bdata-network-protocol(?:\s|>)/g) || []).length, 1, 'nw11のプロトコルは1つの通信図');
 equal((protocolSlide.match(/\bdata-protocol-role=/g) || []).length, 5, 'nw11のプロトコルに5つの役割選択');
-equal((protocolSlide.match(/\bdata-protocol-visual=/g) || []).length, 5, 'nw11のプロトコルに5つの累積表示');
+equal((protocolSlide.match(/\bdata-protocol-visual=/g) || []).length, 5, 'nw11のプロトコルに5つの対応図');
 for (const headerField of ['送信先IP', '送信元IP', '通し番号', '生存期間']) {
   ok(protocolSlide.includes(headerField), `nw11の荷札型ヘッダに${headerField}`);
 }
@@ -199,17 +199,29 @@ const layerSlide = networkPage.slice(
 );
 ok(layerSlide.includes('data-lesson-slide-layout="workspace"'), 'nw11の階層構造を操作教材向けレイアウトで表示');
 equal((layerSlide.match(/\bdata-network-layer-journey(?:\s|>)/g) || []).length, 1, 'nw11の階層構造は1つの連続した通信図');
-equal((layerSlide.match(/\bdata-layer-choice=/g) || []).length, 4, 'nw11の階層構造に4階層の穴埋め選択');
+equal((layerSlide.match(/\bdata-layer-choice=/g) || []).length, 4, 'nw11の階層構造に4階層の名称');
 equal((layerSlide.match(/\bdata-layer-journey-step=/g) || []).length, 9, 'nw11の階層構造に送信から受信までの9段階');
 for (const control of ['data-layer-journey-prev', 'data-layer-journey-next', 'data-layer-journey-reset']) {
   ok(layerSlide.includes(control), `nw11の階層構造に段階操作 ${control}`);
 }
-ok(!layerSlide.includes('nw-diagram-scroll'), 'nw11の階層構造を横スクロールさせない');
-ok(!layerSlide.includes('nw-layer-board'), 'nw11の階層構造に旧三列ボードを残さない');
-ok(
-  layerSlide.includes('d="M36 68H94V20H152V68H210V20H326V68H384V20H442V68H500"'),
-  'nw11の伝送媒体は0/1の二つの高さだけで波形を描く'
-);
+ok(layerSlide.includes('nw-source-layers'), 'nw11は送信・階層・受信を同じ行に対応させる');
+const sourceWaves = [...layerSlide.matchAll(/data-bit-wave="([01]+)" d="([^"]+)"/g)];
+equal(sourceWaves.length, 2, 'nw11に送信側と受信側の波形を残す');
+for (const [, bits, drawing] of sourceWaves) {
+  const segments = [];
+  let x = 0, y = 0;
+  for (const [, command, values] of drawing.matchAll(/([MHV])([\d .-]+)/g)) {
+    const numbers = values.trim().split(/\s+/).map(Number);
+    if (command === 'M') [x, y] = numbers;
+    else if (command === 'V') y = numbers[0];
+    else { segments.push({ width:numbers[0]-x, y }); x = numbers[0]; }
+  }
+  const levels = [...new Set(segments.map(segment => segment.y))].sort((a,b) => a-b);
+  equal(levels.length, 2, '原本の波形は高低の2値');
+  equal(new Set(segments.map(segment => segment.width)).size, 1, '各ビット区間の時間幅をそろえる');
+  equal(segments.map(segment => segment.y === levels[0] ? '1' : '0').join(''), '1001011001010', '波形の各区間が原本13ビットと一致');
+  equal(bits, '1001011001010', '送受信で原本と同じ13ビットを使う');
+}
 for (const connectionText of [
   '端末からインターネットまでの経路と各機器の役割',
   '前のスライドでは、端末からインターネットまでの接続',
@@ -224,12 +236,12 @@ const reviewSlide = networkPage.slice(
 );
 ok(reviewSlide.includes('id="headline_5"'), 'nw11の5枚目に語句とポイントのまとめ');
 equal((reviewSlide.match(/<li><b aria-hidden="true">[1-4]<\/b>/g) || []).length, 4, 'nw11のまとめに4段階の学習内容のつながり');
-equal((reviewSlide.match(/<details\b[^>]*\bdata-review-term(?:\s|>)/g) || []).length, 15, 'nw11のまとめに15個の重要語句開閉項目');
+equal((reviewSlide.match(/<div\b[^>]*\bdata-review-term(?:\s|>)/g) || []).length, 15, 'nw11のまとめに15個の重要語句と説明');
 equal((reviewSlide.match(/class="nw-review-term__body"/g) || []).length, 15, 'nw11のまとめに15個の語句説明');
-ok(reviewSlide.includes('data-network-review-terms'), 'nw11の重要語句を開閉操作のまとまりにする');
-ok(reviewSlide.includes('data-review-terms-open'), 'nw11の重要語句に一括表示操作');
-ok(reviewSlide.includes('data-review-terms-close'), 'nw11の重要語句に一括閉じる操作');
-ok(!/<details\b[^>]*\bdata-review-term[^>]*\bopen(?:\s|>)/.test(reviewSlide), 'nw11の語句説明を最初から展開しない');
+ok(reviewSlide.includes('data-network-review-terms'), 'nw11の重要語句を本文のまとまりにする');
+ok(!reviewSlide.includes('data-review-terms-open'), 'nw11の説明に表示操作が不要');
+ok(!reviewSlide.includes('data-review-terms-close'), 'nw11の説明を隠す操作を除外');
+ok(!/<div\b[^>]*\bdata-review-term[^>]*\bopen(?:\s|>)/.test(reviewSlide), 'nw11の語句説明を静的な本文で表示');
 const reviewPoints = reviewSlide.slice(reviewSlide.indexOf('class="nw-review-points"'), reviewSlide.indexOf('</ul>'));
 equal((reviewPoints.match(/<li>/g) || []).length, 5, 'nw11のまとめに5つの押さえるポイント');
 for (const term of [
@@ -249,10 +261,10 @@ for (const term of [
   'IPアドレス',
   'プロトコルの4階層'
 ]) {
-  ok(reviewSlide.includes(`<summary>${term}</summary>`), `nw11のまとめに独立した重要語句「${term}」`);
+  ok(reviewSlide.includes(`<h4 class="nw-static-heading">${term}</h4>`), `nw11のまとめに独立した重要語句「${term}」`);
 }
 for (const combinedTerm of ['LAN / WAN', 'ルーター / 終端装置', 'パケット / ヘッダ情報']) {
-  ok(!reviewSlide.includes(`<summary>${combinedTerm}</summary>`), `nw11のまとめで「${combinedTerm}」を1項目にまとめない`);
+  ok(!reviewSlide.includes(`<h4 class="nw-static-heading">${combinedTerm}</h4>`), `nw11のまとめで「${combinedTerm}」を1項目にまとめない`);
 }
 for (const device of ['switch', 'router', 'access-point', 'terminal']) {
   equal(
@@ -364,35 +376,24 @@ for (const answer of [
   'インターネット',
   'ネットワークインターフェース'
 ]) {
-  ok(networkPage.includes(`class="nw-reveal__answer">${answer}</span>`), `nw11に穴埋め語句「${answer}」`);
+  ok(networkPage.includes(`class="nw-reveal__answer">${answer}</span>`), `nw11に語句表示語句「${answer}」`);
 }
 
 for (const requirement of [
-  "'[data-network-reveal-group]'",
-  "'[data-network-reveal]'",
   "'[data-network-transmission]'",
   "'[data-network-protocol]'",
   "'[data-network-layer-journey]'",
-  "'[data-network-review-terms]'",
   "'aria-pressed'",
   "'joho:lesson-content-resize'",
-  "'joho:network-reveal-change'",
-  "event.key !== 'Enter'",
-  'data-network-reveal-all',
-  'data-network-reveal-reset',
   'class NetworkProtocol',
   'class NetworkLayerJourney',
   'class NetworkTransmission',
-  'class NetworkReviewTerms',
-  "'[data-review-term]'",
-  'data-review-terms-open',
-  'data-review-terms-close',
   'LAYER_JOURNEY_STEPS',
   'requestAnimationFrame',
   'getPointAtLength',
   "matchMedia?.('(prefers-reduced-motion: reduce)')"
 ]) {
-  ok(networkJs.includes(requirement), `穴埋めJavaScriptに ${requirement}`);
+  ok(networkJs.includes(requirement), `語句表示JavaScriptに ${requirement}`);
 }
 ok(
   /this\.mode = mode;\s+this\.step = 0;\s+this\.render\(false\);/.test(networkJs),
@@ -434,12 +435,13 @@ ok(!networkCss.includes('min-width: 1080px'), 'nw11の階層構造に横スク�
 const layerChoiceColumnRules = [...networkCss.matchAll(/\.nw-layer-choices\s*\{[^}]*grid-template-columns:\s*([^;]+);/g)];
 equal(layerChoiceColumnRules.length, 1, 'nw11の4階層一覧の列指定を画面幅で上書きしない');
 equal(layerChoiceColumnRules[0][1].trim(), 'minmax(0, 1fr)', 'nw11の4階層一覧を常に縦1列で表示');
-const reviewTermsScript = networkJs.slice(
-  networkJs.indexOf('class NetworkReviewTerms'),
-  networkJs.indexOf('function initialize()')
-);
-ok(!reviewTermsScript.includes('notifyContentResize()'), 'nw11の語句開閉でスライドの再計測を要求しない');
-ok(networkCss.includes('overflow-anchor: none'), 'nw11の語句開閉をスクロール位置の基準から外す');
+ok(!networkJs.includes('class NetworkRevealGroup'), '語句を隠すモードを実装しない');
+ok(!networkJs.includes('class NetworkReviewTerms'), '語句説明の開閉モードを実装しない');
+for (const id of ['nw11','nw12','nw13','nw14','nw15','nw21','nw22','nw31']) {
+  const source = await readFile(new URL(`../${id}.html`, import.meta.url), 'utf8');
+  ok(!/<details\b|data-network-reveal(?:\s|>)|data-network-reveal-reset|data-review-terms-close/.test(source), `${id}は語句・補足を常時表示`);
+  ok(!/class="nw-reveal__answer"\s+hidden/.test(source), `${id}はJS無効でも語句を表示`);
+}
 
 const networkInterfacePage = pages[pageSpecs.findIndex(({ id }) => id === 'nw12')];
 ok(networkInterfacePage.includes('./css/network-mechanisms.css'), 'nw12がネットワーク教材CSSを読み込む');
@@ -461,9 +463,9 @@ for (const title of [
   ok(networkInterfacePage.includes(`data-lesson-slide-title="${title}"`), `nw12に「${title}」スライド`);
 }
 equal(
-  (networkInterfacePage.match(/<button\b[^>]*\bdata-network-reveal(?:\s|>)/g) || []).length,
+  (networkInterfacePage.match(/<(?:button|span)\b[^>]*\bdata-network-term(?:\s|>)/g) || []).length,
   7,
-  'nw12に学習範囲の7個の穴埋め'
+  'nw12に学習範囲の7個の語句表示'
 );
 ok(!/class="nw-reveal__answer"\s+hidden/.test(networkInterfacePage), 'JavaScript無効時もnw12の答えを読める');
 
@@ -503,7 +505,7 @@ equal((wirelessSlide.match(/\bdata-lesson-view-panel=/g) || []).length, 2, 'nw12
 ok(wirelessSlide.includes('data-lesson-default-view="2g"'), 'nw12の無線説明は2.4GHz帯から開始');
 ok(!wirelessSlide.includes('nw-wireless-obstacle'), 'nw12のアクセスポイント図に壁を置かない');
 ok(!wirelessSlide.includes('nw-wireless-microwave'), 'nw12のアクセスポイント図に電子レンジを置かない');
-ok(wirelessSlide.includes('<summary>主な無線LAN規格</summary>'), 'nw12の無線LAN規格表は内容を表す見出しを使用');
+ok(wirelessSlide.includes('<h4 class="nw-static-heading">主な無線LAN規格</h4>'), 'nw12の無線LAN規格表は内容を表す見出しを使用');
 for (const answer of ['Wi-Fi', 'チャネル']) {
   ok(wirelessSlide.includes(`class="nw-reveal__answer">${answer}</span>`), `nw12の無線説明に「${answer}」`);
 }
@@ -514,7 +516,7 @@ const macSlide = networkInterfacePage.slice(
   networkInterfacePage.indexOf('data-lesson-slide-title="LAN内で相手を区別するしくみ"'),
   networkInterfacePage.indexOf('data-lesson-slide-title="スイッチングハブの転送"')
 );
-ok(macSlide.includes('class="nw-reveal__answer">MACアドレス</span>'), 'nw12のLAN内識別にMACアドレスの穴埋め');
+ok(macSlide.includes('class="nw-reveal__answer">MACアドレス</span>'), 'nw12のLAN内識別にMACアドレスの語句表示');
 equal((macSlide.match(/class="nw-mac-route__line"/g) || []).length, 2, 'nw12のMACアドレス図はPC1、ハブ、PC2を2本の線で接続');
 for (const field of ['送信先', '送信元', '内容']) {
   ok(macSlide.includes(`<b>${field}</b>`), `nw12のLAN内データ図に「${field}」`);
@@ -532,15 +534,15 @@ equal((switchSlide.match(/\bdata-switch-mobile-mover=/g) || []).length, 5, 'nw12
 for (const control of ['prev', 'replay', 'next', 'reset']) {
   ok(switchSlide.includes(`data-switch-${control}`), `nw12のスイッチングハブ図に${control}操作`);
 }
-ok(switchSlide.includes('class="nw-reveal__answer">MACアドレステーブル</span>'), 'nw12の転送説明にMACアドレステーブルの穴埋め');
+ok(switchSlide.includes('class="nw-reveal__answer">MACアドレステーブル</span>'), 'nw12の転送説明にMACアドレステーブルの語句表示');
 
 const interfaceReviewSlide = networkInterfacePage.slice(
   networkInterfacePage.indexOf('data-lesson-slide-title="語句とポイントのまとめ"'),
   networkInterfacePage.indexOf('data-lesson-slide-title="問題演習"')
 );
-equal((interfaceReviewSlide.match(/<details\b[^>]*\bdata-review-term(?:\s|>)/g) || []).length, 9, 'nw12のまとめに9個の独立した重要語句');
+equal((interfaceReviewSlide.match(/<div\b[^>]*\bdata-review-term(?:\s|>)/g) || []).length, 9, 'nw12のまとめに9個の独立した重要語句');
 equal((interfaceReviewSlide.match(/class="nw-review-term__body"/g) || []).length, 9, 'nw12のまとめに9個の語句説明');
-ok(!/<details\b[^>]*\bdata-review-term[^>]*\bopen(?:\s|>)/.test(interfaceReviewSlide), 'nw12の語句説明を最初から展開しない');
+ok(!/<div\b[^>]*\bdata-review-term[^>]*\bopen(?:\s|>)/.test(interfaceReviewSlide), 'nw12の語句説明を静的な本文で表示');
 for (const term of [
   'ネットワークインターフェース層',
   'ツイストペアケーブル',
@@ -552,10 +554,10 @@ for (const term of [
   'MACアドレステーブル',
   'スイッチングハブ'
 ]) {
-  ok(interfaceReviewSlide.includes(`<summary>${term}</summary>`), `nw12のまとめに独立した重要語句「${term}」`);
+  ok(interfaceReviewSlide.includes(`<h4 class="nw-static-heading">${term}</h4>`), `nw12のまとめに独立した重要語句「${term}」`);
 }
 for (const supplementalTerm of ['物理層', 'データリンク層', 'ヘッダ', 'ペイロード', 'フレーム']) {
-  ok(!interfaceReviewSlide.includes(`<summary>${supplementalTerm}</summary>`), `nw12のまとめは範囲外語句「${supplementalTerm}」を暗記対象にしない`);
+  ok(!interfaceReviewSlide.includes(`<h4 class="nw-static-heading">${supplementalTerm}</h4>`), `nw12のまとめは範囲外語句「${supplementalTerm}」を暗記対象にしない`);
 }
 
 const interfaceQuizSlide = networkInterfacePage.slice(
@@ -626,9 +628,9 @@ for (const title of [
   ok(internetLayerPage.includes(`data-lesson-slide-title="${title}"`), `nw13に「${title}」スライド`);
 }
 equal(
-  (internetLayerPage.match(/<button\b[^>]*\bdata-network-reveal(?:\s|>)/g) || []).length,
+  (internetLayerPage.match(/<(?:button|span)\b[^>]*\bdata-network-term(?:\s|>)/g) || []).length,
   15,
-  'nw13に学習範囲の15個の穴埋め'
+  'nw13に学習範囲の15個の語句表示'
 );
 ok(!/class="nw-reveal__answer"\s+hidden/.test(internetLayerPage), 'JavaScript無効時もnw13の答えを読める');
 
@@ -637,8 +639,16 @@ const internetRoleSlide = internetLayerPage.slice(
   internetLayerPage.indexOf('data-lesson-slide-title="IPv4アドレスの表し方"')
 );
 equal((internetRoleSlide.match(/\bdata-network-step-detail(?:\s|>)/g) || []).length, 9, 'nw13のルーター中継図に情報の追加・取り外しを追う9段階');
-equal((internetRoleSlide.match(/\bdata-network-step-path=/g) || []).length, 6, 'nw13のルーター中継図にデスクトップ・モバイル各3経路');
-equal((internetRoleSlide.match(/\bdata-network-step-mover(?:\s|>)/g) || []).length, 6, 'nw13のルーター中継図にデスクトップ・モバイル各3移動表示');
+equal((internetRoleSlide.match(/\bdata-network-step-path=/g) || []).length, 3, 'nw13の同じ物理図に3区間の経路');
+equal((internetRoleSlide.match(/\bdata-network-step-mover(?:\s|>)/g) || []).length, 3, 'nw13の同じ物理図に3区間の移動表示');
+ok(internetRoleSlide.includes('nw-source-physical'), '物理ネットワークを対応表と一緒に残す');
+equal((internetRoleSlide.match(/class="nw-address-field is-address-changed"/g) || []).length, 6, '⑤⑥⑦のMAC送信元・送信先だけを変更表示');
+ok(!/class="nw-address-field is-address-changed" data-address-kind="ip"/.test(internetRoleSlide), '同じIPアドレスを変更表示しない');
+ok(internetRoleSlide.includes('⑤から中継を経て変更済み'), '⑥の変更を省略した中継の結果として説明');
+ok(internetRoleSlide.includes('preserveAspectRatio="none" aria-hidden="true"'), 'ペイロード接続のSVGは印刷時の縦横比差を吸収');
+ok(!internetRoleSlide.includes('data-route-column="PC2-send"'), 'PC2の未使用送信列を設けない');
+equal((internetRoleSlide.match(/class="nw-header-tip-close"/g) || []).length, 2, 'RaとRcの補足は明示的に閉じられる');
+
 for (const control of ['prev', 'next', 'replay', 'reset']) {
   ok(internetRoleSlide.includes(`data-network-step-${control}`), `nw13のルーター中継図に${control}操作`);
 }
@@ -689,13 +699,13 @@ const internetReviewSlide = internetLayerPage.slice(
   internetLayerPage.indexOf('data-lesson-slide-title="語句とポイントのまとめ"'),
   internetLayerPage.indexOf('data-lesson-slide-title="問題演習"')
 );
-equal((internetReviewSlide.match(/<details\b[^>]*\bdata-review-term(?:\s|>)/g) || []).length, 13, 'nw13のまとめに13個の独立した重要語句');
+equal((internetReviewSlide.match(/<div\b[^>]*\bdata-review-term(?:\s|>)/g) || []).length, 13, 'nw13のまとめに13個の独立した重要語句');
 equal((internetReviewSlide.match(/class="nw-review-term__body"/g) || []).length, 13, 'nw13のまとめに13個の語句説明');
-ok(!/<details\b[^>]*\bdata-review-term[^>]*\bopen(?:\s|>)/.test(internetReviewSlide), 'nw13の語句説明を最初から展開しない');
+ok(!/<div\b[^>]*\bdata-review-term[^>]*\bopen(?:\s|>)/.test(internetReviewSlide), 'nw13の語句説明を静的な本文で表示');
 for (const term of ['インターネット層', 'IPアドレス', 'ルーター', 'IPv4', 'ネットワーク部', 'ホスト部', 'サブネットマスク', 'CIDR表記', 'グローバルアドレス', 'プライベートアドレス', 'DHCP', 'NAT', 'IPv6']) {
-  ok(internetReviewSlide.includes(`<summary>${term}</summary>`), `nw13のまとめに独立した重要語句「${term}」`);
+  ok(internetReviewSlide.includes(`<h4 class="nw-static-heading">${term}</h4>`), `nw13のまとめに独立した重要語句「${term}」`);
 }
-ok(!internetReviewSlide.includes('<summary>IPアドレスのクラス</summary>'), 'IPアドレスのクラス表をnw13の重要語句にしない');
+ok(!internetReviewSlide.includes('<h4 class="nw-static-heading">IPアドレスのクラス</h4>'), 'IPアドレスのクラス表をnw13の重要語句にしない');
 ok(internetReviewSlide.includes('IPアドレスのクラス表は参考・補足'), 'クラス表をnw14の参考・補足へ送る');
 
 const internetQuizSlide = internetLayerPage.slice(
@@ -719,11 +729,7 @@ for (const requirement of [
 ]) {
   ok(networkJs.includes(requirement), `nw13の教材JavaScriptに ${requirement}`);
 }
-ok(
-  networkJs.includes("summary?.addEventListener('pointerdown'")
-    && networkJs.includes('restoreScrollPosition()'),
-  '語句の個別開閉でもタップ前のスライド内スクロール位置を保つ'
-);
+ok(!networkJs.includes('restoreScrollPosition()'), '静的な語句説明に開閉時のスクロール復元が不要');
 
 for (const requirement of [
   '.nw-step-demo__controls',
