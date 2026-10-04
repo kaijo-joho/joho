@@ -3,192 +3,15 @@
   <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>海城中学高等学校 情報科</title>
+    <title>配色について | 海城中学高等学校 情報科</title>
   <link rel="stylesheet" href="./css/css.css">
     <script defer src="./js/main.js"></script>
-	<style id="critical-colors">
-	  html { color:#191919; color-scheme: light dark; background: transparent; }
-	  @media (prefers-color-scheme: dark) {
-	    html { color:#e6e6e6; color-scheme: dark light; background: transparent; }
-	  }
-	  body { background-color:#f3f3f3; }
-	  @media (prefers-color-scheme: dark) {
-	    body { background-color:#0b0b0b; }
-	  }
-    .cc-tile{
-      min-width: 40px;
-      height: 40px;
-      line-height: 40px;
-      margin:0 auto;
-    }
-    
-    .cc-tile-col01{width: calc(100%/1);}
-    .cc-tile-col02{width: calc(100%/2);}
-    .cc-tile-col03{width: calc(100%/3);}
-    .cc-tile-col04{width: calc(100%/4);}
-    .cc-tile-col05{width: calc(100%/5);}
-    .cc-tile-col06{width: calc(100%/6);}
-    .cc-tile-col07{width: calc(100%/7);}
-    .cc-tile-col08{width: calc(100%/8);}
-    .cc-tile-col09{width: calc(100%/9);}
-    .cc-tile-col10{width: calc(100%/10);}
-    .cc-tile-col11{width: calc(100%/11);}
-    .cc-tile-col12{width: calc(100%/12);}
-    
-    .cc-tile p{
-      margin:0 auto;
-      text-align: center;
-      color: #7f7f7f;
-      font-weight: bold;
-    }
-    
-    .margin2px{
-      margin: 2px;
-    }
-    
-    .color-wheel {
-      position: relative;
-      width: 500px;
-      height: 500px;
-      border-radius: 100%;
-      margin:auto;
-    }
-
-    .segment {
-      position: absolute;
-      width: 50%;
-      height: 50%;
-      top: 0;
-      left: 50%;
-      transform-origin: 0 100%;
-      clip-path: circle(18.3% at 50% 50%);
-      transform: rotate(calc(30deg * var(--i) - 45deg));
-      border-radius: 50% 0 0 50%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      color: #fff;
-      font-weight: bold;
-      text-align: center;
-    }
-    .segment-content {
-      transform: rotate(calc(-30deg * var(--i) + 45deg));
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      width: 100%;
-      height: 100%;
-      color: #fff;
-      font-weight: bold;
-      text-align: center;
-    }
-      
-    .pccs-b00{--i: 0; background-color: #EE0026;}
-    .pccs-b01{--i: 1; background-color: #FE4118;}
-    .pccs-b02{--i: 2; background-color: #FF7F00;}
-    .pccs-b03{--i: 3; background-color: #FFE600;}
-    .pccs-b04{--i: 4; background-color: #99CF15;}
-    .pccs-b05{--i: 5; background-color: #33A23D;}
-    .pccs-b06{--i: 6; background-color: #008678;}
-    .pccs-b07{--i: 7; background-color: #055D87;}
-    .pccs-b08{--i: 8; background-color: #0F218B;}
-    .pccs-b09{--i: 9; background-color: #281285;}
-    .pccs-b10{--i:10; background-color: #56007D;}
-    .pccs-b11{--i:11; background-color: #AF0065;}
-      
-    p.pccs-c00{color: #EE0026;}
-    p.pccs-c01{color: #FE4118;}
-    p.pccs-c02{color: #FF7F00;}
-    p.pccs-c03{color: #FFE600;}
-    p.pccs-c04{color: #99CF15;}
-    p.pccs-c05{color: #33A23D;}
-    p.pccs-c06{color: #008678;}
-    p.pccs-c07{color: #055D87;}
-    p.pccs-c08{color: #0F218B;}
-    p.pccs-c09{color: #281285;}
-    p.pccs-c10{color: #56007D;}
-    p.pccs-c11{color: #AF0065;}
-    
-    .complementary-text {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      display: flex;
-      align-items: center;
-      font-weight: bold;
-      color: #000;
-      z-index: 10;
-      transform: translate(-50%, -50%) rotate(60deg);
-    }
-
-    .complementary-text::before,
-    .complementary-text::after {
-      content: '';
-      display: block;
-      width: 65px;
-      height: 3px;
-      background-color: #000;
-      position: relative;
-    }
-
-    .complementary-text::before {
-      transform: translateX(-50%);
-    }
-
-    .complementary-text::after {
-      transform: translateX(50%);
-    }
-    
-    button.circle {
-        width: 120px;
-        height: 120px;
-        flex: 0 0 120px;
-        padding: 0;
-        border-radius: 50%; /* 角を丸くして円形にする */
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white; /* 文字色を白に設定 */
-        font-size: 20px; /* フォントサイズを指定 */
-        cursor: pointer; /* カーソルをポインターに変更 */
-        margin: 10px; /* 円同士の間隔を設定 */
-        border: solid 2px #000;
-        box-shadow: none;
-        letter-spacing: normal;
-    }
-    button.circle:hover {
-        transform: none;
-        box-shadow: 0 0 0 4px rgba(34, 83, 134, .18);
-    }
-    .complementary-demo {
-        display: flex;
-        flex-wrap: wrap;
-        margin: auto;
-        justify-content: center;
-        align-items: center;
-    }
-    .circle.red {
-        background-color: #EE0026;
-    }
-
-    .circle.blue {
-        background-color: #0F218B;
-    }
-
-    .circle.yellow {
-        background-color: #FFE600;
-    }
-
-    .circle.green {
-        background-color: #33A23D;
-    }
-
-    .circle.white {
-        background-color: white;
-    }
-  </style>
+  <link rel="stylesheet" href="./css/color-study.css">
+  <script defer src="./js/digital-color-core.js"></script>
+  <script defer src="./js/color-study-core.js"></script>
+  <script defer src="./js/color-study.js"></script>
   </head>
- <body>
+ <body data-color-study>
 	
 	
 	
@@ -204,12 +27,46 @@
       <h3>色相</h3>
       <p>色相は、赤・橙・黄・緑・青・紫などの言葉で区別される、<b>色み</b>の違いのことです。色みは、光の波長の違いによって変化します。</p>
       <p>色相の変化を円状に並べたものを<b>色相環</b>といいます。色相環に並んだ色で反対にある色を<b>補色</b>といい、互いの色を引き立てる配色となります。また、隣り合う色どうしを類似色といい、色の差が小さいため統一感のある配色となります。</p>
-      <img src="./img/color-wheel.png" class="screen_shot" alt="色相環" width="400px" decoding="async">
+      <figure class="color-wheel-figure">
+        <div class="color-wheel color-wheel--rgb" role="img" aria-label="RGBの12色相環。向かい合う赤とシアンは補色、隣り合う色は類似色。各円に色名とカラーコードを表示。">
+        <span class="color-wheel__node" data-color="#FF0000" style="--angle:0deg;--swatch:#FF0000;--ink:#000000"><span>赤</span><small>#FF0000</small></span>
+        <span class="color-wheel__node" data-color="#FF7F00" style="--angle:30deg;--swatch:#FF7F00;--ink:#000000"><span>橙</span><small>#FF7F00</small></span>
+        <span class="color-wheel__node" data-color="#FFFF00" style="--angle:60deg;--swatch:#FFFF00;--ink:#000000"><span>黄</span><small>#FFFF00</small></span>
+        <span class="color-wheel__node" data-color="#7FFF00" style="--angle:90deg;--swatch:#7FFF00;--ink:#000000"><span>黄緑</span><small>#7FFF00</small></span>
+        <span class="color-wheel__node" data-color="#00FF00" style="--angle:120deg;--swatch:#00FF00;--ink:#000000"><span>緑</span><small>#00FF00</small></span>
+        <span class="color-wheel__node" data-color="#00FF7F" style="--angle:150deg;--swatch:#00FF7F;--ink:#000000"><span>青緑</span><small>#00FF7F</small></span>
+        <span class="color-wheel__node" data-color="#00FFFF" style="--angle:180deg;--swatch:#00FFFF;--ink:#000000"><span>シアン</span><small>#00FFFF</small></span>
+        <span class="color-wheel__node" data-color="#007FFF" style="--angle:210deg;--swatch:#007FFF;--ink:#000000"><span>空色</span><small>#007FFF</small></span>
+        <span class="color-wheel__node" data-color="#0000FF" style="--angle:240deg;--swatch:#0000FF;--ink:#FFFFFF"><span>青</span><small>#0000FF</small></span>
+        <span class="color-wheel__node" data-color="#7F00FF" style="--angle:270deg;--swatch:#7F00FF;--ink:#FFFFFF"><span>青紫</span><small>#7F00FF</small></span>
+        <span class="color-wheel__node" data-color="#FF00FF" style="--angle:300deg;--swatch:#FF00FF;--ink:#000000"><span>マゼンタ</span><small>#FF00FF</small></span>
+        <span class="color-wheel__node" data-color="#FF007F" style="--angle:330deg;--swatch:#FF007F;--ink:#000000"><span>赤紫</span><small>#FF007F</small></span>
+          <span class="color-wheel__axis"><span>補色</span></span>
+        </div>
+        <figcaption>RGBの色相環。向かい合う赤とシアンは補色、隣り合う色は類似色です。</figcaption>
+      </figure>
       
+      <noscript><p>操作にはJavaScriptが必要です。以下の説明と色見本はそのまま読めます。</p></noscript>
+      <div class="color-panel color-attributes" data-color-attributes>
+        <h3>色の3属性を動かして比較する</h3>
+        <p>1つの値だけを動かし、ほかの2つを固定して色の変化を確かめましょう。「比較の基準にする」で今の色を左側に残せます。</p>
+        <div class="color-controls">
+          <label for="study-hue">色相 <output for="study-hue" data-hsl-output="h">0°</output><input id="study-hue" data-hsl="h" type="range" min="0" max="360" value="0" step="1" disabled></label>
+          <label for="study-saturation">彩度 <output for="study-saturation" data-hsl-output="s">100%</output><input id="study-saturation" data-hsl="s" type="range" min="0" max="100" value="100" step="1" disabled></label>
+          <label for="study-lightness">明度 <output for="study-lightness" data-hsl-output="l">50%</output><input id="study-lightness" data-hsl="l" type="range" min="0" max="100" value="50" step="1" disabled></label>
+        </div>
+        <div class="color-comparison">
+          <figure><figcaption>比較の基準</figcaption><div class="color-swatch" data-hsl-reference style="background-color:#FF0000"></div><p data-hsl-reference-values>色相 0° ／ 彩度 100% ／ 明度 50%<br>RGB(255, 0, 0) ／ #FF0000</p></figure>
+          <figure><figcaption>変更した色</figcaption><div class="color-swatch" data-hsl-current style="background-color:#FF0000"></div><p data-hsl-current-values>色相 0° ／ 彩度 100% ／ 明度 50%<br>RGB(255, 0, 0) ／ #FF0000</p></figure>
+        </div>
+        <div class="color-actions"><button type="button" data-hsl-save disabled>比較の基準にする</button><button type="button" data-hsl-reset disabled>リセット</button></div>
+      </div>
+      <p class="color-study-note">このページの数値はHSLの色相・彩度・明度です。同じ明度50%でも、黄色と青では見た目の明るさが異なります。数値の等間隔は、見た目の等間隔を表すものではありません。<a href="https://www.w3.org/TR/css-color-4/#the-hsl-notation" target="_blank" rel="noopener">HSLの仕様</a></p>
+
       <h3>明度</h3>
       <p>明度は、色の明るさの度合いを表します。明度が高いと白に近づき、明るい爽快なイメージになります。明度が低いと黒に近づき、暗く落ち着いたイメージになります。</p>
       <h4>赤の明度</h4>
-      <div style="display: flex;">
+      <div class="color-strip" style="display: flex;">
         <div style="background-color:hsl(0,100%,0%);" class="cc-tile cc-tile-col11"><p>0%</p></div>
         <div style="background-color:hsl(0,100%,10%);" class="cc-tile cc-tile-col11"><p>10%</p></div>
         <div style="background-color:hsl(0,100%,20%);" class="cc-tile cc-tile-col11"><p>20%</p></div>
@@ -223,7 +80,7 @@
         <div style="background-color:hsl(0,100%,100%);" class="cc-tile cc-tile-col11"><p>100%</p></div>
       </div>
       <h4>緑の明度</h4>
-      <div style="display: flex;">
+      <div class="color-strip" style="display: flex;">
         <div style="background-color:hsl(120,100%,0%);" class="cc-tile cc-tile-col11"><p>0%</p></div>
         <div style="background-color:hsl(120,100%,10%);" class="cc-tile cc-tile-col11"><p>10%</p></div>
         <div style="background-color:hsl(120,100%,20%);" class="cc-tile cc-tile-col11"><p>20%</p></div>
@@ -237,7 +94,7 @@
         <div style="background-color:hsl(120,100%,100%);" class="cc-tile cc-tile-col11"><p>100%</p></div>
       </div>
       <h4>青の明度</h4>
-      <div style="display: flex;">
+      <div class="color-strip" style="display: flex;">
         <div style="background-color:hsl(240,100%,0%);" class="cc-tile cc-tile-col11"><p>0%</p></div>
         <div style="background-color:hsl(240,100%,10%);" class="cc-tile cc-tile-col11"><p>10%</p></div>
         <div style="background-color:hsl(240,100%,20%);" class="cc-tile cc-tile-col11"><p>20%</p></div>
@@ -251,7 +108,7 @@
         <div style="background-color:hsl(240,100%,100%);" class="cc-tile cc-tile-col11"><p>100%</p></div>
       </div>
       <h4>無彩色の明度</h4>
-      <div style="display: flex;">
+      <div class="color-strip" style="display: flex;">
         <div style="background-color:hsl(0,0%,0%);" class="cc-tile cc-tile-col11"><p>0%</p></div>
         <div style="background-color:hsl(0,0%,10%);" class="cc-tile cc-tile-col11"><p>10%</p></div>
         <div style="background-color:hsl(0,0%,20%);" class="cc-tile cc-tile-col11"><p>20%</p></div>
@@ -269,7 +126,7 @@
       <p>彩度は、色の鮮やかさの度合いを表します。彩度が高いと鮮やかで派手な色になり、彩度が低いと落ち着いた地味な色になります。白・灰・黒色は彩度をもたないので、<b>無彩色</b>といいます。一方、無彩色以外の色を<b>有彩色</b>といいます。</p>
   
       <h4>赤の彩度</h4>
-      <div style="display: flex;">
+      <div class="color-strip" style="display: flex;">
         <div style="background-color:hsl(0,0%,50%);" class="cc-tile cc-tile-col11"><p>0%</p></div>
         <div style="background-color:hsl(0,10%,50%);" class="cc-tile cc-tile-col11"><p>10%</p></div>
         <div style="background-color:hsl(0,20%,50%);" class="cc-tile cc-tile-col11"><p>20%</p></div>
@@ -283,7 +140,7 @@
         <div style="background-color:hsl(0,100%,50%);" class="cc-tile cc-tile-col11"><p>100%</p></div>
       </div>
       <h4>緑の彩度</h4>
-      <div style="display: flex;">
+      <div class="color-strip" style="display: flex;">
         <div style="background-color:hsl(120,0%,50%);" class="cc-tile cc-tile-col11"><p>0%</p></div>
         <div style="background-color:hsl(120,10%,50%);" class="cc-tile cc-tile-col11"><p>10%</p></div>
         <div style="background-color:hsl(120,20%,50%);" class="cc-tile cc-tile-col11"><p>20%</p></div>
@@ -297,7 +154,7 @@
         <div style="background-color:hsl(120,100%,50%);" class="cc-tile cc-tile-col11"><p>100%</p></div>
       </div>
       <h4>青の彩度</h4>
-      <div style="display: flex;">
+      <div class="color-strip" style="display: flex;">
         <div style="background-color:hsl(240,0%,50%);" class="cc-tile cc-tile-col11"><p>0%</p></div>
         <div style="background-color:hsl(240,10%,50%);" class="cc-tile cc-tile-col11"><p>10%</p></div>
         <div style="background-color:hsl(240,20%,50%);" class="cc-tile cc-tile-col11"><p>20%</p></div>
@@ -313,7 +170,7 @@
       
       <h3>色相・明度・彩度の見本</h3>
       <p>
-        12色相における明度と彩度は<a href="./color.html" target="_blank" rel="noopener">コチラ</a>のページを参照してください。
+        12色相における明度と彩度は<a href="./color-rgb.html" target="_blank" rel="noopener">色相・明度・彩度の見本</a>のページを参照してください。
       </p>
 
     </article>
@@ -323,7 +180,7 @@
       <p>補色どうしが隣接すると、彩度が増して見えるため、非常に目立つ配色となります。人によっては目が痛くなるかもしれません。</p>
       
       <h4>彩度100%, 明度50%</h4>
-      <div style="display: flex;">
+      <div class="color-strip" style="display: flex;">
         <div style="background-color:hsl(  0,100%,50%);" class="cc-tile cc-tile-col12"><p style="color:hsl(180,100%,50%);">補色</p></div>
         <div style="background-color:hsl( 30,100%,50%);" class="cc-tile cc-tile-col12"><p style="color:hsl(210,100%,50%);">補色</p></div>
         <div style="background-color:hsl( 60,100%,50%);" class="cc-tile cc-tile-col12"><p style="color:hsl(240,100%,50%);">補色</p></div>
@@ -339,7 +196,7 @@
       </div>
 
       <h4>彩度50%, 明度50%</h4>
-      <div style="display: flex;">
+      <div class="color-strip" style="display: flex;">
         <div style="background-color:hsl(  0,50%,50%);" class="cc-tile cc-tile-col12"><p style="color:hsl(180,50%,50%);">補色</p></div>
         <div style="background-color:hsl( 30,50%,50%);" class="cc-tile cc-tile-col12"><p style="color:hsl(210,50%,50%);">補色</p></div>
         <div style="background-color:hsl( 60,50%,50%);" class="cc-tile cc-tile-col12"><p style="color:hsl(240,50%,50%);">補色</p></div>
@@ -360,22 +217,22 @@
       <h3>彩度対比と明度対比</h3>
       <p>彩度の高い色と低い色が隣接すると、彩度の高い方は元の色より鮮やかに、彩度の低い方は元の色よりくすんで見えます。</p>
       <p>また、明度差のある色が隣接すると、明度が低い色はより低く、明度が高い色はより高く見えます。明るく鮮やかに見せたいものがあれば、その近くに暗くくすんだ色を置くと効果的です。</p>
-      <div style="display: flex;">
+      <div class="color-contrast-grid">
         <div class="cc-tile-col03" style="padding:2px;">
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(0, 50%, 50%);">色相0°（赤）</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(  0, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(0, 50%, 50%);" class="small-text">75%/75%</p></div>
             <div style="background-color:hsl(  0, 50%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(0, 50%, 50%);" class="small-text">50%/75%</p></div>
             <div style="background-color:hsl(  0, 25%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(0, 50%, 50%);" class="small-text">25%/75%</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(  0, 75%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(0, 50%, 50%);" class="small-text">75%/50%</p></div>
             <div style="background-color:hsl(  0, 50%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(0, 50%, 50%);" class="small-text">50%/50%</p></div>
             <div style="background-color:hsl(  0, 25%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(0, 50%, 50%);" class="small-text">25%/50%</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(  0, 75%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(0, 50%, 50%);" class="small-text">75%/25%</p></div>
             <div style="background-color:hsl(  0, 50%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(0, 50%, 50%);" class="small-text">50%/25%</p></div>
             <div style="background-color:hsl(  0, 25%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(0, 50%, 50%);" class="small-text">25%/25%</p></div>
@@ -383,20 +240,20 @@
         </div>
         
         <div class="cc-tile-col03" style="padding:2px;">
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(60, 50%, 50%);">色相60°（黄）</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl( 60, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(60, 50%, 50%);" class="small-text">75%/75%</p></div>
             <div style="background-color:hsl( 60, 50%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(60, 50%, 50%);" class="small-text">50%/75%</p></div>
             <div style="background-color:hsl( 60, 25%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(60, 50%, 50%);" class="small-text">25%/75%</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl( 60, 75%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(60, 50%, 50%);" class="small-text">75%/50%</p></div>
             <div style="background-color:hsl( 60, 50%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(60, 50%, 50%);" class="small-text">50%/50%</p></div>
             <div style="background-color:hsl( 60, 25%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(60, 50%, 50%);" class="small-text">25%/50%</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl( 60, 75%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(60, 50%, 50%);" class="small-text">75%/25%</p></div>
             <div style="background-color:hsl( 60, 50%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(60, 50%, 50%);" class="small-text">50%/25%</p></div>
             <div style="background-color:hsl( 60, 25%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(60, 50%, 50%);" class="small-text">25%/25%</p></div>
@@ -404,43 +261,43 @@
         </div>
         
         <div class="cc-tile-col03" style="padding:2px;">
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(120, 50%, 50%);">色相120°（緑）</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(120, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">75%/75%</p></div>
             <div style="background-color:hsl(120, 50%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">50%/75%</p></div>
             <div style="background-color:hsl(120, 25%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">25%/75%</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(120, 75%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">75%/50%</p></div>
             <div style="background-color:hsl(120, 50%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">50%/50%</p></div>
             <div style="background-color:hsl(120, 25%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">25%/50%</p></div>
           </div>
-          <div style="display: flex;">
-            <div style="background-color:hsl(120, 75%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">75%</p></div>
-            <div style="background-color:hsl(120, 50%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">50%</p></div>
-            <div style="background-color:hsl(120, 25%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">25%</p></div>
+          <div class="color-strip" style="display: flex;">
+            <div style="background-color:hsl(120, 75%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">75%/25%</p></div>
+            <div style="background-color:hsl(120, 50%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">50%/25%</p></div>
+            <div style="background-color:hsl(120, 25%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(120, 50%, 50%);" class="small-text">25%/25%</p></div>
           </div>
         </div>
       </div>
       
-      <div style="display: flex;">
+      <div class="color-contrast-grid">
         <div class="cc-tile-col03" style="padding:2px;">
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(180, 50%, 50%);">色相180°（シアン）</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(180, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(180, 50%, 50%);" class="small-text">75%/75%</p></div>
             <div style="background-color:hsl(180, 50%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(180, 50%, 50%);" class="small-text">50%/75%</p></div>
             <div style="background-color:hsl(180, 25%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(180, 50%, 50%);" class="small-text">25%/75%</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(180, 75%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(180, 50%, 50%);" class="small-text">75%/50%</p></div>
             <div style="background-color:hsl(180, 50%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(180, 50%, 50%);" class="small-text">50%/50%</p></div>
             <div style="background-color:hsl(180, 25%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(180, 50%, 50%);" class="small-text">25%/50%</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(180, 75%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(180, 50%, 50%);" class="small-text">75%/25%</p></div>
             <div style="background-color:hsl(180, 50%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(180, 50%, 50%);" class="small-text">25%/25%</p></div>
             <div style="background-color:hsl(180, 25%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(180, 50%, 50%);" class="small-text">25%/25%</p></div>
@@ -448,20 +305,20 @@
         </div>
         
         <div class="cc-tile-col03" style="padding:2px;">
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(240, 50%, 50%);">色相240°（青）</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(240, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(240, 50%, 50%);" class="small-text">75%/75%</p></div>
             <div style="background-color:hsl(240, 50%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(240, 50%, 50%);" class="small-text">50%/75%</p></div>
             <div style="background-color:hsl(240, 25%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(240, 50%, 50%);" class="small-text">25%/75%</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(240, 75%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(240, 50%, 50%);" class="small-text">75%/50%</p></div>
             <div style="background-color:hsl(240, 50%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(240, 50%, 50%);" class="small-text">50%/50%</p></div>
             <div style="background-color:hsl(240, 25%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(240, 50%, 50%);" class="small-text">25%/50%</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(240, 75%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(240, 50%, 50%);" class="small-text">75%/25%</p></div>
             <div style="background-color:hsl(240, 50%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(240, 50%, 50%);" class="small-text">50%/25%</p></div>
             <div style="background-color:hsl(240, 25%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(240, 50%, 50%);" class="small-text">25%/25%</p></div>
@@ -469,20 +326,20 @@
         </div>
         
         <div class="cc-tile-col03" style="padding:2px;">
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:white;" class="cc-tile cc-tile-col01"><p style="color:hsl(300, 50%, 50%);">色相300°（マゼンタ）</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(300, 75%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">75%/75%</p></div>
             <div style="background-color:hsl(300, 50%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">50%/75%</p></div>
             <div style="background-color:hsl(300, 25%, 75%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">25%/75%</p></div>
           </div>
-          <div style="display: flex;">
-            <div style="background-color:hsl(300, 75%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">75%/25%</p></div>
-            <div style="background-color:hsl(300, 50%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">50%/25%</p></div>
-            <div style="background-color:hsl(300, 25%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">25%/25%</p></div>
+          <div class="color-strip" style="display: flex;">
+            <div style="background-color:hsl(300, 75%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">75%/50%</p></div>
+            <div style="background-color:hsl(300, 50%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">50%/50%</p></div>
+            <div style="background-color:hsl(300, 25%, 50%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">25%/50%</p></div>
           </div>
-          <div style="display: flex;">
+          <div class="color-strip" style="display: flex;">
             <div style="background-color:hsl(300, 75%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">75%/25%</p></div>
             <div style="background-color:hsl(300, 50%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">50%/25%</p></div>
             <div style="background-color:hsl(300, 25%, 25%);" class="cc-tile cc-tile-col03"><p style="color:hsl(300, 50%, 50%);" class="small-text">25%/25%</p></div>
@@ -495,38 +352,61 @@
       </p>
       
       
+      <div class="color-panel" data-color-contrast>
+        <h3>背景を変えて見え方を比較する</h3>
+        <p>2つの「同じ色」の文字を見比べてください。背景を入れ替えると、文字の見え方はどう変わりますか。</p>
+        <label class="color-select-label" for="contrast-mode">背景の組み合わせ <select id="contrast-mode" disabled><option value="lightness">明度の対比（白／黒）</option><option value="hue">色相の対比（暖色／寒色）</option></select></label>
+        <div class="color-comparison color-contrast-comparison">
+          <figure><figcaption data-contrast-label="0">白い背景</figcaption><div class="color-contrast-sample" data-contrast-sample="0" style="background-color:#FFFFFF;color:#808080">同じ色</div></figure>
+          <figure><figcaption data-contrast-label="1">黒い背景</figcaption><div class="color-contrast-sample" data-contrast-sample="1" style="background-color:#202020;color:#808080">同じ色</div></figure>
+        </div>
+        <div class="color-actions"><button type="button" data-contrast-swap aria-pressed="false" disabled>背景を入れ替える</button><button type="button" data-contrast-reveal aria-expanded="false" aria-controls="contrast-answer" disabled>文字色を確認</button></div>
+        <div class="color-answer"><p id="contrast-answer" hidden>文字色は両方とも <strong>RGB(128, 128, 128) ／ #808080</strong> です。色の値が同じでも、周囲の色との対比によって見え方が変わります。</p></div>
+      </div>
+
       <h3>心理補色</h3>
       <p>赤を見続けたあと、白いところを見ると、一瞬うっすらと青緑や水色が浮かんで見えます。また、青を見続けたあと、白いところを見ると、黄色があらわれます。このように特定の色を見続けたあとに残像として現れる色を<strong>心理補色</strong>といいます。</p>
       
-      <div class="complementary-demo">
-        <button type="button" class="circle red" data-color="red" data-color-label="赤" aria-label="赤の円を白に切り替える" aria-pressed="false"></button>
-        <button type="button" class="circle yellow" data-color="yellow" data-color-label="黄" aria-label="黄の円を白に切り替える" aria-pressed="false"></button>
-        <button type="button" class="circle green" data-color="green" data-color-label="緑" aria-label="緑の円を白に切り替える" aria-pressed="false"></button>
-        <button type="button" class="circle blue" data-color="blue" data-color-label="青" aria-label="青の円を白に切り替える" aria-pressed="false"></button>
+      <div class="color-panel color-afterimage" data-color-afterimage>
+        <fieldset class="color-afterimage__choices"><legend>注視する色</legend>
+          <button type="button" data-afterimage-color="red" data-label="赤" data-value="#EE0026" aria-pressed="true" disabled><span style="background-color:#EE0026" aria-hidden="true"></span>赤</button>
+          <button type="button" data-afterimage-color="yellow" data-label="黄" data-value="#FFE600" aria-pressed="false" disabled><span style="background-color:#FFE600" aria-hidden="true"></span>黄</button>
+          <button type="button" data-afterimage-color="green" data-label="緑" data-value="#33A23D" aria-pressed="false" disabled><span style="background-color:#33A23D" aria-hidden="true"></span>緑</button>
+          <button type="button" data-afterimage-color="blue" data-label="青" data-value="#0F218B" aria-pressed="false" disabled><span style="background-color:#0F218B" aria-hidden="true"></span>青</button>
+        </fieldset>
+        <div class="color-afterimage__stage">
+          <button type="button" class="color-afterimage__circle" data-afterimage-circle aria-label="赤の円を見る実験を開始する" disabled><span aria-hidden="true">＋</span></button>
+        </div>
+        <div class="color-actions"><button type="button" data-afterimage-next disabled>開始</button></div>
+        <p class="color-afterimage__instruction" data-afterimage-instruction aria-live="polite">色を選んで「開始」を押してください。</p>
+        <p class="color-study-note">残像の見え方には個人差があります。無理に見続ける必要はありません。</p>
       </div>
       
-      <p>上の円を見続けたあと、円をクリックしてみると心理補色が現れます（これに対して、上記(1)で扱った混合すると無彩色になる補色を<strong>物理補色</strong>といいます）。心理補色は人間の感覚に沿ったもので、赤の心理補色は緑，黄の心理補色は青となっています。例えば、医療現場の手術着は青緑ですが、これは血の色である赤の心理補色で、値を見続けたあとに白い壁や布を見ることで発生する残像を緩和するはたらきがあります。</p>
+      <p>「開始」を押して中央の＋をしばらく見つめたあと、「白に切り替える」または円を押すと、心理補色を観察できます（これに対して、上記(1)で扱った混合すると無彩色になる補色を<strong>物理補色</strong>といいます）。心理補色は人間の感覚に沿ったもので、赤の心理補色は青緑系、黄の心理補色は青系となっています。例えば、医療現場の手術着は青緑ですが、これは血の色である赤の心理補色で、血を見続けたあとに白い壁や布を見ることで発生する残像を緩和するはたらきがあります。</p>
       
-      <div class="color-wheel">
-        <div class="segment pccs-b00"><div class="segment-content">赤</div></div>
-        <div class="segment pccs-b01"><div class="segment-content">赤橙</div></div>
-        <div class="segment pccs-b02"><div class="segment-content">橙黄</div></div>
-        <div class="segment pccs-b03"><div class="segment-content">黄</div></div>
-        <div class="segment pccs-b04"><div class="segment-content">黄緑</div></div>
-        <div class="segment pccs-b05"><div class="segment-content">緑</div></div>
-        <div class="segment pccs-b06"><div class="segment-content">青緑</div></div>
-        <div class="segment pccs-b07"><div class="segment-content">緑青</div></div>
-        <div class="segment pccs-b08"><div class="segment-content">青</div></div>
-        <div class="segment pccs-b09"><div class="segment-content">青紫</div></div>
-        <div class="segment pccs-b10"><div class="segment-content">紫</div></div>
-        <div class="segment pccs-b11"><div class="segment-content">赤紫</div></div>
-        <div class="complementary-text">心理補色</div>
-      </div>
+      <figure class="color-wheel-figure">
+        <div class="color-wheel color-wheel--psychological" role="img" aria-label="心理補色を示す12色相環。赤と青緑、黄と青紫が向かい合う配置。">
+        <span class="color-wheel__node pccs-b00" style="--angle:0deg;--swatch:#EE0026;--ink:#000000">赤</span>
+        <span class="color-wheel__node pccs-b01" style="--angle:30deg;--swatch:#FE4118;--ink:#000000">赤橙</span>
+        <span class="color-wheel__node pccs-b02" style="--angle:60deg;--swatch:#FF7F00;--ink:#000000">橙黄</span>
+        <span class="color-wheel__node pccs-b03" style="--angle:90deg;--swatch:#FFE600;--ink:#000000">黄</span>
+        <span class="color-wheel__node pccs-b04" style="--angle:120deg;--swatch:#99CF15;--ink:#000000">黄緑</span>
+        <span class="color-wheel__node pccs-b05" style="--angle:150deg;--swatch:#33A23D;--ink:#000000">緑</span>
+        <span class="color-wheel__node pccs-b06" style="--angle:180deg;--swatch:#008678;--ink:#000000">青緑</span>
+        <span class="color-wheel__node pccs-b07" style="--angle:210deg;--swatch:#055D87;--ink:#FFFFFF">緑青</span>
+        <span class="color-wheel__node pccs-b08" style="--angle:240deg;--swatch:#0F218B;--ink:#FFFFFF">青</span>
+        <span class="color-wheel__node pccs-b09" style="--angle:270deg;--swatch:#281285;--ink:#FFFFFF">青紫</span>
+        <span class="color-wheel__node pccs-b10" style="--angle:300deg;--swatch:#56007D;--ink:#FFFFFF">紫</span>
+        <span class="color-wheel__node pccs-b11" style="--angle:330deg;--swatch:#AF0065;--ink:#FFFFFF">赤紫</span>
+          <span class="color-wheel__axis"><span>心理補色</span></span>
+        </div>
+        <figcaption>心理補色の組み合わせを示す色相環。残像の見え方には個人差があります。</figcaption>
+      </figure>
 
       
       
       <h3>心理補色の組み合わせ</h3>
-      <div style="display: flex;">
+      <div class="color-strip" style="display: flex;">
         <div class="cc-tile cc-tile-col06 pccs-b06 margin2px"><p class="pccs-c00">赤</p></div>
         <div class="cc-tile cc-tile-col06 pccs-b07 margin2px"><p class="pccs-c01">赤橙</p></div>
         <div class="cc-tile cc-tile-col06 pccs-b08 margin2px"><p class="pccs-c02">橙黄</p></div>
@@ -534,7 +414,7 @@
         <div class="cc-tile cc-tile-col06 pccs-b10 margin2px"><p class="pccs-c04">黄緑</p></div>
         <div class="cc-tile cc-tile-col06 pccs-b11 margin2px"><p class="pccs-c05">緑</p></div>
       </div>
-      <div style="display: flex;">
+      <div class="color-strip" style="display: flex;">
         <div class="cc-tile cc-tile-col06 pccs-b00 margin2px"><p class="pccs-c06">青緑</p></div>
         <div class="cc-tile cc-tile-col06 pccs-b01 margin2px"><p class="pccs-c07">緑青</p></div>
         <div class="cc-tile cc-tile-col06 pccs-b02 margin2px"><p class="pccs-c08">青</p></div>
@@ -616,26 +496,6 @@
     
     
    
-    <script>
-      function toggleColor(element, originalColor) {
-        if (element.classList.contains('white')) {
-          element.classList.remove('white');
-          element.classList.add(originalColor);
-          element.setAttribute('aria-pressed', 'false');
-          element.setAttribute('aria-label', `${element.dataset.colorLabel}の円を白に切り替える`);
-        } else {
-          element.classList.remove(originalColor);
-          element.classList.add('white');
-          element.setAttribute('aria-pressed', 'true');
-          element.setAttribute('aria-label', `白い円を${element.dataset.colorLabel}に戻す`);
-        }
-      }
 
-      document.querySelectorAll('.circle[data-color]').forEach(element => {
-        element.addEventListener('click', () => {
-          toggleColor(element, element.dataset.color);
-        });
-      });
-    </script>
 </body>
 </html>

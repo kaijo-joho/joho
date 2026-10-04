@@ -1,116 +1,64 @@
 <!DOCTYPE html>
 <html lang="ja">
-
 <head>
-    <meta charset="UTF-8">
-    <title>カラー</title>
-    <link rel="stylesheet" type="text/css" href="./css/css.css">
-  </head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>色の見本（RGB値）</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/color-study.css">
+  <link rel="stylesheet" href="./css/color-samples.css">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/digital-color-core.js"></script>
+  <script defer src="./js/color-study-core.js"></script>
+  <script defer src="./js/color-samples.js"></script>
+</head>
+<body data-color-study>
+  <main class="color-samples">
+    <header class="color-samples__header">
+      <p class="color-samples__back"><a href="./color.html">色の学習へ戻る</a></p>
+      <h1>色の見本（RGB値）</h1>
+      <p>彩度を変えながら、色相と明度による色の変化、RGB値、カラーコードを確認します。</p>
+    </header>
 
-  <style>
-    #color-code{
-      margin: 10px  auto;
-      overflow-x: scroll;
-    }
-    #s-slider{
-      width: 600px;
-    }
-    #saturation{
-      width: 60px;
-      text-align: right;
-    }
-    .cc-container{
-      display: flex;
-    }
-    .cc-item{
-      min-width: 80px;
-      height: 80px;
-      font-size: 12px;
-      color: rgb(127,127,127);
-      padding: 2px 2px;
-      margin: 1px;
-    }
-    tt{
-      padding: 0px;
-      background-color: transparent;
-    }
-  </style>
-  
-  
-  
-  <body>
-    
-    <div id="color-code"></div>
-    
-    <div class="cc-container">
-      <div style="width:60px;text-align: center;">彩度</div>
-      <input type="range" min="0" max="100" class="param" id="s-slider" value="100">
-      <div id="saturation"></div>
-    </div>
+    <section class="color-samples__controls" aria-labelledby="saturation-heading">
+      <h2 id="saturation-heading">彩度</h2>
+      <div class="color-samples__slider-row">
+        <label for="s-slider">彩度（0〜100%）</label>
+        <input type="range" min="0" max="100" step="1" value="100" id="s-slider" aria-describedby="saturation-help" disabled>
+        <output id="saturation" for="s-slider" aria-live="polite">100%</output>
+      </div>
+      <p id="saturation-help" class="color-samples__hint">スライダーは左右キーでも1ずつ変更できます。タッチではつまみを左右に動かしてください。</p>
+    </section>
 
-    <script>
-      const divcc = document.getElementById('color-code');
-      const sslider = document.getElementById('s-slider');
-      const divSaturation = document.getElementById('saturation');
-      
-      const HSLtoRGB = (h, s, l) => {
-        s /= 100;
-        l /= 100;
-        const k = n => (n + h / 30) % 12;
-        const a = s * Math.min(l, 1 - l);
-        const f = n =>
-          l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
-        return [parseInt(255 * f(0)), parseInt(255 * f(8)), parseInt(255 * f(4))];
-      };
-
-      const rgbToHex = (r, g, b) =>
-        '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0').toUpperCase()).join('');
-
-      refreshColorTable();
-      window.onload=function(){
-        sslider.addEventListener("input",function(){
-          refreshColorTable();
-        });
-
-      };
-      
-      function refreshColorTable(){
-        divcc.innerHTML = ``;
-        let s = sslider.value;
-
-
-        for(let i=0;i<21;i++){
-          const container = document.createElement('div');
-          container.classList.add('cc-container');
-
-          for(let j=0;j<12;j++){
-
-            const div = document.createElement('div');
-            div.classList.add('cc-item');
-
-            let h = j*30;
-            let l = 100-i*5;
-            let rgb = HSLtoRGB(h,s,l);
-
-            let color = 'hsl(' + h + ', ' + s + '%, ' + l +'%)';
-            const hex = rgbToHex(rgb[0], rgb[1], rgb[2]);
-
-            div.style.backgroundColor = color;
-
-            const luminance = 0.299*rgb[0] + 0.587*rgb[1] + 0.114*rgb[2];
-            div.style.color = (luminance < 140) ? 'white' : 'black';
-
-            div.innerHTML = `<tt>R: ${rgb[0]}<br>G: ${rgb[1]}<br>B: ${rgb[2]}<br><b>${hex}</b></tt>`;
-            div.title = `${hex}  /  ${color}`;
-
-            container.appendChild(div);
-          }
-
-          divcc.appendChild(container);
-        }
-        divSaturation.innerHTML = `${s} %`;
-      }
-    </script>
-  </body>
-
+    <section class="color-samples__table-section" aria-labelledby="table-heading">
+      <h2 id="table-heading">色相と明度の見本</h2>
+      <p id="table-help" class="color-samples__axis-note">横方向は色相（30°ごと、0〜330°）、縦方向は明度（上から100〜0%、5%ごと）です。各セルにRGB値と16進数のカラーコードを表示します。</p>
+      <div class="color-samples__table-frame" tabindex="0" role="region" aria-label="色の見本表。狭い画面では表の枠内を横にスクロールできます。">
+        <table id="color-code" aria-describedby="table-help">
+          <caption>彩度 <span id="caption-saturation">100%</span> の色見本。色相は列、明度は行で示します。</caption>
+          <thead>
+            <tr>
+              <th scope="col" class="color-samples__axis-heading">明度 ↓<br>色相 →</th>
+              <th scope="col" data-hue="0">0°</th>
+              <th scope="col" data-hue="30">30°</th>
+              <th scope="col" data-hue="60">60°</th>
+              <th scope="col" data-hue="90">90°</th>
+              <th scope="col" data-hue="120">120°</th>
+              <th scope="col" data-hue="150">150°</th>
+              <th scope="col" data-hue="180">180°</th>
+              <th scope="col" data-hue="210">210°</th>
+              <th scope="col" data-hue="240">240°</th>
+              <th scope="col" data-hue="270">270°</th>
+              <th scope="col" data-hue="300">300°</th>
+              <th scope="col" data-hue="330">330°</th>
+            </tr>
+          </thead>
+          <tbody id="color-samples-body"></tbody>
+        </table>
+      </div>
+      <p class="color-samples__note">HSLの彩度と明度を同じ幅で変えても、見た目の鮮やかさや明るさが等間隔になるとは限りません。<a href="https://www.w3.org/TR/css-color-4/#the-hsl-notation" target="_blank" rel="noopener noreferrer">W3C CSS Color Module Level 4 — HSL notation</a></p>
+      <noscript><p class="color-samples__noscript">この見本表を作成するにはJavaScriptが必要です。有効にすると彩度に応じたRGB値と色を確認できます。</p></noscript>
+    </section>
+  </main>
+</body>
 </html>

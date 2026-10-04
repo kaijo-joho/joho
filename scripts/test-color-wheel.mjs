@@ -54,7 +54,14 @@ for (const [, code, cx, cy, fill, name, label] of circles) {
     if (channels === 4) assert.equal(pixels[at + 3], 255, `${name}: opaque sample`);
   }
 }
-for (const id of ['color', 'html32']) {
-  assert.match(await readFile(new URL(`${id}.html`, root), 'utf8'), /img\/color-wheel\.png/, `${id}: shared corrected image`);
-}
-console.log('Color wheel: all 12 HEX labels and fills agree; 36 raw PNG pixel samples match; both existing page references preserved.');
+assert.match(await readFile(new URL('html32.html', root), 'utf8'), /img\/color-wheel\.png/, 'HTML教材は従来の共通画像を維持');
+const colorPage = await readFile(new URL('color.html', root), 'utf8');
+assert.doesNotMatch(colorPage, /img\/color-wheel\.png/, '配色ページのRGB環はHTML/CSSで描画');
+const nodes = [...colorPage.matchAll(/class="color-wheel__node" data-color="(#[A-F0-9]{6})" style="--angle:(\d+)deg;--swatch:(#[A-F0-9]{6});--ink:#[A-F0-9]{6}"><span>[^<]+<\/span><small>(#[A-F0-9]{6})<\/small>/g)];
+assert.equal(nodes.length, 12, 'HTMLのRGB環も12色');
+nodes.forEach(([, code, angle, fill, label], index) => {
+  assert.equal(code, circles[index][1], '既存の色指定を保持');
+  assert.equal(angle, String(index * 30), '規則的な30度間隔');
+  assert.equal(fill, label, 'HTMLでも塗りとHEX表示が一致');
+});
+console.log('Color wheel: 12 HTML/CSS samples preserve the existing HEX colors; 36 original PNG pixels match; html32 image reference preserved.');
