@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>UIと操作の分かりやすさ | 情報デザイン</title>
+  <link rel="stylesheet" href="./css/css.css">
+  <link rel="stylesheet" href="./css/lesson-slide-deck.css">
+  <link rel="stylesheet" href="./css/lesson-progress.css">
+  <link rel="stylesheet" href="./css/information-society.css" integrity="sha384-SCzcJjw8jOWn2/eR1W43RSXVy0sAFWo69zgQmYzqhAcYaGQg5MKTMjCyVGw7kQDn">
+  <link rel="stylesheet" href="./css/information-design.css" integrity="sha384-TQrVfXHVAM6wUgPK//SunG0K6DKvHG1cOfc0i/0FDZ502+rGMtsKF+Gbcg1XefkD">
+  <script defer src="./js/main.js"></script>
+  <script defer src="./js/information-society.js" integrity="sha384-vVBAjH/ZUX5y8IqFIdFjksgqncrb/+Z7ZZPmFbNxqoQof41QnX6N8jLo8krgi6DU"></script>
+  <script defer src="./js/information-design.js" integrity="sha384-LS5wJEXDqPgfAG5WwBRjpZVondTO7YmeoTq1fGzSQttu5km8BslGCUdiqpPY92vK"></script>
+  <script defer src="./js/lesson-progress.js"></script>
+  <script defer src="./js/lesson-slide-deck.js"></script>
+</head>
+<body class="is-lesson id-lesson" data-lesson-slide-deck>
+  <section data-lesson-slide data-lesson-slide-title="人とサービスの接点">
+    <article>
+      <h2 id="headline_1">(1) 人とサービスの接点</h2>
+<p class="is-lead"><strong>ユーザインタフェース（UI）</strong>は、人と機器・サービスが情報をやり取りする接点です。画面のボタンやメニューもUIです。</p><div data-lesson-progress id="id14-interface">
+ <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>記号「→」だけのボタンを押すと何が起こるか、予想できますか。</p></div>
+ <div data-lesson-stage-from="1"><div class="is-model" data-is-model="id14-signals" data-is-default="vague"><div class="is-tabs" role="group" aria-label="id14-signalsの比較"><button type="button" data-is-select="vague" aria-pressed="false">操作の説明が少ない</button><button type="button" data-is-select="clear" aria-pressed="false">操作が分かる</button></div><div data-is-panel="vague"><div class="id-ui-sample"><p>文化祭の会場</p><p>講堂で公演を行います。</p><button type="button" class="is-button" data-id-ui-action aria-label="操作例：記号だけの会場案内ボタン">→</button><p data-id-ui-status role="status">記号だけでは、押した結果を予測しづらい。</p></div></div><div data-is-panel="clear"><div class="id-ui-sample"><p>文化祭の会場</p><p>講堂で公演を行います。</p><button type="button" class="is-button" data-id-ui-action aria-label="講堂への道順を表示">講堂への道順を表示</button><p data-id-ui-status role="status">押すと講堂への道順が表示されます。</p></div></div><div class="is-tabs"><button type="button" data-is-reset>選択を戻す</button></div></div></div>
+ <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>操作できる場所と、操作の結果を予測できる手掛かりを示します。名前・形・配置をそろえ、見た目と動作を対応させます。見本のボタンはこのページ内で道順を表示します。</p></div>
+ <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>はじめから</button><span data-progress-status role="status"></span></div>
+ </div>
+    </article>
+  </section>
+  <section data-lesson-slide data-lesson-slide-title="操作の手掛かり">
+    <article>
+      <h2 id="headline_2">(2) 操作の手掛かり</h2>
+<p class="is-lead"><strong>シグニファイア</strong>は、どこでどのような行為ができるかを示す手掛かりです。物の形や、文字・記号・配置などが使われます。</p><div data-lesson-progress id="id14-signifier">
+ <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>ドアの取っ手と平らな面から、どのような開け方を考えますか。</p></div>
+ <div data-lesson-stage-from="1"><div class="is-model" data-is-model="id14-door" data-is-default="push"><div class="is-tabs" role="group" aria-label="id14-doorの比較"><button type="button" data-is-select="push" aria-pressed="false">押して開ける</button><button type="button" data-is-select="pull" aria-pressed="false">引いて開ける</button></div><div data-is-panel="push"><div class="id-pair"><figure class="id-visual"><svg viewBox="0 0 320 220" role="img" aria-labelledby="id14-door-push-t id14-door-push-d" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><title id="id14-door-push-t">ドアの操作の手掛かり</title><desc id="id14-door-push-d">ドアに押す面、または引く取っ手を付け、操作名と矢印を併用する例。</desc><rect x="70" y="14" width="180" height="192" fill="var(--is-soft)"/><rect x="184" y="72" width="35" height="65" fill="var(--is-panel)"/><text x="148" y="170" font-size="30" fill="currentColor" stroke="none" text-anchor="middle">押す</text></svg></figure><div class="is-card"><h3>シグニファイア</h3><p>押す面の形、操作を示す文字などが、押す行為の手掛かりになる。</p></div></div></div><div data-is-panel="pull"><div class="id-pair"><figure class="id-visual"><svg viewBox="0 0 320 220" role="img" aria-labelledby="id14-door-pull-t id14-door-pull-d" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><title id="id14-door-pull-t">ドアの操作の手掛かり</title><desc id="id14-door-pull-d">ドアに押す面、または引く取っ手を付け、操作名と矢印を併用する例。</desc><rect x="70" y="14" width="180" height="192" fill="var(--is-soft)"/><path d="M193 61H212V151H193" stroke-width="9"/><text x="148" y="170" font-size="30" fill="currentColor" stroke="none" text-anchor="middle">引く</text></svg></figure><div class="is-card"><h3>シグニファイア</h3><p>握れる取っ手、操作を示す文字などが、引く行為の手掛かりになる。</p></div></div></div><div class="is-tabs"><button type="button" data-is-reset>選択を戻す</button></div></div></div>
+ <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>手掛かりと実際の操作が食い違うと、誤操作を招きます。形だけで伝わると決めず、必要に応じて文字や矢印を組み合わせ、初めて使う人で確かめます。</p></div>
+ <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>はじめから</button><span data-progress-status role="status"></span></div>
+ </div>
+    </article>
+  </section>
+  <section data-lesson-slide data-lesson-slide-title="利用できる・使いやすい">
+    <article>
+      <h2 id="headline_3">(3) 利用できる・使いやすい</h2>
+<p class="is-lead"><strong>アクセシビリティ</strong>は情報や機能を利用できること、<strong>ユーザビリティ</strong>は目的に対する使いやすさです。両方の観点から考えます。</p><div class="is-model" data-is-model="id14-quality" data-is-default="access"><div class="is-tabs" role="group" aria-label="id14-qualityの比較"><button type="button" data-is-select="access" aria-pressed="false">利用できるか</button><button type="button" data-is-select="use" aria-pressed="false">迷わず使えるか</button></div><div data-is-panel="access"><div class="is-card"><h3>アクセシビリティの観点</h3><ul><li>ボタンをキーボードで操作できるか。</li><li>画像の案内を文字でも得られるか。</li><li>拡大しても項目が隠れないか。</li></ul></div></div><div data-is-panel="use"><div class="is-card"><h3>ユーザビリティの観点</h3><ul><li>目的の案内を迷わず探せるか。</li><li>ボタン名から結果を予測できるか。</li><li>間違えた操作を修正できるか。</li></ul></div></div><div class="is-tabs"><button type="button" data-is-reset>選択を戻す</button></div></div><div class="is-card"><h3>同じUIを2つの観点で見る</h3><p>キーボードで押せる「→」ボタンでも、何が起こるか分からなければ使いづらい場合があります。分かりやすい名前のボタンでも、キーボードで届かなければ利用できない人がいます。</p></div><p class="is-observe">どちらか一方の工夫だけで完成とせず、利用者・目的・状況を決めて確認します。</p>
+    </article>
+  </section>
+  <section data-lesson-slide data-lesson-slide-title="結果と誤操作の修正">
+    <article>
+      <h2 id="headline_4">(4) 結果と誤操作の修正</h2>
+<p class="is-lead">操作後は、<strong>何が起きたかを確かめられる表示</strong>が必要です。間違えた操作から戻れるしくみも考えます。</p><div data-lesson-progress id="id14-feedback">
+ <div data-lesson-stage="0" class="is-prompt"><strong>予想する</strong><p>誤って案内を削除したら、どのような表示と操作があると助かりますか。</p></div>
+ <div data-lesson-stage-from="1"><div class="is-model" data-id-undo><h3>案内一覧の操作見本</h3><ul data-id-undo-list><li>音楽演奏　10:30　講堂</li></ul><div class="is-tabs"><button type="button" data-id-delete class="is-button">音楽演奏の案内を削除</button><button type="button" data-id-undo-button class="is-button" disabled>削除を取り消す</button><button type="button" data-id-undo-reset class="is-button">見本をはじめから</button></div><p data-id-undo-status role="status">案内が1件あります。この見本内の表示だけを操作します。</p></div></div>
+ <div data-lesson-stage-from="2" class="is-observe"><strong>説明する</strong><p>処理の結果を文字で示し、可能なら取り消しや修正を用意します。大きな影響がある操作には事前確認も検討します。確認を増やしすぎると見落とされることもあるため、目的と影響に合わせます。</p></div>
+ <div data-progress-controls class="is-tabs"><button type="button" data-progress-prev>前の段階</button><button type="button" data-progress-next>Next</button><button type="button" data-progress-reset>はじめから</button><span data-progress-status role="status"></span></div>
+ </div>
+    </article>
+  </section>
+  <section data-lesson-slide data-lesson-slide-title="重要語句・ポイント">
+    <article>
+      <h2 id="headline_5">(5) 重要語句・ポイント</h2>
+<p class="is-lead">語句とポイントを選んで、意味や理由を説明しましょう。</p><div class="is-review"><div class="is-terms"><h3>重要語句</h3><details class="" open><summary>UI（ユーザインタフェース）</summary><p>人と機器・サービスの情報のやり取りの接点。ボタン、表示、メニューなど。</p></details><details class="" open><summary>シグニファイア</summary><p>どこで、どのような行為ができるかを示す手掛かり。形・文字・記号・配置など。</p></details><details class="" open><summary>ユーザビリティ</summary><p>特定の利用者が目的を達成するときの使いやすさ。迷いや操作ミスなどを観察して確かめる。</p></details><details class="" open><summary>操作結果のフィードバック</summary><p>操作で何が起きたかを利用者へ伝える表示。状態や完了・失敗を文字でも示す。</p></details></div><div class="is-terms"><h3>ポイント</h3><details class="" open><summary>手掛かりと動作を対応させる</summary><p>名前から結果を予測でき、実際の操作が予想に沿うようにする。</p></details><details class="" open><summary>間違いから戻れるようにする</summary><p>取り消しや修正を用意し、操作の影響に応じて事前確認を考える。</p></details></div></div><details class="is-supplement is-card" open><summary>参考資料と図について</summary><p>日文『情報Ⅰ ADVANCED』38〜39頁、既存Web構造教材を参照。操作見本は独自制作で、実サービスの案内・送信・削除は行いません。本単元固有の授業PPTは指定ディレクトリに未発見です。</p><p class="is-note">本文と図は授業用に独自に整理したものです。場面・数値・名称は架空の学習例です。</p></details>
+    </article>
+  </section>
+  <section data-lesson-slide data-lesson-slide-title="問題演習">
+    <article>
+      <h2 id="headline_6">(6) 問題演習</h2>
+<p class="is-lead">まず自分で理由を考え、そのあと「考え方の例」を開いて確かめましょう。</p><div class="is-card"><h3>問1　ラベルのないアイコンのボタンを改善する</h3><details class="is-supplement is-card" open><summary>考え方の例</summary><p>結果を予測できる文字を付ける。形・配置・操作名をそろえ、初めて使う人が押せるか確かめる。音声やキーボードによる利用も確認する。</p></details></div><div class="is-card"><h3>問2　「完了」とだけ表示された。何を補う？</h3><details class="is-supplement is-card" open><summary>考え方の例</summary><p>何が完了したか、次に何をするかを示す。例：「案内を保存しました。会場一覧で確認できます」。ただし実際に完了した処理だけを伝える。</p></details></div><div class="is-card"><h3>問3　操作できることと使いやすいことの違いは？</h3><details class="is-supplement is-card" open><summary>考え方の例</summary><p>キーボードで届くなどの利用可能性と、目的に向かって迷わず使えるかの観点を区別する。同じUIについて両方を検討する。</p></details></div>
+    </article>
+  </section>
+</body>
+</html>
