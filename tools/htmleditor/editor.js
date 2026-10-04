@@ -698,7 +698,14 @@
         catch(e){status.textContent=e.message==='identity_confirmation_canceled'?'本人確認を中止しました。編集内容はそのままです。':e.message==='switch_confirmation_required'?'前回と異なるアカウントです。「学校アカウント」から「利用するアカウントを変更」を選んでください。':'本人確認を完了できませんでした。もう一度確認してください。（'+errorMessage(e)+'）';}
         finally{confirmButton.disabled=switchButton.disabled=warningButton.disabled=false;(opener===warningButton && !warning.hidden ? warningButton : accountSummary).focus();}
       }
-      async function renderIdentity(){const state=await localDownloads.load();status.textContent=state.status==='ready'?'確認済み：'+state.label:state.status==='expired'?'学校アカウントの確認期限が切れています。':'学校アカウント未確認';confirmButton.hidden=state.status==='ready';switchButton.hidden=!['ready','expired'].includes(state.status);warning.hidden=state.status==='ready';warningMessage.textContent=state.status==='expired'?'⚠ 本人確認の期限が切れています。学校アカウントをもう一度確認してください。':'⚠ 学校アカウントが未確認です。実習ファイルの取得前に本人確認してください。';}
+      async function renderIdentity(){
+        const state=await localDownloads.load(),ready=state.status==='ready';
+        accountSummary.textContent=ready && state.label ? '学校アカウント：'+state.label : '学校アカウント';
+        accountSummary.dataset.tip=ready?'確認済みの学校アカウントです。利用するアカウントの変更などができます。':'学校アカウントの本人確認を行います。';
+        status.textContent=ready?'確認済み':state.status==='expired'?'学校アカウントの確認期限が切れています。':'学校アカウント未確認';
+        confirmButton.hidden=ready;switchButton.hidden=!['ready','expired'].includes(state.status);warning.hidden=ready;
+        warningMessage.textContent=state.status==='expired'?'⚠ 本人確認の期限が切れています。学校アカウントをもう一度確認してください。':'⚠ 学校アカウントが未確認です。実習ファイルの取得前に本人確認してください。';
+      }
       async function bridge(ticket,oldToken='') {let response;const controller=new AbortController();try{await modal('学校アカウントの本人確認',(body,button,finish)=>{
         button('閉じる','close');window.HtmlEditorLocalDownloads.confirmationBridge({container:body,dialog:$('actionDialog'),url:config.identityUrl,ticket,oldToken,signal:controller.signal}).then(r=>{response=r;finish('confirmed');}).catch(e=>{if(e.message!=='identity_confirmation_canceled')notify(errorMessage(e));finish('failed');});
       });}finally{controller.abort();}if(!response)throw Error('identity_confirmation_canceled');return response;}

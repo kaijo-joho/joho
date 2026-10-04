@@ -204,13 +204,37 @@ test('v3実エディタ起動は既存proofを読むだけ。確認・切替・�
  const h=makeHarness({v3:true,localDownloads});await h.tick();await h.tick();
  const box=h.nodes.toolbar.children.find(n=>n.className==='identity-toolbar'),confirm=box.children[1].children[1].children.find(n=>n.textContent==='学校アカウントを確認する');
  assert(box);assert.equal(calls.load,1);assert.equal(calls.register,0);assert.equal(calls.panel,0);
+ assert.equal(box.children[1].children[0].textContent,'学校アカウント','未確認時はユーザーIDを表示しない');
  const warning=h.nodes.toolbar.afterNode;assert.equal(warning.className,'identity-alert');assert.equal(warning.hidden,false);assert.match(warning.children[0].textContent,/未確認/);
  assert.equal(h.nodes.currentFileLabel.textContent,'');assert.equal(h.calls.downloads,0);assert.equal(h.calls.writes,0);
  confirm.click();await h.tick();assert.equal(calls.register,1);assert.equal(confirm.hidden,true);
+ assert.equal(box.children[1].children[0].textContent,'学校アカウント：synthetic');
+ assert.equal(box.children[0].textContent,'確認済み');
  assert.equal(warning.hidden,true,'本人確認済みなら赤い警告を消す');
  const second=makeHarness({v3:true,localDownloads});await second.tick();assert.equal(calls.register,1);
  assert.equal(second.nodes.currentFileLabel.textContent,'');
  assert.equal(second.nodes.toolbar.afterNode.hidden,true,'再読み込みでも有効な本人確認は警告しない');
+ assert.equal(second.nodes.toolbar.children.find(n=>n.className==='identity-toolbar').children[1].children[0].textContent,'学校アカウント：synthetic','保存済みの表示名を再読み込み後も表示');
+});
+test('学校アカウントのユーザーIDは文字列として表示し、切替成功時だけ更新する',async()=>{
+ let state={status:'ready',label:'synthetic_3'},fail=false,requested;
+ const h=makeHarness({v3:true,localDownloads:{create:()=>({load:async()=>state,register:async options=>{
+  requested=options;if(fail)throw Error('identity_confirmation_canceled');state={status:'ready',label:'synthetic_4'};
+ }})}});await h.tick();
+ const box=h.nodes.toolbar.children.find(n=>n.className==='identity-toolbar'),summary=box.children[1].children[0],change=box.children[1].children[1].children.find(n=>n.textContent==='利用するアカウントを変更');
+ assert.equal(summary.textContent,'学校アカウント：synthetic_3');assert.match(summary.dataset.tip,/確認済み/);
+ fail=true;change.click();await h.tick();assert.equal(summary.textContent,'学校アカウント：synthetic_3','中止では登録済みIDを失わない');
+ fail=false;change.click();await h.tick();assert.equal(summary.textContent,'学校アカウント：synthetic_4');assert.equal(requested.switchAccount,true);
+ assert.equal(h.calls.downloads,0);assert.equal(h.calls.writes,0,'アカウント表示でファイルを変更しない');
+ const literal=makeHarness({v3:true,localDownloads:{create:()=>({load:async()=>({status:'ready',label:'<img src=x onerror=alert(1)>'})})}});await literal.tick();
+ const label=literal.nodes.toolbar.children.find(n=>n.className==='identity-toolbar').children[1].children[0];
+ assert.equal(label.textContent,'学校アカウント：<img src=x onerror=alert(1)>');assert.equal(label.children.length,0,'表示層でもHTMLとして解釈しない');
+});
+for(const status of ['missing','expired'])test(status+' の学校アカウントは保存済みのユーザーIDを確認済みとして表示しない',async()=>{
+ const h=makeHarness({v3:true,localDownloads:{create:()=>({load:async()=>({status,label:'old_synthetic_user'})})}});await h.tick();
+ const box=h.nodes.toolbar.children.find(n=>n.className==='identity-toolbar');
+ assert.equal(box.children[1].children[0].textContent,'学校アカウント');assert.doesNotMatch(box.children[0].textContent,/確認済み/);
+ assert.equal(h.nodes.toolbar.afterNode.hidden,false);assert.match(box.children[1].children[0].dataset.tip,/本人確認/);
 });
 test('本人確認の期限切れは赤い警告から明示確認でき、失敗時も警告を残す',async()=>{
  let registrations=0;const h=makeHarness({v3:true,localDownloads:{create:()=>({load:async()=>({status:'expired'}),register:async()=>{registrations++;throw Error('synthetic');}})}});await h.tick();
