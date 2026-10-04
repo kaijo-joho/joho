@@ -627,3 +627,7 @@
 2026-10-02の知的財産権3ページ（is21・is22・is23）の構成、操作、原資料の扱い、検証と登録手順は[情報社会の編集方針](information-society.md)を参照する。確認用公開ではrelease・showをfalseにし、オンライン確認後の本人了承まで教材間の導線を追加しない。
 
 個人情報とプライバシー2ページ（is31・is32）のAstra設計、人工データ、加工情報の比較と検証は[個人情報の編集方針](personal-information.md)を参照する。同じくrelease・showをfalseとして確認用公開し、本人のオンライン確認と了承後に教材間の導線を追加する。
+
+2026-10-04承認の問題解決3ページ（is51〜is53、21本文画面）は[問題解決の編集方針](problem-solving.md)、歴史・技術と社会4ページ（is61〜is64、28本文画面）は[情報技術と社会の編集方針](technology-society.md)、情報デザイン5ページ（id11〜id15、31本文画面）は[情報デザインの編集方針](information-design.md)を参照する。確認用公開ではrelease・showをfalseとし、backはGASの必須参照としてサイトトップのindexを指定し、nextと配付物・ワークシートの参照を設定しない。本人のオンライン確認と了承まで、教材一覧・検索・既存本文からの導線および新規本文の教材間リンクを追加しない。
+
+本文内の予想・操作・説明を進めるNextは[共通段階進行](lesson-progress.md)を使う。スライド移動は既存lesson-slide-deck、比較は既存information-societyへ任せる。共通段階CSSはstage属性のhiddenだけを扱い、比較パネルを印刷するときの全状態表示へ干渉しない。正式台帳からの生成後は`test-new-series-integration.mjs`で表紙・末尾Next・非掲載・390px・テーマ・文字サイズ・印刷・JS無効を確認する。既存のcolor・il・html・dr本文を移動せず、新規シリーズの説明と操作をそれぞれの担当ファイルへ置く。
