@@ -1,0 +1,19 @@
+/* Content stays readable without JavaScript; only initialized models gain stage hiding. */
+[data-lesson-progress].lesson-progress-ready [hidden] { display: none !important; }
+[data-progress-controls] {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin-block: .8rem;
+}
+[data-progress-controls] button { min-height: 44px; min-width: 44px; }
+[data-progress-status] { font-variant-numeric: tabular-nums; white-space: nowrap; }
+@media print {
+  [data-progress-controls] { display: none !important; }
+  /* Print every explanatory HTML stage, while the current SVG comparison remains selected. */
+  [data-lesson-progress].lesson-progress-ready :is(div, section, article, figure, p, ul, ol, li, details)[data-lesson-stage],
+  [data-lesson-progress].lesson-progress-ready :is(div, section, article, figure, p, ul, ol, li, details)[data-lesson-stage-from] {
+    display: revert !important;
+  }
+}
