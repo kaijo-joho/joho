@@ -60,7 +60,7 @@ PLAYWRIGHT_MODULE=/Users/takashi/Documents/GAS/webedu/node_modules/playwright JO
 - NextのEnter／Space、前の手順、手順リセット、入力・SVG同期、分類の変更と再判定、カード移動とフォーカス保持、重みでA／B／Cの首位変更、日程の順序確認、比較・問題演習の変更とリセットを確認した。
 - 印刷の全段階・全比較・全語句表示、印刷後の段階・開閉復元、JavaScript無効の本文全7枚と390px表示を両エンジンで確認した。
 - Chromeのタッチエミュレーション：3教材のNext・リセットをタップし、全画面開始→終了ボタン後の進行状態保持、390px・ダーク・特大を確認した。ヘッドレスChromeでは合成Escapeによるネイティブ全画面終了を確認できなかった。Safariアプリ・物理タッチ端末も未確認。
-- WebKitの390px撮影では、画面幅変更直後の共通ヘッダー計測を待つ必要があった。ヘッダー実高さと設定値の一致を待機条件にした。resize／reload／スライド移動後はいずれもheader 0–112px、nav 112–169px、slide 177–847pxで重なりがない。
+- WebKitの390px撮影では、画面幅変更直後の共通ヘッダー計測を待つ必要があった。ヘッダー実高さと設定値の一致を待機条件にした。resize／reload／スライド移動後はいずれもheader 0–112px、nav 112–169px、slide上端171〜177pxで重なりがない。
 - 固有静的91件、共通座学571件、音606件、論理回路の真理値、スライド生成確認・コンテンツ検証・JS構文・diff checkに合格。
 
 WebKitのnative selectが指定より小さくなるため、専用CSSでappearance:noneと装飾用chevronを使い、44pxの選択欄を確保した。
