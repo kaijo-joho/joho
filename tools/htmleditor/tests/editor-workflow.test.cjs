@@ -202,10 +202,18 @@ test('v3実エディタ起動は既存proofを読むだけ。確認・切替・�
  const h=makeHarness({v3:true,localDownloads});await h.tick();await h.tick();
  const box=h.nodes.toolbar.children.find(n=>n.className==='identity-toolbar'),confirm=box.children[1].children[1].children.find(n=>n.textContent==='学校アカウントを確認する');
  assert(box);assert.equal(calls.load,1);assert.equal(calls.register,0);assert.equal(calls.panel,0);
+ const warning=h.nodes.toolbar.afterNode;assert.equal(warning.className,'identity-alert');assert.equal(warning.hidden,false);assert.match(warning.children[0].textContent,/未確認/);
  assert.equal(h.nodes.currentFileLabel.textContent,'');assert.equal(h.calls.downloads,0);assert.equal(h.calls.writes,0);
  confirm.click();await h.tick();assert.equal(calls.register,1);assert.equal(confirm.hidden,true);
+ assert.equal(warning.hidden,true,'本人確認済みなら赤い警告を消す');
  const second=makeHarness({v3:true,localDownloads});await second.tick();assert.equal(calls.register,1);
  assert.equal(second.nodes.currentFileLabel.textContent,'');
+ assert.equal(second.nodes.toolbar.afterNode.hidden,true,'再読み込みでも有効な本人確認は警告しない');
+});
+test('本人確認の期限切れは赤い警告から明示確認でき、失敗時も警告を残す',async()=>{
+ let registrations=0;const h=makeHarness({v3:true,localDownloads:{create:()=>({load:async()=>({status:'expired'}),register:async()=>{registrations++;throw Error('synthetic');}})}});await h.tick();
+ const warning=h.nodes.toolbar.afterNode;assert.match(warning.children[0].textContent,/期限/);assert.equal(warning.hidden,false);assert.equal(registrations,0);
+ warning.children[1].click();await h.tick();assert.equal(registrations,1);assert.equal(warning.hidden,false);assert.equal(warning.children[1].disabled,false);
 });
 test('v3モジュール準備失敗でも実エディタと既存ファイルを保持し旧配付の入口を維持',async()=>{
  const h=makeHarness({v3:true,localDownloads:{create(){throw Error('synthetic_storage_error');}}});await h.tick();

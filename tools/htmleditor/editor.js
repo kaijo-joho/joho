@@ -676,6 +676,9 @@
       const config=window.HTML_LOCAL_V3_CONFIG,box=document.createElement('section');box.setAttribute('aria-label','HTML実習の本人確認');
       box.className='identity-toolbar';$('toolbar').append(box);
       const status=textNode(box,'学校アカウントの確認状態を読み込んでいます…');status.setAttribute('role','status');status.className='identity-status';
+      const warning=document.createElement('section');warning.className='identity-alert';warning.setAttribute('role','alert');
+      const warningMessage=textNode(warning,'⚠ 学校アカウントが未確認です。実習ファイルの取得前に本人確認してください。');
+      const warningButton=textNode(warning,'学校アカウントを確認する','button');warningButton.type='button';warningButton.className='btn';$('toolbar').after(warning);
       const accountMenu=textNode(box,'','details');accountMenu.className='menu-wrap identity-menu';const accountSummary=textNode(accountMenu,'学校アカウント','summary');accountSummary.className='btn';const accountActions=textNode(accountMenu,'','div');accountActions.className='menu-dropdown identity-actions';
       const confirmButton=textNode(accountActions,'学校アカウントを確認する','button');confirmButton.type='button';confirmButton.className='btn';
       const switchButton=textNode(accountActions,'利用するアカウントを変更','button');switchButton.type='button';switchButton.className='btn';switchButton.hidden=true;
@@ -683,18 +686,19 @@
       async function register(switchAccount){
         if(busy || submissionPanel?.needsAttention() || dirty()){notify('未保存の変更を保存し、提出処理を終えてから本人確認してください。');return;}
         if(switchAccount && !window.confirm('本人確認情報を切り替えます。保存済みファイルは変更しません。続けますか？'))return;
-        confirmButton.disabled=switchButton.disabled=true;accountMenu.open=false;status.textContent=switchAccount?'利用するアカウントを確認しています…':'学校アカウントを確認しています…';
+        const opener=document.activeElement;
+        confirmButton.disabled=switchButton.disabled=warningButton.disabled=true;accountMenu.open=false;status.textContent=switchAccount?'利用するアカウントを確認しています…':'学校アカウントを確認しています…';
         try {await localDownloads.register({switchAccount,safeToSwitch:true});await renderIdentity();}
         catch(e){status.textContent='本人確認を完了できませんでした。もう一度確認してください。（'+errorMessage(e)+'）';}
-        finally{confirmButton.disabled=switchButton.disabled=false;accountSummary.focus();}
+        finally{confirmButton.disabled=switchButton.disabled=warningButton.disabled=false;(opener===warningButton && !warning.hidden ? warningButton : accountSummary).focus();}
       }
-      async function renderIdentity(){const state=await localDownloads.load();status.textContent=state.status==='ready'?'確認済み：'+state.label:state.status==='expired'?'学校アカウントの確認期限が切れています。':'学校アカウント未確認';confirmButton.hidden=state.status==='ready';switchButton.hidden=state.status!=='ready';}
+      async function renderIdentity(){const state=await localDownloads.load();status.textContent=state.status==='ready'?'確認済み：'+state.label:state.status==='expired'?'学校アカウントの確認期限が切れています。':'学校アカウント未確認';confirmButton.hidden=state.status==='ready';switchButton.hidden=state.status!=='ready';warning.hidden=state.status==='ready';warningMessage.textContent=state.status==='expired'?'⚠ 本人確認の期限が切れています。学校アカウントをもう一度確認してください。':'⚠ 学校アカウントが未確認です。実習ファイルの取得前に本人確認してください。';}
       async function bridge(ticket,oldToken='') {let response;const controller=new AbortController();try{await modal('学校アカウントの本人確認',(body,button,finish)=>{
-        button('閉じる','close');window.HtmlEditorLocalDownloads.confirmationBridge({container:body,url:config.identityUrl,ticket,oldToken,signal:controller.signal}).then(r=>{response=r;finish('confirmed');}).catch(e=>{if(e.message!=='identity_confirmation_canceled')notify(errorMessage(e));finish('failed');});
+        button('閉じる','close');window.HtmlEditorLocalDownloads.confirmationBridge({container:body,dialog:$('actionDialog'),url:config.identityUrl,ticket,oldToken,signal:controller.signal}).then(r=>{response=r;finish('confirmed');}).catch(e=>{if(e.message!=='identity_confirmation_canceled')notify(errorMessage(e));finish('failed');});
       });}finally{controller.abort();}if(!response)throw Error('identity_confirmation_canceled');return response;}
       try {
         localDownloads=window.HtmlEditorLocalDownloads.create({confirm:ticket=>bridge(ticket)});
-        confirmButton.addEventListener('click',()=>register(false));switchButton.addEventListener('click',()=>register(true));
+        confirmButton.addEventListener('click',()=>register(false));warningButton.addEventListener('click',()=>register(false));switchButton.addEventListener('click',()=>register(true));
         renewalButton.addEventListener('click',()=>exclusive(async()=>{
           if(submissionPanel?.needsAttention()){notify('提出処理を終えてから確認情報を更新してください。');return;}
           if(!doc)return;const snapshot=content(),proof=Practice.inspect(snapshot);if(proof?.protocolVersion!==3){notify('この実習ファイルは確認情報の更新対象ではありません。');return;}
@@ -713,8 +717,8 @@
           displayState();await renderIdentity();notify('本文を保持して確認情報を更新しました。「保存」でMacの実習ファイルへ保存してください。');
           }catch(error){localDownloads.cache.cancelConfirmation();throw error;}
         }));
-        renderIdentity().catch(e=>{status.textContent='確認情報を読み込めません。既存のファイルは保持しています。';});
-      }catch(e){status.textContent='新方式を準備できませんでした。既存の配付を利用してください。';localDownloads=null;}
+        renderIdentity().catch(e=>{status.textContent='確認情報を読み込めません。既存のファイルは保持しています。';warning.hidden=false;warningMessage.textContent='⚠ 本人確認の状態を読み込めません。ページを開き直してください。既存の実習ファイルは保持しています。';});
+      }catch(e){status.textContent='新方式を準備できませんでした。既存の配付を利用してください。';warningMessage.textContent='⚠ 本人確認を準備できません。ページを開き直し、同じ表示が続く場合は教員に知らせてください。';warningButton.disabled=true;localDownloads=null;}
     }
     document.querySelectorAll('[data-menu-hint]').forEach(node => { const label = node.textContent; node.replaceChildren(); menuHint(node, node.dataset.menuHint, label); });
     try { window.JohoUI?.tooltip({keyboard:true}); } catch { /* 説明が使えなくても編集は継続。 */ }

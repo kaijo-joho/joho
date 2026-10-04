@@ -8,7 +8,7 @@ function browserCodec(){return {
 };}
 const sha256=async s=>Array.from(new Uint8Array(await root.crypto.subtle.digest('SHA-256',new TextEncoder().encode(s))),x=>x.toString(16).padStart(2,'0')).join('');
 function node(parent,text,tag='p'){const n=document.createElement(tag);n.textContent=text;parent.append(n);return n;}
-function confirmationBridge({container,url,ticket,oldToken='',signal}){
+function confirmationBridge({container,dialog,url,ticket,oldToken='',signal}){
  if(root.location.origin!==P.ORIGIN || root.top!==root)return Promise.reject(Error('origin_not_allowed'));
  const parsed=new URL(url);
  if(!/^https:\/\/script\.google\.com\/(?:a\/macros\/gfe\.kaijo\.ed\.jp\/|macros\/)s\/[A-Za-z0-9_-]+\/exec$/.test(parsed.href))return Promise.reject(Error('identity_route_invalid'));
@@ -16,17 +16,27 @@ function confirmationBridge({container,url,ticket,oldToken='',signal}){
  return new Promise((resolve,reject)=>{
    const frame=document.createElement('iframe');frame.title='学校アカウントの本人確認';frame.className='download-frame';frame.referrerPolicy='no-referrer';
    frame.setAttribute('sandbox','allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox');
-   let source=null,sourceOrigin='',settled=false;
+   const progress=node(container,'','p');progress.className='download-status';progress.setAttribute('role','status');
+   const spinner=node(progress,'','span');spinner.className='download-spinner';spinner.setAttribute('aria-hidden','true');node(progress,'本人確認画面を読み込んでいます…','span');
+   dialog?.classList.add('identity-open');
+   let source=null,sourceOrigin='',settled=false,integrated=false;
+   function appearance(type='appearance') { if(source)source.postMessage({channel:CHANNEL,bridge,type,nonce:ticket.nonce,
+     theme:document.documentElement.dataset.resolvedTheme || document.documentElement.dataset.theme,
+     fontSize:document.documentElement.dataset.textSize,...(type==='connect'?{oldToken,layout:'integrated-v1'}:{})},sourceOrigin); }
+   const observer=typeof root.MutationObserver==='function'?new root.MutationObserver(()=>appearance()):null;
+   observer?.observe(document.documentElement,{attributes:true,attributeFilter:['data-resolved-theme','data-theme','data-text-size']});
    const timer=setTimeout(()=>finish(Error('identity_confirmation_timeout')),180000);
-   function finish(error,response){if(settled)return;settled=true;clearTimeout(timer);root.removeEventListener('message',receive);if(signal)signal.removeEventListener('abort',cancel);frame.remove();error?reject(error):resolve(response);}
+   function finish(error,response){if(settled)return;settled=true;clearTimeout(timer);observer?.disconnect();root.removeEventListener('message',receive);if(signal)signal.removeEventListener('abort',cancel);frame.remove();progress.remove();dialog?.classList.remove('identity-open','identity-integrated');error?reject(error):resolve(response);}
    function cancel(){finish(Error('identity_confirmation_canceled'));}
    function receive(event){const data=event.data;
     if(!frame.isConnected || !root.HtmlEditorDownload.gasOrigin(event.origin) || !root.HtmlEditorDownload.withinFrame(event.source,frame.contentWindow) || !data || data.channel!==CHANNEL || data.bridge!==bridge)return;
     if(data.type==='hello'){
       if(source && (source!==event.source || sourceOrigin!==event.origin))return;
-      source=event.source;sourceOrigin=event.origin;source.postMessage({channel:CHANNEL,bridge,type:'connect',nonce:ticket.nonce,oldToken},sourceOrigin);return;
+      source=event.source;sourceOrigin=event.origin;appearance('connect');return;
     }
     if(event.source!==source || event.origin!==sourceOrigin || data.nonce!==ticket.nonce)return;
+    if(data.type==='layout' && data.layout==='integrated-v1'){integrated=true;progress.hidden=true;dialog?.classList.add('identity-integrated');return;}
+    if(integrated && data.type==='height' && Number.isInteger(data.height) && data.height>=0 && data.height<=20000){frame.style.height=Math.max(140,Math.min(700,data.height))+'px';return;}
     if(data.type==='proof')finish(null,data.response);
    }
    root.addEventListener('message',receive);frame.src=parsed.href;container.append(frame);
