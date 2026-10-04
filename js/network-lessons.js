@@ -340,7 +340,7 @@
 
       this.description.textContent = visibleDescriptions.length
         ? `端末Aと端末Bを結ぶ通信に、${visibleDescriptions.join('、')}が示されています。`
-        : '端末Aと端末Bがネットワークでつながっています。番号を選ぶと、通信を支える約束が図に加わります。';
+        : '端末Aと端末Bがネットワークでつながっています。語句を選ぶと、通信を支える約束の対応を図で確認できます。';
     }
   }
 

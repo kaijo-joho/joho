@@ -292,8 +292,20 @@
 @page nw-routing-diagram { size:A3 landscape; margin:9mm; }
 
 /* Static terms and border-crossing SVGs: cell anchors also work without JavaScript. */
-.nw-reveal:not(button) { cursor:default; }
-.nw-reveal:not(button):hover { transform:none; background:var(--nw-panel-strong); }
+.nw-reveal[data-network-term] {
+ border:0; border-radius:0; padding:.15em .3em; gap:0;
+ background:transparent; color:var(--nw-focus); font-weight:800; box-shadow:none;
+}
+.nw-reveal[data-network-term] > .nw-reveal__answer { color:inherit; }
+.nw-reveal[data-network-term]:hover { transform:none; background:transparent; box-shadow:none; }
+.nw-reveal[data-network-term]:not(button) { cursor:default; }
+.nw-reveal[data-network-term].nw-reveal--inline {
+ display:inline; min-width:0; min-height:0; padding:0; line-height:inherit; vertical-align:baseline;
+}
+button.nw-reveal[data-network-term] { min-height:44px; }
+button.nw-reveal[data-network-term]:is(:hover,.is-protocol-current) {
+ text-decoration:underline; text-decoration-thickness:2px; text-underline-offset:.2em;
+}
 .nw-static-heading { margin:0; padding:.5em .65em; color:var(--nw-focus); font-size:.85em; line-height:1.4; }
 .nw-review-term > .nw-static-heading { font-size:.78em; }
 .nw-source-layers td,.nw-address-routing [data-route-column] { position:relative; overflow:visible; padding-block:1.5em; }
