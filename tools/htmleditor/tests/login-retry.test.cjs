@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const {TextEncoder} = require('node:util');
 const targetId = 'html12-01';
-const accountAdvice = '複数アカウントでうまく開けない場合は、すべてのGoogleアカウントからログアウトし、学校アカウントだけでログインし直してください';
+const accountAdvice = '複数のアカウントでログインしていると開けない場合があります。すべてのGoogleアカウントからログアウトし、学校アカウントだけでログインし直してください。';
 function setup(kind, options = {}) {
   const listeners = new Set(), timers = new Map(), sent = [], confirmations = [];
   let nonce = 0, timerId = 0, closed = 0, current = true, allowed = false, reloaded = 0;

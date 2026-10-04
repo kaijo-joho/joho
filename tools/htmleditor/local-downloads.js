@@ -72,7 +72,7 @@ function create(options){
   register:request=>coordinator.ensure({userInitiated:true,...request}),
   createPanel({container,lesson}){
    let busy=false,disposed=false;node(container,lesson.title);
-   node(container,'新しい実習ファイルは、その都度公開中の最新版を取得します。編集中のファイルは差し替えません。');
+   node(container,'「新しくダウンロード」を押すと、公開中の最新版を取得して保存を開始します。編集中のファイルは差し替えません。');
    const files=node(container,'','div');files.className='local-download-files';
    const entries=[];
    for(const task of lesson.files){
@@ -80,19 +80,24 @@ function create(options){
     node(row,task.fileName,'h3');
     const actions=node(row,'','div');actions.className='local-download-actions';
     const button=node(actions,'新しくダウンロード','button');button.type='button';button.className='btn';button.setAttribute('aria-label',task.fileName+' を新しくダウンロード');
-    const link=node(actions,task.fileName+' を保存する','a');link.className='btn';link.hidden=true;
+    const link=node(actions,'保存されなかった場合は、もう一度保存','a');link.className='local-download-retry';link.hidden=true;link.setAttribute('aria-label',task.fileName+' が保存されなかった場合は、もう一度保存');
     const status=node(row,'まだ取得していません。');status.setAttribute('role','status');
     const entry={button,link,status,url:null};entries.push(entry);
     function clear(){if(entry.url)URL.revokeObjectURL(entry.url);entry.url=null;link.hidden=true;link.removeAttribute('href');link.removeAttribute('download');}
     entry.clear=clear;
-    link.addEventListener('click',event=>{if(disposed||busy||!entry.url){event.preventDefault();return;}status.textContent='保存を開始しました。Macのダウンロード先を確認してください。';});
-    button.addEventListener('click',async()=>{if(busy||disposed)return;busy=true;entries.forEach(e=>{e.button.disabled=true;});clear();status.textContent='最新のひな形を取得しています…';
+    link.addEventListener('click',event=>{if(disposed||busy||!entry.url){event.preventDefault();return;}status.textContent='保存を開始しました。通常は「ダウンロード」に保存されます。'+task.fileName+' を確認し、「書類／HTML実習」へ移動してください。';});
+    button.addEventListener('click',async()=>{if(busy||disposed||entry.url)return;busy=true;let moveFocus=false;entries.forEach(e=>{e.button.disabled=true;});clear();status.textContent='最新のひな形を取得しています…';
      try{const result=await provider.generateFresh(task.id,cache);if(disposed)return;
       if(result.fileName!==task.fileName)throw Error('file_name_mismatch');
       entry.url=URL.createObjectURL(new Blob([result.html],{type:'text/html;charset=utf-8'}));link.href=entry.url;link.download=result.fileName;link.hidden=false;
-      status.textContent='準備できました。'+result.fileName+' を保存し、「書類／HTML実習」へ移動してください。';
-     }catch(e){if(!disposed)status.textContent='取得できませんでした。学校アカウントの確認状態を確認し、もう一度取得してください。（'+e.message+'）';}
+      moveFocus=document.activeElement===button;button.hidden=true;
+     }catch(e){if(!disposed){clear();button.hidden=false;status.textContent='取得できませんでした。学校アカウントの確認状態を確認し、もう一度取得してください。（'+e.message+'）';}}
      finally{busy=false;if(!disposed)entries.forEach(e=>{e.button.disabled=false;});}
+     if(!disposed && entry.url){
+      // The small link also remains available if the browser blocks the automatic download.
+      try{link.click();}catch(e){status.textContent='実習ファイルを取得しました。保存されない場合は「もう一度保存」を押してください。';}
+      if(moveFocus)link.focus();
+     }
     });
    }
    return {canClose:()=>!busy || root.confirm('ひな形の取得中です。閉じますか？'),dispose:()=>{disposed=true;entries.forEach(e=>{e.clear();e.button.disabled=true;});}};
