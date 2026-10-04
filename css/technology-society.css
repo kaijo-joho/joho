@@ -18,6 +18,12 @@
 .is-technology .ts-two { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 14px; }
 .is-technology .ts-two > * { min-width: 0; }
 .is-technology .ts-model-note { margin: .4em 0; color: var(--is-muted); font-size: .82em; }
+.is-technology .ts-scene { display: grid; grid-template-columns: minmax(0,1.05fr) minmax(0,1fr); gap: 18px; align-items: center; margin: 16px 0 0; padding: 14px; border: 1px solid var(--is-border); border-radius: 12px; background: var(--is-panel); }
+.is-technology .ts-scene > * { min-width: 0; }
+.is-technology .ts-scene img { display: block; width: min(100%,375px); height: auto; margin: auto; border-radius: 8px; }
+.is-technology .ts-scene figcaption { color: var(--is-text); font-size: .88em; line-height: 1.7; }
+.is-technology .ts-scene-title { display: block; font-size: 1.1em; }
+.is-technology .ts-scene figcaption p { margin: .5em 0 0; }
 .is-technology [data-progress-controls] { display: none; }
 .is-technology .lesson-progress-ready > [data-progress-controls] { display: flex; }
 .is-technology [data-is-model]:not([data-is-ready]) .is-tabs { display: none; }
@@ -29,6 +35,7 @@
 .is-technology textarea:focus-visible { outline: 3px solid var(--is-focus); outline-offset: 3px; }
 @media (max-width: 800px) {
   .is-technology .ts-grid, .is-technology .ts-two { grid-template-columns: minmax(0,1fr); }
+  .is-technology .ts-scene { grid-template-columns: minmax(0,1fr); gap: 12px; }
   .is-technology .ts-visual svg { max-height: 290px; }
   .is-technology .ts-time-list { grid-template-columns: repeat(2,minmax(0,1fr)); }
 }
@@ -41,7 +48,8 @@
   .is-technology [data-lesson-slide] :is(h1, h2) { color: var(--is-accent) !important; }
   .is-technology .is-model { break-inside: auto; }
   .is-technology [data-lesson-progress] > [data-lesson-stage-from="1"] { break-after: avoid; }
-  .is-technology .is-observe { break-before: avoid; }
+  .is-technology :is(.is-observe, .is-note) { break-before: avoid; }
+  .is-technology [data-lesson-progress]:has(+ .is-note) { break-after: avoid; }
   .is-technology [data-is-panel] { break-inside: avoid; }
   .is-technology :is(h2, h3, summary) { break-after: avoid; }
   .is-technology .is-terms details { break-inside: avoid; }
@@ -51,4 +59,6 @@
   .is-technology .ts-problems > div { break-inside: avoid; }
   .is-technology .ts-response { min-height: 22mm; }
   .is-technology .ts-facts > div { break-inside: avoid; }
+  .is-technology .ts-scene { grid-template-columns: minmax(0,.95fr) minmax(0,1.05fr); gap: 4mm; padding: 3mm; break-inside: avoid; }
+  .is-technology .ts-scene img { width: min(100%,70mm); border-radius: 2mm; }
 }

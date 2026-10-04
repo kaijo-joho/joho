@@ -1,0 +1,283 @@
+{
+  "schemaVersion": 1,
+  "generatedDate": "2026-10-04",
+  "generator": "image_gen__imagegen",
+  "generationMode": "built-in",
+  "generationCalls": 12,
+  "inputReferences": 0,
+  "postprocessing": {
+    "library": "Pillow",
+    "format": "WebP",
+    "quality": 82,
+    "method": 6,
+    "resized": false,
+    "cropped": false,
+    "contentEdited": false
+  },
+  "scenes": [
+    {
+      "id": "is61-handwritten-record",
+      "page": "is61",
+      "slide": 1,
+      "title": "書いて残し、運んで届ける",
+      "alt": "木の机で帳面と手紙を書き、届ける手紙を手渡そうとする人の生成イメージ",
+      "caption": "生成イメージ：手書きの記録と手紙を使う架空の場面。記録を残すことと、別の場所へ運ぶことを分けて見てみましょう。",
+      "prompt": "Use case: historical-scene\nAsset type: contextual scene image in an information-and-media history lesson.\nPrimary request: imagine handwritten records and a physical letter being prepared for delivery in an ordinary early nineteenth-century town, before widespread electrical communication.\nScene/backdrop: a modest room with daylight from a window, wooden desk, ledger, folded paper and ink.\nSubject: one clerk writes a record with a quill while a second person receives a folded letter to carry away; the written pages contain only indistinct marks.\nComposition/framing: a medium-wide view with the paper, writing action and handoff all clear, no famous building or identifiable historical figure.\nConstraints: period-plausible clothing and materials; no electrical devices, typewriters or modern postal branding; do not imply this is the origin of writing.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-d7f13fe8-0b1f-422b-96ff-617aec5961b4.png",
+      "masterFile": "generated-scenes/is6/masters/is61-handwritten-record.png",
+      "assetFile": "img/technology-society/scenes/is61-handwritten-record.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 154614,
+      "assetSha256": "106c85798cab00398ae16b832a14e44781f852657c394f9f0887d700b401a119",
+      "masterBytes": 2316619,
+      "masterSha256": "b5cc3018bcd5fdfabd68185c2b1ed3b860f00638d6b36e530e7dea80fb91b04e",
+      "toolArguments": {
+        "prompt": "Use case: historical-scene\nAsset type: contextual scene image in an information-and-media history lesson.\nPrimary request: imagine handwritten records and a physical letter being prepared for delivery in an ordinary early nineteenth-century town, before widespread electrical communication.\nScene/backdrop: a modest room with daylight from a window, wooden desk, ledger, folded paper and ink.\nSubject: one clerk writes a record with a quill while a second person receives a folded letter to carry away; the written pages contain only indistinct marks.\nComposition/framing: a medium-wide view with the paper, writing action and handoff all clear, no famous building or identifiable historical figure.\nConstraints: period-plausible clothing and materials; no electrical devices, typewriters or modern postal branding; do not imply this is the origin of writing.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    },
+    {
+      "id": "is61-print-workshop",
+      "page": "is61",
+      "slide": 2,
+      "title": "同じ内容を複製する",
+      "alt": "木製の手動印刷機と活字を使い、紙を刷る15世紀西欧の架空工房の生成イメージ",
+      "caption": "生成イメージ：15世紀西欧の印刷工房を想像した場面。史料写真ではありません。同じ内容を複製する作業と、紙を配る作業の違いを考えましょう。",
+      "prompt": "Use case: historical-scene\nAsset type: contextual scene image in a lesson about writing and printing.\nPrimary request: a fictional mid-fifteenth-century Western European workshop using a wooden hand-operated screw printing press and metal movable type.\nScene/backdrop: a modest workroom, timber furniture, sheets drying nearby, a type tray on the workbench.\nSubject: two ordinary craft workers, one attending the hand press and the other arranging small type pieces or checking a freshly printed sheet.\nComposition/framing: medium-wide view, make the wooden screw, rectangular platen, paper bed and workbench visually understandable as practical equipment.\nConstraints: plausible manual workshop, simple linen and wool clothes; no steam engines, electric machinery, modern safety helmets or modern writing tools. No named inventor, famous artwork, exact museum reconstruction or claim of the world's first printing. Printed marks are indistinct, not readable.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-210b7197-4ba6-422e-9f41-c6663403c9d1.png",
+      "masterFile": "generated-scenes/is6/masters/is61-print-workshop.png",
+      "assetFile": "img/technology-society/scenes/is61-print-workshop.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 201016,
+      "assetSha256": "a237349db74f9dc75ea03c9f22ebff08e3e134181615c5806313360733e6bd19",
+      "masterBytes": 2486180,
+      "masterSha256": "ec97eb8aea977f75a1c37018a35d0876cd0a65a8b0605a664f59f6be294aa08f",
+      "toolArguments": {
+        "prompt": "Use case: historical-scene\nAsset type: contextual scene image in a lesson about writing and printing.\nPrimary request: a fictional mid-fifteenth-century Western European workshop using a wooden hand-operated screw printing press and metal movable type.\nScene/backdrop: a modest workroom, timber furniture, sheets drying nearby, a type tray on the workbench.\nSubject: two ordinary craft workers, one attending the hand press and the other arranging small type pieces or checking a freshly printed sheet.\nComposition/framing: medium-wide view, make the wooden screw, rectangular platen, paper bed and workbench visually understandable as practical equipment.\nConstraints: plausible manual workshop, simple linen and wool clothes; no steam engines, electric machinery, modern safety helmets or modern writing tools. No named inventor, famous artwork, exact museum reconstruction or claim of the world's first printing. Printed marks are indistinct, not readable.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    },
+    {
+      "id": "is61-broadcast-participation",
+      "page": "is61",
+      "slide": 4,
+      "title": "同じ番組を見る、参加して伝える",
+      "alt": "集まった人が大型画面の番組を見て、別の人がタブレットで意見を送ろうとする生成イメージ",
+      "caption": "生成イメージ：架空の地域センターで番組を見たり、ネットワークを使って参加したりする場面。誰から誰へ情報が流れるか、使う画面だけでなく行動にも注目しましょう。",
+      "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson comparing broadcasting and Internet participation.\nPrimary request: a present-day Japanese community-center lounge where people watch a local information program on one shared large screen while a person uses a tablet to send a question or comment.\nScene/backdrop: a calm public lounge with seats and a notice board containing only indistinct marks.\nSubject: four ordinary participants of different ages, most looking at the shared screen, one looking at a tablet with generic abstract message rectangles; the large screen shows a small generic presenter in a studio.\nComposition/framing: medium-wide human scene; the different actions of watching and contributing should be visible without diagrams or printed labels.\nConstraints: no actual broadcaster, service logos, identifiable politicians or celebrities, legible text, or claim that all broadcast audiences can directly reply through broadcasting.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-462cc723-d4af-4cdd-92a6-b0b6844e4d23.png",
+      "masterFile": "generated-scenes/is6/masters/is61-broadcast-participation.png",
+      "assetFile": "img/technology-society/scenes/is61-broadcast-participation.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 113764,
+      "assetSha256": "15523ff53958ca1ad8f0f7ff7e9d95dc3a3974d62c7cd007197fe68120097af7",
+      "masterBytes": 2164759,
+      "masterSha256": "93142aec6caff9c990582d5f9b0b8a7172aa46c892f3c80ec044dcf5b42ebad2",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson comparing broadcasting and Internet participation.\nPrimary request: a present-day Japanese community-center lounge where people watch a local information program on one shared large screen while a person uses a tablet to send a question or comment.\nScene/backdrop: a calm public lounge with seats and a notice board containing only indistinct marks.\nSubject: four ordinary participants of different ages, most looking at the shared screen, one looking at a tablet with generic abstract message rectangles; the large screen shows a small generic presenter in a studio.\nComposition/framing: medium-wide human scene; the different actions of watching and contributing should be visible without diagrams or printed labels.\nConstraints: no actual broadcaster, service logos, identifiable politicians or celebrities, legible text, or claim that all broadcast audiences can directly reply through broadcasting.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    },
+    {
+      "id": "is62-calculation-ledger",
+      "page": "is62",
+      "slide": 1,
+      "title": "計算と記録を支える道具",
+      "alt": "小さな店で帳簿を書き、機械式の計算道具を使って確認する人の生成イメージ",
+      "caption": "生成イメージ：架空の店で計算と記録を行う場面。道具が助ける作業と、人が確認する作業を探しましょう。",
+      "prompt": "Use case: historical-scene\nAsset type: contextual scene image in a lesson about calculation tools and social change.\nPrimary request: a fictional small office or shop in the early twentieth century, where a clerk checks totals using a simple mechanical desktop calculating machine and a paper ledger.\nScene/backdrop: a modest wooden counter, ledger, pencil, invoices and an unbranded mechanical hand-operated adding machine with plain physical keys or crank.\nSubject: two ordinary shop staff checking paper records together, one operating the calculation tool and the other following the entries in the ledger.\nComposition/framing: medium-wide view that makes the relationship between people, calculator and paper record clear.\nConstraints: no exact historic machine model, no electronic display, computers or phones, no readable account data. Show practical work rather than a claim of first invention.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-f4b211a6-2cb4-40d3-a8fc-0e3443da6f76.png",
+      "masterFile": "generated-scenes/is6/masters/is62-calculation-ledger.png",
+      "assetFile": "img/technology-society/scenes/is62-calculation-ledger.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 179638,
+      "assetSha256": "f3a3da26a01efd681364643d6c06e99d7d6aa448e1ec4907c463e04feb30467e",
+      "masterBytes": 2472720,
+      "masterSha256": "e78d6eeedbff56a2c84afa3b02531970ccd117b029aa9fee93d1568ace60f6c5",
+      "toolArguments": {
+        "prompt": "Use case: historical-scene\nAsset type: contextual scene image in a lesson about calculation tools and social change.\nPrimary request: a fictional small office or shop in the early twentieth century, where a clerk checks totals using a simple mechanical desktop calculating machine and a paper ledger.\nScene/backdrop: a modest wooden counter, ledger, pencil, invoices and an unbranded mechanical hand-operated adding machine with plain physical keys or crank.\nSubject: two ordinary shop staff checking paper records together, one operating the calculation tool and the other following the entries in the ledger.\nComposition/framing: medium-wide view that makes the relationship between people, calculator and paper record clear.\nConstraints: no exact historic machine model, no electronic display, computers or phones, no readable account data. Show practical work rather than a claim of first invention.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    },
+    {
+      "id": "is62-computer-room",
+      "page": "is62",
+      "slide": 2,
+      "title": "プログラムで仕事を変える",
+      "alt": "大型の計算機設備がある部屋で紙資料と機器を確認する担当者たちの生成イメージ",
+      "caption": "生成イメージ：20世紀のコンピュータ室を想像した場面。特定の機種の再現ではありません。設備を使う人、準備する情報、結果を利用する人を考えましょう。",
+      "prompt": "Use case: historical-scene\nAsset type: contextual scene image in a lesson about computers, programs and changes in work.\nPrimary request: a fictional late-1960s or early-1970s computer room with large cabinets, a couple of reel-to-reel tape units and a desk console, attended by two ordinary staff.\nScene/backdrop: a clean functional institutional room, muted equipment panels, a paper printout and a small stack of punched cards on the desk.\nSubject: one staff member checks a paper printout while another uses the desk console; ordinary practical clothing, believable posture and hands.\nComposition/framing: medium-wide view showing the scale of equipment and the relationship between preparation, operation and checking output.\nConstraints: no exact branded computer model, no readable numbers, no modern flat screens or smartphones, no named historical individuals, no claim of first or universal design.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-14f5d1f1-c62b-4842-9b75-c786b1c0d00b.png",
+      "masterFile": "generated-scenes/is6/masters/is62-computer-room.png",
+      "assetFile": "img/technology-society/scenes/is62-computer-room.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 121040,
+      "assetSha256": "fef0a62d1d198d285cf6644143cad920a54af9bea3eb565aba6fbf4602782686",
+      "masterBytes": 2022942,
+      "masterSha256": "8f5650d171cc41092b11d6c89496e86a17f8c58299d1e77c553fc39f3f32ff49",
+      "toolArguments": {
+        "prompt": "Use case: historical-scene\nAsset type: contextual scene image in a lesson about computers, programs and changes in work.\nPrimary request: a fictional late-1960s or early-1970s computer room with large cabinets, a couple of reel-to-reel tape units and a desk console, attended by two ordinary staff.\nScene/backdrop: a clean functional institutional room, muted equipment panels, a paper printout and a small stack of punched cards on the desk.\nSubject: one staff member checks a paper printout while another uses the desk console; ordinary practical clothing, believable posture and hands.\nComposition/framing: medium-wide view showing the scale of equipment and the relationship between preparation, operation and checking output.\nConstraints: no exact branded computer model, no readable numbers, no modern flat screens or smartphones, no named historical individuals, no claim of first or universal design.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    },
+    {
+      "id": "is62-mobile-connection",
+      "page": "is62",
+      "slide": 4,
+      "title": "持ち運べる端末が暮らしに入る",
+      "alt": "移動中の人がスマートフォンで予定や地図を確認し、周囲の人と待ち合わせる生成イメージ",
+      "caption": "生成イメージ：端末で予定や道順を確認する架空の暮らし。端末の中でできることと、通信先の情報が必要なことを分けて考えましょう。",
+      "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about portable connected devices and daily life.\nPrimary request: an ordinary present-day Japanese station plaza where a person checks a route and a meeting plan on a smartphone while meeting a friend.\nScene/backdrop: a calm station entrance and benches with no readable signs or branded storefronts.\nSubject: two ordinary adults, one using a phone and the other indicating the meeting place; phone display contains only a simple abstract route line and generic calendar blocks, not readable text.\nComposition/framing: medium-wide scene, include everyday surroundings and the natural action rather than a phone product glamour shot.\nConstraints: no service logos, identifiable real people, augmented-reality holograms, futuristic devices or implication that every function works offline.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-c36d832c-586e-4817-ac81-215605b7df8d.png",
+      "masterFile": "generated-scenes/is6/masters/is62-mobile-connection.png",
+      "assetFile": "img/technology-society/scenes/is62-mobile-connection.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 152000,
+      "assetSha256": "7dd9e2fbef9cdf55daefc44419bf17bca62d58e26ad4edf96bc7533b6e652f86",
+      "masterBytes": 2270358,
+      "masterSha256": "0ac0f5f6d5d71b4cf8e8383ac5d19ea8fa76448c5c168bd7638a9b8bd281e8e6",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about portable connected devices and daily life.\nPrimary request: an ordinary present-day Japanese station plaza where a person checks a route and a meeting plan on a smartphone while meeting a friend.\nScene/backdrop: a calm station entrance and benches with no readable signs or branded storefronts.\nSubject: two ordinary adults, one using a phone and the other indicating the meeting place; phone display contains only a simple abstract route line and generic calendar blocks, not readable text.\nComposition/framing: medium-wide scene, include everyday surroundings and the natural action rather than a phone product glamour shot.\nConstraints: no service logos, identifiable real people, augmented-reality holograms, futuristic devices or implication that every function works offline.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    },
+    {
+      "id": "is63-school-sensor",
+      "page": "is63",
+      "slide": 2,
+      "title": "測った値と、教室の状態",
+      "alt": "教室のセンサーと端末の値を生徒と先生が確認し、窓や室内の状態も見る生成イメージ",
+      "caption": "生成イメージ：学校の環境をセンサーで測る架空の場面。値が新しいか、通信が続いているか、実際の状態と合うかを確認する人に注目しましょう。",
+      "prompt": "Use case: illustration-story\nAsset type: contextual scene image in an AI and IoT high-school lesson.\nPrimary request: a present-day fictional Japanese high-school classroom where two students and a teacher check a small wall-mounted environmental sensor and the corresponding generic tablet chart, while also looking at the actual classroom window.\nScene/backdrop: an ordinary bright classroom, desks, windows and a small neutral sensor box.\nSubject: one student notices the sensor, another checks the tablet, a teacher looks toward the window or room conditions; cooperative practical observation.\nComposition/framing: medium-wide eye-level scene with sensor, tablet and physical surroundings all clear.\nConstraints: no exact sensor product or readable measurements; no false arrows, floating data, robot teacher, automatic magic control or visible camera surveillance; ordinary generic abstract chart only.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-b4d8e42b-4903-457a-829f-73c2f0c022a8.png",
+      "masterFile": "generated-scenes/is6/masters/is63-school-sensor.png",
+      "assetFile": "img/technology-society/scenes/is63-school-sensor.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 103176,
+      "assetSha256": "56af1d8ebfcbf5f78a927f427213e5fc81f6acd566e89b7021c77dedb8bb9ade",
+      "masterBytes": 2010132,
+      "masterSha256": "8e484130b4ab03697cdab28842b60d3985a05eed1e105bc7e403e2d664c3739b",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story\nAsset type: contextual scene image in an AI and IoT high-school lesson.\nPrimary request: a present-day fictional Japanese high-school classroom where two students and a teacher check a small wall-mounted environmental sensor and the corresponding generic tablet chart, while also looking at the actual classroom window.\nScene/backdrop: an ordinary bright classroom, desks, windows and a small neutral sensor box.\nSubject: one student notices the sensor, another checks the tablet, a teacher looks toward the window or room conditions; cooperative practical observation.\nComposition/framing: medium-wide eye-level scene with sensor, tablet and physical surroundings all clear.\nConstraints: no exact sensor product or readable measurements; no false arrows, floating data, robot teacher, automatic magic control or visible camera surveillance; ordinary generic abstract chart only.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    },
+    {
+      "id": "is63-human-check-classification",
+      "page": "is63",
+      "slide": 3,
+      "title": "候補を出したあとに確かめる",
+      "alt": "学校の机で葉の分類候補を端末と実物資料で照らし合わせる生徒たちの生成イメージ",
+      "caption": "生成イメージ：AIの分類候補を人が確かめる架空の場面。入力の特徴や条件が、学習に使われた例と違うときに何を確認するか考えましょう。",
+      "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about AI classification and checking unfamiliar inputs.\nPrimary request: two Japanese high-school students at a classroom worktable checking a computer's tentative leaf-classification result against actual fallen leaves and a botanical reference book.\nScene/backdrop: ordinary school worktable with a laptop, three differently shaped leaves, a reference book with indistinct leaf illustrations.\nSubject: one student points to a candidate leaf image on the laptop, the other studies the real leaf beside the reference; thoughtful checking, not cheering.\nComposition/framing: medium-wide scene, clearly show the relationship between input object, screen candidate and human inspection.\nConstraints: generic abstract interface only, no readable labels or confidence percentages, no implied guaranteed answer, robots, holograms, service logos or identifiable real students.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-35635b1e-0851-4acb-9ca4-389eb2ca8bde.png",
+      "masterFile": "generated-scenes/is6/masters/is63-human-check-classification.png",
+      "assetFile": "img/technology-society/scenes/is63-human-check-classification.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 116732,
+      "assetSha256": "060699faf256d4e57673ecb4e3c532b498f76c8564a6efc31b3bc381a43c1b6a",
+      "masterBytes": 2101022,
+      "masterSha256": "430f9a7e81c61778d3e303e94cf7c9e58f9a398e559d07852b671ee0a03b1442",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about AI classification and checking unfamiliar inputs.\nPrimary request: two Japanese high-school students at a classroom worktable checking a computer's tentative leaf-classification result against actual fallen leaves and a botanical reference book.\nScene/backdrop: ordinary school worktable with a laptop, three differently shaped leaves, a reference book with indistinct leaf illustrations.\nSubject: one student points to a candidate leaf image on the laptop, the other studies the real leaf beside the reference; thoughtful checking, not cheering.\nComposition/framing: medium-wide scene, clearly show the relationship between input object, screen candidate and human inspection.\nConstraints: generic abstract interface only, no readable labels or confidence percentages, no implied guaranteed answer, robots, holograms, service logos or identifiable real students.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    },
+    {
+      "id": "is63-generated-draft-check",
+      "page": "is63",
+      "slide": 4,
+      "title": "文章の案と、確かめる資料",
+      "alt": "端末の文章案を本や紙の資料と照らし合わせて確認する生徒の生成イメージ",
+      "caption": "生成イメージ：生成AIの文章案を資料で確認する架空の場面。文章が自然に見えることと、内容に根拠があることは別に確かめます。",
+      "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about generative AI drafts and source checking.\nPrimary request: two Japanese high-school students in a library comparing a generic generated writing draft on a laptop with an open reference book and a printed source sheet, marking an item that needs checking.\nScene/backdrop: quiet ordinary school library table, books, laptop and pencil.\nSubject: one student reads the laptop draft, the other points to a passage in the source book; careful collaborative comparison.\nComposition/framing: medium-wide natural scene with draft screen, reference materials and action of verification easy to see.\nConstraints: screen and book contain indistinct lines only, no readable generated facts, accuracy score, actual AI brand, copyright logo, celebrity, robot, futuristic hologram or implication that the draft is automatically correct.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-9dcc6833-2c67-4c96-8427-a05720c89e97.png",
+      "masterFile": "generated-scenes/is6/masters/is63-generated-draft-check.png",
+      "assetFile": "img/technology-society/scenes/is63-generated-draft-check.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 112710,
+      "assetSha256": "9c305cdcc8bc47ae3df64e0b0f4ebc6903c18d363417afb0b303a9c813d579db",
+      "masterBytes": 2084027,
+      "masterSha256": "2a6c731ef60df94f3f79231636dcc39ce791645945ce30497b0b39a666d0115a",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about generative AI drafts and source checking.\nPrimary request: two Japanese high-school students in a library comparing a generic generated writing draft on a laptop with an open reference book and a printed source sheet, marking an item that needs checking.\nScene/backdrop: quiet ordinary school library table, books, laptop and pencil.\nSubject: one student reads the laptop draft, the other points to a passage in the source book; careful collaborative comparison.\nComposition/framing: medium-wide natural scene with draft screen, reference materials and action of verification easy to see.\nConstraints: screen and book contain indistinct lines only, no readable generated facts, accuracy score, actual AI brand, copyright logo, celebrity, robot, futuristic hologram or implication that the draft is automatically correct.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    },
+    {
+      "id": "is64-access-support",
+      "page": "is64",
+      "slide": 2,
+      "title": "使える条件を一緒に整える",
+      "alt": "窓口で利用者と支援担当者が端末の表示を確認し、紙の手続きも選べる生成イメージ",
+      "caption": "生成イメージ：利用者を支援する架空の窓口。端末・通信・操作・表示のどこが障壁になるかは人によって異なり、相談や別の方法も助けになります。",
+      "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about the digital divide and accessible support.\nPrimary request: a fictional Japanese community service desk where an adult visitor and a support worker review a tablet application together, with a paper form also available on the desk.\nScene/backdrop: calm accessible public counter, neutral uncluttered setting, no identifying signs.\nSubject: two adults cooperating as equals, support worker calmly showing a large simple interface; visitor actively pointing at an option, not portrayed as helpless. Paper alternative nearby.\nComposition/framing: medium-wide view emphasizing shared choice, practical assistance and multiple access methods.\nConstraints: do not stereotype older people, disability or poverty as inability; no readable form data or names, service logos, surveillance, exaggerated frustration or magical instant solution.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-c32287ab-152f-43b4-a8a0-cc91279ccbc6.png",
+      "masterFile": "generated-scenes/is6/masters/is64-access-support.png",
+      "assetFile": "img/technology-society/scenes/is64-access-support.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 100460,
+      "assetSha256": "612cadbaee26e9c123af50f67515d75a5be09e7f93be2a002526243b2d328682",
+      "masterBytes": 2014365,
+      "masterSha256": "40ed9ff6ec4670ff4850ce5dfad40d69bcee3f746117b21f9937f8e6747425ea",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about the digital divide and accessible support.\nPrimary request: a fictional Japanese community service desk where an adult visitor and a support worker review a tablet application together, with a paper form also available on the desk.\nScene/backdrop: calm accessible public counter, neutral uncluttered setting, no identifying signs.\nSubject: two adults cooperating as equals, support worker calmly showing a large simple interface; visitor actively pointing at an option, not portrayed as helpless. Paper alternative nearby.\nComposition/framing: medium-wide view emphasizing shared choice, practical assistance and multiple access methods.\nConstraints: do not stereotype older people, disability or poverty as inability; no readable form data or names, service logos, surveillance, exaggerated frustration or magical instant solution.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    },
+    {
+      "id": "is64-work-roles",
+      "page": "is64",
+      "slide": 3,
+      "title": "自動集計と、人の判断",
+      "alt": "職場で自動集計の一覧を確認し、別の担当者が利用者の相談に応じる生成イメージ",
+      "caption": "生成イメージ：集計と相談対応を分担する架空の職場。作業を自動化したあとにも残る確認・判断・調整を探しましょう。",
+      "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about automation, work tasks and human roles.\nPrimary request: a fictional small community-center office where one staff member reviews a computer's automatically compiled reservation list and another discusses a special request with a visitor.\nScene/backdrop: an ordinary shared office counter and desks, generic screen showing a grid and small chart without readable information.\nSubject: three ordinary adults, one checking the screen against a paper note, another listening to a visitor with a calendar page; human judgment and coordination remain visible.\nComposition/framing: one coherent medium-wide workplace scene, clearly show two complementary tasks without split panels.\nConstraints: no robots replacing workers, prediction of job loss, brands, readable private data or celebratory claims that automation removes all work.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-905de919-4555-4076-809f-1b561c0839fb.png",
+      "masterFile": "generated-scenes/is6/masters/is64-work-roles.png",
+      "assetFile": "img/technology-society/scenes/is64-work-roles.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 110760,
+      "assetSha256": "609d2d3eb3198720bb7ab731c0d05280b6ff847b8b8d6397ff5b0e97f71a7c8d",
+      "masterBytes": 1968338,
+      "masterSha256": "d6d44fdf2a6b3b8646782cfad236ce5f8377cececd65223d6df9e6982a7393c7",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about automation, work tasks and human roles.\nPrimary request: a fictional small community-center office where one staff member reviews a computer's automatically compiled reservation list and another discusses a special request with a visitor.\nScene/backdrop: an ordinary shared office counter and desks, generic screen showing a grid and small chart without readable information.\nSubject: three ordinary adults, one checking the screen against a paper note, another listening to a visitor with a calendar page; human judgment and coordination remain visible.\nComposition/framing: one coherent medium-wide workplace scene, clearly show two complementary tasks without split panels.\nConstraints: no robots replacing workers, prediction of job loss, brands, readable private data or celebratory claims that automation removes all work.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    },
+    {
+      "id": "is64-information-perspectives",
+      "page": "is64",
+      "slide": 5,
+      "title": "別の見方を比べる",
+      "alt": "同じ本選びについて端末と図書館の資料を持ち寄り、異なる候補を比べる人たちの生成イメージ",
+      "caption": "生成イメージ：本の候補を持ち寄る架空の場面。自分の画面や似た意見だけに頼らず、別の資料や人の見方を比べる様子を考えましょう。",
+      "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about filter bubbles, echo chambers and comparing perspectives.\nPrimary request: three ordinary Japanese high-school students at a library table comparing different book choices: one has a tablet showing a repeated generic book-cover style, another has a different physical book, and another has a printed reference list.\nScene/backdrop: ordinary library, several plain-color book covers, no readable titles or copyrighted cover designs.\nSubject: students listening to each other and pointing to different candidates, calm discussion and curiosity; no one is presented as the sole correct person.\nComposition/framing: one coherent medium-wide scene, the different information sources should be distinct through objects and actions rather than text, arrows or thought bubbles.\nConstraints: no actual recommendation interface, claim of guaranteed algorithmic effect, social media brands, polarized political stereotypes, readable text or identifiable real students.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+      "sourceFile": "generated_images/exec-519c3cd0-b4d5-44d5-91e4-b5e8d0c06250.png",
+      "masterFile": "generated-scenes/is6/masters/is64-information-perspectives.png",
+      "assetFile": "img/technology-society/scenes/is64-information-perspectives.webp",
+      "width": 1536,
+      "height": 1024,
+      "assetBytes": 114000,
+      "assetSha256": "4e59861c5df12023810cabe6aca810cdfca0bf8dd3a8700345a1779655a3f0ee",
+      "masterBytes": 2122977,
+      "masterSha256": "c8abcc6809c3025582f91646389d0e3c3a54e8e2d3d1adaf3db3b0d722283ddd",
+      "toolArguments": {
+        "prompt": "Use case: illustration-story\nAsset type: contextual scene image in a lesson about filter bubbles, echo chambers and comparing perspectives.\nPrimary request: three ordinary Japanese high-school students at a library table comparing different book choices: one has a tablet showing a repeated generic book-cover style, another has a different physical book, and another has a printed reference list.\nScene/backdrop: ordinary library, several plain-color book covers, no readable titles or copyrighted cover designs.\nSubject: students listening to each other and pointing to different candidates, calm discussion and curiosity; no one is presented as the sole correct person.\nComposition/framing: one coherent medium-wide scene, the different information sources should be distinct through objects and actions rather than text, arrows or thought bubbles.\nConstraints: no actual recommendation interface, claim of guaranteed algorithmic effect, social media brands, polarized political stereotypes, readable text or identifiable real students.\nStyle/medium: a carefully observed editorial illustration for a Japanese high-school lesson, softly painted realistic forms, warm natural light, clear everyday objects and human actions. A single coherent scene, horizontal 3:2 composition. No montage, collage, contact sheet, infographic, arrows, labels, readable text, logos, watermarks, or recognizable real people. Keep hands and tools plausible. This is a fictional teaching image, not documentary evidence.",
+        "transparent_background": false
+      }
+    }
+  ]
+}

@@ -42,24 +42,46 @@
 | [Computer History Museum, Networking & The Web](https://www.computerhistory.org/timeline/networking-the-web/) | 通信と計算機の並行した発達、異種ネットワークの接続、共同作業や情報共有の拡大。パケット等の仕組みはNWへ委ねる。 |
 | [NIST, Internet of Things glossary](https://csrc.nist.gov/glossary/term/internet_of_things) | ネットワークに接続する物、センサー・制御装置などとデータ交換。IoTとAIを同一視しない。 |
 | [NIST AI RMF 1.0（2023）](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.100-1.pdf) | 予測・推薦などの出力、データと利用条件、偏り、妥当性や人の関与。現在の製品能力や正答率は扱わない。公式サイトでは改訂中だが、基礎概念は固定版1.0で確認した。 |
-| [NIST Generative AI Profile（2024）](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf) | もっともらしい誤った出力、根拠確認、利用場面に合う評価。生成AIから実際に出力を取得していない。 |
+| [NIST Generative AI Profile（2024）](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf) | もっともらしい誤った出力、根拠確認、利用場面に合う評価。本文の文章案は教材独自の例であり、生成AIの文章出力を取得していない。下記の情景画像は別途画像生成した。 |
 | [ITU, Development to bridge the digital divide](https://www.itu.int/en/history/Pages/ITUsHistory-page-8.aspx) | 国・地域・社会集団間の利用機会、安価な接続・基盤・能力育成。現時点の人口や利用率は採用しない。 |
 
 British Museum、NHK、Internet Society等の一部ページは取得不可だったため、確認済みの資料として扱わず、上表の一次資料へ切り替えた。
 
 ## 実装と表示
 
-共通の `lesson-slide-deck.css/js`、既存 `information-society.css/js`、主担当の `lesson-progress.css/js` を共用する。固有CSSは `.is-technology` 配下のレイアウトと独自図、固有JSは語句・説明例の開閉、印刷時の展開と復元だけを担う。段階進行とスライド移動を複製しない。
+共通の `lesson-slide-deck.css/js`、既存 `information-society.css/js`、主担当の `lesson-progress.css/js` を共用する。固有CSSは `.is-technology` 配下のレイアウトと独自図・情景画像、固有JSは語句・説明例の開閉、印刷時の展開と復元、情景画像の印刷時読み込みを担う。段階進行とスライド移動を複製しない。
 
 SVGにはすべてtitle/descと一意のIDがあり、本文にも判断に必要な情報を置く。全状態の図と文章はソースHTMLに残す。JS無効時は全スライド・全比較・説明を読め、操作ボタンは隠す。印刷時は全比較・段階説明・語句・説明例を展開する。テーマ、3段階文字サイズ、390px、reduced motionを共通変数・基盤で支える。既存IS資産と専用CSS/JSはSHA384 SRIをHTMLへ指定する。
 
 教材以外へのリンクは上記の一次出典のみ。ライセンス未確認の写真や第三者の図を取り込まず、外部原本の生成物にも触れない。
+
+## 生成画像による場面の補強
+
+2026-10-04の追加依頼「isの方は生成画像をたくさん使って、その情景を創造しやすくして」に基づき、built-in `image_gen__imagegen` を実際に12回呼び、1回につき独立した1場面を生成した。合成シートの切り出しやCLI/APIへの切り替えは行っていない。
+
+| ページ | 追加した3場面（本文スライド番号） |
+| --- | --- |
+| is61 | 手書きの記録と手紙の受渡し（1）／15世紀西欧の架空の印刷工房（2）／地域センターでの番組視聴とネット参加（4） |
+| is62 | 帳簿と機械式計算道具（1）／20世紀の架空のコンピュータ室（2）／端末で予定と道順を確認する暮らし（4） |
+| is63 | 学校でのセンサー値と実環境の確認（2）／AI分類候補と実物・資料の照合（3）／生成された文章案と参考資料の照合（4） |
+| is64 | 利用者を支援する窓口と別の手段（2）／集計・確認と相談対応の分担（3）／本の候補を異なる情報源で比べる（5） |
+
+全画像のaltとcaptionに生成イメージと明記し、架空の場面を通じて人の行為・道具・確認対象を観察する問いを添えた。歴史的な画像は史料写真・特定人物・機種・工房の正確な復元・歴史的事実の直接証拠として扱わない。画像内の細かな文字、値、機器の構造は判断の根拠にせず、事実説明と構造・条件の比較は確認済みの本文と既存SVGで行う。
+
+画像は既存の予想段階（stage 0）に配置し、NextでSVGの比較操作へ進む。7本文スライド、21モデル、64SVG、事実文章と演習の構造を保持する。画像だけに必須情報を置かない。画像には寸法1536×1024、`loading="lazy"`、`decoding="async"`を指定し、テーマ・文字サイズ・狭い画面に応じてcaptionを配置する。印刷では全3場面をcaptionと一緒に展開する。
+
+原状master12枚は `/Users/takashi/Documents/Codex/2026-10-04/task-2/generated-scenes/is6/masters/` に保存し、ツール実出力とのbyte一致とSHA256を確認した。正確なプロンプトは同系列の `prompts.json`、実出力パスの記録は `generation-log.json`、完全な来歴とchecksumは `manifest.json` に保存した。原状PNG計26,034,439 bytesを保持し、Pillowは同解像度でのWebP形式変換と圧縮（quality 82 / method 6）にだけ使用した。内容・構図の編集、切り出し、リサイズは行っていない。
+
+Web用資産は `img/technology-society/scenes/` 内の12WebP、合計1,579,910 bytes。各100,460〜201,016 bytes。リポジトリ側の[画像manifest](../img/technology-society/scenes/manifest.json)にも正確なプロンプト、built-in引数、原画像とWebPのSHA256、寸法、容量、captionを記録する（manifest自体は47,338 bytes）。
+
+WebKitで表紙から直接印刷した場合、画面外の遅延画像が1枚読み込まれないことを実測したため、専用JSの印刷モードで画像のloadingを一時的にeagerへ変更し、終了時にlazyへ復元する。共通スライド・段階進行は変更せず、専用CSS/JSのSRIを4HTMLで更新する。
 
 ## 検証
 
 ```sh
 node --check js/technology-society.js
 node scripts/test-technology-society-pages.mjs
+node scripts/test-technology-society-scenes.mjs
 PLAYWRIGHT_MODULE=/path/to/playwright JOHO_TEST_URL=http://127.0.0.1:8896/ node scripts/test-technology-society-browser.mjs
 node scripts/test-lesson-slide-pages.mjs
 node scripts/test-information-society-pages.mjs
@@ -76,6 +98,12 @@ git diff --check
 
 実ブラウザーはChromeとPlaywright WebKitを使用し、4ページすべてで1440/720/390px、明/暗/システムテーマ、標準/大/特大の27組合せと全7スライドを検証した。各比較の全状態も各幅・特大文字で確認した。NextのEnter/Space操作、最終段階の停止、戻る・段階リセット、比較のリセット、Tab/Shift+Tabとフォーカス保持、スライド移動後の段階と比較状態の保持、語句と説明例の開閉、入力保持、タッチ操作、JS無効時の全状態表示を確認し、横方向のはみ出し・ローカル参照のHTTPエラー・JavaScript例外はなかった。WebKitのフォーカス移動はmacOSのキーボード操作設定に対応するAlt+Tabも使用した。
 
-印刷では両エンジンで全段階・全比較・語句・説明例の展開と画面状態の復元を確認した。ChromeのA4 PDFはis61が8頁、is62が8頁、is63が7頁、is64が10頁で、全7本文見出しが含まれる。代表的なPDF紙面をPNGにして図・文章・改ページを目視し、説明課題のみが孤立する改ページを修正した。デスクトップと390pxの代表画面も画像で確認した。PDFは内部検証用で、納品対象はWeb教材である。
+初回制作の印刷検証では両エンジンで全段階・全比較・語句・説明例の展開と画面状態の復元を確認した。表紙登録前のChrome A4 PDFはis61が8頁、is62が8頁、is63が7頁、is64が10頁で、全7本文見出しが含まれた。代表的なPDF紙面をPNGにして図・文章・改ページを目視し、説明課題のみが孤立する改ページを修正した。デスクトップと390pxの代表画面も画像で確認した。PDFは内部検証用で、納品対象はWeb教材である。
 
-この独立実装では正式台帳が未登録のため、共通表紙を加えた統合状態とオンライン反映は主担当が検証する。Safariアプリ・スマートフォン実機・対応する完成版Google Slidesは未確認。
+初回の独立制作後、主担当の統合で正式台帳の表紙が追加された。今回の画像補強では台帳・公開設定・教材間リンク・検索索引を変更しない。
+
+画像補強後もChromeとPlaywright WebKitで4ページ×1440/720/390px×全テーマ×文字3段階、全7本文、各比較の全状態、Next・戻る・リセット・フォーカス・タッチ・語句・演習・JS無効を再検証して合格した。追加12画像は全状態で縦横比を保ち、captionと画像がはみ出さない。各画像のデコードと自然寸法を確認し、全生成原画像、代表的なデスクトップ・390pxのfigure画像を目視した。追加前のbodyと、追加figureを取り除いた後のbodyが一致することも確認した（空白差を除く）。
+
+fresh-coverからの印刷は、未表示の画像3枚すべての読み込み、各caption、画面復帰後のlazy設定復元を両エンジンで確認した。最終Chrome A4 PDFは表紙込みis61が11頁、is62が10頁、is63が11頁、is64が12頁。Popplerで各PDFに1536×1024の画像が3枚埋め込まれていることと、生成イメージcaptionが3件含まれることを確認した。PDF紙面をPNGで目視し、is61のWebとインターネットの注記のみが孤立した改ページを専用CSSで修正して印刷を再確認した。ページ内JavaScript例外・ローカル資産のHTTPエラーはなく、静的・画像manifest・SRI・既存必須検証とdiffチェックに合格した。
+
+Safariアプリ・スマートフォン実機・対応する完成版Google Slidesは未確認。正式統合後のオンライン反映は主担当が確認する。

@@ -20,6 +20,18 @@ async function fit(page,label){
 for(const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(',')) {
  const browser=await(engine==='webkit'?webkit.launch():chromium.launch({channel:'chrome'}));
  try {
+  // Printing directly from the cover must load scenes that have never been shown.
+  for(const id of ids) {
+   const fresh=await browser.newContext({viewport:{width:1440,height:1000}});await fresh.route('https://**/*',route=>route.abort());
+   const p=await fresh.newPage();await p.goto(`${base}${id}.html#title`);await p.locator('body.lesson-slide-ready').waitFor();
+   await expect(p.locator('#page_header')).toBeVisible();
+   await p.emulateMedia({media:'print'});
+   await expect.poll(()=>p.locator('.ts-scene img').evaluateAll(nodes=>nodes.length===3&&nodes.every(img=>img.complete&&img.naturalWidth===1536)),{message:`${id} fresh-cover print images`}).toBe(true);
+   if(engine==='chrome')await p.pdf({path:`${out}/${id}-fresh.pdf`,format:'A4',printBackground:true});
+   await p.emulateMedia({media:'screen'});await expect(p.locator('#page_header')).toBeVisible();
+   await expect.poll(()=>p.locator('.ts-scene img').evaluateAll(nodes=>nodes.every(img=>img.loading==='lazy')),{message:'lazy loading restored after print'}).toBe(true);
+   await fresh.close();
+  }
   const ctx=await browser.newContext({viewport:{width:1440,height:1000},reducedMotion:'reduce'});
   await ctx.route('https://**/*',route=>route.abort());
   const page=await ctx.newPage();const errors=[];
@@ -33,10 +45,18 @@ for(const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(',
     await page.evaluate(hash=>{location.hash=hash;},head);
     await expect(progress).toHaveAttribute('data-progress-step','0');
     await expect(progress.locator('[data-is-model]')).toBeHidden();
+    if(await progress.locator('.ts-scene').count()) {
+     const figure=progress.locator('.ts-scene');await figure.scrollIntoViewIfNeeded();
+     await expect(figure).toBeVisible();await figure.locator('img').evaluate(img=>img.decode());
+     const image=await figure.locator('img').evaluate(img=>({complete:img.complete,width:img.naturalWidth,height:img.naturalHeight}));
+     assert.deepEqual(image,{complete:true,width:1536,height:1024},'generated scene decodes');
+     await figure.screenshot({path:`${out}/${engine}-${await figure.getAttribute('data-generated-scene')}-1440.png`});
+    }
     const next=progress.locator('[data-progress-next]');
     await next.focus();await page.keyboard.press(engine==='webkit'?'Alt+Tab':'Tab');await expect(progress.locator('[data-progress-reset]')).toBeFocused();await page.keyboard.press(engine==='webkit'?'Alt+Shift+Tab':'Shift+Tab');await expect(next).toBeFocused();await page.keyboard.press('Enter');
     await expect(progress).toHaveAttribute('data-progress-step','1');
     await expect(progress.locator('[data-is-model]')).toBeVisible();
+    if(await progress.locator('.ts-scene').count()) await expect(progress.locator('.ts-scene')).toBeHidden();
     await page.keyboard.press('Space');
     await expect(progress).toHaveAttribute('data-progress-step','2');await expect(next).toBeDisabled();
     const model=progress.locator('[data-is-model]');
@@ -63,6 +83,17 @@ for(const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(',
      await page.emulateMedia({colorScheme:theme==='system'?'dark':theme});
      await page.evaluate(({theme,size})=>{window.siteTheme.setPreference(theme);window.siteTextSize.setPreference(size);},{theme,size});
      for(let n=1;n<=7;n++){await go(page,n);await fit(page,`${engine} ${id} ${width} ${theme} ${size} ${n}`);}
+     for(const figure of await page.locator('.ts-scene').all()) {
+      const progress=figure.locator('xpath=ancestor::*[@data-lesson-progress]');
+      const head=await figure.evaluate(el=>el.closest('section').querySelector('h2').id);
+      await page.evaluate(hash=>{location.hash=hash;},head);
+      await page.evaluate(el=>window.JohoLessonProgress.set(el,0),await progress.elementHandle());
+      await figure.scrollIntoViewIfNeeded();await expect(figure).toBeVisible();await fit(page,`${engine} ${id} scene ${width} ${theme} ${size}`);
+      const bounds=await figure.evaluate(el=>{const img=el.querySelector('img'),a=img.getBoundingClientRect(),b=el.getBoundingClientRect();return {left:a.left>=b.left-1,right:a.right<=b.right+1,ratio:a.width/a.height};});
+      assert.ok(bounds.left&&bounds.right&&Math.abs(bounds.ratio-1.5)<.02,'scene contained without distortion');
+      if(width===390&&theme==='light'&&size==='standard') await figure.screenshot({path:`${out}/${engine}-${await figure.getAttribute('data-generated-scene')}-390.png`});
+      await page.evaluate(el=>window.JohoLessonProgress.set(el,2),await progress.elementHandle());
+     }
     }
     // Full comparison states at the narrowest layout with the largest text.
     for(const model of await page.locator('[data-is-model]').all()){
@@ -78,6 +109,8 @@ for(const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(',
    await page.emulateMedia({media:'print'});
    assert.ok(await page.locator('section[data-lesson-slide]').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).display!=='none')));
    assert.ok(await page.locator('[data-is-panel], [data-lesson-stage-from]').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).display!=='none')),'all print comparisons and explanations');
+   await expect.poll(()=>page.locator('.ts-scene img').evaluateAll(nodes=>nodes.every(img=>img.complete&&img.naturalWidth>0)),{message:'print scene images ready'}).toBe(true);
+   assert.ok(await page.locator('.ts-scene').evaluateAll(nodes=>nodes.every(el=>getComputedStyle(el).display!=='none')),'all scenes included in print');
    await expect.poll(()=>page.locator('.is-terms details,.ts-problems details').evaluateAll(nodes=>nodes.every(n=>n.open)),{message:'print disclosures opened'}).toBe(true);
    if(engine==='chrome')await page.pdf({path:`${out}/${id}.pdf`,format:'A4',printBackground:true});
    await page.emulateMedia({media:'screen'});
@@ -87,7 +120,7 @@ for(const engine of (process.env.JOHO_TEST_BROWSERS || 'chrome,webkit').split(',
   }
   assert.deepEqual(errors,[],'no page exceptions or local HTTP errors');
   const noJs=await browser.newContext({javaScriptEnabled:false,viewport:{width:390,height:1000}});await noJs.route('https://**/*',route=>route.abort());
-  for(const id of ids){const p=await noJs.newPage();await p.goto(`${base}${id}.html`);assert.ok(await p.locator('[data-is-panel],section[data-lesson-slide],[data-lesson-stage-from]').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).display!=='none')));assert.ok(await p.locator('details').evaluateAll(nodes=>nodes.every(n=>n.open)));await p.close();}
+  for(const id of ids){const p=await noJs.newPage();await p.goto(`${base}${id}.html`);assert.ok(await p.locator('[data-is-panel],section[data-lesson-slide],[data-lesson-stage-from]').evaluateAll(nodes=>nodes.every(n=>getComputedStyle(n).display!=='none')));assert.ok(await p.locator('details').evaluateAll(nodes=>nodes.every(n=>n.open)));for(const figure of await p.locator('.ts-scene').all()){await figure.scrollIntoViewIfNeeded();await expect(figure).toBeVisible();await figure.locator('img').evaluate(img=>img.decode());}await p.close();}
   await noJs.close();
   const touch=await browser.newContext({hasTouch:true,viewport:{width:390,height:1000}});await touch.route('https://**/*',route=>route.abort());
   for(const id of ids){const p=await touch.newPage();await p.goto(`${base}${id}.html#headline_1`);const progress=p.locator('[data-lesson-progress]').first();await progress.locator('[data-progress-next]').tap();await progress.locator('[data-is-select]').last().tap();await expect(progress.locator('[data-is-select]').last()).toHaveAttribute('aria-pressed','true');await progress.locator('[data-is-reset]').tap();await expect(progress.locator('[data-is-model]')).toHaveAttribute('data-is-state',await progress.locator('[data-is-model]').getAttribute('data-is-default'));await p.close();}
